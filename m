@@ -1,66 +1,67 @@
-From: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V1 rdma-core 1/3] verbs: Enable creating QP with a given
- source QP number
-Date: Sun, 10 Sep 2017 09:54:45 +0300
-Message-ID: <CAFgAxU8bkhb6tvB=1GUzqW2Dg-43Y+pZkDaXvFOE+5CEMLs6Mg@mail.gmail.com>
-References: <1504786327-820-1-git-send-email-yishaih@mellanox.com>
- <1504786327-820-2-git-send-email-yishaih@mellanox.com> <20170907151641.GC20644@obsidianresearch.com>
- <CAFgAxU8QqEQwCMnu=_1hjRVMHJ_242pXykxHuJ9PftxTV77TUw@mail.gmail.com> <20170907192909.GA5364@obsidianresearch.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] IB/core: fix incorrect fall-through on switch statement
+Date: Wed, 13 Sep 2017 19:49:17 +0300
+Message-ID: <20170913164917.GU3405@mtr-leonro.local>
+References: <20170911160313.28240-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170907192909.GA5364-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="dwWFXG4JqVa0wfCP"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170911160313.28240-1-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 7, 2017 at 10:29 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Thu, Sep 07, 2017 at 09:46:39PM +0300, Alex Rosenbaum wrote:
->> On Thu, Sep 7, 2017 at 6:16 PM, Jason Gunthorpe
->> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->> > On Thu, Sep 07, 2017 at 03:12:05PM +0300, Yishai Hadas wrote:
->> >> +uint32_t                source_qpn;     /* Source QP number, creation flag IBV_QP_CREATE_SOURCE_QPN should be set */
->> >
->> > I think more discussion in the man page is required for this
->> > feature. Eg that it is a SEND ONLY QP and only works for UD.
->>
->> Verbs UD QP can handle receive of ingress packets sent with
->> BTH.DestQPN = ibv_qp->qp_num. This is applicable also in this case.
->>
->> Also, future implementation might include RC source qpn use case. This
->> can be accomplished by setting the HCA's QPN to be the same as the
->> 'source qpn' value, and returning that to the user.
->>
->> We prefer not to limit the API definition in the man page.
+
+--dwWFXG4JqVa0wfCP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Sep 11, 2017 at 05:03:13PM +0100, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
 >
-> Well, you have to define what the API does, specifically.
+> In the case where mbox_status is OCRDMA_MBX_STATUS_FAILED and
+> add_status is OCRDMA_MBX_STATUS_FAILED err_num is assigned -EAGAIN
+> however the case OCRDMA_MBX_STATUS_FAILED is missing a break and
+> falls through to the default case which then re-assigns err_num
+> to -EFAULT.   Fix this so that err_num is assigned to -EAGAIN
+> for the add_status OCRDMA_MBX_STATUS_FAILED case and -EFAULT
+> otherwise.
 >
-> If you expect it to RX then you need to specify that.
-
-Like any other QP, this too can have a max_recv_wr defined by user. I
-don't think we need to specifically mention it, because it is not a
-limition.
-
-> Does it steal
-> the traffic? Does it get a copy? Do you need to use flow steering to
-> do that?
-
-Yes, this QP can support flow steering based on
-IBV_DEVICE_MANAGED_FLOW_STEERING.
-
-> Same for RC.
+> Detected by CoverityScan CID#703125 ("Missing break in switch")
 >
-> There is nothing wrong with specifying the API limit that exist today,
-> it helps people understand what the feature is and how to use it.
+> Fixes: fe2caefcdf58 ("RDMA/ocrdma: Add driver for Emulex OneConnect IBoE RDMA adapter")
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> ---
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 3 +++
+>  1 file changed, 3 insertions(+)
+>
 
-RC is currently not supported. Do you prefer we update the man page
-with the UD limitation? and once RC or other limitation are removed we
-update it again?
+Except the wrong title: IB/core -> IB/ocrdma
 
-Alex
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Thanks
+
+--dwWFXG4JqVa0wfCP
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlm5YY0ACgkQ5GN7iDZy
+WKeMGA/8CzgkGeeSwh93C/BEupiN7XzgxRFt59cqn81jwFl3jB0EDR6xmKRC2Uyp
+0aXa3lWyV2XPsQYnJBY4wW/U39cDDUfNqE3ngIc+GRFfY7+A5jSm+6KYmIVc3j0A
+8pzlpibyyoc1Skg/l/GFAP+2Nn5J5Xebnos77wtVsqPImrcX8TUBxjYr1hTKJiZ+
+ptVSEQp/61gN3/pWeD5x+SXvjhiUq/fKSfDoD3NW8UzjM4Ih4AYn8nGiO1ngQqFm
+ZbIk2AUWCRi7ndqE9rp5nVsQcVyfc38yRdiek4uT4DjXdUf3ul+kW5NpdmfHWOT3
+b1r4x0U7yGezhTGvwx66Y4C5ygdbiiXsRuxbyebBlkPHst4zmpIN/VqTJlN+h7H+
+fBy+F91O4FMEnB5jw8ARWilX9D8t4yotEVLv5Lv1OA+IT7DCH0m475ZdETzX5A6t
+MIAtsPbUN0sMPbRSjKM2dFxgyt8ATG1zG0CqdUBiMamrLRBCdNUlrBlXcM/hmsgJ
+/KgIAOoHHDtW4I9E3JWdFKhIhXMJu8Zqu5FLyTiSTEPj9j4d82uPn1Oy5HddFUpK
+lRnutGeIb770455YVRyJecd91NLaG507ftIX1zsv295pZ7j94Dp/eAwEIQvG8D22
+D9uMw3M0G4rTbU/ePS3saE0ekdvNahj4dtv0n9+4yrCiXigLtiY=
+=VPRF
+-----END PGP SIGNATURE-----
+
+--dwWFXG4JqVa0wfCP--
