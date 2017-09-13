@@ -1,42 +1,41 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v3 0/3] iw_cxgb4 fixes for 4.14-rc
-Date: Fri, 15 Sep 2017 14:27:07 -0700
-Message-ID: <cover.1505510827.git.swise@opengridcomputing.com>
+Subject: [PATCH v3 1/3] iw_cxgb4: put ep reference in pass_accept_req()
+Date: Wed, 13 Sep 2017 09:52:32 -0700
+Message-ID: <468f0009b232db179963647515110f33541450b5.1505510827.git.swise@opengridcomputing.com>
+References: <cover.1505510827.git.swise@opengridcomputing.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1505510827.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-v2 didn't make it to the email list, so I'm sending v3.  I'm having a 
-bad day...
+The listening endpoint should always be dereferenced at the end of
+pass_accept_req().
 
+Fixes: f86fac79afec ("RDMA/iw_cxgb4: atomic find and reference for listening endpoints")
+
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
+ drivers/infiniband/hw/cxgb4/cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Hey Doug, please consider these bug fixes for 4.14-rc.  I'm resending 
-a "v2" series which overrides the first submission, and the "RESEND"
-submission.
-
-Changes since "RESEND"
-- fixed up the commit comment for patch 3
-
-Chances since original submission
-- Move the stable tag to the correct location in the commit log
-
-Thanks,
-
-Steve.
-
----
-
-Steve Wise (3):
-  iw_cxgb4: put ep reference in pass_accept_req()
-  iw_cxgb4: drop listen destroy replies if no ep found
-  iw_cxgb4: remove the stid on listen create failure
-
- drivers/infiniband/hw/cxgb4/cm.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index e49b34c..6d85a5d 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -2594,9 +2594,9 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	c4iw_put_ep(&child_ep->com);
+ reject:
+ 	reject_cr(dev, hwtid, skb);
++out:
+ 	if (parent_ep)
+ 		c4iw_put_ep(&parent_ep->com);
+-out:
+ 	return 0;
+ }
+ 
 -- 
 1.8.3.1
 
