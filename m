@@ -1,111 +1,50 @@
-From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 00/20] RDMA/hns: Add hip08 RoCE driver support
-Date: Thu, 14 Sep 2017 15:45:53 +0800
-Message-ID: <59BA33B1.8030300@huawei.com>
-References: <1504084998-64397-1-git-send-email-xavier.huwei@huawei.com>
- <20170913175554.GX3405@mtr-leonro.local>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/6] Add RSS support in mlx4
+Date: Thu, 14 Sep 2017 11:22:52 +0300
+Message-ID: <14e4f18c-c140-a6ae-d815-df432c01ae27@dev.mellanox.co.il>
+References: <1505220788-23849-1-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170913175554.GX3405-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1505220788-23849-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier_huwei-9Onoh4P/yGk@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 9/12/2017 3:53 PM, Yishai Hadas wrote:
+> This patch set from Guy Levi implements the RSS related verbs for ConnectX-3
+> devices in the mlx4 provider.
+> 
+> The matching kernel part was already merged into 4.14.
+> 
+> PR was sent:
+> https://github.com/linux-rdma/rdma-core/pull/218
+> 
+> Guy Levi (6):
+>    mlx4: Add support for WQ control path related verbs
+>    mlx4: Introduce the direct verb mlx4dv_set_ctx_attr
+>    mlx4: Add support for WQ indirection table related verbs
+>    mlx4: Add support for RSS QP
+>    mlx4: Add WQ data path support
+>    mlx4: Support WQ object type in direct verb mlx4dv_init_obj
+> 
+>   debian/ibverbs-providers.symbols     |   1 +
+>   providers/mlx4/cq.c                  |   5 +-
+>   providers/mlx4/libmlx4.map           |   1 +
+>   providers/mlx4/man/mlx4dv_init_obj.3 |  20 +++
+>   providers/mlx4/mlx4-abi.h            |  33 ++++
+>   providers/mlx4/mlx4.c                |  42 +++++
+>   providers/mlx4/mlx4.h                |  30 +++-
+>   providers/mlx4/mlx4dv.h              |  32 +++-
+>   providers/mlx4/qp.c                  |  34 +++-
+>   providers/mlx4/verbs.c               | 339 ++++++++++++++++++++++++++++++++++-
+>   10 files changed, 525 insertions(+), 12 deletions(-)
+> 
 
-
-On 2017/9/14 1:55, Leon Romanovsky wrote:
-> On Wed, Aug 30, 2017 at 05:22:58PM +0800, Wei Hu (Xavier) wrote:
->> This patchset adds support for the HiSilicon RoCE engine in the hip08
->> SoC.
->>
->> The driver is refactored so it can support both platform and pci device.
->> And hip08 RoCE engine is a pci device, hip06 RoCE engine is a platform
->> device.
->>
->> New hardware layer file hns_roce_hw_v2.c is added for hw v2 support,
->> which also includes pci device probing and initialization.
->>
->> Common functionality is still in hns-roce driver, along with device
->> initialization.
->>
->> This patchset depends on hns3 NIC driver which had been accepted by David,
->> and is based on for-next branch of the repo:
->> https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
->>
->> Shaobo Xu (3):
->>    RDMA/hns: Add the interfaces to support multi hop addressing for the
->>      contexts in hip08
->>    RDMA/hns: Update the interfaces for MTT/CQE multi hop addressing in
->>      hip08
->>    RDMA/hns: Split CQE from MTT in hip08
->>
->> Wei Hu (Xavier) (17):
->>    RDMA/hns: Split hw v1 driver from hns roce driver
->>    RDMA/hns: Move priv in order to add multiple hns_roce support
->>    RDMA/hns: Initialize the PCI device for hip08 RoCE
->>    RDMA/hns: Modify assignment device variable to support both PCI device
->>      and platform device
->>    RDMA/hns: Add command queue support for hip08 RoCE driver
->>    RDMA/hns: Add profile support for hip08 driver
->>    RDMA/hns: Add mailbox's implementation for hip08 RoCE driver
->>    RDMA/hns: Configure BT BA and BT attribute for the contexts in hip08
->>    RDMA/hns: Support multi hop addressing for PBL in hip08
->>    RDMA/hns: Configure mac&gid and user access region for hip08 RoCE
->>      driver
->>    RDMA/hns: Add CQ operations support for hip08 RoCE driver
->>    RDMA/hns: Add QP operations support for hip08 SoC
->>    RDMA/hns: Add support for processing send wr and receive wr
->>    RDMA/hns: Configure the MTPT in hip08
->>    RDMA/hns: Add releasing resource operation in error branch
->>    RDMA/hns: Replace condition statement using hardware version
->>      information
->>    RDMA/hns: Fix inconsistent warning
->>
->>   drivers/infiniband/hw/hns/Kconfig           |   25 +-
->>   drivers/infiniband/hw/hns/Makefile          |    8 +-
->>   drivers/infiniband/hw/hns/hns_roce_ah.c     |    2 +-
->>   drivers/infiniband/hw/hns/hns_roce_alloc.c  |    8 +-
->>   drivers/infiniband/hw/hns/hns_roce_cmd.c    |  107 +-
->>   drivers/infiniband/hw/hns/hns_roce_cmd.h    |   50 +
->>   drivers/infiniband/hw/hns/hns_roce_common.h |   23 +
->>   drivers/infiniband/hw/hns/hns_roce_cq.c     |   72 +-
->>   drivers/infiniband/hw/hns/hns_roce_device.h |   98 +-
->>   drivers/infiniband/hw/hns/hns_roce_hem.c    |  699 +++++-
->>   drivers/infiniband/hw/hns/hns_roce_hem.h    |   32 +-
->>   drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  401 +++-
->>   drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |    5 +
->>   drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 3128 +++++++++++++++++++++++++++
->>   drivers/infiniband/hw/hns/hns_roce_hw_v2.h  | 1165 ++++++++++
->>   drivers/infiniband/hw/hns/hns_roce_main.c   |  324 +--
->>   drivers/infiniband/hw/hns/hns_roce_mr.c     |  513 ++++-
->>   drivers/infiniband/hw/hns/hns_roce_pd.c     |   20 +-
->>   drivers/infiniband/hw/hns/hns_roce_qp.c     |  179 +-
->>   19 files changed, 6318 insertions(+), 541 deletions(-)
->>   create mode 100644 drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->>   create mode 100644 drivers/infiniband/hw/hns/hns_roce_hw_v2.h
->>
->> --
-> As far as I can see, it is ready to be merged.
->
-> Thanks,
-Hi, Leon
-     Thanks for your comments.
-
-     And about the comment on the No.11 patch of this patchset,
-     Which option we should do?  Can you give us some suggestions?
-     1. send PATCH V2 to fix it.
-     2. After this patchset will be merged, send a new patch to fix it.
-
-     The link about the comment: 
-https://www.spinics.net/lists/linux-rdma/msg54392.html
-
-     Regards
-Wei Hu
-
-
+Series was merged, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
