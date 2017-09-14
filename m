@@ -1,62 +1,153 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: [PATCH] net/mlx5: fpga: avoid uninitialized return codes
-Date: Thu, 14 Sep 2017 13:06:18 +0200
-Message-ID: <20170914110628.3590833-1-arnd@arndb.de>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for-next 00/20] RDMA/hns: Add hip08 RoCE driver support
+Date: Thu, 14 Sep 2017 15:43:41 +0300
+Message-ID: <20170914124341.GY3405@mtr-leonro.local>
+References: <1504084998-64397-1-git-send-email-xavier.huwei@huawei.com>
+ <20170913175554.GX3405@mtr-leonro.local>
+ <59BA33B1.8030300@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="A2x6GFCQWVc4i5ud"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <59BA33B1.8030300-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier_huwei-9Onoh4P/yGk@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-calling mlx5_fpga_mem_{read,write}_i2c() with a zero length on
-older compiler version such as gcc-4.6 results in a warning that
-the return code is not initialized:
 
-drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c:147:6: error: ‘err’ may be used uninitialized in this function [-Werror=uninitialized]
-drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c:126:6: error: ‘err’ may be used uninitialized in this function [-Werror=uninitialized]
+--A2x6GFCQWVc4i5ud
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On newer compilers, the 'err' variable is optimized away in this
-code path and assumed to be zero when the loop completes, so we
-don't get this warning.
+On Thu, Sep 14, 2017 at 03:45:53PM +0800, Wei Hu (Xavier) wrote:
+>
+>
+> On 2017/9/14 1:55, Leon Romanovsky wrote:
+> > On Wed, Aug 30, 2017 at 05:22:58PM +0800, Wei Hu (Xavier) wrote:
+> > > This patchset adds support for the HiSilicon RoCE engine in the hip08
+> > > SoC.
+> > >
+> > > The driver is refactored so it can support both platform and pci device.
+> > > And hip08 RoCE engine is a pci device, hip06 RoCE engine is a platform
+> > > device.
+> > >
+> > > New hardware layer file hns_roce_hw_v2.c is added for hw v2 support,
+> > > which also includes pci device probing and initialization.
+> > >
+> > > Common functionality is still in hns-roce driver, along with device
+> > > initialization.
+> > >
+> > > This patchset depends on hns3 NIC driver which had been accepted by David,
+> > > and is based on for-next branch of the repo:
+> > > https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+> > >
+> > > Shaobo Xu (3):
+> > >    RDMA/hns: Add the interfaces to support multi hop addressing for the
+> > >      contexts in hip08
+> > >    RDMA/hns: Update the interfaces for MTT/CQE multi hop addressing in
+> > >      hip08
+> > >    RDMA/hns: Split CQE from MTT in hip08
+> > >
+> > > Wei Hu (Xavier) (17):
+> > >    RDMA/hns: Split hw v1 driver from hns roce driver
+> > >    RDMA/hns: Move priv in order to add multiple hns_roce support
+> > >    RDMA/hns: Initialize the PCI device for hip08 RoCE
+> > >    RDMA/hns: Modify assignment device variable to support both PCI device
+> > >      and platform device
+> > >    RDMA/hns: Add command queue support for hip08 RoCE driver
+> > >    RDMA/hns: Add profile support for hip08 driver
+> > >    RDMA/hns: Add mailbox's implementation for hip08 RoCE driver
+> > >    RDMA/hns: Configure BT BA and BT attribute for the contexts in hip08
+> > >    RDMA/hns: Support multi hop addressing for PBL in hip08
+> > >    RDMA/hns: Configure mac&gid and user access region for hip08 RoCE
+> > >      driver
+> > >    RDMA/hns: Add CQ operations support for hip08 RoCE driver
+> > >    RDMA/hns: Add QP operations support for hip08 SoC
+> > >    RDMA/hns: Add support for processing send wr and receive wr
+> > >    RDMA/hns: Configure the MTPT in hip08
+> > >    RDMA/hns: Add releasing resource operation in error branch
+> > >    RDMA/hns: Replace condition statement using hardware version
+> > >      information
+> > >    RDMA/hns: Fix inconsistent warning
+> > >
+> > >   drivers/infiniband/hw/hns/Kconfig           |   25 +-
+> > >   drivers/infiniband/hw/hns/Makefile          |    8 +-
+> > >   drivers/infiniband/hw/hns/hns_roce_ah.c     |    2 +-
+> > >   drivers/infiniband/hw/hns/hns_roce_alloc.c  |    8 +-
+> > >   drivers/infiniband/hw/hns/hns_roce_cmd.c    |  107 +-
+> > >   drivers/infiniband/hw/hns/hns_roce_cmd.h    |   50 +
+> > >   drivers/infiniband/hw/hns/hns_roce_common.h |   23 +
+> > >   drivers/infiniband/hw/hns/hns_roce_cq.c     |   72 +-
+> > >   drivers/infiniband/hw/hns/hns_roce_device.h |   98 +-
+> > >   drivers/infiniband/hw/hns/hns_roce_hem.c    |  699 +++++-
+> > >   drivers/infiniband/hw/hns/hns_roce_hem.h    |   32 +-
+> > >   drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  401 +++-
+> > >   drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |    5 +
+> > >   drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 3128 +++++++++++++++++++++++++++
+> > >   drivers/infiniband/hw/hns/hns_roce_hw_v2.h  | 1165 ++++++++++
+> > >   drivers/infiniband/hw/hns/hns_roce_main.c   |  324 +--
+> > >   drivers/infiniband/hw/hns/hns_roce_mr.c     |  513 ++++-
+> > >   drivers/infiniband/hw/hns/hns_roce_pd.c     |   20 +-
+> > >   drivers/infiniband/hw/hns/hns_roce_qp.c     |  179 +-
+> > >   19 files changed, 6318 insertions(+), 541 deletions(-)
+> > >   create mode 100644 drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+> > >   create mode 100644 drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+> > >
+> > > --
+> > As far as I can see, it is ready to be merged.
+> >
+> > Thanks,
+> Hi, Leon
+>     Thanks for your comments.
+>
+>     And about the comment on the No.11 patch of this patchset,
+>     Which option we should do?  Can you give us some suggestions?
+>     1. send PATCH V2 to fix it.
+>     2. After this patchset will be merged, send a new patch to fix it.
 
-I'm changing the function here to instead return -EINVAL for the
-case, under the assumption that it was never meant to be called
-with a zero length argument.
+In your case (20 patches, many LOCs), it will be enough to send a followup patch
+to remove it, however you don't need to wait till it is merged and you
+can send it now with note placed under "---" markings that it is based
+on this series.
 
-Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82203
-Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thanks
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c
-index 3c11d6e2160a..914fb9d77a1a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c
-@@ -64,7 +64,7 @@ static int mlx5_fpga_mem_read_i2c(struct mlx5_fpga_device *fdev, size_t size,
- 	size_t max_size = MLX5_FPGA_ACCESS_REG_SIZE_MAX;
- 	size_t bytes_done = 0;
- 	u8 actual_size;
--	int err;
-+	int err = -EINVAL;
- 
- 	if (!fdev->mdev)
- 		return -ENOTCONN;
-@@ -93,7 +93,7 @@ static int mlx5_fpga_mem_write_i2c(struct mlx5_fpga_device *fdev, size_t size,
- 	size_t max_size = MLX5_FPGA_ACCESS_REG_SIZE_MAX;
- 	size_t bytes_done = 0;
- 	u8 actual_size;
--	int err;
-+	int err = -EINVAL;
- 
- 	if (!fdev->mdev)
- 		return -ENOTCONN;
--- 
-2.9.0
+>
+>     The link about the comment:
+> https://www.spinics.net/lists/linux-rdma/msg54392.html
+>
+>     Regards
+> Wei Hu
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+--A2x6GFCQWVc4i5ud
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlm6eX0ACgkQ5GN7iDZy
+WKek3w/+JboGk2JFUIPHxhxfI1/avKG8MM++uvKXS6i/bJZJ2xK7Uw9Pm+uMluOv
+tTH6X2gqa6yJXBEea9vwYtNENmmH1VkPzKyKErDURl6qO965PsHbzJwTape3Ipyr
+V3Avqf9aef48nEVZ+N/rrFGtw03kpIub/oxVNxfL5FQuPnyertUZpOH0vsWvQNhH
+4OUUCkJSNgC/P1cbPjN1WIIJX4sHvKu2tp3J6mUEhHmLeAFG3fxGFD4AAsA3uWNA
+UeexmItWiXJ4Sj6pt86JRMwCTuwh42/PkBXqtV0jShJPxGgYNL0qUdzgPZAXl9uk
+4MhQWl/KyoaZ8/Acd8rD9d6e3xLjkhsz/KLY0kOriCVdRYkfz4USHZhEP6BIBIBx
+3R01Gtlp7pIZOKP2KdK1HYCkoZWIPcX0Ot1iLHgr1DNg3rJX7ltwuD16UgU/kxgS
+EJXT+gMhXa6bHItO2Gx3/rnLMxHKDKc+erszE9gpderxbBMMgnr99Vd/6NMvY+uY
+vFRGGPocYkkpnZnqku0dQ2Z4SjZcoLmYaFny0jLjBZ+SPQp7Q2IyeHVOnfWnlTKn
+rcwCqV2gEXqnBNzEXnb4/lnPOBPmZlFMV1PYWTMb9tq1uDKtatUJNte/9LHC9Ppq
+OKeib9G9gT9UKP+9mMVTNlpG3J9JnDDJcpuBhKBIw6Vuai1c4k4=
+=cBGW
+-----END PGP SIGNATURE-----
+
+--A2x6GFCQWVc4i5ud--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
