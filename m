@@ -1,39 +1,56 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/2] mlx5: Report if kernel allows using MPW in
- SQ
-Date: Wed, 13 Sep 2017 12:38:49 -0600
-Message-ID: <20170913183849.GD1536@obsidianresearch.com>
-References: <1505130185-32658-1-git-send-email-yishaih@mellanox.com>
- <1505130185-32658-2-git-send-email-yishaih@mellanox.com>
- <20170911164257.GA2403@obsidianresearch.com>
- <1bb5967f-45fd-fb22-7772-10bf6b35e2e1@dev.mellanox.co.il>
+From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 4/8] bnxt_re: Free up devices in module_exit path
+Date: Thu, 14 Sep 2017 09:23:53 +0530
+Message-ID: <CAOBf=mupXRmhNoZOfwhr-Ho7_y-Kts4XmgtHgpMQVosmj=Hpcw@mail.gmail.com>
+References: <20170831035735.19595-1-somnath.kotur@broadcom.com>
+ <20170831035735.19595-5-somnath.kotur@broadcom.com> <20170913174255.GV3405@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1bb5967f-45fd-fb22-7772-10bf6b35e2e1-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20170913174255.GV3405-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 12, 2017 at 06:13:40PM +0300, Yishai Hadas wrote:
-> On 9/11/2017 7:42 PM, Jason Gunthorpe wrote:
-> >On Mon, Sep 11, 2017 at 02:43:04PM +0300, Yishai Hadas wrote:
-> >> 	MLX5DV_CONTEXT_FLAGS_CQE_V1	= (1 << 0),
-> >>-	MLX5DV_CONTEXT_FLAGS_MPW	= (1 << 1),
-> >>+	MLX5DV_CONTEXT_FLAGS_MPW	= (1 << 1), /* Obsoleted */
-> >>+	MLX5DV_CONTEXT_FLAGS_MPW_ALLOWED = (1 << 2),
+Hi Leon,
 
-> The bug was fixed in kernel 4.14 and now the feature is supported, the
-> legacy value 1 on resp.support_multi_pkt_send_wqe is not reported from
-> kernel any more as we can't rely on, and a new bit MLX5_ALLOW_MPW (1 << 1)
-> was introduced to indicate that feature is supported.
+On Wed, Sep 13, 2017 at 11:12 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Thu, Aug 31, 2017 at 09:27:31AM +0530, Somnath Kotur wrote:
+>> Clean up all devices added to the bnxt_re_dev_list in the
+>> module_exit entry point.
+>>
+>> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  drivers/infiniband/hw/bnxt_re/main.c | 16 ++++++++++++++++
+>>  1 file changed, 16 insertions(+)
+>>
+>> diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+>> index 82d1cbc..00a3b74 100644
+>> --- a/drivers/infiniband/hw/bnxt_re/main.c
+>> +++ b/drivers/infiniband/hw/bnxt_re/main.c
+>> @@ -1375,6 +1375,22 @@ static int __init bnxt_re_mod_init(void)
+>>
+>>  static void __exit bnxt_re_mod_exit(void)
+>>  {
+>> +     struct bnxt_re_dev *rdev;
+>> +     LIST_HEAD(to_be_deleted);
+>> +
+>> +     mutex_lock(&bnxt_re_dev_lock);
+>> +     /* Free all adapter allocated resources */
+>> +     if (!list_empty(&bnxt_re_dev_list))
+>
+> Hi Somnath,
+>
+> How is it possible to have the bnxt_re_dev_list to be empty at this
+> stage? Doesn't the call to bnxt_re_mod_exit mean that at least one entry
+> exists?
+Well, there is a possibility that NETDEV_UNREGISTER got invoked (not
+via rmmod , but via the pci-sysfs route)
+and this list is empty by the time rmmod of the bnxt_re was invoked.
 
-That is very messy.. At least delete the MLX5DV_CONTEXT_FLAGS_MPW
-constant to create a compile failure for this break.
-
-Jason
+Thanks
+Som
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
