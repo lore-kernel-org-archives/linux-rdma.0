@@ -1,43 +1,142 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/2] mlx5: Report if kernel allows using MPW in
- SQ
-Date: Thu, 14 Sep 2017 16:30:40 +0300
-Message-ID: <a3eeb133-24d0-d1b2-8c82-b16e73cd9539@dev.mellanox.co.il>
-References: <1505130185-32658-1-git-send-email-yishaih@mellanox.com>
- <1505130185-32658-2-git-send-email-yishaih@mellanox.com>
- <20170911164257.GA2403@obsidianresearch.com>
- <1bb5967f-45fd-fb22-7772-10bf6b35e2e1@dev.mellanox.co.il>
- <20170913183849.GD1536@obsidianresearch.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [LPC] 2nd RDMA Mini-Summit Schedule
+Date: Thu, 14 Sep 2017 19:48:35 +0300
+Message-ID: <20170914164835.GB3405@mtr-leonro.local>
+References: <20170907051805.GA19175@mtr-leonro.local>
+ <20170913130216.GT3405@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="i/CQJCAqWP/GQJtX"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170913183849.GD1536-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20170913130216.GT3405-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: linux-netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, NVME mailing list <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, lwn-T1hC0tSOHrs@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/13/2017 9:38 PM, Jason Gunthorpe wrote:
-> On Tue, Sep 12, 2017 at 06:13:40PM +0300, Yishai Hadas wrote:
->> On 9/11/2017 7:42 PM, Jason Gunthorpe wrote:
->>> On Mon, Sep 11, 2017 at 02:43:04PM +0300, Yishai Hadas wrote:
->>>> 	MLX5DV_CONTEXT_FLAGS_CQE_V1	= (1 << 0),
->>>> -	MLX5DV_CONTEXT_FLAGS_MPW	= (1 << 1),
->>>> +	MLX5DV_CONTEXT_FLAGS_MPW	= (1 << 1), /* Obsoleted */
->>>> +	MLX5DV_CONTEXT_FLAGS_MPW_ALLOWED = (1 << 2),
-> 
->> The bug was fixed in kernel 4.14 and now the feature is supported, the
->> legacy value 1 on resp.support_multi_pkt_send_wqe is not reported from
->> kernel any more as we can't rely on, and a new bit MLX5_ALLOW_MPW (1 << 1)
->> was introduced to indicate that feature is supported.
-> 
-> That is very messy.. At least delete the MLX5DV_CONTEXT_FLAGS_MPW
-> constant to create a compile failure for this break.
 
-PR was updated as you suggested, series was merged.
+--i/CQJCAqWP/GQJtX
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, Sep 13, 2017 at 04:02:16PM +0300, Leon Romanovsky wrote:
+> On Thu, Sep 07, 2017 at 08:18:05AM +0300, Leon Romanovsky wrote:
+> > Hi,
+> >
+> > We're happy to announce schedule of the 2nd RDMA mini-summit, which wil=
+l be
+> > held as part of coming Linux Plumbers Conference 2017.
+> >
+> > During the conference, we will have two sessions: main track session and
+> > round table session.
+> >
+> > First session will be held on Thursday, September 14, 2017 from 9:30am =
+=E2=80=93 12:30pm
+> > with the topics relevant for the wider audience.
+> >
+> > In the second session, we  will focus on more face to face discussions =
+in round
+> > table format and it will be scheduled a little bit later once we will g=
+et meeting
+> > room.
+>
+> UPDATE:
+> The round table will take place at 2:00pm on Thursday, September 14,
+> 2017 in one of the speakers's suites (3rd floor, near Georgia I/II).
+>
+> Thanks
+
+UPDATE:
+RDMA round table will be held at Platinum Ballroom J. from 2:00pm till 6:30=
+pm.
+
+Thanks
+
+>
+> >
+> > -----------------------------------------------------------------------=
+----------------
+> > FIRST SESSION:
+> > -----------------------------------------------------------------------=
+----------------
+> >  * Backporting issues with multi-subsystem device (RDMA + netdev + more=
+) by Don Dutile
+> >    - More and more devices in RDMA are dependent on netdev as well as o=
+ther
+> >      subsystems -- target, NFS, scsi, block, cgroups, SELinux.... Can w=
+e make
+> >      backporting task for distro people easier?
+> >  * kABI Update by Matan Barak
+> >    - Going forward with a flexible and secure RDMA kABI
+> >  * System Boot and RDMA by Jason Gunthrope
+> >    - Discuss boot-time issues with the RDMA subsystem
+> >  * Paravirtual RDMA device by Marcel Apfelbaum and Yuval Shaia
+> >    - QEMU's limited RDMA support leaves it behind other modern hypervis=
+ors.
+> >      Marcel and Yuval will present the implementation of an emulated RD=
+MA device,
+> >      analyze its performance and usability, and finally talk about futu=
+re plans
+> >      for a possible virtio-rdma device.
+> >   * TX Flow Steering for IPsec by Liran Liss (pending time slot)
+> >    - The IPsec protocol provides both encryption and authentication for=
+ IP
+> >      protocol packets. Users of the raw ethernet QP that send/receive I=
+Psec packets
+> >      could benefit from the IPsec crypto offloads capabilities that are
+> >      available in recent NICs.
+> >   * OpenFabrics Alliance - Status and New Directions by Jason Gunthrope
+> >   * BOF - Open Discussion
+> >    - Open discussion with the community lead by Leon Romanovsky, Jason =
+Gunthorpe,
+> >      Christoph Lameter and Dennis Dalessandro
+> >
+> > -----------------------------------------------------------------------=
+----------------
+> > ROUND TABLE SESSION:
+> > -----------------------------------------------------------------------=
+----------------
+> > Possible list, bring your own topics:
+> >  * RDMA and ULPs
+> >  * Verbs testing suite
+> >  * RDMA netlink and RDMAtool future plans
+> >  * RDMA and the Linux IP stack
+> >  * Infrastructure issues with Travis CI
+> >  * Infrastructure gaps with rdma-core
+> >  * Packaging as part of CI for rdma-core.
+> >  * ....
+> >
+> > See you next week at Linux Plumber Conference 2017.
+> >
+> > Thanks
+>
+>
+
+
+
+--i/CQJCAqWP/GQJtX
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlm6suMACgkQ5GN7iDZy
+WKcBgA/9EzLxzIn9a2SJDwIC2ZlQGhxLXSP+Susi7eR4zJJHIi++o+PycrvvU0LJ
+XT4fMzdkfkjCoBndRWAVRjoXlLSZv72S80d6vKS+mMGr5XTiNfMqeIAYVhnkiDBj
+fadl4VG6I+TgS6XVR80H4cSIckqFKdhL5KbCRKqg11iEral6og6cb/+qVFwiwvdr
+atcms4ZhO++1WCBqpNNBdvrGYBgARkgFInPUSWfvkd/+U3YOm2evOokmf2QM7yKv
+SGT9oQwgCYKTtvidH83qVylES/SxRDMDWw/zt6jih+3rg/i6iNjnBTRBhIvZqb22
+L2XFtqT11qIeALlBmuxDjTgVQs7UF8qi1B1xf0DQqK5/uY5gYmCABNJfHYftpsS5
+j+HAEtY1a867FUxbN5RoygEdyPQgMu58aGM/04ZEc5kWu02F8tKU1sUkYIcmd8WI
+CWrZsoE7V/f2XgYOUDveUoaA0tmXsaXTlWxLeH7ceMnZ1BlLvg1usuAyzGCFmw+Q
+Ms1xbGxX7aYRYgjpsxBmcrlwkQPuCKSVTDQty1HgCjmYqZc0ELrd0TO6VvokJ+jV
+XWqmrAN1xFSyB8v3Qy5dBe/T79Ywpp/xCexT9DHWNzaMau9xY+qrMw+hNt1APeJK
+e5X12A9doEez6X2da7uB+aOta66VZnpCIujZFWuYFyuJgVYnjTk=
+=DdUW
+-----END PGP SIGNATURE-----
+
+--i/CQJCAqWP/GQJtX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
