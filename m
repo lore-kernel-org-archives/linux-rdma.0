@@ -1,52 +1,42 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next] RDMA/bnxt_re: Remove redundant fw_ver sysfs entry
-Date: Thu, 14 Sep 2017 16:21:40 +0300
-Message-ID: <20170914132140.9812-1-leon@kernel.org>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/2] mlx5: Report if kernel allows using MPW in
+ SQ
+Date: Thu, 14 Sep 2017 16:30:40 +0300
+Message-ID: <a3eeb133-24d0-d1b2-8c82-b16e73cd9539@dev.mellanox.co.il>
+References: <1505130185-32658-1-git-send-email-yishaih@mellanox.com>
+ <1505130185-32658-2-git-send-email-yishaih@mellanox.com>
+ <20170911164257.GA2403@obsidianresearch.com>
+ <1bb5967f-45fd-fb22-7772-10bf6b35e2e1@dev.mellanox.co.il>
+ <20170913183849.GD1536@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170913183849.GD1536-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The IB/core has general sysfs knob to print FW version.
-This eliminates the need for the custom bnxt_re implementation,
-which is similar to the general.
+On 9/13/2017 9:38 PM, Jason Gunthorpe wrote:
+> On Tue, Sep 12, 2017 at 06:13:40PM +0300, Yishai Hadas wrote:
+>> On 9/11/2017 7:42 PM, Jason Gunthorpe wrote:
+>>> On Mon, Sep 11, 2017 at 02:43:04PM +0300, Yishai Hadas wrote:
+>>>> 	MLX5DV_CONTEXT_FLAGS_CQE_V1	= (1 << 0),
+>>>> -	MLX5DV_CONTEXT_FLAGS_MPW	= (1 << 1),
+>>>> +	MLX5DV_CONTEXT_FLAGS_MPW	= (1 << 1), /* Obsoleted */
+>>>> +	MLX5DV_CONTEXT_FLAGS_MPW_ALLOWED = (1 << 2),
+> 
+>> The bug was fixed in kernel 4.14 and now the feature is supported, the
+>> legacy value 1 on resp.support_multi_pkt_send_wqe is not reported from
+>> kernel any more as we can't rely on, and a new bit MLX5_ALLOW_MPW (1 << 1)
+>> was introduced to indicate that feature is supported.
+> 
+> That is very messy.. At least delete the MLX5DV_CONTEXT_FLAGS_MPW
+> constant to create a compile failure for this break.
 
-Cc: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/hw/bnxt_re/main.c | 9 ---------
- 1 file changed, 9 deletions(-)
-
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index ceae2d92fb08..c686887bf71e 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -525,14 +525,6 @@ static ssize_t show_rev(struct device *device, struct device_attribute *attr,
- 	return scnprintf(buf, PAGE_SIZE, "0x%x\n", rdev->en_dev->pdev->vendor);
- }
-
--static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
--			   char *buf)
--{
--	struct bnxt_re_dev *rdev = to_bnxt_re_dev(device, ibdev.dev);
--
--	return scnprintf(buf, PAGE_SIZE, "%s\n", rdev->dev_attr.fw_ver);
--}
--
- static ssize_t show_hca(struct device *device, struct device_attribute *attr,
- 			char *buf)
- {
-@@ -542,7 +534,6 @@ static ssize_t show_hca(struct device *device, struct device_attribute *attr,
- }
-
- static DEVICE_ATTR(hw_rev, 0444, show_rev, NULL);
--static DEVICE_ATTR(fw_rev, 0444, show_fw_ver, NULL);
- static DEVICE_ATTR(hca_type, 0444, show_hca, NULL);
-
- static struct device_attribute *bnxt_re_attributes[] = {
---
-2.14.1
+PR was updated as you suggested, series was merged.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
