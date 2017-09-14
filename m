@@ -1,56 +1,111 @@
-From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 4/8] bnxt_re: Free up devices in module_exit path
-Date: Thu, 14 Sep 2017 09:23:53 +0530
-Message-ID: <CAOBf=mupXRmhNoZOfwhr-Ho7_y-Kts4XmgtHgpMQVosmj=Hpcw@mail.gmail.com>
-References: <20170831035735.19595-1-somnath.kotur@broadcom.com>
- <20170831035735.19595-5-somnath.kotur@broadcom.com> <20170913174255.GV3405@mtr-leonro.local>
+From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 00/20] RDMA/hns: Add hip08 RoCE driver support
+Date: Thu, 14 Sep 2017 15:45:53 +0800
+Message-ID: <59BA33B1.8030300@huawei.com>
+References: <1504084998-64397-1-git-send-email-xavier.huwei@huawei.com>
+ <20170913175554.GX3405@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170913174255.GV3405-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170913175554.GX3405-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier_huwei-9Onoh4P/yGk@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Leon,
 
-On Wed, Sep 13, 2017 at 11:12 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Thu, Aug 31, 2017 at 09:27:31AM +0530, Somnath Kotur wrote:
->> Clean up all devices added to the bnxt_re_dev_list in the
->> module_exit entry point.
->>
->> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
->> ---
->>  drivers/infiniband/hw/bnxt_re/main.c | 16 ++++++++++++++++
->>  1 file changed, 16 insertions(+)
->>
->> diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
->> index 82d1cbc..00a3b74 100644
->> --- a/drivers/infiniband/hw/bnxt_re/main.c
->> +++ b/drivers/infiniband/hw/bnxt_re/main.c
->> @@ -1375,6 +1375,22 @@ static int __init bnxt_re_mod_init(void)
->>
->>  static void __exit bnxt_re_mod_exit(void)
->>  {
->> +     struct bnxt_re_dev *rdev;
->> +     LIST_HEAD(to_be_deleted);
->> +
->> +     mutex_lock(&bnxt_re_dev_lock);
->> +     /* Free all adapter allocated resources */
->> +     if (!list_empty(&bnxt_re_dev_list))
->
-> Hi Somnath,
->
-> How is it possible to have the bnxt_re_dev_list to be empty at this
-> stage? Doesn't the call to bnxt_re_mod_exit mean that at least one entry
-> exists?
-Well, there is a possibility that NETDEV_UNREGISTER got invoked (not
-via rmmod , but via the pci-sysfs route)
-and this list is empty by the time rmmod of the bnxt_re was invoked.
 
-Thanks
-Som
+On 2017/9/14 1:55, Leon Romanovsky wrote:
+> On Wed, Aug 30, 2017 at 05:22:58PM +0800, Wei Hu (Xavier) wrote:
+>> This patchset adds support for the HiSilicon RoCE engine in the hip08
+>> SoC.
+>>
+>> The driver is refactored so it can support both platform and pci device.
+>> And hip08 RoCE engine is a pci device, hip06 RoCE engine is a platform
+>> device.
+>>
+>> New hardware layer file hns_roce_hw_v2.c is added for hw v2 support,
+>> which also includes pci device probing and initialization.
+>>
+>> Common functionality is still in hns-roce driver, along with device
+>> initialization.
+>>
+>> This patchset depends on hns3 NIC driver which had been accepted by David,
+>> and is based on for-next branch of the repo:
+>> https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+>>
+>> Shaobo Xu (3):
+>>    RDMA/hns: Add the interfaces to support multi hop addressing for the
+>>      contexts in hip08
+>>    RDMA/hns: Update the interfaces for MTT/CQE multi hop addressing in
+>>      hip08
+>>    RDMA/hns: Split CQE from MTT in hip08
+>>
+>> Wei Hu (Xavier) (17):
+>>    RDMA/hns: Split hw v1 driver from hns roce driver
+>>    RDMA/hns: Move priv in order to add multiple hns_roce support
+>>    RDMA/hns: Initialize the PCI device for hip08 RoCE
+>>    RDMA/hns: Modify assignment device variable to support both PCI device
+>>      and platform device
+>>    RDMA/hns: Add command queue support for hip08 RoCE driver
+>>    RDMA/hns: Add profile support for hip08 driver
+>>    RDMA/hns: Add mailbox's implementation for hip08 RoCE driver
+>>    RDMA/hns: Configure BT BA and BT attribute for the contexts in hip08
+>>    RDMA/hns: Support multi hop addressing for PBL in hip08
+>>    RDMA/hns: Configure mac&gid and user access region for hip08 RoCE
+>>      driver
+>>    RDMA/hns: Add CQ operations support for hip08 RoCE driver
+>>    RDMA/hns: Add QP operations support for hip08 SoC
+>>    RDMA/hns: Add support for processing send wr and receive wr
+>>    RDMA/hns: Configure the MTPT in hip08
+>>    RDMA/hns: Add releasing resource operation in error branch
+>>    RDMA/hns: Replace condition statement using hardware version
+>>      information
+>>    RDMA/hns: Fix inconsistent warning
+>>
+>>   drivers/infiniband/hw/hns/Kconfig           |   25 +-
+>>   drivers/infiniband/hw/hns/Makefile          |    8 +-
+>>   drivers/infiniband/hw/hns/hns_roce_ah.c     |    2 +-
+>>   drivers/infiniband/hw/hns/hns_roce_alloc.c  |    8 +-
+>>   drivers/infiniband/hw/hns/hns_roce_cmd.c    |  107 +-
+>>   drivers/infiniband/hw/hns/hns_roce_cmd.h    |   50 +
+>>   drivers/infiniband/hw/hns/hns_roce_common.h |   23 +
+>>   drivers/infiniband/hw/hns/hns_roce_cq.c     |   72 +-
+>>   drivers/infiniband/hw/hns/hns_roce_device.h |   98 +-
+>>   drivers/infiniband/hw/hns/hns_roce_hem.c    |  699 +++++-
+>>   drivers/infiniband/hw/hns/hns_roce_hem.h    |   32 +-
+>>   drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  401 +++-
+>>   drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |    5 +
+>>   drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 3128 +++++++++++++++++++++++++++
+>>   drivers/infiniband/hw/hns/hns_roce_hw_v2.h  | 1165 ++++++++++
+>>   drivers/infiniband/hw/hns/hns_roce_main.c   |  324 +--
+>>   drivers/infiniband/hw/hns/hns_roce_mr.c     |  513 ++++-
+>>   drivers/infiniband/hw/hns/hns_roce_pd.c     |   20 +-
+>>   drivers/infiniband/hw/hns/hns_roce_qp.c     |  179 +-
+>>   19 files changed, 6318 insertions(+), 541 deletions(-)
+>>   create mode 100644 drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+>>   create mode 100644 drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+>>
+>> --
+> As far as I can see, it is ready to be merged.
+>
+> Thanks,
+Hi, Leon
+     Thanks for your comments.
+
+     And about the comment on the No.11 patch of this patchset,
+     Which option we should do?  Can you give us some suggestions?
+     1. send PATCH V2 to fix it.
+     2. After this patchset will be merged, send a new patch to fix it.
+
+     The link about the comment: 
+https://www.spinics.net/lists/linux-rdma/msg54392.html
+
+     Regards
+Wei Hu
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
