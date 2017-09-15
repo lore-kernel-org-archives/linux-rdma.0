@@ -1,104 +1,66 @@
-From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Subject: Re: [PATCH] net/mlx5: fpga: avoid uninitialized return codes
-Date: Thu, 14 Sep 2017 11:39:20 -0700
-Message-ID: <CALzJLG9jkmQVH-C2qCtYBns1=E0-wjVOq2mvJ76sgUiWCx=+Wg@mail.gmail.com>
-References: <20170914110628.3590833-1-arnd@arndb.de> <20170914125429.GZ3405@mtr-leonro.local>
+From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 11/20] RDMA/hns: Split CQE from MTT in hip08
+Date: Fri, 15 Sep 2017 09:09:28 +0800
+Message-ID: <59BB2848.6080802@huawei.com>
+References: <1504084998-64397-1-git-send-email-xavier.huwei@huawei.com>
+ <1504084998-64397-12-git-send-email-xavier.huwei@huawei.com>
+ <20170913175259.GW3405@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170914125429.GZ3405@mtr-leonro.local>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Ilan Tayari <ilant@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Boris Pismenny <borisp@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170913175259.GW3405-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier_huwei-9Onoh4P/yGk@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 14, 2017 at 5:54 AM, Leon Romanovsky <leonro@mellanox.com> wrot=
-e:
-> On Thu, Sep 14, 2017 at 01:06:18PM +0200, Arnd Bergmann wrote:
->> calling mlx5_fpga_mem_{read,write}_i2c() with a zero length on
->> older compiler version such as gcc-4.6 results in a warning that
->> the return code is not initialized:
->>
->> drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c:147:6: error: =E2=80=
-=98err=E2=80=99 may be used uninitialized in this function [-Werror=3Dunini=
-tialized]
->> drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c:126:6: error: =E2=80=
-=98err=E2=80=99 may be used uninitialized in this function [-Werror=3Dunini=
-tialized]
->>
->> On newer compilers, the 'err' variable is optimized away in this
->> code path and assumed to be zero when the loop completes, so we
->> don't get this warning.
->>
->> I'm changing the function here to instead return -EINVAL for the
->> case, under the assumption that it was never meant to be called
->> with a zero length argument.
 
-Thanks Arnd, Looks good.
 
->
-> I agree with you that size can't be zero and this patch will fix the
-> warning, but if it is possible, I will prefer to have this check is
-> written explicitly and not implicitly.
->
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c b/drivers=
-/net/ethernet/mellanox/mlx5/core/fpga/sdk.c
-> index 3c11d6e2160a..0e85bebe1dad 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c
-> @@ -69,6 +69,9 @@ static int mlx5_fpga_mem_read_i2c(struct mlx5_fpga_devi=
-ce *fdev, size_t size,
->         if (!fdev->mdev)
->                 return -ENOTCONN;
->
-> +       if (!size)
-> +               return -EINVAL;
-> +
-
-Or simply trust the caller :), and avoid redundant code.
-
->         while (bytes_done < size) {
->                 actual_size =3D min(max_size, (size - bytes_done));
->
-> Thanks
->
+On 2017/9/14 1:52, Leon Romanovsky wrote:
+> On Wed, Aug 30, 2017 at 05:23:09PM +0800, Wei Hu (Xavier) wrote:
+>> From: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 >>
->> Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=3D82203
->> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>> In hip08, the SQWQE/SGE/RQWQE and CQE have different hop num and
+>> page size, so we need to manage the base address table of the
+>> SQWQE/SGE/RQWQE and CQE separately.
+>>
+>> This patch is to split CQE from MTT(SQWQE/SGE/RQWQE).
+>>
+>> Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>> Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 >> ---
->>  drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c | 4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>   drivers/infiniband/hw/hns/hns_roce_cq.c     | 15 ++++++-
+>>   drivers/infiniband/hw/hns/hns_roce_device.h | 14 ++++--
+>>   drivers/infiniband/hw/hns/hns_roce_hem.c    |  3 ++
+>>   drivers/infiniband/hw/hns/hns_roce_main.c   | 17 ++++++++
+>>   drivers/infiniband/hw/hns/hns_roce_mr.c     | 66 ++++++++++++++++++++++-------
+>>   drivers/infiniband/hw/hns/hns_roce_qp.c     |  2 +
+>>   6 files changed, 98 insertions(+), 19 deletions(-)
+> <...>
+>
+>> --- a/drivers/infiniband/hw/hns/hns_roce_device.h
+>> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+>> @@ -170,6 +170,11 @@ enum {
+>>   	HNS_ROCE_OPCODE_RDMA_WITH_IMM_RECEIVE	= 0x07,
+>>   };
 >>
->> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c b/driver=
-s/net/ethernet/mellanox/mlx5/core/fpga/sdk.c
->> index 3c11d6e2160a..914fb9d77a1a 100644
->> --- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/sdk.c
->> @@ -64,7 +64,7 @@ static int mlx5_fpga_mem_read_i2c(struct mlx5_fpga_dev=
-ice *fdev, size_t size,
->>       size_t max_size =3D MLX5_FPGA_ACCESS_REG_SIZE_MAX;
->>       size_t bytes_done =3D 0;
->>       u8 actual_size;
->> -     int err;
->> +     int err =3D -EINVAL;
->>
->>       if (!fdev->mdev)
->>               return -ENOTCONN;
->> @@ -93,7 +93,7 @@ static int mlx5_fpga_mem_write_i2c(struct mlx5_fpga_de=
-vice *fdev, size_t size,
->>       size_t max_size =3D MLX5_FPGA_ACCESS_REG_SIZE_MAX;
->>       size_t bytes_done =3D 0;
->>       u8 actual_size;
->> -     int err;
->> +     int err =3D -EINVAL;
->>
->>       if (!fdev->mdev)
->>               return -ENOTCONN;
->> --
->> 2.9.0
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> +enum hns_roce_mtt_type {
+>> +	MTT_TYPE_WQE = 0,
+>> +	MTT_TYPE_CQE,
+>> +};
+> No need to initialize enum to zero.
+> Thanks
+Hi, Leon
+     We will send a followup patch to fix it at your suggestion.
+     Thanks
+
+     Regards
+Wei Hu
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
