@@ -1,34 +1,33 @@
 From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH 1/3] iw_cxgb4: put ep reference in pass_accept_req()
-Date: Fri, 15 Sep 2017 13:50:18 -0500
-Message-ID: <019801d32e53$7a1e84a0$6e5b8de0$@opengridcomputing.com>
-References: <20170915140722.9641AE0C1D@smtp.ogc.us> <20170915164622.GB27343@kroah.com>
+Subject: RE: [PATCH 3/3] iw_cxgb4: remove the stid on listen create failure
+Date: Fri, 15 Sep 2017 13:51:17 -0500
+Message-ID: <019a01d32e53$9ccadc60$d6609520$@opengridcomputing.com>
+References: <20170915140822.B0E2DE0C1D@smtp.ogc.us> <20170915164605.GA27343@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
         charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20170915164622.GB27343@kroah.com>
+In-Reply-To: <20170915164605.GA27343@kroah.com>
 Content-Language: en-us
 Sender: stable-owner@vger.kernel.org
-To: 'Greg KH' <greg@kroah.com>
+To: 'Greg KH' <gregkh@linuxfoundation.org>
 Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+> Subject: Re: [PATCH 3/3] iw_cxgb4: remove the stid on listen create failure
 > 
-> <formletter>
+> On Tue, Sep 05, 2017 at 11:52:34AM -0700, Steve Wise wrote:
+> > Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+> > ---
+> >  drivers/infiniband/hw/cxgb4/cm.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> This is not the correct way to submit patches for inclusion in the
-> stable kernel tree.  Please read:
->     https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
-> for how to do this properly.
-> 
-> </formletter>
->
+> I know I sure don't take patches without changelog text, and for sure
+> that could never go into a stable tree...
 
-Sorry Greg, 
+I thought the one line commit log was sufficient.  I'll be more verbose.
 
-I screwed up and put the CC in the mail header instead of the commit log.  I
-have posted a RESEND of the series.
+Thanks,
 
 Steve.
