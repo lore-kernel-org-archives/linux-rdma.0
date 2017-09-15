@@ -1,41 +1,41 @@
-From: 'Greg KH' <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 3/3] iw_cxgb4: remove the stid on listen create failure
-Date: Fri, 15 Sep 2017 11:59:05 -0700
-Message-ID: <20170915185905.GA22953@kroah.com>
-References: <20170915140822.B0E2DE0C1D@smtp.ogc.us>
- <20170915164605.GA27343@kroah.com>
- <019a01d32e53$9ccadc60$d6609520$@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <019a01d32e53$9ccadc60$d6609520$@opengridcomputing.com>
-Sender: stable-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, stable@vger.kernel.org
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH v2 0/3] iw_cxgb4 fixes for 4.14-rc
+Date: Fri, 15 Sep 2017 13:26:09 -0700
+Message-ID: <20170915202852.53885E0C1D@smtp.ogc.us>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 15, 2017 at 01:51:17PM -0500, Steve Wise wrote:
-> > Subject: Re: [PATCH 3/3] iw_cxgb4: remove the stid on listen create failure
-> > 
-> > On Tue, Sep 05, 2017 at 11:52:34AM -0700, Steve Wise wrote:
-> > > Signed-off-by: Steve Wise <swise@opengridcomputing.com>
-> > > ---
-> > >  drivers/infiniband/hw/cxgb4/cm.c | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > I know I sure don't take patches without changelog text, and for sure
-> > that could never go into a stable tree...
-> 
-> I thought the one line commit log was sufficient.  I'll be more verbose.
+Hey Doug, please consider these bug fixes for 4.14-rc.  I'm resending 
+a "v2" series which overrides the first submission, and the "RESEND"
+submission.
 
-All you are saying in the subject was _what_ you did, which does nothing
-to explain _why_ you did it.  Especially for something you feel needs to
-be fixed in older kernels you need to explain why it is all needed.
+Changes since "RESEND"
+- fixed up the commit comment for patch 3
 
-Changelog descriptions are hard, usually harder than writing the
-original patch.  Welcome to good software engineering practices :)
+Chances since original submission
+- Move the stable tag to the correct location in the commit log
 
-thanks,
+Thanks,
 
-greg k-h
+Steve.
+
+---
+
+Steve Wise (3):
+  iw_cxgb4: put ep reference in pass_accept_req()
+  iw_cxgb4: drop listen destroy replies if no ep found
+  iw_cxgb4: remove the stid on listen create failure
+
+ drivers/infiniband/hw/cxgb4/cm.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+-- 
+1.8.3.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
