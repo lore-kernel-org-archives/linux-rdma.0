@@ -1,36 +1,23 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [RESEND PATCH 3/3] iw_cxgb4: remove the stid on listen create failure
-Date: Tue, 5 Sep 2017 11:52:34 -0700
-Message-ID: <20170915143504.6E5DFE0C1D@smtp.ogc.us>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 3/3] iw_cxgb4: remove the stid on listen create failure
+Date: Fri, 15 Sep 2017 09:46:05 -0700
+Message-ID: <20170915164605.GA27343@kroah.com>
+References: <20170915140822.B0E2DE0C1D@smtp.ogc.us>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170915140822.B0E2DE0C1D@smtp.ogc.us>
+Sender: stable-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
----
- drivers/infiniband/hw/cxgb4/cm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Tue, Sep 05, 2017 at 11:52:34AM -0700, Steve Wise wrote:
+> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+> ---
+>  drivers/infiniband/hw/cxgb4/cm.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index d76bfe3..ca846fb 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -3463,7 +3463,7 @@ int c4iw_create_listen(struct iw_cm_id *cm_id, int backlog)
- 		cm_id->provider_data = ep;
- 		goto out;
- 	}
--
-+	remove_handle(ep->com.dev, &ep->com.dev->stid_idr, ep->stid);
- 	cxgb4_free_stid(ep->com.dev->rdev.lldi.tids, ep->stid,
- 			ep->com.local_addr.ss_family);
- fail2:
--- 
-1.8.3.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I know I sure don't take patches without changelog text, and for sure
+that could never go into a stable tree...
