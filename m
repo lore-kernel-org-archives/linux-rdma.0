@@ -1,36 +1,40 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [linux-rdma and rdma-core]: Unable to perform rdma_connect in
- loopbacked configuration
-Date: Mon, 18 Sep 2017 14:59:59 -0600
-Message-ID: <20170918205959.GC7059@obsidianresearch.com>
-References: <59792242-F2C8-431A-BEDA-996844EDE4C5@raithlin.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] ibacm: Close MAD port when umad_register fails
+Date: Tue, 19 Sep 2017 00:51:58 +0300
+Message-ID: <20170918215158.27597-1-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <59792242-F2C8-431A-BEDA-996844EDE4C5-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 18, 2017 at 06:18:25PM +0000, Stephen  Bates wrote:
+Cleanup of the open port is needed when program fails to register MAD
+port.
 
-> Using a NAT approach discussed in [1] I can setup IPv4 addresses on
-> both HCAs such that I avoid a local loopback (the addresses I use
-> are a little different to the ones in that reference but the
-> approach is identical). This allows ping, iperf and other IP based
-> applications to work just fine. For example:
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ ibacm/src/acm.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-The RDMA stuff ignores everything in iptables.
+diff --git a/ibacm/src/acm.c b/ibacm/src/acm.c
+index aba0deaa..0c0da7e9 100644
+--- a/ibacm/src/acm.c
++++ b/ibacm/src/acm.c
+@@ -2418,8 +2418,10 @@ acm_open_port(struct acmc_port *port, struct acmc_device *dev, uint8_t port_num)
+ 
+ 	port->mad_agentid = umad_register(port->mad_portid,
+ 					  IB_MGMT_CLASS_SA, 1, 1, NULL);
+-	if (port->mad_agentid < 0)
++	if (port->mad_agentid < 0) {
++		umad_close_port(port->mad_portid);
+ 		acm_log(0, "ERROR - unable to register MAD client\n");
++	}
+ 
+ 	port->prov = NULL;
+ 	port->state = IBV_PORT_DOWN;
+-- 
+2.13.5
 
-IIRC, you need to make 'ip route get blah' not return lo. This is done
-with some combination of policy routing and sysfs tweaking.
-
-IMHO, it is also a bug if loopback roce doesn't just work out of the
-box, fully internally to the NIC. :\
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
