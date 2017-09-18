@@ -1,58 +1,35 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH rdma-core 2/2] debian: Move perl:Depends from ibverbs-providers to rdma-core
-Date: Mon, 18 Sep 2017 11:33:44 +0200
-Message-ID: <20170918093344.11482-2-benjamin.drung@profitbricks.com>
-References: <20170918093344.11482-1-benjamin.drung@profitbricks.com>
+From: Debian FTP Masters <ftpmaster-Lx6IQGP78c/Z1gQgfCZkLYSLwOllVvif@public.gmane.org>
+Subject: rdma-core_15-1_amd64.changes is NEW
+Date: Mon, 18 Sep 2017 09:36:09 +0000
+Message-ID: <E1dtsTJ-000DrS-Dd@fasolo.debian.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170918093344.11482-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The build process shows these warnings:
+binary:ibverbs-providers is NEW.
+binary:rdma-core is NEW.
+binary:rdma-core is NEW.
+binary:ibverbs-providers is NEW.
+source:rdma-core is NEW.
 
-dpkg-gencontrol: warning: package rdma-core: unused substitution
-variable ${perl:Depends}
-dpkg-gencontrol: warning: Depends field of package ibverbs-providers:
-unknown substitution variable ${perl:Depends}
+Your package has been put into the NEW queue, which requires manual action
+from the ftpteam to process. The upload was otherwise valid (it had a good
+OpenPGP signature and file hashes are valid), so please be patient.
 
-The binary /usr/bin/rxe_cfg is a Perl script that is shipped by
-rdma-core now.
+Packages are routinely processed through to the archive, and do feel
+free to browse the NEW queue[1].
 
-Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
----
- debian/control | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+If there is an issue with the upload, you will receive an email from a
+member of the ftpteam.
 
-diff --git a/debian/control b/debian/control
-index f87f8999..fef59ad5 100644
---- a/debian/control
-+++ b/debian/control
-@@ -23,7 +23,10 @@ Homepage: https://github.com/linux-rdma/rdma-core
- 
- Package: rdma-core
- Architecture: linux-any
--Depends: lsb-base (>= 3.2-14~), ${misc:Depends}, ${shlibs:Depends}
-+Depends: lsb-base (>= 3.2-14~),
-+         ${misc:Depends},
-+         ${perl:Depends},
-+         ${shlibs:Depends}
- Recommends: dmidecode, ethtool, net-tools
- Breaks: infiniband-diags (<< 2.0.0)
- Replaces: infiniband-diags (<< 2.0.0)
-@@ -57,7 +60,7 @@ Description: InfiniBand Communication Manager Assistant (ACM)
- Package: ibverbs-providers
- Architecture: linux-any
- Multi-Arch: same
--Depends: ${misc:Depends}, ${perl:Depends}, ${shlibs:Depends}
-+Depends: ${misc:Depends}, ${shlibs:Depends}
- Provides: libcxgb3-1, libipathverbs1, libmlx4-1, libmlx5-1, libmthca1, libnes1
- Replaces: libcxgb3-1, libipathverbs1, libmlx4-1, libmlx5-1, libmthca1, libnes1
- Breaks: libcxgb3-1, libipathverbs1, libmlx4-1, libmlx5-1, libmthca1, libnes1
--- 
-2.11.0
+If you have any questions, you may reply to this email.
 
+[1]: https://ftp-master.debian.org/new.html
+     or https://ftp-master.debian.org/backports-new.html for *-backports
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
