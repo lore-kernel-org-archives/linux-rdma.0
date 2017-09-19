@@ -1,42 +1,126 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [linux-rdma and rdma-core]: Unable to perform rdma_connect in
- loopbacked configuration
-Date: Tue, 19 Sep 2017 06:13:35 +0000
-Message-ID: <VI1PR0502MB3008A547A5FEF891012E7796D1600@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <59792242-F2C8-431A-BEDA-996844EDE4C5@raithlin.com>
- <VI1PR0502MB3008FAC205874147558EA241D1630@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20170919035134.GH5788@mtr-leonro.local>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-rc] IB/bnxt_re: Fix frame stack compilation warning
+Date: Tue, 19 Sep 2017 13:22:13 +0300
+Message-ID: <20170919102213.30911-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170919035134.GH5788-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgTGVvbiwNCg0KPiBGb3IgY291bnRsZXNzIG51bWJlciBvZiB0aW1lcywgYW5kIGl0IGlzIGFs
-cmVhZHkgdHdvIGRpZ2l0cyBjb3VudCwgSSBhc2tlZCB5b3UgaW4NCj4gcHJpdmF0ZSBhbmQgcHVi
-bGljIGRvIE5PVCBhbnN3ZXIgaW4gdG9wLXBvc3RpbmcgZm9ybWF0IG9uIHRoZSBwdWJsaWMgbWFp
-bGluZw0KPiBsaXN0cywgYnV0IGl0IHNlZW1zIGxpa2UgeW91IGRvbid0IGNhcmUgYW5kIHByZWZl
-ciBkbyBub3QgcmVzcGVjdCBwYXJ0aWNpcGFudHMgb2YNCj4gdGhvc2UgbGlzdHMuDQo+IA0KPiBX
-aGF0IGNhbiB3ZSBkbyB0byBzdG9wIGl0PyBQcmVtb2RlcmF0aW9uIG9mIHlvdXIgcG9zdHM/IFZQ
-IGFwcHJvdmFsIG9mIEVWRVJZDQo+IHBvc3Q/IEFueXRoaW5nIGVsc2U/DQoNClRoZXJlIHdhcyBu
-byBwYXJ0aWN1bGFyIHBvaW50IGluIFN0ZXBoZW4ncyBlbWFpbCB0aGF0IEkgY291bGQgYW5zd2Vy
-IGFzIGludGVyc3BlcnNlZCByZXNwb25zZS4NCkFuc3dlcmluZyBpdCBhdCBib3R0b20gYW5kIHRv
-cCBhcHBlYXJlZCBzYW1lIHRvIG1lIGluIGNhc2VzIHdoZXJlIGl0IGlzIG5vdCBpbnRlcnNwZXJz
-ZWQuDQpTZWVtcyB0b3AgcG9zdGluZyBldmVuIGZvciBzdWNoIGNhc2UgaXMgdmVyeSBzZXJpb3Vz
-IGNvbmNlcm4gdGhhbiBjb21tdW5pY2F0aW5nIHRoZSBwb2ludC4NCkkgYXBvbG9naXplIGFnYWlu
-IGZvciBzdWNoIHZpb2xhdGlvbi4NCkkgd2lsbCByZXZpZXcgZW1haWwgcmVzcG9uc2VzIHR3aWNl
-IG5vdyBiZWZvcmUgc2VuZGluZyB0byBtYWtlIHN1cmUgdGhleSBhcmUgbm90IHRvcCBwb3N0ZWQu
-DQoNCkkgdW5kZXJzdG9vZCBmcm9tIFsxXSB0aGF0IHdoeSBib3R0b20gcG9zdGluZyBpcyBlZmZp
-Y2llbnQuDQpJIGRpZG4ndCByZWFsaXplIHRoYXQgdG9wLXBvc3RpbmcgaXMgZGlzcmVzcGVjdGZ1
-bCB0byBwYXJ0aWNpcGFudHMgYXMgeW91IG1lbnRpb25lZCBhYm92ZS4NCkkgZGlkbid0IG1lYW4g
-dG8gZGlzcmVzcGVjdHMgdGhlIHBhcnRpY2lwYW50cy4NCg0KQWdhaW4gSSB3aWxsIGZvbGxvdyBi
-b3R0b20gcG9zdGluZy4NCg0KWzFdIGh0dHA6Ly93d3cuY2FsaWJ1cm4ubmwvdG9wcG9zdGluZy5o
-dG1sDQoNCg==
+Reduce stack size by dynamically allocating memory instead
+of declaring large struct on the stack:
+
+drivers/infiniband/hw/bnxt_re/ib_verbs.c: In function ‘bnxt_re_query_qp’:
+drivers/infiniband/hw/bnxt_re/ib_verbs.c:1600:1: warning: the frame size of 1216 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+ }
+ ^
+
+Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Fixes: 1ac5a4047975 ("RDMA/bnxt_re: Add bnxt_re RoCE driver")
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 67 +++++++++++++++++---------------
+ 1 file changed, 36 insertions(+), 31 deletions(-)
+
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 01eee15bbd65..03caf48af8e2 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -1551,43 +1551,46 @@ int bnxt_re_query_qp(struct ib_qp *ib_qp, struct ib_qp_attr *qp_attr,
+ {
+ 	struct bnxt_re_qp *qp = container_of(ib_qp, struct bnxt_re_qp, ib_qp);
+ 	struct bnxt_re_dev *rdev = qp->rdev;
+-	struct bnxt_qplib_qp qplib_qp;
++	struct bnxt_qplib_qp *qplib_qp;
+ 	int rc;
+
+-	memset(&qplib_qp, 0, sizeof(struct bnxt_qplib_qp));
+-	qplib_qp.id = qp->qplib_qp.id;
+-	qplib_qp.ah.host_sgid_index = qp->qplib_qp.ah.host_sgid_index;
++	qplib_qp = kzalloc(sizeof(*qplib_qp), GFP_KERNEL);
++	if (!qplib_qp)
++		return -ENOMEM;
++
++	qplib_qp->id = qp->qplib_qp.id;
++	qplib_qp->ah.host_sgid_index = qp->qplib_qp.ah.host_sgid_index;
+
+-	rc = bnxt_qplib_query_qp(&rdev->qplib_res, &qplib_qp);
++	rc = bnxt_qplib_query_qp(&rdev->qplib_res, qplib_qp);
+ 	if (rc) {
+ 		dev_err(rdev_to_dev(rdev), "Failed to query HW QP");
+-		return rc;
++		goto out;
+ 	}
+-	qp_attr->qp_state = __to_ib_qp_state(qplib_qp.state);
+-	qp_attr->en_sqd_async_notify = qplib_qp.en_sqd_async_notify ? 1 : 0;
+-	qp_attr->qp_access_flags = __to_ib_access_flags(qplib_qp.access);
+-	qp_attr->pkey_index = qplib_qp.pkey_index;
+-	qp_attr->qkey = qplib_qp.qkey;
++	qp_attr->qp_state = __to_ib_qp_state(qplib_qp->state);
++	qp_attr->en_sqd_async_notify = qplib_qp->en_sqd_async_notify ? 1 : 0;
++	qp_attr->qp_access_flags = __to_ib_access_flags(qplib_qp->access);
++	qp_attr->pkey_index = qplib_qp->pkey_index;
++	qp_attr->qkey = qplib_qp->qkey;
+ 	qp_attr->ah_attr.type = RDMA_AH_ATTR_TYPE_ROCE;
+-	rdma_ah_set_grh(&qp_attr->ah_attr, NULL, qplib_qp.ah.flow_label,
+-			qplib_qp.ah.host_sgid_index,
+-			qplib_qp.ah.hop_limit,
+-			qplib_qp.ah.traffic_class);
+-	rdma_ah_set_dgid_raw(&qp_attr->ah_attr, qplib_qp.ah.dgid.data);
+-	rdma_ah_set_sl(&qp_attr->ah_attr, qplib_qp.ah.sl);
+-	ether_addr_copy(qp_attr->ah_attr.roce.dmac, qplib_qp.ah.dmac);
+-	qp_attr->path_mtu = __to_ib_mtu(qplib_qp.path_mtu);
+-	qp_attr->timeout = qplib_qp.timeout;
+-	qp_attr->retry_cnt = qplib_qp.retry_cnt;
+-	qp_attr->rnr_retry = qplib_qp.rnr_retry;
+-	qp_attr->min_rnr_timer = qplib_qp.min_rnr_timer;
+-	qp_attr->rq_psn = qplib_qp.rq.psn;
+-	qp_attr->max_rd_atomic = qplib_qp.max_rd_atomic;
+-	qp_attr->sq_psn = qplib_qp.sq.psn;
+-	qp_attr->max_dest_rd_atomic = qplib_qp.max_dest_rd_atomic;
+-	qp_init_attr->sq_sig_type = qplib_qp.sig_type ? IB_SIGNAL_ALL_WR :
+-							IB_SIGNAL_REQ_WR;
+-	qp_attr->dest_qp_num = qplib_qp.dest_qpn;
++	rdma_ah_set_grh(&qp_attr->ah_attr, NULL, qplib_qp->ah.flow_label,
++			qplib_qp->ah.host_sgid_index,
++			qplib_qp->ah.hop_limit,
++			qplib_qp->ah.traffic_class);
++	rdma_ah_set_dgid_raw(&qp_attr->ah_attr, qplib_qp->ah.dgid.data);
++	rdma_ah_set_sl(&qp_attr->ah_attr, qplib_qp->ah.sl);
++	ether_addr_copy(qp_attr->ah_attr.roce.dmac, qplib_qp->ah.dmac);
++	qp_attr->path_mtu = __to_ib_mtu(qplib_qp->path_mtu);
++	qp_attr->timeout = qplib_qp->timeout;
++	qp_attr->retry_cnt = qplib_qp->retry_cnt;
++	qp_attr->rnr_retry = qplib_qp->rnr_retry;
++	qp_attr->min_rnr_timer = qplib_qp->min_rnr_timer;
++	qp_attr->rq_psn = qplib_qp->rq.psn;
++	qp_attr->max_rd_atomic = qplib_qp->max_rd_atomic;
++	qp_attr->sq_psn = qplib_qp->sq.psn;
++	qp_attr->max_dest_rd_atomic = qplib_qp->max_dest_rd_atomic;
++	qp_init_attr->sq_sig_type = qplib_qp->sig_type ? IB_SIGNAL_ALL_WR :
++							 IB_SIGNAL_REQ_WR;
++	qp_attr->dest_qp_num = qplib_qp->dest_qpn;
+
+ 	qp_attr->cap.max_send_wr = qp->qplib_qp.sq.max_wqe;
+ 	qp_attr->cap.max_send_sge = qp->qplib_qp.sq.max_sge;
+@@ -1596,7 +1599,9 @@ int bnxt_re_query_qp(struct ib_qp *ib_qp, struct ib_qp_attr *qp_attr,
+ 	qp_attr->cap.max_inline_data = qp->qplib_qp.max_inline_data;
+ 	qp_init_attr->cap = qp_attr->cap;
+
+-	return 0;
++out:
++	kfree(qplib_qp);
++	return rc;
+ }
+
+ /* Routine for sending QP1 packets for RoCE V1 an V2
+--
+2.14.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
