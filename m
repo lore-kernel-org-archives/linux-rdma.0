@@ -1,295 +1,76 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/5] i40iw: Add support for port reuse on active side connections
-Date: Tue, 19 Sep 2017 09:19:13 -0500
-Message-ID: <20170919141913.10172-6-shiraz.saleem@intel.com>
-References: <20170919141913.10172-1-shiraz.saleem@intel.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Patchworks problems
+Date: Tue, 19 Sep 2017 10:31:22 -0400
+Message-ID: <c2b96c6b-cc54-7e07-d28d-84bc608805dc@redhat.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="xaDhNduSotGGRl9Kgriv8oebwm724HEkX"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170919141913.10172-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-During OpenMPI scale up testing, we observe rdma_connect
-failures if ports are reused on multiple connections.
-This is because the Control Queue-Pair (CQP) command to add
-the reused port to Accelerated Port Bit VectorTable (APBVT)
-fails as there already exists an entry.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--xaDhNduSotGGRl9Kgriv8oebwm724HEkX
+Content-Type: multipart/mixed; boundary="Qmbt6UJpB7tTveNsbeHsMTjVP6Dtg29Ku";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <c2b96c6b-cc54-7e07-d28d-84bc608805dc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Patchworks problems
 
-Check for duplicate port before invoking the CQP command
-to add APBVT entry and delete the entry only if the port
-is not in use.
+--Qmbt6UJpB7tTveNsbeHsMTjVP6Dtg29Ku
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/i40iw/i40iw_cm.c | 151 ++++++++++++++++-----------------
- drivers/infiniband/hw/i40iw/i40iw_cm.h |   3 +
- 2 files changed, 78 insertions(+), 76 deletions(-)
+Upon coming back to work, one of the emails in my Inbox was about an
+outage period on patchworks.  From 20:30 UTC Sept 14 and 20:30 UTC Sept
+15, the patchworks hosted at kernel.org (which includes the linux-rdma
+patchworks) silently dropped all patches.  If you had sent a patch in
+this window, and it hasn't already been superseded by a later sending,
+then you will need to resend the patch(es) in order for me to see them
+in patchworks.  This mainly applies to kernel patches which are still
+done exclusively in patchworks by myself.  It does not necessarily apply
+to patches to rdma-core because I seem to see a lot of pull requests for
+rdma-core and so patchworks is not the exclusive (and really not even
+the primary) means of patch management for rdma-core patches.
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index b721544..5230dd3 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -1504,23 +1504,40 @@ static void i40iw_add_hte_node(struct i40iw_cm_core *cm_core,
- }
- 
- /**
-- * listen_port_in_use - determine if port is in use
-- * @port: Listen port number
-+ * i40iw_port_in_use - determine if port is in use
-+ * @port: port number
-+ * @active_side: flag for listener side vs active side
-  */
--static bool i40iw_listen_port_in_use(struct i40iw_cm_core *cm_core, u16 port)
-+static bool i40iw_port_in_use(struct i40iw_cm_core *cm_core, u16 port, bool active_side)
- {
- 	struct i40iw_cm_listener *listen_node;
-+	struct i40iw_cm_node *cm_node;
- 	unsigned long flags;
- 	bool ret = false;
- 
--	spin_lock_irqsave(&cm_core->listen_list_lock, flags);
--	list_for_each_entry(listen_node, &cm_core->listen_nodes, list) {
--		if (listen_node->loc_port == port) {
--			ret = true;
--			break;
-+	if (active_side) {
-+		/* search connected node list */
-+		spin_lock_irqsave(&cm_core->ht_lock, flags);
-+		list_for_each_entry(cm_node, &cm_core->connected_nodes, list) {
-+			if (cm_node->loc_port == port) {
-+				ret = true;
-+				break;
-+			}
-+		}
-+			if (!ret)
-+				clear_bit(port, cm_core->active_side_ports);
-+		spin_unlock_irqrestore(&cm_core->ht_lock, flags);
-+	} else {
-+		spin_lock_irqsave(&cm_core->listen_list_lock, flags);
-+		list_for_each_entry(listen_node, &cm_core->listen_nodes, list) {
-+			if (listen_node->loc_port == port) {
-+				ret = true;
-+				break;
-+			}
- 		}
-+		spin_unlock_irqrestore(&cm_core->listen_list_lock, flags);
- 	}
--	spin_unlock_irqrestore(&cm_core->listen_list_lock, flags);
-+
- 	return ret;
- }
- 
-@@ -1868,7 +1885,7 @@ static int i40iw_dec_refcnt_listen(struct i40iw_cm_core *cm_core,
- 		spin_unlock_irqrestore(&cm_core->listen_list_lock, flags);
- 
- 		if (listener->iwdev) {
--			if (apbvt_del && !i40iw_listen_port_in_use(cm_core, listener->loc_port))
-+			if (apbvt_del && !i40iw_port_in_use(cm_core, listener->loc_port, false))
- 				i40iw_manage_apbvt(listener->iwdev,
- 						   listener->loc_port,
- 						   I40IW_MANAGE_APBVT_DEL);
-@@ -2247,21 +2264,21 @@ static void i40iw_rem_ref_cm_node(struct i40iw_cm_node *cm_node)
- 	if (cm_node->listener) {
- 		i40iw_dec_refcnt_listen(cm_core, cm_node->listener, 0, true);
- 	} else {
--		if (!i40iw_listen_port_in_use(cm_core, cm_node->loc_port) &&
--		    cm_node->apbvt_set) {
-+		if (!i40iw_port_in_use(cm_core, cm_node->loc_port, true) && cm_node->apbvt_set) {
- 			i40iw_manage_apbvt(cm_node->iwdev,
- 					   cm_node->loc_port,
- 					   I40IW_MANAGE_APBVT_DEL);
--			i40iw_get_addr_info(cm_node, &nfo);
--			if (cm_node->qhash_set) {
--				i40iw_manage_qhash(cm_node->iwdev,
--						   &nfo,
--						   I40IW_QHASH_TYPE_TCP_ESTABLISHED,
--						   I40IW_QHASH_MANAGE_TYPE_DELETE,
--						   NULL,
--						   false);
--				cm_node->qhash_set = 0;
--			}
-+			cm_node->apbvt_set = 0;
-+		}
-+		i40iw_get_addr_info(cm_node, &nfo);
-+		if (cm_node->qhash_set) {
-+			i40iw_manage_qhash(cm_node->iwdev,
-+					   &nfo,
-+					   I40IW_QHASH_TYPE_TCP_ESTABLISHED,
-+					   I40IW_QHASH_MANAGE_TYPE_DELETE,
-+					   NULL,
-+					   false);
-+			cm_node->qhash_set = 0;
- 		}
- 	}
- 
-@@ -3738,10 +3755,8 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 	struct sockaddr_in *raddr;
- 	struct sockaddr_in6 *laddr6;
- 	struct sockaddr_in6 *raddr6;
--	bool qhash_set = false;
--	int apbvt_set = 0;
--	int err = 0;
--	enum i40iw_status_code status;
-+	int ret = 0;
-+	unsigned long flags;
- 
- 	ibqp = i40iw_get_qp(cm_id->device, conn_param->qpn);
- 	if (!ibqp)
-@@ -3790,32 +3805,6 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 	cm_info.user_pri = rt_tos2priority(cm_id->tos);
- 	i40iw_debug(&iwdev->sc_dev, I40IW_DEBUG_DCB, "%s TOS:[%d] UP:[%d]\n",
- 		    __func__, cm_id->tos, cm_info.user_pri);
--	if ((cm_info.ipv4 && (laddr->sin_addr.s_addr != raddr->sin_addr.s_addr)) ||
--	    (!cm_info.ipv4 && memcmp(laddr6->sin6_addr.in6_u.u6_addr32,
--				     raddr6->sin6_addr.in6_u.u6_addr32,
--				     sizeof(laddr6->sin6_addr.in6_u.u6_addr32)))) {
--		status = i40iw_manage_qhash(iwdev,
--					    &cm_info,
--					    I40IW_QHASH_TYPE_TCP_ESTABLISHED,
--					    I40IW_QHASH_MANAGE_TYPE_ADD,
--					    NULL,
--					    true);
--		if (status)
--			return -EINVAL;
--		qhash_set = true;
--	}
--	status = i40iw_manage_apbvt(iwdev, cm_info.loc_port, I40IW_MANAGE_APBVT_ADD);
--	if (status) {
--		i40iw_manage_qhash(iwdev,
--				   &cm_info,
--				   I40IW_QHASH_TYPE_TCP_ESTABLISHED,
--				   I40IW_QHASH_MANAGE_TYPE_DELETE,
--				   NULL,
--				   false);
--		return -EINVAL;
--	}
--
--	apbvt_set = 1;
- 	cm_id->add_ref(cm_id);
- 	cm_node = i40iw_create_cm_node(&iwdev->cm_core, iwdev,
- 				       conn_param->private_data_len,
-@@ -3823,17 +3812,40 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 				       &cm_info);
- 
- 	if (IS_ERR(cm_node)) {
--		err = PTR_ERR(cm_node);
--		goto err_out;
-+		ret = PTR_ERR(cm_node);
-+		cm_id->rem_ref(cm_id);
-+		return ret;
-+	}
-+
-+	if ((cm_info.ipv4 && (laddr->sin_addr.s_addr != raddr->sin_addr.s_addr)) ||
-+	    (!cm_info.ipv4 && memcmp(laddr6->sin6_addr.in6_u.u6_addr32,
-+				     raddr6->sin6_addr.in6_u.u6_addr32,
-+				     sizeof(laddr6->sin6_addr.in6_u.u6_addr32)))) {
-+		if (i40iw_manage_qhash(iwdev, &cm_info, I40IW_QHASH_TYPE_TCP_ESTABLISHED,
-+				       I40IW_QHASH_MANAGE_TYPE_ADD, NULL, true)) {
-+			ret = -EINVAL;
-+			goto err;
-+		}
-+		cm_node->qhash_set = true;
- 	}
- 
-+	spin_lock_irqsave(&iwdev->cm_core.ht_lock, flags);
-+	if (!test_and_set_bit(cm_info.loc_port, iwdev->cm_core.active_side_ports)) {
-+		spin_unlock_irqrestore(&iwdev->cm_core.ht_lock, flags);
-+		if (i40iw_manage_apbvt(iwdev, cm_info.loc_port, I40IW_MANAGE_APBVT_ADD)) {
-+			ret =  -EINVAL;
-+			goto err;
-+		}
-+	} else {
-+		spin_unlock_irqrestore(&iwdev->cm_core.ht_lock, flags);
-+	}
-+
-+	cm_node->apbvt_set = true;
- 	i40iw_record_ird_ord(cm_node, (u16)conn_param->ird, (u16)conn_param->ord);
- 	if (cm_node->send_rdma0_op == SEND_RDMA_READ_ZERO &&
- 	    !cm_node->ord_size)
- 		cm_node->ord_size = 1;
- 
--	cm_node->apbvt_set = apbvt_set;
--	cm_node->qhash_set = qhash_set;
- 	iwqp->cm_node = cm_node;
- 	cm_node->iwqp = iwqp;
- 	iwqp->cm_id = cm_id;
-@@ -3841,11 +3853,9 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 
- 	if (cm_node->state != I40IW_CM_STATE_OFFLOADED) {
- 		cm_node->state = I40IW_CM_STATE_SYN_SENT;
--		err = i40iw_send_syn(cm_node, 0);
--		if (err) {
--			i40iw_rem_ref_cm_node(cm_node);
--			goto err_out;
--		}
-+		ret = i40iw_send_syn(cm_node, 0);
-+		if (ret)
-+			goto err;
- 	}
- 
- 	i40iw_debug(cm_node->dev,
-@@ -3854,9 +3864,10 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 		    cm_node->rem_port,
- 		    cm_node,
- 		    cm_node->cm_id);
-+
- 	return 0;
- 
--err_out:
-+err:
- 	if (cm_info.ipv4)
- 		i40iw_debug(&iwdev->sc_dev,
- 			    I40IW_DEBUG_CM,
-@@ -3868,22 +3879,10 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 			    "Api - connect() FAILED: dest addr=%pI6",
- 			    cm_info.rem_addr);
- 
--	if (qhash_set)
--		i40iw_manage_qhash(iwdev,
--				   &cm_info,
--				   I40IW_QHASH_TYPE_TCP_ESTABLISHED,
--				   I40IW_QHASH_MANAGE_TYPE_DELETE,
--				   NULL,
--				   false);
--
--	if (apbvt_set && !i40iw_listen_port_in_use(&iwdev->cm_core,
--						   cm_info.loc_port))
--		i40iw_manage_apbvt(iwdev,
--				   cm_info.loc_port,
--				   I40IW_MANAGE_APBVT_DEL);
-+	i40iw_rem_ref_cm_node(cm_node);
- 	cm_id->rem_ref(cm_id);
- 	iwdev->cm_core.stats_connect_errs++;
--	return err;
-+	return ret;
- }
- 
- /**
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.h b/drivers/infiniband/hw/i40iw/i40iw_cm.h
-index 8626e7f..45abef7 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.h
-@@ -71,6 +71,7 @@
- #define	I40IW_HW_IRD_SETTING_32	32
- #define	I40IW_HW_IRD_SETTING_64	64
- 
-+#define MAX_PORTS		65536
- #define I40IW_VLAN_PRIO_SHIFT   13
- 
- enum ietf_mpa_flags {
-@@ -413,6 +414,8 @@ struct i40iw_cm_core {
- 	spinlock_t ht_lock; /* manage hash table */
- 	spinlock_t listen_list_lock; /* listen list */
- 
-+	unsigned long active_side_ports[BITS_TO_LONGS(MAX_PORTS)];
-+
- 	u64	stats_nodes_created;
- 	u64	stats_nodes_destroyed;
- 	u64	stats_listen_created;
--- 
-2.8.3
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
+D
 
+
+--Qmbt6UJpB7tTveNsbeHsMTjVP6Dtg29Ku--
+
+--xaDhNduSotGGRl9Kgriv8oebwm724HEkX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJZwSo6AAoJELgmozMOVy/dBbUP/31mLuYtSa/Ru1o7ncBeaRFe
+dMAsLGSw8XWHWsAwlKX94nIRhsD+h8fdGqni1y85EES3Dd5gx+mtMXwkDiBdoovi
+JAQGU1dF/cuL2Z4JgCH9dVMHwiATqcPYVfe0hHk6d1wvXf1U3E05Hk7unv7XjDmH
+8bMxhe9ag9cJVK0OWITnm8Z28kmu7y39A6JJ6TlHTu5w6FUkpvWFxk3vtgLT8Wt4
+XiduO55ps/yVpjqLRJ4St6nOaeMdv1u2MAEMMKFhfgyw6JLipMdDFOEUb/XI99R8
+1bkfUmaohg7N0pSREbffjM5QYKP50szxhL5DOUOLf0OHSh0eOCFpONk7z3ykFmHI
+9OnvEs9c5tWVYqYQBE5FdE1Anirv3QQ3w0iNnjPdzVfW66zRrNk9jDB9pwg+hPws
+J2+vj/Z+F+Mtph4CIkKqAMzmb2REufhyjq9iKtP+BJ3/OMpZJqXtwnDB332wGlYJ
+3BcG3j5NVfoo5+hGA1rZhn+z9LLKJVJyD7zBUax2Wz8j5KP/wJsemlPtMnLheg9Z
+EDdPeRn0Mb83CUVLYF8DpFHYCVjzToeVt2IdirkYdUp2TBXY54zT/4ghcaHr58fA
+HmAGzVSOC269rfHaJzbilkLKdzP0yj58dlekOWlSZ4pS27tmEJyN1ylcRzDGNpIm
+ot2As7tj5iWmfsNJPYK+
+=miDJ
+-----END PGP SIGNATURE-----
+
+--xaDhNduSotGGRl9Kgriv8oebwm724HEkX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
