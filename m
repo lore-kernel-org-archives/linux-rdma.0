@@ -1,61 +1,40 @@
-From: Michal Kalderon <Michal.Kalderon@cavium.com>
-Subject: [PATCH net-next 3/4] qed: Fix maximum number of CQs for iWARP
-Date: Tue, 19 Sep 2017 20:26:18 +0300
-Message-ID: <1505841979-26365-4-git-send-email-Michal.Kalderon@cavium.com>
-References: <1505841979-26365-1-git-send-email-Michal.Kalderon@cavium.com>
+From: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH rdma-next] RDMA/qedr: Fix rdma_type initialization
+Date: Tue, 19 Sep 2017 20:38:37 +0300
+Message-ID: <1505842717-26646-1-git-send-email-Michal.Kalderon@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1505841979-26365-1-git-send-email-Michal.Kalderon@cavium.com>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net, netdev@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org, dledford@redhat.com, Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The maximum number of CQs supported is bound to the number
-of connections supported, which differs between RoCE and iWARP.
+Initialize the rdma_type (iWARP or RoCE) which is set according to
+device configuration in qed.
 
-This fixes a crash that occurred in iWARP when running 1000 sessions
-using perftest.
-
-Signed-off-by: Michal Kalderon <Michal.Kalderon@cavium.com>
-Signed-off-by: Ariel Elior <Ariel.Elior@cavium.com>
+Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/net/ethernet/qlogic/qed/qed_rdma.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/qedr/main.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/net/ethernet/qlogic/qed/qed_rdma.c b/drivers/net/ethernet/qlogic/qed/qed_rdma.c
-index 4f46f28..c8c4b39 100644
---- a/drivers/net/ethernet/qlogic/qed/qed_rdma.c
-+++ b/drivers/net/ethernet/qlogic/qed/qed_rdma.c
-@@ -209,11 +209,11 @@ static int qed_rdma_alloc(struct qed_hwfn *p_hwfn,
- 		goto free_pd_map;
- 	}
+diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
+index ca93171..1afc267 100644
+--- a/drivers/infiniband/hw/qedr/main.c
++++ b/drivers/infiniband/hw/qedr/main.c
+@@ -870,6 +870,7 @@ static struct qedr_dev *qedr_add(struct qed_dev *cdev, struct pci_dev *pdev,
+ 		goto init_err;
  
--	/* Allocate bitmap for cq's. The maximum number of CQs is bounded to
--	 * twice the number of QPs.
-+	/* Allocate bitmap for cq's. The maximum number of CQs is bound to
-+	 * the number of connections we support. (num_qps in iWARP or
-+	 * num_qps/2 in RoCE).
- 	 */
--	rc = qed_rdma_bmap_alloc(p_hwfn, &p_rdma_info->cq_map,
--				 p_rdma_info->num_qps * 2, "CQ");
-+	rc = qed_rdma_bmap_alloc(p_hwfn, &p_rdma_info->cq_map, num_cons, "CQ");
- 	if (rc) {
- 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
- 			   "Failed to allocate cq bitmap, rc = %d\n", rc);
-@@ -222,10 +222,10 @@ static int qed_rdma_alloc(struct qed_hwfn *p_hwfn,
+ 	dev->user_dpm_enabled = dev_info.user_dpm_enabled;
++	dev->rdma_type = dev_info.rdma_type;
+ 	dev->num_hwfns = dev_info.common.num_hwfns;
+ 	dev->rdma_ctx = dev->ops->rdma_get_rdma_ctx(cdev);
  
- 	/* Allocate bitmap for toggle bit for cq icids
- 	 * We toggle the bit every time we create or resize cq for a given icid.
--	 * The maximum number of CQs is bounded to  twice the number of QPs.
-+	 * Size needs to equal the size of the cq bmap.
- 	 */
- 	rc = qed_rdma_bmap_alloc(p_hwfn, &p_rdma_info->toggle_bits,
--				 p_rdma_info->num_qps * 2, "Toggle");
-+				 num_cons, "Toggle");
- 	if (rc) {
- 		DP_VERBOSE(p_hwfn, QED_MSG_RDMA,
- 			   "Failed to allocate toogle bits, rc = %d\n", rc);
 -- 
 1.8.3.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
