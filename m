@@ -1,104 +1,83 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [linux-rdma and rdma-core]: Unable to perform rdma_connect in
- loopbacked configuration
-Date: Tue, 19 Sep 2017 06:51:34 +0300
-Message-ID: <20170919035134.GH5788@mtr-leonro.local>
-References: <59792242-F2C8-431A-BEDA-996844EDE4C5@raithlin.com>
- <VI1PR0502MB3008FAC205874147558EA241D1630@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+Subject: Re: [PATCH net 0/7] Bug fixes for the HNS3 Ethernet Driver for Hip08
+ SoC
+Date: Tue, 19 Sep 2017 06:59:00 +0300
+Message-ID: <20170919035900.GI5788@mtr-leonro.local>
+References: <20170919010628.175732-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Z0mFw3+mXTC5ycVe"
+        protocol="application/pgp-signature"; boundary="7SAgGoIHugoKhRwh"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <VI1PR0502MB3008FAC205874147558EA241D1630-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <20170919010628.175732-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---Z0mFw3+mXTC5ycVe
-Content-Type: text/plain; charset=utf-8
+--7SAgGoIHugoKhRwh
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 18, 2017 at 07:09:14PM +0000, Parav Pandit wrote:
-> Hi Stephen,
+On Tue, Sep 19, 2017 at 02:06:21AM +0100, Salil Mehta wrote:
+> This patch set presents some bug fixes for the HNS3 Ethernet driver, identified
+> during internal testing & stabilization efforts.
 >
-> If you only intention is to force to outgoing port and loopback externall=
-y, I can suggest you different route table configuration without NAT.
-> Let me know.
-
-Hi Parav,
-
-For countless number of times, and it is already two digits count,
-I asked you in private and public do NOT answer in top-posting format on
-the public mailing lists, but it seems like you don't care and prefer
-do not respect participants of those lists.
-
-What can we do to stop it? Premoderation of your posts? VP approval of
-EVERY post? Anything else?
-
+> This patch series is meant for Linux 4.14 kernel.
 >
-> Parav
+> Lipeng (6):
+>   net: hns3: get phy addr from NCL_config
+>   net: hns3: fix the command used to unmap ring from vector
+>   net: hns3: Fix ring and vector map command
+>   net: hns3: fix a bug of set mac address
+>   net: hns3: set default vlan id to PF
+>   net: hns3: Fixes the premature exit of loop when matching clients
 >
-> > -----Original Message-----
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Stephen Bates
-> > Sent: Monday, September 18, 2017 1:18 PM
-> > To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Cc: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>; Sagi Grimberg
-> > <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>; Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Subject: [linux-rdma and rdma-core]: Unable to perform rdma_connect in
-> > loopbacked configuration
-> >
+> Salil Mehta (1):
+>   net: hns3: fixes the ether address copy with more appropriate API
 
-<...>
-
-> > [1]
-> > https://emea01.safelinks.protection.outlook.com/?url=3Dhttps%3A%2F%2Fse=
-rverf
-> > ault.com%2Fquestions%2F127636%2Fforce-local-ip-traffic-to-an-external-
-> > interface&data=3D02%7C01%7Cparav%40mellanox.com%7Ce2f8f804df59419cc25
-> > a08d4fec1b338%7Ca652971c7d2e4d9ba6a4d149256f461b%7C0%7C0%7C63641
-> > 3555309452199&sdata=3DE2MQTCbSTHiUxmIAVZITBCPgKTEWBTY2%2BWVqHuSJ
-> > KlY%3D&reserved=3D0
-
-And if we are talking about your emails, please work with IT to
-configure proper replies without links overriding.
-
-In meanwhile, please STOP using public mailing lists till you fix these two=
- issues.
+1. The fixes patches should have Fixes line and not all of them have
+(I didn't look all patches).
+2. Please decide on one style: fixes vs. Fixes, fix vs. Fix in the titles
+3. Subject should be descriptive and usable, I don't know if it applies
+to the "fix a bug of set mac address" patch.
 
 Thanks
 
-> >
-> >
-> > =04 {.n +       +%  lzwm  b =EB=A7=B2  r  zX  =1A=DD=99   =17  =DC=A8} =
-  =C6=A0z &j:+v        zZ+  +zf   h   ~    i   z =1E w   ?
-> > & )=DF=A2=1Bf
+>
+>  drivers/net/ethernet/hisilicon/hns3/hnae3.c        | 43 +++++-----------------
+>  .../net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h |  8 +++-
+>  .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 20 ++++++++--
+>  .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c |  7 ++--
+>  4 files changed, 35 insertions(+), 43 deletions(-)
+>
+> --
+> 2.11.0
+>
+>
 
---Z0mFw3+mXTC5ycVe
+--7SAgGoIHugoKhRwh
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnAlEYACgkQ5GN7iDZy
-WKfQixAAq7P4uSZn6yoFpP5zmF/YCS6eZvREa7VBTQINU5dSh2Vn8XljyOaIRZRU
-VCOXvAo6q/1wZa1fv9E2/8mekD47mskjM1/lJ2uwCm5crtFwLuQue3mQGjuTUtIk
-tLp27+VcpstGMKk90lmN4KLhnOjtCCAYn2/kIfrijPXd1Tq5LGg4WKObJIXAEyTq
-n3NPjQ13B5S2NKvPWXKYoi7BfuMNcdkmf0oB6b8g0ZLBYxSKzTDXnl4xZDIAT4yD
-xc5m87CL5U7/JoNyROVVP6u0dADtLTDhpi+0ZEKyXntXCiBtc0VRx9idsV/0ClC6
-640VnSUNkDnQ6L6eIymAjvSaSOmBf6RFTpK6fX4d6bI6d7tcyIND7r49XsQj7EyF
-UmCS2YMSFlHfH1OinoJ7g9Dyws3clzLWxWWWDSngxmzgmDqJp6XnbUqOVSiKclLI
-xLHJoBMJpqI3yly1gj/lL/rZyJDbZ6IUys2thn+yKtKWLB+zbBjFYelPLDd2dC2z
-NyMy2NHnzQpu/HAU/IzN5NLHyiA5+OcDK+L3OX3Ug6UttOTSR28LcXPDJX/maXRI
-JLSOJv1CUeXutsqCk5KrkvAB0UTShJ6L0hoZ5V3s6WQEeaUNJ4EtrEhNN0Ytjy6B
-/DHlbsutV5j7WdKwurtZ6qV196jWSTZcJGZKhxV2Rm4qatuyTyk=
-=k17K
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnAlgQACgkQ5GN7iDZy
+WKeIyA/9ESkbcwj0SNqY874YioMFgm7CpXddZfQawm5rv8PHAk1eiIuG80XXQZfd
+uerudhuw5bHeXnhYrQ64bB8CwHNAXb4sD8CUkXXAO5Nc3QcxL5KCfKhFO4YynsCA
+40LqXqqkNNTvDBRt89YAfdvdLonPo+WL0sB4rVCmv/LpvVIgFDWqN2vDldL4EUKi
+27WurhHoeyFTLc9YeNddfk5kLXlO4526BLEMb485q3eZC6HDaq26kaMJwxhCYgq/
+4t+T2JPLvDE/tmrqFcTHJ9ciMovLrzbEilRGIQNPZ2nFHYDhh7JmKC48b207C4vr
+4569NRdTrfzRdiNvqHLUE7cPKPFv611+a4lik9zcBerr1583wmuFhvnyzn4HY00i
+ykSF4iCO+mNuQ5OpPTYsfeatrJlBlAnwBAMWN8QyCOFXM3qiZacxalnxxV94mXft
+dVF5pc80+U4Oeqo0b3/8ZLIglQb5JdF3ptAvYNYo7Xh4Mrv6UOoKLUYl59/DyDKv
+lvBvk2i+acDej/4R7E+BwDIM72AbM0HGRyUaxZpMOvNsmC1kHaYHPD457N30hHzc
+0vDnnEcX06rABD1eWgK+9E9DYo1zMh0Ll0nrB+mQYkE6nuQ/7dU/PS85UFksgDik
+Wsg1N2xPm30GABXKLjdZSb8XOyQmydyYnBUxPS3niR/E3Zeq/Vc=
+=+9ih
 -----END PGP SIGNATURE-----
 
---Z0mFw3+mXTC5ycVe--
+--7SAgGoIHugoKhRwh--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
