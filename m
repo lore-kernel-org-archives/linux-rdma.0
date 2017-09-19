@@ -1,78 +1,46 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 10/10] rxe: Use VERBS_NAME_MATCH to match the rxe device
-Date: Tue, 19 Sep 2017 15:18:51 -0600
-Message-ID: <1505855931-4956-11-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH rdma-core 04/10] providers: Use the new match_device and
+ allocate_device ops
+Date: Tue, 19 Sep 2017 16:32:45 -0600
+Message-ID: <20170919223245.GA6263@obsidianresearch.com>
 References: <1505855931-4956-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1505855931-4956-5-git-send-email-jgunthorpe@obsidianresearch.com>
+ <017a01d3318e$5947c870$0bd75950$@opengridcomputing.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1505855931-4956-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <017a01d3318e$5947c870$0bd75950$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Dennis Dalessandro' <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Lijun Ou' <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "'Wei Hu(Xavier)'" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Ram Amrani' <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, 'Ariel Elior' <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Adit Ranadive' <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "'open list:IPATH/QIB USERSPACE PROVIDER (for ib_qib.ko)'" <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is a placeholder, it obviously cannot work this way once we
-add rdma device renaming.
+On Tue, Sep 19, 2017 at 04:29:17PM -0500, Steve Wise wrote:
+> > +	struct c4iw_dev *dev;
+> > +	struct hca_ent *hca_ent = sysfs_dev->provider_data;
+> > +
+> > +	c4iw_page_size = sysconf(_SC_PAGESIZE);
+> > +	c4iw_page_shift = long_log2(c4iw_page_size);
+> > +	c4iw_page_mask = ~(c4iw_page_size - 1);
+> > 
+> >  	c4iw_page_size = sysconf(_SC_PAGESIZE);
+> >  	c4iw_page_shift = long_log2(c4iw_page_size);
+> >  	c4iw_page_mask = ~(c4iw_page_size - 1);
+> 
+> 
+> The above doesn't look right.
 
-A synthetic modalias is produced that contains the device name,
-and the existing modalias framework is used to match it.
+Oops, that is a rebasing-caused error I missed in this big series,
+thank you I will correct it.
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- providers/rxe/rxe.c | 24 +++++++-----------------
- 1 file changed, 7 insertions(+), 17 deletions(-)
+> Other than this, the cxgb bits look ok.  Did you test it? ????
 
-diff --git a/providers/rxe/rxe.c b/providers/rxe/rxe.c
-index d9857aac70d745..683ffaa2a8af9c 100644
---- a/providers/rxe/rxe.c
-+++ b/providers/rxe/rxe.c
-@@ -57,6 +57,12 @@
- #include "rxe-abi.h"
- #include "rxe.h"
- 
-+static const struct verbs_match_ent hca_table[] = {
-+	/* FIXME: rxe needs a more reliable way to detect the rxe device */
-+	VERBS_NAME_MATCH("rxe", NULL),
-+	{},
-+};
-+
- static int rxe_query_device(struct ibv_context *context,
- 			    struct ibv_device_attr *attr)
- {
-@@ -893,22 +899,6 @@ static void rxe_uninit_device(struct verbs_device *verbs_device)
- 	free(dev);
- }
- 
--static bool rxe_device_match(struct verbs_sysfs_dev *sysfs_dev)
--{
--	const char *uverbs_sys_path = sysfs_dev->sysfs_path;
--	char value[16];
--
--	/* make sure it is a rxe device */
--	if (ibv_read_sysfs_file(uverbs_sys_path, "ibdev",
--				value, sizeof(value)) < 0)
--		return false;
--
--	if (strncmp(value, "rxe", 3))
--		return false;
--
--	return true;
--}
--
- static struct verbs_device *rxe_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
- {
- 	struct rxe_device *dev;
-@@ -925,7 +915,7 @@ static const struct verbs_device_ops rxe_dev_ops = {
- 	.name = "rxe",
- 	.match_min_abi_version = 0,
- 	.match_max_abi_version = INT_MAX,
--	.match_device = rxe_device_match,
-+	.match_table = hca_table,
- 	.alloc_device = rxe_device_alloc,
- 	.uninit_device = rxe_uninit_device,
- 	.alloc_context = rxe_alloc_context,
--- 
-2.7.4
+Not on cxgb, I tested other mlx4 and rxe to see that things were
+working as expected. Since the matching code is now general that
+covers a pretty big space..
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
