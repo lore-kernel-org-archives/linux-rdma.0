@@ -1,217 +1,202 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 06/10] verbs: Provide common code to match providers against kernel devices
-Date: Tue, 19 Sep 2017 15:18:47 -0600
-Message-ID: <1505855931-4956-7-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 08/10] cxgb: Use the new common PCI matching infrastructure
+Date: Tue, 19 Sep 2017 15:18:49 -0600
+Message-ID: <1505855931-4956-9-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1505855931-4956-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1505855931-4956-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Checking the PCI device against a table is basically duplicated in every
-driver. Follow the pattern from the kernel and attach a matching table to
-the verbs_device_ops driver entry point that describes all the kernel
-devices the provider can handle and have the core code match against that
-table.
-
-The driver gets a pointer to the table entry that matches in the allocation
-function.
-
-This implementation is based around modalias instead of reading the PCI
-specific vendor & device files. modalias lets us support the ACPI and OF
-provider and provides a straightforward path to make the providers demand
-load based on their supported modalias strings, like the kernel.
+cxgb has an additional check for firmware version that will still
+be handled by the matching function, after the core code has setup
+the match pointer.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- libibverbs/driver.h | 43 +++++++++++++++++++++++++++
- libibverbs/init.c   | 84 +++++++++++++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 125 insertions(+), 2 deletions(-)
+ providers/cxgb3/iwch.c | 43 +++++++++----------------------------------
+ providers/cxgb4/dev.c  | 44 ++++++++++----------------------------------
+ 2 files changed, 19 insertions(+), 68 deletions(-)
 
-diff --git a/libibverbs/driver.h b/libibverbs/driver.h
-index 168728cfa1a524..a3cdbe1e60cbad 100644
---- a/libibverbs/driver.h
-+++ b/libibverbs/driver.h
-@@ -96,14 +96,56 @@ struct verbs_qp {
- 	struct verbs_xrcd       *xrcd;
- };
+diff --git a/providers/cxgb3/iwch.c b/providers/cxgb3/iwch.c
+index 7eb283bd9a89e1..3cc1d4c185e97e 100644
+--- a/providers/cxgb3/iwch.c
++++ b/providers/cxgb3/iwch.c
+@@ -56,16 +56,10 @@
+ #define PCI_DEVICE_ID_CHELSIO_T3C20	0x0035
+ #define PCI_DEVICE_ID_CHELSIO_S320E	0x0036
  
-+enum {
-+	VERBS_MATCH_SENTINEL = 0,
-+	VERBS_MATCH_PCI = 1,
-+	VERBS_MATCH_MODALIAS = 2,
-+};
-+
-+struct verbs_match_ent {
-+	void *driver_data;
-+	const char *modalias;
-+	uint16_t vendor;
-+	uint16_t device;
-+	uint8_t kind;
-+};
-+#define VERBS_PCI_MATCH(_vendor, _device, _data)                               \
-+	{                                                                      \
-+	    .driver_data = (_data),                                            \
-+	    .vendor = (_vendor),                                               \
-+	    .device = (_device),                                               \
-+	    .kind = VERBS_MATCH_PCI,                                           \
-+	}
-+
-+#define VERBS_MODALIAS_MATCH(_mod_str, _data)                                  \
-+	{                                                                      \
-+	    .driver_data = (_data),                                            \
-+	    .modalias = (_mod_str),                                            \
-+	    .kind = VERBS_MATCH_MODALIAS,                                      \
-+	}
-+
-+/* Matching on the IB device name is STRONGLY discouraged. This will only
-+ * match if there is no device/modalias file available, and it will eventually
-+ * be disabled entirely if the kernel supports renaming. Use is strongly
-+ * discouraged.
-+ */
-+#define VERBS_NAME_MATCH(_name_prefix, _data)                                  \
-+	{                                                                      \
-+	    .driver_data = (_data),                                            \
-+	    .modalias = "rdma_device:*N" _name_prefix "*",                     \
-+	    .kind = VERBS_MATCH_MODALIAS,                                      \
-+	}
-+
- /* A rdma device detected in sysfs */
- struct verbs_sysfs_dev {
- 	struct list_node entry;
- 	void *provider_data;
-+	const struct verbs_match_ent *match;
- 	char sysfs_name[IBV_SYSFS_NAME_MAX];
- 	char ibdev_name[IBV_SYSFS_NAME_MAX];
- 	char sysfs_path[IBV_SYSFS_PATH_MAX];
- 	char ibdev_path[IBV_SYSFS_PATH_MAX];
-+	char modalias[512];
- 	int abi_ver;
- 	struct timespec time_created;
- };
-@@ -114,6 +156,7 @@ struct verbs_device_ops {
+-#define HCA(v, d, t) \
+-	{ .vendor = PCI_VENDOR_ID_##v,			\
+-	  .device = PCI_DEVICE_ID_CHELSIO_##d,		\
+-	  .type = CHELSIO_##t }
+-
+-static struct hca_ent {
+-	unsigned vendor;
+-	unsigned device;
+-	enum iwch_hca_type type;
+-} hca_table[] = {
++#define HCA(v, d, t)                                                           \
++	VERBS_PCI_MATCH(PCI_VENDOR_ID_##v, PCI_DEVICE_ID_CHELSIO_##d,          \
++			(void *)(CHELSIO_##t))
++static const struct verbs_match_ent hca_table[] = {
+ 	HCA(CHELSIO, PE9000_2C, T3B),
+ 	HCA(CHELSIO, T302E, T3A),
+ 	HCA(CHELSIO, T302X, T3A),
+@@ -175,31 +169,12 @@ static void iwch_uninit_device(struct verbs_device *verbs_device)
  
- 	int match_min_abi_version;
- 	int match_max_abi_version;
-+	const struct verbs_match_ent *match_table;
- 
- 	bool (*match_device)(struct verbs_sysfs_dev *sysfs_dev);
- 
-diff --git a/libibverbs/init.c b/libibverbs/init.c
-index d75d70b195a6f6..ff2c60ffcbc963 100644
---- a/libibverbs/init.c
-+++ b/libibverbs/init.c
-@@ -46,6 +46,7 @@
- #include <dirent.h>
- #include <errno.h>
- #include <assert.h>
-+#include <fnmatch.h>
- 
- #include <util/util.h>
- #include "ibverbs.h"
-@@ -138,6 +139,11 @@ static int find_sysfs_devs(struct list_head *tmp_sysfs_dev_list)
- 					value, sizeof value) > 0)
- 			sysfs_dev->abi_ver = strtol(value, NULL, 10);
- 
-+		if (ibv_read_sysfs_file(sysfs_dev->sysfs_path,
-+					"device/modalias", sysfs_dev->modalias,
-+					sizeof(sysfs_dev->modalias)) <= 0)
-+			sysfs_dev->modalias[0] = 0;
-+
- 		list_add(tmp_sysfs_dev_list, &sysfs_dev->entry);
- 		sysfs_dev      = NULL;
- 	}
-@@ -340,12 +346,86 @@ out:
- 	closedir(conf_dir);
- }
- 
-+/* Match a single modalias value */
-+static bool match_modalias(const struct verbs_match_ent *ent, const char *value)
-+{
-+	char pci_ma[100];
-+
-+	switch (ent->kind) {
-+	case VERBS_MATCH_MODALIAS:
-+		return fnmatch(ent->modalias, value, 0) == 0;
-+	case VERBS_MATCH_PCI:
-+		snprintf(pci_ma, sizeof(pci_ma), "pci:v%08Xd%08Xsv*",
-+			 ent->vendor, ent->device);
-+		return fnmatch(pci_ma, value, 0) == 0;
-+	default:
-+		return false;
-+	}
-+}
-+
-+/* Search a null terminated table of verbs_match_ent's and return the one
-+ * that matches the device the verbs sysfs device is bound to or NULL.
-+ */
-+static const struct verbs_match_ent *
-+match_modalias_device(const struct verbs_device_ops *ops,
-+		      struct verbs_sysfs_dev *sysfs_dev)
-+{
-+	const struct verbs_match_ent *i;
-+
-+	for (i = ops->match_table; i->kind != VERBS_MATCH_SENTINEL; i++)
-+		if (match_modalias(i, sysfs_dev->modalias))
-+			return i;
-+
-+	return NULL;
-+}
-+
-+/* Match the device name itself */
-+static const struct verbs_match_ent *
-+match_name(const struct verbs_device_ops *ops,
-+		      struct verbs_sysfs_dev *sysfs_dev)
-+{
-+	char name_ma[100];
-+	const struct verbs_match_ent *i;
-+
-+	if (!check_snprintf(name_ma, sizeof(name_ma),
-+			    "rdma_device:N%s", sysfs_dev->ibdev_name))
-+		return NULL;
-+
-+	for (i = ops->match_table; i->kind != VERBS_MATCH_SENTINEL; i++)
-+		if (match_modalias(i, name_ma))
-+			return i;
-+
-+	return NULL;
-+}
-+
- /* True if the provider matches the selected rdma sysfs device */
- static bool match_device(const struct verbs_device_ops *ops,
- 			 struct verbs_sysfs_dev *sysfs_dev)
+ static bool iwch_device_match(struct verbs_sysfs_dev *sysfs_dev)
  {
--	if (!ops->match_device(sysfs_dev))
--		return false;
-+	if (ops->match_table) {
-+		/* The internally generated alias is checked first, since some
-+		 * devices like rxe can attach to a random modalias, including
-+		 * ones that match other providers.
-+		 */
-+		sysfs_dev->match = match_name(ops, sysfs_dev);
-+		if (!sysfs_dev->match)
-+			sysfs_dev->match =
-+			    match_modalias_device(ops, sysfs_dev);
-+	}
-+
-+	if (ops->match_device) {
-+		/* If a matching function is provided then it is called
-+		 * unconditionally after the table match above, it is
-+		 * responsible for determining if the device matches based on
-+		 * the match pointer and any other internal information.
-+		 */
-+		if (!ops->match_device(sysfs_dev))
-+			return false;
-+	} else {
-+		/* With no match function, we must have a table match */
-+		if (!sysfs_dev->match)
-+			return false;
-+	}
+-	const char *uverbs_sys_path = sysfs_dev->sysfs_path;
+ 	char value[32], *cp;
+-	unsigned vendor, device, fw_maj, fw_min;
+-	int i;
++	unsigned int fw_maj, fw_min;
  
- 	if (sysfs_dev->abi_ver < ops->match_min_abi_version ||
- 	    sysfs_dev->abi_ver > ops->match_max_abi_version) {
+-	if (ibv_read_sysfs_file(uverbs_sys_path, "device/vendor",
+-				value, sizeof value) < 0)
++	/* Rely on the core code to match PCI devices */
++	if (!sysfs_dev->match)
+ 		return false;
+-	sscanf(value, "%i", &vendor);
+-
+-	if (ibv_read_sysfs_file(uverbs_sys_path, "device/device",
+-				value, sizeof value) < 0)
+-		return false;
+-	sscanf(value, "%i", &device);
+-
+-	for (i = 0; i < sizeof hca_table / sizeof hca_table[0]; ++i)
+-		if (vendor == hca_table[i].vendor &&
+-		    device == hca_table[i].device) {
+-			sysfs_dev->provider_data = &hca_table[i];
+-			goto found;
+-		}
+-
+-	return false;
+-
+-found:
+ 
+ 	/* 
+ 	 * Verify that the firmware major number matches.  Major number
+@@ -237,14 +212,13 @@ found:
+ static struct verbs_device *iwch_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
+ {
+ 	struct iwch_device *dev;
+-	struct hca_ent *hca_ent = sysfs_dev->provider_data;
+ 
+ 	dev = calloc(1, sizeof(*dev));
+ 	if (!dev)
+ 		return NULL;
+ 
+ 	pthread_spin_init(&dev->lock, PTHREAD_PROCESS_PRIVATE);
+-	dev->hca_type = hca_ent->type;
++	dev->hca_type = (uintptr_t)sysfs_dev->match->driver_data;
+ 	dev->abi_version = sysfs_dev->abi_ver;
+ 
+ 	iwch_page_size = sysconf(_SC_PAGESIZE);
+@@ -278,6 +252,7 @@ static const struct verbs_device_ops iwch_dev_ops = {
+ 	.name = "cxgb3",
+ 	.match_min_abi_version = 0,
+ 	.match_max_abi_version = ABI_VERS,
++	.match_table = hca_table,
+ 	.match_device = iwch_device_match,
+ 	.alloc_device = iwch_device_alloc,
+ 	.uninit_device = iwch_uninit_device,
+diff --git a/providers/cxgb4/dev.c b/providers/cxgb4/dev.c
+index 43c5a3c97bc864..c99b9e35515f89 100644
+--- a/providers/cxgb4/dev.c
++++ b/providers/cxgb4/dev.c
+@@ -48,23 +48,17 @@
+ /*
+  * Macros needed to support the PCI Device ID Table ...
+  */
+-#define CH_PCI_DEVICE_ID_TABLE_DEFINE_BEGIN \
+-	static struct hca_ent { \
+-		unsigned vendor; \
+-		unsigned device; \
+-	} hca_table[] = {
++#define CH_PCI_DEVICE_ID_TABLE_DEFINE_BEGIN                                    \
++	static const struct verbs_match_ent hca_table[] = {
+ 
+ #define CH_PCI_DEVICE_ID_FUNCTION \
+ 		0x4
+ 
+-#define CH_PCI_ID_TABLE_ENTRY(__DeviceID) \
+-		{ \
+-			.vendor = PCI_VENDOR_ID_CHELSIO, \
+-			.device = (__DeviceID), \
+-		}
++#define CH_PCI_ID_TABLE_ENTRY(__DeviceID)                                      \
++	VERBS_PCI_MATCH(PCI_VENDOR_ID_CHELSIO, __DeviceID, NULL)
+ 
+ #define CH_PCI_DEVICE_ID_TABLE_DEFINE_END \
+-	}
++	{} }
+ 
+ #include "t4_chip_type.h"
+ #include "t4_pci_id_tbl.h"
+@@ -401,31 +395,13 @@ int c4iw_abi_version = 1;
+ 
+ static bool c4iw_device_match(struct verbs_sysfs_dev *sysfs_dev)
+ {
+-	const char *uverbs_sys_path = sysfs_dev->sysfs_path;
+ 	char value[32], *cp;
+-	unsigned vendor, device, fw_maj, fw_min;
+-	int i;
+-
+-	if (ibv_read_sysfs_file(uverbs_sys_path, "device/vendor",
+-				value, sizeof value) < 0)
+-		return false;
+-	sscanf(value, "%i", &vendor);
++	unsigned int fw_maj, fw_min;
+ 
+-	if (ibv_read_sysfs_file(uverbs_sys_path, "device/device",
+-				value, sizeof value) < 0)
++	/* Rely on the core code to match PCI devices */
++	if (!sysfs_dev->match)
+ 		return false;
+-	sscanf(value, "%i", &device);
+-
+-	for (i = 0; i < sizeof hca_table / sizeof hca_table[0]; ++i)
+-		if (vendor == hca_table[i].vendor &&
+-		    device == hca_table[i].device) {
+-			sysfs_dev->provider_data = &hca_table[i];
+-			goto found;
+-		}
+-
+-	return false;
+ 
+-found:
+ 	/*
+ 	 * Verify that the firmware major number matches.  Major number
+ 	 * mismatches are fatal.  Minor number mismatches are tolerated.
+@@ -461,7 +437,6 @@ found:
+ static struct verbs_device *c4iw_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
+ {
+ 	struct c4iw_dev *dev;
+-	struct hca_ent *hca_ent = sysfs_dev->provider_data;
+ 
+ 	c4iw_page_size = sysconf(_SC_PAGESIZE);
+ 	c4iw_page_shift = long_log2(c4iw_page_size);
+@@ -477,7 +452,7 @@ static struct verbs_device *c4iw_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
+ 
+ 	pthread_spin_init(&dev->lock, PTHREAD_PROCESS_PRIVATE);
+ 	c4iw_abi_version = sysfs_dev->abi_ver;
+-	dev->chip_version = CHELSIO_CHIP_VERSION(hca_ent->device >> 8);
++	dev->chip_version = CHELSIO_CHIP_VERSION(sysfs_dev->match->device >> 8);
+ 	dev->abi_version = sysfs_dev->abi_ver;
+ 	list_node_init(&dev->list);
+ 
+@@ -517,6 +492,7 @@ static const struct verbs_device_ops c4iw_dev_ops = {
+ 	.name = "cxgb4",
+ 	.match_min_abi_version = 0,
+ 	.match_max_abi_version = INT_MAX,
++	.match_table = hca_table,
+ 	.match_device = c4iw_device_match,
+ 	.alloc_device = c4iw_device_alloc,
+ 	.uninit_device = c4iw_uninit_device,
 -- 
 2.7.4
 
