@@ -1,33 +1,212 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 0/5] i40iw fixes
-Date: Tue, 19 Sep 2017 09:19:08 -0500
-Message-ID: <20170919141913.10172-1-shiraz.saleem@intel.com>
+Subject: [PATCH 2/5] i40iw: Prevent multiple netdev event notifier registrations
+Date: Tue, 19 Sep 2017 09:19:10 -0500
+Message-ID: <20170919141913.10172-3-shiraz.saleem@intel.com>
+References: <20170919141913.10172-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170919141913.10172-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This series includes a few fixes for i40iw driver to be
-considered for 4.14-rc.
+Netdev event notifier registration/de-registration is not
+synchronized with a lock and there is a possibility of a
+duplicate registration of notifier before the unregister
+completes.
 
-Mustafa Ismail (1):
-  i40iw: Add missing VLAN priority
+Register netdev event notifiers during module init and
+de-register them at module exit.
 
-Shiraz Saleem (4):
-  i40iw: Fail open if there are no available MSI-X vectors
-  i40iw: Prevent multiple netdev event notifier registrations
-  i40iw: Call i40iw_cm_disconn on modify QP to disconnect
-  i40iw: Add support for port reuse on active side connections
+This avoids the need to tie the registration to first netdev
+client interface open and de-registration to last client
+interface close and the synchronization to achieve it.
 
- drivers/infiniband/hw/i40iw/i40iw.h       |   1 -
- drivers/infiniband/hw/i40iw/i40iw_cm.c    | 154 +++++++++++++++---------------
- drivers/infiniband/hw/i40iw/i40iw_cm.h    |   5 +
- drivers/infiniband/hw/i40iw/i40iw_main.c  |  39 ++++----
- drivers/infiniband/hw/i40iw/i40iw_utils.c |   6 +-
- drivers/infiniband/hw/i40iw/i40iw_verbs.c |  12 +++
- 6 files changed, 120 insertions(+), 97 deletions(-)
+This also fixes a crash due to duplicate registration.
 
+BUG: unable to handle kernel paging request at ffffffffa0d60388
+IP: [<ffffffff8160f75d>] notifier_call_chain+0x3d/0x70
+PGD 190d067 PUD 190e063 PMD 76c840067 PTE 0
+Oops: 0000 [#1] SMP
+Modules linked in: i40e(OF-) fuse btrfs zlib_deflate raid6_pq xor vfat msdos
+[..]
+e1000e vxlan ip_tunnel ptp pps_core i2c_core video [last unloaded: i40iw]
+CPU: 1 PID: 27101 Comm: modprobe Tainted: GF       W  O--------------   3.10.0-229.el7.x86_64 #1
+Hardware name: Gigabyte Technology Co., Ltd. To be filled by O.E.M./Q87M-D2H, BIOS F7 01/17/2014
+task: ffff88076e8a96c0 ti: ffff8806959c8000 task.ti: ffff8806959c8000
+RIP: 0010:[<ffffffff8160f75d>]  [<ffffffff8160f75d>] notifier_call_chain+0x3d/0x70
+RSP: 0018:ffff8806959cbb38  EFLAGS: 00010282
+RAX: ffffffffa0d60380 RBX: 00000000fffffffd RCX: 0000000000000000
+0708] RDX: 0000000000000000 RSI: ffff88081227a000 RDI: 0000000000000002
+RBP: ffff8806959cbb60 R08: 0000000000000246 R09: 000000000000700c
+R10: ffff88080e16ea40 R11: 00000000000ae8df R12: ffffffffa0d60380
+R13: 0000000000000002 R14: ffff88076e738800 R15: 0000000000000000
+FS:  00007f604ef4a740(0000) GS:ffff88083e240000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffa0d60388 CR3: 0000000753cd2000 CR4: 00000000001407e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Stack:
+ffffffff819e73a0 0000000000000000 0000000000000002 ffff88076e738800
+00000000ffffffff ffff8806959cbba0 ffffffff8109d61d 0000000000000000
+0000000000000000 ffff88076e738800 0000000000000000 ffff88076e738800
+Call Trace:
+[<ffffffff8109d61d>] __blocking_notifier_call_chain+0x4d/0x70
+[<ffffffff8109d656>] blocking_notifier_call_chain+0x16/0x20
+[<ffffffff8156b9e4>] __inet_del_ifa+0x154/0x2b0
+[<ffffffff8156d102>] inetdev_event+0x182/0x530
+[<ffffffff8160f76c>] notifier_call_chain+0x4c/0x70
+[<ffffffff8109d446>] raw_notifier_call_chain+0x16/0x20
+[<ffffffff814f71fd>] call_netdevice_notifiers+0x2d/0x60
+[<ffffffff814f8845>] rollback_registered_many+0x105/0x220
+[<ffffffff814f89a0>] rollback_registered+0x40/0x70
+[<ffffffff814f9c88>] unregister_netdevice_queue+0x48/0x80
+[<ffffffff814f9cdc>] unregister_netdev+0x1c/0x30
+[<ffffffffa0067139>] i40e_vsi_release+0x2a9/0x2b0 [i40e]
+[<ffffffffa00674e8>] i40e_remove+0x128/0x2b0 [i40e]
+[<ffffffff813092db>] pci_device_remove+0x3b/0xb0
+[<ffffffff813d26ef>] __device_release_driver+0x7f/0xf0
+[<ffffffff813d3068>] driver_detach+0xb8/0xc0
+[<ffffffff813d22db>] bus_remove_driver+0x9b/0x120
+[<ffffffff813d36dc>] driver_unregister+0x2c/0x50
+[<ffffffff81307d4c>] pci_unregister_driver+0x2c/0x90
+[<ffffffffa008f9d0>] i40e_exit_module+0x10/0x23 [i40e]
+[<ffffffff810dad0b>] SyS_delete_module+0x16b/0x2d0
+[<ffffffff81013b0c>] ? do_notify_resume+0x9c/0xb0
+[<ffffffff81613da9>] system_call_fastpath+0x16/0x1b
+Code: e5 41 57 4d 89 c7 41 56 49 89 d6 41 55 49 89 f5 41 54 53 89 cb
+75 14 eb 3d 0f 1f 44 00 00 83 eb 01 74 25 4d 85 e4 74 20 4c 89 e0 <4c>
+8b 60 08 4c 89 f2 4c 89 ee 48 89 c7 ff 10 4d 85 ff 74 04 41
+RIP  [<ffffffff8160f75d>] notifier_call_chain+0x3d/0x70
+
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/i40iw/i40iw.h       |  1 -
+ drivers/infiniband/hw/i40iw/i40iw_main.c  | 32 ++++++++++++++++---------------
+ drivers/infiniband/hw/i40iw/i40iw_utils.c |  6 +++---
+ 3 files changed, 20 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
+index 9b15664..a65e4cbd 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw.h
++++ b/drivers/infiniband/hw/i40iw/i40iw.h
+@@ -201,7 +201,6 @@ enum init_completion_state {
+ 	CEQ_CREATED,
+ 	ILQ_CREATED,
+ 	IEQ_CREATED,
+-	INET_NOTIFIER,
+ 	IP_ADDR_REGISTERED,
+ 	RDMA_DEV_REGISTERED
+ };
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
+index 5965b59..27590ae 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_main.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
+@@ -99,8 +99,6 @@ static struct notifier_block i40iw_net_notifier = {
+ 	.notifier_call = i40iw_net_event
+ };
+ 
+-static atomic_t i40iw_notifiers_registered;
+-
+ /**
+  * i40iw_find_i40e_handler - find a handler given a client info
+  * @ldev: pointer to a client info
+@@ -1376,11 +1374,20 @@ static enum i40iw_status_code i40iw_initialize_dev(struct i40iw_device *iwdev,
+  */
+ static void i40iw_register_notifiers(void)
+ {
+-	if (atomic_inc_return(&i40iw_notifiers_registered) == 1) {
+-		register_inetaddr_notifier(&i40iw_inetaddr_notifier);
+-		register_inet6addr_notifier(&i40iw_inetaddr6_notifier);
+-		register_netevent_notifier(&i40iw_net_notifier);
+-	}
++	register_inetaddr_notifier(&i40iw_inetaddr_notifier);
++	register_inet6addr_notifier(&i40iw_inetaddr6_notifier);
++	register_netevent_notifier(&i40iw_net_notifier);
++}
++
++/**
++ * i40iw_unregister_notifiers - unregister tcp ip notifiers
++ */
++
++static void i40iw_unregister_notifiers(void)
++{
++	unregister_netevent_notifier(&i40iw_net_notifier);
++	unregister_inetaddr_notifier(&i40iw_inetaddr_notifier);
++	unregister_inet6addr_notifier(&i40iw_inetaddr6_notifier);
+ }
+ 
+ /**
+@@ -1467,12 +1474,6 @@ static void i40iw_deinit_device(struct i40iw_device *iwdev)
+ 		if (!iwdev->reset)
+ 			i40iw_del_macip_entry(iwdev, (u8)iwdev->mac_ip_table_idx);
+ 		/* fallthrough */
+-	case INET_NOTIFIER:
+-		if (!atomic_dec_return(&i40iw_notifiers_registered)) {
+-			unregister_netevent_notifier(&i40iw_net_notifier);
+-			unregister_inetaddr_notifier(&i40iw_inetaddr_notifier);
+-			unregister_inet6addr_notifier(&i40iw_inetaddr6_notifier);
+-		}
+ 		/* fallthrough */
+ 	case PBLE_CHUNK_MEM:
+ 		i40iw_destroy_pble_pool(dev, iwdev->pble_rsrc);
+@@ -1672,8 +1673,6 @@ static int i40iw_open(struct i40e_info *ldev, struct i40e_client *client)
+ 			break;
+ 		iwdev->init_state = PBLE_CHUNK_MEM;
+ 		iwdev->virtchnl_wq = alloc_ordered_workqueue("iwvch", WQ_MEM_RECLAIM);
+-		i40iw_register_notifiers();
+-		iwdev->init_state = INET_NOTIFIER;
+ 		status = i40iw_add_mac_ip(iwdev);
+ 		if (status)
+ 			break;
+@@ -2023,6 +2022,8 @@ static int __init i40iw_init_module(void)
+ 	i40iw_client.type = I40E_CLIENT_IWARP;
+ 	spin_lock_init(&i40iw_handler_lock);
+ 	ret = i40e_register_client(&i40iw_client);
++	i40iw_register_notifiers();
++
+ 	return ret;
+ }
+ 
+@@ -2034,6 +2035,7 @@ static int __init i40iw_init_module(void)
+  */
+ static void __exit i40iw_exit_module(void)
+ {
++	i40iw_unregister_notifiers();
+ 	i40e_unregister_client(&i40iw_client);
+ }
+ 
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+index 62f1f45..e52dbbb 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+@@ -160,7 +160,7 @@ int i40iw_inetaddr_event(struct notifier_block *notifier,
+ 		return NOTIFY_DONE;
+ 
+ 	iwdev = &hdl->device;
+-	if (iwdev->init_state < INET_NOTIFIER)
++	if (iwdev->init_state < IP_ADDR_REGISTERED || iwdev->closing)
+ 		return NOTIFY_DONE;
+ 
+ 	netdev = iwdev->ldev->netdev;
+@@ -217,7 +217,7 @@ int i40iw_inet6addr_event(struct notifier_block *notifier,
+ 		return NOTIFY_DONE;
+ 
+ 	iwdev = &hdl->device;
+-	if (iwdev->init_state < INET_NOTIFIER)
++	if (iwdev->init_state < IP_ADDR_REGISTERED || iwdev->closing)
+ 		return NOTIFY_DONE;
+ 
+ 	netdev = iwdev->ldev->netdev;
+@@ -266,7 +266,7 @@ int i40iw_net_event(struct notifier_block *notifier, unsigned long event, void *
+ 		if (!iwhdl)
+ 			return NOTIFY_DONE;
+ 		iwdev = &iwhdl->device;
+-		if (iwdev->init_state < INET_NOTIFIER)
++		if (iwdev->init_state < IP_ADDR_REGISTERED || iwdev->closing)
+ 			return NOTIFY_DONE;
+ 		p = (__be32 *)neigh->primary_key;
+ 		i40iw_copy_ip_ntohl(local_ipaddr, p);
 -- 
 2.8.3
 
