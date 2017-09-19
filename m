@@ -1,202 +1,136 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 08/10] cxgb: Use the new common PCI matching infrastructure
-Date: Tue, 19 Sep 2017 15:18:49 -0600
-Message-ID: <1505855931-4956-9-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 09/10] hns: Use the generic modalias matcher
+Date: Tue, 19 Sep 2017 15:18:50 -0600
+Message-ID: <1505855931-4956-10-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1505855931-4956-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1505855931-4956-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-cxgb has an additional check for firmware version that will still
-be handled by the matching function, after the core code has setup
-the match pointer.
+Use the new verbs infrastructure to match providers against modalias
+files. This changes the parse of the compatible string to one
+that is based on modalias instead of directly reading the compatible
+string.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- providers/cxgb3/iwch.c | 43 +++++++++----------------------------------
- providers/cxgb4/dev.c  | 44 ++++++++++----------------------------------
- 2 files changed, 19 insertions(+), 68 deletions(-)
+ providers/hns/hns_roce_u.c       | 52 +++++++---------------------------------
+ providers/hns/hns_roce_u.h       |  1 +
+ providers/hns/hns_roce_u_hw_v1.c |  1 +
+ 3 files changed, 10 insertions(+), 44 deletions(-)
 
-diff --git a/providers/cxgb3/iwch.c b/providers/cxgb3/iwch.c
-index 7eb283bd9a89e1..3cc1d4c185e97e 100644
---- a/providers/cxgb3/iwch.c
-+++ b/providers/cxgb3/iwch.c
-@@ -56,16 +56,10 @@
- #define PCI_DEVICE_ID_CHELSIO_T3C20	0x0035
- #define PCI_DEVICE_ID_CHELSIO_S320E	0x0036
+diff --git a/providers/hns/hns_roce_u.c b/providers/hns/hns_roce_u.c
+index 88389721811fce..c27212ac7fb603 100644
+--- a/providers/hns/hns_roce_u.c
++++ b/providers/hns/hns_roce_u.c
+@@ -44,20 +44,11 @@
+ #define HID_LEN			15
+ #define DEV_MATCH_LEN		128
  
--#define HCA(v, d, t) \
--	{ .vendor = PCI_VENDOR_ID_##v,			\
--	  .device = PCI_DEVICE_ID_CHELSIO_##d,		\
--	  .type = CHELSIO_##t }
+-struct hca_ent {
+-	const char *str;
+-	struct hns_roce_u_hw *data;
+-	int version;
+-};
 -
--static struct hca_ent {
--	unsigned vendor;
--	unsigned device;
--	enum iwch_hca_type type;
--} hca_table[] = {
-+#define HCA(v, d, t)                                                           \
-+	VERBS_PCI_MATCH(PCI_VENDOR_ID_##v, PCI_DEVICE_ID_CHELSIO_##d,          \
-+			(void *)(CHELSIO_##t))
+-static const struct hca_ent acpi_table[] = {
+-	 {"acpi:HISI00D1:", &hns_roce_u_hw_v1, HNS_ROCE_HW_VER1},
+-	 {},
+-};
+-
+-static const struct hca_ent dt_table[] = {
+-	{"hisilicon,hns-roce-v1", &hns_roce_u_hw_v1, HNS_ROCE_HW_VER1},
+-	{},
 +static const struct verbs_match_ent hca_table[] = {
- 	HCA(CHELSIO, PE9000_2C, T3B),
- 	HCA(CHELSIO, T302E, T3A),
- 	HCA(CHELSIO, T302X, T3A),
-@@ -175,31 +169,12 @@ static void iwch_uninit_device(struct verbs_device *verbs_device)
++	VERBS_MODALIAS_MATCH("acpi*:HISI00D1:*", &hns_roce_u_hw_v1),
++	VERBS_MODALIAS_MATCH("of:N*T*Chisilicon,hns-roce-v1C*", &hns_roce_u_hw_v1),
++	VERBS_MODALIAS_MATCH("of:N*T*Chisilicon,hns-roce-v1", &hns_roce_u_hw_v1),
++	{}
+ };
  
- static bool iwch_device_match(struct verbs_sysfs_dev *sysfs_dev)
- {
+ static struct ibv_context *hns_roce_alloc_context(struct ibv_device *ibdev,
+@@ -178,43 +169,16 @@ static void hns_uninit_device(struct verbs_device *verbs_device)
+ 	free(dev);
+ }
+ 
+-static bool hns_device_match(struct verbs_sysfs_dev *sysfs_dev)
+-{
 -	const char *uverbs_sys_path = sysfs_dev->sysfs_path;
- 	char value[32], *cp;
--	unsigned vendor, device, fw_maj, fw_min;
--	int i;
-+	unsigned int fw_maj, fw_min;
- 
--	if (ibv_read_sysfs_file(uverbs_sys_path, "device/vendor",
--				value, sizeof value) < 0)
-+	/* Rely on the core code to match PCI devices */
-+	if (!sysfs_dev->match)
- 		return false;
--	sscanf(value, "%i", &vendor);
+-	char			 value[128];
+-	int			 i;
 -
--	if (ibv_read_sysfs_file(uverbs_sys_path, "device/device",
--				value, sizeof value) < 0)
--		return false;
--	sscanf(value, "%i", &device);
+-	if (ibv_read_sysfs_file(uverbs_sys_path, "device/modalias",
+-				value, sizeof(value)) > 0)
+-		for (i = 0; i < sizeof(acpi_table) / sizeof(acpi_table[0]); ++i)
+-			if (!strcmp(value, acpi_table[i].str)) {
+-				sysfs_dev->provider_data =
+-				    (void *)&acpi_table[i];
+-				return true;
+-			}
 -
--	for (i = 0; i < sizeof hca_table / sizeof hca_table[0]; ++i)
--		if (vendor == hca_table[i].vendor &&
--		    device == hca_table[i].device) {
--			sysfs_dev->provider_data = &hca_table[i];
--			goto found;
--		}
+-	if (ibv_read_sysfs_file(uverbs_sys_path, "device/of_node/compatible",
+-				value, sizeof(value)) > 0)
+-		for (i = 0; i < sizeof(dt_table) / sizeof(dt_table[0]); ++i)
+-			if (!strcmp(value, dt_table[i].str)) {
+-				sysfs_dev->provider_data = (void *)&dt_table[i];
+-				return true;
+-			}
 -
 -	return false;
+-}
 -
--found:
- 
- 	/* 
- 	 * Verify that the firmware major number matches.  Major number
-@@ -237,14 +212,13 @@ found:
- static struct verbs_device *iwch_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
+ static struct verbs_device *hns_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
  {
- 	struct iwch_device *dev;
--	struct hca_ent *hca_ent = sysfs_dev->provider_data;
+ 	struct hns_roce_device  *dev;
+-	const struct hca_ent *hca_ent = sysfs_dev->provider_data;
  
  	dev = calloc(1, sizeof(*dev));
  	if (!dev)
  		return NULL;
  
- 	pthread_spin_init(&dev->lock, PTHREAD_PROCESS_PRIVATE);
--	dev->hca_type = hca_ent->type;
-+	dev->hca_type = (uintptr_t)sysfs_dev->match->driver_data;
- 	dev->abi_version = sysfs_dev->abi_ver;
- 
- 	iwch_page_size = sysconf(_SC_PAGESIZE);
-@@ -278,6 +252,7 @@ static const struct verbs_device_ops iwch_dev_ops = {
- 	.name = "cxgb3",
- 	.match_min_abi_version = 0,
- 	.match_max_abi_version = ABI_VERS,
-+	.match_table = hca_table,
- 	.match_device = iwch_device_match,
- 	.alloc_device = iwch_device_alloc,
- 	.uninit_device = iwch_uninit_device,
-diff --git a/providers/cxgb4/dev.c b/providers/cxgb4/dev.c
-index 43c5a3c97bc864..c99b9e35515f89 100644
---- a/providers/cxgb4/dev.c
-+++ b/providers/cxgb4/dev.c
-@@ -48,23 +48,17 @@
- /*
-  * Macros needed to support the PCI Device ID Table ...
-  */
--#define CH_PCI_DEVICE_ID_TABLE_DEFINE_BEGIN \
--	static struct hca_ent { \
--		unsigned vendor; \
--		unsigned device; \
--	} hca_table[] = {
-+#define CH_PCI_DEVICE_ID_TABLE_DEFINE_BEGIN                                    \
-+	static const struct verbs_match_ent hca_table[] = {
- 
- #define CH_PCI_DEVICE_ID_FUNCTION \
- 		0x4
- 
--#define CH_PCI_ID_TABLE_ENTRY(__DeviceID) \
--		{ \
--			.vendor = PCI_VENDOR_ID_CHELSIO, \
--			.device = (__DeviceID), \
--		}
-+#define CH_PCI_ID_TABLE_ENTRY(__DeviceID)                                      \
-+	VERBS_PCI_MATCH(PCI_VENDOR_ID_CHELSIO, __DeviceID, NULL)
- 
- #define CH_PCI_DEVICE_ID_TABLE_DEFINE_END \
--	}
-+	{} }
- 
- #include "t4_chip_type.h"
- #include "t4_pci_id_tbl.h"
-@@ -401,31 +395,13 @@ int c4iw_abi_version = 1;
- 
- static bool c4iw_device_match(struct verbs_sysfs_dev *sysfs_dev)
- {
--	const char *uverbs_sys_path = sysfs_dev->sysfs_path;
- 	char value[32], *cp;
--	unsigned vendor, device, fw_maj, fw_min;
--	int i;
--
--	if (ibv_read_sysfs_file(uverbs_sys_path, "device/vendor",
--				value, sizeof value) < 0)
--		return false;
--	sscanf(value, "%i", &vendor);
-+	unsigned int fw_maj, fw_min;
- 
--	if (ibv_read_sysfs_file(uverbs_sys_path, "device/device",
--				value, sizeof value) < 0)
-+	/* Rely on the core code to match PCI devices */
-+	if (!sysfs_dev->match)
- 		return false;
--	sscanf(value, "%i", &device);
--
--	for (i = 0; i < sizeof hca_table / sizeof hca_table[0]; ++i)
--		if (vendor == hca_table[i].vendor &&
--		    device == hca_table[i].device) {
--			sysfs_dev->provider_data = &hca_table[i];
--			goto found;
--		}
--
--	return false;
- 
--found:
- 	/*
- 	 * Verify that the firmware major number matches.  Major number
- 	 * mismatches are fatal.  Minor number mismatches are tolerated.
-@@ -461,7 +437,6 @@ found:
- static struct verbs_device *c4iw_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
- {
- 	struct c4iw_dev *dev;
--	struct hca_ent *hca_ent = sysfs_dev->provider_data;
- 
- 	c4iw_page_size = sysconf(_SC_PAGESIZE);
- 	c4iw_page_shift = long_log2(c4iw_page_size);
-@@ -477,7 +452,7 @@ static struct verbs_device *c4iw_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
- 
- 	pthread_spin_init(&dev->lock, PTHREAD_PROCESS_PRIVATE);
- 	c4iw_abi_version = sysfs_dev->abi_ver;
--	dev->chip_version = CHELSIO_CHIP_VERSION(hca_ent->device >> 8);
-+	dev->chip_version = CHELSIO_CHIP_VERSION(sysfs_dev->match->device >> 8);
- 	dev->abi_version = sysfs_dev->abi_ver;
- 	list_node_init(&dev->list);
- 
-@@ -517,6 +492,7 @@ static const struct verbs_device_ops c4iw_dev_ops = {
- 	.name = "cxgb4",
+-	dev->u_hw = hca_ent->data;
+-	dev->hw_version = hca_ent->version;
++	dev->u_hw = sysfs_dev->match->driver_data;
++	dev->hw_version = dev->u_hw->hw_version;
+ 	dev->page_size   = sysconf(_SC_PAGESIZE);
+ 	return &dev->ibv_dev;
+ }
+@@ -223,7 +187,7 @@ static const struct verbs_device_ops hns_roce_dev_ops = {
+ 	.name = "hns",
  	.match_min_abi_version = 0,
  	.match_max_abi_version = INT_MAX,
+-	.match_device = hns_device_match,
 +	.match_table = hca_table,
- 	.match_device = c4iw_device_match,
- 	.alloc_device = c4iw_device_alloc,
- 	.uninit_device = c4iw_uninit_device,
+ 	.alloc_device = hns_device_alloc,
+ 	.uninit_device = hns_uninit_device,
+ 	.alloc_context = hns_roce_alloc_context,
+diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
+index dc8956af4f8fae..d0e2351fc7fc4c 100644
+--- a/providers/hns/hns_roce_u.h
++++ b/providers/hns/hns_roce_u.h
+@@ -170,6 +170,7 @@ struct hns_roce_qp {
+ };
+ 
+ struct hns_roce_u_hw {
++	uint32_t hw_version;
+ 	int (*poll_cq)(struct ibv_cq *ibvcq, int ne, struct ibv_wc *wc);
+ 	int (*arm_cq)(struct ibv_cq *ibvcq, int solicited);
+ 	int (*post_send)(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+diff --git a/providers/hns/hns_roce_u_hw_v1.c b/providers/hns/hns_roce_u_hw_v1.c
+index 0de94e1fabd3d9..482eac90df2183 100644
+--- a/providers/hns/hns_roce_u_hw_v1.c
++++ b/providers/hns/hns_roce_u_hw_v1.c
+@@ -829,6 +829,7 @@ out:
+ }
+ 
+ struct hns_roce_u_hw hns_roce_u_hw_v1 = {
++	.hw_version = HNS_ROCE_HW_VER1,
+ 	.poll_cq = hns_roce_u_v1_poll_cq,
+ 	.arm_cq = hns_roce_u_v1_arm_cq,
+ 	.post_send = hns_roce_u_v1_post_send,
 -- 
 2.7.4
 
