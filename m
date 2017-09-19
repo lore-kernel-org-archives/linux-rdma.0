@@ -1,42 +1,49 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 net 1/7] net: hns3: Fixes initialization of phy address from firmware
-Date: Tue, 19 Sep 2017 17:17:10 +0100
-Message-ID: <20170919161716.92680-2-salil.mehta@huawei.com>
-References: <20170919161716.92680-1-salil.mehta@huawei.com>
+From: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH net-next 0/4] qed: iWARP fixes and enhancements
+Date: Tue, 19 Sep 2017 20:26:15 +0300
+Message-ID: <1505841979-26365-1-git-send-email-Michal.Kalderon@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170919161716.92680-1-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Lipeng <lipeng321@huawei.com>
+This patch series includes several fixes and enhancements
+related to iWARP.
 
-Default phy address of every port is 0. Therefore, phy address for
-each port need to be fetched from firmware and device initialized
-with fetched non-default phy address.
+Patch #1 is actually the last of the initial iWARP submission.
+It has been delayed until now as I wanted to make sure that qedr
+supports iWARP prior to enabling iWARP device detection.
 
-Fixes: 6427264ef330 ("net: hns3: Add HNS3 Acceleration Engine &
-Compatibility Layer Support")
-Signed-off-by: Lipeng <lipeng321@huawei.com>
-Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
----
- drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c | 1 +
- 1 file changed, 1 insertion(+)
+iWARP changes in RDMA tree have been accepted and targeted at
+kernel 4.15, therefore, all iWARP fixes for this cycle are
+submitted to net-next.
 
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-index bb45365..db4e07d 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-@@ -1066,6 +1066,7 @@ static int hclge_configure(struct hclge_dev *hdev)
- 	for (i = 0; i < ETH_ALEN; i++)
- 		hdev->hw.mac.mac_addr[i] = cfg.mac_addr[i];
- 	hdev->hw.mac.media_type = cfg.media_type;
-+	hdev->hw.mac.phy_addr = cfg.phy_addr;
- 	hdev->num_desc = cfg.tqp_desc_num;
- 	hdev->tm_info.num_pg = 1;
- 	hdev->tm_info.num_tc = cfg.tc_num;
+Signed-off by: Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
+Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+
+Michal Kalderon (4):
+  qed: Add iWARP enablement support
+  qed: Add iWARP out of order support
+  qed: Fix maximum number of CQs for iWARP
+  qed: iWARP - Add check for errors on a SYN packet
+
+ drivers/net/ethernet/qlogic/qed/qed_cxt.c         |  6 +++
+ drivers/net/ethernet/qlogic/qed/qed_iwarp.c       | 52 +++++++++++++++++++++++
+ drivers/net/ethernet/qlogic/qed/qed_iwarp.h       | 11 ++++-
+ drivers/net/ethernet/qlogic/qed/qed_ll2.c         |  1 +
+ drivers/net/ethernet/qlogic/qed/qed_mcp.c         | 10 ++---
+ drivers/net/ethernet/qlogic/qed/qed_rdma.c        | 24 +++++++----
+ drivers/net/ethernet/qlogic/qed/qed_sp_commands.c |  1 +
+ include/linux/qed/qed_ll2_if.h                    |  1 +
+ 8 files changed, 91 insertions(+), 15 deletions(-)
+
 -- 
-2.7.4
+1.8.3.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
