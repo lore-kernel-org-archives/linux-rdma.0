@@ -1,62 +1,54 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 00/10] Rework the verb init scheme
-Date: Tue, 19 Sep 2017 15:18:41 -0600
-Message-ID: <1505855931-4956-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 02/10] cxgb4: Move sysconf up to driver_init
+Date: Tue, 19 Sep 2017 15:18:43 -0600
+Message-ID: <1505855931-4956-3-git-send-email-jgunthorpe@obsidianresearch.com>
+References: <1505855931-4956-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1505855931-4956-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This changes how verbs providers register with the core and are bound to
-drivers.
+This follows the pattern of the rest of the providers and lets us
+use the PROVIDER_DRIVER macro.
 
-The end goal is to have textual a list of 'modalias' that each provider
-supports, similar to the kernel. This list can then ultimately be used to
-demand load the modules instead of loading every module like we do today.
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ providers/cxgb4/dev.c | 13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-This series does the work to bring all providers to use common code to match
-their supported devices, and provides the core code the supported device
-list. This is done by extending the verbs_driver_ops to include the matching
-information that the driver needs.
-
-Quite a lot of duplicated driver code is removed in the process, and verbs
-startup reads fewer sysfs files.
-
-https://github.com/linux-rdma/rdma-core/pull/214
-
-Jason Gunthorpe (10):
-  verbs: Change verbs_register_driver to accept the ops struct directly
-  cxgb4: Move sysconf up to driver_init
-  verbs: Split init_device into a match and alloc/bind step
-  providers: Use the new match_device and allocate_device ops
-  verbs: Remove the init_device entry point
-  verbs: Provide common code to match providers against kernel devices
-  providers: Use the new common PCI matching infrastructure
-  cxgb: Use the new common PCI matching infrastructure
-  hns: Use the generic modalias matcher
-  rxe: Use VERBS_NAME_MATCH to match the rxe device
-
- libibverbs/driver.h                |  77 +++++++++++++++++-
- libibverbs/init.c                  | 162 +++++++++++++++++++++++++++++--------
- providers/bnxt_re/main.c           |  69 ++++------------
- providers/cxgb3/iwch.c             | 102 ++++++++---------------
- providers/cxgb4/dev.c              | 110 ++++++++++---------------
- providers/hfi1verbs/hfiverbs.c     |  65 +++++----------
- providers/hns/hns_roce_u.c         |  80 +++++-------------
- providers/hns/hns_roce_u.h         |   1 +
- providers/hns/hns_roce_u_hw_v1.c   |   1 +
- providers/i40iw/i40iw_umain.c      |  69 +++++-----------
- providers/ipathverbs/ipathverbs.c  |  66 +++++----------
- providers/mlx4/mlx4.c              |  75 +++++------------
- providers/mlx5/mlx5.c              |  77 +++++-------------
- providers/mthca/mthca.c            |  75 +++++------------
- providers/nes/nes_umain.c          |  80 +++++-------------
- providers/ocrdma/ocrdma_main.c     |  84 +++++--------------
- providers/qedr/qelr_main.c         |  73 ++++-------------
- providers/rxe/rxe.c                |  50 +++++-------
- providers/vmw_pvrdma/pvrdma_main.c |  76 +++++------------
- 19 files changed, 530 insertions(+), 862 deletions(-)
-
+diff --git a/providers/cxgb4/dev.c b/providers/cxgb4/dev.c
+index fea9b5527072ec..492b3978995607 100644
+--- a/providers/cxgb4/dev.c
++++ b/providers/cxgb4/dev.c
+@@ -466,6 +466,10 @@ found:
+ 	PDBG("%s found vendor %d device %d type %d\n",
+ 	     __FUNCTION__, vendor, device, CHELSIO_CHIP_VERSION(hca_table[i].device >> 8));
+ 
++	c4iw_page_size = sysconf(_SC_PAGESIZE);
++	c4iw_page_shift = long_log2(c4iw_page_size);
++	c4iw_page_mask = ~(c4iw_page_size - 1);
++
+ 	dev = calloc(1, sizeof *dev);
+ 	if (!dev) {
+ 		return NULL;
+@@ -515,14 +519,7 @@ static const struct verbs_device_ops c4iw_dev_ops = {
+ 	.alloc_context = c4iw_alloc_context,
+ 	.free_context = c4iw_free_context,
+ };
+-
+-static __attribute__((constructor)) void cxgb4_register_driver(void)
+-{
+-	c4iw_page_size = sysconf(_SC_PAGESIZE);
+-	c4iw_page_shift = long_log2(c4iw_page_size);
+-	c4iw_page_mask = ~(c4iw_page_size - 1);
+-	verbs_register_driver(&c4iw_dev_ops);
+-}
++PROVIDER_DRIVER(c4iw_dev_ops);
+ 
+ #ifdef STATS
+ void __attribute__ ((destructor)) cs_fini(void);
 -- 
 2.7.4
 
