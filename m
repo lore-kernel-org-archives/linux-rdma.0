@@ -1,126 +1,52 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc] IB/bnxt_re: Fix frame stack compilation warning
-Date: Tue, 19 Sep 2017 13:22:13 +0300
-Message-ID: <20170919102213.30911-1-leon@kernel.org>
+From: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC rdma-core] Verbs: Introduce resource domain
+Date: Tue, 19 Sep 2017 17:05:11 +0300
+Message-ID: <CAFgAxU9M0MXw371Nh2tviuQHXCJxnFLPtaAcsevigEMMWjUPhA@mail.gmail.com>
+References: <1505648922-21346-1-git-send-email-yishaih@mellanox.com> <20170918205411.GB7059@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170918205411.GB7059-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Alex @ Mellanox" <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Reduce stack size by dynamically allocating memory instead
-of declaring large struct on the stack:
+On Mon, Sep 18, 2017 at 11:54 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Sun, Sep 17, 2017 at 02:48:42PM +0300, Yishai Hadas wrote:
+>
+>> Resource domain represents a collection of IB resources (as of QP, CQ,
+>> etc.) which are accessed by an application from the same context (e.g.
+>> same thread) and as such can share hardware and software resources to
+>> allow smarter management of resources by the provider library and better
+>> performance.
+>
+> This sounds exactly like a PD to me. Why do we need another construct?
+> What is wrong with a 'thread-unsafe' flag during PD creation and then
+> contain the shared resources in the PD?
 
-drivers/infiniband/hw/bnxt_re/ib_verbs.c: In function ‘bnxt_re_query_qp’:
-drivers/infiniband/hw/bnxt_re/ib_verbs.c:1600:1: warning: the frame size of 1216 bytes is larger than 1024 bytes [-Wframe-larger-than=]
- }
- ^
+PD does not fit good enough. It is does not cover CQ's in allocation
+flow, but limited to QP's, SRQ's, WQ's.
+Also, using multiple PD's will require to use a dedicated MR per PD,
+instead of sharing a single MR for the entire memory used over
+multiple threads / QP's.
 
-Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Fixes: 1ac5a4047975 ("RDMA/bnxt_re: Add bnxt_re RoCE driver")
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 67 +++++++++++++++++---------------
- 1 file changed, 36 insertions(+), 31 deletions(-)
+>
+>>       uint32_t                raw_packet_caps; /* Use ibv_raw_packet_caps */
+>> +     uint32_t                max_resource_domains;
+>
+> Even with this approach, not sure a max makes much sense, this value should
+> just be hashed into whatever range the provider has on a resource by
+> resource basis.
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 01eee15bbd65..03caf48af8e2 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -1551,43 +1551,46 @@ int bnxt_re_query_qp(struct ib_qp *ib_qp, struct ib_qp_attr *qp_attr,
- {
- 	struct bnxt_re_qp *qp = container_of(ib_qp, struct bnxt_re_qp, ib_qp);
- 	struct bnxt_re_dev *rdev = qp->rdev;
--	struct bnxt_qplib_qp qplib_qp;
-+	struct bnxt_qplib_qp *qplib_qp;
- 	int rc;
+By exposing the max_resource_domains we allow the application to take
+the decision of which element will get hurt if it reaches that limit.
+If we leave the logic hidden inside the libraries, the application
+losses control over the best performance vs average better
+performance.
 
--	memset(&qplib_qp, 0, sizeof(struct bnxt_qplib_qp));
--	qplib_qp.id = qp->qplib_qp.id;
--	qplib_qp.ah.host_sgid_index = qp->qplib_qp.ah.host_sgid_index;
-+	qplib_qp = kzalloc(sizeof(*qplib_qp), GFP_KERNEL);
-+	if (!qplib_qp)
-+		return -ENOMEM;
-+
-+	qplib_qp->id = qp->qplib_qp.id;
-+	qplib_qp->ah.host_sgid_index = qp->qplib_qp.ah.host_sgid_index;
-
--	rc = bnxt_qplib_query_qp(&rdev->qplib_res, &qplib_qp);
-+	rc = bnxt_qplib_query_qp(&rdev->qplib_res, qplib_qp);
- 	if (rc) {
- 		dev_err(rdev_to_dev(rdev), "Failed to query HW QP");
--		return rc;
-+		goto out;
- 	}
--	qp_attr->qp_state = __to_ib_qp_state(qplib_qp.state);
--	qp_attr->en_sqd_async_notify = qplib_qp.en_sqd_async_notify ? 1 : 0;
--	qp_attr->qp_access_flags = __to_ib_access_flags(qplib_qp.access);
--	qp_attr->pkey_index = qplib_qp.pkey_index;
--	qp_attr->qkey = qplib_qp.qkey;
-+	qp_attr->qp_state = __to_ib_qp_state(qplib_qp->state);
-+	qp_attr->en_sqd_async_notify = qplib_qp->en_sqd_async_notify ? 1 : 0;
-+	qp_attr->qp_access_flags = __to_ib_access_flags(qplib_qp->access);
-+	qp_attr->pkey_index = qplib_qp->pkey_index;
-+	qp_attr->qkey = qplib_qp->qkey;
- 	qp_attr->ah_attr.type = RDMA_AH_ATTR_TYPE_ROCE;
--	rdma_ah_set_grh(&qp_attr->ah_attr, NULL, qplib_qp.ah.flow_label,
--			qplib_qp.ah.host_sgid_index,
--			qplib_qp.ah.hop_limit,
--			qplib_qp.ah.traffic_class);
--	rdma_ah_set_dgid_raw(&qp_attr->ah_attr, qplib_qp.ah.dgid.data);
--	rdma_ah_set_sl(&qp_attr->ah_attr, qplib_qp.ah.sl);
--	ether_addr_copy(qp_attr->ah_attr.roce.dmac, qplib_qp.ah.dmac);
--	qp_attr->path_mtu = __to_ib_mtu(qplib_qp.path_mtu);
--	qp_attr->timeout = qplib_qp.timeout;
--	qp_attr->retry_cnt = qplib_qp.retry_cnt;
--	qp_attr->rnr_retry = qplib_qp.rnr_retry;
--	qp_attr->min_rnr_timer = qplib_qp.min_rnr_timer;
--	qp_attr->rq_psn = qplib_qp.rq.psn;
--	qp_attr->max_rd_atomic = qplib_qp.max_rd_atomic;
--	qp_attr->sq_psn = qplib_qp.sq.psn;
--	qp_attr->max_dest_rd_atomic = qplib_qp.max_dest_rd_atomic;
--	qp_init_attr->sq_sig_type = qplib_qp.sig_type ? IB_SIGNAL_ALL_WR :
--							IB_SIGNAL_REQ_WR;
--	qp_attr->dest_qp_num = qplib_qp.dest_qpn;
-+	rdma_ah_set_grh(&qp_attr->ah_attr, NULL, qplib_qp->ah.flow_label,
-+			qplib_qp->ah.host_sgid_index,
-+			qplib_qp->ah.hop_limit,
-+			qplib_qp->ah.traffic_class);
-+	rdma_ah_set_dgid_raw(&qp_attr->ah_attr, qplib_qp->ah.dgid.data);
-+	rdma_ah_set_sl(&qp_attr->ah_attr, qplib_qp->ah.sl);
-+	ether_addr_copy(qp_attr->ah_attr.roce.dmac, qplib_qp->ah.dmac);
-+	qp_attr->path_mtu = __to_ib_mtu(qplib_qp->path_mtu);
-+	qp_attr->timeout = qplib_qp->timeout;
-+	qp_attr->retry_cnt = qplib_qp->retry_cnt;
-+	qp_attr->rnr_retry = qplib_qp->rnr_retry;
-+	qp_attr->min_rnr_timer = qplib_qp->min_rnr_timer;
-+	qp_attr->rq_psn = qplib_qp->rq.psn;
-+	qp_attr->max_rd_atomic = qplib_qp->max_rd_atomic;
-+	qp_attr->sq_psn = qplib_qp->sq.psn;
-+	qp_attr->max_dest_rd_atomic = qplib_qp->max_dest_rd_atomic;
-+	qp_init_attr->sq_sig_type = qplib_qp->sig_type ? IB_SIGNAL_ALL_WR :
-+							 IB_SIGNAL_REQ_WR;
-+	qp_attr->dest_qp_num = qplib_qp->dest_qpn;
-
- 	qp_attr->cap.max_send_wr = qp->qplib_qp.sq.max_wqe;
- 	qp_attr->cap.max_send_sge = qp->qplib_qp.sq.max_sge;
-@@ -1596,7 +1599,9 @@ int bnxt_re_query_qp(struct ib_qp *ib_qp, struct ib_qp_attr *qp_attr,
- 	qp_attr->cap.max_inline_data = qp->qplib_qp.max_inline_data;
- 	qp_init_attr->cap = qp_attr->cap;
-
--	return 0;
-+out:
-+	kfree(qplib_qp);
-+	return rc;
- }
-
- /* Routine for sending QP1 packets for RoCE V1 an V2
---
-2.14.1
-
+Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
