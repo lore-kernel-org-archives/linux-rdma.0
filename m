@@ -1,34 +1,36 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] ibacm: Close MAD port when umad_register fails
-Date: Mon, 18 Sep 2017 15:55:47 -0600
-Message-ID: <20170918215547.GB17476@obsidianresearch.com>
-References: <20170918215158.27597-1-yuval.shaia@oracle.com>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: [PATCH net 0/7] Bug fixes for the HNS3 Ethernet Driver for Hip08 SoC
+Date: Tue, 19 Sep 2017 02:06:21 +0100
+Message-ID: <20170919010628.175732-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170918215158.27597-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 19, 2017 at 12:51:58AM +0300, Yuval Shaia wrote:
-> Cleanup of the open port is needed when program fails to register MAD
-> port.
-> 
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->  ibacm/src/acm.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+This patch set presents some bug fixes for the HNS3 Ethernet driver, identified
+during internal testing & stabilization efforts.
 
-Yuval, can you send this patch against rdma-core please? ibacm is not
-longer separate.
+This patch series is meant for Linux 4.14 kernel. 
 
-https://github.com/linux-rdma/rdma-core
+Lipeng (6):
+  net: hns3: get phy addr from NCL_config
+  net: hns3: fix the command used to unmap ring from vector
+  net: hns3: Fix ring and vector map command
+  net: hns3: fix a bug of set mac address
+  net: hns3: set default vlan id to PF
+  net: hns3: Fixes the premature exit of loop when matching clients
 
-Thanks,
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Salil Mehta (1):
+  net: hns3: fixes the ether address copy with more appropriate API
+
+ drivers/net/ethernet/hisilicon/hns3/hnae3.c        | 43 +++++-----------------
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h |  8 +++-
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 20 ++++++++--
+ .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c |  7 ++--
+ 4 files changed, 35 insertions(+), 43 deletions(-)
+
+-- 
+2.11.0
