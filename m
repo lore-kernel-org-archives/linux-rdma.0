@@ -1,30 +1,46 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: crash in 4.14-rc1 with IPoIB
-Date: Wed, 20 Sep 2017 14:51:54 +0300
-Message-ID: <b072bf52-d061-2a34-00b4-022ec7e3c15e@grimberg.me>
-References: <20170920095339.zhfymeyfbhiyepz5@linux-x5ow.site>
- <7aac2d78-462b-c9ad-4443-9ec670a27b74@grimberg.me>
- <be30c079-6513-627f-0276-6556e6f9eea5@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] rdma/core: Don't dereference device->get_link_type directly
+Date: Wed, 20 Sep 2017 14:52:52 +0300
+Message-ID: <1505908372-29453-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <be30c079-6513-627f-0276-6556e6f9eea5-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Hal! :)
+We have rdma_port_get_link_type that checks the callout
+is actually implemented.
 
-> There's another occurrence of qp->device->get_link_layer in that routine
-> just below this. Shouldn't that be replaced by rdma_port_get_link_layer
-> too ?
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ drivers/infiniband/core/verbs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-You're absolutely correct!
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index ee9e27dc799b..de57d6c11a25 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1646,7 +1646,7 @@ static bool is_valid_mcast_lid(struct ib_qp *qp, u16 lid)
+ 	 */
+ 	if (!ib_query_qp(qp, &attr, IB_QP_STATE | IB_QP_PORT, &init_attr)) {
+ 		if (attr.qp_state >= IB_QPS_INIT) {
+-			if (qp->device->get_link_layer(qp->device, attr.port_num) !=
++			if (rdma_port_get_link_layer(qp->device, attr.port_num) !=
+ 			    IB_LINK_LAYER_INFINIBAND)
+ 				return true;
+ 			goto lid_check;
+@@ -1655,7 +1655,7 @@ static bool is_valid_mcast_lid(struct ib_qp *qp, u16 lid)
+ 
+ 	/* Can't get a quick answer, iterate over all ports */
+ 	for (port = 0; port < qp->device->phys_port_cnt; port++)
+-		if (qp->device->get_link_layer(qp->device, port) !=
++		if (rdma_port_get_link_layer(qp->device, port) !=
+ 		    IB_LINK_LAYER_INFINIBAND)
+ 			num_eth_ports++;
+ 
+-- 
+2.7.4
 
-Sending a formal patch now.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
