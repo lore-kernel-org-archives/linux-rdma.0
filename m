@@ -1,39 +1,75 @@
-From: Ursula Braun <ubraun@linux.vnet.ibm.com>
-Subject: [PATCH net-next 02/10] net/smc: add receive timeout check
-Date: Wed, 20 Sep 2017 13:58:05 +0200
-Message-ID: <20170920115813.63745-3-ubraun@linux.vnet.ibm.com>
-References: <20170920115813.63745-1-ubraun@linux.vnet.ibm.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170920115813.63745-1-ubraun@linux.vnet.ibm.com>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, jwi@linux.vnet.ibm.com, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.vnet.ibm.com, ubraun@linux.vnet.ibm.com
+From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2] rdma/core: Don't dereference device->get_link_layer
+ directly
+Date: Wed, 20 Sep 2017 12:33:39 +0000
+Message-ID: <F3529576D8E232409F431C309E29399336CD902F@CRSMSX102.amr.corp.intel.com>
+References: <1505908483-29641-1-git-send-email-sagi@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1505908483-29641-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Hans Wippel <hwippel@linux.vnet.ibm.com>
+Patch for this issue was already posted about 3 weeks ago.
+https://patchwork.kernel.org/patch/9932505/
 
-The SMC receive function currently lacks a timeout check under the
-condition that no data were received and no data are available. This
-patch adds such a check.
+Thanks,
+Alex.
 
-Signed-off-by: Hans Wippel <hwippel@linux.vnet.ibm.com>
-Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
----
- net/smc/smc_rx.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/smc/smc_rx.c b/net/smc/smc_rx.c
-index b17a333e9bb0..3e631ae4b6b6 100644
---- a/net/smc/smc_rx.c
-+++ b/net/smc/smc_rx.c
-@@ -148,6 +148,8 @@ int smc_rx_recvmsg(struct smc_sock *smc, struct msghdr *msg, size_t len,
- 				read_done = sock_intr_errno(timeo);
- 				break;
- 			}
-+			if (!timeo)
-+				return -EAGAIN;
- 		}
- 
- 		if (!atomic_read(&conn->bytes_to_rcv)) {
--- 
-2.13.5
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Sagi Grimberg
+> Sent: Wednesday, September 20, 2017 7:55 AM
+> To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: [PATCH v2] rdma/core: Don't dereference device->get_link_layer directly
+> 
+> We have rdma_port_get_link_layer that checks the callout
+> is actually implemented.
+> 
+> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> ---
+> Changes from v1:
+> - fixed typo
+> 
+>  drivers/infiniband/core/verbs.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index ee9e27dc799b..de57d6c11a25 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -1646,7 +1646,7 @@ static bool is_valid_mcast_lid(struct ib_qp *qp, u16 lid)
+>  	 */
+>  	if (!ib_query_qp(qp, &attr, IB_QP_STATE | IB_QP_PORT, &init_attr)) {
+>  		if (attr.qp_state >= IB_QPS_INIT) {
+> -			if (qp->device->get_link_layer(qp->device, attr.port_num) !=
+> +			if (rdma_port_get_link_layer(qp->device, attr.port_num) !=
+>  			    IB_LINK_LAYER_INFINIBAND)
+>  				return true;
+>  			goto lid_check;
+> @@ -1655,7 +1655,7 @@ static bool is_valid_mcast_lid(struct ib_qp *qp, u16 lid)
+> 
+>  	/* Can't get a quick answer, iterate over all ports */
+>  	for (port = 0; port < qp->device->phys_port_cnt; port++)
+> -		if (qp->device->get_link_layer(qp->device, port) !=
+> +		if (rdma_port_get_link_layer(qp->device, port) !=
+>  		    IB_LINK_LAYER_INFINIBAND)
+>  			num_eth_ports++;
+> 
+> --
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
