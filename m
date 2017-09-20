@@ -1,18 +1,21 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH] rdma/core: Don't dereference device->get_link_type directly
-Date: Wed, 20 Sep 2017 14:52:52 +0300
-Message-ID: <1505908372-29453-1-git-send-email-sagi@grimberg.me>
+Subject: [PATCH v2] rdma/core: Don't dereference device->get_link_layer directly
+Date: Wed, 20 Sep 2017 14:54:43 +0300
+Message-ID: <1505908483-29641-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We have rdma_port_get_link_type that checks the callout
+We have rdma_port_get_link_layer that checks the callout
 is actually implemented.
 
 Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
+Changes from v1:
+- fixed typo
+
  drivers/infiniband/core/verbs.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
