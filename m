@@ -1,49 +1,33 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [linux-rdma and rdma-core]: Unable to perform rdma_connect in
- loopbacked configuration
-Date: Wed, 20 Sep 2017 10:28:28 -0600
-Message-ID: <20170920162828.GC536@obsidianresearch.com>
-References: <59792242-F2C8-431A-BEDA-996844EDE4C5@raithlin.com>
- <20170918205959.GC7059@obsidianresearch.com>
- <AB27E7A4-FD5A-438E-A0CF-E593882F5EAE@raithlin.com>
+Subject: Re: crash in 4.14-rc1 with IPoIB
+Date: Wed, 20 Sep 2017 10:32:37 -0600
+Message-ID: <20170920163237.GD536@obsidianresearch.com>
+References: <20170920095339.zhfymeyfbhiyepz5@linux-x5ow.site>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <AB27E7A4-FD5A-438E-A0CF-E593882F5EAE-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20170920095339.zhfymeyfbhiyepz5-qw2SdCWA0PpjqqEj2zc+bA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 19, 2017 at 01:11:49AM +0000, Stephen  Bates wrote:
-> >> Using a NAT approach discussed in [1] I can setup IPv4 addresses on
-> >> both HCAs such that I avoid a local loopback (the addresses I use
-> >> are a little different to the ones in that reference but the
-> >> approach is identical). This allows ping, iperf and other IP based
-> >> applications to work just fine. For example:
-> 
-> Thanks for the reply Jason
-> 
-> > The RDMA stuff ignores everything in iptables.
-> 
-> Can I ask why this is?
+On Wed, Sep 20, 2017 at 11:53:39AM +0200, Johannes Thumshirn wrote:
+> I wanted to try out Christoph's NVMe multipathing patchset on my NVMe OmniPath
+> setup and merged it into 4.14-rc1. On bootup I stumbled upon that splat and no
+> RDMA operation was possible:
 
-roce is an incomplete emulation of the netstack with hardware
-offload. everything iptables is part of the incompleteness..
+I think this was already found and fixed a month ago?? The oops is the same:
 
-> > IMHO, it is also a bug if loopback roce doesn't just work out of the
-> > box, fully internally to the NIC. :\
-> 
-> OK. Note what I am trying to get working is a bit different. It'ss
-> not internal to one NIC but across two NICs in the same
-> server. Loopback inside one NIC works fine.
+https://patchwork.kernel.org/patch/9932505/
 
-I got that, but it makes no difference to my statement. Out of the box
-the kernel should select one of the two NICs and do internal loopback.
+Doug, one of the topics during the LPC was 'what to QA' - it
+obviously causes QA problems if known bugs are left to sit on the
+mailing list for a month :(
 
-That is consistent with the netstack semantic that the IP address is a
-property of the host not the netdev.
+These are excatly the things need to get to Linus faster to get
+people on board the QA upstream train..
 
 Jason
 --
