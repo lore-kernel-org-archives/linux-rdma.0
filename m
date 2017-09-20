@@ -1,7 +1,7 @@
 From: Ursula Braun <ubraun@linux.vnet.ibm.com>
-Subject: [PATCH net-next 05/10] net/smc: adapt send request completion notification
-Date: Wed, 20 Sep 2017 13:58:08 +0200
-Message-ID: <20170920115813.63745-6-ubraun@linux.vnet.ibm.com>
+Subject: [PATCH net-next 06/10] net/smc: longer delay for client link group removal
+Date: Wed, 20 Sep 2017 13:58:09 +0200
+Message-ID: <20170920115813.63745-7-ubraun@linux.vnet.ibm.com>
 References: <20170920115813.63745-1-ubraun@linux.vnet.ibm.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20170920115813.63745-1-ubraun@linux.vnet.ibm.com>
@@ -10,26 +10,53 @@ To: davem@davemloft.net
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, jwi@linux.vnet.ibm.com, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.vnet.ibm.com, ubraun@linux.vnet.ibm.com
 List-Id: linux-rdma@vger.kernel.org
 
-The solicited flag is meaningful for the receive completion queue.
-Ask for next work completion of any type on the send queue.
+Client link group creation always follows the server linkgroup creation.
+If peer creates a new server link group, client has to create a new
+client link group. If peer reuses a server link group for a new
+connection, client has to reuse its client link group as well. This
+patch introduces a longer delay for client link group removal to make
+sure this link group still exists, once the peer decides to reuse a
+server link group. This avoids out-of-sync conditions for link groups.
+If already scheduled, modify the delay.
 
 Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
 ---
- net/smc/smc_wr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/smc/smc_core.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff --git a/net/smc/smc_wr.c b/net/smc/smc_wr.c
-index ab56bda66783..525d91e0d57e 100644
---- a/net/smc/smc_wr.c
-+++ b/net/smc/smc_wr.c
-@@ -244,7 +244,7 @@ int smc_wr_tx_send(struct smc_link *link, struct smc_wr_tx_pend_priv *priv)
- 	int rc;
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 1a16d51e2330..20b66e79c5d6 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -25,8 +25,9 @@
+ #include "smc_cdc.h"
+ #include "smc_close.h"
  
- 	ib_req_notify_cq(link->smcibdev->roce_cq_send,
--			 IB_CQ_SOLICITED_MASK | IB_CQ_REPORT_MISSED_EVENTS);
-+			 IB_CQ_NEXT_COMP | IB_CQ_REPORT_MISSED_EVENTS);
- 	pend = container_of(priv, struct smc_wr_tx_pend, priv);
- 	rc = ib_post_send(link->roce_qp, &link->wr_tx_ibs[pend->idx],
- 			  &failed_wr);
+-#define SMC_LGR_NUM_INCR	256
+-#define SMC_LGR_FREE_DELAY	(600 * HZ)
++#define SMC_LGR_NUM_INCR		256
++#define SMC_LGR_FREE_DELAY_SERV		(600 * HZ)
++#define SMC_LGR_FREE_DELAY_CLNT		(SMC_LGR_FREE_DELAY_SERV + 10)
+ 
+ static u32 smc_lgr_num;			/* unique link group number */
+ 
+@@ -107,8 +108,15 @@ static void smc_lgr_unregister_conn(struct smc_connection *conn)
+ 		__smc_lgr_unregister_conn(conn);
+ 	}
+ 	write_unlock_bh(&lgr->conns_lock);
+-	if (reduced && !lgr->conns_num)
+-		schedule_delayed_work(&lgr->free_work, SMC_LGR_FREE_DELAY);
++	if (!reduced || lgr->conns_num)
++		return;
++	/* client link group creation always follows the server link group
++	 * creation. For client use a somewhat higher removal delay time,
++	 * otherwise there is a risk of out-of-sync link groups.
++	 */
++	mod_delayed_work(system_wq, &lgr->free_work,
++			 lgr->role == SMC_CLNT ? SMC_LGR_FREE_DELAY_CLNT :
++						 SMC_LGR_FREE_DELAY_SERV);
+ }
+ 
+ static void smc_lgr_free_work(struct work_struct *work)
 -- 
 2.13.5
