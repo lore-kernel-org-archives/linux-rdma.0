@@ -1,59 +1,78 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2] rdma/core: Don't dereference device->get_link_layer
- directly
-Date: Wed, 20 Sep 2017 16:47:23 +0300
-Message-ID: <20170920134723.GO5788@mtr-leonro.local>
-References: <1505908483-29641-1-git-send-email-sagi@grimberg.me>
- <F3529576D8E232409F431C309E29399336CD902F@CRSMSX102.amr.corp.intel.com>
+Subject: Re: [PATCH net-next 3/4] qed: Fix maximum number of CQs for iWARP
+Date: Wed, 20 Sep 2017 16:50:32 +0300
+Message-ID: <20170920135032.GP5788@mtr-leonro.local>
+References: <1505841979-26365-1-git-send-email-Michal.Kalderon@cavium.com>
+ <1505841979-26365-4-git-send-email-Michal.Kalderon@cavium.com>
+ <20170919174610.GK5788@mtr-leonro.local>
+ <CY1PR0701MB2012B07A2FCD08D598CCFEDB88610@CY1PR0701MB2012.namprd07.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="rpGc+ACYPE+RMC+Z"
+        protocol="application/pgp-signature"; boundary="jnYfR+Q8IWTs8BNa"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <F3529576D8E232409F431C309E29399336CD902F-8k97q/ur5Z1cIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CY1PR0701MB2012B07A2FCD08D598CCFEDB88610-UpKza+2NMNLHMJvQ0dyT705OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---rpGc+ACYPE+RMC+Z
+--jnYfR+Q8IWTs8BNa
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Sep 20, 2017 at 12:33:39PM +0000, Estrin, Alex wrote:
-> Patch for this issue was already posted about 3 weeks ago.
-> https://patchwork.kernel.org/patch/9932505/
+On Wed, Sep 20, 2017 at 05:46:35AM +0000, Kalderon, Michal wrote:
+> From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Sent: Tuesday, September 19, 2017 8:46 PM
+> On Tue, Sep 19, 2017 at 08:26:18PM +0300, Michal Kalderon wrote:
+> >> The maximum number of CQs supported is bound to the number
+> >> of connections supported, which differs between RoCE and iWARP.
+> >>
+> >> This fixes a crash that occurred in iWARP when running 1000 sessions
+> >> using perftest.
+> >>
+> >> Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> >> Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> >> ---
+> >
+> >It is worth to add Fixes line.
+> >
+> >Thanks
+> The original code was there before we had iWARP support, so this doesn't
+> exactly fix an older commit, but fixes iWARP code in general.
 
-Yeah, exactly.
-I had a dejavu while I read the "crash IPoIB" report.
-
-I assume that it didn't make to Linus, because it was posted after Doug
-went to vacation.
+So add Fixes which points to iWARP ennoblement patch.
 
 Thanks
 
---rpGc+ACYPE+RMC+Z
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--jnYfR+Q8IWTs8BNa
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnCcWsACgkQ5GN7iDZy
-WKeyGA//UsFGt3G/MVdsmdBj8eya4zrVT0oNWijaYztb6ZSdoXhbT7+O3TUHocqb
-6A+KzbXPNX+m0T5+nGlHZh4EjoLQJN4mVJVPJaU1s37Q0yQQYtXimJUPJn4mNnyL
-cM0af2QZyMRADiIM/nmwB0O7xZnZi+sOxtGewH9WWSPwOd1rDPbuXzxm7f3qAH6P
-0bp7fOy1Nf1bWvzfD1BYiumYdXYrUSoN29EgEVcGndRjlw252sFmcTyuG588aZO8
-KSe///51zC4YwYn31lUJRHFXmwc2ronfbzrS0C/sIb+gnHMxcX/7nJi+GAppS/Lp
-wSBEbT4yTYBTMRXYDxaxPNDD0Dtw9fziCDHrg0llfjG+ABtyx+OgaUpTGbwx9tMb
-N5YuZ1sBKXfHKX1PJUmQ5I15H+lR/Ky1jK2fPFT8ttElxJ9kWYggFOV2MK6QQo84
-UtdT0FXxSw6RlLvucCLa1NDShfLhmjDQngi4KAlJa/65Y7vygTMXAM2rjZuajNSf
-5ykH3H00zri8p2q5KEdFYFe2pbjjQvBCgcWbHG0OmIksdBJqqDfLH/OBy7Bsm0pK
-ysQSR7aZZ0+6Ob9igs4TXRaeLn6W9I5ns6YeSWJHYyInk4HATrMLo8tXkh3jbjG9
-PNmuDi/UbK+VFZA86fQVKz3j0T27BnmbGOR0/pD2p1bpIzQYmC8=
-=Sl2o
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnCcigACgkQ5GN7iDZy
+WKcfKg/9EOrgokvt0HYDcdSSMfqcbwbVhZ9QbcxnE9QD9/lhQGwEicuA8hHhOi65
+aEpzS6rvDykt6cuViQfgu3ZkuaC7bWRBS7nZ5cndN/bcumkLLc3ZHt6PsCak724U
+huGXE3ci/ykHAptPDnnU/iFtOZAus10CJAhF2ydigfYPupbKpNEBbN3rxTo/aRRb
+nyS+UUplJgRUfoqDL6SkFDc6rMqVGLOV5bYSDnal7kiDv5QJ94pmCLl1M1Q/i+Nf
+jtT4hi75zCe91FGw5UCbm/5oOqeBahOvlneOLcEhukNRRB8hUz6E8c8bzgfLXJrr
+jh0PvBfiFsVkPKZ+HFypEp/cMmtdVScEZU3yG/tBGheid2mm8QseSp1ZuCP5NV1+
+BEt1VoNRhXHZ+uDYj9BIsr8Bm/bjnz7B1uThr/kg1VuXegCQe/EygGULqRDxEGuo
+TfBzSbfhccpFSyA+nTy1g1Iq8Sn4NBFG2QwyWy79PhWYp36CnU3ToO68uenFvyvU
+9wTZWsKYU01luSfdZe2vHRosEqc7TG5Ws9WL9x3GcCkqN2yUNIXAllfkfmeWt9+n
+AXb1rHIH421qP2VwKvG2TR3m7mXeiwDRAVatj+28f2sOCiTRgw4UjK0zedKFX1Ao
+YZbj548cm7DaocSAHni2aIKnRo1ERR90SmTIDHGgVYttDchLdH4=
+=/F4x
 -----END PGP SIGNATURE-----
 
---rpGc+ACYPE+RMC+Z--
+--jnYfR+Q8IWTs8BNa--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
