@@ -1,72 +1,105 @@
-From: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc] IB/bnxt_re: Fix frame stack compilation warning
-Date: Wed, 20 Sep 2017 11:27:44 -0400
-Message-ID: <ebce1f47-c277-3987-2638-57071461a14c@redhat.com>
-References: <20170919102213.30911-1-leon@kernel.org>
- <b73b905c-baa2-0cb6-bccc-5f259ccedc48@redhat.com>
- <20170919205647.GN5788@mtr-leonro.local>
- <CA+sbYW3JEwCUb5bcQBK6-8MF=EtQSU+KxQOw3m3srFOOOK8W=g@mail.gmail.com>
-Reply-To: jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH for-next v2] IB/core: Fix for core panic
+Date: Wed, 20 Sep 2017 15:35:43 +0000
+Message-ID: <F3529576D8E232409F431C309E29399336CD90E9@CRSMSX102.amr.corp.intel.com>
+References: <20170831163032.32161.90807.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+sbYW3JEwCUb5bcQBK6-8MF=EtQSU+KxQOw3m3srFOOOK8W=g@mail.gmail.com>
+In-Reply-To: <20170831163032.32161.90807.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/20/2017 02:31 AM, Selvin Xavier wrote:
-> On Wed, Sep 20, 2017 at 2:26 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->> On Tue, Sep 19, 2017 at 02:24:19PM -0400, Jonathan Toppins wrote:
->>> On 09/19/2017 06:22 AM, Leon Romanovsky wrote:
->>>> Reduce stack size by dynamically allocating memory instead
->>>> of declaring large struct on the stack:
->>>>
->>>> drivers/infiniband/hw/bnxt_re/ib_verbs.c: In function ‘bnxt_re_query_qp’:
->>>> drivers/infiniband/hw/bnxt_re/ib_verbs.c:1600:1: warning: the frame size of 1216 bytes is larger than 1024 bytes [-Wframe-larger-than=]
->>>>  }
->>>>  ^
->>>>
-> 
->>>> -   memset(&qplib_qp, 0, sizeof(struct bnxt_qplib_qp));
->>>> -   qplib_qp.id = qp->qplib_qp.id;
->>>> -   qplib_qp.ah.host_sgid_index = qp->qplib_qp.ah.host_sgid_index;
->>>> +   qplib_qp = kzalloc(sizeof(*qplib_qp), GFP_KERNEL);
->>>                                                 ^^^^
->>> Can this process block? Further down in the code I see a call to kzalloc
->>> and they specifically use GFP_ATOMIC.
->>>
->>>     bnxt_qplib_query_qp() ->
->>>         bnxt_qplib_rcfw_alloc_sbuf()
->>>
->>> Looking through the rest of the function and what it calls I am thinking
->>> this function is assumed to not block so I think GFP_ATOMIC should be
->>> used here.
->>
->> bnxt_re_query_qp() is called as callback of ibdev->query_qp and it is
->> unlikely that this function will be called in non-blocking context.
->>
->> For me, It looks like an error to use GFP_ATOMIC down the call stack.
->>
->> P.S. Our mlx4/mlx5 use GFP_KERNEL in query_qp callbacks.
->>
-> Thanks Leon and Jonathan for your comments.
-> Agree that bnxt_qplib_rcfw_alloc_sbuf implementation can use GFP_KERNEL.
-> GFP_ATOMIC was used because  this is a generic function. But none of the
-> current callers of this function are in atomic context. I will post a
-> patch to correct it.
-> 
-> Thanks Leon for taking care of this.
-> 
-> Acked-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> 
-
-With Broadcom's response I am good with the changes.
-
-Reviewed-by: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+DQpDYzogc3RhYmxlQHZnZXIua2VybmVsLm9yZw0KIA0KNC4xMy4zIGlzIGJyb2tlbiBhcyB3ZWxs
+Lg0KQWxleC4NCg0KPiBGcm9tOiBBbGV4IEVzdHJpbiA8YWxleC5lc3RyaW5AaW50ZWwuY29tPg0K
+PiANCj4gQnVpbGQgd2l0aCB0aGUgbGF0ZXN0IHBhdGNoZXMgcmVzdWx0ZWQgaW4gcGFuaWM6DQo+
+IDExMzg0LjQ4NjI4OV0gQlVHOiB1bmFibGUgdG8gaGFuZGxlIGtlcm5lbCBOVUxMIHBvaW50ZXIg
+ZGVyZWZlcmVuY2UgYXQNCj4gICAgICAgICAgKG51bGwpDQo+IFsxMTM4NC40ODYyOTNdIElQOiAg
+ICAgICAgICAgKG51bGwpDQo+IFsxMTM4NC40ODYyOTVdIFBHRCAwDQo+IFsxMTM4NC40ODYyOTVd
+IFA0RCAwDQo+IFsxMTM4NC40ODYyOTZdDQo+IFsxMTM4NC40ODYyOTldIE9vcHM6IDAwMTAgWyMx
+XSBTTVANCj4gLi4uLi4uLi4uIHNuaXAgLi4uLi4uDQo+IFsxMTM4NC40ODY0MDFdIENQVTogMCBQ
+SUQ6IDk2OCBDb21tOiBrd29ya2VyLzA6MUggVGFpbnRlZDogRyAgICAgICAgVyAgTw0KPiAgICAg
+NC4xMy4wLWEtc3RyZWFtLTIwMTcwODI1ICMxDQo+IFsxMTM4NC40ODY0MDJdIEhhcmR3YXJlIG5h
+bWU6IEludGVsIENvcnBvcmF0aW9uIFMyNjAwV1QyUi9TMjYwMFdUMlIsDQo+IEJJT1MgU0U1QzYx
+MC44NkIuMDEuMDEuMDAxNC4xMjE4MjAxNTE3MTkgMTIvMTgvMjAxNQ0KPiBbMTEzODQuNDg2NDE4
+XSBXb3JrcXVldWU6IGliLWNvbXAtd3EgaWJfY3FfcG9sbF93b3JrIFtpYl9jb3JlXQ0KPiBbMTEz
+ODQuNDg2NDE5XSB0YXNrOiBmZmZmODgwODUwNTc5NjgwIHRhc2suc3RhY2s6IGZmZmZjOTAwMDdm
+ZWMwMDANCj4gWzExMzg0LjQ4NjQyMF0gUklQOiAwMDEwOiAgICAgICAgICAobnVsbCkNCj4gWzEx
+Mzg0LjQ4NjQyMF0gUlNQOiAwMDE4OmZmZmZjOTAwMDdmZWY5NzAgRUZMQUdTOiAwMDAxMDIwNg0K
+PiBbMTEzODQuNDg2NDIxXSBSQVg6IGZmZmY4ODA4NGNmZTgwMDAgUkJYOiBmZmZmODgwODRkY2U0
+MDAwIFJDWDoNCj4gZmZmZmM5MDAwN2ZlZjk3OA0KPiBbMTEzODQuNDg2NDIyXSBSRFg6IDAwMDAw
+MDAwMDAwMDAwMDAgUlNJOiAwMDAwMDAwMDAwMDAwMDAxIFJESToNCj4gZmZmZjg4MDg0Y2ZlODAw
+MA0KPiBbMTEzODQuNDg2NDIyXSBSQlA6IGZmZmZjOTAwMDdmZWZhYjAgUjA4OiAwMDAwMDAwMDAw
+MDAwMDAwIFIwOToNCj4gZmZmZjg4MDg0ZGNlNDA4MA0KPiBbMTEzODQuNDg2NDIzXSBSMTA6IGZm
+ZmZmZmZmYTAyZDdmNjAgUjExOiAwMDAwMDAwMDAwMDAwMDAwIFIxMjoNCj4gZmZmZjg4MTA1YWY2
+NWEwMA0KPiBbMTEzODQuNDg2NDIzXSBSMTM6IGZmZmY4ODA4NGRjZTQwMDAgUjE0OiAwMDAwMDAw
+MDAwMDBjMDAwIFIxNToNCj4gMDAwMDAwMDAwMDAwYzAwMA0KPiBbMTEzODQuNDg2NDI0XSBGUzog
+IDAwMDAwMDAwMDAwMDAwMDAoMDAwMCkgR1M6ZmZmZjg4MDg1ZjQwMDAwMCgwMDAwKQ0KPiBrbmxH
+UzowMDAwMDAwMDAwMDAwMDAwDQo+IFsxMTM4NC40ODY0MjVdIENTOiAgMDAxMCBEUzogMDAwMCBF
+UzogMDAwMCBDUjA6IDAwMDAwMDAwODAwNTAwMzMNCj4gWzExMzg0LjQ4NjQyNV0gQ1IyOiAwMDAw
+MDAwMDAwMDAwMDAwIENSMzogMDAwMDAwMDAwMWMwOTAwMCBDUjQ6DQo+IDAwMDAwMDAwMDAxNDA2
+ZjANCj4gWzExMzg0LjQ4NjQyNl0gQ2FsbCBUcmFjZToNCj4gWzExMzg0LjQ4NjQzMV0gID8gaXNf
+dmFsaWRfbWNhc3RfbGlkLmlzcmEuMjErMHhmYi8weDExMCBbaWJfY29yZV0NCj4gWzExMzg0LjQ4
+NjQzNl0gIGliX2F0dGFjaF9tY2FzdCsweDZmLzB4YTAgW2liX2NvcmVdDQo+IFsxMTM4NC40ODY0
+NDFdICBpcG9pYl9tY2FzdF9hdHRhY2grMHg4MS8weDE5MCBbaWJfaXBvaWJdDQo+IFsxMTM4NC40
+ODY0NDNdICBpcG9pYl9tY2FzdF9qb2luX2NvbXBsZXRlKzB4MzU0LzB4YjQwIFtpYl9pcG9pYl0N
+Cj4gWzExMzg0LjQ4NjQ0OF0gIG1jYXN0X3dvcmtfaGFuZGxlcisweDMzMC8weDZjMCBbaWJfY29y
+ZV0NCj4gWzExMzg0LjQ4NjQ1Ml0gIGpvaW5faGFuZGxlcisweDEwMS8weDIyMCBbaWJfY29yZV0N
+Cj4gWzExMzg0LjQ4NjQ1NV0gIGliX3NhX21jbWVtYmVyX3JlY19jYWxsYmFjaysweDU0LzB4ODAg
+W2liX2NvcmVdDQo+IFsxMTM4NC40ODY0NTldICByZWN2X2hhbmRsZXIrMHgzYS8weDYwIFtpYl9j
+b3JlXQ0KPiBbMTEzODQuNDg2NDYyXSAgaWJfbWFkX3JlY3ZfZG9uZSsweDQyMy8weDliMCBbaWJf
+Y29yZV0NCj4gWzExMzg0LjQ4NjQ2Nl0gIF9faWJfcHJvY2Vzc19jcSsweDVkLzB4YjAgW2liX2Nv
+cmVdDQo+IFsxMTM4NC40ODY0NjldICBpYl9jcV9wb2xsX3dvcmsrMHgyMC8weDYwIFtpYl9jb3Jl
+XQ0KPiBbMTEzODQuNDg2NDcyXSAgcHJvY2Vzc19vbmVfd29yaysweDE0OS8weDM2MA0KPiBbMTEz
+ODQuNDg2NDc0XSAgd29ya2VyX3RocmVhZCsweDRkLzB4M2MwDQo+IFsxMTM4NC40ODY0ODddICBr
+dGhyZWFkKzB4MTA5LzB4MTQwDQo+IFsxMTM4NC40ODY0ODhdICA/IHJlc2N1ZXJfdGhyZWFkKzB4
+MzgwLzB4MzgwDQo+IFsxMTM4NC40ODY0ODldICA/IGt0aHJlYWRfcGFyaysweDYwLzB4NjANCj4g
+WzExMzg0LjQ4NjQ5MF0gID8ga3RocmVhZF9wYXJrKzB4NjAvMHg2MA0KPiBbMTEzODQuNDg2NDkz
+XSAgcmV0X2Zyb21fZm9yaysweDI1LzB4MzANCj4gWzExMzg0LjQ4NjQ5M10gQ29kZTogIEJhZCBS
+SVAgdmFsdWUuDQo+IFsxMTM4NC40ODY0OTNdIENvZGU6ICBCYWQgUklQIHZhbHVlLg0KPiBbMTEz
+ODQuNDg2NDk2XSBSSVA6ICAgICAgICAgICAobnVsbCkgUlNQOiBmZmZmYzkwMDA3ZmVmOTcwDQo+
+IFsxMTM4NC40ODY0OTddIENSMjogMDAwMDAwMDAwMDAwMDAwMA0KPiBbMTEzODQuNDg2NTMxXSAt
+LS1bIGVuZCB0cmFjZSBiMWFjZWM2ZmI0ZmY2ZTc1IF0tLS0NCj4gWzExMzg0LjUzMjEzM10gS2Vy
+bmVsIHBhbmljIC0gbm90IHN5bmNpbmc6IEZhdGFsIGV4Y2VwdGlvbg0KPiBbMTEzODQuNTM2NTQx
+XSBLZXJuZWwgT2Zmc2V0OiBkaXNhYmxlZA0KPiBbMTEzODQuOTY5NDkxXSAtLS1bIGVuZCBLZXJu
+ZWwgcGFuaWMgLSBub3Qgc3luY2luZzogRmF0YWwgZXhjZXB0aW9uDQo+IFsxMTM4NC45NzY4NzVd
+IHNjaGVkOiBVbmV4cGVjdGVkIHJlc2NoZWR1bGUgb2Ygb2ZmbGluZSBDUFUjMSENCj4gWzExMzg0
+Ljk4MzY0Nl0gLS0tLS0tLS0tLS0tWyBjdXQgaGVyZSBdLS0tLS0tLS0tLS0tDQo+IA0KPiBSZG1h
+IGRldmljZSBkcml2ZXIgbWF5IG5vdCBoYXZlIGltcGxlbWVudGVkICgqZ2V0X2xpbmtfbGF5ZXIp
+KCkNCj4gc28gaXQgY2FuIG5vdCBiZSBjYWxsZWQgZGlyZWN0bHkuIFNob3VsZCB1c2UgYXBwcm9w
+cmlhdGUgaGVscGVyIGZ1bmN0aW9uLg0KPiANCj4gUmV2aWV3ZWQtYnk6IFl1dmFsIFNoYWlhIDx5
+dXZhbC5zaGFpYUBvcmFjbGUuY29tPg0KPiBGaXhlczogNTIzNjMzMzU5MjI0ICgiSUIvY29yZTog
+Rml4IHRoZSB2YWxpZGF0aW9ucyBvZiBhIG11bHRpY2FzdCBMSUQgaW4gYXR0YWNoIG9yDQo+IGRl
+dGFjaCBvcGVyYXRpb25zIikNCj4gUmV2aWV3ZWQtYnk6IERlbm5pcyBEYWxlc3NhbmRybyA8ZGVu
+bmlzLmRhbGVzc2FuZHJvQGludGVsLmNvbT4NCj4gU2lnbmVkLW9mZi1ieTogQWxleCBFc3RyaW4g
+PGFsZXguZXN0cmluQGludGVsLmNvbT4NCj4gU2lnbmVkLW9mZi1ieTogRGVubmlzIERhbGVzc2Fu
+ZHJvIDxkZW5uaXMuZGFsZXNzYW5kcm9AaW50ZWwuY29tPg0KPiANCj4gLS0tDQo+IGNoYW5nZXMg
+ZnJvbSB2MToNCj4gCSogSW5jb3Jwb3JhdGUgTGVvbidzIGNvbW1lbnQNCj4gCSogVXBkYXRlIGNv
+bW1pdCBtZXNzYWdlIHdpdGggWXV2YWwgcmV2aWV3LWJ5DQo+IAkqIEFkZCBwYW5pYyB0cmFjZSB0
+byBjb21taXQgbWVzc2FnZQ0KPiAtLS0NCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3ZlcmJz
+LmMgfCAgICA0ICsrLS0NCj4gIDEgZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRl
+bGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3Zl
+cmJzLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS92ZXJicy5jDQo+IGluZGV4IGVlOWUyN2Qu
+LmRlNTdkNmMgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3ZlcmJzLmMN
+Cj4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdmVyYnMuYw0KPiBAQCAtMTY0Niw3ICsx
+NjQ2LDcgQEAgc3RhdGljIGJvb2wgaXNfdmFsaWRfbWNhc3RfbGlkKHN0cnVjdCBpYl9xcCAqcXAs
+IHUxNiBsaWQpDQo+ICAJICovDQo+ICAJaWYgKCFpYl9xdWVyeV9xcChxcCwgJmF0dHIsIElCX1FQ
+X1NUQVRFIHwgSUJfUVBfUE9SVCwgJmluaXRfYXR0cikpIHsNCj4gIAkJaWYgKGF0dHIucXBfc3Rh
+dGUgPj0gSUJfUVBTX0lOSVQpIHsNCj4gLQkJCWlmIChxcC0+ZGV2aWNlLT5nZXRfbGlua19sYXll
+cihxcC0+ZGV2aWNlLCBhdHRyLnBvcnRfbnVtKSAhPQ0KPiArCQkJaWYgKHJkbWFfcG9ydF9nZXRf
+bGlua19sYXllcihxcC0+ZGV2aWNlLCBhdHRyLnBvcnRfbnVtKSAhPQ0KPiAgCQkJICAgIElCX0xJ
+TktfTEFZRVJfSU5GSU5JQkFORCkNCj4gIAkJCQlyZXR1cm4gdHJ1ZTsNCj4gIAkJCWdvdG8gbGlk
+X2NoZWNrOw0KPiBAQCAtMTY1NSw3ICsxNjU1LDcgQEAgc3RhdGljIGJvb2wgaXNfdmFsaWRfbWNh
+c3RfbGlkKHN0cnVjdCBpYl9xcCAqcXAsIHUxNiBsaWQpDQo+IA0KPiAgCS8qIENhbid0IGdldCBh
+IHF1aWNrIGFuc3dlciwgaXRlcmF0ZSBvdmVyIGFsbCBwb3J0cyAqLw0KPiAgCWZvciAocG9ydCA9
+IDA7IHBvcnQgPCBxcC0+ZGV2aWNlLT5waHlzX3BvcnRfY250OyBwb3J0KyspDQo+IC0JCWlmIChx
+cC0+ZGV2aWNlLT5nZXRfbGlua19sYXllcihxcC0+ZGV2aWNlLCBwb3J0KSAhPQ0KPiArCQlpZiAo
+cmRtYV9wb3J0X2dldF9saW5rX2xheWVyKHFwLT5kZXZpY2UsIHBvcnQpICE9DQo+ICAJCSAgICBJ
+Ql9MSU5LX0xBWUVSX0lORklOSUJBTkQpDQo+ICAJCQludW1fZXRoX3BvcnRzKys7DQo+IA0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
