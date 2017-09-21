@@ -1,88 +1,58 @@
-From: Ursula Braun <ubraun@linux.vnet.ibm.com>
-Subject: [PATCH net-next 1/1] net/smc: parameter cleanup in smc_cdc_get_free_slot()
-Date: Thu, 21 Sep 2017 09:17:34 +0200
-Message-ID: <20170921071734.16977-1-ubraun@linux.vnet.ibm.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, jwi@linux.vnet.ibm.com, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.vnet.ibm.com, ubraun@linux.vnet.ibm.com
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core] ibacm: Close MAD port when umad_register fails
+Date: Thu, 21 Sep 2017 16:18:41 +0300
+Message-ID: <20170921131841.GU5788@mtr-leonro.local>
+References: <20170920230442.2334-1-yuval.shaia@oracle.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="rQAi4ZBraoACHIeu"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170920230442.2334-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Use the smc_connection as first parameter with smc_cdc_get_free_slot().
-This is just a small code cleanup, no functional change.
 
-Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
----
- net/smc/smc_cdc.c | 7 ++++---
- net/smc/smc_cdc.h | 3 ++-
- net/smc/smc_tx.c  | 6 ++----
- 3 files changed, 8 insertions(+), 8 deletions(-)
+--rQAi4ZBraoACHIeu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
-index a7294edbc221..5ef97e5a5f78 100644
---- a/net/smc/smc_cdc.c
-+++ b/net/smc/smc_cdc.c
-@@ -62,10 +62,12 @@ static void smc_cdc_tx_handler(struct smc_wr_tx_pend_priv *pnd_snd,
- 	bh_unlock_sock(&smc->sk);
- }
- 
--int smc_cdc_get_free_slot(struct smc_link *link,
-+int smc_cdc_get_free_slot(struct smc_connection *conn,
- 			  struct smc_wr_buf **wr_buf,
- 			  struct smc_cdc_tx_pend **pend)
- {
-+	struct smc_link *link = &conn->lgr->lnk[SMC_SINGLE_LINK];
-+
- 	return smc_wr_tx_get_free_slot(link, smc_cdc_tx_handler, wr_buf,
- 				       (struct smc_wr_tx_pend_priv **)pend);
- }
-@@ -118,8 +120,7 @@ int smc_cdc_get_slot_and_msg_send(struct smc_connection *conn)
- 	struct smc_wr_buf *wr_buf;
- 	int rc;
- 
--	rc = smc_cdc_get_free_slot(&conn->lgr->lnk[SMC_SINGLE_LINK], &wr_buf,
--				   &pend);
-+	rc = smc_cdc_get_free_slot(conn, &wr_buf, &pend);
- 	if (rc)
- 		return rc;
- 
-diff --git a/net/smc/smc_cdc.h b/net/smc/smc_cdc.h
-index 8e1d76f26007..56f883d1159c 100644
---- a/net/smc/smc_cdc.h
-+++ b/net/smc/smc_cdc.h
-@@ -206,7 +206,8 @@ static inline void smc_cdc_msg_to_host(struct smc_host_cdc_msg *local,
- 
- struct smc_cdc_tx_pend;
- 
--int smc_cdc_get_free_slot(struct smc_link *link, struct smc_wr_buf **wr_buf,
-+int smc_cdc_get_free_slot(struct smc_connection *conn,
-+			  struct smc_wr_buf **wr_buf,
- 			  struct smc_cdc_tx_pend **pend);
- void smc_cdc_tx_dismiss_slots(struct smc_connection *conn);
- int smc_cdc_msg_send(struct smc_connection *conn, struct smc_wr_buf *wr_buf,
-diff --git a/net/smc/smc_tx.c b/net/smc/smc_tx.c
-index 3c656beb8820..e2228f6d1c25 100644
---- a/net/smc/smc_tx.c
-+++ b/net/smc/smc_tx.c
-@@ -394,8 +394,7 @@ int smc_tx_sndbuf_nonempty(struct smc_connection *conn)
- 	int rc;
- 
- 	spin_lock_bh(&conn->send_lock);
--	rc = smc_cdc_get_free_slot(&conn->lgr->lnk[SMC_SINGLE_LINK], &wr_buf,
--				   &pend);
-+	rc = smc_cdc_get_free_slot(conn, &wr_buf, &pend);
- 	if (rc < 0) {
- 		if (rc == -EBUSY) {
- 			struct smc_sock *smc =
-@@ -463,8 +462,7 @@ void smc_tx_consumer_update(struct smc_connection *conn)
- 	    ((to_confirm > conn->rmbe_update_limit) &&
- 	     ((to_confirm > (conn->rmbe_size / 2)) ||
- 	      conn->local_rx_ctrl.prod_flags.write_blocked))) {
--		rc = smc_cdc_get_free_slot(&conn->lgr->lnk[SMC_SINGLE_LINK],
--					   &wr_buf, &pend);
-+		rc = smc_cdc_get_free_slot(conn, &wr_buf, &pend);
- 		if (!rc)
- 			rc = smc_cdc_msg_send(conn, wr_buf, pend);
- 		if (rc < 0) {
--- 
-2.13.5
+On Thu, Sep 21, 2017 at 02:04:42AM +0300, Yuval Shaia wrote:
+> Cleanup of the open port is needed when program fails to register MAD
+> port.
+>
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  ibacm/src/acm.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+>
+
+Thanks, applied.
+
+--rQAi4ZBraoACHIeu
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnDvDEACgkQ5GN7iDZy
+WKddUw//Qma0hXIGWXdKa2fCOgdX/xku+yquPU1CGTSpHqZfcY8+35fxJP0FgARP
+dKtWA7PhEPWpP20OQ2qvqkFdhh3BxklzSBoeEKvf3dlsJtqj1wP7st6TDlXXU/qp
+W5MBrvcXrbJ2p5Uyr5mmDAprKg1bnOyHXF5AF8DcU7RmCn0PYgpg/+j39McDqt7a
+upzg1O5icaF732KRwoCWnzGVAD6Tox5GJ+nT7y3rwlqkQljh3qzNJbp/HuEdaw7v
+hSkI396kCQnlqH3Y5Ag4BqeF2TDB7p2J9cdiP7/ZmEgkeaWQE0I7nKaLIYjnKquM
+stVBd36DlJFeqToi7WI+Aquw5eO/7St225Aci9Aj/yj1bPhtndLcV3QgnCrnlLf2
+gHUAlekq54B+5B8L6kS6qz82O8MFLbp4v8BxcLIOIjxPqcTyp0vniMGiDsTW/t79
+M8ZjBPc1S5KFB+jHF/EbTsByAXlNFC88E4hwIT5giGORMX71nTLScDiZztosOpBH
+iunkSEgfSzntKfIOwiQEL/MbCrn5o5faN33CBIgWr9sVmSL/yTLUQdoMLfgMi1Qx
+EL+qrOZD3fhJwDXmS7iz43AAXwN4H8cp/gP+vV97WTaAD/PQ95qIqAq09/1m4mGe
+XoqCcbOgPhkvLj7I525+vQvqwzP+QP2TecIOLvuRQ+hM93YlNEw=
+=A+av
+-----END PGP SIGNATURE-----
+
+--rQAi4ZBraoACHIeu--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
