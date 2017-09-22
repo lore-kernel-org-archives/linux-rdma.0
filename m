@@ -1,39 +1,30 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: rdma-core: Location of 70-persistent-ipoib.rules
-Date: Fri, 22 Sep 2017 12:45:26 -0400
-Message-ID: <1506098726.5172.2.camel@redhat.com>
-References: <1505129627.3732.3.camel@profitbricks.com>
-         <20170911162521.GD32117@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 0/8] use setup_timer() helper function.
+Date: Fri, 22 Sep 2017 11:00:09 -0600
+Message-ID: <20170922170009.GB13235@obsidianresearch.com>
+References: <1506076036-16496-1-git-send-email-allen.lkml@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170911162521.GD32117-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1506076036-16496-1-git-send-email-allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-09-11 at 10:25 -0600, Jason Gunthorpe wrote:
-> On Mon, Sep 11, 2017 at 01:33:47PM +0200, Benjamin Drung wrote:
-> 
-> > Since 70-persistent-ipoib.rules is just a commented example, should
-> > we
-> > better put it into /usr/share/doc/rdma-core instead (where udev.md
-> > is
-> > placed)?
-> 
-> That would be fine for me, but I think /etc/ is appropriate in this
-> case and the lintian rule is just overzealous.
+On Fri, Sep 22, 2017 at 03:57:08PM +0530, Allen Pais wrote:
+> This series uses setup_timer() helper function. The series
+> addresses the files under drivers/infiniband/hw/*.
 
-I agree with Jason on this.  I think lintian should possibly be fixed
-instead ;-)
+Since every one of these cases uses 0 or a pointer, I wonder if it
+would make more sense to have a setup_timer_ptr() variant instead of
+sprinkling pointer casts everywhere?
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+Maybe someday we could even have a timer callback signature that has a
+void * instead of long ?
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
