@@ -1,7 +1,7 @@
 From: Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 7/8] infiniband: nes: use setup_timer() helper.
-Date: Fri, 22 Sep 2017 15:57:15 +0530
-Message-ID: <1506076036-16496-8-git-send-email-allen.lkml@gmail.com>
+Subject: [PATCH 6/8] infiniband: qib: use setup_timer() helper.
+Date: Fri, 22 Sep 2017 15:57:14 +0530
+Message-ID: <1506076036-16496-7-git-send-email-allen.lkml@gmail.com>
 References: <1506076036-16496-1-git-send-email-allen.lkml@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1506076036-16496-1-git-send-email-allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
@@ -15,23 +15,25 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes_cm.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/hw/qib/qib_driver.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
-index de4025d..b1de123 100644
---- a/drivers/infiniband/hw/nes/nes_cm.c
-+++ b/drivers/infiniband/hw/nes/nes_cm.c
-@@ -2670,8 +2670,7 @@ static struct nes_cm_core *nes_cm_alloc_core(void)
- 		return NULL;
- 
- 	INIT_LIST_HEAD(&cm_core->connected_nodes);
--	init_timer(&cm_core->tcp_timer);
--	cm_core->tcp_timer.function = nes_cm_timer_tick;
-+	setup_timer(&cm_core->tcp_timer, nes_cm_timer_tick, 0UL);
- 
- 	cm_core->mtu = NES_CM_DEFAULT_MTU;
- 	cm_core->state = NES_CM_STATE_INITED;
+diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
+index 719906a..6dfcc4f 100644
+--- a/drivers/infiniband/hw/qib/qib_driver.c
++++ b/drivers/infiniband/hw/qib/qib_driver.c
+@@ -735,9 +735,8 @@ void qib_set_led_override(struct qib_pportdata *ppd, unsigned int val)
+ 	 */
+ 	if (atomic_inc_return(&ppd->led_override_timer_active) == 1) {
+ 		/* Need to start timer */
+-		init_timer(&ppd->led_override_timer);
+-		ppd->led_override_timer.function = qib_run_led_override;
+-		ppd->led_override_timer.data = (unsigned long) ppd;
++		setup_timer(&ppd->led_override_timer, qib_run_led_override,
++			    (unsigned long)ppd);
+ 		ppd->led_override_timer.expires = jiffies + 1;
+ 		add_timer(&ppd->led_override_timer);
+ 	} else {
 -- 
 2.7.4
 
