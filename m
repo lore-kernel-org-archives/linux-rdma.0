@@ -1,7 +1,7 @@
 From: Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 6/8] infiniband: qib: use setup_timer() helper.
-Date: Fri, 22 Sep 2017 15:57:14 +0530
-Message-ID: <1506076036-16496-7-git-send-email-allen.lkml@gmail.com>
+Subject: [PATCH 8/8] infiniband: qib: use setup_timer() helper.
+Date: Fri, 22 Sep 2017 15:57:16 +0530
+Message-ID: <1506076036-16496-9-git-send-email-allen.lkml@gmail.com>
 References: <1506076036-16496-1-git-send-email-allen.lkml@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1506076036-16496-1-git-send-email-allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
@@ -15,25 +15,27 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_driver.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/qib/qib_mad.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
-index 719906a..6dfcc4f 100644
---- a/drivers/infiniband/hw/qib/qib_driver.c
-+++ b/drivers/infiniband/hw/qib/qib_driver.c
-@@ -735,9 +735,8 @@ void qib_set_led_override(struct qib_pportdata *ppd, unsigned int val)
- 	 */
- 	if (atomic_inc_return(&ppd->led_override_timer_active) == 1) {
- 		/* Need to start timer */
--		init_timer(&ppd->led_override_timer);
--		ppd->led_override_timer.function = qib_run_led_override;
--		ppd->led_override_timer.data = (unsigned long) ppd;
-+		setup_timer(&ppd->led_override_timer, qib_run_led_override,
-+			    (unsigned long)ppd);
- 		ppd->led_override_timer.expires = jiffies + 1;
- 		add_timer(&ppd->led_override_timer);
- 	} else {
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 82d9da9..f3d4511 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -2478,10 +2478,9 @@ void qib_notify_create_mad_agent(struct rvt_dev_info *rdi, int port_idx)
+ 
+ 	/* Initialize xmit_wait structure */
+ 	dd->pport[port_idx].cong_stats.counter = 0;
+-	init_timer(&dd->pport[port_idx].cong_stats.timer);
+-	dd->pport[port_idx].cong_stats.timer.function = xmit_wait_timer_func;
+-	dd->pport[port_idx].cong_stats.timer.data =
+-		(unsigned long)(&dd->pport[port_idx]);
++	setup_timer(&dd->pport[port_idx].cong_stats.timer,
++		    xmit_wait_timer_func,
++		    (unsigned long)(&dd->pport[port_idx]));
+ 	dd->pport[port_idx].cong_stats.timer.expires = 0;
+ 	add_timer(&dd->pport[port_idx].cong_stats.timer);
+ }
 -- 
 2.7.4
 
