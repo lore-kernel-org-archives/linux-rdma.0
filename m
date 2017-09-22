@@ -1,48 +1,33 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: crash in 4.14-rc1 with IPoIB
-Date: Fri, 22 Sep 2017 13:27:52 -0400
-Message-ID: <1506101272.5172.11.camel@redhat.com>
-References: <20170920095339.zhfymeyfbhiyepz5@linux-x5ow.site>
-         <20170920163237.GD536@obsidianresearch.com>
+Subject: Re: [PATCH for-rc] RDMA/vmw_pvrdma: Fix reporting correct opcodes
+ for completion
+Date: Fri, 22 Sep 2017 13:32:57 -0400
+Message-ID: <1506101577.5172.12.camel@redhat.com>
+References: <20170921225608.GA31527@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170920163237.GD536-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170921225608.GA31527-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-09-20 at 10:32 -0600, Jason Gunthorpe wrote:
-> On Wed, Sep 20, 2017 at 11:53:39AM +0200, Johannes Thumshirn wrote:
-> > I wanted to try out Christoph's NVMe multipathing patchset on my
-> > NVMe OmniPath
-> > setup and merged it into 4.14-rc1. On bootup I stumbled upon that
-> > splat and no
-> > RDMA operation was possible:
+On Thu, 2017-09-21 at 15:56 -0700, Bryan Tan wrote:
+> From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > 
-> I think this was already found and fixed a month ago?? The oops is
-> the same:
+> Since the IB_WC_BIND_MW opcode has been dropped, set the correct
+> IB WC opcode explicitly.
 > 
-> https://patchwork.kernel.org/patch/9932505/
-> 
-> Doug, one of the topics during the LPC was 'what to QA' - it
-> obviously causes QA problems if known bugs are left to sit on the
-> mailing list for a month :(
+> Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
+> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 
-A few things:
+Thanks, applied.
 
-1)  It wasn't a month
-2)  I was out on well known, pre-announced PTO
-3)  I've got it now
-
-I can't do much else about it.
-
-> These are excatly the things need to get to Linus faster to get
-> people on board the QA upstream train..
-> 
-> Jason
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
