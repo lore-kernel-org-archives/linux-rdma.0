@@ -1,32 +1,44 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-rc] RDMA/vmw_pvrdma: Fix reporting correct opcodes
- for completion
-Date: Fri, 22 Sep 2017 13:32:57 -0400
-Message-ID: <1506101577.5172.12.camel@redhat.com>
-References: <20170921225608.GA31527@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+Subject: Re: [PATCH 0/5] i40iw fixes
+Date: Fri, 22 Sep 2017 13:45:30 -0400
+Message-ID: <1506102330.5172.13.camel@redhat.com>
+References: <20170919141913.10172-1-shiraz.saleem@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170921225608.GA31527-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
+In-Reply-To: <20170919141913.10172-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-09-21 at 15:56 -0700, Bryan Tan wrote:
-> From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+On Tue, 2017-09-19 at 09:19 -0500, Shiraz Saleem wrote:
+> This series includes a few fixes for i40iw driver to be
+> considered for 4.14-rc.
 > 
-> Since the IB_WC_BIND_MW opcode has been dropped, set the correct
-> IB WC opcode explicitly.
+> Mustafa Ismail (1):
+>   i40iw: Add missing VLAN priority
 > 
-> Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
-> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Shiraz Saleem (4):
+>   i40iw: Fail open if there are no available MSI-X vectors
+>   i40iw: Prevent multiple netdev event notifier registrations
+>   i40iw: Call i40iw_cm_disconn on modify QP to disconnect
+>   i40iw: Add support for port reuse on active side connections
+> 
+>  drivers/infiniband/hw/i40iw/i40iw.h       |   1 -
+>  drivers/infiniband/hw/i40iw/i40iw_cm.c    | 154 +++++++++++++++-----
+> ----------
+>  drivers/infiniband/hw/i40iw/i40iw_cm.h    |   5 +
+>  drivers/infiniband/hw/i40iw/i40iw_main.c  |  39 ++++----
+>  drivers/infiniband/hw/i40iw/i40iw_utils.c |   6 +-
+>  drivers/infiniband/hw/i40iw/i40iw_verbs.c |  12 +++
+>  6 files changed, 120 insertions(+), 97 deletions(-)
 
-Thanks, applied.
+The fifth patch was a bit large...if it weren't for the fact that it
+fixes failed connects under load I would have skipped it.  But, I took
+the entire series to -rc because it actually fixes an issue.  Thanks.
+
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
