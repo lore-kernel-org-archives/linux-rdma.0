@@ -1,75 +1,66 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2] rdma/core: Don't dereference device->get_link_layer
- directly
-Date: Fri, 22 Sep 2017 22:13:11 +0300
-Message-ID: <20170922191311.GV5788@mtr-leonro.local>
-References: <1505908483-29641-1-git-send-email-sagi@grimberg.me>
- <F3529576D8E232409F431C309E29399336CD902F@CRSMSX102.amr.corp.intel.com>
- <20170920134723.GO5788@mtr-leonro.local>
- <1506101002.5172.9.camel@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: crash in 4.14-rc1 with IPoIB
+Date: Fri, 22 Sep 2017 13:48:34 -0600
+Message-ID: <20170922194834.GA26479@obsidianresearch.com>
+References: <20170920095339.zhfymeyfbhiyepz5@linux-x5ow.site>
+ <20170920163237.GD536@obsidianresearch.com>
+ <1506101272.5172.11.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="jPC/Tkukgh9ZDT79"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1506101002.5172.9.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1506101272.5172.11.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Sep 22, 2017 at 01:27:52PM -0400, Doug Ledford wrote:
+> On Wed, 2017-09-20 at 10:32 -0600, Jason Gunthorpe wrote:
+> > On Wed, Sep 20, 2017 at 11:53:39AM +0200, Johannes Thumshirn wrote:
+> > > I wanted to try out Christoph's NVMe multipathing patchset on my
+> > > NVMe OmniPath
+> > > setup and merged it into 4.14-rc1. On bootup I stumbled upon that
+> > > splat and no
+> > > RDMA operation was possible:
+> > 
+> > I think this was already found and fixed a month ago?? The oops is
+> > the same:
+> > 
+> > https://patchwork.kernel.org/patch/9932505/
+> > 
+> > Doug, one of the topics during the LPC was 'what to QA' - it
+> > obviously causes QA problems if known bugs are left to sit on the
+> > mailing list for a month :(
+> 
+> A few things:
+> 
+> 1)  It wasn't a month
+> 2)  I was out on well known, pre-announced PTO
+> 3)  I've got it now
+> 
+> I can't do much else about it.
 
---jPC/Tkukgh9ZDT79
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Just so we are talking about the same expectation..
 
-On Fri, Sep 22, 2017 at 01:23:22PM -0400, Doug Ledford wrote:
-> On Wed, 2017-09-20 at 16:47 +0300, Leon Romanovsky wrote:
-> > On Wed, Sep 20, 2017 at 12:33:39PM +0000, Estrin, Alex wrote:
-> > > Patch for this issue was already posted about 3 weeks ago.
-> > > https://patchwork.kernel.org/patch/9932505/
-> >
-> > Yeah, exactly.
-> > I had a dejavu while I read the "crash IPoIB" report.
-> >
-> > I assume that it didn't make to Linus, because it was posted after
-> > Doug
-> > went to vacation.
->
-> I wouldn't call it "vacation" ;-).  I had no internet as I was moving
-> homes.  It was hardly the peaceful, relaxing experience one hopes to
-> get on vacation! :-)
+The patch v1 was on Aug 30, you accepted it on Sep 20, as I write this
+I don't see it on your k.o. I see it in your github tree, so I know it
+is on the way.
 
-Nowadays, every day without internet is called "vacation" now :).
+If you push it to k.o at EOD today it will be ~27 days before it gets
+into the hands of anyone doing QA based on your k.o tree.
 
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG KeyID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
->
+If you send a PR on Monday it will be > 28 days before it gets into
+the hands of anyone doing QA from Linus's tree.
 
---jPC/Tkukgh9ZDT79
-Content-Type: application/pgp-signature; name="signature.asc"
+I know this patch unavoidably overlaps with your PTO, but this is
+still essentially an example of the topic we discussed at LPC..
 
------BEGIN PGP SIGNATURE-----
+As a concrete recommendation, pushing this kind of patch to your k.o
+right away on the 20th and skipping the github 0day process might be
+helpful..
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnFYMcACgkQ5GN7iDZy
-WKddpA/9HwJkABoqS+er14NTUe9D8litUgsnhqtzJsRQKkwuDe4ybTIVNK4cdf9E
-GJWy1pbMb10tpRS0PhFVoFQT9agPmetox9zvnf+OtcdXOL/i6hj8ZJW961f0KYVx
-2qaCp3um+YfdiBOxRO8vslJbEtJJ5L0lveggmrYQmc4DDtq1vtIPpbODamnEs4He
-yxRtd6kB2KoxgGBogSA2F0DmMKVetkj0468cv4hSVJOLdVp/JAGfZDprrLYaAIx6
-ueVuw9jbs3fXzXVNzgsq01nvc8KDvXwSCYgQnbgFubvawC3ywscWzIlcO80c50Mi
-DXmg+BjaUofmkq35xPmZcH8quIjzRQL9DzNcnA454LyzlxNG0r0owtPavGyrLWJL
-lYBJkFcbd0LvrkWW8yyMlCn74Ph3XYFaivutU8TGSrC72LQpfOPDDqHE8xw7LTFT
-eEWdU7cQaKMMiHxaTyxFoREAHeDGZxZXPto4cqLdRjYkUPrKlOXDe8zkopw+9Q0K
-fw54z+ZCejQXO0iSes5vVE5k2ATYsqZ7AVDdebV21+8o3jTPk3UYcEkASbO8bNRP
-st76xfkCtO1g9DIfJ5dd/Kaeh04QXpz/z+++94FhPjOObsbdni6YORCD65C9S51W
-Mf3A3Fy6XvHPOU+m7I2cP01R7FQPqKGWdBpJ1nYcLzFEzXcXIhw=
-=78nC
------END PGP SIGNATURE-----
-
---jPC/Tkukgh9ZDT79--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
