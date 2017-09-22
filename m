@@ -1,27 +1,36 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 0/3] iw_cxgb4 fixes for 4.14-rc
-Date: Fri, 22 Sep 2017 13:01:18 -0400
-Message-ID: <1506099678.5172.3.camel@redhat.com>
-References: <cover.1505510827.git.swise@opengridcomputing.com>
+Subject: Re: [PATCH] IB/ipoib: Suppress the retry related completion errors
+Date: Fri, 22 Sep 2017 13:14:20 -0400
+Message-ID: <1506100460.5172.5.camel@redhat.com>
+References: <20170907103818.5303-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1505510827.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <20170907103818.5303-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-09-15 at 14:27 -0700, Steve Wise wrote:
-> v2 didn't make it to the email list, so I'm sending v3.  I'm having
-> a 
-> bad day...
+On Thu, 2017-09-07 at 13:38 +0300, Yuval Shaia wrote:
+> From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> 
+> IPoIB doesn't support transport/rnr retry schemes as per
+> RFC so those errors are expected. No need to flood the
+> log files with them.
+> 
+> Tested-by: Michael Nowak <michael.nowak-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Tested-by: Rafael Alejandro Peralez <rafael.peralez-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Tested-by: Liwen Huang <liwen.huang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Tested-by: Hong Liu <hong.x.liu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reported-by: Rajiv Raja <rajiv.raja-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Yeah, I saw at least one version went directly to my Inbox instead of
-to the mailing list ;-).
-
-Series applied for rc, thanks.
+Even though this is a minor printk patch that could easily go to for-
+next, because it brings us more into compliance with the RFC I went
+ahead and processed it for rc.  Thanks.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
