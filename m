@@ -1,34 +1,36 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc] IB/bnxt_re: Fix frame stack compilation warning
-Date: Fri, 22 Sep 2017 13:19:47 -0400
-Message-ID: <1506100787.5172.8.camel@redhat.com>
-References: <20170919102213.30911-1-leon@kernel.org>
+Subject: Re: [PATCH v2] rdma/core: Don't dereference device->get_link_layer
+ directly
+Date: Fri, 22 Sep 2017 13:23:22 -0400
+Message-ID: <1506101002.5172.9.camel@redhat.com>
+References: <1505908483-29641-1-git-send-email-sagi@grimberg.me>
+         <F3529576D8E232409F431C309E29399336CD902F@CRSMSX102.amr.corp.intel.com>
+         <20170920134723.GO5788@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170919102213.30911-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170920134723.GO5788-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-09-19 at 13:22 +0300, Leon Romanovsky wrote:
-> Reduce stack size by dynamically allocating memory instead
-> of declaring large struct on the stack:
+On Wed, 2017-09-20 at 16:47 +0300, Leon Romanovsky wrote:
+> On Wed, Sep 20, 2017 at 12:33:39PM +0000, Estrin, Alex wrote:
+> > Patch for this issue was already posted about 3 weeks ago.
+> > https://patchwork.kernel.org/patch/9932505/
 > 
-> drivers/infiniband/hw/bnxt_re/ib_verbs.c: In function
-> ‘bnxt_re_query_qp’:
-> drivers/infiniband/hw/bnxt_re/ib_verbs.c:1600:1: warning: the frame
-> size of 1216 bytes is larger than 1024 bytes [-Wframe-larger-than=]
->  }
->  ^
+> Yeah, exactly.
+> I had a dejavu while I read the "crash IPoIB" report.
 > 
-> Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> Fixes: 1ac5a4047975 ("RDMA/bnxt_re: Add bnxt_re RoCE driver")
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> I assume that it didn't make to Linus, because it was posted after
+> Doug
+> went to vacation.
 
-Thanks, applied.
+I wouldn't call it "vacation" ;-).  I had no internet as I was moving
+homes.  It was hardly the peaceful, relaxing experience one hopes to
+get on vacation! :-)
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
