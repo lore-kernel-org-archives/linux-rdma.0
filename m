@@ -1,7 +1,7 @@
 From: Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/8] infiniband: nes: use setup_timer() helper.
-Date: Fri, 22 Sep 2017 15:57:13 +0530
-Message-ID: <1506076036-16496-6-git-send-email-allen.lkml@gmail.com>
+Subject: [PATCH 7/8] infiniband: nes: use setup_timer() helper.
+Date: Fri, 22 Sep 2017 15:57:15 +0530
+Message-ID: <1506076036-16496-8-git-send-email-allen.lkml@gmail.com>
 References: <1506076036-16496-1-git-send-email-allen.lkml@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1506076036-16496-1-git-send-email-allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
@@ -15,36 +15,23 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes_hw.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/nes/nes_cm.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
-index b0adf65..248505f 100644
---- a/drivers/infiniband/hw/nes/nes_hw.c
-+++ b/drivers/infiniband/hw/nes/nes_hw.c
-@@ -598,19 +598,16 @@ struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev) {
- 	}
+diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
+index de4025d..b1de123 100644
+--- a/drivers/infiniband/hw/nes/nes_cm.c
++++ b/drivers/infiniband/hw/nes/nes_cm.c
+@@ -2670,8 +2670,7 @@ static struct nes_cm_core *nes_cm_alloc_core(void)
+ 		return NULL;
  
- 	if (nesadapter->hw_rev == NE020_REV) {
--		init_timer(&nesadapter->mh_timer);
--		nesadapter->mh_timer.function = nes_mh_fix;
-+		setup_timer(&nesadapter->mh_timer, nes_mh_fix,
-+			    (unsigned long)nesdev);
- 		nesadapter->mh_timer.expires = jiffies + (HZ/5);  /* 1 second */
--		nesadapter->mh_timer.data = (unsigned long)nesdev;
- 		add_timer(&nesadapter->mh_timer);
- 	} else {
- 		nes_write32(nesdev->regs+NES_INTF_INT_STAT, 0x0f000000);
- 	}
+ 	INIT_LIST_HEAD(&cm_core->connected_nodes);
+-	init_timer(&cm_core->tcp_timer);
+-	cm_core->tcp_timer.function = nes_cm_timer_tick;
++	setup_timer(&cm_core->tcp_timer, nes_cm_timer_tick, 0UL);
  
--	init_timer(&nesadapter->lc_timer);
--	nesadapter->lc_timer.function = nes_clc;
-+	setup_timer(&nesadapter->lc_timer, nes_clc, (unsigned long)nesdev);
- 	nesadapter->lc_timer.expires = jiffies + 3600 * HZ;  /* 1 hour */
--	nesadapter->lc_timer.data = (unsigned long)nesdev;
- 	add_timer(&nesadapter->lc_timer);
- 
- 	list_add_tail(&nesadapter->list, &nes_adapter_list);
+ 	cm_core->mtu = NES_CM_DEFAULT_MTU;
+ 	cm_core->state = NES_CM_STATE_INITED;
 -- 
 2.7.4
 
