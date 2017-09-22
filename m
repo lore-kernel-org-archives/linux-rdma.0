@@ -1,56 +1,75 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/8] RDMA/bnxt_re: Misc fixes for bnxt_re
-Date: Fri, 22 Sep 2017 14:00:38 -0400
-Message-ID: <1506103238.5172.20.camel@redhat.com>
-References: <20170831035735.19595-1-somnath.kotur@broadcom.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2] rdma/core: Don't dereference device->get_link_layer
+ directly
+Date: Fri, 22 Sep 2017 22:13:11 +0300
+Message-ID: <20170922191311.GV5788@mtr-leonro.local>
+References: <1505908483-29641-1-git-send-email-sagi@grimberg.me>
+ <F3529576D8E232409F431C309E29399336CD902F@CRSMSX102.amr.corp.intel.com>
+ <20170920134723.GO5788@mtr-leonro.local>
+ <1506101002.5172.9.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="jPC/Tkukgh9ZDT79"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170831035735.19595-1-somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1506101002.5172.9.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-08-31 at 09:27 +0530, Somnath Kotur wrote:
-> This patch series includes bug fixes for bnxt_re.
-> Doug,
-> 	Please review apply for 4.14.
-> Thanks
-> Somnath
-> 
-> Devesh Sharma (2):
->   bnxt_re: Fix update of qplib_qp.mtu when modified
->   bnxt_re: Fix compare and swap atomic operands
-> 
-> Selvin Xavier (1):
->   bnxt_re: Fix memory leak in FRMR path
-> 
-> Somnath Kotur (5):
->   bnxt_re: Stop issuing further cmds to FW once a cmd times out
->   bnxt_re: Free up devices in module_exit path
->   bnxt_re: Fix race between the netdev register and unregister events
->   bnxt_re: Remove RTNL lock dependency in bnxt_re_query_port
->   bnxt_re: Don't issue cmd to delete GID for QP1 GID entry before the
-> QP
->     is destroyed
-> 
->  drivers/infiniband/hw/bnxt_re/bnxt_re.h    | 14 +++++++----
->  drivers/infiniband/hw/bnxt_re/ib_verbs.c   | 40
-> +++++++++++++++++++++---------
->  drivers/infiniband/hw/bnxt_re/main.c       | 28
-> +++++++++++++++++++++
->  drivers/infiniband/hw/bnxt_re/qplib_rcfw.c |  4 +++
->  drivers/infiniband/hw/bnxt_re/qplib_rcfw.h |  3 ++-
->  5 files changed, 71 insertions(+), 18 deletions(-)
 
-Thanks, series (with fixed commit message in 5/8) applied.
+--jPC/Tkukgh9ZDT79
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+On Fri, Sep 22, 2017 at 01:23:22PM -0400, Doug Ledford wrote:
+> On Wed, 2017-09-20 at 16:47 +0300, Leon Romanovsky wrote:
+> > On Wed, Sep 20, 2017 at 12:33:39PM +0000, Estrin, Alex wrote:
+> > > Patch for this issue was already posted about 3 weeks ago.
+> > > https://patchwork.kernel.org/patch/9932505/
+> >
+> > Yeah, exactly.
+> > I had a dejavu while I read the "crash IPoIB" report.
+> >
+> > I assume that it didn't make to Linus, because it was posted after
+> > Doug
+> > went to vacation.
+>
+> I wouldn't call it "vacation" ;-).  I had no internet as I was moving
+> homes.  It was hardly the peaceful, relaxing experience one hopes to
+> get on vacation! :-)
 
+Nowadays, every day without internet is called "vacation" now :).
+
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG KeyID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+>
+
+--jPC/Tkukgh9ZDT79
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnFYMcACgkQ5GN7iDZy
+WKddpA/9HwJkABoqS+er14NTUe9D8litUgsnhqtzJsRQKkwuDe4ybTIVNK4cdf9E
+GJWy1pbMb10tpRS0PhFVoFQT9agPmetox9zvnf+OtcdXOL/i6hj8ZJW961f0KYVx
+2qaCp3um+YfdiBOxRO8vslJbEtJJ5L0lveggmrYQmc4DDtq1vtIPpbODamnEs4He
+yxRtd6kB2KoxgGBogSA2F0DmMKVetkj0468cv4hSVJOLdVp/JAGfZDprrLYaAIx6
+ueVuw9jbs3fXzXVNzgsq01nvc8KDvXwSCYgQnbgFubvawC3ywscWzIlcO80c50Mi
+DXmg+BjaUofmkq35xPmZcH8quIjzRQL9DzNcnA454LyzlxNG0r0owtPavGyrLWJL
+lYBJkFcbd0LvrkWW8yyMlCn74Ph3XYFaivutU8TGSrC72LQpfOPDDqHE8xw7LTFT
+eEWdU7cQaKMMiHxaTyxFoREAHeDGZxZXPto4cqLdRjYkUPrKlOXDe8zkopw+9Q0K
+fw54z+ZCejQXO0iSes5vVE5k2ATYsqZ7AVDdebV21+8o3jTPk3UYcEkASbO8bNRP
+st76xfkCtO1g9DIfJ5dd/Kaeh04QXpz/z+++94FhPjOObsbdni6YORCD65C9S51W
+Mf3A3Fy6XvHPOU+m7I2cP01R7FQPqKGWdBpJ1nYcLzFEzXcXIhw=
+=78nC
+-----END PGP SIGNATURE-----
+
+--jPC/Tkukgh9ZDT79--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
