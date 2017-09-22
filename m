@@ -1,30 +1,33 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 0/8] use setup_timer() helper function.
-Date: Fri, 22 Sep 2017 11:00:09 -0600
-Message-ID: <20170922170009.GB13235@obsidianresearch.com>
-References: <1506076036-16496-1-git-send-email-allen.lkml@gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 0/3] iw_cxgb4 fixes for 4.14-rc
+Date: Fri, 22 Sep 2017 13:01:18 -0400
+Message-ID: <1506099678.5172.3.camel@redhat.com>
+References: <cover.1505510827.git.swise@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1506076036-16496-1-git-send-email-allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <cover.1505510827.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 22, 2017 at 03:57:08PM +0530, Allen Pais wrote:
-> This series uses setup_timer() helper function. The series
-> addresses the files under drivers/infiniband/hw/*.
+On Fri, 2017-09-15 at 14:27 -0700, Steve Wise wrote:
+> v2 didn't make it to the email list, so I'm sending v3.  I'm having
+> a 
+> bad day...
 
-Since every one of these cases uses 0 or a pointer, I wonder if it
-would make more sense to have a setup_timer_ptr() variant instead of
-sprinkling pointer casts everywhere?
+Yeah, I saw at least one version went directly to my Inbox instead of
+to the mailing list ;-).
 
-Maybe someday we could even have a timer callback signature that has a
-void * instead of long ?
+Series applied for rc, thanks.
 
-Jason
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
