@@ -1,7 +1,7 @@
 From: Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/8] infiniband: qib: use setup_timer() helper.
-Date: Fri, 22 Sep 2017 15:57:11 +0530
-Message-ID: <1506076036-16496-4-git-send-email-allen.lkml@gmail.com>
+Subject: [PATCH 4/8] infiniband: mthca: use setup_timer() helper.
+Date: Fri, 22 Sep 2017 15:57:12 +0530
+Message-ID: <1506076036-16496-5-git-send-email-allen.lkml@gmail.com>
 References: <1506076036-16496-1-git-send-email-allen.lkml@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1506076036-16496-1-git-send-email-allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
@@ -15,25 +15,31 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_iba7220.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_catas.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniband/hw/qib/qib_iba7220.c
-index 04bdd3d..51a9266 100644
---- a/drivers/infiniband/hw/qib/qib_iba7220.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7220.c
-@@ -4095,9 +4095,8 @@ static int qib_init_7220_variables(struct qib_devdata *dd)
- 	dd->rhdrhead_intr_off = 1ULL << 32;
+diff --git a/drivers/infiniband/hw/mthca/mthca_catas.c b/drivers/infiniband/hw/mthca/mthca_catas.c
+index f6474c2..23cc08d 100644
+--- a/drivers/infiniband/hw/mthca/mthca_catas.c
++++ b/drivers/infiniband/hw/mthca/mthca_catas.c
+@@ -149,7 +149,7 @@ void mthca_start_catas_poll(struct mthca_dev *dev)
+ {
+ 	phys_addr_t addr;
  
- 	/* setup the stats timer; the add_timer is done at end of init */
--	init_timer(&dd->stats_timer);
--	dd->stats_timer.function = qib_get_7220_faststats;
--	dd->stats_timer.data = (unsigned long) dd;
-+	setup_timer(&dd->stats_timer, qib_get_7220_faststats,
-+		    (unsigned long)dd);
- 	dd->stats_timer.expires = jiffies + ACTIVITY_TIMER * HZ;
+-	init_timer(&dev->catas_err.timer);
++	setup_timer(&dev->catas_err.timer, poll_catas, (unsigned long)dev);
+ 	dev->catas_err.map  = NULL;
  
- 	/*
+ 	addr = pci_resource_start(dev->pdev, 0) +
+@@ -164,8 +164,6 @@ void mthca_start_catas_poll(struct mthca_dev *dev)
+ 		return;
+ 	}
+ 
+-	dev->catas_err.timer.data     = (unsigned long) dev;
+-	dev->catas_err.timer.function = poll_catas;
+ 	dev->catas_err.timer.expires  = jiffies + MTHCA_CATAS_POLL_INTERVAL;
+ 	INIT_LIST_HEAD(&dev->catas_err.list);
+ 	add_timer(&dev->catas_err.timer);
 -- 
 2.7.4
 
