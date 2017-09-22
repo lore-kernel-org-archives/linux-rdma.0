@@ -1,43 +1,31 @@
-From: Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 8/8] infiniband: qib: use setup_timer() helper.
-Date: Fri, 22 Sep 2017 15:57:16 +0530
-Message-ID: <1506076036-16496-9-git-send-email-allen.lkml@gmail.com>
-References: <1506076036-16496-1-git-send-email-allen.lkml@gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next v2] IB/core: Fix for core panic
+Date: Fri, 22 Sep 2017 11:53:14 -0400
+Message-ID: <1506095594.5172.0.camel@redhat.com>
+References: <20170831163032.32161.90807.stgit@scvm10.sc.intel.com>
+         <F3529576D8E232409F431C309E29399336CD90E9@CRSMSX102.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1506076036-16496-1-git-send-email-allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <F3529576D8E232409F431C309E29399336CD90E9-8k97q/ur5Z1cIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-   Use setup_timer function instead of initializing timer with the
-   function and data fields.
+On Wed, 2017-09-20 at 15:35 +0000, Estrin, Alex wrote:
+> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>  
+> 4.13.3 is broken as well.
+> Alex.
 
-Signed-off-by: Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_mad.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+Thanks, patch applied with stable Cc: added.
 
-diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
-index 82d9da9..f3d4511 100644
---- a/drivers/infiniband/hw/qib/qib_mad.c
-+++ b/drivers/infiniband/hw/qib/qib_mad.c
-@@ -2478,10 +2478,9 @@ void qib_notify_create_mad_agent(struct rvt_dev_info *rdi, int port_idx)
- 
- 	/* Initialize xmit_wait structure */
- 	dd->pport[port_idx].cong_stats.counter = 0;
--	init_timer(&dd->pport[port_idx].cong_stats.timer);
--	dd->pport[port_idx].cong_stats.timer.function = xmit_wait_timer_func;
--	dd->pport[port_idx].cong_stats.timer.data =
--		(unsigned long)(&dd->pport[port_idx]);
-+	setup_timer(&dd->pport[port_idx].cong_stats.timer,
-+		    xmit_wait_timer_func,
-+		    (unsigned long)(&dd->pport[port_idx]));
- 	dd->pport[port_idx].cong_stats.timer.expires = 0;
- 	add_timer(&dd->pport[port_idx].cong_stats.timer);
- }
 -- 
-2.7.4
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
