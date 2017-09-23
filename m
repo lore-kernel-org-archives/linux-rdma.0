@@ -1,7 +1,7 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: crash in 4.14-rc1 with IPoIB
-Date: Sat, 23 Sep 2017 20:29:35 +0300
-Message-ID: <20170923172935.GZ5788@mtr-leonro.local>
+From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: crash in 4.14-rc1 with IPoIB
+Date: Sat, 23 Sep 2017 19:20:53 +0000
+Message-ID: <F3529576D8E232409F431C309E29399336CD9762@CRSMSX102.amr.corp.intel.com>
 References: <20170920095339.zhfymeyfbhiyepz5@linux-x5ow.site>
  <20170920163237.GD536@obsidianresearch.com>
  <1506101272.5172.11.camel@redhat.com>
@@ -11,139 +11,89 @@ References: <20170920095339.zhfymeyfbhiyepz5@linux-x5ow.site>
  <1506120161.120853.10.camel@redhat.com>
  <20170923073843.GX5788@mtr-leonro.local>
  <F3529576D8E232409F431C309E29399336CD972A@CRSMSX102.amr.corp.intel.com>
+ <20170923172935.GZ5788@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="K5z5w9fsx/Hrkgg3"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <F3529576D8E232409F431C309E29399336CD972A-8k97q/ur5Z1cIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20170923172935.GZ5788-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---K5z5w9fsx/Hrkgg3
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, Sep 23, 2017 at 04:17:10PM +0000, Estrin, Alex wrote:
-> Hello,
->
-> One minor note regarding the original commit 523633359224
-> that broke the core.
-> It seem it was let through without trivial validation,
-> otherwise it wouldn't pass the checkpatch.
-
-Can you be more specific? Are you referring to "WARNING: line over 80
-characters" or to something else? If yes, I feel really bad for you and
-your workplace.
-
-Readability is a first priority for the submitted code.
-
-=E2=9E=9C  linux-rdma git:(rdma-rc) git fp -1 523633359224 -o /tmp/
-/tmp/0001-IB-core-Fix-the-validations-of-a-multicast-LID-in-at.patch
-=E2=9E=9C  linux-rdma git:(rdma-rc) ./scripts/checkpatch.pl --strict /tmp/0=
-001-IB-core-Fix-the-validations-of-a-multicast-LID-in-at.patch
-WARNING: line over 80 characters
-#45: FILE: drivers/infiniband/core/verbs.c:1584:
-+			if (qp->device->get_link_layer(qp->device, attr.port_num) !=3D
-
-total: 0 errors, 1 warnings, 0 checks, 62 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplac=
-e.
-
-/tmp/0001-IB-core-Fix-the-validations-of-a-multicast-LID-in-at.patch has st=
-yle problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-
->
-> Thanks,
-> Alex.
->
-> > On Fri, Sep 22, 2017 at 06:42:41PM -0400, Doug Ledford wrote:
-> > > On Fri, 2017-09-22 at 15:17 -0600, Jason Gunthorpe wrote:
-> > > > On Fri, Sep 22, 2017 at 05:06:26PM -0400, Doug Ledford wrote:
-> > > >
-> > > > > Sure, I get that, but I was already out on PTO on the 30th.  What
-> > > > > sucks
-> > > > > is that it landed right after I was out.  But I plan to have the
-> > > > > pull
-> > > > > request in before EOB today, so the difference between the 20th a=
-nd
-> > > > > today is neglible.  Especially since lots of people doing QA
-> > > > > testing
-> > > > > prefer to take -rc tags, in that case, the difference is non-
-> > > > > existent.
-> > > >
-> > > > My thinking was that people should test -rc,
-> > >
-> > > Great, with you here...
-> > >
-> > > >  but if they have problems
-> > > > they could grab your for-rc branch and check if their issue is
-> > > > already
-> > > > fixed..
-> > >
-> > > They can do this too...
-> > >
-> > > But if that still doesn't resolve their problem, a quick check of the
-> > > mailing list contents isn't out of the question either.  In that case,
-> > > they would have found the solution to their problem.  But, when you g=
-et
-> > > right down to it, only one person reported it in addition to the
-> > > original poster, so either other people saw the original post and
-> > > compensated in their own testing, or (the more likely I think), most
-> > > people don't start testing -rcs until after -rc2.
-> >
-> > I don't know about other people, but our testing of -rc starts on -rc1
-> > and we are not waiting for -rc2. From my observe of netdev, they also
-> > start to test -rc immediately.
-> >
-> > Otherwise, what is the point of the week between -rc1 and -rc2?
-> >
-> > > Which is why I try to set -rc2 as a milestone for several purposes.
-> > > For getting in the bulk of the known fixes, but also as a branching
-> > > point for for-next.
-> > >
-> > > --
-> > > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > >     GPG KeyID: B826A3330E572FDD
-> > >     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57=
- 2FDD
-> > >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---K5z5w9fsx/Hrkgg3
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnGmf8ACgkQ5GN7iDZy
-WKeTQw//aagJFGKGwzr9SBqW19xCGZovUCe9e/W8vM5l9cKnb2p5osmzXxoFyEZz
-cSyUgEl0MeBkE6UK0Sm56QwwoD0VDYCADbOuXnH57UWRSeul8sBugjbKw052xq5W
-fCwgj3fljSc/A+rT4i4BLFyAjw/KpNqkImPfkvo6rdDiHJq6by8zKRiS0JtMGxgl
-Lmb8evCKqS4xPqvlXf6/GMZ9XPqz2IhQeJ+WRaidzzaTgRX8rhoKjM7zuTtIiPGh
-sYZF80I0R5/y6OaAoaFYKJ26EFodkipr7Ua0fmPF7Mt3rOV3ijpYJ2EAvarD9sKF
-M5xk1yXOZqDtdrTqVJHaVI4aq4p6m5qOqMnRnCbbiV6b9fBG0kzq1Voxl+UnhXgI
-ExoxVHH0OvAJARKcXTVAVMpJBqQhbEVMpnX57BQfqnbul5KsZfh8WHArCz0JAP8Z
-Gjm3SOKC7nXWeQPnZxM1p5P2alQ6YBD4/ncrKWrkZ8Jsnjt8SlCLYLs0EEhWPXC9
-pvmIudYz24rtiP87HY+GztTsFacasLw5aBdEjsUiBXAAvIRz9hthjbZDGLisgxWz
-zAH4QJQZevFz7uY7wbNAExlHx+/AIiN6s6ZEe835mXkg6HIuQPEgn+ayvWrVYcA0
-QfZkZUQSZa89AfnKdyVq0K101m7OM2ZkO5T3zUzZvPcJQRaSEKE=
-=7rHx
------END PGP SIGNATURE-----
-
---K5z5w9fsx/Hrkgg3--
+PiA+IEhlbGxvLA0KPiA+DQo+ID4gT25lIG1pbm9yIG5vdGUgcmVnYXJkaW5nIHRoZSBvcmlnaW5h
+bCBjb21taXQgNTIzNjMzMzU5MjI0DQo+ID4gdGhhdCBicm9rZSB0aGUgY29yZS4NCj4gPiBJdCBz
+ZWVtIGl0IHdhcyBsZXQgdGhyb3VnaCB3aXRob3V0IHRyaXZpYWwgdmFsaWRhdGlvbiwNCj4gPiBv
+dGhlcndpc2UgaXQgd291bGRuJ3QgcGFzcyB0aGUgY2hlY2twYXRjaC4NCj4gDQo+IENhbiB5b3Ug
+YmUgbW9yZSBzcGVjaWZpYz8gQXJlIHlvdSByZWZlcnJpbmcgdG8gIldBUk5JTkc6IGxpbmUgb3Zl
+ciA4MA0KPiBjaGFyYWN0ZXJzIiBvciB0byBzb21ldGhpbmcgZWxzZT8gSWYgeWVzLCBJIGZlZWwg
+cmVhbGx5IGJhZCBmb3IgeW91IGFuZA0KPiB5b3VyIHdvcmtwbGFjZS4NClBsZWFzZSBkb24ndCBi
+ZS4gS2VlcCBkb2luZyBhIGdyZWF0IGpvYiBhdCB5b3VyIHdvcmtwbGFjZSwgSSB3aWxsIGRvIHRo
+ZSBzYW1lIGF0IG1pbmUuDQoNCj4gUmVhZGFiaWxpdHkgaXMgYSBmaXJzdCBwcmlvcml0eSBmb3Ig
+dGhlIHN1Ym1pdHRlZCBjb2RlLg0KSSBjYW4gYWdyZWUgd2l0aCB5b3Ugb24gdGhhdCwgY29uc2lk
+ZXJpbmcgZWFzeSByZWFkYWJsZSBzdWJtaXR0ZWQgY29kZQ0KZG9lcyBub3QgaW50cm9kdWNlIGEg
+dHJpdmlhbCBidWdzLg0KDQo+IOKenCAgbGludXgtcmRtYSBnaXQ6KHJkbWEtcmMpIGdpdCBmcCAt
+MSA1MjM2MzMzNTkyMjQgLW8gL3RtcC8NCj4gL3RtcC8wMDAxLUlCLWNvcmUtRml4LXRoZS12YWxp
+ZGF0aW9ucy1vZi1hLW11bHRpY2FzdC1MSUQtaW4tYXQucGF0Y2gNCj4g4p6cICBsaW51eC1yZG1h
+IGdpdDoocmRtYS1yYykgLi9zY3JpcHRzL2NoZWNrcGF0Y2gucGwgLS1zdHJpY3QgL3RtcC8wMDAx
+LUlCLWNvcmUtRml4LQ0KPiB0aGUtdmFsaWRhdGlvbnMtb2YtYS1tdWx0aWNhc3QtTElELWluLWF0
+LnBhdGNoDQo+IFdBUk5JTkc6IGxpbmUgb3ZlciA4MCBjaGFyYWN0ZXJzDQo+ICM0NTogRklMRTog
+ZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdmVyYnMuYzoxNTg0Og0KPiArCQkJaWYgKHFwLT5kZXZp
+Y2UtPmdldF9saW5rX2xheWVyKHFwLT5kZXZpY2UsIGF0dHIucG9ydF9udW0pICE9DQo+IA0KPiB0
+b3RhbDogMCBlcnJvcnMsIDEgd2FybmluZ3MsIDAgY2hlY2tzLCA2MiBsaW5lcyBjaGVja2VkDQo+
+IA0KPiBOT1RFOiBGb3Igc29tZSBvZiB0aGUgcmVwb3J0ZWQgZGVmZWN0cywgY2hlY2twYXRjaCBt
+YXkgYmUgYWJsZSB0bw0KPiAgICAgICBtZWNoYW5pY2FsbHkgY29udmVydCB0byB0aGUgdHlwaWNh
+bCBzdHlsZSB1c2luZyAtLWZpeCBvciAtLWZpeC1pbnBsYWNlLg0KPiANCj4gL3RtcC8wMDAxLUlC
+LWNvcmUtRml4LXRoZS12YWxpZGF0aW9ucy1vZi1hLW11bHRpY2FzdC1MSUQtaW4tYXQucGF0Y2gg
+aGFzIHN0eWxlDQo+IHByb2JsZW1zLCBwbGVhc2UgcmV2aWV3Lg0KPiANCj4gTk9URTogSWYgYW55
+IG9mIHRoZSBlcnJvcnMgYXJlIGZhbHNlIHBvc2l0aXZlcywgcGxlYXNlIHJlcG9ydA0KPiAgICAg
+ICB0aGVtIHRvIHRoZSBtYWludGFpbmVyLCBzZWUgQ0hFQ0tQQVRDSCBpbiBNQUlOVEFJTkVSUy4N
+Cj4gDQo+IA0KPiA+DQo+ID4gVGhhbmtzLA0KPiA+IEFsZXguDQo+ID4NCj4gPiA+IE9uIEZyaSwg
+U2VwIDIyLCAyMDE3IGF0IDA2OjQyOjQxUE0gLTA0MDAsIERvdWcgTGVkZm9yZCB3cm90ZToNCj4g
+PiA+ID4gT24gRnJpLCAyMDE3LTA5LTIyIGF0IDE1OjE3IC0wNjAwLCBKYXNvbiBHdW50aG9ycGUg
+d3JvdGU6DQo+ID4gPiA+ID4gT24gRnJpLCBTZXAgMjIsIDIwMTcgYXQgMDU6MDY6MjZQTSAtMDQw
+MCwgRG91ZyBMZWRmb3JkIHdyb3RlOg0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiBTdXJlLCBJIGdl
+dCB0aGF0LCBidXQgSSB3YXMgYWxyZWFkeSBvdXQgb24gUFRPIG9uIHRoZSAzMHRoLiAgV2hhdA0K
+PiA+ID4gPiA+ID4gc3Vja3MNCj4gPiA+ID4gPiA+IGlzIHRoYXQgaXQgbGFuZGVkIHJpZ2h0IGFm
+dGVyIEkgd2FzIG91dC4gIEJ1dCBJIHBsYW4gdG8gaGF2ZSB0aGUNCj4gPiA+ID4gPiA+IHB1bGwN
+Cj4gPiA+ID4gPiA+IHJlcXVlc3QgaW4gYmVmb3JlIEVPQiB0b2RheSwgc28gdGhlIGRpZmZlcmVu
+Y2UgYmV0d2VlbiB0aGUgMjB0aCBhbmQNCj4gPiA+ID4gPiA+IHRvZGF5IGlzIG5lZ2xpYmxlLiAg
+RXNwZWNpYWxseSBzaW5jZSBsb3RzIG9mIHBlb3BsZSBkb2luZyBRQQ0KPiA+ID4gPiA+ID4gdGVz
+dGluZw0KPiA+ID4gPiA+ID4gcHJlZmVyIHRvIHRha2UgLXJjIHRhZ3MsIGluIHRoYXQgY2FzZSwg
+dGhlIGRpZmZlcmVuY2UgaXMgbm9uLQ0KPiA+ID4gPiA+ID4gZXhpc3RlbnQuDQo+ID4gPiA+ID4N
+Cj4gPiA+ID4gPiBNeSB0aGlua2luZyB3YXMgdGhhdCBwZW9wbGUgc2hvdWxkIHRlc3QgLXJjLA0K
+PiA+ID4gPg0KPiA+ID4gPiBHcmVhdCwgd2l0aCB5b3UgaGVyZS4uLg0KPiA+ID4gPg0KPiA+ID4g
+PiA+ICBidXQgaWYgdGhleSBoYXZlIHByb2JsZW1zDQo+ID4gPiA+ID4gdGhleSBjb3VsZCBncmFi
+IHlvdXIgZm9yLXJjIGJyYW5jaCBhbmQgY2hlY2sgaWYgdGhlaXIgaXNzdWUgaXMNCj4gPiA+ID4g
+PiBhbHJlYWR5DQo+ID4gPiA+ID4gZml4ZWQuLg0KPiA+ID4gPg0KPiA+ID4gPiBUaGV5IGNhbiBk
+byB0aGlzIHRvby4uLg0KPiA+ID4gPg0KPiA+ID4gPiBCdXQgaWYgdGhhdCBzdGlsbCBkb2Vzbid0
+IHJlc29sdmUgdGhlaXIgcHJvYmxlbSwgYSBxdWljayBjaGVjayBvZiB0aGUNCj4gPiA+ID4gbWFp
+bGluZyBsaXN0IGNvbnRlbnRzIGlzbid0IG91dCBvZiB0aGUgcXVlc3Rpb24gZWl0aGVyLiAgSW4g
+dGhhdCBjYXNlLA0KPiA+ID4gPiB0aGV5IHdvdWxkIGhhdmUgZm91bmQgdGhlIHNvbHV0aW9uIHRv
+IHRoZWlyIHByb2JsZW0uICBCdXQsIHdoZW4geW91IGdldA0KPiA+ID4gPiByaWdodCBkb3duIHRv
+IGl0LCBvbmx5IG9uZSBwZXJzb24gcmVwb3J0ZWQgaXQgaW4gYWRkaXRpb24gdG8gdGhlDQo+ID4g
+PiA+IG9yaWdpbmFsIHBvc3Rlciwgc28gZWl0aGVyIG90aGVyIHBlb3BsZSBzYXcgdGhlIG9yaWdp
+bmFsIHBvc3QgYW5kDQo+ID4gPiA+IGNvbXBlbnNhdGVkIGluIHRoZWlyIG93biB0ZXN0aW5nLCBv
+ciAodGhlIG1vcmUgbGlrZWx5IEkgdGhpbmspLCBtb3N0DQo+ID4gPiA+IHBlb3BsZSBkb24ndCBz
+dGFydCB0ZXN0aW5nIC1yY3MgdW50aWwgYWZ0ZXIgLXJjMi4NCj4gPiA+DQo+ID4gPiBJIGRvbid0
+IGtub3cgYWJvdXQgb3RoZXIgcGVvcGxlLCBidXQgb3VyIHRlc3Rpbmcgb2YgLXJjIHN0YXJ0cyBv
+biAtcmMxDQo+ID4gPiBhbmQgd2UgYXJlIG5vdCB3YWl0aW5nIGZvciAtcmMyLiBGcm9tIG15IG9i
+c2VydmUgb2YgbmV0ZGV2LCB0aGV5IGFsc28NCj4gPiA+IHN0YXJ0IHRvIHRlc3QgLXJjIGltbWVk
+aWF0ZWx5Lg0KPiA+ID4NCj4gPiA+IE90aGVyd2lzZSwgd2hhdCBpcyB0aGUgcG9pbnQgb2YgdGhl
+IHdlZWsgYmV0d2VlbiAtcmMxIGFuZCAtcmMyPw0KPiA+ID4NCj4gPiA+ID4gV2hpY2ggaXMgd2h5
+IEkgdHJ5IHRvIHNldCAtcmMyIGFzIGEgbWlsZXN0b25lIGZvciBzZXZlcmFsIHB1cnBvc2VzLg0K
+PiA+ID4gPiBGb3IgZ2V0dGluZyBpbiB0aGUgYnVsayBvZiB0aGUga25vd24gZml4ZXMsIGJ1dCBh
+bHNvIGFzIGEgYnJhbmNoaW5nDQo+ID4gPiA+IHBvaW50IGZvciBmb3ItbmV4dC4NCj4gPiA+ID4N
+Cj4gPiA+ID4gLS0NCj4gPiA+ID4gRG91ZyBMZWRmb3JkIDxkbGVkZm9yZEByZWRoYXQuY29tPg0K
+PiA+ID4gPiAgICAgR1BHIEtleUlEOiBCODI2QTMzMzBFNTcyRkREDQo+ID4gPiA+ICAgICBLZXkg
+ZmluZ2VycHJpbnQgPSBBRTZCIDFCREEgMTIyQiAyM0I0IDI2NUIgIDEyNzQgQjgyNiBBMzMzIDBF
+NTcNCj4gMkZERA0KPiA+ID4gPg0KPiA+IC0tDQo+ID4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlz
+IGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQo+ID4gdGhl
+IGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4gPiBNb3Jl
+IG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZv
+Lmh0bWwNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
