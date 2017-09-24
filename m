@@ -1,115 +1,121 @@
-From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE:
-Date: Sun, 24 Sep 2017 16:59:55 +0000
-Message-ID: <F3529576D8E232409F431C309E29399336CD9886@CRSMSX102.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-rc 1/7] IB/core: Fix typo in the name of the tag-matching cap struct
+Date: Sun, 24 Sep 2017 21:46:29 +0300
+Message-ID: <20170924184635.31948-2-leon@kernel.org>
+References: <20170924184635.31948-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20170924184635.31948-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-TGVvbiwNCg0KVGhlIG9ubHkgaW50ZW50aW9uIEkgaGFkIHdpdGggdGhhdCBub3RlIHdhcyB0byB0
-cnkgdG8gaGVscCB3aXRoIHRoZSBwcm9jZXNzIG9mIHNjcmVlbmluZyBwYXRjaGVzDQp0byBtYWlu
-dGFpbiBhbmQgaW1wcm92ZSB0aGUgcXVhbGl0eSBvZiBjb21tb24gcmRtYSBjb2RlLg0KQXMgaXQg
-d2FzIHRha2VuIGFzIGFuIGluc3VsdCBJIGFwb2xvZ2l6ZSBmb3IgdGhhdC4gTmV2ZXIgaGFkIGlu
-IG1pbmQuIA0KSSBzaG91bGQgaGF2ZSBzY3JpcHRlZCBpdCBiZXR0ZXIuIA0KUGVyaGFwcywgcHV0
-IHRoZSBub3RlIHRocm91Z2ggdGhlIGNoZWNrcGF0Y2ggOikNCkFuZCB5ZXMsIGFzIGEgbWVtYmVy
-IG9mIHJkbWEgbGlzdCBJIGFjY2VwdCBteSBzaGFyZSBvZiBibGFtZSBmb3IgbWlzc2luZyB0aGF0
-IGJ1Zy4NCg0KVGhhbmtzLA0KQWxleC4NCg0KUC5TLg0KTXkgYXBvbG9naWVzIHRvIHRoZSBjb21t
-dW5pdHkgZm9yIHRoZSBzcGFtLg0KDQoNCj4gT24gU2F0LCBTZXAgMjMsIDIwMTcgYXQgMDc6MjA6
-NTNQTSArMDAwMCwgRXN0cmluLCBBbGV4IHdyb3RlOg0KPiA+ID4gPiBIZWxsbywNCj4gPiA+ID4N
-Cj4gPiA+ID4gT25lIG1pbm9yIG5vdGUgcmVnYXJkaW5nIHRoZSBvcmlnaW5hbCBjb21taXQgNTIz
-NjMzMzU5MjI0DQo+ID4gPiA+IHRoYXQgYnJva2UgdGhlIGNvcmUuDQo+ID4gPiA+IEl0IHNlZW0g
-aXQgd2FzIGxldCB0aHJvdWdoIHdpdGhvdXQgdHJpdmlhbCB2YWxpZGF0aW9uLA0KPiA+ID4gPiBv
-dGhlcndpc2UgaXQgd291bGRuJ3QgcGFzcyB0aGUgY2hlY2twYXRjaC4NCj4gPiA+DQo+ID4gPiBD
-YW4geW91IGJlIG1vcmUgc3BlY2lmaWM/IEFyZSB5b3UgcmVmZXJyaW5nIHRvICJXQVJOSU5HOiBs
-aW5lIG92ZXIgODANCj4gPiA+IGNoYXJhY3RlcnMiIG9yIHRvIHNvbWV0aGluZyBlbHNlPyBJZiB5
-ZXMsIEkgZmVlbCByZWFsbHkgYmFkIGZvciB5b3UgYW5kDQo+ID4gPiB5b3VyIHdvcmtwbGFjZS4N
-Cj4gPiBQbGVhc2UgZG9uJ3QgYmUuIEtlZXAgZG9pbmcgYSBncmVhdCBqb2IgYXQgeW91ciB3b3Jr
-cGxhY2UsIEkgd2lsbCBkbyB0aGUgc2FtZSBhdA0KPiBtaW5lLg0KPiA+DQo+ID4gPiBSZWFkYWJp
-bGl0eSBpcyBhIGZpcnN0IHByaW9yaXR5IGZvciB0aGUgc3VibWl0dGVkIGNvZGUuDQo+ID4gSSBj
-YW4gYWdyZWUgd2l0aCB5b3Ugb24gdGhhdCwgY29uc2lkZXJpbmcgZWFzeSByZWFkYWJsZSBzdWJt
-aXR0ZWQgY29kZQ0KPiA+IGRvZXMgbm90IGludHJvZHVjZSBhIHRyaXZpYWwgYnVncy4NCj4gDQo+
-IEl0IHdpbGwgYmUgdmVyeSBoZWxwZnVsIHRvIGV2ZXJ5b25lIGlmIHlvdSBzdG9wIHRvIHRocm93
-IGNsYWltcyB3aXRob3V0IGFueSBhY3R1YWwNCj4gc3VwcG9ydC4NCj4gMS4gRG91ZyBhbGxvd3Mg
-ZW5vdWdoIHRpbWUgdG8gcmVzcG9uZCBvbiB0aGUgcGF0Y2hlcyBhbmQgbmVpdGhlciB5b3UgYW5k
-DQo+IG5laXRoZXIgeW91cg0KPiBjb2xsZWFndWVzIGRpZG4ndCBzZWUgc3VjaCAidHJpdmlhbCBi
-dWciIGJhY2sgdGhlbi4NCj4gMi4gSXQgZml4ZWQgYW5vdGhlciAidHJpdmlhbCBidWciIGludHJv
-ZHVjZWQgYnkgeW91ciBjb2xsZWFndWUgd2hpY2gNCj4gYnJva2UgUm9DRSAob25lIG9mIHRoZSBt
-b3N0IHBvcHVsYXIgZmFicmljIGluIHRoZSBzdGFjaykgYW5kIHdlIGRpZG4ndA0KPiBjcnkgb3Ro
-ZXIgdGhlIGludGVybmV0IGFib3V0IGl0Lg0KPiANCj4gQmVmb3JlIHlvdSBhcmUgcnVzaGluZyB0
-byByZXBseSBtZSwgcGxlYXNlIGNvbnN1bHQgd2l0aCBEZW5ueSwgaGUgY2FuDQo+IGdpdmUgeW91
-IGEgc2hvcnQgdXBkYXRlIG9uIGhvdyBoYXJkIHRoZSByZWNlbnQgT1BBIGNoYW5nZXMgaW4gQUgg
-YW5kDQo+IExJRHMgYnJva2UgdGhlIHN0YWNrIGFuZCBSb0NFL0lCIGRldmljZXMuDQo+IA0KPiA+
-DQo+ID4gPiDinpwgIGxpbnV4LXJkbWEgZ2l0OihyZG1hLXJjKSBnaXQgZnAgLTEgNTIzNjMzMzU5
-MjI0IC1vIC90bXAvDQo+ID4gPiAvdG1wLzAwMDEtSUItY29yZS1GaXgtdGhlLXZhbGlkYXRpb25z
-LW9mLWEtbXVsdGljYXN0LUxJRC1pbi1hdC5wYXRjaA0KPiA+ID4g4p6cICBsaW51eC1yZG1hIGdp
-dDoocmRtYS1yYykgLi9zY3JpcHRzL2NoZWNrcGF0Y2gucGwgLS1zdHJpY3QgL3RtcC8wMDAxLUlC
-LWNvcmUtDQo+IEZpeC0NCj4gPiA+IHRoZS12YWxpZGF0aW9ucy1vZi1hLW11bHRpY2FzdC1MSUQt
-aW4tYXQucGF0Y2gNCj4gPiA+IFdBUk5JTkc6IGxpbmUgb3ZlciA4MCBjaGFyYWN0ZXJzDQo+ID4g
-PiAjNDU6IEZJTEU6IGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3ZlcmJzLmM6MTU4NDoNCj4gPiA+
-ICsJCQlpZiAocXAtPmRldmljZS0+Z2V0X2xpbmtfbGF5ZXIocXAtPmRldmljZSwgYXR0ci5wb3J0
-X251bSkgIT0NCj4gPiA+DQo+ID4gPiB0b3RhbDogMCBlcnJvcnMsIDEgd2FybmluZ3MsIDAgY2hl
-Y2tzLCA2MiBsaW5lcyBjaGVja2VkDQo+ID4gPg0KPiA+ID4gTk9URTogRm9yIHNvbWUgb2YgdGhl
-IHJlcG9ydGVkIGRlZmVjdHMsIGNoZWNrcGF0Y2ggbWF5IGJlIGFibGUgdG8NCj4gPiA+ICAgICAg
-IG1lY2hhbmljYWxseSBjb252ZXJ0IHRvIHRoZSB0eXBpY2FsIHN0eWxlIHVzaW5nIC0tZml4IG9y
-IC0tZml4LWlucGxhY2UuDQo+ID4gPg0KPiA+ID4gL3RtcC8wMDAxLUlCLWNvcmUtRml4LXRoZS12
-YWxpZGF0aW9ucy1vZi1hLW11bHRpY2FzdC1MSUQtaW4tYXQucGF0Y2ggaGFzDQo+IHN0eWxlDQo+
-ID4gPiBwcm9ibGVtcywgcGxlYXNlIHJldmlldy4NCj4gPiA+DQo+ID4gPiBOT1RFOiBJZiBhbnkg
-b2YgdGhlIGVycm9ycyBhcmUgZmFsc2UgcG9zaXRpdmVzLCBwbGVhc2UgcmVwb3J0DQo+ID4gPiAg
-ICAgICB0aGVtIHRvIHRoZSBtYWludGFpbmVyLCBzZWUgQ0hFQ0tQQVRDSCBpbiBNQUlOVEFJTkVS
-Uy4NCj4gPiA+DQo+ID4gPg0KPiA+ID4gPg0KPiA+ID4gPiBUaGFua3MsDQo+ID4gPiA+IEFsZXgu
-DQo+ID4gPiA+DQo+ID4gPiA+ID4gT24gRnJpLCBTZXAgMjIsIDIwMTcgYXQgMDY6NDI6NDFQTSAt
-MDQwMCwgRG91ZyBMZWRmb3JkIHdyb3RlOg0KPiA+ID4gPiA+ID4gT24gRnJpLCAyMDE3LTA5LTIy
-IGF0IDE1OjE3IC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6DQo+ID4gPiA+ID4gPiA+IE9u
-IEZyaSwgU2VwIDIyLCAyMDE3IGF0IDA1OjA2OjI2UE0gLTA0MDAsIERvdWcgTGVkZm9yZCB3cm90
-ZToNCj4gPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ID4gPiBTdXJlLCBJIGdldCB0aGF0LCBidXQg
-SSB3YXMgYWxyZWFkeSBvdXQgb24gUFRPIG9uIHRoZSAzMHRoLiAgV2hhdA0KPiA+ID4gPiA+ID4g
-PiA+IHN1Y2tzDQo+ID4gPiA+ID4gPiA+ID4gaXMgdGhhdCBpdCBsYW5kZWQgcmlnaHQgYWZ0ZXIg
-SSB3YXMgb3V0LiAgQnV0IEkgcGxhbiB0byBoYXZlIHRoZQ0KPiA+ID4gPiA+ID4gPiA+IHB1bGwN
-Cj4gPiA+ID4gPiA+ID4gPiByZXF1ZXN0IGluIGJlZm9yZSBFT0IgdG9kYXksIHNvIHRoZSBkaWZm
-ZXJlbmNlIGJldHdlZW4gdGhlIDIwdGgNCj4gYW5kDQo+ID4gPiA+ID4gPiA+ID4gdG9kYXkgaXMg
-bmVnbGlibGUuICBFc3BlY2lhbGx5IHNpbmNlIGxvdHMgb2YgcGVvcGxlIGRvaW5nIFFBDQo+ID4g
-PiA+ID4gPiA+ID4gdGVzdGluZw0KPiA+ID4gPiA+ID4gPiA+IHByZWZlciB0byB0YWtlIC1yYyB0
-YWdzLCBpbiB0aGF0IGNhc2UsIHRoZSBkaWZmZXJlbmNlIGlzIG5vbi0NCj4gPiA+ID4gPiA+ID4g
-PiBleGlzdGVudC4NCj4gPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ID4gTXkgdGhpbmtpbmcgd2Fz
-IHRoYXQgcGVvcGxlIHNob3VsZCB0ZXN0IC1yYywNCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiBH
-cmVhdCwgd2l0aCB5b3UgaGVyZS4uLg0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ID4gIGJ1dCBp
-ZiB0aGV5IGhhdmUgcHJvYmxlbXMNCj4gPiA+ID4gPiA+ID4gdGhleSBjb3VsZCBncmFiIHlvdXIg
-Zm9yLXJjIGJyYW5jaCBhbmQgY2hlY2sgaWYgdGhlaXIgaXNzdWUgaXMNCj4gPiA+ID4gPiA+ID4g
-YWxyZWFkeQ0KPiA+ID4gPiA+ID4gPiBmaXhlZC4uDQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4g
-VGhleSBjYW4gZG8gdGhpcyB0b28uLi4NCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiBCdXQgaWYg
-dGhhdCBzdGlsbCBkb2Vzbid0IHJlc29sdmUgdGhlaXIgcHJvYmxlbSwgYSBxdWljayBjaGVjayBv
-ZiB0aGUNCj4gPiA+ID4gPiA+IG1haWxpbmcgbGlzdCBjb250ZW50cyBpc24ndCBvdXQgb2YgdGhl
-IHF1ZXN0aW9uIGVpdGhlci4gIEluIHRoYXQgY2FzZSwNCj4gPiA+ID4gPiA+IHRoZXkgd291bGQg
-aGF2ZSBmb3VuZCB0aGUgc29sdXRpb24gdG8gdGhlaXIgcHJvYmxlbS4gIEJ1dCwgd2hlbiB5b3UN
-Cj4gZ2V0DQo+ID4gPiA+ID4gPiByaWdodCBkb3duIHRvIGl0LCBvbmx5IG9uZSBwZXJzb24gcmVw
-b3J0ZWQgaXQgaW4gYWRkaXRpb24gdG8gdGhlDQo+ID4gPiA+ID4gPiBvcmlnaW5hbCBwb3N0ZXIs
-IHNvIGVpdGhlciBvdGhlciBwZW9wbGUgc2F3IHRoZSBvcmlnaW5hbCBwb3N0IGFuZA0KPiA+ID4g
-PiA+ID4gY29tcGVuc2F0ZWQgaW4gdGhlaXIgb3duIHRlc3RpbmcsIG9yICh0aGUgbW9yZSBsaWtl
-bHkgSSB0aGluayksIG1vc3QNCj4gPiA+ID4gPiA+IHBlb3BsZSBkb24ndCBzdGFydCB0ZXN0aW5n
-IC1yY3MgdW50aWwgYWZ0ZXIgLXJjMi4NCj4gPiA+ID4gPg0KPiA+ID4gPiA+IEkgZG9uJ3Qga25v
-dyBhYm91dCBvdGhlciBwZW9wbGUsIGJ1dCBvdXIgdGVzdGluZyBvZiAtcmMgc3RhcnRzIG9uIC1y
-YzENCj4gPiA+ID4gPiBhbmQgd2UgYXJlIG5vdCB3YWl0aW5nIGZvciAtcmMyLiBGcm9tIG15IG9i
-c2VydmUgb2YgbmV0ZGV2LCB0aGV5IGFsc28NCj4gPiA+ID4gPiBzdGFydCB0byB0ZXN0IC1yYyBp
-bW1lZGlhdGVseS4NCj4gPiA+ID4gPg0KPiA+ID4gPiA+IE90aGVyd2lzZSwgd2hhdCBpcyB0aGUg
-cG9pbnQgb2YgdGhlIHdlZWsgYmV0d2VlbiAtcmMxIGFuZCAtcmMyPw0KPiA+ID4gPiA+DQo+ID4g
-PiA+ID4gPiBXaGljaCBpcyB3aHkgSSB0cnkgdG8gc2V0IC1yYzIgYXMgYSBtaWxlc3RvbmUgZm9y
-IHNldmVyYWwgcHVycG9zZXMuDQo+ID4gPiA+ID4gPiBGb3IgZ2V0dGluZyBpbiB0aGUgYnVsayBv
-ZiB0aGUga25vd24gZml4ZXMsIGJ1dCBhbHNvIGFzIGEgYnJhbmNoaW5nDQo+ID4gPiA+ID4gPiBw
-b2ludCBmb3IgZm9yLW5leHQuDQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gLS0NCj4gPiA+ID4g
-PiA+IERvdWcgTGVkZm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT4NCj4gPiA+ID4gPiA+ICAgICBH
-UEcgS2V5SUQ6IEI4MjZBMzMzMEU1NzJGREQNCj4gPiA+ID4gPiA+ICAgICBLZXkgZmluZ2VycHJp
-bnQgPSBBRTZCIDFCREEgMTIyQiAyM0I0IDI2NUIgIDEyNzQgQjgyNiBBMzMzDQo+IDBFNTcNCj4g
-PiA+IDJGREQNCj4gPiA+ID4gPiA+DQo+ID4gPiA+IC0tDQo+ID4gPiA+IFRvIHVuc3Vic2NyaWJl
-IGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBp
-bg0KPiA+ID4gPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVs
-Lm9yZw0KPiA+ID4gPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwu
-b3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+The tag matching functionality is implemented by mlx5 driver
+by extending XRQ, however this internal kernel information was
+exposed to user space applications with *xrq* name instead of *tm*.
+
+This patch renames *xrq* to *tm* to handle that.
+
+Fixes: 8d50505ada72 ("IB/uverbs: Expose XRQ capabilities")
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_cmd.c | 14 +++++++-------
+ drivers/infiniband/hw/mlx5/main.c    | 10 +++++-----
+ include/rdma/ib_verbs.h              |  4 ++--
+ include/uapi/rdma/ib_user_verbs.h    |  2 +-
+ 4 files changed, 15 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 4ab30d832ac5..52a2cf2d83aa 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3869,15 +3869,15 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+ 	resp.raw_packet_caps = attr.raw_packet_caps;
+ 	resp.response_length += sizeof(resp.raw_packet_caps);
+ 
+-	if (ucore->outlen < resp.response_length + sizeof(resp.xrq_caps))
++	if (ucore->outlen < resp.response_length + sizeof(resp.tm_caps))
+ 		goto end;
+ 
+-	resp.xrq_caps.max_rndv_hdr_size = attr.xrq_caps.max_rndv_hdr_size;
+-	resp.xrq_caps.max_num_tags      = attr.xrq_caps.max_num_tags;
+-	resp.xrq_caps.max_ops		= attr.xrq_caps.max_ops;
+-	resp.xrq_caps.max_sge		= attr.xrq_caps.max_sge;
+-	resp.xrq_caps.flags		= attr.xrq_caps.flags;
+-	resp.response_length += sizeof(resp.xrq_caps);
++	resp.tm_caps.max_rndv_hdr_size	= attr.tm_caps.max_rndv_hdr_size;
++	resp.tm_caps.max_num_tags	= attr.tm_caps.max_num_tags;
++	resp.tm_caps.max_ops		= attr.tm_caps.max_ops;
++	resp.tm_caps.max_sge		= attr.tm_caps.max_sge;
++	resp.tm_caps.flags		= attr.tm_caps.flags;
++	resp.response_length += sizeof(resp.tm_caps);
+ end:
+ 	err = ib_copy_to_udata(ucore, &resp, resp.response_length);
+ 	return err;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 05fb4bdff6a0..d6fbad8f34aa 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -778,13 +778,13 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	}
+ 
+ 	if (MLX5_CAP_GEN(mdev, tag_matching)) {
+-		props->xrq_caps.max_rndv_hdr_size = MLX5_TM_MAX_RNDV_MSG_SIZE;
+-		props->xrq_caps.max_num_tags =
++		props->tm_caps.max_rndv_hdr_size = MLX5_TM_MAX_RNDV_MSG_SIZE;
++		props->tm_caps.max_num_tags =
+ 			(1 << MLX5_CAP_GEN(mdev, log_tag_matching_list_sz)) - 1;
+-		props->xrq_caps.flags = IB_TM_CAP_RC;
+-		props->xrq_caps.max_ops =
++		props->tm_caps.flags = IB_TM_CAP_RC;
++		props->tm_caps.max_ops =
+ 			1 << MLX5_CAP_GEN(mdev, log_max_qp_sz);
+-		props->xrq_caps.max_sge = MLX5_TM_MAX_SGE;
++		props->tm_caps.max_sge = MLX5_TM_MAX_SGE;
+ 	}
+ 
+ 	if (field_avail(typeof(resp), cqe_comp_caps, uhw->outlen)) {
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index bdb1279a415b..bbb5f54db882 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -285,7 +285,7 @@ enum ib_tm_cap_flags {
+ 	IB_TM_CAP_RC		    = 1 << 0,
+ };
+ 
+-struct ib_xrq_caps {
++struct ib_tm_caps {
+ 	/* Max size of RNDV header */
+ 	u32 max_rndv_hdr_size;
+ 	/* Max number of entries in tag matching list */
+@@ -358,7 +358,7 @@ struct ib_device_attr {
+ 	struct ib_rss_caps	rss_caps;
+ 	u32			max_wq_type_rq;
+ 	u32			raw_packet_caps; /* Use ib_raw_packet_caps enum */
+-	struct ib_xrq_caps	xrq_caps;
++	struct ib_tm_caps	tm_caps;
+ };
+ 
+ enum ib_mtu {
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 9a0b6479fe0c..d4e0b53bfc75 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -261,7 +261,7 @@ struct ib_uverbs_ex_query_device_resp {
+ 	struct ib_uverbs_rss_caps rss_caps;
+ 	__u32  max_wq_type_rq;
+ 	__u32 raw_packet_caps;
+-	struct ib_uverbs_tm_caps xrq_caps;
++	struct ib_uverbs_tm_caps tm_caps;
+ };
+ 
+ struct ib_uverbs_query_port {
+-- 
+2.14.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
