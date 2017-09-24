@@ -1,65 +1,79 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 net-next 3/4] qed: Fix maximum number of CQs for iWARP
-Date: Sun, 24 Sep 2017 13:35:54 +0300
-Message-ID: <20170924103554.GC25094@mtr-leonro.local>
-References: <1506244185-2129-1-git-send-email-Michal.Kalderon@cavium.com>
- <1506244185-2129-4-git-send-email-Michal.Kalderon@cavium.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="wxDdMuZNg1r63Hyj"
+From: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/qib: Use setup_timer and mod_timer
+Date: Sun, 24 Sep 2017 17:21:07 +0530
+Message-ID: <1506253867-5132-1-git-send-email-himanshujha199640@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1506244185-2129-4-git-send-email-Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Use setup_timer and mod_timer API instead of structure assignments.
 
---wxDdMuZNg1r63Hyj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is done using Coccinelle and semantic patch used
+for this as follows:
 
-On Sun, Sep 24, 2017 at 12:09:44PM +0300, Michal Kalderon wrote:
-> The maximum number of CQs supported is bound to the number
-> of connections supported, which differs between RoCE and iWARP.
->
-> This fixes a crash that occurred in iWARP when running 1000 sessions
-> using perftest.
->
-> Fixes: 67b40dccc45 ("qed: Implement iWARP initialization, teardown and qp operations")
->
-> Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/net/ethernet/qlogic/qed/qed_rdma.c | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
->
+@@
+expression x,y,z,a,b;
+@@
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+-init_timer (&x);
++setup_timer (&x, y, z);
++mod_timer (&a, b);
+-x.function = y;
+-x.data = z;
+-x.expires = b;
+-add_timer(&a);
 
---wxDdMuZNg1r63Hyj
-Content-Type: application/pgp-signature; name="signature.asc"
+Signed-off-by: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_driver.c |  8 +++-----
+ drivers/infiniband/hw/qib/qib_mad.c    | 10 ++++------
+ 2 files changed, 7 insertions(+), 11 deletions(-)
 
------BEGIN PGP SIGNATURE-----
+diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
+index 719906a..2314e8a 100644
+--- a/drivers/infiniband/hw/qib/qib_driver.c
++++ b/drivers/infiniband/hw/qib/qib_driver.c
+@@ -735,11 +735,9 @@ void qib_set_led_override(struct qib_pportdata *ppd, unsigned int val)
+ 	 */
+ 	if (atomic_inc_return(&ppd->led_override_timer_active) == 1) {
+ 		/* Need to start timer */
+-		init_timer(&ppd->led_override_timer);
+-		ppd->led_override_timer.function = qib_run_led_override;
+-		ppd->led_override_timer.data = (unsigned long) ppd;
+-		ppd->led_override_timer.expires = jiffies + 1;
+-		add_timer(&ppd->led_override_timer);
++		setup_timer(&ppd->led_override_timer, qib_run_led_override,
++			    (unsigned long)ppd);
++		mod_timer(&ppd->led_override_timer, jiffies + 1);
+ 	} else {
+ 		if (ppd->led_override_vals[0] || ppd->led_override_vals[1])
+ 			mod_timer(&ppd->led_override_timer, jiffies + 1);
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 82d9da9..1237952 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -2478,12 +2478,10 @@ void qib_notify_create_mad_agent(struct rvt_dev_info *rdi, int port_idx)
+ 
+ 	/* Initialize xmit_wait structure */
+ 	dd->pport[port_idx].cong_stats.counter = 0;
+-	init_timer(&dd->pport[port_idx].cong_stats.timer);
+-	dd->pport[port_idx].cong_stats.timer.function = xmit_wait_timer_func;
+-	dd->pport[port_idx].cong_stats.timer.data =
+-		(unsigned long)(&dd->pport[port_idx]);
+-	dd->pport[port_idx].cong_stats.timer.expires = 0;
+-	add_timer(&dd->pport[port_idx].cong_stats.timer);
++	setup_timer(&dd->pport[port_idx].cong_stats.timer,
++		    xmit_wait_timer_func,
++		    (unsigned long)(&dd->pport[port_idx]));
++	mod_timer(&dd->pport[port_idx].cong_stats.timer, 0);
+ }
+ 
+ void qib_notify_free_mad_agent(struct rvt_dev_info *rdi, int port_idx)
+-- 
+2.7.4
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnHiooACgkQ5GN7iDZy
-WKfJAw//dk9MdhtytGYdJdYcYb50N98UoOmsOjCNdphkLK9eHASx/P4Qrd6t9ar0
-77ZCcVF0w4R8/nEFKDcH1JQw0JfcIXf+UXRmnhs4DeiUpEItANMOx6uAfCau0tr9
-khWF0riw+Ra8XX2o0FO0BQ/areOS+qRFnqNIlTvWQewZnoeR7DmUi8OuCu0ScQ/k
-x1KTyZEOLyfKZm2FMcsLzaUU8D7POQ/ksjCMm6oxggP7YLB4yrKqptaLLplPlUHg
-UYDsb1mEhyxutOZ5AlIb+SCf2wQZ45Vnvi0i7zcvgSxGw1+4SPpsLA5RALp0aQwv
-jv13GLn3qO0xMOTRZHvkH9Ow/m/Szyh181PIjjGXnDWjXzTR3nkUyaksjxyn6btp
-y+ljuKTwGsJyT2eK4Sx6MWTqk7hkRXFsX+M3qHzE+tkyxRc6wyzPY8exr+W8Xb8p
-ISDZJLO9wWfgQRAabf4NwHg8JNfBa3HLUl9u6krjTZkyhM335u59So8D2PwQPf0X
-fCII6N9J7eNYQhJa+/Ki/yidzzIw3onc387k5QOuuQ/dkY/09ATXVI1yZ0zGNEeG
-99ctV1Jt29tc4Pj3q5u27lE0CoKAi+eUvUtnCN2fUjHm4Xm4V+i9n+VT/cjceQ12
-ipSo+J0t01kMENlEppOpWyf0Wz1b1gf/HcpbLSCNzy42I5HnYDg=
-=rs7P
------END PGP SIGNATURE-----
-
---wxDdMuZNg1r63Hyj--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
