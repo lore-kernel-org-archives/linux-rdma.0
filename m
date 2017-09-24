@@ -1,122 +1,95 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 7/7] IB/mlx5: Fix NULL deference on mlx5_ib_update_xlt failure
-Date: Sun, 24 Sep 2017 21:46:35 +0300
-Message-ID: <20170924184635.31948-8-leon@kernel.org>
+Subject: [PATCH rdma-rc 4/7] IB/ipoib: Fix sysfs Pkey create<->remove possible deadlock
+Date: Sun, 24 Sep 2017 21:46:32 +0300
+Message-ID: <20170924184635.31948-5-leon@kernel.org>
 References: <20170924184635.31948-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170924184635.31948-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Shalom Lagziel <shaloml-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Shalom Lagziel <shaloml-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-mlx5_ib_reg_user_mr called mlx5_ib_dereg_mr in case of MR population
-failure. This resulted in a NULL dereference as ibmr->device wasn't
-initialized yet.
+A possible ABBA lock can happen with RTNL and vlan_rwsem.
+For example:
 
-We address this by adding an internal dereg_mr function that can handle
-partially initialized MRs, and fixing clean_mr to work on partially
-initialized MRs.
+Flow A: Device Flush
+	__ipoib_ib_dev_flush
+	down_read(vlan_rwsem) 			// Lock A
+	ipoib_flush_ah
+	flush_workqueue(priv->wq) 		// Wait for completion
+	A work on shared WQ (Mcast carrier)
+		ipoib_mcast_carrier_on_task
+		while (!rtnl_trylock())         // Wait for lock B
 
-Fixes: ff740aefecb9 ("IB/mlx5: Decouple MR allocation and population flows")
-Signed-off-by: Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Flow B: Sysfs PKEY delete
+	ipoib_vlan_delete
+	lock(RTNL) 				// Lock B
+	down_write(vlan_rwsem) 			// Wait for lock A
+
+This can happen with PKEY creates as well. The solution is to release
+the RTNL lock in sysfs functions in case it is not possible to lock
+VLAN RW semaphore and reset the SYS call.
+
+Fixes: 69956d83267e ("IB/ipoib: Sync between remove_one to sysfs calls that use rtnl_lock")
+Signed-off-by: Shalom Lagziel <shaloml-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mr.c | 27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 0e2789d9bb4d..37bbc543847a 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -47,7 +47,8 @@ enum {
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
+index 9927cd6b7082..e01c58edca15 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
+@@ -141,14 +141,17 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
+ 		return restart_syscall();
+ 	}
  
- #define MLX5_UMR_ALIGN 2048
+-	priv = ipoib_intf_alloc(ppriv->ca, ppriv->port, intf_name);
+-	if (!priv) {
++	if (!down_write_trylock(&ppriv->vlan_rwsem)) {
+ 		rtnl_unlock();
+ 		mutex_unlock(&ppriv->sysfs_mutex);
+-		return -ENOMEM;
++		return restart_syscall();
+ 	}
  
--static int clean_mr(struct mlx5_ib_mr *mr);
-+static int clean_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr);
-+static int dereg_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr);
- static int mr_cache_max_order(struct mlx5_ib_dev *dev);
- static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr);
+-	down_write(&ppriv->vlan_rwsem);
++	priv = ipoib_intf_alloc(ppriv->ca, ppriv->port, intf_name);
++	if (!priv) {
++		result = -ENOMEM;
++		goto out;
++	}
  
-@@ -1270,8 +1271,9 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	/*
+ 	 * First ensure this isn't a duplicate. We check the parent device and
+@@ -175,7 +178,7 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
+ 	rtnl_unlock();
+ 	mutex_unlock(&ppriv->sysfs_mutex);
  
- 		err = mlx5_ib_update_xlt(mr, 0, ncont, page_shift,
- 					 update_xlt_flags);
+-	if (result) {
++	if (result && priv) {
+ 		free_netdev(priv->dev);
+ 		kfree(priv);
+ 	}
+@@ -204,7 +207,12 @@ int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey)
+ 		return restart_syscall();
+ 	}
+ 
+-	down_write(&ppriv->vlan_rwsem);
++	if (!down_write_trylock(&ppriv->vlan_rwsem)) {
++		rtnl_unlock();
++		mutex_unlock(&ppriv->sysfs_mutex);
++		return restart_syscall();
++	}
 +
- 		if (err) {
--			mlx5_ib_dereg_mr(&mr->ibmr);
-+			dereg_mr(dev, mr);
- 			return ERR_PTR(err);
- 		}
- 	}
-@@ -1356,7 +1358,7 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
- 		err = mr_umem_get(pd, addr, len, access_flags, &mr->umem,
- 				  &npages, &page_shift, &ncont, &order);
- 		if (err < 0) {
--			clean_mr(mr);
-+			clean_mr(dev, mr);
- 			return err;
- 		}
- 	}
-@@ -1410,7 +1412,7 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
- 		if (err) {
- 			mlx5_ib_warn(dev, "Failed to rereg UMR\n");
- 			ib_umem_release(mr->umem);
--			clean_mr(mr);
-+			clean_mr(dev, mr);
- 			return err;
- 		}
- 	}
-@@ -1469,9 +1471,8 @@ mlx5_free_priv_descs(struct mlx5_ib_mr *mr)
- 	}
- }
- 
--static int clean_mr(struct mlx5_ib_mr *mr)
-+static int clean_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
- {
--	struct mlx5_ib_dev *dev = to_mdev(mr->ibmr.device);
- 	int allocated_from_cache = mr->allocated_from_cache;
- 	int err;
- 
-@@ -1507,10 +1508,8 @@ static int clean_mr(struct mlx5_ib_mr *mr)
- 	return 0;
- }
- 
--int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
-+static int dereg_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
- {
--	struct mlx5_ib_dev *dev = to_mdev(ibmr->device);
--	struct mlx5_ib_mr *mr = to_mmr(ibmr);
- 	int npages = mr->npages;
- 	struct ib_umem *umem = mr->umem;
- 
-@@ -1539,7 +1538,7 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
- 	}
- #endif
- 
--	clean_mr(mr);
-+	clean_mr(dev, mr);
- 
- 	if (umem) {
- 		ib_umem_release(umem);
-@@ -1549,6 +1548,14 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
- 	return 0;
- }
- 
-+int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(ibmr->device);
-+	struct mlx5_ib_mr *mr = to_mmr(ibmr);
-+
-+	return dereg_mr(dev, mr);
-+}
-+
- struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
- 			       enum ib_mr_type mr_type,
- 			       u32 max_num_sg)
+ 	list_for_each_entry_safe(priv, tpriv, &ppriv->child_intfs, list) {
+ 		if (priv->pkey == pkey &&
+ 		    priv->child_type == IPOIB_LEGACY_CHILD) {
 -- 
 2.14.1
 
