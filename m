@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 6/7] IB/mlx5: Simplify mlx5_ib_cont_pages
-Date: Sun, 24 Sep 2017 21:46:34 +0300
-Message-ID: <20170924184635.31948-7-leon@kernel.org>
+Subject: [PATCH rdma-rc 7/7] IB/mlx5: Fix NULL deference on mlx5_ib_update_xlt failure
+Date: Sun, 24 Sep 2017 21:46:35 +0300
+Message-ID: <20170924184635.31948-8-leon@kernel.org>
 References: <20170924184635.31948-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170924184635.31948-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,99 +12,111 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The patch simplifies mlx5_ib_cont_pages and fixes the following
-issues in the original implementation:
+mlx5_ib_reg_user_mr called mlx5_ib_dereg_mr in case of MR population
+failure. This resulted in a NULL dereference as ibmr->device wasn't
+initialized yet.
 
-First issues is related to alignment of the PFNs. After the check
-base + p != PFN, the alignment of the PFN wasn't checked. So the PFN
-sequence 0, 1, 1, 2 would result in a page_shift of 13 even though
-the 3rd PFN is not 8KB aligned.
+We address this by adding an internal dereg_mr function that can handle
+partially initialized MRs, and fixing clean_mr to work on partially
+initialized MRs.
 
-This wasn't actually a bug because it was supported by all the
-existing mlx5 compatible device, but we don't want to require
-this support in all future devices.
-
-Another issue is because the inner loop didn't advance PFN so
-the test "if (base + p != pfn)" always failed for SGE with
-len > (1<<page_shift).
-
-Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
+Fixes: ff740aefecb9 ("IB/mlx5: Decouple MR allocation and population flows")
 Signed-off-by: Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mem.c | 47 +++++++++++++++-------------------------
- 1 file changed, 17 insertions(+), 30 deletions(-)
+ drivers/infiniband/hw/mlx5/mr.c | 27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
-index 914f212e7ef6..f3dbd75a0a96 100644
---- a/drivers/infiniband/hw/mlx5/mem.c
-+++ b/drivers/infiniband/hw/mlx5/mem.c
-@@ -50,13 +50,9 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr,
- {
- 	unsigned long tmp;
- 	unsigned long m;
--	int i, k;
--	u64 base = 0;
--	int p = 0;
--	int skip;
--	int mask;
--	u64 len;
--	u64 pfn;
-+	u64 base = ~0, p = 0;
-+	u64 len, pfn;
-+	int i = 0;
- 	struct scatterlist *sg;
- 	int entry;
- 	unsigned long page_shift = umem->page_shift;
-@@ -76,33 +72,24 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr,
- 	m = find_first_bit(&tmp, BITS_PER_LONG);
- 	if (max_page_shift)
- 		m = min_t(unsigned long, max_page_shift - page_shift, m);
--	skip = 1 << m;
--	mask = skip - 1;
--	i = 0;
-+
- 	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
- 		len = sg_dma_len(sg) >> page_shift;
- 		pfn = sg_dma_address(sg) >> page_shift;
--		for (k = 0; k < len; k++) {
--			if (!(i & mask)) {
--				tmp = (unsigned long)pfn;
--				m = min_t(unsigned long, m, find_first_bit(&tmp, BITS_PER_LONG));
--				skip = 1 << m;
--				mask = skip - 1;
--				base = pfn;
--				p = 0;
--			} else {
--				if (base + p != pfn) {
--					tmp = (unsigned long)p;
--					m = find_first_bit(&tmp, BITS_PER_LONG);
--					skip = 1 << m;
--					mask = skip - 1;
--					base = pfn;
--					p = 0;
--				}
--			}
--			p++;
--			i++;
-+		if (base + p != pfn) {
-+			/* If either the offset or the new
-+			 * base are unaligned update m
-+			 */
-+			tmp = (unsigned long)(pfn | p);
-+			if (!IS_ALIGNED(tmp, 1 << m))
-+				m = find_first_bit(&tmp, BITS_PER_LONG);
-+
-+			base = pfn;
-+			p = 0;
- 		}
-+
-+		p += len;
-+		i += len;
- 	}
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 0e2789d9bb4d..37bbc543847a 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -47,7 +47,8 @@ enum {
  
- 	if (i) {
+ #define MLX5_UMR_ALIGN 2048
+ 
+-static int clean_mr(struct mlx5_ib_mr *mr);
++static int clean_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr);
++static int dereg_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr);
+ static int mr_cache_max_order(struct mlx5_ib_dev *dev);
+ static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr);
+ 
+@@ -1270,8 +1271,9 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 
+ 		err = mlx5_ib_update_xlt(mr, 0, ncont, page_shift,
+ 					 update_xlt_flags);
++
+ 		if (err) {
+-			mlx5_ib_dereg_mr(&mr->ibmr);
++			dereg_mr(dev, mr);
+ 			return ERR_PTR(err);
+ 		}
+ 	}
+@@ -1356,7 +1358,7 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 		err = mr_umem_get(pd, addr, len, access_flags, &mr->umem,
+ 				  &npages, &page_shift, &ncont, &order);
+ 		if (err < 0) {
+-			clean_mr(mr);
++			clean_mr(dev, mr);
+ 			return err;
+ 		}
+ 	}
+@@ -1410,7 +1412,7 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 		if (err) {
+ 			mlx5_ib_warn(dev, "Failed to rereg UMR\n");
+ 			ib_umem_release(mr->umem);
+-			clean_mr(mr);
++			clean_mr(dev, mr);
+ 			return err;
+ 		}
+ 	}
+@@ -1469,9 +1471,8 @@ mlx5_free_priv_descs(struct mlx5_ib_mr *mr)
+ 	}
+ }
+ 
+-static int clean_mr(struct mlx5_ib_mr *mr)
++static int clean_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
+ {
+-	struct mlx5_ib_dev *dev = to_mdev(mr->ibmr.device);
+ 	int allocated_from_cache = mr->allocated_from_cache;
+ 	int err;
+ 
+@@ -1507,10 +1508,8 @@ static int clean_mr(struct mlx5_ib_mr *mr)
+ 	return 0;
+ }
+ 
+-int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
++static int dereg_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
+ {
+-	struct mlx5_ib_dev *dev = to_mdev(ibmr->device);
+-	struct mlx5_ib_mr *mr = to_mmr(ibmr);
+ 	int npages = mr->npages;
+ 	struct ib_umem *umem = mr->umem;
+ 
+@@ -1539,7 +1538,7 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
+ 	}
+ #endif
+ 
+-	clean_mr(mr);
++	clean_mr(dev, mr);
+ 
+ 	if (umem) {
+ 		ib_umem_release(umem);
+@@ -1549,6 +1548,14 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
+ 	return 0;
+ }
+ 
++int mlx5_ib_dereg_mr(struct ib_mr *ibmr)
++{
++	struct mlx5_ib_dev *dev = to_mdev(ibmr->device);
++	struct mlx5_ib_mr *mr = to_mmr(ibmr);
++
++	return dereg_mr(dev, mr);
++}
++
+ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
+ 			       enum ib_mr_type mr_type,
+ 			       u32 max_num_sg)
 -- 
 2.14.1
 
