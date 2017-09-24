@@ -1,109 +1,110 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 5/7] IB/ipoib: Fix inconsistency with free_netdev and free_rdma_netdev
-Date: Sun, 24 Sep 2017 21:46:33 +0300
-Message-ID: <20170924184635.31948-6-leon@kernel.org>
+Subject: [PATCH rdma-rc 6/7] IB/mlx5: Simplify mlx5_ib_cont_pages
+Date: Sun, 24 Sep 2017 21:46:34 +0300
+Message-ID: <20170924184635.31948-7-leon@kernel.org>
 References: <20170924184635.31948-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170924184635.31948-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Call free_rdma_netdev instead of free_netdev each time we want to
-release a netdevice. This call is also relevant for future freeing
-of offloaded child interfaces.
+The patch simplifies mlx5_ib_cont_pages and fixes the following
+issues in the original implementation:
 
-This patch also adds a missing call for free netdevice when releasing
-a parent interface that has child interfaces using ipoib_remove_one.
+First issues is related to alignment of the PFNs. After the check
+base + p != PFN, the alignment of the PFN wasn't checked. So the PFN
+sequence 0, 1, 1, 2 would result in a page_shift of 13 even though
+the 3rd PFN is not 8KB aligned.
 
-Fixes: cd565b4b51e5 ('IB/IPoIB: Support acceleration options callbacks')
-Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This wasn't actually a bug because it was supported by all the
+existing mlx5 compatible device, but we don't want to require
+this support in all future devices.
+
+Another issue is because the inner loop didn't advance PFN so
+the test "if (base + p != pfn)" always failed for SGE with
+len > (1<<page_shift).
+
+Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
+Signed-off-by: Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 15 +++++++++++----
- drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 10 ++++++++--
- 2 files changed, 19 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/mlx5/mem.c | 47 +++++++++++++++-------------------------
+ 1 file changed, 17 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index bac95b509a9b..dcc77014018d 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -2180,6 +2180,7 @@ static struct net_device *ipoib_add_port(const char *format,
+diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
+index 914f212e7ef6..f3dbd75a0a96 100644
+--- a/drivers/infiniband/hw/mlx5/mem.c
++++ b/drivers/infiniband/hw/mlx5/mem.c
+@@ -50,13 +50,9 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr,
  {
- 	struct ipoib_dev_priv *priv;
- 	struct ib_port_attr attr;
-+	struct rdma_netdev *rn;
- 	int result = -ENOMEM;
- 
- 	priv = ipoib_intf_alloc(hca, port, format);
-@@ -2279,7 +2280,8 @@ static struct net_device *ipoib_add_port(const char *format,
- 	ipoib_dev_cleanup(priv->dev);
- 
- device_init_failed:
--	free_netdev(priv->dev);
-+	rn = netdev_priv(priv->dev);
-+	rn->free_rdma_netdev(priv->dev);
- 	kfree(priv);
- 
- alloc_mem_failed:
-@@ -2328,7 +2330,7 @@ static void ipoib_remove_one(struct ib_device *device, void *client_data)
- 		return;
- 
- 	list_for_each_entry_safe(priv, tmp, dev_list, list) {
--		struct rdma_netdev *rn = netdev_priv(priv->dev);
-+		struct rdma_netdev *parent_rn = netdev_priv(priv->dev);
- 
- 		ib_unregister_event_handler(&priv->event_handler);
- 		flush_workqueue(ipoib_workqueue);
-@@ -2350,10 +2352,15 @@ static void ipoib_remove_one(struct ib_device *device, void *client_data)
- 		unregister_netdev(priv->dev);
- 		mutex_unlock(&priv->sysfs_mutex);
- 
--		rn->free_rdma_netdev(priv->dev);
-+		parent_rn->free_rdma_netdev(priv->dev);
+ 	unsigned long tmp;
+ 	unsigned long m;
+-	int i, k;
+-	u64 base = 0;
+-	int p = 0;
+-	int skip;
+-	int mask;
+-	u64 len;
+-	u64 pfn;
++	u64 base = ~0, p = 0;
++	u64 len, pfn;
++	int i = 0;
+ 	struct scatterlist *sg;
+ 	int entry;
+ 	unsigned long page_shift = umem->page_shift;
+@@ -76,33 +72,24 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr,
+ 	m = find_first_bit(&tmp, BITS_PER_LONG);
+ 	if (max_page_shift)
+ 		m = min_t(unsigned long, max_page_shift - page_shift, m);
+-	skip = 1 << m;
+-	mask = skip - 1;
+-	i = 0;
 +
-+		list_for_each_entry_safe(cpriv, tcpriv, &priv->child_intfs, list) {
-+			struct rdma_netdev *child_rn;
- 
--		list_for_each_entry_safe(cpriv, tcpriv, &priv->child_intfs, list)
-+			child_rn = netdev_priv(cpriv->dev);
-+			child_rn->free_rdma_netdev(cpriv->dev);
- 			kfree(cpriv);
-+		}
- 
- 		kfree(priv);
- 	}
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-index e01c58edca15..55a9b71ed05a 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-@@ -179,7 +179,10 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
- 	mutex_unlock(&ppriv->sysfs_mutex);
- 
- 	if (result && priv) {
--		free_netdev(priv->dev);
-+		struct rdma_netdev *rn;
+ 	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
+ 		len = sg_dma_len(sg) >> page_shift;
+ 		pfn = sg_dma_address(sg) >> page_shift;
+-		for (k = 0; k < len; k++) {
+-			if (!(i & mask)) {
+-				tmp = (unsigned long)pfn;
+-				m = min_t(unsigned long, m, find_first_bit(&tmp, BITS_PER_LONG));
+-				skip = 1 << m;
+-				mask = skip - 1;
+-				base = pfn;
+-				p = 0;
+-			} else {
+-				if (base + p != pfn) {
+-					tmp = (unsigned long)p;
+-					m = find_first_bit(&tmp, BITS_PER_LONG);
+-					skip = 1 << m;
+-					mask = skip - 1;
+-					base = pfn;
+-					p = 0;
+-				}
+-			}
+-			p++;
+-			i++;
++		if (base + p != pfn) {
++			/* If either the offset or the new
++			 * base are unaligned update m
++			 */
++			tmp = (unsigned long)(pfn | p);
++			if (!IS_ALIGNED(tmp, 1 << m))
++				m = find_first_bit(&tmp, BITS_PER_LONG);
 +
-+		rn = netdev_priv(priv->dev);
-+		rn->free_rdma_netdev(priv->dev);
- 		kfree(priv);
- 	}
- 
-@@ -232,7 +235,10 @@ int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey)
- 	mutex_unlock(&ppriv->sysfs_mutex);
- 
- 	if (dev) {
--		free_netdev(dev);
-+		struct rdma_netdev *rn;
++			base = pfn;
++			p = 0;
+ 		}
 +
-+		rn = netdev_priv(dev);
-+		rn->free_rdma_netdev(priv->dev);
- 		kfree(priv);
- 		return 0;
++		p += len;
++		i += len;
  	}
+ 
+ 	if (i) {
 -- 
 2.14.1
 
