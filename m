@@ -1,98 +1,33 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 4/7] IB/ipoib: Fix sysfs Pkey create<->remove possible deadlock
-Date: Sun, 24 Sep 2017 21:46:32 +0300
-Message-ID: <20170924184635.31948-5-leon@kernel.org>
-References: <20170924184635.31948-1-leon@kernel.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Question on mlx5-ib auto load
+Date: Sun, 24 Sep 2017 12:52:15 -0600
+Message-ID: <20170924185215.GA18007@obsidianresearch.com>
+References: <daab19a4-98c8-3115-065d-2c40c5843121@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170924184635.31948-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <daab19a4-98c8-3115-065d-2c40c5843121-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Shalom Lagziel <shaloml-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shalom Lagziel <shaloml-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Sun, Sep 24, 2017 at 04:43:58PM +0300, Sagi Grimberg wrote:
+> Did anyone notice that mlx5_ib does not auto load at boot time?
+>
+> While mlx5_core requests mlx5_ib, mlx5_ib still does not load
+> at boot time (only when reloading mlx5_core).
 
-A possible ABBA lock can happen with RTNL and vlan_rwsem.
-For example:
+I tested this recently, and it does work.
 
-Flow A: Device Flush
-	__ipoib_ib_dev_flush
-	down_read(vlan_rwsem) 			// Lock A
-	ipoib_flush_ah
-	flush_workqueue(priv->wq) 		// Wait for completion
-	A work on shared WQ (Mcast carrier)
-		ipoib_mcast_carrier_on_task
-		while (!rtnl_trylock())         // Wait for lock B
+Be aware, that if you have mlx5_core in your initrd then you must also
+have mlx5_ib in the initrd as well, otherwise it will not work.
 
-Flow B: Sysfs PKEY delete
-	ipoib_vlan_delete
-	lock(RTNL) 				// Lock B
-	down_write(vlan_rwsem) 			// Wait for lock A
+Not all distros are doing this yet. eg there are patches for Debian
+derived.
 
-This can happen with PKEY creates as well. The solution is to release
-the RTNL lock in sysfs functions in case it is not possible to lock
-VLAN RW semaphore and reset the SYS call.
-
-Fixes: 69956d83267e ("IB/ipoib: Sync between remove_one to sysfs calls that use rtnl_lock")
-Signed-off-by: Shalom Lagziel <shaloml-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-index 9927cd6b7082..e01c58edca15 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-@@ -141,14 +141,17 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
- 		return restart_syscall();
- 	}
- 
--	priv = ipoib_intf_alloc(ppriv->ca, ppriv->port, intf_name);
--	if (!priv) {
-+	if (!down_write_trylock(&ppriv->vlan_rwsem)) {
- 		rtnl_unlock();
- 		mutex_unlock(&ppriv->sysfs_mutex);
--		return -ENOMEM;
-+		return restart_syscall();
- 	}
- 
--	down_write(&ppriv->vlan_rwsem);
-+	priv = ipoib_intf_alloc(ppriv->ca, ppriv->port, intf_name);
-+	if (!priv) {
-+		result = -ENOMEM;
-+		goto out;
-+	}
- 
- 	/*
- 	 * First ensure this isn't a duplicate. We check the parent device and
-@@ -175,7 +178,7 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
- 	rtnl_unlock();
- 	mutex_unlock(&ppriv->sysfs_mutex);
- 
--	if (result) {
-+	if (result && priv) {
- 		free_netdev(priv->dev);
- 		kfree(priv);
- 	}
-@@ -204,7 +207,12 @@ int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey)
- 		return restart_syscall();
- 	}
- 
--	down_write(&ppriv->vlan_rwsem);
-+	if (!down_write_trylock(&ppriv->vlan_rwsem)) {
-+		rtnl_unlock();
-+		mutex_unlock(&ppriv->sysfs_mutex);
-+		return restart_syscall();
-+	}
-+
- 	list_for_each_entry_safe(priv, tpriv, &ppriv->child_intfs, list) {
- 		if (priv->pkey == pkey &&
- 		    priv->child_type == IPOIB_LEGACY_CHILD) {
--- 
-2.14.1
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
