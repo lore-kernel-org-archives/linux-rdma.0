@@ -1,114 +1,103 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [ANNOUNCE] Shared pull requests (was Re: Workflow for i40iw
- patch submissions)
-Date: Mon, 25 Sep 2017 18:57:49 +0300
-Message-ID: <20170925155749.GO25094@mtr-leonro.local>
-References: <9DD61F30A802C4429A01CA4200E302A75B9FB085@fmsmsx116.amr.corp.intel.com>
- <1506179005.120853.67.camel@redhat.com>
- <20170925035910.GL25094@mtr-leonro.local>
- <5abacb7d-3e86-4e12-ce95-a8fe472a6a09@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 05/20] RDMA/hns: Add command queue support for
+ hip08 RoCE driver
+Date: Mon, 25 Sep 2017 13:06:53 -0400
+Message-ID: <1506359213.120853.75.camel@redhat.com>
+References: <1504084998-64397-1-git-send-email-xavier.huwei@huawei.com>
+         <1504084998-64397-6-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="0lsrIB+s628ok5gC"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5abacb7d-3e86-4e12-ce95-a8fe472a6a09-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1504084998-64397-6-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Saleem, Shiraz" <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-9Onoh4P/yGk@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, 2017-08-30 at 17:23 +0800, Wei Hu (Xavier) wrote:
 
---0lsrIB+s628ok5gC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+So, we set the send timeout limit here:
 
-On Mon, Sep 25, 2017 at 10:53:01AM -0400, Doug Ledford wrote:
-> On 9/24/2017 11:59 PM, Leon Romanovsky wrote:
-> > On Sat, Sep 23, 2017 at 11:03:25AM -0400, Doug Ledford wrote:
-> >
-> > <...>
-> >
-> >>
-> >> I want any shared pull requests to be based on nothing newer than an
-> >> rc2 kernel.  I branch my for-next branch at rc2, so if your pull
-> >> request is on something later it will pollute my main for-next branch
-> >> to merge it.  I plan to merge my own -rc pull requests after rc2 into
-> >> my for-next branch, so you won't be missing code that goes into later
-> >> rcs if you base your work on my for-next branch, so that's a second
-> >> alternative starting point for your shared pull requests should you
-> >> need it.
-> >
-> > From our experience, it is not feasible to demand shared pull
-> > requests on "newer than an rc2 kernel".
->
-> I said "nothing newer than an rc2 kernel".  Did you mean to leave out
-> the nothing?
+> +	/* Setup Tx write back timeout */
+> +	priv->cmq.tx_timeout = HNS_ROCE_CMQ_TX_TIMEOUT;
+> +
 
-Most probably I translated it incorrectly. I wanted to say that all
-shared pull requests will be -rc2, -rc3, e.t.c. and probably will never
-be -rc1. Did you mean the same?
+[ snip ]
 
->
-> > The magic of shared pull request
-> > is in the fact that it is based on the same origin for both trees.
->
-> Correct.  So, for instance, I'm opening up my for-next area today and it
-> will be based on a clean v4.14-rc2.  What I'm then asking for is that
-> subsequent driver shared pull requests be based on a v4.14-rc2 tree.
-> Your last shared pull request was mostly OK, but it was based on a
-> v4.13-rc4 kernel and so it would have simultaneously brought in your
-> patches and also all the changes between 4.13-rc2 and 4.13-rc4.
+> +int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+> +		      struct hns_roce_cmq_desc *desc, int num)
+> +{
+> +	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv
+> *)hr_dev->priv;
+> +	struct hns_roce_v2_cmq_ring *csq = &priv->cmq.csq;
+> +	struct hns_roce_cmq_desc *desc_to_use;
+> +	bool complete = false;
+> +	u32 timeout = 0;
+> +	int handle = 0;
+> +	u16 desc_ret;
+> +	int ret = 0;
+> +	int ntc;
+> +
+> +	spin_lock_bh(&csq->lock);
 
-Why is it "undesired behavior"? Anyhow git request-pull to Linus will
-filter all patches which already exist in Linus's tree and you will get
-merge of -rc fixes for free in your for-next.
+and we take a bh lock here...
 
->
-> > In our case the same origin is Linus's tree and his official -rcX, which
-> > for sure will be in both trees.
->
-> Right, that what I want.
->
-> > Once shared pull request is based on that tree, it will apply cleanly
-> > on both netdev and RDMA without pollution of the trees.
-> >
-> > And again, shared pull request shouldn't be based on any patches
-> > accepted to netdev and/or RDMA which are not in Linus's tree.
->
-> Exactly.
->
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG Key ID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
->
+> +	if (num > hns_roce_cmq_space(csq)) {
+> +		spin_unlock_bh(&csq->lock);
+> +		return -EBUSY;
+> +	}
+> +
+> +	/*
+> +	 * Record the location of desc in the cmq for this time
+> +	 * which will be use for hardware to write back
+> +	 */
+> +	ntc = csq->next_to_use;
+> +
+> +	while (handle < num) {
+> +		desc_to_use = &csq->desc[csq->next_to_use];
+> +		*desc_to_use = desc[handle];
+> +		dev_dbg(hr_dev->dev, "set cmq desc:\n");
+> +		csq->next_to_use++;
+> +		if (csq->next_to_use == csq->desc_num)
+> +			csq->next_to_use = 0;
+> +		handle++;
+> +	}
+> +
+> +	/* Write to hardware */
+> +	roce_write(hr_dev, ROCEE_TX_CMQ_TAIL_REG, csq->next_to_use);
+> +
+> +	/*
+> +	 * If the command is sync, wait for the firmware to write
+> back,
+> +	 * if multi descriptors to be sent, use the first one to
+> check
+> +	 */
+> +	if ((desc->flag) & HNS_ROCE_CMD_FLAG_NO_INTR) {
+> +		do {
+> +			if (hns_roce_cmq_csq_done(hr_dev))
+> +				break;
+> +			usleep_range(1000, 2000);
+> +			timeout++;
+> +		} while (timeout < priv->cmq.tx_timeout);
+> +	}
 
+then we spin here for a maximum amount of time between 200 and 400ms,
+so 1/4 to 1/2 a second.  All the time we are holding the bh lock on
+this CPU.  That seems excessive to me.  If we are going to spin that
+long, can you find a way to allocate/reserve your resources, send the
+command, then drop the bh lock while you spin, and retake it before you
+complete once the spinning is done?
 
+> +#define HNS_ROCE_CMQ_TX_TIMEOUT			200
 
+or you could reduce the size of this define...
 
---0lsrIB+s628ok5gC
-Content-Type: application/pgp-signature; name="signature.asc"
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnJJ30ACgkQ5GN7iDZy
-WKeusQ/9Fyky2aG72+VQdaNUhzN5ipgJSeKTNCyoleqRtluAjgruOrAljSj05ctq
-dlO16HT5O5oY6A1YvXA8UblULGA8mAprIJ8foeQvlyDbG5Rv7DPY56dPpVE28ngS
-S2kQoIW6ZcR+MF6YGm/Y/9NNBwBQUrJRAxaR1SLu7zc01+e6lglT6jobwJpvtEec
-2uK7/6wjhi16L39OtFHvTGmXwMVcVDwZYiI9q5vi13z1+jcKe98KQhtFUZ6gf3sm
-m28kC5WzhoWDOeSgfOwJBy9kxcYwUZpy2FdNjlhATUwW9ERhRWifQz6C9AwQgZCQ
-K9hAUUEePASFGJVwXwN7pF96qPycxUEwz97CYvt9nthjFvFKBEThBtVAkWz0rVfg
-LaYFEcW6buMIMSIj+QykoD6+JcjBMIHxnZ8VG7muqQX7ajvwnavsiZb+mLwvzRwq
-y1i1sNqiEd5wOgqNxtwMvDqhxazT6pdaEStopaW1YsHUJZoRWjB5PbzcrmHs6U/D
-ZMkna1DtbaIUIBL0FTwutYNT/pjbfDKZBgm8YIISw8SKYCFz1ax0i6Gfi6LhvA8q
-2SYcT+HEEorbcq9EIwiSqjULAvotWjF3Y7dYE6/84lzwa7ug/zpf1xY4BlTFIYfZ
-xwKlqutIyp3NDEcgtBZyLpOShA2iLmfW8zDSI0odwAL1eU6ua1A=
-=t0q/
------END PGP SIGNATURE-----
-
---0lsrIB+s628ok5gC--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
