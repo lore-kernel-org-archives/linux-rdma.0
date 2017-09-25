@@ -1,50 +1,188 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH rdma-core 07/10] providers: Use the new common PCI
- matching infrastructure
-Date: Mon, 25 Sep 2017 12:52:44 +0000
-Message-ID: <BN3PR07MB257830D380228ABEDC67A3F4F87A0@BN3PR07MB2578.namprd07.prod.outlook.com>
-References: <1505855931-4956-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1505855931-4956-8-git-send-email-jgunthorpe@obsidianresearch.com>
- <BN3PR07MB2578333789DA041401297EC0F8650@BN3PR07MB2578.namprd07.prod.outlook.com>
- <20170924155845.GB14796@obsidianresearch.com>
+From: Arnaldo Carvalho de Melo <acme@kernel.org>
+Subject: [RFC+PATCH] Infiniband hfi1 + PREEMPT_RT_FULL issues
+Date: Mon, 25 Sep 2017 11:49:49 -0300
+Message-ID: <20170925144949.GP29668@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170924155845.GB14796-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org" <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rt-users-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-rt-users-owner@vger.kernel.org
+To: Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Clark Williams <williams@redhat.com>, Dean Luick <dean.luick@intel.com>, Doug Ledford <dledford@redhat.com>, Jubin John <jubin.john@intel.com>, Kaike Wan <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Steven Rostedt <rostedt@goodmis.org>, linux-rt-users@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> On Sun, Sep 24, 2017 at 01:29:09PM +0000, Amrani, Ram wrote:
-> > >  static struct verbs_device *qedr_device_alloc(struct verbs_sysfs_dev=
- *sysfs_dev)
-> > >  {
-> > >  	struct qelr_device *dev;
-> > > @@ -269,7 +238,7 @@ static const struct verbs_device_ops qelr_dev_ops=
- =3D {
-> > >  	.name =3D "qelr",
-> >
-> > Should this be the driver name or the library name?
-> > The driver name is qedr and the library name is libqedr. It is usually =
-abbreviated to qelr.
-> > I reckon that this should be the driver name (otherwise auto-load will =
-fail?!).
->=20
-> I will fix all the names, it is confusing as all the other drivers use
-> their lib name as prefix..
->=20
-> The above string is only used for diagnostic prints.
->=20
-> Jason
+Hi,
 
-Thank you.
+	I'm trying to get an Infiniband test case working with the RT
+kernel, and ended over tripping over this case:
 
-Ram
+	In drivers/infiniband/hw/hfi1/pio.c sc_buffer_alloc() disables
+preemption that will be reenabled by either pio_copy() or
+seg_pio_copy_end().
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	But before disabling preemption it grabs a spin lock that will
+be dropped after it disables preemption, which ends up triggering a
+warning in migrate_disable() later on.
+
+  spin_lock_irqsave(&sc->alloc_lock)
+    migrate_disable() ++p->migrate_disable -> 2
+  preempt_disable()
+  spin_unlock_irqrestore(&sc->alloc_lock)
+    migrate_enable() in_atomic(), so just returns, migrate_disable stays at 2
+  spin_lock_irqsave(some other lock) -> b00m
+
+    And the WARN_ON code ends up tripping over this over and over in
+    log_store().
+    
+    Sequence captured via ftrace_dump_on_oops + crash utility 'dmesg'
+    command.
+    
+    [512258.613862] sm-3297 16 .....11 359465349134644: sc_buffer_alloc <-hfi1_verbs_send_pio
+    [512258.613876] sm-3297 16 .....11 359465349134719: migrate_disable <-sc_buffer_alloc
+    [512258.613890] sm-3297 16 .....12 359465349134798: rt_spin_lock <-sc_buffer_alloc
+    [512258.613903] sm-3297 16 ....112 359465349135481: rt_spin_unlock <-sc_buffer_alloc
+    [512258.613916] sm-3297 16 ....112 359465349135556: migrate_enable <-sc_buffer_alloc
+    [512258.613935] sm-3297 16 ....112 359465349135788: seg_pio_copy_start <-hfi1_verbs_send_pio
+    [512258.613954] sm-3297 16 ....112 359465349136273: update_sge <-hfi1_verbs_send_pio
+    [512258.613981] sm-3297 16 ....112 359465349136373: seg_pio_copy_mid <-hfi1_verbs_send_pio
+    [512258.613999] sm-3297 16 ....112 359465349136873: update_sge <-hfi1_verbs_send_pio
+    [512258.614017] sm-3297 16 ....112 359465349136956: seg_pio_copy_mid <-hfi1_verbs_send_pio
+    [512258.614035] sm-3297 16 ....112 359465349137221: seg_pio_copy_end <-hfi1_verbs_send_pio
+    [512258.614048] sm-3297 16 .....12 359465349137360: migrate_disable <-hfi1_verbs_send_pio
+    [512258.614065] sm-3297 16 .....12 359465349137476: warn_slowpath_null <-migrate_disable
+    [512258.614081] sm-3297 16 .....12 359465349137564: __warn <-warn_slowpath_null
+    [512258.614088] sm-3297 16 .....12 359465349137958: printk <-__warn
+    [512258.614096] sm-3297 16 .....12 359465349138055: vprintk_default <-printk
+    [512258.614104] sm-3297 16 .....12 359465349138144: vprintk_emit <-vprintk_default
+    [512258.614111] sm-3297 16 d....12 359465349138312: _raw_spin_lock <-vprintk_emit
+    [512258.614119] sm-3297 16 d...112 359465349138789: log_store <-vprintk_emit
+    [512258.614127] sm-3297 16 .....12 359465349139068: migrate_disable <-vprintk_emit
+
+I'm wondering if turning this sc->alloc_lock to a raw_spin_lock is the
+right solution, which I'm afraid its not, as there are places where it
+is held and then the code goes on to grab other non-raw spinlocks...
+
+I got this patch in my test branch and it makes the test case go further
+before splatting on other problems with infiniband + PREEMPT_RT_FULL,
+but as I said, I fear its not the right solution, ideas?
+
+The kernel I'm seing this is RHEL's + the PREEMPT_RT_FULL patch:
+
+Linux version 3.10.0-709.rt56.636.test.el7.x86_64 (acme@seventh) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-16) (GCC) ) #
+1 SMP PREEMPT RT Wed Sep 20 18:04:55 -03 2017
+
+I will try and build with the latest PREEMPT_RT_FULL patch, but the
+infiniband codebase in RHEL seems to be up to what is upstream and
+I just looked at patches-4.11.12-rt14/add_migrate_disable.patch and that
+WARN_ON_ONCE(p->migrate_disable_atomic) is still there :-\
+
+- Arnaldo
+
+commit 7ec7d80c7f46bb04da5f39836096de4c0ddde71a
+Author: Arnaldo Carvalho de Melo <acme@redhat.com>
+Date:   Wed Sep 6 10:30:08 2017 -0300
+
+    infiniband: Convert per-NUMA send_context->alloc_lock to a raw spinlock
+
+diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
+index 615be68e40b3..8f28f8fe842d 100644
+--- a/drivers/infiniband/hw/hfi1/pio.c
++++ b/drivers/infiniband/hw/hfi1/pio.c
+@@ -744,7 +744,7 @@ struct send_context *sc_alloc(struct hfi1_devdata *dd, int type,
+ 	sc->dd = dd;
+ 	sc->node = numa;
+ 	sc->type = type;
+-	spin_lock_init(&sc->alloc_lock);
++	raw_spin_lock_init(&sc->alloc_lock);
+ 	spin_lock_init(&sc->release_lock);
+ 	spin_lock_init(&sc->credit_ctrl_lock);
+ 	INIT_LIST_HEAD(&sc->piowait);
+@@ -929,13 +929,13 @@ void sc_disable(struct send_context *sc)
+ 		return;
+ 
+ 	/* do all steps, even if already disabled */
+-	spin_lock_irqsave(&sc->alloc_lock, flags);
++	raw_spin_lock_irqsave(&sc->alloc_lock, flags);
+ 	reg = read_kctxt_csr(sc->dd, sc->hw_context, SC(CTRL));
+ 	reg &= ~SC(CTRL_CTXT_ENABLE_SMASK);
+ 	sc->flags &= ~SCF_ENABLED;
+ 	sc_wait_for_packet_egress(sc, 1);
+ 	write_kctxt_csr(sc->dd, sc->hw_context, SC(CTRL), reg);
+-	spin_unlock_irqrestore(&sc->alloc_lock, flags);
++	raw_spin_unlock_irqrestore(&sc->alloc_lock, flags);
+ 
+ 	/*
+ 	 * Flush any waiters.  Once the context is disabled,
+@@ -1232,7 +1232,7 @@ int sc_enable(struct send_context *sc)
+ 	 * worry about locking since the releaser will not do anything
+ 	 * if the context accounting values have not changed.
+ 	 */
+-	spin_lock_irqsave(&sc->alloc_lock, flags);
++	raw_spin_lock_irqsave(&sc->alloc_lock, flags);
+ 	sc_ctrl = read_kctxt_csr(dd, sc->hw_context, SC(CTRL));
+ 	if ((sc_ctrl & SC(CTRL_CTXT_ENABLE_SMASK)))
+ 		goto unlock; /* already enabled */
+@@ -1303,7 +1303,7 @@ int sc_enable(struct send_context *sc)
+ 	sc->flags |= SCF_ENABLED;
+ 
+ unlock:
+-	spin_unlock_irqrestore(&sc->alloc_lock, flags);
++	raw_spin_unlock_irqrestore(&sc->alloc_lock, flags);
+ 
+ 	return ret;
+ }
+@@ -1361,9 +1361,9 @@ void sc_stop(struct send_context *sc, int flag)
+ 	sc->flags |= flag;
+ 
+ 	/* stop buffer allocations */
+-	spin_lock_irqsave(&sc->alloc_lock, flags);
++	raw_spin_lock_irqsave(&sc->alloc_lock, flags);
+ 	sc->flags &= ~SCF_ENABLED;
+-	spin_unlock_irqrestore(&sc->alloc_lock, flags);
++	raw_spin_unlock_irqrestore(&sc->alloc_lock, flags);
+ 	wake_up(&sc->halt_wait);
+ }
+ 
+@@ -1391,9 +1391,9 @@ struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
+ 	int trycount = 0;
+ 	u32 head, next;
+ 
+-	spin_lock_irqsave(&sc->alloc_lock, flags);
++	raw_spin_lock_irqsave(&sc->alloc_lock, flags);
+ 	if (!(sc->flags & SCF_ENABLED)) {
+-		spin_unlock_irqrestore(&sc->alloc_lock, flags);
++		raw_spin_unlock_irqrestore(&sc->alloc_lock, flags);
+ 		goto done;
+ 	}
+ 
+@@ -1402,7 +1402,7 @@ struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
+ 	if (blocks > avail) {
+ 		/* not enough room */
+ 		if (unlikely(trycount))	{ /* already tried to get more room */
+-			spin_unlock_irqrestore(&sc->alloc_lock, flags);
++			raw_spin_unlock_irqrestore(&sc->alloc_lock, flags);
+ 			goto done;
+ 		}
+ 		/* copy from receiver cache line and recalculate */
+@@ -1458,7 +1458,7 @@ struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
+ 	 */
+ 	smp_wmb();
+ 	sc->sr_head = next;
+-	spin_unlock_irqrestore(&sc->alloc_lock, flags);
++	raw_spin_unlock_irqrestore(&sc->alloc_lock, flags);
+ 
+ 	/* finish filling in the buffer outside the lock */
+ 	pbuf->start = sc->base_addr + fill_wrap * PIO_BLOCK_SIZE;
+diff --git a/drivers/infiniband/hw/hfi1/pio.h b/drivers/infiniband/hw/hfi1/pio.h
+index 867e5ffc3595..06dfc6f81fd5 100644
+--- a/drivers/infiniband/hw/hfi1/pio.h
++++ b/drivers/infiniband/hw/hfi1/pio.h
+@@ -112,7 +112,7 @@ struct send_context {
+ 	u8  group;			/* credit return group */
+ 
+ 	/* allocator fields */
+-	spinlock_t alloc_lock ____cacheline_aligned_in_smp;
++	raw_spinlock_t alloc_lock ____cacheline_aligned_in_smp;
+ 	u32 sr_head;			/* shadow ring head */
+ 	unsigned long fill;		/* official alloc count */
+ 	unsigned long alloc_free;	/* copy of free (less cache thrash) */
