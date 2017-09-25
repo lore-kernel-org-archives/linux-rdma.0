@@ -1,50 +1,69 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: crash in 4.14-rc1 with IPoIB
-Date: Sun, 24 Sep 2017 14:30:21 -0600
-Message-ID: <20170924203021.GC31652@obsidianresearch.com>
-References: <20170920095339.zhfymeyfbhiyepz5@linux-x5ow.site>
- <20170920163237.GD536@obsidianresearch.com>
- <1506101272.5172.11.camel@redhat.com>
- <20170922194834.GA26479@obsidianresearch.com>
- <1506114386.120853.2.camel@redhat.com>
- <20170922211727.GA2348@obsidianresearch.com>
- <1506120161.120853.10.camel@redhat.com>
+From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 5/8] bnxt_re: Fix race between the netdev register and
+ unregister events
+Date: Mon, 25 Sep 2017 08:31:47 +0530
+Message-ID: <CAOBf=mvwnA2M36j89v934bBgsrHaharikonA-bdzGyVn7O3djQ@mail.gmail.com>
+References: <20170831035735.19595-1-somnath.kotur@broadcom.com>
+ <20170831035735.19595-6-somnath.kotur@broadcom.com> <1506102922.5172.19.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1506120161.120853.10.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1506102922.5172.19.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 22, 2017 at 06:42:41PM -0400, Doug Ledford wrote:
+On Fri, Sep 22, 2017 at 11:25 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>
+> On Thu, 2017-08-31 at 09:27 +0530, Somnath Kotur wrote:
+> > diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+> > b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+> > index b3ad37f..a25f9d2 100644
+> > --- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+> > +++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+> > @@ -93,11 +93,13 @@ struct bnxt_re_dev {
+> >         struct ib_device                ibdev;
+> >         struct list_head                list;
+> >         unsigned long                   flags;
+> > -#define BNXT_RE_FLAG_NETDEV_REGISTERED 0
+> > -#define BNXT_RE_FLAG_IBDEV_REGISTERED  1
+> > -#define BNXT_RE_FLAG_GOT_MSIX          2
+> > -#define BNXT_RE_FLAG_RCFW_CHANNEL_EN   8
+> > -#define BNXT_RE_FLAG_QOS_WORK_REG      16
+> > +#define BNXT_RE_FLAG_NETDEV_REGISTERED         0
+> > +#define BNXT_RE_FLAG_IBDEV_REGISTERED          1
+> > +#define BNXT_RE_FLAG_GOT_MSIX                  2
+> > +#define BNXT_RE_FLAG_HAVE_L2_REF               3
+> > +#define BNXT_RE_FLAG_RCFW_CHANNEL_EN           4
+> > +#define BNXT_RE_FLAG_QOS_WORK_REG              5
+> > +#define BNXT_RE_FLAG_TASK_IN_PROG              6
+> >         struct net_device               *netdev;
+>
+> So, this is making two changes in once and one of the changes is not
+> documented.  In particular, it looks like the usage of your flags
+> elements was originally the actual value of 1 << bit, which is the
+> wrong thing to pass to the *_bit() operations that want a bit number.
+> So you're both adding a new used bit in your flags, but also changing
+> your flags to be better numbered for use with the *_bit operations.  I
+> did a quick check and the BNXT_RE_FLAGS* items are never used without
+> using the bit operations, so this change is safe.  I'm going to update
+> the commit log when I take this to make that clear.  Generally though,
+> this should have been two patches.
+Yes, the intention was to fix the incorrect usage and yes it should
+have found a mention in the commit log, missed it somehow.
+Thanks for taking care of that Doug
 
-> But if that still doesn't resolve their problem, a quick check of the
-> mailing list contents isn't out of the question either.  In that case,
-> they would have found the solution to their problem.  But, when you get
-> right down to it, only one person reported it in addition to the
+-Som
 
-Well, this has happened twice in recent memory that several people
-came to the list hitting something that already had a posted fix. The
-port-number issue had more comments, I think we were up to 4? IIRC
-Laurance spent a long time bisecting it even.. So I'm not sure 'check
-the list' is working.
 
-I view it as a really good sign, it means that people are finally
-testing upstream, not just waiting for OFED to test!
-
-Based on the LPC comments the people doing QA can do a better job with
-a some process help.
-
-> compensated in their own testing, or (the more likely I think), most
-> people don't start testing -rcs until after -rc2.  Which is why I try
-> to set -rc2 as a milestone for several purposes.  For getting in the
-
-Hrm, people need to test rc1 :|
-
-Jason
+>
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG KeyID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
