@@ -1,49 +1,36 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: Question on mlx5-ib auto load
-Date: Mon, 25 Sep 2017 13:40:58 +0200
-Message-ID: <1506339658.3615.12.camel@profitbricks.com>
-References: <daab19a4-98c8-3115-065d-2c40c5843121@grimberg.me>
-         <20170924185559.GI25094@mtr-leonro.local>
-         <23e29fc3-408b-1809-97eb-a105ab0e6488@grimberg.me>
-         <20170924195730.GC18007@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/ipoib: Remove device when one port fails to init
+Date: Mon, 25 Sep 2017 05:18:00 -0700
+Message-ID: <1506341880-41082-1-git-send-email-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170924195730.GC18007-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Am Sonntag, den 24.09.2017, 13:57 -0600 schrieb Jason Gunthorpe:
-> On Sun, Sep 24, 2017 at 10:49:25PM +0300, Sagi Grimberg wrote:
-> 
-> > # cat /etc/os-release
-> > NAME="Ubuntu"
-> > VERSION="16.04 LTS (Xenial Xerus)"
-> 
-> This has the initrd problem I mentioned.
+Call ipoib_remove_one when one of the IPoIB ports fails to initialize in
+order not to leave the module in unstable state.
 
-which is following bug:
-https://bugs.debian.org/871595
-https://launchpad.net/bugs/1719302
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index a6bcd78..5ffd2c3 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -2295,7 +2295,8 @@ static void ipoib_add_one(struct ib_device *device)
+ 	}
+ 
+ 	if (!count) {
+-		kfree(dev_list);
++		pr_err("Failed to init port, removing it\n");
++		ipoib_remove_one(device, dev_list);
+ 		return;
+ 	}
+ 
 -- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-Web: https://www.profitbricks.com
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Geschäftsführer: Achim Weiss.
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
