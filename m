@@ -1,62 +1,66 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 00/20] RDMA/hns: Add hip08 RoCE driver support
-Date: Mon, 25 Sep 2017 13:37:41 -0400
-Message-ID: <1506361061.120853.83.camel@redhat.com>
-References: <1504084998-64397-1-git-send-email-xavier.huwei@huawei.com>
-         <59C89FD0.9050606@huawei.com> <1506355051.120853.70.camel@redhat.com>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 4.8-1-rc1 release is available
+Date: Mon, 25 Sep 2017 21:46:32 +0300
+Message-ID: <59C94F08.8040207@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1506355051.120853.70.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier_huwei-9Onoh4P/yGk@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-09-25 at 11:57 -0400, Doug Ledford wrote:
-> On Mon, 2017-09-25 at 14:18 +0800, Wei Hu (Xavier) wrote:
-> > 
-> > On 2017/8/30 17:22, Wei Hu (Xavier) wrote:
-> > > This patchset adds support for the HiSilicon RoCE engine in the
-> > > hip08
-> > > SoC.
-> > > 
-> > > The driver is refactored so it can support both platform and pci
-> > > device.
-> > > And hip08 RoCE engine is a pci device, hip06 RoCE engine is a
-> > > platform
-> > > device.
-> > > 
-> > > New hardware layer file hns_roce_hw_v2.c is added for hw v2
-> > > support,
-> > > which also includes pci device probing and initialization.
-> > > 
-> > > Common functionality is still in hns-roce driver, along with
-> > > device
-> > > initialization.
-> > > 
-> > > This patchset depends on hns3 NIC driver which had been accepted
-> > > by
-> > > David,
-> > > and is based on for-next branch of the repo:
-> > > https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
-> > 
-> > Hi, Doug
-> >      The dependent hns3 NIC driver had been merged into Linus'
-> > v4.14-
-> > rc1.
-> 
-> Thanks, I'm processing this series now.
+Hi,
+OFED-4.8-1-rc1 is available at:
+https://openfabrics.org/downloads/OFED/ofed-4.8-1/OFED-4.8-1-rc1.tgz
 
-OK, I've gone through the entire series, and pending resolution to my
-comments on patch 5, the rest looks OK to me.
+To get BUILD_ID run ofed_info
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+Please report any issues in bugzilla
+http://bugs.openfabrics.org/bugzilla/ for OFED 4.8-1
 
+Release notes:
+https://openfabrics.org/downloads/OFED/release_notes/OFED_4.8-1-rc1-release_notes
+
+OFED-4.8-1-rc1 Main Changes from OFED 4.8 GA
+-------------------------------------------------------------------------------
+1. compat-rdma
+- ib_srp: Fixed backport - issue 2635
+- bnxt_en: Misc bug fixes
+- bnxt_re: Fix bnxt_en installation in the latest daily builds
+- bnxt_re: Adding bug fix patches
+- bnxt_re: Backports for SLES12SP0/SP1/SP2 and RH7.0/7.1
+- NFS/RDMA backport patch for SLES12SP2
+- NFS/RDMA backport patch to revert source files to 4.6 kernel in order 
+to facilitate dependency on distro SUNRPC. Include fix to use correct 
+ib_map_mr_sg signature from OFED4.8.
+- makefile: Added CONFIG_BNXT parameter to override kernel's default
+- compat-rdma.spec: Fixed QED firmware installation
+- configure: Fix typos introduced by 
+b8520c5751cc6c40bb2f5ba8533a34dc260f86f2
+- configure: Fix typo
+- Merge branch 'master' of https://github.com/selvintxavier/compat-rdma
+- Fixed SRP support on RHEL7.2 by using blk_iopoll API in ib_core
+- bnxt_re: Add bnxt_re backports
+- bnxt_re: Enable bnxt_re building
+- Removed previously applied patch 
+0057-qed-Fix-error-in-the-dcbx-app-meta-data.patch
+- Add qedr
+
+2. Updated packages
+- rdma-core-v15
+
+3. ofed_scripts
+- Added support for rdma-core new packaging format
+- install.pl: Added support for using source RPM per Distro
+- install.pl: Enable nfsrdma on RHEL7.3 and SLES12 SP2
+- Fix syntax error after libbnxt_re-rdmav2
+- Add bnxt_re support
+- Add qedr
+
+Regards,
+Vladimir
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
