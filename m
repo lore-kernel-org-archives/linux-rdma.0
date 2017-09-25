@@ -1,18 +1,49 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: For-next area officially open
-Date: Mon, 25 Sep 2017 11:24:31 -0400
-Message-ID: <1506353071.120853.69.camel@redhat.com>
+Subject: Re: [PATCH for-next 00/20] RDMA/hns: Add hip08 RoCE driver support
+Date: Mon, 25 Sep 2017 11:57:31 -0400
+Message-ID: <1506355051.120853.70.camel@redhat.com>
+References: <1504084998-64397-1-git-send-email-xavier.huwei@huawei.com>
+         <59C89FD0.9050606@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <59C89FD0.9050606-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier_huwei-9Onoh4P/yGk@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I've merged my k.o/for-next branch up to v4.14-rc2, and I've already
-applied all of the qedr patches I had previously accepted.  I'm going
-to start processing new development patches.  Thanks.
+On Mon, 2017-09-25 at 14:18 +0800, Wei Hu (Xavier) wrote:
+> 
+> On 2017/8/30 17:22, Wei Hu (Xavier) wrote:
+> > This patchset adds support for the HiSilicon RoCE engine in the
+> > hip08
+> > SoC.
+> > 
+> > The driver is refactored so it can support both platform and pci
+> > device.
+> > And hip08 RoCE engine is a pci device, hip06 RoCE engine is a
+> > platform
+> > device.
+> > 
+> > New hardware layer file hns_roce_hw_v2.c is added for hw v2
+> > support,
+> > which also includes pci device probing and initialization.
+> > 
+> > Common functionality is still in hns-roce driver, along with device
+> > initialization.
+> > 
+> > This patchset depends on hns3 NIC driver which had been accepted by
+> > David,
+> > and is based on for-next branch of the repo:
+> > https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+> 
+> Hi, Doug
+>      The dependent hns3 NIC driver had been merged into Linus' v4.14-
+> rc1.
+
+Thanks, I'm processing this series now.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
