@@ -1,52 +1,175 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-rc 0/7] IB/hfi1: Fixes for RC
-Date: Tue, 26 Sep 2017 06:05:49 -0700
-Message-ID: <20170926130434.31476.81826.stgit@scvm10.sc.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH for-rc 1/7] IB/hfi1: Turn off AOC TX after offline substates
+Date: Tue, 26 Sep 2017 06:05:57 -0700
+Message-ID: <20170926130555.31476.51533.stgit@scvm10.sc.intel.com>
+References: <20170926130434.31476.81826.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, Jan Sokolowski <jan.sokolowski@intel.com>, Jakub Byczkowski <jakub.byczkowski@intel.com>, linux-rdma@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Harish Chegondi <harish.chegondi@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Kamenee Arumugam <kamenee.arumugam@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170926130434.31476.81826.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Here are our first batch of patches for 4.14 RC cycle. These all fix bugs and
-most are pretty straight forward.
+From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-However, of note is a revert by Alex for an IPoIB patch. This has been marked
-stable as well. 
+Offline.quietDuration was added in the 8051 firmware, and the driver
+only turns off the AOC transmitters when offline.quiet is reached.
+However, the AOC transmitters need to be turned off at the new state.
+Therefore, turn off the AOC transmitters at any offline substates
+including offline.quiet and offline.quietDuration, then recheck we
+reached offline.quiet to support backwards compatibility.
 
-Patches can can also be found in my GitHub repo at:
-https://github.com/ddalessa/kernel/tree/for-4.14
-
+Reviewed-by: Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/infiniband/hw/hfi1/chip.c |   85 ++++++++++++++++++++++++++++---------
+ drivers/infiniband/hw/hfi1/chip.h |    1 
+ 2 files changed, 65 insertions(+), 21 deletions(-)
 
-Alex Estrin (1):
-      Revert "IB/ipoib: Update broadcast object if PKey value was changed in index 0"
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index b2ed4b9..1c810d6 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -1066,6 +1066,8 @@ static int do_8051_command(struct hfi1_devdata *dd, u32 type, u64 in_data,
+ static int thermal_init(struct hfi1_devdata *dd);
+ 
+ static void update_statusp(struct hfi1_pportdata *ppd, u32 state);
++static int wait_phys_link_offline_substates(struct hfi1_pportdata *ppd,
++					    int msecs);
+ static int wait_logical_linkstate(struct hfi1_pportdata *ppd, u32 state,
+ 				  int msecs);
+ static void log_state_transition(struct hfi1_pportdata *ppd, u32 state);
+@@ -10305,6 +10307,7 @@ static int goto_offline(struct hfi1_pportdata *ppd, u8 rem_reason)
+ {
+ 	struct hfi1_devdata *dd = ppd->dd;
+ 	u32 previous_state;
++	int offline_state_ret;
+ 	int ret;
+ 
+ 	update_lcb_cache(dd);
+@@ -10326,28 +10329,11 @@ static int goto_offline(struct hfi1_pportdata *ppd, u8 rem_reason)
+ 		ppd->offline_disabled_reason =
+ 		HFI1_ODR_MASK(OPA_LINKDOWN_REASON_TRANSIENT);
+ 
+-	/*
+-	 * Wait for offline transition. It can take a while for
+-	 * the link to go down.
+-	 */
+-	ret = wait_physical_linkstate(ppd, PLS_OFFLINE, 10000);
+-	if (ret < 0)
+-		return ret;
+-
+-	/*
+-	 * Now in charge of LCB - must be after the physical state is
+-	 * offline.quiet and before host_link_state is changed.
+-	 */
+-	set_host_lcb_access(dd);
+-	write_csr(dd, DC_LCB_ERR_EN, ~0ull); /* watch LCB errors */
+-
+-	/* make sure the logical state is also down */
+-	ret = wait_logical_linkstate(ppd, IB_PORT_DOWN, 1000);
+-	if (ret)
+-		force_logical_link_state_down(ppd);
+-
+-	ppd->host_link_state = HLS_LINK_COOLDOWN; /* LCB access allowed */
++	offline_state_ret = wait_phys_link_offline_substates(ppd, 10000);
++	if (offline_state_ret < 0)
++		return offline_state_ret;
+ 
++	/* Disabling AOC transmitters */
+ 	if (ppd->port_type == PORT_TYPE_QSFP &&
+ 	    ppd->qsfp_info.limiting_active &&
+ 	    qsfp_mod_present(ppd)) {
+@@ -10365,6 +10351,30 @@ static int goto_offline(struct hfi1_pportdata *ppd, u8 rem_reason)
+ 	}
+ 
+ 	/*
++	 * Wait for the offline.Quiet transition if it hasn't happened yet. It
++	 * can take a while for the link to go down.
++	 */
++	if (offline_state_ret != PLS_OFFLINE_QUIET) {
++		ret = wait_physical_linkstate(ppd, PLS_OFFLINE, 30000);
++		if (ret < 0)
++			return ret;
++	}
++
++	/*
++	 * Now in charge of LCB - must be after the physical state is
++	 * offline.quiet and before host_link_state is changed.
++	 */
++	set_host_lcb_access(dd);
++	write_csr(dd, DC_LCB_ERR_EN, ~0ull); /* watch LCB errors */
++
++	/* make sure the logical state is also down */
++	ret = wait_logical_linkstate(ppd, IB_PORT_DOWN, 1000);
++	if (ret)
++		force_logical_link_state_down(ppd);
++
++	ppd->host_link_state = HLS_LINK_COOLDOWN; /* LCB access allowed */
++
++	/*
+ 	 * The LNI has a mandatory wait time after the physical state
+ 	 * moves to Offline.Quiet.  The wait time may be different
+ 	 * depending on how the link went down.  The 8051 firmware
+@@ -12804,6 +12814,39 @@ static int wait_physical_linkstate(struct hfi1_pportdata *ppd, u32 state,
+ 	return 0;
+ }
+ 
++/*
++ * wait_phys_link_offline_quiet_substates - wait for any offline substate
++ * @ppd: port device
++ * @msecs: the number of milliseconds to wait
++ *
++ * Wait up to msecs milliseconds for any offline physical link
++ * state change to occur.
++ * Returns 0 if at least one state is reached, otherwise -ETIMEDOUT.
++ */
++static int wait_phys_link_offline_substates(struct hfi1_pportdata *ppd,
++					    int msecs)
++{
++	u32 read_state;
++	unsigned long timeout;
++
++	timeout = jiffies + msecs_to_jiffies(msecs);
++	while (1) {
++		read_state = read_physical_state(ppd->dd);
++		if ((read_state & 0xF0) == PLS_OFFLINE)
++			break;
++		if (time_after(jiffies, timeout)) {
++			dd_dev_err(ppd->dd,
++				   "timeout waiting for phy link offline.quiet substates. Read state 0x%x, %dms\n",
++				   read_state, msecs);
++			return -ETIMEDOUT;
++		}
++		usleep_range(1950, 2050); /* sleep 2ms-ish */
++	}
++
++	log_state_transition(ppd, read_state);
++	return read_state;
++}
++
+ #define CLEAR_STATIC_RATE_CONTROL_SMASK(r) \
+ (r &= ~SEND_CTXT_CHECK_ENABLE_DISALLOW_PBC_STATIC_RATE_CONTROL_SMASK)
+ 
+diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
+index b8345a6..461f937 100644
+--- a/drivers/infiniband/hw/hfi1/chip.h
++++ b/drivers/infiniband/hw/hfi1/chip.h
+@@ -204,6 +204,7 @@
+ #define PLS_OFFLINE_READY_TO_QUIET_LT	   0x92
+ #define PLS_OFFLINE_REPORT_FAILURE		   0x93
+ #define PLS_OFFLINE_READY_TO_QUIET_BCC	   0x94
++#define PLS_OFFLINE_QUIET_DURATION	   0x95
+ #define PLS_POLLING				   0x20
+ #define PLS_POLLING_QUIET			   0x20
+ #define PLS_POLLING_ACTIVE			   0x21
 
-Harish Chegondi (1):
-      IB/hfi1: Unsuccessful PCIe caps tuning should not fail driver load
-
-Jan Sokolowski (1):
-      IB/hfi1: Check eeprom config partition validity
-
-Kamenee Arumugam (1):
-      IB/hfi1: Return correct value in general interrupt handler
-
-Michael J. Ruhl (1):
-      IB/hfi1: On error, fix use after free during user context setup
-
-Sebastian Sanchez (2):
-      IB/hfi1: Turn off AOC TX after offline substates
-      IB/hfi1: Only reset QSFP after link up and turn off AOC TX
-
-
- drivers/infiniband/hw/hfi1/chip.c       |  101 ++++++++++++++++++++++++-------
- drivers/infiniband/hw/hfi1/chip.h       |    3 +
- drivers/infiniband/hw/hfi1/eprom.c      |   20 +++++-
- drivers/infiniband/hw/hfi1/file_ops.c   |   41 +++++++------
- drivers/infiniband/hw/hfi1/pcie.c       |   50 ++++++---------
- drivers/infiniband/hw/hfi1/platform.c   |    4 +
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |   13 ----
- 7 files changed, 141 insertions(+), 91 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
