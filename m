@@ -1,59 +1,82 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-rc 4/7] IB/hfi1: Return correct value in general
- interrupt handler
-Date: Tue, 26 Sep 2017 06:06:15 -0700
-Message-ID: <20170926130614.31476.12014.stgit@scvm10.sc.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH for-rc 5/7] Revert "IB/ipoib: Update broadcast object if
+ PKey value was changed in index 0"
+Date: Tue, 26 Sep 2017 06:06:22 -0700
+Message-ID: <20170926130620.31476.82301.stgit@scvm10.sc.intel.com>
 References: <20170926130434.31476.81826.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170926130434.31476.81826.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20170926130434.31476.81826.stgit@scvm10.sc.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Alex Estrin <alex.estrin@intel.com>
 
-The general interrupt handler returns IRQ_HANDLED whether an IRQ
-was handled or not.
-Determine if an IRQ was handled and return the correct value.
+commit 9a9b8112699d will cause core to fail UD QP from being destroyed
+on ipoib unload, therefore cause resources leakage.
+On pkey change event above patch modifies mgid before calling underlying
+driver to detach it from QP. Drivers' detach_mcast() will fail to find
+modified mgid it was never given to attach in a first place.
+Core qp->usecnt will never go down, so ib_destroy_qp() will fail.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+IPoIB driver actually does take care of new broadcast mgid based on new
+pkey by destroying an old mcast object in ipoib_mcast_dev_flush())
+....
+	if (priv->broadcast) {
+		rb_erase(&priv->broadcast->rb_node, &priv->multicast_tree);
+		list_add_tail(&priv->broadcast->list, &remove_list);
+		priv->broadcast = NULL;
+	}
+...
+
+then in restarted ipoib_macst_join_task() creating a new broadcast mcast
+object, sending join request and on completion tells the driver to attach
+to reinitialized QP:
+...
+if (!priv->broadcast) {
+...
+	broadcast = ipoib_mcast_alloc(dev, 0);
+...
+	memcpy(broadcast->mcmember.mgid.raw, priv->dev->broadcast + 4,
+	       sizeof (union ib_gid));
+	priv->broadcast = broadcast;
+...
+
+Fixes: 9a9b8112699d ("IB/ipoib: Update broadcast object if PKey value was changed in index 0")
+Cc: stable@vger.kernel.org
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Signed-off-by: Alex Estrin <alex.estrin@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/chip.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c |   13 -------------
+ 1 files changed, 0 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 27b75a8..0be4278 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -8240,6 +8240,7 @@ static irqreturn_t general_interrupt(int irq, void *data)
- 	u64 regs[CCE_NUM_INT_CSRS];
- 	u32 bit;
- 	int i;
-+	irqreturn_t handled = IRQ_NONE;
- 
- 	this_cpu_inc(*dd->int_counter);
- 
-@@ -8260,9 +8261,10 @@ static irqreturn_t general_interrupt(int irq, void *data)
- 	for_each_set_bit(bit, (unsigned long *)&regs[0],
- 			 CCE_NUM_INT_CSRS * 64) {
- 		is_interrupt(dd, bit);
-+		handled = IRQ_HANDLED;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 2e07537..6cd6163 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -1000,19 +1000,6 @@ static inline int update_parent_pkey(struct ipoib_dev_priv *priv)
+ 		 */
+ 		priv->dev->broadcast[8] = priv->pkey >> 8;
+ 		priv->dev->broadcast[9] = priv->pkey & 0xff;
+-
+-		/*
+-		 * Update the broadcast address in the priv->broadcast object,
+-		 * in case it already exists, otherwise no one will do that.
+-		 */
+-		if (priv->broadcast) {
+-			spin_lock_irq(&priv->lock);
+-			memcpy(priv->broadcast->mcmember.mgid.raw,
+-			       priv->dev->broadcast + 4,
+-			sizeof(union ib_gid));
+-			spin_unlock_irq(&priv->lock);
+-		}
+-
+ 		return 0;
  	}
  
--	return IRQ_HANDLED;
-+	return handled;
- }
- 
- static irqreturn_t sdma_interrupt(int irq, void *data)
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
