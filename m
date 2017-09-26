@@ -1,36 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 net-next 0/4] qed: iWARP fixes and enhancements
-Date: Tue, 26 Sep 2017 11:22:19 -0700 (PDT)
-Message-ID: <20170926.112219.189095905256832710.davem@davemloft.net>
-References: <1506244185-2129-1-git-send-email-Michal.Kalderon@cavium.com>
+From: Arnaldo Carvalho de Melo <acme@kernel.org>
+Subject: Re: [RFC+PATCH] Infiniband hfi1 + PREEMPT_RT_FULL issues
+Date: Tue, 26 Sep 2017 15:28:00 -0300
+Message-ID: <20170926182800.GA10741@kernel.org>
+References: <20170925144949.GP29668@kernel.org>
+ <20170925161528.52d34769@vmware.local.home>
+ <20170926131529.GB25735@kernel.org>
+ <32E1700B9017364D9B60AED9960492BC3441B8C5@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1506244185-2129-1-git-send-email-Michal.Kalderon@cavium.com>
-Sender: netdev-owner@vger.kernel.org
-To: Michal.Kalderon@cavium.com
-Cc: netdev@vger.kernel.org, leon@kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com, Ariel.Elior@cavium.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rt-users-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC3441B8C5@fmsmsx120.amr.corp.intel.com>
+Sender: linux-rt-users-owner@vger.kernel.org
+To: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Clark Williams <williams@redhat.com>, "Luick, Dean" <dean.luick@intel.com>, Doug Ledford <dledford@redhat.com>, "Wan, Kaike" <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>, "Sanchez, Sebastian" <sebastian.sanchez@intel.com>, "linux-rt-users@vger.kernel.org" <linux-rt-users@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michal Kalderon <Michal.Kalderon@cavium.com>
-Date: Sun, 24 Sep 2017 12:09:41 +0300
+Em Tue, Sep 26, 2017 at 05:55:45PM +0000, Marciniszyn, Mike escreveu:
+> > > No, the correct solution is to convert the preempt_disable into a
+> > > local_lock(), which will be a preempt_disable when PREEMPT_RT is not
+> > > set. Look for other patches that convert preempt_disable() into
+> > > local_lock()s for examples.
+> > 
+> > Thanks, I had seen a patch patch by Sebastian for random.c doing that,
+> > will continue in that direction.
+> > 
+> 
+> I'm assuming you want to end up with common driver code base?
+> 
+> Will there eventually be a wrapper upstream to allow that?
+> 
+> Or will the rt patch handle those issues?
 
-> This patch series includes several fixes and enhancements
-> related to iWARP.
-> 
-> Patch #1 is actually the last of the initial iWARP submission.
-> It has been delayed until now as I wanted to make sure that qedr
-> supports iWARP prior to enabling iWARP device detection.
-> 
-> iWARP changes in RDMA tree have been accepted and targeted at
-> kernel 4.15, therefore, all iWARP fixes for this cycle are
-> submitted to net-next.
-> 
-> Changes from v1->v2 
->   - Added "Fixes:" tag to commit message of patch #3
-> 
-> Signed-off by: Michal.Kalderon@cavium.com
-> Signed-off-by: Ariel Elior <Ariel.Elior@cavium.com>
+So what happens is that infrastructure in the rt patch eventually lands
+upstream, then this difference ceases to exist.
 
-Series applied, thanks Michal.
+Steven, are there plans for local locks to go upstream?
+
+Well, back to trying to learn about them and use in this case to see how
+it ends up...
+
+- Arnaldo
