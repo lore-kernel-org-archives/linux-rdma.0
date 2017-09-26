@@ -1,145 +1,173 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [ANNOUNCE] Shared pull requests (was Re: Workflow for i40iw patch
- submissions)
-Date: Mon, 25 Sep 2017 22:31:47 -0400
-Message-ID: <7c01cef3-0471-8339-3498-1d9ec4f8a9d3@redhat.com>
-References: <9DD61F30A802C4429A01CA4200E302A75B9FB085@fmsmsx116.amr.corp.intel.com>
- <1506179005.120853.67.camel@redhat.com>
- <20170925035910.GL25094@mtr-leonro.local>
- <5abacb7d-3e86-4e12-ce95-a8fe472a6a09@redhat.com>
- <20170925155749.GO25094@mtr-leonro.local>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Concall with Doug
+Date: Mon, 25 Sep 2017 21:29:41 -0600
+Message-ID: <20170926032941.GB7599@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="LvCBOLN3j5NePmh3VOwgTvgGqWbw4s8Xt"
+Content-Type: multipart/mixed; boundary="HlL+5n6rz5pIUxbD"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170925155749.GO25094-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Saleem, Shiraz" <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ram Amrani <ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yaron Gepstein <yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, skc-YOWKrPYUwWM@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---LvCBOLN3j5NePmh3VOwgTvgGqWbw4s8Xt
-Content-Type: multipart/mixed; boundary="R746BWfh0q7SIU4WQK8osJgNJHfe7OsoJ";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Saleem, Shiraz" <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <7c01cef3-0471-8339-3498-1d9ec4f8a9d3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [ANNOUNCE] Shared pull requests (was Re: Workflow for i40iw patch
- submissions)
-References: <9DD61F30A802C4429A01CA4200E302A75B9FB085-5FK+k9557ZBZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
- <1506179005.120853.67.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20170925035910.GL25094-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
- <5abacb7d-3e86-4e12-ce95-a8fe472a6a09-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20170925155749.GO25094-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-In-Reply-To: <20170925155749.GO25094-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 
---R746BWfh0q7SIU4WQK8osJgNJHfe7OsoJ
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+--HlL+5n6rz5pIUxbD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 9/25/2017 11:57 AM, Leon Romanovsky wrote:
-> On Mon, Sep 25, 2017 at 10:53:01AM -0400, Doug Ledford wrote:
->> On 9/24/2017 11:59 PM, Leon Romanovsky wrote:
->>> On Sat, Sep 23, 2017 at 11:03:25AM -0400, Doug Ledford wrote:
->>>
->>> <...>
->>>
->>>>
->>>> I want any shared pull requests to be based on nothing newer than an=
+Hello Everyone,
 
->>>> rc2 kernel.  I branch my for-next branch at rc2, so if your pull
->>>> request is on something later it will pollute my main for-next branc=
-h
->>>> to merge it.  I plan to merge my own -rc pull requests after rc2 int=
-o
->>>> my for-next branch, so you won't be missing code that goes into late=
-r
->>>> rcs if you base your work on my for-next branch, so that's a second
->>>> alternative starting point for your shared pull requests should you
->>>> need it.
->>>
->>> From our experience, it is not feasible to demand shared pull
->>> requests on "newer than an rc2 kernel".
->>
->> I said "nothing newer than an rc2 kernel".  Did you mean to leave out
->> the nothing?
->=20
-> Most probably I translated it incorrectly. I wanted to say that all
-> shared pull requests will be -rc2, -rc3, e.t.c. and probably will never=
+As a follow up to LPC we are going to have a public con call with Doug, with
+the following agenda:
 
-> be -rc1. Did you mean the same?
->=20
->>
->>> The magic of shared pull request
->>> is in the fact that it is based on the same origin for both trees.
->>
->> Correct.  So, for instance, I'm opening up my for-next area today and =
-it
->> will be based on a clean v4.14-rc2.  What I'm then asking for is that
->> subsequent driver shared pull requests be based on a v4.14-rc2 tree.
->> Your last shared pull request was mostly OK, but it was based on a
->> v4.13-rc4 kernel and so it would have simultaneously brought in your
->> patches and also all the changes between 4.13-rc2 and 4.13-rc4.
->=20
-> Why is it "undesired behavior"? Anyhow git request-pull to Linus will
-> filter all patches which already exist in Linus's tree and you will get=
+- Doug: Explain new process used in 4.14, feed back?
+- Leon: Explain how Mellanox is handling net-next coordination and
+   timing of net tree acceptance vs rdma tree acceptance
+- Jason/All: QA coordination and ensuring QA cycles are well spent,
+   eg 'what to test'
+- Distributing patch acceptance, covering PTO periods, etc.
+- Open mic period
 
-> merge of -rc fixes for free in your for-next.
+This will probably make the most sense in the context of the LPC
+discussions, but of course everyone is welcome to listen in and
+participate.
 
-You obviously have not been paying attention when Linus yells at me.
-This is something he specifically does *not* want, and if you send me a
-shared pull request that is based on, say, -rc4, then I can't merge it
-into my for-next branch and instead of I have to carry a separate branch
-and send a separate pull request just for that branch.
+I would like to get to all topics so I will MC the call to keep things
+moving.
 
-The reason is that Linus wants to be able to pull up gitk on my pull
-request and see the changes I am submitting for easy review.  If I merge
-a shared pull request that also includes an update to the -rc level of
-my tree, then all those -rc patches get mixed into the gitk ordering and
-it makes it hard for Linus to find just the patches he wants.  So, this
-is a Linus issue, not so much my issue.  If he didn't care, I wouldn't
-either, but this is the way it is.
+The time is 10 am PDT, Thursday Sep 28. Leon was first to donate a
+bridge, attached is an ISC file with all the information.
 
+Regards,
+Jason
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
+--HlL+5n6rz5pIUxbD
+Content-Type: text/calendar; charset=us-ascii
+Content-Disposition: attachment; filename="linux.ics"
 
+BEGIN:VCALENDAR
+METHOD:REQUEST
+PRODID:Microsoft Exchange Server 2010
+VERSION:2.0
+BEGIN:VTIMEZONE
+TZID:Israel Standard Time
+BEGIN:STANDARD
+DTSTART:16010101T020000
+TZOFFSETFROM:+0300
+TZOFFSETTO:+0200
+RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=-1SU;BYMONTH=10
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:16010101T020000
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0300
+RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=4FR;BYMONTH=3
+END:DAYLIGHT
+END:VTIMEZONE
+BEGIN:VEVENT
+ORGANIZER;CN=Leon Romanovsky:MAILTO:leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=Jason Gunt
+ horpe:MAILTO:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+DESCRIPTION;LANGUAGE=en-US:When: Thursday\, September 28\, 2017 20:00-21:00
+  (UTC+02:00) Jerusalem.\nWhere: Skype Meeting\n\nNote: The GMT offset abov
+ e does not reflect daylight saving time adjustments.\n\n*~*~*~*~*~*~*~*~*~
+ *\n\nHi Jason\,\n\nThis is the bridge for the coming community call.\nPlea
+ se let me know if Lync is ok or should I open Webex instead?\n\nThanks\n..
+ ..........................................................................
+ .............................................................\n--> Join Sk
+ ype Meeting<https://mtrmeet.mellanox.com/leonro/M7892MJ7>\n  Trouble Joini
+ ng? Try Skype Web App<https://mtrmeet.mellanox.com/leonro/M7892MJ7?sl=1>\n
+ Join by phone\n+972 (74) 7237000 (Israel)<tel:+972%20(74)%207237000%20(Isr
+ ael)>                        English (United States)\n+33 (805) 100672 (Fr
+ ance Toll Free)<tel:+33%20(805)%20100672%20(France%20Toll%20Free)>        
+   English (United States)\n+49 (800) 5892698 (Germany Toll Free)<tel:+49%2
+ 0(800)%205892698%20(Germany%20Toll%20Free)>              English (United S
+ tates)\n8 800 1006947 (Russia Toll Free)<tel:8%20800%201006947%20(Russia%2
+ 0Toll%20Free)>                        English (United States)\n+44 (800) 1
+ 700936 (UK Toll Free)<tel:+44%20(800)%201700936%20(UK%20Toll%20Free)>     
+                    English (United States)\n+1 (888) 3314421 (US Toll Free
+ )<tel:+1%20(888)%203314421%20(US%20Toll%20Free)>                  English 
+ (United States)\n+972 (1809) 494180 (IL Toll Free)<tel:+972%20(1809)%20494
+ 180%20(IL%20Toll%20Free)>                      English (United States)\n+4
+ 0 (800) 895907 (Romania Toll Free)<tel:+40%20(800)%20895907%20(Romania%20T
+ oll%20Free)>                English (United States)\n+61 (1800) 459683 (Au
+ stralia Toll Free)<tel:+61%20(1800)%20459683%20(Australia%20Toll%20Free)> 
+          English (United States)\n+81 (800) 1700770 (Japan Toll Free)<tel:
+ +81%20(800)%201700770%20(Japan%20Toll%20Free)>          English (United St
+ ates)\n+82 (007) 9885214386 (South Korea Toll Free)<tel:+82%20(007)%209885
+ 214386%20(South%20Korea%20Toll%20Free)>      English (United States)\n+4 5
+ 80 880 552 (Denmark Toll free)<tel:+4%20580%20880%20552%20(Denmark%20Toll%
+ 20free)>          English (United States)\n+44 (203) 1500253 (UK)<tel:+44%
+ 20(203)%201500253%20(UK)>                                English (United S
+ tates)\n+1 (408) 9160061 (US West)<tel:+1%20(408)%209160061%20(US%20West)>
+                       English (United States)\n+1 (978) 4395425 (US East)<
+ tel:+1%20(978)%204395425%20(US%20East)>                      English (Unit
+ ed States)\n+91 000 (800) 0401963 (India Toll Free)<tel:+91%20000%20(800)%
+ 200401963%20(India%20Toll%20Free)>                English (United States)\
+ n+55 (800) 8923204 (Brazil Toll Free)<tel:+55%20(800)%208923204%20(Brazil%
+ 20Toll%20Free)>                Portuguese (Brazil)\n+52 (1800) 7334070 (Me
+ xico Toll Free)<tel:+52%20(1800)%207334070%20(Mexico%20Toll%20Free)>      
+         English (United States)\n+27 (800) 988088 (South Africa Toll Free)
+ <tel:+27%20(800)%20988088%20(South%20Africa%20Toll%20Free)>            Eng
+ lish (United States)\n0018009720127 (Thailand Toll Free)<tel:0018009720127
+ %20(Thailand%20Toll%20Free)>                English (United States)\n+41 (
+ 800) 321019 (Switzerland Toll Free)<tel:+41%20(800)%20321019%20(Switzerlan
+ d%20Toll%20Free)>                English (United States)\n+86-1057892250 C
+ hina<tel:+86-1057892250%20China>                                English (U
+ nited States)\n+86 (400) 6713580 China Toll-Free<tel:+86%20(400)%206713580
+ %20China%20Toll-Free>                        English (United States)\n+886
+ -281786069 Taiwan<tel:+886-281786069%20Taiwan>                            
+   English (United States)\n+886 00801979798 (Taiwan Toll Free)<tel:+886%20
+ 00801979798%20(Taiwan%20Toll%20Free)>            English (United States)\n
+ +65-63504799 Singapore<tel:+65-63504799%20Singapore>                      
+       English (United States)\n+65 (800) 9721125 (Singapore Toll Free)<tel
+ :+65%20(800)%209721125%20(Singapore%20Toll%20Free)>          English (Unit
+ ed States)\n+64 (800) 451030 (New Zealand Toll Free)<tel:+64%20(800)%20451
+ 030%20(New%20Zealand%20Toll%20Free)>              English (United States)\
+ n+39 (800) 098375 (Italy Toll Free)<tel:+39%20(800)%20098375%20(Italy%20To
+ ll%20Free)>                    English (United States)\n+31 0800 0200698 (
+ Netherlands Toll Free)<tel:+31%200800%200200698%20(Netherlands%20Toll%20Fr
+ ee)>                English (United States)\nFind a local number<https://m
+ trdialin.mellanox.com>\n\nConference ID: 6852361\n Forgot your dial-in PIN
+ ?<https://mtrdialin.mellanox.com> |Help<https://o15.officeredir.microsoft.
+ com/r/rlidLync15?clid=1033&p1=5&p2=2009>\n\n[!OC([1033])!]\n..............
+ ..........................................................................
+ .................................................\n\n\n
+UID:040000008200E00074C5B7101A82E00800000000E00B76EEDB35D301000000000000000
+ 010000000B14CA7D61B1CAC439DBA3350CAAFDEF1
+SUMMARY;LANGUAGE=en-US:Community Call
+DTSTART;TZID=Israel Standard Time:20170928T200000
+DTEND;TZID=Israel Standard Time:20170928T210000
+CLASS:PUBLIC
+PRIORITY:5
+DTSTAMP:20170925T055617Z
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+SEQUENCE:0
+LOCATION;LANGUAGE=en-US:Skype Meeting
+X-MICROSOFT-CDO-APPT-SEQUENCE:0
+X-MICROSOFT-CDO-OWNERAPPTID:-2095474719
+X-MICROSOFT-CDO-BUSYSTATUS:TENTATIVE
+X-MICROSOFT-CDO-INTENDEDSTATUS:BUSY
+X-MICROSOFT-CDO-ALLDAYEVENT:FALSE
+X-MICROSOFT-CDO-IMPORTANCE:1
+X-MICROSOFT-CDO-INSTTYPE:0
+X-MICROSOFT-ONLINEMEETINGEXTERNALLINK:https://mtrmeet.mellanox.com/leonro/M
+ 7892MJ7
+X-MICROSOFT-ONLINEMEETINGCONFLINK:conf:sip:leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org\;gruu\;opaqu
+ e=app:conf:focus:id:M7892MJ7?conversation-id=295c5xAYM
+X-MICROSOFT-CONFERENCETELURI:tel:+972747237000\,\,6852361
+X-MICROSOFT-DISALLOW-COUNTER:FALSE
+BEGIN:VALARM
+DESCRIPTION:REMINDER
+TRIGGER;RELATED=START:-PT15M
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+END:VCALENDAR
 
---R746BWfh0q7SIU4WQK8osJgNJHfe7OsoJ--
-
---LvCBOLN3j5NePmh3VOwgTvgGqWbw4s8Xt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJZybwTAAoJELgmozMOVy/dq7QQALVm8zjRWFhAqyzkn26xDRdb
-MVg6cMb45+yC0f/evpnpylbrkMsaQ/a3oXjJU4pGYOKSh9uQp4G+vO7RhQNlgQZV
-VuPEcUZV786wSK7ALtGJUTh0XazuZGzFEmqAEH7684Yl6mHxKeNcTHJaP3mwbOyx
-JzESboAWulbYDmHqW03RS3X5CkZ5KqH8l5rtLiGE71SfRrntck1Ah3CZTucpVUr1
-i9lySIIzVdVeppPhPGFrFiWALWd3G4T8ybzAxxzkOb8fIVOYVbnUkl2EAX58U+Y/
-580rV9R04TIN02sO5t2zynCpYLKI9KhWW+C6xl5C8/iOT7qtn2gcrtRW4mMbuWi+
-LybL+/oWJ53DnAKwin6udzneaogIOqzpLMwDbxlGBqkhVBPsTkq4dJqGqjtHwIIA
-JBoGCnmUCgV8a7fD/P04FtuP9hRQ+2JI718CWoK6X3JAJnJH1Ln9QFzpM+6774Om
-FJy60Z2DXSWjFdrDwqu4wKZM25jy1xkC3A7uy++XEd5K4ebdXNftTPTOsb/C3DwL
-lgyDiR9vkzUJX5KDYYl0/kfvDMgiQ9EcFZNf7jkiZwcP4faqF/gevLbn5NycMYO7
-q7OYdE9B6PwufZayBiWDRRXu8h4oTBDdMbL1C3KnrR2X+LHGhymtcihPkv0hVh70
-A4v6VmlHXtI2I+8JglzX
-=MujP
------END PGP SIGNATURE-----
-
---LvCBOLN3j5NePmh3VOwgTvgGqWbw4s8Xt--
+--HlL+5n6rz5pIUxbD--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
