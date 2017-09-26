@@ -1,37 +1,37 @@
-From: "Stephen  Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-Subject: [perftests and rdma-core]: Location of upstream perftest repo and
- inclusion in rdma-core
-Date: Tue, 26 Sep 2017 21:01:35 +0000
-Message-ID: <C4BBDD1E-5DB8-4892-9B5B-0AE3D74D457A@raithlin.com>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [RFC+PATCH] Infiniband hfi1 + PREEMPT_RT_FULL issues
+Date: Tue, 26 Sep 2017 17:11:56 -0400
+Message-ID: <20170926171156.6f7e3b4b@vmware.local.home>
+References: <20170925144949.GP29668@kernel.org>
+        <20170925161528.52d34769@vmware.local.home>
+        <20170926131529.GB25735@kernel.org>
+        <32E1700B9017364D9B60AED9960492BC3441B8C5@fmsmsx120.amr.corp.intel.com>
+        <20170926182800.GA10741@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <C6C598187D26244396BFAC7F664F11EF-JkAt9bkEularoOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rt-users-owner@vger.kernel.org>
+In-Reply-To: <20170926182800.GA10741@kernel.org>
+Sender: linux-rt-users-owner@vger.kernel.org
+To: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Clark Williams <williams@redhat.com>, "Luick, Dean" <dean.luick@intel.com>, Doug Ledford <dledford@redhat.com>, "Wan, Kaike" <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>, "Sanchez, Sebastian" <sebastian.sanchez@intel.com>, "linux-rt-users@vger.kernel.org" <linux-rt-users@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgQWxsDQoNCkZpcnN0bHksIGEgYmlnIHRoYW5rcyB0byBQYXJhdiBmb3Igc29sdmluZyBteSDi
-gJx0d28gUk5JQ3MgaW4gdGhlIHNhbWUgc2VydmVy4oCdIGxvb3BiYWNrIHdvZXMgWzFdLiBUaGUg
-c2NyaXB0IHlvdSBwcm92aWRlZCB3b3JrZWQgYSB0cmVhdCB3aXRoIHJkbWFfY20gdGhpbmdzIGxp
-a2UgcnBpbmcgYW5kIE5WTWUgb3ZlciBGYWJyaWNzIHdvcmtpbmcgdmVyeSBuaWNlbHkuDQoNCk9u
-ZSB0aGluZyBJIGRpZCBub3RpY2UgaXMgdGhhdCBmb3IgdGhlIHBlcmZ0ZXN0cyAoZS5nLiBpYl93
-cml0ZV9idykgdGhlcmUgaXMgbm8gd2F5IHRvIGJpbmQgdG8gYW4gSVAgYWRkcmVzcyB3aGVuIHVz
-aW5nIHRoZSByZG1hX2NtIG9wdGlvbiDigJNSLiBEb2VzIGFueW9uZSBrbm93IGlmIHRoaXMgaXMg
-cG9zc2libGUgd2l0aCB0aGUgZXhpc3RpbmcgY29kZT8gSWYgbm90IEnigJlkIGxpa2UgdG8gcHJv
-cG9zZSBhIHBhdGNoIGZvciB0aGUgcGVyZnRlc3RzIGJ1dCBJIGFtIG5vdCBzdXJlIHdoZXJlIHRo
-ZSBjdXJyZW50IHVwc3RyZWFtIHJlcG8gZm9yIHBlcmZ0ZXN0cyBpcz8gSSBhbHNvIHdhbnRlZCB0
-byBhc2sgaWYgdGhpcyBpcyBzb21ldGhpbmcgdGhhdCBjb3VsZCBiZSBjb25zaWRlcmVkIGZvciBy
-ZG1hLWNvcmUgYXMgd2UgaGF2ZSBvdGhlciB1c2VyLXNwYWNlIHRvb2xzIHRoZXJlPw0KDQpBIHJl
-cG8gZm9yIHBlcmZ0ZXN0cyBsaXZlcyBoZXJlIFsyXSAod2hpY2ggTG9nYW4gZm9ya2VkIGEgd2hp
-bGUgYmFjayBbM10pIGJ1dCBpdCBzZWVtcyBwcmV0dHkgaW5hY3RpdmXigKYNCg0KQ2hlZXJzDQog
-DQpTdGVwaGVuDQoNClsxXSBodHRwczovL21hcmMuaW5mby8/bD1saW51eC1yZG1hJm09MTUwNTc1
-ODcxMzMwMjkzJnc9Mg0KWzJdIGdpdDovL2dpdC5vcGVuZmFicmljcy5vcmcvfmdyb2NrYWgvcGVy
-ZnRlc3QuZ2l0DQpbM10gaHR0cHM6Ly9naXRodWIuY29tL2xzZ3VudGgvcGVyZnRlc3QNCg0KDQo=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue, 26 Sep 2017 15:28:00 -0300
+Arnaldo Carvalho de Melo <acme@kernel.org> wrote:
+
+> So what happens is that infrastructure in the rt patch eventually lands
+> upstream, then this difference ceases to exist.
+> 
+> Steven, are there plans for local locks to go upstream?
+> 
+
+Yes, but they don't make sense unless we get PREEMPT_RT (sleeping
+spinlocks) upstream. Otherwise, they will just be another name for
+preempt_disable().
+
+That said, there is some rational for getting them upsteam before
+sleeping spinlocks, and that is to annotate what a preempt_disable() is
+trying to protect.
+
+-- Steve
