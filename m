@@ -1,8 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH rdma-next 4/5] iw_cxgb4: allocate wait object for each ep
- object
-Date: Tue, 26 Sep 2017 13:12:16 -0700
-Message-ID: <56a3f9363950e8c8f1569dbd87af3e98f65cfca3.1506545745.git.swise@opengridcomputing.com>
+Subject: [PATCH rdma-next 5/5] iw_cxgb4: add referencing to wait objects
+Date: Tue, 26 Sep 2017 13:13:17 -0700
+Message-ID: <7e6446fd7ebc08ae34392f73228bc87d03acb738.1506545745.git.swise@opengridcomputing.com>
 References: <cover.1506545745.git.swise@opengridcomputing.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1506545745.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
@@ -11,218 +10,553 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Remove the embedded c4iw_wr_wait object in preparation for correctly
-handling timeouts.
+For messages sent from the host to fw that solicit a reply from fw,
+the c4iw_wr_wait struct pointer is passed in the host->fw message, and
+included in the fw->host fw6_msg reply.  This allows the sender to wait
+until the reply is received, and the code processing the ingress reply
+to wake up the sender.
+
+If c4iw_wait_for_reply() times out, however, we need to keep the
+c4iw_wr_wait object around in case the reply eventually does arrive.
+Otherwise we have touch-after-free bugs in the wake_up paths.
+
+This was hit due to a bad kernel driver that blocked ingress processing
+of cxgb4 for a long time, causing iw_cxgb4 timeouts, but eventually
+resuming ingress processing and thus hitting the touch-after-free bug.
+
+So I want to fix iw_cxgb4 such that we'll at least keep the wait object
+around until the reply comes.  If it never comes we leak a small amount of
+memory, but if it does come late, we won't potentially crash the system.
+
+So add a kref struct in the c4iw_wr_wait struct, and take a reference
+before sending a message to FW that will generate a FW6 reply.  And remove
+the reference (and potentially free the wait object) when the reply
+is processed.
+
+The ep code also uses the wr_wait for non FW6 CPL messages and doesn't
+embed the c4iw_wr_wait object in the message sent to firmware.  So for
+those cases we add c4iw_wake_up_noref().
+
+The mr/mw, cq, and qp object create/destroy paths do need this reference
+logic.  For these paths, c4iw_ref_send_wait() is introduced to take the
+wr_wait reference, send the msg to fw, and then wait for the reply.
+
+So going forward, iw_cxgb4 either uses c4iw_ofld_send(),
+c4iw_wait_for_reply() and c4iw_wake_up_noref() like is done in the some
+of the endpoint logic, or c4iw_ref_send_wait() and c4iw_wake_up_deref()
+(formerly c4iw_wake_up()) when sending messages with the c4iw_wr_wait
+object pointer embedded in the message and resulting FW6 reply.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c       | 38 ++++++++++++++++++++--------------
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  2 +-
- drivers/infiniband/hw/cxgb4/qp.c       |  8 +++----
- 3 files changed, 28 insertions(+), 20 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c       | 20 ++++++------
+ drivers/infiniband/hw/cxgb4/cq.c       | 18 +++-------
+ drivers/infiniband/hw/cxgb4/device.c   | 21 ++++++++++++
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h | 60 ++++++++++++++++++++++++++++++++--
+ drivers/infiniband/hw/cxgb4/mem.c      | 38 +++++++++++----------
+ drivers/infiniband/hw/cxgb4/qp.c       | 31 ++++++------------
+ 6 files changed, 123 insertions(+), 65 deletions(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 34458ff..e27ef52 100644
+index e27ef52..5d6a414 100644
 --- a/drivers/infiniband/hw/cxgb4/cm.c
 +++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -318,11 +318,18 @@ static void *alloc_ep(int size, gfp_t gfp)
+@@ -318,7 +318,7 @@ static void *alloc_ep(int size, gfp_t gfp)
  
  	epc = kzalloc(size, gfp);
  	if (epc) {
-+		epc->wr_waitp = kzalloc(sizeof(*epc->wr_waitp), gfp);
-+		if (!epc->wr_waitp) {
-+			kfree(epc);
-+			epc = NULL;
-+			goto out;
-+		}
- 		kref_init(&epc->kref);
- 		mutex_init(&epc->mutex);
--		c4iw_init_wr_wait(&epc->wr_wait);
-+		c4iw_init_wr_wait(epc->wr_waitp);
- 	}
- 	pr_debug("alloc ep %p\n", epc);
-+out:
- 	return epc;
- }
- 
-@@ -407,6 +414,7 @@ void _c4iw_free_ep(struct kref *kref)
+-		epc->wr_waitp = kzalloc(sizeof(*epc->wr_waitp), gfp);
++		epc->wr_waitp = c4iw_alloc_wr_wait(gfp);
+ 		if (!epc->wr_waitp) {
+ 			kfree(epc);
+ 			epc = NULL;
+@@ -414,7 +414,7 @@ void _c4iw_free_ep(struct kref *kref)
  	}
  	if (!skb_queue_empty(&ep->com.ep_skb_list))
  		skb_queue_purge(&ep->com.ep_skb_list);
-+	kfree(ep->com.wr_waitp);
+-	kfree(ep->com.wr_waitp);
++	c4iw_put_wr_wait(ep->com.wr_waitp);
  	kfree(ep);
  }
  
-@@ -1872,7 +1880,7 @@ static int abort_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+@@ -1880,7 +1880,7 @@ static int abort_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
  	mutex_lock(&ep->com.mutex);
  	switch (ep->com.state) {
  	case ABORTING:
--		c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
-+		c4iw_wake_up(ep->com.wr_waitp, -ECONNRESET);
+-		c4iw_wake_up(ep->com.wr_waitp, -ECONNRESET);
++		c4iw_wake_up_noref(ep->com.wr_waitp, -ECONNRESET);
  		__state_set(&ep->com, DEAD);
  		release = 1;
  		break;
-@@ -2100,7 +2108,7 @@ static int c4iw_reconnect(struct c4iw_ep *ep)
- 
- 	pr_debug("qp %p cm_id %p\n", ep->com.qp, ep->com.cm_id);
- 	init_timer(&ep->timer);
--	c4iw_init_wr_wait(&ep->com.wr_wait);
-+	c4iw_init_wr_wait(ep->com.wr_waitp);
- 
- 	/* When MPA revision is different on nodes, the node with MPA_rev=2
- 	 * tries to reconnect with MPA_rev 1 for the same EP through
-@@ -2319,7 +2327,7 @@ static int pass_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+@@ -2327,7 +2327,7 @@ static int pass_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
  	}
  	pr_debug("ep %p status %d error %d\n", ep,
  		 rpl->status, status2errno(rpl->status));
--	c4iw_wake_up(&ep->com.wr_wait, status2errno(rpl->status));
-+	c4iw_wake_up(ep->com.wr_waitp, status2errno(rpl->status));
+-	c4iw_wake_up(ep->com.wr_waitp, status2errno(rpl->status));
++	c4iw_wake_up_noref(ep->com.wr_waitp, status2errno(rpl->status));
  	c4iw_put_ep(&ep->com);
  out:
  	return 0;
-@@ -2336,7 +2344,7 @@ static int close_listsrv_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+@@ -2344,7 +2344,7 @@ static int close_listsrv_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
  		goto out;
  	}
  	pr_debug("ep %p\n", ep);
--	c4iw_wake_up(&ep->com.wr_wait, status2errno(rpl->status));
-+	c4iw_wake_up(ep->com.wr_waitp, status2errno(rpl->status));
+-	c4iw_wake_up(ep->com.wr_waitp, status2errno(rpl->status));
++	c4iw_wake_up_noref(ep->com.wr_waitp, status2errno(rpl->status));
  	c4iw_put_ep(&ep->com);
  out:
  	return 0;
-@@ -2671,12 +2679,12 @@ static int peer_close(struct c4iw_dev *dev, struct sk_buff *skb)
+@@ -2679,12 +2679,12 @@ static int peer_close(struct c4iw_dev *dev, struct sk_buff *skb)
  		 */
  		__state_set(&ep->com, CLOSING);
  		pr_debug("waking up ep %p tid %u\n", ep, ep->hwtid);
--		c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
-+		c4iw_wake_up(ep->com.wr_waitp, -ECONNRESET);
+-		c4iw_wake_up(ep->com.wr_waitp, -ECONNRESET);
++		c4iw_wake_up_noref(ep->com.wr_waitp, -ECONNRESET);
  		break;
  	case MPA_REP_SENT:
  		__state_set(&ep->com, CLOSING);
  		pr_debug("waking up ep %p tid %u\n", ep, ep->hwtid);
--		c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
-+		c4iw_wake_up(ep->com.wr_waitp, -ECONNRESET);
+-		c4iw_wake_up(ep->com.wr_waitp, -ECONNRESET);
++		c4iw_wake_up_noref(ep->com.wr_waitp, -ECONNRESET);
  		break;
  	case FPDU_MODE:
  		start_ep_timer(ep);
-@@ -2758,7 +2766,7 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+@@ -2766,7 +2766,7 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
  	 * MPA_REQ_SENT
  	 */
  	if (ep->com.state != MPA_REQ_SENT)
--		c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
-+		c4iw_wake_up(ep->com.wr_waitp, -ECONNRESET);
+-		c4iw_wake_up(ep->com.wr_waitp, -ECONNRESET);
++		c4iw_wake_up_noref(ep->com.wr_waitp, -ECONNRESET);
  
  	mutex_lock(&ep->com.mutex);
  	switch (ep->com.state) {
-@@ -3346,14 +3354,14 @@ static int create_server6(struct c4iw_dev *dev, struct c4iw_listen_ep *ep)
- 		if (err)
- 			return err;
- 	}
--	c4iw_init_wr_wait(&ep->com.wr_wait);
-+	c4iw_init_wr_wait(ep->com.wr_waitp);
- 	err = cxgb4_create_server6(ep->com.dev->rdev.lldi.ports[0],
- 				   ep->stid, &sin6->sin6_addr,
- 				   sin6->sin6_port,
- 				   ep->com.dev->rdev.lldi.rxq_ids[0]);
- 	if (!err)
- 		err = c4iw_wait_for_reply(&ep->com.dev->rdev,
--					  &ep->com.wr_wait,
-+					  ep->com.wr_waitp,
- 					  0, 0, __func__);
- 	else if (err > 0)
- 		err = net_xmit_errno(err);
-@@ -3389,13 +3397,13 @@ static int create_server4(struct c4iw_dev *dev, struct c4iw_listen_ep *ep)
- 			}
- 		} while (err == -EBUSY);
- 	} else {
--		c4iw_init_wr_wait(&ep->com.wr_wait);
-+		c4iw_init_wr_wait(ep->com.wr_waitp);
- 		err = cxgb4_create_server(ep->com.dev->rdev.lldi.ports[0],
- 				ep->stid, sin->sin_addr.s_addr, sin->sin_port,
- 				0, ep->com.dev->rdev.lldi.rxq_ids[0]);
- 		if (!err)
- 			err = c4iw_wait_for_reply(&ep->com.dev->rdev,
--						  &ep->com.wr_wait,
-+						  ep->com.wr_waitp,
- 						  0, 0, __func__);
- 		else if (err > 0)
- 			err = net_xmit_errno(err);
-@@ -3487,13 +3495,13 @@ int c4iw_destroy_listen(struct iw_cm_id *cm_id)
- 			ep->com.dev->rdev.lldi.rxq_ids[0], 0);
- 	} else {
- 		struct sockaddr_in6 *sin6;
--		c4iw_init_wr_wait(&ep->com.wr_wait);
-+		c4iw_init_wr_wait(ep->com.wr_waitp);
- 		err = cxgb4_remove_server(
- 				ep->com.dev->rdev.lldi.ports[0], ep->stid,
- 				ep->com.dev->rdev.lldi.rxq_ids[0], 0);
- 		if (err)
- 			goto done;
--		err = c4iw_wait_for_reply(&ep->com.dev->rdev, &ep->com.wr_wait,
-+		err = c4iw_wait_for_reply(&ep->com.dev->rdev, ep->com.wr_waitp,
- 					  0, 0, __func__);
- 		sin6 = (struct sockaddr_in6 *)&ep->com.local_addr;
- 		cxgb4_clip_release(ep->com.dev->rdev.lldi.ports[0],
-@@ -4216,7 +4224,7 @@ static int peer_abort_intr(struct c4iw_dev *dev, struct sk_buff *skb)
+@@ -4187,7 +4187,7 @@ static int fw6_msg(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		wr_waitp = (struct c4iw_wr_wait *)(__force unsigned long) rpl->data[1];
+ 		pr_debug("wr_waitp %p ret %u\n", wr_waitp, ret);
+ 		if (wr_waitp)
+-			c4iw_wake_up(wr_waitp, ret ? -ret : 0);
++			c4iw_wake_up_deref(wr_waitp, ret ? -ret : 0);
+ 		kfree_skb(skb);
+ 		break;
+ 	case FW6_TYPE_CQE:
+@@ -4224,7 +4224,7 @@ static int peer_abort_intr(struct c4iw_dev *dev, struct sk_buff *skb)
  	}
  	pr_debug("ep %p tid %u state %u\n", ep, ep->hwtid, ep->com.state);
  
--	c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
-+	c4iw_wake_up(ep->com.wr_waitp, -ECONNRESET);
+-	c4iw_wake_up(ep->com.wr_waitp, -ECONNRESET);
++	c4iw_wake_up_noref(ep->com.wr_waitp, -ECONNRESET);
  out:
  	sched(dev, skb);
  	return 0;
+diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
+index 020216f..8e2d490 100644
+--- a/drivers/infiniband/hw/cxgb4/cq.c
++++ b/drivers/infiniband/hw/cxgb4/cq.c
+@@ -57,10 +57,7 @@ static int destroy_cq(struct c4iw_rdev *rdev, struct t4_cq *cq,
+ 	res->u.cq.iqid = cpu_to_be32(cq->cqid);
+ 
+ 	c4iw_init_wr_wait(wr_waitp);
+-	ret = c4iw_ofld_send(rdev, skb);
+-	if (!ret) {
+-		ret = c4iw_wait_for_reply(rdev, wr_waitp, 0, 0, __func__);
+-	}
++	ret = c4iw_ref_send_wait(rdev, skb, wr_waitp, 0, 0, __func__);
+ 
+ 	kfree(cq->sw_queue);
+ 	dma_free_coherent(&(rdev->lldi.pdev->dev),
+@@ -140,12 +137,7 @@ static int create_cq(struct c4iw_rdev *rdev, struct t4_cq *cq,
+ 	res->u.cq.iqaddr = cpu_to_be64(cq->dma_addr);
+ 
+ 	c4iw_init_wr_wait(wr_waitp);
+-
+-	ret = c4iw_ofld_send(rdev, skb);
+-	if (ret)
+-		goto err4;
+-	pr_debug("wait_event wr_wait %p\n", wr_waitp);
+-	ret = c4iw_wait_for_reply(rdev, wr_waitp, 0, 0, __func__);
++	ret = c4iw_ref_send_wait(rdev, skb, wr_waitp, 0, 0, __func__);
+ 	if (ret)
+ 		goto err4;
+ 
+@@ -869,7 +861,7 @@ int c4iw_destroy_cq(struct ib_cq *ib_cq)
+ 	destroy_cq(&chp->rhp->rdev, &chp->cq,
+ 		   ucontext ? &ucontext->uctx : &chp->cq.rdev->uctx,
+ 		   chp->destroy_skb, chp->wr_waitp);
+-	kfree(chp->wr_waitp);
++	c4iw_put_wr_wait(chp->wr_waitp);
+ 	kfree(chp);
+ 	return 0;
+ }
+@@ -901,7 +893,7 @@ struct ib_cq *c4iw_create_cq(struct ib_device *ibdev,
+ 	chp = kzalloc(sizeof(*chp), GFP_KERNEL);
+ 	if (!chp)
+ 		return ERR_PTR(-ENOMEM);
+-	chp->wr_waitp = kzalloc(sizeof(*chp->wr_waitp), GFP_KERNEL);
++	chp->wr_waitp = c4iw_alloc_wr_wait(GFP_KERNEL);
+ 	if (!chp->wr_waitp) {
+ 		ret = -ENOMEM;
+ 		goto err_free_chp;
+@@ -1020,7 +1012,7 @@ struct ib_cq *c4iw_create_cq(struct ib_device *ibdev,
+ err_free_skb:
+ 	kfree_skb(chp->destroy_skb);
+ err_free_wr_wait:
+-	kfree(chp->wr_waitp);
++	c4iw_put_wr_wait(chp->wr_waitp);
+ err_free_chp:
+ 	kfree(chp);
+ 	return ERR_PTR(ret);
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index d19f7fb..fa16a4a 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -1518,6 +1518,27 @@ static int c4iw_uld_control(void *handle, enum cxgb4_control control, ...)
+ 	.control = c4iw_uld_control,
+ };
+ 
++void _c4iw_free_wr_wait(struct kref *kref)
++{
++	struct c4iw_wr_wait *wr_waitp;
++
++	wr_waitp = container_of(kref, struct c4iw_wr_wait, kref);
++	pr_debug("Free wr_wait %p\n", wr_waitp);
++	kfree(wr_waitp);
++}
++
++struct c4iw_wr_wait *c4iw_alloc_wr_wait(gfp_t gfp)
++{
++	struct c4iw_wr_wait *wr_waitp;
++
++	wr_waitp = kzalloc(sizeof(*wr_waitp), gfp);
++	if (wr_waitp) {
++		kref_init(&wr_waitp->kref);
++		pr_debug("wr_wait %p\n", wr_waitp);
++	}
++	return wr_waitp;
++}
++
+ static int __init c4iw_init_module(void)
+ {
+ 	int err;
 diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index f143c00..12c3583 100644
+index 12c3583..d730bb7 100644
 --- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
 +++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -842,7 +842,7 @@ struct c4iw_ep_common {
- 	struct mutex mutex;
- 	struct sockaddr_storage local_addr;
- 	struct sockaddr_storage remote_addr;
--	struct c4iw_wr_wait wr_wait;
-+	struct c4iw_wr_wait *wr_waitp;
- 	unsigned long flags;
- 	unsigned long history;
+@@ -202,18 +202,50 @@ static inline int c4iw_num_stags(struct c4iw_rdev *rdev)
+ struct c4iw_wr_wait {
+ 	struct completion completion;
+ 	int ret;
++	struct kref kref;
  };
+ 
++void _c4iw_free_wr_wait(struct kref *kref);
++
++static inline void c4iw_put_wr_wait(struct c4iw_wr_wait *wr_waitp)
++{
++	pr_debug("wr_wait %p ref before put %u\n", wr_waitp,
++		 kref_read(&wr_waitp->kref));
++	WARN_ON(kref_read(&wr_waitp->kref) == 0);
++	kref_put(&wr_waitp->kref, _c4iw_free_wr_wait);
++}
++
++static inline void c4iw_get_wr_wait(struct c4iw_wr_wait *wr_waitp)
++{
++	pr_debug("wr_wait %p ref before get %u\n", wr_waitp,
++		 kref_read(&wr_waitp->kref));
++	WARN_ON(kref_read(&wr_waitp->kref) == 0);
++	kref_get(&wr_waitp->kref);
++}
++
+ static inline void c4iw_init_wr_wait(struct c4iw_wr_wait *wr_waitp)
+ {
+ 	wr_waitp->ret = 0;
+ 	init_completion(&wr_waitp->completion);
+ }
+ 
+-static inline void c4iw_wake_up(struct c4iw_wr_wait *wr_waitp, int ret)
++static inline void _c4iw_wake_up(struct c4iw_wr_wait *wr_waitp, int ret,
++				 bool deref)
+ {
+ 	wr_waitp->ret = ret;
+ 	complete(&wr_waitp->completion);
++	if (deref)
++		c4iw_put_wr_wait(wr_waitp);
++}
++
++static inline void c4iw_wake_up_noref(struct c4iw_wr_wait *wr_waitp, int ret)
++{
++	_c4iw_wake_up(wr_waitp, ret, false);
++}
++
++static inline void c4iw_wake_up_deref(struct c4iw_wr_wait *wr_waitp, int ret)
++{
++	_c4iw_wake_up(wr_waitp, ret, true);
+ }
+ 
+ static inline int c4iw_wait_for_reply(struct c4iw_rdev *rdev,
+@@ -234,14 +266,36 @@ static inline int c4iw_wait_for_reply(struct c4iw_rdev *rdev,
+ 		       func, pci_name(rdev->lldi.pdev), hwtid, qpid);
+ 		rdev->flags |= T4_FATAL_ERROR;
+ 		wr_waitp->ret = -EIO;
++		goto out;
+ 	}
+-out:
+ 	if (wr_waitp->ret)
+ 		pr_debug("%s: FW reply %d tid %u qpid %u\n",
+ 			 pci_name(rdev->lldi.pdev), wr_waitp->ret, hwtid, qpid);
++out:
+ 	return wr_waitp->ret;
+ }
+ 
++int c4iw_ofld_send(struct c4iw_rdev *rdev, struct sk_buff *skb);
++
++static inline int c4iw_ref_send_wait(struct c4iw_rdev *rdev,
++				     struct sk_buff *skb,
++				     struct c4iw_wr_wait *wr_waitp,
++				     u32 hwtid, u32 qpid,
++				     const char *func)
++{
++	int ret;
++
++	pr_debug("%s wr_wait %p hwtid %u qpid %u\n", func, wr_waitp, hwtid,
++		 qpid);
++	c4iw_get_wr_wait(wr_waitp);
++	ret = c4iw_ofld_send(rdev, skb);
++	if (ret) {
++		c4iw_put_wr_wait(wr_waitp);
++		return ret;
++	}
++	return c4iw_wait_for_reply(rdev, wr_waitp, hwtid, qpid, func);
++}
++
+ enum db_state {
+ 	NORMAL = 0,
+ 	FLOW_CONTROL = 1,
+@@ -991,7 +1045,6 @@ int c4iw_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ void c4iw_pblpool_free(struct c4iw_rdev *rdev, u32 addr, int size);
+ u32 c4iw_ocqp_pool_alloc(struct c4iw_rdev *rdev, int size);
+ void c4iw_ocqp_pool_free(struct c4iw_rdev *rdev, u32 addr, int size);
+-int c4iw_ofld_send(struct c4iw_rdev *rdev, struct sk_buff *skb);
+ void c4iw_flush_hw_cq(struct c4iw_cq *chp);
+ void c4iw_count_rcqes(struct t4_cq *cq, struct t4_wq *wq, int *count);
+ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp);
+@@ -1019,5 +1072,6 @@ void __iomem *c4iw_bar2_addrs(struct c4iw_rdev *rdev, unsigned int qid,
+ extern int db_coalescing_threshold;
+ extern int use_dsgl;
+ void c4iw_invalidate_mr(struct c4iw_dev *rhp, u32 rkey);
++struct c4iw_wr_wait *c4iw_alloc_wr_wait(gfp_t gfp);
+ 
+ #endif
+diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
+index b2523b2..7e0eb20 100644
+--- a/drivers/infiniband/hw/cxgb4/mem.c
++++ b/drivers/infiniband/hw/cxgb4/mem.c
+@@ -100,11 +100,10 @@ static int _c4iw_write_mem_dma_aligned(struct c4iw_rdev *rdev, u32 addr,
+ 	sgl->len0 = cpu_to_be32(len);
+ 	sgl->addr0 = cpu_to_be64(data);
+ 
+-	ret = c4iw_ofld_send(rdev, skb);
+-	if (ret)
+-		return ret;
+ 	if (wr_waitp)
+-		ret = c4iw_wait_for_reply(rdev, wr_waitp, 0, 0, __func__);
++		ret = c4iw_ref_send_wait(rdev, skb, wr_waitp, 0, 0, __func__);
++	else
++		ret = c4iw_ofld_send(rdev, skb);
+ 	return ret;
+ }
+ 
+@@ -173,14 +172,17 @@ static int _c4iw_write_mem_inline(struct c4iw_rdev *rdev, u32 addr, u32 len,
+ 		if (copy_len % T4_ULPTX_MIN_IO)
+ 			memset(to_dp + copy_len, 0, T4_ULPTX_MIN_IO -
+ 			       (copy_len % T4_ULPTX_MIN_IO));
+-		ret = c4iw_ofld_send(rdev, skb);
+-		skb = NULL;
++		if (i == (num_wqe-1))
++			ret = c4iw_ref_send_wait(rdev, skb, wr_waitp, 0, 0,
++						 __func__);
++		else
++			ret = c4iw_ofld_send(rdev, skb);
+ 		if (ret)
+-			return ret;
++			break;
++		skb = NULL;
+ 		len -= C4IW_MAX_INLINE_SIZE;
+ 	}
+ 
+-	ret = c4iw_wait_for_reply(rdev, wr_waitp, 0, 0, __func__);
+ 	return ret;
+ }
+ 
+@@ -447,7 +449,7 @@ struct ib_mr *c4iw_get_dma_mr(struct ib_pd *pd, int acc)
+ 	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
+ 	if (!mhp)
+ 		return ERR_PTR(-ENOMEM);
+-	mhp->wr_waitp = kzalloc(sizeof(*mhp->wr_waitp), GFP_KERNEL);
++	mhp->wr_waitp = c4iw_alloc_wr_wait(GFP_KERNEL);
+ 	if (!mhp->wr_waitp) {
+ 		ret = -ENOMEM;
+ 		goto err_free_mhp;
+@@ -485,7 +487,7 @@ struct ib_mr *c4iw_get_dma_mr(struct ib_pd *pd, int acc)
+ 	dereg_mem(&rhp->rdev, mhp->attr.stag, mhp->attr.pbl_size,
+ 		  mhp->attr.pbl_addr, mhp->dereg_skb, mhp->wr_waitp);
+ err_free_wr_wait:
+-	kfree(mhp->wr_waitp);
++	c4iw_put_wr_wait(mhp->wr_waitp);
+ err_free_skb:
+ 	kfree_skb(mhp->dereg_skb);
+ err_free_mhp:
+@@ -522,7 +524,7 @@ struct ib_mr *c4iw_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
+ 	if (!mhp)
+ 		return ERR_PTR(-ENOMEM);
+-	mhp->wr_waitp = kzalloc(sizeof(*mhp->wr_waitp), GFP_KERNEL);
++	mhp->wr_waitp = c4iw_alloc_wr_wait(GFP_KERNEL);
+ 	if (!mhp->wr_waitp)
+ 		goto err_free_mhp;
+ 
+@@ -600,7 +602,7 @@ struct ib_mr *c4iw_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ err_free_skb:
+ 	kfree_skb(mhp->dereg_skb);
+ err_free_wr_wait:
+-	kfree(mhp->wr_waitp);
++	c4iw_put_wr_wait(mhp->wr_waitp);
+ err_free_mhp:
+ 	kfree(mhp);
+ 	return ERR_PTR(err);
+@@ -625,7 +627,7 @@ struct ib_mw *c4iw_alloc_mw(struct ib_pd *pd, enum ib_mw_type type,
+ 	if (!mhp)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	mhp->wr_waitp = kzalloc(sizeof(*mhp->wr_waitp), GFP_KERNEL);
++	mhp->wr_waitp = c4iw_alloc_wr_wait(GFP_KERNEL);
+ 	if (!mhp->wr_waitp) {
+ 		ret = -ENOMEM;
+ 		goto free_mhp;
+@@ -659,7 +661,7 @@ struct ib_mw *c4iw_alloc_mw(struct ib_pd *pd, enum ib_mw_type type,
+ free_skb:
+ 	kfree_skb(mhp->dereg_skb);
+ free_wr_wait:
+-	kfree(mhp->wr_waitp);
++	c4iw_put_wr_wait(mhp->wr_waitp);
+ free_mhp:
+ 	kfree(mhp);
+ 	return ERR_PTR(ret);
+@@ -678,7 +680,7 @@ int c4iw_dealloc_mw(struct ib_mw *mw)
+ 	deallocate_window(&rhp->rdev, mhp->attr.stag, mhp->dereg_skb,
+ 			  mhp->wr_waitp);
+ 	kfree_skb(mhp->dereg_skb);
+-	kfree(mhp->wr_waitp);
++	c4iw_put_wr_wait(mhp->wr_waitp);
+ 	kfree(mhp);
+ 	pr_debug("ib_mw %p mmid 0x%x ptr %p\n", mw, mmid, mhp);
+ 	return 0;
+@@ -710,7 +712,7 @@ struct ib_mr *c4iw_alloc_mr(struct ib_pd *pd,
+ 		goto err;
+ 	}
+ 
+-	mhp->wr_waitp = kzalloc(sizeof(*mhp->wr_waitp), GFP_KERNEL);
++	mhp->wr_waitp = c4iw_alloc_wr_wait(GFP_KERNEL);
+ 	if (!mhp->wr_waitp) {
+ 		ret = -ENOMEM;
+ 		goto err_free_mhp;
+@@ -758,7 +760,7 @@ struct ib_mr *c4iw_alloc_mr(struct ib_pd *pd,
+ 	dma_free_coherent(&mhp->rhp->rdev.lldi.pdev->dev,
+ 			  mhp->max_mpl_len, mhp->mpl, mhp->mpl_addr);
+ err_free_wr_wait:
+-	kfree(mhp->wr_waitp);
++	c4iw_put_wr_wait(mhp->wr_waitp);
+ err_free_mhp:
+ 	kfree(mhp);
+ err:
+@@ -812,7 +814,7 @@ int c4iw_dereg_mr(struct ib_mr *ib_mr)
+ 	if (mhp->umem)
+ 		ib_umem_release(mhp->umem);
+ 	pr_debug("mmid 0x%x ptr %p\n", mmid, mhp);
+-	kfree(mhp->wr_waitp);
++	c4iw_put_wr_wait(mhp->wr_waitp);
+ 	kfree(mhp);
+ 	return 0;
+ }
 diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index a354001..cec2be5 100644
+index cec2be5..56655a0 100644
 --- a/drivers/infiniband/hw/cxgb4/qp.c
 +++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -1355,14 +1355,14 @@ static int rdma_fini(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
- 	wqe->flowid_len16 = cpu_to_be32(
- 		FW_WR_FLOWID_V(ep->hwtid) |
- 		FW_WR_LEN16_V(DIV_ROUND_UP(sizeof(*wqe), 16)));
--	wqe->cookie = (uintptr_t)&ep->com.wr_wait;
-+	wqe->cookie = (uintptr_t)ep->com.wr_waitp;
+@@ -353,11 +353,7 @@ static int create_qp(struct c4iw_rdev *rdev, struct t4_wq *wq,
+ 	res->u.sqrq.eqaddr = cpu_to_be64(wq->rq.dma_addr);
+ 
+ 	c4iw_init_wr_wait(wr_waitp);
+-
+-	ret = c4iw_ofld_send(rdev, skb);
+-	if (ret)
+-		goto free_dma;
+-	ret = c4iw_wait_for_reply(rdev, wr_waitp, 0, wq->sq.qid, __func__);
++	ret = c4iw_ref_send_wait(rdev, skb, wr_waitp, 0, wq->sq.qid, __func__);
+ 	if (ret)
+ 		goto free_dma;
+ 
+@@ -730,7 +726,7 @@ static void free_qp_work(struct work_struct *work)
+ 
+ 	if (ucontext)
+ 		c4iw_put_ucontext(ucontext);
+-	kfree(qhp->wr_waitp);
++	c4iw_put_wr_wait(qhp->wr_waitp);
+ 	kfree(qhp);
+ }
+ 
+@@ -1358,13 +1354,10 @@ static int rdma_fini(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
+ 	wqe->cookie = (uintptr_t)ep->com.wr_waitp;
  
  	wqe->u.fini.type = FW_RI_TYPE_FINI;
- 	ret = c4iw_ofld_send(&rhp->rdev, skb);
- 	if (ret)
- 		goto out;
+-	ret = c4iw_ofld_send(&rhp->rdev, skb);
+-	if (ret)
+-		goto out;
  
--	ret = c4iw_wait_for_reply(&rhp->rdev, &ep->com.wr_wait, qhp->ep->hwtid,
-+	ret = c4iw_wait_for_reply(&rhp->rdev, ep->com.wr_waitp, qhp->ep->hwtid,
- 			     qhp->wq.sq.qid, __func__);
- out:
+-	ret = c4iw_wait_for_reply(&rhp->rdev, ep->com.wr_waitp, qhp->ep->hwtid,
+-			     qhp->wq.sq.qid, __func__);
+-out:
++	ret = c4iw_ref_send_wait(&rhp->rdev, skb, ep->com.wr_waitp,
++				 qhp->ep->hwtid, qhp->wq.sq.qid, __func__);
++
  	pr_debug("ret %d\n", ret);
-@@ -1425,7 +1425,7 @@ static int rdma_init(struct c4iw_dev *rhp, struct c4iw_qp *qhp)
- 		FW_WR_FLOWID_V(qhp->ep->hwtid) |
- 		FW_WR_LEN16_V(DIV_ROUND_UP(sizeof(*wqe), 16)));
+ 	return ret;
+ }
+@@ -1462,15 +1455,11 @@ static int rdma_init(struct c4iw_dev *rhp, struct c4iw_qp *qhp)
+ 	if (qhp->attr.mpa_attr.initiator)
+ 		build_rtr_msg(qhp->attr.mpa_attr.p2p_type, &wqe->u.init);
  
--	wqe->cookie = (uintptr_t)&qhp->ep->com.wr_wait;
-+	wqe->cookie = (uintptr_t)qhp->ep->com.wr_waitp;
- 
- 	wqe->u.init.type = FW_RI_TYPE_INIT;
- 	wqe->u.init.mpareqbit_p2ptype =
-@@ -1466,7 +1466,7 @@ static int rdma_init(struct c4iw_dev *rhp, struct c4iw_qp *qhp)
- 	if (ret)
- 		goto err1;
- 
--	ret = c4iw_wait_for_reply(&rhp->rdev, &qhp->ep->com.wr_wait,
-+	ret = c4iw_wait_for_reply(&rhp->rdev, qhp->ep->com.wr_waitp,
- 				  qhp->ep->hwtid, qhp->wq.sq.qid, __func__);
+-	ret = c4iw_ofld_send(&rhp->rdev, skb);
+-	if (ret)
+-		goto err1;
+-
+-	ret = c4iw_wait_for_reply(&rhp->rdev, qhp->ep->com.wr_waitp,
+-				  qhp->ep->hwtid, qhp->wq.sq.qid, __func__);
++	ret = c4iw_ref_send_wait(&rhp->rdev, skb, qhp->ep->com.wr_waitp,
++				 qhp->ep->hwtid, qhp->wq.sq.qid, __func__);
  	if (!ret)
  		goto out;
+-err1:
++
+ 	free_ird(rhp, qhp->attr.max_ird);
+ out:
+ 	pr_debug("ret %d\n", ret);
+@@ -1796,7 +1785,7 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
+ 	if (!qhp)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	qhp->wr_waitp = kzalloc(sizeof(*qhp), GFP_KERNEL);
++	qhp->wr_waitp = c4iw_alloc_wr_wait(GFP_KERNEL);
+ 	if (!qhp->wr_waitp) {
+ 		ret = -ENOMEM;
+ 		goto err_free_qhp;
+@@ -1963,7 +1952,7 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
+ 	destroy_qp(&rhp->rdev, &qhp->wq,
+ 		   ucontext ? &ucontext->uctx : &rhp->rdev.uctx);
+ err_free_wr_wait:
+-	kfree(qhp->wr_waitp);
++	c4iw_put_wr_wait(qhp->wr_waitp);
+ err_free_qhp:
+ 	kfree(qhp);
+ 	return ERR_PTR(ret);
 -- 
 1.8.3.1
 
