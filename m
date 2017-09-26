@@ -1,82 +1,119 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-rc 5/7] Revert "IB/ipoib: Update broadcast object if
- PKey value was changed in index 0"
-Date: Tue, 26 Sep 2017 06:06:22 -0700
-Message-ID: <20170926130620.31476.82301.stgit@scvm10.sc.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH for-rc 6/7] IB/hfi1: On error,
+ fix use after free during user context setup
+Date: Tue, 26 Sep 2017 06:06:28 -0700
+Message-ID: <20170926130627.31476.88544.stgit@scvm10.sc.intel.com>
 References: <20170926130434.31476.81826.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20170926130434.31476.81826.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170926130434.31476.81826.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Estrin <alex.estrin@intel.com>
+From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-commit 9a9b8112699d will cause core to fail UD QP from being destroyed
-on ipoib unload, therefore cause resources leakage.
-On pkey change event above patch modifies mgid before calling underlying
-driver to detach it from QP. Drivers' detach_mcast() will fail to find
-modified mgid it was never given to attach in a first place.
-Core qp->usecnt will never go down, so ib_destroy_qp() will fail.
+During base context setup, if setup_base_ctxt() fails, the context is
+deallocated. This is incorrect because the context is referenced on
+return, to notify any waiting subcontext.  If there are no subcontexts
+the pointer will be invalid.
 
-IPoIB driver actually does take care of new broadcast mgid based on new
-pkey by destroying an old mcast object in ipoib_mcast_dev_flush())
-....
-	if (priv->broadcast) {
-		rb_erase(&priv->broadcast->rb_node, &priv->multicast_tree);
-		list_add_tail(&priv->broadcast->list, &remove_list);
-		priv->broadcast = NULL;
-	}
-...
+Reorganize the error path so that deallocate_ctxt() is called after all
+the possible subcontexts have been notified.
 
-then in restarted ipoib_macst_join_task() creating a new broadcast mcast
-object, sending join request and on completion tells the driver to attach
-to reinitialized QP:
-...
-if (!priv->broadcast) {
-...
-	broadcast = ipoib_mcast_alloc(dev, 0);
-...
-	memcpy(broadcast->mcmember.mgid.raw, priv->dev->broadcast + 4,
-	       sizeof (union ib_gid));
-	priv->broadcast = broadcast;
-...
-
-Fixes: 9a9b8112699d ("IB/ipoib: Update broadcast object if PKey value was changed in index 0")
-Cc: stable@vger.kernel.org
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Alex Estrin <alex.estrin@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |   13 -------------
- 1 files changed, 0 insertions(+), 13 deletions(-)
+ drivers/infiniband/hw/hfi1/file_ops.c |   41 ++++++++++++++++++---------------
+ 1 files changed, 22 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 2e07537..6cd6163 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -1000,19 +1000,6 @@ static inline int update_parent_pkey(struct ipoib_dev_priv *priv)
- 		 */
- 		priv->dev->broadcast[8] = priv->pkey >> 8;
- 		priv->dev->broadcast[9] = priv->pkey & 0xff;
--
--		/*
--		 * Update the broadcast address in the priv->broadcast object,
--		 * in case it already exists, otherwise no one will do that.
--		 */
--		if (priv->broadcast) {
--			spin_lock_irq(&priv->lock);
--			memcpy(priv->broadcast->mcmember.mgid.raw,
--			       priv->dev->broadcast + 4,
--			sizeof(union ib_gid));
--			spin_unlock_irq(&priv->lock);
+diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+index 2bc8926..d9a1e98 100644
+--- a/drivers/infiniband/hw/hfi1/file_ops.c
++++ b/drivers/infiniband/hw/hfi1/file_ops.c
+@@ -930,15 +930,8 @@ static int assign_ctxt(struct hfi1_filedata *fd, struct hfi1_user_info *uinfo)
+ 	switch (ret) {
+ 	case 0:
+ 		ret = setup_base_ctxt(fd, uctxt);
+-		if (uctxt->subctxt_cnt) {
+-			/*
+-			 * Base context is done (successfully or not), notify
+-			 * anybody using a sub-context that is waiting for
+-			 * this completion.
+-			 */
+-			clear_bit(HFI1_CTXT_BASE_UNINIT, &uctxt->event_flags);
+-			wake_up(&uctxt->wait);
 -		}
--
- 		return 0;
- 	}
++		if (ret)
++			deallocate_ctxt(uctxt);
+ 		break;
+ 	case 1:
+ 		ret = complete_subctxt(fd);
+@@ -1305,25 +1298,25 @@ static int setup_base_ctxt(struct hfi1_filedata *fd,
+ 	/* Now allocate the RcvHdr queue and eager buffers. */
+ 	ret = hfi1_create_rcvhdrq(dd, uctxt);
+ 	if (ret)
+-		return ret;
++		goto done;
  
+ 	ret = hfi1_setup_eagerbufs(uctxt);
+ 	if (ret)
+-		goto setup_failed;
++		goto done;
+ 
+ 	/* If sub-contexts are enabled, do the appropriate setup */
+ 	if (uctxt->subctxt_cnt)
+ 		ret = setup_subctxt(uctxt);
+ 	if (ret)
+-		goto setup_failed;
++		goto done;
+ 
+ 	ret = hfi1_alloc_ctxt_rcv_groups(uctxt);
+ 	if (ret)
+-		goto setup_failed;
++		goto done;
+ 
+ 	ret = init_user_ctxt(fd, uctxt);
+ 	if (ret)
+-		goto setup_failed;
++		goto done;
+ 
+ 	user_init(uctxt);
+ 
+@@ -1331,12 +1324,22 @@ static int setup_base_ctxt(struct hfi1_filedata *fd,
+ 	fd->uctxt = uctxt;
+ 	hfi1_rcd_get(uctxt);
+ 
+-	return 0;
++done:
++	if (uctxt->subctxt_cnt) {
++		/*
++		 * On error, set the failed bit so sub-contexts will clean up
++		 * correctly.
++		 */
++		if (ret)
++			set_bit(HFI1_CTXT_BASE_FAILED, &uctxt->event_flags);
+ 
+-setup_failed:
+-	/* Set the failed bit so sub-context init can do the right thing */
+-	set_bit(HFI1_CTXT_BASE_FAILED, &uctxt->event_flags);
+-	deallocate_ctxt(uctxt);
++		/*
++		 * Base context is done (successfully or not), notify anybody
++		 * using a sub-context that is waiting for this completion.
++		 */
++		clear_bit(HFI1_CTXT_BASE_UNINIT, &uctxt->event_flags);
++		wake_up(&uctxt->wait);
++	}
+ 
+ 	return ret;
+ }
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
