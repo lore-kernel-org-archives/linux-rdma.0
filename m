@@ -1,154 +1,67 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 05/20] RDMA/hns: Add command queue support for
- hip08 RoCE driver
-Date: Tue, 26 Sep 2017 18:51:49 +0300
-Message-ID: <20170926155149.GE6816@mtr-leonro.local>
-References: <1504084998-64397-1-git-send-email-xavier.huwei@huawei.com>
- <1504084998-64397-6-git-send-email-xavier.huwei@huawei.com>
- <1506359213.120853.75.camel@redhat.com>
- <20170925171821.GQ25094@mtr-leonro.local>
- <1506361015.120853.81.camel@redhat.com>
- <59CA5261.80209@huawei.com>
- <e99f8917-1906-697b-3dcd-5f024b444750@tom.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 03/10] verbs: Split init_device into a match and
+ alloc/bind step
+Date: Tue, 26 Sep 2017 19:00:16 +0300
+Message-ID: <5a30e4a3-e22c-5d1a-435d-d3c5d94333fd@dev.mellanox.co.il>
+References: <1505855931-4956-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1505855931-4956-4-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="gDGSpKKIBgtShtf+"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <e99f8917-1906-697b-3dcd-5f024b444750-WVlzvzqoTvw@public.gmane.org>
+In-Reply-To: <1505855931-4956-4-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wei Hu (Xavier)" <xavier.huwei-WVlzvzqoTvw@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 9/20/2017 12:18 AM, Jason Gunthorpe wrote:
+> The match step determines if the provider should bind to the sysfs device,
+> and the allocation step creates the verbs_device and cleanly matches the
+> uninit_device step which frees it.
+> 
+> This split makes it simpler to factor out all the duplicated code in the
+> match step.
+> 
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> ---
+>   libibverbs/driver.h | 21 ++++++++++++++-
+>   libibverbs/init.c   | 74 ++++++++++++++++++++++++++++++++++-------------------
+>   2 files changed, 68 insertions(+), 27 deletions(-)
+> 
+> diff --git a/libibverbs/driver.h b/libibverbs/driver.h
+> index f9f5cfa2308c2f..397441f49a0e5a 100644
+> --- a/libibverbs/driver.h
+> +++ b/libibverbs/driver.h
+> @@ -40,6 +40,7 @@
+>   #include <infiniband/kern-abi.h>
+>   #include <ccan/list.h>
+>   #include <config.h>
+> +#include <stdbool.h>
+>   
+>   #ifdef __cplusplus
+>   #  define BEGIN_C_DECLS extern "C" {
+> @@ -95,10 +96,27 @@ struct verbs_qp {
+>   	struct verbs_xrcd       *xrcd;
+>   };
+>   
+> +/* A rdma device detected in sysfs */
+> +struct verbs_sysfs_dev {
+> +	struct list_node entry;
+> +	void *provider_data;
 
---gDGSpKKIBgtShtf+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+It looks as this field isn't used in the series, correct ? if this is 
+the case better add when it'll become applicable.
 
-On Tue, Sep 26, 2017 at 11:24:41PM +0800, Wei Hu (Xavier) wrote:
->
->
-> On 2017/9/26 21:13, Wei Hu (Xavier) wrote:
-> >
-> >
-> > On 2017/9/26 1:36, Doug Ledford wrote:
-> > > On Mon, 2017-09-25 at 20:18 +0300, Leon Romanovsky wrote:
-> > > > On Mon, Sep 25, 2017 at 01:06:53PM -0400, Doug Ledford wrote:
-> > > > > On Wed, 2017-08-30 at 17:23 +0800, Wei Hu (Xavier) wrote:
-> > > > >
-> > > > > > +    /*
-> > > > > > +     * If the command is sync, wait for the firmware to
-> > > > > > write
-> > > > > > back,
-> > > > > > +     * if multi descriptors to be sent, use the first one to
-> > > > > > check
-> > > > > > +     */
-> > > > > > +    if ((desc->flag) & HNS_ROCE_CMD_FLAG_NO_INTR) {
-> > > > > > +        do {
-> > > > > > +            if (hns_roce_cmq_csq_done(hr_dev))
-> > > > > > +                break;
-> > > > > > +            usleep_range(1000, 2000);
-> > > > > > +            timeout++;
-> > > > > > +        } while (timeout < priv->cmq.tx_timeout);
-> > > > > > +    }
-> > > > > then we spin here for a maximum amount of time between 200 and
-> > > > > 400ms,
-> > > > > so 1/4 to 1/2 a second.  All the time we are holding the bh lock on
-> > > > > this CPU.  That seems excessive to me.  If we are going to spin
-> > > > > that
-> > > > > long, can you find a way to allocate/reserve your resources, send
-> > > > > the
-> > > > > command, then drop the bh lock while you spin, and retake it before
-> > > > > you
-> > > > > complete once the spinning is done?
-> > > > They don't allocate anything in this loop, but checking the pointers
-> > > > are
-> > > > the same, see hns_roce_cmq_csq_done.
-> > > I'm not sure I understand your intended implication of your comment.  I
-> > > wasn't concerned about them allocating anything, only that if the
-> > > hardware is hung, then this loop will hang out for 1/4 to 1/2 a second
-> > > and hold up all bottom half processing on this CPU in the meantime.
-> > > That's the sort of things that provides poor overall system behavior.
-> > >
-> > > Now, since they are really only checking to see if the hardware has
-> > > gotten around to their particular command, and their command is part of
-> > > a ring structure, it's possible to record the original head command,
-> > > and our new head command, and then release the spin_lock_bh around the
-> > > entire do{ }while construct, and in hns_roce_cmd_csq_done() you could
-> > > check that head is not in the range old_head:new_head.  That would
-> > > protect you in case something in the bottom half processing queued up
-> > > some more commands and from one sleep to the next the head jumped from
-> > > something other than the new_head to something past new_head, so that
-> > > head == priv->cmq.csq.next_to_use ends up being perpetually false.
-> > > But, that's just from a quick read of the code, I could easily be
-> > > missing something here...
-> > Hi, Doug
-> >     Driver issues the cmds in cmq, and firmware gets and processes them.
-> >     The firmware process only one cmd at the same time, and it will take
-> >     about serveral to 200 us in one cmd currently, so the driver need
-> >     not to use stream mode to issue cmd.
-> >
-> >     Regards
-> > Wei Hu
-> Hi, Doug
->     We can replace usleep_range(1000, 2000); with the following statement:
->         udelay(1);
->     to avoid spinning too long time and using usleep_range function in
->     spin_lock_bh locked region.
->
->     Can you give some suggestions?
-
-He already suggested number of options, while the simple one was to reduce
-HNS_ROCE_CMQ_TX_TIMEOUT from 200 to be something sane (for example 5).
-
-Thanks
->
->     Regards
-> Wei Hu
-> > > > > > +#define HNS_ROCE_CMQ_TX_TIMEOUT            200
-> > > > > or you could reduce the size of this define...
-> > > > >
-> > > > > --
-> > > > > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > > > >      GPG KeyID: B826A3330E572FDD
-> > > > >      Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57
-> > > > > 2FDD
-> > > > >
-> > > > > --
-> > > > > To unsubscribe from this list: send the line "unsubscribe linux-
-> > > > > rdma" in
-> > > > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > > More majordomo info at http://vger.kernel.org/majordomo-info.html
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
---gDGSpKKIBgtShtf+
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnKd5UACgkQ5GN7iDZy
-WKdF4xAAzFcQ3Ps16Mkw97LWrJuM3pkwMjJnmsjuWdyBoAwpKXu09MqHKkiAZqDL
-+FrPuOXNfcdFc+2P5Yh/W0KA5nwgqiFAA4FBi71U2MXYR+jzhn3wbTh1w/zkASi9
-zSeeqxlau90NkyHy/1kr730I8j67U2kwbdpUFxAAafW/MRLZdqzxHQuPUkdPBKhg
-uPIlOY6I0EWukxW//0oHbYoVFpJrVZz6DVxj1UYtNKSkji0W9rTYCs3DefYPmT7U
-6hK7fCvhQDFwlseqYR7v/RK4FIy67to0QQfHUM3kQfWprdbPlSjxYxA5O6cXlawH
-RuclfjIGqM1QKRk7fSh8zv0HFjwc8nfxHswcoCiSOAr03faTmnHBTQkAYXjlb1x3
-0vvNKZBu2UCZi9QgSHLzq60uR8NHYnFmOni038A5j0S0Q2feP+xz+PFR7AG5NVqT
-aU33QuNXpqsjH6emTtcEDBT1tqCFhp6InKUxGN2+nYQxFEfgQMIa+il2PvMCSo/X
-IXF0ZGPVRYj2GEE/DDMYPf/nheQOrlUX3BrGIO7cGY129V4d32Z6lTcK8KUI0u6S
-DQlhprNpJQ0lmZJdK1y21qqXHHmaYSj3VW/vFddrIh2xs8b9Y7T8IJhh+8jZKPi7
-6bXtlQdgFtYMFa7R7A1Zfb/5SwFyOJNo6p17d/nFi8+vGRghBcw=
-=I6mC
------END PGP SIGNATURE-----
-
---gDGSpKKIBgtShtf+--
+> +	char sysfs_name[IBV_SYSFS_NAME_MAX];
+> +	char ibdev_name[IBV_SYSFS_NAME_MAX];
+> +	char sysfs_path[IBV_SYSFS_PATH_MAX];
+> +	char ibdev_path[IBV_SYSFS_PATH_MAX];
+> +	int abi_ver;
+> +	struct timespec time_created;
+> +};
+> +
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
