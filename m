@@ -1,44 +1,81 @@
-From: "Stephen  Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [linux-rdma and rdma-core]: Unable to perform rdma_connect in
- loopbacked configuration
-Date: Tue, 26 Sep 2017 20:52:10 +0000
-Message-ID: <9CF2D84A-0142-4613-87B9-582F2722D8E1@raithlin.com>
-References: <59792242-F2C8-431A-BEDA-996844EDE4C5@raithlin.com>
- <20170918205959.GC7059@obsidianresearch.com>
- <AB27E7A4-FD5A-438E-A0CF-E593882F5EAE@raithlin.com>
- <20170920162828.GC536@obsidianresearch.com>
+From: Julia Cartwright <julia@ni.com>
+Subject: Re: [RFC+PATCH] Infiniband hfi1 + PREEMPT_RT_FULL issues
+Date: Tue, 26 Sep 2017 16:00:45 -0500
+Message-ID: <20170926210045.GO29872@jcartwri.amer.corp.natinst.com>
+References: <20170925144949.GP29668@kernel.org>
+ <20170925211447.GL29872@jcartwri.amer.corp.natinst.com>
+ <32E1700B9017364D9B60AED9960492BC3441B3BD@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170920162828.GC536-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Content-ID: <7B454FD09B385449B5FD12D6F3AA3AEF-JkAt9bkEularoOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-rt-users-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC3441B3BD@fmsmsx120.amr.corp.intel.com>
+Sender: linux-rt-users-owner@vger.kernel.org
+To: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Clark Williams <williams@redhat.com>, "Luick, Dean" <dean.luick@intel.com>, Doug Ledford <dledford@redhat.com>, "Wan, Kaike" <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>, "Sanchez, Sebastian" <sebastian.sanchez@intel.com>, Steven Rostedt <rostedt@goodmis.org>, "linux-rt-users@vger.kernel.org" <linux-rt-users@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiANCj4gVGhhbmtzIGZvciB0aGUgcmVwbHkgSmFzb24NCj4gDQo+ID4gPiBUaGUgUkRNQSBzdHVm
-ZiBpZ25vcmVzIGV2ZXJ5dGhpbmcgaW4gaXB0YWJsZXMuDQo+ID4gDQo+ID4gQ2FuIEkgYXNrIHdo
-eSB0aGlzIGlzPw0KPg0KPiByb2NlIGlzIGFuIGluY29tcGxldGUgZW11bGF0aW9uIG9mIHRoZSBu
-ZXRzdGFjayB3aXRoIGhhcmR3YXJlDQo+IG9mZmxvYWQuIGV2ZXJ5dGhpbmcgaXB0YWJsZXMgaXMg
-cGFydCBvZiB0aGUgaW5jb21wbGV0ZW5lc3MuLg0KDQpPSyB0aGFua3MNCg0KPj4gPiBJTUhPLCBp
-dCBpcyBhbHNvIGEgYnVnIGlmIGxvb3BiYWNrIHJvY2UgZG9lc24ndCBqdXN0IHdvcmsgb3V0IG9m
-IHRoZQ0KPj4gPiBib3gsIGZ1bGx5IGludGVybmFsbHkgdG8gdGhlIE5JQy4gOlwNCj4+IA0KPj4g
-T0suIE5vdGUgd2hhdCBJIGFtIHRyeWluZyB0byBnZXQgd29ya2luZyBpcyBhIGJpdCBkaWZmZXJl
-bnQuIEl0J3NzDQo+PiBub3QgaW50ZXJuYWwgdG8gb25lIE5JQyBidXQgYWNyb3NzIHR3byBOSUNz
-IGluIHRoZSBzYW1lDQo+PiBzZXJ2ZXIuIExvb3BiYWNrIGluc2lkZSBvbmUgTklDIHdvcmtzIGZp
-bmUuDQo+DQo+IEkgZ290IHRoYXQsIGJ1dCBpdCBtYWtlcyBubyBkaWZmZXJlbmNlIHRvIG15IHN0
-YXRlbWVudC4gT3V0IG9mIHRoZSBib3gNCj4gdGhlIGtlcm5lbCBzaG91bGQgc2VsZWN0IG9uZSBv
-ZiB0aGUgdHdvIE5JQ3MgYW5kIGRvIGludGVybmFsIGxvb3BiYWNrLg0KPg0KPiBUaGF0IGlzIGNv
-bnNpc3RlbnQgd2l0aCB0aGUgbmV0c3RhY2sgc2VtYW50aWMgdGhhdCB0aGUgSVAgYWRkcmVzcyBp
-cyBhDQo+IHByb3BlcnR5IG9mIHRoZSBob3N0IG5vdCB0aGUgbmV0ZGV2Lg0KDQpPSyBJIHNlZSB3
-aGF0IHlvdSBhcmUgc2F5aW5nLiBJIGRvIHNlZSB0aGlzIHdvcmtpbmcgb24gbXkgc2V0dXAgaW4g
-dGhlIHNlbnNlIHRoYXQgaWYgSSBkb27igJl0IHVzZSBQYXJhduKAmXMgbG9vcGJhY2sgc2NyaXB0
-IEkgc2VlIHJkbWFfY20gYmFzZWQgY29ubmVjdGlvbnMgbG9vcGJhY2sgYmFjayBpbnRlcm5hbGx5
-IG9mZiBvbmUgb2YgdGhlIEhDQXMuDQoNClN0ZXBoZW4NCg0KDQoNCg==
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue, Sep 26, 2017 at 02:10:52PM +0000, Marciniszyn, Mike wrote:
+> > > Hi,
+> > >
+> > > 	I'm trying to get an Infiniband test case working with the RT
+> > > kernel, and ended over tripping over this case:
+> > >
+> > > 	In drivers/infiniband/hw/hfi1/pio.c sc_buffer_alloc() disables
+> > > preemption that will be reenabled by either pio_copy() or
+> > > seg_pio_copy_end().
+> > 
+> > Perhaps it's worth revisiting why this design decision was chosen in the
+> > first place?  The introducing commit, a054374f15428cbc1
+> > ("staging/rdma/hfi1: convert buffers allocated atomic to per cpu")
+> > mentions the previous atomic as being expensive, but the usage of
+> > preempt_disable()/preempt_enable() is also expensive, albeit in a
+> > different way.
+> > 
+> > My first question would be: is disabling preemption here really
+> > necessary?
+> > 
+>
+> The motivation for the preempt manipulation has nothing to do with the counter.
+>
+> The buffer allocation returns a set of ringed write-combining 64B MMIO
+> buffers.   The allocate lock is then dropped right after allocation to
+> allow parallel allocates.
+>
+> The hardware keeps track of the buffer fill across multiple CPUs, so
+> that after the oldest buffer is copied the ring is advanced.
+>
+> The idea was to minimize the time from the drop of the allocate lock
+> to the end of the copy to insure the highest rate of copy to the ring
+> from multiple cores.
+
+Okay, so to be clear, disabling preemption here is strictly a
+performance consideration, not a correctness one?
+
+> > If that's the case, perhaps the fix is as easy as removing the
+> > preempt_disable() and preempt_enable()?
+> > 
+> 
+> That would certainly be the easiest solution, but would compromise
+> performance if a migration occurs after the allocate lock is dropped.
+
+Given this response, I'm assuming that to be the case.
+
+Disabling preemption to avoid "compromising performance", presumes a
+very specific definition of "performance" that does not apply _in
+general_, and certainly does not apply for RT users, who care more for
+"response time" (as Steven put it).
+
+Instead, the kernel already directly provides tools for _users_ to make
+decisions about what the relative portions of their workloads are,
+namely scheduling parameters, CPU affinities, isolcpus, etc.  Why are
+these not sufficient in this case?
+
+In addition, the use of local locks is a waste here, they provide more
+guarantees than is actually necessary; this driver will function fine if
+more than two threads on the same CPU are within this "critical
+section".  If you want to maintain preempt_disable()/_enable() in
+non-RT, then whatever, use the preempt_disable_nort()/_enable_nort()
+varieties.
+
+   Julia
