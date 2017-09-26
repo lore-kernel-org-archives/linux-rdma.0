@@ -1,53 +1,43 @@
-From: Nelio Laranjeiro <nelio.laranjeiro-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] verbs: fix compilation error with ICC
-Date: Tue, 26 Sep 2017 16:05:11 +0200
-Message-ID: <1506434711-3828-1-git-send-email-nelio.laranjeiro@6wind.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH for-next 0/2] IB/opa_vnic: Add debugfs interface
+Date: Tue, 26 Sep 2017 07:08:37 -0700
+Message-ID: <20170926140714.18110.74689.stgit@scvm10.sc.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Adrien Mazarguil <adrien.mazarguil-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Scott Franco <safranco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Niranjana Vishwanathapura <Niranjana.Vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Compiling a program including verbs.h with ICC fails with the following
-error (seen with DPDK):
+Hi Doug,
 
- /root/development/rdma-core/build/include/infiniband/verbs.h(84):
- warning #61: integer operation result is out of range
-   static void *__VERBS_ABI_IS_EXTENDED = ((uint8_t *) NULL) - 1;
+Here are the other two patches for opa_vnic. This adds a debugfs interface and
+that is why I'm sending it as a separate series apart from the rest of our
+submissions. The goal is to support view/modify of the VESW port config.
 
-Fixes: 6be16586e081 ("Infrastructure to support verbs extensions")
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Patches can can also be found in my GitHub repo at:
+https://github.com/ddalessa/kernel/tree/for-4.15
 
-Signed-off-by: Nelio Laranjeiro <nelio.laranjeiro-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-Acked-by: Adrien Mazarguil <adrien.mazarguil-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
 ---
- libibverbs/verbs.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 8cdf8ab..cc633a1 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -42,6 +42,7 @@
- #include <errno.h>
- #include <string.h>
- #include <linux/types.h>
-+#include <stdint.h>
- 
- #ifdef __cplusplus
- #  define BEGIN_C_DECLS extern "C" {
-@@ -81,7 +82,7 @@ union ibv_gid {
- 
- #define vext_field_avail(type, fld, sz) (offsetof(type, fld) < (sz))
- 
--static void *__VERBS_ABI_IS_EXTENDED = ((uint8_t *) NULL) - 1;
-+static void *__VERBS_ABI_IS_EXTENDED = (void *)UINTPTR_MAX;
- 
- enum ibv_node_type {
- 	IBV_NODE_UNKNOWN	= -1,
--- 
-2.1.4
+Niranjana Vishwanathapura (2):
+      IB/opa_vnic: Add debugfs support to OPA VNIC
+      IB/opa_vnic: Support adding OPA VNIC vports through debug interface
 
+
+ drivers/infiniband/ulp/opa_vnic/Makefile           |    1 
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_debugfs.c |  667 ++++++++++++++++++++
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_debugfs.h |   70 ++
+ .../infiniband/ulp/opa_vnic/opa_vnic_internal.h    |   36 +
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c    |   47 +
+ 5 files changed, 789 insertions(+), 32 deletions(-)
+ create mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_debugfs.c
+ create mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_debugfs.h
+
+--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
