@@ -1,115 +1,97 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-rc 5/7] Revert "IB/ipoib: Update broadcast object if
- PKey value was changed in index 0"
-Date: Tue, 26 Sep 2017 19:27:29 +0300
-Message-ID: <20170926162729.GG6816@mtr-leonro.local>
-References: <20170926130434.31476.81826.stgit@scvm10.sc.intel.com>
- <20170926130620.31476.82301.stgit@scvm10.sc.intel.com>
+Subject: Re: [ANNOUNCE] Shared pull requests (was Re: Workflow for i40iw
+ patch submissions)
+Date: Tue, 26 Sep 2017 19:34:22 +0300
+Message-ID: <20170926163422.GH6816@mtr-leonro.local>
+References: <1506179005.120853.67.camel@redhat.com>
+ <20170925035910.GL25094@mtr-leonro.local>
+ <5abacb7d-3e86-4e12-ce95-a8fe472a6a09@redhat.com>
+ <20170925155749.GO25094@mtr-leonro.local>
+ <7c01cef3-0471-8339-3498-1d9ec4f8a9d3@redhat.com>
+ <20170926051349.GA1230@mtr-leonro.local>
+ <20170926065600.GA6816@mtr-leonro.local>
+ <6fa41141-cae5-da51-94ef-afe5bdec22bd@redhat.com>
+ <20170926162140.GF6816@mtr-leonro.local>
+ <4707c600-7aec-2c14-11d6-0443c2a835e3@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="kjpMrWxdCilgNbo1"
+        protocol="application/pgp-signature"; boundary="GBDnBH7+ZvLx8QD4"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170926130620.31476.82301.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <4707c600-7aec-2c14-11d6-0443c2a835e3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Saleem, Shiraz" <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---kjpMrWxdCilgNbo1
+--GBDnBH7+ZvLx8QD4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 26, 2017 at 06:06:22AM -0700, Dennis Dalessandro wrote:
-> From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Tue, Sep 26, 2017 at 12:23:35PM -0400, Doug Ledford wrote:
+> On 9/26/2017 12:21 PM, Leon Romanovsky wrote:
+> > On Tue, Sep 26, 2017 at 12:03:01PM -0400, Doug Ledford wrote:
+> >
+> > <...>
+> >
+> >>>> He started to complain about empty merge commit with v4.13-rc1, and continued with explanations
+> >>>> about difference between back and forward merges. From my point of view, my intention to base
+> >>>> shared pull request on latest -rcX is exactly forward (good) merge, because it ensures that
+> >>>> all our future submissions for net/net-next/rdma-rc/rdma-next are completely in sync and
+> >>>> ready to go.
+> >>
+> >> This is why, when I submit a pull request for -rc, I also merge it into
+> >> for-next.  It keeps this up to date as you say, without needing to pull
+> >> in all of the -rc, so it gives Linus an easier history to look at.  It
+> >> does not, however, sync up the net side of things.
+> >>
+> >
+> > Doug,
+> >
+> > What is the bottom line for the bases for shared pull requests?
+> >
+> > Thanks
+> >
 >
-> commit 9a9b8112699d will cause core to fail UD QP from being destroyed
-> on ipoib unload, therefore cause resources leakage.
-> On pkey change event above patch modifies mgid before calling underlying
-> driver to detach it from QP. Drivers' detach_mcast() will fail to find
-> modified mgid it was never given to attach in a first place.
-> Core qp->usecnt will never go down, so ib_destroy_qp() will fail.
+> Just base it on either A) my current for-next or B) -rc2.
+
+OK, in this cycle, we will have it on -rc2, but I don't know if it is always
+feasible.
+
+Thanks
+
 >
-> IPoIB driver actually does take care of new broadcast mgid based on new
-> pkey by destroying an old mcast object in ipoib_mcast_dev_flush())
-> ....
-> 	if (priv->broadcast) {
-> 		rb_erase(&priv->broadcast->rb_node, &priv->multicast_tree);
-> 		list_add_tail(&priv->broadcast->list, &remove_list);
-> 		priv->broadcast =3D NULL;
-> 	}
-> ...
->
-> then in restarted ipoib_macst_join_task() creating a new broadcast mcast
-> object, sending join request and on completion tells the driver to attach
-> to reinitialized QP:
-> ...
-> if (!priv->broadcast) {
-> ...
-> 	broadcast =3D ipoib_mcast_alloc(dev, 0);
-> ...
-> 	memcpy(broadcast->mcmember.mgid.raw, priv->dev->broadcast + 4,
-> 	       sizeof (union ib_gid));
-> 	priv->broadcast =3D broadcast;
-> ...
->
-> Fixes: 9a9b8112699d ("IB/ipoib: Update broadcast object if PKey value was=
- changed in index 0")
-> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib_ib.c |   13 -------------
->  1 files changed, 0 insertions(+), 13 deletions(-)
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG Key ID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 >
 
-I consulted with Feras about it and it is his reply.
 
-=46rom Feras:
-After applying the patch in question, the following scenario may happens:
 
-    PKEY change event occurs, it calls update_parent_pkey (which updates th=
-e device and the priv broadcast)
-    and then brings the device down. The flow of taking the device down flu=
-shes the multicast groups and
-    the broadcast group. Since the patch changes the broadcast address, the=
- flow fails to detach from the
-    unattached group causing syndrome.
 
-Mistakenly we thought that that patch will fix other issue with VM migratio=
-ns when pkey change in index 0,
-in this case the interface state was down so we did not hit this issue.
-
-Anyway, your revert is correct.
-
-Thanks,
-Reviewed-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
---kjpMrWxdCilgNbo1
+--GBDnBH7+ZvLx8QD4
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnKf+8ACgkQ5GN7iDZy
-WKe9HBAAnUQkX0T4v/1wPzfhW9FyA3jtkLRxI2GrqD1/zlN7aA9P0IALwJKhCELk
-2LsC3OD5ufi5Mt2oWN9f2m8p+P1RNeL8Fx2ZuTsHXO539Dr74xmtFoeiFMCETOaZ
-H4oLw0bMMmJk/0FS6dK6jQU0d/ESZWBNCOCSoAnIIdYneAA/elXWKoC/q85O63fC
-KAyMkBZJx6CQiLLLqgB2hhi6Bylv/4mSH9VXzE9R49AO6djy7anPpLW1PKeYigOG
-9N/u0Ggz0icdumwNKldS4UeLnojGyQyLD8SmR80Ksx+nYeEARy2kohHgr4YWo2cE
-sdfTBUfU7fZ7nwJU3+DGfL+IsDxUSBHWgPTUdDWIKBrjh6ObDT8TLDbNPPh5cuD8
-h9kZ+2prBm6Wz7DReJSOoqqKi+WegoauaFreAVi+7GaXUXujo9Vwo2cToJcVvd79
-BRdhRq8ZgFbfyMCrChDB4p9GHFugICBE30Om+yRrh3Y8Pto+Rgly8m2lOWg1vhSD
-BBw9k/3cd8DAg9Q/HbdUuPfYG+KYK+XM7VbRMVSmUNKewN8hwITSYgPvitR8brM9
-Gf71SuergH4L1IIVJFs8Ec+C00I7Hv08dokt3t324G/4T7fjAUPt1Lhawh0Q2nLU
-ldbBXYJJ1r16evyyPUbCy/51ehnP5gUEC77CTjXlS/FLxjBdtEM=
-=UTwq
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnKgY0ACgkQ5GN7iDZy
+WKfOZRAAg6H3e9NefHGhBUbh173WZa6XOVpulBEwWRASrxIvv8oyld2Z291B2tAL
+R+ghgJTU95kUmpj8vQPJThRpYH1i1Rv2GOWOgAadohwi9mdIvi4v20xfx4wN3BGq
+6Ixo90FESy0aJDGci596vt9BK7tWBSkACgpAOBszhqn04PAJV+quHp81EGZ80xAj
+koKz6mpDOEddZTO1PM1a0sjuWvXzYO2xwvOExnf0K2qUfNhojeAtbShbEA8351ve
+OJrSye2h3WrIklq09UyK4sQfqwRora2X8VcYXWm7wAjlB7UVKsmS+KICLEv1T3jw
+p/cs0VePuzVvZYbpFMYOW0VD2aFM28rPNTUVykPyL9G5uiqvUC2gYalSok2Hsdlr
+muUcWg4bVl43Vz+TdFlj98ppgndgGPvBxfqsRK6KYwM6GCnUmLxhdZWhWNxaOy8x
+/almC2MjnDge801nYEvCH/QzbrI8heVIGLF3rzsj1oUaSbwYXkn8IbK55G9ilJtj
+6AebpXKHAIqjmTR9iDyZbrtqpqVnqqLLJL101w9UpmG7qPMVQlNr0FA9p9YnCpgb
+HHHwxTvu7rrjhHwgN/hBTqzMF+d39pCNXg2DWyDK0YDzo7VpTDs7vPPLRNYvE4Oo
+AUQYTAEBcQoAlmhflu9kLUKRnDtrfrBKQlIqic9BeirDY7kKzAE=
+=JmGh
 -----END PGP SIGNATURE-----
 
---kjpMrWxdCilgNbo1--
+--GBDnBH7+ZvLx8QD4--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
