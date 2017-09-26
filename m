@@ -1,261 +1,37 @@
-From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH for-next v2 2/2] iw_cxgb4: change pr_debug to appropriate log level
-Date: Tue, 26 Sep 2017 23:10:10 +0530
-Message-ID: <1506447610-12909-3-git-send-email-bharat@chelsio.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH for-next v2 0/2] iw_cxgb4 pr_debug() changes for 4.14-rc
+Date: Tue, 26 Sep 2017 12:47:05 -0500
+Message-ID: <01ff01d336ef$77dd1ea0$67975be0$@opengridcomputing.com>
 References: <1506447610-12909-1-git-send-email-bharat@chelsio.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1506447610-12909-1-git-send-email-bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+To: 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Error logs of iw_cxgb4 needs to be printed by default. This patch
-changes the necessary pr_debug() to appropriate pr_<log level>.
+> 
+> Hi Doug,
+> Previous submission of these changes wont apply clean above "for-next"
+> branch due to the recent patches of Steve pulled into it. Current
+> series is generated on top of your "for-next" branch.
+> Please consider these for smoother application of subsequent patches.
+> 
+> Changes since original submission
+> - Make patches on top of "for-next" branch.
+> 
+> Thanks,
+> Bharat.
 
-Signed-off-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/cm.c       | 50 +++++++++++++++++-----------------
- drivers/infiniband/hw/cxgb4/ev.c       |  2 +-
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  4 +--
- drivers/infiniband/hw/cxgb4/qp.c       |  4 +--
- drivers/infiniband/hw/cxgb4/t4.h       |  8 +++---
- 5 files changed, 34 insertions(+), 34 deletions(-)
+Hey Bharat, Thanks for these.  Doug, these are perhaps too light for the -rc
+stream.  So if prefer -next, that is fine with me. 
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 8ea79ca39303..34458ff4a4d3 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -212,7 +212,7 @@ static int c4iw_l2t_send(struct c4iw_rdev *rdev, struct sk_buff *skb,
- 
- 	if (c4iw_fatal_error(rdev)) {
- 		kfree_skb(skb);
--		pr_debug("%s - device in error state - dropping\n", __func__);
-+		pr_err("%s - device in error state - dropping\n", __func__);
- 		return -EIO;
- 	}
- 	error = cxgb4_l2t_send(rdev->lldi.ports[0], skb, l2e);
-@@ -229,7 +229,7 @@ int c4iw_ofld_send(struct c4iw_rdev *rdev, struct sk_buff *skb)
- 
- 	if (c4iw_fatal_error(rdev)) {
- 		kfree_skb(skb);
--		pr_debug("%s - device in error state - dropping\n", __func__);
-+		pr_err("%s - device in error state - dropping\n", __func__);
- 		return -EIO;
- 	}
- 	error = cxgb4_ofld_send(rdev->lldi.ports[0], skb);
-@@ -263,8 +263,8 @@ static void set_emss(struct c4iw_ep *ep, u16 opt)
- 	if (ep->emss < 128)
- 		ep->emss = 128;
- 	if (ep->emss & 7)
--		pr_debug("Warning: misaligned mtu idx %u mss %u emss=%u\n",
--			 TCPOPT_MSS_G(opt), ep->mss, ep->emss);
-+		pr_warn("Warning: misaligned mtu idx %u mss %u emss=%u\n",
-+			TCPOPT_MSS_G(opt), ep->mss, ep->emss);
- 	pr_debug("mss_idx %u mss %u emss=%u\n", TCPOPT_MSS_G(opt), ep->mss,
- 		 ep->emss);
- }
-@@ -2314,7 +2314,7 @@ static int pass_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 	struct c4iw_listen_ep *ep = get_ep_from_stid(dev, stid);
- 
- 	if (!ep) {
--		pr_debug("%s stid %d lookup failure!\n", __func__, stid);
-+		pr_warn("%s stid %d lookup failure!\n", __func__, stid);
- 		goto out;
- 	}
- 	pr_debug("ep %p status %d error %d\n", ep,
-@@ -2332,7 +2332,7 @@ static int close_listsrv_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 	struct c4iw_listen_ep *ep = get_ep_from_stid(dev, stid);
- 
- 	if (!ep) {
--		pr_debug("%s stid %d lookup failure!\n", __func__, stid);
-+		pr_warn("%s stid %d lookup failure!\n", __func__, stid);
- 		goto out;
- 	}
- 	pr_debug("ep %p\n", ep);
-@@ -2464,13 +2464,13 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 
- 	parent_ep = (struct c4iw_ep *)get_ep_from_stid(dev, stid);
- 	if (!parent_ep) {
--		pr_debug("%s connect request on invalid stid %d\n",
--			 __func__, stid);
-+		pr_err("%s connect request on invalid stid %d\n",
-+		       __func__, stid);
- 		goto reject;
- 	}
- 
- 	if (state_read(&parent_ep->com) != LISTEN) {
--		pr_debug("%s - listening ep not in LISTEN\n", __func__);
-+		pr_err("%s - listening ep not in LISTEN\n", __func__);
- 		goto reject;
- 	}
- 
-@@ -2739,9 +2739,9 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
- 		return 0;
- 
- 	if (cxgb_is_neg_adv(req->status)) {
--		pr_debug("%s Negative advice on abort- tid %u status %d (%s)\n",
--			 __func__, ep->hwtid, req->status,
--			 neg_adv_str(req->status));
-+		pr_warn("%s Negative advice on abort- tid %u status %d (%s)\n",
-+			__func__, ep->hwtid, req->status,
-+			neg_adv_str(req->status));
- 		ep->stats.abort_neg_adv++;
- 		mutex_lock(&dev->rdev.stats.lock);
- 		dev->rdev.stats.neg_adv++;
-@@ -2781,8 +2781,8 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
- 			 * do some housekeeping so as to re-initiate the
- 			 * connection
- 			 */
--			pr_debug("%s: mpa_rev=%d. Retrying with mpav1\n",
--				 __func__, mpa_rev);
-+			pr_info("%s: mpa_rev=%d. Retrying with mpav1\n",
-+				__func__, mpa_rev);
- 			ep->retry_with_mpa_v1 = 1;
- 		}
- 		break;
-@@ -2808,7 +2808,7 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
- 	case ABORTING:
- 		break;
- 	case DEAD:
--		pr_debug("%s PEER_ABORT IN DEAD STATE!!!!\n", __func__);
-+		pr_warn("%s PEER_ABORT IN DEAD STATE!!!!\n", __func__);
- 		mutex_unlock(&ep->com.mutex);
- 		goto deref_ep;
- 	default:
-@@ -2951,8 +2951,8 @@ static int fw4_ack(struct c4iw_dev *dev, struct sk_buff *skb)
- 	pr_debug("ep %p tid %u credits %u\n",
- 		 ep, ep->hwtid, credits);
- 	if (credits == 0) {
--		pr_debug("%s 0 credit ack ep %p tid %u state %u\n",
--			 __func__, ep, ep->hwtid, state_read(&ep->com));
-+		pr_warn("%s 0 credit ack ep %p tid %u state %u\n",
-+			__func__, ep, ep->hwtid, state_read(&ep->com));
- 		goto out;
- 	}
- 
-@@ -3218,7 +3218,7 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 	ep->com.dev = dev;
- 	ep->com.qp = get_qhp(dev, conn_param->qpn);
- 	if (!ep->com.qp) {
--		pr_debug("%s qpn 0x%x not found!\n", __func__, conn_param->qpn);
-+		pr_warn("%s qpn 0x%x not found!\n", __func__, conn_param->qpn);
- 		err = -EINVAL;
- 		goto fail2;
- 	}
-@@ -3571,8 +3571,8 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
- 	case MORIBUND:
- 	case ABORTING:
- 	case DEAD:
--		pr_debug("%s ignoring disconnect ep %p state %u\n",
--			 __func__, ep, ep->com.state);
-+		pr_info("%s ignoring disconnect ep %p state %u\n",
-+			__func__, ep, ep->com.state);
- 		break;
- 	default:
- 		BUG();
-@@ -3676,7 +3676,7 @@ static void passive_ofld_conn_reply(struct c4iw_dev *dev, struct sk_buff *skb,
- 	rpl_skb = (struct sk_buff *)(unsigned long)req->cookie;
- 	BUG_ON(!rpl_skb);
- 	if (req->retval) {
--		pr_debug("%s passive open failure %d\n", __func__, req->retval);
-+		pr_err("%s passive open failure %d\n", __func__, req->retval);
- 		mutex_lock(&dev->rdev.stats.lock);
- 		dev->rdev.stats.pas_ofld_conn_fails++;
- 		mutex_unlock(&dev->rdev.stats.lock);
-@@ -3893,8 +3893,8 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
- 
- 	lep = (struct c4iw_ep *)get_ep_from_stid(dev, stid);
- 	if (!lep) {
--		pr_debug("%s connect request on invalid stid %d\n",
--			 __func__, stid);
-+		pr_warn("%s connect request on invalid stid %d\n",
-+			__func__, stid);
- 		goto reject;
- 	}
- 
-@@ -4209,8 +4209,8 @@ static int peer_abort_intr(struct c4iw_dev *dev, struct sk_buff *skb)
- 		return 0;
- 	}
- 	if (cxgb_is_neg_adv(req->status)) {
--		pr_debug("%s Negative advice on abort- tid %u status %d (%s)\n",
--			 __func__, ep->hwtid, req->status,
-+		pr_warn("%s Negative advice on abort- tid %u status %d (%s)\n",
-+			__func__, ep->hwtid, req->status,
- 			 neg_adv_str(req->status));
- 		goto out;
- 	}
-diff --git a/drivers/infiniband/hw/cxgb4/ev.c b/drivers/infiniband/hw/cxgb4/ev.c
-index 8f963df0bffc..b8c7cc938bce 100644
---- a/drivers/infiniband/hw/cxgb4/ev.c
-+++ b/drivers/infiniband/hw/cxgb4/ev.c
-@@ -234,7 +234,7 @@ int c4iw_ev_handler(struct c4iw_dev *dev, u32 qid)
- 		if (atomic_dec_and_test(&chp->refcnt))
- 			wake_up(&chp->wait);
- 	} else {
--		pr_debug("%s unknown cqid 0x%x\n", __func__, qid);
-+		pr_warn("%s unknown cqid 0x%x\n", __func__, qid);
- 		spin_unlock_irqrestore(&dev->lock, flag);
- 	}
- 	return 0;
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index fafb899fec7c..433e78e5f25b 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -230,8 +230,8 @@ static inline int c4iw_wait_for_reply(struct c4iw_rdev *rdev,
- 
- 	ret = wait_for_completion_timeout(&wr_waitp->completion, C4IW_WR_TO);
- 	if (!ret) {
--		pr_debug("%s - Device %s not responding (disabling device) - tid %u qpid %u\n",
--			 func, pci_name(rdev->lldi.pdev), hwtid, qpid);
-+		pr_err("%s - Device %s not responding (disabling device) - tid %u qpid %u\n",
-+		       func, pci_name(rdev->lldi.pdev), hwtid, qpid);
- 		rdev->flags |= T4_FATAL_ERROR;
- 		wr_waitp->ret = -EIO;
- 	}
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index a1bbd2434e5a..88e045b94773 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -958,8 +958,8 @@ int c4iw_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			c4iw_invalidate_mr(qhp->rhp, wr->ex.invalidate_rkey);
- 			break;
- 		default:
--			pr_debug("%s post of type=%d TBD!\n", __func__,
--				 wr->opcode);
-+			pr_warn("%s post of type=%d TBD!\n", __func__,
-+				wr->opcode);
- 			err = -EINVAL;
- 		}
- 		if (err) {
-diff --git a/drivers/infiniband/hw/cxgb4/t4.h b/drivers/infiniband/hw/cxgb4/t4.h
-index 17abe46920d1..2b44fa850bbb 100644
---- a/drivers/infiniband/hw/cxgb4/t4.h
-+++ b/drivers/infiniband/hw/cxgb4/t4.h
-@@ -597,8 +597,8 @@ static inline void t4_swcq_produce(struct t4_cq *cq)
- {
- 	cq->sw_in_use++;
- 	if (cq->sw_in_use == cq->size) {
--		pr_debug("%s cxgb4 sw cq overflow cqid %u\n",
--			 __func__, cq->cqid);
-+		pr_warn("%s cxgb4 sw cq overflow cqid %u\n",
-+			__func__, cq->cqid);
- 		cq->error = 1;
- 		BUG_ON(1);
- 	}
-@@ -669,8 +669,8 @@ static inline int t4_next_hw_cqe(struct t4_cq *cq, struct t4_cqe **cqe)
- static inline struct t4_cqe *t4_next_sw_cqe(struct t4_cq *cq)
- {
- 	if (cq->sw_in_use == cq->size) {
--		pr_debug("%s cxgb4 sw cq overflow cqid %u\n",
--			 __func__, cq->cqid);
-+		pr_warn("%s cxgb4 sw cq overflow cqid %u\n",
-+			__func__, cq->cqid);
- 		cq->error = 1;
- 		BUG_ON(1);
- 		return NULL;
--- 
-2.5.3
+Steve.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
