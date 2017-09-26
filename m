@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 7/9] IB/hfi1: Refactor hfi_user_exp_rcv_invalid()
- IOCTLs
-Date: Tue, 26 Sep 2017 07:04:29 -0700
-Message-ID: <20170926140427.16637.40359.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 9/9] IB/hfi1: Refactor reset_ctxt() IOCTL
+Date: Tue, 26 Sep 2017 07:04:42 -0700
+Message-ID: <20170926140440.16637.88239.stgit@scvm10.sc.intel.com>
 References: <20170926140201.16637.45981.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,118 +15,164 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The IOCTL is a bit unwieldy.  Refactor to a common pattern.
-Refactor _TID_INVAL_READ IOCTLs.
+The IOCTL is a bit unwieldy.  Refactor reset_ctxt() to be a bit more
+manageable.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/file_ops.c     |   54 +++++++++++++++++++++--------
- drivers/infiniband/hw/hfi1/user_exp_rcv.c |    3 --
- 2 files changed, 40 insertions(+), 17 deletions(-)
+ drivers/infiniband/hw/hfi1/file_ops.c |  122 ++++++++++++++++++---------------
+ 1 files changed, 66 insertions(+), 56 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
-index 5015898..6146899 100644
+index 6497b65..22feca5 100644
 --- a/drivers/infiniband/hw/hfi1/file_ops.c
 +++ b/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -90,6 +90,8 @@ static int user_exp_rcv_setup(struct hfi1_filedata *fd, unsigned long arg,
- 			      u32 len);
- static int user_exp_rcv_clear(struct hfi1_filedata *fd, unsigned long arg,
- 			      u32 len);
-+static int user_exp_rcv_invalid(struct hfi1_filedata *fd, unsigned long arg,
-+				u32 len);
- static int setup_base_ctxt(struct hfi1_filedata *fd,
- 			   struct hfi1_ctxtdata *uctxt);
- static int setup_subctxt(struct hfi1_ctxtdata *uctxt);
-@@ -223,9 +225,7 @@ static long hfi1_file_ioctl(struct file *fp, unsigned int cmd,
- {
- 	struct hfi1_filedata *fd = fp->private_data;
- 	struct hfi1_ctxtdata *uctxt = fd->uctxt;
--	struct hfi1_tid_info tinfo;
- 	int ret = 0;
--	unsigned long addr;
- 	int uval = 0;
- 	unsigned long ul_uval = 0;
- 	u16 uval16 = 0;
-@@ -263,18 +263,7 @@ static long hfi1_file_ioctl(struct file *fp, unsigned int cmd,
+@@ -107,6 +107,7 @@ static int allocate_ctxt(struct hfi1_filedata *fd, struct hfi1_devdata *dd,
+ static int user_event_ack(struct hfi1_ctxtdata *uctxt, u16 subctxt,
+ 			  unsigned long arg);
+ static int set_ctxt_pkey(struct hfi1_ctxtdata *uctxt, unsigned long arg);
++static int ctxt_reset(struct hfi1_ctxtdata *uctxt);
+ static int manage_rcvq(struct hfi1_ctxtdata *uctxt, u16 subctxt,
+ 		       unsigned long arg);
+ static int vma_fault(struct vm_fault *vmf);
+@@ -282,63 +283,9 @@ static long hfi1_file_ioctl(struct file *fp, unsigned int cmd,
+ 		ret = set_ctxt_pkey(uctxt, arg);
  		break;
  
- 	case HFI1_IOCTL_TID_INVAL_READ:
--		if (copy_from_user(&tinfo,
--				   (struct hfi11_tid_info __user *)arg,
--				   sizeof(tinfo)))
--			return -EFAULT;
+-	case HFI1_IOCTL_CTXT_RESET: {
+-		struct send_context *sc;
+-		struct hfi1_devdata *dd;
 -
--		ret = hfi1_user_exp_rcv_invalid(fd, &tinfo);
--		if (ret)
--			break;
--		addr = arg + offsetof(struct hfi1_tid_info, tidcnt);
--		if (copy_to_user((void __user *)addr, &tinfo.tidcnt,
--				 sizeof(tinfo.tidcnt)))
--			ret = -EFAULT;
-+		ret = user_exp_rcv_invalid(fd, arg, _IOC_SIZE(cmd));
+-		if (!uctxt || !uctxt->dd || !uctxt->sc)
+-			return -EINVAL;
+-
+-		/*
+-		 * There is no protection here. User level has to
+-		 * guarantee that no one will be writing to the send
+-		 * context while it is being re-initialized.
+-		 * If user level breaks that guarantee, it will break
+-		 * it's own context and no one else's.
+-		 */
+-		dd = uctxt->dd;
+-		sc = uctxt->sc;
+-		/*
+-		 * Wait until the interrupt handler has marked the
+-		 * context as halted or frozen. Report error if we time
+-		 * out.
+-		 */
+-		wait_event_interruptible_timeout(
+-			sc->halt_wait, (sc->flags & SCF_HALTED),
+-			msecs_to_jiffies(SEND_CTXT_HALT_TIMEOUT));
+-		if (!(sc->flags & SCF_HALTED))
+-			return -ENOLCK;
+-
+-		/*
+-		 * If the send context was halted due to a Freeze,
+-		 * wait until the device has been "unfrozen" before
+-		 * resetting the context.
+-		 */
+-		if (sc->flags & SCF_FROZEN) {
+-			wait_event_interruptible_timeout(
+-				dd->event_queue,
+-				!(ACCESS_ONCE(dd->flags) & HFI1_FROZEN),
+-				msecs_to_jiffies(SEND_CTXT_HALT_TIMEOUT));
+-			if (dd->flags & HFI1_FROZEN)
+-				return -ENOLCK;
+-
+-			if (dd->flags & HFI1_FORCED_FREEZE)
+-				/*
+-				 * Don't allow context reset if we are into
+-				 * forced freeze
+-				 */
+-				return -ENODEV;
+-
+-			sc_disable(sc);
+-			ret = sc_enable(sc);
+-			hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_ENB, uctxt);
+-		} else {
+-			ret = sc_restart(sc);
+-		}
+-		if (!ret)
+-			sc_return_credits(sc);
++	case HFI1_IOCTL_CTXT_RESET:
++		ret = ctxt_reset(uctxt);
  		break;
+-	}
  
- 	case HFI1_IOCTL_RECV_CTRL:
-@@ -1469,6 +1458,43 @@ static int user_exp_rcv_clear(struct hfi1_filedata *fd, unsigned long arg,
- 	return ret;
+ 	case HFI1_IOCTL_GET_VERS:
+ 		uval = HFI1_USER_SWVERSION;
+@@ -1658,6 +1605,69 @@ static int set_ctxt_pkey(struct hfi1_ctxtdata *uctxt, unsigned long arg)
+ 	return -ENOENT;
  }
  
 +/**
-+ * user_exp_rcv_invalid - Invalidate the given tid rcv list
-+ * @fd: file data of the current driver instance
-+ * @arg: ioctl argumnent for user space information
-+ * @len: length of data structure associated with ioctl command
-+ *
-+ * Wrapper to validate ioctl information before doing _rcv_invalid.
-+ *
++ * ctxt_reset - Reset the user context
++ * @uctxt: valid user context
 + */
-+static int user_exp_rcv_invalid(struct hfi1_filedata *fd, unsigned long arg,
-+				u32 len)
++static int ctxt_reset(struct hfi1_ctxtdata *uctxt)
 +{
-+	int ret;
-+	unsigned long addr;
-+	struct hfi1_tid_info tinfo;
++	struct send_context *sc;
++	struct hfi1_devdata *dd;
++	int ret = 0;
 +
-+	if (sizeof(tinfo) != len)
++	if (!uctxt || !uctxt->dd || !uctxt->sc)
 +		return -EINVAL;
 +
-+	if (!fd->invalid_tids)
-+		return -EINVAL;
++	/*
++	 * There is no protection here. User level has to guarantee that
++	 * no one will be writing to the send context while it is being
++	 * re-initialized.  If user level breaks that guarantee, it will
++	 * break it's own context and no one else's.
++	 */
++	dd = uctxt->dd;
++	sc = uctxt->sc;
 +
-+	if (copy_from_user(&tinfo, (void __user *)arg, (sizeof(tinfo))))
-+		return -EFAULT;
++	/*
++	 * Wait until the interrupt handler has marked the context as
++	 * halted or frozen. Report error if we time out.
++	 */
++	wait_event_interruptible_timeout(
++		sc->halt_wait, (sc->flags & SCF_HALTED),
++		msecs_to_jiffies(SEND_CTXT_HALT_TIMEOUT));
++	if (!(sc->flags & SCF_HALTED))
++		return -ENOLCK;
 +
-+	ret = hfi1_user_exp_rcv_invalid(fd, &tinfo);
-+	if (ret)
-+		return ret;
++	/*
++	 * If the send context was halted due to a Freeze, wait until the
++	 * device has been "unfrozen" before resetting the context.
++	 */
++	if (sc->flags & SCF_FROZEN) {
++		wait_event_interruptible_timeout(
++			dd->event_queue,
++			!(READ_ONCE(dd->flags) & HFI1_FROZEN),
++			msecs_to_jiffies(SEND_CTXT_HALT_TIMEOUT));
++		if (dd->flags & HFI1_FROZEN)
++			return -ENOLCK;
 +
-+	addr = arg + offsetof(struct hfi1_tid_info, tidcnt);
-+	if (copy_to_user((void __user *)addr, &tinfo.tidcnt,
-+			 sizeof(tinfo.tidcnt)))
-+		ret = -EFAULT;
++		if (dd->flags & HFI1_FORCED_FREEZE)
++			/*
++			 * Don't allow context reset if we are into
++			 * forced freeze
++			 */
++			return -ENODEV;
++
++		sc_disable(sc);
++		ret = sc_enable(sc);
++		hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_ENB, uctxt);
++	} else {
++		ret = sc_restart(sc);
++	}
++	if (!ret)
++		sc_return_credits(sc);
 +
 +	return ret;
 +}
 +
- static unsigned int poll_urgent(struct file *fp,
- 				struct poll_table_struct *pt)
+ static void user_remove(struct hfi1_devdata *dd)
  {
-diff --git a/drivers/infiniband/hw/hfi1/user_exp_rcv.c b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-index ff9ad69..c1c596a 100644
---- a/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-+++ b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-@@ -546,9 +546,6 @@ int hfi1_user_exp_rcv_invalid(struct hfi1_filedata *fd,
- 	u32 *array;
- 	int ret = 0;
  
--	if (!fd->invalid_tids)
--		return -EINVAL;
--
- 	/*
- 	 * copy_to_user() can sleep, which will leave the invalid_lock
- 	 * locked and cause the MMU notifier to be blocked on the lock
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
