@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 8/9] IB/hfi1: Refactor get_user() IOCTLs
-Date: Tue, 26 Sep 2017 07:04:35 -0700
-Message-ID: <20170926140434.16637.59596.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 7/9] IB/hfi1: Refactor hfi_user_exp_rcv_invalid()
+ IOCTLs
+Date: Tue, 26 Sep 2017 07:04:29 -0700
+Message-ID: <20170926140427.16637.40359.stgit@scvm10.sc.intel.com>
 References: <20170926140201.16637.45981.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,175 +17,117 @@ List-Id: linux-rdma@vger.kernel.org
 From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 The IOCTL is a bit unwieldy.  Refactor to a common pattern.
-Refactor _RECV_CTRL, _POLL_TYPE, _ACK_EVENT and _SET_PKEY
-IOCTLs to a common pattern.
+Refactor _TID_INVAL_READ IOCTLs.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/file_ops.c |   74 +++++++++++++++------------------
- 1 files changed, 34 insertions(+), 40 deletions(-)
+ drivers/infiniband/hw/hfi1/file_ops.c     |   54 +++++++++++++++++++++--------
+ drivers/infiniband/hw/hfi1/user_exp_rcv.c |    3 --
+ 2 files changed, 40 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
-index 6146899..6497b65 100644
+index 5015898..6146899 100644
 --- a/drivers/infiniband/hw/hfi1/file_ops.c
 +++ b/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -105,10 +105,10 @@ static int allocate_ctxt(struct hfi1_filedata *fd, struct hfi1_devdata *dd,
- static unsigned int poll_urgent(struct file *fp, struct poll_table_struct *pt);
- static unsigned int poll_next(struct file *fp, struct poll_table_struct *pt);
- static int user_event_ack(struct hfi1_ctxtdata *uctxt, u16 subctxt,
--			  unsigned long events);
--static int set_ctxt_pkey(struct hfi1_ctxtdata *uctxt, u16 subctxt, u16 pkey);
-+			  unsigned long arg);
-+static int set_ctxt_pkey(struct hfi1_ctxtdata *uctxt, unsigned long arg);
- static int manage_rcvq(struct hfi1_ctxtdata *uctxt, u16 subctxt,
--		       int start_stop);
-+		       unsigned long arg);
- static int vma_fault(struct vm_fault *vmf);
- static long hfi1_file_ioctl(struct file *fp, unsigned int cmd,
- 			    unsigned long arg);
-@@ -227,8 +227,6 @@ static long hfi1_file_ioctl(struct file *fp, unsigned int cmd,
+@@ -90,6 +90,8 @@ static int user_exp_rcv_setup(struct hfi1_filedata *fd, unsigned long arg,
+ 			      u32 len);
+ static int user_exp_rcv_clear(struct hfi1_filedata *fd, unsigned long arg,
+ 			      u32 len);
++static int user_exp_rcv_invalid(struct hfi1_filedata *fd, unsigned long arg,
++				u32 len);
+ static int setup_base_ctxt(struct hfi1_filedata *fd,
+ 			   struct hfi1_ctxtdata *uctxt);
+ static int setup_subctxt(struct hfi1_ctxtdata *uctxt);
+@@ -223,9 +225,7 @@ static long hfi1_file_ioctl(struct file *fp, unsigned int cmd,
+ {
+ 	struct hfi1_filedata *fd = fp->private_data;
  	struct hfi1_ctxtdata *uctxt = fd->uctxt;
+-	struct hfi1_tid_info tinfo;
  	int ret = 0;
+-	unsigned long addr;
  	int uval = 0;
--	unsigned long ul_uval = 0;
--	u16 uval16 = 0;
+ 	unsigned long ul_uval = 0;
+ 	u16 uval16 = 0;
+@@ -263,18 +263,7 @@ static long hfi1_file_ioctl(struct file *fp, unsigned int cmd,
+ 		break;
  
- 	hfi1_cdbg(IOCTL, "IOCTL recv: 0x%x", cmd);
- 	if (cmd != HFI1_IOCTL_ASSIGN_CTXT &&
-@@ -267,34 +265,21 @@ static long hfi1_file_ioctl(struct file *fp, unsigned int cmd,
+ 	case HFI1_IOCTL_TID_INVAL_READ:
+-		if (copy_from_user(&tinfo,
+-				   (struct hfi11_tid_info __user *)arg,
+-				   sizeof(tinfo)))
+-			return -EFAULT;
+-
+-		ret = hfi1_user_exp_rcv_invalid(fd, &tinfo);
+-		if (ret)
+-			break;
+-		addr = arg + offsetof(struct hfi1_tid_info, tidcnt);
+-		if (copy_to_user((void __user *)addr, &tinfo.tidcnt,
+-				 sizeof(tinfo.tidcnt)))
+-			ret = -EFAULT;
++		ret = user_exp_rcv_invalid(fd, arg, _IOC_SIZE(cmd));
  		break;
  
  	case HFI1_IOCTL_RECV_CTRL:
--		ret = get_user(uval, (int __user *)arg);
--		if (ret != 0)
--			return -EFAULT;
--		ret = manage_rcvq(uctxt, fd->subctxt, uval);
-+		ret = manage_rcvq(uctxt, fd->subctxt, arg);
- 		break;
- 
- 	case HFI1_IOCTL_POLL_TYPE:
--		ret = get_user(uval, (int __user *)arg);
--		if (ret != 0)
-+		if (get_user(uval, (int __user *)arg))
- 			return -EFAULT;
- 		uctxt->poll_type = (typeof(uctxt->poll_type))uval;
- 		break;
- 
- 	case HFI1_IOCTL_ACK_EVENT:
--		ret = get_user(ul_uval, (unsigned long __user *)arg);
--		if (ret != 0)
--			return -EFAULT;
--		ret = user_event_ack(uctxt, fd->subctxt, ul_uval);
-+		ret = user_event_ack(uctxt, fd->subctxt, arg);
- 		break;
- 
- 	case HFI1_IOCTL_SET_PKEY:
--		ret = get_user(uval16, (u16 __user *)arg);
--		if (ret != 0)
--			return -EFAULT;
--		if (HFI1_CAP_IS_USET(PKEY_CHECK))
--			ret = set_ctxt_pkey(uctxt, fd->subctxt, uval16);
--		else
--			return -EPERM;
-+		ret = set_ctxt_pkey(uctxt, arg);
- 		break;
- 
- 	case HFI1_IOCTL_CTXT_RESET: {
-@@ -1587,13 +1572,18 @@ int hfi1_set_uevent_bits(struct hfi1_pportdata *ppd, const int evtbit)
-  * re-init the software copy of the head register
-  */
- static int manage_rcvq(struct hfi1_ctxtdata *uctxt, u16 subctxt,
--		       int start_stop)
-+		       unsigned long arg)
- {
- 	struct hfi1_devdata *dd = uctxt->dd;
- 	unsigned int rcvctrl_op;
-+	int start_stop;
- 
- 	if (subctxt)
--		goto bail;
-+		return 0;
-+
-+	if (get_user(start_stop, (int __user *)arg))
-+		return -EFAULT;
-+
- 	/* atomically clear receive enable ctxt. */
- 	if (start_stop) {
- 		/*
-@@ -1612,7 +1602,7 @@ static int manage_rcvq(struct hfi1_ctxtdata *uctxt, u16 subctxt,
- 	}
- 	hfi1_rcvctrl(dd, rcvctrl_op, uctxt);
- 	/* always; new head should be equal to new tail; see above */
--bail:
-+
- 	return 0;
+@@ -1469,6 +1458,43 @@ static int user_exp_rcv_clear(struct hfi1_filedata *fd, unsigned long arg,
+ 	return ret;
  }
  
-@@ -1622,15 +1612,19 @@ static int manage_rcvq(struct hfi1_ctxtdata *uctxt, u16 subctxt,
-  * set, if desired, and checks again in future.
-  */
- static int user_event_ack(struct hfi1_ctxtdata *uctxt, u16 subctxt,
--			  unsigned long events)
-+			  unsigned long arg)
- {
- 	int i;
- 	struct hfi1_devdata *dd = uctxt->dd;
- 	unsigned long *evs;
-+	unsigned long events;
- 
- 	if (!dd->events)
- 		return 0;
- 
-+	if (get_user(events, (unsigned long __user *)arg))
-+		return -EFAULT;
++/**
++ * user_exp_rcv_invalid - Invalidate the given tid rcv list
++ * @fd: file data of the current driver instance
++ * @arg: ioctl argumnent for user space information
++ * @len: length of data structure associated with ioctl command
++ *
++ * Wrapper to validate ioctl information before doing _rcv_invalid.
++ *
++ */
++static int user_exp_rcv_invalid(struct hfi1_filedata *fd, unsigned long arg,
++				u32 len)
++{
++	int ret;
++	unsigned long addr;
++	struct hfi1_tid_info tinfo;
 +
- 	evs = dd->events + uctxt_offset(uctxt) + subctxt;
- 
- 	for (i = 0; i <= _HFI1_MAX_EVENT_BIT; i++) {
-@@ -1641,27 +1635,27 @@ static int user_event_ack(struct hfi1_ctxtdata *uctxt, u16 subctxt,
- 	return 0;
- }
- 
--static int set_ctxt_pkey(struct hfi1_ctxtdata *uctxt, u16 subctxt, u16 pkey)
-+static int set_ctxt_pkey(struct hfi1_ctxtdata *uctxt, unsigned long arg)
- {
--	int ret = -ENOENT, i, intable = 0;
-+	int i;
- 	struct hfi1_pportdata *ppd = uctxt->ppd;
- 	struct hfi1_devdata *dd = uctxt->dd;
-+	u16 pkey;
- 
--	if (pkey == LIM_MGMT_P_KEY || pkey == FULL_MGMT_P_KEY) {
--		ret = -EINVAL;
--		goto done;
--	}
-+	if (!HFI1_CAP_IS_USET(PKEY_CHECK))
-+		return -EPERM;
-+
-+	if (get_user(pkey, (u16 __user *)arg))
-+		return -EFAULT;
-+
-+	if (pkey == LIM_MGMT_P_KEY || pkey == FULL_MGMT_P_KEY)
++	if (sizeof(tinfo) != len)
 +		return -EINVAL;
++
++	if (!fd->invalid_tids)
++		return -EINVAL;
++
++	if (copy_from_user(&tinfo, (void __user *)arg, (sizeof(tinfo))))
++		return -EFAULT;
++
++	ret = hfi1_user_exp_rcv_invalid(fd, &tinfo);
++	if (ret)
++		return ret;
++
++	addr = arg + offsetof(struct hfi1_tid_info, tidcnt);
++	if (copy_to_user((void __user *)addr, &tinfo.tidcnt,
++			 sizeof(tinfo.tidcnt)))
++		ret = -EFAULT;
++
++	return ret;
++}
++
+ static unsigned int poll_urgent(struct file *fp,
+ 				struct poll_table_struct *pt)
+ {
+diff --git a/drivers/infiniband/hw/hfi1/user_exp_rcv.c b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
+index ff9ad69..c1c596a 100644
+--- a/drivers/infiniband/hw/hfi1/user_exp_rcv.c
++++ b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
+@@ -546,9 +546,6 @@ int hfi1_user_exp_rcv_invalid(struct hfi1_filedata *fd,
+ 	u32 *array;
+ 	int ret = 0;
  
- 	for (i = 0; i < ARRAY_SIZE(ppd->pkeys); i++)
--		if (pkey == ppd->pkeys[i]) {
--			intable = 1;
--			break;
--		}
-+		if (pkey == ppd->pkeys[i])
-+			return hfi1_set_ctxt_pkey(dd, uctxt, pkey);
- 
--	if (intable)
--		ret = hfi1_set_ctxt_pkey(dd, uctxt, pkey);
--done:
--	return ret;
-+	return -ENOENT;
- }
- 
- static void user_remove(struct hfi1_devdata *dd)
+-	if (!fd->invalid_tids)
+-		return -EINVAL;
+-
+ 	/*
+ 	 * copy_to_user() can sleep, which will leave the invalid_lock
+ 	 * locked and cause the MMU notifier to be blocked on the lock
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
