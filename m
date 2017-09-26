@@ -1,34 +1,50 @@
-From: Arnaldo Carvalho de Melo <acme-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC+PATCH] Infiniband hfi1 + PREEMPT_RT_FULL issues
-Date: Tue, 26 Sep 2017 10:15:29 -0300
-Message-ID: <20170926131529.GB25735@kernel.org>
-References: <20170925144949.GP29668@kernel.org>
- <20170925161528.52d34769@vmware.local.home>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH for-rc 0/7] IB/opa_vnic: Fixes for RC
+Date: Tue, 26 Sep 2017 06:43:41 -0700
+Message-ID: <20170926134250.11429.58329.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170925161528.52d34769-ZM9ACYiE99GSuEeoRQArULNAH6kLmebB@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Clark Williams <williams-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sebastian Andrzej Siewior <sebastian.siewior-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rt-users-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Scott Franco <safranco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Em Mon, Sep 25, 2017 at 04:15:28PM -0400, Steven Rostedt escreveu:
-> On Mon, 25 Sep 2017 11:49:49 -0300 Arnaldo Carvalho de Melo <acme-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> > I'm wondering if turning this sc->alloc_lock to a raw_spin_lock is the
-> > right solution, which I'm afraid its not, as there are places where it
-> > is held and then the code goes on to grab other non-raw spinlocks...
- 
-> No, the correct solution is to convert the preempt_disable into a
-> local_lock(), which will be a preempt_disable when PREEMPT_RT is not
-> set. Look for other patches that convert preempt_disable() into
-> local_lock()s for examples.
+Hi Doug,
 
-Thanks, I had seen a patch patch by Sebastian for random.c doing that,
-will continue in that direction.
+Continuing with our 4.14 rc material here is a series dedicated to vnic. These
+are pretty minor. If you'd rather wait and push off to for-next and put into
+4.15 that's OK as well. I do have a 2 patch series coming up that does add new
+functionality so I'll submit that against for-next specifically.
 
-- Arnaldo
+Patches can can also be found in my GitHub repo at:
+https://github.com/ddalessa/kernel/tree/for-4.14
+
+---
+
+Niranjana Vishwanathapura (6):
+      IB/opa_vnic: Mark unused Ethernet MTU fields as reserved
+      IB/opa_vnic: Set POD value for Ethernet MTU
+      IB/opa_vnic: Allow reset of MAC address
+      IB/opa_vnic: Properly return the total MACs in UC MAC list
+      IB/opa_vnic: Properly set vesw port status
+      IB/opa_vnic: Add routing control information
+
+Scott Franco (1):
+      IB/opa_vnic: Properly clear Mac Table Digest
+
+
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c   |   42 ++++++++++++++++++-
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h   |   22 ++++++++--
+ .../infiniband/ulp/opa_vnic/opa_vnic_internal.h    |    7 ++-
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c  |   44 ++++++++++++++------
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c    |    1 
+ .../infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c  |   22 +++++-----
+ 6 files changed, 103 insertions(+), 35 deletions(-)
+
+--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
