@@ -1,26 +1,44 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH net-next] net/mlx5: Remove redundant unlikely()
-Date: Tue, 26 Sep 2017 10:23:24 -0700 (PDT)
-Message-ID: <20170926.102324.2168944871029499608.davem@davemloft.net>
-References: <20170926131323.8527-1-tklauser@distanz.ch>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH for-next v2 0/2] iw_cxgb4 pr_debug() changes for 4.14-rc
+Date: Tue, 26 Sep 2017 23:10:08 +0530
+Message-ID: <1506447610-12909-1-git-send-email-bharat@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170926131323.8527-1-tklauser-93Khv+1bN0NyDzI6CaY1VQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tklauser-93Khv+1bN0NyDzI6CaY1VQ@public.gmane.org
-Cc: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tobias Klauser <tklauser-93Khv+1bN0NyDzI6CaY1VQ@public.gmane.org>
-Date: Tue, 26 Sep 2017 15:13:23 +0200
+Hi Doug,
+Previous submission of these changes wont apply clean above "for-next"
+branch due to the recent patches of Steve pulled into it. Current
+series is generated on top of your "for-next" branch.
+Please consider these for smoother application of subsequent patches.
 
-> IS_ERR() already implies unlikely(), so it can be omitted.
-> 
-> Signed-off-by: Tobias Klauser <tklauser-93Khv+1bN0NyDzI6CaY1VQ@public.gmane.org>
+Changes since original submission
+- Make patches on top of "for-next" branch.
 
-Applied.
+Thanks,
+Bharat.
+
+Potnuri Bharat Teja (2):
+  iw_cxgb4: Remove __func__ parameter from pr_debug()
+  iw_cxgb4: change pr_debug to appropriate log level
+
+ drivers/infiniband/hw/cxgb4/cm.c       | 244 ++++++++++++++++-----------------
+ drivers/infiniband/hw/cxgb4/cq.c       |  50 +++----
+ drivers/infiniband/hw/cxgb4/device.c   |  16 +--
+ drivers/infiniband/hw/cxgb4/ev.c       |   2 +-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  17 +--
+ drivers/infiniband/hw/cxgb4/mem.c      |  26 ++--
+ drivers/infiniband/hw/cxgb4/provider.c |  36 ++---
+ drivers/infiniband/hw/cxgb4/qp.c       |  59 ++++----
+ drivers/infiniband/hw/cxgb4/resource.c |  46 +++----
+ drivers/infiniband/hw/cxgb4/t4.h       |  20 ++-
+ 10 files changed, 249 insertions(+), 267 deletions(-)
+
+-- 
+2.5.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
