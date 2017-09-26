@@ -1,58 +1,88 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v2] IB/ocrdma: pr_err() strings should end with newlines
-Date: Tue, 26 Sep 2017 11:44:35 +0300
-Message-ID: <20170926084435.GC6816@mtr-leonro.local>
-References: <48e72f72b25c067588b3da9142c7849636615df9.1506410780.git.arvind.yadav.cs@gmail.com>
+From: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC rdma-core] Verbs: Introduce resource domain
+Date: Tue, 26 Sep 2017 12:09:12 +0300
+Message-ID: <CAFgAxU-FPTNM99iTACmw5yeW1zyv+7g+KC2jigj4DXiervyjdA@mail.gmail.com>
+References: <1505648922-21346-1-git-send-email-yishaih@mellanox.com>
+ <20170918205411.GB7059@obsidianresearch.com> <CAFgAxU9M0MXw371Nh2tviuQHXCJxnFLPtaAcsevigEMMWjUPhA@mail.gmail.com>
+ <20170921014146.GA4041@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="S1BNGpv0yoYahz37"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <48e72f72b25c067588b3da9142c7849636615df9.1506410780.git.arvind.yadav.cs@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: devesh.sharma@broadcom.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, yuval.shaia@oracle.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170921014146.GA4041-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Alex @ Mellanox" <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Sep 21, 2017 at 4:41 AM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> But, as you say, you'd have to solve the MR sharing problem at least
+> to make PD workable. Perhaps some kind of 'child' PD that was only for
+> threading..
 
---S1BNGpv0yoYahz37
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+OK, this definitely sounds like an interesting approach.
+// alloc a child ibv_pd, which inherits the parent properties and adds
+some limitations (e.g. thread domain, memory domain)
 
-On Tue, Sep 26, 2017 at 12:59:51PM +0530, Arvind Yadav wrote:
-> pr_err() messages should end with a new-line to avoid other messages
-> being concatenated.
->
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
-> ---
-> changes in v2 :
->                Add same changes for 'ocrdma_hw.c'
->
+Two options I'm thinking in this spirit:
 
-Two notes,
-1. Please send similar changes as a patchset and not as a standalone patches.
-2. These patches "\n" are not needed, see my response to mlx5 patch.
+1) Extend the original alloc PD API (stay with a single PD alloc entry point):
+struct ibv_pd *ibv_alloc_pd_ex(
+        struct ibv_context *my_ctx,
+        struct ibv_pd_init_attr {
+                ibv_pd* parent_pd = my_pd, // use NULL to alloc a
+parent PD, or use a parent pd to alloc a child PD
+                int flags = IBV_PD_PARENT | IBV_PD_INIT_ATTR_THREAD_DOMAIN)
+        } );
 
-Thanks,
+2) New dedicated alloc Child PD API:
+struct ibv_pd *ibv_alloc_child_pd(struct ibv_pd *pd, int flags =
+IBV_PD_INIT_ATTR_THREAD_DOMAIN);
 
---S1BNGpv0yoYahz37
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
+> That goes both ways, a single 'max' does not make sense if there are
+> multiple different sorts of objects being controlled (eg UAR and
+> something else). It only works well in your context of having a single
+> constrained UAR.
+I agree.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnKE3IACgkQ5GN7iDZy
-WKedsxAAnYqXs9a+khR8lWGNJrHZlfcDRo5B5EOrk9KjUfXG9AZCGXdEk3zZdajO
-WplRPEOrKQclmtMN0zo0mePgPng8qYl3V37LbDgm1bs4S/zjwUwxUIklOdblKFaK
-WPlKSwtKakDNw9vZkSxkUzCOaD/bts38P+6vCqFI/0oqGT40C9dshxnG8NzEWxHh
-K96WnRT/QHXJcoqPtzFMzFkcQgSADOhKcQ9SI9YMA2Td1eqZzCwFODcublteUh/G
-d7SRtmfVgII8TDoZuool/4IlhFlAONRFg/pQAJOAGsiAqoXvIaMETPlwESDJ3mu2
-pWCBlFsox9vr4f8lINuQFK3z3BDeM5XGKatf9+N7Iw+xxHw9JQheBxlHxD43d2jl
-bO7LMCt7fzzr75BWciQXVCbzMKGuz1pfJgNHp4g7Fk2jF1l5+TzH/MB1X7j7ma4k
-xHYQl1HBkLEtDoeeMTNHXtOniNRY++V8NNhCuFStA15DbI/0P9jkV37nsDOBbF32
-cbVU4rmU4LOq32+Xt6KC9QPfj8hdiI+kCJKY+4Wh82PaRNhIo5QNuf/0XZMO9UG3
-fnwR5YCX+XCox+ViNxoz8Da26E4VSU97ifwCtlCw3AT62WlFdtH7Obsy0stVgRkQ
-dxjH+2ZcwAdM6CEfnh2jCCs5rmBhMOHUSUvVZneyEwQ+qe61wtM=
-=3t+i
------END PGP SIGNATURE-----
 
---S1BNGpv0yoYahz37--
+> Probably the better option is to introduce something like a 'struct
+> verbs_locking_domain *' input which is a proper object and can have a
+> range of operators.
+
+I did not understand how the 'struct verbs_locking_domain' comes into play here.
+In regards to the child PD, I'm assuming the 'struct ibv_pd' will be
+encap in a 'struct verbs_pd', and/or maybe encap in a 'struct
+provider_pd'. Any linkage and dedicated resource should be stored in
+the internal structures.
+
+
+> I would say each creating locking domain objects is just strided
+> across the various limited resources in the device.
+
+With the above verbs API for child PD on dedicated thread, user gets a
+best effort allocation of thread resource. I agree that striding
+across resources sounds good.
+
+
+> 'dv' accessors, eg mlxdv_set_locking_uar() can be provided to directly
+> assign specific limited resources under the control of the
+> application. 'dv' query functions can be used to directly learn the
+> specific limits for each specific thing.
+
+int mlx5dv_set_pd_uar_index(struct ibv_pd* pd, int uar_index);
+So with DV API, application can selectively choose a UAR index for
+Mellanox HW for a child (or parent) PD.
+All objects created with this PD will use the chosen UAR index or
+other thread options.
+max_uar_index will be expose by the DV device caps via
+'mlx5dv_query_device()'. If user exceeds the max_uar_index, the above
+function call will fail.
+
+
+Alex
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
