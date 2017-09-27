@@ -1,80 +1,46 @@
-From: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 rdma-next] RDMA/qedr: Fix rdma_type initialization
-Date: Wed, 27 Sep 2017 20:33:38 +0000
-Message-ID: <CY1PR0701MB2012A41A0744D17AD3CD10DB88780@CY1PR0701MB2012.namprd07.prod.outlook.com>
-References: <1505885986-5873-1-git-send-email-Michal.Kalderon@cavium.com>
- <1506518845.82712.15.camel@redhat.com>
- <CY1PR0701MB20126E3E86A45619079DFCAC88780@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <20170927165339.GI2297@mtr-leonro.local>,<20170927165610.GJ2297@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH rdma-next 0/5] iw_cxgb4: handle fw reply timeouts
+Date: Wed, 27 Sep 2017 13:55:45 -0700
+Message-ID: <cover.1506545745.git.swise@opengridcomputing.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170927165610.GJ2297-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogTGVvbiBSb21hbm92c2t5IDxsZW9uQGtlcm5lbC5vcmc+DQpTZW50OiBXZWRuZXNkYXks
-IFNlcHRlbWJlciAyNywgMjAxNyA3OjU2IFBNDQpPbiBXZWQsIFNlcCAyNywgMjAxNyBhdCAwNzo1
-MzozOVBNICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6DQo+PiBPbiBXZWQsIFNlcCAyNywg
-MjAxNyBhdCAwNDoxODo1MFBNICswMDAwLCBLYWxkZXJvbiwgTWljaGFsIHdyb3RlOg0KPj4gPiBG
-cm9tOiBEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+DQo+PiA+IFNlbnQ6IFdlZG5l
-c2RheSwgU2VwdGVtYmVyIDI3LCAyMDE3IDQ6MjcgUE0NCj4+ID4NCj4+ID4gPk9uIFdlZCwgMjAx
-Ny0wOS0yMCBhdCAwODozOSArMDMwMCwgTWljaGFsIEthbGRlcm9uIHdyb3RlOg0KPj4gPiA+PiBJ
-bml0aWFsaXplIHRoZSByZG1hX3R5cGUgKGlXQVJQIG9yIFJvQ0UpIHdoaWNoIGlzIHNldCBhY2Nv
-cmRpbmcgdG8NCj4+ID4gPj4gZGV2aWNlIGNvbmZpZ3VyYXRpb24gaW4gcWVkLg0KPj4gPiA+Pg0K
-Pj4gPiA+PiBGaXhlczogZTZhMzhjNTRmYWYgKCJSRE1BL3FlZHI6IEFkZCBzdXBwb3J0IGZvciBy
-ZWdpc3RlcmluZyBhbiBpV0FSUA0KPj4gPiA+PiBkZXZpY2UiKQ0KPj4gPiA+Pg0KPj4gPiA+PiBT
-aWduZWQtb2ZmLWJ5OiBNaWNoYWwgS2FsZGVyb24gPE1pY2hhbC5LYWxkZXJvbkBjYXZpdW0uY29t
-Pg0KPj4gPiA+PiBTaWduZWQtb2ZmLWJ5OiBBcmllbCBFbGlvciA8QXJpZWwuRWxpb3JAY2F2aXVt
-LmNvbT4NCj4+ID4gPj4NCj4+ID4gPj4gLS0tDQo+PiA+ID4+IFRoaXMgcGF0Y2ggYXBwbGllcyBj
-bGVhbmx5IG9uIGsuby9mb3ItbmV4dC1tZXJnZWQNCj4+ID4gPj4NCj4+ID4gPj4gQ2hhbmdlcyBm
-cm9tIFYwOg0KPj4gPiA+PiAtIEFkZGVkIEZpeGVzIGluIGNvbW1pdCBjb21tZW50Lg0KPj4gPiA+
-DQo+PiA+ID5Tb3JyeSwgSSB3YXMgd3JvbmcgaW4gbXkgZW1haWwgdG8gdGhlIHByZXZpb3VzIHBv
-c3Rpbmcgb2YgdGhpcyBwYXRjaC4NCj4+ID4gPkkgaGFkIHB1bGxlZCB0aGlzIHYxIHBhdGNoIGZy
-b20gcGF0Y2h3b3Jrcywgbm90IHRoZSBvcmlnaW5hbCBwYXRjaCwgYW5kDQo+PiA+ID5zbyB0aGUg
-Rml4ZXM6IGxpbmUgd2FzIHlvdXJzLiAgUGF0Y2h3b3JrcyBkaWQgbm90IGFkZCB0aGUgRml4ZXM6
-IGxpbmUNCj4+ID4gPnRvIHRoZSB2MCBwYXRjaCB3aGVuIEkgZG93bmxvYWRlZCBpdCBqdXN0IG5v
-dy4NCj4+ID4NCj4+ID4gPlRoYXQgYmVpbmcgc2FpZCwgSSBzdGlsbCBjYW4ndCBidWlsZCB3aXRo
-IHRoaXMgcGF0Y2ggOy0pDQo+PiA+IEFyZSB5b3UgYnVpbGRpbmcgYWdhaW5zdCB0aGUgcmRtYS1u
-ZXh0IGJyYW5jaCA/DQo+PiA+IFRoZSBwYXRjaCByZXF1aXJlcyB0aGUgaVdBUlAgc2VyaWVzLCBv
-cmlnaW5hbGx5IHRoaXMgd2FzIHRlc3RlZCBhZ2FpbnN0IGZvci1uZXh0LW1lcmdlZCwNCj4+ID4g
-d2hhdCdzIHRoZSBlcnJvciB5b3UncmUgZ2V0dGluZyA/DQo+Pg0KPj4gT24gcmRtYS1uZXh0Og0K
-Pj4gZHJpdmVycy9pbmZpbmliYW5kL2h3L3FlZHIvbWFpbi5jOiBJbiBmdW5jdGlvbiDigJhxZWRy
-X2FkZOKAmToNCj4+IGRyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL21haW4uYzo3ODA6NzogZXJy
-b3I6IOKAmHN0cnVjdCBxZWRyX2RlduKAmSBoYXMgbm8gbWVtYmVyIG5hbWVkIOKAmHJkbWFfdHlw
-ZeKAmTsgZGlkIHlvdSBtZWFuIOKAmHJkbWFfY3R44oCZPw0KPj4gICBkZXYtPnJkbWFfdHlwZSA9
-IGRldl9pbmZvLnJkbWFfdHlwZTsNCj4+ICAgICAgICBefn5+fn5+fn4NCj4+ICAgICAgICByZG1h
-X2N0eA0KPj4gbWFrZVs0XTogKioqIFtzY3JpcHRzL01ha2VmaWxlLmJ1aWxkOjMxMTogZHJpdmVy
-cy9pbmZpbmliYW5kL2h3L3FlZHIvbWFpbi5vXSBFcnJvciAxDQo+DQo+TXkgY29uZmlnOg0KPg0K
-PuKenCAgbGludXgtcmRtYSBnaXQ6KHJkbWEtbmV4dCkgZ3JlcCBRRUQgLmNvbmZpZw0KPkNPTkZJ
-R19RRUQ9bQ0KPkNPTkZJR19RRURfTEwyPXkNCj5DT05GSUdfUUVEX1NSSU9WPXkNCj5DT05GSUdf
-UUVERT1tDQo+Q09ORklHX1FFRF9SRE1BPXkNCj5DT05GSUdfSU5GSU5JQkFORF9RRURSPW0NCg0K
-VGhhbmtzIExlb24gZm9yIGhlbHBpbmcgb3V0IHdpdGggdGhpcy4gVW5mb3J0dW5hdGVseSBpJ20g
-bm90IHNlZWluZyB0aGlzLg0KVGhlIHJkbWFfdHlwZSBmaWVsZCB3YXMgYWRkZWQgd2l0aCB0aGUg
-Zm9sbG93aW5nIHBhdGNoOg0KaHR0cHM6Ly9rZXJuZWwuZ29vZ2xlc291cmNlLmNvbS9wdWIvc2Nt
-L2xpbnV4L2tlcm5lbC9naXQvZGxlZGZvcmQvcmRtYS8rL2U2YTM4YzU0ZmFmMzg0OTgxNzBlMjI3
-YzgyZWEyNWNiOGJjMWFlNzENCg0KV2hlbiBydW5uaW5nIGdpdCBsb2cgb24gdGhlIGsuby9mb3It
-bmV4dCBJIHNlZSB0aGUgcGF0Y2ggKGxhc3QgaW4gbGlzdCBiZWxvdyksDQphcHBseWluZyB0aGlz
-IHBhdGNoIG9uIHRvcCBvZiAgcmRtYS1uZXh0IHdvcmtzIGZvciBtZSBhbmQgY29tcGlsZXMgY2xl
-YW5seS4gDQoNCjJlMmYyZDAgUkRNQS9xZWRyOiBGaXggcmRtYV90eXBlIGluaXRpYWxpemF0aW9u
-DQoxODQ4NzU3IE1lcmdlIGJyYW5jaGVzICdobnMnIGFuZCAnbWlzYycgaW50byBrLm8vZm9yLW5l
-eHQNCjkzMWJjMGQgSUI6IE1vdmUgUENJIGRlcGVuZGVuY3kgZnJvbSByb290IEtDb25maWcgdG8g
-SFcncyBLQ29uZmlncw0KN2FlNmYyYSBNZXJnZSBicmFuY2ggJ3FlZHInIGludG8gay5vL2Zvci1u
-ZXh0DQpiZDQ5MWQyIFJETUEvcWVkcjogZml4IGJ1aWxkIGVycm9yIHdpdGhvdXQgaXB2Ng0KODlm
-ZDI1NyBSRE1BL3FlZHI6IE1pc3NpbmcgZXJyb3IgY29kZSBpbiBxZWRyX2luaXRfdXNlcl9xdWV1
-ZSgpDQo4NDdjYjFhIFJETUEvcWVkcjogZml4IHNwZWxsaW5nIG1pc3Rha2U6ICJpbnZsYWlkIiAt
-PiAiaW52YWxpZCINCjY5YWQwZTcgUkRNQS9xZWRyOiBBZGQgc3VwcG9ydCBmb3IgaVdBUlAgaW4g
-dXNlciBzcGFjZQ0KZTQxMWUwNSBSRE1BL3FlZHI6IEFkZCBpV0FSUCBjb25uZWN0aW9uIG1hbmFn
-ZW1lbnQgZnVuY3Rpb25zDQpkZTAwODllIFJETUEvcWVkcjogQWRkIGlXQVJQIGNvbm5lY3Rpb24g
-bWFuYWdlbWVudCBxcCByZWxhdGVkIGNhbGxiYWNrcw0KZmIxYTIyYiBSRE1BL3FlZHI6IEFkZCBz
-dXBwb3J0IGZvciByZWFkIHdpdGggaW52YWxpZGF0ZSwgc3VwcG9ydGVkIGluIGlXQVJQDQpmNWIx
-YjE3IFJETUEvcWVkcjogQWRkIGlXQVJQIHN1cHBvcnQgaW4gZXhpc3RpbmcgdmVyYnMNCmU2YTM4
-YzUgUkRNQS9xZWRyOiBBZGQgc3VwcG9ydCBmb3IgcmVnaXN0ZXJpbmcgYW4gaVdBUlAgZGV2aWNl
-DQoNCmFtIGkgbWlzc2luZyBzb21ldGhpbmcgPyANCnRoYW5rcywNCk1pY2hhbA0KDQo=
+For messages sent from the host to fw that solicit a reply from fw,
+the c4iw_wr_wait struct pointer is passed in the host->fw message, and
+included in the fw->host fw6_msg reply.  This allows the sender to wait
+until the reply is received, and the code processing the ingress reply
+to wake up the sender.
+
+If c4iw_wait_for_reply() times out, however, we need to keep the
+c4iw_wr_wait object around in case the reply eventually does arrive.
+Otherwise we have touch-after-free bugs in the wake_up paths.
+
+This series refactors the c4iw_wait_wr users and the wait API to handle
+this case.  The first 4 patches change the users to allocate the wait
+object vs using it locally on the stack, and the 5th patch implmements the
+new kref for the wait objects.
+
+Steve Wise (5):
+  iw_cxgb4: allocate wait object for each memory object
+  iw_cxgb4: allocate wait object for each cq object
+  iw_cxgb4: allocate wait object for each qp object
+  iw_cxgb4: allocate wait object for each ep object
+  iw_cxgb4: add referencing to wait objects
+
+ drivers/infiniband/hw/cxgb4/cm.c       |  40 +++---
+ drivers/infiniband/hw/cxgb4/cq.c       |  69 +++++-----
+ drivers/infiniband/hw/cxgb4/device.c   |  21 +++
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  66 ++++++++-
+ drivers/infiniband/hw/cxgb4/mem.c      | 242 ++++++++++++++++++++-------------
+ drivers/infiniband/hw/cxgb4/qp.c       |  82 +++++------
+ 6 files changed, 330 insertions(+), 190 deletions(-)
+
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
