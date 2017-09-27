@@ -1,30 +1,36 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next v3 0/2] iw_cxgb4 pr_debug() changes for 4.14-rc
-Date: Wed, 27 Sep 2017 10:17:03 -0400
-Message-ID: <1506521823.82712.24.camel@redhat.com>
-References: <1506497750-19972-1-git-send-email-bharat@chelsio.com>
-         <1506519604.82712.19.camel@redhat.com>
-         <006301d3379a$cc4dac10$64e90430$@opengridcomputing.com>
+Subject: Re: [PATCH] IB/mlx5:: pr_err() and mlx5_ib_dbg() strings should end
+ with newlines
+Date: Wed, 27 Sep 2017 10:20:39 -0400
+Message-ID: <1506522039.82712.26.camel@redhat.com>
+References: <7a5a195cd37db476a2ca007eddc0f28f3ade265b.1506407876.git.arvind.yadav.cs@gmail.com>
+         <20170926083843.GB6816@mtr-leonro.local>
+         <1506438337.29089.8.camel@perches.com>
+         <20170926155006.GD6816@mtr-leonro.local>
+         <1506453105.29089.14.camel@perches.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <006301d3379a$cc4dac10$64e90430$@opengridcomputing.com>
+In-Reply-To: <1506453105.29089.14.camel-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Arvind Yadav <arvind.yadav.cs-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-09-27 at 09:13 -0500, Steve Wise wrote:
-> Hey Doug,  I agree.  
+On Tue, 2017-09-26 at 12:11 -0700, Joe Perches wrote:
+> On Tue, 2017-09-26 at 18:50 +0300, Leon Romanovsky wrote:
+> > So how can I reproduce the different output before and after this
+> > change?
 > 
-> We will clean up the BUG()s and remove them if they really aren't
-> needed, or perhaps make them WARN_ONCE(), and fail the operations w/o
-> crashing.
-> 
-> Steve.
+> Try lib/test_module.c with and without the newline
+> on "Hello, World" on a quiescent system.
 
-Thanks Steve.
+I agree here.  The newlines are still worthwhile as they remove any
+unnecessary stalls in the printk output while the printk engine decides
+whether or not you are going to do a KERN_CONT print next.
+
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
