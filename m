@@ -1,74 +1,54 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 03/10] verbs: Split init_device into a match and
- alloc/bind step
-Date: Wed, 27 Sep 2017 16:49:19 +0300
-Message-ID: <fbe7fac9-0ab2-1ccc-f5fe-03e434cef280@dev.mellanox.co.il>
-References: <1505855931-4956-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1505855931-4956-4-git-send-email-jgunthorpe@obsidianresearch.com>
- <5a30e4a3-e22c-5d1a-435d-d3c5d94333fd@dev.mellanox.co.il>
- <20170927075552.GC2297@mtr-leonro.local>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH for-next v3 0/2] iw_cxgb4 pr_debug() changes for 4.14-rc
+Date: Wed, 27 Sep 2017 09:13:31 -0500
+Message-ID: <006301d3379a$cc4dac10$64e90430$@opengridcomputing.com>
+References: <1506497750-19972-1-git-send-email-bharat@chelsio.com> <1506519604.82712.19.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170927075552.GC2297-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1506519604.82712.19.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/27/2017 10:55 AM, Leon Romanovsky wrote:
-> On Tue, Sep 26, 2017 at 07:00:16PM +0300, Yishai Hadas wrote:
->> On 9/20/2017 12:18 AM, Jason Gunthorpe wrote:
->>> The match step determines if the provider should bind to the sysfs device,
->>> and the allocation step creates the verbs_device and cleanly matches the
->>> uninit_device step which frees it.
->>>
->>> This split makes it simpler to factor out all the duplicated code in the
->>> match step.
->>>
->>> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->>> ---
->>>    libibverbs/driver.h | 21 ++++++++++++++-
->>>    libibverbs/init.c   | 74 ++++++++++++++++++++++++++++++++++-------------------
->>>    2 files changed, 68 insertions(+), 27 deletions(-)
->>>
->>> diff --git a/libibverbs/driver.h b/libibverbs/driver.h
->>> index f9f5cfa2308c2f..397441f49a0e5a 100644
->>> --- a/libibverbs/driver.h
->>> +++ b/libibverbs/driver.h
->>> @@ -40,6 +40,7 @@
->>>    #include <infiniband/kern-abi.h>
->>>    #include <ccan/list.h>
->>>    #include <config.h>
->>> +#include <stdbool.h>
->>>    #ifdef __cplusplus
->>>    #  define BEGIN_C_DECLS extern "C" {
->>> @@ -95,10 +96,27 @@ struct verbs_qp {
->>>    	struct verbs_xrcd       *xrcd;
->>>    };
->>> +/* A rdma device detected in sysfs */
->>> +struct verbs_sysfs_dev {
->>> +	struct list_node entry;
->>> +	void *provider_data;
->>
->> It looks as this field isn't used in the series, correct ? if this is the
->> case better add when it'll become applicable.
 > 
-> Yishai,
+> On Wed, 2017-09-27 at 13:05 +0530, Potnuri Bharat Teja wrote:
+> > Hi Doug,
+> > Current "v3" series is generated on top of your "for-next" branch
+> > overriding previous submissions.
+> > Please consider these for smoother application of subsequent patches.
+> >
+> > Changes since "v2"
+> > - Revert pr_debug()->pr_warn() change in fw4_ack().
+> >
+> > Changes since original submission
+> > - Make patches on top of "for-next" branch.
 > 
-> Jason is a little bit overwhelmed now and because this series was posted
-> long time here and got a lot of Acked-by tags, I would be happy to take it
-> and move forward. Do you see any issues which he can't fix after this
-> series merged?
-> 
+> OK, I've taken your v3 of these patches.  But something that jumped out
+> at me as a big issue, far bigger than I realized, is just how many
+> places in the iw_cxgb4 driver do BUG()s.  Unless the official answer is
+> "This can never happen" (in which case we just need to remove the
+> conditional and the BUG() behind the conditional, because they can
+> never happen), someone needs to spend some time making the iw_cxgb4
+> driver more tolerant of things that it might not like, but which
+> shouldn't bring the computer to a grinding halt.  In particular, I
+> think things like if (skb_cloned(skb)) BUG() does not seem appropriate
+> to me.  Are you really telling me that you can't find a way to
+> gracefully drop the skb you are working on and simply fail the current
+> operation instead of BUG()ing?
 
-The above is some cleanup note that can be done later if we want to 
-merge the series soon.
+Hey Doug,  I agree.  
 
-Other verbs changes in the series looks fine to me.
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+We will clean up the BUG()s and remove them if they really aren't needed, or perhaps make them WARN_ONCE(), and fail the operations w/o crashing.
+
+Steve.
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
