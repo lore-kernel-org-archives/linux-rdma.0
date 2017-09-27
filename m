@@ -1,113 +1,117 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 for-next] IB/{ipoib,iser}: Consistent print format of vendor error
-Date: Wed, 27 Sep 2017 21:26:08 +0300
-Message-ID: <20170927182608.4183-1-yuval.shaia@oracle.com>
+From: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: Enable pkey and device name decoupling
+Date: Wed, 27 Sep 2017 12:03:40 -0700
+Message-ID: <c98fc5c0-cb34-c960-4bbf-34422bbacd0e@oracle.com>
+References: <20170927093248.3819-1-yuval.shaia@oracle.com>
+ <20170927150140.GF2297@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170927150140.GF2297-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ajaykumar.hotchandani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, corbet-T1hC0tSOHrs@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kernel-6AxghH7DbtA@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ajaykumar Hotchandani <ajaykumar.hotchandani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On 09/27/2017 08:01 AM, Leon Romanovsky wrote:
+> On Wed, Sep 27, 2017 at 12:32:48PM +0300, Yuval Shaia wrote:
+>> The sysfs "create_child" interface creates pkey based child interface but
+>> derives the name from parent device name and pkey value.
+>> This makes administration difficult where pkey values can change but
+>> policies encoded with device names do not.
+>>
+>> We add ability to create a child interface with a user specified name and a
+>> specified pkey with a new sysfs "create_named_child" interface (and also
+>> add a corresponding "delete_named_child" interface).
+>>
+>> We also add a new module api interface to query pkey from a netdevice so
+>> any kernel users of pkey based child interfaces can query it - since with
+>> device name decoupled from pkey, it can no longer be deduced from parsing
+>> the device name by other kernel users.
+>>
+>> Signed-off-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Reviewed-by: Chien-Hua Yen <chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> ---
+>>   Documentation/infiniband/ipoib.txt        |  12 ++
+>>   drivers/infiniband/ulp/ipoib/ipoib.h      |   3 +
+>>   drivers/infiniband/ulp/ipoib/ipoib_main.c | 187 ++++++++++++++++++++++++++++++
+>>   drivers/infiniband/ulp/ipoib/ipoib_vlan.c |  76 +++++++++++-
+>>   4 files changed, 272 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/Documentation/infiniband/ipoib.txt b/Documentation/infiniband/ipoib.txt
+>> index 47c1dd9818f2..1db53c9b2906 100644
+>> --- a/Documentation/infiniband/ipoib.txt
+>> +++ b/Documentation/infiniband/ipoib.txt
+>> @@ -21,6 +21,18 @@ Partitions and P_Keys
+>>
+>>       echo 0x8001 > /sys/class/net/ib0/delete_child
+>>
+>> +  Interfaces with a user chosen name can be created in a similar
+>> +  manner with a different name and P_Key, by writing them into the
+>> +  main interface's /sys/class/net/<intf name>/create_named_child
+>> +  For example:
+>> +     echo "epart2 0x8002" > /sys/class/net/ib1/create_named_child
+>> +
+>> +   This will create an interfaces named epart2 with P_Key 0x8002 and
+>> +   parent ib1. To remove a named subinterface, use the
+>> +   "delete_named_child" file:
+>> +
+>> +     echo epart2 > /sys/class/net/ib1/delete_named_child
+> 
+> I doubt that delete_named_child is actually needed. You can use delete_child
+> on the pkey, which you used to create named child.
+> 
+> Maybe better to add support to rename child instead of introducing named
+> child concept?
+> 
+> Thanks
+> 
 
-Vendor error print should be consistent across protocols to avoid any
-confusion.
-This patch corrects that.
 
-Suggested-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Ajaykumar Hotchandani <ajaykumar.hotchandani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Acked-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Acked-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Acked-by: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-v0 -> v1:
-	* Adjust to latest for-next (based on the accepted commit
-	  af3c79beff48 ("IB/ipoib: Suppress the retry related completion
-	  errors").
-	* Add Sagi Grimberg's and Roi Dayan's a-b
-v1 -> v2
-	* Accept Sagi Grimberg's comment re formatting (%#x).
----
- drivers/infiniband/ulp/ipoib/ipoib_cm.c  | 10 +++++-----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c  |  8 ++++----
- drivers/infiniband/ulp/iser/iser_verbs.c |  2 +-
- 3 files changed, 10 insertions(+), 10 deletions(-)
+I can offer a slightly indirect answer to justify the current interface 
+by providing the background behind the requirements for this change.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 7774654c2ccb..7500c28eac6b 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -594,9 +594,9 @@ void ipoib_cm_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 	skb = rx_ring[wr_id].skb;
- 
- 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
--		ipoib_dbg(priv, "cm recv error "
--			   "(status=%d, wrid=%d vend_err %x)\n",
--			   wc->status, wr_id, wc->vendor_err);
-+		ipoib_dbg(priv,
-+			  "cm recv error (status=%d, wrid=%d vend_err %#x)\n",
-+			  wc->status, wr_id, wc->vendor_err);
- 		++dev->stats.rx_dropped;
- 		if (has_srq)
- 			goto repost;
-@@ -829,11 +829,11 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
- 		if (wc->status == IB_WC_RNR_RETRY_EXC_ERR ||
- 		    wc->status == IB_WC_RETRY_EXC_ERR)
- 			ipoib_dbg(priv,
--				  "%s: failed cm send event (status=%d, wrid=%d vend_err 0x%x)\n",
-+				  "%s: failed cm send event (status=%d, wrid=%d vend_err %#x)\n",
- 				   __func__, wc->status, wr_id, wc->vendor_err);
- 		else
- 			ipoib_warn(priv,
--				    "%s: failed cm send event (status=%d, wrid=%d vend_err 0x%x)\n",
-+				    "%s: failed cm send event (status=%d, wrid=%d vend_err %#x)\n",
- 				   __func__, wc->status, wr_id, wc->vendor_err);
- 
- 		spin_lock_irqsave(&priv->lock, flags);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 2e075377242e..dfd457567aff 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -192,8 +192,8 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 
- 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
- 		if (wc->status != IB_WC_WR_FLUSH_ERR)
--			ipoib_warn(priv, "failed recv event "
--				   "(status=%d, wrid=%d vend_err %x)\n",
-+			ipoib_warn(priv,
-+				   "failed recv event (status=%d, wrid=%d vend_err %#x)\n",
- 				   wc->status, wr_id, wc->vendor_err);
- 		ipoib_ud_dma_unmap_rx(priv, priv->rx_ring[wr_id].mapping);
- 		dev_kfree_skb_any(skb);
-@@ -414,8 +414,8 @@ static void ipoib_ib_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
- 	if (wc->status != IB_WC_SUCCESS &&
- 	    wc->status != IB_WC_WR_FLUSH_ERR) {
- 		struct ipoib_qp_state_validate *qp_work;
--		ipoib_warn(priv, "failed send event "
--			   "(status=%d, wrid=%d vend_err %x)\n",
-+		ipoib_warn(priv,
-+			   "failed send event (status=%d, wrid=%d vend_err %#x)\n",
- 			   wc->status, wr_id, wc->vendor_err);
- 		qp_work = kzalloc(sizeof(*qp_work), GFP_ATOMIC);
- 		if (!qp_work)
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 55a73b0ed4c6..56b7240a3fc3 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -1146,7 +1146,7 @@ void iser_err_comp(struct ib_wc *wc, const char *type)
- 	if (wc->status != IB_WC_WR_FLUSH_ERR) {
- 		struct iser_conn *iser_conn = to_iser_conn(wc->qp->qp_context);
- 
--		iser_err("%s failure: %s (%d) vend_err %x\n", type,
-+		iser_err("%s failure: %s (%d) vend_err %#x\n", type,
- 			 ib_wc_status_msg(wc->status), wc->status,
- 			 wc->vendor_err);
- 
--- 
-2.13.5
+The requirement for this change had come from the desire for ease of 
+writing management tools and facilitate "renumbering" of pkeys as IB 
+network clouds are reconfigured.
 
+The renumbering still requires the name-value pair (e.g. PKEY_ID=<n>) to 
+be propagated to hosts configurations, but having the pkey embeded in 
+device name was introducing complexity as various sysadmin scripts and 
+other things need to pick it up.
+
+Having devices with names like ib0.datanet, ib1.cellnet or any other 
+ib<N>.<string> simplifies that life of people designing the management 
+tools for networks and integrating them for the use case of renumbering 
+of pkeys.
+
+Probably many future redesigns are possible, but for this tweak of the 
+existing sysfs "create_child" interface, a rename child may not be the 
+best variant if it requires using device name with pkey values at any 
+stage in the use case. Same for delete_named_child.
+
+Also, some related trivia - which I would not use to justify this design 
+but can explain why certain things were done.
+
+In ancient kernels like 2.6.39 (still widely used by our customers :-) ) 
+where this was implemented first, it was possible to create multiple 
+child interfaces with same pkey value through variants, so a delete 
+interface just using pkey would have been ambiguous (probably not true 
+in current kernels!).
+
+Another trivia: We also have an accompanying change diffs to the script 
+usually installed as /etc/sysconfig/network-scripts/ifup-ib and part of 
+startup scripts (usually in RHEL and related distributions) which uses 
+"create_child" and was enhanced to allow both "create_child" and 
+"create_named_child" - if these changes are accepted, those changes 
+should also be presented to the appropriate upstream for those scripts.
+
+-Mukesh Kacker
+mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
