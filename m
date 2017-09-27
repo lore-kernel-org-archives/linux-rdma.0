@@ -1,48 +1,25 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/8] use setup_timer() helper function.
-Date: Wed, 27 Sep 2017 09:43:01 -0400
-Message-ID: <1506519781.82712.21.camel@redhat.com>
-References: <1506076036-16496-1-git-send-email-allen.lkml@gmail.com>
+Subject: Re: [PATCH] IB/ipoib: Remove device when one port fails to init
+Date: Wed, 27 Sep 2017 09:48:06 -0400
+Message-ID: <1506520086.82712.22.camel@redhat.com>
+References: <1506341880-41082-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1506076036-16496-1-git-send-email-allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1506341880-41082-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-09-22 at 15:57 +0530, Allen Pais wrote:
-> This series uses setup_timer() helper function. The series
-> addresses the files under drivers/infiniband/hw/*.
+On Mon, 2017-09-25 at 05:18 -0700, Yuval Shaia wrote:
+> Call ipoib_remove_one when one of the IPoIB ports fails to initialize
+> in
+> order not to leave the module in unstable state.
 > 
-> 
-> Allen Pais (8):
->   infiniband: qib: use setup_timer() helper.
->   infiniband: nes: use setup_timer() helper.
->   infiniband: qib: use setup_timer() helper.
->   infiniband: mthca: use setup_timer() helper.
->   infiniband: nes: use setup_timer() helper.
->   infiniband: qib: use setup_timer() helper.
->   infiniband: nes: use setup_timer() helper.
->   infiniband: qib: use setup_timer() helper.
-> 
->  drivers/infiniband/hw/mthca/mthca_catas.c | 4 +---
->  drivers/infiniband/hw/nes/nes_cm.c        | 3 +--
->  drivers/infiniband/hw/nes/nes_hw.c        | 9 +++------
->  drivers/infiniband/hw/nes/nes_nic.c       | 3 +--
->  drivers/infiniband/hw/qib/qib_driver.c    | 5 ++---
->  drivers/infiniband/hw/qib/qib_iba7220.c   | 5 ++---
->  drivers/infiniband/hw/qib/qib_mad.c       | 7 +++----
->  drivers/infiniband/hw/qib/qib_sd7220.c    | 5 ++---
->  8 files changed, 15 insertions(+), 26 deletions(-)
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-This patch series is rejected.  If you are doing a "thing", such as
-update a driver to use setup_timer(), then you do one patch for an
-entire driver, and on trivial items such as this, even better would be
-just one patch for all of the drivers under infiniband/hw.  But you do
-*not* do one patch per timer.
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
