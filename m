@@ -1,423 +1,120 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Enable pkey and device name decoupling
-Date: Wed, 27 Sep 2017 20:26:46 +0300
-Message-ID: <20170927172642.GA2411@yuvallap>
-References: <20170927093248.3819-1-yuval.shaia@oracle.com>
- <78f7983f-dc6b-a42a-0b29-adb69777fa75@oracle.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Concall with Doug
+Date: Wed, 27 Sep 2017 20:51:35 +0300
+Message-ID: <20170927175135.GL2297@mtr-leonro.local>
+References: <20170926032941.GB7599@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="++alDQ2ROsODg1x+"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <78f7983f-dc6b-a42a-0b29-adb69777fa75-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170926032941.GB7599-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, corbet-T1hC0tSOHrs@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kernel-6AxghH7DbtA@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ram Amrani <ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yaron Gepstein <yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, skc-YOWKrPYUwWM@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 27, 2017 at 10:20:20AM -0700, Mukesh Kacker wrote:
-> Please do retain original author name from UEK4 and that should be me! :-)
 
-Oops,
-Will be fixed for v1
+--++alDQ2ROsODg1x+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> [ can be fixed by editing with "git commit --amend --author="<string>" ]
-> 
-> -Mukesh Kacker
-> 
-> 
-> On 09/27/2017 02:32 AM, Yuval Shaia wrote:
-> > The sysfs "create_child" interface creates pkey based child interface but
-> > derives the name from parent device name and pkey value.
-> > This makes administration difficult where pkey values can change but
-> > policies encoded with device names do not.
-> > 
-> > We add ability to create a child interface with a user specified name and a
-> > specified pkey with a new sysfs "create_named_child" interface (and also
-> > add a corresponding "delete_named_child" interface).
-> > 
-> > We also add a new module api interface to query pkey from a netdevice so
-> > any kernel users of pkey based child interfaces can query it - since with
-> > device name decoupled from pkey, it can no longer be deduced from parsing
-> > the device name by other kernel users.
-> > 
-> > Signed-off-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: Chien-Hua Yen <chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> >   Documentation/infiniband/ipoib.txt        |  12 ++
-> >   drivers/infiniband/ulp/ipoib/ipoib.h      |   3 +
-> >   drivers/infiniband/ulp/ipoib/ipoib_main.c | 187 ++++++++++++++++++++++++++++++
-> >   drivers/infiniband/ulp/ipoib/ipoib_vlan.c |  76 +++++++++++-
-> >   4 files changed, 272 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/Documentation/infiniband/ipoib.txt b/Documentation/infiniband/ipoib.txt
-> > index 47c1dd9818f2..1db53c9b2906 100644
-> > --- a/Documentation/infiniband/ipoib.txt
-> > +++ b/Documentation/infiniband/ipoib.txt
-> > @@ -21,6 +21,18 @@ Partitions and P_Keys
-> >       echo 0x8001 > /sys/class/net/ib0/delete_child
-> > +  Interfaces with a user chosen name can be created in a similar
-> > +  manner with a different name and P_Key, by writing them into the
-> > +  main interface's /sys/class/net/<intf name>/create_named_child
-> > +  For example:
-> > +     echo "epart2 0x8002" > /sys/class/net/ib1/create_named_child
-> > +
-> > +   This will create an interfaces named epart2 with P_Key 0x8002 and
-> > +   parent ib1. To remove a named subinterface, use the
-> > +   "delete_named_child" file:
-> > +
-> > +     echo epart2 > /sys/class/net/ib1/delete_named_child
-> > +
-> >     The P_Key for any interface is given by the "pkey" file, and the
-> >     main interface for a subinterface is in "parent."
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-> > index 4a5c7a07a631..9d0010f9b324 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib.h
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-> > @@ -589,6 +589,9 @@ void ipoib_event(struct ib_event_handler *handler,
-> >   int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey);
-> >   int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey);
-> > +int ipoib_named_vlan_add(struct net_device *pdev, unsigned short pkey,
-> > +			 char *child_name_buf);
-> > +int ipoib_named_vlan_delete(struct net_device *pdev, char *child_name_buf);
-> >   int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
-> >   		     u16 pkey, int child_type);
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > index bac95b509a9b..2bdd4055d69f 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > @@ -34,6 +34,7 @@
-> >   #include "ipoib.h"
-> > +#include <linux/ctype.h>
-> >   #include <linux/module.h>
-> >   #include <linux/init.h>
-> > @@ -136,6 +137,13 @@ static int ipoib_netdev_event(struct notifier_block *this,
-> >   }
-> >   #endif
-> > +/*
-> > + * PKEY_HEXSTRING_MAXWIDTH - number of hex
-> > + *   digits needed to represent max width of
-> > + *   pkey value.
-> > + */
-> > +#define PKEY_HEXSTRING_MAXWIDTH 4
-> > +
-> >   int ipoib_open(struct net_device *dev)
-> >   {
-> >   	struct ipoib_dev_priv *priv = ipoib_priv(dev);
-> > @@ -2111,6 +2119,121 @@ static int ipoib_set_mac(struct net_device *dev, void *addr)
-> >   	return 0;
-> >   }
-> > +/*
-> > + * Check if a buffer has name of the format
-> > + *
-> > + * <network-device-name>.<4hexcharacters>
-> > + * e.g. ib1.8004 etc.
-> > + *
-> > + * Such names are generated by create_child() by
-> > + * concatenating parent device with 16-bit pkey
-> > + * in hex, and disallowed from usage with
-> > + * create_named_child() interface.
-> > + *
-> > + */
-> > +static bool ipoib_disallowed_named_child_namespace(const char *buf)
-> > +{
-> > +	char localbuf[IFNAMSIZ];
-> > +	char *dotp = NULL;
-> > +	char *buf_before_dot = NULL;
-> > +	char *buf_after_dot = NULL;
-> > +	unsigned int ii;
-> > +
-> > +	memcpy(localbuf, buf, IFNAMSIZ);
-> > +	localbuf[IFNAMSIZ-1] = '\0'; /* paranoia! */
-> > +
-> > +	dotp = strnchr(localbuf, IFNAMSIZ, '.');
-> > +	/* no dot or dot at end! */
-> > +	if (dotp == NULL || dotp == localbuf+IFNAMSIZ-2)
-> > +		return false;
-> > +
-> > +	*dotp = '\0';		/* split buffer at "dot"  */
-> > +	buf_before_dot = localbuf;
-> > +	buf_after_dot = dotp + 1;
-> > +
-> > +	/*
-> > +	 * Check if buf_after_dot is hexstring of width
-> > +	 * that could be a pkey!
-> > +	 */
-> > +	if (strlen(buf_after_dot) != PKEY_HEXSTRING_MAXWIDTH)
-> > +		return false;
-> > +
-> > +	for (ii = 0; ii < PKEY_HEXSTRING_MAXWIDTH; ii++) {
-> > +		if (!isxdigit(buf_after_dot[ii]))
-> > +			return false;
-> > +	}
-> > +
-> > +	/*
-> > +	 * (1) buf_after_dot check above makes it valid hexdigit .XXXX format
-> > +	 *
-> > +	 * Now verify if buf_before_dot is a valid net device name -
-> > +	 * (if it is not, then we are not in disallowed namespace)
-> > +	 */
-> > +	if (__dev_get_by_name(&init_net, buf_before_dot) == NULL)
-> > +		return false;
-> > +
-> > +	/*
-> > +	 * (2) buf_before_dot is valid net device name
-> > +	 *    - reserved namespace is being used!
-> > +	 *
-> > +	 * Note: No check on netdev->type to be ARPHRD_INFINIBAND etc
-> > +	 *       We implicitly treat even misleading names such as eth1.XXXX
-> > +	 *       (ethernet device prefix) for child interface name of an
-> > +	 *       infiniband device as intrusion of reserved namespace!
-> > +	 */
-> > +	return true;
-> > +}
-> > +
-> > +static int parse_named_child(struct device *dev, const char *buf,
-> > +			     char *child_name_buf, int *pkeyp)
-> > +{
-> > +	int ret;
-> > +	struct ipoib_dev_priv *priv = ipoib_priv(to_net_dev(dev));
-> > +
-> > +	if (pkeyp)
-> > +		*pkeyp = -1;
-> > +
-> > +	/*
-> > +	 * First parameter is child interface name, after that
-> > +	 * 'pkey' is required if we were passed a pkey buffer
-> > +	 * (Note: From create_named_child, we are passed a pkey
-> > +	 * buffer to parse input, from delete_named_child we are
-> > +	 * not!)
-> > +	 * Note: IFNAMSIZ is 16, allowing for tail null
-> > +	 * we only scan 15 characters for name.
-> > +	 */
-> > +	if (pkeyp) {
-> > +		ret = sscanf(buf, "%15s %i", child_name_buf, pkeyp);
-> > +		if (ret != 2)
-> > +			return -EINVAL;
-> > +	} else {
-> > +		ret = sscanf(buf, "%15s", child_name_buf);
-> > +		if (ret != 1)
-> > +			return -EINVAL;
-> > +	}
-> > +
-> > +	if (strlen(child_name_buf) <= 0 || !dev_valid_name(child_name_buf))
-> > +		return -EINVAL;
-> > +
-> > +	if (pkeyp && (*pkeyp <= 0 || *pkeyp > 0xffff || *pkeyp == 0x8000))
-> > +		return -EINVAL;
-> > +
-> > +	if (ipoib_disallowed_named_child_namespace(child_name_buf)) {
-> > +		pr_warn("child name %s not allowed  to be used with create_named_child as it uses <network-device-name>.XXXX format reserved for create_child/delete_child interfaces!\n",
-> > +			child_name_buf);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	if (pkeyp)
-> > +		ipoib_dbg(priv, "%s inp %s out child_name_buf %s, pkey %04x\n",
-> > +			  __func__, buf, child_name_buf, *pkeyp);
-> > +	else
-> > +		ipoib_dbg(priv, "%s inp %s out child_name_buf %s\n", __func__,
-> > +			  buf, child_name_buf);
-> > +	return 0;
-> > +}
-> > +
-> > +
-> >   static ssize_t create_child(struct device *dev,
-> >   			    struct device_attribute *attr,
-> >   			    const char *buf, size_t count)
-> > @@ -2156,6 +2279,44 @@ static ssize_t delete_child(struct device *dev,
-> >   }
-> >   static DEVICE_ATTR(delete_child, S_IWUSR, NULL, delete_child);
-> > +static ssize_t create_named_child(struct device *dev,
-> > +				  struct device_attribute *attr,
-> > +				  const char *buf, size_t count)
-> > +{
-> > +	int pkey;
-> > +	char child_name[IFNAMSIZ];
-> > +	int ret = 0;
-> > +
-> > +	child_name[0] = '\0';
-> > +
-> > +	if (parse_named_child(dev, buf, child_name, &pkey))
-> > +		return -EINVAL;
-> > +
-> > +	ret = ipoib_named_vlan_add(to_net_dev(dev), pkey, child_name);
-> > +	return ret ? ret : count;
-> > +}
-> > +static DEVICE_ATTR(create_named_child, S_IWUSR, NULL, create_named_child);
-> > +
-> > +static ssize_t delete_named_child(struct device *dev,
-> > +				  struct device_attribute *attr,
-> > +				  const char *buf, size_t count)
-> > +{
-> > +	char child_name[IFNAMSIZ];
-> > +	int ret = 0;
-> > +
-> > +	child_name[0] = '\0';
-> > +
-> > +	if (parse_named_child(dev, buf, child_name, NULL))
-> > +		return -EINVAL;
-> > +
-> > +	ret = ipoib_named_vlan_delete(to_net_dev(dev), child_name);
-> > +
-> > +	return ret ? ret : count;
-> > +
-> > +}
-> > +static DEVICE_ATTR(delete_named_child, S_IWUSR, NULL, delete_named_child);
-> > +
-> > +
-> >   int ipoib_add_pkey_attr(struct net_device *dev)
-> >   {
-> >   	return device_create_file(&dev->dev, &dev_attr_pkey);
-> > @@ -2263,6 +2424,11 @@ static struct net_device *ipoib_add_port(const char *format,
-> >   		goto sysfs_failed;
-> >   	if (device_create_file(&priv->dev->dev, &dev_attr_delete_child))
-> >   		goto sysfs_failed;
-> > +	if (device_create_file(&priv->dev->dev, &dev_attr_create_named_child))
-> > +		goto sysfs_failed;
-> > +	if (device_create_file(&priv->dev->dev, &dev_attr_delete_named_child))
-> > +		goto sysfs_failed;
-> > +
-> >   	return priv->dev;
-> > @@ -2367,6 +2533,27 @@ static struct notifier_block ipoib_netdev_notifier = {
-> >   };
-> >   #endif
-> > +int
-> > +ipoib_get_netdev_pkey(struct net_device *dev, u16 *pkey)
-> > +{
-> > +	struct ipoib_dev_priv *priv;
-> > +
-> > +	if (dev->type != ARPHRD_INFINIBAND)
-> > +		return -EINVAL;
-> > +
-> > +	/* only for ipoib net devices! */
-> > +	if ((dev->netdev_ops != &ipoib_netdev_ops_pf) &&
-> > +	    (dev->netdev_ops != &ipoib_netdev_ops_vf))
-> > +		return -EINVAL;
-> > +
-> > +	priv = ipoib_priv(dev);
-> > +
-> > +	*pkey = priv->pkey;
-> > +
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL(ipoib_get_netdev_pkey);
-> > +
-> >   static int __init ipoib_init_module(void)
-> >   {
-> >   	int ret;
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-> > index 9927cd6b7082..f5ae55f4f845 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-> > @@ -115,7 +115,9 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
-> >   	return result;
-> >   }
-> > -int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
-> > +int ipoib_vlan_add_common(struct net_device *pdev,
-> > +			  unsigned short pkey,
-> > +			  char *child_name_buf)
-> >   {
-> >   	struct ipoib_dev_priv *ppriv, *priv;
-> >   	char intf_name[IFNAMSIZ];
-> > @@ -130,8 +132,21 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
-> >   	if (test_bit(IPOIB_FLAG_GOING_DOWN, &ppriv->flags))
-> >   		return -EPERM;
-> > -	snprintf(intf_name, sizeof intf_name, "%s.%04x",
-> > -		 ppriv->dev->name, pkey);
-> > +	if (child_name_buf == NULL) {
-> > +		/*
-> > +		 * If child name is not provided, we generated
-> > +		 * one using name of parent and pkey.
-> > +		 */
-> > +		snprintf(intf_name, sizeof(intf_name), "%s.%04x",
-> > +			 ppriv->dev->name, pkey);
-> > +	} else {
-> > +		/*
-> > +		 * Note: Duplicate intf_name will be detected later in the code
-> > +		 * by register_netdevice() (inside __ipoib_vlan_add() call
-> > +		 * below) returning EEXIST!
-> > +		 */
-> > +		strncpy(intf_name, child_name_buf, IFNAMSIZ);
-> > +	}
-> >   	if (!mutex_trylock(&ppriv->sysfs_mutex))
-> >   		return restart_syscall();
-> > @@ -183,10 +198,27 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
-> >   	return result;
-> >   }
-> > -int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey)
-> > +int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
-> > +{
-> > +	return ipoib_vlan_add_common(pdev, pkey, NULL);
-> > +}
-> > +
-> > +int ipoib_named_vlan_add(struct net_device *pdev,
-> > +			 unsigned short pkey,
-> > +			 char *child_name_buf)
-> > +{
-> > +	return ipoib_vlan_add_common(pdev, pkey, child_name_buf);
-> > +}
-> > +
-> > +int ipoib_vlan_delete_common(struct net_device *pdev,
-> > +			     unsigned short pkey,
-> > +			     char *child_name_buf)
-> >   {
-> >   	struct ipoib_dev_priv *ppriv, *priv, *tpriv;
-> >   	struct net_device *dev = NULL;
-> > +	char gen_intf_name[IFNAMSIZ];
-> > +
-> > +	gen_intf_name[0] = '\0'; /* initialize - paranoia! */
-> >   	if (!capable(CAP_NET_ADMIN))
-> >   		return -EPERM;
-> > @@ -205,9 +237,30 @@ int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey)
-> >   	}
-> >   	down_write(&ppriv->vlan_rwsem);
-> > +	if (child_name_buf == NULL && ppriv->dev) {
-> > +		/*
-> > +		 * If child name is not provided, we generate the
-> > +		 * expected one using name of parent and pkey
-> > +		 * and use it in addition to pkey value
-> > +		 * (other children with same pkey may exist that have
-> > +		 * created by create_named_child() - we do not allow
-> > +		 * delete_child() to delete them - delete_named_child()
-> > +		 * has to be used!)
-> > +		 */
-> > +		snprintf(gen_intf_name, sizeof(gen_intf_name),
-> > +			 "%s.%04x", ppriv->dev->name, pkey);
-> > +	}
-> >   	list_for_each_entry_safe(priv, tpriv, &ppriv->child_intfs, list) {
-> > -		if (priv->pkey == pkey &&
-> > -		    priv->child_type == IPOIB_LEGACY_CHILD) {
-> > +		if ((priv->child_type == IPOIB_LEGACY_CHILD) &&
-> > +		    /* user named child (match by name) OR */
-> > +		    ((child_name_buf && priv->dev &&
-> > +		      !strcmp(child_name_buf, priv->dev->name)) ||
-> > +		     /*
-> > +		      * OR classic (devname.hexpkey generated name) child
-> > +		      * (match by pkey and generated name)
-> > +		      */
-> > +		     (!child_name_buf && priv->pkey == pkey &&
-> > +		      priv->dev && !strcmp(gen_intf_name, priv->dev->name)))) {
-> >   			list_del(&priv->list);
-> >   			dev = priv->dev;
-> >   			break;
-> > @@ -231,3 +284,14 @@ int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey)
-> >   	return -ENODEV;
-> >   }
-> > +
-> > +int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey)
-> > +{
-> > +
-> > +	return ipoib_vlan_delete_common(pdev, pkey, NULL);
-> > +}
-> > +
-> > +int ipoib_named_vlan_delete(struct net_device *pdev, char *child_name_buf)
-> > +{
-> > +	return ipoib_vlan_delete_common(pdev, 0, child_name_buf);
-> > +}
-> > 
-> 
+On Mon, Sep 25, 2017 at 09:29:41PM -0600, Jason Gunthorpe wrote:
+> Hello Everyone,
+>
+> As a follow up to LPC we are going to have a public con call with Doug, with
+> the following agenda:
+>
+> - Doug: Explain new process used in 4.14, feed back?
+> - Leon: Explain how Mellanox is handling net-next coordination and
+>    timing of net tree acceptance vs rdma tree acceptance
+> - Jason/All: QA coordination and ensuring QA cycles are well spent,
+>    eg 'what to test'
+> - Distributing patch acceptance, covering PTO periods, etc.
+> - Open mic period
+>
+> This will probably make the most sense in the context of the LPC
+> discussions, but of course everyone is welcome to listen in and
+> participate.
+>
+> I would like to get to all topics so I will MC the call to keep things
+> moving.
+>
+> The time is 10 am PDT, Thursday Sep 28. Leon was first to donate a
+> bridge, attached is an ISC file with all the information.
+>
+> Regards,
+> Jason
+
+Just the copy/paste the content of that ISC file.
+
+In that file, there is a link to Lync meeting, but it doesn't work across
+all companies and it is much safer to try to connect a couple of minutes
+earlier. In case of failure, the phones are working without any
+restrictions.
+
+Conference ID: 6852361
+
+When: Thursday, September 28, 2017 20:00-21:00 (UTC+02:00) Jerusalem.
+Where: Skype Meeting
+
+Note: The GMT offset above does not reflect daylight saving time adjustments.
+
+Join by phone
++972 (74) 7237000 (Israel)                       English (United States)
++33 (805) 100672 (France Toll Free)              English (United States)
++49 (800) 5892698 (Germany Toll Free)            English (United States)
+8 800 1006947 (Russia Toll Free)                 English (United States)
++44 (800) 1700936 (UK Toll Free)                 English (United States)
++1 (888) 3314421 (US Toll Free)                  English (United States)
++972 (1809) 494180 (IL Toll Free)                English (United States)
++40 (800) 895907 (Romania Toll Free)             English (United States)
++61 (1800) 459683 (Australia Toll Free)          English (United States)
++81 (800) 1700770 (Japan Toll Free)              English (United States)
++82 (007) 9885214386 (South Korea Toll Free)     English (United States)
++4 580 880 552 (Denmark Toll free)               English (United States)
++44 (203) 1500253 (UK)                           English (United States)
++1 (408) 9160061 (US West)                       English (United States)
++1 (978) 4395425 (US East)                       English (United States)
++91 000 (800) 0401963 (India Toll Free)          English (United States)
++55 (800) 8923204 (Brazil Toll Free)             Portuguese (Brazil)
++52 (1800) 7334070 (Mexico Toll Free)            English (United States)
++27 (800) 988088 (South Africa Toll Free)        English (United States)
+0018009720127 (Thailand Toll Free)               English (United States)
++41 (800) 321019 (Switzerland Toll Free)         English (United States)
++86-1057892250 China                             English (United States)
++86 (400) 6713580 China Toll-Free                English (United States)
++886-281786069 Taiwan                            English (United States)
++886 00801979798 (Taiwan Toll Free)              English (United States)
++65-63504799 Singapore                           English (United States)
++65 (800) 9721125 (Singapore Toll Free)          English (United States)
++64 (800) 451030 (New Zealand Toll Free)         English (United States)
++39 (800) 098375 (Italy Toll Free)               English (United States)
++31 0800 0200698 (Netherlands Toll Free)         English (United States)
+
+Conference ID: 6852361
+
+--++alDQ2ROsODg1x+
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnL5ScACgkQ5GN7iDZy
+WKcWdA//fDgJnVG9A7ckomQPTu9xniosL0MD8ub66RuNAwFOfOCNrmZmrS5/4mdt
+5KaDGjLLB++CdTuAy2dS7jgsPb7aHZoeNGVhAVYO+19jZa4cMkpCRqqgw3vD8rmA
+zSvN6Ohy4BayeWAczIIe+eXvZcNCjut7Z07utZCryLBbndcn6g2wdup+yvHvJnNP
+p5QIT9LGejOS5gqgPFyIc8wUfHOC52Dv0r9PD5N2M5oolsub9CYeYtPGtpbb2we7
+uBLbN9T1qZDEk2/q5brgQ7ATj59ajZqxEnRGrJ0gE9oqvbXv39Sedu901ogHbkks
+lBfWcc035xsoezYf9W4ZisHC78hjoDzxjwGNlYow9sun3Du4ChummAZVKVTSh5X0
+kkMuZbeikP2meAksc+lT/gts/v1OzLOkapWMMBadID89H749Hj7EWQBd3tXIpaF1
+xFeGGqAfTQRFvg64ToWsrt5OiQzQfP5Ywvd/LWfthQ5jhq/129Xmq+iGuj7dmLct
+1KRw/2mpqtHWFXD0XzObRKsJs0s+nKdZYONNoKuayeij5QVuExlpTpONQmZWIA/S
+Wkvij6YwEda9l1FTuDmbhEH4Pq/jraSqh09uUJPiap57rX5IXHashiUrxWE2Qd9e
+8Jdgui6+6r8RTiU5OUdTmo2tiC1i4CwLpSN1cvWeUi9Ajusd6jA=
+=OQF9
+-----END PGP SIGNATURE-----
+
+--++alDQ2ROsODg1x+--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
