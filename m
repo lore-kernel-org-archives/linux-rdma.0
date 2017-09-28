@@ -1,7 +1,7 @@
 From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: [PATCH for-next 4/9] RDMA/hns: Set mask for destination qp field of qp context assignment
-Date: Thu, 28 Sep 2017 12:57:29 +0800
-Message-ID: <1506574654-56699-5-git-send-email-xavier.huwei@huawei.com>
+Subject: [PATCH for-next 7/9] RDMA/hns: Remove unnecessarily calling unregister_inetaddr_notifier function
+Date: Thu, 28 Sep 2017 12:57:32 +0800
+Message-ID: <1506574654-56699-8-git-send-email-xavier.huwei@huawei.com>
 References: <1506574654-56699-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,35 +14,41 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Lijun Ou <oulijun@huawei.com>
 
-When only set IB_QP_DEST_QPN flag for attr_mask, the operation of
-assigning the dest_qp_num for dest_qp field of qp context is valid.
+When the driver doesn't call register_inetaddr_notifier function, it need
+not call unregister_inetaddr_notifier to unregister inet addr. This patch
+fixes it.
 
 Signed-off-by: Lijun Ou <oulijun@huawei.com>
 Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
 Signed-off-by: Shaobo Xu <xushaobo2@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h | 1 -
+ drivers/infiniband/hw/hns/hns_roce_main.c   | 1 -
+ 2 files changed, 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 1071fa2..4fb7844 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -2880,10 +2880,11 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
- 			       QP_CONTEXT_QPC_BYTES_32_RESPONDER_RESOURCES_S,
- 			       ilog2((unsigned int)attr->max_dest_rd_atomic));
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 4f43c91..06f3dad 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -474,7 +474,6 @@ struct hns_roce_ib_iboe {
+ 	spinlock_t		lock;
+ 	struct net_device      *netdevs[HNS_ROCE_MAX_PORTS];
+ 	struct notifier_block	nb;
+-	struct notifier_block	nb_inet;
+ 	u8			phy_port[HNS_ROCE_MAX_PORTS];
+ };
  
--		roce_set_field(context->qpc_bytes_36,
--			       QP_CONTEXT_QPC_BYTES_36_DEST_QP_M,
--			       QP_CONTEXT_QPC_BYTES_36_DEST_QP_S,
--			       attr->dest_qp_num);
-+		if (attr_mask & IB_QP_DEST_QPN)
-+			roce_set_field(context->qpc_bytes_36,
-+				       QP_CONTEXT_QPC_BYTES_36_DEST_QP_M,
-+				       QP_CONTEXT_QPC_BYTES_36_DEST_QP_S,
-+				       attr->dest_qp_num);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 7a0c1e8..8fe8247 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -419,7 +419,6 @@ static void hns_roce_unregister_device(struct hns_roce_dev *hr_dev)
+ {
+ 	struct hns_roce_ib_iboe *iboe = &hr_dev->iboe;
  
- 		/* Configure GID index */
- 		port_num = rdma_ah_get_port_num(&attr->ah_attr);
+-	unregister_inetaddr_notifier(&iboe->nb_inet);
+ 	unregister_netdevice_notifier(&iboe->nb);
+ 	ib_unregister_device(&hr_dev->ib_dev);
+ }
 -- 
 1.9.1
