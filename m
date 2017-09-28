@@ -1,54 +1,50 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: [PATCH for-next 7/9] RDMA/hns: Remove unnecessarily calling unregister_inetaddr_notifier function
-Date: Thu, 28 Sep 2017 12:57:32 +0800
-Message-ID: <1506574654-56699-8-git-send-email-xavier.huwei@huawei.com>
+From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH for-next 3/9] RDMA/hns: Add return statement when kzalloc return NULL in hns_roce_v1_recreate_lp_qp
+Date: Thu, 28 Sep 2017 12:57:28 +0800
+Message-ID: <1506574654-56699-4-git-send-email-xavier.huwei@huawei.com>
 References: <1506574654-56699-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1506574654-56699-1-git-send-email-xavier.huwei@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, xavier.huwei@huawei.com, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, xushaobo2@huawei.com, zhangxiping3@huawei.com, xavier.huwei@tom.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, shaobohsu@163.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1506574654-56699-1-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-WVlzvzqoTvw@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
-When the driver doesn't call register_inetaddr_notifier function, it need
-not call unregister_inetaddr_notifier to unregister inet addr. This patch
-fixes it.
+When lp_qp_work is NULL, it should be returned ENOMEM. This patch
+mainly fixes it.
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
-Signed-off-by: Shaobo Xu <xushaobo2@huawei.com>
+Ihis patch fixes the smatch error as below:
+drivers/infiniband/hw/hns/hns_roce_hw_v1.c:918 hns_roce_v1_recreate_lp_qp()
+error: potential null dereference 'lp_qp_work'.  (kzalloc returns null)
+
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h | 1 -
- drivers/infiniband/hw/hns/hns_roce_main.c   | 1 -
- 2 files changed, 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 4f43c91..06f3dad 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -474,7 +474,6 @@ struct hns_roce_ib_iboe {
- 	spinlock_t		lock;
- 	struct net_device      *netdevs[HNS_ROCE_MAX_PORTS];
- 	struct notifier_block	nb;
--	struct notifier_block	nb_inet;
- 	u8			phy_port[HNS_ROCE_MAX_PORTS];
- };
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index 95f5c88..1071fa2 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -912,6 +912,8 @@ static int hns_roce_v1_recreate_lp_qp(struct hns_roce_dev *hr_dev)
  
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 7a0c1e8..8fe8247 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -419,7 +419,6 @@ static void hns_roce_unregister_device(struct hns_roce_dev *hr_dev)
- {
- 	struct hns_roce_ib_iboe *iboe = &hr_dev->iboe;
+ 	lp_qp_work = kzalloc(sizeof(struct hns_roce_recreate_lp_qp_work),
+ 			     GFP_KERNEL);
++	if (!lp_qp_work)
++		return -ENOMEM;
  
--	unregister_inetaddr_notifier(&iboe->nb_inet);
- 	unregister_netdevice_notifier(&iboe->nb);
- 	ib_unregister_device(&hr_dev->ib_dev);
- }
+ 	INIT_WORK(&(lp_qp_work->work), hns_roce_v1_recreate_lp_qp_work_fn);
+ 
 -- 
 1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
