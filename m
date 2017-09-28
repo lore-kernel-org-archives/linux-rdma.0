@@ -1,112 +1,112 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 0/2] IB/opa_vnic: Add debugfs interface
-Date: Thu, 28 Sep 2017 22:37:40 +0300
-Message-ID: <20170928193740.GH2297@mtr-leonro.local>
-References: <20170926140714.18110.74689.stgit@scvm10.sc.intel.com>
- <20170926174946.GA1218@mtr-leonro.local>
- <20170926175524.GA2297@mtr-leonro.local>
- <20170926181214.GA41364@knc-06.sc.intel.com>
- <1506525977.33755.3.camel@redhat.com>
- <20170928184727.GA33282@knc-06.sc.intel.com>
- <20170928185753.GG2297@mtr-leonro.local>
- <20170928190502.GA33289@knc-06.sc.intel.com>
+Subject: Re: [PATCH for-4.14-rc] RDMA/netlink: Restore nlmsg_len calculation
+ in ibnl_put_attr
+Date: Thu, 28 Sep 2017 22:47:20 +0300
+Message-ID: <20170928194720.GI2297@mtr-leonro.local>
+References: <20170928114953.9600-1-shiraz.saleem@intel.com>
+ <20170928132457.GW2297@mtr-leonro.local>
+ <20170928190033.GA12760@ssaleem-MOBL4.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="NQFQLHPkFLmdEfVA"
+        protocol="application/pgp-signature"; boundary="J+xDcZ1j08+V/OfU"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170928190502.GA33289-wPcXA7LoDC+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20170928190033.GA12760-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---NQFQLHPkFLmdEfVA
+--J+xDcZ1j08+V/OfU
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Sep 28, 2017 at 12:05:02PM -0700, Vishwanathapura, Niranjana wrote:
-> On Thu, Sep 28, 2017 at 09:57:53PM +0300, Leon Romanovsky wrote:
-> > On Thu, Sep 28, 2017 at 11:47:28AM -0700, Vishwanathapura, Niranjana wrote:
-> > > On Wed, Sep 27, 2017 at 11:26:17AM -0400, Doug Ledford wrote:
-> > > > On Tue, 2017-09-26 at 11:12 -0700, Vishwanathapura, Niranjana wrote:
-> > > > > The debugfs interface here is for VNIC port encapsulation
-> > > > > configuration.
-> > > > > They are not related to netdevice functionality.
-> > > > >
-> > > > > They are for debug purpose only and not the supported configuration
-> > > > > mechanism.
-> > > >
-> > > > OK, if this isn't the supported configuration mechanism, then what is
-> > > > the supported mechanism?
-> > > >
+On Thu, Sep 28, 2017 at 02:00:33PM -0500, Shiraz Saleem wrote:
+> On Thu, Sep 28, 2017 at 04:24:57PM +0300, Leon Romanovsky wrote:
+> > On Thu, Sep 28, 2017 at 06:49:53AM -0500, Shiraz Saleem wrote:
+> > > Commit 1a1c116f3dcf removes nlmsg_len calculation in
+> > > ibnl_put_attr causing netlink messages to be rejected due
+> > > to incorrect length.
 > > >
-> > > The supported mechanism is the Ethernet Manager providing the encapsulation
-> > > configuration (as in the opa_vnic.txt documentation)
-> > > This is just a debug interface to it.
+> > > Restore the netlink message header length calculation
+> > > to include the added attribute.
+> > >
+> > > Fixes: 1a1c116f3dcf ("RDMA/netlink: Simplify the put_msg and put_attr")
+> > > Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > ---
+> > >  drivers/infiniband/core/netlink.c | 4 ++++
+> > >  1 file changed, 4 insertions(+)
+> > >
 > >
-> > Add tracepoint for that.
+> > The length supposed to be updated in ibnl_put_msg, where you should
+> > supply correct length from the beginning. The suggested way to supply
+> > length for unknown data is to provide NLMSG_DEFAULT_SIZE while allocating
+> > new netlink message.
+> >
+> > NLMSG_DEFAULT_SIZE ensures that netlink fits into one page.
+> >
+> > It is better to avoid messing with message length after allocations,
+> > especially for the attributes.
 > >
 >
-> For some reason, I couldn't find Leon's earlier response on my mutt! Will
-> repond here.
+> Hi Leon -
 >
-> It is not really for tracing, but to have a simple debug read/write access
-> to the encapsution configuration which allows us to triage issues.
+> It is not neccessary that the length is passed in ibnl_put_msg.
 >
-> We find it useful on an ongoing basis, more like some standard NICs
-> providing debugfs interface to read/write from/to some of its registers.
-
-Usually if such interface is spotted during submission, it will be requested
-to drop it. Ask Salil, who lately upstreamed new ETH driver and was asked
-to remove it.
-
+> See drivers/infiniband/core/addr.c/ib_nl_ip_send_msg().
 >
-> It is much easier to have it upstreamed and available instead of maintaining
-> these patches separately.
+> In ib_nl_ip_send_msg() nlmsg_len is corrected using nlmsg_end,
+> which is typically called after attributes are added to calculate
+> the correct length.
+>
+> The _original_ ibnl_put_attr wrapper in netlink.c achieves the same
+> by calculating the nlmsg_len.
+>
+> One can argue that it is undesirable to calculate nlmsg_len on
+> every ibnl_put_attr call. An alternate fix we could do is instead of
+> recalculating the length with every ibnl_put_attr call is to
+> add a nlmsg_end after the last ibnl_put_attr call.
+>
+> Do you agree this is a reasonable solution to fix your commit?
 
-See, I didn't hear anyone here against adding such ability, but if you
-want to hear such, you can always CC netdev :).
+As long as you don't add it into ibnl_put_attr and add nlmsg_end into the caller sites,
+I'm more than fine with that.
 
-The question, we are asking is related to the interface chosen to do so - debugfs, and IMHO it is a mistake.
+The rationale behind my "simplify ..." commit was to get rid of ibnl_put_attr
+and replace all calls to appropriate nla_* calls which performs type
+checking.
 
 Thanks
 
 >
-> Niranjana
+> Shiraz
 >
-> > >
-> > > Niranjana
-> > >
-> > > > -- >Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > > >    GPG KeyID: B826A3330E572FDD
-> > > >    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-> > > >
 >
 >
 
---NQFQLHPkFLmdEfVA
+--J+xDcZ1j08+V/OfU
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnNT4QACgkQ5GN7iDZy
-WKdatQ//cV4C5ORuDgAbV6O4VwtNX53nI0AyylbGvS+PXTZnomLrvB0Q3F8SlkdR
-Db+Q2WxFL28CmEX3FtN7SvfMdOd4T0vcEv2K+S6h1jhvanvzxnFjxHTQQJmYjF4W
-qxggm1ewdUpRYMq/LNsaOagY0vh4nVgXtGKpAS2E4QwPfqD18whA76Q/McQuyqg9
-xYHhwi6I1EL2Vum19FvNbyVyfuQUvUKBBw0s7bfFEQmW8qVq1p86CPruN0+V/W+B
-tvOexMA50DqjPKTE2PCxY7N4Rbhg+d39li7DCJfCiAbxOk3QWbTmYg7Rw++UIetc
-0baV4iLJsA4vBCuYAlvPHy/GxFy7pLeKDUo+BuVjOxhDp5G8vkSGujpa6/TuWT0z
-fh7Pcn4qsXD02uu0xFkZ6/EXGl63MgOMXoq3IjcXFr7M3rJK/Fk/hD7geVQFryb8
-txNyLnOFfp8gcS6IMWKdqt1IHkziKTmFA1kQ648tlhxQduvD/JYbh07F/8LhFr3C
-cf/VFMj9ZrS0nwledcHNOdhLD7yS/FyY6e/kfJh0kaITPqP7id+MVto/QKHdh+Qm
-3NTH+VEAXW0DfcMMO8CA66sn14GRUYWM6IuAYDXVqWDwVOKA3Q0Bk8sIXVRdTPS+
-sHgxr7b4KorUebUmu1K1Hn4v4cPy53WhYBpTw7URH3L541xAlBo=
-=7KXK
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnNUcgACgkQ5GN7iDZy
+WKfn6g/+Nu6rVHKMkIaDf00ACyFSynZayeQejVy/QBoyfWCk4BCV3JmaeqZcomqI
+cMkF6flTvm996pcQq5S1fJcoqfKhTsAei3VijMQQMFdA9NHhbrW2QGtIgT0Z2fA+
+Izz7WZhwdaOuXuGcN5P7FLffG3Bbj9dC36knqHGwn7Ru7Ax5ygnfb8lVZt73SEhJ
+mLkddA6+XdbOIXNwzSvZoKti8wi7CtJX97bhCJnCU1zlG+YOsyScpHK3THueTjSJ
+RYmzIWMn00297tfVx1g0tokPlndIgHBUA74hDdCa20vJgRQVI4X5Up8gtOVSmq/g
+OTHFYelVzhMLM3rbTlWZcNzVwHtHOIqC0HCHsVTOHMWkwjVPe3fg4dOEPCbzGPDt
+Qb6BL03eNLxBOgxMOLoFDmlMX71pkOrhTe6IUU6A0BSDCO5m3ma2WIof8UGHRmvz
+mmBv0Hr/W97Af9zhEIp2HcT5rhB3hdnc2aOrQ8vX4upE0LFNpeiFHcJsab1F582d
+0I5BN2n9G1+SgNjTnFAAvFmz1GRHrZyemy4zd1LMOiNA/cKFXCg+8mP8viZNuzZ5
+pfW/tJz7VL1wU0X14P0iuLVAaRtCjl7QzceRdUqyOiLIpE5OfudcAfliElRcyj05
+lZ7+lzjrGNHVfxm6HYkhLF/l7DEaDJMheLQJCdxNlZo/79Trc14=
+=/Inr
 -----END PGP SIGNATURE-----
 
---NQFQLHPkFLmdEfVA--
+--J+xDcZ1j08+V/OfU--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
