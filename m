@@ -1,158 +1,65 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: [PATCH for-next 2/9] RDMA/hns: Factor out the code for checking sdb status into a new function
-Date: Thu, 28 Sep 2017 12:57:27 +0800
-Message-ID: <1506574654-56699-3-git-send-email-xavier.huwei@huawei.com>
+From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH for-next 9/9] RDMA/hns: Replace usleep_range with udelay when checking command status
+Date: Thu, 28 Sep 2017 12:57:34 +0800
+Message-ID: <1506574654-56699-10-git-send-email-xavier.huwei@huawei.com>
 References: <1506574654-56699-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1506574654-56699-1-git-send-email-xavier.huwei@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, xavier.huwei@huawei.com, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, xushaobo2@huawei.com, zhangxiping3@huawei.com, xavier.huwei@tom.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, shaobohsu@163.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1506574654-56699-1-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-WVlzvzqoTvw@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
-It mainly places the lines for checking send doorbell status
-into a special functions. As a result, we can directly call it in
-check_qp_db_process_status function and keep consistent indenting
-style.
+It replaces usleep_range with udelay to avoid using usleep_range function
+in spin_lock_bh spin region, because it probably cause calltrace.
 
-It fixes: 5f110ac4bed8 ("IB/hns: Fix for checkpatch.pl comment style)
-The warning from static checker:
-drivers/infiniband/hw/hns/hns_roce_hw_v1.c:3562 check_qp_db_process_status()
-warn: inconsistent indenting
+BUG: scheduling while atomic: insmod/1428/0x00000002
+Modules linked in: hns-roce-hw-v2(+) hns_roce rdma_ucm rdma_cm iw_cm ib_uverbs ib_cm ib_core
+CPU: 0 PID: 1428 Comm: insmod Not tainted 4.12.0-rc1-00677-g252e8fd-dirty #43
+Hardware name: (null) (DT)
+Call trace:
+[<ffff000008089d20>] dump_backtrace+0x0/0x274
+[<ffff00000808a068>] show_stack+0x20/0x28
+[<ffff00000844ea58>] dump_stack+0x94/0xb4
+[<ffff0000080f975c>] __schedule_bug+0x68/0x84
+[<ffff000008a988d4>] __schedule+0x5fc/0x70c
+[<ffff000008a98a24>] schedule+0x40/0xa4
+[<ffff000008a9c6f0>] schedule_hrtimeout_range_clock+0x98/0xfc
+[<ffff000008a9c788>] schedule_hrtimeout_range+0x34/0x40
+[<ffff000008a9c098>] usleep_range+0x6c/0x80
+[<ffff000000b9ae68>] hns_roce_cmd_send+0xe4/0x264 [hns-roce-hw-v2]
+[<ffff000000b9b748>] hns_roce_cmd_query_hw_info+0x40/0x60 [hns-roce-hw-v2]
+[<ffff000000b9b790>] hns_roce_v2_profile+0x28/0x668 [hns-roce-hw-v2]
+[<ffff000000b6b1f4>] hns_roce_init+0x6c/0x948 [hns-roce-hw-v2]
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
-Signed-off-by: Shaobo Xu <xushaobo2@huawei.com>
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 95 ++++++++++++++++--------------
- 1 file changed, 51 insertions(+), 44 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 6e9acfd..95f5c88 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -3532,6 +3532,53 @@ int hns_roce_v1_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
- 		hns_roce_v1_q_qp(ibqp, qp_attr, qp_attr_mask, qp_init_attr);
- }
- 
-+static void hns_roce_check_sdb_status(struct hns_roce_dev *hr_dev,
-+				      u32 *old_send, u32 *old_retry,
-+				      u32 *tsp_st, u32 *success_flags)
-+{
-+	u32 sdb_retry_cnt;
-+	u32 sdb_send_ptr;
-+	u32 cur_cnt, old_cnt;
-+	u32 send_ptr;
-+
-+	sdb_send_ptr = roce_read(hr_dev, ROCEE_SDB_SEND_PTR_REG);
-+	sdb_retry_cnt =	roce_read(hr_dev, ROCEE_SDB_RETRY_CNT_REG);
-+	cur_cnt = roce_get_field(sdb_send_ptr,
-+				 ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_M,
-+				 ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_S) +
-+		  roce_get_field(sdb_retry_cnt,
-+				 ROCEE_SDB_RETRY_CNT_SDB_RETRY_CT_M,
-+				 ROCEE_SDB_RETRY_CNT_SDB_RETRY_CT_S);
-+	if (!roce_get_bit(*tsp_st, ROCEE_CNT_CLR_CE_CNT_CLR_CE_S)) {
-+		old_cnt = roce_get_field(*old_send,
-+					 ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_M,
-+					 ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_S) +
-+			  roce_get_field(*old_retry,
-+					 ROCEE_SDB_RETRY_CNT_SDB_RETRY_CT_M,
-+					 ROCEE_SDB_RETRY_CNT_SDB_RETRY_CT_S);
-+		if (cur_cnt - old_cnt > SDB_ST_CMP_VAL)
-+			*success_flags = 1;
-+	} else {
-+		old_cnt = roce_get_field(*old_send,
-+					 ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_M,
-+					 ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_S);
-+		if (cur_cnt - old_cnt > SDB_ST_CMP_VAL) {
-+			*success_flags = 1;
-+		} else {
-+			send_ptr = roce_get_field(*old_send,
-+					    ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_M,
-+					    ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_S) +
-+				   roce_get_field(sdb_retry_cnt,
-+					    ROCEE_SDB_RETRY_CNT_SDB_RETRY_CT_M,
-+					    ROCEE_SDB_RETRY_CNT_SDB_RETRY_CT_S);
-+			roce_set_field(*old_send,
-+				       ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_M,
-+				       ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_S,
-+				       send_ptr);
-+		}
-+	}
-+}
-+
- static int check_qp_db_process_status(struct hns_roce_dev *hr_dev,
- 				      struct hns_roce_qp *hr_qp,
- 				      u32 sdb_issue_ptr,
-@@ -3539,12 +3586,10 @@ static int check_qp_db_process_status(struct hns_roce_dev *hr_dev,
- 				      u32 *wait_stage)
- {
- 	struct device *dev = &hr_dev->pdev->dev;
--	u32 sdb_retry_cnt, old_retry;
- 	u32 sdb_send_ptr, old_send;
- 	u32 success_flags = 0;
--	u32 cur_cnt, old_cnt;
- 	unsigned long end;
--	u32 send_ptr;
-+	u32 old_retry;
- 	u32 inv_cnt;
- 	u32 tsp_st;
- 
-@@ -3602,47 +3647,9 @@ static int check_qp_db_process_status(struct hns_roce_dev *hr_dev,
- 
- 				msleep(HNS_ROCE_V1_CHECK_DB_SLEEP_MSECS);
- 
--				sdb_send_ptr = roce_read(hr_dev,
--							ROCEE_SDB_SEND_PTR_REG);
--				sdb_retry_cnt =	roce_read(hr_dev,
--						       ROCEE_SDB_RETRY_CNT_REG);
--				cur_cnt = roce_get_field(sdb_send_ptr,
--					ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_M,
--					ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_S) +
--					roce_get_field(sdb_retry_cnt,
--					ROCEE_SDB_RETRY_CNT_SDB_RETRY_CT_M,
--					ROCEE_SDB_RETRY_CNT_SDB_RETRY_CT_S);
--				if (!roce_get_bit(tsp_st,
--					ROCEE_CNT_CLR_CE_CNT_CLR_CE_S)) {
--					old_cnt = roce_get_field(old_send,
--					ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_M,
--					ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_S) +
--					roce_get_field(old_retry,
--					ROCEE_SDB_RETRY_CNT_SDB_RETRY_CT_M,
--					ROCEE_SDB_RETRY_CNT_SDB_RETRY_CT_S);
--					if (cur_cnt - old_cnt > SDB_ST_CMP_VAL)
--						success_flags = 1;
--				} else {
--					old_cnt = roce_get_field(old_send,
--					ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_M,
--					ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_S);
--					if (cur_cnt - old_cnt >
--					    SDB_ST_CMP_VAL) {
--						success_flags = 1;
--					} else {
--						send_ptr =
--							roce_get_field(old_send,
--					    ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_M,
--					    ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_S) +
--					    roce_get_field(sdb_retry_cnt,
--					    ROCEE_SDB_RETRY_CNT_SDB_RETRY_CT_M,
--					    ROCEE_SDB_RETRY_CNT_SDB_RETRY_CT_S);
--					    roce_set_field(old_send,
--					    ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_M,
--					    ROCEE_SDB_SEND_PTR_SDB_SEND_PTR_S,
--						send_ptr);
--					}
--				}
-+				hns_roce_check_sdb_status(hr_dev, &old_send,
-+							  &old_retry, &tsp_st,
-+							  &success_flags);
- 			} while (!success_flags);
- 		}
- 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 90ef5c6..915d1d5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -589,7 +589,7 @@ int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+ 		do {
+ 			if (hns_roce_cmq_csq_done(hr_dev))
+ 				break;
+-			usleep_range(1000, 2000);
++			udelay(1);
+ 			timeout++;
+ 		} while (timeout < priv->cmq.tx_timeout);
+ 	}
 -- 
 1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
