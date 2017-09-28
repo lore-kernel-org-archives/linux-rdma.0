@@ -1,50 +1,61 @@
-From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 8/9] RDMA/hns: Remove unused struct members in hns-abi.h
-Date: Thu, 28 Sep 2017 12:57:33 +0800
-Message-ID: <1506574654-56699-9-git-send-email-xavier.huwei@huawei.com>
+From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Subject: [PATCH for-next 5/9] RDMA/hns: Set rdma_ah_attr type for querying qp
+Date: Thu, 28 Sep 2017 12:57:30 +0800
+Message-ID: <1506574654-56699-6-git-send-email-xavier.huwei@huawei.com>
 References: <1506574654-56699-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1506574654-56699-1-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-WVlzvzqoTvw@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1506574654-56699-1-git-send-email-xavier.huwei@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: linux-rdma@vger.kernel.org, xavier.huwei@huawei.com, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, xushaobo2@huawei.com, zhangxiping3@huawei.com, xavier.huwei@tom.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, shaobohsu@163.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+From: Lijun Ou <oulijun@huawei.com>
 
-This patch mainly deletes some unused struct members for
-hns_roce_ib_create_qp in order to match libhns, because
-the num of struct members of hns_roce_ib_create_qp must
-be the same with hns_roce_create_qp in libhns.
+When querying qp, It needs to return RoCE device ah_attr type
+that may be specific to RoCE devices.
 
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+Signed-off-by: Shaobo Xu <xushaobo2@huawei.com>
 ---
- include/uapi/rdma/hns-abi.h | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 2 ++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 1 +
+ 2 files changed, 3 insertions(+)
 
-diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
-index 5d74019..79251b6 100644
---- a/include/uapi/rdma/hns-abi.h
-+++ b/include/uapi/rdma/hns-abi.h
-@@ -41,10 +41,8 @@ struct hns_roce_ib_create_cq {
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index 4fb7844..3496f39 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -3351,6 +3351,7 @@ static int hns_roce_v1_q_sqp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+ 	qp_attr->path_mtu	= IB_MTU_256;
+ 	qp_attr->path_mig_state	= IB_MIG_ARMED;
+ 	qp_attr->qkey		= QKEY_VAL;
++	qp_attr->ah_attr.type   = RDMA_AH_ATTR_TYPE_ROCE;
+ 	qp_attr->rq_psn		= 0;
+ 	qp_attr->sq_psn		= 0;
+ 	qp_attr->dest_qp_num	= 1;
+@@ -3432,6 +3433,7 @@ static int hns_roce_v1_q_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+ 					       QP_CONTEXT_QPC_BYTES_48_MTU_M,
+ 					       QP_CONTEXT_QPC_BYTES_48_MTU_S);
+ 	qp_attr->path_mig_state = IB_MIG_ARMED;
++	qp_attr->ah_attr.type   = RDMA_AH_ATTR_TYPE_ROCE;
+ 	if (hr_qp->ibqp.qp_type == IB_QPT_UD)
+ 		qp_attr->qkey = QKEY_VAL;
  
- struct hns_roce_ib_create_qp {
- 	__u64	buf_addr;
--	__u64   db_addr;
- 	__u8    log_sq_bb_count;
- 	__u8    log_sq_stride;
--	__u8    sq_no_prefetch;
- 	__u8    reserved[5];
- };
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 4171f73..90ef5c6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2829,6 +2829,7 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+ 							V2_QPC_BYTE_24_MTU_M,
+ 							V2_QPC_BYTE_24_MTU_S);
+ 	qp_attr->path_mig_state = IB_MIG_ARMED;
++	qp_attr->ah_attr.type   = RDMA_AH_ATTR_TYPE_ROCE;
+ 	if (hr_qp->ibqp.qp_type == IB_QPT_UD)
+ 		qp_attr->qkey = V2_QKEY_VAL;
  
 -- 
 1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
