@@ -1,65 +1,66 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 8/9] RDMA/hns: Remove unused struct members in
- hns-abi.h
-Date: Thu, 28 Sep 2017 12:02:03 +0300
-Message-ID: <20170928090203.GS2297@mtr-leonro.local>
+Subject: Re: [PATCH for-next 3/9] RDMA/hns: Add return statement when kzalloc
+ return NULL in hns_roce_v1_recreate_lp_qp
+Date: Thu, 28 Sep 2017 12:13:08 +0300
+Message-ID: <20170928091308.GT2297@mtr-leonro.local>
 References: <1506574654-56699-1-git-send-email-xavier.huwei@huawei.com>
- <1506574654-56699-9-git-send-email-xavier.huwei@huawei.com>
+ <1506574654-56699-4-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="TSQPSNmi3T91JED+"
+        protocol="application/pgp-signature"; boundary="y/XsGip80ttrIE8G"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1506574654-56699-9-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1506574654-56699-4-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-WVlzvzqoTvw@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---TSQPSNmi3T91JED+
+--y/XsGip80ttrIE8G
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Sep 28, 2017 at 12:57:33PM +0800, Wei Hu (Xavier) wrote:
+On Thu, Sep 28, 2017 at 12:57:28PM +0800, Wei Hu (Xavier) wrote:
 > From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 >
-> This patch mainly deletes some unused struct members for
-> hns_roce_ib_create_qp in order to match libhns, because
-> the num of struct members of hns_roce_ib_create_qp must
-> be the same with hns_roce_create_qp in libhns.
+> When lp_qp_work is NULL, it should be returned ENOMEM. This patch
+> mainly fixes it.
+>
+> Ihis patch fixes the smatch error as below:
+> drivers/infiniband/hw/hns/hns_roce_hw_v1.c:918 hns_roce_v1_recreate_lp_qp()
+> error: potential null dereference 'lp_qp_work'.  (kzalloc returns null)
 >
 > Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 > Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 > Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 > ---
->  include/uapi/rdma/hns-abi.h | 2 --
->  1 file changed, 2 deletions(-)
+>  drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 2 ++
+>  1 file changed, 2 insertions(+)
 >
-> diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
-> index 5d74019..79251b6 100644
-> --- a/include/uapi/rdma/hns-abi.h
-> +++ b/include/uapi/rdma/hns-abi.h
-> @@ -41,10 +41,8 @@ struct hns_roce_ib_create_cq {
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+> index 95f5c88..1071fa2 100644
+> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+> @@ -912,6 +912,8 @@ static int hns_roce_v1_recreate_lp_qp(struct hns_roce_dev *hr_dev)
 >
->  struct hns_roce_ib_create_qp {
->  	__u64	buf_addr;
-> -	__u64   db_addr;
->  	__u8    log_sq_bb_count;
->  	__u8    log_sq_stride;
-> -	__u8    sq_no_prefetch;
->  	__u8    reserved[5];
->  };
+>  	lp_qp_work = kzalloc(sizeof(struct hns_roce_recreate_lp_qp_work),
+>  			     GFP_KERNEL);
+> +	if (!lp_qp_work)
+> +		return -ENOMEM;
+>
 
-It is classical UAPI breakage which kernel tries to avoid.
+You will treat this error in the same was as you will treat timeout,
+which is wrong.
 
-In RDMA, we do allow rename of fields from reserved to something, but
-don't allow binary layout change.
+1656          */
+1657         if (hr_dev->hw->dereg_mr && hns_roce_v1_recreate_lp_qp(hr_dev))
+1658                 dev_warn(&hr_dev->pdev->dev, "recreate lp qp timeout!\n");
+1659
+1660         p = (u32 *)(&addr[0]);
 
-NAK to this change.
 
-Thanks
-
+>  	INIT_WORK(&(lp_qp_work->work), hns_roce_v1_recreate_lp_qp_work_fn);
 >
 > --
 > 1.9.1
@@ -69,27 +70,27 @@ Thanks
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---TSQPSNmi3T91JED+
+--y/XsGip80ttrIE8G
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnMuosACgkQ5GN7iDZy
-WKfC6xAAuVA9BWnPNKSMlE/kAnUeigc4JeQfXPVVlCto3vjSVziTmiaZGm/Hx/aI
-Be+lzTTvpJQXYENibZHAtevVZu9mILFpCZHEY8JmT6kPnY3t19XJjmyeVkNjrRaC
-7rxhrFwPYqoexrPIkGUTY9yydXms74PU8PoXE1svSfDmoxhbR1Em0EuMKweNl4z3
-20GDlfFTM26VmI9FQrq03s6oBrpOerqhmxjrNAPQLijs+wAF/iqb3qWp2nMT6J69
-FxtmJJq99mhLmLaoQG0JSnxndFo3vhhrJ+afySGF0MIh2ygniNStD3gGFuQdv/m0
-rUTejs1FCRmAfqBlaFoMJuAUbgu/7HF4FDsjMefvhZrGTrLmjjAH7TPm0iOlS+zG
-cnsxfFNVF/mkvGs7VmRPqAykoY946mzfISCBof8hKJirdeLyKDySTAS7BOH+7MZj
-KbtA5g65HiqZ0oqTxbgami3j/kVPj7IGnMaAPJUAatWRlMNU1DSyJpIjxo9U8RWk
-XcfCdjVU5SK1yzL74yKKbyjlYnADvGcRwOA5Sdk411QXyI4lP+FAq5h1sCuEqFag
-CREZRsA2ONtjjUqQpURymXxwnVtQD1IMRUdb5uajqDOjUdw9C3LxcZTeSvRGJ53H
-U2zoOXFW1G3aVGN0pvAZeXSjTDdQaOEsMEZH6o4AnSKNq4mTnVQ=
-=7E8p
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnMvSMACgkQ5GN7iDZy
+WKfWlg/8CsVXjBpueFM/+ABOwnQhPXSD9sKM6zv2jtxXnvfDGVYzkcv5fTy31s1A
+adkYI7ExtR0b9XsbaCmcOkwozAmSeSP2ojx1jhhWWi6DDBZt2kd5iCyniUdUN2cz
+tpC+ndzQeoZwU5p03X4hW+fzVz9qLemG039AzTmLvUQrAVl4FDTAjUvY3icxoq5J
+8uT6KCv+wBS8r48TbGbEzhzuqykPTJss/h45N6JNDsUrbVxdQgxsvuwfRHSVY+JZ
+qI+UrcuyGUP1eIesukaYjPs5A8IwXoecQQN/rOJyU3iDCFB5FSA5Rd31i9JvktAR
+mjzp6pV/rs8edRKxeoeMaRmKZTLF/xNYFdQ02VQ8H64t201g87uqRtGn9LEK3cl+
+aFFmvUz5sWeoUcWWTA1SVfHXetnFz1JXH0a4ctxJ9IpASU4+Noy8JXX0UwrCzty0
+d5tt8/g5MRwtfFL0IvvEaV6xaso5uQTX7c6kCLURQjwM2sSBhAPdISqB77zvtXLr
+oobpdZLpkTT0PWe1zxYfVQm06LsJsMEWuq7MCREpuucECeRMTV6nk1mmu8jxRdGY
+xD8Sg+aoHeC9rQr1pYk59AKKfPNmFtuh1g9b1nWgCcY9kFxdX4ZXnt8ULrW7wAx7
+DXt7PfaY1dmoN03bad3wiWVelaqYoLZSaXe3dblFHmLbBExmolk=
+=5TZ/
 -----END PGP SIGNATURE-----
 
---TSQPSNmi3T91JED+--
+--y/XsGip80ttrIE8G--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
