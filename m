@@ -1,7 +1,7 @@
 From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 9/9] RDMA/hns: Replace usleep_range with udelay when checking command status
-Date: Thu, 28 Sep 2017 12:57:34 +0800
-Message-ID: <1506574654-56699-10-git-send-email-xavier.huwei@huawei.com>
+Subject: [PATCH for-next 8/9] RDMA/hns: Remove unused struct members in hns-abi.h
+Date: Thu, 28 Sep 2017 12:57:33 +0800
+Message-ID: <1506574654-56699-9-git-send-email-xavier.huwei@huawei.com>
 References: <1506574654-56699-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,48 +14,33 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
-It replaces usleep_range with udelay to avoid using usleep_range function
-in spin_lock_bh spin region, because it probably cause calltrace.
-
-BUG: scheduling while atomic: insmod/1428/0x00000002
-Modules linked in: hns-roce-hw-v2(+) hns_roce rdma_ucm rdma_cm iw_cm ib_uverbs ib_cm ib_core
-CPU: 0 PID: 1428 Comm: insmod Not tainted 4.12.0-rc1-00677-g252e8fd-dirty #43
-Hardware name: (null) (DT)
-Call trace:
-[<ffff000008089d20>] dump_backtrace+0x0/0x274
-[<ffff00000808a068>] show_stack+0x20/0x28
-[<ffff00000844ea58>] dump_stack+0x94/0xb4
-[<ffff0000080f975c>] __schedule_bug+0x68/0x84
-[<ffff000008a988d4>] __schedule+0x5fc/0x70c
-[<ffff000008a98a24>] schedule+0x40/0xa4
-[<ffff000008a9c6f0>] schedule_hrtimeout_range_clock+0x98/0xfc
-[<ffff000008a9c788>] schedule_hrtimeout_range+0x34/0x40
-[<ffff000008a9c098>] usleep_range+0x6c/0x80
-[<ffff000000b9ae68>] hns_roce_cmd_send+0xe4/0x264 [hns-roce-hw-v2]
-[<ffff000000b9b748>] hns_roce_cmd_query_hw_info+0x40/0x60 [hns-roce-hw-v2]
-[<ffff000000b9b790>] hns_roce_v2_profile+0x28/0x668 [hns-roce-hw-v2]
-[<ffff000000b6b1f4>] hns_roce_init+0x6c/0x948 [hns-roce-hw-v2]
+This patch mainly deletes some unused struct members for
+hns_roce_ib_create_qp in order to match libhns, because
+the num of struct members of hns_roce_ib_create_qp must
+be the same with hns_roce_create_qp in libhns.
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/uapi/rdma/hns-abi.h | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 90ef5c6..915d1d5 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -589,7 +589,7 @@ int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
- 		do {
- 			if (hns_roce_cmq_csq_done(hr_dev))
- 				break;
--			usleep_range(1000, 2000);
-+			udelay(1);
- 			timeout++;
- 		} while (timeout < priv->cmq.tx_timeout);
- 	}
+diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
+index 5d74019..79251b6 100644
+--- a/include/uapi/rdma/hns-abi.h
++++ b/include/uapi/rdma/hns-abi.h
+@@ -41,10 +41,8 @@ struct hns_roce_ib_create_cq {
+ 
+ struct hns_roce_ib_create_qp {
+ 	__u64	buf_addr;
+-	__u64   db_addr;
+ 	__u8    log_sq_bb_count;
+ 	__u8    log_sq_stride;
+-	__u8    sq_no_prefetch;
+ 	__u8    reserved[5];
+ };
+ 
 -- 
 1.9.1
 
