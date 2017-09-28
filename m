@@ -1,7 +1,7 @@
-From: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v1 rdma-next] RDMA/qedr: Fix rdma_type initialization
-Date: Thu, 28 Sep 2017 06:22:59 +0000
-Message-ID: <CY1PR0701MB20122CDD0A73BB963A43755288790@CY1PR0701MB2012.namprd07.prod.outlook.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v1 rdma-next] RDMA/qedr: Fix rdma_type initialization
+Date: Thu, 28 Sep 2017 09:49:55 +0300
+Message-ID: <20170928064955.GP2297@mtr-leonro.local>
 References: <1505885986-5873-1-git-send-email-Michal.Kalderon@cavium.com>
  <1506518845.82712.15.camel@redhat.com>
  <CY1PR0701MB20126E3E86A45619079DFCAC88780@CY1PR0701MB2012.namprd07.prod.outlook.com>
@@ -9,107 +9,82 @@ References: <1505885986-5873-1-git-send-email-Michal.Kalderon@cavium.com>
  <20170927165610.GJ2297@mtr-leonro.local>
  <CY1PR0701MB2012A41A0744D17AD3CD10DB88780@CY1PR0701MB2012.namprd07.prod.outlook.com>
  <20170928032725.GO2297@mtr-leonro.local>
+ <CY1PR0701MB20122CDD0A73BB963A43755288790@CY1PR0701MB2012.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="68uOmRXIw+u8y5pO"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170928032725.GO2297-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CY1PR0701MB20122CDD0A73BB963A43755288790-UpKza+2NMNLHMJvQ0dyT705OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGcm9tOiBMZW9uIFJvbWFub3Zza3kgW21haWx0bzpsZW9uQGtlcm5lbC5vcmddDQo+IFNlbnQ6
-IFRodXJzZGF5LCBTZXB0ZW1iZXIgMjgsIDIwMTcgNjoyNyBBTQ0KPiBPbiBXZWQsIFNlcCAyNywg
-MjAxNyBhdCAwODozMzozOFBNICswMDAwLCBLYWxkZXJvbiwgTWljaGFsIHdyb3RlOg0KPiA+IEZy
-b206IExlb24gUm9tYW5vdnNreSA8bGVvbkBrZXJuZWwub3JnPg0KPiA+IFNlbnQ6IFdlZG5lc2Rh
-eSwgU2VwdGVtYmVyIDI3LCAyMDE3IDc6NTYgUE0gT24gV2VkLCBTZXAgMjcsIDIwMTcgYXQNCj4g
-PiAwNzo1MzozOVBNICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6DQo+ID4gPj4gT24gV2Vk
-LCBTZXAgMjcsIDIwMTcgYXQgMDQ6MTg6NTBQTSArMDAwMCwgS2FsZGVyb24sIE1pY2hhbCB3cm90
-ZToNCj4gPiA+PiA+IEZyb206IERvdWcgTGVkZm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT4NCj4g
-PiA+PiA+IFNlbnQ6IFdlZG5lc2RheSwgU2VwdGVtYmVyIDI3LCAyMDE3IDQ6MjcgUE0NCj4gPiA+
-PiA+DQo+ID4gPj4gPiA+T24gV2VkLCAyMDE3LTA5LTIwIGF0IDA4OjM5ICswMzAwLCBNaWNoYWwg
-S2FsZGVyb24gd3JvdGU6DQo+ID4gPj4gPiA+PiBJbml0aWFsaXplIHRoZSByZG1hX3R5cGUgKGlX
-QVJQIG9yIFJvQ0UpIHdoaWNoIGlzIHNldA0KPiA+ID4+ID4gPj4gYWNjb3JkaW5nIHRvIGRldmlj
-ZSBjb25maWd1cmF0aW9uIGluIHFlZC4NCj4gPiA+PiA+ID4+DQo+ID4gPj4gPiA+PiBGaXhlczog
-ZTZhMzhjNTRmYWYgKCJSRE1BL3FlZHI6IEFkZCBzdXBwb3J0IGZvciByZWdpc3RlcmluZyBhbg0K
-PiA+ID4+ID4gPj4gaVdBUlANCj4gPiA+PiA+ID4+IGRldmljZSIpDQo+ID4gPj4gPiA+Pg0KPiA+
-ID4+ID4gPj4gU2lnbmVkLW9mZi1ieTogTWljaGFsIEthbGRlcm9uIDxNaWNoYWwuS2FsZGVyb25A
-Y2F2aXVtLmNvbT4NCj4gPiA+PiA+ID4+IFNpZ25lZC1vZmYtYnk6IEFyaWVsIEVsaW9yIDxBcmll
-bC5FbGlvckBjYXZpdW0uY29tPg0KPiA+ID4+ID4gPj4NCj4gPiA+PiA+ID4+IC0tLQ0KPiA+ID4+
-ID4gPj4gVGhpcyBwYXRjaCBhcHBsaWVzIGNsZWFubHkgb24gay5vL2Zvci1uZXh0LW1lcmdlZA0K
-PiA+ID4+ID4gPj4NCj4gPiA+PiA+ID4+IENoYW5nZXMgZnJvbSBWMDoNCj4gPiA+PiA+ID4+IC0g
-QWRkZWQgRml4ZXMgaW4gY29tbWl0IGNvbW1lbnQuDQo+ID4gPj4gPiA+DQo+ID4gPj4gPiA+U29y
-cnksIEkgd2FzIHdyb25nIGluIG15IGVtYWlsIHRvIHRoZSBwcmV2aW91cyBwb3N0aW5nIG9mIHRo
-aXMgcGF0Y2guDQo+ID4gPj4gPiA+SSBoYWQgcHVsbGVkIHRoaXMgdjEgcGF0Y2ggZnJvbSBwYXRj
-aHdvcmtzLCBub3QgdGhlIG9yaWdpbmFsDQo+ID4gPj4gPiA+cGF0Y2gsIGFuZCBzbyB0aGUgRml4
-ZXM6IGxpbmUgd2FzIHlvdXJzLiAgUGF0Y2h3b3JrcyBkaWQgbm90IGFkZA0KPiA+ID4+ID4gPnRo
-ZSBGaXhlczogbGluZSB0byB0aGUgdjAgcGF0Y2ggd2hlbiBJIGRvd25sb2FkZWQgaXQganVzdCBu
-b3cuDQo+ID4gPj4gPg0KPiA+ID4+ID4gPlRoYXQgYmVpbmcgc2FpZCwgSSBzdGlsbCBjYW4ndCBi
-dWlsZCB3aXRoIHRoaXMgcGF0Y2ggOy0pDQo+ID4gPj4gPiBBcmUgeW91IGJ1aWxkaW5nIGFnYWlu
-c3QgdGhlIHJkbWEtbmV4dCBicmFuY2ggPw0KPiA+ID4+ID4gVGhlIHBhdGNoIHJlcXVpcmVzIHRo
-ZSBpV0FSUCBzZXJpZXMsIG9yaWdpbmFsbHkgdGhpcyB3YXMgdGVzdGVkDQo+ID4gPj4gPiBhZ2Fp
-bnN0IGZvci1uZXh0LW1lcmdlZCwgd2hhdCdzIHRoZSBlcnJvciB5b3UncmUgZ2V0dGluZyA/DQo+
-ID4gPj4NCj4gPiA+PiBPbiByZG1hLW5leHQ6DQo+ID4gPj4gZHJpdmVycy9pbmZpbmliYW5kL2h3
-L3FlZHIvbWFpbi5jOiBJbiBmdW5jdGlvbiDigJhxZWRyX2FkZOKAmToNCj4gPiA+PiBkcml2ZXJz
-L2luZmluaWJhbmQvaHcvcWVkci9tYWluLmM6NzgwOjc6IGVycm9yOiDigJhzdHJ1Y3QgcWVkcl9k
-ZXbigJkgaGFzDQo+IG5vIG1lbWJlciBuYW1lZCDigJhyZG1hX3R5cGXigJk7IGRpZCB5b3UgbWVh
-biDigJhyZG1hX2N0eOKAmT8NCj4gPiA+PiAgIGRldi0+cmRtYV90eXBlID0gZGV2X2luZm8ucmRt
-YV90eXBlOw0KPiA+ID4+ICAgICAgICBefn5+fn5+fn4NCj4gPiA+PiAgICAgICAgcmRtYV9jdHgN
-Cj4gPiA+PiBtYWtlWzRdOiAqKiogW3NjcmlwdHMvTWFrZWZpbGUuYnVpbGQ6MzExOg0KPiA+ID4+
-IGRyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL21haW4ub10gRXJyb3IgMQ0KPiA+ID4NCj4gPiA+
-TXkgY29uZmlnOg0KPiA+ID4NCj4gPiA+4p6cICBsaW51eC1yZG1hIGdpdDoocmRtYS1uZXh0KSBn
-cmVwIFFFRCAuY29uZmlnIENPTkZJR19RRUQ9bQ0KPiA+ID5DT05GSUdfUUVEX0xMMj15IENPTkZJ
-R19RRURfU1JJT1Y9eSBDT05GSUdfUUVERT1tDQo+IENPTkZJR19RRURfUkRNQT15DQo+ID4gPkNP
-TkZJR19JTkZJTklCQU5EX1FFRFI9bQ0KPiA+DQo+ID4gVGhhbmtzIExlb24gZm9yIGhlbHBpbmcg
-b3V0IHdpdGggdGhpcy4gVW5mb3J0dW5hdGVseSBpJ20gbm90IHNlZWluZyB0aGlzLg0KPiA+IFRo
-ZSByZG1hX3R5cGUgZmllbGQgd2FzIGFkZGVkIHdpdGggdGhlIGZvbGxvd2luZyBwYXRjaDoNCj4g
-Pg0KPiBodHRwczovL2tlcm5lbC5nb29nbGVzb3VyY2UuY29tL3B1Yi9zY20vbGludXgva2VybmVs
-L2dpdC9kbGVkZm9yZC9yZG1hDQo+ID4gLysvZTZhMzhjNTRmYWYzODQ5ODE3MGUyMjdjODJlYTI1
-Y2I4YmMxYWU3MQ0KPiA+DQo+ID4gV2hlbiBydW5uaW5nIGdpdCBsb2cgb24gdGhlIGsuby9mb3It
-bmV4dCBJIHNlZSB0aGUgcGF0Y2ggKGxhc3QgaW4gbGlzdA0KPiA+IGJlbG93KSwgYXBwbHlpbmcg
-dGhpcyBwYXRjaCBvbiB0b3Agb2YgIHJkbWEtbmV4dCB3b3JrcyBmb3IgbWUgYW5kDQo+IGNvbXBp
-bGVzIGNsZWFubHkuDQo+ID4NCj4gPiAyZTJmMmQwIFJETUEvcWVkcjogRml4IHJkbWFfdHlwZSBp
-bml0aWFsaXphdGlvbg0KPiA+IDE4NDg3NTcgTWVyZ2UgYnJhbmNoZXMgJ2hucycgYW5kICdtaXNj
-JyBpbnRvIGsuby9mb3ItbmV4dCA5MzFiYzBkIElCOg0KPiA+IE1vdmUgUENJIGRlcGVuZGVuY3kg
-ZnJvbSByb290IEtDb25maWcgdG8gSFcncyBLQ29uZmlncyA3YWU2ZjJhIE1lcmdlDQo+ID4gYnJh
-bmNoICdxZWRyJyBpbnRvIGsuby9mb3ItbmV4dA0KPiA+IGJkNDkxZDIgUkRNQS9xZWRyOiBmaXgg
-YnVpbGQgZXJyb3Igd2l0aG91dCBpcHY2DQo+ID4gODlmZDI1NyBSRE1BL3FlZHI6IE1pc3Npbmcg
-ZXJyb3IgY29kZSBpbiBxZWRyX2luaXRfdXNlcl9xdWV1ZSgpDQo+ID4gODQ3Y2IxYSBSRE1BL3Fl
-ZHI6IGZpeCBzcGVsbGluZyBtaXN0YWtlOiAiaW52bGFpZCIgLT4gImludmFsaWQiDQo+ID4gNjlh
-ZDBlNyBSRE1BL3FlZHI6IEFkZCBzdXBwb3J0IGZvciBpV0FSUCBpbiB1c2VyIHNwYWNlDQo+ID4g
-ZTQxMWUwNSBSRE1BL3FlZHI6IEFkZCBpV0FSUCBjb25uZWN0aW9uIG1hbmFnZW1lbnQgZnVuY3Rp
-b25zDQo+IGRlMDA4OWUNCj4gPiBSRE1BL3FlZHI6IEFkZCBpV0FSUCBjb25uZWN0aW9uIG1hbmFn
-ZW1lbnQgcXAgcmVsYXRlZCBjYWxsYmFja3MNCj4gPiBmYjFhMjJiIFJETUEvcWVkcjogQWRkIHN1
-cHBvcnQgZm9yIHJlYWQgd2l0aCBpbnZhbGlkYXRlLCBzdXBwb3J0ZWQgaW4NCj4gPiBpV0FSUA0K
-PiA+IGY1YjFiMTcgUkRNQS9xZWRyOiBBZGQgaVdBUlAgc3VwcG9ydCBpbiBleGlzdGluZyB2ZXJi
-cw0KPiA+IGU2YTM4YzUgUkRNQS9xZWRyOiBBZGQgc3VwcG9ydCBmb3IgcmVnaXN0ZXJpbmcgYW4g
-aVdBUlAgZGV2aWNlDQo+ID4NCj4gPiBhbSBpIG1pc3Npbmcgc29tZXRoaW5nID8NCj4gDQo+IEkg
-cmVmcmVzaGVkIG15IGJyYW5jaGVzIG5vdyBhbmQgaXQgd29ya2VkLCBidXQgeW91ciBnaXQgbG9n
-IGhpc3RvcnkgbG9va3MNCj4gc3RyYW5nZS4gV2hlcmUgZGlkIHlvdSBzZWUgdGhlIGNvbW1pdCAx
-ODQ4NzU3IGFuZCA5MzFiYzBkPw0KDQpnaXQ6Ly9naXRodWIuY29tL2RsZWRmb3JkL2xpbnV4Lmdp
-dA0KZ2l0IGxvZyAtLW9uZWxpbmUgLS0gZHJpdmVycy9pbmZpbmliYW5kL2h3L3FlZHINCmh0dHBz
-Oi8vZ2l0aHViLmNvbS9kbGVkZm9yZC9saW51eC9jb21taXQvMTg0ODc1N2MzZDhiZmYzYWRkZjg4
-MWM4YmNjMmI4NWUyNWNjZjI1ZQ0KDQpJIHdhcyB1bmRlciB0aGUgYXNzdW1wdGlvbiBhIHBhdGNo
-IGdvZXMgdG8gZ2l0aHViIGJlZm9yZSBrLm8gLSBpcyB0aGlzIG5vdCB0aGUgY2FzZSA/IA0KVGhh
-bmtzIGFnYWluLCANCg0KRG91ZyAtIGFyZSB5b3Ugc3RpbGwgc2VlaW5nIGlzc3VlcyB3aXRoIHRo
-aXMgcGF0Y2ggPyANClRoYW5rcywNCk1pY2hhbA0KDQo+IA0KPiBodHRwczovL2dpdC5rZXJuZWwu
-b3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9kbGVkZm9yZC9yZG1hLmdpdC9sb2cvP2g9aw0K
-PiAuby9mb3ItbmV4dA0KPiBBZ2UJQ29tbWl0IG1lc3NhZ2UgKEV4cGFuZCkJQXV0aG9yCUZpbGVz
-CUxpbmVzDQo+IDMgZGF5cwlNZXJnZSBicmFuY2ggJ3FlZHInIGludG8gay5vL2Zvci1uZXh0Zm9y
-LW5leHRrLm8vZm9yLW5leHQJIERvdWcNCj4gTGVkZm9yZAkxMQktOTEvKzEyMDgNCj4gMyBkYXlz
-CU1lcmdlIHRhZyAndjQuMTQtcmMyJyBpbnRvIGsuby9mb3ItbmV4dAkgRG91ZyBMZWRmb3JkCTEy
-MDQ0CS0NCj4gMzg4NDc1Lys2MzEwMTgNCj4gMyBkYXlzCUxpbnV4IDQuMTQtcmMySEVBRG1hc3Rl
-cgkgTGludXMgVG9ydmFsZHMJMQktMS8rMQ0KPiANCj4g4p6cICBsaW51eC1yZG1hIGdpdDooaXdh
-cnAtY29tcGlsZSkgZ2l0IGxvZyAtLW9uZWxpbmUgZjM1MDY5NTcyMzdiIChIRUFEIC0+DQo+IGl3
-YXJwLWNvbXBpbGUpIFJETUEvcWVkcjogRml4IHJkbWFfdHlwZSBpbml0aWFsaXphdGlvbg0KPiA3
-YWU2ZjJhM2Q1NTIgKHJkbWEvay5vL2Zvci1uZXh0LCBncmRtYS9rLm8vZm9yLW5leHQpIE1lcmdl
-IGJyYW5jaCAncWVkcicNCj4gaW50byBrLm8vZm9yLW5leHQNCj4gMGQ5YzJmZjFjOWY3IE1lcmdl
-IHRhZyAndjQuMTQtcmMyJyBpbnRvIGsuby9mb3ItbmV4dCBlMTliMjA1YmU0M2QgKHRhZzoNCj4g
-djQuMTQtcmMyLCByZG1hL21hc3Rlciwgb3JpZ2luL21hc3RlciwgbWwvbWFzdGVyLCBncmRtYS9t
-YXN0ZXIsDQo+IGdyZG1hL2hucywgYmFja3VwL21hc3RlciwgbWFzdGVyKSBMaW51eCA0LjE0LXJj
-Mg0KPiANCj4gVGhhbmtzDQo+IA0KPiA+IHRoYW5rcywNCj4gPiBNaWNoYWwNCj4gPg0K
+
+--68uOmRXIw+u8y5pO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, Sep 28, 2017 at 06:22:59AM +0000, Kalderon, Michal wrote:
+> > >
+> > > When running git log on the k.o/for-next I see the patch (last in list
+> > > below), applying this patch on top of  rdma-next works for me and
+> > compiles cleanly.
+> > >
+> > > 2e2f2d0 RDMA/qedr: Fix rdma_type initialization
+> > > 1848757 Merge branches 'hns' and 'misc' into k.o/for-next 931bc0d IB:
+> > > Move PCI dependency from root KConfig to HW's KConfigs 7ae6f2a Merge
+> > > branch 'qedr' into k.o/for-next
+> > > bd491d2 RDMA/qedr: fix build error without ipv6
+> > > 89fd257 RDMA/qedr: Missing error code in qedr_init_user_queue()
+> > > 847cb1a RDMA/qedr: fix spelling mistake: "invlaid" -> "invalid"
+> > > 69ad0e7 RDMA/qedr: Add support for iWARP in user space
+> > > e411e05 RDMA/qedr: Add iWARP connection management functions
+> > de0089e
+> > > RDMA/qedr: Add iWARP connection management qp related callbacks
+> > > fb1a22b RDMA/qedr: Add support for read with invalidate, supported in
+> > > iWARP
+> > > f5b1b17 RDMA/qedr: Add iWARP support in existing verbs
+> > > e6a38c5 RDMA/qedr: Add support for registering an iWARP device
+> > >
+> > > am i missing something ?
+> >
+> > I refreshed my branches now and it worked, but your git log history looks
+> > strange. Where did you see the commit 1848757 and 931bc0d?
+>
+> git://github.com/dledford/linux.git
+> git log --oneline -- drivers/infiniband/hw/qedr
+> https://github.com/dledford/linux/commit/1848757c3d8bff3addf881c8bcc2b85e25ccf25e
+>
+> I was under the assumption a patch goes to github before k.o - is this not the case ?
+
+Repo on github is Doug's private repository, while it is much safer to stick
+with one official on kernel.org.
+
+Thanks
+
+--68uOmRXIw+u8y5pO
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnMm5MACgkQ5GN7iDZy
+WKdHSRAAiyc+S0lItw0nj6fn1kfoTxVi35KX47ZBYKpDFB5V/fw/cPhUlZsMwHvc
+HctzmzhGRTNHfoMJ1koaacdxdgbhGLguH96rPkRg0LFJg7PnNIiCumNcsOmxN/ln
+dJYGbp+12XY68B9Bs8DzuzgWH5hRSKaVCWudR5jRqwgDQJDbkHahUOOl68hDGR09
+c3q6UYYbzU8GZiVsJPaBHwqe85BzwXcaQE42YSwbdohk95q2MsJHu9gE2wf+DW8p
+PSLCiapQgHUZZcEnFEBo+jfbPsMISLqtqayhseF162ttyXE29EE6DsPFNuZtGx5x
+vfJ0HGC9fAZ+3rqdH7G2Nger0HGGDNlYgBaZfnrKG54vHdyu9t8tnczYNq5kn7av
+/2/+Vx368h6Q/gLADVwmM3okLRjhwt4o4U24nXndsLaB1MulJPTQ4Fp/1Pv3pCYJ
+InrYL0yrJuFyjm814f1rO5CvnojxfLe2y7vtscKCFTiX9b2vLscc/5X8txcezw6C
+3rvdMr0Ri2Pbo9geRJA09F8ea7sVs5XX8FaOq5yw5cpjHiReRoPKeZz+0On3kZOb
+CtVmR5DMqG6PR4u3f4khv837Zrs7PYSQiNgNgo+lel+XPTHAfu4ApcJicPfCAAYV
+r7Divb5wjYzSAU2Cc6DeTxcoESsEQgQ8IXIunsvrp7zZe3KALaQ=
+=cskl
+-----END PGP SIGNATURE-----
+
+--68uOmRXIw+u8y5pO--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
