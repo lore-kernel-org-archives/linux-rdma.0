@@ -1,53 +1,48 @@
-From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 6/9] RDMA/hns: Add return statement when checking error in hns_roce_v1_mr_free_work_fn
-Date: Thu, 28 Sep 2017 12:57:31 +0800
-Message-ID: <1506574654-56699-7-git-send-email-xavier.huwei@huawei.com>
+From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Subject: [PATCH for-next 4/9] RDMA/hns: Set mask for destination qp field of qp context assignment
+Date: Thu, 28 Sep 2017 12:57:29 +0800
+Message-ID: <1506574654-56699-5-git-send-email-xavier.huwei@huawei.com>
 References: <1506574654-56699-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1506574654-56699-1-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-WVlzvzqoTvw@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1506574654-56699-1-git-send-email-xavier.huwei@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: linux-rdma@vger.kernel.org, xavier.huwei@huawei.com, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, xushaobo2@huawei.com, zhangxiping3@huawei.com, xavier.huwei@tom.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, shaobohsu@163.com
 List-Id: linux-rdma@vger.kernel.org
 
-After the loop in hns_roce_v1_mr_free_work_fn function, it is possible that
-the local variable named hr_qp is NULL, the operation "hr_qp->qpn" will
-result in the exception. As a result, we add return statement when checking
-error.
+From: Lijun Ou <oulijun@huawei.com>
 
-This patch fixes the smatch error as below:
-drivers/infiniband/hw/hns/hns_roce_hw_v1.c:1009 hns_roce_v1_mr_free_work_fn()
-error: we previously assumed 'hr_qp' could be null
+When only set IB_QP_DEST_QPN flag for attr_mask, the operation of
+assigning the dest_qp_num for dest_qp field of qp context is valid.
 
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+Signed-off-by: Shaobo Xu <xushaobo2@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 3496f39..c08822b 100644
+index 1071fa2..4fb7844 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -1004,6 +1004,11 @@ static void hns_roce_v1_mr_free_work_fn(struct work_struct *work)
- 		}
- 	}
+@@ -2880,10 +2880,11 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 			       QP_CONTEXT_QPC_BYTES_32_RESPONDER_RESOURCES_S,
+ 			       ilog2((unsigned int)attr->max_dest_rd_atomic));
  
-+	if (!ne) {
-+		dev_err(dev, "Reseved loop qp is absent!\n");
-+		goto free_work;
-+	}
-+
- 	do {
- 		ret = hns_roce_v1_poll_cq(&mr_free_cq->ib_cq, ne, wc);
- 		if (ret < 0) {
+-		roce_set_field(context->qpc_bytes_36,
+-			       QP_CONTEXT_QPC_BYTES_36_DEST_QP_M,
+-			       QP_CONTEXT_QPC_BYTES_36_DEST_QP_S,
+-			       attr->dest_qp_num);
++		if (attr_mask & IB_QP_DEST_QPN)
++			roce_set_field(context->qpc_bytes_36,
++				       QP_CONTEXT_QPC_BYTES_36_DEST_QP_M,
++				       QP_CONTEXT_QPC_BYTES_36_DEST_QP_S,
++				       attr->dest_qp_num);
+ 
+ 		/* Configure GID index */
+ 		port_num = rdma_ah_get_port_num(&attr->ah_attr);
 -- 
 1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
