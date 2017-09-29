@@ -1,58 +1,39 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/9] IB/hfi1: IOCTL cleanup and refactoring
-Date: Fri, 29 Sep 2017 11:07:12 -0400
-Message-ID: <1506697632.2919.13.camel@redhat.com>
-References: <20170926140201.16637.45981.stgit@scvm10.sc.intel.com>
+Subject: Re: [PATCH] IB/qib: Use setup_timer and mod_timer
+Date: Fri, 29 Sep 2017 11:20:16 -0400
+Message-ID: <1506698416.2919.14.camel@redhat.com>
+References: <1506253867-5132-1-git-send-email-himanshujha199640@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170926140201.16637.45981.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <1506253867-5132-1-git-send-email-himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-09-26 at 07:03 -0700, Dennis Dalessandro wrote:
-> Hi Doug,
+On Sun, 2017-09-24 at 17:21 +0530, Himanshu Jha wrote:
+> Use setup_timer and mod_timer API instead of structure assignments.
 > 
-> Here is a set of patches that does some code rework to our IOCTL
-> handling from
-> Mike. I have bundled it as a separate series to make handling review
-> feedback
-> easier.
+> This is done using Coccinelle and semantic patch used
+> for this as follows:
 > 
-> The HFI1 ioctl() function is long and complex. To reduce that
-> complexity the
-> following patch set refactors each IOCTL into a common pattern, and
-> where
-> necessary calls an associated function to handle the specific IOCTL.
+> @@
+> expression x,y,z,a,b;
+> @@
 > 
-> Patches can can also be found in my GitHub repo at:
-> https://github.com/ddalessa/kernel/tree/for-4.15
+> -init_timer (&x);
+> +setup_timer (&x, y, z);
+> +mod_timer (&a, b);
+> -x.function = y;
+> -x.data = z;
+> -x.expires = b;
+> -add_timer(&a);
 > 
-> ---
-> 
-> Michael J. Ruhl (9):
->       IB/hfi1: Refactor assign_ctxt() IOCTL
->       IB/hfi1: Refactor get_ctxt_info
->       IB/hfi1: Fix parenthesis alignment issues
->       IB/hfi1: Refactor get_base_info
->       IB/hfi1: Refactor hfi_user_exp_rcv_setup() IOCTL
->       IB/hfi1: Refactor hfi_user_exp_rcv_clear() IOCTLs
->       IB/hfi1: Refactor hfi_user_exp_rcv_invalid() IOCTLs
->       IB/hfi1: Refactor get_user() IOCTLs
->       IB/hfi1: Refactor reset_ctxt() IOCTL
-> 
-> 
->  drivers/infiniband/hw/hfi1/file_ops.c     |  463 +++++++++++++++++
-> ------------
->  drivers/infiniband/hw/hfi1/user_exp_rcv.c |    3 
->  2 files changed, 272 insertions(+), 194 deletions(-)
+> Signed-off-by: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Hi Denny,
-
-These all look sane, pulling them in today, thanks.
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
