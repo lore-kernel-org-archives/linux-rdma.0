@@ -1,62 +1,86 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH V2 for-next 0/8] Bug fixes & Code improvements in hip06
- and hip08 RoCE driver
-Date: Fri, 29 Sep 2017 12:22:55 -0400
-Message-ID: <1506702175.2919.28.camel@redhat.com>
-References: <1506697814-98432-1-git-send-email-xavier.huwei@huawei.com>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [bug report] RDMA/bnxt_re: Add bnxt_re RoCE driver
+Date: Fri, 29 Sep 2017 23:26:27 +0530
+Message-ID: <CANjDDBh9O2cMXTqApXOpzsaTYAL2skZ7kOsCcvkVC1PE-uMXfg@mail.gmail.com>
+References: <20170928104227.rbpmr456v6syrswu@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1506697814-98432-1-git-send-email-xavier.huwei@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Cc: linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, xushaobo2@huawei.com, zhangxiping3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, shaobohsu@163.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170928104227.rbpmr456v6syrswu@mwanda>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-09-29 at 23:10 +0800, Wei Hu (Xavier) wrote:
-> This patch-set introduces some bug fixes and code improvements
-> for hip06 and hip08 RoCE driver. It includes a patch for fixing
-> the assign algorithm of qp_attr->max_rd_atomic and
-> qp_attr->max_dest_rd_atomic, three patches for static check errors,
-> one for setting attr mask, one for returning RoCE device ah_attr
-> type when querying qp, one for unregistering inet addr, and the
-> last one for command queue delay processing in hip08 driver.
-> 
-> Lijun Ou (6):
->   RDMA/hns: Modify the value with rd&dest_rd of qp_attr
->   RDMA/hns: Factor out the code for checking sdb status into a new
->     function
->   RDMA/hns: Set mask for destination qp field of qp context
-> assignment
->   RDMA/hns: Set rdma_ah_attr type for querying qp
->   RDMA/hns: Remove unnecessarily calling unregister_inetaddr_notifier
->     function
->   RDMA/hns: Replace usleep_range with udelay when checking command
->     status
-> 
-> Wei Hu (Xavier) (2):
->   RDMA/hns: Add return statement when kzalloc return NULL in
->     hns_roce_v1_recreate_lp_qp
->   RDMA/hns: Add return statement when checking error in
->     hns_roce_v1_mr_free_work_fn
-> 
->  drivers/infiniband/hw/hns/hns_roce_device.h |   3 +-
->  drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 131 +++++++++++++++++-
-> ----------
->  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |   9 +-
->  drivers/infiniband/hw/hns/hns_roce_main.c   |  18 ++--
->  4 files changed, 96 insertions(+), 65 deletions(-)
+Hello Dan,
 
-Hi Wei,
+Thanks for reporting these issues, We will get back with a patch to
+fix this issue.
 
-I've taken this series into for-next.  However, a lot of the commit
-subjects needed fixing up (and a few of the commit logs as well for
-general readability).  Please don't use such long subjects as they
-interrupt the output of git log --oneline when using the kernel
-standard 12 digit hex output for commit hashes.
+-Regards
+Devesh
 
--- 
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+On Thu, Sep 28, 2017 at 4:12 PM, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> Hello Selvin Xavier,
+>
+> The patch 1ac5a4047975: "RDMA/bnxt_re: Add bnxt_re RoCE driver" from
+> Feb 10, 2017, leads to the following static checker warning:
+>
+> drivers/infiniband/hw/bnxt_re/qplib_rcfw.c:95 __send_message() warn: test_bit() takes a bit number
+> drivers/infiniband/hw/bnxt_re/qplib_rcfw.c:104 __send_message() warn: test_bit() takes a bit number
+> drivers/infiniband/hw/bnxt_re/qplib_rcfw.c:110 __send_message() warn: test_bit() takes a bit number
+> drivers/infiniband/hw/bnxt_re/qplib_rcfw.c:232 bnxt_qplib_rcfw_send_message() warn: test_bit() takes a bit number
+> drivers/infiniband/hw/bnxt_re/qplib_rcfw.c:430 bnxt_qplib_deinit_rcfw() warn: test_bit() takes a bit number
+> drivers/infiniband/hw/bnxt_re/qplib_rcfw.c:524 bnxt_qplib_init_rcfw() warn: test_bit() takes a bit number
+>
+>
+> drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
+>    164          unsigned long           flags;
+>    165  #define FIRMWARE_INITIALIZED_FLAG       BIT(0)
+>    166  #define FIRMWARE_FIRST_FLAG             BIT(31)
+>    167  #define FIRMWARE_TIMED_OUT              BIT(3)
+>         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> Defined here.
+>
+>    168          wait_queue_head_t       waitq;
+>
+> drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+>     81  static int __send_message(struct bnxt_qplib_rcfw *rcfw, struct cmdq_base *req,
+>     82                            struct creq_base *resp, void *sb, u8 is_block)
+>     83  {
+>     84          struct bnxt_qplib_cmdqe *cmdqe, **cmdq_ptr;
+>     85          struct bnxt_qplib_hwq *cmdq = &rcfw->cmdq;
+>     86          struct bnxt_qplib_crsq *crsqe;
+>     87          u32 sw_prod, cmdq_prod;
+>     88          unsigned long flags;
+>     89          u32 size, opcode;
+>     90          u16 cookie, cbit;
+>     91          int pg, idx;
+>     92          u8 *preq;
+>     93
+>     94          opcode = req->opcode;
+>     95          if (!test_bit(FIRMWARE_INITIALIZED_FLAG, &rcfw->flags) &&
+>                               ^^^^^^^^^^^^^^^^^^^^^^^^^
+> We're actually testing "1 << BIT(0)" here.  Which is fine because we
+> do it consistently and because it happens to not overlap with any of the
+> other flags and because we don't use "test_bit(FIRMWARE_FIRST_FLAG ...".
+> But it's not the right way to use this function.
+>
+>     96              (opcode != CMDQ_BASE_OPCODE_QUERY_FUNC &&
+>     97               opcode != CMDQ_BASE_OPCODE_INITIALIZE_FW)) {
+>     98                  dev_err(&rcfw->pdev->dev,
+>     99                          "QPLIB: RCFW not initialized, reject opcode 0x%x",
+>    100                          opcode);
+>    101                  return -EINVAL;
+>    102          }
+>
+> regards,
+> dan carpenter
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
