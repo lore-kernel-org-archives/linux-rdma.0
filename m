@@ -1,73 +1,52 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v1 for-4.14-rc] RDMA/core: Correct nlmsg_len after
- appending attributes
-Date: Fri, 29 Sep 2017 17:41:17 +0300
-Message-ID: <20170929144117.GA2965@mtr-leonro.local>
-References: <20170929132501.15440-1-shiraz.saleem@intel.com>
+From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V2 for-next 6/8] RDMA/hns: Add return statement when checking error in hns_roce_v1_mr_free_work_fn
+Date: Fri, 29 Sep 2017 23:10:12 +0800
+Message-ID: <1506697814-98432-7-git-send-email-xavier.huwei@huawei.com>
+References: <1506697814-98432-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="k+w/mQv8wyuph6w0"
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170929132501.15440-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1506697814-98432-1-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+After the loop in hns_roce_v1_mr_free_work_fn function, it is possible that
+the local variable named hr_qp is NULL, the operation "hr_qp->qpn" will
+result in the exception. As a result, we add return statement when checking
+error.
 
---k+w/mQv8wyuph6w0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This patch fixes the smatch error as below:
+drivers/infiniband/hw/hns/hns_roce_hw_v1.c:1009 hns_roce_v1_mr_free_work_fn()
+error: we previously assumed 'hr_qp' could be null
 
-On Fri, Sep 29, 2017 at 08:25:01AM -0500, Shiraz Saleem wrote:
-> Commit 1a1c116f3dcf removes nlmsg_len calculation in
-> ibnl_put_attr causing netlink messages to be rejected due
-> to incorrect length.
->
-> Add nlmsg_end after all attributes are appended to calculate
-> the nlmsg_len.
->
-> Fixes: 1a1c116f3dcf ("RDMA/netlink: Simplify the put_msg and put_attr")
-> Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Except the fact that title is a little bit misleading and better to be
-"IB/iwpm: Properly mark end of netlink messages".
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index d82b4de..15e0f2e 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -1004,6 +1004,11 @@ static void hns_roce_v1_mr_free_work_fn(struct work_struct *work)
+ 		}
+ 	}
+ 
++	if (!ne) {
++		dev_err(dev, "Reseved loop qp is absent!\n");
++		goto free_work;
++	}
++
+ 	do {
+ 		ret = hns_roce_v1_poll_cq(&mr_free_cq->ib_cq, ne, wc);
+ 		if (ret < 0) {
+-- 
+1.9.1
 
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-And while you are there, can you please fix manual usage of NLMSG_DONE?
-
-The need to call manually to send_nlmsg_done() indicates wrongly
-implemented calculations of netlink size and improper handling of
-multi messages.
-
-In properly handled netlink code, the NLMSG_DONE is sent automatically.
-
-Thanks
-
---k+w/mQv8wyuph6w0
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnOW40ACgkQ5GN7iDZy
-WKe3CQ/+MsQPfrbifAgDTQxlLgw8pikgDOVuOMMTKQZ2FFFSmTliCTvH6I10ioCp
-cnrDZPdDbeLPapWofY3shHPWp15L+buiL0ymSxAYLFiUDU9R6ZbPUjzA6YhgC6/e
-t0jEZHjDv3hwLl0vdJeZj7MITN4fOdEZUKXgT1AiPnuJDR57VMGk/H2JcoqeQbNe
-53rjK+ZsudbmIE7sY75gC1YCW9lk3r4rWlJ7mjOKjuzHB8p1jdIFWhrN6CQJ1y6J
-Faj3yqocbqhGIZpjAGogGS1LBAwMadluqKZc8OLPkMGiqVrpV9P/xCkQCE5ikHcJ
-p1TTV0xR9oRX9wFovhm5Ztfq2DIXPRDJd92qaUL3FwRczZoh/1nFpmhEvoFchuRM
-jNB2ic8o7aq9YSoHjuvEwxNEdOEssf3byseA/gtLfG3p2sZZn9CGE/+rUgYlyJtr
-6c6mSC51tFZgZ/7EafWA3FtyGvWBquTsG/ZbYclrUE7+g9hzpnK2k7NFt3KPpKMn
-2UIucNU+c9buzXlu1Mh8SwUbyyS3wB5lmkUSpzfATz4JFw8/a9kuwzE1+P4GDQrX
-7ByVCECdeohAAc5vKIs0dFZ+1reHoB9q4LSFOIzyt7Z3N2N/Is4MgmqlY+/zQgY0
-KLU21IdAOM8U+ZJS+9TQ1pRt7wDmqgjmkkTHnyiWicRC5ueRpXs=
-=UExY
------END PGP SIGNATURE-----
-
---k+w/mQv8wyuph6w0--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
