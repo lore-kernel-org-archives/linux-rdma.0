@@ -1,83 +1,93 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] i40iw: delete some stray tabs
-Date: Fri, 29 Sep 2017 17:45:54 +0300
-Message-ID: <20170929144554.GB2965@mtr-leonro.local>
-References: <20170929074943.cs2jea5xttk2r6vm@mwanda>
- <20170929102929.GA2723@mtr-leonro.local>
- <20170929104004.svcnntqmgdxnzgnn@mwanda>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 0/2] IB/opa_vnic: Add debugfs interface
+Date: Fri, 29 Sep 2017 10:46:51 -0400
+Message-ID: <cbb65789-2d1e-779e-77f8-55b435511069@intel.com>
+References: <20170926140714.18110.74689.stgit@scvm10.sc.intel.com>
+ <20170926174946.GA1218@mtr-leonro.local>
+ <20170926175524.GA2297@mtr-leonro.local>
+ <20170926181214.GA41364@knc-06.sc.intel.com>
+ <1506525977.33755.3.camel@redhat.com>
+ <20170928184727.GA33282@knc-06.sc.intel.com>
+ <20170928185753.GG2297@mtr-leonro.local>
+ <20170928190502.GA33289@knc-06.sc.intel.com>
+ <20170928193740.GH2297@mtr-leonro.local>
+ <20170928200258.GA27343@obsidianresearch.com>
+ <20170929054959.GJ2297@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="5/uDoXvLw7AC5HRs"
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170929104004.svcnntqmgdxnzgnn@mwanda>
+In-Reply-To: <20170929054959.GJ2297-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 9/29/2017 1:49 AM, Leon Romanovsky wrote:
+> On Thu, Sep 28, 2017 at 02:02:58PM -0600, Jason Gunthorpe wrote:
+>> On Thu, Sep 28, 2017 at 10:37:40PM +0300, Leon Romanovsky wrote:
+>>
+>>>> We find it useful on an ongoing basis, more like some standard NICs
+>>>> providing debugfs interface to read/write from/to some of its registers.
+>>>
+>>> Usually if such interface is spotted during submission, it will be requested
+>>> to drop it. Ask Salil, who lately upstreamed new ETH driver and was asked
+>>> to remove it.
+>>
+>> To be fair Salil's was dropped more or less for security reasons..
+>>
+>> I think debugfs to dump truely internal state that is not intended to
+>> be API stable is reasonable.
+> 
+> Yes, it can be ripped in any point of life, despite the screaming.
 
---5/uDoXvLw7AC5HRs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+We also can't count on debugfs always being available. To me that's the 
+main problem with it.
 
-On Fri, Sep 29, 2017 at 01:40:04PM +0300, Dan Carpenter wrote:
-> On Fri, Sep 29, 2017 at 01:29:29PM +0300, Leon Romanovsky wrote:
-> > On Fri, Sep 29, 2017 at 10:49:43AM +0300, Dan Carpenter wrote:
-> > > These lines were indented too far by mistake.
-> > >
-> > > Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > >
-> > > diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-> >
-> > Dan,,
-> >
-> > I saw in your patches and don't know if it important. There is no
-> > diffstat after your Signed-off-by and there is no "---" trailing line
-> > too.
->
-> Yeah.  I leave those out.  I normally write two line patches like this
-> one so the diffstat is normally -2+2 and I figure people will see that
-> they're tiny just from glancing at the email.  When I create patches
-> that touch multiple files, what I do is just merge the diffs together in
-> my email client.  If I tried to create diffstats for those, I'd just end
-> up messing up a lot.
+>> Promise you will not be tooling on top of this, or use it as an
+>> interface in your manager or something crazy like that. You must be
+>> happy in all cases if your distro chooses to disable debugfs.
+> 
+> Honestly, I don't know if we can trust to Intel's promises.
+ >
+> 
+> Among other promises, they wrote that OmniPath Ethernet Management part
+> will be open sourced too. It seems like it wasn't at the end.
+> My google searches with words "ethernet manager omni-path" revealed nothing.
 
-What are the benefits avoiding them?
+I don't think we are "at the end" yet. The EM is a work in progress and 
+*will* be open sourced. I don't work on that bit of code so I can't tell 
+you when exactly.
 
-I personally want to see them without and conditions, for two reasons:
-1. It helps me to see the scope of the change.
-2. It allows me to simply copy/paste the name to the editor without need
-to remove "a/" or "b/" from the "diff --git" line.
+All of this vnic stuff is a work in progress and we are incrementally 
+pushing things out. Iterative development, involving the community and all.
 
-Thanks
+>> The problem I have with reviewing all the vnic patches is that I don't
+>> have a spec for vnic or anything, and I don't really know what the
+>> data being dumped is..
+> 
+> My problem with those patches that they don't show whole picture and the
+> more important you have no way to see it, if you want it.
+> Right now, it is legal code-sharing and not truly open-source which I would like to see.
+> 
+>> eg I would have been much happier if ipoib
+>> dump'd its debugfs stuff through netlink connected to neighbor objects
+>> - I don't know if this is something similar...
 
->
-> regards,
-> dan carpenter
->
+Sounds like a good idea to me.
 
---5/uDoXvLw7AC5HRs
-Content-Type: application/pgp-signature; name="signature.asc"
+>> As Leon says, you should really think carefully if this needs to be
+>> something that admins are going to be told to look at when vnic isn't
+>> working properly, as the ipoib debufs is. In that case netlink is a
+>> stable API and more suitable.
 
------BEGIN PGP SIGNATURE-----
+Suffice to say, I think we agree on that. Leon and I have talked 
+recently and I made it clear my intention is to lessen our reliance on 
+debugfs and rely more on netlink by way of rdma tool.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnOXKIACgkQ5GN7iDZy
-WKc+Nw//fUMx0RIWlEgf0jNzRQr99KEWYqEbhw07e7K9G/UhbvZ42aRsoH6yg+B6
-ro5EzDXAiZT6mfNOX+3i9gRbVnYyuhpPvOPZEXg5kAAPKDk3+AP1Od+ay6RHBFh3
-/8m9umuAe2+jmdoUnAZWFXsZ0eXWxlkjAKNnNaPTd/ELMONMpoSQi3UA8OWeu2vB
-OsPTpYeVWzDKq7ifdN0CISZHPLzyzimk8riPYdrne3ObSTiUn7kq4UcetG0OJjpP
-3gVA3YUC1ljWic5bKu0Kj6T6TKALr7IJTNp+zkVArk+VCXZPSKbN1SneMTKkIeUg
-7ztq4419tbb5LlqxOL/E1vHb4s4+r+CBuyq36nsb8OPOdg7uwBM9Dm5hgW2HIP4a
-d8fu6oC3+6CUHkPbjKDEYgI0+1cM4Yesoa+u//9kxMv7tHMNg06uU9iHikge0Ahw
-z7gN3u1yz8iK3PZ7EqxdOMZyaZqJYpgZMAW1I5JKbQ/VY6kbm9e8YaNz+zZ/sL/G
-skHQLFryZI2zqOGnPCXMJkdBOJCBhBp21v67CT+vZtitlYML/JKoTu+pGPXpG6nc
-kcEjlwo9umT+ZRylTEunHGVTf4TPa2DAGdhLvOzV9U2BKdoTGzmPiRikJWSImcb3
-TKHyZv9jxLEwrZJ9HHRe0spiZ9OdFU7yMwV0oF967S6C7P8yBQE=
-=3WWg
------END PGP SIGNATURE-----
+-Denny
 
---5/uDoXvLw7AC5HRs--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
