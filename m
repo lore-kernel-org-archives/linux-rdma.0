@@ -1,39 +1,52 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/qib: Use setup_timer and mod_timer
-Date: Fri, 29 Sep 2017 11:20:16 -0400
-Message-ID: <1506698416.2919.14.camel@redhat.com>
-References: <1506253867-5132-1-git-send-email-himanshujha199640@gmail.com>
+Subject: Re: [PATCH v1 rdma-next] RDMA/qedr: Fix rdma_type initialization
+Date: Fri, 29 Sep 2017 11:22:39 -0400
+Message-ID: <1506698559.2919.16.camel@redhat.com>
+References: <1505885986-5873-1-git-send-email-Michal.Kalderon@cavium.com>
+         <1506518845.82712.15.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1506253867-5132-1-git-send-email-himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1506518845.82712.15.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2017-09-24 at 17:21 +0530, Himanshu Jha wrote:
-> Use setup_timer and mod_timer API instead of structure assignments.
+On Wed, 2017-09-27 at 09:27 -0400, Doug Ledford wrote:
+> On Wed, 2017-09-20 at 08:39 +0300, Michal Kalderon wrote:
+> > Initialize the rdma_type (iWARP or RoCE) which is set according to
+> > device configuration in qed.
+> > 
+> > Fixes: e6a38c54faf ("RDMA/qedr: Add support for registering an
+> > iWARP
+> > device")
+> > 
+> > Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> > 
+> > ---
+> > This patch applies cleanly on k.o/for-next-merged
+> > 
+> > Changes from V0:
+> > - Added Fixes in commit comment.
 > 
-> This is done using Coccinelle and semantic patch used
-> for this as follows:
+> Sorry, I was wrong in my email to the previous posting of this
+> patch. 
+> I had pulled this v1 patch from patchworks, not the original patch,
+> and
+> so the Fixes: line was yours.  Patchworks did not add the Fixes: line
+> to the v0 patch when I downloaded it just now.
 > 
-> @@
-> expression x,y,z,a,b;
-> @@
-> 
-> -init_timer (&x);
-> +setup_timer (&x, y, z);
-> +mod_timer (&a, b);
-> -x.function = y;
-> -x.data = z;
-> -x.expires = b;
-> -add_timer(&a);
-> 
-> Signed-off-by: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> That being said, I still can't build with this patch ;-)
 
-Thanks, applied.
+OK, the build failure was my fault.  As this was a minor patch, I had
+lumped it into a bundle I labeled as "misc".  That by itself is fine,
+but I then applied that to a clean for-next head of v4.14-rc2, without
+the merge of the qedr branch, and so the build failed.  Putting this
+into a branch with the qedr patches already merged resolves the issue. 
+So, thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
