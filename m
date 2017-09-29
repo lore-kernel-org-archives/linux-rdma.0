@@ -1,41 +1,56 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 for-4.14-rc] RDMA/core: Correct nlmsg_len after
- appending attributes
-Date: Fri, 29 Sep 2017 11:32:01 -0400
-Message-ID: <1506699121.2919.22.camel@redhat.com>
-References: <20170929132501.15440-1-shiraz.saleem@intel.com>
-         <20170929144117.GA2965@mtr-leonro.local>
+Subject: Re: [PATCH rdma-next 0/5] iw_cxgb4: handle fw reply timeouts
+Date: Fri, 29 Sep 2017 11:48:54 -0400
+Message-ID: <1506700134.2919.23.camel@redhat.com>
+References: <cover.1506545745.git.swise@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170929144117.GA2965-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <cover.1506545745.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-09-29 at 17:41 +0300, Leon Romanovsky wrote:
-> On Fri, Sep 29, 2017 at 08:25:01AM -0500, Shiraz Saleem wrote:
-> > Commit 1a1c116f3dcf removes nlmsg_len calculation in
-> > ibnl_put_attr causing netlink messages to be rejected due
-> > to incorrect length.
-> >
-> > Add nlmsg_end after all attributes are appended to calculate
-> > the nlmsg_len.
-> >
-> > Fixes: 1a1c116f3dcf ("RDMA/netlink: Simplify the put_msg and
-> put_attr")
-> > Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Wed, 2017-09-27 at 13:55 -0700, Steve Wise wrote:
+> For messages sent from the host to fw that solicit a reply from fw,
+> the c4iw_wr_wait struct pointer is passed in the host->fw message,
+> and
+> included in the fw->host fw6_msg reply.  This allows the sender to
+> wait
+> until the reply is received, and the code processing the ingress
+> reply
+> to wake up the sender.
 > 
-> Except the fact that title is a little bit misleading and better to
-> be
-> "IB/iwpm: Properly mark end of netlink messages".
+> If c4iw_wait_for_reply() times out, however, we need to keep the
+> c4iw_wr_wait object around in case the reply eventually does arrive.
+> Otherwise we have touch-after-free bugs in the wake_up paths.
 > 
-> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> This series refactors the c4iw_wait_wr users and the wait API to
+> handle
+> this case.  The first 4 patches change the users to allocate the wait
+> object vs using it locally on the stack, and the 5th patch
+> implmements the
+> new kref for the wait objects.
+> 
+> Steve Wise (5):
+>   iw_cxgb4: allocate wait object for each memory object
+>   iw_cxgb4: allocate wait object for each cq object
+>   iw_cxgb4: allocate wait object for each qp object
+>   iw_cxgb4: allocate wait object for each ep object
+>   iw_cxgb4: add referencing to wait objects
+> 
+>  drivers/infiniband/hw/cxgb4/cm.c       |  40 +++---
+>  drivers/infiniband/hw/cxgb4/cq.c       |  69 +++++-----
+>  drivers/infiniband/hw/cxgb4/device.c   |  21 +++
+>  drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  66 ++++++++-
+>  drivers/infiniband/hw/cxgb4/mem.c      | 242 ++++++++++++++++++++---
+> ----------
+>  drivers/infiniband/hw/cxgb4/qp.c       |  82 +++++------
+>  6 files changed, 330 insertions(+), 190 deletions(-)
 
-I adjusted the subject as I applied this, thanks to both of you.
+Thanks Steve, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
