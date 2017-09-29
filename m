@@ -1,42 +1,43 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 00/12] IB/hfi1,qib: Driver updates 9/26/2017
-Date: Fri, 29 Sep 2017 10:02:27 -0400
-Message-ID: <94b05a4b-9d6a-1d42-deab-c8ad3deab6e8@intel.com>
-References: <20170926135843.15601.95865.stgit@scvm10.sc.intel.com>
- <1506526751.33755.6.camel@redhat.com>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] i40iw: delete some stray tabs
+Date: Fri, 29 Sep 2017 09:26:25 -0500
+Message-ID: <20170929142625.GA15568@ssaleem-MOBL4.amr.corp.intel.com>
+References: <20170929074943.cs2jea5xttk2r6vm@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1506526751.33755.6.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20170929074943.cs2jea5xttk2r6vm@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jan Sokolowski <jan.sokolowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/27/2017 11:39 AM, Doug Ledford wrote:
-> On Tue, 2017-09-26 at 06:59 -0700, Dennis Dalessandro wrote:
->> Hi Doug,
->>
->> This is the first of our new content for 4.15. There are some
->> cleanups and
->> general code improvements here. This includes two patches, one for
->> each driver
->> that were askied for by Christoph.
->>
->> Patches can can also be found in my GitHub repo at:
->> https://github.com/ddalessa/kernel/tree/for-4.15
->>
+On Fri, Sep 29, 2017 at 10:49:43AM +0300, Dan Carpenter wrote:
+> These lines were indented too far by mistake.
 > 
-> Hi Denny, I see Leon is still making comments in the thread, but I've
-> pulled these in already, so please fix up anything else he might find
-> (things mostly looked fine to me) with incremental patches.
+> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > 
+> diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+> index 5230dd3c938c..9017c1cc51d4 100644
+> --- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
+> +++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+> @@ -1524,8 +1524,8 @@ static bool i40iw_port_in_use(struct i40iw_cm_core *cm_core, u16 port, bool acti
+>  				break;
+>  			}
+>  		}
+> -			if (!ret)
+> -				clear_bit(port, cm_core->active_side_ports);
+> +		if (!ret)
+> +			clear_bit(port, cm_core->active_side_ports);
+>  		spin_unlock_irqrestore(&cm_core->ht_lock, flags);
+>  	} else {
+>  		spin_lock_irqsave(&cm_core->listen_list_lock, flags);
+> --
 
-Will do. Thanks.
+Thanks Dan!
+Acked-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
--Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
