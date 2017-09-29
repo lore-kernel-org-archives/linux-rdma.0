@@ -1,52 +1,37 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 rdma-next] RDMA/qedr: Fix rdma_type initialization
-Date: Fri, 29 Sep 2017 11:22:39 -0400
-Message-ID: <1506698559.2919.16.camel@redhat.com>
-References: <1505885986-5873-1-git-send-email-Michal.Kalderon@cavium.com>
-         <1506518845.82712.15.camel@redhat.com>
+Subject: Re: [PATCH 0/8] use setup_timer() helper function.
+Date: Fri, 29 Sep 2017 11:23:53 -0400
+Message-ID: <1506698633.2919.17.camel@redhat.com>
+References: <1506076036-16496-1-git-send-email-allen.lkml@gmail.com>
+         <1506519781.82712.21.camel@redhat.com>
+         <CAOMdWSKD-h4y-ggh7m-_kNV+0PMJC+Nf7Bj02CF7Q6rjMtRniw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1506518845.82712.15.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAOMdWSKD-h4y-ggh7m-_kNV+0PMJC+Nf7Bj02CF7Q6rjMtRniw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Allen <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-09-27 at 09:27 -0400, Doug Ledford wrote:
-> On Wed, 2017-09-20 at 08:39 +0300, Michal Kalderon wrote:
-> > Initialize the rdma_type (iWARP or RoCE) which is set according to
-> > device configuration in qed.
+On Fri, 2017-09-29 at 12:36 +0530, Allen wrote:
 > > 
-> > Fixes: e6a38c54faf ("RDMA/qedr: Add support for registering an
-> > iWARP
-> > device")
+> > This patch series is rejected.  If you are doing a "thing", such as
+> > update a driver to use setup_timer(), then you do one patch for an
+> > entire driver, and on trivial items such as this, even better would
+> > be
+> > just one patch for all of the drivers under infiniband/hw.  But you
+> > do
+> > *not* do one patch per timer.
 > > 
-> > Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> > Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> > 
-> > ---
-> > This patch applies cleanly on k.o/for-next-merged
-> > 
-> > Changes from V0:
-> > - Added Fixes in commit comment.
 > 
-> Sorry, I was wrong in my email to the previous posting of this
-> patch. 
-> I had pulled this v1 patch from patchworks, not the original patch,
-> and
-> so the Fixes: line was yours.  Patchworks did not add the Fixes: line
-> to the v0 patch when I downloaded it just now.
-> 
-> That being said, I still can't build with this patch ;-)
+> I'll get that done and send out v2.
 
-OK, the build failure was my fault.  As this was a minor patch, I had
-lumped it into a bundle I labeled as "misc".  That by itself is fine,
-but I then applied that to a clean for-next head of v4.14-rc2, without
-the merge of the qedr branch, and so the build failed.  Putting this
-into a branch with the qedr patches already merged resolves the issue. 
-So, thanks, applied.
+Keep in mind that I just took a patch to the timer code in the qib
+driver, so you might need to wait until I've pushed my tree out today
+and then rebase your work on it and drop out anything that's already
+been done.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
