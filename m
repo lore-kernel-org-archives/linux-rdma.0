@@ -1,36 +1,51 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V2 for-next 3/8] RDMA/hns: Add return statement when
- kzalloc return NULL in hns_roce_v1_recreate_lp_qp
-Date: Fri, 29 Sep 2017 11:54:01 -0400
-Message-ID: <1506700441.2919.25.camel@redhat.com>
-References: <1506697814-98432-1-git-send-email-xavier.huwei@huawei.com>
-         <1506697814-98432-4-git-send-email-xavier.huwei@huawei.com>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v1 for-4.14-rc] RDMA/core: Correct nlmsg_len after
+ appending attributes
+Date: Fri, 29 Sep 2017 11:04:33 -0500
+Message-ID: <20170929160433.GA15492@ssaleem-MOBL4.amr.corp.intel.com>
+References: <20170929132501.15440-1-shiraz.saleem@intel.com>
+ <20170929144117.GA2965@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1506697814-98432-4-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170929144117.GA2965-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-09-29 at 23:10 +0800, Wei Hu (Xavier) wrote:
-> When lp_qp_work is NULL, it should be returned ENOMEM. This patch
-> mainly adds the error checking branch, modifies the return value of
-> the function named hns_roce_v1_set_mac that calling
-> hns_roce_v1_recreate_lp_qp.
+On Fri, Sep 29, 2017 at 05:41:17PM +0300, Leon Romanovsky wrote:
+> On Fri, Sep 29, 2017 at 08:25:01AM -0500, Shiraz Saleem wrote:
+> > Commit 1a1c116f3dcf removes nlmsg_len calculation in
+> > ibnl_put_attr causing netlink messages to be rejected due
+> > to incorrect length.
+> >
+> > Add nlmsg_end after all attributes are appended to calculate
+> > the nlmsg_len.
+> >
+> > Fixes: 1a1c116f3dcf ("RDMA/netlink: Simplify the put_msg and put_attr")
+> > Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> Ihis patch fixes the smatch error as below:
-  ^^^^
-Typo, but I can fix it, no need to respin.
+> Except the fact that title is a little bit misleading and better to be
+> "IB/iwpm: Properly mark end of netlink messages".
+> 
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> And while you are there, can you please fix manual usage of NLMSG_DONE?
+> 
+> The need to call manually to send_nlmsg_done() indicates wrongly
+> implemented calculations of netlink size and improper handling of
+> multi messages.
+> 
+> In properly handled netlink code, the NLMSG_DONE is sent automatically.
+> 
 
+Ok. We ll review the usage of send_nlmsg_done() and send a seperate patch
+to fix if required.
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
+Shiraz
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
