@@ -1,138 +1,100 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH][rdma-next] RDMA/hns: make various function static, fixes warnings
-Date: Fri, 29 Sep 2017 14:16:01 +0100
-Message-ID: <20170929131601.7111-1-colin.king@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v1 for-4.14-rc] RDMA/core: Correct nlmsg_len after appending attributes
+Date: Fri, 29 Sep 2017 08:25:01 -0500
+Message-ID: <20170929132501.15440-1-shiraz.saleem@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+Commit 1a1c116f3dcf removes nlmsg_len calculation in
+ibnl_put_attr causing netlink messages to be rejected due
+to incorrect length.
 
-The functions hns_roce_table_mhop_get, hns_roce_table_mhop_put,
-hns_roce_cleanup_mhop_hem_table,  hns_roce_v1_post_mbox,
-hns_roce_cmq_setup_basic_desc, hns_roce_cmq_send,
-hns_roce_cmq_query_hw_info are all local to the source and do
-not need to be in global scope, so make them static.
+Add nlmsg_end after all attributes are appended to calculate
+the nlmsg_len.
 
-Cleans up sparse warnings:
-symbol 'hns_roce_table_mhop_get' was not declared. Should it be static?
-symbol 'hns_roce_table_mhop_put' was not declared. Should it be static?
-symbol 'hns_roce_cleanup_mhop_hem_table' was not declared. Should it be
-static?
-symbol 'hns_roce_v1_post_mbox' was not declared. Should it be static?
-symbol 'hns_roce_cmq_setup_basic_desc' was not declared. Should it be
-static?
-symbol 'hns_roce_cmq_send' was not declared. Should it be static?
-symbol 'hns_roce_cmq_query_hw_info' was not declared. Should it be static?
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Fixes: 1a1c116f3dcf ("RDMA/netlink: Simplify the put_msg and put_attr")
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hem.c   | 18 +++++++++---------
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c |  6 +++---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 12 ++++++------
- 3 files changed, 18 insertions(+), 18 deletions(-)
+v0->v1:
+	* Update subject line, previously
+	("RDMA/netlink: Restore nlmsg_len calculation in ibnl_put_attr") and commit message.
+	* Remove nlmsg_len calculation from ibnl_put_attr
+---
+ drivers/infiniband/core/iwpm_msg.c  | 8 ++++++++
+ drivers/infiniband/core/iwpm_util.c | 5 +++++
+ 2 files changed, 13 insertions(+)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index 125e26ebf250..8388ae25640c 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -363,9 +363,9 @@ static int hns_roce_set_hem(struct hns_roce_dev *hr_dev,
- 	return ret;
- }
+diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
+index 30825bb..8861c05 100644
+--- a/drivers/infiniband/core/iwpm_msg.c
++++ b/drivers/infiniband/core/iwpm_msg.c
+@@ -100,6 +100,8 @@ int iwpm_register_pid(struct iwpm_dev_data *pm_msg, u8 nl_client)
+ 	if (ret)
+ 		goto pid_query_error;
  
--int hns_roce_table_mhop_get(struct hns_roce_dev *hr_dev,
--			    struct hns_roce_hem_table *table,
--			    unsigned long obj)
-+static int hns_roce_table_mhop_get(struct hns_roce_dev *hr_dev,
-+				   struct hns_roce_hem_table *table,
-+				   unsigned long obj)
- {
- 	struct device *dev = hr_dev->dev;
- 	struct hns_roce_hem_mhop mhop;
-@@ -576,10 +576,10 @@ int hns_roce_table_get(struct hns_roce_dev *hr_dev,
- 	return ret;
- }
++	nlmsg_end(skb, nlh);
++
+ 	pr_debug("%s: Multicasting a nlmsg (dev = %s ifname = %s iwpm = %s)\n",
+ 		__func__, pm_msg->dev_name, pm_msg->if_name, iwpm_ulib_name);
  
--void hns_roce_table_mhop_put(struct hns_roce_dev *hr_dev,
--			     struct hns_roce_hem_table *table,
--			     unsigned long obj,
--			     int check_refcount)
-+static void hns_roce_table_mhop_put(struct hns_roce_dev *hr_dev,
-+				    struct hns_roce_hem_table *table,
-+				    unsigned long obj,
-+				    int check_refcount)
- {
- 	struct device *dev = hr_dev->dev;
- 	struct hns_roce_hem_mhop mhop;
-@@ -983,8 +983,8 @@ int hns_roce_init_hem_table(struct hns_roce_dev *hr_dev,
- 	return -ENOMEM;
- }
+@@ -170,6 +172,8 @@ int iwpm_add_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
+ 				&pm_msg->loc_addr, IWPM_NLA_MANAGE_ADDR);
+ 	if (ret)
+ 		goto add_mapping_error;
++
++	nlmsg_end(skb, nlh);
+ 	nlmsg_request->req_buffer = pm_msg;
  
--void hns_roce_cleanup_mhop_hem_table(struct hns_roce_dev *hr_dev,
--				     struct hns_roce_hem_table *table)
-+static void hns_roce_cleanup_mhop_hem_table(struct hns_roce_dev *hr_dev,
-+					    struct hns_roce_hem_table *table)
- {
- 	struct hns_roce_hem_mhop mhop;
- 	u32 buf_chunk_size;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 426f55a030e6..290fcc2d8b98 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -1628,9 +1628,9 @@ static int hns_roce_v1_cmd_pending(struct hns_roce_dev *hr_dev)
- 	return (!!(status & (1 << HCR_GO_BIT)));
- }
+ 	ret = rdma_nl_unicast_wait(skb, iwpm_user_pid);
+@@ -246,6 +250,8 @@ int iwpm_add_and_query_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
+ 				&pm_msg->rem_addr, IWPM_NLA_QUERY_REMOTE_ADDR);
+ 	if (ret)
+ 		goto query_mapping_error;
++
++	nlmsg_end(skb, nlh);
+ 	nlmsg_request->req_buffer = pm_msg;
  
--int hns_roce_v1_post_mbox(struct hns_roce_dev *hr_dev, u64 in_param,
--			  u64 out_param, u32 in_modifier, u8 op_modifier,
--			  u16 op, u16 token, int event)
-+static int hns_roce_v1_post_mbox(struct hns_roce_dev *hr_dev, u64 in_param,
-+				 u64 out_param, u32 in_modifier, u8 op_modifier,
-+				 u16 op, u16 token, int event)
- {
- 	u32 *hcr = (u32 *)(hr_dev->reg_base + ROCEE_MB1_REG);
- 	unsigned long end;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 4171f73bdad5..4870b51caab9 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -496,9 +496,9 @@ static void hns_roce_v2_cmq_exit(struct hns_roce_dev *hr_dev)
- 	hns_roce_free_cmq_desc(hr_dev, &priv->cmq.crq);
- }
+ 	ret = rdma_nl_unicast_wait(skb, iwpm_user_pid);
+@@ -308,6 +314,8 @@ int iwpm_remove_mapping(struct sockaddr_storage *local_addr, u8 nl_client)
+ 	if (ret)
+ 		goto remove_mapping_error;
  
--void hns_roce_cmq_setup_basic_desc(struct hns_roce_cmq_desc *desc,
--				   enum hns_roce_opcode_type opcode,
--				   bool is_read)
-+static void hns_roce_cmq_setup_basic_desc(struct hns_roce_cmq_desc *desc,
-+					  enum hns_roce_opcode_type opcode,
-+					  bool is_read)
- {
- 	memset((void *)desc, 0, sizeof(struct hns_roce_cmq_desc));
- 	desc->opcode = cpu_to_le16(opcode);
-@@ -542,8 +542,8 @@ static int hns_roce_cmq_csq_clean(struct hns_roce_dev *hr_dev)
- 	return clean;
- }
++	nlmsg_end(skb, nlh);
++
+ 	ret = rdma_nl_unicast_wait(skb, iwpm_user_pid);
+ 	if (ret) {
+ 		skb = NULL; /* skb is freed in the netlink send-op handling */
+diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
+index c81c559..3c4faad 100644
+--- a/drivers/infiniband/core/iwpm_util.c
++++ b/drivers/infiniband/core/iwpm_util.c
+@@ -597,6 +597,9 @@ static int send_mapinfo_num(u32 mapping_num, u8 nl_client, int iwpm_pid)
+ 				&mapping_num, IWPM_NLA_MAPINFO_SEND_NUM);
+ 	if (ret)
+ 		goto mapinfo_num_error;
++
++	nlmsg_end(skb, nlh);
++
+ 	ret = rdma_nl_unicast(skb, iwpm_pid);
+ 	if (ret) {
+ 		skb = NULL;
+@@ -678,6 +681,8 @@ int iwpm_send_mapinfo(u8 nl_client, int iwpm_pid)
+ 			if (ret)
+ 				goto send_mapping_info_unlock;
  
--int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
--		      struct hns_roce_cmq_desc *desc, int num)
-+static int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
-+			     struct hns_roce_cmq_desc *desc, int num)
- {
- 	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
- 	struct hns_roce_v2_cmq_ring *csq = &priv->cmq.csq;
-@@ -629,7 +629,7 @@ int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
- 	return ret;
- }
- 
--int hns_roce_cmq_query_hw_info(struct hns_roce_dev *hr_dev)
-+static int hns_roce_cmq_query_hw_info(struct hns_roce_dev *hr_dev)
- {
- 	struct hns_roce_query_version *resp;
- 	struct hns_roce_cmq_desc desc;
++			nlmsg_end(skb, nlh);
++
+ 			iwpm_print_sockaddr(&map_info->local_sockaddr,
+ 				"send_mapping_info: Local sockaddr:");
+ 			iwpm_print_sockaddr(&map_info->mapped_sockaddr,
 -- 
-2.14.1
+2.8.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
