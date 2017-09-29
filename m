@@ -1,56 +1,30 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/5] iw_cxgb4: handle fw reply timeouts
-Date: Fri, 29 Sep 2017 11:48:54 -0400
-Message-ID: <1506700134.2919.23.camel@redhat.com>
-References: <cover.1506545745.git.swise@opengridcomputing.com>
+Subject: Re: [PATCH V2 for-next 3/8] RDMA/hns: Add return statement when
+ kzalloc return NULL in hns_roce_v1_recreate_lp_qp
+Date: Fri, 29 Sep 2017 11:54:01 -0400
+Message-ID: <1506700441.2919.25.camel@redhat.com>
+References: <1506697814-98432-1-git-send-email-xavier.huwei@huawei.com>
+         <1506697814-98432-4-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1506545745.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <1506697814-98432-4-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-09-27 at 13:55 -0700, Steve Wise wrote:
-> For messages sent from the host to fw that solicit a reply from fw,
-> the c4iw_wr_wait struct pointer is passed in the host->fw message,
-> and
-> included in the fw->host fw6_msg reply.  This allows the sender to
-> wait
-> until the reply is received, and the code processing the ingress
-> reply
-> to wake up the sender.
+On Fri, 2017-09-29 at 23:10 +0800, Wei Hu (Xavier) wrote:
+> When lp_qp_work is NULL, it should be returned ENOMEM. This patch
+> mainly adds the error checking branch, modifies the return value of
+> the function named hns_roce_v1_set_mac that calling
+> hns_roce_v1_recreate_lp_qp.
 > 
-> If c4iw_wait_for_reply() times out, however, we need to keep the
-> c4iw_wr_wait object around in case the reply eventually does arrive.
-> Otherwise we have touch-after-free bugs in the wake_up paths.
-> 
-> This series refactors the c4iw_wait_wr users and the wait API to
-> handle
-> this case.  The first 4 patches change the users to allocate the wait
-> object vs using it locally on the stack, and the 5th patch
-> implmements the
-> new kref for the wait objects.
-> 
-> Steve Wise (5):
->   iw_cxgb4: allocate wait object for each memory object
->   iw_cxgb4: allocate wait object for each cq object
->   iw_cxgb4: allocate wait object for each qp object
->   iw_cxgb4: allocate wait object for each ep object
->   iw_cxgb4: add referencing to wait objects
-> 
->  drivers/infiniband/hw/cxgb4/cm.c       |  40 +++---
->  drivers/infiniband/hw/cxgb4/cq.c       |  69 +++++-----
->  drivers/infiniband/hw/cxgb4/device.c   |  21 +++
->  drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  66 ++++++++-
->  drivers/infiniband/hw/cxgb4/mem.c      | 242 ++++++++++++++++++++---
-> ----------
->  drivers/infiniband/hw/cxgb4/qp.c       |  82 +++++------
->  6 files changed, 330 insertions(+), 190 deletions(-)
+> Ihis patch fixes the smatch error as below:
+  ^^^^
+Typo, but I can fix it, no need to respin.
 
-Thanks Steve, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
