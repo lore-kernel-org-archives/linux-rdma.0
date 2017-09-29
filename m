@@ -1,141 +1,138 @@
-From: "Wei Hu (Xavier)" <xavier.huwei-WVlzvzqoTvw@public.gmane.org>
-Subject: Re: [PATCH for-next 3/9] RDMA/hns: Add return statement when kzalloc
- return NULL in hns_roce_v1_recreate_lp_qp
-Date: Fri, 29 Sep 2017 21:15:32 +0800
-Message-ID: <502d4690-74d8-c568-ec0e-8b3b2efe073d@tom.com>
-References: <1506574654-56699-1-git-send-email-xavier.huwei@huawei.com>
- <1506574654-56699-4-git-send-email-xavier.huwei@huawei.com>
- <20170928091308.GT2297@mtr-leonro.local> <59CCE38B.4040408@huawei.com>
- <20170928125912.GU2297@mtr-leonro.local> <59CDE31A.5090707@huawei.com>
- <20170929102337.GK2297@mtr-leonro.local>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH][rdma-next] RDMA/hns: make various function static, fixes warnings
+Date: Fri, 29 Sep 2017 14:16:01 +0100
+Message-ID: <20170929131601.7111-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170929102337.GK2297-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Colin Ian King <colin.king@canonical.com>
 
+The functions hns_roce_table_mhop_get, hns_roce_table_mhop_put,
+hns_roce_cleanup_mhop_hem_table,  hns_roce_v1_post_mbox,
+hns_roce_cmq_setup_basic_desc, hns_roce_cmq_send,
+hns_roce_cmq_query_hw_info are all local to the source and do
+not need to be in global scope, so make them static.
 
-On 2017/9/29 18:23, Leon Romanovsky wrote:
-> On Fri, Sep 29, 2017 at 02:07:22PM +0800, Wei Hu (Xavier) wrote:
->>
->> On 2017/9/28 20:59, Leon Romanovsky wrote:
->>> On Thu, Sep 28, 2017 at 07:56:59PM +0800, Wei Hu (Xavier) wrote:
->>>> On 2017/9/28 17:13, Leon Romanovsky wrote:
->>>>> On Thu, Sep 28, 2017 at 12:57:28PM +0800, Wei Hu (Xavier) wrote:
->>>>>> From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->>>>>>
->>>>>> When lp_qp_work is NULL, it should be returned ENOMEM. This patch
->>>>>> mainly fixes it.
->>>>>>
->>>>>> Ihis patch fixes the smatch error as below:
->>>>>> drivers/infiniband/hw/hns/hns_roce_hw_v1.c:918 hns_roce_v1_recreate_lp_qp()
->>>>>> error: potential null dereference 'lp_qp_work'.  (kzalloc returns null)
->>>>>>
->>>>>> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->>>>>> Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->>>>>> Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->>>>>> ---
->>>>>>     drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 2 ++
->>>>>>     1 file changed, 2 insertions(+)
->>>>>>
->>>>>> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
->>>>>> index 95f5c88..1071fa2 100644
->>>>>> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
->>>>>> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
->>>>>> @@ -912,6 +912,8 @@ static int hns_roce_v1_recreate_lp_qp(struct hns_roce_dev *hr_dev)
->>>>>>
->>>>>>     	lp_qp_work = kzalloc(sizeof(struct hns_roce_recreate_lp_qp_work),
->>>>>>     			     GFP_KERNEL);
->>>>>> +	if (!lp_qp_work)
->>>>>> +		return -ENOMEM;
->>>>>>
->>>>> You will treat this error in the same was as you will treat timeout,
->>>>> which is wrong.
->>>> Thanks,  Leon
->>>> We will send v2 to fix the compatible warn info.
->>> No, you missed the point.
->>>   From the code flow below the behavior of hns_roce_v1_recreate_lp_qp
->>> for ENOMEM and ETIMEOUT returns will be the same and it is wrong.
->>>
->>> For the ETIMEOUT, you can continue, for ENOMEM, you should properly
->>> unfold the whole flow.
->>>
->>> Thanks
->>>
->> Hi, Leon
->>      We prepare to modify the warn info as bleow:
->>
->>          if (hr_dev->hw->dereg_mr && hns_roce_v1_recreate_lp_qp(hr_dev))
->>              dev_warn(&hr_dev->pdev->dev, "recreate lp qp failed!\n");
->>
->>      for -ETIMEDOUT,  there is a warn info as blow, but there isn't this one
->> for -ENOMEM.
->>          dev_warn(dev, "recreate lp qp failed 20s timeout and return
->> failed!\n");
->>
->>          static int hns_roce_v1_recreate_lp_qp(struct hns_roce_dev *hr_dev)
->>          {
->>              <snip>
->>              lp_qp_work = kzalloc(sizeof(struct
->> hns_roce_recreate_lp_qp_work),
->>                   GFP_KERNEL);
->>              if (!lp_qp_work)
->>                  return -ENOMEM;
->>
->>              <snip>
->>              dev_warn(dev, "recreate lp qp failed 20s timeout and return
->> failed!\n");
->>              return -ETIMEDOUT;
->>          }
->>
->>      Regards
->> Wei Hu
-> Hi Wei,
->
-> It will be helpful, if you post your suggestions in git diff format.
->
-> My expectation is to see the following code:
->
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> index 747efd1ae5a6..0b9ec7c24f2d 100644
-> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-> @@ -1648,14 +1648,18 @@ void hns_roce_v1_set_mac(struct hns_roce_dev *hr_dev, u8 phy_port, u8 *addr)
->   	u16 *p_h;
->   	u32 *p;
->   	u32 val;
->
->   	/*
->   	 * When mac changed, loopback may fail
->   	 * because of smac not equal to dmac.
->   	 * We Need to release and create reserved qp again.
->   	 */
-> -	if (hr_dev->hw->dereg_mr && hns_roce_v1_recreate_lp_qp(hr_dev))
-> -		dev_warn(&hr_dev->pdev->dev, "recreate lp qp timeout!\n");
-> +	if (hr_dev->hw->dereg_mr) {
-> +		int ret;
-> +		ret = hns_roce_v1_recreate_lp_qp(hr_dev);
-> +		if (ret && ret != -ETIMEDOUT)
-> +			return ret;
-> +	}
->
->   	p = (u32 *)(&addr[0]);
->   	reg_smac_l = *p;
->
-> Thanks
-Hi, Leon
-     Thanks for your suggestion. We will send patch v2 to fix it.
+Cleans up sparse warnings:
+symbol 'hns_roce_table_mhop_get' was not declared. Should it be static?
+symbol 'hns_roce_table_mhop_put' was not declared. Should it be static?
+symbol 'hns_roce_cleanup_mhop_hem_table' was not declared. Should it be
+static?
+symbol 'hns_roce_v1_post_mbox' was not declared. Should it be static?
+symbol 'hns_roce_cmq_setup_basic_desc' was not declared. Should it be
+static?
+symbol 'hns_roce_cmq_send' was not declared. Should it be static?
+symbol 'hns_roce_cmq_query_hw_info' was not declared. Should it be static?
 
-     Best Regard
-Wei Hu
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hem.c   | 18 +++++++++---------
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c |  6 +++---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 12 ++++++------
+ 3 files changed, 18 insertions(+), 18 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index 125e26ebf250..8388ae25640c 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -363,9 +363,9 @@ static int hns_roce_set_hem(struct hns_roce_dev *hr_dev,
+ 	return ret;
+ }
+ 
+-int hns_roce_table_mhop_get(struct hns_roce_dev *hr_dev,
+-			    struct hns_roce_hem_table *table,
+-			    unsigned long obj)
++static int hns_roce_table_mhop_get(struct hns_roce_dev *hr_dev,
++				   struct hns_roce_hem_table *table,
++				   unsigned long obj)
+ {
+ 	struct device *dev = hr_dev->dev;
+ 	struct hns_roce_hem_mhop mhop;
+@@ -576,10 +576,10 @@ int hns_roce_table_get(struct hns_roce_dev *hr_dev,
+ 	return ret;
+ }
+ 
+-void hns_roce_table_mhop_put(struct hns_roce_dev *hr_dev,
+-			     struct hns_roce_hem_table *table,
+-			     unsigned long obj,
+-			     int check_refcount)
++static void hns_roce_table_mhop_put(struct hns_roce_dev *hr_dev,
++				    struct hns_roce_hem_table *table,
++				    unsigned long obj,
++				    int check_refcount)
+ {
+ 	struct device *dev = hr_dev->dev;
+ 	struct hns_roce_hem_mhop mhop;
+@@ -983,8 +983,8 @@ int hns_roce_init_hem_table(struct hns_roce_dev *hr_dev,
+ 	return -ENOMEM;
+ }
+ 
+-void hns_roce_cleanup_mhop_hem_table(struct hns_roce_dev *hr_dev,
+-				     struct hns_roce_hem_table *table)
++static void hns_roce_cleanup_mhop_hem_table(struct hns_roce_dev *hr_dev,
++					    struct hns_roce_hem_table *table)
+ {
+ 	struct hns_roce_hem_mhop mhop;
+ 	u32 buf_chunk_size;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index 426f55a030e6..290fcc2d8b98 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -1628,9 +1628,9 @@ static int hns_roce_v1_cmd_pending(struct hns_roce_dev *hr_dev)
+ 	return (!!(status & (1 << HCR_GO_BIT)));
+ }
+ 
+-int hns_roce_v1_post_mbox(struct hns_roce_dev *hr_dev, u64 in_param,
+-			  u64 out_param, u32 in_modifier, u8 op_modifier,
+-			  u16 op, u16 token, int event)
++static int hns_roce_v1_post_mbox(struct hns_roce_dev *hr_dev, u64 in_param,
++				 u64 out_param, u32 in_modifier, u8 op_modifier,
++				 u16 op, u16 token, int event)
+ {
+ 	u32 *hcr = (u32 *)(hr_dev->reg_base + ROCEE_MB1_REG);
+ 	unsigned long end;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 4171f73bdad5..4870b51caab9 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -496,9 +496,9 @@ static void hns_roce_v2_cmq_exit(struct hns_roce_dev *hr_dev)
+ 	hns_roce_free_cmq_desc(hr_dev, &priv->cmq.crq);
+ }
+ 
+-void hns_roce_cmq_setup_basic_desc(struct hns_roce_cmq_desc *desc,
+-				   enum hns_roce_opcode_type opcode,
+-				   bool is_read)
++static void hns_roce_cmq_setup_basic_desc(struct hns_roce_cmq_desc *desc,
++					  enum hns_roce_opcode_type opcode,
++					  bool is_read)
+ {
+ 	memset((void *)desc, 0, sizeof(struct hns_roce_cmq_desc));
+ 	desc->opcode = cpu_to_le16(opcode);
+@@ -542,8 +542,8 @@ static int hns_roce_cmq_csq_clean(struct hns_roce_dev *hr_dev)
+ 	return clean;
+ }
+ 
+-int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+-		      struct hns_roce_cmq_desc *desc, int num)
++static int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
++			     struct hns_roce_cmq_desc *desc, int num)
+ {
+ 	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
+ 	struct hns_roce_v2_cmq_ring *csq = &priv->cmq.csq;
+@@ -629,7 +629,7 @@ int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+ 	return ret;
+ }
+ 
+-int hns_roce_cmq_query_hw_info(struct hns_roce_dev *hr_dev)
++static int hns_roce_cmq_query_hw_info(struct hns_roce_dev *hr_dev)
+ {
+ 	struct hns_roce_query_version *resp;
+ 	struct hns_roce_cmq_desc desc;
+-- 
+2.14.1
