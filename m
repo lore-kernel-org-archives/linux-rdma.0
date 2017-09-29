@@ -1,100 +1,41 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v1 for-4.14-rc] RDMA/core: Correct nlmsg_len after appending attributes
-Date: Fri, 29 Sep 2017 08:25:01 -0500
-Message-ID: <20170929132501.15440-1-shiraz.saleem@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH][rdma-next] RDMA/hns: remove redundant assignment to variable j
+Date: Fri, 29 Sep 2017 14:52:27 +0100
+Message-ID: <20170929135227.8343-1-colin.king@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 1a1c116f3dcf removes nlmsg_len calculation in
-ibnl_put_attr causing netlink messages to be rejected due
-to incorrect length.
+From: Colin Ian King <colin.king@canonical.com>
 
-Add nlmsg_end after all attributes are appended to calculate
-the nlmsg_len.
+Variable j is being assigned to loop_j and then later being
+assigned to a new value in for loops. The first initialization
+is therefore redundant and can be removed.
 
-Fixes: 1a1c116f3dcf ("RDMA/netlink: Simplify the put_msg and put_attr")
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cleans up clang warning:
+warning: Value stored to 'j' is never read
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
-v0->v1:
-	* Update subject line, previously
-	("RDMA/netlink: Restore nlmsg_len calculation in ibnl_put_attr") and commit message.
-	* Remove nlmsg_len calculation from ibnl_put_attr
----
- drivers/infiniband/core/iwpm_msg.c  | 8 ++++++++
- drivers/infiniband/core/iwpm_util.c | 5 +++++
- 2 files changed, 13 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_mr.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
-index 30825bb..8861c05 100644
---- a/drivers/infiniband/core/iwpm_msg.c
-+++ b/drivers/infiniband/core/iwpm_msg.c
-@@ -100,6 +100,8 @@ int iwpm_register_pid(struct iwpm_dev_data *pm_msg, u8 nl_client)
- 	if (ret)
- 		goto pid_query_error;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index 7e6ce76b32df..452136d98ad5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -272,7 +272,6 @@ static void hns_roce_loop_free(struct hns_roce_dev *hr_dev,
+ 	mhop_num = hr_dev->caps.pbl_hop_num;
  
-+	nlmsg_end(skb, nlh);
-+
- 	pr_debug("%s: Multicasting a nlmsg (dev = %s ifname = %s iwpm = %s)\n",
- 		__func__, pm_msg->dev_name, pm_msg->if_name, iwpm_ulib_name);
- 
-@@ -170,6 +172,8 @@ int iwpm_add_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
- 				&pm_msg->loc_addr, IWPM_NLA_MANAGE_ADDR);
- 	if (ret)
- 		goto add_mapping_error;
-+
-+	nlmsg_end(skb, nlh);
- 	nlmsg_request->req_buffer = pm_msg;
- 
- 	ret = rdma_nl_unicast_wait(skb, iwpm_user_pid);
-@@ -246,6 +250,8 @@ int iwpm_add_and_query_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
- 				&pm_msg->rem_addr, IWPM_NLA_QUERY_REMOTE_ADDR);
- 	if (ret)
- 		goto query_mapping_error;
-+
-+	nlmsg_end(skb, nlh);
- 	nlmsg_request->req_buffer = pm_msg;
- 
- 	ret = rdma_nl_unicast_wait(skb, iwpm_user_pid);
-@@ -308,6 +314,8 @@ int iwpm_remove_mapping(struct sockaddr_storage *local_addr, u8 nl_client)
- 	if (ret)
- 		goto remove_mapping_error;
- 
-+	nlmsg_end(skb, nlh);
-+
- 	ret = rdma_nl_unicast_wait(skb, iwpm_user_pid);
- 	if (ret) {
- 		skb = NULL; /* skb is freed in the netlink send-op handling */
-diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
-index c81c559..3c4faad 100644
---- a/drivers/infiniband/core/iwpm_util.c
-+++ b/drivers/infiniband/core/iwpm_util.c
-@@ -597,6 +597,9 @@ static int send_mapinfo_num(u32 mapping_num, u8 nl_client, int iwpm_pid)
- 				&mapping_num, IWPM_NLA_MAPINFO_SEND_NUM);
- 	if (ret)
- 		goto mapinfo_num_error;
-+
-+	nlmsg_end(skb, nlh);
-+
- 	ret = rdma_nl_unicast(skb, iwpm_pid);
- 	if (ret) {
- 		skb = NULL;
-@@ -678,6 +681,8 @@ int iwpm_send_mapinfo(u8 nl_client, int iwpm_pid)
- 			if (ret)
- 				goto send_mapping_info_unlock;
- 
-+			nlmsg_end(skb, nlh);
-+
- 			iwpm_print_sockaddr(&map_info->local_sockaddr,
- 				"send_mapping_info: Local sockaddr:");
- 			iwpm_print_sockaddr(&map_info->mapped_sockaddr,
+ 	i = loop_i;
+-	j = loop_j;
+ 	if (mhop_num == 3 && err_loop_index == 2) {
+ 		for (; i >= 0; i--) {
+ 			dma_free_coherent(dev, pbl_bt_sz, mr->pbl_bt_l1[i],
 -- 
-2.8.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.14.1
