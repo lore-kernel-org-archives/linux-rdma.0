@@ -1,71 +1,69 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 0/7] RDMA core, IPoiB and mlx5 fixes
-Date: Fri, 29 Sep 2017 10:56:41 -0400
-Message-ID: <1506697001.2919.12.camel@redhat.com>
-References: <20170924184635.31948-1-leon@kernel.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for-next 0/2] IB/opa_vnic: Add debugfs interface
+Date: Fri, 29 Sep 2017 17:59:50 +0300
+Message-ID: <20170929145950.GC2965@mtr-leonro.local>
+References: <20170926175524.GA2297@mtr-leonro.local>
+ <20170926181214.GA41364@knc-06.sc.intel.com>
+ <1506525977.33755.3.camel@redhat.com>
+ <20170928184727.GA33282@knc-06.sc.intel.com>
+ <20170928185753.GG2297@mtr-leonro.local>
+ <20170928190502.GA33289@knc-06.sc.intel.com>
+ <20170928193740.GH2297@mtr-leonro.local>
+ <20170928200258.GA27343@obsidianresearch.com>
+ <20170929054959.GJ2297@mtr-leonro.local>
+ <cbb65789-2d1e-779e-77f8-55b435511069@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="xesSdrSSBC0PokLI"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170924184635.31948-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <cbb65789-2d1e-779e-77f8-55b435511069-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2017-09-24 at 21:46 +0300, Leon Romanovsky wrote:
-> The following patch fixes struct name wrongly exposed
-> in UAPI, number of crashes in various part of infiniband
-> stack and mlx5 driver.
-> 
-> Thanks
-> 
-> Alex Vesker (1):
->   IB/ipoib: Fix inconsistency with free_netdev and free_rdma_netdev
-> 
-> Ilya Lesokhin (2):
->   IB/mlx5: Simplify mlx5_ib_cont_pages
->   IB/mlx5: Fix NULL deference on mlx5_ib_update_xlt failure
-> 
-> Leon Romanovsky (1):
->   IB/core: Fix typo in the name of the tag-matching cap struct
-> 
-> Parav Pandit (2):
->   IB/core: Fix qp_sec use after free access
->   IB: Correct MR length field to be 64-bit
-> 
-> Shalom Lagziel (1):
->   IB/ipoib: Fix sysfs Pkey create<->remove possible deadlock
-> 
->  drivers/infiniband/core/security.c        |  4 ++-
->  drivers/infiniband/core/uverbs_cmd.c      | 14 ++++-----
->  drivers/infiniband/hw/mlx5/main.c         | 10 +++----
->  drivers/infiniband/hw/mlx5/mem.c          | 47 +++++++++++--------
-> ------------
->  drivers/infiniband/hw/mlx5/mr.c           | 27 +++++++++++-------
->  drivers/infiniband/hw/nes/nes_verbs.c     |  4 +--
->  drivers/infiniband/ulp/ipoib/ipoib_main.c | 15 +++++++---
->  drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 30 ++++++++++++++------
->  drivers/infiniband/ulp/iser/iser_memory.c |  2 +-
->  include/rdma/ib_verbs.h                   |  6 ++--
->  include/uapi/rdma/ib_user_verbs.h         |  2 +-
->  net/sunrpc/xprtrdma/frwr_ops.c            |  2 +-
->  12 files changed, 90 insertions(+), 73 deletions(-)
-> 
-> --
-> 2.14.1
 
-It appears I failed to send notification that this series had been
-applied for rc.  You probably noticed it was in the pull request and
-has already been taken, but just in case you hadn't, here's your notice
-;-)
+--xesSdrSSBC0PokLI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Fri, Sep 29, 2017 at 10:46:51AM -0400, Dennis Dalessandro wrote:
+>
+> All of this vnic stuff is a work in progress and we are incrementally
+> pushing things out. Iterative development, involving the community and all.
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+Can we get OPA-VNIC specification? Can we get OPA specification?
 
+The Documentation/infiniband/opa_vnic.txt is not enough to really
+implement anything on top of that or communicate with that.
+
+For example, what are the values and relations for routing control? How
+is entropy calculated?
+
+Thanks
+
+--xesSdrSSBC0PokLI
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnOX+YACgkQ5GN7iDZy
+WKdIUBAAxKRy3ZQZ3vSqgZjJvB2mEXPZkLsG160t4lzy0pewrTcQGkUx9ZtnyPt3
+wpxwtA8O9FkJuyrwUWoX5wqf3tpI24fw45xHfH5XPfRc7PEFFEXGkdVJyLQFnQ2/
+WtC4q9k5sIr1I7Wp4KFNMvyRAHDMi3Kg11Y8xhNH+c8Qg7PTz20X8XXDLN3s+Dr4
+LCHrB1JXbqrW2eiJceRMztfvyXrO4/EaAwXHYpkeaNXONxq5gfmn04LGmLNTQ/oB
+oumWAMQqI9KmVl0hKln7jD1YubwAPxBA+1qxeexiFnAFQbLR60VOcTjfiiZsWihi
+nFcimsA3xtpZaQf382U/EgmcmiRSrwpHD+XwCK/S365LsB7HTUrDRMKGsRb8tO3Q
+kuQ5Jm+AK8nzrP+9t37gsAYk4UAmDylNny/NW1iBaHi7lPAueYrVDcqADqRLHXkn
+KJntfFjZdeot1Hl6pM4CQ3FFXfOLlIniFTsFcTirUTCXHORPk7BweHfkDzj01+g6
+n7Ivfny4dOtwrKvnx77CrgteCKmThVwVcso5kVakIL9cDFJYm+ZQf6uLAfTjrCDf
+yq54ZYjDJUk2sSBx5UOfXqtT0TV5JySwOmlpk0p3JET7sXDDBkPPA6wlv63PSiHA
+bRjl04IZpp2XCmNU/5Q1aYFdNQFTf/YVcUpcwhBBTsg/8XKMxgI=
+=/xiq
+-----END PGP SIGNATURE-----
+
+--xesSdrSSBC0PokLI--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
