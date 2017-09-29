@@ -1,40 +1,141 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH] i40iw: delete some stray tabs
-Date: Fri, 29 Sep 2017 13:40:04 +0300
-Message-ID: <20170929104004.svcnntqmgdxnzgnn@mwanda>
-References: <20170929074943.cs2jea5xttk2r6vm@mwanda>
- <20170929102929.GA2723@mtr-leonro.local>
+From: "Wei Hu (Xavier)" <xavier.huwei-WVlzvzqoTvw@public.gmane.org>
+Subject: Re: [PATCH for-next 3/9] RDMA/hns: Add return statement when kzalloc
+ return NULL in hns_roce_v1_recreate_lp_qp
+Date: Fri, 29 Sep 2017 21:15:32 +0800
+Message-ID: <502d4690-74d8-c568-ec0e-8b3b2efe073d@tom.com>
+References: <1506574654-56699-1-git-send-email-xavier.huwei@huawei.com>
+ <1506574654-56699-4-git-send-email-xavier.huwei@huawei.com>
+ <20170928091308.GT2297@mtr-leonro.local> <59CCE38B.4040408@huawei.com>
+ <20170928125912.GU2297@mtr-leonro.local> <59CDE31A.5090707@huawei.com>
+ <20170929102337.GK2297@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170929102929.GA2723@mtr-leonro.local>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Faisal Latif <faisal.latif@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170929102337.GK2297-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 29, 2017 at 01:29:29PM +0300, Leon Romanovsky wrote:
-> On Fri, Sep 29, 2017 at 10:49:43AM +0300, Dan Carpenter wrote:
-> > These lines were indented too far by mistake.
-> >
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> >
-> > diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-> 
-> Dan,,
-> 
-> I saw in your patches and don't know if it important. There is no
-> diffstat after your Signed-off-by and there is no "---" trailing line
-> too.
 
-Yeah.  I leave those out.  I normally write two line patches like this
-one so the diffstat is normally -2+2 and I figure people will see that
-they're tiny just from glancing at the email.  When I create patches
-that touch multiple files, what I do is just merge the diffs together in
-my email client.  If I tried to create diffstats for those, I'd just end
-up messing up a lot.
 
-regards,
-dan carpenter
+On 2017/9/29 18:23, Leon Romanovsky wrote:
+> On Fri, Sep 29, 2017 at 02:07:22PM +0800, Wei Hu (Xavier) wrote:
+>>
+>> On 2017/9/28 20:59, Leon Romanovsky wrote:
+>>> On Thu, Sep 28, 2017 at 07:56:59PM +0800, Wei Hu (Xavier) wrote:
+>>>> On 2017/9/28 17:13, Leon Romanovsky wrote:
+>>>>> On Thu, Sep 28, 2017 at 12:57:28PM +0800, Wei Hu (Xavier) wrote:
+>>>>>> From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>>>>>>
+>>>>>> When lp_qp_work is NULL, it should be returned ENOMEM. This patch
+>>>>>> mainly fixes it.
+>>>>>>
+>>>>>> Ihis patch fixes the smatch error as below:
+>>>>>> drivers/infiniband/hw/hns/hns_roce_hw_v1.c:918 hns_roce_v1_recreate_lp_qp()
+>>>>>> error: potential null dereference 'lp_qp_work'.  (kzalloc returns null)
+>>>>>>
+>>>>>> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>>>>>> Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>>>>>> Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>>>>>> ---
+>>>>>>     drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 2 ++
+>>>>>>     1 file changed, 2 insertions(+)
+>>>>>>
+>>>>>> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+>>>>>> index 95f5c88..1071fa2 100644
+>>>>>> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+>>>>>> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+>>>>>> @@ -912,6 +912,8 @@ static int hns_roce_v1_recreate_lp_qp(struct hns_roce_dev *hr_dev)
+>>>>>>
+>>>>>>     	lp_qp_work = kzalloc(sizeof(struct hns_roce_recreate_lp_qp_work),
+>>>>>>     			     GFP_KERNEL);
+>>>>>> +	if (!lp_qp_work)
+>>>>>> +		return -ENOMEM;
+>>>>>>
+>>>>> You will treat this error in the same was as you will treat timeout,
+>>>>> which is wrong.
+>>>> Thanks,  Leon
+>>>> We will send v2 to fix the compatible warn info.
+>>> No, you missed the point.
+>>>   From the code flow below the behavior of hns_roce_v1_recreate_lp_qp
+>>> for ENOMEM and ETIMEOUT returns will be the same and it is wrong.
+>>>
+>>> For the ETIMEOUT, you can continue, for ENOMEM, you should properly
+>>> unfold the whole flow.
+>>>
+>>> Thanks
+>>>
+>> Hi, Leon
+>>      We prepare to modify the warn info as bleow:
+>>
+>>          if (hr_dev->hw->dereg_mr && hns_roce_v1_recreate_lp_qp(hr_dev))
+>>              dev_warn(&hr_dev->pdev->dev, "recreate lp qp failed!\n");
+>>
+>>      for -ETIMEDOUT,  there is a warn info as blow, but there isn't this one
+>> for -ENOMEM.
+>>          dev_warn(dev, "recreate lp qp failed 20s timeout and return
+>> failed!\n");
+>>
+>>          static int hns_roce_v1_recreate_lp_qp(struct hns_roce_dev *hr_dev)
+>>          {
+>>              <snip>
+>>              lp_qp_work = kzalloc(sizeof(struct
+>> hns_roce_recreate_lp_qp_work),
+>>                   GFP_KERNEL);
+>>              if (!lp_qp_work)
+>>                  return -ENOMEM;
+>>
+>>              <snip>
+>>              dev_warn(dev, "recreate lp qp failed 20s timeout and return
+>> failed!\n");
+>>              return -ETIMEDOUT;
+>>          }
+>>
+>>      Regards
+>> Wei Hu
+> Hi Wei,
+>
+> It will be helpful, if you post your suggestions in git diff format.
+>
+> My expectation is to see the following code:
+>
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+> index 747efd1ae5a6..0b9ec7c24f2d 100644
+> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+> @@ -1648,14 +1648,18 @@ void hns_roce_v1_set_mac(struct hns_roce_dev *hr_dev, u8 phy_port, u8 *addr)
+>   	u16 *p_h;
+>   	u32 *p;
+>   	u32 val;
+>
+>   	/*
+>   	 * When mac changed, loopback may fail
+>   	 * because of smac not equal to dmac.
+>   	 * We Need to release and create reserved qp again.
+>   	 */
+> -	if (hr_dev->hw->dereg_mr && hns_roce_v1_recreate_lp_qp(hr_dev))
+> -		dev_warn(&hr_dev->pdev->dev, "recreate lp qp timeout!\n");
+> +	if (hr_dev->hw->dereg_mr) {
+> +		int ret;
+> +		ret = hns_roce_v1_recreate_lp_qp(hr_dev);
+> +		if (ret && ret != -ETIMEDOUT)
+> +			return ret;
+> +	}
+>
+>   	p = (u32 *)(&addr[0]);
+>   	reg_smac_l = *p;
+>
+> Thanks
+Hi, Leon
+     Thanks for your suggestion. We will send patch v2 to fix it.
 
+     Best Regard
+Wei Hu
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
