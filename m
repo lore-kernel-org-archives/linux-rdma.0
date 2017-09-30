@@ -1,43 +1,53 @@
 From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH infiniband-diags] libibmad/fields.c:
- PortInfo:McastPkeyTrapSuppressionEnabled is 2 bits in IBA 1.3
-Date: Sat, 30 Sep 2017 01:38:47 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E67D31C35@CRSMSX101.amr.corp.intel.com>
-References: <6e774db9-11d3-8f2f-ab50-d3c661ce102d@dev.mellanox.co.il>
+Subject: RE: ibqueryerrors.c: Add support for additional counters in
+ PortCountersExtended
+Date: Sat, 30 Sep 2017 01:42:17 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E67D31C52@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6e774db9-11d3-8f2f-ab50-d3c661ce102d-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "'Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)'" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-VGhhbmtzIGFjY2VwdGVkLg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206
-IEhhbCBSb3NlbnN0b2NrIFttYWlsdG86aGFsQGRldi5tZWxsYW5veC5jby5pbF0NCj4gU2VudDog
-V2VkbmVzZGF5LCBTZXB0ZW1iZXIgMDYsIDIwMTcgNDo1NyBBTQ0KPiBUbzogV2VpbnksIElyYSA8
-aXJhLndlaW55QGludGVsLmNvbT4NCj4gQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQo+
-IFN1YmplY3Q6IFtQQVRDSCBpbmZpbmliYW5kLWRpYWdzXSBsaWJpYm1hZC9maWVsZHMuYzoNCj4g
-UG9ydEluZm86TWNhc3RQa2V5VHJhcFN1cHByZXNzaW9uRW5hYmxlZCBpcyAyIGJpdHMgaW4gSUJB
-IDEuMw0KPiANCj4gDQo+IFBlciBNZ3RXRyBjb21tZW50ICM0NTc2DQo+IA0KPiBTaWduZWQtb2Zm
-LWJ5OiBIYWwgUm9zZW5zdG9jayA8aGFsQG1lbGxhbm94LmNvbT4NCj4gLS0tDQo+ICBsaWJpYm1h
-ZC9zcmMvZmllbGRzLmMgfCAyICstDQo+ICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyks
-IDEgZGVsZXRpb24oLSkNCj4gDQo+IGRpZmYgLS1naXQgYS9saWJpYm1hZC9zcmMvZmllbGRzLmMg
-Yi9saWJpYm1hZC9zcmMvZmllbGRzLmMgaW5kZXggZTAzMzNmOC4uYmY0ODY4OQ0KPiAxMDA2NDQN
-Cj4gLS0tIGEvbGliaWJtYWQvc3JjL2ZpZWxkcy5jDQo+ICsrKyBiL2xpYmlibWFkL3NyYy9maWVs
-ZHMuYw0KPiBAQCAtMTYyLDcgKzE2Miw3IEBAIHN0YXRpYyBjb25zdCBpYl9maWVsZF90IGliX21h
-ZF9mW10gPSB7DQo+ICAJe0JJVFNPRkZTKDM4NCwgMTYpLCAiUWtleVZpb2xhdGlvbnMiLCBtYWRf
-ZHVtcF91aW50fSwNCj4gIAl7QklUU09GRlMoNDAwLCA4KSwgIkd1aWRDYXAiLCBtYWRfZHVtcF91
-aW50fSwNCj4gIAl7QklUU09GRlMoNDA4LCAxKSwgIkNsaWVudFJlcmVnaXN0ZXIiLCBtYWRfZHVt
-cF91aW50fSwNCj4gLQl7QklUU09GRlMoNDA5LCAxKSwgIk1jYXN0UGtleVRyYXBTdXBwcmVzc2lv
-bkVuYWJsZWQiLA0KPiBtYWRfZHVtcF91aW50fSwNCj4gKwl7QklUU09GRlMoNDA5LCAyKSwgIk1j
-YXN0UGtleVRyYXBTdXBwcmVzc2lvbkVuYWJsZWQiLA0KPiBtYWRfZHVtcF91aW50fSwNCj4gIAl7
-QklUU09GRlMoNDExLCA1KSwgIlN1Ym5ldFRpbWVvdXQiLCBtYWRfZHVtcF91aW50fSwNCj4gIAl7
-QklUU09GRlMoNDE5LCA1KSwgIlJlc3BUaW1lVmFsIiwgbWFkX2R1bXBfdWludH0sDQo+ICAJe0JJ
-VFNPRkZTKDQyNCwgNCksICJMb2NhbFBoeXNFcnIiLCBtYWRfZHVtcF91aW50fSwNCj4gLS0NCj4g
-Mi44LjQNCg0K
+Hal, Oded,
+
+I have lost the original email from this submission but got it off of patchwork.
+
+Question on the hunk below.
+
+diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c                                                       
+index 304dc154c4b4..4ea762a1f344 100644                                                                      
+--- a/src/ibqueryerrors.c                                                                                    
++++ b/src/ibqueryerrors.c                                                                                    
+@@ -105,15 +105,15 @@ static unsigned valid_gid(ib_gid_t * gid)                                              
+        return memcmp(&zero_gid, gid, sizeof(*gid));                                                         
+ }                                                                                                           
+                                                                                                             
+-static void set_thres(char *name, uint32_t val)                                                             
++static void set_thres(char *name, uint64_t val)                                                             
+ {                                                                                                           
+        int f;                                                                                               
+        int n;                                                                                               
+        char tmp[256];                                                                                       
+-       for (f = IB_PC_FIRST_F; f <= IB_PC_LAST_F; f++) {                                                    
++       for (f = IB_PC_EXT_ERR_SYM_F; f <= IB_PC_EXT_XMT_WAIT_F; f++) {                                      
+
+How does this change allow for users to set the old Port Counters thresholds?
+
+Ira
+
+
+                if (strcmp(name, mad_field_name(f)) == 0) {                                                  
+                        mad_encode_field(thresholds, f, &val);                                               
+-                       snprintf(tmp, 255, "[%s = %u]", name, val);                                          
++                       snprintf(tmp, 255, "[%s = %lu]", name, val);                                         
+                        threshold_str = realloc(threshold_str,                                               
+                                        strlen(threshold_str)+strlen(tmp)+1);                                
+                        if (!threshold_str) {                                                                
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
