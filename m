@@ -1,44 +1,54 @@
-From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 0/4] Add Features & Code improvements for hip08
-Date: Sat, 30 Sep 2017 17:28:57 +0800
-Message-ID: <1506763741-81429-1-git-send-email-xavier.huwei@huawei.com>
+From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Subject: [PATCH for-next 4/4] RDMA/hns: Update the PD&CQE&MTT specification in hip08
+Date: Sat, 30 Sep 2017 17:29:01 +0800
+Message-ID: <1506763741-81429-5-git-send-email-xavier.huwei@huawei.com>
+References: <1506763741-81429-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-WVlzvzqoTvw@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org, shaoboxu-WVlzvzqoTvw@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1506763741-81429-1-git-send-email-xavier.huwei@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: linux-rdma@vger.kernel.org, xavier.huwei@huawei.com, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, xushaobo2@huawei.com, zhangxiping3@huawei.com, xavier.huwei@tom.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, shaobohsu@163.com, shaoboxu@tom.com
 List-Id: linux-rdma@vger.kernel.org
 
-This patch-set introduce PBL page size configuration support,IOMMU
-support, updating PD&CQE&MTT specification and IRRL table chunk
-size for hip08.
+This patch updates the PD specification to 16M for hip08. And it
+updates the numbers of mtt and cqe segments for the buddy.
 
-Shaobo Xu (1):
-  RDMA/hns: Support WQE/CQE/PBL page size configurable feature in hip08
+As the CQE supports hop num 1 addressing, the CQE specification is
+64k. This patch updates to set the CQE specification to 64k.
 
-Wei Hu (Xavier) (3):
-  RDMA/hns: Add IOMMU enable support in hip08
-  RDMA/hns: Update the IRRL table chunk size in hip08
-  RDMA/hns: Update the PD&CQE&MTT specification in hip08
+Signed-off-by: Shaobo Xu <xushaobo2@huawei.com>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
- drivers/infiniband/hw/hns/hns_roce_alloc.c  | 34 +++++++----
- drivers/infiniband/hw/hns/hns_roce_cq.c     | 21 ++++++-
- drivers/infiniband/hw/hns/hns_roce_device.h | 13 ++--
- drivers/infiniband/hw/hns/hns_roce_hem.c    | 61 +++++++++++++------
- drivers/infiniband/hw/hns/hns_roce_hem.h    |  6 ++
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  1 +
- drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |  2 +
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 23 ++++---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  | 10 ++--
- drivers/infiniband/hw/hns/hns_roce_mr.c     | 93 ++++++++++++++++++++---------
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 46 ++++++++++----
- 11 files changed, 222 insertions(+), 88 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 65ed3f8..6106ad1 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -47,16 +47,16 @@
+ #define HNS_ROCE_V2_MAX_QP_NUM			0x2000
+ #define HNS_ROCE_V2_MAX_WQE_NUM			0x8000
+ #define HNS_ROCE_V2_MAX_CQ_NUM			0x8000
+-#define HNS_ROCE_V2_MAX_CQE_NUM			0x400000
++#define HNS_ROCE_V2_MAX_CQE_NUM			0x10000
+ #define HNS_ROCE_V2_MAX_RQ_SGE_NUM		0x100
+ #define HNS_ROCE_V2_MAX_SQ_SGE_NUM		0xff
+ #define HNS_ROCE_V2_MAX_SQ_INLINE		0x20
+ #define HNS_ROCE_V2_UAR_NUM			256
+ #define HNS_ROCE_V2_PHY_UAR_NUM			1
+ #define HNS_ROCE_V2_MAX_MTPT_NUM		0x8000
+-#define HNS_ROCE_V2_MAX_MTT_SEGS		0x100000
+-#define HNS_ROCE_V2_MAX_CQE_SEGS		0x10000
+-#define HNS_ROCE_V2_MAX_PD_NUM			0x400000
++#define HNS_ROCE_V2_MAX_MTT_SEGS		0x1000000
++#define HNS_ROCE_V2_MAX_CQE_SEGS		0x1000000
++#define HNS_ROCE_V2_MAX_PD_NUM			0x1000000
+ #define HNS_ROCE_V2_MAX_QP_INIT_RDMA		128
+ #define HNS_ROCE_V2_MAX_QP_DEST_RDMA		128
+ #define HNS_ROCE_V2_MAX_SQ_DESC_SZ		64
 -- 
 1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
