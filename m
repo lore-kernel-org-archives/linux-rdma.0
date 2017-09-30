@@ -1,46 +1,46 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: Re: [PATCH] RDMA/hns: return 0 rather than return a garbage status
- value
-Date: Sat, 30 Sep 2017 15:11:05 +0800
-Message-ID: <59CF4389.6050103@huawei.com>
-References: <20170929201308.4704-1-colin.king@canonical.com>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH rdma-core] libhns: Update the size and member order of hns_roce_create_qp structure
+Date: Sat, 30 Sep 2017 16:51:17 +0800
+Message-ID: <1506761477-47350-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170929201308.4704-1-colin.king@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>
-Cc: Lijun Ou <oulijun@huawei.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks,  Colin Ian King
+In order to keep the size and member order with the
+hns_roce_ib_create_qp sturcture of the kernel driver,
+it need to update hns_roce_create_qp's structure
+members. Otherwise, it will run fail.
 
-Acked-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+ providers/hns/hns_roce_u_abi.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-On 2017/9/30 4:13, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
->
-> For the case where hr_qp->state == IB_QPS_RESET, an uninitialized
-> value in ret is being returned by function hns_roce_v2_query_qp.
-> Fix this by setting ret to 0 for this specific return condition.
->
-> Detected by CoverityScan, CID#1457203 ("Unitialized scalar variable")
->
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->   drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 1 +
->   1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> index 4870b51caab9..791dae72e775 100644
-> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> @@ -2805,6 +2805,7 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
->   
->   	if (hr_qp->state == IB_QPS_RESET) {
->   		qp_attr->qp_state = IB_QPS_RESET;
-> +		ret = 0;
->   		goto done;
->   	}
->   
+diff --git a/providers/hns/hns_roce_u_abi.h b/providers/hns/hns_roce_u_abi.h
+index e78f967..276d29d 100644
+--- a/providers/hns/hns_roce_u_abi.h
++++ b/providers/hns/hns_roce_u_abi.h
+@@ -61,9 +61,10 @@ struct hns_roce_create_cq_resp {
+ struct hns_roce_create_qp {
+ 	struct ibv_create_qp		ibv_cmd;
+ 	__u64				buf_addr;
++	__u64				rsv;
+ 	__u8				log_sq_bb_count;
+ 	__u8				log_sq_stride;
+-	__u8				reserved[5];
++	__u8				reserved[6];
+ };
+ 
+ #endif /* _HNS_ROCE_U_ABI_H */
+-- 
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
