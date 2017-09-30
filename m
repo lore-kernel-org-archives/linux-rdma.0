@@ -1,195 +1,90 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: [PATCH for-next 2/4] RDMA/hns: Add IOMMU enable support in hip08
-Date: Sat, 30 Sep 2017 17:28:59 +0800
-Message-ID: <1506763741-81429-3-git-send-email-xavier.huwei@huawei.com>
-References: <1506763741-81429-1-git-send-email-xavier.huwei@huawei.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] i40iw: delete some stray tabs
+Date: Sat, 30 Sep 2017 13:23:47 +0300
+Message-ID: <20170930102347.GE2965@mtr-leonro.local>
+References: <20170929074943.cs2jea5xttk2r6vm@mwanda>
+ <20170929102929.GA2723@mtr-leonro.local>
+ <20170929104004.svcnntqmgdxnzgnn@mwanda>
+ <20170929144554.GB2965@mtr-leonro.local>
+ <20170929203409.gd3yczvfnflwrwth@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1506763741-81429-1-git-send-email-xavier.huwei@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, xavier.huwei@huawei.com, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, xushaobo2@huawei.com, zhangxiping3@huawei.com, xavier.huwei@tom.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, shaobohsu@163.com, shaoboxu@tom.com
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="AsxXAMtlQ5JHofzM"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170929203409.gd3yczvfnflwrwth@mwanda>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If the IOMMU is enabled, the length of sg obtained from
-__iommu_map_sg_attrs is not 4kB. When the IOVA is set with the sg
-dma address, the IOVA will not be page continuous. and the VA
-returned from dma_alloc_coherent is a vmalloc address. However,
-the VA obtained by the page_address is a discontinuous VA. Under
-these circumstances, the IOVA should be calculated based on the
-sg length, and record the VA returned from dma_alloc_coherent
-in the struct of hem.
 
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
-Signed-off-by: Shaobo Xu <xushaobo2@huawei.com>
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_alloc.c |  5 ++++-
- drivers/infiniband/hw/hns/hns_roce_hem.c   | 30 +++++++++++++++++++++++++++---
- drivers/infiniband/hw/hns/hns_roce_hem.h   |  6 ++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 22 +++++++++++++++-------
- 4 files changed, 52 insertions(+), 11 deletions(-)
+--AsxXAMtlQ5JHofzM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
-index 3e4c525..a69cd4b 100644
---- a/drivers/infiniband/hw/hns/hns_roce_alloc.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
-@@ -243,7 +243,10 @@ int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
- 				goto err_free;
- 
- 			for (i = 0; i < buf->nbufs; ++i)
--				pages[i] = virt_to_page(buf->page_list[i].buf);
-+				pages[i] =
-+					is_vmalloc_addr(buf->page_list[i].buf) ?
-+					vmalloc_to_page(buf->page_list[i].buf) :
-+					virt_to_page(buf->page_list[i].buf);
- 
- 			buf->direct.buf = vmap(pages, buf->nbufs, VM_MAP,
- 					       PAGE_KERNEL);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index 8388ae2..4a3d1d4 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -200,6 +200,7 @@ static struct hns_roce_hem *hns_roce_alloc_hem(struct hns_roce_dev *hr_dev,
- 					       gfp_t gfp_mask)
- {
- 	struct hns_roce_hem_chunk *chunk = NULL;
-+	struct hns_roce_vmalloc *vmalloc;
- 	struct hns_roce_hem *hem;
- 	struct scatterlist *mem;
- 	int order;
-@@ -227,6 +228,7 @@ static struct hns_roce_hem *hns_roce_alloc_hem(struct hns_roce_dev *hr_dev,
- 			sg_init_table(chunk->mem, HNS_ROCE_HEM_CHUNK_LEN);
- 			chunk->npages = 0;
- 			chunk->nsg = 0;
-+			memset(chunk->vmalloc, 0, sizeof(chunk->vmalloc));
- 			list_add_tail(&chunk->list, &hem->chunk_list);
- 		}
- 
-@@ -243,7 +245,15 @@ static struct hns_roce_hem *hns_roce_alloc_hem(struct hns_roce_dev *hr_dev,
- 		if (!buf)
- 			goto fail;
- 
--		sg_set_buf(mem, buf, PAGE_SIZE << order);
-+		if (is_vmalloc_addr(buf)) {
-+			vmalloc = &chunk->vmalloc[chunk->npages];
-+			vmalloc->is_vmalloc_addr = true;
-+			vmalloc->vmalloc_addr = buf;
-+			sg_set_page(mem, vmalloc_to_page(buf),
-+				    PAGE_SIZE << order, offset_in_page(buf));
-+		} else {
-+			sg_set_buf(mem, buf, PAGE_SIZE << order);
-+		}
- 		WARN_ON(mem->offset);
- 		sg_dma_len(mem) = PAGE_SIZE << order;
- 
-@@ -262,17 +272,25 @@ static struct hns_roce_hem *hns_roce_alloc_hem(struct hns_roce_dev *hr_dev,
- void hns_roce_free_hem(struct hns_roce_dev *hr_dev, struct hns_roce_hem *hem)
- {
- 	struct hns_roce_hem_chunk *chunk, *tmp;
-+	void *cpu_addr;
- 	int i;
- 
- 	if (!hem)
- 		return;
- 
- 	list_for_each_entry_safe(chunk, tmp, &hem->chunk_list, list) {
--		for (i = 0; i < chunk->npages; ++i)
-+		for (i = 0; i < chunk->npages; ++i) {
-+			if (chunk->vmalloc[i].is_vmalloc_addr)
-+				cpu_addr = chunk->vmalloc[i].vmalloc_addr;
-+			else
-+				cpu_addr =
-+				   lowmem_page_address(sg_page(&chunk->mem[i]));
-+
- 			dma_free_coherent(hr_dev->dev,
- 				   chunk->mem[i].length,
--				   lowmem_page_address(sg_page(&chunk->mem[i])),
-+				   cpu_addr,
- 				   sg_dma_address(&chunk->mem[i]));
-+		}
- 		kfree(chunk);
- 	}
- 
-@@ -774,6 +792,12 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
- 
- 			if (chunk->mem[i].length > (u32)offset) {
- 				page = sg_page(&chunk->mem[i]);
-+				if (chunk->vmalloc[i].is_vmalloc_addr) {
-+					mutex_unlock(&table->mutex);
-+					return page ?
-+						chunk->vmalloc[i].vmalloc_addr
-+						+ offset : NULL;
-+				}
- 				goto out;
- 			}
- 			offset -= chunk->mem[i].length;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.h b/drivers/infiniband/hw/hns/hns_roce_hem.h
-index af28bbf..62d712a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.h
-@@ -72,11 +72,17 @@ enum {
- 	 HNS_ROCE_HEM_PAGE_SIZE  = 1 << HNS_ROCE_HEM_PAGE_SHIFT,
- };
- 
-+struct hns_roce_vmalloc {
-+	bool	is_vmalloc_addr;
-+	void	*vmalloc_addr;
-+};
-+
- struct hns_roce_hem_chunk {
- 	struct list_head	 list;
- 	int			 npages;
- 	int			 nsg;
- 	struct scatterlist	 mem[HNS_ROCE_HEM_CHUNK_LEN];
-+	struct hns_roce_vmalloc	 vmalloc[HNS_ROCE_HEM_CHUNK_LEN];
- };
- 
- struct hns_roce_hem {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index b99d70a..9e19bf1 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1093,9 +1093,11 @@ static int hns_roce_v2_write_mtpt(void *mb_buf, struct hns_roce_mr *mr,
- {
- 	struct hns_roce_v2_mpt_entry *mpt_entry;
- 	struct scatterlist *sg;
-+	u64 page_addr = 0;
- 	u64 *pages;
-+	int i = 0, j = 0;
-+	int len = 0;
- 	int entry;
--	int i;
- 
- 	mpt_entry = mb_buf;
- 	memset(mpt_entry, 0, sizeof(*mpt_entry));
-@@ -1153,14 +1155,20 @@ static int hns_roce_v2_write_mtpt(void *mb_buf, struct hns_roce_mr *mr,
- 
- 	i = 0;
- 	for_each_sg(mr->umem->sg_head.sgl, sg, mr->umem->nmap, entry) {
--		pages[i] = ((u64)sg_dma_address(sg)) >> 6;
--
--		/* Record the first 2 entry directly to MTPT table */
--		if (i >= HNS_ROCE_V2_MAX_INNER_MTPT_NUM - 1)
--			break;
--		i++;
-+		len = sg_dma_len(sg) >> PAGE_SHIFT;
-+		for (j = 0; j < len; ++j) {
-+			page_addr = sg_dma_address(sg) +
-+				    (j << mr->umem->page_shift);
-+			pages[i] = page_addr >> 6;
-+
-+			/* Record the first 2 entry directly to MTPT table */
-+			if (i >= HNS_ROCE_V2_MAX_INNER_MTPT_NUM - 1)
-+				goto found;
-+			i++;
-+		}
- 	}
- 
-+found:
- 	mpt_entry->pa0_l = cpu_to_le32(lower_32_bits(pages[0]));
- 	roce_set_field(mpt_entry->byte_56_pa0_h, V2_MPT_BYTE_56_PA0_H_M,
- 		       V2_MPT_BYTE_56_PA0_H_S,
--- 
-1.9.1
+On Fri, Sep 29, 2017 at 11:34:09PM +0300, Dan Carpenter wrote:
+> On Fri, Sep 29, 2017 at 05:45:54PM +0300, Leon Romanovsky wrote:
+> > On Fri, Sep 29, 2017 at 01:40:04PM +0300, Dan Carpenter wrote:
+> > > On Fri, Sep 29, 2017 at 01:29:29PM +0300, Leon Romanovsky wrote:
+> > > > On Fri, Sep 29, 2017 at 10:49:43AM +0300, Dan Carpenter wrote:
+> > > > > These lines were indented too far by mistake.
+> > > > >
+> > > > > Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > > > >
+> > > > > diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+> > > >
+> > > > Dan,,
+> > > >
+> > > > I saw in your patches and don't know if it important. There is no
+> > > > diffstat after your Signed-off-by and there is no "---" trailing line
+> > > > too.
+> > >
+> > > Yeah.  I leave those out.  I normally write two line patches like this
+> > > one so the diffstat is normally -2+2 and I figure people will see that
+> > > they're tiny just from glancing at the email.  When I create patches
+> > > that touch multiple files, what I do is just merge the diffs together in
+> > > my email client.  If I tried to create diffstats for those, I'd just end
+> > > up messing up a lot.
+> >
+> > What are the benefits avoiding them?
+> >
+>
+> The way I develop the kernel is way different from how other people do
+> and different from how I develop Smatch.  I've spent 9 years tweaking
+> my scripts to make it work for me.  Please don't force me to use git
+> commit...  :(
+
+I had no intentions to do so.
+
+>
+> regards,
+> dan carpenter
+>
+>
+
+--AsxXAMtlQ5JHofzM
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnPcLMACgkQ5GN7iDZy
+WKfOvw//ZLBzdTjfdYYregTkZv0LUshTk4I8cZqbjPppO87OfndBIugovoDqIih9
+bBOEHzkd3WNb2HZzuYSeMGz4YoPNN4BXikz7MRToei5HSmhSkNfw527ps6O3wDN7
+oTHnQXzinrZS16QRm4A3TH7cjMGY1wsS7OYFiXENitjSevdcyy5p99dXV7Jcal6J
+VX9hHXMx3Yju2s19XXg9wPb4XL+5DlO5KIZzIzebSAm+0l4dlm9VIgJEHwSyHqu8
+7kiqAJ5sMB2dYumEkacOlYPuEIwQptFTN6BBCpRArYwR8irBXnO2KEJRS19sOtVt
+sudLNRzvkRV+khTCE+jIodRSmpWORDcrT94bu65t+TeUiMfA4stj2ey7rNPLSfP4
+H+qO2rxt9HINbF8gUojQ3D6P3MbU470Z+E+/8wuDyY8yCFBaVRYdhjgyIRiRy5SH
+/8XeqY5w3/iG8J0sq+irR9gP1/F2KzSIYzY+wN4eckVSwwy97N1XwXA5eWesfdH+
+TkfuK2srz5G090Zo1QpwPbjINILsg5EnfHp8Q+sE1/7HuI4JcvtsmWOK8lWfm7gg
+hp7kkkft1UTZ41jIbQl+GcveCB5iSDMAebStK5IZGRwQw9ZN64qCRCvZpT/XIWs6
+Aj1LN+5LgxpJYJSaDqqam0M3tH0up/CqrUg71v/gv7sW+DoztTM=
+=L3/D
+-----END PGP SIGNATURE-----
+
+--AsxXAMtlQ5JHofzM--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
