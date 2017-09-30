@@ -1,7 +1,7 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/5] i40iw: Do not generate CQE for RTR on QP flush
-Date: Fri, 29 Sep 2017 20:29:39 -0500
-Message-ID: <20170930012942.9128-3-shiraz.saleem@intel.com>
+Subject: [PATCH 4/5] i40iw: Add missing memory barriers
+Date: Fri, 29 Sep 2017 20:29:41 -0500
+Message-ID: <20170930012942.9128-5-shiraz.saleem@intel.com>
 References: <20170930012942.9128-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170930012942.9128-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,62 +12,93 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-If RTR WQE is posted and QP is flushed, a CQE is
-incorrectly generated for the RTR WQE. Add code
-to look for the RTR and not generate a CQE when
-QP is flushed.
+Remove duplicate set_64bit_val call to offset 24.
+Replace some instances of set_64bit_val with
+i40iw_insert_wqe_hdr as valid bit needs a write
+barrier and should be the last write operation for the WQE.
 
-Fixes: 280cfc4b74e6 ("i40iw: user kernel shared files")
+Fixes: 786c6adb3a94 ("i40iw: add puda code")
 Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_uk.c   | 13 +++++++++++++
- drivers/infiniband/hw/i40iw/i40iw_user.h |  1 +
- 2 files changed, 14 insertions(+)
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c |  2 +-
+ drivers/infiniband/hw/i40iw/i40iw_p.h    |  2 ++
+ drivers/infiniband/hw/i40iw/i40iw_puda.c | 11 ++++-------
+ 3 files changed, 7 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-index 0aadb7a..28e6d9e 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_uk.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-@@ -821,6 +821,18 @@ static enum i40iw_status_code i40iw_cq_poll_completion(struct i40iw_cq_uk *cq,
- 		I40IW_RING_SET_TAIL(qp->rq_ring, array_idx + 1);
- 		pring = &qp->rq_ring;
- 	} else {
-+		if (qp->first_sq_wq) {
-+			qp->first_sq_wq = 0;
-+			if (!wqe_idx && (qp->sq_ring.head == qp->sq_ring.tail)) {
-+				I40IW_RING_MOVE_HEAD_NOCHECK(cq->cq_ring);
-+				I40IW_RING_MOVE_TAIL(cq->cq_ring);
-+				set_64bit_val(cq->shadow_area, 0,
-+					      I40IW_RING_GETCURRENT_HEAD(cq->cq_ring));
-+				memset(info, 0, sizeof(struct i40iw_cq_poll_info));
-+				return i40iw_cq_poll_completion(cq, info);
-+			}
-+		}
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+index d1f5345..42ca534 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+@@ -48,7 +48,7 @@
+  * @wqe: cqp wqe for header
+  * @header: header for the cqp wqe
+  */
+-static inline void i40iw_insert_wqe_hdr(u64 *wqe, u64 header)
++void i40iw_insert_wqe_hdr(u64 *wqe, u64 header)
+ {
+ 	wmb();            /* make sure WQE is populated before polarity is set */
+ 	set_64bit_val(wqe, 24, header);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_p.h b/drivers/infiniband/hw/i40iw/i40iw_p.h
+index e217a12..5498ad0 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_p.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_p.h
+@@ -59,6 +59,8 @@ enum i40iw_status_code i40iw_sc_mr_fast_register(struct i40iw_sc_qp *qp,
+ 						 struct i40iw_fast_reg_stag_info *info,
+ 						 bool post_sq);
+ 
++void i40iw_insert_wqe_hdr(u64 *wqe, u64 header);
 +
- 		if (info->comp_status != I40IW_COMPL_STATUS_FLUSHED) {
- 			info->wr_id = qp->sq_wrtrk_array[wqe_idx].wrid;
- 			info->bytes_xfered = qp->sq_wrtrk_array[wqe_idx].wr_len;
-@@ -988,6 +1000,7 @@ enum i40iw_status_code i40iw_qp_uk_init(struct i40iw_qp_uk *qp,
- 	I40IW_RING_MOVE_TAIL(qp->sq_ring);
- 	I40IW_RING_MOVE_HEAD(qp->initial_ring, ret_code);
- 	qp->swqe_polarity = 1;
-+	qp->first_sq_wq = 1;
- 	qp->swqe_polarity_deferred = 1;
- 	qp->rwqe_polarity = 0;
+ /* HMC/FPM functions */
+ enum i40iw_status_code i40iw_sc_init_iw_hmc(struct i40iw_sc_dev *dev,
+ 					    u8 hmc_fn_id);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.c b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+index c2cab20..59f7067 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_puda.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+@@ -123,12 +123,11 @@ static void i40iw_puda_post_recvbuf(struct i40iw_puda_rsrc *rsrc, u32 wqe_idx,
+ 		get_64bit_val(wqe, 24, &offset24);
  
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_user.h b/drivers/infiniband/hw/i40iw/i40iw_user.h
-index 84be6f1..995b8eb 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_user.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_user.h
-@@ -376,6 +376,7 @@ struct i40iw_qp_uk {
- 	u8 rwqe_polarity;
- 	u8 rq_wqe_size;
- 	u8 rq_wqe_size_multiplier;
-+	u8 first_sq_wq;
- 	bool deferred_flag;
- };
+ 	offset24 = (offset24) ? 0 : LS_64(1, I40IWQPSQ_VALID);
+-	set_64bit_val(wqe, 24, offset24);
  
+ 	set_64bit_val(wqe, 0, buf->mem.pa);
+ 	set_64bit_val(wqe, 8,
+ 		      LS_64(buf->mem.size, I40IWQPSQ_FRAG_LEN));
+-	set_64bit_val(wqe, 24, offset24);
++	i40iw_insert_wqe_hdr(wqe, offset24);
+ }
+ 
+ /**
+@@ -409,9 +408,7 @@ enum i40iw_status_code i40iw_puda_send(struct i40iw_sc_qp *qp,
+ 	set_64bit_val(wqe, 8, LS_64(info->len, I40IWQPSQ_FRAG_LEN));
+ 	set_64bit_val(wqe, 16, header[0]);
+ 
+-	/* Ensure all data is written before writing valid bit */
+-	wmb();
+-	set_64bit_val(wqe, 24, header[1]);
++	i40iw_insert_wqe_hdr(wqe, header[1]);
+ 
+ 	i40iw_debug_buf(qp->dev, I40IW_DEBUG_PUDA, "PUDA SEND WQE", wqe, 32);
+ 	i40iw_qp_post_wr(&qp->qp_uk);
+@@ -539,7 +536,7 @@ static enum i40iw_status_code i40iw_puda_qp_wqe(struct i40iw_sc_dev *dev, struct
+ 		 LS_64(2, I40IW_CQPSQ_QP_NEXTIWSTATE) |
+ 		 LS_64(cqp->polarity, I40IW_CQPSQ_WQEVALID);
+ 
+-	set_64bit_val(wqe, 24, header);
++	i40iw_insert_wqe_hdr(wqe, header);
+ 
+ 	i40iw_debug_buf(cqp->dev, I40IW_DEBUG_PUDA, "PUDA CQE", wqe, 32);
+ 	i40iw_sc_cqp_post_sq(cqp);
+@@ -655,7 +652,7 @@ static enum i40iw_status_code i40iw_puda_cq_wqe(struct i40iw_sc_dev *dev, struct
+ 	    LS_64(1, I40IW_CQPSQ_CQ_ENCEQEMASK) |
+ 	    LS_64(1, I40IW_CQPSQ_CQ_CEQIDVALID) |
+ 	    LS_64(cqp->polarity, I40IW_CQPSQ_WQEVALID);
+-	set_64bit_val(wqe, 24, header);
++	i40iw_insert_wqe_hdr(wqe, header);
+ 
+ 	i40iw_debug_buf(dev, I40IW_DEBUG_PUDA, "PUDA CQE",
+ 			wqe, I40IW_CQP_WQE_SIZE * 8);
 -- 
 2.8.3
 
