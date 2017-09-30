@@ -1,65 +1,46 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/5] i40iw: Do not allow posting WR after QP is flushed
-Date: Fri, 29 Sep 2017 20:29:40 -0500
-Message-ID: <20170930012942.9128-4-shiraz.saleem@intel.com>
+Subject: [PATCH 5/5] i40iw: Fix port number for query QP
+Date: Fri, 29 Sep 2017 20:29:42 -0500
+Message-ID: <20170930012942.9128-6-shiraz.saleem@intel.com>
 References: <20170930012942.9128-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170930012942.9128-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-A Work Request (WR) posted after QP is flushed will not
-get a flush completion.
+From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Correct this problem by not allowing posting of WRs
-after a QP is flushed.
+Port number 0 is an invalid port number. Set it to 1
+as there is one port per i40iw device.
 
 Fixes: d37498417947 ("i40iw: add files for iwarp interface")
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 28b3d02..58d815f 100644
+index 58d815f..5c60de6 100644
 --- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
 +++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -2202,6 +2202,12 @@ static int i40iw_post_send(struct ib_qp *ibqp,
- 	ukqp = &iwqp->sc_qp.qp_uk;
+@@ -826,12 +826,14 @@ static int i40iw_query_qp(struct ib_qp *ibqp,
+ 	attr->cap.max_inline_data = I40IW_MAX_INLINE_DATA_SIZE;
+ 	attr->cap.max_send_sge = I40IW_MAX_WQ_FRAGMENT_COUNT;
+ 	attr->cap.max_recv_sge = I40IW_MAX_WQ_FRAGMENT_COUNT;
++	attr->port_num = 1;
+ 	init_attr->event_handler = iwqp->ibqp.event_handler;
+ 	init_attr->qp_context = iwqp->ibqp.qp_context;
+ 	init_attr->send_cq = iwqp->ibqp.send_cq;
+ 	init_attr->recv_cq = iwqp->ibqp.recv_cq;
+ 	init_attr->srq = iwqp->ibqp.srq;
+ 	init_attr->cap = attr->cap;
++	init_attr->port_num = 1;
+ 	return 0;
+ }
  
- 	spin_lock_irqsave(&iwqp->lock, flags);
-+
-+	if (iwqp->flush_issued) {
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
- 	while (ib_wr) {
- 		inv_stag = false;
- 		memset(&info, 0, sizeof(info));
-@@ -2344,6 +2350,7 @@ static int i40iw_post_send(struct ib_qp *ibqp,
- 		ib_wr = ib_wr->next;
- 	}
- 
-+out:
- 	if (err)
- 		*bad_wr = ib_wr;
- 	else
-@@ -2376,6 +2383,12 @@ static int i40iw_post_recv(struct ib_qp *ibqp,
- 
- 	memset(&post_recv, 0, sizeof(post_recv));
- 	spin_lock_irqsave(&iwqp->lock, flags);
-+
-+	if (iwqp->flush_issued) {
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
- 	while (ib_wr) {
- 		post_recv.num_sges = ib_wr->num_sge;
- 		post_recv.wr_id = ib_wr->wr_id;
 -- 
 2.8.3
 
