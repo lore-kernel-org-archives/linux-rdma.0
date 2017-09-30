@@ -1,66 +1,43 @@
-From: Avinash Repaka <avinash.repaka-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH net] RDS: IB: Limit the scope of has_fr/has_fmr variables
-Date: Fri, 29 Sep 2017 18:13:50 -0700
-Message-ID: <1506734030-15205-1-git-send-email-avinash.repaka@oracle.com>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/5] more i40iw fixes
+Date: Fri, 29 Sep 2017 20:29:37 -0500
+Message-ID: <20170930012942.9128-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Avinash Repaka <avinash.repaka-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch fixes the scope of has_fr and has_fmr variables as they are
-needed only in rds_ib_add_one().
+Hi Doug,
 
-Signed-off-by: Avinash Repaka <avinash.repaka-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/rds/ib.c | 11 ++++++-----
- net/rds/ib.h |  2 --
- 2 files changed, 6 insertions(+), 7 deletions(-)
+This series includes a few more minor i40iw fixes.
 
-diff --git a/net/rds/ib.c b/net/rds/ib.c
-index a0954ac..36dd209 100644
---- a/net/rds/ib.c
-+++ b/net/rds/ib.c
-@@ -126,6 +126,7 @@ void rds_ib_dev_put(struct rds_ib_device *rds_ibdev)
- static void rds_ib_add_one(struct ib_device *device)
- {
- 	struct rds_ib_device *rds_ibdev;
-+	bool has_fr, has_fmr;
- 
- 	/* Only handle IB (no iWARP) devices */
- 	if (device->node_type != RDMA_NODE_IB_CA)
-@@ -143,11 +144,11 @@ static void rds_ib_add_one(struct ib_device *device)
- 	rds_ibdev->max_wrs = device->attrs.max_qp_wr;
- 	rds_ibdev->max_sge = min(device->attrs.max_sge, RDS_IB_MAX_SGE);
- 
--	rds_ibdev->has_fr = (device->attrs.device_cap_flags &
--				  IB_DEVICE_MEM_MGT_EXTENSIONS);
--	rds_ibdev->has_fmr = (device->alloc_fmr && device->dealloc_fmr &&
--			    device->map_phys_fmr && device->unmap_fmr);
--	rds_ibdev->use_fastreg = (rds_ibdev->has_fr && !rds_ibdev->has_fmr);
-+	has_fr = (device->attrs.device_cap_flags &
-+		  IB_DEVICE_MEM_MGT_EXTENSIONS);
-+	has_fmr = (device->alloc_fmr && device->dealloc_fmr &&
-+		   device->map_phys_fmr && device->unmap_fmr);
-+	rds_ibdev->use_fastreg = (has_fr && !has_fmr);
- 
- 	rds_ibdev->fmr_max_remaps = device->attrs.max_map_per_fmr?: 32;
- 	rds_ibdev->max_1m_mrs = device->attrs.max_mr ?
-diff --git a/net/rds/ib.h b/net/rds/ib.h
-index bf48224..6ea6a27 100644
---- a/net/rds/ib.h
-+++ b/net/rds/ib.h
-@@ -215,8 +215,6 @@ struct rds_ib_device {
- 	struct list_head	conn_list;
- 	struct ib_device	*dev;
- 	struct ib_pd		*pd;
--	bool                    has_fmr;
--	bool                    has_fr;
- 	bool                    use_fastreg;
- 
- 	unsigned int		max_mrs;
+If you deem the submission is too late for 4.14-rc, it is fine
+to push it to for-next.
+
+Mustafa Ismail (3):
+  i40iw: Do not generate CQE for RTR on QP flush
+  i40iw: Add missing memory barriers
+  i40iw: Fix port number for query QP
+
+Shiraz Saleem (1):
+  i40iw: Do not allow posting WR after QP is flushed
+
+Tatyana Nikolova (1):
+  i40iw: Do not retransmit MPA request after it is ACKed
+
+ drivers/infiniband/hw/i40iw/i40iw_cm.c    | 13 ++++++++++---
+ drivers/infiniband/hw/i40iw/i40iw_cm.h    |  1 +
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c  |  2 +-
+ drivers/infiniband/hw/i40iw/i40iw_p.h     |  2 ++
+ drivers/infiniband/hw/i40iw/i40iw_puda.c  | 11 ++++-------
+ drivers/infiniband/hw/i40iw/i40iw_uk.c    | 13 +++++++++++++
+ drivers/infiniband/hw/i40iw/i40iw_user.h  |  1 +
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 15 +++++++++++++++
+ 8 files changed, 47 insertions(+), 11 deletions(-)
+
 -- 
-2.4.11
+2.8.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
