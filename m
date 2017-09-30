@@ -1,25 +1,75 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH net] RDS: IB: Limit the scope of has_fr/has_fmr variables
-Date: Fri, 29 Sep 2017 18:38:00 -0700
-Message-ID: <ca85fffb-87b6-4e4d-b23d-1f80caa36087@oracle.com>
-References: <1506734030-15205-1-git-send-email-avinash.repaka@oracle.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCHv2 infiniband-diags] ibcc[config query].c: Make
+ SwitchPortCongestionSetting IBA 1.3 compliant
+Date: Sat, 30 Sep 2017 01:38:38 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E67D31C28@CRSMSX101.amr.corp.intel.com>
+References: <284e8cb0-ed96-3bb7-75f1-3b852c169b2d@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1506734030-15205-1-git-send-email-avinash.repaka@oracle.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <284e8cb0-ed96-3bb7-75f1-3b852c169b2d-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Avinash Repaka <avinash.repaka@oracle.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/29/2017 6:13 PM, Avinash Repaka wrote:
-> This patch fixes the scope of has_fr and has_fmr variables as they are
-> needed only in rds_ib_add_one().
-> 
-> Signed-off-by: Avinash Repaka <avinash.repaka@oracle.com>
-> ---
-Indeed the final merge version actually didn't need
-those across files. Change looks good to me. Thanks !!
-
-Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+VGhhbmtzIGFjY2VwdGVkLg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206
+IEhhbCBSb3NlbnN0b2NrIFttYWlsdG86aGFsQGRldi5tZWxsYW5veC5jby5pbF0NCj4gU2VudDog
+RnJpZGF5LCBBdWd1c3QgMDQsIDIwMTcgNTowNyBBTQ0KPiBUbzogV2VpbnksIElyYSA8aXJhLndl
+aW55QGludGVsLmNvbT4NCj4gQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQo+IFN1Ympl
+Y3Q6IFtQQVRDSHYyIGluZmluaWJhbmQtZGlhZ3NdIGliY2NbY29uZmlnIHF1ZXJ5XS5jOiBNYWtl
+DQo+IFN3aXRjaFBvcnRDb25nZXN0aW9uU2V0dGluZyBJQkEgMS4zIGNvbXBsaWFudA0KPiANCj4g
+DQo+IElCQSAxLjMgc3VwcG9ydHMgNDggcG9ydHMgcmF0aGVyIHRoYW4gMzIgcG9ydHMgYXMgYXQg
+SUJBIDEuMi4xIGZvcg0KPiBTd2l0Y2hQb3J0Q29uZ2VzdGlvblNldHRpbmcgYXR0cmlidXRlLg0K
+PiANCj4gU2lnbmVkLW9mZi1ieTogSGFsIFJvc2Vuc3RvY2sgPGhhbEBtZWxsYW5veC5jb20+DQo+
+IC0tLQ0KPiBDaGFuZ2Ugc2luY2UgdjE6DQo+IFVwZGF0ZWQgZGVzY3JpcHRpb24gdG8gaW5kaWNh
+dGUgU3dpdGNoUG9ydENvbmdlc3Rpb25TZXR0aW5nIHJhdGhlciB0aGFuDQo+IFN3aXRjaENvbmdl
+c3Rpb25TZXR0aW5nIGF0dHJpYnV0ZS4NCj4gDQo+ICBzcmMvaWJjY2NvbmZpZy5jIHwgIDIgKy0N
+Cj4gIHNyYy9pYmNjcXVlcnkuYyAgfCAxMCArKysrKy0tLS0tDQo+ICAyIGZpbGVzIGNoYW5nZWQs
+IDYgaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQgYS9zcmMv
+aWJjY2NvbmZpZy5jIGIvc3JjL2liY2Njb25maWcuYyBpbmRleCAyMmIxNmRiLi42NGFhODA0IDEw
+MDY0NA0KPiAtLS0gYS9zcmMvaWJjY2NvbmZpZy5jDQo+ICsrKyBiL3NyYy9pYmNjY29uZmlnLmMN
+Cj4gQEAgLTQxMiw3ICs0MTIsNyBAQCBzdGF0aWMgY2hhcg0KPiAqc3dpdGNoX3BvcnRfY29uZ2Vz
+dGlvbl9zZXR0aW5nKGliX3BvcnRpZF90ICogZGVzdCwgY2hhciAqKmFyZ3YsIGludA0KPiAgCQkJ
+ICZjb25nX3Bhcm1fbWFya2luZ19yYXRlKTsNCj4gDQo+ICAJaWYgKCFjY19jb25maWdfc3RhdHVz
+X3ZpYShwYXlsb2FkLCByY3YsIGRlc3QsDQo+IElCX0NDX0FUVFJfU1dJVENIX1BPUlRfQ09OR0VT
+VElPTl9TRVRUSU5HLA0KPiAtCQkJCSAgcG9ydG51bSAvIDMyLCAwLCBOVUxMLCBzcmNwb3J0LCBj
+Y2tleSkpDQo+ICsJCQkJICBwb3J0bnVtIC8gNDgsIDAsIE5VTEwsIHNyY3BvcnQsIGNja2V5KSkN
+Cj4gIAkJcmV0dXJuICJzd2l0Y2ggcG9ydCBjb25nZXN0aW9uIHNldHRpbmcgY29uZmlnIGZhaWxl
+ZCI7DQo+IA0KPiAgCXJldHVybiBOVUxMOw0KPiBkaWZmIC0tZ2l0IGEvc3JjL2liY2NxdWVyeS5j
+IGIvc3JjL2liY2NxdWVyeS5jIGluZGV4IDM5ZTQ1YjcuLjk1ZTU1M2QgMTAwNjQ0DQo+IC0tLSBh
+L3NyYy9pYmNjcXVlcnkuYw0KPiArKysgYi9zcmMvaWJjY3F1ZXJ5LmMNCj4gQEAgLTIyNCwxMSAr
+MjI0LDExIEBAIHN0YXRpYyBjaGFyDQo+ICpzd2l0Y2hfcG9ydF9jb25nZXN0aW9uX3NldHRpbmco
+aWJfcG9ydGlkX3QgKiBkZXN0LCBjaGFyICoqYXJndiwgaW50DQo+IA0KPiAgCQltZW1zZXQoZGF0
+YSwgJ1wwJywgc2l6ZW9mIGRhdGEpOw0KPiAgCQlpZiAoIWNjX3F1ZXJ5X3N0YXR1c192aWEoZGF0
+YSwgZGVzdCwNCj4gSUJfQ0NfQVRUUl9TV0lUQ0hfUE9SVF9DT05HRVNUSU9OX1NFVFRJTkcsDQo+
+IC0JCQkJCSBwb3J0bnVtIC8gMzIsIDAsIE5VTEwsIHNyY3BvcnQsDQo+IGNja2V5KSkNCj4gKwkJ
+CQkJIHBvcnRudW0gLyA0OCwgMCwgTlVMTCwgc3JjcG9ydCwNCj4gY2NrZXkpKQ0KPiAgCQkJcmV0
+dXJuICJzd2l0Y2ggcG9ydCBjb25nZXN0aW9uIHNldHRpbmcgcXVlcnkgZmFpbGVkIjsNCj4gDQo+
+ICAJCW1hZF9kdW1wX2NjX3N3aXRjaHBvcnRjb25nZXN0aW9uc2V0dGluZ2VsZW1lbnQoYnVmLA0K
+PiBzaXplb2YgYnVmLA0KPiAtCQkJCQkJCSAgICAgICBkYXRhICsgKChwb3J0bnVtDQo+ICUgMzIp
+ICogNCksDQo+ICsJCQkJCQkJICAgICAgIGRhdGEgKyAoKHBvcnRudW0NCj4gJSA0OCkgKiA0KSwN
+Cj4gIAkJCQkJCQkgICAgICAgNCk7DQo+ICAJCXByaW50ZigiJXMiLCBidWYpOw0KPiAgCQlyZXR1
+cm4gTlVMTDsNCj4gQEAgLTIzNiw3ICsyMzYsNyBAQCBzdGF0aWMgY2hhcg0KPiAqc3dpdGNoX3Bv
+cnRfY29uZ2VzdGlvbl9zZXR0aW5nKGliX3BvcnRpZF90ICogZGVzdCwgY2hhciAqKmFyZ3YsIGlu
+dA0KPiANCj4gIAkvKiBlbHNlIGdldCBhbGwgcG9ydCBpbmZvICovDQo+IA0KPiAtCW1heGJsb2Nr
+cyA9IG51bXBvcnRzIC8gMzIgKyAxOw0KPiArCW1heGJsb2NrcyA9IG51bXBvcnRzIC8gNDggKyAx
+Ow0KPiANCj4gIAlmb3IgKGkgPSAwOyBpIDwgbWF4YmxvY2tzOyBpKyspIHsNCj4gIAkJbWVtc2V0
+KGRhdGEsICdcMCcsIHNpemVvZiBkYXRhKTsNCj4gQEAgLTI0NCw4ICsyNDQsOCBAQCBzdGF0aWMg
+Y2hhcg0KPiAqc3dpdGNoX3BvcnRfY29uZ2VzdGlvbl9zZXR0aW5nKGliX3BvcnRpZF90ICogZGVz
+dCwgY2hhciAqKmFyZ3YsIGludA0KPiAgCQkJCQkgaSwgMCwgTlVMTCwgc3JjcG9ydCwgY2NrZXkp
+KQ0KPiAgCQkJcmV0dXJuICJzd2l0Y2ggcG9ydCBjb25nZXN0aW9uIHNldHRpbmcgcXVlcnkgZmFp
+bGVkIjsNCj4gDQo+IC0JCWZvciAoaiA9IDA7IGogPCAzMiAmJiBvdXRwdXRjb3VudCA8PSBudW1w
+b3J0czsgaisrKSB7DQo+IC0JCQlwcmludGYoIlBvcnQ6Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLiV1XG4iLCBpICogMzIgKyBqKTsNCj4gKwkJZm9yIChqID0gMDsgaiA8IDQ4ICYmIG91dHB1
+dGNvdW50IDw9IG51bXBvcnRzOyBqKyspIHsNCj4gKwkJCXByaW50ZigiUG9ydDouLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uJXVcbiIsIGkgKiA0OCArIGopOw0KPiANCj4gCW1hZF9kdW1wX2Nj
+X3N3aXRjaHBvcnRjb25nZXN0aW9uc2V0dGluZ2VsZW1lbnQoYnVmLCBzaXplb2YgYnVmLA0KPiAg
+CQkJCQkJCQkgICAgICAgZGF0YSArIGogKg0KPiA0LA0KPiAgCQkJCQkJCQkgICAgICAgNCk7DQo+
+IC0tDQo+IDEuOC4yLjMNCg0K
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
