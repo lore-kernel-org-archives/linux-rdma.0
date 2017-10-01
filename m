@@ -1,63 +1,50 @@
-From: =?UTF-8?q?J=C3=A9r=C3=A9my=20Lefaure?=
-        <jeremy.lefaure@lse.epita.fr>
-Subject: [PATCH 04/18] IB/mlx5: Use ARRAY_SIZE
-Date: Sun,  1 Oct 2017 15:30:42 -0400
-Message-ID: <20171001193101.8898-5-jeremy.lefaure@lse.epita.fr>
-References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: =?UTF-8?q?J=C3=A9r=C3=A9my=20Lefaure?= <jeremy.lefaure@lse.epita.fr>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Wei Hu (Xavier)" <xavier.huwei-WVlzvzqoTvw@public.gmane.org>
+Subject: [PATCH V2 rdma-core] libhns: Update the size and member order of hns_roce_create_qp structure
+Date: Mon,  2 Oct 2017 04:17:09 +0800
+Message-ID: <1506889029-25168-1-git-send-email-xavier.huwei@tom.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-WVlzvzqoTvw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Using the ARRAY_SIZE macro improves the readability of the code.
+From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
-Found with Coccinelle with the following semantic patch:
-@r depends on (org || report)@
-type T;
-T[] E;
-position p;
-@@
-(
- (sizeof(E)@p /sizeof(*E))
-|
- (sizeof(E)@p /sizeof(E[...]))
-|
- (sizeof(E)@p /sizeof(T))
-)
+In order to keep the size and member order with the
+hns_roce_ib_create_qp sturcture of the kernel driver,
+it needs to update hns_roce_create_qp's structure
+members. Otherwise, it will run fail.
 
-Signed-off-by: Jérémy Lefaure <jeremy.lefaure@lse.epita.fr>
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/odp.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Patch V2: Address comments by Jason:
+	https://patchwork.kernel.org/patch/9979299/
 
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index 3d701c7a4c91..e2197bdda89c 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -32,6 +32,7 @@
+Patch V1: Initial Submit
+---
+ providers/hns/hns_roce_u_abi.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/providers/hns/hns_roce_u_abi.h b/providers/hns/hns_roce_u_abi.h
+index e78f967..2a57f46 100644
+--- a/providers/hns/hns_roce_u_abi.h
++++ b/providers/hns/hns_roce_u_abi.h
+@@ -61,8 +61,10 @@ struct hns_roce_create_cq_resp {
+ struct hns_roce_create_qp {
+ 	struct ibv_create_qp		ibv_cmd;
+ 	__u64				buf_addr;
++	__u64				db_addr;
+ 	__u8				log_sq_bb_count;
+ 	__u8				log_sq_stride;
++	__u8				sq_no_prefetch;
+ 	__u8				reserved[5];
+ };
  
- #include <rdma/ib_umem.h>
- #include <rdma/ib_umem_odp.h>
-+#include <linux/kernel.h>
- 
- #include "mlx5_ib.h"
- #include "cmd.h"
-@@ -929,9 +930,8 @@ static int mlx5_ib_mr_initiator_pfault_handler(
- 		return -EFAULT;
- 	}
- 
--	if (unlikely(opcode >= sizeof(mlx5_ib_odp_opcode_cap) /
--	    sizeof(mlx5_ib_odp_opcode_cap[0]) ||
--	    !(transport_caps & mlx5_ib_odp_opcode_cap[opcode]))) {
-+	if (unlikely(opcode >= ARRAY_SIZE(mlx5_ib_odp_opcode_cap) ||
-+		     !(transport_caps & mlx5_ib_odp_opcode_cap[opcode]))) {
- 		mlx5_ib_err(dev, "ODP fault on QP of an unsupported opcode 0x%x\n",
- 			    opcode);
- 		return -EFAULT;
 -- 
-2.14.1
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
