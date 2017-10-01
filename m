@@ -1,95 +1,136 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 3/4] RDMA/hns: Update the IRRL table chunk size
- in hip08
-Date: Sun, 1 Oct 2017 08:40:37 +0300
-Message-ID: <20171001054037.GB2031@mtr-leonro.local>
-References: <1506763741-81429-1-git-send-email-xavier.huwei@huawei.com>
- <1506763741-81429-4-git-send-email-xavier.huwei@huawei.com>
+Subject: Re: [PATCH 1/5] i40iw: Do not retransmit MPA request after it is
+ ACKed
+Date: Sun, 1 Oct 2017 09:16:09 +0300
+Message-ID: <20171001061609.GC2031@mtr-leonro.local>
+References: <20170930012942.9128-1-shiraz.saleem@intel.com>
+ <20170930012942.9128-2-shiraz.saleem@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="LyciRD1jyfeSSjG0"
+        protocol="application/pgp-signature"; boundary="jy6Sn24JjFx/iggw"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1506763741-81429-4-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170930012942.9128-2-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-WVlzvzqoTvw@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org, shaoboxu-WVlzvzqoTvw@public.gmane.org
+To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---LyciRD1jyfeSSjG0
+--jy6Sn24JjFx/iggw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Sat, Sep 30, 2017 at 05:29:00PM +0800, Wei Hu (Xavier) wrote:
-> As the increase of the IRRL specification in hip08, the IRRL table
-> chunk size needs to be updated.
-> This patch updates the IRRL table chunk size to 256k for hip08.
+On Fri, Sep 29, 2017 at 08:29:38PM -0500, Shiraz Saleem wrote:
+> From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >
-> Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> The ACK packets for an MPA request are ignored and
+> the MPA request is retransmitted if the MPA reply
+> is late or missing. Fix this by checking ack_rcvd
+> variable before retransmitting a packet.
+>
+> Fixes: f27b4746f378 ("i40iw: add connection management code")
+> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/infiniband/hw/hns/hns_roce_device.h |  3 +++
->  drivers/infiniband/hw/hns/hns_roce_hem.c    | 31 ++++++++++++++---------------
->  drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  1 +
->  drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |  2 ++
->  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  1 +
->  drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  2 ++
->  6 files changed, 24 insertions(+), 16 deletions(-)
+>  drivers/infiniband/hw/i40iw/i40iw_cm.c | 13 ++++++++++---
+>  drivers/infiniband/hw/i40iw/i40iw_cm.h |  1 +
+>  2 files changed, 11 insertions(+), 3 deletions(-)
 >
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-> index 9353400..fc2a53d 100644
-> --- a/drivers/infiniband/hw/hns/hns_roce_device.h
-> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-> @@ -236,6 +236,8 @@ struct hns_roce_hem_table {
->  	unsigned long	num_obj;
->  	/*Single obj size */
->  	unsigned long	obj_size;
-> +	unsigned long	table_chunk_size;
-> +	unsigned long	hem_alloc_size;
->  	int		lowmem;
->  	struct mutex	mutex;
->  	struct hns_roce_hem **hem;
-> @@ -565,6 +567,7 @@ struct hns_roce_caps {
->  	u32		cqe_ba_pg_sz;
->  	u32		cqe_buf_pg_sz;
->  	u32		cqe_hop_num;
-> +	u32		chunk_sz;	/* chunk size in non multihop mode*/
->  };
+> diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+> index 5230dd3..5dbf9f1 100644
+> --- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
+> +++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+> @@ -1267,13 +1267,16 @@ static void i40iw_cm_timer_tick(unsigned long pass)
+>  			spin_lock_irqsave(&cm_node->retrans_list_lock, flags);
+>  			goto done;
+>  		}
+> -		cm_node->cm_core->stats_pkt_retrans++;
+>  		spin_unlock_irqrestore(&cm_node->retrans_list_lock, flags);
+>
+>  		vsi = &cm_node->iwdev->vsi;
+>  		dev = cm_node->dev;
+> -		atomic_inc(&send_entry->sqbuf->refcount);
+> -		i40iw_puda_send_buf(vsi->ilq, send_entry->sqbuf);
+> +
+> +		if (!atomic_read(&cm_node->ack_rcvd)) {
+> +			atomic_inc(&send_entry->sqbuf->refcount);
+> +			i40iw_puda_send_buf(vsi->ilq, send_entry->sqbuf);
+> +			cm_node->cm_core->stats_pkt_retrans++;
+> +		}
+>  		spin_lock_irqsave(&cm_node->retrans_list_lock, flags);
+>  		if (send_entry->send_retrans) {
+>  			send_entry->retranscount--;
+> @@ -2181,6 +2184,7 @@ static struct i40iw_cm_node *i40iw_make_cm_node(
+>  	cm_node->cm_id = cm_info->cm_id;
+>  	ether_addr_copy(cm_node->loc_mac, netdev->dev_addr);
+>  	spin_lock_init(&cm_node->retrans_list_lock);
+> +	atomic_set(&cm_node->ack_rcvd, 0);
+>
+>  	atomic_set(&cm_node->ref_count, 1);
+>  	/* associate our parent CM core */
+> @@ -2719,7 +2723,10 @@ static int i40iw_handle_ack_pkt(struct i40iw_cm_node *cm_node,
+>  		cm_node->tcp_cntxt.rem_ack_num = ntohl(tcph->ack_seq);
+>  		if (datasize) {
+>  			cm_node->tcp_cntxt.rcv_nxt = inc_sequence + datasize;
+> +			atomic_set(&cm_node->ack_rcvd, 0);
+>  			i40iw_handle_rcv_mpa(cm_node, rbuf);
+> +		} else {
+> +			atomic_set(&cm_node->ack_rcvd, 1);
 
-Hi,
+Sorry, for my lame question, but why do you need atomic to set bool variable?
+Atomic doesn't ensure correctness and doesn't replace lock, just ensure
+that there is no intermediate result in the memory.
 
-I have two comments:
-1. In this code table_chunk_size is equal and similar to hem_alloc_size.
-Please don't introduce unneeded complexity.
-2. The size of table is num_obj * obj_size, there is no need to
-table_chunk_size and hem_alloc_size at all. There are plenty of macros in
-the kernel to deal with the tables.
+Or proper locking is needed here, or regular bool will do the same trick.
 
 Thanks
 
---LyciRD1jyfeSSjG0
+>  		}
+>  		break;
+>  	case I40IW_CM_STATE_LISTENING:
+> diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.h b/drivers/infiniband/hw/i40iw/i40iw_cm.h
+> index 45abef7..7e86b64 100644
+> --- a/drivers/infiniband/hw/i40iw/i40iw_cm.h
+> +++ b/drivers/infiniband/hw/i40iw/i40iw_cm.h
+> @@ -360,6 +360,7 @@ struct i40iw_cm_node {
+>
+>  	u8 pdata_buf[IETF_MAX_PRIV_DATA_LEN];
+>  	struct i40iw_kmem_info mpa_hdr;
+> +	atomic_t ack_rcvd;
+>  };
+>
+>  /* structure for client or CM to fill when making CM api calls. */
+> --
+> 2.8.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--jy6Sn24JjFx/iggw
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnQf9UACgkQ5GN7iDZy
-WKdPBA/+OO1rSm3dWg8Ly3G7tv00S6cepQ679XZAiDmNA9XRJt9M450eLhagxah1
-QU+mSXK4Kt4fIue8H7edwXkz7JJgp0/NLtgiqkJzrXFhufVYwSmHHRljrwI6gMAc
-eZi+k3gzgYBIYQ3iYssQSqzLjBym50BmXDPe48U1erTCGMs4mcr6lsvHgtfGHNBY
-ZGLiN8LFgGrFOQ47ImKxVEvSh7TRF7NDmMK/+5m0m6u7x3kC7J4R9gB5Mf7Gnha9
-ubxxLHogFMkKMBe2C5/S3Fz98CF4Y+thi9+m7utMFBxz+EtvqEjv8YM1KI4bVtZ6
-pDJrDwVG8tBBa7YtDD4milaq2Kg+yk+WTcZdFI2sOp2K2pNq3BwSL2HQRXBWJGnT
-rX8x7yXz6NIPaObSY1Uq/9ytIkrq5r2gd912Kp887OaEI2L7CmDj7jVLrSkLsEMe
-yqhjwrhRDFoJ9AK1QT8L+k5qPl5ZwO1kJdaD/6qDZSMQ0iAjabhob87eOJksw28W
-joBYuSYuN84xW+kCx1yktOUDqA1ZPHhvvMUMIbEZQsACCzmyEp5sHLC5z3wMtJp8
-iLieMK1OMv4pjExmTEVukATbXdZ0SyeXme1q90sEn6LrrdOURPhRCs8al1NzMYCK
-sfSJ8GLZxwgd1kVPG9NI3JiNqyKx+IrhwR3NQCtI8kF4b89a82E=
-=pky9
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnQiCkACgkQ5GN7iDZy
+WKccqBAAhq0KMUvt2gCHXUSGJfX1PDiLaZ0QUN1Rz9243qoCy5X/mnZZ8YHlnxbB
+ZsAUaF8l2BD+vFhQE64QYqeICPxaA3NWVl9/KIqL/OwRrg7VXkW3LMH9w14P4VfE
+rik+3jrAupVGkvfOqDyama/QcIPijnz5ItU9Q2/EbeZ3K9Cu+R4JwxWVUUt6m89H
+mgHcNRzJ73DZwp4msEPLncLcLDYuGxzIVZe0yJFN8IjeuXV8qiHn1pFYhbOYudWW
+UTpwOaReKK/BoXPtxh4RUZ9ZiIXMLnr4VJaN7kFXtaYvEOHAYfGaUoRTcHDYgwJ7
+STxwK6ZyWfzwJLOTduA+xY1LxhW9gaPWMNV0SqoQ+QVLnKr2Utl5FmU9PcLIJN/X
+s7BvVoUXFIGFjSE1OJv3qsQSX/jcYgbskfykhroRxyU8krW5F9T4jYhX1HzBTZM6
+qQ1/tkBsFe57TmJOA9vi3JThsN6MObywXCS4RshQi7Sqo6XGBKZYSbxYv50wowaf
+sLwWzQ6c/Geq0tCKMNVcE/gFekc0X+qWybiyLuLk/33hlCLs1ms6DQ+fINq7VNNd
+EVNmUk+ZGptICzdpF0IntXKyxB2/pkN7aiJ7CVWUyZL7/DvMhObBoEjdl3ZB3mRN
+cXhhy6Z5zMKKYvLRsL1O02AE8qfjCCB7Bx1T68NxRykJflCsoYo=
+=990w
 -----END PGP SIGNATURE-----
 
---LyciRD1jyfeSSjG0--
+--jy6Sn24JjFx/iggw--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
