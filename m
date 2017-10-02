@@ -1,75 +1,48 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 04/18] IB/mlx5: Use ARRAY_SIZE
-Date: Mon, 2 Oct 2017 07:38:48 +0300
-Message-ID: <20171002043848.GH2031@mtr-leonro.local>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 00/18] use ARRAY_SIZE macro
+Date: Mon, 2 Oct 2017 07:35:54 +0200
+Message-ID: <20171002053554.GA28743@kroah.com>
 References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
- <20171001193101.8898-5-jeremy.lefaure@lse.epita.fr>
+ <20171001220131.GA11812@eros>
+ <20171001205220.10b78086@blatinox-laptop.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="X+8siUETKMkW99st"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <20171001193101.8898-5-jeremy.lefaure-tU7rkvAWjlwhT4uAktR2oQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?iso-8859-1?B?Suly6W15?= Lefaure <jeremy.lefaure-tU7rkvAWjlwhT4uAktR2oQ@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20171001205220.10b78086@blatinox-laptop.localdomain>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: =?iso-8859-1?B?Suly6W15?= Lefaure <jeremy.lefaure@lse.epita.fr>
+Cc: alsa-devel@alsa-project.org, nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org, dm-devel@redhat.com, brcm80211-dev-list@cypress.com, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-acpi@vger.kernel.org, linux-video@atrey.karlin.mff.cuni.cz, intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org, ecryptfs@vger.kernel.org, brcm80211-dev-list.pdl@broadcom.com, linux-raid@vger.kernel.org, openipmi-developer@lists.sourceforge.net, intel-gvt-dev@lists.freedesktop.org, devel@acpica.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-integrity@vger.kernel.org, "Tobin C. Harding" <me@tobin.cc>
 List-Id: linux-rdma@vger.kernel.org
 
-
---X+8siUETKMkW99st
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, Oct 01, 2017 at 03:30:42PM -0400, J=E9r=E9my Lefaure wrote:
-> Using the ARRAY_SIZE macro improves the readability of the code.
->
-> Found with Coccinelle with the following semantic patch:
-> @r depends on (org || report)@
-> type T;
-> T[] E;
-> position p;
-> @@
-> (
->  (sizeof(E)@p /sizeof(*E))
-> |
->  (sizeof(E)@p /sizeof(E[...]))
-> |
->  (sizeof(E)@p /sizeof(T))
-> )
->
-> Signed-off-by: J=E9r=E9my Lefaure <jeremy.lefaure-tU7rkvAWjlwhT4uAktR2oQ@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx5/odp.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->
-
-Thanks J=E9r=E9my,
-I took this into my tree and will forward it to Doug L. during this
-cycle.
-
---X+8siUETKMkW99st
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnRwtgACgkQ5GN7iDZy
-WKc+tQ/+KtPpL6Dj0TaoRD1f4TDbV4OpVrhSkPX45R4zcWHWe/Z0Y4yYyYC2YLdQ
-nlYPfONpJjwRBLenm/J9UE+6s7GQmR+TW+NY1m6CXdcc7xyC4wBk9+sF6TPIEwaQ
-fI6WQSiRTAJke1Rz49BFQ9/SIv6AJXW8xJMILiR61TUgomOQC9zthRN+mRronRlc
-cA9PxYNfquOZ85kHSU1qiM9NDz1zqhvhYGSPy1YfnatWmjhQ/Iq0Jz8Xe9ZD5hFd
-y3I4ePg7S7XOJuUoqh7gE/zZPSLmOm/KV0CJEdlCqpU3EfWmJpTE3NYpjCAw0G91
-erdG5EW1zq2wFsTLo3BZww5hJZ7hOOFbdO1hBhCNcOYlN87n04rhLHIPMykXlowf
-WJC9HVPYnzEHYLVlXf3r/3JpGBc8HBqu3iLfQ890rM4qDXd3wYp1oQeefRixoBoj
-uABauGtowXTxgRt4gMg0gC/hkeW3ZVUiRs+LBwi19rvSKaqGhvAtMR8Ge2TX30cV
-ddJaoW1oXUa5FuWr9OdZ0czbBr76JHkwBxuKq9isQK7jaFFdFNc/jE4dq7A7brzG
-LklQWs9qlhSN6D3S0VQi7zCnY/5VjRXNh+RwMLGdadl/xB1Z5A+EnJTz9sswvzfc
-VcY2nIXUyJScCQ1knWgaX4heRbrLD2UqOQt68X/oGOj3E6nDVsU=
-=Tp+2
------END PGP SIGNATURE-----
-
---X+8siUETKMkW99st--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gU3VuLCBPY3QgMDEsIDIwMTcgYXQgMDg6NTI6MjBQTSAtMDQwMCwgSsOpcsOpbXkgTGVmYXVy
+ZSB3cm90ZToKPiBPbiBNb24sIDIgT2N0IDIwMTcgMDk6MDE6MzEgKzExMDAKPiAiVG9iaW4gQy4g
+SGFyZGluZyIgPG1lQHRvYmluLmNjPiB3cm90ZToKPiAKPiA+ID4gSW4gb3JkZXIgdG8gcmVkdWNl
+IHRoZSBzaXplIG9mIHRoZSBUbzogYW5kIENjOiBsaW5lcywgZWFjaCBwYXRjaCBvZiB0aGUKPiA+
+ID4gc2VyaWVzIGlzIHNlbnQgb25seSB0byB0aGUgbWFpbnRhaW5lcnMgYW5kIGxpc3RzIGNvbmNl
+cm5lZCBieSB0aGUgcGF0Y2guCj4gPiA+IFRoaXMgY292ZXIgbGV0dGVyIGlzIHNlbnQgdG8gZXZl
+cnkgbGlzdCBjb25jZXJuZWQgYnkgdGhpcyBzZXJpZXMuICAKPiA+IAo+ID4gV2h5IGRvbid0IHlv
+dSBqdXN0IHNlbmQgaW5kaXZpZHVhbCBwYXRjaGVzIGZvciBlYWNoIHN1YnN5c3RlbT8gSSdtIG5v
+dCBhIG1haW50YWluZXIgYnV0IEkgZG9uJ3Qgc2VlCj4gPiBob3cgYW55IG9uZSBwZXJzb24gaXMg
+Z29pbmcgdG8gYmUgYWJsZSB0byBhcHBseSB0aGlzIHdob2xlIHNlcmllcywgaXQgaXMgbWFraW5n
+IGl0IGhhcmQgZm9yCj4gPiBtYWludGFpbmVycyBpZiB0aGV5IGhhdmUgdG8gcGljayBwYXRjaGVz
+IG91dCBmcm9tIGFtb25nIHRoZSBzZXJpZXMgKGlmIGluZGVlZCBhbnkgd2lsbCBib3RoZXIKPiA+
+IGRvaW5nIHRoYXQpLgo+IFllYWgsIG1heWJlIGl0IHdvdWxkIGhhdmUgYmVlbiBiZXR0ZXIgdG8g
+c2VuZCBpbmRpdmlkdWFsIHBhdGNoZXMuCj4gCj4gRnJvbSBteSBwb2ludCBvZiB2aWV3IGl0J3Mg
+YSBzZXJpZXMgYmVjYXVzZSB0aGUgcGF0Y2hlcyBhcmUgcmVsYXRlZCAoSQo+IGRpZCBhIGdpdCBm
+b3JtYXQtcGF0Y2ggZnJvbSBteSBsb2NhbCBicmFuY2gpLiBCdXQgZm9yIHRoZSBtYWludGFpbmVy
+cwo+IHBvaW50IG9mIHZpZXcsIHRoZXkgYXJlIGluZGl2aWR1YWwgcGF0Y2hlcy4KCkFuZCB0aGUg
+bWFpbnRhaW5lcnMgdmlldyBpcyB3aGF0IG1hdHRlcnMgaGVyZSwgaWYgeW91IHdpc2ggdG8gZ2V0
+IHlvdXIKcGF0Y2hlcyByZXZpZXdlZCBhbmQgYWNjZXB0ZWQuLi4KCnRoYW5rcywKCmdyZWcgay1o
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZl
+bCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xp
+c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
