@@ -1,48 +1,69 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 00/18] use ARRAY_SIZE macro
-Date: Mon, 2 Oct 2017 07:35:54 +0200
-Message-ID: <20171002053554.GA28743@kroah.com>
-References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
- <20171001220131.GA11812@eros>
- <20171001205220.10b78086@blatinox-laptop.localdomain>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V2 rdma-core] libhns: Update the size and member order of
+ hns_roce_create_qp structure
+Date: Mon, 2 Oct 2017 08:51:35 +0300
+Message-ID: <20171002055135.GI2031@mtr-leonro.local>
+References: <1506889029-25168-1-git-send-email-xavier.huwei@tom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="h22Fi9ANawrtbNPX"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171001205220.10b78086@blatinox-laptop.localdomain>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: =?iso-8859-1?B?Suly6W15?= Lefaure <jeremy.lefaure@lse.epita.fr>
-Cc: alsa-devel@alsa-project.org, nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org, dm-devel@redhat.com, brcm80211-dev-list@cypress.com, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-acpi@vger.kernel.org, linux-video@atrey.karlin.mff.cuni.cz, intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org, ecryptfs@vger.kernel.org, brcm80211-dev-list.pdl@broadcom.com, linux-raid@vger.kernel.org, openipmi-developer@lists.sourceforge.net, intel-gvt-dev@lists.freedesktop.org, devel@acpica.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-integrity@vger.kernel.org, "Tobin C. Harding" <me@tobin.cc>
+In-Reply-To: <1506889029-25168-1-git-send-email-xavier.huwei-WVlzvzqoTvw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Wei Hu (Xavier)" <xavier.huwei-WVlzvzqoTvw@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gU3VuLCBPY3QgMDEsIDIwMTcgYXQgMDg6NTI6MjBQTSAtMDQwMCwgSsOpcsOpbXkgTGVmYXVy
-ZSB3cm90ZToKPiBPbiBNb24sIDIgT2N0IDIwMTcgMDk6MDE6MzEgKzExMDAKPiAiVG9iaW4gQy4g
-SGFyZGluZyIgPG1lQHRvYmluLmNjPiB3cm90ZToKPiAKPiA+ID4gSW4gb3JkZXIgdG8gcmVkdWNl
-IHRoZSBzaXplIG9mIHRoZSBUbzogYW5kIENjOiBsaW5lcywgZWFjaCBwYXRjaCBvZiB0aGUKPiA+
-ID4gc2VyaWVzIGlzIHNlbnQgb25seSB0byB0aGUgbWFpbnRhaW5lcnMgYW5kIGxpc3RzIGNvbmNl
-cm5lZCBieSB0aGUgcGF0Y2guCj4gPiA+IFRoaXMgY292ZXIgbGV0dGVyIGlzIHNlbnQgdG8gZXZl
-cnkgbGlzdCBjb25jZXJuZWQgYnkgdGhpcyBzZXJpZXMuICAKPiA+IAo+ID4gV2h5IGRvbid0IHlv
-dSBqdXN0IHNlbmQgaW5kaXZpZHVhbCBwYXRjaGVzIGZvciBlYWNoIHN1YnN5c3RlbT8gSSdtIG5v
-dCBhIG1haW50YWluZXIgYnV0IEkgZG9uJ3Qgc2VlCj4gPiBob3cgYW55IG9uZSBwZXJzb24gaXMg
-Z29pbmcgdG8gYmUgYWJsZSB0byBhcHBseSB0aGlzIHdob2xlIHNlcmllcywgaXQgaXMgbWFraW5n
-IGl0IGhhcmQgZm9yCj4gPiBtYWludGFpbmVycyBpZiB0aGV5IGhhdmUgdG8gcGljayBwYXRjaGVz
-IG91dCBmcm9tIGFtb25nIHRoZSBzZXJpZXMgKGlmIGluZGVlZCBhbnkgd2lsbCBib3RoZXIKPiA+
-IGRvaW5nIHRoYXQpLgo+IFllYWgsIG1heWJlIGl0IHdvdWxkIGhhdmUgYmVlbiBiZXR0ZXIgdG8g
-c2VuZCBpbmRpdmlkdWFsIHBhdGNoZXMuCj4gCj4gRnJvbSBteSBwb2ludCBvZiB2aWV3IGl0J3Mg
-YSBzZXJpZXMgYmVjYXVzZSB0aGUgcGF0Y2hlcyBhcmUgcmVsYXRlZCAoSQo+IGRpZCBhIGdpdCBm
-b3JtYXQtcGF0Y2ggZnJvbSBteSBsb2NhbCBicmFuY2gpLiBCdXQgZm9yIHRoZSBtYWludGFpbmVy
-cwo+IHBvaW50IG9mIHZpZXcsIHRoZXkgYXJlIGluZGl2aWR1YWwgcGF0Y2hlcy4KCkFuZCB0aGUg
-bWFpbnRhaW5lcnMgdmlldyBpcyB3aGF0IG1hdHRlcnMgaGVyZSwgaWYgeW91IHdpc2ggdG8gZ2V0
-IHlvdXIKcGF0Y2hlcyByZXZpZXdlZCBhbmQgYWNjZXB0ZWQuLi4KCnRoYW5rcywKCmdyZWcgay1o
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZl
-bCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xp
-c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+
+--h22Fi9ANawrtbNPX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Oct 02, 2017 at 04:17:09AM +0800, Wei Hu (Xavier) wrote:
+> From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>
+> In order to keep the size and member order with the
+> hns_roce_ib_create_qp sturcture of the kernel driver,
+> it needs to update hns_roce_create_qp's structure
+> members. Otherwise, it will run fail.
+>
+> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> ---
+> Patch V2: Address comments by Jason:
+> 	https://patchwork.kernel.org/patch/9979299/
+>
+> Patch V1: Initial Submit
+> ---
+>  providers/hns/hns_roce_u_abi.h | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+
+Thanks, applied and completely rewrote the commit message.
+
+--h22Fi9ANawrtbNPX
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnR0+cACgkQ5GN7iDZy
+WKdsuA/7BrV+eF2P/X6S/0Mtm6kxW9qV0h1PErWgyp9rYplkhF+/4ffHIrdikWi9
+Yc1nF6M2co6kGZnUZyUwsLISl+zZk1q30mjg4THWM1nUd0F9IHFsOwq5Fqgr64mO
+jRK/wkoiOn/N0ONHXbQ5wqQhYWmeZcEO88VQEyRcub5qenB3UNTcAxE4lZj5O6gG
+Cc80HlYu/FOjNuLf51QYFlpe0hn+XiaSzS2AFMxqA1NEkKEG62lZHqCYE6U2zZb+
+jB+sswaD4Oy/UMOcqg7FaWiMsst0pNb0kA43+PwJlRKjHpxz0oRepM/W8Z4DylDr
+jV3hdOoOeaQ0y8JVNa/xYHyk/5/71ajEGXdYb2928A6RkEzeeK8FtHdXS2QmF7WW
+vyEd3QOdg6lrZ5GE0V2NP1wwW5FUBaOouzGQmDxtNfkLbaPBMbFyWnMoGx3sN7we
++63NqZS7Nz8J6c9yuFem0ol43eQr0mR5g3Uh+R6JLiglVoxdcDQJmGwQaZVcgiDE
+e1SLpkA1gDe/lPkeE3XOWKx8i1ceSDBkvHhnijZUq8SvGV9kBurl3UyYLJwggRSB
+8VNnUpgOthy+/7Y3B/XKWU85mQdXkByccFrcFJsfcO4RFF4gyWSF+Z1LizkG7MbM
+LgLrC0J3YoR9YbsGB5IGwtVPOg5Y7oGAJYCxfoTnx7omdbMrRkM=
+=y+/t
+-----END PGP SIGNATURE-----
+
+--h22Fi9ANawrtbNPX--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
