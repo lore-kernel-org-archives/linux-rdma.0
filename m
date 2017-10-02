@@ -1,125 +1,67 @@
-From: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH net-next 11/12] qed: Add support for MPA header being split over two tcp packets
-Date: Mon, 2 Oct 2017 11:23:57 +0300
-Message-ID: <1506932638-26268-12-git-send-email-Michal.Kalderon@cavium.com>
-References: <1506932638-26268-1-git-send-email-Michal.Kalderon@cavium.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [bug report] IB/uverbs: clean up INIT_UDATA_BUF_OR_NULL usage
+Date: Mon, 2 Oct 2017 13:13:09 +0300
+Message-ID: <20171002101309.dpxylk77ud5gsr2i@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1506932638-26268-1-git-send-email-Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: arnd-r2nGTMty4D4@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-There is a special case where an MPA header is split over to tcp
-packets, in this case we need to wait for the next packet to
-get the fpdu length. We use the incomplete_bytes to mark this
-fpdu as a "special" one which requires updating the length with
-the next packet
+Hello Arnd Bergmann,
 
-Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- drivers/net/ethernet/qlogic/qed/qed_iwarp.c | 36 ++++++++++++++++++++++++++++-
- drivers/net/ethernet/qlogic/qed/qed_iwarp.h |  6 +++++
- 2 files changed, 41 insertions(+), 1 deletion(-)
+The patch 12f727721eee: "IB/uverbs: clean up INIT_UDATA_BUF_OR_NULL
+usage" from Sep 6, 2017, leads to the following static checker
+warning:
 
-diff --git a/drivers/net/ethernet/qlogic/qed/qed_iwarp.c b/drivers/net/ethernet/qlogic/qed/qed_iwarp.c
-index 8b17369..2994942 100644
---- a/drivers/net/ethernet/qlogic/qed/qed_iwarp.c
-+++ b/drivers/net/ethernet/qlogic/qed/qed_iwarp.c
-@@ -1742,6 +1742,7 @@ enum qed_iwarp_mpa_pkt_type {
- 	QED_IWARP_MPA_PKT_UNALIGNED
- };
- 
-+#define QED_IWARP_INVALID_FPDU_LENGTH 0xffff
- #define QED_IWARP_MPA_FPDU_LENGTH_SIZE (2)
- #define QED_IWARP_MPA_CRC32_DIGEST_SIZE (4)
- 
-@@ -1774,6 +1775,15 @@ enum qed_iwarp_mpa_pkt_type {
- 		goto out;
- 	}
- 
-+	/* special case of one byte remaining...
-+	 * lower byte will be read next packet
-+	 */
-+	if (tcp_payload_len == 1) {
-+		fpdu->fpdu_length = *mpa_data << BITS_PER_BYTE;
-+		pkt_type = QED_IWARP_MPA_PKT_PARTIAL;
-+		goto out;
-+	}
-+
- 	mpa_len = ntohs(*((u16 *)(mpa_data)));
- 	fpdu->fpdu_length = QED_IWARP_FPDU_LEN_WITH_PAD(mpa_len);
- 
-@@ -1802,7 +1812,9 @@ enum qed_iwarp_mpa_pkt_type {
- 	fpdu->mpa_frag = buf->data_phys_addr + pkt_data->first_mpa_offset;
- 	fpdu->mpa_frag_virt = (u8 *)(buf->data) + pkt_data->first_mpa_offset;
- 
--	if (tcp_payload_size < fpdu->fpdu_length)
-+	if (tcp_payload_size == 1)
-+		fpdu->incomplete_bytes = QED_IWARP_INVALID_FPDU_LENGTH;
-+	else if (tcp_payload_size < fpdu->fpdu_length)
- 		fpdu->incomplete_bytes = fpdu->fpdu_length - tcp_payload_size;
- 	else
- 		fpdu->incomplete_bytes = 0;	/* complete fpdu */
-@@ -1810,6 +1822,27 @@ enum qed_iwarp_mpa_pkt_type {
- 	fpdu->mpa_frag_len = fpdu->fpdu_length - fpdu->incomplete_bytes;
- }
- 
-+static void
-+qed_iwarp_update_fpdu_length(struct qed_hwfn *p_hwfn,
-+			     struct qed_iwarp_fpdu *fpdu, u8 *mpa_data)
-+{
-+	u16 mpa_len;
-+
-+	/* Update incomplete packets if needed */
-+	if (fpdu->incomplete_bytes == QED_IWARP_INVALID_FPDU_LENGTH) {
-+		/* Missing lower byte is now available */
-+		mpa_len = fpdu->fpdu_length | *mpa_data;
-+		fpdu->fpdu_length = QED_IWARP_FPDU_LEN_WITH_PAD(mpa_len);
-+		fpdu->mpa_frag_len = fpdu->fpdu_length;
-+		/* one byte of hdr */
-+		fpdu->incomplete_bytes = fpdu->fpdu_length - 1;
-+		DP_VERBOSE(p_hwfn,
-+			   QED_MSG_RDMA,
-+			   "MPA_ALIGN: Partial header mpa_len=%x fpdu_length=%x incomplete_bytes=%x\n",
-+			   mpa_len, fpdu->fpdu_length, fpdu->incomplete_bytes);
-+	}
-+}
-+
- static int
- qed_iwarp_send_fpdu(struct qed_hwfn *p_hwfn,
- 		    struct qed_iwarp_fpdu *fpdu,
-@@ -1960,6 +1993,7 @@ enum qed_iwarp_mpa_pkt_type {
- 			curr_pkt->first_mpa_offset += fpdu->fpdu_length;
- 			break;
- 		case QED_IWARP_MPA_PKT_UNALIGNED:
-+			qed_iwarp_update_fpdu_length(p_hwfn, fpdu, mpa_data);
- 			rc = qed_iwarp_send_fpdu(p_hwfn, fpdu, curr_pkt, buf,
- 						 mpa_buf->tcp_payload_len,
- 						 pkt_type);
-diff --git a/drivers/net/ethernet/qlogic/qed/qed_iwarp.h b/drivers/net/ethernet/qlogic/qed/qed_iwarp.h
-index 58db51a..c58793a 100644
---- a/drivers/net/ethernet/qlogic/qed/qed_iwarp.h
-+++ b/drivers/net/ethernet/qlogic/qed/qed_iwarp.h
-@@ -69,6 +69,12 @@ struct qed_iwarp_ll2_mpa_buf {
- 	u8 placement_offset;
- };
- 
-+/* In some cases a fpdu will arrive with only one byte of the header, in this
-+ * case the fpdu_length will be partial (contain only higher byte and
-+ * incomplete bytes will contain the invalid value
-+ */
-+#define QED_IWARP_INVALID_INCOMPLETE_BYTES 0xffff
-+
- struct qed_iwarp_fpdu {
- 	struct qed_iwarp_ll2_buff *mpa_buf;
- 	void *mpa_frag_virt;
--- 
-1.8.3.1
+	drivers/infiniband/core/uverbs_std_types.c:249 create_udata()
+	error: uninitialized symbol 'inbuf'.
 
+drivers/infiniband/core/uverbs_std_types.c
+   222  static void create_udata(struct uverbs_attr_bundle *ctx,
+   223                           struct ib_udata *udata)
+   224  {
+   225          /*
+   226           * This is for ease of conversion. The purpose is to convert all drivers
+   227           * to use uverbs_attr_bundle instead of ib_udata.
+   228           * Assume attr == 0 is input and attr == 1 is output.
+   229           */
+   230          void __user *inbuf;
+   231          size_t inbuf_len = 0;
+   232          void __user *outbuf;
+   233          size_t outbuf_len = 0;
+   234          const struct uverbs_attr *uhw_in =
+   235                  uverbs_attr_get(ctx, UVERBS_UHW_IN);
+   236          const struct uverbs_attr *uhw_out =
+   237                  uverbs_attr_get(ctx, UVERBS_UHW_OUT);
+   238  
+   239          if (!IS_ERR(uhw_in)) {
+   240                  inbuf = uhw_in->ptr_attr.ptr;
+   241                  inbuf_len = uhw_in->ptr_attr.len;
+   242          }
+   243  
+   244          if (!IS_ERR(uhw_out)) {
+   245                  outbuf = uhw_out->ptr_attr.ptr;
+   246                  outbuf_len = uhw_out->ptr_attr.len;
+   247          }
+   248  
+   249          ib_uverbs_init_udata_buf_or_null(udata, inbuf, outbuf, inbuf_len,
+   250                                           outbuf_len);
+
+In the original code, this was a macro so smatch understood that we
+don't use inbuf and outbuf if they aren't initialized.  Now it's a
+function and smatch generates a warning if you pass uninitialized
+variables to a function.
+
+It's not a bug, but it's really ugly.
+
+   251  }
+
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
