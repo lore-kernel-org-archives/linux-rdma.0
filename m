@@ -1,41 +1,81 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: question about mlx5 MSI-X assignment
-Date: Mon, 2 Oct 2017 14:36:23 -0600
-Message-ID: <20171002203623.GC13149@obsidianresearch.com>
-References: <78728626-4430-4C57-A0ED-79777416963C@oracle.com>
+From: Parav Pandit <parav@mellanox.com>
+Subject: RE: [PATCH net-next 01/10] net/smc: add missing dev_put
+Date: Mon, 2 Oct 2017 20:36:29 +0000
+Message-ID: <VI1PR0502MB30089D06B9C95D682E21511BD17D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20170920115813.63745-1-ubraun@linux.vnet.ibm.com>
+ <20170920115813.63745-2-ubraun@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <78728626-4430-4C57-A0ED-79777416963C-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170920115813.63745-2-ubraun@linux.vnet.ibm.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Ursula Braun <ubraun@linux.vnet.ibm.com>, "davem@davemloft.net" <davem@davemloft.net>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "jwi@linux.vnet.ibm.com" <jwi@linux.vnet.ibm.com>, "schwidefsky@de.ibm.com" <schwidefsky@de.ibm.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "raspl@linux.vnet.ibm.com" <raspl@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 02, 2017 at 03:10:22PM -0400, Chuck Lever wrote:
+Hi Ursula, Dave, Hans,
 
-> RPC-over-RDMA in v4.14 always uses a compvec of 0. Due to the above observed behavior,
-> this means that interrupts for both of these cards always route to socket 0, even though
-> the CX-4 is affined to socket 1.
+> -----Original Message-----
+> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
+> owner@vger.kernel.org] On Behalf Of Ursula Braun
+> Sent: Wednesday, September 20, 2017 6:58 AM
+> To: davem@davemloft.net
+> Cc: netdev@vger.kernel.org; linux-rdma@vger.kernel.org; linux-
+> s390@vger.kernel.org; jwi@linux.vnet.ibm.com; schwidefsky@de.ibm.com;
+> heiko.carstens@de.ibm.com; raspl@linux.vnet.ibm.com;
+> ubraun@linux.vnet.ibm.com
+> Subject: [PATCH net-next 01/10] net/smc: add missing dev_put
+>=20
+> From: Hans Wippel <hwippel@linux.vnet.ibm.com>
+>=20
+> In the infiniband part, SMC currently uses get_netdev which calls dev_hol=
+d on
+> the returned net device. However, the SMC code never calls dev_put on tha=
+t net
+> device resulting in a wrong reference count.
+>=20
+> This patch adds a dev_put after the usage of the net device to fix the is=
+sue.
+>=20
+> Signed-off-by: Hans Wippel <hwippel@linux.vnet.ibm.com>
+> Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
+> ---
+>  net/smc/smc_ib.c | 1 +
+>  1 file changed, 1 insertion(+)
+>=20
+> diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c index
+> 547e0e113b17..0b5852299158 100644
+> --- a/net/smc/smc_ib.c
+> +++ b/net/smc/smc_ib.c
+> @@ -380,6 +380,7 @@ static int smc_ib_fill_gid_and_mac(struct smc_ib_devi=
+ce
+> *smcibdev, u8 ibport)
+>  	ndev =3D smcibdev->ibdev->get_netdev(smcibdev->ibdev, ibport);
+>  	if (ndev) {
+>  		memcpy(&smcibdev->mac, ndev->dev_addr, ETH_ALEN);
+> +		dev_put(ndev);
 
-I think, broadly speaking, the NUMA abstractions in RDMA need work,
-and this is one of the areas... So I think what you are seeing is that
-this just doesn't make much sense today and there isn't really a good
-plan here. I'm sure something can be hacked together by futzing with
-the compvec.
+I am sorry for providing late comments. smc_ib_fill_gid_and_mac() is not co=
+ded correctly.
+Few fixes are needed.
+1. ULP such as SMC should not open code/deference any function pointer like=
+ get_netdev() of the IB device.
+2. Replace ib_query_gid(..., NULL)
+With
+ib_query_gid(..., gid_attr);
 
-Ideally, if a ULP wishes to use a specific NUMA domain, then it should
-communicate that in the native kernel language for talking about NUMA
-domains and not translate into the goofy compvec.
+Use gid_attr.ndev to get the MAC address.
+Do dev_put(gid_attr.ndev);
 
-This applies broadly to not only the interrupt, but all driver
-allocations related to a QP/CQ, maybe even to short lived
-MRs.. Depending on what performs well.. Generally putting memory
-closer to the reader is a good idea.
+Code should look like below,
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+struct ib_gid_attr gid_attr;
+
+rc =3D ib_query_gid(..., &gid_attr);
+if (rc || !gid_addr.ndev)
+	return -ENODEV;
+else
+	memcpy(smcibdev->mac, ndev->dev_addr, ETH_ALEN);
+dev_put(gid_addr.ndev);
