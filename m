@@ -1,72 +1,53 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: librdmacm in rdma-core build warnings
-Date: Mon, 2 Oct 2017 09:15:32 +0300
-Message-ID: <20171002061532.GJ2031@mtr-leonro.local>
+From: Michal Kalderon <Michal.Kalderon@cavium.com>
+Subject: [PATCH net-next 00/12] qed: Add iWARP support for unaligned MPA packets
+Date: Mon, 2 Oct 2017 11:23:46 +0300
+Message-ID: <1506932638-26268-1-git-send-email-Michal.Kalderon@cavium.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="cN519qCC4CN1mUcX"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com, Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>
 List-Id: linux-rdma@vger.kernel.org
 
+This patch series adds support for handling unaligned MPA packets.
+(FPDUs split over more than one tcp packet).
+When FW detects a packet is unaligned it fowards the packet to 
+the driver via a light l2 dedicated connection. The driver then 
+stores this packet until the remainder of the packet is received.
+Once the driver reconstructs the full FPDU, it sends it down
+to fw via the ll2 connection. Driver also breaks down any packed
+PDUs into separate packets for FW. 
 
---cN519qCC4CN1mUcX
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Patches 1-6 are all slight modifications to ll2 to support additional
+requirements for the unaligned MPA ll2 client.
 
-Hi All,
+Patch 7 opens the additional ll2 connection for iWARP.
+Patches 8-12 contain the algorithm for aligning packets.
 
-After moving to gcc version 7.2.0 (GCC), I started experience the
-following compilation warning with default build.sh supplied with
-rdma-core.
+Signed-off-by: Michal Kalderon <Michal.Kalderon@cavium.com>
+Signed-off-by: Ariel Elior <Ariel.Elior@cavium.com>
 
-[26/189] Building C object librdmacm/CMakeFiles/rspreload.dir/preload.c.o
-=2E./librdmacm/preload.c:818:9: warning: no previous prototype for =E2=80=
-=98readv=E2=80=99 [-Wmissing-prototypes]
- ssize_t readv(int socket, const struct iovec *iov, int iovcnt)
-         ^~~~~
-=2E./librdmacm/preload.c:857:9: warning: no previous prototype for =E2=80=
-=98writev=E2=80=99 [-Wmissing-prototypes]
- ssize_t writev(int socket, const struct iovec *iov, int iovcnt)
+Michal Kalderon (12):
+  qed: Add ll2 option to limit the number of bds per packet
+  qed: Add ll2 ability of opening a secondary queue
+  qed: Add ll2 option for dropping a tx packet
+  qed: Fix initialization of ll2 offload feature
+  qed: Add the source of a packet sent on an iWARP ll2 connection
+  qed: Add LL2 slowpath handling
+  qed: Add ll2 connection for processing unaligned MPA packets
+  qed: Add mpa buffer descriptors for storing and processing mpa fpdus
+  qed: Add unaligned and packed packet processing
+  qed: Add support for freeing two ll2 buffers for corner cases
+  qed: Add support for MPA header being split over two tcp packets
+  qed: Add iWARP support for fpdu spanned over more than two tcp packets
 
-The code to enable -Wmissing-prototypes checks is part of the rdma-core
-for a year now, see commit: b192ed2347e5 ("Enable -Wmissing-prototypes/-Wmi=
-ssing-declarations")
+ drivers/net/ethernet/qlogic/qed/qed_iwarp.c | 690 ++++++++++++++++++++++++++++
+ drivers/net/ethernet/qlogic/qed/qed_iwarp.h |  33 ++
+ drivers/net/ethernet/qlogic/qed/qed_ll2.c   |  98 +++-
+ drivers/net/ethernet/qlogic/qed/qed_ll2.h   |   8 +-
+ include/linux/qed/qed_ll2_if.h              |   7 +
+ 5 files changed, 819 insertions(+), 17 deletions(-)
 
-The fact that librdmacm/preload.c uses combination of RTLD_NEXT and
-dlsym to set readv/writev scares me to just delete readv and writev calls,
-because it is most probably wrong.
-
-Any ideas how to fix it?
-
-Thanks
-
---cN519qCC4CN1mUcX
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnR2YQACgkQ5GN7iDZy
-WKdTsQ//XU2m2YCoBV/FwEROdsrN89eNFIY/RMMmBXP4NcfC0s1iIImfEXf3yQuS
-Zhcwkdvt//CU9NjDMUDEZzjEWbCEhPZNZS47IKF2ToUgK4xz6ETLeAqNdy9IzyYS
-hX16KYaLbfvg36zjLAwvq3uVLQnJetyG4uDX60Qz560xCEvozmSiL7c3oPtbWL5q
-Q0JfA02mc+E6puE8RWBcEnH7Tg1GWbb4rNmf+ePf7iW2JR30PjcXp7Fk88N8OEt0
-Ltjux9p4Uevamfa3nNp9O6XOdbRvlUHZPYX9EXqd4E40bd0sCClwq279/vC5+7vw
-3CxUuOWplc+nzBLSzhkJ04C68VD/+UgM8FSiJYOQNepKtWN1RO/KC+D5uTZG89Xm
-iP3R3aDK3KNcVVfAc5tHGDQNYQwY3GcJBsCBzLsnGJZhX9OpfRkEgERWJOOujRzo
-jCBFSS1nHNB64Q5M0LLhhybgONPbPesHkt8NMDB3g0HVtawKEW3L0wXJtMqkwDPn
-8ub4aGFq346Qjs5lQy+v1gBxtIlskX9LnLYHEbdlBU39hW3Yzu9PvvkSDMte9OaQ
-Wbpvxd44yXsk4ZbgdkMkzraW4u0QjnB2NkKpHF1rZKa5oGyzP9GAKbCBXU2/Jzf+
-UTw10N0sarHhU+OxXW918tzgg+WhtsDfKTpxDwYxJiVwYY7QRWQ=
-=16Qz
------END PGP SIGNATURE-----
-
---cN519qCC4CN1mUcX--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+1.8.3.1
