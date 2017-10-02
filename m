@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 6/8] IB/rdmavt: Correct issues with read-mostly and
- send size cache lines
-Date: Mon, 02 Oct 2017 11:04:41 -0700
-Message-ID: <20171002180438.31117.35604.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 7/8] IB/core: Do not warn on lid conversions for OPA
+Date: Mon, 02 Oct 2017 11:04:48 -0700
+Message-ID: <20171002180446.31117.56786.stgit@scvm10.sc.intel.com>
 References: <20171002180204.31117.12254.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,74 +10,79 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171002180204.31117.12254.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The s_ahgpsn was incorrectly placed in the read-mostly section of the QP
-and the s_curr_size and s_hdrwords are oversized. The misplaced
-s_ahgpsn will cause the read-mostly cachelines to thrash.
+On OPA devices the user_mad recv_handler can receive 32Bit LIDs
+(e.g. OPA_PERMISSIVE_LID) and it is okay to lose the upper 16 bits
+of the LID as this information is obtained elsewhere. Do not issue
+a warning when calling ib_lid_be16() in this case by masking out
+the upper 16Bits.
 
-Place s_ahgpsn in the send side cache lines and correctly size and
-s_hdrwords and s_cur_size to keep the send side cachelines at the same
-size.
+[75667.310846] ------------[ cut here ]------------
+[75667.316447] WARNING: CPU: 0 PID: 1718 at ./include/rdma/ib_verbs.h:3799 recv_handler+0x15a/0x170 [ib_umad]
+[75667.327640] Modules linked in: ib_ipoib hfi1(E) rdmavt(E) rdma_ucm(E) ib_ucm(E) rdma_cm(E) ib_cm(E) iw_cm(E) ib_umad(E) ib_uverbs(E) ib_core(E) libiscsi scsi_transport_iscsi dm_mirror dm_region_hash dm_log dm_mod dax x86_pkg_temp_thermal intel_powerclamp coretemp kvm irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc aesni_intel mei_me ipmi_si iTCO_wdt iTCO_vendor_support crypto_simd ipmi_devintf pcspkr mei sg i2c_i801 glue_helper lpc_ich shpchp ioatdma mfd_core wmi ipmi_msghandler cryptd acpi_power_meter acpi_pad nfsd auth_rpcgss nfs_acl lockd grace sunrpc ip_tables xfs libcrc32c sd_mod mgag200 drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops ttm drm igb ptp ahci libahci pps_core crc32c_intel libata dca i2c_algo_bit i2c_core [last unloaded: ib_core]
+[75667.407704] CPU: 0 PID: 1718 Comm: kworker/0:1H Tainted: G        W I E   4.13.0-rc7+ #1
+[75667.417310] Hardware name: Intel Corporation S2600WT2/S2600WT2, BIOS SE5C610.86B.01.01.0008.021120151325 02/11/2015
+[75667.429555] Workqueue: ib-comp-wq ib_cq_poll_work [ib_core]
+[75667.436360] task: ffff88084a718000 task.stack: ffffc9000a424000
+[75667.443549] RIP: 0010:recv_handler+0x15a/0x170 [ib_umad]
+[75667.450090] RSP: 0018:ffffc9000a427ce8 EFLAGS: 00010286
+[75667.456508] RAX: 00000000ffffffff RBX: ffff88085159ce80 RCX: 0000000000000000
+[75667.465094] RDX: ffff88085a47b068 RSI: 0000000000000000 RDI: ffff88085159cf00
+[75667.473668] RBP: ffffc9000a427d38 R08: 000000000001efc0 R09: ffff88085159ce80
+[75667.482228] R10: ffff88085f007480 R11: ffff88084acf20e8 R12: ffff88085a47b020
+[75667.490824] R13: ffff881056842e10 R14: ffff881056840200 R15: ffff88104c8d0800
+[75667.499390] FS:  0000000000000000(0000) GS:ffff88085f400000(0000) knlGS:0000000000000000
+[75667.509028] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[75667.516080] CR2: 00007f9e4b3d9000 CR3: 0000000001c09000 CR4: 00000000001406f0
+[75667.524664] Call Trace:
+[75667.528044]  ? find_mad_agent+0x7c/0x1b0 [ib_core]
+[75667.534031]  ? ib_mark_mad_done+0x73/0xa0 [ib_core]
+[75667.540142]  ib_mad_recv_done+0x423/0x9b0 [ib_core]
+[75667.546215]  __ib_process_cq+0x5d/0xb0 [ib_core]
+[75667.552007]  ib_cq_poll_work+0x20/0x60 [ib_core]
+[75667.557766]  process_one_work+0x149/0x360
+[75667.562844]  worker_thread+0x4d/0x3c0
+[75667.567529]  kthread+0x109/0x140
+[75667.571713]  ? rescuer_thread+0x380/0x380
+[75667.576775]  ? kthread_park+0x60/0x60
+[75667.581447]  ret_from_fork+0x25/0x30
+[75667.586014] Code: 43 4a 0f b6 45 c6 88 43 4b 48 8b 45 b0 48 89 43 4c 48 8b 45 b8 48 89 43 54 8b 45 c0 0f c8 89 43 5c e9 79 ff ff ff e8 16 4e fa e0 <0f> ff e9 42 ff ff ff 66 66 66 66 66 66 2e 0f 1f 84 00 00 00 00
+[75667.608323] ---[ end trace cf26df27c9597264 ]---
 
+Fixes: 62ede7779904 ("Add OPA extended LID support")
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c |    4 ++--
- include/rdma/rdmavt_qp.h          |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/user_mad.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 56bba8d..d2d72e0 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -8743,8 +8743,8 @@ static int set_physical_link_state(struct hfi1_devdata *dd, u64 state)
- 	return do_8051_command(dd, HCMD_CHANGE_PHY_STATE, state, NULL);
- }
- 
--int _load_8051_config(struct hfi1_devdata *dd, u8 field_id,
--		      u8 lane_id, u32 config_data)
-+static int _load_8051_config(struct hfi1_devdata *dd, u8 field_id,
-+			     u8 lane_id, u32 config_data)
- {
- 	u64 data;
- 	int ret;
-diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
-index 0eed3d8..89ab88c 100644
---- a/include/rdma/rdmavt_qp.h
-+++ b/include/rdma/rdmavt_qp.h
-@@ -282,7 +282,6 @@ struct rvt_qp {
- 	u32 remote_qpn;
- 	u32 qkey;               /* QKEY for this QP (for UD or RD) */
- 	u32 s_size;             /* send work queue size */
--	u32 s_ahgpsn;           /* set to the psn in the copy of the header */
- 
- 	u16 pmtu;		/* decoded from path_mtu */
- 	u8 log_pmtu;		/* shift for pmtu */
-@@ -344,7 +343,6 @@ struct rvt_qp {
- 	struct rvt_swqe *s_wqe;
- 	struct rvt_sge_state s_sge;     /* current send request data */
- 	struct rvt_mregion *s_rdma_mr;
--	u32 s_cur_size;         /* size of send packet in bytes */
- 	u32 s_len;              /* total length of s_sge */
- 	u32 s_rdma_read_len;    /* total length of s_rdma_read_sge */
- 	u32 s_last_psn;         /* last response PSN processed */
-@@ -358,8 +356,10 @@ struct rvt_qp {
- 	u32 s_acked;            /* last un-ACK'ed entry */
- 	u32 s_last;             /* last completed entry */
- 	u32 s_lsn;              /* limit sequence number (credit) */
--	u16 s_hdrwords;         /* size of s_hdr in 32 bit words */
-+	u32 s_ahgpsn;           /* set to the psn in the copy of the header */
-+	u16 s_cur_size;         /* size of send packet in bytes */
- 	u16 s_rdma_ack_cnt;
-+	u8 s_hdrwords;         /* size of s_hdr in 32 bit words */
- 	s8 s_ahgidx;
- 	u8 s_state;             /* opcode of last packet sent */
- 	u8 s_ack_state;         /* opcode of packet to ACK */
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index c1696e6..603acaf 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -229,7 +229,16 @@ static void recv_handler(struct ib_mad_agent *agent,
+ 	packet->mad.hdr.status	   = 0;
+ 	packet->mad.hdr.length	   = hdr_size(file) + mad_recv_wc->mad_len;
+ 	packet->mad.hdr.qpn	   = cpu_to_be32(mad_recv_wc->wc->src_qp);
+-	packet->mad.hdr.lid	   = ib_lid_be16(mad_recv_wc->wc->slid);
++	/*
++	 * On OPA devices it is okay to lose the upper 16 bits of LID as this
++	 * information is obtained elsewhere. Mask off the upper 16 bits.
++	 */
++	if (agent->device->port_immutable[agent->port_num].core_cap_flags &
++	    RDMA_CORE_PORT_INTEL_OPA)
++		packet->mad.hdr.lid = ib_lid_be16(0xFFFF &
++						  mad_recv_wc->wc->slid);
++	else
++		packet->mad.hdr.lid = ib_lid_be16(mad_recv_wc->wc->slid);
+ 	packet->mad.hdr.sl	   = mad_recv_wc->wc->sl;
+ 	packet->mad.hdr.path_bits  = mad_recv_wc->wc->dlid_path_bits;
+ 	packet->mad.hdr.pkey_index = mad_recv_wc->wc->pkey_index;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
