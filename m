@@ -1,31 +1,61 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: Kernel 4.13.3 and 4.13.4 Infiniband SRP Issue
-Date: Mon, 2 Oct 2017 18:12:57 +0000
-Message-ID: <1506967976.3368.48.camel@wdc.com>
-References: <902F8B1CC123894F81C798F1BE4018A2017CE9E6DB@LAX-EX-MB1.datadirect.datadirectnet.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: librdmacm in rdma-core build warnings
+Date: Mon, 2 Oct 2017 21:27:46 +0300
+Message-ID: <CALq1K=+At0ytaxUs4NbznwkYx7+dL+XLtCUaxbVAMLb0WjyqRw@mail.gmail.com>
+References: <20171002061532.GJ2031@mtr-leonro.local> <1828884A29C6694DAF28B7E6B8A82373AB199DAC@ORSMSX109.amr.corp.intel.com>
+ <20171002175431.GB13149@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <902F8B1CC123894F81C798F1BE4018A2017CE9E6DB-fC5W64i7Zwd1qi9nlgBS29/3mLqNJ/Ocb375pPwR0bjQnzwC+xcbyw@public.gmane.org>
-Content-Language: en-US
-Content-ID: <9C81DA0DD1009D4BB0A9C18CEFE44AA9-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <20171002175431.GB13149-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "mschlining-LfVdkaOWEx8@public.gmane.org" <mschlining-LfVdkaOWEx8@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCAyMDE3LTA5LTI5IGF0IDE5OjI2ICswMDAwLCBNYXJ0eSBTY2hsaW5pbmcgd3JvdGU6
-DQo+IEkndmUgcnVuIGludG8gYW4gaXNzdWUgd2l0aCBrZXJuZWwgNC4xMy40IHdoZW4gdXNpbmcg
-U1JQLiBJIGFtIHVuYWJsZQ0KPiB0byBnZW5lcmF0ZSBhIFNDU0kgcmVhZCBvciB3cml0ZSBjb21t
-YW5kIGxhcmdlciB0aGFuIDRNQiB0byBhIExVTiB1c2luZw0KPiBzZ3BfZGQgdG8gdGhlIFNDU0kg
-R2VuZXJpYyBkZXZpY2UgKHNnKS4gQW55IGlkZWEgd2hhdCdzIGdvaW5nIG9uIGhlcmU/DQo+IElz
-IHRoZXJlIGEgbmV3IHNldHRpbmcgSSBuZWVkIHRvIGJlIGNvbmNlcm5lZCB3aXRoPyBtYXhfaHdf
-c2VjdG9yc19rYiBpcw0KPiBzZXQgaGlnaCBlbm91Z2ggdG8gZ2VuZXJhdGUgOE0gYW5kIDE2TSBj
-b21tYW5kcy4NCg0KSGVsbG8gTWFydHksDQoNCk15IDhNQiB0ZXN0cyB3aXRoIGZpbyBzdGlsbCBw
-YXNzIHNvIHRoaXMgY291bGQgYmUgc3BlY2lmaWMgdG8gdGhlIGNoYW5nZXMNCnRoYXQgd2VudCBp
-biBmb3IgdGhlIHNnIGNvZGUgaW4ga2VybmVsIHY0LjEzLiBXb3VsZCBpdCBiZSBwb3NzaWJsZSBm
-b3IgeW91DQp0byBiaXNlY3QgdGhpcz8NCg0KVGhhbmtzLA0KDQpCYXJ0Lg==
+On Mon, Oct 2, 2017 at 8:54 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Mon, Oct 02, 2017 at 04:11:01PM +0000, Hefty, Sean wrote:
+>> > [26/189] Building C object
+>> > librdmacm/CMakeFiles/rspreload.dir/preload.c.o
+>> > ../librdmacm/preload.c:818:9: warning: no previous prototype for
+>> > ???readv??? [-Wmissing-prototypes]  ssize_t readv(int socket, const struct
+>> > iovec *iov, int iovcnt)
+>> >          ^~~~~
+>> > ../librdmacm/preload.c:857:9: warning: no previous prototype for
+>> > ???writev??? [-Wmissing-prototypes]  ssize_t writev(int socket, const
+>> > struct iovec *iov, int iovcnt)
+>>
+>> Does including sys/uio.h fix this?
+>
+> Something like that is the right solution, probably caused by glibc
+> changes not gcc changes...
+>
+> The prototype must come from glibc headers.
+
+Thanks Sean and Jason.
+
+It fixed the warnings, I'll send proper patch tomorrow once I'll be at
+the office.
+
+diff --git a/librdmacm/preload.c b/librdmacm/preload.c
+index dfc23648..3ed0242e 100644
+--- a/librdmacm/preload.c
++++ b/librdmacm/preload.c
+@@ -51,6 +51,8 @@
+ #include <stdlib.h>
+ #include <stdio.h>
+
++#include <sys/uio.h>
++
+ #include <rdma/rdma_cma.h>
+ #include <rdma/rdma_verbs.h>
+ #include <rdma/rsocket.h>
+
+Thanks
+
+>
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
