@@ -1,89 +1,209 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 2/8] IB/hfi1: Fix output trace issues from 16B
- change
-Date: Mon, 02 Oct 2017 11:04:11 -0700
-Message-ID: <20171002180408.31117.96101.stgit@scvm10.sc.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH for-next 3/8] IB/hfi1: Fix incorrect available receive user
+ context count
+Date: Mon, 02 Oct 2017 11:04:19 -0700
+Message-ID: <20171002180416.31117.77075.stgit@scvm10.sc.intel.com>
 References: <20171002180204.31117.12254.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171002180204.31117.12254.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20171002180204.31117.12254.stgit@scvm10.sc.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Niranjana Vishwanathapura <Niranjana.Vishwanathapura@intel.com>, Ira Weiny <ira.weiny@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Michael J. Ruhl <michael.j.ruhl@intel.com>
 
-The 16B changes to the output side of the header trace introduced
-two issues:
+The addition of the VNIC contexts to num_rcv_contexts changes the
+meaning of the sysfs value nctxts from available user contexts, to
+user contexts + reserved VNIC contexts.
 
-1. An uninitialized field "l4" for 9B packets
+User applications that use nctxts are now broken.
 
-   This field needs to be given a value of 0 for 9B
-   packets to insure a correct 9B trace.
+Update the calculation so that VNIC contexts are used only if there are
+hardware contexts available, and do not silently affect nctxts.
 
-   The fix adds a new define to insure that there is a dummy
-   default for 9B packets to insure the correct string
-   is decoded.
+Update code to use the calculated VNIC context number.
 
-2. Use of entry vs. __entry in field references
+Update the sysfs value nctxts to be available user contexts only.
 
-Fixes: Commit 863cf89d472f ("IB/hfi1: Add 16B trace support")
-Reported-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Fixes: 2280740f01ae ("IB/hfi1: Virtual Network Interface Controller (VNIC) HW support")
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Niranjana Vishwanathapura <Niranjana.Vishwanathapura@intel.com>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Cc: <Stable@vger.kernel.org> #v4.12+
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/hfi.h          |    1 +
- drivers/infiniband/hw/hfi1/trace_ibhdrs.h |    5 +++--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c      |   35 +++++++++++++++++++-------------
+ drivers/infiniband/hw/hfi1/hfi.h       |    2 ++
+ drivers/infiniband/hw/hfi1/sysfs.c     |    2 +-
+ drivers/infiniband/hw/hfi1/vnic_main.c |    7 +++++-
+ 4 files changed, 29 insertions(+), 17 deletions(-)
 
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 680cfd4..764a066 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -13076,7 +13076,7 @@ static int request_msix_irqs(struct hfi1_devdata *dd)
+ 	first_sdma = last_general;
+ 	last_sdma = first_sdma + dd->num_sdma;
+ 	first_rx = last_sdma;
+-	last_rx = first_rx + dd->n_krcv_queues + HFI1_NUM_VNIC_CTXT;
++	last_rx = first_rx + dd->n_krcv_queues + dd->num_vnic_contexts;
+ 
+ 	/* VNIC MSIx interrupts get mapped when VNIC contexts are created */
+ 	dd->first_dyn_msix_idx = first_rx + dd->n_krcv_queues;
+@@ -13282,8 +13282,9 @@ static int set_up_interrupts(struct hfi1_devdata *dd)
+ 	 *		slow source, SDMACleanupDone)
+ 	 *	N interrupts - one per used SDMA engine
+ 	 *	M interrupt - one per kernel receive context
++	 *	V interrupt - one for each VNIC context
+ 	 */
+-	total = 1 + dd->num_sdma + dd->n_krcv_queues + HFI1_NUM_VNIC_CTXT;
++	total = 1 + dd->num_sdma + dd->n_krcv_queues + dd->num_vnic_contexts;
+ 
+ 	/* ask for MSI-X interrupts */
+ 	request = request_msix(dd, total);
+@@ -13344,10 +13345,12 @@ static int set_up_interrupts(struct hfi1_devdata *dd)
+  *                             in array of contexts
+  *	freectxts  - number of free user contexts
+  *	num_send_contexts - number of PIO send contexts being used
++ *	num_vnic_contexts - number of contexts reserved for VNIC
+  */
+ static int set_up_context_variables(struct hfi1_devdata *dd)
+ {
+ 	unsigned long num_kernel_contexts;
++	u16 num_vnic_contexts = HFI1_NUM_VNIC_CTXT;
+ 	int total_contexts;
+ 	int ret;
+ 	unsigned ngroups;
+@@ -13381,6 +13384,14 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
+ 			   num_kernel_contexts);
+ 		num_kernel_contexts = dd->chip_send_contexts - num_vls - 1;
+ 	}
++
++	/* Accommodate VNIC contexts if possible */
++	if ((num_kernel_contexts + num_vnic_contexts) > dd->chip_rcv_contexts) {
++		dd_dev_err(dd, "No receive contexts available for VNIC\n");
++		num_vnic_contexts = 0;
++	}
++	total_contexts = num_kernel_contexts + num_vnic_contexts;
++
+ 	/*
+ 	 * User contexts:
+ 	 *	- default to 1 user context per real (non-HT) CPU core if
+@@ -13390,19 +13401,16 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
+ 		num_user_contexts =
+ 			cpumask_weight(&node_affinity.real_cpu_mask);
+ 
+-	total_contexts = num_kernel_contexts + num_user_contexts;
+-
+ 	/*
+ 	 * Adjust the counts given a global max.
+ 	 */
+-	if (total_contexts > dd->chip_rcv_contexts) {
++	if (total_contexts + num_user_contexts > dd->chip_rcv_contexts) {
+ 		dd_dev_err(dd,
+ 			   "Reducing # user receive contexts to: %d, from %d\n",
+-			   (int)(dd->chip_rcv_contexts - num_kernel_contexts),
++			   (int)(dd->chip_rcv_contexts - total_contexts),
+ 			   (int)num_user_contexts);
+-		num_user_contexts = dd->chip_rcv_contexts - num_kernel_contexts;
+ 		/* recalculate */
+-		total_contexts = num_kernel_contexts + num_user_contexts;
++		num_user_contexts = dd->chip_rcv_contexts - total_contexts;
+ 	}
+ 
+ 	/* each user context requires an entry in the RMT */
+@@ -13415,25 +13423,24 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
+ 			   user_rmt_reduced);
+ 		/* recalculate */
+ 		num_user_contexts = user_rmt_reduced;
+-		total_contexts = num_kernel_contexts + num_user_contexts;
+ 	}
+ 
+-	/* Accommodate VNIC contexts */
+-	if ((total_contexts + HFI1_NUM_VNIC_CTXT) <= dd->chip_rcv_contexts)
+-		total_contexts += HFI1_NUM_VNIC_CTXT;
++	total_contexts += num_user_contexts;
+ 
+ 	/* the first N are kernel contexts, the rest are user/vnic contexts */
+ 	dd->num_rcv_contexts = total_contexts;
+ 	dd->n_krcv_queues = num_kernel_contexts;
+ 	dd->first_dyn_alloc_ctxt = num_kernel_contexts;
++	dd->num_vnic_contexts = num_vnic_contexts;
+ 	dd->num_user_contexts = num_user_contexts;
+ 	dd->freectxts = num_user_contexts;
+ 	dd_dev_info(dd,
+-		    "rcv contexts: chip %d, used %d (kernel %d, user %d)\n",
++		    "rcv contexts: chip %d, used %d (kernel %d, vnic %u, user %u)\n",
+ 		    (int)dd->chip_rcv_contexts,
+ 		    (int)dd->num_rcv_contexts,
+ 		    (int)dd->n_krcv_queues,
+-		    (int)dd->num_rcv_contexts - dd->n_krcv_queues);
++		    dd->num_vnic_contexts,
++		    dd->num_user_contexts);
+ 
+ 	/*
+ 	 * Receive array allocation:
 diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index cb74ae8..44a2c8f 100644
+index 44a2c8f..2f3c830 100644
 --- a/drivers/infiniband/hw/hfi1/hfi.h
 +++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -390,6 +390,7 @@ struct hfi1_packet {
- /*
-  * OPA 16B L2/L4 Encodings
-  */
-+#define OPA_16B_L4_9B		0x00
- #define OPA_16B_L2_TYPE		0x02
- #define OPA_16B_L4_IB_LOCAL	0x09
- #define OPA_16B_L4_IB_GLOBAL	0x0A
-diff --git a/drivers/infiniband/hw/hfi1/trace_ibhdrs.h b/drivers/infiniband/hw/hfi1/trace_ibhdrs.h
-index 6dd0d63..fb63127 100644
---- a/drivers/infiniband/hw/hfi1/trace_ibhdrs.h
-+++ b/drivers/infiniband/hw/hfi1/trace_ibhdrs.h
-@@ -334,7 +334,7 @@ void hfi1_trace_parse_16b_hdr(struct hfi1_16b_header *hdr,
- 							 &__entry->dlid,
- 							 &__entry->slid);
+@@ -1049,6 +1049,8 @@ struct hfi1_devdata {
+ 	u64 z_send_schedule;
  
--				if (entry->l4 == OPA_16B_L4_IB_LOCAL)
-+				if (__entry->l4 == OPA_16B_L4_IB_LOCAL)
- 					ohdr = &opah->opah.u.oth;
- 				else
- 					ohdr = &opah->opah.u.l.oth;
-@@ -348,6 +348,7 @@ void hfi1_trace_parse_16b_hdr(struct hfi1_16b_header *hdr,
- 							 &__entry->psn,
- 							 &__entry->qpn);
- 			} else {
-+				__entry->l4 = OPA_16B_L4_9B;
- 				hfi1_trace_parse_9b_hdr(&opah->ibh, sc5,
- 							&__entry->lnh,
- 							&__entry->lver,
-@@ -356,7 +357,7 @@ void hfi1_trace_parse_16b_hdr(struct hfi1_16b_header *hdr,
- 							&__entry->len,
- 							&__entry->dlid,
- 							&__entry->slid);
--				if (entry->lnh == HFI1_LRH_BTH)
-+				if (__entry->lnh == HFI1_LRH_BTH)
- 					ohdr = &opah->ibh.u.oth;
- 				else
- 					ohdr = &opah->ibh.u.l.oth;
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	u64 __percpu *send_schedule;
++	/* number of reserved contexts for VNIC usage */
++	u16 num_vnic_contexts;
+ 	/* number of receive contexts in use by the driver */
+ 	u32 num_rcv_contexts;
+ 	/* number of pio send contexts in use by the driver */
+diff --git a/drivers/infiniband/hw/hfi1/sysfs.c b/drivers/infiniband/hw/hfi1/sysfs.c
+index 6d2702e..25e8673 100644
+--- a/drivers/infiniband/hw/hfi1/sysfs.c
++++ b/drivers/infiniband/hw/hfi1/sysfs.c
+@@ -543,7 +543,7 @@ static ssize_t show_nctxts(struct device *device,
+ 	 * give a more accurate picture of total contexts available.
+ 	 */
+ 	return scnprintf(buf, PAGE_SIZE, "%u\n",
+-			 min(dd->num_rcv_contexts - dd->first_dyn_alloc_ctxt,
++			 min(dd->num_user_contexts,
+ 			     (u32)dd->sc_sizes[SC_USER].count));
+ }
+ 
+diff --git a/drivers/infiniband/hw/hfi1/vnic_main.c b/drivers/infiniband/hw/hfi1/vnic_main.c
+index f419cbb..1a17708 100644
+--- a/drivers/infiniband/hw/hfi1/vnic_main.c
++++ b/drivers/infiniband/hw/hfi1/vnic_main.c
+@@ -840,6 +840,9 @@ struct net_device *hfi1_vnic_alloc_rn(struct ib_device *device,
+ 	struct rdma_netdev *rn;
+ 	int i, size, rc;
+ 
++	if (!dd->num_vnic_contexts)
++		return ERR_PTR(-ENOMEM);
++
+ 	if (!port_num || (port_num > dd->num_pports))
+ 		return ERR_PTR(-EINVAL);
+ 
+@@ -848,7 +851,7 @@ struct net_device *hfi1_vnic_alloc_rn(struct ib_device *device,
+ 
+ 	size = sizeof(struct opa_vnic_rdma_netdev) + sizeof(*vinfo);
+ 	netdev = alloc_netdev_mqs(size, name, name_assign_type, setup,
+-				  dd->chip_sdma_engines, HFI1_NUM_VNIC_CTXT);
++				  dd->chip_sdma_engines, dd->num_vnic_contexts);
+ 	if (!netdev)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -856,7 +859,7 @@ struct net_device *hfi1_vnic_alloc_rn(struct ib_device *device,
+ 	vinfo = opa_vnic_dev_priv(netdev);
+ 	vinfo->dd = dd;
+ 	vinfo->num_tx_q = dd->chip_sdma_engines;
+-	vinfo->num_rx_q = HFI1_NUM_VNIC_CTXT;
++	vinfo->num_rx_q = dd->num_vnic_contexts;
+ 	vinfo->netdev = netdev;
+ 	rn->free_rdma_netdev = hfi1_vnic_free_rn;
+ 	rn->set_id = hfi1_vnic_set_vesw_id;
