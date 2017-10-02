@@ -1,54 +1,27 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: user verbs question
-Date: Mon, 2 Oct 2017 16:29:34 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC3441F37D@fmsmsx120.amr.corp.intel.com>
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH 00/18] use ARRAY_SIZE macro
+Date: Mon, 2 Oct 2017 13:37:34 -0300
+Message-ID: <20171002133734.6ac10ded@recife.lan>
+References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
+        <20171001220131.GA11812@eros>
+        <20171001205220.10b78086@blatinox-laptop.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Jason Gunthorpe (jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org)" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20171001205220.10b78086@blatinox-laptop.localdomain>
+Sender: linux-media-owner@vger.kernel.org
+To: =?UTF-8?B?SsOpcsOpbXk=?= Lefaure <jeremy.lefaure@lse.epita.fr>
+Cc: "Tobin C. Harding" <me@tobin.cc>, alsa-devel@alsa-project.org, nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org, dm-devel@redhat.com, brcm80211-dev-list@cypress.com, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-acpi@vger.kernel.org, linux-video@atrey.karlin.mff.cuni.cz, intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org, ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org, linux-raid@vger.kernel.org, openipmi-developer@lists.sourceforge.net, intel-gvt-dev@lists.freedesktop.org, devel@acpica.org, brcm80211-dev-list.pdl@broadcom.com, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vge
 List-Id: linux-rdma@vger.kernel.org
 
-We have run into an issue with perftest and the user verbs libraries. 
+Em Sun, 1 Oct 2017 20:52:20 -0400
+J√©r√©my Lefaure <jeremy.lefaure@lse.epita.fr> escreveu:
 
-An {qib,hfi1} create_cq fails because of a driver limit in created a recv_cq for perftest.† †We found this with new UD and UC tests.
+> Anyway, I can tell to each maintainer that they can apply the patches
+> they're concerned about and next time I may send individual patches.
 
-We can increase the limit, but.
+In the case of media, we'll handle it as if they were individual ones.
 
-perftest runs on after having failed to create a †recv_cq:
-and passes a NULL attr->recv_cq to the user libraries:
-
-††††††† if (create_cqs(ctx, user_param)) {
-††††††††††††††† fprintf(stderr, "Failed to create CQs\n");
-††††††††††††††† /* no return FAILUE */
-††††††† }
-
-recv_cq is then NULL in a create_qp exposing issues with:
-
-int ibv_cmd_create_qp(struct ibv_pd *pd,
-††††††††††††††††††††† struct ibv_qp *qp, struct ibv_qp_init_attr *attr,
-††††††††††††††††††††† struct ibv_create_qp *cmd, size_t cmd_size,
-††††††††††††††††††††† struct ibv_create_qp_resp *resp, size_t resp_size)
-{
-††††††† IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_QP, resp, resp_size);
-
-††††††† cmd->user_handle†††† = (uintptr_t) qp;
-††††††† cmd->pd_handle†††††† = pd->handle;
-††††††† cmd->send_cq_handle† = attr->send_cq->handle; <- potential NULL derefs
-††††††† cmd->recv_cq_handle† = attr->recv_cq->handle;
-
-If either the send_cq or recv_cq are NULL, the job will seqfault.
-
-This could have been checked before the deref here, but other spots in the code lack similar parameter validation.
-
-Comments?
-
-Mike
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Mauro
