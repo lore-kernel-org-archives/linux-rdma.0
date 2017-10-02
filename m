@@ -1,44 +1,41 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH net] RDS: IB: Limit the scope of has_fr/has_fmr variables
-Date: Mon, 2 Oct 2017 13:30:43 -0700
-Message-ID: <1172819f-1c28-7756-4874-aa89f50c0733@oracle.com>
-References: <1506734030-15205-1-git-send-email-avinash.repaka@oracle.com>
- <20171001.225419.1632354964848604960.davem@davemloft.net>
- <20171001.225655.1261950191787562705.davem@davemloft.net>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: question about mlx5 MSI-X assignment
+Date: Mon, 2 Oct 2017 14:36:23 -0600
+Message-ID: <20171002203623.GC13149@obsidianresearch.com>
+References: <78728626-4430-4C57-A0ED-79777416963C@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171001.225655.1261950191787562705.davem@davemloft.net>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>, avinash.repaka@oracle.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <78728626-4430-4C57-A0ED-79777416963C-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/1/2017 10:56 PM, David Miller wrote:
-> From: David Miller <davem@davemloft.net>
-> Date: Sun, 01 Oct 2017 22:54:19 -0700 (PDT)
-> 
->> From: Avinash Repaka <avinash.repaka@oracle.com>
->> Date: Fri, 29 Sep 2017 18:13:50 -0700
->>
->>> This patch fixes the scope of has_fr and has_fmr variables as they are
->>> needed only in rds_ib_add_one().
->>>
->>> Signed-off-by: Avinash Repaka <avinash.repaka@oracle.com>
->>
->> Applied.
-> 
-> Actually, reverted, this breaks the build.
-> 
-> net/rds/rdma_transport.c:38:10: fatal error: ib.h: No such file or directory
->   #include "ib.h"
-> 
-> Although I can't see how in the world this patch is causing such
-> an error.
-> 
-Weird indeed. Will sort this out with Avinash. Thanks Dave.
+On Mon, Oct 02, 2017 at 03:10:22PM -0400, Chuck Lever wrote:
 
-Regards,
-Santosh
+> RPC-over-RDMA in v4.14 always uses a compvec of 0. Due to the above observed behavior,
+> this means that interrupts for both of these cards always route to socket 0, even though
+> the CX-4 is affined to socket 1.
+
+I think, broadly speaking, the NUMA abstractions in RDMA need work,
+and this is one of the areas... So I think what you are seeing is that
+this just doesn't make much sense today and there isn't really a good
+plan here. I'm sure something can be hacked together by futzing with
+the compvec.
+
+Ideally, if a ULP wishes to use a specific NUMA domain, then it should
+communicate that in the native kernel language for talking about NUMA
+domains and not translate into the goofy compvec.
+
+This applies broadly to not only the interrupt, but all driver
+allocations related to a QP/CQ, maybe even to short lived
+MRs.. Depending on what performs well.. Generally putting memory
+closer to the reader is a good idea.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
