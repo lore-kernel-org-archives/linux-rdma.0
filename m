@@ -1,61 +1,56 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: librdmacm in rdma-core build warnings
-Date: Mon, 2 Oct 2017 21:27:46 +0300
-Message-ID: <CALq1K=+At0ytaxUs4NbznwkYx7+dL+XLtCUaxbVAMLb0WjyqRw@mail.gmail.com>
-References: <20171002061532.GJ2031@mtr-leonro.local> <1828884A29C6694DAF28B7E6B8A82373AB199DAC@ORSMSX109.amr.corp.intel.com>
- <20171002175431.GB13149@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: question about mlx5 MSI-X assignment
+Date: Mon, 2 Oct 2017 15:10:22 -0400
+Message-ID: <78728626-4430-4C57-A0ED-79777416963C@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171002175431.GB13149-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 2, 2017 at 8:54 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Mon, Oct 02, 2017 at 04:11:01PM +0000, Hefty, Sean wrote:
->> > [26/189] Building C object
->> > librdmacm/CMakeFiles/rspreload.dir/preload.c.o
->> > ../librdmacm/preload.c:818:9: warning: no previous prototype for
->> > ???readv??? [-Wmissing-prototypes]  ssize_t readv(int socket, const struct
->> > iovec *iov, int iovcnt)
->> >          ^~~~~
->> > ../librdmacm/preload.c:857:9: warning: no previous prototype for
->> > ???writev??? [-Wmissing-prototypes]  ssize_t writev(int socket, const
->> > struct iovec *iov, int iovcnt)
->>
->> Does including sys/uio.h fix this?
->
-> Something like that is the right solution, probably caused by glibc
-> changes not gcc changes...
->
-> The prototype must come from glibc headers.
+I have a two-socket x86_64 system with two NUMA domains. There is a Mellanox CX-3 Pro
+and a CX-4 in this system. The CX-3 Pro is affined to socket 0 / domain 0, and the
+CX-4 is affined to socket 1 / domain 1 (since that's where the x16 slot is).
 
-Thanks Sean and Jason.
+(This is a Supermicro X10DRi mainboard)
 
-It fixed the warnings, I'll send proper patch tomorrow once I'll be at
-the office.
+The CX-3 Pro compvecs allow interrupts only on the same CPUs as the device's reported
+numa_node. I confirmed this by adding logic to the RPC-over-RDMA client to rotate the
+ib_alloc_cq's compvec argument, and then I watch /proc/interrupts to see where the
+interrupts are delivered. I see interrupts only on cores on socket 0. This matches the
+value in the ib_device's numa_node field.
 
-diff --git a/librdmacm/preload.c b/librdmacm/preload.c
-index dfc23648..3ed0242e 100644
---- a/librdmacm/preload.c
-+++ b/librdmacm/preload.c
-@@ -51,6 +51,8 @@
- #include <stdlib.h>
- #include <stdio.h>
+The CX-4 compvecs appear to be spread across both sockets, ie they are not limited to
+the device's reported numa_node. /proc/interrupts shows that interrupts can be delivered
+on any CPU core on the system. The ib_device's numa_node field contains 1 for this device,
+which matches the NUMA domain where this device is bound, but the interrupts appear on
+domain 0 or domain 1 (depending on the ib_alloc_cq call's compvec argument).
 
-+#include <sys/uio.h>
-+
- #include <rdma/rdma_cma.h>
- #include <rdma/rdma_verbs.h>
- #include <rdma/rsocket.h>
+Is the mlx5 driver correct to allow cross-socket interrupts? Or is the BIOS or platform
+somehow binding the CX-4's interrupts incorrectly? Or, do I grossly misunderstand
+something?
 
-Thanks
+RPC-over-RDMA in v4.14 always uses a compvec of 0. Due to the above observed behavior,
+this means that interrupts for both of these cards always route to socket 0, even though
+the CX-4 is affined to socket 1.
 
->
-> Jason
+ULPs control the compvec, which is an abstraction of the MSI-X. I believe ULPs thus
+depend on the lower layers to ensure that device interrupts (and completions) will be
+delivered to an appropriate CPU core. That does not appear to be happening with my
+CX-4 device.
+
+I'm also considering changing RPC-over-RDMA to allocate its Send and Receive buffers
+on the NUMA domain listed in the ib_device's numa_node field. This of course would be
+a meaningless change if device interrupts are delivered to some other NUMA domain.
+
+
+--
+Chuck Lever
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
