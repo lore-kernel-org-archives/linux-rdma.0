@@ -1,49 +1,44 @@
-From: bfields@fieldses.org (J. Bruce Fields)
-Subject: Re: [PATCH 00/18] use ARRAY_SIZE macro
-Date: Mon, 2 Oct 2017 15:22:24 -0400
-Message-ID: <20171002192224.GD1903@fieldses.org>
-References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
- <20171001220131.GA11812@eros>
- <20171001205220.10b78086@blatinox-laptop.localdomain>
- <20171002053554.GA28743@kroah.com>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH net] RDS: IB: Limit the scope of has_fr/has_fmr variables
+Date: Mon, 2 Oct 2017 13:30:43 -0700
+Message-ID: <1172819f-1c28-7756-4874-aa89f50c0733@oracle.com>
+References: <1506734030-15205-1-git-send-email-avinash.repaka@oracle.com>
+ <20171001.225419.1632354964848604960.davem@davemloft.net>
+ <20171001.225655.1261950191787562705.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171002053554.GA28743@kroah.com>
-Sender: netdev-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: =?utf-8?B?SsOpcsOpbXk=?= Lefaure <jeremy.lefaure@lse.epita.fr>, "Tobin C. Harding" <me@tobin.cc>, alsa-devel@alsa-project.org, nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org, dm-devel@redhat.com, brcm80211-dev-list@cypress.com, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-acpi@vger.kernel.org, linux-video@atrey.karlin.mff.cuni.cz, intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org, ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org, linux-raid@vger.kernel.org, openipmi-developer@lists.sourceforge.net, intel-gvt-dev@lists.freedesktop.org, devel@acpica.org, brcm80211-dev-list.pdl@broadcom.com, netde
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171001.225655.1261950191787562705.davem@davemloft.net>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>, avinash.repaka@oracle.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 02, 2017 at 07:35:54AM +0200, Greg KH wrote:
-> On Sun, Oct 01, 2017 at 08:52:20PM -0400, Jérémy Lefaure wrote:
-> > On Mon, 2 Oct 2017 09:01:31 +1100
-> > "Tobin C. Harding" <me@tobin.cc> wrote:
-> > 
-> > > > In order to reduce the size of the To: and Cc: lines, each patch of the
-> > > > series is sent only to the maintainers and lists concerned by the patch.
-> > > > This cover letter is sent to every list concerned by this series.  
-> > > 
-> > > Why don't you just send individual patches for each subsystem? I'm not a maintainer but I don't see
-> > > how any one person is going to be able to apply this whole series, it is making it hard for
-> > > maintainers if they have to pick patches out from among the series (if indeed any will bother
-> > > doing that).
-> > Yeah, maybe it would have been better to send individual patches.
-> > 
-> > From my point of view it's a series because the patches are related (I
-> > did a git format-patch from my local branch). But for the maintainers
-> > point of view, they are individual patches.
+On 10/1/2017 10:56 PM, David Miller wrote:
+> From: David Miller <davem@davemloft.net>
+> Date: Sun, 01 Oct 2017 22:54:19 -0700 (PDT)
 > 
-> And the maintainers view is what matters here, if you wish to get your
-> patches reviewed and accepted...
+>> From: Avinash Repaka <avinash.repaka@oracle.com>
+>> Date: Fri, 29 Sep 2017 18:13:50 -0700
+>>
+>>> This patch fixes the scope of has_fr and has_fmr variables as they are
+>>> needed only in rds_ib_add_one().
+>>>
+>>> Signed-off-by: Avinash Repaka <avinash.repaka@oracle.com>
+>>
+>> Applied.
+> 
+> Actually, reverted, this breaks the build.
+> 
+> net/rds/rdma_transport.c:38:10: fatal error: ib.h: No such file or directory
+>   #include "ib.h"
+> 
+> Although I can't see how in the world this patch is causing such
+> an error.
+> 
+Weird indeed. Will sort this out with Avinash. Thanks Dave.
 
-Mainly I'd just like to know which you're asking for.  Do you want me to
-apply this, or to ACK it so someone else can?  If it's sent as a series
-I tend to assume the latter.
-
-But in this case I'm assuming it's the former, so I'll pick up the nfsd
-one....
-
---b.
+Regards,
+Santosh
