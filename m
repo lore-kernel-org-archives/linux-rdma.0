@@ -1,105 +1,70 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 0/2] IB/opa_vnic: Add debugfs interface
-Date: Tue, 3 Oct 2017 08:15:21 +0300
-Message-ID: <20171003051521.GA26055@mtr-leonro.local>
-References: <20170928185753.GG2297@mtr-leonro.local>
- <20170928190502.GA33289@knc-06.sc.intel.com>
- <20170928193740.GH2297@mtr-leonro.local>
- <20170928200258.GA27343@obsidianresearch.com>
- <20170929054959.GJ2297@mtr-leonro.local>
- <cbb65789-2d1e-779e-77f8-55b435511069@intel.com>
- <20170929145950.GC2965@mtr-leonro.local>
- <20170929152707.GA34521@knc-06.sc.intel.com>
- <20171002042323.GG2031@mtr-leonro.local>
- <68a08a10-5b8d-4fd7-ad06-8add423bd3cd@intel.com>
+Subject: Re: Why don't we always check that attr->port_num is valid?
+Date: Tue, 3 Oct 2017 08:21:59 +0300
+Message-ID: <20171003052159.GB26055@mtr-leonro.local>
+References: <20171002113431.lqkf4ilmimjfouc7@mwanda>
+ <20171002152033.GB12331@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="HcAYCG3uE/tztfnV"
+        protocol="application/pgp-signature"; boundary="98e8jtXdkpgskNou"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <68a08a10-5b8d-4fd7-ad06-8add423bd3cd-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20171002152033.GB12331-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---HcAYCG3uE/tztfnV
+--98e8jtXdkpgskNou
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Oct 02, 2017 at 08:47:08PM -0400, Dennis Dalessandro wrote:
-> On 10/2/2017 12:23 AM, Leon Romanovsky wrote:
-> > Upstream is not a development playground and you should submit your code once
-> > you think that it is ready. So we are assuming that VNIC is working and
-> > you are interested to debug your EM and such code doesn't belong to the kernel.
+On Mon, Oct 02, 2017 at 09:20:33AM -0600, Jason Gunthorpe wrote:
+> On Mon, Oct 02, 2017 at 02:34:31PM +0300, Dan Carpenter wrote:
 >
-> This patch aside, I do have to take some issue with this statement. While
-> upstream is not a "playground" we should be submitting code early. I keep
-> harping on iterative development, show your work. Granted that doesn't mean
-> write broken code and toss it over the fence to kernel.org, but pieces that
-> can be broken up and tested on their own are best.
+> > We deliberately allow invalid attr->port_nums if IB_QP_PORT is not set.
+> > Why must we do that?  From a kernel hardening perspective it would be
+> > better to ban invalid values all together...
+>
+> It is part of the user ABI, so it has to stay that way...
 
-We are talking about the same. Large feature (VNIC) was divided to
-sub-tasks like patches and maybe sub-features. Those sub-features were
-submitted early (iterative development), which is good and sounds right
-for me too.
+Can we pre-process all invalid parameters at the kernel entry points to
+ensure that drivers receive clean input?
 
-But the expectation is that these building blocks are tested and working
-and you don't need to debug them.
-
-For sure, there are always exceptions to the statements above and
-various counters, states, dumps e.t.c are good examples for
-such exceptions, because they add visibility to the system, but they
-don't change the system.
+For example, overwrite attr->port_nums to be zero if IB_QP_PORT is not set.
 
 >
-> > If you still insist on 2.a, the solution should be in your company: add
-> > debugfs locally, write tests, find and fix bugs and submit them to
-> > upstream.
+> Can some code restructuring bring both things under the same if
+> somehow?
 >
-> Now back to this patch series. debugfs vs NetLink, I don't think it really
-> matters if the rationale for having the patch in the first place is wrong.
-> In other words you would have still opposed this even if it were NetLink I
-> assume? We are discussing internally but for now I think this series can be
-> dropped.
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I am more than happy to see OPA-VNIC configurations in NetLink, but
-don't forget that it will be part of ABI and users will use it, so you
-need to ensure that the OPA-VNIC network won't die after one of the
-nodes will change vport value.
-
-Before you are rushing to implement it via netlink, you should ask
-yourself WHY this functionality is needed for the users.
-
->
-> > There is no need to add "one-time" interface to clean the code.
->
-> That I would agree to.
->
-> -Denny
-
---HcAYCG3uE/tztfnV
+--98e8jtXdkpgskNou
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnTHOkACgkQ5GN7iDZy
-WKcO5A//YeIAqM3NFXK0LIV75g5nq0KUg84JWhafKeV4ZqcX7UOuWZUK5AXaHk2N
-VgR6a7hVULgY196G2wLUrJcf54tie5ZO53YRxUX1WGS9gfPfIDgWfX+cAhrlAGli
-6k6wRF/uL7pvf12wHRW6qlMd+oEsiptyGYvuZLPDi6Lw/pd8IndoGBad6MAChDWM
-pU7e5/FiGVFBWQH2W+CuLfufbYqhQ5nvtJocuD0k56ilbDNZt8TyKDO/fnHINvlW
-iO2xsQdysZ71qRn5Q4QBUXtDIXeDYEIWIr2ks5pLkiWd2v8ynWsOfHdh2DreBBQP
-/gDGVASq7uMOkjNBZojPg4oq2Ffw/nXLsNea0rM7h9tmj7a2NWm8Dpuy0qVOVfCf
-GWdOX3hDq3FBLdDOG84l4qbaUQwvaAJVtAojwv1zFZzaIIy7mSk7G/tKtvIrRWQn
-NaZyM60cIBpr/aD5omVJPenHgOdXVcHsoIr29+SR58HZ3uKZgdPlUF6hyaT43A/B
-jZTXb0/DQ/Cd9pCgSXNkFy2fYlMhAvfROUVFPhjSKFTYtGVezYO1eBwxGgr55pJd
-AVPVpWJTZXrTOAIa4os0X4x/Yft0inzMRIwJJPjNM8d35nJD6hSvx3hNngTjCfH7
-2dHt5Vjh4McTap1OfyInT+7f/LUVjVlBRCSHOwIQD48peo8I16g=
-=gb8W
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnTHncACgkQ5GN7iDZy
+WKe+RxAAkf80KEubFTEW/fL0v045Ha7fdBhUz9SDPhcOyo1xy+0k/Z/PypibU2A8
+kEo6Z0IZsdDbensqFhCW85XE2YetKqMx3/IdY28NINOz7QMU9AAPwd1IhnqhAs2h
+iuQXrQNMphzIujuSb0Dzmgg23+9tvgSlfLY21xfvm3w9gZ1OSm7u72kS0w89mEjd
+9qOom/CLYZ5HkMR0lv0iDPwG0J3CwpafOZ+14cjo+Zz6U2LLSu1mb+rpXwdqQd94
+LjfkvdlxdqB4iqvICHfiPNRHPFJhYTCnd5Qo9gFX4aXFqoas2w1xYri5Bb9bjL3m
+jIRgKfaceDdmU+WnbTxyHnS5IWQpaTbMQGt49a8IKszF78JAudFdC+gXhXPXROTn
+tvxrY1D350ir6GFPawvbhNbNvoQYXr+4502R34kRQuqbhHaGovkzGuAgshh9JR1K
+I7G2GFZ6NAwROJr09JNaPPp1tc3ooQ1yA8IhhAD5jyhl+K7r6Q03m9SSDCC+SHOI
+iGLyft/STR3D/6/r6K8axlQRatMuId8WyuGxUzxqtcnDAOxU4S8hXmVFTO/+JkTI
+FYjVE8eLd1G/Ai87v1qJCHSYyZHJJ0b6yaaA/pFX/hkvAIwXwg+0v2IyA7D7ei22
+EckAZosUiahZAr7g2hP4H0UiZC+nZAjS8UE3bFAi34m+D2HtmPI=
+=oZfX
 -----END PGP SIGNATURE-----
 
---HcAYCG3uE/tztfnV--
+--98e8jtXdkpgskNou--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
