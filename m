@@ -1,106 +1,112 @@
 From: Arnaldo Carvalho de Melo <acme@kernel.org>
-Subject: [GIT PULL 0/2] infiniband hfi1 PREEMPT_RT_FULL changes
-Date: Tue,  3 Oct 2017 12:49:18 -0300
-Message-ID: <20171003154920.31566-1-acme@kernel.org>
+Subject: [PATCH 1/2] IB/hfi1: Use preempt_{dis,en}able_nort()
+Date: Tue,  3 Oct 2017 12:49:19 -0300
+Message-ID: <20171003154920.31566-2-acme@kernel.org>
+References: <20171003154920.31566-1-acme@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171003154920.31566-1-acme@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: bigeasy@linutronix.de
-Cc: linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org, Arnaldo Carvalho de Melo <acme@kernel.org>, Arnaldo Carvalho de Melo <acme@redhat.com>, Clark Williams <williams@redhat.com>, Dean Luick <dean.luick@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Julia Cartwright <julia@ni.com>, Kaike Wan <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org, Arnaldo Carvalho de Melo <acme@redhat.com>, Clark Williams <williams@redhat.com>, Dean Luick <dean.luick@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Kaike Wan <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+From: Arnaldo Carvalho de Melo <acme@redhat.com>
 
-	Please consider pulling into the linux-4.11.y-rt branch,
+sc_buffer_alloc() disables preemption that will be reenabled by either
+pio_copy() or seg_pio_copy_end(). But before disabling preemption it
+grabs a spin lock that will be dropped after it disables preemption,
+which ends up triggering a warning in migrate_disable() later on.
 
-	It was tested with a simple netperf script found below (that I
-intercepted from PeterZ :-)), systems with default kernel tunables, with
-the following results:
+    spin_lock_irqsave(&sc->alloc_lock)
+      migrate_disable() ++p->migrate_disable -> 2
+    preempt_disable()
+    spin_unlock_irqrestore(&sc->alloc_lock)
+      migrate_enable() in_atomic(), so just returns, migrate_disable stays at 2
+    spin_lock_irqsave(some other lock) -> b00m
 
-# Both machines:
-[root@opa0-qa-06 ~]# getconf _NPROCESSORS_ONLN
-40
-[root@opa0-qa-06 ~]# ./netpeterz 
-                  3.10.0-716         3.10.0-716.rt56.644.test   
-TCP_SENDFILE-1 :  Avg: 18014.7       Avg: 16443.6
-TCP_SENDFILE-10 : Avg:  1691.76      Avg:  2070.77
-TCP_SENDFILE-20 : Avg:   833.356     Avg:  1090.62
-TCP_SENDFILE-40 : Avg:   409.206     Avg:   560.65
-TCP_SENDFILE-80 : Avg:   197.961     Avg:   216.654
-TCP_STREAM-1 :    Avg: 21648.3       Avg: 18678.7  
-TCP_STREAM-10 :   Avg:  1804.94      Avg:  1683.76
-TCP_STREAM-20 :   Avg:   839.943     Avg:   857.156
-TCP_STREAM-40 :   Avg:   399.508     Avg:   428.413
-TCP_STREAM-80 :   Avg:   191.331     Avg:   203.931
-TCP_MAERTS-1 :    Avg: 21363         Avg: 21082.8
-TCP_MAERTS-10 :   Avg:  1626.78      Avg:  2145.71
-TCP_MAERTS-20 :   Avg:   699.969     Avg:   960.48
-TCP_MAERTS-40 :   Avg:   378.719     Avg:   496.143
-TCP_MAERTS-80 :   Avg:   183.864     Avg:   251.155
-TCP_RR-1 :        Avg: 37258.7       Avg: 27904.7
-TCP_RR-10 :       Avg: 14880.6       Avg: 12176.9
-TCP_RR-20 :       Avg:  7482.94      Avg:  5964.42
-TCP_RR-40 :       Avg:  3762.57      Avg:  2937.66
-TCP_RR-80 :       Avg:  1909.16      Avg:  1468.5
-UDP_RR-1 :        Avg: 40755.8       Avg: 30205
-UDP_RR-10 :       Avg: 15197.6       Avg: 13460.7
-UDP_RR-20 :       Avg:  7552.46      Avg:  6553.47
-UDP_RR-40 :       Avg:  3798.78      Avg:  3134.96
-UDP_RR-80 :       Avg:  1922.08      Avg:  1533.69
-UDP_STREAM-1 :    Avg: 18385.7       Avg: 17827.5
-UDP_STREAM-10 :   Avg: 27855.9       Avg:  1641.97
-UDP_STREAM-20 :   Avg: 11650.8       Avg:  1309.35
-UDP_STREAM-40 :   Avg:  3824.01      Avg:   669.287
-UDP_STREAM-80 :   Avg:  3465.8       Avg:   441.299
-[root@opa0-qa-06 ~]#
+And the WARN_ON code ends up tripping over this over and over in
+log_store().
 
-[root@opa0-qa-06 ~]# cat netpeterz
-#!/bin/bash
+Sequence captured via ftrace_dump_on_oops + crash utility 'dmesg'
+command.
 
-addrs="-L 172.31.20.6 -H 172.31.20.5"
+[512258.613862] sm-3297 16 .....11 359465349134644: sc_buffer_alloc <-hfi1_verbs_send_pio
+[512258.613876] sm-3297 16 .....11 359465349134719: migrate_disable <-sc_buffer_alloc
+[512258.613890] sm-3297 16 .....12 359465349134798: rt_spin_lock <-sc_buffer_alloc
+[512258.613903] sm-3297 16 ....112 359465349135481: rt_spin_unlock <-sc_buffer_alloc
+[512258.613916] sm-3297 16 ....112 359465349135556: migrate_enable <-sc_buffer_alloc
+[512258.613935] sm-3297 16 ....112 359465349135788: seg_pio_copy_start <-hfi1_verbs_send_pio
+[512258.613954] sm-3297 16 ....112 359465349136273: update_sge <-hfi1_verbs_send_pio
+[512258.613981] sm-3297 16 ....112 359465349136373: seg_pio_copy_mid <-hfi1_verbs_send_pio
+[512258.613999] sm-3297 16 ....112 359465349136873: update_sge <-hfi1_verbs_send_pio
+[512258.614017] sm-3297 16 ....112 359465349136956: seg_pio_copy_mid <-hfi1_verbs_send_pio
+[512258.614035] sm-3297 16 ....112 359465349137221: seg_pio_copy_end <-hfi1_verbs_send_pio
+[512258.614048] sm-3297 16 .....12 359465349137360: migrate_disable <-hfi1_verbs_send_pio
+[512258.614065] sm-3297 16 .....12 359465349137476: warn_slowpath_null <-migrate_disable
+[512258.614081] sm-3297 16 .....12 359465349137564: __warn <-warn_slowpath_null
+[512258.614088] sm-3297 16 .....12 359465349137958: printk <-__warn
+[512258.614096] sm-3297 16 .....12 359465349138055: vprintk_default <-printk
+[512258.614104] sm-3297 16 .....12 359465349138144: vprintk_emit <-vprintk_default
+[512258.614111] sm-3297 16 d....12 359465349138312: _raw_spin_lock <-vprintk_emit
+[512258.614119] sm-3297 16 d...112 359465349138789: log_store <-vprintk_emit
+[512258.614127] sm-3297 16 .....12 359465349139068: migrate_disable <-vprintk_emit
 
-for test in TCP_SENDFILE TCP_STREAM TCP_MAERTS ; do
-	for i in 1 10 20 40 80 ; do
-		echo -n $test-$i ": "
-		(
-		  for ((j=0; j<i; j++)) ; do
-			netperf $addrs -t $test -4 -c -C -l 60 -P0 | head -1 &
-		  done
-		  wait
-		) | awk '{ n++; v+=$5; } END { print "Avg: " v/n }'
-	done
-done
+According to a discussion (see Link: below) on the linux-rt-users
+mailing list, this locking is done for performance reasons, not for
+correctness, so use the _nort() variants to avoid the above problem.
 
-for test in TCP_RR UDP_RR UDP_STREAM ; do
-	for i in 1 10 20 40 80 ; do
-		echo -n $test-$i ": "
-		(
-		  for ((j=0; j<i; j++)) ; do
-			netperf $addrs -t $test -4 -c -C -l 60 -P0 | head -1 &
-		  done
-		  wait
-		) | awk '{ n++; v+=$6; } END { print "Avg: " v/n }'
-	done
-done
-[root@opa0-qa-06 ~]#
+Suggested-by: Julia Cartwright <julia@ni.com>
+Cc: Clark Williams <williams@redhat.com>
+Cc: Dean Luick <dean.luick@intel.com>
+Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Kaike Wan <kaike.wan@intel.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>
+Cc: linux-rdma@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>
+Cc: Sebastian Sanchez <sebastian.sanchez@intel.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/20170926210045.GO29872@jcartwri.amer.corp.natinst.com
+Signed-off-by: Arnaldo Carvalho de Melo <acme@redhat.com>
+---
+ drivers/infiniband/hw/hfi1/pio.c      | 2 +-
+ drivers/infiniband/hw/hfi1/pio_copy.c | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-The following changes since commit 327e86929bbc08ddb4b9bd6d5d222ef052eaa4a8:
-
-  v4.11.12-rt14 (2017-09-22 11:12:56 +0200)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/acme/linux.git infiniband-4.11.y-rt
-
-for you to fetch changes up to 3f59a2ba5bdbf28f4dfe43fe0b713c7574d2baaa:
-
-  IB/hfi1: Handle packets in the theaded handler only (2017-10-03 12:34:39 -0300)
-
-----------------------------------------------------------------
-Arnaldo Carvalho de Melo (2):
-      IB/hfi1: Use preempt_{dis,en}able_nort()
-      IB/hfi1: Handle packets in the theaded handler only
-
- drivers/infiniband/hw/hfi1/chip.c     | 10 +++++++---
- drivers/infiniband/hw/hfi1/pio.c      |  2 +-
- drivers/infiniband/hw/hfi1/pio_copy.c |  4 ++--
- 3 files changed, 10 insertions(+), 6 deletions(-)
+diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
+index 615be68e40b3..3a30bde9a07b 100644
+--- a/drivers/infiniband/hw/hfi1/pio.c
++++ b/drivers/infiniband/hw/hfi1/pio.c
+@@ -1421,7 +1421,7 @@ struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
+ 
+ 	/* there is enough room */
+ 
+-	preempt_disable();
++	preempt_disable_nort();
+ 	this_cpu_inc(*sc->buffers_allocated);
+ 
+ 	/* read this once */
+diff --git a/drivers/infiniband/hw/hfi1/pio_copy.c b/drivers/infiniband/hw/hfi1/pio_copy.c
+index 03024cec78dd..c3f48f705c97 100644
+--- a/drivers/infiniband/hw/hfi1/pio_copy.c
++++ b/drivers/infiniband/hw/hfi1/pio_copy.c
+@@ -162,7 +162,7 @@ void pio_copy(struct hfi1_devdata *dd, struct pio_buf *pbuf, u64 pbc,
+ 
+ 	/* finished with this buffer */
+ 	this_cpu_dec(*pbuf->sc->buffers_allocated);
+-	preempt_enable();
++	preempt_enable_nort();
+ }
+ 
+ /*
+@@ -753,5 +753,5 @@ void seg_pio_copy_end(struct pio_buf *pbuf)
+ 
+ 	/* finished with this buffer */
+ 	this_cpu_dec(*pbuf->sc->buffers_allocated);
+-	preempt_enable();
++	preempt_enable_nort();
+ }
+-- 
+2.13.6
