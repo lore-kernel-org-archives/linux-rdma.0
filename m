@@ -1,7 +1,7 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v1 2/5] i40iw: Do not generate CQE for RTR on QP flush
-Date: Tue,  3 Oct 2017 11:11:47 -0500
-Message-ID: <20171003161150.16172-3-shiraz.saleem@intel.com>
+Subject: [PATCH v1 5/5] i40iw: Fix port number for query QP
+Date: Tue,  3 Oct 2017 11:11:50 -0500
+Message-ID: <20171003161150.16172-6-shiraz.saleem@intel.com>
 References: <20171003161150.16172-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171003161150.16172-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,61 +12,34 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-If RTR WQE is posted and QP is flushed, a CQE is
-incorrectly generated for the RTR WQE. Add code
-to look for the RTR and not generate a CQE when
-QP is flushed.
+Port number 0 is an invalid port number. Set it to 1
+as there is one port per i40iw device.
 
-Fixes: 280cfc4b74e6 ("i40iw: user kernel shared files")
+Fixes: d37498417947 ("i40iw: add files for iwarp interface")
 Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_uk.c   | 13 +++++++++++++
- drivers/infiniband/hw/i40iw/i40iw_user.h |  1 +
- 2 files changed, 14 insertions(+)
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-index 0aadb7a..42dde59 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_uk.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-@@ -821,6 +821,18 @@ static enum i40iw_status_code i40iw_cq_poll_completion(struct i40iw_cq_uk *cq,
- 		I40IW_RING_SET_TAIL(qp->rq_ring, array_idx + 1);
- 		pring = &qp->rq_ring;
- 	} else {
-+		if (qp->first_sq_wq) {
-+			qp->first_sq_wq = false;
-+			if (!wqe_idx && (qp->sq_ring.head == qp->sq_ring.tail)) {
-+				I40IW_RING_MOVE_HEAD_NOCHECK(cq->cq_ring);
-+				I40IW_RING_MOVE_TAIL(cq->cq_ring);
-+				set_64bit_val(cq->shadow_area, 0,
-+					      I40IW_RING_GETCURRENT_HEAD(cq->cq_ring));
-+				memset(info, 0, sizeof(struct i40iw_cq_poll_info));
-+				return i40iw_cq_poll_completion(cq, info);
-+			}
-+		}
-+
- 		if (info->comp_status != I40IW_COMPL_STATUS_FLUSHED) {
- 			info->wr_id = qp->sq_wrtrk_array[wqe_idx].wrid;
- 			info->bytes_xfered = qp->sq_wrtrk_array[wqe_idx].wr_len;
-@@ -988,6 +1000,7 @@ enum i40iw_status_code i40iw_qp_uk_init(struct i40iw_qp_uk *qp,
- 	I40IW_RING_MOVE_TAIL(qp->sq_ring);
- 	I40IW_RING_MOVE_HEAD(qp->initial_ring, ret_code);
- 	qp->swqe_polarity = 1;
-+	qp->first_sq_wq = true;
- 	qp->swqe_polarity_deferred = 1;
- 	qp->rwqe_polarity = 0;
- 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_user.h b/drivers/infiniband/hw/i40iw/i40iw_user.h
-index 84be6f1..15e8f55 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_user.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_user.h
-@@ -376,6 +376,7 @@ struct i40iw_qp_uk {
- 	u8 rwqe_polarity;
- 	u8 rq_wqe_size;
- 	u8 rq_wqe_size_multiplier;
-+	bool first_sq_wq;
- 	bool deferred_flag;
- };
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index 58d815f..5c60de6 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -826,12 +826,14 @@ static int i40iw_query_qp(struct ib_qp *ibqp,
+ 	attr->cap.max_inline_data = I40IW_MAX_INLINE_DATA_SIZE;
+ 	attr->cap.max_send_sge = I40IW_MAX_WQ_FRAGMENT_COUNT;
+ 	attr->cap.max_recv_sge = I40IW_MAX_WQ_FRAGMENT_COUNT;
++	attr->port_num = 1;
+ 	init_attr->event_handler = iwqp->ibqp.event_handler;
+ 	init_attr->qp_context = iwqp->ibqp.qp_context;
+ 	init_attr->send_cq = iwqp->ibqp.send_cq;
+ 	init_attr->recv_cq = iwqp->ibqp.recv_cq;
+ 	init_attr->srq = iwqp->ibqp.srq;
+ 	init_attr->cap = attr->cap;
++	init_attr->port_num = 1;
+ 	return 0;
+ }
  
 -- 
 2.8.3
