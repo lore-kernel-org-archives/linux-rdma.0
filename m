@@ -1,38 +1,47 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next 5/8] IB/core: Use __be32 for LIDs in
- opa_is_extended_lid
-Date: Tue, 3 Oct 2017 10:00:59 -0600
-Message-ID: <20171003160059.GB30753@obsidianresearch.com>
-References: <20171002180204.31117.12254.stgit@scvm10.sc.intel.com>
- <20171002180431.31117.33069.stgit@scvm10.sc.intel.com>
- <20171003061657.GA13648@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v1 0/5] more i40iw fixes
+Date: Tue,  3 Oct 2017 11:11:45 -0500
+Message-ID: <20171003161150.16172-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171003061657.GA13648-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 03, 2017 at 09:16:57AM +0300, Leon Romanovsky wrote:
+Hi Doug,
 
-> > -static inline bool opa_is_extended_lid(u32 dlid, u32 slid)
-> > +static inline bool opa_is_extended_lid(__be32 dlid, __be32 slid)
-> >  {
-> >  	if ((be32_to_cpu(dlid) >=
-> >  	     be16_to_cpu(IB_MULTICAST_LID_BASE)) ||
-> >  	    (be32_to_cpu(slid) >=
-> >  	     be16_to_cpu(IB_MULTICAST_LID_BASE)))
-> 
-> You can drop be32_to_cpu and be16_to_cpu now.
-> The dlid is __be32 and IB_MULTICAST_LID_BASE is __be16. The direct
-> comparison will work.
+This series includes a few more minor i40iw fixes.
 
-It won't order properly for >=, the swap is still needed...
+If you deem the submission is too late for 4.14-rc, it is fine to push it to for-next.
 
-Jason
+v0->v1:
+        * change ack_rcvd flag to bool in Patch #1
+        * change first_sq_wq flag to bool in Patch #2
+
+Mustafa Ismail (3):
+  i40iw: Do not generate CQE for RTR on QP flush
+  i40iw: Add missing memory barriers
+  i40iw: Fix port number for query QP
+
+Shiraz Saleem (1):
+  i40iw: Do not allow posting WR after QP is flushed
+
+Tatyana Nikolova (1):
+  i40iw: Do not retransmit MPA request after it is ACKed
+
+ drivers/infiniband/hw/i40iw/i40iw_cm.c    | 13 ++++++++++---
+ drivers/infiniband/hw/i40iw/i40iw_cm.h    |  1 +
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c  |  2 +-
+ drivers/infiniband/hw/i40iw/i40iw_p.h     |  2 ++
+ drivers/infiniband/hw/i40iw/i40iw_puda.c  | 11 ++++-------
+ drivers/infiniband/hw/i40iw/i40iw_uk.c    | 13 +++++++++++++
+ drivers/infiniband/hw/i40iw/i40iw_user.h  |  1 +
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 15 +++++++++++++++
+ 8 files changed, 47 insertions(+), 11 deletions(-)
+
+-- 
+2.8.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
