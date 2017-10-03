@@ -1,96 +1,56 @@
-From: Parav Pandit <parav@mellanox.com>
-Subject: RE: [PATCH net-next 01/10] net/smc: add missing dev_put
-Date: Mon, 2 Oct 2017 20:39:56 +0000
-Message-ID: <VI1PR0502MB300805E68E1191986EBFFD45D17D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20170920115813.63745-1-ubraun@linux.vnet.ibm.com>
- <20170920115813.63745-2-ubraun@linux.vnet.ibm.com>
- <VI1PR0502MB30089D06B9C95D682E21511BD17D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 0/2] IB/opa_vnic: Add debugfs interface
+Date: Mon, 2 Oct 2017 20:47:08 -0400
+Message-ID: <68a08a10-5b8d-4fd7-ad06-8add423bd3cd@intel.com>
+References: <1506525977.33755.3.camel@redhat.com>
+ <20170928184727.GA33282@knc-06.sc.intel.com>
+ <20170928185753.GG2297@mtr-leonro.local>
+ <20170928190502.GA33289@knc-06.sc.intel.com>
+ <20170928193740.GH2297@mtr-leonro.local>
+ <20170928200258.GA27343@obsidianresearch.com>
+ <20170929054959.GJ2297@mtr-leonro.local>
+ <cbb65789-2d1e-779e-77f8-55b435511069@intel.com>
+ <20170929145950.GC2965@mtr-leonro.local>
+ <20170929152707.GA34521@knc-06.sc.intel.com>
+ <20171002042323.GG2031@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <VI1PR0502MB30089D06B9C95D682E21511BD17D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171002042323.GG2031-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Parav Pandit <parav@mellanox.com>, Ursula Braun <ubraun@linux.vnet.ibm.com>, "davem@davemloft.net" <davem@davemloft.net>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "jwi@linux.vnet.ibm.com" <jwi@linux.vnet.ibm.com>, "schwidefsky@de.ibm.com" <schwidefsky@de.ibm.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "raspl@linux.vnet.ibm.com" <raspl@linux.vnet.ibm.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
-> owner@vger.kernel.org] On Behalf Of Parav Pandit
-> Sent: Monday, October 02, 2017 3:36 PM
-> To: Ursula Braun <ubraun@linux.vnet.ibm.com>; davem@davemloft.net
-> Cc: netdev@vger.kernel.org; linux-rdma@vger.kernel.org; linux-
-> s390@vger.kernel.org; jwi@linux.vnet.ibm.com; schwidefsky@de.ibm.com;
-> heiko.carstens@de.ibm.com; raspl@linux.vnet.ibm.com
-> Subject: RE: [PATCH net-next 01/10] net/smc: add missing dev_put
->=20
-> Hi Ursula, Dave, Hans,
->=20
-> > -----Original Message-----
-> > From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
-> > owner@vger.kernel.org] On Behalf Of Ursula Braun
-> > Sent: Wednesday, September 20, 2017 6:58 AM
-> > To: davem@davemloft.net
-> > Cc: netdev@vger.kernel.org; linux-rdma@vger.kernel.org; linux-
-> > s390@vger.kernel.org; jwi@linux.vnet.ibm.com; schwidefsky@de.ibm.com;
-> > heiko.carstens@de.ibm.com; raspl@linux.vnet.ibm.com;
-> > ubraun@linux.vnet.ibm.com
-> > Subject: [PATCH net-next 01/10] net/smc: add missing dev_put
-> >
-> > From: Hans Wippel <hwippel@linux.vnet.ibm.com>
-> >
-> > In the infiniband part, SMC currently uses get_netdev which calls
-> > dev_hold on the returned net device. However, the SMC code never calls
-> > dev_put on that net device resulting in a wrong reference count.
-> >
-> > This patch adds a dev_put after the usage of the net device to fix the =
-issue.
-> >
-> > Signed-off-by: Hans Wippel <hwippel@linux.vnet.ibm.com>
-> > Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
-> > ---
-> >  net/smc/smc_ib.c | 1 +
-> >  1 file changed, 1 insertion(+)
-> >
-> > diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c index
-> > 547e0e113b17..0b5852299158 100644
-> > --- a/net/smc/smc_ib.c
-> > +++ b/net/smc/smc_ib.c
-> > @@ -380,6 +380,7 @@ static int smc_ib_fill_gid_and_mac(struct
-> > smc_ib_device *smcibdev, u8 ibport)
-> >  	ndev =3D smcibdev->ibdev->get_netdev(smcibdev->ibdev, ibport);
-> >  	if (ndev) {
-> >  		memcpy(&smcibdev->mac, ndev->dev_addr, ETH_ALEN);
-> > +		dev_put(ndev);
->=20
-> I am sorry for providing late comments. smc_ib_fill_gid_and_mac() is not =
-coded
-> correctly.
-> Few fixes are needed.
-> 1. ULP such as SMC should not open code/deference any function pointer li=
-ke
-> get_netdev() of the IB device.
-> 2. Replace ib_query_gid(..., NULL)
-> With
-> ib_query_gid(..., gid_attr);
->=20
-> Use gid_attr.ndev to get the MAC address.
-> Do dev_put(gid_attr.ndev);
->=20
-> Code should look like below,
->=20
-> struct ib_gid_attr gid_attr;
->=20
-> rc =3D ib_query_gid(..., &gid_attr);
-> if (rc || !gid_addr.ndev)
-> 	return -ENODEV;
-> else
-> 	memcpy(smcibdev->mac, ndev->dev_addr, ETH_ALEN);
-> dev_put(gid_addr.ndev);
-> --
+On 10/2/2017 12:23 AM, Leon Romanovsky wrote:
+> Upstream is not a development playground and you should submit your code once
+> you think that it is ready. So we are assuming that VNIC is working and
+> you are interested to debug your EM and such code doesn't belong to the kernel.
 
-Also,
-smc_link_determine_gid() doesn't do dev_put(gattr.ndev) in for loop.
-Please fix it as well.
+This patch aside, I do have to take some issue with this statement. 
+While upstream is not a "playground" we should be submitting code early. 
+I keep harping on iterative development, show your work. Granted that 
+doesn't mean write broken code and toss it over the fence to kernel.org, 
+but pieces that can be broken up and tested on their own are best.
+
+> If you still insist on 2.a, the solution should be in your company: add
+> debugfs locally, write tests, find and fix bugs and submit them to
+> upstream.
+
+Now back to this patch series. debugfs vs NetLink, I don't think it 
+really matters if the rationale for having the patch in the first place 
+is wrong. In other words you would have still opposed this even if it 
+were NetLink I assume? We are discussing internally but for now I think 
+this series can be dropped.
+
+> There is no need to add "one-time" interface to clean the code.
+
+That I would agree to.
+
+-Denny
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
