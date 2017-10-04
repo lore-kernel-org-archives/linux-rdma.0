@@ -1,115 +1,66 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 5/8] IB/core: Use __be32 for LIDs in
- opa_is_extended_lid
-Date: Wed, 4 Oct 2017 20:23:23 +0300
-Message-ID: <20171004172323.GH25829@mtr-leonro.local>
-References: <20171002180204.31117.12254.stgit@scvm10.sc.intel.com>
- <20171002180431.31117.33069.stgit@scvm10.sc.intel.com>
- <20171003061657.GA13648@mtr-leonro.local>
- <20171003160059.GB30753@obsidianresearch.com>
- <20171003170140.GD25829@mtr-leonro.local>
- <1828884A29C6694DAF28B7E6B8A82373AB19A6C6@ORSMSX109.amr.corp.intel.com>
- <20171003180735.GE25829@mtr-leonro.local>
+Subject: Re: [PATCH v1 2/5] i40iw: Do not generate CQE for RTR on QP flush
+Date: Wed, 4 Oct 2017 20:31:12 +0300
+Message-ID: <20171004173112.GI25829@mtr-leonro.local>
+References: <20171003161150.16172-1-shiraz.saleem@intel.com>
+ <20171003161150.16172-3-shiraz.saleem@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="rCwQ2Y43eQY6RBgR"
+        protocol="application/pgp-signature"; boundary="16qp2B0xu0fRvRD7"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171003180735.GE25829-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20171003161150.16172-3-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hiatt, Don" <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---rCwQ2Y43eQY6RBgR
+--16qp2B0xu0fRvRD7
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Oct 03, 2017 at 09:07:35PM +0300, Leon Romanovsky wrote:
-> On Tue, Oct 03, 2017 at 05:05:06PM +0000, Hefty, Sean wrote:
-> > > > > >  	if ((be32_to_cpu(dlid) >=
-> > > > > >  	     be16_to_cpu(IB_MULTICAST_LID_BASE)) ||
-> > > > > >  	    (be32_to_cpu(slid) >=
-> > > > > >  	     be16_to_cpu(IB_MULTICAST_LID_BASE)))
-> > > > >
-> > > > > You can drop be32_to_cpu and be16_to_cpu now.
-> > > > > The dlid is __be32 and IB_MULTICAST_LID_BASE is __be16. The direct
-> > > > > comparison will work.
-> > > >
-> > > > It won't order properly for >=, the swap is still needed...
-> > >
-> > > Jason,
-> > > Do you have reference for that?
-> > >
-> > > I tried to find any information about comparison of values from one
-> > > endianess on machine with another endianess and didn't find anything
-> > > relevant.
-> >
-> > The bytes are out of order, so the comparisons won't work.
+On Tue, Oct 03, 2017 at 11:11:47AM -0500, Shiraz Saleem wrote:
+> From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >
-> I understand it for the "manual" comparison (C-like arrays), but does it apply
-> for the compiler-aware comparison? Both these variables are marked as
-> __be32 for the compiler.
-
-OK, I finally found time to test my question and you and Jason are right.
-Thank you for your time.
-
-For curious readers, the snippet below, tested on x86:
-
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index bcc4c2db81d0..234105716120 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -4754,6 +4754,15 @@ static int __init mlx5_ib_init(void)
- {
- 	int err;
-
-+	uint32_t u1 = 0x2233;
-+	uint32_t u2 = 0x4411;
-+
-+	__be32 b1 = cpu_to_be32(u1);
-+	__be32 b2 = cpu_to_be32(u2);
-+
-+	printk(KERN_ERR "test: u1 %s u1\n", (u1 < u2 ) ? "<":">");
-+	printk(KERN_ERR "test: b1 %s b1\n", (b1 < b2 ) ? "<":">");
-+
- 	mlx5_ib_odp_init();
-
- 	err = mlx5_register_interface(&mlx5_ib_interface);
-
-and the result:
-[    6.566979] test: u1 < u1
-[    6.567147] test: b1 > b1
-
-Thanks
-
+> If RTR WQE is posted and QP is flushed, a CQE is
+> incorrectly generated for the RTR WQE. Add code
+> to look for the RTR and not generate a CQE when
+> QP is flushed.
 >
-> Thanks
+> Fixes: 280cfc4b74e6 ("i40iw: user kernel shared files")
+> Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/i40iw/i40iw_uk.c   | 13 +++++++++++++
+>  drivers/infiniband/hw/i40iw/i40iw_user.h |  1 +
+>  2 files changed, 14 insertions(+)
+>
 
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-
---rCwQ2Y43eQY6RBgR
+--16qp2B0xu0fRvRD7
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnVGQsACgkQ5GN7iDZy
-WKf93g//TQEqprX7Isk+QQccKT5+vFWMEsetOKJGXXheOaZfmlvp7JbF5rS2F179
-dHK4rAKPpp4mVAPNvrIt4gPy+VEo/4k+UBhJo0OeA5MQSXkpIRhifATV/N7yCquw
-ueY/wYPKr22XS9bEeF9wgSNRRCFFj+2i0n/8DlmUrjRkKaT8c4et1T3FkLd9SAtg
-ZkYzmq1HvjjMzKPOL9r8ToP/FfumT1ws+fpprfigjJGwGVfU9Im5YxHZEN9hw3PO
-XkEW/P2FHskykhAbt6hU73poDVh6ABsA9iZfSnaYy417P0WvGs4J8o+vxe4Hgu8V
-isyY5rvG1FKOapctbRNLlkgwzaoWcB1stEnvtYxVEdAdiZOdVUb79H0QBG5pXwwd
-k+XSQRH8ErRDAEjF5C7qh3nXm1cmVd0ZVYJfmVyD12TcwfgbVqj1C45eS6VXoTGU
-AJby9LJQ9QDfrHRtuElwqOL2X/621r8HFzP6Ne4Pa7e2fTFFCR4pl2kbH5qEvS6K
-skBpQUQbsbSC+HZk4kXS56oCY9Pj/CakYXPdC8DejwpWgv9x94xeBRQxrtPrbelb
-HVAk8AXMii90CEsW23K7NFM0z5KY8KqFMmO8Ta1ZG5/aM2na6U+OUY4M9uivA2QF
-OyoK6tcmGBljDvq7MV43mvCCYeoD/r6t7iqZbMLc9/vxIT18654=
-=tkW0
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnVGuAACgkQ5GN7iDZy
+WKcY5RAAybV7asQ6RAe6BQM09yyC2pa9jQf9K7OsBAa/kcxUMq2ilA+w8kHqFPtx
+SbupdrI/v2kUrRMTOAbtHmvajhoyuj8EKb1lswWmv4bV8hUq64UgFOCvBlcErmpV
+jKRRajIjGj4ibl2XxbJLxd+Ov1ygf2xrI3FzUUofJKEef/9c7FCefp1FI1ZqYaLI
+/6WSv/J4OGwnCEGhLSnUY0Z86XHlMYCNnDDliQEBWVwYPETZIDayO7z0MMzFidnS
+sgVgNRYfuGJ3Am5h3bLNlJ7AcULE715cPtDc3zgstviym/TcYFbrt0PqYJqRmClQ
+2CgMNe1vC6Pf5T9kpmHz/eif3hxInBSscLM1qPtfI3NJDjyGY8IqpCqSMPhueJm8
+ZrgvnXG12OJyE1q5SXBiHwArhqJ/UAf1Nidcl8U5hin0kvI/uB/jO8Ja0GWsOXf8
+BG75JA7IiywKid+wWa9cFDeMl3efgbj12MWgtDHNZnVYBwpgU/+hMWW7y+hMpNTN
+VbyG939pqGvf6umhCKlOVHMxJ2w/KRs190HDqpqejpBkQ0hGiKgGt35H1onUwGUH
+iefJ2zXR96B7YzU3gckyBRQ0wbNK4C/0HtwNSa1h/13Oo/M6b1SuAc9W65HIWbt2
+RL/DevSG4ooz7VIxz25qGlxXZHW56f7sqdBUKVpTYz8wCaLgOdc=
+=Pdq3
 -----END PGP SIGNATURE-----
 
---rCwQ2Y43eQY6RBgR--
+--16qp2B0xu0fRvRD7--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
