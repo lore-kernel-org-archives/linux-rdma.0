@@ -1,48 +1,57 @@
-From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 rdma-next 17/18] IB/core: Define 'ib' and 'roce'
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH v4 rdma-next 17/18] IB/core: Define 'ib' and 'roce'
  rdma_ah_attr types
-Date: Wed, 4 Oct 2017 15:15:20 -0700
-Message-ID: <73561590-0d5e-54ba-a98a-d8c45f869955@intel.com>
+Date: Wed, 4 Oct 2017 22:24:22 +0000
+Message-ID: <VI1PR0502MB3008B828399AB0A08AA08AC6D1730@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 References: <1493491290-31621-1-git-send-email-dasaratharaman.chandramouli@intel.com>
  <1493491290-31621-18-git-send-email-dasaratharaman.chandramouli@intel.com>
  <VI1PR0502MB30083D21E466C23698A93228D1730@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <73561590-0d5e-54ba-a98a-d8c45f869955@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB30083D21E466C23698A93228D1730-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <73561590-0d5e-54ba-a98a-d8c45f869955-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 10/4/2017 2:24 PM, Parav Pandit wrote:
->> -----Original Message-----
->> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Dasaratharaman Chandramouli
->> Sent: Saturday, April 29, 2017 1:41 PM
->> To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
->> Subject: [PATCH v4 rdma-next 17/18] IB/core: Define 'ib' and 'roce'
->> rdma_ah_attr types
->> +/*Get AH type */
->> +static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device
->> *dev,
->> +						       u32 port_num)
->> +{
->> +	if ((rdma_protocol_roce(dev, port_num)) ||
->> +	    (rdma_protocol_iwarp(dev, port_num)))
->> +		return RDMA_AH_ATTR_TYPE_ROCE;
-> Check for iWarp to define AH attribute type as RoCE appears error to me.
-> Taking quick look at i40iw and nes drivers appears to return -ENOSYS for i40iw_create_ah(), nes_create_ah.
-> Will you please submit a fix that avoids above iWarp check?
->
->
-i40iw_port_immutable sets the RDMA_CORE_PORT_IWARP immutable flag, hence 
-the check. Are you having an issue?
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogRG9uIEhpYXR0IFttYWls
+dG86ZG9uLmhpYXR0QGludGVsLmNvbV0NCj4gU2VudDogV2VkbmVzZGF5LCBPY3RvYmVyIDA0LCAy
+MDE3IDU6MTUgUE0NCj4gVG86IFBhcmF2IFBhbmRpdCA8cGFyYXZAbWVsbGFub3guY29tPjsgRGFz
+YXJhdGhhcmFtYW4gQ2hhbmRyYW1vdWxpDQo+IDxkYXNhcmF0aGFyYW1hbi5jaGFuZHJhbW91bGlA
+aW50ZWwuY29tPjsgRG91ZyBMZWRmb3JkDQo+IDxkbGVkZm9yZEByZWRoYXQuY29tPg0KPiBDYzog
+bGludXgtcmRtYSA8bGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc+DQo+IFN1YmplY3Q6IFJlOiBb
+UEFUQ0ggdjQgcmRtYS1uZXh0IDE3LzE4XSBJQi9jb3JlOiBEZWZpbmUgJ2liJyBhbmQgJ3JvY2Un
+DQo+IHJkbWFfYWhfYXR0ciB0eXBlcw0KPiANCj4gDQo+IA0KPiBPbiAxMC80LzIwMTcgMjoyNCBQ
+TSwgUGFyYXYgUGFuZGl0IHdyb3RlOg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0K
+PiA+PiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4
+LXJkbWEtDQo+ID4+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIERhc2FyYXRo
+YXJhbWFuIENoYW5kcmFtb3VsaQ0KPiA+PiBTZW50OiBTYXR1cmRheSwgQXByaWwgMjksIDIwMTcg
+MTo0MSBQTQ0KPiA+PiBUbzogRG91ZyBMZWRmb3JkIDxkbGVkZm9yZEByZWRoYXQuY29tPg0KPiA+
+PiBDYzogbGludXgtcmRtYSA8bGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc+DQo+ID4+IFN1Ympl
+Y3Q6IFtQQVRDSCB2NCByZG1hLW5leHQgMTcvMThdIElCL2NvcmU6IERlZmluZSAnaWInIGFuZCAn
+cm9jZScNCj4gPj4gcmRtYV9haF9hdHRyIHR5cGVzDQo+ID4+ICsvKkdldCBBSCB0eXBlICovDQo+
+ID4+ICtzdGF0aWMgaW5saW5lIGVudW0gcmRtYV9haF9hdHRyX3R5cGUgcmRtYV9haF9maW5kX3R5
+cGUoc3RydWN0DQo+ID4+ICtpYl9kZXZpY2UNCj4gPj4gKmRldiwNCj4gPj4gKwkJCQkJCSAgICAg
+ICB1MzIgcG9ydF9udW0pDQo+ID4+ICt7DQo+ID4+ICsJaWYgKChyZG1hX3Byb3RvY29sX3JvY2Uo
+ZGV2LCBwb3J0X251bSkpIHx8DQo+ID4+ICsJICAgIChyZG1hX3Byb3RvY29sX2l3YXJwKGRldiwg
+cG9ydF9udW0pKSkNCj4gPj4gKwkJcmV0dXJuIFJETUFfQUhfQVRUUl9UWVBFX1JPQ0U7DQo+ID4g
+Q2hlY2sgZm9yIGlXYXJwIHRvIGRlZmluZSBBSCBhdHRyaWJ1dGUgdHlwZSBhcyBSb0NFIGFwcGVh
+cnMgZXJyb3IgdG8gbWUuDQo+ID4gVGFraW5nIHF1aWNrIGxvb2sgYXQgaTQwaXcgYW5kIG5lcyBk
+cml2ZXJzIGFwcGVhcnMgdG8gcmV0dXJuIC1FTk9TWVMgZm9yDQo+IGk0MGl3X2NyZWF0ZV9haCgp
+LCBuZXNfY3JlYXRlX2FoLg0KPiA+IFdpbGwgeW91IHBsZWFzZSBzdWJtaXQgYSBmaXggdGhhdCBh
+dm9pZHMgYWJvdmUgaVdhcnAgY2hlY2s/DQo+ID4NCj4gPg0KPiBpNDBpd19wb3J0X2ltbXV0YWJs
+ZSBzZXRzIHRoZSBSRE1BX0NPUkVfUE9SVF9JV0FSUCBpbW11dGFibGUgZmxhZywNCkJ1dCB3aGVu
+IHdvdWxkIHNvbWVvbmUgY3JlYXRlIG9yIGluaXRpYWxpemUgYWggZm9yIGlXYXJwIHBvcnQsIGdp
+dmVuIHRoYW4gY3JlYXRlX2FoIGlzIHVuc3VwcG9ydGVkLg0KQUggdHlwZSBvZiBSb0NFIGZvciBp
+V2FycCwgZG9lc24ndCBzb3VuZCBjb3JyZWN0Lg0KSXMgUm9DRSB0eXBlIG9mIEFIIHVzZWQgb24g
+UVAgaW4gaVdhcnAgdGhhdCBuZWVkcyB0aGlzIGNoZWNrPw0KDQo+IGhlbmNlIHRoZSBjaGVjay4g
+QXJlIHlvdSBoYXZpbmcgYW4gaXNzdWU/DQpOby4gSSBhbSByZWZhY3RvcmluZyBzb21lIGNvZGUg
+YW5kIG5vdGljZWQgdGhpcyBjaGVjay4NClRoaXMgY2hlY2sgY2FuIHdyb25nbHkgZGV0ZWN0cyBS
+b0NFIEFIIG9uIGl3YXJwIHBvcnQsIGlzbid0IGl0Pw0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
