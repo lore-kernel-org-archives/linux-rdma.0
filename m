@@ -1,60 +1,55 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Why don't we always check that attr->port_num is valid?
-Date: Wed, 4 Oct 2017 06:13:35 +0300
-Message-ID: <20171004031335.a2zjzhw3tgcj57l2@mwanda>
-References: <20171002113431.lqkf4ilmimjfouc7@mwanda>
- <20171002152033.GB12331@obsidianresearch.com>
- <20171003052159.GB26055@mtr-leonro.local>
- <1828884A29C6694DAF28B7E6B8A82373AB19A8A5@ORSMSX109.amr.corp.intel.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net] RDS: IB: Limit the scope of has_fr/has_fmr
+ variables
+Date: Tue, 03 Oct 2017 21:06:02 -0700 (PDT)
+Message-ID: <20171003.210602.478767133793484738.davem@davemloft.net>
+References: <20171001.225655.1261950191787562705.davem@davemloft.net>
+        <1172819f-1c28-7756-4874-aa89f50c0733@oracle.com>
+        <d1f841a7-0c1d-9d20-ee33-6e260b5d84c4@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB19A8A5-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <d1f841a7-0c1d-9d20-ee33-6e260b5d84c4-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: avinash.repaka-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 03, 2017 at 07:52:27PM +0000, Hefty, Sean wrote:
-> > > > We deliberately allow invalid attr->port_nums if IB_QP_PORT is not
-> > set.
-> > > > Why must we do that?  From a kernel hardening perspective it would
-> > > > be better to ban invalid values all together...
-> > >
-> > > It is part of the user ABI, so it has to stay that way...
-> > 
-> > Can we pre-process all invalid parameters at the kernel entry points
-> > to ensure that drivers receive clean input?
-> > 
-> > For example, overwrite attr->port_nums to be zero if IB_QP_PORT is not
-> > set.
+From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Date: Tue, 3 Oct 2017 17:42:39 -0700
 
-attr->port_nums is not allowed to be set to zero so that will trigger
-another warning.
-
+> Hi Dave,
 > 
-> I'm not sure this helps much.  The value must still be ignored by the driver, whether it's in range or not.
+> On 10/2/2017 1:30 PM, Santosh Shilimkar wrote:
+>> On 10/1/2017 10:56 PM, David Miller wrote:
+>>> From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+> [...]
+> 
+>>>
+>>> Actually, reverted, this breaks the build.
+>>>
+>>> net/rds/rdma_transport.c:38:10: fatal error: ib.h: No such file or
+>>> directory
+>>>   #include "ib.h"
+>>>
+>>> Although I can't see how in the world this patch is causing such
+>>> an error.
+>>>
+>> Weird indeed. Will sort this out with Avinash. Thanks Dave.
+>> 
+> I tried few build combinations on net-next but couldn't
+> reproduce the build failure. AFAIU, the build error can only
+> happen if for some reason the ib.h file got deleted
+> accidentally. I did delete ib.h file and saw below error
+> 
+>   CC [M]  net/rds/rdma_transport.o
+> net/rds/rdma_transport.c:38:16: error: ib.h: No such file or directory
+> 
+> Could it be the case for some reason the ib.h file got
+> deleted or mangled while applying the $subject patch ?
 
-It would help me a lot to know that the value is always within range
-when we call the function.
-
-Smatch is tracking things at the function call level so it says "when
-we call this we know that the value comes from the user and is not
-trusted".  Which is correct, but not precise.  In an ideal world it
-would say, "This comes from the user and is not trusted unless a flag
-is set on param 3", but Smatch doesn't break it down that way...
-
-This might be solveable in Smatch...  But generally the problem is that
-there is too much data to track the relationships between every variable
-in the kernel.  I just break it down at the function call boundaries.
-So like, for returns I split them out into success/failure returns and
-I say "this is true if the function returns zero", and "these things are
-true if the function returns failure".  But for calls I just say "These
-things are true when the function is called from this call site".
-
-regards,
-dan carpenter
+Please post the patch again, I will try to sort it out.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
