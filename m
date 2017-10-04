@@ -1,48 +1,38 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] RDMA/hns: Fix uninitialized variable in
- hns_roce_v2_query_qp()
-Date: Wed, 04 Oct 2017 15:15:41 -0400
-Message-ID: <1507144541.46071.2.camel@redhat.com>
-References: <20171003105418.jpthrfu7j7ojk5fg@mwanda>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-rc 0/2] RDMA/qedr: two important fixes for RDMA CM
+ with VLAN
+Date: Wed, 04 Oct 2017 15:20:01 -0400
+Message-ID: <1507144801.46071.3.camel@redhat.com>
+References: <1507031247-7972-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20171003105418.jpthrfu7j7ojk5fg@mwanda>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>, Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>
-Cc: Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1507031247-7972-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-10-03 at 13:54 +0300, Dan Carpenter wrote:
-> We accidentally return an uninitialized value if
-> (hr_qp->state == IB_QPS_RESET).  We should be returning success.
+On Tue, 2017-10-03 at 14:47 +0300, Ram Amrani wrote:
+> This series contains two important fixes for RDMA CM with VLAN.
 > 
-> Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08
-> SoC")
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-Hi Dan, I already took in another patch that solves the same issue. 
-Thanks.
-
+> Ram Amrani (2):
+>   RDMA/qedr: Parse VLAN ID correctly and ignore the value of zero
+>   RDMA/qedr: Parse vlan priority as sl
 > 
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> index 4171f73bdad5..e1c59dc066c9 100644
-> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> @@ -2792,7 +2792,7 @@ static int hns_roce_v2_query_qp(struct ib_qp
-> *ibqp, struct ib_qp_attr *qp_attr,
->  	struct device *dev = hr_dev->dev;
->  	int tmp_qp_state;
->  	int state;
-> -	int ret;
-> +	int ret = 0;
->  
->  	context = kzalloc(sizeof(*context), GFP_KERNEL);
->  	if (!context)
+>  drivers/infiniband/hw/qedr/qedr.h    |  2 +-
+>  drivers/infiniband/hw/qedr/qedr_cm.c | 12 +++++++++---
+>  2 files changed, 10 insertions(+), 4 deletions(-)
+
+Thanks, applied.
+
 -- 
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
