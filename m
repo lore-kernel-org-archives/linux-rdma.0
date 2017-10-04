@@ -1,42 +1,48 @@
-From: Avinash Repaka <avinash.repaka@oracle.com>
-Subject: [PATCH net v2] RDS: IB: Initialize max_items based on underlying device attributes
-Date: Wed,  4 Oct 2017 12:11:29 -0700
-Message-ID: <1507144289-1690-1-git-send-email-avinash.repaka@oracle.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
-Cc: Avinash Repaka <avinash.repaka@oracle.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] RDMA/hns: Fix uninitialized variable in
+ hns_roce_v2_query_qp()
+Date: Wed, 04 Oct 2017 15:15:41 -0400
+Message-ID: <1507144541.46071.2.camel@redhat.com>
+References: <20171003105418.jpthrfu7j7ojk5fg@mwanda>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20171003105418.jpthrfu7j7ojk5fg@mwanda>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>, Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>
+Cc: Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Use max_1m_mrs/max_8k_mrs while setting max_items, as the former
-variables are set based on the underlying device attributes.
+On Tue, 2017-10-03 at 13:54 +0300, Dan Carpenter wrote:
+> We accidentally return an uninitialized value if
+> (hr_qp->state == IB_QPS_RESET).  We should be returning success.
+> 
+> Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08
+> SoC")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Signed-off-by: Avinash Repaka <avinash.repaka@oracle.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
----
-v1->v2
-Fixed a typo in commit description
+Hi Dan, I already took in another patch that solves the same issue. 
+Thanks.
 
- net/rds/ib_rdma.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
-index 9a3c54e..e678699 100644
---- a/net/rds/ib_rdma.c
-+++ b/net/rds/ib_rdma.c
-@@ -601,11 +601,11 @@ struct rds_ib_mr_pool *rds_ib_create_mr_pool(struct rds_ib_device *rds_ibdev,
- 	if (pool_type == RDS_IB_MR_1M_POOL) {
- 		/* +1 allows for unaligned MRs */
- 		pool->fmr_attr.max_pages = RDS_MR_1M_MSG_SIZE + 1;
--		pool->max_items = RDS_MR_1M_POOL_SIZE;
-+		pool->max_items = rds_ibdev->max_1m_mrs;
- 	} else {
- 		/* pool_type == RDS_IB_MR_8K_POOL */
- 		pool->fmr_attr.max_pages = RDS_MR_8K_MSG_SIZE + 1;
--		pool->max_items = RDS_MR_8K_POOL_SIZE;
-+		pool->max_items = rds_ibdev->max_8k_mrs;
- 	}
- 
- 	pool->max_free_pinned = pool->max_items * pool->fmr_attr.max_pages / 4;
+> 
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+> b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+> index 4171f73bdad5..e1c59dc066c9 100644
+> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+> @@ -2792,7 +2792,7 @@ static int hns_roce_v2_query_qp(struct ib_qp
+> *ibqp, struct ib_qp_attr *qp_attr,
+>  	struct device *dev = hr_dev->dev;
+>  	int tmp_qp_state;
+>  	int state;
+> -	int ret;
+> +	int ret = 0;
+>  
+>  	context = kzalloc(sizeof(*context), GFP_KERNEL);
+>  	if (!context)
 -- 
-2.4.11
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
