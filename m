@@ -1,55 +1,38 @@
-From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH net] RDS: IB: Limit the scope of has_fr/has_fmr variables
-Date: Tue, 3 Oct 2017 17:42:39 -0700
-Message-ID: <d1f841a7-0c1d-9d20-ee33-6e260b5d84c4@oracle.com>
-References: <1506734030-15205-1-git-send-email-avinash.repaka@oracle.com>
- <20171001.225419.1632354964848604960.davem@davemloft.net>
- <20171001.225655.1261950191787562705.davem@davemloft.net>
- <1172819f-1c28-7756-4874-aa89f50c0733@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1172819f-1c28-7756-4874-aa89f50c0733-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: avinash.repaka-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Avinash Repaka <avinash.repaka@oracle.com>
+Subject: [PATCH net] RDS: IB: Initialize max_items based on underlying device attributes
+Date: Tue,  3 Oct 2017 17:50:37 -0700
+Message-ID: <1507078237-32366-1-git-send-email-avinash.repaka@oracle.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+Cc: Avinash Repaka <avinash.repaka@oracle.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Dave,
+Use max_1m_mrs/max_8k_mrs while setting max_items, as the former
+variables are set based on the underlying device attricutes.
 
-On 10/2/2017 1:30 PM, Santosh Shilimkar wrote:
-> On 10/1/2017 10:56 PM, David Miller wrote:
->> From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-[...]
+Signed-off-by: Avinash Repaka <avinash.repaka@oracle.com>
+---
+ net/rds/ib_rdma.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
->>
->> Actually, reverted, this breaks the build.
->>
->> net/rds/rdma_transport.c:38:10: fatal error: ib.h: No such file or 
->> directory
->>   #include "ib.h"
->>
->> Although I can't see how in the world this patch is causing such
->> an error.
->>
-> Weird indeed. Will sort this out with Avinash. Thanks Dave.
-> 
-I tried few build combinations on net-next but couldn't
-reproduce the build failure. AFAIU, the build error can only
-happen if for some reason the ib.h file got deleted
-accidentally. I did delete ib.h file and saw below error
-
-   CC [M]  net/rds/rdma_transport.o
-net/rds/rdma_transport.c:38:16: error: ib.h: No such file or directory
-
-Could it be the case for some reason the ib.h file got
-deleted or mangled while applying the $subject patch ?
-
-Regards,
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
+index 9a3c54e..e678699 100644
+--- a/net/rds/ib_rdma.c
++++ b/net/rds/ib_rdma.c
+@@ -601,11 +601,11 @@ struct rds_ib_mr_pool *rds_ib_create_mr_pool(struct rds_ib_device *rds_ibdev,
+ 	if (pool_type == RDS_IB_MR_1M_POOL) {
+ 		/* +1 allows for unaligned MRs */
+ 		pool->fmr_attr.max_pages = RDS_MR_1M_MSG_SIZE + 1;
+-		pool->max_items = RDS_MR_1M_POOL_SIZE;
++		pool->max_items = rds_ibdev->max_1m_mrs;
+ 	} else {
+ 		/* pool_type == RDS_IB_MR_8K_POOL */
+ 		pool->fmr_attr.max_pages = RDS_MR_8K_MSG_SIZE + 1;
+-		pool->max_items = RDS_MR_8K_POOL_SIZE;
++		pool->max_items = rds_ibdev->max_8k_mrs;
+ 	}
+ 
+ 	pool->max_free_pinned = pool->max_items * pool->fmr_attr.max_pages / 4;
+-- 
+2.4.11
