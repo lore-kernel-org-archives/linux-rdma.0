@@ -1,54 +1,49 @@
-From: Steve French <smfrench-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Patch v4 16/22] CIFS: SMBD: Fix the definition for SMB2_CHANNEL_RDMA_V1_INVALIDATE
-Date: Wed, 4 Oct 2017 17:07:45 -0500
-Message-ID: <CAH2r5msU_H5FS+ZeO6yEJFrqOYctsUktaJ=e2Lu4eT8x_DrQ-g@mail.gmail.com>
-References: <20171002023030.3582-1-longli@exchange.microsoft.com> <20171002023030.3582-17-longli@exchange.microsoft.com>
+From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v4 rdma-next 17/18] IB/core: Define 'ib' and 'roce'
+ rdma_ah_attr types
+Date: Wed, 4 Oct 2017 15:15:20 -0700
+Message-ID: <73561590-0d5e-54ba-a98a-d8c45f869955@intel.com>
+References: <1493491290-31621-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1493491290-31621-18-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <VI1PR0502MB30083D21E466C23698A93228D1730@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171002023030.3582-17-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
-Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
-Cc: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, samba-technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <VI1PR0502MB30083D21E466C23698A93228D1730-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Good catch - merged into cifs-2.6.git for-next
-
-On Sun, Oct 1, 2017 at 9:30 PM, Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org> wrote:
-> From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
->
-> The channel value for requesting server remote invalidating local memory
-> registration should be 0x00000002
->
-> Signed-off-by: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-> ---
->  fs/cifs/smb2pdu.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/fs/cifs/smb2pdu.h b/fs/cifs/smb2pdu.h
-> index 393ed5f..f783a08 100644
-> --- a/fs/cifs/smb2pdu.h
-> +++ b/fs/cifs/smb2pdu.h
-> @@ -832,7 +832,7 @@ struct smb2_flush_rsp {
->  /* Channel field for read and write: exactly one of following flags can be set*/
->  #define SMB2_CHANNEL_NONE              0x00000000
->  #define SMB2_CHANNEL_RDMA_V1           0x00000001 /* SMB3 or later */
-> -#define SMB2_CHANNEL_RDMA_V1_INVALIDATE 0x00000001 /* SMB3.02 or later */
-> +#define SMB2_CHANNEL_RDMA_V1_INVALIDATE 0x00000002 /* SMB3.02 or later */
->
->  /* SMB2 read request without RFC1001 length at the beginning */
->  struct smb2_read_plain_req {
-> --
-> 2.7.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-cifs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
-
--- 
-Thanks,
-
-Steve
+On 10/4/2017 2:24 PM, Parav Pandit wrote:
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Dasaratharaman Chandramouli
+>> Sent: Saturday, April 29, 2017 1:41 PM
+>> To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>> Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+>> Subject: [PATCH v4 rdma-next 17/18] IB/core: Define 'ib' and 'roce'
+>> rdma_ah_attr types
+>> +/*Get AH type */
+>> +static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device
+>> *dev,
+>> +						       u32 port_num)
+>> +{
+>> +	if ((rdma_protocol_roce(dev, port_num)) ||
+>> +	    (rdma_protocol_iwarp(dev, port_num)))
+>> +		return RDMA_AH_ATTR_TYPE_ROCE;
+> Check for iWarp to define AH attribute type as RoCE appears error to me.
+> Taking quick look at i40iw and nes drivers appears to return -ENOSYS for i40iw_create_ah(), nes_create_ah.
+> Will you please submit a fix that avoids above iWarp check?
+>
+>
+i40iw_port_immutable sets the RDMA_CORE_PORT_IWARP immutable flag, hence 
+the check. Are you having an issue?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
