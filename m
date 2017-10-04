@@ -1,42 +1,68 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc] IB/mlx5: Fix label order in error path handling
-Date: Wed, 04 Oct 2017 15:00:13 -0400
-Message-ID: <1507143613.46071.1.camel@redhat.com>
-References: <20171001065435.7733-1-leon@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Avinash Repaka <avinash.repaka-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH net v2] RDS: IB: Limit the scope of has_fr/has_fmr variables
+Date: Wed,  4 Oct 2017 12:10:43 -0700
+Message-ID: <1507144244-1611-1-git-send-email-avinash.repaka@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171001065435.7733-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Avinash Repaka <avinash.repaka-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2017-10-01 at 09:54 +0300, Leon Romanovsky wrote:
-> From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> When UAR get_page fails, it needs to continue to cleanup debugfs for
-> congestion control parameters. Labels for error path were incorrectly
-> ordered.
-> 
-> This patch fixes to do correct cleanup on debugfs init failure and
-> uar
-> get page failure.
-> 
-> Fixes: 4a2da0b8c078 ("IB/mlx5: Add debug control parameters for
-> congestion control")
-> Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
+This patch fixes the scope of has_fr and has_fmr variables as they are
+needed only in rds_ib_add_one().
 
-Thanks, applied.
+Signed-off-by: Avinash Repaka <avinash.repaka-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Acked-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
+---
+ net/rds/ib.c | 11 ++++++-----
+ net/rds/ib.h |  2 --
+ 2 files changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index a0954ac..36dd209 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -126,6 +126,7 @@ void rds_ib_dev_put(struct rds_ib_device *rds_ibdev)
+ static void rds_ib_add_one(struct ib_device *device)
+ {
+ 	struct rds_ib_device *rds_ibdev;
++	bool has_fr, has_fmr;
+ 
+ 	/* Only handle IB (no iWARP) devices */
+ 	if (device->node_type != RDMA_NODE_IB_CA)
+@@ -143,11 +144,11 @@ static void rds_ib_add_one(struct ib_device *device)
+ 	rds_ibdev->max_wrs = device->attrs.max_qp_wr;
+ 	rds_ibdev->max_sge = min(device->attrs.max_sge, RDS_IB_MAX_SGE);
+ 
+-	rds_ibdev->has_fr = (device->attrs.device_cap_flags &
+-				  IB_DEVICE_MEM_MGT_EXTENSIONS);
+-	rds_ibdev->has_fmr = (device->alloc_fmr && device->dealloc_fmr &&
+-			    device->map_phys_fmr && device->unmap_fmr);
+-	rds_ibdev->use_fastreg = (rds_ibdev->has_fr && !rds_ibdev->has_fmr);
++	has_fr = (device->attrs.device_cap_flags &
++		  IB_DEVICE_MEM_MGT_EXTENSIONS);
++	has_fmr = (device->alloc_fmr && device->dealloc_fmr &&
++		   device->map_phys_fmr && device->unmap_fmr);
++	rds_ibdev->use_fastreg = (has_fr && !has_fmr);
+ 
+ 	rds_ibdev->fmr_max_remaps = device->attrs.max_map_per_fmr?: 32;
+ 	rds_ibdev->max_1m_mrs = device->attrs.max_mr ?
+diff --git a/net/rds/ib.h b/net/rds/ib.h
+index bf48224..6ea6a27 100644
+--- a/net/rds/ib.h
++++ b/net/rds/ib.h
+@@ -215,8 +215,6 @@ struct rds_ib_device {
+ 	struct list_head	conn_list;
+ 	struct ib_device	*dev;
+ 	struct ib_pd		*pd;
+-	bool                    has_fmr;
+-	bool                    has_fr;
+ 	bool                    use_fastreg;
+ 
+ 	unsigned int		max_mrs;
 -- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+2.4.11
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
