@@ -1,38 +1,116 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+From: Julia Cartwright <julia@ni.com>
 Subject: Re: [PATCH 1/2] IB/hfi1: Use preempt_{dis,en}able_nort()
-Date: Thu, 5 Oct 2017 18:30:19 +0200
-Message-ID: <20171005163018.tk73i2vr2thaj2pn@linutronix.de>
+Date: Thu, 5 Oct 2017 11:39:33 -0500
+Message-ID: <20171005163933.GJ647@jcartwri.amer.corp.natinst.com>
 References: <20171003154920.31566-1-acme@kernel.org>
  <20171003154920.31566-2-acme@kernel.org>
+ <20171005141744.GC21185@jcartwri.amer.corp.natinst.com>
+ <alpine.DEB.2.20.1710051726490.2083@nanos>
+ <20171005153759.GG647@jcartwri.amer.corp.natinst.com>
+ <20171005115539.7daafb66@gandalf.local.home>
+ <20171005160535.GI647@jcartwri.amer.corp.natinst.com>
+ <alpine.DEB.2.20.1710051808280.2083@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171003154920.31566-2-acme@kernel.org>
+In-Reply-To: <alpine.DEB.2.20.1710051808280.2083@nanos>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org, Arnaldo Carvalho de Melo <acme@redhat.com>, Clark Williams <williams@redhat.com>, Dean Luick <dean.luick@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Kaike Wan <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Thomas Gleixner <tglx@linutronix.de>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>, Arnaldo Carvalho de Melo <acme@kernel.org>, bigeasy@linutronix.de, linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org, Arnaldo Carvalho de Melo <acme@redhat.com>, Clark Williams <williams@redhat.com>, Dean Luick <dean.luick@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Kaike Wan <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>, Sebastian Sanchez <sebastian.sanchez@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2017-10-03 12:49:19 [-0300], Arnaldo Carvalho de Melo wrote:
-> From: Arnaldo Carvalho de Melo <acme@redhat.com>
+On Thu, Oct 05, 2017 at 06:16:23PM +0200, Thomas Gleixner wrote:
+> On Thu, 5 Oct 2017, Julia Cartwright wrote:
 > 
-> diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
-> index 615be68e40b3..3a30bde9a07b 100644
-> --- a/drivers/infiniband/hw/hfi1/pio.c
-> +++ b/drivers/infiniband/hw/hfi1/pio.c
-> @@ -1421,7 +1421,7 @@ struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
->  
->  	/* there is enough room */
->  
-> -	preempt_disable();
-> +	preempt_disable_nort();
->  	this_cpu_inc(*sc->buffers_allocated);
->  
->  	/* read this once */
+> > On Thu, Oct 05, 2017 at 11:55:39AM -0400, Steven Rostedt wrote:
+> > > On Thu, 5 Oct 2017 10:37:59 -0500
+> > > Julia Cartwright <julia@ni.com> wrote:
+> > > 
+> > > > On Thu, Oct 05, 2017 at 05:27:30PM +0200, Thomas Gleixner wrote:
+> > > > > On Thu, 5 Oct 2017, Julia Cartwright wrote:  
+> > > > > > On Tue, Oct 03, 2017 at 12:49:19PM -0300, Arnaldo Carvalho de Melo wrote:  
+> > > > > > > -	preempt_disable();
+> > > > > > > +	preempt_disable_nort();
+> > > > > > >  	this_cpu_inc(*sc->buffers_allocated);  
+> > > > > > 
+> > > > > > Have you tried this on RT w/ CONFIG_DEBUG_PREEMPT?  I believe that the
+> > > > > > this_cpu_* operations perform a preemption check, which we'd trip.  
+> > > > > 
+> > > > > Good point. Changing this to migrate_disable() would do the trick.  
+> > > > 
+> > > > Wouldn't we still trip the preempt check even with migration disabled?
+> > > > In another thread I asked the same question: should the preemption
+> > > > checks here be converted to migration-checks in RT?
+> > > 
+> > > Is it a "preemption check"?
+> > 
+> > Sorry if I was unclear, more precisely: the this_cpu_* family of
+> > accessors, w/ CONFIG_DEBUG_PREEMPT currently spits out a warning when
+> > the caller is invoked in a context where preemption is enabled.
+> > 
+> > The check is shared w/ the smp_processor_id() check, as implemented in
+> > lib/smp_processor_id.c.  It effectively boils down to a check of
+> > preempt_count() and irqs_disabled().
+> 
+> Except that on RT that check cares about the migrate disable state. You can
+> invoke this_cpu_* and smp_processor_id() in preemptible/interruptible
+> context because of:
+> 
+> 	if (cpumask_equal(current->cpus_ptr, cpumask_of(this_cpu)))
+> 		goto out;
+> 
+> That's true even on mainline.
+> 
+> But you are right that this check needs some update because
+> migrate_disable() does not immediately update the allowed cpumask IIRC.
 
-please replace the preempt_disable() / enable with local_lock() /
-unlock. The section does not look like it could cope with multiple users
-dereferencing / using the same per-CPU variables.
+Actually, I think it does:
 
-Sebastian
+   migrate_disable() ->
+      p = current;
+      ...
+      migrate_disable_update_cpus_allowed(p) ->
+          p->cpus_ptr = cpumask_of(smp_processor_id())
+      ...
+
+Perhaps it's worth a simple comment update, below.
+
+   Julia
+
+-- 8< --
+Subject: [PATCH] kernel: sched: document smp_processor_id/this_cpu safety in
+ migration-disabled context
+
+On RT, users of smp_processor_id() and this_cpu_*() per-cpu accessors
+are considered safe if the caller executes with migration disabled.  On
+!RT, preempt_disable() is sufficient to make this guarantee, however on
+RT, the lesser migrate_disable() is sufficient.
+
+It is not entirely obvious which check in check_preemption_disabled()
+makes this work, so document it.
+
+Signed-off-by: Julia Cartwright <julia@ni.com>
+---
+ lib/smp_processor_id.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/lib/smp_processor_id.c b/lib/smp_processor_id.c
+index de3b2d925473..c8091d9eb1b4 100644
+--- a/lib/smp_processor_id.c
++++ b/lib/smp_processor_id.c
+@@ -20,7 +20,11 @@ notrace static unsigned int check_preemption_disabled(const char *what1,
+ 
+ 	/*
+ 	 * Kernel threads bound to a single CPU can safely use
+-	 * smp_processor_id():
++	 * smp_processor_id().
++	 *
++	 * In addition, threads which are currently executing within
++	 * a migration disabled region can safely use smp_processor_id() and
++	 * this_cpu accessors.
+ 	 */
+ 	if (cpumask_equal(current->cpus_ptr, cpumask_of(this_cpu)))
+ 		goto out;
+-- 
+2.14.1
