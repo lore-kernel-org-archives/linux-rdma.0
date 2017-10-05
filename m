@@ -1,116 +1,67 @@
-From: Julia Cartwright <julia@ni.com>
+From: Arnaldo Carvalho de Melo <acme-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: [PATCH 1/2] IB/hfi1: Use preempt_{dis,en}able_nort()
-Date: Thu, 5 Oct 2017 11:39:33 -0500
-Message-ID: <20171005163933.GJ647@jcartwri.amer.corp.natinst.com>
+Date: Thu, 5 Oct 2017 13:53:05 -0300
+Message-ID: <20171005165305.GN25388@kernel.org>
 References: <20171003154920.31566-1-acme@kernel.org>
  <20171003154920.31566-2-acme@kernel.org>
  <20171005141744.GC21185@jcartwri.amer.corp.natinst.com>
- <alpine.DEB.2.20.1710051726490.2083@nanos>
- <20171005153759.GG647@jcartwri.amer.corp.natinst.com>
- <20171005115539.7daafb66@gandalf.local.home>
- <20171005160535.GI647@jcartwri.amer.corp.natinst.com>
- <alpine.DEB.2.20.1710051808280.2083@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1710051808280.2083@nanos>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>, Arnaldo Carvalho de Melo <acme@kernel.org>, bigeasy@linutronix.de, linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org, Arnaldo Carvalho de Melo <acme@redhat.com>, Clark Williams <williams@redhat.com>, Dean Luick <dean.luick@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Kaike Wan <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>, Sebastian Sanchez <sebastian.sanchez@intel.com>
+In-Reply-To: <20171005141744.GC21185-ew3lsbMjNqt5wtABiV/Xjqyly8cj88Ttqxv4g6HH51o@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Julia Cartwright <julia-acOepvfBmUk@public.gmane.org>
+Cc: bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-rt-users-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnaldo Carvalho de Melo <acme-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Clark Williams <williams-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sebastian Andrzej Siewior <sebastian.siewior-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 05, 2017 at 06:16:23PM +0200, Thomas Gleixner wrote:
-> On Thu, 5 Oct 2017, Julia Cartwright wrote:
-> 
-> > On Thu, Oct 05, 2017 at 11:55:39AM -0400, Steven Rostedt wrote:
-> > > On Thu, 5 Oct 2017 10:37:59 -0500
-> > > Julia Cartwright <julia@ni.com> wrote:
-> > > 
-> > > > On Thu, Oct 05, 2017 at 05:27:30PM +0200, Thomas Gleixner wrote:
-> > > > > On Thu, 5 Oct 2017, Julia Cartwright wrote:  
-> > > > > > On Tue, Oct 03, 2017 at 12:49:19PM -0300, Arnaldo Carvalho de Melo wrote:  
-> > > > > > > -	preempt_disable();
-> > > > > > > +	preempt_disable_nort();
-> > > > > > >  	this_cpu_inc(*sc->buffers_allocated);  
-> > > > > > 
-> > > > > > Have you tried this on RT w/ CONFIG_DEBUG_PREEMPT?  I believe that the
-> > > > > > this_cpu_* operations perform a preemption check, which we'd trip.  
-> > > > > 
-> > > > > Good point. Changing this to migrate_disable() would do the trick.  
-> > > > 
-> > > > Wouldn't we still trip the preempt check even with migration disabled?
-> > > > In another thread I asked the same question: should the preemption
-> > > > checks here be converted to migration-checks in RT?
-> > > 
-> > > Is it a "preemption check"?
-> > 
-> > Sorry if I was unclear, more precisely: the this_cpu_* family of
-> > accessors, w/ CONFIG_DEBUG_PREEMPT currently spits out a warning when
-> > the caller is invoked in a context where preemption is enabled.
-> > 
-> > The check is shared w/ the smp_processor_id() check, as implemented in
-> > lib/smp_processor_id.c.  It effectively boils down to a check of
-> > preempt_count() and irqs_disabled().
-> 
-> Except that on RT that check cares about the migrate disable state. You can
-> invoke this_cpu_* and smp_processor_id() in preemptible/interruptible
-> context because of:
-> 
-> 	if (cpumask_equal(current->cpus_ptr, cpumask_of(this_cpu)))
-> 		goto out;
-> 
-> That's true even on mainline.
-> 
-> But you are right that this check needs some update because
-> migrate_disable() does not immediately update the allowed cpumask IIRC.
+Em Thu, Oct 05, 2017 at 09:17:44AM -0500, Julia Cartwright escreveu:
+> On Tue, Oct 03, 2017 at 12:49:19PM -0300, Arnaldo Carvalho de Melo wrote:
+> > +++ b/drivers/infiniband/hw/hfi1/pio.c
+> > @@ -1421,7 +1421,7 @@ struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
 
-Actually, I think it does:
+> >  	/* there is enough room */
 
-   migrate_disable() ->
-      p = current;
-      ...
-      migrate_disable_update_cpus_allowed(p) ->
-          p->cpus_ptr = cpumask_of(smp_processor_id())
-      ...
+> > -	preempt_disable();
+> > +	preempt_disable_nort();
+> >  	this_cpu_inc(*sc->buffers_allocated);
 
-Perhaps it's worth a simple comment update, below.
+> Have you tried this on RT w/ CONFIG_DEBUG_PREEMPT?
 
-   Julia
+No
 
--- 8< --
-Subject: [PATCH] kernel: sched: document smp_processor_id/this_cpu safety in
- migration-disabled context
+> I believe that the this_cpu_* operations perform a preemption check, which we'd trip.
 
-On RT, users of smp_processor_id() and this_cpu_*() per-cpu accessors
-are considered safe if the caller executes with migration disabled.  On
-!RT, preempt_disable() is sufficient to make this guarantee, however on
-RT, the lesser migrate_disable() is sufficient.
+Humm, looking at include/linux/percpu-defs.h on v4.11.12-rt14 I see
+(trimmed to what we're discussing here):
 
-It is not entirely obvious which check in check_preemption_disabled()
-makes this work, so document it.
+#ifdef CONFIG_DEBUG_PREEMPT
+extern void __this_cpu_preempt_check(const char *op);
+#else
+static inline void __this_cpu_preempt_check(const char *op) { }
+#endif
 
-Signed-off-by: Julia Cartwright <julia@ni.com>
----
- lib/smp_processor_id.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+#define __this_cpu_add(pcp, val)					\
+({									\
+	__this_cpu_preempt_check("add");				\
+	raw_cpu_add(pcp, val);						\
+})
+#define __this_cpu_inc(pcp)		__this_cpu_add(pcp, 1)
 
-diff --git a/lib/smp_processor_id.c b/lib/smp_processor_id.c
-index de3b2d925473..c8091d9eb1b4 100644
---- a/lib/smp_processor_id.c
-+++ b/lib/smp_processor_id.c
-@@ -20,7 +20,11 @@ notrace static unsigned int check_preemption_disabled(const char *what1,
+/*
+ * Operations with implied preemption/interrupt protection.  These
+ * operations can be used without worrying about preemption or interrupt.
+ */
+#define this_cpu_add(pcp, val)          __pcpu_size_call(this_cpu_add_, pcp, val)
+#define this_cpu_inc(pcp)               this_cpu_add(pcp, 1)
  
- 	/*
- 	 * Kernel threads bound to a single CPU can safely use
--	 * smp_processor_id():
-+	 * smp_processor_id().
-+	 *
-+	 * In addition, threads which are currently executing within
-+	 * a migration disabled region can safely use smp_processor_id() and
-+	 * this_cpu accessors.
- 	 */
- 	if (cpumask_equal(current->cpus_ptr, cpumask_of(this_cpu)))
- 		goto out;
--- 
-2.14.1
+> You may also have to change these to the non-preempt checked variants.
+
+So __this_cpu_inc() checks preemption but this_cpu_inc() doesn't and
+thus we're ok here? Or am I getting lost in this maze of defines? :-)
+
+- Arnaldo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
