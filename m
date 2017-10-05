@@ -1,38 +1,40 @@
-From: "J. Bruce Fields" <bfields@fieldses.org>
-Subject: Re: [PATCH 00/18] use ARRAY_SIZE macro
-Date: Thu, 5 Oct 2017 13:57:15 -0400
-Message-ID: <20171005175715.GA19093@fieldses.org>
-References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
- <20171001220131.GA11812@eros>
- <20171001205220.10b78086@blatinox-laptop.localdomain>
- <20171002053554.GA28743@kroah.com>
- <20171002192224.GD1903@fieldses.org>
- <20171002213312.3f904290@blatinox-laptop.localdomain>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH 0/1] Request for Comments on SoftiWarp
+Date: Thu, 5 Oct 2017 12:56:15 -0500
+Message-ID: <c948ef76-8007-7fa4-8899-c3cbbafead86@opengridcomputing.com>
+References: <20171005132659.25930-1-bmt@zurich.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171002213312.3f904290@blatinox-laptop.localdomain>
-Sender: netdev-owner@vger.kernel.org
-To: =?utf-8?B?SsOpcsOpbXk=?= Lefaure <jeremy.lefaure@lse.epita.fr>
-Cc: Greg KH <greg@kroah.com>, "Tobin C. Harding" <me@tobin.cc>, alsa-devel@alsa-project.org, nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org, dm-devel@redhat.com, brcm80211-dev-list@cypress.com, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-acpi@vger.kernel.org, linux-video@atrey.karlin.mff.cuni.cz, intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org, ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org, linux-raid@vger.kernel.org, openipmi-developer@lists.sourceforge.net, intel-gvt-dev@lists.freedesktop.org, devel@acpica.org, brcm80211-dev-list.pdl@broadcom.com, netdev@vger.kernel.org, linux-usb@v
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171005132659.25930-1-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 02, 2017 at 09:33:12PM -0400, Jérémy Lefaure wrote:
-> On Mon, 2 Oct 2017 15:22:24 -0400
-> bfields@fieldses.org (J. Bruce Fields) wrote:
-> 
-> > Mainly I'd just like to know which you're asking for.  Do you want me to
-> > apply this, or to ACK it so someone else can?  If it's sent as a series
-> > I tend to assume the latter.
-> > 
-> > But in this case I'm assuming it's the former, so I'll pick up the nfsd
-> > one....
-> Could you to apply the NFSD patch ("nfsd: use ARRAY_SIZE") with the
-> Reviewed-by: Jeff Layton <jlayton@redhat.com>) tag please ?
-> 
-> This patch is an individual patch and it should not have been sent in a
-> series (sorry about that).
+On 10/5/2017 8:26 AM, Bernard Metzler wrote:
+> This patch set introduces the SoftiWarp driver.
 
-Applying for 4.15, thanks.--b.
+Hey Bernard,  Thanks for submitting this!
+
+> >From Friday night on, I will be on vacation for two weeks with only
+> limited access to email. I will try to stay connected, and hope for a lively
+> discussion. I will of course address all comments latest when I am back on
+> October 24th, but I wanted to get the code out now - to get more eyes
+> on it.
+
+I think it would be better to submit this as a series of smaller 
+patches, perhaps broken up by the siw architecture (verbs handling, 
+connection management,  configuration, etc), with the last patch being 
+the Makefile/kbuild change to add it.  Then folks can review it more 
+easily.
+
+Can you resubmit before you disappear? :)
+
+Steve.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
