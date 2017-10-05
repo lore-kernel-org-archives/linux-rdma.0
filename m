@@ -1,45 +1,60 @@
-From: Arnaldo Carvalho de Melo <acme-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/2] IB/hfi1: Use preempt_{dis,en}able_nort()
-Date: Thu, 5 Oct 2017 15:53:30 -0300
-Message-ID: <20171005185330.GP25388@kernel.org>
-References: <20171003154920.31566-1-acme@kernel.org>
- <20171003154920.31566-2-acme@kernel.org>
- <20171005141744.GC21185@jcartwri.amer.corp.natinst.com>
- <20171005165305.GN25388@kernel.org>
- <20171005182900.GK647@jcartwri.amer.corp.natinst.com>
+From: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 net-next 06/12] qed: Add LL2 slowpath handling
+Date: Thu, 5 Oct 2017 18:59:04 +0000
+Message-ID: <CY1PR0701MB2012A2F8E3E923D98B1E1A6488700@CY1PR0701MB2012.namprd07.prod.outlook.com>
+References: <1507020902-4952-1-git-send-email-Michal.Kalderon@cavium.com>
+        <1507020902-4952-7-git-send-email-Michal.Kalderon@cavium.com>,<20171003.101712.715882117516958741.davem@davemloft.net>,<CY1PR0701MB20128130D21FD3C54E45B5A188720@CY1PR0701MB2012.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171005182900.GK647-ew3lsbMjNqt5wtABiV/Xjqyly8cj88Ttqxv4g6HH51o@public.gmane.org>
+In-Reply-To: <CY1PR0701MB20128130D21FD3C54E45B5A188720-UpKza+2NMNLHMJvQ0dyT705OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Julia Cartwright <julia-acOepvfBmUk@public.gmane.org>
-Cc: bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-rt-users-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnaldo Carvalho de Melo <acme-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Clark Williams <williams-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sebastian Andrzej Siewior <sebastian.siewior-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Em Thu, Oct 05, 2017 at 01:29:00PM -0500, Julia Cartwright escreveu:
-> On Thu, Oct 05, 2017 at 01:53:05PM -0300, Arnaldo Carvalho de Melo wrote:
-> > So __this_cpu_inc() checks preemption but this_cpu_inc() doesn't and
-> > thus we're ok here? Or am I getting lost in this maze of defines? :-)
- 
-> I think I was the one lost in the maze.  You are correct.  Sorry for the
-> confusion.
- 
-> My mind expected that the __ prefixed versions would be the "raw"
-> versions that are free of checks, with the checks made in the non
-> prefixed versions, but it is the other way around.
- 
-> I'm happy to accept that the bug is within my mind.
+From: Kalderon, Michal
+Sent: Tuesday, October 3, 2017 9:05 PM
+To: David Miller
+>From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+>Sent: Tuesday, October 3, 2017 8:17 PM
+>>> @@ -423,6 +423,41 @@ static void qed_ll2_rxq_parse_reg(struct qed_hwfn =
+*p_hwfn,
+>>>  }
+>>>
+>>>  static int
+>>> +qed_ll2_handle_slowpath(struct qed_hwfn *p_hwfn,
+>>> +                     struct qed_ll2_info *p_ll2_conn,
+>>> +                     union core_rx_cqe_union *p_cqe,
+>>> +                     unsigned long *p_lock_flags)
+>>> +{
+>>...
+>>> +     spin_unlock_irqrestore(&p_rx->lock, *p_lock_flags);
+>>> +
+>>
+>>You can't drop this lock.
+>>
+>>Another thread can enter the loop of our caller and process RX queue
+>>entries, then we would return from here and try to process the same
+>>entries again.
+>
+>The lock is there to synchronize access to chains between qed_ll2_rxq_comp=
+letion
+>and qed_ll2_post_rx_buffer. qed_ll2_rxq_completion can't be called from
+>different threads, the light l2 uses the single sp status block we have.
+>The reason we release the lock is to avoid a deadlock where as a result of=
+ calling
+>upper-layer driver it will potentially post additional rx-buffers.
 
-:-) 
+Dave, is there anything else needed from me on this?=20
+Noticed the series is still in "Changes Requested".=20
 
-Ok, now I'm taking the opportunity to read more about local locks, as
-Sebastian thinks are needed in this case, which I'm not entirely
-convinced from the discussion that took place here, and as you took part
-in that discussion and suggested using the nort variants of
-preempt_disable, do you still think this is the way to go?
+thanks,
+Michal
 
-- Arnaldo
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
