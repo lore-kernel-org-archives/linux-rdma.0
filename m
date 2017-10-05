@@ -1,58 +1,42 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 0/8] IB/hfi1, core, rdmavt: Driver fixes for
- 10/2/2017
-Date: Wed, 4 Oct 2017 21:22:06 -0400
-Message-ID: <2e195006-92f1-0d6c-1418-5c541f38f8e3@intel.com>
-References: <20171002180204.31117.12254.stgit@scvm10.sc.intel.com>
- <1507146261.46071.8.camel@redhat.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v4 rdma-next 17/18] IB/core: Define 'ib' and 'roce'
+ rdma_ah_attr types
+Date: Thu, 5 Oct 2017 02:02:02 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB19B2A2@ORSMSX109.amr.corp.intel.com>
+References: <1493491290-31621-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1493491290-31621-18-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <VI1PR0502MB30083D21E466C23698A93228D1730@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <73561590-0d5e-54ba-a98a-d8c45f869955@intel.com>
+ <VI1PR0502MB3008B828399AB0A08AA08AC6D1730@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1507146261.46071.8.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <VI1PR0502MB3008B828399AB0A08AA08AC6D1730-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jan Sokolowski <jan.sokolowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrzej Kacprowski <andrzej.kacprowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Niranjana Vishwanathapura <Niranjana.Vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hiatt, Don" <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/4/2017 3:44 PM, Doug Ledford wrote:
-> On Mon, 2017-10-02 at 11:03 -0700, Dennis Dalessandro wrote:
->> Hi Doug,
->> There are a couple fixes in here that would have been nice to get
->> into the RC
->> cycle, including one marked stable. However I think you will find
->> them to be
->> too many LOC for an rc-4 submission so I have sent them in one series
->> for-next.
->> Patches 2,3,4 and 5 are the fixes. Patch 2 is small but it's not
->> really that
->> important to the end user.
->>
->> There are some clean ups in here from Don from the 16B changes. One
->> takes care
->> of some sparse warnings and the other two are from a WARN_ON_ONCE
->> that needed
->> special cased for OPA.
->>
->> Patches can can also be found in my GitHub repo at:
->> https://github.com/ddalessa/kernel/tree/for-4.15
-> 
-> Hi Denny,
-> 
-> I didn't process that you mixed for-rc and for-next stuff in a single
-> thread before I had gone through and looked at the patches and
-> processed them.  So, this time they all went to for-next.  In the
-> future, you really need patches you want in for-rc separate from the
-> patches intended for for-next.
-
-Maybe I wasn't too clear, I didn't intend any of those to go for-rc. So 
-yep for-next was the right target.
-
-I would have liked to get the fixes into -rc but they were just too 
-complex for this late in the game is all I meant.
-
--Denny
+PiA+ID4+ICtzdGF0aWMgaW5saW5lIGVudW0gcmRtYV9haF9hdHRyX3R5cGUgcmRtYV9haF9maW5k
+X3R5cGUoc3RydWN0DQo+ID4gPj4gK2liX2RldmljZQ0KPiA+ID4+ICpkZXYsDQo+ID4gPj4gKwkJ
+CQkJCSAgICAgICB1MzIgcG9ydF9udW0pDQo+ID4gPj4gK3sNCj4gPiA+PiArCWlmICgocmRtYV9w
+cm90b2NvbF9yb2NlKGRldiwgcG9ydF9udW0pKSB8fA0KPiA+ID4+ICsJICAgIChyZG1hX3Byb3Rv
+Y29sX2l3YXJwKGRldiwgcG9ydF9udW0pKSkNCj4gPiA+PiArCQlyZXR1cm4gUkRNQV9BSF9BVFRS
+X1RZUEVfUk9DRTsNCj4gPiA+IENoZWNrIGZvciBpV2FycCB0byBkZWZpbmUgQUggYXR0cmlidXRl
+IHR5cGUgYXMgUm9DRSBhcHBlYXJzIGVycm9yDQo+IHRvIG1lLg0KPiA+ID4gVGFraW5nIHF1aWNr
+IGxvb2sgYXQgaTQwaXcgYW5kIG5lcyBkcml2ZXJzIGFwcGVhcnMgdG8gcmV0dXJuIC0NCj4gRU5P
+U1lTDQo+ID4gPiBmb3INCj4gPiBpNDBpd19jcmVhdGVfYWgoKSwgbmVzX2NyZWF0ZV9haC4NCj4g
+PiA+IFdpbGwgeW91IHBsZWFzZSBzdWJtaXQgYSBmaXggdGhhdCBhdm9pZHMgYWJvdmUgaVdhcnAg
+Y2hlY2s/DQo+ID4gPg0KPiA+ID4NCj4gPiBpNDBpd19wb3J0X2ltbXV0YWJsZSBzZXRzIHRoZSBS
+RE1BX0NPUkVfUE9SVF9JV0FSUCBpbW11dGFibGUgZmxhZywNCj4gQnV0IHdoZW4gd291bGQgc29t
+ZW9uZSBjcmVhdGUgb3IgaW5pdGlhbGl6ZSBhaCBmb3IgaVdhcnAgcG9ydCwgZ2l2ZW4NCj4gdGhh
+biBjcmVhdGVfYWggaXMgdW5zdXBwb3J0ZWQuDQo+IEFIIHR5cGUgb2YgUm9DRSBmb3IgaVdhcnAs
+IGRvZXNuJ3Qgc291bmQgY29ycmVjdC4NCg0KSSBhZ3JlZSB3aXRoIFBhcmF2LiAgTWFwcGluZyBp
+V2FycCB0byBBSCB0eXBlIFJvQ0UgZG9lc24ndCBtYWtlIHNlbnNlLiAgSU1PLCBpV2FycCBzaG91
+bGQgbWFwIHRvIEFIX0FUVFJfVFlQRV9VTkRFRklORUQgb3Igc29tZXRoaW5nIHNpbWlsYXIuDQoN
+Ci0gU2Vhbg0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
