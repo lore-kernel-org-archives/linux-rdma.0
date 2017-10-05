@@ -1,63 +1,98 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH v2 net-next 06/12] qed: Add LL2 slowpath handling
-Date: Thu, 05 Oct 2017 12:06:29 -0700 (PDT)
-Message-ID: <20171005.120629.2161199733119811102.davem@davemloft.net>
-References: <20171003.101712.715882117516958741.davem@davemloft.net>
-        <CY1PR0701MB20128130D21FD3C54E45B5A188720@CY1PR0701MB2012.namprd07.prod.outlook.com>
-        <CY1PR0701MB2012A2F8E3E923D98B1E1A6488700@CY1PR0701MB2012.namprd07.prod.outlook.com>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH 1/2] IB/hfi1: Use preempt_{dis,en}able_nort()
+Date: Thu, 5 Oct 2017 15:15:17 -0400
+Message-ID: <20171005151517.0c948504@gandalf.local.home>
+References: <20171003154920.31566-1-acme@kernel.org>
+        <20171003154920.31566-2-acme@kernel.org>
+        <20171005141744.GC21185@jcartwri.amer.corp.natinst.com>
+        <20171005165305.GN25388@kernel.org>
+        <20171005182900.GK647@jcartwri.amer.corp.natinst.com>
+        <20171005185330.GP25388@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CY1PR0701MB2012A2F8E3E923D98B1E1A6488700-UpKza+2NMNLHMJvQ0dyT705OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171005185330.GP25388@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Julia Cartwright <julia@ni.com>, bigeasy@linutronix.de, linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org, Arnaldo Carvalho de Melo <acme@redhat.com>, Clark Williams <williams@redhat.com>, Dean Luick <dean.luick@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Kaike Wan <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Thomas Gleixner <tglx@linutronix.de>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Date: Thu, 5 Oct 2017 18:59:04 +0000
+On Thu, 5 Oct 2017 15:53:30 -0300
+Arnaldo Carvalho de Melo <acme@kernel.org> wrote:
 
-> From: Kalderon, Michal
-> Sent: Tuesday, October 3, 2017 9:05 PM
-> To: David Miller
->>From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
->>Sent: Tuesday, October 3, 2017 8:17 PM
->>>> @@ -423,6 +423,41 @@ static void qed_ll2_rxq_parse_reg(struct qed_hwfn *p_hwfn,
->>>>  }
->>>>
->>>>  static int
->>>> +qed_ll2_handle_slowpath(struct qed_hwfn *p_hwfn,
->>>> +                     struct qed_ll2_info *p_ll2_conn,
->>>> +                     union core_rx_cqe_union *p_cqe,
->>>> +                     unsigned long *p_lock_flags)
->>>> +{
->>>...
->>>> +     spin_unlock_irqrestore(&p_rx->lock, *p_lock_flags);
->>>> +
->>>
->>>You can't drop this lock.
->>>
->>>Another thread can enter the loop of our caller and process RX queue
->>>entries, then we would return from here and try to process the same
->>>entries again.
->>
->>The lock is there to synchronize access to chains between qed_ll2_rxq_completion
->>and qed_ll2_post_rx_buffer. qed_ll2_rxq_completion can't be called from
->>different threads, the light l2 uses the single sp status block we have.
->>The reason we release the lock is to avoid a deadlock where as a result of calling
->>upper-layer driver it will potentially post additional rx-buffers.
+> Em Thu, Oct 05, 2017 at 01:29:00PM -0500, Julia Cartwright escreveu:
+> > On Thu, Oct 05, 2017 at 01:53:05PM -0300, Arnaldo Carvalho de Melo wrote:  
+> > > So __this_cpu_inc() checks preemption but this_cpu_inc() doesn't and
+> > > thus we're ok here? Or am I getting lost in this maze of defines? :-)  
+>  
+> > I think I was the one lost in the maze.  You are correct.  Sorry for the
+> > confusion.  
+>  
+> > My mind expected that the __ prefixed versions would be the "raw"
+> > versions that are free of checks, with the checks made in the non
+> > prefixed versions, but it is the other way around.  
+>  
+> > I'm happy to accept that the bug is within my mind.  
 > 
-> Dave, is there anything else needed from me on this? 
-> Noticed the series is still in "Changes Requested". 
+> :-) 
+> 
+> Ok, now I'm taking the opportunity to read more about local locks, as
+> Sebastian thinks are needed in this case, which I'm not entirely
+> convinced from the discussion that took place here, and as you took part
+> in that discussion and suggested using the nort variants of
+> preempt_disable, do you still think this is the way to go?
+>
 
-I'm still not convinced that the lock dropping is legitimate.  What if a
-spurious interrupt arrives?
+Looking at
+http://lkml.kernel.org/r/32E1700B9017364D9B60AED9960492BC3441B3BD@fmsmsx120.amr.corp.intel.com
 
-If the execution path in the caller is serialized for some reason, why
-are you using a spinlock and don't use that serialization for the mutual
-exclusion necessary for these queue indexes?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm thinking it is fine to convert the preempt_disable() just to
+preempt_disable_nort() (where it's a nop when PREEMPT_RT is enabled).
+In the mentioned thread, the counters do not seem to be important to
+the current CPU, just that they get incremented by "some" CPU.
+
+Adding back the patch for Mike:
+
+diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
+index 615be68e40b3..3a30bde9a07b 100644
+--- a/drivers/infiniband/hw/hfi1/pio.c
++++ b/drivers/infiniband/hw/hfi1/pio.c
+@@ -1421,7 +1421,7 @@ struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
+ 
+ 	/* there is enough room */
+ 
+-	preempt_disable();
++	preempt_disable_nort();
+ 	this_cpu_inc(*sc->buffers_allocated);
+ 
+ 	/* read this once */
+diff --git a/drivers/infiniband/hw/hfi1/pio_copy.c b/drivers/infiniband/hw/hfi1/pio_copy.c
+index 03024cec78dd..c3f48f705c97 100644
+--- a/drivers/infiniband/hw/hfi1/pio_copy.c
++++ b/drivers/infiniband/hw/hfi1/pio_copy.c
+@@ -162,7 +162,7 @@ void pio_copy(struct hfi1_devdata *dd, struct pio_buf *pbuf, u64 pbc,
+ 
+ 	/* finished with this buffer */
+ 	this_cpu_dec(*pbuf->sc->buffers_allocated);
+-	preempt_enable();
++	preempt_enable_nort();
+ }
+ 
+ /*
+@@ -753,5 +753,5 @@ void seg_pio_copy_end(struct pio_buf *pbuf)
+ 
+ 	/* finished with this buffer */
+ 	this_cpu_dec(*pbuf->sc->buffers_allocated);
+-	preempt_enable();
++	preempt_enable_nort();
+ }
+
+
+The above will only disable preemption when PREEMPT_RT is not enabled.
+Honestly, if it's just an optimization, and the counters are not that
+important, do we care on non PREEMPT_RT to disable preemption, and can
+we just remove the preempt_disable() totally? Depending if it triggers
+warnings using this_cpu_inc/dec() from preempt enabled regions.
+
+-- Steve
