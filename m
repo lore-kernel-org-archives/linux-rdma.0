@@ -1,120 +1,147 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/8] IB/hfi1, core, rdmavt: Driver fixes for
- 10/2/2017
-Date: Thu, 5 Oct 2017 09:22:29 -0400
-Message-ID: <2ede65c8-c175-6a66-1060-5d5b13c07326@redhat.com>
-References: <20171002180204.31117.12254.stgit@scvm10.sc.intel.com>
- <1507146261.46071.8.camel@redhat.com>
- <2e195006-92f1-0d6c-1418-5c541f38f8e3@intel.com>
- <20171005070417.GJ25829@mtr-leonro.local>
- <8601bdaa-53cc-e41f-95e6-483af90848b7@intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="Isbd31TLWBu1XdrUdKU2CndSljfV1EjNe"
+From: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: [PATCH 0/1] Request for Comments on SoftiWarp
+Date: Thu,  5 Oct 2017 09:26:58 -0400
+Message-ID: <20171005132659.25930-1-bmt@zurich.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8601bdaa-53cc-e41f-95e6-483af90848b7-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jan Sokolowski <jan.sokolowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrzej Kacprowski <andrzej.kacprowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Niranjana Vishwanathapura <Niranjana.Vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---Isbd31TLWBu1XdrUdKU2CndSljfV1EjNe
-Content-Type: multipart/mixed; boundary="KvKsP3XXm8M9rlEEOAdG4TFKmhPD4QoBn";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Jan Sokolowski <jan.sokolowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Andrzej Kacprowski <andrzej.kacprowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt
- <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Niranjana Vishwanathapura <Niranjana.Vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Message-ID: <2ede65c8-c175-6a66-1060-5d5b13c07326-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/8] IB/hfi1, core, rdmavt: Driver fixes for
- 10/2/2017
-References: <20171002180204.31117.12254.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
- <1507146261.46071.8.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <2e195006-92f1-0d6c-1418-5c541f38f8e3-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- <20171005070417.GJ25829-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
- <8601bdaa-53cc-e41f-95e6-483af90848b7-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-In-Reply-To: <8601bdaa-53cc-e41f-95e6-483af90848b7-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This patch set introduces the SoftiWarp driver.
 
---KvKsP3XXm8M9rlEEOAdG4TFKmhPD4QoBn
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+Originally introduced to linux-rdma in 2011, SoftiWarp (siw) is
+around as a project for a while. It aims at implementing the iWARP protocol
+suite (IETF-RFC 5044/5041/5040/6581) on top of kernel TCP sockets.
+It integrates with the linux-rdma  (or "OpenFabrics") framework. When our
+initial attempt to contribute siw to Linux somehow sanded up, we
+continued to use and further develop it as an open source project,
+currently hosted at https://github.com/zrlio/softiwarp.
 
-On 10/5/2017 6:44 AM, Dennis Dalessandro wrote:
-> On 10/5/2017 3:04 AM, Leon Romanovsky wrote:
->> On Wed, Oct 04, 2017 at 09:22:06PM -0400, Dennis Dalessandro wrote:
->>> Maybe I wasn't too clear, I didn't intend any of those to go for-rc.
->>> So yep
->>> for-next was the right target.
+We found siw being useful, if applications are using
+an RDMA API for communication (in particular, the ibverbs API), and
+there is no local RDMA hardware support. This might be relevant for RDMA
+application development and testing, as well as setups where
+RDMA client applications at hosts without hardware RDMA support
+want to communicate with servers which want to offload communication
+to dedicated RDMA hardware. With the advent of NVME storage technology,
+and NVME over Fabrics as a remote storage access method, use cases
+may expand within that area (we recently added the driver support
+needed to run siw at both NVMeF initiator and target side).
+Last but not least, since supporting different (asynchronous, one sided)
+communication patterns, we found pure siw client-server deployments can
+outperform sockets based communication setups.
 
-Ok.
+With all that, siw complements Soft-RoCE, also a pure software implementation
+of an RDMA provider, but running the RoCE/RoCEv2 protocol. In contradiction
+to Soft-RoCE, SoftiWarp per definition implements only the RC (reliable
+connected) RDMA service, as defined by iWARP.
 
->>> I would have liked to get the fixes into -rc but they were just too
->>> complex
->>> for this late in the game is all I meant.
+SoftiWarp comprises a kernel module and a user space library, both
+plugging into the linux-rdma kernel environment, or libibverbs and librdmacm
+respectively. It supports both kernel and user level RDMA applications.
+For efficiency, user level communication endpoint resources such as
+send/receive and completion queues are shared (memory mapped) between
+siw kernel component and siw user library. We tested siw interoperability
+with hardware iWARP products, such as Chelsio's T3/T4/T5/T6 adapters.
 
-Understood.
+We approach the list with this RFC, since we are seeking for advice on
+how to make siw ready for Linux acceptance. So, we are prepared -
+and hoping for - constructive criticism on what we are presenting here.
 
->> IMHO, the number of LOCs shouldn't be the gating factor for -rc, but t=
-he
->> severity of fixes yes.
->=20
-> Not the gating factor necessarily, but a factor that has to be be
-> weighed against the severity of the bug being fixed. As we get into
-> later -rc cycles the bar for risk vs reward gets raised, not that there=
+The current code has limitations we are aware of. In particular, we are
+currently working on:
 
-> should be a limit of X LOC for -rc whatever it's more of an overall
-> assessment of the risk of causing more harm than good.
+1) IPv6 addressing support.
 
-Exactly.  And given the rc stage we are at now, and the complexity of
-the fixes, you made the right call.
+2) Revised debug code. The currently used siw specific debug macros seem to
+   be obsolete and should probably get substituted by state of the art driver
+   debug code.
 
+3) NUMA awareness. We expect better performance results if siw
+   would do a better job here.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
+4) Module parametrization. All settable driver parameters are currently set
+   via module parameters. It might be a good idea to have those within /sys.
+
+5) Transmit path implementation. We experimented with different approaches
+   to implement a low latency transmit path. The current design of having
+   one per CPU core transmit thread might be not the best idea. Advice
+   is appreciated!
+
+For the patch set we provide, we added siw as another software driver to
+drivers/infiniband/sw.
 
 
---KvKsP3XXm8M9rlEEOAdG4TFKmhPD4QoBn--
 
---Isbd31TLWBu1XdrUdKU2CndSljfV1EjNe
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+To experiment with the current siw code, we suggest cloning our out-of-tree
+development repo at https://github.com/zrlio/softiwarp.
+Here, the branch 'dev-siw.mem_ext' contains the most recent code
+development status, which is currently in sync with the patch.
+Testing siw requires the installation of both user library and kernel
+module, located within userlib/ and kernel/ respectively. That siw
+version expects a running kernel of version >= 4.12.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+>From Friday night on, I will be on vacation for two weeks with only
+limited access to email. I will try to stay connected, and hope for a lively
+discussion. I will of course address all comments latest when I am back on
+October 24th, but I wanted to get the code out now - to get more eyes
+on it.
 
-iQIcBAEBCAAGBQJZ1jIbAAoJELgmozMOVy/dn6AP/RAaGfIDd6whjNRhWnAaxtjo
-6dEA62Q1kTnku4jHG1mKQ4rCbuYD8aJ7RoCC/E4g2hpuvcUJfSHSTs74b/JAZ839
-7g/vLqae6c2EkdrNctIAaGUmlDy9fLxTnph6oIt3UF2y3i8V9CfXwhvaHwTC5SZV
-/r4nROyWYoP64mc66mjHPOwCyxLD/U7f3+RcA4IbHn2l/lV/ZO6EQL0hK8bVFpdU
-J1Zx0mqYIF15RW1Vt5iSryRKmvBI1iuwP1pIFhBfNem7cmljjH0HkY0Q6XGez8hL
-M+oGyNU5TI6Z4XeMliNtJqln9Wqm6XiCgaWOXpDduk1nT8sSmQaDhgyKyNNljIwC
-DftkhDK/hnEtJmCoTQm79OX/iaMg/58nHkDj0pE57xVbvIPEWUeKynbyB6jpscP5
-KmuLERMfmIk3OFTxeplet9nQkpXGDP4KUQxZ2OPCOlDR/kJvzqFEwck3T4HxAUwK
-FCDHEwsTvtbRGn/czYKEIlqq1KJR6pKSaYAFCXhE6Lg9rd4TR98gONpxKehHd/S9
-q/a/Kp+VVedle+jTeaa01bziIkQPp2pjH+bT4RfiAaZ9VfIzP1D0oN88gKz6YU38
-Ssz7wFz+FHSUZ+4nQgXgG2mmfO3S3tlx6ERUWWs12MHM72nt9oNTCSoT2G0DeyaX
-ugqtAQAZ/yMoFz2WWY5p
-=odKG
------END PGP SIGNATURE-----
+Thank you,
+Bernard.
 
---Isbd31TLWBu1XdrUdKU2CndSljfV1EjNe--
+
+Bernard Metzler (1):
+  Adding SoftiWarp to the RDMA subsystem
+
+ drivers/infiniband/Kconfig            |    1 +
+ drivers/infiniband/sw/Makefile        |    1 +
+ drivers/infiniband/sw/siw/Kconfig     |   18 +
+ drivers/infiniband/sw/siw/Makefile    |   15 +
+ drivers/infiniband/sw/siw/iwarp.h     |  381 ++++++
+ drivers/infiniband/sw/siw/siw.h       |  785 ++++++++++++
+ drivers/infiniband/sw/siw/siw_ae.c    |  113 ++
+ drivers/infiniband/sw/siw/siw_cm.c    | 2270 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/siw/siw_cm.h    |  154 +++
+ drivers/infiniband/sw/siw/siw_cq.c    |  164 +++
+ drivers/infiniband/sw/siw/siw_debug.c |  442 +++++++
+ drivers/infiniband/sw/siw/siw_debug.h |  178 +++
+ drivers/infiniband/sw/siw/siw_main.c  |  754 +++++++++++
+ drivers/infiniband/sw/siw/siw_mem.c   |  403 ++++++
+ drivers/infiniband/sw/siw/siw_obj.c   |  428 +++++++
+ drivers/infiniband/sw/siw/siw_obj.h   |  113 ++
+ drivers/infiniband/sw/siw/siw_qp.c    | 1172 +++++++++++++++++
+ drivers/infiniband/sw/siw/siw_qp_rx.c | 1381 ++++++++++++++++++++
+ drivers/infiniband/sw/siw/siw_qp_tx.c | 1342 +++++++++++++++++++
+ drivers/infiniband/sw/siw/siw_verbs.c | 1933 ++++++++++++++++++++++++++++
+ drivers/infiniband/sw/siw/siw_verbs.h |  119 ++
+ include/uapi/rdma/siw_user.h          |  220 ++++
+ 22 files changed, 12387 insertions(+)
+ create mode 100644 drivers/infiniband/sw/siw/Kconfig
+ create mode 100644 drivers/infiniband/sw/siw/Makefile
+ create mode 100644 drivers/infiniband/sw/siw/iwarp.h
+ create mode 100644 drivers/infiniband/sw/siw/siw.h
+ create mode 100644 drivers/infiniband/sw/siw/siw_ae.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_cm.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_cm.h
+ create mode 100644 drivers/infiniband/sw/siw/siw_cq.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_debug.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_debug.h
+ create mode 100644 drivers/infiniband/sw/siw/siw_main.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_mem.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_obj.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_obj.h
+ create mode 100644 drivers/infiniband/sw/siw/siw_qp.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_qp_rx.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_qp_tx.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_verbs.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_verbs.h
+ create mode 100644 include/uapi/rdma/siw_user.h
+
+-- 
+2.13.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
