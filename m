@@ -1,100 +1,91 @@
-From: Julia Cartwright <julia@ni.com>
-Subject: Re: [PATCH 1/2] IB/hfi1: Use preempt_{dis,en}able_nort()
-Date: Thu, 5 Oct 2017 09:17:44 -0500
-Message-ID: <20171005141744.GC21185@jcartwri.amer.corp.natinst.com>
-References: <20171003154920.31566-1-acme@kernel.org>
- <20171003154920.31566-2-acme@kernel.org>
+From: Parav Pandit <parav@mellanox.com>
+Subject: RE: [PATCH net-next 01/10] net/smc: add missing dev_put
+Date: Thu, 5 Oct 2017 14:44:52 +0000
+Message-ID: <VI1PR0502MB300821C0E577822DC66E1A83D1700@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20170920115813.63745-1-ubraun@linux.vnet.ibm.com>
+ <20170920115813.63745-2-ubraun@linux.vnet.ibm.com>
+ <VI1PR0502MB30089D06B9C95D682E21511BD17D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <7961df23-1603-7853-5f3e-f31095aebba0@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171003154920.31566-2-acme@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: bigeasy@linutronix.de, linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org, Arnaldo Carvalho de Melo <acme@redhat.com>, Clark Williams <williams@redhat.com>, Dean Luick <dean.luick@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Kaike Wan <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <7961df23-1603-7853-5f3e-f31095aebba0@linux.vnet.ibm.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Ursula Braun <ubraun@linux.vnet.ibm.com>
+Cc: "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "jwi@linux.vnet.ibm.com" <jwi@linux.vnet.ibm.com>, "schwidefsky@de.ibm.com" <schwidefsky@de.ibm.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "raspl@linux.vnet.ibm.com" <raspl@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 03, 2017 at 12:49:19PM -0300, Arnaldo Carvalho de Melo wrote:
-> From: Arnaldo Carvalho de Melo <acme@redhat.com>
-> 
-> sc_buffer_alloc() disables preemption that will be reenabled by either
-> pio_copy() or seg_pio_copy_end(). But before disabling preemption it
-> grabs a spin lock that will be dropped after it disables preemption,
-> which ends up triggering a warning in migrate_disable() later on.
-> 
->     spin_lock_irqsave(&sc->alloc_lock)
->       migrate_disable() ++p->migrate_disable -> 2
->     preempt_disable()
->     spin_unlock_irqrestore(&sc->alloc_lock)
->       migrate_enable() in_atomic(), so just returns, migrate_disable stays at 2
->     spin_lock_irqsave(some other lock) -> b00m
-> 
-> And the WARN_ON code ends up tripping over this over and over in
-> log_store().
-> 
-> Sequence captured via ftrace_dump_on_oops + crash utility 'dmesg'
-> command.
-> 
-> [512258.613862] sm-3297 16 .....11 359465349134644: sc_buffer_alloc <-hfi1_verbs_send_pio
-> [512258.613876] sm-3297 16 .....11 359465349134719: migrate_disable <-sc_buffer_alloc
-> [512258.613890] sm-3297 16 .....12 359465349134798: rt_spin_lock <-sc_buffer_alloc
-> [512258.613903] sm-3297 16 ....112 359465349135481: rt_spin_unlock <-sc_buffer_alloc
-> [512258.613916] sm-3297 16 ....112 359465349135556: migrate_enable <-sc_buffer_alloc
-> [512258.613935] sm-3297 16 ....112 359465349135788: seg_pio_copy_start <-hfi1_verbs_send_pio
-> [512258.613954] sm-3297 16 ....112 359465349136273: update_sge <-hfi1_verbs_send_pio
-> [512258.613981] sm-3297 16 ....112 359465349136373: seg_pio_copy_mid <-hfi1_verbs_send_pio
-> [512258.613999] sm-3297 16 ....112 359465349136873: update_sge <-hfi1_verbs_send_pio
-> [512258.614017] sm-3297 16 ....112 359465349136956: seg_pio_copy_mid <-hfi1_verbs_send_pio
-> [512258.614035] sm-3297 16 ....112 359465349137221: seg_pio_copy_end <-hfi1_verbs_send_pio
-> [512258.614048] sm-3297 16 .....12 359465349137360: migrate_disable <-hfi1_verbs_send_pio
-> [512258.614065] sm-3297 16 .....12 359465349137476: warn_slowpath_null <-migrate_disable
-> [512258.614081] sm-3297 16 .....12 359465349137564: __warn <-warn_slowpath_null
-> [512258.614088] sm-3297 16 .....12 359465349137958: printk <-__warn
-> [512258.614096] sm-3297 16 .....12 359465349138055: vprintk_default <-printk
-> [512258.614104] sm-3297 16 .....12 359465349138144: vprintk_emit <-vprintk_default
-> [512258.614111] sm-3297 16 d....12 359465349138312: _raw_spin_lock <-vprintk_emit
-> [512258.614119] sm-3297 16 d...112 359465349138789: log_store <-vprintk_emit
-> [512258.614127] sm-3297 16 .....12 359465349139068: migrate_disable <-vprintk_emit
-> 
-> According to a discussion (see Link: below) on the linux-rt-users
-> mailing list, this locking is done for performance reasons, not for
-> correctness, so use the _nort() variants to avoid the above problem.
-> 
-> Suggested-by: Julia Cartwright <julia@ni.com>
-> Cc: Clark Williams <williams@redhat.com>
-> Cc: Dean Luick <dean.luick@intel.com>
-> Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
-> Cc: Doug Ledford <dledford@redhat.com>
-> Cc: Kaike Wan <kaike.wan@intel.com>
-> Cc: Leon Romanovsky <leonro@mellanox.com>
-> Cc: linux-rdma@vger.kernel.org
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>
-> Cc: Sebastian Sanchez <sebastian.sanchez@intel.com>
-> Cc: Steven Rostedt <rostedt@goodmis.org>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Link: https://urldefense.proofpoint.com/v2/url?u=http-3A__lkml.kernel.org_r_20170926210045.GO29872-40jcartwri.amer.corp.natinst.com&d=DwIBaQ&c=I_0YwoKy7z5LMTVdyO6YCiE2uzI1jjZZuIPelcSjixA&r=cAXq_8W9Othb2h8ZcWv8Vw&m=zzKtWJ595HB0jyuiFic0ZEkpmmjvGRXJHkGF27oyvCI&s=J4_Al0cbvQ9PCM3VbqzJ6apmpSZI9Xx7eq6Gcfucp24&e= 
-> Signed-off-by: Arnaldo Carvalho de Melo <acme@redhat.com>
-> ---
->  drivers/infiniband/hw/hfi1/pio.c      | 2 +-
->  drivers/infiniband/hw/hfi1/pio_copy.c | 4 ++--
->  2 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
-> index 615be68e40b3..3a30bde9a07b 100644
-> --- a/drivers/infiniband/hw/hfi1/pio.c
-> +++ b/drivers/infiniband/hw/hfi1/pio.c
-> @@ -1421,7 +1421,7 @@ struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
->  
->  	/* there is enough room */
->  
-> -	preempt_disable();
-> +	preempt_disable_nort();
->  	this_cpu_inc(*sc->buffers_allocated);
-
-Have you tried this on RT w/ CONFIG_DEBUG_PREEMPT?  I believe that the
-this_cpu_* operations perform a preemption check, which we'd trip.
-
-You may also have to change these to the non-preempt checked variants.
-
-   Julia
+SGkgVXJzdWxhLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFVyc3Vs
+YSBCcmF1biBbbWFpbHRvOnVicmF1bkBsaW51eC52bmV0LmlibS5jb21dDQo+IFNlbnQ6IFRodXJz
+ZGF5LCBPY3RvYmVyIDA1LCAyMDE3IDI6NTQgQU0NCj4gVG86IFBhcmF2IFBhbmRpdCA8cGFyYXZA
+bWVsbGFub3guY29tPg0KPiBDYzogZGF2ZW1AZGF2ZW1sb2Z0Lm5ldDsgbmV0ZGV2QHZnZXIua2Vy
+bmVsLm9yZzsgbGludXgtDQo+IHJkbWFAdmdlci5rZXJuZWwub3JnOyBsaW51eC1zMzkwQHZnZXIu
+a2VybmVsLm9yZzsgandpQGxpbnV4LnZuZXQuaWJtLmNvbTsNCj4gc2Nod2lkZWZza3lAZGUuaWJt
+LmNvbTsgaGVpa28uY2Fyc3RlbnNAZGUuaWJtLmNvbTsNCj4gcmFzcGxAbGludXgudm5ldC5pYm0u
+Y29tDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggbmV0LW5leHQgMDEvMTBdIG5ldC9zbWM6IGFkZCBt
+aXNzaW5nIGRldl9wdXQNCj4gDQo+IA0KPiANCj4gT24gMTAvMDIvMjAxNyAxMDozNiBQTSwgUGFy
+YXYgUGFuZGl0IHdyb3RlOg0KPiA+IEhpIFVyc3VsYSwgRGF2ZSwgSGFucywNCj4gPg0KPiA+PiAt
+LS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZn
+ZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJkbWEtDQo+ID4+IG93bmVyQHZnZXIua2VybmVs
+Lm9yZ10gT24gQmVoYWxmIE9mIFVyc3VsYSBCcmF1bg0KPiA+PiBTZW50OiBXZWRuZXNkYXksIFNl
+cHRlbWJlciAyMCwgMjAxNyA2OjU4IEFNDQo+ID4+IFRvOiBkYXZlbUBkYXZlbWxvZnQubmV0DQo+
+ID4+IENjOiBuZXRkZXZAdmdlci5rZXJuZWwub3JnOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9y
+ZzsgbGludXgtDQo+ID4+IHMzOTBAdmdlci5rZXJuZWwub3JnOyBqd2lAbGludXgudm5ldC5pYm0u
+Y29tOyBzY2h3aWRlZnNreUBkZS5pYm0uY29tOw0KPiA+PiBoZWlrby5jYXJzdGVuc0BkZS5pYm0u
+Y29tOyByYXNwbEBsaW51eC52bmV0LmlibS5jb207DQo+ID4+IHVicmF1bkBsaW51eC52bmV0Lmli
+bS5jb20NCj4gPj4gU3ViamVjdDogW1BBVENIIG5ldC1uZXh0IDAxLzEwXSBuZXQvc21jOiBhZGQg
+bWlzc2luZyBkZXZfcHV0DQo+ID4+DQo+ID4+IEZyb206IEhhbnMgV2lwcGVsIDxod2lwcGVsQGxp
+bnV4LnZuZXQuaWJtLmNvbT4NCj4gPj4NCj4gPj4gSW4gdGhlIGluZmluaWJhbmQgcGFydCwgU01D
+IGN1cnJlbnRseSB1c2VzIGdldF9uZXRkZXYgd2hpY2ggY2FsbHMNCj4gPj4gZGV2X2hvbGQgb24g
+dGhlIHJldHVybmVkIG5ldCBkZXZpY2UuIEhvd2V2ZXIsIHRoZSBTTUMgY29kZSBuZXZlcg0KPiA+
+PiBjYWxscyBkZXZfcHV0IG9uIHRoYXQgbmV0IGRldmljZSByZXN1bHRpbmcgaW4gYSB3cm9uZyBy
+ZWZlcmVuY2UgY291bnQuDQo+ID4+DQo+ID4+IFRoaXMgcGF0Y2ggYWRkcyBhIGRldl9wdXQgYWZ0
+ZXIgdGhlIHVzYWdlIG9mIHRoZSBuZXQgZGV2aWNlIHRvIGZpeCB0aGUgaXNzdWUuDQo+ID4+DQo+
+ID4+IFNpZ25lZC1vZmYtYnk6IEhhbnMgV2lwcGVsIDxod2lwcGVsQGxpbnV4LnZuZXQuaWJtLmNv
+bT4NCj4gPj4gU2lnbmVkLW9mZi1ieTogVXJzdWxhIEJyYXVuIDx1YnJhdW5AbGludXgudm5ldC5p
+Ym0uY29tPg0KPiA+PiAtLS0NCj4gPj4gIG5ldC9zbWMvc21jX2liLmMgfCAxICsNCj4gPj4gIDEg
+ZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKQ0KPiA+Pg0KPiA+PiBkaWZmIC0tZ2l0IGEvbmV0
+L3NtYy9zbWNfaWIuYyBiL25ldC9zbWMvc21jX2liLmMgaW5kZXgNCj4gPj4gNTQ3ZTBlMTEzYjE3
+Li4wYjU4NTIyOTkxNTggMTAwNjQ0DQo+ID4+IC0tLSBhL25ldC9zbWMvc21jX2liLmMNCj4gPj4g
+KysrIGIvbmV0L3NtYy9zbWNfaWIuYw0KPiA+PiBAQCAtMzgwLDYgKzM4MCw3IEBAIHN0YXRpYyBp
+bnQgc21jX2liX2ZpbGxfZ2lkX2FuZF9tYWMoc3RydWN0DQo+ID4+IHNtY19pYl9kZXZpY2UgKnNt
+Y2liZGV2LCB1OCBpYnBvcnQpDQo+ID4+ICAJbmRldiA9IHNtY2liZGV2LT5pYmRldi0+Z2V0X25l
+dGRldihzbWNpYmRldi0+aWJkZXYsIGlicG9ydCk7DQo+ID4+ICAJaWYgKG5kZXYpIHsNCj4gPj4g
+IAkJbWVtY3B5KCZzbWNpYmRldi0+bWFjLCBuZGV2LT5kZXZfYWRkciwgRVRIX0FMRU4pOw0KPiA+
+PiArCQlkZXZfcHV0KG5kZXYpOw0KPiA+DQo+ID4gSSBhbSBzb3JyeSBmb3IgcHJvdmlkaW5nIGxh
+dGUgY29tbWVudHMuIHNtY19pYl9maWxsX2dpZF9hbmRfbWFjKCkgaXMgbm90DQo+IGNvZGVkIGNv
+cnJlY3RseS4NCj4gPiBGZXcgZml4ZXMgYXJlIG5lZWRlZC4NCj4gPiAxLiBVTFAgc3VjaCBhcyBT
+TUMgc2hvdWxkIG5vdCBvcGVuIGNvZGUvZGVmZXJlbmNlIGFueSBmdW5jdGlvbiBwb2ludGVyIGxp
+a2UNCj4gZ2V0X25ldGRldigpIG9mIHRoZSBJQiBkZXZpY2UuDQo+ID4gMi4gUmVwbGFjZSBpYl9x
+dWVyeV9naWQoLi4uLCBOVUxMKQ0KPiA+IFdpdGgNCj4gPiBpYl9xdWVyeV9naWQoLi4uLCBnaWRf
+YXR0cik7DQo+ID4NCj4gPiBVc2UgZ2lkX2F0dHIubmRldiB0byBnZXQgdGhlIE1BQyBhZGRyZXNz
+Lg0KPiA+IERvIGRldl9wdXQoZ2lkX2F0dHIubmRldik7DQo+ID4NCj4gPiBDb2RlIHNob3VsZCBs
+b29rIGxpa2UgYmVsb3csDQo+ID4NCj4gPiBzdHJ1Y3QgaWJfZ2lkX2F0dHIgZ2lkX2F0dHI7DQo+
+ID4NCj4gPiByYyA9IGliX3F1ZXJ5X2dpZCguLi4sICZnaWRfYXR0cik7DQo+ID4gaWYgKHJjIHx8
+ICFnaWRfYWRkci5uZGV2KQ0KPiA+IAlyZXR1cm4gLUVOT0RFVjsNCj4gPiBlbHNlDQo+ID4gCW1l
+bWNweShzbWNpYmRldi0+bWFjLCBuZGV2LT5kZXZfYWRkciwgRVRIX0FMRU4pOw0KPiA+IGRldl9w
+dXQoZ2lkX2FkZHIubmRldik7DQo+ID4NCj4gDQo+IFRoYW5rcywgUGFyYXYhDQo+IEZvbGxvd2lu
+ZyB5b3VyIGZpeCBpZGVhcyBJIHBsYW4gdG8gY2hhbmdlIHRoZSBmdW5jdGlvbiBpbnRvIHRoaXMg
+b25lOg0KPiANCj4gc3RhdGljIGludCBzbWNfaWJfZmlsbF9naWRfYW5kX21hYyhzdHJ1Y3Qgc21j
+X2liX2RldmljZSAqc21jaWJkZXYsIHU4IGlicG9ydCkgew0KPiAgICAgICAgIHN0cnVjdCBpYl9n
+aWRfYXR0ciBnYXR0cjsNCj4gICAgICAgICBpbnQgcmM7DQo+IA0KPiAgICAgICAgIHJjID0gaWJf
+cXVlcnlfZ2lkKHNtY2liZGV2LT5pYmRldiwgaWJwb3J0LCAwLA0KPiAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICZzbWNpYmRldi0+Z2lkW2licG9ydCAtIDFdLCAmZ2F0dHIpOw0KPiAgICAgICAg
+IC8qIHRoZSBTTUMgcHJvdG9jb2wgcmVxdWlyZXMgc3BlY2lmaWNhdGlvbiBvZiB0aGUgcm9jZSBN
+QUMgYWRkcmVzczsNCj4gICAgICAgICAgKiBpZiBuZXRfZGV2aWNlIGNhbm5vdCBiZSBkZXRlcm1p
+bmVkLCBpdCBjYW4gYmUgZGVyaXZlZCBmcm9tIGdpZCAwDQo+ICAgICAgICAgICovDQo+ICAgICAg
+ICAgaWYgKHJjKQ0KPiAgICAgICAgICAgICAgICAgcmV0dXJuIHJjOw0KPiANCj4gICAgICAgICBp
+ZiAoZ2F0dHIubmRldikgew0KPiAgICAgICAgICAgICAgICAgbWVtY3B5KCZzbWNpYmRldi0+bWFj
+LCBnYXR0ci5uZGV2LT5kZXZfYWRkciwgRVRIX0FMRU4pOw0KPiAgICAgICAgICAgICAgICAgZGV2
+X3B1dChnYXR0ci5uZGV2KTsNCj4gICAgICAgICB9IGVsc2Ugew0KPiAgICAgICAgICAgICAgICAg
+bWVtY3B5KCZzbWNpYmRldi0+bWFjW2licG9ydCAtIDFdWzBdLA0KPiAgICAgICAgICAgICAgICAg
+ICAgICAgICZzbWNpYmRldi0+Z2lkW2licG9ydCAtIDFdLnJhd1s4XSwgMyk7DQo+ICAgICAgICAg
+ICAgICAgICBtZW1jcHkoJnNtY2liZGV2LT5tYWNbaWJwb3J0IC0gMV1bM10sDQo+ICAgICAgICAg
+ICAgICAgICAgICAgICAgJnNtY2liZGV2LT5naWRbaWJwb3J0IC0gMV0ucmF3WzEzXSwgMyk7DQo+
+ICAgICAgICAgICAgICAgICBzbWNpYmRldi0+bWFjW2licG9ydCAtIDFdWzBdICY9IH4weDAyOw0K
+VGhpcyBlbHNlIHBhcnQgaXMgbm90IG5lZWRlZC4gWW91IGNhbiBmYWlsIHRoZSBjYWxsIGFzIHN1
+Z2dlc3RlZCBhYm92ZSwgaW5saW5lIGJlbG93IHRvby4NCmlmIChyYyB8fCAhZ2lkX2FkZHIubmRl
+dikNCiAJcmV0dXJuIC1FTk9ERVY7DQpUaGVyZSBtdXN0IGJlIHZhbGlkIG5ldGRldiBmb3IgUm9D
+RSBnaWQuDQpSZXN0IGNvZGUgbG9va3MgZmluZS4NCg==
