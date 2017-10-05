@@ -1,91 +1,55 @@
-From: Parav Pandit <parav@mellanox.com>
-Subject: RE: [PATCH net-next 01/10] net/smc: add missing dev_put
-Date: Thu, 5 Oct 2017 14:44:52 +0000
-Message-ID: <VI1PR0502MB300821C0E577822DC66E1A83D1700@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20170920115813.63745-1-ubraun@linux.vnet.ibm.com>
- <20170920115813.63745-2-ubraun@linux.vnet.ibm.com>
- <VI1PR0502MB30089D06B9C95D682E21511BD17D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <7961df23-1603-7853-5f3e-f31095aebba0@linux.vnet.ibm.com>
+From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v4 rdma-next 17/18] IB/core: Define 'ib' and 'roce'
+ rdma_ah_attr types
+Date: Thu, 5 Oct 2017 07:53:23 -0700
+Message-ID: <3fa1b782-0246-d8db-8f19-2be81dcb0a08@intel.com>
+References: <1493491290-31621-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1493491290-31621-18-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <VI1PR0502MB30083D21E466C23698A93228D1730@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <73561590-0d5e-54ba-a98a-d8c45f869955@intel.com>
+ <VI1PR0502MB3008B828399AB0A08AA08AC6D1730@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB19B2A2@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <7961df23-1603-7853-5f3e-f31095aebba0@linux.vnet.ibm.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB19B2A2-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Ursula Braun <ubraun@linux.vnet.ibm.com>
-Cc: "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "jwi@linux.vnet.ibm.com" <jwi@linux.vnet.ibm.com>, "schwidefsky@de.ibm.com" <schwidefsky@de.ibm.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "raspl@linux.vnet.ibm.com" <raspl@linux.vnet.ibm.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgVXJzdWxhLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFVyc3Vs
-YSBCcmF1biBbbWFpbHRvOnVicmF1bkBsaW51eC52bmV0LmlibS5jb21dDQo+IFNlbnQ6IFRodXJz
-ZGF5LCBPY3RvYmVyIDA1LCAyMDE3IDI6NTQgQU0NCj4gVG86IFBhcmF2IFBhbmRpdCA8cGFyYXZA
-bWVsbGFub3guY29tPg0KPiBDYzogZGF2ZW1AZGF2ZW1sb2Z0Lm5ldDsgbmV0ZGV2QHZnZXIua2Vy
-bmVsLm9yZzsgbGludXgtDQo+IHJkbWFAdmdlci5rZXJuZWwub3JnOyBsaW51eC1zMzkwQHZnZXIu
-a2VybmVsLm9yZzsgandpQGxpbnV4LnZuZXQuaWJtLmNvbTsNCj4gc2Nod2lkZWZza3lAZGUuaWJt
-LmNvbTsgaGVpa28uY2Fyc3RlbnNAZGUuaWJtLmNvbTsNCj4gcmFzcGxAbGludXgudm5ldC5pYm0u
-Y29tDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggbmV0LW5leHQgMDEvMTBdIG5ldC9zbWM6IGFkZCBt
-aXNzaW5nIGRldl9wdXQNCj4gDQo+IA0KPiANCj4gT24gMTAvMDIvMjAxNyAxMDozNiBQTSwgUGFy
-YXYgUGFuZGl0IHdyb3RlOg0KPiA+IEhpIFVyc3VsYSwgRGF2ZSwgSGFucywNCj4gPg0KPiA+PiAt
-LS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZn
-ZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJkbWEtDQo+ID4+IG93bmVyQHZnZXIua2VybmVs
-Lm9yZ10gT24gQmVoYWxmIE9mIFVyc3VsYSBCcmF1bg0KPiA+PiBTZW50OiBXZWRuZXNkYXksIFNl
-cHRlbWJlciAyMCwgMjAxNyA2OjU4IEFNDQo+ID4+IFRvOiBkYXZlbUBkYXZlbWxvZnQubmV0DQo+
-ID4+IENjOiBuZXRkZXZAdmdlci5rZXJuZWwub3JnOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9y
-ZzsgbGludXgtDQo+ID4+IHMzOTBAdmdlci5rZXJuZWwub3JnOyBqd2lAbGludXgudm5ldC5pYm0u
-Y29tOyBzY2h3aWRlZnNreUBkZS5pYm0uY29tOw0KPiA+PiBoZWlrby5jYXJzdGVuc0BkZS5pYm0u
-Y29tOyByYXNwbEBsaW51eC52bmV0LmlibS5jb207DQo+ID4+IHVicmF1bkBsaW51eC52bmV0Lmli
-bS5jb20NCj4gPj4gU3ViamVjdDogW1BBVENIIG5ldC1uZXh0IDAxLzEwXSBuZXQvc21jOiBhZGQg
-bWlzc2luZyBkZXZfcHV0DQo+ID4+DQo+ID4+IEZyb206IEhhbnMgV2lwcGVsIDxod2lwcGVsQGxp
-bnV4LnZuZXQuaWJtLmNvbT4NCj4gPj4NCj4gPj4gSW4gdGhlIGluZmluaWJhbmQgcGFydCwgU01D
-IGN1cnJlbnRseSB1c2VzIGdldF9uZXRkZXYgd2hpY2ggY2FsbHMNCj4gPj4gZGV2X2hvbGQgb24g
-dGhlIHJldHVybmVkIG5ldCBkZXZpY2UuIEhvd2V2ZXIsIHRoZSBTTUMgY29kZSBuZXZlcg0KPiA+
-PiBjYWxscyBkZXZfcHV0IG9uIHRoYXQgbmV0IGRldmljZSByZXN1bHRpbmcgaW4gYSB3cm9uZyBy
-ZWZlcmVuY2UgY291bnQuDQo+ID4+DQo+ID4+IFRoaXMgcGF0Y2ggYWRkcyBhIGRldl9wdXQgYWZ0
-ZXIgdGhlIHVzYWdlIG9mIHRoZSBuZXQgZGV2aWNlIHRvIGZpeCB0aGUgaXNzdWUuDQo+ID4+DQo+
-ID4+IFNpZ25lZC1vZmYtYnk6IEhhbnMgV2lwcGVsIDxod2lwcGVsQGxpbnV4LnZuZXQuaWJtLmNv
-bT4NCj4gPj4gU2lnbmVkLW9mZi1ieTogVXJzdWxhIEJyYXVuIDx1YnJhdW5AbGludXgudm5ldC5p
-Ym0uY29tPg0KPiA+PiAtLS0NCj4gPj4gIG5ldC9zbWMvc21jX2liLmMgfCAxICsNCj4gPj4gIDEg
-ZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKQ0KPiA+Pg0KPiA+PiBkaWZmIC0tZ2l0IGEvbmV0
-L3NtYy9zbWNfaWIuYyBiL25ldC9zbWMvc21jX2liLmMgaW5kZXgNCj4gPj4gNTQ3ZTBlMTEzYjE3
-Li4wYjU4NTIyOTkxNTggMTAwNjQ0DQo+ID4+IC0tLSBhL25ldC9zbWMvc21jX2liLmMNCj4gPj4g
-KysrIGIvbmV0L3NtYy9zbWNfaWIuYw0KPiA+PiBAQCAtMzgwLDYgKzM4MCw3IEBAIHN0YXRpYyBp
-bnQgc21jX2liX2ZpbGxfZ2lkX2FuZF9tYWMoc3RydWN0DQo+ID4+IHNtY19pYl9kZXZpY2UgKnNt
-Y2liZGV2LCB1OCBpYnBvcnQpDQo+ID4+ICAJbmRldiA9IHNtY2liZGV2LT5pYmRldi0+Z2V0X25l
-dGRldihzbWNpYmRldi0+aWJkZXYsIGlicG9ydCk7DQo+ID4+ICAJaWYgKG5kZXYpIHsNCj4gPj4g
-IAkJbWVtY3B5KCZzbWNpYmRldi0+bWFjLCBuZGV2LT5kZXZfYWRkciwgRVRIX0FMRU4pOw0KPiA+
-PiArCQlkZXZfcHV0KG5kZXYpOw0KPiA+DQo+ID4gSSBhbSBzb3JyeSBmb3IgcHJvdmlkaW5nIGxh
-dGUgY29tbWVudHMuIHNtY19pYl9maWxsX2dpZF9hbmRfbWFjKCkgaXMgbm90DQo+IGNvZGVkIGNv
-cnJlY3RseS4NCj4gPiBGZXcgZml4ZXMgYXJlIG5lZWRlZC4NCj4gPiAxLiBVTFAgc3VjaCBhcyBT
-TUMgc2hvdWxkIG5vdCBvcGVuIGNvZGUvZGVmZXJlbmNlIGFueSBmdW5jdGlvbiBwb2ludGVyIGxp
-a2UNCj4gZ2V0X25ldGRldigpIG9mIHRoZSBJQiBkZXZpY2UuDQo+ID4gMi4gUmVwbGFjZSBpYl9x
-dWVyeV9naWQoLi4uLCBOVUxMKQ0KPiA+IFdpdGgNCj4gPiBpYl9xdWVyeV9naWQoLi4uLCBnaWRf
-YXR0cik7DQo+ID4NCj4gPiBVc2UgZ2lkX2F0dHIubmRldiB0byBnZXQgdGhlIE1BQyBhZGRyZXNz
-Lg0KPiA+IERvIGRldl9wdXQoZ2lkX2F0dHIubmRldik7DQo+ID4NCj4gPiBDb2RlIHNob3VsZCBs
-b29rIGxpa2UgYmVsb3csDQo+ID4NCj4gPiBzdHJ1Y3QgaWJfZ2lkX2F0dHIgZ2lkX2F0dHI7DQo+
-ID4NCj4gPiByYyA9IGliX3F1ZXJ5X2dpZCguLi4sICZnaWRfYXR0cik7DQo+ID4gaWYgKHJjIHx8
-ICFnaWRfYWRkci5uZGV2KQ0KPiA+IAlyZXR1cm4gLUVOT0RFVjsNCj4gPiBlbHNlDQo+ID4gCW1l
-bWNweShzbWNpYmRldi0+bWFjLCBuZGV2LT5kZXZfYWRkciwgRVRIX0FMRU4pOw0KPiA+IGRldl9w
-dXQoZ2lkX2FkZHIubmRldik7DQo+ID4NCj4gDQo+IFRoYW5rcywgUGFyYXYhDQo+IEZvbGxvd2lu
-ZyB5b3VyIGZpeCBpZGVhcyBJIHBsYW4gdG8gY2hhbmdlIHRoZSBmdW5jdGlvbiBpbnRvIHRoaXMg
-b25lOg0KPiANCj4gc3RhdGljIGludCBzbWNfaWJfZmlsbF9naWRfYW5kX21hYyhzdHJ1Y3Qgc21j
-X2liX2RldmljZSAqc21jaWJkZXYsIHU4IGlicG9ydCkgew0KPiAgICAgICAgIHN0cnVjdCBpYl9n
-aWRfYXR0ciBnYXR0cjsNCj4gICAgICAgICBpbnQgcmM7DQo+IA0KPiAgICAgICAgIHJjID0gaWJf
-cXVlcnlfZ2lkKHNtY2liZGV2LT5pYmRldiwgaWJwb3J0LCAwLA0KPiAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICZzbWNpYmRldi0+Z2lkW2licG9ydCAtIDFdLCAmZ2F0dHIpOw0KPiAgICAgICAg
-IC8qIHRoZSBTTUMgcHJvdG9jb2wgcmVxdWlyZXMgc3BlY2lmaWNhdGlvbiBvZiB0aGUgcm9jZSBN
-QUMgYWRkcmVzczsNCj4gICAgICAgICAgKiBpZiBuZXRfZGV2aWNlIGNhbm5vdCBiZSBkZXRlcm1p
-bmVkLCBpdCBjYW4gYmUgZGVyaXZlZCBmcm9tIGdpZCAwDQo+ICAgICAgICAgICovDQo+ICAgICAg
-ICAgaWYgKHJjKQ0KPiAgICAgICAgICAgICAgICAgcmV0dXJuIHJjOw0KPiANCj4gICAgICAgICBp
-ZiAoZ2F0dHIubmRldikgew0KPiAgICAgICAgICAgICAgICAgbWVtY3B5KCZzbWNpYmRldi0+bWFj
-LCBnYXR0ci5uZGV2LT5kZXZfYWRkciwgRVRIX0FMRU4pOw0KPiAgICAgICAgICAgICAgICAgZGV2
-X3B1dChnYXR0ci5uZGV2KTsNCj4gICAgICAgICB9IGVsc2Ugew0KPiAgICAgICAgICAgICAgICAg
-bWVtY3B5KCZzbWNpYmRldi0+bWFjW2licG9ydCAtIDFdWzBdLA0KPiAgICAgICAgICAgICAgICAg
-ICAgICAgICZzbWNpYmRldi0+Z2lkW2licG9ydCAtIDFdLnJhd1s4XSwgMyk7DQo+ICAgICAgICAg
-ICAgICAgICBtZW1jcHkoJnNtY2liZGV2LT5tYWNbaWJwb3J0IC0gMV1bM10sDQo+ICAgICAgICAg
-ICAgICAgICAgICAgICAgJnNtY2liZGV2LT5naWRbaWJwb3J0IC0gMV0ucmF3WzEzXSwgMyk7DQo+
-ICAgICAgICAgICAgICAgICBzbWNpYmRldi0+bWFjW2licG9ydCAtIDFdWzBdICY9IH4weDAyOw0K
-VGhpcyBlbHNlIHBhcnQgaXMgbm90IG5lZWRlZC4gWW91IGNhbiBmYWlsIHRoZSBjYWxsIGFzIHN1
-Z2dlc3RlZCBhYm92ZSwgaW5saW5lIGJlbG93IHRvby4NCmlmIChyYyB8fCAhZ2lkX2FkZHIubmRl
-dikNCiAJcmV0dXJuIC1FTk9ERVY7DQpUaGVyZSBtdXN0IGJlIHZhbGlkIG5ldGRldiBmb3IgUm9D
-RSBnaWQuDQpSZXN0IGNvZGUgbG9va3MgZmluZS4NCg==
+
+
+On 10/4/2017 7:02 PM, Hefty, Sean wrote:
+>>>>> +static inline enum rdma_ah_attr_type rdma_ah_find_type(struct
+>>>>> +ib_device
+>>>>> *dev,
+>>>>> +						       u32 port_num)
+>>>>> +{
+>>>>> +	if ((rdma_protocol_roce(dev, port_num)) ||
+>>>>> +	    (rdma_protocol_iwarp(dev, port_num)))
+>>>>> +		return RDMA_AH_ATTR_TYPE_ROCE;
+>>>> Check for iWarp to define AH attribute type as RoCE appears error
+>> to me.
+>>>> Taking quick look at i40iw and nes drivers appears to return -
+>> ENOSYS
+>>>> for
+>>> i40iw_create_ah(), nes_create_ah.
+>>>> Will you please submit a fix that avoids above iWarp check?
+>>>>
+>>>>
+>>> i40iw_port_immutable sets the RDMA_CORE_PORT_IWARP immutable flag,
+>> But when would someone create or initialize ah for iWarp port, given
+>> than create_ah is unsupported.
+>> AH type of RoCE for iWarp, doesn't sound correct.
+> I agree with Parav.  Mapping iWarp to AH type RoCE doesn't make sense.  IMO, iWarp should map to AH_ATTR_TYPE_UNDEFINED or something similar.
+>
+> - Sean
+>
+Okay, I'll take care of it. Thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
