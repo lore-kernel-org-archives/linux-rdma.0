@@ -1,65 +1,144 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 41/47] IB/qib: Suppress gcc 7 fall-through complaints
-Date: Fri,  6 Oct 2017 14:33:27 -0700
-Message-ID: <20171006213333.6721-42-bart.vanassche@wdc.com>
+Subject: [PATCH 28/47] IB/nes: Fix indentation
+Date: Fri,  6 Oct 2017 14:33:14 -0700
+Message-ID: <20171006213333.6721-29-bart.vanassche@wdc.com>
 References: <20171006213333.6721-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171006213333.6721-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid that gcc 7 reports the following warning when building with W=1:
-
-warning: this statement may fall through [-Wimplicit-fallthrough=]
-
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_mad.c  | 1 +
- drivers/infiniband/hw/qib/qib_rc.c   | 2 +-
- drivers/infiniband/hw/qib/qib_sdma.c | 2 +-
- 3 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/nes/nes.c       | 22 +++++++++++-----------
+ drivers/infiniband/hw/nes/nes_hw.c    |  4 ++--
+ drivers/infiniband/hw/nes/nes_nic.c   | 10 +++++-----
+ drivers/infiniband/hw/nes/nes_utils.c |  8 ++++----
+ drivers/infiniband/hw/nes/nes_verbs.c | 12 ++++++------
+ 5 files changed, 28 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
-index 1237952c144e..04367e0f6f9b 100644
---- a/drivers/infiniband/hw/qib/qib_mad.c
-+++ b/drivers/infiniband/hw/qib/qib_mad.c
-@@ -434,6 +434,7 @@ static int check_mkey(struct qib_ibport *ibp, struct ib_smp *smp, int mad_flags)
- 			/* Bad mkey not a violation below level 2 */
- 			if (ibp->rvp.mkeyprot < 2)
- 				break;
-+			/* fall through */
- 		case IB_MGMT_METHOD_SET:
- 		case IB_MGMT_METHOD_TRAP_REPRESS:
- 			if (ibp->rvp.mkey_violations != 0xFFFF)
-diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
-index e9a91736b12d..8f5754fb8579 100644
---- a/drivers/infiniband/hw/qib/qib_rc.c
-+++ b/drivers/infiniband/hw/qib/qib_rc.c
-@@ -1869,7 +1869,7 @@ void qib_rc_rcv(struct qib_ctxtdata *rcd, struct ib_header *hdr,
- 		qp->r_rcv_len = 0;
- 		if (opcode == OP(SEND_ONLY))
- 			goto no_immediate_data;
--		/* FALLTHROUGH for SEND_ONLY_WITH_IMMEDIATE */
-+		/* fall through -- for SEND_ONLY_WITH_IMMEDIATE */
- 	case OP(SEND_LAST_WITH_IMMEDIATE):
- send_last_imm:
- 		wc.ex.imm_data = ohdr->u.imm_data;
-diff --git a/drivers/infiniband/hw/qib/qib_sdma.c b/drivers/infiniband/hw/qib/qib_sdma.c
-index 891873b38a1e..c3690bd51582 100644
---- a/drivers/infiniband/hw/qib/qib_sdma.c
-+++ b/drivers/infiniband/hw/qib/qib_sdma.c
-@@ -808,7 +808,7 @@ void __qib_sdma_process_event(struct qib_pportdata *ppd,
- 			 * bringing the link up with traffic active on
- 			 * 7220, e.g. */
- 			ss->go_s99_running = 1;
--			/* fall through and start dma engine */
-+			/* fall through -- and start dma engine */
- 		case qib_sdma_event_e10_go_hw_start:
- 			/* This reference means the state machine is started */
- 			sdma_get(&ppd->sdma_state);
+diff --git a/drivers/infiniband/hw/nes/nes.c b/drivers/infiniband/hw/nes/nes.c
+index 942ca84713c9..ff58dfa071b8 100644
+--- a/drivers/infiniband/hw/nes/nes.c
++++ b/drivers/infiniband/hw/nes/nes.c
+@@ -757,18 +757,18 @@ static void nes_remove(struct pci_dev *pcidev)
+ 	int netdev_index = 0;
+ 	unsigned long flags;
+ 
+-		if (nesdev->netdev_count) {
+-			netdev = nesdev->netdev[netdev_index];
+-			if (netdev) {
+-				netif_stop_queue(netdev);
+-				unregister_netdev(netdev);
+-				nes_netdev_destroy(netdev);
+-
+-				nesdev->netdev[netdev_index] = NULL;
+-				nesdev->netdev_count--;
+-				nesdev->nesadapter->netdev_count--;
+-			}
++	if (nesdev->netdev_count) {
++		netdev = nesdev->netdev[netdev_index];
++		if (netdev) {
++			netif_stop_queue(netdev);
++			unregister_netdev(netdev);
++			nes_netdev_destroy(netdev);
++
++			nesdev->netdev[netdev_index] = NULL;
++			nesdev->netdev_count--;
++			nesdev->nesadapter->netdev_count--;
+ 		}
++	}
+ 
+ 	nes_notifiers_registered--;
+ 	if (nes_notifiers_registered == 0) {
+diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
+index b0adf65e4bdb..775c246644cd 100644
+--- a/drivers/infiniband/hw/nes/nes_hw.c
++++ b/drivers/infiniband/hw/nes/nes_hw.c
+@@ -1861,8 +1861,8 @@ int nes_init_nic_qp(struct nes_device *nesdev, struct net_device *netdev)
+ 	}
+ 	if ((nesdev->nesadapter->allow_unaligned_fpdus) &&
+ 		(nes_init_mgt_qp(nesdev, netdev, nesvnic))) {
+-			nes_debug(NES_DBG_INIT, "%s: Out of memory for pau nic\n", netdev->name);
+-			nes_destroy_nic_qp(nesvnic);
++		nes_debug(NES_DBG_INIT, "%s: Out of memory for pau nic\n", netdev->name);
++		nes_destroy_nic_qp(nesvnic);
+ 		return -ENOMEM;
+ 	}
+ 
+diff --git a/drivers/infiniband/hw/nes/nes_nic.c b/drivers/infiniband/hw/nes/nes_nic.c
+index 5921ea3d50ae..e8872aa78691 100644
+--- a/drivers/infiniband/hw/nes/nes_nic.c
++++ b/drivers/infiniband/hw/nes/nes_nic.c
+@@ -926,11 +926,11 @@ static void nes_netdev_set_multicast_list(struct net_device *netdev)
+ 				nesadapter->pft_mcast_map[mc_index] !=
+ 					nesvnic->nic_index &&
+ 					mc_index < max_pft_entries_avaiable) {
+-						nes_debug(NES_DBG_NIC_RX,
+-					"mc_index=%d skipping nic_index=%d, "
+-					"used for=%d \n", mc_index,
+-					nesvnic->nic_index,
+-					nesadapter->pft_mcast_map[mc_index]);
++				nes_debug(NES_DBG_NIC_RX,
++					  "mc_index=%d skipping nic_index=%d, "
++					  "used for=%d \n", mc_index,
++					  nesvnic->nic_index,
++					  nesadapter->pft_mcast_map[mc_index]);
+ 				mc_index++;
+ 			}
+ 			if (mc_index >= max_pft_entries_avaiable)
+diff --git a/drivers/infiniband/hw/nes/nes_utils.c b/drivers/infiniband/hw/nes/nes_utils.c
+index 37331e2fdc5f..7b67e9cb57ed 100644
+--- a/drivers/infiniband/hw/nes/nes_utils.c
++++ b/drivers/infiniband/hw/nes/nes_utils.c
+@@ -888,10 +888,10 @@ void nes_clc(unsigned long parm)
+ 	struct nes_adapter *nesadapter = nesdev->nesadapter;
+ 
+ 	spin_lock_irqsave(&nesadapter->phy_lock, flags);
+-    nesadapter->link_interrupt_count[0] = 0;
+-    nesadapter->link_interrupt_count[1] = 0;
+-    nesadapter->link_interrupt_count[2] = 0;
+-    nesadapter->link_interrupt_count[3] = 0;
++	nesadapter->link_interrupt_count[0] = 0;
++	nesadapter->link_interrupt_count[1] = 0;
++	nesadapter->link_interrupt_count[2] = 0;
++	nesadapter->link_interrupt_count[3] = 0;
+ 	spin_unlock_irqrestore(&nesadapter->phy_lock, flags);
+ 
+ 	nesadapter->lc_timer.expires = jiffies + 3600 * HZ;  /* 1 hour */
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index f0dc5f4aa177..6abe90b58c91 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -2865,11 +2865,11 @@ int nes_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 
+ 				next_iwarp_state = NES_CQP_QP_IWARP_STATE_ERROR;
+ 				/* next_iwarp_state = (NES_CQP_QP_IWARP_STATE_TERMINATE | 0x02000000); */
+-					if (nesqp->hte_added) {
+-						nes_debug(NES_DBG_MOD_QP, "set CQP_QP_DEL_HTE\n");
+-						next_iwarp_state |= NES_CQP_QP_DEL_HTE;
+-						nesqp->hte_added = 0;
+-					}
++				if (nesqp->hte_added) {
++					nes_debug(NES_DBG_MOD_QP, "set CQP_QP_DEL_HTE\n");
++					next_iwarp_state |= NES_CQP_QP_DEL_HTE;
++					nesqp->hte_added = 0;
++				}
+ 				if ((nesqp->hw_tcp_state > NES_AEQE_TCP_STATE_CLOSED) &&
+ 						(nesdev->iw_status) &&
+ 						(nesqp->hw_tcp_state != NES_AEQE_TCP_STATE_TIME_WAIT)) {
+@@ -3560,7 +3560,7 @@ static int nes_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry)
+ 				entry->byte_len = le32_to_cpu(cqe.cqe_words[NES_CQE_PAYLOAD_LENGTH_IDX]);
+ 				wrid = ((u64)(le32_to_cpu(nesqp->hwqp.rq_vbase[wqe_index].wqe_words[NES_IWARP_RQ_WQE_COMP_SCRATCH_LOW_IDX]))) |
+ 					((u64)(le32_to_cpu(nesqp->hwqp.rq_vbase[wqe_index].wqe_words[NES_IWARP_RQ_WQE_COMP_SCRATCH_HIGH_IDX]))<<32);
+-					entry->opcode = IB_WC_RECV;
++				entry->opcode = IB_WC_RECV;
+ 
+ 				nesqp->hwqp.rq_tail = (wqe_index+1)&(nesqp->hwqp.rq_size - 1);
+ 				if ((entry->status != IB_WC_SUCCESS) && (nesqp->hwqp.rq_tail != nesqp->hwqp.rq_head)) {
 -- 
 2.14.2
 
