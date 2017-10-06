@@ -1,43 +1,36 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 1/2] IB/hfi1: Use preempt_{dis,en}able_nort()
-Date: Fri, 6 Oct 2017 11:19:52 +0200
-Message-ID: <20171006091951.lz76kdt6u2tayl6d@linutronix.de>
-References: <20171003154920.31566-1-acme@kernel.org>
- <20171003154920.31566-2-acme@kernel.org>
- <20171005163018.tk73i2vr2thaj2pn@linutronix.de>
+From: Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>
+Subject: Re: [RFC+PATCH] Infiniband hfi1 + PREEMPT_RT_FULL issues
+Date: Fri, 6 Oct 2017 11:23:30 +0200
+Message-ID: <20171006092329.jkx33hgw3z7bqcnp@linutronix.de>
+References: <20170925144949.GP29668@kernel.org>
+ <20170925211447.GL29872@jcartwri.amer.corp.natinst.com>
+ <32E1700B9017364D9B60AED9960492BC3441B3BD@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rt-users-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171005163018.tk73i2vr2thaj2pn@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org, Arnaldo Carvalho de Melo <acme@redhat.com>, Clark Williams <williams@redhat.com>, Dean Luick <dean.luick@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Kaike Wan <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Thomas Gleixner <tglx@linutronix.de>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC3441B3BD@fmsmsx120.amr.corp.intel.com>
+Sender: linux-rt-users-owner@vger.kernel.org
+To: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
+Cc: Julia Cartwright <julia@ni.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Clark Williams <williams@redhat.com>, "Luick, Dean" <dean.luick@intel.com>, Doug Ledford <dledford@redhat.com>, "Wan, Kaike" <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, Peter Zijlstra <peterz@infradead.org>, "Sanchez, Sebastian" <sebastian.sanchez@intel.com>, Steven Rostedt <rostedt@goodmis.org>, "linux-rt-users@vger.kernel.org" <linux-rt-users@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2017-10-05 18:30:19 [+0200], To Arnaldo Carvalho de Melo wrote:
-> On 2017-10-03 12:49:19 [-0300], Arnaldo Carvalho de Melo wrote:
-> > From: Arnaldo Carvalho de Melo <acme@redhat.com>
+On 2017-09-26 14:10:52 [+0000], Marciniszyn, Mike wrote:
+> > My first question would be: is disabling preemption here really
+> > necessary?
 > > 
-> > diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
-> > index 615be68e40b3..3a30bde9a07b 100644
-> > --- a/drivers/infiniband/hw/hfi1/pio.c
-> > +++ b/drivers/infiniband/hw/hfi1/pio.c
-> > @@ -1421,7 +1421,7 @@ struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
-> >  
-> >  	/* there is enough room */
-> >  
-> > -	preempt_disable();
-> > +	preempt_disable_nort();
-> >  	this_cpu_inc(*sc->buffers_allocated);
-> >  
-> >  	/* read this once */
 > 
-> please replace the preempt_disable() / enable with local_lock() /
-> unlock. The section does not look like it could cope with multiple users
-> dereferencing / using the same per-CPU variables.
+> The motivation for the preempt manipulation has nothing to do with the counter.
+> 
+> The buffer allocation returns a set of ringed write-combining 64B MMIO buffers.   The allocate lock is then dropped right after allocation to allow parallel allocates.
+> 
+> The hardware keeps track of the buffer fill across multiple CPUs, so that after the oldest buffer is copied the ring is advanced.
+> 
+> The idea was to minimize the time from the drop of the allocate lock to the end of the copy to insure the highest rate of copy to the ring from multiple cores.
 
-ignore me, there is a spin_lock to protect that…
+So on -RT we would like to get rid of that preempt_disable() section. Do
+you have any numbers that say that this does any good?
+If so, by how much and how much does is differ compared to a !PREEMPT
+kernel if I may ask.
 
 Sebastian
