@@ -1,84 +1,105 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 05/47] RDMA/uverbs: Make the code in ib_uverbs_cmd_verbs() less confusing
-Date: Fri,  6 Oct 2017 14:32:51 -0700
-Message-ID: <20171006213333.6721-6-bart.vanassche@wdc.com>
+Subject: [PATCH 19/47] IB/hns: Annotate iomem pointers correctly
+Date: Fri,  6 Oct 2017 14:33:05 -0700
+Message-ID: <20171006213333.6721-20-bart.vanassche@wdc.com>
 References: <20171006213333.6721-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171006213333.6721-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, "Signed-off-by : Lijun Ou" <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch reduces the number of #ifdefs and also avoids that
-smatch reports the following:
+This patch avoids that sparse complains that there is an address
+space mismatch.
 
-drivers/infiniband/core/uverbs_ioctl.c:276: ib_uverbs_cmd_verbs() warn: if statement not indented
-drivers/infiniband/core/uverbs_ioctl.c:280: ib_uverbs_cmd_verbs() warn: possible memory leak of 'ctx'
-drivers/infiniband/core/uverbs_ioctl.c:315: ib_uverbs_cmd_verbs() warn: if statement not indented
-
-References: commit fac9658cabb9 ("IB/core: Add new ioctl interface")
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_ioctl.c | 20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_eq.c    | 6 +++---
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 9 +++++----
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 3 ++-
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
-index 5286ad57d903..53f780ea49fe 100644
---- a/drivers/infiniband/core/uverbs_ioctl.c
-+++ b/drivers/infiniband/core/uverbs_ioctl.c
-@@ -234,7 +234,7 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
- 	const struct uverbs_method_spec *method_spec;
- 	long err = 0;
- 	unsigned int i;
--	struct {
-+	struct attr_and_bundle {
- 		struct ib_uverbs_attr		*uattrs;
- 		struct uverbs_attr_bundle	*uverbs_attr_bundle;
- 	} *ctx = NULL;
-@@ -242,7 +242,10 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
- 	unsigned long *curr_bitmap;
- 	size_t ctx_size;
- #ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
--	uintptr_t data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
-+	uintptr_t __data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
-+	struct attr_and_bundle *const data = (void *)__data;
-+#else
-+	struct attr_and_bundle *const data = NULL;
- #endif
+diff --git a/drivers/infiniband/hw/hns/hns_roce_eq.c b/drivers/infiniband/hw/hns/hns_roce_eq.c
+index b0f43735de1a..d184431e2bf5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_eq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_eq.c
+@@ -558,7 +558,7 @@ static int hns_roce_create_eq(struct hns_roce_dev *hr_dev,
+ 	writel(eqshift_val, eqc);
  
- 	if (hdr->reserved)
-@@ -269,13 +272,10 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
- 			(method_spec->num_child_attrs / BITS_PER_LONG +
- 			 method_spec->num_buckets);
+ 	/* Configure eq extended address 12~44bit */
+-	writel((u32)(eq->buf_list[0].map >> 12), (u8 *)eqc + 4);
++	writel((u32)(eq->buf_list[0].map >> 12), eqc + 4);
  
--#ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
- 	if (ctx_size <= UVERBS_OPTIMIZE_USING_STACK_SZ)
--		ctx = (void *)data;
--
-+		ctx = data;
- 	if (!ctx)
--#endif
--	ctx = kmalloc(ctx_size, GFP_KERNEL);
-+		ctx = kmalloc(ctx_size, GFP_KERNEL);
- 	if (!ctx)
- 		return -ENOMEM;
+ 	/*
+ 	 * Configure eq extended address 45~49 bit.
+@@ -572,13 +572,13 @@ static int hns_roce_create_eq(struct hns_roce_dev *hr_dev,
+ 	roce_set_field(eqcuridx_val,
+ 		       ROCEE_CAEP_AEQE_CUR_IDX_CAEP_AEQE_CUR_IDX_M,
+ 		       ROCEE_CAEP_AEQE_CUR_IDX_CAEP_AEQE_CUR_IDX_S, 0);
+-	writel(eqcuridx_val, (u8 *)eqc + 8);
++	writel(eqcuridx_val, eqc + 8);
  
-@@ -311,10 +311,8 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
- 	err = uverbs_handle_method(buf, ctx->uattrs, hdr->num_attrs, ib_dev,
- 				   file, method_spec, ctx->uverbs_attr_bundle);
- out:
--#ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
--	if (ctx_size > UVERBS_OPTIMIZE_USING_STACK_SZ)
--#endif
--	kfree(ctx);
-+	if (ctx != data)
-+		kfree(ctx);
- 	return err;
- }
+ 	/* Configure eq consumer index */
+ 	roce_set_field(eqconsindx_val,
+ 		       ROCEE_CAEP_AEQE_CONS_IDX_CAEP_AEQE_CONS_IDX_M,
+ 		       ROCEE_CAEP_AEQE_CONS_IDX_CAEP_AEQE_CONS_IDX_S, 0);
+-	writel(eqconsindx_val, (u8 *)eqc + 0xc);
++	writel(eqconsindx_val, eqc + 0xc);
  
+ 	return 0;
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index 852db18ec128..187241484fa1 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -1639,7 +1639,7 @@ static int hns_roce_v1_post_mbox(struct hns_roce_dev *hr_dev, u64 in_param,
+ 				 u64 out_param, u32 in_modifier, u8 op_modifier,
+ 				 u16 op, u16 token, int event)
+ {
+-	u32 *hcr = (u32 *)(hr_dev->reg_base + ROCEE_MB1_REG);
++	u32 __iomem *hcr = (u32 __iomem *)(hr_dev->reg_base + ROCEE_MB1_REG);
+ 	unsigned long end;
+ 	u32 val = 0;
+ 
+@@ -2534,7 +2534,7 @@ static int hns_roce_v1_m_sqp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 	int rq_pa_start;
+ 	u32 reg_val;
+ 	u64 *mtts;
+-	u32 *addr;
++	u32 __iomem *addr;
+ 
+ 	context = kzalloc(sizeof(*context), GFP_KERNEL);
+ 	if (!context)
+@@ -2616,8 +2616,9 @@ static int hns_roce_v1_m_sqp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 			       QP1C_BYTES_40_SQ_CUR_IDX_S, 0);
+ 
+ 		/* Copy context to QP1C register */
+-		addr = (u32 *)(hr_dev->reg_base + ROCEE_QP1C_CFG0_0_REG +
+-			hr_qp->phy_port * sizeof(*context));
++		addr = (u32 __iomem *)(hr_dev->reg_base +
++				       ROCEE_QP1C_CFG0_0_REG +
++				       hr_qp->phy_port * sizeof(*context));
+ 
+ 		writel(context->qp1c_bytes_4, addr);
+ 		writel(context->sq_rq_bt_l, addr + 1);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 8378ee118ba6..7a9920468cc6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -976,7 +976,8 @@ static int hns_roce_v2_post_mbox(struct hns_roce_dev *hr_dev, u64 in_param,
+ 				 u16 op, u16 token, int event)
+ {
+ 	struct device *dev = hr_dev->dev;
+-	u32 *hcr = (u32 *)(hr_dev->reg_base + ROCEE_VF_MB_CFG0_REG);
++	u32 __iomem *hcr = (u32 __iomem *)(hr_dev->reg_base +
++					   ROCEE_VF_MB_CFG0_REG);
+ 	unsigned long end;
+ 	u32 val0 = 0;
+ 	u32 val1 = 0;
 -- 
 2.14.2
 
