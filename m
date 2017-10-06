@@ -1,43 +1,61 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] RDMA/i40iw: Convert timers to use timer_setup()
-Date: Fri, 6 Oct 2017 18:17:23 -0500
-Message-ID: <20171006231723.GA22568@ssaleem-MOBL4.amr.corp.intel.com>
-References: <20171005004541.GA22645@beast>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171005004541.GA22645@beast>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [for-next 1/9] net/mlx5: Fix creating a new FTE when an existing but full FTE exists
+Date: Fri,  6 Oct 2017 16:37:41 -0700
+Message-ID: <20171006233749.25545-2-saeedm@mellanox.com>
+References: <20171006233749.25545-1-saeedm@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20171006233749.25545-1-saeedm@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Matan Barak <matanb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 04, 2017 at 05:45:41PM -0700, Kees Cook wrote:
-> In preparation for unconditionally passing the struct timer_list pointer to
-> all timer callbacks, switch to using the new timer_setup() and from_timer()
-> to pass the timer pointer explicitly.
-> 
-> Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-> Signed-off-by: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-> ---
-> This requires commit 686fef928bba ("timer: Prepare to change timer
-> callback argument type") in v4.14-rc3, but should be otherwise
-> stand-alone.
-> ---
+From: Matan Barak <matanb@mellanox.com>
 
-Patch looks ok. Did some minimal testing and looks good.
+Currently, when a flow steering rule is added, we look for a FTE with
+an identical value. If we find a match, we try to merge the required
+destinations with the existing ones. In a case where the existing
+destination list is full, the code should return an error to its
+consumer. However, the current code just tries to create another FTE.
+Fixing that by returning an error in this special scenario.
 
-Acked-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Fixes: f478be79a22e ("net/mlx5: Add hash table for flow groups in flow table")
+Signed-off-by: Matan Barak <matanb@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+index 5a7bea6..6ffe925 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+@@ -1449,7 +1449,7 @@ static bool dest_is_valid(struct mlx5_flow_destination *dest,
+ 		       int dest_num)
+ {
+ 	struct mlx5_flow_group *g;
+-	struct mlx5_flow_handle *rule = ERR_PTR(-ENOENT);
++	struct mlx5_flow_handle *rule;
+ 	struct rhlist_head *tmp, *list;
+ 	struct match_list {
+ 		struct list_head	list;
+@@ -1513,6 +1513,8 @@ static bool dest_is_valid(struct mlx5_flow_destination *dest,
+ 		unlock_ref_node(&g->node);
+ 	}
+ 
++	rule = ERR_PTR(-ENOENT);
++
+ free_list:
+ 	if (!list_empty(&match_head)) {
+ 		struct match_list *match_tmp;
+@@ -1553,7 +1555,7 @@ static bool dest_is_valid(struct mlx5_flow_destination *dest,
+ 
+ 	nested_lock_ref_node(&ft->node, FS_MUTEX_GRANDPARENT);
+ 	rule = try_add_to_existing_fg(ft, spec, flow_act, dest, dest_num);
+-	if (!IS_ERR(rule))
++	if (!IS_ERR(rule) || PTR_ERR(rule) != -ENOENT)
+ 		goto unlock;
+ 
+ 	g = create_autogroup(ft, spec->match_criteria_enable,
+-- 
+1.8.3.1
