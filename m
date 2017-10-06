@@ -1,408 +1,162 @@
 From: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: [PATCH v2 01/13] iWARP wire packet format definition
-Date: Fri,  6 Oct 2017 08:28:41 -0400
-Message-ID: <20171006122853.16310-2-bmt@zurich.ibm.com>
-References: <20171006122853.16310-1-bmt@zurich.ibm.com>
+Subject: [PATCH v2 00/13] Request for Comments on SoftiWarp
+Date: Fri,  6 Oct 2017 08:28:40 -0400
+Message-ID: <20171006122853.16310-1-bmt@zurich.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171006122853.16310-1-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
----
- drivers/infiniband/sw/siw/iwarp.h | 381 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 381 insertions(+)
- create mode 100644 drivers/infiniband/sw/siw/iwarp.h
+This patch set introduces the SoftiWarp driver.
 
-diff --git a/drivers/infiniband/sw/siw/iwarp.h b/drivers/infiniband/sw/siw/iwarp.h
-new file mode 100644
-index 000000000000..379091e3e09f
---- /dev/null
-+++ b/drivers/infiniband/sw/siw/iwarp.h
-@@ -0,0 +1,381 @@
-+/*
-+ * Software iWARP device driver for Linux
-+ *
-+ * Authors: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-+ *          Fredy Neeser <nfd-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-+ *
-+ * Copyright (c) 2008-2017, IBM Corporation
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses. You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * BSD license below:
-+ *
-+ *   Redistribution and use in source and binary forms, with or
-+ *   without modification, are permitted provided that the following
-+ *   conditions are met:
-+ *
-+ *   - Redistributions of source code must retain the above copyright notice,
-+ *     this list of conditions and the following disclaimer.
-+ *
-+ *   - Redistributions in binary form must reproduce the above copyright
-+ *     notice, this list of conditions and the following disclaimer in the
-+ *     documentation and/or other materials provided with the distribution.
-+ *
-+ *   - Neither the name of IBM nor the names of its contributors may be
-+ *     used to endorse or promote products derived from this software without
-+ *     specific prior written permission.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef _IWARP_H
-+#define _IWARP_H
-+
-+#include <rdma/rdma_user_cm.h>	/* RDMA_MAX_PRIVATE_DATA */
-+#include <linux/types.h>
-+#include <asm/byteorder.h>
-+
-+
-+#define RDMAP_VERSION		1
-+#define DDP_VERSION		1
-+#define MPA_REVISION_1		1
-+#define MPA_REVISION_2		2
-+#define MPA_MAX_PRIVDATA	RDMA_MAX_PRIVATE_DATA
-+#define MPA_KEY_REQ		"MPA ID Req Frame"
-+#define MPA_KEY_REP		"MPA ID Rep Frame"
-+#define	MPA_IRD_ORD_MASK	0x3fff
-+
-+struct mpa_rr_params {
-+	__be16	bits;
-+	__be16	pd_len;
-+};
-+
-+/*
-+ * MPA request/response Hdr bits & fields
-+ */
-+enum {
-+	MPA_RR_FLAG_MARKERS	= __cpu_to_be16(0x8000),
-+	MPA_RR_FLAG_CRC		= __cpu_to_be16(0x4000),
-+	MPA_RR_FLAG_REJECT	= __cpu_to_be16(0x2000),
-+	MPA_RR_FLAG_ENHANCED	= __cpu_to_be16(0x1000),
-+	MPA_RR_RESERVED		= __cpu_to_be16(0x0f00),
-+	MPA_RR_MASK_REVISION	= __cpu_to_be16(0x00ff)
-+};
-+
-+/*
-+ * MPA request/reply header
-+ */
-+struct mpa_rr {
-+	__u8	key[16];
-+	struct mpa_rr_params params;
-+};
-+
-+
-+static inline void __mpa_rr_set_revision(u16 *bits, u8 rev)
-+{
-+	*bits = (*bits & ~MPA_RR_MASK_REVISION)
-+		| (cpu_to_be16(rev) & MPA_RR_MASK_REVISION);
-+}
-+
-+static inline u8 __mpa_rr_revision(u16 mpa_rr_bits)
-+{
-+	u16 rev = mpa_rr_bits & MPA_RR_MASK_REVISION;
-+
-+	return (u8)be16_to_cpu(rev);
-+}
-+
-+enum mpa_v2_ctrl {
-+	MPA_V2_PEER_TO_PEER	= __cpu_to_be16(0x8000),
-+	MPA_V2_ZERO_LENGTH_RTR	= __cpu_to_be16(0x4000),
-+	MPA_V2_RDMA_WRITE_RTR	= __cpu_to_be16(0x8000),
-+	MPA_V2_RDMA_READ_RTR	= __cpu_to_be16(0x4000),
-+	MPA_V2_RDMA_NO_RTR	= __cpu_to_be16(0x0000),
-+	MPA_V2_MASK_IRD_ORD	= __cpu_to_be16(0x3fff)
-+};
-+
-+struct mpa_v2_data {
-+	__be16		ird;
-+	__be16		ord;
-+};
-+
-+struct mpa_marker {
-+	__be16	rsvd;
-+	__be16	fpdu_hmd; /* FPDU header-marker distance (= MPA's FPDUPTR) */
-+};
-+
-+/*
-+ * maximum MPA trailer
-+ */
-+struct mpa_trailer {
-+	char	pad[4];
-+	__be32	crc;
-+};
-+
-+#define MPA_HDR_SIZE	2
-+#define MPA_CRC_SIZE	4
-+
-+
-+/*
-+ * Common portion of iWARP headers (MPA, DDP, RDMAP)
-+ * for any FPDU
-+ */
-+struct iwarp_ctrl {
-+	__be16	mpa_len;
-+	__be16	ddp_rdmap_ctrl;
-+};
-+
-+/*
-+ * DDP/RDMAP Hdr bits & fields
-+ */
-+enum {
-+	DDP_FLAG_TAGGED		= __cpu_to_be16(0x8000),
-+	DDP_FLAG_LAST		= __cpu_to_be16(0x4000),
-+	DDP_MASK_RESERVED	= __cpu_to_be16(0x3C00),
-+	DDP_MASK_VERSION	= __cpu_to_be16(0x0300),
-+	RDMAP_MASK_VERSION	= __cpu_to_be16(0x00C0),
-+	RDMAP_MASK_RESERVED	= __cpu_to_be16(0x0030),
-+	RDMAP_MASK_OPCODE	= __cpu_to_be16(0x000f)
-+};
-+
-+static inline u8 __ddp_version(struct iwarp_ctrl *ctrl)
-+{
-+	return (u8)(be16_to_cpu(ctrl->ddp_rdmap_ctrl & DDP_MASK_VERSION) >> 8);
-+};
-+
-+static inline void __ddp_set_version(struct iwarp_ctrl *ctrl, u8 version)
-+{
-+	ctrl->ddp_rdmap_ctrl = (ctrl->ddp_rdmap_ctrl & ~DDP_MASK_VERSION)
-+		| (__cpu_to_be16((u16)version << 8) & DDP_MASK_VERSION);
-+};
-+
-+static inline u8 __rdmap_version(struct iwarp_ctrl *ctrl)
-+{
-+	u16 ver = ctrl->ddp_rdmap_ctrl & RDMAP_MASK_VERSION;
-+
-+	return (u8)(be16_to_cpu(ver) >> 6);
-+};
-+
-+static inline void __rdmap_set_version(struct iwarp_ctrl *ctrl, u8 version)
-+{
-+	ctrl->ddp_rdmap_ctrl = (ctrl->ddp_rdmap_ctrl & ~RDMAP_MASK_VERSION)
-+			| (__cpu_to_be16(version << 6) & RDMAP_MASK_VERSION);
-+}
-+
-+static inline u8 __rdmap_opcode(struct iwarp_ctrl *ctrl)
-+{
-+	return (u8)be16_to_cpu(ctrl->ddp_rdmap_ctrl & RDMAP_MASK_OPCODE);
-+}
-+
-+static inline void __rdmap_set_opcode(struct iwarp_ctrl *ctrl, u8 opcode)
-+{
-+	ctrl->ddp_rdmap_ctrl = (ctrl->ddp_rdmap_ctrl & ~RDMAP_MASK_OPCODE)
-+				| (__cpu_to_be16(opcode) & RDMAP_MASK_OPCODE);
-+}
-+
-+
-+struct iwarp_rdma_write {
-+	struct iwarp_ctrl	ctrl;
-+	__be32			sink_stag;
-+	__be64			sink_to;
-+};
-+
-+struct iwarp_rdma_rreq {
-+	struct iwarp_ctrl	ctrl;
-+	__be32			rsvd;
-+	__be32			ddp_qn;
-+	__be32			ddp_msn;
-+	__be32			ddp_mo;
-+	__be32			sink_stag;
-+	__be64			sink_to;
-+	__be32			read_size;
-+	__be32			source_stag;
-+	__be64			source_to;
-+};
-+
-+struct iwarp_rdma_rresp {
-+	struct iwarp_ctrl	ctrl;
-+	__be32			sink_stag;
-+	__be64			sink_to;
-+};
-+
-+struct iwarp_send {
-+	struct iwarp_ctrl	ctrl;
-+	__be32			rsvd;
-+	__be32			ddp_qn;
-+	__be32			ddp_msn;
-+	__be32			ddp_mo;
-+};
-+
-+struct iwarp_send_inv {
-+	struct iwarp_ctrl	ctrl;
-+	__be32			inval_stag;
-+	__be32			ddp_qn;
-+	__be32			ddp_msn;
-+	__be32			ddp_mo;
-+};
-+
-+struct iwarp_terminate {
-+	struct iwarp_ctrl	ctrl;
-+	__be32			rsvd;
-+	__be32			ddp_qn;
-+	__be32			ddp_msn;
-+	__be32			ddp_mo;
-+	__be32			term_ctrl;
-+};
-+
-+/*
-+ * Terminate Hdr bits & fields
-+ */
-+enum {
-+	RDMAP_TERM_MASK_LAYER	= __cpu_to_be32(0xf0000000),
-+	RDMAP_TERM_MASK_ETYPE	= __cpu_to_be32(0x0f000000),
-+	RDMAP_TERM_MASK_ECODE	= __cpu_to_be32(0x00ff0000),
-+	RDMAP_TERM_FLAG_M	= __cpu_to_be32(0x00008000),
-+	RDMAP_TERM_FLAG_D	= __cpu_to_be32(0x00004000),
-+	RDMAP_TERM_FLAG_R	= __cpu_to_be32(0x00002000),
-+	RDMAP_TERM_MASK_RESVD	= __cpu_to_be32(0x00001fff)
-+};
-+
-+static inline u8 __rdmap_term_layer(struct iwarp_terminate *ctrl)
-+{
-+	return (u8)(be32_to_cpu(ctrl->term_ctrl & RDMAP_TERM_MASK_LAYER)
-+		    >> 28);
-+};
-+
-+static inline u8 __rdmap_term_etype(struct iwarp_terminate *ctrl)
-+{
-+	return (u8)(be32_to_cpu(ctrl->term_ctrl & RDMAP_TERM_MASK_ETYPE)
-+		    >> 24);
-+};
-+
-+static inline u8 __rdmap_term_ecode(struct iwarp_terminate *ctrl)
-+{
-+	return (u8)(be32_to_cpu(ctrl->term_ctrl & RDMAP_TERM_MASK_ECODE)
-+		    >> 20);
-+};
-+
-+
-+/*
-+ * Common portion of iWARP headers (MPA, DDP, RDMAP)
-+ * for an FPDU carrying an untagged DDP segment
-+ */
-+struct iwarp_ctrl_untagged {
-+	struct iwarp_ctrl	ctrl;
-+	__be32			rsvd;
-+	__be32			ddp_qn;
-+	__be32			ddp_msn;
-+	__be32			ddp_mo;
-+};
-+
-+/*
-+ * Common portion of iWARP headers (MPA, DDP, RDMAP)
-+ * for an FPDU carrying a tagged DDP segment
-+ */
-+struct iwarp_ctrl_tagged {
-+	struct iwarp_ctrl	ctrl;
-+	__be32			ddp_stag;
-+	__be64			ddp_to;
-+};
-+
-+union iwarp_hdrs {
-+	struct iwarp_ctrl		ctrl;
-+	struct iwarp_ctrl_untagged	c_untagged;
-+	struct iwarp_ctrl_tagged	c_tagged;
-+	struct iwarp_rdma_write		rwrite;
-+	struct iwarp_rdma_rreq		rreq;
-+	struct iwarp_rdma_rresp		rresp;
-+	struct iwarp_terminate		terminate;
-+	struct iwarp_send		send;
-+	struct iwarp_send_inv		send_inv;
-+};
-+
-+enum ddp_etype {
-+	DDP_ETYPE_CATASTROPHIC	= 0x0,
-+	DDP_ETYPE_TAGGED_BUF	= 0x1,
-+	DDP_ETYPE_UNTAGGED_BUF	= 0x2,
-+	DDP_ETYPE_RSVD		= 0x3
-+};
-+
-+enum ddp_ecode {
-+	DDP_ECODE_CATASTROPHIC		= 0x00,
-+	/* Tagged Buffer Errors */
-+	DDP_ECODE_T_INVALID_STAG	= 0x00,
-+	DDP_ECODE_T_BASE_BOUNDS		= 0x01,
-+	DDP_ECODE_T_STAG_NOT_ASSOC	= 0x02,
-+	DDP_ECODE_T_TO_WRAP		= 0x03,
-+	DDP_ECODE_T_DDP_VERSION		= 0x04,
-+	/* Untagged Buffer Errors */
-+	DDP_ECODE_UT_INVALID_QN		= 0x01,
-+	DDP_ECODE_UT_INVALID_MSN_NOBUF	= 0x02,
-+	DDP_ECODE_UT_INVALID_MSN_RANGE	= 0x03,
-+	DDP_ECODE_UT_INVALID_MO		= 0x04,
-+	DDP_ECODE_UT_MSG_TOOLONG	= 0x05,
-+	DDP_ECODE_UT_DDP_VERSION	= 0x06
-+};
-+
-+
-+enum rdmap_untagged_qn {
-+	RDMAP_UNTAGGED_QN_SEND		= 0,
-+	RDMAP_UNTAGGED_QN_RDMA_READ	= 1,
-+	RDMAP_UNTAGGED_QN_TERMINATE	= 2,
-+	RDMAP_UNTAGGED_QN_COUNT		= 3
-+};
-+
-+enum rdmap_etype {
-+	RDMAP_ETYPE_CATASTROPHIC	= 0x0,
-+	RDMAP_ETYPE_REMOTE_PROTECTION	= 0x1,
-+	RDMAP_ETYPE_REMOTE_OPERATION	= 0x2
-+};
-+
-+enum rdmap_ecode {
-+	RDMAP_ECODE_INVALID_STAG	= 0x00,
-+	RDMAP_ECODE_BASE_BOUNDS		= 0x01,
-+	RDMAP_ECODE_ACCESS_RIGHTS	= 0x02,
-+	RDMAP_ECODE_STAG_NOT_ASSOC	= 0x03,
-+	RDMAP_ECODE_TO_WRAP		= 0x04,
-+	RDMAP_ECODE_RDMAP_VERSION	= 0x05,
-+	RDMAP_ECODE_UNEXPECTED_OPCODE	= 0x06,
-+	RDMAP_ECODE_CATASTROPHIC_STREAM	= 0x07,
-+	RDMAP_ECODE_CATASTROPHIC_GLOBAL	= 0x08,
-+	RDMAP_ECODE_STAG_NOT_INVALIDATE	= 0x09,
-+	RDMAP_ECODE_UNSPECIFIED		= 0xff
-+};
-+
-+enum rdmap_elayer {
-+	RDMAP_ERROR_LAYER_RDMA	= 0x00,
-+	RDMAP_ERROR_LAYER_DDP	= 0x01,
-+	RDMAP_ERROR_LAYER_LLP	= 0x02	/* eg., MPA */
-+};
-+
-+enum llp_ecode {
-+	LLP_ECODE_LOCAL_CATASTROPHIC	= 0x05,
-+	LLP_ECODE_INSUFFICIENT_IRD	= 0x06,
-+	LLP_ECODE_NO_MATCHING_RTR	= 0x07
-+};
-+
-+enum llp_etype {
-+	LLP_ETYPE_MPA	= 0x00
-+};
-+
-+enum rdma_opcode {
-+	RDMAP_RDMA_WRITE	= 0x0,
-+	RDMAP_RDMA_READ_REQ	= 0x1,
-+	RDMAP_RDMA_READ_RESP	= 0x2,
-+	RDMAP_SEND		= 0x3,
-+	RDMAP_SEND_INVAL	= 0x4,
-+	RDMAP_SEND_SE		= 0x5,
-+	RDMAP_SEND_SE_INVAL	= 0x6,
-+	RDMAP_TERMINATE		= 0x7,
-+	RDMAP_NOT_SUPPORTED	= RDMAP_TERMINATE + 1
-+};
-+
-+#endif
+It is a re-posting of yesterdays misformatted patch and splits it into
+consumable pieces. Furthermore, it fixes formatting issues as
+indicated by checkpatch.
+
+
+
+
+Originally introduced to linux-rdma in 2011, SoftiWarp (siw) is
+around as a project for a while. It aims at implementing the iWARP protocol
+suite (IETF-RFC 5044/5041/5040/6581) on top of kernel TCP sockets.
+It integrates with the linux-rdma framework. When our
+initial attempt to contribute siw to Linux somehow sanded up, we
+continued to use and further develop it as an open source project,
+currently hosted at https://github.com/zrlio/softiwarp.
+
+We found siw being useful, if applications are using
+an RDMA API for communication (in particular, the ibverbs API), and
+there is no local RDMA hardware support. This might be relevant for RDMA
+application development and testing, as well as setups where
+RDMA client applications at hosts without hardware RDMA support
+want to communicate with servers which want to offload communication
+to dedicated RDMA hardware. With the advent of NVME storage technology,
+and NVME over Fabrics as a remote storage access method, use cases
+may expand within that area (we recently added the driver support
+needed to run siw at both NVMeF initiator and target side).
+Last but not least, since supporting different (asynchronous, one sided)
+communication patterns, we found pure siw client-server deployments can
+outperform sockets based communication setups.
+
+With all that, siw complements Soft-RoCE, also a pure software implementation
+of an RDMA provider, but running the RoCE/RoCEv2 protocol. In contradiction
+to Soft-RoCE, SoftiWarp per definition implements only the RC (reliable
+connected) RDMA service, as defined by iWARP.
+
+SoftiWarp comprises a kernel module and a user space library, both
+plugging into the linux-rdma kernel environment, or libibverbs and librdmacm
+respectively. It supports both kernel and user level RDMA applications.
+For efficiency, user level communication endpoint resources such as
+send/receive and completion queues are shared (memory mapped) between
+siw kernel component and siw user library. We tested siw interoperability
+with hardware iWARP products, such as Chelsio's T3/T4/T5/T6 adapters.
+
+We approach the list with this RFC, since we are seeking for advice on
+how to make siw ready for Linux acceptance. So, we are prepared -
+and hoping for - constructive criticism on what we are presenting here.
+
+The current code has limitations we are aware of. In particular, we are
+currently working on:
+
+1) IPv6 addressing support.
+
+2) Revised debug code. The currently used siw specific debug macros seem to
+   be obsolete and should probably get substituted by state of the art driver
+   debug code.
+
+3) NUMA awareness. We expect better performance results if siw
+   would do a better job here.
+
+4) Module parametrization. All settable driver parameters are currently set
+   via module parameters. It might be a good idea to have those within /sys.
+
+5) Transmit path implementation. We experimented with different approaches
+   to implement a low latency transmit path. The current design of having
+   one per CPU core transmit thread might be not the best idea. Advice
+   is appreciated!
+
+For the patch set we provide, we added siw as another software driver to
+drivers/infiniband/sw.
+
+
+
+To experiment with the current siw code, we suggest cloning our out-of-tree
+development repo at https://github.com/zrlio/softiwarp.
+Here, the branch 'dev-siw.mem_ext' contains the most recent code
+development status, which is currently in sync with the patch.
+Testing siw requires the installation of both user library and kernel
+module, located within userlib/ and kernel/ respectively. That siw
+version expects a running kernel of version >= 4.12.
+
+>From Friday night on, I will be on vacation for two weeks with only
+limited access to email. I will try to stay connected, and hope for a lively
+discussion. I will of course address all comments latest when I am back on
+October 24th, but I wanted to get the code out now - to get more eyes
+on it.
+
+Thank you,
+Bernard.
+
+Bernard Metzler (13):
+  iWARP wire packet format definition
+  Main SoftiWarp include file
+  Attach/detach SoftiWarp to/from network and RDMA subsystem
+  SoftiWarp object management
+  SoftiWarp application interface
+  SoftiWarp connection management
+  SoftiWarp application buffer management
+  SoftiWarp Queue Pair methods
+  SoftiWarp transmit path
+  SoftiWarp receive path
+  SoftiWarp Completion Queue methods
+  SoftiWarp debugging code
+  Add SoftiWarp to kernel build environment
+
+ drivers/infiniband/Kconfig            |    1 +
+ drivers/infiniband/sw/Makefile        |    1 +
+ drivers/infiniband/sw/siw/Kconfig     |   18 +
+ drivers/infiniband/sw/siw/Makefile    |   15 +
+ drivers/infiniband/sw/siw/iwarp.h     |  381 ++++++
+ drivers/infiniband/sw/siw/siw.h       |  783 ++++++++++++
+ drivers/infiniband/sw/siw/siw_ae.c    |  113 ++
+ drivers/infiniband/sw/siw/siw_cm.c    | 2270 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/siw/siw_cm.h    |  156 +++
+ drivers/infiniband/sw/siw/siw_cq.c    |  164 +++
+ drivers/infiniband/sw/siw/siw_debug.c |  442 +++++++
+ drivers/infiniband/sw/siw/siw_debug.h |  178 +++
+ drivers/infiniband/sw/siw/siw_main.c  |  752 +++++++++++
+ drivers/infiniband/sw/siw/siw_mem.c   |  388 ++++++
+ drivers/infiniband/sw/siw/siw_obj.c   |  428 +++++++
+ drivers/infiniband/sw/siw/siw_obj.h   |  113 ++
+ drivers/infiniband/sw/siw/siw_qp.c    | 1173 +++++++++++++++++
+ drivers/infiniband/sw/siw/siw_qp_rx.c | 1381 ++++++++++++++++++++
+ drivers/infiniband/sw/siw/siw_qp_tx.c | 1341 +++++++++++++++++++
+ drivers/infiniband/sw/siw/siw_verbs.c | 1929 ++++++++++++++++++++++++++++
+ drivers/infiniband/sw/siw/siw_verbs.h |  119 ++
+ include/uapi/rdma/siw_user.h          |  220 ++++
+ 22 files changed, 12366 insertions(+)
+ create mode 100644 drivers/infiniband/sw/siw/Kconfig
+ create mode 100644 drivers/infiniband/sw/siw/Makefile
+ create mode 100644 drivers/infiniband/sw/siw/iwarp.h
+ create mode 100644 drivers/infiniband/sw/siw/siw.h
+ create mode 100644 drivers/infiniband/sw/siw/siw_ae.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_cm.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_cm.h
+ create mode 100644 drivers/infiniband/sw/siw/siw_cq.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_debug.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_debug.h
+ create mode 100644 drivers/infiniband/sw/siw/siw_main.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_mem.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_obj.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_obj.h
+ create mode 100644 drivers/infiniband/sw/siw/siw_qp.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_qp_rx.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_qp_tx.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_verbs.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_verbs.h
+ create mode 100644 include/uapi/rdma/siw_user.h
+
 -- 
 2.13.6
 
