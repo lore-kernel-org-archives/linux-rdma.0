@@ -1,35 +1,66 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 32/47] RDMA/ocrdma: Use NULL instead of 0 to represent a pointer
-Date: Fri,  6 Oct 2017 14:33:18 -0700
-Message-ID: <20171006213333.6721-33-bart.vanassche@wdc.com>
+Subject: [PATCH 06/47] RDMA/isert: Suppress gcc 7 fall-through complaints
+Date: Fri,  6 Oct 2017 14:32:52 -0700
+Message-ID: <20171006213333.6721-7-bart.vanassche@wdc.com>
 References: <20171006213333.6721-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171006213333.6721-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Avoid that gcc 7 reports the following warning when building with W=1:
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 8e2e9bcf1916..eaacb71b0bff 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -3186,7 +3186,7 @@ void ocrdma_eqd_set_task(struct work_struct *work)
- {
- 	struct ocrdma_dev *dev =
- 		container_of(work, struct ocrdma_dev, eqd_work.work);
--	struct ocrdma_eq *eq = 0;
-+	struct ocrdma_eq *eq = NULL;
- 	int i, num = 0, status = -EINVAL;
- 	u64 eq_intr;
- 
+warning: this statement may fall through [-Wimplicit-fallthrough=]
+
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ drivers/infiniband/ulp/isert/ib_isert.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index ceabdb85df8b..720dfb3a1ac2 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -788,10 +788,11 @@ isert_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
+ 		 * the rdma cm id
+ 		 */
+ 		return 1;
+-	case RDMA_CM_EVENT_REJECTED:       /* FALLTHRU */
++	case RDMA_CM_EVENT_REJECTED:
+ 		isert_info("Connection rejected: %s\n",
+ 			   rdma_reject_msg(cma_id, event->status));
+-	case RDMA_CM_EVENT_UNREACHABLE:    /* FALLTHRU */
++		/* fall through */
++	case RDMA_CM_EVENT_UNREACHABLE:
+ 	case RDMA_CM_EVENT_CONNECT_ERROR:
+ 		ret = isert_connect_error(cma_id);
+ 		break;
+@@ -1569,9 +1570,7 @@ isert_put_cmd(struct isert_cmd *isert_cmd, bool comp_err)
+ 			transport_generic_free_cmd(&cmd->se_cmd, 0);
+ 			break;
+ 		}
+-		/*
+-		 * Fall-through
+-		 */
++		/* fall through */
+ 	default:
+ 		iscsit_release_cmd(cmd);
+ 		break;
+@@ -1749,8 +1748,9 @@ isert_do_control_comp(struct work_struct *work)
+ 	switch (cmd->i_state) {
+ 	case ISTATE_SEND_TASKMGTRSP:
+ 		iscsit_tmr_post_handler(cmd, cmd->conn);
+-	case ISTATE_SEND_REJECT:   /* FALLTHRU */
+-	case ISTATE_SEND_TEXTRSP:  /* FALLTHRU */
++		/* fall through */
++	case ISTATE_SEND_REJECT:
++	case ISTATE_SEND_TEXTRSP:
+ 		cmd->i_state = ISTATE_SENT_STATUS;
+ 		isert_completion_put(&isert_cmd->tx_desc, isert_cmd,
+ 				     ib_dev, false);
 -- 
 2.14.2
 
