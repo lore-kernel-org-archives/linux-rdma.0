@@ -1,36 +1,94 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 36/47] RDMA/qedr: Use NULL instead of 0 to represent a pointer
-Date: Fri,  6 Oct 2017 14:33:22 -0700
-Message-ID: <20171006213333.6721-37-bart.vanassche@wdc.com>
+Subject: [PATCH 30/47] IB/nes: Remove set-but-not-used variables
+Date: Fri,  6 Oct 2017 14:33:16 -0700
+Message-ID: <20171006213333.6721-31-bart.vanassche@wdc.com>
 References: <20171006213333.6721-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171006213333.6721-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/qedr/qedr_roce_cm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This patch does not change any functionality.
 
-diff --git a/drivers/infiniband/hw/qedr/qedr_roce_cm.c b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
-index c3c249ba62b8..2a0346678ddd 100644
---- a/drivers/infiniband/hw/qedr/qedr_roce_cm.c
-+++ b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
-@@ -660,7 +660,7 @@ int qedr_gsi_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 						  dev->gsi_ll2_handle,
- 						  wr->sg_list[0].addr,
- 						  wr->sg_list[0].length,
--						  0 /* cookie */,
-+						  NULL /* cookie */,
- 						  1 /* notify_fw */);
- 		if (rc) {
- 			DP_ERR(dev,
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/nes/nes_cm.c    | 8 --------
+ drivers/infiniband/hw/nes/nes_utils.c | 5 ++---
+ 2 files changed, 2 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
+index a5f6dffef07a..bfe2156813b1 100644
+--- a/drivers/infiniband/hw/nes/nes_cm.c
++++ b/drivers/infiniband/hw/nes/nes_cm.c
+@@ -1389,7 +1389,6 @@ static int nes_addr_resolve_neigh(struct nes_vnic *nesvnic, u32 dst_ip, int arpi
+ 	struct rtable *rt;
+ 	struct neighbour *neigh;
+ 	int rc = arpindex;
+-	struct net_device *netdev;
+ 	struct nes_adapter *nesadapter = nesvnic->nesdev->nesadapter;
+ 	__be32 dst_ipaddr = htonl(dst_ip);
+ 
+@@ -1400,11 +1399,6 @@ static int nes_addr_resolve_neigh(struct nes_vnic *nesvnic, u32 dst_ip, int arpi
+ 		return rc;
+ 	}
+ 
+-	if (netif_is_bond_slave(nesvnic->netdev))
+-		netdev = netdev_master_upper_dev_get(nesvnic->netdev);
+-	else
+-		netdev = nesvnic->netdev;
+-
+ 	neigh = dst_neigh_lookup(&rt->dst, &dst_ipaddr);
+ 
+ 	rcu_read_lock();
+@@ -3075,7 +3069,6 @@ int nes_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 	u32 crc_value;
+ 	int ret;
+ 	int passive_state;
+-	struct nes_ib_device *nesibdev;
+ 	struct ib_mr *ibmr = NULL;
+ 	struct nes_pd *nespd;
+ 	u64 tagged_offset;
+@@ -3158,7 +3151,6 @@ int nes_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 
+ 	if (raddr->sin_addr.s_addr != laddr->sin_addr.s_addr) {
+ 		u64temp = (unsigned long)nesqp;
+-		nesibdev = nesvnic->nesibdev;
+ 		nespd = nesqp->nespd;
+ 		tagged_offset = (u64)(unsigned long)*start_buff;
+ 		ibmr = nes_reg_phys_mr(&nespd->ibpd,
+diff --git a/drivers/infiniband/hw/nes/nes_utils.c b/drivers/infiniband/hw/nes/nes_utils.c
+index 7b67e9cb57ed..0613eb5006cc 100644
+--- a/drivers/infiniband/hw/nes/nes_utils.c
++++ b/drivers/infiniband/hw/nes/nes_utils.c
+@@ -753,7 +753,6 @@ void nes_mh_fix(unsigned long parm)
+ 	u32 mac_tx_frames_low;
+ 	u32 mac_tx_frames_high;
+ 	u32 mac_tx_pauses;
+-	u32 serdes_status;
+ 	u32 reset_value;
+ 	u32 tx_control;
+ 	u32 tx_config;
+@@ -846,7 +845,7 @@ void nes_mh_fix(unsigned long parm)
+ 		}
+ 
+ 		nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_CONTROL0, 0x00000008);
+-		serdes_status = nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS0);
++		nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_COMMON_STATUS0);
+ 
+ 		nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_EMP0, 0x000bdef7);
+ 		nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_TX_DRIVE0, 0x9ce73000);
+@@ -859,7 +858,7 @@ void nes_mh_fix(unsigned long parm)
+ 		} else {
+ 			nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_RX_EQ_CONTROL0, 0xf0042222);
+ 		}
+-		serdes_status = nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_RX_EQ_STATUS0);
++		nes_read_indexed(nesdev, NES_IDX_ETH_SERDES_RX_EQ_STATUS0);
+ 		nes_write_indexed(nesdev, NES_IDX_ETH_SERDES_CDR_CONTROL0, 0x000000ff);
+ 
+ 		nes_write_indexed(nesdev, NES_IDX_MAC_TX_CONTROL, tx_control);
 -- 
 2.14.2
 
