@@ -1,87 +1,73 @@
-From: Bart Van Assche <bart.vanassche@wdc.com>
-Subject: [PATCH 4/7] IB/srp: Avoid a cable pull can trigger a kernel crash
-Date: Fri,  6 Oct 2017 14:42:40 -0700
-Message-ID: <20171006214243.11296-5-bart.vanassche@wdc.com>
+From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Subject: [PATCH 5/7] IB/srp: Remove second argument of srp_destroy_qp()
+Date: Fri,  6 Oct 2017 14:42:41 -0700
+Message-ID: <20171006214243.11296-6-bart.vanassche@wdc.com>
 References: <20171006214243.11296-1-bart.vanassche@wdc.com>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20171006214243.11296-1-bart.vanassche@wdc.com>
-Sender: stable-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, stable@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171006214243.11296-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch fixes the following kernel crash:
+This patch does not change any functionality.
 
-general protection fault: 0000 [#1] PREEMPT SMP
-Workqueue: ib_mad2 timeout_sends [ib_core]
-Call Trace:
- ib_sa_path_rec_callback+0x1c4/0x1d0 [ib_core]
- send_handler+0xb2/0xd0 [ib_core]
- timeout_sends+0x14d/0x220 [ib_core]
- process_one_work+0x200/0x630
- worker_thread+0x4e/0x3b0
- kthread+0x113/0x150
-
-Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 25 +++++++++++++++++++------
- 1 file changed, 19 insertions(+), 6 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 778a08250f16..8ceb4bb011f1 100644
+index 8ceb4bb011f1..96750ad253c4 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -665,12 +665,19 @@ static void srp_path_rec_completion(int status,
- static int srp_lookup_path(struct srp_rdma_ch *ch)
+@@ -464,20 +464,20 @@ static struct srp_fr_pool *srp_alloc_fr_pool(struct srp_target_port *target)
+ 
+ /**
+  * srp_destroy_qp() - destroy an RDMA queue pair
+- * @qp: RDMA queue pair.
++ * @ch: SRP RDMA channel.
+  *
+  * Drain the qp before destroying it.  This avoids that the receive
+  * completion handler can access the queue pair while it is
+  * being destroyed.
+  */
+-static void srp_destroy_qp(struct srp_rdma_ch *ch, struct ib_qp *qp)
++static void srp_destroy_qp(struct srp_rdma_ch *ch)
  {
- 	struct srp_target_port *target = ch->target;
--	int ret;
-+	int ret = -ENODEV;
+ 	spin_lock_irq(&ch->lock);
+ 	ib_process_cq_direct(ch->send_cq, -1);
+ 	spin_unlock_irq(&ch->lock);
  
- 	ch->path.numb_path = 1;
- 
- 	init_completion(&ch->done);
- 
-+	/*
-+	 * Avoid that the SCSI host can be removed by srp_remove_target()
-+	 * before srp_path_rec_completion() is called.
-+	 */
-+	if (!scsi_host_get(target->scsi_host))
-+		goto out;
-+
- 	ch->path_query_id = ib_sa_path_rec_get(&srp_sa_client,
- 					       target->srp_host->srp_dev->dev,
- 					       target->srp_host->port,
-@@ -684,18 +691,24 @@ static int srp_lookup_path(struct srp_rdma_ch *ch)
- 					       GFP_KERNEL,
- 					       srp_path_rec_completion,
- 					       ch, &ch->path_query);
--	if (ch->path_query_id < 0)
--		return ch->path_query_id;
-+	ret = ch->path_query_id;
-+	if (ret < 0)
-+		goto put;
- 
- 	ret = wait_for_completion_interruptible(&ch->done);
- 	if (ret < 0)
--		return ret;
-+		goto put;
- 
--	if (ch->status < 0)
-+	ret = ch->status;
-+	if (ret < 0)
- 		shost_printk(KERN_WARNING, target->scsi_host,
- 			     PFX "Path record query failed\n");
- 
--	return ch->status;
-+put:
-+	scsi_host_put(target->scsi_host);
-+
-+out:
-+	return ret;
+-	ib_drain_qp(qp);
+-	ib_destroy_qp(qp);
++	ib_drain_qp(ch->qp);
++	ib_destroy_qp(ch->qp);
  }
  
- static int srp_send_req(struct srp_rdma_ch *ch, bool multich)
+ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+@@ -550,7 +550,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+ 	}
+ 
+ 	if (ch->qp)
+-		srp_destroy_qp(ch, ch->qp);
++		srp_destroy_qp(ch);
+ 	if (ch->recv_cq)
+ 		ib_free_cq(ch->recv_cq);
+ 	if (ch->send_cq)
+@@ -617,7 +617,7 @@ static void srp_free_ch_ib(struct srp_target_port *target,
+ 			ib_destroy_fmr_pool(ch->fmr_pool);
+ 	}
+ 
+-	srp_destroy_qp(ch, ch->qp);
++	srp_destroy_qp(ch);
+ 	ib_free_cq(ch->send_cq);
+ 	ib_free_cq(ch->recv_cq);
+ 
 -- 
 2.14.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
