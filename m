@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 09/47] RDMA/cxgb3: Annotate locking assumptions
-Date: Fri,  6 Oct 2017 14:32:55 -0700
-Message-ID: <20171006213333.6721-10-bart.vanassche@wdc.com>
+Subject: [PATCH 12/47] RDMA/cxgb4: Fix indentation
+Date: Fri,  6 Oct 2017 14:32:58 -0700
+Message-ID: <20171006213333.6721-13-bart.vanassche@wdc.com>
 References: <20171006213333.6721-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171006213333.6721-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,34 +10,72 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Tell sparse what the locking assumptions are for __flush_qp() such
-that it does not complain about the locking operations inside that
-function.
+This patch avoids that smatch reports the following:
+
+drivers/infiniband/hw/cxgb4/device.c:1105: copy_gl_to_skb_pkt() warn: inconsistent indenting
+drivers/infiniband/hw/cxgb4/cm.c:835: send_connect() warn: inconsistent indenting
+drivers/infiniband/hw/cxgb4/cm.c:841: send_connect() warn: inconsistent indenting
+drivers/infiniband/hw/cxgb4/cm.c:888: send_connect() warn: inconsistent indenting
+drivers/infiniband/hw/cxgb4/cm.c:894: send_connect() warn: inconsistent indenting
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb3/iwch_qp.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/hw/cxgb4/cm.c     | 8 ++++----
+ drivers/infiniband/hw/cxgb4/device.c | 4 ++--
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_qp.c b/drivers/infiniband/hw/cxgb3/iwch_qp.c
-index 7f633da0185d..3871e1fd8395 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_qp.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_qp.c
-@@ -722,10 +722,13 @@ int iwch_post_terminate(struct iwch_qp *qhp, struct respQ_msg_t *rsp_msg)
-  */
- static void __flush_qp(struct iwch_qp *qhp, struct iwch_cq *rchp,
- 				struct iwch_cq *schp)
-+	__releases(&qhp->lock)
-+	__acquires(&qhp->lock)
- {
- 	int count;
- 	int flushed;
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index e395afcd7d33..2331e7d57704 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -832,13 +832,13 @@ static int send_connect(struct c4iw_ep *ep)
+ 				t5req->params =
+ 					  cpu_to_be64(FILTER_TUPLE_V(params));
+ 				t5req->rsvd = cpu_to_be32(isn);
+-			pr_debug("snd_isn %u\n", t5req->rsvd);
++				pr_debug("snd_isn %u\n", t5req->rsvd);
+ 				t5req->opt2 = cpu_to_be32(opt2);
+ 			} else {
+ 				t6req->params =
+ 					  cpu_to_be64(FILTER_TUPLE_V(params));
+ 				t6req->rsvd = cpu_to_be32(isn);
+-			pr_debug("snd_isn %u\n", t6req->rsvd);
++				pr_debug("snd_isn %u\n", t6req->rsvd);
+ 				t6req->opt2 = cpu_to_be32(opt2);
+ 			}
+ 		}
+@@ -885,13 +885,13 @@ static int send_connect(struct c4iw_ep *ep)
+ 				t5req6->params =
+ 					    cpu_to_be64(FILTER_TUPLE_V(params));
+ 				t5req6->rsvd = cpu_to_be32(isn);
+-			pr_debug("snd_isn %u\n", t5req6->rsvd);
++				pr_debug("snd_isn %u\n", t5req6->rsvd);
+ 				t5req6->opt2 = cpu_to_be32(opt2);
+ 			} else {
+ 				t6req6->params =
+ 					    cpu_to_be64(FILTER_TUPLE_V(params));
+ 				t6req6->rsvd = cpu_to_be32(isn);
+-			pr_debug("snd_isn %u\n", t6req6->rsvd);
++				pr_debug("snd_isn %u\n", t6req6->rsvd);
+ 				t6req6->opt2 = cpu_to_be32(opt2);
+ 			}
  
-+	lockdep_assert_held(&qhp->lock);
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index fa16a4a8c9a4..33bfddf3b064 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -1102,8 +1102,8 @@ static inline struct sk_buff *copy_gl_to_skb_pkt(const struct pkt_gl *gl,
+ 	if (unlikely(!skb))
+ 		return NULL;
  
- 	pr_debug("%s qhp %p rchp %p schp %p\n", __func__, qhp, rchp, schp);
- 	/* take a ref on the qhp since we must release the lock */
+-	 __skb_put(skb, gl->tot_len + sizeof(struct cpl_pass_accept_req) +
+-		   sizeof(struct rss_header) - pktshift);
++	__skb_put(skb, gl->tot_len + sizeof(struct cpl_pass_accept_req) +
++		  sizeof(struct rss_header) - pktshift);
+ 
+ 	/*
+ 	 * This skb will contain:
 -- 
 2.14.2
 
