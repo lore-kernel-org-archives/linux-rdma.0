@@ -1,79 +1,87 @@
-From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 2/7] IB/srpt: Cache global L_Key
-Date: Fri,  6 Oct 2017 14:42:38 -0700
-Message-ID: <20171006214243.11296-3-bart.vanassche@wdc.com>
+From: Bart Van Assche <bart.vanassche@wdc.com>
+Subject: [PATCH 4/7] IB/srp: Avoid a cable pull can trigger a kernel crash
+Date: Fri,  6 Oct 2017 14:42:40 -0700
+Message-ID: <20171006214243.11296-5-bart.vanassche@wdc.com>
 References: <20171006214243.11296-1-bart.vanassche@wdc.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171006214243.11296-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20171006214243.11296-1-bart.vanassche@wdc.com>
+Sender: stable-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch is a micro-optimization for the hot path.
+This patch fixes the following kernel crash:
 
-Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+general protection fault: 0000 [#1] PREEMPT SMP
+Workqueue: ib_mad2 timeout_sends [ib_core]
+Call Trace:
+ ib_sa_path_rec_callback+0x1c4/0x1d0 [ib_core]
+ send_handler+0xb2/0xd0 [ib_core]
+ timeout_sends+0x14d/0x220 [ib_core]
+ process_one_work+0x200/0x630
+ worker_thread+0x4e/0x3b0
+ kthread+0x113/0x150
+
+Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+Cc: <stable@vger.kernel.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 6 ++++--
- drivers/infiniband/ulp/srpt/ib_srpt.h | 3 ++-
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 76370e39857d..6cf95ad870cc 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -766,7 +766,7 @@ static int srpt_post_recv(struct srpt_device *sdev,
- 	BUG_ON(!sdev);
- 	list.addr = ioctx->ioctx.dma;
- 	list.length = srp_max_req_size;
--	list.lkey = sdev->pd->local_dma_lkey;
-+	list.lkey = sdev->lkey;
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 778a08250f16..8ceb4bb011f1 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -665,12 +665,19 @@ static void srp_path_rec_completion(int status,
+ static int srp_lookup_path(struct srp_rdma_ch *ch)
+ {
+ 	struct srp_target_port *target = ch->target;
+-	int ret;
++	int ret = -ENODEV;
  
- 	ioctx->ioctx.cqe.done = srpt_recv_done;
- 	wr.wr_cqe = &ioctx->ioctx.cqe;
-@@ -2343,7 +2343,7 @@ static void srpt_queue_response(struct se_cmd *cmd)
+ 	ch->path.numb_path = 1;
  
- 	sge.addr = ioctx->ioctx.dma;
- 	sge.length = resp_len;
--	sge.lkey = sdev->pd->local_dma_lkey;
-+	sge.lkey = sdev->lkey;
+ 	init_completion(&ch->done);
  
- 	ioctx->ioctx.cqe.done = srpt_send_done;
- 	send_wr.next = NULL;
-@@ -2491,6 +2491,8 @@ static void srpt_add_one(struct ib_device *device)
- 	if (IS_ERR(sdev->pd))
- 		goto free_dev;
- 
-+	sdev->lkey = sdev->pd->local_dma_lkey;
++	/*
++	 * Avoid that the SCSI host can be removed by srp_remove_target()
++	 * before srp_path_rec_completion() is called.
++	 */
++	if (!scsi_host_get(target->scsi_host))
++		goto out;
 +
- 	sdev->srq_size = min(srpt_srq_size, sdev->device->attrs.max_srq_wr);
+ 	ch->path_query_id = ib_sa_path_rec_get(&srp_sa_client,
+ 					       target->srp_host->srp_dev->dev,
+ 					       target->srp_host->port,
+@@ -684,18 +691,24 @@ static int srp_lookup_path(struct srp_rdma_ch *ch)
+ 					       GFP_KERNEL,
+ 					       srp_path_rec_completion,
+ 					       ch, &ch->path_query);
+-	if (ch->path_query_id < 0)
+-		return ch->path_query_id;
++	ret = ch->path_query_id;
++	if (ret < 0)
++		goto put;
  
- 	srq_attr.event_handler = srpt_srq_event;
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index 1b817e51b84b..976e924d7400 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -343,7 +343,7 @@ struct srpt_port {
-  * struct srpt_device - Information associated by SRPT with a single HCA.
-  * @device:        Backpointer to the struct ib_device managed by the IB core.
-  * @pd:            IB protection domain.
-- * @mr:            L_Key (local key) with write access to all local memory.
-+ * @lkey:          L_Key (local key) with write access to all local memory.
-  * @srq:           Per-HCA SRQ (shared receive queue).
-  * @cm_id:         Connection identifier.
-  * @srq_size:      SRQ size.
-@@ -358,6 +358,7 @@ struct srpt_port {
- struct srpt_device {
- 	struct ib_device	*device;
- 	struct ib_pd		*pd;
-+	u32			lkey;
- 	struct ib_srq		*srq;
- 	struct ib_cm_id		*cm_id;
- 	int			srq_size;
+ 	ret = wait_for_completion_interruptible(&ch->done);
+ 	if (ret < 0)
+-		return ret;
++		goto put;
+ 
+-	if (ch->status < 0)
++	ret = ch->status;
++	if (ret < 0)
+ 		shost_printk(KERN_WARNING, target->scsi_host,
+ 			     PFX "Path record query failed\n");
+ 
+-	return ch->status;
++put:
++	scsi_host_put(target->scsi_host);
++
++out:
++	return ret;
+ }
+ 
+ static int srp_send_req(struct srp_rdma_ch *ch, bool multich)
 -- 
 2.14.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
