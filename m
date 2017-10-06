@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 10/47] RDMA/cxgb3: Annotate an RCU pointer
-Date: Fri,  6 Oct 2017 14:32:56 -0700
-Message-ID: <20171006213333.6721-11-bart.vanassche@wdc.com>
+Subject: [PATCH 11/47] RDMA/cxgb3: Remove a set-but-not-used variable
+Date: Fri,  6 Oct 2017 14:32:57 -0700
+Message-ID: <20171006213333.6721-12-bart.vanassche@wdc.com>
 References: <20171006213333.6721-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171006213333.6721-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,27 +10,37 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Annotate t3cdev.l2opt with __rcu since it is used as an RCU pointer.
-
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/net/ethernet/chelsio/cxgb3/t3cdev.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/cxgb3/iwch_cm.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/ethernet/chelsio/cxgb3/t3cdev.h b/drivers/net/ethernet/chelsio/cxgb3/t3cdev.h
-index 705713b56636..3c3e6cf6aca6 100644
---- a/drivers/net/ethernet/chelsio/cxgb3/t3cdev.h
-+++ b/drivers/net/ethernet/chelsio/cxgb3/t3cdev.h
-@@ -60,7 +60,7 @@ struct t3cdev {
- 	int (*ctl)(struct t3cdev *dev, unsigned int req, void *data);
- 	void (*neigh_update)(struct t3cdev *dev, struct neighbour *neigh);
- 	void *priv;		/* driver private data */
--	void *l2opt;		/* optional layer 2 data */
-+	void __rcu *l2opt;	/* optional layer 2 data */
- 	void *l3opt;		/* optional layer 3 data */
- 	void *l4opt;		/* optional layer 4 data */
- 	void *ulp;		/* ulp stuff */
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_cm.c b/drivers/infiniband/hw/cxgb3/iwch_cm.c
+index 86975370a4c0..edc1c549289e 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_cm.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_cm.c
+@@ -1760,8 +1760,8 @@ static void ep_timeout(unsigned long arg)
+ 
+ int iwch_reject_cr(struct iw_cm_id *cm_id, const void *pdata, u8 pdata_len)
+ {
+-	int err;
+ 	struct iwch_ep *ep = to_ep(cm_id);
++
+ 	pr_debug("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
+ 
+ 	if (state_read(&ep->com) == DEAD) {
+@@ -1772,8 +1772,8 @@ int iwch_reject_cr(struct iw_cm_id *cm_id, const void *pdata, u8 pdata_len)
+ 	if (mpa_rev == 0)
+ 		abort_connection(ep, NULL, GFP_KERNEL);
+ 	else {
+-		err = send_mpa_reject(ep, pdata, pdata_len);
+-		err = iwch_ep_disconnect(ep, 0, GFP_KERNEL);
++		send_mpa_reject(ep, pdata, pdata_len);
++		iwch_ep_disconnect(ep, 0, GFP_KERNEL);
+ 	}
+ 	put_ep(&ep->com);
+ 	return 0;
 -- 
 2.14.2
 
