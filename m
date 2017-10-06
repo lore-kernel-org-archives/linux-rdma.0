@@ -1,165 +1,149 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH] IB/core: Simplify sa_path_set_[sd]lid() calls
-Date: Fri,  6 Oct 2017 13:06:17 -0700
-Message-ID: <20171006200617.31444-1-bart.vanassche@wdc.com>
+Subject: [PATCH 00/47] Address issues detected by static analysis tools
+Date: Fri,  6 Oct 2017 14:32:46 -0700
+Message-ID: <20171006213333.6721-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of making every caller convert the second argument of
-sa_path_set_slid() and sa_path_set_dlid() to big endian format,
-make these two functions accept LIDs in CPU endian format.
-This patch does not change any functionality.
+Hello Doug,
 
-Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/cm.c              | 26 ++++++++++++--------------
- drivers/infiniband/core/uverbs_marshall.c | 10 +++++-----
- drivers/infiniband/ulp/srp/ib_srp.c       |  2 +-
- include/rdma/ib_sa.h                      | 12 ++++++------
- 4 files changed, 24 insertions(+), 26 deletions(-)
+As we all know there are several static analysis tools available for the Linux
+kernel and these tools are valuable. I'm referring to increasing the gcc
+warning level (W=1), sparse and smatch. It is helpful to analyze new code with
+these tools before submitting a patch. These tools are most useful if existing
+code is clean. Hence this patch series that significantly reduces the number
+of complaints reported by static analysis tools. Please consider this patch
+series for kernel v4.15.
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 4c4b46586af2..d80911d4abb7 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -1472,31 +1472,29 @@ static void cm_format_path_lid_from_req(struct cm_req_msg *req_msg,
- 
- 	if (primary_path->rec_type != SA_PATH_REC_TYPE_OPA) {
- 		sa_path_set_dlid(primary_path,
--				 htonl(ntohs(req_msg->primary_local_lid)));
-+				 ntohs(req_msg->primary_local_lid));
- 		sa_path_set_slid(primary_path,
--				 htonl(ntohs(req_msg->primary_remote_lid)));
-+				 ntohs(req_msg->primary_remote_lid));
- 	} else {
- 		lid = opa_get_lid_from_gid(&req_msg->primary_local_gid);
--		sa_path_set_dlid(primary_path, cpu_to_be32(lid));
-+		sa_path_set_dlid(primary_path, lid);
- 
- 		lid = opa_get_lid_from_gid(&req_msg->primary_remote_gid);
--		sa_path_set_slid(primary_path, cpu_to_be32(lid));
-+		sa_path_set_slid(primary_path, lid);
- 	}
- 
- 	if (!cm_req_has_alt_path(req_msg))
- 		return;
- 
- 	if (alt_path->rec_type != SA_PATH_REC_TYPE_OPA) {
--		sa_path_set_dlid(alt_path,
--				 htonl(ntohs(req_msg->alt_local_lid)));
--		sa_path_set_slid(alt_path,
--				 htonl(ntohs(req_msg->alt_remote_lid)));
-+		sa_path_set_dlid(alt_path, ntohs(req_msg->alt_local_lid));
-+		sa_path_set_slid(alt_path, ntohs(req_msg->alt_remote_lid));
- 	} else {
- 		lid = opa_get_lid_from_gid(&req_msg->alt_local_gid);
--		sa_path_set_dlid(alt_path, cpu_to_be32(lid));
-+		sa_path_set_dlid(alt_path, lid);
- 
- 		lid = opa_get_lid_from_gid(&req_msg->alt_remote_gid);
--		sa_path_set_slid(alt_path, cpu_to_be32(lid));
-+		sa_path_set_slid(alt_path, lid);
- 	}
- }
- 
-@@ -3037,14 +3035,14 @@ static void cm_format_path_lid_from_lap(struct cm_lap_msg *lap_msg,
- 	u32 lid;
- 
- 	if (path->rec_type != SA_PATH_REC_TYPE_OPA) {
--		sa_path_set_dlid(path, htonl(ntohs(lap_msg->alt_local_lid)));
--		sa_path_set_slid(path, htonl(ntohs(lap_msg->alt_remote_lid)));
-+		sa_path_set_dlid(path, ntohs(lap_msg->alt_local_lid));
-+		sa_path_set_slid(path, ntohs(lap_msg->alt_remote_lid));
- 	} else {
- 		lid = opa_get_lid_from_gid(&lap_msg->alt_local_gid);
--		sa_path_set_dlid(path, cpu_to_be32(lid));
-+		sa_path_set_dlid(path, lid);
- 
- 		lid = opa_get_lid_from_gid(&lap_msg->alt_remote_gid);
--		sa_path_set_slid(path, cpu_to_be32(lid));
-+		sa_path_set_slid(path, lid);
- 	}
- }
- 
-diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
-index bd0acf376af0..aeb2824efbc7 100644
---- a/drivers/infiniband/core/uverbs_marshall.c
-+++ b/drivers/infiniband/core/uverbs_marshall.c
-@@ -176,18 +176,18 @@ EXPORT_SYMBOL(ib_copy_path_rec_to_user);
- void ib_copy_path_rec_from_user(struct sa_path_rec *dst,
- 				struct ib_user_path_rec *src)
- {
--	__be32 slid, dlid;
-+	u32 slid, dlid;
- 
- 	memset(dst, 0, sizeof(*dst));
- 	if ((ib_is_opa_gid((union ib_gid *)src->sgid)) ||
- 	    (ib_is_opa_gid((union ib_gid *)src->dgid))) {
- 		dst->rec_type = SA_PATH_REC_TYPE_OPA;
--		slid = htonl(opa_get_lid_from_gid((union ib_gid *)src->sgid));
--		dlid = htonl(opa_get_lid_from_gid((union ib_gid *)src->dgid));
-+		slid = opa_get_lid_from_gid((union ib_gid *)src->sgid);
-+		dlid = opa_get_lid_from_gid((union ib_gid *)src->dgid);
- 	} else {
- 		dst->rec_type = SA_PATH_REC_TYPE_IB;
--		slid = htonl(ntohs(src->slid));
--		dlid = htonl(ntohs(src->dlid));
-+		slid = ntohs(src->slid);
-+		dlid = ntohs(src->dlid);
- 	}
- 	memcpy(dst->dgid.raw, src->dgid, sizeof dst->dgid);
- 	memcpy(dst->sgid.raw, src->sgid, sizeof dst->sgid);
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index a339e628c682..b322cb24d4d5 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -2551,7 +2551,7 @@ static void srp_cm_rej_handler(struct ib_cm_id *cm_id,
- 	switch (event->param.rej_rcvd.reason) {
- 	case IB_CM_REJ_PORT_CM_REDIRECT:
- 		cpi = event->param.rej_rcvd.ari;
--		sa_path_set_dlid(&ch->path, htonl(ntohs(cpi->redirect_lid)));
-+		sa_path_set_dlid(&ch->path, ntohs(cpi->redirect_lid));
- 		ch->path.pkey = cpi->redirect_pkey;
- 		cm_id->remote_cm_qpn = be32_to_cpu(cpi->redirect_qp) & 0x00ffffff;
- 		memcpy(ch->path.dgid.raw, cpi->redirect_gid, 16);
-diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
-index 355b81f4242d..1f7f604db5aa 100644
---- a/include/rdma/ib_sa.h
-+++ b/include/rdma/ib_sa.h
-@@ -590,20 +590,20 @@ static inline bool sa_path_is_roce(struct sa_path_rec *rec)
- 		(rec->rec_type == SA_PATH_REC_TYPE_ROCE_V2));
- }
- 
--static inline void sa_path_set_slid(struct sa_path_rec *rec, __be32 slid)
-+static inline void sa_path_set_slid(struct sa_path_rec *rec, u32 slid)
- {
- 	if (rec->rec_type == SA_PATH_REC_TYPE_IB)
--		rec->ib.slid = htons(ntohl(slid));
-+		rec->ib.slid = cpu_to_be16(slid);
- 	else if (rec->rec_type == SA_PATH_REC_TYPE_OPA)
--		rec->opa.slid = slid;
-+		rec->opa.slid = cpu_to_be32(slid);
- }
- 
--static inline void sa_path_set_dlid(struct sa_path_rec *rec, __be32 dlid)
-+static inline void sa_path_set_dlid(struct sa_path_rec *rec, u32 dlid)
- {
- 	if (rec->rec_type == SA_PATH_REC_TYPE_IB)
--		rec->ib.dlid = htons(ntohl(dlid));
-+		rec->ib.dlid = cpu_to_be16(dlid);
- 	else if (rec->rec_type == SA_PATH_REC_TYPE_OPA)
--		rec->opa.dlid = dlid;
-+		rec->opa.dlid = cpu_to_be32(dlid);
- }
- 
- static inline void sa_path_set_raw_traffic(struct sa_path_rec *rec,
+Thanks,
+
+Bart.
+
+Bart Van Assche (47):
+  IB/core: Fix endianness annotation in rdma_is_multicast_addr()
+  IB/cm: Suppress gcc 7 fall-through complaints
+  RDMA/cma: Avoid triggering undefined behavior
+  RDMA/iwcm: Remove a set-but-not-used variable
+  RDMA/uverbs: Make the code in ib_uverbs_cmd_verbs() less confusing
+  RDMA/isert: Suppress gcc 7 fall-through complaints
+  RDMA/bnxt_re: Suppress gcc 7 fall-through complaints
+  RDMA/bnxt_re: Remove set-but-not-used variables
+  RDMA/cxgb3: Annotate locking assumptions
+  RDMA/cxgb3: Annotate an RCU pointer
+  RDMA/cxgb3: Remove a set-but-not-used variable
+  RDMA/cxgb4: Fix indentation
+  RDMA/cxgb4: Declare a local variable 'static'
+  RDMA/cxgb4: Suppress gcc 7 fall-through complaints
+  RDMA/cxgb4: Remove a set-but-not-used variable
+  IB/hfi1: Suppress gcc 7 fall-through complaints
+  IB/hfi1: Remove set-but-not-used variables
+  IB/hfi1: Define hfi1_handle_cnp_tbl[] once
+  IB/hns: Annotate iomem pointers correctly
+  IB/hns: Declare local functions 'static'
+  RDMA/i40iw: Fix a race condition
+  RDMA/i40iw: Suppress gcc 7 fall-through complaints
+  RDMA/i40iw: Remove a set-but-not-used variable
+  IB/mthca: Fix indentation
+  IB/mlx4: Suppress gcc 7 fall-through complaints
+  IB/mlx5: Suppress gcc 7 fall-through complaints
+  IB/mlx5: Remove a set-but-not-used variable
+  IB/nes: Fix indentation
+  IB/nes: Suppress gcc 7 fall-through complaints
+  IB/nes: Remove set-but-not-used variables
+  IB/nes: Fix a race condition in nes_inetaddr_event()
+  RDMA/ocrdma: Use NULL instead of 0 to represent a pointer
+  RDMA/ocrdma: Suppress gcc 7 fall-through complaints
+  RDMA/ocrdma: Remove set-but-not-used variables
+  IB/opa: Fix endianness annotation of opa_is_extended_lid()
+  RDMA/qedr: Use NULL instead of 0 to represent a pointer
+  RDMA/qedr: Declare local functions static
+  RDMA/qedr: Annotate iomem pointers correctly
+  RDMA/qedr: Remove set-but-not-used variables
+  IB/qib: Make qib_inc_eeprom_err() macro more safe to use
+  IB/qib: Suppress gcc 7 fall-through complaints
+  IB/qib: Remove set-but-not-used variables
+  RDMA/rdmavt: Suppress gcc 7 fall-through complaints
+  RDMA/rxe: Suppress gcc 7 fall-through complaints
+  RDMA/usnic: Make the compiler check declaration consistency during
+    compilation
+  RDMA/usnic: Remove a set-but-not-used variable
+  RDMA/usnic: Instantiate data structures once
+
+ drivers/infiniband/core/cm.c                  |  1 +
+ drivers/infiniband/core/cma.c                 | 11 ++--
+ drivers/infiniband/core/iwcm.c                |  3 --
+ drivers/infiniband/core/uverbs_ioctl.c        | 20 ++++----
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c      | 12 ++---
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c      |  7 +--
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c    |  4 --
+ drivers/infiniband/hw/bnxt_re/qplib_sp.c      |  5 +-
+ drivers/infiniband/hw/cxgb3/iwch_cm.c         |  6 +--
+ drivers/infiniband/hw/cxgb3/iwch_qp.c         |  3 ++
+ drivers/infiniband/hw/cxgb4/cm.c              | 14 +++--
+ drivers/infiniband/hw/cxgb4/device.c          |  4 +-
+ drivers/infiniband/hw/hfi1/driver.c           |  6 +++
+ drivers/infiniband/hw/hfi1/file_ops.c         |  4 +-
+ drivers/infiniband/hw/hfi1/hfi.h              |  5 --
+ drivers/infiniband/hw/hfi1/mad.c              |  3 +-
+ drivers/infiniband/hw/hfi1/rc.c               |  2 +-
+ drivers/infiniband/hw/hfi1/ruc.c              |  9 ----
+ drivers/infiniband/hw/hfi1/sdma.c             |  5 +-
+ drivers/infiniband/hw/hfi1/ud.c               |  2 -
+ drivers/infiniband/hw/hfi1/verbs.c            | 10 ----
+ drivers/infiniband/hw/hns/hns_roce_eq.c       |  6 +--
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c    | 73 +++++++++++++++------------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c    |  3 +-
+ drivers/infiniband/hw/i40iw/i40iw_cm.c        |  3 +-
+ drivers/infiniband/hw/i40iw/i40iw_hw.c        |  1 +
+ drivers/infiniband/hw/i40iw/i40iw_puda.c      |  1 +
+ drivers/infiniband/hw/i40iw/i40iw_utils.c     | 13 +++--
+ drivers/infiniband/hw/mlx4/cq.c               |  2 +
+ drivers/infiniband/hw/mlx4/mcg.c              |  1 +
+ drivers/infiniband/hw/mlx5/cq.c               |  2 +
+ drivers/infiniband/hw/mlx5/qp.c               |  3 +-
+ drivers/infiniband/hw/mthca/mthca_main.c      | 10 ++--
+ drivers/infiniband/hw/nes/nes.c               | 33 +++++++-----
+ drivers/infiniband/hw/nes/nes_cm.c            |  9 +---
+ drivers/infiniband/hw/nes/nes_hw.c            |  6 +--
+ drivers/infiniband/hw/nes/nes_nic.c           | 10 ++--
+ drivers/infiniband/hw/nes/nes_utils.c         | 13 +++--
+ drivers/infiniband/hw/nes/nes_verbs.c         | 12 ++---
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c      |  6 +--
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c   |  4 +-
+ drivers/infiniband/hw/qedr/main.c             | 24 ++++-----
+ drivers/infiniband/hw/qedr/qedr_iw_cm.c       | 14 ++---
+ drivers/infiniband/hw/qedr/qedr_roce_cm.c     | 29 +++++------
+ drivers/infiniband/hw/qedr/verbs.c            |  9 +---
+ drivers/infiniband/hw/qib/qib.h               |  2 +-
+ drivers/infiniband/hw/qib/qib_diag.c          |  6 ---
+ drivers/infiniband/hw/qib/qib_file_ops.c      |  9 ----
+ drivers/infiniband/hw/qib/qib_iba6120.c       |  2 -
+ drivers/infiniband/hw/qib/qib_iba7220.c       |  3 --
+ drivers/infiniband/hw/qib/qib_iba7322.c       | 15 ++----
+ drivers/infiniband/hw/qib/qib_mad.c           |  4 +-
+ drivers/infiniband/hw/qib/qib_pcie.c          |  3 +-
+ drivers/infiniband/hw/qib/qib_rc.c            |  2 +-
+ drivers/infiniband/hw/qib/qib_sd7220.c        |  2 -
+ drivers/infiniband/hw/qib/qib_sdma.c          |  2 +-
+ drivers/infiniband/hw/qib/qib_tx.c            |  4 --
+ drivers/infiniband/hw/qib/qib_verbs.c         |  3 +-
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c |  2 -
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h | 25 +--------
+ drivers/infiniband/hw/usnic/usnic_ib_sysfs.c  |  1 +
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c  | 25 +++++++++
+ drivers/infiniband/sw/rdmavt/qp.c             |  1 +
+ drivers/infiniband/sw/rxe/rxe_comp.c          |  4 +-
+ drivers/infiniband/sw/rxe/rxe_task.c          |  2 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.c         |  1 +
+ drivers/infiniband/ulp/isert/ib_isert.c       | 14 ++---
+ drivers/net/ethernet/chelsio/cxgb3/t3cdev.h   |  2 +-
+ include/rdma/ib_addr.h                        |  4 +-
+ include/rdma/opa_addr.h                       |  2 +-
+ 70 files changed, 252 insertions(+), 311 deletions(-)
+
 -- 
 2.14.2
 
