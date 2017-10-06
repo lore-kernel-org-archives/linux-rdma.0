@@ -1,37 +1,35 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 43/47] RDMA/rdmavt: Suppress gcc 7 fall-through complaints
-Date: Fri,  6 Oct 2017 14:33:29 -0700
-Message-ID: <20171006213333.6721-44-bart.vanassche@wdc.com>
+Subject: [PATCH 32/47] RDMA/ocrdma: Use NULL instead of 0 to represent a pointer
+Date: Fri,  6 Oct 2017 14:33:18 -0700
+Message-ID: <20171006213333.6721-33-bart.vanassche@wdc.com>
 References: <20171006213333.6721-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171006213333.6721-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid that gcc 7 reports the following warning when building with W=1:
-
-warning: this statement may fall through [-Wimplicit-fallthrough=]
-
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/qp.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 22df09ae809e..efcff7056496 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -807,6 +807,7 @@ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
- 		if (init_attr->port_num == 0 ||
- 		    init_attr->port_num > ibpd->device->phys_port_cnt)
- 			return ERR_PTR(-EINVAL);
-+		/* fall through */
- 	case IB_QPT_UC:
- 	case IB_QPT_RC:
- 	case IB_QPT_UD:
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+index 8e2e9bcf1916..eaacb71b0bff 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+@@ -3186,7 +3186,7 @@ void ocrdma_eqd_set_task(struct work_struct *work)
+ {
+ 	struct ocrdma_dev *dev =
+ 		container_of(work, struct ocrdma_dev, eqd_work.work);
+-	struct ocrdma_eq *eq = 0;
++	struct ocrdma_eq *eq = NULL;
+ 	int i, num = 0, status = -EINVAL;
+ 	u64 eq_intr;
+ 
 -- 
 2.14.2
 
