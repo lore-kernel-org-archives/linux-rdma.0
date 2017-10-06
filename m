@@ -1,74 +1,167 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PULL REQUEST] Please pull rdma.git
-Date: Fri, 06 Oct 2017 13:25:28 -0400
-Message-ID: <1507310728.46071.22.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Subject: [PATCH] IB/core: Simplify sa_path_set_[sd]lid() calls
+Date: Fri,  6 Oct 2017 13:06:17 -0700
+Message-ID: <20171006200617.31444-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+Instead of making every caller convert the second argument of
+sa_path_set_slid() and sa_path_set_dlid() to big endian format,
+make these two functions accept LIDs in CPU endian format.
+This patch does not change any functionality.
 
-This is a pretty small pull request.  Only 6 patches in total.  There
-are no outstanding -rc patches on the mailing list after this pull
-request, so only if some new issues are discovered in the remainder of
-the rc cycles will you here from me again.  Here's the boilerplate:
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/cm.c              | 26 ++++++++++++--------------
+ drivers/infiniband/core/uverbs_marshall.c | 10 +++++-----
+ drivers/infiniband/ulp/srp/ib_srp.c       |  2 +-
+ include/rdma/ib_sa.h                      | 12 ++++++------
+ 4 files changed, 24 insertions(+), 26 deletions(-)
 
-The following changes since commit 828bcbdc975fbcfb27946c33d4b1d1bfab70789b:
-
-  IB/hfi1: Unsuccessful PCIe caps tuning should not fail driver load (2017-09-27 11:10:36 -0400)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git tags/for-linus
-
-for you to fetch changes up to 789f903fd75036f937409a9a1616a5a5e5cc5bae:
-
-  i40iw: Fix port number for query QP (2017-10-04 15:28:49 -0400)
-
-----------------------------------------------------------------
-Third -rc update for 4.14 kernel
-
-- a fix for iwpm netlink usage
-- a fix for error unwinding in mlx5
-- two fixes to vlan handling in qedr
-- a couple small i40iw fixes
-
-----------------------------------------------------------------
-Amrani, Ram (2):
-      RDMA/qedr: Parse VLAN ID correctly and ignore the value of zero
-      RDMA/qedr: Parse vlan priority as sl
-
-Mustafa Ismail (2):
-      i40iw: Add missing memory barriers
-      i40iw: Fix port number for query QP
-
-Parav Pandit (1):
-      IB/mlx5: Fix label order in error path handling
-
-Shiraz Saleem (1):
-      RDMA/iwpm: Properly mark end of NL messages
-
- drivers/infiniband/core/iwpm_msg.c        |  8 ++++++++
- drivers/infiniband/core/iwpm_util.c       |  5 +++++
- drivers/infiniband/hw/i40iw/i40iw_ctrl.c  |  2 +-
- drivers/infiniband/hw/i40iw/i40iw_p.h     |  2 ++
- drivers/infiniband/hw/i40iw/i40iw_puda.c  | 11 ++++-------
- drivers/infiniband/hw/i40iw/i40iw_verbs.c |  2 ++
- drivers/infiniband/hw/mlx5/main.c         |  4 ++--
- drivers/infiniband/hw/qedr/qedr.h         |  2 +-
- drivers/infiniband/hw/qedr/qedr_cm.c      | 12 +++++++++---
- 9 files changed, 34 insertions(+), 14 deletions(-)
-
-
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 4c4b46586af2..d80911d4abb7 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -1472,31 +1472,29 @@ static void cm_format_path_lid_from_req(struct cm_req_msg *req_msg,
+ 
+ 	if (primary_path->rec_type != SA_PATH_REC_TYPE_OPA) {
+ 		sa_path_set_dlid(primary_path,
+-				 htonl(ntohs(req_msg->primary_local_lid)));
++				 ntohs(req_msg->primary_local_lid));
+ 		sa_path_set_slid(primary_path,
+-				 htonl(ntohs(req_msg->primary_remote_lid)));
++				 ntohs(req_msg->primary_remote_lid));
+ 	} else {
+ 		lid = opa_get_lid_from_gid(&req_msg->primary_local_gid);
+-		sa_path_set_dlid(primary_path, cpu_to_be32(lid));
++		sa_path_set_dlid(primary_path, lid);
+ 
+ 		lid = opa_get_lid_from_gid(&req_msg->primary_remote_gid);
+-		sa_path_set_slid(primary_path, cpu_to_be32(lid));
++		sa_path_set_slid(primary_path, lid);
+ 	}
+ 
+ 	if (!cm_req_has_alt_path(req_msg))
+ 		return;
+ 
+ 	if (alt_path->rec_type != SA_PATH_REC_TYPE_OPA) {
+-		sa_path_set_dlid(alt_path,
+-				 htonl(ntohs(req_msg->alt_local_lid)));
+-		sa_path_set_slid(alt_path,
+-				 htonl(ntohs(req_msg->alt_remote_lid)));
++		sa_path_set_dlid(alt_path, ntohs(req_msg->alt_local_lid));
++		sa_path_set_slid(alt_path, ntohs(req_msg->alt_remote_lid));
+ 	} else {
+ 		lid = opa_get_lid_from_gid(&req_msg->alt_local_gid);
+-		sa_path_set_dlid(alt_path, cpu_to_be32(lid));
++		sa_path_set_dlid(alt_path, lid);
+ 
+ 		lid = opa_get_lid_from_gid(&req_msg->alt_remote_gid);
+-		sa_path_set_slid(alt_path, cpu_to_be32(lid));
++		sa_path_set_slid(alt_path, lid);
+ 	}
+ }
+ 
+@@ -3037,14 +3035,14 @@ static void cm_format_path_lid_from_lap(struct cm_lap_msg *lap_msg,
+ 	u32 lid;
+ 
+ 	if (path->rec_type != SA_PATH_REC_TYPE_OPA) {
+-		sa_path_set_dlid(path, htonl(ntohs(lap_msg->alt_local_lid)));
+-		sa_path_set_slid(path, htonl(ntohs(lap_msg->alt_remote_lid)));
++		sa_path_set_dlid(path, ntohs(lap_msg->alt_local_lid));
++		sa_path_set_slid(path, ntohs(lap_msg->alt_remote_lid));
+ 	} else {
+ 		lid = opa_get_lid_from_gid(&lap_msg->alt_local_gid);
+-		sa_path_set_dlid(path, cpu_to_be32(lid));
++		sa_path_set_dlid(path, lid);
+ 
+ 		lid = opa_get_lid_from_gid(&lap_msg->alt_remote_gid);
+-		sa_path_set_slid(path, cpu_to_be32(lid));
++		sa_path_set_slid(path, lid);
+ 	}
+ }
+ 
+diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
+index bd0acf376af0..aeb2824efbc7 100644
+--- a/drivers/infiniband/core/uverbs_marshall.c
++++ b/drivers/infiniband/core/uverbs_marshall.c
+@@ -176,18 +176,18 @@ EXPORT_SYMBOL(ib_copy_path_rec_to_user);
+ void ib_copy_path_rec_from_user(struct sa_path_rec *dst,
+ 				struct ib_user_path_rec *src)
+ {
+-	__be32 slid, dlid;
++	u32 slid, dlid;
+ 
+ 	memset(dst, 0, sizeof(*dst));
+ 	if ((ib_is_opa_gid((union ib_gid *)src->sgid)) ||
+ 	    (ib_is_opa_gid((union ib_gid *)src->dgid))) {
+ 		dst->rec_type = SA_PATH_REC_TYPE_OPA;
+-		slid = htonl(opa_get_lid_from_gid((union ib_gid *)src->sgid));
+-		dlid = htonl(opa_get_lid_from_gid((union ib_gid *)src->dgid));
++		slid = opa_get_lid_from_gid((union ib_gid *)src->sgid);
++		dlid = opa_get_lid_from_gid((union ib_gid *)src->dgid);
+ 	} else {
+ 		dst->rec_type = SA_PATH_REC_TYPE_IB;
+-		slid = htonl(ntohs(src->slid));
+-		dlid = htonl(ntohs(src->dlid));
++		slid = ntohs(src->slid);
++		dlid = ntohs(src->dlid);
+ 	}
+ 	memcpy(dst->dgid.raw, src->dgid, sizeof dst->dgid);
+ 	memcpy(dst->sgid.raw, src->sgid, sizeof dst->sgid);
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index a339e628c682..b322cb24d4d5 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -2551,7 +2551,7 @@ static void srp_cm_rej_handler(struct ib_cm_id *cm_id,
+ 	switch (event->param.rej_rcvd.reason) {
+ 	case IB_CM_REJ_PORT_CM_REDIRECT:
+ 		cpi = event->param.rej_rcvd.ari;
+-		sa_path_set_dlid(&ch->path, htonl(ntohs(cpi->redirect_lid)));
++		sa_path_set_dlid(&ch->path, ntohs(cpi->redirect_lid));
+ 		ch->path.pkey = cpi->redirect_pkey;
+ 		cm_id->remote_cm_qpn = be32_to_cpu(cpi->redirect_qp) & 0x00ffffff;
+ 		memcpy(ch->path.dgid.raw, cpi->redirect_gid, 16);
+diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
+index 355b81f4242d..1f7f604db5aa 100644
+--- a/include/rdma/ib_sa.h
++++ b/include/rdma/ib_sa.h
+@@ -590,20 +590,20 @@ static inline bool sa_path_is_roce(struct sa_path_rec *rec)
+ 		(rec->rec_type == SA_PATH_REC_TYPE_ROCE_V2));
+ }
+ 
+-static inline void sa_path_set_slid(struct sa_path_rec *rec, __be32 slid)
++static inline void sa_path_set_slid(struct sa_path_rec *rec, u32 slid)
+ {
+ 	if (rec->rec_type == SA_PATH_REC_TYPE_IB)
+-		rec->ib.slid = htons(ntohl(slid));
++		rec->ib.slid = cpu_to_be16(slid);
+ 	else if (rec->rec_type == SA_PATH_REC_TYPE_OPA)
+-		rec->opa.slid = slid;
++		rec->opa.slid = cpu_to_be32(slid);
+ }
+ 
+-static inline void sa_path_set_dlid(struct sa_path_rec *rec, __be32 dlid)
++static inline void sa_path_set_dlid(struct sa_path_rec *rec, u32 dlid)
+ {
+ 	if (rec->rec_type == SA_PATH_REC_TYPE_IB)
+-		rec->ib.dlid = htons(ntohl(dlid));
++		rec->ib.dlid = cpu_to_be16(dlid);
+ 	else if (rec->rec_type == SA_PATH_REC_TYPE_OPA)
+-		rec->opa.dlid = dlid;
++		rec->opa.dlid = cpu_to_be32(dlid);
+ }
+ 
+ static inline void sa_path_set_raw_traffic(struct sa_path_rec *rec,
 -- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+2.14.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
