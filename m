@@ -1,13 +1,13 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 06/47] RDMA/isert: Suppress gcc 7 fall-through complaints
-Date: Fri,  6 Oct 2017 14:32:52 -0700
-Message-ID: <20171006213333.6721-7-bart.vanassche@wdc.com>
+Subject: [PATCH 02/47] IB/cm: Suppress gcc 7 fall-through complaints
+Date: Fri,  6 Oct 2017 14:32:48 -0700
+Message-ID: <20171006213333.6721-3-bart.vanassche@wdc.com>
 References: <20171006213333.6721-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171006213333.6721-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Avoid that gcc 7 reports the following warning when building with W=1:
@@ -15,52 +15,23 @@ Avoid that gcc 7 reports the following warning when building with W=1:
 warning: this statement may fall through [-Wimplicit-fallthrough=]
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/infiniband/core/cm.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index ceabdb85df8b..720dfb3a1ac2 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -788,10 +788,11 @@ isert_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- 		 * the rdma cm id
- 		 */
- 		return 1;
--	case RDMA_CM_EVENT_REJECTED:       /* FALLTHRU */
-+	case RDMA_CM_EVENT_REJECTED:
- 		isert_info("Connection rejected: %s\n",
- 			   rdma_reject_msg(cma_id, event->status));
--	case RDMA_CM_EVENT_UNREACHABLE:    /* FALLTHRU */
-+		/* fall through */
-+	case RDMA_CM_EVENT_UNREACHABLE:
- 	case RDMA_CM_EVENT_CONNECT_ERROR:
- 		ret = isert_connect_error(cma_id);
- 		break;
-@@ -1569,9 +1570,7 @@ isert_put_cmd(struct isert_cmd *isert_cmd, bool comp_err)
- 			transport_generic_free_cmd(&cmd->se_cmd, 0);
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index d80911d4abb7..5927ee4e57ca 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -2808,6 +2808,7 @@ int ib_send_cm_mra(struct ib_cm_id *cm_id,
+ 			msg_response = CM_MSG_RESPONSE_OTHER;
  			break;
  		}
--		/*
--		 * Fall-through
--		 */
 +		/* fall through */
  	default:
- 		iscsit_release_cmd(cmd);
- 		break;
-@@ -1749,8 +1748,9 @@ isert_do_control_comp(struct work_struct *work)
- 	switch (cmd->i_state) {
- 	case ISTATE_SEND_TASKMGTRSP:
- 		iscsit_tmr_post_handler(cmd, cmd->conn);
--	case ISTATE_SEND_REJECT:   /* FALLTHRU */
--	case ISTATE_SEND_TEXTRSP:  /* FALLTHRU */
-+		/* fall through */
-+	case ISTATE_SEND_REJECT:
-+	case ISTATE_SEND_TEXTRSP:
- 		cmd->i_state = ISTATE_SENT_STATUS;
- 		isert_completion_put(&isert_cmd->tx_desc, isert_cmd,
- 				     ib_dev, false);
+ 		ret = -EINVAL;
+ 		goto error1;
 -- 
 2.14.2
 
