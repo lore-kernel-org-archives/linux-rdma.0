@@ -1,46 +1,38 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 11/47] RDMA/cxgb3: Remove a set-but-not-used variable
-Date: Fri,  6 Oct 2017 14:32:57 -0700
-Message-ID: <20171006213333.6721-12-bart.vanassche@wdc.com>
+Subject: [PATCH 35/47] IB/opa: Fix endianness annotation of opa_is_extended_lid()
+Date: Fri,  6 Oct 2017 14:33:21 -0700
+Message-ID: <20171006213333.6721-36-bart.vanassche@wdc.com>
 References: <20171006213333.6721-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171006213333.6721-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/infiniband/hw/cxgb3/iwch_cm.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+This patch does not change any functionality.
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_cm.c b/drivers/infiniband/hw/cxgb3/iwch_cm.c
-index 86975370a4c0..edc1c549289e 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_cm.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_cm.c
-@@ -1760,8 +1760,8 @@ static void ep_timeout(unsigned long arg)
- 
- int iwch_reject_cr(struct iw_cm_id *cm_id, const void *pdata, u8 pdata_len)
+Fixes: commit e92aa00a5189 ("IB/CM: Add OPA Path record support to CM")
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ include/rdma/opa_addr.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/rdma/opa_addr.h b/include/rdma/opa_addr.h
+index e6e90f18e6d5..72995a39cb97 100644
+--- a/include/rdma/opa_addr.h
++++ b/include/rdma/opa_addr.h
+@@ -97,7 +97,7 @@ static inline u32 opa_get_lid_from_gid(const union ib_gid *gid)
+  * @dlid: The DLID
+  * @slid: The SLID
+  */
+-static inline bool opa_is_extended_lid(u32 dlid, u32 slid)
++static inline bool opa_is_extended_lid(__be32 dlid, __be32 slid)
  {
--	int err;
- 	struct iwch_ep *ep = to_ep(cm_id);
-+
- 	pr_debug("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
- 
- 	if (state_read(&ep->com) == DEAD) {
-@@ -1772,8 +1772,8 @@ int iwch_reject_cr(struct iw_cm_id *cm_id, const void *pdata, u8 pdata_len)
- 	if (mpa_rev == 0)
- 		abort_connection(ep, NULL, GFP_KERNEL);
- 	else {
--		err = send_mpa_reject(ep, pdata, pdata_len);
--		err = iwch_ep_disconnect(ep, 0, GFP_KERNEL);
-+		send_mpa_reject(ep, pdata, pdata_len);
-+		iwch_ep_disconnect(ep, 0, GFP_KERNEL);
- 	}
- 	put_ep(&ep->com);
- 	return 0;
+ 	if ((be32_to_cpu(dlid) >=
+ 	     be16_to_cpu(IB_MULTICAST_LID_BASE)) ||
 -- 
 2.14.2
 
