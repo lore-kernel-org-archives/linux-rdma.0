@@ -1,30 +1,26 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 net-next 06/12] qed: Add LL2 slowpath handling
-Date: Thu, 05 Oct 2017 17:20:13 -0700 (PDT)
-Message-ID: <20171005.172013.746380495399822.davem@davemloft.net>
-References: <CY1PR0701MB2012A2F8E3E923D98B1E1A6488700@CY1PR0701MB2012.namprd07.prod.outlook.com>
-        <20171005.120629.2161199733119811102.davem@davemloft.net>
-        <CY1PR0701MB201241C43A192735A0F1EEDD88700@CY1PR0701MB2012.namprd07.prod.outlook.com>
+Subject: Re: [PATCH net v2] RDS: IB: Limit the scope of has_fr/has_fmr
+ variables
+Date: Thu, 05 Oct 2017 21:16:49 -0700 (PDT)
+Message-ID: <20171005.211649.85264168575002634.davem@davemloft.net>
+References: <1507144244-1611-1-git-send-email-avinash.repaka@oracle.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CY1PR0701MB201241C43A192735A0F1EEDD88700@CY1PR0701MB2012.namprd07.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Michal.Kalderon@cavium.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com, Ariel.Elior@cavium.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1507144244-1611-1-git-send-email-avinash.repaka@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: avinash.repaka@oracle.com
+Cc: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
-Date: Thu, 5 Oct 2017 20:27:22 +0000
+From: Avinash Repaka <avinash.repaka@oracle.com>
+Date: Wed,  4 Oct 2017 12:10:43 -0700
 
-> The spinlock is required for the case that rx buffers are posted
-> from a different thread, where it could be run simultaneously to the
-> rxq_completion.
+> This patch fixes the scope of has_fr and has_fmr variables as they are
+> needed only in rds_ib_add_one().
+> 
+> Signed-off-by: Avinash Repaka <avinash.repaka@oracle.com>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
 
-This only brings us back to my original argument, if the lock is
-necessary in order to synchronize with those paths, how can you
-possible drop the lock safely here?
-
-Is it because you re-read the head and tail pointers of the queue each
-time around the loop?
+Applied to net-next.
