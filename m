@@ -1,51 +1,43 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] infiniband: add MMU dependency for user_mem
-Date: Fri,  6 Oct 2017 09:13:46 +0200
-Message-ID: <20171006071410.732275-1-arnd@arndb.de>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 1/2] IB/hfi1: Use preempt_{dis,en}able_nort()
+Date: Fri, 6 Oct 2017 11:19:52 +0200
+Message-ID: <20171006091951.lz76kdt6u2tayl6d@linutronix.de>
+References: <20171003154920.31566-1-acme@kernel.org>
+ <20171003154920.31566-2-acme@kernel.org>
+ <20171005163018.tk73i2vr2thaj2pn@linutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171005163018.tk73i2vr2thaj2pn@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Yuval Shaia <yuval.shaia@oracle.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org, Arnaldo Carvalho de Melo <acme@redhat.com>, Clark Williams <williams@redhat.com>, Dean Luick <dean.luick@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Kaike Wan <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-rdma@vger.kernel.org
 
-The infiniband subsystem causes a link failure when the umem
-driver is built on MMU-less systems:
+On 2017-10-05 18:30:19 [+0200], To Arnaldo Carvalho de Melo wrote:
+> On 2017-10-03 12:49:19 [-0300], Arnaldo Carvalho de Melo wrote:
+> > From: Arnaldo Carvalho de Melo <acme@redhat.com>
+> > 
+> > diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
+> > index 615be68e40b3..3a30bde9a07b 100644
+> > --- a/drivers/infiniband/hw/hfi1/pio.c
+> > +++ b/drivers/infiniband/hw/hfi1/pio.c
+> > @@ -1421,7 +1421,7 @@ struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
+> >  
+> >  	/* there is enough room */
+> >  
+> > -	preempt_disable();
+> > +	preempt_disable_nort();
+> >  	this_cpu_inc(*sc->buffers_allocated);
+> >  
+> >  	/* read this once */
+> 
+> please replace the preempt_disable() / enable with local_lock() /
+> unlock. The section does not look like it could cope with multiple users
+> dereferencing / using the same per-CPU variables.
 
-mm/mmu_notifier.o: In function `do_mmu_notifier_register':
-mmu_notifier.c:(.text+0x32): undefined reference to `mm_take_all_locks'
-drivers/infiniband/core/umem.o: In function `ib_umem_get':
-umem.c:(.text+0x132): undefined reference to `can_do_mlock'
-drivers/infiniband/core/umem_odp.o: In function `ib_umem_odp_map_dma_pages':
-umem_odp.c:(.text+0x766): undefined reference to `get_user_pages_remote'
+ignore me, there is a spin_lock to protect that…
 
-This bug has existed for a while but only become apparent in ARM
-randconfig builds when the dependency on PCI was lifted, as none
-of the ARM-NOMMU targets support PCI at the moment.
-
-We could probably get the umem driver to build by providing an
-alternative implementation 'can_do_mlock()' that returns false
-on NOMMU-systems, but then we'd still have a problem with the
-mmu-notifiers required by CONFIG_INFINIBAND_ON_DEMAND_PAGING,
-so simply forbidding umem with NOMMU seems like the simplest
-workaround.
-
-Fixes: 931bc0d91639 ("IB: Move PCI dependency from root KConfig to HW's KConfigs")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/infiniband/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index b62b3b1e09cd..98ac46ed7214 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -45,6 +45,7 @@ config INFINIBAND_EXP_USER_ACCESS
- config INFINIBAND_USER_MEM
- 	bool
- 	depends on INFINIBAND_USER_ACCESS != n
-+	depends on MMU
- 	default y
- 
- config INFINIBAND_ON_DEMAND_PAGING
--- 
-2.9.0
+Sebastian
