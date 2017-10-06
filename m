@@ -1,48 +1,84 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 15/47] RDMA/cxgb4: Remove a set-but-not-used variable
-Date: Fri,  6 Oct 2017 14:33:01 -0700
-Message-ID: <20171006213333.6721-16-bart.vanassche@wdc.com>
+Subject: [PATCH 05/47] RDMA/uverbs: Make the code in ib_uverbs_cmd_verbs() less confusing
+Date: Fri,  6 Oct 2017 14:32:51 -0700
+Message-ID: <20171006213333.6721-6-bart.vanassche@wdc.com>
 References: <20171006213333.6721-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171006213333.6721-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/cm.c | 3 ---
- 1 file changed, 3 deletions(-)
+This patch reduces the number of #ifdefs and also avoids that
+smatch reports the following:
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 5b5bc7055ddc..04db0aba67b5 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -3881,7 +3881,6 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
- 	struct net_device *pdev;
- 	u16 rss_qid, eth_hdr_len;
- 	int step;
--	u32 tx_chan;
- 	struct neighbour *neigh;
+drivers/infiniband/core/uverbs_ioctl.c:276: ib_uverbs_cmd_verbs() warn: if statement not indented
+drivers/infiniband/core/uverbs_ioctl.c:280: ib_uverbs_cmd_verbs() warn: possible memory leak of 'ctx'
+drivers/infiniband/core/uverbs_ioctl.c:315: ib_uverbs_cmd_verbs() warn: if statement not indented
+
+References: commit fac9658cabb9 ("IB/core: Add new ioctl interface")
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_ioctl.c | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
+index 5286ad57d903..53f780ea49fe 100644
+--- a/drivers/infiniband/core/uverbs_ioctl.c
++++ b/drivers/infiniband/core/uverbs_ioctl.c
+@@ -234,7 +234,7 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+ 	const struct uverbs_method_spec *method_spec;
+ 	long err = 0;
+ 	unsigned int i;
+-	struct {
++	struct attr_and_bundle {
+ 		struct ib_uverbs_attr		*uattrs;
+ 		struct uverbs_attr_bundle	*uverbs_attr_bundle;
+ 	} *ctx = NULL;
+@@ -242,7 +242,10 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+ 	unsigned long *curr_bitmap;
+ 	size_t ctx_size;
+ #ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
+-	uintptr_t data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
++	uintptr_t __data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
++	struct attr_and_bundle *const data = (void *)__data;
++#else
++	struct attr_and_bundle *const data = NULL;
+ #endif
  
- 	/* Drop all non-SYN packets */
-@@ -3963,14 +3962,12 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
- 		e = cxgb4_l2t_get(dev->rdev.lldi.l2t, neigh,
- 				    pdev, 0);
- 		pi = (struct port_info *)netdev_priv(pdev);
--		tx_chan = cxgb4_port_chan(pdev);
- 		dev_put(pdev);
- 	} else {
- 		pdev = get_real_dev(neigh->dev);
- 		e = cxgb4_l2t_get(dev->rdev.lldi.l2t, neigh,
- 					pdev, 0);
- 		pi = (struct port_info *)netdev_priv(pdev);
--		tx_chan = cxgb4_port_chan(pdev);
- 	}
- 	neigh_release(neigh);
- 	if (!e) {
+ 	if (hdr->reserved)
+@@ -269,13 +272,10 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+ 			(method_spec->num_child_attrs / BITS_PER_LONG +
+ 			 method_spec->num_buckets);
+ 
+-#ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
+ 	if (ctx_size <= UVERBS_OPTIMIZE_USING_STACK_SZ)
+-		ctx = (void *)data;
+-
++		ctx = data;
+ 	if (!ctx)
+-#endif
+-	ctx = kmalloc(ctx_size, GFP_KERNEL);
++		ctx = kmalloc(ctx_size, GFP_KERNEL);
+ 	if (!ctx)
+ 		return -ENOMEM;
+ 
+@@ -311,10 +311,8 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+ 	err = uverbs_handle_method(buf, ctx->uattrs, hdr->num_attrs, ib_dev,
+ 				   file, method_spec, ctx->uverbs_attr_bundle);
+ out:
+-#ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
+-	if (ctx_size > UVERBS_OPTIMIZE_USING_STACK_SZ)
+-#endif
+-	kfree(ctx);
++	if (ctx != data)
++		kfree(ctx);
+ 	return err;
+ }
+ 
 -- 
 2.14.2
 
