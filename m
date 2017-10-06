@@ -1,49 +1,36 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 45/47] RDMA/usnic: Make the compiler check declaration consistency during compilation
-Date: Fri,  6 Oct 2017 14:33:31 -0700
-Message-ID: <20171006213333.6721-46-bart.vanassche@wdc.com>
+Subject: [PATCH 36/47] RDMA/qedr: Use NULL instead of 0 to represent a pointer
+Date: Fri,  6 Oct 2017 14:33:22 -0700
+Message-ID: <20171006213333.6721-37-bart.vanassche@wdc.com>
 References: <20171006213333.6721-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171006213333.6721-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch avoids that sparse complains about missing declarations.
-
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_ib_sysfs.c | 1 +
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 1 +
- 2 files changed, 2 insertions(+)
+ drivers/infiniband/hw/qedr/qedr_roce_cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c b/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
-index 32956f9f5715..685ef2293cb8 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
-@@ -43,6 +43,7 @@
- #include "usnic_ib_qp_grp.h"
- #include "usnic_vnic.h"
- #include "usnic_ib_verbs.h"
-+#include "usnic_ib_sysfs.h"
- #include "usnic_log.h"
- #include "usnic_ib_sysfs.h"
- 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-index e4113ef09315..8372c32485ad 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -42,6 +42,7 @@
- #include "usnic_ib.h"
- #include "usnic_common_util.h"
- #include "usnic_ib_qp_grp.h"
-+#include "usnic_ib_verbs.h"
- #include "usnic_fwd.h"
- #include "usnic_log.h"
- #include "usnic_uiom.h"
+diff --git a/drivers/infiniband/hw/qedr/qedr_roce_cm.c b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+index c3c249ba62b8..2a0346678ddd 100644
+--- a/drivers/infiniband/hw/qedr/qedr_roce_cm.c
++++ b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+@@ -660,7 +660,7 @@ int qedr_gsi_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 						  dev->gsi_ll2_handle,
+ 						  wr->sg_list[0].addr,
+ 						  wr->sg_list[0].length,
+-						  0 /* cookie */,
++						  NULL /* cookie */,
+ 						  1 /* notify_fw */);
+ 		if (rc) {
+ 			DP_ERR(dev,
 -- 
 2.14.2
 
