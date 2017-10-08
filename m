@@ -1,101 +1,178 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 3/7] IB/srpt: Change default behavior from using SRQ to
- not using SRQ
-Date: Sun, 8 Oct 2017 13:03:17 +0300
-Message-ID: <20171008100317.GR25829@mtr-leonro.local>
-References: <20171006214243.11296-1-bart.vanassche@wdc.com>
- <20171006214243.11296-4-bart.vanassche@wdc.com>
+Subject: Re: [PATCH v2 04/13] SoftiWarp object management
+Date: Sun, 8 Oct 2017 15:28:40 +0300
+Message-ID: <20171008122839.GS25829@mtr-leonro.local>
+References: <20171006122853.16310-1-bmt@zurich.ibm.com>
+ <20171006122853.16310-5-bmt@zurich.ibm.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="zsAhXfiBV62A5hVr"
+        protocol="application/pgp-signature"; boundary="bAwSoJxbKYwy34Oe"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171006214243.11296-4-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <20171006122853.16310-5-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---zsAhXfiBV62A5hVr
+--bAwSoJxbKYwy34Oe
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Oct 06, 2017 at 02:42:39PM -0700, Bart Van Assche wrote:
-> Although the non-SRQ mode needs more resources that mode has three
-> advantages over SRQ:
-> - It works with all RDMA adapters, even those that do not support
->   SRQ.
-> - Posting WRs and polling WCs does not trigger lock contention
->   because only one thread at a time accesses a WR or WC queue in
->   non-SRQ mode.
-> - The end-to-end flow control mechanism is used.
->
-> From the IB spec:
->
->     C9-150.2.1: For QPs that are not associated with an SRQ, each HCA
->     receive queue shall generate end-to-end flow control credits. If
->     a QP is associated with an SRQ, the HCA receive queue shall not
->     generate end-to-end flow control credits.
->
-> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+On Fri, Oct 06, 2017 at 08:28:44AM -0400, Bernard Metzler wrote:
+> Signed-off-by: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 > ---
->  drivers/infiniband/ulp/srpt/ib_srpt.c | 130 +++++++++++++++++++++++++---------
->  drivers/infiniband/ulp/srpt/ib_srpt.h |   4 ++
->  2 files changed, 99 insertions(+), 35 deletions(-)
+>  drivers/infiniband/sw/siw/siw_obj.c | 428 ++++++++++++++++++++++++++++++++++++
+>  drivers/infiniband/sw/siw/siw_obj.h | 113 ++++++++++
+>  2 files changed, 541 insertions(+)
+>  create mode 100644 drivers/infiniband/sw/siw/siw_obj.c
+>  create mode 100644 drivers/infiniband/sw/siw/siw_obj.h
 >
-> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> index 6cf95ad870cc..a21b7a96635c 100644
-> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> @@ -75,11 +75,19 @@ module_param(srp_max_req_size, int, 0444);
->  MODULE_PARM_DESC(srp_max_req_size,
->  		 "Maximum size of SRP request messages in bytes.");
->
-> +static bool use_srq;
-> +module_param(use_srq, bool, S_IRUGO | S_IWUSR);
-> +MODULE_PARM_DESC(use_srq, "Whether or not to use SRQ");
+> diff --git a/drivers/infiniband/sw/siw/siw_obj.c b/drivers/infiniband/sw/siw/siw_obj.c
+> new file mode 100644
+> index 000000000000..a6d28773e09d
+> --- /dev/null
+> +++ b/drivers/infiniband/sw/siw/siw_obj.c
+> @@ -0,0 +1,428 @@
+> +/*
+> + * Software iWARP device driver for Linux
+
+No need to add "Linux" for the Linux Driver code in the Linux Kernel.
+
+> + *
+> + * Authors: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+> + *
+> + * Copyright (c) 2008-2017, IBM Corporation
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses. You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * BSD license below:
+> + *
+> + *   Redistribution and use in source and binary forms, with or
+> + *   without modification, are permitted provided that the following
+> + *   conditions are met:
+> + *
+> + *   - Redistributions of source code must retain the above copyright notice,
+> + *     this list of conditions and the following disclaimer.
+> + *
+> + *   - Redistributions in binary form must reproduce the above copyright
+> + *     notice, this list of conditions and the following disclaimer in the
+> + *     documentation and/or other materials provided with the distribution.
+> + *
+> + *   - Neither the name of IBM nor the names of its contributors may be
+> + *     used to endorse or promote products derived from this software without
+> + *     specific prior written permission.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#include <linux/spinlock.h>
+> +#include <linux/kref.h>
+> +#include <linux/vmalloc.h>
+> +
+> +#include "siw.h"
+> +#include "siw_obj.h"
+> +#include "siw_cm.h"
+> +
+> +
+> +void siw_objhdr_init(struct siw_objhdr *hdr)
+> +{
+> +	kref_init(&hdr->ref);
+> +}
+> +
+> +void siw_idr_init(struct siw_dev *sdev)
+> +{
+> +	spin_lock_init(&sdev->idr_lock);
+> +
+> +	idr_init(&sdev->qp_idr);
+> +	idr_init(&sdev->cq_idr);
+> +	idr_init(&sdev->pd_idr);
+> +	idr_init(&sdev->mem_idr);
+> +}
+> +
+> +void siw_idr_release(struct siw_dev *sdev)
+> +{
+> +	idr_destroy(&sdev->qp_idr);
+> +	idr_destroy(&sdev->cq_idr);
+> +	idr_destroy(&sdev->pd_idr);
+> +	idr_destroy(&sdev->mem_idr);
+> +}
+
+Why do you need need idr_* calls and why can't IB/core idr_* management
+be enough? I didn't review the various *_obj functions.
+
+> +
+> +static inline int siw_add_obj(spinlock_t *lock, struct idr *idr,
+> +			      struct siw_objhdr *obj)
+
+Please don't add inline functions in C files.
+
+> +{
+> +	unsigned long flags;
+> +	int id, pre_id;
+> +
+> +	do {
+> +		get_random_bytes(&pre_id, sizeof(pre_id));
+> +		pre_id &= 0xffffff;
+> +	} while (pre_id == 0);
+> +again:
+> +	spin_lock_irqsave(lock, flags);
+> +	id = idr_alloc(idr, obj, pre_id, 0xffffff - 1, GFP_KERNEL);
+> +	spin_unlock_irqrestore(lock, flags);
+> +
+> +	if (id > 0) {
+> +		siw_objhdr_init(obj);
+> +		obj->id = id;
+> +		dprint(DBG_OBJ, "(OBJ%d): IDR New Object\n", id);
+
+Please don't reinvent pr_debug infrastructure. There is no need in
+custom dprint(..) logic.
+
+> +	} else if (id == -ENOSPC && pre_id != 1) {
+> +		pre_id = 1;
+> +		goto again;
+> +	} else {
+> +		BUG_ON(id == 0);
+
+No BUG_ON in new code.
+
+> +		dprint(DBG_OBJ|DBG_ON, "(OBJ??): IDR New Object failed!\n");
+> +	}
+> +	return id > 0 ? 0 : id;
+> +}
 > +
 
-It is a little bit strange to ask from user to decide if his adapter
-supports SRQ or not.
-
-It should be automatically.
-
-
->  static int srpt_srq_size = DEFAULT_SRPT_SRQ_SIZE;
->  module_param(srpt_srq_size, int, 0444);
->  MODULE_PARM_DESC(srpt_srq_size,
->  		 "Shared receive queue (SRQ) size.");
->
-> +static int srpt_sq_size = DEF_SRPT_SQ_SIZE;
-> +module_param(srpt_sq_size, int, 0444);
-> +MODULE_PARM_DESC(srpt_sq_size, "Per-channel send queue (SQ) size.");
-> +
-
-Thanks.
-
---zsAhXfiBV62A5hVr
+--bAwSoJxbKYwy34Oe
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnZ9+QACgkQ5GN7iDZy
-WKd3BRAAghKGScvkQVTgwBg2hzYkujLcWmDZc2VW1r0tR4U1VmkTL0P0Lo8q6l92
-Uw/PVf8F+N6gXshD+zYoPzcnPWBeBbyk5tIUk0897TiEiF0I4Sr95RrRrwqNhrz9
-sWCWRrxgIgM+7DrNtQ6yPBAKdx40kezdvabtdZEyBf9hk47iz38n4gv8OR2WEYo7
-a2/CvFOQVtnTJD1wFYFPFP0GLr1w/feHdT+SJCrrCwTDvIl2faNmHnfK++0/C3Y9
-CN0QaMJsMoF/vb7a2G7RWKZcEdMwNoTjP663THb/x82GG+kKlq1ZQwnH/ivpTliX
-5OEeqD8XrJXTppxNNokNdIAHMtOYRGhpzwS+wpJpo0+lfhTUYeGDSkla9LNGYayV
-IaeRnp/xj6VpSzvCQo0+Zg81aQqNef+mzkOrmnuSFP5XO4asPPwvmCYqLLd2d2Em
-OCjPSvAN7KnCvu+XoWBpjuEd14Tq+ACq7rKcV33dctIdg6IkYvHwl8W9BAdriaWy
-dNJDic9M6stNESvM1I/jCPqdsTkTP5Xd2/YNXC7i9EcoPtdEayhpQ0ejjAah8I4J
-CgptOYyFxM4cLAq4JE/2nUx0/3X45VVmrj3p+X+gYBETBkHWYxNkjsbxKF5MWrdt
-ne50/nq0iZHiAEjalX6oAvrFUUQgq4tqUfkn6mqWj+PqRICQrLU=
-=R85V
+iQIyBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnaGfcACgkQ5GN7iDZy
+WKcPJA/0CsIovhtHQ7wpYMZmWL1qS+m3UVzo5ilusy3xrkLj0YqG3piFAJ2qCh26
+QG1tZZpMCT1DJLb/yJdcvVXA2m0h+mZqbmjrXoPm7XPqqMy1GgkdtyPc+jAppGXN
+8ojHPzn0rjuJSOGLerbzy1Y7csZH58hx38r3ol4u0bg1VI4otmMDBiN3hGyTF3Kj
+1q5ZBrKaJLCRH/eiekfjwnsqX6+HH1cNQ9kFLP5FqZkWEZSW3JN8ZZUwg06dtHwV
+OOFYN9Z24Ynz77Glt//GbBO+gjdK0NSKTf3tWqQnPvxwpi+8Jd7F6Gh1MjnoUQc3
+KRZPXh7BFLvCi2tmDYhQETLM0Xv91y7ke9WNDPmqSXDHLWA53rZ4296DjUDVeU2v
+N7kB9mrTGQvhJIzS5tRAazLK87OMwYW39RwVVf3koym/KTV9+as2nxvral/nQc/C
+CN3RC6YT3+P6c+Fh6hfGJg0ILFRxm8L1n+8lr05OdVTQlq3fIRVs9Mpx9xP/d4fW
+Ek00MMGD5XrfMnahGXuOURQ3QvYVfk7d1C1awjCzZ4vew7eT2golmFxyjjDNd4EW
+2bAyzhiX8MD3Hpd4gGGHEMLe5vtoOxgOhAnXrLZ2LW3iQZs41/wZy+qvB+pBnfW5
+IkHFzFyHcomk4C13dUTRJ6jIRzU5AKVK6V0WCZiMqucHDZr1dQ==
+=ptJu
 -----END PGP SIGNATURE-----
 
---zsAhXfiBV62A5hVr--
+--bAwSoJxbKYwy34Oe--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
