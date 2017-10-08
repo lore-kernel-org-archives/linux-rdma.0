@@ -1,112 +1,46 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: [PATCH 00/12] radix-tree: split out struct radix_tree_root out to <linux/radix-tree-root.h>
-Date: Mon,  9 Oct 2017 01:10:01 +0900
-Message-ID: <1507479013-5207-1-git-send-email-yamada.masahiro@socionext.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 10/12] net/mlx4: replace <linux/radix-tree.h> with
+ <linux/radix-tree-root.h>
+Date: Sun, 08 Oct 2017 10:00:13 -0700 (PDT)
+Message-ID: <20171008.100013.2081721941420989813.davem@davemloft.net>
+References: <1507479013-5207-1-git-send-email-yamada.masahiro@socionext.com>
+        <1507479013-5207-11-git-send-email-yamada.masahiro@socionext.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1507479013-5207-11-git-send-email-yamada.masahiro@socionext.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Ian Abbott <abbotti@mev.co.uk>, Ingo Molnar <mingo@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, linux-cachefs@redhat.com, linux-sh@vger.kernel.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>, linux-rdma@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Tariq Toukan <tariqt@mellanox.com>, Rich Felker <dalias@libc.org>, Leon Romanovsky <leonro@mellanox.com>, Jani Nikula <jani.nikula@linux.intel.com>, "J. Bruce Fields" <bfields@fieldses.org>, David Howells <dhowells@redhat.com>, intel-gfx@lists.freedesktop.org, Yishai Hadas <yishaih@mella>
+To: yamada.masahiro@socionext.com
+Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de, akpm@linux-foundation.org, abbotti@mev.co.uk, mingo@kernel.org, torvalds@linux-foundation.org, linux-rdma@vger.kernel.org, yishaih@mellanox.com, tariqt@mellanox.com, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Mon,  9 Oct 2017 01:10:11 +0900
 
-The motivation of this series is to cut down unnecessary header
-dependency in terms of radix tree.
+> The headers
+>  - include/linux/mlx4/device.h
+>  - drivers/net/ethernet/mellanox/mlx4/mlx4.h
+> require the definition of struct radix_tree_root, but do not need to
+> know anything about other radix tree stuff.
+> 
+> Include <linux/radix-tree-root.h> instead of <linux/radix-tree.h> to
+> reduce the header dependency.
+> 
+> While we are here, let's add missing <linux/radix-tree.h> where
+> radix tree accessors are used.
+> 
+> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 
-Sub-systems or drivers that use radix-tree for data management
-typically embed struct radix_tree_root in their data structures,
-like this:
+Honestly this makes things more complicated.
 
-struct foo {
-       ...
+The driver was trying to consolidate all of the header needs
+by including them all in one place, the main driver header.
 
-       struct radix_tree_root   foo_tree;
-       ...
-};
+Now you're including headers in several different files.
 
-So, <linux/foo.h> needs to include <linux/radix-tree.h>,
-therefore, users of <linux/foo.h> include a lot of bloat
-from <linux/radix-tree.h>.
+I really don't like the results of this change and would
+ask you to reconsider.
 
-If you see the definition of radix_tree_root,
-
-   struct radix_tree_root {
-           gfp_t			gfp_mask;
-	   struct radix_tree_node	__rcu *rnode;
-   };
-
-it is a very simple structure.
-It only depends on <linux/types.h> for gfp_t and
-<linux/compiler.h> for __rcu.
-
-By splitting out the radix_tree_root definition,
-we can reduce the header file dependency.
-
-Reducing the header dependency will help for speeding the kernel
-build, suppressing unnecessary recompile of objects during
-git-bisect'ing, etc.
-
-The patch 1 is a trivial clean-up; it is just here
-to avoid conflict.
-
-The patch 2 is the main part of this series;
-split out struct radix_tree_root.
-
-The rest of the series replace <linux/radix-tree.h>
-with <linux/radix-tree-root.h> where appropriate.
-
-Please review if the idea is OK.
-
-If it is OK, I'd like to know how to apply the series.
-
-Perhaps, the first two for v4.15.  Then, rest of series
-will be sent per-subsystem for v4.16?
-
-Or, can somebody take care of the whole series?
-
-I checked allmodconfig for x86 and arm64.
-I am expecting 0 day testing will check it too.
-
-
-
-Masahiro Yamada (12):
-  radix-tree: replace <linux/spinlock.h> with <linux/spinlock_types.h>
-  radix-tree: split struct radix_tree_root to <linux/radix-tree-root.h>
-  irqdomain: replace <linux/radix-tree.h> with <linux/radix-tree-root.h>
-  writeback: replace <linux/radix-tree.h> with <linux/radix-tree-root.h>
-  iocontext.h: replace <linux/radix-tree.h> with
-    <linux/radix-tree-root.h>
-  fs: replace <linux/radix-tree.h> with <linux/radix-tree-root.h>
-  blkcg: replace <linux/radix-tree.h> with <linux/radix-tree-root.h>
-  fscache: include <linux-radix-tree.h>
-  sh: intc: replace <linux/radix-tree.h> with <linux/radix-tree-root.h>
-  net/mlx4: replace <linux/radix-tree.h> with <linux/radix-tree-root.h>
-  net/mlx5: replace <linux/radix-tree.h> with <linux/radix-tree-root.h>
-  drm/i915: replace <linux/radix-tree.h> with <linux/radix-tree-root.h>
-
- drivers/gpu/drm/i915/i915_gem.c            |  1 +
- drivers/gpu/drm/i915/i915_gem_context.c    |  1 +
- drivers/gpu/drm/i915/i915_gem_context.h    |  2 +-
- drivers/gpu/drm/i915/i915_gem_execbuffer.c |  1 +
- drivers/gpu/drm/i915/i915_gem_object.h     |  1 +
- drivers/net/ethernet/mellanox/mlx4/cq.c    |  1 +
- drivers/net/ethernet/mellanox/mlx4/mlx4.h  |  2 +-
- drivers/net/ethernet/mellanox/mlx4/qp.c    |  1 +
- drivers/net/ethernet/mellanox/mlx4/srq.c   |  1 +
- drivers/sh/intc/internals.h                |  2 +-
- include/linux/backing-dev-defs.h           |  2 +-
- include/linux/blk-cgroup.h                 |  2 +-
- include/linux/fs.h                         |  2 +-
- include/linux/fscache.h                    |  1 +
- include/linux/iocontext.h                  |  2 +-
- include/linux/irqdomain.h                  |  2 +-
- include/linux/mlx4/device.h                |  2 +-
- include/linux/mlx4/qp.h                    |  1 +
- include/linux/mlx5/driver.h                |  2 +-
- include/linux/mlx5/qp.h                    |  1 +
- include/linux/radix-tree-root.h            | 24 ++++++++++++++++++++++++
- include/linux/radix-tree.h                 |  8 ++------
- 22 files changed, 46 insertions(+), 16 deletions(-)
- create mode 100644 include/linux/radix-tree-root.h
-
--- 
-2.7.4
+Just add both radix-tree-root.h _and_ radix-tree.h to mlx4.h
+and leave the rest of the driver alone.
