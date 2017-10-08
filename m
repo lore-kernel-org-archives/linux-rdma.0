@@ -1,75 +1,58 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-core] librdmacm: Fix compilation warnings
-Date: Sun, 8 Oct 2017 08:36:41 +0300
-Message-ID: <20171008053641.GM25829@mtr-leonro.local>
-References: <20171003110529.25635-1-leonro@mellanox.com>
+From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v8 2/2] IB/core: use MAP_DIRECT to fix / enable RDMA to
+ DAX mappings
+Date: Sun, 8 Oct 2017 14:45:01 +0800
+Message-ID: <201710081447.sQSonloO%fengguang.wu@intel.com>
+References: <150743537023.13602.3520782942682280917.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="bZ2MuwyI/0uB8yuJ"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <150743537023.13602.3520782942682280917.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171003110529.25635-1-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jeff Layton <jlayton-vpEMnDpepFuMZCB2o+C8xQ@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ashok Raj <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, kbuild-all-JC7UmRfGjtg@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Dan,
 
---bZ2MuwyI/0uB8yuJ
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+[auto build test ERROR on rdma/master]
+[also build test ERROR on v4.14-rc3 next-20170929]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-On Tue, Oct 03, 2017 at 02:05:29PM +0300, Leon Romanovsky wrote:
-> Combination of glibc 2.26-4 and gcc 7.2.0-3 produces of following
-> warnings at the compilation phase of rdma-core.
->
-> [24/189] Building C object librdmacm/CMakeFiles/rspreload.dir/preload.c.o
-> ../librdmacm/preload.c:818:9: warning: no previous prototype for =E2=80=
-=98readv=E2=80=99 [-Wmissing-prototypes]
->  ssize_t readv(int socket, const struct iovec *iov, int iovcnt)
->          ^~~~~
-> ../librdmacm/preload.c:857:9: warning: no previous prototype for =E2=80=
-=98writev=E2=80=99 [-Wmissing-prototypes]
->  ssize_t writev(int socket, const struct iovec *iov, int iovcnt)
->
-> The simple addition of "sys/uio.h" proposed by Sean Hefty [1] with Jason
-> Gunthrope support [2] fixes it.
->
-> [1] https://marc.info/?l=3Dlinux-rdma&m=3D150696066510225&w=3D2
-> [2] https://marc.info/?l=3Dlinux-rdma&m=3D150696688111945&w=3D2
-> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  librdmacm/preload.c | 2 ++
->  1 file changed, 2 insertions(+)
->
+url:    https://github.com/0day-ci/linux/commits/Dan-Williams/iommu-up-level-sg_num_pages-from-amd-iommu/20171008-133505
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git master
+config: i386-randconfig-n0-201741 (attached as .config)
+compiler: gcc-4.8 (Debian 4.8.4-1) 4.8.4
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=i386 
 
-Thanks, applied.
+All errors (new ones prefixed by >>):
 
---bZ2MuwyI/0uB8yuJ
-Content-Type: application/pgp-signature; name="signature.asc"
+>> drivers/infiniband/core/umem.c:39:29: fatal error: linux/mapdirect.h: No such file or directory
+    #include <linux/mapdirect.h>
+                                ^
+   compilation terminated.
 
------BEGIN PGP SIGNATURE-----
+vim +39 drivers/infiniband/core/umem.c
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnZuWgACgkQ5GN7iDZy
-WKcttA/7BqiAzk0U0cJpUwEu0M/VReWgQtHINPye5Ru9OnOVptDA2FYdqkwE5pfw
-OMNPfMcCP9bPj4MSdZtAlUKIJ+PczXGESvMdJlB1k8yRZV3d49xUzvaFmjbTHxQS
-gbIhQ0sT6SAKGGyVUlRkOMVjGxH7c1P7BhZtARmt/XGUU7+mkQ3GWfA0IovDAww3
-ZtpdwyETEFBxYCsKcIKT5psUpfNUqznOS0gGABkzE4LoElbpTc2iYI2jS4/IW+43
-CFu+mNRmfOcK2+/w6b1kB/l81K6oQTvk6i+UFb95dm41IXfdAg4UrGlC0IQWvvSi
-yXf+d4ATSXwHRw4Cp1imiEU2a2PeKde+0094mL8StgBzkEdIECwglx7clS11thWS
-/Ov6LTwEw4zU6DpCMzDG2eHHHS7hEIhTzV2nQq1vP/O3JWWVEcjon8LoVX9qQ8Yn
-eHaVFsiYQMJOUI6paDTWdlCl0qKNZVQwVaTjhUHNxPJaAGkIbYkuge48iLnrTOtA
-FJn9koj9+8KpwgcJBNRaaeGLNzXsXmDSDuO/HWB2fFv66b3lrp7LiU6h2+HH4Jmv
-AS9i9GlsagJkXVzMgYMkxA/xaF6ey9xGRsBEA4+qkAnD+A4JKu3J8NIjEtVsEc5E
-Nu6xZxSctiPtgSYY4OUy/at2wVDxdmBhibAPzDkC+4w/4mJSKos=
-=VjcE
------END PGP SIGNATURE-----
+  > 39	#include <linux/mapdirect.h>
+    40	#include <linux/export.h>
+    41	#include <linux/hugetlb.h>
+    42	#include <linux/slab.h>
+    43	#include <rdma/ib_umem_odp.h>
+    44	
 
---bZ2MuwyI/0uB8yuJ--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
