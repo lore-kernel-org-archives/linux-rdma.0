@@ -1,78 +1,59 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Convert timers to use timer_setup()
-Date: Sun, 8 Oct 2017 16:23:50 +0300
-Message-ID: <20171008132350.GA25829@mtr-leonro.local>
-References: <20171005004554.GA22669@beast>
+Subject: Re: [PATCH 19/47] IB/hns: Annotate iomem pointers correctly
+Date: Sun, 8 Oct 2017 16:42:19 +0300
+Message-ID: <20171008134219.GB25829@mtr-leonro.local>
+References: <20171006213333.6721-1-bart.vanassche@wdc.com>
+ <20171006213333.6721-20-bart.vanassche@wdc.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="J2zf2tx9IpuxnXhG"
+        protocol="application/pgp-signature"; boundary="uzBRzHoDzRCefDxE"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171005004554.GA22669@beast>
+In-Reply-To: <20171006213333.6721-20-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "kernel-6AxghH7DbtA@public.gmane.org" <kernel-6AxghH7DbtA@public.gmane.org>, Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Signed-off-by : Lijun Ou" <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---J2zf2tx9IpuxnXhG
+--uzBRzHoDzRCefDxE
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Oct 04, 2017 at 05:45:54PM -0700, Kees Cook wrote:
-> In preparation for unconditionally passing the struct timer_list pointer to
-> all timer callbacks, switch to using the new timer_setup() and from_timer()
-> to pass the timer pointer explicitly.
+On Fri, Oct 06, 2017 at 02:33:05PM -0700, Bart Van Assche wrote:
+> This patch avoids that sparse complains that there is an address
+> space mismatch.
 >
-> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Cc: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-> Signed-off-by: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-> ---
-> This requires commit 686fef928bba ("timer: Prepare to change timer
-> callback argument type") in v4.14-rc3, but should be otherwise
-> stand-alone.
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib.h      | 2 +-
->  drivers/infiniband/ulp/ipoib/ipoib_ib.c   | 6 ++++--
->  drivers/infiniband/ulp/ipoib/ipoib_main.c | 3 +--
->  3 files changed, 6 insertions(+), 5 deletions(-)
->
+> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+> Cc: Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Something went wrong here.
 
---J2zf2tx9IpuxnXhG
+> Cc: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Cc: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> ---
+
+--uzBRzHoDzRCefDxE
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnaJuYACgkQ5GN7iDZy
-WKc7+Q/+P1gGIWVf8edBa9oYLdT3mzJrxMz60GO//+Nr7a7QgEBMvJPQeT2xDv0t
-BcOCsvogX5CkEyjiy5RKqktxEy5yC6za8ryAjXES0kC9b5QfITSrGOZiNGYNZrzV
-vs0jRfPzDh7Dd92wQUcGD3M5kZlbK/DQS9+p+mpDHViOeeYjcssSBjdPVDsn3sXv
-0YkcMfkaRKB2UH9iPwzm3Goy1+UYrIkiaLXJmUomVqoAM1yZSMtFfxockVVD69Xy
-v2xl462X9wX6+CYL7/EGCSKJ2v2xbTo64DP6bKD8g15ymWO7hCGIYjaqw9GtD8Oi
-7ggQ26cs5C/IH4U6s5fH8VshQbvd1ghs8dlmKwPDSZ0NqqWBz0F4tOgbemontNES
-p9pzW+q0s13jtuGVYm/kCR4Gb/PsA2gz54RW9y4gHHhzppaEQKZtet/5fgOGB4Wv
-lb+UzqENeQq8KdBJoNfGuWbmVoaqWJnt0U58NifAPEYOdk4fV46MWiTUnG1dyIQp
-8HFVm7bnanpubQppXgNNraPZXkD08RJ9VkDOyN5OGqY0S6T/tSEtByt9HcqpxYyj
-zJFdNUF7NU50CTu+75a5N4y6TldPxdLuF/8Dv6LSrDpKhflp1FEWZwsJi0q2n9hM
-RbvIAd5HPhmCSwX6+wTMwA1SKvM9zrlL8A0wCW4ocBVm0dsmAFk=
-=D9Wn
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnaKzoACgkQ5GN7iDZy
+WKez1w/7BwxNMuJYYpc9bofc6GOZhBDXWbPy0PTYY3mMTMrXQA0LClyTFUzF33kw
+QXVCNue+clMG4aFuqLkFh9yT2Dag85CSRLK5MDMEy/T3XxwKSHDUPkc5ovf/jLPl
+Uiyp6gdZE+lYqFPqIOsb3IMSQQBqWopzQMaqeJRuAB4Hr4jVByi21kOd1AYQRGQv
+8zMcy4SsVyRa3f+0nq6NFbcUkKTz9ZEJtronFmt4wsEPoCs+1781/C5anm8XNrYm
+Nd/qpSHl91jzMGJVm2Uohgp9smcuDkP8ev5Mta+YmoElpwufeOsDe0vKYEbSLp5G
+fbSDH5/t4MFr5lPfB4XvWokWbrFyCZQIcAlpEmvsn6S2N5wRMefWnJAArBTzcuFR
+NEAoRrS50OW8Hypr6pPL4krsmrmuzWNDElIrvwsky7H8kES+x+eBRF5IYr0c11Wr
+pJ+JdOrj2FwpJ9qmn1NMU/svQ9GRgtAhHgKjQ6ZUSyj9Z3UeLhggGP+L5q/zO+q/
+WzZMCLlow9tGV++pS2vVBcqu4NSYplmBWungT7by48GvVddQId6wMKdCo1KXDKNK
+uzljGueaZJSn2lmo2w9WiheuaPXjnfIlgiZDd9Nsr0g52/NAcq6PKVVkJ0Gci+JU
+VfeEnh4staYh62txE/ANx602V2farFGtXItUuBMnvgqSXMmjyVs=
+=Na5P
 -----END PGP SIGNATURE-----
 
---J2zf2tx9IpuxnXhG--
+--uzBRzHoDzRCefDxE--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
