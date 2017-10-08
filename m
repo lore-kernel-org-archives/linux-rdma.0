@@ -1,57 +1,63 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 20/47] IB/hns: Declare local functions 'static'
-Date: Sun, 8 Oct 2017 16:44:15 +0300
-Message-ID: <20171008134415.GC25829@mtr-leonro.local>
+Subject: Re: [PATCH 44/47] RDMA/rxe: Suppress gcc 7 fall-through complaints
+Date: Sun, 8 Oct 2017 16:45:51 +0300
+Message-ID: <20171008134551.GD25829@mtr-leonro.local>
 References: <20171006213333.6721-1-bart.vanassche@wdc.com>
- <20171006213333.6721-21-bart.vanassche@wdc.com>
+ <20171006213333.6721-45-bart.vanassche@wdc.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="9kBr9UDtZsI8nE8z"
+        protocol="application/pgp-signature"; boundary="+OcHDfVcPO70+1iC"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171006213333.6721-21-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <20171006213333.6721-45-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Signed-off-by : Lijun Ou" <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---9kBr9UDtZsI8nE8z
+--+OcHDfVcPO70+1iC
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Oct 06, 2017 at 02:33:06PM -0700, Bart Van Assche wrote:
+On Fri, Oct 06, 2017 at 02:33:30PM -0700, Bart Van Assche wrote:
+> Avoid that gcc 7 reports the following warning when building with W=1:
+>
+> warning: this statement may fall through [-Wimplicit-fallthrough=]
+>
 > Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-> Cc: Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-
-^^^^^^^^^^ something wrong.
-
-
-> Cc: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Cc: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
+>  drivers/infiniband/sw/rxe/rxe_comp.c  | 4 ++--
+>  drivers/infiniband/sw/rxe/rxe_task.c  | 2 +-
+>  drivers/infiniband/sw/rxe/rxe_verbs.c | 1 +
+>  3 files changed, 4 insertions(+), 3 deletions(-)
+>
 
---9kBr9UDtZsI8nE8z
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+--+OcHDfVcPO70+1iC
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnaK68ACgkQ5GN7iDZy
-WKeOag/9EtUaOT8v9w+MD8T+suBEuSpjh3Ew1GaRZ56Nxq0zk9JoUGYXBOH2wnOq
-crdBW2/+/Hei3EH+X5F7oi5JnwkCs8NV+lwcrZn/EDYy0XN47wbTWZmxDukClnpW
-oQw70SbPtONbBEjwtRw9iGTuDuaKyz86NRi5z2fcorzP3ABoQV/jV0U/nwouzh6/
-QyKEaD8c+cLVTUgrUD+MffPMmo1nmKGotVYJNeJQal/WOTa/Ez0OBXLLbGoqRtIJ
-aA4IvZjrCoeC11kxEfAkkzougPcozecPngDSzXMHVPdPxWIHNDSosq26KB1O/Uxy
-vJfpcJvsbV4VQzOn8PzPFDXHDKcbANSEKu4FGQY4wcQWzqQiwrRku2kbN5ia6LM8
-z+nKplLMjAfxsaz79RnnJsBoPF15c7h1Los2LMEd5LaqDItJDhbYQBmqvWO+HyqZ
-hscmr5lnqgqBsTvAOthqb9mNc+GckNeW4Pd01EC8QY3HuwSNrgekrPrL70KaUpLF
-3APvn5mPzQzb7Dj8kC3oubD/4GEN7ICDvLkRMAvL8xDJaSHQbbepF2CCBIP6t52D
-g+szWSax4Be4/LI1OxPeFBKnzno3bm5ILT+4wclESc8KTTuSyxz/cBjwtMyK2Ana
-u5GbAtWIOGtzCHkZeb4CWDfH49uIBMLcmjsS+xKaUkb0x0j+jUc=
-=t4N7
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnaLA8ACgkQ5GN7iDZy
+WKevYw//SIqSyXEH/U/QVgfs23QemUZyZ11wVY3OAb2CKCx6vnCIXJo3pfEvQfBh
+4RxqPNB3lhyLXnbpMnyjlW5cTRqsxNjx0s44ChMTPANWoZAS9MLZ1UvnUQU+p/Bz
++s/hJEftUxkjHzdiUBgfGELbVxObO4vs/KJWt4Q5+mAx1ElCZWll2s87RHBSC2NE
++kFzUibi77HZxmgC3eLk+jr3Y+IydyRkLN9bKGNrEWYE+l9mqWGOqCF3ukkYrVuU
+pzUbcAs/9NcH6MqtksiWQ7PQ+46AdfZuaQWChXIvGLHyAm3p0XuPB/UIzRrQ74PE
+MhPz/fxbyehkqoCzTCB9v+XCZpn9+WOcXOhQK9vaHqkQb0PRamdJ2SefAHVXnnIU
+i5xYaSxUOB+QtrN3rTl1J6bIzEdwzQfdkRjBXR3yGZ4uFLya/UCxJ/tjUhlfWVaI
+b0hxCLf/ExvICvhvA5x2pCOkNUxP3a0WG7pjCjY5jqf1WFXP/C9WwdkgG0IKDUvX
+VmUvtb8YlWhYFM1u7qNGyCFAr3hZTZvspHPsFHcXjcGxy9u54AONM9BRs8bton0o
+73QMGoFV63SKyRnWWPVC5Oq1USJ/mJ5H+uWsIj00SZYei1AERYAY1CvlSciLaM5f
+hMQvVXQRMAmOgTtK1SwhmDZatZBXnRVKwl8YGt/MwcstDzeLm0Y=
+=pey8
 -----END PGP SIGNATURE-----
 
---9kBr9UDtZsI8nE8z--
+--+OcHDfVcPO70+1iC--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
