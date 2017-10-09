@@ -1,58 +1,43 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core] verbs: Fix C++ compilation break
-Date: Mon, 9 Oct 2017 09:41:04 -0600
-Message-ID: <20171009154104.GA3824@obsidianresearch.com>
-References: <20171009081717.21478-1-leon@kernel.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1 0/3] NFS/RDMA client patches for v4.15
+Date: Mon, 09 Oct 2017 12:03:17 -0400
+Message-ID: <20171009155524.18726.32086.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171009081717.21478-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Nelio Laranjeiro <nelio.laranjeiro-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>, Adrien Mazarguil <adrien.mazarguil-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
+To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 09, 2017 at 11:17:17AM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> The commit 983f80191923 ("verbs: fix compilation error with ICC") fixed
-> warning by using UINTPTR_MAX, however such change breaks compilation
-> of C++ applications.
-> 
-> In C++ world, the UINTPTR_MAX is declared in <cstdint> and not stdint.h,
-> so in order to avoid messing with various defines to decide which
-> header
+Hi Anna-
 
-I don't think this statement is right. In C++ land the 'cXXX' headers
-and the 'XXX.h' headers are usually the same. On my system I see
-nothing that would cause stdint.h to not define the macros in C++ mode:
+Here is the first set of NFS/RDMA client patches for v4.15. These
+close a window where async RPCs that never receive a Reply will
+terminate but let the memory invalidation happen later.
 
-$ echo t.cc
-#include <stdint.h>
+I don't think there was much of an exposure here. Hard async RPCs
+typically just hang anyway, they can't be interrupted.
 
-enum {foo = UINTPTR_MAX};
+Please consider these patches for v4.15.
 
-$ g++-5 -c -Wall t.cc
+---
 
-So, what environment fails here? It should be described in the
-commit message..
+Chuck Lever (3):
+      xprtrdma: Don't defer fencing an async RPC's chunks
+      xprtrdma: Use ro_unmap_sync in xprt_rdma_send_request
+      xprtrdma: Remove ro_unmap_safe
 
-The best fix is something like this:
 
-#ifdef __cplusplus
-#include <limits>
-#define __VERBS_ABI_IS_EXTENDED ((void *)std::numeric_limits<uintptr_t>::max())
-#else
-#define __VERBS_ABI_IS_EXTENDED ((void *)UINTPTR_MAX)
-#endif
+ net/sunrpc/xprtrdma/fmr_ops.c   |   19 -------------------
+ net/sunrpc/xprtrdma/frwr_ops.c  |   19 -------------------
+ net/sunrpc/xprtrdma/transport.c |    5 +++--
+ net/sunrpc/xprtrdma/xprt_rdma.h |    2 --
+ 4 files changed, 3 insertions(+), 42 deletions(-)
 
-The static in a header file also a mistake.
-
-Using <cstdint> is a bit risky since it is a c++11 header and may not
-be in some of the older distros we still support.
-
-Jason
+--
+Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
