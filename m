@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 6/7] IB/hfi1: Set hdr_type when tx req is allocated
-Date: Mon, 09 Oct 2017 12:38:26 -0700
-Message-ID: <20171009193824.6965.48215.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 7/7] IB/rdmavt: Don't wait for resources in QP reset
+Date: Mon, 09 Oct 2017 12:38:33 -0700
+Message-ID: <20171009193831.6965.48857.stgit@scvm10.sc.intel.com>
 References: <20171009161736.6965.75352.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,64 +10,64 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171009161736.6965.75352.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Setting the protocol type should be part of initializing the tx request.
-For UC and RC, the current protocol type is part of the qp priv structure.
-For ud requests, it needs to be adjusted dynamically, based on the AV
-posted with the WQE. This patch will simplify the initialization of the
-tx request.
+Per the IBTA spec, QP destroy shall fail if the QP is attached
+to multicast groups, although the spec is silent on modify_qp
+to reset state. It implies that ULP must deregister QP from
+all mcast groups for destroy to succeed.
+The faulty patch "IB/ipoib: Update broadcast object if PKey value
+was changed in index 0" exposed two issues in rdmavt:
+1. Rvt QP reset waits for qp references to go to zero.
+This will hang if QP is attached to multicast groups.
+2. The mcast group detach will fail for a QP in reset state
+therefore preventing ULP from correcting the issue.
+This patch moves the reference count wait to the the destroy QP
+path and allows a QP mcast detach to work in the reset state.
 
-Fixes: 5b6cabb0db77 ("IB/hfi1: Add 16B RC/UC support")
-Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/rc.c          |    1 -
- drivers/infiniband/hw/hfi1/uc.c          |    1 -
- drivers/infiniband/hw/hfi1/verbs_txreq.h |    2 ++
- 3 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/sw/rdmavt/mcast.c |    2 +-
+ drivers/infiniband/sw/rdmavt/qp.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index e1cf0c0..bfe3e38 100644
---- a/drivers/infiniband/hw/hfi1/rc.c
-+++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -276,7 +276,6 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 	if (IS_ERR(ps->s_txreq))
- 		goto bail_no_tx;
+diff --git a/drivers/infiniband/sw/rdmavt/mcast.c b/drivers/infiniband/sw/rdmavt/mcast.c
+index 1f12b69..b3a38c5 100644
+--- a/drivers/infiniband/sw/rdmavt/mcast.c
++++ b/drivers/infiniband/sw/rdmavt/mcast.c
+@@ -351,7 +351,7 @@ int rvt_detach_mcast(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 	int last = 0;
+ 	int ret = 0;
  
--	ps->s_txreq->phdr.hdr.hdr_type = priv->hdr_type;
- 	if (priv->hdr_type == HFI1_PKT_TYPE_9B) {
- 		/* header size in 32-bit words LRH+BTH = (8+12)/4. */
- 		hwords = 5;
-diff --git a/drivers/infiniband/hw/hfi1/uc.c b/drivers/infiniband/hw/hfi1/uc.c
-index 0b64617..fcd8186 100644
---- a/drivers/infiniband/hw/hfi1/uc.c
-+++ b/drivers/infiniband/hw/hfi1/uc.c
-@@ -93,7 +93,6 @@ int hfi1_make_uc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 		goto done_free_tx;
- 	}
+-	if (ibqp->qp_num <= 1 || qp->state == IB_QPS_RESET)
++	if (ibqp->qp_num <= 1)
+ 		return -EINVAL;
  
--	ps->s_txreq->phdr.hdr.hdr_type = priv->hdr_type;
- 	if (priv->hdr_type == HFI1_PKT_TYPE_9B) {
- 		/* header size in 32-bit words LRH+BTH = (8+12)/4. */
- 		hwords = 5;
-diff --git a/drivers/infiniband/hw/hfi1/verbs_txreq.h b/drivers/infiniband/hw/hfi1/verbs_txreq.h
-index 76216f2..cec7a4b 100644
---- a/drivers/infiniband/hw/hfi1/verbs_txreq.h
-+++ b/drivers/infiniband/hw/hfi1/verbs_txreq.h
-@@ -92,6 +92,8 @@ struct verbs_txreq *__get_txreq(struct hfi1_ibdev *dev,
- 	tx->psc = priv->s_sendcontext;
- 	/* so that we can test if the sdma decriptors are there */
- 	tx->txreq.num_desc = 0;
-+	/* Set the header type */
-+	tx->phdr.hdr.hdr_type = priv->hdr_type;
- 	return tx;
- }
+ 	spin_lock_irq(&ibp->lock);
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 22df09a..367c786 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -717,7 +717,6 @@ static void rvt_reset_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp,
+ 
+ 		/* take qp out the hash and wait for it to be unused */
+ 		rvt_remove_qp(rdi, qp);
+-		wait_event(qp->wait, !atomic_read(&qp->refcount));
+ 
+ 		/* grab the lock b/c it was locked at call time */
+ 		spin_lock_irq(&qp->r_lock);
+@@ -1443,6 +1442,7 @@ int rvt_destroy_qp(struct ib_qp *ibqp)
+ 	spin_unlock(&qp->s_hlock);
+ 	spin_unlock_irq(&qp->r_lock);
+ 
++	wait_event(qp->wait, !atomic_read(&qp->refcount));
+ 	/* qpn is now available for use again */
+ 	rvt_free_qpn(&rdi->qp_dev->qpn_table, qp->ibqp.qp_num);
  
 
 --
