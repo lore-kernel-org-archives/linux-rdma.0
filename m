@@ -1,82 +1,58 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v7 09/12] xfs: wire up ->lease_direct()
-Date: Mon, 9 Oct 2017 10:10:42 -0700
-Message-ID: <CAPcyv4jGgrrwrvd7ExyG6BNKemWg7yvtAG7wyUm64SwtNn70cw@mail.gmail.com>
-References: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150732936625.22363.7638037715540836828.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171009034506.GI3666@dastard>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 3/7] IB/srpt: Change default behavior from using SRQ to
+ not using SRQ
+Date: Mon, 09 Oct 2017 13:12:04 -0400
+Message-ID: <1507569124.46071.47.camel@redhat.com>
+References: <20171006214243.11296-1-bart.vanassche@wdc.com>
+         <20171006214243.11296-4-bart.vanassche@wdc.com>
+         <20171008100317.GR25829@mtr-leonro.local>
+         <1507568205.46071.46.camel@redhat.com> <1507568492.2674.11.camel@wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20171009034506.GI3666@dastard>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Dave Chinner <david@fromorbit.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, Linux API <linux-api@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "J. Bruce Fields" <bfields@fieldses.org>, Linux MM <linux-mm@kvack.org>, Jeff Moyer <jmoyer@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jeff Layton <jlayton@poochiereds.net>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1507568492.2674.11.camel-Sjgp3cTcYWE@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Oct 8, 2017 at 8:45 PM, Dave Chinner <david@fromorbit.com> wrote:
-> On Fri, Oct 06, 2017 at 03:36:06PM -0700, Dan Williams wrote:
->> A 'lease_direct' lease requires that the vma have a valid MAP_DIRECT
->> mapping established. For xfs we establish a new lease and then check if
->> the MAP_DIRECT mapping has been broken. We want to be sure that the
->> process will receive notification that the MAP_DIRECT mapping is being
->> torn down so it knows why other code paths are throwing failures.
->>
->> For example in the RDMA/ibverbs case we want ibv_reg_mr() to fail if the
->> MAP_DIRECT mapping is invalid or in the process of being invalidated.
->>
->> Cc: Jan Kara <jack@suse.cz>
->> Cc: Jeff Moyer <jmoyer@redhat.com>
->> Cc: Christoph Hellwig <hch@lst.de>
->> Cc: Dave Chinner <david@fromorbit.com>
->> Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
->> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
->> Cc: Jeff Layton <jlayton@poochiereds.net>
->> Cc: "J. Bruce Fields" <bfields@fieldses.org>
->> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->> ---
->>  fs/xfs/xfs_file.c |   28 ++++++++++++++++++++++++++++
->>  1 file changed, 28 insertions(+)
->>
->> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
->> index e35518600e28..823b65f17429 100644
->> --- a/fs/xfs/xfs_file.c
->> +++ b/fs/xfs/xfs_file.c
->> @@ -1166,6 +1166,33 @@ xfs_filemap_direct_close(
->>       put_map_direct_vma(vma->vm_private_data);
->>  }
->>
->> +static struct lease_direct *
->> +xfs_filemap_direct_lease(
->> +     struct vm_area_struct   *vma,
->> +     void                    (*break_fn)(void *),
->> +     void                    *owner)
->> +{
->> +     struct lease_direct     *ld;
->> +
->> +     ld = map_direct_lease(vma, break_fn, owner);
->> +
->> +     if (IS_ERR(ld))
->> +             return ld;
->> +
->> +     /*
->> +      * We now have an established lease while the base MAP_DIRECT
->> +      * lease was not broken. So, we know that the "lease holder" will
->> +      * receive a SIGIO notification when the lease is broken and
->> +      * take any necessary cleanup actions.
->> +      */
->> +     if (!is_map_direct_broken(vma->vm_private_data))
->> +             return ld;
->> +
->> +     map_direct_lease_destroy(ld);
->> +
->> +     return ERR_PTR(-ENXIO);
->
-> What's any of this got to do with XFS? Shouldn't it be in generic
-> code, and called generic_filemap_direct_lease()?
+On Mon, 2017-10-09 at 17:01 +0000, Bart Van Assche wrote:
+> On Mon, 2017-10-09 at 12:56 -0400, Doug Ledford wrote:
+> > On Sun, 2017-10-08 at 13:03 +0300, Leon Romanovsky wrote:
+> > > It is a little bit strange to ask from user to decide if his
+> > > adapter
+> > > supports SRQ or not.
+> > > 
+> > > It should be automatically.
+> > 
+> > I think Bart's intent is that the driver not use SRQ as the default
+> > behavior even if the adapter supports it, so querying the adapter
+> > for
+> > support and enabling it if it exists would not achieve his desired
+> > result.  This would then be used to override that behavior.  Is
+> > that
+> > correct Bart?
+> 
+> Hello Leon and Doug,
+> 
+> The changes realized by this patch are:
+> - Instead of using SRQ as default, use non-SRQ mode as default.
+> - If SRQ has been chosen as default, and if SRQ is not supported,
+> fall back
+>   to non-SRQ mode (see also the if (IS_ERR(sdev->srq)) ... code).
+> 
+> Please let me know if you have any further questions about this
+> patch.
 
-True, I can move this to generic code. The filesystem is in charge of
-where it wants to store the 'struct map_direct_state' context, but for
-generic_filemap_direct_lease() it can just assume that it is stored in
-->vm_private_data. I'll add comments to this effect on the new
-routine.
+Nope, I'm good.
+
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
