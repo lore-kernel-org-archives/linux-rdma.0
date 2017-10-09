@@ -1,64 +1,96 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-core] providers/i40iw: Do not generate CQE for RTR
- on QP flush
-Date: Mon, 9 Oct 2017 10:26:50 +0300
-Message-ID: <20171009072650.GJ25829@mtr-leonro.local>
-References: <20171008233741.9168-1-tatyana.e.nikolova@intel.com>
+From: "Matan Barak (External)" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 05/47] RDMA/uverbs: Make the code in ib_uverbs_cmd_verbs()
+ less confusing
+Date: Mon, 9 Oct 2017 10:40:22 +0300
+Message-ID: <64b5f415-7d56-3f17-0c8c-5d80ba89582c@mellanox.com>
+References: <20171006213333.6721-1-bart.vanassche@wdc.com>
+ <20171006213333.6721-6-bart.vanassche@wdc.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="6nIn9DQvaie41cmo"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171008233741.9168-1-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20171006213333.6721-6-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---6nIn9DQvaie41cmo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Sun, Oct 08, 2017 at 06:37:41PM -0500, Tatyana Nikolova wrote:
-> From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 07/10/2017 00:32, Bart Van Assche wrote:
+> This patch reduces the number of #ifdefs and also avoids that
+> smatch reports the following:
 >
-> If RTR WQE is posted and QP is flushed, a CQE is
-> incorrectly generated for the RTR WQE. Add code
-> to look for the RTR and not generate a CQE when
-> QP is flushed.
+> drivers/infiniband/core/uverbs_ioctl.c:276: ib_uverbs_cmd_verbs() warn: if statement not indented
+> drivers/infiniband/core/uverbs_ioctl.c:280: ib_uverbs_cmd_verbs() warn: possible memory leak of 'ctx'
+> drivers/infiniband/core/uverbs_ioctl.c:315: ib_uverbs_cmd_verbs() warn: if statement not indented
 >
-> Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> References: commit fac9658cabb9 ("IB/core: Add new ioctl interface")
+> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+> Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->  providers/i40iw/i40iw_uk.c   | 12 ++++++++++++
->  providers/i40iw/i40iw_user.h |  1 +
->  2 files changed, 13 insertions(+)
+>   drivers/infiniband/core/uverbs_ioctl.c | 20 +++++++++-----------
+>   1 file changed, 9 insertions(+), 11 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
+> index 5286ad57d903..53f780ea49fe 100644
+> --- a/drivers/infiniband/core/uverbs_ioctl.c
+> +++ b/drivers/infiniband/core/uverbs_ioctl.c
+> @@ -234,7 +234,7 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+>       const struct uverbs_method_spec *method_spec;
+>       long err = 0;
+>       unsigned int i;
+> -    struct {
+> +    struct attr_and_bundle {
+>           struct ib_uverbs_attr        *uattrs;
+>           struct uverbs_attr_bundle    *uverbs_attr_bundle;
+>       } *ctx = NULL;
+> @@ -242,7 +242,10 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+>       unsigned long *curr_bitmap;
+>       size_t ctx_size;
+>   #ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
+> -    uintptr_t data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
+> +    uintptr_t __data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
+> +    struct attr_and_bundle *const data = (void *)__data;
+> +#else
+> +    struct attr_and_bundle *const data = NULL;
+>   #endif
+>
+>       if (hdr->reserved)
+> @@ -269,13 +272,10 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+>               (method_spec->num_child_attrs / BITS_PER_LONG +
+>                method_spec->num_buckets);
+>
+> -#ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
+>       if (ctx_size <= UVERBS_OPTIMIZE_USING_STACK_SZ)
+
+If UVERBS_OPTIMIZE_USING_STACK_SZ isn't defined, you'll get an error here.
+Maybe we could define it as 0 in the else part of the local variables deceleration.
+
+> -        ctx = (void *)data;
+> -
+> +        ctx = data;
+>       if (!ctx)
+> -#endif
+> -    ctx = kmalloc(ctx_size, GFP_KERNEL);
+> +        ctx = kmalloc(ctx_size, GFP_KERNEL);
+>       if (!ctx)
+>           return -ENOMEM;
+>
+> @@ -311,10 +311,8 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+>       err = uverbs_handle_method(buf, ctx->uattrs, hdr->num_attrs, ib_dev,
+>                      file, method_spec, ctx->uverbs_attr_bundle);
+>   out:
+> -#ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
+> -    if (ctx_size > UVERBS_OPTIMIZE_USING_STACK_SZ)
+> -#endif
+> -    kfree(ctx);
+> +    if (ctx != data)
+> +        kfree(ctx);
+>       return err;
+>   }
+>
 >
 
-Thanks, applied.
-
---6nIn9DQvaie41cmo
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnbJLoACgkQ5GN7iDZy
-WKdxcg/9EObBus7kJeF3zasLIze0qmJJoZiV4VzSGGrN373LTnWdNGmndeoYxoL3
-e3NLfyef2U+p/GzdZHInj+7LCunlskrTZ3GvY451B+4b8KvDm4BtxF8gnFuklSKC
-Pt8TUTlbmcRnhi1dlP7NGI9n8W37Y2GN+3B0xfor1Ia6JOqpxbWtOBsCx5V6mNwH
-dfwrLognLmqcFa27fOZevFRMwKxxv55m+AqCPDgBZHLZFwd2nef+9D0TUQBAnFhb
-UZyFZHcu5evNr0AFjEvvsG+go/VFpPZdVdfev5x/VUW1UD6ivqjbBAMRn6jjodgZ
-BUFOGQ166+H9hWg+TBZMWvRrtRNfAW/van7ShgWemyGbaH3SsoT0EEiygfW83Uyu
-iD5K+bdq6vkSGe+JvOgcho0VwA9AoT4gp+dFA0xZ3VkvfIjsUw/wZ8b8z9k0U+Oy
-QbQr973WQUkSZPCHK1mZJl6T8epAmDFR5ffXuK7k6CH14YXxuQSxj/by1qzqVq87
-zhj66RqByk5wqjAVrweVGzzfD/T5FjTwl1Hk39sguZSHAsh3+vIIjr1916TMSEWU
-Tu0AYci912musuZGU2XWL2Onh3Dm6zanVX6K26d1CTvzmg66sLykMCp4TYw3HVEF
-OH6UxiVnWg2/HHE5L5a5IsgGoDwNbaWPX6BLFqPfYm14hBfEhn8=
-=ehxI
------END PGP SIGNATURE-----
-
---6nIn9DQvaie41cmo--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
