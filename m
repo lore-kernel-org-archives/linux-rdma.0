@@ -1,238 +1,31 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v7 06/12] xfs: wire up MAP_DIRECT
-Date: Mon, 9 Oct 2017 10:08:40 -0700
-Message-ID: <CAPcyv4i6WBxfVJ0yqWbuW2kiJ-wpi+iYRPk=Kykqt3U5Rrw7MA@mail.gmail.com>
-References: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150732934955.22363.14950885120988262779.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171009034030.GH3666@dastard>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH 19/47] IB/hns: Annotate iomem pointers correctly
+Date: Mon, 9 Oct 2017 17:10:05 +0000
+Message-ID: <1507569004.2674.13.camel@wdc.com>
+References: <20171006213333.6721-1-bart.vanassche@wdc.com>
+         <20171006213333.6721-20-bart.vanassche@wdc.com>
+         <20171008134219.GB25829@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20171009034030.GH3666@dastard>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
-Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux API <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, linux-fsdevel <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jeff Layton <jlayton-vpEMnDpepFuMZCB2o+C8xQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171008134219.GB25829-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
+Content-ID: <2A31B826A3359C45AEB47F9B45D17B7B-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Oct 8, 2017 at 8:40 PM, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org> wrote:
-
-Thanks for the review Dave.
-
-> On Fri, Oct 06, 2017 at 03:35:49PM -0700, Dan Williams wrote:
->> MAP_DIRECT is an mmap(2) flag with the following semantics:
->>
->>   MAP_DIRECT
->>   When specified with MAP_SHARED_VALIDATE, sets up a file lease with the
->>   same lifetime as the mapping. Unlike a typical F_RDLCK lease this lease
->>   is broken when a "lease breaker" attempts to write(2), change the block
->>   map (fallocate), or change the size of the file. Otherwise the mechanism
->>   of a lease break is identical to the typical lease break case where the
->>   lease needs to be removed (munmap) within the number of seconds
->>   specified by /proc/sys/fs/lease-break-time. If the lease holder fails to
->>   remove the lease in time the kernel will invalidate the mapping and
->>   force all future accesses to the mapping to trigger SIGBUS.
->>
->>   In addition to lease break timeouts causing faults in the mapping to
->>   result in SIGBUS, other states of the file will trigger SIGBUS at fault
->>   time:
->>
->>       * The file is not DAX capable
->>       * The file has reflinked (copy-on-write) blocks
->>       * The fault would trigger the filesystem to allocate blocks
->>       * The fault would trigger the filesystem to perform extent conversion
->>
->>   In other words, MAP_DIRECT expects and enforces a fully allocated file
->>   where faults can be satisfied without modifying block map metadata.
->>
->>   An unprivileged process may establish a MAP_DIRECT mapping on a file
->>   whose UID (owner) matches the filesystem UID of the  process. A process
->>   with the CAP_LEASE capability may establish a MAP_DIRECT mapping on
->>   arbitrary files
->>
->>   ERRORS
->>   EACCES Beyond the typical mmap(2) conditions that trigger EACCES
->>   MAP_DIRECT also requires the permission to set a file lease.
->>
->>   EOPNOTSUPP The filesystem explicitly does not support the flag
->>
->>   SIGBUS Attempted to write a MAP_DIRECT mapping at a file offset that
->>          might require block-map updates, or the lease timed out and the
->>          kernel invalidated the mapping.
->>
->> Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
->> Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
->> Cc: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
->> Cc: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
->> Cc: Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
->> Cc: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
->> Cc: Jeff Layton <jlayton-vpEMnDpepFuMZCB2o+C8xQ@public.gmane.org>
->> Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
->> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> ---
->>  fs/xfs/Kconfig                  |    2 -
->>  fs/xfs/xfs_file.c               |  102 +++++++++++++++++++++++++++++++++++++++
->>  include/linux/mman.h            |    3 +
->>  include/uapi/asm-generic/mman.h |    1
->>  4 files changed, 106 insertions(+), 2 deletions(-)
->>
->> diff --git a/fs/xfs/Kconfig b/fs/xfs/Kconfig
->> index f62fc6629abb..f8765653a438 100644
->> --- a/fs/xfs/Kconfig
->> +++ b/fs/xfs/Kconfig
->> @@ -112,4 +112,4 @@ config XFS_ASSERT_FATAL
->>
->>  config XFS_LAYOUT
->>       def_bool y
->> -     depends on EXPORTFS_BLOCK_OPS
->> +     depends on EXPORTFS_BLOCK_OPS || FS_DAX
->> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
->> index ebdd0bd2b261..e35518600e28 100644
->> --- a/fs/xfs/xfs_file.c
->> +++ b/fs/xfs/xfs_file.c
->> @@ -40,12 +40,22 @@
->>  #include "xfs_iomap.h"
->>  #include "xfs_reflink.h"
->>
->> +#include <linux/mman.h>
->>  #include <linux/dcache.h>
->>  #include <linux/falloc.h>
->>  #include <linux/pagevec.h>
->> +#include <linux/mapdirect.h>
->>  #include <linux/backing-dev.h>
->>
->>  static const struct vm_operations_struct xfs_file_vm_ops;
->> +static const struct vm_operations_struct xfs_file_vm_direct_ops;
->> +
->> +static inline bool
->> +is_xfs_map_direct(
->> +             struct vm_area_struct *vma)
->> +{
->> +     return vma->vm_ops == &xfs_file_vm_direct_ops;
->> +}
->
-> Namespacing (xfs_vma_is_direct) and whitespace damage.
-
-Will fix.
-
->
->>
->>  /*
->>   * Clear the specified ranges to zero through either the pagecache or DAX.
->> @@ -1008,6 +1018,26 @@ xfs_file_llseek(
->>       return vfs_setpos(file, offset, inode->i_sb->s_maxbytes);
->>  }
->>
->> +static int
->> +xfs_vma_checks(
->> +     struct vm_area_struct   *vma,
->> +     struct inode            *inode)
->
-> Exactly what are we checking for - function name doesn't tell me,
-> and there's no comments, either?
-
-Ok, I'll improve this.
-
->
->> +{
->> +     if (!is_xfs_map_direct(vma))
->> +             return 0;
->> +
->> +     if (!is_map_direct_valid(vma->vm_private_data))
->> +             return VM_FAULT_SIGBUS;
->> +
->> +     if (xfs_is_reflink_inode(XFS_I(inode)))
->> +             return VM_FAULT_SIGBUS;
->> +
->> +     if (!IS_DAX(inode))
->> +             return VM_FAULT_SIGBUS;
->
-> And how do we get is_xfs_map_direct() set to true if we don't have a
-> DAX inode or the inode has shared extents?
-
-So, this was my way of trying to satisfy the request you made here:
-
-    https://lkml.org/lkml/2017/8/11/876
-
-i.e. allow MAP_DIRECT on non-dax files to enable a use case of
-freezing the block-map to examine which file extents are linked. If
-you don't want to use MAP_DIRECT for this, we can move these checks to
-mmap time.
-
->
->> +
->> +     return 0;
->> +}
->> +
->>  /*
->>   * Locking for serialisation of IO during page faults. This results in a lock
->>   * ordering of:
->> @@ -1024,6 +1054,7 @@ __xfs_filemap_fault(
->>       enum page_entry_size    pe_size,
->>       bool                    write_fault)
->>  {
->> +     struct vm_area_struct   *vma = vmf->vma;
->>       struct inode            *inode = file_inode(vmf->vma->vm_file);
->
-> You missed this vmf->vma....
->
-> .....
->>
->> +#define XFS_MAP_SUPPORTED (LEGACY_MAP_MASK | MAP_DIRECT)
->> +
->> +STATIC int
->> +xfs_file_mmap_validate(
->> +     struct file             *filp,
->> +     struct vm_area_struct   *vma,
->> +     unsigned long           map_flags,
->> +     int                     fd)
->> +{
->> +     struct inode            *inode = file_inode(filp);
->> +     struct xfs_inode        *ip = XFS_I(inode);
->> +     struct map_direct_state *mds;
->> +
->> +     if (map_flags & ~(XFS_MAP_SUPPORTED))
->> +             return -EOPNOTSUPP;
->> +
->> +     if ((map_flags & MAP_DIRECT) == 0)
->> +             return xfs_file_mmap(filp, vma);
->> +
->> +     file_accessed(filp);
->> +     vma->vm_ops = &xfs_file_vm_direct_ops;
->> +     if (IS_DAX(inode))
->> +             vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
->
-> And if it isn't a DAX inode? what is MAP_DIRECT supposed to do then?
-
-In the non-DAX case it just takes the FL_LAYOUT file lease... although
-we could also just have an fcntl for that purpose. The use case of
-just freezing the block map does not need a mapping.
-
->> +     mds = map_direct_register(fd, vma);
->> +     if (IS_ERR(mds))
->> +             return PTR_ERR(mds);
->> +
->> +     /* flush in-flight faults */
->> +     xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
->> +     xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
->
-> Urk. That's nasty. And why is it even necessary? Please explain why
-> this is necessary in the comment, because it's not at all obvious to
-> me...
-
-This is related to your other observation about i_mapdcount and adding
-an iomap_can_allocate() helper. I think I can clean both of these up
-by using a call to break_layout(inode, false) and bailing in
-->iomap_begin() if it returns EWOULDBLOCK. This would also fix the
-current problem that allocating write-faults don't start the lease
-break process.
+T24gU3VuLCAyMDE3LTEwLTA4IGF0IDE2OjQyICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IE9uIEZyaSwgT2N0IDA2LCAyMDE3IGF0IDAyOjMzOjA1UE0gLTA3MDAsIEJhcnQgVmFuIEFz
+c2NoZSB3cm90ZToNCj4gPiBUaGlzIHBhdGNoIGF2b2lkcyB0aGF0IHNwYXJzZSBjb21wbGFpbnMg
+dGhhdCB0aGVyZSBpcyBhbiBhZGRyZXNzDQo+ID4gc3BhY2UgbWlzbWF0Y2guDQo+ID4gDQo+ID4g
+U2lnbmVkLW9mZi1ieTogQmFydCBWYW4gQXNzY2hlIDxiYXJ0LnZhbmFzc2NoZUB3ZGMuY29tPg0K
+PiA+IENjOiBTaWduZWQtb2ZmLWJ5OiBMaWp1biBPdSA8b3VsaWp1bkBodWF3ZWkuY29tPg0KPiAN
+Cj4gU29tZXRoaW5nIHdlbnQgd3JvbmcgaGVyZS4NCg0KSGVsbG8gTGVvbiwNCg0KVGhhbmtzIGZv
+ciBoYXZpbmcgcmVwb3J0ZWQgdGhpcy4gSSB3aWxsIGZpeCB0aGUgQ2MtbGlzdC4NCg0KQmFydC4=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
