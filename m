@@ -1,36 +1,43 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/rxe: check for allocation failure on elem
-Date: Mon, 09 Oct 2017 12:13:11 -0400
-Message-ID: <1507565591.46071.32.camel@redhat.com>
-References: <20170908143745.2445-1-colin.king@canonical.com>
-         <20170909125607.GA22465@mtr-leonro.local>
-         <20170912144829.GR3405@mtr-leonro.local>
-         <1507554995.46071.25.camel@redhat.com>
-         <a43bfb4f-e7c3-f6be-8946-952fb2d4af14@canonical.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Is ib_mtu iboe_get_mtu() slightly off?
+Date: Mon, 09 Oct 2017 12:14:12 -0400
+Message-ID: <1507565652.46071.33.camel@redhat.com>
+References: <CAL1RGDX33tBR=x2sOp_F1605SY5nu_6YALr-XYE_LiuvsHQ1ng@mail.gmail.com>
+         <VI1PR0502MB300886CB47BB3DFDE098A26AD1660@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+         <1507556073.46071.27.camel@redhat.com>
+         <20171009134131.GB1252@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <a43bfb4f-e7c3-f6be-8946-952fb2d4af14@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin Ian King <colin.king@canonical.com>, Leon Romanovsky <leon@kernel.org>
-Cc: Moni Shoua <monis@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171009134131.GB1252-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-10-09 at 14:18 +0100, Colin Ian King wrote:
-> On 09/10/17 14:16, Doug Ledford wrote:
+On Mon, 2017-10-09 at 16:41 +0300, Leon Romanovsky wrote:
+> On Mon, Oct 09, 2017 at 09:34:33AM -0400, Doug Ledford wrote:
 > > 
+> > Since no one rolled a patch for this, I did.
 > > 
-> > Since Colin is non-responsive in this thread, I went ahead and took
-> > his
-> > patch, but then applied a fixup of my own:
 > 
-> Sorry, I somehow missed that email. Thanks for following this up.
+> Doug,
+> 
+> Parav created, I waited for our shared code.
+> https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/c
+> ommit/?h=rdma-next&id=51ed6735dd59008aea4d7308416ed994b277f168
 
-No worries.  You're normally responsive, so that's why I said "in this
-thread" and just took care of.
+Ok, but if the issue has been sitting on the list a while, and I don't
+know a fix is coming, then there is a not-0 percent chance I'll just
+fix it myself.
 
 -- 
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
