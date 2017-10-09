@@ -1,34 +1,46 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] net/mlx4_core: Convert timers to use timer_setup()
-Date: Mon, 09 Oct 2017 12:26:11 -0400
-Message-ID: <1507566371.46071.39.camel@redhat.com>
-References: <20171005005154.GA23500@beast>
+Subject: Re: [PATCH] infiniband: add MMU dependency for user_mem
+Date: Mon, 09 Oct 2017 12:26:36 -0400
+Message-ID: <1507566396.46071.40.camel@redhat.com>
+References: <20171006071410.732275-1-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171005005154.GA23500@beast>
+In-Reply-To: <20171006071410.732275-1-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>, linux-kernel@vger.kernel.org
-Cc: Tariq Toukan <tariqt@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
+To: Arnd Bergmann <arnd@arndb.de>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Yuval Shaia <yuval.shaia@oracle.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-10-04 at 17:51 -0700, Kees Cook wrote:
-> In preparation for unconditionally passing the struct timer_list
-> pointer to
-> all timer callbacks, switch to using the new timer_setup() and
-> from_timer()
-> to pass the timer pointer explicitly.
+On Fri, 2017-10-06 at 09:13 +0200, Arnd Bergmann wrote:
+> The infiniband subsystem causes a link failure when the umem
+> driver is built on MMU-less systems:
 > 
-> Cc: Tariq Toukan <tariqt@mellanox.com>
-> Cc: netdev@vger.kernel.org
-> Cc: linux-rdma@vger.kernel.org
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-> ---
-> This requires commit 686fef928bba ("timer: Prepare to change timer
-> callback argument type") in v4.14-rc3, but should be otherwise
-> stand-alone.
+> mm/mmu_notifier.o: In function `do_mmu_notifier_register':
+> mmu_notifier.c:(.text+0x32): undefined reference to
+> `mm_take_all_locks'
+> drivers/infiniband/core/umem.o: In function `ib_umem_get':
+> umem.c:(.text+0x132): undefined reference to `can_do_mlock'
+> drivers/infiniband/core/umem_odp.o: In function
+> `ib_umem_odp_map_dma_pages':
+> umem_odp.c:(.text+0x766): undefined reference to
+> `get_user_pages_remote'
+> 
+> This bug has existed for a while but only become apparent in ARM
+> randconfig builds when the dependency on PCI was lifted, as none
+> of the ARM-NOMMU targets support PCI at the moment.
+> 
+> We could probably get the umem driver to build by providing an
+> alternative implementation 'can_do_mlock()' that returns false
+> on NOMMU-systems, but then we'd still have a problem with the
+> mmu-notifiers required by CONFIG_INFINIBAND_ON_DEMAND_PAGING,
+> so simply forbidding umem with NOMMU seems like the simplest
+> workaround.
+> 
+> Fixes: 931bc0d91639 ("IB: Move PCI dependency from root KConfig to
+> HW's KConfigs")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
 Thanks, applied.
 
