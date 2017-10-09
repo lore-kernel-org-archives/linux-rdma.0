@@ -1,70 +1,107 @@
-From: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
-Subject: Re: [PATCH linux-firmware 1/1] qed: Add firmware 8.30.16.0
-Date: Mon, 09 Oct 2017 18:23:50 +0100
-Message-ID: <1507569830.2677.134.camel@decadent.org.uk>
-References: <20170913104645.21599-1-rahul.verma@cavium.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH 05/47] RDMA/uverbs: Make the code in ib_uverbs_cmd_verbs()
+ less confusing
+Date: Mon, 9 Oct 2017 17:27:29 +0000
+Message-ID: <1507570048.2674.17.camel@wdc.com>
+References: <20171006213333.6721-1-bart.vanassche@wdc.com>
+         <20171006213333.6721-6-bart.vanassche@wdc.com>
+         <64b5f415-7d56-3f17-0c8c-5d80ba89582c@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha512";
-        protocol="application/pgp-signature"; boundary="=-NTyiLQNKCUK+9X6WIqHJ"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170913104645.21599-1-rahul.verma-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <64b5f415-7d56-3f17-0c8c-5d80ba89582c-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <95D1399D4F45D047B64ED017A4E0DA6E-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rahul Verma <rahul.verma-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, kyle-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-firmware-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ariel.elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
+To: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-NTyiLQNKCUK+9X6WIqHJ
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, 2017-09-13 at 03:46 -0700, Rahul Verma wrote:
-> The new qed firmware contains fixes to firmware and added
-> support for new features,
-> -Add UFP support.
-> -DCQCN support for unlimited number of QP
-> -Add IP type to GFT filter profile.
-> -Added new TCP function counters.
-> -Support flow ID in aRFS flow.
->=20
-> Signed-off-by: Rahul Verma <rahul.verma-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> ---
->  qed/qed_init_values_zipped-8.30.16.0.bin | Bin 0 -> 837008 bytes
->  1 file changed, 0 insertions(+), 0 deletions(-)
->  create mode 100755 qed/qed_init_values_zipped-8.30.16.0.bin
-[...]
-
-The new file needs an entry in WHENCE.
-
-Ben.
-
---=20
-Ben Hutchings
-Humour is the best antidote to reality.
-
-
---=-NTyiLQNKCUK+9X6WIqHJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEErCspvTSmr92z9o8157/I7JWGEQkFAlnbsKYACgkQ57/I7JWG
-EQnE/RAApv2F37Goi1XM+f1nDLi2ViAtyJaPGM7ZOz8PQqXkqEClzF43odDwRXFY
-TKunkNWN8me5kCIdhViQ4/CILXU9ljVlhPkVdsfArmIi4BjQ5yzYlHTB9DWWqSI+
-5ULMGzomBReXCqfOJD7njR0/cDuZW6sT1G+cKJ+CmHp7kPzr27cZCpcoMk6z76Pn
-3vqVgeYzDYhr+HKqdwpmbtWtqTLHSTZaZCnQl9TUpVrZJ76XPVBr1+myYIyVbrSs
-FlsVH/zDIXHhK2VqXcDuB9eMeKJMPCk16KjtTveAeINKwRH3Cf+rlt7QEWBi8IPK
-Sz1yoFexrjS/Ola8n2lUHR5QvoypEb5kQJwZpIQp+hDZS7imehYe2J+BxlNh4IIR
-aJkw/92ul/OY3o3vj6uaVyVcIHlyXljAXKQofMMJZhO9Hn1WWl2NqCiacQWL61s2
-PduK1JUy9hWaYh6XzVePjay0EvZMkSorEk9dl/j1pP/l5qJ2nvdHC2ck/3WtbSu2
-KqyvhDBtAV5PmQX7Hi09z5sUtTSY+cSofVUcx9cExyH5/uL1EABWKFGUYgCV1hEq
-nzKc2tgbwUJDKzqqvyZcnJAC8lgWdrl/vH2Nr4uB/e0q3LVOm+EGAaJP+RxdilEa
-/tbvd+2eqh901lWwVRDEs57kCCd504QxvhlzN0ph1lj86pNUR3M=
-=AIfo
------END PGP SIGNATURE-----
-
---=-NTyiLQNKCUK+9X6WIqHJ--
+T24gTW9uLCAyMDE3LTEwLTA5IGF0IDEwOjQwICswMzAwLCBNYXRhbiBCYXJhayAoRXh0ZXJuYWwp
+IHdyb3RlOg0KPiBPbiAwNy8xMC8yMDE3IDAwOjMyLCBCYXJ0IFZhbiBBc3NjaGUgd3JvdGU6DQo+
+ID4gVGhpcyBwYXRjaCByZWR1Y2VzIHRoZSBudW1iZXIgb2YgI2lmZGVmcyBhbmQgYWxzbyBhdm9p
+ZHMgdGhhdA0KPiA+IHNtYXRjaCByZXBvcnRzIHRoZSBmb2xsb3dpbmc6DQo+ID4gDQo+ID4gZHJp
+dmVycy9pbmZpbmliYW5kL2NvcmUvdXZlcmJzX2lvY3RsLmM6Mjc2OiBpYl91dmVyYnNfY21kX3Zl
+cmJzKCkgd2FybjogaWYgc3RhdGVtZW50IG5vdCBpbmRlbnRlZA0KPiA+IGRyaXZlcnMvaW5maW5p
+YmFuZC9jb3JlL3V2ZXJic19pb2N0bC5jOjI4MDogaWJfdXZlcmJzX2NtZF92ZXJicygpIHdhcm46
+IHBvc3NpYmxlIG1lbW9yeSBsZWFrIG9mICdjdHgnDQo+ID4gZHJpdmVycy9pbmZpbmliYW5kL2Nv
+cmUvdXZlcmJzX2lvY3RsLmM6MzE1OiBpYl91dmVyYnNfY21kX3ZlcmJzKCkgd2FybjogaWYgc3Rh
+dGVtZW50IG5vdCBpbmRlbnRlZA0KPiA+IA0KPiA+IFJlZmVyZW5jZXM6IGNvbW1pdCBmYWM5NjU4
+Y2FiYjkgKCJJQi9jb3JlOiBBZGQgbmV3IGlvY3RsIGludGVyZmFjZSIpDQo+ID4gU2lnbmVkLW9m
+Zi1ieTogQmFydCBWYW4gQXNzY2hlIDxiYXJ0LnZhbmFzc2NoZUB3ZGMuY29tPg0KPiA+IENjOiBN
+YXRhbiBCYXJhayA8bWF0YW5iQG1lbGxhbm94LmNvbT4NCj4gPiBDYzogWWlzaGFpIEhhZGFzIDx5
+aXNoYWloQG1lbGxhbm94LmNvbT4NCj4gPiAtLS0NCj4gPiAgIGRyaXZlcnMvaW5maW5pYmFuZC9j
+b3JlL3V2ZXJic19pb2N0bC5jIHwgMjAgKysrKysrKysrLS0tLS0tLS0tLS0NCj4gPiAgIDEgZmls
+ZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKyksIDExIGRlbGV0aW9ucygtKQ0KPiA+IA0KPiA+IGRp
+ZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91dmVyYnNfaW9jdGwuYyBiL2RyaXZl
+cnMvaW5maW5pYmFuZC9jb3JlL3V2ZXJic19pb2N0bC5jDQo+ID4gaW5kZXggNTI4NmFkNTdkOTAz
+Li41M2Y3ODBlYTQ5ZmUgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUv
+dXZlcmJzX2lvY3RsLmMNCj4gPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91dmVyYnNf
+aW9jdGwuYw0KPiA+IEBAIC0yMzQsNyArMjM0LDcgQEAgc3RhdGljIGxvbmcgaWJfdXZlcmJzX2Nt
+ZF92ZXJicyhzdHJ1Y3QgaWJfZGV2aWNlICppYl9kZXYsDQo+ID4gICAgICAgY29uc3Qgc3RydWN0
+IHV2ZXJic19tZXRob2Rfc3BlYyAqbWV0aG9kX3NwZWM7DQo+ID4gICAgICAgbG9uZyBlcnIgPSAw
+Ow0KPiA+ICAgICAgIHVuc2lnbmVkIGludCBpOw0KPiA+IC0gICAgc3RydWN0IHsNCj4gPiArICAg
+IHN0cnVjdCBhdHRyX2FuZF9idW5kbGUgew0KPiA+ICAgICAgICAgICBzdHJ1Y3QgaWJfdXZlcmJz
+X2F0dHIgICAgICAgICp1YXR0cnM7DQo+ID4gICAgICAgICAgIHN0cnVjdCB1dmVyYnNfYXR0cl9i
+dW5kbGUgICAgKnV2ZXJic19hdHRyX2J1bmRsZTsNCj4gPiAgICAgICB9ICpjdHggPSBOVUxMOw0K
+PiA+IEBAIC0yNDIsNyArMjQyLDEwIEBAIHN0YXRpYyBsb25nIGliX3V2ZXJic19jbWRfdmVyYnMo
+c3RydWN0IGliX2RldmljZSAqaWJfZGV2LA0KPiA+ICAgICAgIHVuc2lnbmVkIGxvbmcgKmN1cnJf
+Yml0bWFwOw0KPiA+ICAgICAgIHNpemVfdCBjdHhfc2l6ZTsNCj4gPiAgICNpZmRlZiBVVkVSQlNf
+T1BUSU1JWkVfVVNJTkdfU1RBQ0tfU1oNCj4gPiAtICAgIHVpbnRwdHJfdCBkYXRhW1VWRVJCU19P
+UFRJTUlaRV9VU0lOR19TVEFDS19TWiAvIHNpemVvZih1aW50cHRyX3QpXTsNCj4gPiArICAgIHVp
+bnRwdHJfdCBfX2RhdGFbVVZFUkJTX09QVElNSVpFX1VTSU5HX1NUQUNLX1NaIC8gc2l6ZW9mKHVp
+bnRwdHJfdCldOw0KPiA+ICsgICAgc3RydWN0IGF0dHJfYW5kX2J1bmRsZSAqY29uc3QgZGF0YSA9
+ICh2b2lkICopX19kYXRhOw0KPiA+ICsjZWxzZQ0KPiA+ICsgICAgc3RydWN0IGF0dHJfYW5kX2J1
+bmRsZSAqY29uc3QgZGF0YSA9IE5VTEw7DQo+ID4gICAjZW5kaWYNCj4gPiANCj4gPiAgICAgICBp
+ZiAoaGRyLT5yZXNlcnZlZCkNCj4gPiBAQCAtMjY5LDEzICsyNzIsMTAgQEAgc3RhdGljIGxvbmcg
+aWJfdXZlcmJzX2NtZF92ZXJicyhzdHJ1Y3QgaWJfZGV2aWNlICppYl9kZXYsDQo+ID4gICAgICAg
+ICAgICAgICAobWV0aG9kX3NwZWMtPm51bV9jaGlsZF9hdHRycyAvIEJJVFNfUEVSX0xPTkcgKw0K
+PiA+ICAgICAgICAgICAgICAgIG1ldGhvZF9zcGVjLT5udW1fYnVja2V0cyk7DQo+ID4gDQo+ID4g
+LSNpZmRlZiBVVkVSQlNfT1BUSU1JWkVfVVNJTkdfU1RBQ0tfU1oNCj4gPiAgICAgICBpZiAoY3R4
+X3NpemUgPD0gVVZFUkJTX09QVElNSVpFX1VTSU5HX1NUQUNLX1NaKQ0KPiANCj4gSWYgVVZFUkJT
+X09QVElNSVpFX1VTSU5HX1NUQUNLX1NaIGlzbid0IGRlZmluZWQsIHlvdSdsbCBnZXQgYW4gZXJy
+b3IgaGVyZS4NCj4gTWF5YmUgd2UgY291bGQgZGVmaW5lIGl0IGFzIDAgaW4gdGhlIGVsc2UgcGFy
+dCBvZiB0aGUgbG9jYWwgdmFyaWFibGVzIGRlY2VsZXJhdGlvbi4NCg0KSGVsbG8gTWF0YW4sDQoN
+ClRoYXQncyBhbiBpbnRlcmVzdGluZyBzdWdnZXN0aW9uIGJ1dCB0aGF0IHdvdWxkbid0IHdvcmsg
+d2VsbCB3aXRoIHRoZSAiI2lmZGVmDQpVVkVSQlNfT1BUSU1JWkVfVVNJTkdfU1RBQ0tfU1oiIGNv
+ZGUgaW4gdGhlIGRlY2xhcmF0aW9uIHNlY3Rpb24uIEhvdyBhYm91dA0KY2hhbmdpbmcgImlmIChj
+dHhfc2l6ZSA8PSBVVkVSQlNfT1BUSU1JWkVfVVNJTkdfU1RBQ0tfU1opIGN0eCA9IGRhdGE7IiBp
+bnRvDQoiY3R4ID0gZGF0YTsiIHN1Y2ggdGhhdCBpdCBiZWNvbWVzIGFnYWluIHNhZmUgbm90IHRv
+IGRlZmluZSBVVkVSQlNfT1BUSU1JWkVfVVNJTkdfU1RBQ0tfU1o/DQpXaXRoIHRoYXQgY2hhbmdl
+IHRoaXMgcGF0Y2ggbG9va3MgYXMgZm9sbG93czoNCg0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9p
+bmZpbmliYW5kL2NvcmUvdXZlcmJzX2lvY3RsLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91
+dmVyYnNfaW9jdGwuYw0KaW5kZXggNTI4NmFkNTdkOTAzLi44MWMwNWJhMmE1OGIgMTAwNjQ0DQot
+LS0gYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91dmVyYnNfaW9jdGwuYw0KKysrIGIvZHJpdmVy
+cy9pbmZpbmliYW5kL2NvcmUvdXZlcmJzX2lvY3RsLmMNCkBAIC0yMzQsNyArMjM0LDcgQEAgc3Rh
+dGljIGxvbmcgaWJfdXZlcmJzX2NtZF92ZXJicyhzdHJ1Y3QgaWJfZGV2aWNlICppYl9kZXYsDQog
+CWNvbnN0IHN0cnVjdCB1dmVyYnNfbWV0aG9kX3NwZWMgKm1ldGhvZF9zcGVjOw0KIAlsb25nIGVy
+ciA9IDA7DQogCXVuc2lnbmVkIGludCBpOw0KLQlzdHJ1Y3Qgew0KKwlzdHJ1Y3QgYXR0cl9hbmRf
+YnVuZGxlIHsNCiAJCXN0cnVjdCBpYl91dmVyYnNfYXR0cgkJKnVhdHRyczsNCiAJCXN0cnVjdCB1
+dmVyYnNfYXR0cl9idW5kbGUJKnV2ZXJic19hdHRyX2J1bmRsZTsNCiAJfSAqY3R4ID0gTlVMTDsN
+CkBAIC0yNDIsNyArMjQyLDEwIEBAIHN0YXRpYyBsb25nIGliX3V2ZXJic19jbWRfdmVyYnMoc3Ry
+dWN0IGliX2RldmljZSAqaWJfZGV2LA0KIAl1bnNpZ25lZCBsb25nICpjdXJyX2JpdG1hcDsNCiAJ
+c2l6ZV90IGN0eF9zaXplOw0KICNpZmRlZiBVVkVSQlNfT1BUSU1JWkVfVVNJTkdfU1RBQ0tfU1oN
+Ci0JdWludHB0cl90IGRhdGFbVVZFUkJTX09QVElNSVpFX1VTSU5HX1NUQUNLX1NaIC8gc2l6ZW9m
+KHVpbnRwdHJfdCldOw0KKwl1aW50cHRyX3QgX19kYXRhW1VWRVJCU19PUFRJTUlaRV9VU0lOR19T
+VEFDS19TWiAvIHNpemVvZih1aW50cHRyX3QpXTsNCisJc3RydWN0IGF0dHJfYW5kX2J1bmRsZSAq
+Y29uc3QgZGF0YSA9ICh2b2lkICopX19kYXRhOw0KKyNlbHNlDQorCXN0cnVjdCBhdHRyX2FuZF9i
+dW5kbGUgKmNvbnN0IGRhdGEgPSBOVUxMOw0KICNlbmRpZg0KIA0KIAlpZiAoaGRyLT5yZXNlcnZl
+ZCkNCkBAIC0yNjksMTMgKzI3Miw5IEBAIHN0YXRpYyBsb25nIGliX3V2ZXJic19jbWRfdmVyYnMo
+c3RydWN0IGliX2RldmljZSAqaWJfZGV2LA0KIAkJCShtZXRob2Rfc3BlYy0+bnVtX2NoaWxkX2F0
+dHJzIC8gQklUU19QRVJfTE9ORyArDQogCQkJIG1ldGhvZF9zcGVjLT5udW1fYnVja2V0cyk7DQog
+DQotI2lmZGVmIFVWRVJCU19PUFRJTUlaRV9VU0lOR19TVEFDS19TWg0KLQlpZiAoY3R4X3NpemUg
+PD0gVVZFUkJTX09QVElNSVpFX1VTSU5HX1NUQUNLX1NaKQ0KLQkJY3R4ID0gKHZvaWQgKilkYXRh
+Ow0KLQ0KKwljdHggPSBkYXRhOw0KIAlpZiAoIWN0eCkNCi0jZW5kaWYNCi0JY3R4ID0ga21hbGxv
+YyhjdHhfc2l6ZSwgR0ZQX0tFUk5FTCk7DQorCQljdHggPSBrbWFsbG9jKGN0eF9zaXplLCBHRlBf
+S0VSTkVMKTsNCiAJaWYgKCFjdHgpDQogCQlyZXR1cm4gLUVOT01FTTsNCiANCkBAIC0zMTEsMTAg
+KzMxMCw4IEBAIHN0YXRpYyBsb25nIGliX3V2ZXJic19jbWRfdmVyYnMoc3RydWN0IGliX2Rldmlj
+ZSAqaWJfZGV2LA0KIAllcnIgPSB1dmVyYnNfaGFuZGxlX21ldGhvZChidWYsIGN0eC0+dWF0dHJz
+LCBoZHItPm51bV9hdHRycywgaWJfZGV2LA0KIAkJCQkgICBmaWxlLCBtZXRob2Rfc3BlYywgY3R4
+LT51dmVyYnNfYXR0cl9idW5kbGUpOw0KIG91dDoNCi0jaWZkZWYgVVZFUkJTX09QVElNSVpFX1VT
+SU5HX1NUQUNLX1NaDQotCWlmIChjdHhfc2l6ZSA+IFVWRVJCU19PUFRJTUlaRV9VU0lOR19TVEFD
+S19TWikNCi0jZW5kaWYNCi0Ja2ZyZWUoY3R4KTsNCisJaWYgKGN0eCAhPSBkYXRhKQ0KKwkJa2Zy
+ZWUoY3R4KTsNCiAJcmV0dXJuIGVycjsNCiB9DQogDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
