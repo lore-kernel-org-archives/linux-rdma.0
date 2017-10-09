@@ -1,65 +1,36 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] IB/core: remove redundant check on prot_sg_cnt
-Date: Mon,  9 Oct 2017 17:12:00 +0100
-Message-ID: <20171009161200.4465-1-colin.king@canonical.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] IB/rxe: check for allocation failure on elem
+Date: Mon, 09 Oct 2017 12:13:11 -0400
+Message-ID: <1507565591.46071.32.camel@redhat.com>
+References: <20170908143745.2445-1-colin.king@canonical.com>
+         <20170909125607.GA22465@mtr-leonro.local>
+         <20170912144829.GR3405@mtr-leonro.local>
+         <1507554995.46071.25.camel@redhat.com>
+         <a43bfb4f-e7c3-f6be-8946-952fb2d4af14@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <a43bfb4f-e7c3-f6be-8946-952fb2d4af14@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "J . Bruce Fields" <bfields@redhat.com>, Chuck Lever <chuck.lever@oracle.com>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Colin Ian King <colin.king@canonical.com>, Leon Romanovsky <leon@kernel.org>
+Cc: Moni Shoua <monis@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+On Mon, 2017-10-09 at 14:18 +0100, Colin Ian King wrote:
+> On 09/10/17 14:16, Doug Ledford wrote:
+> > 
+> > 
+> > Since Colin is non-responsive in this thread, I went ahead and took
+> > his
+> > patch, but then applied a fixup of my own:
+> 
+> Sorry, I somehow missed that email. Thanks for following this up.
 
-prot_sg_cnt cannot be zero as a previous check on ret (from which
-prot_sg_cnt is assigned) returns -ENOMEM if is it zero.  Since
-it cannot be zero we can simplify the code by removing the non
--zero check on prot_sg_cnt and redundant else statement.
+No worries.  You're normally responsive, so that's why I said "in this
+thread" and just took care of.
 
-Detected by CoverityScan, COD#1357188 ("Logically dead code")
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/infiniband/core/rw.c | 24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-index 6ca607e8e293..c8963e91f92a 100644
---- a/drivers/infiniband/core/rw.c
-+++ b/drivers/infiniband/core/rw.c
-@@ -384,21 +384,17 @@ int rdma_rw_ctx_signature_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 	count += ret;
- 	prev_wr = &ctx->sig->data.reg_wr.wr;
- 
--	if (prot_sg_cnt) {
--		ret = rdma_rw_init_one_mr(qp, port_num, &ctx->sig->prot,
--				prot_sg, prot_sg_cnt, 0);
--		if (ret < 0)
--			goto out_destroy_data_mr;
--		count += ret;
-+	ret = rdma_rw_init_one_mr(qp, port_num, &ctx->sig->prot,
-+				  prot_sg, prot_sg_cnt, 0);
-+	if (ret < 0)
-+		goto out_destroy_data_mr;
-+	count += ret;
- 
--		if (ctx->sig->prot.inv_wr.next)
--			prev_wr->next = &ctx->sig->prot.inv_wr;
--		else
--			prev_wr->next = &ctx->sig->prot.reg_wr.wr;
--		prev_wr = &ctx->sig->prot.reg_wr.wr;
--	} else {
--		ctx->sig->prot.mr = NULL;
--	}
-+	if (ctx->sig->prot.inv_wr.next)
-+		prev_wr->next = &ctx->sig->prot.inv_wr;
-+	else
-+		prev_wr->next = &ctx->sig->prot.reg_wr.wr;
-+	prev_wr = &ctx->sig->prot.reg_wr.wr;
- 
- 	ctx->sig->sig_mr = ib_mr_pool_get(qp, &qp->sig_mrs);
- 	if (!ctx->sig->sig_mr) {
 -- 
-2.14.1
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
