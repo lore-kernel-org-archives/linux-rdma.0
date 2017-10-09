@@ -1,40 +1,65 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] infiniband: use setup_timer() helper function.
-Date: Mon, 09 Oct 2017 12:08:16 -0400
-Message-ID: <1507565296.46071.31.camel@redhat.com>
-References: <1506942951-10917-1-git-send-email-allen.pais@oracle.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] IB/core: remove redundant check on prot_sg_cnt
+Date: Mon,  9 Oct 2017 17:12:00 +0100
+Message-ID: <20171009161200.4465-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1506942951-10917-1-git-send-email-allen.pais-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Allen Pais <allen.pais-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sean.hefty-Kuom3nnY0e0@public.gmane.org, Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "J . Bruce Fields" <bfields@redhat.com>, Chuck Lever <chuck.lever@oracle.com>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-10-02 at 16:45 +0530, Allen Pais wrote:
-> From: Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> 
-> This series uses setup_timer() helper function. The series
-> addresses the files under drivers/infiniband/hw/*.
-> 
-> Signed-off-by: Allen Pais <allen.pais-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Colin Ian King <colin.king@canonical.com>
 
-Hi Allen,
+prot_sg_cnt cannot be zero as a previous check on ret (from which
+prot_sg_cnt is assigned) returns -ENOMEM if is it zero.  Since
+it cannot be zero we can simplify the code by removing the non
+-zero check on prot_sg_cnt and redundant else statement.
 
-This patch is being superseded by other work in the community.  In
-particular, they are making changes to the timer core, and instead of
-using setup_timer() there is a new timer_setup() routine they want used
-instead.  The people doing the work have posted those patches to the
-rdma list so this one is being dropped in preference to those.
+Detected by CoverityScan, COD#1357188 ("Logically dead code")
 
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/infiniband/core/rw.c | 24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
+index 6ca607e8e293..c8963e91f92a 100644
+--- a/drivers/infiniband/core/rw.c
++++ b/drivers/infiniband/core/rw.c
+@@ -384,21 +384,17 @@ int rdma_rw_ctx_signature_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
+ 	count += ret;
+ 	prev_wr = &ctx->sig->data.reg_wr.wr;
+ 
+-	if (prot_sg_cnt) {
+-		ret = rdma_rw_init_one_mr(qp, port_num, &ctx->sig->prot,
+-				prot_sg, prot_sg_cnt, 0);
+-		if (ret < 0)
+-			goto out_destroy_data_mr;
+-		count += ret;
++	ret = rdma_rw_init_one_mr(qp, port_num, &ctx->sig->prot,
++				  prot_sg, prot_sg_cnt, 0);
++	if (ret < 0)
++		goto out_destroy_data_mr;
++	count += ret;
+ 
+-		if (ctx->sig->prot.inv_wr.next)
+-			prev_wr->next = &ctx->sig->prot.inv_wr;
+-		else
+-			prev_wr->next = &ctx->sig->prot.reg_wr.wr;
+-		prev_wr = &ctx->sig->prot.reg_wr.wr;
+-	} else {
+-		ctx->sig->prot.mr = NULL;
+-	}
++	if (ctx->sig->prot.inv_wr.next)
++		prev_wr->next = &ctx->sig->prot.inv_wr;
++	else
++		prev_wr->next = &ctx->sig->prot.reg_wr.wr;
++	prev_wr = &ctx->sig->prot.reg_wr.wr;
+ 
+ 	ctx->sig->sig_mr = ib_mr_pool_get(qp, &qp->sig_mrs);
+ 	if (!ctx->sig->sig_mr) {
 -- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.14.1
