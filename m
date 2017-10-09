@@ -1,27 +1,118 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [pull request][for-next 0/9] Mellanox, mlx5 updates 2017-10-06
-Date: Mon, 09 Oct 2017 09:47:01 -0400
-Message-ID: <1507556821.46071.29.camel@redhat.com>
-References: <20171006233749.25545-1-saeedm@mellanox.com>
+From: Colin Ian King <colin.king@canonical.com>
+Subject: Re: [PATCH] IB/rxe: check for allocation failure on elem
+Date: Mon, 9 Oct 2017 14:18:46 +0100
+Message-ID: <a43bfb4f-e7c3-f6be-8946-952fb2d4af14@canonical.com>
+References: <20170908143745.2445-1-colin.king@canonical.com>
+ <20170909125607.GA22465@mtr-leonro.local>
+ <20170912144829.GR3405@mtr-leonro.local>
+ <1507554995.46071.25.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20171006233749.25545-1-saeedm@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1507554995.46071.25.camel@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>
+Cc: Moni Shoua <monis@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-10-06 at 16:37 -0700, Saeed Mahameed wrote:
-> The following changes since commit
-> e19b205be43d11bff638cad4487008c48d21c103:
+On 09/10/17 14:16, Doug Ledford wrote:
+> On Tue, 2017-09-12 at 17:48 +0300, Leon Romanovsky wrote:
+>> On Sat, Sep 09, 2017 at 03:56:07PM +0300, Leon Romanovsky wrote:
+>>> On Fri, Sep 08, 2017 at 03:37:45PM +0100, Colin King wrote:
+>>>> From: Colin Ian King <colin.king@canonical.com>
+>>>>
+>>>> The allocation for elem may fail (especially because we're using
+>>>> GFP_ATOMIC) so best to check for a null return.  This fixes a
+>>>> potential
+>>>> null pointer dereference when assigning elem->pool.
+>>>>
+>>>> Detected by CoverityScan CID#1357507 ("Dereference null return
+>>>> value")
+>>>>
+>>>> Fixes: 8700e3e7c485 ("Soft RoCE driver")
+>>>> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+>>>> ---
+>>>>  drivers/infiniband/sw/rxe/rxe_pool.c | 2 ++
+>>>>  1 file changed, 2 insertions(+)
+>>>>
+>>>> diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c
+>>>> b/drivers/infiniband/sw/rxe/rxe_pool.c
+>>>> index c1b5f38f31a5..3b4916680018 100644
+>>>> --- a/drivers/infiniband/sw/rxe/rxe_pool.c
+>>>> +++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+>>>> @@ -404,6 +404,8 @@ void *rxe_alloc(struct rxe_pool *pool)
+>>>>  	elem = kmem_cache_zalloc(pool_cache(pool),
+>>>>  				 (pool->flags & RXE_POOL_ATOMIC)
+>>>> ?
+>>>>  				 GFP_ATOMIC : GFP_KERNEL);
+>>>> +	if (!elem)
+>>>> +		return NULL;
+>>>>
+>>>
+>>> It is not enough to simply return NULL, you also should release
+>>> "pool" too.
+>>
+>> Colin,
+>> do you plan to fix the comment and resend it?
 > 
->   Linux 4.14-rc2 (2017-09-24 16:38:56 -0700)
+> Since Colin is non-responsive in this thread, I went ahead and took his
+> patch, but then applied a fixup of my own:
 
-Thanks for keeping the base at rc2 like I requested.  Pulled.
+Sorry, I somehow missed that email. Thanks for following this up.
 
--- 
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+> 
+> commit a79c0f939da23740c12f43019720055aade89367 (HEAD -> k.o/for-next)
+> Author: Doug Ledford <dledford@redhat.com>
+> Date:   Mon Oct 9 09:11:32 2017 -0400
+> 
+>     IB/rxe: put the pool on allocation failure
+>     
+>     If the allocation of elem fails, it is not sufficient to simply check
+>     for NULL and return.  We need to also put our reference on the pool or
+>     else we will leave the pool with a permanent ref count and we will never
+>     be able to free it.
+>     
+>     Fixes: 4831ca9e4a8e (IB/rxe: check for allocation failure on elem)
+>     Suggested-by: Leon Romanovsky <leon@kernel.org>
+>     Signed-off-by: Doug Ledford <dledford@redhat.com>
+> 
+> diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+> index 3b4916680018..b4a8acc7bb7d 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_pool.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+> @@ -394,23 +394,25 @@ void *rxe_alloc(struct rxe_pool *pool)
+>  
+>         kref_get(&pool->rxe->ref_cnt);
+>  
+> -       if (atomic_inc_return(&pool->num_elem) > pool->max_elem) {
+> -               atomic_dec(&pool->num_elem);
+> -               rxe_dev_put(pool->rxe);
+> -               rxe_pool_put(pool);
+> -               return NULL;
+> -       }
+> +       if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
+> +               goto out_put_pool;
+>  
+>         elem = kmem_cache_zalloc(pool_cache(pool),
+>                                  (pool->flags & RXE_POOL_ATOMIC) ?
+>                                  GFP_ATOMIC : GFP_KERNEL);
+>         if (!elem)
+> -               return NULL;
+> +               goto out_put_pool;
+>  
+>         elem->pool = pool;
+>         kref_init(&elem->ref_cnt);
+>  
+>         return elem;
+> +
+> +out_put_pool:
+> +       atomic_dec(&pool->num_elem);
+> +       rxe_dev_put(pool->rxe);
+> +       rxe_pool_put(pool);
+> +       return NULL;
+>  }
+>  
+>  void rxe_elem_release(struct kref *kref)
+> 
+> 
