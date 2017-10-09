@@ -1,108 +1,63 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH 05/47] RDMA/uverbs: Make the code in ib_uverbs_cmd_verbs()
- less confusing
-Date: Mon, 9 Oct 2017 17:27:29 +0000
-Message-ID: <1507570048.2674.17.camel@wdc.com>
-References: <20171006213333.6721-1-bart.vanassche@wdc.com>
-         <20171006213333.6721-6-bart.vanassche@wdc.com>
-         <64b5f415-7d56-3f17-0c8c-5d80ba89582c@mellanox.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v8] dma-mapping: introduce dma_get_iommu_domain()
+Date: Mon, 9 Oct 2017 10:32:10 -0700
+Message-ID: <CAPcyv4jU0L-LocP7ZKWcUoft+h5rpMYsvgO_dEWfkrSxrQxJOA@mail.gmail.com>
+References: <150732935473.22363.1853399637339625023.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150743420333.12880.6968831423519457797.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <8161efa8-a315-3b0b-4159-9bdf3bfb98aa@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <64b5f415-7d56-3f17-0c8c-5d80ba89582c-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <95D1399D4F45D047B64ED017A4E0DA6E-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <8161efa8-a315-3b0b-4159-9bdf3bfb98aa@arm.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Robin Murphy <robin.murphy@arm.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Jan Kara <jack@suse.cz>, Ashok Raj <ashok.raj@intel.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Joerg Roedel <joro@8bytes.org>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, Linux MM <linux-mm@kvack.org>, Jeff Moyer <jmoyer@redhat.com>, Linux API <linux-api@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, David Woodhouse <dwmw2@infradead.org>, Christoph Hellwig <hch@lst.de>, Marek Szyprowski <m.szyprowski@samsung.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE3LTEwLTA5IGF0IDEwOjQwICswMzAwLCBNYXRhbiBCYXJhayAoRXh0ZXJuYWwp
-IHdyb3RlOg0KPiBPbiAwNy8xMC8yMDE3IDAwOjMyLCBCYXJ0IFZhbiBBc3NjaGUgd3JvdGU6DQo+
-ID4gVGhpcyBwYXRjaCByZWR1Y2VzIHRoZSBudW1iZXIgb2YgI2lmZGVmcyBhbmQgYWxzbyBhdm9p
-ZHMgdGhhdA0KPiA+IHNtYXRjaCByZXBvcnRzIHRoZSBmb2xsb3dpbmc6DQo+ID4gDQo+ID4gZHJp
-dmVycy9pbmZpbmliYW5kL2NvcmUvdXZlcmJzX2lvY3RsLmM6Mjc2OiBpYl91dmVyYnNfY21kX3Zl
-cmJzKCkgd2FybjogaWYgc3RhdGVtZW50IG5vdCBpbmRlbnRlZA0KPiA+IGRyaXZlcnMvaW5maW5p
-YmFuZC9jb3JlL3V2ZXJic19pb2N0bC5jOjI4MDogaWJfdXZlcmJzX2NtZF92ZXJicygpIHdhcm46
-IHBvc3NpYmxlIG1lbW9yeSBsZWFrIG9mICdjdHgnDQo+ID4gZHJpdmVycy9pbmZpbmliYW5kL2Nv
-cmUvdXZlcmJzX2lvY3RsLmM6MzE1OiBpYl91dmVyYnNfY21kX3ZlcmJzKCkgd2FybjogaWYgc3Rh
-dGVtZW50IG5vdCBpbmRlbnRlZA0KPiA+IA0KPiA+IFJlZmVyZW5jZXM6IGNvbW1pdCBmYWM5NjU4
-Y2FiYjkgKCJJQi9jb3JlOiBBZGQgbmV3IGlvY3RsIGludGVyZmFjZSIpDQo+ID4gU2lnbmVkLW9m
-Zi1ieTogQmFydCBWYW4gQXNzY2hlIDxiYXJ0LnZhbmFzc2NoZUB3ZGMuY29tPg0KPiA+IENjOiBN
-YXRhbiBCYXJhayA8bWF0YW5iQG1lbGxhbm94LmNvbT4NCj4gPiBDYzogWWlzaGFpIEhhZGFzIDx5
-aXNoYWloQG1lbGxhbm94LmNvbT4NCj4gPiAtLS0NCj4gPiAgIGRyaXZlcnMvaW5maW5pYmFuZC9j
-b3JlL3V2ZXJic19pb2N0bC5jIHwgMjAgKysrKysrKysrLS0tLS0tLS0tLS0NCj4gPiAgIDEgZmls
-ZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKyksIDExIGRlbGV0aW9ucygtKQ0KPiA+IA0KPiA+IGRp
-ZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91dmVyYnNfaW9jdGwuYyBiL2RyaXZl
-cnMvaW5maW5pYmFuZC9jb3JlL3V2ZXJic19pb2N0bC5jDQo+ID4gaW5kZXggNTI4NmFkNTdkOTAz
-Li41M2Y3ODBlYTQ5ZmUgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUv
-dXZlcmJzX2lvY3RsLmMNCj4gPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91dmVyYnNf
-aW9jdGwuYw0KPiA+IEBAIC0yMzQsNyArMjM0LDcgQEAgc3RhdGljIGxvbmcgaWJfdXZlcmJzX2Nt
-ZF92ZXJicyhzdHJ1Y3QgaWJfZGV2aWNlICppYl9kZXYsDQo+ID4gICAgICAgY29uc3Qgc3RydWN0
-IHV2ZXJic19tZXRob2Rfc3BlYyAqbWV0aG9kX3NwZWM7DQo+ID4gICAgICAgbG9uZyBlcnIgPSAw
-Ow0KPiA+ICAgICAgIHVuc2lnbmVkIGludCBpOw0KPiA+IC0gICAgc3RydWN0IHsNCj4gPiArICAg
-IHN0cnVjdCBhdHRyX2FuZF9idW5kbGUgew0KPiA+ICAgICAgICAgICBzdHJ1Y3QgaWJfdXZlcmJz
-X2F0dHIgICAgICAgICp1YXR0cnM7DQo+ID4gICAgICAgICAgIHN0cnVjdCB1dmVyYnNfYXR0cl9i
-dW5kbGUgICAgKnV2ZXJic19hdHRyX2J1bmRsZTsNCj4gPiAgICAgICB9ICpjdHggPSBOVUxMOw0K
-PiA+IEBAIC0yNDIsNyArMjQyLDEwIEBAIHN0YXRpYyBsb25nIGliX3V2ZXJic19jbWRfdmVyYnMo
-c3RydWN0IGliX2RldmljZSAqaWJfZGV2LA0KPiA+ICAgICAgIHVuc2lnbmVkIGxvbmcgKmN1cnJf
-Yml0bWFwOw0KPiA+ICAgICAgIHNpemVfdCBjdHhfc2l6ZTsNCj4gPiAgICNpZmRlZiBVVkVSQlNf
-T1BUSU1JWkVfVVNJTkdfU1RBQ0tfU1oNCj4gPiAtICAgIHVpbnRwdHJfdCBkYXRhW1VWRVJCU19P
-UFRJTUlaRV9VU0lOR19TVEFDS19TWiAvIHNpemVvZih1aW50cHRyX3QpXTsNCj4gPiArICAgIHVp
-bnRwdHJfdCBfX2RhdGFbVVZFUkJTX09QVElNSVpFX1VTSU5HX1NUQUNLX1NaIC8gc2l6ZW9mKHVp
-bnRwdHJfdCldOw0KPiA+ICsgICAgc3RydWN0IGF0dHJfYW5kX2J1bmRsZSAqY29uc3QgZGF0YSA9
-ICh2b2lkICopX19kYXRhOw0KPiA+ICsjZWxzZQ0KPiA+ICsgICAgc3RydWN0IGF0dHJfYW5kX2J1
-bmRsZSAqY29uc3QgZGF0YSA9IE5VTEw7DQo+ID4gICAjZW5kaWYNCj4gPiANCj4gPiAgICAgICBp
-ZiAoaGRyLT5yZXNlcnZlZCkNCj4gPiBAQCAtMjY5LDEzICsyNzIsMTAgQEAgc3RhdGljIGxvbmcg
-aWJfdXZlcmJzX2NtZF92ZXJicyhzdHJ1Y3QgaWJfZGV2aWNlICppYl9kZXYsDQo+ID4gICAgICAg
-ICAgICAgICAobWV0aG9kX3NwZWMtPm51bV9jaGlsZF9hdHRycyAvIEJJVFNfUEVSX0xPTkcgKw0K
-PiA+ICAgICAgICAgICAgICAgIG1ldGhvZF9zcGVjLT5udW1fYnVja2V0cyk7DQo+ID4gDQo+ID4g
-LSNpZmRlZiBVVkVSQlNfT1BUSU1JWkVfVVNJTkdfU1RBQ0tfU1oNCj4gPiAgICAgICBpZiAoY3R4
-X3NpemUgPD0gVVZFUkJTX09QVElNSVpFX1VTSU5HX1NUQUNLX1NaKQ0KPiANCj4gSWYgVVZFUkJT
-X09QVElNSVpFX1VTSU5HX1NUQUNLX1NaIGlzbid0IGRlZmluZWQsIHlvdSdsbCBnZXQgYW4gZXJy
-b3IgaGVyZS4NCj4gTWF5YmUgd2UgY291bGQgZGVmaW5lIGl0IGFzIDAgaW4gdGhlIGVsc2UgcGFy
-dCBvZiB0aGUgbG9jYWwgdmFyaWFibGVzIGRlY2VsZXJhdGlvbi4NCg0KSGVsbG8gTWF0YW4sDQoN
-ClRoYXQncyBhbiBpbnRlcmVzdGluZyBzdWdnZXN0aW9uIGJ1dCB0aGF0IHdvdWxkbid0IHdvcmsg
-d2VsbCB3aXRoIHRoZSAiI2lmZGVmDQpVVkVSQlNfT1BUSU1JWkVfVVNJTkdfU1RBQ0tfU1oiIGNv
-ZGUgaW4gdGhlIGRlY2xhcmF0aW9uIHNlY3Rpb24uIEhvdyBhYm91dA0KY2hhbmdpbmcgImlmIChj
-dHhfc2l6ZSA8PSBVVkVSQlNfT1BUSU1JWkVfVVNJTkdfU1RBQ0tfU1opIGN0eCA9IGRhdGE7IiBp
-bnRvDQoiY3R4ID0gZGF0YTsiIHN1Y2ggdGhhdCBpdCBiZWNvbWVzIGFnYWluIHNhZmUgbm90IHRv
-IGRlZmluZSBVVkVSQlNfT1BUSU1JWkVfVVNJTkdfU1RBQ0tfU1o/DQpXaXRoIHRoYXQgY2hhbmdl
-IHRoaXMgcGF0Y2ggbG9va3MgYXMgZm9sbG93czoNCg0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9p
-bmZpbmliYW5kL2NvcmUvdXZlcmJzX2lvY3RsLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91
-dmVyYnNfaW9jdGwuYw0KaW5kZXggNTI4NmFkNTdkOTAzLi44MWMwNWJhMmE1OGIgMTAwNjQ0DQot
-LS0gYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91dmVyYnNfaW9jdGwuYw0KKysrIGIvZHJpdmVy
-cy9pbmZpbmliYW5kL2NvcmUvdXZlcmJzX2lvY3RsLmMNCkBAIC0yMzQsNyArMjM0LDcgQEAgc3Rh
-dGljIGxvbmcgaWJfdXZlcmJzX2NtZF92ZXJicyhzdHJ1Y3QgaWJfZGV2aWNlICppYl9kZXYsDQog
-CWNvbnN0IHN0cnVjdCB1dmVyYnNfbWV0aG9kX3NwZWMgKm1ldGhvZF9zcGVjOw0KIAlsb25nIGVy
-ciA9IDA7DQogCXVuc2lnbmVkIGludCBpOw0KLQlzdHJ1Y3Qgew0KKwlzdHJ1Y3QgYXR0cl9hbmRf
-YnVuZGxlIHsNCiAJCXN0cnVjdCBpYl91dmVyYnNfYXR0cgkJKnVhdHRyczsNCiAJCXN0cnVjdCB1
-dmVyYnNfYXR0cl9idW5kbGUJKnV2ZXJic19hdHRyX2J1bmRsZTsNCiAJfSAqY3R4ID0gTlVMTDsN
-CkBAIC0yNDIsNyArMjQyLDEwIEBAIHN0YXRpYyBsb25nIGliX3V2ZXJic19jbWRfdmVyYnMoc3Ry
-dWN0IGliX2RldmljZSAqaWJfZGV2LA0KIAl1bnNpZ25lZCBsb25nICpjdXJyX2JpdG1hcDsNCiAJ
-c2l6ZV90IGN0eF9zaXplOw0KICNpZmRlZiBVVkVSQlNfT1BUSU1JWkVfVVNJTkdfU1RBQ0tfU1oN
-Ci0JdWludHB0cl90IGRhdGFbVVZFUkJTX09QVElNSVpFX1VTSU5HX1NUQUNLX1NaIC8gc2l6ZW9m
-KHVpbnRwdHJfdCldOw0KKwl1aW50cHRyX3QgX19kYXRhW1VWRVJCU19PUFRJTUlaRV9VU0lOR19T
-VEFDS19TWiAvIHNpemVvZih1aW50cHRyX3QpXTsNCisJc3RydWN0IGF0dHJfYW5kX2J1bmRsZSAq
-Y29uc3QgZGF0YSA9ICh2b2lkICopX19kYXRhOw0KKyNlbHNlDQorCXN0cnVjdCBhdHRyX2FuZF9i
-dW5kbGUgKmNvbnN0IGRhdGEgPSBOVUxMOw0KICNlbmRpZg0KIA0KIAlpZiAoaGRyLT5yZXNlcnZl
-ZCkNCkBAIC0yNjksMTMgKzI3Miw5IEBAIHN0YXRpYyBsb25nIGliX3V2ZXJic19jbWRfdmVyYnMo
-c3RydWN0IGliX2RldmljZSAqaWJfZGV2LA0KIAkJCShtZXRob2Rfc3BlYy0+bnVtX2NoaWxkX2F0
-dHJzIC8gQklUU19QRVJfTE9ORyArDQogCQkJIG1ldGhvZF9zcGVjLT5udW1fYnVja2V0cyk7DQog
-DQotI2lmZGVmIFVWRVJCU19PUFRJTUlaRV9VU0lOR19TVEFDS19TWg0KLQlpZiAoY3R4X3NpemUg
-PD0gVVZFUkJTX09QVElNSVpFX1VTSU5HX1NUQUNLX1NaKQ0KLQkJY3R4ID0gKHZvaWQgKilkYXRh
-Ow0KLQ0KKwljdHggPSBkYXRhOw0KIAlpZiAoIWN0eCkNCi0jZW5kaWYNCi0JY3R4ID0ga21hbGxv
-YyhjdHhfc2l6ZSwgR0ZQX0tFUk5FTCk7DQorCQljdHggPSBrbWFsbG9jKGN0eF9zaXplLCBHRlBf
-S0VSTkVMKTsNCiAJaWYgKCFjdHgpDQogCQlyZXR1cm4gLUVOT01FTTsNCiANCkBAIC0zMTEsMTAg
-KzMxMCw4IEBAIHN0YXRpYyBsb25nIGliX3V2ZXJic19jbWRfdmVyYnMoc3RydWN0IGliX2Rldmlj
-ZSAqaWJfZGV2LA0KIAllcnIgPSB1dmVyYnNfaGFuZGxlX21ldGhvZChidWYsIGN0eC0+dWF0dHJz
-LCBoZHItPm51bV9hdHRycywgaWJfZGV2LA0KIAkJCQkgICBmaWxlLCBtZXRob2Rfc3BlYywgY3R4
-LT51dmVyYnNfYXR0cl9idW5kbGUpOw0KIG91dDoNCi0jaWZkZWYgVVZFUkJTX09QVElNSVpFX1VT
-SU5HX1NUQUNLX1NaDQotCWlmIChjdHhfc2l6ZSA+IFVWRVJCU19PUFRJTUlaRV9VU0lOR19TVEFD
-S19TWikNCi0jZW5kaWYNCi0Ja2ZyZWUoY3R4KTsNCisJaWYgKGN0eCAhPSBkYXRhKQ0KKwkJa2Zy
-ZWUoY3R4KTsNCiAJcmV0dXJuIGVycjsNCiB9DQogDQo=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, Oct 9, 2017 at 3:37 AM, Robin Murphy <robin.murphy@arm.com> wrote:
+> Hi Dan,
+>
+> On 08/10/17 04:45, Dan Williams wrote:
+>> Add a dma-mapping api helper to retrieve the generic iommu_domain for a device.
+>> The motivation for this interface is making RDMA transfers to DAX mappings
+>> safe. If the DAX file's block map changes we need to be to reliably stop
+>> accesses to blocks that have been freed or re-assigned to a new file.
+>
+> ...which is also going to require some way to force the IOMMU drivers
+> (on x86 at least) to do a fully-synchronous unmap, instead of just
+> throwing the IOVA onto a flush queue to invalidate the TLBs at some
+> point in the future.
+
+Isn't that the difference between iommu_unmap() and
+iommu_unmap_fast()? As far as I can tell amd-iommu and intel-iommu
+both flush iotlbs on iommu_unmap() and don't support fast unmaps.
+
+> Assuming of course that there's an IOMMU both
+> present and performing DMA translation in the first place.
+
+That's why I want to call through the dma api to see if the iommu is
+being used to satisfy dma mappings.
+
+>> With the
+>> iommu_domain and a callback from the DAX filesystem the kernel can safely
+>> revoke access to a DMA device. The process that performed the RDMA memory
+>> registration is also notified of this revocation event, but the kernel can not
+>> otherwise be in the position of waiting for userspace to quiesce the device.
+>
+> OK, but why reinvent iommu_get_domain_for_dev()?
+
+How do I know if the iommu returned from that routine is the one being
+used for dma mapping operations for the device? Specifically, how
+would I discover that the result of dma_map_sg() can be passed as an
+IOVA range to iommu_unmap()?
+
+>> Since PMEM+DAX is currently only enabled for x86, we only update the x86
+>> iommu drivers.
+>
+> Note in particular that those two drivers happen to be the *only* place
+> this approach could work - everyone else is going to have to fall back
+> to the generic IOMMU API function anyway.
+
+I want to make this functionality generic, but I'm not familiar with
+the iommu sub-system. How are dma mapping operations routed to the
+iommu driver in those other imlementations?
