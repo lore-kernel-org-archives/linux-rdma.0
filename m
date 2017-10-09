@@ -1,45 +1,48 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDMA/i40iw: Convert timers to use timer_setup()
-Date: Mon, 09 Oct 2017 12:25:24 -0400
-Message-ID: <1507566324.46071.37.camel@redhat.com>
-References: <20171005004541.GA22645@beast>
-         <20171006231723.GA22568@ssaleem-MOBL4.amr.corp.intel.com>
-         <20171007141255.GA2536@ssaleem-MOBL4.amr.corp.intel.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] IB/ipoib: Convert timers to use timer_setup()
+Date: Mon, 09 Oct 2017 12:25:43 -0400
+Message-ID: <1507566343.46071.38.camel@redhat.com>
+References: <20171005004554.GA22669@beast>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171007141255.GA2536-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171005004554.GA22669@beast>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>, linux-kernel@vger.kernel.org
+Cc: Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leon@kernel.org>, Alex Vesker <valex@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Zhu Yanjun <yanjun.zhu@oracle.com>, "kernel@kyup.com" <kernel@kyup.com>, Paolo Abeni <pabeni@redhat.com>, Niranjana Vishwanathapura <niranjana.vishwanathapura@intel.com>, Feras Daoud <ferasda@mellanox.com>, Alex Estrin <alex.estrin@intel.com>, Shamir Rabinovitch <shamir.rabinovitch@oracle.com>, linux-rdma@vger.kernel.org, Yuval Shaia <yuval.shaia@oracle.com>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2017-10-07 at 09:12 -0500, Shiraz Saleem wrote:
-> Hi Kees,
+On Wed, 2017-10-04 at 17:45 -0700, Kees Cook wrote:
+> In preparation for unconditionally passing the struct timer_list
+> pointer to
+> all timer callbacks, switch to using the new timer_setup() and
+> from_timer()
+> to pass the timer pointer explicitly.
 > 
-> Sorry, I didnt notice this earlier, but, you made the change only to
-> the stats timer
-> to use the new timer init APIs. Can you do the same for the cm_timer
-> and terminate_timer
-> too for i40iw; so that things are consistent?
-> 
-> [ssaleem@linbuild6081 i40iw]$ grep "setup_timer" *
-> i40iw_cm.c:     setup_timer(&cm_core->tcp_timer, i40iw_cm_timer_tick,
-> i40iw_utils.c:  setup_timer(&iwqp->terminate_timer,
-> i40iw_terminate_timeout,
-> i40iw_utils.c:  setup_timer(&devstat->stats_timer,
-> i40iw_hw_stats_timeout,
+> Cc: Doug Ledford <dledford@redhat.com>
+> Cc: Sean Hefty <sean.hefty@intel.com>
+> Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+> Cc: Leon Romanovsky <leon@kernel.org>
+> Cc: Alex Vesker <valex@mellanox.com>
+> Cc: Erez Shitrit <erezsh@mellanox.com>
+> Cc: Zhu Yanjun <yanjun.zhu@oracle.com>
+> Cc: Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.co
+> m>
+> Cc: Paolo Abeni <pabeni@redhat.com>
+> Cc: Ira Weiny <ira.weiny@intel.com>
+> Cc: Yuval Shaia <yuval.shaia@oracle.com>
+> Cc: linux-rdma@vger.kernel.org
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Signed-off-by: Kees Cook <keescook@chromium.org>
+> ---
+> This requires commit 686fef928bba ("timer: Prepare to change timer
+> callback argument type") in v4.14-rc3, but should be otherwise
+> stand-alone.
 
-Since I took the first patch, this will need to be as an incremental
-change.
+Thanks, applied.
 
 -- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
