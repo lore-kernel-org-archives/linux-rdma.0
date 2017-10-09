@@ -1,114 +1,100 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] verbs: Fix C++ compilation break
-Date: Mon, 9 Oct 2017 16:38:54 +0300
-Message-ID: <20171009133854.GA1252@mtr-leonro.local>
-References: <20171009081717.21478-1-leon@kernel.org>
- <537d72a7-19c3-d13d-4b49-538744a73845@suse.de>
+Subject: Re: Is ib_mtu iboe_get_mtu() slightly off?
+Date: Mon, 9 Oct 2017 16:41:31 +0300
+Message-ID: <20171009134131.GB1252@mtr-leonro.local>
+References: <CAL1RGDX33tBR=x2sOp_F1605SY5nu_6YALr-XYE_LiuvsHQ1ng@mail.gmail.com>
+ <VI1PR0502MB300886CB47BB3DFDE098A26AD1660@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <1507556073.46071.27.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
+        protocol="application/pgp-signature"; boundary="xXmbgvnjoT4axfJE"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <537d72a7-19c3-d13d-4b49-538744a73845-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <1507556073.46071.27.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nelio Laranjeiro <nelio.laranjeiro-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>, Adrien Mazarguil <adrien.mazarguil-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---cWoXeonUoKmBZSoM
-Content-Type: text/plain; charset=iso-8859-1
+--xXmbgvnjoT4axfJE
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 09, 2017 at 03:12:00PM +0200, Nicolas Morey-Chaisemartin wrote:
+On Mon, Oct 09, 2017 at 09:34:33AM -0400, Doug Ledford wrote:
+> On Thu, 2017-09-21 at 02:20 +0000, Parav Pandit wrote:
+> > > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> > > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Roland Dreier
+> > > Sent: Wednesday, September 20, 2017 7:39 PM
+> > > To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > Subject: Is ib_mtu iboe_get_mtu() slightly off?
+> > >
+> > > We have:
+> > >
+> > > static inline enum ib_mtu iboe_get_mtu(int mtu) {
+> > >         /*
+> > >          * reduce IB headers from effective IBoE MTU. 28 stands for
+> > >          * atomic header which is the biggest possible header after
+> > > BTH
+> > >          */
+> > >         mtu = mtu - IB_GRH_BYTES - IB_BTH_BYTES - 28;
+> > >        ...
+> > >
+> > > 28 bytes is the size of the AtomicETH header.  But couldn't we have
+> > > a packet
+> > > with both AtomicETH and XRCETH (4 more bytes)?
+> >
+> > XRCETH + AtomicETH is possible.
+> > Additionally I guess 4 bytes of ICRC is missing too in calculation.
 >
->
-> Le 09/10/2017 =E0 10:17, Leon Romanovsky a =E9crit=A0:
-> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> > The commit 983f80191923 ("verbs: fix compilation error with ICC") fixed
-> > warning by using UINTPTR_MAX, however such change breaks compilation
-> > of C++ applications.
-> >
-> > In C++ world, the UINTPTR_MAX is declared in <cstdint> and not stdint.h,
-> > so in order to avoid messing with various defines to decide which header
-> > file include: stdint.h or <cstdint>, we will check for the existence
-> > of UINTPTR_MAX and will fallback to old implementation.
-> >
-> > Fixes: 983f80191923 ("verbs: fix compilation error with ICC")
-> > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Cc: Nelio Laranjeiro <nelio.laranjeiro-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-> > Cc: Adrien Mazarguil <adrien.mazarguil-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-> > Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> > ---
-> >  libibverbs/verbs.h | 4 ++++
-> >  1 file changed, 4 insertions(+)
-> >
-> > diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-> > index cc633a12..f540b660 100644
-> > --- a/libibverbs/verbs.h
-> > +++ b/libibverbs/verbs.h
-> > @@ -82,7 +82,11 @@ union ibv_gid {
-> >
-> >  #define vext_field_avail(type, fld, sz) (offsetof(type, fld) < (sz))
-> >
-> > +#ifdef UINTPTR_MAX
-> >  static void *__VERBS_ABI_IS_EXTENDED =3D (void *)UINTPTR_MAX;
-> > +#else
-> > +static void *__VERBS_ABI_IS_EXTENDED =3D ((uint8_t *) NULL) - 1;
-> > +#endif
-> >
-> >  enum ibv_node_type {
-> >  	IBV_NODE_UNKNOWN	=3D -1,
-> > --
-> > 2.14.2
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Wouldn't something like this solve the issue without messing up the code ?
->
-> diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-> index 8cdf8ab5..c5d932bf 100644
-> --- a/libibverbs/verbs.h
-> +++ b/libibverbs/verbs.h
-> @@ -44,6 +44,7 @@
-> =A0#include <linux/types.h>
-> =A0
-> =A0#ifdef __cplusplus
-> +#include=A0 <cstdint>
-> =A0#=A0 define BEGIN_C_DECLS extern "C" {
-> =A0#=A0 define END_C_DECLS=A0=A0 }
-> =A0#else /* !__cplusplus */
+> Since no one rolled a patch for this, I did.
 >
 
-It will be enough, I'll resend the patch.
+Doug,
+
+Parav created, I waited for our shared code.
+https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/commit/?h=rdma-next&id=51ed6735dd59008aea4d7308416ed994b277f168
+
+commit 51ed6735dd59008aea4d7308416ed994b277f168
+Author: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date:   Thu Oct 5 10:33:12 2017 -0500
+
+    IB/core: Take into account optional XRC header and mandatory ICRC for RoCE MTU
+
+    This fix considers optional XRC header size and mandatory ICRC 4 bytes in
+    calculation of path MTU, by considering additional 8 bytes, path MTU calculation
+    is more accurate.
+
+    Link: https://www.spinics.net/lists/linux-rdma/msg54558.html
+    Fixes: 3c86aa70bf67 ("RDMA/cm: Add RDMA CM support for IBoE devices")
+    Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+    Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+    Reported-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+    Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
 Thanks
 
---cWoXeonUoKmBZSoM
+--xXmbgvnjoT4axfJE
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnbe+QACgkQ5GN7iDZy
-WKcl6BAAhPBn+Nxc/IfvG44AB1qrEQjFuYxZ8Mt+GAMe7WdI/pmzga13A7EkYm1a
-I43mNBYaaippQ6t1G2MjQljfhGiygYCjp0HCX6BeIFVlIYI7K7UiGNlGLslgcgZ1
-LJJDtpAl8xAxXm7XTCv16wxgvR29PBcEtOvtP5d2rmB6fw/G1qS14YtlT0uqHz4T
-7YzaPdvsoeTPEsSdX8r20mUi3vt1piya1BY7am3tpwDrBwdUisjla5UtC58RNlE7
-1QJaSG/TPivTxdJttguphRIC0WlLCpti/5k8JnqnE5VOzHRKpQrTew/jwPi/aIft
-vQSdK9slNXbmBIWlUUEpdjZamZhx6VUgdSJVFmfSFU13WiEL/Q62NnuUd9NLcvQb
-BqzBnybw5Rb+JaXvdlTcuZhx3Xj/SgAwowMsi/KbUFdnsRBnfdMRd0jqEfLv/zVf
-R2M9w0C7d0v6/G+qeAVPPzXepE3wBNrfRKyw+1/DkBOBN0uvS9brWHw8X8znchoI
-ga0dytAPdi7g83Xdl338SXRr+2NA27/XxJMWIxC5B46UHhkiLerRAvNLuEefobc1
-Chb+yM6oLxIigAfg+xBqrES/pZSDfUG2ePtxqbFO/legz9DgLKjwG2bsv5NfWGJP
-Z0F2drW69k/tJSOs8gtVeSioV+Fp4Q8hBMFkMvK+dP6EleppQk0=
-=PNBd
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnbfIsACgkQ5GN7iDZy
+WKc8xQ/+LpfOslah6Ep3DAb6eQH5EikJ+94N6m7TGe7cqS+D4WYeFKKcOnAuC4PK
++8ROhXeX3w+1q33d06D7ugWD3zM3HezNDkRDIDfozikM02c/SHnB4rP7kiLEjzXT
+Qu1iUVXgSToeX3NQkFSXlC+/3slTddR7nCxl1ceIqNXi4SD/KfnAG7pOBDhITkwc
+sPgXk0uGJ21lwVsBjAPkEH9I6raW90c/XMDSOuH52gZ3bKtO6piN0g+LBkgEMN8E
+iK6W6uLdAhKOSMF+J+3UE0XvDgYF/jfA+qI4sv8boakltipIJ328uYaFk8pqODA0
+m6SDzB/GzZiCfmjZz7jp8ZpgILsdeNzTrsjOcWx9c3kPOB1SDJxAffZza//XYVMo
+EeSu/MfoQgFj0ljaG6ODzFmCEGv8orJ1NmOoosq3JiW33SWKNw5YloCXmp01JRXz
+tD2f369vydjetS8Bv5DgKF5RLd66Yw5HIaiJPhYefQiqSHAOvAlCTrEnBmq50N7F
+6sD0Tmk3Kaj167hNW3QnOaLfFNkpkGdnytoc58exjG9mxC/dwtfSmsrCWblWdhIB
+WyxF45l9JaaGmPijv585xkCH3Y+KnUl1wB3X5YLSkMZJK2JghQER4fzp6Ic67Xlv
+4UobMkkcZ4qNJYY4/WRBGukL/2o5GII019lPyEmDyCVAORglky0=
+=aBkg
 -----END PGP SIGNATURE-----
 
---cWoXeonUoKmBZSoM--
+--xXmbgvnjoT4axfJE--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
