@@ -1,40 +1,73 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 00/47] Address issues detected by static analysis tools
-Date: Mon, 09 Oct 2017 12:51:32 -0400
-Message-ID: <1507567892.46071.44.camel@redhat.com>
-References: <20171006213333.6721-1-bart.vanassche@wdc.com>
+Subject: Re: [PATCH 3/7] IB/srpt: Change default behavior from using SRQ to
+ not using SRQ
+Date: Mon, 09 Oct 2017 12:56:45 -0400
+Message-ID: <1507568205.46071.46.camel@redhat.com>
+References: <20171006214243.11296-1-bart.vanassche@wdc.com>
+         <20171006214243.11296-4-bart.vanassche@wdc.com>
+         <20171008100317.GR25829@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171006213333.6721-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <20171008100317.GR25829-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-10-06 at 14:32 -0700, Bart Van Assche wrote:
-> Hello Doug,
+On Sun, 2017-10-08 at 13:03 +0300, Leon Romanovsky wrote:
+> On Fri, Oct 06, 2017 at 02:42:39PM -0700, Bart Van Assche wrote:
+> > Although the non-SRQ mode needs more resources that mode has three
+> > advantages over SRQ:
+> > - It works with all RDMA adapters, even those that do not support
+> >   SRQ.
+> > - Posting WRs and polling WCs does not trigger lock contention
+> >   because only one thread at a time accesses a WR or WC queue in
+> >   non-SRQ mode.
+> > - The end-to-end flow control mechanism is used.
+> > 
+> > From the IB spec:
+> > 
+> >     C9-150.2.1: For QPs that are not associated with an SRQ, each
+> > HCA
+> >     receive queue shall generate end-to-end flow control credits.
+> > If
+> >     a QP is associated with an SRQ, the HCA receive queue shall not
+> >     generate end-to-end flow control credits.
+> > 
+> > Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+> > ---
+> >  drivers/infiniband/ulp/srpt/ib_srpt.c | 130
+> > +++++++++++++++++++++++++---------
+> >  drivers/infiniband/ulp/srpt/ib_srpt.h |   4 ++
+> >  2 files changed, 99 insertions(+), 35 deletions(-)
+> > 
+> > diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > index 6cf95ad870cc..a21b7a96635c 100644
+> > --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > @@ -75,11 +75,19 @@ module_param(srp_max_req_size, int, 0444);
+> >  MODULE_PARM_DESC(srp_max_req_size,
+> >  		 "Maximum size of SRP request messages in
+> > bytes.");
+> > 
+> > +static bool use_srq;
+> > +module_param(use_srq, bool, S_IRUGO | S_IWUSR);
+> > +MODULE_PARM_DESC(use_srq, "Whether or not to use SRQ");
+> > +
 > 
-> As we all know there are several static analysis tools available for
-> the Linux
-> kernel and these tools are valuable. I'm referring to increasing the
-> gcc
-> warning level (W=1), sparse and smatch. It is helpful to analyze new
-> code with
-> these tools before submitting a patch. These tools are most useful if
-> existing
-> code is clean. Hence this patch series that significantly reduces the
-> number
-> of complaints reported by static analysis tools. Please consider this
-> patch
-> series for kernel v4.15.
+> It is a little bit strange to ask from user to decide if his adapter
+> supports SRQ or not.
+> 
+> It should be automatically.
 
-The series looks pretty good Bart.  I'd like some Intel eyes on the
-hfi1 changes, and I'd like some people to report back that the rcu
-changes in their code are good, and the Cc: Signed-off-by: mistakes in
-the hns_roce parts needs fixed.  Then I'll be ready to take it.  Thanks
-for all the work here.
+I think Bart's intent is that the driver not use SRQ as the default
+behavior even if the adapter supports it, so querying the adapter for
+support and enabling it if it exists would not achieve his desired
+result.  This would then be used to override that behavior.  Is that
+correct Bart?
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
