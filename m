@@ -1,118 +1,89 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/rxe: check for allocation failure on elem
-Date: Mon, 09 Oct 2017 09:16:35 -0400
-Message-ID: <1507554995.46071.25.camel@redhat.com>
-References: <20170908143745.2445-1-colin.king@canonical.com>
-         <20170909125607.GA22465@mtr-leonro.local>
-         <20170912144829.GR3405@mtr-leonro.local>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Is ib_mtu iboe_get_mtu() slightly off?
+Date: Mon, 09 Oct 2017 09:34:33 -0400
+Message-ID: <1507556073.46071.27.camel@redhat.com>
+References: <CAL1RGDX33tBR=x2sOp_F1605SY5nu_6YALr-XYE_LiuvsHQ1ng@mail.gmail.com>
+         <VI1PR0502MB300886CB47BB3DFDE098A26AD1660@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20170912144829.GR3405@mtr-leonro.local>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Colin King <colin.king@canonical.com>
-Cc: Moni Shoua <monis@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <VI1PR0502MB300886CB47BB3DFDE098A26AD1660-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-09-12 at 17:48 +0300, Leon Romanovsky wrote:
-> On Sat, Sep 09, 2017 at 03:56:07PM +0300, Leon Romanovsky wrote:
-> > On Fri, Sep 08, 2017 at 03:37:45PM +0100, Colin King wrote:
-> > > From: Colin Ian King <colin.king@canonical.com>
-> > > 
-> > > The allocation for elem may fail (especially because we're using
-> > > GFP_ATOMIC) so best to check for a null return.  This fixes a
-> > > potential
-> > > null pointer dereference when assigning elem->pool.
-> > > 
-> > > Detected by CoverityScan CID#1357507 ("Dereference null return
-> > > value")
-> > > 
-> > > Fixes: 8700e3e7c485 ("Soft RoCE driver")
-> > > Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> > > ---
-> > >  drivers/infiniband/sw/rxe/rxe_pool.c | 2 ++
-> > >  1 file changed, 2 insertions(+)
-> > > 
-> > > diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c
-> > > b/drivers/infiniband/sw/rxe/rxe_pool.c
-> > > index c1b5f38f31a5..3b4916680018 100644
-> > > --- a/drivers/infiniband/sw/rxe/rxe_pool.c
-> > > +++ b/drivers/infiniband/sw/rxe/rxe_pool.c
-> > > @@ -404,6 +404,8 @@ void *rxe_alloc(struct rxe_pool *pool)
-> > >  	elem = kmem_cache_zalloc(pool_cache(pool),
-> > >  				 (pool->flags & RXE_POOL_ATOMIC)
-> > > ?
-> > >  				 GFP_ATOMIC : GFP_KERNEL);
-> > > +	if (!elem)
-> > > +		return NULL;
-> > > 
+On Thu, 2017-09-21 at 02:20 +0000, Parav Pandit wrote:
+> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Roland Dreier
+> > Sent: Wednesday, September 20, 2017 7:39 PM
+> > To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Subject: Is ib_mtu iboe_get_mtu() slightly off?
 > > 
-> > It is not enough to simply return NULL, you also should release
-> > "pool" too.
+> > We have:
+> > 
+> > static inline enum ib_mtu iboe_get_mtu(int mtu) {
+> >         /*
+> >          * reduce IB headers from effective IBoE MTU. 28 stands for
+> >          * atomic header which is the biggest possible header after
+> > BTH
+> >          */
+> >         mtu = mtu - IB_GRH_BYTES - IB_BTH_BYTES - 28;
+> >        ...
+> > 
+> > 28 bytes is the size of the AtomicETH header.  But couldn't we have
+> > a packet
+> > with both AtomicETH and XRCETH (4 more bytes)?
 > 
-> Colin,
-> do you plan to fix the comment and resend it?
+> XRCETH + AtomicETH is possible.
+> Additionally I guess 4 bytes of ICRC is missing too in calculation.
 
-Since Colin is non-responsive in this thread, I went ahead and took his
-patch, but then applied a fixup of my own:
+Since no one rolled a patch for this, I did.
 
-commit a79c0f939da23740c12f43019720055aade89367 (HEAD -> k.o/for-next)
-Author: Doug Ledford <dledford@redhat.com>
-Date:   Mon Oct 9 09:11:32 2017 -0400
+commit 7107ee2ea38fb52ffe81be054657e90863ebe8ab (HEAD -> k.o/for-next)
+Author: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Date:   Mon Oct 9 09:26:47 2017 -0400
 
-    IB/rxe: put the pool on allocation failure
+    RDMA/core: Fix iboe_get_mtu size calculation
     
-    If the allocation of elem fails, it is not sufficient to simply check
-    for NULL and return.  We need to also put our reference on the pool or
-    else we will leave the pool with a permanent ref count and we will never
-    be able to free it.
+    We mistakenly used the size of the largest header possible after
+    BTH_BYTES without considering that this largest header might actually be
+    in combination with a few select other headers.  So, increase the size
+    of the largest header number to be the size of the largest possible
+    combination of headers instead of just the single largest header.
     
-    Fixes: 4831ca9e4a8e (IB/rxe: check for allocation failure on elem)
-    Suggested-by: Leon Romanovsky <leon@kernel.org>
-    Signed-off-by: Doug Ledford <dledford@redhat.com>
+    Fixes: 3c86aa70bf67 (RDMA/cm: Add RDMA CM support for IBoE devices)
+    Reported-by: Roland Drier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+    Reported-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+    Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
-index 3b4916680018..b4a8acc7bb7d 100644
---- a/drivers/infiniband/sw/rxe/rxe_pool.c
-+++ b/drivers/infiniband/sw/rxe/rxe_pool.c
-@@ -394,23 +394,25 @@ void *rxe_alloc(struct rxe_pool *pool)
+diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
+index ec5008cf5d51..45a03c514437 100644
+--- a/include/rdma/ib_addr.h
++++ b/include/rdma/ib_addr.h
+@@ -245,10 +245,11 @@ static inline void rdma_addr_set_dgid(struct rdma_dev_addr *dev_addr, union ib_g
+ static inline enum ib_mtu iboe_get_mtu(int mtu)
+ {
+        /*
+-        * reduce IB headers from effective IBoE MTU. 28 stands for
+-        * atomic header which is the biggest possible header after BTH
++        * reduce IB headers from effective IBoE MTU. 36 stands for
++        * AtomicETH + XRCETH + ICRC, which is the biggest header
++        * combination possible after BTH
+         */
+-       mtu = mtu - IB_GRH_BYTES - IB_BTH_BYTES - 28;
++       mtu = mtu - IB_GRH_BYTES - IB_BTH_BYTES - 36;
  
-        kref_get(&pool->rxe->ref_cnt);
- 
--       if (atomic_inc_return(&pool->num_elem) > pool->max_elem) {
--               atomic_dec(&pool->num_elem);
--               rxe_dev_put(pool->rxe);
--               rxe_pool_put(pool);
--               return NULL;
--       }
-+       if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
-+               goto out_put_pool;
- 
-        elem = kmem_cache_zalloc(pool_cache(pool),
-                                 (pool->flags & RXE_POOL_ATOMIC) ?
-                                 GFP_ATOMIC : GFP_KERNEL);
-        if (!elem)
--               return NULL;
-+               goto out_put_pool;
- 
-        elem->pool = pool;
-        kref_init(&elem->ref_cnt);
- 
-        return elem;
-+
-+out_put_pool:
-+       atomic_dec(&pool->num_elem);
-+       rxe_dev_put(pool->rxe);
-+       rxe_pool_put(pool);
-+       return NULL;
- }
- 
- void rxe_elem_release(struct kref *kref)
+        if (mtu >= ib_mtu_enum_to_int(IB_MTU_4096))
+                return IB_MTU_4096;
 
 
 -- 
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
