@@ -1,50 +1,29 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: Is ib_mtu iboe_get_mtu() slightly off?
-Date: Mon, 9 Oct 2017 20:47:20 +0000
-Message-ID: <VI1PR0502MB3008900E038DEF6EEAB719DFD1740@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <CAL1RGDX33tBR=x2sOp_F1605SY5nu_6YALr-XYE_LiuvsHQ1ng@mail.gmail.com>
-         <VI1PR0502MB300886CB47BB3DFDE098A26AD1660@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-         <1507556073.46071.27.camel@redhat.com>
-         <20171009134131.GB1252@mtr-leonro.local>
- <1507565652.46071.33.camel@redhat.com>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 21/47] RDMA/i40iw: Fix a race condition
+Date: Mon, 9 Oct 2017 17:04:13 -0500
+Message-ID: <20171009220412.GA29040@ssaleem-MOBL4.amr.corp.intel.com>
+References: <20171006213333.6721-1-bart.vanassche@wdc.com>
+ <20171006213333.6721-22-bart.vanassche@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1507565652.46071.33.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20171006213333.6721-22-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgRG91ZywNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEb3VnIExl
-ZGZvcmQgW21haWx0bzpkbGVkZm9yZEByZWRoYXQuY29tXQ0KPiBTZW50OiBNb25kYXksIE9jdG9i
-ZXIgMDksIDIwMTcgMTE6MTQgQU0NCj4gVG86IExlb24gUm9tYW5vdnNreSA8bGVvbkBrZXJuZWwu
-b3JnPg0KPiBDYzogUGFyYXYgUGFuZGl0IDxwYXJhdkBtZWxsYW5veC5jb20+OyBSb2xhbmQgRHJl
-aWVyDQo+IDxyb2xhbmRAcHVyZXN0b3JhZ2UuY29tPjsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5v
-cmcNCj4gU3ViamVjdDogUmU6IElzIGliX210dSBpYm9lX2dldF9tdHUoKSBzbGlnaHRseSBvZmY/
-DQo+IA0KPiBPbiBNb24sIDIwMTctMTAtMDkgYXQgMTY6NDEgKzAzMDAsIExlb24gUm9tYW5vdnNr
-eSB3cm90ZToNCj4gPiBPbiBNb24sIE9jdCAwOSwgMjAxNyBhdCAwOTozNDozM0FNIC0wNDAwLCBE
-b3VnIExlZGZvcmQgd3JvdGU6DQo+ID4gPg0KPiA+ID4gU2luY2Ugbm8gb25lIHJvbGxlZCBhIHBh
-dGNoIGZvciB0aGlzLCBJIGRpZC4NCj4gPiA+DQo+ID4NCj4gPiBEb3VnLA0KPiA+DQo+ID4gUGFy
-YXYgY3JlYXRlZCwgSSB3YWl0ZWQgZm9yIG91ciBzaGFyZWQgY29kZS4NCj4gPiBodHRwczovL2Vt
-ZWEwMS5zYWZlbGlua3MucHJvdGVjdGlvbi5vdXRsb29rLmNvbS8/dXJsPWh0dHBzJTNBJTJGJTJG
-Z2l0DQo+ID4gLmtlcm5lbC5vcmclMkZwdWIlMkZzY20lMkZsaW51eCUyRmtlcm5lbCUyRmdpdCUy
-Rmxlb24lMkZsaW51eC0NCj4gcmRtYS5naXQNCj4gPg0KPiAlMkZjJmRhdGE9MDIlN0MwMSU3Q3Bh
-cmF2JTQwbWVsbGFub3guY29tJTdDMzhiMWU0ODk0MmYyNGNhMzYzYWIwDQo+IDhkNTBmMw0KPiA+
-DQo+IDBjOTg4JTdDYTY1Mjk3MWM3ZDJlNGQ5YmE2YTRkMTQ5MjU2ZjQ2MWIlN0MwJTdDMCU3QzYz
-NjQzMTYyNDU2OA0KPiAxMzQ4NzgmDQo+ID4NCj4gc2RhdGE9TE9qdU5nRUFBVnVLUzlOZ044UU8x
-OGxQZE5JJTJCaEJGTndhQmN1YWM1QWZZJTNEJnJlc2VydmVkPQ0KPiAwDQo+ID4gb21taXQvP2g9
-cmRtYS1uZXh0JmlkPTUxZWQ2NzM1ZGQ1OTAwOGFlYTRkNzMwODQxNmVkOTk0YjI3N2YxNjgNCj4g
-DQo+IE9rLCBidXQgaWYgdGhlIGlzc3VlIGhhcyBiZWVuIHNpdHRpbmcgb24gdGhlIGxpc3QgYSB3
-aGlsZSwgYW5kIEkgZG9uJ3Qga25vdyBhIGZpeCBpcw0KPiBjb21pbmcsIHRoZW4gdGhlcmUgaXMg
-YSBub3QtMCBwZXJjZW50IGNoYW5jZSBJJ2xsIGp1c3QgZml4IGl0IG15c2VsZi4NCj4NCg0KU29y
-cnkgZm9yIG5vdCBBQ0tpbmcgdGhhdCBJIHdhcyBkb2luZyBpdCBsYXN0IHdlZWsuDQpJZiBwb3Nz
-aWJsZSwgcGxlYXNlIHBpY2sgdGhlIG9uZSB0aGF0IExlb24gaXMgc2VuZGluZyBiZWNhdXNlIA0K
-aW5zdGVhZCBvZiBkb2luZyBjYWxjdWxhdGlvbiBpbiBoYWxmIGNvbW1lbnQgYmFzZWQgYW5kIGhh
-bGYgZGVmaW5lZCBiYXNlZCBjb2RlLA0KbXkgcGF0Y2ggZGVmaW5lcyBhbGwgbmVjZXNzYXJ5IGhl
-YWRlciBzaXplcyBpbiBjYWxjdWxhdGlvbiwgbGl0dGxlIGNsZWFuIHdheS4NCg==
+On Fri, Oct 06, 2017 at 02:33:07PM -0700, Bart Van Assche wrote:
+> Use the proper primitives to dereference the RCU pointer
+> upper_dev->ip_ptr. Compile-tested only.
+> 
+> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+> Cc: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+Thank you for this patch. Looks fine.
+
+Reviewed-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
