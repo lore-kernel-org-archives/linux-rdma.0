@@ -1,31 +1,82 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH 19/47] IB/hns: Annotate iomem pointers correctly
-Date: Mon, 9 Oct 2017 17:10:05 +0000
-Message-ID: <1507569004.2674.13.camel@wdc.com>
-References: <20171006213333.6721-1-bart.vanassche@wdc.com>
-         <20171006213333.6721-20-bart.vanassche@wdc.com>
-         <20171008134219.GB25829@mtr-leonro.local>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v7 09/12] xfs: wire up ->lease_direct()
+Date: Mon, 9 Oct 2017 10:10:42 -0700
+Message-ID: <CAPcyv4jGgrrwrvd7ExyG6BNKemWg7yvtAG7wyUm64SwtNn70cw@mail.gmail.com>
+References: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150732936625.22363.7638037715540836828.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171009034506.GI3666@dastard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171008134219.GB25829-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <2A31B826A3359C45AEB47F9B45D17B7B-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20171009034506.GI3666@dastard>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-xfs@vger.kernel.org, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, Linux API <linux-api@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "J. Bruce Fields" <bfields@fieldses.org>, Linux MM <linux-mm@kvack.org>, Jeff Moyer <jmoyer@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jeff Layton <jlayton@poochiereds.net>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gU3VuLCAyMDE3LTEwLTA4IGF0IDE2OjQyICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IE9uIEZyaSwgT2N0IDA2LCAyMDE3IGF0IDAyOjMzOjA1UE0gLTA3MDAsIEJhcnQgVmFuIEFz
-c2NoZSB3cm90ZToNCj4gPiBUaGlzIHBhdGNoIGF2b2lkcyB0aGF0IHNwYXJzZSBjb21wbGFpbnMg
-dGhhdCB0aGVyZSBpcyBhbiBhZGRyZXNzDQo+ID4gc3BhY2UgbWlzbWF0Y2guDQo+ID4gDQo+ID4g
-U2lnbmVkLW9mZi1ieTogQmFydCBWYW4gQXNzY2hlIDxiYXJ0LnZhbmFzc2NoZUB3ZGMuY29tPg0K
-PiA+IENjOiBTaWduZWQtb2ZmLWJ5OiBMaWp1biBPdSA8b3VsaWp1bkBodWF3ZWkuY29tPg0KPiAN
-Cj4gU29tZXRoaW5nIHdlbnQgd3JvbmcgaGVyZS4NCg0KSGVsbG8gTGVvbiwNCg0KVGhhbmtzIGZv
-ciBoYXZpbmcgcmVwb3J0ZWQgdGhpcy4gSSB3aWxsIGZpeCB0aGUgQ2MtbGlzdC4NCg0KQmFydC4=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Sun, Oct 8, 2017 at 8:45 PM, Dave Chinner <david@fromorbit.com> wrote:
+> On Fri, Oct 06, 2017 at 03:36:06PM -0700, Dan Williams wrote:
+>> A 'lease_direct' lease requires that the vma have a valid MAP_DIRECT
+>> mapping established. For xfs we establish a new lease and then check if
+>> the MAP_DIRECT mapping has been broken. We want to be sure that the
+>> process will receive notification that the MAP_DIRECT mapping is being
+>> torn down so it knows why other code paths are throwing failures.
+>>
+>> For example in the RDMA/ibverbs case we want ibv_reg_mr() to fail if the
+>> MAP_DIRECT mapping is invalid or in the process of being invalidated.
+>>
+>> Cc: Jan Kara <jack@suse.cz>
+>> Cc: Jeff Moyer <jmoyer@redhat.com>
+>> Cc: Christoph Hellwig <hch@lst.de>
+>> Cc: Dave Chinner <david@fromorbit.com>
+>> Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> Cc: Jeff Layton <jlayton@poochiereds.net>
+>> Cc: "J. Bruce Fields" <bfields@fieldses.org>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>>  fs/xfs/xfs_file.c |   28 ++++++++++++++++++++++++++++
+>>  1 file changed, 28 insertions(+)
+>>
+>> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+>> index e35518600e28..823b65f17429 100644
+>> --- a/fs/xfs/xfs_file.c
+>> +++ b/fs/xfs/xfs_file.c
+>> @@ -1166,6 +1166,33 @@ xfs_filemap_direct_close(
+>>       put_map_direct_vma(vma->vm_private_data);
+>>  }
+>>
+>> +static struct lease_direct *
+>> +xfs_filemap_direct_lease(
+>> +     struct vm_area_struct   *vma,
+>> +     void                    (*break_fn)(void *),
+>> +     void                    *owner)
+>> +{
+>> +     struct lease_direct     *ld;
+>> +
+>> +     ld = map_direct_lease(vma, break_fn, owner);
+>> +
+>> +     if (IS_ERR(ld))
+>> +             return ld;
+>> +
+>> +     /*
+>> +      * We now have an established lease while the base MAP_DIRECT
+>> +      * lease was not broken. So, we know that the "lease holder" will
+>> +      * receive a SIGIO notification when the lease is broken and
+>> +      * take any necessary cleanup actions.
+>> +      */
+>> +     if (!is_map_direct_broken(vma->vm_private_data))
+>> +             return ld;
+>> +
+>> +     map_direct_lease_destroy(ld);
+>> +
+>> +     return ERR_PTR(-ENXIO);
+>
+> What's any of this got to do with XFS? Shouldn't it be in generic
+> code, and called generic_filemap_direct_lease()?
+
+True, I can move this to generic code. The filesystem is in charge of
+where it wants to store the 'struct map_direct_state' context, but for
+generic_filemap_direct_lease() it can just assume that it is stored in
+->vm_private_data. I'll add comments to this effect on the new
+routine.
