@@ -1,16 +1,16 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDMA/nes: Convert timers to use timer_setup()
-Date: Mon, 09 Oct 2017 12:23:30 -0400
-Message-ID: <1507566210.46071.34.camel@redhat.com>
-References: <20171005004527.GA22607@beast>
+Subject: Re: [PATCH] IB/qib: Convert timers to use timer_setup()
+Date: Mon, 09 Oct 2017 12:23:57 -0400
+Message-ID: <1507566237.46071.35.camel@redhat.com>
+References: <20171005004535.GA22628@beast>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171005004527.GA22607@beast>
+In-Reply-To: <20171005004535.GA22628@beast>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 On Wed, 2017-10-04 at 17:45 -0700, Kees Cook wrote:
@@ -18,11 +18,9 @@ On Wed, 2017-10-04 at 17:45 -0700, Kees Cook wrote:
 > pointer to
 > all timer callbacks, switch to using the new timer_setup() and
 > from_timer()
-> to pass the timer pointer explicitly. A pointer from nesadapter back
-> to
-> nesdev was added.
+> helper to pass the timer pointer explicitly.
 > 
-> Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 > Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
@@ -34,7 +32,7 @@ On Wed, 2017-10-04 at 17:45 -0700, Kees Cook wrote:
 > callback argument type") in v4.14-rc3, but should be otherwise
 > stand-alone.
 
-Thanks, applied to standalone branch to get the requirement.
+Thanks, applied (to the same standalone branch).
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
