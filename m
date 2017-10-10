@@ -1,27 +1,41 @@
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [PATCH 00/12] radix-tree: split out struct radix_tree_root out
- to <linux/radix-tree-root.h>
-Date: Tue, 10 Oct 2017 06:20:25 -0700
-Message-ID: <20171010132025.GA2687@bombadil.infradead.org>
-References: <1507479013-5207-1-git-send-email-yamada.masahiro@socionext.com>
- <20171010121829.GA26493@bombadil.infradead.org>
- <CAK7LNAQ_SVA1aYYgjMFqJG5OzjYa1EbNDGdrCAOOen_dABX30g@mail.gmail.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 41/47] IB/qib: Suppress gcc 7 fall-through complaints
+Date: Tue, 10 Oct 2017 13:56:50 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC3442AA1D@fmsmsx120.amr.corp.intel.com>
+References: <20171006213333.6721-1-bart.vanassche@wdc.com>
+ <20171006213333.6721-42-bart.vanassche@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAK7LNAQ_SVA1aYYgjMFqJG5OzjYa1EbNDGdrCAOOen_dABX30g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Ian Abbott <abbotti@mev.co.uk>, Ingo Molnar <mingo@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-cachefs@redhat.com, linux-sh@vger.kernel.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, dri-devel <dri-devel@lists.freedesktop.org>, David Airlie <airlied@linux.ie>, linux-rdma@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Tariq Toukan <tariqt@mellanox.com>, Rich Felker <dalias@libc.org>, Leon Romanovsky <leonro@mellanox.com>, Jani Nikula <jani.nikula@linux.intel.com>, "J. Bruce Fields" <bfields@fieldses.org>, David Howells <dhowells@redhat.com>, intel-gfx@lists.freedesktop.org, Yishai
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171006213333.6721-42-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 10, 2017 at 09:56:22PM +0900, Masahiro Yamada wrote:
-> One refactoring alone does not produce much benefits,
-> but making continuous efforts will disentangle the knotted threads.
-> Of course, this might be a pipe dream...
+> Subject: [PATCH 41/47] IB/qib: Suppress gcc 7 fall-through complaints
+> 
+> Avoid that gcc 7 reports the following warning when building with W=1:
+> 
+> warning: this statement may fall through [-Wimplicit-fallthrough=]
+> 
 
-A lot of people have had that dream, and some of those refactoring
-efforts have proven worthwhile.  But it's not a dream without costs;
-your refactoring will conflict with other changes.  I don't think the
-benefit here is high enough to pursue this edition of the dream.
+Bart,
+
+I'm ok with this but...
+
+I'm curious if there is a documentation change in the kernel on a common tree wide approach for gcc 7.
+
+I saw a patch to add the attribute based method of getting rid of the warning, but it doesn't appear to have been merged.
+
+This error probably runs through all of our drivers.
+
+Acked-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+Mike
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
