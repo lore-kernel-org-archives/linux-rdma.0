@@ -1,44 +1,42 @@
-From: Ursula Braun <ubraun@linux.vnet.ibm.com>
-Subject: [PATCH net 2/2] net/smc: dev_put for netdev after usage of ib_query_gid()
-Date: Tue, 10 Oct 2017 16:13:51 +0200
-Message-ID: <20171010141351.87700-3-ubraun@linux.vnet.ibm.com>
-References: <20171010141351.87700-1-ubraun@linux.vnet.ibm.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20171010141351.87700-1-ubraun@linux.vnet.ibm.com>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, jwi@linux.vnet.ibm.com, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.vnet.ibm.com, ubraun@linux.vnet.ibm.com, parav@mellanox.com
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 40/47] IB/qib: Make qib_inc_eeprom_err() macro more safe
+ to use
+Date: Tue, 10 Oct 2017 14:15:10 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC3442AAD2@fmsmsx120.amr.corp.intel.com>
+References: <20171006213333.6721-1-bart.vanassche@wdc.com>
+ <20171006213333.6721-41-bart.vanassche@wdc.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171006213333.6721-41-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-For ROCEs ib_query_gid() takes a reference count on the net_device.
-This reference count must be decreased by the caller.
+> Subject: [PATCH 40/47] IB/qib: Make qib_inc_eeprom_err() macro more safe
+> to use
+> 
+> Avoid that using the qib_inc_eeprom_err() macro in an if-statement
+> triggers the following compiler warning:
+> 
+> warning: suggest braces around empty body in an 'if' statement [-Wempty-
+> body]
+> 
 
-Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
----
- net/smc/smc_core.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+There needs to be a follow-on patch here to get rid of the uses of this macro.
 
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index 20b66e79c5d6..e93a31ec3cc2 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -380,10 +380,13 @@ static int smc_link_determine_gid(struct smc_link_group *lgr)
- 		if (ib_query_gid(lnk->smcibdev->ibdev, lnk->ibport, i, &gid,
- 				 &gattr))
- 			continue;
--		if (gattr.ndev &&
--		    (vlan_dev_vlan_id(gattr.ndev) == lgr->vlan_id)) {
--			lnk->gid = gid;
--			return 0;
-+		if (gattr.ndev) {
-+			if (vlan_dev_vlan_id(gattr.ndev) == lgr->vlan_id) {
-+				lnk->gid = gid;
-+				dev_put(gattr.ndev);
-+				return 0;
-+			}
-+			dev_put(gattr.ndev);
- 		}
- 	}
- 	return -ENODEV;
--- 
-2.13.5
+The original fix got rid of a bad implementation, but should have totally removed both the function and its use.
+
+The is not the fault of this patch.
+
+Fixes: 18c0b82a3e45  (" IB/qib: Do not write EEPROM")
+Acked-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+Mike
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
