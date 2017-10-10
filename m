@@ -1,227 +1,163 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 40/47] IB/qib: Make qib_inc_eeprom_err() macro more safe
- to use
-Date: Tue, 10 Oct 2017 21:08:09 +0300
-Message-ID: <20171010180809.GI2106@mtr-leonro.local>
-References: <20171006213333.6721-1-bart.vanassche@wdc.com>
- <20171006213333.6721-41-bart.vanassche@wdc.com>
- <32E1700B9017364D9B60AED9960492BC3442AAD2@fmsmsx120.amr.corp.intel.com>
- <1507648081.2815.5.camel@wdc.com>
- <32E1700B9017364D9B60AED9960492BC3442ADF5@fmsmsx120.amr.corp.intel.com>
- <1507658390.2815.48.camel@wdc.com>
+From: "Raj, Ashok" <ashok.raj@intel.com>
+Subject: Re: [PATCH v8] dma-mapping: introduce dma_get_iommu_domain()
+Date: Tue, 10 Oct 2017 07:40:01 -0700
+Message-ID: <20171010144001.GA17322@otc-nc-03>
+References: <150732935473.22363.1853399637339625023.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150743420333.12880.6968831423519457797.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="FUFe+yI/t+r3nyH4"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1507658390.2815.48.camel-Sjgp3cTcYWE@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <150743420333.12880.6968831423519457797.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Joerg Roedel <joro@8bytes.org>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, linux-api@vger.kernel.org, linux-fsdevel@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, David Woodhouse <dwmw2@infradead.org>, Robin Murphy <robin.murphy@arm.com>, Christoph Hellwig <hch@lst.de>, Marek Szyprowski <m.szyprowski@samsung.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Dan
 
---FUFe+yI/t+r3nyH4
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Oct 10, 2017 at 05:59:51PM +0000, Bart Van Assche wrote:
-> On Tue, 2017-10-10 at 15:36 +0000, Marciniszyn, Mike wrote:
-> > Bart wrote:
-> > > How about dropping this patch and replacing it with a patch that remo=
-ves all
-> > > uses of qib_inc_eeprom_err()?
-> >
-> > I'm fine with that too.
->
-> How about the patch below?
->
-> Thanks,
->
-> Bart.
->
->
-> Subject: [PATCH] IB/qib: Remove the qib_inc_eeprom_err() macro
->
-> Since the body of the qib_inc_eeprom_err() macro is empty, remove
-> the invocations of this macro.
->
-> References: commit 18c0b82a3e45 (" IB/qib: Do not write EEPROM")
-> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-> Cc: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Sat, Oct 07, 2017 at 08:45:00PM -0700, Dan Williams wrote:
+> Add a dma-mapping api helper to retrieve the generic iommu_domain for a device.
+> The motivation for this interface is making RDMA transfers to DAX mappings
+> safe. If the DAX file's block map changes we need to be to reliably stop
+> accesses to blocks that have been freed or re-assigned to a new file. With the
+> iommu_domain and a callback from the DAX filesystem the kernel can safely
+> revoke access to a DMA device. The process that performed the RDMA memory
+> registration is also notified of this revocation event, but the kernel can not
+> otherwise be in the position of waiting for userspace to quiesce the device.
+> 
+> Since PMEM+DAX is currently only enabled for x86, we only update the x86
+> iommu drivers.
+> 
+> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: Joerg Roedel <joro@8bytes.org>
+> Cc: David Woodhouse <dwmw2@infradead.org>
+> Cc: Ashok Raj <ashok.raj@intel.com>
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Jeff Moyer <jmoyer@redhat.com>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Dave Chinner <david@fromorbit.com>
+> Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->  drivers/infiniband/hw/qib/qib.h         |  1 -
->  drivers/infiniband/hw/qib/qib_iba6120.c | 11 -----------
->  drivers/infiniband/hw/qib/qib_iba7220.c | 10 ----------
->  drivers/infiniband/hw/qib/qib_iba7322.c |  6 +-----
->  4 files changed, 1 insertion(+), 27 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/=
-qib.h
-> index 1167a9c1776b..1869fce0ba00 100644
-> --- a/drivers/infiniband/hw/qib/qib.h
-> +++ b/drivers/infiniband/hw/qib/qib.h
-> @@ -1297,7 +1297,6 @@ int qib_twsi_blk_rd(struct qib_devdata *dd, int dev=
-, int addr, void *buffer,
->  int qib_twsi_blk_wr(struct qib_devdata *dd, int dev, int addr,
->  		    const void *buffer, int len);
->  void qib_get_eeprom_info(struct qib_devdata *);
-> -#define qib_inc_eeprom_err(dd, eidx, incr)
->  void qib_dump_lookup_output_queue(struct qib_devdata *);
->  void qib_force_pio_avail_update(struct qib_devdata *);
->  void qib_clear_symerror_on_linkup(unsigned long opaque);
-> diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniband=
-/hw/qib/qib_iba6120.c
-> index c4a4c57e0f0a..e0b52bab6f34 100644
-> --- a/drivers/infiniband/hw/qib/qib_iba6120.c
-> +++ b/drivers/infiniband/hw/qib/qib_iba6120.c
-> @@ -748,7 +748,6 @@ static void qib_handle_6120_hwerrors(struct qib_devda=
-ta *dd, char *msg,
->  	u32 bits, ctrl;
->  	int isfatal =3D 0;
->  	char *bitsmsg;
-> -	int log_idx;
->
->  	hwerrs =3D qib_read_kreg64(dd, kr_hwerrstatus);
->  	if (!hwerrs)
-> @@ -770,11 +769,6 @@ static void qib_handle_6120_hwerrors(struct qib_devd=
-ata *dd, char *msg,
->
->  	hwerrs &=3D dd->cspec->hwerrmask;
->
-> -	/* We log some errors to EEPROM, check if we have any of those. */
-> -	for (log_idx =3D 0; log_idx < QIB_EEP_LOG_CNT; ++log_idx)
-> -		if (hwerrs & dd->eep_st_masks[log_idx].hwerrs_to_log)
+> Changes since v7:
+> * retrieve the iommu_domain so that we can later pass the results of
+>   dma_map_* to iommu_unmap() in advance of the actual dma_unmap_*.
+> 
+>  drivers/base/dma-mapping.c  |   10 ++++++++++
+>  drivers/iommu/amd_iommu.c   |   10 ++++++++++
+>  drivers/iommu/intel-iommu.c |   15 +++++++++++++++
+>  include/linux/dma-mapping.h |    3 +++
+>  4 files changed, 38 insertions(+)
+> 
+> diff --git a/drivers/base/dma-mapping.c b/drivers/base/dma-mapping.c
+> index e584eddef0a7..fdb9764f95a4 100644
+> --- a/drivers/base/dma-mapping.c
+> +++ b/drivers/base/dma-mapping.c
+> @@ -369,3 +369,13 @@ void dma_deconfigure(struct device *dev)
+>  	of_dma_deconfigure(dev);
+>  	acpi_dma_deconfigure(dev);
+>  }
+> +
+> +struct iommu_domain *dma_get_iommu_domain(struct device *dev)
+> +{
+> +	const struct dma_map_ops *ops = get_dma_ops(dev);
+> +
+> +	if (ops && ops->get_iommu)
+> +		return ops->get_iommu(dev);
+> +	return NULL;
+> +}
+> +EXPORT_SYMBOL(dma_get_iommu_domain);
+> diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
+> index 51f8215877f5..c8e1a45af182 100644
+> --- a/drivers/iommu/amd_iommu.c
+> +++ b/drivers/iommu/amd_iommu.c
+> @@ -2271,6 +2271,15 @@ static struct protection_domain *get_domain(struct device *dev)
+>  	return domain;
+>  }
+>  
+> +static struct iommu_domain *amd_dma_get_iommu(struct device *dev)
 
-Does it mean that you can get rid of eep_st_masks and QIB_EEP_LOG_CNT too?
+Minor: Do you want to keep the naming consistent.. amd_dma_get_domain() vs
+get_iommu?
 
-> -			qib_inc_eeprom_err(dd, log_idx, 1);
-> -
->  	/*
->  	 * Make sure we get this much out, unless told to be quiet,
->  	 * or it's occurred within the last 5 seconds.
-> @@ -1004,7 +998,6 @@ static void handle_6120_errors(struct qib_devdata *d=
-d, u64 errs)
->  	char *msg;
->  	u64 ignore_this_time =3D 0;
->  	u64 iserr =3D 0;
-> -	int log_idx;
->  	struct qib_pportdata *ppd =3D dd->pport;
->  	u64 mask;
->
-> @@ -1015,10 +1008,6 @@ static void handle_6120_errors(struct qib_devdata =
-*dd, u64 errs)
->  	/* do these first, they are most important */
->  	if (errs & ERR_MASK(HardwareErr))
->  		qib_handle_6120_hwerrors(dd, msg, sizeof(dd->cspec->emsgbuf));
-> -	else
-> -		for (log_idx =3D 0; log_idx < QIB_EEP_LOG_CNT; ++log_idx)
-> -			if (errs & dd->eep_st_masks[log_idx].errs_to_log)
-> -				qib_inc_eeprom_err(dd, log_idx, 1);
->
->  	if (errs & ~IB_E_BITSEXTANT)
->  		qib_dev_err(dd,
-> diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniband=
-/hw/qib/qib_iba7220.c
-> index 78ce79be4120..75f2cfd0d272 100644
-> --- a/drivers/infiniband/hw/qib/qib_iba7220.c
-> +++ b/drivers/infiniband/hw/qib/qib_iba7220.c
-> @@ -1094,7 +1094,6 @@ static void handle_7220_errors(struct qib_devdata *=
-dd, u64 errs)
->  	char *msg;
->  	u64 ignore_this_time =3D 0;
->  	u64 iserr =3D 0;
-> -	int log_idx;
->  	struct qib_pportdata *ppd =3D dd->pport;
->  	u64 mask;
->
-> @@ -1105,10 +1104,6 @@ static void handle_7220_errors(struct qib_devdata =
-*dd, u64 errs)
->  	/* do these first, they are most important */
->  	if (errs & ERR_MASK(HardwareErr))
->  		qib_7220_handle_hwerrors(dd, msg, sizeof(dd->cspec->emsgbuf));
-> -	else
-> -		for (log_idx =3D 0; log_idx < QIB_EEP_LOG_CNT; ++log_idx)
-> -			if (errs & dd->eep_st_masks[log_idx].errs_to_log)
-> -				qib_inc_eeprom_err(dd, log_idx, 1);
->
->  	if (errs & QLOGIC_IB_E_SDMAERRS)
->  		sdma_7220_errors(ppd, errs);
-> @@ -1302,7 +1297,6 @@ static void qib_7220_handle_hwerrors(struct qib_dev=
-data *dd, char *msg,
->  	u32 bits, ctrl;
->  	int isfatal =3D 0;
->  	char *bitsmsg;
-> -	int log_idx;
->
->  	hwerrs =3D qib_read_kreg64(dd, kr_hwerrstatus);
->  	if (!hwerrs)
-> @@ -1326,10 +1320,6 @@ static void qib_7220_handle_hwerrors(struct qib_de=
-vdata *dd, char *msg,
->
->  	hwerrs &=3D dd->cspec->hwerrmask;
->
-> -	/* We log some errors to EEPROM, check if we have any of those. */
-> -	for (log_idx =3D 0; log_idx < QIB_EEP_LOG_CNT; ++log_idx)
-> -		if (hwerrs & dd->eep_st_masks[log_idx].hwerrs_to_log)
-> -			qib_inc_eeprom_err(dd, log_idx, 1);
->  	if (hwerrs & ~(TXEMEMPARITYERR_PIOBUF | TXEMEMPARITYERR_PIOPBC |
->  		       RXE_PARITY))
->  		qib_devinfo(dd->pcidev,
-> diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband=
-/hw/qib/qib_iba7322.c
-> index 4d02cffe4e03..77217fae9c06 100644
-> --- a/drivers/infiniband/hw/qib/qib_iba7322.c
-> +++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-> @@ -1644,7 +1644,6 @@ static noinline void handle_7322_errors(struct qib_=
-devdata *dd)
->  	u64 iserr =3D 0;
->  	u64 errs;
->  	u64 mask;
-> -	int log_idx;
->
->  	qib_stats.sps_errints++;
->  	errs =3D qib_read_kreg64(dd, kr_errstatus);
-> @@ -1662,10 +1661,7 @@ static noinline void handle_7322_errors(struct qib=
-_devdata *dd)
->  	if (errs & QIB_E_HARDWARE) {
->  		*msg =3D '\0';
->  		qib_7322_handle_hwerrors(dd, msg, sizeof(dd->cspec->emsgbuf));
-> -	} else
-> -		for (log_idx =3D 0; log_idx < QIB_EEP_LOG_CNT; ++log_idx)
-> -			if (errs & dd->eep_st_masks[log_idx].errs_to_log)
-> -				qib_inc_eeprom_err(dd, log_idx, 1);
-> +	}
->
->  	if (errs & QIB_E_SPKTERRS) {
->  		qib_disarm_7322_senderrbufs(dd->pport);
-> N?????r??y????b?X??=C7=A7v?^?)=DE=BA{.n?+????{??=D9=9A?{ay?=1D=CA=87=DA=
-=99?,j=07??f???h???z?=1E?w???=0C???j:+v???w?j?m????=07????zZ+?????=DD=A2j"?=
-?!
+> +{
+> +	struct protection_domain *domain = get_domain(dev);
+> +
+> +	if (IS_ERR(domain))
+> +		return NULL;
+> +	return &domain->domain;
+> +}
+> +
+>  static void update_device_table(struct protection_domain *domain)
+>  {
+>  	struct iommu_dev_data *dev_data;
+> @@ -2689,6 +2698,7 @@ static const struct dma_map_ops amd_iommu_dma_ops = {
+>  	.unmap_sg	= unmap_sg,
+>  	.dma_supported	= amd_iommu_dma_supported,
+>  	.mapping_error	= amd_iommu_mapping_error,
+> +	.get_iommu	= amd_dma_get_iommu,
 
---FUFe+yI/t+r3nyH4
-Content-Type: application/pgp-signature; name="signature.asc"
+ditto for here and other places below:
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlndDIkACgkQ5GN7iDZy
-WKebghAAsW9GCYQV2oAc8joIvY5NDHpGRu/pfGo+b+Ts4tpqJpBDFLkpbF3CXZ3o
-e1hG05InR4pyiGHu55nxWIIh77jGGfRt4sgZYfh/Gs6dWtvrv+ik+UlOcXJjwRuI
-3ISbKSzBVX66cR5F7x7Y9a2rueC8IEXv5G0I8zkgXGIyNc946k+zY8L64/ryXXWz
-y71AhNhW0mxm8jB8ADnhGmCgUYySyg3vpgVQ7iUQ9m5moY6bqUVsHSvBSvLF5ZWt
-cE3eDTMaQy43jJTJAdNp9HrMyRtogtZI4V4AaR+Bsi/+jhmEiwiJd0PGZ8MsD+SY
-aGBnfRmZtk0Hb6VDs2pVG0/khHt5+JXJuMENMtyptFiKDa7iuIA5k/QZAX+Vl2QV
-YfLcyo5X02WQySjkJsE2MdfO2FHzX6g26CzYVDJIVFbnBY+BizYmTgClttUgP3W/
-drRBq8gBFuBFziNwJJUaZfyheTxbm0anShhVA+XXDb4aCp2zUWi/z1SXvY1LGAjF
-NkUwL765cOAYoy5nlEes5innkZI9KxdiDPw58vLPQLRYUp4R/Uinbmx0Jjubhl5+
-KjBImREEUQ/cFrAc9nIGZldKQLWnxDXKXKNVQvtxV/0z+mocsGRLeIPKJGou7KzL
-RR068vGxy3sZ8kFdt1jpYC1yFrqivTUVNiIU+9waljj9x4n/2l8=
-=Lp6z
------END PGP SIGNATURE-----
-
---FUFe+yI/t+r3nyH4--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  };
+>  
+>  static int init_reserved_iova_ranges(void)
+> diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
+> index 6784a05dd6b2..f3f4939cebad 100644
+> --- a/drivers/iommu/intel-iommu.c
+> +++ b/drivers/iommu/intel-iommu.c
+> @@ -3578,6 +3578,20 @@ static int iommu_no_mapping(struct device *dev)
+>  	return 0;
+>  }
+>  
+> +static struct iommu_domain *intel_dma_get_iommu(struct device *dev)
+> +{
+> +	struct dmar_domain *domain;
+> +
+> +	if (iommu_no_mapping(dev))
+> +		return NULL;
+> +
+> +	domain = get_valid_domain_for_dev(dev);
+> +	if (!domain)
+> +		return NULL;
+> +
+> +	return &domain->domain;
+> +}
+> +
+>  static dma_addr_t __intel_map_single(struct device *dev, phys_addr_t paddr,
+>  				     size_t size, int dir, u64 dma_mask)
+>  {
+> @@ -3872,6 +3886,7 @@ const struct dma_map_ops intel_dma_ops = {
+>  	.map_page = intel_map_page,
+>  	.unmap_page = intel_unmap_page,
+>  	.mapping_error = intel_mapping_error,
+> +	.get_iommu = intel_dma_get_iommu,
+>  #ifdef CONFIG_X86
+>  	.dma_supported = x86_dma_supported,
+>  #endif
+> diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+> index 29ce9815da87..aa62df1d0d72 100644
+> --- a/include/linux/dma-mapping.h
+> +++ b/include/linux/dma-mapping.h
+> @@ -128,6 +128,7 @@ struct dma_map_ops {
+>  				   enum dma_data_direction dir);
+>  	int (*mapping_error)(struct device *dev, dma_addr_t dma_addr);
+>  	int (*dma_supported)(struct device *dev, u64 mask);
+> +	struct iommu_domain *(*get_iommu)(struct device *dev);
+>  #ifdef ARCH_HAS_DMA_GET_REQUIRED_MASK
+>  	u64 (*get_required_mask)(struct device *dev);
+>  #endif
+> @@ -221,6 +222,8 @@ static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
+>  }
+>  #endif
+>  
+> +extern struct iommu_domain *dma_get_iommu_domain(struct device *dev);
+> +
+>  static inline dma_addr_t dma_map_single_attrs(struct device *dev, void *ptr,
+>  					      size_t size,
+>  					      enum dma_data_direction dir,
+> 
