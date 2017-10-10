@@ -1,46 +1,67 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 3/7] IB/srpt: Change default behavior from using SRQ to
- not using SRQ
-Date: Tue, 10 Oct 2017 11:04:29 -0600
-Message-ID: <20171010170429.GA21288@obsidianresearch.com>
-References: <20171006214243.11296-4-bart.vanassche@wdc.com>
- <20171008100317.GR25829@mtr-leonro.local>
- <1507568205.46071.46.camel@redhat.com>
- <1507568492.2674.11.camel@wdc.com>
- <20171010041423.GJ1252@mtr-leonro.local>
- <9443ec1f-0acd-9fa3-4621-a29085d2c606@redhat.com>
- <20171010150018.GC2106@mtr-leonro.local>
- <1507648402.46071.53.camel@redhat.com>
- <20171010154439.GE2106@mtr-leonro.local>
- <1507651473.2815.20.camel@wdc.com>
+From: Parav Pandit <parav@mellanox.com>
+Subject: RE: [PATCH net 2/2] net/smc: dev_put for netdev after usage of
+ ib_query_gid()
+Date: Tue, 10 Oct 2017 17:09:08 +0000
+Message-ID: <VI1PR0502MB30088E4F58036AB3A06822E8D1750@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20171010141351.87700-1-ubraun@linux.vnet.ibm.com>
+ <20171010141351.87700-3-ubraun@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1507651473.2815.20.camel-Sjgp3cTcYWE@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20171010141351.87700-3-ubraun@linux.vnet.ibm.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Ursula Braun <ubraun@linux.vnet.ibm.com>, "davem@davemloft.net" <davem@davemloft.net>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "jwi@linux.vnet.ibm.com" <jwi@linux.vnet.ibm.com>, "schwidefsky@de.ibm.com" <schwidefsky@de.ibm.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "raspl@linux.vnet.ibm.com" <raspl@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 10, 2017 at 04:04:34PM +0000, Bart Van Assche wrote:
-> On Tue, 2017-10-10 at 18:44 +0300, Leon Romanovsky wrote:
-> > Bart clearly mentioned disadvantages of XRQ and left me wonder why user
-> > needs to enable it anyway. This is what I'm asking and this is what I'm
-> > hoping to see in the commit message.
-> 
-> I assume that you meant SRQ instead of XRQ? For HCA's that support SRQ a
-> choice has to be made between the lower memory usage of SRQ or the higher
-> performance of RC. I think only the user can make that choice. Hence the
-> new kernel module parameter.
 
-considering our general dislike of module parameters, could you
-achieve this via some communicationfrom srp_daemon instead?
 
-Perhaps even on a per target basis?
+> -----Original Message-----
+> From: Ursula Braun [mailto:ubraun@linux.vnet.ibm.com]
+> Sent: Tuesday, October 10, 2017 9:14 AM
+> To: davem@davemloft.net
+> Cc: netdev@vger.kernel.org; linux-rdma@vger.kernel.org; linux-
+> s390@vger.kernel.org; jwi@linux.vnet.ibm.com; schwidefsky@de.ibm.com;
+> heiko.carstens@de.ibm.com; raspl@linux.vnet.ibm.com;
+> ubraun@linux.vnet.ibm.com; Parav Pandit <parav@mellanox.com>
+> Subject: [PATCH net 2/2] net/smc: dev_put for netdev after usage of
+> ib_query_gid()
+>=20
+> For ROCEs ib_query_gid() takes a reference count on the net_device.
+> This reference count must be decreased by the caller.
+>=20
+> Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
+Reported-by: Parav Pandit <parav@mellanox.com>
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  net/smc/smc_core.c | 11 +++++++----
+>  1 file changed, 7 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c index
+> 20b66e79c5d6..e93a31ec3cc2 100644
+> --- a/net/smc/smc_core.c
+> +++ b/net/smc/smc_core.c
+> @@ -380,10 +380,13 @@ static int smc_link_determine_gid(struct
+> smc_link_group *lgr)
+>  		if (ib_query_gid(lnk->smcibdev->ibdev, lnk->ibport, i, &gid,
+>  				 &gattr))
+>  			continue;
+> -		if (gattr.ndev &&
+> -		    (vlan_dev_vlan_id(gattr.ndev) =3D=3D lgr->vlan_id)) {
+> -			lnk->gid =3D gid;
+> -			return 0;
+> +		if (gattr.ndev) {
+> +			if (vlan_dev_vlan_id(gattr.ndev) =3D=3D lgr->vlan_id) {
+
+This needs to be changed to=20
+If (gattr.ndev) {
+	if (is_vlan_dev(gattr.ndev)) &&=20
+	    vlan_dev_vlan_id(gattr.ndev) =3D=3D lgr->vlan_id) {
+	...
+}
+
+Without this check, on vlan disabled kernel at compile time, kernel will cr=
+ash on vlan_dev_vlan_id().
+Please fix this part, rest code looks fine.
