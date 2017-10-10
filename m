@@ -1,44 +1,39 @@
 From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH 41/47] IB/qib: Suppress gcc 7 fall-through complaints
-Date: Tue, 10 Oct 2017 15:07:09 +0000
-Message-ID: <1507648027.2815.4.camel@wdc.com>
+Subject: Re: [PATCH 40/47] IB/qib: Make qib_inc_eeprom_err() macro more safe
+ to use
+Date: Tue, 10 Oct 2017 15:08:03 +0000
+Message-ID: <1507648081.2815.5.camel@wdc.com>
 References: <20171006213333.6721-1-bart.vanassche@wdc.com>
-         <20171006213333.6721-42-bart.vanassche@wdc.com>
-         <32E1700B9017364D9B60AED9960492BC3442AA1D@fmsmsx120.amr.corp.intel.com>
+         <20171006213333.6721-41-bart.vanassche@wdc.com>
+         <32E1700B9017364D9B60AED9960492BC3442AAD2@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC3442AA1D-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC3442AAD2-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
-Content-ID: <FF92C02FB3A46349B682F83985C55DDF-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-ID: <B39B051B887020419DC4614CB53D15E6-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE3LTEwLTEwIGF0IDEzOjU2ICswMDAwLCBNYXJjaW5pc3p5biwgTWlrZSB3cm90
-ZToNCj4gPiBTdWJqZWN0OiBbUEFUQ0ggNDEvNDddIElCL3FpYjogU3VwcHJlc3MgZ2NjIDcgZmFs
-bC10aHJvdWdoIGNvbXBsYWludHMNCj4gPiANCj4gPiBBdm9pZCB0aGF0IGdjYyA3IHJlcG9ydHMg
-dGhlIGZvbGxvd2luZyB3YXJuaW5nIHdoZW4gYnVpbGRpbmcgd2l0aCBXPTE6DQo+ID4gDQo+ID4g
-d2FybmluZzogdGhpcyBzdGF0ZW1lbnQgbWF5IGZhbGwgdGhyb3VnaCBbLVdpbXBsaWNpdC1mYWxs
-dGhyb3VnaD1dDQo+IA0KPiBJJ20gb2sgd2l0aCB0aGlzIGJ1dC4uLg0KPiANCj4gSSdtIGN1cmlv
-dXMgaWYgdGhlcmUgaXMgYSBkb2N1bWVudGF0aW9uIGNoYW5nZSBpbiB0aGUga2VybmVsIG9uIGEg
-Y29tbW9uDQo+IHRyZWUgd2lkZSBhcHByb2FjaCBmb3IgZ2NjIDcuDQo+IA0KPiBJIHNhdyBhIHBh
-dGNoIHRvIGFkZCB0aGUgYXR0cmlidXRlIGJhc2VkIG1ldGhvZCBvZiBnZXR0aW5nIHJpZCBvZiB0
-aGUgd2FybmluZywNCj4gYnV0IGl0IGRvZXNuJ3QgYXBwZWFyIHRvIGhhdmUgYmVlbiBtZXJnZWQu
-DQo+IA0KPiBUaGlzIGVycm9yIHByb2JhYmx5IHJ1bnMgdGhyb3VnaCBhbGwgb2Ygb3VyIGRyaXZl
-cnMuDQo+IA0KPiBBY2tlZC1ieTogTWlrZSBNYXJjaW5pc3p5biA8bWlrZS5tYXJjaW5pc3p5bkBp
-bnRlbC5jb20+DQoNCkhlbGxvIE1pa2UsDQoNClRoYW5rcyBmb3IgdGhlIHJldmlldy4gUmVnYXJk
-aW5nIHRoZSB0cmVlLXdpZGUgYXBwcm9hY2g6IHRoZXJlIGhhcyBhbHJlYWR5DQpiZWVuIGEgZGlz
-Y3Vzc2lvbiBhYm91dCB0aGlzIG9uIHZhcmlvdXMga2VybmVsLXJlbGF0ZWQgbWFpbGluZyBsaXN0
-cy4gU2VlDQphbHNvIExpbnVzIFRvcnZhbGRzLCBMb3RzIG9mIG5ldyB3YXJuaW5ncyB3aXRoIGdj
-Yy03LjEuMSwgSnVseSAxMSwgMjAxNw0KKGh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2ZS5jb20vbmV0
-ZGV2QHZnZXIua2VybmVsLm9yZy9tc2cxNzc0NTkuaHRtbCkuIFRoZQ0KY29uY2x1c2lvbiB3YXMg
-dGhhdCBjZXJ0YWluIG9mIHRoZXNlIHdhcm5pbmdzIHNob3VsZCBiZSBzdXBwcmVzc2VkIGJ1dCB0
-aGF0DQpvdGhlciB3YXJuaW5ncyBhcmUgdXNlZnVsIGFuZCBzaG91bGQgYmUgcmV0YWluZWQuIFNl
-ZSBhbHNvIGNvbW1pdA0KYmQ2NjRmNmIzZTM3ICgiZGlzYWJsZSBuZXcgZ2NjLTcuMS4xIHdhcm5p
-bmdzIGZvciBub3ciKS4NCg0KQmFydC4NCg==
+T24gVHVlLCAyMDE3LTEwLTEwIGF0IDE0OjE1ICswMDAwLCBNYXJjaW5pc3p5biwgTWlrZSB3cm90
+ZToNCj4gPiBTdWJqZWN0OiBbUEFUQ0ggNDAvNDddIElCL3FpYjogTWFrZSBxaWJfaW5jX2VlcHJv
+bV9lcnIoKSBtYWNybyBtb3JlIHNhZmUNCj4gPiB0byB1c2UNCj4gPiANCj4gPiBBdm9pZCB0aGF0
+IHVzaW5nIHRoZSBxaWJfaW5jX2VlcHJvbV9lcnIoKSBtYWNybyBpbiBhbiBpZi1zdGF0ZW1lbnQN
+Cj4gPiB0cmlnZ2VycyB0aGUgZm9sbG93aW5nIGNvbXBpbGVyIHdhcm5pbmc6DQo+ID4gDQo+ID4g
+d2FybmluZzogc3VnZ2VzdCBicmFjZXMgYXJvdW5kIGVtcHR5IGJvZHkgaW4gYW4gJ2lmJyBzdGF0
+ZW1lbnQgWy1XZW1wdHktDQo+ID4gYm9keV0NCj4gPiANCj4gDQo+IFRoZXJlIG5lZWRzIHRvIGJl
+IGEgZm9sbG93LW9uIHBhdGNoIGhlcmUgdG8gZ2V0IHJpZCBvZiB0aGUgdXNlcyBvZiB0aGlzIG1h
+Y3JvLg0KPiANCj4gVGhlIG9yaWdpbmFsIGZpeCBnb3QgcmlkIG9mIGEgYmFkIGltcGxlbWVudGF0
+aW9uLCBidXQgc2hvdWxkIGhhdmUgdG90YWxseQ0KPiByZW1vdmVkIGJvdGggdGhlIGZ1bmN0aW9u
+IGFuZCBpdHMgdXNlLg0KPiANCj4gVGhlIGlzIG5vdCB0aGUgZmF1bHQgb2YgdGhpcyBwYXRjaC4N
+Cj4gDQo+IEZpeGVzOiAxOGMwYjgyYTNlNDUgICgiIElCL3FpYjogRG8gbm90IHdyaXRlIEVFUFJP
+TSIpDQo+IEFja2VkLWJ5OiBNaWtlIE1hcmNpbmlzenluIDxtaWtlLm1hcmNpbmlzenluQGludGVs
+LmNvbT4NCg0KSGVsbG8gTWlrZSwNCg0KSG93IGFib3V0IGRyb3BwaW5nIHRoaXMgcGF0Y2ggYW5k
+IHJlcGxhY2luZyBpdCB3aXRoIGEgcGF0Y2ggdGhhdCByZW1vdmVzIGFsbCB1c2VzDQpvZiBxaWJf
+aW5jX2VlcHJvbV9lcnIoKT8NCg0KVGhhbmtzLA0KDQpCYXJ0Lg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
