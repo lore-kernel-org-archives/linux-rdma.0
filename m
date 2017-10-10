@@ -1,56 +1,79 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-core] iwpmd: Return existing mapping if port reused on active side
-Date: Tue, 10 Oct 2017 12:24:19 -0500
-Message-ID: <039901d341ec$9b4d2d50$d1e787f0$@opengridcomputing.com>
-References: <20171008233429.16348-1-tatyana.e.nikolova@intel.com> <20171010171017.GF2106@mtr-leonro.local>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v7 07/12] dma-mapping: introduce dma_has_iommu()
+Date: Tue, 10 Oct 2017 11:25:16 -0600
+Message-ID: <20171010172516.GA29915@obsidianresearch.com>
+References: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150732935473.22363.1853399637339625023.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171009185840.GB15336@obsidianresearch.com>
+ <CAPcyv4gXzC8OUgO_PciQ2phyq0YtmXjMGWvoPSVVuuZR7ohVCg@mail.gmail.com>
+ <20171009191820.GD15336@obsidianresearch.com>
+ <CAPcyv4h_uQGBAX6-bMkkZLO_YyQ6t4n_b8tH8wU_P0Jh23N5MQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171010171017.GF2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Leon Romanovsky' <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Tatyana Nikolova' <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Ram Amrani' <ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4h_uQGBAX6-bMkkZLO_YyQ6t4n_b8tH8wU_P0Jh23N5MQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Ashok Raj <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Linux API <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-fsdevel <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> On Sun, Oct 08, 2017 at 06:34:28PM -0500, Tatyana Nikolova wrote:
-> > From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Mon, Oct 09, 2017 at 12:28:29PM -0700, Dan Williams wrote:
+
+> > I don't think this has ever come up in the context of an all-device MR
+> > invalidate requirement. Drivers already have code to invalidate
+> > specifc MRs, but to find all MRs that touch certain pages and then
+> > invalidate them would be new code.
 > >
-> > Port-mapper returns a duplicate mapping error and no
-> > mapped port if an attempt is made to add a mapping for
-> > a new connection which re-uses the local port on active side.
-> > Fix this by finding the existing  mapping for the re-used
-> > local port and return the mapped port. Also, change ref_cnt
-> > in struct iwpm_port to be atomic and use it to track the
-> > references to a mapping.
-> >
-> > Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > ---
-> >  iwpmd/iwarp_pm.h        |  5 ++---
-> >  iwpmd/iwarp_pm_helper.c | 27 ++++-----------------------
-> >  iwpmd/iwarp_pm_server.c | 47
-+++++++++++++++++++++--------------------------
-> >  3 files changed, 27 insertions(+), 52 deletions(-)
-> >
+> > We also have ODP aware drivers that can retarget a MR to new
+> > physical pages. If the block map changes DAX should synchronously
+> > retarget the ODP MR, not halt DMA.
 > 
-> Any feedback from iWARP crowd?
+> Have a look at the patch [1], I don't touch the ODP path.
+
+But, does ODP work OK already? I'm not clear on that..
+
+> > Most likely ODP & DAX would need to be used together to get robust
+> > user applications, as having the user QP's go to an error state at
+> > random times (due to DMA failures) during operation is never going to
+> > be acceptable...
 > 
+> It's not random. The process that set up the mapping and registered
+> the memory gets SIGIO when someone else tries to modify the file map.
+> That process then gets /proc/sys/fs/lease-break-time seconds to fix
+> the problem before the kernel force revokes the DMA access.
 
-Yes.
+Well, the process can't fix the problem in bounded time, so it is
+random if it will fail or not.
 
-How is a new connection re-using the local port exactly?  Is there a test case
-that reproduces this?
+MR life time is under the control of the remote side, and time to
+complete the network exchanges required to release the MRs is hard to
+bound. So even if I implement SIGIO properly my app will still likely
+have random QP failures under various cases and work loads. :(
 
-Other than that, 
+This is why ODP should be the focus because this cannot work fully
+reliably otherwise..
 
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> > Perhaps you might want to initially only support ODP MR mappings with
+> > DAX and then the DMA fencing issue goes away?
+> 
+> I'd rather try to fix the non-ODP DAX case instead of just turning it off.
 
+Well, what about using SIGKILL if the lease-break-time hits? The
+kernel will clean up the MRs when the process exits and this will
+fence DMA to that memory.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+But, still, if you really want to be fined graned, then I think
+invalidating the impacted MR's is a better solution for RDMA than
+trying to do it with the IOMMU...
+
+Jason
