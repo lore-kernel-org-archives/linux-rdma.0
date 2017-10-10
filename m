@@ -1,53 +1,50 @@
-From: Arnaldo Carvalho de Melo <acme@kernel.org>
-Subject: Re: [PATCH 2/2] IB/hfi1: Handle packets in the theaded handler only
-Date: Tue, 10 Oct 2017 16:15:29 -0300
-Message-ID: <20171010191529.GP28623@kernel.org>
-References: <20171003154920.31566-1-acme@kernel.org>
- <20171003154920.31566-3-acme@kernel.org>
- <3003fbfd-6d34-a968-1264-7c16580d5ce6@intel.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 02/47] IB/cm: Suppress gcc 7 fall-through complaints
+Date: Tue, 10 Oct 2017 15:27:11 -0400
+Message-ID: <849d304a-fa89-0d6a-6edb-cf34780e41a8@intel.com>
+References: <20171006213333.6721-1-bart.vanassche@wdc.com>
+ <20171006213333.6721-3-bart.vanassche@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3003fbfd-6d34-a968-1264-7c16580d5ce6@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: bigeasy@linutronix.de, linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org, Arnaldo Carvalho de Melo <acme@redhat.com>, Clark Williams <williams@redhat.com>, Dean Luick <dean.luick@intel.com>, Doug Ledford <dledford@redhat.com>, Julia Cartwright <julia@ni.com>, Kaike Wan <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171006213333.6721-3-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Em Tue, Oct 10, 2017 at 03:06:00PM -0400, Dennis Dalessandro escreveu:
-> On 10/3/2017 11:49 AM, Arnaldo Carvalho de Melo wrote:
-> > Cc: Clark Williams <williams@redhat.com>
-> > Cc: Dean Luick <dean.luick@intel.com>
-> > Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
-> > Cc: Doug Ledford <dledford@redhat.com>
-> > Cc: Julia Cartwright <julia@ni.com>
-> > Cc: Kaike Wan <kaike.wan@intel.com>
-> > Cc: Leon Romanovsky <leonro@mellanox.com>
-> > Cc: linux-rdma@vger.kernel.org
-> > Cc: Peter Zijlstra <peterz@infradead.org>
-> > Cc: Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>
-> > Cc: Sebastian Sanchez <sebastian.sanchez@intel.com>
-> > Cc: Steven Rostedt <rostedt@goodmis.org>
-> > Cc: Thomas Gleixner <tglx@linutronix.de>
-> > Signed-off-by: Arnaldo Carvalho de Melo <acme@redhat.com>
+On 10/6/2017 5:32 PM, Bart Van Assche wrote:
+> Avoid that gcc 7 reports the following warning when building with W=1:
 > 
-> Mike has been working with these developers off list and has provided a
-> slightly different approach. I'm going to let them drive that before I add
-> an RB/Ack here.
+> warning: this statement may fall through [-Wimplicit-fallthrough=]
+> 
+> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>   drivers/infiniband/core/cm.c | 1 +
+>   1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+> index d80911d4abb7..5927ee4e57ca 100644
+> --- a/drivers/infiniband/core/cm.c
+> +++ b/drivers/infiniband/core/cm.c
+> @@ -2808,6 +2808,7 @@ int ib_send_cm_mra(struct ib_cm_id *cm_id,
+>   			msg_response = CM_MSG_RESPONSE_OTHER;
+>   			break;
+>   		}
+> +		/* fall through */
+>   	default:
+>   		ret = -EINVAL;
+>   		goto error1;
+> 
 
-This may not even be needed, i.e. Sebastian Siewior said that recent
-rt patches already identify the way this driver uses threaded interrupts
-and automagically does the right thing, Sebastian?
+So adding the comment is enough to make gcc shut up? Or are you just 
+annotating the code so it's obvious it was intentional?
 
-He mentioned this in this message:
-
-https://marc.info/?l=linux-rt-users&m=150722087514307&w=2
-
-But I replied to Mike and don't recall getting an answer to my last
-question.
-
-Meanwhile a kernel with these two patches survived the original bug
-reported at Red Hat's bugzilla.
-
-- Arnaldo
+-Dennis
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
