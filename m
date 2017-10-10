@@ -1,98 +1,46 @@
-From: Parav Pandit <parav@mellanox.com>
-Subject: RE: [PATCH net 1/2] net/smc: replace function pointer get_netdev()
-Date: Tue, 10 Oct 2017 17:01:42 +0000
-Message-ID: <VI1PR0502MB300866E7828B277199DB4C2BD1750@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20171010141351.87700-1-ubraun@linux.vnet.ibm.com>
- <20171010141351.87700-2-ubraun@linux.vnet.ibm.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 3/7] IB/srpt: Change default behavior from using SRQ to
+ not using SRQ
+Date: Tue, 10 Oct 2017 11:04:29 -0600
+Message-ID: <20171010170429.GA21288@obsidianresearch.com>
+References: <20171006214243.11296-4-bart.vanassche@wdc.com>
+ <20171008100317.GR25829@mtr-leonro.local>
+ <1507568205.46071.46.camel@redhat.com>
+ <1507568492.2674.11.camel@wdc.com>
+ <20171010041423.GJ1252@mtr-leonro.local>
+ <9443ec1f-0acd-9fa3-4621-a29085d2c606@redhat.com>
+ <20171010150018.GC2106@mtr-leonro.local>
+ <1507648402.46071.53.camel@redhat.com>
+ <20171010154439.GE2106@mtr-leonro.local>
+ <1507651473.2815.20.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20171010141351.87700-2-ubraun@linux.vnet.ibm.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Ursula Braun <ubraun@linux.vnet.ibm.com>, "davem@davemloft.net" <davem@davemloft.net>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "jwi@linux.vnet.ibm.com" <jwi@linux.vnet.ibm.com>, "schwidefsky@de.ibm.com" <schwidefsky@de.ibm.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "raspl@linux.vnet.ibm.com" <raspl@linux.vnet.ibm.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1507651473.2815.20.camel-Sjgp3cTcYWE@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Oct 10, 2017 at 04:04:34PM +0000, Bart Van Assche wrote:
+> On Tue, 2017-10-10 at 18:44 +0300, Leon Romanovsky wrote:
+> > Bart clearly mentioned disadvantages of XRQ and left me wonder why user
+> > needs to enable it anyway. This is what I'm asking and this is what I'm
+> > hoping to see in the commit message.
+> 
+> I assume that you meant SRQ instead of XRQ? For HCA's that support SRQ a
+> choice has to be made between the lower memory usage of SRQ or the higher
+> performance of RC. I think only the user can make that choice. Hence the
+> new kernel module parameter.
 
+considering our general dislike of module parameters, could you
+achieve this via some communicationfrom srp_daemon instead?
 
-> -----Original Message-----
-> From: Ursula Braun [mailto:ubraun@linux.vnet.ibm.com]
-> Sent: Tuesday, October 10, 2017 9:14 AM
-> To: davem@davemloft.net
-> Cc: netdev@vger.kernel.org; linux-rdma@vger.kernel.org; linux-
-> s390@vger.kernel.org; jwi@linux.vnet.ibm.com; schwidefsky@de.ibm.com;
-> heiko.carstens@de.ibm.com; raspl@linux.vnet.ibm.com;
-> ubraun@linux.vnet.ibm.com; Parav Pandit <parav@mellanox.com>
-> Subject: [PATCH net 1/2] net/smc: replace function pointer get_netdev()
->=20
-> SMC should not open code the function pointer get_netdev of the IB device=
-.
-> Replacing ib_query_gid(..., NULL) with ib_query_gid(..., gid_attr) allows=
- access
-> to the netdev.
->=20
-> Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
-> Suggested-by: Parav Pandit <parav@mellanox.com>
-Looks fine to me. Minor nit below.
-Reviewed-by: Parav Pandit <parav@mellanox.com>
+Perhaps even on a per target basis?
 
-> ---
->  net/smc/smc_ib.c | 26 +++++++++-----------------
->  1 file changed, 9 insertions(+), 17 deletions(-)
->=20
-> diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c index
-> 0b5852299158..b428c0f6c782 100644
-> --- a/net/smc/smc_ib.c
-> +++ b/net/smc/smc_ib.c
-> @@ -369,26 +369,17 @@ void smc_ib_buf_unmap_sg(struct smc_ib_device
-> *smcibdev,
->=20
->  static int smc_ib_fill_gid_and_mac(struct smc_ib_device *smcibdev, u8 ib=
-port)
-> {
-> -	struct net_device *ndev;
-> +	struct ib_gid_attr gattr;
->  	int rc;
->=20
->  	rc =3D ib_query_gid(smcibdev->ibdev, ibport, 0,
-> -			  &smcibdev->gid[ibport - 1], NULL);
-> -	/* the SMC protocol requires specification of the roce MAC address;
-> -	 * if net_device cannot be determined, it can be derived from gid 0
-> -	 */
-> -	ndev =3D smcibdev->ibdev->get_netdev(smcibdev->ibdev, ibport);
-> -	if (ndev) {
-> -		memcpy(&smcibdev->mac, ndev->dev_addr, ETH_ALEN);
-> -		dev_put(ndev);
-> -	} else if (!rc) {
-> -		memcpy(&smcibdev->mac[ibport - 1][0],
-> -		       &smcibdev->gid[ibport - 1].raw[8], 3);
-> -		memcpy(&smcibdev->mac[ibport - 1][3],
-> -		       &smcibdev->gid[ibport - 1].raw[13], 3);
-> -		smcibdev->mac[ibport - 1][0] &=3D ~0x02;
-> -	}
-> -	return rc;
-> +			  &smcibdev->gid[ibport - 1], &gattr);
-> +	if (rc || !gattr.ndev)
-> +		return -ENODEV;
-> +
-> +	memcpy(smcibdev->mac[ibport - 1], gattr.ndev->dev_addr, ETH_ALEN);
-> +	dev_put(gattr.ndev);
-> +	return 0;
->  }
->=20
->  /* Create an identifier unique for this instance of SMC-R.
-> @@ -419,6 +410,7 @@ int smc_ib_remember_port_attr(struct smc_ib_device
-> *smcibdev, u8 ibport)
->  			   &smcibdev->pattr[ibport - 1]);
->  	if (rc)
->  		goto out;
-> +	/* the SMC protocol requires specification of the roce MAC address */
-RoCE MAC address
-
->  	rc =3D smc_ib_fill_gid_and_mac(smcibdev, ibport);
->  	if (rc)
->  		goto out;
-> --
-> 2.13.5
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
