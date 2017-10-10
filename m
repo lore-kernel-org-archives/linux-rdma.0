@@ -1,46 +1,98 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH 13/47] RDMA/cxgb4: Declare a local variable 'static'
-Date: Tue, 10 Oct 2017 16:16:54 +0000
-Message-ID: <1507652210.2815.22.camel@wdc.com>
-References: <20171006213333.6721-1-bart.vanassche@wdc.com>
-         <20171006213333.6721-14-bart.vanassche@wdc.com>
-         <01ba01d33eef$d3ed5a90$7bc80fb0$@opengridcomputing.com>
-         <1507591219.2674.58.camel@wdc.com> <20171010035909.GI1252@mtr-leonro.local>
+From: Parav Pandit <parav@mellanox.com>
+Subject: RE: [PATCH net 1/2] net/smc: replace function pointer get_netdev()
+Date: Tue, 10 Oct 2017 17:01:42 +0000
+Message-ID: <VI1PR0502MB300866E7828B277199DB4C2BD1750@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20171010141351.87700-1-ubraun@linux.vnet.ibm.com>
+ <20171010141351.87700-2-ubraun@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171010035909.GI1252-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20171010141351.87700-2-ubraun@linux.vnet.ibm.com>
 Content-Language: en-US
-Content-ID: <1616314E8D2FBD4B9B23A2575065759E-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: netdev-owner@vger.kernel.org
+To: Ursula Braun <ubraun@linux.vnet.ibm.com>, "davem@davemloft.net" <davem@davemloft.net>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "jwi@linux.vnet.ibm.com" <jwi@linux.vnet.ibm.com>, "schwidefsky@de.ibm.com" <schwidefsky@de.ibm.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "raspl@linux.vnet.ibm.com" <raspl@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE3LTEwLTEwIGF0IDA2OjU5ICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IE9uIE1vbiwgT2N0IDA5LCAyMDE3IGF0IDExOjIwOjIwUE0gKzAwMDAsIEJhcnQgVmFuIEFz
-c2NoZSB3cm90ZToNCj4gPiBPbiBGcmksIDIwMTctMTAtMDYgYXQgMTc6MDkgLTA1MDAsIFN0ZXZl
-IFdpc2Ugd3JvdGU6DQo+ID4gPiBDYW4gd2UganVzdCByZW1vdmUgdGhpcyBub3c/ICBJRSBoYXMg
-aXQgYmVlbiAxIHJlbGVhc2Ugc2luY2UgaXQgd2FzIG9ic29sZXRlZD8NCj4gPiANCj4gPiBUaGF0
-J3MgYSBnb29kIHF1ZXN0aW9uIGJ1dCBJJ20gbm90IHN1cmUgd2hhdCB3b3VsZCBiZSBhIGdvb2Qg
-dGltZSB0byByZW1vdmUNCj4gPiB0aGlzLiBJIHRoaW5rIHRoZSBhbnN3ZXIgZGVwZW5kcyBvbiBo
-b3cgbGlrZWx5IGl0IGlzIHRoYXQgcGVvcGxlIHVzZSB0aGlzDQo+ID4gdmFyaWFibGUgaW4gc2Ny
-aXB0cyBvciAvZXRjL21vZHByb2JlLmQgY29uZmlndXJhdGlvbiBmaWxlcyBiZWNhdXNlIGluIHRo
-YXQNCj4gPiBjYXNlIHJlbW92aW5nIHRoZSBtb2R1bGUgcGFyYW1ldGVyIHdvdWxkIGJyZWFrIHNl
-dHVwcy4NCj4gDQo+IEl0IGlzIHVubGlrZWx5IHRvIGhhcHBlbiwgZm9yIG1hbnkgcmVhc29ucy4g
-SXQgaXMgbWFya2VkIGFzIG9ic29sZXRlIGZvcg0KPiBhIGxvbmcgdGltZSwgdGhlIHByb3BlciBp
-bmZyYXN0cnVjdHVyZSAoZHluYW1pYyBwcmludHMpIGFscmVhZHkgZm9yIGEgZGVjYWRlDQo+IHdp
-dGggdXMgYW5kIG5vIGFkZXF1YXRlIHVzZXIgaXMgcnVubmluZyBkZWJ1ZyBzeXN0ZW0gaW4gcHJv
-ZHVjdGlvbi4NCj4gDQo+IEFub3RoZXIgdGhpbmcgdGhhdCB3ZSBkbyByZW1vdmUgdmlzaWJsZSB0
-byB1c2VyIGludGVyZmFjZXMgZnJvbSB0aW1lIHRvIHRpbWUNCj4gYW5kIHRoZSBydWxlIGlzICJ0
-cnkgdG8gcmVtb3ZlIGl0IGFuZCBzZWUgaWYgc29tZW9uZSBzY3JlYW1zIGFib3V0IGl0Ii4NCj4g
-DQo+IFRoZXJlIGFyZSBhIGxvdCBvZiBjb21taXRzIHdoaWNoIGRvIHN1Y2ggdGhpbmcgYW5kIGxh
-dGVzdCBvbmUgaXMgMGQwYzcxYjMxNzIwDQo+ICgiYnRyZnM6IG9ic29sZXRlIGFuZCByZW1vdmUg
-bW91bnQgb3B0aW9uIGFsbG9jX3N0YXJ0IikNCj4gDQo+IEl0IGlzIHNhZmUgdG8gcmVtb3ZlIGM0
-aXdfZGVidWcgbW9kdWxlIHBhcmFtZXRlci4NCg0KT0ssIEkgd2lsbCByZW1vdmUgdGhhdCBtb2R1
-bGUgcGFyYW1ldGVyLg0KDQpCYXJ0Lg==
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+> -----Original Message-----
+> From: Ursula Braun [mailto:ubraun@linux.vnet.ibm.com]
+> Sent: Tuesday, October 10, 2017 9:14 AM
+> To: davem@davemloft.net
+> Cc: netdev@vger.kernel.org; linux-rdma@vger.kernel.org; linux-
+> s390@vger.kernel.org; jwi@linux.vnet.ibm.com; schwidefsky@de.ibm.com;
+> heiko.carstens@de.ibm.com; raspl@linux.vnet.ibm.com;
+> ubraun@linux.vnet.ibm.com; Parav Pandit <parav@mellanox.com>
+> Subject: [PATCH net 1/2] net/smc: replace function pointer get_netdev()
+>=20
+> SMC should not open code the function pointer get_netdev of the IB device=
+.
+> Replacing ib_query_gid(..., NULL) with ib_query_gid(..., gid_attr) allows=
+ access
+> to the netdev.
+>=20
+> Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
+> Suggested-by: Parav Pandit <parav@mellanox.com>
+Looks fine to me. Minor nit below.
+Reviewed-by: Parav Pandit <parav@mellanox.com>
+
+> ---
+>  net/smc/smc_ib.c | 26 +++++++++-----------------
+>  1 file changed, 9 insertions(+), 17 deletions(-)
+>=20
+> diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c index
+> 0b5852299158..b428c0f6c782 100644
+> --- a/net/smc/smc_ib.c
+> +++ b/net/smc/smc_ib.c
+> @@ -369,26 +369,17 @@ void smc_ib_buf_unmap_sg(struct smc_ib_device
+> *smcibdev,
+>=20
+>  static int smc_ib_fill_gid_and_mac(struct smc_ib_device *smcibdev, u8 ib=
+port)
+> {
+> -	struct net_device *ndev;
+> +	struct ib_gid_attr gattr;
+>  	int rc;
+>=20
+>  	rc =3D ib_query_gid(smcibdev->ibdev, ibport, 0,
+> -			  &smcibdev->gid[ibport - 1], NULL);
+> -	/* the SMC protocol requires specification of the roce MAC address;
+> -	 * if net_device cannot be determined, it can be derived from gid 0
+> -	 */
+> -	ndev =3D smcibdev->ibdev->get_netdev(smcibdev->ibdev, ibport);
+> -	if (ndev) {
+> -		memcpy(&smcibdev->mac, ndev->dev_addr, ETH_ALEN);
+> -		dev_put(ndev);
+> -	} else if (!rc) {
+> -		memcpy(&smcibdev->mac[ibport - 1][0],
+> -		       &smcibdev->gid[ibport - 1].raw[8], 3);
+> -		memcpy(&smcibdev->mac[ibport - 1][3],
+> -		       &smcibdev->gid[ibport - 1].raw[13], 3);
+> -		smcibdev->mac[ibport - 1][0] &=3D ~0x02;
+> -	}
+> -	return rc;
+> +			  &smcibdev->gid[ibport - 1], &gattr);
+> +	if (rc || !gattr.ndev)
+> +		return -ENODEV;
+> +
+> +	memcpy(smcibdev->mac[ibport - 1], gattr.ndev->dev_addr, ETH_ALEN);
+> +	dev_put(gattr.ndev);
+> +	return 0;
+>  }
+>=20
+>  /* Create an identifier unique for this instance of SMC-R.
+> @@ -419,6 +410,7 @@ int smc_ib_remember_port_attr(struct smc_ib_device
+> *smcibdev, u8 ibport)
+>  			   &smcibdev->pattr[ibport - 1]);
+>  	if (rc)
+>  		goto out;
+> +	/* the SMC protocol requires specification of the roce MAC address */
+RoCE MAC address
+
+>  	rc =3D smc_ib_fill_gid_and_mac(smcibdev, ibport);
+>  	if (rc)
+>  		goto out;
+> --
+> 2.13.5
