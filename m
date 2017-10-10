@@ -1,33 +1,38 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH net 2/2] net/smc: dev_put for netdev after usage of
- ib_query_gid()
-Date: Tue, 10 Oct 2017 19:04:50 +0000
-Message-ID: <VI1PR0502MB3008C19845C45D7D4A9147F9D1750@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20171010141351.87700-1-ubraun@linux.vnet.ibm.com>
- <20171010141351.87700-3-ubraun@linux.vnet.ibm.com>
- <VI1PR0502MB30088E4F58036AB3A06822E8D1750@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: Re: [PATCH 2/2] IB/hfi1: Handle packets in the theaded handler only
+Date: Tue, 10 Oct 2017 15:06:00 -0400
+Message-ID: <3003fbfd-6d34-a968-1264-7c16580d5ce6@intel.com>
+References: <20171003154920.31566-1-acme@kernel.org>
+ <20171003154920.31566-3-acme@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB30088E4F58036AB3A06822E8D1750-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rt-users-owner@vger.kernel.org>
+In-Reply-To: <20171003154920.31566-3-acme@kernel.org>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jwi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <jwi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Sender: linux-rt-users-owner@vger.kernel.org
+To: Arnaldo Carvalho de Melo <acme@kernel.org>, bigeasy@linutronix.de
+Cc: linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org, Arnaldo Carvalho de Melo <acme@redhat.com>, Clark Williams <williams@redhat.com>, Dean Luick <dean.luick@intel.com>, Doug Ledford <dledford@redhat.com>, Julia Cartwright <julia@ni.com>, Kaike Wan <kaike.wan@intel.com>, Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-rdma@vger.kernel.org
 
+On 10/3/2017 11:49 AM, Arnaldo Carvalho de Melo wrote:
+> Cc: Clark Williams <williams@redhat.com>
+> Cc: Dean Luick <dean.luick@intel.com>
+> Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> Cc: Doug Ledford <dledford@redhat.com>
+> Cc: Julia Cartwright <julia@ni.com>
+> Cc: Kaike Wan <kaike.wan@intel.com>
+> Cc: Leon Romanovsky <leonro@mellanox.com>
+> Cc: linux-rdma@vger.kernel.org
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Sebastian Andrzej Siewior <sebastian.siewior@linutronix.de>
+> Cc: Sebastian Sanchez <sebastian.sanchez@intel.com>
+> Cc: Steven Rostedt <rostedt@goodmis.org>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Signed-off-by: Arnaldo Carvalho de Melo <acme@redhat.com>
 
-> -----Original Message-----
-> > For ROCEs ib_query_gid() takes a reference count on the net_device.
-> > This reference count must be decreased by the caller.
-> >
-> > Signed-off-by: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-> Reported-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-Also add 'Fixes' line that introduced this bug.
+Mike has been working with these developers off list and has provided a 
+slightly different approach. I'm going to let them drive that before I 
+add an RB/Ack here.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Dennis
