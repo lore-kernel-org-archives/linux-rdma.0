@@ -1,95 +1,128 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v7 07/12] dma-mapping: introduce dma_has_iommu()
-Date: Tue, 10 Oct 2017 10:39:27 -0700
-Message-ID: <CAPcyv4jL5fN7jjXkQum8ERQ45eW63dCYp5Pm6aHY4OPudz4Wsw@mail.gmail.com>
-References: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150732935473.22363.1853399637339625023.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171009185840.GB15336@obsidianresearch.com>
- <CAPcyv4gXzC8OUgO_PciQ2phyq0YtmXjMGWvoPSVVuuZR7ohVCg@mail.gmail.com>
- <20171009191820.GD15336@obsidianresearch.com>
- <CAPcyv4h_uQGBAX6-bMkkZLO_YyQ6t4n_b8tH8wU_P0Jh23N5MQ@mail.gmail.com>
- <20171010172516.GA29915@obsidianresearch.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH 40/47] IB/qib: Make qib_inc_eeprom_err() macro more safe
+ to use
+Date: Tue, 10 Oct 2017 17:59:51 +0000
+Message-ID: <1507658390.2815.48.camel@wdc.com>
+References: <20171006213333.6721-1-bart.vanassche@wdc.com>
+         <20171006213333.6721-41-bart.vanassche@wdc.com>
+         <32E1700B9017364D9B60AED9960492BC3442AAD2@fmsmsx120.amr.corp.intel.com>
+         <1507648081.2815.5.camel@wdc.com>
+         <32E1700B9017364D9B60AED9960492BC3442ADF5@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20171010172516.GA29915-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Ashok Raj <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Linux API <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-fsdevel <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC3442ADF5-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
+Content-ID: <146D2421B29A074FAD0DC79440CB4B14-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 10, 2017 at 10:25 AM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Mon, Oct 09, 2017 at 12:28:29PM -0700, Dan Williams wrote:
->
->> > I don't think this has ever come up in the context of an all-device MR
->> > invalidate requirement. Drivers already have code to invalidate
->> > specifc MRs, but to find all MRs that touch certain pages and then
->> > invalidate them would be new code.
->> >
->> > We also have ODP aware drivers that can retarget a MR to new
->> > physical pages. If the block map changes DAX should synchronously
->> > retarget the ODP MR, not halt DMA.
->>
->> Have a look at the patch [1], I don't touch the ODP path.
->
-> But, does ODP work OK already? I'm not clear on that..
-
-It had better. If the mapping is invalidated I would hope that
-generates an io fault that gets handled by the driver to setup the new
-mapping. I don't see how it can work otherwise.
-
->> > Most likely ODP & DAX would need to be used together to get robust
->> > user applications, as having the user QP's go to an error state at
->> > random times (due to DMA failures) during operation is never going to
->> > be acceptable...
->>
->> It's not random. The process that set up the mapping and registered
->> the memory gets SIGIO when someone else tries to modify the file map.
->> That process then gets /proc/sys/fs/lease-break-time seconds to fix
->> the problem before the kernel force revokes the DMA access.
->
-> Well, the process can't fix the problem in bounded time, so it is
-> random if it will fail or not.
->
-> MR life time is under the control of the remote side, and time to
-> complete the network exchanges required to release the MRs is hard to
-> bound. So even if I implement SIGIO properly my app will still likely
-> have random QP failures under various cases and work loads. :(
->
-> This is why ODP should be the focus because this cannot work fully
-> reliably otherwise..
-
-The lease break time is configurable. If that application can't
-respond to a stop request within a timeout of its own choosing then it
-should not be using DAX mappings.
-
->
->> > Perhaps you might want to initially only support ODP MR mappings with
->> > DAX and then the DMA fencing issue goes away?
->>
->> I'd rather try to fix the non-ODP DAX case instead of just turning it off.
->
-> Well, what about using SIGKILL if the lease-break-time hits? The
-> kernel will clean up the MRs when the process exits and this will
-> fence DMA to that memory.
-
-Can you point me to where the MR cleanup code fences DMA and quiesces
-the device?
-
-> But, still, if you really want to be fined graned, then I think
-> invalidating the impacted MR's is a better solution for RDMA than
-> trying to do it with the IOMMU...
-
-If there's a better routine for handling ib_umem_lease_break() I'd
-love to use it. Right now I'm reaching for the only tool I know for
-kernel enforced revocation of DMA access.
+T24gVHVlLCAyMDE3LTEwLTEwIGF0IDE1OjM2ICswMDAwLCBNYXJjaW5pc3p5biwgTWlrZSB3cm90
+ZToNCj4gQmFydCB3cm90ZToNCj4gPiBIb3cgYWJvdXQgZHJvcHBpbmcgdGhpcyBwYXRjaCBhbmQg
+cmVwbGFjaW5nIGl0IHdpdGggYSBwYXRjaCB0aGF0IHJlbW92ZXMgYWxsDQo+ID4gdXNlcyBvZiBx
+aWJfaW5jX2VlcHJvbV9lcnIoKT8NCj4gDQo+IEknbSBmaW5lIHdpdGggdGhhdCB0b28uDQoNCkhv
+dyBhYm91dCB0aGUgcGF0Y2ggYmVsb3c/DQoNClRoYW5rcywNCg0KQmFydC4NCg0KDQpTdWJqZWN0
+OiBbUEFUQ0hdIElCL3FpYjogUmVtb3ZlIHRoZSBxaWJfaW5jX2VlcHJvbV9lcnIoKSBtYWNybw0K
+DQpTaW5jZSB0aGUgYm9keSBvZiB0aGUgcWliX2luY19lZXByb21fZXJyKCkgbWFjcm8gaXMgZW1w
+dHksIHJlbW92ZQ0KdGhlIGludm9jYXRpb25zIG9mIHRoaXMgbWFjcm8uDQoNClJlZmVyZW5jZXM6
+IGNvbW1pdCAxOGMwYjgyYTNlNDUgKCIgSUIvcWliOiBEbyBub3Qgd3JpdGUgRUVQUk9NIikNClNp
+Z25lZC1vZmYtYnk6IEJhcnQgVmFuIEFzc2NoZSA8YmFydC52YW5hc3NjaGVAd2RjLmNvbT4NCkNj
+OiBNaWtlIE1hcmNpbmlzenluIDxpbmZpbmlwYXRoQGludGVsLmNvbT4NCi0tLQ0KIGRyaXZlcnMv
+aW5maW5pYmFuZC9ody9xaWIvcWliLmggICAgICAgICB8ICAxIC0NCiBkcml2ZXJzL2luZmluaWJh
+bmQvaHcvcWliL3FpYl9pYmE2MTIwLmMgfCAxMSAtLS0tLS0tLS0tLQ0KIGRyaXZlcnMvaW5maW5p
+YmFuZC9ody9xaWIvcWliX2liYTcyMjAuYyB8IDEwIC0tLS0tLS0tLS0NCiBkcml2ZXJzL2luZmlu
+aWJhbmQvaHcvcWliL3FpYl9pYmE3MzIyLmMgfCAgNiArLS0tLS0NCiA0IGZpbGVzIGNoYW5nZWQs
+IDEgaW5zZXJ0aW9uKCspLCAyNyBkZWxldGlvbnMoLSkNCg0KZGlmZiAtLWdpdCBhL2RyaXZlcnMv
+aW5maW5pYmFuZC9ody9xaWIvcWliLmggYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYi5o
+DQppbmRleCAxMTY3YTljMTc3NmIuLjE4NjlmY2UwYmEwMCAxMDA2NDQNCi0tLSBhL2RyaXZlcnMv
+aW5maW5pYmFuZC9ody9xaWIvcWliLmgNCisrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIv
+cWliLmgNCkBAIC0xMjk3LDcgKzEyOTcsNiBAQCBpbnQgcWliX3R3c2lfYmxrX3JkKHN0cnVjdCBx
+aWJfZGV2ZGF0YSAqZGQsIGludCBkZXYsIGludCBhZGRyLCB2b2lkICpidWZmZXIsDQogaW50IHFp
+Yl90d3NpX2Jsa193cihzdHJ1Y3QgcWliX2RldmRhdGEgKmRkLCBpbnQgZGV2LCBpbnQgYWRkciwN
+CiAJCSAgICBjb25zdCB2b2lkICpidWZmZXIsIGludCBsZW4pOw0KIHZvaWQgcWliX2dldF9lZXBy
+b21faW5mbyhzdHJ1Y3QgcWliX2RldmRhdGEgKik7DQotI2RlZmluZSBxaWJfaW5jX2VlcHJvbV9l
+cnIoZGQsIGVpZHgsIGluY3IpDQogdm9pZCBxaWJfZHVtcF9sb29rdXBfb3V0cHV0X3F1ZXVlKHN0
+cnVjdCBxaWJfZGV2ZGF0YSAqKTsNCiB2b2lkIHFpYl9mb3JjZV9waW9fYXZhaWxfdXBkYXRlKHN0
+cnVjdCBxaWJfZGV2ZGF0YSAqKTsNCiB2b2lkIHFpYl9jbGVhcl9zeW1lcnJvcl9vbl9saW5rdXAo
+dW5zaWduZWQgbG9uZyBvcGFxdWUpOw0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9o
+dy9xaWIvcWliX2liYTYxMjAuYyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWliX2liYTYx
+MjAuYw0KaW5kZXggYzRhNGM1N2UwZjBhLi5lMGI1MmJhYjZmMzQgMTAwNjQ0DQotLS0gYS9kcml2
+ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9pYmE2MTIwLmMNCisrKyBiL2RyaXZlcnMvaW5maW5p
+YmFuZC9ody9xaWIvcWliX2liYTYxMjAuYw0KQEAgLTc0OCw3ICs3NDgsNiBAQCBzdGF0aWMgdm9p
+ZCBxaWJfaGFuZGxlXzYxMjBfaHdlcnJvcnMoc3RydWN0IHFpYl9kZXZkYXRhICpkZCwgY2hhciAq
+bXNnLA0KIAl1MzIgYml0cywgY3RybDsNCiAJaW50IGlzZmF0YWwgPSAwOw0KIAljaGFyICpiaXRz
+bXNnOw0KLQlpbnQgbG9nX2lkeDsNCiANCiAJaHdlcnJzID0gcWliX3JlYWRfa3JlZzY0KGRkLCBr
+cl9od2VycnN0YXR1cyk7DQogCWlmICghaHdlcnJzKQ0KQEAgLTc3MCwxMSArNzY5LDYgQEAgc3Rh
+dGljIHZvaWQgcWliX2hhbmRsZV82MTIwX2h3ZXJyb3JzKHN0cnVjdCBxaWJfZGV2ZGF0YSAqZGQs
+IGNoYXIgKm1zZywNCiANCiAJaHdlcnJzICY9IGRkLT5jc3BlYy0+aHdlcnJtYXNrOw0KIA0KLQkv
+KiBXZSBsb2cgc29tZSBlcnJvcnMgdG8gRUVQUk9NLCBjaGVjayBpZiB3ZSBoYXZlIGFueSBvZiB0
+aG9zZS4gKi8NCi0JZm9yIChsb2dfaWR4ID0gMDsgbG9nX2lkeCA8IFFJQl9FRVBfTE9HX0NOVDsg
+Kytsb2dfaWR4KQ0KLQkJaWYgKGh3ZXJycyAmIGRkLT5lZXBfc3RfbWFza3NbbG9nX2lkeF0uaHdl
+cnJzX3RvX2xvZykNCi0JCQlxaWJfaW5jX2VlcHJvbV9lcnIoZGQsIGxvZ19pZHgsIDEpOw0KLQ0K
+IAkvKg0KIAkgKiBNYWtlIHN1cmUgd2UgZ2V0IHRoaXMgbXVjaCBvdXQsIHVubGVzcyB0b2xkIHRv
+IGJlIHF1aWV0LA0KIAkgKiBvciBpdCdzIG9jY3VycmVkIHdpdGhpbiB0aGUgbGFzdCA1IHNlY29u
+ZHMuDQpAQCAtMTAwNCw3ICs5OTgsNiBAQCBzdGF0aWMgdm9pZCBoYW5kbGVfNjEyMF9lcnJvcnMo
+c3RydWN0IHFpYl9kZXZkYXRhICpkZCwgdTY0IGVycnMpDQogCWNoYXIgKm1zZzsNCiAJdTY0IGln
+bm9yZV90aGlzX3RpbWUgPSAwOw0KIAl1NjQgaXNlcnIgPSAwOw0KLQlpbnQgbG9nX2lkeDsNCiAJ
+c3RydWN0IHFpYl9wcG9ydGRhdGEgKnBwZCA9IGRkLT5wcG9ydDsNCiAJdTY0IG1hc2s7DQogDQpA
+QCAtMTAxNSwxMCArMTAwOCw2IEBAIHN0YXRpYyB2b2lkIGhhbmRsZV82MTIwX2Vycm9ycyhzdHJ1
+Y3QgcWliX2RldmRhdGEgKmRkLCB1NjQgZXJycykNCiAJLyogZG8gdGhlc2UgZmlyc3QsIHRoZXkg
+YXJlIG1vc3QgaW1wb3J0YW50ICovDQogCWlmIChlcnJzICYgRVJSX01BU0soSGFyZHdhcmVFcnIp
+KQ0KIAkJcWliX2hhbmRsZV82MTIwX2h3ZXJyb3JzKGRkLCBtc2csIHNpemVvZihkZC0+Y3NwZWMt
+PmVtc2didWYpKTsNCi0JZWxzZQ0KLQkJZm9yIChsb2dfaWR4ID0gMDsgbG9nX2lkeCA8IFFJQl9F
+RVBfTE9HX0NOVDsgKytsb2dfaWR4KQ0KLQkJCWlmIChlcnJzICYgZGQtPmVlcF9zdF9tYXNrc1ts
+b2dfaWR4XS5lcnJzX3RvX2xvZykNCi0JCQkJcWliX2luY19lZXByb21fZXJyKGRkLCBsb2dfaWR4
+LCAxKTsNCiANCiAJaWYgKGVycnMgJiB+SUJfRV9CSVRTRVhUQU5UKQ0KIAkJcWliX2Rldl9lcnIo
+ZGQsDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L3FpYi9xaWJfaWJhNzIyMC5j
+IGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L3FpYi9xaWJfaWJhNzIyMC5jDQppbmRleCA3OGNlNzli
+ZTQxMjAuLjc1ZjJjZmQwZDI3MiAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9x
+aWIvcWliX2liYTcyMjAuYw0KKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L3FpYi9xaWJfaWJh
+NzIyMC5jDQpAQCAtMTA5NCw3ICsxMDk0LDYgQEAgc3RhdGljIHZvaWQgaGFuZGxlXzcyMjBfZXJy
+b3JzKHN0cnVjdCBxaWJfZGV2ZGF0YSAqZGQsIHU2NCBlcnJzKQ0KIAljaGFyICptc2c7DQogCXU2
+NCBpZ25vcmVfdGhpc190aW1lID0gMDsNCiAJdTY0IGlzZXJyID0gMDsNCi0JaW50IGxvZ19pZHg7
+DQogCXN0cnVjdCBxaWJfcHBvcnRkYXRhICpwcGQgPSBkZC0+cHBvcnQ7DQogCXU2NCBtYXNrOw0K
+IA0KQEAgLTExMDUsMTAgKzExMDQsNiBAQCBzdGF0aWMgdm9pZCBoYW5kbGVfNzIyMF9lcnJvcnMo
+c3RydWN0IHFpYl9kZXZkYXRhICpkZCwgdTY0IGVycnMpDQogCS8qIGRvIHRoZXNlIGZpcnN0LCB0
+aGV5IGFyZSBtb3N0IGltcG9ydGFudCAqLw0KIAlpZiAoZXJycyAmIEVSUl9NQVNLKEhhcmR3YXJl
+RXJyKSkNCiAJCXFpYl83MjIwX2hhbmRsZV9od2Vycm9ycyhkZCwgbXNnLCBzaXplb2YoZGQtPmNz
+cGVjLT5lbXNnYnVmKSk7DQotCWVsc2UNCi0JCWZvciAobG9nX2lkeCA9IDA7IGxvZ19pZHggPCBR
+SUJfRUVQX0xPR19DTlQ7ICsrbG9nX2lkeCkNCi0JCQlpZiAoZXJycyAmIGRkLT5lZXBfc3RfbWFz
+a3NbbG9nX2lkeF0uZXJyc190b19sb2cpDQotCQkJCXFpYl9pbmNfZWVwcm9tX2VycihkZCwgbG9n
+X2lkeCwgMSk7DQogDQogCWlmIChlcnJzICYgUUxPR0lDX0lCX0VfU0RNQUVSUlMpDQogCQlzZG1h
+XzcyMjBfZXJyb3JzKHBwZCwgZXJycyk7DQpAQCAtMTMwMiw3ICsxMjk3LDYgQEAgc3RhdGljIHZv
+aWQgcWliXzcyMjBfaGFuZGxlX2h3ZXJyb3JzKHN0cnVjdCBxaWJfZGV2ZGF0YSAqZGQsIGNoYXIg
+Km1zZywNCiAJdTMyIGJpdHMsIGN0cmw7DQogCWludCBpc2ZhdGFsID0gMDsNCiAJY2hhciAqYml0
+c21zZzsNCi0JaW50IGxvZ19pZHg7DQogDQogCWh3ZXJycyA9IHFpYl9yZWFkX2tyZWc2NChkZCwg
+a3JfaHdlcnJzdGF0dXMpOw0KIAlpZiAoIWh3ZXJycykNCkBAIC0xMzI2LDEwICsxMzIwLDYgQEAg
+c3RhdGljIHZvaWQgcWliXzcyMjBfaGFuZGxlX2h3ZXJyb3JzKHN0cnVjdCBxaWJfZGV2ZGF0YSAq
+ZGQsIGNoYXIgKm1zZywNCiANCiAJaHdlcnJzICY9IGRkLT5jc3BlYy0+aHdlcnJtYXNrOw0KIA0K
+LQkvKiBXZSBsb2cgc29tZSBlcnJvcnMgdG8gRUVQUk9NLCBjaGVjayBpZiB3ZSBoYXZlIGFueSBv
+ZiB0aG9zZS4gKi8NCi0JZm9yIChsb2dfaWR4ID0gMDsgbG9nX2lkeCA8IFFJQl9FRVBfTE9HX0NO
+VDsgKytsb2dfaWR4KQ0KLQkJaWYgKGh3ZXJycyAmIGRkLT5lZXBfc3RfbWFza3NbbG9nX2lkeF0u
+aHdlcnJzX3RvX2xvZykNCi0JCQlxaWJfaW5jX2VlcHJvbV9lcnIoZGQsIGxvZ19pZHgsIDEpOw0K
+IAlpZiAoaHdlcnJzICYgfihUWEVNRU1QQVJJVFlFUlJfUElPQlVGIHwgVFhFTUVNUEFSSVRZRVJS
+X1BJT1BCQyB8DQogCQkgICAgICAgUlhFX1BBUklUWSkpDQogCQlxaWJfZGV2aW5mbyhkZC0+cGNp
+ZGV2LA0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWliX2liYTczMjIu
+YyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWliX2liYTczMjIuYw0KaW5kZXggNGQwMmNm
+ZmU0ZTAzLi43NzIxN2ZhZTljMDYgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcv
+cWliL3FpYl9pYmE3MzIyLmMNCisrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWliX2li
+YTczMjIuYw0KQEAgLTE2NDQsNyArMTY0NCw2IEBAIHN0YXRpYyBub2lubGluZSB2b2lkIGhhbmRs
+ZV83MzIyX2Vycm9ycyhzdHJ1Y3QgcWliX2RldmRhdGEgKmRkKQ0KIAl1NjQgaXNlcnIgPSAwOw0K
+IAl1NjQgZXJyczsNCiAJdTY0IG1hc2s7DQotCWludCBsb2dfaWR4Ow0KIA0KIAlxaWJfc3RhdHMu
+c3BzX2VycmludHMrKzsNCiAJZXJycyA9IHFpYl9yZWFkX2tyZWc2NChkZCwga3JfZXJyc3RhdHVz
+KTsNCkBAIC0xNjYyLDEwICsxNjYxLDcgQEAgc3RhdGljIG5vaW5saW5lIHZvaWQgaGFuZGxlXzcz
+MjJfZXJyb3JzKHN0cnVjdCBxaWJfZGV2ZGF0YSAqZGQpDQogCWlmIChlcnJzICYgUUlCX0VfSEFS
+RFdBUkUpIHsNCiAJCSptc2cgPSAnXDAnOw0KIAkJcWliXzczMjJfaGFuZGxlX2h3ZXJyb3JzKGRk
+LCBtc2csIHNpemVvZihkZC0+Y3NwZWMtPmVtc2didWYpKTsNCi0JfSBlbHNlDQotCQlmb3IgKGxv
+Z19pZHggPSAwOyBsb2dfaWR4IDwgUUlCX0VFUF9MT0dfQ05UOyArK2xvZ19pZHgpDQotCQkJaWYg
+KGVycnMgJiBkZC0+ZWVwX3N0X21hc2tzW2xvZ19pZHhdLmVycnNfdG9fbG9nKQ0KLQkJCQlxaWJf
+aW5jX2VlcHJvbV9lcnIoZGQsIGxvZ19pZHgsIDEpOw0KKwl9DQogDQogCWlmIChlcnJzICYgUUlC
+X0VfU1BLVEVSUlMpIHsNCiAJCXFpYl9kaXNhcm1fNzMyMl9zZW5kZXJyYnVmcyhkZC0+cHBvcnQp
+Ow0K
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
