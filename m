@@ -1,96 +1,90 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 13/47] RDMA/cxgb4: Declare a local variable 'static'
-Date: Tue, 10 Oct 2017 06:59:09 +0300
-Message-ID: <20171010035909.GI1252@mtr-leonro.local>
-References: <20171006213333.6721-1-bart.vanassche@wdc.com>
- <20171006213333.6721-14-bart.vanassche@wdc.com>
- <01ba01d33eef$d3ed5a90$7bc80fb0$@opengridcomputing.com>
- <1507591219.2674.58.camel@wdc.com>
+Subject: Re: [PATCH 3/7] IB/srpt: Change default behavior from using SRQ to
+ not using SRQ
+Date: Tue, 10 Oct 2017 07:14:23 +0300
+Message-ID: <20171010041423.GJ1252@mtr-leonro.local>
+References: <20171006214243.11296-1-bart.vanassche@wdc.com>
+ <20171006214243.11296-4-bart.vanassche@wdc.com>
+ <20171008100317.GR25829@mtr-leonro.local>
+ <1507568205.46071.46.camel@redhat.com>
+ <1507568492.2674.11.camel@wdc.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="o7gdRJTuwFmWapyH"
+        protocol="application/pgp-signature"; boundary="CxDuMX1Cv2n9FQfo"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1507591219.2674.58.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <1507568492.2674.11.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---o7gdRJTuwFmWapyH
+--CxDuMX1Cv2n9FQfo
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Oct 09, 2017 at 11:20:20PM +0000, Bart Van Assche wrote:
-> On Fri, 2017-10-06 at 17:09 -0500, Steve Wise wrote:
+On Mon, Oct 09, 2017 at 05:01:33PM +0000, Bart Van Assche wrote:
+> On Mon, 2017-10-09 at 12:56 -0400, Doug Ledford wrote:
+> > On Sun, 2017-10-08 at 13:03 +0300, Leon Romanovsky wrote:
+> > > It is a little bit strange to ask from user to decide if his adapter
+> > > supports SRQ or not.
 > > >
-> > > Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-> > > Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > > ---
-> > >  drivers/infiniband/hw/cxgb4/cm.c | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >
-> > > diff --git a/drivers/infiniband/hw/cxgb4/cm.c
+> > > It should be automatically.
 > >
-> > b/drivers/infiniband/hw/cxgb4/cm.c
-> > > index 2331e7d57704..49d9f9b870e5 100644
-> > > --- a/drivers/infiniband/hw/cxgb4/cm.c
-> > > +++ b/drivers/infiniband/hw/cxgb4/cm.c
-> > > @@ -99,7 +99,7 @@ module_param(enable_tcp_window_scaling, int, 0644);
-> > >  MODULE_PARM_DESC(enable_tcp_window_scaling,
-> > >  		 "Enable tcp window scaling (default=1)");
-> > >
-> > > -int c4iw_debug;
-> > > +static int c4iw_debug;
-> > >  module_param(c4iw_debug, int, 0644);
-> > >  MODULE_PARM_DESC(c4iw_debug, "obsolete");
-> >
-> > Can we just remove this now?  IE has it been 1 release since it was obsoleted?
+> > I think Bart's intent is that the driver not use SRQ as the default
+> > behavior even if the adapter supports it, so querying the adapter for
+> > support and enabling it if it exists would not achieve his desired
+> > result.  This would then be used to override that behavior.  Is that
+> > correct Bart?
 >
-> That's a good question but I'm not sure what would be a good time to remove
-> this. I think the answer depends on how likely it is that people use this
-> variable in scripts or /etc/modprobe.d configuration files because in that
-> case removing the module parameter would break setups.
+> Hello Leon and Doug,
+>
+> The changes realized by this patch are:
+> - Instead of using SRQ as default, use non-SRQ mode as default.
+> - If SRQ has been chosen as default, and if SRQ is not supported, fall back
+>   to non-SRQ mode (see also the if (IS_ERR(sdev->srq)) ... code).
+>
+> Please let me know if you have any further questions about this patch.
 
-It is unlikely to happen, for many reasons. It is marked as obsolete for
-a long time, the proper infrastructure (dynamic prints) already for a decade
-with us and no adequate user is running debug system in production.
+Yes, in case HCA supports SRQ, when do you set that module parameter?
 
-Another thing that we do remove visible to user interfaces from time to time
-and the rule is "try to remove it and see if someone screams about it".
+In the commit message, you mentioned disadvantages of using SRQ is a
+default and among them - locks contention, which can be changed in the
+future. Won't it mean that users stuck with current default, because
+change of default will "break" their scripts?
 
-There are a lot of commits which do such thing and latest one is 0d0c71b31720
-("btrfs: obsolete and remove mount option alloc_start")
+Setting visible to user default won't allow us to change SRP behavior in
+the future.
 
-It is safe to remove c4iw_debug module parameter.
+I wouldn't recommend to make such option accessible by users.
 
 Thanks
 
 >
 > Bart.
 
---o7gdRJTuwFmWapyH
+--CxDuMX1Cv2n9FQfo
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlncRY0ACgkQ5GN7iDZy
-WKe66w/7BUjmIZZRUj8zbQ8/bownQAEFxULvatX72a8b8DqU2Mb9nf4v5ft//sTS
-42wBJOmWcwa8RK05IYc/WqoukPTlqobwnXNuXVCIAvCH2F3qXTkRoj/1dGhylek2
-CSAa5pviUlVzVIViKKzj14wcRQYhjhl36NoCZFo8dULytqR9eTg8eLiW9+UX8TVN
-6KaX1sgUJM61FqPquj72V3oCzMI42K/G+0x+yrhjGC2WU/o3nk9aUhuOxjKpOqak
-oIhgZFI4pZhn9Id8ISNrkXPzvJUt+svj/wKW2jmSNnW8yGsus5KlNfj1uCOIz28Z
-1cC+yCkfzG9hdzTAZdvhXkxzZov94/aoXzRMwzrc1LNvPf2CSW1zuSyqBVYu+2vT
-SA5VmhBQQYAj+PyRfzMmpudyKTVlMxNVd/boK0gy6tJq6cB8MAN/24Qis6qCljfJ
-PM2uxt8sYyqEhpb+3zsvhFU8XREyM7JC+gFbmYyuPiEL/BYUj1HRaHDvqAf3sR7P
-l0KwQEYFim76dazLN4na0HX8HEIZst10L8uBnN0bjNajcTVp0gRnHpAxgaHNb2Ce
-kmDFuEOdusPHhc0E3JRJMVmXcFT62jb38WUrQGMjwNbVSpRtvyC1SwjISB54rE41
-t/cb5wLWU+d9XXWwCdYlcVfJzZigIVUbIIwK5Kjw/C0OW0dYAZk=
-=P+8q
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlncSR8ACgkQ5GN7iDZy
+WKdsgBAAgTHSu+hKle9uBkl/AbkcOJt8j7itF37tFzr2kfQEV7Ev9zC82eA5DDpg
+Lh0A2bbgJnlGpLx7qUZ+fkzd0ZxWI8WGyH6VIIpSU1YV82FGyeLj50sOpJbMbrxm
+Bvm1hK6r/7SMwQ5eIZZ7W2Q0L/1jfT1j3UlPlH0U00Za410B96oLF8i36+Uqq989
+VBga7MO+Yfo30d9zF/ylwdHxGsM93iZ9kMm52G4FcXpmT0kTnYV7okPtbabTgUTI
+/RXaI8vMkuJoID71ZinvvjkzW8XEJQaykW8bfyp4NNbj5PZj7+vQbAws5q/Wfu1e
+KzMkCCNuLrt0O1HUU+71lWzPOPAlfHMkfWSUIIeymDnr9rRCUY6tAJNyRohzOesj
+xBBlKnHAwaexupFhhbk7XGe4F7+4EyUvSPQLKV+SO/JoPqh5Q/fPwLPG97WI5sa6
+EVS3+1xd8sN4IWAFFA66jRMCmEpKkhHoXwEAAOPB8pQslkZTCO23bZZmYuW0g9aA
+rO6aORIBzuVXzJBMph0TQT6LTjC3CaWOmQJaorb2eW32RmY7uHo3hh6j38jUaNHF
+1/bILyILt9yLgNp0kwDSSbX4AutD0smvuVx6NmdBvS17jeGOIfv1pZZ0XbeMe8/M
+J25kfAJRAsQEC9xeTTFFqYxXRC8xEkZYrxJv237ZMHPMpMY0o6w=
+=hJRP
 -----END PGP SIGNATURE-----
 
---o7gdRJTuwFmWapyH--
+--CxDuMX1Cv2n9FQfo--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
