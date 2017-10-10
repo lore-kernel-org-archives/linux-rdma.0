@@ -1,172 +1,273 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: [PATCH 40/47] IB/qib: Make qib_inc_eeprom_err() macro more safe
  to use
-Date: Tue, 10 Oct 2017 18:25:19 +0000
-Message-ID: <1507659918.2815.50.camel@wdc.com>
+Date: Tue, 10 Oct 2017 21:33:08 +0300
+Message-ID: <20171010183308.GJ2106@mtr-leonro.local>
 References: <20171006213333.6721-1-bart.vanassche@wdc.com>
-         <20171006213333.6721-41-bart.vanassche@wdc.com>
-         <32E1700B9017364D9B60AED9960492BC3442AAD2@fmsmsx120.amr.corp.intel.com>
-         <1507648081.2815.5.camel@wdc.com>
-         <32E1700B9017364D9B60AED9960492BC3442ADF5@fmsmsx120.amr.corp.intel.com>
-         <1507658390.2815.48.camel@wdc.com> <20171010180809.GI2106@mtr-leonro.local>
+ <20171006213333.6721-41-bart.vanassche@wdc.com>
+ <32E1700B9017364D9B60AED9960492BC3442AAD2@fmsmsx120.amr.corp.intel.com>
+ <1507648081.2815.5.camel@wdc.com>
+ <32E1700B9017364D9B60AED9960492BC3442ADF5@fmsmsx120.amr.corp.intel.com>
+ <1507658390.2815.48.camel@wdc.com>
+ <20171010180809.GI2106@mtr-leonro.local>
+ <1507659918.2815.50.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="fKov5AqTsvseSZ0Z"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171010180809.GI2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <DC731AFF5FB8BE41BD0E902A05664E14-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1507659918.2815.50.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE3LTEwLTEwIGF0IDIxOjA4ICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IERvZXMgaXQgbWVhbiB0aGF0IHlvdSBjYW4gZ2V0IHJpZCBvZiBlZXBfc3RfbWFza3MgYW5k
-IFFJQl9FRVBfTE9HX0NOVCB0b28/DQoNCkkgdGhpbmsgc28uIEhlcmUgd2UgZ28gLi4uDQoNCg0K
-U3ViamVjdDogW1BBVENIXSBJQi9xaWI6IFJlbW92ZSByZW1haW5pbmcgY29kZSByZWxhdGVkIHRv
-IHdyaXRpbmcgdGhlIEVFUFJPTQ0KDQpEdWUgdG8gcmVtb3ZhbCBvZiB0aGUgRUVQUk9NIHdyaXRp
-bmcgY29kZSwgdGhlIHFpYl9pbmNfZWVwcm9tX2VycigpDQptYWNybyBiZWNhbWUgYSBuby1vcC4g
-UmVtb3ZlIHRoZSBjb2RlIHRoYXQgY2FsbHMgaXQuIFNpbmNlIHRoYXQNCmNoYW5nZSByZW1vdmVz
-IGFsbCBjb2RlIHRoYXQgcmVhZHMgdGhlIGVlcF9zdF9tYXNrcyBhcnJheSwgYWxzbw0KcmVtb3Zl
-IHRoZSBjb2RlIHRoYXQgdXBkYXRlcyB0aGF0IGFycmF5IGFuZCB0aGUgYXJyYXkgaXRzZWxmLg0K
-DQpSZWZlcmVuY2VzOiBjb21taXQgMThjMGI4MmEzZTQ1ICgiIElCL3FpYjogRG8gbm90IHdyaXRl
-IEVFUFJPTSIpDQpTaWduZWQtb2ZmLWJ5OiBCYXJ0IFZhbiBBc3NjaGUgPGJhcnQudmFuYXNzY2hl
-QHdkYy5jb20+DQpDYzogTWlrZSBNYXJjaW5pc3p5biA8aW5maW5pcGF0aEBpbnRlbC5jb20+DQot
-LS0NCiBkcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYi5oICAgICAgICAgfCAxOCAtLS0tLS0t
-LS0tLS0tLS0tLS0NCiBkcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9pYmE2MTIwLmMgfCAy
-NSAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQogZHJpdmVycy9pbmZpbmliYW5kL2h3L3FpYi9x
-aWJfaWJhNzIyMC5jIHwgMjAgLS0tLS0tLS0tLS0tLS0tLS0tLS0NCiBkcml2ZXJzL2luZmluaWJh
-bmQvaHcvcWliL3FpYl9pYmE3MzIyLmMgfCAgNiArLS0tLS0NCiA0IGZpbGVzIGNoYW5nZWQsIDEg
-aW5zZXJ0aW9uKCspLCA2OCBkZWxldGlvbnMoLSkNCg0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5m
-aW5pYmFuZC9ody9xaWIvcWliLmggYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYi5oDQpp
-bmRleCAxMTY3YTljMTc3NmIuLjY4OWY1ZDAwMTg5MiAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvaW5m
-aW5pYmFuZC9ody9xaWIvcWliLmgNCisrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWli
-LmgNCkBAIC0xMDEsMTggKzEwMSw2IEBAIGV4dGVybiBjb25zdCBzdHJ1Y3QgcGNpX2Vycm9yX2hh
-bmRsZXJzIHFpYl9wY2lfZXJyX2hhbmRsZXI7DQogICovDQogI2RlZmluZSBRSUJfVFJBRkZJQ19B
-Q1RJVkVfVEhSRVNIT0xEICgyMDAwKQ0KIA0KLS8qDQotICogU3RydWN0IHVzZWQgdG8gaW5kaWNh
-dGUgd2hpY2ggZXJyb3JzIGFyZSBsb2dnZWQgaW4gZWFjaCBvZiB0aGUNCi0gKiBlcnJvci1jb3Vu
-dGVycyB0aGF0IGFyZSBsb2dnZWQgdG8gRUVQUk9NLiBBIGNvdW50ZXIgaXMgaW5jcmVtZW50ZWQN
-Ci0gKiBfb25jZV8gKHNhdHVyYXRpbmcgYXQgMjU1KSBmb3IgZWFjaCBldmVudCB3aXRoIGFueSBi
-aXRzIHNldCBpbg0KLSAqIHRoZSBlcnJvciBvciBod2Vycm9yIHJlZ2lzdGVyIG1hc2tzIGJlbG93
-Lg0KLSAqLw0KLSNkZWZpbmUgUUlCX0VFUF9MT0dfQ05UICg0KQ0KLXN0cnVjdCBxaWJfZWVwX2xv
-Z19tYXNrIHsNCi0JdTY0IGVycnNfdG9fbG9nOw0KLQl1NjQgaHdlcnJzX3RvX2xvZzsNCi19Ow0K
-LQ0KIC8qDQogICogQmVsb3cgY29udGFpbnMgYWxsIGRhdGEgcmVsYXRlZCB0byBhIHNpbmdsZSBj
-b250ZXh0IChmb3JtZXJseSBjYWxsZWQgcG9ydCkuDQogICovDQpAQCAtMTA3OSwxMSArMTA2Nyw2
-IEBAIHN0cnVjdCBxaWJfZGV2ZGF0YSB7DQogCS8qIGNvbnRyb2wgaGlnaC1sZXZlbCBhY2Nlc3Mg
-dG8gRUVQUk9NICovDQogCXN0cnVjdCBtdXRleCBlZXBfbG9jazsNCiAJdWludDY0X3QgdHJhZmZp
-Y193ZHM7DQotCS8qDQotCSAqIG1hc2tzIGZvciB3aGljaCBiaXRzIG9mIGVycnMsIGh3ZXJycyB0
-aGF0IGNhdXNlDQotCSAqIGVhY2ggb2YgdGhlIGNvdW50ZXJzIHRvIGluY3JlbWVudC4NCi0JICov
-DQotCXN0cnVjdCBxaWJfZWVwX2xvZ19tYXNrIGVlcF9zdF9tYXNrc1tRSUJfRUVQX0xPR19DTlRd
-Ow0KIAlzdHJ1Y3QgcWliX2RpYWdfY2xpZW50ICpkaWFnX2NsaWVudDsNCiAJc3BpbmxvY2tfdCBx
-aWJfZGlhZ190cmFuc19sb2NrOyAvKiBwcm90ZWN0IGRpYWcgb2JzZXJ2ZXIgb3BzICovDQogCXN0
-cnVjdCBkaWFnX29ic2VydmVyX2xpc3RfZWx0ICpkaWFnX29ic2VydmVyX2xpc3Q7DQpAQCAtMTI5
-Nyw3ICsxMjgwLDYgQEAgaW50IHFpYl90d3NpX2Jsa19yZChzdHJ1Y3QgcWliX2RldmRhdGEgKmRk
-LCBpbnQgZGV2LCBpbnQgYWRkciwgdm9pZCAqYnVmZmVyLA0KIGludCBxaWJfdHdzaV9ibGtfd3Io
-c3RydWN0IHFpYl9kZXZkYXRhICpkZCwgaW50IGRldiwgaW50IGFkZHIsDQogCQkgICAgY29uc3Qg
-dm9pZCAqYnVmZmVyLCBpbnQgbGVuKTsNCiB2b2lkIHFpYl9nZXRfZWVwcm9tX2luZm8oc3RydWN0
-IHFpYl9kZXZkYXRhICopOw0KLSNkZWZpbmUgcWliX2luY19lZXByb21fZXJyKGRkLCBlaWR4LCBp
-bmNyKQ0KIHZvaWQgcWliX2R1bXBfbG9va3VwX291dHB1dF9xdWV1ZShzdHJ1Y3QgcWliX2RldmRh
-dGEgKik7DQogdm9pZCBxaWJfZm9yY2VfcGlvX2F2YWlsX3VwZGF0ZShzdHJ1Y3QgcWliX2RldmRh
-dGEgKik7DQogdm9pZCBxaWJfY2xlYXJfc3ltZXJyb3Jfb25fbGlua3VwKHVuc2lnbmVkIGxvbmcg
-b3BhcXVlKTsNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9pYmE2
-MTIwLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9pYmE2MTIwLmMNCmluZGV4IGM0
-YTRjNTdlMGYwYS4uM2M1YWRmYTEwNGEwIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9pbmZpbmliYW5k
-L2h3L3FpYi9xaWJfaWJhNjEyMC5jDQorKysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3Fp
-Yl9pYmE2MTIwLmMNCkBAIC03NDgsNyArNzQ4LDYgQEAgc3RhdGljIHZvaWQgcWliX2hhbmRsZV82
-MTIwX2h3ZXJyb3JzKHN0cnVjdCBxaWJfZGV2ZGF0YSAqZGQsIGNoYXIgKm1zZywNCiAJdTMyIGJp
-dHMsIGN0cmw7DQogCWludCBpc2ZhdGFsID0gMDsNCiAJY2hhciAqYml0c21zZzsNCi0JaW50IGxv
-Z19pZHg7DQogDQogCWh3ZXJycyA9IHFpYl9yZWFkX2tyZWc2NChkZCwga3JfaHdlcnJzdGF0dXMp
-Ow0KIAlpZiAoIWh3ZXJycykNCkBAIC03NzAsMTEgKzc2OSw2IEBAIHN0YXRpYyB2b2lkIHFpYl9o
-YW5kbGVfNjEyMF9od2Vycm9ycyhzdHJ1Y3QgcWliX2RldmRhdGEgKmRkLCBjaGFyICptc2csDQog
-DQogCWh3ZXJycyAmPSBkZC0+Y3NwZWMtPmh3ZXJybWFzazsNCiANCi0JLyogV2UgbG9nIHNvbWUg
-ZXJyb3JzIHRvIEVFUFJPTSwgY2hlY2sgaWYgd2UgaGF2ZSBhbnkgb2YgdGhvc2UuICovDQotCWZv
-ciAobG9nX2lkeCA9IDA7IGxvZ19pZHggPCBRSUJfRUVQX0xPR19DTlQ7ICsrbG9nX2lkeCkNCi0J
-CWlmIChod2VycnMgJiBkZC0+ZWVwX3N0X21hc2tzW2xvZ19pZHhdLmh3ZXJyc190b19sb2cpDQot
-CQkJcWliX2luY19lZXByb21fZXJyKGRkLCBsb2dfaWR4LCAxKTsNCi0NCiAJLyoNCiAJICogTWFr
-ZSBzdXJlIHdlIGdldCB0aGlzIG11Y2ggb3V0LCB1bmxlc3MgdG9sZCB0byBiZSBxdWlldCwNCiAJ
-ICogb3IgaXQncyBvY2N1cnJlZCB3aXRoaW4gdGhlIGxhc3QgNSBzZWNvbmRzLg0KQEAgLTEwMDQs
-NyArOTk4LDYgQEAgc3RhdGljIHZvaWQgaGFuZGxlXzYxMjBfZXJyb3JzKHN0cnVjdCBxaWJfZGV2
-ZGF0YSAqZGQsIHU2NCBlcnJzKQ0KIAljaGFyICptc2c7DQogCXU2NCBpZ25vcmVfdGhpc190aW1l
-ID0gMDsNCiAJdTY0IGlzZXJyID0gMDsNCi0JaW50IGxvZ19pZHg7DQogCXN0cnVjdCBxaWJfcHBv
-cnRkYXRhICpwcGQgPSBkZC0+cHBvcnQ7DQogCXU2NCBtYXNrOw0KIA0KQEAgLTEwMTUsMTAgKzEw
-MDgsNiBAQCBzdGF0aWMgdm9pZCBoYW5kbGVfNjEyMF9lcnJvcnMoc3RydWN0IHFpYl9kZXZkYXRh
-ICpkZCwgdTY0IGVycnMpDQogCS8qIGRvIHRoZXNlIGZpcnN0LCB0aGV5IGFyZSBtb3N0IGltcG9y
-dGFudCAqLw0KIAlpZiAoZXJycyAmIEVSUl9NQVNLKEhhcmR3YXJlRXJyKSkNCiAJCXFpYl9oYW5k
-bGVfNjEyMF9od2Vycm9ycyhkZCwgbXNnLCBzaXplb2YoZGQtPmNzcGVjLT5lbXNnYnVmKSk7DQot
-CWVsc2UNCi0JCWZvciAobG9nX2lkeCA9IDA7IGxvZ19pZHggPCBRSUJfRUVQX0xPR19DTlQ7ICsr
-bG9nX2lkeCkNCi0JCQlpZiAoZXJycyAmIGRkLT5lZXBfc3RfbWFza3NbbG9nX2lkeF0uZXJyc190
-b19sb2cpDQotCQkJCXFpYl9pbmNfZWVwcm9tX2VycihkZCwgbG9nX2lkeCwgMSk7DQogDQogCWlm
-IChlcnJzICYgfklCX0VfQklUU0VYVEFOVCkNCiAJCXFpYl9kZXZfZXJyKGRkLA0KQEAgLTMyMjcs
-MjAgKzMyMTYsNiBAQCBzdGF0aWMgaW50IGluaXRfNjEyMF92YXJpYWJsZXMoc3RydWN0IHFpYl9k
-ZXZkYXRhICpkZCkNCiAJaWYgKHFpYl91bm9yZGVyZWRfd2MoKSkNCiAJCWRkLT5mbGFncyB8PSBR
-SUJfUElPX0ZMVVNIX1dDOw0KIA0KLQkvKg0KLQkgKiBFRVBST00gZXJyb3IgbG9nIDAgaXMgVFhF
-IFBhcml0eSBlcnJvcnMuIDEgaXMgUlhFIFBhcml0eS4NCi0JICogMiBpcyBTb21lIE1pc2MsIDMg
-aXMgcmVzZXJ2ZWQgZm9yIGZ1dHVyZS4NCi0JICovDQotCWRkLT5lZXBfc3RfbWFza3NbMF0uaHdl
-cnJzX3RvX2xvZyA9IEhXRV9NQVNLKFRYRU1lbVBhcml0eUVycik7DQotDQotCS8qIElnbm9yZSBl
-cnJvcnMgaW4gUElPL1BCQyBvbiBzeXN0ZW1zIHdpdGggdW5vcmRlcmVkIHdyaXRlLWNvbWJpbmlu
-ZyAqLw0KLQlpZiAocWliX3Vub3JkZXJlZF93YygpKQ0KLQkJZGQtPmVlcF9zdF9tYXNrc1swXS5o
-d2VycnNfdG9fbG9nICY9IH5UWEVfUElPX1BBUklUWTsNCi0NCi0JZGQtPmVlcF9zdF9tYXNrc1sx
-XS5od2VycnNfdG9fbG9nID0gSFdFX01BU0soUlhFTWVtUGFyaXR5RXJyKTsNCi0NCi0JZGQtPmVl
-cF9zdF9tYXNrc1syXS5lcnJzX3RvX2xvZyA9IEVSUl9NQVNLKFJlc2V0TmVnYXRlZCk7DQotDQog
-CXJldCA9IHFpYl9pbml0X3Bwb3J0ZGF0YShwcGQsIGRkLCAwLCAxKTsNCiAJaWYgKHJldCkNCiAJ
-CWdvdG8gYmFpbDsNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9p
-YmE3MjIwLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9pYmE3MjIwLmMNCmluZGV4
-IDc4Y2U3OWJlNDEyMC4uY2ViMjI1OWE1ZWZiIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9pbmZpbmli
-YW5kL2h3L3FpYi9xaWJfaWJhNzIyMC5jDQorKysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWli
-L3FpYl9pYmE3MjIwLmMNCkBAIC0xMDk0LDcgKzEwOTQsNiBAQCBzdGF0aWMgdm9pZCBoYW5kbGVf
-NzIyMF9lcnJvcnMoc3RydWN0IHFpYl9kZXZkYXRhICpkZCwgdTY0IGVycnMpDQogCWNoYXIgKm1z
-ZzsNCiAJdTY0IGlnbm9yZV90aGlzX3RpbWUgPSAwOw0KIAl1NjQgaXNlcnIgPSAwOw0KLQlpbnQg
-bG9nX2lkeDsNCiAJc3RydWN0IHFpYl9wcG9ydGRhdGEgKnBwZCA9IGRkLT5wcG9ydDsNCiAJdTY0
-IG1hc2s7DQogDQpAQCAtMTEwNSwxMCArMTEwNCw2IEBAIHN0YXRpYyB2b2lkIGhhbmRsZV83MjIw
-X2Vycm9ycyhzdHJ1Y3QgcWliX2RldmRhdGEgKmRkLCB1NjQgZXJycykNCiAJLyogZG8gdGhlc2Ug
-Zmlyc3QsIHRoZXkgYXJlIG1vc3QgaW1wb3J0YW50ICovDQogCWlmIChlcnJzICYgRVJSX01BU0so
-SGFyZHdhcmVFcnIpKQ0KIAkJcWliXzcyMjBfaGFuZGxlX2h3ZXJyb3JzKGRkLCBtc2csIHNpemVv
-ZihkZC0+Y3NwZWMtPmVtc2didWYpKTsNCi0JZWxzZQ0KLQkJZm9yIChsb2dfaWR4ID0gMDsgbG9n
-X2lkeCA8IFFJQl9FRVBfTE9HX0NOVDsgKytsb2dfaWR4KQ0KLQkJCWlmIChlcnJzICYgZGQtPmVl
-cF9zdF9tYXNrc1tsb2dfaWR4XS5lcnJzX3RvX2xvZykNCi0JCQkJcWliX2luY19lZXByb21fZXJy
-KGRkLCBsb2dfaWR4LCAxKTsNCiANCiAJaWYgKGVycnMgJiBRTE9HSUNfSUJfRV9TRE1BRVJSUykN
-CiAJCXNkbWFfNzIyMF9lcnJvcnMocHBkLCBlcnJzKTsNCkBAIC0xMzAyLDcgKzEyOTcsNiBAQCBz
-dGF0aWMgdm9pZCBxaWJfNzIyMF9oYW5kbGVfaHdlcnJvcnMoc3RydWN0IHFpYl9kZXZkYXRhICpk
-ZCwgY2hhciAqbXNnLA0KIAl1MzIgYml0cywgY3RybDsNCiAJaW50IGlzZmF0YWwgPSAwOw0KIAlj
-aGFyICpiaXRzbXNnOw0KLQlpbnQgbG9nX2lkeDsNCiANCiAJaHdlcnJzID0gcWliX3JlYWRfa3Jl
-ZzY0KGRkLCBrcl9od2VycnN0YXR1cyk7DQogCWlmICghaHdlcnJzKQ0KQEAgLTEzMjYsMTAgKzEz
-MjAsNiBAQCBzdGF0aWMgdm9pZCBxaWJfNzIyMF9oYW5kbGVfaHdlcnJvcnMoc3RydWN0IHFpYl9k
-ZXZkYXRhICpkZCwgY2hhciAqbXNnLA0KIA0KIAlod2VycnMgJj0gZGQtPmNzcGVjLT5od2Vycm1h
-c2s7DQogDQotCS8qIFdlIGxvZyBzb21lIGVycm9ycyB0byBFRVBST00sIGNoZWNrIGlmIHdlIGhh
-dmUgYW55IG9mIHRob3NlLiAqLw0KLQlmb3IgKGxvZ19pZHggPSAwOyBsb2dfaWR4IDwgUUlCX0VF
-UF9MT0dfQ05UOyArK2xvZ19pZHgpDQotCQlpZiAoaHdlcnJzICYgZGQtPmVlcF9zdF9tYXNrc1ts
-b2dfaWR4XS5od2VycnNfdG9fbG9nKQ0KLQkJCXFpYl9pbmNfZWVwcm9tX2VycihkZCwgbG9nX2lk
-eCwgMSk7DQogCWlmIChod2VycnMgJiB+KFRYRU1FTVBBUklUWUVSUl9QSU9CVUYgfCBUWEVNRU1Q
-QVJJVFlFUlJfUElPUEJDIHwNCiAJCSAgICAgICBSWEVfUEFSSVRZKSkNCiAJCXFpYl9kZXZpbmZv
-KGRkLT5wY2lkZXYsDQpAQCAtNDAxNiwxNiArNDAwNiw2IEBAIHN0YXRpYyBpbnQgcWliX2luaXRf
-NzIyMF92YXJpYWJsZXMoc3RydWN0IHFpYl9kZXZkYXRhICpkZCkNCiAJZGQtPmZsYWdzIHw9IHFp
-Yl9zcGVjaWFsX3RyaWdnZXIgPw0KIAkJUUlCX1VTRV9TUENMX1RSSUcgOiBRSUJfSEFTX1NFTkRf
-RE1BOw0KIA0KLQkvKg0KLQkgKiBFRVBST00gZXJyb3IgbG9nIDAgaXMgVFhFIFBhcml0eSBlcnJv
-cnMuIDEgaXMgUlhFIFBhcml0eS4NCi0JICogMiBpcyBTb21lIE1pc2MsIDMgaXMgcmVzZXJ2ZWQg
-Zm9yIGZ1dHVyZS4NCi0JICovDQotCWRkLT5lZXBfc3RfbWFza3NbMF0uaHdlcnJzX3RvX2xvZyA9
-IEhXRV9NQVNLKFRYRU1lbVBhcml0eUVycik7DQotDQotCWRkLT5lZXBfc3RfbWFza3NbMV0uaHdl
-cnJzX3RvX2xvZyA9IEhXRV9NQVNLKFJYRU1lbVBhcml0eUVycik7DQotDQotCWRkLT5lZXBfc3Rf
-bWFza3NbMl0uZXJyc190b19sb2cgPSBFUlJfTUFTSyhSZXNldE5lZ2F0ZWQpOw0KLQ0KIAlpbml0
-X3dhaXRxdWV1ZV9oZWFkKCZjcHNwZWMtPmF1dG9uZWdfd2FpdCk7DQogCUlOSVRfREVMQVlFRF9X
-T1JLKCZjcHNwZWMtPmF1dG9uZWdfd29yaywgYXV0b25lZ183MjIwX3dvcmspOw0KIA0KZGlmZiAt
-LWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWliX2liYTczMjIuYyBiL2RyaXZlcnMv
-aW5maW5pYmFuZC9ody9xaWIvcWliX2liYTczMjIuYw0KaW5kZXggNGQwMmNmZmU0ZTAzLi43NzIx
-N2ZhZTljMDYgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9pYmE3
-MzIyLmMNCisrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWliX2liYTczMjIuYw0KQEAg
-LTE2NDQsNyArMTY0NCw2IEBAIHN0YXRpYyBub2lubGluZSB2b2lkIGhhbmRsZV83MzIyX2Vycm9y
-cyhzdHJ1Y3QgcWliX2RldmRhdGEgKmRkKQ0KIAl1NjQgaXNlcnIgPSAwOw0KIAl1NjQgZXJyczsN
-CiAJdTY0IG1hc2s7DQotCWludCBsb2dfaWR4Ow0KIA0KIAlxaWJfc3RhdHMuc3BzX2VycmludHMr
-KzsNCiAJZXJycyA9IHFpYl9yZWFkX2tyZWc2NChkZCwga3JfZXJyc3RhdHVzKTsNCkBAIC0xNjYy
-LDEwICsxNjYxLDcgQEAgc3RhdGljIG5vaW5saW5lIHZvaWQgaGFuZGxlXzczMjJfZXJyb3JzKHN0
-cnVjdCBxaWJfZGV2ZGF0YSAqZGQpDQogCWlmIChlcnJzICYgUUlCX0VfSEFSRFdBUkUpIHsNCiAJ
-CSptc2cgPSAnXDAnOw0KIAkJcWliXzczMjJfaGFuZGxlX2h3ZXJyb3JzKGRkLCBtc2csIHNpemVv
-ZihkZC0+Y3NwZWMtPmVtc2didWYpKTsNCi0JfSBlbHNlDQotCQlmb3IgKGxvZ19pZHggPSAwOyBs
-b2dfaWR4IDwgUUlCX0VFUF9MT0dfQ05UOyArK2xvZ19pZHgpDQotCQkJaWYgKGVycnMgJiBkZC0+
-ZWVwX3N0X21hc2tzW2xvZ19pZHhdLmVycnNfdG9fbG9nKQ0KLQkJCQlxaWJfaW5jX2VlcHJvbV9l
-cnIoZGQsIGxvZ19pZHgsIDEpOw0KKwl9DQogDQogCWlmIChlcnJzICYgUUlCX0VfU1BLVEVSUlMp
-IHsNCiAJCXFpYl9kaXNhcm1fNzMyMl9zZW5kZXJyYnVmcyhkZC0+cHBvcnQpOw0KLS0gDQoyLjE0
-LjINCg==
+
+--fKov5AqTsvseSZ0Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Oct 10, 2017 at 06:25:19PM +0000, Bart Van Assche wrote:
+> On Tue, 2017-10-10 at 21:08 +0300, Leon Romanovsky wrote:
+> > Does it mean that you can get rid of eep_st_masks and QIB_EEP_LOG_CNT too?
+>
+> I think so. Here we go ...
+
+Thanks
+
+>
+>
+> Subject: [PATCH] IB/qib: Remove remaining code related to writing the EEPROM
+>
+> Due to removal of the EEPROM writing code, the qib_inc_eeprom_err()
+> macro became a no-op. Remove the code that calls it. Since that
+> change removes all code that reads the eep_st_masks array, also
+> remove the code that updates that array and the array itself.
+>
+> References: commit 18c0b82a3e45 (" IB/qib: Do not write EEPROM")
+> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+> Cc: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/qib/qib.h         | 18 ------------------
+>  drivers/infiniband/hw/qib/qib_iba6120.c | 25 -------------------------
+>  drivers/infiniband/hw/qib/qib_iba7220.c | 20 --------------------
+>  drivers/infiniband/hw/qib/qib_iba7322.c |  6 +-----
+>  4 files changed, 1 insertion(+), 68 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+> index 1167a9c1776b..689f5d001892 100644
+> --- a/drivers/infiniband/hw/qib/qib.h
+> +++ b/drivers/infiniband/hw/qib/qib.h
+> @@ -101,18 +101,6 @@ extern const struct pci_error_handlers qib_pci_err_handler;
+>   */
+>  #define QIB_TRAFFIC_ACTIVE_THRESHOLD (2000)
+>
+> -/*
+> - * Struct used to indicate which errors are logged in each of the
+> - * error-counters that are logged to EEPROM. A counter is incremented
+> - * _once_ (saturating at 255) for each event with any bits set in
+> - * the error or hwerror register masks below.
+> - */
+> -#define QIB_EEP_LOG_CNT (4)
+> -struct qib_eep_log_mask {
+> -	u64 errs_to_log;
+> -	u64 hwerrs_to_log;
+> -};
+> -
+>  /*
+>   * Below contains all data related to a single context (formerly called port).
+>   */
+> @@ -1079,11 +1067,6 @@ struct qib_devdata {
+>  	/* control high-level access to EEPROM */
+>  	struct mutex eep_lock;
+>  	uint64_t traffic_wds;
+> -	/*
+> -	 * masks for which bits of errs, hwerrs that cause
+> -	 * each of the counters to increment.
+> -	 */
+> -	struct qib_eep_log_mask eep_st_masks[QIB_EEP_LOG_CNT];
+>  	struct qib_diag_client *diag_client;
+>  	spinlock_t qib_diag_trans_lock; /* protect diag observer ops */
+>  	struct diag_observer_list_elt *diag_observer_list;
+> @@ -1297,7 +1280,6 @@ int qib_twsi_blk_rd(struct qib_devdata *dd, int dev, int addr, void *buffer,
+>  int qib_twsi_blk_wr(struct qib_devdata *dd, int dev, int addr,
+>  		    const void *buffer, int len);
+>  void qib_get_eeprom_info(struct qib_devdata *);
+> -#define qib_inc_eeprom_err(dd, eidx, incr)
+>  void qib_dump_lookup_output_queue(struct qib_devdata *);
+>  void qib_force_pio_avail_update(struct qib_devdata *);
+>  void qib_clear_symerror_on_linkup(unsigned long opaque);
+> diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniband/hw/qib/qib_iba6120.c
+> index c4a4c57e0f0a..3c5adfa104a0 100644
+> --- a/drivers/infiniband/hw/qib/qib_iba6120.c
+> +++ b/drivers/infiniband/hw/qib/qib_iba6120.c
+> @@ -748,7 +748,6 @@ static void qib_handle_6120_hwerrors(struct qib_devdata *dd, char *msg,
+>  	u32 bits, ctrl;
+>  	int isfatal = 0;
+>  	char *bitsmsg;
+> -	int log_idx;
+>
+>  	hwerrs = qib_read_kreg64(dd, kr_hwerrstatus);
+>  	if (!hwerrs)
+> @@ -770,11 +769,6 @@ static void qib_handle_6120_hwerrors(struct qib_devdata *dd, char *msg,
+>
+>  	hwerrs &= dd->cspec->hwerrmask;
+>
+> -	/* We log some errors to EEPROM, check if we have any of those. */
+> -	for (log_idx = 0; log_idx < QIB_EEP_LOG_CNT; ++log_idx)
+> -		if (hwerrs & dd->eep_st_masks[log_idx].hwerrs_to_log)
+> -			qib_inc_eeprom_err(dd, log_idx, 1);
+> -
+>  	/*
+>  	 * Make sure we get this much out, unless told to be quiet,
+>  	 * or it's occurred within the last 5 seconds.
+> @@ -1004,7 +998,6 @@ static void handle_6120_errors(struct qib_devdata *dd, u64 errs)
+>  	char *msg;
+>  	u64 ignore_this_time = 0;
+>  	u64 iserr = 0;
+> -	int log_idx;
+>  	struct qib_pportdata *ppd = dd->pport;
+>  	u64 mask;
+>
+> @@ -1015,10 +1008,6 @@ static void handle_6120_errors(struct qib_devdata *dd, u64 errs)
+>  	/* do these first, they are most important */
+>  	if (errs & ERR_MASK(HardwareErr))
+>  		qib_handle_6120_hwerrors(dd, msg, sizeof(dd->cspec->emsgbuf));
+> -	else
+> -		for (log_idx = 0; log_idx < QIB_EEP_LOG_CNT; ++log_idx)
+> -			if (errs & dd->eep_st_masks[log_idx].errs_to_log)
+> -				qib_inc_eeprom_err(dd, log_idx, 1);
+>
+>  	if (errs & ~IB_E_BITSEXTANT)
+>  		qib_dev_err(dd,
+> @@ -3227,20 +3216,6 @@ static int init_6120_variables(struct qib_devdata *dd)
+>  	if (qib_unordered_wc())
+>  		dd->flags |= QIB_PIO_FLUSH_WC;
+>
+> -	/*
+> -	 * EEPROM error log 0 is TXE Parity errors. 1 is RXE Parity.
+> -	 * 2 is Some Misc, 3 is reserved for future.
+> -	 */
+> -	dd->eep_st_masks[0].hwerrs_to_log = HWE_MASK(TXEMemParityErr);
+> -
+> -	/* Ignore errors in PIO/PBC on systems with unordered write-combining */
+> -	if (qib_unordered_wc())
+> -		dd->eep_st_masks[0].hwerrs_to_log &= ~TXE_PIO_PARITY;
+> -
+> -	dd->eep_st_masks[1].hwerrs_to_log = HWE_MASK(RXEMemParityErr);
+> -
+> -	dd->eep_st_masks[2].errs_to_log = ERR_MASK(ResetNegated);
+> -
+>  	ret = qib_init_pportdata(ppd, dd, 0, 1);
+>  	if (ret)
+>  		goto bail;
+> diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniband/hw/qib/qib_iba7220.c
+> index 78ce79be4120..ceb2259a5efb 100644
+> --- a/drivers/infiniband/hw/qib/qib_iba7220.c
+> +++ b/drivers/infiniband/hw/qib/qib_iba7220.c
+> @@ -1094,7 +1094,6 @@ static void handle_7220_errors(struct qib_devdata *dd, u64 errs)
+>  	char *msg;
+>  	u64 ignore_this_time = 0;
+>  	u64 iserr = 0;
+> -	int log_idx;
+>  	struct qib_pportdata *ppd = dd->pport;
+>  	u64 mask;
+>
+> @@ -1105,10 +1104,6 @@ static void handle_7220_errors(struct qib_devdata *dd, u64 errs)
+>  	/* do these first, they are most important */
+>  	if (errs & ERR_MASK(HardwareErr))
+>  		qib_7220_handle_hwerrors(dd, msg, sizeof(dd->cspec->emsgbuf));
+> -	else
+> -		for (log_idx = 0; log_idx < QIB_EEP_LOG_CNT; ++log_idx)
+> -			if (errs & dd->eep_st_masks[log_idx].errs_to_log)
+> -				qib_inc_eeprom_err(dd, log_idx, 1);
+>
+>  	if (errs & QLOGIC_IB_E_SDMAERRS)
+>  		sdma_7220_errors(ppd, errs);
+> @@ -1302,7 +1297,6 @@ static void qib_7220_handle_hwerrors(struct qib_devdata *dd, char *msg,
+>  	u32 bits, ctrl;
+>  	int isfatal = 0;
+>  	char *bitsmsg;
+> -	int log_idx;
+>
+>  	hwerrs = qib_read_kreg64(dd, kr_hwerrstatus);
+>  	if (!hwerrs)
+> @@ -1326,10 +1320,6 @@ static void qib_7220_handle_hwerrors(struct qib_devdata *dd, char *msg,
+>
+>  	hwerrs &= dd->cspec->hwerrmask;
+>
+> -	/* We log some errors to EEPROM, check if we have any of those. */
+> -	for (log_idx = 0; log_idx < QIB_EEP_LOG_CNT; ++log_idx)
+> -		if (hwerrs & dd->eep_st_masks[log_idx].hwerrs_to_log)
+> -			qib_inc_eeprom_err(dd, log_idx, 1);
+>  	if (hwerrs & ~(TXEMEMPARITYERR_PIOBUF | TXEMEMPARITYERR_PIOPBC |
+>  		       RXE_PARITY))
+>  		qib_devinfo(dd->pcidev,
+> @@ -4016,16 +4006,6 @@ static int qib_init_7220_variables(struct qib_devdata *dd)
+>  	dd->flags |= qib_special_trigger ?
+>  		QIB_USE_SPCL_TRIG : QIB_HAS_SEND_DMA;
+>
+> -	/*
+> -	 * EEPROM error log 0 is TXE Parity errors. 1 is RXE Parity.
+> -	 * 2 is Some Misc, 3 is reserved for future.
+> -	 */
+> -	dd->eep_st_masks[0].hwerrs_to_log = HWE_MASK(TXEMemParityErr);
+> -
+> -	dd->eep_st_masks[1].hwerrs_to_log = HWE_MASK(RXEMemParityErr);
+> -
+> -	dd->eep_st_masks[2].errs_to_log = ERR_MASK(ResetNegated);
+> -
+>  	init_waitqueue_head(&cpspec->autoneg_wait);
+>  	INIT_DELAYED_WORK(&cpspec->autoneg_work, autoneg_7220_work);
+>
+> diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
+> index 4d02cffe4e03..77217fae9c06 100644
+> --- a/drivers/infiniband/hw/qib/qib_iba7322.c
+> +++ b/drivers/infiniband/hw/qib/qib_iba7322.c
+> @@ -1644,7 +1644,6 @@ static noinline void handle_7322_errors(struct qib_devdata *dd)
+>  	u64 iserr = 0;
+>  	u64 errs;
+>  	u64 mask;
+> -	int log_idx;
+>
+>  	qib_stats.sps_errints++;
+>  	errs = qib_read_kreg64(dd, kr_errstatus);
+> @@ -1662,10 +1661,7 @@ static noinline void handle_7322_errors(struct qib_devdata *dd)
+>  	if (errs & QIB_E_HARDWARE) {
+>  		*msg = '\0';
+>  		qib_7322_handle_hwerrors(dd, msg, sizeof(dd->cspec->emsgbuf));
+> -	} else
+> -		for (log_idx = 0; log_idx < QIB_EEP_LOG_CNT; ++log_idx)
+> -			if (errs & dd->eep_st_masks[log_idx].errs_to_log)
+> -				qib_inc_eeprom_err(dd, log_idx, 1);
+> +	}
+>
+>  	if (errs & QIB_E_SPKTERRS) {
+>  		qib_disarm_7322_senderrbufs(dd->pport);
+> --
+> 2.14.2
+
+--fKov5AqTsvseSZ0Z
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlndEmQACgkQ5GN7iDZy
+WKcLkw/9Fl7r4CIt5Uiblk2yt17i4fyib9zDrUl+Vh5s/I9KSOVKQJnbs37igl/T
+hmbUbWY/uEjUKYnyfY8nxWnFnoXiohQAjNyYJAZo65WyJvAP7wiqUBmMGWkXcmF1
+xl4SWDpCNInJnXrbYVnGDOzvDUSaPdWD08ZwmYuOTOu30oQzFxJnPC173/dPuKcj
+XdBF5WLy2B0s4dZhL7QliDnolHojksBPnS9SavfU8547KPCul3x/XB+f3Y6a4iOO
+lHI7Vyf0ZyZE5gMDz9QAml3xlkbV+8A97trMZ6YLrCHp6kZTNbarPw6I4W1z7qBx
+1Avcb9wKi1nyIdFc7C5sqL/FAID5vJZcVYZZrN5CKo9ZtRZ+TTLTQ+egaf1y6OeD
+9MG5aSdUA/VtWH8x8O4pP3AVv20in6pL0TQ7kGhezGlqpGxVETsSRPz8k5RrykxC
+dU7ILm/wb+QvpRFDnotB80rKUDo8nXkFxEjvqpMBM9w5KAbqDL2khs7V4+9R2ypv
+/7uZgq2BX/A6kf2p2UNUlf1SZAyUKd3eBR7jE/ckqSxLI42GSnCg5fwnDaUp1Mna
+CtLekfsquTauJwDxFm55ikfOYlZLQxXurVxzN1Ey8S6KJw1llY/Gh6qiM5prodQR
+ILlwmfZTee0v7loO691Byd9fATKO1LwF6RkQaURMKidTJ47n36A=
+=JxKF
+-----END PGP SIGNATURE-----
+
+--fKov5AqTsvseSZ0Z--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
