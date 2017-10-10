@@ -1,40 +1,75 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 41/47] IB/qib: Suppress gcc 7 fall-through complaints
-Date: Tue, 10 Oct 2017 13:56:50 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC3442AA1D@fmsmsx120.amr.corp.intel.com>
-References: <20171006213333.6721-1-bart.vanassche@wdc.com>
- <20171006213333.6721-42-bart.vanassche@wdc.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: [PATCH net 1/2] net/smc: replace function pointer get_netdev()
+Date: Tue, 10 Oct 2017 16:13:50 +0200
+Message-ID: <20171010141351.87700-2-ubraun@linux.vnet.ibm.com>
+References: <20171010141351.87700-1-ubraun@linux.vnet.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171006213333.6721-42-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20171010141351.87700-1-ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jwi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: [PATCH 41/47] IB/qib: Suppress gcc 7 fall-through complaints
-> 
-> Avoid that gcc 7 reports the following warning when building with W=1:
-> 
-> warning: this statement may fall through [-Wimplicit-fallthrough=]
-> 
+SMC should not open code the function pointer get_netdev of the
+IB device. Replacing ib_query_gid(..., NULL) with
+ib_query_gid(..., gid_attr) allows access to the netdev.
 
-Bart,
+Signed-off-by: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Suggested-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ net/smc/smc_ib.c | 26 +++++++++-----------------
+ 1 file changed, 9 insertions(+), 17 deletions(-)
 
-I'm ok with this but...
+diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
+index 0b5852299158..b428c0f6c782 100644
+--- a/net/smc/smc_ib.c
++++ b/net/smc/smc_ib.c
+@@ -369,26 +369,17 @@ void smc_ib_buf_unmap_sg(struct smc_ib_device *smcibdev,
+ 
+ static int smc_ib_fill_gid_and_mac(struct smc_ib_device *smcibdev, u8 ibport)
+ {
+-	struct net_device *ndev;
++	struct ib_gid_attr gattr;
+ 	int rc;
+ 
+ 	rc = ib_query_gid(smcibdev->ibdev, ibport, 0,
+-			  &smcibdev->gid[ibport - 1], NULL);
+-	/* the SMC protocol requires specification of the roce MAC address;
+-	 * if net_device cannot be determined, it can be derived from gid 0
+-	 */
+-	ndev = smcibdev->ibdev->get_netdev(smcibdev->ibdev, ibport);
+-	if (ndev) {
+-		memcpy(&smcibdev->mac, ndev->dev_addr, ETH_ALEN);
+-		dev_put(ndev);
+-	} else if (!rc) {
+-		memcpy(&smcibdev->mac[ibport - 1][0],
+-		       &smcibdev->gid[ibport - 1].raw[8], 3);
+-		memcpy(&smcibdev->mac[ibport - 1][3],
+-		       &smcibdev->gid[ibport - 1].raw[13], 3);
+-		smcibdev->mac[ibport - 1][0] &= ~0x02;
+-	}
+-	return rc;
++			  &smcibdev->gid[ibport - 1], &gattr);
++	if (rc || !gattr.ndev)
++		return -ENODEV;
++
++	memcpy(smcibdev->mac[ibport - 1], gattr.ndev->dev_addr, ETH_ALEN);
++	dev_put(gattr.ndev);
++	return 0;
+ }
+ 
+ /* Create an identifier unique for this instance of SMC-R.
+@@ -419,6 +410,7 @@ int smc_ib_remember_port_attr(struct smc_ib_device *smcibdev, u8 ibport)
+ 			   &smcibdev->pattr[ibport - 1]);
+ 	if (rc)
+ 		goto out;
++	/* the SMC protocol requires specification of the roce MAC address */
+ 	rc = smc_ib_fill_gid_and_mac(smcibdev, ibport);
+ 	if (rc)
+ 		goto out;
+-- 
+2.13.5
 
-I'm curious if there is a documentation change in the kernel on a common tree wide approach for gcc 7.
-
-I saw a patch to add the attribute based method of getting rid of the warning, but it doesn't appear to have been merged.
-
-This error probably runs through all of our drivers.
-
-Acked-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-Mike
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
