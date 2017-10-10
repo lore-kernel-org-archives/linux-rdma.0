@@ -1,102 +1,59 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 3/7] IB/srpt: Change default behavior from using SRQ to
- not using SRQ
-Date: Tue, 10 Oct 2017 10:34:19 -0400
-Message-ID: <9443ec1f-0acd-9fa3-4621-a29085d2c606@redhat.com>
-References: <20171006214243.11296-1-bart.vanassche@wdc.com>
- <20171006214243.11296-4-bart.vanassche@wdc.com>
- <20171008100317.GR25829@mtr-leonro.local>
- <1507568205.46071.46.camel@redhat.com> <1507568492.2674.11.camel@wdc.com>
- <20171010041423.GJ1252@mtr-leonro.local>
+Subject: Re: Is ib_mtu iboe_get_mtu() slightly off?
+Date: Tue, 10 Oct 2017 10:48:01 -0400
+Message-ID: <c27ee8b9-a011-9b0b-b20a-433d9f74d4b1@redhat.com>
+References: <CAL1RGDX33tBR=x2sOp_F1605SY5nu_6YALr-XYE_LiuvsHQ1ng@mail.gmail.com>
+ <VI1PR0502MB300886CB47BB3DFDE098A26AD1660@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <1507556073.46071.27.camel@redhat.com>
+ <20171009134131.GB1252@mtr-leonro.local>
+ <1507565652.46071.33.camel@redhat.com>
+ <VI1PR0502MB3008900E038DEF6EEAB719DFD1740@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="vCtrlpPxkwSBKUwDn0qiTc4s8pPuHJGf3"
+ boundary="Sf0hW1UQJpo61318TN9DmST2TXiqHCuGW"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171010041423.GJ1252-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <VI1PR0502MB3008900E038DEF6EEAB719DFD1740-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---vCtrlpPxkwSBKUwDn0qiTc4s8pPuHJGf3
-Content-Type: multipart/mixed; boundary="ErH0xrm2gdeUNxDwU7NjTSJLQsOGH7TcW";
+--Sf0hW1UQJpo61318TN9DmST2TXiqHCuGW
+Content-Type: multipart/mixed; boundary="Wg7VrhM1UoQv3NhngTHLJuvBlPA5jILcp";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,
- Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <9443ec1f-0acd-9fa3-4621-a29085d2c606-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 3/7] IB/srpt: Change default behavior from using SRQ to
- not using SRQ
-References: <20171006214243.11296-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
- <20171006214243.11296-4-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
- <20171008100317.GR25829-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
- <1507568205.46071.46.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> <1507568492.2674.11.camel-Sjgp3cTcYWE@public.gmane.org>
- <20171010041423.GJ1252-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-In-Reply-To: <20171010041423.GJ1252-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>,
+ "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <c27ee8b9-a011-9b0b-b20a-433d9f74d4b1-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Is ib_mtu iboe_get_mtu() slightly off?
+References: <CAL1RGDX33tBR=x2sOp_F1605SY5nu_6YALr-XYE_LiuvsHQ1ng-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+ <VI1PR0502MB300886CB47BB3DFDE098A26AD1660-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+ <1507556073.46071.27.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20171009134131.GB1252-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+ <1507565652.46071.33.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <VI1PR0502MB3008900E038DEF6EEAB719DFD1740-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <VI1PR0502MB3008900E038DEF6EEAB719DFD1740-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 
---ErH0xrm2gdeUNxDwU7NjTSJLQsOGH7TcW
-Content-Type: text/plain; charset=windows-1252
+--Wg7VrhM1UoQv3NhngTHLJuvBlPA5jILcp
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 10/10/2017 12:14 AM, Leon Romanovsky wrote:
-> On Mon, Oct 09, 2017 at 05:01:33PM +0000, Bart Van Assche wrote:
->> On Mon, 2017-10-09 at 12:56 -0400, Doug Ledford wrote:
->>> On Sun, 2017-10-08 at 13:03 +0300, Leon Romanovsky wrote:
->>>> It is a little bit strange to ask from user to decide if his adapter=
+On 10/9/2017 4:47 PM, Parav Pandit wrote:
 
->>>> supports SRQ or not.
->>>>
->>>> It should be automatically.
->>>
->>> I think Bart's intent is that the driver not use SRQ as the default
->>> behavior even if the adapter supports it, so querying the adapter for=
+> Sorry for not ACKing that I was doing it last week.
+> If possible, please pick the one that Leon is sending because=20
+> instead of doing calculation in half comment based and half defined bas=
+ed code,
+> my patch defines all necessary header sizes in calculation, little clea=
+n way.
 
->>> support and enabling it if it exists would not achieve his desired
->>> result.  This would then be used to override that behavior.  Is that
->>> correct Bart?
->>
->> Hello Leon and Doug,
->>
->> The changes realized by this patch are:
->> - Instead of using SRQ as default, use non-SRQ mode as default.
->> - If SRQ has been chosen as default, and if SRQ is not supported, fall=
- back
->>   to non-SRQ mode (see also the if (IS_ERR(sdev->srq)) ... code).
->>
->> Please let me know if you have any further questions about this patch.=
-
->=20
-> Yes, in case HCA supports SRQ, when do you set that module parameter?
-
-You set it in your /etc/modprobe.d/ib_srp.conf file or the equivalent in
-your OS.
-
-> In the commit message, you mentioned disadvantages of using SRQ is a
-> default and among them - locks contention, which can be changed in the
-> future. Won't it mean that users stuck with current default, because
-> change of default will "break" their scripts?
-
-No, it won't.  If you change the default, you don't remove the variable,
-you just change what its setting is.  Then existing modprobe.d files
-become redundant, but nothing breaks.  People that don't want the new
-setting add a new file to the modprobe.d directory to change the option.
-
-> Setting visible to user default won't allow us to change SRP behavior i=
-n
-> the future.
-
-No it doesn't.
-
-> I wouldn't recommend to make such option accessible by users.
->=20
-> Thanks
->=20
->>
->> Bart.
+In this instance we are lucky that 0day testing was being slow yesterday
+or else this would already be pushed to k.o.  Since it's not, I can drop
+my patch and take yours.
 
 
 --=20
@@ -106,9 +63,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---ErH0xrm2gdeUNxDwU7NjTSJLQsOGH7TcW--
+--Wg7VrhM1UoQv3NhngTHLJuvBlPA5jILcp--
 
---vCtrlpPxkwSBKUwDn0qiTc4s8pPuHJGf3
+--Sf0hW1UQJpo61318TN9DmST2TXiqHCuGW
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -117,22 +74,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZ3NpsAAoJELgmozMOVy/d26EP/3zVAzGeM36r+UAWaQNb+E4e
-nfD9EfUFgI34gOgAmWSWG19bzGyEvaxPOgkvm/TMTa6+9dcb7v+mOXlJLY061US/
-dbV4lr2lI4uPTsO9VMtqStqsNFO/Chkg/omgu/9/4WcshfpHreyw2jO7kZk7ROF/
-ODLJw92czhuh/XpAd7kN7WOWvCvYPq7uOeTvLpRPm2daqe0I+vFcRi0XYj5lizd/
-ZROqAVpiW7eKiTZo/UkQM3D+bKogGDwkwkkSpwX4H/raXE6tFvT60wxsfrkVTeZY
-OHEmpcGI7HuxVqXDaEJ3TgWQD/Ml/7NUd02CbjKW4y5QPQq7RCRnc7sINtDxcJJj
-mkOYYT2JIZxdzi2mDVtKI+AaElYNVa4pZf236+3uAWHxOEbJfyljLulWs6rMiX8g
-8a/Z3NoY1n040b/i9rJ8hs0SU4tmjfC8Y6zPFzKiNom9qMwX11v0W1G88OQ8faFG
-Hq9d8HaaxFzxA1MEWVTzZVWs3lJYG7YDEEoyEJf72NoFcSEv9v4SS0DmHiM1Drtt
-J4Z3Tg2vZLYhe1jAqmhf6b5RH38N1RZRa6nZ0p3w0OJL+GxtXsNzAFKmq2VP3zzy
-g5vffyeEkwHqac455r1411IfAIgYaazk9Up2oZdj+rEuP0ocD1Ss1zTlEMFRlVmI
-e3nIR7hQ/d0C8ANYyB0q
-=jkrs
+iQIcBAEBCAAGBQJZ3N2hAAoJELgmozMOVy/dDIUQAMNmozugU/7ASzPdOf0kQeJa
+6IaLYA/V05rOfBWdYEPdgXf+c1oKXn81L8vVeGZZdngBtnUGL1YTgG8Q9QxuWXFZ
+hz73Yl+YXtcaix1NXRssbTkfN5xrdxEof7726vPDhxFHoJO8mqsSq2ZX64MMDG0g
+rlEgk3azwEYfksPNP5UihYkjZRrrU5cuCvhoeLvtwvBk/0hhl6MBhnEAQmTM1YoR
+EXDPqe8bTkRGVHmI49rgctB4LV+GasuZ8EeAzXWGuiwgcUDMKpJaVr9RcjpbgfYZ
+iGwDrWy5JpU9UznvDSgb2qQ8kPp7bdzhm+MDt9Rsqlulj7pKKXLRt1FsHxHLZXMv
+azf7JRvgZJwhXF3U41HzmK2/IX9qMt3Q4iQWdEXuAMParizpmuxIKr1ERqyATOal
+k3+HqX0b9NgbO4lvExSCa3X6IoKPU4DAuPkZI6NZuPV+qIxttYq1wKCMdHuTmgTu
+T6FDXxmdCPJdhhDAUOdOC+xzrMMipeMsLsD+sqxZOYbTSwIPIp3Em1+NGd4wztPn
+LxNxb65wNygAI2QwU95C6fPNgeUbBYvlgRHi8kADsXPx1AbfNgOb7GenR1sNXv+2
+FiyYy/ZHx20MF7EUSSXwIrpcsRvxlaJPH+xoJcsLCNc+2jRxy8Ej+1GgCqe2YV+E
+eJGBEp39L/dawt9G9vIc
+=/93d
 -----END PGP SIGNATURE-----
 
---vCtrlpPxkwSBKUwDn0qiTc4s8pPuHJGf3--
+--Sf0hW1UQJpo61318TN9DmST2TXiqHCuGW--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
