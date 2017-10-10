@@ -1,73 +1,97 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 3/7] IB/srpt: Change default behavior from using SRQ to
- not using SRQ
-Date: Tue, 10 Oct 2017 21:01:38 +0300
-Message-ID: <20171010180138.GG2106@mtr-leonro.local>
-References: <1507568205.46071.46.camel@redhat.com>
- <1507568492.2674.11.camel@wdc.com>
- <20171010041423.GJ1252@mtr-leonro.local>
- <9443ec1f-0acd-9fa3-4621-a29085d2c606@redhat.com>
- <20171010150018.GC2106@mtr-leonro.local>
- <1507648402.46071.53.camel@redhat.com>
- <20171010154439.GE2106@mtr-leonro.local>
- <1507651473.2815.20.camel@wdc.com>
- <20171010170429.GA21288@obsidianresearch.com>
- <1507655454.2815.43.camel@wdc.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v7 07/12] dma-mapping: introduce dma_has_iommu()
+Date: Tue, 10 Oct 2017 12:05:12 -0600
+Message-ID: <20171010180512.GA31734@obsidianresearch.com>
+References: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150732935473.22363.1853399637339625023.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171009185840.GB15336@obsidianresearch.com>
+ <CAPcyv4gXzC8OUgO_PciQ2phyq0YtmXjMGWvoPSVVuuZR7ohVCg@mail.gmail.com>
+ <20171009191820.GD15336@obsidianresearch.com>
+ <CAPcyv4h_uQGBAX6-bMkkZLO_YyQ6t4n_b8tH8wU_P0Jh23N5MQ@mail.gmail.com>
+ <20171010172516.GA29915@obsidianresearch.com>
+ <CAPcyv4jL5fN7jjXkQum8ERQ45eW63dCYp5Pm6aHY4OPudz4Wsw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Y+xroYBkGM9OatJL"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1507655454.2815.43.camel-Sjgp3cTcYWE@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAPcyv4jL5fN7jjXkQum8ERQ45eW63dCYp5Pm6aHY4OPudz4Wsw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Ashok Raj <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Linux API <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-fsdevel <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Oct 10, 2017 at 10:39:27AM -0700, Dan Williams wrote:
+> On Tue, Oct 10, 2017 at 10:25 AM, Jason Gunthorpe
 
---Y+xroYBkGM9OatJL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Oct 10, 2017 at 05:10:55PM +0000, Bart Van Assche wrote:
-> On Tue, 2017-10-10 at 11:04 -0600, Jason Gunthorpe wrote:
-> > considering our general dislike of module parameters, could you
-> > achieve this via some communication from srp_daemon instead?
+> >> Have a look at the patch [1], I don't touch the ODP path.
 > >
-> > Perhaps even on a per target basis?
->
-> The SRP target driver already creates one /sys/kernel/config/target/srpt/$GUID
-> directory per HCA port. How about adding an attribute to that configfs directory?
+> > But, does ODP work OK already? I'm not clear on that..
+> 
+> It had better. If the mapping is invalidated I would hope that
+> generates an io fault that gets handled by the driver to setup the new
+> mapping. I don't see how it can work otherwise.
 
-Sounds good.
+I would assume so too...
 
-Thanks
+> > This is why ODP should be the focus because this cannot work fully
+> > reliably otherwise..
+> 
+> The lease break time is configurable. If that application can't
+> respond to a stop request within a timeout of its own choosing then it
+> should not be using DAX mappings.
 
->
-> Bart.
+Well, no RDMA application can really do this, unless you set the
+timeout to multiple minutes, on par with network timeouts.
 
---Y+xroYBkGM9OatJL
-Content-Type: application/pgp-signature; name="signature.asc"
+Again, these details are why I think this kind of DAX and non ODP-MRs
+are probably practically not too useful for a production system. Great
+for test of course, but in that case SIGKILL would be fine too...
 
------BEGIN PGP SIGNATURE-----
+> > Well, what about using SIGKILL if the lease-break-time hits? The
+> > kernel will clean up the MRs when the process exits and this will
+> > fence DMA to that memory.
+> 
+> Can you point me to where the MR cleanup code fences DMA and quiesces
+> the device?
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlndCwEACgkQ5GN7iDZy
-WKcMRg//QGZ8Hb61QHLNbj82ahWwzIppY0mqL7TTjhpGQtpTzHNBjTLSpj9hd10z
-C3PLDLqj8NW554aOpV91G6obsmhE8zTG9brGlQPThgw+x/yl6s5njBRLi6aqjwr+
-MddrfFRa1PK4Po01feBILTnRebiXDfo/k0p1OI6O17GpszbEG9x1EBz5w1T7Yql4
-xqbIqqUU9vOavvIeabW6BWJ0lAyC0NvVlWS5mjkcp6URgpRLnUiflYxVhBd5Mn2M
-ZuTuPkFI/6YFBxu7Gsgdqydr6vQSEnL4lXoqYToJDRnYvEvpJQLNYhrFNJ7DsrDt
-ojea+birKSEft0h+VvYp3Iref8GT2cIdiOa1nAJF6WuQEzvLSIe2f586Od7FkU1R
-XYLWfimY91vOOD6XLthSSry9IGc5oJTtN30jZWKN6dm56GAPZJc2Vgq49N+Hh/6Q
-GJSVr+UjYK8c3YsKPwT7A3ep8m3nIWMf/fW/sJiYVHSGCf+VmcSVXUL01v8vqIFy
-SQ9vYHBsA0nRL6zz8gAavLsqBWLQn0WnRxDNjV8Md9TBIgJBgk2z3N8ECOrweqiQ
-/8kDlI9FpIm6JTGIgc5fYyqYuqkyefztv1ZrpJSCCTyAafVKQNeiyACesWcyBMDI
-uj8saJVOHu0qagVMPgFBp2aKJAUB02iFt/7bLGzTSAzNF+j752o=
-=syuJ
------END PGP SIGNATURE-----
+Yes. The MR's are associated with an fd. When the fd is closed
+ib_uverbs_close triggers ib_uverbs_cleanup_ucontext which runs through
+all the objects, including MRs, and deletes them.
 
---Y+xroYBkGM9OatJL--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The specification for deleting a MR requires a synchronous fence with
+the hardware. After MR deletion the hardware will not DMA to any pages
+described by the old MR, and those pages will be unpinned.
+
+> > But, still, if you really want to be fined graned, then I think
+> > invalidating the impacted MR's is a better solution for RDMA than
+> > trying to do it with the IOMMU...
+> 
+> If there's a better routine for handling ib_umem_lease_break() I'd
+> love to use it. Right now I'm reaching for the only tool I know for
+> kernel enforced revocation of DMA access.
+
+Well, you'd have to code something in the MR code to keep track of DAX
+MRs and issue an out of band invalidate to impacted MRs to create the
+fence.
+
+This probably needs some driver work, I'm not sure if all the hardware
+can do out of band invalidate to any MR or not..
+
+Generally speaking, in RDMA, when a new feature like this comes along
+we have to push a lot of the work down to the driver authors, and the
+approach has historically been that new features only work on some
+hardware (as much as I dislike this, it is pragmatic)
+
+So, not being able to support DAX on certain RDMA hardware is not
+an unreasonable situation in our space.
+
+Jason
