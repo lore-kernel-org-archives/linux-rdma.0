@@ -1,163 +1,173 @@
-From: "Raj, Ashok" <ashok.raj@intel.com>
-Subject: Re: [PATCH v8] dma-mapping: introduce dma_get_iommu_domain()
-Date: Tue, 10 Oct 2017 07:40:01 -0700
-Message-ID: <20171010144001.GA17322@otc-nc-03>
-References: <150732935473.22363.1853399637339625023.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150743420333.12880.6968831423519457797.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH 40/47] IB/qib: Make qib_inc_eeprom_err() macro more safe
+ to use
+Date: Tue, 10 Oct 2017 18:25:19 +0000
+Message-ID: <1507659918.2815.50.camel@wdc.com>
+References: <20171006213333.6721-1-bart.vanassche@wdc.com>
+         <20171006213333.6721-41-bart.vanassche@wdc.com>
+         <32E1700B9017364D9B60AED9960492BC3442AAD2@fmsmsx120.amr.corp.intel.com>
+         <1507648081.2815.5.camel@wdc.com>
+         <32E1700B9017364D9B60AED9960492BC3442ADF5@fmsmsx120.amr.corp.intel.com>
+         <1507658390.2815.48.camel@wdc.com> <20171010180809.GI2106@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <150743420333.12880.6968831423519457797.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Joerg Roedel <joro@8bytes.org>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, linux-api@vger.kernel.org, linux-fsdevel@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, David Woodhouse <dwmw2@infradead.org>, Robin Murphy <robin.murphy@arm.com>, Christoph Hellwig <hch@lst.de>, Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171010180809.GI2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
+Content-ID: <DC731AFF5FB8BE41BD0E902A05664E14-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Dan
-
-On Sat, Oct 07, 2017 at 08:45:00PM -0700, Dan Williams wrote:
-> Add a dma-mapping api helper to retrieve the generic iommu_domain for a device.
-> The motivation for this interface is making RDMA transfers to DAX mappings
-> safe. If the DAX file's block map changes we need to be to reliably stop
-> accesses to blocks that have been freed or re-assigned to a new file. With the
-> iommu_domain and a callback from the DAX filesystem the kernel can safely
-> revoke access to a DMA device. The process that performed the RDMA memory
-> registration is also notified of this revocation event, but the kernel can not
-> otherwise be in the position of waiting for userspace to quiesce the device.
-> 
-> Since PMEM+DAX is currently only enabled for x86, we only update the x86
-> iommu drivers.
-> 
-> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> Cc: Robin Murphy <robin.murphy@arm.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Joerg Roedel <joro@8bytes.org>
-> Cc: David Woodhouse <dwmw2@infradead.org>
-> Cc: Ashok Raj <ashok.raj@intel.com>
-> Cc: Jan Kara <jack@suse.cz>
-> Cc: Jeff Moyer <jmoyer@redhat.com>
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Dave Chinner <david@fromorbit.com>
-> Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
-> Changes since v7:
-> * retrieve the iommu_domain so that we can later pass the results of
->   dma_map_* to iommu_unmap() in advance of the actual dma_unmap_*.
-> 
->  drivers/base/dma-mapping.c  |   10 ++++++++++
->  drivers/iommu/amd_iommu.c   |   10 ++++++++++
->  drivers/iommu/intel-iommu.c |   15 +++++++++++++++
->  include/linux/dma-mapping.h |    3 +++
->  4 files changed, 38 insertions(+)
-> 
-> diff --git a/drivers/base/dma-mapping.c b/drivers/base/dma-mapping.c
-> index e584eddef0a7..fdb9764f95a4 100644
-> --- a/drivers/base/dma-mapping.c
-> +++ b/drivers/base/dma-mapping.c
-> @@ -369,3 +369,13 @@ void dma_deconfigure(struct device *dev)
->  	of_dma_deconfigure(dev);
->  	acpi_dma_deconfigure(dev);
->  }
-> +
-> +struct iommu_domain *dma_get_iommu_domain(struct device *dev)
-> +{
-> +	const struct dma_map_ops *ops = get_dma_ops(dev);
-> +
-> +	if (ops && ops->get_iommu)
-> +		return ops->get_iommu(dev);
-> +	return NULL;
-> +}
-> +EXPORT_SYMBOL(dma_get_iommu_domain);
-> diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
-> index 51f8215877f5..c8e1a45af182 100644
-> --- a/drivers/iommu/amd_iommu.c
-> +++ b/drivers/iommu/amd_iommu.c
-> @@ -2271,6 +2271,15 @@ static struct protection_domain *get_domain(struct device *dev)
->  	return domain;
->  }
->  
-> +static struct iommu_domain *amd_dma_get_iommu(struct device *dev)
-
-Minor: Do you want to keep the naming consistent.. amd_dma_get_domain() vs
-get_iommu?
-
-> +{
-> +	struct protection_domain *domain = get_domain(dev);
-> +
-> +	if (IS_ERR(domain))
-> +		return NULL;
-> +	return &domain->domain;
-> +}
-> +
->  static void update_device_table(struct protection_domain *domain)
->  {
->  	struct iommu_dev_data *dev_data;
-> @@ -2689,6 +2698,7 @@ static const struct dma_map_ops amd_iommu_dma_ops = {
->  	.unmap_sg	= unmap_sg,
->  	.dma_supported	= amd_iommu_dma_supported,
->  	.mapping_error	= amd_iommu_mapping_error,
-> +	.get_iommu	= amd_dma_get_iommu,
-
-ditto for here and other places below:
-
->  };
->  
->  static int init_reserved_iova_ranges(void)
-> diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
-> index 6784a05dd6b2..f3f4939cebad 100644
-> --- a/drivers/iommu/intel-iommu.c
-> +++ b/drivers/iommu/intel-iommu.c
-> @@ -3578,6 +3578,20 @@ static int iommu_no_mapping(struct device *dev)
->  	return 0;
->  }
->  
-> +static struct iommu_domain *intel_dma_get_iommu(struct device *dev)
-> +{
-> +	struct dmar_domain *domain;
-> +
-> +	if (iommu_no_mapping(dev))
-> +		return NULL;
-> +
-> +	domain = get_valid_domain_for_dev(dev);
-> +	if (!domain)
-> +		return NULL;
-> +
-> +	return &domain->domain;
-> +}
-> +
->  static dma_addr_t __intel_map_single(struct device *dev, phys_addr_t paddr,
->  				     size_t size, int dir, u64 dma_mask)
->  {
-> @@ -3872,6 +3886,7 @@ const struct dma_map_ops intel_dma_ops = {
->  	.map_page = intel_map_page,
->  	.unmap_page = intel_unmap_page,
->  	.mapping_error = intel_mapping_error,
-> +	.get_iommu = intel_dma_get_iommu,
->  #ifdef CONFIG_X86
->  	.dma_supported = x86_dma_supported,
->  #endif
-> diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-> index 29ce9815da87..aa62df1d0d72 100644
-> --- a/include/linux/dma-mapping.h
-> +++ b/include/linux/dma-mapping.h
-> @@ -128,6 +128,7 @@ struct dma_map_ops {
->  				   enum dma_data_direction dir);
->  	int (*mapping_error)(struct device *dev, dma_addr_t dma_addr);
->  	int (*dma_supported)(struct device *dev, u64 mask);
-> +	struct iommu_domain *(*get_iommu)(struct device *dev);
->  #ifdef ARCH_HAS_DMA_GET_REQUIRED_MASK
->  	u64 (*get_required_mask)(struct device *dev);
->  #endif
-> @@ -221,6 +222,8 @@ static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
->  }
->  #endif
->  
-> +extern struct iommu_domain *dma_get_iommu_domain(struct device *dev);
-> +
->  static inline dma_addr_t dma_map_single_attrs(struct device *dev, void *ptr,
->  					      size_t size,
->  					      enum dma_data_direction dir,
-> 
+T24gVHVlLCAyMDE3LTEwLTEwIGF0IDIxOjA4ICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IERvZXMgaXQgbWVhbiB0aGF0IHlvdSBjYW4gZ2V0IHJpZCBvZiBlZXBfc3RfbWFza3MgYW5k
+IFFJQl9FRVBfTE9HX0NOVCB0b28/DQoNCkkgdGhpbmsgc28uIEhlcmUgd2UgZ28gLi4uDQoNCg0K
+U3ViamVjdDogW1BBVENIXSBJQi9xaWI6IFJlbW92ZSByZW1haW5pbmcgY29kZSByZWxhdGVkIHRv
+IHdyaXRpbmcgdGhlIEVFUFJPTQ0KDQpEdWUgdG8gcmVtb3ZhbCBvZiB0aGUgRUVQUk9NIHdyaXRp
+bmcgY29kZSwgdGhlIHFpYl9pbmNfZWVwcm9tX2VycigpDQptYWNybyBiZWNhbWUgYSBuby1vcC4g
+UmVtb3ZlIHRoZSBjb2RlIHRoYXQgY2FsbHMgaXQuIFNpbmNlIHRoYXQNCmNoYW5nZSByZW1vdmVz
+IGFsbCBjb2RlIHRoYXQgcmVhZHMgdGhlIGVlcF9zdF9tYXNrcyBhcnJheSwgYWxzbw0KcmVtb3Zl
+IHRoZSBjb2RlIHRoYXQgdXBkYXRlcyB0aGF0IGFycmF5IGFuZCB0aGUgYXJyYXkgaXRzZWxmLg0K
+DQpSZWZlcmVuY2VzOiBjb21taXQgMThjMGI4MmEzZTQ1ICgiIElCL3FpYjogRG8gbm90IHdyaXRl
+IEVFUFJPTSIpDQpTaWduZWQtb2ZmLWJ5OiBCYXJ0IFZhbiBBc3NjaGUgPGJhcnQudmFuYXNzY2hl
+QHdkYy5jb20+DQpDYzogTWlrZSBNYXJjaW5pc3p5biA8aW5maW5pcGF0aEBpbnRlbC5jb20+DQot
+LS0NCiBkcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYi5oICAgICAgICAgfCAxOCAtLS0tLS0t
+LS0tLS0tLS0tLS0NCiBkcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9pYmE2MTIwLmMgfCAy
+NSAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQogZHJpdmVycy9pbmZpbmliYW5kL2h3L3FpYi9x
+aWJfaWJhNzIyMC5jIHwgMjAgLS0tLS0tLS0tLS0tLS0tLS0tLS0NCiBkcml2ZXJzL2luZmluaWJh
+bmQvaHcvcWliL3FpYl9pYmE3MzIyLmMgfCAgNiArLS0tLS0NCiA0IGZpbGVzIGNoYW5nZWQsIDEg
+aW5zZXJ0aW9uKCspLCA2OCBkZWxldGlvbnMoLSkNCg0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5m
+aW5pYmFuZC9ody9xaWIvcWliLmggYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYi5oDQpp
+bmRleCAxMTY3YTljMTc3NmIuLjY4OWY1ZDAwMTg5MiAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvaW5m
+aW5pYmFuZC9ody9xaWIvcWliLmgNCisrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWli
+LmgNCkBAIC0xMDEsMTggKzEwMSw2IEBAIGV4dGVybiBjb25zdCBzdHJ1Y3QgcGNpX2Vycm9yX2hh
+bmRsZXJzIHFpYl9wY2lfZXJyX2hhbmRsZXI7DQogICovDQogI2RlZmluZSBRSUJfVFJBRkZJQ19B
+Q1RJVkVfVEhSRVNIT0xEICgyMDAwKQ0KIA0KLS8qDQotICogU3RydWN0IHVzZWQgdG8gaW5kaWNh
+dGUgd2hpY2ggZXJyb3JzIGFyZSBsb2dnZWQgaW4gZWFjaCBvZiB0aGUNCi0gKiBlcnJvci1jb3Vu
+dGVycyB0aGF0IGFyZSBsb2dnZWQgdG8gRUVQUk9NLiBBIGNvdW50ZXIgaXMgaW5jcmVtZW50ZWQN
+Ci0gKiBfb25jZV8gKHNhdHVyYXRpbmcgYXQgMjU1KSBmb3IgZWFjaCBldmVudCB3aXRoIGFueSBi
+aXRzIHNldCBpbg0KLSAqIHRoZSBlcnJvciBvciBod2Vycm9yIHJlZ2lzdGVyIG1hc2tzIGJlbG93
+Lg0KLSAqLw0KLSNkZWZpbmUgUUlCX0VFUF9MT0dfQ05UICg0KQ0KLXN0cnVjdCBxaWJfZWVwX2xv
+Z19tYXNrIHsNCi0JdTY0IGVycnNfdG9fbG9nOw0KLQl1NjQgaHdlcnJzX3RvX2xvZzsNCi19Ow0K
+LQ0KIC8qDQogICogQmVsb3cgY29udGFpbnMgYWxsIGRhdGEgcmVsYXRlZCB0byBhIHNpbmdsZSBj
+b250ZXh0IChmb3JtZXJseSBjYWxsZWQgcG9ydCkuDQogICovDQpAQCAtMTA3OSwxMSArMTA2Nyw2
+IEBAIHN0cnVjdCBxaWJfZGV2ZGF0YSB7DQogCS8qIGNvbnRyb2wgaGlnaC1sZXZlbCBhY2Nlc3Mg
+dG8gRUVQUk9NICovDQogCXN0cnVjdCBtdXRleCBlZXBfbG9jazsNCiAJdWludDY0X3QgdHJhZmZp
+Y193ZHM7DQotCS8qDQotCSAqIG1hc2tzIGZvciB3aGljaCBiaXRzIG9mIGVycnMsIGh3ZXJycyB0
+aGF0IGNhdXNlDQotCSAqIGVhY2ggb2YgdGhlIGNvdW50ZXJzIHRvIGluY3JlbWVudC4NCi0JICov
+DQotCXN0cnVjdCBxaWJfZWVwX2xvZ19tYXNrIGVlcF9zdF9tYXNrc1tRSUJfRUVQX0xPR19DTlRd
+Ow0KIAlzdHJ1Y3QgcWliX2RpYWdfY2xpZW50ICpkaWFnX2NsaWVudDsNCiAJc3BpbmxvY2tfdCBx
+aWJfZGlhZ190cmFuc19sb2NrOyAvKiBwcm90ZWN0IGRpYWcgb2JzZXJ2ZXIgb3BzICovDQogCXN0
+cnVjdCBkaWFnX29ic2VydmVyX2xpc3RfZWx0ICpkaWFnX29ic2VydmVyX2xpc3Q7DQpAQCAtMTI5
+Nyw3ICsxMjgwLDYgQEAgaW50IHFpYl90d3NpX2Jsa19yZChzdHJ1Y3QgcWliX2RldmRhdGEgKmRk
+LCBpbnQgZGV2LCBpbnQgYWRkciwgdm9pZCAqYnVmZmVyLA0KIGludCBxaWJfdHdzaV9ibGtfd3Io
+c3RydWN0IHFpYl9kZXZkYXRhICpkZCwgaW50IGRldiwgaW50IGFkZHIsDQogCQkgICAgY29uc3Qg
+dm9pZCAqYnVmZmVyLCBpbnQgbGVuKTsNCiB2b2lkIHFpYl9nZXRfZWVwcm9tX2luZm8oc3RydWN0
+IHFpYl9kZXZkYXRhICopOw0KLSNkZWZpbmUgcWliX2luY19lZXByb21fZXJyKGRkLCBlaWR4LCBp
+bmNyKQ0KIHZvaWQgcWliX2R1bXBfbG9va3VwX291dHB1dF9xdWV1ZShzdHJ1Y3QgcWliX2RldmRh
+dGEgKik7DQogdm9pZCBxaWJfZm9yY2VfcGlvX2F2YWlsX3VwZGF0ZShzdHJ1Y3QgcWliX2RldmRh
+dGEgKik7DQogdm9pZCBxaWJfY2xlYXJfc3ltZXJyb3Jfb25fbGlua3VwKHVuc2lnbmVkIGxvbmcg
+b3BhcXVlKTsNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9pYmE2
+MTIwLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9pYmE2MTIwLmMNCmluZGV4IGM0
+YTRjNTdlMGYwYS4uM2M1YWRmYTEwNGEwIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9pbmZpbmliYW5k
+L2h3L3FpYi9xaWJfaWJhNjEyMC5jDQorKysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3Fp
+Yl9pYmE2MTIwLmMNCkBAIC03NDgsNyArNzQ4LDYgQEAgc3RhdGljIHZvaWQgcWliX2hhbmRsZV82
+MTIwX2h3ZXJyb3JzKHN0cnVjdCBxaWJfZGV2ZGF0YSAqZGQsIGNoYXIgKm1zZywNCiAJdTMyIGJp
+dHMsIGN0cmw7DQogCWludCBpc2ZhdGFsID0gMDsNCiAJY2hhciAqYml0c21zZzsNCi0JaW50IGxv
+Z19pZHg7DQogDQogCWh3ZXJycyA9IHFpYl9yZWFkX2tyZWc2NChkZCwga3JfaHdlcnJzdGF0dXMp
+Ow0KIAlpZiAoIWh3ZXJycykNCkBAIC03NzAsMTEgKzc2OSw2IEBAIHN0YXRpYyB2b2lkIHFpYl9o
+YW5kbGVfNjEyMF9od2Vycm9ycyhzdHJ1Y3QgcWliX2RldmRhdGEgKmRkLCBjaGFyICptc2csDQog
+DQogCWh3ZXJycyAmPSBkZC0+Y3NwZWMtPmh3ZXJybWFzazsNCiANCi0JLyogV2UgbG9nIHNvbWUg
+ZXJyb3JzIHRvIEVFUFJPTSwgY2hlY2sgaWYgd2UgaGF2ZSBhbnkgb2YgdGhvc2UuICovDQotCWZv
+ciAobG9nX2lkeCA9IDA7IGxvZ19pZHggPCBRSUJfRUVQX0xPR19DTlQ7ICsrbG9nX2lkeCkNCi0J
+CWlmIChod2VycnMgJiBkZC0+ZWVwX3N0X21hc2tzW2xvZ19pZHhdLmh3ZXJyc190b19sb2cpDQot
+CQkJcWliX2luY19lZXByb21fZXJyKGRkLCBsb2dfaWR4LCAxKTsNCi0NCiAJLyoNCiAJICogTWFr
+ZSBzdXJlIHdlIGdldCB0aGlzIG11Y2ggb3V0LCB1bmxlc3MgdG9sZCB0byBiZSBxdWlldCwNCiAJ
+ICogb3IgaXQncyBvY2N1cnJlZCB3aXRoaW4gdGhlIGxhc3QgNSBzZWNvbmRzLg0KQEAgLTEwMDQs
+NyArOTk4LDYgQEAgc3RhdGljIHZvaWQgaGFuZGxlXzYxMjBfZXJyb3JzKHN0cnVjdCBxaWJfZGV2
+ZGF0YSAqZGQsIHU2NCBlcnJzKQ0KIAljaGFyICptc2c7DQogCXU2NCBpZ25vcmVfdGhpc190aW1l
+ID0gMDsNCiAJdTY0IGlzZXJyID0gMDsNCi0JaW50IGxvZ19pZHg7DQogCXN0cnVjdCBxaWJfcHBv
+cnRkYXRhICpwcGQgPSBkZC0+cHBvcnQ7DQogCXU2NCBtYXNrOw0KIA0KQEAgLTEwMTUsMTAgKzEw
+MDgsNiBAQCBzdGF0aWMgdm9pZCBoYW5kbGVfNjEyMF9lcnJvcnMoc3RydWN0IHFpYl9kZXZkYXRh
+ICpkZCwgdTY0IGVycnMpDQogCS8qIGRvIHRoZXNlIGZpcnN0LCB0aGV5IGFyZSBtb3N0IGltcG9y
+dGFudCAqLw0KIAlpZiAoZXJycyAmIEVSUl9NQVNLKEhhcmR3YXJlRXJyKSkNCiAJCXFpYl9oYW5k
+bGVfNjEyMF9od2Vycm9ycyhkZCwgbXNnLCBzaXplb2YoZGQtPmNzcGVjLT5lbXNnYnVmKSk7DQot
+CWVsc2UNCi0JCWZvciAobG9nX2lkeCA9IDA7IGxvZ19pZHggPCBRSUJfRUVQX0xPR19DTlQ7ICsr
+bG9nX2lkeCkNCi0JCQlpZiAoZXJycyAmIGRkLT5lZXBfc3RfbWFza3NbbG9nX2lkeF0uZXJyc190
+b19sb2cpDQotCQkJCXFpYl9pbmNfZWVwcm9tX2VycihkZCwgbG9nX2lkeCwgMSk7DQogDQogCWlm
+IChlcnJzICYgfklCX0VfQklUU0VYVEFOVCkNCiAJCXFpYl9kZXZfZXJyKGRkLA0KQEAgLTMyMjcs
+MjAgKzMyMTYsNiBAQCBzdGF0aWMgaW50IGluaXRfNjEyMF92YXJpYWJsZXMoc3RydWN0IHFpYl9k
+ZXZkYXRhICpkZCkNCiAJaWYgKHFpYl91bm9yZGVyZWRfd2MoKSkNCiAJCWRkLT5mbGFncyB8PSBR
+SUJfUElPX0ZMVVNIX1dDOw0KIA0KLQkvKg0KLQkgKiBFRVBST00gZXJyb3IgbG9nIDAgaXMgVFhF
+IFBhcml0eSBlcnJvcnMuIDEgaXMgUlhFIFBhcml0eS4NCi0JICogMiBpcyBTb21lIE1pc2MsIDMg
+aXMgcmVzZXJ2ZWQgZm9yIGZ1dHVyZS4NCi0JICovDQotCWRkLT5lZXBfc3RfbWFza3NbMF0uaHdl
+cnJzX3RvX2xvZyA9IEhXRV9NQVNLKFRYRU1lbVBhcml0eUVycik7DQotDQotCS8qIElnbm9yZSBl
+cnJvcnMgaW4gUElPL1BCQyBvbiBzeXN0ZW1zIHdpdGggdW5vcmRlcmVkIHdyaXRlLWNvbWJpbmlu
+ZyAqLw0KLQlpZiAocWliX3Vub3JkZXJlZF93YygpKQ0KLQkJZGQtPmVlcF9zdF9tYXNrc1swXS5o
+d2VycnNfdG9fbG9nICY9IH5UWEVfUElPX1BBUklUWTsNCi0NCi0JZGQtPmVlcF9zdF9tYXNrc1sx
+XS5od2VycnNfdG9fbG9nID0gSFdFX01BU0soUlhFTWVtUGFyaXR5RXJyKTsNCi0NCi0JZGQtPmVl
+cF9zdF9tYXNrc1syXS5lcnJzX3RvX2xvZyA9IEVSUl9NQVNLKFJlc2V0TmVnYXRlZCk7DQotDQog
+CXJldCA9IHFpYl9pbml0X3Bwb3J0ZGF0YShwcGQsIGRkLCAwLCAxKTsNCiAJaWYgKHJldCkNCiAJ
+CWdvdG8gYmFpbDsNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9p
+YmE3MjIwLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9pYmE3MjIwLmMNCmluZGV4
+IDc4Y2U3OWJlNDEyMC4uY2ViMjI1OWE1ZWZiIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9pbmZpbmli
+YW5kL2h3L3FpYi9xaWJfaWJhNzIyMC5jDQorKysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWli
+L3FpYl9pYmE3MjIwLmMNCkBAIC0xMDk0LDcgKzEwOTQsNiBAQCBzdGF0aWMgdm9pZCBoYW5kbGVf
+NzIyMF9lcnJvcnMoc3RydWN0IHFpYl9kZXZkYXRhICpkZCwgdTY0IGVycnMpDQogCWNoYXIgKm1z
+ZzsNCiAJdTY0IGlnbm9yZV90aGlzX3RpbWUgPSAwOw0KIAl1NjQgaXNlcnIgPSAwOw0KLQlpbnQg
+bG9nX2lkeDsNCiAJc3RydWN0IHFpYl9wcG9ydGRhdGEgKnBwZCA9IGRkLT5wcG9ydDsNCiAJdTY0
+IG1hc2s7DQogDQpAQCAtMTEwNSwxMCArMTEwNCw2IEBAIHN0YXRpYyB2b2lkIGhhbmRsZV83MjIw
+X2Vycm9ycyhzdHJ1Y3QgcWliX2RldmRhdGEgKmRkLCB1NjQgZXJycykNCiAJLyogZG8gdGhlc2Ug
+Zmlyc3QsIHRoZXkgYXJlIG1vc3QgaW1wb3J0YW50ICovDQogCWlmIChlcnJzICYgRVJSX01BU0so
+SGFyZHdhcmVFcnIpKQ0KIAkJcWliXzcyMjBfaGFuZGxlX2h3ZXJyb3JzKGRkLCBtc2csIHNpemVv
+ZihkZC0+Y3NwZWMtPmVtc2didWYpKTsNCi0JZWxzZQ0KLQkJZm9yIChsb2dfaWR4ID0gMDsgbG9n
+X2lkeCA8IFFJQl9FRVBfTE9HX0NOVDsgKytsb2dfaWR4KQ0KLQkJCWlmIChlcnJzICYgZGQtPmVl
+cF9zdF9tYXNrc1tsb2dfaWR4XS5lcnJzX3RvX2xvZykNCi0JCQkJcWliX2luY19lZXByb21fZXJy
+KGRkLCBsb2dfaWR4LCAxKTsNCiANCiAJaWYgKGVycnMgJiBRTE9HSUNfSUJfRV9TRE1BRVJSUykN
+CiAJCXNkbWFfNzIyMF9lcnJvcnMocHBkLCBlcnJzKTsNCkBAIC0xMzAyLDcgKzEyOTcsNiBAQCBz
+dGF0aWMgdm9pZCBxaWJfNzIyMF9oYW5kbGVfaHdlcnJvcnMoc3RydWN0IHFpYl9kZXZkYXRhICpk
+ZCwgY2hhciAqbXNnLA0KIAl1MzIgYml0cywgY3RybDsNCiAJaW50IGlzZmF0YWwgPSAwOw0KIAlj
+aGFyICpiaXRzbXNnOw0KLQlpbnQgbG9nX2lkeDsNCiANCiAJaHdlcnJzID0gcWliX3JlYWRfa3Jl
+ZzY0KGRkLCBrcl9od2VycnN0YXR1cyk7DQogCWlmICghaHdlcnJzKQ0KQEAgLTEzMjYsMTAgKzEz
+MjAsNiBAQCBzdGF0aWMgdm9pZCBxaWJfNzIyMF9oYW5kbGVfaHdlcnJvcnMoc3RydWN0IHFpYl9k
+ZXZkYXRhICpkZCwgY2hhciAqbXNnLA0KIA0KIAlod2VycnMgJj0gZGQtPmNzcGVjLT5od2Vycm1h
+c2s7DQogDQotCS8qIFdlIGxvZyBzb21lIGVycm9ycyB0byBFRVBST00sIGNoZWNrIGlmIHdlIGhh
+dmUgYW55IG9mIHRob3NlLiAqLw0KLQlmb3IgKGxvZ19pZHggPSAwOyBsb2dfaWR4IDwgUUlCX0VF
+UF9MT0dfQ05UOyArK2xvZ19pZHgpDQotCQlpZiAoaHdlcnJzICYgZGQtPmVlcF9zdF9tYXNrc1ts
+b2dfaWR4XS5od2VycnNfdG9fbG9nKQ0KLQkJCXFpYl9pbmNfZWVwcm9tX2VycihkZCwgbG9nX2lk
+eCwgMSk7DQogCWlmIChod2VycnMgJiB+KFRYRU1FTVBBUklUWUVSUl9QSU9CVUYgfCBUWEVNRU1Q
+QVJJVFlFUlJfUElPUEJDIHwNCiAJCSAgICAgICBSWEVfUEFSSVRZKSkNCiAJCXFpYl9kZXZpbmZv
+KGRkLT5wY2lkZXYsDQpAQCAtNDAxNiwxNiArNDAwNiw2IEBAIHN0YXRpYyBpbnQgcWliX2luaXRf
+NzIyMF92YXJpYWJsZXMoc3RydWN0IHFpYl9kZXZkYXRhICpkZCkNCiAJZGQtPmZsYWdzIHw9IHFp
+Yl9zcGVjaWFsX3RyaWdnZXIgPw0KIAkJUUlCX1VTRV9TUENMX1RSSUcgOiBRSUJfSEFTX1NFTkRf
+RE1BOw0KIA0KLQkvKg0KLQkgKiBFRVBST00gZXJyb3IgbG9nIDAgaXMgVFhFIFBhcml0eSBlcnJv
+cnMuIDEgaXMgUlhFIFBhcml0eS4NCi0JICogMiBpcyBTb21lIE1pc2MsIDMgaXMgcmVzZXJ2ZWQg
+Zm9yIGZ1dHVyZS4NCi0JICovDQotCWRkLT5lZXBfc3RfbWFza3NbMF0uaHdlcnJzX3RvX2xvZyA9
+IEhXRV9NQVNLKFRYRU1lbVBhcml0eUVycik7DQotDQotCWRkLT5lZXBfc3RfbWFza3NbMV0uaHdl
+cnJzX3RvX2xvZyA9IEhXRV9NQVNLKFJYRU1lbVBhcml0eUVycik7DQotDQotCWRkLT5lZXBfc3Rf
+bWFza3NbMl0uZXJyc190b19sb2cgPSBFUlJfTUFTSyhSZXNldE5lZ2F0ZWQpOw0KLQ0KIAlpbml0
+X3dhaXRxdWV1ZV9oZWFkKCZjcHNwZWMtPmF1dG9uZWdfd2FpdCk7DQogCUlOSVRfREVMQVlFRF9X
+T1JLKCZjcHNwZWMtPmF1dG9uZWdfd29yaywgYXV0b25lZ183MjIwX3dvcmspOw0KIA0KZGlmZiAt
+LWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWliX2liYTczMjIuYyBiL2RyaXZlcnMv
+aW5maW5pYmFuZC9ody9xaWIvcWliX2liYTczMjIuYw0KaW5kZXggNGQwMmNmZmU0ZTAzLi43NzIx
+N2ZhZTljMDYgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9pYmE3
+MzIyLmMNCisrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWliX2liYTczMjIuYw0KQEAg
+LTE2NDQsNyArMTY0NCw2IEBAIHN0YXRpYyBub2lubGluZSB2b2lkIGhhbmRsZV83MzIyX2Vycm9y
+cyhzdHJ1Y3QgcWliX2RldmRhdGEgKmRkKQ0KIAl1NjQgaXNlcnIgPSAwOw0KIAl1NjQgZXJyczsN
+CiAJdTY0IG1hc2s7DQotCWludCBsb2dfaWR4Ow0KIA0KIAlxaWJfc3RhdHMuc3BzX2VycmludHMr
+KzsNCiAJZXJycyA9IHFpYl9yZWFkX2tyZWc2NChkZCwga3JfZXJyc3RhdHVzKTsNCkBAIC0xNjYy
+LDEwICsxNjYxLDcgQEAgc3RhdGljIG5vaW5saW5lIHZvaWQgaGFuZGxlXzczMjJfZXJyb3JzKHN0
+cnVjdCBxaWJfZGV2ZGF0YSAqZGQpDQogCWlmIChlcnJzICYgUUlCX0VfSEFSRFdBUkUpIHsNCiAJ
+CSptc2cgPSAnXDAnOw0KIAkJcWliXzczMjJfaGFuZGxlX2h3ZXJyb3JzKGRkLCBtc2csIHNpemVv
+ZihkZC0+Y3NwZWMtPmVtc2didWYpKTsNCi0JfSBlbHNlDQotCQlmb3IgKGxvZ19pZHggPSAwOyBs
+b2dfaWR4IDwgUUlCX0VFUF9MT0dfQ05UOyArK2xvZ19pZHgpDQotCQkJaWYgKGVycnMgJiBkZC0+
+ZWVwX3N0X21hc2tzW2xvZ19pZHhdLmVycnNfdG9fbG9nKQ0KLQkJCQlxaWJfaW5jX2VlcHJvbV9l
+cnIoZGQsIGxvZ19pZHgsIDEpOw0KKwl9DQogDQogCWlmIChlcnJzICYgUUlCX0VfU1BLVEVSUlMp
+IHsNCiAJCXFpYl9kaXNhcm1fNzMyMl9zZW5kZXJyYnVmcyhkZC0+cHBvcnQpOw0KLS0gDQoyLjE0
+LjINCg==
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
