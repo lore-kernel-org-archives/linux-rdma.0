@@ -1,69 +1,50 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-core v1] verbs: Fix C++ compilation break
-Date: Tue, 10 Oct 2017 11:14:10 +0300
-Message-ID: <20171010081410.10946-1-leon@kernel.org>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: Is ib_mtu iboe_get_mtu() slightly off?
+Date: Tue, 10 Oct 2017 10:29:31 +0000
+Message-ID: <BN3PR07MB25781502CA573FB383805E48F8750@BN3PR07MB2578.namprd07.prod.outlook.com>
+References: <CAL1RGDX33tBR=x2sOp_F1605SY5nu_6YALr-XYE_LiuvsHQ1ng@mail.gmail.com>
+ <VI1PR0502MB300886CB47BB3DFDE098A26AD1660@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <1507556073.46071.27.camel@redhat.com>
+ <20171009134131.GB1252@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171009134131.GB1252-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Nelio Laranjeiro <nelio.laranjeiro-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>, Adrien Mazarguil <adrien.mazarguil-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/commi=
+t/?h=3Drdma-next&id=3D51ed6735dd59008aea4d7308416ed994b277f168
+>=20
+> commit 51ed6735dd59008aea4d7308416ed994b277f168
+> Author: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date:   Thu Oct 5 10:33:12 2017 -0500
+>=20
+>     IB/core: Take into account optional XRC header and mandatory ICRC for=
+ RoCE MTU
+>=20
+>     This fix considers optional XRC header size and mandatory ICRC 4 byte=
+s in
+>     calculation of path MTU, by considering additional 8 bytes, path MTU =
+calculation
+>     is more accurate.
+>=20
+>     Link: https://www.spinics.net/lists/linux-rdma/msg54558.html
+>     Fixes: 3c86aa70bf67 ("RDMA/cm: Add RDMA CM support for IBoE devices")
+>     Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>     Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>     Reported-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+>     Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-The commit 983f80191923 ("verbs: fix compilation error with ICC") fixed
-warning by using UINTPTR_MAX, however such change breaks compilation
-of C++ applications.
+Hi Parav, All,
+Shouldn't the overhead calculation take into account RoCEv2 too,
+i.e. include the UDP header length?
 
-On some systems, the stdint.h contains the following ifdef to protect UINTPTR_MAX
-"#if !defined __cplusplus || defined __STDC_LIMIT_MACROS"
-
-The simple inclusion of <cstdint> header is not enough too to fix
-compilation error, because that file was added in C++11 standard and
-it produces following error while using it:
-
-/usr/include/c++/4.8.2/bits/c++0x_warning.h:32:2: error: #error This file requires
-compiler and library support for the ISO C++ 2011 standard. This support is currently
-experimental, and must be enabled with the -std=c++11 or -std=gnu++11 compiler options.
-
-So let's fix C++ compilation break by using numeric_limits to avoid __STDC_LIMIT_MACROS.
-
-Fixes: 983f80191923 ("verbs: fix compilation error with ICC")
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Nelio Laranjeiro <nelio.laranjeiro-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-Cc: Adrien Mazarguil <adrien.mazarguil-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-Cc: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
----
-Travis CI failure is a false alarm (checkpatch):
-https://github.com/linux-rdma/rdma-core/pull/224
-
-Changes from v0:
- * Updated commit message to better reflect the issue
- * Used Jason's code, so added his SOB
----
- libibverbs/verbs.h | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index cc633a12..4e2f338a 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -82,7 +82,12 @@ union ibv_gid {
-
- #define vext_field_avail(type, fld, sz) (offsetof(type, fld) < (sz))
-
--static void *__VERBS_ABI_IS_EXTENDED = (void *)UINTPTR_MAX;
-+#ifdef __cplusplus
-+#include <limits>
-+#define __VERBS_ABI_IS_EXTENDED ((void *)std::numeric_limits<uintptr_t>::max())
-+#else
-+#define __VERBS_ABI_IS_EXTENDED ((void *)UINTPTR_MAX)
-+#endif
-
- enum ibv_node_type {
- 	IBV_NODE_UNKNOWN	= -1,
---
-2.14.2
+Thanks,
+Ram
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
