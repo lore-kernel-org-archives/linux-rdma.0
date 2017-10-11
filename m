@@ -1,74 +1,48 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH 05/47] RDMA/uverbs: Make the code in ib_uverbs_cmd_verbs()
- less confusing
-Date: Wed, 11 Oct 2017 15:30:41 +0000
-Message-ID: <1507735840.2477.8.camel@wdc.com>
-References: <20171006213333.6721-1-bart.vanassche@wdc.com>
-         <20171006213333.6721-6-bart.vanassche@wdc.com>
-         <64b5f415-7d56-3f17-0c8c-5d80ba89582c@mellanox.com>
-         <1507570048.2674.17.camel@wdc.com>
-         <3a6adf24-3e60-7fd1-a119-37586793d374@mellanox.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next] IB,hfi1 Add MODULE_FIRMWARE statements
+Date: Wed, 11 Oct 2017 11:31:18 -0400
+Message-ID: <1d7e8d05-9a6b-6dbf-d528-41ba64129348@intel.com>
+References: <20171011144134.c6bba480faee444cb9881710@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3a6adf24-3e60-7fd1-a119-37586793d374-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20171011144134.c6bba480faee444cb9881710-l3A5Bk7waGM@public.gmane.org>
 Content-Language: en-US
-Content-ID: <CB10BBBD406B0647AD2A04FA231C7110-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE3LTEwLTExIGF0IDA4OjE5ICswMzAwLCBNYXRhbiBCYXJhayB3cm90ZToNCj4g
-QnV0IHdoYXQgYWJvdXQgY2FzZXMgd2hlcmUgVVZFUkJTX09QVElNSVpFX1VTSU5HX1NUQUNLX1Na
-IGlzIGRlZmluZWQgYnV0IA0KPiBpcyBpbnN1ZmZpY2llbnQgaW4gc2l6ZT8NCg0KU29ycnkuIEhv
-dyBhYm91dCB0aGUgcGF0Y2ggYmVsb3c/IFRoZSBtb3N0IHNpZ25pZmljYW50IGNoYW5nZSBjb21w
-YXJlZCB0byB0aGUNCmN1cnJlbnQgY29kZSBpcyB0aGF0IFVWRVJCU19PUFRJTUlaRV9VU0lOR19T
-VEFDS19TWiBoYXMgdG8gYmUgZGVmaW5lZCBhcyAwDQppbnN0ZWFkIG9mIG5vdCBkZWZpbmluZyB0
-aGF0IG1hY3JvIHRvIGRpc2FibGUgdGhlIG9wdGltaXphdGlvbi4gQSBuZXcgY2hhbmdlDQppcyB0
-aGF0IHRoaXMgdmVyc2lvbiB1c2VzIGdjYydzIHN1cHBvcnQgZm9yIHplcm8tbGVuZ3RoIGFycmF5
-cyAod2hpY2ggaXMgYW4NCmV4dGVuc2lvbiBvZiB0aGUgQyBzdGFuZGFyZCBhbmQgaXMgYWxyZWFk
-eSB1c2VkIGVsc2V3aGVyZSBpbiB0aGUga2VybmVsKS4NCg0KDQpTdWJqZWN0OiBbUEFUQ0hdIFJE
-TUEvdXZlcmJzOiBNYWtlIHRoZSBjb2RlIGluIGliX3V2ZXJic19jbWRfdmVyYnMoKSBsZXNzDQog
-Y29uZnVzaW5nDQoNClRoaXMgcGF0Y2ggcmVkdWNlcyB0aGUgbnVtYmVyIG9mICNpZmRlZnMgYW5k
-IGFsc28gYXZvaWRzIHRoYXQNCnNtYXRjaCByZXBvcnRzIHRoZSBmb2xsb3dpbmc6DQoNCmRyaXZl
-cnMvaW5maW5pYmFuZC9jb3JlL3V2ZXJic19pb2N0bC5jOjI3NjogaWJfdXZlcmJzX2NtZF92ZXJi
-cygpIHdhcm46IGlmIHN0YXRlbWVudCBub3QgaW5kZW50ZWQNCmRyaXZlcnMvaW5maW5pYmFuZC9j
-b3JlL3V2ZXJic19pb2N0bC5jOjI4MDogaWJfdXZlcmJzX2NtZF92ZXJicygpIHdhcm46IHBvc3Np
-YmxlIG1lbW9yeSBsZWFrIG9mICdjdHgnDQpkcml2ZXJzL2luZmluaWJhbmQvY29yZS91dmVyYnNf
-aW9jdGwuYzozMTU6IGliX3V2ZXJic19jbWRfdmVyYnMoKSB3YXJuOiBpZiBzdGF0ZW1lbnQgbm90
-IGluZGVudGVkDQoNClJlZmVyZW5jZXM6IGNvbW1pdCBmYWM5NjU4Y2FiYjkgKCJJQi9jb3JlOiBB
-ZGQgbmV3IGlvY3RsIGludGVyZmFjZSIpDQpTaWduZWQtb2ZmLWJ5OiBCYXJ0IFZhbiBBc3NjaGUg
-PGJhcnQudmFuYXNzY2hlQHdkYy5jb20+DQpDYzogTWF0YW4gQmFyYWsgPG1hdGFuYkBtZWxsYW5v
-eC5jb20+DQpDYzogWWlzaGFpIEhhZGFzIDx5aXNoYWloQG1lbGxhbm94LmNvbT4NCi0tLQ0KIGRy
-aXZlcnMvaW5maW5pYmFuZC9jb3JlL3V2ZXJic19pb2N0bC5jIHwgMTMgKysrLS0tLS0tLS0tLQ0K
-IDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDEwIGRlbGV0aW9ucygtKQ0KDQpkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXZlcmJzX2lvY3RsLmMgYi9kcml2ZXJz
-L2luZmluaWJhbmQvY29yZS91dmVyYnNfaW9jdGwuYw0KaW5kZXggNTI4NmFkNTdkOTAzLi43MWZm
-MjY0NGUwNTMgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91dmVyYnNfaW9j
-dGwuYw0KKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXZlcmJzX2lvY3RsLmMNCkBAIC0y
-NDEsOSArMjQxLDcgQEAgc3RhdGljIGxvbmcgaWJfdXZlcmJzX2NtZF92ZXJicyhzdHJ1Y3QgaWJf
-ZGV2aWNlICppYl9kZXYsDQogCXN0cnVjdCB1dmVyYnNfYXR0ciAqY3Vycl9hdHRyOw0KIAl1bnNp
-Z25lZCBsb25nICpjdXJyX2JpdG1hcDsNCiAJc2l6ZV90IGN0eF9zaXplOw0KLSNpZmRlZiBVVkVS
-QlNfT1BUSU1JWkVfVVNJTkdfU1RBQ0tfU1oNCiAJdWludHB0cl90IGRhdGFbVVZFUkJTX09QVElN
-SVpFX1VTSU5HX1NUQUNLX1NaIC8gc2l6ZW9mKHVpbnRwdHJfdCldOw0KLSNlbmRpZg0KIA0KIAlp
-ZiAoaGRyLT5yZXNlcnZlZCkNCiAJCXJldHVybiAtRUlOVkFMOw0KQEAgLTI2OSwxMyArMjY3LDEw
-IEBAIHN0YXRpYyBsb25nIGliX3V2ZXJic19jbWRfdmVyYnMoc3RydWN0IGliX2RldmljZSAqaWJf
-ZGV2LA0KIAkJCShtZXRob2Rfc3BlYy0+bnVtX2NoaWxkX2F0dHJzIC8gQklUU19QRVJfTE9ORyAr
-DQogCQkJIG1ldGhvZF9zcGVjLT5udW1fYnVja2V0cyk7DQogDQotI2lmZGVmIFVWRVJCU19PUFRJ
-TUlaRV9VU0lOR19TVEFDS19TWg0KIAlpZiAoY3R4X3NpemUgPD0gVVZFUkJTX09QVElNSVpFX1VT
-SU5HX1NUQUNLX1NaKQ0KIAkJY3R4ID0gKHZvaWQgKilkYXRhOw0KLQ0KIAlpZiAoIWN0eCkNCi0j
-ZW5kaWYNCi0JY3R4ID0ga21hbGxvYyhjdHhfc2l6ZSwgR0ZQX0tFUk5FTCk7DQorCQljdHggPSBr
-bWFsbG9jKGN0eF9zaXplLCBHRlBfS0VSTkVMKTsNCiAJaWYgKCFjdHgpDQogCQlyZXR1cm4gLUVO
-T01FTTsNCiANCkBAIC0zMTEsMTAgKzMwNiw4IEBAIHN0YXRpYyBsb25nIGliX3V2ZXJic19jbWRf
-dmVyYnMoc3RydWN0IGliX2RldmljZSAqaWJfZGV2LA0KIAllcnIgPSB1dmVyYnNfaGFuZGxlX21l
-dGhvZChidWYsIGN0eC0+dWF0dHJzLCBoZHItPm51bV9hdHRycywgaWJfZGV2LA0KIAkJCQkgICBm
-aWxlLCBtZXRob2Rfc3BlYywgY3R4LT51dmVyYnNfYXR0cl9idW5kbGUpOw0KIG91dDoNCi0jaWZk
-ZWYgVVZFUkJTX09QVElNSVpFX1VTSU5HX1NUQUNLX1NaDQotCWlmIChjdHhfc2l6ZSA+IFVWRVJC
-U19PUFRJTUlaRV9VU0lOR19TVEFDS19TWikNCi0jZW5kaWYNCi0Ja2ZyZWUoY3R4KTsNCisJaWYg
-KGN0eCAhPSAodm9pZCAqKWRhdGEpDQorCQlrZnJlZShjdHgpOw0KIAlyZXR1cm4gZXJyOw0KIH0N
-CiANCi0tIA0KMi4xNC4yDQo=
+On 10/11/2017 8:41 AM, Thomas Bogendoerfer wrote:
+> Provide information about used firmware files via modinfo.
+> 
+> Signed-off-by: Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>
+> ---
+>   drivers/infiniband/hw/hfi1/firmware.c | 5 +++++
+>   1 file changed, 5 insertions(+)
+> 
+> diff --git a/drivers/infiniband/hw/hfi1/firmware.c b/drivers/infiniband/hw/hfi1/firmware.c
+> index dee3c674f33d..f56ace76b42c 100644
+> --- a/drivers/infiniband/hw/hfi1/firmware.c
+> +++ b/drivers/infiniband/hw/hfi1/firmware.c
+> @@ -70,6 +70,11 @@
+>   #define ALT_FW_PCIE_NAME "hfi1_pcie_d.fw"
+>   #define HOST_INTERFACE_VERSION 1
+>   
+> +MODULE_FIRMWARE(DEFAULT_FW_8051_NAME_ASIC);
+> +MODULE_FIRMWARE(DEFAULT_FW_FABRIC_NAME);
+> +MODULE_FIRMWARE(DEFAULT_FW_SBUS_NAME);
+> +MODULE_FIRMWARE(DEFAULT_FW_PCIE_NAME);
+> +
+>   static uint fw_8051_load = 1;
+>   static uint fw_fabric_serdes_load = 1;
+>   static uint fw_pcie_serdes_load = 1;
+> 
+
+I don't find this terribly useful, but if it's useful for you I'm sure 
+it is for others as well, so I have no problem with it.
+
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
