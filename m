@@ -1,60 +1,56 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: Re: [PATCH for-next] IB,hfi1 Add MODULE_FIRMWARE statements
-Date: Wed, 11 Oct 2017 13:13:26 -0400
-Message-ID: <3e374d9f-d63d-8601-b594-a9c2a426833e@intel.com>
-References: <20171011144134.c6bba480faee444cb9881710@suse.de>
- <1d7e8d05-9a6b-6dbf-d528-41ba64129348@intel.com>
- <20171011154914.GL2106@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171011154914.GL2106@mtr-leonro.local>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Thomas Bogendoerfer <tbogendoerfer@suse.de>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Subject: [PATCH v2 1/8] IB/srpt: Do not accept invalid initiator port names
+Date: Wed, 11 Oct 2017 10:27:22 -0700
+Message-ID: <20171011172729.16984-2-bart.vanassche@wdc.com>
+References: <20171011172729.16984-1-bart.vanassche@wdc.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171011172729.16984-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/11/2017 11:49 AM, Leon Romanovsky wrote:
-> On Wed, Oct 11, 2017 at 11:31:18AM -0400, Dennis Dalessandro wrote:
->> On 10/11/2017 8:41 AM, Thomas Bogendoerfer wrote:
->>> Provide information about used firmware files via modinfo.
->>>
->>> Signed-off-by: Thomas Bogendoerfer <tbogendoerfer@suse.de>
->>> ---
->>>    drivers/infiniband/hw/hfi1/firmware.c | 5 +++++
->>>    1 file changed, 5 insertions(+)
->>>
->>> diff --git a/drivers/infiniband/hw/hfi1/firmware.c b/drivers/infiniband/hw/hfi1/firmware.c
->>> index dee3c674f33d..f56ace76b42c 100644
->>> --- a/drivers/infiniband/hw/hfi1/firmware.c
->>> +++ b/drivers/infiniband/hw/hfi1/firmware.c
->>> @@ -70,6 +70,11 @@
->>>    #define ALT_FW_PCIE_NAME "hfi1_pcie_d.fw"
->>>    #define HOST_INTERFACE_VERSION 1
->>> +MODULE_FIRMWARE(DEFAULT_FW_8051_NAME_ASIC);
->>> +MODULE_FIRMWARE(DEFAULT_FW_FABRIC_NAME);
->>> +MODULE_FIRMWARE(DEFAULT_FW_SBUS_NAME);
->>> +MODULE_FIRMWARE(DEFAULT_FW_PCIE_NAME);
->>> +
->>>    static uint fw_8051_load = 1;
->>>    static uint fw_fabric_serdes_load = 1;
->>>    static uint fw_pcie_serdes_load = 1;
->>>
->>
->> I don't find this terribly useful, but if it's useful for you I'm sure it is
->> for others as well, so I have no problem with it.
-> 
-> Dennis,
-> Aren't those defines being constant?
-> 
->>
->> Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Make srpt_parse_i_port_id() return a negative value if hex2bin()
+fails.
 
-Which is why I didn't find it very useful. However Thomas makes a good 
-point [1].
+Fixes: commit a42d985bd5b2 ("ib_srpt: Initial SRP Target merge for v3.3-rc1")
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-https://marc.info/?l=linux-rdma&m=150773727811239&w=2
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 9e8e9220f816..95178b4e3565 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -2777,7 +2777,7 @@ static int srpt_parse_i_port_id(u8 i_port_id[16], const char *name)
+ {
+ 	const char *p;
+ 	unsigned len, count, leading_zero_bytes;
+-	int ret, rc;
++	int ret;
+ 
+ 	p = name;
+ 	if (strncasecmp(p, "0x", 2) == 0)
+@@ -2789,10 +2789,9 @@ static int srpt_parse_i_port_id(u8 i_port_id[16], const char *name)
+ 	count = min(len / 2, 16U);
+ 	leading_zero_bytes = 16 - count;
+ 	memset(i_port_id, 0, leading_zero_bytes);
+-	rc = hex2bin(i_port_id + leading_zero_bytes, p, count);
+-	if (rc < 0)
+-		pr_debug("hex2bin failed for srpt_parse_i_port_id: %d\n", rc);
+-	ret = 0;
++	ret = hex2bin(i_port_id + leading_zero_bytes, p, count);
++	if (ret < 0)
++		pr_debug("hex2bin failed for srpt_parse_i_port_id: %d\n", ret);
+ out:
+ 	return ret;
+ }
+-- 
+2.14.2
 
--Denny
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
