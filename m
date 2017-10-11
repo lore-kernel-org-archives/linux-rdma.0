@@ -1,35 +1,42 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v2 04/45] RDMA/iwcm: Remove a set-but-not-used variable
-Date: Wed, 11 Oct 2017 10:48:46 -0700
-Message-ID: <20171011174927.25113-5-bart.vanassche@wdc.com>
+Subject: [PATCH v2 23/45] IB/mthca: Fix indentation
+Date: Wed, 11 Oct 2017 10:49:05 -0700
+Message-ID: <20171011174927.25113-24-bart.vanassche@wdc.com>
 References: <20171011174927.25113-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171011174927.25113-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/iwcm.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_main.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-index fcf42f6bb82a..e9e189ec7502 100644
---- a/drivers/infiniband/core/iwcm.c
-+++ b/drivers/infiniband/core/iwcm.c
-@@ -447,9 +447,6 @@ static void destroy_cm_id(struct iw_cm_id *cm_id)
-  */
- void iw_destroy_cm_id(struct iw_cm_id *cm_id)
- {
--	struct iwcm_id_private *cm_id_priv;
--
--	cm_id_priv = container_of(cm_id, struct iwcm_id_private, id);
- 	destroy_cm_id(cm_id);
- }
- EXPORT_SYMBOL(iw_destroy_cm_id);
+diff --git a/drivers/infiniband/hw/mthca/mthca_main.c b/drivers/infiniband/hw/mthca/mthca_main.c
+index e36a9bc52268..f3e80dec1334 100644
+--- a/drivers/infiniband/hw/mthca/mthca_main.c
++++ b/drivers/infiniband/hw/mthca/mthca_main.c
+@@ -473,11 +473,11 @@ static int mthca_init_icm(struct mthca_dev *mdev,
+ 		goto err_unmap_eqp;
+ 	}
+ 
+-       mdev->cq_table.table = mthca_alloc_icm_table(mdev, init_hca->cqc_base,
+-						    dev_lim->cqc_entry_sz,
+-						    mdev->limits.num_cqs,
+-						    mdev->limits.reserved_cqs,
+-						    0, 0);
++	mdev->cq_table.table = mthca_alloc_icm_table(mdev, init_hca->cqc_base,
++						     dev_lim->cqc_entry_sz,
++						     mdev->limits.num_cqs,
++						     mdev->limits.reserved_cqs,
++						     0, 0);
+ 	if (!mdev->cq_table.table) {
+ 		mthca_err(mdev, "Failed to map CQ context memory, aborting.\n");
+ 		err = -ENOMEM;
 -- 
 2.14.2
 
