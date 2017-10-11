@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v2 4/8] IB/srpt: Change default behavior from using SRQ to using RC
-Date: Wed, 11 Oct 2017 10:27:25 -0700
-Message-ID: <20171011172729.16984-5-bart.vanassche@wdc.com>
+Subject: [PATCH v2 7/8] IB/srp: Cache global rkey
+Date: Wed, 11 Oct 2017 10:27:28 -0700
+Message-ID: <20171011172729.16984-8-bart.vanassche@wdc.com>
 References: <20171011172729.16984-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171011172729.16984-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,411 +10,155 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Although in the RC mode more resources are needed that mode has three
-advantages over SRQ:
-- It works with all RDMA adapters, even those that do not support
-  SRQ.
-- Posting WRs and polling WCs does not trigger lock contention
-  because only one thread at a time accesses a WR or WC queue in
-  non-SRQ mode.
-- The end-to-end flow control mechanism is used.
-
->From the IB spec:
-
-    C9-150.2.1: For QPs that are not associated with an SRQ, each HCA
-    receive queue shall generate end-to-end flow control credits. If
-    a QP is associated with an SRQ, the HCA receive queue shall not
-    generate end-to-end flow control credits.
-
-Add new configfs attributes that allow to configure which mode to use
-(/sys/kernel/config/target/srpt/$GUID/$GUID/attrib/use_srq). Note:
-only the attribute for port 1 is relevant on multi-port adapters.
+This is a micro-optimization for the hot path.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 152 ++++++++++++++++++++++++++--------
- drivers/infiniband/ulp/srpt/ib_srpt.h |   6 ++
- 2 files changed, 123 insertions(+), 35 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 27 ++++++++++++++-------------
+ drivers/infiniband/ulp/srp/ib_srp.h |  3 ++-
+ 2 files changed, 16 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 6cf95ad870cc..304855b9b537 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -295,6 +295,7 @@ static void srpt_get_ioc(struct srpt_port *sport, u32 slot,
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 96750ad253c4..463c3ed440eb 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -1292,7 +1292,6 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
  {
- 	struct srpt_device *sdev = sport->sdev;
- 	struct ib_dm_ioc_profile *iocp;
-+	int send_queue_depth;
+ 	struct srp_target_port *target = ch->target;
+ 	struct srp_device *dev = target->srp_host->srp_dev;
+-	struct ib_pd *pd = target->pd;
+ 	struct ib_pool_fmr *fmr;
+ 	u64 io_addr = 0;
  
- 	iocp = (struct ib_dm_ioc_profile *)mad->data;
+@@ -1308,9 +1307,9 @@ static int srp_map_finish_fmr(struct srp_map_state *state,
+ 	if (state->npages == 0)
+ 		return 0;
  
-@@ -310,6 +311,12 @@ static void srpt_get_ioc(struct srpt_port *sport, u32 slot,
- 		return;
+-	if (state->npages == 1 && (pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY)) {
++	if (state->npages == 1 && target->global_rkey) {
+ 		srp_map_desc(state, state->base_dma_addr, state->dma_len,
+-			     pd->unsafe_global_rkey);
++			     target->global_rkey);
+ 		goto reset_state;
  	}
  
-+	if (sdev->use_srq)
-+		send_queue_depth = sdev->srq_size;
-+	else
-+		send_queue_depth = min(SRPT_RQ_SIZE,
-+				       sdev->device->attrs.max_qp_wr);
-+
- 	memset(iocp, 0, sizeof(*iocp));
- 	strcpy(iocp->id_string, SRPT_ID_STRING);
- 	iocp->guid = cpu_to_be64(srpt_service_guid);
-@@ -322,7 +329,7 @@ static void srpt_get_ioc(struct srpt_port *sport, u32 slot,
- 	iocp->io_subclass = cpu_to_be16(SRP_IO_SUBCLASS);
- 	iocp->protocol = cpu_to_be16(SRP_PROTOCOL);
- 	iocp->protocol_version = cpu_to_be16(SRP_PROTOCOL_VERSION);
--	iocp->send_queue_depth = cpu_to_be16(sdev->srq_size);
-+	iocp->send_queue_depth = cpu_to_be16(send_queue_depth);
- 	iocp->rdma_read_depth = 4;
- 	iocp->send_size = cpu_to_be32(srp_max_req_size);
- 	iocp->rdma_size = cpu_to_be32(min(sport->port_attrib.srp_max_rdma_size,
-@@ -686,6 +693,9 @@ static void srpt_free_ioctx_ring(struct srpt_ioctx **ioctx_ring,
+@@ -1350,7 +1349,6 @@ static int srp_map_finish_fr(struct srp_map_state *state,
  {
- 	int i;
+ 	struct srp_target_port *target = ch->target;
+ 	struct srp_device *dev = target->srp_host->srp_dev;
+-	struct ib_pd *pd = target->pd;
+ 	struct ib_send_wr *bad_wr;
+ 	struct ib_reg_wr wr;
+ 	struct srp_fr_desc *desc;
+@@ -1366,12 +1364,12 @@ static int srp_map_finish_fr(struct srp_map_state *state,
  
-+	if (!ioctx_ring)
-+		return;
-+
- 	for (i = 0; i < ring_size; ++i)
- 		srpt_free_ioctx(sdev, ioctx_ring[i], dma_size, dir);
- 	kfree(ioctx_ring);
-@@ -757,7 +767,7 @@ static bool srpt_test_and_set_cmd_state(struct srpt_send_ioctx *ioctx,
- /**
-  * srpt_post_recv() - Post an IB receive request.
-  */
--static int srpt_post_recv(struct srpt_device *sdev,
-+static int srpt_post_recv(struct srpt_device *sdev, struct srpt_rdma_ch *ch,
- 			  struct srpt_recv_ioctx *ioctx)
- {
- 	struct ib_sge list;
-@@ -774,7 +784,10 @@ static int srpt_post_recv(struct srpt_device *sdev,
- 	wr.sg_list = &list;
- 	wr.num_sge = 1;
+ 	WARN_ON_ONCE(!dev->use_fast_reg);
  
--	return ib_post_srq_recv(sdev->srq, &wr, &bad_wr);
-+	if (sdev->use_srq)
-+		return ib_post_srq_recv(sdev->srq, &wr, &bad_wr);
-+	else
-+		return ib_post_recv(ch->qp, &wr, &bad_wr);
- }
+-	if (sg_nents == 1 && (pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY)) {
++	if (sg_nents == 1 && target->global_rkey) {
+ 		unsigned int sg_offset = sg_offset_p ? *sg_offset_p : 0;
  
- /**
-@@ -1517,7 +1530,7 @@ static void srpt_handle_new_iu(struct srpt_rdma_ch *ch,
- 		break;
+ 		srp_map_desc(state, sg_dma_address(state->sg) + sg_offset,
+ 			     sg_dma_len(state->sg) - sg_offset,
+-			     pd->unsafe_global_rkey);
++			     target->global_rkey);
+ 		if (sg_offset_p)
+ 			*sg_offset_p = 0;
+ 		return 1;
+@@ -1533,7 +1531,7 @@ static int srp_map_sg_dma(struct srp_map_state *state, struct srp_rdma_ch *ch,
+ 	for_each_sg(scat, sg, count, i) {
+ 		srp_map_desc(state, ib_sg_dma_address(dev->dev, sg),
+ 			     ib_sg_dma_len(dev->dev, sg),
+-			     target->pd->unsafe_global_rkey);
++			     target->global_rkey);
  	}
  
--	srpt_post_recv(ch->sport->sdev, recv_ioctx);
-+	srpt_post_recv(ch->sport->sdev, ch, recv_ioctx);
- 	return;
+ 	return 0;
+@@ -1631,7 +1629,6 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
+ 			struct srp_request *req)
+ {
+ 	struct srp_target_port *target = ch->target;
+-	struct ib_pd *pd = target->pd;
+ 	struct scatterlist *scat;
+ 	struct srp_cmd *cmd = req->cmd->buf;
+ 	int len, nents, count, ret;
+@@ -1667,7 +1664,7 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
+ 	fmt = SRP_DATA_DESC_DIRECT;
+ 	len = sizeof (struct srp_cmd) +	sizeof (struct srp_direct_buf);
  
- out_wait:
-@@ -1616,7 +1629,7 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
- 	struct srpt_device *sdev = sport->sdev;
- 	const struct ib_device_attr *attrs = &sdev->device->attrs;
- 	u32 srp_sq_size = sport->port_attrib.srp_sq_size;
--	int ret;
-+	int i, ret;
+-	if (count == 1 && (pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY)) {
++	if (count == 1 && target->global_rkey) {
+ 		/*
+ 		 * The midlayer only generated a single gather/scatter
+ 		 * entry, or DMA mapping coalesced everything to a
+@@ -1677,7 +1674,7 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
+ 		struct srp_direct_buf *buf = (void *) cmd->add_data;
  
- 	WARN_ON(ch->rq_size < 1);
+ 		buf->va  = cpu_to_be64(ib_sg_dma_address(ibdev, scat));
+-		buf->key = cpu_to_be32(pd->unsafe_global_rkey);
++		buf->key = cpu_to_be32(target->global_rkey);
+ 		buf->len = cpu_to_be32(ib_sg_dma_len(ibdev, scat));
  
-@@ -1640,7 +1653,6 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
- 		= (void(*)(struct ib_event *, void*))srpt_qp_event;
- 	qp_init->send_cq = ch->cq;
- 	qp_init->recv_cq = ch->cq;
--	qp_init->srq = sdev->srq;
- 	qp_init->sq_sig_type = IB_SIGNAL_REQ_WR;
- 	qp_init->qp_type = IB_QPT_RC;
- 	/*
-@@ -1654,6 +1666,12 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
- 	qp_init->cap.max_rdma_ctxs = srp_sq_size / 2;
- 	qp_init->cap.max_send_sge = min(attrs->max_sge, SRPT_MAX_SG_PER_WQE);
- 	qp_init->port_num = ch->sport->port;
-+	if (sdev->use_srq) {
-+		qp_init->srq = sdev->srq;
-+	} else {
-+		qp_init->cap.max_recv_wr = ch->rq_size;
-+		qp_init->cap.max_recv_sge = qp_init->cap.max_send_sge;
+ 		req->nmdesc = 0;
+@@ -1748,14 +1745,14 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
+ 	memcpy(indirect_hdr->desc_list, req->indirect_desc,
+ 	       count * sizeof (struct srp_direct_buf));
+ 
+-	if (!(pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY)) {
++	if (!target->global_rkey) {
+ 		ret = srp_map_idb(ch, req, state.gen.next, state.gen.end,
+ 				  idb_len, &idb_rkey);
+ 		if (ret < 0)
+ 			goto unmap;
+ 		req->nmdesc++;
+ 	} else {
+-		idb_rkey = cpu_to_be32(pd->unsafe_global_rkey);
++		idb_rkey = cpu_to_be32(target->global_rkey);
+ 	}
+ 
+ 	indirect_hdr->table_desc.va = cpu_to_be64(req->indirect_dma_addr);
+@@ -3331,8 +3328,8 @@ static ssize_t srp_create_target(struct device *dev,
+ 	target->io_class	= SRP_REV16A_IB_IO_CLASS;
+ 	target->scsi_host	= target_host;
+ 	target->srp_host	= host;
+-	target->pd		= host->srp_dev->pd;
+ 	target->lkey		= host->srp_dev->pd->local_dma_lkey;
++	target->global_rkey	= host->srp_dev->global_rkey;
+ 	target->cmd_sg_cnt	= cmd_sg_entries;
+ 	target->sg_tablesize	= indirect_sg_entries ? : cmd_sg_entries;
+ 	target->allow_ext_sg	= allow_ext_sg;
+@@ -3651,6 +3648,10 @@ static void srp_add_one(struct ib_device *device)
+ 	if (IS_ERR(srp_dev->pd))
+ 		goto free_dev;
+ 
++	if (flags & IB_PD_UNSAFE_GLOBAL_RKEY) {
++		srp_dev->global_rkey = srp_dev->pd->unsafe_global_rkey;
++		WARN_ON_ONCE(srp_dev->global_rkey == 0);
 +	}
  
- 	ch->qp = ib_create_qp(sdev->pd, qp_init);
- 	if (IS_ERR(ch->qp)) {
-@@ -1669,6 +1687,10 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
- 		goto err_destroy_cq;
- 	}
+ 	for (p = rdma_start_port(device); p <= rdma_end_port(device); ++p) {
+ 		host = srp_add_port(srp_dev, p);
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+index ab9077b81d5a..a814f5ef16f9 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.h
++++ b/drivers/infiniband/ulp/srp/ib_srp.h
+@@ -90,6 +90,7 @@ struct srp_device {
+ 	struct list_head	dev_list;
+ 	struct ib_device       *dev;
+ 	struct ib_pd	       *pd;
++	u32			global_rkey;
+ 	u64			mr_page_mask;
+ 	int			mr_page_size;
+ 	int			mr_max_size;
+@@ -179,7 +180,7 @@ struct srp_target_port {
+ 	spinlock_t		lock;
  
-+	if (!sdev->use_srq)
-+		for (i = 0; i < ch->rq_size; i++)
-+			srpt_post_recv(sdev, ch, ch->ioctx_recv_ring[i]);
-+
- 	atomic_set(&ch->sq_wr_avail, qp_init->cap.max_send_wr);
- 
- 	pr_debug("%s: max_cqe= %d max_sge= %d sq_size = %d cm_id= %p\n",
-@@ -1818,6 +1840,10 @@ static void srpt_release_channel_work(struct work_struct *w)
- 			     ch->sport->sdev, ch->rq_size,
- 			     ch->rsp_size, DMA_TO_DEVICE);
- 
-+	srpt_free_ioctx_ring((struct srpt_ioctx **)ch->ioctx_recv_ring,
-+			     sdev, ch->rq_size,
-+			     srp_max_req_size, DMA_FROM_DEVICE);
-+
- 	mutex_lock(&sdev->mutex);
- 	list_del_init(&ch->list);
- 	if (ch->release_done)
-@@ -1975,6 +2001,19 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
- 		ch->ioctx_ring[i]->ch = ch;
- 		list_add_tail(&ch->ioctx_ring[i]->free_list, &ch->free_list);
- 	}
-+	if (!sdev->use_srq) {
-+		ch->ioctx_recv_ring = (struct srpt_recv_ioctx **)
-+			srpt_alloc_ioctx_ring(ch->sport->sdev, ch->rq_size,
-+					      sizeof(*ch->ioctx_recv_ring[0]),
-+					      srp_max_req_size,
-+					      DMA_FROM_DEVICE);
-+		if (!ch->ioctx_recv_ring) {
-+			pr_err("rejected SRP_LOGIN_REQ because creating a new QP RQ ring failed.\n");
-+			rej->reason =
-+			    cpu_to_be32(SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
-+			goto free_ring;
-+		}
-+	}
- 
- 	ret = srpt_create_ch_ib(ch);
- 	if (ret) {
-@@ -1982,7 +2021,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
- 			      SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
- 		pr_err("rejected SRP_LOGIN_REQ because creating"
- 		       " a new RDMA channel failed.\n");
--		goto free_ring;
-+		goto free_recv_ring;
- 	}
- 
- 	ret = srpt_ch_qp_rtr(ch, ch->qp);
-@@ -2073,6 +2112,11 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
- destroy_ib:
- 	srpt_destroy_ch_ib(ch);
- 
-+free_recv_ring:
-+	srpt_free_ioctx_ring((struct srpt_ioctx **)ch->ioctx_recv_ring,
-+			     ch->sport->sdev, ch->rq_size,
-+			     srp_max_req_size, DMA_FROM_DEVICE);
-+
- free_ring:
- 	srpt_free_ioctx_ring((struct srpt_ioctx **)ch->ioctx_ring,
- 			     ch->sport->sdev, ch->rq_size,
-@@ -2502,20 +2546,38 @@ static void srpt_add_one(struct ib_device *device)
- 	srq_attr.attr.srq_limit = 0;
- 	srq_attr.srq_type = IB_SRQT_BASIC;
- 
--	sdev->srq = ib_create_srq(sdev->pd, &srq_attr);
--	if (IS_ERR(sdev->srq))
--		goto err_pd;
-+	sdev->srq = sdev->port[0].port_attrib.use_srq ?
-+		ib_create_srq(sdev->pd, &srq_attr) : ERR_PTR(-ENOTSUPP);
-+	if (IS_ERR(sdev->srq)) {
-+		pr_debug("ib_create_srq() failed: %ld\n", PTR_ERR(sdev->srq));
-+
-+		/* SRQ not supported. */
-+		sdev->use_srq = false;
-+	} else {
-+		pr_debug("create SRQ #wr= %d max_allow=%d dev= %s\n",
-+			 sdev->srq_size, sdev->device->attrs.max_srq_wr,
-+			 device->name);
-+
-+		sdev->use_srq = true;
- 
--	pr_debug("%s: create SRQ #wr= %d max_allow=%d dev= %s\n",
--		 __func__, sdev->srq_size, sdev->device->attrs.max_srq_wr,
--		 device->name);
-+		sdev->ioctx_ring = (struct srpt_recv_ioctx **)
-+			srpt_alloc_ioctx_ring(sdev, sdev->srq_size,
-+					      sizeof(*sdev->ioctx_ring[0]),
-+					      srp_max_req_size,
-+					      DMA_FROM_DEVICE);
-+		if (!sdev->ioctx_ring)
-+			goto err_pd;
-+
-+		for (i = 0; i < sdev->srq_size; ++i)
-+			srpt_post_recv(sdev, NULL, sdev->ioctx_ring[i]);
-+	}
- 
- 	if (!srpt_service_guid)
- 		srpt_service_guid = be64_to_cpu(device->node_guid);
- 
- 	sdev->cm_id = ib_create_cm_id(device, srpt_cm_handler, sdev);
- 	if (IS_ERR(sdev->cm_id))
--		goto err_srq;
-+		goto err_ring;
- 
- 	/* print out target login information */
- 	pr_debug("Target login info: id_ext=%016llx,ioc_guid=%016llx,"
-@@ -2535,16 +2597,6 @@ static void srpt_add_one(struct ib_device *device)
- 			      srpt_event_handler);
- 	ib_register_event_handler(&sdev->event_handler);
- 
--	sdev->ioctx_ring = (struct srpt_recv_ioctx **)
--		srpt_alloc_ioctx_ring(sdev, sdev->srq_size,
--				      sizeof(*sdev->ioctx_ring[0]),
--				      srp_max_req_size, DMA_FROM_DEVICE);
--	if (!sdev->ioctx_ring)
--		goto err_event;
--
--	for (i = 0; i < sdev->srq_size; ++i)
--		srpt_post_recv(sdev, sdev->ioctx_ring[i]);
--
- 	WARN_ON(sdev->device->phys_port_cnt > ARRAY_SIZE(sdev->port));
- 
- 	for (i = 1; i <= sdev->device->phys_port_cnt; i++) {
-@@ -2554,12 +2606,13 @@ static void srpt_add_one(struct ib_device *device)
- 		sport->port_attrib.srp_max_rdma_size = DEFAULT_MAX_RDMA_SIZE;
- 		sport->port_attrib.srp_max_rsp_size = DEFAULT_MAX_RSP_SIZE;
- 		sport->port_attrib.srp_sq_size = DEF_SRPT_SQ_SIZE;
-+		sport->port_attrib.use_srq = false;
- 		INIT_WORK(&sport->work, srpt_refresh_port_work);
- 
- 		if (srpt_refresh_port(sport)) {
- 			pr_err("MAD registration failed for %s-%d.\n",
- 			       sdev->device->name, i);
--			goto err_ring;
-+			goto err_event;
- 		}
- 	}
- 
-@@ -2572,16 +2625,16 @@ static void srpt_add_one(struct ib_device *device)
- 	pr_debug("added %s.\n", device->name);
- 	return;
- 
--err_ring:
--	srpt_free_ioctx_ring((struct srpt_ioctx **)sdev->ioctx_ring, sdev,
--			     sdev->srq_size, srp_max_req_size,
--			     DMA_FROM_DEVICE);
- err_event:
- 	ib_unregister_event_handler(&sdev->event_handler);
- err_cm:
- 	ib_destroy_cm_id(sdev->cm_id);
--err_srq:
--	ib_destroy_srq(sdev->srq);
-+err_ring:
-+	if (sdev->use_srq)
-+		ib_destroy_srq(sdev->srq);
-+	srpt_free_ioctx_ring((struct srpt_ioctx **)sdev->ioctx_ring, sdev,
-+			     sdev->srq_size, srp_max_req_size,
-+			     DMA_FROM_DEVICE);
- err_pd:
- 	ib_dealloc_pd(sdev->pd);
- free_dev:
-@@ -2625,12 +2678,12 @@ static void srpt_remove_one(struct ib_device *device, void *client_data)
- 	spin_unlock(&srpt_dev_lock);
- 	srpt_release_sdev(sdev);
- 
--	ib_destroy_srq(sdev->srq);
--	ib_dealloc_pd(sdev->pd);
--
-+	if (sdev->use_srq)
-+		ib_destroy_srq(sdev->srq);
- 	srpt_free_ioctx_ring((struct srpt_ioctx **)sdev->ioctx_ring, sdev,
- 			     sdev->srq_size, srp_max_req_size, DMA_FROM_DEVICE);
--	sdev->ioctx_ring = NULL;
-+	ib_dealloc_pd(sdev->pd);
-+
- 	kfree(sdev);
- }
- 
-@@ -2928,14 +2981,43 @@ static ssize_t srpt_tpg_attrib_srp_sq_size_store(struct config_item *item,
- 	return count;
- }
- 
-+static ssize_t srpt_tpg_attrib_use_srq_show(struct config_item *item,
-+					    char *page)
-+{
-+	struct se_portal_group *se_tpg = attrib_to_tpg(item);
-+	struct srpt_port *sport = srpt_tpg_to_sport(se_tpg);
-+
-+	return sprintf(page, "%d\n", sport->port_attrib.use_srq);
-+}
-+
-+static ssize_t srpt_tpg_attrib_use_srq_store(struct config_item *item,
-+					     const char *page, size_t count)
-+{
-+	struct se_portal_group *se_tpg = attrib_to_tpg(item);
-+	struct srpt_port *sport = srpt_tpg_to_sport(se_tpg);
-+	unsigned long val;
-+	int ret;
-+
-+	ret = kstrtoul(page, 0, &val);
-+	if (ret < 0)
-+		return ret;
-+	if (val != !!val)
-+		return -EINVAL;
-+	sport->port_attrib.use_srq = val;
-+
-+	return count;
-+}
-+
- CONFIGFS_ATTR(srpt_tpg_attrib_,  srp_max_rdma_size);
- CONFIGFS_ATTR(srpt_tpg_attrib_,  srp_max_rsp_size);
- CONFIGFS_ATTR(srpt_tpg_attrib_,  srp_sq_size);
-+CONFIGFS_ATTR(srpt_tpg_attrib_,  use_srq);
- 
- static struct configfs_attribute *srpt_tpg_attrib_attrs[] = {
- 	&srpt_tpg_attrib_attr_srp_max_rdma_size,
- 	&srpt_tpg_attrib_attr_srp_max_rsp_size,
- 	&srpt_tpg_attrib_attr_srp_sq_size,
-+	&srpt_tpg_attrib_attr_use_srq,
- 	NULL,
- };
- 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index 976e924d7400..673387d365a3 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -252,6 +252,7 @@ enum rdma_ch_state {
-  * @free_list:     Head of list with free send I/O contexts.
-  * @state:         channel state. See also enum rdma_ch_state.
-  * @ioctx_ring:    Send ring.
-+ * @ioctx_recv_ring: Receive I/O context ring.
-  * @list:          Node for insertion in the srpt_device.rch_list list.
-  * @cmd_wait_list: List of SCSI commands that arrived before the RTU event. This
-  *                 list contains struct srpt_ioctx elements and is protected
-@@ -281,6 +282,7 @@ struct srpt_rdma_ch {
- 	struct list_head	free_list;
- 	enum rdma_ch_state	state;
- 	struct srpt_send_ioctx	**ioctx_ring;
-+	struct srpt_recv_ioctx	**ioctx_recv_ring;
- 	struct list_head	list;
- 	struct list_head	cmd_wait_list;
- 	struct se_session	*sess;
-@@ -295,11 +297,13 @@ struct srpt_rdma_ch {
-  * @srp_max_rdma_size: Maximum size of SRP RDMA transfers for new connections.
-  * @srp_max_rsp_size: Maximum size of SRP response messages in bytes.
-  * @srp_sq_size: Shared receive queue (SRQ) size.
-+ * @use_srq: Whether or not to use SRQ.
-  */
- struct srpt_port_attrib {
- 	u32			srp_max_rdma_size;
- 	u32			srp_max_rsp_size;
- 	u32			srp_sq_size;
-+	bool			use_srq;
- };
- 
- /**
-@@ -347,6 +351,7 @@ struct srpt_port {
-  * @srq:           Per-HCA SRQ (shared receive queue).
-  * @cm_id:         Connection identifier.
-  * @srq_size:      SRQ size.
-+ * @use_srq:       Whether or not to use SRQ.
-  * @ioctx_ring:    Per-HCA SRQ.
-  * @rch_list:      Per-device channel list -- see also srpt_rdma_ch.list.
-  * @ch_releaseQ:   Enables waiting for removal from rch_list.
-@@ -362,6 +367,7 @@ struct srpt_device {
- 	struct ib_srq		*srq;
- 	struct ib_cm_id		*cm_id;
- 	int			srq_size;
-+	bool			use_srq;
- 	struct srpt_recv_ioctx	**ioctx_ring;
- 	struct list_head	rch_list;
- 	wait_queue_head_t	ch_releaseQ;
+ 	/* read only in the hot path */
+-	struct ib_pd		*pd;
++	u32			global_rkey;
+ 	struct srp_rdma_ch	*ch;
+ 	u32			ch_count;
+ 	u32			lkey;
 -- 
 2.14.2
 
