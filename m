@@ -1,160 +1,130 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 05/47] RDMA/uverbs: Make the code in ib_uverbs_cmd_verbs()
- less confusing
-Date: Wed, 11 Oct 2017 08:19:28 +0300
-Message-ID: <3a6adf24-3e60-7fd1-a119-37586793d374@mellanox.com>
-References: <20171006213333.6721-1-bart.vanassche@wdc.com>
- <20171006213333.6721-6-bart.vanassche@wdc.com>
- <64b5f415-7d56-3f17-0c8c-5d80ba89582c@mellanox.com>
- <1507570048.2674.17.camel@wdc.com>
+From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [PATCH v8 01/14] mm: introduce MAP_SHARED_VALIDATE, a mechanism
+ to safely define new mmap flags
+Date: Wed, 11 Oct 2017 09:43:20 +0200
+Message-ID: <20171011074320.GG3667@quack2.suse.cz>
+References: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150764694114.16882.5128952296874418457.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1507570048.2674.17.camel-Sjgp3cTcYWE@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <150764694114.16882.5128952296874418457.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Andy Lutomirski <luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/10/2017 20:27, Bart Van Assche wrote:
-> On Mon, 2017-10-09 at 10:40 +0300, Matan Barak (External) wrote:
->> On 07/10/2017 00:32, Bart Van Assche wrote:
->>> This patch reduces the number of #ifdefs and also avoids that
->>> smatch reports the following:
->>>
->>> drivers/infiniband/core/uverbs_ioctl.c:276: ib_uverbs_cmd_verbs() warn: if statement not indented
->>> drivers/infiniband/core/uverbs_ioctl.c:280: ib_uverbs_cmd_verbs() warn: possible memory leak of 'ctx'
->>> drivers/infiniband/core/uverbs_ioctl.c:315: ib_uverbs_cmd_verbs() warn: if statement not indented
->>>
->>> References: commit fac9658cabb9 ("IB/core: Add new ioctl interface")
->>> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
->>> Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>> Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>> ---
->>>    drivers/infiniband/core/uverbs_ioctl.c | 20 +++++++++-----------
->>>    1 file changed, 9 insertions(+), 11 deletions(-)
->>>
->>> diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
->>> index 5286ad57d903..53f780ea49fe 100644
->>> --- a/drivers/infiniband/core/uverbs_ioctl.c
->>> +++ b/drivers/infiniband/core/uverbs_ioctl.c
->>> @@ -234,7 +234,7 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
->>>        const struct uverbs_method_spec *method_spec;
->>>        long err = 0;
->>>        unsigned int i;
->>> -    struct {
->>> +    struct attr_and_bundle {
->>>            struct ib_uverbs_attr        *uattrs;
->>>            struct uverbs_attr_bundle    *uverbs_attr_bundle;
->>>        } *ctx = NULL;
->>> @@ -242,7 +242,10 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
->>>        unsigned long *curr_bitmap;
->>>        size_t ctx_size;
->>>    #ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
->>> -    uintptr_t data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
->>> +    uintptr_t __data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
->>> +    struct attr_and_bundle *const data = (void *)__data;
->>> +#else
->>> +    struct attr_and_bundle *const data = NULL;
->>>    #endif
->>>
->>>        if (hdr->reserved)
->>> @@ -269,13 +272,10 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
->>>                (method_spec->num_child_attrs / BITS_PER_LONG +
->>>                 method_spec->num_buckets);
->>>
->>> -#ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
->>>        if (ctx_size <= UVERBS_OPTIMIZE_USING_STACK_SZ)
->>
->> If UVERBS_OPTIMIZE_USING_STACK_SZ isn't defined, you'll get an error here.
->> Maybe we could define it as 0 in the else part of the local variables deceleration.
+On Tue 10-10-17 07:49:01, Dan Williams wrote:
+> The mmap(2) syscall suffers from the ABI anti-pattern of not validating
+> unknown flags. However, proposals like MAP_SYNC and MAP_DIRECT need a
+> mechanism to define new behavior that is known to fail on older kernels
+> without the support. Define a new MAP_SHARED_VALIDATE flag pattern that
+> is guaranteed to fail on all legacy mmap implementations.
 > 
-> Hello Matan,
+> It is worth noting that the original proposal was for a standalone
+> MAP_VALIDATE flag. However, when that  could not be supported by all
+> archs Linus observed:
 > 
-> That's an interesting suggestion but that wouldn't work well with the "#ifdef
-> UVERBS_OPTIMIZE_USING_STACK_SZ" code in the declaration section. How about
-> changing "if (ctx_size <= UVERBS_OPTIMIZE_USING_STACK_SZ) ctx = data;" into
-> "ctx = data;" such that it becomes again safe not to define UVERBS_OPTIMIZE_USING_STACK_SZ?
-> With that change this patch looks as follows:
+>     I see why you *think* you want a bitmap. You think you want
+>     a bitmap because you want to make MAP_VALIDATE be part of MAP_SYNC
+>     etc, so that people can do
 > 
+>     ret = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED
+> 		    | MAP_SYNC, fd, 0);
 > 
-> diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
-> index 5286ad57d903..81c05ba2a58b 100644
-> --- a/drivers/infiniband/core/uverbs_ioctl.c
-> +++ b/drivers/infiniband/core/uverbs_ioctl.c
-> @@ -234,7 +234,7 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
->   	const struct uverbs_method_spec *method_spec;
->   	long err = 0;
->   	unsigned int i;
-> -	struct {
-> +	struct attr_and_bundle {
->   		struct ib_uverbs_attr		*uattrs;
->   		struct uverbs_attr_bundle	*uverbs_attr_bundle;
->   	} *ctx = NULL;
-> @@ -242,7 +242,10 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
->   	unsigned long *curr_bitmap;
->   	size_t ctx_size;
->   #ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
-> -	uintptr_t data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
-> +	uintptr_t __data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
-> +	struct attr_and_bundle *const data = (void *)__data;
-> +#else
-> +	struct attr_and_bundle *const data = NULL;
-
-I meant to define that macro here:
-#define UVERBS_OPTIMIZE_USING_STACK_SZ 	0
-
->   #endif
->   
->   	if (hdr->reserved)
-> @@ -269,13 +272,9 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
->   			(method_spec->num_child_attrs / BITS_PER_LONG +
->   			 method_spec->num_buckets);
->   
-> -#ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
-> -	if (ctx_size <= UVERBS_OPTIMIZE_USING_STACK_SZ)
-> -		ctx = (void *)data;
-> -
-> +	ctx = data;
->   	if (!ctx)
-> -#endif
-> -	ctx = kmalloc(ctx_size, GFP_KERNEL);
-> +		ctx = kmalloc(ctx_size, GFP_KERNEL);
-
-But what about cases where UVERBS_OPTIMIZE_USING_STACK_SZ is defined but 
-is insufficient in size?
-
-In the suggestion I posted above, I meant:
-/* Here UVERBS_OPTIMIZE_USING_STACK_SZ is always defined */
-if (ctx_size <= UVERBS_OPTIMIZE_USING_STACK_SZ)
-	ctx = data;
-if (!ctx)
-	ctx = kmalloc(ctx_size, GFP_KERNEL);
-
-The last hunk (free part) stays the same.	
-
->   	if (!ctx)
->   		return -ENOMEM;
->   
-> @@ -311,10 +310,8 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
->   	err = uverbs_handle_method(buf, ctx->uattrs, hdr->num_attrs, ib_dev,
->   				   file, method_spec, ctx->uverbs_attr_bundle);
->   out:
-> -#ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
-> -	if (ctx_size > UVERBS_OPTIMIZE_USING_STACK_SZ)
-> -#endif
-> -	kfree(ctx);
-> +	if (ctx != data)
-> +		kfree(ctx);
->   	return err;
->   }
->   
+>     and "know" that MAP_SYNC actually takes.
 > 
+>     And I'm saying that whole wish is bogus. You're fundamentally
+>     depending on special semantics, just make it explicit. It's already
+>     not portable, so don't try to make it so.
+> 
+>     Rename that MAP_VALIDATE as MAP_SHARED_VALIDATE, make it have a value
+>     of 0x3, and make people do
+> 
+>     ret = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED_VALIDATE
+> 		    | MAP_SYNC, fd, 0);
+> 
+>     and then the kernel side is easier too (none of that random garbage
+>     playing games with looking at the "MAP_VALIDATE bit", but just another
+>     case statement in that map type thing.
+> 
+>     Boom. Done.
+> 
+> Similar to ->fallocate() we also want the ability to validate the
+> support for new flags on a per ->mmap() 'struct file_operations'
+> instance basis.  Towards that end arrange for flags to be generically
+> validated against a mmap_supported_mask exported by 'struct
+> file_operations'. By default all existing flags are implicitly
+> supported, but new flags require MAP_SHARED_VALIDATE and
+> per-instance-opt-in.
+> 
+> Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+> Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+> Cc: Andy Lutomirski <luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+> Suggested-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> Suggested-by: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  arch/alpha/include/uapi/asm/mman.h           |    1 +
+>  arch/mips/include/uapi/asm/mman.h            |    1 +
+>  arch/mips/kernel/vdso.c                      |    2 +
+>  arch/parisc/include/uapi/asm/mman.h          |    1 +
+>  arch/tile/mm/elf.c                           |    3 +-
+>  arch/xtensa/include/uapi/asm/mman.h          |    1 +
+>  include/linux/fs.h                           |    2 +
+>  include/linux/mm.h                           |    2 +
+>  include/linux/mman.h                         |   39 ++++++++++++++++++++++++++
+>  include/uapi/asm-generic/mman-common.h       |    1 +
+>  mm/mmap.c                                    |   21 ++++++++++++--
+>  tools/include/uapi/asm-generic/mman-common.h |    1 +
+>  12 files changed, 69 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/alpha/include/uapi/asm/mman.h b/arch/alpha/include/uapi/asm/mman.h
+> index 3b26cc62dadb..92823f24890b 100644
+> --- a/arch/alpha/include/uapi/asm/mman.h
+> +++ b/arch/alpha/include/uapi/asm/mman.h
+> @@ -14,6 +14,7 @@
+>  #define MAP_TYPE	0x0f		/* Mask for type of mapping (OSF/1 is _wrong_) */
+>  #define MAP_FIXED	0x100		/* Interpret addr exactly */
+>  #define MAP_ANONYMOUS	0x10		/* don't use a file */
+> +#define MAP_SHARED_VALIDATE 0x3		/* share + validate extension flags */
 
+Just a nit but I'd put definition of MAP_SHARED_VALIDATE close to the
+definition of MAP_SHARED and MAP_PRIVATE where it logically belongs (for
+all archs).
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index f8c10d336e42..5c4c98e4adc9 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -2133,7 +2133,7 @@ extern unsigned long get_unmapped_area(struct file *, unsigned long, unsigned lo
+>  
+>  extern unsigned long mmap_region(struct file *file, unsigned long addr,
+>  	unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
+> -	struct list_head *uf);
+> +	struct list_head *uf, unsigned long map_flags);
+>  extern unsigned long do_mmap(struct file *file, unsigned long addr,
+>  	unsigned long len, unsigned long prot, unsigned long flags,
+>  	vm_flags_t vm_flags, unsigned long pgoff, unsigned long *populate,
+
+I have to say I'm not very keen on passing down both vm_flags and map_flags
+- vm_flags are almost a subset of map_flags but not quite and the ambiguity
+which needs to be used for a particular check seems to open a space for
+errors. Granted you currently only care about MAP_DIRECT in ->mmap_validate
+and just pass map_flags through mmap_region() so there's no space for
+confusion but future checks could do something different. But OTOH I don't
+see a cleaner way of avoiding the need to allocate vma flag for something
+you need to check down in ->mmap_validate so I guess I'll live with that
+and if problems really happen, we may have cleaner idea what needs to be
+done.
+
+So overall feel free to add:
+
+Reviewed-by: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+
+								Honza
+-- 
+Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
+SUSE Labs, CR
