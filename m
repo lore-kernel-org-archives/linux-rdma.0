@@ -1,249 +1,194 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v2 35/45] RDMA/qedr: Declare local functions static
-Date: Wed, 11 Oct 2017 10:49:17 -0700
-Message-ID: <20171011174927.25113-36-bart.vanassche@wdc.com>
+Subject: [PATCH v2 16/45] IB/hfi1: Remove set-but-not-used variables
+Date: Wed, 11 Oct 2017 10:48:58 -0700
+Message-ID: <20171011174927.25113-17-bart.vanassche@wdc.com>
 References: <20171011174927.25113-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171011174927.25113-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/main.c         | 22 +++++++++++-----------
- drivers/infiniband/hw/qedr/qedr_iw_cm.c   | 14 +++++++-------
- drivers/infiniband/hw/qedr/qedr_roce_cm.c | 27 +++++++++++++--------------
- drivers/infiniband/hw/qedr/verbs.c        |  2 +-
- 4 files changed, 32 insertions(+), 33 deletions(-)
+ drivers/infiniband/hw/hfi1/file_ops.c |  4 +---
+ drivers/infiniband/hw/hfi1/mad.c      |  2 --
+ drivers/infiniband/hw/hfi1/ruc.c      |  9 ---------
+ drivers/infiniband/hw/hfi1/sdma.c     |  2 --
+ drivers/infiniband/hw/hfi1/ud.c       |  2 --
+ drivers/infiniband/hw/hfi1/verbs.c    | 10 ----------
+ 6 files changed, 1 insertion(+), 28 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
-index 1afc26785049..be282e4915d8 100644
---- a/drivers/infiniband/hw/qedr/main.c
-+++ b/drivers/infiniband/hw/qedr/main.c
-@@ -54,8 +54,8 @@ MODULE_LICENSE("Dual BSD/GPL");
- 
- #define QEDR_WQ_MULTIPLIER_DFT	(3)
- 
--void qedr_ib_dispatch_event(struct qedr_dev *dev, u8 port_num,
--			    enum ib_event_type type)
-+static void qedr_ib_dispatch_event(struct qedr_dev *dev, u8 port_num,
-+				   enum ib_event_type type)
+diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+index 2b7144e0405e..9a829ae95bc2 100644
+--- a/drivers/infiniband/hw/hfi1/file_ops.c
++++ b/drivers/infiniband/hw/hfi1/file_ops.c
+@@ -776,7 +776,7 @@ static int complete_subctxt(struct hfi1_filedata *fd)
+ static int assign_ctxt(struct hfi1_filedata *fd, unsigned long arg, u32 len)
  {
- 	struct ib_event ibev;
+ 	int ret;
+-	unsigned int swmajor, swminor;
++	unsigned int swmajor;
+ 	struct hfi1_ctxtdata *uctxt = NULL;
+ 	struct hfi1_user_info uinfo;
  
-@@ -96,8 +96,8 @@ static struct net_device *qedr_get_netdev(struct ib_device *dev, u8 port_num)
- 	return qdev->ndev;
- }
+@@ -796,8 +796,6 @@ static int assign_ctxt(struct hfi1_filedata *fd, unsigned long arg, u32 len)
+ 	if (uinfo.subctxt_cnt > HFI1_MAX_SHARED_CTXTS)
+ 		return -EINVAL;
  
--int qedr_roce_port_immutable(struct ib_device *ibdev, u8 port_num,
--			     struct ib_port_immutable *immutable)
-+static int qedr_roce_port_immutable(struct ib_device *ibdev, u8 port_num,
-+				    struct ib_port_immutable *immutable)
+-	swminor = uinfo.userversion & 0xffff;
+-
+ 	/*
+ 	 * Acquire the mutex to protect against multiple creations of what
+ 	 * could be a shared base context.
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index c01335edeabd..bf699d23b5c5 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -2889,7 +2889,6 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
+ 	struct _vls_dctrs *vlinfo;
+ 	size_t response_data_size;
+ 	u32 num_ports;
+-	u8 num_pslm;
+ 	u8 lq, num_vls;
+ 	u8 res_lli, res_ler;
+ 	u64 port_mask;
+@@ -2899,7 +2898,6 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
+ 	int vfi;
+ 
+ 	num_ports = be32_to_cpu(pmp->mad_hdr.attr_mod) >> 24;
+-	num_pslm = hweight64(be64_to_cpu(req->port_select_mask[3]));
+ 	num_vls = hweight32(be32_to_cpu(req->vl_select_mask));
+ 	vl_select_mask = be32_to_cpu(req->vl_select_mask);
+ 	res_lli = (u8)(be32_to_cpu(req->resolution) & MSK_LLI) >> MSK_LLI_SFT;
+diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
+index b3291f0fde9a..d450d4d4bda3 100644
+--- a/drivers/infiniband/hw/hfi1/ruc.c
++++ b/drivers/infiniband/hw/hfi1/ruc.c
+@@ -825,11 +825,9 @@ static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
  {
- 	struct ib_port_attr attr;
- 	int err;
-@@ -115,8 +115,8 @@ int qedr_roce_port_immutable(struct ib_device *ibdev, u8 port_num,
- 	return 0;
- }
- 
--int qedr_iw_port_immutable(struct ib_device *ibdev, u8 port_num,
--			   struct ib_port_immutable *immutable)
-+static int qedr_iw_port_immutable(struct ib_device *ibdev, u8 port_num,
-+				  struct ib_port_immutable *immutable)
- {
- 	struct ib_port_attr attr;
- 	int err;
-@@ -133,7 +133,7 @@ int qedr_iw_port_immutable(struct ib_device *ibdev, u8 port_num,
- 	return 0;
- }
- 
--int qedr_iw_register_device(struct qedr_dev *dev)
-+static int qedr_iw_register_device(struct qedr_dev *dev)
- {
- 	dev->ibdev.node_type = RDMA_NODE_RNIC;
- 	dev->ibdev.query_gid = qedr_iw_query_gid;
-@@ -159,7 +159,7 @@ int qedr_iw_register_device(struct qedr_dev *dev)
- 	return 0;
- }
- 
--void qedr_roce_register_device(struct qedr_dev *dev)
-+static void qedr_roce_register_device(struct qedr_dev *dev)
- {
- 	dev->ibdev.node_type = RDMA_NODE_IB_CA;
- 	dev->ibdev.query_gid = qedr_query_gid;
-@@ -689,12 +689,12 @@ static int qedr_set_device_attr(struct qedr_dev *dev)
- 	return 0;
- }
- 
--void qedr_unaffiliated_event(void *context, u8 event_code)
-+static void qedr_unaffiliated_event(void *context, u8 event_code)
- {
- 	pr_err("unaffiliated event not implemented yet\n");
- }
- 
--void qedr_affiliated_event(void *context, u8 e_code, void *fw_handle)
-+static void qedr_affiliated_event(void *context, u8 e_code, void *fw_handle)
- {
- #define EVENT_TYPE_NOT_DEFINED	0
- #define EVENT_TYPE_CQ		1
-@@ -833,7 +833,7 @@ static int qedr_init_hw(struct qedr_dev *dev)
- 	return rc;
- }
- 
--void qedr_stop_hw(struct qedr_dev *dev)
-+static void qedr_stop_hw(struct qedr_dev *dev)
- {
- 	dev->ops->rdma_remove_user(dev->rdma_ctx, dev->dpi);
- 	dev->ops->rdma_stop(dev->rdma_ctx);
-diff --git a/drivers/infiniband/hw/qedr/qedr_iw_cm.c b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-index 2950d3f6ecb8..478b7317b80a 100644
---- a/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-+++ b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-@@ -79,7 +79,7 @@ qedr_fill_sockaddr6(const struct qed_iwarp_cm_info *cm_info,
+ 	struct hfi1_qp_priv *priv = qp->priv;
+ 	struct hfi1_ibport *ibp = ps->ibp;
+-	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 	u32 bth1 = 0;
+ 	u16 pkey = hfi1_get_pkey(ibp, qp->s_pkey_index);
+ 	u16 lrh0 = HFI1_LRH_BTH;
+-	u16 slid;
+ 	u8 extra_bytes = -ps->s_txreq->s_cur_size & 3;
+ 	u32 nwords = SIZE_OF_CRC + ((ps->s_txreq->s_cur_size +
+ 					 extra_bytes) >> 2);
+@@ -866,13 +864,6 @@ static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
+ 		bth1 |= (IB_BECN_MASK << IB_BECN_SHIFT);
  	}
- }
+ 	hfi1_make_ruc_bth(qp, ohdr, bth0, bth1, bth2);
+-
+-	if (!ppd->lid)
+-		slid = be16_to_cpu(IB_LID_PERMISSIVE);
+-	else
+-		slid = ppd->lid |
+-			(rdma_ah_get_path_bits(&qp->remote_ah_attr) &
+-			((1 << ppd->lmc) - 1));
+ 	hfi1_make_ib_hdr(&ps->s_txreq->phdr.hdr.ibh,
+ 			 lrh0,
+ 			 qp->s_hdrwords + nwords,
+diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
+index 961507bb0391..3ba7f4ea4bc9 100644
+--- a/drivers/infiniband/hw/hfi1/sdma.c
++++ b/drivers/infiniband/hw/hfi1/sdma.c
+@@ -2144,7 +2144,6 @@ void sdma_dumpstate(struct sdma_engine *sde)
  
--void
-+static void
- qedr_iw_mpa_request(void *context, struct qed_iwarp_cm_event_params *params)
+ static void dump_sdma_state(struct sdma_engine *sde)
  {
- 	struct qedr_iw_listener *listener = (struct qedr_iw_listener *)context;
-@@ -113,7 +113,7 @@ qedr_iw_mpa_request(void *context, struct qed_iwarp_cm_event_params *params)
- 	listener->cm_id->event_handler(listener->cm_id, &event);
- }
+-	struct hw_sdma_desc *descq;
+ 	struct hw_sdma_desc *descqp;
+ 	u64 desc[2];
+ 	u64 addr;
+@@ -2155,7 +2154,6 @@ static void dump_sdma_state(struct sdma_engine *sde)
+ 	head = sde->descq_head & sde->sdma_mask;
+ 	tail = sde->descq_tail & sde->sdma_mask;
+ 	cnt = sdma_descq_freecnt(sde);
+-	descq = sde->descq;
  
--void
-+static void
- qedr_iw_issue_event(void *context,
- 		    struct qed_iwarp_cm_event_params *params,
- 		    enum iw_cm_event_type event_type)
-@@ -136,7 +136,7 @@ qedr_iw_issue_event(void *context,
- 		ep->cm_id->event_handler(ep->cm_id, &event);
- }
+ 	dd_dev_err(sde->dd,
+ 		   "SDMA (%u) descq_head: %u descq_tail: %u freecnt: %u FLE %d\n",
+diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
+index 2ba74fdd6f15..84c7dbec0c28 100644
+--- a/drivers/infiniband/hw/hfi1/ud.c
++++ b/drivers/infiniband/hw/hfi1/ud.c
+@@ -854,7 +854,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 	int mgmt_pkey_idx = -1;
+ 	struct hfi1_ibport *ibp = rcd_to_iport(packet->rcd);
+ 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+-	struct ib_header *hdr = packet->hdr;
+ 	void *data = packet->payload;
+ 	u32 tlen = packet->tlen;
+ 	struct rvt_qp *qp = packet->qp;
+@@ -880,7 +879,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 		dlid_is_permissive = (dlid == permissive_lid);
+ 		slid_is_permissive = (slid == permissive_lid);
+ 	} else {
+-		hdr = packet->hdr;
+ 		pkey = ib_bth_get_pkey(ohdr);
+ 		dlid_is_permissive = (dlid == be16_to_cpu(IB_LID_PERMISSIVE));
+ 		slid_is_permissive = (slid == be16_to_cpu(IB_LID_PERMISSIVE));
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index e232f3c608b4..8acdb5dded24 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -812,7 +812,6 @@ static int build_verbs_tx_desc(
+ 	int ret = 0;
+ 	struct hfi1_sdma_header *phdr = &tx->phdr;
+ 	u16 hdrbytes = tx->hdr_dwords << 2;
+-	u32 *hdr;
+ 	u8 extra_bytes = 0;
+ 	static char trail_buf[12]; /* CRC = 4, LT = 1, Pad = 0 to 7 bytes */
  
--void
-+static void
- qedr_iw_close_event(void *context, struct qed_iwarp_cm_event_params *params)
- {
- 	struct qedr_iw_ep *ep = (struct qedr_iw_ep *)context;
-@@ -149,7 +149,7 @@ qedr_iw_close_event(void *context, struct qed_iwarp_cm_event_params *params)
+@@ -823,9 +822,6 @@ static int build_verbs_tx_desc(
+ 		 */
+ 		extra_bytes = hfi1_get_16b_padding(hdrbytes - 8, length) +
+ 			      (SIZE_OF_CRC << 2) + SIZE_OF_LT;
+-		hdr = (u32 *)&phdr->hdr.opah;
+-	} else {
+-		hdr = (u32 *)&phdr->hdr.ibh;
  	}
- }
+ 	if (!ahg_info->ahgcount) {
+ 		ret = sdma_txinit_ahg(
+@@ -891,14 +887,12 @@ int hfi1_verbs_send_dma(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 	u8 sc5 = priv->s_sc;
+ 	int ret;
+ 	u32 dwords;
+-	bool bypass = false;
  
--void
-+static void
- qedr_iw_qp_event(void *context,
- 		 struct qed_iwarp_cm_event_params *params,
- 		 enum ib_event_type ib_event, char *str)
-@@ -217,7 +217,7 @@ static void qedr_iw_disconnect_worker(struct work_struct *work)
- 	qedr_iw_qp_rem_ref(&qp->ibqp);
- }
+ 	if (ps->s_txreq->phdr.hdr.hdr_type) {
+ 		u8 extra_bytes = hfi1_get_16b_padding((hdrwords << 2), len);
  
--void
-+static void
- qedr_iw_disconnect_event(void *context,
- 			 struct qed_iwarp_cm_event_params *params)
- {
-@@ -262,7 +262,7 @@ qedr_iw_passive_complete(void *context,
- 		qedr_iw_close_event(context, params);
- }
+ 		dwords = (len + extra_bytes + (SIZE_OF_CRC << 2) +
+ 			  SIZE_OF_LT) >> 2;
+-		bypass = true;
+ 	} else {
+ 		dwords = (len + 3) >> 2;
+ 	}
+@@ -1033,8 +1027,6 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 	int wc_status = IB_WC_SUCCESS;
+ 	int ret = 0;
+ 	pio_release_cb cb = NULL;
+-	u32 lrh0_16b;
+-	bool bypass = false;
+ 	u8 extra_bytes = 0;
  
--int
-+static int
- qedr_iw_mpa_reply(void *context, struct qed_iwarp_cm_event_params *params)
- {
- 	struct qedr_iw_ep *ep = (struct qedr_iw_ep *)context;
-@@ -274,7 +274,7 @@ qedr_iw_mpa_reply(void *context, struct qed_iwarp_cm_event_params *params)
- 	return dev->ops->iwarp_send_rtr(dev->rdma_ctx, &rtr_in);
- }
- 
--int
-+static int
- qedr_iw_event_handler(void *context, struct qed_iwarp_cm_event_params *params)
- {
- 	struct qedr_iw_ep *ep = (struct qedr_iw_ep *)context;
-diff --git a/drivers/infiniband/hw/qedr/qedr_roce_cm.c b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
-index 2a0346678ddd..9dbf0cc985f3 100644
---- a/drivers/infiniband/hw/qedr/qedr_roce_cm.c
-+++ b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
-@@ -64,11 +64,11 @@ void qedr_store_gsi_qp_cq(struct qedr_dev *dev, struct qedr_qp *qp,
- 	dev->gsi_qp = qp;
- }
- 
--void qedr_ll2_complete_tx_packet(void *cxt,
--				 u8 connection_handle,
--				 void *cookie,
--				 dma_addr_t first_frag_addr,
--				 bool b_last_fragment, bool b_last_packet)
-+static void qedr_ll2_complete_tx_packet(void *cxt, u8 connection_handle,
-+					void *cookie,
-+					dma_addr_t first_frag_addr,
-+					bool b_last_fragment,
-+					bool b_last_packet)
- {
- 	struct qedr_dev *dev = (struct qedr_dev *)cxt;
- 	struct qed_roce_ll2_packet *pkt = cookie;
-@@ -93,8 +93,8 @@ void qedr_ll2_complete_tx_packet(void *cxt,
- 		(*cq->ibcq.comp_handler) (&cq->ibcq, cq->ibcq.cq_context);
- }
- 
--void qedr_ll2_complete_rx_packet(void *cxt,
--				 struct qed_ll2_comp_rx_data *data)
-+static void qedr_ll2_complete_rx_packet(void *cxt,
-+					struct qed_ll2_comp_rx_data *data)
- {
- 	struct qedr_dev *dev = (struct qedr_dev *)cxt;
- 	struct qedr_cq *cq = dev->gsi_rqcq;
-@@ -122,10 +122,9 @@ void qedr_ll2_complete_rx_packet(void *cxt,
- 		(*cq->ibcq.comp_handler) (&cq->ibcq, cq->ibcq.cq_context);
- }
- 
--void qedr_ll2_release_rx_packet(void *cxt,
--				u8 connection_handle,
--				void *cookie,
--				dma_addr_t rx_buf_addr, bool b_last_packet)
-+static void qedr_ll2_release_rx_packet(void *cxt, u8 connection_handle,
-+				       void *cookie, dma_addr_t rx_buf_addr,
-+				       bool b_last_packet)
- {
- 	/* Do nothing... */
- }
-@@ -237,7 +236,7 @@ static int qedr_ll2_post_tx(struct qedr_dev *dev,
- 	return 0;
- }
- 
--int qedr_ll2_stop(struct qedr_dev *dev)
-+static int qedr_ll2_stop(struct qedr_dev *dev)
- {
- 	int rc;
- 
-@@ -260,8 +259,8 @@ int qedr_ll2_stop(struct qedr_dev *dev)
- 	return rc;
- }
- 
--int qedr_ll2_start(struct qedr_dev *dev,
--		   struct ib_qp_init_attr *attrs, struct qedr_qp *qp)
-+static int qedr_ll2_start(struct qedr_dev *dev,
-+			  struct ib_qp_init_attr *attrs, struct qedr_qp *qp)
- {
- 	struct qed_ll2_acquire_data data;
- 	struct qed_ll2_cbs cbs;
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index a8a6e66767d5..5acb9eab64ed 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -2268,7 +2268,7 @@ int qedr_query_qp(struct ib_qp *ibqp,
- 	return rc;
- }
- 
--int qedr_free_qp_resources(struct qedr_dev *dev, struct qedr_qp *qp)
-+static int qedr_free_qp_resources(struct qedr_dev *dev, struct qedr_qp *qp)
- {
- 	int rc = 0;
- 
+ 	if (ps->s_txreq->phdr.hdr.hdr_type) {
+@@ -1043,8 +1035,6 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 		extra_bytes = pad_size + (SIZE_OF_CRC << 2) + SIZE_OF_LT;
+ 		dwords = (len + extra_bytes) >> 2;
+ 		hdr = (u32 *)&ps->s_txreq->phdr.hdr.opah;
+-		lrh0_16b = ps->s_txreq->phdr.hdr.opah.lrh[0];
+-		bypass = true;
+ 	} else {
+ 		dwords = (len + 3) >> 2;
+ 		hdr = (u32 *)&ps->s_txreq->phdr.hdr.ibh;
 -- 
 2.14.2
 
