@@ -1,59 +1,97 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v2 33/45] RDMA/ocrdma: Remove set-but-not-used variables
-Date: Wed, 11 Oct 2017 10:49:15 -0700
-Message-ID: <20171011174927.25113-34-bart.vanassche@wdc.com>
+Subject: [PATCH v2 45/45] RDMA/usnic: Instantiate data structures once
+Date: Wed, 11 Oct 2017 10:49:27 -0700
+Message-ID: <20171011174927.25113-46-bart.vanassche@wdc.com>
 References: <20171011174927.25113-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171011174927.25113-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 4 ++--
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 2 --
- 2 files changed, 2 insertions(+), 4 deletions(-)
+Data structures should not be defined in a header file. Hence move
+the min_transport_spec[] definition from a header file to a .c file.
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index eaacb71b0bff..f8c14c7baedb 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -3187,7 +3187,7 @@ void ocrdma_eqd_set_task(struct work_struct *work)
- 	struct ocrdma_dev *dev =
- 		container_of(work, struct ocrdma_dev, eqd_work.work);
- 	struct ocrdma_eq *eq = NULL;
--	int i, num = 0, status = -EINVAL;
-+	int i, num = 0;
- 	u64 eq_intr;
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h | 25 +------------------------
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c  | 24 ++++++++++++++++++++++++
+ 2 files changed, 25 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h
+index b1458be1d402..a8a2314c9531 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h
++++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h
+@@ -84,30 +84,7 @@ struct usnic_ib_qp_grp_flow {
+ 	char				dentry_name[32];
+ };
  
- 	for (i = 0; i < dev->eq_cnt; i++) {
-@@ -3209,7 +3209,7 @@ void ocrdma_eqd_set_task(struct work_struct *work)
- 	}
+-static const struct
+-usnic_vnic_res_spec min_transport_spec[USNIC_TRANSPORT_MAX] = {
+-	{ /*USNIC_TRANSPORT_UNKNOWN*/
+-		.resources = {
+-			{.type = USNIC_VNIC_RES_TYPE_EOL,	.cnt = 0,},
+-		},
+-	},
+-	{ /*USNIC_TRANSPORT_ROCE_CUSTOM*/
+-		.resources = {
+-			{.type = USNIC_VNIC_RES_TYPE_WQ,	.cnt = 1,},
+-			{.type = USNIC_VNIC_RES_TYPE_RQ,	.cnt = 1,},
+-			{.type = USNIC_VNIC_RES_TYPE_CQ,	.cnt = 1,},
+-			{.type = USNIC_VNIC_RES_TYPE_EOL,	.cnt = 0,},
+-		},
+-	},
+-	{ /*USNIC_TRANSPORT_IPV4_UDP*/
+-		.resources = {
+-			{.type = USNIC_VNIC_RES_TYPE_WQ,	.cnt = 1,},
+-			{.type = USNIC_VNIC_RES_TYPE_RQ,	.cnt = 1,},
+-			{.type = USNIC_VNIC_RES_TYPE_CQ,	.cnt = 1,},
+-			{.type = USNIC_VNIC_RES_TYPE_EOL,	.cnt = 0,},
+-		},
+-	},
+-};
++extern const struct usnic_vnic_res_spec min_transport_spec[USNIC_TRANSPORT_MAX];
  
- 	if (num)
--		status = ocrdma_modify_eqd(dev, &dev->eq_tbl[0], num);
-+		ocrdma_modify_eqd(dev, &dev->eq_tbl[0], num);
- 	schedule_delayed_work(&dev->eqd_work, msecs_to_jiffies(1000));
- }
+ const char *usnic_ib_qp_grp_state_to_string(enum ib_qp_state state);
+ int usnic_ib_qp_grp_dump_hdr(char *buf, int buf_sz);
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+index 8372c32485ad..aa2456a4f9bd 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+@@ -51,6 +51,30 @@
  
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 3757f1b8cbfc..7866fd8051f6 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -66,9 +66,7 @@ int ocrdma_query_gid(struct ib_device *ibdev, u8 port,
- 		     int index, union ib_gid *sgid)
+ #define USNIC_DEFAULT_TRANSPORT USNIC_TRANSPORT_ROCE_CUSTOM
+ 
++const struct usnic_vnic_res_spec min_transport_spec[USNIC_TRANSPORT_MAX] = {
++	{ /*USNIC_TRANSPORT_UNKNOWN*/
++		.resources = {
++			{.type = USNIC_VNIC_RES_TYPE_EOL,	.cnt = 0,},
++		},
++	},
++	{ /*USNIC_TRANSPORT_ROCE_CUSTOM*/
++		.resources = {
++			{.type = USNIC_VNIC_RES_TYPE_WQ,	.cnt = 1,},
++			{.type = USNIC_VNIC_RES_TYPE_RQ,	.cnt = 1,},
++			{.type = USNIC_VNIC_RES_TYPE_CQ,	.cnt = 1,},
++			{.type = USNIC_VNIC_RES_TYPE_EOL,	.cnt = 0,},
++		},
++	},
++	{ /*USNIC_TRANSPORT_IPV4_UDP*/
++		.resources = {
++			{.type = USNIC_VNIC_RES_TYPE_WQ,	.cnt = 1,},
++			{.type = USNIC_VNIC_RES_TYPE_RQ,	.cnt = 1,},
++			{.type = USNIC_VNIC_RES_TYPE_CQ,	.cnt = 1,},
++			{.type = USNIC_VNIC_RES_TYPE_EOL,	.cnt = 0,},
++		},
++	},
++};
++
+ static void usnic_ib_fw_string_to_u64(char *fw_ver_str, u64 *fw_ver)
  {
- 	int ret;
--	struct ocrdma_dev *dev;
- 
--	dev = get_ocrdma_dev(ibdev);
- 	memset(sgid, 0, sizeof(*sgid));
- 	if (index >= OCRDMA_MAX_SGID)
- 		return -EINVAL;
+ 	*fw_ver = *((u64 *)fw_ver_str);
 -- 
 2.14.2
 
