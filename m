@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v2 05/45] RDMA/isert: Suppress gcc 7 fall-through complaints
-Date: Wed, 11 Oct 2017 10:48:47 -0700
-Message-ID: <20171011174927.25113-6-bart.vanassche@wdc.com>
+Subject: [PATCH v2 21/45] RDMA/i40iw: Suppress gcc 7 fall-through complaints
+Date: Wed, 11 Oct 2017 10:49:03 -0700
+Message-ID: <20171011174927.25113-22-bart.vanassche@wdc.com>
 References: <20171011174927.25113-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171011174927.25113-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -15,52 +15,49 @@ Avoid that gcc 7 reports the following warning when building with W=1:
 warning: this statement may fall through [-Wimplicit-fallthrough=]
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Acked-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Reviewed-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c   | 1 +
+ drivers/infiniband/hw/i40iw/i40iw_hw.c   | 1 +
+ drivers/infiniband/hw/i40iw/i40iw_puda.c | 1 +
+ 3 files changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index ceabdb85df8b..720dfb3a1ac2 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -788,10 +788,11 @@ isert_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- 		 * the rdma cm id
- 		 */
- 		return 1;
--	case RDMA_CM_EVENT_REJECTED:       /* FALLTHRU */
-+	case RDMA_CM_EVENT_REJECTED:
- 		isert_info("Connection rejected: %s\n",
- 			   rdma_reject_msg(cma_id, event->status));
--	case RDMA_CM_EVENT_UNREACHABLE:    /* FALLTHRU */
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index 50c43766defd..4e1ff81c5ba0 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -2410,6 +2410,7 @@ static void i40iw_handle_rst_pkt(struct i40iw_cm_node *cm_node,
+ 	case I40IW_CM_STATE_FIN_WAIT1:
+ 	case I40IW_CM_STATE_LAST_ACK:
+ 		cm_node->cm_id->rem_ref(cm_node->cm_id);
 +		/* fall through */
-+	case RDMA_CM_EVENT_UNREACHABLE:
- 	case RDMA_CM_EVENT_CONNECT_ERROR:
- 		ret = isert_connect_error(cma_id);
- 		break;
-@@ -1569,9 +1570,7 @@ isert_put_cmd(struct isert_cmd *isert_cmd, bool comp_err)
- 			transport_generic_free_cmd(&cmd->se_cmd, 0);
- 			break;
- 		}
--		/*
--		 * Fall-through
--		 */
+ 	case I40IW_CM_STATE_TIME_WAIT:
+ 		cm_node->state = I40IW_CM_STATE_CLOSED;
+ 		i40iw_rem_ref_cm_node(cm_node);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_hw.c b/drivers/infiniband/hw/i40iw/i40iw_hw.c
+index 476867a3f584..7e9de845a350 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_hw.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_hw.c
+@@ -410,6 +410,7 @@ void i40iw_process_aeq(struct i40iw_device *iwdev)
+ 		case I40IW_AE_UDA_XMIT_DGRAM_TOO_LONG:
+ 		case I40IW_AE_UDA_XMIT_IPADDR_MISMATCH:
+ 			ctx_info->err_rq_idx_valid = false;
++			/* fall through */
+ 		default:
+ 			if (!info->sq && ctx_info->err_rq_idx_valid) {
+ 				ctx_info->err_rq_idx = info->wqe_idx;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.c b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+index c2cab20c4bc5..2a3bf6488b4b 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_puda.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+@@ -816,6 +816,7 @@ void i40iw_puda_dele_resources(struct i40iw_sc_vsi *vsi,
+ 	switch (rsrc->completion) {
+ 	case PUDA_HASH_CRC_COMPLETE:
+ 		i40iw_free_hash_desc(rsrc->hash_desc);
 +		/* fall through */
- 	default:
- 		iscsit_release_cmd(cmd);
- 		break;
-@@ -1749,8 +1748,9 @@ isert_do_control_comp(struct work_struct *work)
- 	switch (cmd->i_state) {
- 	case ISTATE_SEND_TASKMGTRSP:
- 		iscsit_tmr_post_handler(cmd, cmd->conn);
--	case ISTATE_SEND_REJECT:   /* FALLTHRU */
--	case ISTATE_SEND_TEXTRSP:  /* FALLTHRU */
-+		/* fall through */
-+	case ISTATE_SEND_REJECT:
-+	case ISTATE_SEND_TEXTRSP:
- 		cmd->i_state = ISTATE_SENT_STATUS;
- 		isert_completion_put(&isert_cmd->tx_desc, isert_cmd,
- 				     ib_dev, false);
+ 	case PUDA_QP_CREATED:
+ 		if (!reset)
+ 			i40iw_puda_free_qp(rsrc);
 -- 
 2.14.2
 
