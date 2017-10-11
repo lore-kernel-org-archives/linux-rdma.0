@@ -1,67 +1,60 @@
-From: Nathan Hartwell <nathan.hartwell-YP+SxaqqoVo2oU8LL9ROB9BPR1lH4CV8@public.gmane.org>
-Subject: [PATCH] providers/rxe: Fix rxe_cfg parsing of ethtool / ifconfig
-Date: Wed, 11 Oct 2017 11:02:36 -0600
-Message-ID: <CALvXFTcBcp1LxD-KpEAUkZA6hNH4qa_Q5pcJLdbUcTSvEQUDCQ@mail.gmail.com>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: Re: [PATCH for-next] IB,hfi1 Add MODULE_FIRMWARE statements
+Date: Wed, 11 Oct 2017 13:13:26 -0400
+Message-ID: <3e374d9f-d63d-8601-b594-a9c2a426833e@intel.com>
+References: <20171011144134.c6bba480faee444cb9881710@suse.de>
+ <1d7e8d05-9a6b-6dbf-d528-41ba64129348@intel.com>
+ <20171011154914.GL2106@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171011154914.GL2106@mtr-leonro.local>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Thomas Bogendoerfer <tbogendoerfer@suse.de>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-rxe_cfg does not always parse the output of ethtool and ifconfig correctly.
+On 10/11/2017 11:49 AM, Leon Romanovsky wrote:
+> On Wed, Oct 11, 2017 at 11:31:18AM -0400, Dennis Dalessandro wrote:
+>> On 10/11/2017 8:41 AM, Thomas Bogendoerfer wrote:
+>>> Provide information about used firmware files via modinfo.
+>>>
+>>> Signed-off-by: Thomas Bogendoerfer <tbogendoerfer@suse.de>
+>>> ---
+>>>    drivers/infiniband/hw/hfi1/firmware.c | 5 +++++
+>>>    1 file changed, 5 insertions(+)
+>>>
+>>> diff --git a/drivers/infiniband/hw/hfi1/firmware.c b/drivers/infiniband/hw/hfi1/firmware.c
+>>> index dee3c674f33d..f56ace76b42c 100644
+>>> --- a/drivers/infiniband/hw/hfi1/firmware.c
+>>> +++ b/drivers/infiniband/hw/hfi1/firmware.c
+>>> @@ -70,6 +70,11 @@
+>>>    #define ALT_FW_PCIE_NAME "hfi1_pcie_d.fw"
+>>>    #define HOST_INTERFACE_VERSION 1
+>>> +MODULE_FIRMWARE(DEFAULT_FW_8051_NAME_ASIC);
+>>> +MODULE_FIRMWARE(DEFAULT_FW_FABRIC_NAME);
+>>> +MODULE_FIRMWARE(DEFAULT_FW_SBUS_NAME);
+>>> +MODULE_FIRMWARE(DEFAULT_FW_PCIE_NAME);
+>>> +
+>>>    static uint fw_8051_load = 1;
+>>>    static uint fw_fabric_serdes_load = 1;
+>>>    static uint fw_pcie_serdes_load = 1;
+>>>
+>>
+>> I don't find this terribly useful, but if it's useful for you I'm sure it is
+>> for others as well, so I have no problem with it.
+> 
+> Dennis,
+> Aren't those defines being constant?
+> 
+>>
+>> Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 
-Fix two items:
-1)  Parsing of ethtool's link speed field to always output a link speed.
-2)  Parsing of ifconfig's IP address / MTU fields with newer builds of
-ifconfig that have a slightly different output format than in the
-past.
+Which is why I didn't find it very useful. However Thomas makes a good 
+point [1].
 
-Signed-off-by: Nathan Hartwell <nathan.hartwell-YP+SxaqqoVo2oU8LL9ROB9BPR1lH4CV8@public.gmane.org>
+https://marc.info/?l=linux-rdma&m=150773727811239&w=2
 
---------------------------------------------------------------------------------
-
-diff --git a/providers/rxe/rxe_cfg.in b/providers/rxe/rxe_cfg.in
-index 0a8583d..8429b28 100755
---- a/providers/rxe/rxe_cfg.in
-+++ b/providers/rxe/rxe_cfg.in
-@@ -180,9 +180,9 @@ sub get_dev_info {
-                    if ($fields[0] =~ "Link detected") {
-                        $link_state{$eth} = $fields[1];
-                    }
--           }
--           elsif ($line =~ "10000baseT") {
--               $link_speed{$eth} = "10GigE";
-+                   elsif ($fields[0] =~ "Speed") {
-+                       $link_speed{$eth} = $fields[1];
-+                   }
-            }
-        }
-
-@@ -197,6 +197,11 @@ sub get_dev_info {
-                @fields = split(/\s+/, $line);
-                $ipv4_addr{$eth} = $fields[0];
-            }
-+           elsif ($line =~ /inet /) {
-+           $line =~ s/^\s+inet //g;
-+               @fields = split(/\s+/, $line);
-+               $ipv4_addr{$eth} = $fields[0];
-+           }
-
-            # get ethernet mtu
-            if ($line =~ /MTU:/) {
-@@ -204,6 +209,11 @@ sub get_dev_info {
-                @fields = split(/\s+/, $line);
-                $eth_mtu{$eth} = $fields[0];
-            }
-+           elsif ($line =~ /mtu /) {
-+               $line =~ s/^.*mtu //g;
-+               @fields = split(/\s+/, $line);
-+               $eth_mtu{$eth} = $fields[0];
-+           }
-        }
-     }
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Denny
