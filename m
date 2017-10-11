@@ -1,49 +1,50 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] checkpatch: Introduce check for format of Fixes line in commit log
-Date: Tue, 10 Oct 2017 17:44:27 -0500
-Message-ID: <1507675467-24316-1-git-send-email-parav@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, apw-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Brad Erickson <bradley-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH v8 04/14] xfs: prepare xfs_break_layouts() for reuse with
+ MAP_DIRECT
+Date: Wed, 11 Oct 2017 11:46:31 +1100
+Message-ID: <20171011004631.GX3666@dastard>
+References: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150764695771.16882.9179160793491582514.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <150764695771.16882.9179160793491582514.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, linux-api@vger.kernel.org, iommu@lists.linux-foundation.org, linux-xfs@vger.kernel.org, linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, linux-fsdevel@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch introduces a format check for 'Fixes' line in commit log
-for 12 characters commit id and format for Fixes as ("...").
+On Tue, Oct 10, 2017 at 07:49:17AM -0700, Dan Williams wrote:
+> Move xfs_break_layouts() to its own compilation unit so that it can be
+> used for both pnfs layouts and MAP_DIRECT mappings.
+.....
+> diff --git a/fs/xfs/xfs_pnfs.h b/fs/xfs/xfs_pnfs.h
+> index b587cb99b2b7..4135b2482697 100644
+> --- a/fs/xfs/xfs_pnfs.h
+> +++ b/fs/xfs/xfs_pnfs.h
+> @@ -1,19 +1,13 @@
+>  #ifndef _XFS_PNFS_H
+>  #define _XFS_PNFS_H 1
+>  
+> +#include "xfs_layout.h"
+> +
 
-Its created against linux-rdma Doug's tree [1].
+I missed this the first time through - we try not to put includes
+in header files, and instead make sure each C file has all the
+includes they require. Can you move this to all the C files that
+need layouts and remove the include of the xfs_pnfs.h include from
+them?
 
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+Cheers,
 
-Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Brad Erickson <bradley-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- scripts/checkpatch.pl | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-index dd2c262..7d933e4 100755
---- a/scripts/checkpatch.pl
-+++ b/scripts/checkpatch.pl
-@@ -2548,6 +2548,14 @@ sub process {
- 			      "Remove Gerrit Change-Id's before submitting upstream.\n" . $herecurr);
- 		}
- 
-+# Check for incorrect format for Fixes line in commit log
-+		if ($in_commit_log && $line =~ /^\s*Fixes:/i) {
-+			if ($line !~ /^\s*Fixes: [a-z0-9]{12} \(\".*?\"\)$/i) {
-+				ERROR("FIXES_FORMAT",
-+				      "Follow format of Fixes: <12 characters commit id> (\"...\")\n" . $herecurr);
-+			}
-+		}
-+
- # Check if the commit log is in a possible stack dump
- 		if ($in_commit_log && !$commit_log_possible_stack_dump &&
- 		    ($line =~ /^\s*(?:WARNING:|BUG:)/ ||
+Dave.
 -- 
-1.8.3.1
+Dave Chinner
+david@fromorbit.com
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
