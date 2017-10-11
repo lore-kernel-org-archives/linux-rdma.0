@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v2 8/8] IB/srp: Make CM timeout dependent on subnet timeout
-Date: Wed, 11 Oct 2017 10:27:29 -0700
-Message-ID: <20171011172729.16984-9-bart.vanassche@wdc.com>
+Subject: [PATCH v2 3/8] IB/srpt: Cache global L_Key
+Date: Wed, 11 Oct 2017 10:27:24 -0700
+Message-ID: <20171011172729.16984-4-bart.vanassche@wdc.com>
 References: <20171011172729.16984-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171011172729.16984-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,66 +10,66 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-For small networks it is safe to reduce the subnet timeout from
-its default value (18 for opensm) to 16. Make the SRP CM timeout
-dependent on the subnet timeout such that decreasing the subnet
-timeout also causes SRP failover and failback to occur faster.
+This patch is a micro-optimization for the hot path.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 6 ++++--
+ drivers/infiniband/ulp/srpt/ib_srpt.h | 3 ++-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 463c3ed440eb..972d4b3c5223 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -711,6 +711,23 @@ static int srp_lookup_path(struct srp_rdma_ch *ch)
- 	return ret;
- }
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 76370e39857d..6cf95ad870cc 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -766,7 +766,7 @@ static int srpt_post_recv(struct srpt_device *sdev,
+ 	BUG_ON(!sdev);
+ 	list.addr = ioctx->ioctx.dma;
+ 	list.length = srp_max_req_size;
+-	list.lkey = sdev->pd->local_dma_lkey;
++	list.lkey = sdev->lkey;
  
-+static u8 srp_get_subnet_timeout(struct srp_host *host)
-+{
-+	struct ib_port_attr attr;
-+	int ret;
-+	u8 subnet_timeout = 18;
-+
-+	ret = ib_query_port(host->srp_dev->dev, host->port, &attr);
-+	if (ret == 0)
-+		subnet_timeout = attr.subnet_timeout;
-+
-+	if (unlikely(subnet_timeout < 15))
-+		pr_warn("%s: subnet timeout %d may cause SRP login to fail.\n",
-+			dev_name(&host->srp_dev->dev->dev), subnet_timeout);
-+
-+	return subnet_timeout;
-+}
-+
- static int srp_send_req(struct srp_rdma_ch *ch, bool multich)
- {
- 	struct srp_target_port *target = ch->target;
-@@ -719,6 +736,9 @@ static int srp_send_req(struct srp_rdma_ch *ch, bool multich)
- 		struct srp_login_req   priv;
- 	} *req = NULL;
- 	int status;
-+	u8 subnet_timeout;
-+
-+	subnet_timeout = srp_get_subnet_timeout(target->srp_host);
+ 	ioctx->ioctx.cqe.done = srpt_recv_done;
+ 	wr.wr_cqe = &ioctx->ioctx.cqe;
+@@ -2343,7 +2343,7 @@ static void srpt_queue_response(struct se_cmd *cmd)
  
- 	req = kzalloc(sizeof *req, GFP_KERNEL);
- 	if (!req)
-@@ -741,8 +761,8 @@ static int srp_send_req(struct srp_rdma_ch *ch, bool multich)
- 	 * module parameters if anyone cared about setting them.
- 	 */
- 	req->param.responder_resources	      = 4;
--	req->param.remote_cm_response_timeout = 20;
--	req->param.local_cm_response_timeout  = 20;
-+	req->param.remote_cm_response_timeout = subnet_timeout + 2;
-+	req->param.local_cm_response_timeout  = subnet_timeout + 2;
- 	req->param.retry_count                = target->tl_retry_count;
- 	req->param.rnr_retry_count 	      = 7;
- 	req->param.max_cm_retries 	      = 15;
+ 	sge.addr = ioctx->ioctx.dma;
+ 	sge.length = resp_len;
+-	sge.lkey = sdev->pd->local_dma_lkey;
++	sge.lkey = sdev->lkey;
+ 
+ 	ioctx->ioctx.cqe.done = srpt_send_done;
+ 	send_wr.next = NULL;
+@@ -2491,6 +2491,8 @@ static void srpt_add_one(struct ib_device *device)
+ 	if (IS_ERR(sdev->pd))
+ 		goto free_dev;
+ 
++	sdev->lkey = sdev->pd->local_dma_lkey;
++
+ 	sdev->srq_size = min(srpt_srq_size, sdev->device->attrs.max_srq_wr);
+ 
+ 	srq_attr.event_handler = srpt_srq_event;
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index 1b817e51b84b..976e924d7400 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -343,7 +343,7 @@ struct srpt_port {
+  * struct srpt_device - Information associated by SRPT with a single HCA.
+  * @device:        Backpointer to the struct ib_device managed by the IB core.
+  * @pd:            IB protection domain.
+- * @mr:            L_Key (local key) with write access to all local memory.
++ * @lkey:          L_Key (local key) with write access to all local memory.
+  * @srq:           Per-HCA SRQ (shared receive queue).
+  * @cm_id:         Connection identifier.
+  * @srq_size:      SRQ size.
+@@ -358,6 +358,7 @@ struct srpt_port {
+ struct srpt_device {
+ 	struct ib_device	*device;
+ 	struct ib_pd		*pd;
++	u32			lkey;
+ 	struct ib_srq		*srq;
+ 	struct ib_cm_id		*cm_id;
+ 	int			srq_size;
 -- 
 2.14.2
 
