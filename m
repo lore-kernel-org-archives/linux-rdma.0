@@ -1,83 +1,160 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v8 06/14] xfs: wire up MAP_DIRECT
-Date: Tue, 10 Oct 2017 19:12:50 -0700
-Message-ID: <CAPcyv4jXRUFA1b7+7DMhZn2BZnxq_zfQ0vH-hQ8pKzKyaN4qag@mail.gmail.com>
-References: <150764693502.16882.15848797003793552156.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150764697001.16882.13486539828150761233.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171011010922.GY3666@dastard>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 05/47] RDMA/uverbs: Make the code in ib_uverbs_cmd_verbs()
+ less confusing
+Date: Wed, 11 Oct 2017 08:19:28 +0300
+Message-ID: <3a6adf24-3e60-7fd1-a119-37586793d374@mellanox.com>
+References: <20171006213333.6721-1-bart.vanassche@wdc.com>
+ <20171006213333.6721-6-bart.vanassche@wdc.com>
+ <64b5f415-7d56-3f17-0c8c-5d80ba89582c@mellanox.com>
+ <1507570048.2674.17.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20171011010922.GY3666@dastard>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
-Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux API <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, linux-fsdevel <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jeff Layton <jlayton-vpEMnDpepFuMZCB2o+C8xQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1507570048.2674.17.camel-Sjgp3cTcYWE@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 10, 2017 at 6:09 PM, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org> wrote:
-> On Tue, Oct 10, 2017 at 07:49:30AM -0700, Dan Williams wrote:
->> @@ -1009,6 +1019,22 @@ xfs_file_llseek(
->>  }
+On 09/10/2017 20:27, Bart Van Assche wrote:
+> On Mon, 2017-10-09 at 10:40 +0300, Matan Barak (External) wrote:
+>> On 07/10/2017 00:32, Bart Van Assche wrote:
+>>> This patch reduces the number of #ifdefs and also avoids that
+>>> smatch reports the following:
+>>>
+>>> drivers/infiniband/core/uverbs_ioctl.c:276: ib_uverbs_cmd_verbs() warn: if statement not indented
+>>> drivers/infiniband/core/uverbs_ioctl.c:280: ib_uverbs_cmd_verbs() warn: possible memory leak of 'ctx'
+>>> drivers/infiniband/core/uverbs_ioctl.c:315: ib_uverbs_cmd_verbs() warn: if statement not indented
+>>>
+>>> References: commit fac9658cabb9 ("IB/core: Add new ioctl interface")
+>>> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+>>> Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> ---
+>>>    drivers/infiniband/core/uverbs_ioctl.c | 20 +++++++++-----------
+>>>    1 file changed, 9 insertions(+), 11 deletions(-)
+>>>
+>>> diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
+>>> index 5286ad57d903..53f780ea49fe 100644
+>>> --- a/drivers/infiniband/core/uverbs_ioctl.c
+>>> +++ b/drivers/infiniband/core/uverbs_ioctl.c
+>>> @@ -234,7 +234,7 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+>>>        const struct uverbs_method_spec *method_spec;
+>>>        long err = 0;
+>>>        unsigned int i;
+>>> -    struct {
+>>> +    struct attr_and_bundle {
+>>>            struct ib_uverbs_attr        *uattrs;
+>>>            struct uverbs_attr_bundle    *uverbs_attr_bundle;
+>>>        } *ctx = NULL;
+>>> @@ -242,7 +242,10 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+>>>        unsigned long *curr_bitmap;
+>>>        size_t ctx_size;
+>>>    #ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
+>>> -    uintptr_t data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
+>>> +    uintptr_t __data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
+>>> +    struct attr_and_bundle *const data = (void *)__data;
+>>> +#else
+>>> +    struct attr_and_bundle *const data = NULL;
+>>>    #endif
+>>>
+>>>        if (hdr->reserved)
+>>> @@ -269,13 +272,10 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+>>>                (method_spec->num_child_attrs / BITS_PER_LONG +
+>>>                 method_spec->num_buckets);
+>>>
+>>> -#ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
+>>>        if (ctx_size <= UVERBS_OPTIMIZE_USING_STACK_SZ)
 >>
->>  /*
->> + * MAP_DIRECT faults can only be serviced while the FL_LAYOUT lease is
->> + * valid. See map_direct_invalidate.
->> + */
->> +static int
->> +xfs_can_fault_direct(
->> +     struct vm_area_struct   *vma)
->> +{
->> +     if (!xfs_vma_is_direct(vma))
->> +             return 0;
->> +
->> +     if (!test_map_direct_valid(vma->vm_private_data))
->> +             return VM_FAULT_SIGBUS;
->> +     return 0;
->> +}
->
-> Better, but I'm going to be an annoying pedant here: a "can
-> <something>" check should return a boolean true/false.
->
-> Also, it's a bit jarring to see that a non-direct VMA that /can't/
-> do direct faults returns the same thing as a direct-vma that /can/
-> do direct faults, so a couple of extra comments for people who will
-> quickly forget how this code works (i.e. me) will be helpful. Say
-> something like this:
->
-> /*
->  * MAP_DIRECT faults can only be serviced while the FL_LAYOUT lease is
->  * valid. See map_direct_invalidate.
->  */
-> static bool
-> xfs_vma_has_direct_lease(
->         struct vm_area_struct   *vma)
-> {
->         /* Non MAP_DIRECT vmas do not require layout leases */
->         if (!xfs_vma_is_direct(vma))
->                 return true;
->
->         if (!test_map_direct_valid(vma->vm_private_data))
->                 return false;
->
->         /* We have a valid lease */
->         return true;
-> }
->
-> .....
->         if (!xfs_vma_has_direct_lease(vma)) {
->                 ret = VM_FAULT_SIGBUS;
->                 goto out_unlock;
->         }
-> ....
+>> If UVERBS_OPTIMIZE_USING_STACK_SZ isn't defined, you'll get an error here.
+>> Maybe we could define it as 0 in the else part of the local variables deceleration.
+> 
+> Hello Matan,
+> 
+> That's an interesting suggestion but that wouldn't work well with the "#ifdef
+> UVERBS_OPTIMIZE_USING_STACK_SZ" code in the declaration section. How about
+> changing "if (ctx_size <= UVERBS_OPTIMIZE_USING_STACK_SZ) ctx = data;" into
+> "ctx = data;" such that it becomes again safe not to define UVERBS_OPTIMIZE_USING_STACK_SZ?
+> With that change this patch looks as follows:
+> 
+> 
+> diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
+> index 5286ad57d903..81c05ba2a58b 100644
+> --- a/drivers/infiniband/core/uverbs_ioctl.c
+> +++ b/drivers/infiniband/core/uverbs_ioctl.c
+> @@ -234,7 +234,7 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+>   	const struct uverbs_method_spec *method_spec;
+>   	long err = 0;
+>   	unsigned int i;
+> -	struct {
+> +	struct attr_and_bundle {
+>   		struct ib_uverbs_attr		*uattrs;
+>   		struct uverbs_attr_bundle	*uverbs_attr_bundle;
+>   	} *ctx = NULL;
+> @@ -242,7 +242,10 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+>   	unsigned long *curr_bitmap;
+>   	size_t ctx_size;
+>   #ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
+> -	uintptr_t data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
+> +	uintptr_t __data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
+> +	struct attr_and_bundle *const data = (void *)__data;
+> +#else
+> +	struct attr_and_bundle *const data = NULL;
+
+I meant to define that macro here:
+#define UVERBS_OPTIMIZE_USING_STACK_SZ 	0
+
+>   #endif
+>   
+>   	if (hdr->reserved)
+> @@ -269,13 +272,9 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+>   			(method_spec->num_child_attrs / BITS_PER_LONG +
+>   			 method_spec->num_buckets);
+>   
+> -#ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
+> -	if (ctx_size <= UVERBS_OPTIMIZE_USING_STACK_SZ)
+> -		ctx = (void *)data;
+> -
+> +	ctx = data;
+>   	if (!ctx)
+> -#endif
+> -	ctx = kmalloc(ctx_size, GFP_KERNEL);
+> +		ctx = kmalloc(ctx_size, GFP_KERNEL);
+
+But what about cases where UVERBS_OPTIMIZE_USING_STACK_SZ is defined but 
+is insufficient in size?
+
+In the suggestion I posted above, I meant:
+/* Here UVERBS_OPTIMIZE_USING_STACK_SZ is always defined */
+if (ctx_size <= UVERBS_OPTIMIZE_USING_STACK_SZ)
+	ctx = data;
+if (!ctx)
+	ctx = kmalloc(ctx_size, GFP_KERNEL);
+
+The last hunk (free part) stays the same.	
+
+>   	if (!ctx)
+>   		return -ENOMEM;
+>   
+> @@ -311,10 +310,8 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+>   	err = uverbs_handle_method(buf, ctx->uattrs, hdr->num_attrs, ib_dev,
+>   				   file, method_spec, ctx->uverbs_attr_bundle);
+>   out:
+> -#ifdef UVERBS_OPTIMIZE_USING_STACK_SZ
+> -	if (ctx_size > UVERBS_OPTIMIZE_USING_STACK_SZ)
+> -#endif
+> -	kfree(ctx);
+> +	if (ctx != data)
+> +		kfree(ctx);
+>   	return err;
+>   }
+>   
+> 
 
 
-Looks good to me.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
