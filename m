@@ -1,68 +1,36 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v2 42/45] RDMA/rxe: Suppress gcc 7 fall-through complaints
-Date: Wed, 11 Oct 2017 10:49:24 -0700
-Message-ID: <20171011174927.25113-43-bart.vanassche@wdc.com>
+Subject: [PATCH v2 34/45] RDMA/qedr: Use NULL instead of 0 to represent a pointer
+Date: Wed, 11 Oct 2017 10:49:16 -0700
+Message-ID: <20171011174927.25113-35-bart.vanassche@wdc.com>
 References: <20171011174927.25113-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171011174927.25113-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid that gcc 7 reports the following warning when building with W=1:
-
-warning: this statement may fall through [-Wimplicit-fallthrough=]
-
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_comp.c  | 4 ++--
- drivers/infiniband/sw/rxe/rxe_task.c  | 2 +-
- drivers/infiniband/sw/rxe/rxe_verbs.c | 1 +
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/qedr/qedr_roce_cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
-index 9eb12c2e3c74..ff64875e3d15 100644
---- a/drivers/infiniband/sw/rxe/rxe_comp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-@@ -270,8 +270,8 @@ static inline enum comp_state check_ack(struct rxe_qp *qp,
- 		if ((syn & AETH_TYPE_MASK) != AETH_ACK)
- 			return COMPST_ERROR;
- 
--		/* Fall through (IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE
--		 * doesn't have an AETH)
-+		/* fall through */
-+		/* (IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE doesn't have an AETH)
- 		 */
- 	case IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE:
- 		if (wqe->wr.opcode != IB_WR_RDMA_READ &&
-diff --git a/drivers/infiniband/sw/rxe/rxe_task.c b/drivers/infiniband/sw/rxe/rxe_task.c
-index ea3810b29273..08f05ac5f5d5 100644
---- a/drivers/infiniband/sw/rxe/rxe_task.c
-+++ b/drivers/infiniband/sw/rxe/rxe_task.c
-@@ -71,7 +71,7 @@ void rxe_do_task(unsigned long data)
- 
- 	case TASK_STATE_BUSY:
- 		task->state = TASK_STATE_ARMED;
--		/* fall through to */
-+		/* fall through */
- 	case TASK_STATE_ARMED:
- 		spin_unlock_irqrestore(&task->state_lock, flags);
- 		return;
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 0b362f49a10a..ff77f4f66970 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -644,6 +644,7 @@ static void init_send_wr(struct rxe_qp *qp, struct rxe_send_wr *wr,
- 		switch (wr->opcode) {
- 		case IB_WR_RDMA_WRITE_WITH_IMM:
- 			wr->ex.imm_data = ibwr->ex.imm_data;
-+			/* fall through */
- 		case IB_WR_RDMA_READ:
- 		case IB_WR_RDMA_WRITE:
- 			wr->wr.rdma.remote_addr = rdma_wr(ibwr)->remote_addr;
+diff --git a/drivers/infiniband/hw/qedr/qedr_roce_cm.c b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+index c3c249ba62b8..2a0346678ddd 100644
+--- a/drivers/infiniband/hw/qedr/qedr_roce_cm.c
++++ b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+@@ -660,7 +660,7 @@ int qedr_gsi_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 						  dev->gsi_ll2_handle,
+ 						  wr->sg_list[0].addr,
+ 						  wr->sg_list[0].length,
+-						  0 /* cookie */,
++						  NULL /* cookie */,
+ 						  1 /* notify_fw */);
+ 		if (rc) {
+ 			DP_ERR(dev,
 -- 
 2.14.2
 
