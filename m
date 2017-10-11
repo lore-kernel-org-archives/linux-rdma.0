@@ -1,13 +1,13 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v2 39/45] IB/qib: Suppress gcc 7 fall-through complaints
-Date: Wed, 11 Oct 2017 10:49:21 -0700
-Message-ID: <20171011174927.25113-40-bart.vanassche@wdc.com>
+Subject: [PATCH v2 42/45] RDMA/rxe: Suppress gcc 7 fall-through complaints
+Date: Wed, 11 Oct 2017 10:49:24 -0700
+Message-ID: <20171011174927.25113-43-bart.vanassche@wdc.com>
 References: <20171011174927.25113-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171011174927.25113-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Avoid that gcc 7 reports the following warning when building with W=1:
@@ -15,51 +15,54 @@ Avoid that gcc 7 reports the following warning when building with W=1:
 warning: this statement may fall through [-Wimplicit-fallthrough=]
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Acked-by: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_mad.c  | 1 +
- drivers/infiniband/hw/qib/qib_rc.c   | 2 +-
- drivers/infiniband/hw/qib/qib_sdma.c | 2 +-
- 3 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_comp.c  | 4 ++--
+ drivers/infiniband/sw/rxe/rxe_task.c  | 2 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 1 +
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
-index 1237952c144e..04367e0f6f9b 100644
---- a/drivers/infiniband/hw/qib/qib_mad.c
-+++ b/drivers/infiniband/hw/qib/qib_mad.c
-@@ -434,6 +434,7 @@ static int check_mkey(struct qib_ibport *ibp, struct ib_smp *smp, int mad_flags)
- 			/* Bad mkey not a violation below level 2 */
- 			if (ibp->rvp.mkeyprot < 2)
- 				break;
+diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
+index 9eb12c2e3c74..ff64875e3d15 100644
+--- a/drivers/infiniband/sw/rxe/rxe_comp.c
++++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+@@ -270,8 +270,8 @@ static inline enum comp_state check_ack(struct rxe_qp *qp,
+ 		if ((syn & AETH_TYPE_MASK) != AETH_ACK)
+ 			return COMPST_ERROR;
+ 
+-		/* Fall through (IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE
+-		 * doesn't have an AETH)
++		/* fall through */
++		/* (IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE doesn't have an AETH)
+ 		 */
+ 	case IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE:
+ 		if (wqe->wr.opcode != IB_WR_RDMA_READ &&
+diff --git a/drivers/infiniband/sw/rxe/rxe_task.c b/drivers/infiniband/sw/rxe/rxe_task.c
+index ea3810b29273..08f05ac5f5d5 100644
+--- a/drivers/infiniband/sw/rxe/rxe_task.c
++++ b/drivers/infiniband/sw/rxe/rxe_task.c
+@@ -71,7 +71,7 @@ void rxe_do_task(unsigned long data)
+ 
+ 	case TASK_STATE_BUSY:
+ 		task->state = TASK_STATE_ARMED;
+-		/* fall through to */
++		/* fall through */
+ 	case TASK_STATE_ARMED:
+ 		spin_unlock_irqrestore(&task->state_lock, flags);
+ 		return;
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 0b362f49a10a..ff77f4f66970 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -644,6 +644,7 @@ static void init_send_wr(struct rxe_qp *qp, struct rxe_send_wr *wr,
+ 		switch (wr->opcode) {
+ 		case IB_WR_RDMA_WRITE_WITH_IMM:
+ 			wr->ex.imm_data = ibwr->ex.imm_data;
 +			/* fall through */
- 		case IB_MGMT_METHOD_SET:
- 		case IB_MGMT_METHOD_TRAP_REPRESS:
- 			if (ibp->rvp.mkey_violations != 0xFFFF)
-diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
-index e9a91736b12d..8f5754fb8579 100644
---- a/drivers/infiniband/hw/qib/qib_rc.c
-+++ b/drivers/infiniband/hw/qib/qib_rc.c
-@@ -1869,7 +1869,7 @@ void qib_rc_rcv(struct qib_ctxtdata *rcd, struct ib_header *hdr,
- 		qp->r_rcv_len = 0;
- 		if (opcode == OP(SEND_ONLY))
- 			goto no_immediate_data;
--		/* FALLTHROUGH for SEND_ONLY_WITH_IMMEDIATE */
-+		/* fall through -- for SEND_ONLY_WITH_IMMEDIATE */
- 	case OP(SEND_LAST_WITH_IMMEDIATE):
- send_last_imm:
- 		wc.ex.imm_data = ohdr->u.imm_data;
-diff --git a/drivers/infiniband/hw/qib/qib_sdma.c b/drivers/infiniband/hw/qib/qib_sdma.c
-index 891873b38a1e..c3690bd51582 100644
---- a/drivers/infiniband/hw/qib/qib_sdma.c
-+++ b/drivers/infiniband/hw/qib/qib_sdma.c
-@@ -808,7 +808,7 @@ void __qib_sdma_process_event(struct qib_pportdata *ppd,
- 			 * bringing the link up with traffic active on
- 			 * 7220, e.g. */
- 			ss->go_s99_running = 1;
--			/* fall through and start dma engine */
-+			/* fall through -- and start dma engine */
- 		case qib_sdma_event_e10_go_hw_start:
- 			/* This reference means the state machine is started */
- 			sdma_get(&ppd->sdma_state);
+ 		case IB_WR_RDMA_READ:
+ 		case IB_WR_RDMA_WRITE:
+ 			wr->wr.rdma.remote_addr = rdma_wr(ibwr)->remote_addr;
 -- 
 2.14.2
 
