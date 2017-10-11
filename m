@@ -1,68 +1,30 @@
-From: Parav Pandit <parav@mellanox.com>
-Subject: RE: [PATCH v2 net 2/2] net/smc: dev_put for netdev after usage of
- ib_query_gid()
-Date: Wed, 11 Oct 2017 14:43:05 +0000
-Message-ID: <VI1PR0502MB300838CF1E188B2D7831D28CD14A0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20171011114723.30733-1-ubraun@linux.vnet.ibm.com>
- <20171011114723.30733-3-ubraun@linux.vnet.ibm.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH 00/47] Address issues detected by static analysis tools
+Date: Wed, 11 Oct 2017 14:55:57 +0000
+Message-ID: <1507733756.2477.3.camel@wdc.com>
+References: <20171006213333.6721-1-bart.vanassche@wdc.com>
+         <1507567892.46071.44.camel@redhat.com>
+         <5d2b3adc-1a19-8acf-9915-d97296be9079@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20171011114723.30733-3-ubraun@linux.vnet.ibm.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5d2b3adc-1a19-8acf-9915-d97296be9079-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Ursula Braun <ubraun@linux.vnet.ibm.com>, "davem@davemloft.net" <davem@davemloft.net>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "jwi@linux.vnet.ibm.com" <jwi@linux.vnet.ibm.com>, "schwidefsky@de.ibm.com" <schwidefsky@de.ibm.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "raspl@linux.vnet.ibm.com" <raspl@linux.vnet.ibm.com>
+Content-ID: <2E5D377F737920479C5193063E3D9A93-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Ursula Braun [mailto:ubraun@linux.vnet.ibm.com]
-> Sent: Wednesday, October 11, 2017 6:47 AM
-> To: davem@davemloft.net
-> Cc: netdev@vger.kernel.org; linux-rdma@vger.kernel.org; linux-
-> s390@vger.kernel.org; jwi@linux.vnet.ibm.com; schwidefsky@de.ibm.com;
-> heiko.carstens@de.ibm.com; raspl@linux.vnet.ibm.com;
-> ubraun@linux.vnet.ibm.com; Parav Pandit <parav@mellanox.com>
-> Subject: [PATCH v2 net 2/2] net/smc: dev_put for netdev after usage of
-> ib_query_gid()
->=20
-> For RoCEs ib_query_gid() takes a reference count on the net_device.
-> This reference count must be decreased by the caller.
->=20
-> Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
-> Reported-by: Parav Pandit <parav@mellanox.com>
-> Reviewed-by: Parav Pandit <parav@mellanox.com>
-> Fixes: 0cfdd8f92cac ("smc: connection and link group creation")
-> ---
->  net/smc/smc_core.c | 12 ++++++++----
->  1 file changed, 8 insertions(+), 4 deletions(-)
->=20
-> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c index
-> 20b66e79c5d6..5f6a20084157 100644
-> --- a/net/smc/smc_core.c
-> +++ b/net/smc/smc_core.c
-> @@ -380,10 +380,14 @@ static int smc_link_determine_gid(struct
-> smc_link_group *lgr)
->  		if (ib_query_gid(lnk->smcibdev->ibdev, lnk->ibport, i, &gid,
->  				 &gattr))
->  			continue;
-> -		if (gattr.ndev &&
-> -		    (vlan_dev_vlan_id(gattr.ndev) =3D=3D lgr->vlan_id)) {
-> -			lnk->gid =3D gid;
-> -			return 0;
-> +		if (gattr.ndev) {
-> +			if (is_vlan_dev(gattr.ndev) &&
-> +			    vlan_dev_vlan_id(gattr.ndev) =3D=3D lgr->vlan_id) {
-> +				lnk->gid =3D gid;
-> +				dev_put(gattr.ndev);
-> +				return 0;
-> +			}
-> +			dev_put(gattr.ndev);
->  		}
->  	}
->  	return -ENODEV;
-> --
-> 2.13.5
-
-Looks fine now.
+T24gV2VkLCAyMDE3LTEwLTExIGF0IDEwOjAzIC0wNDAwLCBEZW5uaXMgRGFsZXNzYW5kcm8gd3Jv
+dGU6DQo+IFRoZSBvbmx5IHByb2JsZW0gaXMgdGhlIG9uZSBwYXRjaCBpc24ndCBuZWVkZWQgYmVj
+YXVzZSBJIGp1c3Qgc3VibWl0dGVkIA0KPiBhIHBhdGNoIGxhc3Qgd2VlayBmb3IgdGhlIHNhbWUg
+dGhpbmcgYW5kIERvdWcgaGFzIGFscmVhZHkgcHVsbGVkIGl0IGludG8gDQo+IGhpcyBmb3ItbmV4
+dC4NCg0KSGVsbG8gRGVubmlzLA0KDQpUaGF0J3MgZmluZS4gSSB3aWxsIHJlYmFzZSBhbmQgcmV0
+ZXN0IHRoaXMgcGF0Y2ggc2VyaWVzIGFueXdheSBiZWZvcmUgSQ0KcmVwb3N0IHRoaXMgc2VyaWVz
+Lg0KDQpCYXJ0Lg==
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
