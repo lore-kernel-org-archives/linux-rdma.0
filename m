@@ -1,67 +1,81 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v2 37/45] RDMA/qedr: Remove set-but-not-used variables
-Date: Wed, 11 Oct 2017 10:49:19 -0700
-Message-ID: <20171011174927.25113-38-bart.vanassche@wdc.com>
+Subject: [PATCH v2 11/45] RDMA/cxgb4: Fix indentation
+Date: Wed, 11 Oct 2017 10:48:53 -0700
+Message-ID: <20171011174927.25113-12-bart.vanassche@wdc.com>
 References: <20171011174927.25113-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171011174927.25113-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/qedr/verbs.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+This patch avoids that smatch reports the following:
 
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 5acb9eab64ed..b26aa88dab48 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -1447,13 +1447,11 @@ static int qedr_create_user_qp(struct qedr_dev *dev,
- 	struct qed_rdma_create_qp_out_params out_params;
- 	struct qedr_pd *pd = get_qedr_pd(ibpd);
- 	struct ib_ucontext *ib_ctx = NULL;
--	struct qedr_ucontext *ctx = NULL;
- 	struct qedr_create_qp_ureq ureq;
- 	int alloc_and_init = rdma_protocol_roce(&dev->ibdev, 1);
- 	int rc = -EINVAL;
+drivers/infiniband/hw/cxgb4/device.c:1105: copy_gl_to_skb_pkt() warn: inconsistent indenting
+drivers/infiniband/hw/cxgb4/cm.c:835: send_connect() warn: inconsistent indenting
+drivers/infiniband/hw/cxgb4/cm.c:841: send_connect() warn: inconsistent indenting
+drivers/infiniband/hw/cxgb4/cm.c:888: send_connect() warn: inconsistent indenting
+drivers/infiniband/hw/cxgb4/cm.c:894: send_connect() warn: inconsistent indenting
+
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/cm.c     | 8 ++++----
+ drivers/infiniband/hw/cxgb4/device.c | 4 ++--
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index e395afcd7d33..2331e7d57704 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -832,13 +832,13 @@ static int send_connect(struct c4iw_ep *ep)
+ 				t5req->params =
+ 					  cpu_to_be64(FILTER_TUPLE_V(params));
+ 				t5req->rsvd = cpu_to_be32(isn);
+-			pr_debug("snd_isn %u\n", t5req->rsvd);
++				pr_debug("snd_isn %u\n", t5req->rsvd);
+ 				t5req->opt2 = cpu_to_be32(opt2);
+ 			} else {
+ 				t6req->params =
+ 					  cpu_to_be64(FILTER_TUPLE_V(params));
+ 				t6req->rsvd = cpu_to_be32(isn);
+-			pr_debug("snd_isn %u\n", t6req->rsvd);
++				pr_debug("snd_isn %u\n", t6req->rsvd);
+ 				t6req->opt2 = cpu_to_be32(opt2);
+ 			}
+ 		}
+@@ -885,13 +885,13 @@ static int send_connect(struct c4iw_ep *ep)
+ 				t5req6->params =
+ 					    cpu_to_be64(FILTER_TUPLE_V(params));
+ 				t5req6->rsvd = cpu_to_be32(isn);
+-			pr_debug("snd_isn %u\n", t5req6->rsvd);
++				pr_debug("snd_isn %u\n", t5req6->rsvd);
+ 				t5req6->opt2 = cpu_to_be32(opt2);
+ 			} else {
+ 				t6req6->params =
+ 					    cpu_to_be64(FILTER_TUPLE_V(params));
+ 				t6req6->rsvd = cpu_to_be32(isn);
+-			pr_debug("snd_isn %u\n", t6req6->rsvd);
++				pr_debug("snd_isn %u\n", t6req6->rsvd);
+ 				t6req6->opt2 = cpu_to_be32(opt2);
+ 			}
  
- 	ib_ctx = ibpd->uobject->context;
--	ctx = get_qedr_ucontext(ib_ctx);
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index fa16a4a8c9a4..33bfddf3b064 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -1102,8 +1102,8 @@ static inline struct sk_buff *copy_gl_to_skb_pkt(const struct pkt_gl *gl,
+ 	if (unlikely(!skb))
+ 		return NULL;
  
- 	memset(&ureq, 0, sizeof(ureq));
- 	rc = ib_copy_from_udata(&ureq, udata, sizeof(ureq));
-@@ -2602,7 +2600,6 @@ static struct qedr_mr *__qedr_alloc_mr(struct ib_pd *ibpd,
- struct ib_mr *qedr_alloc_mr(struct ib_pd *ibpd,
- 			    enum ib_mr_type mr_type, u32 max_num_sg)
- {
--	struct qedr_dev *dev;
- 	struct qedr_mr *mr;
+-	 __skb_put(skb, gl->tot_len + sizeof(struct cpl_pass_accept_req) +
+-		   sizeof(struct rss_header) - pktshift);
++	__skb_put(skb, gl->tot_len + sizeof(struct cpl_pass_accept_req) +
++		  sizeof(struct rss_header) - pktshift);
  
- 	if (mr_type != IB_MR_TYPE_MEM_REG)
-@@ -2613,8 +2610,6 @@ struct ib_mr *qedr_alloc_mr(struct ib_pd *ibpd,
- 	if (IS_ERR(mr))
- 		return ERR_PTR(-EINVAL);
- 
--	dev = mr->dev;
--
- 	return &mr->ibmr;
- }
- 
-@@ -3109,7 +3104,7 @@ static int __qedr_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 		break;
- 	case IB_WR_RDMA_READ_WITH_INV:
- 		SET_FIELD2(wqe->flags, RDMA_SQ_RDMA_WQE_1ST_READ_INV_FLG, 1);
--		/* fallthrough... same is identical to RDMA READ */
-+		/* fallthrough -- same is identical to RDMA READ */
- 
- 	case IB_WR_RDMA_READ:
- 		wqe->req_type = RDMA_SQ_REQ_TYPE_RDMA_RD;
+ 	/*
+ 	 * This skb will contain:
 -- 
 2.14.2
 
