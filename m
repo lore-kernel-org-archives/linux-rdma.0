@@ -1,31 +1,81 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 05/13] SoftiWarp application interface
-Date: Thu, 12 Oct 2017 10:42:33 -0400
-Message-ID: <fb171d55-671e-0465-5b66-0e5a1deac04e@intel.com>
-References: <20171006122853.16310-1-bmt@zurich.ibm.com>
- <20171006122853.16310-6-bmt@zurich.ibm.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH for-next 2/4] RDMA/hns: Add IOMMU enable support in hip08
+Date: Thu, 12 Oct 2017 17:54:20 +0300
+Message-ID: <20171012145420.GQ2106@mtr-leonro.local>
+References: <1506763741-81429-1-git-send-email-xavier.huwei@huawei.com>
+ <1506763741-81429-3-git-send-email-xavier.huwei@huawei.com>
+ <20170930161023.GI2965@mtr-leonro.local>
+ <59DF60A3.7080803@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171006122853.16310-6-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="kZU6r8y0YpRwyDfh"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <59DF60A3.7080803@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, linux-mm@kvack.org, zhangxiping3@huawei.com, xavier.huwei@tom.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, shaobo.xu@intel.com, shaoboxu@tom.com, leizhen 00275356 <thunder.leizhen@huawei.com>, joro@8bytes.org, iommu@lists.linux-foundation.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/6/2017 8:28 AM, Bernard Metzler wrote:
-> +#ifdef __KERNEL__
-> +#include <linux/types.h>
-> +#else
-> +#include <stdint.h>
-> +#endif
-> +
 
-Huh? I don't think this is going to fly.
+--kZU6r8y0YpRwyDfh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
--Denny
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, Oct 12, 2017 at 08:31:31PM +0800, Wei Hu (Xavier) wrote:
+>
+>
+> On 2017/10/1 0:10, Leon Romanovsky wrote:
+> > On Sat, Sep 30, 2017 at 05:28:59PM +0800, Wei Hu (Xavier) wrote:
+> > > If the IOMMU is enabled, the length of sg obtained from
+> > > __iommu_map_sg_attrs is not 4kB. When the IOVA is set with the sg
+> > > dma address, the IOVA will not be page continuous. and the VA
+> > > returned from dma_alloc_coherent is a vmalloc address. However,
+> > > the VA obtained by the page_address is a discontinuous VA. Under
+> > > these circumstances, the IOVA should be calculated based on the
+> > > sg length, and record the VA returned from dma_alloc_coherent
+> > > in the struct of hem.
+> > >
+> > > Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+> > > Signed-off-by: Shaobo Xu <xushaobo2@huawei.com>
+> > > Signed-off-by: Lijun Ou <oulijun@huawei.com>
+> > > ---
+> > Doug,
+> >
+> > I didn't invest time in reviewing it, but having "is_vmalloc_addr" in
+> > driver code to deal with dma_alloc_coherent is most probably wrong.
+> >
+> > Thanks
+> Hi,  Leon & Doug
+>     We refered the function named __ttm_dma_alloc_page in the kernel code as
+> below:
+>     And there are similar methods in bch_bio_map and mem_to_page functions
+> in current 4.14-rcx.
+
+Let's put aside TTM, I don't know the rationale behind their implementation,
+but both mem_to_page and bch_bio_map are don't operate on DMA addresses
+and don't belong to HW driver code.
+
+Thanks
+
+--kZU6r8y0YpRwyDfh
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnfghwACgkQ5GN7iDZy
+WKfnThAAkCAcg/gWetYtOCp2APtHDSYURzJFAsyQ3tk4q5WJKXHWNGp+BDn/EVdo
+5XyF/anfFiZSh7fQytyXrWDwwfuLeJhR0zBX3N2OnywXImA1+x05Y3UkNb5HZRbR
+rYxOkthJgvw7fydhPxcg+NOvZFF28Fgb8JrRF/WbaXPU+fC6363zpTENzAGjdkXv
+BoFHQhBne0SpmgZgooC2Twuk6NJP4ITCNt67q09kd1nojMfWwqBuXvsqi9QmCZAh
+vY+Yt2UkJxvuTD/46lppqhRil9EhTOENGGZtgBU6nmzOIbZR/lZd+OQr1qpsMWL5
+KqSUyuWNRoL+hpDQ584lW8dKT/3OfUnCF4ec4O7SfDwfxOlSiZB1RLb3LlZFBrKc
+7L18ZS5MPJev9fjXNUq1dD2t9dLUZ8KJU+2NFQdF8X/BYZZcFO8UxfTJN6a1rkLn
+DnDGlMJ0RmuJ0N9evJuM2Jd/eEpxmCfERSL+3tykkcZln1CJsAwHJ5L5C9igpwg+
++1W9eZcrUdn7VgF/7NkG0kYr0DKmSL3k1R/t5BykGvIf5fHIwsWCPBE80bV3CNXm
+Mb4JdmFimeDKpscU86C0s29e079lftQMvMWG4TIyV8pBVJ8Tibj9W+NKjNuR8sTs
+sC8d+BythwvjzNa9wfmF+3imQCti8r8waoX+UavmbhPKMoaNnfE=
+=y/UZ
+-----END PGP SIGNATURE-----
+
+--kZU6r8y0YpRwyDfh--
