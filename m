@@ -1,83 +1,42 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v7 07/12] dma-mapping: introduce dma_has_iommu()
-Date: Thu, 12 Oct 2017 12:27:12 -0600
-Message-ID: <20171012182712.GA5772@obsidianresearch.com>
-References: <150732931273.22363.8436792888326501071.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150732935473.22363.1853399637339625023.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171009185840.GB15336@obsidianresearch.com>
- <CAPcyv4gXzC8OUgO_PciQ2phyq0YtmXjMGWvoPSVVuuZR7ohVCg@mail.gmail.com>
- <20171009191820.GD15336@obsidianresearch.com>
- <CAPcyv4h_uQGBAX6-bMkkZLO_YyQ6t4n_b8tH8wU_P0Jh23N5MQ@mail.gmail.com>
- <20171010172516.GA29915@obsidianresearch.com>
- <CAPcyv4jL5fN7jjXkQum8ERQ45eW63dCYp5Pm6aHY4OPudz4Wsw@mail.gmail.com>
- <20171010180512.GA31734@obsidianresearch.com>
- <CAPcyv4gCBu5ptmWyof+Z-p7NbuCygEs2rMe2wdL0n3QQbXhrzA@mail.gmail.com>
+From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH v2 00/13] Request for Comments on SoftiWarp
+Date: Thu, 12 Oct 2017 11:35:34 -0700
+Message-ID: <eb3599fe-dd34-e807-28c0-8229367f0f24@wdc.com>
+References: <20171006122853.16310-1-bmt@zurich.ibm.com>
+ <dd0e915d-2ab7-9912-b000-bcca1acee256@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4gCBu5ptmWyof+Z-p7NbuCygEs2rMe2wdL0n3QQbXhrzA@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Jan Kara <jack@suse.cz>, Ashok Raj <ashok.raj@intel.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Joerg Roedel <joro@8bytes.org>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, Linux MM <linux-mm@kvack.org>, Jeff Moyer <jmoyer@redhat.com>, Linux API <linux-api@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, David Woodhouse <dwmw2@infradead.org>, Robin Murphy <robin.murphy@arm.com>, Christoph Hellwig <hch@lst.de>, Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <dd0e915d-2ab7-9912-b000-bcca1acee256-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 10, 2017 at 01:17:26PM -0700, Dan Williams wrote:
+On 10/12/17 11:05, Dennis Dalessandro wrote:
+> If we were using the staging tree still, I'd say it's in good enough 
+> shape to send there and let it get hacked on, but we aren't going down 
+> that road in this subsystem again I don't think. So the bar is a little 
+> higher I for getting in to mainline.
 
-> Also keep in mind that what triggers the lease break is another
-> application trying to write or punch holes in a file that is mapped
-> for RDMA. So, if the hardware can't handle the iommu mapping getting
-> invalidated asynchronously and the application can't react in the
-> lease break timeout period then the administrator should arrange for
-> the file to not be written or truncated while it is mapped.
+The most important aspect that needs to be addressed is probably the 
+user space interface for the siw driver. We don't want users to have to 
+deal with multiple incompatible versions of a user space interface so we 
+must get the user space interface right before this driver goes upstream.
 
-That makes sense, but why not return ENOSYS or something to the app
-trying to alter the file if the RDMA hardware can't support this
-instead of having the RDMA app deal with this lease break weirdness?
+ > You also have a large number of debugging prints. While it's nice for
+ > development and can be turned off, I think alot of those are
+ > unnecessary. The RDMA subsystem on the whole needs a better strategy
+ > for dealing with debugging and logging, we just aren't there yet.
 
-> It's already the case that get_user_pages() does not lock down file
-> associations, so if your application is contending with these types of
-> file changes it likely already has a problem keeping transactions in
-> sync with the file state even without DAX.
+Unless someone has a better proposal I think the dprint() macro 
+definition should be removed and all dprint() invocations that we want 
+to keep should be changed into pr_debug() calls. The dynamic debug 
+mechanism is more powerful than what the dprint() macro implements.
 
-Yes, things go weird in non-ODP RDMA cases like this..
-
-Also, just to clear, I would expect an app using the SIGIO interface
-to basically halt ongoing RDMA, wait for MRs to become unused locally
-and remotely, destroy the MRs, then somehow, establish new MRs that
-cover the same logical map (eg what ODP would do transparently) after
-the lease breaker has made their changes, then restart their IO.
-
-Does your SIGIO approach have a race-free way to do that last steps?
-
-> > So, not being able to support DAX on certain RDMA hardware is not
-> > an unreasonable situation in our space.
-> 
-> That makes sense, but it still seems to me that this proposed solution
-> allows more than enough ways to avoid that worst case scenario where
-> hardware reacts badly to iommu invalidation.
-
-Yes, although I am concerned that returning PCI-E errors is such an
-unusual and untested path for some of our RDMA drivers that they may
-malfunction badly...
-
-Again, going back to the question of who would ever use this, I would
-be very relucant to deploy a production configuration relying on the iommu
-invalidate or SIGIO techniques, when ODP HW is available and works
-flawlessly.
-
-> be blacklisted from supporting DAX altogether. In other words this is
-> a starting point to incrementally enhance or disable specific drivers,
-> but with the assurance that the kernel can always do the safe thing
-> when / if the driver is missing a finer grained solution.
-
-Seems reasonable.. I think existing HW will have an easier time adding
-invalidate, while new hardware really should implement ODP.
-
-Jason
-
+Bart.
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
