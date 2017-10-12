@@ -1,56 +1,42 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 07/13] SoftiWarp application buffer management
-Date: Thu, 12 Oct 2017 13:40:57 -0400
-Message-ID: <96733eba-cb00-9bc4-aa55-cba6daccfcc7@intel.com>
+Subject: Re: [PATCH v2 00/13] Request for Comments on SoftiWarp
+Date: Thu, 12 Oct 2017 14:05:39 -0400
+Message-ID: <dd0e915d-2ab7-9912-b000-bcca1acee256@intel.com>
 References: <20171006122853.16310-1-bmt@zurich.ibm.com>
- <20171006122853.16310-8-bmt@zurich.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171006122853.16310-8-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+In-Reply-To: <20171006122853.16310-1-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 On 10/6/2017 8:28 AM, Bernard Metzler wrote:
-.
-.
-.
-> +
-> +static int siw_dma_generic_mapping_error(struct device *dev,
-> +					 dma_addr_t dma_addr)
-> +{
-> +	return dma_addr == 0;
-> +}
-> +
-> +static int siw_dma_generic_supported(struct device *dev, u64 mask)
-> +{
-> +	return 1;
-> +}
-> +
-> +const struct dma_map_ops siw_dma_generic_ops = {
-> +	.alloc			= siw_dma_generic_alloc,
-> +	.free			= siw_dma_generic_free,
-> +	.map_page		= siw_dma_generic_map_page,
-> +	.unmap_page		= siw_dma_generic_unmap_page,
-> +	.map_sg			= siw_dma_generic_map_sg,
-> +	.unmap_sg		= siw_dma_generic_unmap_sg,
-> +	.sync_single_for_cpu	= siw_generic_sync_single_for_cpu,
-> +	.sync_single_for_device	= siw_generic_sync_single_for_device,
-> +	.sync_sg_for_cpu	= siw_generic_sync_sg_for_cpu,
-> +	.sync_sg_for_device	= siw_generic_sync_sg_for_device,
-> +	.mapping_error		= siw_dma_generic_mapping_error,
-> +	.dma_supported		= siw_dma_generic_supported,
-> +	.is_phys		= 1
-> +};
-> 
+> It is a re-posting of yesterdays misformatted patch and splits it into
+> consumable pieces. Furthermore, it fixes formatting issues as
+> indicated by checkpatch.
 
-Not sure you need this stuff. Check out this patch:
+You should also remove the following:
 
-0bbb3b7496ea ("IB/rxe, IB/rdmavt: Use dma_virt_ops instead of 
-duplicating it"
+1. All BUG/BUG_ON - just scrub all files
+2. Remove all goto return stuff
+3. TODO/XXX - either add the functionality or it's not needed
+4. Extra whitespace, don't skip more than 1 line
+
+It would be nice to see some commit messages too. Describe a bit about 
+how things are working even if in just a few lines.
+
+If we were using the staging tree still, I'd say it's in good enough 
+shape to send there and let it get hacked on, but we aren't going down 
+that road in this subsystem again I don't think. So the bar is a little 
+higher I for getting in to mainline.
+
+You also have a large number of debugging prints. While it's nice for 
+development and can be turned off, I think alot of those are 
+unnecessary. The RDMA subsystem on the whole needs a better strategy for 
+dealing with debugging and logging, we just aren't there yet.
 
 -Denny
 --
