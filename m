@@ -1,81 +1,78 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH for-next 2/4] RDMA/hns: Add IOMMU enable support in hip08
-Date: Thu, 12 Oct 2017 17:54:20 +0300
-Message-ID: <20171012145420.GQ2106@mtr-leonro.local>
-References: <1506763741-81429-1-git-send-email-xavier.huwei@huawei.com>
- <1506763741-81429-3-git-send-email-xavier.huwei@huawei.com>
- <20170930161023.GI2965@mtr-leonro.local>
- <59DF60A3.7080803@huawei.com>
+From: Bhumika Goyal <bhumirks@gmail.com>
+Subject: Re: [PATCH] IB/cma: make config_item_type const
+Date: Thu, 12 Oct 2017 17:04:36 +0200
+Message-ID: <CAOH+1jF3ma7f5ynw5OjSdH5S3NACwcRK+CTBapcrJgpJabj7jQ@mail.gmail.com>
+References: <1507810800-8972-1-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="kZU6r8y0YpRwyDfh"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <59DF60A3.7080803@huawei.com>
+In-Reply-To: <1507810800-8972-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, linux-mm@kvack.org, zhangxiping3@huawei.com, xavier.huwei@tom.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, shaobo.xu@intel.com, shaoboxu@tom.com, leizhen 00275356 <thunder.leizhen@huawei.com>, joro@8bytes.org, iommu@lists.linux-foundation.org
+To: Julia Lawall <julia.lawall@lip6.fr>, dledford@redhat.com, sean.hefty@intel.com, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Bhumika Goyal <bhumirks@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
---kZU6r8y0YpRwyDfh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Oct 12, 2017 at 08:31:31PM +0800, Wei Hu (Xavier) wrote:
+On Thu, Oct 12, 2017 at 2:20 PM, Bhumika Goyal <bhumirks@gmail.com> wrote:
+> This is a followup patch for: https://lkml.org/lkml/2017/10/11/375 and
+> https://patchwork.kernel.org/patch/9999649/
 >
+> Make these structures const as they are either passed to the functions
+> having the argument as const or stored as a reference in the "ci_type"
+> const field of a config_item structure.
 >
-> On 2017/10/1 0:10, Leon Romanovsky wrote:
-> > On Sat, Sep 30, 2017 at 05:28:59PM +0800, Wei Hu (Xavier) wrote:
-> > > If the IOMMU is enabled, the length of sg obtained from
-> > > __iommu_map_sg_attrs is not 4kB. When the IOVA is set with the sg
-> > > dma address, the IOVA will not be page continuous. and the VA
-> > > returned from dma_alloc_coherent is a vmalloc address. However,
-> > > the VA obtained by the page_address is a discontinuous VA. Under
-> > > these circumstances, the IOVA should be calculated based on the
-> > > sg length, and record the VA returned from dma_alloc_coherent
-> > > in the struct of hem.
-> > >
-> > > Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
-> > > Signed-off-by: Shaobo Xu <xushaobo2@huawei.com>
-> > > Signed-off-by: Lijun Ou <oulijun@huawei.com>
-> > > ---
-> > Doug,
-> >
-> > I didn't invest time in reviewing it, but having "is_vmalloc_addr" in
-> > driver code to deal with dma_alloc_coherent is most probably wrong.
-> >
-> > Thanks
-> Hi,  Leon & Doug
->     We refered the function named __ttm_dma_alloc_page in the kernel code as
-> below:
->     And there are similar methods in bch_bio_map and mem_to_page functions
-> in current 4.14-rcx.
+> Done using Coccienlle.
+>
 
-Let's put aside TTM, I don't know the rationale behind their implementation,
-but both mem_to_page and bch_bio_map are don't operate on DMA addresses
-and don't belong to HW driver code.
+This patch is dependent on the patches in the links
+https://lkml.org/lkml/2017/10/11/375 and
+https://patchwork.kernel.org/patch/9999649/. Therefore, this patch
+won't be correct unless the patches in these links gets applied.
 
-Thanks
-
---kZU6r8y0YpRwyDfh
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnfghwACgkQ5GN7iDZy
-WKfnThAAkCAcg/gWetYtOCp2APtHDSYURzJFAsyQ3tk4q5WJKXHWNGp+BDn/EVdo
-5XyF/anfFiZSh7fQytyXrWDwwfuLeJhR0zBX3N2OnywXImA1+x05Y3UkNb5HZRbR
-rYxOkthJgvw7fydhPxcg+NOvZFF28Fgb8JrRF/WbaXPU+fC6363zpTENzAGjdkXv
-BoFHQhBne0SpmgZgooC2Twuk6NJP4ITCNt67q09kd1nojMfWwqBuXvsqi9QmCZAh
-vY+Yt2UkJxvuTD/46lppqhRil9EhTOENGGZtgBU6nmzOIbZR/lZd+OQr1qpsMWL5
-KqSUyuWNRoL+hpDQ584lW8dKT/3OfUnCF4ec4O7SfDwfxOlSiZB1RLb3LlZFBrKc
-7L18ZS5MPJev9fjXNUq1dD2t9dLUZ8KJU+2NFQdF8X/BYZZcFO8UxfTJN6a1rkLn
-DnDGlMJ0RmuJ0N9evJuM2Jd/eEpxmCfERSL+3tykkcZln1CJsAwHJ5L5C9igpwg+
-+1W9eZcrUdn7VgF/7NkG0kYr0DKmSL3k1R/t5BykGvIf5fHIwsWCPBE80bV3CNXm
-Mb4JdmFimeDKpscU86C0s29e079lftQMvMWG4TIyV8pBVJ8Tibj9W+NKjNuR8sTs
-sC8d+BythwvjzNa9wfmF+3imQCti8r8waoX+UavmbhPKMoaNnfE=
-=y/UZ
------END PGP SIGNATURE-----
-
---kZU6r8y0YpRwyDfh--
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+> ---
+>  drivers/infiniband/core/cma_configfs.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
+> index 54076a3..31dfee0 100644
+> --- a/drivers/infiniband/core/cma_configfs.c
+> +++ b/drivers/infiniband/core/cma_configfs.c
+> @@ -186,7 +186,7 @@ static ssize_t default_roce_tos_store(struct config_item *item,
+>         NULL,
+>  };
+>
+> -static struct config_item_type cma_port_group_type = {
+> +static const struct config_item_type cma_port_group_type = {
+>         .ct_attrs       = cma_configfs_attributes,
+>         .ct_owner       = THIS_MODULE
+>  };
+> @@ -263,7 +263,7 @@ static void release_cma_ports_group(struct config_item  *item)
+>         .release = release_cma_ports_group
+>  };
+>
+> -static struct config_item_type cma_ports_group_type = {
+> +static const struct config_item_type cma_ports_group_type = {
+>         .ct_item_ops    = &cma_ports_item_ops,
+>         .ct_owner       = THIS_MODULE
+>  };
+> @@ -272,7 +272,7 @@ static void release_cma_ports_group(struct config_item  *item)
+>         .release = release_cma_dev
+>  };
+>
+> -static struct config_item_type cma_device_group_type = {
+> +static const struct config_item_type cma_device_group_type = {
+>         .ct_item_ops    = &cma_device_item_ops,
+>         .ct_owner       = THIS_MODULE
+>  };
+> @@ -323,7 +323,7 @@ static struct config_group *make_cma_dev(struct config_group *group,
+>         .make_group     = make_cma_dev,
+>  };
+>
+> -static struct config_item_type cma_subsys_type = {
+> +static const struct config_item_type cma_subsys_type = {
+>         .ct_group_ops   = &cma_subsys_group_ops,
+>         .ct_owner       = THIS_MODULE,
+>  };
+> --
+> 1.9.1
+>
