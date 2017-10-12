@@ -1,77 +1,68 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 42/47] IB/qib: Remove set-but-not-used variables
-Date: Thu, 12 Oct 2017 11:44:12 +0300
-Message-ID: <20171012084412.GO2106@mtr-leonro.local>
-References: <20171006213333.6721-1-bart.vanassche@wdc.com>
- <20171006213333.6721-43-bart.vanassche@wdc.com>
- <32E1700B9017364D9B60AED9960492BC3442B95A@fmsmsx120.amr.corp.intel.com>
- <1507668036.2815.55.camel@wdc.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-core] iwpmd: Return existing mapping if port reused
+ on active side
+Date: Thu, 12 Oct 2017 12:11:49 +0300
+Message-ID: <20171012091149.GP2106@mtr-leonro.local>
+References: <20171008233429.16348-1-tatyana.e.nikolova@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="KDy5+/kaQUC2a3Gw"
+        protocol="application/pgp-signature"; boundary="JPKYlvo4+BwO1+FT"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1507668036.2815.55.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <20171008233429.16348-1-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---KDy5+/kaQUC2a3Gw
+--JPKYlvo4+BwO1+FT
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Oct 10, 2017 at 08:40:37PM +0000, Bart Van Assche wrote:
-> On Tue, 2017-10-10 at 20:25 +0000, Marciniszyn, Mike wrote:
-> > I'm curious about the kbuild modificaitons to expose these issues.
-> > Did you add them yourself, or are they now upstream?
+On Sun, Oct 08, 2017 at 06:34:28PM -0500, Tatyana Nikolova wrote:
+> From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >
-> Hello Mike,
+> Port-mapper returns a duplicate mapping error and no
+> mapped port if an attempt is made to add a mapping for
+> a new connection which re-uses the local port on active side.
+> Fix this by finding the existing  mapping for the re-used
+> local port and return the mapped port. Also, change ref_cnt
+> in struct iwpm_port to be atomic and use it to track the
+> references to a mapping.
 >
-> Thanks for the review. Is what you would like to know what build options
-> I used to enable the warnings addressed by this patch series? What I did
-> is to build the IB subsystem as follows:
->
-> $ for opt in "W=1" "C=2" "C=2 CHECK='smatch -p=kernel'"; do make -j5 M=drivers/infiniband $opt; done
+> Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  iwpmd/iwarp_pm.h        |  5 ++---
+>  iwpmd/iwarp_pm_helper.c | 27 ++++-----------------------
+>  iwpmd/iwarp_pm_server.c | 47 +++++++++++++++++++++--------------------------
+>  3 files changed, 27 insertions(+), 52 deletions(-)
 >
 
-Bart,
-I'm running more or less the same checks ( + "CHECK=sparse C=2") and for
-a long time I'm trying to fix nes and orcdma endianess errors, but
-without much luck. Did you look on them and plan to address in near
-future?
+Thanks, applied.
 
-Thanks
-
-> Instructions for how to download the source code of sparse and smatch are
-> available at:
-> * https://sparse.wiki.kernel.org/index.php/Main_Page
-> * http://smatch.sourceforge.net/
->
-> Bart.
-
---KDy5+/kaQUC2a3Gw
+--JPKYlvo4+BwO1+FT
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnfK1sACgkQ5GN7iDZy
-WKcZDQ/+MMcO2a6KfVisjwBkHgDKyQqI/pZoBFW7c3SuHMg/yezEekXkgrycrKtB
-wYQlb8IW5mlOmof8Mcxwl4vPsJdW2PhtzX2nL+6Gx7EZsJphRQoCK+daXbB8IA6t
-ZdAReHdLYX1LouuxpuSX8/QwHBdOsh+lpxqYcru+e3/OcwYwmlEYeR5opxe7Gpip
-/LhJCMbNjIZmD1FxbWkZMshleEYnQ8RQ2NMu3MSGS192sspptAu8YD3NbVbRQwUE
-f2CM4VH93Vy/Rp2ngYy4wtcthWuSYjLpXQF6lFTIFXw8z6ynM4skd/s1MOth4io6
-zXStEzHlb61BoVxaVL8ql0S44n7CBlzwDSs6bqO0voAviH9+/fxEqiRePp8QNlFR
-2XK/96mIYjQ+ddblBrvDBm8q4/z/OE3Mtn92JCOVPtlS1ftBM+6OsBd5RFAAPxGt
-r0Drk2DDzNoQSZtuS0y00fdiAeJTvq4gz2wDCbzPml75way3bp5717yvDR/vnbWk
-tkEf02aeHOyb66oVDG9QNXBKfYAsngJDuUaQ0d/ZHwlu2svAG4U4FhJbEaa2dBt4
-YlWHf90bBkToQ9RVBABisTqPByLJxjcZconCCgUIjfjzkLpaQ3D9oBoayz0p1mPk
-UHuCH01a6JkrepJtjy76tEbaqlkCHLKDI4w+hkxuI0z8t/KOD54=
-=KyKR
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnfMdQACgkQ5GN7iDZy
+WKdGBxAAhnPng1VCLuQgrYyevdxfiScCyceTwp1QSWvgKsbduhX8hcPhcM7Z28OE
+FkK6usbLs3gKAthTfuHHn+I0qcl+dEN4Ow7PUBovdXq9ZG+OnZDyB/zFubDrPpUu
+f/9Y6gnQ8N90n4e55ZhWTHwg7fHu50DlvqYIL4/oTX8j0/okA+AT/JgGbYbK7DpH
+IF+0ODhoKwsbYFKdP4qZ1uEDg4bPtmknyVtZlqHOMTHvJfuTbSZwhMA7LQsBCKQM
+jYud2zwa0TJsfOoPBYPU8zZhDCMgoN3Q9SlPSsR2WgsAEsBNMNNlXrYpvR4EdeIW
+MA7AibGv/6SXC0DHu0DwDxwC4sZFWyd8xUIrLy7XABLPpTX+dYV44MInrz6SD4wf
+0UX5HkNGjSDAXiKqPgerl+Fr7Ww+RMCiwvIb/v+TSzjv4O3zvrBugEbIZZIkIPMs
+qZ/OGxYXTbSS1oI7yKxRN5GRMAJOzQq7Ce3jJI3dEmsUFT+1Avd6viqV2gk1U0Oq
+yTh8kNtzmm4aKImnmSuMZxTcNyhXCfu7xfBBPENPTB9KdTmMWKkeNrZCJUM+STE2
+naiGz7M+DHwnvjFT67f9L+mr7HLpPQ6Pj/Xkyxyrq8AwTCvLQLlfCKIN5JjyDUsw
+L8SwOEuHQelSWWIz9KqzbObuR5vjWAi1ZnihjeIvoOF44jzmBqM=
+=D7Ba
 -----END PGP SIGNATURE-----
 
---KDy5+/kaQUC2a3Gw--
+--JPKYlvo4+BwO1+FT--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
