@@ -1,82 +1,64 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: Re: [PATCH] IB/cma: make config_item_type const
-Date: Thu, 12 Oct 2017 16:24:20 -0500
-Message-ID: <CAG53R5WpiVT5R3EmjyMzi==1ZbvUOCeVjccHFTOE5p2VwkXzhA@mail.gmail.com>
-References: <1507810800-8972-1-git-send-email-bhumirks@gmail.com> <CAOH+1jF3ma7f5ynw5OjSdH5S3NACwcRK+CTBapcrJgpJabj7jQ@mail.gmail.com>
+From: "Bernard Metzler" <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: Re: [PATCH v2 00/13] Request for Comments on SoftiWarp
+Date: Thu, 12 Oct 2017 22:27:11 +0000
+Message-ID: <OF42A3C910.DFAA760B-ON002581B7.007B56BC-002581B7.007B56C0@notes.na.collabserv.com>
+References: <20171008123240.GA31066@infradead.org>,<20171006122853.16310-1-bmt@zurich.ibm.com>
+ <20171008123128.GA28815@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOH+1jF3ma7f5ynw5OjSdH5S3NACwcRK+CTBapcrJgpJabj7jQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>, Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171008123240.GA31066-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 12, 2017 at 10:04 AM, Bhumika Goyal <bhumirks@gmail.com> wrote:
-> On Thu, Oct 12, 2017 at 2:20 PM, Bhumika Goyal <bhumirks@gmail.com> wrote:
->> This is a followup patch for: https://lkml.org/lkml/2017/10/11/375 and
->> https://patchwork.kernel.org/patch/9999649/
->>
->> Make these structures const as they are either passed to the functions
->> having the argument as const or stored as a reference in the "ci_type"
->> const field of a config_item structure.
->>
->> Done using Coccienlle.
->>
+>To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+>From: Christoph Hellwig 
+>Sent by: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>Date: 10/08/2017 03:30PM
+>Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>Subject: Re: [PATCH v2 00/13] Request for Comments on SoftiWarp
 >
-> This patch is dependent on the patches in the links
-> https://lkml.org/lkml/2017/10/11/375 and
-> https://patchwork.kernel.org/patch/9999649/. Therefore, this patch
-> won't be correct unless the patches in these links gets applied.
+>On Sun, Oct 08, 2017 at 05:31:28AM -0700, Christoph Hellwig wrote:
+>> How well has this been tested?  How well does it perform,
+>> e.g. compare performance for NVMe vs RoCE2 or a native iWarp
+>adapter.
 >
->> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
->> ---
->>  drivers/infiniband/core/cma_configfs.c | 8 ++++----
->>  1 file changed, 4 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
->> index 54076a3..31dfee0 100644
->> --- a/drivers/infiniband/core/cma_configfs.c
->> +++ b/drivers/infiniband/core/cma_configfs.c
->> @@ -186,7 +186,7 @@ static ssize_t default_roce_tos_store(struct config_item *item,
->>         NULL,
->>  };
->>
->> -static struct config_item_type cma_port_group_type = {
->> +static const struct config_item_type cma_port_group_type = {
->>         .ct_attrs       = cma_configfs_attributes,
->>         .ct_owner       = THIS_MODULE
->>  };
->> @@ -263,7 +263,7 @@ static void release_cma_ports_group(struct config_item  *item)
->>         .release = release_cma_ports_group
->>  };
->>
->> -static struct config_item_type cma_ports_group_type = {
->> +static const struct config_item_type cma_ports_group_type = {
->>         .ct_item_ops    = &cma_ports_item_ops,
->>         .ct_owner       = THIS_MODULE
->>  };
->> @@ -272,7 +272,7 @@ static void release_cma_ports_group(struct config_item  *item)
->>         .release = release_cma_dev
->>  };
->>
->> -static struct config_item_type cma_device_group_type = {
->> +static const struct config_item_type cma_device_group_type = {
->>         .ct_item_ops    = &cma_device_item_ops,
->>         .ct_owner       = THIS_MODULE
->>  };
->> @@ -323,7 +323,7 @@ static struct config_group *make_cma_dev(struct config_group *group,
->>         .make_group     = make_cma_dev,
->>  };
->>
->> -static struct config_item_type cma_subsys_type = {
->> +static const struct config_item_type cma_subsys_type = {
->>         .ct_group_ops   = &cma_subsys_group_ops,
->>         .ct_owner       = THIS_MODULE,
->>  };
->> --
->> 1.9.1
->>
-> --
-Patch subject should be RDMA/cma even though in past we have mix of
-IB/cma and RDMA/cma patches.
+>err, s/RoCE2/SoftRoCE/ ..
+>
+>--
+
+Christoph,
+
+Thanks for asking. I did not compare with SoftRoCE yet.
+Maybe we are in the same ballpark. Maybe siw has advantages
+in terms of bandwidth if it uses GSO, and SoftRoCE may
+be a little faster regarding delay. But, we have
+to check.
+
+We used siw alot for RDMA application development (this
+is where those nasty debug statements came from - we
+mostly debugged RDMA applications). So it
+has some stability. We tested on large installations
+(up to 4k nodes) running GPFS with RDMA enabled on it
+(BlueGene that time).
+
+Using ib_read/write_bw/lat, on a single 100Gb link, and
+one connection, we see close to 65Gb/s throughput READ/WRITE.
+WRITE delay is reported to be around 7us, READ ~13us. All
+measured using two Chelsio T6 with RDMA offload disabled,
+and Intel Xeon E5-2640 v3. We are aware of possible code
+optimization to reach better performance (e.g. better
+NUMA awareness)
+
+I hope that email makes it to the list. I have to teach
+my email client to talk ASCII. I am happy to be back ;)
+
+Thanks and best regards,
+Bernard.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
