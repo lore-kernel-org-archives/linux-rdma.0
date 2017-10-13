@@ -1,70 +1,132 @@
-From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/2] ibacm: Incorrect list used for subnet list causes a
- segfault.
-Date: Fri, 13 Oct 2017 14:43:52 -0400
-Message-ID: <20171013184352.28410.32200.stgit@phlsvslse11.ph.intel.com>
-References: <20171013184347.28410.87093.stgit@phlsvslse11.ph.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171013184347.28410.87093.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 2/3] xprtrdma: Use ro_unmap_sync in xprt_rdma_send_request
+Date: Fri, 13 Oct 2017 15:05:31 -0400
+Message-ID: <E7589A22-8B0A-4A14-8BE7-2513F063D57C@oracle.com>
+References: <20171009155524.18726.32086.stgit@manet.1015granger.net> <20171009160334.18726.33163.stgit@manet.1015granger.net> <ce6f5ccc-cddb-b793-abe4-2e3dcf11c15f@Netapp.com> <11D8512F-8E28-4F4C-9062-615738537E3D@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <11D8512F-8E28-4F4C-9062-615738537E3D-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-When using the ibacm from rdma-core commit bf03566e0aa976afc5df,
-setting the provider keyword in the ibacm_opts.cfg file to something
-other than 'default' will cause ibacm to segfault on startup:
+> On Oct 13, 2017, at 1:55 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+>> 
+>> On Oct 13, 2017, at 1:43 PM, Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org> wrote:
+>> 
+>> Hi Chuck,
+>> 
+>> On 10/09/2017 12:03 PM, Chuck Lever wrote:
+>>> The "safe" version of ro_unmap is used here to avoid waiting
+>>> unnecessarily. However:
+>>> 
+>>> - It is safe to wait. After all, we have to wait anyway when using
+>>>  FMR to register memory.
+>>> 
+>>> - This case is rare: it occurs only after a reconnect.
+>> 
+>> I'm just double checking that this really is safe?  I'm seeing the hung task killer running more often after applying this patch:
+>> 
+>> [  245.376879] INFO: task kworker/0:5:193 blocked for more than 120 seconds.
+>> [  245.379909]       Not tainted 4.14.0-rc4-ANNA+ #10934
+>> [  245.382001] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+>> [  245.385926] kworker/0:5     D    0   193      2 0x80000080
+>> [  245.388148] Workqueue: rpciod rpc_async_schedule [sunrpc]
+>> [  245.389386] Call Trace:
+>> [  245.390070]  __schedule+0x23d/0x850
+>> [  245.390673]  schedule+0x46/0xa0
+>> [  245.391219]  schedule_timeout+0x230/0x480
+>> [  245.391817]  ? ib_send_mad+0x32d/0x430
+>> [  245.392387]  ? __slab_alloc.isra.24+0x3e/0x60
+>> [  245.392988]  wait_for_common+0xc9/0x190
+>> [  245.393574]  ? wait_for_common+0xc9/0x190
+>> [  245.395290]  ? wake_up_q+0x90/0x90
+>> [  245.396239]  wait_for_completion+0x30/0x40
+>> [  245.397279]  frwr_op_unmap_sync+0x139/0x2a0 [rpcrdma]
+>> [  245.398401]  ? call_decode+0x830/0x830 [sunrpc]
+>> [  245.399435]  xprt_rdma_send_request+0xdc/0xf0 [rpcrdma]
+>> [  245.400558]  xprt_transmit+0x7f/0x370 [sunrpc]
+>> [  245.401500]  ? call_decode+0x830/0x830 [sunrpc]
+>> [  245.402079]  call_transmit+0x1c4/0x2a0 [sunrpc]
+>> [  245.402652]  ? call_decode+0x830/0x830 [sunrpc]
+>> [  245.403194]  __rpc_execute+0x92/0x430 [sunrpc]
+>> [  245.403737]  ? rpc_wake_up+0x7e/0x90 [sunrpc]
+>> [  245.404264]  rpc_async_schedule+0x25/0x30 [sunrpc]
+>> [  245.404796]  process_one_work+0x1ed/0x430
+>> [  245.405276]  worker_thread+0x45/0x3f0
+>> [  245.405730]  kthread+0x134/0x150
+>> [  245.406144]  ? process_one_work+0x430/0x430
+>> [  245.406627]  ? kthread_create_on_node+0x80/0x80
+>> [  245.407114]  ret_from_fork+0x25/0x30
+>> 
+>> I see this when running cthon tests over NFS v3 with kvm / softroce configured on my client and server.  I'm willing to accept that the problem might be on my end, but I still want to check with you first :)
+> 
+> My guess is that this is because your RDMA layer is dropping the
+> connection frequently, so you're hitting this case a lot. If
+> LocalInvalidation is taking a long time, that's a bug in the
+> provider, I'd say.
+> 
+> But I'm just speculating. You need to look into this and figure
+> out what's going on. ftrace with function_graph should give
+> some impression of where the waiting is going on.
 
-ibacm[32739]: segfault at 302e40 ip 000000000040432d
-sp 00007ffe4039e1c0 error 4 in ibacm[400000+c000]
+Reproduced here. Trying to figure out why the client is not
+reconnecting.
 
-To re-produce the segfault, change the provider keyword in
-ibacm_opts.cfg from:
 
-provider ibacmp default
-
-to:
-
-provider ibacmp 0xFE80000000000000
-
-When adding subnets to a provider subnet list, the incorrect list is
-used.  The list used is the provider_list (list of all providers)
-rather than the (specific) provider subnet list.
-
-This corrupts the provider_list, and causes ibacm to crash with the
-above segfault.
-
-Use the correct list when adding subnet information to a provider.
-
-Fixes: 26e05f8304a506 ("ibacm: use ccan/list.h")
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- ibacm/src/acm.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/ibacm/src/acm.c b/ibacm/src/acm.c
-index 1ccef94..a67001d 100644
---- a/ibacm/src/acm.c
-+++ b/ibacm/src/acm.c
-@@ -2587,8 +2587,8 @@ static void acm_load_prov_config(void)
- 					return;
- 				}
- 				subnet->subnet_prefix = htobe64(prefix);
--				list_add_after(&provider_list, &prov->entry,
--						&subnet->entry);
-+				list_add_tail(&prov->subnet_list,
-+					      &subnet->entry);
- 			}
- 		}
- 	}
+>> Thanks,
+>> Anna
+>> 
+>>> 
+>>> By switching this call site to ro_unmap_sync, the final use of
+>>> ro_unmap_safe is removed.
+>>> 
+>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>> ---
+>>> net/sunrpc/xprtrdma/transport.c |    3 ++-
+>>> 1 file changed, 2 insertions(+), 1 deletion(-)
+>>> 
+>>> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+>>> index 8cf5ccf..eb46d24 100644
+>>> --- a/net/sunrpc/xprtrdma/transport.c
+>>> +++ b/net/sunrpc/xprtrdma/transport.c
+>>> @@ -728,7 +728,8 @@
+>>> 
+>>> 	/* On retransmit, remove any previously registered chunks */
+>>> 	if (unlikely(!list_empty(&req->rl_registered)))
+>>> -		r_xprt->rx_ia.ri_ops->ro_unmap_safe(r_xprt, req, false);
+>>> +		r_xprt->rx_ia.ri_ops->ro_unmap_sync(r_xprt,
+>>> +						    &req->rl_registered);
+>>> 
+>>> 	rc = rpcrdma_marshal_req(r_xprt, rqst);
+>>> 	if (rc < 0)
+>>> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> Chuck Lever
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
