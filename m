@@ -1,103 +1,97 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 04/13] SoftiWarp object management
-Date: Thu, 12 Oct 2017 21:01:28 -0400
-Message-ID: <a82cc3b1-af27-c1de-afb1-a8edea4baed2@redhat.com>
-References: <20171006122853.16310-1-bmt@zurich.ibm.com>
- <20171006122853.16310-5-bmt@zurich.ibm.com>
- <20171008122839.GS25829@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="uexwB9MIJm0xqE9ODBUmdk6PF47WH68KI"
+From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] bnxt_re: Fix incorrect usage of test_bit()
+Date: Fri, 13 Oct 2017 11:38:00 +0530
+Message-ID: <20171013060800.10371-1-somnath.kotur@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171008122839.GS25829-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---uexwB9MIJm0xqE9ODBUmdk6PF47WH68KI
-Content-Type: multipart/mixed; boundary="pKNpqK7IU5gIpO6it5EjuLpGXTgU4JGDf";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <a82cc3b1-af27-c1de-afb1-a8edea4baed2-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 04/13] SoftiWarp object management
-References: <20171006122853.16310-1-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
- <20171006122853.16310-5-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
- <20171008122839.GS25829-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-In-Reply-To: <20171008122839.GS25829-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+test_bit() takes a bit number while the 'flags' field in
+struct bnxt_qplib_rcfw was using actual BIT position converted
+values.
+Fix this by assigning bit numbers and use consistent APIs
+all the flag values.
+Also logging a message in case of failure.
 
---pKNpqK7IU5gIpO6it5EjuLpGXTgU4JGDf
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+Thanks to Dan Carpenter for pointing this out.
 
-On 10/8/2017 8:28 AM, Leon Romanovsky wrote:
->> +	} else if (id =3D=3D -ENOSPC && pre_id !=3D 1) {
->> +		pre_id =3D 1;
->> +		goto again;
->> +	} else {
->> +		BUG_ON(id =3D=3D 0);
-> No BUG_ON in new code.
->=20
->> +		dprint(DBG_OBJ|DBG_ON, "(OBJ??): IDR New Object failed!\n");
->> +	}
->> +	return id > 0 ? 0 : id;
->> +}
+Suggested-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/bnxt_re/main.c       | 5 +++--
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 8 ++++----
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.h | 6 +++---
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
-Not to mention that this segment displays why BUG_ON() is so bad.  You
-have issued a BUG_ON() and then on the very next line you have a
-dprint() as if there is anything else that happens after a BUG_ON().
-There isn't.  By definition, with a BUG_ON(), you have killed the entire
-machine.  You will never get to the dprint() line, it is completely
-unreachable code.  Unless you run across something the likes of a
-hardware device that is completely out of control, that is DMAing to
-random address, and that you can't stop, BUG_ON is not an appropriate
-solution.  You should only BUG_ON if continuing to run will render the
-machine randomly corrupted and jeopardize writing that corruption to
-disk and wiping the persistent system data out.  Short of that, you need
-to find a way to gracefully handle the situation and continue.  It may
-mean shutting your device down forcefully so that the rest of the
-machine may live, but that's OK.  Shutting the entire machine down is not=
-=2E
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index e7450ea..87f8a5d 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -1071,9 +1071,10 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
+ 	 */
+ 	rc = bnxt_qplib_alloc_rcfw_channel(rdev->en_dev->pdev, &rdev->rcfw,
+ 					   BNXT_RE_MAX_QPC_COUNT);
+-	if (rc)
++	if (rc) {
++		pr_err("Failed to allocate RCFW Channel: %#x\n", rc);
+ 		goto fail;
+-
++	}
+ 	rc = bnxt_re_net_ring_alloc
+ 			(rdev, rdev->rcfw.creq.pbl[PBL_LVL_0].pg_map_arr,
+ 			 rdev->rcfw.creq.pbl[rdev->rcfw.creq.level].pg_count,
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+index 2bdb156..560f924 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+@@ -172,14 +172,14 @@ static int __send_message(struct bnxt_qplib_rcfw *rcfw, struct cmdq_base *req,
+ 	rcfw->seq_num++;
+ 
+ 	cmdq_prod = cmdq->prod;
+-	if (rcfw->flags & FIRMWARE_FIRST_FLAG) {
++	if (test_bit(FIRMWARE_FIRST_FLAG, &rcfw->flags)) {
+ 		/* The very first doorbell write
+ 		 * is required to set this flag
+ 		 * which prompts the FW to reset
+ 		 * its internal pointers
+ 		 */
+-		cmdq_prod |= FIRMWARE_FIRST_FLAG;
+-		rcfw->flags &= ~FIRMWARE_FIRST_FLAG;
++		cmdq_prod |= BIT(FIRMWARE_FIRST_FLAG);
++		clear_bit(FIRMWARE_FIRST_FLAG, &rcfw->flags);
+ 	}
+ 
+ 	/* ring CMDQ DB */
+@@ -622,7 +622,7 @@ int bnxt_qplib_enable_rcfw_channel(struct pci_dev *pdev,
+ 
+ 	/* General */
+ 	rcfw->seq_num = 0;
+-	rcfw->flags = FIRMWARE_FIRST_FLAG;
++	set_bit(FIRMWARE_FIRST_FLAG, &rcfw->flags);
+ 	bmap_size = BITS_TO_LONGS(RCFW_MAX_OUTSTANDING_CMD *
+ 				  sizeof(unsigned long));
+ 	rcfw->cmdq_bitmap = kzalloc(bmap_size, GFP_KERNEL);
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
+index 85b16da..2946a7c 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
++++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
+@@ -162,9 +162,9 @@ struct bnxt_qplib_rcfw {
+ 	unsigned long		*cmdq_bitmap;
+ 	u32			bmap_size;
+ 	unsigned long		flags;
+-#define FIRMWARE_INITIALIZED_FLAG	BIT(0)
+-#define FIRMWARE_FIRST_FLAG		BIT(31)
+-#define FIRMWARE_TIMED_OUT		BIT(3)
++#define FIRMWARE_INITIALIZED_FLAG	0
++#define FIRMWARE_FIRST_FLAG		31
++#define FIRMWARE_TIMED_OUT		3
+ 	wait_queue_head_t	waitq;
+ 	int			(*aeq_handler)(struct bnxt_qplib_rcfw *,
+ 					       struct creq_func_event *);
+-- 
+1.8.3.1
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
-
-
---pKNpqK7IU5gIpO6it5EjuLpGXTgU4JGDf--
-
---uexwB9MIJm0xqE9ODBUmdk6PF47WH68KI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJZ4BBoAAoJELgmozMOVy/dyPsQAJtWMrmol1UIDl9SO+1WqjHH
-bWl3M9fjr/7heXTuLllqcsLcyazFx5ZWCIxFSjnPhQqHJAdqeXL4TKAxDP/t2t5r
-kIetKgefkxyYdtGQqDICjK7QxZmPpr9MuYDcGMm2gfJbctTlWZv7j9cQcy9200lI
-fZwo2mmWi0ZG5YCeHRw9BzgzHjILwEIg7bNE9PVlL1DHuwz1jTTDhHITuMv+tsrk
-fRXTrCEcDq/za/eSp8bMDTCnRdNI0NJ2WiWhlrkUJ8alZi5fi+FISFfE7x7UN7an
-BWHAhE7Fk6gorSgi2QPbUGIPDaulbUFTMR4UgUv+pJuYMeG+reK8NtbAp0IHBC1G
-FFe51qas3Xze3pAG3xRh+Fn/k4m19ZetZNm1mpPUjq7pFtUz9uY1hN1ul/dFSEzC
-WcJeXgBI/GtYOgX5zbCBOmra7wuIdHIk6mAz7rYsUtGF9Zf71HJZ0llsrr3Y9hWc
-hYLqCdZVtB9uHHnpBGgf9ii1UDlzO977syNUVh7x7QAhZpSaq94dQ6Tc2vgEq4w8
-35HJ9Q1hPgIDJ6VJcHKBmDT8EMzPz27z80Vcg7lmLxCk/UnpMwVy82aatSh2X9Rd
-Rx2T6bVHuRlahIfcqn6mkIGyLD/OGrfjyb6mXeSFEbU/w0wXgnh7RuDMikOOG2IZ
-kGmOaa2G3ZixyJp5yvnO
-=LY9A
------END PGP SIGNATURE-----
-
---uexwB9MIJm0xqE9ODBUmdk6PF47WH68KI--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
