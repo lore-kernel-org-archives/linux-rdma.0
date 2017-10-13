@@ -1,81 +1,96 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v7 07/12] dma-mapping: introduce dma_has_iommu()
-Date: Fri, 13 Oct 2017 09:03:48 -0600
-Message-ID: <20171013150348.GA11257@obsidianresearch.com>
-References: <CAPcyv4gXzC8OUgO_PciQ2phyq0YtmXjMGWvoPSVVuuZR7ohVCg@mail.gmail.com>
- <20171009191820.GD15336@obsidianresearch.com>
- <CAPcyv4h_uQGBAX6-bMkkZLO_YyQ6t4n_b8tH8wU_P0Jh23N5MQ@mail.gmail.com>
- <20171010172516.GA29915@obsidianresearch.com>
- <CAPcyv4jL5fN7jjXkQum8ERQ45eW63dCYp5Pm6aHY4OPudz4Wsw@mail.gmail.com>
- <20171010180512.GA31734@obsidianresearch.com>
- <CAPcyv4gCBu5ptmWyof+Z-p7NbuCygEs2rMe2wdL0n3QQbXhrzA@mail.gmail.com>
- <20171012182712.GA5772@obsidianresearch.com>
- <CAPcyv4g1zXq7MbtivoviHEME6Oi8YJOnVG3jBah3YpHXPAhg6Q@mail.gmail.com>
- <20171013065047.GA26461@lst.de>
+From: Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 2/3] xprtrdma: Use ro_unmap_sync in
+ xprt_rdma_send_request
+Date: Fri, 13 Oct 2017 13:43:29 -0400
+Message-ID: <ce6f5ccc-cddb-b793-abe4-2e3dcf11c15f@Netapp.com>
+References: <20171009155524.18726.32086.stgit@manet.1015granger.net>
+ <20171009160334.18726.33163.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171013065047.GA26461-jcswGhMUV9g@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Ashok Raj <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Linux API <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-fsdevel <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171009160334.18726.33163.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 13, 2017 at 08:50:47AM +0200, Christoph Hellwig wrote:
+Hi Chuck,
 
-> > However, chatting this over with a few more people I have an alternate
-> > solution that effectively behaves the same as how non-ODP hardware
-> > handles this case of hole punch / truncation today. So, today if this
-> > scenario happens on a page-cache backed mapping, the file blocks are
-> > unmapped and the RDMA continues into pinned pages that are no longer
-> > part of the file. We can achieve the same thing with the iommu, just
-> > re-target the I/O into memory that isn't part of the file. That way
-> > hardware does not see I/O errors and the DAX data consistency model is
-> > no worse than the page-cache case.
+On 10/09/2017 12:03 PM, Chuck Lever wrote:
+> The "safe" version of ro_unmap is used here to avoid waiting
+> unnecessarily. However:
 > 
-> Yikes.
+>  - It is safe to wait. After all, we have to wait anyway when using
+>    FMR to register memory.
+> 
+>  - This case is rare: it occurs only after a reconnect.
 
-Well, as much as you say Yikes, Dan is correct, this does match the
-semantics RDMA MR's already have. They become non-coherent if their
-underlying object is changed, and there are many ways to get there.
-I've never thought about it, but it does sound like ftruncate,
-fallocate, etc on a normal file would break the MR coherency too??
+I'm just double checking that this really is safe?  I'm seeing the hung task killer running more often after applying this patch:
 
-There have been efforts in the past driven by the MPI people to
-create, essentially, something like lease-break' SIGIO. Except it was
-intended to be general, and wanted solve all the problems related with
-MR de-coherence. This was complicated and never became acceptable to
-mainline.
+[  245.376879] INFO: task kworker/0:5:193 blocked for more than 120 seconds.
+[  245.379909]       Not tainted 4.14.0-rc4-ANNA+ #10934
+[  245.382001] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[  245.385926] kworker/0:5     D    0   193      2 0x80000080
+[  245.388148] Workqueue: rpciod rpc_async_schedule [sunrpc]
+[  245.389386] Call Trace:
+[  245.390070]  __schedule+0x23d/0x850
+[  245.390673]  schedule+0x46/0xa0
+[  245.391219]  schedule_timeout+0x230/0x480
+[  245.391817]  ? ib_send_mad+0x32d/0x430
+[  245.392387]  ? __slab_alloc.isra.24+0x3e/0x60
+[  245.392988]  wait_for_common+0xc9/0x190
+[  245.393574]  ? wait_for_common+0xc9/0x190
+[  245.395290]  ? wake_up_q+0x90/0x90
+[  245.396239]  wait_for_completion+0x30/0x40
+[  245.397279]  frwr_op_unmap_sync+0x139/0x2a0 [rpcrdma]
+[  245.398401]  ? call_decode+0x830/0x830 [sunrpc]
+[  245.399435]  xprt_rdma_send_request+0xdc/0xf0 [rpcrdma]
+[  245.400558]  xprt_transmit+0x7f/0x370 [sunrpc]
+[  245.401500]  ? call_decode+0x830/0x830 [sunrpc]
+[  245.402079]  call_transmit+0x1c4/0x2a0 [sunrpc]
+[  245.402652]  ? call_decode+0x830/0x830 [sunrpc]
+[  245.403194]  __rpc_execute+0x92/0x430 [sunrpc]
+[  245.403737]  ? rpc_wake_up+0x7e/0x90 [sunrpc]
+[  245.404264]  rpc_async_schedule+0x25/0x30 [sunrpc]
+[  245.404796]  process_one_work+0x1ed/0x430
+[  245.405276]  worker_thread+0x45/0x3f0
+[  245.405730]  kthread+0x134/0x150
+[  245.406144]  ? process_one_work+0x430/0x430
+[  245.406627]  ? kthread_create_on_node+0x80/0x80
+[  245.407114]  ret_from_fork+0x25/0x30
 
-Instead ODP was developed, and ODP actually solves all the problem
-sanely.
+I see this when running cthon tests over NFS v3 with kvm / softroce configured on my client and server.  I'm willing to accept that the problem might be on my end, but I still want to check with you first :)
 
-Thinking about it some more, and with your other comments on
-get_user_pages in this thread, I tend to agree. It doesn't make sense
-to develop a user space lease break API for MR's that is a DAX
-specific feature.
+Thanks,
+Anna
 
-Along the some lines, it also doesn't make sense to force-invalidate
-MR's linked to DAX regions, while leaving MR's linked to other
-regions that have the same problem alone.
-
-If you want to make non-ODP MR's work better, then you need to have a
-general overall solution to tell userspace when the MR becomes (or I
-guess, is becoming) non-coherent, that covers all the cases that break
-MR coherence, not just via DAX.
-
-Otherwise, I think Dan is right, keeping the current semantic of
-having MRs just do something wrong, but not corrupt memory, when they
-loose coherence, is broadly consistent with how non-ODP MRs work today.
-
-Jason
+> 
+> By switching this call site to ro_unmap_sync, the final use of
+> ro_unmap_safe is removed.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  net/sunrpc/xprtrdma/transport.c |    3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+> index 8cf5ccf..eb46d24 100644
+> --- a/net/sunrpc/xprtrdma/transport.c
+> +++ b/net/sunrpc/xprtrdma/transport.c
+> @@ -728,7 +728,8 @@
+>  
+>  	/* On retransmit, remove any previously registered chunks */
+>  	if (unlikely(!list_empty(&req->rl_registered)))
+> -		r_xprt->rx_ia.ri_ops->ro_unmap_safe(r_xprt, req, false);
+> +		r_xprt->rx_ia.ri_ops->ro_unmap_sync(r_xprt,
+> +						    &req->rl_registered);
+>  
+>  	rc = rpcrdma_marshal_req(r_xprt, rqst);
+>  	if (rc < 0)
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
