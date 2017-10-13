@@ -1,76 +1,57 @@
-From: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/2] ibacm: Incorrect usage of BE byte order of MLID
- attach/detach_mcast()
-Date: Fri, 13 Oct 2017 20:34:21 +0000
-Message-ID: <14063C7AD467DE4B82DEDB5C278E8663875DDB57@FMSMSX108.amr.corp.intel.com>
-References: <20171013184347.28410.87093.stgit@phlsvslse11.ph.intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB19E97E@ORSMSX109.amr.corp.intel.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] xprtrdma: Use generic asynchronous MR disposal in
+ send_request
+Date: Fri, 13 Oct 2017 17:47:58 -0400
+Message-ID: <20171013214509.14446.81979.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB19E97E-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBIZWZ0eSwgU2Vhbg0KPiBTZW50
-OiBGcmlkYXksIE9jdG9iZXIgMTMsIDIwMTcgMzozNyBQTQ0KPiBUbzogUnVobCwgTWljaGFlbCBK
-IDxtaWNoYWVsLmoucnVobEBpbnRlbC5jb20+DQo+IENjOiBsaW51eC1yZG1hQHZnZXIua2VybmVs
-Lm9yZzsgaGFsQGRldi5tZWxsYW5veC5jby5pbA0KPiBTdWJqZWN0OiBSRTogW1BBVENIIDEvMl0g
-aWJhY206IEluY29ycmVjdCB1c2FnZSBvZiBCRSBieXRlIG9yZGVyIG9mIE1MSUQNCj4gYXR0YWNo
-L2RldGFjaF9tY2FzdCgpDQo+IA0KPiA+IFRoZSBNTElEIHZhbHVlIHBhc3NlZCB0byBpYnZfYXR0
-YWNoL2RldGFjaF9tY2FzdCgpIG11c3QgYmUgaW4gaG9zdA0KPiA+IGJ5dGUgb3JkZXIuDQo+ID4N
-Cj4gPiBhY21wLmMgaW5jb3JyZWN0bHkgdXNlcyB0aGUgYmlnIGVuZGlhbiBmb3JtYXQgd2hlbiBk
-b2luZyBhIG11bHRpY2FzdA0KPiA+IGF0dGFjaC9kZXRhY2ggKGpvaW4pLiBNdWx0aWNhc3QgcGFj
-a2V0cyBhcmUgdXNlZCB0byBkbyBuYW1lIHJlc29sdXRpb24NCj4gPiBieSB0aGUgbGliaWJhY21w
-IGxpYnJhcnkuDQo+ID4NCj4gPiBUaGVyZSBhcmUgdHdvIHBvc3NpYmxlIHJlc3VsdHMgYmVjYXVz
-ZSBvZiB0aGlzIGlzc3VlLg0KPiA+DQo+ID4gSWYgYSBrZXJuZWwgaGFzIGNvbW1pdCAwMGI4YTMz
-NTFiMmIsIHRoZSBhdHRhY2ggd2lsbCBmYWlsIHdpdGggYW4NCj4gPiBFSU5WQUwuICBpYmFjbSB3
-aWxsIGxvZyB0aGlzIGFzIGEgZmFpbHVyZSBkdXJpbmcgdGhlIG11bHRpY2FzdCBqb2luLg0KPiA+
-DQo+ID4gSWYgYSBrZXJuZWwgZG9lcyBub3QgaGF2ZSBjb21taXQgMDBiOGEzMzUxYjJiLCB0aGUg
-YXR0YWNoIHdpbGwNCj4gPiBjb21wbGV0ZSBzdWNjZXNzZnVsbHkuICBQYWNrZXRzIHNlbnQgdG8g
-dGhpcyBhZGRyZXNzIHdpbGwgYmUgZHJvcHBlZA0KPiA+IGJlY2F1c2UgdGhlIHBhY2tldCBkbGlk
-IHZhbHVlIGFuZCB0aGUgbXVsdGljYXN0IGFkZHJlc3MgaW5mb3JtYXRpb24NCj4gPiBnaXZlbiBi
-eSB0aGUgYXR0YWNoIHdpbGwgbm90IG1hdGNoLg0KPiA+DQo+ID4gVXBkYXRlIE1MSUQgdXNhZ2Ug
-dG8gdXNlIHRoZSBjb3JyZWN0IGJ5dGUgb3JkZXIuDQo+ID4NCj4gPiBSZXZpZXdlZC1ieTogTWlr
-ZSBNYXJjaW5pc3p5biA8bWlrZS5tYXJjaW5pc3p5bkBpbnRlbC5jb20+DQo+ID4gU2lnbmVkLW9m
-Zi1ieTogTWljaGFlbCBKLiBSdWhsIDxtaWNoYWVsLmoucnVobEBpbnRlbC5jb20+DQo+ID4gLS0t
-DQo+ID4gIGliYWNtL3Byb3YvYWNtcC9zcmMvYWNtcC5jIHwgICAgNCArKy0tDQo+ID4gIDEgZmls
-ZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlm
-ZiAtLWdpdCBhL2liYWNtL3Byb3YvYWNtcC9zcmMvYWNtcC5jIGIvaWJhY20vcHJvdi9hY21wL3Ny
-Yy9hY21wLmMNCj4gPiBpbmRleCBhYTc4NDE2Li43OGQ5YTI5IDEwMDY0NA0KPiA+IC0tLSBhL2li
-YWNtL3Byb3YvYWNtcC9zcmMvYWNtcC5jDQo+ID4gKysrIGIvaWJhY20vcHJvdi9hY21wL3NyYy9h
-Y21wLmMNCj4gPiBAQCAtNzMyLDcgKzczMiw3IEBAIHN0YXRpYyB2b2lkIGFjbXBfcHJvY2Vzc19q
-b2luX3Jlc3Aoc3RydWN0DQo+ID4gYWNtX3NhX21hZCAqc2FfbWFkKQ0KPiA+ICAJCQlhY21fbG9n
-KDAsICJFUlJPUiAtIHVuYWJsZSB0byBjcmVhdGUgYWhcbiIpOw0KPiA+ICAJCQlnb3RvIG91dDsN
-Cj4gPiAgCQl9DQo+ID4gLQkJcmV0ID0gaWJ2X2F0dGFjaF9tY2FzdChlcC0+cXAsICZtY19yZWMt
-Pm1naWQsIG1jX3JlYy0NCj4gPiA+bWxpZCk7DQo+ID4gKwkJcmV0ID0gaWJ2X2F0dGFjaF9tY2Fz
-dChlcC0+cXAsICZkZXN0LT5tZ2lkLCBkZXN0LQ0KPiA+ID5hdi5kbGlkKTsNCj4gPiAgCQlpZiAo
-cmV0KSB7DQo+ID4gIAkJCWFjbV9sb2coMCwgIkVSUk9SIC0gdW5hYmxlIHRvIGF0dGFjaCBRUCB0
-byBtdWx0aWNhc3QNCj4gPiBncm91cFxuIik7DQo+ID4gIAkJCWlidl9kZXN0cm95X2FoKGRlc3Qt
-PmFoKTsNCj4gPiBAQCAtMTQyOSw3ICsxNDI5LDcgQEAgc3RhdGljIHZvaWQgYWNtcF9lcF9qb2lu
-KHN0cnVjdCBhY21wX2VwICplcCkNCj4gPg0KPiA+ICAJaWYgKGVwLT5tY19kZXN0WzBdLnN0YXRl
-ID09IEFDTVBfUkVBRFkgJiYgZXAtPm1jX2Rlc3RbMF0uYWgpIHsNCj4gPiAgCQlpYnZfZGV0YWNo
-X21jYXN0KGVwLT5xcCwgJmVwLT5tY19kZXN0WzBdLm1naWQsDQo+ID4gLQkJCQkgYmUxNnRvaChl
-cC0+bWNfZGVzdFswXS5hdi5kbGlkKSk7DQo+ID4gKwkJCQkgZXAtPm1jX2Rlc3RbMF0uYXYuZGxp
-ZCk7DQo+ID4gIAkJaWJ2X2Rlc3Ryb3lfYWgoZXAtPm1jX2Rlc3RbMF0uYWgpOw0KPiA+ICAJCWVw
-LT5tY19kZXN0WzBdLmFoID0gTlVMTDsNCj4gPiAgCX0NCj4gDQo+IENoYW5nZXMgbG9vayBjb3Jy
-ZWN0IGZvciBib3RoIHBhdGNoZXMuDQo+IA0KPiBBY2tlZC1ieTogU2VhbiBIZWZ0eSA8c2Vhbi5o
-ZWZ0eUBpbnRlbC5jb20+DQo+IA0KPiBJdCB3b3VsZCBiZSBuaWNlIHRvIHVuZGVyc3RhbmQgaG93
-IHRoZSBjb2RlIHdhcyB3b3JraW5nIGluIHRoZSBwYXN0LiAgQXQNCj4gbGVhc3QgaWJhY20gaGFz
-IGJlZW4gYWJsZSB0byByZXBvcnQgY2FjaGVkIGRhdGEuICBBbGwgbm9kZXMgd291bGQgaGF2ZQ0K
-PiBqb2luZWQgdGhlIHdyb25nIG1jYXN0IGdyb3VwLCBidXQgYXMgeW91IG1lbnRpb24gdGhlIGRs
-aWQgaW4gdGhlIEFWDQo+IHdvdWxkbid0IGhhdmUgbWF0Y2hlZC4gIEkgdHJpZWQgbG9va2luZyBi
-YWNrIHRocm91Z2ggdGhlIGliYWNtIGhpc3RvcnksIGJ1dA0KPiBkaWRuJ3Qgc2VlIGFueSByZWxl
-dmFudCBjaGFuZ2VzLg0KDQpJIGRvbuKAmXQgYmVsaWV2ZSB0aGF0IHRoZSBNTElEIHZhbHVlIHdh
-cyBjaGVja2VkLiAgSSBhZGRlZCBhIHBhdGNoIHNldmVyYWwgbW9udGhzIGFnbyB0byB2ZXJpZnkg
-dGhhdCB0aGUgTUxJRCB3YXMgYSBtY2FzdCBsaWQgKGluIGliX2F0dGFjaF9tY2FzdCkuICBBbmQg
-aXQgbWF5IGJlIHRoYXQgdGhpcyBpcyB3aGF0IGNhdXNlZCB0aGlzIHRvIHN0b3Agd29ya2luZy4N
-Cg0KTQ0KDQo=
+Clean up: The asynchronous path of ro_unmap_safe is the same for all
+registration modes, so just move it into the only function that
+calls it.
+
+"Safe" disposal is done because attempting to invalidate an MR with
+a memory key from the previous connection epoch can result in a
+memory management operation error for some registration modes, and
+that will kill the current connection.
+
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ net/sunrpc/xprtrdma/transport.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+Hi Anna-
+
+This patch replaces 2/3 in the for-4.15 series I sent a few days
+ago.
+
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index 8cf5ccf..aa5cab2 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -727,8 +727,12 @@
+ 		goto drop_connection;
+ 
+ 	/* On retransmit, remove any previously registered chunks */
+-	if (unlikely(!list_empty(&req->rl_registered)))
+-		r_xprt->rx_ia.ri_ops->ro_unmap_safe(r_xprt, req, false);
++	while (unlikely(!list_empty(&req->rl_registered))) {
++		struct rpcrdma_mw *mw;
++
++		mw = rpcrdma_pop_mw(&req->rl_registered);
++		rpcrdma_defer_mr_recovery(mw);
++	}
+ 
+ 	rc = rpcrdma_marshal_req(r_xprt, rqst);
+ 	if (rc < 0)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
