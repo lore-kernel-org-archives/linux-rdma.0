@@ -1,114 +1,66 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 2/3] xprtrdma: Use ro_unmap_sync in xprt_rdma_send_request
-Date: Fri, 13 Oct 2017 13:55:03 -0400
-Message-ID: <11D8512F-8E28-4F4C-9062-615738537E3D@oracle.com>
-References: <20171009155524.18726.32086.stgit@manet.1015granger.net> <20171009160334.18726.33163.stgit@manet.1015granger.net> <ce6f5ccc-cddb-b793-abe4-2e3dcf11c15f@Netapp.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/2] ibacm: Incorrect usage of BE byte order of MLID
+ attach/detach_mcast()
+Date: Fri, 13 Oct 2017 14:43:47 -0400
+Message-ID: <20171013184347.28410.87093.stgit@phlsvslse11.ph.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ce6f5ccc-cddb-b793-abe4-2e3dcf11c15f-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-> On Oct 13, 2017, at 1:43 PM, Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org> wrote:
-> 
-> Hi Chuck,
-> 
-> On 10/09/2017 12:03 PM, Chuck Lever wrote:
->> The "safe" version of ro_unmap is used here to avoid waiting
->> unnecessarily. However:
->> 
->> - It is safe to wait. After all, we have to wait anyway when using
->>   FMR to register memory.
->> 
->> - This case is rare: it occurs only after a reconnect.
-> 
-> I'm just double checking that this really is safe?  I'm seeing the hung task killer running more often after applying this patch:
-> 
-> [  245.376879] INFO: task kworker/0:5:193 blocked for more than 120 seconds.
-> [  245.379909]       Not tainted 4.14.0-rc4-ANNA+ #10934
-> [  245.382001] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-> [  245.385926] kworker/0:5     D    0   193      2 0x80000080
-> [  245.388148] Workqueue: rpciod rpc_async_schedule [sunrpc]
-> [  245.389386] Call Trace:
-> [  245.390070]  __schedule+0x23d/0x850
-> [  245.390673]  schedule+0x46/0xa0
-> [  245.391219]  schedule_timeout+0x230/0x480
-> [  245.391817]  ? ib_send_mad+0x32d/0x430
-> [  245.392387]  ? __slab_alloc.isra.24+0x3e/0x60
-> [  245.392988]  wait_for_common+0xc9/0x190
-> [  245.393574]  ? wait_for_common+0xc9/0x190
-> [  245.395290]  ? wake_up_q+0x90/0x90
-> [  245.396239]  wait_for_completion+0x30/0x40
-> [  245.397279]  frwr_op_unmap_sync+0x139/0x2a0 [rpcrdma]
-> [  245.398401]  ? call_decode+0x830/0x830 [sunrpc]
-> [  245.399435]  xprt_rdma_send_request+0xdc/0xf0 [rpcrdma]
-> [  245.400558]  xprt_transmit+0x7f/0x370 [sunrpc]
-> [  245.401500]  ? call_decode+0x830/0x830 [sunrpc]
-> [  245.402079]  call_transmit+0x1c4/0x2a0 [sunrpc]
-> [  245.402652]  ? call_decode+0x830/0x830 [sunrpc]
-> [  245.403194]  __rpc_execute+0x92/0x430 [sunrpc]
-> [  245.403737]  ? rpc_wake_up+0x7e/0x90 [sunrpc]
-> [  245.404264]  rpc_async_schedule+0x25/0x30 [sunrpc]
-> [  245.404796]  process_one_work+0x1ed/0x430
-> [  245.405276]  worker_thread+0x45/0x3f0
-> [  245.405730]  kthread+0x134/0x150
-> [  245.406144]  ? process_one_work+0x430/0x430
-> [  245.406627]  ? kthread_create_on_node+0x80/0x80
-> [  245.407114]  ret_from_fork+0x25/0x30
-> 
-> I see this when running cthon tests over NFS v3 with kvm / softroce configured on my client and server.  I'm willing to accept that the problem might be on my end, but I still want to check with you first :)
+The MLID value passed to ibv_attach/detach_mcast() must be in host
+byte order.
 
-My guess is that this is because your RDMA layer is dropping the
-connection frequently, so you're hitting this case a lot. If
-LocalInvalidation is taking a long time, that's a bug in the
-provider, I'd say.
+acmp.c incorrectly uses the big endian format when doing a multicast
+attach/detach (join). Multicast packets are used to do name resolution
+by the libibacmp library.
 
-But I'm just speculating. You need to look into this and figure
-out what's going on. ftrace with function_graph should give
-some impression of where the waiting is going on.
+There are two possible results because of this issue.
 
+If a kernel has commit 00b8a3351b2b, the attach will fail with an
+EINVAL.  ibacm will log this as a failure during the multicast join.
 
-> Thanks,
-> Anna
-> 
->> 
->> By switching this call site to ro_unmap_sync, the final use of
->> ro_unmap_safe is removed.
->> 
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
->> net/sunrpc/xprtrdma/transport.c |    3 ++-
->> 1 file changed, 2 insertions(+), 1 deletion(-)
->> 
->> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
->> index 8cf5ccf..eb46d24 100644
->> --- a/net/sunrpc/xprtrdma/transport.c
->> +++ b/net/sunrpc/xprtrdma/transport.c
->> @@ -728,7 +728,8 @@
->> 
->> 	/* On retransmit, remove any previously registered chunks */
->> 	if (unlikely(!list_empty(&req->rl_registered)))
->> -		r_xprt->rx_ia.ri_ops->ro_unmap_safe(r_xprt, req, false);
->> +		r_xprt->rx_ia.ri_ops->ro_unmap_sync(r_xprt,
->> +						    &req->rl_registered);
->> 
->> 	rc = rpcrdma_marshal_req(r_xprt, rqst);
->> 	if (rc < 0)
->> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If a kernel does not have commit 00b8a3351b2b, the attach will
+complete successfully.  Packets sent to this address will be dropped
+because the packet dlid value and the multicast address information
+given by the attach will not match.
 
---
-Chuck Lever
+Update MLID usage to use the correct byte order.
 
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ ibacm/prov/acmp/src/acmp.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
+index aa78416..78d9a29 100644
+--- a/ibacm/prov/acmp/src/acmp.c
++++ b/ibacm/prov/acmp/src/acmp.c
+@@ -732,7 +732,7 @@ static void acmp_process_join_resp(struct acm_sa_mad *sa_mad)
+ 			acm_log(0, "ERROR - unable to create ah\n");
+ 			goto out;
+ 		}
+-		ret = ibv_attach_mcast(ep->qp, &mc_rec->mgid, mc_rec->mlid);
++		ret = ibv_attach_mcast(ep->qp, &dest->mgid, dest->av.dlid);
+ 		if (ret) {
+ 			acm_log(0, "ERROR - unable to attach QP to multicast group\n");
+ 			ibv_destroy_ah(dest->ah);
+@@ -1429,7 +1429,7 @@ static void acmp_ep_join(struct acmp_ep *ep)
+ 
+ 	if (ep->mc_dest[0].state == ACMP_READY && ep->mc_dest[0].ah) {
+ 		ibv_detach_mcast(ep->qp, &ep->mc_dest[0].mgid,
+-				 be16toh(ep->mc_dest[0].av.dlid));
++				 ep->mc_dest[0].av.dlid);
+ 		ibv_destroy_ah(ep->mc_dest[0].ah);
+ 		ep->mc_dest[0].ah = NULL;
+ 	}
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
