@@ -1,23 +1,48 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: Re: [pull request][for-next 00/12] Mellanox, mlx5 IPoIB Muli Pkey
- support 2017-10-11
-Date: Sat, 14 Oct 2017 17:51:22 -0500
-Message-ID: <CAG53R5U66Hu8jj11Nbs+CmDkXDTDeVjXj_okriKe+pWdJ4a_tQ@mail.gmail.com>
-References: <20171014184827.18491-1-saeedm@mellanox.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 00/45] Address issues detected by static analysis
+ tools
+Date: Sat, 14 Oct 2017 20:48:38 -0400
+Message-ID: <1508028518.46071.62.camel@redhat.com>
+References: <20171011174927.25113-1-bart.vanassche@wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20171014184827.18491-1-saeedm@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, netdev@vger.kernel.org, linux-rdma <linux-rdma@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171011174927.25113-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Oct 14, 2017 at 1:48 PM, Saeed Mahameed <saeedm@mellanox.com> wrote:
-> Hi Dave and Doug,
->
-> This series includes updates for mlx5 IPoIB offloading driver from Alex
-> and Feras to add the support for Muli Pkey in the mlx5i ipoib offloading netdev,
+On Wed, 2017-10-11 at 10:48 -0700, Bart Van Assche wrote:
+> Hello Doug,
+> 
+> As we all know there are several static analysis tools available for
+> the Linux
+> kernel and these tools are valuable. I'm referring to increasing the
+> gcc
+> warning level (W=1), sparse and smatch. It is helpful to analyze new
+> code with
+> these tools before submitting a patch. These tools are most useful if
+> existing
+> code is clean. Hence this patch series that significantly reduces the
+> number
+> of complaints reported by static analysis tools. Please consider this
+> patch
+> series for kernel v4.15.
+> 
+> Thanks,
+> 
+> Bart.
 
-In description and cover letter subject, here
-s/Muli/Multi
+Hi Bart, thanks for all the work here.  Series applied.
+
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
