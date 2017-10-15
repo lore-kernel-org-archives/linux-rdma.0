@@ -1,83 +1,45 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [pull request][for-next 00/12] Mellanox, mlx5 IPoIB Muli Pkey
- support 2017-10-11
-Date: Sun, 15 Oct 2017 09:30:12 +0300
-Message-ID: <20171015063012.GW2106@mtr-leonro.local>
-References: <20171014184827.18491-1-saeedm@mellanox.com>
- <af28440c-bb1c-c47b-92dd-60bfbeaa839d@redhat.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="PoKbPPFu8MuDl6RC"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <af28440c-bb1c-c47b-92dd-60bfbeaa839d@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next] RDMA: Remove Sean's and Hal's emails from MAINTAINER file
+Date: Sun, 15 Oct 2017 09:56:48 +0300
+Message-ID: <20171015065648.14653-1-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+RDMA subsystem has one active maintainer who can apply
+patches - Doug Ledford, but the RDMA entries in MAINTAINER file
+are not stating it. The following patch removes Sean's and Hal's
+emails from the maintainers list.
 
---PoKbPPFu8MuDl6RC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+It will allow clean get_maintaner.pl output which is needed for people
+outside of our community and various semi-automatic tools.
 
-On Sat, Oct 14, 2017 at 05:19:34PM -0400, Doug Ledford wrote:
-> On 10/14/2017 2:48 PM, Saeed Mahameed wrote:
-> > Hi Dave and Doug,
-> >
-> > This series includes updates for mlx5 IPoIB offloading driver from Alex
-> > and Feras to add the support for Muli Pkey in the mlx5i ipoib offloading netdev,
-> > to be merged into net-next and rdma-next trees.
->
-> As far as the two IPoIB patches are concerned, they're fine.
->
-> > Doug, I am sorry I couldn't base this on rc2 since the series needs and conflicts
-> > with a fix that was submitted to rc3, so to keep things simple I based it on rc4,
-> > I hope this is ok with you..
->
-> No worries, it just means I have to submit it under another branch.  But
-> I'm already holding one patch series in a stand alone branch, so no big
-> deal.  And, actually, the IPoIB changes are so small they can simply go
-> through Dave's tree if you don't have any dependent code in the IPoIB
-> driver to submit after this but still in this devel cycle.
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ MAINTAINERS | 2 --
+ 1 file changed, 2 deletions(-)
 
-I have IPoIB NAPI implementation waiting for this shared code.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index dafc9c3bbcfa..f1688510178a 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6775,8 +6775,6 @@ F:	drivers/ipack/
 
-Thanks
+ INFINIBAND SUBSYSTEM
+ M:	Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+-M:	Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+-M:	Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+ L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ W:	http://www.openfabrics.org/
+ Q:	http://patchwork.kernel.org/project/linux-rdma/list/
+--
+2.14.2
 
->
-> > Please pull and let me know if there's any problem.
->
-> Once I hear that Dave is OK with the net changes, I'm ready to pull (if
-> I need to).
->
-> --
-> Doug Ledford <dledford@redhat.com>
->     GPG Key ID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
->
-
-
-
-
---PoKbPPFu8MuDl6RC
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnjAHQACgkQ5GN7iDZy
-WKcgkxAAn+cHgtFq6GlaWX4eost0Kq/KIxuvmvfkRR9/86rTqTA1RJ/355aCT8KE
-VGsq3K811ZnCnfeXOiA+HhmHPiwc6AVqOzH4F5g2CKYFkX7lKMyv7HgBa4hiWS5Y
-alDa1/BkiAH3kLpte1jKgk2xejVGo7+Qr5CzCLp/I6QmIyOlAAX89THC4HrcPhbk
-gKCN59ZMfVh2rgwPRqUaZfFCNjAThROkchuB9bOW3teiRZO9tOy4BSOFnwr6rQMG
-8OBP3y0MxSMmhnFskDhxLkhGhFebXOhP4z+GBQpu6mthb61GS5DhKACstqG245g/
-H6Ii6hjyF8B+rCk7cyonk+lC8Bk538xqcyCi8Kp6+YKYNX/1RTCUOEHkIWVVeMUG
-Lc/Nh0SL6KcwP0S+jVpY+Nn1hkDCBl5SkfCeDkW9wHc+lqY+KHN/AuRR9ZPwW9lU
-dYWzjBao8hrtqYVJbg55qZjF58ogsv57CQ8hHdGOak9j+gXvQrJ7I/wxD/31IN9E
-iitCN8j41vdZs5Klf3WqlwuUBSAJDEgAlSAVmMqndhDFH2hrW1RvJvELIUp15/XW
-wdslTY+wMMyIbwrO6o9WjTPP9KK90fFuR5b6HSW8tEWF9qJkC7At2NNGYF6Rh0Yt
-A4KhmLOuEpu7OMpg9pBQyT+ADuAEKDpt/StvY+HdXmMlahK9FXY=
-=nAVk
------END PGP SIGNATURE-----
-
---PoKbPPFu8MuDl6RC--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
