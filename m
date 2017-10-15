@@ -1,96 +1,83 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Enable pkey and device name decoupling
-Date: Sun, 15 Oct 2017 09:27:14 +0300
-Message-ID: <20171015062713.GV2106@mtr-leonro.local>
-References: <20170927093248.3819-1-yuval.shaia@oracle.com>
- <20170928163406.GB17880@obsidianresearch.com>
- <20170928164735.GC2297@mtr-leonro.local>
- <20170928165305.GE17880@obsidianresearch.com>
- <20171015054745.GA2608@yuvallap>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [pull request][for-next 00/12] Mellanox, mlx5 IPoIB Muli Pkey
+ support 2017-10-11
+Date: Sun, 15 Oct 2017 09:30:12 +0300
+Message-ID: <20171015063012.GW2106@mtr-leonro.local>
+References: <20171014184827.18491-1-saeedm@mellanox.com>
+ <af28440c-bb1c-c47b-92dd-60bfbeaa839d@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="fryGc0vzirnrYIcd"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="PoKbPPFu8MuDl6RC"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171015054745.GA2608@yuvallap>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, corbet-T1hC0tSOHrs@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kernel-6AxghH7DbtA@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+In-Reply-To: <af28440c-bb1c-c47b-92dd-60bfbeaa839d@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---fryGc0vzirnrYIcd
+--PoKbPPFu8MuDl6RC
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Sun, Oct 15, 2017 at 08:47:46AM +0300, Yuval Shaia wrote:
-> On Thu, Sep 28, 2017 at 10:53:05AM -0600, Jason Gunthorpe wrote:
-> > On Thu, Sep 28, 2017 at 07:47:35PM +0300, Leon Romanovsky wrote:
-> > > On Thu, Sep 28, 2017 at 10:34:06AM -0600, Jason Gunthorpe wrote:
-> > > > On Wed, Sep 27, 2017 at 12:32:48PM +0300, Yuval Shaia wrote:
-> > > > > The sysfs "create_child" interface creates pkey based child interface but
-> > > > > derives the name from parent device name and pkey value.
-> > > > > This makes administration difficult where pkey values can change but
-> > > > > policies encoded with device names do not.
-> > > > >
-> > > > > We add ability to create a child interface with a user specified name and a
-> > > > > specified pkey with a new sysfs "create_named_child" interface (and also
-> > > > > add a corresponding "delete_named_child" interface).
-> > > > >
-> > > > > We also add a new module api interface to query pkey from a netdevice so
-> > > > > any kernel users of pkey based child interfaces can query it - since with
-> > > > > device name decoupled from pkey, it can no longer be deduced from parsing
-> > > > > the device name by other kernel users.
-> > > >
-> > > > This should all use netlink these days, not more sysfs files.
-> > > >
-> > > > Leon? What do you think about using rdmatool to provide a command line
-> > > > for creating ipoib children?
-> > >
-> > > As far as I understand ipoib_netlink.c, ipoib_new_child_link() already
-> > > implements it and it is supported in "ip".
+On Sat, Oct 14, 2017 at 05:19:34PM -0400, Doug Ledford wrote:
+> On 10/14/2017 2:48 PM, Saeed Mahameed wrote:
+> > Hi Dave and Doug,
 > >
-> > Oh right:
-> >
-> >   ip link add DEVICE name NAME type ipoib [ pkey PKEY ] [mode MODE ]
+> > This series includes updates for mlx5 IPoIB offloading driver from Alex
+> > and Feras to add the support for Muli Pkey in the mlx5i ipoib offloading netdev,
+> > to be merged into net-next and rdma-next trees.
 >
-> So with this interface we can entirely remove the sysfs interface to create
-> child, right?
+> As far as the two IPoIB patches are concerned, they're fine.
+>
+> > Doug, I am sorry I couldn't base this on rc2 since the series needs and conflicts
+> > with a fix that was submitted to rc3, so to keep things simple I based it on rc4,
+> > I hope this is ok with you..
+>
+> No worries, it just means I have to submit it under another branch.  But
+> I'm already holding one patch series in a stand alone branch, so no big
+> deal.  And, actually, the IPoIB changes are so small they can simply go
+> through Dave's tree if you don't have any dependent code in the IPoIB
+> driver to submit after this but still in this devel cycle.
 
-We can't :(, it will break user's scripts.
+I have IPoIB NAPI implementation waiting for this shared code.
 
 Thanks
 
 >
-> >
-> > So what is the point of this series?
-> >
-> > NAK from me.
-> >
-> > Jason
+> > Please pull and let me know if there's any problem.
+>
+> Once I hear that Dave is OK with the net changes, I'm ready to pull (if
+> I need to).
+>
+> --
+> Doug Ledford <dledford@redhat.com>
+>     GPG Key ID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+>
 
---fryGc0vzirnrYIcd
+
+
+
+--PoKbPPFu8MuDl6RC
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlni/8EACgkQ5GN7iDZy
-WKeR9Q/+INegjE4m88qfMvVvEEewea9cp1rEdbxjvJG73sEkq1JmCfybdBiLAmrk
-gzXJK1aK7FAqEXH3L5/T+LsT9jTHgHtgSlVvUnCGytE0VA1UKZtLd9a5ZQ4qPgxO
-YX/CkyaQjWBTDpsR0NNROyA4ERo9hlh5qGTkp5c7KQ90yoTqv4I4Tm7Ukz/pg6RO
-S54VwhuAPGrNlKNwq1Ncdrm/aVY1gEP75JmXGziZytOofdLDU77mfvB0TksZwhqS
-XvnsXGukW8ZmSjZpbq8JgQec4zOF4JGNErV8LCS9YWMqj9RVBwdunV6NJXLGceO7
-2YHTrSkMG0NMcBk1BH5fwt5Fx94yOMtjscAjVYFcCIP9i9mzrAdoKbzKmrtzTb37
-sfYZPu9b1WSlm+mzKFDCSnDP50X+iD9otPQ8z8YWFJtJEUZZhn+KLjD7NA+DzLnI
-9l/gXvw0p9KETT7I2HDPSqr81iwRqtTIqWu7crOr1kU4s4JqCRdUv3rXHA/P95yI
-5XcoiLgL4KDlGmgISPk++a2rvWcb4odYGedcdoy4qulNAEt6d8x0+7ClMKqJz+C0
-W5ipfPwvcS1bcwBOhoqJxvfmvGJhq6gfcn6YukkKmuJDCpRfJZR2DGD5uzdFZR4h
-z/LCpzIp0S1KrIgK5eI8f1lj/iQokrj8P50K3Qnx313Qzd80nIQ=
-=vGy9
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnjAHQACgkQ5GN7iDZy
+WKcgkxAAn+cHgtFq6GlaWX4eost0Kq/KIxuvmvfkRR9/86rTqTA1RJ/355aCT8KE
+VGsq3K811ZnCnfeXOiA+HhmHPiwc6AVqOzH4F5g2CKYFkX7lKMyv7HgBa4hiWS5Y
+alDa1/BkiAH3kLpte1jKgk2xejVGo7+Qr5CzCLp/I6QmIyOlAAX89THC4HrcPhbk
+gKCN59ZMfVh2rgwPRqUaZfFCNjAThROkchuB9bOW3teiRZO9tOy4BSOFnwr6rQMG
+8OBP3y0MxSMmhnFskDhxLkhGhFebXOhP4z+GBQpu6mthb61GS5DhKACstqG245g/
+H6Ii6hjyF8B+rCk7cyonk+lC8Bk538xqcyCi8Kp6+YKYNX/1RTCUOEHkIWVVeMUG
+Lc/Nh0SL6KcwP0S+jVpY+Nn1hkDCBl5SkfCeDkW9wHc+lqY+KHN/AuRR9ZPwW9lU
+dYWzjBao8hrtqYVJbg55qZjF58ogsv57CQ8hHdGOak9j+gXvQrJ7I/wxD/31IN9E
+iitCN8j41vdZs5Klf3WqlwuUBSAJDEgAlSAVmMqndhDFH2hrW1RvJvELIUp15/XW
+wdslTY+wMMyIbwrO6o9WjTPP9KK90fFuR5b6HSW8tEWF9qJkC7At2NNGYF6Rh0Yt
+A4KhmLOuEpu7OMpg9pBQyT+ADuAEKDpt/StvY+HdXmMlahK9FXY=
+=nAVk
 -----END PGP SIGNATURE-----
 
---fryGc0vzirnrYIcd--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--PoKbPPFu8MuDl6RC--
