@@ -1,94 +1,188 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next v1 4/6] IB/core: Fix use workqueue without
- WQ_MEM_RECLAIM
-Date: Mon, 16 Oct 2017 21:32:17 +0300
-Message-ID: <20171016183217.GL2106@mtr-leonro.local>
-References: <20171016054517.30643-1-leon@kernel.org>
- <20171016054517.30643-5-leon@kernel.org>
- <4f08314e-fd5d-c108-438a-d9e83821e4b3@redhat.com>
+From: Jonathan Cameron <jic23@jic23.retrosnub.co.uk>
+Subject: Re: [PATCH v2 04/15] iio: make function argument and some structures const
+Date: Mon, 16 Oct 2017 19:48:03 +0100
+Message-ID: <7091CB3C-16A9-429D-B684-8141955611A7@jic23.retrosnub.co.uk>
+References: <1508167134-6243-1-git-send-email-bhumirks@gmail.com> <1508167134-6243-5-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="AeHkbrJcO8giN/MO"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4f08314e-fd5d-c108-438a-d9e83821e4b3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1508167134-6243-5-git-send-email-bhumirks@gmail.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Bhumika Goyal <bhumirks@gmail.com>, julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, alexander.shishkin@linux.intel.com, jic23@kernel.org, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, hch@lst.de, sagi@grimberg.me, kishon@ti.com, bhelgaas@google.com, nab@linux-iscsi.org, balbi@kernel.org, gregkh@linuxfoundation.org, laurent.pinchart@ideasonboard.com, jlbec@evilplan.org, ccaulfie@redhat.com, teigland@redhat.com, mfasheh@versity.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-usb
 List-Id: linux-rdma@vger.kernel.org
 
 
---AeHkbrJcO8giN/MO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Mon, Oct 16, 2017 at 01:24:12PM -0400, Jonathan Toppins wrote:
-> On 10/16/2017 01:45 AM, Leon Romanovsky wrote:
-> > From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> > The IB/core provides address resolution service and invokes callback
-> > handler when address resolve request completes of requester in worker
-> > thread context.
-> >
-> > Such caller might allocate or free memory in callback handler
-> > depending on the completion status to make further progress or to
-> > terminate a connection. Most ULPs resolve route which involves
-> > allocating route entry and path record elements in callback event handler.
-> >
-> > It has been noticed that WQ_MEM_RECLAIM flag should not be used for
-> > workers that tend to allocate memory in this [1] thread discussion.
-> >
-> > In order to mitigate this situation, WQ_MEM_RECLAIM flag was dropped for
-> > other such WQs in this [2] patch.
-> >
-> > Similar problem might arise with address resolution path, though its not
-> > yet noticed. The ib_addr workqueue is not memory reclaim path due to its
-> > nature of invoking callback that might allocate memory or don't free any
-> > memory under memory pressure.
-> >
-> > [1] https://www.spinics.net/lists/linux-rdma/msg53239.html
-> > [2] https://www.spinics.net/lists/linux-rdma/msg53416.html
-> >
-> > Fixes: f54816261c2b ("IB/addr: Remove deprecated create_singlethread_workqueue")
-> > Fixes: 5fff41e1f89d ("IB/core: Fix race condition in resolving IP to MAC")
-> > Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+On 16 October 2017 16:18:43 BST, Bhumika Goyal <bhumirks@gmail.com> wrote:
+>Make the argument of the functions iio_sw{d/t}_group_init_type_name
+>const
+>as they are only passed to the function config_group_init_type_name
+>having
+>the argument as const.
 >
-> This looks like a -stable patch candidate. Once accepted this should
-> probably be queued for v4.9+.
+>Make the config_item_type structures const as they are either passed to
+>the functions having the argument as const or they are
+>stored in the const "ci_type" field of a config_item structure.
+>
+>Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+Acked-by: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+>---
+>* Changes in v2- Combine all the followup patches and the
+>constification
+>patches into a series.
+>
+> drivers/iio/dummy/iio_simple_dummy.c   | 2 +-
+> drivers/iio/industrialio-configfs.c    | 2 +-
+> drivers/iio/industrialio-sw-device.c   | 6 +++---
+> drivers/iio/industrialio-sw-trigger.c  | 6 +++---
+> drivers/iio/trigger/iio-trig-hrtimer.c | 2 +-
+> drivers/iio/trigger/iio-trig-loop.c    | 2 +-
+> include/linux/iio/sw_device.h          | 2 +-
+> include/linux/iio/sw_trigger.h         | 2 +-
+> 8 files changed, 12 insertions(+), 12 deletions(-)
+>
+>diff --git a/drivers/iio/dummy/iio_simple_dummy.c
+>b/drivers/iio/dummy/iio_simple_dummy.c
+>index a45d01e..6205247 100644
+>--- a/drivers/iio/dummy/iio_simple_dummy.c
+>+++ b/drivers/iio/dummy/iio_simple_dummy.c
+>@@ -26,7 +26,7 @@
+> #include <linux/iio/sw_device.h>
+> #include "iio_simple_dummy.h"
+> 
+>-static struct config_item_type iio_dummy_type = {
+>+static const struct config_item_type iio_dummy_type = {
+> 	.ct_owner = THIS_MODULE,
+> };
+> 
+>diff --git a/drivers/iio/industrialio-configfs.c
+>b/drivers/iio/industrialio-configfs.c
+>index 45ce2bc..5a0aae1 100644
+>--- a/drivers/iio/industrialio-configfs.c
+>+++ b/drivers/iio/industrialio-configfs.c
+>@@ -17,7 +17,7 @@
+> #include <linux/iio/iio.h>
+> #include <linux/iio/configfs.h>
+> 
+>-static struct config_item_type iio_root_group_type = {
+>+static const struct config_item_type iio_root_group_type = {
+> 	.ct_owner       = THIS_MODULE,
+> };
+> 
+>diff --git a/drivers/iio/industrialio-sw-device.c
+>b/drivers/iio/industrialio-sw-device.c
+>index 81b49cf..90df97c 100644
+>--- a/drivers/iio/industrialio-sw-device.c
+>+++ b/drivers/iio/industrialio-sw-device.c
+>@@ -19,9 +19,9 @@
+> #include <linux/configfs.h>
+> 
+> static struct config_group *iio_devices_group;
+>-static struct config_item_type iio_device_type_group_type;
+>+static const struct config_item_type iio_device_type_group_type;
+> 
+>-static struct config_item_type iio_devices_group_type = {
+>+static const struct config_item_type iio_devices_group_type = {
+> 	.ct_owner = THIS_MODULE,
+> };
+> 
+>@@ -156,7 +156,7 @@ static void device_drop_group(struct config_group
+>*group,
+> 	.drop_item	= &device_drop_group,
+> };
+> 
+>-static struct config_item_type iio_device_type_group_type = {
+>+static const struct config_item_type iio_device_type_group_type = {
+> 	.ct_group_ops = &device_ops,
+> 	.ct_owner       = THIS_MODULE,
+> };
+>diff --git a/drivers/iio/industrialio-sw-trigger.c
+>b/drivers/iio/industrialio-sw-trigger.c
+>index 8d24fb1..bc6b7fb 100644
+>--- a/drivers/iio/industrialio-sw-trigger.c
+>+++ b/drivers/iio/industrialio-sw-trigger.c
+>@@ -19,9 +19,9 @@
+> #include <linux/configfs.h>
+> 
+> static struct config_group *iio_triggers_group;
+>-static struct config_item_type iio_trigger_type_group_type;
+>+static const struct config_item_type iio_trigger_type_group_type;
+> 
+>-static struct config_item_type iio_triggers_group_type = {
+>+static const struct config_item_type iio_triggers_group_type = {
+> 	.ct_owner = THIS_MODULE,
+> };
+> 
+>@@ -156,7 +156,7 @@ static void trigger_drop_group(struct config_group
+>*group,
+> 	.drop_item	= &trigger_drop_group,
+> };
+> 
+>-static struct config_item_type iio_trigger_type_group_type = {
+>+static const struct config_item_type iio_trigger_type_group_type = {
+> 	.ct_group_ops = &trigger_ops,
+> 	.ct_owner       = THIS_MODULE,
+> };
+>diff --git a/drivers/iio/trigger/iio-trig-hrtimer.c
+>b/drivers/iio/trigger/iio-trig-hrtimer.c
+>index 3ee9216..7accd01 100644
+>--- a/drivers/iio/trigger/iio-trig-hrtimer.c
+>+++ b/drivers/iio/trigger/iio-trig-hrtimer.c
+>@@ -30,7 +30,7 @@ struct iio_hrtimer_info {
+> 	ktime_t period;
+> };
+> 
+>-static struct config_item_type iio_hrtimer_type = {
+>+static const struct config_item_type iio_hrtimer_type = {
+> 	.ct_owner = THIS_MODULE,
+> };
+> 
+>diff --git a/drivers/iio/trigger/iio-trig-loop.c
+>b/drivers/iio/trigger/iio-trig-loop.c
+>index b4b02db..94a90e0 100644
+>--- a/drivers/iio/trigger/iio-trig-loop.c
+>+++ b/drivers/iio/trigger/iio-trig-loop.c
+>@@ -36,7 +36,7 @@ struct iio_loop_info {
+> 	struct task_struct *task;
+> };
+> 
+>-static struct config_item_type iio_loop_type = {
+>+static const struct config_item_type iio_loop_type = {
+> 	.ct_owner = THIS_MODULE,
+> };
+> 
+>diff --git a/include/linux/iio/sw_device.h
+>b/include/linux/iio/sw_device.h
+>index fa79319..8642b91 100644
+>--- a/include/linux/iio/sw_device.h
+>+++ b/include/linux/iio/sw_device.h
+>@@ -60,7 +60,7 @@ struct iio_sw_device *to_iio_sw_device(struct
+>config_item *item)
+> static inline
+> void iio_swd_group_init_type_name(struct iio_sw_device *d,
+> 				  const char *name,
+>-				  struct config_item_type *type)
+>+				  const struct config_item_type *type)
+> {
+> #if IS_ENABLED(CONFIG_CONFIGFS_FS)
+> 	config_group_init_type_name(&d->group, name, type);
+>diff --git a/include/linux/iio/sw_trigger.h
+>b/include/linux/iio/sw_trigger.h
+>index c97eab6..0c43738 100644
+>--- a/include/linux/iio/sw_trigger.h
+>+++ b/include/linux/iio/sw_trigger.h
+>@@ -60,7 +60,7 @@ struct iio_sw_trigger *to_iio_sw_trigger(struct
+>config_item *item)
+> static inline
+> void iio_swt_group_init_type_name(struct iio_sw_trigger *t,
+> 				  const char *name,
+>-				  struct config_item_type *type)
+>+				  const struct config_item_type *type)
+> {
+> #if IS_ENABLED(CONFIG_CONFIGFS_FS)
+> 	config_group_init_type_name(&t->group, name, type);
 
-I don't have any strong opinion about that.
-
-Thanks
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---AeHkbrJcO8giN/MO
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnk+zEACgkQ5GN7iDZy
-WKfiFBAAlkgp/DunBrksPkd3CBugAdvoVjJjUULpXjaPtC+sTcRUzBJ77iKzLess
-JpxNPiQ2+5Oyxo2SvQWdu2c1nEl6nU2wDbW5iY+YAA4ZRqysD6d6iuUL22R0w+2w
-RNZSYtduhLyfE8vwx6kSgUWl/XfY8jNNym9xJ6oISgkrRubnZtyiJKHnj+iI2OZK
-1xXCGfH8AN3deXpI4SAC/Nls9tMkC3h9IlVYYBdnyh+ZnfiVdFYGJY8YzjlFUP8b
-kpveo/P20AswtqvW4yV2Rv7yHd3ehYkVOHg7xHkPvfBFY1Cg9w5NYB/avztpAI2g
-ETUHPLIfgvGo9eTlROulKUGG+YbrIW7HjjXmzKE+A2rUwUcMxnnUB5UCgky4JsgA
-SS8x+giTuAPFr0MYw9be8oiOlvzv67BkIIVvKbMMR4KZ0ihm2QUIHQZFJ9gilJ4V
-lAcdgvAOMSKUIus/Tz66Dn0zSTR2jlk9Sex961fufhZOMpN2Po8CKLmywZWTtgdD
-nMcFhPTlzZkZgXptYh8YNkd0yjbhFhRyL0jqwqTcBpE8pMTokWrQZKVCRoGM2K5J
-Jod0PEgioHJal1VuNpBL8DxCm3OkiNxzRPaF/vEVmowU/PrVLBRe+7/TKZSFQWKO
-dST3IYQiAChJnhLgOhZV3oe7myDNdjbiH3s9tPbIrvdko+KuW+o=
-=R96l
------END PGP SIGNATURE-----
-
---AeHkbrJcO8giN/MO--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Sent from my Android device with K-9 Mail. Please excuse my brevity.
