@@ -1,65 +1,65 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 3/5] IB/core: Fix use workqueue without WQ_MEM_RECLAIM
-Date: Mon, 16 Oct 2017 08:28:10 +0300
-Message-ID: <20171016052812.28802-4-leon@kernel.org>
+Subject: Re: [PATCH rdma-next 0/5] RDMA core, mlx5 fixes and refactoring for
+ 4.15
+Date: Mon, 16 Oct 2017 08:42:25 +0300
+Message-ID: <20171016054225.GC2106@mtr-leonro.local>
 References: <20171016052812.28802-1-leon@kernel.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="N+dhEFW7Y2Uiel/w"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <20171016052812.28802-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The IB/core provides address resolution service and invokes callback
-handler when address resolve request completes of requester in worker
-thread context.
+--N+dhEFW7Y2Uiel/w
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Such caller might allocate or free memory in callback handler
-depending on the completion status to make further progress or to
-terminate a connection. Most ULPs resolve route which involves
-allocating route entry and path record elements in callback event handler.
+On Mon, Oct 16, 2017 at 08:28:07AM +0300, Leon Romanovsky wrote:
+>
+> J=E9r=E9my Lefaure (1):
+>   IB/mlx5: Use ARRAY_SIZE
+>
+> Parav Pandit (4):
+>   IB: Let ib_core resolve destination mac address
+>   IB/core: Fix unable to change lifespan entry for hw_counters
+>   IB/core: Fix use workqueue without WQ_MEM_RECLAIM
+>   IB/core: Take into account optional UDR, XRC headers and mandatory
+>     ICRC for RoCE MTU
 
-It has been noticed that WQ_MEM_RECLAIM flag should not be used for
-workers that tend to allocate memory in this [1] thread discussion.
+Doug,
+Sorry, please drop this series, I missed one patch, it should be 6
+patches and not 5.
 
-In order to mitigate this situation, WQ_MEM_RECLAIM flag was dropped for
-other such WQs in this [2] patch.
+Thanks
 
-Similar problem might arise with address resolution path, though its not
-yet noticed. The ib_addr workqueue is not memory reclaim path due to its
-nature of invoking callback that might allocate memory or don't free any
-memory under memory pressure.
+--N+dhEFW7Y2Uiel/w
+Content-Type: application/pgp-signature; name="signature.asc"
 
-[1] https://www.spinics.net/lists/linux-rdma/msg53239.html
-[2] https://www.spinics.net/lists/linux-rdma/msg53416.html
+-----BEGIN PGP SIGNATURE-----
 
-Fixes: f54816261c2b ("IB/addr: Remove deprecated create_singlethread_workqueue")
-Fixes: 5fff41e1f89d ("IB/core: Fix race condition in resolving IP to MAC")
-Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/core/addr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnkRsAACgkQ5GN7iDZy
+WKc6aA/9EshUNS9AzUEroEBmErJ3e70vkqnJbQZT39B8GtwhaL2Dsbcg7aqutwDH
+WjsvOWm5AuEa1P/n+oyw7SeFEsUaZub2HpDuf5UuWr+M3H6FdRkRs6J7A0+IEOMY
+t5wwKyeVoMqu5RHZTQPrtXfMBvgHfBnjN2cLw4aJP31rh5evU8EoVDQwDJEMS/zG
+tZ08eAYiwWrEeyr/iZWB1pHrHZW/6qhexDjdkDC1Z4MXaPocucfXy9g5VpnjCxYj
+2H/xEVQTHdtlWLvBPcarbW4ER4Wn5ovTWCPvt7SpruFhmRj07U9Uppvijb6uyZ7a
+XR+GbNBVedgCtkxcVLpwzqUSPQak7DhgZ0xJF5NI2wkwR+WXwaWSHLG3LQnA/Jii
+WfTOxLUWo2l5ES/HGxzkTy/o7qK/RC5m2/Zg/Lwei+PrgG54u/KZfTUDsrLybezW
+W23FmxOwUvIuAp3gdRpUR7wfBsTUnYchgdbKAE4Lup1PYf8v2IKl1Khs5+5bkHsD
+NMNBuVOESD3DOONDFWI52j9kZvyUkn++od43mpBteKntvmqWbTrJehnECjY+0lMB
+mo5+Q+1x1VJlYQdzIFeMjA+pmNmcZ53imCu7hRE9RfTTZOcKzZlBJ+wlozUG47SQ
+aPC8Tug1RRZe9ye1b+YTMhoG8t/zn+WSJKrKyVMy8++dFf4m5xM=
+=W7oC
+-----END PGP SIGNATURE-----
 
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index 12523f630b61..d2f74721b3ba 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -852,7 +852,7 @@ static struct notifier_block nb = {
- 
- int addr_init(void)
- {
--	addr_wq = alloc_ordered_workqueue("ib_addr", WQ_MEM_RECLAIM);
-+	addr_wq = alloc_ordered_workqueue("ib_addr", 0);
- 	if (!addr_wq)
- 		return -ENOMEM;
- 
--- 
-2.14.2
-
+--N+dhEFW7Y2Uiel/w--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
