@@ -1,81 +1,42 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 5/6] IB/core: Take into account optional UDR, XRC headers and mandatory ICRC for RoCE MTU
-Date: Mon, 16 Oct 2017 08:45:16 +0300
-Message-ID: <20171016054517.30643-6-leon@kernel.org>
-References: <20171016054517.30643-1-leon@kernel.org>
+Subject: [PATCH rdma-next 3/3] IB/ipoib: Change number of TX wqe to 64
+Date: Mon, 16 Oct 2017 08:49:01 +0300
+Message-ID: <20171016054901.32479-4-leon@kernel.org>
+References: <20171016054901.32479-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171016054517.30643-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20171016054901.32479-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This fix considers optional UDP, XRC header sizes and mandatory ICRC 4 bytes in
-calculation of path MTU, by considering additional 8 bytes, path MTU calculation
-is more accurate.
+NAPI budget is 64 packets, while maximum polling size for
+the send CQ is 16. Let's bring them in sync, so the NAPI
+budget will be reused completely.
 
-Link: https://www.spinics.net/lists/linux-rdma/msg54558.html
-Fixes: 3c86aa70bf67 ("RDMA/cm: Add RDMA CM support for IBoE devices")
-Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reported-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/rdma/ib_addr.h |  7 ++++---
- include/rdma/ib_pack.h | 19 +++++++++++--------
- 2 files changed, 15 insertions(+), 11 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-index cfa82d16573d..b2a10c762304 100644
---- a/include/rdma/ib_addr.h
-+++ b/include/rdma/ib_addr.h
-@@ -245,10 +245,11 @@ static inline void rdma_addr_set_dgid(struct rdma_dev_addr *dev_addr, union ib_g
- static inline enum ib_mtu iboe_get_mtu(int mtu)
- {
- 	/*
--	 * reduce IB headers from effective IBoE MTU. 28 stands for
--	 * atomic header which is the biggest possible header after BTH
-+	 * Reduce IB headers from effective IBoE MTU.
- 	 */
--	mtu = mtu - IB_GRH_BYTES - IB_BTH_BYTES - 28;
-+	mtu = mtu - (IB_GRH_BYTES + IB_UDP_BYTES + IB_BTH_BYTES +
-+		     IB_EXT_XRC_BYTES + IB_EXT_ATOMICETH_BYTES +
-+		     IB_ICRC_BYTES);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index e8d993ee3255..aaf0bef2f3f4 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -111,7 +111,7 @@ enum {
+ 	IPOIB_MCAST_FLAG_BUSY	  = 2,
+ 	IPOIB_MCAST_FLAG_ATTACHED = 3,
  
- 	if (mtu >= ib_mtu_enum_to_int(IB_MTU_4096))
- 		return IB_MTU_4096;
-diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
-index 36655899ee02..7ea1382ad0e5 100644
---- a/include/rdma/ib_pack.h
-+++ b/include/rdma/ib_pack.h
-@@ -37,14 +37,17 @@
- #include <uapi/linux/if_ether.h>
+-	MAX_SEND_CQE		  = 16,
++	MAX_SEND_CQE		  = 64,
+ 	IPOIB_CM_COPYBREAK	  = 256,
  
- enum {
--	IB_LRH_BYTES  = 8,
--	IB_ETH_BYTES  = 14,
--	IB_VLAN_BYTES = 4,
--	IB_GRH_BYTES  = 40,
--	IB_IP4_BYTES  = 20,
--	IB_UDP_BYTES  = 8,
--	IB_BTH_BYTES  = 12,
--	IB_DETH_BYTES = 8
-+	IB_LRH_BYTES		= 8,
-+	IB_ETH_BYTES		= 14,
-+	IB_VLAN_BYTES		= 4,
-+	IB_GRH_BYTES		= 40,
-+	IB_IP4_BYTES		= 20,
-+	IB_UDP_BYTES		= 8,
-+	IB_BTH_BYTES		= 12,
-+	IB_DETH_BYTES		= 8,
-+	IB_EXT_ATOMICETH_BYTES	= 28,
-+	IB_EXT_XRC_BYTES	= 4,
-+	IB_ICRC_BYTES		= 4
- };
- 
- struct ib_field {
+ 	IPOIB_NON_CHILD		  = 0,
 -- 
 2.14.2
 
