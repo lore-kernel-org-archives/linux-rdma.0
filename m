@@ -1,239 +1,109 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 09/12] i40iw: Refactor queue depth calculation
-Date: Mon, 16 Oct 2017 15:46:02 -0500
-Message-ID: <20171016204605.37512-10-shiraz.saleem@intel.com>
+Subject: [PATCH for-next 02/12] i40iw: Ignore AE source field in AEQE for some AEs
+Date: Mon, 16 Oct 2017 15:45:55 -0500
+Message-ID: <20171016204605.37512-3-shiraz.saleem@intel.com>
 References: <20171016204605.37512-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171016204605.37512-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Queue depth calculations use a mix of work requests
-and actual number of bytes. Consolidate all calculations
-using minimum WQE size to avoid confusion.
+From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
+The AE source field in Asynchronous Event Queue Entry (AEQE) is
+not set by the hardware for some AEs, but the code assumes it does.
+This results in incorrect processing of some AEs.
+Fix this by setting ae_src to I40IW_AE_SOURCE_RSVD for those AEs.
+
+Fixes: 86dbcd0f12e9 ("i40iw: add file to handle cqp calls")
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_d.h     |  9 ++++-
- drivers/infiniband/hw/i40iw/i40iw_uk.c    | 63 ++++++++++++++++++++++++-------
- drivers/infiniband/hw/i40iw/i40iw_user.h  |  4 +-
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 34 ++++-------------
- 4 files changed, 67 insertions(+), 43 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 49 ++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/i40iw/i40iw_d.h    |  1 +
+ 2 files changed, 50 insertions(+)
 
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+index 4597cf4..810fdda 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+@@ -1774,6 +1774,53 @@ static enum i40iw_status_code i40iw_sc_get_next_aeqe(struct i40iw_sc_aeq *aeq,
+ 	info->iwarp_state = (u8)RS_64(temp, I40IW_AEQE_IWSTATE);
+ 	info->q2_data_written = (u8)RS_64(temp, I40IW_AEQE_Q2DATA);
+ 	info->aeqe_overflow = (bool)RS_64(temp, I40IW_AEQE_OVERFLOW);
++
++	switch (info->ae_id) {
++	case I40IW_AE_PRIV_OPERATION_DENIED:
++	case I40IW_AE_UDA_XMIT_DGRAM_TOO_LONG:
++	case I40IW_AE_UDA_XMIT_DGRAM_TOO_SHORT:
++	case I40IW_AE_BAD_CLOSE:
++	case I40IW_AE_RDMAP_ROE_BAD_LLP_CLOSE:
++	case I40IW_AE_RDMA_READ_WHILE_ORD_ZERO:
++	case I40IW_AE_STAG_ZERO_INVALID:
++	case I40IW_AE_IB_RREQ_AND_Q1_FULL:
++	case I40IW_AE_WQE_UNEXPECTED_OPCODE:
++	case I40IW_AE_DDP_UBE_INVALID_DDP_VERSION:
++	case I40IW_AE_DDP_UBE_INVALID_MO:
++	case I40IW_AE_DDP_UBE_INVALID_QN:
++	case I40IW_AE_DDP_NO_L_BIT:
++	case I40IW_AE_RDMAP_ROE_INVALID_RDMAP_VERSION:
++	case I40IW_AE_RDMAP_ROE_UNEXPECTED_OPCODE:
++	case I40IW_AE_ROE_INVALID_RDMA_READ_REQUEST:
++	case I40IW_AE_ROE_INVALID_RDMA_WRITE_OR_READ_RESP:
++	case I40IW_AE_INVALID_ARP_ENTRY:
++	case I40IW_AE_INVALID_TCP_OPTION_RCVD:
++	case I40IW_AE_STALE_ARP_ENTRY:
++	case I40IW_AE_LLP_CLOSE_COMPLETE:
++	case I40IW_AE_LLP_CONNECTION_RESET:
++	case I40IW_AE_LLP_FIN_RECEIVED:
++	case I40IW_AE_LLP_RECEIVED_MPA_CRC_ERROR:
++	case I40IW_AE_LLP_SEGMENT_TOO_SMALL:
++	case I40IW_AE_LLP_SYN_RECEIVED:
++	case I40IW_AE_LLP_TERMINATE_RECEIVED:
++	case I40IW_AE_LLP_TOO_MANY_RETRIES:
++	case I40IW_AE_LLP_DOUBT_REACHABILITY:
++	case I40IW_AE_RESET_SENT:
++	case I40IW_AE_TERMINATE_SENT:
++	case I40IW_AE_RESET_NOT_SENT:
++	case I40IW_AE_LCE_QP_CATASTROPHIC:
++	case I40IW_AE_QP_SUSPEND_COMPLETE:
++		info->qp = true;
++		info->compl_ctx = compl_ctx;
++		ae_src = I40IW_AE_SOURCE_RSVD;
++		break;
++	case I40IW_AE_LCE_CQ_CATASTROPHIC:
++		info->cq = true;
++		info->compl_ctx = LS_64_1(compl_ctx, 1);
++		ae_src = I40IW_AE_SOURCE_RSVD;
++		break;
++	}
++
+ 	switch (ae_src) {
+ 	case I40IW_AE_SOURCE_RQ:
+ 	case I40IW_AE_SOURCE_RQ_0011:
+@@ -1807,6 +1854,8 @@ static enum i40iw_status_code i40iw_sc_get_next_aeqe(struct i40iw_sc_aeq *aeq,
+ 		info->compl_ctx = compl_ctx;
+ 		info->out_rdrsp = true;
+ 		break;
++	case I40IW_AE_SOURCE_RSVD:
++		/* fallthrough */
+ 	default:
+ 		break;
+ 	}
 diff --git a/drivers/infiniband/hw/i40iw/i40iw_d.h b/drivers/infiniband/hw/i40iw/i40iw_d.h
-index f1a6ce6c9..65ec39e 100644
+index dc319e9..60c785a 100644
 --- a/drivers/infiniband/hw/i40iw/i40iw_d.h
 +++ b/drivers/infiniband/hw/i40iw/i40iw_d.h
-@@ -1301,8 +1301,13 @@
- 	(0xffffffffULL << I40IWQPC_LOCAL_IPADDR0_SHIFT)
+@@ -128,6 +128,7 @@
+ 		&_ceq->ceqe_base[I40IW_RING_GETCURRENT_TAIL(_ceq->ceq_ring)]   \
+ 	)
  
- /* wqe size considering 32 bytes per wqe*/
--#define I40IWQP_SW_MIN_WQSIZE 4		/* 128 bytes */
--#define I40IWQP_SW_MAX_WQSIZE 2048	/* 2048 bytes */
-+#define I40IW_QP_SW_MIN_WQSIZE 4		/*in WRs*/
-+#define I40IW_SQ_RSVD 2
-+#define I40IW_RQ_RSVD 1
-+#define I40IW_MAX_QUANTAS_PER_WR 2
-+#define I40IW_QP_SW_MAX_SQ_QUANTAS 2048
-+#define I40IW_QP_SW_MAX_RQ_QUANTAS 16384
-+#define I40IW_MAX_QP_WRS ((I40IW_QP_SW_MAX_SQ_QUANTAS / I40IW_MAX_QUANTAS_PER_WR) - 1)
++#define I40IW_AE_SOURCE_RSVD            0x0
+ #define I40IW_AE_SOURCE_RQ              0x1
+ #define I40IW_AE_SOURCE_RQ_0011         0x3
  
- #define I40IWQP_OP_RDMA_WRITE 0
- #define I40IWQP_OP_RDMA_READ 1
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-index 42dde59..3ec5389 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_uk.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-@@ -894,8 +894,21 @@ static enum i40iw_status_code i40iw_cq_poll_completion(struct i40iw_cq_uk *cq,
- }
- 
- /**
-+ * i40iw_qp_roundup - return round up QP WQ depth
-+ * @wqdepth: WQ depth in quantas to round up
-+ */
-+static int i40iw_qp_round_up(u32 wqdepth)
-+{
-+	int scount = 1;
-+
-+	for (wqdepth--; scount <= 16; scount *= 2)
-+		wqdepth |= wqdepth >> scount;
-+
-+	return ++wqdepth;
-+}
-+
-+/**
-  * i40iw_get_wqe_shift - get shift count for maximum wqe size
-- * @wqdepth: depth of wq required.
-  * @sge: Maximum Scatter Gather Elements wqe
-  * @inline_data: Maximum inline data size
-  * @shift: Returns the shift needed based on sge
-@@ -905,22 +918,48 @@ static enum i40iw_status_code i40iw_cq_poll_completion(struct i40iw_cq_uk *cq,
-  * For 2 or 3 SGEs or inline data <= 48, shift = 1 (wqe size of 64 bytes).
-  * Shift of 2 otherwise (wqe size of 128 bytes).
-  */
--enum i40iw_status_code i40iw_get_wqe_shift(u32 wqdepth, u32 sge, u32 inline_data, u8 *shift)
-+void i40iw_get_wqe_shift(u32 sge, u32 inline_data, u8 *shift)
- {
--	u32 size;
--
- 	*shift = 0;
- 	if (sge > 1 || inline_data > 16)
- 		*shift = (sge < 4 && inline_data <= 48) ? 1 : 2;
-+}
- 
--	/* check if wqdepth is multiple of 2 or not */
-+/*
-+ * i40iw_get_sqdepth - get SQ depth (quantas)
-+ * @sq_size: SQ size
-+ * @shift: shift which determines size of WQE
-+ * @sqdepth: depth of SQ
-+ *
-+ */
-+enum i40iw_status_code i40iw_get_sqdepth(u32 sq_size, u8 shift, u32 *sqdepth)
-+{
-+	*sqdepth = i40iw_qp_round_up((sq_size << shift) + I40IW_SQ_RSVD);
- 
--	if ((wqdepth < I40IWQP_SW_MIN_WQSIZE) || (wqdepth & (wqdepth - 1)))
-+	if (*sqdepth < (I40IW_QP_SW_MIN_WQSIZE << shift))
-+		*sqdepth = I40IW_QP_SW_MIN_WQSIZE << shift;
-+	else if (*sqdepth > I40IW_QP_SW_MAX_SQ_QUANTAS)
- 		return I40IW_ERR_INVALID_SIZE;
- 
--	size = wqdepth << *shift;	/* multiple of 32 bytes count */
--	if (size > I40IWQP_SW_MAX_WQSIZE)
-+	return 0;
-+}
-+
-+/*
-+ * i40iw_get_rq_depth - get RQ depth (quantas)
-+ * @rq_size: RQ size
-+ * @shift: shift which determines size of WQE
-+ * @rqdepth: depth of RQ
-+ *
-+ */
-+enum i40iw_status_code i40iw_get_rqdepth(u32 rq_size, u8 shift, u32 *rqdepth)
-+{
-+	*rqdepth = i40iw_qp_round_up((rq_size << shift) + I40IW_RQ_RSVD);
-+
-+	if (*rqdepth < (I40IW_QP_SW_MIN_WQSIZE << shift))
-+		*rqdepth = I40IW_QP_SW_MIN_WQSIZE << shift;
-+	else if (*rqdepth > I40IW_QP_SW_MAX_RQ_QUANTAS)
- 		return I40IW_ERR_INVALID_SIZE;
-+
- 	return 0;
- }
- 
-@@ -974,9 +1013,7 @@ enum i40iw_status_code i40iw_qp_uk_init(struct i40iw_qp_uk *qp,
- 
- 	if (info->max_rq_frag_cnt > I40IW_MAX_WQ_FRAGMENT_COUNT)
- 		return I40IW_ERR_INVALID_FRAG_COUNT;
--	ret_code = i40iw_get_wqe_shift(info->sq_size, info->max_sq_frag_cnt, info->max_inline_data, &sqshift);
--	if (ret_code)
--		return ret_code;
-+	i40iw_get_wqe_shift(info->max_sq_frag_cnt, info->max_inline_data, &sqshift);
- 
- 	qp->sq_base = info->sq;
- 	qp->rq_base = info->rq;
-@@ -1010,9 +1047,7 @@ enum i40iw_status_code i40iw_qp_uk_init(struct i40iw_qp_uk *qp,
- 		I40IW_RING_INIT(qp->rq_ring, qp->rq_size);
- 		switch (info->abi_ver) {
- 		case 4:
--			ret_code = i40iw_get_wqe_shift(info->rq_size, info->max_rq_frag_cnt, 0, &rqshift);
--			if (ret_code)
--				return ret_code;
-+			i40iw_get_wqe_shift(info->max_rq_frag_cnt, 0, &rqshift);
- 			break;
- 		case 5: /* fallthrough until next ABI version */
- 		default:
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_user.h b/drivers/infiniband/hw/i40iw/i40iw_user.h
-index a898f99..e73efc5 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_user.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_user.h
-@@ -425,5 +425,7 @@ enum i40iw_status_code i40iw_fragcnt_to_wqesize_sq(u32 frag_cnt, u8 *wqe_size);
- enum i40iw_status_code i40iw_fragcnt_to_wqesize_rq(u32 frag_cnt, u8 *wqe_size);
- enum i40iw_status_code i40iw_inline_data_size_to_wqesize(u32 data_size,
- 							 u8 *wqe_size);
--enum i40iw_status_code i40iw_get_wqe_shift(u32 wqdepth, u32 sge, u32 inline_data, u8 *shift);
-+void i40iw_get_wqe_shift(u32 sge, u32 inline_data, u8 *shift);
-+enum i40iw_status_code i40iw_get_sqdepth(u32 sq_size, u8 shift, u32 *sqdepth);
-+enum i40iw_status_code i40iw_get_rqdepth(u32 rq_size, u8 shift, u32 *rqdepth);
- #endif
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 58d815f..ee75f81 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -69,7 +69,7 @@ static int i40iw_query_device(struct ib_device *ibdev,
- 	props->hw_ver = (u32)iwdev->sc_dev.hw_rev;
- 	props->max_mr_size = I40IW_MAX_OUTBOUND_MESSAGE_SIZE;
- 	props->max_qp = iwdev->max_qp - iwdev->used_qps;
--	props->max_qp_wr = (I40IW_MAX_WQ_ENTRIES >> 2) - 1;
-+	props->max_qp_wr = I40IW_MAX_QP_WRS;
- 	props->max_sge = I40IW_MAX_WQ_FRAGMENT_COUNT;
- 	props->max_cq = iwdev->max_cq - iwdev->used_cqs;
- 	props->max_cqe = iwdev->max_cqe;
-@@ -381,22 +381,6 @@ static int i40iw_dealloc_pd(struct ib_pd *ibpd)
- }
- 
- /**
-- * i40iw_qp_roundup - return round up qp ring size
-- * @wr_ring_size: ring size to round up
-- */
--static int i40iw_qp_roundup(u32 wr_ring_size)
--{
--	int scount = 1;
--
--	if (wr_ring_size < I40IWQP_SW_MIN_WQSIZE)
--		wr_ring_size = I40IWQP_SW_MIN_WQSIZE;
--
--	for (wr_ring_size--; scount <= 16; scount *= 2)
--		wr_ring_size |= wr_ring_size >> scount;
--	return ++wr_ring_size;
--}
--
--/**
-  * i40iw_get_pbl - Retrieve pbl from a list given a virtual
-  * address
-  * @va: user virtual address
-@@ -515,21 +499,19 @@ static int i40iw_setup_kmode_qp(struct i40iw_device *iwdev,
- {
- 	struct i40iw_dma_mem *mem = &iwqp->kqp.dma_mem;
- 	u32 sqdepth, rqdepth;
--	u32 sq_size, rq_size;
- 	u8 sqshift;
- 	u32 size;
- 	enum i40iw_status_code status;
- 	struct i40iw_qp_uk_init_info *ukinfo = &info->qp_uk_init_info;
- 
--	sq_size = i40iw_qp_roundup(ukinfo->sq_size + 1);
--	rq_size = i40iw_qp_roundup(ukinfo->rq_size + 1);
--
--	status = i40iw_get_wqe_shift(sq_size, ukinfo->max_sq_frag_cnt, ukinfo->max_inline_data, &sqshift);
-+	i40iw_get_wqe_shift(ukinfo->max_sq_frag_cnt, ukinfo->max_inline_data, &sqshift);
-+	status = i40iw_get_sqdepth(ukinfo->sq_size, sqshift, &sqdepth);
- 	if (status)
- 		return -ENOMEM;
- 
--	sqdepth = sq_size << sqshift;
--	rqdepth = rq_size << I40IW_MAX_RQ_WQE_SHIFT;
-+	status = i40iw_get_rqdepth(ukinfo->rq_size, I40IW_MAX_RQ_WQE_SHIFT, &rqdepth);
-+	if (status)
-+		return -ENOMEM;
- 
- 	size = sqdepth * sizeof(struct i40iw_sq_uk_wr_trk_info) + (rqdepth << 3);
- 	iwqp->kqp.wrid_mem = kzalloc(size, GFP_KERNEL);
-@@ -559,8 +541,8 @@ static int i40iw_setup_kmode_qp(struct i40iw_device *iwdev,
- 	ukinfo->shadow_area = ukinfo->rq[rqdepth].elem;
- 	info->shadow_area_pa = info->rq_pa + (rqdepth * I40IW_QP_WQE_MIN_SIZE);
- 
--	ukinfo->sq_size = sq_size;
--	ukinfo->rq_size = rq_size;
-+	ukinfo->sq_size = sqdepth >> sqshift;
-+	ukinfo->rq_size = rqdepth >> I40IW_MAX_RQ_WQE_SHIFT;
- 	ukinfo->qp_id = iwqp->ibqp.qp_num;
- 	return 0;
- }
 -- 
 2.8.3
 
