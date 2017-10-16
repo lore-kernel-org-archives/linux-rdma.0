@@ -1,7 +1,7 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 02/12] i40iw: Ignore AE source field in AEQE for some AEs
-Date: Mon, 16 Oct 2017 15:45:55 -0500
-Message-ID: <20171016204605.37512-3-shiraz.saleem@intel.com>
+Subject: [PATCH for-next 04/12] i40iw: Move exception_lan_queue to VSI structure
+Date: Mon, 16 Oct 2017 15:45:57 -0500
+Message-ID: <20171016204605.37512-5-shiraz.saleem@intel.com>
 References: <20171016204605.37512-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171016204605.37512-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,98 +12,128 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The AE source field in Asynchronous Event Queue Entry (AEQE) is
-not set by the hardware for some AEs, but the code assumes it does.
-This results in incorrect processing of some AEs.
-Fix this by setting ae_src to I40IW_AE_SOURCE_RSVD for those AEs.
+Consolidate exception_lan_queue under VSI structure
+where it belongs. Remove it from device and QP structures.
 
-Fixes: 86dbcd0f12e9 ("i40iw: add file to handle cqp calls")
 Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 49 ++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/i40iw/i40iw_d.h    |  1 +
- 2 files changed, 50 insertions(+)
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 6 +++---
+ drivers/infiniband/hw/i40iw/i40iw_main.c | 4 ++--
+ drivers/infiniband/hw/i40iw/i40iw_type.h | 5 ++---
+ 3 files changed, 7 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-index 4597cf4..810fdda 100644
+index f75144e..58249d0 100644
 --- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
 +++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-@@ -1774,6 +1774,53 @@ static enum i40iw_status_code i40iw_sc_get_next_aeqe(struct i40iw_sc_aeq *aeq,
- 	info->iwarp_state = (u8)RS_64(temp, I40IW_AEQE_IWSTATE);
- 	info->q2_data_written = (u8)RS_64(temp, I40IW_AEQE_Q2DATA);
- 	info->aeqe_overflow = (bool)RS_64(temp, I40IW_AEQE_OVERFLOW);
+@@ -2406,7 +2406,6 @@ static enum i40iw_status_code i40iw_sc_qp_init(struct i40iw_sc_qp *qp,
+ 	qp->rcv_tph_en = info->rcv_tph_en;
+ 	qp->xmit_tph_en = info->xmit_tph_en;
+ 	qp->qs_handle = qp->vsi->qos[qp->user_pri].qs_handle;
+-	qp->exception_lan_queue = qp->pd->dev->exception_lan_queue;
+ 
+ 	return 0;
+ }
+@@ -2741,7 +2740,7 @@ static enum i40iw_status_code i40iw_sc_qp_setctx(
+ 		      LS_64(qp->sq_tph_val, I40IWQPC_SQTPHVAL) |
+ 		      LS_64(qp->rq_tph_val, I40IWQPC_RQTPHVAL) |
+ 		      LS_64(qp->qs_handle, I40IWQPC_QSHANDLE) |
+-		      LS_64(qp->exception_lan_queue, I40IWQPC_EXCEPTION_LAN_QUEUE));
++		      LS_64(vsi->exception_lan_queue, I40IWQPC_EXCEPTION_LAN_QUEUE));
+ 
+ 	if (info->iwarp_info_valid) {
+ 		qw0 |= LS_64(iw->ddp_ver, I40IWQPC_DDP_VER) |
+@@ -4584,6 +4583,8 @@ void i40iw_sc_vsi_init(struct i40iw_sc_vsi *vsi, struct i40iw_vsi_init_info *inf
+ 	vsi->dev = info->dev;
+ 	vsi->back_vsi = info->back_vsi;
+ 	vsi->mss = info->params->mss;
++	vsi->exception_lan_queue = info->exception_lan_queue;
 +
-+	switch (info->ae_id) {
-+	case I40IW_AE_PRIV_OPERATION_DENIED:
-+	case I40IW_AE_UDA_XMIT_DGRAM_TOO_LONG:
-+	case I40IW_AE_UDA_XMIT_DGRAM_TOO_SHORT:
-+	case I40IW_AE_BAD_CLOSE:
-+	case I40IW_AE_RDMAP_ROE_BAD_LLP_CLOSE:
-+	case I40IW_AE_RDMA_READ_WHILE_ORD_ZERO:
-+	case I40IW_AE_STAG_ZERO_INVALID:
-+	case I40IW_AE_IB_RREQ_AND_Q1_FULL:
-+	case I40IW_AE_WQE_UNEXPECTED_OPCODE:
-+	case I40IW_AE_DDP_UBE_INVALID_DDP_VERSION:
-+	case I40IW_AE_DDP_UBE_INVALID_MO:
-+	case I40IW_AE_DDP_UBE_INVALID_QN:
-+	case I40IW_AE_DDP_NO_L_BIT:
-+	case I40IW_AE_RDMAP_ROE_INVALID_RDMAP_VERSION:
-+	case I40IW_AE_RDMAP_ROE_UNEXPECTED_OPCODE:
-+	case I40IW_AE_ROE_INVALID_RDMA_READ_REQUEST:
-+	case I40IW_AE_ROE_INVALID_RDMA_WRITE_OR_READ_RESP:
-+	case I40IW_AE_INVALID_ARP_ENTRY:
-+	case I40IW_AE_INVALID_TCP_OPTION_RCVD:
-+	case I40IW_AE_STALE_ARP_ENTRY:
-+	case I40IW_AE_LLP_CLOSE_COMPLETE:
-+	case I40IW_AE_LLP_CONNECTION_RESET:
-+	case I40IW_AE_LLP_FIN_RECEIVED:
-+	case I40IW_AE_LLP_RECEIVED_MPA_CRC_ERROR:
-+	case I40IW_AE_LLP_SEGMENT_TOO_SMALL:
-+	case I40IW_AE_LLP_SYN_RECEIVED:
-+	case I40IW_AE_LLP_TERMINATE_RECEIVED:
-+	case I40IW_AE_LLP_TOO_MANY_RETRIES:
-+	case I40IW_AE_LLP_DOUBT_REACHABILITY:
-+	case I40IW_AE_RESET_SENT:
-+	case I40IW_AE_TERMINATE_SENT:
-+	case I40IW_AE_RESET_NOT_SENT:
-+	case I40IW_AE_LCE_QP_CATASTROPHIC:
-+	case I40IW_AE_QP_SUSPEND_COMPLETE:
-+		info->qp = true;
-+		info->compl_ctx = compl_ctx;
-+		ae_src = I40IW_AE_SOURCE_RSVD;
-+		break;
-+	case I40IW_AE_LCE_CQ_CATASTROPHIC:
-+		info->cq = true;
-+		info->compl_ctx = LS_64_1(compl_ctx, 1);
-+		ae_src = I40IW_AE_SOURCE_RSVD;
-+		break;
-+	}
-+
- 	switch (ae_src) {
- 	case I40IW_AE_SOURCE_RQ:
- 	case I40IW_AE_SOURCE_RQ_0011:
-@@ -1807,6 +1854,8 @@ static enum i40iw_status_code i40iw_sc_get_next_aeqe(struct i40iw_sc_aeq *aeq,
- 		info->compl_ctx = compl_ctx;
- 		info->out_rdrsp = true;
- 		break;
-+	case I40IW_AE_SOURCE_RSVD:
-+		/* fallthrough */
- 	default:
- 		break;
+ 	i40iw_fill_qos_list(info->params->qs_handle_list);
+ 
+ 	for (i = 0; i < I40IW_MAX_USER_PRIORITY; i++) {
+@@ -5067,7 +5068,6 @@ enum i40iw_status_code i40iw_device_init(struct i40iw_sc_dev *dev,
+ 	dev->debug_mask = info->debug_mask;
+ 
+ 	dev->hmc_fn_id = info->hmc_fn_id;
+-	dev->exception_lan_queue = info->exception_lan_queue;
+ 	dev->is_pf = info->is_pf;
+ 
+ 	dev->fpm_query_buf_pa = info->fpm_query_buf_pa;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
+index 27590ae..ee0323f 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_main.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
+@@ -958,7 +958,7 @@ static enum i40iw_status_code i40iw_initialize_ieq(struct i40iw_device *iwdev)
+ 	memset(&info, 0, sizeof(info));
+ 	info.type = I40IW_PUDA_RSRC_TYPE_IEQ;
+ 	info.cq_id = 2;
+-	info.qp_id = iwdev->sc_dev.exception_lan_queue;
++	info.qp_id = iwdev->vsi.exception_lan_queue;
+ 	info.count = 1;
+ 	info.pd_id = 2;
+ 	info.sq_size = 8192;
+@@ -1338,7 +1338,6 @@ static enum i40iw_status_code i40iw_initialize_dev(struct i40iw_device *iwdev,
+ 			iwdev->dcb = true;
  	}
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_d.h b/drivers/infiniband/hw/i40iw/i40iw_d.h
-index dc319e9..60c785a 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_d.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_d.h
-@@ -128,6 +128,7 @@
- 		&_ceq->ceqe_base[I40IW_RING_GETCURRENT_TAIL(_ceq->ceq_ring)]   \
- 	)
+ 	i40iw_pr_info("DCB is set/clear = %d\n", iwdev->dcb);
+-	info.exception_lan_queue = 1;
+ 	info.vchnl_send = i40iw_virtchnl_send;
+ 	status = i40iw_device_init(&iwdev->sc_dev, &info);
  
-+#define I40IW_AE_SOURCE_RSVD            0x0
- #define I40IW_AE_SOURCE_RQ              0x1
- #define I40IW_AE_SOURCE_RQ_0011         0x3
+@@ -1348,6 +1347,7 @@ static enum i40iw_status_code i40iw_initialize_dev(struct i40iw_device *iwdev,
+ 	vsi_info.dev = &iwdev->sc_dev;
+ 	vsi_info.back_vsi = (void *)iwdev;
+ 	vsi_info.params = &l2params;
++	vsi_info.exception_lan_queue = 1;
+ 	i40iw_sc_vsi_init(&iwdev->vsi, &vsi_info);
  
+ 	if (dev->is_pf) {
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
+index 0ee450d4..c718a525 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_type.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_type.h
+@@ -380,7 +380,6 @@ struct i40iw_sc_qp {
+ 	u8 *q2_buf;
+ 	u64 qp_compl_ctx;
+ 	u16 qs_handle;
+-	u16 exception_lan_queue;
+ 	u16 push_idx;
+ 	u8 sq_tph_val;
+ 	u8 rq_tph_val;
+@@ -459,6 +458,7 @@ struct i40iw_sc_vsi {
+ 	u32 ieq_count;
+ 	struct i40iw_virt_mem ieq_mem;
+ 	struct i40iw_puda_rsrc *ieq;
++	u16 exception_lan_queue;
+ 	u16 mss;
+ 	u8 fcn_id;
+ 	bool stats_fcn_id_alloc;
+@@ -501,7 +501,6 @@ struct i40iw_sc_dev {
+ 
+ 	struct i40iw_hmc_fpm_misc hmc_fpm_misc;
+ 	u32 debug_mask;
+-	u16 exception_lan_queue;
+ 	u8 hmc_fn_id;
+ 	bool is_pf;
+ 	bool vchnl_up;
+@@ -573,6 +572,7 @@ struct i40iw_vsi_init_info {
+ 	struct i40iw_sc_dev *dev;
+ 	void  *back_vsi;
+ 	struct i40iw_l2params *params;
++	u16 exception_lan_queue;
+ };
+ 
+ struct i40iw_vsi_stats_info {
+@@ -590,7 +590,6 @@ struct i40iw_device_init_info {
+ 	struct i40iw_hw *hw;
+ 	void __iomem *bar0;
+ 	enum i40iw_status_code (*vchnl_send)(struct i40iw_sc_dev *, u32, u8 *, u16);
+-	u16 exception_lan_queue;
+ 	u8 hmc_fn_id;
+ 	bool is_pf;
+ 	u32 debug_mask;
 -- 
 2.8.3
 
