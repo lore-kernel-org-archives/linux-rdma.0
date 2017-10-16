@@ -1,66 +1,62 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 5/5] IB/mlx5: Use ARRAY_SIZE
-Date: Mon, 16 Oct 2017 08:28:12 +0300
-Message-ID: <20171016052812.28802-6-leon@kernel.org>
+Subject: [PATCH rdma-next 3/5] IB/core: Fix use workqueue without WQ_MEM_RECLAIM
+Date: Mon, 16 Oct 2017 08:28:10 +0300
+Message-ID: <20171016052812.28802-4-leon@kernel.org>
 References: <20171016052812.28802-1-leon@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171016052812.28802-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=A9my=20Lefaure?= <jeremy.lefaure-tU7rkvAWjlwhT4uAktR2oQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jérémy Lefaure <jeremy.lefaure-tU7rkvAWjlwhT4uAktR2oQ@public.gmane.org>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Using the ARRAY_SIZE macro improves the readability of the code.
+The IB/core provides address resolution service and invokes callback
+handler when address resolve request completes of requester in worker
+thread context.
 
-Found with Coccinelle with the following semantic patch:
-@r depends on (org || report)@
-type T;
-T[] E;
-position p;
-@@
-(
- (sizeof(E)@p /sizeof(*E))
-|
- (sizeof(E)@p /sizeof(E[...]))
-|
- (sizeof(E)@p /sizeof(T))
-)
+Such caller might allocate or free memory in callback handler
+depending on the completion status to make further progress or to
+terminate a connection. Most ULPs resolve route which involves
+allocating route entry and path record elements in callback event handler.
 
-Signed-off-by: Jérémy Lefaure <jeremy.lefaure-tU7rkvAWjlwhT4uAktR2oQ@public.gmane.org>
+It has been noticed that WQ_MEM_RECLAIM flag should not be used for
+workers that tend to allocate memory in this [1] thread discussion.
+
+In order to mitigate this situation, WQ_MEM_RECLAIM flag was dropped for
+other such WQs in this [2] patch.
+
+Similar problem might arise with address resolution path, though its not
+yet noticed. The ib_addr workqueue is not memory reclaim path due to its
+nature of invoking callback that might allocate memory or don't free any
+memory under memory pressure.
+
+[1] https://www.spinics.net/lists/linux-rdma/msg53239.html
+[2] https://www.spinics.net/lists/linux-rdma/msg53416.html
+
+Fixes: f54816261c2b ("IB/addr: Remove deprecated create_singlethread_workqueue")
+Fixes: 5fff41e1f89d ("IB/core: Fix race condition in resolving IP to MAC")
+Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/odp.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/addr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index 3d701c7a4c91..e2197bdda89c 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -32,6 +32,7 @@
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 12523f630b61..d2f74721b3ba 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -852,7 +852,7 @@ static struct notifier_block nb = {
  
- #include <rdma/ib_umem.h>
- #include <rdma/ib_umem_odp.h>
-+#include <linux/kernel.h>
+ int addr_init(void)
+ {
+-	addr_wq = alloc_ordered_workqueue("ib_addr", WQ_MEM_RECLAIM);
++	addr_wq = alloc_ordered_workqueue("ib_addr", 0);
+ 	if (!addr_wq)
+ 		return -ENOMEM;
  
- #include "mlx5_ib.h"
- #include "cmd.h"
-@@ -929,9 +930,8 @@ static int mlx5_ib_mr_initiator_pfault_handler(
- 		return -EFAULT;
- 	}
- 
--	if (unlikely(opcode >= sizeof(mlx5_ib_odp_opcode_cap) /
--	    sizeof(mlx5_ib_odp_opcode_cap[0]) ||
--	    !(transport_caps & mlx5_ib_odp_opcode_cap[opcode]))) {
-+	if (unlikely(opcode >= ARRAY_SIZE(mlx5_ib_odp_opcode_cap) ||
-+		     !(transport_caps & mlx5_ib_odp_opcode_cap[opcode]))) {
- 		mlx5_ib_err(dev, "ODP fault on QP of an unsupported opcode 0x%x\n",
- 			    opcode);
- 		return -EFAULT;
 -- 
 2.14.2
 
