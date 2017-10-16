@@ -1,156 +1,85 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1 5/5] xprtrdma: Decode credits field in
- rpcrdma_reply_handler
-Date: Mon, 16 Oct 2017 15:01:39 -0400
-Message-ID: <20171016190139.13594.63804.stgit@manet.1015granger.net>
-References: <20171016185641.13594.5374.stgit@manet.1015granger.net>
+From: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2] linux/types.h: Restore the ability to disable sparse
+ endianness checks
+Date: Mon, 16 Oct 2017 22:57:13 +0300
+Message-ID: <20171016224241-mutt-send-email-mst@kernel.org>
+References: <20171016172633.29290-1-bart.vanassche@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171016185641.13594.5374.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171016172633.29290-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We need to decode and save the incoming rdma_credits field _after_
-we know that the direction of the message is "forward direction
-Reply". Otherwise, the credits value in reverse direction Calls is
-also used to update the forward direction credits.
+On Mon, Oct 16, 2017 at 10:26:33AM -0700, Bart Van Assche wrote:
+> The purpose of patch "linux/types.h: enable endian checks for all
+> sparse builds" was to encourage driver authors to annotate
+> endianness correctly in their drivers. However, since that patch
+> went upstream no endianness annotations in drivers have been fixed.
 
-It is safe to decode the rdma_credits field in rpcrdma_reply_handler
-now that rpcrdma_reply_handler is single-threaded. Receives complete
-in the same order as they were sent on the NFS server.
+I doubt that's true. What's the basis for this claim?
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/rpc_rdma.c  |   14 ++++++++++++--
- net/sunrpc/xprtrdma/verbs.c     |   25 +------------------------
- net/sunrpc/xprtrdma/xprt_rdma.h |    2 +-
- 3 files changed, 14 insertions(+), 27 deletions(-)
+> I think that this shows that the followed approach does not work,
+> probably because several driver authors do not use sparse. For
+> developers who are not the authors of these drivers it would take
+> a very significant effort to make these drivers endianness clean.
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 430f8b5..b8818c09 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -1244,7 +1244,7 @@ void rpcrdma_complete_rqst(struct rpcrdma_rep *rep)
- out:
- 	spin_lock(&xprt->recv_lock);
- 	cwnd = xprt->cwnd;
--	xprt->cwnd = atomic_read(&r_xprt->rx_buf.rb_credits) << RPC_CWNDSHIFT;
-+	xprt->cwnd = r_xprt->rx_buf.rb_credits << RPC_CWNDSHIFT;
- 	if (xprt->cwnd > cwnd)
- 		xprt_release_rqst_cong(rqst->rq_task);
- 
-@@ -1297,8 +1297,10 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *rep)
- {
- 	struct rpcrdma_xprt *r_xprt = rep->rr_rxprt;
- 	struct rpc_xprt *xprt = &r_xprt->rx_xprt;
-+	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
- 	struct rpcrdma_req *req;
- 	struct rpc_rqst *rqst;
-+	u32 credits;
- 	__be32 *p;
- 
- 	dprintk("RPC:       %s: incoming rep %p\n", __func__, rep);
-@@ -1315,7 +1317,7 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *rep)
- 		goto out_shortreply;
- 	rep->rr_xid = *p++;
- 	rep->rr_vers = *p++;
--	p++;	/* credits */
-+	credits = be32_to_cpu(*p++);
- 	rep->rr_proc = *p++;
- 
- 	if (rep->rr_vers != rpcrdma_version)
-@@ -1332,7 +1334,15 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *rep)
- 	if (!rqst)
- 		goto out_norqst;
- 	xprt_pin_rqst(rqst);
-+
-+	if (credits == 0)
-+		credits = 1;	/* don't deadlock */
-+	else if (credits > buf->rb_max_requests)
-+		credits = buf->rb_max_requests;
-+	buf->rb_credits = credits;
-+
- 	spin_unlock(&xprt->recv_lock);
-+
- 	req = rpcr_to_rdmar(rqst);
- 	req->rl_reply = rep;
- 	rep->rr_rqst = rqst;
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index d456954..247b00b 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -133,25 +133,6 @@
- 		       wc->status, wc->vendor_err);
- }
- 
--/* Perform basic sanity checking to avoid using garbage
-- * to update the credit grant value.
-- */
--static void
--rpcrdma_update_granted_credits(struct rpcrdma_rep *rep)
--{
--	struct rpcrdma_buffer *buffer = &rep->rr_rxprt->rx_buf;
--	__be32 *p = rep->rr_rdmabuf->rg_base;
--	u32 credits;
--
--	credits = be32_to_cpup(p + 2);
--	if (credits == 0)
--		credits = 1;	/* don't deadlock */
--	else if (credits > buffer->rb_max_requests)
--		credits = buffer->rb_max_requests;
--
--	atomic_set(&buffer->rb_credits, credits);
--}
--
- /**
-  * rpcrdma_wc_receive - Invoked by RDMA provider for each polled Receive WC
-  * @cq:	completion queue (ignored)
-@@ -181,9 +162,6 @@
- 				   rdmab_addr(rep->rr_rdmabuf),
- 				   wc->byte_len, DMA_FROM_DEVICE);
- 
--	if (wc->byte_len >= RPCRDMA_HDRLEN_ERR)
--		rpcrdma_update_granted_credits(rep);
--
- out_schedule:
- 	rpcrdma_reply_handler(rep);
- 	return;
-@@ -295,7 +273,7 @@
- 	case RDMA_CM_EVENT_DISCONNECTED:
- 		connstate = -ECONNABORTED;
- connected:
--		atomic_set(&xprt->rx_buf.rb_credits, 1);
-+		xprt->rx_buf.rb_credits = 1;
- 		ep->rep_connected = connstate;
- 		rpcrdma_conn_func(ep);
- 		wake_up_all(&ep->rep_connect_wait);
-@@ -995,7 +973,6 @@ struct rpcrdma_rep *
- 
- 	buf->rb_max_requests = r_xprt->rx_data.max_requests;
- 	buf->rb_bc_srv_max_requests = 0;
--	atomic_set(&buf->rb_credits, 1);
- 	spin_lock_init(&buf->rb_mwlock);
- 	spin_lock_init(&buf->rb_lock);
- 	spin_lock_init(&buf->rb_recovery_lock);
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index a85bcd1..0e0ae61 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -407,7 +407,7 @@ struct rpcrdma_buffer {
- 	struct list_head	rb_send_bufs;
- 	struct list_head	rb_recv_bufs;
- 	u32			rb_max_requests;
--	atomic_t		rb_credits;	/* most recent credit grant */
-+	u32			rb_credits;	/* most recent credit grant */
- 
- 	u32			rb_bc_srv_max_requests;
- 	spinlock_t		rb_reqslock;	/* protect rb_allreqs */
+I'm afraid I still don't see it.  For developers endian-ness is really
+easy.  Look at hardware spec make sure code matches.  You can often do
+without looking at the spec too, if a given field is always used with
+cpu_to_le, mark it __le.  If you don't want to change driver code, you
+don't really need to run sparse on it.
 
+> Examples are drivers/scsi/qla2xxx and drivers/infiniband/hw/nes.
+
+These seem to be actively maintained. So post a patch, maintainers
+can look at the spec to help make sure annotations are right.
+
+> Hence restore the ability to disable sparse endianness checks such
+> that it becomes again easy to review other sparse diagnostics for
+> people who want to analyze drivers they are not the author of.
+
+What are these diagnostics that are important to analyze for people
+unable to make even trivial driver changes? White-listing these
+as opposed to black-listing endian-ness might be a better idea.
+
+> References: commit 05de97003c77 ("linux/types.h: enable endian checks for all sparse builds")
+> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+> Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Michael S. Tsirkin <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+> Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+> ---
+> [v2]: Elaborated patch description
+> 
+>  include/uapi/linux/types.h | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/include/uapi/linux/types.h b/include/uapi/linux/types.h
+> index 41e5914f0a8e..d3dcb0764c45 100644
+> --- a/include/uapi/linux/types.h
+> +++ b/include/uapi/linux/types.h
+> @@ -23,7 +23,11 @@
+>  #else
+>  #define __bitwise__
+>  #endif
+> +#if !defined(__CHECK_ENDIAN__) || __CHECK_ENDIAN__ != 0
+>  #define __bitwise __bitwise__
+> +#else
+> +#define __bitwise
+> +#endif
+>  
+>  typedef __u16 __bitwise __le16;
+>  typedef __u16 __bitwise __be16;
+> -- 
+> 2.14.2
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
