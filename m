@@ -1,72 +1,88 @@
-From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 2/2] ibacm: Incorrect list used for subnet list causes a
- segfault
-Date: Mon, 16 Oct 2017 10:24:40 -0400
-Message-ID: <20171016142426.12814.13095.stgit@phlsvslse11.ph.intel.com>
-References: <20171016142303.12814.97296.stgit@phlsvslse11.ph.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171016142303.12814.97296.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH v2 00/15] make structure field, function arguments and structures const
+Date: Mon, 16 Oct 2017 17:18:39 +0200
+Message-ID: <1508167134-6243-1-git-send-email-bhumirks@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
+To: julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, alexander.shishkin@linux.intel.com, jic23@kernel.org, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, hch@lst.de, sagi@grimberg.me, kishon@ti.com, bhelgaas@google.com, nab@linux-iscsi.org, balbi@kernel.org, gregkh@linuxfoundation.org, laurent.pinchart@ideasonboard.com, jlbec@evilplan.org, ccaulfie@redhat.com, teigland@redhat.com, mfasheh@versity.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-usb@vger.kernel.org, cluster-devel@redh
+Cc: Bhumika Goyal <bhumirks@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Make the ci_type field and some function arguments as const. After this
+change, make config_item_type structures as const.
 
-Setting the provider keyword in the ibacm_opts.cfg file to something
-other than 'default' will cause ibacm to segfault on startup:
+* Changes in v2- Combine all the followup patches and the constification
+patches into a series.
 
-ibacm[32739]: segfault at 302e40 ip 000000000040432d
-sp 00007ffe4039e1c0 error 4 in ibacm[400000+c000]
+Bhumika Goyal (15):
+  configfs: make ci_type field, some pointers and function arguments
+    const
+  usb: gadget: make config_item_type structures const
+  target: make config_item_type const
+  iio: make function argument and some structures const
+  ocfs2/cluster: make config_item_type const
+  PCI: endpoint: make config_item_type const
+  usb: gadget: configfs: make config_item_type const
+  nvmet: make config_item_type const
+  ACPI: configfs: make config_item_type const
+  nullb: make config_item_type const
+  stm class: make config_item_type const
+  RDMA/cma: make config_item_type const
+  netconsole: make config_item_type const
+  dlm: make config_item_type const
+  configfs: make config_item_type const
 
-To re-produce the segfault, change the provider keyword in
-ibacm_opts.cfg from:
+ drivers/acpi/acpi_configfs.c                 |  6 ++--
+ drivers/block/null_blk.c                     |  4 +--
+ drivers/hwtracing/stm/policy.c               | 10 +++---
+ drivers/iio/dummy/iio_simple_dummy.c         |  2 +-
+ drivers/iio/industrialio-configfs.c          |  2 +-
+ drivers/iio/industrialio-sw-device.c         |  6 ++--
+ drivers/iio/industrialio-sw-trigger.c        |  6 ++--
+ drivers/iio/trigger/iio-trig-hrtimer.c       |  2 +-
+ drivers/iio/trigger/iio-trig-loop.c          |  2 +-
+ drivers/infiniband/core/cma_configfs.c       |  8 ++---
+ drivers/net/netconsole.c                     |  4 +--
+ drivers/nvme/target/configfs.c               | 30 ++++++++---------
+ drivers/pci/endpoint/pci-ep-cfs.c            | 12 +++----
+ drivers/target/iscsi/iscsi_target_stat.c     | 12 +++----
+ drivers/target/target_core_configfs.c        | 14 ++++----
+ drivers/target/target_core_stat.c            | 16 ++++-----
+ drivers/usb/gadget/configfs.c                | 10 +++---
+ drivers/usb/gadget/function/f_acm.c          |  2 +-
+ drivers/usb/gadget/function/f_ecm.c          |  2 +-
+ drivers/usb/gadget/function/f_eem.c          |  2 +-
+ drivers/usb/gadget/function/f_fs.c           |  2 +-
+ drivers/usb/gadget/function/f_hid.c          |  2 +-
+ drivers/usb/gadget/function/f_loopback.c     |  2 +-
+ drivers/usb/gadget/function/f_mass_storage.c |  4 +--
+ drivers/usb/gadget/function/f_midi.c         |  2 +-
+ drivers/usb/gadget/function/f_ncm.c          |  2 +-
+ drivers/usb/gadget/function/f_obex.c         |  2 +-
+ drivers/usb/gadget/function/f_phonet.c       |  2 +-
+ drivers/usb/gadget/function/f_printer.c      |  2 +-
+ drivers/usb/gadget/function/f_rndis.c        |  2 +-
+ drivers/usb/gadget/function/f_serial.c       |  2 +-
+ drivers/usb/gadget/function/f_sourcesink.c   |  2 +-
+ drivers/usb/gadget/function/f_subset.c       |  2 +-
+ drivers/usb/gadget/function/f_tcm.c          |  2 +-
+ drivers/usb/gadget/function/f_uac1.c         |  2 +-
+ drivers/usb/gadget/function/f_uac1_legacy.c  |  2 +-
+ drivers/usb/gadget/function/f_uac2.c         |  2 +-
+ drivers/usb/gadget/function/uvc_configfs.c   | 50 ++++++++++++++--------------
+ fs/configfs/dir.c                            | 10 +++---
+ fs/configfs/item.c                           |  6 ++--
+ fs/configfs/symlink.c                        |  4 +--
+ fs/dlm/config.c                              | 16 ++++-----
+ fs/ocfs2/cluster/heartbeat.c                 |  4 +--
+ fs/ocfs2/cluster/nodemanager.c               |  8 ++---
+ include/linux/configfs.h                     |  8 ++---
+ include/linux/iio/sw_device.h                |  2 +-
+ include/linux/iio/sw_trigger.h               |  2 +-
+ include/target/iscsi/iscsi_target_stat.h     | 12 +++----
+ samples/configfs/configfs_sample.c           |  8 ++---
+ 49 files changed, 159 insertions(+), 159 deletions(-)
 
-provider ibacmp default
+-- 
+1.9.1
 
-to:
-
-provider ibacmp 0xFE80000000000000
-
-When adding subnets to a provider subnet list, the incorrect list is
-used.  The list used is the provider_list (list of all providers)
-rather than the (specific) provider subnet list.
-
-This corrupts the provider_list, and causes ibacm to crash with the
-above segfault.
-
-Use the correct list when adding subnet information to a provider.
-
-Fixes: 26e05f8304a506 ("ibacm: use ccan/list.h")
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-v1 -> v2
-   * Remove reference to library commit.
----
- ibacm/src/acm.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/ibacm/src/acm.c b/ibacm/src/acm.c
-index 1ccef94..a67001d 100644
---- a/ibacm/src/acm.c
-+++ b/ibacm/src/acm.c
-@@ -2587,8 +2587,8 @@ static void acm_load_prov_config(void)
- 					return;
- 				}
- 				subnet->subnet_prefix = htobe64(prefix);
--				list_add_after(&provider_list, &prov->entry,
--						&subnet->entry);
-+				list_add_tail(&prov->subnet_list,
-+					      &subnet->entry);
- 			}
- 		}
- 	}
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
