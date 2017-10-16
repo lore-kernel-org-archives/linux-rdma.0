@@ -1,82 +1,66 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 05/12] i40iw: Remove unused structures
-Date: Mon, 16 Oct 2017 15:45:58 -0500
-Message-ID: <20171016204605.37512-6-shiraz.saleem@intel.com>
-References: <20171016204605.37512-1-shiraz.saleem@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171016204605.37512-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Bart Van Assche <Bart.VanAssche@wdc.com>
+Subject: Re: [PATCH v2] linux/types.h: Restore the ability to disable sparse
+ endianness checks
+Date: Mon, 16 Oct 2017 21:26:36 +0000
+Message-ID: <1508189195.2493.55.camel@wdc.com>
+References: <20171016172633.29290-1-bart.vanassche@wdc.com>
+         <20171016224241-mutt-send-email-mst@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171016224241-mutt-send-email-mst@kernel.org>
+Content-Language: en-US
+Content-ID: <B97B8B485AACBC47AF830694CEA8BC3E@namprd04.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "mst@redhat.com" <mst@redhat.com>
+Cc: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "hch@infradead.org" <hch@infradead.org>, "leon@kernel.org" <leon@kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-Some structures for post SQ operation are not used.
-Remove the following:
-
-i40iw_post_send_w_inv
-i40iw_post_inline_send_w_inv
-send_w_sol
-send_w_inv
-send_w_sol_inv
-inline_send_w_sol
-inline_send_w_inv
-inline_send_w_sol_inv
-
-Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/i40iw/i40iw_user.h | 18 ------------------
- 1 file changed, 18 deletions(-)
-
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_user.h b/drivers/infiniband/hw/i40iw/i40iw_user.h
-index 15e8f55..a898f99 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_user.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_user.h
-@@ -204,18 +204,6 @@ struct i40iw_post_inline_send {
- 	u32 len;
- };
- 
--struct i40iw_post_send_w_inv {
--	i40iw_sgl sg_list;
--	u32 num_sges;
--	i40iw_stag remote_stag_to_inv;
--};
--
--struct i40iw_post_inline_send_w_inv {
--	void *data;
--	u32 len;
--	i40iw_stag remote_stag_to_inv;
--};
--
- struct i40iw_rdma_write {
- 	i40iw_sgl lo_sg_list;
- 	u32 num_lo_sges;
-@@ -257,9 +245,6 @@ struct i40iw_post_sq_info {
- 	bool defer_flag;
- 	union {
- 		struct i40iw_post_send send;
--		struct i40iw_post_send send_w_sol;
--		struct i40iw_post_send_w_inv send_w_inv;
--		struct i40iw_post_send_w_inv send_w_sol_inv;
- 		struct i40iw_rdma_write rdma_write;
- 		struct i40iw_rdma_read rdma_read;
- 		struct i40iw_rdma_read rdma_read_inv;
-@@ -267,9 +252,6 @@ struct i40iw_post_sq_info {
- 		struct i40iw_inv_local_stag inv_local_stag;
- 		struct i40iw_inline_rdma_write inline_rdma_write;
- 		struct i40iw_post_inline_send inline_send;
--		struct i40iw_post_inline_send inline_send_w_sol;
--		struct i40iw_post_inline_send_w_inv inline_send_w_inv;
--		struct i40iw_post_inline_send_w_inv inline_send_w_sol_inv;
- 	} op;
- };
- 
--- 
-2.8.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gTW9uLCAyMDE3LTEwLTE2IGF0IDIyOjU3ICswMzAwLCBNaWNoYWVsIFMuIFRzaXJraW4gd3Jv
+dGU6DQo+IE9uIE1vbiwgT2N0IDE2LCAyMDE3IGF0IDEwOjI2OjMzQU0gLTA3MDAsIEJhcnQgVmFu
+IEFzc2NoZSB3cm90ZToNCj4gPiBJIHRoaW5rIHRoYXQgdGhpcyBzaG93cyB0aGF0IHRoZSBmb2xs
+b3dlZCBhcHByb2FjaCBkb2VzIG5vdCB3b3JrLA0KPiA+IHByb2JhYmx5IGJlY2F1c2Ugc2V2ZXJh
+bCBkcml2ZXIgYXV0aG9ycyBkbyBub3QgdXNlIHNwYXJzZS4gRm9yDQo+ID4gZGV2ZWxvcGVycyB3
+aG8gYXJlIG5vdCB0aGUgYXV0aG9ycyBvZiB0aGVzZSBkcml2ZXJzIGl0IHdvdWxkIHRha2UNCj4g
+PiBhIHZlcnkgc2lnbmlmaWNhbnQgZWZmb3J0IHRvIG1ha2UgdGhlc2UgZHJpdmVycyBlbmRpYW5u
+ZXNzIGNsZWFuLg0KPiANCj4gSSdtIGFmcmFpZCBJIHN0aWxsIGRvbid0IHNlZSBpdC4gIEZvciBk
+ZXZlbG9wZXJzIGVuZGlhbi1uZXNzIGlzIHJlYWxseQ0KPiBlYXN5LiAgTG9vayBhdCBoYXJkd2Fy
+ZSBzcGVjIG1ha2Ugc3VyZSBjb2RlIG1hdGNoZXMuICBZb3UgY2FuIG9mdGVuIGRvDQo+IHdpdGhv
+dXQgbG9va2luZyBhdCB0aGUgc3BlYyB0b28sIGlmIGEgZ2l2ZW4gZmllbGQgaXMgYWx3YXlzIHVz
+ZWQgd2l0aA0KPiBjcHVfdG9fbGUsIG1hcmsgaXQgX19sZS4gIElmIHlvdSBkb24ndCB3YW50IHRv
+IGNoYW5nZSBkcml2ZXIgY29kZSwgeW91DQo+IGRvbid0IHJlYWxseSBuZWVkIHRvIHJ1biBzcGFy
+c2Ugb24gaXQuDQoNCllvdSBzZWVtIHRvIGFzc3VtZSB0aGF0IGFsbCBkcml2ZXJzIHRoYXQgYXJl
+IG5vdCB5ZXQgZW5kaWFubmVzcyBjbGVhbiBkbw0Kbm90IGNvbnRhaW4gYW55IGVuZGlhbm5lc3Mg
+Y29udmVyc2lvbiBidWdzLiBJIHNldmVyZWx5IGRvdWJ0IHRoYXQgdGhhdA0KYXNzdW1wdGlvbiBp
+cyBjb3JyZWN0LiBJdCBpcyBsaWtlbHkgdGhhdCBpdCBpcyBub3QgcG9zc2libGUgdG8gbWFrZSBz
+ZXZlcmFsDQprZXJuZWwgZHJpdmVycyBlbmRpYW5uZXNzIGNsZWFuIGR1ZSB0byBlbmRpYW5uZXNz
+IGNvbnZlcnNpb24gYnVncyBpbiBzdWNoDQpkcml2ZXJzLg0KDQo+ID4gRXhhbXBsZXMgYXJlIGRy
+aXZlcnMvc2NzaS9xbGEyeHh4IGFuZCBkcml2ZXJzL2luZmluaWJhbmQvaHcvbmVzLg0KPiANCj4g
+VGhlc2Ugc2VlbSB0byBiZSBhY3RpdmVseSBtYWludGFpbmVkLiBTbyBwb3N0IGEgcGF0Y2gsIG1h
+aW50YWluZXJzDQo+IGNhbiBsb29rIGF0IHRoZSBzcGVjIHRvIGhlbHAgbWFrZSBzdXJlIGFubm90
+YXRpb25zIGFyZSByaWdodC4NCg0KSSBkb24ndCBoYXZlIHRoZSB0aW1lIHRvIGRlbHZlIGRlZXAg
+aW4gdGhlc2UgdHdvIGFuZCB0aGUgbWFueSBvdGhlciBrZXJuZWwNCmRyaXZlcnMgdGhhdCBhcmUg
+bm90IGVuZGlhbm5lc3MgY2xlYW4uIFNvIHBsZWFzZSBzdG9wIHRlbGxpbmcgKm1lKiB0aGF0ICpJ
+Kg0KaGF2ZSB0byBmaXggdGhlIGVuZGlhbm5lc3MgYW5ub3RhdGlvbnMgaW4gdGhlc2UgZHJpdmVy
+cy4NCg0KQlRXLCBJIHRoaW5rIGl0IHNob3VsZCBiZSBtZW50aW9uZWQgaGVyZSB0aGF0IHlvdSBo
+YXZlIHRyaWVkIHRvIGZpeCB0aGUNCmVuZGlhbm5lc3MgYW5ub3RhdGlvbnMgaW4gdGhlIHFsYTJ4
+eHggZHJpdmVyIGJ1dCBvbmNlIHlvdSBub3RpY2VkIGhvdyANCmNvbXBsaWNhdGVkIHRoYXQgdGFz
+ayB3YXMgdGhhdCB5b3UgZ2F2ZSB1cCBoYWxmLXdheS4gU2VlIGFsc28gTWljaGFlbA0KVHNpcmtp
+biwgW1BBVENIXSBzY3NpL3FsYTJ4eHg6IGxhYmVsIGVuZGlhbi1uZXNzIGZvciBtYW55IGZpZWxk
+cywgOSBEZWMNCjIwMTYgKGh0dHBzOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LXNjc2kv
+bXNnMTAyNzM5Lmh0bWwpLg0KDQo+ID4gSGVuY2UgcmVzdG9yZSB0aGUgYWJpbGl0eSB0byBkaXNh
+YmxlIHNwYXJzZSBlbmRpYW5uZXNzIGNoZWNrcyBzdWNoDQo+ID4gdGhhdCBpdCBiZWNvbWVzIGFn
+YWluIGVhc3kgdG8gcmV2aWV3IG90aGVyIHNwYXJzZSBkaWFnbm9zdGljcyBmb3INCj4gPiBwZW9w
+bGUgd2hvIHdhbnQgdG8gYW5hbHl6ZSBkcml2ZXJzIHRoZXkgYXJlIG5vdCB0aGUgYXV0aG9yIG9m
+Lg0KPiANCj4gV2hhdCBhcmUgdGhlc2UgZGlhZ25vc3RpY3MgdGhhdCBhcmUgaW1wb3J0YW50IHRv
+IGFuYWx5emU/DQoNCkUuZy4gYSBzcGluX3VubG9jaygpIHRoYXQgaXMgbWlzc2luZyBmcm9tIGFu
+IGVycm9yIHBhdGguIFNwYXJzZSBjYW4gZGV0ZWN0DQpzdWNoIGVycm9ycy4NCg0KPiBXaGl0ZS1s
+aXN0aW5nIHRoZXNlIGFzIG9wcG9zZWQgdG8gYmxhY2stbGlzdGluZyBlbmRpYW4tbmVzcyBtaWdo
+dCBiZSBhDQo+IGJldHRlciBpZGVhLg0KDQpBcyBleHBsYWluZWQgaW4gYSBwcmV2aW91cyBlLW1h
+aWwsIGFueSBhcHByb2FjaCB0aGF0IHN1cHByZXNzZXMgZW5kaWFubmVzcw0KZXJyb3IgbWVzc2Fn
+ZXMgYXV0b21hdGljYWxseSBtYWtlcyBpdCBlYXNpZXIgZm9yIGRyaXZlciBhdXRob3JzIHRvIGln
+bm9yZQ0KZW5kaWFubmVzcyBlcnJvciBtZXNzYWdlcy4gVGhpcyBpcyB3aHkgSSBwcmVmZXIgdGhh
+dCBpZiBlbmRpYW5uZXNzIGVycm9yDQptZXNzYWdlcyBhcmUgc3VwcHJlc3NlZCB0aGF0IHRoaXMg
+aGFwcGVucyBtYW51YWxseS4gSGVuY2UgdGhlIHBhdGNoIGF0IHRoZQ0Kc3RhcnQgb2YgdGhpcyBl
+LW1haWwgdGhyZWFkIHRoYXQgcmVzdG9yZXMgX19DSEVDS19FTkRJQU5fXy4NCg0KQmFydC4=
