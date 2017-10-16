@@ -1,106 +1,82 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/2] ibacm: Incorrect list used for subnet list causes a
- segfault.
-Date: Mon, 16 Oct 2017 07:58:16 +0300
-Message-ID: <20171016045816.GB2106@mtr-leonro.local>
-References: <20171013184347.28410.87093.stgit@phlsvslse11.ph.intel.com>
- <20171013184352.28410.32200.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH rdma-next 0/5] RDMA core, mlx5 fixes and refactoring for 4.15
+Date: Mon, 16 Oct 2017 08:28:07 +0300
+Message-ID: <20171016052812.28802-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ds9maZbwT7uk2FVi"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171013184352.28410.32200.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+1) Introduce and use rdma_create_user_ah
 
---ds9maZbwT7uk2FVi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Currently there is inconsistency in resolving destination mac address in
+ib core and provider driver as below.
+1. Provider drivers are using different API to resolve dmac.
+2. Provider drivers are resolving destination mac address for user space
+consumers, but don't have to resolve for kernel consumers.
 
-On Fri, Oct 13, 2017 at 02:43:52PM -0400, Michael J. Ruhl wrote:
-> From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->
-> When using the ibacm from rdma-core commit bf03566e0aa976afc5df,
+This leads ah_attr->roce.dmac being input field for kernel consumers and
+treated as output field for user space consumers.
 
-That commit is unrelated to ibacm. I think that we can remove this line.
+Without proper API, umad module miss resolving destination mac
+address while creating address handle.
 
-> setting the provider keyword in the ibacm_opts.cfg file to something
-> other than 'default' will cause ibacm to segfault on startup:
->
-> ibacm[32739]: segfault at 302e40 ip 000000000040432d
-> sp 00007ffe4039e1c0 error 4 in ibacm[400000+c000]
->
-> To re-produce the segfault, change the provider keyword in
-> ibacm_opts.cfg from:
->
-> provider ibacmp default
->
-> to:
->
-> provider ibacmp 0xFE80000000000000
->
-> When adding subnets to a provider subnet list, the incorrect list is
-> used.  The list used is the provider_list (list of all providers)
-> rather than the (specific) provider subnet list.
->
-> This corrupts the provider_list, and causes ibacm to crash with the
-> above segfault.
->
-> Use the correct list when adding subnet information to a provider.
->
-> Fixes: 26e05f8304a506 ("ibacm: use ccan/list.h")
-> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  ibacm/src/acm.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/ibacm/src/acm.c b/ibacm/src/acm.c
-> index 1ccef94..a67001d 100644
-> --- a/ibacm/src/acm.c
-> +++ b/ibacm/src/acm.c
-> @@ -2587,8 +2587,8 @@ static void acm_load_prov_config(void)
->  					return;
->  				}
->  				subnet->subnet_prefix = htobe64(prefix);
-> -				list_add_after(&provider_list, &prov->entry,
-> -						&subnet->entry);
-> +				list_add_tail(&prov->subnet_list,
-> +					      &subnet->entry);
->  			}
->  		}
->  	}
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Additionally mlx4 driver resolves incorrect mac address for v4 mapped
+v6 destination multicast gid.
 
---ds9maZbwT7uk2FVi
-Content-Type: application/pgp-signature; name="signature.asc"
+This patchset allows uverbs modules to invoke ib_core API that
+resolves destination mac address for user consumers.
 
------BEGIN PGP SIGNATURE-----
+This patchset avoids above issues by ib_core resolving destination mac
+address for roce for user as well as kernel consumers.
+It uses ib_resolve_eth_dmac() API which resolves destination mac address
+for unicast, multicast, v4 mapped v6 addresses, and also link local gid.
+This eliminates code duplication in provider drivers and also brings
+uniformity by always resolving dmac in ib_core for all type of GIDs.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnkPGcACgkQ5GN7iDZy
-WKcY1w/9EYh/k6vj9AesCtqdauD48eLvseRCoxakXFz1Yf3pPhBjqiEa9F1pGJVO
-g1gLzoPCasVUpzEWrg6FelzjtmiYg/uhzhRkseTfJXjN567MZ+i2GwutFQyrfRUk
-seeQkxQaNj6T0LsVoCvhPjzDWfm0dXAddr6zQjXDYGJMRvWkgqrs51zsTk8m4WnI
-e3XPTRg9vqTU0lXmNGEbcIjONLVabcHwRXpzwMku9Arquxtw+PRAFf/89ROHgpFt
-pgwUcIhtUY9c7VZMd0GPHlyKYtrWepsmjPdZrCD0vBwWH6VlrI7jocg3HR4+GfJd
-Q75iOzbWakkKByI1NdKG6mCI7aOWYPV0nAIGLOl/3XqDizjz55wGX+nwrfbiE+lT
-IAprbPqn+c1GKZ1Yx7PtBVsgsn4B0jerOXCs+LOxt0GWCQBYHZ/eXYDTVv8L728m
-+bCK0E2agm3r+5Vvr+QYS2QXOkMloE7y1zxvqJb/hVD6RDTPkBng9cJo7t+KIazt
-q4Qwe3wgXYGtrVlPMB6Yih2EHC/IPQhVof8EARwe8grQb9pse+C0uZ03CThLjqIF
-wS/utMIcO1VqV6lQabmX+4MBEhek9Yp+ygXfQKVWdviF8QdgFTjtY1gulLwLT/08
-M7heNKQUEkq/KsI38X/k+quA34lBlRKyNHfTml7YHYVgJvBbZdY=
-=MPEZ
------END PGP SIGNATURE-----
+This allows to eliminate exporting low level API ib_resolve_eth_dmac().
+So its removed as export symbol until a good use case arise.
 
---ds9maZbwT7uk2FVi--
+2) Three simple fixes for IB/core.
+3) Patch for mlx5 posted to the mailing list.
+
+The patches are available in the git repository at:
+  git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-next-2017-10-16
+
+	Thanks
+---------------------------------------
+
+Jérémy Lefaure (1):
+  IB/mlx5: Use ARRAY_SIZE
+
+Parav Pandit (4):
+  IB: Let ib_core resolve destination mac address
+  IB/core: Fix unable to change lifespan entry for hw_counters
+  IB/core: Fix use workqueue without WQ_MEM_RECLAIM
+  IB/core: Take into account optional UDR, XRC headers and mandatory
+    ICRC for RoCE MTU
+
+ drivers/infiniband/core/addr.c           |  2 +-
+ drivers/infiniband/core/sysfs.c          | 16 +++++++++++++++-
+ drivers/infiniband/core/verbs.c          |  8 +++++---
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c |  8 --------
+ drivers/infiniband/hw/hns/hns_roce_ah.c  | 14 +-------------
+ drivers/infiniband/hw/mlx4/ah.c          |  8 +++-----
+ drivers/infiniband/hw/mlx5/ah.c          |  4 ----
+ drivers/infiniband/hw/mlx5/odp.c         |  6 +++---
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c | 15 ---------------
+ include/rdma/ib_addr.h                   |  7 ++++---
+ include/rdma/ib_pack.h                   | 19 +++++++++++--------
+ include/rdma/ib_verbs.h                  |  2 --
+ 12 files changed, 43 insertions(+), 66 deletions(-)
+
+--
+2.14.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
