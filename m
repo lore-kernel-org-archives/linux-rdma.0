@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 4/6] IB/core: Fix use workqueue without WQ_MEM_RECLAIM
-Date: Mon, 16 Oct 2017 08:45:15 +0300
-Message-ID: <20171016054517.30643-5-leon@kernel.org>
+Subject: [PATCH rdma-next v1 5/6] IB/core: Take into account optional UDR, XRC headers and mandatory ICRC for RoCE MTU
+Date: Mon, 16 Oct 2017 08:45:16 +0300
+Message-ID: <20171016054517.30643-6-leon@kernel.org>
 References: <20171016054517.30643-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171016054517.30643-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,51 +12,70 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The IB/core provides address resolution service and invokes callback
-handler when address resolve request completes of requester in worker
-thread context.
+This fix considers optional UDP, XRC header sizes and mandatory ICRC 4 bytes in
+calculation of path MTU, by considering additional 8 bytes, path MTU calculation
+is more accurate.
 
-Such caller might allocate or free memory in callback handler
-depending on the completion status to make further progress or to
-terminate a connection. Most ULPs resolve route which involves
-allocating route entry and path record elements in callback event handler.
-
-It has been noticed that WQ_MEM_RECLAIM flag should not be used for
-workers that tend to allocate memory in this [1] thread discussion.
-
-In order to mitigate this situation, WQ_MEM_RECLAIM flag was dropped for
-other such WQs in this [2] patch.
-
-Similar problem might arise with address resolution path, though its not
-yet noticed. The ib_addr workqueue is not memory reclaim path due to its
-nature of invoking callback that might allocate memory or don't free any
-memory under memory pressure.
-
-[1] https://www.spinics.net/lists/linux-rdma/msg53239.html
-[2] https://www.spinics.net/lists/linux-rdma/msg53416.html
-
-Fixes: f54816261c2b ("IB/addr: Remove deprecated create_singlethread_workqueue")
-Fixes: 5fff41e1f89d ("IB/core: Fix race condition in resolving IP to MAC")
+Link: https://www.spinics.net/lists/linux-rdma/msg54558.html
+Fixes: 3c86aa70bf67 ("RDMA/cm: Add RDMA CM support for IBoE devices")
 Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reported-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/addr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/rdma/ib_addr.h |  7 ++++---
+ include/rdma/ib_pack.h | 19 +++++++++++--------
+ 2 files changed, 15 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index 12523f630b61..d2f74721b3ba 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -852,7 +852,7 @@ static struct notifier_block nb = {
- 
- int addr_init(void)
+diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
+index cfa82d16573d..b2a10c762304 100644
+--- a/include/rdma/ib_addr.h
++++ b/include/rdma/ib_addr.h
+@@ -245,10 +245,11 @@ static inline void rdma_addr_set_dgid(struct rdma_dev_addr *dev_addr, union ib_g
+ static inline enum ib_mtu iboe_get_mtu(int mtu)
  {
--	addr_wq = alloc_ordered_workqueue("ib_addr", WQ_MEM_RECLAIM);
-+	addr_wq = alloc_ordered_workqueue("ib_addr", 0);
- 	if (!addr_wq)
- 		return -ENOMEM;
+ 	/*
+-	 * reduce IB headers from effective IBoE MTU. 28 stands for
+-	 * atomic header which is the biggest possible header after BTH
++	 * Reduce IB headers from effective IBoE MTU.
+ 	 */
+-	mtu = mtu - IB_GRH_BYTES - IB_BTH_BYTES - 28;
++	mtu = mtu - (IB_GRH_BYTES + IB_UDP_BYTES + IB_BTH_BYTES +
++		     IB_EXT_XRC_BYTES + IB_EXT_ATOMICETH_BYTES +
++		     IB_ICRC_BYTES);
  
+ 	if (mtu >= ib_mtu_enum_to_int(IB_MTU_4096))
+ 		return IB_MTU_4096;
+diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
+index 36655899ee02..7ea1382ad0e5 100644
+--- a/include/rdma/ib_pack.h
++++ b/include/rdma/ib_pack.h
+@@ -37,14 +37,17 @@
+ #include <uapi/linux/if_ether.h>
+ 
+ enum {
+-	IB_LRH_BYTES  = 8,
+-	IB_ETH_BYTES  = 14,
+-	IB_VLAN_BYTES = 4,
+-	IB_GRH_BYTES  = 40,
+-	IB_IP4_BYTES  = 20,
+-	IB_UDP_BYTES  = 8,
+-	IB_BTH_BYTES  = 12,
+-	IB_DETH_BYTES = 8
++	IB_LRH_BYTES		= 8,
++	IB_ETH_BYTES		= 14,
++	IB_VLAN_BYTES		= 4,
++	IB_GRH_BYTES		= 40,
++	IB_IP4_BYTES		= 20,
++	IB_UDP_BYTES		= 8,
++	IB_BTH_BYTES		= 12,
++	IB_DETH_BYTES		= 8,
++	IB_EXT_ATOMICETH_BYTES	= 28,
++	IB_EXT_XRC_BYTES	= 4,
++	IB_ICRC_BYTES		= 4
+ };
+ 
+ struct ib_field {
 -- 
 2.14.2
 
