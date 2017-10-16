@@ -1,90 +1,94 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2 06/15] PCI: endpoint: make config_item_type const
-Date: Mon, 16 Oct 2017 13:24:37 -0500
-Message-ID: <20171016182437.GG25517@bhelgaas-glaptop.roam.corp.google.com>
-References: <1508167134-6243-1-git-send-email-bhumirks@gmail.com>
- <1508167134-6243-7-git-send-email-bhumirks@gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next v1 4/6] IB/core: Fix use workqueue without
+ WQ_MEM_RECLAIM
+Date: Mon, 16 Oct 2017 21:32:17 +0300
+Message-ID: <20171016183217.GL2106@mtr-leonro.local>
+References: <20171016054517.30643-1-leon@kernel.org>
+ <20171016054517.30643-5-leon@kernel.org>
+ <4f08314e-fd5d-c108-438a-d9e83821e4b3@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="AeHkbrJcO8giN/MO"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1508167134-6243-7-git-send-email-bhumirks@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, alexander.shishkin@linux.intel.com, jic23@kernel.org, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, hch@lst.de, sagi@grimberg.me, kishon@ti.com, bhelgaas@google.com, nab@linux-iscsi.org, balbi@kernel.org, gregkh@linuxfoundation.org, laurent.pinchart@ideasonboard.com, jlbec@evilplan.org, ccaulfie@redhat.com, teigland@redhat.com, mfasheh@versity.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-usb@vger.kernel.org, cluster-devel@redh
+In-Reply-To: <4f08314e-fd5d-c108-438a-d9e83821e4b3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 16, 2017 at 05:18:45PM +0200, Bhumika Goyal wrote:
-> Make config_item_type structures const as they are either passed to a
-> function having the argument as const or stored in the const "ci_type"
-> field of a config_item structure.
-> 
-> Done using Coccinelle.
-> 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+--AeHkbrJcO8giN/MO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Please apply this along with the rest of the series, since it depends
-on an earlier patch in the series.
+On Mon, Oct 16, 2017 at 01:24:12PM -0400, Jonathan Toppins wrote:
+> On 10/16/2017 01:45 AM, Leon Romanovsky wrote:
+> > From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >
+> > The IB/core provides address resolution service and invokes callback
+> > handler when address resolve request completes of requester in worker
+> > thread context.
+> >
+> > Such caller might allocate or free memory in callback handler
+> > depending on the completion status to make further progress or to
+> > terminate a connection. Most ULPs resolve route which involves
+> > allocating route entry and path record elements in callback event handler.
+> >
+> > It has been noticed that WQ_MEM_RECLAIM flag should not be used for
+> > workers that tend to allocate memory in this [1] thread discussion.
+> >
+> > In order to mitigate this situation, WQ_MEM_RECLAIM flag was dropped for
+> > other such WQs in this [2] patch.
+> >
+> > Similar problem might arise with address resolution path, though its not
+> > yet noticed. The ib_addr workqueue is not memory reclaim path due to its
+> > nature of invoking callback that might allocate memory or don't free any
+> > memory under memory pressure.
+> >
+> > [1] https://www.spinics.net/lists/linux-rdma/msg53239.html
+> > [2] https://www.spinics.net/lists/linux-rdma/msg53416.html
+> >
+> > Fixes: f54816261c2b ("IB/addr: Remove deprecated create_singlethread_workqueue")
+> > Fixes: 5fff41e1f89d ("IB/core: Fix race condition in resolving IP to MAC")
+> > Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>
+> This looks like a -stable patch candidate. Once accepted this should
+> probably be queued for v4.9+.
 
-> ---
-> * Changes in v2- Combine all the followup patches and the constification
-> patches into a series.
-> 
->  drivers/pci/endpoint/pci-ep-cfs.c | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/pci/endpoint/pci-ep-cfs.c b/drivers/pci/endpoint/pci-ep-cfs.c
-> index 424fdd6..4f74386 100644
-> --- a/drivers/pci/endpoint/pci-ep-cfs.c
-> +++ b/drivers/pci/endpoint/pci-ep-cfs.c
-> @@ -150,7 +150,7 @@ static void pci_epc_epf_unlink(struct config_item *epc_item,
->  	.drop_link	= pci_epc_epf_unlink,
->  };
->  
-> -static struct config_item_type pci_epc_type = {
-> +static const struct config_item_type pci_epc_type = {
->  	.ct_item_ops	= &pci_epc_item_ops,
->  	.ct_attrs	= pci_epc_attrs,
->  	.ct_owner	= THIS_MODULE,
-> @@ -361,7 +361,7 @@ static void pci_epf_release(struct config_item *item)
->  	.release		= pci_epf_release,
->  };
->  
-> -static struct config_item_type pci_epf_type = {
-> +static const struct config_item_type pci_epf_type = {
->  	.ct_item_ops	= &pci_epf_ops,
->  	.ct_attrs	= pci_epf_attrs,
->  	.ct_owner	= THIS_MODULE,
-> @@ -400,7 +400,7 @@ static void pci_epf_drop(struct config_group *group, struct config_item *item)
->  	.drop_item      = &pci_epf_drop,
->  };
->  
-> -static struct config_item_type pci_epf_group_type = {
-> +static const struct config_item_type pci_epf_group_type = {
->  	.ct_group_ops	= &pci_epf_group_ops,
->  	.ct_owner	= THIS_MODULE,
->  };
-> @@ -428,15 +428,15 @@ void pci_ep_cfs_remove_epf_group(struct config_group *group)
->  }
->  EXPORT_SYMBOL(pci_ep_cfs_remove_epf_group);
->  
-> -static struct config_item_type pci_functions_type = {
-> +static const struct config_item_type pci_functions_type = {
->  	.ct_owner	= THIS_MODULE,
->  };
->  
-> -static struct config_item_type pci_controllers_type = {
-> +static const struct config_item_type pci_controllers_type = {
->  	.ct_owner	= THIS_MODULE,
->  };
->  
-> -static struct config_item_type pci_ep_type = {
-> +static const struct config_item_type pci_ep_type = {
->  	.ct_owner	= THIS_MODULE,
->  };
->  
-> -- 
-> 1.9.1
-> 
+I don't have any strong opinion about that.
+
+Thanks
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--AeHkbrJcO8giN/MO
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnk+zEACgkQ5GN7iDZy
+WKfiFBAAlkgp/DunBrksPkd3CBugAdvoVjJjUULpXjaPtC+sTcRUzBJ77iKzLess
+JpxNPiQ2+5Oyxo2SvQWdu2c1nEl6nU2wDbW5iY+YAA4ZRqysD6d6iuUL22R0w+2w
+RNZSYtduhLyfE8vwx6kSgUWl/XfY8jNNym9xJ6oISgkrRubnZtyiJKHnj+iI2OZK
+1xXCGfH8AN3deXpI4SAC/Nls9tMkC3h9IlVYYBdnyh+ZnfiVdFYGJY8YzjlFUP8b
+kpveo/P20AswtqvW4yV2Rv7yHd3ehYkVOHg7xHkPvfBFY1Cg9w5NYB/avztpAI2g
+ETUHPLIfgvGo9eTlROulKUGG+YbrIW7HjjXmzKE+A2rUwUcMxnnUB5UCgky4JsgA
+SS8x+giTuAPFr0MYw9be8oiOlvzv67BkIIVvKbMMR4KZ0ihm2QUIHQZFJ9gilJ4V
+lAcdgvAOMSKUIus/Tz66Dn0zSTR2jlk9Sex961fufhZOMpN2Po8CKLmywZWTtgdD
+nMcFhPTlzZkZgXptYh8YNkd0yjbhFhRyL0jqwqTcBpE8pMTokWrQZKVCRoGM2K5J
+Jod0PEgioHJal1VuNpBL8DxCm3OkiNxzRPaF/vEVmowU/PrVLBRe+7/TKZSFQWKO
+dST3IYQiAChJnhLgOhZV3oe7myDNdjbiH3s9tPbIrvdko+KuW+o=
+=R96l
+-----END PGP SIGNATURE-----
+
+--AeHkbrJcO8giN/MO--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
