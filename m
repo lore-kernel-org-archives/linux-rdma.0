@@ -1,52 +1,67 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: nvmeof rdma regression issue on 4.14.0-rc1 (or maybe mlx4?)
-Date: Mon, 16 Oct 2017 13:21:36 +0300
-Message-ID: <6d639dd4-9366-2ecf-b49e-751c7a167528@grimberg.me>
-References: <1735134433.8514119.1505997532669.JavaMail.zimbra@redhat.com>
- <1215229914.8516804.1505998051674.JavaMail.zimbra@redhat.com>
- <20170921144421.GA15285@infradead.org>
- <47493aa0-4cad-721b-4ea2-c3b2293340aa@grimberg.me>
- <e8aa9f2e-14b1-23f0-f672-07a913842c9d@redhat.com>
- <20170924103426.GB25094@mtr-leonro.local>
- <4d0e27f2-99e4-ffc7-18a5-e5757c27dad4@redhat.com>
- <4faccebf-7fcf-58b9-1605-82ee9acc652b@grimberg.me>
- <e44f4640-44b2-4692-ca57-08f9ebf4da2c@redhat.com>
- <729c512f-55ff-25e4-6dd9-8b4dcc31bb8d@grimberg.me>
- <ff355fcf-5089-f297-d3fa-9b86d133236b@redhat.com>
+From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/2] ibacm: Incorrect usage of BE byte order of MLID
+ attach/detach_mcast()
+Date: Mon, 16 Oct 2017 10:19:45 -0400
+Message-ID: <20171016141945.11276.1068.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ff355fcf-5089-f297-d3fa-9b86d133236b-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->> Lets take this one step at a time, starting with this issue.
->>
->> First, there is a reason why a simple create_ctrl fails, can we isolate
->> exactly which call fails? Was something else going on that might have
->> made the simple create_ctrl fail?
->>
->> We don't see any "rdma_resolve_addr failed" or "failed to connect queue"
->> messages but we do see "creating I/O queues" which means that we either
->> failed at IO tagset allocation or initializing connect_q.
->>
->> We have a missing error code assignment so can you try the following 
->> patch:
-> 
-> Hi Sagi
-> Sorry for the late response, here is the log with your patch, let me 
-> know if you need more test.
+From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Hi Yi,
+The MLID value passed to ibv_attach/detach_mcast() must be in host
+byte order.
 
-I was referring to the bug you reported on a simple create_ctrl failed:
-https://pastebin.com/7z0XSGSd
+acmp.c incorrectly uses the big endian format when doing a multicast
+attach/detach (join). Multicast packets are used to do name resolution
+by the libibacmp library.
 
-Does it reproduce?
+There are two possible results because of this issue.
+
+If a kernel has commit 8561eae60ff9, the attach will fail with an
+EINVAL.  ibacm will log this as a failure during the multicast join.
+
+If a kernel does not have commit 8561eae60ff9, the attach will
+complete successfully.  Packets sent to this address will be dropped
+because the packet dlid value and the multicast address information
+given by the attach will not match.
+
+Update MLID usage to use the correct byte order.
+
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ ibacm/prov/acmp/src/acmp.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
+index aa78416..78d9a29 100644
+--- a/ibacm/prov/acmp/src/acmp.c
++++ b/ibacm/prov/acmp/src/acmp.c
+@@ -732,7 +732,7 @@ static void acmp_process_join_resp(struct acm_sa_mad *sa_mad)
+ 			acm_log(0, "ERROR - unable to create ah\n");
+ 			goto out;
+ 		}
+-		ret = ibv_attach_mcast(ep->qp, &mc_rec->mgid, mc_rec->mlid);
++		ret = ibv_attach_mcast(ep->qp, &dest->mgid, dest->av.dlid);
+ 		if (ret) {
+ 			acm_log(0, "ERROR - unable to attach QP to multicast group\n");
+ 			ibv_destroy_ah(dest->ah);
+@@ -1429,7 +1429,7 @@ static void acmp_ep_join(struct acmp_ep *ep)
+ 
+ 	if (ep->mc_dest[0].state == ACMP_READY && ep->mc_dest[0].ah) {
+ 		ibv_detach_mcast(ep->qp, &ep->mc_dest[0].mgid,
+-				 be16toh(ep->mc_dest[0].av.dlid));
++				 ep->mc_dest[0].av.dlid);
+ 		ibv_destroy_ah(ep->mc_dest[0].ah);
+ 		ep->mc_dest[0].ah = NULL;
+ 	}
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
