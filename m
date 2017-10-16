@@ -1,68 +1,61 @@
-From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/2] ibacm: Incorrect list used for subnet list causes a
+From: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 2/2] ibacm: Incorrect list used for subnet list causes a
  segfault
-Date: Mon, 16 Oct 2017 10:19:50 -0400
-Message-ID: <20171016141950.11276.59779.stgit@phlsvslse11.ph.intel.com>
+Date: Mon, 16 Oct 2017 14:22:48 +0000
+Message-ID: <14063C7AD467DE4B82DEDB5C278E8663875DDF23@FMSMSX108.amr.corp.intel.com>
 References: <20171016141945.11276.1068.stgit@phlsvslse11.ph.intel.com>
+ <20171016141950.11276.59779.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171016141945.11276.1068.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <20171016141950.11276.59779.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+To: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-Setting the provider keyword in the ibacm_opts.cfg file to something
-other than 'default' will cause ibacm to segfault on startup:
-
-ibacm[32739]: segfault at 302e40 ip 000000000040432d
-sp 00007ffe4039e1c0 error 4 in ibacm[400000+c000]
-
-To re-produce the segfault, change the provider keyword in
-ibacm_opts.cfg from:
-
-provider ibacmp default
-
-to:
-
-provider ibacmp 0xFE80000000000000
-
-When adding subnets to a provider subnet list, the incorrect list is
-used.  The list used is the provider_list (list of all providers)
-rather than the (specific) provider subnet list.
-
-This corrupts the provider_list, and causes ibacm to crash with the
-above segfault.
-
-Use the correct list when adding subnet information to a provider.
-
-Fixes: 26e05f8304a506 ("ibacm: use ccan/list.h")
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- ibacm/src/acm.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/ibacm/src/acm.c b/ibacm/src/acm.c
-index 1ccef94..a67001d 100644
---- a/ibacm/src/acm.c
-+++ b/ibacm/src/acm.c
-@@ -2587,8 +2587,8 @@ static void acm_load_prov_config(void)
- 					return;
- 				}
- 				subnet->subnet_prefix = htobe64(prefix);
--				list_add_after(&provider_list, &prov->entry,
--						&subnet->entry);
-+				list_add_tail(&prov->subnet_list,
-+					      &subnet->entry);
- 			}
- 		}
- 	}
-
+TWlzc2VkIHRoZSB2ZXJzaW9uaW5nIGluZm9ybWF0aW9uLiAgUGxlYXNlIGlnbm9yZSB0aGVzZSB0
+d28gcGF0Y2hlcy4NCg0KUmVzZW5kaW5nIHdpdGggdGhlIGNvcnJlY3QgaW5mb3JtYXRpb24uDQoN
+Cj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1vd25lckB2
+Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5v
+cmddIE9uIEJlaGFsZiBPZiBNaWNoYWVsIEouIFJ1aGwNCj4gU2VudDogTW9uZGF5LCBPY3RvYmVy
+IDE2LCAyMDE3IDEwOjIwIEFNDQo+IFRvOiBIZWZ0eSwgU2VhbiA8c2Vhbi5oZWZ0eUBpbnRlbC5j
+b20+DQo+IENjOiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgaGFsQGRldi5tZWxsYW5veC5j
+by5pbA0KPiBTdWJqZWN0OiBbUEFUQ0ggMi8yXSBpYmFjbTogSW5jb3JyZWN0IGxpc3QgdXNlZCBm
+b3Igc3VibmV0IGxpc3QgY2F1c2VzIGENCj4gc2VnZmF1bHQNCj4gDQo+IEZyb206IE1pY2hhZWwg
+Si4gUnVobCA8bWljaGFlbC5qLnJ1aGxAaW50ZWwuY29tPg0KPiANCj4gU2V0dGluZyB0aGUgcHJv
+dmlkZXIga2V5d29yZCBpbiB0aGUgaWJhY21fb3B0cy5jZmcgZmlsZSB0byBzb21ldGhpbmcNCj4g
+b3RoZXIgdGhhbiAnZGVmYXVsdCcgd2lsbCBjYXVzZSBpYmFjbSB0byBzZWdmYXVsdCBvbiBzdGFy
+dHVwOg0KPiANCj4gaWJhY21bMzI3MzldOiBzZWdmYXVsdCBhdCAzMDJlNDAgaXAgMDAwMDAwMDAw
+MDQwNDMyZA0KPiBzcCAwMDAwN2ZmZTQwMzllMWMwIGVycm9yIDQgaW4gaWJhY21bNDAwMDAwK2Mw
+MDBdDQo+IA0KPiBUbyByZS1wcm9kdWNlIHRoZSBzZWdmYXVsdCwgY2hhbmdlIHRoZSBwcm92aWRl
+ciBrZXl3b3JkIGluDQo+IGliYWNtX29wdHMuY2ZnIGZyb206DQo+IA0KPiBwcm92aWRlciBpYmFj
+bXAgZGVmYXVsdA0KPiANCj4gdG86DQo+IA0KPiBwcm92aWRlciBpYmFjbXAgMHhGRTgwMDAwMDAw
+MDAwMDAwDQo+IA0KPiBXaGVuIGFkZGluZyBzdWJuZXRzIHRvIGEgcHJvdmlkZXIgc3VibmV0IGxp
+c3QsIHRoZSBpbmNvcnJlY3QgbGlzdCBpcw0KPiB1c2VkLiAgVGhlIGxpc3QgdXNlZCBpcyB0aGUg
+cHJvdmlkZXJfbGlzdCAobGlzdCBvZiBhbGwgcHJvdmlkZXJzKQ0KPiByYXRoZXIgdGhhbiB0aGUg
+KHNwZWNpZmljKSBwcm92aWRlciBzdWJuZXQgbGlzdC4NCj4gDQo+IFRoaXMgY29ycnVwdHMgdGhl
+IHByb3ZpZGVyX2xpc3QsIGFuZCBjYXVzZXMgaWJhY20gdG8gY3Jhc2ggd2l0aCB0aGUNCj4gYWJv
+dmUgc2VnZmF1bHQuDQo+IA0KPiBVc2UgdGhlIGNvcnJlY3QgbGlzdCB3aGVuIGFkZGluZyBzdWJu
+ZXQgaW5mb3JtYXRpb24gdG8gYSBwcm92aWRlci4NCj4gDQo+IEZpeGVzOiAyNmUwNWY4MzA0YTUw
+NiAoImliYWNtOiB1c2UgY2Nhbi9saXN0LmgiKQ0KPiBSZXZpZXdlZC1ieTogTWlrZSBNYXJjaW5p
+c3p5biA8bWlrZS5tYXJjaW5pc3p5bkBpbnRlbC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IE1pY2hh
+ZWwgSi4gUnVobCA8bWljaGFlbC5qLnJ1aGxAaW50ZWwuY29tPg0KPiAtLS0NCj4gIGliYWNtL3Ny
+Yy9hY20uYyB8ICAgIDQgKystLQ0KPiAgMSBmaWxlcyBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyks
+IDIgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvaWJhY20vc3JjL2FjbS5jIGIvaWJh
+Y20vc3JjL2FjbS5jDQo+IGluZGV4IDFjY2VmOTQuLmE2NzAwMWQgMTAwNjQ0DQo+IC0tLSBhL2li
+YWNtL3NyYy9hY20uYw0KPiArKysgYi9pYmFjbS9zcmMvYWNtLmMNCj4gQEAgLTI1ODcsOCArMjU4
+Nyw4IEBAIHN0YXRpYyB2b2lkIGFjbV9sb2FkX3Byb3ZfY29uZmlnKHZvaWQpDQo+ICAJCQkJCXJl
+dHVybjsNCj4gIAkJCQl9DQo+ICAJCQkJc3VibmV0LT5zdWJuZXRfcHJlZml4ID0gaHRvYmU2NChw
+cmVmaXgpOw0KPiAtCQkJCWxpc3RfYWRkX2FmdGVyKCZwcm92aWRlcl9saXN0LCAmcHJvdi0+ZW50
+cnksDQo+IC0JCQkJCQkmc3VibmV0LT5lbnRyeSk7DQo+ICsJCQkJbGlzdF9hZGRfdGFpbCgmcHJv
+di0+c3VibmV0X2xpc3QsDQo+ICsJCQkJCSAgICAgICZzdWJuZXQtPmVudHJ5KTsNCj4gIAkJCX0N
+Cj4gIAkJfQ0KPiAgCX0NCj4gDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0
+OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbg0KPiB0aGUgYm9keSBv
+ZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9yZG9t
+byBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
