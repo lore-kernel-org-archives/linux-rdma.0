@@ -1,68 +1,70 @@
-From: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/2] ibacm: Incorrect usage of BE byte order of MLID
+From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2 1/2] ibacm: Incorrect usage of BE byte order of MLID
  attach/detach_mcast()
-Date: Mon, 16 Oct 2017 14:24:12 +0000
-Message-ID: <14063C7AD467DE4B82DEDB5C278E8663875DDF39@FMSMSX108.amr.corp.intel.com>
-References: <20171016141945.11276.1068.stgit@phlsvslse11.ph.intel.com>
+Date: Mon, 16 Oct 2017 10:24:21 -0400
+Message-ID: <20171016142303.12814.97296.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171016141945.11276.1068.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-TWlzc2VkIHRoZSB2ZXJzaW9uaW5nIGluZm9ybWF0aW9uLCBwbGVhc2UgaWdub3JlIHRoaXMgcGF0
-Y2guDQoNClJlc2VuZGluZyB3aXRoIGNvcnJlY3QgaW5mby4NCg0KTWlrZQ0KDQoNCj4gLS0tLS1P
-cmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5l
-bC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJl
-aGFsZiBPZiBNaWNoYWVsIEouIFJ1aGwNCj4gU2VudDogTW9uZGF5LCBPY3RvYmVyIDE2LCAyMDE3
-IDEwOjIwIEFNDQo+IFRvOiBIZWZ0eSwgU2VhbiA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+DQo+IENj
-OiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgaGFsQGRldi5tZWxsYW5veC5jby5pbA0KPiBT
-dWJqZWN0OiBbUEFUQ0ggMS8yXSBpYmFjbTogSW5jb3JyZWN0IHVzYWdlIG9mIEJFIGJ5dGUgb3Jk
-ZXIgb2YgTUxJRA0KPiBhdHRhY2gvZGV0YWNoX21jYXN0KCkNCj4gDQo+IEZyb206IE1pY2hhZWwg
-Si4gUnVobCA8bWljaGFlbC5qLnJ1aGxAaW50ZWwuY29tPg0KPiANCj4gVGhlIE1MSUQgdmFsdWUg
-cGFzc2VkIHRvIGlidl9hdHRhY2gvZGV0YWNoX21jYXN0KCkgbXVzdCBiZSBpbiBob3N0DQo+IGJ5
-dGUgb3JkZXIuDQo+IA0KPiBhY21wLmMgaW5jb3JyZWN0bHkgdXNlcyB0aGUgYmlnIGVuZGlhbiBm
-b3JtYXQgd2hlbiBkb2luZyBhIG11bHRpY2FzdA0KPiBhdHRhY2gvZGV0YWNoIChqb2luKS4gTXVs
-dGljYXN0IHBhY2tldHMgYXJlIHVzZWQgdG8gZG8gbmFtZSByZXNvbHV0aW9uDQo+IGJ5IHRoZSBs
-aWJpYmFjbXAgbGlicmFyeS4NCj4gDQo+IFRoZXJlIGFyZSB0d28gcG9zc2libGUgcmVzdWx0cyBi
-ZWNhdXNlIG9mIHRoaXMgaXNzdWUuDQo+IA0KPiBJZiBhIGtlcm5lbCBoYXMgY29tbWl0IDg1NjFl
-YWU2MGZmOSwgdGhlIGF0dGFjaCB3aWxsIGZhaWwgd2l0aCBhbg0KPiBFSU5WQUwuICBpYmFjbSB3
-aWxsIGxvZyB0aGlzIGFzIGEgZmFpbHVyZSBkdXJpbmcgdGhlIG11bHRpY2FzdCBqb2luLg0KPiAN
-Cj4gSWYgYSBrZXJuZWwgZG9lcyBub3QgaGF2ZSBjb21taXQgODU2MWVhZTYwZmY5LCB0aGUgYXR0
-YWNoIHdpbGwNCj4gY29tcGxldGUgc3VjY2Vzc2Z1bGx5LiAgUGFja2V0cyBzZW50IHRvIHRoaXMg
-YWRkcmVzcyB3aWxsIGJlIGRyb3BwZWQNCj4gYmVjYXVzZSB0aGUgcGFja2V0IGRsaWQgdmFsdWUg
-YW5kIHRoZSBtdWx0aWNhc3QgYWRkcmVzcyBpbmZvcm1hdGlvbg0KPiBnaXZlbiBieSB0aGUgYXR0
-YWNoIHdpbGwgbm90IG1hdGNoLg0KPiANCj4gVXBkYXRlIE1MSUQgdXNhZ2UgdG8gdXNlIHRoZSBj
-b3JyZWN0IGJ5dGUgb3JkZXIuDQo+IA0KPiBSZXZpZXdlZC1ieTogTWlrZSBNYXJjaW5pc3p5biA8
-bWlrZS5tYXJjaW5pc3p5bkBpbnRlbC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IE1pY2hhZWwgSi4g
-UnVobCA8bWljaGFlbC5qLnJ1aGxAaW50ZWwuY29tPg0KPiAtLS0NCj4gIGliYWNtL3Byb3YvYWNt
-cC9zcmMvYWNtcC5jIHwgICAgNCArKy0tDQo+ICAxIGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9u
-cygrKSwgMiBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQgYS9pYmFjbS9wcm92L2FjbXAv
-c3JjL2FjbXAuYyBiL2liYWNtL3Byb3YvYWNtcC9zcmMvYWNtcC5jDQo+IGluZGV4IGFhNzg0MTYu
-Ljc4ZDlhMjkgMTAwNjQ0DQo+IC0tLSBhL2liYWNtL3Byb3YvYWNtcC9zcmMvYWNtcC5jDQo+ICsr
-KyBiL2liYWNtL3Byb3YvYWNtcC9zcmMvYWNtcC5jDQo+IEBAIC03MzIsNyArNzMyLDcgQEAgc3Rh
-dGljIHZvaWQgYWNtcF9wcm9jZXNzX2pvaW5fcmVzcChzdHJ1Y3QNCj4gYWNtX3NhX21hZCAqc2Ff
-bWFkKQ0KPiAgCQkJYWNtX2xvZygwLCAiRVJST1IgLSB1bmFibGUgdG8gY3JlYXRlIGFoXG4iKTsN
-Cj4gIAkJCWdvdG8gb3V0Ow0KPiAgCQl9DQo+IC0JCXJldCA9IGlidl9hdHRhY2hfbWNhc3QoZXAt
-PnFwLCAmbWNfcmVjLT5tZ2lkLCBtY19yZWMtDQo+ID5tbGlkKTsNCj4gKwkJcmV0ID0gaWJ2X2F0
-dGFjaF9tY2FzdChlcC0+cXAsICZkZXN0LT5tZ2lkLCBkZXN0LT5hdi5kbGlkKTsNCj4gIAkJaWYg
-KHJldCkgew0KPiAgCQkJYWNtX2xvZygwLCAiRVJST1IgLSB1bmFibGUgdG8gYXR0YWNoIFFQIHRv
-IG11bHRpY2FzdA0KPiBncm91cFxuIik7DQo+ICAJCQlpYnZfZGVzdHJveV9haChkZXN0LT5haCk7
-DQo+IEBAIC0xNDI5LDcgKzE0MjksNyBAQCBzdGF0aWMgdm9pZCBhY21wX2VwX2pvaW4oc3RydWN0
-IGFjbXBfZXAgKmVwKQ0KPiANCj4gIAlpZiAoZXAtPm1jX2Rlc3RbMF0uc3RhdGUgPT0gQUNNUF9S
-RUFEWSAmJiBlcC0+bWNfZGVzdFswXS5haCkgew0KPiAgCQlpYnZfZGV0YWNoX21jYXN0KGVwLT5x
-cCwgJmVwLT5tY19kZXN0WzBdLm1naWQsDQo+IC0JCQkJIGJlMTZ0b2goZXAtPm1jX2Rlc3RbMF0u
-YXYuZGxpZCkpOw0KPiArCQkJCSBlcC0+bWNfZGVzdFswXS5hdi5kbGlkKTsNCj4gIAkJaWJ2X2Rl
-c3Ryb3lfYWgoZXAtPm1jX2Rlc3RbMF0uYWgpOw0KPiAgCQllcC0+bWNfZGVzdFswXS5haCA9IE5V
-TEw7DQo+ICAJfQ0KPiANCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNl
-bmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQo+IHRoZSBib2R5IG9mIGEg
-bWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGlu
-Zm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+The MLID value passed to ibv_attach/detach_mcast() must be in host
+byte order.
+
+acmp.c incorrectly uses the big endian format when doing a multicast
+attach/detach (join). Multicast packets are used to do name resolution
+by the libibacmp library.
+
+There are two possible results because of this issue.
+
+If a kernel has commit 8561eae60ff9, the attach will fail with an
+EINVAL.  ibacm will log this as a failure during the multicast join.
+
+If a kernel does not have commit 8561eae60ff9, the attach will
+complete successfully.  Packets sent to this address will be dropped
+because the packet dlid value and the multicast address information
+given by the attach will not match.
+
+Update MLID usage to use the correct byte order.
+
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+v1 -> v2
+   * Update kernel commit reference to correct commit id.
+---
+ ibacm/prov/acmp/src/acmp.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
+index aa78416..78d9a29 100644
+--- a/ibacm/prov/acmp/src/acmp.c
++++ b/ibacm/prov/acmp/src/acmp.c
+@@ -732,7 +732,7 @@ static void acmp_process_join_resp(struct acm_sa_mad *sa_mad)
+ 			acm_log(0, "ERROR - unable to create ah\n");
+ 			goto out;
+ 		}
+-		ret = ibv_attach_mcast(ep->qp, &mc_rec->mgid, mc_rec->mlid);
++		ret = ibv_attach_mcast(ep->qp, &dest->mgid, dest->av.dlid);
+ 		if (ret) {
+ 			acm_log(0, "ERROR - unable to attach QP to multicast group\n");
+ 			ibv_destroy_ah(dest->ah);
+@@ -1429,7 +1429,7 @@ static void acmp_ep_join(struct acmp_ep *ep)
+ 
+ 	if (ep->mc_dest[0].state == ACMP_READY && ep->mc_dest[0].ah) {
+ 		ibv_detach_mcast(ep->qp, &ep->mc_dest[0].mgid,
+-				 be16toh(ep->mc_dest[0].av.dlid));
++				 ep->mc_dest[0].av.dlid);
+ 		ibv_destroy_ah(ep->mc_dest[0].ah);
+ 		ep->mc_dest[0].ah = NULL;
+ 	}
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
