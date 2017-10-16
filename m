@@ -1,7 +1,7 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 08/12] i40iw: Reinitialize IEQ on MTU change
-Date: Mon, 16 Oct 2017 15:46:01 -0500
-Message-ID: <20171016204605.37512-9-shiraz.saleem@intel.com>
+Subject: [PATCH for-next 07/12] i40iw: Move ceq_valid to i40iw_sc_dev structure
+Date: Mon, 16 Oct 2017 15:46:00 -0500
+Message-ID: <20171016204605.37512-8-shiraz.saleem@intel.com>
 References: <20171016204605.37512-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171016204605.37512-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,117 +10,140 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On a netdev MTU change event, the iWARP
-Exception Queue (IEQ) buffers may not be
-sized properly to handle the new MTU.
+Completion Event Queues are created and destroyed on
+a per device basis as opposed to per User-space Direct
+Access resource.
 
-Reinitialize the IEQ with new MTU size on MTU
-change event.
-
-Also, add define for the max ethernet frame size
-field in IEQ QP context instead of the snd_mss
-define which is for iWARP QPs' MSS field.
+Move ceq_valid to the correct place in i40iw_sc_dev
+from i40iw_puda_rsrc.
 
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_ctrl.c |  5 ++++-
- drivers/infiniband/hw/i40iw/i40iw_d.h    |  3 +++
- drivers/infiniband/hw/i40iw/i40iw_main.c | 19 +++++++++++++++++--
- drivers/infiniband/hw/i40iw/i40iw_p.h    |  1 +
- drivers/infiniband/hw/i40iw/i40iw_puda.c |  2 +-
- 5 files changed, 26 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_main.c | 19 ++++++++++---------
+ drivers/infiniband/hw/i40iw/i40iw_puda.c |  9 ++++-----
+ drivers/infiniband/hw/i40iw/i40iw_puda.h |  2 --
+ drivers/infiniband/hw/i40iw/i40iw_type.h |  1 +
+ 4 files changed, 15 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-index eabbd6d..c790f8b 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-@@ -348,7 +348,10 @@ void i40iw_change_l2params(struct i40iw_sc_vsi *vsi, struct i40iw_l2params *l2pa
- 	u16 qs_handle;
- 	int i;
- 
--	vsi->mtu = l2params->mtu;
-+	if (vsi->mtu != l2params->mtu) {
-+		vsi->mtu = l2params->mtu;
-+		i40iw_reinitialize_ieq(dev);
-+	}
- 
- 	i40iw_fill_qos_list(l2params->qs_handle_list);
- 	for (i = 0; i < I40IW_MAX_USER_PRIORITY; i++) {
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_d.h b/drivers/infiniband/hw/i40iw/i40iw_d.h
-index 17ed45b..f1a6ce6c9 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_d.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_d.h
-@@ -1107,6 +1107,9 @@
- #define I40IWQPC_SNDMSS_SHIFT 16
- #define I40IWQPC_SNDMSS_MASK (0x3fffUL << I40IWQPC_SNDMSS_SHIFT)
- 
-+#define I40IW_UDA_QPC_MAXFRAMESIZE_SHIFT 16
-+#define I40IW_UDA_QPC_MAXFRAMESIZE_MASK (0x3fffUL << I40IW_UDA_QPC_MAXFRAMESIZE_SHIFT)
-+
- #define I40IWQPC_VLANTAG_SHIFT 32
- #define I40IWQPC_VLANTAG_MASK (0xffffULL << I40IWQPC_VLANTAG_SHIFT)
- 
 diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
-index dc6b3387..e824296 100644
+index 438f526..dc6b3387 100644
 --- a/drivers/infiniband/hw/i40iw/i40iw_main.c
 +++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-@@ -964,8 +964,8 @@ static enum i40iw_status_code i40iw_initialize_ieq(struct i40iw_device *iwdev)
- 	info.pd_id = 2;
- 	info.sq_size = 8192;
- 	info.rq_size = 8192;
--	info.buf_size = 2048;
--	info.tx_buf_cnt = 16384;
-+	info.buf_size = iwdev->vsi.mtu + VLAN_ETH_HLEN;
-+	info.tx_buf_cnt = 4096;
- 	status = i40iw_puda_create_rsrc(&iwdev->vsi, &info);
- 	if (status)
- 		i40iw_pr_err("ieq create fail\n");
-@@ -973,6 +973,21 @@ static enum i40iw_status_code i40iw_initialize_ieq(struct i40iw_device *iwdev)
+@@ -353,6 +353,8 @@ static void i40iw_dele_ceqs(struct i40iw_device *iwdev)
+ 		i40iw_disable_irq(dev, msix_vec, (void *)iwceq);
+ 		i40iw_destroy_ceq(iwdev, iwceq);
+ 	}
++
++	iwdev->sc_dev.ceq_valid = false;
  }
  
  /**
-+ * i40iw_reinitialize_ieq - destroy and re-create ieq
-+ * @dev: iwarp device
-+ */
-+void i40iw_reinitialize_ieq(struct i40iw_sc_dev *dev)
-+{
-+	struct i40iw_device *iwdev = (struct i40iw_device *)dev->back_dev;
+@@ -810,17 +812,16 @@ static enum i40iw_status_code i40iw_setup_ceqs(struct i40iw_device *iwdev,
+ 		i40iw_enable_intr(&iwdev->sc_dev, msix_vec->idx);
+ 		iwdev->ceqs_count++;
+ 	}
+-
+ exit:
+-	if (status) {
+-		if (!iwdev->ceqs_count) {
+-			kfree(iwdev->ceqlist);
+-			iwdev->ceqlist = NULL;
+-		} else {
+-			status = 0;
+-		}
++	if (status && !iwdev->ceqs_count) {
++		kfree(iwdev->ceqlist);
++		iwdev->ceqlist = NULL;
++		return status;
++	} else {
++		iwdev->sc_dev.ceq_valid = true;
++		return 0;
+ 	}
+-	return status;
 +
-+	i40iw_puda_dele_resources(&iwdev->vsi, I40IW_PUDA_RSRC_TYPE_IEQ, false);
-+	if (i40iw_initialize_ieq(iwdev)) {
-+		iwdev->reset = true;
-+		i40iw_request_reset(iwdev);
-+	}
-+}
-+
-+/**
-  * i40iw_hmc_setup - create hmc objects for the device
-  * @iwdev: iwarp device
-  *
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_p.h b/drivers/infiniband/hw/i40iw/i40iw_p.h
-index e217a12..717fbe7 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_p.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_p.h
-@@ -121,5 +121,6 @@ enum i40iw_status_code i40iw_allocate_virt_mem(struct i40iw_hw *hw,
- enum i40iw_status_code i40iw_free_virt_mem(struct i40iw_hw *hw,
- 					   struct i40iw_virt_mem *mem);
- u8 i40iw_get_encoded_wqe_size(u32 wqsize, bool cqpsq);
-+void i40iw_reinitialize_ieq(struct i40iw_sc_dev *dev);
+ }
  
- #endif
+ /**
 diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.c b/drivers/infiniband/hw/i40iw/i40iw_puda.c
-index 71914b3..d75fc81 100644
+index 875898b..71914b3 100644
 --- a/drivers/infiniband/hw/i40iw/i40iw_puda.c
 +++ b/drivers/infiniband/hw/i40iw/i40iw_puda.c
-@@ -491,7 +491,7 @@ static void i40iw_puda_qp_setctx(struct i40iw_puda_rsrc *rsrc)
- 		      LS_64(qp->hw_rq_size, I40IWQPC_RQSIZE) |
- 		      LS_64(qp->hw_sq_size, I40IWQPC_SQSIZE));
+@@ -614,7 +614,7 @@ static enum i40iw_status_code i40iw_puda_qp_create(struct i40iw_puda_rsrc *rsrc)
+ 	qp->user_pri = 0;
+ 	i40iw_qp_add_qos(qp);
+ 	i40iw_puda_qp_setctx(rsrc);
+-	if (rsrc->ceq_valid)
++	if (rsrc->dev->ceq_valid)
+ 		ret = i40iw_cqp_qp_create_cmd(rsrc->dev, qp);
+ 	else
+ 		ret = i40iw_puda_qp_wqe(rsrc->dev, qp);
+@@ -707,7 +707,7 @@ static enum i40iw_status_code i40iw_puda_cq_create(struct i40iw_puda_rsrc *rsrc)
+ 	ret = dev->iw_priv_cq_ops->cq_init(cq, &info);
+ 	if (ret)
+ 		goto error;
+-	if (rsrc->ceq_valid)
++	if (rsrc->dev->ceq_valid)
+ 		ret = i40iw_cqp_cq_create_cmd(dev, cq);
+ 	else
+ 		ret = i40iw_puda_cq_wqe(dev, cq);
+@@ -727,7 +727,7 @@ static void i40iw_puda_free_qp(struct i40iw_puda_rsrc *rsrc)
+ 	struct i40iw_ccq_cqe_info compl_info;
+ 	struct i40iw_sc_dev *dev = rsrc->dev;
  
--	set_64bit_val(qp_ctx, 48, LS_64(1514, I40IWQPC_SNDMSS));
-+	set_64bit_val(qp_ctx, 48, LS_64(rsrc->buf_size, I40IW_UDA_QPC_MAXFRAMESIZE));
- 	set_64bit_val(qp_ctx, 56, 0);
- 	set_64bit_val(qp_ctx, 64, 1);
+-	if (rsrc->ceq_valid) {
++	if (rsrc->dev->ceq_valid) {
+ 		i40iw_cqp_qp_destroy_cmd(dev, &rsrc->qp);
+ 		return;
+ 	}
+@@ -760,7 +760,7 @@ static void i40iw_puda_free_cq(struct i40iw_puda_rsrc *rsrc)
+ 	struct i40iw_ccq_cqe_info compl_info;
+ 	struct i40iw_sc_dev *dev = rsrc->dev;
  
+-	if (rsrc->ceq_valid) {
++	if (rsrc->dev->ceq_valid) {
+ 		i40iw_cqp_cq_destroy_cmd(dev, &rsrc->cq);
+ 		return;
+ 	}
+@@ -925,7 +925,6 @@ enum i40iw_status_code i40iw_puda_create_rsrc(struct i40iw_sc_vsi *vsi,
+ 		rsrc->xmit_complete = i40iw_ieq_tx_compl;
+ 	}
+ 
+-	rsrc->ceq_valid = info->ceq_valid;
+ 	rsrc->type = info->type;
+ 	rsrc->sq_wrtrk_array = (struct i40iw_sq_uk_wr_trk_info *)((u8 *)vmem->va + pudasize);
+ 	rsrc->rq_wrid_array = (u64 *)((u8 *)vmem->va + pudasize + sqwridsize);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.h b/drivers/infiniband/hw/i40iw/i40iw_puda.h
+index dba05ce..660aa3e 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_puda.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_puda.h
+@@ -100,7 +100,6 @@ struct i40iw_puda_rsrc_info {
+ 	enum puda_resource_type type;	/* ILQ or IEQ */
+ 	u32 count;
+ 	u16 pd_id;
+-	bool ceq_valid;
+ 	u32 cq_id;
+ 	u32 qp_id;
+ 	u32 sq_size;
+@@ -125,7 +124,6 @@ struct i40iw_puda_rsrc {
+ 	enum puda_resource_type type;
+ 	u16 buf_size;		/*buffer must be max datalen + tcpip hdr + mac */
+ 	u16 mss;
+-	bool ceq_valid;
+ 	u32 cq_id;
+ 	u32 qp_id;
+ 	u32 sq_size;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
+index fb20d91..2a4c5a7 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_type.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_type.h
+@@ -504,6 +504,7 @@ struct i40iw_sc_dev {
+ 	u8 hmc_fn_id;
+ 	bool is_pf;
+ 	bool vchnl_up;
++	bool ceq_valid;
+ 	u8 vf_id;
+ 	wait_queue_head_t vf_reqs;
+ 	u64 cqp_cmd_stats[OP_SIZE_CQP_STAT_ARRAY];
 -- 
 2.8.3
 
