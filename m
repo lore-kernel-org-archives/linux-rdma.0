@@ -1,12 +1,14 @@
 From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] ibacm: Incorrect usage of BE byte order of MLID
- attach/detach_mcast()
-Date: Mon, 16 Oct 2017 10:19:45 -0400
-Message-ID: <20171016141945.11276.1068.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 2/2] ibacm: Incorrect list used for subnet list causes a
+ segfault
+Date: Mon, 16 Oct 2017 10:19:50 -0400
+Message-ID: <20171016141950.11276.59779.stgit@phlsvslse11.ph.intel.com>
+References: <20171016141945.11276.1068.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171016141945.11276.1068.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
@@ -14,52 +16,51 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The MLID value passed to ibv_attach/detach_mcast() must be in host
-byte order.
+Setting the provider keyword in the ibacm_opts.cfg file to something
+other than 'default' will cause ibacm to segfault on startup:
 
-acmp.c incorrectly uses the big endian format when doing a multicast
-attach/detach (join). Multicast packets are used to do name resolution
-by the libibacmp library.
+ibacm[32739]: segfault at 302e40 ip 000000000040432d
+sp 00007ffe4039e1c0 error 4 in ibacm[400000+c000]
 
-There are two possible results because of this issue.
+To re-produce the segfault, change the provider keyword in
+ibacm_opts.cfg from:
 
-If a kernel has commit 8561eae60ff9, the attach will fail with an
-EINVAL.  ibacm will log this as a failure during the multicast join.
+provider ibacmp default
 
-If a kernel does not have commit 8561eae60ff9, the attach will
-complete successfully.  Packets sent to this address will be dropped
-because the packet dlid value and the multicast address information
-given by the attach will not match.
+to:
 
-Update MLID usage to use the correct byte order.
+provider ibacmp 0xFE80000000000000
 
+When adding subnets to a provider subnet list, the incorrect list is
+used.  The list used is the provider_list (list of all providers)
+rather than the (specific) provider subnet list.
+
+This corrupts the provider_list, and causes ibacm to crash with the
+above segfault.
+
+Use the correct list when adding subnet information to a provider.
+
+Fixes: 26e05f8304a506 ("ibacm: use ccan/list.h")
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- ibacm/prov/acmp/src/acmp.c |    4 ++--
+ ibacm/src/acm.c |    4 ++--
  1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
-index aa78416..78d9a29 100644
---- a/ibacm/prov/acmp/src/acmp.c
-+++ b/ibacm/prov/acmp/src/acmp.c
-@@ -732,7 +732,7 @@ static void acmp_process_join_resp(struct acm_sa_mad *sa_mad)
- 			acm_log(0, "ERROR - unable to create ah\n");
- 			goto out;
+diff --git a/ibacm/src/acm.c b/ibacm/src/acm.c
+index 1ccef94..a67001d 100644
+--- a/ibacm/src/acm.c
++++ b/ibacm/src/acm.c
+@@ -2587,8 +2587,8 @@ static void acm_load_prov_config(void)
+ 					return;
+ 				}
+ 				subnet->subnet_prefix = htobe64(prefix);
+-				list_add_after(&provider_list, &prov->entry,
+-						&subnet->entry);
++				list_add_tail(&prov->subnet_list,
++					      &subnet->entry);
+ 			}
  		}
--		ret = ibv_attach_mcast(ep->qp, &mc_rec->mgid, mc_rec->mlid);
-+		ret = ibv_attach_mcast(ep->qp, &dest->mgid, dest->av.dlid);
- 		if (ret) {
- 			acm_log(0, "ERROR - unable to attach QP to multicast group\n");
- 			ibv_destroy_ah(dest->ah);
-@@ -1429,7 +1429,7 @@ static void acmp_ep_join(struct acmp_ep *ep)
- 
- 	if (ep->mc_dest[0].state == ACMP_READY && ep->mc_dest[0].ah) {
- 		ibv_detach_mcast(ep->qp, &ep->mc_dest[0].mgid,
--				 be16toh(ep->mc_dest[0].av.dlid));
-+				 ep->mc_dest[0].av.dlid);
- 		ibv_destroy_ah(ep->mc_dest[0].ah);
- 		ep->mc_dest[0].ah = NULL;
  	}
 
 --
