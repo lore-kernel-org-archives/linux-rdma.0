@@ -1,229 +1,184 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1 3/5] xprtrdma: Refactor rpcrdma_reply_handler some more
-Date: Mon, 16 Oct 2017 15:01:22 -0400
-Message-ID: <20171016190122.13594.38633.stgit@manet.1015granger.net>
+Subject: [PATCH 1 4/5] xprtrdma: Invoke rpcrdma_reply_handler directly from
+ RECV completion
+Date: Mon, 16 Oct 2017 15:01:30 -0400
+Message-ID: <20171016190130.13594.93106.stgit@manet.1015granger.net>
 References: <20171016185641.13594.5374.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171016185641.13594.5374.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: I'd like to be able to invoke the tail of
-rpcrdma_reply_handler in two different places. Split the tail out
-into its own helper function.
+I noticed that the soft IRQ thread looked pretty busy under heavy
+I/O workloads. perf suggested one area that was expensive was the
+queue_work() call in rpcrdma_wc_receive. That gave me some ideas.
+
+Instead of scheduling a separate worker to process RPC Replies,
+promote the Receive completion handler to IB_POLL_WORKQUEUE, and
+invoke rpcrdma_reply_handler directly.
+
+Note that the poll workqueue is single-threaded. In order to keep
+memory invalidation from serializing all RPC Replies, handle any
+necessary invalidation tasks in a separate multi-threaded workqueue.
+
+This provides a two-tier scheme, similar to OS I/O interrupt
+handlers: A fast interrupt handler that schedules the slow handler
+and re-enables the interrupt, and a slower handler that is invoked
+for any needed heavy lifting.
+
+Benefits include:
+- One less context switch for RPCs that don't register memory
+- Receive completion handling is moved out of soft IRQ context to
+  make room for other users of soft IRQ
+- The same CPU core now DMA syncs and XDR decodes the Receive buffer
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c  |  105 ++++++++++++++++++++++-----------------
- net/sunrpc/xprtrdma/xprt_rdma.h |   21 ++++----
- 2 files changed, 69 insertions(+), 57 deletions(-)
+ net/sunrpc/xprtrdma/rpc_rdma.c  |   46 ++++++++++++++++++++++++---------------
+ net/sunrpc/xprtrdma/verbs.c     |    8 +++----
+ net/sunrpc/xprtrdma/xprt_rdma.h |    5 +++-
+ 3 files changed, 36 insertions(+), 23 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index e355cd3..418bcc6 100644
+index 418bcc6..430f8b5 100644
 --- a/net/sunrpc/xprtrdma/rpc_rdma.c
 +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -1211,6 +1211,60 @@ static int decode_reply_chunk(struct xdr_stream *xdr, u32 *length)
- 	return -EREMOTEIO;
+@@ -1265,16 +1265,36 @@ void rpcrdma_complete_rqst(struct rpcrdma_rep *rep)
+ 	goto out;
  }
  
-+/* Perform XID lookup, reconstruction of the RPC reply, and
-+ * RPC completion while holding the transport lock to ensure
-+ * the rep, rqst, and rq_task pointers remain stable.
++/* Reply handling runs in the poll worker thread. Anything that
++ * might wait is deferred to a separate workqueue.
 + */
-+void rpcrdma_complete_rqst(struct rpcrdma_rep *rep)
++void rpcrdma_deferred_completion(struct work_struct *work)
 +{
++	struct rpcrdma_rep *rep =
++			container_of(work, struct rpcrdma_rep, rr_work);
++	struct rpcrdma_req *req = rpcr_to_rdmar(rep->rr_rqst);
 +	struct rpcrdma_xprt *r_xprt = rep->rr_rxprt;
-+	struct rpc_xprt *xprt = &r_xprt->rx_xprt;
-+	struct rpc_rqst *rqst = rep->rr_rqst;
-+	unsigned long cwnd;
-+	int status;
 +
-+	xprt->reestablish_timeout = 0;
++	/* Invalidate and unmap the data payloads before waking
++	 * the waiting application. This guarantees the memory
++	 * regions are properly fenced from the server before the
++	 * application accesses the data. It also ensures proper
++	 * send flow control: waking the next RPC waits until this
++	 * RPC has relinquished all its Send Queue entries.
++	 */
++	rpcrdma_mark_remote_invalidation(&req->rl_registered, rep);
++	r_xprt->rx_ia.ri_ops->ro_unmap_sync(r_xprt, &req->rl_registered);
 +
-+	switch (rep->rr_proc) {
-+	case rdma_msg:
-+		status = rpcrdma_decode_msg(r_xprt, rep, rqst);
-+		break;
-+	case rdma_nomsg:
-+		status = rpcrdma_decode_nomsg(r_xprt, rep);
-+		break;
-+	case rdma_error:
-+		status = rpcrdma_decode_error(r_xprt, rep, rqst);
-+		break;
-+	default:
-+		status = -EIO;
-+	}
-+	if (status < 0)
-+		goto out_badheader;
-+
-+out:
-+	spin_lock(&xprt->recv_lock);
-+	cwnd = xprt->cwnd;
-+	xprt->cwnd = atomic_read(&r_xprt->rx_buf.rb_credits) << RPC_CWNDSHIFT;
-+	if (xprt->cwnd > cwnd)
-+		xprt_release_rqst_cong(rqst->rq_task);
-+
-+	xprt_complete_rqst(rqst->rq_task, status);
-+	xprt_unpin_rqst(rqst);
-+	spin_unlock(&xprt->recv_lock);
-+	return;
-+
-+/* If the incoming reply terminated a pending RPC, the next
-+ * RPC call will post a replacement receive buffer as it is
-+ * being marshaled.
-+ */
-+out_badheader:
-+	dprintk("RPC: %5u %s: invalid rpcrdma reply (type %u)\n",
-+		rqst->rq_task->tk_pid, __func__, be32_to_cpu(rep->rr_proc));
-+	r_xprt->rx_stats.bad_reply_count++;
-+	status = -EIO;
-+	goto out;
++	rpcrdma_complete_rqst(rep);
 +}
 +
  /* Process received RPC/RDMA messages.
   *
   * Errors must result in the RPC task either being awakened, or
-@@ -1225,8 +1279,6 @@ static int decode_reply_chunk(struct xdr_stream *xdr, u32 *length)
+  * allowed to timeout, to discover the errors at that time.
+  */
+-void
+-rpcrdma_reply_handler(struct work_struct *work)
++void rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+ {
+-	struct rpcrdma_rep *rep =
+-			container_of(work, struct rpcrdma_rep, rr_work);
+ 	struct rpcrdma_xprt *r_xprt = rep->rr_rxprt;
  	struct rpc_xprt *xprt = &r_xprt->rx_xprt;
  	struct rpcrdma_req *req;
- 	struct rpc_rqst *rqst;
--	unsigned long cwnd;
--	int status;
- 	__be32 *p;
- 
- 	dprintk("RPC:       %s: incoming rep %p\n", __func__, rep);
-@@ -1263,6 +1315,7 @@ static int decode_reply_chunk(struct xdr_stream *xdr, u32 *length)
- 	spin_unlock(&xprt->recv_lock);
- 	req = rpcr_to_rdmar(rqst);
- 	req->rl_reply = rep;
-+	rep->rr_rqst = rqst;
- 
+@@ -1320,20 +1340,10 @@ void rpcrdma_complete_rqst(struct rpcrdma_rep *rep)
  	dprintk("RPC:       %s: reply %p completes request %p (xid 0x%08x)\n",
  		__func__, rep, req, be32_to_cpu(rep->rr_xid));
-@@ -1280,36 +1333,7 @@ static int decode_reply_chunk(struct xdr_stream *xdr, u32 *length)
- 						    &req->rl_registered);
- 	}
  
--	xprt->reestablish_timeout = 0;
--
--	switch (rep->rr_proc) {
--	case rdma_msg:
--		status = rpcrdma_decode_msg(r_xprt, rep, rqst);
--		break;
--	case rdma_nomsg:
--		status = rpcrdma_decode_nomsg(r_xprt, rep);
--		break;
--	case rdma_error:
--		status = rpcrdma_decode_error(r_xprt, rep, rqst);
--		break;
--	default:
--		status = -EIO;
+-	/* Invalidate and unmap the data payloads before waking the
+-	 * waiting application. This guarantees the memory regions
+-	 * are properly fenced from the server before the application
+-	 * accesses the data. It also ensures proper send flow control:
+-	 * waking the next RPC waits until this RPC has relinquished
+-	 * all its Send Queue entries.
+-	 */
+-	if (!list_empty(&req->rl_registered)) {
+-		rpcrdma_mark_remote_invalidation(&req->rl_registered, rep);
+-		r_xprt->rx_ia.ri_ops->ro_unmap_sync(r_xprt,
+-						    &req->rl_registered);
 -	}
--	if (status < 0)
--		goto out_badheader;
 -
--out:
--	spin_lock(&xprt->recv_lock);
--	cwnd = xprt->cwnd;
--	xprt->cwnd = atomic_read(&r_xprt->rx_buf.rb_credits) << RPC_CWNDSHIFT;
--	if (xprt->cwnd > cwnd)
--		xprt_release_rqst_cong(rqst->rq_task);
--
--	xprt_complete_rqst(rqst->rq_task, status);
--	xprt_unpin_rqst(rqst);
--	spin_unlock(&xprt->recv_lock);
--	dprintk("RPC:       %s: xprt_complete_rqst(0x%p, 0x%p, %d)\n",
--		__func__, xprt, rqst, status);
-+	rpcrdma_complete_rqst(rep);
+-	rpcrdma_complete_rqst(rep);
++	if (list_empty(&req->rl_registered))
++		rpcrdma_complete_rqst(rep);
++	else
++		queue_work(rpcrdma_receive_wq, &rep->rr_work);
  	return;
  
  out_badstatus:
-@@ -1325,20 +1349,8 @@ static int decode_reply_chunk(struct xdr_stream *xdr, u32 *length)
- 		__func__, be32_to_cpu(rep->rr_vers));
- 	goto repost;
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 11a1fbf..d456954 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -73,7 +73,7 @@
+ static void rpcrdma_destroy_mrs(struct rpcrdma_buffer *buf);
+ static void rpcrdma_dma_unmap_regbuf(struct rpcrdma_regbuf *rb);
  
--/* If the incoming reply terminated a pending RPC, the next
-- * RPC call will post a replacement receive buffer as it is
-- * being marshaled.
-- */
--out_badheader:
--	dprintk("RPC: %5u %s: invalid rpcrdma reply (type %u)\n",
--		rqst->rq_task->tk_pid, __func__, be32_to_cpu(rep->rr_proc));
--	r_xprt->rx_stats.bad_reply_count++;
--	status = -EIO;
--	goto out;
--
--/* The req was still available, but by the time the recv_lock
-- * was acquired, the rqst and task had been released. Thus the RPC
-- * has already been terminated.
-+/* The RPC transaction has already been terminated, or the header
-+ * is corrupt.
-  */
- out_norqst:
- 	spin_unlock(&xprt->recv_lock);
-@@ -1348,7 +1360,6 @@ static int decode_reply_chunk(struct xdr_stream *xdr, u32 *length)
+-static struct workqueue_struct *rpcrdma_receive_wq __read_mostly;
++struct workqueue_struct *rpcrdma_receive_wq __read_mostly;
  
- out_shortreply:
- 	dprintk("RPC:       %s: short/invalid reply\n", __func__);
--	goto repost;
+ int
+ rpcrdma_alloc_wq(void)
+@@ -185,7 +185,7 @@
+ 		rpcrdma_update_granted_credits(rep);
  
- /* If no pending RPC transaction was matched, post a replacement
-  * receive buffer before returning.
+ out_schedule:
+-	queue_work(rpcrdma_receive_wq, &rep->rr_work);
++	rpcrdma_reply_handler(rep);
+ 	return;
+ 
+ out_fail:
+@@ -583,7 +583,7 @@
+ 
+ 	recvcq = ib_alloc_cq(ia->ri_device, NULL,
+ 			     ep->rep_attr.cap.max_recv_wr + 1,
+-			     0, IB_POLL_SOFTIRQ);
++			     0, IB_POLL_WORKQUEUE);
+ 	if (IS_ERR(recvcq)) {
+ 		rc = PTR_ERR(recvcq);
+ 		dprintk("RPC:       %s: failed to create recv CQ: %i\n",
+@@ -974,7 +974,7 @@ struct rpcrdma_rep *
+ 
+ 	rep->rr_cqe.done = rpcrdma_wc_receive;
+ 	rep->rr_rxprt = r_xprt;
+-	INIT_WORK(&rep->rr_work, rpcrdma_reply_handler);
++	INIT_WORK(&rep->rr_work, rpcrdma_deferred_completion);
+ 	rep->rr_recv_wr.next = NULL;
+ 	rep->rr_recv_wr.wr_cqe = &rep->rr_cqe;
+ 	rep->rr_recv_wr.sg_list = &rep->rr_rdmabuf->rg_iov;
 diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 858b4c5..d68a1351 100644
+index d68a1351..a85bcd1 100644
 --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -202,18 +202,17 @@ enum {
- };
+@@ -533,6 +533,8 @@ struct rpcrdma_xprt {
+ bool frwr_is_supported(struct rpcrdma_ia *);
+ bool fmr_is_supported(struct rpcrdma_ia *);
  
++extern struct workqueue_struct *rpcrdma_receive_wq;
++
  /*
-- * struct rpcrdma_rep -- this structure encapsulates state required to recv
-- * and complete a reply, asychronously. It needs several pieces of
-- * state:
-- *   o recv buffer (posted to provider)
-- *   o ib_sge (also donated to provider)
-- *   o status of reply (length, success or not)
-- *   o bookkeeping state to get run by reply handler (list, etc)
-+ * struct rpcrdma_rep -- this structure encapsulates state required
-+ * to receive and complete an RPC Reply, asychronously. It needs
-+ * several pieces of state:
-  *
-- * These are allocated during initialization, per-transport instance.
-+ *   o receive buffer and ib_sge (donated to provider)
-+ *   o status of receive (success or not, length, inv rkey)
-+ *   o bookkeeping state to get run by reply handler (XDR stream)
-  *
-- * N of these are associated with a transport instance, and stored in
-- * struct rpcrdma_buffer. N is the max number of outstanding requests.
-+ * These structures are allocated during transport initialization.
-+ * N of these are associated with a transport instance, managed by
-+ * struct rpcrdma_buffer. N is the max number of outstanding RPCs.
+  * Endpoint calls - xprtrdma/verbs.c
   */
- 
- struct rpcrdma_rep {
-@@ -228,6 +227,7 @@ struct rpcrdma_rep {
- 	struct work_struct	rr_work;
- 	struct xdr_buf		rr_hdrbuf;
- 	struct xdr_stream	rr_stream;
-+	struct rpc_rqst		*rr_rqst;
- 	struct list_head	rr_list;
- 	struct ib_recv_wr	rr_recv_wr;
- };
-@@ -616,6 +616,7 @@ bool rpcrdma_prepare_send_sges(struct rpcrdma_ia *, struct rpcrdma_req *,
- void rpcrdma_unmap_sges(struct rpcrdma_ia *, struct rpcrdma_req *);
+@@ -617,7 +619,8 @@ bool rpcrdma_prepare_send_sges(struct rpcrdma_ia *, struct rpcrdma_req *,
  int rpcrdma_marshal_req(struct rpcrdma_xprt *r_xprt, struct rpc_rqst *rqst);
  void rpcrdma_set_max_header_sizes(struct rpcrdma_xprt *);
-+void rpcrdma_complete_rqst(struct rpcrdma_rep *rep);
- void rpcrdma_reply_handler(struct work_struct *work);
+ void rpcrdma_complete_rqst(struct rpcrdma_rep *rep);
+-void rpcrdma_reply_handler(struct work_struct *work);
++void rpcrdma_reply_handler(struct rpcrdma_rep *rep);
++void rpcrdma_deferred_completion(struct work_struct *work);
  
  static inline void rpcrdma_set_xdrlen(struct xdr_buf *xdr, size_t len)
+ {
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
