@@ -1,56 +1,60 @@
-From: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next v1 4/6] IB/core: Fix use workqueue without
- WQ_MEM_RECLAIM
-Date: Mon, 16 Oct 2017 13:24:12 -0400
-Message-ID: <4f08314e-fd5d-c108-438a-d9e83821e4b3@redhat.com>
-References: <20171016054517.30643-1-leon@kernel.org>
- <20171016054517.30643-5-leon@kernel.org>
-Reply-To: jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Subject: [PATCH v2] linux/types.h: Restore the ability to disable sparse endianness checks
+Date: Mon, 16 Oct 2017 10:26:33 -0700
+Message-ID: <20171016172633.29290-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171016054517.30643-5-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael S . Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/16/2017 01:45 AM, Leon Romanovsky wrote:
-> From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> The IB/core provides address resolution service and invokes callback
-> handler when address resolve request completes of requester in worker
-> thread context.
-> 
-> Such caller might allocate or free memory in callback handler
-> depending on the completion status to make further progress or to
-> terminate a connection. Most ULPs resolve route which involves
-> allocating route entry and path record elements in callback event handler.
-> 
-> It has been noticed that WQ_MEM_RECLAIM flag should not be used for
-> workers that tend to allocate memory in this [1] thread discussion.
-> 
-> In order to mitigate this situation, WQ_MEM_RECLAIM flag was dropped for
-> other such WQs in this [2] patch.
-> 
-> Similar problem might arise with address resolution path, though its not
-> yet noticed. The ib_addr workqueue is not memory reclaim path due to its
-> nature of invoking callback that might allocate memory or don't free any
-> memory under memory pressure.
-> 
-> [1] https://www.spinics.net/lists/linux-rdma/msg53239.html
-> [2] https://www.spinics.net/lists/linux-rdma/msg53416.html
-> 
-> Fixes: f54816261c2b ("IB/addr: Remove deprecated create_singlethread_workqueue")
-> Fixes: 5fff41e1f89d ("IB/core: Fix race condition in resolving IP to MAC")
-> Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+The purpose of patch "linux/types.h: enable endian checks for all
+sparse builds" was to encourage driver authors to annotate
+endianness correctly in their drivers. However, since that patch
+went upstream no endianness annotations in drivers have been fixed.
+I think that this shows that the followed approach does not work,
+probably because several driver authors do not use sparse. For
+developers who are not the authors of these drivers it would take
+a very significant effort to make these drivers endianness clean.
+Examples are drivers/scsi/qla2xxx and drivers/infiniband/hw/nes.
+Hence restore the ability to disable sparse endianness checks such
+that it becomes again easy to review other sparse diagnostics for
+people who want to analyze drivers they are not the author of.
 
-This looks like a -stable patch candidate. Once accepted this should
-probably be queued for v4.9+.
+References: commit 05de97003c77 ("linux/types.h: enable endian checks for all sparse builds")
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Michael S. Tsirkin <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+---
+[v2]: Elaborated patch description
+
+ include/uapi/linux/types.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/include/uapi/linux/types.h b/include/uapi/linux/types.h
+index 41e5914f0a8e..d3dcb0764c45 100644
+--- a/include/uapi/linux/types.h
++++ b/include/uapi/linux/types.h
+@@ -23,7 +23,11 @@
+ #else
+ #define __bitwise__
+ #endif
++#if !defined(__CHECK_ENDIAN__) || __CHECK_ENDIAN__ != 0
+ #define __bitwise __bitwise__
++#else
++#define __bitwise
++#endif
+ 
+ typedef __u16 __bitwise __le16;
+ typedef __u16 __bitwise __be16;
+-- 
+2.14.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
