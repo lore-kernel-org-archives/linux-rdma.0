@@ -1,193 +1,66 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 2/6] IB: Let ib_core resolve destination mac address
-Date: Mon, 16 Oct 2017 08:45:13 +0300
-Message-ID: <20171016054517.30643-3-leon@kernel.org>
+Subject: [PATCH rdma-next v1 6/6] IB/mlx5: Use ARRAY_SIZE
+Date: Mon, 16 Oct 2017 08:45:17 +0300
+Message-ID: <20171016054517.30643-7-leon@kernel.org>
 References: <20171016054517.30643-1-leon@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171016054517.30643-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=A9my=20Lefaure?= <jeremy.lefaure-tU7rkvAWjlwhT4uAktR2oQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Jérémy Lefaure <jeremy.lefaure-tU7rkvAWjlwhT4uAktR2oQ@public.gmane.org>
 
-Since IB/core resolves the destination mac address for user and kernel
-consumers, avoid resolving in multiple provider drivers.
+Using the ARRAY_SIZE macro improves the readability of the code.
 
-Only ib_core resolves DMAC now, therefore resolve_eth_dmac is removed as
-exported symbol.
+Found with Coccinelle with the following semantic patch:
+@r depends on (org || report)@
+type T;
+T[] E;
+position p;
+@@
+(
+ (sizeof(E)@p /sizeof(*E))
+|
+ (sizeof(E)@p /sizeof(E[...]))
+|
+ (sizeof(E)@p /sizeof(T))
+)
 
-Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Jérémy Lefaure <jeremy.lefaure-tU7rkvAWjlwhT4uAktR2oQ@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c          |  8 +++++---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c |  8 --------
- drivers/infiniband/hw/hns/hns_roce_ah.c  | 14 +-------------
- drivers/infiniband/hw/mlx4/ah.c          |  8 +++-----
- drivers/infiniband/hw/mlx5/ah.c          |  4 ----
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c | 15 ---------------
- include/rdma/ib_verbs.h                  |  2 --
- 7 files changed, 9 insertions(+), 50 deletions(-)
+ drivers/infiniband/hw/mlx5/odp.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 4dcfe47c479d..d8f1a5d34f4f 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -53,6 +53,9 @@
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index 3d701c7a4c91..e2197bdda89c 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -32,6 +32,7 @@
  
- #include "core_priv.h"
+ #include <rdma/ib_umem.h>
+ #include <rdma/ib_umem_odp.h>
++#include <linux/kernel.h>
  
-+static int ib_resolve_eth_dmac(struct ib_device *device,
-+			       struct rdma_ah_attr *ah_attr);
-+
- static const char * const ib_events[] = {
- 	[IB_EVENT_CQ_ERR]		= "CQ error",
- 	[IB_EVENT_QP_FATAL]		= "QP fatal error",
-@@ -1257,8 +1260,8 @@ int ib_modify_qp_is_ok(enum ib_qp_state cur_state, enum ib_qp_state next_state,
- }
- EXPORT_SYMBOL(ib_modify_qp_is_ok);
- 
--int ib_resolve_eth_dmac(struct ib_device *device,
--			struct rdma_ah_attr *ah_attr)
-+static int ib_resolve_eth_dmac(struct ib_device *device,
-+			       struct rdma_ah_attr *ah_attr)
- {
- 	int           ret = 0;
- 	struct ib_global_route *grh;
-@@ -1317,7 +1320,6 @@ int ib_resolve_eth_dmac(struct ib_device *device,
- out:
- 	return ret;
- }
--EXPORT_SYMBOL(ib_resolve_eth_dmac);
- 
- /**
-  * ib_modify_qp_with_udata - Modifies the attributes for the specified QP.
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index af65f8114379..ebcdfb4f5f75 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -729,14 +729,6 @@ struct ib_ah *bnxt_re_create_ah(struct ib_pd *ib_pd,
- 			ah->qplib_ah.nw_type = CMDQ_CREATE_AH_TYPE_V1;
- 			break;
- 		}
--		rc = rdma_addr_find_l2_eth_by_grh(&sgid, &grh->dgid,
--						  ah_attr->roce.dmac, &vlan_tag,
--						  &sgid_attr.ndev->ifindex,
--						  NULL);
--		if (rc) {
--			dev_err(rdev_to_dev(rdev), "Failed to get dmac\n");
--			goto fail;
--		}
+ #include "mlx5_ib.h"
+ #include "cmd.h"
+@@ -929,9 +930,8 @@ static int mlx5_ib_mr_initiator_pfault_handler(
+ 		return -EFAULT;
  	}
  
- 	memcpy(ah->qplib_ah.dmac, ah_attr->roce.dmac, ETH_ALEN);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_ah.c b/drivers/infiniband/hw/hns/hns_roce_ah.c
-index b30bc8830643..7dd6a66ea244 100644
---- a/drivers/infiniband/hw/hns/hns_roce_ah.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_ah.c
-@@ -48,7 +48,6 @@ struct ib_ah *hns_roce_create_ah(struct ib_pd *ibpd,
- 	struct ib_gid_attr gid_attr;
- 	struct hns_roce_ah *ah;
- 	u16 vlan_tag = 0xffff;
--	struct in6_addr in6;
- 	const struct ib_global_route *grh = rdma_ah_read_grh(ah_attr);
- 	union ib_gid sgid;
- 	int ret;
-@@ -58,18 +57,7 @@ struct ib_ah *hns_roce_create_ah(struct ib_pd *ibpd,
- 		return ERR_PTR(-ENOMEM);
- 
- 	/* Get mac address */
--	memcpy(&in6, grh->dgid.raw, sizeof(grh->dgid.raw));
--	if (rdma_is_multicast_addr(&in6)) {
--		rdma_get_mcast_mac(&in6, ah->av.mac);
--	} else {
--		u8 *dmac = rdma_ah_retrieve_dmac(ah_attr);
--
--		if (!dmac) {
--			kfree(ah);
--			return ERR_PTR(-EINVAL);
--		}
--		memcpy(ah->av.mac, dmac, ETH_ALEN);
--	}
-+	memcpy(ah->av.mac, ah_attr->roce.dmac, ETH_ALEN);
- 
- 	/* Get source gid */
- 	ret = ib_get_cached_gid(ibpd->device, rdma_ah_get_port_num(ah_attr),
-diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
-index 538c46a73248..6dee4fdc5d67 100644
---- a/drivers/infiniband/hw/mlx4/ah.c
-+++ b/drivers/infiniband/hw/mlx4/ah.c
-@@ -92,12 +92,10 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd,
- 	int ret;
- 
- 	memcpy(&in6, grh->dgid.raw, sizeof(in6));
--	if (rdma_is_multicast_addr(&in6)) {
-+	if (rdma_is_multicast_addr(&in6))
- 		is_mcast = 1;
--		rdma_get_mcast_mac(&in6, ah->av.eth.mac);
--	} else {
--		memcpy(ah->av.eth.mac, ah_attr->roce.dmac, ETH_ALEN);
--	}
-+
-+	memcpy(ah->av.eth.mac, ah_attr->roce.dmac, ETH_ALEN);
- 	ret = ib_get_cached_gid(pd->device, rdma_ah_get_port_num(ah_attr),
- 				grh->sgid_index, &sgid, &gid_attr);
- 	if (ret)
-diff --git a/drivers/infiniband/hw/mlx5/ah.c b/drivers/infiniband/hw/mlx5/ah.c
-index 3363e29157f6..fe269f680103 100644
---- a/drivers/infiniband/hw/mlx5/ah.c
-+++ b/drivers/infiniband/hw/mlx5/ah.c
-@@ -89,10 +89,6 @@ struct ib_ah *mlx5_ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
- 
- 		resp.response_length = min_resp_len;
- 
--		err = ib_resolve_eth_dmac(pd->device, ah_attr);
--		if (err)
--			return ERR_PTR(err);
--
- 		memcpy(resp.dmac, ah_attr->roce.dmac, ETH_ALEN);
- 		err = ib_copy_to_udata(udata, &resp, resp.response_length);
- 		if (err)
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-index d0249e463338..dec650930ca6 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-@@ -201,21 +201,6 @@ struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct rdma_ah_attr *attr,
- 	/* Get network header type for this GID */
- 	ah->hdr_type = ib_gid_to_network_type(sgid_attr.gid_type, &sgid);
- 
--	if ((pd->uctx) &&
--	    (!rdma_is_multicast_addr((struct in6_addr *)grh->dgid.raw)) &&
--	    (!rdma_link_local_addr((struct in6_addr *)grh->dgid.raw))) {
--		status = rdma_addr_find_l2_eth_by_grh(&sgid, &grh->dgid,
--						      attr->roce.dmac,
--						      &vlan_tag,
--						      &sgid_attr.ndev->ifindex,
--						      NULL);
--		if (status) {
--			pr_err("%s(): Failed to resolve dmac from gid." 
--				"status = %d\n", __func__, status);
--			goto av_conf_err;
--		}
--	}
--
- 	status = set_av_attr(dev, ah, attr, &sgid, pd->id, &isvlan, vlan_tag);
- 	if (status)
- 		goto av_conf_err;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 09c4a695155e..9810e4568635 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -3622,8 +3622,6 @@ void ib_drain_rq(struct ib_qp *qp);
- void ib_drain_sq(struct ib_qp *qp);
- void ib_drain_qp(struct ib_qp *qp);
- 
--int ib_resolve_eth_dmac(struct ib_device *device,
--			struct rdma_ah_attr *ah_attr);
- int ib_get_eth_speed(struct ib_device *dev, u8 port_num, u8 *speed, u8 *width);
- 
- static inline u8 *rdma_ah_retrieve_dmac(struct rdma_ah_attr *attr)
+-	if (unlikely(opcode >= sizeof(mlx5_ib_odp_opcode_cap) /
+-	    sizeof(mlx5_ib_odp_opcode_cap[0]) ||
+-	    !(transport_caps & mlx5_ib_odp_opcode_cap[opcode]))) {
++	if (unlikely(opcode >= ARRAY_SIZE(mlx5_ib_odp_opcode_cap) ||
++		     !(transport_caps & mlx5_ib_odp_opcode_cap[opcode]))) {
+ 		mlx5_ib_err(dev, "ODP fault on QP of an unsupported opcode 0x%x\n",
+ 			    opcode);
+ 		return -EFAULT;
 -- 
 2.14.2
 
