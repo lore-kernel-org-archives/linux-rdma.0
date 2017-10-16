@@ -1,84 +1,164 @@
-From: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] linux/types.h: Restore the ability to disable sparse
- endianness checks
-Date: Mon, 16 Oct 2017 22:57:13 +0300
-Message-ID: <20171016224241-mutt-send-email-mst@kernel.org>
-References: <20171016172633.29290-1-bart.vanassche@wdc.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH for-next 06/12] i40iw: Account for IPv6 header when setting MSS
+Date: Mon, 16 Oct 2017 15:45:59 -0500
+Message-ID: <20171016204605.37512-7-shiraz.saleem@intel.com>
+References: <20171016204605.37512-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171016172633.29290-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <20171016204605.37512-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 16, 2017 at 10:26:33AM -0700, Bart Van Assche wrote:
-> The purpose of patch "linux/types.h: enable endian checks for all
-> sparse builds" was to encourage driver authors to annotate
-> endianness correctly in their drivers. However, since that patch
-> went upstream no endianness annotations in drivers have been fixed.
+The IPv6 header size is not subtracted from MTU when MSS is
+set for QPs.
 
-I doubt that's true. What's the basis for this claim?
+Save MTU opposed to MSS in the vsi struct during
+initialization and calculate the MSS based on IPv4 vs
+IPv6 connection.
 
-> I think that this shows that the followed approach does not work,
-> probably because several driver authors do not use sparse. For
-> developers who are not the authors of these drivers it would take
-> a very significant effort to make these drivers endianness clean.
+Fixes: f27b4746f378 ("i40iw: add connection management code")
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/i40iw/i40iw.h      | 3 ---
+ drivers/infiniband/hw/i40iw/i40iw_cm.c   | 3 ++-
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 5 ++---
+ drivers/infiniband/hw/i40iw/i40iw_d.h    | 4 ++++
+ drivers/infiniband/hw/i40iw/i40iw_main.c | 6 +++---
+ drivers/infiniband/hw/i40iw/i40iw_puda.c | 3 ++-
+ drivers/infiniband/hw/i40iw/i40iw_type.h | 4 ++--
+ 7 files changed, 15 insertions(+), 13 deletions(-)
 
-I'm afraid I still don't see it.  For developers endian-ness is really
-easy.  Look at hardware spec make sure code matches.  You can often do
-without looking at the spec too, if a given field is always used with
-cpu_to_le, mark it __le.  If you don't want to change driver code, you
-don't really need to run sparse on it.
+diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
+index a65e4cbd..4ae9131 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw.h
++++ b/drivers/infiniband/hw/i40iw/i40iw.h
+@@ -119,9 +119,6 @@
+ #define I40IW_CQP_COMPL_SQ_WQE_FLUSHED    3
+ #define I40IW_CQP_COMPL_RQ_SQ_WQE_FLUSHED 4
+ 
+-#define I40IW_MTU_TO_MSS		40
+-#define I40IW_DEFAULT_MSS		1460
+-
+ struct i40iw_cqp_compl_info {
+ 	u32 op_ret_val;
+ 	u16 maj_err_code;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index f5cfb22..596a46b 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -2193,7 +2193,8 @@ static struct i40iw_cm_node *i40iw_make_cm_node(
+ 			I40IW_CM_DEFAULT_RCV_WND_SCALED >> I40IW_CM_DEFAULT_RCV_WND_SCALE;
+ 	ts = current_kernel_time();
+ 	cm_node->tcp_cntxt.loc_seq_num = ts.tv_nsec;
+-	cm_node->tcp_cntxt.mss = iwdev->vsi.mss;
++	cm_node->tcp_cntxt.mss = (cm_node->ipv4) ? (iwdev->vsi.mtu - I40IW_MTU_TO_MSS_IPV4) :
++				 (iwdev->vsi.mtu - I40IW_MTU_TO_MSS_IPV6);
+ 
+ 	cm_node->iwdev = iwdev;
+ 	cm_node->dev = &iwdev->sc_dev;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+index 58249d0..eabbd6d 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+@@ -348,7 +348,7 @@ void i40iw_change_l2params(struct i40iw_sc_vsi *vsi, struct i40iw_l2params *l2pa
+ 	u16 qs_handle;
+ 	int i;
+ 
+-	vsi->mss = l2params->mss;
++	vsi->mtu = l2params->mtu;
+ 
+ 	i40iw_fill_qos_list(l2params->qs_handle_list);
+ 	for (i = 0; i < I40IW_MAX_USER_PRIORITY; i++) {
+@@ -4582,9 +4582,8 @@ void i40iw_sc_vsi_init(struct i40iw_sc_vsi *vsi, struct i40iw_vsi_init_info *inf
+ 
+ 	vsi->dev = info->dev;
+ 	vsi->back_vsi = info->back_vsi;
+-	vsi->mss = info->params->mss;
++	vsi->mtu = info->params->mtu;
+ 	vsi->exception_lan_queue = info->exception_lan_queue;
+-
+ 	i40iw_fill_qos_list(info->params->qs_handle_list);
+ 
+ 	for (i = 0; i < I40IW_MAX_USER_PRIORITY; i++) {
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_d.h b/drivers/infiniband/hw/i40iw/i40iw_d.h
+index 40d4743..17ed45b 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_d.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_d.h
+@@ -73,6 +73,10 @@
+ #define I40IW_FIRST_NON_PF_STAT	4
+ 
+ 
++#define I40IW_MTU_TO_MSS_IPV4		40
++#define I40IW_MTU_TO_MSS_IPV6		60
++#define I40IW_DEFAULT_MTU		1500
++
+ #define LS_64_1(val, bits)      ((u64)(uintptr_t)val << bits)
+ #define RS_64_1(val, bits)      ((u64)(uintptr_t)val >> bits)
+ #define LS_32_1(val, bits)      (u32)(val << bits)
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
+index ee0323f..438f526 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_main.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
+@@ -1327,8 +1327,8 @@ static enum i40iw_status_code i40iw_initialize_dev(struct i40iw_device *iwdev,
+ 	info.bar0 = ldev->hw_addr;
+ 	info.hw = &iwdev->hw;
+ 	info.debug_mask = debug;
+-	l2params.mss =
+-		(ldev->params.mtu) ? ldev->params.mtu - I40IW_MTU_TO_MSS : I40IW_DEFAULT_MSS;
++	l2params.mtu =
++		(ldev->params.mtu) ? ldev->params.mtu : I40IW_DEFAULT_MTU;
+ 	for (i = 0; i < I40E_CLIENT_MAX_USER_PRIORITY; i++) {
+ 		qset = ldev->params.qos.prio_qos[i].qs_handle;
+ 		l2params.qs_handle_list[i] = qset;
+@@ -1748,7 +1748,7 @@ static void i40iw_l2param_change(struct i40e_info *ldev, struct i40e_client *cli
+ 	for (i = 0; i < I40E_CLIENT_MAX_USER_PRIORITY; i++)
+ 		l2params->qs_handle_list[i] = params->qos.prio_qos[i].qs_handle;
+ 
+-	l2params->mss = (params->mtu) ? params->mtu - I40IW_MTU_TO_MSS : iwdev->vsi.mss;
++	l2params->mtu = (params->mtu) ? params->mtu : iwdev->vsi.mtu;
+ 
+ 	INIT_WORK(&work->work, i40iw_l2params_worker);
+ 	queue_work(iwdev->param_wq, &work->work);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.c b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+index 2a3bf64..875898b 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_puda.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+@@ -1404,7 +1404,8 @@ static void i40iw_ieq_handle_exception(struct i40iw_puda_rsrc *ieq,
+ 		pfpdu->rcv_nxt = fps;
+ 		pfpdu->fps = fps;
+ 		pfpdu->mode = true;
+-		pfpdu->max_fpdu_data = ieq->vsi->mss;
++		pfpdu->max_fpdu_data = (buf->ipv4) ? (ieq->vsi->mtu - I40IW_MTU_TO_MSS_IPV4) :
++				       (ieq->vsi->mtu - I40IW_MTU_TO_MSS_IPV6);
+ 		pfpdu->pmode_count++;
+ 		INIT_LIST_HEAD(rxlist);
+ 		i40iw_ieq_check_first_buf(buf, fps);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
+index c718a525..fb20d91 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_type.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_type.h
+@@ -459,7 +459,7 @@ struct i40iw_sc_vsi {
+ 	struct i40iw_virt_mem ieq_mem;
+ 	struct i40iw_puda_rsrc *ieq;
+ 	u16 exception_lan_queue;
+-	u16 mss;
++	u16 mtu;
+ 	u8 fcn_id;
+ 	bool stats_fcn_id_alloc;
+ 	struct i40iw_qos qos[I40IW_MAX_USER_PRIORITY];
+@@ -565,7 +565,7 @@ struct i40iw_ccq_cqe_info {
+ 
+ struct i40iw_l2params {
+ 	u16 qs_handle_list[I40IW_MAX_USER_PRIORITY];
+-	u16 mss;
++	u16 mtu;
+ };
+ 
+ struct i40iw_vsi_init_info {
+-- 
+2.8.3
 
-> Examples are drivers/scsi/qla2xxx and drivers/infiniband/hw/nes.
-
-These seem to be actively maintained. So post a patch, maintainers
-can look at the spec to help make sure annotations are right.
-
-> Hence restore the ability to disable sparse endianness checks such
-> that it becomes again easy to review other sparse diagnostics for
-> people who want to analyze drivers they are not the author of.
-
-What are these diagnostics that are important to analyze for people
-unable to make even trivial driver changes? White-listing these
-as opposed to black-listing endian-ness might be a better idea.
-
-> References: commit 05de97003c77 ("linux/types.h: enable endian checks for all sparse builds")
-> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-> Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Michael S. Tsirkin <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-> Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-> ---
-> [v2]: Elaborated patch description
-> 
->  include/uapi/linux/types.h | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/include/uapi/linux/types.h b/include/uapi/linux/types.h
-> index 41e5914f0a8e..d3dcb0764c45 100644
-> --- a/include/uapi/linux/types.h
-> +++ b/include/uapi/linux/types.h
-> @@ -23,7 +23,11 @@
->  #else
->  #define __bitwise__
->  #endif
-> +#if !defined(__CHECK_ENDIAN__) || __CHECK_ENDIAN__ != 0
->  #define __bitwise __bitwise__
-> +#else
-> +#define __bitwise
-> +#endif
->  
->  typedef __u16 __bitwise __le16;
->  typedef __u16 __bitwise __be16;
-> -- 
-> 2.14.2
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
