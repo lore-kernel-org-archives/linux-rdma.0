@@ -1,58 +1,106 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] rxe_cfg: Fix parsing of ethtool / ifconfig
-Date: Mon, 16 Oct 2017 07:50:54 +0300
-Message-ID: <20171016045054.GZ2106@mtr-leonro.local>
-References: <CALvXFTdij1WaFL2A05MJBcngn5eJ=ahxwRU64bS_VsCjvnE1XQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] ibacm: Incorrect usage of BE byte order of MLID
+ attach/detach_mcast()
+Date: Mon, 16 Oct 2017 07:56:41 +0300
+Message-ID: <20171016045641.GA2106@mtr-leonro.local>
+References: <20171013184347.28410.87093.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="YBGzgpgHAney5ErF"
+        protocol="application/pgp-signature"; boundary="YPOU9eFKIy6Wf5kE"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CALvXFTdij1WaFL2A05MJBcngn5eJ=ahxwRU64bS_VsCjvnE1XQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20171013184347.28410.87093.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nathan Hartwell <nathan.hartwell-YP+SxaqqoVo2oU8LL9ROB9BPR1lH4CV8@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---YBGzgpgHAney5ErF
+--YPOU9eFKIy6Wf5kE
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Oct 11, 2017 at 01:00:24PM -0600, Nathan Hartwell wrote:
-> rxe_cfg does not always parse the output of ethtool and ifconfig correctly.
+On Fri, Oct 13, 2017 at 02:43:47PM -0400, Michael J. Ruhl wrote:
+> From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >
-> Fix two items:
-> 1)  Parsing of ethtool's link speed field to always output a link speed.
-> 2)  Parsing of ifconfig's IP address / MTU fields with newer builds of
-> ifconfig that have a slightly different output format than in the
-> past.
+> The MLID value passed to ibv_attach/detach_mcast() must be in host
+> byte order.
+>
+> acmp.c incorrectly uses the big endian format when doing a multicast
+> attach/detach (join). Multicast packets are used to do name resolution
+> by the libibacmp library.
+>
+> There are two possible results because of this issue.
+>
+> If a kernel has commit 00b8a3351b2b, the attach will fail with an
+> EINVAL.  ibacm will log this as a failure during the multicast join.
 
-Can you please specify the version of ifconfig and OS?
+Kernel doesn't have such commit.
+https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git/commit/?h=k.o/for-next&id=00b8a3351b2b
 
-Thanks
+>
+> If a kernel does not have commit 00b8a3351b2b, the attach will
+> complete successfully.  Packets sent to this address will be dropped
+> because the packet dlid value and the multicast address information
+> given by the attach will not match.
+>
+> Update MLID usage to use the correct byte order.
+>
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  ibacm/prov/acmp/src/acmp.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
+> index aa78416..78d9a29 100644
+> --- a/ibacm/prov/acmp/src/acmp.c
+> +++ b/ibacm/prov/acmp/src/acmp.c
+> @@ -732,7 +732,7 @@ static void acmp_process_join_resp(struct acm_sa_mad *sa_mad)
+>  			acm_log(0, "ERROR - unable to create ah\n");
+>  			goto out;
+>  		}
+> -		ret = ibv_attach_mcast(ep->qp, &mc_rec->mgid, mc_rec->mlid);
+> +		ret = ibv_attach_mcast(ep->qp, &dest->mgid, dest->av.dlid);
+>  		if (ret) {
+>  			acm_log(0, "ERROR - unable to attach QP to multicast group\n");
+>  			ibv_destroy_ah(dest->ah);
+> @@ -1429,7 +1429,7 @@ static void acmp_ep_join(struct acmp_ep *ep)
+>
+>  	if (ep->mc_dest[0].state == ACMP_READY && ep->mc_dest[0].ah) {
+>  		ibv_detach_mcast(ep->qp, &ep->mc_dest[0].mgid,
+> -				 be16toh(ep->mc_dest[0].av.dlid));
+> +				 ep->mc_dest[0].av.dlid);
+>  		ibv_destroy_ah(ep->mc_dest[0].ah);
+>  		ep->mc_dest[0].ah = NULL;
+>  	}
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---YBGzgpgHAney5ErF
+--YPOU9eFKIy6Wf5kE
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnkOq4ACgkQ5GN7iDZy
-WKdrxxAAke6ouL5B93+35JiQ2gTaXX7ZEaOuaEwk3MCTjhl7kk5fG699szkYvjs9
-esKtsvrwYkt7ho3TmJBbF3gMMx45WjlnhacvlIJ232kmoSGKj9d4mofr1VYSj/Go
-Wj4hD70XKXooCRz/1poY+11sEa6o7N8mUyOx2zrc6egs0X0jFf6G4PASSK7ksNkE
-ea4aZ0IYZ5Yh+WYRIbCSdc48yvIS46cVStWG2u1tX1U7A4zAvtTor4DfGEMrdKmU
-I//G14tSXPqD8MQBFEWXPG/YijjsjHN9IuroBbReRxGjm7meheBbUh+6SouGLZkz
-3kgZW6v48eKIvfw03S3gqrMqCUH9ZhZCjqVnHu2qZfoDDszonQDSyChN2prQLCUC
-lMkyYHvQzJLxDDjdL4QrU/06Z8fhmy7O8MkRK3begjC9kgattE6oOPRxA6YZGVfV
-JN3W8dLGe3aMgFZL78qKEUXv+0S7nPD9izVaFmBD4JUe/Zg7K7utw0OB7wEfU5gl
-Ah3yzVes1Oizt8mzx1noVGHz/aT6DHv4ZfzyfVgPVxV7ApyJ8vbXuMb9E+35ILaQ
-r9G6o45QVEuLG/WIQ0UJXN2L2HE0L5pn59iJ9Tk7sHaJvxquPsDQy1cmjGkj/ZgM
-20j/vlRh76mbYYCcobupcdFhkt7HJLVLBgeF6s3tCq4Kf/C/p24=
-=my86
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnkPAkACgkQ5GN7iDZy
+WKfMFg//QTrXeUnwV/yF/ZyblElmn/+2OxCZSnnwht90elkHrCdlOFIfwQxfEnmX
+nRYPBLu6aUKrjfCGnYg//V0zQiRcyfGmkPMCfYSqN5qFoODYDO0yYuYbf4YKH+LJ
+EWGgqSzY8LyxASPkjUlECUzyN9IA0YKH1HMeS+leSGyR59VH+FlXY1gb2A3EQixL
+72ZviowCj7nf8+5b9I8C+jZ/ELMuamCW2BArdSqkyeKA9IIwqhV03zyLmkZyLstc
+IqOIqwsYBGemL/YWdaW9MWy0/Umwca8l8J4ivuN+KJjyKoEVRa5ABS1s6nW3RnTz
+FC++mOyEkAKFVgiLSC+kzWV009gdBRz4V7OcMErLxdGxWz7SpB6J+bPJkL1WAonw
+rchl2ObMKJ0Rd+T2fPOm0TX0YjDUoBPFIAIWQYvWZ/VTBfZmDy5CKUktiZW/mWFo
+FDeAyRrFjcrsP4/QvB70oNAC/R9RajEEDiiswWG29ezwg9f2jCnhm028YCWZkn++
+oSNgw4ca3zB4Fqx74uZ8oCItdOeDK1HGfpbDrp8JGjj2B8y5AaaUzmRCHwOG+cvD
++JXwel2YM30vOig0f5Rmpp6q6xcHo01qVwQEqtcDKlx1JfTBY3JQXd9lTWkIfOcC
+OXkgSkKk+2KjFFZagvB+V83flTE9LoOPKS1F1SW0jkYq054FT2g=
+=FVlz
 -----END PGP SIGNATURE-----
 
---YBGzgpgHAney5ErF--
+--YPOU9eFKIy6Wf5kE--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
