@@ -1,66 +1,80 @@
-From: Bart Van Assche <Bart.VanAssche@wdc.com>
-Subject: Re: [PATCH v2] linux/types.h: Restore the ability to disable sparse
- endianness checks
-Date: Mon, 16 Oct 2017 21:26:36 +0000
-Message-ID: <1508189195.2493.55.camel@wdc.com>
-References: <20171016172633.29290-1-bart.vanassche@wdc.com>
-         <20171016224241-mutt-send-email-mst@kernel.org>
+From: Kees Cook <keescook@chromium.org>
+Subject: [PATCH] IB/rdmavt: Convert timers to use timer_setup()
+Date: Mon, 16 Oct 2017 15:51:13 -0700
+Message-ID: <20171016225113.GA98749@beast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171016224241-mutt-send-email-mst@kernel.org>
-Content-Language: en-US
-Content-ID: <B97B8B485AACBC47AF830694CEA8BC3E@namprd04.prod.outlook.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: "mst@redhat.com" <mst@redhat.com>
-Cc: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "hch@infradead.org" <hch@infradead.org>, "leon@kernel.org" <leon@kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
+To: Doug Ledford <dledford@redhat.com>
+Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE3LTEwLTE2IGF0IDIyOjU3ICswMzAwLCBNaWNoYWVsIFMuIFRzaXJraW4gd3Jv
-dGU6DQo+IE9uIE1vbiwgT2N0IDE2LCAyMDE3IGF0IDEwOjI2OjMzQU0gLTA3MDAsIEJhcnQgVmFu
-IEFzc2NoZSB3cm90ZToNCj4gPiBJIHRoaW5rIHRoYXQgdGhpcyBzaG93cyB0aGF0IHRoZSBmb2xs
-b3dlZCBhcHByb2FjaCBkb2VzIG5vdCB3b3JrLA0KPiA+IHByb2JhYmx5IGJlY2F1c2Ugc2V2ZXJh
-bCBkcml2ZXIgYXV0aG9ycyBkbyBub3QgdXNlIHNwYXJzZS4gRm9yDQo+ID4gZGV2ZWxvcGVycyB3
-aG8gYXJlIG5vdCB0aGUgYXV0aG9ycyBvZiB0aGVzZSBkcml2ZXJzIGl0IHdvdWxkIHRha2UNCj4g
-PiBhIHZlcnkgc2lnbmlmaWNhbnQgZWZmb3J0IHRvIG1ha2UgdGhlc2UgZHJpdmVycyBlbmRpYW5u
-ZXNzIGNsZWFuLg0KPiANCj4gSSdtIGFmcmFpZCBJIHN0aWxsIGRvbid0IHNlZSBpdC4gIEZvciBk
-ZXZlbG9wZXJzIGVuZGlhbi1uZXNzIGlzIHJlYWxseQ0KPiBlYXN5LiAgTG9vayBhdCBoYXJkd2Fy
-ZSBzcGVjIG1ha2Ugc3VyZSBjb2RlIG1hdGNoZXMuICBZb3UgY2FuIG9mdGVuIGRvDQo+IHdpdGhv
-dXQgbG9va2luZyBhdCB0aGUgc3BlYyB0b28sIGlmIGEgZ2l2ZW4gZmllbGQgaXMgYWx3YXlzIHVz
-ZWQgd2l0aA0KPiBjcHVfdG9fbGUsIG1hcmsgaXQgX19sZS4gIElmIHlvdSBkb24ndCB3YW50IHRv
-IGNoYW5nZSBkcml2ZXIgY29kZSwgeW91DQo+IGRvbid0IHJlYWxseSBuZWVkIHRvIHJ1biBzcGFy
-c2Ugb24gaXQuDQoNCllvdSBzZWVtIHRvIGFzc3VtZSB0aGF0IGFsbCBkcml2ZXJzIHRoYXQgYXJl
-IG5vdCB5ZXQgZW5kaWFubmVzcyBjbGVhbiBkbw0Kbm90IGNvbnRhaW4gYW55IGVuZGlhbm5lc3Mg
-Y29udmVyc2lvbiBidWdzLiBJIHNldmVyZWx5IGRvdWJ0IHRoYXQgdGhhdA0KYXNzdW1wdGlvbiBp
-cyBjb3JyZWN0LiBJdCBpcyBsaWtlbHkgdGhhdCBpdCBpcyBub3QgcG9zc2libGUgdG8gbWFrZSBz
-ZXZlcmFsDQprZXJuZWwgZHJpdmVycyBlbmRpYW5uZXNzIGNsZWFuIGR1ZSB0byBlbmRpYW5uZXNz
-IGNvbnZlcnNpb24gYnVncyBpbiBzdWNoDQpkcml2ZXJzLg0KDQo+ID4gRXhhbXBsZXMgYXJlIGRy
-aXZlcnMvc2NzaS9xbGEyeHh4IGFuZCBkcml2ZXJzL2luZmluaWJhbmQvaHcvbmVzLg0KPiANCj4g
-VGhlc2Ugc2VlbSB0byBiZSBhY3RpdmVseSBtYWludGFpbmVkLiBTbyBwb3N0IGEgcGF0Y2gsIG1h
-aW50YWluZXJzDQo+IGNhbiBsb29rIGF0IHRoZSBzcGVjIHRvIGhlbHAgbWFrZSBzdXJlIGFubm90
-YXRpb25zIGFyZSByaWdodC4NCg0KSSBkb24ndCBoYXZlIHRoZSB0aW1lIHRvIGRlbHZlIGRlZXAg
-aW4gdGhlc2UgdHdvIGFuZCB0aGUgbWFueSBvdGhlciBrZXJuZWwNCmRyaXZlcnMgdGhhdCBhcmUg
-bm90IGVuZGlhbm5lc3MgY2xlYW4uIFNvIHBsZWFzZSBzdG9wIHRlbGxpbmcgKm1lKiB0aGF0ICpJ
-Kg0KaGF2ZSB0byBmaXggdGhlIGVuZGlhbm5lc3MgYW5ub3RhdGlvbnMgaW4gdGhlc2UgZHJpdmVy
-cy4NCg0KQlRXLCBJIHRoaW5rIGl0IHNob3VsZCBiZSBtZW50aW9uZWQgaGVyZSB0aGF0IHlvdSBo
-YXZlIHRyaWVkIHRvIGZpeCB0aGUNCmVuZGlhbm5lc3MgYW5ub3RhdGlvbnMgaW4gdGhlIHFsYTJ4
-eHggZHJpdmVyIGJ1dCBvbmNlIHlvdSBub3RpY2VkIGhvdyANCmNvbXBsaWNhdGVkIHRoYXQgdGFz
-ayB3YXMgdGhhdCB5b3UgZ2F2ZSB1cCBoYWxmLXdheS4gU2VlIGFsc28gTWljaGFlbA0KVHNpcmtp
-biwgW1BBVENIXSBzY3NpL3FsYTJ4eHg6IGxhYmVsIGVuZGlhbi1uZXNzIGZvciBtYW55IGZpZWxk
-cywgOSBEZWMNCjIwMTYgKGh0dHBzOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LXNjc2kv
-bXNnMTAyNzM5Lmh0bWwpLg0KDQo+ID4gSGVuY2UgcmVzdG9yZSB0aGUgYWJpbGl0eSB0byBkaXNh
-YmxlIHNwYXJzZSBlbmRpYW5uZXNzIGNoZWNrcyBzdWNoDQo+ID4gdGhhdCBpdCBiZWNvbWVzIGFn
-YWluIGVhc3kgdG8gcmV2aWV3IG90aGVyIHNwYXJzZSBkaWFnbm9zdGljcyBmb3INCj4gPiBwZW9w
-bGUgd2hvIHdhbnQgdG8gYW5hbHl6ZSBkcml2ZXJzIHRoZXkgYXJlIG5vdCB0aGUgYXV0aG9yIG9m
-Lg0KPiANCj4gV2hhdCBhcmUgdGhlc2UgZGlhZ25vc3RpY3MgdGhhdCBhcmUgaW1wb3J0YW50IHRv
-IGFuYWx5emU/DQoNCkUuZy4gYSBzcGluX3VubG9jaygpIHRoYXQgaXMgbWlzc2luZyBmcm9tIGFu
-IGVycm9yIHBhdGguIFNwYXJzZSBjYW4gZGV0ZWN0DQpzdWNoIGVycm9ycy4NCg0KPiBXaGl0ZS1s
-aXN0aW5nIHRoZXNlIGFzIG9wcG9zZWQgdG8gYmxhY2stbGlzdGluZyBlbmRpYW4tbmVzcyBtaWdo
-dCBiZSBhDQo+IGJldHRlciBpZGVhLg0KDQpBcyBleHBsYWluZWQgaW4gYSBwcmV2aW91cyBlLW1h
-aWwsIGFueSBhcHByb2FjaCB0aGF0IHN1cHByZXNzZXMgZW5kaWFubmVzcw0KZXJyb3IgbWVzc2Fn
-ZXMgYXV0b21hdGljYWxseSBtYWtlcyBpdCBlYXNpZXIgZm9yIGRyaXZlciBhdXRob3JzIHRvIGln
-bm9yZQ0KZW5kaWFubmVzcyBlcnJvciBtZXNzYWdlcy4gVGhpcyBpcyB3aHkgSSBwcmVmZXIgdGhh
-dCBpZiBlbmRpYW5uZXNzIGVycm9yDQptZXNzYWdlcyBhcmUgc3VwcHJlc3NlZCB0aGF0IHRoaXMg
-aGFwcGVucyBtYW51YWxseS4gSGVuY2UgdGhlIHBhdGNoIGF0IHRoZQ0Kc3RhcnQgb2YgdGhpcyBl
-LW1haWwgdGhyZWFkIHRoYXQgcmVzdG9yZXMgX19DSEVDS19FTkRJQU5fXy4NCg0KQmFydC4=
+In preparation for unconditionally passing the struct timer_list pointer to
+all timer callbacks, switch to using the new timer_setup() and from_timer()
+to pass the timer pointer explicitly.
+
+setup_timer() was already being called before the open-coded init_timer()
+and .data assignment. These are removed as well.
+
+Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+ drivers/infiniband/sw/rdmavt/qp.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index b8e904905f47..af3967f7d1b5 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -57,7 +57,7 @@
+ #include "vt.h"
+ #include "trace.h"
+ 
+-static void rvt_rc_timeout(unsigned long arg);
++static void rvt_rc_timeout(struct timer_list *t);
+ 
+ /*
+  * Convert the AETH RNR timeout code into the number of microseconds.
+@@ -845,7 +845,7 @@ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
+ 				goto bail_qp;
+ 		}
+ 		/* initialize timers needed for rc qp */
+-		setup_timer(&qp->s_timer, rvt_rc_timeout, (unsigned long)qp);
++		timer_setup(&qp->s_timer, rvt_rc_timeout, 0);
+ 		hrtimer_init(&qp->s_rnr_timer, CLOCK_MONOTONIC,
+ 			     HRTIMER_MODE_REL);
+ 		qp->s_rnr_timer.function = rvt_rc_rnr_retry;
+@@ -894,8 +894,6 @@ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
+ 		atomic_set(&qp->refcount, 0);
+ 		atomic_set(&qp->local_ops_pending, 0);
+ 		init_waitqueue_head(&qp->wait);
+-		init_timer(&qp->s_timer);
+-		qp->s_timer.data = (unsigned long)qp;
+ 		INIT_LIST_HEAD(&qp->rspwait);
+ 		qp->state = IB_QPS_RESET;
+ 		qp->s_wq = swq;
+@@ -2132,9 +2130,9 @@ EXPORT_SYMBOL(rvt_del_timers_sync);
+ /**
+  * This is called from s_timer for missing responses.
+  */
+-static void rvt_rc_timeout(unsigned long arg)
++static void rvt_rc_timeout(struct timer_list *t)
+ {
+-	struct rvt_qp *qp = (struct rvt_qp *)arg;
++	struct rvt_qp *qp = from_timer(qp, t, s_timer);
+ 	struct rvt_dev_info *rdi = ib_to_rvt(qp->ibqp.device);
+ 	unsigned long flags;
+ 
+-- 
+2.7.4
+
+
+-- 
+Kees Cook
+Pixel Security
