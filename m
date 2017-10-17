@@ -1,75 +1,74 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next v1 5/6] IB/core: Take into account optional
- UDR, XRC headers and mandatory ICRC for RoCE MTU
-Date: Tue, 17 Oct 2017 14:12:28 +0300
-Message-ID: <20171017111228.GO2106@mtr-leonro.local>
-References: <20171016054517.30643-1-leon@kernel.org>
- <20171016054517.30643-6-leon@kernel.org>
+From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Subject: Re: [PATCH for-next 3/4] RDMA/hns: Update the IRRL table chunk size
+ in hip08
+Date: Tue, 17 Oct 2017 19:40:38 +0800
+Message-ID: <59E5EC36.90207@huawei.com>
+References: <1506763741-81429-1-git-send-email-xavier.huwei@huawei.com>
+ <1506763741-81429-4-git-send-email-xavier.huwei@huawei.com>
+ <20171001054037.GB2031@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="a0kvDU9Y5772Ejco"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171016054517.30643-6-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171001054037.GB2031@mtr-leonro.local>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, shaobo.xu@intel.com, zhangxiping3@huawei.com, xavier.huwei@tom.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, shaobohsu@163.com, shaoboxu@tom.com
 List-Id: linux-rdma@vger.kernel.org
 
 
---a0kvDU9Y5772Ejco
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Mon, Oct 16, 2017 at 08:45:16AM +0300, Leon Romanovsky wrote:
-> From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 2017/10/1 13:40, Leon Romanovsky wrote:
+> On Sat, Sep 30, 2017 at 05:29:00PM +0800, Wei Hu (Xavier) wrote:
+>> As the increase of the IRRL specification in hip08, the IRRL table
+>> chunk size needs to be updated.
+>> This patch updates the IRRL table chunk size to 256k for hip08.
+>>
+>> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+>> Signed-off-by: Shaobo Xu <xushaobo2@huawei.com>
+>> Signed-off-by: Lijun Ou <oulijun@huawei.com>
+>> ---
+>>   drivers/infiniband/hw/hns/hns_roce_device.h |  3 +++
+>>   drivers/infiniband/hw/hns/hns_roce_hem.c    | 31 ++++++++++++++---------------
+>>   drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  1 +
+>>   drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |  2 ++
+>>   drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  1 +
+>>   drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  2 ++
+>>   6 files changed, 24 insertions(+), 16 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+>> index 9353400..fc2a53d 100644
+>> --- a/drivers/infiniband/hw/hns/hns_roce_device.h
+>> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+>> @@ -236,6 +236,8 @@ struct hns_roce_hem_table {
+>>   	unsigned long	num_obj;
+>>   	/*Single obj size */
+>>   	unsigned long	obj_size;
+>> +	unsigned long	table_chunk_size;
+>> +	unsigned long	hem_alloc_size;
+>>   	int		lowmem;
+>>   	struct mutex	mutex;
+>>   	struct hns_roce_hem **hem;
+>> @@ -565,6 +567,7 @@ struct hns_roce_caps {
+>>   	u32		cqe_ba_pg_sz;
+>>   	u32		cqe_buf_pg_sz;
+>>   	u32		cqe_hop_num;
+>> +	u32		chunk_sz;	/* chunk size in non multihop mode*/
+>>   };
+> Hi,
 >
-> This fix considers optional UDP, XRC header sizes and mandatory ICRC 4 bytes in
-> calculation of path MTU, by considering additional 8 bytes, path MTU calculation
-> is more accurate.
->
-> Link: https://www.spinics.net/lists/linux-rdma/msg54558.html
-> Fixes: 3c86aa70bf67 ("RDMA/cm: Add RDMA CM support for IBoE devices")
-> Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reported-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
->  include/rdma/ib_addr.h |  7 ++++---
->  include/rdma/ib_pack.h | 19 +++++++++++--------
->  2 files changed, 15 insertions(+), 11 deletions(-)
->
-
-Doug,
-
-The title should be "... optional UDP .." and not as I wrote.
-
-Resubmit one patch/whole series/do nothing?
-
+> I have two comments:
+> 1. In this code table_chunk_size is equal and similar to hem_alloc_size.
+> Please don't introduce unneeded complexity.
+Hi, Leon
+     ok, we will delete hem_alloc_size.
 Thanks.
-
---a0kvDU9Y5772Ejco
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnl5ZwACgkQ5GN7iDZy
-WKfXJg/+KyXmC9QSPISBQ8iVjZkoUISdruqK/JS7WkaZfULw3Vr0mUbu5htWR+VS
-zykYv9wExsGb5KIa9nMA3UvHe9/jN61D+1qNhX9QIDsVGMKpdOhgRyOC+OTMx2OU
-H1MI8hNh1FWQ7yVegbH83xvsduiQENeXVkgsGgb1yB8X4VcIIwPFO0sbA8wtnWzC
-Iz1Ql3p3UDX7GrynLiIrV2ng1MG0A+qRLUqZiyaHl/Okuf7XIhEnd7golzvHn9SG
-6aj/JU8LpU5Phturs45ki92ixRifIlT6HgDVZa2oNtuOMJnhbMSibtq+ABBSA2kp
-xkEVgxAJIVRg1UTb1kqdv0mmD+8hgbwZSM/CG29+TEeqDvXuvn/7c9iEGpqg94Rz
-z9o5+Gjt4FcZKQjhEuGKft+SfzVuG3FrfBiXGszPdwl8df4vrnXE57RYY1dtT4uL
-tcBgLNs/uS0p6FupMC2KojyJEot7g1kZ3tyA08rWBr+HFBlgAuC4S/k80kES8XxT
-7Z5BYgZAxuLrF1uPA1H2L7hDd53mIfvYkap3NdbG3WBIr6HIoMg6wuNAfNXEo5FL
-f7A/QFqmXqGOXXzm87UF+VsMqOMevMT8fKivozeaKqy3JDrrikD6wTU6dVGGcnVf
-YJzzyNGRC5+A1czxyELo/vpXfUH5iJVkWuujAcLlEEU/eLcdjSE=
-=xpkb
------END PGP SIGNATURE-----
-
---a0kvDU9Y5772Ejco--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 2. The size of table is num_obj * obj_size, there is no need to
+> table_chunk_size and hem_alloc_size at all. There are plenty of macros in
+> the kernel to deal with the tables.
+Hi, Leon
+     chunk size is limited by the hardware and is max access capactiy by 
+hardware in hip06 and hip08 SoC.
+     For exmple, chunk size is 128K in hip06 and 256K in hip08.
+Thanks
+> Thanks
