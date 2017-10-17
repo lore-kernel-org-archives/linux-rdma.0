@@ -1,63 +1,74 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 12/15] RDMA/cma: make config_item_type const
-Date: Tue, 17 Oct 2017 13:56:41 +0300
-Message-ID: <20171017105641.GN2106@mtr-leonro.local>
-References: <1508167134-6243-1-git-send-email-bhumirks@gmail.com>
- <1508167134-6243-13-git-send-email-bhumirks@gmail.com>
+Subject: Re: [PATCH rdma-next v1 5/6] IB/core: Take into account optional
+ UDR, XRC headers and mandatory ICRC for RoCE MTU
+Date: Tue, 17 Oct 2017 14:12:28 +0300
+Message-ID: <20171017111228.GO2106@mtr-leonro.local>
+References: <20171016054517.30643-1-leon@kernel.org>
+ <20171016054517.30643-6-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="qhD8kUEc5MK9MdKG"
+        protocol="application/pgp-signature"; boundary="a0kvDU9Y5772Ejco"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1508167134-6243-13-git-send-email-bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20171016054517.30643-6-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bhumika Goyal <bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: julia.lawall-L2FTfq7BK8M@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, knaack.h-Mmb7MZpHnFY@public.gmane.org, lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org, pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org, ccaulfie-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, teigland-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mfasheh-rOS7oXVqrJRBDgjK7y7TUQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cluster-devel@redh
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---qhD8kUEc5MK9MdKG
+--a0kvDU9Y5772Ejco
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Oct 16, 2017 at 05:18:51PM +0200, Bhumika Goyal wrote:
-> Make these structures const as they are either passed to the functions
-> having the argument as const or stored as a reference in the "ci_type"
-> const field of a config_item structure.
+On Mon, Oct 16, 2017 at 08:45:16AM +0300, Leon Romanovsky wrote:
+> From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >
-> Signed-off-by: Bhumika Goyal <bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> This fix considers optional UDP, XRC header sizes and mandatory ICRC 4 bytes in
+> calculation of path MTU, by considering additional 8 bytes, path MTU calculation
+> is more accurate.
+>
+> Link: https://www.spinics.net/lists/linux-rdma/msg54558.html
+> Fixes: 3c86aa70bf67 ("RDMA/cm: Add RDMA CM support for IBoE devices")
+> Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reported-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 > ---
-> * Changes in v2- Combine all the followup patches and the constification
-> patches into a series.
->
->  drivers/infiniband/core/cma_configfs.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
+>  include/rdma/ib_addr.h |  7 ++++---
+>  include/rdma/ib_pack.h | 19 +++++++++++--------
+>  2 files changed, 15 insertions(+), 11 deletions(-)
 >
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Doug,
 
---qhD8kUEc5MK9MdKG
+The title should be "... optional UDP .." and not as I wrote.
+
+Resubmit one patch/whole series/do nothing?
+
+Thanks.
+
+--a0kvDU9Y5772Ejco
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnl4ekACgkQ5GN7iDZy
-WKeXjhAAianTJjpS3Q7Amt68dVak+Zy2iyjm1IkgvBu0u2FdrPHb15D8sEr4jOg+
-NxfJ4zH+C2fgBYvEXa9+aEIb72WSQHQoA1G8EKdfP+D6ci1eHZ60yG7sxmMi2Bsr
-4hCGCe/KiiftWsk47Y7KBrHj92HusNRTcM48a1wYNUoAmHq4fRjLyhL8uIVsXl3o
-Af/DvQP4d37U9UHMFiekaFgT2K0TfHK1uKUSB7AMvxVb9U+FZFKEXnq6Vcp45uZY
-1FzTXYbSC0ckAFd+iYDxly3lsSAekPa5rUV+MLSwKOATP3vksOh+tQ1prJMnT1Kf
-QVsN6lRqTTLMmrM1QgRvkT6PjhAQo6qcNgAfkCQjK4V6s9FQdJg95japfefDz6rq
-BTwez0ekKroiVtO/8bcJNyDXCpRKNH9EZuQzRL9gqddhe8/xaqc9VrJHDuH93p1q
-NimWkby6EiDvXhnGuEaO7P5gmubTbgx+D26n+g9XDPML5orUX2DZ1H6DBD4YR6/h
-4BjPfk2eL92oXLLM88PPFf60ctQ8VIgiVq7oUEfBL3QLwFv0NQoZsOTilPrucJiW
-lHe1J1t8FO/mDMb4jFXsbeQi8mmKX5ICCwwMKt8Fw9NRzN/mXqRpnC4jzQ13qbKT
-viWVz2ZixqgMKLCGUfstRliyiIFmBZhoBNMf2SYEGS+yAOUYca8=
-=kyDA
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnl5ZwACgkQ5GN7iDZy
+WKfXJg/+KyXmC9QSPISBQ8iVjZkoUISdruqK/JS7WkaZfULw3Vr0mUbu5htWR+VS
+zykYv9wExsGb5KIa9nMA3UvHe9/jN61D+1qNhX9QIDsVGMKpdOhgRyOC+OTMx2OU
+H1MI8hNh1FWQ7yVegbH83xvsduiQENeXVkgsGgb1yB8X4VcIIwPFO0sbA8wtnWzC
+Iz1Ql3p3UDX7GrynLiIrV2ng1MG0A+qRLUqZiyaHl/Okuf7XIhEnd7golzvHn9SG
+6aj/JU8LpU5Phturs45ki92ixRifIlT6HgDVZa2oNtuOMJnhbMSibtq+ABBSA2kp
+xkEVgxAJIVRg1UTb1kqdv0mmD+8hgbwZSM/CG29+TEeqDvXuvn/7c9iEGpqg94Rz
+z9o5+Gjt4FcZKQjhEuGKft+SfzVuG3FrfBiXGszPdwl8df4vrnXE57RYY1dtT4uL
+tcBgLNs/uS0p6FupMC2KojyJEot7g1kZ3tyA08rWBr+HFBlgAuC4S/k80kES8XxT
+7Z5BYgZAxuLrF1uPA1H2L7hDd53mIfvYkap3NdbG3WBIr6HIoMg6wuNAfNXEo5FL
+f7A/QFqmXqGOXXzm87UF+VsMqOMevMT8fKivozeaKqy3JDrrikD6wTU6dVGGcnVf
+YJzzyNGRC5+A1czxyELo/vpXfUH5iJVkWuujAcLlEEU/eLcdjSE=
+=xpkb
 -----END PGP SIGNATURE-----
 
---qhD8kUEc5MK9MdKG--
+--a0kvDU9Y5772Ejco--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
