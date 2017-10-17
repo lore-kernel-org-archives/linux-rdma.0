@@ -1,34 +1,56 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH] RDMA/cxgb3: Convert timers to use timer_setup()
-Date: Tue, 17 Oct 2017 09:26:46 -0500
-Message-ID: <08d501d34753$f6205c90$e26115b0$@opengridcomputing.com>
-References: <20171016225411.GA98979@beast>
+From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH v2 2/2] ibacm: Incorrect list used for subnet list causes
+ a segfault
+Date: Tue, 17 Oct 2017 17:00:07 +0200
+Message-ID: <92b10949-edc9-c363-f909-7674cde678c9@suse.de>
+References: <20171016142303.12814.97296.stgit@phlsvslse11.ph.intel.com>
+ <20171016142426.12814.13095.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171016225411.GA98979@beast>
-Content-Language: en-us
+In-Reply-To: <20171016142426.12814.13095.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Kees Cook' <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: 'Steve Wise' <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Hal Rosenstock' <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> In preparation for unconditionally passing the struct timer_list pointer to
-> all timer callbacks, switch to using the new timer_setup() and from_timer()
-> to pass the timer pointer explicitly. Also removes an unused timer.
-> 
-> Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Signed-off-by: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-
-Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
 
+Le 16/10/2017 à 16:24, Michael J. Ruhl a écrit :
+> From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>
+> Setting the provider keyword in the ibacm_opts.cfg file to something
+> other than 'default' will cause ibacm to segfault on startup:
+>
+> ibacm[32739]: segfault at 302e40 ip 000000000040432d
+> sp 00007ffe4039e1c0 error 4 in ibacm[400000+c000]
+>
+> To re-produce the segfault, change the provider keyword in
+> ibacm_opts.cfg from:
+>
+> provider ibacmp default
+>
+> to:
+>
+> provider ibacmp 0xFE80000000000000
+>
+> When adding subnets to a provider subnet list, the incorrect list is
+> used.  The list used is the provider_list (list of all providers)
+> rather than the (specific) provider subnet list.
+>
+> This corrupts the provider_list, and causes ibacm to crash with the
+> above segfault.
+>
+> Use the correct list when adding subnet information to a provider.
+>
+> Fixes: 26e05f8304a506 ("ibacm: use ccan/list.h")
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+For this patch only (no setup for the first one)
+
+Tested-by: Nicolas Morey-Chaisemartin <nmoreychaisemartin-IBi9RG/b67k@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
