@@ -1,34 +1,35 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] RDMA/cxgb3: Convert timers to use timer_setup()
-Date: Wed, 18 Oct 2017 11:49:37 -0400
-Message-ID: <1508341777.46071.83.camel@redhat.com>
-References: <20171016225411.GA98979@beast>
-         <08d501d34753$f6205c90$e26115b0$@opengridcomputing.com>
+Subject: Re: [PATCH] IB/rdmavt: Convert timers to use timer_setup()
+Date: Wed, 18 Oct 2017 11:49:58 -0400
+Message-ID: <1508341798.46071.84.camel@redhat.com>
+References: <20171016225113.GA98749@beast>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <08d501d34753$f6205c90$e26115b0$@opengridcomputing.com>
+In-Reply-To: <20171016225113.GA98749@beast>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>, 'Kees Cook' <keescook@chromium.org>
-Cc: 'Steve Wise' <swise@chelsio.com>, 'Sean Hefty' <sean.hefty@intel.com>, 'Hal Rosenstock' <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>
+Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-10-17 at 09:26 -0500, Steve Wise wrote:
-> > In preparation for unconditionally passing the struct timer_list
-> > pointer to
-> > all timer callbacks, switch to using the new timer_setup() and
-> > from_timer()
-> > to pass the timer pointer explicitly. Also removes an unused timer.
-> > 
-> > Cc: Steve Wise <swise@chelsio.com>
-> > Cc: Doug Ledford <dledford@redhat.com>
-> > Cc: Sean Hefty <sean.hefty@intel.com>
-> > Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-> > Cc: linux-rdma@vger.kernel.org
-> > Signed-off-by: Kees Cook <keescook@chromium.org>
+On Mon, 2017-10-16 at 15:51 -0700, Kees Cook wrote:
+> In preparation for unconditionally passing the struct timer_list
+> pointer to
+> all timer callbacks, switch to using the new timer_setup() and
+> from_timer()
+> to pass the timer pointer explicitly.
 > 
-> Acked-by: Steve Wise <swise@opengridcomputing.com>
+> setup_timer() was already being called before the open-coded
+> init_timer()
+> and .data assignment. These are removed as well.
+> 
+> Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> Cc: Doug Ledford <dledford@redhat.com>
+> Cc: Sean Hefty <sean.hefty@intel.com>
+> Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+> Cc: linux-rdma@vger.kernel.org
+> Signed-off-by: Kees Cook <keescook@chromium.org>
 
 Thanks, applied.
 
