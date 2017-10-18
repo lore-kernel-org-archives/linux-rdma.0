@@ -1,30 +1,33 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH v2 12/15] RDMA/cma: make config_item_type const
-Date: Wed, 18 Oct 2017 10:33:31 -0400
-Message-ID: <1508337211.46071.67.camel@redhat.com>
-References: <1508167134-6243-1-git-send-email-bhumirks@gmail.com>
-         <1508167134-6243-13-git-send-email-bhumirks@gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] bnxt_re: Make room for mapping beyond 32 entries
+Date: Wed, 18 Oct 2017 10:38:39 -0400
+Message-ID: <1508337519.46071.68.camel@redhat.com>
+References: <20171017083135.30806-1-somnath.kotur@broadcom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1508167134-6243-13-git-send-email-bhumirks@gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bhumika Goyal <bhumirks@gmail.com>, julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, alexander.shishkin@linux.intel.com, jic23@kernel.org, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, sean.hefty@intel.com, hal.rosenstock@gmail.com, hch@lst.de, sagi@grimberg.me, kishon@ti.com, bhelgaas@google.com, nab@linux-iscsi.org, balbi@kernel.org, gregkh@linuxfoundation.org, laurent.pinchart@ideasonboard.com, jlbec@evilplan.org, ccaulfie@redhat.com, teigland@redhat.com, mfasheh@versity.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-usb@vger.kernel.org, clu
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171017083135.30806-1-somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-10-16 at 17:18 +0200, Bhumika Goyal wrote:
-> Make these structures const as they are either passed to the
-> functions
-> having the argument as const or stored as a reference in the
-> "ci_type"
-> const field of a config_item structure.
+On Tue, 2017-10-17 at 14:01 +0530, Somnath Kotur wrote:
+> Latest chip requires indexes 32 to 47 be used for the internal HW
+> block
+> that manages queue mapping.
 > 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
-Acked-by: Doug Ledford <dledford@redhat.com>
+Thanks, applied.
 
 -- 
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
