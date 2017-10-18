@@ -1,222 +1,484 @@
-From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V2 2/3] RDMA/hns: Update the IRRL table chunk size in hip08
-Date: Wed, 18 Oct 2017 17:32:45 +0800
-Message-ID: <1508319166-116987-3-git-send-email-xavier.huwei@huawei.com>
+From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Subject: [PATCH V2 1/3] RDMA/hns: Support WQE/CQE/PBL page size configurable feature in hip08
+Date: Wed, 18 Oct 2017 17:32:44 +0800
+Message-ID: <1508319166-116987-2-git-send-email-xavier.huwei@huawei.com>
 References: <1508319166-116987-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1508319166-116987-1-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org, shaoboxu-WVlzvzqoTvw@public.gmane.org, shaobo.xu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1508319166-116987-1-git-send-email-xavier.huwei@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com, leon@kernel.org
+Cc: linux-rdma@vger.kernel.org, xavier.huwei@huawei.com, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, zhangxiping3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, shaobohsu@163.com, shaoboxu@tom.com, shaobo.xu@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-As the increase of the IRRL specification in hip08, the IRRL table
-chunk size needs to be updated.
-This patch updates the IRRL table chunk size to 256k for hip08.
+This patch updates to support WQE, CQE and PBL page size configurable
+feature, which includes base address page size and buffer page size.
 
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Shaobo Xu <xushaobo2@huawei.com>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
 ---
-Patch V2: Address comments by Leon:
-	https://lkml.org/lkml/2017/10/1/2
+ drivers/infiniband/hw/hns/hns_roce_alloc.c  | 29 +++++----
+ drivers/infiniband/hw/hns/hns_roce_cq.c     | 21 ++++++-
+ drivers/infiniband/hw/hns/hns_roce_device.h | 10 ++--
+ drivers/infiniband/hw/hns/hns_roce_mr.c     | 93 ++++++++++++++++++++---------
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 46 ++++++++++----
+ 5 files changed, 142 insertions(+), 57 deletions(-)
 
-Patch V1: Initial Submit
----
- drivers/infiniband/hw/hns/hns_roce_device.h |  2 ++
- drivers/infiniband/hw/hns/hns_roce_hem.c    | 29 +++++++++++++----------------
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  1 +
- drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |  2 ++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  1 +
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  2 ++
- 6 files changed, 21 insertions(+), 16 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+index 8c9a33f..3e4c525 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_alloc.c
++++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+@@ -167,12 +167,12 @@ void hns_roce_buf_free(struct hns_roce_dev *hr_dev, u32 size,
+ 	if (buf->nbufs == 1) {
+ 		dma_free_coherent(dev, size, buf->direct.buf, buf->direct.map);
+ 	} else {
+-		if (bits_per_long == 64)
++		if (bits_per_long == 64 && buf->page_shift == PAGE_SHIFT)
+ 			vunmap(buf->direct.buf);
+ 
+ 		for (i = 0; i < buf->nbufs; ++i)
+ 			if (buf->page_list[i].buf)
+-				dma_free_coherent(dev, PAGE_SIZE,
++				dma_free_coherent(dev, 1 << buf->page_shift,
+ 						  buf->page_list[i].buf,
+ 						  buf->page_list[i].map);
+ 		kfree(buf->page_list);
+@@ -181,20 +181,27 @@ void hns_roce_buf_free(struct hns_roce_dev *hr_dev, u32 size,
+ EXPORT_SYMBOL_GPL(hns_roce_buf_free);
+ 
+ int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
+-		       struct hns_roce_buf *buf)
++		       struct hns_roce_buf *buf, u32 page_shift)
+ {
+ 	int i = 0;
+ 	dma_addr_t t;
+ 	struct page **pages;
+ 	struct device *dev = hr_dev->dev;
+ 	u32 bits_per_long = BITS_PER_LONG;
++	u32 page_size = 1 << page_shift;
++	u32 order;
+ 
+ 	/* SQ/RQ buf lease than one page, SQ + RQ = 8K */
+ 	if (size <= max_direct) {
+ 		buf->nbufs = 1;
+ 		/* Npages calculated by page_size */
+-		buf->npages = 1 << get_order(size);
+-		buf->page_shift = PAGE_SHIFT;
++		order = get_order(size);
++		if (order <= page_shift - PAGE_SHIFT)
++			order = 0;
++		else
++			order -= page_shift - PAGE_SHIFT;
++		buf->npages = 1 << order;
++		buf->page_shift = page_shift;
+ 		/* MTT PA must be recorded in 4k alignment, t is 4k aligned */
+ 		buf->direct.buf = dma_alloc_coherent(dev, size, &t, GFP_KERNEL);
+ 		if (!buf->direct.buf)
+@@ -209,9 +216,9 @@ int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
+ 
+ 		memset(buf->direct.buf, 0, size);
+ 	} else {
+-		buf->nbufs = (size + PAGE_SIZE - 1) / PAGE_SIZE;
++		buf->nbufs = (size + page_size - 1) / page_size;
+ 		buf->npages = buf->nbufs;
+-		buf->page_shift = PAGE_SHIFT;
++		buf->page_shift = page_shift;
+ 		buf->page_list = kcalloc(buf->nbufs, sizeof(*buf->page_list),
+ 					 GFP_KERNEL);
+ 
+@@ -220,16 +227,16 @@ int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
+ 
+ 		for (i = 0; i < buf->nbufs; ++i) {
+ 			buf->page_list[i].buf = dma_alloc_coherent(dev,
+-								  PAGE_SIZE, &t,
++								  page_size, &t,
+ 								  GFP_KERNEL);
+ 
+ 			if (!buf->page_list[i].buf)
+ 				goto err_free;
+ 
+ 			buf->page_list[i].map = t;
+-			memset(buf->page_list[i].buf, 0, PAGE_SIZE);
++			memset(buf->page_list[i].buf, 0, page_size);
+ 		}
+-		if (bits_per_long == 64) {
++		if (bits_per_long == 64 && page_shift == PAGE_SHIFT) {
+ 			pages = kmalloc_array(buf->nbufs, sizeof(*pages),
+ 					      GFP_KERNEL);
+ 			if (!pages)
+@@ -243,6 +250,8 @@ int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
+ 			kfree(pages);
+ 			if (!buf->direct.buf)
+ 				goto err_free;
++		} else {
++			buf->direct.buf = NULL;
+ 		}
+ 	}
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index 88cdf6f..f558f95 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -220,6 +220,8 @@ static int hns_roce_ib_get_cq_umem(struct hns_roce_dev *hr_dev,
+ 				   struct ib_umem **umem, u64 buf_addr, int cqe)
+ {
+ 	int ret;
++	u32 page_shift;
++	u32 npages;
+ 
+ 	*umem = ib_umem_get(context, buf_addr, cqe * hr_dev->caps.cq_entry_sz,
+ 			    IB_ACCESS_LOCAL_WRITE, 1);
+@@ -230,8 +232,19 @@ static int hns_roce_ib_get_cq_umem(struct hns_roce_dev *hr_dev,
+ 		buf->hr_mtt.mtt_type = MTT_TYPE_CQE;
+ 	else
+ 		buf->hr_mtt.mtt_type = MTT_TYPE_WQE;
+-	ret = hns_roce_mtt_init(hr_dev, ib_umem_page_count(*umem),
+-				(*umem)->page_shift, &buf->hr_mtt);
++
++	if (hr_dev->caps.cqe_buf_pg_sz) {
++		npages = (ib_umem_page_count(*umem) +
++			(1 << hr_dev->caps.cqe_buf_pg_sz) - 1) /
++			(1 << hr_dev->caps.cqe_buf_pg_sz);
++		page_shift = PAGE_SHIFT + hr_dev->caps.cqe_buf_pg_sz;
++		ret = hns_roce_mtt_init(hr_dev, npages, page_shift,
++					&buf->hr_mtt);
++	} else {
++		ret = hns_roce_mtt_init(hr_dev, ib_umem_page_count(*umem),
++				(*umem)->page_shift,
++				&buf->hr_mtt);
++	}
+ 	if (ret)
+ 		goto err_buf;
+ 
+@@ -253,9 +266,11 @@ static int hns_roce_ib_alloc_cq_buf(struct hns_roce_dev *hr_dev,
+ 				    struct hns_roce_cq_buf *buf, u32 nent)
+ {
+ 	int ret;
++	u32 page_shift = PAGE_SHIFT + hr_dev->caps.cqe_buf_pg_sz;
+ 
+ 	ret = hns_roce_buf_alloc(hr_dev, nent * hr_dev->caps.cq_entry_sz,
+-				 PAGE_SIZE * 2, &buf->hr_buf);
++				 (1 << page_shift) * 2, &buf->hr_buf,
++				 page_shift);
+ 	if (ret)
+ 		goto out;
+ 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 9353400..adf7a70 100644
+index b314ac0..9353400 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_device.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -236,6 +236,7 @@ struct hns_roce_hem_table {
- 	unsigned long	num_obj;
- 	/*Single obj size */
- 	unsigned long	obj_size;
-+	unsigned long	table_chunk_size;
- 	int		lowmem;
- 	struct mutex	mutex;
- 	struct hns_roce_hem **hem;
-@@ -565,6 +566,7 @@ struct hns_roce_caps {
- 	u32		cqe_ba_pg_sz;
- 	u32		cqe_buf_pg_sz;
- 	u32		cqe_hop_num;
-+	u32		chunk_sz;	/* chunk size in non multihop mode*/
- };
- 
- struct hns_roce_hw {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index 8388ae2..576eb3b 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -36,9 +36,6 @@
- #include "hns_roce_hem.h"
- #include "hns_roce_common.h"
- 
--#define HNS_ROCE_HEM_ALLOC_SIZE		(1 << 17)
--#define HNS_ROCE_TABLE_CHUNK_SIZE	(1 << 17)
--
- #define DMA_ADDR_T_SHIFT		12
- #define BT_BA_SHIFT			32
- 
-@@ -296,7 +293,7 @@ static int hns_roce_set_hem(struct hns_roce_dev *hr_dev,
- 
- 	/* Find the HEM(Hardware Entry Memory) entry */
- 	unsigned long i = (obj & (table->num_obj - 1)) /
--			  (HNS_ROCE_TABLE_CHUNK_SIZE / table->obj_size);
-+			  (table->table_chunk_size / table->obj_size);
- 
- 	switch (table->type) {
- 	case HEM_TYPE_QPC:
-@@ -541,7 +538,7 @@ int hns_roce_table_get(struct hns_roce_dev *hr_dev,
- 	if (hns_roce_check_whether_mhop(hr_dev, table->type))
- 		return hns_roce_table_mhop_get(hr_dev, table, obj);
- 
--	i = (obj & (table->num_obj - 1)) / (HNS_ROCE_TABLE_CHUNK_SIZE /
-+	i = (obj & (table->num_obj - 1)) / (table->table_chunk_size /
- 	     table->obj_size);
- 
- 	mutex_lock(&table->mutex);
-@@ -552,8 +549,8 @@ int hns_roce_table_get(struct hns_roce_dev *hr_dev,
- 	}
- 
- 	table->hem[i] = hns_roce_alloc_hem(hr_dev,
--				       HNS_ROCE_TABLE_CHUNK_SIZE >> PAGE_SHIFT,
--				       HNS_ROCE_HEM_ALLOC_SIZE,
-+				       table->table_chunk_size >> PAGE_SHIFT,
-+				       table->table_chunk_size,
- 				       (table->lowmem ? GFP_KERNEL :
- 					GFP_HIGHUSER) | __GFP_NOWARN);
- 	if (!table->hem[i]) {
-@@ -702,7 +699,7 @@ void hns_roce_table_put(struct hns_roce_dev *hr_dev,
- 	}
- 
- 	i = (obj & (table->num_obj - 1)) /
--	    (HNS_ROCE_TABLE_CHUNK_SIZE / table->obj_size);
-+	    (table->table_chunk_size / table->obj_size);
- 
- 	mutex_lock(&table->mutex);
- 
-@@ -739,8 +736,8 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
- 
- 	if (!hns_roce_check_whether_mhop(hr_dev, table->type)) {
- 		idx = (obj & (table->num_obj - 1)) * table->obj_size;
--		hem = table->hem[idx / HNS_ROCE_TABLE_CHUNK_SIZE];
--		dma_offset = offset = idx % HNS_ROCE_TABLE_CHUNK_SIZE;
-+		hem = table->hem[idx / table->table_chunk_size];
-+		dma_offset = offset = idx % table->table_chunk_size;
- 	} else {
- 		hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop);
- 		/* mtt mhop */
-@@ -791,7 +788,7 @@ int hns_roce_table_get_range(struct hns_roce_dev *hr_dev,
- 			     unsigned long start, unsigned long end)
+@@ -711,12 +711,14 @@ static inline void hns_roce_write64_k(__be32 val[2], void __iomem *dest)
+ static inline void *hns_roce_buf_offset(struct hns_roce_buf *buf, int offset)
  {
- 	struct hns_roce_hem_mhop mhop;
--	unsigned long inc = HNS_ROCE_TABLE_CHUNK_SIZE / table->obj_size;
-+	unsigned long inc = table->table_chunk_size / table->obj_size;
- 	unsigned long i;
- 	int ret;
+ 	u32 bits_per_long_val = BITS_PER_LONG;
++	u32 page_size = 1 << buf->page_shift;
  
-@@ -822,7 +819,7 @@ void hns_roce_table_put_range(struct hns_roce_dev *hr_dev,
- 			      unsigned long start, unsigned long end)
- {
- 	struct hns_roce_hem_mhop mhop;
--	unsigned long inc = HNS_ROCE_TABLE_CHUNK_SIZE / table->obj_size;
-+	unsigned long inc = table->table_chunk_size / table->obj_size;
- 	unsigned long i;
- 
- 	if (hns_roce_check_whether_mhop(hr_dev, table->type)) {
-@@ -830,8 +827,7 @@ void hns_roce_table_put_range(struct hns_roce_dev *hr_dev,
- 		inc = mhop.bt_chunk_size / table->obj_size;
- 	}
- 
--	for (i = start; i <= end;
--		i += inc)
-+	for (i = start; i <= end; i += inc)
- 		hns_roce_table_put(hr_dev, table, i);
+-	if (bits_per_long_val == 64 || buf->nbufs == 1)
++	if ((bits_per_long_val == 64 && buf->page_shift == PAGE_SHIFT) ||
++	    buf->nbufs == 1)
+ 		return (char *)(buf->direct.buf) + offset;
+ 	else
+-		return (char *)(buf->page_list[offset >> PAGE_SHIFT].buf) +
+-		       (offset & (PAGE_SIZE - 1));
++		return (char *)(buf->page_list[offset >> buf->page_shift].buf) +
++		       (offset & (page_size - 1));
  }
  
-@@ -845,7 +841,8 @@ int hns_roce_init_hem_table(struct hns_roce_dev *hr_dev,
- 	unsigned long num_hem;
+ int hns_roce_init_uar_table(struct hns_roce_dev *dev);
+@@ -787,7 +789,7 @@ int hns_roce_hw2sw_mpt(struct hns_roce_dev *hr_dev,
+ void hns_roce_buf_free(struct hns_roce_dev *hr_dev, u32 size,
+ 		       struct hns_roce_buf *buf);
+ int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
+-		       struct hns_roce_buf *buf);
++		       struct hns_roce_buf *buf, u32 page_shift);
  
- 	if (!hns_roce_check_whether_mhop(hr_dev, type)) {
--		obj_per_chunk = HNS_ROCE_TABLE_CHUNK_SIZE / obj_size;
-+		table->table_chunk_size = hr_dev->caps.chunk_sz;
-+		obj_per_chunk = table->table_chunk_size / obj_size;
- 		num_hem = (nobj + obj_per_chunk - 1) / obj_per_chunk;
+ int hns_roce_ib_umem_write_mtt(struct hns_roce_dev *hr_dev,
+ 			       struct hns_roce_mtt *mtt, struct ib_umem *umem);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index 452136d..c47a5ee 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -708,11 +708,17 @@ static int hns_roce_write_mtt_chunk(struct hns_roce_dev *hr_dev,
+ 	dma_addr_t dma_handle;
+ 	__le64 *mtts;
+ 	u32 s = start_index * sizeof(u64);
++	u32 bt_page_size;
+ 	u32 i;
  
- 		table->hem = kcalloc(num_hem, sizeof(*table->hem), GFP_KERNEL);
-@@ -1027,7 +1024,7 @@ void hns_roce_cleanup_hem_table(struct hns_roce_dev *hr_dev,
- 	for (i = 0; i < table->num_hem; ++i)
- 		if (table->hem[i]) {
- 			if (hr_dev->hw->clear_hem(hr_dev, table,
--			    i * HNS_ROCE_TABLE_CHUNK_SIZE / table->obj_size, 0))
-+			    i * table->table_chunk_size / table->obj_size, 0))
- 				dev_err(dev, "Clear HEM base address failed.\n");
- 
- 			hns_roce_free_hem(hr_dev, table->hem[i]);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 658e3a7..90b55f2 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -1514,6 +1514,7 @@ static int hns_roce_v1_profile(struct hns_roce_dev *hr_dev)
- 	caps->reserved_mrws	= 1;
- 	caps->reserved_uars	= 0;
- 	caps->reserved_cqs	= 0;
-+	caps->chunk_sz		= HNS_ROCE_V1_TABLE_CHUNK_SIZE;
- 
- 	for (i = 0; i < caps->num_ports; i++)
- 		caps->pkey_table_len[i] = 1;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.h b/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-index eb83ff3..21a07ef 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-@@ -72,6 +72,8 @@
- #define HNS_ROCE_V1_CQE_ENTRY_SIZE			32
- #define HNS_ROCE_V1_PAGE_SIZE_SUPPORT			0xFFFFF000
- 
-+#define HNS_ROCE_V1_TABLE_CHUNK_SIZE			(1 << 17)
++	if (mtt->mtt_type == MTT_TYPE_WQE)
++		bt_page_size = 1 << (hr_dev->caps.mtt_ba_pg_sz + PAGE_SHIFT);
++	else
++		bt_page_size = 1 << (hr_dev->caps.cqe_ba_pg_sz + PAGE_SHIFT);
 +
- #define HNS_ROCE_V1_EXT_RAQ_WF				8
- #define HNS_ROCE_V1_RAQ_ENTRY				64
- #define HNS_ROCE_V1_RAQ_DEPTH				32768
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index ff61f30..5039928 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -943,6 +943,7 @@ static int hns_roce_v2_profile(struct hns_roce_dev *hr_dev)
- 	caps->cqe_ba_pg_sz	= 0;
- 	caps->cqe_buf_pg_sz	= 0;
- 	caps->cqe_hop_num	= HNS_ROCE_CQE_HOP_NUM;
-+	caps->chunk_sz		= HNS_ROCE_V2_TABLE_CHUNK_SIZE;
+ 	/* All MTTs must fit in the same page */
+-	if (start_index / (PAGE_SIZE / sizeof(u64)) !=
+-		(start_index + npages - 1) / (PAGE_SIZE / sizeof(u64)))
++	if (start_index / (bt_page_size / sizeof(u64)) !=
++		(start_index + npages - 1) / (bt_page_size / sizeof(u64)))
+ 		return -EINVAL;
  
- 	caps->pkey_table_len[0] = 1;
- 	caps->gid_table_len[0] = 2;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 4fc4acd..65ed3f8 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -78,6 +78,8 @@
- #define HNS_ROCE_CQE_HOP_NUM			1
- #define HNS_ROCE_PBL_HOP_NUM			2
+ 	if (start_index & (HNS_ROCE_MTT_ENTRY_PER_SEG - 1))
+@@ -746,12 +752,18 @@ static int hns_roce_write_mtt(struct hns_roce_dev *hr_dev,
+ {
+ 	int chunk;
+ 	int ret;
++	u32 bt_page_size;
  
-+#define HNS_ROCE_V2_TABLE_CHUNK_SIZE		(1 << 18)
+ 	if (mtt->order < 0)
+ 		return -EINVAL;
+ 
++	if (mtt->mtt_type == MTT_TYPE_WQE)
++		bt_page_size = 1 << (hr_dev->caps.mtt_ba_pg_sz + PAGE_SHIFT);
++	else
++		bt_page_size = 1 << (hr_dev->caps.cqe_ba_pg_sz + PAGE_SHIFT);
 +
- #define HNS_ROCE_CMD_FLAG_IN_VALID_SHIFT	0
- #define HNS_ROCE_CMD_FLAG_OUT_VALID_SHIFT	1
- #define HNS_ROCE_CMD_FLAG_NEXT_SHIFT		2
+ 	while (npages > 0) {
+-		chunk = min_t(int, PAGE_SIZE / sizeof(u64), npages);
++		chunk = min_t(int, bt_page_size / sizeof(u64), npages);
+ 
+ 		ret = hns_roce_write_mtt_chunk(hr_dev, mtt, start_index, chunk,
+ 					       page_list);
+@@ -869,25 +881,44 @@ struct ib_mr *hns_roce_get_dma_mr(struct ib_pd *pd, int acc)
+ int hns_roce_ib_umem_write_mtt(struct hns_roce_dev *hr_dev,
+ 			       struct hns_roce_mtt *mtt, struct ib_umem *umem)
+ {
++	struct device *dev = hr_dev->dev;
+ 	struct scatterlist *sg;
++	unsigned int order;
+ 	int i, k, entry;
++	int npage = 0;
+ 	int ret = 0;
++	int len;
++	u64 page_addr;
+ 	u64 *pages;
++	u32 bt_page_size;
+ 	u32 n;
+-	int len;
+ 
+-	pages = (u64 *) __get_free_page(GFP_KERNEL);
++	order = mtt->mtt_type == MTT_TYPE_WQE ? hr_dev->caps.mtt_ba_pg_sz :
++		hr_dev->caps.cqe_ba_pg_sz;
++	bt_page_size = 1 << (order + PAGE_SHIFT);
++
++	pages = (u64 *) __get_free_pages(GFP_KERNEL, order);
+ 	if (!pages)
+ 		return -ENOMEM;
+ 
+ 	i = n = 0;
+ 
+ 	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
+-		len = sg_dma_len(sg) >> mtt->page_shift;
++		len = sg_dma_len(sg) >> PAGE_SHIFT;
+ 		for (k = 0; k < len; ++k) {
+-			pages[i++] = sg_dma_address(sg) +
+-				(k << umem->page_shift);
+-			if (i == PAGE_SIZE / sizeof(u64)) {
++			page_addr =
++				sg_dma_address(sg) + (k << umem->page_shift);
++			if (!(npage % (1 << (mtt->page_shift - PAGE_SHIFT)))) {
++				if (page_addr & ((1 << mtt->page_shift) - 1)) {
++					dev_err(dev, "page_addr 0x%llx is not page_shift %d alignment!\n",
++						page_addr, mtt->page_shift);
++					ret = -EINVAL;
++					goto out;
++				}
++				pages[i++] = page_addr;
++			}
++			npage++;
++			if (i == bt_page_size / sizeof(u64)) {
+ 				ret = hns_roce_write_mtt(hr_dev, mtt, n, i,
+ 							 pages);
+ 				if (ret)
+@@ -911,29 +942,37 @@ static int hns_roce_ib_umem_write_mr(struct hns_roce_dev *hr_dev,
+ 				     struct ib_umem *umem)
+ {
+ 	struct scatterlist *sg;
+-	int i = 0, j = 0;
++	int i = 0, j = 0, k;
+ 	int entry;
++	int len;
++	u64 page_addr;
++	u32 pbl_bt_sz;
+ 
+ 	if (hr_dev->caps.pbl_hop_num == HNS_ROCE_HOP_NUM_0)
+ 		return 0;
+ 
++	pbl_bt_sz = 1 << (hr_dev->caps.pbl_ba_pg_sz + PAGE_SHIFT);
+ 	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
+-		if (!hr_dev->caps.pbl_hop_num) {
+-			mr->pbl_buf[i] = ((u64)sg_dma_address(sg)) >> 12;
+-			i++;
+-		} else if (hr_dev->caps.pbl_hop_num == 1) {
+-			mr->pbl_buf[i] = sg_dma_address(sg);
+-			i++;
+-		} else {
+-			if (hr_dev->caps.pbl_hop_num == 2)
+-				mr->pbl_bt_l1[i][j] = sg_dma_address(sg);
+-			else if (hr_dev->caps.pbl_hop_num == 3)
+-				mr->pbl_bt_l2[i][j] = sg_dma_address(sg);
+-
+-			j++;
+-			if (j >= (PAGE_SIZE / 8)) {
+-				i++;
+-				j = 0;
++		len = sg_dma_len(sg) >> PAGE_SHIFT;
++		for (k = 0; k < len; ++k) {
++			page_addr = sg_dma_address(sg) +
++				    (k << umem->page_shift);
++
++			if (!hr_dev->caps.pbl_hop_num) {
++				mr->pbl_buf[i++] = page_addr >> 12;
++			} else if (hr_dev->caps.pbl_hop_num == 1) {
++				mr->pbl_buf[i++] = page_addr;
++			} else {
++				if (hr_dev->caps.pbl_hop_num == 2)
++					mr->pbl_bt_l1[i][j] = page_addr;
++				else if (hr_dev->caps.pbl_hop_num == 3)
++					mr->pbl_bt_l2[i][j] = page_addr;
++
++				j++;
++				if (j >= (pbl_bt_sz / 8)) {
++					i++;
++					j = 0;
++				}
+ 			}
+ 		}
+ 	}
+@@ -986,7 +1025,7 @@ struct ib_mr *hns_roce_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	} else {
+ 		int pbl_size = 1;
+ 
+-		bt_size = (1 << PAGE_SHIFT) / 8;
++		bt_size = (1 << (hr_dev->caps.pbl_ba_pg_sz + PAGE_SHIFT)) / 8;
+ 		for (i = 0; i < hr_dev->caps.pbl_hop_num; i++)
+ 			pbl_size *= bt_size;
+ 		if (n > pbl_size) {
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index e6d1115..b1c9a37 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -322,6 +322,7 @@ static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
+ {
+ 	u32 roundup_sq_stride = roundup_pow_of_two(hr_dev->caps.max_sq_desc_sz);
+ 	u8 max_sq_stride = ilog2(roundup_sq_stride);
++	u32 page_size;
+ 	u32 max_cnt;
+ 
+ 	/* Sanity check SQ size before proceeding */
+@@ -363,28 +364,29 @@ static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
+ 		hr_qp->rq.offset = HNS_ROCE_ALOGN_UP((hr_qp->sq.wqe_cnt <<
+ 					     hr_qp->sq.wqe_shift), PAGE_SIZE);
+ 	} else {
++		page_size = 1 << (hr_dev->caps.mtt_buf_pg_sz + PAGE_SHIFT);
+ 		hr_qp->buff_size = HNS_ROCE_ALOGN_UP((hr_qp->rq.wqe_cnt <<
+-					     hr_qp->rq.wqe_shift), PAGE_SIZE) +
++					     hr_qp->rq.wqe_shift), page_size) +
+ 				   HNS_ROCE_ALOGN_UP((hr_qp->sge.sge_cnt <<
+-					     hr_qp->sge.sge_shift), PAGE_SIZE) +
++					     hr_qp->sge.sge_shift), page_size) +
+ 				   HNS_ROCE_ALOGN_UP((hr_qp->sq.wqe_cnt <<
+-					     hr_qp->sq.wqe_shift), PAGE_SIZE);
++					     hr_qp->sq.wqe_shift), page_size);
+ 
+ 		hr_qp->sq.offset = 0;
+ 		if (hr_qp->sge.sge_cnt) {
+ 			hr_qp->sge.offset = HNS_ROCE_ALOGN_UP(
+ 							(hr_qp->sq.wqe_cnt <<
+ 							hr_qp->sq.wqe_shift),
+-							PAGE_SIZE);
++							page_size);
+ 			hr_qp->rq.offset = hr_qp->sge.offset +
+ 					HNS_ROCE_ALOGN_UP((hr_qp->sge.sge_cnt <<
+ 						hr_qp->sge.sge_shift),
+-						PAGE_SIZE);
++						page_size);
+ 		} else {
+ 			hr_qp->rq.offset = HNS_ROCE_ALOGN_UP(
+ 							(hr_qp->sq.wqe_cnt <<
+ 							hr_qp->sq.wqe_shift),
+-							PAGE_SIZE);
++							page_size);
+ 		}
+ 	}
+ 
+@@ -396,6 +398,7 @@ static int hns_roce_set_kernel_sq_size(struct hns_roce_dev *hr_dev,
+ 				       struct hns_roce_qp *hr_qp)
+ {
+ 	struct device *dev = hr_dev->dev;
++	u32 page_size;
+ 	u32 max_cnt;
+ 	int size;
+ 
+@@ -435,19 +438,20 @@ static int hns_roce_set_kernel_sq_size(struct hns_roce_dev *hr_dev,
+ 	}
+ 
+ 	/* Get buf size, SQ and RQ are aligned to PAGE_SIZE */
++	page_size = 1 << (hr_dev->caps.mtt_buf_pg_sz + PAGE_SHIFT);
+ 	hr_qp->sq.offset = 0;
+ 	size = HNS_ROCE_ALOGN_UP(hr_qp->sq.wqe_cnt << hr_qp->sq.wqe_shift,
+-				 PAGE_SIZE);
++				 page_size);
+ 
+ 	if (hr_dev->caps.max_sq_sg > 2 && hr_qp->sge.sge_cnt) {
+ 		hr_qp->sge.offset = size;
+ 		size += HNS_ROCE_ALOGN_UP(hr_qp->sge.sge_cnt <<
+-					  hr_qp->sge.sge_shift, PAGE_SIZE);
++					  hr_qp->sge.sge_shift, page_size);
+ 	}
+ 
+ 	hr_qp->rq.offset = size;
+ 	size += HNS_ROCE_ALOGN_UP((hr_qp->rq.wqe_cnt << hr_qp->rq.wqe_shift),
+-				  PAGE_SIZE);
++				  page_size);
+ 	hr_qp->buff_size = size;
+ 
+ 	/* Get wr and sge number which send */
+@@ -470,6 +474,8 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 	struct hns_roce_ib_create_qp ucmd;
+ 	unsigned long qpn = 0;
+ 	int ret = 0;
++	u32 page_shift;
++	u32 npages;
+ 
+ 	mutex_init(&hr_qp->mutex);
+ 	spin_lock_init(&hr_qp->sq.lock);
+@@ -513,8 +519,20 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 		}
+ 
+ 		hr_qp->mtt.mtt_type = MTT_TYPE_WQE;
+-		ret = hns_roce_mtt_init(hr_dev, ib_umem_page_count(hr_qp->umem),
+-					hr_qp->umem->page_shift, &hr_qp->mtt);
++		if (hr_dev->caps.mtt_buf_pg_sz) {
++			npages = (ib_umem_page_count(hr_qp->umem) +
++				  (1 << hr_dev->caps.mtt_buf_pg_sz) - 1) /
++				  (1 << hr_dev->caps.mtt_buf_pg_sz);
++			page_shift = PAGE_SHIFT + hr_dev->caps.mtt_buf_pg_sz;
++			ret = hns_roce_mtt_init(hr_dev, npages,
++				    page_shift,
++				    &hr_qp->mtt);
++		} else {
++			ret = hns_roce_mtt_init(hr_dev,
++				    ib_umem_page_count(hr_qp->umem),
++				    hr_qp->umem->page_shift,
++				    &hr_qp->mtt);
++		}
+ 		if (ret) {
+ 			dev_err(dev, "hns_roce_mtt_init error for create qp\n");
+ 			goto err_buf;
+@@ -555,8 +573,10 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 				     DB_REG_OFFSET * hr_dev->priv_uar.index;
+ 
+ 		/* Allocate QP buf */
+-		if (hns_roce_buf_alloc(hr_dev, hr_qp->buff_size, PAGE_SIZE * 2,
+-				       &hr_qp->hr_buf)) {
++		page_shift = PAGE_SHIFT + hr_dev->caps.mtt_buf_pg_sz;
++		if (hns_roce_buf_alloc(hr_dev, hr_qp->buff_size,
++				       (1 << page_shift) * 2,
++				       &hr_qp->hr_buf, page_shift)) {
+ 			dev_err(dev, "hns_roce_buf_alloc error!\n");
+ 			ret = -ENOMEM;
+ 			goto err_out;
 -- 
 1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
