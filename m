@@ -1,74 +1,39 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next v1 0/6] RDMA core and mlx5 fixes and
- refactoring for 4.15
-Date: Wed, 18 Oct 2017 12:20:27 -0400
-Message-ID: <1508343627.2951.4.camel@redhat.com>
-References: <20171016054517.30643-1-leon@kernel.org>
-         <1508340309.46071.76.camel@redhat.com>
-         <20171018154006.GS2106@mtr-leonro.local>
+Subject: Re: [PATCH] RDMA/cxgb4: Convert timers to use timer_setup()
+Date: Wed, 18 Oct 2017 12:21:26 -0400
+Message-ID: <1508343686.2951.5.camel@redhat.com>
+References: <20171016225231.GA98935@beast>
+         <08af01d34753$cb0fe2f0$612fa8d0$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171018154006.GS2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <08af01d34753$cb0fe2f0$612fa8d0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Kees Cook' <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+Cc: 'Steve Wise' <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Hal Rosenstock' <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-10-18 at 18:40 +0300, Leon Romanovsky wrote:
-> On Wed, Oct 18, 2017 at 11:25:09AM -0400, Doug Ledford wrote:
-> > On Mon, 2017-10-16 at 08:45 +0300, Leon Romanovsky wrote:
-> > > The patches are available in the git repository at:
-> > >   git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-> > > tags/rdma-next-2017-10-16
+On Tue, 2017-10-17 at 09:25 -0500, Steve Wise wrote:
 > > 
-> > This branch is unpullable for me.  Trying to pull this on top of
-> > the
-> > shared pull request brings in a ton of other stuff.  My diffstat
-> > ends
-> > up looking like this:
-> 
-> <....>
-> 
+> > In preparation for unconditionally passing the struct timer_list
+> > pointer to
+> > all timer callbacks, switch to using the new timer_setup() and
+> > from_timer()
+> > to pass the timer pointer explicitly. Also removes an unused timer
+> > and
+> > drops a redundant initialization.
 > > 
-> > So, with a shared pull request, your submissions either need to be
-> > against that shared pull request, or against my for-next, and you
-> > need
-> > to let me know which one it is.
+> > Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> > Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Signed-off-by: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
 > 
-> I didn't know that you are using this as a pull request, we tried it
-> in
-> last cycle and it didn't truly work, so I stopped it and changed the
-> title
-> (instead of pull requests, it is patches now), removed invitation to
-> pull from
-> the cover letter and prepared the series (with tags) as standalone
-> patches
-> and not as pull request.
+> Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-OK, but you still had the pull request URL in the cover letter, so I
-tried it.  Anyway, not a big deal as far as that goes.
-
-> > 
-> > I can grab these out of patchworks, but even that way I still need
-> > you
-> > to be clear about what tree/branch these are intended to be applied
-> > to.
-> 
-> It should apply cleanly as patches grabbed from the patchworks and if
-> for any reasons it doesn't work for you, please drop it and I'll
-> resubmit.
-
-Apply cleanly where?  That was the other part of my email.  When you
-have a shared pull request, and it isn't based on my for-next branch
-(as this one isn't), please let me know in each patch series whether
-you intend it to be applied on the shared pull request or my for-next
-branch.
-
-I actually applied it to the shared pull request branch, but I didn't
-know if that's what you had intended.  Also, I rewrote the commit
-message in patch 5/6 entirely.  But, otherwise, thanks, applied.
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
