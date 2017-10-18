@@ -1,24 +1,34 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] bnxt_re: Make room for mapping beyond 32 entries
-Date: Wed, 18 Oct 2017 10:38:39 -0400
-Message-ID: <1508337519.46071.68.camel@redhat.com>
-References: <20171017083135.30806-1-somnath.kotur@broadcom.com>
+Subject: Re: [PATCH] RDMA/uverbs: Make the code in ib_uverbs_cmd_verbs()
+ less confusing
+Date: Wed, 18 Oct 2017 10:42:41 -0400
+Message-ID: <1508337761.46071.69.camel@redhat.com>
+References: <20171016154745.10033-1-bart.vanassche@wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171017083135.30806-1-somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20171016154745.10033-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-10-17 at 14:01 +0530, Somnath Kotur wrote:
-> Latest chip requires indexes 32 to 47 be used for the internal HW
-> block
-> that manages queue mapping.
+On Mon, 2017-10-16 at 08:47 -0700, Bart Van Assche wrote:
+> This patch reduces the number of #ifdefs and also avoids that
+> smatch reports the following:
 > 
-> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> drivers/infiniband/core/uverbs_ioctl.c:276: ib_uverbs_cmd_verbs()
+> warn: if statement not indented
+> drivers/infiniband/core/uverbs_ioctl.c:280: ib_uverbs_cmd_verbs()
+> warn: possible memory leak of 'ctx'
+> drivers/infiniband/core/uverbs_ioctl.c:315: ib_uverbs_cmd_verbs()
+> warn: if statement not indented
+> 
+> References: commit fac9658cabb9 ("IB/core: Add new ioctl interface")
+> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+> Acked-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 Thanks, applied.
 
