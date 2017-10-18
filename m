@@ -1,45 +1,46 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/5] RDMA core, mlx5 fixes and refactoring for
- 4.15
-Date: Wed, 18 Oct 2017 11:02:18 -0400
-Message-ID: <1508338938.46071.71.camel@redhat.com>
-References: <20171016052812.28802-1-leon@kernel.org>
-         <20171016054225.GC2106@mtr-leonro.local>
+From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH] rxe_cfg: Fix parsing of ethtool / ifconfig
+Date: Wed, 18 Oct 2017 08:03:57 -0700
+Message-ID: <96dc09fb-14a8-a9ea-58ba-fedba2dc5194@wdc.com>
+References: <CALvXFTdij1WaFL2A05MJBcngn5eJ=ahxwRU64bS_VsCjvnE1XQ@mail.gmail.com>
+ <20171018142454.GR2106@mtr-leonro.local>
+ <CAG9sBKMa2nYkjWy37DxbcmMriPtwKFHb2gxn6MYT=YJwa=3E2Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171016054225.GC2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <CAG9sBKMa2nYkjWy37DxbcmMriPtwKFHb2gxn6MYT=YJwa=3E2Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Nathan Hartwell <nathan.hartwell-YP+SxaqqoVo2oU8LL9ROB9BPR1lH4CV8@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-10-16 at 08:42 +0300, Leon Romanovsky wrote:
-> On Mon, Oct 16, 2017 at 08:28:07AM +0300, Leon Romanovsky wrote:
-> > 
-> > Jérémy Lefaure (1):
-> >   IB/mlx5: Use ARRAY_SIZE
-> > 
-> > Parav Pandit (4):
-> >   IB: Let ib_core resolve destination mac address
-> >   IB/core: Fix unable to change lifespan entry for hw_counters
-> >   IB/core: Fix use workqueue without WQ_MEM_RECLAIM
-> >   IB/core: Take into account optional UDR, XRC headers and
-> > mandatory
-> >     ICRC for RoCE MTU
+On 10/18/17 07:45, Moni Shoua wrote:
+> On Wed, Oct 18, 2017 at 5:24 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>> Moni ?????
+>>
+>> Thanks
+>>
+>> On Wed, Oct 11, 2017 at 01:00:24PM -0600, Nathan Hartwell wrote:
+>>> rxe_cfg does not always parse the output of ethtool and ifconfig correctly.
+>>>
+>>> Fix two items:
+>>> 1)  Parsing of ethtool's link speed field to always output a link speed.
 > 
-> Doug,
-> Sorry, please drop this series, I missed one patch, it should be 6
-> patches and not 5.
+>>> 2)  Parsing of ifconfig's IP address / MTU fields with newer builds of
+>>> ifconfig that have a slightly different output format than in the
+>>> past.
+> did you consider replacing ifconfig with ip? I can't say for sure but
+> the recommendation AFAIK is to replace is to replace ifconfig with ip
+> in scripts that parse the output
+> Another alternative is to use /sys file system (e.g. /sys/class/net/p2p1/speed)
 
-Done.
+Personally I'm in favor of the latter solution (sysfs). For sysfs 
+attributes backwards compatibility is guaranteed but not for the output 
+of the ifconfig or ip tools.
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
