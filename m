@@ -1,25 +1,38 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH for-next] IB,hfi1 Add MODULE_FIRMWARE statements
-Date: Wed, 18 Oct 2017 10:25:00 -0400
-Message-ID: <1508336700.46071.65.camel@redhat.com>
-References: <20171011144134.c6bba480faee444cb9881710@suse.de>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] bnxt_re: Fix incorrect usage of test_bit()
+Date: Wed, 18 Oct 2017 10:26:51 -0400
+Message-ID: <1508336811.46071.66.camel@redhat.com>
+References: <20171013060800.10371-1-somnath.kotur@broadcom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171011144134.c6bba480faee444cb9881710@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Bogendoerfer <tbogendoerfer@suse.de>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171013060800.10371-1-somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-10-11 at 14:41 +0200, Thomas Bogendoerfer wrote:
-> Provide information about used firmware files via modinfo.
+On Fri, 2017-10-13 at 11:38 +0530, Somnath Kotur wrote:
+> test_bit() takes a bit number while the 'flags' field in
+> struct bnxt_qplib_rcfw was using actual BIT position converted
+> values.
+> Fix this by assigning bit numbers and use consistent APIs
+> all the flag values.
+> Also logging a message in case of failure.
 > 
-> Signed-off-by: Thomas Bogendoerfer <tbogendoerfer@suse.de>
+> Thanks to Dan Carpenter for pointing this out.
+> 
+> Suggested-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
 Thanks, applied.
 
 -- 
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
