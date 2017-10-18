@@ -1,104 +1,118 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: Need to set if_index in ib_init_ah_from_wc() ?
-Date: Wed, 18 Oct 2017 19:00:06 +0000
-Message-ID: <VI1PR0502MB30086B735FD4B5948B521673D14D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <CAL1RGDW6iHo2UYKbcJmcG=wCq63jvZB7nvOD=BJZwASSzc7Zhw@mail.gmail.com>
- <20170130195412.GE24466@obsidianresearch.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next v1 0/6] RDMA core and mlx5 fixes and
+ refactoring for 4.15
+Date: Wed, 18 Oct 2017 23:41:42 +0300
+Message-ID: <20171018204142.GT2106@mtr-leonro.local>
+References: <20171016054517.30643-1-leon@kernel.org>
+ <1508340309.46071.76.camel@redhat.com>
+ <20171018154006.GS2106@mtr-leonro.local>
+ <1508343627.2951.4.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="b6+Jx0QtehpXLScj"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170130195412.GE24466-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1508343627.2951.4.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Devesh, Selvin, Somnath,
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-> Sent: Monday, January 30, 2017 1:54 PM
-> To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Subject: Re: Need to set if_index in ib_init_ah_from_wc() ?
->=20
-> On Sun, Jan 29, 2017 at 05:21:43PM -0800, Roland Dreier wrote:
-> > I recently debugged an issue where an RDMA-CM / RoCE connection to a
-> > link-local IPv6 address takes 1 second to establish.  The delay comes
-> > when the passive side cm_req_handler() calls
-> > cm_init_av_for_response(), which calls ib_init_ah_from_wc().
+--b6+Jx0QtehpXLScj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, Oct 18, 2017 at 12:20:27PM -0400, Doug Ledford wrote:
+> On Wed, 2017-10-18 at 18:40 +0300, Leon Romanovsky wrote:
+> > On Wed, Oct 18, 2017 at 11:25:09AM -0400, Doug Ledford wrote:
+> > > On Mon, 2017-10-16 at 08:45 +0300, Leon Romanovsky wrote:
+> > > > The patches are available in the git repository at:
+> > > >   git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+> > > > tags/rdma-next-2017-10-16
+> > >
+> > > This branch is unpullable for me.  Trying to pull this on top of
+> > > the
+> > > shared pull request brings in a ton of other stuff.  My diffstat
+> > > ends
+> > > up looking like this:
 > >
-> > That calls into rdma_addr_find_l2_eth_by_grh() with the link-local
-> > address, but with 0 passed in through the if_index parameter.  So
+> > <....>
 > >
-> > The fix seems as simple as adding
+> > >
+> > > So, with a shared pull request, your submissions either need to be
+> > > against that shared pull request, or against my for-next, and you
+> > > need
+> > > to let me know which one it is.
 > >
-> >     if_index =3D idev->ifindex;
+> > I didn't know that you are using this as a pull request, we tried it
+> > in
+> > last cycle and it didn't truly work, so I stopped it and changed the
+> > title
+> > (instead of pull requests, it is patches now), removed invitation to
+> > pull from
+> > the cover letter and prepared the series (with tags) as standalone
+> > patches
+> > and not as pull request.
+>
+> OK, but you still had the pull request URL in the cover letter, so I
+> tried it.  Anyway, not a big deal as far as that goes.
+>
+> > >
+> > > I can grab these out of patchworks, but even that way I still need
+> > > you
+> > > to be clear about what tree/branch these are intended to be applied
+> > > to.
 > >
-> > to ib_init_ah_from_wc() before the call to
-> > rdma_addr_find_l2_eth_by_grh() - this can't fail, since we return an
-> > error if finding idev fails.
->=20
-> Hum, it is certainly a big conceptual mistake to not anchor a route looku=
-p in a
-> netdev at this point.
->=20
-> Both roceev1 and v2 need to use the netdev that was used to create the UD=
- QP
-> to anchor these lookups, that netdev should be a child of some kind from =
-the
-> get_netdev (eg a vlan, or macvlan, etc)
->=20
-> This is necessary to make namespaces and other subtle things work properl=
-y.
->=20
-> So, right idea, wrong netdev.
->=20
-> > However, I'm not sure if it's quite that simple - how does this
-> > interact with RoCEv2, or other addressing like IPv4 or non-link-local
-> > IPv6? I'm not sure I understand what the cases where resolved_dev will
-> > be !=3D idev, or if passing in idev->ifindex will break this.
->=20
-> I think this brokenness fell out of the above confusion, it should be rem=
-oved,
-> rdma_addr_find_dmac_by_grh should not be callable without a proper netdev=
-.
->=20
-> The !=3D case can happen if the gid table resolve differently than the ro=
-ute table,
-> but it is conceptually wrong to lookup in the gid table before doing a ro=
-ute
-> lookup, and I think these apis are poorly designed to enforce that requir=
-ement.
->=20
-> Jason
+> > It should apply cleanly as patches grabbed from the patchworks and if
+> > for any reasons it doesn't work for you, please drop it and I'll
+> > resubmit.
+>
+> Apply cleanly where?  That was the other part of my email.  When you
+> have a shared pull request, and it isn't based on my for-next branch
+> (as this one isn't), please let me know in each patch series whether
+> you intend it to be applied on the shared pull request or my for-next
+> branch.
 
-I have fixed this issue where rdma_addr_find_l2_eth_by_grh() accepts netdev=
- of the GID.
-Derivation of GID is based on vlan, and DGID of the incoming GRH, network_t=
-ype fields.
-Finding out the right GID depends above fields from the cached gid table.
+You did the right thing by applying it on shared pull request, thanks.
+All my submissions are based on shared pull request, just to be on the
+safe side.
 
-Before I post the patch,
-We found that bnx_re driver doesn't set IB_WC_WITH_VLAN in the QP1 wc.
-Fail to set vlan id and IB_WC_WITH_VLAN flag when incoming QP1 packet in vl=
-an, will fail to search the right GID.
+>
+> I actually applied it to the shared pull request branch, but I didn't
+> know if that's what you had intended.  Also, I rewrote the commit
+> message in patch 5/6 entirely.  But, otherwise, thanks, applied.
 
-Please also see recent important fix in qedr driver [1] who now correctly s=
-ets IB_WC_WITH_VLAN, in case if you need reference.
-Most drivers are setting it correctly now.
+Thanks again, I appreciate your help.
 
-Will you please fix this issue in bnx_re driver as well - to set IB_WC_WITH=
-_VLAN, vlan_id, SL when vlan is present in QP1 UD receive packets?
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG KeyID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+>
 
-Please let me know in case if you need more information.
+--b6+Jx0QtehpXLScj
+Content-Type: application/pgp-signature; name="signature.asc"
 
-[1] https://www.spinics.net/lists/linux-rdma/msg55115.html
+-----BEGIN PGP SIGNATURE-----
 
-Parav
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnnvIYACgkQ5GN7iDZy
+WKfmAhAAyEPIMZXM5tqq4D1PuMp/F3tXUAdCIdrSqIWQbvzpKK9KO16GpgfyZrii
++XFiEImdRt3vupQu5Sr0Fae7Xe5AYwPsDSQMhSAbB2B67lTmfOp43qRCVjuRD0bv
+gYuQ9a76oCLEV6ulrgsCB738KNH5QErZ1Y0PbXHrxyUz31zR/fepAvSPUCBi0Afm
+Ev8JrIil++nnXASvsqj6y7Qf10RcJ+DjxhKcmcm3NuJBSoRqEpBXMbt7GBCI4bUR
+ERObmGgX3/j7R0kDfpq1cmTN0UJ/wCd7sUir3l055S7fRt2OkVw4G0mXe6mvgItd
+ZcJbx7nLc48e+KnkF8WWAEAvDbeXNtgUXSDKMNHBLJgJYIYbxY2H2YX6mjIcU2yY
+nZ0r3pboqbw1fsoZc2LSCp3kF6ZsgnPyFbw0F1U5g9r0h12lzVWOqb4quou4pH0S
+wpujvl3DnoDbJKlMeqvZZua6ygcoXczy8Fe1YZuxj7Q/JlsCNU8q+qXarD6ucQf+
+HcK6/mWg3cTFzeWsx7KqvxWVK/Vemq2LIHqaXr/TYPX3vfgB5GU8aYDF6GnG+Boa
+Q/9VuPssgzEBR2Cj0u+iUc5bAZbVIF/Ydiq6zMKiONK35qhxyvXpYkG8NldirqGe
+t0YIY8EdU7IUdscedi+jDQpy5YNagud226psTkspzj5xxrR6sE8=
+=Q9Ca
+-----END PGP SIGNATURE-----
+
+--b6+Jx0QtehpXLScj--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
