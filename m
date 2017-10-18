@@ -1,42 +1,36 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDMA/uverbs: Make the code in ib_uverbs_cmd_verbs()
- less confusing
-Date: Wed, 18 Oct 2017 10:42:41 -0400
-Message-ID: <1508337761.46071.69.camel@redhat.com>
-References: <20171016154745.10033-1-bart.vanassche@wdc.com>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] rxe_cfg: Fix parsing of ethtool / ifconfig
+Date: Wed, 18 Oct 2017 17:45:37 +0300
+Message-ID: <CAG9sBKMa2nYkjWy37DxbcmMriPtwKFHb2gxn6MYT=YJwa=3E2Q@mail.gmail.com>
+References: <CALvXFTdij1WaFL2A05MJBcngn5eJ=ahxwRU64bS_VsCjvnE1XQ@mail.gmail.com>
+ <20171018142454.GR2106@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171016154745.10033-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <20171018142454.GR2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Nathan Hartwell <nathan.hartwell-YP+SxaqqoVo2oU8LL9ROB9BPR1lH4CV8@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-10-16 at 08:47 -0700, Bart Van Assche wrote:
-> This patch reduces the number of #ifdefs and also avoids that
-> smatch reports the following:
-> 
-> drivers/infiniband/core/uverbs_ioctl.c:276: ib_uverbs_cmd_verbs()
-> warn: if statement not indented
-> drivers/infiniband/core/uverbs_ioctl.c:280: ib_uverbs_cmd_verbs()
-> warn: possible memory leak of 'ctx'
-> drivers/infiniband/core/uverbs_ioctl.c:315: ib_uverbs_cmd_verbs()
-> warn: if statement not indented
-> 
-> References: commit fac9658cabb9 ("IB/core: Add new ioctl interface")
-> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-> Acked-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, Oct 18, 2017 at 5:24 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> Moni ?????
+>
+> Thanks
+>
+> On Wed, Oct 11, 2017 at 01:00:24PM -0600, Nathan Hartwell wrote:
+>> rxe_cfg does not always parse the output of ethtool and ifconfig correctly.
+>>
+>> Fix two items:
+>> 1)  Parsing of ethtool's link speed field to always output a link speed.
 
-Thanks, applied.
-
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
+>> 2)  Parsing of ifconfig's IP address / MTU fields with newer builds of
+>> ifconfig that have a slightly different output format than in the
+>> past.
+did you consider replacing ifconfig with ip? I can't say for sure but
+the recommendation AFAIK is to replace is to replace ifconfig with ip
+in scripts that parse the output
+Another alternative is to use /sys file system (e.g. /sys/class/net/p2p1/speed)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
