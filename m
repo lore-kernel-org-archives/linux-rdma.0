@@ -1,57 +1,26 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next v1 5/6] IB/core: Take into account optional
- UDR, XRC headers and mandatory ICRC for RoCE MTU
-Date: Wed, 18 Oct 2017 11:13:14 -0400
-Message-ID: <1508339594.46071.73.camel@redhat.com>
-References: <20171016054517.30643-1-leon@kernel.org>
-         <20171016054517.30643-6-leon@kernel.org>
-         <20171017111228.GO2106@mtr-leonro.local>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] rxe_cfg: Fix parsing of ethtool / ifconfig
+Date: Wed, 18 Oct 2017 18:15:23 +0300
+Message-ID: <CAG9sBKNhKNBDhZ=ywQ8xSTDHpmCzeshkRHEiEeQhkpdE_1CuNQ@mail.gmail.com>
+References: <CALvXFTdij1WaFL2A05MJBcngn5eJ=ahxwRU64bS_VsCjvnE1XQ@mail.gmail.com>
+ <20171018142454.GR2106@mtr-leonro.local> <CAG9sBKMa2nYkjWy37DxbcmMriPtwKFHb2gxn6MYT=YJwa=3E2Q@mail.gmail.com>
+ <96dc09fb-14a8-a9ea-58ba-fedba2dc5194@wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171017111228.GO2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <96dc09fb-14a8-a9ea-58ba-fedba2dc5194-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nathan Hartwell <nathan.hartwell-YP+SxaqqoVo2oU8LL9ROB9BPR1lH4CV8@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-10-17 at 14:12 +0300, Leon Romanovsky wrote:
-> On Mon, Oct 16, 2017 at 08:45:16AM +0300, Leon Romanovsky wrote:
-> > From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > 
-> > This fix considers optional UDP, XRC header sizes and mandatory
-> > ICRC 4 bytes in
-> > calculation of path MTU, by considering additional 8 bytes, path
-> > MTU calculation
-> > is more accurate.
-> > 
-> > Link: https://www.spinics.net/lists/linux-rdma/msg54558.html
-> > Fixes: 3c86aa70bf67 ("RDMA/cm: Add RDMA CM support for IBoE
-> > devices")
-> > Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Reported-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > ---
-> >  include/rdma/ib_addr.h |  7 ++++---
-> >  include/rdma/ib_pack.h | 19 +++++++++++--------
-> >  2 files changed, 15 insertions(+), 11 deletions(-)
-> > 
-> 
-> Doug,
-> 
-> The title should be "... optional UDP .." and not as I wrote.
-> 
-> Resubmit one patch/whole series/do nothing?
+> Personally I'm in favor of the latter solution (sysfs). For sysfs attributes
+> backwards compatibility is guaranteed but not for the output of the ifconfig
+> or ip tools.
+>
+> Bart.
 
-I'll fix it up.
-
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
+I agree
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
