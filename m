@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 04/16] IB/uverbs: Add describe counter set support
-Date: Thu, 19 Oct 2017 17:41:46 +0300
-Message-ID: <1508424118-27205-5-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-next 05/16] IB/core: Introduce counter set object and its create/destroy verbs
+Date: Thu, 19 Oct 2017 17:41:47 +0300
+Message-ID: <1508424118-27205-6-git-send-email-yishaih@mellanox.com>
 References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1508424118-27205-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,172 +12,119 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-User space application which uses counter set functionality,
-is expected first to call counter set describe to get various
-information on the counter set so it can be used later on.
+Counter set instance is allocated on an IB context and belongs to
+that context.
+Upon successful creation the counter set hardware resources are
+allocated and are ready to be bound to its counted type IB object.
+Post the bind operation the hardware related counters could be queried.
 
-The command returns the counter set static information as of
-type, number of counters, attributes of the counter set, etc.
-In case user asks for the counters names by supplying a buffer
-rather than null this data will be returned as well in
-case the buffer length is sufficient.
-Based on the returned metadata, user can know the required buffer
-size needed to hold the counters names, which is 64 * entries_count.
+Downstream patches in this series will introduce the bind and the
+query functionality.
+
+Counter set instance can be de-allocated, upon successful
+destruction the related hardware resources are released.
+
+Prior to calling the destroy verb the user must first make sure that
+the counter set is not being used by its IB object, in other words not
+bound to any of its counted objects.
 
 Signed-off-by: Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs.h      |  1 +
- drivers/infiniband/core/uverbs_cmd.c  | 75 +++++++++++++++++++++++++++++++++++
- drivers/infiniband/core/uverbs_main.c |  1 +
- include/uapi/rdma/ib_user_verbs.h     | 21 +++++++++-
- 4 files changed, 97 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/verbs.c | 42 +++++++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h         | 15 +++++++++++++++
+ 2 files changed, 57 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index deccefb..7a95153 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -307,5 +307,6 @@ struct ib_uverbs_flow_spec {
- IB_UVERBS_DECLARE_EX_CMD(destroy_rwq_ind_table);
- IB_UVERBS_DECLARE_EX_CMD(modify_qp);
- IB_UVERBS_DECLARE_EX_CMD(modify_cq);
-+IB_UVERBS_DECLARE_EX_CMD(describe_counter_set);
- 
- #endif /* UVERBS_H */
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 9c6b795..24775a5 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3909,3 +3909,78 @@ int ib_uverbs_ex_modify_cq(struct ib_uverbs_file *file,
- 
- 	return ret;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index eda389a..ea71393 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -2310,3 +2310,45 @@ int ib_describe_counter_set(struct ib_device *device,
+ 					NULL);
  }
+ EXPORT_SYMBOL(ib_describe_counter_set);
 +
-+int ib_uverbs_ex_describe_counter_set(struct ib_uverbs_file *file,
-+				      struct ib_device *ib_dev,
-+				      struct ib_udata *ucore,
-+				      struct ib_udata *uhw)
++/**
++ * ib_create_counter_set - Creates a Counter Set
++ * @device: The device on which to create the counter set.
++ * @cs_id: counter set id required to
++ * create the counter set.
++ */
++struct ib_counter_set *ib_create_counter_set(struct ib_device *device,
++					     u16 cs_id)
 +{
-+	struct ib_uverbs_ex_describe_counter_set	cmd = {};
-+	struct ib_uverbs_ex_describe_counter_set_resp	resp = {};
-+	struct ib_counter_set_describe_attr cs_describe_attr = {};
-+	size_t	required_resp_len;
-+	size_t	required_cmd_sz;
-+	u16 buff_len;
-+	int ret = 0;
++	struct ib_counter_set *cs;
 +
-+	required_cmd_sz = offsetof(typeof(cmd), cs_id) +
-+			sizeof(cmd.cs_id);
-+	required_resp_len = offsetof(typeof(resp), reserved) +
-+			sizeof(resp.reserved);
++	if (!device->create_counter_set)
++		return ERR_PTR(-ENOSYS);
 +
-+	if (ucore->inlen < required_cmd_sz)
-+		return -EINVAL;
-+
-+	if (ucore->outlen < required_resp_len)
-+		return -ENOSPC;
-+
-+	if (ucore->inlen > sizeof(cmd) &&
-+	    !ib_is_udata_cleared(ucore, sizeof(cmd),
-+			ucore->inlen - sizeof(cmd)))
-+		return -EOPNOTSUPP;
-+
-+	ret = ib_copy_from_udata(&cmd, ucore, min(sizeof(cmd), ucore->inlen));
-+	if (ret)
-+		return ret;
-+
-+	if (cmd.comp_mask)
-+		return -EOPNOTSUPP;
-+
-+	if (cmd.counters_names_resp) {
-+		/* Prevent memory allocation rather than max expected size */
-+		buff_len = min_t(u16, cmd.counters_names_max,
-+				 MAX_COUNTER_SET_BUFF_LEN);
-+		cs_describe_attr.counters_names_buff =
-+				kzalloc(buff_len, GFP_KERNEL);
-+		if (!cs_describe_attr.counters_names_buff)
-+			return -ENOMEM;
-+
-+		cs_describe_attr.counters_names_len = buff_len;
++	cs = device->create_counter_set(device, cs_id, NULL);
++	if (!IS_ERR(cs)) {
++		cs->device = device;
++		cs->uobject = NULL;
++		cs->cs_id = cs_id;
++		atomic_set(&cs->usecnt, 0);
 +	}
 +
-+	ret = ib_dev->describe_counter_set(ib_dev, cmd.cs_id,
-+					   &cs_describe_attr, uhw);
-+	if (ret)
-+		goto err;
-+
-+	if (cmd.counters_names_resp) {
-+		if (copy_to_user(u64_to_user_ptr(cmd.counters_names_resp),
-+				 cs_describe_attr.counters_names_buff,
-+				 cs_describe_attr.entries_count *
-+				 IB_COUNTER_NAME_LEN)) {
-+			ret = -EFAULT;
-+			goto err;
-+		}
-+	}
-+
-+	resp.num_of_cs = cs_describe_attr.num_of_cs;
-+	resp.attributes = cs_describe_attr.attributes;
-+	resp.counted_type = cs_describe_attr.counted_type;
-+	resp.entries_count = cs_describe_attr.entries_count;
-+	resp.response_length = required_resp_len;
-+	ret = ib_copy_to_udata(ucore, &resp, resp.response_length);
-+
-+err:
-+	kfree(cs_describe_attr.counters_names_buff);
-+	return ret;
++	return cs;
 +}
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 381fd9c..51b04bd 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -129,6 +129,7 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
- 	[IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL] = ib_uverbs_ex_destroy_rwq_ind_table,
- 	[IB_USER_VERBS_EX_CMD_MODIFY_QP]        = ib_uverbs_ex_modify_qp,
- 	[IB_USER_VERBS_EX_CMD_MODIFY_CQ]        = ib_uverbs_ex_modify_cq,
-+	[IB_USER_VERBS_EX_CMD_DESCRIBE_COUNTER_SET]	= ib_uverbs_ex_describe_counter_set,
++EXPORT_SYMBOL(ib_create_counter_set);
++
++/**
++ * ib_destroy_counter_set - Destroys the specified counter set.
++ * @cs: The counter set to destroy.
++ **/
++int ib_destroy_counter_set(struct ib_counter_set *cs)
++{
++	if (!cs->device->destroy_counter_set)
++		return -ENOSYS;
++
++	if (atomic_read(&cs->usecnt))
++		return -EBUSY;
++
++	return cs->device->destroy_counter_set(cs);
++}
++EXPORT_SYMBOL(ib_destroy_counter_set);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 44f92c3..1c78db7 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2077,6 +2077,14 @@ struct ib_counter_set_describe_attr {
+ 	char *counters_names_buff;
  };
  
- static void ib_uverbs_add_one(struct ib_device *device);
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index b3f952c..0bed600 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -101,7 +101,8 @@ enum {
- 	IB_USER_VERBS_EX_CMD_DESTROY_WQ,
- 	IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL,
- 	IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL,
--	IB_USER_VERBS_EX_CMD_MODIFY_CQ
-+	IB_USER_VERBS_EX_CMD_MODIFY_CQ,
-+	IB_USER_VERBS_EX_CMD_DESCRIBE_COUNTER_SET,
- };
- 
- /*
-@@ -1168,6 +1169,24 @@ struct ib_uverbs_ex_modify_cq {
- 	__u32 comp_mask;
- };
- 
-+#define MAX_COUNTER_SET_BUFF_LEN 4096
-+struct ib_uverbs_ex_describe_counter_set  {
-+	__u64 counters_names_resp;
-+	__u32 comp_mask;
-+	__u16 counters_names_max;
-+	__u16 cs_id;
++struct ib_counter_set {
++	struct ib_device	*device;
++	struct ib_uobject	*uobject;
++	u16	cs_id;
++	/* num of objects attached */
++	atomic_t	usecnt;
 +};
 +
-+struct ib_uverbs_ex_describe_counter_set_resp {
-+	__u64 num_of_cs;
-+	__u32 comp_mask;
-+	__u32 response_length;
-+	__u32 attributes;
-+	__u8 counted_type;
-+	__u8 entries_count;
-+	__u16 reserved;
-+};
-+
- #define IB_DEVICE_NAME_MAX 64
+ struct ib_device {
+ 	/* Do not access @dma_device directly from ULP nor from HW drivers. */
+ 	struct device                *dma_device;
+@@ -2336,6 +2344,10 @@ struct ib_device {
+ 					u16	cs_id,
+ 					struct ib_counter_set_describe_attr *cs_describe_attr,
+ 					struct ib_udata *udata);
++	struct ib_counter_set *	(*create_counter_set)(struct ib_device *device,
++						      u16 cs_id,
++						      struct ib_udata *udata);
++	int	(*destroy_counter_set)(struct ib_counter_set *cs);
  
- #endif /* IB_USER_VERBS_H */
+ 	/**
+ 	 * rdma netdev operation
+@@ -3647,6 +3659,9 @@ struct ib_rwq_ind_table *ib_create_rwq_ind_table(struct ib_device *device,
+ int ib_describe_counter_set(struct ib_device *device,
+ 			    u16 cs_id,
+ 			    struct ib_counter_set_describe_attr *cs_describe_attr);
++struct ib_counter_set *ib_create_counter_set(struct ib_device *device,
++					     u16 cs_id);
++int ib_destroy_counter_set(struct ib_counter_set *cs);
+ 
+ int ib_map_mr_sg(struct ib_mr *mr, struct scatterlist *sg, int sg_nents,
+ 		 unsigned int *sg_offset, unsigned int page_size);
 -- 
 1.8.3.1
 
