@@ -1,34 +1,38 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] rxe_cfg: Fix parsing of ethtool / ifconfig
-Date: Thu, 19 Oct 2017 10:37:56 +0300
-Message-ID: <CAG9sBKNJAD8ETyUZ5n2TaQz+S3YkWEUtQoH=C_+n5Cv1j7TXuA@mail.gmail.com>
-References: <CALvXFTdij1WaFL2A05MJBcngn5eJ=ahxwRU64bS_VsCjvnE1XQ@mail.gmail.com>
- <20171018142454.GR2106@mtr-leonro.local> <CAG9sBKMa2nYkjWy37DxbcmMriPtwKFHb2gxn6MYT=YJwa=3E2Q@mail.gmail.com>
- <96dc09fb-14a8-a9ea-58ba-fedba2dc5194@wdc.com> <CAG9sBKNhKNBDhZ=ywQ8xSTDHpmCzeshkRHEiEeQhkpdE_1CuNQ@mail.gmail.com>
- <CALvXFTfBZYTMzJnbrG2feHkZa6m3OZcZEDqQVN_hSTx+1f_i5A@mail.gmail.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH rdma-next 2/2] IB/mlx5: Add scatter end padding support
+Date: Thu, 19 Oct 2017 07:56:48 +0000
+Message-ID: <BN3PR07MB2578139CB1C38C5228B395F6F8420@BN3PR07MB2578.namprd07.prod.outlook.com>
+References: <20171017151857.11934-1-leon@kernel.org>
+ <20171017151857.11934-3-leon@kernel.org>
+ <BN3PR07MB25787107C19B694BB0BA39B4F84D0@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <7d53f1e2-239b-0415-5b28-875f1710c11a@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CALvXFTfBZYTMzJnbrG2feHkZa6m3OZcZEDqQVN_hSTx+1f_i5A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <7d53f1e2-239b-0415-5b28-875f1710c11a-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nathan Hartwell <nathan.hartwell-YP+SxaqqoVo2oU8LL9ROB9BPR1lH4CV8@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->
-> While I agree in principle with the idea to move to sysfs, if that
-> work would be applied then I would go so far as to say that a complete
-> rewrite of the scrip should be looked into. For example, there are a
-> number of other areas (e.g. the calls to modprobe) that can produce
-> unhelpful (but harmless) warnings to the console. We are focusing on
-> other fixes that have been found and need to be applied to rxe at the
-> moment so I am not sure when / if we will cycle around to revisit
-> updates to the script.
-
-You don't have to rewrite the whole script now but only the sections
-that you intend to fix anyway.
-It shouldn't take long to replace the use of ifconfig/ethtool with
-/sysfs for getting MTU and SPEDD
+PiA+IFdoYXQncyB0aGUgZmVhdHVyZSBhc3NvY2lhdGVkIHdpdGggTUxYNV9XUV9FTkRfUEFEX01P
+REVfQUxJR04/DQo+ID4gSXQgc2VlbXMgaXQgd2FzIHRoZXJlIGJlZm9yZSB0aGlzIHBhdGNoIHNl
+cmllcyBhbmQgYmVhcnMgYSBzaW1pbGFyIG5hbWUuDQo+IA0KPiBSaWdodCwgdGhpcyBzZXJpZXMg
+ZXhwb3NlcyB0aGlzIGFscmVhZHkgZXhpc3RpbmcgZmVhdHVyZSB0byB0aGUgdXNlci4NCg0KSSdt
+IHVuZGVyIHRoZSBpbXByZXNzaW9uIHRoYXQgdGhleSBhcmUgc29tZXdoYXQgZGlmZmVyZW50IChw
+ZXIgUVAgdHlwZT8/KSBmcm9tIHRoaXMgY29kZToNCg0KKwlpZiAoaW5pdF9hdHRyLT5jcmVhdGVf
+ZmxhZ3MgJiBJQl9RUF9DUkVBVEVfU0NBVFRFUl9FTkRfUEFERElORykgew0KKwkJaWYgKCFNTFg1
+X0NBUF9HRU4oZGV2LT5tZGV2LCBlbmRfcGFkKSkgew0KKwkJCW1seDVfaWJfZGJnKGRldiwgInNj
+YXR0ZXIgZW5kIHBhZGRpbmcgaXMgbm90IHN1cHBvcnRlZFxuIik7DQorCQkJZXJyID0gLUVPUE5P
+VFNVUFA7DQorCQkJZ290byBlcnI7DQorCQl9IGVsc2UgaWYgKGluaXRfYXR0ci0+cXBfdHlwZSAh
+PSBJQl9RUFRfUkFXX1BBQ0tFVCkgew0KKwkJCU1MWDVfU0VUKHFwYywgcXBjLCBlbmRfcGFkZGlu
+Z19tb2RlLA0KKwkJCQkgTUxYNV9XUV9FTkRfUEFEX01PREVfQUxJR04pOw0KKwkJfSBlbHNlIHsN
+CisJCQlxcC0+ZmxhZ3MgfD0gTUxYNV9JQl9RUF9TQ0FUVEVSX0VORF9QQURESU5HOw0KKwkJfQ0K
+Kwl9DQorDQoNCkJ1dCBpZiBpbmRlZWQgdGhleSBhcmUgdGhlIHNhbWUgdGhlbiBwbGVhc2UgY29u
+c2lkZXIgdXNpbmcgdGhlIHNhbWUgbmFtZXMgdG8gaW5jcmVhc2UgcmVhZGFiaWxpdHkuDQoNClRo
+YW5rcywNClJhbQ0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
