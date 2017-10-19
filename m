@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 10/16] IB/uverbs: Add support for flow counter set
-Date: Thu, 19 Oct 2017 17:41:52 +0300
-Message-ID: <1508424118-27205-11-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-next 15/16] IB/mlx5: Add flow counter set support
+Date: Thu, 19 Oct 2017 17:41:57 +0300
+Message-ID: <1508424118-27205-16-git-send-email-yishaih@mellanox.com>
 References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1508424118-27205-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,124 +12,306 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The struct ib_uverbs_flow_spec_action_count associates
-a counter set with the flow.
+Associates a counter set with a flow when IB_FLOW_SPEC_ACTION_COUNT
+is part of the flow specifications.
 
-Use of ib_uverbs_flow_spec_action_count allows the
-consumer to associate an existing counter set to
-a flow on creation.
+Expose flow counters to the generic counters sets interface.
 
 Signed-off-by: Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs.h     |  1 +
- drivers/infiniband/core/uverbs_cmd.c | 32 ++++++++++++++++++++++++++++++++
- include/uapi/rdma/ib_user_verbs.h    | 13 +++++++++++++
- 3 files changed, 46 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c | 178 +++++++++++++++++++++++++++++++++++---
+ include/linux/mlx5/fs.h           |   1 +
+ 2 files changed, 168 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 50c4bb4..c87aca9 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -244,6 +244,7 @@ struct ib_uverbs_flow_spec {
- 		struct ib_uverbs_flow_spec_ipv6    ipv6;
- 		struct ib_uverbs_flow_spec_action_tag	flow_tag;
- 		struct ib_uverbs_flow_spec_action_drop	drop;
-+		struct ib_uverbs_flow_spec_action_count flow_count;
- 	};
- };
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 2b434db..46ac67b 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1931,6 +1931,16 @@ static void set_tos(void *outer_c, void *outer_v, u8 mask, u8 val)
+ 	MLX5_SET(fte_match_set_lyr_2_4, outer_v, ip_dscp, val >> 2);
+ }
  
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index bf2b95a..e05726f 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2732,6 +2732,13 @@ static int kern_spec_to_ib_spec_action(struct ib_uverbs_flow_spec *kern_spec,
++static bool is_counter_set_valid(struct ib_counter_set *cs,
++				 enum ib_counter_set_type type)
++{
++	struct mlx5_ib_cs *mcs;
++
++	mcs = to_mcs(cs);
++
++	return (mcs->desc_cs->cs_desc.counted_type == type);
++}
++
+ #define LAST_ETH_FIELD vlan_tag
+ #define LAST_IB_FIELD sl
+ #define LAST_IPV4_FIELD tos
+@@ -1939,6 +1949,7 @@ static void set_tos(void *outer_c, void *outer_v, u8 mask, u8 val)
+ #define LAST_TUNNEL_FIELD tunnel_id
+ #define LAST_FLOW_TAG_FIELD tag_id
+ #define LAST_DROP_FIELD size
++#define LAST_FLOW_COUNTER_FIELD counter_set
  
- 		ib_spec->drop.size = sizeof(struct ib_flow_spec_action_drop);
+ /* Field is the last supported field */
+ #define FIELDS_NOT_SUPPORTED(filter, field)\
+@@ -2178,6 +2189,16 @@ static int parse_flow_attr(struct mlx5_core_dev *mdev, u32 *match_c,
+ 			return -EOPNOTSUPP;
+ 		action->action |= MLX5_FLOW_CONTEXT_ACTION_DROP;
  		break;
 +	case IB_FLOW_SPEC_ACTION_COUNT:
-+		if (kern_spec->flow_count.size !=
-+			sizeof(struct ib_uverbs_flow_spec_action_count))
++		if (FIELDS_NOT_SUPPORTED(ib_spec->flow_count,
++					 LAST_FLOW_COUNTER_FIELD))
++			return -EOPNOTSUPP;
++		action->counter_set = ib_spec->flow_count.counter_set;
++		if (!is_counter_set_valid(action->counter_set,
++					  IB_COUNTER_SET_FLOW))
 +			return -EINVAL;
-+		ib_spec->flow_count.size =
-+				sizeof(struct ib_flow_spec_action_count);
++		action->action |= MLX5_FLOW_CONTEXT_ACTION_COUNT;
 +		break;
  	default:
  		return -EINVAL;
  	}
-@@ -3269,9 +3276,11 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
- 	struct ib_uverbs_flow_attr	  *kern_flow_attr;
- 	struct ib_flow_attr		  *flow_attr;
- 	struct ib_qp			  *qp;
-+	struct ib_counter_set	*cs = NULL;
+@@ -2429,13 +2450,16 @@ static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
+ {
+ 	struct mlx5_flow_table	*ft = ft_prio->flow_table;
+ 	struct mlx5_ib_flow_handler *handler;
+-	struct mlx5_flow_act flow_act = {.flow_tag = MLX5_FS_DEFAULT_FLOW_TAG};
++	struct mlx5_flow_act flow_act = {.flow_tag = MLX5_FS_DEFAULT_FLOW_TAG,
++					 .counter_set = NULL};
+ 	struct mlx5_flow_spec *spec;
+-	struct mlx5_flow_destination *rule_dst = dst;
++	struct mlx5_flow_destination dest_arr[2] = {};
++	struct mlx5_flow_destination *rule_dst = dest_arr;
++	struct mlx5_ib_cs *rcs;
+ 	const void *ib_flow = (const void *)flow_attr + sizeof(*flow_attr);
+ 	unsigned int spec_index;
  	int err = 0;
- 	void *kern_spec;
- 	void *ib_spec;
-+	int cs_used = 0;
- 	int i;
+-	int dest_num = 1;
++	int dest_num = 0;
  
- 	if (ucore->inlen < sizeof(cmd))
-@@ -3366,6 +3375,25 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
- 		flow_attr->size +=
- 			((union ib_flow_spec *) ib_spec)->size;
- 		cmd.flow_attr.size -= ((struct ib_uverbs_flow_spec *)kern_spec)->size;
-+		if (((struct ib_uverbs_flow_spec *)kern_spec)->type ==
-+				IB_FLOW_SPEC_ACTION_COUNT) {
-+			__u32 cs_handle =
-+				((struct ib_uverbs_flow_spec *)kern_spec)->flow_count.cs_handle;
-+			cs_used++;
-+			if (cs_used > 1) {
-+				uobj_put_obj_read(cs);
-+				err = -EINVAL;
-+				goto err_free;
-+			}
-+			cs = uobj_get_obj_read(counter_set,
-+					       cs_handle,
-+					       file->ucontext);
-+			if (!cs) {
-+				err = -EINVAL;
-+				goto err_free;
-+			}
-+			((union ib_flow_spec *)ib_spec)->flow_count.counter_set = cs;
+ 	if (!is_valid_attr(dev->mdev, flow_attr))
+ 		return ERR_PTR(-EINVAL);
+@@ -2448,6 +2472,10 @@ static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
+ 	}
+ 
+ 	INIT_LIST_HEAD(&handler->list);
++	if (dst) {
++		memcpy(&dest_arr[0], dst, sizeof(*dst));
++		dest_num++;
++	}
+ 
+ 	for (spec_index = 0; spec_index < flow_attr->num_of_specs; spec_index++) {
+ 		err = parse_flow_attr(dev->mdev, spec->match_criteria,
+@@ -2463,12 +2491,25 @@ static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
+ 		set_underlay_qp(dev, spec, underlay_qpn);
+ 
+ 	spec->match_criteria_enable = get_match_criteria_enable(spec->match_criteria);
+-	if (flow_act.action & MLX5_FLOW_CONTEXT_ACTION_DROP) {
+-		rule_dst = NULL;
+-		dest_num = 0;
+-	} else {
+-		flow_act.action = dst ? MLX5_FLOW_CONTEXT_ACTION_FWD_DEST :
+-		    MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO;
++	if (!(flow_act.action & MLX5_FLOW_CONTEXT_ACTION_DROP)) {
++		if (dst) {
++			flow_act.action = MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
++		} else {
++			flow_act.action = MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO;
++			rule_dst = NULL;
 +		}
- 		kern_spec += ((struct ib_uverbs_flow_spec *) kern_spec)->size;
- 		ib_spec += ((union ib_flow_spec *) ib_spec)->size;
- 	}
-@@ -3376,6 +3404,10 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
- 		goto err_free;
- 	}
- 	flow_id = ib_create_flow(qp, flow_attr, IB_FLOW_DOMAIN_USER);
++	}
 +
-+	if (cs_used)
-+		uobj_put_obj_read(cs);
-+
- 	if (IS_ERR(flow_id)) {
- 		err = PTR_ERR(flow_id);
- 		goto err_free;
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 49d9b2d..63f79d5 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -987,6 +987,19 @@ struct ib_uverbs_flow_spec_action_drop {
- 	};
- };
++	if (rule_dst && flow_act.counter_set) {
++		rcs = to_mcs(flow_act.counter_set);
++		dest_arr[dest_num].type =
++				MLX5_FLOW_DESTINATION_TYPE_COUNTER;
++		dest_arr[dest_num].counter =
++				(struct mlx5_fc *)(rcs->hw_cs_handle);
++		dest_num++;
++		handler->ibflow.counter_set =
++				flow_act.counter_set;
++		flow_act.action |= MLX5_FLOW_CONTEXT_ACTION_COUNT;
+ 	}
  
-+struct ib_uverbs_flow_spec_action_count {
-+	union {
-+		struct ib_uverbs_flow_spec_hdr hdr;
-+		struct {
-+			__u32 type;
-+			__u16 size;
-+			__u16 reserved;
-+		};
-+	};
-+	__u32 cs_handle;
-+	__u32 reserved1;
+ 	if (flow_act.flow_tag != MLX5_FS_DEFAULT_FLOW_TAG &&
+@@ -3989,10 +4030,35 @@ static int mlx5_ib_describe_counter_set(struct ib_device *ib_dev,
+ 	return 0;
+ }
+ 
++static int query_flow_counter_set(struct ib_device *ibdev,
++				  struct mlx5_query_count_attr *query_attr)
++{
++	struct mlx5_fc *fc = (struct mlx5_fc *)(query_attr->hw_cs_handle);
++	struct mlx5_ib_dev *dev = to_mdev(ibdev);
++	int ret = 0;
++	u64 last_used;
++
++	if (query_attr->query_flags & IB_COUNTER_SET_FORCE_UPDATE) {
++		ret = mlx5_cmd_fc_query(dev->mdev,
++					fc->id,
++					&query_attr->out[0],
++					&query_attr->out[1]);
++	} else {
++		mlx5_fc_query_cached(fc, &query_attr->out[1],
++				     &query_attr->out[0],
++				     &last_used,
++				     MLX5_FLOW_QUERY_CACHED_ABS);
++	}
++	return ret;
++}
++
+ static int mlx5_ib_destroy_counter_set(struct ib_counter_set *cs)
+ {
++	struct mlx5_ib_dev *dev = to_mdev(cs->device);
+ 	struct mlx5_ib_cs *mcs = to_mcs(cs);
+ 
++	mlx5_fc_destroy(dev->mdev,
++			(struct mlx5_fc *)(mcs->hw_cs_handle));
+ 	kfree(mcs);
+ 
+ 	return 0;
+@@ -4004,6 +4070,7 @@ static struct ib_counter_set *mlx5_ib_create_counter_set(
+ 		struct ib_udata *udata)
+ {
+ 	struct mlx5_ib_create_counter_set_resp resp = {};
++	struct mlx5_fc *flow_count;
+ 	struct mlx5_ib_dev *dev;
+ 	struct mlx5_ib_cs *mcs;
+ 	size_t min_resp_len;
+@@ -4027,17 +4094,34 @@ static struct ib_counter_set *mlx5_ib_create_counter_set(
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	mcs->desc_cs = &dev->counter_sets.desc_cs_arr[cs_id];
++	switch (mcs->desc_cs->cs_desc.counted_type) {
++	case IB_COUNTER_SET_FLOW:
++		mcs->query_count = query_flow_counter_set;
++		flow_count = mlx5_fc_create(dev->mdev, true);
++		if (IS_ERR(flow_count)) {
++			kfree(mcs);
++			return ERR_CAST(flow_count);
++		}
++		mcs->hw_cs_handle = (void *)flow_count;
++		break;
++	default:
++		mlx5_ib_dbg(dev, "unsupported counter set type %d\n",
++			    mcs->desc_cs->cs_desc.counted_type);
++		err = -EINVAL;
++		goto err_get_counter;
++	}
++
+ 	if (udata && udata->outlen) {
+ 		resp.response_length = offsetof(typeof(resp), response_length) +
+ 					sizeof(resp.response_length);
+ 		err = ib_copy_to_udata(udata, &resp, resp.response_length);
+ 		if (err)
+-			goto err_copy;
++			goto err_get_counter;
+ 	}
+ 
+ 	return &mcs->ibcs;
+ 
+-err_copy:
++err_get_counter:
+ 	mlx5_ib_destroy_counter_set(&mcs->ibcs);
+ 	return ERR_PTR(err);
+ }
+@@ -4081,13 +4165,85 @@ static int mlx5_ib_query_counter_set(struct ib_counter_set *cs,
+ 	return ret;
+ }
+ 
++struct mlx5_ib_flow_counter {
++	size_t offset;
++	const char *name;
 +};
 +
- struct ib_uverbs_flow_tunnel_filter {
- 	__be32 tunnel_id;
++#define INIT_COUNTER(_struct, _name)\
++	{ .name = #_name, .offset = MLX5_BYTE_OFF(_struct, _name)}
++
++static const struct mlx5_ib_flow_counter basic_flow_cnts[] = {
++	INIT_COUNTER(traffic_counter, packets),
++	INIT_COUNTER(traffic_counter, octets),
++};
++
++static void fill_counters_names_flow(char *names_buff)
++{
++	u32 basic_flow_size = ARRAY_SIZE(basic_flow_cnts);
++	int i;
++
++	for (i = 0; i < basic_flow_size; i++) {
++		strlcpy(names_buff, basic_flow_cnts[i].name,
++			IB_COUNTER_NAME_LEN - 1);
++		names_buff += IB_COUNTER_NAME_LEN;
++	}
++}
++
++static int mlx5_ib_init_flow_counter_entry(struct mlx5_ib_dev *dev,
++					   struct mlx5_desc_cs_attr *desc_cs)
++{
++	u32 basic_flow_size = ARRAY_SIZE(basic_flow_cnts);
++	struct ib_counter_set_describe_attr *ib_cs_desc;
++
++	ib_cs_desc = &desc_cs->cs_desc;
++	ib_cs_desc->counted_type = IB_COUNTER_SET_FLOW;
++	ib_cs_desc->num_of_cs =
++			1 << MLX5_CAP_GEN(dev->mdev, log_max_flow_counter_bulk);
++	ib_cs_desc->entries_count = basic_flow_size;
++	ib_cs_desc->attributes = IB_COUNTER_SET_ATTR_CACHED;
++	ib_cs_desc->counters_names_len = basic_flow_size * IB_COUNTER_NAME_LEN;
++	desc_cs->fill_counters_names = fill_counters_names_flow;
++
++	return 0;
++}
++
+ static int alloc_ib_counter_sets(struct mlx5_ib_dev *dev)
+ {
+ 	struct mlx5_ib_counter_sets *ib_css = &dev->counter_sets;
++	u32 num_of_css = 0;
++	u32 ret;
+ 
+ 	ib_css->max_counter_sets = 0;
++	/* flow counters support */
++	ib_css->max_counter_sets +=
++		(mlx5_ib_port_link_layer(&dev->ib_dev, 1)
++				== IB_LINK_LAYER_ETHERNET);
++
++	if (!ib_css->max_counter_sets)
++		return 0;
++
++	/* alloc counter sets array  */
++	ib_css->desc_cs_arr =
++		kcalloc(ib_css->max_counter_sets,
++			sizeof(struct mlx5_desc_cs_attr),
++			GFP_KERNEL);
++	if (!ib_css->desc_cs_arr) {
++		ret = -ENOMEM;
++		goto err_no_cs;
++	}
++
++	ret = mlx5_ib_init_flow_counter_entry(dev,
++					      &ib_css->desc_cs_arr[num_of_css++]);
++	if (ret)
++		goto err_init_flow_counter_entry;
+ 
+ 	return 0;
++
++err_init_flow_counter_entry:
++	kfree(ib_css->desc_cs_arr);
++err_no_cs:
++	return ret;
+ }
+ 
+ static void dealloc_ib_counter_sets(struct mlx5_ib_dev *dev)
+diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
+index 8e0331c..9a84527 100644
+--- a/include/linux/mlx5/fs.h
++++ b/include/linux/mlx5/fs.h
+@@ -140,6 +140,7 @@ struct mlx5_flow_act {
+ 	u32 flow_tag;
+ 	u32 encap_id;
+ 	u32 modify_id;
++	struct ib_counter_set *counter_set;
  };
+ 
+ #define MLX5_DECLARE_FLOW_ACT(name) \
 -- 
 1.8.3.1
 
