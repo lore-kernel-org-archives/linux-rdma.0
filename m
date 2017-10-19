@@ -1,151 +1,100 @@
-From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next] RDMA/hns: Add modify CQ support for hip08
-Date: Thu, 19 Oct 2017 11:52:40 +0800
-Message-ID: <1508385160-130435-1-git-send-email-oulijun@huawei.com>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: Need to set if_index in ib_init_ah_from_wc() ?
+Date: Thu, 19 Oct 2017 10:02:17 +0530
+Message-ID: <CANjDDBhJK=s28zrdCASUVSSeem=NVRWwsHT=jWS2N4jGh2Uvfw@mail.gmail.com>
+References: <CAL1RGDW6iHo2UYKbcJmcG=wCq63jvZB7nvOD=BJZwASSzc7Zhw@mail.gmail.com>
+ <20170130195412.GE24466@obsidianresearch.com> <VI1PR0502MB30086B735FD4B5948B521673D14D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <VI1PR0502MB30086B735FD4B5948B521673D14D0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-It is needed to call modify cq API for modifying cq
-context fields for controlling event generation
-moderations. This patch mainly adds it.
+Hello Parav,
 
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/hns/hns_roce_cmd.h    |  1 +
- drivers/infiniband/hw/hns/hns_roce_device.h |  1 +
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  6 +++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 42 +++++++++++++++++++++++++++++
- drivers/infiniband/hw/hns/hns_roce_main.c   |  1 +
- 5 files changed, 51 insertions(+)
+Thanks for you note here. I can supply you a fix, but before that
+please find a query inline below:
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.h b/drivers/infiniband/hw/hns/hns_roce_cmd.h
-index 77299ae5..f0039a7 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cmd.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_cmd.h
-@@ -52,6 +52,7 @@ enum {
- 	HNS_ROCE_CMD_MODIFY_QPC		= 0x41,
- 	HNS_ROCE_CMD_QUERY_QPC		= 0x42,
- 
-+	HNS_ROCE_CMD_MODIFY_CQC		= 0x52,
- 	/* CQC BT commands */
- 	HNS_ROCE_CMD_WRITE_CQC_BT0	= 0x10,
- 	HNS_ROCE_CMD_WRITE_CQC_BT1	= 0x11,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index b314ac0..862ab75 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -607,6 +607,7 @@ struct hns_roce_hw {
- 	int (*poll_cq)(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
- 	int (*dereg_mr)(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr);
- 	int (*destroy_cq)(struct ib_cq *ibcq);
-+	int (*modify_cq)(struct ib_cq *cq, u16 cq_count, u16 cq_period);
- };
- 
- struct hns_roce_dev {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index a5693d4..8311a5f 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -2113,6 +2113,11 @@ static void hns_roce_v1_write_cqc(struct hns_roce_dev *hr_dev,
- 	cq_context->cqc_byte_32 = cpu_to_le32(cq_context->cqc_byte_32);
- }
- 
-+static int hns_roce_v1_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
-+{
-+	return -EOPNOTSUPP;
-+}
-+
- static int hns_roce_v1_req_notify_cq(struct ib_cq *ibcq,
- 				     enum ib_cq_notify_flags flags)
- {
-@@ -3963,6 +3968,7 @@ static int hns_roce_v1_destroy_cq(struct ib_cq *ibcq)
- 	.set_mtu = hns_roce_v1_set_mtu,
- 	.write_mtpt = hns_roce_v1_write_mtpt,
- 	.write_cqc = hns_roce_v1_write_cqc,
-+	.modify_cq = hns_roce_v1_modify_cq,
- 	.clear_hem = hns_roce_v1_clear_hem,
- 	.modify_qp = hns_roce_v1_modify_qp,
- 	.query_qp = hns_roce_v1_query_qp,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index ff61f30..aec6ef5 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2993,6 +2993,47 @@ static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp)
- 	return 0;
- }
- 
-+static int hns_roce_v2_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
-+{
-+	struct hns_roce_dev *hr_dev = to_hr_dev(cq->device);
-+	struct hns_roce_v2_cq_context *cq_context;
-+	struct hns_roce_cq *hr_cq = to_hr_cq(cq);
-+	struct hns_roce_v2_cq_context *cqc_mask;
-+	struct hns_roce_cmd_mailbox *mailbox;
-+	int ret;
-+
-+	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
-+	if (IS_ERR(mailbox))
-+		return PTR_ERR(mailbox);
-+
-+	cq_context = mailbox->buf;
-+	cqc_mask = (struct hns_roce_v2_cq_context *)mailbox->buf + 1;
-+
-+	memset(cqc_mask, 0xff, sizeof(*cqc_mask));
-+
-+	roce_set_field(cq_context->byte_56_cqe_period_maxcnt,
-+		       V2_CQC_BYTE_56_CQ_MAX_CNT_M, V2_CQC_BYTE_56_CQ_MAX_CNT_S,
-+		       cq_count);
-+	roce_set_field(cqc_mask->byte_56_cqe_period_maxcnt,
-+		       V2_CQC_BYTE_56_CQ_MAX_CNT_M, V2_CQC_BYTE_56_CQ_MAX_CNT_S,
-+		       0);
-+	roce_set_field(cq_context->byte_56_cqe_period_maxcnt,
-+		       V2_CQC_BYTE_56_CQ_PERIOD_M, V2_CQC_BYTE_56_CQ_PERIOD_S,
-+		       cq_period);
-+	roce_set_field(cqc_mask->byte_56_cqe_period_maxcnt,
-+		       V2_CQC_BYTE_56_CQ_PERIOD_M, V2_CQC_BYTE_56_CQ_PERIOD_S,
-+		       0);
-+
-+	ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0, hr_cq->cqn, 1,
-+				HNS_ROCE_CMD_MODIFY_CQC,
-+				HNS_ROCE_CMD_TIMEOUT_MSECS);
-+	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
-+	if (ret)
-+		dev_err(hr_dev->dev, "MODIFY CQ Failed to cmd mailbox.\n");
-+
-+	return ret;
-+}
-+
- static const struct hns_roce_hw hns_roce_hw_v2 = {
- 	.cmq_init = hns_roce_v2_cmq_init,
- 	.cmq_exit = hns_roce_v2_cmq_exit,
-@@ -3008,6 +3049,7 @@ static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp)
- 	.modify_qp = hns_roce_v2_modify_qp,
- 	.query_qp = hns_roce_v2_query_qp,
- 	.destroy_qp = hns_roce_v2_destroy_qp,
-+	.modify_cq = hns_roce_v2_modify_cq,
- 	.post_send = hns_roce_v2_post_send,
- 	.post_recv = hns_roce_v2_post_recv,
- 	.req_notify_cq = hns_roce_v2_req_notify_cq,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 3dcb2df..31120fd 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -499,6 +499,7 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
- 
- 	/* CQ */
- 	ib_dev->create_cq		= hns_roce_ib_create_cq;
-+	ib_dev->modify_cq		= hr_dev->hw->modify_cq;
- 	ib_dev->destroy_cq		= hns_roce_ib_destroy_cq;
- 	ib_dev->req_notify_cq		= hr_dev->hw->req_notify_cq;
- 	ib_dev->poll_cq			= hr_dev->hw->poll_cq;
--- 
-1.9.1
+On Thu, Oct 19, 2017 at 12:30 AM, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Hi Devesh, Selvin, Somnath,
+>
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
+>> Sent: Monday, January 30, 2017 1:54 PM
+>> To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+>> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Subject: Re: Need to set if_index in ib_init_ah_from_wc() ?
+>>
+>> On Sun, Jan 29, 2017 at 05:21:43PM -0800, Roland Dreier wrote:
+>> > I recently debugged an issue where an RDMA-CM / RoCE connection to a
+>> > link-local IPv6 address takes 1 second to establish.  The delay comes
+>> > when the passive side cm_req_handler() calls
+>> > cm_init_av_for_response(), which calls ib_init_ah_from_wc().
+>> >
+>> > That calls into rdma_addr_find_l2_eth_by_grh() with the link-local
+>> > address, but with 0 passed in through the if_index parameter.  So
+>> >
+>> > The fix seems as simple as adding
+>> >
+>> >     if_index = idev->ifindex;
+>> >
+>> > to ib_init_ah_from_wc() before the call to
+>> > rdma_addr_find_l2_eth_by_grh() - this can't fail, since we return an
+>> > error if finding idev fails.
+>>
+>> Hum, it is certainly a big conceptual mistake to not anchor a route lookup in a
+>> netdev at this point.
+>>
+>> Both roceev1 and v2 need to use the netdev that was used to create the UD QP
+>> to anchor these lookups, that netdev should be a child of some kind from the
+>> get_netdev (eg a vlan, or macvlan, etc)
+>>
+>> This is necessary to make namespaces and other subtle things work properly.
+>>
+>> So, right idea, wrong netdev.
+>>
+>> > However, I'm not sure if it's quite that simple - how does this
+>> > interact with RoCEv2, or other addressing like IPv4 or non-link-local
+>> > IPv6? I'm not sure I understand what the cases where resolved_dev will
+>> > be != idev, or if passing in idev->ifindex will break this.
+>>
+>> I think this brokenness fell out of the above confusion, it should be removed,
+>> rdma_addr_find_dmac_by_grh should not be callable without a proper netdev.
+>>
+>> The != case can happen if the gid table resolve differently than the route table,
+>> but it is conceptually wrong to lookup in the gid table before doing a route
+>> lookup, and I think these apis are poorly designed to enforce that requirement.
+>>
+>> Jason
+>
+> I have fixed this issue where rdma_addr_find_l2_eth_by_grh() accepts netdev of the GID.
+> Derivation of GID is based on vlan, and DGID of the incoming GRH, network_type fields.
+> Finding out the right GID depends above fields from the cached gid table.
+>
+> Before I post the patch,
+> We found that bnx_re driver doesn't set IB_WC_WITH_VLAN in the QP1 wc.
+> Fail to set vlan id and IB_WC_WITH_VLAN flag when incoming QP1 packet in vlan, will fail to search the right GID.
 
+I am under impression that IB_WC_WITH_VLAN flags was supposed to be
+set only if any vendor's WC reports VLAN-ID, otherwise it had to be
+derived from somewhere else. Are we moving away from this notion?
+
+
+>
+> Please also see recent important fix in qedr driver [1] who now correctly sets IB_WC_WITH_VLAN, in case if you need reference.
+> Most drivers are setting it correctly now.
+>
+> Will you please fix this issue in bnx_re driver as well - to set IB_WC_WITH_VLAN, vlan_id, SL when vlan is present in QP1 UD receive packets?
+>
+> Please let me know in case if you need more information.
+>
+> [1] https://www.spinics.net/lists/linux-rdma/msg55115.html
+>
+> Parav
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
