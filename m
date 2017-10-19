@@ -1,37 +1,25 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH net-next] qed: Fix iWARP out of order flow
-Date: Thu, 19 Oct 2017 12:47:01 +0100 (WEST)
-Message-ID: <20171019.124701.29421527567072533.davem@davemloft.net>
-References: <1508225005-3572-1-git-send-email-Michal.Kalderon@cavium.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v2 02/15] usb: gadget: make config_item_type structures
+        const
+Date: Thu, 19 Oct 2017 16:06:57 +0200
+Message-ID: <20171019140657.GA22233@lst.de>
+References: <1508167134-6243-1-git-send-email-bhumirks@gmail.com> <1508167134-6243-3-git-send-email-bhumirks@gmail.com> <1985905.z83BJQzMUS@avalon>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1508225005-3572-1-git-send-email-Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Manish.Rangankar-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1985905.z83BJQzMUS@avalon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Bhumika Goyal <bhumirks@gmail.com>, julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, alexander.shishkin@linux.intel.com, jic23@kernel.org, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, hch@lst.de, sagi@grimberg.me, kishon@ti.com, bhelgaas@google.com, nab@linux-iscsi.org, balbi@kernel.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, ccaulfie@redhat.com, teigland@redhat.com, mfasheh@versity.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-usb@vger.kernel.org, cluster-devel@red
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Date: Tue, 17 Oct 2017 10:23:25 +0300
+> 
+> Now we have 9 const instances of the config_item_type structure that are 
+> identical, with only the .ct_owner field set. Should they be all merged into a 
+> single structure ?
 
-> Out of order flow is not working for iWARP.
-> This patch got cut out from initial series that added out
-> of order support for iWARP.
-> 
-> Make out of order code common for iWARP and iSCSI.
-> Add new configuration option CONFIG_QED_OOO. Set by
-> qedr and qedi Kconfigs.
-> 
-> Fixes: d1abfd0b4ee2 ("qed: Add iWARP out of order support")
-> 
-> Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Manish Rangankar <Manish.Rangankar-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+I think that's a good idea.
 
-Applied.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+But I'm about to slurp up this whole series into my tree, how about making
+that an incremental patch?  
