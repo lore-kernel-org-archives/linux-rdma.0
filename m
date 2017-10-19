@@ -1,53 +1,43 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 0/3] IPoIB TX NAPI
-Date: Thu, 19 Oct 2017 07:56:41 +0300
-Message-ID: <20171019045644.5816-1-leon@kernel.org>
+Subject: [PATCH rdma-next v1 3/3] IB/ipoib: Change number of TX wqe to 64
+Date: Thu, 19 Oct 2017 07:56:44 +0300
+Message-ID: <20171019045644.5816-4-leon@kernel.org>
+References: <20171019045644.5816-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171019045644.5816-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Changelog from v0:
- * Rebase to latest for-next, commit 894b82c427d0 ("Merge branch 'timer_setup' into for-next")
+From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-----
->From Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-----
+NAPI budget is 64 packets, while maximum polling size for
+the send CQ is 16. Let's bring them in sync, so the NAPI
+budget will be reused completely.
 
-It is very common in modern network devices to use NAPI in RX and TX,
-in the UD/TX flows IPoIB uses a polling mechanism (not as it does in
-the CM mode).
+Cc: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Except of the motivation to use the same mechanism for IPoIB as for
-netdevices, there are number of issues in current polling mechanism:
- * SKBs that are kept longer than they should be and there are applications
-   that warn about that (some firewalls for example).
- * Statistics that are not updated to the real value. It blocks support
-   for time synchronization protocols over the IPoIB protocol, like PTP
-   and so on.
- * The TX in CM mode already uses NAPI, there is no reason to keep two
-   different ways for TX one for UD and one for the CM.
-
-The patches are available in the git repository at:
-  git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-next-2017-10-19
-
-	Thanks
----------------------------------------
-
-Erez Shitrit (3):
-  IB/ipoib: Get rid of the tx_outstanding variable in all modes
-  IB/ipoib: Use NAPI in UD/TX flows
-  IB/ipoib: Change number of TX wqe to 64
-
- drivers/infiniband/ulp/ipoib/ipoib.h       |  14 ++--
- drivers/infiniband/ulp/ipoib/ipoib_cm.c    |  46 +++++-----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c    | 129 +++++++++++++++++------------
- drivers/infiniband/ulp/ipoib/ipoib_main.c  |  24 ++++--
- drivers/infiniband/ulp/ipoib/ipoib_verbs.c |  17 ++--
- 5 files changed, 143 insertions(+), 87 deletions(-)
-
---
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index b534d9412a1e..8033a006277f 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -111,7 +111,7 @@ enum {
+ 	IPOIB_MCAST_FLAG_BUSY	  = 2,
+ 	IPOIB_MCAST_FLAG_ATTACHED = 3,
+ 
+-	MAX_SEND_CQE		  = 16,
++	MAX_SEND_CQE		  = 64,
+ 	IPOIB_CM_COPYBREAK	  = 256,
+ 
+ 	IPOIB_NON_CHILD		  = 0,
+-- 
 2.14.2
 
 --
