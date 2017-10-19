@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 09/16] IB/core: Add support for flow counter set
-Date: Thu, 19 Oct 2017 17:41:51 +0300
-Message-ID: <1508424118-27205-10-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-next 06/16] IB/uverbs: Add create/destroy counter set support
+Date: Thu, 19 Oct 2017 17:41:48 +0300
+Message-ID: <1508424118-27205-7-git-send-email-yishaih@mellanox.com>
 References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1508424118-27205-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,105 +12,282 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-A counter set object could be attached to flow on creation
-by providing the counter specification action.
+User space application which uses counter set functionality,
+is expected to allocate/release the counter set hardware
+resources by calling create/destroy verbs and in turn get
+a unique handle that can be used to bind the counter set to
+its counted type so the hardware related counters could be
+queried.
+
+Downstream patches in this series will introduce the bind and the
+query functionality.
 
 Signed-off-by: Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c |  8 +++++++-
- include/rdma/ib_verbs.h         | 14 +++++++++++---
- 2 files changed, 18 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/uverbs.h           |   2 +
+ drivers/infiniband/core/uverbs_cmd.c       | 117 +++++++++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_main.c      |   2 +
+ drivers/infiniband/core/uverbs_std_types.c |  15 +++-
+ include/rdma/uverbs_std_types.h            |   1 +
+ include/uapi/rdma/ib_user_ioctl_verbs.h    |   1 +
+ include/uapi/rdma/ib_user_verbs.h          |  25 ++++++
+ 7 files changed, 162 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index ffe51fd..8e82249 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1941,6 +1941,8 @@ struct ib_flow *ib_create_flow(struct ib_qp *qp,
- 	if (!IS_ERR(flow_id)) {
- 		atomic_inc(&qp->usecnt);
- 		flow_id->qp = qp;
-+		if (flow_id->counter_set)
-+			atomic_inc(&flow_id->counter_set->usecnt);
- 	}
- 	return flow_id;
- }
-@@ -1950,10 +1952,14 @@ int ib_destroy_flow(struct ib_flow *flow_id)
- {
- 	int err;
- 	struct ib_qp *qp = flow_id->qp;
-+	struct ib_counter_set *counter_set = flow_id->counter_set;
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 7a95153..e1e8379 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -308,5 +308,7 @@ struct ib_uverbs_flow_spec {
+ IB_UVERBS_DECLARE_EX_CMD(modify_qp);
+ IB_UVERBS_DECLARE_EX_CMD(modify_cq);
+ IB_UVERBS_DECLARE_EX_CMD(describe_counter_set);
++IB_UVERBS_DECLARE_EX_CMD(create_counter_set);
++IB_UVERBS_DECLARE_EX_CMD(destroy_counter_set);
  
- 	err = qp->device->destroy_flow(flow_id);
--	if (!err)
-+	if (!err) {
- 		atomic_dec(&qp->usecnt);
-+		if (counter_set)
-+			atomic_dec(&counter_set->usecnt);
+ #endif /* UVERBS_H */
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 24775a5..b648c8f 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3984,3 +3984,120 @@ int ib_uverbs_ex_describe_counter_set(struct ib_uverbs_file *file,
+ 	kfree(cs_describe_attr.counters_names_buff);
+ 	return ret;
+ }
++
++int ib_uverbs_ex_create_counter_set(struct ib_uverbs_file *file,
++				    struct ib_device *ib_dev,
++				    struct ib_udata *ucore,
++				    struct ib_udata *uhw)
++{
++	struct ib_uverbs_ex_create_counter_set	cmd = {};
++	struct ib_uverbs_ex_create_counter_set_resp	resp = {};
++	struct ib_counter_set	*cs;
++	struct ib_uobject	*uobj;
++	size_t	required_resp_len;
++	size_t	required_cmd_sz;
++	int	ret = 0;
++
++	required_cmd_sz = offsetof(typeof(cmd), reserved) +
++			sizeof(cmd.reserved);
++	required_resp_len = offsetof(typeof(resp), reserved) +
++			sizeof(resp.reserved);
++
++	if (ucore->inlen < required_cmd_sz)
++		return -EINVAL;
++
++	if (ucore->outlen < required_resp_len)
++		return -ENOSPC;
++
++	if (ucore->inlen > sizeof(cmd) &&
++	    !ib_is_udata_cleared(ucore, sizeof(cmd),
++			ucore->inlen - sizeof(cmd)))
++		return -EOPNOTSUPP;
++
++	ret = ib_copy_from_udata(&cmd, ucore, min(sizeof(cmd), ucore->inlen));
++	if (ret)
++		return ret;
++
++	if (cmd.comp_mask || cmd.reserved)
++		return -EOPNOTSUPP;
++
++	uobj = uobj_alloc(uobj_get_type(counter_set), file->ucontext);
++	if (IS_ERR(uobj))
++		return PTR_ERR(uobj);
++
++	cs = ib_dev->create_counter_set(ib_dev, cmd.cs_id, uhw);
++	if (IS_ERR(cs)) {
++		ret = PTR_ERR(cs);
++		goto err_uobj;
 +	}
- 	return err;
- }
- EXPORT_SYMBOL(ib_destroy_flow);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index bc33bc2..d394e24 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1811,6 +1811,7 @@ enum ib_flow_spec_type {
- 	/* Actions */
- 	IB_FLOW_SPEC_ACTION_TAG         = 0x1000,
- 	IB_FLOW_SPEC_ACTION_DROP        = 0x1001,
-+	IB_FLOW_SPEC_ACTION_COUNT       = 0x1002,
- };
- #define IB_FLOW_SPEC_LAYER_MASK	0xF0
- #define IB_FLOW_SPEC_SUPPORT_LAYERS 8
-@@ -1944,6 +1945,12 @@ struct ib_flow_spec_action_drop {
- 	u16			      size;
++	uobj->object = cs;
++	cs->device = ib_dev;
++	cs->uobject = uobj;
++	cs->cs_id = cmd.cs_id;
++	atomic_set(&cs->usecnt, 0);
++	resp.cs_handle = uobj->id;
++	resp.response_length = required_resp_len;
++	ret = ib_copy_to_udata(ucore,
++			       &resp, required_resp_len);
++	if (ret)
++		goto err_copy;
++
++	uobj_alloc_commit(uobj);
++
++	return 0;
++
++err_copy:
++	ib_destroy_counter_set(cs);
++err_uobj:
++	uobj_alloc_abort(uobj);
++	return ret;
++}
++
++int ib_uverbs_ex_destroy_counter_set(struct ib_uverbs_file *file,
++				     struct ib_device *ib_dev,
++				     struct ib_udata *ucore,
++				     struct ib_udata *uhw)
++{
++	struct ib_uverbs_ex_destroy_counter_set	cmd = {};
++	struct ib_uverbs_ex_destroy_counter_set_resp	resp = {};
++	struct ib_uobject	*uobj;
++	size_t	required_resp_len;
++	size_t	required_cmd_sz;
++	int	ret;
++
++	required_cmd_sz = offsetof(typeof(cmd), cs_handle) +
++			sizeof(cmd.cs_handle);
++	required_resp_len = offsetof(typeof(resp), response_length) +
++			sizeof(resp.response_length);
++
++	if (ucore->inlen < required_cmd_sz)
++		return -EINVAL;
++
++	if (ucore->outlen < required_resp_len)
++		return -ENOSPC;
++
++	if (ucore->inlen > sizeof(cmd) &&
++	    !ib_is_udata_cleared(ucore, sizeof(cmd),
++			   ucore->inlen - sizeof(cmd)))
++		return -EOPNOTSUPP;
++
++	ret = ib_copy_from_udata(&cmd, ucore, min(sizeof(cmd), ucore->inlen));
++	if (ret)
++		return ret;
++
++	if (cmd.comp_mask)
++		return -EOPNOTSUPP;
++
++	uobj  = uobj_get_write(uobj_get_type(counter_set),
++			       cmd.cs_handle,
++			       file->ucontext);
++	if (IS_ERR(uobj))
++		return PTR_ERR(uobj);
++
++	ret = uobj_remove_commit(uobj);
++	if (ret)
++		return ret;
++
++	resp.response_length = required_resp_len;
++	return ib_copy_to_udata(ucore, &resp, resp.response_length);
++}
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 51b04bd..e9e575d 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -130,6 +130,8 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
+ 	[IB_USER_VERBS_EX_CMD_MODIFY_QP]        = ib_uverbs_ex_modify_qp,
+ 	[IB_USER_VERBS_EX_CMD_MODIFY_CQ]        = ib_uverbs_ex_modify_cq,
+ 	[IB_USER_VERBS_EX_CMD_DESCRIBE_COUNTER_SET]	= ib_uverbs_ex_describe_counter_set,
++	[IB_USER_VERBS_EX_CMD_CREATE_COUNTER_SET]	= ib_uverbs_ex_create_counter_set,
++	[IB_USER_VERBS_EX_CMD_DESTROY_COUNTER_SET]	= ib_uverbs_ex_destroy_counter_set,
  };
  
-+struct ib_flow_spec_action_count {
-+	enum ib_flow_spec_type type;
-+	u16 size;
-+	struct ib_counter_set *counter_set;
+ static void ib_uverbs_add_one(struct ib_device *device);
+diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+index b095bce..b49cc75 100644
+--- a/drivers/infiniband/core/uverbs_std_types.c
++++ b/drivers/infiniband/core/uverbs_std_types.c
+@@ -190,6 +190,15 @@ static int uverbs_free_pd(struct ib_uobject *uobject,
+ 	return 0;
+ }
+ 
++static int uverbs_free_counter_set(struct ib_uobject *uobject,
++				   enum rdma_remove_reason why)
++{
++	struct ib_counter_set *ib_cs =
++			(struct ib_counter_set *)(uobject->object);
++
++	return ib_destroy_counter_set(ib_cs);
++}
++
+ static int uverbs_hot_unplug_completion_event_file(struct ib_uobject_file *uobj_file,
+ 						   enum rdma_remove_reason why)
+ {
+@@ -435,6 +444,9 @@ static DECLARE_UVERBS_METHOD(
+ 		      /* 2 is used in order to free the PD after MRs */
+ 		      &UVERBS_TYPE_ALLOC_IDR(2, uverbs_free_pd));
+ 
++DECLARE_UVERBS_OBJECT(uverbs_object_counter_set, UVERBS_OBJECT_COUNTER_SET,
++		      &UVERBS_TYPE_ALLOC_IDR(0, uverbs_free_counter_set));
++
+ DECLARE_UVERBS_OBJECT(uverbs_object_device, UVERBS_OBJECT_DEVICE, NULL);
+ 
+ DECLARE_UVERBS_OBJECT_TREE(uverbs_default_objects,
+@@ -450,4 +462,5 @@ static DECLARE_UVERBS_METHOD(
+ 			   &uverbs_object_flow,
+ 			   &uverbs_object_wq,
+ 			   &uverbs_object_rwq_ind_table,
+-			   &uverbs_object_xrcd);
++			   &uverbs_object_xrcd,
++			   &uverbs_object_counter_set);
+diff --git a/include/rdma/uverbs_std_types.h b/include/rdma/uverbs_std_types.h
+index 5f8e20b..1690c52 100644
+--- a/include/rdma/uverbs_std_types.h
++++ b/include/rdma/uverbs_std_types.h
+@@ -51,6 +51,7 @@
+ extern const struct uverbs_object_def uverbs_object_pd;
+ extern const struct uverbs_object_def uverbs_object_xrcd;
+ extern const struct uverbs_object_def uverbs_object_device;
++extern const struct uverbs_object_def uverbs_object_counter_set;
+ 
+ extern const struct uverbs_object_tree_def uverbs_default_objects;
+ static inline const struct uverbs_object_tree_def *uverbs_default_get_objects(void)
+diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
+index 842792e..1ab80ed 100644
+--- a/include/uapi/rdma/ib_user_ioctl_verbs.h
++++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
+@@ -52,6 +52,7 @@ enum uverbs_default_objects {
+ 	UVERBS_OBJECT_XRCD,
+ 	UVERBS_OBJECT_RWQ_IND_TBL,
+ 	UVERBS_OBJECT_WQ,
++	UVERBS_OBJECT_COUNTER_SET,
+ 	UVERBS_OBJECT_LAST,
+ };
+ 
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 0bed600..fa15ac0 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -103,6 +103,8 @@ enum {
+ 	IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL,
+ 	IB_USER_VERBS_EX_CMD_MODIFY_CQ,
+ 	IB_USER_VERBS_EX_CMD_DESCRIBE_COUNTER_SET,
++	IB_USER_VERBS_EX_CMD_CREATE_COUNTER_SET,
++	IB_USER_VERBS_EX_CMD_DESTROY_COUNTER_SET,
+ };
+ 
+ /*
+@@ -1187,6 +1189,29 @@ struct ib_uverbs_ex_describe_counter_set_resp {
+ 	__u16 reserved;
+ };
+ 
++struct ib_uverbs_ex_create_counter_set {
++	__u32 comp_mask;
++	__u16 cs_id;
++	__u16 reserved;
 +};
 +
- union ib_flow_spec {
- 	struct {
- 		u32			type;
-@@ -1957,6 +1964,7 @@ struct ib_flow_spec_action_drop {
- 	struct ib_flow_spec_tunnel      tunnel;
- 	struct ib_flow_spec_action_tag  flow_tag;
- 	struct ib_flow_spec_action_drop drop;
-+	struct ib_flow_spec_action_count flow_count;
- };
++struct ib_uverbs_ex_create_counter_set_resp {
++	__u32 comp_mask;
++	__u32 response_length;
++	__u32 cs_handle;
++	__u32 reserved;
++};
++
++struct ib_uverbs_ex_destroy_counter_set  {
++	__u32 comp_mask;
++	__u32 cs_handle;
++};
++
++struct ib_uverbs_ex_destroy_counter_set_resp {
++	__u32 comp_mask;
++	__u32 response_length;
++};
++
+ #define IB_DEVICE_NAME_MAX 64
  
- struct ib_flow_attr {
-@@ -1975,6 +1983,7 @@ struct ib_flow_attr {
- struct ib_flow {
- 	struct ib_qp		*qp;
- 	struct ib_uobject	*uobject;
-+	struct ib_counter_set	*counter_set;
- };
- 
- struct ib_mad_hdr;
-@@ -3671,6 +3680,8 @@ struct ib_rwq_ind_table *ib_create_rwq_ind_table(struct ib_device *device,
- 						 wq_ind_table_init_attr);
- int ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *wq_ind_table);
- 
-+int ib_map_mr_sg(struct ib_mr *mr, struct scatterlist *sg, int sg_nents,
-+		 unsigned int *sg_offset, unsigned int page_size);
- int ib_describe_counter_set(struct ib_device *device,
- 			    u16 cs_id,
- 			    struct ib_counter_set_describe_attr *cs_describe_attr);
-@@ -3680,9 +3691,6 @@ struct ib_counter_set *ib_create_counter_set(struct ib_device *device,
- int ib_query_counter_set(struct ib_counter_set *cs,
- 			 struct ib_counter_set_query_attr *cs_query_attr);
- 
--int ib_map_mr_sg(struct ib_mr *mr, struct scatterlist *sg, int sg_nents,
--		 unsigned int *sg_offset, unsigned int page_size);
--
- static inline int
- ib_map_mr_sg_zbva(struct ib_mr *mr, struct scatterlist *sg, int sg_nents,
- 		  unsigned int *sg_offset, unsigned int page_size)
+ #endif /* IB_USER_VERBS_H */
 -- 
 1.8.3.1
 
