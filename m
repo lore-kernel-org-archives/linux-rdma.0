@@ -1,14 +1,14 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v2 02/13] Main SoftiWarp include file
-Date: Thu, 19 Oct 2017 11:39:54 -0500
-Message-ID: <025601d348f8$e45a2a80$ad0e7f80$@opengridcomputing.com>
-References: <20171006122853.16310-1-bmt@zurich.ibm.com> <20171006122853.16310-3-bmt@zurich.ibm.com>
+Subject: RE: [PATCH v2 03/13] Attach/detach SoftiWarp to/from network and RDMA subsystem
+Date: Thu, 19 Oct 2017 11:53:45 -0500
+Message-ID: <027c01d348fa$d3b450f0$7b1cf2d0$@opengridcomputing.com>
+References: <20171006122853.16310-1-bmt@zurich.ibm.com> <20171006122853.16310-4-bmt@zurich.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
         charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171006122853.16310-3-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+In-Reply-To: <20171006122853.16310-4-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: 'Bernard Metzler' <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -16,17 +16,18 @@ List-Id: linux-rdma@vger.kernel.org
 
 > Signed-off-by: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 > ---
->  drivers/infiniband/sw/siw/siw.h | 783
-> ++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 783 insertions(+)
->  create mode 100644 drivers/infiniband/sw/siw/siw.h
+>  drivers/infiniband/sw/siw/siw_main.c | 752
+> +++++++++++++++++++++++++++++++++++
+>  1 file changed, 752 insertions(+)
+>  create mode 100644 drivers/infiniband/sw/siw/siw_main.c
 > 
-> diff --git a/drivers/infiniband/sw/siw/siw.h b/drivers/infiniband/sw/siw/siw.h
+> diff --git a/drivers/infiniband/sw/siw/siw_main.c
+> b/drivers/infiniband/sw/siw/siw_main.c
 > new file mode 100644
-> index 000000000000..04a3ca910915
+> index 000000000000..5a054c6becaa
 > --- /dev/null
-> +++ b/drivers/infiniband/sw/siw/siw.h
-> @@ -0,0 +1,783 @@
+> +++ b/drivers/infiniband/sw/siw/siw_main.c
+> @@ -0,0 +1,752 @@
 > +/*
 > + * Software iWARP device driver for Linux
 > + *
@@ -66,768 +67,742 @@ List-Id: linux-rdma@vger.kernel.org
 > + * SOFTWARE.
 > + */
 > +
-> +#ifndef _SIW_H
-> +#define _SIW_H
-> +
-> +#include <linux/idr.h>
-> +#include <rdma/ib_verbs.h>
-> +#include <linux/socket.h>
-> +#include <linux/skbuff.h>
-> +#include <linux/in.h>
-> +#include <linux/fs.h>
+> +#include <linux/init.h>
+> +#include <linux/errno.h>
 > +#include <linux/netdevice.h>
-> +#include <crypto/hash.h>
-> +#include <linux/resource.h>	/* MLOCK_LIMIT */
-> +#include <linux/module.h>
-> +#include <linux/version.h>
-> +#include <linux/llist.h>
-> +#include <linux/mm.h>
-> +#include <linux/sched/signal.h>
+> +#include <linux/inetdevice.h>
+> +#include <net/net_namespace.h>
+> +#include <linux/rtnetlink.h>
+> +#include <linux/if_arp.h>
+> +#include <linux/list.h>
+> +#include <linux/kernel.h>
+> +#include <linux/dma-mapping.h>
 > +
-> +#include <rdma/siw_user.h>
-> +#include "iwarp.h"
+> +#include <rdma/ib_verbs.h>
+> +#include <rdma/ib_smi.h>
+> +#include <rdma/ib_user_verbs.h>
 > +
-> +#define DEVICE_ID_SOFTIWARP	0x0815
-> +#define SIW_VENDOR_ID		0x626d74	/* ascii 'bmt' for now
-*/
-> +#define SIW_VENDORT_PART_ID	0
+> +#include "siw.h"
+> +#include "siw_obj.h"
+> +#include "siw_cm.h"
+> +#include "siw_verbs.h"
+> +#include <linux/kthread.h>
+> +
+> +
+> +MODULE_AUTHOR("Bernard Metzler");
+> +MODULE_DESCRIPTION("Software iWARP Driver");
+> +MODULE_LICENSE("Dual BSD/GPL");
+> +MODULE_VERSION("0.2");
+> +
+> +#define SIW_MAX_IF 12
+> +static int if_cnt;
+> +static char *iface_list[SIW_MAX_IF] = {[0 ... (SIW_MAX_IF-1)] = '\0'};
+> +module_param_array(iface_list, charp, &if_cnt, 0444);
+> +MODULE_PARM_DESC(iface_list, "Interface list siw attaches to if present");
+> +
+> +static bool loopback_enabled = 1;
+> +module_param(loopback_enabled, bool, 0644);
+> +MODULE_PARM_DESC(loopback_enabled, "enable_loopback");
 
-Is there some way to get an official vendor id for linux?
+(ignoring the fact that you will have to remove your module options)...
 
-> +#define SIW_MAX_QP		(1024 * 100)
-> +#define SIW_MAX_QP_WR		(1024 * 32)
-> +#define SIW_MAX_ORD_QP		128
-> +#define SIW_MAX_IRD_QP		128
-> +#define SIW_MAX_SGE_PBL		256	/* max num sge's for PBL */
-> +#define SIW_MAX_SGE_RD		1	/* iwarp limitation. we could
-relax
-> */
-> +#define SIW_MAX_CQ		(1024 * 100)
-> +#define SIW_MAX_CQE		(SIW_MAX_QP_WR * 100)
-> +#define SIW_MAX_MR		(SIW_MAX_QP * 10)
-> +#define SIW_MAX_PD		SIW_MAX_QP
-> +#define SIW_MAX_MW		0	/* to be set if MW's are supported
-> */
-> +#define SIW_MAX_FMR		SIW_MAX_MR
-> +#define SIW_MAX_SRQ		SIW_MAX_QP
-> +#define SIW_MAX_SRQ_WR		(SIW_MAX_QP_WR * 10)
-> +#define SIW_MAX_CONTEXT		SIW_MAX_PD
-> +
-> +#define SENDPAGE_THRESH		PAGE_SIZE /* min bytes for using
-> sendpage() */
-> +#define SQ_USER_MAXBURST	100
-> +
-> +#define MAX_CPU			NR_CPUS
-> +
+Why do you have a knob to disable loopback?
 
-Do you really need MAX_CPU vs just using NR_CPUS?
-
-> +struct siw_devinfo {
-> +	unsigned int	device;
-> +	unsigned int	version;
 > +
-> +	u32	vendor_id;
-> +	u32	vendor_part_id;
-> +	u32	sw_version;
-> +	int	max_qp;
-> +	int	max_qp_wr;
-> +	int	max_ord; /* max. outbound read queue depth */
-> +	int	max_ird; /* max. inbound read queue depth */
+> +LIST_HEAD(siw_devlist);
 > +
-> +	enum ib_device_cap_flags cap_flags;
-> +	int	max_sge;
-> +	int	max_sge_rd;
-> +	int	max_cq;
-> +	int	max_cqe;
-> +	u64	max_mr_size;
-> +	int	max_mr;
-> +	int	max_pd;
-> +	int	max_mw;
-> +	int	max_fmr;
-> +	int	max_srq;
-> +	int	max_srq_wr;
-> +	int	max_srq_sge;
-> +};
+> +static int cpu_cnt;
+> +static char *tx_cpu_list[MAX_CPU] = {[0 ... (MAX_CPU-1)] = '\0'};
+> +module_param_array(tx_cpu_list, charp, &cpu_cnt, 0444);
+> +MODULE_PARM_DESC(tx_cpu_list, "List of CPUs siw TX thread shall be bound
+to");
 > +
+> +int default_tx_cpu = -1;
+> +struct task_struct *qp_tx_thread[MAX_CPU];
+> +struct crypto_shash *siw_crypto_shash;
 > +
-> +struct siw_dev {
-> +	struct ib_device	ofa_dev;
-> +	struct list_head	list;
-> +	struct net_device	*netdev;
-> +	struct siw_devinfo	attrs;
-> +	int			is_registered; /* Registered with OFA core */
-> +
-> +	/* physical port state (only one port per device) */
-> +	enum ib_port_state	state;
-> +
-> +	/* object management */
-> +	struct list_head	cep_list;
-> +	struct list_head	qp_list;
-> +	spinlock_t		idr_lock;
-> +	struct idr		qp_idr;
-> +	struct idr		cq_idr;
-> +	struct idr		pd_idr;
-> +	struct idr		mem_idr;
-> +
-> +	/* active objects statistics */
-> +	atomic_t		num_qp;
-> +	atomic_t		num_cq;
-> +	atomic_t		num_pd;
-> +	atomic_t		num_mem;
-> +	atomic_t		num_srq;
-> +	atomic_t		num_cep;
-> +	atomic_t		num_ctx;
-> +
-> +	struct dentry		*debugfs;
-> +};
-> +
-> +struct siw_objhdr {
-> +	u32			id;	/* for idr based object lookup */
-> +	struct kref		ref;
-> +	struct siw_dev		*sdev;
-> +};
-> +
-> +struct siw_uobj {
-> +	struct list_head	list;
-> +	void	*addr;
-> +	u32	size;
-> +	u32	key;
-> +};
-> +
-> +struct siw_ucontext {
-> +	struct ib_ucontext	ib_ucontext;
-> +	struct siw_dev		*sdev;
-> +
-> +	/* List of user mappable queue objects */
-> +	struct list_head	uobj_list;
-> +	spinlock_t		uobj_lock;
-> +	u32			uobj_key;
-> +};
-> +
-> +struct siw_pd {
-> +	struct siw_objhdr	hdr;
-> +	struct ib_pd		ofa_pd;
-> +};
-> +
-> +enum siw_access_flags {
-> +	SIW_MEM_LREAD	= (1<<0),
-> +	SIW_MEM_LWRITE	= (1<<1),
-> +	SIW_MEM_RREAD	= (1<<2),
-> +	SIW_MEM_RWRITE	= (1<<3),
-> +
-> +	SIW_MEM_FLAGS_LOCAL =
-> +		(SIW_MEM_LREAD | SIW_MEM_LWRITE),
-> +	SIW_MEM_FLAGS_REMOTE =
-> +		(SIW_MEM_RWRITE | SIW_MEM_RREAD)
-> +};
-> +
-> +#define SIW_STAG_MAX	0xffffffff
-> +
-> +struct siw_mr;
-> +
-> +/*
-> + * siw presentation of user memory registered as source
-> + * or target of RDMA operations.
-> + */
-> +
-> +struct siw_page_chunk {
-> +	struct page **p;
-> +};
-> +
-> +struct siw_umem {
-> +	struct siw_page_chunk	*page_chunk;
-> +	int			num_pages;
-> +	u64			fp_addr;	/* First page base address */
-> +	struct pid		*pid;
-> +	struct mm_struct	*mm_s;
-> +	struct work_struct	work;
-> +};
-> +
-> +struct siw_pble {
-> +	u64	addr;		/* Address of assigned user buffer */
-> +	u64	size;		/* Size of this entry */
-> +	u64	pbl_off;	/* Total offset form start of PBL */
-> +};
-> +
-> +struct siw_pbl {
-> +	unsigned int	num_buf;
-> +	unsigned int	max_buf;
-> +	struct siw_pble	pbe[1];
-> +};
-> +
-> +/*
-> + * generic memory representation for registered siw memory.
-> + * memory lookup always via higher 24 bit of stag (stag index).
-> + * the stag is stored as part of the siw object header (id).
-> + * object relates to memory window if embedded mr pointer is valid
-> + */
-> +struct siw_mem {
-> +	struct siw_objhdr	hdr;
-> +
-> +	struct siw_mr	*mr;	/* assoc. MR if MW, NULL if MR */
-> +	u64	va;		/* VA of memory */
-> +	u64	len;		/* amount of memory bytes */
-> +
-> +	u32	stag_valid:1,		/* VALID or INVALID */
-> +		is_pbl:1,		/* PBL or user space mem */
-> +		is_zbva:1,		/* zero based virt. addr. */
-> +		mw_bind_enabled:1,	/* check only if MR */
-> +		remote_inval_enabled:1,	/* VALID or INVALID */
-> +		consumer_owns_key:1,	/* key/index split ? */
-> +		rsvd:26;
-> +
-> +	enum siw_access_flags	perms;	/* local/remote READ & WRITE */
-> +};
-> +
-> +#define SIW_MEM_IS_MW(m)	((m)->mr != NULL)
-> +
-> +/*
-> + * MR and MW definition.
-> + * Used OFA structs ib_mr/ib_mw holding:
-> + * lkey, rkey, MW reference count on MR
-> + */
-> +struct siw_mr {
-> +	struct ib_mr	ofa_mr;
-> +	struct siw_mem	mem;
-> +	struct rcu_head rcu;
-> +	union {
-> +		struct siw_umem	*umem;
-> +		struct siw_pbl	*pbl;
-> +		void *mem_obj;
-> +	};
-> +	struct siw_pd	*pd;
-> +};
-> +
-> +struct siw_mw {
-> +	struct ib_mw	ofa_mw;
-> +	struct siw_mem	mem;
-> +	struct rcu_head rcu;
-> +};
-> +
-> +enum siw_wr_state {
-> +	SIW_WR_IDLE		= 0,
-> +	SIW_WR_QUEUED		= 1,	/* processing has not started yet
-> */
-> +	SIW_WR_INPROGRESS	= 2	/* initiated processing of the WR */
-> +};
-> +
-> +union siw_mem_resolved {
-> +	struct siw_mem	*obj;	/* reference to registered memory */
-> +	char		*buf;	/* linear kernel buffer */
-> +};
-> +
-> +/* The WQE currently being processed (RT or TX) */
-> +struct siw_wqe {
-> +	/* Copy of applications SQE or RQE */
-> +	union {
-> +		struct siw_sqe	sqe;
-> +		struct siw_rqe	rqe;
-> +	};
-> +	union siw_mem_resolved	mem[SIW_MAX_SGE]; /* per sge's
-> resolved mem */
-> +	enum siw_wr_state	wr_status;
-> +	enum siw_wc_status	wc_status;
-> +	u32			bytes;		/* total bytes to process */
-> +	u32			processed;	/* bytes processed */
-> +	int			error;
-> +};
-> +
-> +struct siw_cq {
-> +	struct ib_cq		ofa_cq;
-> +	struct siw_objhdr	hdr;
-> +	enum siw_notify_flags	*notify;
-> +	spinlock_t		lock;
-> +	struct siw_cqe		*queue;
-> +	u32			cq_put;
-> +	u32			cq_get;
-> +	u32			num_cqe;
-> +	int			kernel_verbs;
-> +};
-> +
-> +enum siw_qp_state {
-> +	SIW_QP_STATE_IDLE	= 0,
-> +	SIW_QP_STATE_RTR	= 1,
-> +	SIW_QP_STATE_RTS	= 2,
-> +	SIW_QP_STATE_CLOSING	= 3,
-> +	SIW_QP_STATE_TERMINATE	= 4,
-> +	SIW_QP_STATE_ERROR	= 5,
-> +	SIW_QP_STATE_COUNT	= 6
-> +};
-> +
-> +enum siw_qp_flags {
-> +	SIW_RDMA_BIND_ENABLED	= (1 << 0),
-> +	SIW_RDMA_WRITE_ENABLED	= (1 << 1),
-> +	SIW_RDMA_READ_ENABLED	= (1 << 2),
-> +	SIW_SIGNAL_ALL_WR	= (1 << 3),
-> +	SIW_MPA_CRC		= (1 << 4),
-> +	SIW_QP_IN_DESTROY	= (1 << 5)
-> +};
-> +
-> +enum siw_qp_attr_mask {
-> +	SIW_QP_ATTR_STATE		= (1 << 0),
-> +	SIW_QP_ATTR_ACCESS_FLAGS	= (1 << 1),
-> +	SIW_QP_ATTR_LLP_HANDLE		= (1 << 2),
-> +	SIW_QP_ATTR_ORD			= (1 << 3),
-> +	SIW_QP_ATTR_IRD			= (1 << 4),
-> +	SIW_QP_ATTR_SQ_SIZE		= (1 << 5),
-> +	SIW_QP_ATTR_RQ_SIZE		= (1 << 6),
-> +	SIW_QP_ATTR_MPA			= (1 << 7)
-> +};
-> +
-> +struct siw_sk_upcalls {
-> +	void	(*sk_state_change)(struct sock *sk);
-> +	void	(*sk_data_ready)(struct sock *sk, int bytes);
-> +	void	(*sk_write_space)(struct sock *sk);
-> +	void	(*sk_error_report)(struct sock *sk);
-> +};
-> +
-> +struct siw_srq {
-> +	struct ib_srq		ofa_srq;
-> +	struct siw_pd		*pd;
-> +	atomic_t		rq_index;
-> +	spinlock_t		lock;
-> +	u32			max_sge;
-> +	atomic_t		space;	/* current space for posting wqe's */
-> +	u32			limit;	/* low watermark for async event */
-> +	struct siw_rqe		*recvq;
-> +	u32			rq_put;
-> +	u32			rq_get;
-> +	u32			num_rqe;/* max # of wqe's allowed */
-> +	char			armed;	/* inform user if limit hit */
-> +	char			kernel_verbs; /* '1' if kernel client */
-> +};
-> +
-> +struct siw_qp_attrs {
-> +	enum siw_qp_state	state;
-> +	char			terminate_buffer[52];
-> +	u32			terminate_msg_length;
-> +	u32			ddp_rdmap_version; /* 0 or 1 */
-> +	char			*stream_msg_buf;
-> +	u32			stream_msg_buf_length;
-> +	u32			rq_hiwat;
-> +	u32			sq_size;
-> +	u32			rq_size;
-> +	u32			orq_size;
-> +	u32			irq_size;
-> +	u32			sq_max_sges;
-> +	u32			sq_max_sges_rdmaw;
-> +	u32			rq_max_sges;
-> +	enum siw_qp_flags	flags;
-> +
-> +	struct socket		*llp_stream_handle;
-> +};
-> +
-> +enum siw_tx_ctx {
-> +	SIW_SEND_HDR = 0,	/* start or continue sending HDR */
-> +	SIW_SEND_DATA = 1,	/* start or continue sending DDP payload */
-> +	SIW_SEND_TRAILER = 2,	/* start or continue sending TRAILER */
-> +	SIW_SEND_SHORT_FPDU = 3 /* send whole FPDU hdr|data|trailer at once
-> */
-> +};
-> +
-> +enum siw_rx_state {
-> +	SIW_GET_HDR = 0,	/* await new hdr or within hdr */
-> +	SIW_GET_DATA_START = 1,	/* start of inbound DDP payload */
-> +	SIW_GET_DATA_MORE = 2,	/* continuation of (misaligned) DDP
-> payload */
-> +	SIW_GET_TRAILER	= 3	/* await new trailer or within trailer */
-> +};
-> +
-> +
-> +struct siw_iwarp_rx {
-> +	struct sk_buff		*skb;
-> +	union iwarp_hdrs	hdr;
-> +	struct mpa_trailer	trailer;
-> +	/*
-> +	 * local destination memory of inbound iwarp operation.
-> +	 * valid, according to wqe->wr_status
-> +	 */
-> +	struct siw_wqe		wqe_active;
-> +
-> +	struct shash_desc	*mpa_crc_hd;
-> +	/*
-> +	 * Next expected DDP MSN for each QN +
-> +	 * expected steering tag +
-> +	 * expected DDP tagget offset (all HBO)
-> +	 */
-> +	u32			ddp_msn[RDMAP_UNTAGGED_QN_COUNT];
-> +	u32			ddp_stag;
-> +	u64			ddp_to;
-> +
-> +	/*
-> +	 * For each FPDU, main RX loop runs through 3 stages:
-> +	 * Receiving protocol headers, placing DDP payload and receiving
-> +	 * trailer information (CRC + eventual padding).
-> +	 * Next two variables keep state on receive status of the
-> +	 * current FPDU part (hdr, data, trailer).
-> +	 */
-> +	int			fpdu_part_rcvd;/* bytes in pkt part copied */
-> +	int			fpdu_part_rem; /* bytes in pkt part not seen */
-> +
-> +	int			skb_new;      /* pending unread bytes in skb */
-> +	int			skb_offset;   /* offset in skb */
-> +	int			skb_copied;   /* processed bytes in skb */
-> +
-> +	int			pbl_idx;	/* Index into current PBL */
-> +
-> +	int			sge_idx;	/* current sge in rx */
-> +	unsigned int		sge_off;	/* already rcvd in curr. sge */
-> +
-> +	enum siw_rx_state	state;
-> +
-> +	u32			inval_stag;
-> +
-> +	u8			first_ddp_seg:1,   /* this is first DDP seg */
-> +				more_ddp_segs:1,   /* more DDP segs expected */
-> +				rx_suspend:1,	   /* stop rcv DDP segs. */
-> +				unused:1,
-> +				prev_rdmap_opcode:4; /* opcode of prev msg */
-> +	char			pad;		/* # of pad bytes expected */
-> +};
-> +
-> +#define siw_rx_data(qp, rctx)	\
-> +	(iwarp_pktinfo[__rdmap_opcode(&rctx->hdr.ctrl)].proc_data(qp, rctx))
-> +
-> +/*
-> + * Shorthands for short packets w/o payload
-> + * to be transmitted more efficient.
-> + */
-> +struct siw_send_pkt {
-> +	struct iwarp_send	send;
-> +	__be32			crc;
-> +};
-> +
-> +struct siw_write_pkt {
-> +	struct iwarp_rdma_write	write;
-> +	__be32			crc;
-> +};
-> +
-> +struct siw_rreq_pkt {
-> +	struct iwarp_rdma_rreq	rreq;
-> +	__be32			crc;
-> +};
-> +
-> +struct siw_rresp_pkt {
-> +	struct iwarp_rdma_rresp	rresp;
-> +	__be32			crc;
-> +};
-> +
-> +struct siw_iwarp_tx {
-> +	union {
-> +		union iwarp_hdrs		hdr;
-> +
-> +		/* Generic part of FPDU header */
-> +		struct iwarp_ctrl		ctrl;
-> +		struct iwarp_ctrl_untagged	c_untagged;
-> +		struct iwarp_ctrl_tagged	c_tagged;
-> +
-> +		/* FPDU headers */
-> +		struct iwarp_rdma_write		rwrite;
-> +		struct iwarp_rdma_rreq		rreq;
-> +		struct iwarp_rdma_rresp		rresp;
-> +		struct iwarp_terminate		terminate;
-> +		struct iwarp_send		send;
-> +		struct iwarp_send_inv		send_inv;
-> +
-> +		/* complete short FPDUs */
-> +		struct siw_send_pkt		send_pkt;
-> +		struct siw_write_pkt		write_pkt;
-> +		struct siw_rreq_pkt		rreq_pkt;
-> +		struct siw_rresp_pkt		rresp_pkt;
-> +	} pkt;
-> +
-> +	struct mpa_trailer			trailer;
-> +	/* DDP MSN for untagged messages */
-> +	u32			ddp_msn[RDMAP_UNTAGGED_QN_COUNT];
-> +
-> +	enum siw_tx_ctx		state;
-> +	wait_queue_head_t	waitq;
-> +	u16			ctrl_len;	/* ddp+rdmap hdr */
-> +	u16			ctrl_sent;
-> +	int			burst;
-> +
-> +	int			bytes_unsent;	/* ddp payload bytes */
-> +
-> +	struct shash_desc	*mpa_crc_hd;
-> +
-> +	atomic_t		in_use;		/* tx currently under way */
-> +
-> +	u8			do_crc:1,	/* do crc for segment */
-> +				use_sendpage:1,	/* send w/o copy */
-> +				tx_suspend:1,	/* stop sending DDP segs. */
-> +				pad:2,		/* # pad in current fpdu */
-> +				orq_fence:1,	/* ORQ full or Send fenced */
-> +				unused:2;
-> +
-> +	u16			fpdu_len;	/* len of FPDU to tx */
-> +
-> +	int			tcp_seglen;	/* remaining tcp seg space */
-> +
-> +	struct siw_wqe		wqe_active;
-> +
-> +	int			pbl_idx;	/* Index into current PBL */
-> +	int			sge_idx;	/* current sge in tx */
-> +	u32			sge_off;	/* already sent in curr. sge */
-> +	int			in_syscall;	/* TX out of user context */
-> +};
-> +
-> +struct siw_qp {
-> +	struct ib_qp		ofa_qp;
-> +	struct siw_objhdr	hdr;
-> +	struct list_head	devq;
-> +	int			cpu;
-> +	int			kernel_verbs;
-> +	struct siw_iwarp_rx	rx_ctx;
-> +	struct siw_iwarp_tx	tx_ctx;
-> +
-> +	struct siw_cep		*cep;
-> +	struct rw_semaphore	state_lock;
-> +
-> +	struct siw_pd		*pd;
-> +	struct siw_cq		*scq;
-> +	struct siw_cq		*rcq;
-> +	struct siw_srq		*srq;
-> +
-> +	struct siw_qp_attrs	attrs;
-> +
-> +	struct siw_sqe		*sendq;	/* send queue element array */
-> +	uint32_t		sq_get;	/* consumer index into sq array */
-> +	uint32_t		sq_put;	/* kernel prod. index into sq array */
-> +	struct llist_node	tx_list;
-> +
-> +	struct siw_sqe		*irq;	/* inbound read queue element array */
-> +	uint32_t		irq_get;/* consumer index into irq array */
-> +	uint32_t		irq_put;/* producer index into irq array */
-> +
-> +	struct siw_rqe		*recvq;	/* recv queue element array */
-> +	uint32_t		rq_get;	/* consumer index into rq array */
-> +	uint32_t		rq_put;	/* kernel prod. index into rq array */
-> +
-> +	struct siw_sqe		*orq; /* outbound read queue element array */
-> +	uint32_t		orq_get;/* consumer index into orq array */
-> +	uint32_t		orq_put;/* shared producer index for ORQ */
-> +
-> +	spinlock_t		sq_lock;
-> +	spinlock_t		rq_lock;
-> +	spinlock_t		orq_lock;
-> +};
-> +
-> +#define RX_QP(rx)		container_of(rx, struct siw_qp, rx_ctx)
-> +#define TX_QP(tx)		container_of(tx, struct siw_qp, tx_ctx)
-> +#define QP_ID(qp)		((qp)->hdr.id)
-> +#define OBJ_ID(obj)		((obj)->hdr.id)
-> +#define RX_QPID(rx)		QP_ID(RX_QP(rx))
-> +#define TX_QPID(tx)		QP_ID(TX_QP(tx))
-> +
-> +/* helper macros */
-> +#define tx_wqe(qp)		(&(qp)->tx_ctx.wqe_active)
-> +#define rx_wqe(qp)		(&(qp)->rx_ctx.wqe_active)
-> +#define rx_mem(qp)		((qp)->rx_ctx.wqe_active.mem[0].obj)
-> +#define tx_type(wqe)		((wqe)->sqe.opcode)
-> +#define rx_type(wqe)		((wqe)->rqe.opcode)
-> +#define tx_flags(wqe)		((wqe)->sqe.flags)
-> +
-> +#define tx_more_wqe(qp)		(!siw_sq_empty(qp) ||
-!siw_irq_empty(qp))
-> +
-> +struct iwarp_msg_info {
-> +	int			hdr_len;
-> +	struct iwarp_ctrl	ctrl;
-> +	int	(*proc_data)(struct siw_qp *qp, struct siw_iwarp_rx *rctx);
-> +};
-> +
-> +extern struct iwarp_msg_info iwarp_pktinfo[RDMAP_TERMINATE + 1];
-> +extern struct siw_dev *siw;
-> +
-> +
-> +/* QP general functions */
-> +int siw_qp_modify(struct siw_qp *qp, struct siw_qp_attrs *attr,
-> +		  enum siw_qp_attr_mask mask);
-> +int siw_qp_mpa_rts(struct siw_qp *qp, enum mpa_v2_ctrl ctrl);
-> +void siw_qp_llp_close(struct siw_qp *qp);
-> +void siw_qp_cm_drop(struct siw_qp *qp, int when);
-> +void siw_send_terminate(struct siw_qp *qp, u8 layer, u8 etype, u8 ecode);
-> +
-> +
-> +struct ib_qp *siw_get_ofaqp(struct ib_device *dev, int id);
-> +void siw_qp_get_ref(struct ib_qp *qp);
-> +void siw_qp_put_ref(struct ib_qp *qp);
-> +
-> +enum siw_qp_state siw_map_ibstate(enum ib_qp_state state);
-> +
-> +int siw_check_mem(struct siw_pd *pd, struct siw_mem *mem, u64 addr,
-> +		  enum siw_access_flags perm, int len);
-> +int siw_check_sge(struct siw_pd *pd, struct siw_sge *sge,
-> +		  union siw_mem_resolved *mem, enum siw_access_flags perm,
-> +		  u32 off, int len);
-> +int siw_check_sgl(struct siw_pd *pd, struct siw_wqe *wqe,
-> +		  enum siw_access_flags perm);
-> +
-> +void siw_read_to_orq(struct siw_sqe *rreq, struct siw_sqe *sqe);
-> +int siw_sqe_complete(struct siw_qp *qp, struct siw_sqe *sqe, u32 bytes,
-> +		     enum siw_wc_status status);
-> +int siw_rqe_complete(struct siw_qp *qp, struct siw_rqe *rqe, u32 bytes,
-> +		     enum siw_wc_status status);
-> +void siw_qp_llp_data_ready(struct sock *sock);
-> +void siw_qp_llp_write_space(struct sock *sock);
-> +
-> +/* SIW user memory management */
-> +
-> +#define CHUNK_SHIFT	9	/* sets number of pages per chunk */
-> +#define PAGES_PER_CHUNK	(_AC(1, UL) << CHUNK_SHIFT)
-> +#define CHUNK_MASK	(~(PAGES_PER_CHUNK - 1))
-> +#define PAGE_CHUNK_SIZE	(PAGES_PER_CHUNK * sizeof(struct page *))
-> +
-> +/*
-> + * siw_get_upage()
-> + *
-> + * Get page pointer for address on given umem.
-> + *
-> + * @umem: two dimensional list of page pointers
-> + * @addr: user virtual address
-> + */
-> +static inline struct page *siw_get_upage(struct siw_umem *umem, u64 addr)
+> +static ssize_t show_sw_version(struct device *dev,
+> +			       struct device_attribute *attr, char *buf)
 > +{
-> +	unsigned int	page_idx	= (addr - umem->fp_addr) >> PAGE_SHIFT,
-> +			chunk_idx	= page_idx >> CHUNK_SHIFT,
-> +			page_in_chunk	= page_idx & ~CHUNK_MASK;
+> +	struct siw_dev *sdev = container_of(dev, struct siw_dev, ofa_dev.dev);
 > +
-> +	if (likely(page_idx < umem->num_pages))
-> +		return umem->page_chunk[chunk_idx].p[page_in_chunk];
-> +
-> +	return NULL;
+> +	return sprintf(buf, "%x\n", sdev->attrs.version);
 > +}
 > +
-> +extern struct siw_umem *siw_umem_get(u64 start, u64 len);
-> +extern void siw_umem_release(struct siw_umem *umem);
-> +extern struct siw_pbl *siw_pbl_alloc(u32 num_buf);
-> +extern u64 siw_pbl_get_buffer(struct siw_pbl *pbl, u64 off, int *len, int
-*idx);
-> +extern void siw_pbl_free(struct siw_pbl *pbl);
+> +static DEVICE_ATTR(sw_version, 0444, show_sw_version, NULL);
 > +
+> +static struct device_attribute *siw_dev_attributes[] = {
+> +	&dev_attr_sw_version
+> +};
 > +
-> +/* QP TX path functions */
-> +extern int siw_run_sq(void *arg);
-> +extern int siw_qp_sq_process(struct siw_qp *qp);
-> +extern int siw_sq_start(struct siw_qp *qp);
-> +extern int siw_activate_tx(struct siw_qp *qp);
-> +extern void siw_stop_tx_thread(int nr_cpu);
-> +
-> +/* QP RX path functions */
-> +extern int siw_proc_send(struct siw_qp *qp, struct siw_iwarp_rx *rx);
-> +extern int siw_proc_rreq(struct siw_qp *qp, struct siw_iwarp_rx *rx);
-> +extern int siw_proc_rresp(struct siw_qp *qp, struct siw_iwarp_rx *rx);
-> +extern int siw_proc_write(struct siw_qp *qp, struct siw_iwarp_rx *rx);
-> +extern int siw_proc_terminate(struct siw_qp *qp, struct siw_iwarp_rx *rx);
-> +extern int siw_proc_unsupp(struct siw_qp *qp, struct siw_iwarp_rx *rx);
-> +
-> +extern int siw_tcp_rx_data(read_descriptor_t *rd_desc, struct sk_buff *skb,
-> +			   unsigned int off, size_t len);
-> +
-> +/* MPA utilities */
-> +static inline int siw_crc_array(struct shash_desc *desc, u8 *start,
-> +				size_t len)
+> +static void siw_device_release(struct device *dev)
 > +{
-> +	return crypto_shash_update(desc, start, len);
+> +	pr_info("%s device released\n", dev_name(dev));
 > +}
 > +
-> +static inline int siw_crc_page(struct shash_desc *desc, struct page *p,
-> +			       int off, int len)
+> +static struct device siw_generic_dma_device = {
+> +	.dma_ops		= &siw_dma_generic_ops,
+> +	.init_name		= "software-rdma-v2",
+> +	.release		= siw_device_release
+> +};
+> +
+> +static struct bus_type siw_bus = {
+> +	.name = "siw",
+> +};
+> +
+> +static int siw_modify_port(struct ib_device *ofa_dev, u8 port, int mask,
+> +			   struct ib_port_modify *props)
 > +{
-> +	return crypto_shash_update(desc, page_address(p) + off, len);
+> +	return -EOPNOTSUPP;
 > +}
 > +
-> +extern struct task_struct *qp_tx_thread[];
-> +extern int default_tx_cpu;
 > +
-> +
-> +/* Varia */
-> +extern void siw_cq_flush(struct siw_cq *cq);
-> +extern void siw_sq_flush(struct siw_qp *qp);
-> +extern void siw_rq_flush(struct siw_qp *qp);
-> +extern int siw_reap_cqe(struct siw_cq *cq, struct ib_wc *wc);
-> +
-> +/* RDMA core event dipatching */
-> +extern void siw_qp_event(struct siw_qp *qp, enum ib_event_type type);
-> +extern void siw_cq_event(struct siw_cq *cq, enum ib_event_type type);
-> +extern void siw_srq_event(struct siw_srq *srq, enum ib_event_type type);
-> +extern void siw_port_event(struct siw_dev *dev, u8 port,
-> +			   enum ib_event_type type);
-> +
-> +
-> +static inline struct siw_qp *siw_qp_ofa2siw(struct ib_qp *ofa_qp)
+> +static void siw_device_register(struct siw_dev *sdev)
 > +{
-> +	return container_of(ofa_qp, struct siw_qp, ofa_qp);
+> +	struct ib_device *ofa_dev = &sdev->ofa_dev;
+> +	int rv, i;
+> +	static int dev_id = 1;
+> +
+> +	rv = ib_register_device(ofa_dev, NULL);
+> +	if (rv) {
+> +		dprint(DBG_DM|DBG_ON, " %s: ib register error: rv=%d\n",
+> +			ofa_dev->name, rv);
+> +		return;
+> +	}
+> +
+> +	for (i = 0; i < ARRAY_SIZE(siw_dev_attributes); ++i) {
+> +		rv = device_create_file(&ofa_dev->dev, siw_dev_attributes[i]);
+> +		if (rv) {
+> +			dprint(DBG_DM|DBG_ON, " %s: create file error:
+> rv=%d\n",
+> +				ofa_dev->name, rv);
+> +			ib_unregister_device(ofa_dev);
+> +			return;
+> +		}
+> +	}
+> +	siw_debugfs_add_device(sdev);
+> +
+> +	sdev->attrs.vendor_part_id = dev_id++;
+> +
+> +	dprint(DBG_DM, ": '%s' at '%s',
+> HWaddr=%02x.%02x.%02x.%02x.%02x.%02x\n",
+> +		ofa_dev->name, sdev->netdev->name,
+> +		*(u8 *)sdev->netdev->dev_addr,
+> +		*((u8 *)sdev->netdev->dev_addr + 1),
+> +		*((u8 *)sdev->netdev->dev_addr + 2),
+> +		*((u8 *)sdev->netdev->dev_addr + 3),
+> +		*((u8 *)sdev->netdev->dev_addr + 4),
+> +		*((u8 *)sdev->netdev->dev_addr + 5));
+> +
+> +	sdev->is_registered = 1;
 > +}
 > +
-> +static inline int siw_sq_empty(struct siw_qp *qp)
+> +static void siw_device_deregister(struct siw_dev *sdev)
 > +{
-> +	return qp->sendq[qp->sq_get % qp->attrs.sq_size].flags == 0;
+> +	int i;
+> +
+> +	siw_debugfs_del_device(sdev);
+> +
+> +	if (sdev->is_registered) {
+> +
+> +		dprint(DBG_DM, ": deregister %s at %s\n", sdev->ofa_dev.name,
+> +			sdev->netdev->name);
+> +
+> +		for (i = 0; i < ARRAY_SIZE(siw_dev_attributes); ++i)
+> +			device_remove_file(&sdev->ofa_dev.dev,
+> +					   siw_dev_attributes[i]);
+> +
+> +		ib_unregister_device(&sdev->ofa_dev);
+> +	}
+> +	if (atomic_read(&sdev->num_ctx) || atomic_read(&sdev->num_srq) ||
+> +	    atomic_read(&sdev->num_mem) || atomic_read(&sdev->num_cep) ||
+> +	    atomic_read(&sdev->num_qp) || atomic_read(&sdev->num_cq) ||
+> +	    atomic_read(&sdev->num_pd)) {
+> +		pr_warn("SIW at %s: orphaned resources!\n", sdev->netdev-
+> >name);
+> +		pr_warn("CTX %d, SRQ %d, QP %d, CQ %d, MEM %d, CEP %d, PD
+> %d\n",
+> +			atomic_read(&sdev->num_ctx),
+> +			atomic_read(&sdev->num_srq),
+> +			atomic_read(&sdev->num_qp),
+> +			atomic_read(&sdev->num_cq),
+> +			atomic_read(&sdev->num_mem),
+> +			atomic_read(&sdev->num_cep),
+> +			atomic_read(&sdev->num_pd));
+> +	}
+> +	i = 0;
+> +
+> +	while (!list_empty(&sdev->cep_list)) {
+> +		struct siw_cep *cep = list_entry(sdev->cep_list.next,
+> +						 struct siw_cep, devq);
+> +		list_del(&cep->devq);
+> +		dprint(DBG_ON, ": Free CEP (0x%p), state: %d\n",
+> +			cep, cep->state);
+> +		kfree(cep);
+> +		i++;
+> +	}
+> +	if (i)
+> +		pr_warn("%s: free'd %d CEPs\n", __func__, i);
+> +
+> +	sdev->is_registered = 0;
 > +}
 > +
-> +static inline struct siw_sqe *sq_get_next(struct siw_qp *qp)
+> +static void siw_device_destroy(struct siw_dev *sdev)
 > +{
-> +	struct siw_sqe *sqe = &qp->sendq[qp->sq_get % qp->attrs.sq_size];
+> +	dprint(DBG_DM, ": destroy siw device at %s\n", sdev->netdev->name);
 > +
-> +	if (sqe->flags & SIW_WQE_VALID)
-> +		return sqe;
-> +
-> +	return NULL;
+> +	siw_idr_release(sdev);
+> +	kfree(sdev->ofa_dev.iwcm);
+> +	dev_put(sdev->netdev);
+> +	ib_dealloc_device(&sdev->ofa_dev);
 > +}
 > +
-> +static inline struct siw_sqe *orq_get_current(struct siw_qp *qp)
+> +
+> +static int siw_match_iflist(struct net_device *dev)
 > +{
-> +	return &qp->orq[qp->orq_get % qp->attrs.orq_size];
+> +	int i;
+> +
+> +	if (if_cnt == 0)
+> +		return 1;
+> +
+> +	if_cnt = min_t(int, SIW_MAX_IF, if_cnt);
+> +
+> +	for (i = 0; i < if_cnt; i++)
+> +		if (!strcmp(iface_list[i], dev->name))
+> +			return 1;
+> +	return 0;
 > +}
 > +
-> +static inline struct siw_sqe *orq_get_tail(struct siw_qp *qp)
+> +static struct siw_dev *siw_dev_from_netdev(struct net_device *dev)
 > +{
-> +	if (likely(qp->attrs.orq_size))
-> +		return &qp->orq[qp->orq_put % qp->attrs.orq_size];
+> +	if (!list_empty(&siw_devlist)) {
+> +		struct list_head *pos;
 > +
-> +	pr_warn("QP[%d]: ORQ has zero length", QP_ID(qp));
-> +	return NULL;
-> +}
-> +
-> +static inline struct siw_sqe *orq_get_free(struct siw_qp *qp)
-> +{
-> +	struct siw_sqe *orq_e = orq_get_tail(qp);
-> +
-> +	if (orq_e && orq_e->flags == 0)
-> +		return orq_e;
-> +
-> +	return NULL;
-> +}
-> +
-> +static inline int siw_orq_empty(struct siw_qp *qp)
-> +{
-> +	return qp->orq[qp->orq_get % qp->attrs.orq_size].flags == 0 ? 1 : 0;
-> +}
-> +
-> +static inline struct siw_sqe *irq_alloc_free(struct siw_qp *qp)
-> +{
-> +	struct siw_sqe *irq_e = &qp->irq[qp->irq_put % qp->attrs.irq_size];
-> +
-> +	if (irq_e->flags == 0) {
-> +		qp->irq_put++;
-> +		return irq_e;
+> +		list_for_each(pos, &siw_devlist) {
+> +			struct siw_dev *sdev =
+> +				list_entry(pos, struct siw_dev, list);
+> +			if (sdev->netdev == dev)
+> +				return sdev;
+> +		}
 > +	}
 > +	return NULL;
 > +}
 > +
-> +static inline int siw_irq_empty(struct siw_qp *qp)
+> +static int siw_tx_qualified(int cpu)
 > +{
-> +	return qp->irq[qp->irq_get % qp->attrs.irq_size].flags == 0;
+> +	int i;
+> +
+> +	if (cpu_cnt == 0)
+> +		return 1;
+> +
+> +	for (i = 0; i < cpu_cnt; i++) {
+> +		int new_cpu;
+> +
+> +		if (kstrtoint(tx_cpu_list[i], 0, &new_cpu))
+> +			continue;
+> +		if (cpu == new_cpu)
+> +			return 1;
+> +	}
+> +	return 0;
 > +}
 > +
-> +static inline struct siw_mr *siw_mem2mr(struct siw_mem *m)
+> +static int siw_create_tx_threads(int max_threads, int check_qualified)
 > +{
-> +	if (!SIW_MEM_IS_MW(m))
-> +		return container_of(m, struct siw_mr, mem);
-> +	return m->mr;
+> +	int cpu, rv, assigned = 0;
+> +
+> +	if (max_threads < 0 || max_threads > MAX_CPU)
+> +		return 0;
+> +
+> +	for_each_online_cpu(cpu) {
+> +		if (siw_tx_qualified(cpu)) {
+> +			qp_tx_thread[cpu] =
+> +				kthread_create(siw_run_sq,
+> +					(unsigned long *)(long)cpu,
+> +					"qp_tx_thread/%d", cpu);
+> +			kthread_bind(qp_tx_thread[cpu], cpu);
+> +			if (IS_ERR(qp_tx_thread)) {
+> +				rv = PTR_ERR(qp_tx_thread);
+> +				qp_tx_thread[cpu] = NULL;
+> +				pr_info("Binding TX thread to CPU %d failed",
+> +					cpu);
+> +				break;
+> +			}
+> +			wake_up_process(qp_tx_thread[cpu]);
+> +			assigned++;
+> +			if (default_tx_cpu < 0)
+> +				default_tx_cpu = cpu;
+> +			if (assigned >= max_threads)
+> +				break;
+> +		}
+> +	}
+> +	return assigned;
 > +}
 > +
-> +#endif
+> +static int siw_dev_qualified(struct net_device *netdev)
+> +{
+> +	if (!siw_match_iflist(netdev)) {
+> +		dprint(DBG_DM, ": %s (not selected)\n",
+> +			netdev->name);
+> +		return 0;
+> +	}
+> +	/*
+> +	 * Additional hardware support can be added here
+> +	 * (e.g. ARPHRD_FDDI, ARPHRD_ATM, ...) - see
+> +	 * <linux/if_arp.h> for type identifiers.
+> +	 */
+> +	if (netdev->type == ARPHRD_ETHER ||
+> +	    netdev->type == ARPHRD_IEEE802 ||
+> +	    netdev->type == ARPHRD_INFINIBAND ||
+> +	    (netdev->type == ARPHRD_LOOPBACK && loopback_enabled))
+> +		return 1;
+> +
+
+iWARP over IPoIB/Infiniband? :)
+
+> +	return 0;
+> +}
+> +
+> +static void siw_verbs_sq_flush(struct ib_qp *ofa_qp)
+> +{
+> +	struct siw_qp *qp = siw_qp_ofa2siw(ofa_qp);
+> +
+> +	down_write(&qp->state_lock);
+> +	siw_sq_flush(qp);
+> +	up_write(&qp->state_lock);
+> +}
+> +
+> +static void siw_verbs_rq_flush(struct ib_qp *ofa_qp)
+> +{
+> +	struct siw_qp *qp = siw_qp_ofa2siw(ofa_qp);
+> +
+> +	down_write(&qp->state_lock);
+> +	siw_rq_flush(qp);
+> +	up_write(&qp->state_lock);
+> +}
+> +
+> +static struct ib_ah *siw_create_ah(struct ib_pd *pd, struct rdma_ah_attr
+*attr,
+> +				   struct ib_udata *udata)
+> +{
+> +	return ERR_PTR(-EOPNOTSUPP);
+> +}
+> +
+> +static int siw_destroy_ah(struct ib_ah *ah)
+> +{
+> +	return -EOPNOTSUPP;
+> +}
+> +
+> +
+> +static struct siw_dev *siw_device_create(struct net_device *netdev)
+> +{
+> +	struct siw_dev *sdev = (struct siw_dev *)ib_alloc_device(sizeof(*sdev));
+> +	struct ib_device *ofa_dev;
+> +
+> +	if (!sdev)
+> +		goto out;
+> +
+> +	ofa_dev = &sdev->ofa_dev;
+> +
+> +	ofa_dev->iwcm = kmalloc(sizeof(struct iw_cm_verbs), GFP_KERNEL);
+> +	if (!ofa_dev->iwcm) {
+> +		ib_dealloc_device(ofa_dev);
+> +		sdev = NULL;
+> +		goto out;
+> +	}
+> +
+> +	sdev->netdev = netdev;
+> +	list_add_tail(&sdev->list, &siw_devlist);
+> +
+> +	strcpy(ofa_dev->name, SIW_IBDEV_PREFIX);
+> +	strlcpy(ofa_dev->name + strlen(SIW_IBDEV_PREFIX), netdev->name,
+> +		IB_DEVICE_NAME_MAX - strlen(SIW_IBDEV_PREFIX));
+> +
+> +	memset(&ofa_dev->node_guid, 0, sizeof(ofa_dev->node_guid));
+> +	if (netdev->type != ARPHRD_LOOPBACK)
+> +		memcpy(&ofa_dev->node_guid, netdev->dev_addr, 6);
+> +	else {
+> +		/*
+> +		 * The loopback device does not have a HW address,
+> +		 * but connection mangagement lib expects gid != 0
+> +		 */
+> +		size_t gidlen = min_t(size_t, strlen(ofa_dev->name), 6);
+> +
+> +		memcpy(&ofa_dev->node_guid, ofa_dev->name, gidlen);
+> +	}
+> +	ofa_dev->owner = THIS_MODULE;
+> +
+> +	ofa_dev->uverbs_cmd_mask =
+> +	    (1ull << IB_USER_VERBS_CMD_GET_CONTEXT) |
+> +	    (1ull << IB_USER_VERBS_CMD_QUERY_DEVICE) |
+> +	    (1ull << IB_USER_VERBS_CMD_QUERY_PORT) |
+> +	    (1ull << IB_USER_VERBS_CMD_ALLOC_PD) |
+> +	    (1ull << IB_USER_VERBS_CMD_DEALLOC_PD) |
+> +	    (1ull << IB_USER_VERBS_CMD_REG_MR) |
+> +	    (1ull << IB_USER_VERBS_CMD_DEREG_MR) |
+> +	    (1ull << IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL) |
+> +	    (1ull << IB_USER_VERBS_CMD_CREATE_CQ) |
+> +	    (1ull << IB_USER_VERBS_CMD_POLL_CQ) |
+> +	    (1ull << IB_USER_VERBS_CMD_REQ_NOTIFY_CQ) |
+> +	    (1ull << IB_USER_VERBS_CMD_DESTROY_CQ) |
+> +	    (1ull << IB_USER_VERBS_CMD_CREATE_QP) |
+> +	    (1ull << IB_USER_VERBS_CMD_QUERY_QP) |
+> +	    (1ull << IB_USER_VERBS_CMD_MODIFY_QP) |
+> +	    (1ull << IB_USER_VERBS_CMD_DESTROY_QP) |
+> +	    (1ull << IB_USER_VERBS_CMD_POST_SEND) |
+> +	    (1ull << IB_USER_VERBS_CMD_POST_RECV) |
+> +	    (1ull << IB_USER_VERBS_CMD_CREATE_SRQ) |
+> +	    (1ull << IB_USER_VERBS_CMD_MODIFY_SRQ) |
+> +	    (1ull << IB_USER_VERBS_CMD_QUERY_SRQ) |
+> +	    (1ull << IB_USER_VERBS_CMD_DESTROY_SRQ) |
+> +	    (1ull << IB_USER_VERBS_CMD_REG_MR) |
+> +	    (1ull << IB_USER_VERBS_CMD_DEREG_MR) |
+> +	    (1ull << IB_USER_VERBS_CMD_POST_SRQ_RECV);
+> +
+> +	ofa_dev->node_type = RDMA_NODE_RNIC;
+> +	memcpy(ofa_dev->node_desc, SIW_NODE_DESC_COMMON,
+> +	       sizeof(SIW_NODE_DESC_COMMON));
+> +
+> +	/*
+> +	 * Current model (one-to-one device association):
+> +	 * One Softiwarp device per net_device or, equivalently,
+> +	 * per physical port.
+> +	 */
+> +	ofa_dev->phys_port_cnt = 1;
+> +
+> +	ofa_dev->num_comp_vectors = num_possible_cpus();
+> +	ofa_dev->dev.parent = &siw_generic_dma_device;
+> +	ofa_dev->query_device = siw_query_device;
+> +	ofa_dev->query_port = siw_query_port;
+> +	ofa_dev->get_port_immutable = siw_get_port_immutable;
+> +	ofa_dev->query_qp = siw_query_qp;
+> +	ofa_dev->modify_port = siw_modify_port;
+> +	ofa_dev->query_pkey = siw_query_pkey;
+> +	ofa_dev->query_gid = siw_query_gid;
+> +	ofa_dev->alloc_ucontext = siw_alloc_ucontext;
+> +	ofa_dev->dealloc_ucontext = siw_dealloc_ucontext;
+> +	ofa_dev->mmap = siw_mmap;
+> +	ofa_dev->alloc_pd = siw_alloc_pd;
+> +	ofa_dev->dealloc_pd = siw_dealloc_pd;
+> +	ofa_dev->create_ah = siw_create_ah;
+> +	ofa_dev->destroy_ah = siw_destroy_ah;
+> +	ofa_dev->create_qp = siw_create_qp;
+> +	ofa_dev->modify_qp = siw_verbs_modify_qp;
+> +	ofa_dev->destroy_qp = siw_destroy_qp;
+> +	ofa_dev->create_cq = siw_create_cq;
+> +	ofa_dev->destroy_cq = siw_destroy_cq;
+> +	ofa_dev->resize_cq = NULL;
+> +	ofa_dev->poll_cq = siw_poll_cq;
+> +	ofa_dev->get_dma_mr = siw_get_dma_mr;
+> +	ofa_dev->reg_user_mr = siw_reg_user_mr;
+> +	ofa_dev->dereg_mr = siw_dereg_mr;
+> +	ofa_dev->alloc_mr = siw_alloc_mr;
+> +	ofa_dev->map_mr_sg = siw_map_mr_sg;
+> +	ofa_dev->dealloc_mw = NULL;
+> +
+> +	ofa_dev->create_srq = siw_create_srq;
+> +	ofa_dev->modify_srq = siw_modify_srq;
+> +	ofa_dev->query_srq = siw_query_srq;
+> +	ofa_dev->destroy_srq = siw_destroy_srq;
+> +	ofa_dev->post_srq_recv = siw_post_srq_recv;
+> +
+> +	ofa_dev->attach_mcast = NULL;
+> +	ofa_dev->detach_mcast = NULL;
+> +	ofa_dev->process_mad = siw_no_mad;
+> +
+> +	ofa_dev->req_notify_cq = siw_req_notify_cq;
+> +	ofa_dev->post_send = siw_post_send;
+> +	ofa_dev->post_recv = siw_post_receive;
+> +
+> +	ofa_dev->drain_sq = siw_verbs_sq_flush;
+> +	ofa_dev->drain_rq = siw_verbs_rq_flush;
+> +
+> +	ofa_dev->dev.dma_ops = &dma_virt_ops;
+> +
+> +	ofa_dev->iwcm->connect = siw_connect;
+> +	ofa_dev->iwcm->accept = siw_accept;
+> +	ofa_dev->iwcm->reject = siw_reject;
+> +	ofa_dev->iwcm->create_listen = siw_create_listen;
+> +	ofa_dev->iwcm->destroy_listen = siw_destroy_listen;
+> +	ofa_dev->iwcm->add_ref = siw_qp_get_ref;
+> +	ofa_dev->iwcm->rem_ref = siw_qp_put_ref;
+> +	ofa_dev->iwcm->get_qp = siw_get_ofaqp;
+> +
+> +	sdev->attrs.version = VERSION_ID_SOFTIWARP;
+> +	sdev->attrs.vendor_id = SIW_VENDOR_ID;
+> +	sdev->attrs.vendor_part_id = SIW_VENDORT_PART_ID;
+> +	sdev->attrs.sw_version = VERSION_ID_SOFTIWARP;
+> +	sdev->attrs.max_qp = SIW_MAX_QP;
+> +	sdev->attrs.max_qp_wr = SIW_MAX_QP_WR;
+> +	sdev->attrs.max_ord = SIW_MAX_ORD_QP;
+> +	sdev->attrs.max_ird = SIW_MAX_IRD_QP;
+> +	sdev->attrs.cap_flags = IB_DEVICE_MEM_MGT_EXTENSIONS;
+> +	sdev->attrs.max_sge = SIW_MAX_SGE;
+> +	sdev->attrs.max_sge_rd = SIW_MAX_SGE_RD;
+> +	sdev->attrs.max_cq = SIW_MAX_CQ;
+> +	sdev->attrs.max_cqe = SIW_MAX_CQE;
+> +	sdev->attrs.max_mr = SIW_MAX_MR;
+> +	sdev->attrs.max_mr_size = rlimit(RLIMIT_MEMLOCK);
+> +	sdev->attrs.max_pd = SIW_MAX_PD;
+> +	sdev->attrs.max_mw = SIW_MAX_MW;
+> +	sdev->attrs.max_fmr = SIW_MAX_FMR;
+> +	sdev->attrs.max_srq = SIW_MAX_SRQ;
+> +	sdev->attrs.max_srq_wr = SIW_MAX_SRQ_WR;
+> +	sdev->attrs.max_srq_sge = SIW_MAX_SGE;
+> +
+> +	siw_idr_init(sdev);
+> +	INIT_LIST_HEAD(&sdev->cep_list);
+> +	INIT_LIST_HEAD(&sdev->qp_list);
+> +
+> +	atomic_set(&sdev->num_ctx, 0);
+> +	atomic_set(&sdev->num_srq, 0);
+> +	atomic_set(&sdev->num_qp, 0);
+> +	atomic_set(&sdev->num_cq, 0);
+> +	atomic_set(&sdev->num_mem, 0);
+> +	atomic_set(&sdev->num_pd, 0);
+> +	atomic_set(&sdev->num_cep, 0);
+> +
+> +	sdev->is_registered = 0;
+> +out:
+> +	if (sdev)
+> +		dev_hold(netdev);
+> +
+> +	return sdev;
+> +}
+> +
+> +
+> +
+> +static int siw_netdev_event(struct notifier_block *nb, unsigned long event,
+> +			    void *arg)
+> +{
+> +	struct net_device	*netdev = netdev_notifier_info_to_dev(arg);
+> +	struct in_device	*in_dev;
+> +	struct siw_dev		*sdev;
+> +
+> +	dprint(DBG_DM, " (dev=%s): Event %lu\n", netdev->name, event);
+> +
+> +	if (dev_net(netdev) != &init_net)
+> +		goto done;
+> +
+> +	sdev = siw_dev_from_netdev(netdev);
+> +
+> +	switch (event) {
+> +
+> +	case NETDEV_UP:
+> +		if (!sdev)
+> +			break;
+> +
+> +		if (sdev->is_registered) {
+> +			sdev->state = IB_PORT_ACTIVE;
+> +			siw_port_event(sdev, 1, IB_EVENT_PORT_ACTIVE);
+> +			break;
+> +		}
+> +
+> +		in_dev = in_dev_get(netdev);
+> +		if (!in_dev) {
+> +			dprint(DBG_DM, ": %s: no in_dev\n", netdev->name);
+> +			sdev->state = IB_PORT_INIT;
+> +			break;
+> +		}
+> +
+> +		if (in_dev->ifa_list) {
+> +			sdev->state = IB_PORT_ACTIVE;
+> +			siw_device_register(sdev);
+> +		} else {
+> +			dprint(DBG_DM, ": %s: no ifa\n", netdev->name);
+> +			sdev->state = IB_PORT_INIT;
+> +		}
+> +		in_dev_put(in_dev);
+> +
+> +		break;
+> +
+> +	case NETDEV_DOWN:
+> +		if (sdev && sdev->is_registered) {
+> +			sdev->state = IB_PORT_DOWN;
+> +			siw_port_event(sdev, 1, IB_EVENT_PORT_ERR);
+> +			break;
+> +		}
+> +		break;
+> +
+> +	case NETDEV_REGISTER:
+> +		if (!sdev) {
+> +			if (!siw_dev_qualified(netdev))
+> +				break;
+> +
+> +			sdev = siw_device_create(netdev);
+> +			if (sdev) {
+> +				sdev->state = IB_PORT_INIT;
+> +				dprint(DBG_DM, ": new siw device for %s\n",
+> +					netdev->name);
+> +			}
+> +		}
+> +		break;
+> +
+> +	case NETDEV_UNREGISTER:
+> +		if (sdev) {
+> +			if (sdev->is_registered)
+> +				siw_device_deregister(sdev);
+> +			list_del(&sdev->list);
+> +			siw_device_destroy(sdev);
+> +		}
+> +		break;
+> +
+> +	case NETDEV_CHANGEADDR:
+> +		if (sdev->is_registered)
+> +			siw_port_event(sdev, 1, IB_EVENT_LID_CHANGE);
+> +
+> +		break;
+> +	/*
+> +	 * Todo: Below netdev events are currently not handled.
+> +	 */
+> +	case NETDEV_CHANGEMTU:
+> +	case NETDEV_GOING_DOWN:
+> +	case NETDEV_CHANGE:
+
+Probably need to handle mtu changes and mac address changes...
+
+
+> +
+> +		break;
+> +
+> +	default:
+> +		break;
+> +	}
+> +done:
+> +	return NOTIFY_OK;
+> +}
+> +
+> +static struct notifier_block siw_netdev_nb = {
+> +	.notifier_call = siw_netdev_event,
+> +};
+> +
+> +/*
+> + * siw_init_module - Initialize Softiwarp module and register with netdev
+> + *                   subsystem to create Softiwarp devices per net_device
+> + */
+> +static __init int siw_init_module(void)
+> +{
+> +	int rv;
+> +	int nr_cpu;
+> +
+> +	if (SENDPAGE_THRESH < SIW_MAX_INLINE) {
+> +		pr_info("siw: sendpage threshold too small: %u\n",
+> +			(int)SENDPAGE_THRESH);
+> +		rv = EINVAL;
+> +		goto out;
+> +	}
+
+
+Should this be a compile time failure?  BUILD_BUG_ON()?  
+
+> +	/*
+> +	 * The xprtrdma module needs at least some rudimentary bus to set
+> +	 * some devices path MTU.
+> +	 */
+> +	rv = bus_register(&siw_bus);
+> +	if (rv)
+> +		goto out_nobus;
+> +
+> +	siw_generic_dma_device.bus = &siw_bus;
+> +
+> +	rv = device_register(&siw_generic_dma_device);
+> +	if (rv)
+> +		goto out;
+> +
+> +	rv = siw_cm_init();
+> +	if (rv)
+> +		goto out_unregister;
+> +
+> +	if (DPRINT_MASK)
+> +		siw_debug_init();
+> +
+> +	/*
+> +	 * Allocate CRC SHASH object. Fail loading siw only, if CRC is
+> +	 * required by kernel module
+> +	 */
+> +	siw_crypto_shash = crypto_alloc_shash("crc32c", 0, 0);
+> +	if (IS_ERR(siw_crypto_shash)) {
+> +		pr_info("siw: Loading CRC32c failed: %ld\n",
+> +			PTR_ERR(siw_crypto_shash));
+> +		siw_crypto_shash = NULL;
+> +		if (mpa_crc_required == true)
+> +			goto out_unregister;
+> +	}
+> +	rv = register_netdevice_notifier(&siw_netdev_nb);
+> +	if (rv) {
+> +		siw_debugfs_delete();
+> +		goto out_unregister;
+> +	}
+> +	for (nr_cpu = 0; nr_cpu < MAX_CPU; nr_cpu++)
+> +		qp_tx_thread[nr_cpu] = NULL;
+> +
+> +	if (siw_create_tx_threads(MAX_CPU, 1) == 0) {
+> +		pr_info("Try starting default TX thread\n");
+> +		if (siw_create_tx_threads(1, 0) == 0) {
+> +			pr_info("Could not start any TX thread\n");
+> +			goto out_unregister;
+> +		}
+> +	}
+> +	pr_info("SoftiWARP attached\n");
+> +	return 0;
+> +
+> +out_unregister:
+> +	for (nr_cpu = 0; nr_cpu < MAX_CPU; nr_cpu++) {
+> +		if (qp_tx_thread[nr_cpu]) {
+> +			siw_stop_tx_thread(nr_cpu);
+> +			qp_tx_thread[nr_cpu] = NULL;
+> +		}
+> +	}
+> +	device_unregister(&siw_generic_dma_device);
+> +
+> +	if (siw_crypto_shash)
+> +		crypto_free_shash(siw_crypto_shash);
+> +out:
+> +	bus_unregister(&siw_bus);
+> +out_nobus:
+> +	pr_info("SoftIWARP attach failed. Error: %d\n", rv);
+> +	siw_cm_exit();
+> +
+> +	return rv;
+> +}
+> +
+> +
+> +static void __exit siw_exit_module(void)
+> +{
+> +	int nr_cpu;
+> +
+> +	for (nr_cpu = 0; nr_cpu < MAX_CPU; nr_cpu++) {
+> +		if (qp_tx_thread[nr_cpu]) {
+> +			siw_stop_tx_thread(nr_cpu);
+> +			qp_tx_thread[nr_cpu] = NULL;
+> +		}
+> +	}
+> +	unregister_netdevice_notifier(&siw_netdev_nb);
+> +
+> +	siw_cm_exit();
+> +
+> +	while (!list_empty(&siw_devlist)) {
+> +		struct siw_dev  *sdev =
+> +			list_entry(siw_devlist.next, struct siw_dev, list);
+> +		list_del(&sdev->list);
+> +		if (sdev->is_registered)
+> +			siw_device_deregister(sdev);
+> +
+> +		siw_device_destroy(sdev);
+> +	}
+> +	if (siw_crypto_shash)
+> +		crypto_free_shash(siw_crypto_shash);
+> +
+> +	siw_debugfs_delete();
+> +
+> +	device_unregister(&siw_generic_dma_device);
+> +
+> +	bus_unregister(&siw_bus);
+> +
+> +	pr_info("SoftiWARP detached\n");
+> +}
+> +
+> +module_init(siw_init_module);
+> +module_exit(siw_exit_module);
 > --
 > 2.13.6
 > 
