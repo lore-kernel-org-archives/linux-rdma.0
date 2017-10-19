@@ -1,113 +1,149 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 14/16] IB/mlx5: Pass mlx5_flow_act struct instead of multiple arguments
-Date: Thu, 19 Oct 2017 17:41:56 +0300
-Message-ID: <1508424118-27205-15-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-next 11/16] net/mlx5: Export flow counter related API
+Date: Thu, 19 Oct 2017 17:41:53 +0300
+Message-ID: <1508424118-27205-12-git-send-email-yishaih@mellanox.com>
 References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1508424118-27205-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Group and pass all function arguments of parse_flow_attr call in one
-common struct mlx5_flow_act.
+Exports counters API to be used in both IB and EN.
 
-This patch passes all the action arguments of parse_flow_attr in one common
-struct mlx5_flow_act. It allows us to scale the number of actions without adding
-new arguments to the function.
-
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c   |  1 +
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.h   |  2 --
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.h  | 23 ----------------------
+ .../net/ethernet/mellanox/mlx5/core/fs_counters.c  |  3 +++
+ include/linux/mlx5/fs.h                            | 22 +++++++++++++++++++++
+ 5 files changed, 26 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index a5ff217..2b434db 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1952,7 +1952,7 @@ static void set_tos(void *outer_c, void *outer_v, u8 mask, u8 val)
- #define IPV6_VERSION 6
- static int parse_flow_attr(struct mlx5_core_dev *mdev, u32 *match_c,
- 			   u32 *match_v, const union ib_flow_spec *ib_spec,
--			   u32 *tag_id, bool *is_drop)
-+			   struct mlx5_flow_act *action)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+index 881e2e5..58b6f2e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+@@ -424,6 +424,7 @@ int mlx5_cmd_fc_query(struct mlx5_core_dev *dev, u32 id,
+ 	*bytes = MLX5_GET64(traffic_counter, stats, octets);
+ 	return 0;
+ }
++EXPORT_SYMBOL(mlx5_cmd_fc_query);
+ 
+ struct mlx5_cmd_fc_bulk {
+ 	u32 id;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.h b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.h
+index 71e2d0f..d413760 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.h
+@@ -76,8 +76,6 @@ int mlx5_cmd_update_root_ft(struct mlx5_core_dev *dev,
+ 
+ int mlx5_cmd_fc_alloc(struct mlx5_core_dev *dev, u32 *id);
+ int mlx5_cmd_fc_free(struct mlx5_core_dev *dev, u32 id);
+-int mlx5_cmd_fc_query(struct mlx5_core_dev *dev, u32 id,
+-		      u64 *packets, u64 *bytes);
+ 
+ struct mlx5_cmd_fc_bulk;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
+index 80f6f3c7..2789a14 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
+@@ -128,29 +128,6 @@ struct mlx5_flow_table {
+ 	struct rhltable			fgs_hash;
+ };
+ 
+-struct mlx5_fc_cache {
+-	u64 packets;
+-	u64 bytes;
+-	u64 lastuse;
+-};
+-
+-struct mlx5_fc {
+-	struct rb_node node;
+-	struct list_head list;
+-
+-	/* last{packets,bytes} members are used when calculating the delta since
+-	 * last reading
+-	 */
+-	u64 lastpackets;
+-	u64 lastbytes;
+-
+-	u32 id;
+-	bool deleted;
+-	bool aging;
+-
+-	struct mlx5_fc_cache cache ____cacheline_aligned_in_smp;
+-};
+-
+ struct mlx5_ft_underlay_qp {
+ 	struct list_head list;
+ 	u32 qpn;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
+index 89d1f865..f679eb0 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
+@@ -243,6 +243,7 @@ struct mlx5_fc *mlx5_fc_create(struct mlx5_core_dev *dev, bool aging)
+ 
+ 	return ERR_PTR(err);
+ }
++EXPORT_SYMBOL(mlx5_fc_create);
+ 
+ void mlx5_fc_destroy(struct mlx5_core_dev *dev, struct mlx5_fc *counter)
  {
- 	void *misc_params_c = MLX5_ADDR_OF(fte_match_param, match_c,
- 					   misc_parameters);
-@@ -2170,13 +2170,13 @@ static int parse_flow_attr(struct mlx5_core_dev *mdev, u32 *match_c,
- 		if (ib_spec->flow_tag.tag_id >= BIT(24))
- 			return -EINVAL;
+@@ -260,6 +261,7 @@ void mlx5_fc_destroy(struct mlx5_core_dev *dev, struct mlx5_fc *counter)
+ 	mlx5_cmd_fc_free(dev, counter->id);
+ 	kfree(counter);
+ }
++EXPORT_SYMBOL(mlx5_fc_destroy);
  
--		*tag_id = ib_spec->flow_tag.tag_id;
-+		action->flow_tag = ib_spec->flow_tag.tag_id;
- 		break;
- 	case IB_FLOW_SPEC_ACTION_DROP:
- 		if (FIELDS_NOT_SUPPORTED(ib_spec->drop,
- 					 LAST_DROP_FIELD))
- 			return -EOPNOTSUPP;
--		*is_drop = true;
-+		action->action |= MLX5_FLOW_CONTEXT_ACTION_DROP;
- 		break;
- 	default:
- 		return -EINVAL;
-@@ -2429,13 +2429,11 @@ static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
+ int mlx5_init_fc_stats(struct mlx5_core_dev *dev)
  {
- 	struct mlx5_flow_table	*ft = ft_prio->flow_table;
- 	struct mlx5_ib_flow_handler *handler;
--	struct mlx5_flow_act flow_act = {0};
-+	struct mlx5_flow_act flow_act = {.flow_tag = MLX5_FS_DEFAULT_FLOW_TAG};
- 	struct mlx5_flow_spec *spec;
- 	struct mlx5_flow_destination *rule_dst = dst;
- 	const void *ib_flow = (const void *)flow_attr + sizeof(*flow_attr);
- 	unsigned int spec_index;
--	u32 flow_tag = MLX5_FS_DEFAULT_FLOW_TAG;
--	bool is_drop = false;
- 	int err = 0;
- 	int dest_num = 1;
+@@ -326,6 +328,7 @@ void mlx5_fc_query_cached(struct mlx5_fc *counter,
+ 	counter->lastbytes = c.bytes;
+ 	counter->lastpackets = c.packets;
+ }
++EXPORT_SYMBOL(mlx5_fc_query_cached);
  
-@@ -2454,7 +2452,7 @@ static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
- 	for (spec_index = 0; spec_index < flow_attr->num_of_specs; spec_index++) {
- 		err = parse_flow_attr(dev->mdev, spec->match_criteria,
- 				      spec->match_value,
--				      ib_flow, &flow_tag, &is_drop);
-+				      ib_flow, &flow_act);
- 		if (err < 0)
- 			goto free;
+ void mlx5_fc_queue_stats_work(struct mlx5_core_dev *dev,
+ 			      struct delayed_work *dwork,
+diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
+index b25e7ba..a4a715e 100644
+--- a/include/linux/mlx5/fs.h
++++ b/include/linux/mlx5/fs.h
+@@ -166,6 +166,28 @@ int mlx5_modify_rule_destination(struct mlx5_flow_handle *handler,
+ void mlx5_fc_destroy(struct mlx5_core_dev *dev, struct mlx5_fc *counter);
+ void mlx5_fc_query_cached(struct mlx5_fc *counter,
+ 			  u64 *bytes, u64 *packets, u64 *lastuse);
++int mlx5_cmd_fc_query(struct mlx5_core_dev *dev, u32 id,
++		      u64 *packets, u64 *bytes);
++
++struct mlx5_fc_cache {
++	u64 packets;
++	u64 bytes;
++	u64 lastuse;
++};
++
++struct mlx5_fc {
++	struct rb_node node;
++	struct list_head list;
++
++	u64 lastpackets;
++	u64 lastbytes;
++
++	u32 id;
++	bool deleted;
++	bool aging;
++	struct mlx5_fc_cache cache ____cacheline_aligned_in_smp;
++};
++
+ int mlx5_fs_add_rx_underlay_qpn(struct mlx5_core_dev *dev, u32 underlay_qpn);
+ int mlx5_fs_remove_rx_underlay_qpn(struct mlx5_core_dev *dev, u32 underlay_qpn);
  
-@@ -2465,8 +2463,7 @@ static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
- 		set_underlay_qp(dev, spec, underlay_qpn);
- 
- 	spec->match_criteria_enable = get_match_criteria_enable(spec->match_criteria);
--	if (is_drop) {
--		flow_act.action = MLX5_FLOW_CONTEXT_ACTION_DROP;
-+	if (flow_act.action & MLX5_FLOW_CONTEXT_ACTION_DROP) {
- 		rule_dst = NULL;
- 		dest_num = 0;
- 	} else {
-@@ -2474,15 +2471,14 @@ static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
- 		    MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO;
- 	}
- 
--	if (flow_tag != MLX5_FS_DEFAULT_FLOW_TAG &&
-+	if (flow_act.flow_tag != MLX5_FS_DEFAULT_FLOW_TAG &&
- 	    (flow_attr->type == IB_FLOW_ATTR_ALL_DEFAULT ||
- 	     flow_attr->type == IB_FLOW_ATTR_MC_DEFAULT)) {
- 		mlx5_ib_warn(dev, "Flow tag %u and attribute type %x isn't allowed in leftovers\n",
--			     flow_tag, flow_attr->type);
-+			     flow_act.flow_tag, flow_attr->type);
- 		err = -EINVAL;
- 		goto free;
- 	}
--	flow_act.flow_tag = flow_tag;
- 	handler->rule = mlx5_add_flow_rules(ft, spec,
- 					    &flow_act,
- 					    rule_dst, dest_num);
 -- 
 1.8.3.1
 
