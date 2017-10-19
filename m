@@ -1,135 +1,85 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 1/3] IB/ipoib: Get rid of the tx_outstanding variable in all modes
-Date: Thu, 19 Oct 2017 07:56:42 +0300
-Message-ID: <20171019045644.5816-2-leon@kernel.org>
-References: <20171019045644.5816-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next 0/2] Introduce Multi-Packet receive work queue
+Date: Thu, 19 Oct 2017 08:06:56 +0300
+Message-ID: <20171019050656.GU2106@mtr-leonro.local>
+References: <20171017150113.8544-1-leon@kernel.org>
+ <090b4257-daf4-4f90-555c-b048764d1cda@grimberg.me>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="scYsJfBjqkrBfg1Z"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171019045644.5816-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <090b4257-daf4-4f90-555c-b048764d1cda-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The first step toward using NAPI in the UD/TX flow is to separate
-between two flows, the NAPI and the xmit, meaning no use of shared
-variables between both flows.
+--scYsJfBjqkrBfg1Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This patch takes out the tx_outstanding variable that was used in both
-flows and instead the driver uses the 2 cyclic ring variables: tx_head
-and tx_tail, tx_head used in the xmit flow and tx_tail in the NAPI flow.
+On Wed, Oct 18, 2017 at 12:55:21PM +0300, Sagi Grimberg wrote:
+>
+> > A Multi-Packet receive WQ comes to improve performance and memory
+> > footprint. It is comprised of work requests that can be consumed by
+> > multiple packets. Buffers pointed by SGEs of each work request in a
+> > multi packet WQ are divided into strides. Both buffer size and stride
+> > size must be identical in all work requests of the same multi packet
+> > WQ and are set during WQ creation.
+> >
+> > A single WR in a Multi-Packet WQ can generate multiple completions,
+> > depends on the number of packets consumed. Each packet starts at the
+> > beginning of a stride and is written in stride granularity.
+> >
+> > Here is an example of a work request comprised of 3 strides. Packet 1
+> > is larger than a stride so it occupies 2 strides. Packet 2 fits in a
+> > single stride. Each packet will generate its own completion.
+> >
+> > |         |         |[packet2]|
+> > |    [packet1]      |         |
+> > |_________|_________|_________|
+> >   stride      stride     stride
+> >   <--      work request     -->
+> >
+> > A Multi-Packet WQ reduces the number of needed post-recv operations
+> > thus increasing performance: In the example above, a single post-recv
+> > operation was performed instead of 2.
+>
+> Looks like a nice feature, would be nice if we could use it... The
+> problem is that adding a different logic in case this feature exists is
+> messy and difficult. Is there any way we can come up with a verbs API
+> that will utilize this feature but hide the implementation details from
+> the ULPs?
 
-Cc: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib.h    |  1 -
- drivers/infiniband/ulp/ipoib/ipoib_cm.c | 10 ++++++----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c | 10 ++++------
- 3 files changed, 10 insertions(+), 11 deletions(-)
+We will be more than happy to work with the community and update our
+driver's code if needed, once the community will converge on the proper API.
+Right now, we are exposing it through our DV interface.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index 7cc2b755413d..19c3ba2368d2 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -381,7 +381,6 @@ struct ipoib_dev_priv {
- 	unsigned	     tx_tail;
- 	struct ib_sge	     tx_sge[MAX_SKB_FRAGS + 1];
- 	struct ib_ud_wr      tx_wr;
--	unsigned	     tx_outstanding;
- 	struct ib_wc	     send_wc[MAX_SEND_CQE];
- 
- 	struct ib_recv_wr    rx_wr;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 7500c28eac6b..6e0fc592791e 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -769,8 +769,8 @@ void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_
- 	} else {
- 		netif_trans_update(dev);
- 		++tx->tx_head;
--
--		if (++priv->tx_outstanding == ipoib_sendq_size) {
-+		++priv->tx_head;
-+		if ((priv->tx_head - priv->tx_tail) == ipoib_sendq_size) {
- 			ipoib_dbg(priv, "TX ring 0x%x full, stopping kernel net queue\n",
- 				  tx->qp->qp_num);
- 			netif_stop_queue(dev);
-@@ -814,7 +814,8 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
- 	netif_tx_lock(dev);
- 
- 	++tx->tx_tail;
--	if (unlikely(--priv->tx_outstanding == ipoib_sendq_size >> 1) &&
-+	++priv->tx_tail;
-+	if (unlikely((priv->tx_head - priv->tx_tail) == ipoib_sendq_size >> 1) &&
- 	    netif_queue_stopped(dev) &&
- 	    test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
- 		netif_wake_queue(dev);
-@@ -1220,8 +1221,9 @@ static void ipoib_cm_tx_destroy(struct ipoib_cm_tx *p)
- 		ipoib_dma_unmap_tx(priv, tx_req);
- 		dev_kfree_skb_any(tx_req->skb);
- 		++p->tx_tail;
-+		++priv->tx_tail;
- 		netif_tx_lock_bh(p->dev);
--		if (unlikely(--priv->tx_outstanding == ipoib_sendq_size >> 1) &&
-+		if (unlikely(priv->tx_head - priv->tx_tail == ipoib_sendq_size >> 1) &&
- 		    netif_queue_stopped(p->dev) &&
- 		    test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
- 			netif_wake_queue(p->dev);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 89d82e27a445..c978f8ffd2bb 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -406,7 +406,7 @@ static void ipoib_ib_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
- 	dev_kfree_skb_any(tx_req->skb);
- 
- 	++priv->tx_tail;
--	if (unlikely(--priv->tx_outstanding == ipoib_sendq_size >> 1) &&
-+	if (unlikely((priv->tx_head - priv->tx_tail) == ipoib_sendq_size >> 1) &&
- 	    netif_queue_stopped(dev) &&
- 	    test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags))
- 		netif_wake_queue(dev);
-@@ -611,8 +611,8 @@ int ipoib_send(struct net_device *dev, struct sk_buff *skb,
- 		priv->tx_wr.wr.send_flags |= IB_SEND_IP_CSUM;
- 	else
- 		priv->tx_wr.wr.send_flags &= ~IB_SEND_IP_CSUM;
--
--	if (++priv->tx_outstanding == ipoib_sendq_size) {
-+	/* increase the tx_head after send success, but use it for queue state */
-+	if (priv->tx_head - priv->tx_tail == ipoib_sendq_size - 1) {
- 		ipoib_dbg(priv, "TX ring full, stopping kernel net queue\n");
- 		if (ib_req_notify_cq(priv->send_cq, IB_CQ_NEXT_COMP))
- 			ipoib_warn(priv, "request notify on send CQ failed\n");
-@@ -627,7 +627,6 @@ int ipoib_send(struct net_device *dev, struct sk_buff *skb,
- 	if (unlikely(rc)) {
- 		ipoib_warn(priv, "post_send failed, error %d\n", rc);
- 		++dev->stats.tx_errors;
--		--priv->tx_outstanding;
- 		ipoib_dma_unmap_tx(priv, tx_req);
- 		dev_kfree_skb_any(skb);
- 		if (netif_queue_stopped(dev))
-@@ -640,7 +639,7 @@ int ipoib_send(struct net_device *dev, struct sk_buff *skb,
- 		++priv->tx_head;
- 	}
- 
--	if (unlikely(priv->tx_outstanding > MAX_SEND_CQE))
-+	if (unlikely(priv->tx_head - priv->tx_tail > MAX_SEND_CQE))
- 		while (poll_tx(priv))
- 			; /* nothing */
- 
-@@ -773,7 +772,6 @@ int ipoib_ib_dev_stop_default(struct net_device *dev)
- 				ipoib_dma_unmap_tx(priv, tx_req);
- 				dev_kfree_skb_any(tx_req->skb);
- 				++priv->tx_tail;
--				--priv->tx_outstanding;
- 			}
- 
- 			for (i = 0; i < ipoib_recvq_size; ++i) {
--- 
-2.14.2
+Thanks
 
+--scYsJfBjqkrBfg1Z
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnoMvAACgkQ5GN7iDZy
+WKfh2g//S9pNoQmE6XCbT0BSBUWsEOK5EJQawo/RbwxC8FTCj1pX1an3ckFJlbqI
+X1FVVVZTvfUYD58KHT5Rn+7Q/hGAvMcr9IkP9Vks5xAhBnXKmI6R4VVQY0sMsaTX
+UuR4V2sBs0EVA3J8P1fJkX1JQEB/taUJt8O5tsialf6FLJcUhCRHI/TGOwfCtzNk
+yItCk9mk1EFP8t+3VjUCp1T4BlNcw0539p65qzcwwHN7dUuwtwZwWcLtcrUB09Vd
+78ZL3gGqP7upOVCLe8pI1GGNrvP1vqoW1ppDFNAaDab9kJBwzCWeuzODDge7iaia
+TrxADCJormZdGODFFBHTh12FQGtLAY9aBvmEJarzDZAhGd7EgzktQnWa2RSLruyb
+qf6V0QIzIXeMyyqI5drzf1DT39/YJzL00riIJJ/l20GoFrj9dK5cjkqB1Grrh+5i
+/UQYh7V14zIC+DmVCmAJIffxzWdIqPxyTqTXrC0fjELaTw7kKE7II+OEYs94fCgg
+6MOxoBTjErpDwqEWCd0YWMAusrSZCCM0rtCUEMAT3kfcyq1AmHSrEu2OkXvNVT97
+Y1w4MSswfoyl/pm5NdAplHUyGgMTkjak0OqGP89tZaCtLnFMCEcsDOLYAV+hR2t2
+dlIjpxD+Zlkc0m8lFWTVEFp8TSw4vW4bc7iHtMLEyzlMXoTCWJ4=
+=4rZV
+-----END PGP SIGNATURE-----
+
+--scYsJfBjqkrBfg1Z--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
