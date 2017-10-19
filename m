@@ -1,35 +1,44 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 02/15] usb: gadget: make config_item_type structures const
-Date: Thu, 19 Oct 2017 18:05:29 +0300
-Message-ID: <6348630.r2z9ev4yl2@avalon>
-References: <1508167134-6243-1-git-send-email-bhumirks@gmail.com> <1985905.z83BJQzMUS@avalon> <20171019140657.GA22233@lst.de>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v2 01/13] iWARP wire packet format definition
+Date: Thu, 19 Oct 2017 11:34:41 -0500
+Message-ID: <025401d348f8$29e26af0$7da740d0$@opengridcomputing.com>
+References: <20171006122853.16310-1-bmt@zurich.ibm.com> <20171006122853.16310-2-bmt@zurich.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20171019140657.GA22233@lst.de>
-Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Bhumika Goyal <bhumirks@gmail.com>, julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, alexander.shishkin@linux.intel.com, jic23@kernel.org, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, sagi@grimberg.me, kishon@ti.com, bhelgaas@google.com, nab@linux-iscsi.org, balbi@kernel.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, ccaulfie@redhat.com, teigland@redhat.com, mfasheh@versity.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-usb@vger.kernel.org, cluster-devel@redhat.com, ocf
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171006122853.16310-2-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Bernard Metzler' <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Christoph,
-
-On Thursday, 19 October 2017 17:06:57 EEST Christoph Hellwig wrote:
-> > Now we have 9 const instances of the config_item_type structure that are
-> > identical, with only the .ct_owner field set. Should they be all merged
-> > into a single structure ?
 > 
-> I think that's a good idea.
+> Signed-off-by: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+> ---
+>  drivers/infiniband/sw/siw/iwarp.h | 381
+> ++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 381 insertions(+)
+>  create mode 100644 drivers/infiniband/sw/siw/iwarp.h
 > 
-> But I'm about to slurp up this whole series into my tree, how about making
-> that an incremental patch?
 
-I'm fine with that.
+At some point it would be nice to put common iWARP protocol stuff in header
+files shared by all the iwarp drivers:
 
-Bhumika, would you like to submit an incremental patch, or should I do it ?
+[root@stevo1 linux-2.6]# grep "MPA ID Req Frame" drivers/infiniband/*/*/*.[ch]
+drivers/infiniband/hw/cxgb3/iwch_cm.h:#define MPA_KEY_REQ "MPA ID Req Frame"
+drivers/infiniband/hw/cxgb4/iw_cxgb4.h:#define MPA_KEY_REQ "MPA ID Req Frame"
+drivers/infiniband/hw/i40iw/i40iw_cm.h:#define IEFT_MPA_KEY_REQ  "MPA ID Req
+Frame"
+drivers/infiniband/hw/nes/nes_cm.h:#define IEFT_MPA_KEY_REQ  "MPA ID Req Frame"
+[root@stevo1 linux-2.6]#
 
--- 
-Regards,
+:)
 
-Laurent Pinchart
+Steve.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
