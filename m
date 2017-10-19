@@ -1,100 +1,101 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: Need to set if_index in ib_init_ah_from_wc() ?
-Date: Thu, 19 Oct 2017 10:02:17 +0530
-Message-ID: <CANjDDBhJK=s28zrdCASUVSSeem=NVRWwsHT=jWS2N4jGh2Uvfw@mail.gmail.com>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: Need to set if_index in ib_init_ah_from_wc() ?
+Date: Thu, 19 Oct 2017 04:54:29 +0000
+Message-ID: <VI1PR0502MB300803053059AA7CC0E6DA7DD1420@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 References: <CAL1RGDW6iHo2UYKbcJmcG=wCq63jvZB7nvOD=BJZwASSzc7Zhw@mail.gmail.com>
- <20170130195412.GE24466@obsidianresearch.com> <VI1PR0502MB30086B735FD4B5948B521673D14D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170130195412.GE24466@obsidianresearch.com>
+ <VI1PR0502MB30086B735FD4B5948B521673D14D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <CANjDDBhJK=s28zrdCASUVSSeem=NVRWwsHT=jWS2N4jGh2Uvfw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB30086B735FD4B5948B521673D14D0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <CANjDDBhJK=s28zrdCASUVSSeem=NVRWwsHT=jWS2N4jGh2Uvfw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Parav,
-
-Thanks for you note here. I can supply you a fix, but before that
-please find a query inline below:
-
-On Thu, Oct 19, 2017 at 12:30 AM, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> Hi Devesh, Selvin, Somnath,
->
->> -----Original Message-----
->> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
->> Sent: Monday, January 30, 2017 1:54 PM
->> To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
->> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Subject: Re: Need to set if_index in ib_init_ah_from_wc() ?
->>
->> On Sun, Jan 29, 2017 at 05:21:43PM -0800, Roland Dreier wrote:
->> > I recently debugged an issue where an RDMA-CM / RoCE connection to a
->> > link-local IPv6 address takes 1 second to establish.  The delay comes
->> > when the passive side cm_req_handler() calls
->> > cm_init_av_for_response(), which calls ib_init_ah_from_wc().
->> >
->> > That calls into rdma_addr_find_l2_eth_by_grh() with the link-local
->> > address, but with 0 passed in through the if_index parameter.  So
->> >
->> > The fix seems as simple as adding
->> >
->> >     if_index = idev->ifindex;
->> >
->> > to ib_init_ah_from_wc() before the call to
->> > rdma_addr_find_l2_eth_by_grh() - this can't fail, since we return an
->> > error if finding idev fails.
->>
->> Hum, it is certainly a big conceptual mistake to not anchor a route lookup in a
->> netdev at this point.
->>
->> Both roceev1 and v2 need to use the netdev that was used to create the UD QP
->> to anchor these lookups, that netdev should be a child of some kind from the
->> get_netdev (eg a vlan, or macvlan, etc)
->>
->> This is necessary to make namespaces and other subtle things work properly.
->>
->> So, right idea, wrong netdev.
->>
->> > However, I'm not sure if it's quite that simple - how does this
->> > interact with RoCEv2, or other addressing like IPv4 or non-link-local
->> > IPv6? I'm not sure I understand what the cases where resolved_dev will
->> > be != idev, or if passing in idev->ifindex will break this.
->>
->> I think this brokenness fell out of the above confusion, it should be removed,
->> rdma_addr_find_dmac_by_grh should not be callable without a proper netdev.
->>
->> The != case can happen if the gid table resolve differently than the route table,
->> but it is conceptually wrong to lookup in the gid table before doing a route
->> lookup, and I think these apis are poorly designed to enforce that requirement.
->>
->> Jason
->
-> I have fixed this issue where rdma_addr_find_l2_eth_by_grh() accepts netdev of the GID.
-> Derivation of GID is based on vlan, and DGID of the incoming GRH, network_type fields.
-> Finding out the right GID depends above fields from the cached gid table.
->
-> Before I post the patch,
-> We found that bnx_re driver doesn't set IB_WC_WITH_VLAN in the QP1 wc.
-> Fail to set vlan id and IB_WC_WITH_VLAN flag when incoming QP1 packet in vlan, will fail to search the right GID.
-
-I am under impression that IB_WC_WITH_VLAN flags was supposed to be
-set only if any vendor's WC reports VLAN-ID, otherwise it had to be
-derived from somewhere else. Are we moving away from this notion?
-
-
->
-> Please also see recent important fix in qedr driver [1] who now correctly sets IB_WC_WITH_VLAN, in case if you need reference.
-> Most drivers are setting it correctly now.
->
-> Will you please fix this issue in bnx_re driver as well - to set IB_WC_WITH_VLAN, vlan_id, SL when vlan is present in QP1 UD receive packets?
->
-> Please let me know in case if you need more information.
->
-> [1] https://www.spinics.net/lists/linux-rdma/msg55115.html
->
-> Parav
+SGkgRGV2ZXNoLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IERldmVz
+aCBTaGFybWEgW21haWx0bzpkZXZlc2guc2hhcm1hQGJyb2FkY29tLmNvbV0NCj4gU2VudDogV2Vk
+bmVzZGF5LCBPY3RvYmVyIDE4LCAyMDE3IDExOjMyIFBNDQo+IFRvOiBQYXJhdiBQYW5kaXQgPHBh
+cmF2QG1lbGxhbm94LmNvbT4NCj4gQ2M6IFNlbHZpbiBYYXZpZXIgPHNlbHZpbi54YXZpZXJAYnJv
+YWRjb20uY29tPjsgU29tbmF0aCBLb3R1cg0KPiA8c29tbmF0aC5rb3R1ckBicm9hZGNvbS5jb20+
+OyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgTWF0YW4gQmFyYWsNCj4gPG1hdGFuYkBtZWxs
+YW5veC5jb20+OyBKYXNvbiBHdW50aG9ycGUNCj4gPGpndW50aG9ycGVAb2JzaWRpYW5yZXNlYXJj
+aC5jb20+OyBSb2xhbmQgRHJlaWVyDQo+IDxyb2xhbmRAcHVyZXN0b3JhZ2UuY29tPg0KPiBTdWJq
+ZWN0OiBSZTogTmVlZCB0byBzZXQgaWZfaW5kZXggaW4gaWJfaW5pdF9haF9mcm9tX3djKCkgPw0K
+PiANCj4gSGVsbG8gUGFyYXYsDQo+IA0KPiBUaGFua3MgZm9yIHlvdSBub3RlIGhlcmUuIEkgY2Fu
+IHN1cHBseSB5b3UgYSBmaXgsIGJ1dCBiZWZvcmUgdGhhdCBwbGVhc2UgZmluZCBhDQo+IHF1ZXJ5
+IGlubGluZSBiZWxvdzoNCg0KVGhhdCB3aWxsIGJlIGdvb2QuIE1vcmUgaW5saW5lIGJlbG93Lg0K
+DQo+IA0KPiBPbiBUaHUsIE9jdCAxOSwgMjAxNyBhdCAxMjozMCBBTSwgUGFyYXYgUGFuZGl0IDxw
+YXJhdkBtZWxsYW5veC5jb20+IHdyb3RlOg0KPiA+IEhpIERldmVzaCwgU2VsdmluLCBTb21uYXRo
+LA0KPiA+DQo+ID4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4+IEZyb206IGxpbnV4
+LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtcmRtYS0NCj4gPj4gb3du
+ZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgSmFzb24gR3VudGhvcnBlDQo+ID4+IFNl
+bnQ6IE1vbmRheSwgSmFudWFyeSAzMCwgMjAxNyAxOjU0IFBNDQo+ID4+IFRvOiBSb2xhbmQgRHJl
+aWVyIDxyb2xhbmRAcHVyZXN0b3JhZ2UuY29tPg0KPiA+PiBDYzogbGludXgtcmRtYUB2Z2VyLmtl
+cm5lbC5vcmc7IE1hdGFuIEJhcmFrIDxtYXRhbmJAbWVsbGFub3guY29tPg0KPiA+PiBTdWJqZWN0
+OiBSZTogTmVlZCB0byBzZXQgaWZfaW5kZXggaW4gaWJfaW5pdF9haF9mcm9tX3djKCkgPw0KPiA+
+Pg0KPiA+PiBPbiBTdW4sIEphbiAyOSwgMjAxNyBhdCAwNToyMTo0M1BNIC0wODAwLCBSb2xhbmQg
+RHJlaWVyIHdyb3RlOg0KPiA+PiA+IEkgcmVjZW50bHkgZGVidWdnZWQgYW4gaXNzdWUgd2hlcmUg
+YW4gUkRNQS1DTSAvIFJvQ0UgY29ubmVjdGlvbiB0bw0KPiA+PiA+IGEgbGluay1sb2NhbCBJUHY2
+IGFkZHJlc3MgdGFrZXMgMSBzZWNvbmQgdG8gZXN0YWJsaXNoLiAgVGhlIGRlbGF5DQo+ID4+ID4g
+Y29tZXMgd2hlbiB0aGUgcGFzc2l2ZSBzaWRlIGNtX3JlcV9oYW5kbGVyKCkgY2FsbHMNCj4gPj4g
+PiBjbV9pbml0X2F2X2Zvcl9yZXNwb25zZSgpLCB3aGljaCBjYWxscyBpYl9pbml0X2FoX2Zyb21f
+d2MoKS4NCj4gPj4gPg0KPiA+PiA+IFRoYXQgY2FsbHMgaW50byByZG1hX2FkZHJfZmluZF9sMl9l
+dGhfYnlfZ3JoKCkgd2l0aCB0aGUgbGluay1sb2NhbA0KPiA+PiA+IGFkZHJlc3MsIGJ1dCB3aXRo
+IDAgcGFzc2VkIGluIHRocm91Z2ggdGhlIGlmX2luZGV4IHBhcmFtZXRlci4gIFNvDQo+ID4+ID4N
+Cj4gPj4gPiBUaGUgZml4IHNlZW1zIGFzIHNpbXBsZSBhcyBhZGRpbmcNCj4gPj4gPg0KPiA+PiA+
+ICAgICBpZl9pbmRleCA9IGlkZXYtPmlmaW5kZXg7DQo+ID4+ID4NCj4gPj4gPiB0byBpYl9pbml0
+X2FoX2Zyb21fd2MoKSBiZWZvcmUgdGhlIGNhbGwgdG8NCj4gPj4gPiByZG1hX2FkZHJfZmluZF9s
+Ml9ldGhfYnlfZ3JoKCkgLSB0aGlzIGNhbid0IGZhaWwsIHNpbmNlIHdlIHJldHVybg0KPiA+PiA+
+IGFuIGVycm9yIGlmIGZpbmRpbmcgaWRldiBmYWlscy4NCj4gPj4NCj4gPj4gSHVtLCBpdCBpcyBj
+ZXJ0YWlubHkgYSBiaWcgY29uY2VwdHVhbCBtaXN0YWtlIHRvIG5vdCBhbmNob3IgYSByb3V0ZQ0K
+PiA+PiBsb29rdXAgaW4gYSBuZXRkZXYgYXQgdGhpcyBwb2ludC4NCj4gPj4NCj4gPj4gQm90aCBy
+b2NlZXYxIGFuZCB2MiBuZWVkIHRvIHVzZSB0aGUgbmV0ZGV2IHRoYXQgd2FzIHVzZWQgdG8gY3Jl
+YXRlDQo+ID4+IHRoZSBVRCBRUCB0byBhbmNob3IgdGhlc2UgbG9va3VwcywgdGhhdCBuZXRkZXYg
+c2hvdWxkIGJlIGEgY2hpbGQgb2YNCj4gPj4gc29tZSBraW5kIGZyb20gdGhlIGdldF9uZXRkZXYg
+KGVnIGEgdmxhbiwgb3IgbWFjdmxhbiwgZXRjKQ0KPiA+Pg0KPiA+PiBUaGlzIGlzIG5lY2Vzc2Fy
+eSB0byBtYWtlIG5hbWVzcGFjZXMgYW5kIG90aGVyIHN1YnRsZSB0aGluZ3Mgd29yayBwcm9wZXJs
+eS4NCj4gPj4NCj4gPj4gU28sIHJpZ2h0IGlkZWEsIHdyb25nIG5ldGRldi4NCj4gPj4NCj4gPj4g
+PiBIb3dldmVyLCBJJ20gbm90IHN1cmUgaWYgaXQncyBxdWl0ZSB0aGF0IHNpbXBsZSAtIGhvdyBk
+b2VzIHRoaXMNCj4gPj4gPiBpbnRlcmFjdCB3aXRoIFJvQ0V2Miwgb3Igb3RoZXIgYWRkcmVzc2lu
+ZyBsaWtlIElQdjQgb3INCj4gPj4gPiBub24tbGluay1sb2NhbCBJUHY2PyBJJ20gbm90IHN1cmUg
+SSB1bmRlcnN0YW5kIHdoYXQgdGhlIGNhc2VzIHdoZXJlDQo+ID4+ID4gcmVzb2x2ZWRfZGV2IHdp
+bGwgYmUgIT0gaWRldiwgb3IgaWYgcGFzc2luZyBpbiBpZGV2LT5pZmluZGV4IHdpbGwgYnJlYWsg
+dGhpcy4NCj4gPj4NCj4gPj4gSSB0aGluayB0aGlzIGJyb2tlbm5lc3MgZmVsbCBvdXQgb2YgdGhl
+IGFib3ZlIGNvbmZ1c2lvbiwgaXQgc2hvdWxkIGJlDQo+ID4+IHJlbW92ZWQsIHJkbWFfYWRkcl9m
+aW5kX2RtYWNfYnlfZ3JoIHNob3VsZCBub3QgYmUgY2FsbGFibGUgd2l0aG91dCBhDQo+IHByb3Bl
+ciBuZXRkZXYuDQo+ID4+DQo+ID4+IFRoZSAhPSBjYXNlIGNhbiBoYXBwZW4gaWYgdGhlIGdpZCB0
+YWJsZSByZXNvbHZlIGRpZmZlcmVudGx5IHRoYW4gdGhlDQo+ID4+IHJvdXRlIHRhYmxlLCBidXQg
+aXQgaXMgY29uY2VwdHVhbGx5IHdyb25nIHRvIGxvb2t1cCBpbiB0aGUgZ2lkIHRhYmxlDQo+ID4+
+IGJlZm9yZSBkb2luZyBhIHJvdXRlIGxvb2t1cCwgYW5kIEkgdGhpbmsgdGhlc2UgYXBpcyBhcmUg
+cG9vcmx5IGRlc2lnbmVkIHRvDQo+IGVuZm9yY2UgdGhhdCByZXF1aXJlbWVudC4NCj4gPj4NCj4g
+Pj4gSmFzb24NCj4gPg0KPiA+IEkgaGF2ZSBmaXhlZCB0aGlzIGlzc3VlIHdoZXJlIHJkbWFfYWRk
+cl9maW5kX2wyX2V0aF9ieV9ncmgoKSBhY2NlcHRzIG5ldGRldg0KPiBvZiB0aGUgR0lELg0KPiA+
+IERlcml2YXRpb24gb2YgR0lEIGlzIGJhc2VkIG9uIHZsYW4sIGFuZCBER0lEIG9mIHRoZSBpbmNv
+bWluZyBHUkgsDQo+IG5ldHdvcmtfdHlwZSBmaWVsZHMuDQo+ID4gRmluZGluZyBvdXQgdGhlIHJp
+Z2h0IEdJRCBkZXBlbmRzIGFib3ZlIGZpZWxkcyBmcm9tIHRoZSBjYWNoZWQgZ2lkIHRhYmxlLg0K
+PiA+DQo+ID4gQmVmb3JlIEkgcG9zdCB0aGUgcGF0Y2gsDQo+ID4gV2UgZm91bmQgdGhhdCBibnhf
+cmUgZHJpdmVyIGRvZXNuJ3Qgc2V0IElCX1dDX1dJVEhfVkxBTiBpbiB0aGUgUVAxIHdjLg0KPiA+
+IEZhaWwgdG8gc2V0IHZsYW4gaWQgYW5kIElCX1dDX1dJVEhfVkxBTiBmbGFnIHdoZW4gaW5jb21p
+bmcgUVAxIHBhY2tldCBpbg0KPiB2bGFuLCB3aWxsIGZhaWwgdG8gc2VhcmNoIHRoZSByaWdodCBH
+SUQuDQo+IA0KPiBJIGFtIHVuZGVyIGltcHJlc3Npb24gdGhhdCBJQl9XQ19XSVRIX1ZMQU4gZmxh
+Z3Mgd2FzIHN1cHBvc2VkIHRvIGJlIHNldA0KPiBvbmx5IGlmIGFueSB2ZW5kb3IncyBXQyByZXBv
+cnRzIFZMQU4tSUQsIG90aGVyd2lzZSBpdCBoYWQgdG8gYmUgZGVyaXZlZCBmcm9tDQo+IHNvbWV3
+aGVyZSBlbHNlLiBBcmUgd2UgbW92aW5nIGF3YXkgZnJvbSB0aGlzIG5vdGlvbj8NCg0KWWVzLiBU
+aGF0IGlzIGNvcnJlY3QuIEl0cyBvcHRpb25hbC4gSG93ZXZlciB2bGFuIGRlZmluZXMgTDIgc2Vn
+bWVudHMuDQpUd28gTDIgc2VnbWVudHMgY2FuIGhhdmUgc2FtZSBJUCBhZGRyZXNzIGFuZCB0aGVy
+ZWZvcmUgR0lEcy4gU28gSWdub3JpbmcgdmxhbiBpcyBub3QgZ29vZCBiZWNhdXNlIGliX2ZpbmRf
+Z2lkX2luZGV4IGFuZCBmcmllbmQgZnVuY3Rpb25zIHdvbid0IGJlIGFibGUgdG8gcmVzb2x2ZSB0
+aGVtLCB3aGljaCBwZXJmb3JtcyB2bGFuICsgU0dJRCBleGFjdCBsb29rdXAuDQpBcyBkaXNjdXNz
+ZWQgaW4gcGFzdCB0aHJlYWQsIHdlIGxpa2UgdG8gZmluZCB0aGUgbWF0Y2hpbmcgU0dJRCBmaXJz
+dCBiYXNlZCBvbiBHUkggKyBhdmFpbGFibGUgTDIgZmllbGQgc3VjaCBhcyB2bGFuLCBhbmQgcmVm
+ZXIgdG8gdGhlIG5kZXYgb2YgdGhlIFNHSUQuDQpTbyBteSB1cGNvbWluZyBwYXRjaCBicmluZ3Mg
+c3VjaCBmdW5kYW1lbnRhbCBmaXggdGhhdCByZXNvbHZlcyBJUHY2IGxpbmsgbG9jYWwgaXNzdWUg
+YW5kIGZldyBvdGhlciBzaW1pbGFyIGNhc2VzLg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
