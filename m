@@ -1,91 +1,221 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 2/6] IB/mlx5: Support 128B CQE compression feature
-Date: Thu, 19 Oct 2017 08:25:52 +0300
-Message-ID: <20171019052556.8514-3-leon@kernel.org>
+Subject: [PATCH rdma-next 5/6] IB/mlx5: Add tunneling offloads support
+Date: Thu, 19 Oct 2017 08:25:55 +0300
+Message-ID: <20171019052556.8514-6-leon@kernel.org>
 References: <20171019052556.8514-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171019052556.8514-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In commit 1cbe6fc86ccf ("IB/mlx5: Add support for CQE compressing") the
-concept of CQE compression was introduced and added a support for 64B
-CQE size. This change update the code to support 128B CQE size as well.
+The device can support receive Stateless Offloads for the inner
+packet's fields only when the packet is processed by TIR which is
+enabled to support tunneling. Otherwise, the device treats the
+packet as an ordinary non-tunneling packet and receive offloads
+can be done only for the outer packet's field.
+In order to enable receive Stateless Offloading support for incoming
+tunneling traffic the TIR should be created with tunneled_offload_en.
+Tunneling offloads is supported only be raw ethernet QP.
 
-Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This patch includes:
+* New QP creation flag for tunneling offloads.
+* Reports device capabilities.
+
+Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/cq.c   | 6 ++++--
- drivers/infiniband/hw/mlx5/main.c | 8 ++++++--
- include/uapi/rdma/mlx5-abi.h      | 7 ++++++-
- 3 files changed, 16 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    | 14 +++++++++++++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 ++
+ drivers/infiniband/hw/mlx5/qp.c      | 39 +++++++++++++++++++++++++++++++-----
+ include/uapi/rdma/mlx5-abi.h         | 11 +++++++++-
+ 4 files changed, 60 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index b8a116d0e063..51871f049c57 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -804,8 +804,10 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
- 	*index = to_mucontext(context)->bfregi.sys_pages[0];
- 
- 	if (ucmd.cqe_comp_en == 1) {
--		if (unlikely((*cqe_size != 64) ||
--			     !MLX5_CAP_GEN(dev->mdev, cqe_compression))) {
-+		if (!((*cqe_size == 128 &&
-+		       MLX5_CAP_GEN(dev->mdev, cqe_compression_128)) ||
-+		      (*cqe_size == 64  &&
-+		       MLX5_CAP_GEN(dev->mdev, cqe_compression)))) {
- 			err = -EOPNOTSUPP;
- 			mlx5_ib_warn(dev, "CQE compression is not supported for size %d!\n",
- 				     *cqe_size);
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index f66f693c058b..249c01c24eac 100644
+index 107c038da328..c44dd0896f80 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -827,8 +827,12 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 			sizeof(resp.mlx5_ib_support_multi_pkt_send_wqes);
+@@ -875,6 +875,20 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 		}
  	}
  
--	if (field_avail(typeof(resp), reserved, uhw->outlen))
--		resp.response_length += sizeof(resp.reserved);
-+	if (field_avail(typeof(resp), flags, uhw->outlen)) {
-+		resp.response_length += sizeof(resp.flags);
-+		if (MLX5_CAP_GEN(mdev, cqe_compression_128))
-+			resp.flags |=
-+				MLX5_IB_QUERY_DEV_RESP_FLAGS_CQE_128B_COMP;
++	if (field_avail(typeof(resp), tunnel_offloads_caps,
++			uhw->outlen)) {
++		resp.response_length += sizeof(resp.tunnel_offloads_caps);
++		if (MLX5_CAP_ETH(mdev, tunnel_stateless_vxlan))
++			resp.tunnel_offloads_caps |=
++				MLX5_IB_TUNNELED_OFFLOADS_VXLAN;
++		if (MLX5_CAP_ETH(mdev, tunnel_stateless_geneve_rx))
++			resp.tunnel_offloads_caps |=
++				MLX5_IB_TUNNELED_OFFLOADS_GENEVE;
++		if (MLX5_CAP_ETH(mdev, tunnel_stateless_gre))
++			resp.tunnel_offloads_caps |=
++				MLX5_IB_TUNNELED_OFFLOADS_GRE;
 +	}
++
+ 	if (uhw->outlen) {
+ 		err = ib_copy_to_udata(uhw, &resp, resp.response_length);
  
- 	if (field_avail(typeof(resp), sw_parsing_caps,
- 			uhw->outlen)) {
-diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-index b1d5b87ba3fd..a8fc1f0956d0 100644
---- a/include/uapi/rdma/mlx5-abi.h
-+++ b/include/uapi/rdma/mlx5-abi.h
-@@ -203,6 +203,11 @@ struct mlx5_ib_striding_rq_caps {
- 	__u32 supported_qpts;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 2063d1dfc101..14b155413d7c 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -399,6 +399,7 @@ struct mlx5_ib_qp {
+ 	struct list_head	cq_send_list;
+ 	u32			rate_limit;
+ 	u32                     underlay_qpn;
++	bool			tunnel_offload_en;
  };
  
-+enum mlx5_ib_query_dev_resp_flags {
-+	/* Support 128B CQE compression */
-+	MLX5_IB_QUERY_DEV_RESP_FLAGS_CQE_128B_COMP = 1 << 0,
+ struct mlx5_ib_cq_buf {
+@@ -422,6 +423,7 @@ enum mlx5_ib_qp_flags {
+ 	MLX5_IB_QP_CVLAN_STRIPPING		= 1 << 9,
+ 	MLX5_IB_QP_UNDERLAY			= 1 << 10,
+ 	MLX5_IB_QP_SCATTER_END_PADDING		= 1 << 11,
++	MLX5_IB_QP_TUNNEL_OFFLOAD		= 1 << 12,
+ };
+ 
+ struct mlx5_umr_wr {
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 511d4fdcaaae..0f1106040a45 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1204,8 +1204,16 @@ static void destroy_raw_packet_qp_rq(struct mlx5_ib_dev *dev,
+ 	mlx5_core_destroy_rq_tracked(dev->mdev, &rq->base.mqp);
+ }
+ 
++static bool tunnel_offload_supported(struct mlx5_core_dev *dev)
++{
++	return  (MLX5_CAP_ETH(dev, tunnel_stateless_vxlan) ||
++		 MLX5_CAP_ETH(dev, tunnel_stateless_gre) ||
++		 MLX5_CAP_ETH(dev, tunnel_stateless_geneve_rx));
++}
++
+ static int create_raw_packet_qp_tir(struct mlx5_ib_dev *dev,
+-				    struct mlx5_ib_rq *rq, u32 tdn)
++				    struct mlx5_ib_rq *rq, u32 tdn,
++				    bool tunnel_offload_en)
+ {
+ 	u32 *in;
+ 	void *tirc;
+@@ -1221,6 +1229,8 @@ static int create_raw_packet_qp_tir(struct mlx5_ib_dev *dev,
+ 	MLX5_SET(tirc, tirc, disp_type, MLX5_TIRC_DISP_TYPE_DIRECT);
+ 	MLX5_SET(tirc, tirc, inline_rqn, rq->base.mqp.qpn);
+ 	MLX5_SET(tirc, tirc, transport_domain, tdn);
++	if (tunnel_offload_en)
++		MLX5_SET(tirc, tirc, tunneled_offload_en, 1);
+ 
+ 	err = mlx5_core_create_tir(dev->mdev, in, inlen, &rq->tirn);
+ 
+@@ -1273,7 +1283,8 @@ static int create_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 			goto err_destroy_sq;
+ 
+ 
+-		err = create_raw_packet_qp_tir(dev, rq, tdn);
++		err = create_raw_packet_qp_tir(dev, rq, tdn,
++					       qp->tunnel_offload_en);
+ 		if (err)
+ 			goto err_destroy_rq;
+ 	}
+@@ -1360,7 +1371,7 @@ static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	if (udata->outlen < min_resp_len)
+ 		return -EINVAL;
+ 
+-	required_cmd_sz = offsetof(typeof(ucmd), reserved1) + sizeof(ucmd.reserved1);
++	required_cmd_sz = offsetof(typeof(ucmd), flags) + sizeof(ucmd.flags);
+ 	if (udata->inlen < required_cmd_sz) {
+ 		mlx5_ib_dbg(dev, "invalid inlen\n");
+ 		return -EINVAL;
+@@ -1383,8 +1394,14 @@ static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+-	if (memchr_inv(ucmd.reserved, 0, sizeof(ucmd.reserved)) || ucmd.reserved1) {
+-		mlx5_ib_dbg(dev, "invalid reserved\n");
++	if (ucmd.flags & ~MLX5_QP_FLAG_TUNNEL_OFFLOADS) {
++		mlx5_ib_dbg(dev, "invalid flags\n");
++		return -EOPNOTSUPP;
++	}
++
++	if (ucmd.flags & MLX5_QP_FLAG_TUNNEL_OFFLOADS &&
++	    !tunnel_offload_supported(dev->mdev)) {
++		mlx5_ib_dbg(dev, "tunnel offloads isn't supported\n");
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+@@ -1407,6 +1424,10 @@ static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	MLX5_SET(tirc, tirc, transport_domain, tdn);
+ 
+ 	hfso = MLX5_ADDR_OF(tirc, tirc, rx_hash_field_selector_outer);
++
++	if (ucmd.flags & MLX5_QP_FLAG_TUNNEL_OFFLOADS)
++		MLX5_SET(tirc, tirc, tunneled_offload_en, 1);
++
+ 	switch (ucmd.rx_hash_function) {
+ 	case MLX5_RX_HASH_FUNC_TOEPLITZ:
+ 	{
+@@ -1606,6 +1627,14 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 
+ 		qp->wq_sig = !!(ucmd.flags & MLX5_QP_FLAG_SIGNATURE);
+ 		qp->scat_cqe = !!(ucmd.flags & MLX5_QP_FLAG_SCATTER_CQE);
++		if (ucmd.flags & MLX5_QP_FLAG_TUNNEL_OFFLOADS) {
++			if (init_attr->qp_type != IB_QPT_RAW_PACKET ||
++			    !tunnel_offload_supported(mdev)) {
++				mlx5_ib_dbg(dev, "Tunnel offload isn't supported\n");
++				return -EOPNOTSUPP;
++			}
++			qp->tunnel_offload_en = true;
++		}
+ 
+ 		if (init_attr->create_flags & IB_QP_CREATE_SOURCE_QPN) {
+ 			if (init_attr->qp_type != IB_QPT_UD ||
+diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
+index 201a60f032dd..791655ec4aff 100644
+--- a/include/uapi/rdma/mlx5-abi.h
++++ b/include/uapi/rdma/mlx5-abi.h
+@@ -39,6 +39,7 @@
+ enum {
+ 	MLX5_QP_FLAG_SIGNATURE		= 1 << 0,
+ 	MLX5_QP_FLAG_SCATTER_CQE	= 1 << 1,
++	MLX5_QP_FLAG_TUNNEL_OFFLOADS	= 1 << 2,
+ };
+ 
+ enum {
+@@ -209,6 +210,12 @@ enum mlx5_ib_query_dev_resp_flags {
+ 	MLX5_IB_QUERY_DEV_RESP_FLAGS_CQE_128B_PAD  = 1 << 1,
+ };
+ 
++enum mlx5_ib_tunnel_offloads {
++	MLX5_IB_TUNNELED_OFFLOADS_VXLAN  = 1 << 0,
++	MLX5_IB_TUNNELED_OFFLOADS_GRE    = 1 << 1,
++	MLX5_IB_TUNNELED_OFFLOADS_GENEVE = 1 << 2
 +};
 +
  struct mlx5_ib_query_device_resp {
  	__u32	comp_mask;
  	__u32	response_length;
-@@ -211,7 +216,7 @@ struct mlx5_ib_query_device_resp {
- 	struct	mlx5_ib_cqe_comp_caps cqe_comp_caps;
- 	struct	mlx5_packet_pacing_caps packet_pacing_caps;
- 	__u32	mlx5_ib_support_multi_pkt_send_wqes;
--	__u32	reserved;
-+	__u32	flags; /* Use enum mlx5_ib_query_dev_resp_flags */
+@@ -220,6 +227,8 @@ struct mlx5_ib_query_device_resp {
+ 	__u32	flags; /* Use enum mlx5_ib_query_dev_resp_flags */
  	struct mlx5_ib_sw_parsing_caps sw_parsing_caps;
  	struct mlx5_ib_striding_rq_caps striding_rq_caps;
++	__u32	tunnel_offloads_caps; /* enum mlx5_ib_tunnel_offloads */
++	__u32	reserved;
  };
+ 
+ enum mlx5_ib_create_cq_flags {
+@@ -304,7 +313,7 @@ struct mlx5_ib_create_qp_rss {
+ 	__u8 reserved[6];
+ 	__u8 rx_hash_key[128]; /* valid only for Toeplitz */
+ 	__u32   comp_mask;
+-	__u32   reserved1;
++	__u32	flags;
+ };
+ 
+ struct mlx5_ib_create_qp_resp {
 -- 
 2.14.2
 
