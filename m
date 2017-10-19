@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 06/16] IB/uverbs: Add create/destroy counter set support
-Date: Thu, 19 Oct 2017 17:41:48 +0300
-Message-ID: <1508424118-27205-7-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-next 12/16] net/mlx5: Expand mlx5_fc_query_cached to return absolute counters values
+Date: Thu, 19 Oct 2017 17:41:54 +0300
+Message-ID: <1508424118-27205-13-git-send-email-yishaih@mellanox.com>
 References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1508424118-27205-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,282 +12,95 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-User space application which uses counter set functionality,
-is expected to allocate/release the counter set hardware
-resources by calling create/destroy verbs and in turn get
-a unique handle that can be used to bind the counter set to
-its counted type so the hardware related counters could be
-queried.
+Currently mlx5_fc_query_cached returns counters values since last call,
+expands it to work with query flags, passing MLX5_FLOW_QUERY_CACHED_ABS
+flag will makes function to return counters absolute values.
 
-Downstream patches in this series will introduce the bind and the
-query functionality.
+This absolute mode will be used in downstream patches in this series.
 
 Signed-off-by: Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs.h           |   2 +
- drivers/infiniband/core/uverbs_cmd.c       | 117 +++++++++++++++++++++++++++++
- drivers/infiniband/core/uverbs_main.c      |   2 +
- drivers/infiniband/core/uverbs_std_types.c |  15 +++-
- include/rdma/uverbs_std_types.h            |   1 +
- include/uapi/rdma/ib_user_ioctl_verbs.h    |   1 +
- include/uapi/rdma/ib_user_verbs.h          |  25 ++++++
- 7 files changed, 162 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c       |  6 ++++--
+ drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c | 14 ++++++++++----
+ include/linux/mlx5/fs.h                               |  8 +++++++-
+ 3 files changed, 21 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 7a95153..e1e8379 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -308,5 +308,7 @@ struct ib_uverbs_flow_spec {
- IB_UVERBS_DECLARE_EX_CMD(modify_qp);
- IB_UVERBS_DECLARE_EX_CMD(modify_cq);
- IB_UVERBS_DECLARE_EX_CMD(describe_counter_set);
-+IB_UVERBS_DECLARE_EX_CMD(create_counter_set);
-+IB_UVERBS_DECLARE_EX_CMD(destroy_counter_set);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 1aa2028..37b3049 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -465,7 +465,8 @@ void mlx5e_tc_update_neigh_used_value(struct mlx5e_neigh_hash_entry *nhe)
+ 		list_for_each_entry(flow, &e->flows, encap) {
+ 			if (flow->flags & MLX5E_TC_FLOW_OFFLOADED) {
+ 				counter = mlx5_flow_rule_counter(flow->rule);
+-				mlx5_fc_query_cached(counter, &bytes, &packets, &lastuse);
++				mlx5_fc_query_cached(counter, &bytes, &packets, &lastuse,
++						     MLX5_FLOW_QUERY_CACHED_DIFF);
+ 				if (time_after((unsigned long)lastuse, nhe->reported_lastuse)) {
+ 					neigh_used = true;
+ 					break;
+@@ -2133,7 +2134,8 @@ int mlx5e_stats_flower(struct mlx5e_priv *priv,
+ 	if (!counter)
+ 		return 0;
  
- #endif /* UVERBS_H */
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 24775a5..b648c8f 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3984,3 +3984,120 @@ int ib_uverbs_ex_describe_counter_set(struct ib_uverbs_file *file,
- 	kfree(cs_describe_attr.counters_names_buff);
- 	return ret;
- }
-+
-+int ib_uverbs_ex_create_counter_set(struct ib_uverbs_file *file,
-+				    struct ib_device *ib_dev,
-+				    struct ib_udata *ucore,
-+				    struct ib_udata *uhw)
-+{
-+	struct ib_uverbs_ex_create_counter_set	cmd = {};
-+	struct ib_uverbs_ex_create_counter_set_resp	resp = {};
-+	struct ib_counter_set	*cs;
-+	struct ib_uobject	*uobj;
-+	size_t	required_resp_len;
-+	size_t	required_cmd_sz;
-+	int	ret = 0;
-+
-+	required_cmd_sz = offsetof(typeof(cmd), reserved) +
-+			sizeof(cmd.reserved);
-+	required_resp_len = offsetof(typeof(resp), reserved) +
-+			sizeof(resp.reserved);
-+
-+	if (ucore->inlen < required_cmd_sz)
-+		return -EINVAL;
-+
-+	if (ucore->outlen < required_resp_len)
-+		return -ENOSPC;
-+
-+	if (ucore->inlen > sizeof(cmd) &&
-+	    !ib_is_udata_cleared(ucore, sizeof(cmd),
-+			ucore->inlen - sizeof(cmd)))
-+		return -EOPNOTSUPP;
-+
-+	ret = ib_copy_from_udata(&cmd, ucore, min(sizeof(cmd), ucore->inlen));
-+	if (ret)
-+		return ret;
-+
-+	if (cmd.comp_mask || cmd.reserved)
-+		return -EOPNOTSUPP;
-+
-+	uobj = uobj_alloc(uobj_get_type(counter_set), file->ucontext);
-+	if (IS_ERR(uobj))
-+		return PTR_ERR(uobj);
-+
-+	cs = ib_dev->create_counter_set(ib_dev, cmd.cs_id, uhw);
-+	if (IS_ERR(cs)) {
-+		ret = PTR_ERR(cs);
-+		goto err_uobj;
-+	}
-+	uobj->object = cs;
-+	cs->device = ib_dev;
-+	cs->uobject = uobj;
-+	cs->cs_id = cmd.cs_id;
-+	atomic_set(&cs->usecnt, 0);
-+	resp.cs_handle = uobj->id;
-+	resp.response_length = required_resp_len;
-+	ret = ib_copy_to_udata(ucore,
-+			       &resp, required_resp_len);
-+	if (ret)
-+		goto err_copy;
-+
-+	uobj_alloc_commit(uobj);
-+
-+	return 0;
-+
-+err_copy:
-+	ib_destroy_counter_set(cs);
-+err_uobj:
-+	uobj_alloc_abort(uobj);
-+	return ret;
-+}
-+
-+int ib_uverbs_ex_destroy_counter_set(struct ib_uverbs_file *file,
-+				     struct ib_device *ib_dev,
-+				     struct ib_udata *ucore,
-+				     struct ib_udata *uhw)
-+{
-+	struct ib_uverbs_ex_destroy_counter_set	cmd = {};
-+	struct ib_uverbs_ex_destroy_counter_set_resp	resp = {};
-+	struct ib_uobject	*uobj;
-+	size_t	required_resp_len;
-+	size_t	required_cmd_sz;
-+	int	ret;
-+
-+	required_cmd_sz = offsetof(typeof(cmd), cs_handle) +
-+			sizeof(cmd.cs_handle);
-+	required_resp_len = offsetof(typeof(resp), response_length) +
-+			sizeof(resp.response_length);
-+
-+	if (ucore->inlen < required_cmd_sz)
-+		return -EINVAL;
-+
-+	if (ucore->outlen < required_resp_len)
-+		return -ENOSPC;
-+
-+	if (ucore->inlen > sizeof(cmd) &&
-+	    !ib_is_udata_cleared(ucore, sizeof(cmd),
-+			   ucore->inlen - sizeof(cmd)))
-+		return -EOPNOTSUPP;
-+
-+	ret = ib_copy_from_udata(&cmd, ucore, min(sizeof(cmd), ucore->inlen));
-+	if (ret)
-+		return ret;
-+
-+	if (cmd.comp_mask)
-+		return -EOPNOTSUPP;
-+
-+	uobj  = uobj_get_write(uobj_get_type(counter_set),
-+			       cmd.cs_handle,
-+			       file->ucontext);
-+	if (IS_ERR(uobj))
-+		return PTR_ERR(uobj);
-+
-+	ret = uobj_remove_commit(uobj);
-+	if (ret)
-+		return ret;
-+
-+	resp.response_length = required_resp_len;
-+	return ib_copy_to_udata(ucore, &resp, resp.response_length);
-+}
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 51b04bd..e9e575d 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -130,6 +130,8 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
- 	[IB_USER_VERBS_EX_CMD_MODIFY_QP]        = ib_uverbs_ex_modify_qp,
- 	[IB_USER_VERBS_EX_CMD_MODIFY_CQ]        = ib_uverbs_ex_modify_cq,
- 	[IB_USER_VERBS_EX_CMD_DESCRIBE_COUNTER_SET]	= ib_uverbs_ex_describe_counter_set,
-+	[IB_USER_VERBS_EX_CMD_CREATE_COUNTER_SET]	= ib_uverbs_ex_create_counter_set,
-+	[IB_USER_VERBS_EX_CMD_DESTROY_COUNTER_SET]	= ib_uverbs_ex_destroy_counter_set,
- };
+-	mlx5_fc_query_cached(counter, &bytes, &packets, &lastuse);
++	mlx5_fc_query_cached(counter, &bytes, &packets, &lastuse,
++			     MLX5_FLOW_QUERY_CACHED_DIFF);
  
- static void ib_uverbs_add_one(struct ib_device *device);
-diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
-index b095bce..b49cc75 100644
---- a/drivers/infiniband/core/uverbs_std_types.c
-+++ b/drivers/infiniband/core/uverbs_std_types.c
-@@ -190,6 +190,15 @@ static int uverbs_free_pd(struct ib_uobject *uobject,
- 	return 0;
+ 	tcf_exts_stats_update(f->exts, bytes, packets, lastuse);
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
+index f679eb0..2a5b2f4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
+@@ -315,16 +315,22 @@ void mlx5_cleanup_fc_stats(struct mlx5_core_dev *dev)
  }
  
-+static int uverbs_free_counter_set(struct ib_uobject *uobject,
-+				   enum rdma_remove_reason why)
-+{
-+	struct ib_counter_set *ib_cs =
-+			(struct ib_counter_set *)(uobject->object);
-+
-+	return ib_destroy_counter_set(ib_cs);
-+}
-+
- static int uverbs_hot_unplug_completion_event_file(struct ib_uobject_file *uobj_file,
- 						   enum rdma_remove_reason why)
+ void mlx5_fc_query_cached(struct mlx5_fc *counter,
+-			  u64 *bytes, u64 *packets, u64 *lastuse)
++			  u64 *bytes, u64 *packets, u64 *lastuse,
++			  enum mlx5_flow_query_cached_flags query_flags)
  {
-@@ -435,6 +444,9 @@ static DECLARE_UVERBS_METHOD(
- 		      /* 2 is used in order to free the PD after MRs */
- 		      &UVERBS_TYPE_ALLOC_IDR(2, uverbs_free_pd));
+ 	struct mlx5_fc_cache c;
  
-+DECLARE_UVERBS_OBJECT(uverbs_object_counter_set, UVERBS_OBJECT_COUNTER_SET,
-+		      &UVERBS_TYPE_ALLOC_IDR(0, uverbs_free_counter_set));
+ 	c = counter->cache;
+ 
+-	*bytes = c.bytes - counter->lastbytes;
+-	*packets = c.packets - counter->lastpackets;
+-	*lastuse = c.lastuse;
++	if (query_flags == MLX5_FLOW_QUERY_CACHED_ABS) {
++		*bytes = c.bytes;
++		*packets = c.packets;
++	} else {
++		*bytes = c.bytes - counter->lastbytes;
++		*packets = c.packets - counter->lastpackets;
++	}
+ 
++	*lastuse = c.lastuse;
+ 	counter->lastbytes = c.bytes;
+ 	counter->lastpackets = c.packets;
+ }
+diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
+index a4a715e..8e0331c 100644
+--- a/include/linux/mlx5/fs.h
++++ b/include/linux/mlx5/fs.h
+@@ -164,8 +164,14 @@ int mlx5_modify_rule_destination(struct mlx5_flow_handle *handler,
+ struct mlx5_fc *mlx5_flow_rule_counter(struct mlx5_flow_handle *handler);
+ struct mlx5_fc *mlx5_fc_create(struct mlx5_core_dev *dev, bool aging);
+ void mlx5_fc_destroy(struct mlx5_core_dev *dev, struct mlx5_fc *counter);
 +
- DECLARE_UVERBS_OBJECT(uverbs_object_device, UVERBS_OBJECT_DEVICE, NULL);
- 
- DECLARE_UVERBS_OBJECT_TREE(uverbs_default_objects,
-@@ -450,4 +462,5 @@ static DECLARE_UVERBS_METHOD(
- 			   &uverbs_object_flow,
- 			   &uverbs_object_wq,
- 			   &uverbs_object_rwq_ind_table,
--			   &uverbs_object_xrcd);
-+			   &uverbs_object_xrcd,
-+			   &uverbs_object_counter_set);
-diff --git a/include/rdma/uverbs_std_types.h b/include/rdma/uverbs_std_types.h
-index 5f8e20b..1690c52 100644
---- a/include/rdma/uverbs_std_types.h
-+++ b/include/rdma/uverbs_std_types.h
-@@ -51,6 +51,7 @@
- extern const struct uverbs_object_def uverbs_object_pd;
- extern const struct uverbs_object_def uverbs_object_xrcd;
- extern const struct uverbs_object_def uverbs_object_device;
-+extern const struct uverbs_object_def uverbs_object_counter_set;
- 
- extern const struct uverbs_object_tree_def uverbs_default_objects;
- static inline const struct uverbs_object_tree_def *uverbs_default_get_objects(void)
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index 842792e..1ab80ed 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -52,6 +52,7 @@ enum uverbs_default_objects {
- 	UVERBS_OBJECT_XRCD,
- 	UVERBS_OBJECT_RWQ_IND_TBL,
- 	UVERBS_OBJECT_WQ,
-+	UVERBS_OBJECT_COUNTER_SET,
- 	UVERBS_OBJECT_LAST,
- };
- 
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 0bed600..fa15ac0 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -103,6 +103,8 @@ enum {
- 	IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL,
- 	IB_USER_VERBS_EX_CMD_MODIFY_CQ,
- 	IB_USER_VERBS_EX_CMD_DESCRIBE_COUNTER_SET,
-+	IB_USER_VERBS_EX_CMD_CREATE_COUNTER_SET,
-+	IB_USER_VERBS_EX_CMD_DESTROY_COUNTER_SET,
- };
- 
- /*
-@@ -1187,6 +1189,29 @@ struct ib_uverbs_ex_describe_counter_set_resp {
- 	__u16 reserved;
- };
- 
-+struct ib_uverbs_ex_create_counter_set {
-+	__u32 comp_mask;
-+	__u16 cs_id;
-+	__u16 reserved;
++enum mlx5_flow_query_cached_flags {
++	MLX5_FLOW_QUERY_CACHED_DIFF = 0,
++	MLX5_FLOW_QUERY_CACHED_ABS = 1,
 +};
-+
-+struct ib_uverbs_ex_create_counter_set_resp {
-+	__u32 comp_mask;
-+	__u32 response_length;
-+	__u32 cs_handle;
-+	__u32 reserved;
-+};
-+
-+struct ib_uverbs_ex_destroy_counter_set  {
-+	__u32 comp_mask;
-+	__u32 cs_handle;
-+};
-+
-+struct ib_uverbs_ex_destroy_counter_set_resp {
-+	__u32 comp_mask;
-+	__u32 response_length;
-+};
-+
- #define IB_DEVICE_NAME_MAX 64
+ void mlx5_fc_query_cached(struct mlx5_fc *counter,
+-			  u64 *bytes, u64 *packets, u64 *lastuse);
++			  u64 *bytes, u64 *packets, u64 *lastuse,
++			  enum mlx5_flow_query_cached_flags query_flags);
+ int mlx5_cmd_fc_query(struct mlx5_core_dev *dev, u32 id,
+ 		      u64 *packets, u64 *bytes);
  
- #endif /* IB_USER_VERBS_H */
 -- 
 1.8.3.1
 
