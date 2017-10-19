@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 12/16] net/mlx5: Expand mlx5_fc_query_cached to return absolute counters values
-Date: Thu, 19 Oct 2017 17:41:54 +0300
-Message-ID: <1508424118-27205-13-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-next 01/16] IB/core: Expose max_counter_sets capability
+Date: Thu, 19 Oct 2017 17:41:43 +0300
+Message-ID: <1508424118-27205-2-git-send-email-yishaih@mellanox.com>
 References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1508424118-27205-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,95 +12,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Currently mlx5_fc_query_cached returns counters values since last call,
-expands it to work with query flags, passing MLX5_FLOW_QUERY_CACHED_ABS
-flag will makes function to return counters absolute values.
-
-This absolute mode will be used in downstream patches in this series.
+max_counter_sets represents the number of different counter sets
+exposed from the device.
+A valid counter set id must be in range of [0, max_counter_sets - 1],
+it will be used with counter set verbs in downstream patches in
+this series.
 
 Signed-off-by: Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c       |  6 ++++--
- drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c | 14 ++++++++++----
- include/linux/mlx5/fs.h                               |  8 +++++++-
- 3 files changed, 21 insertions(+), 7 deletions(-)
+ include/rdma/ib_verbs.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-index 1aa2028..37b3049 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-@@ -465,7 +465,8 @@ void mlx5e_tc_update_neigh_used_value(struct mlx5e_neigh_hash_entry *nhe)
- 		list_for_each_entry(flow, &e->flows, encap) {
- 			if (flow->flags & MLX5E_TC_FLOW_OFFLOADED) {
- 				counter = mlx5_flow_rule_counter(flow->rule);
--				mlx5_fc_query_cached(counter, &bytes, &packets, &lastuse);
-+				mlx5_fc_query_cached(counter, &bytes, &packets, &lastuse,
-+						     MLX5_FLOW_QUERY_CACHED_DIFF);
- 				if (time_after((unsigned long)lastuse, nhe->reported_lastuse)) {
- 					neigh_used = true;
- 					break;
-@@ -2133,7 +2134,8 @@ int mlx5e_stats_flower(struct mlx5e_priv *priv,
- 	if (!counter)
- 		return 0;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index e1d027a..0cc880d 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -371,6 +371,7 @@ struct ib_device_attr {
+ 	u32			raw_packet_caps; /* Use ib_raw_packet_caps enum */
+ 	struct ib_tm_caps	tm_caps;
+ 	struct ib_cq_caps       cq_caps;
++	u16			max_counter_sets;
+ };
  
--	mlx5_fc_query_cached(counter, &bytes, &packets, &lastuse);
-+	mlx5_fc_query_cached(counter, &bytes, &packets, &lastuse,
-+			     MLX5_FLOW_QUERY_CACHED_DIFF);
- 
- 	tcf_exts_stats_update(f->exts, bytes, packets, lastuse);
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
-index f679eb0..2a5b2f4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
-@@ -315,16 +315,22 @@ void mlx5_cleanup_fc_stats(struct mlx5_core_dev *dev)
- }
- 
- void mlx5_fc_query_cached(struct mlx5_fc *counter,
--			  u64 *bytes, u64 *packets, u64 *lastuse)
-+			  u64 *bytes, u64 *packets, u64 *lastuse,
-+			  enum mlx5_flow_query_cached_flags query_flags)
- {
- 	struct mlx5_fc_cache c;
- 
- 	c = counter->cache;
- 
--	*bytes = c.bytes - counter->lastbytes;
--	*packets = c.packets - counter->lastpackets;
--	*lastuse = c.lastuse;
-+	if (query_flags == MLX5_FLOW_QUERY_CACHED_ABS) {
-+		*bytes = c.bytes;
-+		*packets = c.packets;
-+	} else {
-+		*bytes = c.bytes - counter->lastbytes;
-+		*packets = c.packets - counter->lastpackets;
-+	}
- 
-+	*lastuse = c.lastuse;
- 	counter->lastbytes = c.bytes;
- 	counter->lastpackets = c.packets;
- }
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index a4a715e..8e0331c 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -164,8 +164,14 @@ int mlx5_modify_rule_destination(struct mlx5_flow_handle *handler,
- struct mlx5_fc *mlx5_flow_rule_counter(struct mlx5_flow_handle *handler);
- struct mlx5_fc *mlx5_fc_create(struct mlx5_core_dev *dev, bool aging);
- void mlx5_fc_destroy(struct mlx5_core_dev *dev, struct mlx5_fc *counter);
-+
-+enum mlx5_flow_query_cached_flags {
-+	MLX5_FLOW_QUERY_CACHED_DIFF = 0,
-+	MLX5_FLOW_QUERY_CACHED_ABS = 1,
-+};
- void mlx5_fc_query_cached(struct mlx5_fc *counter,
--			  u64 *bytes, u64 *packets, u64 *lastuse);
-+			  u64 *bytes, u64 *packets, u64 *lastuse,
-+			  enum mlx5_flow_query_cached_flags query_flags);
- int mlx5_cmd_fc_query(struct mlx5_core_dev *dev, u32 id,
- 		      u64 *packets, u64 *bytes);
- 
+ enum ib_mtu {
 -- 
 1.8.3.1
 
