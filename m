@@ -1,137 +1,152 @@
-From: Long Li <longli@exchange.microsoft.com>
-Subject: [Patch v5 01/21] CIFS: SMBD: Add SMB Direct protocol initial values and constants
-Date: Wed, 18 Oct 2017 16:09:00 -0700
-Message-ID: <20171018230920.21042-2-longli@exchange.microsoft.com>
-References: <20171018230920.21042-1-longli@exchange.microsoft.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171018230920.21042-1-longli@exchange.microsoft.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Tom Talpey <ttalpey@microsoft.com>, Matthew Wilcox <mawilcox@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Long Li <longli@microsoft.com>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH for-next] RDMA/hns: Add modify CQ support for hip08
+Date: Thu, 19 Oct 2017 11:52:40 +0800
+Message-ID: <1508385160-130435-1-git-send-email-oulijun@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Long Li <longli@microsoft.com>
+It is needed to call modify cq API for modifying cq
+context fields for controlling event generation
+moderations. This patch mainly adds it.
 
-To prepare for protocol implementation, add constants and user-configurable
-values for the SMB Direct protocol.
-
-Signed-off-by: Long Li <longli@microsoft.com>
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- fs/cifs/smbdirect.c | 77 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- fs/cifs/smbdirect.h | 21 +++++++++++++++
- 2 files changed, 98 insertions(+)
- create mode 100644 fs/cifs/smbdirect.c
- create mode 100644 fs/cifs/smbdirect.h
+ drivers/infiniband/hw/hns/hns_roce_cmd.h    |  1 +
+ drivers/infiniband/hw/hns/hns_roce_device.h |  1 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  6 +++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 42 +++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hns/hns_roce_main.c   |  1 +
+ 5 files changed, 51 insertions(+)
 
-diff --git a/fs/cifs/smbdirect.c b/fs/cifs/smbdirect.c
-new file mode 100644
-index 0000000..d3c16f8
---- /dev/null
-+++ b/fs/cifs/smbdirect.c
-@@ -0,0 +1,77 @@
-+/*
-+ *   Copyright (C) 2017, Microsoft Corporation.
-+ *
-+ *   Author(s): Long Li <longli@microsoft.com>
-+ *
-+ *   This program is free software;  you can redistribute it and/or modify
-+ *   it under the terms of the GNU General Public License as published by
-+ *   the Free Software Foundation; either version 2 of the License, or
-+ *   (at your option) any later version.
-+ *
-+ *   This program is distributed in the hope that it will be useful,
-+ *   but WITHOUT ANY WARRANTY;  without even the implied warranty of
-+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
-+ *   the GNU General Public License for more details.
-+ */
-+#include "smbdirect.h"
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.h b/drivers/infiniband/hw/hns/hns_roce_cmd.h
+index 77299ae5..f0039a7 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cmd.h
++++ b/drivers/infiniband/hw/hns/hns_roce_cmd.h
+@@ -52,6 +52,7 @@ enum {
+ 	HNS_ROCE_CMD_MODIFY_QPC		= 0x41,
+ 	HNS_ROCE_CMD_QUERY_QPC		= 0x42,
+ 
++	HNS_ROCE_CMD_MODIFY_CQC		= 0x52,
+ 	/* CQC BT commands */
+ 	HNS_ROCE_CMD_WRITE_CQC_BT0	= 0x10,
+ 	HNS_ROCE_CMD_WRITE_CQC_BT1	= 0x11,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index b314ac0..862ab75 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -607,6 +607,7 @@ struct hns_roce_hw {
+ 	int (*poll_cq)(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
+ 	int (*dereg_mr)(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr);
+ 	int (*destroy_cq)(struct ib_cq *ibcq);
++	int (*modify_cq)(struct ib_cq *cq, u16 cq_count, u16 cq_period);
+ };
+ 
+ struct hns_roce_dev {
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index a5693d4..8311a5f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -2113,6 +2113,11 @@ static void hns_roce_v1_write_cqc(struct hns_roce_dev *hr_dev,
+ 	cq_context->cqc_byte_32 = cpu_to_le32(cq_context->cqc_byte_32);
+ }
+ 
++static int hns_roce_v1_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
++{
++	return -EOPNOTSUPP;
++}
 +
-+/* SMBD version number */
-+#define SMBD_V1	0x0100
+ static int hns_roce_v1_req_notify_cq(struct ib_cq *ibcq,
+ 				     enum ib_cq_notify_flags flags)
+ {
+@@ -3963,6 +3968,7 @@ static int hns_roce_v1_destroy_cq(struct ib_cq *ibcq)
+ 	.set_mtu = hns_roce_v1_set_mtu,
+ 	.write_mtpt = hns_roce_v1_write_mtpt,
+ 	.write_cqc = hns_roce_v1_write_cqc,
++	.modify_cq = hns_roce_v1_modify_cq,
+ 	.clear_hem = hns_roce_v1_clear_hem,
+ 	.modify_qp = hns_roce_v1_modify_qp,
+ 	.query_qp = hns_roce_v1_query_qp,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index ff61f30..aec6ef5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2993,6 +2993,47 @@ static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp)
+ 	return 0;
+ }
+ 
++static int hns_roce_v2_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
++{
++	struct hns_roce_dev *hr_dev = to_hr_dev(cq->device);
++	struct hns_roce_v2_cq_context *cq_context;
++	struct hns_roce_cq *hr_cq = to_hr_cq(cq);
++	struct hns_roce_v2_cq_context *cqc_mask;
++	struct hns_roce_cmd_mailbox *mailbox;
++	int ret;
 +
-+/* Port numbers for SMBD transport */
-+#define SMB_PORT	445
-+#define SMBD_PORT	5445
++	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
++	if (IS_ERR(mailbox))
++		return PTR_ERR(mailbox);
 +
-+/* Address lookup and resolve timeout in ms */
-+#define RDMA_RESOLVE_TIMEOUT	5000
++	cq_context = mailbox->buf;
++	cqc_mask = (struct hns_roce_v2_cq_context *)mailbox->buf + 1;
 +
-+/* SMBD negotiation timeout in seconds */
-+#define SMBD_NEGOTIATE_TIMEOUT	120
++	memset(cqc_mask, 0xff, sizeof(*cqc_mask));
 +
-+/* SMBD minimum receive size and fragmented sized defined in [MS-SMBD] */
-+#define SMBD_MIN_RECEIVE_SIZE		128
-+#define SMBD_MIN_FRAGMENTED_SIZE	131072
++	roce_set_field(cq_context->byte_56_cqe_period_maxcnt,
++		       V2_CQC_BYTE_56_CQ_MAX_CNT_M, V2_CQC_BYTE_56_CQ_MAX_CNT_S,
++		       cq_count);
++	roce_set_field(cqc_mask->byte_56_cqe_period_maxcnt,
++		       V2_CQC_BYTE_56_CQ_MAX_CNT_M, V2_CQC_BYTE_56_CQ_MAX_CNT_S,
++		       0);
++	roce_set_field(cq_context->byte_56_cqe_period_maxcnt,
++		       V2_CQC_BYTE_56_CQ_PERIOD_M, V2_CQC_BYTE_56_CQ_PERIOD_S,
++		       cq_period);
++	roce_set_field(cqc_mask->byte_56_cqe_period_maxcnt,
++		       V2_CQC_BYTE_56_CQ_PERIOD_M, V2_CQC_BYTE_56_CQ_PERIOD_S,
++		       0);
 +
-+/*
-+ * Default maximum number of RDMA read/write outstanding on this connection
-+ * This value is possibly decreased during QP creation on hardware limit
-+ */
-+#define SMBD_CM_RESPONDER_RESOURCES	32
++	ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0, hr_cq->cqn, 1,
++				HNS_ROCE_CMD_MODIFY_CQC,
++				HNS_ROCE_CMD_TIMEOUT_MSECS);
++	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
++	if (ret)
++		dev_err(hr_dev->dev, "MODIFY CQ Failed to cmd mailbox.\n");
 +
-+/* Maximum number of retries on data transfer operations */
-+#define SMBD_CM_RETRY			6
-+/* No need to retry on Receiver Not Ready since SMBD manages credits */
-+#define SMBD_CM_RNR_RETRY		0
++	return ret;
++}
 +
-+/*
-+ * User configurable initial values per SMBD transport connection
-+ * as defined in [MS-SMBD] 3.1.1.1
-+ * Those may change after a SMBD negotiation
-+ */
-+/* The local peer's maximum number of credits to grant to the peer */
-+int smbd_receive_credit_max = 255;
-+
-+/* The remote peer's credit request of local peer */
-+int smbd_send_credit_target = 255;
-+
-+/* The maximum single message size can be sent to remote peer */
-+int smbd_max_send_size = 1364;
-+
-+/*  The maximum fragmented upper-layer payload receive size supported */
-+int smbd_max_fragmented_recv_size = 1024 * 1024;
-+
-+/*  The maximum single-message size which can be received */
-+int smbd_max_receive_size = 8192;
-+
-+/* The timeout to initiate send of a keepalive message on idle */
-+int smbd_keep_alive_interval = 120;
-+
-+/*
-+ * User configurable initial values for RDMA transport
-+ * The actual values used may be lower and are limited to hardware capabilities
-+ */
-+/* Default maximum number of SGEs in a RDMA write/read */
-+int smbd_max_frmr_depth = 2048;
-+
-+/* If payload is less than this byte, use RDMA send/recv not read/write */
-+int rdma_readwrite_threshold = 4096;
-diff --git a/fs/cifs/smbdirect.h b/fs/cifs/smbdirect.h
-new file mode 100644
-index 0000000..c55f28b
---- /dev/null
-+++ b/fs/cifs/smbdirect.h
-@@ -0,0 +1,21 @@
-+/*
-+ *   Copyright (C) 2017, Microsoft Corporation.
-+ *
-+ *   Author(s): Long Li <longli@microsoft.com>
-+ *
-+ *   This program is free software;  you can redistribute it and/or modify
-+ *   it under the terms of the GNU General Public License as published by
-+ *   the Free Software Foundation; either version 2 of the License, or
-+ *   (at your option) any later version.
-+ *
-+ *   This program is distributed in the hope that it will be useful,
-+ *   but WITHOUT ANY WARRANTY;  without even the implied warranty of
-+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
-+ *   the GNU General Public License for more details.
-+ */
-+#ifndef _SMBDIRECT_H
-+#define _SMBDIRECT_H
-+
-+/* Default maximum number of SGEs in a RDMA send/recv */
-+#define SMBDIRECT_MAX_SGE	16
-+#endif
+ static const struct hns_roce_hw hns_roce_hw_v2 = {
+ 	.cmq_init = hns_roce_v2_cmq_init,
+ 	.cmq_exit = hns_roce_v2_cmq_exit,
+@@ -3008,6 +3049,7 @@ static int hns_roce_v2_destroy_qp(struct ib_qp *ibqp)
+ 	.modify_qp = hns_roce_v2_modify_qp,
+ 	.query_qp = hns_roce_v2_query_qp,
+ 	.destroy_qp = hns_roce_v2_destroy_qp,
++	.modify_cq = hns_roce_v2_modify_cq,
+ 	.post_send = hns_roce_v2_post_send,
+ 	.post_recv = hns_roce_v2_post_recv,
+ 	.req_notify_cq = hns_roce_v2_req_notify_cq,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 3dcb2df..31120fd 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -499,6 +499,7 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
+ 
+ 	/* CQ */
+ 	ib_dev->create_cq		= hns_roce_ib_create_cq;
++	ib_dev->modify_cq		= hr_dev->hw->modify_cq;
+ 	ib_dev->destroy_cq		= hns_roce_ib_destroy_cq;
+ 	ib_dev->req_notify_cq		= hr_dev->hw->req_notify_cq;
+ 	ib_dev->poll_cq			= hr_dev->hw->poll_cq;
 -- 
-2.7.4
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
