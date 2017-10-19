@@ -1,150 +1,122 @@
 From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from misinterpreted
  flag
-Date: Thu, 19 Oct 2017 17:41:06 -0400
-Message-ID: <20171019214104.26124.56490.stgit@phlsvslse11.ph.intel.com>
-References: <20171019213859.26124.37851.stgit@phlsvslse11.ph.intel.com>
+Date: Thu, 19 Oct 2017 17:40:59 -0400
+Message-ID: <20171019213859.26124.37851.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171019213859.26124.37851.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+I was playing with the ibacm service and discovered an issue
+the other day.
 
-rdma_nl_rcv_msg() checks to see if it should use the .dump() callback
-or the .doit() callback.  The check is done with this check:
+If no provider library is present (I removed libacmp.so, and the
+provider keyword in the opts.cfg file is libacmp), when a resolve
+request is posted, the kernel will crash with the following Oops:
 
-if (flags & NLM_F_DUMP) ...
+BUG: unable to handle kernel NULL pointer dereference at (null)
+IP:           (null)
+PGD 10543f1067 P4D 10543f1067 PUD 1033f93067 PMD 0
+Oops: 0010 [#1] SMP
+Modules linked in: rpcrdma ib_isert iscsi_target_mod
+ target_core_mod ib_iser libiscsi scsi_transport_iscsi ib_ipoib rdma_ucm ib_u
+ ib_uverbs ib_umad rdma_cm ib_cm iw_cm dm_mirror dm_region_hash dm_log dm_mod
+ dax sb_edac x86_pkg_temp_thermal intel_powerclamp coretemp kvm irqbypass
+ crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc aesni_intel crypto_si
+ glue_helper cryptd hfi1 rdmavt iTCO_wdt iTCO_vendor_support ib_core mei_me
+ lpc_ich pcspkr mei ioatdma sg shpchp i2c_i801 mfd_core wmi ipmi_si ipmi_devi
+ ipmi_msghandler acpi_power_meter acpi_pad nfsd auth_rpcgss nfs_acl lockd gra
+ sunrpc ip_tables ext4 mbcache jbd2 sd_mod mgag200 drm_kms_helper syscopyarea
+ sysfillrect sysimgblt fb_sys_fops ttm igb ahci crc32c_intel ptp libahci
+ pps_core drm dca libata i2c_algo_bit i2c_core
+CPU: 54 PID: 9841 Comm: ibacm Tainted: G          I    4.14.0-rc2+ #6
+Hardware name: Intel Corporation S2600WT2/S2600WT2, BIOS     SE5C610.86B.01.01.0008.021120151325 02/11/2015
+task: ffff880855f42d00 task.stack: ffffc900246b4000
+RIP: 0010:          (null)
+RSP: 0018:ffffc900246b7bc8 EFLAGS: 00010246
+RAX: ffffffff81dbe9e0 RBX: ffff881058bb1000 RCX: 0000000000000000
+RDX: 0000000000001100 RSI: ffff881058bb1320 RDI: ffff881056362000
+RBP: ffffc900246b7bf8 R08: 0000000000000ec0 R09: 0000000000001100
+R10: ffff8810573a5000 R11: 0000000000000000 R12: ffff881056362000
+R13: 0000000000000ec0 R14: ffff881058bb1320 R15: 0000000000000ec0
+FS:  00007fe0ba5a38c0(0000) GS:ffff88105f080000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 0000001056f5d003 CR4: 00000000001606e0
+Call Trace:
+ ? netlink_dump+0x12c/0x290
+ __netlink_dump_start+0x186/0x1f0
+ rdma_nl_rcv_msg+0x193/0x1b0 [ib_core]
+ rdma_nl_rcv+0xdc/0x130 [ib_core]
+ netlink_unicast+0x181/0x240
+ netlink_sendmsg+0x2c2/0x3b0
+ sock_sendmsg+0x38/0x50
+ SYSC_sendto+0x102/0x190
+ ? __audit_syscall_entry+0xaf/0x100
+ ? syscall_trace_enter+0x1d0/0x2b0
+ ? __audit_syscall_exit+0x209/0x290
+ SyS_sendto+0xe/0x10
+ do_syscall_64+0x67/0x1b0
+ entry_SYSCALL64_slow_path+0x25/0x25
+RIP: 0033:0x7fe0b9db2a63
+RSP: 002b:00007ffc55edc260 EFLAGS: 00000293 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 0000000000000010 RCX: 00007fe0b9db2a63
+RDX: 0000000000000010 RSI: 00007ffc55edc280 RDI: 000000000000000d
+RBP: 00007ffc55edc670 R08: 00007ffc55edc270 R09: 000000000000000c
+R10: 0000000000000000 R11: 0000000000000293 R12: 00007ffc55edc280
+R13: 000000000260b400 R14: 000000000000000d R15: 0000000000000001
+Code:  Bad RIP value.
+RIP:           (null) RSP: ffffc900246b7bc8
+CR2: 0000000000000000
+---[ end trace 8d67abcfd10ec209 ]---
+Kernel panic - not syncing: Fatal exception
+Kernel Offset: disabled
+---[ end Kernel panic - not syncing: Fatal exception
+------------[ cut here ]------------
 
-The NLM_F_DUMP flag is two bits (NLM_F_ROOT | NLM_F_MATCH).
+The issue is that in rdma_nl_rcv_msg(), the check
+'if (flags & NLM_F_DUMP)' is not completely correct.
+    
+NLM_F_DUMP is two bits NLM_F_ROOT | NLM_F_MATCH.
 
-When an RDMA_NL_LS messages is received, the bit used for indicating
-an error is the same bit as NLM_F_ROOT.
+ibacm sends a RDMA_NL_LS response with the RDMA_NL_LS_F_ERR bit set
+if an error occurs in the service (like no provider being available,
+or ACM_STATUS_ENODATA, etc.).
 
 NLM_F_ROOT == (0x100) == RDMA_NL_LS_F_ERR.
+    
+The current code thinks that it sees a NLM_F_DUMP flag and incorrectly calls
+the .dump() callback.
 
-ibacm sends a response with the RDMA_NL_LS_F_ERR bit set if an error
-occurs in the service.  The current code then misinterprets the
-NLM_F_DUMP bit and trys to call the .dump() callback.
+The included patch is an atempt to fix this issue.  This patch fixes the
+issue that I am seeing, but I am not sure how to test the messages for
+RDMA_NL_RDMA_CM or RDMA_NL_IWCM (or any message that uses the
+NLM_F_DUMP bits).
 
-If the .dump() callback for the specified request is not available
-(which is true for the RDMA_NL_LS messages) the following Oops occurs:
+If anyone has some knowledge of these services, any extra testing would
+be welcomed.
 
-[ 4555.960256] BUG: unable to handle kernel NULL pointer dereference at
-   (null)
-[ 4555.969046] IP:           (null)
-[ 4555.972664] PGD 10543f1067 P4D 10543f1067 PUD 1033f93067 PMD 0
-[ 4555.979287] Oops: 0010 [#1] SMP
-[ 4555.982809] Modules linked in: rpcrdma ib_isert iscsi_target_mod
-target_core_mod ib_iser libiscsi scsi_transport_iscsi ib_ipoib rdma_ucm ib_ucm
-ib_uverbs ib_umad rdma_cm ib_cm iw_cm dm_mirror dm_region_hash dm_log dm_mod
-dax sb_edac x86_pkg_temp_thermal intel_powerclamp coretemp kvm irqbypass
-crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc aesni_intel crypto_simd
-glue_helper cryptd hfi1 rdmavt iTCO_wdt iTCO_vendor_support ib_core mei_me
-lpc_ich pcspkr mei ioatdma sg shpchp i2c_i801 mfd_core wmi ipmi_si ipmi_devintf
-ipmi_msghandler acpi_power_meter acpi_pad nfsd auth_rpcgss nfs_acl lockd grace
-sunrpc ip_tables ext4 mbcache jbd2 sd_mod mgag200 drm_kms_helper syscopyarea
-sysfillrect sysimgblt fb_sys_fops ttm igb ahci crc32c_intel ptp libahci
-pps_core drm dca libata i2c_algo_bit i2c_core
-[ 4556.061190] CPU: 54 PID: 9841 Comm: ibacm Tainted: G          I
-4.14.0-rc2+ #6
-[ 4556.069667] Hardware name: Intel Corporation S2600WT2/S2600WT2, BIOS
-SE5C610.86B.01.01.0008.021120151325 02/11/2015
-[ 4556.081339] task: ffff880855f42d00 task.stack: ffffc900246b4000
-[ 4556.087967] RIP: 0010:          (null)
-[ 4556.092166] RSP: 0018:ffffc900246b7bc8 EFLAGS: 00010246
-[ 4556.098018] RAX: ffffffff81dbe9e0 RBX: ffff881058bb1000 RCX:
-0000000000000000
-[ 4556.105997] RDX: 0000000000001100 RSI: ffff881058bb1320 RDI:
-ffff881056362000
-[ 4556.113984] RBP: ffffc900246b7bf8 R08: 0000000000000ec0 R09:
-0000000000001100
-[ 4556.121971] R10: ffff8810573a5000 R11: 0000000000000000 R12:
-ffff881056362000
-[ 4556.129957] R13: 0000000000000ec0 R14: ffff881058bb1320 R15:
-0000000000000ec0
-[ 4556.137945] FS:  00007fe0ba5a38c0(0000) GS:ffff88105f080000(0000)
-knlGS:0000000000000000
-[ 4556.147000] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 4556.153433] CR2: 0000000000000000 CR3: 0000001056f5d003 CR4:
-00000000001606e0
-[ 4556.161419] Call Trace:
-[ 4556.164167]  ? netlink_dump+0x12c/0x290
-[ 4556.168468]  __netlink_dump_start+0x186/0x1f0
-[ 4556.173357]  rdma_nl_rcv_msg+0x193/0x1b0 [ib_core]
-[ 4556.178724]  rdma_nl_rcv+0xdc/0x130 [ib_core]
-[ 4556.183604]  netlink_unicast+0x181/0x240
-[ 4556.187998]  netlink_sendmsg+0x2c2/0x3b0
-[ 4556.192392]  sock_sendmsg+0x38/0x50
-[ 4556.196299]  SYSC_sendto+0x102/0x190
-[ 4556.200308]  ? __audit_syscall_entry+0xaf/0x100
-[ 4556.205387]  ? syscall_trace_enter+0x1d0/0x2b0
-[ 4556.210366]  ? __audit_syscall_exit+0x209/0x290
-[ 4556.215442]  SyS_sendto+0xe/0x10
-[ 4556.219060]  do_syscall_64+0x67/0x1b0
-[ 4556.223165]  entry_SYSCALL64_slow_path+0x25/0x25
-[ 4556.228328] RIP: 0033:0x7fe0b9db2a63
-[ 4556.232333] RSP: 002b:00007ffc55edc260 EFLAGS: 00000293 ORIG_RAX:
-000000000000002c
-[ 4556.240808] RAX: ffffffffffffffda RBX: 0000000000000010 RCX:
-00007fe0b9db2a63
-[ 4556.248796] RDX: 0000000000000010 RSI: 00007ffc55edc280 RDI:
-000000000000000d
-[ 4556.256782] RBP: 00007ffc55edc670 R08: 00007ffc55edc270 R09:
-000000000000000c
-[ 4556.265321] R10: 0000000000000000 R11: 0000000000000293 R12:
-00007ffc55edc280
-[ 4556.273846] R13: 000000000260b400 R14: 000000000000000d R15:
-0000000000000001
-[ 4556.282368] Code:  Bad RIP value.
-[ 4556.286629] RIP:           (null) RSP: ffffc900246b7bc8
-[ 4556.293013] CR2: 0000000000000000
-[ 4556.297292] ---[ end trace 8d67abcfd10ec209 ]---
-[ 4556.305465] Kernel panic - not syncing: Fatal exception
-[ 4556.313786] Kernel Offset: disabled
-[ 4556.321563] ---[ end Kernel panic - not syncing: Fatal exception
-[ 4556.328960] ------------[ cut here ]------------
+If the patch has no issues or comments, I will formally re-submit it
+(through my usual channel Denny).
 
-Only check for NLM_F_DUMP bits if the index != RDMA_NL_LS.
+Thanks,
 
-Additionally, make sure that the .dump() callback is not NULL
-before calling it.
+Mike
 
-INTERNAL: PR 140882 - Machine unusable after doing ping
 
-Change-Id: Ia589658d109d72d927857ecb1ab79babe84da895
-Fixes: 647c75ac59a48a54 ("RDMA/netlink: Convert LS to doit callback")
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+
+Michael J. Ruhl (1):
+      RDMA/netlink: OOPs in rdma_nl_rcv_msg() from misinterpreted flag
+
+
  drivers/infiniband/core/netlink.c |    7 +++++--
  1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index b12e587..7133947 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -176,11 +176,14 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
- 		return -EPERM;
- 
- 	/* FIXME: Convert IWCM to properly handle doit callbacks */
--	if ((nlh->nlmsg_flags & NLM_F_DUMP) || index == RDMA_NL_RDMA_CM ||
--	    index == RDMA_NL_IWCM) {
-+	if ((index != RDMA_NL_LS) &&
-+	    ((nlh->nlmsg_flags & NLM_F_DUMP) || index == RDMA_NL_RDMA_CM ||
-+	     index == RDMA_NL_IWCM)) {
- 		struct netlink_dump_control c = {
- 			.dump = cb_table[op].dump,
- 		};
-+		if (!c.dump)
-+			return 0;
- 		return netlink_dump_start(nls, skb, nlh, &c);
- 	}
- 
+-- 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
