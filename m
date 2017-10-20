@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 8/9] xprtrdma: RPC completion should wait for Send completion
-Date: Fri, 20 Oct 2017 10:48:36 -0400
-Message-ID: <20171020144836.14869.58073.stgit@manet.1015granger.net>
+Subject: [PATCH 9/9] xprtrdma: Remove atomic send completion counting
+Date: Fri, 20 Oct 2017 10:48:45 -0400
+Message-ID: <20171020144844.14869.66895.stgit@manet.1015granger.net>
 References: <20171020143635.14869.15714.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,169 +13,104 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When an RPC Call includes a file data payload, that payload can come
-from pages in the page cache, or a user buffer (for direct I/O).
-
-If the payload can fit inline, xprtrdma includes it in the Send
-using a scatter-gather technique. xprtrdma mustn't allow the RPC
-consumer to re-use the memory where that payload resides before the
-Send completes. Otherwise, the new contents of that memory would be
-exposed by an HCA retransmit of the Send operation.
-
-So, block RPC completion on Send completion, but only in the case
-where a separate file data payload is part of the Send. This
-prevents the reuse of that memory while it is still part of a Send
-operation without an undue cost to other cases.
-
-Waiting is avoided in the common case because typically the Send
-will have completed long before the RPC Reply arrives.
-
-These days, an RPC timeout will trigger a disconnect, which tears
-down the QP. The disconnect flushes all waiting Sends. This bounds
-the amount of time the reply handler has to wait for a Send
-completion.
+The sendctx circular queue now guarantees that xprtrdma cannot
+overflow the Send Queue, so remove the remaining bits of the
+original Send WQE counting mechanism.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c  |   26 +++++++++++++++++++++++++-
- net/sunrpc/xprtrdma/transport.c |    5 +++--
- net/sunrpc/xprtrdma/verbs.c     |    3 ++-
- net/sunrpc/xprtrdma/xprt_rdma.h |    4 ++++
- 4 files changed, 34 insertions(+), 4 deletions(-)
+ net/sunrpc/xprtrdma/frwr_ops.c  |    8 --------
+ net/sunrpc/xprtrdma/verbs.c     |    4 ----
+ net/sunrpc/xprtrdma/xprt_rdma.h |   21 ---------------------
+ 3 files changed, 33 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 853dede..4fdeaac 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -534,6 +534,11 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
- 	for (count = sc->sc_unmap_count; count; ++sge, --count)
- 		ib_dma_unmap_page(ia->ri_device,
- 				  sge->addr, sge->length, DMA_TO_DEVICE);
-+
-+	if (test_and_clear_bit(RPCRDMA_REQ_F_TX_RESOURCES, &sc->sc_req->rl_flags)) {
-+		smp_mb__after_atomic();
-+		wake_up_bit(&sc->sc_req->rl_flags, RPCRDMA_REQ_F_TX_RESOURCES);
-+	}
- }
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 3053fb0..404166a 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -419,7 +419,6 @@
+ 			 IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
+ 			 IB_ACCESS_REMOTE_READ;
  
- /* Prepare an SGE for the RPC-over-RDMA transport header.
-@@ -667,6 +672,8 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
+-	rpcrdma_set_signaled(&r_xprt->rx_ep, &reg_wr->wr);
+ 	rc = ib_post_send(ia->ri_id->qp, &reg_wr->wr, &bad_wr);
+ 	if (rc)
+ 		goto out_senderr;
+@@ -507,12 +506,6 @@
+ 	f->fr_cqe.done = frwr_wc_localinv_wake;
+ 	reinit_completion(&f->fr_linv_done);
  
- out:
- 	sc->sc_wr.num_sge += sge_no;
-+	if (sc->sc_unmap_count)
-+		__set_bit(RPCRDMA_REQ_F_TX_RESOURCES, &req->rl_flags);
- 	return true;
- 
- out_regbuf:
-@@ -704,6 +711,8 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
- 		return -ENOBUFS;
- 	req->rl_sendctx->sc_wr.num_sge = 0;
- 	req->rl_sendctx->sc_unmap_count = 0;
-+	req->rl_sendctx->sc_req = req;
-+	__clear_bit(RPCRDMA_REQ_F_TX_RESOURCES, &req->rl_flags);
- 
- 	if (!rpcrdma_prepare_hdr_sge(&r_xprt->rx_ia, req, hdrlen))
- 		return -EIO;
-@@ -1305,6 +1314,20 @@ void rpcrdma_release_rqst(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
- 	if (!list_empty(&req->rl_registered))
- 		r_xprt->rx_ia.ri_ops->ro_unmap_sync(r_xprt,
- 						    &req->rl_registered);
-+
-+	/* Ensure that any DMA mapped pages associated with
-+	 * the Send of the RPC Call have been unmapped before
-+	 * allowing the RPC to complete. This protects argument
-+	 * memory not controlled by the RPC client from being
-+	 * re-used before we're done with it.
-+	 */
-+	if (test_bit(RPCRDMA_REQ_F_TX_RESOURCES, &req->rl_flags)) {
-+		r_xprt->rx_stats.reply_waits_for_send++;
-+		out_of_line_wait_on_bit(&req->rl_flags,
-+					RPCRDMA_REQ_F_TX_RESOURCES,
-+					bit_wait,
-+					TASK_UNINTERRUPTIBLE);
-+	}
- }
- 
- /* Reply handling runs in the poll worker thread. Anything that
-@@ -1384,7 +1407,8 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *rep)
- 	dprintk("RPC:       %s: reply %p completes request %p (xid 0x%08x)\n",
- 		__func__, rep, req, be32_to_cpu(rep->rr_xid));
- 
--	if (list_empty(&req->rl_registered))
-+	if (list_empty(&req->rl_registered) &&
-+	    !test_bit(RPCRDMA_REQ_F_TX_RESOURCES, &req->rl_flags))
- 		rpcrdma_complete_rqst(rep);
- 	else
- 		queue_work(rpcrdma_receive_wq, &rep->rr_work);
-diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index 0c73439..dcc2df0 100644
---- a/net/sunrpc/xprtrdma/transport.c
-+++ b/net/sunrpc/xprtrdma/transport.c
-@@ -792,12 +792,13 @@ void xprt_rdma_print_stats(struct rpc_xprt *xprt, struct seq_file *seq)
- 		   r_xprt->rx_stats.failed_marshal_count,
- 		   r_xprt->rx_stats.bad_reply_count,
- 		   r_xprt->rx_stats.nomsg_call_count);
--	seq_printf(seq, "%lu %lu %lu %lu %lu\n",
-+	seq_printf(seq, "%lu %lu %lu %lu %lu %lu\n",
- 		   r_xprt->rx_stats.mrs_recovered,
- 		   r_xprt->rx_stats.mrs_orphaned,
- 		   r_xprt->rx_stats.mrs_allocated,
- 		   r_xprt->rx_stats.local_inv_needed,
--		   r_xprt->rx_stats.empty_sendctx_q);
-+		   r_xprt->rx_stats.empty_sendctx_q,
-+		   r_xprt->rx_stats.reply_waits_for_send);
- }
- 
- static int
+-	/* Initialize CQ count, since there is always a signaled
+-	 * WR being posted here.  The new cqcount depends on how
+-	 * many SQEs are about to be consumed.
+-	 */
+-	rpcrdma_init_cqcount(&r_xprt->rx_ep, count);
+-
+ 	/* Transport disconnect drains the receive CQ before it
+ 	 * replaces the QP. The RPC reply handler won't call us
+ 	 * unless ri_id->qp is a valid pointer.
+@@ -545,7 +538,6 @@
+ 	/* Find and reset the MRs in the LOCAL_INV WRs that did not
+ 	 * get posted.
+ 	 */
+-	rpcrdma_init_cqcount(&r_xprt->rx_ep, -count);
+ 	while (bad_wr) {
+ 		f = container_of(bad_wr, struct rpcrdma_frmr,
+ 				 fr_invwr);
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index bab63ad..9a824fe 100644
+index 9a824fe..22128a8 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -1526,7 +1526,8 @@ struct rpcrdma_regbuf *
- 	dprintk("RPC:       %s: posting %d s/g entries\n",
- 		__func__, send_wr->num_sge);
+@@ -553,10 +553,6 @@
+ 	ep->rep_send_batch = min_t(unsigned int, RPCRDMA_MAX_SEND_BATCH,
+ 				   cdata->max_requests >> 2);
+ 	ep->rep_send_count = ep->rep_send_batch;
+-	ep->rep_cqinit = ep->rep_attr.cap.max_send_wr/2 - 1;
+-	if (ep->rep_cqinit <= 2)
+-		ep->rep_cqinit = 0;	/* always signal? */
+-	rpcrdma_init_cqcount(ep, 0);
+ 	init_waitqueue_head(&ep->rep_connect_wait);
+ 	INIT_DELAYED_WORK(&ep->rep_connect_worker, rpcrdma_connect_worker);
  
--	if (!ep->rep_send_count) {
-+	if (!ep->rep_send_count ||
-+	    test_bit(RPCRDMA_REQ_F_TX_RESOURCES, &req->rl_flags)) {
- 		send_wr->send_flags |= IB_SEND_SIGNALED;
- 		ep->rep_send_count = ep->rep_send_batch;
- 	} else {
 diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index c260475..bccd5d8 100644
+index bccd5d8..6e64c82 100644
 --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -236,11 +236,13 @@ struct rpcrdma_rep {
- 
- /* struct rpcrdma_sendctx - DMA mapped SGEs to unmap after Send completes
-  */
-+struct rpcrdma_req;
- struct rpcrdma_xprt;
- struct rpcrdma_sendctx {
- 	struct ib_send_wr	sc_wr;
- 	struct ib_cqe		sc_cqe;
- 	struct rpcrdma_xprt	*sc_xprt;
-+	struct rpcrdma_req	*sc_req;
- 	unsigned int		sc_unmap_count;
- 	struct ib_sge		sc_sges[];
- };
-@@ -387,6 +389,7 @@ struct rpcrdma_req {
- enum {
- 	RPCRDMA_REQ_F_BACKCHANNEL = 0,
- 	RPCRDMA_REQ_F_PENDING,
-+	RPCRDMA_REQ_F_TX_RESOURCES,
+@@ -95,8 +95,6 @@ enum {
+ struct rpcrdma_ep {
+ 	unsigned int		rep_send_count;
+ 	unsigned int		rep_send_batch;
+-	atomic_t		rep_cqcount;
+-	int			rep_cqinit;
+ 	int			rep_connected;
+ 	struct ib_qp_init_attr	rep_attr;
+ 	wait_queue_head_t 	rep_connect_wait;
+@@ -106,25 +104,6 @@ struct rpcrdma_ep {
+ 	struct delayed_work	rep_connect_worker;
  };
  
- static inline void
-@@ -492,6 +495,7 @@ struct rpcrdma_stats {
- 	/* accessed when receiving a reply */
- 	unsigned long long	total_rdma_reply;
- 	unsigned long long	fixup_copy_count;
-+	unsigned long		reply_waits_for_send;
- 	unsigned long		local_inv_needed;
- 	unsigned long		nomsg_call_count;
- 	unsigned long		bcall_count;
+-static inline void
+-rpcrdma_init_cqcount(struct rpcrdma_ep *ep, int count)
+-{
+-	atomic_set(&ep->rep_cqcount, ep->rep_cqinit - count);
+-}
+-
+-/* To update send queue accounting, provider must take a
+- * send completion every now and then.
+- */
+-static inline void
+-rpcrdma_set_signaled(struct rpcrdma_ep *ep, struct ib_send_wr *send_wr)
+-{
+-	send_wr->send_flags = 0;
+-	if (unlikely(atomic_sub_return(1, &ep->rep_cqcount) <= 0)) {
+-		rpcrdma_init_cqcount(ep, 0);
+-		send_wr->send_flags = IB_SEND_SIGNALED;
+-	}
+-}
+-
+ /* Pre-allocate extra Work Requests for handling backward receives
+  * and sends. This is a fixed value because the Work Queues are
+  * allocated when the forward channel is set up.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
