@@ -1,46 +1,50 @@
-From: Bhumika Goyal <bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 02/15] usb: gadget: make config_item_type structures const
-Date: Fri, 20 Oct 2017 10:13:11 +0200
-Message-ID: <CAOH+1jFxhiF8j6MM9txfcs1SHOAuYihq=GZWmVb+wUR5aUCsnQ@mail.gmail.com>
-References: <1508167134-6243-1-git-send-email-bhumirks@gmail.com>
- <1985905.z83BJQzMUS@avalon> <20171019140657.GA22233@lst.de> <6348630.r2z9ev4yl2@avalon>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v3 00/13] dax: fix dma vs truncate and remove
+	'page-less' support
+Date: Fri, 20 Oct 2017 11:31:48 +0200
+Message-ID: <20171020093148.GA20304@lst.de>
+References: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com> <20171020074750.GA13568@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6348630.r2z9ev4yl2@avalon>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, knaack.h-Mmb7MZpHnFY@public.gmane.org, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, ccaulfie-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, teigland-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mfasheh-rOS7oXVqrJRBDgjK7y7TUQ@public.gmane.org, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>Linux Kernel Mailing List <linux>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20171020074750.GA13568@lst.de>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: akpm@linux-foundation.org, Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, "J. Bruce Fields" <bfields@fieldses.org>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Sean Hefty <sean.hefty@intel.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Jeff Moyer <jmoyer@redhat.com>, hch@lst.de, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-nvdimm@lists.01.org, Alexander Viro <viro@zeniv.linux.org.uk>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Darri
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 19, 2017 at 5:05 PM, Laurent Pinchart
-<laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> wrote:
-> Hi Christoph,
->
-> On Thursday, 19 October 2017 17:06:57 EEST Christoph Hellwig wrote:
->> > Now we have 9 const instances of the config_item_type structure that are
->> > identical, with only the .ct_owner field set. Should they be all merged
->> > into a single structure ?
->>
->> I think that's a good idea.
->>
->> But I'm about to slurp up this whole series into my tree, how about making
->> that an incremental patch?
->
-> I'm fine with that.
->
-> Bhumika, would you like to submit an incremental patch, or should I do it ?
->
+On Fri, Oct 20, 2017 at 09:47:50AM +0200, Christoph Hellwig wrote:
+> I'd like to brainstorm how we can do something better.
+> 
+> How about:
+> 
+> If we hit a page with an elevated refcount in truncate / hole puch
+> etc for a DAX file system we do not free the blocks in the file system,
+> but add it to the extent busy list.  We mark the page as delayed
+> free (e.g. page flag?) so that when it finally hits refcount zero we
+> call back into the file system to remove it from the busy list.
 
-I will submit a patch for merging these structures.
-But should I make a separate patch for this particular change or send
-a v3 for the whole series?
+Brainstorming some more:
 
-Thanks,
-Bhumika
+Given that on a DAX file there shouldn't be any long-term page
+references after we unmap it from the page table and don't allow
+get_user_pages calls why not wait for the references for all
+DAX pages to go away first?  E.g. if we find a DAX page in
+truncate_inode_pages_range that has an elevated refcount we set
+a new flag to prevent new references from showing up, and then
+simply wait for it to go away.  Instead of a busy way we can
+do this through a few hashed waitqueued in dev_pagemap.  And in
+fact put_zone_device_page already gets called when putting the
+last page so we can handle the wakeup from there.
 
-> --
-> Regards,
->
-> Laurent Pinchart
->
+In fact if we can't find a page flag for the stop new callers
+things we could probably come up with a way to do that through
+dev_pagemap somehow, but I'm not sure how efficient that would
+be.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
