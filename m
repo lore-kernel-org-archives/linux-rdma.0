@@ -1,56 +1,60 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags] ibdiag_common.c: In
- is_port_info_extended_supported, query PortInfo for port 0 when node is a
- switch
-Date: Fri, 20 Oct 2017 11:22:48 -0400
-Message-ID: <831b3d02-ecc9-b394-88ea-4e371f3a7e72@dev.mellanox.co.il>
+From: Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 07/16] IB/core: Introduce counter set query verb
+Date: Fri, 20 Oct 2017 15:40:02 +0000
+Message-ID: <AM6PR0502MB37838A23148C096EEC8FBA42BD430@AM6PR0502MB3783.eurprd05.prod.outlook.com>
+References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
+ <1508424118-27205-8-git-send-email-yishaih@mellanox.com>,<alpine.DEB.2.20.1710200547100.10736@nuc-kabylake>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1710200547100.10736@nuc-kabylake>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-to be able to obtain CapabilityMask and CapabilityMask2
-as these fields are not used on switch external ports
-(only on switch port 0)
+On Thu, 19 Oct 2017,=A0Christopher Lameter=A0wrote:
+On Thu, 19 Oct 2017, Yishai Hadas wrote:
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/ibdiag_common.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+>> A counter set must be first attached to an IB object in order to
+>> be queried for its underlay counters, downstream patches will
+>> present bind and query methods for flow counters.
+>> The user has an option as part of the query verb to force reading
+>> the up-to-date hardware values instead of reading some cached
+>> values by using the IB_COUNTER_SET_FORCE_UPDATE flag.
 
-diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-index 9245146..c33cacc 100644
---- a/src/ibdiag_common.c
-+++ b/src/ibdiag_common.c
-@@ -506,8 +506,18 @@ int is_port_info_extended_supported(ib_portid_t * dest, int port,
- 	uint8_t data[IB_SMP_DATA_SIZE] = { 0 };
- 	uint32_t cap_mask;
- 	uint16_t cap_mask2;
-+	int type, portnum;
- 
--	if (!smp_query_via(data, dest, IB_ATTR_PORT_INFO, port, 0, srcport))
-+	if (!smp_query_via(data, dest, IB_ATTR_NODE_INFO, 0, 0, srcport))
-+		IBEXIT("node info query failed");
-+
-+	mad_decode_field(data, IB_NODE_TYPE_F, &type);
-+	if (type == IB_NODE_SWITCH)
-+		portnum = 0;
-+	else
-+		portnum = port;
-+
-+	if (!smp_query_via(data, dest, IB_ATTR_PORT_INFO, portnum, 0, srcport))
- 		IBEXIT("port info query failed");
- 
- 	mad_decode_field(data, IB_PORT_CAPMASK_F, &cap_mask);
--- 
-2.8.4
+>What does "cached" mean in this context? Accurate to the last second? Or
+>just return what was returned earlier? Semantics look a bit unclear to me.
 
+When this flag is used - querying the counter does not guarantee accurate v=
+alue from the hardware.
+The driver might return a value that was true several nonsecs. or even seve=
+ral seconds ago.
+
+
+Explanation:
+
+Querying the hardware is expensive,=A0 when user queries the hardware
+the driver could decide to use the same query to query multiple counter-set
+rather than a single one ( the one the user asked for)
+
+The counter-sets the user did not ask for - are stored in the driver cache.
+Driver may decide to return these value rather than query the hardware agai=
+n.
+
+
+Nevertheless,=A0 when using the=A0the query API=A0user can force the driver=
+ to=A0
+execute direct=A0hardware=A0query=A0, rather than return cached value.
+
+
+Guy
+
+
+    =
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
