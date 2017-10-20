@@ -1,91 +1,99 @@
-From: Ludwig Petrosyan <ludwig.petrosyan-T5F83Mi6MZE@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Fri, 20 Oct 2017 14:36:07 +0200
-Message-ID: <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 06/13] SoftiWarp connection management
+Date: Fri, 20 Oct 2017 07:49:44 -0500
+Message-ID: <20171020124944.GA11604@ssaleem-MOBL4.amr.corp.intel.com>
+References: <20171006122853.16310-1-bmt@zurich.ibm.com>
+ <20171006122853.16310-7-bmt@zurich.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <MWHPR12MB169484839282E2D56124FA02F7B50-Gy0DoCVfaSW4WA4dJ5YXGAdYzm3356FpvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Content-Language: en-GB
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Deucher, Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Bridgman, John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Sagalovitch,
- Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Koenig, Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
- Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171006122853.16310-7-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-RGVhciBMaW51eCBrZXJuZWwgZ3JvdXAKCm15IG5hbWUgaXMgTHVkd2lnIFBldHJvc3lhbiBJIGFt
-IHdvcmtpbmcgaW4gREVTWSAoR2VybWFueSkKCndlIGFyZSByZXNwb25zaWJsZSBmb3IgdGhlIGNv
-bnRyb2wgc3lzdGVtIG9mwqAgYWxsIGFjY2VsZXJhdG9ycyBpbiBERVNZLgoKRm9yIGEgNy04IHll
-YXJzIHdlIGhhdmUgc3dpdGNoZWQgdG8gTVRDQS40IHN5c3RlbXMgYW5kIHVzaW5nIFBDSWUgYXMg
-YSAKY2VudHJhbCBCdXMuCgpJIGFtIG1vc3RseSByZXNwb25zaWJsZSBmb3IgdGhlIExpbnV4IGRy
-aXZlcnMgb2YgdGhlIEFNQyBDYXJkcyAoUENJZSAKZW5kcG9pbnRzKS4KClRoZSBpZGVhIGlzIHN0
-YXJ0IHRvIHVzZSBwZWVyIHRvIHBlZXIgdHJhbnNhY3Rpb24gZm9yIFBDSWUgZW5kcG9pbnQgKERN
-QSAKYW5kL29yIHVzdWFsIFJlYWQvV3JpdGUpCgpDb3VsZCBZb3UgcGxlYXNlIGFkdmlzZSBtZSB3
-aGVyZSB0byBzdGFydCwgaXMgdGhlcmUgc29tZSBEb2N1bWVudGF0aW9uIApob3cgdG8gZG8gaXQu
-CgoKd2l0aCBiZXN0IHJlZ2FyZHMKCgpMdWR3aWcKCgpPbiAxMS8yMS8yMDE2IDA5OjM2IFBNLCBE
-ZXVjaGVyLCBBbGV4YW5kZXIgd3JvdGU6Cj4gVGhpcyBpcyBjZXJ0YWlubHkgbm90IHRoZSBmaXJz
-dCB0aW1lIHRoaXMgaGFzIGJlZW4gYnJvdWdodCB1cCwgYnV0IEknZCBsaWtlIHRvIHRyeSBhbmQg
-Z2V0IHNvbWUgY29uc2Vuc3VzIG9uIHRoZSBiZXN0IHdheSB0byBtb3ZlIHRoaXMgZm9yd2FyZC4g
-IEFsbG93aW5nIGRldmljZXMgdG8gdGFsayBkaXJlY3RseSBpbXByb3ZlcyBwZXJmb3JtYW5jZSBh
-bmQgcmVkdWNlcyBsYXRlbmN5IGJ5IGF2b2lkaW5nIHRoZSB1c2Ugb2Ygc3RhZ2luZyBidWZmZXJz
-IGluIHN5c3RlbSBtZW1vcnkuICBBbHNvIGluIGNhc2VzIHdoZXJlIGJvdGggZGV2aWNlcyBhcmUg
-YmVoaW5kIGEgc3dpdGNoLCBpdCBhdm9pZHMgdGhlIENQVSBlbnRpcmVseS4gIE1vc3QgY3VycmVu
-dCBBUElzIChEaXJlY3RHTUEsIFBlZXJEaXJlY3QsIENVREEsIEhTQSkgdGhhdCBkZWFsIHdpdGgg
-dGhpcyBhcmUgcG9pbnRlciBiYXNlZC4gIElkZWFsbHkgd2UnZCBiZSBhYmxlIHRvIHRha2UgYSBD
-UFUgdmlydHVhbCBhZGRyZXNzIGFuZCBiZSBhYmxlIHRvIGdldCB0byBhIHBoeXNpY2FsIGFkZHJl
-c3MgdGFraW5nIGludG8gYWNjb3VudCBJT01NVXMsIGV0Yy4gIEhhdmluZyBzdHJ1Y3QgcGFnZXMg
-Zm9yIHRoZSBtZW1vcnkgd291bGQgYWxsb3cgaXQgdG8gd29yayBtb3JlIGdlbmVyYWxseSBhbmQg
-d291bGRuJ3QgcmVxdWlyZSBhcyBtdWNoIGV4cGxpY2l0IHN1cHBvcnQgaW4gZHJpdmVycyB0aGF0
-IHdhbnRlZCB0byB1c2UgaXQuCj4gICAKPiBTb21lIHVzZSBjYXNlczoKPiAxLiBTdG9yYWdlIGRl
-dmljZXMgc3RyZWFtaW5nIGRpcmVjdGx5IHRvIEdQVSBkZXZpY2UgbWVtb3J5Cj4gMi4gR1BVIGRl
-dmljZSBtZW1vcnkgdG8gR1BVIGRldmljZSBtZW1vcnkgc3RyZWFtaW5nCj4gMy4gRFZCL1Y0TC9T
-REkgZGV2aWNlcyBzdHJlYW1pbmcgZGlyZWN0bHkgdG8gR1BVIGRldmljZSBtZW1vcnkKPiA0LiBE
-VkIvVjRML1NESSBkZXZpY2VzIHN0cmVhbWluZyBkaXJlY3RseSB0byBzdG9yYWdlIGRldmljZXMK
-PiAgIAo+IEhlcmUgaXMgYSByZWxhdGl2ZWx5IHNpbXBsZSBleGFtcGxlIG9mIGhvdyB0aGlzIGNv
-dWxkIHdvcmsgZm9yIHRlc3RpbmcuICBUaGlzIGlzIG9idmlvdXNseSBub3QgYSBjb21wbGV0ZSBz
-b2x1dGlvbi4KPiAtIERldmljZSBtZW1vcnkgd2lsbCBiZSByZWdpc3RlcmVkIHdpdGggTGludXgg
-bWVtb3J5IHN1Yi1zeXN0ZW0gYnkgY3JlYXRlZCBjb3JyZXNwb25kaW5nIHN0cnVjdCBwYWdlIHN0
-cnVjdHVyZXMgZm9yIGRldmljZSBtZW1vcnkKPiAtIGdldF91c2VyX3BhZ2VzX2Zhc3QoKSB3aWxs
-ICByZXR1cm4gY29ycmVzcG9uZGluZyBzdHJ1Y3QgcGFnZXMgd2hlbiBDUFUgYWRkcmVzcyBwb2lu
-dHMgdG8gdGhlIGRldmljZSBtZW1vcnkKPiAtIHB1dF9wYWdlKCkgd2lsbCBkZWFsIHdpdGggc3Ry
-dWN0IHBhZ2VzIGZvciBkZXZpY2UgbWVtb3J5Cj4gICAKPiBQcmV2aW91c2x5IHByb3Bvc2VkIHNv
-bHV0aW9ucyBhbmQgcmVsYXRlZCBwcm9wb3NhbHM6Cj4gMS5QMlAgRE1BCj4gRE1BLUFQSS9QQ0kg
-bWFwX3BlZXJfcmVzb3VyY2Ugc3VwcG9ydCBmb3IgcGVlci10by1wZWVyIChodHRwOi8vd3d3LnNw
-aW5pY3MubmV0L2xpc3RzL2xpbnV4LXBjaS9tc2c0NDU2MC5odG1sKQo+IFByb3M6IExvdyBpbXBh
-Y3QsIGFscmVhZHkgbGFyZ2VseSByZXZpZXdlZC4KPiBDb25zOiByZXF1aXJlcyBleHBsaWNpdCBz
-dXBwb3J0IGluIGFsbCBkcml2ZXJzIHRoYXQgd2FudCB0byBzdXBwb3J0IGl0LCBkb2Vzbid0IGhh
-bmRsZSBTL0cgaW4gZGV2aWNlIG1lbW9yeS4KPiAgIAo+IDIuIFpPTkVfREVWSUNFIElPCj4gRGly
-ZWN0IEkvTyBhbmQgRE1BIGZvciBwZXJzaXN0ZW50IG1lbW9yeSAoaHR0cHM6Ly9sd24ubmV0L0Fy
-dGljbGVzLzY3MjQ1Ny8pCj4gQWRkIHN1cHBvcnQgZm9yIFpPTkVfREVWSUNFIElPIG1lbW9yeSB3
-aXRoIHN0cnVjdCBwYWdlcy4gKGh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvODU4
-MzIyMS8pCj4gUHJvOiBEb2Vzbid0IHdhc3RlIHN5c3RlbSBtZW1vcnkgZm9yIFpPTkUgbWV0YWRh
-dGEKPiBDb25zOiBDUFUgYWNjZXNzIHRvIFpPTkUgbWV0YWRhdGEgc2xvdywgbWF5IGJlIGxvc3Qs
-IGNvcnJ1cHRlZCBvbiBkZXZpY2UgcmVzZXQuCj4gICAKPiAzLiBETUEtQlVGCj4gUkRNQSBzdWJz
-eXN0ZW0gRE1BLUJVRiBzdXBwb3J0IChodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4
-LXJkbWEvbXNnMzg3NDguaHRtbCkKPiBQcm9zOiB1c2VzIGV4aXN0aW5nIGRtYS1idWYgaW50ZXJm
-YWNlCj4gQ29uczogZG1hLWJ1ZiBpcyBoYW5kbGUgYmFzZWQsIHJlcXVpcmVzIGV4cGxpY2l0IGRt
-YS1idWYgc3VwcG9ydCBpbiBkcml2ZXJzLgo+Cj4gNC4gaW9wbWVtCj4gaW9wbWVtIDogQSBibG9j
-ayBkZXZpY2UgZm9yIFBDSWUgbWVtb3J5IChodHRwczovL2x3bi5uZXQvQXJ0aWNsZXMvNzAzODk1
-LykKPiAgIAo+IDUuIEhNTQo+IEhldGVyb2dlbmVvdXMgTWVtb3J5IE1hbmFnZW1lbnQgKGh0dHA6
-Ly9sa21sLml1LmVkdS9oeXBlcm1haWwvbGludXgva2VybmVsLzE2MTEuMi8wMjQ3My5odG1sKQo+
-Cj4gNi4gU29tZSBuZXcgbW1hcC1saWtlIGludGVyZmFjZSB0aGF0IHRha2VzIGEgdXNlcnB0ciBh
-bmQgYSBsZW5ndGggYW5kIHJldHVybnMgYSBkbWEtYnVmIGFuZCBvZmZzZXQ/Cj4gICAKPiBBbGV4
-Cj4KPiAtLQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1
-bnN1YnNjcmliZSBsaW51eC1wY2kiIGluCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9y
-ZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdl
-ci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwKCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgt
-bnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2xpbnV4LW52ZGltbQo=
+On Fri, Oct 06, 2017 at 08:28:46AM -0400, Bernard Metzler wrote:
+> Signed-off-by: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+> ---
+>  drivers/infiniband/sw/siw/siw_cm.c | 2270 ++++++++++++++++++++++++++++++++++++
+>  drivers/infiniband/sw/siw/siw_cm.h |  156 +++
+>  2 files changed, 2426 insertions(+)
+>  create mode 100644 drivers/infiniband/sw/siw/siw_cm.c
+>  create mode 100644 drivers/infiniband/sw/siw/siw_cm.h
+> 
+> diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
+> new file mode 100644
+> index 000000000000..1527c9ddfed8
+> --- /dev/null
+> +++ b/drivers/infiniband/sw/siw/siw_cm.c
+
+> +static void siw_rtr_data_ready(struct sock *sk)
+> +{
+> +	struct siw_cep		*cep;
+> +	struct siw_qp		*qp = NULL;
+> +	read_descriptor_t	rd_desc;
+> +
+> +	read_lock(&sk->sk_callback_lock);
+> +
+> +	cep = sk_to_cep(sk);
+> +	if (!cep) {
+> +		WARN_ON(1);
+> +		goto out;
+> +	}
+> +	qp = sk_to_qp(sk);
+> +
+> +	memset(&rd_desc, 0, sizeof(rd_desc));
+> +	rd_desc.arg.data = qp;
+> +	rd_desc.count = 1;
+> +
+> +	tcp_read_sock(sk, &rd_desc, siw_tcp_rx_data);
+> +	/*
+> +	 * Check if first frame was successfully processed.
+> +	 * Signal connection full establishment if yes.
+> +	 * Failed data processing would have already scheduled
+> +	 * connection drop.
+> +	 */
+> +	if (qp->rx_ctx.rx_suspend == 0  && qp->rx_ctx.rx_suspend == 0)
+> +		siw_cm_upcall(cep, IW_CM_EVENT_ESTABLISHED, 0);
+
+Redundant condition in if. Also, its preferred to use !qp->rx_ctx.rx_suspend.
+
+> + * siw_accept - Let SoftiWARP accept an RDMA connection request
+> + *
+> + * @id:		New connection management id to be used for accepted
+> + *		connection request
+> + * @params:	Connection parameters provided by ULP for accepting connection
+> + *
+> + * Transition QP to RTS state, associate new CM id @id with accepted CEP
+> + * and get prepared for TCP input by installing socket callbacks.
+> + * Then send MPA Reply and generate the "connection established" event.
+> + * Socket callbacks must be installed before sending MPA Reply, because
+> + * the latter may cause a first RDMA message to arrive from the RDMA Initiator
+> + * side very quickly, at which time the socket callbacks must be ready.
+> + */
+> +int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
+> +{
+> +	struct siw_dev		*sdev = siw_dev_ofa2siw(id->device);
+> +	struct siw_cep		*cep = (struct siw_cep *)id->provider_data;
+> +	struct siw_qp		*qp;
+> +	struct siw_qp_attrs	qp_attrs;
+> +	int rv, max_priv_data = MPA_MAX_PRIVDATA;
+> +	bool wait_for_peer_rts = false;
+> +
+> +	siw_cep_set_inuse(cep);
+> +	siw_cep_put(cep);
+> +
+> +	/* Free lingering inbound private data */
+> +	if (cep->mpa.hdr.params.pd_len) {
+> +		cep->mpa.hdr.params.pd_len = 0;
+> +		kfree(cep->mpa.pdata);
+> +		cep->mpa.pdata = NULL;
+> +	}
+
+Can you not just check for cep->mpa.pdata?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
