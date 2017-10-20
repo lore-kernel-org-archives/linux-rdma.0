@@ -1,182 +1,97 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
+From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
  misinterpreted flag
-Date: Fri, 20 Oct 2017 10:37:24 +0300
-Message-ID: <20171020073724.GY2106@mtr-leonro.local>
+Date: Fri, 20 Oct 2017 12:18:02 +0000
+Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB6347E3BF@CRSMSX101.amr.corp.intel.com>
 References: <20171019213859.26124.37851.stgit@phlsvslse11.ph.intel.com>
+ <20171020073724.GY2106@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="McY+hxfTRXXDFVKC"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171019213859.26124.37851.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <20171020073724.GY2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---McY+hxfTRXXDFVKC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Thu, Oct 19, 2017 at 05:40:59PM -0400, Michael J. Ruhl wrote:
-> I was playing with the ibacm service and discovered an issue
-> the other day.
->
-> If no provider library is present (I removed libacmp.so, and the
-> provider keyword in the opts.cfg file is libacmp), when a resolve
-> request is posted, the kernel will crash with the following Oops:
->
-> BUG: unable to handle kernel NULL pointer dereference at (null)
-> IP:           (null)
-> PGD 10543f1067 P4D 10543f1067 PUD 1033f93067 PMD 0
-> Oops: 0010 [#1] SMP
-> Modules linked in: rpcrdma ib_isert iscsi_target_mod
->  target_core_mod ib_iser libiscsi scsi_transport_iscsi ib_ipoib rdma_ucm ib_u
->  ib_uverbs ib_umad rdma_cm ib_cm iw_cm dm_mirror dm_region_hash dm_log dm_mod
->  dax sb_edac x86_pkg_temp_thermal intel_powerclamp coretemp kvm irqbypass
->  crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc aesni_intel crypto_si
->  glue_helper cryptd hfi1 rdmavt iTCO_wdt iTCO_vendor_support ib_core mei_me
->  lpc_ich pcspkr mei ioatdma sg shpchp i2c_i801 mfd_core wmi ipmi_si ipmi_devi
->  ipmi_msghandler acpi_power_meter acpi_pad nfsd auth_rpcgss nfs_acl lockd gra
->  sunrpc ip_tables ext4 mbcache jbd2 sd_mod mgag200 drm_kms_helper syscopyarea
->  sysfillrect sysimgblt fb_sys_fops ttm igb ahci crc32c_intel ptp libahci
->  pps_core drm dca libata i2c_algo_bit i2c_core
-> CPU: 54 PID: 9841 Comm: ibacm Tainted: G          I    4.14.0-rc2+ #6
-> Hardware name: Intel Corporation S2600WT2/S2600WT2, BIOS     SE5C610.86B.01.01.0008.021120151325 02/11/2015
-> task: ffff880855f42d00 task.stack: ffffc900246b4000
-> RIP: 0010:          (null)
-> RSP: 0018:ffffc900246b7bc8 EFLAGS: 00010246
-> RAX: ffffffff81dbe9e0 RBX: ffff881058bb1000 RCX: 0000000000000000
-> RDX: 0000000000001100 RSI: ffff881058bb1320 RDI: ffff881056362000
-> RBP: ffffc900246b7bf8 R08: 0000000000000ec0 R09: 0000000000001100
-> R10: ffff8810573a5000 R11: 0000000000000000 R12: ffff881056362000
-> R13: 0000000000000ec0 R14: ffff881058bb1320 R15: 0000000000000ec0
-> FS:  00007fe0ba5a38c0(0000) GS:ffff88105f080000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 0000000000000000 CR3: 0000001056f5d003 CR4: 00000000001606e0
-> Call Trace:
->  ? netlink_dump+0x12c/0x290
->  __netlink_dump_start+0x186/0x1f0
->  rdma_nl_rcv_msg+0x193/0x1b0 [ib_core]
->  rdma_nl_rcv+0xdc/0x130 [ib_core]
->  netlink_unicast+0x181/0x240
->  netlink_sendmsg+0x2c2/0x3b0
->  sock_sendmsg+0x38/0x50
->  SYSC_sendto+0x102/0x190
->  ? __audit_syscall_entry+0xaf/0x100
->  ? syscall_trace_enter+0x1d0/0x2b0
->  ? __audit_syscall_exit+0x209/0x290
->  SyS_sendto+0xe/0x10
->  do_syscall_64+0x67/0x1b0
->  entry_SYSCALL64_slow_path+0x25/0x25
-> RIP: 0033:0x7fe0b9db2a63
-> RSP: 002b:00007ffc55edc260 EFLAGS: 00000293 ORIG_RAX: 000000000000002c
-> RAX: ffffffffffffffda RBX: 0000000000000010 RCX: 00007fe0b9db2a63
-> RDX: 0000000000000010 RSI: 00007ffc55edc280 RDI: 000000000000000d
-> RBP: 00007ffc55edc670 R08: 00007ffc55edc270 R09: 000000000000000c
-> R10: 0000000000000000 R11: 0000000000000293 R12: 00007ffc55edc280
-> R13: 000000000260b400 R14: 000000000000000d R15: 0000000000000001
-> Code:  Bad RIP value.
-> RIP:           (null) RSP: ffffc900246b7bc8
-> CR2: 0000000000000000
-> ---[ end trace 8d67abcfd10ec209 ]---
-> Kernel panic - not syncing: Fatal exception
-> Kernel Offset: disabled
-> ---[ end Kernel panic - not syncing: Fatal exception
-> ------------[ cut here ]------------
->
-> The issue is that in rdma_nl_rcv_msg(), the check
-> 'if (flags & NLM_F_DUMP)' is not completely correct.
->
-> NLM_F_DUMP is two bits NLM_F_ROOT | NLM_F_MATCH.
->
-> ibacm sends a RDMA_NL_LS response with the RDMA_NL_LS_F_ERR bit set
-> if an error occurs in the service (like no provider being available,
-> or ACM_STATUS_ENODATA, etc.).
->
-> NLM_F_ROOT == (0x100) == RDMA_NL_LS_F_ERR.
->
-> The current code thinks that it sees a NLM_F_DUMP flag and incorrectly calls
-> the .dump() callback.
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
+> Sent: Friday, October 20, 2017 3:37 AM
+> To: Ruhl, Michael J
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
+> misinterpreted flag
+> >
+> > The issue is that in rdma_nl_rcv_msg(), the check 'if (flags &
+> > NLM_F_DUMP)' is not completely correct.
+> >
+> > NLM_F_DUMP is two bits NLM_F_ROOT | NLM_F_MATCH.
+> >
+> > ibacm sends a RDMA_NL_LS response with the RDMA_NL_LS_F_ERR bit set
+> if
+> > an error occurs in the service (like no provider being available, or
+> > ACM_STATUS_ENODATA, etc.).
+> >
+> > NLM_F_ROOT == (0x100) == RDMA_NL_LS_F_ERR.
+> >
+> > The current code thinks that it sees a NLM_F_DUMP flag and incorrectly
+> > calls the .dump() callback.
+> 
+> Hi Michael,
+> 
+> Thanks for the report and for excellent analysis, You are right that
+> RDMA_NL_LS_F_ERR has the same value as NLM_F_ROOT and it is bad, but I
+> just think that it is not the final root cause.
+> 
+> In case of errors, the LS was supposed to send NLMSG_ERROR message and
+> not overload general nlmsg_flags, which is awful. However I don't know if it
+> is feasible to fix current implementation without breaking UAPI contract.
 
-Hi Michael,
+The nlmsg_flags from 0x100 and up have always been overloaded for different requests, as shown in include/uapi/linux/netlink.h:
 
-Thanks for the report and for excellent analysis, You are right that
-RDMA_NL_LS_F_ERR has the same value as NLM_F_ROOT and it is bad, but
-I just think that it is not the final root cause.
+* Modifiers to GET request */
+#define NLM_F_ROOT	0x100	/* specify tree	root	*/
+#define NLM_F_MATCH	0x200	/* return all matching	*/
+#define NLM_F_ATOMIC	0x400	/* atomic GET		*/
+#define NLM_F_DUMP	(NLM_F_ROOT|NLM_F_MATCH)
 
-In case of errors, the LS was supposed to send NLMSG_ERROR message and not
-overload general nlmsg_flags, which is awful. However I don't know if it is
-feasible to fix current implementation without breaking UAPI contract.
+/* Modifiers to NEW request */
+#define NLM_F_REPLACE	0x100	/* Override existing		*/
+#define NLM_F_EXCL	0x200	/* Do not touch, if it exists	*/
+#define NLM_F_CREATE	0x400	/* Create, if it does not exist	*/
+#define NLM_F_APPEND	0x800	/* Add to end of list		*/
 
-In meanwhile, can we implement dummy dumpit functions for the LS,
-which reuse ib_nl_is_good_ip_resp?
+/* Modifiers to DELETE request */
+#define NLM_F_NONREC	0x100	/* Do not delete recursively	*/
 
-I prefer this solution over yours, because it doesn't mix LS-specifics with
-general decision function and leaves LS anomalies in the LS-relevant code.
+/* Flags for ACK message */
+#define NLM_F_CAPPED	0x100	/* request was capped */
+#define NLM_F_ACK_TLVS	0x200	/* extended ACK TVLs were included *
 
-And returning 0 in absence of dumpit function as a response with
-NLM_F_DUMP flag is wrong. User should be aware of the fact that
-something wrong was with his request.
+The NLM_F_DUMP flag is supposed to be used for the GET request only, not as a general flag for all netlink requests.
 
-Thanks
+> 
+> In meanwhile, can we implement dummy dumpit functions for the LS, which
+> reuse ib_nl_is_good_ip_resp?
 
->
-> The included patch is an atempt to fix this issue.  This patch fixes the
-> issue that I am seeing, but I am not sure how to test the messages for
-> RDMA_NL_RDMA_CM or RDMA_NL_IWCM (or any message that uses the
-> NLM_F_DUMP bits).
->
-> If anyone has some knowledge of these services, any extra testing would
-> be welcomed.
->
-> If the patch has no issues or comments, I will formally re-submit it
-> (through my usual channel Denny).
->
-> Thanks,
->
-> Mike
->
->
-> ---
->
-> Michael J. Ruhl (1):
->       RDMA/netlink: OOPs in rdma_nl_rcv_msg() from misinterpreted flag
->
->
->  drivers/infiniband/core/netlink.c |    7 +++++--
->  1 files changed, 5 insertions(+), 2 deletions(-)
->
-> --
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Why do you want to jump all the dump hoops instead of directly calling the response handler? LS is different from other netlink channels in that it sends request from kernel to user space and receives responses from it instead of the other way around. Consequently, the handling of netlink responses may be different from handing requests from user space.
 
---McY+hxfTRXXDFVKC
-Content-Type: application/pgp-signature; name="signature.asc"
+> 
+> I prefer this solution over yours, because it doesn't mix LS-specifics with
+> general decision function and leaves LS anomalies in the LS-relevant code.
+> 
+> And returning 0 in absence of dumpit function as a response with
+> NLM_F_DUMP flag is wrong. User should be aware of the fact that
+> something wrong was with his request.
+> 
+> Thanks
+> 
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnpp7QACgkQ5GN7iDZy
-WKebHQ//VUM2O3kTD3giBMaSb8Tc8gGk0MW+Xq/4gVzubni2+VlAJNlHOoCt53hX
-zn+D3sfgHg90Yo0eF67wi3s3Us3J+KFDIC/fr2bpln1Ag/wycHu8fjdqPEaU/RxO
-3BDc23TOQGyyVzkFfe2sAXacHgd1Y91DMJ3OmWkLp6XlMAg4WowP+Ao+4fnfIZGm
-ccnpE/mLCVufKQVrg72vzcTtbkZc/VbV7yiVTQVHvXg3MF67CbNpPhOTZRQBfY7G
-TRmpAn7UuFYx1VHUlDf4bdukRAagbWiAVc+11ngbRD2oceuclRIoCImPtxCJoAa7
-gWHv2oZr/11BhfcqYrdwtyriryRBJR77A7Odk710QDO8buIHxiQyaVboYbTHKNX+
-ou9m4cKPHG8oYlTf1Ap69z3+y4KUAx0MtR1Vs6fq38+EvqkE4JBO/YspG39AuQ8O
-3EKLnCW+FxGNK2MICkot7gJpVR3YBmUtLO52HCkjtEZ+ayvA/NIEicwE+Y2ARYQE
-7NM1o4aoiDPjFjC3X8k9CX5RCArE+tAdouqkJmCE5x36ju/VjT6f2nFK40Y5tjKl
-+Lp+3VZVAOUDHzgMykRbM2OJwkJK6V+TgP1jC50ikmExZ8ViFranZria6IWi6ZG2
-Fq74cJwNeh5ah6V07bNNarJApWBukKCdk/LdfMfx8bCrHDwtoFI=
-=Jbya
------END PGP SIGNATURE-----
-
---McY+hxfTRXXDFVKC--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
