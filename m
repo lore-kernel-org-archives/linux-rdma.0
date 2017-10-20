@@ -1,98 +1,91 @@
-From: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
- misinterpreted flag
-Date: Fri, 20 Oct 2017 12:18:02 +0000
-Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB6347E3BF@CRSMSX101.amr.corp.intel.com>
-References: <20171019213859.26124.37851.stgit@phlsvslse11.ph.intel.com>
- <20171020073724.GY2106@mtr-leonro.local>
+From: Ludwig Petrosyan <ludwig.petrosyan-T5F83Mi6MZE@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Fri, 20 Oct 2017 14:36:07 +0200
+Message-ID: <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171020073724.GY2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <MWHPR12MB169484839282E2D56124FA02F7B50-Gy0DoCVfaSW4WA4dJ5YXGAdYzm3356FpvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Language: en-GB
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Deucher, Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Bridgman, John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "Kuehling,
+ Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Sagalovitch,
+ Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Koenig, Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
+ Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
-> Sent: Friday, October 20, 2017 3:37 AM
-> To: Ruhl, Michael J
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
-> misinterpreted flag
-> >
-> > The issue is that in rdma_nl_rcv_msg(), the check 'if (flags &
-> > NLM_F_DUMP)' is not completely correct.
-> >
-> > NLM_F_DUMP is two bits NLM_F_ROOT | NLM_F_MATCH.
-> >
-> > ibacm sends a RDMA_NL_LS response with the RDMA_NL_LS_F_ERR bit set
-> if
-> > an error occurs in the service (like no provider being available, or
-> > ACM_STATUS_ENODATA, etc.).
-> >
-> > NLM_F_ROOT == (0x100) == RDMA_NL_LS_F_ERR.
-> >
-> > The current code thinks that it sees a NLM_F_DUMP flag and incorrectly
-> > calls the .dump() callback.
-> 
-> Hi Michael,
-> 
-> Thanks for the report and for excellent analysis, You are right that
-> RDMA_NL_LS_F_ERR has the same value as NLM_F_ROOT and it is bad, but I
-> just think that it is not the final root cause.
-> 
-> In case of errors, the LS was supposed to send NLMSG_ERROR message and
-> not overload general nlmsg_flags, which is awful. However I don't know if it
-> is feasible to fix current implementation without breaking UAPI contract.
-
-The nlmsg_flags from 0x100 and up have always been overloaded for different requests, as shown in include/uapi/linux/netlink.h:
-
-* Modifiers to GET request */
-#define NLM_F_ROOT	0x100	/* specify tree	root	*/
-#define NLM_F_MATCH	0x200	/* return all matching	*/
-#define NLM_F_ATOMIC	0x400	/* atomic GET		*/
-#define NLM_F_DUMP	(NLM_F_ROOT|NLM_F_MATCH)
-
-/* Modifiers to NEW request */
-#define NLM_F_REPLACE	0x100	/* Override existing		*/
-#define NLM_F_EXCL	0x200	/* Do not touch, if it exists	*/
-#define NLM_F_CREATE	0x400	/* Create, if it does not exist	*/
-#define NLM_F_APPEND	0x800	/* Add to end of list		*/
-
-/* Modifiers to DELETE request */
-#define NLM_F_NONREC	0x100	/* Do not delete recursively	*/
-
-/* Flags for ACK message */
-#define NLM_F_CAPPED	0x100	/* request was capped */
-#define NLM_F_ACK_TLVS	0x200	/* extended ACK TVLs were included *
-
-The NLM_F_DUMP flag is supposed to be used for the GET request only, not as a general flag for all netlink requests.
-
-> 
-> In meanwhile, can we implement dummy dumpit functions for the LS, which
-> reuse ib_nl_is_good_ip_resp?
-
-Why do you want to jump all the dump hoops instead of directly calling the response handler? LS is different from other netlink channels in that it sends request from kernel to user space and receives responses from it instead of the other way around. Consequently, the handling of netlink responses may be different from handing requests from user space.
-
-> 
-> I prefer this solution over yours, because it doesn't mix LS-specifics with
-> general decision function and leaves LS anomalies in the LS-relevant code.
-> 
-> And returning 0 in absence of dumpit function as a response with
-> NLM_F_DUMP flag is wrong. User should be aware of the fact that
-> something wrong was with his request.
-> 
-> Thanks
-> 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+RGVhciBMaW51eCBrZXJuZWwgZ3JvdXAKCm15IG5hbWUgaXMgTHVkd2lnIFBldHJvc3lhbiBJIGFt
+IHdvcmtpbmcgaW4gREVTWSAoR2VybWFueSkKCndlIGFyZSByZXNwb25zaWJsZSBmb3IgdGhlIGNv
+bnRyb2wgc3lzdGVtIG9mwqAgYWxsIGFjY2VsZXJhdG9ycyBpbiBERVNZLgoKRm9yIGEgNy04IHll
+YXJzIHdlIGhhdmUgc3dpdGNoZWQgdG8gTVRDQS40IHN5c3RlbXMgYW5kIHVzaW5nIFBDSWUgYXMg
+YSAKY2VudHJhbCBCdXMuCgpJIGFtIG1vc3RseSByZXNwb25zaWJsZSBmb3IgdGhlIExpbnV4IGRy
+aXZlcnMgb2YgdGhlIEFNQyBDYXJkcyAoUENJZSAKZW5kcG9pbnRzKS4KClRoZSBpZGVhIGlzIHN0
+YXJ0IHRvIHVzZSBwZWVyIHRvIHBlZXIgdHJhbnNhY3Rpb24gZm9yIFBDSWUgZW5kcG9pbnQgKERN
+QSAKYW5kL29yIHVzdWFsIFJlYWQvV3JpdGUpCgpDb3VsZCBZb3UgcGxlYXNlIGFkdmlzZSBtZSB3
+aGVyZSB0byBzdGFydCwgaXMgdGhlcmUgc29tZSBEb2N1bWVudGF0aW9uIApob3cgdG8gZG8gaXQu
+CgoKd2l0aCBiZXN0IHJlZ2FyZHMKCgpMdWR3aWcKCgpPbiAxMS8yMS8yMDE2IDA5OjM2IFBNLCBE
+ZXVjaGVyLCBBbGV4YW5kZXIgd3JvdGU6Cj4gVGhpcyBpcyBjZXJ0YWlubHkgbm90IHRoZSBmaXJz
+dCB0aW1lIHRoaXMgaGFzIGJlZW4gYnJvdWdodCB1cCwgYnV0IEknZCBsaWtlIHRvIHRyeSBhbmQg
+Z2V0IHNvbWUgY29uc2Vuc3VzIG9uIHRoZSBiZXN0IHdheSB0byBtb3ZlIHRoaXMgZm9yd2FyZC4g
+IEFsbG93aW5nIGRldmljZXMgdG8gdGFsayBkaXJlY3RseSBpbXByb3ZlcyBwZXJmb3JtYW5jZSBh
+bmQgcmVkdWNlcyBsYXRlbmN5IGJ5IGF2b2lkaW5nIHRoZSB1c2Ugb2Ygc3RhZ2luZyBidWZmZXJz
+IGluIHN5c3RlbSBtZW1vcnkuICBBbHNvIGluIGNhc2VzIHdoZXJlIGJvdGggZGV2aWNlcyBhcmUg
+YmVoaW5kIGEgc3dpdGNoLCBpdCBhdm9pZHMgdGhlIENQVSBlbnRpcmVseS4gIE1vc3QgY3VycmVu
+dCBBUElzIChEaXJlY3RHTUEsIFBlZXJEaXJlY3QsIENVREEsIEhTQSkgdGhhdCBkZWFsIHdpdGgg
+dGhpcyBhcmUgcG9pbnRlciBiYXNlZC4gIElkZWFsbHkgd2UnZCBiZSBhYmxlIHRvIHRha2UgYSBD
+UFUgdmlydHVhbCBhZGRyZXNzIGFuZCBiZSBhYmxlIHRvIGdldCB0byBhIHBoeXNpY2FsIGFkZHJl
+c3MgdGFraW5nIGludG8gYWNjb3VudCBJT01NVXMsIGV0Yy4gIEhhdmluZyBzdHJ1Y3QgcGFnZXMg
+Zm9yIHRoZSBtZW1vcnkgd291bGQgYWxsb3cgaXQgdG8gd29yayBtb3JlIGdlbmVyYWxseSBhbmQg
+d291bGRuJ3QgcmVxdWlyZSBhcyBtdWNoIGV4cGxpY2l0IHN1cHBvcnQgaW4gZHJpdmVycyB0aGF0
+IHdhbnRlZCB0byB1c2UgaXQuCj4gICAKPiBTb21lIHVzZSBjYXNlczoKPiAxLiBTdG9yYWdlIGRl
+dmljZXMgc3RyZWFtaW5nIGRpcmVjdGx5IHRvIEdQVSBkZXZpY2UgbWVtb3J5Cj4gMi4gR1BVIGRl
+dmljZSBtZW1vcnkgdG8gR1BVIGRldmljZSBtZW1vcnkgc3RyZWFtaW5nCj4gMy4gRFZCL1Y0TC9T
+REkgZGV2aWNlcyBzdHJlYW1pbmcgZGlyZWN0bHkgdG8gR1BVIGRldmljZSBtZW1vcnkKPiA0LiBE
+VkIvVjRML1NESSBkZXZpY2VzIHN0cmVhbWluZyBkaXJlY3RseSB0byBzdG9yYWdlIGRldmljZXMK
+PiAgIAo+IEhlcmUgaXMgYSByZWxhdGl2ZWx5IHNpbXBsZSBleGFtcGxlIG9mIGhvdyB0aGlzIGNv
+dWxkIHdvcmsgZm9yIHRlc3RpbmcuICBUaGlzIGlzIG9idmlvdXNseSBub3QgYSBjb21wbGV0ZSBz
+b2x1dGlvbi4KPiAtIERldmljZSBtZW1vcnkgd2lsbCBiZSByZWdpc3RlcmVkIHdpdGggTGludXgg
+bWVtb3J5IHN1Yi1zeXN0ZW0gYnkgY3JlYXRlZCBjb3JyZXNwb25kaW5nIHN0cnVjdCBwYWdlIHN0
+cnVjdHVyZXMgZm9yIGRldmljZSBtZW1vcnkKPiAtIGdldF91c2VyX3BhZ2VzX2Zhc3QoKSB3aWxs
+ICByZXR1cm4gY29ycmVzcG9uZGluZyBzdHJ1Y3QgcGFnZXMgd2hlbiBDUFUgYWRkcmVzcyBwb2lu
+dHMgdG8gdGhlIGRldmljZSBtZW1vcnkKPiAtIHB1dF9wYWdlKCkgd2lsbCBkZWFsIHdpdGggc3Ry
+dWN0IHBhZ2VzIGZvciBkZXZpY2UgbWVtb3J5Cj4gICAKPiBQcmV2aW91c2x5IHByb3Bvc2VkIHNv
+bHV0aW9ucyBhbmQgcmVsYXRlZCBwcm9wb3NhbHM6Cj4gMS5QMlAgRE1BCj4gRE1BLUFQSS9QQ0kg
+bWFwX3BlZXJfcmVzb3VyY2Ugc3VwcG9ydCBmb3IgcGVlci10by1wZWVyIChodHRwOi8vd3d3LnNw
+aW5pY3MubmV0L2xpc3RzL2xpbnV4LXBjaS9tc2c0NDU2MC5odG1sKQo+IFByb3M6IExvdyBpbXBh
+Y3QsIGFscmVhZHkgbGFyZ2VseSByZXZpZXdlZC4KPiBDb25zOiByZXF1aXJlcyBleHBsaWNpdCBz
+dXBwb3J0IGluIGFsbCBkcml2ZXJzIHRoYXQgd2FudCB0byBzdXBwb3J0IGl0LCBkb2Vzbid0IGhh
+bmRsZSBTL0cgaW4gZGV2aWNlIG1lbW9yeS4KPiAgIAo+IDIuIFpPTkVfREVWSUNFIElPCj4gRGly
+ZWN0IEkvTyBhbmQgRE1BIGZvciBwZXJzaXN0ZW50IG1lbW9yeSAoaHR0cHM6Ly9sd24ubmV0L0Fy
+dGljbGVzLzY3MjQ1Ny8pCj4gQWRkIHN1cHBvcnQgZm9yIFpPTkVfREVWSUNFIElPIG1lbW9yeSB3
+aXRoIHN0cnVjdCBwYWdlcy4gKGh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvODU4
+MzIyMS8pCj4gUHJvOiBEb2Vzbid0IHdhc3RlIHN5c3RlbSBtZW1vcnkgZm9yIFpPTkUgbWV0YWRh
+dGEKPiBDb25zOiBDUFUgYWNjZXNzIHRvIFpPTkUgbWV0YWRhdGEgc2xvdywgbWF5IGJlIGxvc3Qs
+IGNvcnJ1cHRlZCBvbiBkZXZpY2UgcmVzZXQuCj4gICAKPiAzLiBETUEtQlVGCj4gUkRNQSBzdWJz
+eXN0ZW0gRE1BLUJVRiBzdXBwb3J0IChodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4
+LXJkbWEvbXNnMzg3NDguaHRtbCkKPiBQcm9zOiB1c2VzIGV4aXN0aW5nIGRtYS1idWYgaW50ZXJm
+YWNlCj4gQ29uczogZG1hLWJ1ZiBpcyBoYW5kbGUgYmFzZWQsIHJlcXVpcmVzIGV4cGxpY2l0IGRt
+YS1idWYgc3VwcG9ydCBpbiBkcml2ZXJzLgo+Cj4gNC4gaW9wbWVtCj4gaW9wbWVtIDogQSBibG9j
+ayBkZXZpY2UgZm9yIFBDSWUgbWVtb3J5IChodHRwczovL2x3bi5uZXQvQXJ0aWNsZXMvNzAzODk1
+LykKPiAgIAo+IDUuIEhNTQo+IEhldGVyb2dlbmVvdXMgTWVtb3J5IE1hbmFnZW1lbnQgKGh0dHA6
+Ly9sa21sLml1LmVkdS9oeXBlcm1haWwvbGludXgva2VybmVsLzE2MTEuMi8wMjQ3My5odG1sKQo+
+Cj4gNi4gU29tZSBuZXcgbW1hcC1saWtlIGludGVyZmFjZSB0aGF0IHRha2VzIGEgdXNlcnB0ciBh
+bmQgYSBsZW5ndGggYW5kIHJldHVybnMgYSBkbWEtYnVmIGFuZCBvZmZzZXQ/Cj4gICAKPiBBbGV4
+Cj4KPiAtLQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1
+bnN1YnNjcmliZSBsaW51eC1wY2kiIGluCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9y
+ZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdl
+ci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwKCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgt
+bnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xpbnV4LW52ZGltbQo=
