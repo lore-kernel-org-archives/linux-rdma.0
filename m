@@ -1,118 +1,57 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 9/9] xprtrdma: Remove atomic send completion counting
-Date: Fri, 20 Oct 2017 10:48:45 -0400
-Message-ID: <20171020144844.14869.66895.stgit@manet.1015granger.net>
-References: <20171020143635.14869.15714.stgit@manet.1015granger.net>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] ibdiag_common.c: In
+ is_port_info_extended_supported, query PortInfo for port 0 when node is a
+ switch
+Date: Fri, 20 Oct 2017 11:22:48 -0400
+Message-ID: <831b3d02-ecc9-b394-88ea-4e371f3a7e72@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171020143635.14869.15714.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The sendctx circular queue now guarantees that xprtrdma cannot
-overflow the Send Queue, so remove the remaining bits of the
-original Send WQE counting mechanism.
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+to be able to obtain CapabilityMask and CapabilityMask2
+as these fields are not used on switch external ports
+(only on switch port 0)
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/frwr_ops.c  |    8 --------
- net/sunrpc/xprtrdma/verbs.c     |    4 ----
- net/sunrpc/xprtrdma/xprt_rdma.h |   21 ---------------------
- 3 files changed, 33 deletions(-)
+ src/ibdiag_common.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index 3053fb0..404166a 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -419,7 +419,6 @@
- 			 IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
- 			 IB_ACCESS_REMOTE_READ;
+diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+index 9245146..c33cacc 100644
+--- a/src/ibdiag_common.c
++++ b/src/ibdiag_common.c
+@@ -506,8 +506,18 @@ int is_port_info_extended_supported(ib_portid_t * dest, int port,
+ 	uint8_t data[IB_SMP_DATA_SIZE] = { 0 };
+ 	uint32_t cap_mask;
+ 	uint16_t cap_mask2;
++	int type, portnum;
  
--	rpcrdma_set_signaled(&r_xprt->rx_ep, &reg_wr->wr);
- 	rc = ib_post_send(ia->ri_id->qp, &reg_wr->wr, &bad_wr);
- 	if (rc)
- 		goto out_senderr;
-@@ -507,12 +506,6 @@
- 	f->fr_cqe.done = frwr_wc_localinv_wake;
- 	reinit_completion(&f->fr_linv_done);
+-	if (!smp_query_via(data, dest, IB_ATTR_PORT_INFO, port, 0, srcport))
++	if (!smp_query_via(data, dest, IB_ATTR_NODE_INFO, 0, 0, srcport))
++		IBEXIT("node info query failed");
++
++	mad_decode_field(data, IB_NODE_TYPE_F, &type);
++	if (type == IB_NODE_SWITCH)
++		portnum = 0;
++	else
++		portnum = port;
++
++	if (!smp_query_via(data, dest, IB_ATTR_PORT_INFO, portnum, 0, srcport))
+ 		IBEXIT("port info query failed");
  
--	/* Initialize CQ count, since there is always a signaled
--	 * WR being posted here.  The new cqcount depends on how
--	 * many SQEs are about to be consumed.
--	 */
--	rpcrdma_init_cqcount(&r_xprt->rx_ep, count);
--
- 	/* Transport disconnect drains the receive CQ before it
- 	 * replaces the QP. The RPC reply handler won't call us
- 	 * unless ri_id->qp is a valid pointer.
-@@ -545,7 +538,6 @@
- 	/* Find and reset the MRs in the LOCAL_INV WRs that did not
- 	 * get posted.
- 	 */
--	rpcrdma_init_cqcount(&r_xprt->rx_ep, -count);
- 	while (bad_wr) {
- 		f = container_of(bad_wr, struct rpcrdma_frmr,
- 				 fr_invwr);
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 9a824fe..22128a8 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -553,10 +553,6 @@
- 	ep->rep_send_batch = min_t(unsigned int, RPCRDMA_MAX_SEND_BATCH,
- 				   cdata->max_requests >> 2);
- 	ep->rep_send_count = ep->rep_send_batch;
--	ep->rep_cqinit = ep->rep_attr.cap.max_send_wr/2 - 1;
--	if (ep->rep_cqinit <= 2)
--		ep->rep_cqinit = 0;	/* always signal? */
--	rpcrdma_init_cqcount(ep, 0);
- 	init_waitqueue_head(&ep->rep_connect_wait);
- 	INIT_DELAYED_WORK(&ep->rep_connect_worker, rpcrdma_connect_worker);
- 
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index bccd5d8..6e64c82 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -95,8 +95,6 @@ enum {
- struct rpcrdma_ep {
- 	unsigned int		rep_send_count;
- 	unsigned int		rep_send_batch;
--	atomic_t		rep_cqcount;
--	int			rep_cqinit;
- 	int			rep_connected;
- 	struct ib_qp_init_attr	rep_attr;
- 	wait_queue_head_t 	rep_connect_wait;
-@@ -106,25 +104,6 @@ struct rpcrdma_ep {
- 	struct delayed_work	rep_connect_worker;
- };
- 
--static inline void
--rpcrdma_init_cqcount(struct rpcrdma_ep *ep, int count)
--{
--	atomic_set(&ep->rep_cqcount, ep->rep_cqinit - count);
--}
--
--/* To update send queue accounting, provider must take a
-- * send completion every now and then.
-- */
--static inline void
--rpcrdma_set_signaled(struct rpcrdma_ep *ep, struct ib_send_wr *send_wr)
--{
--	send_wr->send_flags = 0;
--	if (unlikely(atomic_sub_return(1, &ep->rep_cqcount) <= 0)) {
--		rpcrdma_init_cqcount(ep, 0);
--		send_wr->send_flags = IB_SEND_SIGNALED;
--	}
--}
--
- /* Pre-allocate extra Work Requests for handling backward receives
-  * and sends. This is a fixed value because the Work Queues are
-  * allocated when the forward channel is set up.
+ 	mad_decode_field(data, IB_PORT_CAPMASK_F, &cap_mask);
+-- 
+2.8.4
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
