@@ -1,61 +1,107 @@
-From: Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 07/16] IB/core: Introduce counter set query verb
-Date: Fri, 20 Oct 2017 15:40:02 +0000
-Message-ID: <AM6PR0502MB37838A23148C096EEC8FBA42BD430@AM6PR0502MB3783.eurprd05.prod.outlook.com>
-References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
- <1508424118-27205-8-git-send-email-yishaih@mellanox.com>,<alpine.DEB.2.20.1710200547100.10736@nuc-kabylake>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Fri, 20 Oct 2017 09:48:58 -0600
+Message-ID: <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1710200547100.10736@nuc-kabylake>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <7f5e0303-f4ea-781a-8dec-74b30990d54f-T5F83Mi6MZE@public.gmane.org>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Ludwig Petrosyan <ludwig.petrosyan-T5F83Mi6MZE@public.gmane.org>, "Deucher, Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Bridgman, John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "Sander,
+ Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Kuehling, Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Sagalovitch, Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Koenig,
+ Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
+ Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Blinzer,
+ Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-On Thu, 19 Oct 2017,=A0Christopher Lameter=A0wrote:
-On Thu, 19 Oct 2017, Yishai Hadas wrote:
-
->> A counter set must be first attached to an IB object in order to
->> be queried for its underlay counters, downstream patches will
->> present bind and query methods for flow counters.
->> The user has an option as part of the query verb to force reading
->> the up-to-date hardware values instead of reading some cached
->> values by using the IB_COUNTER_SET_FORCE_UPDATE flag.
-
->What does "cached" mean in this context? Accurate to the last second? Or
->just return what was returned earlier? Semantics look a bit unclear to me.
-
-When this flag is used - querying the counter does not guarantee accurate v=
-alue from the hardware.
-The driver might return a value that was true several nonsecs. or even seve=
-ral seconds ago.
-
-
-Explanation:
-
-Querying the hardware is expensive,=A0 when user queries the hardware
-the driver could decide to use the same query to query multiple counter-set
-rather than a single one ( the one the user asked for)
-
-The counter-sets the user did not ask for - are stored in the driver cache.
-Driver may decide to return these value rather than query the hardware agai=
-n.
-
-
-Nevertheless,=A0 when using the=A0the query API=A0user can force the driver=
- to=A0
-execute direct=A0hardware=A0query=A0, rather than return cached value.
-
-
-Guy
-
-
-    =
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgTHVkd2lnLAoKUDJQIHRyYW5zYWN0aW9ucyBhcmUgc3RpbGwgKnZlcnkqIGV4cGVyaW1lbnRh
+bCBhdCB0aGUgbW9tZW50IGFuZCB0YWtlIGEgCmxvdCBvZiBleHBlcnRpc2UgdG8gZ2V0IHdvcmtp
+bmcgaW4gYSBnZW5lcmFsIHNldHVwLiBJdCB3aWxsIGRlZmluaXRlbHkgCnJlcXVpcmUgY2hhbmdl
+cyB0byB0aGUga2VybmVsLCBpbmNsdWRpbmcgdGhlIGRyaXZlcnMgb2YgYWxsIHRoZSBkZXZpY2Vz
+IAp5b3UgYXJlIHRyeWluZyB0byBtYWtlIHRhbGsgdG8gZWFjaG90aGVyLiBJZiB5b3UncmUgdXAg
+Zm9yIGl0IHlvdSBjYW4gCnRha2UgYSBsb29rIGF0OgoKaHR0cHM6Ly9naXRodWIuY29tL3NiYXRl
+czEzMDI3Mi9saW51eC1wMnBtZW0vCgpXaGljaCBoYXMgb3VyIGN1cnJlbnQgcm91Z2ggd29yayBt
+YWtpbmcgTlZNZSBmYWJyaWNzIHVzZSBwMnAgdHJhbnNhY3Rpb25zLgoKTG9nYW4KCk9uIDEwLzIw
+LzIwMTcgNjozNiBBTSwgTHVkd2lnIFBldHJvc3lhbiB3cm90ZToKPiBEZWFyIExpbnV4IGtlcm5l
+bCBncm91cAo+IAo+IG15IG5hbWUgaXMgTHVkd2lnIFBldHJvc3lhbiBJIGFtIHdvcmtpbmcgaW4g
+REVTWSAoR2VybWFueSkKPiAKPiB3ZSBhcmUgcmVzcG9uc2libGUgZm9yIHRoZSBjb250cm9sIHN5
+c3RlbSBvZsKgIGFsbCBhY2NlbGVyYXRvcnMgaW4gREVTWS4KPiAKPiBGb3IgYSA3LTggeWVhcnMg
+d2UgaGF2ZSBzd2l0Y2hlZCB0byBNVENBLjQgc3lzdGVtcyBhbmQgdXNpbmcgUENJZSBhcyBhIAo+
+IGNlbnRyYWwgQnVzLgo+IAo+IEkgYW0gbW9zdGx5IHJlc3BvbnNpYmxlIGZvciB0aGUgTGludXgg
+ZHJpdmVycyBvZiB0aGUgQU1DIENhcmRzIChQQ0llIAo+IGVuZHBvaW50cykuCj4gCj4gVGhlIGlk
+ZWEgaXMgc3RhcnQgdG8gdXNlIHBlZXIgdG8gcGVlciB0cmFuc2FjdGlvbiBmb3IgUENJZSBlbmRw
+b2ludCAoRE1BIAo+IGFuZC9vciB1c3VhbCBSZWFkL1dyaXRlKQo+IAo+IENvdWxkIFlvdSBwbGVh
+c2UgYWR2aXNlIG1lIHdoZXJlIHRvIHN0YXJ0LCBpcyB0aGVyZSBzb21lIERvY3VtZW50YXRpb24g
+Cj4gaG93IHRvIGRvIGl0Lgo+IAo+IAo+IHdpdGggYmVzdCByZWdhcmRzCj4gCj4gCj4gTHVkd2ln
+Cj4gCj4gCj4gT24gMTEvMjEvMjAxNiAwOTozNiBQTSwgRGV1Y2hlciwgQWxleGFuZGVyIHdyb3Rl
+Ogo+PiBUaGlzIGlzIGNlcnRhaW5seSBub3QgdGhlIGZpcnN0IHRpbWUgdGhpcyBoYXMgYmVlbiBi
+cm91Z2h0IHVwLCBidXQgSSdkIAo+PiBsaWtlIHRvIHRyeSBhbmQgZ2V0IHNvbWUgY29uc2Vuc3Vz
+IG9uIHRoZSBiZXN0IHdheSB0byBtb3ZlIHRoaXMgCj4+IGZvcndhcmQuwqAgQWxsb3dpbmcgZGV2
+aWNlcyB0byB0YWxrIGRpcmVjdGx5IGltcHJvdmVzIHBlcmZvcm1hbmNlIGFuZCAKPj4gcmVkdWNl
+cyBsYXRlbmN5IGJ5IGF2b2lkaW5nIHRoZSB1c2Ugb2Ygc3RhZ2luZyBidWZmZXJzIGluIHN5c3Rl
+bSAKPj4gbWVtb3J5LsKgIEFsc28gaW4gY2FzZXMgd2hlcmUgYm90aCBkZXZpY2VzIGFyZSBiZWhp
+bmQgYSBzd2l0Y2gsIGl0IAo+PiBhdm9pZHMgdGhlIENQVSBlbnRpcmVseS7CoCBNb3N0IGN1cnJl
+bnQgQVBJcyAoRGlyZWN0R01BLCBQZWVyRGlyZWN0LCAKPj4gQ1VEQSwgSFNBKSB0aGF0IGRlYWwg
+d2l0aCB0aGlzIGFyZSBwb2ludGVyIGJhc2VkLsKgIElkZWFsbHkgd2UnZCBiZSAKPj4gYWJsZSB0
+byB0YWtlIGEgQ1BVIHZpcnR1YWwgYWRkcmVzcyBhbmQgYmUgYWJsZSB0byBnZXQgdG8gYSBwaHlz
+aWNhbCAKPj4gYWRkcmVzcyB0YWtpbmcgaW50byBhY2NvdW50IElPTU1VcywgZXRjLsKgIEhhdmlu
+ZyBzdHJ1Y3QgcGFnZXMgZm9yIHRoZSAKPj4gbWVtb3J5IHdvdWxkIGFsbG93IGl0IHRvIHdvcmsg
+bW9yZSBnZW5lcmFsbHkgYW5kIHdvdWxkbid0IHJlcXVpcmUgYXMgCj4+IG11Y2ggZXhwbGljaXQg
+c3VwcG9ydCBpbiBkcml2ZXJzIHRoYXQgd2FudGVkIHRvIHVzZSBpdC4KPj4gU29tZSB1c2UgY2Fz
+ZXM6Cj4+IDEuIFN0b3JhZ2UgZGV2aWNlcyBzdHJlYW1pbmcgZGlyZWN0bHkgdG8gR1BVIGRldmlj
+ZSBtZW1vcnkKPj4gMi4gR1BVIGRldmljZSBtZW1vcnkgdG8gR1BVIGRldmljZSBtZW1vcnkgc3Ry
+ZWFtaW5nCj4+IDMuIERWQi9WNEwvU0RJIGRldmljZXMgc3RyZWFtaW5nIGRpcmVjdGx5IHRvIEdQ
+VSBkZXZpY2UgbWVtb3J5Cj4+IDQuIERWQi9WNEwvU0RJIGRldmljZXMgc3RyZWFtaW5nIGRpcmVj
+dGx5IHRvIHN0b3JhZ2UgZGV2aWNlcwo+PiBIZXJlIGlzIGEgcmVsYXRpdmVseSBzaW1wbGUgZXhh
+bXBsZSBvZiBob3cgdGhpcyBjb3VsZCB3b3JrIGZvciAKPj4gdGVzdGluZy7CoCBUaGlzIGlzIG9i
+dmlvdXNseSBub3QgYSBjb21wbGV0ZSBzb2x1dGlvbi4KPj4gLSBEZXZpY2UgbWVtb3J5IHdpbGwg
+YmUgcmVnaXN0ZXJlZCB3aXRoIExpbnV4IG1lbW9yeSBzdWItc3lzdGVtIGJ5IAo+PiBjcmVhdGVk
+IGNvcnJlc3BvbmRpbmcgc3RydWN0IHBhZ2Ugc3RydWN0dXJlcyBmb3IgZGV2aWNlIG1lbW9yeQo+
+PiAtIGdldF91c2VyX3BhZ2VzX2Zhc3QoKSB3aWxswqAgcmV0dXJuIGNvcnJlc3BvbmRpbmcgc3Ry
+dWN0IHBhZ2VzIHdoZW4gCj4+IENQVSBhZGRyZXNzIHBvaW50cyB0byB0aGUgZGV2aWNlIG1lbW9y
+eQo+PiAtIHB1dF9wYWdlKCkgd2lsbCBkZWFsIHdpdGggc3RydWN0IHBhZ2VzIGZvciBkZXZpY2Ug
+bWVtb3J5Cj4+IFByZXZpb3VzbHkgcHJvcG9zZWQgc29sdXRpb25zIGFuZCByZWxhdGVkIHByb3Bv
+c2FsczoKPj4gMS5QMlAgRE1BCj4+IERNQS1BUEkvUENJIG1hcF9wZWVyX3Jlc291cmNlIHN1cHBv
+cnQgZm9yIHBlZXItdG8tcGVlciAKPj4gKGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGlu
+dXgtcGNpL21zZzQ0NTYwLmh0bWwpCj4+IFByb3M6IExvdyBpbXBhY3QsIGFscmVhZHkgbGFyZ2Vs
+eSByZXZpZXdlZC4KPj4gQ29uczogcmVxdWlyZXMgZXhwbGljaXQgc3VwcG9ydCBpbiBhbGwgZHJp
+dmVycyB0aGF0IHdhbnQgdG8gc3VwcG9ydCAKPj4gaXQsIGRvZXNuJ3QgaGFuZGxlIFMvRyBpbiBk
+ZXZpY2UgbWVtb3J5Lgo+PiAyLiBaT05FX0RFVklDRSBJTwo+PiBEaXJlY3QgSS9PIGFuZCBETUEg
+Zm9yIHBlcnNpc3RlbnQgbWVtb3J5IAo+PiAoaHR0cHM6Ly9sd24ubmV0L0FydGljbGVzLzY3MjQ1
+Ny8pCj4+IEFkZCBzdXBwb3J0IGZvciBaT05FX0RFVklDRSBJTyBtZW1vcnkgd2l0aCBzdHJ1Y3Qg
+cGFnZXMuIAo+PiAoaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC84NTgzMjIxLykK
+Pj4gUHJvOiBEb2Vzbid0IHdhc3RlIHN5c3RlbSBtZW1vcnkgZm9yIFpPTkUgbWV0YWRhdGEKPj4g
+Q29uczogQ1BVIGFjY2VzcyB0byBaT05FIG1ldGFkYXRhIHNsb3csIG1heSBiZSBsb3N0LCBjb3Jy
+dXB0ZWQgb24gCj4+IGRldmljZSByZXNldC4KPj4gMy4gRE1BLUJVRgo+PiBSRE1BIHN1YnN5c3Rl
+bSBETUEtQlVGIHN1cHBvcnQgCj4+IChodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4
+LXJkbWEvbXNnMzg3NDguaHRtbCkKPj4gUHJvczogdXNlcyBleGlzdGluZyBkbWEtYnVmIGludGVy
+ZmFjZQo+PiBDb25zOiBkbWEtYnVmIGlzIGhhbmRsZSBiYXNlZCwgcmVxdWlyZXMgZXhwbGljaXQg
+ZG1hLWJ1ZiBzdXBwb3J0IGluIAo+PiBkcml2ZXJzLgo+Pgo+PiA0LiBpb3BtZW0KPj4gaW9wbWVt
+IDogQSBibG9jayBkZXZpY2UgZm9yIFBDSWUgbWVtb3J5IAo+PiAoaHR0cHM6Ly9sd24ubmV0L0Fy
+dGljbGVzLzcwMzg5NS8pCj4+IDUuIEhNTQo+PiBIZXRlcm9nZW5lb3VzIE1lbW9yeSBNYW5hZ2Vt
+ZW50IAo+PiAoaHR0cDovL2xrbWwuaXUuZWR1L2h5cGVybWFpbC9saW51eC9rZXJuZWwvMTYxMS4y
+LzAyNDczLmh0bWwpCj4+Cj4+IDYuIFNvbWUgbmV3IG1tYXAtbGlrZSBpbnRlcmZhY2UgdGhhdCB0
+YWtlcyBhIHVzZXJwdHIgYW5kIGEgbGVuZ3RoIGFuZCAKPj4gcmV0dXJucyBhIGRtYS1idWYgYW5k
+IG9mZnNldD8KPj4gQWxleAo+Pgo+PiAtLSAKPj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxp
+c3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXBjaSIgaW4KPj4gdGhlIGJvZHkg
+b2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPj4gTW9yZSBtYWpvcmRv
+bW8gaW5mbyBhdMKgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo+
+IAo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gTGlu
+dXgtbnZkaW1tIG1haWxpbmcgbGlzdAo+IExpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKPiBodHRw
+czovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxp
+bmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21h
+aWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
