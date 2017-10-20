@@ -1,107 +1,142 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Fri, 20 Oct 2017 09:48:58 -0600
-Message-ID: <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
+ misinterpreted flag
+Date: Fri, 20 Oct 2017 19:20:17 +0300
+Message-ID: <20171020162017.GZ2106@mtr-leonro.local>
+References: <20171019213859.26124.37851.stgit@phlsvslse11.ph.intel.com>
+ <20171020073724.GY2106@mtr-leonro.local>
+ <3F128C9216C9B84BB6ED23EF16290AFB6347E3BF@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <7f5e0303-f4ea-781a-8dec-74b30990d54f-T5F83Mi6MZE@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Ludwig Petrosyan <ludwig.petrosyan-T5F83Mi6MZE@public.gmane.org>, "Deucher, Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org'" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "'Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "'linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Bridgman, John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "Sander,
- Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Kuehling, Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Sagalovitch, Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Koenig,
- Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit,
- Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Blinzer,
- Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="8gjvNdKnYEg0NgYj"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3F128C9216C9B84BB6ED23EF16290AFB6347E3BF-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgTHVkd2lnLAoKUDJQIHRyYW5zYWN0aW9ucyBhcmUgc3RpbGwgKnZlcnkqIGV4cGVyaW1lbnRh
-bCBhdCB0aGUgbW9tZW50IGFuZCB0YWtlIGEgCmxvdCBvZiBleHBlcnRpc2UgdG8gZ2V0IHdvcmtp
-bmcgaW4gYSBnZW5lcmFsIHNldHVwLiBJdCB3aWxsIGRlZmluaXRlbHkgCnJlcXVpcmUgY2hhbmdl
-cyB0byB0aGUga2VybmVsLCBpbmNsdWRpbmcgdGhlIGRyaXZlcnMgb2YgYWxsIHRoZSBkZXZpY2Vz
-IAp5b3UgYXJlIHRyeWluZyB0byBtYWtlIHRhbGsgdG8gZWFjaG90aGVyLiBJZiB5b3UncmUgdXAg
-Zm9yIGl0IHlvdSBjYW4gCnRha2UgYSBsb29rIGF0OgoKaHR0cHM6Ly9naXRodWIuY29tL3NiYXRl
-czEzMDI3Mi9saW51eC1wMnBtZW0vCgpXaGljaCBoYXMgb3VyIGN1cnJlbnQgcm91Z2ggd29yayBt
-YWtpbmcgTlZNZSBmYWJyaWNzIHVzZSBwMnAgdHJhbnNhY3Rpb25zLgoKTG9nYW4KCk9uIDEwLzIw
-LzIwMTcgNjozNiBBTSwgTHVkd2lnIFBldHJvc3lhbiB3cm90ZToKPiBEZWFyIExpbnV4IGtlcm5l
-bCBncm91cAo+IAo+IG15IG5hbWUgaXMgTHVkd2lnIFBldHJvc3lhbiBJIGFtIHdvcmtpbmcgaW4g
-REVTWSAoR2VybWFueSkKPiAKPiB3ZSBhcmUgcmVzcG9uc2libGUgZm9yIHRoZSBjb250cm9sIHN5
-c3RlbSBvZsKgIGFsbCBhY2NlbGVyYXRvcnMgaW4gREVTWS4KPiAKPiBGb3IgYSA3LTggeWVhcnMg
-d2UgaGF2ZSBzd2l0Y2hlZCB0byBNVENBLjQgc3lzdGVtcyBhbmQgdXNpbmcgUENJZSBhcyBhIAo+
-IGNlbnRyYWwgQnVzLgo+IAo+IEkgYW0gbW9zdGx5IHJlc3BvbnNpYmxlIGZvciB0aGUgTGludXgg
-ZHJpdmVycyBvZiB0aGUgQU1DIENhcmRzIChQQ0llIAo+IGVuZHBvaW50cykuCj4gCj4gVGhlIGlk
-ZWEgaXMgc3RhcnQgdG8gdXNlIHBlZXIgdG8gcGVlciB0cmFuc2FjdGlvbiBmb3IgUENJZSBlbmRw
-b2ludCAoRE1BIAo+IGFuZC9vciB1c3VhbCBSZWFkL1dyaXRlKQo+IAo+IENvdWxkIFlvdSBwbGVh
-c2UgYWR2aXNlIG1lIHdoZXJlIHRvIHN0YXJ0LCBpcyB0aGVyZSBzb21lIERvY3VtZW50YXRpb24g
-Cj4gaG93IHRvIGRvIGl0Lgo+IAo+IAo+IHdpdGggYmVzdCByZWdhcmRzCj4gCj4gCj4gTHVkd2ln
-Cj4gCj4gCj4gT24gMTEvMjEvMjAxNiAwOTozNiBQTSwgRGV1Y2hlciwgQWxleGFuZGVyIHdyb3Rl
-Ogo+PiBUaGlzIGlzIGNlcnRhaW5seSBub3QgdGhlIGZpcnN0IHRpbWUgdGhpcyBoYXMgYmVlbiBi
-cm91Z2h0IHVwLCBidXQgSSdkIAo+PiBsaWtlIHRvIHRyeSBhbmQgZ2V0IHNvbWUgY29uc2Vuc3Vz
-IG9uIHRoZSBiZXN0IHdheSB0byBtb3ZlIHRoaXMgCj4+IGZvcndhcmQuwqAgQWxsb3dpbmcgZGV2
-aWNlcyB0byB0YWxrIGRpcmVjdGx5IGltcHJvdmVzIHBlcmZvcm1hbmNlIGFuZCAKPj4gcmVkdWNl
-cyBsYXRlbmN5IGJ5IGF2b2lkaW5nIHRoZSB1c2Ugb2Ygc3RhZ2luZyBidWZmZXJzIGluIHN5c3Rl
-bSAKPj4gbWVtb3J5LsKgIEFsc28gaW4gY2FzZXMgd2hlcmUgYm90aCBkZXZpY2VzIGFyZSBiZWhp
-bmQgYSBzd2l0Y2gsIGl0IAo+PiBhdm9pZHMgdGhlIENQVSBlbnRpcmVseS7CoCBNb3N0IGN1cnJl
-bnQgQVBJcyAoRGlyZWN0R01BLCBQZWVyRGlyZWN0LCAKPj4gQ1VEQSwgSFNBKSB0aGF0IGRlYWwg
-d2l0aCB0aGlzIGFyZSBwb2ludGVyIGJhc2VkLsKgIElkZWFsbHkgd2UnZCBiZSAKPj4gYWJsZSB0
-byB0YWtlIGEgQ1BVIHZpcnR1YWwgYWRkcmVzcyBhbmQgYmUgYWJsZSB0byBnZXQgdG8gYSBwaHlz
-aWNhbCAKPj4gYWRkcmVzcyB0YWtpbmcgaW50byBhY2NvdW50IElPTU1VcywgZXRjLsKgIEhhdmlu
-ZyBzdHJ1Y3QgcGFnZXMgZm9yIHRoZSAKPj4gbWVtb3J5IHdvdWxkIGFsbG93IGl0IHRvIHdvcmsg
-bW9yZSBnZW5lcmFsbHkgYW5kIHdvdWxkbid0IHJlcXVpcmUgYXMgCj4+IG11Y2ggZXhwbGljaXQg
-c3VwcG9ydCBpbiBkcml2ZXJzIHRoYXQgd2FudGVkIHRvIHVzZSBpdC4KPj4gU29tZSB1c2UgY2Fz
-ZXM6Cj4+IDEuIFN0b3JhZ2UgZGV2aWNlcyBzdHJlYW1pbmcgZGlyZWN0bHkgdG8gR1BVIGRldmlj
-ZSBtZW1vcnkKPj4gMi4gR1BVIGRldmljZSBtZW1vcnkgdG8gR1BVIGRldmljZSBtZW1vcnkgc3Ry
-ZWFtaW5nCj4+IDMuIERWQi9WNEwvU0RJIGRldmljZXMgc3RyZWFtaW5nIGRpcmVjdGx5IHRvIEdQ
-VSBkZXZpY2UgbWVtb3J5Cj4+IDQuIERWQi9WNEwvU0RJIGRldmljZXMgc3RyZWFtaW5nIGRpcmVj
-dGx5IHRvIHN0b3JhZ2UgZGV2aWNlcwo+PiBIZXJlIGlzIGEgcmVsYXRpdmVseSBzaW1wbGUgZXhh
-bXBsZSBvZiBob3cgdGhpcyBjb3VsZCB3b3JrIGZvciAKPj4gdGVzdGluZy7CoCBUaGlzIGlzIG9i
-dmlvdXNseSBub3QgYSBjb21wbGV0ZSBzb2x1dGlvbi4KPj4gLSBEZXZpY2UgbWVtb3J5IHdpbGwg
-YmUgcmVnaXN0ZXJlZCB3aXRoIExpbnV4IG1lbW9yeSBzdWItc3lzdGVtIGJ5IAo+PiBjcmVhdGVk
-IGNvcnJlc3BvbmRpbmcgc3RydWN0IHBhZ2Ugc3RydWN0dXJlcyBmb3IgZGV2aWNlIG1lbW9yeQo+
-PiAtIGdldF91c2VyX3BhZ2VzX2Zhc3QoKSB3aWxswqAgcmV0dXJuIGNvcnJlc3BvbmRpbmcgc3Ry
-dWN0IHBhZ2VzIHdoZW4gCj4+IENQVSBhZGRyZXNzIHBvaW50cyB0byB0aGUgZGV2aWNlIG1lbW9y
-eQo+PiAtIHB1dF9wYWdlKCkgd2lsbCBkZWFsIHdpdGggc3RydWN0IHBhZ2VzIGZvciBkZXZpY2Ug
-bWVtb3J5Cj4+IFByZXZpb3VzbHkgcHJvcG9zZWQgc29sdXRpb25zIGFuZCByZWxhdGVkIHByb3Bv
-c2FsczoKPj4gMS5QMlAgRE1BCj4+IERNQS1BUEkvUENJIG1hcF9wZWVyX3Jlc291cmNlIHN1cHBv
-cnQgZm9yIHBlZXItdG8tcGVlciAKPj4gKGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGlu
-dXgtcGNpL21zZzQ0NTYwLmh0bWwpCj4+IFByb3M6IExvdyBpbXBhY3QsIGFscmVhZHkgbGFyZ2Vs
-eSByZXZpZXdlZC4KPj4gQ29uczogcmVxdWlyZXMgZXhwbGljaXQgc3VwcG9ydCBpbiBhbGwgZHJp
-dmVycyB0aGF0IHdhbnQgdG8gc3VwcG9ydCAKPj4gaXQsIGRvZXNuJ3QgaGFuZGxlIFMvRyBpbiBk
-ZXZpY2UgbWVtb3J5Lgo+PiAyLiBaT05FX0RFVklDRSBJTwo+PiBEaXJlY3QgSS9PIGFuZCBETUEg
-Zm9yIHBlcnNpc3RlbnQgbWVtb3J5IAo+PiAoaHR0cHM6Ly9sd24ubmV0L0FydGljbGVzLzY3MjQ1
-Ny8pCj4+IEFkZCBzdXBwb3J0IGZvciBaT05FX0RFVklDRSBJTyBtZW1vcnkgd2l0aCBzdHJ1Y3Qg
-cGFnZXMuIAo+PiAoaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC84NTgzMjIxLykK
-Pj4gUHJvOiBEb2Vzbid0IHdhc3RlIHN5c3RlbSBtZW1vcnkgZm9yIFpPTkUgbWV0YWRhdGEKPj4g
-Q29uczogQ1BVIGFjY2VzcyB0byBaT05FIG1ldGFkYXRhIHNsb3csIG1heSBiZSBsb3N0LCBjb3Jy
-dXB0ZWQgb24gCj4+IGRldmljZSByZXNldC4KPj4gMy4gRE1BLUJVRgo+PiBSRE1BIHN1YnN5c3Rl
-bSBETUEtQlVGIHN1cHBvcnQgCj4+IChodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4
-LXJkbWEvbXNnMzg3NDguaHRtbCkKPj4gUHJvczogdXNlcyBleGlzdGluZyBkbWEtYnVmIGludGVy
-ZmFjZQo+PiBDb25zOiBkbWEtYnVmIGlzIGhhbmRsZSBiYXNlZCwgcmVxdWlyZXMgZXhwbGljaXQg
-ZG1hLWJ1ZiBzdXBwb3J0IGluIAo+PiBkcml2ZXJzLgo+Pgo+PiA0LiBpb3BtZW0KPj4gaW9wbWVt
-IDogQSBibG9jayBkZXZpY2UgZm9yIFBDSWUgbWVtb3J5IAo+PiAoaHR0cHM6Ly9sd24ubmV0L0Fy
-dGljbGVzLzcwMzg5NS8pCj4+IDUuIEhNTQo+PiBIZXRlcm9nZW5lb3VzIE1lbW9yeSBNYW5hZ2Vt
-ZW50IAo+PiAoaHR0cDovL2xrbWwuaXUuZWR1L2h5cGVybWFpbC9saW51eC9rZXJuZWwvMTYxMS4y
-LzAyNDczLmh0bWwpCj4+Cj4+IDYuIFNvbWUgbmV3IG1tYXAtbGlrZSBpbnRlcmZhY2UgdGhhdCB0
-YWtlcyBhIHVzZXJwdHIgYW5kIGEgbGVuZ3RoIGFuZCAKPj4gcmV0dXJucyBhIGRtYS1idWYgYW5k
-IG9mZnNldD8KPj4gQWxleAo+Pgo+PiAtLSAKPj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxp
-c3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXBjaSIgaW4KPj4gdGhlIGJvZHkg
-b2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPj4gTW9yZSBtYWpvcmRv
-bW8gaW5mbyBhdMKgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo+
-IAo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gTGlu
-dXgtbnZkaW1tIG1haWxpbmcgbGlzdAo+IExpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKPiBodHRw
-czovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxp
-bmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21h
-aWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+
+--8gjvNdKnYEg0NgYj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Oct 20, 2017 at 12:18:02PM +0000, Wan, Kaike wrote:
+>
+>
+> > -----Original Message-----
+> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
+> > Sent: Friday, October 20, 2017 3:37 AM
+> > To: Ruhl, Michael J
+> > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Subject: Re: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
+> > misinterpreted flag
+> > >
+> > > The issue is that in rdma_nl_rcv_msg(), the check 'if (flags &
+> > > NLM_F_DUMP)' is not completely correct.
+> > >
+> > > NLM_F_DUMP is two bits NLM_F_ROOT | NLM_F_MATCH.
+> > >
+> > > ibacm sends a RDMA_NL_LS response with the RDMA_NL_LS_F_ERR bit set
+> > if
+> > > an error occurs in the service (like no provider being available, or
+> > > ACM_STATUS_ENODATA, etc.).
+> > >
+> > > NLM_F_ROOT == (0x100) == RDMA_NL_LS_F_ERR.
+> > >
+> > > The current code thinks that it sees a NLM_F_DUMP flag and incorrectly
+> > > calls the .dump() callback.
+> >
+> > Hi Michael,
+> >
+> > Thanks for the report and for excellent analysis, You are right that
+> > RDMA_NL_LS_F_ERR has the same value as NLM_F_ROOT and it is bad, but I
+> > just think that it is not the final root cause.
+> >
+> > In case of errors, the LS was supposed to send NLMSG_ERROR message and
+> > not overload general nlmsg_flags, which is awful. However I don't know if it
+> > is feasible to fix current implementation without breaking UAPI contract.
+>
+> The nlmsg_flags from 0x100 and up have always been overloaded for different requests, as shown in include/uapi/linux/netlink.h:
+
+Exactly, they are overloaded in include/uapi/linux/netlink.h where all
+nlmsg flags are declared and not in some random rdma*.h file.
+
+But it is not my main point.
+
+My main point is lack of usage of NLMSG_ERROR messages to inform about
+errors, exactly as kernel informs users about errors in netlink, but in the
+opposite direction.
+
+>
+> * Modifiers to GET request */
+> #define NLM_F_ROOT	0x100	/* specify tree	root	*/
+> #define NLM_F_MATCH	0x200	/* return all matching	*/
+> #define NLM_F_ATOMIC	0x400	/* atomic GET		*/
+> #define NLM_F_DUMP	(NLM_F_ROOT|NLM_F_MATCH)
+>
+> /* Modifiers to NEW request */
+> #define NLM_F_REPLACE	0x100	/* Override existing		*/
+> #define NLM_F_EXCL	0x200	/* Do not touch, if it exists	*/
+> #define NLM_F_CREATE	0x400	/* Create, if it does not exist	*/
+> #define NLM_F_APPEND	0x800	/* Add to end of list		*/
+>
+> /* Modifiers to DELETE request */
+> #define NLM_F_NONREC	0x100	/* Do not delete recursively	*/
+>
+> /* Flags for ACK message */
+> #define NLM_F_CAPPED	0x100	/* request was capped */
+> #define NLM_F_ACK_TLVS	0x200	/* extended ACK TVLs were included *
+>
+> The NLM_F_DUMP flag is supposed to be used for the GET request only, not as a general flag for all netlink requests.
+>
+> >
+> > In meanwhile, can we implement dummy dumpit functions for the LS, which
+> > reuse ib_nl_is_good_ip_resp?
+>
+> Why do you want to jump all the dump hoops instead of directly calling the response handler? LS is different from other netlink channels in that it sends request from kernel to user space and receives responses from it instead of the other way around. Consequently, the handling of netlink responses may be different from handing requests from user space.
+>
+
+Doesn't the part of email below answers on the question "why"?
+
+> >
+> > I prefer this solution over yours, because it doesn't mix LS-specifics with
+> > general decision function and leaves LS anomalies in the LS-relevant code.
+
+
+> >
+> > And returning 0 in absence of dumpit function as a response with
+> > NLM_F_DUMP flag is wrong. User should be aware of the fact that
+> > something wrong was with his request.
+> >
+> > Thanks
+> >
+>
+
+--8gjvNdKnYEg0NgYj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnqIkEACgkQ5GN7iDZy
+WKe+mRAAqZ3MbUiNIJyhttyRRGkVjjf/F6hkqYiAboXIYeE0Hx94FrFPUAJblEHX
+fGd1HLd+peJBI6cNw/CxNm5ccca9r/EAazshYUK2r2ZPZpjlt/j2ZdUM9qc9ajF3
+JZgtxzq3iioCqkcwKq8xQ+fH+xmn6RsFxsSUjYh/J+mQGgHgnVWF0eM/QZH5s40z
+tFJ5EXg0CvVEq5LCIltN7d3fC4xlF+L/TNrOTO0sgn0GFqSEK8Ys1lqKBodl9wVD
+BpT2cuFEMu+1VbrGNowlhWn83yOkzMnGBpUwfGhSABWRKzeTFaIfrI5JpuzDBLCH
+Xwmu+Uf7r4AOUlGK0EuroFBgLBZnOIl554YZGrxSuehS1w6lZGJ8U1yYIRClef40
+6fZnOGRcIiNIu0lH6wIEXTPfkXuP6m8bwJW1E5ep2HBfqenNpG2HLmP/RZv27PUN
+EykZ+wdY8BClbhD1nVyoI5C4whN/jo6CljVZ1umrHUQsMu91M0Rjqo73AiHciL2k
+U7WIs4//DvyBGf5IghF1EpWIq/w+WIhbZKnxHe3Lqb6Ukkld8m1R+JobqiABM5gF
+mKQxzUBJDjH3jIGHuuwmPH6gWaMCQTjTwLCxHuC+EYrJc+4O/J6PQ7CPGewCIND1
+tJBOOZ7W888sMOdzO4lX1l+/eBqWT7SnTlK745yjjGKMve8kKpo=
+=ShTd
+-----END PGP SIGNATURE-----
+
+--8gjvNdKnYEg0NgYj--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
