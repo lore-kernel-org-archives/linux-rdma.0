@@ -1,111 +1,106 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 05/13] SoftiWarp application interface
-Date: Fri, 20 Oct 2017 08:30:13 -0500
-Message-ID: <20171020133013.GC11604@ssaleem-MOBL4.amr.corp.intel.com>
+Subject: Re: [PATCH v2 00/13] Request for Comments on SoftiWarp
+Date: Fri, 20 Oct 2017 08:45:01 -0500
+Message-ID: <20171020134501.GD11604@ssaleem-MOBL4.amr.corp.intel.com>
 References: <20171006122853.16310-1-bmt@zurich.ibm.com>
- <20171006122853.16310-6-bmt@zurich.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171006122853.16310-6-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+In-Reply-To: <20171006122853.16310-1-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 06, 2017 at 08:28:45AM -0400, Bernard Metzler wrote:
-> Signed-off-by: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-> ---
->  drivers/infiniband/sw/siw/siw_ae.c    |  113 ++
->  drivers/infiniband/sw/siw/siw_verbs.c | 1929 +++++++++++++++++++++++++++++++++
->  drivers/infiniband/sw/siw/siw_verbs.h |  119 ++
->  include/uapi/rdma/siw_user.h          |  220 ++++
->  4 files changed, 2381 insertions(+)
->  create mode 100644 drivers/infiniband/sw/siw/siw_ae.c
->  create mode 100644 drivers/infiniband/sw/siw/siw_verbs.c
->  create mode 100644 drivers/infiniband/sw/siw/siw_verbs.h
->  create mode 100644 include/uapi/rdma/siw_user.h
+On Fri, Oct 06, 2017 at 08:28:40AM -0400, Bernard Metzler wrote:
+> This patch set introduces the SoftiWarp driver.
 > 
+> It is a re-posting of yesterdays misformatted patch and splits it into
+> consumable pieces. Furthermore, it fixes formatting issues as
+> indicated by checkpatch.
+> 
+> 
+> 
+> 
+> Originally introduced to linux-rdma in 2011, SoftiWarp (siw) is
+> around as a project for a while. It aims at implementing the iWARP protocol
+> suite (IETF-RFC 5044/5041/5040/6581) on top of kernel TCP sockets.
+> It integrates with the linux-rdma framework. When our
+> initial attempt to contribute siw to Linux somehow sanded up, we
+> continued to use and further develop it as an open source project,
+> currently hosted at https://github.com/zrlio/softiwarp.
+> 
+> We found siw being useful, if applications are using
+> an RDMA API for communication (in particular, the ibverbs API), and
+> there is no local RDMA hardware support. This might be relevant for RDMA
+> application development and testing, as well as setups where
+> RDMA client applications at hosts without hardware RDMA support
+> want to communicate with servers which want to offload communication
+> to dedicated RDMA hardware. With the advent of NVME storage technology,
+> and NVME over Fabrics as a remote storage access method, use cases
+> may expand within that area (we recently added the driver support
+> needed to run siw at both NVMeF initiator and target side).
+> Last but not least, since supporting different (asynchronous, one sided)
+> communication patterns, we found pure siw client-server deployments can
+> outperform sockets based communication setups.
+> 
+> With all that, siw complements Soft-RoCE, also a pure software implementation
+> of an RDMA provider, but running the RoCE/RoCEv2 protocol. In contradiction
+> to Soft-RoCE, SoftiWarp per definition implements only the RC (reliable
+> connected) RDMA service, as defined by iWARP.
+> 
+> SoftiWarp comprises a kernel module and a user space library, both
+> plugging into the linux-rdma kernel environment, or libibverbs and librdmacm
+> respectively. It supports both kernel and user level RDMA applications.
+> For efficiency, user level communication endpoint resources such as
+> send/receive and completion queues are shared (memory mapped) between
+> siw kernel component and siw user library. We tested siw interoperability
+> with hardware iWARP products, such as Chelsio's T3/T4/T5/T6 adapters.
+> 
+> We approach the list with this RFC, since we are seeking for advice on
+> how to make siw ready for Linux acceptance. So, we are prepared -
+> and hoping for - constructive criticism on what we are presenting here.
+> 
+> The current code has limitations we are aware of. In particular, we are
+> currently working on:
+> 
+> 1) IPv6 addressing support.
+> 
+> 2) Revised debug code. The currently used siw specific debug macros seem to
+>    be obsolete and should probably get substituted by state of the art driver
+>    debug code.
+> 
+> 3) NUMA awareness. We expect better performance results if siw
+>    would do a better job here.
+> 
+> 4) Module parametrization. All settable driver parameters are currently set
+>    via module parameters. It might be a good idea to have those within /sys.
+> 
+> 5) Transmit path implementation. We experimented with different approaches
+>    to implement a low latency transmit path. The current design of having
+>    one per CPU core transmit thread might be not the best idea. Advice
+>    is appreciated!
+> 
+> For the patch set we provide, we added siw as another software driver to
+> drivers/infiniband/sw.
+> 
+> 
+> 
+> To experiment with the current siw code, we suggest cloning our out-of-tree
+> development repo at https://github.com/zrlio/softiwarp.
+> Here, the branch 'dev-siw.mem_ext' contains the most recent code
+> development status, which is currently in sync with the patch.
+> Testing siw requires the installation of both user library and kernel
+> module, located within userlib/ and kernel/ respectively. That siw
+> version expects a running kernel of version >= 4.12.
+>
 
-> + *
-> + * Post a list of S-WR's to a SQ.
-> + *
-> + * @ofa_qp:	OFA QP contained in siw QP
-> + * @wr:		Null terminated list of user WR's
-> + * @bad_wr:	Points to failing WR in case of synchronous failure.
-> + */
-> +int siw_post_send(struct ib_qp *ofa_qp, struct ib_send_wr *wr,
-> +		  struct ib_send_wr **bad_wr)
-> +{
-> +	struct siw_qp	*qp = siw_qp_ofa2siw(ofa_qp);
-> +	struct siw_wqe	*wqe = tx_wqe(qp);
-> +
-> +	unsigned long flags;
-> +	int rv = 0;
-> +
-> +	dprint(DBG_WR|DBG_TX, "(QP%d): state=%d\n",
-> +		QP_ID(qp), qp->attrs.state);
-> +
-> +	/*
-> +	 * Try to acquire QP state lock. Must be non-blocking
-> +	 * to accommodate kernel clients needs.
-> +	 */
-> +	if (!down_read_trylock(&qp->state_lock)) {
-> +		*bad_wr = wr;
-> +		return -ENOTCONN;
-> +	}
-> +
-> +	if (unlikely(qp->attrs.state != SIW_QP_STATE_RTS)) {
-> +		dprint(DBG_WR, "(QP%d): state=%d\n",
-> +			QP_ID(qp), qp->attrs.state);
-> +		up_read(&qp->state_lock);
-> +		*bad_wr = wr;
-> +		return -ENOTCONN;
-> +	}
-> +	if (wr && qp->kernel_verbs == 0) {
-Can qp->kernel_verbs ever be 0? Isnt this post_send for kernel QPs only?
-
-> +		dprint(DBG_WR|DBG_ON, "(QP%d): user mapped SQ with OFA WR\n",
-> +			QP_ID(qp));
-> +		up_read(&qp->state_lock);
-> +		*bad_wr = wr;
-> +		return -EINVAL;
-> +	}
-> +
-> +	spin_lock_irqsave(&qp->sq_lock, flags);
-> +
-> +	while (wr) {
-> +		u32 idx = qp->sq_put % qp->attrs.sq_size;
-> +		struct siw_sqe *sqe = &qp->sendq[idx];
-> +
-> +		if (sqe->flags) {
-> +			dprint(DBG_WR, "(QP%d): SQ full\n", QP_ID(qp));
-> +			rv = -ENOMEM;
-> +			break;
-> +		}
-> +		if (wr->num_sge > qp->attrs.sq_max_sges) {
-> +			/*
-> +			 * NOTE: we allow for zero length wr's here.
-> +			 */
-> +			dprint(DBG_WR, "(QP%d): Num SGE: %d\n",
-> +				QP_ID(qp), wr->num_sge);
-> +			rv = -EINVAL;
-> +			break;
-> +		}
-> +		sqe->id = wr->wr_id;
-> +		sqe->flags = 0;
-sqe->flags will always be 0 if we reached to this point in code no? Since we break out of the loop if sqe->flags != 0.
-
-
-
-
-> +
-> +	if (qp->kernel_verbs)
-> +		siw_sq_start(qp);
-ditto. Is this check neccessary?
-
-
+So you need OFED (which ver. ?) installed for user-space?
+Is there a plan to integrate your user-space into rdma core? Would be
+easier to evaulate/test.
+  
+Shiraz
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
