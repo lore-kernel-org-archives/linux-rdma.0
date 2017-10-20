@@ -1,123 +1,42 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v3 09/13] IB/core: disable memory registration of
- fileystem-dax vmas
-Date: Thu, 19 Oct 2017 19:39:45 -0700
-Message-ID: <150846718583.24336.7817353741483230017.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] IB/qib: remove redundant setting of any in for-loop
+Date: Fri, 20 Oct 2017 09:21:03 +0200
+Message-ID: <20171020072103.10337-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: Sean Hefty <sean.hefty@intel.com>, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, hch@lst.de, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-mm@kvack.org, Doug Ledford <dledford@redhat.com>, linux-fsdevel@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+To: Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Until there is a solution to the dma-to-dax vs truncate problem it is
-not safe to allow RDMA to create long standing memory registrations
-against filesytem-dax vmas. Device-dax vmas do not have this problem and
-are explicitly allowed.
+From: Colin Ian King <colin.king@canonical.com>
 
-This is temporary until a "memory registration with layout-lease"
-mechanism can be implemented, and is limited to non-ODP (On Demand
-Paging) capable RDMA devices.
+The variable all is being set but is never read after this
+hence it can be removed from the for loop initialization.
+Cleans up clang warning:
 
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: <linux-rdma@vger.kernel.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+drivers/infiniband/hw/qib/qib_file_ops.c:640:7: warning: Value
+stored to 'any' is never read
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- drivers/infiniband/core/umem.c |   49 +++++++++++++++++++++++++++++++---------
- 1 file changed, 38 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/qib/qib_file_ops.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 21e60b1e2ff4..c30d286c1f24 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -147,19 +147,21 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 	umem->hugetlb   = 1;
- 
- 	page_list = (struct page **) __get_free_page(GFP_KERNEL);
--	if (!page_list) {
--		put_pid(umem->pid);
--		kfree(umem);
--		return ERR_PTR(-ENOMEM);
--	}
-+	if (!page_list)
-+		goto err_pagelist;
- 
- 	/*
--	 * if we can't alloc the vma_list, it's not so bad;
--	 * just assume the memory is not hugetlb memory
-+	 * If DAX is enabled we need the vma to protect against
-+	 * registering filesystem-dax memory. Otherwise we can tolerate
-+	 * a failure to allocate the vma_list and just assume that all
-+	 * vmas are not hugetlb-vmas.
- 	 */
- 	vma_list = (struct vm_area_struct **) __get_free_page(GFP_KERNEL);
--	if (!vma_list)
-+	if (!vma_list) {
-+		if (IS_ENABLED(CONFIG_FS_DAX))
-+			goto err_vmalist;
- 		umem->hugetlb = 0;
-+	}
- 
- 	npages = ib_umem_num_pages(umem);
- 
-@@ -199,15 +201,34 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 		if (ret < 0)
- 			goto out;
- 
--		umem->npages += ret;
- 		cur_base += ret * PAGE_SIZE;
- 		npages   -= ret;
- 
- 		for_each_sg(sg_list_start, sg, ret, i) {
--			if (vma_list && !is_vm_hugetlb_page(vma_list[i]))
--				umem->hugetlb = 0;
-+			struct vm_area_struct *vma;
-+			struct inode *inode;
- 
- 			sg_set_page(sg, page_list[i], PAGE_SIZE, 0);
-+			umem->npages++;
-+
-+			if (!vma_list)
-+				continue;
-+			vma = vma_list[i];
-+
-+			if (!is_vm_hugetlb_page(vma))
-+				umem->hugetlb = 0;
-+
-+			if (!vma_is_dax(vma))
-+				continue;
-+
-+			/* device-dax is safe for rdma... */
-+			inode = file_inode(vma->vm_file);
-+			if (inode->i_mode == S_IFCHR)
-+				continue;
-+
-+			/* ...filesystem-dax is not. */
-+			ret = -EOPNOTSUPP;
-+			goto out;
- 		}
- 
- 		/* preparing for next loop */
-@@ -242,6 +263,12 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 	free_page((unsigned long) page_list);
- 
- 	return ret < 0 ? ERR_PTR(ret) : umem;
-+err_vmalist:
-+	free_page((unsigned long) page_list);
-+err_pagelist:
-+	put_pid(umem->pid);
-+	kfree(umem);
-+	return ERR_PTR(-ENOMEM);
- }
- EXPORT_SYMBOL(ib_umem_get);
- 
+diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
+index 2d6a191afec0..b5c2e4223ee7 100644
+--- a/drivers/infiniband/hw/qib/qib_file_ops.c
++++ b/drivers/infiniband/hw/qib/qib_file_ops.c
+@@ -637,7 +637,7 @@ static int qib_set_part_key(struct qib_ctxtdata *rcd, u16 key)
+ 		ret = -EBUSY;
+ 		goto bail;
+ 	}
+-	for (any = i = 0; i < ARRAY_SIZE(ppd->pkeys); i++) {
++	for (i = 0; i < ARRAY_SIZE(ppd->pkeys); i++) {
+ 		if (!ppd->pkeys[i] &&
+ 		    atomic_inc_return(&ppd->pkeyrefs[i]) == 1) {
+ 			rcd->pkeys[pidx] = key;
+-- 
+2.14.1
