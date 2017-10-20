@@ -1,42 +1,74 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] IB/qib: remove redundant setting of any in for-loop
-Date: Fri, 20 Oct 2017 09:21:03 +0200
-Message-ID: <20171020072103.10337-1-colin.king@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+From: Elena Reshetova <elena.reshetova@intel.com>
+Subject: [PATCH 00/15] networking drivers refcount_t conversions
+Date: Fri, 20 Oct 2017 10:23:34 +0300
+Message-ID: <1508484229-19706-1-git-send-email-elena.reshetova@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org, linux-rdma@vger.kernel.org, linux-hams@vger.kernel.org, linux-ppp@vger.kernel.org, ganeshgr@chelsio.com, nbd@openwrt.org, john@phrozen.org, sean.wang@mediatek.com, matthias.bgg@gmail.com, yishaih@mellanox.com, saeedm@mellanox.com, matanb@mellanox.com, tariqt@mellanox.com, leonro@mellanox.com, ajk@comnets.uni-bremen.de, paulus@samba.org, zbr@ioremap.net, peterz@infradead.org, keescook@chromium.org, Elena Reshetova <elena.reshetova@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+Note: these are the last patches related to networking that perform
+conversion of refcounters from atomic_t to refcount_t.
+In contrast to the core network refcounter conversions that
+were merged earlier, these are much more straightforward ones.
 
-The variable all is being set but is never read after this
-hence it can be removed from the for loop initialization.
-Cleans up clang warning:
+This series, for various networking drivers, replaces atomic_t reference
+counters with the new refcount_t type and API (see include/linux/refcount.h).
+By doing this we prevent intentional or accidental
+underflows or overflows that can led to use-after-free vulnerabilities.
 
-drivers/infiniband/hw/qib/qib_file_ops.c:640:7: warning: Value
-stored to 'any' is never read
+The patches are fully independent and can be cherry-picked separately.
+Patches are based on top of net-next.
+If there are no objections to the patches, please merge them via respective trees
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/infiniband/hw/qib/qib_file_ops.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Elena Reshetova (15):
+  drivers, net, ethernet: convert clip_entry.refcnt from atomic_t to
+    refcount_t
+  drivers, net, ethernet: convert mtk_eth.dma_refcnt from atomic_t to
+    refcount_t
+  drivers, net, mlx4: convert mlx4_cq.refcount from atomic_t to
+    refcount_t
+  drivers, net, mlx4: convert mlx4_qp.refcount from atomic_t to
+    refcount_t
+  drivers, net, mlx4: convert mlx4_srq.refcount from atomic_t to
+    refcount_t
+  drivers, net, mlx5: convert mlx5_cq.refcount from atomic_t to
+    refcount_t
+  drivers, net, mlx5: convert fs_node.refcount from atomic_t to
+    refcount_t
+  drivers, net, hamradio: convert sixpack.refcnt from atomic_t to
+    refcount_t
+  drivers, net: convert masces_rx_sa.refcnt from atomic_t to refcount_t
+  drivers, net: convert masces_rx_sc.refcnt from atomic_t to refcount_t
+  drivers, net: convert masces_tx_sa.refcnt from atomic_t to refcount_t
+  drivers, net, ppp: convert asyncppp.refcnt from atomic_t to refcount_t
+  drivers, net, ppp: convert ppp_file.refcnt from atomic_t to refcount_t
+  drivers, net, ppp: convert syncppp.refcnt from atomic_t to refcount_t
+  drivers, connector: convert cn_callback_entry.refcnt from atomic_t to
+    refcount_t
 
-diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
-index 2d6a191afec0..b5c2e4223ee7 100644
---- a/drivers/infiniband/hw/qib/qib_file_ops.c
-+++ b/drivers/infiniband/hw/qib/qib_file_ops.c
-@@ -637,7 +637,7 @@ static int qib_set_part_key(struct qib_ctxtdata *rcd, u16 key)
- 		ret = -EBUSY;
- 		goto bail;
- 	}
--	for (any = i = 0; i < ARRAY_SIZE(ppd->pkeys); i++) {
-+	for (i = 0; i < ARRAY_SIZE(ppd->pkeys); i++) {
- 		if (!ppd->pkeys[i] &&
- 		    atomic_inc_return(&ppd->pkeyrefs[i]) == 1) {
- 			rcd->pkeys[pidx] = key;
+ drivers/connector/cn_queue.c                      |  4 ++--
+ drivers/connector/connector.c                     |  2 +-
+ drivers/net/ethernet/chelsio/cxgb4/clip_tbl.c     | 13 +++++------
+ drivers/net/ethernet/chelsio/cxgb4/clip_tbl.h     |  4 +++-
+ drivers/net/ethernet/mediatek/mtk_eth_soc.c       |  8 ++++---
+ drivers/net/ethernet/mediatek/mtk_eth_soc.h       |  4 +++-
+ drivers/net/ethernet/mellanox/mlx4/cq.c           |  8 +++----
+ drivers/net/ethernet/mellanox/mlx4/qp.c           |  8 +++----
+ drivers/net/ethernet/mellanox/mlx4/srq.c          |  8 +++----
+ drivers/net/ethernet/mellanox/mlx5/core/cq.c      | 16 ++++++-------
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 28 +++++++++++------------
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.h |  3 ++-
+ drivers/net/hamradio/6pack.c                      | 12 +++++-----
+ drivers/net/macsec.c                              | 25 ++++++++++----------
+ drivers/net/ppp/ppp_async.c                       | 10 ++++----
+ drivers/net/ppp/ppp_generic.c                     | 21 +++++++++--------
+ drivers/net/ppp/ppp_synctty.c                     | 11 +++++----
+ include/linux/connector.h                         |  4 ++--
+ include/linux/mlx4/device.h                       |  8 +++----
+ include/linux/mlx5/cq.h                           |  4 ++--
+ 20 files changed, 105 insertions(+), 96 deletions(-)
+
 -- 
-2.14.1
+2.7.4
