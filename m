@@ -1,57 +1,36 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Enable pkey and device name decoupling
-Date: Sat, 21 Oct 2017 13:42:15 -0600
-Message-ID: <20171021194215.GA4094@obsidianresearch.com>
-References: <20170927093248.3819-1-yuval.shaia@oracle.com>
- <20170928163406.GB17880@obsidianresearch.com>
- <20170928164735.GC2297@mtr-leonro.local>
- <20170928165305.GE17880@obsidianresearch.com>
- <20171015054745.GA2608@yuvallap>
- <20171017081837.GA19107@obsidianresearch.com>
- <20171017102121.GM2106@mtr-leonro.local>
- <20171019061100.GB6555@obsidianresearch.com>
- <20171019061405.GW2106@mtr-leonro.local>
- <c2f3b529-cc53-aef0-fdcf-e86e99360db0@mellanox.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/15] networking drivers refcount_t conversions
+Date: Sun, 22 Oct 2017 02:31:32 +0100 (WEST)
+Message-ID: <20171022.023132.2040144937883625039.davem@davemloft.net>
+References: <1508484229-19706-1-git-send-email-elena.reshetova@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <c2f3b529-cc53-aef0-fdcf-e86e99360db0-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, corbet-T1hC0tSOHrs@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kernel-6AxghH7DbtA@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1508484229-19706-1-git-send-email-elena.reshetova@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: elena.reshetova@intel.com
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org, linux-rdma@vger.kernel.org, linux-hams@vger.kernel.org, linux-ppp@vger.kernel.org, ganeshgr@chelsio.com, nbd@openwrt.org, john@phrozen.org, sean.wang@mediatek.com, matthias.bgg@gmail.com, yishaih@mellanox.com, saeedm@mellanox.com, matanb@mellanox.com, tariqt@mellanox.com, leonro@mellanox.com, ajk@comnets.uni-bremen.de, paulus@samba.org, zbr@ioremap.net, peterz@infradead.org, keescook@chromium.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 19, 2017 at 09:28:31AM +0300, Alex Vesker wrote:
-> On 10/19/2017 9:14 AM, Leon Romanovsky wrote:
-> >On Thu, Oct 19, 2017 at 12:11:00AM -0600, Jason Gunthorpe wrote:
-> >>On Tue, Oct 17, 2017 at 01:21:21PM +0300, Leon Romanovsky wrote:
-> >>>>Yes, we should add a deprecation one shot printk to the kernel for the
-> >>>>sysfs interface to encourage people to use ip
-> >>>Please don't do that, it won't help for anyone, and especially for the people
-> >>>who didn't hear about "ip" in 2017.
-> >>This is the standard kernel way to encourage people to use the new
-> >>interfaces...
-> >>
-> >>>IPoIB netlink doesn't support enhanced IPoIB device because child
-> >>>device in netlink code was not allocated with rdma_alloc_netdev call
-> >>>as it was done for other flows.
-> >>I don't understand, isn't this just a (bad) bug to be fixed?
-> >Yes and we want to fix it BEFORE adding discouraging warnings.
+From: Elena Reshetova <elena.reshetova@intel.com>
+Date: Fri, 20 Oct 2017 10:23:34 +0300
 
-> We plan to block ipoib_netlink in the meanwhile until we fix it.
+> Note: these are the last patches related to networking that perform
+> conversion of refcounters from atomic_t to refcount_t.
+> In contrast to the core network refcounter conversions that
+> were merged earlier, these are much more straightforward ones.
+> 
+> This series, for various networking drivers, replaces atomic_t reference
+> counters with the new refcount_t type and API (see include/linux/refcount.h).
+> By doing this we prevent intentional or accidental
+> underflows or overflows that can led to use-after-free vulnerabilities.
+> 
+> The patches are fully independent and can be cherry-picked separately.
+> Patches are based on top of net-next.
+> If there are no objections to the patches, please merge them via respective trees
 
-That isn't a good idea, don't break APIs for performance reasons..
+I've applied this entire series to net-next.  If there are any fixups or
+follow-ups please send them as relative patches.
 
-> The fix is a little tricky since the netdev is allocated in
-> rtnl_newlink and it should be allocated with the new logic
-> introduced in enhanced IPoIB, setting rn_ops, allocating an
-> rdma_netdev if possible.
-
-Should get on it then .. :)
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thank you.
