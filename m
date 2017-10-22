@@ -1,63 +1,33 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-next 03/16] IB/core: Introduce counter set describe
- verb
-Date: Sun, 22 Oct 2017 15:00:55 +0300
-Message-ID: <7a11c4f2-f887-16b8-08ed-434ae4aaa1e0@dev.mellanox.co.il>
-References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
- <1508424118-27205-4-git-send-email-yishaih@mellanox.com>
- <alpine.DEB.2.20.1710200541250.10736@nuc-kabylake>
- <AM6PR0502MB37838B19976EDF1D04C74751BD400@AM6PR0502MB3783.eurprd05.prod.outlook.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Sun, 22 Oct 2017 11:19:00 -0600
+Message-ID: <85c98f79-e4b4-cbb5-feca-6944497c0c59@deltatee.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
+ <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com>
+ <1381807327.12461494.1508652825239.JavaMail.zimbra@desy.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AM6PR0502MB37838B19976EDF1D04C74751BD400-md96bDB8+JV1k1TWM4Wt8cDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1381807327.12461494.1508652825239.JavaMail.zimbra@desy.de>
+Content-Language: en-CA
+Sender: linux-media-owner@vger.kernel.org
+To: "Petrosyan, Ludwig" <ludwig.petrosyan@desy.de>
+Cc: "Deucher, Alexander" <Alexander.Deucher@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Bridgman, John" <John.Bridgman@amd.com>, "Kuehling, Felix" <Felix.Kuehling@amd.com>, "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>, "Blinzer, Paul" <Paul.Blinzer@amd.com>, "Koenig, Christian" <Christian.Koenig@amd.com>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "Sander, Ben" <ben.sander@amd.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/21/2017 3:29 AM, Guy Shattah wrote:
-> 
-> 
->> On Thu, 19 Oct 2017, Yishai Hadas wrote:
->>
->>> +#define IB_COUNTER_NAME_LEN 64
->>> +struct ib_counter_set_describe_attr {
->>> +	/* Type that this set refers to, use enum ib_counter_set_type */
->>> +	u8 counted_type;
->>
->> Gap here of 7 bytes. Maybe move the field to get a more compact structure?
->>
->>> +	/* Number of instances of this counter-set available in the hardware
->> */
->>> +	u64 num_of_cs;
->>
->> u16 or u32 should be enough right?
-> 
-> Future API might be added to create user-customizable  sets.
-> How many potential subsets are for a set of 32 counters? More than 2^64.
-> We might want to be able to support it.
-> 
->>
->>> +	/* Attributes of the set, use enum ib_counter_set_attributes */
->>> +	u32 attributes;
->>> +	/* Number of counters in this set */
->>> +	u8 entries_count;
->>
->> A counter set is limited to 255? Could there be counter sets that have a
->> thousand or so?
-> 
-> A counter set is merely a set. I can't see a reason why would a user want to query a set
-> which contains more than 256 counters. All at the same time.
-> However, I agree that we could modify it to u16 or u32.
 
-Thanks Christoper for looking at the series.
+On 22/10/17 12:13 AM, Petrosyan, Ludwig wrote:
+> But at first sight it has to be simple:
+> The PCIe Write transactions are address routed, so if in the packet header the other endpoint address is written the TLP has to be routed (by PCIe Switch to the endpoint), the DMA reading from the end point is really write transactions from the endpoint, usually (Xilinx core) to start DMA one has to write to the DMA control register of the endpoint the destination address. So I have change the device driver to set in this register the physical address of the other endpoint (get_resource start called to other endpoint, and it is the same address which I could see in lspci -vvvv -s bus-address of the switch port, memories behind bridge), so now the endpoint has to start send writes TLP with the other endpoint address in the TLP header.
+> But this is not working (I want to understand why ...), but I could see the first address of the destination endpoint is changed (with the wrong value 0xFF),
+> now I want to try prepare in the driver of one endpoint the DMA buffer , but using physical address of the other endpoint,
+> Could be it will never work, but I want to understand why, there is my error ...
 
-In V1 will change this field to be u16 and re-order the fields in struct 
-ib_counter_set_describe_attr to be more compact as you suggest.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hmm, well if I understand you correctly it sounds like, in theory, it
+should work. But there could be any number of reasons why it does not.
+You may need to get a hold of a PCIe analyzer to figure out what's
+actually going on.
+
+Logan
