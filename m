@@ -1,145 +1,63 @@
-From: "Petrosyan, Ludwig" <ludwig.petrosyan-T5F83Mi6MZE@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Sun, 22 Oct 2017 08:13:45 +0200 (CEST)
-Message-ID: <1381807327.12461494.1508652825239.JavaMail.zimbra@desy.de>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
- <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-next 03/16] IB/core: Introduce counter set describe
+ verb
+Date: Sun, 22 Oct 2017 15:00:55 +0300
+Message-ID: <7a11c4f2-f887-16b8-08ed-434ae4aaa1e0@dev.mellanox.co.il>
+References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
+ <1508424118-27205-4-git-send-email-yishaih@mellanox.com>
+ <alpine.DEB.2.20.1710200541250.10736@nuc-kabylake>
+ <AM6PR0502MB37838B19976EDF1D04C74751BD400@AM6PR0502MB3783.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: "Sagalovitch, Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Bridgman, John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Koenig,
- Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Deucher,
- Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AM6PR0502MB37838B19976EDF1D04C74751BD400-md96bDB8+JV1k1TWM4Wt8cDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGVsbG8gTG9nYW4KClRoYW5rIFlvdSB2ZXJ5IG11Y2ggZm9yIHJlc3BvbmQuCkNvdWxkIGJlIEkg
-aGF2ZSBkb25lIGlzIHN0dXBpZC4uLgpCdXQgYXQgZmlyc3Qgc2lnaHQgaXQgaGFzIHRvIGJlIHNp
-bXBsZToKVGhlIFBDSWUgV3JpdGUgdHJhbnNhY3Rpb25zIGFyZSBhZGRyZXNzIHJvdXRlZCwgc28g
-aWYgaW4gdGhlIHBhY2tldCBoZWFkZXIgdGhlIG90aGVyIGVuZHBvaW50IGFkZHJlc3MgaXMgd3Jp
-dHRlbiB0aGUgVExQIGhhcyB0byBiZSByb3V0ZWQgKGJ5IFBDSWUgU3dpdGNoIHRvIHRoZSBlbmRw
-b2ludCksIHRoZSBETUEgcmVhZGluZyBmcm9tIHRoZSBlbmQgcG9pbnQgaXMgcmVhbGx5IHdyaXRl
-IHRyYW5zYWN0aW9ucyBmcm9tIHRoZSBlbmRwb2ludCwgdXN1YWxseSAoWGlsaW54IGNvcmUpIHRv
-IHN0YXJ0IERNQSBvbmUgaGFzIHRvIHdyaXRlIHRvIHRoZSBETUEgY29udHJvbCByZWdpc3RlciBv
-ZiB0aGUgZW5kcG9pbnQgdGhlIGRlc3RpbmF0aW9uIGFkZHJlc3MuIFNvIEkgaGF2ZSBjaGFuZ2Ug
-dGhlIGRldmljZSBkcml2ZXIgdG8gc2V0IGluIHRoaXMgcmVnaXN0ZXIgdGhlIHBoeXNpY2FsIGFk
-ZHJlc3Mgb2YgdGhlIG90aGVyIGVuZHBvaW50IChnZXRfcmVzb3VyY2Ugc3RhcnQgY2FsbGVkIHRv
-IG90aGVyIGVuZHBvaW50LCBhbmQgaXQgaXMgdGhlIHNhbWUgYWRkcmVzcyB3aGljaCBJIGNvdWxk
-IHNlZSBpbiBsc3BjaSAtdnZ2diAtcyBidXMtYWRkcmVzcyBvZiB0aGUgc3dpdGNoIHBvcnQsIG1l
-bW9yaWVzIGJlaGluZCBicmlkZ2UpLCBzbyBub3cgdGhlIGVuZHBvaW50IGhhcyB0byBzdGFydCBz
-ZW5kIHdyaXRlcyBUTFAgd2l0aCB0aGUgb3RoZXIgZW5kcG9pbnQgYWRkcmVzcyBpbiB0aGUgVExQ
-IGhlYWRlci4KQnV0IHRoaXMgaXMgbm90IHdvcmtpbmcgKEkgd2FudCB0byB1bmRlcnN0YW5kIHdo
-eSAuLi4pLCBidXQgSSBjb3VsZCBzZWUgdGhlIGZpcnN0IGFkZHJlc3Mgb2YgdGhlIGRlc3RpbmF0
-aW9uIGVuZHBvaW50IGlzIGNoYW5nZWQgKHdpdGggdGhlIHdyb25nIHZhbHVlIDB4RkYpLApub3cg
-SSB3YW50IHRvIHRyeSBwcmVwYXJlIGluIHRoZSBkcml2ZXIgb2Ygb25lIGVuZHBvaW50IHRoZSBE
-TUEgYnVmZmVyICwgYnV0IHVzaW5nIHBoeXNpY2FsIGFkZHJlc3Mgb2YgdGhlIG90aGVyIGVuZHBv
-aW50LApDb3VsZCBiZSBpdCB3aWxsIG5ldmVyIHdvcmssIGJ1dCBJIHdhbnQgdG8gdW5kZXJzdGFu
-ZCB3aHksIHRoZXJlIGlzIG15IGVycm9yIC4uLgoKd2l0aCBiZXN0IHJlZ2FyZHMKCkx1ZHdpZwoK
-LS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLQpGcm9tOiAiTG9nYW4gR3VudGhvcnBlIiA8bG9n
-YW5nQGRlbHRhdGVlLmNvbT4KVG86ICJMdWR3aWcgUGV0cm9zeWFuIiA8bHVkd2lnLnBldHJvc3lh
-bkBkZXN5LmRlPiwgIkRldWNoZXIsIEFsZXhhbmRlciIgPEFsZXhhbmRlci5EZXVjaGVyQGFtZC5j
-b20+LCAibGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZyIgPGxpbnV4LWtlcm5lbEB2Z2VyLmtl
-cm5lbC5vcmc+LCAibGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmciIDxsaW51eC1yZG1hQHZnZXIu
-a2VybmVsLm9yZz4sICJsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnIiA8bGludXgtbnZkaW1tQGxp
-c3RzLjAxLm9yZz4sICJMaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmciIDxMaW51eC1tZWRpYUB2
-Z2VyLmtlcm5lbC5vcmc+LCAiZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZyIgPGRyaS1k
-ZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmc+LCAibGludXgtcGNpQHZnZXIua2VybmVsLm9yZyIg
-PGxpbnV4LXBjaUB2Z2VyLmtlcm5lbC5vcmc+CkNjOiAiQnJpZGdtYW4sIEpvaG4iIDxKb2huLkJy
-aWRnbWFuQGFtZC5jb20+LCAiS3VlaGxpbmcsIEZlbGl4IiA8RmVsaXguS3VlaGxpbmdAYW1kLmNv
-bT4sICJTYWdhbG92aXRjaCwgU2VyZ3VlaSIgPFNlcmd1ZWkuU2FnYWxvdml0Y2hAYW1kLmNvbT4s
-ICJCbGluemVyLCBQYXVsIiA8UGF1bC5CbGluemVyQGFtZC5jb20+LCAiS29lbmlnLCBDaHJpc3Rp
-YW4iIDxDaHJpc3RpYW4uS29lbmlnQGFtZC5jb20+LCAiU3V0aGlrdWxwYW5pdCwgU3VyYXZlZSIg
-PFN1cmF2ZWUuU3V0aGlrdWxwYW5pdEBhbWQuY29tPiwgIlNhbmRlciwgQmVuIiA8YmVuLnNhbmRl
-ckBhbWQuY29tPgpTZW50OiBGcmlkYXksIDIwIE9jdG9iZXIsIDIwMTcgMTc6NDg6NTgKU3ViamVj
-dDogUmU6IEVuYWJsaW5nIHBlZXIgdG8gcGVlciBkZXZpY2UgdHJhbnNhY3Rpb25zIGZvciBQQ0ll
-IGRldmljZXMKCkhpIEx1ZHdpZywKClAyUCB0cmFuc2FjdGlvbnMgYXJlIHN0aWxsICp2ZXJ5KiBl
-eHBlcmltZW50YWwgYXQgdGhlIG1vbWVudCBhbmQgdGFrZSBhIApsb3Qgb2YgZXhwZXJ0aXNlIHRv
-IGdldCB3b3JraW5nIGluIGEgZ2VuZXJhbCBzZXR1cC4gSXQgd2lsbCBkZWZpbml0ZWx5IApyZXF1
-aXJlIGNoYW5nZXMgdG8gdGhlIGtlcm5lbCwgaW5jbHVkaW5nIHRoZSBkcml2ZXJzIG9mIGFsbCB0
-aGUgZGV2aWNlcyAKeW91IGFyZSB0cnlpbmcgdG8gbWFrZSB0YWxrIHRvIGVhY2hvdGhlci4gSWYg
-eW91J3JlIHVwIGZvciBpdCB5b3UgY2FuIAp0YWtlIGEgbG9vayBhdDoKCmh0dHBzOi8vZ2l0aHVi
-LmNvbS9zYmF0ZXMxMzAyNzIvbGludXgtcDJwbWVtLwoKV2hpY2ggaGFzIG91ciBjdXJyZW50IHJv
-dWdoIHdvcmsgbWFraW5nIE5WTWUgZmFicmljcyB1c2UgcDJwIHRyYW5zYWN0aW9ucy4KCkxvZ2Fu
-CgpPbiAxMC8yMC8yMDE3IDY6MzYgQU0sIEx1ZHdpZyBQZXRyb3N5YW4gd3JvdGU6Cj4gRGVhciBM
-aW51eCBrZXJuZWwgZ3JvdXAKPiAKPiBteSBuYW1lIGlzIEx1ZHdpZyBQZXRyb3N5YW4gSSBhbSB3
-b3JraW5nIGluIERFU1kgKEdlcm1hbnkpCj4gCj4gd2UgYXJlIHJlc3BvbnNpYmxlIGZvciB0aGUg
-Y29udHJvbCBzeXN0ZW0gb2bCoCBhbGwgYWNjZWxlcmF0b3JzIGluIERFU1kuCj4gCj4gRm9yIGEg
-Ny04IHllYXJzIHdlIGhhdmUgc3dpdGNoZWQgdG8gTVRDQS40IHN5c3RlbXMgYW5kIHVzaW5nIFBD
-SWUgYXMgYSAKPiBjZW50cmFsIEJ1cy4KPiAKPiBJIGFtIG1vc3RseSByZXNwb25zaWJsZSBmb3Ig
-dGhlIExpbnV4IGRyaXZlcnMgb2YgdGhlIEFNQyBDYXJkcyAoUENJZSAKPiBlbmRwb2ludHMpLgo+
-IAo+IFRoZSBpZGVhIGlzIHN0YXJ0IHRvIHVzZSBwZWVyIHRvIHBlZXIgdHJhbnNhY3Rpb24gZm9y
-IFBDSWUgZW5kcG9pbnQgKERNQSAKPiBhbmQvb3IgdXN1YWwgUmVhZC9Xcml0ZSkKPiAKPiBDb3Vs
-ZCBZb3UgcGxlYXNlIGFkdmlzZSBtZSB3aGVyZSB0byBzdGFydCwgaXMgdGhlcmUgc29tZSBEb2N1
-bWVudGF0aW9uIAo+IGhvdyB0byBkbyBpdC4KPiAKPiAKPiB3aXRoIGJlc3QgcmVnYXJkcwo+IAo+
-IAo+IEx1ZHdpZwo+IAo+IAo+IE9uIDExLzIxLzIwMTYgMDk6MzYgUE0sIERldWNoZXIsIEFsZXhh
-bmRlciB3cm90ZToKPj4gVGhpcyBpcyBjZXJ0YWlubHkgbm90IHRoZSBmaXJzdCB0aW1lIHRoaXMg
-aGFzIGJlZW4gYnJvdWdodCB1cCwgYnV0IEknZCAKPj4gbGlrZSB0byB0cnkgYW5kIGdldCBzb21l
-IGNvbnNlbnN1cyBvbiB0aGUgYmVzdCB3YXkgdG8gbW92ZSB0aGlzIAo+PiBmb3J3YXJkLsKgIEFs
-bG93aW5nIGRldmljZXMgdG8gdGFsayBkaXJlY3RseSBpbXByb3ZlcyBwZXJmb3JtYW5jZSBhbmQg
-Cj4+IHJlZHVjZXMgbGF0ZW5jeSBieSBhdm9pZGluZyB0aGUgdXNlIG9mIHN0YWdpbmcgYnVmZmVy
-cyBpbiBzeXN0ZW0gCj4+IG1lbW9yeS7CoCBBbHNvIGluIGNhc2VzIHdoZXJlIGJvdGggZGV2aWNl
-cyBhcmUgYmVoaW5kIGEgc3dpdGNoLCBpdCAKPj4gYXZvaWRzIHRoZSBDUFUgZW50aXJlbHkuwqAg
-TW9zdCBjdXJyZW50IEFQSXMgKERpcmVjdEdNQSwgUGVlckRpcmVjdCwgCj4+IENVREEsIEhTQSkg
-dGhhdCBkZWFsIHdpdGggdGhpcyBhcmUgcG9pbnRlciBiYXNlZC7CoCBJZGVhbGx5IHdlJ2QgYmUg
-Cj4+IGFibGUgdG8gdGFrZSBhIENQVSB2aXJ0dWFsIGFkZHJlc3MgYW5kIGJlIGFibGUgdG8gZ2V0
-IHRvIGEgcGh5c2ljYWwgCj4+IGFkZHJlc3MgdGFraW5nIGludG8gYWNjb3VudCBJT01NVXMsIGV0
-Yy7CoCBIYXZpbmcgc3RydWN0IHBhZ2VzIGZvciB0aGUgCj4+IG1lbW9yeSB3b3VsZCBhbGxvdyBp
-dCB0byB3b3JrIG1vcmUgZ2VuZXJhbGx5IGFuZCB3b3VsZG4ndCByZXF1aXJlIGFzIAo+PiBtdWNo
-IGV4cGxpY2l0IHN1cHBvcnQgaW4gZHJpdmVycyB0aGF0IHdhbnRlZCB0byB1c2UgaXQuCj4+IFNv
-bWUgdXNlIGNhc2VzOgo+PiAxLiBTdG9yYWdlIGRldmljZXMgc3RyZWFtaW5nIGRpcmVjdGx5IHRv
-IEdQVSBkZXZpY2UgbWVtb3J5Cj4+IDIuIEdQVSBkZXZpY2UgbWVtb3J5IHRvIEdQVSBkZXZpY2Ug
-bWVtb3J5IHN0cmVhbWluZwo+PiAzLiBEVkIvVjRML1NESSBkZXZpY2VzIHN0cmVhbWluZyBkaXJl
-Y3RseSB0byBHUFUgZGV2aWNlIG1lbW9yeQo+PiA0LiBEVkIvVjRML1NESSBkZXZpY2VzIHN0cmVh
-bWluZyBkaXJlY3RseSB0byBzdG9yYWdlIGRldmljZXMKPj4gSGVyZSBpcyBhIHJlbGF0aXZlbHkg
-c2ltcGxlIGV4YW1wbGUgb2YgaG93IHRoaXMgY291bGQgd29yayBmb3IgCj4+IHRlc3RpbmcuwqAg
-VGhpcyBpcyBvYnZpb3VzbHkgbm90IGEgY29tcGxldGUgc29sdXRpb24uCj4+IC0gRGV2aWNlIG1l
-bW9yeSB3aWxsIGJlIHJlZ2lzdGVyZWQgd2l0aCBMaW51eCBtZW1vcnkgc3ViLXN5c3RlbSBieSAK
-Pj4gY3JlYXRlZCBjb3JyZXNwb25kaW5nIHN0cnVjdCBwYWdlIHN0cnVjdHVyZXMgZm9yIGRldmlj
-ZSBtZW1vcnkKPj4gLSBnZXRfdXNlcl9wYWdlc19mYXN0KCkgd2lsbMKgIHJldHVybiBjb3JyZXNw
-b25kaW5nIHN0cnVjdCBwYWdlcyB3aGVuIAo+PiBDUFUgYWRkcmVzcyBwb2ludHMgdG8gdGhlIGRl
-dmljZSBtZW1vcnkKPj4gLSBwdXRfcGFnZSgpIHdpbGwgZGVhbCB3aXRoIHN0cnVjdCBwYWdlcyBm
-b3IgZGV2aWNlIG1lbW9yeQo+PiBQcmV2aW91c2x5IHByb3Bvc2VkIHNvbHV0aW9ucyBhbmQgcmVs
-YXRlZCBwcm9wb3NhbHM6Cj4+IDEuUDJQIERNQQo+PiBETUEtQVBJL1BDSSBtYXBfcGVlcl9yZXNv
-dXJjZSBzdXBwb3J0IGZvciBwZWVyLXRvLXBlZXIgCj4+IChodHRwOi8vd3d3LnNwaW5pY3MubmV0
-L2xpc3RzL2xpbnV4LXBjaS9tc2c0NDU2MC5odG1sKQo+PiBQcm9zOiBMb3cgaW1wYWN0LCBhbHJl
-YWR5IGxhcmdlbHkgcmV2aWV3ZWQuCj4+IENvbnM6IHJlcXVpcmVzIGV4cGxpY2l0IHN1cHBvcnQg
-aW4gYWxsIGRyaXZlcnMgdGhhdCB3YW50IHRvIHN1cHBvcnQgCj4+IGl0LCBkb2Vzbid0IGhhbmRs
-ZSBTL0cgaW4gZGV2aWNlIG1lbW9yeS4KPj4gMi4gWk9ORV9ERVZJQ0UgSU8KPj4gRGlyZWN0IEkv
-TyBhbmQgRE1BIGZvciBwZXJzaXN0ZW50IG1lbW9yeSAKPj4gKGh0dHBzOi8vbHduLm5ldC9BcnRp
-Y2xlcy82NzI0NTcvKQo+PiBBZGQgc3VwcG9ydCBmb3IgWk9ORV9ERVZJQ0UgSU8gbWVtb3J5IHdp
-dGggc3RydWN0IHBhZ2VzLiAKPj4gKGh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gv
-ODU4MzIyMS8pCj4+IFBybzogRG9lc24ndCB3YXN0ZSBzeXN0ZW0gbWVtb3J5IGZvciBaT05FIG1l
-dGFkYXRhCj4+IENvbnM6IENQVSBhY2Nlc3MgdG8gWk9ORSBtZXRhZGF0YSBzbG93LCBtYXkgYmUg
-bG9zdCwgY29ycnVwdGVkIG9uIAo+PiBkZXZpY2UgcmVzZXQuCj4+IDMuIERNQS1CVUYKPj4gUkRN
-QSBzdWJzeXN0ZW0gRE1BLUJVRiBzdXBwb3J0IAo+PiAoaHR0cDovL3d3dy5zcGluaWNzLm5ldC9s
-aXN0cy9saW51eC1yZG1hL21zZzM4NzQ4Lmh0bWwpCj4+IFByb3M6IHVzZXMgZXhpc3RpbmcgZG1h
-LWJ1ZiBpbnRlcmZhY2UKPj4gQ29uczogZG1hLWJ1ZiBpcyBoYW5kbGUgYmFzZWQsIHJlcXVpcmVz
-IGV4cGxpY2l0IGRtYS1idWYgc3VwcG9ydCBpbiAKPj4gZHJpdmVycy4KPj4KPj4gNC4gaW9wbWVt
-Cj4+IGlvcG1lbSA6IEEgYmxvY2sgZGV2aWNlIGZvciBQQ0llIG1lbW9yeSAKPj4gKGh0dHBzOi8v
-bHduLm5ldC9BcnRpY2xlcy83MDM4OTUvKQo+PiA1LiBITU0KPj4gSGV0ZXJvZ2VuZW91cyBNZW1v
-cnkgTWFuYWdlbWVudCAKPj4gKGh0dHA6Ly9sa21sLml1LmVkdS9oeXBlcm1haWwvbGludXgva2Vy
-bmVsLzE2MTEuMi8wMjQ3My5odG1sKQo+Pgo+PiA2LiBTb21lIG5ldyBtbWFwLWxpa2UgaW50ZXJm
-YWNlIHRoYXQgdGFrZXMgYSB1c2VycHRyIGFuZCBhIGxlbmd0aCBhbmQgCj4+IHJldHVybnMgYSBk
-bWEtYnVmIGFuZCBvZmZzZXQ/Cj4+IEFsZXgKPj4KPj4gLS0gCj4+IFRvIHVuc3Vic2NyaWJlIGZy
-b20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1wY2kiIGluCj4+
-IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj4+IE1v
-cmUgbWFqb3Jkb21vIGluZm8gYXTCoCBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1p
-bmZvLmh0bWwKPiAKPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwo+IExpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKPiBMaW51eC1udmRpbW1AbGlzdHMuMDEu
-b3JnCj4gaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZk
-aW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMu
-MDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On 10/21/2017 3:29 AM, Guy Shattah wrote:
+> 
+> 
+>> On Thu, 19 Oct 2017, Yishai Hadas wrote:
+>>
+>>> +#define IB_COUNTER_NAME_LEN 64
+>>> +struct ib_counter_set_describe_attr {
+>>> +	/* Type that this set refers to, use enum ib_counter_set_type */
+>>> +	u8 counted_type;
+>>
+>> Gap here of 7 bytes. Maybe move the field to get a more compact structure?
+>>
+>>> +	/* Number of instances of this counter-set available in the hardware
+>> */
+>>> +	u64 num_of_cs;
+>>
+>> u16 or u32 should be enough right?
+> 
+> Future API might be added to create user-customizable  sets.
+> How many potential subsets are for a set of 32 counters? More than 2^64.
+> We might want to be able to support it.
+> 
+>>
+>>> +	/* Attributes of the set, use enum ib_counter_set_attributes */
+>>> +	u32 attributes;
+>>> +	/* Number of counters in this set */
+>>> +	u8 entries_count;
+>>
+>> A counter set is limited to 255? Could there be counter sets that have a
+>> thousand or so?
+> 
+> A counter set is merely a set. I can't see a reason why would a user want to query a set
+> which contains more than 256 counters. All at the same time.
+> However, I agree that we could modify it to u16 or u32.
+
+Thanks Christoper for looking at the series.
+
+In V1 will change this field to be u16 and re-order the fields in struct 
+ib_counter_set_describe_attr to be more compact as you suggest.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
