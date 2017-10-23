@@ -1,205 +1,127 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
- misinterpreted flag
-Date: Mon, 23 Oct 2017 11:11:17 +0300
-Message-ID: <20171023081117.GE2106@mtr-leonro.local>
-References: <20171019213859.26124.37851.stgit@phlsvslse11.ph.intel.com>
- <20171020073724.GY2106@mtr-leonro.local>
- <14063C7AD467DE4B82DEDB5C278E8663875E0841@FMSMSX108.amr.corp.intel.com>
+Subject: Re: [PATCH rdma-next 1/6] IB/uverbs: Allow CQ moderation with modify
+ CQ
+Date: Mon, 23 Oct 2017 12:42:14 +0300
+Message-ID: <20171023094214.GG2106@mtr-leonro.local>
+References: <20171019053524.11135-1-leon@kernel.org>
+ <20171019053524.11135-2-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="sC1KxrFoiW8MuHBc"
+        protocol="application/pgp-signature"; boundary="bDKzcj6YHRdh76QF"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <14063C7AD467DE4B82DEDB5C278E8663875E0841-AtyAts71sc88Ug9VwtkbtrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20171019053524.11135-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---sC1KxrFoiW8MuHBc
+--bDKzcj6YHRdh76QF
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Oct 20, 2017 at 05:20:22PM +0000, Ruhl, Michael J wrote:
-> > -----Original Message-----
-> > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
-> > Sent: Friday, October 20, 2017 3:37 AM
-> > To: Ruhl, Michael J <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: Re: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
-> > misinterpreted flag
-> >
-> > On Thu, Oct 19, 2017 at 05:40:59PM -0400, Michael J. Ruhl wrote:
-> > > I was playing with the ibacm service and discovered an issue
-> > > the other day.
-> > >
-> > > If no provider library is present (I removed libacmp.so, and the
-> > > provider keyword in the opts.cfg file is libacmp), when a resolve
-> > > request is posted, the kernel will crash with the following Oops:
-> > >
-> > > Call Trace:
-> > >  ? netlink_dump+0x12c/0x290
-> > >  __netlink_dump_start+0x186/0x1f0
-> > >  rdma_nl_rcv_msg+0x193/0x1b0 [ib_core]
-> > >  rdma_nl_rcv+0xdc/0x130 [ib_core]
-> > >  netlink_unicast+0x181/0x240
-> > >  netlink_sendmsg+0x2c2/0x3b0
-> > >  sock_sendmsg+0x38/0x50
-> > >  SYSC_sendto+0x102/0x190
-> > >  ? __audit_syscall_entry+0xaf/0x100
-> > >  ? syscall_trace_enter+0x1d0/0x2b0
-> > >  ? __audit_syscall_exit+0x209/0x290
-> > >  SyS_sendto+0xe/0x10
-> > >  do_syscall_64+0x67/0x1b0
-> > >  entry_SYSCALL64_slow_path+0x25/0x25
-> > >
-> > > The issue is that in rdma_nl_rcv_msg(), the check
-> > > 'if (flags & NLM_F_DUMP)' is not completely correct.
-> > >
-> > > NLM_F_DUMP is two bits NLM_F_ROOT | NLM_F_MATCH.
-> > >
-> > > ibacm sends a RDMA_NL_LS response with the RDMA_NL_LS_F_ERR bit set
-> > > if an error occurs in the service (like no provider being available,
-> > > or ACM_STATUS_ENODATA, etc.).
-> > >
-> > > NLM_F_ROOT == (0x100) == RDMA_NL_LS_F_ERR.
-> > >
-> > > The current code thinks that it sees a NLM_F_DUMP flag and incorrectly calls
-> > > the .dump() callback.
-> >
-> > Hi Michael,
-> >
-> > Thanks for the report and for excellent analysis, You are right that
-> > RDMA_NL_LS_F_ERR has the same value as NLM_F_ROOT and it is bad, but
-> > I just think that it is not the final root cause.
-> >
-> > In case of errors, the LS was supposed to send NLMSG_ERROR message and not
-> > overload general nlmsg_flags, which is awful. However I don't know if it is
-> > feasible to fix current implementation without breaking UAPI contract.
+On Thu, Oct 19, 2017 at 08:35:19AM +0300, Leon Romanovsky wrote:
+> From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >
-> I agree this is probably something that needs to get followed up on.
+> Uverbs support in modify_cq for CQ moderation only.
+> Gives ability to change cq_max_count and cq_period.
+> CQ moderation enhance performance by moderating the number
+> of cookies needed to create an event instead of application
+> having to suffer from event per cookie.
+> To achieve CQ moderation the application needs to set cq_max_count
+> and cq_period.
+> cq_max_count - defines the number of cookies
+>                needed to create an event.
+> cq_period - defines the timeout (micro seconds) between last
+>             event and a new one that will occur even if
+> 	    cq_max_count was not satisfied
 >
-> > In meanwhile, can we implement dummy dumpit functions for the LS,
-> > which reuse ib_nl_is_good_ip_resp?
+> Signed-off-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/infiniband/core/uverbs.h      |  1 +
+>  drivers/infiniband/core/uverbs_cmd.c  | 36 +++++++++++++++++++++++++++++++++++
+>  drivers/infiniband/core/uverbs_main.c |  1 +
+>  include/rdma/ib_verbs.h               |  4 ++++
+>  include/uapi/rdma/ib_user_verbs.h     | 11 ++++++++++-
+>  5 files changed, 52 insertions(+), 1 deletion(-)
 >
-> The original code does not call the netlink_dump_start() code for this path, so if we create a dummy dump function we will have to add code to special case this and call it directly.
+> diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+> index ee2739ae4305..deccefb71a6b 100644
+> --- a/drivers/infiniband/core/uverbs.h
+> +++ b/drivers/infiniband/core/uverbs.h
+> @@ -306,5 +306,6 @@ IB_UVERBS_DECLARE_EX_CMD(destroy_wq);
+>  IB_UVERBS_DECLARE_EX_CMD(create_rwq_ind_table);
+>  IB_UVERBS_DECLARE_EX_CMD(destroy_rwq_ind_table);
+>  IB_UVERBS_DECLARE_EX_CMD(modify_qp);
+> +IB_UVERBS_DECLARE_EX_CMD(modify_cq);
 >
-> So maybe we could just go back to the original code and call .doit rather than .dump in the non netlink_dump_start() path?
->
-> i.e.:
->       if (!(nlh->nlmsg_flags & NLM_F_REQUEST) ||
->            (index == RDMA_NL_LS && op == RDMA_NL_LS_OP_SET_TIMEOUT)) {
->                cb.skb = skb;
->                cb.nlh = nlh;
->                cb.dump = cb_table[op].dump;
-> -               return cb.dump(skb, &cb);
-> +               return cb.doit(skb, &cb);
->        } else {
->                c.dump = cb_table[op].dump;
->
->
-> > I prefer this solution over yours, because it doesn't mix LS-specifics with
-> > general decision function and leaves LS anomalies in the LS-relevant code.
->
-> The problem with this is that the code has to take into consideration the LS anomalies either before the this function is called, or has to deal with them here.
->
-> The other thought would be to special case the LS stuff before this decision and call the .doit function there (and then return).
+>  #endif /* UVERBS_H */
+> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+> index ab29a0327831..c7819e5540f1 100644
+> --- a/drivers/infiniband/core/uverbs_cmd.c
+> +++ b/drivers/infiniband/core/uverbs_cmd.c
+> @@ -3856,3 +3856,39 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+>  	err = ib_copy_to_udata(ucore, &resp, resp.response_length);
+>  	return err;
+>  }
+> +
+> +int ib_uverbs_ex_modify_cq(struct ib_uverbs_file *file,
+> +			   struct ib_device *ib_dev,
+> +			   struct ib_udata *ucore,
+> +			   struct ib_udata *uhw)
+> +{
+> +	struct ib_uverbs_ex_modify_cq cmd = {};
+> +	struct ib_cq *cq;
+> +	int ret;
+> +
+> +	/* sanity checks */
+> +	if (ucore->inlen > sizeof(cmd) &&
+> +	    !ib_is_udata_cleared(ucore, sizeof(cmd),
+> +				 ucore->inlen - sizeof(cmd)))
+> +		return -EOPNOTSUPP;
+> +
+> +	ret = ib_copy_from_udata(&cmd, ucore, min(sizeof(cmd), ucore->inlen));
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (cmd.attr_mask != IB_CQ_MODERATE)
+> +		return -EINVAL;
+> +
+> +	if (!cmd.comp_mask)
+> +		return -EINVAL;
 
-What about such code?
+No way that it worked, comp_mask is never set, so it is supposed to be
+zero and it is always returning EINVAL.
 
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index b12e58787c3d..6a7362664876 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -175,6 +175,14 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	    !netlink_capable(skb, CAP_NET_ADMIN))
- 		return -EPERM;
-
-+	/*
-+	 * LS is special because it runs backward communication
-+	 * and it overloads NLM_F_DUMP flag with RDMA_NL_LS_F_ERR
-+	 * So we are calling to .doit before processing .dumpit call.
-+	 */
-+	if (index == RDMA_NL_LS)
-+		return cb_table[op].doit(skb, nlh, extack);
-+
- 	/* FIXME: Convert IWCM to properly handle doit callbacks */
- 	if ((nlh->nlmsg_flags & NLM_F_DUMP) || index == RDMA_NL_RDMA_CM ||
- 	    index == RDMA_NL_IWCM) {
-
->
-> > And returning 0 in absence of dumpit function as a response with
-> > NLM_F_DUMP flag is wrong. User should be aware of the fact that
-> > something wrong was with his request.
->
-> This was the value that the function returns if .dump and .doit are NOT selected, so I thought that this was appropriate.  Should that value (the final return 0) be changed to something different?
-
-The is_nl_valid() should return "false" If no .dumpit/.doit functions exist.
-In such case, we are supposed to return EINVAL.
+Additionally, the "attr_mask" is already carrying the same information as
+"comp_mask" will handle, hence the "comp_mask" should be dropped.
 
 Thanks
 
->
-> Mike
->
-> > Thanks
-> >
-> > >
-> > > The included patch is an atempt to fix this issue.  This patch fixes the
-> > > issue that I am seeing, but I am not sure how to test the messages for
-> > > RDMA_NL_RDMA_CM or RDMA_NL_IWCM (or any message that uses the
-> > > NLM_F_DUMP bits).
-> > >
-> > > If anyone has some knowledge of these services, any extra testing would
-> > > be welcomed.
-> > >
-> > > If the patch has no issues or comments, I will formally re-submit it
-> > > (through my usual channel Denny).
-> > >
-> > > Thanks,
-> > >
-> > > Mike
-> > >
-> > >
-> > > ---
-> > >
-> > > Michael J. Ruhl (1):
-> > >       RDMA/netlink: OOPs in rdma_nl_rcv_msg() from misinterpreted flag
-> > >
-> > >
-> > >  drivers/infiniband/core/netlink.c |    7 +++++--
-> > >  1 files changed, 5 insertions(+), 2 deletions(-)
-> > >
-> > > --
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---sC1KxrFoiW8MuHBc
+--bDKzcj6YHRdh76QF
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlntpCUACgkQ5GN7iDZy
-WKe00A/+NXGNdFLpUelmk1HxbpNVoPLlmahsPjIc288wct/imliizX5UkHdDIEdF
-KVuyWaRDBXfGMLIMm6GAej77TrHv3EVpdutHkd8mzz2hbi0MNNJKOVMU0RgLpXrC
-R0f/dHUoPv0kIPGk3rkAnHAWt59/U262J0aT7fEq3LYpluvtLUlf6DsvK5wh1jRz
-qaDbKhBWbzRl7qjOHeti6ry8uWrATuOGcTqFMq/7SuTANpW+ln1z7GBExk8+p7u1
-aZRhmWK6rUS2auS3IodPl+xdyq+E13/RHDbNQIM/7SPlTKFC2RaJ+xwYN3u1fO31
-dOEiotrrXMag9xNJiXvyMbr2V67YvfaIBNSE20l7jMUxXbYvCCu0L/a0IBrV+2BG
-w5PV2YzlyULwHenMdYl2p5/I+oHWepKYxlCPJ/Jxg+hIX9uhnnRTyzNfRYarEmMg
-cCVjuvjamsPSh8tzBsDtYngWC5uK2nyQPhps+Ddrsitd5rBkmb9vPIvOpAQLdfOl
-j5+MnkkZXo6qArA+/G3b3kVNH21E+sy8DdQir30nl89UIuOYbJTD4V4RHIGDjK2J
-6a4y8et+mmX0lQVTNqk8Mn9hWISiDpnUsy3wYHVr4+8msJeNtZQ+rPDvZ7wAodsY
-5/PcXF+drsDk6h21otEr4wqnOYdl3v3/lekH59iRnkrHoxSZTW4=
-=4ZUw
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlntuXYACgkQ5GN7iDZy
+WKdMSQ/9E7k9g021LAMZ87AFHdj9KMMEpiaQ3IwsN8dyjsLAkA8vOP/nQPrza4UG
+5DBfm8uvXOFarFy4oewHD4AwJ+/BRqBQ42HnCCzOkDbK5DQTSKQi8OMsrEKZxsD7
+getCpI/yK4TCec9eRlodU61unBpK4rDwD7vj5J4W1Jd8+ny/xVfT4jYZTw6tBV1S
+zxinnkdVvESdSMhO1qxavBCvnpU61F+OVu8AxPCMEBrz8+Q9eJ2ngAIJ1FhDr9ZB
+p6Wa8T0LBy0VyVmiIMtyitOFnzGS4QBrtJzYOVKB8Ktxl+jbiLYuGKD/RZY/H8o5
+1thkcHA2MhSeXAxUpQwdTXhKOYWAx76C+3+tRVHDsiSazD5yIXFL1Bh2ZcGHYOmE
+LxYg4ZXDThr2W3BIrJjsLXYOLUC7h+QzujnYUS2rrZVA1Gj1iHTFMMWcCfmuoNqh
+8Smhjc87eAdTnmeZWZ6R5zbA+OZm5uLZAvaV4fYN31eG9I1qjXoZcFYaWlR9lKmz
+9zdGg5fGvnPZmuXQV1J1wG8Skt9S1K5ideU3+kxNo6qFAjHsHgsaDMGHdayZv32+
+hxglOObSc1j1jDZqTM3pkBtLSlA/OY8KWHXPH2XHfSF9bFL6RW9GZaZ75Ld0x7wY
+pN3z/mbMrMc8g0tWqpwblR2MGowNYkjDwgBuRyOLgQOUgyFL5u8=
+=29QP
 -----END PGP SIGNATURE-----
 
---sC1KxrFoiW8MuHBc--
+--bDKzcj6YHRdh76QF--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
