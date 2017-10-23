@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 10/10] mlx5: Tag matching receive implementation
-Date: Mon, 23 Oct 2017 16:18:01 +0300
-Message-ID: <1508764681-4531-11-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 05/10] verbs: Tag matching list manipulation interface
+Date: Mon, 23 Oct 2017 16:17:56 +0300
+Message-ID: <1508764681-4531-6-git-send-email-yishaih@mellanox.com>
 References: <1508764681-4531-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1508764681-4531-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,280 +12,350 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Implement poll_cq tag matching extensions.
-Handle receiving of TM CQEs:
-* decrements expected cqe
-* if no more cqe expected enqueues the tag to free tag list FIFO
-* copy inline data from CQE if passed
-* returns wr_id passed via add.tm.recv_wr_id
-wc_flags and status returned according to definition
+This patch introduced a new verb named ibv_post_srq_ops() to supply an
+API to perform SRQ enhanced operations like tag matching list
+manipulations. Detailed description for the tag matching operations
+was added into Documentation/tag_matching.md
 
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/cq.c     | 138 ++++++++++++++++++++++++++++++++++++++++++++++--
- providers/mlx5/mlx5dv.h |   3 ++
- providers/mlx5/verbs.c  |   3 +-
- 3 files changed, 138 insertions(+), 6 deletions(-)
+ Documentation/tag_matching.md     |  80 ++++++++++++++++++++++++++++++
+ libibverbs/enum_strs.c            |   5 +-
+ libibverbs/man/CMakeLists.txt     |   1 +
+ libibverbs/man/ibv_post_srq_ops.3 | 100 ++++++++++++++++++++++++++++++++++++++
+ libibverbs/verbs.h                |  58 ++++++++++++++++++++--
+ 5 files changed, 239 insertions(+), 5 deletions(-)
+ create mode 100644 libibverbs/man/ibv_post_srq_ops.3
 
-diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
-index 1b610fd..84c0d0b 100644
---- a/providers/mlx5/cq.c
-+++ b/providers/mlx5/cq.c
-@@ -63,11 +63,30 @@ enum {
+diff --git a/Documentation/tag_matching.md b/Documentation/tag_matching.md
+index bf110d6..1e5a929 100644
+--- a/Documentation/tag_matching.md
++++ b/Documentation/tag_matching.md
+@@ -166,3 +166,83 @@ ownership of the QP's Send Queue is passed to the TM-SRQ, which uses it to
+ initiate rendezvous RDMA-Reads. Receive completions are reported to the
+ TM-SRQ's CQ.
+ 
++
++### Managing TM receive buffers
++
++Untagged (unexpected) buffers are posted using the standard
++**ibv_post_srq_recv**() Verb.
++
++Tagged buffers are manipulated by a new **ibv_post_srq_ops**() Verb:
++
++```h
++int ibv_post_srq_ops(struct ibv_srq *srq, struct ibv_ops_wr *wr,
++                     struct ibv_ops_wr **bad_wr);
++```
++```h
++struct ibv_ops_wr {
++	 uint64_t		 wr_id;    /* User defined WR ID */
++	 /* Pointer to next WR in list, NULL if last WR */
++	 struct ibv_ops_wr	*next;
++	 enum ibv_ops_wr_opcode  opcode;   /* From enum ibv_ops_wr_opcode */
++	 int			 flags;    /* From enum ibv_ops_flags */
++	 struct {
++		  /* Number of unexpected messages
++		   * handled by SW */
++		  uint32_t unexpected_cnt;
++		  /* Input parameter for the DEL opcode
++		   * and output parameter for the ADD opcode */
++		  uint32_t handle;
++		  struct {
++			  /* WR ID for TM_RECV */
++			  uint64_t		  recv_wr_id;
++			  struct ibv_sge	 *sg_list;
++			  int			  num_sge;
++			  uint64_t		  tag;
++			  uint64_t		  mask;
++		  } add;
++	 } tm;
++};
++```
++
++The following opcodes are defined:
++
++Opcode **IBV_WR_TAG_ADD** - add a tagged buffer entry to the tag matching list.
++The input consists of an SGE list, a tag, a mask (matching parameters), and the
++latest unexpected message count. A handle that uniquely identifies the entry is
++returned upon success.
++
++Opcode **IBV_WR_TAG_DEL** - delete a tag entry.
++The input is an entry handle returned from a previous **IBV_WR_TAG_ADD**
++operation, and the latest unexpected message count.
++
++Note that the operation may fail if the associated tag was consumed by an
++incoming message. In this case **IBV_WC_TM_ERR** status will be returned in WC.
++
++Opcode **IBV_WR_TAG_SYNC** - report the number of unexpected messages handled by
++the SW.
++The input comprises only the unexpected message count. To reduce explicit
++synchronization to a minimum, all completions indicate when synchronization is
++necessary by setting the **IBV_WC_TM_SYNC_REQ** flag.
++
++**ibv_post_srq_ops**() operations are non-signaled by default. To request an
++explicit completion for a given operation, the standard **IBV_OPS_SIGNALED**
++flag must be set. The number of outstanding tag-manipulation operations must
++not exceed the **max_ops** capability.
++
++While **wr_id** identifies the tag manipulation operation itself, the
++**recv_wr_id** field is used to identify the tagged buffer in receive
++completions.
++
++
++### TM completion processing
++
++There are 2 types of TM completions: tag-manipulation and receive completions.
++
++Tag-manipulation operations generate the following completion opcodes:
++* **IBV_WC_TM_ADD** - completion of a tag addition operation
++* **IBV_WC_TM_DEL** - completion of a tag removal operation
++* **IBV_WC_TM_SYNC** - completion of a synchronization operation
++
++These completions are complemented by the **IBV_WC_TM_SYNC_REQ** flag, which
++indicates whether further HW synchronization is needed.
++
+diff --git a/libibverbs/enum_strs.c b/libibverbs/enum_strs.c
+index b9d8e2b..93f2c56 100644
+--- a/libibverbs/enum_strs.c
++++ b/libibverbs/enum_strs.c
+@@ -121,10 +121,11 @@ const char *ibv_wc_status_str(enum ibv_wc_status status)
+ 		[IBV_WC_INV_EEC_STATE_ERR]	= "invalid EE context state",
+ 		[IBV_WC_FATAL_ERR]		= "fatal error",
+ 		[IBV_WC_RESP_TIMEOUT_ERR]	= "response timeout error",
+-		[IBV_WC_GENERAL_ERR]		= "general error"
++		[IBV_WC_GENERAL_ERR]		= "general error",
++		[IBV_WC_TM_ERR]			= "TM error",
+ 	};
+ 
+-	if (status < IBV_WC_SUCCESS || status > IBV_WC_GENERAL_ERR)
++	if (status < IBV_WC_SUCCESS || status > IBV_WC_TM_ERR)
+ 		return "unknown";
+ 
+ 	return wc_status_str[status];
+diff --git a/libibverbs/man/CMakeLists.txt b/libibverbs/man/CMakeLists.txt
+index 05313e5..e302d04 100644
+--- a/libibverbs/man/CMakeLists.txt
++++ b/libibverbs/man/CMakeLists.txt
+@@ -36,6 +36,7 @@ rdma_man_pages(
+   ibv_poll_cq.3
+   ibv_post_recv.3
+   ibv_post_send.3
++  ibv_post_srq_ops.3
+   ibv_post_srq_recv.3
+   ibv_query_device.3
+   ibv_query_device_ex.3
+diff --git a/libibverbs/man/ibv_post_srq_ops.3 b/libibverbs/man/ibv_post_srq_ops.3
+new file mode 100644
+index 0000000..a948aa8
+--- /dev/null
++++ b/libibverbs/man/ibv_post_srq_ops.3
+@@ -0,0 +1,100 @@
++.\" -*- nroff -*-
++.\" Licensed under the OpenIB.org BSD license (FreeBSD Variant) - See COPYING.md
++.\"
++.TH IBV_POST_SRQ_OPS 3 2017-03-26 libibverbs "Libibverbs Programmer's Manual"
++.SH "NAME"
++ibv_post_srq_ops \- perform on a special shared receive queue (SRQ)
++configuration manipulations
++.SH "SYNOPSIS"
++.nf
++.B #include <infiniband/verbs.h>
++.sp
++.BI "int ibv_post_srq_ops(struct ibv_srq " "*srq" ", struct ibv_ops_wr " "*wr" ,
++.BI "                     struct ibv_ops_wr " "**bad_wr" );
++.fi
++.SH "DESCRIPTION"
++The
++.B ibv_post_srq_ops()
++performs series of offload configuration manipulations on spacial types of SRQ
++.I srq\fR. Currenlty it is used to configure tag matching SRQ. Series of configuration
++operations defined by linked lists of struct ibv_ops_wr elements starting from
++.I wr.
++.PP
++.nf
++struct ibv_ops_wr {
++.in +8
++uint64_t                wr_id;   /* User defined WR ID */
++/* Pointer to next WR in list, NULL if last WR */
++struct ibv_ops_wr      *next;
++enum ibv_ops_wr_opcode  opcode;  /* From enum ibv_ops_wr_opcode */
++int                     flags;   /* From enum ibv_ops_flags */
++struct {
++.in +8
++/* Number of unexpected messages
++ * handled by SW */
++uint32_t unexpected_cnt;
++/* Input parameter for the DEL opcode
++ * and output parameter for the ADD opcode */
++uint32_t handle;
++struct {
++.in +8
++uint64_t                recv_wr_id;   /* User defined WR ID for TM_RECV */
++struct ibv_sge         *sg_list; /* Pointer to the s/g array */
++int                     num_sge; /* Size of the s/g array */
++uint64_t                tag;
++uint64_t                mask;    /* Incoming message considered matching if
++                                    TMH.tag & entry.mask == entry.tag */
++.in -8
++} add;
++.in -8
++} tm;
++.in -8
++};
++.fi
++.PP
++First part of struct ibv_ops_wr retains ibv_send_wr notion.
++Opcode defines operation to perform. Currently supported IBV_WR_TAG_ADD,
++IBV_WR_TAG_DEL and IBV_WR_TAG_SYNC values. See below for detailed
++description.
++.PP
++To allow reliable data delivery TM SRQ maintains special low level
++synchronization primitive - phase synchronization. Receive side message
++handling comprises two concurrent activities - posting tagged buffers by
++SW and receiving incoming messages by HW. This process considered
++coherent only if all unexpected messages received by HW is completely
++processed in SW. To pass to hardware number of processed unexpected
++messages unexpected_cnt field should be used and IBV_OPS_TM_SYNC flag
++should be set.
++.PP
++To request WC for tag list operations IBV_OPS_SIGNALED flags should be
++passed. In this case WC will be generated on TM SRQ's CQ, provided wr_id
++will identify WC.
++.PP
++Opcode IBV_WR_TAG_ADD used to add tag entry to tag matching list.
++Tag entry consists of SGE list, tag & mask (matching parameters),
++user specified opaque wr_id (passed via recv_wr_id field) and uniquely
++identified by handle (returned by driver).
++Size of tag matching list is limited by max_num_tags.
++SGE list size is limited by max_sge.
++.PP
++Opcode IBV_WR_TAG_DEL removes previously added tag entry.
++Field handle should be set to value returned by previously performed
++IBV_WR_TAG_ADD operation.
++Operation may fail due to concurrent tag consumption - in this case IBV_WC_TM_ERR
++status will be returned in WC.
++.PP
++Opcode IBV_WR_TAG_SYNC may be used if no changes to matching list
++required, just to updated unexpected messages counter.
++.PP
++IBV_WC_TM_SYNC_REQ flag returned in list operation WC shows that counter
++synchronization required. This flag also may be returned by unexpected receive WC,
++asking for IBV_WR_TAG_SYNC operation to keep TM coherence consistency.
++.SH "RETURN VALUE"
++.B ibv_post_srq_ops()
++returns 0 on success, or the value of errno on failure (which indicates the
++failure reason).
++.SH "SEE ALSO"
++.BR ibv_create_srq_ex (3),
++.SH "AUTHORS"
++.TP
++Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index a440861..66f8c95 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -427,7 +427,8 @@ enum ibv_wc_status {
+ 	IBV_WC_INV_EEC_STATE_ERR,
+ 	IBV_WC_FATAL_ERR,
+ 	IBV_WC_RESP_TIMEOUT_ERR,
+-	IBV_WC_GENERAL_ERR
++	IBV_WC_GENERAL_ERR,
++	IBV_WC_TM_ERR,
+ };
+ const char *ibv_wc_status_str(enum ibv_wc_status status);
+ 
+@@ -445,7 +446,11 @@ enum ibv_wc_opcode {
+  * receive by testing (opcode & IBV_WC_RECV).
+  */
+ 	IBV_WC_RECV			= 1 << 7,
+-	IBV_WC_RECV_RDMA_WITH_IMM
++	IBV_WC_RECV_RDMA_WITH_IMM,
++
++	IBV_WC_TM_ADD,
++	IBV_WC_TM_DEL,
++	IBV_WC_TM_SYNC,
  };
  
  enum {
-+	MLX5_CQE_APP_OP_TM_CONSUMED = 0x1,
-+	MLX5_CQE_APP_OP_TM_EXPECTED = 0x2,
-+	MLX5_CQE_APP_OP_TM_UNEXPECTED = 0x3,
-+	MLX5_CQE_APP_OP_TM_NO_TAG = 0x4,
- 	MLX5_CQE_APP_OP_TM_APPEND = 0x5,
- 	MLX5_CQE_APP_OP_TM_REMOVE = 0x6,
- 	MLX5_CQE_APP_OP_TM_NOOP = 0x7,
-+	MLX5_CQE_APP_OP_TM_CONSUMED_SW_RDNV = 0x9,
-+	MLX5_CQE_APP_OP_TM_CONSUMED_MSG = 0xA,
-+	MLX5_CQE_APP_OP_TM_CONSUMED_MSG_SW_RDNV = 0xB,
-+	MLX5_CQE_APP_OP_TM_MSG_COMPLETION_CANCELED = 0xC,
+@@ -486,7 +491,8 @@ enum ibv_wc_flags {
+ 	IBV_WC_GRH		= 1 << 0,
+ 	IBV_WC_WITH_IMM		= 1 << 1,
+ 	IBV_WC_IP_CSUM_OK	= 1 << IBV_WC_IP_CSUM_OK_SHIFT,
+-	IBV_WC_WITH_INV         = 1 << 3
++	IBV_WC_WITH_INV		= 1 << 3,
++	IBV_WC_TM_SYNC_REQ	= 1 << 4,
  };
  
-+
-+/* When larger messages or rendezvous transfers are involved, matching and
-+ * data transfer completion are distinct events that generate 2 completion
-+ * events for the same recv_wr_id.
-+ */
-+static inline bool mlx5_cqe_app_op_tm_is_complete(int op)
-+{
-+	return op != MLX5_CQE_APP_OP_TM_CONSUMED &&
-+	       op != MLX5_CQE_APP_OP_TM_CONSUMED_SW_RDNV;
-+}
-+
- enum {
- 	MLX5_CQ_LAZY_FLAGS =
- 		MLX5_CQ_FLAGS_RX_CSUM_VALID |
-@@ -80,6 +99,10 @@ int mlx5_stall_cq_poll_max = 100000;
- int mlx5_stall_cq_inc_step = 100;
- int mlx5_stall_cq_dec_step = 10;
+ struct ibv_wc {
+@@ -1027,6 +1033,35 @@ struct ibv_recv_wr {
+ 	int			num_sge;
+ };
  
-+enum {
-+	MLX5_TM_MAX_SYNC_DIFF = 0x3fff
++enum ibv_ops_wr_opcode {
++	IBV_WR_TAG_ADD,
++	IBV_WR_TAG_DEL,
++	IBV_WR_TAG_SYNC,
 +};
 +
- static inline uint8_t get_cqe_l3_hdr_type(struct mlx5_cqe64 *cqe)
- {
- 	return (cqe->l4_hdr_type_etc >> 2) & 0x3;
-@@ -532,10 +555,44 @@ static int handle_tag_matching(struct mlx5_cq *cq,
- 			       struct mlx5_srq *srq)
- {
- 	FILE *fp = to_mctx(srq->vsrq.srq.context)->dbg_fp;
-+	struct mlx5_tag_entry *tag;
- 	struct mlx5_srq_op *op;
-+	uint16_t wqe_ctr;
++enum ibv_ops_flags {
++	IBV_OPS_SIGNALED = 1 << 0,
++	IBV_OPS_TM_SYNC  = 1 << 1,
++};
++
++struct ibv_ops_wr {
++	uint64_t				wr_id;
++	struct ibv_ops_wr		       *next;
++	enum ibv_ops_wr_opcode			opcode;
++	int					flags;
++	struct {
++		uint32_t			unexpected_cnt;
++		uint32_t			handle;
++		struct {
++			uint64_t		recv_wr_id;
++			struct ibv_sge	       *sg_list;
++			int			num_sge;
++			uint64_t		tag;
++			uint64_t		mask;
++		} add;
++	} tm;
++};
++
+ struct ibv_mw_bind {
+ 	uint64_t		wr_id;
+ 	int			send_flags;
+@@ -1572,6 +1607,9 @@ enum verbs_context_mask {
  
- 	cq->ibv_cq.status = IBV_WC_SUCCESS;
- 	switch (cqe64->app_op) {
-+	case MLX5_CQE_APP_OP_TM_CONSUMED_MSG_SW_RDNV:
-+	case MLX5_CQE_APP_OP_TM_CONSUMED_SW_RDNV:
-+	case MLX5_CQE_APP_OP_TM_MSG_COMPLETION_CANCELED:
-+		cq->ibv_cq.status = IBV_WC_TM_RNDV_INCOMPLETE;
-+		SWITCH_FALLTHROUGH;
-+
-+	case MLX5_CQE_APP_OP_TM_CONSUMED_MSG:
-+	case MLX5_CQE_APP_OP_TM_CONSUMED:
-+	case MLX5_CQE_APP_OP_TM_EXPECTED:
-+		mlx5_spin_lock(&srq->lock);
-+		tag = &srq->tm_list[be16toh(cqe64->app_info)];
-+		if (!tag->expect_cqe) {
-+			mlx5_dbg(fp, MLX5_DBG_CQ, "got idx %d which wasn't added\n",
-+				 be16toh(cqe64->app_info));
-+			cq->ibv_cq.status = IBV_WC_GENERAL_ERR;
-+			mlx5_spin_unlock(&srq->lock);
-+			return CQ_OK;
-+		}
-+		cq->ibv_cq.wr_id = tag->wr_id;
-+		if (mlx5_cqe_app_op_tm_is_complete(cqe64->app_op))
-+			mlx5_tm_release_tag(srq, tag);
-+		/* inline scatter 32 not supported for TM */
-+		if (cqe64->op_own & MLX5_INLINE_SCATTER_64) {
-+			if (be32toh(cqe64->byte_cnt) > tag->size)
-+				cq->ibv_cq.status = IBV_WC_LOC_LEN_ERR;
-+			else
-+				memcpy(tag->ptr, cqe64 - 1,
-+				       be32toh(cqe64->byte_cnt));
-+		}
-+		mlx5_spin_unlock(&srq->lock);
-+		break;
-+
- 	case MLX5_CQE_APP_OP_TM_REMOVE:
- 		if (!(be32toh(cqe64->tm_cqe.success) & MLX5_TMC_SUCCESS))
- 			cq->ibv_cq.status = IBV_WC_TM_ERR;
-@@ -575,6 +632,24 @@ static int handle_tag_matching(struct mlx5_cq *cq,
- 
- 		mlx5_spin_unlock(&srq->lock);
- 		break;
-+
-+	case MLX5_CQE_APP_OP_TM_UNEXPECTED:
-+		srq->unexp_in++;
-+		if (srq->unexp_in - srq->unexp_out > MLX5_TM_MAX_SYNC_DIFF)
-+			cq->flags |= MLX5_CQ_FLAGS_TM_SYNC_REQ;
-+		SWITCH_FALLTHROUGH;
-+
-+	case MLX5_CQE_APP_OP_TM_NO_TAG:
-+		wqe_ctr = be16toh(cqe64->wqe_counter);
-+		cq->ibv_cq.wr_id = srq->wrid[wqe_ctr];
-+		mlx5_free_srq_wqe(srq, wqe_ctr);
-+		if (cqe64->op_own & MLX5_INLINE_SCATTER_32)
-+			return mlx5_copy_to_recv_srq(srq, wqe_ctr, cqe64,
-+						    be32toh(cqe64->byte_cnt));
-+		else if (cqe64->op_own & MLX5_INLINE_SCATTER_64)
-+			return mlx5_copy_to_recv_srq(srq, wqe_ctr, cqe64 - 1,
-+						    be32toh(cqe64->byte_cnt));
-+		break;
- #ifdef MLX5_DEBUG
- 	default:
- 		mlx5_dbg(fp, MLX5_DBG_CQ, "un-expected TM opcode in cqe\n");
-@@ -688,13 +763,23 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
- 		if (unlikely(err))
- 			return CQ_POLL_ERR;
- 
--		if (lazy)
--			cq->ibv_cq.status = handle_responder_lazy(cq, cqe64,
--							      *cur_rsc,
--							      is_srq ? *cur_srq : NULL);
--		else
-+		if (lazy) {
-+			if (likely(cqe64->app != MLX5_CQE_APP_TAG_MATCHING)) {
-+				cq->ibv_cq.status = handle_responder_lazy
-+					(cq, cqe64, *cur_rsc,
-+					 is_srq ? *cur_srq : NULL);
-+			} else {
-+				if (unlikely(!is_srq))
-+					return CQ_POLL_ERR;
-+
-+				err = handle_tag_matching(cq, cqe64, *cur_srq);
-+				if (unlikely(err))
-+					return CQ_POLL_ERR;
-+			}
-+		} else {
- 			wc->status = handle_responder(wc, cqe64, *cur_rsc,
- 					      is_srq ? *cur_srq : NULL);
-+		}
- 		break;
- 
- 	case MLX5_CQE_NO_PACKET:
-@@ -1151,6 +1236,18 @@ static inline enum ibv_wc_opcode mlx5_cq_read_wc_opcode(struct ibv_cq_ex *ibcq)
- 	case MLX5_CQE_RESP_SEND:
- 	case MLX5_CQE_RESP_SEND_IMM:
- 	case MLX5_CQE_RESP_SEND_INV:
-+		if (unlikely(cq->cqe64->app == MLX5_CQE_APP_TAG_MATCHING)) {
-+			switch (cq->cqe64->app_op) {
-+			case MLX5_CQE_APP_OP_TM_CONSUMED_MSG_SW_RDNV:
-+			case MLX5_CQE_APP_OP_TM_CONSUMED_MSG:
-+			case MLX5_CQE_APP_OP_TM_CONSUMED_SW_RDNV:
-+			case MLX5_CQE_APP_OP_TM_EXPECTED:
-+			case MLX5_CQE_APP_OP_TM_UNEXPECTED:
-+				return IBV_WC_TM_RECV;
-+			case MLX5_CQE_APP_OP_TM_NO_TAG:
-+				return IBV_WC_TM_NO_TAG;
-+			}
-+		}
- 		return IBV_WC_RECV;
- 	case MLX5_CQE_NO_PACKET:
- 		switch (cq->cqe64->app_op) {
-@@ -1160,6 +1257,8 @@ static inline enum ibv_wc_opcode mlx5_cq_read_wc_opcode(struct ibv_cq_ex *ibcq)
- 			return IBV_WC_TM_ADD;
- 		case MLX5_CQE_APP_OP_TM_NOOP:
- 			return IBV_WC_TM_SYNC;
-+		case MLX5_CQE_APP_OP_TM_CONSUMED:
-+			return IBV_WC_TM_RECV;
- 		}
- 		break;
- 	case MLX5_CQE_REQ:
-@@ -1222,6 +1321,24 @@ static inline int mlx5_cq_read_wc_flags(struct ibv_cq_ex *ibcq)
- 	if (cq->flags & MLX5_CQ_FLAGS_TM_SYNC_REQ)
- 		wc_flags |= IBV_WC_TM_SYNC_REQ;
- 
-+	if (unlikely(cq->cqe64->app == MLX5_CQE_APP_TAG_MATCHING)) {
-+		switch (cq->cqe64->app_op) {
-+		case MLX5_CQE_APP_OP_TM_CONSUMED_MSG_SW_RDNV:
-+		case MLX5_CQE_APP_OP_TM_CONSUMED_MSG:
-+		case MLX5_CQE_APP_OP_TM_MSG_COMPLETION_CANCELED:
-+						   /* Full completion */
-+			wc_flags |= (IBV_WC_TM_MATCH | IBV_WC_TM_DATA_VALID);
-+			break;
-+		case MLX5_CQE_APP_OP_TM_CONSUMED_SW_RDNV:
-+		case MLX5_CQE_APP_OP_TM_CONSUMED:  /* First completion */
-+			wc_flags |= IBV_WC_TM_MATCH;
-+			break;
-+		case MLX5_CQE_APP_OP_TM_EXPECTED:  /* Second completion */
-+			wc_flags |= IBV_WC_TM_DATA_VALID;
-+			break;
-+		}
-+	}
-+
- 	wc_flags |= ((be32toh(cq->cqe64->flags_rqpn) >> 28) & 3) ? IBV_WC_GRH : 0;
- 	return wc_flags;
- }
-@@ -1305,6 +1422,15 @@ static inline uint32_t mlx5_cq_read_flow_tag(struct ibv_cq_ex *ibcq)
- 	return be32toh(cq->cqe64->sop_drop_qpn) & MLX5_FLOW_TAG_MASK;
+ struct verbs_context {
+ 	/*  "grows up" - new fields go here */
++	int (*post_srq_ops)(struct ibv_srq *srq,
++			    struct ibv_ops_wr *op,
++			    struct ibv_ops_wr **bad_op);
+ 	int (*destroy_rwq_ind_table)(struct ibv_rwq_ind_table *rwq_ind_table);
+ 	struct ibv_rwq_ind_table *(*create_rwq_ind_table)(struct ibv_context *context,
+ 							  struct ibv_rwq_ind_table_init_attr *init_attr);
+@@ -2070,6 +2108,20 @@ static inline int ibv_post_srq_recv(struct ibv_srq *srq,
+ 	return srq->context->ops.post_srq_recv(srq, recv_wr, bad_recv_wr);
  }
  
-+static inline void mlx5_cq_read_wc_tm_info(struct ibv_cq_ex *ibcq,
-+					   struct ibv_wc_tm_info *tm_info)
++static inline int ibv_post_srq_ops(struct ibv_srq *srq,
++				   struct ibv_ops_wr *op,
++				   struct ibv_ops_wr **bad_op)
 +{
-+	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
++	struct verbs_context *vctx;
 +
-+	tm_info->tag = be64toh(cq->cqe64->tmh.tag);
-+	tm_info->priv = be32toh(cq->cqe64->tmh.app_ctx);
++	vctx = verbs_get_ctx_op(srq->context, post_srq_ops);
++	if (!vctx) {
++		*bad_op = op;
++		return ENOSYS;
++	}
++	return vctx->post_srq_ops(srq, op, bad_op);
 +}
 +
- #define BIT(i) (1UL << (i))
- 
- #define SINGLE_THREADED BIT(0)
-@@ -1381,6 +1507,8 @@ void mlx5_cq_fill_pfns(struct mlx5_cq *cq, const struct ibv_cq_init_attr_ex *cq_
- 		cq->ibv_cq.read_cvlan = mlx5_cq_read_wc_cvlan;
- 	if (cq_attr->wc_flags & IBV_WC_EX_WITH_FLOW_TAG)
- 		cq->ibv_cq.read_flow_tag = mlx5_cq_read_flow_tag;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_TM_INFO)
-+		cq->ibv_cq.read_tm_info = mlx5_cq_read_wc_tm_info;
- }
- 
- int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
-diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
-index 00bb1e8..3537045 100644
---- a/providers/mlx5/mlx5dv.h
-+++ b/providers/mlx5/mlx5dv.h
-@@ -43,6 +43,7 @@
- #endif /* defined(__SSE3__) */
- 
- #include <infiniband/verbs.h>
-+#include <infiniband/tm_types.h>
- 
- /* Always inline the functions */
- #ifdef __GNUC__
-@@ -311,6 +312,8 @@ struct mlx5_cqe64 {
- 			__be16		vlan_info;
- 		};
- 		struct mlx5_tm_cqe tm_cqe;
-+		/* TMH is scattered to CQE upon match */
-+		struct ibv_tmh tmh;
- 	};
- 	__be32		srqn_uidx;
- 	__be32		imm_inval_pkey;
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index f935fc8..b073d7b 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -330,7 +330,8 @@ enum {
- 	CREATE_CQ_SUPPORTED_WC_FLAGS = IBV_WC_STANDARD_FLAGS	|
- 				       IBV_WC_EX_WITH_COMPLETION_TIMESTAMP |
- 				       IBV_WC_EX_WITH_CVLAN |
--				       IBV_WC_EX_WITH_FLOW_TAG
-+				       IBV_WC_EX_WITH_FLOW_TAG |
-+				       IBV_WC_EX_WITH_TM_INFO
- };
- 
- enum {
+ /**
+  * ibv_create_qp - Create a queue pair.
+  */
 -- 
 1.8.3.1
 
