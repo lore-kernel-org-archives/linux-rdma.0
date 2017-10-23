@@ -1,53 +1,61 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/hfi1: Fix a wrapping test (make it less strict)
-Date: Mon, 23 Oct 2017 11:05:16 -0400
-Message-ID: <1508771116.3325.0.camel@redhat.com>
-References: <20171013105559.tqzh6jhcnvmqhdwy@mwanda>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: Enable pkey and device name decoupling
+Date: Mon, 23 Oct 2017 09:23:40 -0600
+Message-ID: <20171023152340.GA11952@obsidianresearch.com>
+References: <20170928164735.GC2297@mtr-leonro.local>
+ <20170928165305.GE17880@obsidianresearch.com>
+ <20171015054745.GA2608@yuvallap>
+ <20171017081837.GA19107@obsidianresearch.com>
+ <20171017102121.GM2106@mtr-leonro.local>
+ <20171019061100.GB6555@obsidianresearch.com>
+ <20171019061405.GW2106@mtr-leonro.local>
+ <c2f3b529-cc53-aef0-fdcf-e86e99360db0@mellanox.com>
+ <20171021194215.GA4094@obsidianresearch.com>
+ <20171023060436.GD2106@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20171013105559.tqzh6jhcnvmqhdwy@mwanda>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>
-Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171023060436.GD2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, corbet-T1hC0tSOHrs@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kernel-6AxghH7DbtA@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-10-13 at 13:56 +0300, Dan Carpenter wrote:
-> The "2 * UINT_MAX" overflows so the test is essentially doing this:
+On Mon, Oct 23, 2017 at 09:04:36AM +0300, Leon Romanovsky wrote:
+> On Sat, Oct 21, 2017 at 01:42:15PM -0600, Jason Gunthorpe wrote:
+> > On Thu, Oct 19, 2017 at 09:28:31AM +0300, Alex Vesker wrote:
+> > > On 10/19/2017 9:14 AM, Leon Romanovsky wrote:
+> > > >On Thu, Oct 19, 2017 at 12:11:00AM -0600, Jason Gunthorpe wrote:
+> > > >>On Tue, Oct 17, 2017 at 01:21:21PM +0300, Leon Romanovsky wrote:
+> > > >>>>Yes, we should add a deprecation one shot printk to the kernel for the
+> > > >>>>sysfs interface to encourage people to use ip
+> > > >>>Please don't do that, it won't help for anyone, and especially for the people
+> > > >>>who didn't hear about "ip" in 2017.
+> > > >>This is the standard kernel way to encourage people to use the new
+> > > >>interfaces...
+> > > >>
+> > > >>>IPoIB netlink doesn't support enhanced IPoIB device because child
+> > > >>>device in netlink code was not allocated with rdma_alloc_netdev call
+> > > >>>as it was done for other flows.
+> > > >>I don't understand, isn't this just a (bad) bug to be fixed?
+> > > >Yes and we want to fix it BEFORE adding discouraging warnings.
+> >
+> > > We plan to block ipoib_netlink in the meanwhile until we fix it.
+> >
+> > That isn't a good idea, don't break APIs for performance reasons..
 > 
-> 	if ((u64)(ts - cce->timestamp) > UINT_MAX - 1) {
-> 
-> I've changed it to a 64bit type.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> Not tested.
-> 
-> diff --git a/drivers/infiniband/hw/hfi1/mad.c
-> b/drivers/infiniband/hw/hfi1/mad.c
-> index f4c0ffc040cc..3aeea8afd44f 100644
-> --- a/drivers/infiniband/hw/hfi1/mad.c
-> +++ b/drivers/infiniband/hw/hfi1/mad.c
-> @@ -3781,7 +3781,7 @@ static int __subn_get_opa_hfi1_cong_log(struct
-> opa_smp *smp, u32 am,
->  		 * required to wrap the counter are supposed to
->  		 * be zeroed (CA10-49 IBTA, release 1.2.1, V1).
->  		 */
-> -		if ((u64)(ts - cce->timestamp) > (2 * UINT_MAX))
-> +		if ((u64)(ts - cce->timestamp) > (2ULL * UINT_MAX))
->  			continue;
->  		memcpy(cong_log->events[i].local_qp_cn_entry, &cce-
-> >lqpn, 3);
->  		memcpy(cong_log-
-> >events[i].remote_qp_number_cn_entry,
+> It is not "performance", but simple attempt to prevent kernel panic,
+> while calling that function, because I'm unsure if we success to provide
+> proper fix till merge window.
 
-Denny, I'm looking for feedback from you on this patch.  This fixes a
-bug, my only concern is that the code used to work with the bug, could
-this make the code not work?
+Er, why should a non-accelerated ipoib instance panic? That makes no
+sense :(
 
--- 
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+In any event, someone needs to send patches to fix these oops's!
 
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
