@@ -1,34 +1,31 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH rdma-next 0/6] Expose CQ moderation to user space
-Date: Mon, 23 Oct 2017 09:26:38 -0600
-Message-ID: <20171023152638.GB11952@obsidianresearch.com>
+Date: Mon, 23 Oct 2017 09:29:19 -0600
+Message-ID: <20171023152919.GC11952@obsidianresearch.com>
 References: <20171019053524.11135-1-leon@kernel.org>
  <20171023094744.GH2106@mtr-leonro.local>
+ <20171023130804.GA21584@ssaleem-MOBL4.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171023094744.GH2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20171023130804.GA21584-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 23, 2017 at 12:47:44PM +0300, Leon Romanovsky wrote:
+On Mon, Oct 23, 2017 at 08:08:04AM -0500, Shiraz Saleem wrote:
 
-> Mellanox,
-> I would like to use this opportunity and to ask publicly, please submit kernel
-> and user spaces altogether.
+> For libi40iw we make all submissions to this mailing list _only_ and
+> this is all we are aware of. Are there alternate submission paths?  
 
-+1
+It works best if you send a github pull request to
 
-I was looking at the flow counters patches and they make no sense
-without also seeing the man pages that describe what the heck this
-stuff is.
+https://github.com/linux-rdma/rdma-core
 
-At the very least put a rdma-core branch someplace and reference it in
-your kernel patch series, and it better have really good man pages for
-the verbs features being added.
+At the same time you make your mailing list submission, then we can
+see that the patches pass CI and it is less work for the maintainers.
 
 Jason
 --
