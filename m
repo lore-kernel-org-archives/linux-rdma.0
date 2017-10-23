@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 07/10] mlx5: Tag matching list operation completions
-Date: Mon, 23 Oct 2017 16:17:58 +0300
-Message-ID: <1508764681-4531-8-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 03/10] verbs: Introduce tag matching SRQ
+Date: Mon, 23 Oct 2017 16:17:54 +0300
+Message-ID: <1508764681-4531-4-git-send-email-yishaih@mellanox.com>
 References: <1508764681-4531-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1508764681-4531-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,246 +12,158 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-List opetation completion arrival:
-* removes a tag from head of CQE waiting FIFO
-* updates command QP SQ tail (wqe_head)
-* decrements expected cqe
-* if no more cqe expected enqueues the tag to free tag list FIFO
-* returns wr_id
-* returns SYNC_REQ flag if SW phase_cnt and HW phase_cnt not matching
+Introducing tag matching SRQ (TM-SRQ), which retains basic semantic of
+regular SRQ, reports completions to own CQ, and has additional tag
+based message receiving mechanism.
+Detailed description for the TM-SRQ usage was added into
+Documentation/tag_matching.md
 
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/cq.c     | 102 +++++++++++++++++++++++++++++++++++++++++++++++-
- providers/mlx5/mlx5.h   |   1 +
- providers/mlx5/mlx5dv.h |  36 ++++++++++++-----
- 3 files changed, 129 insertions(+), 10 deletions(-)
+ Documentation/tag_matching.md      | 22 ++++++++++++++++++++++
+ libibverbs/cmd.c                   | 11 +++++++++++
+ libibverbs/kern-abi.h              |  2 +-
+ libibverbs/man/ibv_create_srq_ex.3 | 13 ++++++++++++-
+ libibverbs/verbs.h                 | 12 ++++++++++--
+ 5 files changed, 56 insertions(+), 4 deletions(-)
 
-diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
-index de261dd..1b610fd 100644
---- a/providers/mlx5/cq.c
-+++ b/providers/mlx5/cq.c
-@@ -58,6 +58,22 @@ enum {
- 	MLX5_CQ_MODIFY_MAPPING = 2,
- };
+diff --git a/Documentation/tag_matching.md b/Documentation/tag_matching.md
+index 8e62440..bf110d6 100644
+--- a/Documentation/tag_matching.md
++++ b/Documentation/tag_matching.md
+@@ -144,3 +144,25 @@ following attributes:
+ * **flags** - the following flags are currently defined:
+     - IBV_TM_CAP_RC - Support tag matching on RC transport
  
-+enum {
-+	MLX5_CQE_APP_TAG_MATCHING = 1,
-+};
 +
-+enum {
-+	MLX5_CQE_APP_OP_TM_APPEND = 0x5,
-+	MLX5_CQE_APP_OP_TM_REMOVE = 0x6,
-+	MLX5_CQE_APP_OP_TM_NOOP = 0x7,
-+};
++### TM-SRQ creation
 +
-+enum {
-+	MLX5_CQ_LAZY_FLAGS =
-+		MLX5_CQ_FLAGS_RX_CSUM_VALID |
-+		MLX5_CQ_FLAGS_TM_SYNC_REQ
-+};
++TM-SRQs are created by the ibv_create_srq_ex() Verb, which accepts the
++following new attributes:
++* **srq_type** - set to **IBV_SRQT_TM**
++* **comp_mask** - set the **IBV_SRQ_INIT_ATTR_TM** flag
++* **tm_cap** - TM properties for this TM-SRQ; defined as follows:
 +
- int mlx5_stall_num_loop = 60;
- int mlx5_stall_cq_poll_min = 60;
- int mlx5_stall_cq_poll_max = 100000;
-@@ -511,6 +527,63 @@ static inline int mlx5_get_next_cqe(struct mlx5_cq *cq,
- 	return CQ_OK;
- }
- 
-+static int handle_tag_matching(struct mlx5_cq *cq,
-+			       struct mlx5_cqe64 *cqe64,
-+			       struct mlx5_srq *srq)
-+{
-+	FILE *fp = to_mctx(srq->vsrq.srq.context)->dbg_fp;
-+	struct mlx5_srq_op *op;
-+
-+	cq->ibv_cq.status = IBV_WC_SUCCESS;
-+	switch (cqe64->app_op) {
-+	case MLX5_CQE_APP_OP_TM_REMOVE:
-+		if (!(be32toh(cqe64->tm_cqe.success) & MLX5_TMC_SUCCESS))
-+			cq->ibv_cq.status = IBV_WC_TM_ERR;
-+		SWITCH_FALLTHROUGH;
-+
-+	case MLX5_CQE_APP_OP_TM_APPEND:
-+	case MLX5_CQE_APP_OP_TM_NOOP:
-+		mlx5_spin_lock(&srq->lock);
-+#ifdef MLX5_DEBUG
-+		if (srq->op_tail == srq->op_head) {
-+			mlx5_dbg(fp, MLX5_DBG_CQ, "got unexpected list op CQE\n");
-+			cq->ibv_cq.status = IBV_WC_GENERAL_ERR;
-+			mlx5_spin_unlock(&srq->lock);
-+			return CQ_OK;
-+		}
-+#endif
-+		op = srq->op + (srq->op_head++ &
-+				(to_mqp(srq->cmd_qp)->sq.wqe_cnt - 1));
-+		if (op->tag) { /* APPEND or REMOVE */
-+			mlx5_tm_release_tag(srq, op->tag);
-+			if (cqe64->app_op == MLX5_CQE_APP_OP_TM_REMOVE &&
-+			    cq->ibv_cq.status == IBV_WC_SUCCESS)
-+				/*
-+				 * If tag entry was successfully removed we
-+				 * don't expect consumption completion for it
-+				 * anymore. Remove reports failure if tag was
-+				 * consumed meanwhile.
-+				 */
-+				mlx5_tm_release_tag(srq, op->tag);
-+			if (be16toh(cqe64->tm_cqe.hw_phase_cnt) !=
-+			    op->tag->phase_cnt)
-+				cq->flags |= MLX5_CQ_FLAGS_TM_SYNC_REQ;
-+		}
-+
-+		to_mqp(srq->cmd_qp)->sq.tail = op->wqe_head + 1;
-+		cq->ibv_cq.wr_id = op->wr_id;
-+
-+		mlx5_spin_unlock(&srq->lock);
-+		break;
-+#ifdef MLX5_DEBUG
-+	default:
-+		mlx5_dbg(fp, MLX5_DBG_CQ, "un-expected TM opcode in cqe\n");
-+#endif
-+	}
-+
-+	return CQ_OK;
++```h
++struct ibv_tm_cap {
++	 uint32_t max_num_tags;   /* Matching list size */
++	 uint32_t max_ops;	  /* Number of outstanding TM operations */
 +}
++```
++Similarly to XRC SRQs, a TM-SRQ has a dedicated CQ.
 +
- static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
- 				 struct mlx5_cqe64 *cqe64,
- 				 void *cqe,
-@@ -543,7 +616,7 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
- 	qpn = be32toh(cqe64->sop_drop_qpn) & 0xffffff;
- 	if (lazy) {
- 		cq->cqe64 = cqe64;
--		cq->flags &= (~MLX5_CQ_FLAGS_RX_CSUM_VALID);
-+		cq->flags &= (~MLX5_CQ_LAZY_FLAGS);
- 	} else {
- 		wc->wc_flags = 0;
- 		wc->qp_num = qpn;
-@@ -623,6 +696,20 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
- 			wc->status = handle_responder(wc, cqe64, *cur_rsc,
- 					      is_srq ? *cur_srq : NULL);
- 		break;
++RC QPs are associated with the TM-SRQ just like standard SRQs. However, the
++ownership of the QP's Send Queue is passed to the TM-SRQ, which uses it to
++initiate rendezvous RDMA-Reads. Receive completions are reported to the
++TM-SRQ's CQ.
 +
-+	case MLX5_CQE_NO_PACKET:
-+		if (unlikely(cqe64->app != MLX5_CQE_APP_TAG_MATCHING))
-+			return CQ_POLL_ERR;
-+		srqn_uidx = be32toh(cqe64->srqn_uidx) & 0xffffff;
-+		err = get_cur_rsc(mctx, cqe_ver, qpn, srqn_uidx, cur_rsc,
-+				  cur_srq, &is_srq);
-+		if (unlikely(err || !is_srq))
-+			return CQ_POLL_ERR;
-+		err = handle_tag_matching(cq, cqe64, *cur_srq);
-+		if (unlikely(err))
-+			return CQ_POLL_ERR;
-+		break;
+diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
+index 97351de..713a13c 100644
+--- a/libibverbs/cmd.c
++++ b/libibverbs/cmd.c
+@@ -720,6 +720,17 @@ int ibv_cmd_create_srq_ex(struct ibv_context *context,
+ 		vxrcd = container_of(attr_ex->xrcd, struct verbs_xrcd, xrcd);
+ 		cmd->xrcd_handle = vxrcd->handle;
+ 		cmd->cq_handle   = attr_ex->cq->handle;
++	} else if (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_TM) {
++		if (cmd->srq_type != IBV_SRQT_TM)
++			return EINVAL;
++		if (!(attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_CQ) ||
++		    !attr_ex->tm_cap.max_num_tags)
++			return EINVAL;
 +
- 	case MLX5_CQE_RESIZE_CQ:
- 		break;
- 	case MLX5_CQE_REQ_ERR:
-@@ -1065,6 +1152,16 @@ static inline enum ibv_wc_opcode mlx5_cq_read_wc_opcode(struct ibv_cq_ex *ibcq)
- 	case MLX5_CQE_RESP_SEND_IMM:
- 	case MLX5_CQE_RESP_SEND_INV:
- 		return IBV_WC_RECV;
-+	case MLX5_CQE_NO_PACKET:
-+		switch (cq->cqe64->app_op) {
-+		case MLX5_CQE_APP_OP_TM_REMOVE:
-+			return IBV_WC_TM_DEL;
-+		case MLX5_CQE_APP_OP_TM_APPEND:
-+			return IBV_WC_TM_ADD;
-+		case MLX5_CQE_APP_OP_TM_NOOP:
-+			return IBV_WC_TM_SYNC;
-+		}
-+		break;
- 	case MLX5_CQE_REQ:
- 		switch (be32toh(cq->cqe64->sop_drop_qpn) >> 24) {
- 		case MLX5_OPCODE_RDMA_WRITE_IMM:
-@@ -1122,6 +1219,9 @@ static inline int mlx5_cq_read_wc_flags(struct ibv_cq_ex *ibcq)
- 		break;
++		cmd->cq_handle    = attr_ex->cq->handle;
++		cmd->max_num_tags = attr_ex->tm_cap.max_num_tags;
++	} else if (cmd->srq_type != IBV_SRQT_BASIC) {
++		return EINVAL;
  	}
  
-+	if (cq->flags & MLX5_CQ_FLAGS_TM_SYNC_REQ)
-+		wc_flags |= IBV_WC_TM_SYNC_REQ;
-+
- 	wc_flags |= ((be32toh(cq->cqe64->flags_rqpn) >> 28) & 3) ? IBV_WC_GRH : 0;
- 	return wc_flags;
- }
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index d7eb477..5b7d5c0 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -323,6 +323,7 @@ enum {
- 	MLX5_CQ_FLAGS_EXTENDED = 1 << 3,
- 	MLX5_CQ_FLAGS_SINGLE_THREADED = 1 << 4,
- 	MLX5_CQ_FLAGS_DV_OWNED = 1 << 5,
-+	MLX5_CQ_FLAGS_TM_SYNC_REQ = 1 << 6,
+ 	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
+diff --git a/libibverbs/kern-abi.h b/libibverbs/kern-abi.h
+index 5f3f28c..6a16566 100644
+--- a/libibverbs/kern-abi.h
++++ b/libibverbs/kern-abi.h
+@@ -1126,7 +1126,7 @@ struct ibv_create_xsrq {
+ 	__u32 max_wr;
+ 	__u32 max_sge;
+ 	__u32 srq_limit;
+-	__u32 reserved;
++	__u32 max_num_tags;
+ 	__u32 xrcd_handle;
+ 	__u32 cq_handle;
+ 	__u64 driver_data[0];
+diff --git a/libibverbs/man/ibv_create_srq_ex.3 b/libibverbs/man/ibv_create_srq_ex.3
+index c031906..97529ae 100644
+--- a/libibverbs/man/ibv_create_srq_ex.3
++++ b/libibverbs/man/ibv_create_srq_ex.3
+@@ -26,10 +26,11 @@ struct ibv_srq_init_attr_ex {
+ void                   *srq_context;    /* Associated context of the SRQ */
+ struct ibv_srq_attr     attr;           /* SRQ attributes */
+ uint32_t                comp_mask;      /* Identifies valid fields */
+-enum ibv_srq_type       srq_type;       /* Basic / XRC */
++enum ibv_srq_type       srq_type;       /* Basic / XRC / tag matching */
+ struct ibv_pd          *pd;             /* PD associated with the SRQ */
+ struct ibv_xrcd        *xrcd;           /* XRC domain to associate with the SRQ */
+ struct ibv_cq          *cq;             /* CQ to associate with the SRQ for XRC mode */
++struct ibv_tm_cap       tm_cap;         /* Tag matching attributes */
+ .in -8
+ };
+ .sp
+@@ -41,6 +42,16 @@ uint32_t                max_sge;        /* Requested max number of scatter eleme
+ uint32_t                srq_limit;      /* The limit value of the SRQ */
+ .in -8
+ };
++.sp
++.nf
++struct ibv_tm_cap {
++.in +8
++uint32_t                max_num_tags;   /* Tag matching list size */
++uint32_t                max_ops;        /* Number of outstanding tag list operations */
++.in -8
++};
++.sp
++.nf
+ .fi
+ .PP
+ The function
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 2ef9132..a440861 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -673,7 +673,8 @@ struct ibv_srq_init_attr {
+ 
+ enum ibv_srq_type {
+ 	IBV_SRQT_BASIC,
+-	IBV_SRQT_XRC
++	IBV_SRQT_XRC,
++	IBV_SRQT_TM,
  };
  
- struct mlx5_cq {
-diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
-index e6cb610..00bb1e8 100644
---- a/providers/mlx5/mlx5dv.h
-+++ b/providers/mlx5/mlx5dv.h
-@@ -265,6 +265,7 @@ enum {
- 	MLX5_CQE_RESP_SEND_IMM	= 3,
- 	MLX5_CQE_RESP_SEND_INV	= 4,
- 	MLX5_CQE_RESIZE_CQ	= 5,
-+	MLX5_CQE_NO_PACKET	= 6,
- 	MLX5_CQE_REQ_ERR	= 13,
- 	MLX5_CQE_RESP_ERR	= 14,
- 	MLX5_CQE_INVALID	= 15,
-@@ -291,18 +292,31 @@ struct mlx5_err_cqe {
- 	uint8_t		op_own;
- };
- 
-+struct mlx5_tm_cqe {
-+	__be32		success;
-+	__be16		hw_phase_cnt;
-+	uint8_t		rsvd0[12];
+ enum ibv_srq_init_attr_mask {
+@@ -681,7 +682,13 @@ enum ibv_srq_init_attr_mask {
+ 	IBV_SRQ_INIT_ATTR_PD		= 1 << 1,
+ 	IBV_SRQ_INIT_ATTR_XRCD		= 1 << 2,
+ 	IBV_SRQ_INIT_ATTR_CQ		= 1 << 3,
+-	IBV_SRQ_INIT_ATTR_RESERVED	= 1 << 4
++	IBV_SRQ_INIT_ATTR_TM		= 1 << 4,
++	IBV_SRQ_INIT_ATTR_RESERVED	= 1 << 5,
 +};
 +
- struct mlx5_cqe64 {
--	uint8_t		rsvd0[17];
--	uint8_t		ml_path;
--	uint8_t		rsvd20[4];
--	__be16		slid;
--	__be32		flags_rqpn;
--	uint8_t		hds_ip_ext;
--	uint8_t		l4_hdr_type_etc;
--	__be16		vlan_info;
-+	union {
-+		struct {
-+			uint8_t		rsvd0[17];
-+			uint8_t		ml_path;
-+			uint8_t		rsvd20[4];
-+			__be16		slid;
-+			__be32		flags_rqpn;
-+			uint8_t		hds_ip_ext;
-+			uint8_t		l4_hdr_type_etc;
-+			__be16		vlan_info;
-+		};
-+		struct mlx5_tm_cqe tm_cqe;
-+	};
- 	__be32		srqn_uidx;
- 	__be32		imm_inval_pkey;
--	uint8_t		rsvd40[4];
-+	uint8_t		app;
-+	uint8_t		app_op;
-+	__be16		app_info;
- 	__be32		byte_cnt;
- 	__be64		timestamp;
- 	__be32		sop_drop_qpn;
-@@ -311,6 +325,10 @@ struct mlx5_cqe64 {
- 	uint8_t		op_own;
++struct ibv_tm_cap {
++	uint32_t		max_num_tags;
++	uint32_t		max_ops;
  };
  
-+enum {
-+	MLX5_TMC_SUCCESS	= 0x80000000U,
-+};
-+
- enum mlx5dv_cqe_comp_res_format {
- 	MLX5DV_CQE_RES_FORMAT_HASH		= 1 << 0,
- 	MLX5DV_CQE_RES_FORMAT_CSUM		= 1 << 1,
+ struct ibv_srq_init_attr_ex {
+@@ -693,6 +700,7 @@ struct ibv_srq_init_attr_ex {
+ 	struct ibv_pd	       *pd;
+ 	struct ibv_xrcd	       *xrcd;
+ 	struct ibv_cq	       *cq;
++	struct ibv_tm_cap	tm_cap;
+ };
+ 
+ enum ibv_wq_type {
 -- 
 1.8.3.1
 
