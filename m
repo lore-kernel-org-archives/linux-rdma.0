@@ -1,49 +1,83 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: Need to set if_index in ib_init_ah_from_wc() ?
-Date: Mon, 23 Oct 2017 16:28:43 +0000
-Message-ID: <VI1PR0502MB30087224F41436F787C4997FD1460@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <CAL1RGDW6iHo2UYKbcJmcG=wCq63jvZB7nvOD=BJZwASSzc7Zhw@mail.gmail.com>
- <20170130195412.GE24466@obsidianresearch.com>
- <VI1PR0502MB30086B735FD4B5948B521673D14D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <CANjDDBhJK=s28zrdCASUVSSeem=NVRWwsHT=jWS2N4jGh2Uvfw@mail.gmail.com>
- <VI1PR0502MB300803053059AA7CC0E6DA7DD1420@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-next 00/16] Flow counters support
+Date: Mon, 23 Oct 2017 10:51:18 -0600
+Message-ID: <20171023165118.GA18097@obsidianresearch.com>
+References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB300803053059AA7CC0E6DA7DD1420-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1508424118-27205-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgRGV2ZXNoLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IGxpbnV4
-LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtcmRtYS0NCj4gb3duZXJA
-dmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgUGFyYXYgUGFuZGl0DQo+IFNlbnQ6IFdlZG5l
-c2RheSwgT2N0b2JlciAxOCwgMjAxNyAxMTo1NCBQTQ0KPiBUbzogRGV2ZXNoIFNoYXJtYSA8ZGV2
-ZXNoLnNoYXJtYUBicm9hZGNvbS5jb20+DQo+IENjOiBTZWx2aW4gWGF2aWVyIDxzZWx2aW4ueGF2
-aWVyQGJyb2FkY29tLmNvbT47IFNvbW5hdGggS290dXINCj4gPHNvbW5hdGgua290dXJAYnJvYWRj
-b20uY29tPjsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IE1hdGFuIEJhcmFrDQo+IDxtYXRh
-bmJAbWVsbGFub3guY29tPjsgSmFzb24gR3VudGhvcnBlDQo+IDxqZ3VudGhvcnBlQG9ic2lkaWFu
-cmVzZWFyY2guY29tPjsgUm9sYW5kIERyZWllcg0KPiA8cm9sYW5kQHB1cmVzdG9yYWdlLmNvbT4N
-Cj4gU3ViamVjdDogUkU6IE5lZWQgdG8gc2V0IGlmX2luZGV4IGluIGliX2luaXRfYWhfZnJvbV93
-YygpID8NCj4gDQo+IEhpIERldmVzaCwNCj4gDQo+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0t
-LS0NCj4gPiBGcm9tOiBEZXZlc2ggU2hhcm1hIFttYWlsdG86ZGV2ZXNoLnNoYXJtYUBicm9hZGNv
-bS5jb21dDQo+ID4gU2VudDogV2VkbmVzZGF5LCBPY3RvYmVyIDE4LCAyMDE3IDExOjMyIFBNDQo+
-ID4gVG86IFBhcmF2IFBhbmRpdCA8cGFyYXZAbWVsbGFub3guY29tPg0KPiA+IENjOiBTZWx2aW4g
-WGF2aWVyIDxzZWx2aW4ueGF2aWVyQGJyb2FkY29tLmNvbT47IFNvbW5hdGggS290dXINCj4gPiA8
-c29tbmF0aC5rb3R1ckBicm9hZGNvbS5jb20+OyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsg
-TWF0YW4gQmFyYWsNCj4gPiA8bWF0YW5iQG1lbGxhbm94LmNvbT47IEphc29uIEd1bnRob3JwZQ0K
-PiA+IDxqZ3VudGhvcnBlQG9ic2lkaWFucmVzZWFyY2guY29tPjsgUm9sYW5kIERyZWllcg0KPiA+
-IDxyb2xhbmRAcHVyZXN0b3JhZ2UuY29tPg0KPiA+IFN1YmplY3Q6IFJlOiBOZWVkIHRvIHNldCBp
-Zl9pbmRleCBpbiBpYl9pbml0X2FoX2Zyb21fd2MoKSA/DQo+ID4NCj4gPiBIZWxsbyBQYXJhdiwN
-Cj4gPg0KPiA+IFRoYW5rcyBmb3IgeW91IG5vdGUgaGVyZS4gSSBjYW4gc3VwcGx5IHlvdSBhIGZp
-eCwgYnV0IGJlZm9yZSB0aGF0DQo+ID4gcGxlYXNlIGZpbmQgYSBxdWVyeSBpbmxpbmUgYmVsb3c6
-DQo+IA0KU28gSSBhbSBnb2luZyBmb3J3YXJkIHRvIGZpeCB0aGUgaWIgY29yZSBhcyBkaXNjdXNz
-ZWQuDQpQbGVhc2UgZml4IGJueF9yZSBkcml2ZXIgd2hlbmV2ZXIgeW91IGZpbmQgaXQgYXBwcm9w
-cmlhdGUgaW4geW91ciBzY2hlZHVsZS4NCg0KPiBUaGF0IHdpbGwgYmUgZ29vZC4gTW9yZSBpbmxp
-bmUgYmVsb3cuDQoNCg==
+On Thu, Oct 19, 2017 at 05:41:42PM +0300, Yishai Hadas wrote:
+
+> More specifically,
+> A generic interface with the following functionality is presented:
+> - An option to know per device how many counter sets it exposes by using some
+>   extension of the ib_query_device_ex() verb. (i.e. max_counter_sets).
+> - Per counter set there is an API to get its metadata by using a new verb named
+>    ib_describe_counter_set(), it gets a counter set id in range of 
+>    [0,max_counter_sets - 1] and return the counter set information.
+>    Some of the metadata is IB generic (e.g. counter set type, num counters in the set, etc.)
+>    while other is some specific driver information (e.g. counters names).
+> - Introduce counter set object named 'ib_counter_set' and its create/destroy
+>   verbs. Post a successful creation the counter_set object can  be attached to
+>   an IB object based on its type. (e.g. Flow, QP, etc.) 
+> - Introduce the ib_query_counter_set() verb, it enables the user to read the
+>   hardware counters which are associated with the counter set.
+> - Introduce a new steering specification from type count 
+>   (i.e. ib_flow_spec_action_count) which gets a previously created counter_id.
+>   By creating a flow steering object with a counter, its counters can be read
+>   by the ib_query_counter_set() verb.
+
+I haven't seen the uapi yet, but I don't like the direction this is
+going, this looks much too hard for applications to acutally use.
+
+My suggestion for the verbs interface is:
+
+// Create an object to hold the counters
+counters = ibv_create_counters([..]);
+
+// Sample a specific counter linked to a QP in counter index 0
+ibv_set_sampling_point_qp(counters, 0, qp, [..])
+
+// Sample a specific counter linked to a flow steering object in counter index 1
+ibv_add_sampling_point_flow(counters, 1, flow, [..])
+
+// Stop reading anything associated with index 1
+ibv_clear_sampling_point(counters, 1);
+
+// Sample global device PMA counters
+ibv_add_sampling_point_device(counters, 2, verbs, port, [..])
+
+// Retreive the counters from hardware or from cache
+uint64_t data[2];
+ibv_read_counters(counters, data, NELEMS(data), [..]);
+printf("QP counter is %u\n", data[0]);
+
+I don't want to expose this goofy idea of a 'counter set' to the user,
+that is a some weird device spcecific thing, and every device will be
+different. No way the user should have to deal with this.
+
+To implement the above, your driver will have to determine the
+hardware specific counter sets to instantiate under the covers, and
+map their contents to the indexes the user is asking for with the above list.
+
+If for some reason it cannot satisfy some combination of counters then
+it should fail the add_sampling_point call.
+
+There is not much reason to have a complex query API, use the 'setup
+and catch failure' approach to detect what features the device
+supports.
+
+[..] will have to be something sensible to define the sampling
+point, maybe an enum, or maybe a string? Not sure.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
