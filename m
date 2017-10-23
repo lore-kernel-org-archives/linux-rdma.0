@@ -1,105 +1,206 @@
-From: "Reshetova, Elena" <elena.reshetova@intel.com>
-Subject: RE: [PATCH 02/15] drivers, net, ethernet: convert
- mtk_eth.dma_refcnt from atomic_t to refcount_t
-Date: Mon, 23 Oct 2017 06:37:09 +0000
-Message-ID: <2236FBA76BA1254E88B949DDB74E612B802B41DE@IRSMSX102.ger.corp.intel.com>
-References: <1508484229-19706-1-git-send-email-elena.reshetova@intel.com>
-         <1508484229-19706-3-git-send-email-elena.reshetova@intel.com>
-         <1508486927.29850.12.camel@mtkswgap22>
-         <2236FBA76BA1254E88B949DDB74E612B802B37EE@IRSMSX102.ger.corp.intel.com>
- <1508645199.29850.16.camel@mtkswgap22>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
+ misinterpreted flag
+Date: Mon, 23 Oct 2017 11:11:17 +0300
+Message-ID: <20171023081117.GE2106@mtr-leonro.local>
+References: <20171019213859.26124.37851.stgit@phlsvslse11.ph.intel.com>
+ <20171020073724.GY2106@mtr-leonro.local>
+ <14063C7AD467DE4B82DEDB5C278E8663875E0841@FMSMSX108.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-ppp-owner@vger.kernel.org>
-In-Reply-To: <1508645199.29850.16.camel@mtkswgap22>
-Content-Language: en-US
-Sender: linux-ppp-owner@vger.kernel.org
-To: Sean Wang <sean.wang@mediatek.com>
-Cc: "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mediatek@lists.infradead.org" <linux-mediatek@lists.infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-hams@vger.kernel.org" <linux-hams@vger.kernel.org>, "linux-ppp@vger.kernel.org" <linux-ppp@vger.kernel.org>, "ganeshgr@chelsio.com" <ganeshgr@chelsio.com>, "nbd@openwrt.org" <nbd@openwrt.org>, "john@phrozen.org" <john@phrozen.org>, "matthias.bgg@gmail.com" <matthias.bgg@gmail.com>, "yishaih@mellanox.com" <yishaih@mellanox.com>, "saeedm@mellanox.com" <saeedm@mellanox.com>, matanb@mell
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="sC1KxrFoiW8MuHBc"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <14063C7AD467DE4B82DEDB5C278E8663875E0841-AtyAts71sc88Ug9VwtkbtrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBPbiBGcmksIDIwMTctMTAtMjAgYXQgMTA6MzcgKzAwMDAsIFJlc2hldG92YSwgRWxlbmEgd3Jv
-dGU6DQo+ID4gPiBPbiBGcmksIDIwMTctMTAtMjAgYXQgMTA6MjMgKzAzMDAsIEVsZW5hIFJlc2hl
-dG92YSB3cm90ZToNCj4gPiA+ID4gYXRvbWljX3QgdmFyaWFibGVzIGFyZSBjdXJyZW50bHkgdXNl
-ZCB0byBpbXBsZW1lbnQgcmVmZXJlbmNlDQo+ID4gPiA+IGNvdW50ZXJzIHdpdGggdGhlIGZvbGxv
-d2luZyBwcm9wZXJ0aWVzOg0KPiA+ID4gPiAgLSBjb3VudGVyIGlzIGluaXRpYWxpemVkIHRvIDEg
-dXNpbmcgYXRvbWljX3NldCgpDQo+ID4gPiA+ICAtIGEgcmVzb3VyY2UgaXMgZnJlZWQgdXBvbiBj
-b3VudGVyIHJlYWNoaW5nIHplcm8NCj4gPiA+ID4gIC0gb25jZSBjb3VudGVyIHJlYWNoZXMgemVy
-bywgaXRzIGZ1cnRoZXINCj4gPiA+ID4gICAgaW5jcmVtZW50cyBhcmVuJ3QgYWxsb3dlZA0KPiA+
-ID4gPiAgLSBjb3VudGVyIHNjaGVtYSB1c2VzIGJhc2ljIGF0b21pYyBvcGVyYXRpb25zDQo+ID4g
-PiA+ICAgIChzZXQsIGluYywgaW5jX25vdF96ZXJvLCBkZWNfYW5kX3Rlc3QsIGV0Yy4pDQo+ID4g
-PiA+DQo+ID4gPiA+IFN1Y2ggYXRvbWljIHZhcmlhYmxlcyBzaG91bGQgYmUgY29udmVydGVkIHRv
-IGEgbmV3bHkgcHJvdmlkZWQNCj4gPiA+ID4gcmVmY291bnRfdCB0eXBlIGFuZCBBUEkgdGhhdCBw
-cmV2ZW50cyBhY2NpZGVudGFsIGNvdW50ZXIgb3ZlcmZsb3dzDQo+ID4gPiA+IGFuZCB1bmRlcmZs
-b3dzLiBUaGlzIGlzIGltcG9ydGFudCBzaW5jZSBvdmVyZmxvd3MgYW5kIHVuZGVyZmxvd3MNCj4g
-PiA+ID4gY2FuIGxlYWQgdG8gdXNlLWFmdGVyLWZyZWUgc2l0dWF0aW9uIGFuZCBiZSBleHBsb2l0
-YWJsZS4NCj4gPiA+ID4NCj4gPiA+ID4gVGhlIHZhcmlhYmxlIG10a19ldGguZG1hX3JlZmNudCBp
-cyB1c2VkIGFzIHB1cmUgcmVmZXJlbmNlIGNvdW50ZXIuDQo+ID4gPiA+IENvbnZlcnQgaXQgdG8g
-cmVmY291bnRfdCBhbmQgZml4IHVwIHRoZSBvcGVyYXRpb25zLg0KPiA+ID4gPg0KPiA+ID4gPiBT
-dWdnZXN0ZWQtYnk6IEtlZXMgQ29vayA8a2Vlc2Nvb2tAY2hyb21pdW0ub3JnPg0KPiA+ID4gPiBS
-ZXZpZXdlZC1ieTogRGF2aWQgV2luZHNvciA8ZHdpbmRzb3JAZ21haWwuY29tPg0KPiA+ID4gPiBS
-ZXZpZXdlZC1ieTogSGFucyBMaWxqZXN0cmFuZCA8aXNoa2FtaWVsQGdtYWlsLmNvbT4NCj4gPiA+
-ID4gU2lnbmVkLW9mZi1ieTogRWxlbmEgUmVzaGV0b3ZhIDxlbGVuYS5yZXNoZXRvdmFAaW50ZWwu
-Y29tPg0KPiA+ID4gPiAtLS0NCj4gPiA+ID4gIGRyaXZlcnMvbmV0L2V0aGVybmV0L21lZGlhdGVr
-L210a19ldGhfc29jLmMgfCA4ICsrKysrLS0tDQo+ID4gPiA+ICBkcml2ZXJzL25ldC9ldGhlcm5l
-dC9tZWRpYXRlay9tdGtfZXRoX3NvYy5oIHwgNCArKystDQo+ID4gPiA+ICAyIGZpbGVzIGNoYW5n
-ZWQsIDggaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlvbnMoLSkNCj4gPiA+ID4NCj4gPiA+ID4gZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lZGlhdGVrL210a19ldGhfc29jLmMNCj4g
-PiA+IGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVkaWF0ZWsvbXRrX2V0aF9zb2MuYw0KPiA+ID4g
-PiBpbmRleCA1ZTgxYTcyLi41NGFkZmQ5IDEwMDY0NA0KPiA+ID4gPiAtLS0gYS9kcml2ZXJzL25l
-dC9ldGhlcm5ldC9tZWRpYXRlay9tdGtfZXRoX3NvYy5jDQo+ID4gPiA+ICsrKyBiL2RyaXZlcnMv
-bmV0L2V0aGVybmV0L21lZGlhdGVrL210a19ldGhfc29jLmMNCj4gPiA+ID4gQEAgLTE4MTcsNyAr
-MTgxNyw3IEBAIHN0YXRpYyBpbnQgbXRrX29wZW4oc3RydWN0IG5ldF9kZXZpY2UgKmRldikNCj4g
-PiA+ID4gIAlzdHJ1Y3QgbXRrX2V0aCAqZXRoID0gbWFjLT5odzsNCj4gPiA+ID4NCj4gPiA+ID4g
-IAkvKiB3ZSBydW4gMiBuZXRkZXZzIG9uIHRoZSBzYW1lIGRtYSByaW5nIHNvIHdlIG9ubHkgYnJp
-bmcgaXQgdXAgb25jZQ0KPiA+ID4gKi8NCj4gPiA+ID4gLQlpZiAoIWF0b21pY19yZWFkKCZldGgt
-PmRtYV9yZWZjbnQpKSB7DQo+ID4gPiA+ICsJaWYgKCFyZWZjb3VudF9yZWFkKCZldGgtPmRtYV9y
-ZWZjbnQpKSB7DQo+ID4gPiA+ICAJCWludCBlcnIgPSBtdGtfc3RhcnRfZG1hKGV0aCk7DQo+ID4g
-PiA+DQo+ID4gPiA+ICAJCWlmIChlcnIpDQo+ID4gPiA+IEBAIC0xODI3LDggKzE4MjcsMTAgQEAg
-c3RhdGljIGludCBtdGtfb3BlbihzdHJ1Y3QgbmV0X2RldmljZSAqZGV2KQ0KPiA+ID4gPiAgCQlu
-YXBpX2VuYWJsZSgmZXRoLT5yeF9uYXBpKTsNCj4gPiA+ID4gIAkJbXRrX3R4X2lycV9lbmFibGUo
-ZXRoLCBNVEtfVFhfRE9ORV9JTlQpOw0KPiA+ID4gPiAgCQltdGtfcnhfaXJxX2VuYWJsZShldGgs
-IE1US19SWF9ET05FX0lOVCk7DQo+ID4gPiA+ICsJCXJlZmNvdW50X3NldCgmZXRoLT5kbWFfcmVm
-Y250LCAxKTsNCj4gPiA+DQo+ID4gPiB0aGUgZXhpc3RpbmcgZHJpdmVyIHNlZW1zIHRvIGhhdmUg
-YSBtaXNzaW5nIGluaXRpYWwgYXRvbWljX3NldCBmb3IgdGhlDQo+ID4gPiBldGgtPmRtYV9yZWZj
-bnQuDQo+ID4gPg0KPiA+ID4gPiAgCX0NCj4gPiA+ID4gLQlhdG9taWNfaW5jKCZldGgtPmRtYV9y
-ZWZjbnQpOw0KPiA+ID4gPiArCWVsc2UNCj4gPiA+ID4gKwkJcmVmY291bnRfaW5jKCZldGgtPmRt
-YV9yZWZjbnQpOw0KPiA+ID4gPg0KPiA+ID4NCj4gPiA+IGhvdyBhYm91dCBhZGQgdGhlIGluaXRp
-YWwgcmVmY291bnRfc2V0IGludG8gcHJvYmUgaGFuZGxlciwgYW5kIGtlZXANCj4gPiA+IGxvZ2lj
-IGVsc2UgdW5jaGFuZ2VkID8NCj4gPg0KPiA+IFN1cmUsIEkgZ3Vlc3MgeW91IG1lYW4gbXRrX3By
-b2JlKCkgZnVuY3Rpb24/IEkgY2FuIG1vdmUgdGhlIHJlZmNvdW50X3NldCB0byBiZQ0KPiB0aGVy
-ZQ0KPiA+IGFuZCByZW1vdmUgdGhpcyBjaGFuZ2UuDQo+ID4NCj4gPiBTaG91bGQgSSByZXNlbmQg
-dGhlIG1vZGlmaWVkIHBhdGNoIHRvIHlvdSAobWF5YmUgdGhlbiB0d28gb2YgdGhlIGV0aGVybmV0
-DQo+IHBhdGNoZXMpPw0KPiA+DQo+ID4gQmVzdCBSZWdhcmRzLA0KPiA+IEVsZW5hLg0KPiANCj4g
-VGhlIGVudGlyZSBzZXJpZXMgaGFzIGJlZW4gYXBwbGllcyB0byBuZXQtbmV4dCwgSSB0aGluayBJ
-IGNhbiBtYWtlIHRoZQ0KPiBmb2xsb3ctdXBzIHBhdGNoZXMgcmVsYXRpdmUgdG8geW91ciB3b3Jr
-Lg0KPiANCj4gCVNlYW4NCg0KWWVzLCBJIGp1c3Qgbm90aWNlZCB0aGF0IERhdmlkIHRvb2sgdGhl
-bSBhbGwuIA0KU3VyZSwgaWYgeW91IHdhbnQgdG8gc2VuZCB0aGUgZm9sbG93IHVwIHlvdXJzZWxm
-LCBJIGNlcnRhaW5seSB3b3VsZCBub3QgbWluZCwgDQpJIHN0aWxsIGhhdmUgbWFueSBvZiB0aGVz
-ZSByZWNvdW50IHBhdGNoZXMgZm9yIGRpZmZlcmVudCBwYXJ0cyBvZiBrZXJuZWwgOikNCg0KVGhh
-bmsgeW91IQ0KDQpCZXN0IFJlZ2FyZHMsDQpFbGVuYS4NCj4gDQo+ID4gPg0KPiA+ID4gPiAgCXBo
-eV9zdGFydChkZXYtPnBoeWRldik7DQo+ID4gPiA+ICAJbmV0aWZfc3RhcnRfcXVldWUoZGV2KTsN
-Cj4gPiA+ID4gQEAgLTE4NjgsNyArMTg3MCw3IEBAIHN0YXRpYyBpbnQgbXRrX3N0b3Aoc3RydWN0
-IG5ldF9kZXZpY2UgKmRldikNCj4gPiA+ID4gIAlwaHlfc3RvcChkZXYtPnBoeWRldik7DQo+ID4g
-PiA+DQo+ID4gPiA+ICAJLyogb25seSBzaHV0ZG93biBETUEgaWYgdGhpcyBpcyB0aGUgbGFzdCB1
-c2VyICovDQo+ID4gPiA+IC0JaWYgKCFhdG9taWNfZGVjX2FuZF90ZXN0KCZldGgtPmRtYV9yZWZj
-bnQpKQ0KPiA+ID4gPiArCWlmICghcmVmY291bnRfZGVjX2FuZF90ZXN0KCZldGgtPmRtYV9yZWZj
-bnQpKQ0KPiA+ID4gPiAgCQlyZXR1cm4gMDsNCj4gPiA+ID4NCj4gPiA+ID4gIAltdGtfdHhfaXJx
-X2Rpc2FibGUoZXRoLCBNVEtfVFhfRE9ORV9JTlQpOw0KPiA+ID4gPiBkaWZmIC0tZ2l0IGEvZHJp
-dmVycy9uZXQvZXRoZXJuZXQvbWVkaWF0ZWsvbXRrX2V0aF9zb2MuaA0KPiA+ID4gYi9kcml2ZXJz
-L25ldC9ldGhlcm5ldC9tZWRpYXRlay9tdGtfZXRoX3NvYy5oDQo+ID4gPiA+IGluZGV4IDNkM2My
-NGEuLmEzYWY0NjYgMTAwNjQ0DQo+ID4gPiA+IC0tLSBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21l
-ZGlhdGVrL210a19ldGhfc29jLmgNCj4gPiA+ID4gKysrIGIvZHJpdmVycy9uZXQvZXRoZXJuZXQv
-bWVkaWF0ZWsvbXRrX2V0aF9zb2MuaA0KPiA+ID4gPiBAQCAtMTUsNiArMTUsOCBAQA0KPiA+ID4g
-PiAgI2lmbmRlZiBNVEtfRVRIX0gNCj4gPiA+ID4gICNkZWZpbmUgTVRLX0VUSF9IDQo+ID4gPiA+
-DQo+ID4gPiA+ICsjaW5jbHVkZSA8bGludXgvcmVmY291bnQuaD4NCj4gPiA+ID4gKw0KPiA+ID4g
-PiAgI2RlZmluZSBNVEtfUURNQV9QQUdFX1NJWkUJMjA0OA0KPiA+ID4gPiAgI2RlZmluZQlNVEtf
-TUFYX1JYX0xFTkdUSAkxNTM2DQo+ID4gPiA+ICAjZGVmaW5lIE1US19UWF9ETUFfQlVGX0xFTgkw
-eDNmZmYNCj4gPiA+ID4gQEAgLTYzMiw3ICs2MzQsNyBAQCBzdHJ1Y3QgbXRrX2V0aCB7DQo+ID4g
-PiA+ICAJc3RydWN0IHJlZ21hcAkJCSpwY3RsOw0KPiA+ID4gPiAgCXUzMgkJCQljaGlwX2lkOw0K
-PiA+ID4gPiAgCWJvb2wJCQkJaHdscm87DQo+ID4gPiA+IC0JYXRvbWljX3QJCQlkbWFfcmVmY250
-Ow0KPiA+ID4gPiArCXJlZmNvdW50X3QJCQlkbWFfcmVmY250Ow0KPiA+ID4gPiAgCXN0cnVjdCBt
-dGtfdHhfcmluZwkJdHhfcmluZzsNCj4gPiA+ID4gIAlzdHJ1Y3QgbXRrX3J4X3JpbmcNCj4gPiA+
-IAlyeF9yaW5nW01US19NQVhfUlhfUklOR19OVU1dOw0KPiA+ID4gPiAgCXN0cnVjdCBtdGtfcnhf
-cmluZwkJcnhfcmluZ19xZG1hOw0KPiA+ID4NCj4gPg0KPiANCg0K
+
+--sC1KxrFoiW8MuHBc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Oct 20, 2017 at 05:20:22PM +0000, Ruhl, Michael J wrote:
+> > -----Original Message-----
+> > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> > Sent: Friday, October 20, 2017 3:37 AM
+> > To: Ruhl, Michael J <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Subject: Re: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
+> > misinterpreted flag
+> >
+> > On Thu, Oct 19, 2017 at 05:40:59PM -0400, Michael J. Ruhl wrote:
+> > > I was playing with the ibacm service and discovered an issue
+> > > the other day.
+> > >
+> > > If no provider library is present (I removed libacmp.so, and the
+> > > provider keyword in the opts.cfg file is libacmp), when a resolve
+> > > request is posted, the kernel will crash with the following Oops:
+> > >
+> > > Call Trace:
+> > >  ? netlink_dump+0x12c/0x290
+> > >  __netlink_dump_start+0x186/0x1f0
+> > >  rdma_nl_rcv_msg+0x193/0x1b0 [ib_core]
+> > >  rdma_nl_rcv+0xdc/0x130 [ib_core]
+> > >  netlink_unicast+0x181/0x240
+> > >  netlink_sendmsg+0x2c2/0x3b0
+> > >  sock_sendmsg+0x38/0x50
+> > >  SYSC_sendto+0x102/0x190
+> > >  ? __audit_syscall_entry+0xaf/0x100
+> > >  ? syscall_trace_enter+0x1d0/0x2b0
+> > >  ? __audit_syscall_exit+0x209/0x290
+> > >  SyS_sendto+0xe/0x10
+> > >  do_syscall_64+0x67/0x1b0
+> > >  entry_SYSCALL64_slow_path+0x25/0x25
+> > >
+> > > The issue is that in rdma_nl_rcv_msg(), the check
+> > > 'if (flags & NLM_F_DUMP)' is not completely correct.
+> > >
+> > > NLM_F_DUMP is two bits NLM_F_ROOT | NLM_F_MATCH.
+> > >
+> > > ibacm sends a RDMA_NL_LS response with the RDMA_NL_LS_F_ERR bit set
+> > > if an error occurs in the service (like no provider being available,
+> > > or ACM_STATUS_ENODATA, etc.).
+> > >
+> > > NLM_F_ROOT == (0x100) == RDMA_NL_LS_F_ERR.
+> > >
+> > > The current code thinks that it sees a NLM_F_DUMP flag and incorrectly calls
+> > > the .dump() callback.
+> >
+> > Hi Michael,
+> >
+> > Thanks for the report and for excellent analysis, You are right that
+> > RDMA_NL_LS_F_ERR has the same value as NLM_F_ROOT and it is bad, but
+> > I just think that it is not the final root cause.
+> >
+> > In case of errors, the LS was supposed to send NLMSG_ERROR message and not
+> > overload general nlmsg_flags, which is awful. However I don't know if it is
+> > feasible to fix current implementation without breaking UAPI contract.
+>
+> I agree this is probably something that needs to get followed up on.
+>
+> > In meanwhile, can we implement dummy dumpit functions for the LS,
+> > which reuse ib_nl_is_good_ip_resp?
+>
+> The original code does not call the netlink_dump_start() code for this path, so if we create a dummy dump function we will have to add code to special case this and call it directly.
+>
+> So maybe we could just go back to the original code and call .doit rather than .dump in the non netlink_dump_start() path?
+>
+> i.e.:
+>       if (!(nlh->nlmsg_flags & NLM_F_REQUEST) ||
+>            (index == RDMA_NL_LS && op == RDMA_NL_LS_OP_SET_TIMEOUT)) {
+>                cb.skb = skb;
+>                cb.nlh = nlh;
+>                cb.dump = cb_table[op].dump;
+> -               return cb.dump(skb, &cb);
+> +               return cb.doit(skb, &cb);
+>        } else {
+>                c.dump = cb_table[op].dump;
+>
+>
+> > I prefer this solution over yours, because it doesn't mix LS-specifics with
+> > general decision function and leaves LS anomalies in the LS-relevant code.
+>
+> The problem with this is that the code has to take into consideration the LS anomalies either before the this function is called, or has to deal with them here.
+>
+> The other thought would be to special case the LS stuff before this decision and call the .doit function there (and then return).
+
+What about such code?
+
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index b12e58787c3d..6a7362664876 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -175,6 +175,14 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	    !netlink_capable(skb, CAP_NET_ADMIN))
+ 		return -EPERM;
+
++	/*
++	 * LS is special because it runs backward communication
++	 * and it overloads NLM_F_DUMP flag with RDMA_NL_LS_F_ERR
++	 * So we are calling to .doit before processing .dumpit call.
++	 */
++	if (index == RDMA_NL_LS)
++		return cb_table[op].doit(skb, nlh, extack);
++
+ 	/* FIXME: Convert IWCM to properly handle doit callbacks */
+ 	if ((nlh->nlmsg_flags & NLM_F_DUMP) || index == RDMA_NL_RDMA_CM ||
+ 	    index == RDMA_NL_IWCM) {
+
+>
+> > And returning 0 in absence of dumpit function as a response with
+> > NLM_F_DUMP flag is wrong. User should be aware of the fact that
+> > something wrong was with his request.
+>
+> This was the value that the function returns if .dump and .doit are NOT selected, so I thought that this was appropriate.  Should that value (the final return 0) be changed to something different?
+
+The is_nl_valid() should return "false" If no .dumpit/.doit functions exist.
+In such case, we are supposed to return EINVAL.
+
+Thanks
+
+>
+> Mike
+>
+> > Thanks
+> >
+> > >
+> > > The included patch is an atempt to fix this issue.  This patch fixes the
+> > > issue that I am seeing, but I am not sure how to test the messages for
+> > > RDMA_NL_RDMA_CM or RDMA_NL_IWCM (or any message that uses the
+> > > NLM_F_DUMP bits).
+> > >
+> > > If anyone has some knowledge of these services, any extra testing would
+> > > be welcomed.
+> > >
+> > > If the patch has no issues or comments, I will formally re-submit it
+> > > (through my usual channel Denny).
+> > >
+> > > Thanks,
+> > >
+> > > Mike
+> > >
+> > >
+> > > ---
+> > >
+> > > Michael J. Ruhl (1):
+> > >       RDMA/netlink: OOPs in rdma_nl_rcv_msg() from misinterpreted flag
+> > >
+> > >
+> > >  drivers/infiniband/core/netlink.c |    7 +++++--
+> > >  1 files changed, 5 insertions(+), 2 deletions(-)
+> > >
+> > > --
+> > >
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--sC1KxrFoiW8MuHBc
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlntpCUACgkQ5GN7iDZy
+WKe00A/+NXGNdFLpUelmk1HxbpNVoPLlmahsPjIc288wct/imliizX5UkHdDIEdF
+KVuyWaRDBXfGMLIMm6GAej77TrHv3EVpdutHkd8mzz2hbi0MNNJKOVMU0RgLpXrC
+R0f/dHUoPv0kIPGk3rkAnHAWt59/U262J0aT7fEq3LYpluvtLUlf6DsvK5wh1jRz
+qaDbKhBWbzRl7qjOHeti6ry8uWrATuOGcTqFMq/7SuTANpW+ln1z7GBExk8+p7u1
+aZRhmWK6rUS2auS3IodPl+xdyq+E13/RHDbNQIM/7SPlTKFC2RaJ+xwYN3u1fO31
+dOEiotrrXMag9xNJiXvyMbr2V67YvfaIBNSE20l7jMUxXbYvCCu0L/a0IBrV+2BG
+w5PV2YzlyULwHenMdYl2p5/I+oHWepKYxlCPJ/Jxg+hIX9uhnnRTyzNfRYarEmMg
+cCVjuvjamsPSh8tzBsDtYngWC5uK2nyQPhps+Ddrsitd5rBkmb9vPIvOpAQLdfOl
+j5+MnkkZXo6qArA+/G3b3kVNH21E+sy8DdQir30nl89UIuOYbJTD4V4RHIGDjK2J
+6a4y8et+mmX0lQVTNqk8Mn9hWISiDpnUsy3wYHVr4+8msJeNtZQ+rPDvZ7wAodsY
+5/PcXF+drsDk6h21otEr4wqnOYdl3v3/lekH59iRnkrHoxSZTW4=
+=4ZUw
+-----END PGP SIGNATURE-----
+
+--sC1KxrFoiW8MuHBc--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
