@@ -1,45 +1,41 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 3/7] IB/hfi1: Validate PKEY for incoming GSI MAD
- packets
-Date: Mon, 23 Oct 2017 14:55:38 -0400
-Message-ID: <d09970ea-2531-4d8e-0b4f-85533ff8487a@intel.com>
-References: <20171023125327.21191.31462.stgit@scvm10.sc.intel.com>
- <20171023130558.21191.30808.stgit@scvm10.sc.intel.com>
- <20171023183848.GC16127@mtr-leonro.local>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH] IB/hfi1: Fix a wrapping test (make it less strict)
+Date: Mon, 23 Oct 2017 13:04:00 -0600
+Message-ID: <20171023190400.GA24412@obsidianresearch.com>
+References: <20171013105559.tqzh6jhcnvmqhdwy@mwanda>
+ <1508771116.3325.0.camel@redhat.com>
+ <36cdf5bf-a28c-e853-523d-8cf0fa748a56@intel.com>
+ <1508783626.3325.16.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171023183848.GC16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1508783626.3325.16.camel@redhat.com>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>, Dan Carpenter <dan.carpenter@oracle.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/23/2017 2:38 PM, Leon Romanovsky wrote:
-> > diff --git a/drivers/infiniband/hw/hfi1/mad.c 
-b/drivers/infiniband/hw/hfi1/mad.c
->> index 07b80fa..dfe6224 100644
->> --- a/drivers/infiniband/hw/hfi1/mad.c
->> +++ b/drivers/infiniband/hw/hfi1/mad.c
->> @@ -98,6 +98,16 @@ static inline void clear_opa_smp_data(struct opa_smp *smp)
->>   	memset(data, 0, size);
->>   }
->>
->> +static inline u16 hfi1_lookup_pkey_value(struct hfi1_ibport *ibp, int pkey_idx)
-> 
-> Please, no "inline-function" in *.c files as it is written in CodingStyle.
+On Mon, Oct 23, 2017 at 02:33:46PM -0400, Doug Ledford wrote:
+> > > > @@ -3781,7 +3781,7 @@ static int
+> > > > __subn_get_opa_hfi1_cong_log(struct
+> > > > opa_smp *smp, u32 am,
+> > > >   		 * required to wrap the counter are supposed to
+> > > >   		 * be zeroed (CA10-49 IBTA, release 1.2.1, V1).
+> > > >   		 */
+> > > > -		if ((u64)(ts - cce->timestamp) > (2 * UINT_MAX))
+> > > > +		if ((u64)(ts - cce->timestamp) > (2ULL *
+> > > > UINT_MAX))
 
-Sure about that?
+This is really weird looking. Both ts and cce->timestamp are s64, why
+do the convoluted conversion to unsigned? And surely UINT_MAX is not
+the right thing..
 
-As a rule of thumb I agree we should not put inlines in C files though. 
-However as you can see from the context, this file already has static 
-inlines so I wasn't too bothered by it.
+if ((ts - cce->timestamp)/2 > 0xFFFFFFFF)
 
--Denny
+?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ktime_get is defined to be monotonic, so ts - cce->timestamp should
+never go negative.
+
+Jason
