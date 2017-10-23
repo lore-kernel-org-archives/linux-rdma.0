@@ -1,70 +1,72 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/6] Expose CQ moderation to user space
-Date: Mon, 23 Oct 2017 19:57:47 +0300
-Message-ID: <20171023165747.GJ2106@mtr-leonro.local>
-References: <20171019053524.11135-1-leon@kernel.org>
- <20171023094744.GH2106@mtr-leonro.local>
- <20171023152638.GB11952@obsidianresearch.com>
+Subject: Re: [PATCH rdma-next 00/16] Flow counters support
+Date: Mon, 23 Oct 2017 20:00:30 +0300
+Message-ID: <20171023170030.GK2106@mtr-leonro.local>
+References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
+ <20171023165118.GA18097@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="o1Pxsi7EGdPPGBHz"
+        protocol="application/pgp-signature"; boundary="Jr7V/D3tXZ2+JpAg"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171023152638.GB11952-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20171023165118.GA18097-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---o1Pxsi7EGdPPGBHz
+--Jr7V/D3tXZ2+JpAg
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Oct 23, 2017 at 09:26:38AM -0600, Jason Gunthorpe wrote:
-> On Mon, Oct 23, 2017 at 12:47:44PM +0300, Leon Romanovsky wrote:
->
-> > Mellanox,
-> > I would like to use this opportunity and to ask publicly, please submit kernel
-> > and user spaces altogether.
->
-> +1
->
-> I was looking at the flow counters patches and they make no sense
-> without also seeing the man pages that describe what the heck this
-> stuff is.
+On Mon, Oct 23, 2017 at 10:51:18AM -0600, Jason Gunthorpe wrote:
+> On Thu, Oct 19, 2017 at 05:41:42PM +0300, Yishai Hadas wrote:
 
-+ kernel and user are one package, it makes no sense to split submission
-and to cause artificial delays between them.
+<...>
 
 >
-> At the very least put a rdma-core branch someplace and reference it in
-> your kernel patch series, and it better have really good man pages for
-> the verbs features being added.
+> // Retreive the counters from hardware or from cache
+> uint64_t data[2];
+> ibv_read_counters(counters, data, NELEMS(data), [..]);
+> printf("QP counter is %u\n", data[0]);
+>
+
+<..>
+
+> [..] will have to be something sensible to define the sampling
+> point, maybe an enum, or maybe a string? Not sure.
+
+Enum
+
 >
 > Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---o1Pxsi7EGdPPGBHz
+--Jr7V/D3tXZ2+JpAg
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnuH4sACgkQ5GN7iDZy
-WKdISA//XFFVZR6MC7YQGu5+oQgKeGSa5C2SGkQThvBnp6aBAmrbIl7MQjMEhbMd
-3dtKFr4WFr7uuwg5JtxHVSmu0l+olMD1W+xMfdF3Wrxmifc0y7vFw79N0JpVerbI
-8rHcvTjHtq4K3a2jQ7Ag6XoJGD7H0z8YpNTkYYaXqtKg9gIWmWgGzquFhnWI6VMh
-u4mR3YmosEfGXyXrVyhK1Ls28jeuE+VXHymxGf0BXL8J2foLTvLaM3DsFzZh93h1
-glceBpTi8FIWhGDES1F7ll7iPlzhzGQRWQu26CfndXKpq+/xggpsN3Khcw6u/8xx
-ER7GBp3t6tAAtY8fmXB4nWIUeJ2QveGpVwITrwrwjveDWtlus+f69MfgoFhDFyNf
-/eZ8/zqysLDkkPZt7Osgz/x/kwf8+rtfbi26TNhEidKsTMQqBM3ZC43EkcCN3X5D
-8395K+/HrdK7+gGnYdIRTlCTG428kH2TYzl8wT0AMlF1A/itzBVsFiW8AKgrvlmT
-PlO8qehcKbGJsM9KDwfkD4QTcXJDDumFlqBz2BNoTmp14oxr1c4RaA16enRIhhXT
-JjMyP93pXV/WsECfl/QwUkWLLFPQUztkyhZXCP6g2av6YC1jL4JcPriI8phrRhwU
-y1OhzWCmWdHTprijMzY+PUe4uVnoaHzwj9WHDvovr/REVptryzw=
-=HeC4
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnuIC4ACgkQ5GN7iDZy
+WKct2Q//UeTrP3TRi6JykcTRbpKT0uuTjdUub7HayrW9J8Zc5N01sGJQ6QR7oeDk
+bAiIt9ln0KaQzpnw3calVbUbuObGwfrlFShEqROeshT/5hwPpKYi0VY/6d5Rqmzo
+QzTnP/1aCUCgQXZk+dghDI5BGTU1kIffq2D8SEuw1CdlF+oJEzukKu+1za0hwEII
+CYtJg8B/ouVJ5OlXTX1VWbIhzpNHQceWQbIQL6rlsHDKA2xqWOwosEGYValRDCMS
+8o5DiHhIzra7bLz40GdBt6Dr98AN6j+ub2dC1NaijZNW1iVUjhMkk+kKrCNLon0l
+zo7GTXf7/idv8WnKYNkcKDPVooG0U9IJySkvwNB/MqdCXcgkyMCFcEF1mvYQoyHS
+p+Jw4AzvLBKqF2iNM2zlIGz+zBlxYZq3wZdjmXOypYn0JIkgn8vdnjxbVAuH0OR/
+3tUnBZkEJiJvy4DD0a1uD4wJYxST3doAV2qMDUzR9V4xPJ9YjV+lzyj8sqbW2nLU
+LW1kgkw53mFn/xvAEUrZE5GujcwdRQGeUIMaPgtp/hJ2xkjKvlZQmf6hQg4OgZds
+T2/QYUE+6oDtIyt5ANmtGAqWA+Wf6XnMXpTUNfiJRZK49Eqr2ynHpRwB0PaYgGbA
+WgBd3gorPKtdNumo0HZYqF1ZZdzciG/OGXVe6kWZTk05SpX1SKw=
+=OV5q
 -----END PGP SIGNATURE-----
 
---o1Pxsi7EGdPPGBHz--
+--Jr7V/D3tXZ2+JpAg--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
