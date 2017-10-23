@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 04/10] mlx5: Add support to tag matching SRQ type
-Date: Mon, 23 Oct 2017 16:17:55 +0300
-Message-ID: <1508764681-4531-5-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 02/10] verbs: Expose tag matching capabilities
+Date: Mon, 23 Oct 2017 16:17:53 +0300
+Message-ID: <1508764681-4531-3-git-send-email-yishaih@mellanox.com>
 References: <1508764681-4531-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1508764681-4531-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,219 +12,203 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Create command QP for a tag-matching SRQ.  Command QP used for
-inserting/removing entries from the tag matching list. This command QP
-is hidden from the users in the mlx5_srq structure.
-New verb ibv_post_srq_ops() will be added in next patch to use it.
+Expose tag matching capabilities and show them in ibv_devinfo.
 
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/mlx5.h  |   1 +
- providers/mlx5/verbs.c | 140 +++++++++++++++++++++++++++++++++++++++++++------
- 2 files changed, 124 insertions(+), 17 deletions(-)
+ Documentation/tag_matching.md        | 14 ++++++++++++++
+ libibverbs/cmd.c                     | 17 +++++++++++++++++
+ libibverbs/examples/devinfo.c        | 17 +++++++++++++++++
+ libibverbs/kern-abi.h                | 10 ++++++++++
+ libibverbs/man/ibv_query_device_ex.3 | 17 +++++++++++++++++
+ libibverbs/verbs.h                   | 18 ++++++++++++++++++
+ 6 files changed, 93 insertions(+)
 
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index 46fce28..d16b5f5 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -360,6 +360,7 @@ struct mlx5_srq {
- 	__be32			       *db;
- 	uint16_t			counter;
- 	int				wq_sig;
-+	struct ibv_qp		       *cmd_qp;
- };
+diff --git a/Documentation/tag_matching.md b/Documentation/tag_matching.md
+index 5b5cd7d..8e62440 100644
+--- a/Documentation/tag_matching.md
++++ b/Documentation/tag_matching.md
+@@ -130,3 +130,17 @@ achieved by reporting to HW the number of unexpected messages handled by SW
+ (with respect to the current posted tags). When the SW and HW are in synch, tag
+ matching resumes normally.
  
- struct wr_list {
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index 2315a0d..a26b631 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -739,6 +739,13 @@ int mlx5_destroy_srq(struct ibv_srq *srq)
- 	struct mlx5_srq *msrq = to_msrq(srq);
- 	struct mlx5_context *ctx = to_mctx(srq->context);
++## Tag Matching Verbs
++
++### Capabilities
++
++Tag matching capabilities are queried by ibv_query_device_ex(), and report the
++following attributes:
++
++* **max_rndv_hdr_size** - Max size of rendezvous request header
++* **max_num_tags** - Max number of tagged buffers in a TM-SRQ matching list
++* **max_ops** - Max number of outstanding tag matching list operations
++* **max_sge** - Max number of SGEs in a tagged buffer
++* **flags** - the following flags are currently defined:
++    - IBV_TM_CAP_RC - Support tag matching on RC transport
++
+diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
+index 9d2140f..97351de 100644
+--- a/libibverbs/cmd.c
++++ b/libibverbs/cmd.c
+@@ -238,6 +238,23 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
+ 			attr->raw_packet_caps = resp->raw_packet_caps;
+ 	}
  
-+	if (msrq->cmd_qp) {
-+		ret = mlx5_destroy_qp(msrq->cmd_qp);
-+		if (ret)
-+			return ret;
-+		msrq->cmd_qp = NULL;
++	if (attr_size >= offsetof(struct ibv_device_attr_ex, tm_caps) +
++			 sizeof(attr->tm_caps)) {
++		if (resp->response_length >=
++		    offsetof(struct ibv_query_device_resp_ex, tm_caps) +
++		    sizeof(resp->tm_caps)) {
++			attr->tm_caps.max_rndv_hdr_size =
++				resp->tm_caps.max_rndv_hdr_size;
++			attr->tm_caps.max_num_tags =
++				resp->tm_caps.max_num_tags;
++			attr->tm_caps.flags = resp->tm_caps.flags;
++			attr->tm_caps.max_ops =
++				resp->tm_caps.max_ops;
++			attr->tm_caps.max_sge =
++				resp->tm_caps.max_sge;
++		}
 +	}
 +
- 	ret = ibv_cmd_destroy_srq(srq);
- 	if (ret)
- 		return ret;
-@@ -1822,9 +1829,94 @@ int mlx5_close_xrcd(struct ibv_xrcd *ib_xrcd)
- 	return ret;
+ 	return 0;
  }
  
--static struct ibv_srq *
--mlx5_create_xrc_srq(struct ibv_context *context,
--		    struct ibv_srq_init_attr_ex *attr)
-+static struct ibv_qp *
-+create_cmd_qp(struct ibv_context *context,
-+	      struct ibv_srq_init_attr_ex *srq_attr,
-+	      struct ibv_srq *srq)
+diff --git a/libibverbs/examples/devinfo.c b/libibverbs/examples/devinfo.c
+index f03c53e..33f7e95 100644
+--- a/libibverbs/examples/devinfo.c
++++ b/libibverbs/examples/devinfo.c
+@@ -340,6 +340,22 @@ static void print_device_cap_flags_ex(uint64_t device_cap_flags_ex)
+ 		       ex_flags & unknown_flags);
+ }
+ 
++static void print_tm_caps(const struct ibv_tm_caps *caps)
 +{
-+	struct ibv_qp_init_attr_ex init_attr = {};
-+	FILE *fp = to_mctx(context)->dbg_fp;
-+	struct ibv_port_attr port_attr;
-+	struct ibv_modify_qp qcmd = {};
-+	struct ibv_qp_attr attr = {};
-+	struct ibv_query_port pcmd;
-+	struct ibv_qp *qp;
-+	int attr_mask;
-+	int port = 1;
-+	int ret;
-+
-+	ret = ibv_cmd_query_port(context, port, &port_attr,
-+				 &pcmd, sizeof(pcmd));
-+	if (ret) {
-+		mlx5_dbg(fp, MLX5_DBG_QP, "ret %d\n", ret);
-+		return NULL;
++	if (caps->max_num_tags) {
++		printf("\tmax_rndv_hdr_size:\t\t%u\n",
++				caps->max_rndv_hdr_size);
++		printf("\tmax_num_tags:\t\t\t%u\n", caps->max_num_tags);
++		printf("\tmax_ops:\t\t\t%u\n", caps->max_ops);
++		printf("\tmax_sge:\t\t\t%u\n", caps->max_sge);
++		printf("\tflags:\n");
++		if (caps->flags & IBV_TM_CAP_RC)
++			printf("\t\t\t\t\tIBV_TM_CAP_RC\n");
++	} else {
++		printf("\ttag matching not supported\n");
 +	}
-+
-+	init_attr.qp_type = IBV_QPT_RC;
-+	init_attr.srq = srq;
-+	/* Command QP will be used to pass MLX5_OPCODE_TAG_MATCHING messages
-+	 * to add/remove tag matching list entries.
-+	 * WQ size is based on max_ops parameter holding max number of
-+	 * outstanding list operations.
-+	 */
-+	init_attr.cap.max_send_wr = srq_attr->tm_cap.max_ops;
-+	/* Tag matching list entry will point to a single sge buffer */
-+	init_attr.cap.max_send_sge = 1;
-+	init_attr.comp_mask = IBV_QP_INIT_ATTR_PD;
-+	init_attr.pd = srq_attr->pd;
-+	init_attr.send_cq = srq_attr->cq;
-+	init_attr.recv_cq = srq_attr->cq;
-+
-+	qp = create_qp(context, &init_attr);
-+	if (!qp)
-+		return NULL;
-+
-+	attr.qp_state = IBV_QPS_INIT;
-+	attr.port_num = port;
-+	attr_mask = IBV_QP_STATE | IBV_QP_PKEY_INDEX
-+		  | IBV_QP_PORT | IBV_QP_ACCESS_FLAGS;
-+
-+	ret = ibv_cmd_modify_qp(qp, &attr, attr_mask, &qcmd, sizeof(qcmd));
-+	if (ret) {
-+		mlx5_dbg(fp, MLX5_DBG_QP, "ret %d\n", ret);
-+		goto err;
-+	}
-+
-+	attr.qp_state = IBV_QPS_RTR;
-+	attr.path_mtu = IBV_MTU_256;
-+	attr.dest_qp_num = qp->qp_num; /* Loopback */
-+	attr.ah_attr.dlid = port_attr.lid;
-+	attr.ah_attr.port_num = port;
-+	attr_mask = IBV_QP_STATE | IBV_QP_AV | IBV_QP_PATH_MTU
-+		  | IBV_QP_DEST_QPN | IBV_QP_RQ_PSN
-+		  | IBV_QP_MAX_DEST_RD_ATOMIC | IBV_QP_MIN_RNR_TIMER;
-+
-+	ret = ibv_cmd_modify_qp(qp, &attr, attr_mask, &qcmd, sizeof(qcmd));
-+	if (ret) {
-+		mlx5_dbg(fp, MLX5_DBG_QP, "ret %d\n", ret);
-+		goto err;
-+	}
-+
-+	attr.qp_state = IBV_QPS_RTS;
-+	attr_mask = IBV_QP_STATE | IBV_QP_TIMEOUT | IBV_QP_RETRY_CNT
-+		  | IBV_QP_RNR_RETRY | IBV_QP_SQ_PSN
-+		  | IBV_QP_MAX_QP_RD_ATOMIC;
-+
-+	ret = ibv_cmd_modify_qp(qp, &attr, attr_mask, &qcmd, sizeof(qcmd));
-+	if (ret) {
-+		mlx5_dbg(fp, MLX5_DBG_QP, "ret %d\n", ret);
-+		goto err;
-+	}
-+
-+	return qp;
-+
-+err:
-+	mlx5_destroy_qp(qp);
-+	return NULL;
 +}
 +
-+struct ibv_srq *mlx5_create_srq_ex(struct ibv_context *context,
-+				   struct ibv_srq_init_attr_ex *attr)
+ static void print_tso_caps(const struct ibv_tso_caps *caps)
  {
- 	int err;
- 	struct mlx5_create_srq_ex cmd;
-@@ -1836,6 +1928,24 @@ mlx5_create_xrc_srq(struct ibv_context *context,
- 	int uidx;
- 	FILE *fp = ctx->dbg_fp;
- 
-+	if (!(attr->comp_mask & IBV_SRQ_INIT_ATTR_TYPE) ||
-+	    (attr->srq_type == IBV_SRQT_BASIC))
-+		return mlx5_create_srq(attr->pd,
-+				       (struct ibv_srq_init_attr *)attr);
-+
-+	if (attr->srq_type != IBV_SRQT_XRC &&
-+	    attr->srq_type != IBV_SRQT_TM) {
-+		errno = EINVAL;
-+		return NULL;
-+	}
-+
-+	/* An extended CQ is required to read TM information from */
-+	if (attr->srq_type == IBV_SRQT_TM &&
-+	    !(attr->cq && (to_mcq(attr->cq)->flags & MLX5_CQ_FLAGS_EXTENDED))) {
-+		errno = EINVAL;
-+		return NULL;
-+	}
-+
- 	msrq = calloc(1, sizeof(*msrq));
- 	if (!msrq)
- 		return NULL;
-@@ -1914,10 +2024,16 @@ mlx5_create_xrc_srq(struct ibv_context *context,
- 	if (err)
- 		goto err_free_uidx;
- 
-+	if (attr->srq_type == IBV_SRQT_TM) {
-+		msrq->cmd_qp = create_cmd_qp(context, attr, ibsrq);
-+		if (!msrq->cmd_qp)
-+			goto err_destroy;
-+	}
-+
- 	if (!ctx->cqe_version) {
- 		err = mlx5_store_srq(to_mctx(context), resp.srqn, msrq);
- 		if (err)
--			goto err_destroy;
-+			goto err_free_cmd;
- 
- 		pthread_mutex_unlock(&ctx->srq_table_mutex);
+ 	uint32_t unknown_general_caps = ~(1 << IBV_QPT_RAW_PACKET |
+@@ -521,6 +537,7 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
+ 		print_rss_caps(&device_attr.rss_caps);
+ 		printf("\tmax_wq_type_rq:\t\t\t%u\n", device_attr.max_wq_type_rq);
+ 		print_packet_pacing_caps(&device_attr.packet_pacing_caps);
++		print_tm_caps(&device_attr.tm_caps);
  	}
-@@ -1928,6 +2044,9 @@ mlx5_create_xrc_srq(struct ibv_context *context,
  
- 	return ibsrq;
+ 	for (port = 1; port <= device_attr.orig_attr.phys_port_cnt; ++port) {
+diff --git a/libibverbs/kern-abi.h b/libibverbs/kern-abi.h
+index 3a0e02a..5f3f28c 100644
+--- a/libibverbs/kern-abi.h
++++ b/libibverbs/kern-abi.h
+@@ -280,6 +280,15 @@ struct ibv_rss_caps_resp {
+ 	__u32 reserved;
+ };
  
-+err_free_cmd:
-+	if (msrq->cmd_qp)
-+		mlx5_destroy_qp(msrq->cmd_qp);
- err_destroy:
- 	ibv_cmd_destroy_srq(ibsrq);
++struct ibv_tm_caps_resp {
++	__u32 max_rndv_hdr_size;
++	__u32 max_num_tags;
++	__u32 flags;
++	__u32 max_ops;
++	__u32 max_sge;
++	__u32 reserved;
++};
++
+ struct ibv_query_device_resp_ex {
+ 	struct ibv_query_device_resp base;
+ 	__u32 comp_mask;
+@@ -291,6 +300,7 @@ struct ibv_query_device_resp_ex {
+ 	struct ibv_rss_caps_resp rss_caps;
+ 	__u32  max_wq_type_rq;
+ 	__u32 raw_packet_caps;
++	struct ibv_tm_caps_resp tm_caps;
+ };
  
-@@ -1950,19 +2069,6 @@ err:
- 	return NULL;
- }
+ struct ibv_query_port {
+diff --git a/libibverbs/man/ibv_query_device_ex.3 b/libibverbs/man/ibv_query_device_ex.3
+index fdfb708..c0cb77b 100644
+--- a/libibverbs/man/ibv_query_device_ex.3
++++ b/libibverbs/man/ibv_query_device_ex.3
+@@ -33,6 +33,7 @@ struct ibv_rss_caps    rss_caps;                   /* RSS capabilities */
+ uint32_t               max_wq_type_rq;             /* Max Work Queue from type RQ */
+ struct ibv_packet_pacing_caps packet_pacing_caps; /* Packet pacing capabilities */
+ uint32_t               raw_packet_caps;            /* Raw packet capabilities, use enum ibv_raw_packet_caps */
++struct ibv_tm_caps     tm_caps;                    /* Tag matching capabilities */
+ .in -8
+ };
  
--struct ibv_srq *mlx5_create_srq_ex(struct ibv_context *context,
--				   struct ibv_srq_init_attr_ex *attr)
--{
--	if (!(attr->comp_mask & IBV_SRQ_INIT_ATTR_TYPE) ||
--	    (attr->srq_type == IBV_SRQT_BASIC))
--		return mlx5_create_srq(attr->pd,
--				       (struct ibv_srq_init_attr *)attr);
--	else if (attr->srq_type == IBV_SRQT_XRC)
--		return mlx5_create_xrc_srq(context, attr);
--
--	return NULL;
--}
--
- int mlx5_query_device_ex(struct ibv_context *context,
- 			 const struct ibv_query_device_ex_input *input,
- 			 struct ibv_device_attr_ex *attr,
+@@ -84,6 +85,22 @@ IBV_RAW_PACKET_CAP_IP_CSUM		= 1 << 2, /* IP CSUM offload is supported */
+ .in -8
+ };
+ 
++enum ibv_tm_cap_flags {
++.in +8
++IBV_TM_CAP_RC   = 1 << 0,            /* Support tag matching on RC transport */
++.in -8
++};
++
++struct ibv_tm_caps {
++.in +8
++uint32_t        max_rndv_hdr_size;   /* Max size of rendezvous request header */
++uint32_t        max_num_tags;        /* Max number of tagged buffers in a TM-SRQ matching list */
++uint32_t        flags;    	     /* From enum ibv_tm_cap_flags */
++uint32_t        max_ops;             /* Max number of outstanding list operations */
++uint32_t        max_sge;             /* Max number of SGEs in a tagged buffer */
++.in -8
++};
++
+ .fi
+ .SH "RETURN VALUE"
+ .B ibv_query_device_ex()
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 4e2f338..2ef9132 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -266,6 +266,23 @@ enum ibv_raw_packet_caps {
+ 	IBV_RAW_PACKET_CAP_DELAY_DROP		= 1 << 3,
+ };
+ 
++enum ibv_tm_cap_flags {
++	IBV_TM_CAP_RC		    = 1 << 0,
++};
++
++struct ibv_tm_caps {
++	/* Max size of rendezvous request header */
++	uint32_t max_rndv_hdr_size;
++	/* Max number of tagged buffers in a TM-SRQ matching list */
++	uint32_t max_num_tags;
++	/* From enum ibv_tm_cap_flags */
++	uint32_t flags;
++	/* Max number of outstanding list operations */
++	uint32_t max_ops;
++	/* Max number of SGEs in a tagged buffer */
++	uint32_t max_sge;
++};
++
+ struct ibv_device_attr_ex {
+ 	struct ibv_device_attr	orig_attr;
+ 	uint32_t		comp_mask;
+@@ -278,6 +295,7 @@ struct ibv_device_attr_ex {
+ 	uint32_t		max_wq_type_rq;
+ 	struct ibv_packet_pacing_caps packet_pacing_caps;
+ 	uint32_t		raw_packet_caps; /* Use ibv_raw_packet_caps */
++	struct ibv_tm_caps	tm_caps;
+ };
+ 
+ enum ibv_mtu {
 -- 
 1.8.3.1
 
