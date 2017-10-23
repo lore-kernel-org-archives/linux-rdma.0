@@ -1,83 +1,96 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next 00/16] Flow counters support
-Date: Mon, 23 Oct 2017 10:51:18 -0600
-Message-ID: <20171023165118.GA18097@obsidianresearch.com>
-References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next 0/6] Expose CQ moderation to user space
+Date: Mon, 23 Oct 2017 19:54:17 +0300
+Message-ID: <20171023165417.GI2106@mtr-leonro.local>
+References: <20171019053524.11135-1-leon@kernel.org>
+ <20171023094744.GH2106@mtr-leonro.local>
+ <20171023130804.GA21584@ssaleem-MOBL4.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="Uaw16JuuybUwHkzF"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1508424118-27205-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20171023130804.GA21584-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 19, 2017 at 05:41:42PM +0300, Yishai Hadas wrote:
 
-> More specifically,
-> A generic interface with the following functionality is presented:
-> - An option to know per device how many counter sets it exposes by using some
->   extension of the ib_query_device_ex() verb. (i.e. max_counter_sets).
-> - Per counter set there is an API to get its metadata by using a new verb named
->    ib_describe_counter_set(), it gets a counter set id in range of 
->    [0,max_counter_sets - 1] and return the counter set information.
->    Some of the metadata is IB generic (e.g. counter set type, num counters in the set, etc.)
->    while other is some specific driver information (e.g. counters names).
-> - Introduce counter set object named 'ib_counter_set' and its create/destroy
->   verbs. Post a successful creation the counter_set object can  be attached to
->   an IB object based on its type. (e.g. Flow, QP, etc.) 
-> - Introduce the ib_query_counter_set() verb, it enables the user to read the
->   hardware counters which are associated with the counter set.
-> - Introduce a new steering specification from type count 
->   (i.e. ib_flow_spec_action_count) which gets a previously created counter_id.
->   By creating a flow steering object with a counter, its counters can be read
->   by the ib_query_counter_set() verb.
+--Uaw16JuuybUwHkzF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I haven't seen the uapi yet, but I don't like the direction this is
-going, this looks much too hard for applications to acutally use.
+On Mon, Oct 23, 2017 at 08:08:04AM -0500, Shiraz Saleem wrote:
+> On Mon, Oct 23, 2017 at 12:47:44PM +0300, Leon Romanovsky wrote:
+> > On Thu, Oct 19, 2017 at 08:35:18AM +0300, Leon Romanovsky wrote:
+> > > This patch set exposes CQ moderation. This will allow to moderate
+> > > number of CQEs needed to create an event. Such change brings performance
+> > > improvement by reducing pressure on application to receive event per-CQE.
+> > >
+> > > The proposed semantics follows the well-established kernel semantics.
+> > >
+> > >  * cq_max_count - defines the number of cookies needed to create an event.
+> > >  * cq_period 	- defines the timeout between last event and a new one
+> > > 		  that will occur even if cq_max_count was not reached
+> > >
+> > > The patches are available in the git repository at:
+> > >   git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-next-2017-10-19-2
+> > >
+> > > 	Thanks
+> > > ---------------------------------------
+> > >
+> >
+> > Doug,
+> >
+> > Please drop this series.
+> >
+> > I'll resubmit it once user space part will be finished.
+> >
+> > Mellanox,
+> > I would like to use this opportunity and to ask publicly, please submit kernel
+> > and user spaces altogether.
+> >
+> > It causes for too much errors and it is actually wrong to submit it separately.
+> >
+>
+> Hi Leon,
+>
+> I have a generic question. And I apologize if this is redundant and
+> has been answered before. But what is the process for user-space submissions?
 
-My suggestion for the verbs interface is:
+On top of Jason's answer. Sometimes, you can skip mailing list, usually it is
+spelling fixes or very local and small fixes to your code.
 
-// Create an object to hold the counters
-counters = ibv_create_counters([..]);
+>
+> For libi40iw we make all submissions to this mailing list _only_ and
+> this is all we are aware of. Are there alternate submission paths?
+>
+> Shiraz
+>
+>
 
-// Sample a specific counter linked to a QP in counter index 0
-ibv_set_sampling_point_qp(counters, 0, qp, [..])
+--Uaw16JuuybUwHkzF
+Content-Type: application/pgp-signature; name="signature.asc"
 
-// Sample a specific counter linked to a flow steering object in counter index 1
-ibv_add_sampling_point_flow(counters, 1, flow, [..])
+-----BEGIN PGP SIGNATURE-----
 
-// Stop reading anything associated with index 1
-ibv_clear_sampling_point(counters, 1);
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnuHrkACgkQ5GN7iDZy
+WKdPqRAAoYNQ4affNRQqTwpJMh/YYAXwdm/yc7OY4kvMzvP/QZIPCVDyy5gBoBqy
+lt3TQch2O8tsfDmr3e2LHTEHpmbQGCpxJPIRNQ+bxBSsX8H6ysCkCipAMnR24W29
+2qY7FlRCrkMDSBCKVdVPSSZV1qbmGki8fVNFeIfjgdM6guvriumkUd0ha+peQrtc
+PdplzOgKOBGS+ySjUeJENi2QBmRQpViUl/6vSr+m6o5u84JwFmlrgH8Rpc1/iCCf
+LAZBTGia25FrENs38WwNoQLpHRkt0wsxk55nju1/By0R3nCTapJL4CiiOnQ9sCmC
+DgbOkAJblPPhDMugV2NLm7kxmdFJqzm29PT2sXOAjg0zY1C+58ZgaohP9c8Pt0XC
+7cUDoWaV1lp5obkzgad1uONs0v5bgiMIfF1yC2+xwp+qyyR4ip5ub2YmTphZpVI+
+VDozb1Zn/rzRiZ+kVz4XxxZwcbJhbJsxPqs1pevQyFU3RFk+sUN1LT9wZ011y/JY
+evaiV0ggGtDUqCth8fCaQj77m1PzZk5tBJl125ep6Hzf1rhj4Xf/3ItbqvYMWgTW
+9p+TyclFjWQNKENMsgf3LTmBrwgMe+jEVaOVMkjXoG39LQWrN+3e6xYUF14Wt3sm
+zz+IMXxyljgij5kqK8L6gUCLCmmATbL6VyBkqcfreH+LUvccMpc=
+=jGzQ
+-----END PGP SIGNATURE-----
 
-// Sample global device PMA counters
-ibv_add_sampling_point_device(counters, 2, verbs, port, [..])
-
-// Retreive the counters from hardware or from cache
-uint64_t data[2];
-ibv_read_counters(counters, data, NELEMS(data), [..]);
-printf("QP counter is %u\n", data[0]);
-
-I don't want to expose this goofy idea of a 'counter set' to the user,
-that is a some weird device spcecific thing, and every device will be
-different. No way the user should have to deal with this.
-
-To implement the above, your driver will have to determine the
-hardware specific counter sets to instantiate under the covers, and
-map their contents to the indexes the user is asking for with the above list.
-
-If for some reason it cannot satisfy some combination of counters then
-it should fail the add_sampling_point call.
-
-There is not much reason to have a complex query API, use the 'setup
-and catch failure' approach to detect what features the device
-supports.
-
-[..] will have to be something sensible to define the sampling
-point, maybe an enum, or maybe a string? Not sure.
-
-Jason
+--Uaw16JuuybUwHkzF--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
