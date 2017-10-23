@@ -1,77 +1,56 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/6] Expose CQ moderation to user space
-Date: Mon, 23 Oct 2017 12:47:44 +0300
-Message-ID: <20171023094744.GH2106@mtr-leonro.local>
-References: <20171019053524.11135-1-leon@kernel.org>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH for-next 0/7] IB/hfi1: Driver fixes for 10/23/2017
+Date: Mon, 23 Oct 2017 06:05:34 -0700
+Message-ID: <20171023125327.21191.31462.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="n2RoZOfqketZuWCG"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171019053524.11135-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Patel Jay P <jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Doug,
 
---n2RoZOfqketZuWCG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Another round of fixes. These are all pretty minor. Mike M added some more
+tx opcode stats to debugfs, similar to what we did for the rx side.
 
-On Thu, Oct 19, 2017 at 08:35:18AM +0300, Leon Romanovsky wrote:
-> This patch set exposes CQ moderation. This will allow to moderate
-> number of CQEs needed to create an event. Such change brings performance
-> improvement by reducing pressure on application to receive event per-CQE.
->
-> The proposed semantics follows the well-established kernel semantics.
->
->  * cq_max_count - defines the number of cookies needed to create an event.
->  * cq_period 	- defines the timeout between last event and a new one
-> 		  that will occur even if cq_max_count was not reached
->
-> The patches are available in the git repository at:
->   git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-next-2017-10-19-2
->
-> 	Thanks
-> ---------------------------------------
->
+Patches can can also be found in my GitHub repo at:
+https://github.com/ddalessa/kernel/tree/for-4.15
 
-Doug,
+---
 
-Please drop this series.
+Kamenee Arumugam (1):
+      IB/hfi1: Don't modify num_user_contexts module parameter
 
-I'll resubmit it once user space part will be finished.
+Michael J. Ruhl (1):
+      IB/hfi1: Race condition between user notification and driver state
 
-Mellanox,
-I would like to use this opportunity and to ask publicly, please submit kernel
-and user spaces altogether.
+Mike Marciniszyn (3):
+      IB/hfi1: Add tx_opcode_stats like the opcode_stats
+      IB/hfi1: Insure int mask for in-kernel receive contexts is clear
+      IB/hfi1: Take advantage of kvzalloc_node in sdma initialization
 
-It causes for too much errors and it is actually wrong to submit it separately.
+Patel Jay P (1):
+      Ib/hfi1: Return actual operational VLs in port info query
 
-Thanks
+Sebastian Sanchez (1):
+      IB/hfi1: Validate PKEY for incoming GSI MAD packets
 
---n2RoZOfqketZuWCG
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
+ drivers/infiniband/hw/hfi1/chip.c    |   93 ++++++++++++++++++++++++----------
+ drivers/infiniband/hw/hfi1/debugfs.c |   56 ++++++++++++++++++--
+ drivers/infiniband/hw/hfi1/hfi.h     |    6 +-
+ drivers/infiniband/hw/hfi1/init.c    |    7 +++
+ drivers/infiniband/hw/hfi1/intr.c    |   14 +++++
+ drivers/infiniband/hw/hfi1/mad.c     |   86 +++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi1/sdma.c    |    9 +--
+ drivers/infiniband/hw/hfi1/verbs.c   |   24 +++++++++
+ 8 files changed, 248 insertions(+), 47 deletions(-)
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlntusAACgkQ5GN7iDZy
-WKdg6g/+M/cWl6TLLI6iClKx48ywdMEHS/Tu4mv4GzAlP5nNZuT3nGr67HWWlSbu
-QaZtL/w6l/ZefjiJmRYELn3yvNpyOw3LnXbyCzFkBpeCE1nd3KruHPsxumYLxAhv
-PhqKslDaoihB38htg4EemXCDk4mrtf2IXdcYezgnn1T3+QzdmJGbWLykSuvRJvZ1
-0L1X+ccCabEBGVFzw+04WxIVbXAJt4QppUNV/BdiVzCGzGP+E8af419aIKofnxml
-L5CYyTPchp8oJzMgsBlZvXoRb0+sTXLxK/PugDBj/7F9bBsFiRUzfVb3PojboLXo
-sQ4n3dj1tQATcwahHz41Nsk5MggsZcBnuG6+2bNzaDIupROjZhMa83Y+rwfL1CLn
-pNwBG6zpQE0ebHZoyqHYUT1JsKw4W4b9xNcnIKbAt1OODDEAWQo5UvqyzXE7+0d4
-3p79Nrrpqi5vhApf+1ZmR2E8U51TQp6hvs+tx1yYnADauSOo2I5KK+QHxMFCiE0q
-rpgin/cl7dB0KgZ0yXOiQX8zxd1WM5OBkk5lOTc9OVxhK5aC3cXtIPGw/zTqnx2/
-YslbrawnNxYcJbGoezE3f0X2IsguWSP4Up15EJCJZYh850rmehpNH7SfivPaQ66o
-KkH2hUgMOlGqRdhHmEkdLdin02PFYuU5oZ9sDnLbpthrfazTsds=
-=y2+7
------END PGP SIGNATURE-----
-
---n2RoZOfqketZuWCG--
+--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
