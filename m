@@ -1,101 +1,68 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 3/7] IB/hfi1: Validate PKEY for incoming GSI MAD
- packets
-Date: Mon, 23 Oct 2017 21:38:48 +0300
-Message-ID: <20171023183848.GC16127@mtr-leonro.local>
+Subject: Re: [PATCH for-next 7/7] IB/hfi1: Take advantage of kvzalloc_node in
+ sdma initialization
+Date: Mon, 23 Oct 2017 21:47:38 +0300
+Message-ID: <20171023184738.GD16127@mtr-leonro.local>
 References: <20171023125327.21191.31462.stgit@scvm10.sc.intel.com>
- <20171023130558.21191.30808.stgit@scvm10.sc.intel.com>
+ <20171023130629.21191.43615.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Pk6IbRAofICFmK5e"
+        protocol="application/pgp-signature"; boundary="vni90+aGYgRvsTuO"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171023130558.21191.30808.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20171023130629.21191.43615.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---Pk6IbRAofICFmK5e
+--vni90+aGYgRvsTuO
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Oct 23, 2017 at 06:06:00AM -0700, Dennis Dalessandro wrote:
-> From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Mon, Oct 23, 2017 at 06:06:32AM -0700, Dennis Dalessandro wrote:
+> From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >
-> These are the use-cases where the pkey needs to be tested to see
-> if a packet needs to be dropped.
+> The code that allocates the tx ring in the sdma code fails to take
+> advantage of kvzalloc variations.
 >
-> a) Check if pkey is not FULL_MGMT_P_KEY or LIM_MGMT_P_KEY,
->    drop the packet as it's not part of the management partition.
->    Self-originated packets are an exception.
+> Fix by converting to use kvzalloc_node.
 >
-> b) If pkey index points to FULL_MGMT_P_KEY and LIM_MGMT_P_KEY is
->    in the table, the packet is coming from a management node,
->    and the receiving node is also a management node, so it is safe
->    for the packet to go through.
->
-> c) If pkey index points to FULL_MGMT_P_KEY and LIM_MGMT_P_KEY is
->    NOT in the table, drop the packet as LIM_MGMT_P_KEY should
->    always be in the pkey table. It could be a misconfiguration.
->
-> d) If pkey index points to LIM_MGMT_P_KEY and FULL_MGMT_P_KEY is
->    NOT in the table, it is safe for the packet to go through
->    since a non-management node is talking to another non-managment
->    node.
->
-> e) If pkey index points to LIM_MGMT_P_KEY and FULL_MGMT_P_KEY is in
->    the table, drop the packet because a non-management node is
->    talking to a management node, and it could be an attack.
->
-> For the implementation, these rules can be simplied to only checking
-> for (a) and (e). There's no need to check for rule (b) as
-> the packet doesn't need to be dropped. Rule (c) is not possible in
-> the driver as LIM_MGMT_P_KEY is always in the pkey table.
->
-> Reviewed-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reported-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/infiniband/hw/hfi1/mad.c |   86 +++++++++++++++++++++++++++++++++++++-
->  1 files changed, 84 insertions(+), 2 deletions(-)
+>  drivers/infiniband/hw/hfi1/sdma.c |    9 ++-------
+>  1 files changed, 2 insertions(+), 7 deletions(-)
 >
-> diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-> index 07b80fa..dfe6224 100644
-> --- a/drivers/infiniband/hw/hfi1/mad.c
-> +++ b/drivers/infiniband/hw/hfi1/mad.c
-> @@ -98,6 +98,16 @@ static inline void clear_opa_smp_data(struct opa_smp *smp)
->  	memset(data, 0, size);
->  }
->
-> +static inline u16 hfi1_lookup_pkey_value(struct hfi1_ibport *ibp, int pkey_idx)
 
-Please, no "inline-function" in *.c files as it is written in CodingStyle.
+Thanks, it fixed missed GFP_NOWARN flag too.
 
-Thanks
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---Pk6IbRAofICFmK5e
+--vni90+aGYgRvsTuO
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnuNzcACgkQ5GN7iDZy
-WKdrIg//WuBvL/LntTYi9/A1ACLfCQo3X3k8hI+cLDj+DxlSFKf2Q3yEyJhX/vvB
-PnISoAa/zmpM1Ae5ICs6+Jf9wZ9tY7rI3ngYJDmpIvkbOs6J7rLf/v7JQjkKxCyi
-xqK6AFItNaqBtKjHks+PemK2cdGFZnVe7Kp15qIWoIUXc6UM4KO0x2OLQV78FrUL
-gxqCf4wJAuGBeatV48EdDRHemodwNx1DUdORJ9z2UTp872jlkai0THGq3C0OjLH2
-xnmWC0RBFldAL0JRKli8P8b360U1/uJMgw7D6qT4Z+HVKdITWpSuBZhEnxiGYlU/
-E/86BLAZ+kkKpTMcsu/+pIU6/7f8AEySehdJnHzSLeBY55edXRPIH9ItkEr6nMBU
-POmLaq3ArglsjEm4wWfw6p/S9vVKwLVX0tFCqRs+u7rnbh8KuvRsYvGOrgenSi/r
-j6hSIYsYolIWrUQ/W6S2ONqgh9kCGYXCD3rhqVsLzomhaEl8nhPaHvK+MM1P6JO5
-fZIxmUCYGBgzdOwKgLtkiIbnXvn+RCrhNXUN8H6F3usqH82GvIyovqerd3wP6q08
-CYfuNM1SArty7mHJIgijSk8enh4OWO+Y8L2qnQH+jK/iXoEv2FXlIiyWO1oB+HXS
-1Fa71j3y/g70inAJfOTpenPszycVnwIxZnx698qbe60ga7deMNU=
-=VtgB
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnuOUoACgkQ5GN7iDZy
+WKctNA//ePrZjYsKkq1A65G5iGAlwSQ7QpEClmLntd44/EyaC6S+e9O3J7Y9nteY
+I7kkc8+j1FpIYALaY24bke5KDX5wOYAy2Wxqm2yc1c/y6CtNwx9v27xcCR76vyw8
+TCkGYSj+6Wl2Tot2Ud4Yj+T8IcWnkYx3S2FdJDYRwygZUb5ZxBaDFOg5Vv4BNugy
+9LC7ZI4yg/6r3f5lQfciIsL1YbyHRiBe4m2vNrPkW7nYUQprAUD5EHrQ0eskWRni
+myubhFm1EX5CQkiOiCs9FMttn0zPHYt+VuAH1yaVTwJ+MQeG2XjCvIEFk9IU+lHj
+LILiS64NB7Uu2QWfZdMG6LBDgVTO+a8jvM0FIQWm3oRUKagpAZRMlsw6HLCouKZa
+sE7rCvrtkWiCrjLan7A5yeLC4St+vn+PGAdmsxfVvXOmlwRC04BnQf7Jn2AnD/hp
+HsyvEp8b/waPf3T2c2Mf/UggGw7HvDm6v2a7oHUCXdoTEN8bN+SLP2YfniVEV2QX
+FG0bslLZsgsWXSHMPrBPcEXGBZsNQxBEHxbynD6uQqBwgwdEigdiLQWlMOFa0S0r
+ZiWpZA0kyUQD+aHaLfpVYHwtCSCtDHCJh5VBr2gsQD768NXt5e1v0xTQonz2AMLF
+R9cSQ/dDP9TpNTWFqyJcuSlx9wGU3CWk2FRBBF4pOqn7jerIA4g=
+=aimO
 -----END PGP SIGNATURE-----
 
---Pk6IbRAofICFmK5e--
+--vni90+aGYgRvsTuO--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
