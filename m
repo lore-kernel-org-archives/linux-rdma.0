@@ -1,130 +1,90 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
- misinterpreted flag
-Date: Mon, 23 Oct 2017 08:54:50 +0300
-Message-ID: <20171023055450.GB2106@mtr-leonro.local>
-References: <20171019213859.26124.37851.stgit@phlsvslse11.ph.intel.com>
- <20171020073724.GY2106@mtr-leonro.local>
- <3F128C9216C9B84BB6ED23EF16290AFB6347E3BF@CRSMSX101.amr.corp.intel.com>
- <20171020162017.GZ2106@mtr-leonro.local>
- <3F128C9216C9B84BB6ED23EF16290AFB6347E59B@CRSMSX101.amr.corp.intel.com>
+Subject: Re: [PATCH] IB/ipoib: Enable pkey and device name decoupling
+Date: Mon, 23 Oct 2017 09:04:36 +0300
+Message-ID: <20171023060436.GD2106@mtr-leonro.local>
+References: <20170928163406.GB17880@obsidianresearch.com>
+ <20170928164735.GC2297@mtr-leonro.local>
+ <20170928165305.GE17880@obsidianresearch.com>
+ <20171015054745.GA2608@yuvallap>
+ <20171017081837.GA19107@obsidianresearch.com>
+ <20171017102121.GM2106@mtr-leonro.local>
+ <20171019061100.GB6555@obsidianresearch.com>
+ <20171019061405.GW2106@mtr-leonro.local>
+ <c2f3b529-cc53-aef0-fdcf-e86e99360db0@mellanox.com>
+ <20171021194215.GA4094@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="oYrjhH26xX5Rz9aF"
+        protocol="application/pgp-signature"; boundary="bLzFIlwpOfW+4Y/z"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3F128C9216C9B84BB6ED23EF16290AFB6347E59B-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20171021194215.GA4094-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, corbet-T1hC0tSOHrs@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kernel-6AxghH7DbtA@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, chien.yen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---oYrjhH26xX5Rz9aF
+--bLzFIlwpOfW+4Y/z
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Oct 20, 2017 at 07:04:33PM +0000, Wan, Kaike wrote:
+On Sat, Oct 21, 2017 at 01:42:15PM -0600, Jason Gunthorpe wrote:
+> On Thu, Oct 19, 2017 at 09:28:31AM +0300, Alex Vesker wrote:
+> > On 10/19/2017 9:14 AM, Leon Romanovsky wrote:
+> > >On Thu, Oct 19, 2017 at 12:11:00AM -0600, Jason Gunthorpe wrote:
+> > >>On Tue, Oct 17, 2017 at 01:21:21PM +0300, Leon Romanovsky wrote:
+> > >>>>Yes, we should add a deprecation one shot printk to the kernel for the
+> > >>>>sysfs interface to encourage people to use ip
+> > >>>Please don't do that, it won't help for anyone, and especially for the people
+> > >>>who didn't hear about "ip" in 2017.
+> > >>This is the standard kernel way to encourage people to use the new
+> > >>interfaces...
+> > >>
+> > >>>IPoIB netlink doesn't support enhanced IPoIB device because child
+> > >>>device in netlink code was not allocated with rdma_alloc_netdev call
+> > >>>as it was done for other flows.
+> > >>I don't understand, isn't this just a (bad) bug to be fixed?
+> > >Yes and we want to fix it BEFORE adding discouraging warnings.
 >
+> > We plan to block ipoib_netlink in the meanwhile until we fix it.
 >
-> > -----Original Message-----
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
-> > Sent: Friday, October 20, 2017 12:20 PM
-> > To: Wan, Kaike
-> > Cc: Ruhl, Michael J; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: Re: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
-> > misinterpreted flag
-> >
-> > On Fri, Oct 20, 2017 at 12:18:02PM +0000, Wan, Kaike wrote:
-> > > The nlmsg_flags from 0x100 and up have always been overloaded for
-> > different requests, as shown in include/uapi/linux/netlink.h:
-> >
-> > Exactly, they are overloaded in include/uapi/linux/netlink.h where all nlmsg
-> > flags are declared and not in some random rdma*.h file.
->
-> Since they are known to be overloaded, how could you depend on the flags to make decision for all requests/responses?
+> That isn't a good idea, don't break APIs for performance reasons..
 
-Sorry for applying common sense for the RDMA subsystem. The netlink structures are declared
-and exported to users in one specific file, the structure, flags and defines belong to netdev
-subsystem and were not supposed to be overwritten by other users.
-
->
-> The reason for defining RDMA_NL_LS_F_ERR in include/uapi/rdma/rdma_netlink is that all LS related defines and structures are defined in the file. It is true that it can lead to misuse, just like the current code. However, the defines in include/uapi/linux/netlink.h un-mistakenly indicate that those bits can be overloaded.
-
-We are talking about theoretical case, the current LS implementation
-will stay as is, so no worries.
+It is not "performance", but simple attempt to prevent kernel panic,
+while calling that function, because I'm unsure if we success to provide
+proper fix till merge window.
 
 >
-> >
-> > But it is not my main point.
-> >
-> > My main point is lack of usage of NLMSG_ERROR messages to inform about
-> > errors, exactly as kernel informs users about errors in netlink, but in the
-> > opposite direction.
+> > The fix is a little tricky since the netdev is allocated in
+> > rtnl_newlink and it should be allocated with the new logic
+> > introduced in enhanced IPoIB, setting rn_ops, allocating an
+> > rdma_netdev if possible.
 >
-> The difference is that the LS needs all the original information (request type, client index, msg_seq, etc) to match the response with the original request. Therefore, the easiest thing to do is to return the response with the original info plus an error flag, instead of using the NLMSG_ERROR message.
+> Should get on it then .. :)
 >
+> Jason
 
-Just wanted to mention that NLMSG_ERROR is netlink message type and it
-carries all other information except message type.
-
-> > > >
-> > > > In meanwhile, can we implement dummy dumpit functions for the LS,
-> > > > which reuse ib_nl_is_good_ip_resp?
-> > >
-> > > Why do you want to jump all the dump hoops instead of directly calling the
-> > response handler? LS is different from other netlink channels in that it sends
-> > request from kernel to user space and receives responses from it instead of
-> > the other way around. Consequently, the handling of netlink responses may
-> > be different from handing requests from user space.
-> > >
-> >
-> > Doesn't the part of email below answers on the question "why"?
->
-> No. A response should not necessarily be processed the same as a request.
-
-Right, and I expected to see complete mirror of kernel-to-user
-communication in respect to LS user-to-kernel communication.
-
->
-> >
-> > > >
-> > > > I prefer this solution over yours, because it doesn't mix
-> > > > LS-specifics with general decision function and leaves LS anomalies in the
-> > LS-relevant code.
-> >
-> >
-> > > >
-> > > > And returning 0 in absence of dumpit function as a response with
-> > > > NLM_F_DUMP flag is wrong. User should be aware of the fact that
-> > > > something wrong was with his request.
-> > > >
-> > > > Thanks
-> > > >
-> > >
-
---oYrjhH26xX5Rz9aF
+--bLzFIlwpOfW+4Y/z
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnthCoACgkQ5GN7iDZy
-WKdP0RAAi3N8BDhnUFJXWduGvnMUAVehu4Ix0MIx4GbXksL/sxH3iLkseAByccmn
-5rKycQB28ygbj2HlDTq2g7/be1y2ShzG2L4prBC01RORTNKAcqquZ+pBX92vuKTZ
-HqSFaG94vSbb8S5nDEdw6hqJ8b4RzrTxzYwAlEBqgoxX0YIzJiQVBTSV9wi52f5u
-RO2W5Rf/aw8jx+wEzeyWlP2EexkduIFKwKyyI5izSTqwcr38J6dQ7qVF7TtocMRc
-gFFm6Q7iyBMMjvF55Cd3oUaPCVe43jp0A220EGJeO77nJJFBcij8u9aPXYV5RTvt
-X7pTtJ+E6+V+Ca1MM7nhpkUrvAJEYkxJCK2Eggd+f/w+ugRU4gQJYCeHd0BOnbqD
-u2s6DBcKJnXjAuwe/Lwz32/Nh/oDUI/7KcCAf/VH9TmiHGq59YA7cSGzAuXCBSGq
-pXn8AWN6Q4XA8eRsymQqvGEsN9sLVGv7jLVXox7j5c2SxebA3ZvrBVmJZRZtZJbw
-jshgWQbRlwDr4Ed1HVg6RB+EA7W2zHxeiMtruhzyysjbiqkWK4gvTWBEOclxQOjR
-wZoYAjo0P9Q7RyKKPm2nhBEjKrX26dB4RILXW8hTgPqmlSTYu9CJZK1b5j5cTsVe
-XowKlHYGrvFGp7ua9kxSzVGO2FC/+uWTJo031MFlveBra2UssV0=
-=4322
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnthnQACgkQ5GN7iDZy
+WKdUPhAAnGy0YjayK/wL1zpycwhbacyDYGlBHlKeiZaGBQYoOkycj3sS+xqpP+c8
+fW3dOpZjK4LqvHvLo7URSwDY2D2Fcelpn2VitFEWshjtzDea+hHI5qzOTlmVEsZ8
+5lPwIq8MrHW2eSJFcw2l1yI3vYqBBTN5Bw/37bHqknOyM0EhVwFkVuFEcTQCzYV/
+Sv8cr6DLCgRk4aZdL2Pul+r8iKOED9xrOA4cNJLf3YqwkKmxEFRqxTahSgTODYKB
+pMUY9qlfo6MIF2R1C96x8ffrqsjuT8J4iSVUS+pfON/z3pNrrLkZntYhhuVkcnEf
+aBmRoE7FReUpEwpNe7SuhJ/eAF+KLOWCoVpG71d07IHtTfL02Xg1/AdYr3UxjShz
+/bzpd+KILEIEOwXPOZJ7OTDYEDOdGw6wllrXE3yLsA/5ktZ0bivA1dBe9iQq1X3J
+rOI86ogsGp+oTbr0+5DndoM5So5faY8Zp1VsIWzSeQRsxMeYNJjOpfPNpW4Xo+fp
+in7DwhXmLH/87gNjZQEr9Aor4cTj0plGiaEpSq6wVvcu28+6+0nQjbb6lE7wi08w
+tqhYQoELVZ5Zh4wXBwUgJ4pz4iicT5NPnyhWR5kU7r4THv7lWBgUOYX7MfqKWGTd
+58nGWIS7A2y2OKZbPFxE9aID5IIEKTtnfhxvZh2z8Qe75gg4IVA=
+=RKrk
 -----END PGP SIGNATURE-----
 
---oYrjhH26xX5Rz9aF--
+--bLzFIlwpOfW+4Y/z--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
