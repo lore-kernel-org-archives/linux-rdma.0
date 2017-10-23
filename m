@@ -1,53 +1,50 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: Enabling peer to peer device transactions for PCIe devices
-Date: Mon, 23 Oct 2017 16:08:48 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6DD00A04EA@AcuExch.aculab.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
- <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com>
- <1381807327.12461494.1508652825239.JavaMail.zimbra@desy.de>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: Need to set if_index in ib_init_ah_from_wc() ?
+Date: Mon, 23 Oct 2017 16:28:43 +0000
+Message-ID: <VI1PR0502MB30087224F41436F787C4997FD1460@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <CAL1RGDW6iHo2UYKbcJmcG=wCq63jvZB7nvOD=BJZwASSzc7Zhw@mail.gmail.com>
+ <20170130195412.GE24466@obsidianresearch.com>
+ <VI1PR0502MB30086B735FD4B5948B521673D14D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <CANjDDBhJK=s28zrdCASUVSSeem=NVRWwsHT=jWS2N4jGh2Uvfw@mail.gmail.com>
+ <VI1PR0502MB300803053059AA7CC0E6DA7DD1420@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1381807327.12461494.1508652825239.JavaMail.zimbra@desy.de>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <VI1PR0502MB300803053059AA7CC0E6DA7DD1420-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "'Petrosyan, Ludwig'" <ludwig.petrosyan@desy.de>, Logan Gunthorpe <logang@deltatee.com>
-Cc: "Deucher, Alexander" <Alexander.Deucher@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Bridgman, John" <John.Bridgman@amd.com>, "Kuehling, Felix" <Felix.Kuehling@amd.com>, "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>, "Blinzer, Paul" <Paul.Blinzer@amd.com>, "Koenig, Christian" <Christian.Koenig@amd.com>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "Sander, Ben" <ben.sander@amd.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogUGV0cm9zeWFuIEx1ZHdpZw0KPiBTZW50OiAyMiBPY3RvYmVyIDIwMTcgMDc6MTQNCj4g
-Q291bGQgYmUgSSBoYXZlIGRvbmUgaXMgc3R1cGlkLi4uDQo+IEJ1dCBhdCBmaXJzdCBzaWdodCBp
-dCBoYXMgdG8gYmUgc2ltcGxlOg0KPiBUaGUgUENJZSBXcml0ZSB0cmFuc2FjdGlvbnMgYXJlIGFk
-ZHJlc3Mgcm91dGVkLCBzbyBpZiBpbiB0aGUgcGFja2V0IGhlYWRlciB0aGUgb3RoZXIgZW5kcG9p
-bnQgYWRkcmVzcw0KPiBpcyB3cml0dGVuIHRoZSBUTFAgaGFzIHRvIGJlIHJvdXRlZCAoYnkgUENJ
-ZSBTd2l0Y2ggdG8gdGhlIGVuZHBvaW50KSwgdGhlIERNQSByZWFkaW5nIGZyb20gdGhlIGVuZA0K
-PiBwb2ludCBpcyByZWFsbHkgd3JpdGUgdHJhbnNhY3Rpb25zIGZyb20gdGhlIGVuZHBvaW50LCB1
-c3VhbGx5IChYaWxpbnggY29yZSkgdG8gc3RhcnQgRE1BIG9uZSBoYXMgdG8NCj4gd3JpdGUgdG8g
-dGhlIERNQSBjb250cm9sIHJlZ2lzdGVyIG9mIHRoZSBlbmRwb2ludCB0aGUgZGVzdGluYXRpb24g
-YWRkcmVzcy4gU28gSSBoYXZlIGNoYW5nZSB0aGUgZGV2aWNlDQo+IGRyaXZlciB0byBzZXQgaW4g
-dGhpcyByZWdpc3RlciB0aGUgcGh5c2ljYWwgYWRkcmVzcyBvZiB0aGUgb3RoZXIgZW5kcG9pbnQg
-KGdldF9yZXNvdXJjZSBzdGFydCBjYWxsZWQNCj4gdG8gb3RoZXIgZW5kcG9pbnQsIGFuZCBpdCBp
-cyB0aGUgc2FtZSBhZGRyZXNzIHdoaWNoIEkgY291bGQgc2VlIGluIGxzcGNpIC12dnZ2IC1zIGJ1
-cy1hZGRyZXNzIG9mIHRoZQ0KPiBzd2l0Y2ggcG9ydCwgbWVtb3JpZXMgYmVoaW5kIGJyaWRnZSks
-IHNvIG5vdyB0aGUgZW5kcG9pbnQgaGFzIHRvIHN0YXJ0IHNlbmQgd3JpdGVzIFRMUCB3aXRoIHRo
-ZSBvdGhlcg0KPiBlbmRwb2ludCBhZGRyZXNzIGluIHRoZSBUTFAgaGVhZGVyLg0KPiBCdXQgdGhp
-cyBpcyBub3Qgd29ya2luZyAoSSB3YW50IHRvIHVuZGVyc3RhbmQgd2h5IC4uLiksIGJ1dCBJIGNv
-dWxkIHNlZSB0aGUgZmlyc3QgYWRkcmVzcyBvZiB0aGUNCj4gZGVzdGluYXRpb24gZW5kcG9pbnQg
-aXMgY2hhbmdlZCAod2l0aCB0aGUgd3JvbmcgdmFsdWUgMHhGRiksDQo+IG5vdyBJIHdhbnQgdG8g
-dHJ5IHByZXBhcmUgaW4gdGhlIGRyaXZlciBvZiBvbmUgZW5kcG9pbnQgdGhlIERNQSBidWZmZXIg
-LCBidXQgdXNpbmcgcGh5c2ljYWwgYWRkcmVzcyBvZg0KPiB0aGUgb3RoZXIgZW5kcG9pbnQsDQo+
-IENvdWxkIGJlIGl0IHdpbGwgbmV2ZXIgd29yaywgYnV0IEkgd2FudCB0byB1bmRlcnN0YW5kIHdo
-eSwgdGhlcmUgaXMgbXkgZXJyb3IgLi4uDQoNCkl0IGlzIGFsc28gd29ydGggY2hlY2tpbmcgdGhh
-dCB0aGUgaGFyZHdhcmUgYWN0dWFsbHkgc3VwcG9ydHMgcDJwIHRyYW5zZmVycy4NCldyaXRlcyBh
-cmUgbW9yZSBsaWtlbHkgdG8gYmUgc3VwcG9ydGVkIHRoZW4gcmVhZHMuDQpJU1RSIHRoYXQgc29t
-ZSBpbnRlbCBjcHVzIHN1cHBvcnQgc29tZSBwMnAgd3JpdGVzLCBidXQgdGhlcmUgY291bGQgZWFz
-aWx5DQpiZSBlcnJhdGEgYWdhaW5zdCB0aGVtLg0KDQpJJ2QgY2VydGFpbmx5IHRlc3QgYSBzaW5n
-bGUgd29yZCB3cml0ZSB0byByZWFkL3dyaXRlIG1lbW9yeSBsb2NhdGlvbi4NCkZpcnN0IHZlcmlm
-eSBhZ2FpbnN0IGtlcm5lbCBtZW1vcnksIHRoZW4gYWdhaW5zdCBhICdzbGF2ZScgYm9hcmQuDQoN
-CkkgZG9uJ3Qga25vdyBhYm91dCBYaWxpbnggZnBnYSwgYnV0IHdlJ3ZlIGhhZCAnZnVuJyBnZXR0
-aW5nIEFsdGVyYSBmcGdhDQp0byBkbyBzZW5zaWJsZSBQQ0llIGN5Y2xlcyAoSSBlbmRlZCB1cCB3
-cml0aW5nIGEgc2ltcGxlIGRtYSBjb250cm9sbGVyIA0KdGhhdCB3b3VsZCBnZW5lcmF0ZSBsb25n
-IFRMUCkuDQpXZSBhbHNvIGZvdW5kIGEgYnVnIGluIHRoZSBBbHRlcmEgbG9naWMgdGhhdCBwcm9j
-ZXNzZWQgaW50ZXJsZWF2ZWQNCnJlYWQgY29tcGxldGlvbnMuDQoNCglEYXZpZA0KDQo=
+SGkgRGV2ZXNoLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IGxpbnV4
+LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtcmRtYS0NCj4gb3duZXJA
+dmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgUGFyYXYgUGFuZGl0DQo+IFNlbnQ6IFdlZG5l
+c2RheSwgT2N0b2JlciAxOCwgMjAxNyAxMTo1NCBQTQ0KPiBUbzogRGV2ZXNoIFNoYXJtYSA8ZGV2
+ZXNoLnNoYXJtYUBicm9hZGNvbS5jb20+DQo+IENjOiBTZWx2aW4gWGF2aWVyIDxzZWx2aW4ueGF2
+aWVyQGJyb2FkY29tLmNvbT47IFNvbW5hdGggS290dXINCj4gPHNvbW5hdGgua290dXJAYnJvYWRj
+b20uY29tPjsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IE1hdGFuIEJhcmFrDQo+IDxtYXRh
+bmJAbWVsbGFub3guY29tPjsgSmFzb24gR3VudGhvcnBlDQo+IDxqZ3VudGhvcnBlQG9ic2lkaWFu
+cmVzZWFyY2guY29tPjsgUm9sYW5kIERyZWllcg0KPiA8cm9sYW5kQHB1cmVzdG9yYWdlLmNvbT4N
+Cj4gU3ViamVjdDogUkU6IE5lZWQgdG8gc2V0IGlmX2luZGV4IGluIGliX2luaXRfYWhfZnJvbV93
+YygpID8NCj4gDQo+IEhpIERldmVzaCwNCj4gDQo+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0t
+LS0NCj4gPiBGcm9tOiBEZXZlc2ggU2hhcm1hIFttYWlsdG86ZGV2ZXNoLnNoYXJtYUBicm9hZGNv
+bS5jb21dDQo+ID4gU2VudDogV2VkbmVzZGF5LCBPY3RvYmVyIDE4LCAyMDE3IDExOjMyIFBNDQo+
+ID4gVG86IFBhcmF2IFBhbmRpdCA8cGFyYXZAbWVsbGFub3guY29tPg0KPiA+IENjOiBTZWx2aW4g
+WGF2aWVyIDxzZWx2aW4ueGF2aWVyQGJyb2FkY29tLmNvbT47IFNvbW5hdGggS290dXINCj4gPiA8
+c29tbmF0aC5rb3R1ckBicm9hZGNvbS5jb20+OyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsg
+TWF0YW4gQmFyYWsNCj4gPiA8bWF0YW5iQG1lbGxhbm94LmNvbT47IEphc29uIEd1bnRob3JwZQ0K
+PiA+IDxqZ3VudGhvcnBlQG9ic2lkaWFucmVzZWFyY2guY29tPjsgUm9sYW5kIERyZWllcg0KPiA+
+IDxyb2xhbmRAcHVyZXN0b3JhZ2UuY29tPg0KPiA+IFN1YmplY3Q6IFJlOiBOZWVkIHRvIHNldCBp
+Zl9pbmRleCBpbiBpYl9pbml0X2FoX2Zyb21fd2MoKSA/DQo+ID4NCj4gPiBIZWxsbyBQYXJhdiwN
+Cj4gPg0KPiA+IFRoYW5rcyBmb3IgeW91IG5vdGUgaGVyZS4gSSBjYW4gc3VwcGx5IHlvdSBhIGZp
+eCwgYnV0IGJlZm9yZSB0aGF0DQo+ID4gcGxlYXNlIGZpbmQgYSBxdWVyeSBpbmxpbmUgYmVsb3c6
+DQo+IA0KU28gSSBhbSBnb2luZyBmb3J3YXJkIHRvIGZpeCB0aGUgaWIgY29yZSBhcyBkaXNjdXNz
+ZWQuDQpQbGVhc2UgZml4IGJueF9yZSBkcml2ZXIgd2hlbmV2ZXIgeW91IGZpbmQgaXQgYXBwcm9w
+cmlhdGUgaW4geW91ciBzY2hlZHVsZS4NCg0KPiBUaGF0IHdpbGwgYmUgZ29vZC4gTW9yZSBpbmxp
+bmUgYmVsb3cuDQoNCg==
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
