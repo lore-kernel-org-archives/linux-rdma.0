@@ -1,47 +1,42 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Mon, 23 Oct 2017 16:04:26 -0600
-Message-ID: <d61b6829-0515-a809-2a43-c41add4b1594@deltatee.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
- <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com>
- <1381807327.12461494.1508652825239.JavaMail.zimbra@desy.de>
- <063D6719AE5E284EB5DD2968C1650D6DD00A04EA@AcuExch.aculab.com>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V2 rdma-core 0/5] Userspace library matching for hip08 RoCE
+Date: Tue, 24 Oct 2017 10:35:45 +0800
+Message-ID: <1508812550-98920-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6DD00A04EA-VkEWCZq2GCInGFn1LkZF6NBPR1lH4CV8@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: David Laight <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>, "'Petrosyan, Ludwig'" <ludwig.petrosyan-T5F83Mi6MZE@public.gmane.org>
-Cc: "Sagalovitch, Serguei" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kuehling,
- Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Bridgman, John" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "Koenig,
- Christian" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Sander, Ben" <ben.sander-5C7GfCeVMHo@public.gmane.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Deucher,
- Alexander" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "Blinzer, Paul" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+This patch series add userspace library for hip08 RoCE driver. It will
+work with the kernel driver of hip08 RoCE(hns-roce-hw-v2.ko).
 
+Change from V1:
+- Fix build warning due to the strange placement of fprintf
 
-On 23/10/17 10:08 AM, David Laight wrote:
-> It is also worth checking that the hardware actually supports p2p transfers.
-> Writes are more likely to be supported then reads.
-> ISTR that some intel cpus support some p2p writes, but there could easily
-> be errata against them.
+Lijun Ou (5):
+  libhns: Add new PCI device matching for hip08
+  libhns: Introduce QP operations refered to hip08 RoCE device
+  libhns: Introduce CQ operations refered to hip08 device
+  libhns: Reimplement verbs of post_send and post_recv for hip08 RoCE
+  libhns: Update consolidate repo for userspace library of hip08 RoCE
 
-Ludwig mentioned a PCIe switch. The few switches I'm aware of support 
-P2P transfers. So if everything is setup correctly, the TLPs shouldn't 
-even touch the CPU.
+ providers/hns/CMakeLists.txt     |   1 +
+ providers/hns/hns_roce_u.c       |  12 +-
+ providers/hns/hns_roce_u.h       |  13 +-
+ providers/hns/hns_roce_u_hw_v2.c | 917 +++++++++++++++++++++++++++++++++++++++
+ providers/hns/hns_roce_u_hw_v2.h | 261 +++++++++++
+ providers/hns/hns_roce_u_verbs.c | 121 ++++--
+ 6 files changed, 1290 insertions(+), 35 deletions(-)
+ create mode 100644 providers/hns/hns_roce_u_hw_v2.c
+ create mode 100644 providers/hns/hns_roce_u_hw_v2.h
 
-But, yes, generally it's a good idea to start with writes and see if 
-they work first.
+-- 
+1.9.1
 
-Logan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
