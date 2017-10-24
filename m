@@ -1,47 +1,59 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 3/7] IB/hfi1: Validate PKEY for incoming GSI MAD
- packets
-Date: Tue, 24 Oct 2017 15:49:57 -0400
-Message-ID: <bc6c518a-3c68-0edf-8089-390e78d674e4@intel.com>
-References: <20171023125327.21191.31462.stgit@scvm10.sc.intel.com>
- <20171023130558.21191.30808.stgit@scvm10.sc.intel.com>
- <20171023183848.GC16127@mtr-leonro.local>
- <d09970ea-2531-4d8e-0b4f-85533ff8487a@intel.com>
- <20171023193102.GE16127@mtr-leonro.local>
- <b1ec461a-9c04-ff16-2a2a-4f21dfbfbcb1@intel.com>
- <20171024145628.GA28224@obsidianresearch.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
+Subject: RE: [PATCH] IB/hfi1: Fix a wrapping test (make it less strict)
+Date: Tue, 24 Oct 2017 19:54:40 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC3443EB1C@fmsmsx120.amr.corp.intel.com>
+References: <20171013105559.tqzh6jhcnvmqhdwy@mwanda>
+ <1508771116.3325.0.camel@redhat.com>
+ <36cdf5bf-a28c-e853-523d-8cf0fa748a56@intel.com>
+ <1508783626.3325.16.camel@redhat.com>
+ <20171023190400.GA24412@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171024145628.GA28224-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20171023190400.GA24412@obsidianresearch.com>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
+Cc: "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Dan Carpenter <dan.carpenter@oracle.com>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/24/2017 10:56 AM, Jason Gunthorpe wrote:
-> On Tue, Oct 24, 2017 at 10:02:23AM -0400, Dennis Dalessandro wrote:
+> Subject: Re: [PATCH] IB/hfi1: Fix a wrapping test (make it less strict)
 > 
->> Right, which doesn't say not to put it in a .c file. So I think the location
->> is OK for this. However, whether it even needs to be an inline function at
->> all in the first place is certainly a valid question. Let me chat with
->> Sebastian and double check, if it doesn't really need to be inlined we'll
->> send a v2.
+> On Mon, Oct 23, 2017 at 02:33:46PM -0400, Doug Ledford wrote:
+> > > > > @@ -3781,7 +3781,7 @@ static int
+> > > > > __subn_get_opa_hfi1_cong_log(struct
+> > > > > opa_smp *smp, u32 am,
+> > > > >   		 * required to wrap the counter are supposed to
+> > > > >   		 * be zeroed (CA10-49 IBTA, release 1.2.1, V1).
+> > > > >   		 */
+> > > > > -		if ((u64)(ts - cce->timestamp) > (2 * UINT_MAX))
+> > > > > +		if ((u64)(ts - cce->timestamp) > (2ULL *
+> > > > > UINT_MAX))
 > 
-> The general thinking is that the compiler is much better at deciding
-> if something should be inlined or not. For the case of 'static' the
-> compiler will always inline it if it makes sense. 'static inline'
-> disables that heuristic and forces the compiler to always inline..
+> This is really weird looking. Both ts and cce->timestamp are s64, why
+> do the convoluted conversion to unsigned? And surely UINT_MAX is not
+> the right thing..
+> 
+> if ((ts - cce->timestamp)/2 > 0xFFFFFFFF)
+> 
+> ?
+> 
+> ktime_get is defined to be monotonic, so ts - cce->timestamp should
+> never go negative.
 > 
 
-After talking with Sebastian, this doesn't need to be inlined after all. 
-I will send a v2.
+I agree that this is an issue.
 
--Denny
+My proposal:
+- Change s64 to u64 for ts and in timestamp in opa_hfi1_cong_log_event_internal
+- Change the calls:
+        ktime_to_ns(ktime_get()) / 1024
+        -- to --
+        ktime_get_ns() / 1024
+- Change to use Jason's test from above with UINT_MAX
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Dan, we can do the patch or you can send a v2?
+
+Mike
+
