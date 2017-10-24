@@ -1,39 +1,54 @@
-From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] rds: ib: Fix uninitialized variable
-Date: Tue, 24 Oct 2017 18:17:18 +0200
-Message-ID: <20171024161718.18076-1-Haakon.Bugge@oracle.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
+ misinterpreted flag
+Date: Tue, 24 Oct 2017 12:31:55 -0400
+Message-ID: <1508862715.3325.22.camel@redhat.com>
+References: <20171024123957.32207.70888.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171024123957.32207.70888.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "David S . Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-send_flags needs to be initialized before calling
-rds_ib_set_wr_signal_state().
+On Tue, 2017-10-24 at 08:41 -0400, Michael J. Ruhl wrote:
+> From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> rdma_nl_rcv_msg() checks to see if it should use the .dump() callback
+> or the .doit() callback.  The check is done with this check:
+> 
+> if (flags & NLM_F_DUMP) ...
+> 
+> The NLM_F_DUMP flag is two bits (NLM_F_ROOT | NLM_F_MATCH).
+> 
+> When an RDMA_NL_LS message (response) is received, the bit used for
+> indicating an error is the same bit as NLM_F_ROOT.
+> 
+> NLM_F_ROOT == (0x100) == RDMA_NL_LS_F_ERR.
 
-Signed-off-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Acked-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/rds/ib_send.c | 1 +
- 1 file changed, 1 insertion(+)
+What are the remaining flags in the failing error case?
 
-diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
-index 6ab39db..8f46755 100644
---- a/net/rds/ib_send.c
-+++ b/net/rds/ib_send.c
-@@ -792,6 +792,7 @@ int rds_ib_xmit_atomic(struct rds_connection *conn, struct rm_atomic_op *op)
- 		send->s_atomic_wr.compare_add_mask = op->op_m_fadd.nocarry_mask;
- 		send->s_atomic_wr.swap_mask = 0;
- 	}
-+	send->s_wr.send_flags = 0;
- 	nr_sig = rds_ib_set_wr_signal_state(ic, send, op->op_notify);
- 	send->s_atomic_wr.wr.num_sge = 1;
- 	send->s_atomic_wr.wr.next = NULL;
+Or to be more specific,
+
+> 
+>  	/* FIXME: Convert IWCM to properly handle doit callbacks */
+>  	if ((nlh->nlmsg_flags & NLM_F_DUMP)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This test is technically faulty.  Since NLM_F_DUMP is a multi-bit flag,
+it must be ((nlh->nlmsg_flags & NLM_F_DUMP) == NLM_F_DUMP) to be
+technically correct.  So, my question then becomes, if we correct this
+test, will the RDMA_NL_LS_F_ERR return message still trigger this wrong
+path?  I'd rather have a technically correct fix to this if statement
+than a special case of the index value if possible.
+
+
+
 -- 
-1.8.3.1
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
