@@ -1,53 +1,68 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 3/7] IB/hfi1: Validate PKEY for incoming GSI MAD
- packets
-Date: Tue, 24 Oct 2017 10:02:23 -0400
-Message-ID: <b1ec461a-9c04-ff16-2a2a-4f21dfbfbcb1@intel.com>
-References: <20171023125327.21191.31462.stgit@scvm10.sc.intel.com>
- <20171023130558.21191.30808.stgit@scvm10.sc.intel.com>
- <20171023183848.GC16127@mtr-leonro.local>
- <d09970ea-2531-4d8e-0b4f-85533ff8487a@intel.com>
- <20171023193102.GE16127@mtr-leonro.local>
+From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge@oracle.com>
+Subject: [PATCH] rds: Fix inaccurate accounting of unsignaled wrs
+Date: Tue, 24 Oct 2017 16:16:28 +0200
+Message-ID: <20171024141628.14637-1-Haakon.Bugge@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171023193102.GE16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S . Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/23/2017 3:31 PM, Leon Romanovsky wrote:
->>> Please, no "inline-function" in *.c files as it is written in CodingStyle.
->>
->> Sure about that?
-> 
-> I'm not style-nazi, so won't insist, but this is in CodingStyle.
-> 
-> Documentation/process/coding-style.rst
->   841 15) The inline disease
->   842 ----------------------
->   843
->   844 There appears to be a common misperception that gcc has a magic "make me
->   845 faster" speedup option called ``inline``. While the use of inlines can be
->   846 appropriate (for example as a means of replacing macros, see Chapter 12), it
->   847 very often is not. Abundant use of the inline keyword leads to a much bigger
->   848 kernel, which in turn slows the system as a whole down, due to a bigger
->   849 icache footprint for the CPU and simply because there is less memory
->   850 available for the pagecache. Just think about it; a pagecache miss causes a
->   851 disk seek, which easily takes 5 milliseconds. There are a LOT of cpu cycles
->   852 that can go into these 5 milliseconds.
+The number of unsignaled work-requests posted to the IB send queue is
+tracked by a counter in the rds_ib_connection struct. When it reaches
+zero, or the caller explicitly asks for it, the send-signaled bit is
+set in send_flags and the counter is reset. This is performed by the
+rds_ib_set_wr_signal_state() function.
 
-Right, which doesn't say not to put it in a .c file. So I think the 
-location is OK for this. However, whether it even needs to be an inline 
-function at all in the first place is certainly a valid question. Let me 
-chat with Sebastian and double check, if it doesn't really need to be 
-inlined we'll send a v2.
+However, this function is not always used which yields inaccurate
+accounting. This commit fixes this, re-factors a code bloat related to
+the matter, and makes the actual parameter type to the function
+consistent.
 
--Denny
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+---
+ net/rds/ib_send.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
+index 6ab39db..d07ecb0 100644
+--- a/net/rds/ib_send.c
++++ b/net/rds/ib_send.c
+@@ -661,13 +661,15 @@ int rds_ib_xmit(struct rds_connection *conn, struct rds_message *rm,
+ 			}
+ 		}
+ 
+-		rds_ib_set_wr_signal_state(ic, send, 0);
++		rds_ib_set_wr_signal_state(ic, send, false);
+ 
+ 		/*
+ 		 * Always signal the last one if we're stopping due to flow control.
+ 		 */
+-		if (ic->i_flowctl && flow_controlled && i == (work_alloc-1))
+-			send->s_wr.send_flags |= IB_SEND_SIGNALED | IB_SEND_SOLICITED;
++		if (ic->i_flowctl && flow_controlled && i == (work_alloc - 1)) {
++			rds_ib_set_wr_signal_state(ic, send, true);
++			send->s_wr.send_flags |= IB_SEND_SOLICITED;
++		}
+ 
+ 		if (send->s_wr.send_flags & IB_SEND_SIGNALED)
+ 			nr_sig++;
+@@ -705,11 +707,8 @@ int rds_ib_xmit(struct rds_connection *conn, struct rds_message *rm,
+ 	if (scat == &rm->data.op_sg[rm->data.op_count]) {
+ 		prev->s_op = ic->i_data_op;
+ 		prev->s_wr.send_flags |= IB_SEND_SOLICITED;
+-		if (!(prev->s_wr.send_flags & IB_SEND_SIGNALED)) {
+-			ic->i_unsignaled_wrs = rds_ib_sysctl_max_unsig_wrs;
+-			prev->s_wr.send_flags |= IB_SEND_SIGNALED;
+-			nr_sig++;
+-		}
++		if (!(prev->s_wr.send_flags & IB_SEND_SIGNALED))
++			nr_sig += rds_ib_set_wr_signal_state(ic, prev, true);
+ 		ic->i_data_op = NULL;
+ 	}
+ 
+-- 
+1.8.3.1
