@@ -1,84 +1,123 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Endianess in cxgb4
-Date: Tue, 24 Oct 2017 22:01:42 +0300
-Message-ID: <20171024190142.GM16127@mtr-leonro.local>
-References: <20171024183759.GK16127@mtr-leonro.local>
- <069401d34cf8$5171f6e0$f455e4a0$@opengridcomputing.com>
+Subject: Re: [PATCH rdma-next] RDMA/cxgb4: Remove unnecessary conversion from
+ __be32 to cpu format
+Date: Tue, 24 Oct 2017 21:59:56 +0300
+Message-ID: <20171024185956.GL16127@mtr-leonro.local>
+References: <20171024182848.7945-1-leon@kernel.org>
+ <067301d34cf7$d0872ff0$71958fd0$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="zHDeOHGDnzKksZSU"
+        protocol="application/pgp-signature"; boundary="kaF1vgn83Aa7CiXN"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <069401d34cf8$5171f6e0$f455e4a0$@opengridcomputing.com>
+In-Reply-To: <067301d34cf7$d0872ff0$71958fd0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'RDMA mailing list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---zHDeOHGDnzKksZSU
+--kaF1vgn83Aa7CiXN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Oct 24, 2017 at 01:45:52PM -0500, Steve Wise wrote:
+On Tue, Oct 24, 2017 at 01:42:16PM -0500, Steve Wise wrote:
 > >
-> > Hi Steve,
+> > The scqe.stag is actually declared in u32 format and don't need
+> > conversion from __be32 to cpu format.
 > >
-> > I reviewed my reports from various static checkers and saw strange code
-> > in build_tpte_memreg() function that in drivers/infiniband/hw/cxgb4/qp.c.
+> > Remove the be32_to_cpu() and avoid the following sparse error.
+> >   drivers/infiniband/hw/cxgb4/cq.c:754:52: warning: cast to restricted __be32
 > >
-> > That function has following code:
-> >  614         fr->r2 = cpu_to_be32(0);
-> >  615         fr->stag = cpu_to_be32(mhp->ibmr.rkey);
+> > Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > ---
+> >  drivers/infiniband/hw/cxgb4/t4.h | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
 > >
-> > The r2, stag and rkey are u32, why do you need cpu_to_be32() conversion?
+> > diff --git a/drivers/infiniband/hw/cxgb4/t4.h
+> b/drivers/infiniband/hw/cxgb4/t4.h
+> > index 2b44fa850bbb..a16f3596f5a8 100644
+> > --- a/drivers/infiniband/hw/cxgb4/t4.h
+> > +++ b/drivers/infiniband/hw/cxgb4/t4.h
+> > @@ -234,7 +234,7 @@ struct t4_cqe {
 > >
+> >  /* used for SQ completion processing */
+> >  #define CQE_WRID_SQ_IDX(x)	((x)->u.scqe.cidx)
+> > -#define CQE_WRID_FR_STAG(x)     (be32_to_cpu((x)->u.scqe.stag))
+> > +#define CQE_WRID_FR_STAG(x)     ((x)->u.scqe.stag)
 >
-> Hey Leon,
->
-> The r2 and stag fields in struct fw_ri_fr_nsmr_tpte_wr should be __be32.
+> This is incorrect.  The stag is filled in by HW which is BE.  The declaration of
+> scqe.stag needs to be __be32.
 
-it is not how it is declared in drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
+So why do you declare stag as u32?
 
-672 struct fw_ri_fr_nsmr_tpte_wr {
-673         __u8    opcode;
-674         __u8   flags;
-675         __u16  wrid;
-676         __u8   r1[3];
-677         __u8   len16;
-678         __u32  r2;
-679         __u32  stag;
-680         struct fw_ri_tpte tpte;
-681         __u64  pbl[2];
-682 };
+drivers/infiniband/hw/cxgb4/cq.c:
+676 static int c4iw_poll_cq_one(struct c4iw_cq *chp, struct ib_wc *wc)
+...
+679         struct t4_cqe uninitialized_var(cqe), *rd_cqe;
+...
+753                                 c4iw_invalidate_mr(qhp->rhp,
+754                                                    CQE_WRID_FR_STAG(&cqe));
+
+....
+drivers/infiniband/hw/cxgb4/t4.h:
+162 /*
+163  * CQE defs
+164  */
+165 struct t4_cqe {
+166         __be32 header;
+167         __be32 len;
+168         union {
+169                 struct {
+170                         __be32 stag;
+171                         __be32 msn;
+172                 } rcqe;
+173                 struct {
+174                         u32 stag;
+175                         u16 nada2;
+176                         u16 cidx;
+177                 } scqe;
+178                 struct {
+179                         __be32 wrid_hi;
+180                         __be32 wrid_low;
+181                 } gen;
+182                 u64 drain_cookie;
+183         } u;
+184         __be64 reserved;
+185         __be64 bits_type_ts;
+186 };
 
 Thanks
 
 >
-> Steve.
 >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---zHDeOHGDnzKksZSU
+--kaF1vgn83Aa7CiXN
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnvjhYACgkQ5GN7iDZy
-WKc+KxAAsU1uGwhHEaahRhVCScr1bHFp17zvV+aIq6cfvFTqrq5+UdfQMcOZaZAp
-TPmMiTsbfbJ7COiRSsVLBlB4bWtHbBYlG5pksCdZV/q91U5MzYgOlBeZ0HxBzqlz
-ZP3mPEjzAi1YYRHbfJfXYvj+xLg2BXzfpx0cnbc47edSLdFgR/8GxwJwWkAcZH2D
-AJKFywerHOmiyUQMGJvu2XHjTbzkTcCxvzY5ZVzRILht4A0jn1Do8YTr5FXNFE6V
-6gF4esRR1oONhm56yuoy8ydX0NgtlYZjnXWOXJTOZ10HalZoyYakiAf70/sRtpNm
-u6tVREgrMSCA1lOCZrBmt4GWQ+8aTrH6cYLOC1e/RW9+uyXG+JA4m9BLJqfg0ZHz
-mNBCBRw/+7qsGzGpANxsRBhFJyMNvFZAdPWMljWmmEJelR/PlyeYMeMJ1QYh64jT
-msaDCnw6duqe2t06Dccoyd1zhm1gGOGisTaYapYeJW/LOI6fMWOzPfgcS/QE89+O
-lILwer9FtVuNes6UpHNcoATJUeGPHcuFAZNDf5WhM3N3gzdvzHeuwjZB1QbMAJFV
-9ANnwr/hc1vuYEDOi7sXdS/zyFZr6jxz6Wpkf4p4cXOXmDI9T9+EayDiu8Ylu/wT
-B4aWwLynmk5s2jZf+q38pYx2uIWkCTzNez2LmrfsWka7/x33Qxc=
-=ss8I
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnvjawACgkQ5GN7iDZy
+WKdLtw//e8GvYVzHH1lU8ONtewx2MLVCjFIhtNOXwDg3LRHFdkMSvxGfWXQQkZiA
+RhwYwezET5mWam9AKkroLeU14H6Q35/FRfpJKFXjU7/LhxzPZiqz/x3VhBCRU0GY
+1FJVarseafmdUaVPT5O/epk3yWj1c/Ol16Sk4gkOKs+0EE3558vjlIUQy2m9Ft4w
+j4Abi0VU1tsuXlHsbZiEveB6EgSbf4aFZ6rmG47VAfClOwbya7ZgOwjLZ/TEkIFZ
+VeYfiNq3NAa8WLpDEhK5Z+o7jnLYGWOqtsz8gceQsTJkIj+2jsFIx7p7dQ90uAjy
+yhxXGAgQIfdvFHhBDvdR/1W9gcYkMD6KXpMbG2P0Ef0ExgsODBMI58X6UtOKzZNy
+5a858LcHY5DK+LG42bpA4FyQCxjamvY1gx8VI81s99sOjnuisfb4HPlHcFwMTFvc
+qKj5b8qX+nigm7lFGnuEMvX30HQrF20RoD43bm2rSuykyfcvO8ptGuQe4pWuoA76
+bJJTgYVDRAg9z81u2Kb5aA6oxHILAmyf86Sy5iAqDKQUTBnSoRynaCqJKbNzGwLY
+FzwO56tpy4+lZ1ljIhOIfCZb26i1vZTsi6zr30+AFc+Ux4E4zk33xiwzMtU+uXXC
+qexY6Cl3DCrDbcPmpM4R2GK3lnb32nQatoeohJD/3PP7Kiy2Kbk=
+=1YoW
 -----END PGP SIGNATURE-----
 
---zHDeOHGDnzKksZSU--
+--kaF1vgn83Aa7CiXN--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
