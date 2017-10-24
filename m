@@ -1,69 +1,63 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V2 rdma-core 0/5] Userspace library matching for hip08
- RoCE
-Date: Tue, 24 Oct 2017 07:37:42 +0300
-Message-ID: <20171024043742.GF16127@mtr-leonro.local>
-References: <1508812550-98920-1-git-send-email-oulijun@huawei.com>
+From: "Petrosyan, Ludwig" <ludwig.petrosyan-T5F83Mi6MZE@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Tue, 24 Oct 2017 07:58:19 +0200 (CEST)
+Message-ID: <1264390131.14701401.1508824699016.JavaMail.zimbra@desy.de>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com> <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de> <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com> <1381807327.12461494.1508652825239.JavaMail.zimbra@desy.de> <063D6719AE5E284EB5DD2968C1650D6DD00A04EA@AcuExch.aculab.com> <d61b6829-0515-a809-2a43-c41add4b1594@deltatee.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="hK8Uo4Yp55NZU70L"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1508812550-98920-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <d61b6829-0515-a809-2a43-c41add4b1594-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: David Laight <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>, Alexander Deucher <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Linux-media <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Bridgman <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, Felix Kuehling <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Serguei Sagalovitch <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, Paul Blinzer <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, Christian Koenig <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, Ben Sander <ben.sander-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Yes I agree it has to be started with the write transaction, according of PCIe standard all write transaction are address routed, and I agree with Logan:
+if in write transaction TLP the endpoint address written in header the TLP should not touch CPU, the PCIe Switch has to route it to endpoint.
+The idea was: in MTCA system there is PCIe Switch on MCH (MTCA crate HUB) this switch connects CPU to other Crate Slots, so one port is Upstream and others are Downstream  ports, DMA read from CPU is usual write on endpoint side, Xilinx DMA core has two registers Destination Address and Source Address,
+device driver to make DMA has to set up these registers,
+usually device driver to start DMA read from Board sets Source address as FPGA memory address and Destination address is DMA prepared system address,
+in case of testing p2p I set Destination address as physical address of other endpoint.
+More detailed:
+we have so called pcie universal driver: the idea behind is
+1. all pcie configuration staff, find enabled BARs, mapping BARs, usual read/write and common ioctl (get slot number, get driver version ...) implemented in universal driver and EXPORTed.
+2. if some system function in new kernel are changed we change it only in universal parts (easy support a big number of drivers )
+so the universal driver something like PCIe Driver API
+3. the universal driver provides read/writ functions so we have the same device access API for any PCIe device, we could use the same user application with any PCIe device
 
---hK8Uo4Yp55NZU70L
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+now. during BARs finding and mapping universal driver keeps pcie endpoint physical address in some internal structures, any top driver may get physical address
+of other pcie endpoint by slot number.
+in may case during get_resorce the physical address is 0xB2000000, I check lspci -H1 -vvvv -s psie switch port bus address (the endpoint connected to this port, checked by lspci -H1 -t) the same address (0xB200000) is the memory behind bridge, 
+I want to make p2p writes to offset 0x40000, so I set DMA destination address 0xB2400000
+is something wrong?
 
-On Tue, Oct 24, 2017 at 10:35:45AM +0800, Lijun Ou wrote:
-> This patch series add userspace library for hip08 RoCE driver. It will
-> work with the kernel driver of hip08 RoCE(hns-roce-hw-v2.ko).
->
-> Change from V1:
-> - Fix build warning due to the strange placement of fprintf
->
+thanks for help
+regards
 
-It still fails to build cleanly.
-https://travis-ci.org/linux-rdma/rdma-core/builds/291891845?utm_source=github_status&utm_medium=notification
+Ludwig
 
-[74/190] Building C object providers/h...s/hns-rdmav16.dir/hns_roce_u_hw_v2.c.o
-FAILED: /usr/bin/clang-4.0 -Dhns_rdmav16_EXPORTS -Werror -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wformat=2 -Wshadow -Wstrict-prototypes -Wold-style-definition -Wredundant-decls -O2 -g -fPIC -Iinclude -I/usr/include/libnl3 -std=gnu11 -MMD -MT providers/hns/CMakeFiles/hns-rdmav16.dir/hns_roce_u_hw_v2.c.o -MF providers/hns/CMakeFiles/hns-rdmav16.dir/hns_roce_u_hw_v2.c.o.d -o providers/hns/CMakeFiles/hns-rdmav16.dir/hns_roce_u_hw_v2.c.o -c ../providers/hns/hns_roce_u_hw_v2.c
-../providers/hns/hns_roce_u_hw_v2.c:40:20: error: unused function 'set_raddr_seg_v2' [-Werror,-Wunused-function]
-static inline void set_raddr_seg_v2(struct hns_roce_v2_wqe_raddr_seg *rseg,
- ^
-1 error generated.
-[74/190] Building C object providers/h...s/hns-rdmav16.dir/hns_roce_u_hw_v1.c.o
+----- Original Message -----
+From: "Logan Gunthorpe" <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+To: "David Laight" <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>, "Petrosyan, Ludwig" <ludwig.petrosyan-T5F83Mi6MZE@public.gmane.org>
+Cc: "Alexander Deucher" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "linux-kernel" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Linux-media" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "linux-pci" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "John Bridgman" <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "Felix Kuehling" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Serguei Sagalovitch" <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Paul Blinzer" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Christian Koenig" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, "Suravee Suthikulpanit" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Ben Sander" <ben.sander-5C7GfCeVMHo@public.gmane.org>
+Sent: Tuesday, 24 October, 2017 00:04:26
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
 
-Please use buildlib/cbuild script to test your patch series, the option "travis" will run the same checkers as I'm running.
+On 23/10/17 10:08 AM, David Laight wrote:
+> It is also worth checking that the hardware actually supports p2p transfers.
+> Writes are more likely to be supported then reads.
+> ISTR that some intel cpus support some p2p writes, but there could easily
+> be errata against them.
 
-Thanks
+Ludwig mentioned a PCIe switch. The few switches I'm aware of support 
+P2P transfers. So if everything is setup correctly, the TLPs shouldn't 
+even touch the CPU.
 
---hK8Uo4Yp55NZU70L
-Content-Type: application/pgp-signature; name="signature.asc"
+But, yes, generally it's a good idea to start with writes and see if 
+they work first.
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnuw5YACgkQ5GN7iDZy
-WKegfw/9Ei6U+Q/t9BVpwGp3YihqTjepsvS1HQnygFL7iBZV0htqy0uwRV5zEwKe
-Vdeg1W0ttWDAIqf0IWrkComvNl1hptMe4O34P2IQXOKs3jIwDgxtgP9ppJLkHrEl
-7i8KRN9nIUzztniwkTgD6seLk//rP8oK29txYIB1905sgJqOcRVrWm2jmCROKJJT
-jnpva5jxrKiroRkkFlupAmLAMBIgsub7VZbg6uz37832o/vAwpvQpA3onnf4hRVK
-cIh5N9AV3FVukDycNaJssCO8dJ8OTcxKnFER1mB2Py7j2/cjDd/pI0kF9C0R8PHo
-Un7GzqQe3Rb66IcLQpzNkYs8gCqud9aXzy9amPpFahposLwDrqyOKwpbC1LsWD41
-poIl4jZsSqQ6mauDyCMv76RCkxZFEaFecmDMPzd8nVZqvzt/HPFU1EwJoRe/d/08
-f267dhpAaiXgvg4HKwUAroZdrJ6MKmpKiI9TM9KB963BG1qc3PkV2bjba74+Tm/8
-h/UV3nYWi7jUzAEqHyKUgKiWpyknhA/nldUUMoLTwQ6syLvIPIw7JCcWZHHxUPJD
-i7PFRS9iQI8GM/Fc7k6YGtZh3DjEB1JBPBmI4By7wDRDUPCU2x94Scd5FxHFk5Y5
-J0CBh5VucxFt9z23VlfmlMRcS77ntUeDE7D/6pDe50K9d5NgQPI=
-=MY00
------END PGP SIGNATURE-----
-
---hK8Uo4Yp55NZU70L--
+Logan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
