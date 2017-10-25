@@ -1,128 +1,63 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ibqueryerrors.c: Add support for additional counters in
- PortCountersExtended
-Date: Tue, 24 Oct 2017 20:20:00 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E67D4459A@CRSMSX101.amr.corp.intel.com>
-References: <2807E5FD2F6FDA4886F6618EAC48510E67D31C52@CRSMSX101.amr.corp.intel.com>
- <DB6PR0501MB2245E78D6118FE145C8141D8A87C0@DB6PR0501MB2245.eurprd05.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] bnxt_re: Implement the shutdown hook of the L2-RoCE driver interface
+Date: Wed, 25 Oct 2017 09:12:30 +0530
+Message-ID: <20171025034230.30656-1-somnath.kotur@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <DB6PR0501MB2245E78D6118FE145C8141D8A87C0-wTfl6qNNZ1OA0EDQtjEfCcDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "'Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)'" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> Hi Ira,
-> 
-> Users don't set thresholds for old/new counters, they just set thresholds and if
-> new counters are supported then thresholds are checked against new counters
-> and if only old counters are supported then thresholds are checked against old
-> counters.
+When host is shutting down, it invokes the shutdown hook of the
+L2 driver where it would attempt to free the MSI-X vectors, but would fail
+because some vectors are held by the RoCE driver.
+Implement the new hook in the L2 -> RoCE interface which will be invoked so that
+the RoCE driver can unregister the device and free up the MSI-X vectors it had
+claimed so that L2 can proceed with it's shutdown without failure.
 
-But you are not checking the same set of counters.
+Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/bnxt_re/main.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-        IB_PC_EXT_ERR_SYM_F,                                                                                                                               
-        IB_PC_EXT_LINK_RECOVERS_F,                                              
-        IB_PC_EXT_LINK_DOWNED_F,                                                
-        IB_PC_EXT_ERR_RCV_F,                                                    
-        IB_PC_EXT_ERR_PHYSRCV_F,                                                
-        IB_PC_EXT_ERR_SWITCH_REL_F,                                             
-        IB_PC_EXT_XMT_DISCARDS_F,                                               
-        IB_PC_EXT_ERR_XMTCONSTR_F,                                              
-        IB_PC_EXT_ERR_RCVCONSTR_F,                                              
-        IB_PC_EXT_ERR_LOCALINTEG_F,                                             
-        IB_PC_EXT_ERR_EXCESS_OVR_F,                                             
-        IB_PC_EXT_VL15_DROPPED_F,                                               
-        IB_PC_EXT_XMT_WAIT_F,                                                   
-        IB_PC_EXT_QP1_DROP_F,                                                   
-        IB_PC_EXT_ERR_LAST_F,                                                   
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index 87f8a5d..aafc19a 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -78,6 +78,7 @@
+ /* Mutex to protect the list of bnxt_re devices added */
+ static DEFINE_MUTEX(bnxt_re_dev_lock);
+ static struct workqueue_struct *bnxt_re_wq;
++static void bnxt_re_ib_unreg(struct bnxt_re_dev *rdev, bool lock_wait);
+ 
+ /* for handling bnxt_en callbacks later */
+ static void bnxt_re_stop(void *p)
+@@ -92,11 +93,22 @@ static void bnxt_re_sriov_config(void *p, int num_vfs)
+ {
+ }
+ 
++static void bnxt_re_shutdown(void *p)
++{
++	struct bnxt_re_dev *rdev = p;
++
++	if (!rdev)
++		return;
++
++	bnxt_re_ib_unreg(rdev, false);
++}
++
+ static struct bnxt_ulp_ops bnxt_re_ulp_ops = {
+ 	.ulp_async_notifier = NULL,
+ 	.ulp_stop = bnxt_re_stop,
+ 	.ulp_start = bnxt_re_start,
+-	.ulp_sriov_config = bnxt_re_sriov_config
++	.ulp_sriov_config = bnxt_re_sriov_config,
++	.ulp_shutdown = bnxt_re_shutdown
+ };
+ 
+ /* RoCE -> Net driver */
+-- 
+1.8.3.1
 
-
-VS.
-
-        /*                                                                      
-         * GS Performance                                                       
-         */                                                                     
-        IB_PC_FIRST_F,                                                          
-        IB_PC_PORT_SELECT_F = IB_PC_FIRST_F,                                    
-        IB_PC_COUNTER_SELECT_F,                                                 
-        IB_PC_ERR_SYM_F,                                                        
-        IB_PC_LINK_RECOVERS_F,                                                  
-        IB_PC_LINK_DOWNED_F,                                                    
-        IB_PC_ERR_RCV_F,                                                        
-        IB_PC_ERR_PHYSRCV_F,                                                    
-        IB_PC_ERR_SWITCH_REL_F,                                                 
-        IB_PC_XMT_DISCARDS_F,                                                   
-        IB_PC_ERR_XMTCONSTR_F,                                                  
-        IB_PC_ERR_RCVCONSTR_F,                                                  
-        IB_PC_COUNTER_SELECT2_F,                                                
-        IB_PC_ERR_LOCALINTEG_F,                                                 
-        IB_PC_ERR_EXCESS_OVR_F,                                                 
-        IB_PC_VL15_DROPPED_F,                                                   
-        IB_PC_XMT_BYTES_F,                                                      
-        IB_PC_RCV_BYTES_F,                                                      
-        IB_PC_XMT_PKTS_F,                                                       
-        IB_PC_RCV_PKTS_F,                                                       
-        IB_PC_XMT_WAIT_F,                                                       
-        IB_PC_LAST_F,                                                           
-
-For example you no longer can specify IB_PC_XMT_BYTES_F.
-
-As I don't think anyone uses these thresholds for this counter I'm going to let the patch go.  But generally this probably should be cleaned up somehow.  I just don't have the time as I am sure you don't...  ;-)
-
-Ira
-
-
-> 
-> -----Original Message-----
-> From: Weiny, Ira [mailto:ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> Sent: Saturday, September 30, 2017 4:42 AM
-> To: 'Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>; Oded
-> Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: RE: ibqueryerrors.c: Add support for additional counters in
-> PortCountersExtended
-> 
-> Hal, Oded,
-> 
-> I have lost the original email from this submission but got it off of patchwork.
-> 
-> Question on the hunk below.
-> 
-> diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c
-> index 304dc154c4b4..4ea762a1f344 100644
-> --- a/src/ibqueryerrors.c
-> +++ b/src/ibqueryerrors.c
-> @@ -105,15 +105,15 @@ static unsigned valid_gid(ib_gid_t * gid)
->         return memcmp(&zero_gid, gid, sizeof(*gid));
->  }
-> 
-> -static void set_thres(char *name, uint32_t val)
-> +static void set_thres(char *name, uint64_t val)
->  {
->         int f;
->         int n;
->         char tmp[256];
-> -       for (f = IB_PC_FIRST_F; f <= IB_PC_LAST_F; f++) {
-> +       for (f = IB_PC_EXT_ERR_SYM_F; f <= IB_PC_EXT_XMT_WAIT_F; f++) {
-> 
-> How does this change allow for users to set the old Port Counters thresholds?
-> 
-> Ira
-> 
-> 
->                 if (strcmp(name, mad_field_name(f)) == 0) {
->                         mad_encode_field(thresholds, f, &val);
-> -                       snprintf(tmp, 255, "[%s = %u]", name, val);
-> +                       snprintf(tmp, 255, "[%s = %lu]", name, val);
->                         threshold_str = realloc(threshold_str,
->                                         strlen(threshold_str)+strlen(tmp)+1);
->                         if (!threshold_str) {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
