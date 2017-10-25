@@ -1,135 +1,141 @@
 From: "Bernard Metzler" <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: [PATCH v2 06/13] SoftiWarp connection management
-Date: Wed, 25 Oct 2017 14:01:20 +0000
-Message-ID: <OF3B161EF2.25CCC6AE-ON002581C4.004C496F-002581C4.004D06F6@notes.na.collabserv.com>
-References: <20171020124944.GA11604@ssaleem-MOBL4.amr.corp.intel.com>,<20171006122853.16310-1-bmt@zurich.ibm.com>
- <20171006122853.16310-7-bmt@zurich.ibm.com>
+Subject: Re: [PATCH v2 05/13] SoftiWarp application interface
+Date: Wed, 25 Oct 2017 14:17:22 +0000
+Message-ID: <OFA9213400.51E5BE58-ON002581C4.004D3BE7-002581C4.004E7EE8@notes.na.collabserv.com>
+References: <20171020133013.GC11604@ssaleem-MOBL4.amr.corp.intel.com>,<20171006122853.16310-1-bmt@zurich.ibm.com>
+ <20171006122853.16310-6-bmt@zurich.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171020124944.GA11604-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
+In-Reply-To: <20171020133013.GC11604-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
------linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org wrote: -----
+-----Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote: -----
 
 >To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
->From: Shiraz Saleem 
->Sent by: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->Date: 10/20/2017 02:49PM
+>From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>Date: 10/20/2017 03:30PM
 >Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->Subject: Re: [PATCH v2 06/13] SoftiWarp connection management
+>Subject: Re: [PATCH v2 05/13] SoftiWarp application interface
 >
->On Fri, Oct 06, 2017 at 08:28:46AM -0400, Bernard Metzler wrote:
+>On Fri, Oct 06, 2017 at 08:28:45AM -0400, Bernard Metzler wrote:
 >> Signed-off-by: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 >> ---
->>  drivers/infiniband/sw/siw/siw_cm.c | 2270
->++++++++++++++++++++++++++++++++++++
->>  drivers/infiniband/sw/siw/siw_cm.h |  156 +++
->>  2 files changed, 2426 insertions(+)
->>  create mode 100644 drivers/infiniband/sw/siw/siw_cm.c
->>  create mode 100644 drivers/infiniband/sw/siw/siw_cm.h
+>>  drivers/infiniband/sw/siw/siw_ae.c    |  113 ++
+>>  drivers/infiniband/sw/siw/siw_verbs.c | 1929
+>+++++++++++++++++++++++++++++++++
+>>  drivers/infiniband/sw/siw/siw_verbs.h |  119 ++
+>>  include/uapi/rdma/siw_user.h          |  220 ++++
+>>  4 files changed, 2381 insertions(+)
+>>  create mode 100644 drivers/infiniband/sw/siw/siw_ae.c
+>>  create mode 100644 drivers/infiniband/sw/siw/siw_verbs.c
+>>  create mode 100644 drivers/infiniband/sw/siw/siw_verbs.h
+>>  create mode 100644 include/uapi/rdma/siw_user.h
 >> 
->> diff --git a/drivers/infiniband/sw/siw/siw_cm.c
->b/drivers/infiniband/sw/siw/siw_cm.c
->> new file mode 100644
->> index 000000000000..1527c9ddfed8
->> --- /dev/null
->> +++ b/drivers/infiniband/sw/siw/siw_cm.c
 >
->> +static void siw_rtr_data_ready(struct sock *sk)
->> +{
->> +	struct siw_cep		*cep;
->> +	struct siw_qp		*qp = NULL;
->> +	read_descriptor_t	rd_desc;
->> +
->> +	read_lock(&sk->sk_callback_lock);
->> +
->> +	cep = sk_to_cep(sk);
->> +	if (!cep) {
->> +		WARN_ON(1);
->> +		goto out;
->> +	}
->> +	qp = sk_to_qp(sk);
->> +
->> +	memset(&rd_desc, 0, sizeof(rd_desc));
->> +	rd_desc.arg.data = qp;
->> +	rd_desc.count = 1;
->> +
->> +	tcp_read_sock(sk, &rd_desc, siw_tcp_rx_data);
->> +	/*
->> +	 * Check if first frame was successfully processed.
->> +	 * Signal connection full establishment if yes.
->> +	 * Failed data processing would have already scheduled
->> +	 * connection drop.
->> +	 */
->> +	if (qp->rx_ctx.rx_suspend == 0  && qp->rx_ctx.rx_suspend == 0)
->> +		siw_cm_upcall(cep, IW_CM_EVENT_ESTABLISHED, 0);
->
->Redundant condition in if. Also, its preferred to use
->!qp->rx_ctx.rx_suspend.
-
-Oh yes, thank you!
-
->
->> + * siw_accept - Let SoftiWARP accept an RDMA connection request
 >> + *
->> + * @id:		New connection management id to be used for accepted
->> + *		connection request
->> + * @params:	Connection parameters provided by ULP for accepting
->connection
+>> + * Post a list of S-WR's to a SQ.
 >> + *
->> + * Transition QP to RTS state, associate new CM id @id with
->accepted CEP
->> + * and get prepared for TCP input by installing socket callbacks.
->> + * Then send MPA Reply and generate the "connection established"
->event.
->> + * Socket callbacks must be installed before sending MPA Reply,
->because
->> + * the latter may cause a first RDMA message to arrive from the
->RDMA Initiator
->> + * side very quickly, at which time the socket callbacks must be
->ready.
+>> + * @ofa_qp:	OFA QP contained in siw QP
+>> + * @wr:		Null terminated list of user WR's
+>> + * @bad_wr:	Points to failing WR in case of synchronous failure.
 >> + */
->> +int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param
->*params)
+>> +int siw_post_send(struct ib_qp *ofa_qp, struct ib_send_wr *wr,
+>> +		  struct ib_send_wr **bad_wr)
 >> +{
->> +	struct siw_dev		*sdev = siw_dev_ofa2siw(id->device);
->> +	struct siw_cep		*cep = (struct siw_cep *)id->provider_data;
->> +	struct siw_qp		*qp;
->> +	struct siw_qp_attrs	qp_attrs;
->> +	int rv, max_priv_data = MPA_MAX_PRIVDATA;
->> +	bool wait_for_peer_rts = false;
+>> +	struct siw_qp	*qp = siw_qp_ofa2siw(ofa_qp);
+>> +	struct siw_wqe	*wqe = tx_wqe(qp);
 >> +
->> +	siw_cep_set_inuse(cep);
->> +	siw_cep_put(cep);
+>> +	unsigned long flags;
+>> +	int rv = 0;
 >> +
->> +	/* Free lingering inbound private data */
->> +	if (cep->mpa.hdr.params.pd_len) {
->> +		cep->mpa.hdr.params.pd_len = 0;
->> +		kfree(cep->mpa.pdata);
->> +		cep->mpa.pdata = NULL;
+>> +	dprint(DBG_WR|DBG_TX, "(QP%d): state=%d\n",
+>> +		QP_ID(qp), qp->attrs.state);
+>> +
+>> +	/*
+>> +	 * Try to acquire QP state lock. Must be non-blocking
+>> +	 * to accommodate kernel clients needs.
+>> +	 */
+>> +	if (!down_read_trylock(&qp->state_lock)) {
+>> +		*bad_wr = wr;
+>> +		return -ENOTCONN;
 >> +	}
+>> +
+>> +	if (unlikely(qp->attrs.state != SIW_QP_STATE_RTS)) {
+>> +		dprint(DBG_WR, "(QP%d): state=%d\n",
+>> +			QP_ID(qp), qp->attrs.state);
+>> +		up_read(&qp->state_lock);
+>> +		*bad_wr = wr;
+>> +		return -ENOTCONN;
+>> +	}
+>> +	if (wr && qp->kernel_verbs == 0) {
+>Can qp->kernel_verbs ever be 0? Isnt this post_send for kernel QPs
+>only?
 >
->Can you not just check for cep->mpa.pdata?
+We use the post_send to trigger a 'software SQ doorbell' for user 
+level applications. After the application library wrote its WQE,
+we must make sure the kernel part of siw starts processing the SQ.
+This is being done by calling post_send with an empty WR.
 
-Yes. I chose to do it that way to side-step a checkpatch warning
-regarding 'kfree(NULL) is safe'.
+We experimented with having our own system call for that
+doorbell, which would avoid running through the kernel rdma
+core logic of post_send. It would save us another 1..2 us, but we removed
+that, aiming at code acceptance ;)
 
 
->--
->To unsubscribe from this list: send the line "unsubscribe linux-rdma"
->in
->the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->More majordomo info at
->https://urldefense.proofpoint.com/v2/url?u=http-3A__vger.kernel.org_m
->ajordomo-2Dinfo.html&d=DwIBAg&c=jf_iaSHvJObTbx-siA1ZOg&r=2TaYXQ0T-r8Z
->O1PP1alNwU_QJcRRLfmYTAgd3QCvqSc&m=9skGbzeXQprZNNjOP17C90AQJw2UywxWNdd
->3Ho6nJ1U&s=9As1oQG0mz0YTgbxrGMbciEd0mdLDsmIvXa3R2kRYv8&e=
+>> +		dprint(DBG_WR|DBG_ON, "(QP%d): user mapped SQ with OFA WR\n",
+>> +			QP_ID(qp));
+>> +		up_read(&qp->state_lock);
+>> +		*bad_wr = wr;
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	spin_lock_irqsave(&qp->sq_lock, flags);
+>> +
+>> +	while (wr) {
+>> +		u32 idx = qp->sq_put % qp->attrs.sq_size;
+>> +		struct siw_sqe *sqe = &qp->sendq[idx];
+>> +
+>> +		if (sqe->flags) {
+>> +			dprint(DBG_WR, "(QP%d): SQ full\n", QP_ID(qp));
+>> +			rv = -ENOMEM;
+>> +			break;
+>> +		}
+>> +		if (wr->num_sge > qp->attrs.sq_max_sges) {
+>> +			/*
+>> +			 * NOTE: we allow for zero length wr's here.
+>> +			 */
+>> +			dprint(DBG_WR, "(QP%d): Num SGE: %d\n",
+>> +				QP_ID(qp), wr->num_sge);
+>> +			rv = -EINVAL;
+>> +			break;
+>> +		}
+>> +		sqe->id = wr->wr_id;
+>> +		sqe->flags = 0;
+>sqe->flags will always be 0 if we reached to this point in code no?
+>Since we break out of the loop if sqe->flags != 0.
 >
+>
+Correct, thanks. Will remove that unneeded line.
+
+>
+>
+>> +
+>> +	if (qp->kernel_verbs)
+>> +		siw_sq_start(qp);
+>ditto. Is this check neccessary?
+>
+>
+We schedule SQ processing, if we are called by a kernel
+client. If called by a user client, we can start SQ processing 
+immediately from within user context (for a fixed burst of wire
+frames only). That helps to minimize processing delay for small
+messages to be send out.
+
 >
 
 --
