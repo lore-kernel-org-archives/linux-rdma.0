@@ -1,32 +1,30 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] RDMA/cxgb4: Declare stag as __be32
-Date: Wed, 25 Oct 2017 15:26:41 -0400
-Message-ID: <1508959601.3325.60.camel@redhat.com>
-References: <20171025044111.17543-1-leon@kernel.org>
-         <021901d34da0$60d34140$2279c3c0$@opengridcomputing.com>
+Subject: Re: [PATCH] bnxt_re: Implement the shutdown hook of the L2-RoCE
+ driver interface
+Date: Wed, 25 Oct 2017 15:28:47 -0400
+Message-ID: <1508959727.3325.61.camel@redhat.com>
+References: <20171025034230.30656-1-somnath.kotur@broadcom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <021901d34da0$60d34140$2279c3c0$@opengridcomputing.com>
+In-Reply-To: <20171025034230.30656-1-somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-10-25 at 09:48 -0500, Steve Wise wrote:
-> > 
-> > The scqe.stag is actually __b32, fix it.
-> > 
-> >   drivers/infiniband/hw/cxgb4/cq.c:754:52: warning: cast to
-> > restricted __be32
-> > 
-> > Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+On Wed, 2017-10-25 at 09:12 +0530, Somnath Kotur wrote:
+> When host is shutting down, it invokes the shutdown hook of the
+> L2 driver where it would attempt to free the MSI-X vectors, but would
+> fail
+> because some vectors are held by the RoCE driver.
+> Implement the new hook in the L2 -> RoCE interface which will be
+> invoked so that
+> the RoCE driver can unregister the device and free up the MSI-X
+> vectors it had
+> claimed so that L2 can proceed with it's shutdown without failure.
 > 
-> looks good.
-> 
-> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
 Thanks, applied.
 
