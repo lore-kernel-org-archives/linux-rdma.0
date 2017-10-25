@@ -1,45 +1,36 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V4 rdma-core 0/5] Userspace library matching for hip08 RoCE
-Date: Wed, 25 Oct 2017 18:08:55 +0800
-Message-ID: <1508926140-146813-1-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V4 rdma-core 5/5] libhns: Update consolidate repo for userspace library of hip08 RoCE
+Date: Wed, 25 Oct 2017 18:09:00 +0800
+Message-ID: <1508926140-146813-6-git-send-email-oulijun@huawei.com>
+References: <1508926140-146813-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1508926140-146813-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch series add userspace library for hip08 RoCE driver. It will
-work with the kernel driver of hip08 RoCE(hns-roce-hw-v2.ko).
+This patch configure the consolidated repo to build user driver
+of hip08 RoCE.
 
-Change from V3:
-- Remove some unnecessary cast according to cbuild check result
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+ providers/hns/CMakeLists.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-Change from V2:
-- Fix the spelling with referred
-- Eliminate the warning by travis-CI
-
-Change from V1:
-- Fix build warning due to the strange placement of fprintf
-
-Lijun Ou (5):
-  libhns: Add new PCI device matching for hip08
-  libhns: Introduce QP operations referred to hip08 RoCE device
-  libhns: Introduce CQ operations referred to hip08 device
-  libhns: Reimplement verbs of post_send and post_recv for hip08 RoCE
-  libhns: Update consolidate repo for userspace library of hip08 RoCE
-
- providers/hns/CMakeLists.txt     |   1 +
- providers/hns/hns_roce_u.c       |  12 +-
- providers/hns/hns_roce_u.h       |  13 +-
- providers/hns/hns_roce_u_hw_v2.c | 905 +++++++++++++++++++++++++++++++++++++++
- providers/hns/hns_roce_u_hw_v2.h | 261 +++++++++++
- providers/hns/hns_roce_u_verbs.c | 121 ++++--
- 6 files changed, 1278 insertions(+), 35 deletions(-)
- create mode 100644 providers/hns/hns_roce_u_hw_v2.c
- create mode 100644 providers/hns/hns_roce_u_hw_v2.h
-
+diff --git a/providers/hns/CMakeLists.txt b/providers/hns/CMakeLists.txt
+index 19a793e..f136151 100644
+--- a/providers/hns/CMakeLists.txt
++++ b/providers/hns/CMakeLists.txt
+@@ -2,5 +2,6 @@ rdma_provider(hns
+   hns_roce_u.c
+   hns_roce_u_buf.c
+   hns_roce_u_hw_v1.c
++  hns_roce_u_hw_v2.c
+   hns_roce_u_verbs.c
+ )
 -- 
 1.9.1
 
