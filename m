@@ -1,177 +1,81 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 for-next 3/7] IB/hfi1: Validate PKEY for incoming GSI MAD
- packets
-Date: Wed, 25 Oct 2017 08:15:18 -0700
-Message-ID: <20171025151515.667.5270.stgit@scvm10.sc.intel.com>
-References: <20171023130558.21191.30808.stgit@scvm10.sc.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-next 00/16] Flow counters support
+Date: Wed, 25 Oct 2017 09:17:34 -0600
+Message-ID: <20171025151734.GA15557@obsidianresearch.com>
+References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
+ <20171023165118.GA18097@obsidianresearch.com>
+ <b003f6e5-d7ce-3775-a1dc-0fd0f507a515@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171023130558.21191.30808.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <b003f6e5-d7ce-3775-a1dc-0fd0f507a515-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Wed, Oct 25, 2017 at 05:58:15PM +0300, Yishai Hadas wrote:
 
-These are the use-cases where the pkey needs to be tested to see
-if a packet needs to be dropped.
+> Hi Jason, please go over the patches/uapi, we believe that you'll find it
+> quite easy to be used by an application, however we plan to improve as of
+> below.
 
-a) Check if pkey is not FULL_MGMT_P_KEY or LIM_MGMT_P_KEY,
-   drop the packet as it's not part of the management partition.
-   Self-originated packets are an exception.
+No, it is not, this proposal relies too much on device-specific
+information to make sense in a multi-vendor context. Counters should
+not be grouped in a hardware unique way.
 
-b) If pkey index points to FULL_MGMT_P_KEY and LIM_MGMT_P_KEY is
-   in the table, the packet is coming from a management node,
-   and the receiving node is also a management node, so it is safe
-   for the packet to go through.
+But it is still hard to understand what you are talking about, so
+maybe if you provide a short and clearer example..
 
-c) If pkey index points to FULL_MGMT_P_KEY and LIM_MGMT_P_KEY is
-   NOT in the table, drop the packet as LIM_MGMT_P_KEY should
-   always be in the pkey table. It could be a misconfiguration.
+> #The create API:
+> We found it better to stay with our suggested API with few changes, below
+> notes were considered.
+> 
+> 1) There might be a hardware that doesn't support attaching a counter object
+> to an existing object, your suggested API to set sampling points relay on
+> that ability.
 
-d) If pkey index points to LIM_MGMT_P_KEY and FULL_MGMT_P_KEY is
-   NOT in the table, it is safe for the packet to go through
-   since a non-management node is talking to another non-managment
-   node.
+That is unfortunate, and kind of lame, but you can still use the
+proposed API by re-ordering things. Continue to have
+ibv_add_sampling_point_flow, however a NULL flow argument will make
+the counters become added when the flow is created:
 
-e) If pkey index points to LIM_MGMT_P_KEY and FULL_MGMT_P_KEY is in
-   the table, drop the packet because a non-management node is
-   talking to a management node, and it could be an attack.
+ counters = ibv_create_counters([..]);
+ ibv_add_sampling_point_flow(counters, 1, NULL, [..])
+ flow_attr.counters = counters;
+ ibv_create_flow(qp, &flow_attr);
 
-For the implementation, these rules can be simplied to only checking
-for (a) and (e). There's no need to check for rule (b) as
-the packet doesn't need to be dropped. Rule (c) is not possible in
-the driver as LIM_MGMT_P_KEY is always in the pkey table.
+> 2) We prefer using one single system call to create the ib_counter object
+> with its required counters instead of creating it with sampling points which
+> might involve many system calls.
 
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/hfi1/mad.c |   86 +++++++++++++++++++++++++++++++++++++-
- 1 files changed, 84 insertions(+), 2 deletions(-)
+No. More system calls are good for something like this, there is a lot
+of possibly future variety here. Systems calls are better than huge
+structs and comp mask.
 
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index 07b80fa..da42e68 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -98,6 +98,16 @@ static inline void clear_opa_smp_data(struct opa_smp *smp)
- 	memset(data, 0, size);
- }
- 
-+static u16 hfi1_lookup_pkey_value(struct hfi1_ibport *ibp, int pkey_idx)
-+{
-+	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
-+
-+	if (pkey_idx < ARRAY_SIZE(ppd->pkeys))
-+		return ppd->pkeys[pkey_idx];
-+
-+	return 0;
-+}
-+
- void hfi1_event_pkey_change(struct hfi1_devdata *dd, u8 port)
- {
- 	struct ib_event event;
-@@ -4260,6 +4270,18 @@ void clear_linkup_counters(struct hfi1_devdata *dd)
- 	dd->err_info_xmit_constraint.status &= ~OPA_EI_STATUS_SMASK;
- }
- 
-+static int is_full_mgmt_pkey_in_table(struct hfi1_ibport *ibp)
-+{
-+	unsigned int i;
-+	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
-+
-+	for (i = 0; i < ARRAY_SIZE(ppd->pkeys); ++i)
-+		if (ppd->pkeys[i] == FULL_MGMT_P_KEY)
-+			return 1;
-+
-+	return 0;
-+}
-+
- /*
-  * is_local_mad() returns 1 if 'mad' is sent from, and destined to the
-  * local node, 0 otherwise.
-@@ -4327,6 +4349,63 @@ static int opa_local_smp_check(struct hfi1_ibport *ibp,
- 	return 1;
- }
- 
-+/**
-+ * hfi1_pkey_validation_pma - It validates PKEYs for incoming PMA MAD packets.
-+ * @ibp: IB port data
-+ * @in_mad: MAD packet with header and data
-+ * @in_wc: Work completion data such as source LID, port number, etc.
-+ *
-+ * These are all the possible logic rules for validating a pkey:
-+ *
-+ * a) If pkey neither FULL_MGMT_P_KEY nor LIM_MGMT_P_KEY,
-+ *    and NOT self-originated packet:
-+ *     Drop MAD packet as it should always be part of the
-+ *     management partition unless it's a self-originated packet.
-+ *
-+ * b) If pkey_index -> FULL_MGMT_P_KEY, and LIM_MGMT_P_KEY in pkey table:
-+ *     The packet is coming from a management node and the receiving node
-+ *     is also a management node, so it is safe for the packet to go through.
-+ *
-+ * c) If pkey_index -> FULL_MGMT_P_KEY, and LIM_MGMT_P_KEY is NOT in pkey table:
-+ *     Drop the packet as LIM_MGMT_P_KEY should always be in the pkey table.
-+ *     It could be an FM misconfiguration.
-+ *
-+ * d) If pkey_index -> LIM_MGMT_P_KEY and FULL_MGMT_P_KEY is NOT in pkey table:
-+ *     It is safe for the packet to go through since a non-management node is
-+ *     talking to another non-management node.
-+ *
-+ * e) If pkey_index -> LIM_MGMT_P_KEY and FULL_MGMT_P_KEY in pkey table:
-+ *     Drop the packet because a non-management node is talking to a
-+ *     management node, and it could be an attack.
-+ *
-+ * For the implementation, these rules can be simplied to only checking
-+ * for (a) and (e). There's no need to check for rule (b) as
-+ * the packet doesn't need to be dropped. Rule (c) is not possible in
-+ * the driver as LIM_MGMT_P_KEY is always in the pkey table.
-+ *
-+ * Return:
-+ * 0 - pkey is okay, -EINVAL it's a bad pkey
-+ */
-+static int hfi1_pkey_validation_pma(struct hfi1_ibport *ibp,
-+				    const struct opa_mad *in_mad,
-+				    const struct ib_wc *in_wc)
-+{
-+	u16 pkey_value = hfi1_lookup_pkey_value(ibp, in_wc->pkey_index);
-+
-+	/* Rule (a) from above */
-+	if (!is_local_mad(ibp, in_mad, in_wc) &&
-+	    pkey_value != LIM_MGMT_P_KEY &&
-+	    pkey_value != FULL_MGMT_P_KEY)
-+		return -EINVAL;
-+
-+	/* Rule (e) from above */
-+	if (pkey_value == LIM_MGMT_P_KEY &&
-+	    is_full_mgmt_pkey_in_table(ibp))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- static int process_subn_opa(struct ib_device *ibdev, int mad_flags,
- 			    u8 port, const struct opa_mad *in_mad,
- 			    struct opa_mad *out_mad,
-@@ -4666,8 +4745,11 @@ static int hfi1_process_opa_mad(struct ib_device *ibdev, int mad_flags,
- 				       out_mad, &resp_len);
- 		goto bail;
- 	case IB_MGMT_CLASS_PERF_MGMT:
--		ret = process_perf_opa(ibdev, port, in_mad, out_mad,
--				       &resp_len);
-+		ret = hfi1_pkey_validation_pma(ibp, in_mad, in_wc);
-+		if (ret)
-+			return IB_MAD_RESULT_FAILURE;
-+
-+		ret = process_perf_opa(ibdev, port, in_mad, out_mad, &resp_len);
- 		goto bail;
- 
- 	default:
+It allows you to ditch the silly describe API by making the creation
+side more granular.
 
+> 3) We don't have at the moment a customer use case to remove a sampling
+> point, we expect an application to create an IB counter with its relevant
+> counters and use it. This ability can be added in the future upon demand, on
+> objects that support that by some modify API.
+
+Ok
+
+> 4) Currently the API introduces vendor ordering based on the describe output
+> and exposes only the option to read all counters from the given counter
+> type. For day one we find it enough as for now there is only one counted
+> type that is supported (i.e. Flow) by mlx5 driver and it exposes
+> only 2 counters. However, as the API is extensible we can extend it with
+> comp_mask to get some other input which may control the ordering/partial
+> counters/compound objects in the future based on demand.
+
+I don't understand this remark, why would irderubg ever matter for
+counters?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
