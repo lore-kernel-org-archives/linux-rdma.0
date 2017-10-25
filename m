@@ -1,78 +1,136 @@
 From: "Bernard Metzler" <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: [PATCH v2 11/13] SoftiWarp Completion Queue methods
-Date: Wed, 25 Oct 2017 13:51:25 +0000
-Message-ID: <OF397EC712.ADB744E7-ON002581C4.004C1E61-002581C4.004C1E66@notes.na.collabserv.com>
-References: <20171020125836.GB11604@ssaleem-MOBL4.amr.corp.intel.com>,<20171006122853.16310-1-bmt@zurich.ibm.com>
- <20171006122853.16310-12-bmt@zurich.ibm.com>
+Subject: Re: [PATCH v2 06/13] SoftiWarp connection management
+Date: Wed, 25 Oct 2017 14:01:20 +0000
+Message-ID: <OF3B161EF2.25CCC6AE-ON002581C4.004C496F-002581C4.004D06F6@notes.na.collabserv.com>
+References: <20171020124944.GA11604@ssaleem-MOBL4.amr.corp.intel.com>,<20171006122853.16310-1-bmt@zurich.ibm.com>
+ <20171006122853.16310-7-bmt@zurich.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171020125836.GB11604-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
+In-Reply-To: <20171020124944.GA11604-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
------Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote: -----
+-----linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org wrote: -----
 
 >To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
->From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->Date: 10/20/2017 02:58PM
+>From: Shiraz Saleem 
+>Sent by: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>Date: 10/20/2017 02:49PM
 >Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->Subject: Re: [PATCH v2 11/13] SoftiWarp Completion Queue methods
+>Subject: Re: [PATCH v2 06/13] SoftiWarp connection management
 >
->On Fri, Oct 06, 2017 at 08:28:51AM -0400, Bernard Metzler wrote:
+>On Fri, Oct 06, 2017 at 08:28:46AM -0400, Bernard Metzler wrote:
 >> Signed-off-by: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 >> ---
->>  drivers/infiniband/sw/siw/siw_cq.c | 164
->+++++++++++++++++++++++++++++++++++++
->>  1 file changed, 164 insertions(+)
->>  create mode 100644 drivers/infiniband/sw/siw/siw_cq.c
+>>  drivers/infiniband/sw/siw/siw_cm.c | 2270
+>++++++++++++++++++++++++++++++++++++
+>>  drivers/infiniband/sw/siw/siw_cm.h |  156 +++
+>>  2 files changed, 2426 insertions(+)
+>>  create mode 100644 drivers/infiniband/sw/siw/siw_cm.c
+>>  create mode 100644 drivers/infiniband/sw/siw/siw_cm.h
 >> 
->> diff --git a/drivers/infiniband/sw/siw/siw_cq.c
->b/drivers/infiniband/sw/siw/siw_cq.c
+>> diff --git a/drivers/infiniband/sw/siw/siw_cm.c
+>b/drivers/infiniband/sw/siw/siw_cm.c
 >> new file mode 100644
->> index 000000000000..0cd6e010e7a7
+>> index 000000000000..1527c9ddfed8
 >> --- /dev/null
->> +++ b/drivers/infiniband/sw/siw/siw_cq.c
+>> +++ b/drivers/infiniband/sw/siw/siw_cm.c
 >
->> +/*
->> + * Reap one CQE from the CQ.
->> + *
->> + * Caller must hold qp read lock
->
->Why is this a mandate?
->
->
-Good point - it is not. Will remove that stupid comment. 
-
->> + * TODO: Provide routine which can read more than one CQE
->> + */
->> +int siw_reap_cqe(struct siw_cq *cq, struct ib_wc *ofa_wc)
+>> +static void siw_rtr_data_ready(struct sock *sk)
 >> +{
->> +	struct siw_cqe *cqe;
->> +	unsigned long flags;
+>> +	struct siw_cep		*cep;
+>> +	struct siw_qp		*qp = NULL;
+>> +	read_descriptor_t	rd_desc;
 >> +
->> +	spin_lock_irqsave(&cq->lock, flags);
+>> +	read_lock(&sk->sk_callback_lock);
 >> +
->> +	cqe = &cq->queue[cq->cq_get % cq->num_cqe];
->> +	if (cqe->flags & SIW_WQE_VALID) {
->> +		siw_wc_siw2ofa(cqe, ofa_wc);
+>> +	cep = sk_to_cep(sk);
+>> +	if (!cep) {
+>> +		WARN_ON(1);
+>> +		goto out;
+>> +	}
+>> +	qp = sk_to_qp(sk);
 >> +
->> +		if (cq->kernel_verbs) {
->> +			dprint(DBG_WR,
->> +				" QP%d, CQ%d: Reap WQE type: %d at idx %d\n",
->> +				QP_ID((struct siw_qp *)cqe->qp), OBJ_ID(cq),
->> +				cqe->opcode, cq->cq_get % cq->num_cqe);
->> +			siw_qp_put(cqe->qp);
+>> +	memset(&rd_desc, 0, sizeof(rd_desc));
+>> +	rd_desc.arg.data = qp;
+>> +	rd_desc.count = 1;
+>> +
+>> +	tcp_read_sock(sk, &rd_desc, siw_tcp_rx_data);
+>> +	/*
+>> +	 * Check if first frame was successfully processed.
+>> +	 * Signal connection full establishment if yes.
+>> +	 * Failed data processing would have already scheduled
+>> +	 * connection drop.
+>> +	 */
+>> +	if (qp->rx_ctx.rx_suspend == 0  && qp->rx_ctx.rx_suspend == 0)
+>> +		siw_cm_upcall(cep, IW_CM_EVENT_ESTABLISHED, 0);
 >
->Where do we do the siw_qp_get()?
->
->
+>Redundant condition in if. Also, its preferred to use
+>!qp->rx_ctx.rx_suspend.
 
-We do it when we create the CQE, that is, in siw_sqe_complete(), or
-siw_rqe_complete(). See siw_qp.c
+Oh yes, thank you!
+
+>
+>> + * siw_accept - Let SoftiWARP accept an RDMA connection request
+>> + *
+>> + * @id:		New connection management id to be used for accepted
+>> + *		connection request
+>> + * @params:	Connection parameters provided by ULP for accepting
+>connection
+>> + *
+>> + * Transition QP to RTS state, associate new CM id @id with
+>accepted CEP
+>> + * and get prepared for TCP input by installing socket callbacks.
+>> + * Then send MPA Reply and generate the "connection established"
+>event.
+>> + * Socket callbacks must be installed before sending MPA Reply,
+>because
+>> + * the latter may cause a first RDMA message to arrive from the
+>RDMA Initiator
+>> + * side very quickly, at which time the socket callbacks must be
+>ready.
+>> + */
+>> +int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param
+>*params)
+>> +{
+>> +	struct siw_dev		*sdev = siw_dev_ofa2siw(id->device);
+>> +	struct siw_cep		*cep = (struct siw_cep *)id->provider_data;
+>> +	struct siw_qp		*qp;
+>> +	struct siw_qp_attrs	qp_attrs;
+>> +	int rv, max_priv_data = MPA_MAX_PRIVDATA;
+>> +	bool wait_for_peer_rts = false;
+>> +
+>> +	siw_cep_set_inuse(cep);
+>> +	siw_cep_put(cep);
+>> +
+>> +	/* Free lingering inbound private data */
+>> +	if (cep->mpa.hdr.params.pd_len) {
+>> +		cep->mpa.hdr.params.pd_len = 0;
+>> +		kfree(cep->mpa.pdata);
+>> +		cep->mpa.pdata = NULL;
+>> +	}
+>
+>Can you not just check for cep->mpa.pdata?
+
+Yes. I chose to do it that way to side-step a checkpatch warning
+regarding 'kfree(NULL) is safe'.
+
+
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+>in
+>the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>More majordomo info at
+>https://urldefense.proofpoint.com/v2/url?u=http-3A__vger.kernel.org_m
+>ajordomo-2Dinfo.html&d=DwIBAg&c=jf_iaSHvJObTbx-siA1ZOg&r=2TaYXQ0T-r8Z
+>O1PP1alNwU_QJcRRLfmYTAgd3QCvqSc&m=9skGbzeXQprZNNjOP17C90AQJw2UywxWNdd
+>3Ho6nJ1U&s=9As1oQG0mz0YTgbxrGMbciEd0mdLDsmIvXa3R2kRYv8&e=
+>
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
