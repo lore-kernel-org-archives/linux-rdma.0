@@ -1,29 +1,25 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 1/6] IB/uverbs: Allow CQ moderation with
- modify CQ
-Date: Wed, 25 Oct 2017 14:28:04 -0400
-Message-ID: <1508956084.3325.50.camel@redhat.com>
+Subject: Re: [PATCH rdma-next 0/6] Expose CQ moderation to user space
+Date: Wed, 25 Oct 2017 14:30:46 -0400
+Message-ID: <1508956246.3325.51.camel@redhat.com>
 References: <20171019053524.11135-1-leon@kernel.org>
-         <20171019053524.11135-2-leon@kernel.org>
+         <20171023094744.GH2106@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171019053524.11135-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20171023094744.GH2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-10-19 at 08:35 +0300, Leon Romanovsky wrote:
-> From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Mon, 2017-10-23 at 12:47 +0300, Leon Romanovsky wrote:
+> Doug,
 > 
-> Uverbs support in modify_cq for CQ moderation only.
-> Gives ability to change cq_max_count and cq_period.
-> CQ moderation enhance performance by moderating the number
-> of cookies
-     ^ Please use non-slang in your commit messages.  People not
-familiar with RDMA will not know what cookies means.
+> Please drop this series.
+
+Done.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
