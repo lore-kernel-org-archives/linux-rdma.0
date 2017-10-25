@@ -1,70 +1,65 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 1/6] IB/uverbs: Allow CQ moderation with modify
- CQ
-Date: Wed, 25 Oct 2017 21:50:34 +0300
-Message-ID: <20171025185034.GV16127@mtr-leonro.local>
-References: <20171019053524.11135-1-leon@kernel.org>
- <20171019053524.11135-2-leon@kernel.org>
- <1508956084.3325.50.camel@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] RDMA/netlink: OOPs in rdma_nl_rcv_msg() from
+ misinterpreted flag
+Date: Wed, 25 Oct 2017 14:57:20 -0400
+Message-ID: <1508957840.3325.54.camel@redhat.com>
+References: <20171024123957.32207.70888.stgit@phlsvslse11.ph.intel.com>
+         <20171024144152.GH16127@mtr-leonro.local>
+         <14063C7AD467DE4B82DEDB5C278E8663875E153D@FMSMSX108.amr.corp.intel.com>
+         <20171024151958.GI16127@mtr-leonro.local>
+         <14063C7AD467DE4B82DEDB5C278E8663875E15AD@FMSMSX108.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="MOeiELSuYwpLEKvX"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1508956084.3325.50.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <14063C7AD467DE4B82DEDB5C278E8663875E15AD-AtyAts71sc88Ug9VwtkbtrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, 2017-10-24 at 15:42 +0000, Ruhl, Michael J wrote:
+> > > have the same issue.  Specific index validation is needed, and
+> > > should probably
+> > 
+> > be
+> > > addressed with a different patch.
+> > 
+> > .doit exists for RDMA_NL_LS and for other .dumpit exists, so no
+> > actual
+> > check is needed.
+> > 
+> > if you want to be on the safe side, please extend is_nl_valid().
+> > IMHO,
+> > it will keep code cleaner, the checks in one localized place and
+> > execution
+> > is not mixed with the validity checks.
+> 
+> Leon,
+> 
+> I do not disagree with you on this.  My patch is to fix the Oops, and
+> make
+> sure it can't happen with the current code.
+> 
+> Extending is_nl_valid() to be more complete seems to be out of scope
+> for
+> the current issue of making the Oops go away.
+> 
+> I can probably work on is_nl_valid(), but I will need much more time
+> to make sure
+> that it is correct, and don't feel that I can get it done with in the
+> appropriate
+> time frame (i.e. sometime this week).
 
---MOeiELSuYwpLEKvX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I agree with Michael that tweaking this code to be optimal versus
+plainly failsafe is a patch for another day.  I've taken this one. 
+Thanks Michael.
 
-On Wed, Oct 25, 2017 at 02:28:04PM -0400, Doug Ledford wrote:
-> On Thu, 2017-10-19 at 08:35 +0300, Leon Romanovsky wrote:
-> > From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> > Uverbs support in modify_cq for CQ moderation only.
-> > Gives ability to change cq_max_count and cq_period.
-> > CQ moderation enhance performance by moderating the number
-> > of cookies
->      ^ Please use non-slang in your commit messages.  People not
-> familiar with RDMA will not know what cookies means.
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-I'll do my best.
-
-Thanks
-
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG KeyID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
->
-
---MOeiELSuYwpLEKvX
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnw3PoACgkQ5GN7iDZy
-WKe52w//YbTAz9DE9os//el01mlX1dJ6OUQIINEjFetJMiD+1xSlVTv9d26pf003
-Ywk84FR9YIOKAuJvyWjnFvwtgIjEsldV8cnc3zy2WcD+7E+p8W97Q522f8RbNAOJ
-fgA/G7dRIJis61pd4azNnJYrusKbdbvP43YAwKt/D5UtPZxEO0cUNfEeFA1xsxUB
-41ysJlIwTBuypMhSyLns7oNSUO8YDFeYcWqGnoco1PZB/707MAl7Bcp+r1IYVLMS
-BauaZAYLk13LYZ+uaOKz9nieW1EiMnn/ZkRWwfncINW6Baa2cNQjhcE8gi0hWZJH
-xpQaiofgublM/O71bXzGGMWOdDJYEtm+6c1o/iPR/i/GvxUIPWUtUKC6UuEucje5
-Xa8hDaL/sVJi45Eo0xpmhSmITxhYafCKYcv2GGatISe+B+POdDqENBaIujWnXU8L
-Vw7hZDgFRJL3ZChRvsDPBaDwbdEiPxHruy8y+yD34o2DH4XhB4yoxn4MzgEhduCX
-EZYLSMQSx7SI9MrYvF/+yMj8wF+iV+xzItCt0erWvlWAiyOtUtjoIpSYK/U3BH+U
-ksWHJSopaMYgjNNIhgYmpw+FjsTvUWkNnJOHlo6DbvdTbT0C2sqOxSI2ZKAX9hLv
-bf5SMOId/cNLi9QaYPqtfpRhbnHdJ+juigSr+oDNi1bQKadKe84=
-=+U0K
------END PGP SIGNATURE-----
-
---MOeiELSuYwpLEKvX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
