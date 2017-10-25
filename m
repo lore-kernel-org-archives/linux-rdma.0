@@ -1,30 +1,37 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] bnxt_re: Implement the shutdown hook of the L2-RoCE
- driver interface
-Date: Wed, 25 Oct 2017 15:28:47 -0400
-Message-ID: <1508959727.3325.61.camel@redhat.com>
-References: <20171025034230.30656-1-somnath.kotur@broadcom.com>
+Subject: Re: [PATCH rdma-core] verbs: Fix declaration of C++ include file in
+ C-block
+Date: Wed, 25 Oct 2017 15:29:42 -0400
+Message-ID: <1508959782.3325.62.camel@redhat.com>
+References: <20171025092323.20082-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171025034230.30656-1-somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20171025092323.20082-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-10-25 at 09:12 +0530, Somnath Kotur wrote:
-> When host is shutting down, it invokes the shutdown hook of the
-> L2 driver where it would attempt to free the MSI-X vectors, but would
-> fail
-> because some vectors are held by the RoCE driver.
-> Implement the new hook in the L2 -> RoCE interface which will be
-> invoked so that
-> the RoCE driver can unregister the device and free up the MSI-X
-> vectors it had
-> claimed so that L2 can proceed with it's shutdown without failure.
+On Wed, 2017-10-25 at 12:23 +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> The include of limits.h in case of C++ application throws the
+> following
+> error during the compilation.
+> 
+> /usr/include/c++/4.8.2/limits:303:3: error: template with C linkage
+>    template<typename _Tp>
+>    ^
+> 
+> The reason to such failure is the location of limits.c, it is
+> supposed
+> to be included outside of C-block, so let's move it to avoid the
+> error.
+> 
+> Fixes: 6a74285158a1 ("verbs: Fix C++ compilation break")
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 Thanks, applied.
 
