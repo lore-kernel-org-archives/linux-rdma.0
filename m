@@ -1,88 +1,78 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH rdma-core 3/3] ibacm: In acm_util.c:acm_if_iter_sys, try IPv4
- if IPv6 doesn't find any appropriate interfaces
-Date: Wed, 25 Oct 2017 09:42:49 -0400
-Message-ID: <8d19d9a9-1f97-408e-ca60-d42e67fbf60c@dev.mellanox.co.il>
+From: "Bernard Metzler" <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: Re: [PATCH v2 11/13] SoftiWarp Completion Queue methods
+Date: Wed, 25 Oct 2017 13:51:25 +0000
+Message-ID: <OF397EC712.ADB744E7-ON002581C4.004C1E61-002581C4.004C1E66@notes.na.collabserv.com>
+References: <20171020125836.GB11604@ssaleem-MOBL4.amr.corp.intel.com>,<20171006122853.16310-1-bmt@zurich.ibm.com>
+ <20171006122853.16310-12-bmt@zurich.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20171020125836.GB11604-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+-----Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote: -----
 
-This can occur when IPv6 is disabled.
+>To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+>From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>Date: 10/20/2017 02:58PM
+>Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>Subject: Re: [PATCH v2 11/13] SoftiWarp Completion Queue methods
+>
+>On Fri, Oct 06, 2017 at 08:28:51AM -0400, Bernard Metzler wrote:
+>> Signed-off-by: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+>> ---
+>>  drivers/infiniband/sw/siw/siw_cq.c | 164
+>+++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 164 insertions(+)
+>>  create mode 100644 drivers/infiniband/sw/siw/siw_cq.c
+>> 
+>> diff --git a/drivers/infiniband/sw/siw/siw_cq.c
+>b/drivers/infiniband/sw/siw/siw_cq.c
+>> new file mode 100644
+>> index 000000000000..0cd6e010e7a7
+>> --- /dev/null
+>> +++ b/drivers/infiniband/sw/siw/siw_cq.c
+>
+>> +/*
+>> + * Reap one CQE from the CQ.
+>> + *
+>> + * Caller must hold qp read lock
+>
+>Why is this a mandate?
+>
+>
+Good point - it is not. Will remove that stupid comment. 
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- ibacm/src/acm_util.c | 22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
+>> + * TODO: Provide routine which can read more than one CQE
+>> + */
+>> +int siw_reap_cqe(struct siw_cq *cq, struct ib_wc *ofa_wc)
+>> +{
+>> +	struct siw_cqe *cqe;
+>> +	unsigned long flags;
+>> +
+>> +	spin_lock_irqsave(&cq->lock, flags);
+>> +
+>> +	cqe = &cq->queue[cq->cq_get % cq->num_cqe];
+>> +	if (cqe->flags & SIW_WQE_VALID) {
+>> +		siw_wc_siw2ofa(cqe, ofa_wc);
+>> +
+>> +		if (cq->kernel_verbs) {
+>> +			dprint(DBG_WR,
+>> +				" QP%d, CQ%d: Reap WQE type: %d at idx %d\n",
+>> +				QP_ID((struct siw_qp *)cqe->qp), OBJ_ID(cq),
+>> +				cqe->opcode, cq->cq_get % cq->num_cqe);
+>> +			siw_qp_put(cqe->qp);
+>
+>Where do we do the siw_qp_get()?
+>
+>
 
-diff --git a/ibacm/src/acm_util.c b/ibacm/src/acm_util.c
-index b50fd74..5b84be8 100644
---- a/ibacm/src/acm_util.c
-+++ b/ibacm/src/acm_util.c
-@@ -127,7 +127,8 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
- 	struct ifconf *ifc;
- 	struct ifreq *ifr;
- 	char ip_str[INET6_ADDRSTRLEN];
--	int s, ret, i, len;
-+	int family = AF_INET6;
-+	int s, ret, i, len, intfs = 0;
- 	uint16_t pkey;
- 	union ibv_gid sgid;
- 	uint8_t addr_type;
-@@ -135,9 +136,12 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
- 	size_t addr_len;
- 	char *alias_sep;
- 
--	s = socket(AF_INET6, SOCK_DGRAM, 0);
--	if (!s)
--		return -1;
-+next_family:
-+	s = socket(family, SOCK_DGRAM, 0);
-+	if (!s) {
-+		ret = -1;
-+		goto out;
-+	}
- 
- 	len = sizeof(*ifc) + sizeof(*ifr) * 64;
- 	ifc = malloc(len);
-@@ -152,7 +156,8 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
- 
- 	ret = ioctl(s, SIOCGIFCONF, ifc);
- 	if (ret < 0) {
--		acm_log(0, "ioctl ifconf error: %s\n", strerror(errno));
-+		acm_log(0, "ioctl IPv%s ifconf error: %s\n",
-+			(family == AF_INET6) ? "6" : "4", strerror(errno));
- 		goto out2;
- 	}
- 
-@@ -199,6 +204,7 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
- 			continue;
- 
- 		cb(ifr[i].ifr_name, &sgid, pkey, addr_type, addr, addr_len, ip_str, ctx);
-+		intfs++;
- 	}
- 	ret = 0;
- 
-@@ -206,6 +212,10 @@ out2:
- 	free(ifc);
- out1:
- 	close(s);
-+out:
-+	if (family == AF_INET6 && intfs == 0) {
-+		family = AF_INET;
-+		goto next_family;
-+	}
- 	return ret;
--
- }
--- 
-2.8.4
+We do it when we create the CQE, that is, in siw_sqe_complete(), or
+siw_rqe_complete(). See siw_qp.c
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
