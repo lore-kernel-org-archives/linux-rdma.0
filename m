@@ -1,53 +1,63 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-next] RDMA/cxgb4: Remove unnecessary conversion from __be32 to cpu format
-Date: Wed, 25 Oct 2017 09:46:18 -0500
-Message-ID: <020c01d34da0$04115ff0$0c341fd0$@opengridcomputing.com>
-References: <20171024182848.7945-1-leon@kernel.org> <067301d34cf7$d0872ff0$71958fd0$@opengridcomputing.com> <20171024185956.GL16127@mtr-leonro.local>
+Subject: RE: Endianess in cxgb4
+Date: Wed, 25 Oct 2017 09:48:08 -0500
+Message-ID: <021401d34da0$45afeda0$d10fc8e0$@opengridcomputing.com>
+References: <20171024183759.GK16127@mtr-leonro.local> <069401d34cf8$5171f6e0$f455e4a0$@opengridcomputing.com> <20171024190142.GM16127@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain;
         charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171024185956.GL16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20171024190142.GM16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: 'RDMA mailing list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > > @@ -234,7 +234,7 @@ struct t4_cqe {
+> On Tue, Oct 24, 2017 at 01:45:52PM -0500, Steve Wise wrote:
 > > >
-> > >  /* used for SQ completion processing */
-> > >  #define CQE_WRID_SQ_IDX(x)	((x)->u.scqe.cidx)
-> > > -#define CQE_WRID_FR_STAG(x)     (be32_to_cpu((x)->u.scqe.stag))
-> > > +#define CQE_WRID_FR_STAG(x)     ((x)->u.scqe.stag)
+> > > Hi Steve,
+> > >
+> > > I reviewed my reports from various static checkers and saw strange code
+> > > in build_tpte_memreg() function that in drivers/infiniband/hw/cxgb4/qp.c.
+> > >
+> > > That function has following code:
+> > >  614         fr->r2 = cpu_to_be32(0);
+> > >  615         fr->stag = cpu_to_be32(mhp->ibmr.rkey);
+> > >
+> > > The r2, stag and rkey are u32, why do you need cpu_to_be32() conversion?
+> > >
 > >
-> > This is incorrect.  The stag is filled in by HW which is BE.  The
-declaration of
-> > scqe.stag needs to be __be32.
+> > Hey Leon,
+> >
+> > The r2 and stag fields in struct fw_ri_fr_nsmr_tpte_wr should be __be32.
 > 
-> So why do you declare stag as u32?
+> it is not how it is declared in drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
+> 
+> 672 struct fw_ri_fr_nsmr_tpte_wr {
+> 673         __u8    opcode;
+> 674         __u8   flags;
+> 675         __u16  wrid;
+> 676         __u8   r1[3];
+> 677         __u8   len16;
+> 678         __u32  r2;
+> 679         __u32  stag;
+> 680         struct fw_ri_tpte tpte;
+> 681         __u64  pbl[2];
+> 682 };
+> 
+> Thanks
+> 
 
-I'm saying it is a bug that stag is declared as u32.  t4_cqe.u.scqe.stag should
-be declared as __be32.
+I'm not communicating effectively.  Sorry.  
 
-So the fix for the sparse warning should be something like this:
-
-diff --git a/drivers/infiniband/hw/cxgb4/t4.h b/drivers/infiniband/hw/cxgb4/t4.h
-index e765c00..bcb80ca6 100644
---- a/drivers/infiniband/hw/cxgb4/t4.h
-+++ b/drivers/infiniband/hw/cxgb4/t4.h
-@@ -171,7 +171,7 @@ struct t4_cqe {
-                        __be32 msn;
-                } rcqe;
-                struct {
--                       u32 stag;
-+                       __be32 stag;
-                        u16 nada2;
-                        u16 cidx;
-                } scqe;
+This is a bug in t4fw_ri_api.h.  You need create a patch to change
+fw_ri_fr_nsmr_tpte_wr to make the stag and r2 fields to be __be32. 
 
 Steve.
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
