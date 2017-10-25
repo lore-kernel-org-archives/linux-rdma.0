@@ -1,48 +1,41 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/2] Introduce Multi-Packet receive work queue
-Date: Wed, 25 Oct 2017 14:04:32 -0400
-Message-ID: <1508954672.3325.48.camel@redhat.com>
-References: <20171017150113.8544-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next 0/6] RDMA mlx5 driver updates
+ rdma-next-2017-10-19
+Date: Wed, 25 Oct 2017 14:24:47 -0400
+Message-ID: <1508955887.3325.49.camel@redhat.com>
+References: <20171019052556.8514-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171017150113.8544-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20171019052556.8514-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-10-17 at 18:01 +0300, Leon Romanovsky wrote:
-> A Multi-Packet receive WQ comes to improve performance and memory
-> footprint. It is comprised of work requests that can be consumed by
-> multiple packets. Buffers pointed by SGEs of each work request in a
-> multi packet WQ are divided into strides. Both buffer size and stride
-> size must be identical in all work requests of the same multi packet
-> WQ and are set during WQ creation.
+On Thu, 2017-10-19 at 08:25 +0300, Leon Romanovsky wrote:
+> This patch set adds two local to mlx5 features.
 > 
-> A single WR in a Multi-Packet WQ can generate multiple completions,
-> depends on the number of packets consumed. Each packet starts at the
-> beginning of a stride and is written in stride granularity.
+> The first feature comes from Guy, who updated the mlx5 driver to
+> support
+> CQE compression for 128B-sized CQEs in addition to already supported
+> 64B-sized CQEs: commit 1cbe6fc86ccf ("IB/mlx5: Add support for CQE
+> compressing").
 > 
-> Here is an example of a work request comprised of 3 strides. Packet 1
-> is larger than a stride so it occupies 2 strides. Packet 2 fits in a
-> single stride. Each packet will generate its own completion.
+> The second feature comes from Maor, this feature enables receive
+> stateless
+> offloading support for incoming tunneling traffic for raw ethernet
+> QP.
 > 
-> >          |         |[packet2]|
-> >     [packet1]      |         |
-> > _________|_________|_________|
+> The patches are available in the git repository at:
+>   git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+> tags/rdma-next-2017-10-19-1
 > 
->  stride      stride     stride
->  <--      work request     -->
-> 
-> A Multi-Packet WQ reduces the number of needed post-recv operations
-> thus increasing performance: In the example above, a single post-recv
-> operation was performed instead of 2.
+>         Thanks
 
-Nice.  Resolves some of the issues the basic recv queue model has.  As
-you said to Sagi, this is just being exposed in your DV interface right
-now, so I'm fine with it.  Thanks, applied.
+Thanks, series applied (with a fixup because I haven't taken the PCI
+write pad patch series yet).
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
