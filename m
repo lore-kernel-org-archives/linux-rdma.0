@@ -1,31 +1,280 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: Endianess in cxgb4
-Date: Wed, 25 Oct 2017 10:46:44 -0500
-Message-ID: <028401d34da8$75589360$6009ba20$@opengridcomputing.com>
-References: <20171024183759.GK16127@mtr-leonro.local> <069401d34cf8$5171f6e0$f455e4a0$@opengridcomputing.com> <20171024190142.GM16127@mtr-leonro.local> <021401d34da0$45afeda0$d10fc8e0$@opengridcomputing.com> <20171025153856.GT16127@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next] RDMA/umem: Avoid partial declaration of non-static function
+Date: Wed, 25 Oct 2017 18:56:49 +0300
+Message-ID: <20171025155649.9089-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171025153856.GT16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: 'RDMA mailing list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > I'm not communicating effectively.  Sorry.
-> >
-> > This is a bug in t4fw_ri_api.h.  You need create a patch to change
-> > fw_ri_fr_nsmr_tpte_wr to make the stag and r2 fields to be __be32.
-> 
-> Thanks, I'll send a fix.
-> 
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Thanks for doing this work! 
+The RDMA/umem uses generic RB-trees macros to generate various ib_umem
+access functions. The generation is performed with INTERVAL_TREE_DEFINE
+macro, which allows one of two modes: declare all functions as static or
+declare none of the function to be static.
 
-Steve.
+The second mode of operation produces the following sparse errors:
+ drivers/infiniband/core/umem_rbtree.c:69:1:
+	warning: symbol 'rbt_ib_umem_iter_first' was not declared.
+	Should it be static?
+ drivers/infiniband/core/umem_rbtree.c:69:1:
+	warning: symbol 'rbt_ib_umem_iter_next' was not declared.
+	Should it be static?
+
+Code relocation together with declaration of such functions to be
+"static" solves the issue.
+
+Because there is no need to have separate file for two functions,
+let's consolidate umem_rtree.c and umem_odp.c into one file.
+
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/Makefile      |   2 +-
+ drivers/infiniband/core/umem_odp.c    |  72 ++++++++++++++++++++++
+ drivers/infiniband/core/umem_rbtree.c | 109 ----------------------------------
+ include/rdma/ib_umem_odp.h            |   4 --
+ 4 files changed, 73 insertions(+), 114 deletions(-)
+ delete mode 100644 drivers/infiniband/core/umem_rbtree.c
+
+diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+index b4df164f71a6..336ace50b0ab 100644
+--- a/drivers/infiniband/core/Makefile
++++ b/drivers/infiniband/core/Makefile
+@@ -14,7 +14,7 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
+ 				security.o nldev.o
+
+ ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
+-ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o umem_rbtree.o
++ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o
+ ib_core-$(CONFIG_CGROUP_RDMA) += cgroup.o
+
+ ib_cm-y :=			cm.o
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index 55e8f5ed8b3c..2aadf5813a40 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -39,11 +39,44 @@
+ #include <linux/export.h>
+ #include <linux/vmalloc.h>
+ #include <linux/hugetlb.h>
++#include <linux/interval_tree_generic.h>
+
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_umem.h>
+ #include <rdma/ib_umem_odp.h>
+
++/*
++ * The ib_umem list keeps track of memory regions for which the HW
++ * device request to receive notification when the related memory
++ * mapping is changed.
++ *
++ * ib_umem_lock protects the list.
++ */
++
++static u64 node_start(struct umem_odp_node *n)
++{
++	struct ib_umem_odp *umem_odp =
++			container_of(n, struct ib_umem_odp, interval_tree);
++
++	return ib_umem_start(umem_odp->umem);
++}
++
++/* Note that the representation of the intervals in the interval tree
++ * considers the ending point as contained in the interval, while the
++ * function ib_umem_end returns the first address which is not contained
++ * in the umem.
++ */
++static u64 node_last(struct umem_odp_node *n)
++{
++	struct ib_umem_odp *umem_odp =
++			container_of(n, struct ib_umem_odp, interval_tree);
++
++	return ib_umem_end(umem_odp->umem) - 1;
++}
++
++INTERVAL_TREE_DEFINE(struct umem_odp_node, rb, u64, __subtree_last,
++		     node_start, node_last, static, rbt_ib_umem)
++
+ static void ib_umem_notifier_start_account(struct ib_umem *item)
+ {
+ 	mutex_lock(&item->odp_data->umem_mutex);
+@@ -754,3 +787,42 @@ void ib_umem_odp_unmap_dma_pages(struct ib_umem *umem, u64 virt,
+ 	mutex_unlock(&umem->odp_data->umem_mutex);
+ }
+ EXPORT_SYMBOL(ib_umem_odp_unmap_dma_pages);
++
++/* @last is not a part of the interval. See comment for function
++ * node_last.
++ */
++int rbt_ib_umem_for_each_in_range(struct rb_root_cached *root,
++				  u64 start, u64 last,
++				  umem_call_back cb,
++				  void *cookie)
++{
++	int ret_val = 0;
++	struct umem_odp_node *node, *next;
++	struct ib_umem_odp *umem;
++
++	if (unlikely(start == last))
++		return ret_val;
++
++	for (node = rbt_ib_umem_iter_first(root, start, last - 1);
++			node; node = next) {
++		next = rbt_ib_umem_iter_next(node, start, last - 1);
++		umem = container_of(node, struct ib_umem_odp, interval_tree);
++		ret_val = cb(umem->umem, start, last, cookie) || ret_val;
++	}
++
++	return ret_val;
++}
++EXPORT_SYMBOL(rbt_ib_umem_for_each_in_range);
++
++struct ib_umem_odp *rbt_ib_umem_lookup(struct rb_root_cached *root,
++				       u64 addr, u64 length)
++{
++	struct umem_odp_node *node;
++
++	node = rbt_ib_umem_iter_first(root, addr, addr + length - 1);
++	if (node)
++		return container_of(node, struct ib_umem_odp, interval_tree);
++	return NULL;
++
++}
++EXPORT_SYMBOL(rbt_ib_umem_lookup);
+diff --git a/drivers/infiniband/core/umem_rbtree.c b/drivers/infiniband/core/umem_rbtree.c
+deleted file mode 100644
+index fc801920e341..000000000000
+--- a/drivers/infiniband/core/umem_rbtree.c
++++ /dev/null
+@@ -1,109 +0,0 @@
+-/*
+- * Copyright (c) 2014 Mellanox Technologies. All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/interval_tree_generic.h>
+-#include <linux/sched.h>
+-#include <linux/gfp.h>
+-#include <rdma/ib_umem_odp.h>
+-
+-/*
+- * The ib_umem list keeps track of memory regions for which the HW
+- * device request to receive notification when the related memory
+- * mapping is changed.
+- *
+- * ib_umem_lock protects the list.
+- */
+-
+-static inline u64 node_start(struct umem_odp_node *n)
+-{
+-	struct ib_umem_odp *umem_odp =
+-			container_of(n, struct ib_umem_odp, interval_tree);
+-
+-	return ib_umem_start(umem_odp->umem);
+-}
+-
+-/* Note that the representation of the intervals in the interval tree
+- * considers the ending point as contained in the interval, while the
+- * function ib_umem_end returns the first address which is not contained
+- * in the umem.
+- */
+-static inline u64 node_last(struct umem_odp_node *n)
+-{
+-	struct ib_umem_odp *umem_odp =
+-			container_of(n, struct ib_umem_odp, interval_tree);
+-
+-	return ib_umem_end(umem_odp->umem) - 1;
+-}
+-
+-INTERVAL_TREE_DEFINE(struct umem_odp_node, rb, u64, __subtree_last,
+-		     node_start, node_last, , rbt_ib_umem)
+-
+-/* @last is not a part of the interval. See comment for function
+- * node_last.
+- */
+-int rbt_ib_umem_for_each_in_range(struct rb_root_cached *root,
+-				  u64 start, u64 last,
+-				  umem_call_back cb,
+-				  void *cookie)
+-{
+-	int ret_val = 0;
+-	struct umem_odp_node *node, *next;
+-	struct ib_umem_odp *umem;
+-
+-	if (unlikely(start == last))
+-		return ret_val;
+-
+-	for (node = rbt_ib_umem_iter_first(root, start, last - 1);
+-			node; node = next) {
+-		next = rbt_ib_umem_iter_next(node, start, last - 1);
+-		umem = container_of(node, struct ib_umem_odp, interval_tree);
+-		ret_val = cb(umem->umem, start, last, cookie) || ret_val;
+-	}
+-
+-	return ret_val;
+-}
+-EXPORT_SYMBOL(rbt_ib_umem_for_each_in_range);
+-
+-struct ib_umem_odp *rbt_ib_umem_lookup(struct rb_root_cached *root,
+-				       u64 addr, u64 length)
+-{
+-	struct umem_odp_node *node;
+-
+-	node = rbt_ib_umem_iter_first(root, addr, addr + length - 1);
+-	if (node)
+-		return container_of(node, struct ib_umem_odp, interval_tree);
+-	return NULL;
+-
+-}
+-EXPORT_SYMBOL(rbt_ib_umem_lookup);
+diff --git a/include/rdma/ib_umem_odp.h b/include/rdma/ib_umem_odp.h
+index 5eb7f5bc8248..6a17f856f841 100644
+--- a/include/rdma/ib_umem_odp.h
++++ b/include/rdma/ib_umem_odp.h
+@@ -111,10 +111,6 @@ int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 start_offset, u64 bcnt,
+ void ib_umem_odp_unmap_dma_pages(struct ib_umem *umem, u64 start_offset,
+ 				 u64 bound);
+
+-void rbt_ib_umem_insert(struct umem_odp_node *node,
+-			struct rb_root_cached *root);
+-void rbt_ib_umem_remove(struct umem_odp_node *node,
+-			struct rb_root_cached *root);
+ typedef int (*umem_call_back)(struct ib_umem *item, u64 start, u64 end,
+ 			      void *cookie);
+ /*
+--
+2.14.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
