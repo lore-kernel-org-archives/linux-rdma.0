@@ -1,40 +1,44 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] RDMA: Remove Sean's and Hal's emails from
- MAINTAINER file
-Date: Wed, 25 Oct 2017 13:09:49 -0400
-Message-ID: <1508951389.3325.33.camel@redhat.com>
-References: <20171015065648.14653-1-leon@kernel.org>
-         <1828884A29C6694DAF28B7E6B8A82373AB19F40F@ORSMSX109.amr.corp.intel.com>
+Subject: Re: [PATCH rdma-next 0/3] IPoIB TX NAPI
+Date: Wed, 25 Oct 2017 13:24:48 -0400
+Message-ID: <1508952288.3325.34.camel@redhat.com>
+References: <20171016054901.32479-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB19F40F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20171016054901.32479-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-10-16 at 17:04 +0000, Hefty, Sean wrote:
-> > RDMA subsystem has one active maintainer who can apply patches -
-> > Doug
-> > Ledford, but the RDMA entries in MAINTAINER file are not stating
-> > it.
-> > The following patch removes Sean's and Hal's emails from the
-> > maintainers list.
-> > 
-> > It will allow clean get_maintaner.pl output which is needed for
-> > people
-> > outside of our community and various semi-automatic tools.
-> > 
-> > Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Cc: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > ---
+On Mon, 2017-10-16 at 08:48 +0300, Leon Romanovsky wrote:
+> It is very common in modern network devices to use NAPI in RX and TX,
+> in the UD/TX flows IPoIB uses a polling mechanism (not as it does in
+> the CM mode).
 > 
-> Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Except of the motivation to use the same mechanism for IPoIB as for
+> netdevices, there are number of issues in current polling mechanism:
+>  * SKBs that are kept longer than they should be and there are
+> applications
+>    that warn about that (some firewalls for example).
+>  * Statistics that are not updated to the real value. It blocks
+> support
+>    for time synchronization protocols over the IPoIB protocol, like
+> PTP
+>    and so on.
+>  * The TX in CM mode already uses NAPI, there is no reason to keep
+> two
+>    different ways for TX one for UD and one for the CM.
+> 
+> The patches are available in the git repository at:
+>   git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+> tags/rdma-next-2017-10-16-2
+> 
+>         Thanks
 
-Thanks, applied.
+Thanks, series applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
