@@ -1,91 +1,36 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2 rdma-core 3/3] ibacm: In acm_util.c:acm_if_iter_sys, try
- IPv4 if IPv6 doesn't find any appropriate interfaces
-Date: Wed, 25 Oct 2017 12:13:45 -0400
-Message-ID: <aec5878d-4cfc-ead5-30cd-358f2ca24521@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V3 rdma-core 0/5] Userspace library matching for hip08
+ RoCE
+Date: Wed, 25 Oct 2017 10:18:32 -0600
+Message-ID: <20171025161832.GD15557@obsidianresearch.com>
+References: <1508851309-183263-1-git-send-email-oulijun@huawei.com>
+ <20171024152836.GJ16127@mtr-leonro.local>
+ <20171025053833.GN16127@mtr-leonro.local>
+ <7689f70b-746a-44b8-91b3-81294d83b2a6@huawei.com>
+ <20171025073430.GO16127@mtr-leonro.local>
+ <40aa3621-b26b-8afc-7ce0-236659d9155c@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <40aa3621-b26b-8afc-7ce0-236659d9155c-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Oct 25, 2017 at 05:28:14PM +0800, oulijun wrote:
 
-This can occur when IPv6 is disabled.
+>   Thank your advice again.
+>   I have made an effort to install the all tools in order to run cbuild scripts according to you help.
+>   I also read the README.md with submit patch. I have run cbuild build-images travis and cbuild pkg travis for
+>   check PATCHV4 before send it.
+>   I also run it by forking rdma-core to my local github and build it.
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Changes since v1:
-Handle AF_INET6 socket and ioctl errors more "locally" rather than looping around entire routine 
-Also, remove loop on no interfaces found
+Now that you have a github, please consider sending future hip updates
+as pull requests, this will save Leon some work...
 
- ibacm/src/acm_util.c | 26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
-
-diff --git a/ibacm/src/acm_util.c b/ibacm/src/acm_util.c
-index b50fd74..ad454f2 100644
---- a/ibacm/src/acm_util.c
-+++ b/ibacm/src/acm_util.c
-@@ -127,6 +127,7 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
- 	struct ifconf *ifc;
- 	struct ifreq *ifr;
- 	char ip_str[INET6_ADDRSTRLEN];
-+	int family = AF_INET6;
- 	int s, ret, i, len;
- 	uint16_t pkey;
- 	union ibv_gid sgid;
-@@ -135,9 +136,13 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
- 	size_t addr_len;
- 	char *alias_sep;
- 
--	s = socket(AF_INET6, SOCK_DGRAM, 0);
--	if (!s)
--		return -1;
-+	s = socket(family, SOCK_DGRAM, 0);
-+	if (!s) {
-+		family = AF_INET;
-+		s = socket(family, SOCK_DGRAM, 0);
-+		if (!s)
-+			return -1;
-+	}
- 
- 	len = sizeof(*ifc) + sizeof(*ifr) * 64;
- 	ifc = malloc(len);
-@@ -150,9 +155,21 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
- 	ifc->ifc_len = len - sizeof(*ifc);
- 	ifc->ifc_req = (struct ifreq *) (ifc + 1);
- 
-+retry_ioctl:
- 	ret = ioctl(s, SIOCGIFCONF, ifc);
- 	if (ret < 0) {
--		acm_log(0, "ioctl ifconf error: %s\n", strerror(errno));
-+		acm_log(0, "ioctl IPv%s ifconf error: %s\n",
-+			(family == AF_INET6) ? "6" : "4", strerror(errno));
-+		if (family == AF_INET6) {
-+			close(s);
-+			family = AF_INET;
-+			s = socket(family, SOCK_DGRAM, 0);
-+			if (!s) {
-+				free(ifc);
-+				return ret;
-+			}
-+			goto retry_ioctl;
-+		}
- 		goto out2;
- 	}
- 
-@@ -207,5 +224,4 @@ out2:
- out1:
- 	close(s);
- 	return ret;
--
- }
--- 
-2.8.4
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
