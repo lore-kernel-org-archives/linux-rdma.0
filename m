@@ -1,59 +1,115 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH rdma-core 3/3] ibacm: In acm_util.c:acm_if_iter_sys, try
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 3/3] ibacm: In acm_util.c:acm_if_iter_sys, try
  IPv4 if IPv6 doesn't find any appropriate interfaces
-Date: Wed, 25 Oct 2017 15:17:42 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB1A24BB@ORSMSX109.amr.corp.intel.com>
+Date: Wed, 25 Oct 2017 11:29:28 -0400
+Message-ID: <cb3ecc66-d128-e735-4bc7-c35aca3fa915@dev.mellanox.co.il>
 References: <8d19d9a9-1f97-408e-ca60-d42e67fbf60c@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373AB1A24BB@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8d19d9a9-1f97-408e-ca60-d42e67fbf60c-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB1A24BB-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBUaGlzIGNhbiBvY2N1ciB3aGVuIElQdjYgaXMgZGlzYWJsZWQuDQo+IA0KPiBTaWduZWQtb2Zm
-LWJ5OiBIYWwgUm9zZW5zdG9jayA8aGFsQG1lbGxhbm94LmNvbT4NCj4gLS0tDQo+ICBpYmFjbS9z
-cmMvYWNtX3V0aWwuYyB8IDIyICsrKysrKysrKysrKysrKystLS0tLS0NCj4gIDEgZmlsZSBjaGFu
-Z2VkLCAxNiBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBh
-L2liYWNtL3NyYy9hY21fdXRpbC5jIGIvaWJhY20vc3JjL2FjbV91dGlsLmMgaW5kZXgNCj4gYjUw
-ZmQ3NC4uNWI4NGJlOCAxMDA2NDQNCj4gLS0tIGEvaWJhY20vc3JjL2FjbV91dGlsLmMNCgk+ICsr
-KyBiL2liYWNtL3NyYy9hY21fdXRpbC5jDQo+IEBAIC0xMjcsNyArMTI3LDggQEAgaW50IGFjbV9p
-Zl9pdGVyX3N5cyhhY21faWZfaXRlcl9jYiBjYiwgdm9pZA0KPiAqY3R4KQ0KPiAgCXN0cnVjdCBp
-ZmNvbmYgKmlmYzsNCj4gIAlzdHJ1Y3QgaWZyZXEgKmlmcjsNCj4gIAljaGFyIGlwX3N0cltJTkVU
-Nl9BRERSU1RSTEVOXTsNCj4gLQlpbnQgcywgcmV0LCBpLCBsZW47DQo+ICsJaW50IGZhbWlseSA9
-IEFGX0lORVQ2Ow0KPiArCWludCBzLCByZXQsIGksIGxlbiwgaW50ZnMgPSAwOw0KPiAgCXVpbnQx
-Nl90IHBrZXk7DQo+ICAJdW5pb24gaWJ2X2dpZCBzZ2lkOw0KPiAgCXVpbnQ4X3QgYWRkcl90eXBl
-Ow0KPiBAQCAtMTM1LDkgKzEzNiwxMiBAQCBpbnQgYWNtX2lmX2l0ZXJfc3lzKGFjbV9pZl9pdGVy
-X2NiIGNiLCB2b2lkDQo+ICpjdHgpDQo+ICAJc2l6ZV90IGFkZHJfbGVuOw0KPiAgCWNoYXIgKmFs
-aWFzX3NlcDsNCj4gDQo+IC0JcyA9IHNvY2tldChBRl9JTkVUNiwgU09DS19ER1JBTSwgMCk7DQo+
-IC0JaWYgKCFzKQ0KPiAtCQlyZXR1cm4gLTE7DQo+ICtuZXh0X2ZhbWlseToNCj4gKwlzID0gc29j
-a2V0KGZhbWlseSwgU09DS19ER1JBTSwgMCk7DQo+ICsJaWYgKCFzKSB7DQoNCklmIGlwdjYgaXMg
-ZGlzYWJsZWQsIHdvdWxkbid0IHdlIGZhaWwgaGVyZSBhbmQgY291bGQgb3BlbiBhbiBpcHY0IHNv
-Y2tldD8gIFNvLCB3ZSBkb24ndCBnb3RvIG91dCBqdXN0IHRvIGdvIGJhY2sgdG8gdGhpcyBsb2Nh
-dGlvbj8NCg0KSWYgd2Ugc3VjY2Vzc2Z1bGx5IG9wZW4gdGhpcyBzb2NrZXQsIGFuZCBmYWlsIHRv
-IGZpbmQgYW55IGludGVyZmFjZXMsIGRvIHdlIGV4cGVjdCB0aGF0IG9wZW5pbmcgYW4gaXB2NCBz
-b2NrZXQgd291bGQgcHJvZHVjZSBhbnl0aGluZyBkaWZmZXJlbnQ/ICBJZiB0aGF0J3MgYWN0dWFs
-bHkgdGhlIGNhc2UsIHRoZW4gbWF5YmUgd2Ugc2hvdWxkIGFsd2F5cyBvcGVuIGJvdGggc29ja2V0
-cy4NCg0KPiArCQlyZXQgPSAtMTsNCj4gKwkJZ290byBvdXQ7DQo+ICsJfQ0KPiANCj4gIAlsZW4g
-PSBzaXplb2YoKmlmYykgKyBzaXplb2YoKmlmcikgKiA2NDsNCj4gIAlpZmMgPSBtYWxsb2MobGVu
-KTsNCj4gQEAgLTE1Miw3ICsxNTYsOCBAQCBpbnQgYWNtX2lmX2l0ZXJfc3lzKGFjbV9pZl9pdGVy
-X2NiIGNiLCB2b2lkDQo+ICpjdHgpDQo+IA0KPiAgCXJldCA9IGlvY3RsKHMsIFNJT0NHSUZDT05G
-LCBpZmMpOw0KPiAgCWlmIChyZXQgPCAwKSB7DQo+IC0JCWFjbV9sb2coMCwgImlvY3RsIGlmY29u
-ZiBlcnJvcjogJXNcbiIsIHN0cmVycm9yKGVycm5vKSk7DQo+ICsJCWFjbV9sb2coMCwgImlvY3Rs
-IElQdiVzIGlmY29uZiBlcnJvcjogJXNcbiIsDQo+ICsJCQkoZmFtaWx5ID09IEFGX0lORVQ2KSA/
-ICI2IiA6ICI0Iiwgc3RyZXJyb3IoZXJybm8pKTsNCj4gIAkJZ290byBvdXQyOw0KPiAgCX0NCj4g
-DQo+IEBAIC0xOTksNiArMjA0LDcgQEAgaW50IGFjbV9pZl9pdGVyX3N5cyhhY21faWZfaXRlcl9j
-YiBjYiwgdm9pZA0KPiAqY3R4KQ0KPiAgCQkJY29udGludWU7DQo+IA0KPiAgCQljYihpZnJbaV0u
-aWZyX25hbWUsICZzZ2lkLCBwa2V5LCBhZGRyX3R5cGUsIGFkZHIsDQo+IGFkZHJfbGVuLCBpcF9z
-dHIsIGN0eCk7DQo+ICsJCWludGZzKys7DQo+ICAJfQ0KPiAgCXJldCA9IDA7DQo+IA0KPiBAQCAt
-MjA2LDYgKzIxMiwxMCBAQCBvdXQyOg0KPiAgCWZyZWUoaWZjKTsNCj4gIG91dDE6DQo+ICAJY2xv
-c2Uocyk7DQo+ICtvdXQ6DQo+ICsJaWYgKGZhbWlseSA9PSBBRl9JTkVUNiAmJiBpbnRmcyA9PSAw
-KSB7DQo+ICsJCWZhbWlseSA9IEFGX0lORVQ7DQo+ICsJCWdvdG8gbmV4dF9mYW1pbHk7DQo+ICsJ
-fQ0KPiAgCXJldHVybiByZXQ7DQoNCi0gU2Vhbg0K
+
+
+On 10/25/2017 11:17 AM, Hefty, Sean wrote:
+>> This can occur when IPv6 is disabled.
+>>
+>> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  ibacm/src/acm_util.c | 22 ++++++++++++++++------
+>>  1 file changed, 16 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/ibacm/src/acm_util.c b/ibacm/src/acm_util.c index
+>> b50fd74..5b84be8 100644
+>> --- a/ibacm/src/acm_util.c
+> 	> +++ b/ibacm/src/acm_util.c
+>> @@ -127,7 +127,8 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void
+>> *ctx)
+>>  	struct ifconf *ifc;
+>>  	struct ifreq *ifr;
+>>  	char ip_str[INET6_ADDRSTRLEN];
+>> -	int s, ret, i, len;
+>> +	int family = AF_INET6;
+>> +	int s, ret, i, len, intfs = 0;
+>>  	uint16_t pkey;
+>>  	union ibv_gid sgid;
+>>  	uint8_t addr_type;
+>> @@ -135,9 +136,12 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void
+>> *ctx)
+>>  	size_t addr_len;
+>>  	char *alias_sep;
+>>
+>> -	s = socket(AF_INET6, SOCK_DGRAM, 0);
+>> -	if (!s)
+>> -		return -1;
+>> +next_family:
+>> +	s = socket(family, SOCK_DGRAM, 0);
+>> +	if (!s) {
+> 
+> If ipv6 is disabled, wouldn't we fail here and could open an ipv4 socket?  So, we don't goto out just to go back to this location?
+
+In the case where ipv6 is disabled in kernel, the socket is created but
+the ioctl failed.
+
+> If we successfully open this socket, 
+
+(and ioctl also works)
+
+> and fail to find any interfaces, do we expect that opening an ipv4 socket would produce anything different?
+
+I don't think so. I'll submit a revised patch shortly.
+
+-- Hal
+
+> If that's actually the case, then maybe we should always open both sockets.
+> 
+>> +		ret = -1;
+>> +		goto out;
+>> +	}
+>>
+>>  	len = sizeof(*ifc) + sizeof(*ifr) * 64;
+>>  	ifc = malloc(len);
+>> @@ -152,7 +156,8 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void
+>> *ctx)
+>>
+>>  	ret = ioctl(s, SIOCGIFCONF, ifc);
+>>  	if (ret < 0) {
+>> -		acm_log(0, "ioctl ifconf error: %s\n", strerror(errno));
+>> +		acm_log(0, "ioctl IPv%s ifconf error: %s\n",
+>> +			(family == AF_INET6) ? "6" : "4", strerror(errno));
+>>  		goto out2;
+>>  	}
+>>
+>> @@ -199,6 +204,7 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void
+>> *ctx)
+>>  			continue;
+>>
+>>  		cb(ifr[i].ifr_name, &sgid, pkey, addr_type, addr,
+>> addr_len, ip_str, ctx);
+>> +		intfs++;
+>>  	}
+>>  	ret = 0;
+>>
+>> @@ -206,6 +212,10 @@ out2:
+>>  	free(ifc);
+>>  out1:
+>>  	close(s);
+>> +out:
+>> +	if (family == AF_INET6 && intfs == 0) {
+>> +		family = AF_INET;
+>> +		goto next_family;
+>> +	}
+>>  	return ret;
+> 
+> - Sean
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
