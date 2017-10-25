@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH rdma-core 1/3] ibacm: acm_util.c: Better log message when
- ioctl fails in acm_if_iter_sys
-Date: Wed, 25 Oct 2017 09:41:49 -0400
-Message-ID: <6dc90dcf-d6df-dffd-5c07-728ebdae249f@dev.mellanox.co.il>
+Subject: [PATCH rdma-core 2/3] ibacm: In acm.c:acm_open_providers, cosmetic
+ change to log message
+Date: Wed, 25 Oct 2017 09:42:07 -0400
+Message-ID: <e6e224f4-5524-cdec-f08e-5140e058ab6a@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -14,29 +14,26 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-RETURN VALUE for ioctl says:
-On error, -1 is returned, and errno is set appropriately.
-
-Rather than log the return value, use the string for errno.
+for consistency
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- ibacm/src/acm_util.c | 2 +-
+ ibacm/src/acm.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/ibacm/src/acm_util.c b/ibacm/src/acm_util.c
-index aca042d..b50fd74 100644
---- a/ibacm/src/acm_util.c
-+++ b/ibacm/src/acm_util.c
-@@ -152,7 +152,7 @@ int acm_if_iter_sys(acm_if_iter_cb cb, void *ctx)
+diff --git a/ibacm/src/acm.c b/ibacm/src/acm.c
+index a67001d..3f2d617 100644
+--- a/ibacm/src/acm.c
++++ b/ibacm/src/acm.c
+@@ -2648,7 +2648,7 @@ static int acm_open_providers(void)
  
- 	ret = ioctl(s, SIOCGIFCONF, ifc);
- 	if (ret < 0) {
--		acm_log(0, "ioctl ifconf error %d\n", ret);
-+		acm_log(0, "ioctl ifconf error: %s\n", strerror(errno));
- 		goto out2;
- 	}
- 
+ 		query = dlsym(handle, "provider_query");
+ 		if ((err_str = dlerror()) != NULL) {
+-			acm_log(0, "Error -provider_query not found in %s (%s)\n",
++			acm_log(0, "Error - provider_query not found in %s (%s)\n",
+ 				file_name, err_str);
+ 			dlclose(handle);
+ 			continue;
 -- 
 2.8.4
 
