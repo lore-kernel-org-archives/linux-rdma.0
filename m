@@ -1,44 +1,31 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/3] IPoIB TX NAPI
-Date: Wed, 25 Oct 2017 13:24:48 -0400
-Message-ID: <1508952288.3325.34.camel@redhat.com>
-References: <20171016054901.32479-1-leon@kernel.org>
+Subject: Re: [PATCH V2 0/3] RDMA/hns: Add Features & Code improvements for
+ hip08
+Date: Wed, 25 Oct 2017 13:37:54 -0400
+Message-ID: <1508953074.3325.35.camel@redhat.com>
+References: <1508319166-116987-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171016054901.32479-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1508319166-116987-1-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org, shaoboxu-WVlzvzqoTvw@public.gmane.org, shaobo.xu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-10-16 at 08:48 +0300, Leon Romanovsky wrote:
-> It is very common in modern network devices to use NAPI in RX and TX,
-> in the UD/TX flows IPoIB uses a polling mechanism (not as it does in
-> the CM mode).
+On Wed, 2017-10-18 at 17:32 +0800, Wei Hu (Xavier) wrote:
+> This patch-set introduce PBL page size configuration support,
+> updating PD&CQE&MTT specification and IRRL table chunk size
+> for hip08.
 > 
-> Except of the motivation to use the same mechanism for IPoIB as for
-> netdevices, there are number of issues in current polling mechanism:
->  * SKBs that are kept longer than they should be and there are
-> applications
->    that warn about that (some firewalls for example).
->  * Statistics that are not updated to the real value. It blocks
-> support
->    for time synchronization protocols over the IPoIB protocol, like
-> PTP
->    and so on.
->  * The TX in CM mode already uses NAPI, there is no reason to keep
-> two
->    different ways for TX one for UD and one for the CM.
-> 
-> The patches are available in the git repository at:
->   git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-> tags/rdma-next-2017-10-16-2
-> 
->         Thanks
+> Wei Hu (Xavier) (3):
+>   RDMA/hns: Support WQE/CQE/PBL page size configurable feature in
+> hip08
+>   RDMA/hns: Update the IRRL table chunk size in hip08
+>   RDMA/hns: Update the PD&CQE&MTT specification in hip08
 
-Thanks, series applied.
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
