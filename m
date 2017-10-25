@@ -1,29 +1,24 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V2 0/3] RDMA/hns: Add Features & Code improvements for
- hip08
-Date: Wed, 25 Oct 2017 13:37:54 -0400
-Message-ID: <1508953074.3325.35.camel@redhat.com>
-References: <1508319166-116987-1-git-send-email-xavier.huwei@huawei.com>
+Subject: Re: [PATCH for-next] RDMA/hns: Add modify CQ support for hip08
+Date: Wed, 25 Oct 2017 13:38:10 -0400
+Message-ID: <1508953090.3325.36.camel@redhat.com>
+References: <1508385160-130435-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1508319166-116987-1-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1508385160-130435-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org, shaoboxu-WVlzvzqoTvw@public.gmane.org, shaobo.xu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-10-18 at 17:32 +0800, Wei Hu (Xavier) wrote:
-> This patch-set introduce PBL page size configuration support,
-> updating PD&CQE&MTT specification and IRRL table chunk size
-> for hip08.
+On Thu, 2017-10-19 at 11:52 +0800, Lijun Ou wrote:
+> It is needed to call modify cq API for modifying cq
+> context fields for controlling event generation
+> moderations. This patch mainly adds it.
 > 
-> Wei Hu (Xavier) (3):
->   RDMA/hns: Support WQE/CQE/PBL page size configurable feature in
-> hip08
->   RDMA/hns: Update the IRRL table chunk size in hip08
->   RDMA/hns: Update the PD&CQE&MTT specification in hip08
+> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
 Thanks, applied.
 
