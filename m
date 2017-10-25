@@ -1,26 +1,51 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next] RDMA/hns: Add modify CQ support for hip08
-Date: Wed, 25 Oct 2017 13:38:10 -0400
-Message-ID: <1508953090.3325.36.camel@redhat.com>
-References: <1508385160-130435-1-git-send-email-oulijun@huawei.com>
+Subject: Re: [PATCH rdma-next v1 0/3] IPoIB TX NAPI
+Date: Wed, 25 Oct 2017 13:38:51 -0400
+Message-ID: <1508953131.3325.37.camel@redhat.com>
+References: <20171019045644.5816-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1508385160-130435-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20171019045644.5816-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-10-19 at 11:52 +0800, Lijun Ou wrote:
-> It is needed to call modify cq API for modifying cq
-> context fields for controlling event generation
-> moderations. This patch mainly adds it.
+On Thu, 2017-10-19 at 07:56 +0300, Leon Romanovsky wrote:
+> Changelog from v0:
+>  * Rebase to latest for-next, commit 894b82c427d0 ("Merge branch
+> 'timer_setup' into for-next")
 > 
-> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> ----
+> From Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ----
+> 
+> It is very common in modern network devices to use NAPI in RX and TX,
+> in the UD/TX flows IPoIB uses a polling mechanism (not as it does in
+> the CM mode).
+> 
+> Except of the motivation to use the same mechanism for IPoIB as for
+> netdevices, there are number of issues in current polling mechanism:
+>  * SKBs that are kept longer than they should be and there are
+> applications
+>    that warn about that (some firewalls for example).
+>  * Statistics that are not updated to the real value. It blocks
+> support
+>    for time synchronization protocols over the IPoIB protocol, like
+> PTP
+>    and so on.
+>  * The TX in CM mode already uses NAPI, there is no reason to keep
+> two
+>    different ways for TX one for UD and one for the CM.
+> 
+> The patches are available in the git repository at:
+>   git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+> tags/rdma-next-2017-10-19
 
-Thanks, applied.
+Thanks, applied (in lieu of the original patch set that I already
+replied to).
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
