@@ -1,81 +1,59 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next 00/16] Flow counters support
-Date: Wed, 25 Oct 2017 09:17:34 -0600
-Message-ID: <20171025151734.GA15557@obsidianresearch.com>
-References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
- <20171023165118.GA18097@obsidianresearch.com>
- <b003f6e5-d7ce-3775-a1dc-0fd0f507a515@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH rdma-core 3/3] ibacm: In acm_util.c:acm_if_iter_sys, try
+ IPv4 if IPv6 doesn't find any appropriate interfaces
+Date: Wed, 25 Oct 2017 15:17:42 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB1A24BB@ORSMSX109.amr.corp.intel.com>
+References: <8d19d9a9-1f97-408e-ca60-d42e67fbf60c@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <b003f6e5-d7ce-3775-a1dc-0fd0f507a515-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <8d19d9a9-1f97-408e-ca60-d42e67fbf60c-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 25, 2017 at 05:58:15PM +0300, Yishai Hadas wrote:
-
-> Hi Jason, please go over the patches/uapi, we believe that you'll find it
-> quite easy to be used by an application, however we plan to improve as of
-> below.
-
-No, it is not, this proposal relies too much on device-specific
-information to make sense in a multi-vendor context. Counters should
-not be grouped in a hardware unique way.
-
-But it is still hard to understand what you are talking about, so
-maybe if you provide a short and clearer example..
-
-> #The create API:
-> We found it better to stay with our suggested API with few changes, below
-> notes were considered.
-> 
-> 1) There might be a hardware that doesn't support attaching a counter object
-> to an existing object, your suggested API to set sampling points relay on
-> that ability.
-
-That is unfortunate, and kind of lame, but you can still use the
-proposed API by re-ordering things. Continue to have
-ibv_add_sampling_point_flow, however a NULL flow argument will make
-the counters become added when the flow is created:
-
- counters = ibv_create_counters([..]);
- ibv_add_sampling_point_flow(counters, 1, NULL, [..])
- flow_attr.counters = counters;
- ibv_create_flow(qp, &flow_attr);
-
-> 2) We prefer using one single system call to create the ib_counter object
-> with its required counters instead of creating it with sampling points which
-> might involve many system calls.
-
-No. More system calls are good for something like this, there is a lot
-of possibly future variety here. Systems calls are better than huge
-structs and comp mask.
-
-It allows you to ditch the silly describe API by making the creation
-side more granular.
-
-> 3) We don't have at the moment a customer use case to remove a sampling
-> point, we expect an application to create an IB counter with its relevant
-> counters and use it. This ability can be added in the future upon demand, on
-> objects that support that by some modify API.
-
-Ok
-
-> 4) Currently the API introduces vendor ordering based on the describe output
-> and exposes only the option to read all counters from the given counter
-> type. For day one we find it enough as for now there is only one counted
-> type that is supported (i.e. Flow) by mlx5 driver and it exposes
-> only 2 counters. However, as the API is extensible we can extend it with
-> comp_mask to get some other input which may control the ordering/partial
-> counters/compound objects in the future based on demand.
-
-I don't understand this remark, why would irderubg ever matter for
-counters?
-
-Jason
+PiBUaGlzIGNhbiBvY2N1ciB3aGVuIElQdjYgaXMgZGlzYWJsZWQuDQo+IA0KPiBTaWduZWQtb2Zm
+LWJ5OiBIYWwgUm9zZW5zdG9jayA8aGFsQG1lbGxhbm94LmNvbT4NCj4gLS0tDQo+ICBpYmFjbS9z
+cmMvYWNtX3V0aWwuYyB8IDIyICsrKysrKysrKysrKysrKystLS0tLS0NCj4gIDEgZmlsZSBjaGFu
+Z2VkLCAxNiBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBh
+L2liYWNtL3NyYy9hY21fdXRpbC5jIGIvaWJhY20vc3JjL2FjbV91dGlsLmMgaW5kZXgNCj4gYjUw
+ZmQ3NC4uNWI4NGJlOCAxMDA2NDQNCj4gLS0tIGEvaWJhY20vc3JjL2FjbV91dGlsLmMNCgk+ICsr
+KyBiL2liYWNtL3NyYy9hY21fdXRpbC5jDQo+IEBAIC0xMjcsNyArMTI3LDggQEAgaW50IGFjbV9p
+Zl9pdGVyX3N5cyhhY21faWZfaXRlcl9jYiBjYiwgdm9pZA0KPiAqY3R4KQ0KPiAgCXN0cnVjdCBp
+ZmNvbmYgKmlmYzsNCj4gIAlzdHJ1Y3QgaWZyZXEgKmlmcjsNCj4gIAljaGFyIGlwX3N0cltJTkVU
+Nl9BRERSU1RSTEVOXTsNCj4gLQlpbnQgcywgcmV0LCBpLCBsZW47DQo+ICsJaW50IGZhbWlseSA9
+IEFGX0lORVQ2Ow0KPiArCWludCBzLCByZXQsIGksIGxlbiwgaW50ZnMgPSAwOw0KPiAgCXVpbnQx
+Nl90IHBrZXk7DQo+ICAJdW5pb24gaWJ2X2dpZCBzZ2lkOw0KPiAgCXVpbnQ4X3QgYWRkcl90eXBl
+Ow0KPiBAQCAtMTM1LDkgKzEzNiwxMiBAQCBpbnQgYWNtX2lmX2l0ZXJfc3lzKGFjbV9pZl9pdGVy
+X2NiIGNiLCB2b2lkDQo+ICpjdHgpDQo+ICAJc2l6ZV90IGFkZHJfbGVuOw0KPiAgCWNoYXIgKmFs
+aWFzX3NlcDsNCj4gDQo+IC0JcyA9IHNvY2tldChBRl9JTkVUNiwgU09DS19ER1JBTSwgMCk7DQo+
+IC0JaWYgKCFzKQ0KPiAtCQlyZXR1cm4gLTE7DQo+ICtuZXh0X2ZhbWlseToNCj4gKwlzID0gc29j
+a2V0KGZhbWlseSwgU09DS19ER1JBTSwgMCk7DQo+ICsJaWYgKCFzKSB7DQoNCklmIGlwdjYgaXMg
+ZGlzYWJsZWQsIHdvdWxkbid0IHdlIGZhaWwgaGVyZSBhbmQgY291bGQgb3BlbiBhbiBpcHY0IHNv
+Y2tldD8gIFNvLCB3ZSBkb24ndCBnb3RvIG91dCBqdXN0IHRvIGdvIGJhY2sgdG8gdGhpcyBsb2Nh
+dGlvbj8NCg0KSWYgd2Ugc3VjY2Vzc2Z1bGx5IG9wZW4gdGhpcyBzb2NrZXQsIGFuZCBmYWlsIHRv
+IGZpbmQgYW55IGludGVyZmFjZXMsIGRvIHdlIGV4cGVjdCB0aGF0IG9wZW5pbmcgYW4gaXB2NCBz
+b2NrZXQgd291bGQgcHJvZHVjZSBhbnl0aGluZyBkaWZmZXJlbnQ/ICBJZiB0aGF0J3MgYWN0dWFs
+bHkgdGhlIGNhc2UsIHRoZW4gbWF5YmUgd2Ugc2hvdWxkIGFsd2F5cyBvcGVuIGJvdGggc29ja2V0
+cy4NCg0KPiArCQlyZXQgPSAtMTsNCj4gKwkJZ290byBvdXQ7DQo+ICsJfQ0KPiANCj4gIAlsZW4g
+PSBzaXplb2YoKmlmYykgKyBzaXplb2YoKmlmcikgKiA2NDsNCj4gIAlpZmMgPSBtYWxsb2MobGVu
+KTsNCj4gQEAgLTE1Miw3ICsxNTYsOCBAQCBpbnQgYWNtX2lmX2l0ZXJfc3lzKGFjbV9pZl9pdGVy
+X2NiIGNiLCB2b2lkDQo+ICpjdHgpDQo+IA0KPiAgCXJldCA9IGlvY3RsKHMsIFNJT0NHSUZDT05G
+LCBpZmMpOw0KPiAgCWlmIChyZXQgPCAwKSB7DQo+IC0JCWFjbV9sb2coMCwgImlvY3RsIGlmY29u
+ZiBlcnJvcjogJXNcbiIsIHN0cmVycm9yKGVycm5vKSk7DQo+ICsJCWFjbV9sb2coMCwgImlvY3Rs
+IElQdiVzIGlmY29uZiBlcnJvcjogJXNcbiIsDQo+ICsJCQkoZmFtaWx5ID09IEFGX0lORVQ2KSA/
+ICI2IiA6ICI0Iiwgc3RyZXJyb3IoZXJybm8pKTsNCj4gIAkJZ290byBvdXQyOw0KPiAgCX0NCj4g
+DQo+IEBAIC0xOTksNiArMjA0LDcgQEAgaW50IGFjbV9pZl9pdGVyX3N5cyhhY21faWZfaXRlcl9j
+YiBjYiwgdm9pZA0KPiAqY3R4KQ0KPiAgCQkJY29udGludWU7DQo+IA0KPiAgCQljYihpZnJbaV0u
+aWZyX25hbWUsICZzZ2lkLCBwa2V5LCBhZGRyX3R5cGUsIGFkZHIsDQo+IGFkZHJfbGVuLCBpcF9z
+dHIsIGN0eCk7DQo+ICsJCWludGZzKys7DQo+ICAJfQ0KPiAgCXJldCA9IDA7DQo+IA0KPiBAQCAt
+MjA2LDYgKzIxMiwxMCBAQCBvdXQyOg0KPiAgCWZyZWUoaWZjKTsNCj4gIG91dDE6DQo+ICAJY2xv
+c2Uocyk7DQo+ICtvdXQ6DQo+ICsJaWYgKGZhbWlseSA9PSBBRl9JTkVUNiAmJiBpbnRmcyA9PSAw
+KSB7DQo+ICsJCWZhbWlseSA9IEFGX0lORVQ7DQo+ICsJCWdvdG8gbmV4dF9mYW1pbHk7DQo+ICsJ
+fQ0KPiAgCXJldHVybiByZXQ7DQoNCi0gU2Vhbg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
