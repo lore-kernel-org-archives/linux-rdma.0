@@ -1,97 +1,78 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Endianess in cxgb4
-Date: Wed, 25 Oct 2017 18:38:56 +0300
-Message-ID: <20171025153856.GT16127@mtr-leonro.local>
-References: <20171024183759.GK16127@mtr-leonro.local>
- <069401d34cf8$5171f6e0$f455e4a0$@opengridcomputing.com>
- <20171024190142.GM16127@mtr-leonro.local>
- <021401d34da0$45afeda0$d10fc8e0$@opengridcomputing.com>
+From: "Bernard Metzler" <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: Re: [PATCH v2 00/13] Request for Comments on SoftiWarp
+Date: Wed, 25 Oct 2017 15:43:24 +0000
+Message-ID: <OFD4910512.EE81083F-ON002581C4.005628D8-002581C4.00565F19@notes.na.collabserv.com>
+References: <20171020162521.GA2106@mtr-leonro.local>,<20171006122853.16310-1-bmt@zurich.ibm.com>
+ <20171020134501.GD11604@ssaleem-MOBL4.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="zu8lIfFVzXMVnfzp"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <021401d34da0$45afeda0$d10fc8e0$@opengridcomputing.com>
+In-Reply-To: <20171020162521.GA2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'RDMA mailing list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+-----linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org wrote: -----
 
---zu8lIfFVzXMVnfzp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Oct 25, 2017 at 09:48:08AM -0500, Steve Wise wrote:
-> > On Tue, Oct 24, 2017 at 01:45:52PM -0500, Steve Wise wrote:
-> > > >
-> > > > Hi Steve,
-> > > >
-> > > > I reviewed my reports from various static checkers and saw strange code
-> > > > in build_tpte_memreg() function that in drivers/infiniband/hw/cxgb4/qp.c.
-> > > >
-> > > > That function has following code:
-> > > >  614         fr->r2 = cpu_to_be32(0);
-> > > >  615         fr->stag = cpu_to_be32(mhp->ibmr.rkey);
-> > > >
-> > > > The r2, stag and rkey are u32, why do you need cpu_to_be32() conversion?
-> > > >
-> > >
-> > > Hey Leon,
-> > >
-> > > The r2 and stag fields in struct fw_ri_fr_nsmr_tpte_wr should be __be32.
-> >
-> > it is not how it is declared in drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
-> >
-> > 672 struct fw_ri_fr_nsmr_tpte_wr {
-> > 673         __u8    opcode;
-> > 674         __u8   flags;
-> > 675         __u16  wrid;
-> > 676         __u8   r1[3];
-> > 677         __u8   len16;
-> > 678         __u32  r2;
-> > 679         __u32  stag;
-> > 680         struct fw_ri_tpte tpte;
-> > 681         __u64  pbl[2];
-> > 682 };
-> >
-> > Thanks
-> >
+>To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>From: Leon Romanovsky 
+>Sent by: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>Date: 10/20/2017 06:25PM
+>Cc: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>Subject: Re: [PATCH v2 00/13] Request for Comments on SoftiWarp
 >
-> I'm not communicating effectively.  Sorry.
+>On Fri, Oct 20, 2017 at 08:45:01AM -0500, Shiraz Saleem wrote:
+>> On Fri, Oct 06, 2017 at 08:28:40AM -0400, Bernard Metzler wrote:
+>> >
+>> > To experiment with the current siw code, we suggest cloning our
+>out-of-tree
+>> > development repo at https://github.com/zrlio/softiwarp.
+>> > Here, the branch 'dev-siw.mem_ext' contains the most recent code
+>> > development status, which is currently in sync with the patch.
+>> > Testing siw requires the installation of both user library and
+>kernel
+>> > module, located within userlib/ and kernel/ respectively. That
+>siw
+>> > version expects a running kernel of version >= 4.12.
+>> >
+>>
+>> So you need OFED (which ver. ?) installed for user-space?
+>> Is there a plan to integrate your user-space into rdma core? Would
+>be
+>> easier to evaulate/test.
 >
-> This is a bug in t4fw_ri_api.h.  You need create a patch to change
-> fw_ri_fr_nsmr_tpte_wr to make the stag and r2 fields to be __be32.
+>I doubt that someone will seriously think to accept SIW into the
+>kernel,
+>before seeing complementary part for the rdma-core.
+>
+>Thanks
 
-Thanks, I'll send a fix.
+@Leon
+Right. siw started when there was no rdma-core, but some OFED code
+base. I learned I have to re-base it to comply with rdma-core.
+
+@Shiraz
+One can test the current code by cloning from 
+https://github.com/zrlio/softiwarp as stated above. check out
+the 'dev-siw.mem_ext' branch to make and run on 4.13. That version
+expects RDMA support, installed for your preferred distro
+(librdmacm and libibverbs installed, etc.). But let's not further
+discuss running siw off-tree here; the github page has a contact
+pointer if you want to give it a try and run into issues with it.
 
 >
-> Steve.
+>>
+>> Shiraz
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe
+>linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
->
->
+[attachment "signature.asc" removed by Bernard Metzler/Zurich/IBM]
 
---zu8lIfFVzXMVnfzp
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnwsBAACgkQ5GN7iDZy
-WKee6BAAqWtBJ7CeY1bSWeNn1j9jTkR+PugD1qzl7+uwnvACmBHA/84ipL0eO6+/
-UnLeEzB76izGZXF6v9jj0Rqq61zhuaomTbTb8b+483a2xHvGF/JleDz8tzeAs+5I
-q+4GEXnoVGbI4TiZ1XCMtjImCG/vv4mCltJFtBIs4zajP5ztISBW1XqvY/nNZY/d
-gLVZE2sUSf7I+TgA7MiaGArHfKP9n7sWuO0s7keYLYnBQo32l1oAUad4Owjyqefx
-LDOz+4KFWgJs4ekg33OHN+55pVdFJ3JA9batGNGb0vdEweekA8uE4sGAi376uTXc
-QatINLeTMwTVm0QJCfbqsKmb2vXorpnIJ5F45RikkjKVK/r5nWcPg0dCSFNc699m
-iv2QUjYkrWDer2bn0SuUpSMpMi6svgXC7fp0/xbIpj+CRBOZGGPsEj/nJfrlFoF5
-0rH2VPAlfyFyc48M2mIOd6PtS6Mf7QYGJNLX7V4Q9tnUAT8dL95WH16g63FQCti4
-78y5A35L7LeO6jmEFCyQlLXqghiVsDjOLC1xuWuDqJUp8xaTea5M6vDxX40EXnwl
-hYpToKWoyfJl+vW/eHDXFhRR+3jQ5yThBMnKahdiMyznMaJrkhxOOI4xwxpJ6Sgr
-wSRrKDcn9l3Vxn8S4Vel2hLag/SC8ITZEpZPCRV+xRoZK5lYkEE=
-=2MSV
------END PGP SIGNATURE-----
-
---zu8lIfFVzXMVnfzp--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
