@@ -1,7 +1,7 @@
 From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: [PATCH 3/3] RDMA/hns: Configure sgid type for hip08 RoCE
-Date: Thu, 26 Oct 2017 17:10:25 +0800
-Message-ID: <1509009025-101743-4-git-send-email-xavier.huwei@huawei.com>
+Subject: [PATCH 1/3] RDMA/hns: Add rereg mr support for hip08
+Date: Thu, 26 Oct 2017 17:10:23 +0800
+Message-ID: <1509009025-101743-2-git-send-email-xavier.huwei@huawei.com>
 References: <1509009025-101743-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,191 +12,304 @@ To: dledford@redhat.com
 Cc: linux-rdma@vger.kernel.org, xavier.huwei@huawei.com, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, zhangxiping3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, shaobohsu@163.com, shaoboxu@tom.com, shaobo.xu@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-The hardware vendors need to generate RoCEv1 or RoCEv2
-packet according to the sgid type configured.
+This patch adds rereg mr support for hip08.
 
-Besides, update the gid table size for hip08 RoCE
-device.
-
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
 Signed-off-by: Shaobo Xu <xushaobo2@huawei.com>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
 Signed-off-by: Yixian Liu <liuyixian@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h |  4 ++--
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  7 +++++--
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 25 +++++++++++++++++++++----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  7 +++++++
- drivers/infiniband/hw/hns/hns_roce_main.c   | 11 +++++++----
- 5 files changed, 42 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_cmd.h    |   3 +
+ drivers/infiniband/hw/hns/hns_roce_device.h |  12 +++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  53 ++++++++++++
+ drivers/infiniband/hw/hns/hns_roce_main.c   |   4 +
+ drivers/infiniband/hw/hns/hns_roce_mr.c     | 123 ++++++++++++++++++++++++++++
+ 5 files changed, 195 insertions(+)
 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.h b/drivers/infiniband/hw/hns/hns_roce_cmd.h
+index f0039a7..b1c9422 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cmd.h
++++ b/drivers/infiniband/hw/hns/hns_roce_cmd.h
+@@ -75,6 +75,9 @@ enum {
+ 	HNS_ROCE_CMD_DESTROY_MPT_BT1	= 0x29,
+ 	HNS_ROCE_CMD_DESTROY_MPT_BT2	= 0x2a,
+ 
++	/* MPT commands */
++	HNS_ROCE_CMD_QUERY_MPT		= 0x62,
++
+ 	/* SRQC BT commands */
+ 	HNS_ROCE_CMD_WRITE_SRQC_BT0	= 0x30,
+ 	HNS_ROCE_CMD_WRITE_SRQC_BT1	= 0x31,
 diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index ba3bb36..c4a28a0 100644
+index 31c7ab8..7b3f444 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_device.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -586,8 +586,8 @@ struct hns_roce_hw {
- 			 u64 out_param, u32 in_modifier, u8 op_modifier, u16 op,
- 			 u16 token, int event);
- 	int (*chk_mbox)(struct hns_roce_dev *hr_dev, unsigned long timeout);
--	void (*set_gid)(struct hns_roce_dev *hr_dev, u8 port, int gid_index,
--			union ib_gid *gid);
-+	int (*set_gid)(struct hns_roce_dev *hr_dev, u8 port, int gid_index,
-+		       union ib_gid *gid, const struct ib_gid_attr *attr);
- 	int (*set_mac)(struct hns_roce_dev *hr_dev, u8 phy_port, u8 *addr);
- 	void (*set_mtu)(struct hns_roce_dev *hr_dev, u8 phy_port,
- 			enum ib_mtu mtu);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 00cbfc9..af27168 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -1703,8 +1703,9 @@ static int hns_roce_v1_chk_mbox(struct hns_roce_dev *hr_dev,
- 	return 0;
- }
- 
--static void hns_roce_v1_set_gid(struct hns_roce_dev *hr_dev, u8 port,
--				int gid_index, union ib_gid *gid)
-+static int hns_roce_v1_set_gid(struct hns_roce_dev *hr_dev, u8 port,
-+			       int gid_index, union ib_gid *gid,
-+			       const struct ib_gid_attr *attr)
- {
- 	u32 *p = NULL;
- 	u8 gid_idx = 0;
-@@ -1726,6 +1727,8 @@ static void hns_roce_v1_set_gid(struct hns_roce_dev *hr_dev, u8 port,
- 	p = (u32 *)&gid->raw[0xc];
- 	roce_raw_write(*p, hr_dev->reg_base + ROCEE_PORT_GID_H_0_REG +
- 		       (HNS_ROCE_V1_GID_NUM * gid_idx));
-+
-+	return 0;
- }
- 
- static int hns_roce_v1_set_mac(struct hns_roce_dev *hr_dev, u8 phy_port,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 2e17dc1..3b0cf55 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -948,7 +948,7 @@ static int hns_roce_v2_profile(struct hns_roce_dev *hr_dev)
- 	caps->flags		= HNS_ROCE_CAP_FLAG_REREG_MR |
- 				  HNS_ROCE_CAP_FLAG_ROCE_V1_V2;
- 	caps->pkey_table_len[0] = 1;
--	caps->gid_table_len[0] = 2;
-+	caps->gid_table_len[0] = HNS_ROCE_V2_GID_INDEX_NUM;
- 	caps->local_ca_ack_delay = 0;
- 	caps->max_mtu = IB_MTU_4096;
- 
-@@ -1043,12 +1043,27 @@ static int hns_roce_v2_chk_mbox(struct hns_roce_dev *hr_dev,
- 	return 0;
- }
- 
--static void hns_roce_v2_set_gid(struct hns_roce_dev *hr_dev, u8 port,
--				int gid_index, union ib_gid *gid)
-+static int hns_roce_v2_set_gid(struct hns_roce_dev *hr_dev, u8 port,
-+			       int gid_index, union ib_gid *gid,
-+			       const struct ib_gid_attr *attr)
- {
-+	enum hns_roce_sgid_type sgid_type = GID_TYPE_FLAG_ROCE_V1;
- 	u32 *p;
- 	u32 val;
- 
-+	if (!gid || !attr)
-+		return -EINVAL;
-+
-+	if (attr->gid_type == IB_GID_TYPE_ROCE)
-+		sgid_type = GID_TYPE_FLAG_ROCE_V1;
-+
-+	if (attr->gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP) {
-+		if (ipv6_addr_v4mapped((void *)gid))
-+			sgid_type = GID_TYPE_FLAG_ROCE_V2_IPV4;
-+		else
-+			sgid_type = GID_TYPE_FLAG_ROCE_V2_IPV6;
-+	}
-+
- 	p = (u32 *)&gid->raw[0];
- 	roce_raw_write(*p, hr_dev->reg_base + ROCEE_VF_SGID_CFG0_REG +
- 		       0x20 * gid_index);
-@@ -1067,9 +1082,11 @@ static void hns_roce_v2_set_gid(struct hns_roce_dev *hr_dev, u8 port,
- 
- 	val = roce_read(hr_dev, ROCEE_VF_SGID_CFG4_REG + 0x20 * gid_index);
- 	roce_set_field(val, ROCEE_VF_SGID_CFG4_SGID_TYPE_M,
--		       ROCEE_VF_SGID_CFG4_SGID_TYPE_S, 0);
-+		       ROCEE_VF_SGID_CFG4_SGID_TYPE_S, sgid_type);
- 
- 	roce_write(hr_dev, ROCEE_VF_SGID_CFG4_REG + 0x20 * gid_index, val);
-+
-+	return 0;
- }
- 
- static int hns_roce_v2_set_mac(struct hns_roce_dev *hr_dev, u8 phy_port,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 6106ad1..864fcd1 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -77,6 +77,7 @@
- #define HNS_ROCE_MTT_HOP_NUM			1
- #define HNS_ROCE_CQE_HOP_NUM			1
- #define HNS_ROCE_PBL_HOP_NUM			2
-+#define HNS_ROCE_V2_GID_INDEX_NUM		256
- 
- #define HNS_ROCE_V2_TABLE_CHUNK_SIZE		(1 << 18)
- 
-@@ -203,6 +204,12 @@ enum hns_roce_cmd_return_status {
- 	CMD_QUEUE_FULL		= 3,
+@@ -170,6 +170,10 @@ enum {
+ 	HNS_ROCE_OPCODE_RDMA_WITH_IMM_RECEIVE	= 0x07,
  };
  
-+enum hns_roce_sgid_type {
-+	GID_TYPE_FLAG_ROCE_V1 = 0,
-+	GID_TYPE_FLAG_ROCE_V2_IPV4,
-+	GID_TYPE_FLAG_ROCE_V2_IPV6,
++enum {
++	HNS_ROCE_CAP_FLAG_REREG_MR		= BIT(0),
 +};
 +
- struct hns_roce_v2_cq_context {
- 	u32	byte_4_pg_ceqn;
- 	u32	byte_8_cqn;
+ enum hns_roce_mtt_type {
+ 	MTT_TYPE_WQE,
+ 	MTT_TYPE_CQE,
+@@ -567,6 +571,7 @@ struct hns_roce_caps {
+ 	u32		cqe_buf_pg_sz;
+ 	u32		cqe_hop_num;
+ 	u32		chunk_sz;	/* chunk size in non multihop mode*/
++	u64		flags;
+ };
+ 
+ struct hns_roce_hw {
+@@ -587,6 +592,10 @@ struct hns_roce_hw {
+ 			enum ib_mtu mtu);
+ 	int (*write_mtpt)(void *mb_buf, struct hns_roce_mr *mr,
+ 			  unsigned long mtpt_idx);
++	int (*rereg_write_mtpt)(struct hns_roce_dev *hr_dev,
++				struct hns_roce_mr *mr, int flags, u32 pdn,
++				int mr_access_flags, u64 iova, u64 size,
++				void *mb_buf);
+ 	void (*write_cqc)(struct hns_roce_dev *hr_dev,
+ 			  struct hns_roce_cq *hr_cq, void *mb_buf, u64 *mtts,
+ 			  dma_addr_t dma_handle, int nent, u32 vector);
+@@ -783,6 +792,9 @@ struct ib_pd *hns_roce_alloc_pd(struct ib_device *ib_dev,
+ struct ib_mr *hns_roce_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				   u64 virt_addr, int access_flags,
+ 				   struct ib_udata *udata);
++int hns_roce_rereg_user_mr(struct ib_mr *mr, int flags, u64 start, u64 length,
++			   u64 virt_addr, int mr_access_flags, struct ib_pd *pd,
++			   struct ib_udata *udata);
+ int hns_roce_dereg_mr(struct ib_mr *ibmr);
+ int hns_roce_hw2sw_mpt(struct hns_roce_dev *hr_dev,
+ 		       struct hns_roce_cmd_mailbox *mailbox,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index b0736c3..7e24e1f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -945,6 +945,7 @@ static int hns_roce_v2_profile(struct hns_roce_dev *hr_dev)
+ 	caps->cqe_hop_num	= HNS_ROCE_CQE_HOP_NUM;
+ 	caps->chunk_sz		= HNS_ROCE_V2_TABLE_CHUNK_SIZE;
+ 
++	caps->flags		= HNS_ROCE_CAP_FLAG_REREG_MR;
+ 	caps->pkey_table_len[0] = 1;
+ 	caps->gid_table_len[0] = 2;
+ 	caps->local_ca_ack_delay = 0;
+@@ -1183,6 +1184,57 @@ static int hns_roce_v2_write_mtpt(void *mb_buf, struct hns_roce_mr *mr,
+ 	return 0;
+ }
+ 
++static int hns_roce_v2_rereg_write_mtpt(struct hns_roce_dev *hr_dev,
++					struct hns_roce_mr *mr, int flags,
++					u32 pdn, int mr_access_flags, u64 iova,
++					u64 size, void *mb_buf)
++{
++	struct hns_roce_v2_mpt_entry *mpt_entry = mb_buf;
++
++	if (flags & IB_MR_REREG_PD) {
++		roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_PD_M,
++			       V2_MPT_BYTE_4_PD_S, pdn);
++		mr->pd = pdn;
++	}
++
++	if (flags & IB_MR_REREG_ACCESS) {
++		roce_set_bit(mpt_entry->byte_8_mw_cnt_en,
++			     V2_MPT_BYTE_8_BIND_EN_S,
++			     (mr_access_flags & IB_ACCESS_MW_BIND ? 1 : 0));
++		roce_set_bit(mpt_entry->byte_8_mw_cnt_en,
++			   V2_MPT_BYTE_8_ATOMIC_EN_S,
++			   (mr_access_flags & IB_ACCESS_REMOTE_ATOMIC ? 1 : 0));
++		roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_RR_EN_S,
++			     (mr_access_flags & IB_ACCESS_REMOTE_READ ? 1 : 0));
++		roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_RW_EN_S,
++			    (mr_access_flags & IB_ACCESS_REMOTE_WRITE ? 1 : 0));
++		roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_LW_EN_S,
++			     (mr_access_flags & IB_ACCESS_LOCAL_WRITE ? 1 : 0));
++	}
++
++	if (flags & IB_MR_REREG_TRANS) {
++		mpt_entry->va_l = cpu_to_le32(lower_32_bits(iova));
++		mpt_entry->va_h = cpu_to_le32(upper_32_bits(iova));
++		mpt_entry->len_l = cpu_to_le32(lower_32_bits(size));
++		mpt_entry->len_h = cpu_to_le32(upper_32_bits(size));
++
++		mpt_entry->pbl_size = cpu_to_le32(mr->pbl_size);
++		mpt_entry->pbl_ba_l =
++				cpu_to_le32(lower_32_bits(mr->pbl_ba >> 3));
++		roce_set_field(mpt_entry->byte_48_mode_ba,
++			       V2_MPT_BYTE_48_PBL_BA_H_M,
++			       V2_MPT_BYTE_48_PBL_BA_H_S,
++			       upper_32_bits(mr->pbl_ba >> 3));
++		mpt_entry->byte_48_mode_ba =
++				cpu_to_le32(mpt_entry->byte_48_mode_ba);
++
++		mr->iova = iova;
++		mr->size = size;
++	}
++
++	return 0;
++}
++
+ static void *get_cqe_v2(struct hns_roce_cq *hr_cq, int n)
+ {
+ 	return hns_roce_buf_offset(&hr_cq->hr_buf.hr_buf,
+@@ -3044,6 +3096,7 @@ static int hns_roce_v2_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
+ 	.set_gid = hns_roce_v2_set_gid,
+ 	.set_mac = hns_roce_v2_set_mac,
+ 	.write_mtpt = hns_roce_v2_write_mtpt,
++	.rereg_write_mtpt = hns_roce_v2_rereg_write_mtpt,
+ 	.write_cqc = hns_roce_v2_write_cqc,
+ 	.set_hem = hns_roce_v2_set_hem,
+ 	.clear_hem = hns_roce_v2_clear_hem,
 diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 8bb75ea..5bc8cc2 100644
+index 31120fd..63a2f3b 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_main.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -81,17 +81,19 @@ static int hns_roce_add_gid(struct ib_device *device, u8 port_num,
- 	struct hns_roce_dev *hr_dev = to_hr_dev(device);
- 	u8 port = port_num - 1;
- 	unsigned long flags;
-+	int ret;
+@@ -508,6 +508,10 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
+ 	ib_dev->get_dma_mr		= hns_roce_get_dma_mr;
+ 	ib_dev->reg_user_mr		= hns_roce_reg_user_mr;
+ 	ib_dev->dereg_mr		= hns_roce_dereg_mr;
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_REREG_MR) {
++		ib_dev->rereg_user_mr	= hns_roce_rereg_user_mr;
++		ib_dev->uverbs_cmd_mask |= (1ULL << IB_USER_VERBS_CMD_REREG_MR);
++	}
  
- 	if (port >= hr_dev->caps.num_ports)
- 		return -EINVAL;
- 
- 	spin_lock_irqsave(&hr_dev->iboe.lock, flags);
- 
--	hr_dev->hw->set_gid(hr_dev, port, index, (union ib_gid *)gid);
-+	ret = hr_dev->hw->set_gid(hr_dev, port, index, (union ib_gid *)gid,
-+				   attr);
- 
- 	spin_unlock_irqrestore(&hr_dev->iboe.lock, flags);
- 
--	return 0;
-+	return ret;
+ 	/* OTHERS */
+ 	ib_dev->get_port_immutable	= hns_roce_port_immutable;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index c47a5ee..da86a811 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -1065,6 +1065,129 @@ struct ib_mr *hns_roce_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	return ERR_PTR(ret);
  }
  
- static int hns_roce_del_gid(struct ib_device *device, u8 port_num,
-@@ -101,17 +103,18 @@ static int hns_roce_del_gid(struct ib_device *device, u8 port_num,
- 	union ib_gid zgid = { {0} };
- 	u8 port = port_num - 1;
- 	unsigned long flags;
++int hns_roce_rereg_user_mr(struct ib_mr *ibmr, int flags, u64 start, u64 length,
++			   u64 virt_addr, int mr_access_flags, struct ib_pd *pd,
++			   struct ib_udata *udata)
++{
++	struct hns_roce_dev *hr_dev = to_hr_dev(ibmr->device);
++	struct hns_roce_mr *mr = to_hr_mr(ibmr);
++	struct hns_roce_cmd_mailbox *mailbox;
++	struct device *dev = hr_dev->dev;
++	unsigned long mtpt_idx;
++	u32 pdn = 0;
++	int npages;
 +	int ret;
- 
- 	if (port >= hr_dev->caps.num_ports)
- 		return -EINVAL;
- 
- 	spin_lock_irqsave(&hr_dev->iboe.lock, flags);
- 
--	hr_dev->hw->set_gid(hr_dev, port, index, &zgid);
-+	ret = hr_dev->hw->set_gid(hr_dev, port, index, &zgid, NULL);
- 
- 	spin_unlock_irqrestore(&hr_dev->iboe.lock, flags);
- 
--	return 0;
++
++	if (!mr->enabled)
++		return -EINVAL;
++
++	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
++	if (IS_ERR(mailbox))
++		return PTR_ERR(mailbox);
++
++	mtpt_idx = key_to_hw_index(mr->key) & (hr_dev->caps.num_mtpts - 1);
++	ret = hns_roce_cmd_mbox(hr_dev, 0, mailbox->dma, mtpt_idx, 0,
++				HNS_ROCE_CMD_QUERY_MPT,
++				HNS_ROCE_CMD_TIMEOUT_MSECS);
++	if (ret)
++		goto free_cmd_mbox;
++
++	ret = hns_roce_hw2sw_mpt(hr_dev, NULL, mtpt_idx);
++	if (ret)
++		dev_warn(dev, "HW2SW_MPT failed (%d)\n", ret);
++
++	mr->enabled = 0;
++
++	if (flags & IB_MR_REREG_PD)
++		pdn = to_hr_pd(pd)->pdn;
++
++	if (flags & IB_MR_REREG_TRANS) {
++		if (mr->size != ~0ULL) {
++			npages = ib_umem_page_count(mr->umem);
++
++			if (hr_dev->caps.pbl_hop_num)
++				hns_roce_mhop_free(hr_dev, mr);
++			else
++				dma_free_coherent(dev, npages * 8, mr->pbl_buf,
++						  mr->pbl_dma_addr);
++		}
++		ib_umem_release(mr->umem);
++
++		mr->umem = ib_umem_get(ibmr->uobject->context, start, length,
++				       mr_access_flags, 0);
++		if (IS_ERR(mr->umem)) {
++			ret = PTR_ERR(mr->umem);
++			mr->umem = NULL;
++			goto free_cmd_mbox;
++		}
++		npages = ib_umem_page_count(mr->umem);
++
++		if (hr_dev->caps.pbl_hop_num) {
++			ret = hns_roce_mhop_alloc(hr_dev, npages, mr);
++			if (ret)
++				goto release_umem;
++		} else {
++			mr->pbl_buf = dma_alloc_coherent(dev, npages * 8,
++							 &(mr->pbl_dma_addr),
++							 GFP_KERNEL);
++			if (!mr->pbl_buf) {
++				ret = -ENOMEM;
++				goto release_umem;
++			}
++		}
++	}
++
++	ret = hr_dev->hw->rereg_write_mtpt(hr_dev, mr, flags, pdn,
++					   mr_access_flags, virt_addr,
++					   length, mailbox->buf);
++	if (ret) {
++		if (flags & IB_MR_REREG_TRANS)
++			goto release_umem;
++		else
++			goto free_cmd_mbox;
++	}
++
++	if (flags & IB_MR_REREG_TRANS) {
++		ret = hns_roce_ib_umem_write_mr(hr_dev, mr, mr->umem);
++		if (ret) {
++			if (mr->size != ~0ULL) {
++				npages = ib_umem_page_count(mr->umem);
++
++				if (hr_dev->caps.pbl_hop_num)
++					hns_roce_mhop_free(hr_dev, mr);
++				else
++					dma_free_coherent(dev, npages * 8,
++							  mr->pbl_buf,
++							  mr->pbl_dma_addr);
++			}
++
++			goto release_umem;
++		}
++	}
++
++	ret = hns_roce_sw2hw_mpt(hr_dev, mailbox, mtpt_idx);
++	if (ret) {
++		dev_err(dev, "SW2HW_MPT failed (%d)\n", ret);
++		goto release_umem;
++	}
++
++	mr->enabled = 1;
++	if (flags & IB_MR_REREG_ACCESS)
++		mr->access = mr_access_flags;
++
++	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
++
++	return 0;
++
++release_umem:
++	ib_umem_release(mr->umem);
++
++free_cmd_mbox:
++	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
++
 +	return ret;
- }
- 
- static int handle_en_event(struct hns_roce_dev *hr_dev, u8 port,
++}
++
+ int hns_roce_dereg_mr(struct ib_mr *ibmr)
+ {
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(ibmr->device);
 -- 
 1.9.1
