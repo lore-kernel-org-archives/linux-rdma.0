@@ -1,37 +1,54 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Mellanox CX5 Not Showing Up In ibv_devices (on some systems)
-Date: Thu, 26 Oct 2017 10:59:40 -0600
-Message-ID: <20171026165940.GC5829@obsidianresearch.com>
-References: <DE927C68B458BE418D582EC97927A9287FD16661@ORSMSX113.amr.corp.intel.com>
+From: Chris Blake <chrisrblake93-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: 4.13 ib_mthca NULL pointer dereference with OpenSM
+Date: Thu, 26 Oct 2017 12:17:18 -0500
+Message-ID: <CALpBJjoMLCqzVe5yKp4wCX-X-sH+=zv1QZfMvOWh2Ukh3c2LFg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <DE927C68B458BE418D582EC97927A9287FD16661-8oqHQFITsIFQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 26, 2017 at 04:49:29PM +0000, Gruher, Joseph R wrote:
+Hello linux-rmda,
 
-> Hi, I'm having trouble with ibv_devices (and related tools like
-> ibv_devinfo, ib_send_bw, etc) not recognizing my Mellanox CX5 NICs
-> in some systems.  The NICs work fine for TCP/IP traffic, and I think
-> for RDMA traffic as well as I can do NVMeoF discovery and make
-> NVMeoF connections, but they're just not listed in ibv_devices.
- 
-> intel@BigTwin-A:~$ sudo ibv_devices
-> libibverbs: Warning: no userspace device-specific driver found for
-> /sys/class/infiniband_verbs/uverbs0
+I recently upgraded one of my boxes to 4.13, and have started
+experiencing issues with ib_mthca. To start, my setup is Infiniband
+direct between 2 servers using older Mellanox Technologies MT25208
+cards for ipoib as well as NFS over RDMA. After upgrading, the
+following has been experienced:
 
-Well, that is pretty big clue, you haven't installed the user space
-support library.
+1. On my NAS host running OpenSM, as soon as it starts I get a NULL
+pointer dereference which makes infiniband unusable. [0] This only
+occurs on kernel 4.13 or newer.
 
-Depending on what os you are using it is either in the libmlx5 or
-ibverbs-providers packages,
+2. On my compute host not running OpenSM, connectivity works for a bit
+but shortly after dmesg is full of the following message:
+infiniband mthca0: ib_post_send_mad error
+This occurs when my compute host is on kernel 4.13 or newer.
 
-Jason
+I went ahead and tested some mainline kernel versions on both of my
+nodes, and here are my findings:
+4.13.8 = NULL pointer dereference on NAS, IPoIB not working
+4.12.14 = Works as expected
+4.14.0-rc5 = NULL pointer dereference on NAS, IPoIB not working
+
+I have tried to see if I could find the patch responsible for this,
+but sadly I have not had much luck.
+
+As for my systems, the following modules are loaded:
+ib_uverbs
+ib_umad
+rdma_ucm
+ib_mthca
+ib_ipoib
+
+Let me know if there is anything I can test to help diagnose what is
+causing this issue.
+
+Regards,
+Chris Blake
+
+[0]: https://gist.github.com/riptidewave93/48595b8bc3bca669251db7d8a8e8a803
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
