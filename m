@@ -1,97 +1,52 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v3 00/13] dax: fix dma vs truncate and remove 'page-less'
- support
-Date: Thu, 26 Oct 2017 12:58:50 +0200
-Message-ID: <20171026105850.GA31161@quack2.suse.cz>
-References: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171020074750.GA13568@lst.de>
- <20171020093148.GA20304@lst.de>
+From: "Petrosyan, Ludwig" <ludwig.petrosyan-T5F83Mi6MZE@public.gmane.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Date: Thu, 26 Oct 2017 15:28:02 +0200 (CEST)
+Message-ID: <2068822709.17434955.1509024482956.JavaMail.zimbra@desy.de>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
+ <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com>
+ <1381807327.12461494.1508652825239.JavaMail.zimbra@desy.de>
+ <063D6719AE5E284EB5DD2968C1650D6DD00A04EA@AcuExch.aculab.com>
+ <d61b6829-0515-a809-2a43-c41add4b1594@deltatee.com>
+ <1264390131.14701401.1508824699016.JavaMail.zimbra@desy.de>
+ <063D6719AE5E284EB5DD2968C1650D6DD00A19B9@AcuExch.aculab.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20171020093148.GA20304@lst.de>
-Sender: owner-linux-mm@kvack.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org, Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, "J. Bruce Fields" <bfields@fieldses.org>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Sean Hefty <sean.hefty@intel.com>, Jeff Layton <jlayton@poochiereds.net>, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Jeff Moyer <jmoyer@redhat.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-nvdimm@lists.01.org, Alexander Viro <viro@zeniv.linux.org.uk>, Gerald Schaefer <gerald.>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6DD00A19B9-VkEWCZq2GCInGFn1LkZF6NBPR1lH4CV8@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: David Laight <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>
+Cc: Serguei Sagalovitch <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felix Kuehling <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, John Bridgman <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Christian Koenig <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, Ben Sander <ben.sander-5C7GfCeVMHo@public.gmane.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, Alexander Deucher <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, Paul Blinzer <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, Linux-media <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri 20-10-17 11:31:48, Christoph Hellwig wrote:
-> On Fri, Oct 20, 2017 at 09:47:50AM +0200, Christoph Hellwig wrote:
-> > I'd like to brainstorm how we can do something better.
-> > 
-> > How about:
-> > 
-> > If we hit a page with an elevated refcount in truncate / hole puch
-> > etc for a DAX file system we do not free the blocks in the file system,
-> > but add it to the extent busy list.  We mark the page as delayed
-> > free (e.g. page flag?) so that when it finally hits refcount zero we
-> > call back into the file system to remove it from the busy list.
+
+
+----- Original Message -----
+> From: "David Laight" <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>
+> To: "Petrosyan, Ludwig" <ludwig.petrosyan-T5F83Mi6MZE@public.gmane.org>, "Logan Gunthorpe" <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> Cc: "Alexander Deucher" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "linux-kernel" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma"
+> <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Linux-media" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+> "dri-devel" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "linux-pci" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "John Bridgman"
+> <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "Felix Kuehling" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Serguei Sagalovitch"
+> <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Paul Blinzer" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Christian Koenig" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>,
+> "Suravee Suthikulpanit" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Ben Sander" <ben.sander-5C7GfCeVMHo@public.gmane.org>
+> Sent: Tuesday, 24 October, 2017 16:58:24
+> Subject: RE: Enabling peer to peer device transactions for PCIe devices
+
+> Please don't top post, write shorter lines, and add the odd blank line.
+> Big blocks of text are hard to read quickly.
 > 
-> Brainstorming some more:
-> 
-> Given that on a DAX file there shouldn't be any long-term page
-> references after we unmap it from the page table and don't allow
-> get_user_pages calls why not wait for the references for all
-> DAX pages to go away first?  E.g. if we find a DAX page in
-> truncate_inode_pages_range that has an elevated refcount we set
-> a new flag to prevent new references from showing up, and then
-> simply wait for it to go away.  Instead of a busy way we can
-> do this through a few hashed waitqueued in dev_pagemap.  And in
-> fact put_zone_device_page already gets called when putting the
-> last page so we can handle the wakeup from there.
-> 
-> In fact if we can't find a page flag for the stop new callers
-> things we could probably come up with a way to do that through
-> dev_pagemap somehow, but I'm not sure how efficient that would
-> be.
 
-We were talking about this yesterday with Dan so some more brainstorming
-from us. We can implement the solution with extent busy list in ext4
-relatively easily - we already have such list currently similarly to XFS.
-There would be some modifications needed but nothing too complex. The
-biggest downside of this solution I see is that it requires per-filesystem
-solution for busy extents - ext4 and XFS are reasonably fine, however btrfs
-may have problems and ext2 definitely will need some modifications.
-Invisible used blocks may be surprising to users at times although given
-page refs should be relatively short term, that should not be a big issue.
-But are we guaranteed page refs are short term? E.g. if someone creates
-v4l2 videobuf in MAP_SHARED mapping of a file on DAX filesystem, page refs
-can be rather long-term similarly as in RDMA case. Also freeing of blocks
-on page reference drop is another async entry point into the filesystem
-which could unpleasantly surprise us but I guess workqueues would solve
-that reasonably fine.
+OK this time I am very short. 
+peer2peer works
 
-WRT waiting for page refs to be dropped before proceeding with truncate (or
-punch hole for that matter - that case is even nastier since we don't have
-i_size to guard us). What I like about this solution is that it is very
-visible there's something unusual going on with the file being truncated /
-punched and so problems are easier to diagnose / fix from the admin side.
-So far we have guarded hole punching from concurrent faults (and
-get_user_pages() does fault once you do unmap_mapping_range()) with
-I_MMAP_LOCK (or its equivalent in ext4). We cannot easily wait for page
-refs to be dropped under I_MMAP_LOCK as that could deadlock - the most
-obvious case Dan came up with is when GUP obtains ref to page A, then hole
-punch comes grabbing I_MMAP_LOCK and waiting for page ref on A to be
-dropped, and then GUP blocks on trying to fault in another page.
-
-I think we cannot easily prevent new page references to be grabbed as you
-write above since nobody expects stuff like get_page() to fail. But I 
-think that unmapping relevant pages and then preventing them to be faulted
-in again is workable and stops GUP as well. The problem with that is though
-what to do with page faults to such pages - you cannot just fail them for
-hole punch, and you cannot easily allocate new blocks either. So we are
-back at a situation where we need to detach blocks from the inode and then
-wait for page refs to be dropped - so some form of busy extents. Am I
-missing something?
-
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Ludwig
