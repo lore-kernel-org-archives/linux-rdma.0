@@ -1,52 +1,38 @@
-From: "Petrosyan, Ludwig" <ludwig.petrosyan-T5F83Mi6MZE@public.gmane.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Thu, 26 Oct 2017 15:28:02 +0200 (CEST)
-Message-ID: <2068822709.17434955.1509024482956.JavaMail.zimbra@desy.de>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <7f5e0303-f4ea-781a-8dec-74b30990d54f@desy.de>
- <be9f2dee-bb37-9e8f-af72-6ee1127ba8d4@deltatee.com>
- <1381807327.12461494.1508652825239.JavaMail.zimbra@desy.de>
- <063D6719AE5E284EB5DD2968C1650D6DD00A04EA@AcuExch.aculab.com>
- <d61b6829-0515-a809-2a43-c41add4b1594@deltatee.com>
- <1264390131.14701401.1508824699016.JavaMail.zimbra@desy.de>
- <063D6719AE5E284EB5DD2968C1650D6DD00A19B9@AcuExch.aculab.com>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 4.8-1-rc2 release is available
+Date: Thu, 26 Oct 2017 18:24:50 +0300
+Message-ID: <59F1FE42.5020306@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6DD00A19B9-VkEWCZq2GCInGFn1LkZF6NBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: David Laight <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>
-Cc: Serguei Sagalovitch <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felix Kuehling <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, John Bridgman <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Christian Koenig <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>, Ben Sander <ben.sander-5C7GfCeVMHo@public.gmane.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, Alexander Deucher <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, Paul Blinzer <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, Linux-media <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
------ Original Message -----
-> From: "David Laight" <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>
-> To: "Petrosyan, Ludwig" <ludwig.petrosyan-T5F83Mi6MZE@public.gmane.org>, "Logan Gunthorpe" <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-> Cc: "Alexander Deucher" <Alexander.Deucher-5C7GfCeVMHo@public.gmane.org>, "linux-kernel" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma"
-> <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Linux-media" <Linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
-> "dri-devel" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "linux-pci" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "John Bridgman"
-> <John.Bridgman-5C7GfCeVMHo@public.gmane.org>, "Felix Kuehling" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "Serguei Sagalovitch"
-> <Serguei.Sagalovitch-5C7GfCeVMHo@public.gmane.org>, "Paul Blinzer" <Paul.Blinzer-5C7GfCeVMHo@public.gmane.org>, "Christian Koenig" <Christian.Koenig-5C7GfCeVMHo@public.gmane.org>,
-> "Suravee Suthikulpanit" <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "Ben Sander" <ben.sander-5C7GfCeVMHo@public.gmane.org>
-> Sent: Tuesday, 24 October, 2017 16:58:24
-> Subject: RE: Enabling peer to peer device transactions for PCIe devices
-
-> Please don't top post, write shorter lines, and add the odd blank line.
-> Big blocks of text are hard to read quickly.
-> 
-
-OK this time I am very short. 
-peer2peer works
-
-Ludwig
+SGksCk9GRUQtNC44LTEtcmMyIGlzIGF2YWlsYWJsZSBhdDoKaHR0cHM6Ly9vcGVuZmFicmljcy5v
+cmcvZG93bmxvYWRzL09GRUQvb2ZlZC00LjgtMS9PRkVELTQuOC0xLXJjMi50Z3oKClRvIGdldCBC
+VUlMRF9JRCBydW4gb2ZlZF9pbmZvCgpQbGVhc2UgcmVwb3J0IGFueSBpc3N1ZXMgaW4gYnVnemls
+bGEKaHR0cDovL2J1Z3Mub3BlbmZhYnJpY3Mub3JnL2J1Z3ppbGxhLyBmb3IgT0ZFRCA0LjgtMQoK
+UmVsZWFzZSBub3RlczoKaHR0cDovL29wZW5mYWJyaWNzLm9yZy9kb3dubG9hZHMvT0ZFRC9yZWxl
+YXNlX25vdGVzL09GRURfNC44LTFfcmMyLXJlbGVhc2Vfbm90ZXMKCk9GRUQtNC44LTEtcmMyIE1h
+aW4gQ2hhbmdlcyBmcm9tIE9GRUQtNC44LTEtcmMxCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KMS4g
+Y29tcGF0LXJkbWEKLSBGaXhlcyBmb3IgaTQwaXcgd2hpY2ggaGF2ZSBiZWVuIGluY2x1ZGVkIGlu
+IGtlcm5lbHMgNC4xMiBhbmQgNC4xMwotIHFlZHI6IGZpeCBCWiAyNjQyIC0gcGFyc2UgVkxBTiBJ
+RCBhbmQgcHJpb3JpdHkgY29ycmVjdGx5Ci0gYm54dF9lbjogQnVnIDI2NDUgLSBTZXQgZGVmYXVs
+dCBjb21wbGV0aW9uIHJpbmcgZm9yIGFzeW5jIGV2ZW50cwotIGJueHRfcmU6IGJ6IDI2NDYgLSAK
+MDAxMi1ibnh0X3JlLU1ha2Utcm9vbS1mb3ItbWFwcGluZy1iZXlvbmQtMzItZW50cmllcy5wYXRj
+aAoKMi4gVXBkYXRlZCBwYWNrYWdlcwotIGxpYmZhYnJpYy0xLjUuMQotIGZhYnRlc3RzLTEuNS4x
+CgoKUmVnYXJkcywKVmxhZGltaXIKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KZXdnIG1haWxpbmcgbGlzdApld2dAbGlzdHMub3BlbmZhYnJpY3Mub3JnCmh0
+dHA6Ly9saXN0cy5vcGVuZmFicmljcy5vcmcvbWFpbG1hbi9saXN0aW5mby9ld2c=
