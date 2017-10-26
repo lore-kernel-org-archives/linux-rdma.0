@@ -1,50 +1,36 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PULL REQUEST] Please pull rdma.git
-Date: Thu, 26 Oct 2017 14:05:08 -0400
-Message-ID: <1509041108.3325.67.camel@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Mellanox CX5 Not Showing Up In ibv_devices (on some systems)
+Date: Thu, 26 Oct 2017 12:49:04 -0600
+Message-ID: <20171026184904.GA6905@obsidianresearch.com>
+References: <DE927C68B458BE418D582EC97927A9287FD16661@ORSMSX113.amr.corp.intel.com>
+ <20171026165940.GC5829@obsidianresearch.com>
+ <DE927C68B458BE418D582EC97927A9287FD167C8@ORSMSX113.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <DE927C68B458BE418D582EC97927A9287FD167C8-8oqHQFITsIFQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+To: "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+On Thu, Oct 26, 2017 at 05:32:28PM +0000, Gruher, Joseph R wrote:
 
-This is the fix for the oops that I alerted you to earlier this week
-and it's the only thing in the pull request.  Here's the boilerplate:
+> I hear what you're saying, but as far as I can tell the relevant
+> packages are installed, and the same packages on both systems?  See
+> below.  Am I missing one I should have?
 
-The following changes since commit 789f903fd75036f937409a9a1616a5a5e5cc5bae:
+Ah, in that case it is because your libmlx5 is too old to support the
+new card you have:
 
-  i40iw: Fix port number for query QP (2017-10-04 15:28:49 -0400)
+18:00.0 Ethernet controller: Mellanox Technologies MT28800 Family [ConnectX-5]
+vs
+81:00.0 Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5]
 
-are available in the git repository at:
+You can upgrade it by building rdma-core from source.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git tags/for-linus
-
-for you to fetch changes up to b4d91aeb6e120b7e2f207021c31b914895c69bc4:
-
-  RDMA/netlink: OOPs in rdma_nl_rcv_msg() from misinterpreted flag (2017-10-25 14:54:43 -0400)
-
-----------------------------------------------------------------
-Fourth -rc update for 4.14 kernel
-
-- Fix an oops issue in the new RDMA netlink code
-
-----------------------------------------------------------------
-Michael J. Ruhl (1):
-      RDMA/netlink: OOPs in rdma_nl_rcv_msg() from misinterpreted flag
-
- drivers/infiniband/core/netlink.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
-
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
