@@ -1,47 +1,35 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Block PKEY creation using ip link
-Date: Thu, 26 Oct 2017 10:57:39 -0600
-Message-ID: <20171026165739.GB5829@obsidianresearch.com>
-References: <DB5PR05MB16704ACD20AE16C44B838486B4450@DB5PR05MB1670.eurprd05.prod.outlook.com>
- <20171026100634.GG16127@mtr-leonro.local>
+Subject: Re: Mellanox CX5 Not Showing Up In ibv_devices (on some systems)
+Date: Thu, 26 Oct 2017 10:59:40 -0600
+Message-ID: <20171026165940.GC5829@obsidianresearch.com>
+References: <DE927C68B458BE418D582EC97927A9287FD16661@ORSMSX113.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171026100634.GG16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <DE927C68B458BE418D582EC97927A9287FD16661-8oqHQFITsIFQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Denis Drozdov <denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 26, 2017 at 01:06:34PM +0300, Leon Romanovsky wrote:
-> On Thu, Oct 26, 2017 at 09:47:44AM +0000, Denis Drozdov wrote:
-> > Temporary commit that blocks pkey creation using
-> > ip link. Example:
-> >
-> > ip link add link ib2 name ib2.1 type ipoib
-> >         RTNETLINK answers: Operation not supported
-> >
-> > Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Denis Drozdov <denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >  drivers/infiniband/ulp/ipoib/ipoib_netlink.c | 3 +++
-> >  1 file changed, 3 insertions(+)
-> 
-> NAK,
-> It is completely wrong and this bug relevant for mlx5 enhanced IPoIB devices,
-> but you are disabling all IPoIB capable devices.
+On Thu, Oct 26, 2017 at 04:49:29PM +0000, Gruher, Joseph R wrote:
 
-+1
+> Hi, I'm having trouble with ibv_devices (and related tools like
+> ibv_devinfo, ib_send_bw, etc) not recognizing my Mellanox CX5 NICs
+> in some systems.  The NICs work fine for TCP/IP traffic, and I think
+> for RDMA traffic as well as I can do NVMeoF discovery and make
+> NVMeoF connections, but they're just not listed in ibv_devices.
+ 
+> intel@BigTwin-A:~$ sudo ibv_devices
+> libibverbs: Warning: no userspace device-specific driver found for
+> /sys/class/infiniband_verbs/uverbs0
 
-If this flow doesn't work with netdev offload, then disable the entire
-netdev offload completely until it can be fixed properly.
+Well, that is pretty big clue, you haven't installed the user space
+support library.
 
-It is absolutely not OK to selectively break established user APIs like
-'ip link' just because a kernel-side optimization is not implemented
-correctly, you don't get to do that.
-
-If we knew that the netdev offload patches broke 'ip link' they would
-not have been accepted.
+Depending on what os you are using it is either in the libmlx5 or
+ibverbs-providers packages,
 
 Jason
 --
