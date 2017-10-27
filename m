@@ -1,75 +1,68 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: IB/mlx4: Use common error handling code in
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] IB/mlx4: Use common error handling code in
  __mlx4_ib_create_flow()
-Date: Fri, 27 Oct 2017 22:36:01 +0300
-Message-ID: <20171027193601.GI16127@mtr-leonro.local>
+Date: Fri, 27 Oct 2017 22:39:02 +0300
+Message-ID: <20171027193902.GJ16127@mtr-leonro.local>
 References: <0bcea3cf-91e3-01d5-8d80-34cd6b611fb1@users.sourceforge.net>
- <70843f43-03c5-8295-643a-4f228ff2e907@intel.com>
- <0c92fc8e-ecb8-c7ed-0b4c-721752297222@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="vDpvzslK0qRw06MN"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="GLa4d69Ev2s1FDzP"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <0c92fc8e-ecb8-c7ed-0b4c-721752297222-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <0bcea3cf-91e3-01d5-8d80-34cd6b611fb1@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-rdma@vger.kernel.org, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>, Yuval Shaia <yuval.shaia@oracle.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---vDpvzslK0qRw06MN
+--GLa4d69Ev2s1FDzP
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Oct 27, 2017 at 09:34:18AM +0200, SF Markus Elfring wrote:
-> >> Add a jump target so that a bit of exception handling can be better reused
-> >> at the end of this function.
-> >
-> > I'm not sure this is that big of a win.
+On Thu, Oct 26, 2017 at 06:12:31PM +0200, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Thu, 26 Oct 2017 17:54:15 +0200
 >
-> Such a view is appropriate because I proposed just another small adjustment
-> for this source code place.
+> Add a jump target so that a bit of exception handling can be better reused
+> at the end of this function.
 >
+> This issue was detected by using the Coccinelle software.
 >
-> > I mean you aren't really making the code any smaller
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/infiniband/hw/mlx4/main.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
 >
-> Would anybody like to check corresponding effects in more detail
-> after a specific function call was replaced by a goto statement?
 
-You are supposed to do it and not "anybody".
+Doug,
 
->
->
-> > and it's not making it any easier to read really.
->
-> Is the code readability still good enough there?
->
-> Regards,
-> Markus
+I would like to refresh my request, please don't take ANY patches
+for mlx4/mlx5/rxe from Markus without explicit acknowledge from our
+side.
 
---vDpvzslK0qRw06MN
+This change adds nothing except code churn.
+
+Thanks
+
+--GLa4d69Ev2s1FDzP
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnziqEACgkQ5GN7iDZy
-WKdWTA/+MMsKqNd77Wykm8CMkNYUVweMSGCNOvJV1p32uNEbDBzb70kydAgqeHjn
-/v+J/7Z1C81Du6KxmHAgdeUrH8D7fU0rG56Re1dY8YstC+NJ3nYPpRN4/frByirx
-60NCZN3JmeiVw4T5FftNGPYI27kSS0s2rF49wzP9zvM/4151DmL4xffMffw6rIsH
-dHhx3BPBCLvNUGPnXTQLUQpfTsFREfBMnCKPi0ivc1iaSKI8MZz9eHfdJ2W2EpEH
-w3Yb+qrGHmTb+xuMPiammJnqSa4K8zFr5M8dAhHQ3bJSZ3/b7r0QvAuuy3YsCBa7
-Zx5Igi8EAuYRhTDZMzhKlat2ujITzEgQK+9FAyNyyemUch3Z20TZZkLS86/5JCaX
-McwPW0Wj0yCr4yywQBPOOnUJs6CQIRv31jOr+fMIVXeVVSc5U0f148z4c643sgrF
-xCdDZuwzcsL56ruaHcdrsxiYQmxku+MxRq6rFtPKIpnobXyzePz94Ns98bbME1WP
-cHqGzWuT9AohpBe1DnVkuBoPkUcfcaN9xIpqbAZ8r8ockE9da/qC9iLmk/BcV2Co
-4AzAW+9YMCvxaHzqTUeaS1JxmuV7pTNdUFTlS3a5JHixzcq7vgH7nqzPtbUZOI7J
-c7IwpL2KpMcnFFlWwhFEhCb+9yHvkZXE3ieLX2w/Pb/TL2Pd1+M=
-=kX59
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnzi1YACgkQ5GN7iDZy
+WKf6eQ/8DLXf1KLQRHMwloNpbzR4y86fO0zXU5kJjZRbw5147zowPmFuo3XH6x8v
+6GBkIZK10GQo23tJbMRmZH8ODMiN+1tW5po0JFbgn6LHdGVu7YfMDkaYjYs/vIgH
+UpAdEKqYdGprdpPrcerODKmfy9AQnXYK527/lYSv3nidDdZs8+OS2er0by7gejUY
+/oQ1kPAty24TC5ToDmD98p3J6TwBtVVz8qSn2TWqX+718D5AWaBf8N+GCUfpke3K
+3tfozg3fWBdCAb1cbfSgKNNxgtXO+lWeDrfDphgyVZyP4ffXTUbhdEkGqrvItt6w
+wMe0NaMiBApav6M8TU7eT4rwCuHRRdfAy/ruboMatTLZN4dLIQi4UZH4KrmHyUpG
+oYmGuKNYnHA/JU5aBiU04Ev9fl0tCH1D/kMKamKyKY6FIwtHzTeoRUwDM2f2pPfA
+7GodP6y2SpbvGY78qg0X1UR4DwKRQtZz1uL333G/OujENOQR+jSAOnPfIGb8uTkK
+oeT5RIH4s1GQ/G9lCD9Bmi7KZ7g40Fp6hcLYoaIX6jhdLXh+4/oLhWCFZRIduUHF
+wYspsgCiq5AkC/PIvqBuMXQBOE2jC5DdyA69KxzmjBc7rJVCbfQqh0ZkBV4uhEmX
+IYC567dRvSyCjGqY5WyJtzIq2Ynd7a8+vUTFWy5FiYXAxtp6Q04=
+=ObWh
 -----END PGP SIGNATURE-----
 
---vDpvzslK0qRw06MN--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--GLa4d69Ev2s1FDzP--
