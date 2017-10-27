@@ -1,89 +1,99 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] svcrdma: Enqueue after setting XPT_CLOSE in completion
- handlers
-Date: Fri, 27 Oct 2017 10:49:51 -0400
-Message-ID: <20171027144743.15444.3407.stgit@klimt.1015granger.net>
+From: Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 00/16] Flow counters support
+Date: Fri, 27 Oct 2017 15:46:57 +0000
+Message-ID: <AM6PR0502MB3783A1186AA0ABDCCD5359AEBD5A0@AM6PR0502MB3783.eurprd05.prod.outlook.com>
+References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
+ <20171023165118.GA18097@obsidianresearch.com>
+ <b003f6e5-d7ce-3775-a1dc-0fd0f507a515@dev.mellanox.co.il>,<20171025151734.GA15557@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171025151734.GA15557-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Rosenbaum <alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I noticed the server was sometimes not closing the connection after
-a flushed Send. For example, if the client responds with an RNR NAK
-to a Reply from the server, that client might be deadlocked, and
-thus wouldn't send any more traffic. Thus the server wouldn't have
-any opportunity to notice the XPT_CLOSE bit has been set.
+=A0  =20
+On Wed, Oct 25, 2017 at 06:17:15PM +0300, Jason Gunthorpe wrote:
+>On Wed, Oct 25, 2017 at 05:58:15PM +0300, Yishai Hadas wrote:
+>
+>> Hi Jason, please go over the patches/uapi, we believe that you'll find i=
+t
+>> quite easy to be used by an application, however we plan to improve as o=
+f
+>> below.
+>
+>No, it is not, this proposal relies too much on device-specific
+>information to make sense in a multi-vendor context. Counters should
+>not be grouped in a hardware unique way.
 
-Enqueue the transport so that svcxprt notices the bit even if there
-is no more transport activity after a flushed completion, QP access
-error, or device removal event.
+counters are not group in hardware unique but in an intuitive way.
+all counters related to flow (ibv_flow) are grouped togeger, and following
+the same pattern all counters related to QP (ibv_qp) should be grouped toge=
+ther.
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+>
+>But it is still hard to understand what you are talking about, so
+>maybe if you provide a short and clearer example..
+>
+>> #The create API:
+>> We found it better to stay with our suggested API with few changes, belo=
+w
+>> notes were considered.
+>>=20
+>> 1) There might be a hardware that doesn't support attaching a counter ob=
+ject
+>> to an existing object, your suggested API to set sampling points relay o=
+n
+>> that ability.
+>
+>That is unfortunate, and kind of lame, but you can still use the
+>proposed API by re-ordering things. Continue to have
+>ibv_add_sampling_point_flow, however a NULL flow argument will make
+>the counters become added when the flow is created:
+>
+>=A0counters =3D ibv_create_counters([..]);
+>=A0ibv_add_sampling_point_flow(counters, 1, NULL, [..])
+>=A0flow_attr.counters =3D counters;
+>=A0ibv_create_flow(qp, &flow_attr);
 
-Hi Bruce-
+As mentioned earlier - current hardware support attachment of counters
+only during the creation of the object (flow/qp/etc).
+Your proposal could be useful in the case where a structure of a dynamic
+counter set is to be modified. However - since it is not the current case,
+there is no benefit in dividing the build of such a counter-set into severa=
+l steps.
+Hence we suggest to supply the creation API with instructions on how to cre=
+ate such a set.=20
+Having said that - I'm not saying that the partial steps are totally useles=
+s.=20
+These steps could be used as 'syntactic sugar' in order to change some kind
+of structured which would be passed to the creation method.=20
+Hence, methods such as =A0ibv_add_sampling_point_flow() should either be=20
+user-space-verbs only, or as macros or totally not there.
 
-Please consider this patch for v4.15. Thanks!
+>
+>> 2) We prefer using one single system call to create the ib_counter objec=
+t
+>> with its required counters instead of creating it with sampling points w=
+hich
+>> might involve many system calls.
+>
+>No. More system calls are good for something like this, there is a lot
+>of possibly future variety here. Systems calls are better than huge
+>structs and comp mask.
+>
+>It allows you to ditch the silly describe API by making the creation
+>side more granular.
+See response above.
 
+Guy
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index 5caf8e7..46ec069 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -290,6 +290,7 @@ static void qp_event_handler(struct ib_event *event, void *context)
- 			ib_event_msg(event->event), event->event,
- 			event->element.qp);
- 		set_bit(XPT_CLOSE, &xprt->xpt_flags);
-+		svc_xprt_enqueue(xprt);
- 		break;
- 	}
- }
-@@ -322,8 +323,7 @@ static void svc_rdma_wc_receive(struct ib_cq *cq, struct ib_wc *wc)
- 	set_bit(XPT_DATA, &xprt->sc_xprt.xpt_flags);
- 	if (test_bit(RDMAXPRT_CONN_PENDING, &xprt->sc_flags))
- 		goto out;
--	svc_xprt_enqueue(&xprt->sc_xprt);
--	goto out;
-+	goto out_enqueue;
- 
- flushed:
- 	if (wc->status != IB_WC_WR_FLUSH_ERR)
-@@ -333,6 +333,8 @@ static void svc_rdma_wc_receive(struct ib_cq *cq, struct ib_wc *wc)
- 	set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
- 	svc_rdma_put_context(ctxt, 1);
- 
-+out_enqueue:
-+	svc_xprt_enqueue(&xprt->sc_xprt);
- out:
- 	svc_xprt_put(&xprt->sc_xprt);
- }
-@@ -358,6 +360,7 @@ void svc_rdma_wc_send(struct ib_cq *cq, struct ib_wc *wc)
- 
- 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
- 		set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
-+		svc_xprt_enqueue(&xprt->sc_xprt);
- 		if (wc->status != IB_WC_WR_FLUSH_ERR)
- 			pr_err("svcrdma: Send: %s (%u/0x%x)\n",
- 			       ib_wc_status_msg(wc->status),
-@@ -569,8 +572,10 @@ static int rdma_listen_handler(struct rdma_cm_id *cma_id,
- 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
- 		dprintk("svcrdma: Device removal xprt=%p, cm_id=%p\n",
- 			xprt, cma_id);
--		if (xprt)
-+		if (xprt) {
- 			set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
-+			svc_xprt_enqueue(&xprt->sc_xprt);
-+		}
- 		break;
- 
- 	default:
-
+>
+>Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
