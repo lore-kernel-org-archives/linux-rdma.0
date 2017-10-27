@@ -1,40 +1,88 @@
-From: Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH] IB/mlx5: give back valid speed/width even without plugged in SFP module
-Date: Fri, 27 Oct 2017 14:30:11 +0200
-Message-ID: <20171027123011.10454-1-tbogendoerfer@suse.de>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] svcrdma: Enqueue after setting XPT_CLOSE in completion
+ handlers
+Date: Fri, 27 Oct 2017 10:49:51 -0400
+Message-ID: <20171027144743.15444.3407.stgit@klimt.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If there is no SFP module plugged into a port of mlx5 cards
-'cat /sys/class/infniband/mlx5_X/ports/1/rate' returns Invalid argument.
-This causes tools like 'ibstat' to malfunction. This change adjusts mlx5
-to all other RoCE/iWarp drivers, which always return valid speed/width.
+I noticed the server was sometimes not closing the connection after
+a flushed Send. For example, if the client responds with an RNR NAK
+to a Reply from the server, that client might be deadlocked, and
+thus wouldn't send any more traffic. Thus the server wouldn't have
+any opportunity to notice the XPT_CLOSE bit has been set.
 
-Signed-off-by: Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>
+Enqueue the transport so that svcxprt notices the bit even if there
+is no more transport activity after a flushed completion, QP access
+error, or device removal event.
+
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 260f8be1d0ed..4388618e3434 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -246,7 +246,10 @@ static int translate_eth_proto_oper(u32 eth_proto_oper, u8 *active_speed,
- 		*active_speed = IB_SPEED_EDR;
+Hi Bruce-
+
+Please consider this patch for v4.15. Thanks!
+
+
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 5caf8e7..46ec069 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -290,6 +290,7 @@ static void qp_event_handler(struct ib_event *event, void *context)
+ 			ib_event_msg(event->event), event->event,
+ 			event->element.qp);
+ 		set_bit(XPT_CLOSE, &xprt->xpt_flags);
++		svc_xprt_enqueue(xprt);
  		break;
- 	default:
--		return -EINVAL;
-+		/* Unknown */
-+		*active_width = IB_WIDTH_1X;
-+		*active_speed = IB_SPEED_SDR;
-+		break;
  	}
+ }
+@@ -322,8 +323,7 @@ static void svc_rdma_wc_receive(struct ib_cq *cq, struct ib_wc *wc)
+ 	set_bit(XPT_DATA, &xprt->sc_xprt.xpt_flags);
+ 	if (test_bit(RDMAXPRT_CONN_PENDING, &xprt->sc_flags))
+ 		goto out;
+-	svc_xprt_enqueue(&xprt->sc_xprt);
+-	goto out;
++	goto out_enqueue;
  
- 	return 0;
--- 
-2.12.3
+ flushed:
+ 	if (wc->status != IB_WC_WR_FLUSH_ERR)
+@@ -333,6 +333,8 @@ static void svc_rdma_wc_receive(struct ib_cq *cq, struct ib_wc *wc)
+ 	set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
+ 	svc_rdma_put_context(ctxt, 1);
+ 
++out_enqueue:
++	svc_xprt_enqueue(&xprt->sc_xprt);
+ out:
+ 	svc_xprt_put(&xprt->sc_xprt);
+ }
+@@ -358,6 +360,7 @@ void svc_rdma_wc_send(struct ib_cq *cq, struct ib_wc *wc)
+ 
+ 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+ 		set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
++		svc_xprt_enqueue(&xprt->sc_xprt);
+ 		if (wc->status != IB_WC_WR_FLUSH_ERR)
+ 			pr_err("svcrdma: Send: %s (%u/0x%x)\n",
+ 			       ib_wc_status_msg(wc->status),
+@@ -569,8 +572,10 @@ static int rdma_listen_handler(struct rdma_cm_id *cma_id,
+ 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
+ 		dprintk("svcrdma: Device removal xprt=%p, cm_id=%p\n",
+ 			xprt, cma_id);
+-		if (xprt)
++		if (xprt) {
+ 			set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
++			svc_xprt_enqueue(&xprt->sc_xprt);
++		}
+ 		break;
+ 
+ 	default:
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
