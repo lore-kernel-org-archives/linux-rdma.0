@@ -1,93 +1,74 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: give back valid speed/width even without
- plugged in SFP module
-Date: Fri, 27 Oct 2017 22:35:06 +0300
-Message-ID: <20171027193506.GH16127@mtr-leonro.local>
-References: <20171027123011.10454-1-tbogendoerfer@suse.de>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: IB/mlx4: Use common error handling code in
+ __mlx4_ib_create_flow()
+Date: Fri, 27 Oct 2017 22:36:01 +0300
+Message-ID: <20171027193601.GI16127@mtr-leonro.local>
+References: <0bcea3cf-91e3-01d5-8d80-34cd6b611fb1@users.sourceforge.net>
+ <70843f43-03c5-8295-643a-4f228ff2e907@intel.com>
+ <0c92fc8e-ecb8-c7ed-0b4c-721752297222@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="3cI6DWK3Xt33P8nt"
+        protocol="application/pgp-signature"; boundary="vDpvzslK0qRw06MN"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171027123011.10454-1-tbogendoerfer-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <0c92fc8e-ecb8-c7ed-0b4c-721752297222-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---3cI6DWK3Xt33P8nt
+--vDpvzslK0qRw06MN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Oct 27, 2017 at 02:30:11PM +0200, Thomas Bogendoerfer wrote:
-> If there is no SFP module plugged into a port of mlx5 cards
-> 'cat /sys/class/infniband/mlx5_X/ports/1/rate' returns Invalid argument.
-> This causes tools like 'ibstat' to malfunction. This change adjusts mlx5
-> to all other RoCE/iWarp drivers, which always return valid speed/width.
+On Fri, Oct 27, 2017 at 09:34:18AM +0200, SF Markus Elfring wrote:
+> >> Add a jump target so that a bit of exception handling can be better reused
+> >> at the end of this function.
+> >
+> > I'm not sure this is that big of a win.
+>
+> Such a view is appropriate because I proposed just another small adjustment
+> for this source code place.
+>
+>
+> > I mean you aren't really making the code any smaller
+>
+> Would anybody like to check corresponding effects in more detail
+> after a specific function call was replaced by a goto statement?
 
-Like Parav, I have mixed feelings about such change. It returns EINVAL
-if nothing is connected and it is right thing to do. It is hard to call
-"valid speed/width" for unconnected port.
-
-I would like to have ibstat and other drivers fixed instead of
-converting mlx5 to be wrong.
-
-Proposed change breaks existing scripts.
-
-Thanks
+You are supposed to do it and not "anybody".
 
 >
-> Signed-off-by: Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx5/main.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
 >
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index 260f8be1d0ed..4388618e3434 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -246,7 +246,10 @@ static int translate_eth_proto_oper(u32 eth_proto_oper, u8 *active_speed,
->  		*active_speed = IB_SPEED_EDR;
->  		break;
->  	default:
-> -		return -EINVAL;
-> +		/* Unknown */
-> +		*active_width = IB_WIDTH_1X;
-> +		*active_speed = IB_SPEED_SDR;
-> +		break;
->  	}
+> > and it's not making it any easier to read really.
 >
->  	return 0;
-> --
-> 2.12.3
+> Is the code readability still good enough there?
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+> Markus
 
---3cI6DWK3Xt33P8nt
+--vDpvzslK0qRw06MN
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnzimoACgkQ5GN7iDZy
-WKe1Ew/7BPkSZoCYS5+4ABB5Fweh7ZQRor1TY2LP4ZGk/wSFFlaOhgxTjzFzxS+9
-TNfVaQBiC90VAVbdRCGgZJEePfqeFt63g0b/NaYX/kJ5pvHcB/bIgs7kRKTG+qZ9
-vQT4DD6946x3Yp/mkZsXdU3H/mJRAs1y6jFp4hqrRZcWX5GJsYYhel8ElVqVK5MY
-oLq2hoYuBMSStKexSIblB0KbBSjBHRMkCvqgmN1QjM0974T1ZP6VHLiZ9bQGNoAI
-Ba/163HDh3KuaX9H8NLVp8rwvvXCpxENoclZrdCt1mhnJ0WZT9+r0/2wnlSx2sTn
-emBny2TFOnv+4lyDwgm8fgJ55GqWOK73EJgiUVJmoQmzylVJhF0e1aIyJ0DZNzIF
-vG5EfCRNKRUkkit4DTQ2coybGwez2uKxf5wW7jG9qjinbiIg6e87tcsKQiLC4eCB
-LNPRumi9DyWiQXhtLv6JSw3MQjwEs8gSWe3nZg+CzzupZcSu/E0799F5I5qa83+N
-ib8d7VgrSee04DcB//oM/iiyNWrAwMOB1tA6wBSZreObjCkn3tzSd6odse5e2Xq3
-Ty/feEFvggozzxARig9Q3/eKUmtgfsRFl/rCVJwSCKLHqf3lP0kjrT1yCdleV5wV
-FHXgrjR7+NBd4DK7j897BmezI0lqbFIsfMbxqP4ZTQsdInH3ex4=
-=dApQ
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlnziqEACgkQ5GN7iDZy
+WKdWTA/+MMsKqNd77Wykm8CMkNYUVweMSGCNOvJV1p32uNEbDBzb70kydAgqeHjn
+/v+J/7Z1C81Du6KxmHAgdeUrH8D7fU0rG56Re1dY8YstC+NJ3nYPpRN4/frByirx
+60NCZN3JmeiVw4T5FftNGPYI27kSS0s2rF49wzP9zvM/4151DmL4xffMffw6rIsH
+dHhx3BPBCLvNUGPnXTQLUQpfTsFREfBMnCKPi0ivc1iaSKI8MZz9eHfdJ2W2EpEH
+w3Yb+qrGHmTb+xuMPiammJnqSa4K8zFr5M8dAhHQ3bJSZ3/b7r0QvAuuy3YsCBa7
+Zx5Igi8EAuYRhTDZMzhKlat2ujITzEgQK+9FAyNyyemUch3Z20TZZkLS86/5JCaX
+McwPW0Wj0yCr4yywQBPOOnUJs6CQIRv31jOr+fMIVXeVVSc5U0f148z4c643sgrF
+xCdDZuwzcsL56ruaHcdrsxiYQmxku+MxRq6rFtPKIpnobXyzePz94Ns98bbME1WP
+cHqGzWuT9AohpBe1DnVkuBoPkUcfcaN9xIpqbAZ8r8ockE9da/qC9iLmk/BcV2Co
+4AzAW+9YMCvxaHzqTUeaS1JxmuV7pTNdUFTlS3a5JHixzcq7vgH7nqzPtbUZOI7J
+c7IwpL2KpMcnFFlWwhFEhCb+9yHvkZXE3ieLX2w/Pb/TL2Pd1+M=
+=kX59
 -----END PGP SIGNATURE-----
 
---3cI6DWK3Xt33P8nt--
+--vDpvzslK0qRw06MN--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
