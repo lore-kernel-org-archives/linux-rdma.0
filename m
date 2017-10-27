@@ -1,27 +1,45 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: give back valid speed/width even without plugged
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH] IB/mlx5: give back valid speed/width even without plugged
  in SFP module
-Date: Fri, 27 Oct 2017 16:18:46 -0400
-Message-ID: <20aece10-1188-6672-bd44-e78c50396445@dev.mellanox.co.il>
+Date: Fri, 27 Oct 2017 20:33:20 +0000
+Message-ID: <VI1PR0502MB3008DA34E5F8322BAEAD7C93D15A0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 References: <20171027123011.10454-1-tbogendoerfer@suse.de>
  <VI1PR0502MB3008AE9EEBF086840CC06077D15A0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20aece10-1188-6672-bd44-e78c50396445@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB3008AE9EEBF086840CC06077D15A0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <20aece10-1188-6672-bd44-e78c50396445-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Cc: Ghazale Hosseinabadi <ghazale.hosseinabadi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/27/2017 2:32 PM, Parav Pandit wrote:
-> However I believe that ibstat tool should be enhanced to report unknown port speed instead of expecting drivers to supply some random number like this.
-
-ibstat gets the rate from libibumad via /sys/class/infiniband/<IB device>/ports/<port number>/rate file which is supposed to be populated by the driver. Is there no rate file in this error case ?
-
--- Hal
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogSGFsIFJvc2Vuc3RvY2sg
+W21haWx0bzpoYWxAZGV2Lm1lbGxhbm94LmNvLmlsXQ0KPiBTZW50OiBGcmlkYXksIE9jdG9iZXIg
+MjcsIDIwMTcgMzoxOSBQTQ0KPiBUbzogUGFyYXYgUGFuZGl0IDxwYXJhdkBtZWxsYW5veC5jb20+
+OyBUaG9tYXMgQm9nZW5kb2VyZmVyDQo+IDx0Ym9nZW5kb2VyZmVyQHN1c2UuZGU+OyBNYXRhbiBC
+YXJhayA8bWF0YW5iQG1lbGxhbm94LmNvbT47IExlb24NCj4gUm9tYW5vdnNreSA8bGVvbnJvQG1l
+bGxhbm94LmNvbT47IERvdWcgTGVkZm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT47DQo+IGxpbnV4
+LXJkbWFAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnDQo+IENj
+OiBHaGF6YWxlIEhvc3NlaW5hYmFkaSA8Z2hhemFsZS5ob3NzZWluYWJhZGlAb3JhY2xlLmNvbT4N
+Cj4gU3ViamVjdDogUmU6IFtQQVRDSF0gSUIvbWx4NTogZ2l2ZSBiYWNrIHZhbGlkIHNwZWVkL3dp
+ZHRoIGV2ZW4gd2l0aG91dCBwbHVnZ2VkDQo+IGluIFNGUCBtb2R1bGUNCj4gDQo+IE9uIDEwLzI3
+LzIwMTcgMjozMiBQTSwgUGFyYXYgUGFuZGl0IHdyb3RlOg0KPiA+IEhvd2V2ZXIgSSBiZWxpZXZl
+IHRoYXQgaWJzdGF0IHRvb2wgc2hvdWxkIGJlIGVuaGFuY2VkIHRvIHJlcG9ydCB1bmtub3duIHBv
+cnQNCj4gc3BlZWQgaW5zdGVhZCBvZiBleHBlY3RpbmcgZHJpdmVycyB0byBzdXBwbHkgc29tZSBy
+YW5kb20gbnVtYmVyIGxpa2UgdGhpcy4NCj4gDQo+IGlic3RhdCBnZXRzIHRoZSByYXRlIGZyb20g
+bGliaWJ1bWFkIHZpYSAvc3lzL2NsYXNzL2luZmluaWJhbmQvPElCDQo+IGRldmljZT4vcG9ydHMv
+PHBvcnQgbnVtYmVyPi9yYXRlIGZpbGUgd2hpY2ggaXMgc3VwcG9zZWQgdG8gYmUgcG9wdWxhdGVk
+IGJ5IHRoZQ0KPiBkcml2ZXIuIElzIHRoZXJlIG5vIHJhdGUgZmlsZSBpbiB0aGlzIGVycm9yIGNh
+c2UgPw0KPiANCjwuLi4+Lzxwb3J0X251bT4vcmF0ZSBmaWxlIGV4aXN0Lg0KDQpyYXRlX3Nob3co
+KSBoYXMgaW52YWxpZCBhY3RpdmVfd2lkdGggYXMgZXhwZWN0ZWQgZHVlIHRvIG5vbmV4aXN0ZW5j
+ZSBvZiBTRlAuDQpTbyBzeXNmcyBjYWxsIHJldHVybiBpbnZhbGlkIHZhbHVlLg0KV2UgZG9uJ3Qg
+aGF2ZSBpbnZhbGlkX2FjdGl2ZV93aWR0aCBkZWZpbmVkIHJpZ2h0IG5vdy4NClNvIGlic3RhdCBh
+bmQgb3RoZXIgYXBwbGljYXRpb25zIHNob3VsZCBub3QgY3Jhc2ggb24gc3VjaCB2YWxpZCBlcnJv
+cnMuDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
