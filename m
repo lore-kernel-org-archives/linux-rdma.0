@@ -1,54 +1,63 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: Re: [PATCH] IB/mlx4: Use common error handling code in
- __mlx4_ib_create_flow()
-Date: Thu, 26 Oct 2017 20:33:39 -0400
-Message-ID: <70843f43-03c5-8295-643a-4f228ff2e907@intel.com>
-References: <0bcea3cf-91e3-01d5-8d80-34cd6b611fb1@users.sourceforge.net>
+From: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+Subject: [PATCH] drivers/net: mellanox: Convert timers to use timer_setup()
+Date: Thu, 26 Oct 2017 22:55:20 -0700
+Message-ID: <20171027055520.GA118469@beast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <0bcea3cf-91e3-01d5-8d80-34cd6b611fb1@users.sourceforge.net>
-Content-Language: en-US
-Sender: kernel-janitors-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leon@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>, Yuval Shaia <yuval.shaia@oracle.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/26/2017 12:12 PM, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Thu, 26 Oct 2017 17:54:15 +0200
-> 
-> Add a jump target so that a bit of exception handling can be better reused
-> at the end of this function.
+In preparation for unconditionally passing the struct timer_list pointer to
+all timer callbacks, switch to using the new timer_setup() and from_timer()
+to pass the timer pointer explicitly.
 
-I'm not sure this is that big of a win. I mean you aren't really making 
-the code any smaller and it's not making it any easier to read really.
+Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/health.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-> This issue was detected by using the Coccinelle software.
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/health.c b/drivers/net/ethernet/mellanox/mlx5/core/health.c
+index a89a68ce53ad..185dcac0abe7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/health.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/health.c
+@@ -285,9 +285,9 @@ void mlx5_trigger_health_work(struct mlx5_core_dev *dev)
+ 	spin_unlock_irqrestore(&health->wq_lock, flags);
+ }
+ 
+-static void poll_health(unsigned long data)
++static void poll_health(struct timer_list *t)
+ {
+-	struct mlx5_core_dev *dev = (struct mlx5_core_dev *)data;
++	struct mlx5_core_dev *dev = from_timer(dev, t, priv.health.timer);
+ 	struct mlx5_core_health *health = &dev->priv.health;
+ 	u32 count;
+ 
+@@ -320,7 +320,7 @@ void mlx5_start_health_poll(struct mlx5_core_dev *dev)
+ {
+ 	struct mlx5_core_health *health = &dev->priv.health;
+ 
+-	setup_timer(&health->timer, poll_health, (unsigned long)dev);
++	timer_setup(&health->timer, poll_health, 0);
+ 	health->sick = 0;
+ 	clear_bit(MLX5_DROP_NEW_HEALTH_WORK, &health->flags);
+ 	clear_bit(MLX5_DROP_NEW_RECOVERY_WORK, &health->flags);
+-- 
+2.7.4
 
-Assuming there was no testing done for this?
 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->   drivers/infiniband/hw/mlx4/main.c | 10 +++++-----
->   1 file changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-> index c636842c5be0..4a598c48ea1c 100644
-> --- a/drivers/infiniband/hw/mlx4/main.c
-> +++ b/drivers/infiniband/hw/mlx4/main.c
-> @@ -1691,8 +1691,8 @@ static int __mlx4_ib_create_flow(struct ib_qp *qp, struct ib_flow_attr *flow_att
->   				mdev, qp, default_table + default_flow,
->   				mailbox->buf + size);
->   		if (ret < 0) {
-> -			mlx4_free_cmd_mailbox(mdev->dev, mailbox);
-> -			return -EINVAL;
-> +			ret = -EINVAL;
-> +			goto free_mailbox;
-
-This might be a good opportunity to bubble up the return value rather 
-than just blindly returning -EINVAL. That's really a question for 
-Mellanox though.
-
--Denny
+-- 
+Kees Cook
+Pixel Security
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
