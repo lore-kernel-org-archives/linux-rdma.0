@@ -1,61 +1,49 @@
-From: Ghazale Hosseinabadi <ghazale.hosseinabadi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: give back valid speed/width even without plugged
- in SFP module
-Date: Fri, 27 Oct 2017 17:36:09 -0700
-Message-ID: <c434dbdb-4e4d-408f-86f6-02c2f20ee424@oracle.com>
-References: <64ef31c8-cb1a-4579-ba12-11fbf6d1d5c0@default>
- <0af834ca-52ff-47da-a225-744aab4e59d6@dev.mellanox.co.il>
- <9be6d049-c3fc-6cf2-8d91-4449f4bcc896@oracle.com>
- <4dcf0ca6-77ff-bfd3-9f79-c114617f536f@dev.mellanox.co.il>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/4] xprtrdma: Put Send CQ in IB_POLL_WORKQUEUE mode
+Date: Sat, 28 Oct 2017 13:02:09 +0530
+Message-ID: <CANjDDBiVPTjEqnoUHGkkDndfHOa=viS7mQT0odNi0PX=mL3WSQ@mail.gmail.com>
+References: <20171027164014.10826.10151.stgit@manet.1015granger.net> <20171027164354.10826.314.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4dcf0ca6-77ff-bfd3-9f79-c114617f536f-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20171027164354.10826.314.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tbogendoerfer-l3A5Bk7waGM@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Looks good
+Reviewed-By: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
-
-On 10/27/2017 04:19 PM, Hal Rosenstock wrote:
-> On 10/27/2017 7:04 PM, Ghazale Hosseinabadi wrote:
->>
->> On 10/27/2017 03:52 PM, Hal Rosenstock wrote:
->>> On 10/27/2017 5:54 PM, Ghazale Hosseinabadi wrote:
->>>> When running ibstat (if transceiver is not connected in adapter):
->>>>
->>>> ibpanic: [7851] main: stat of IB device 'mlx5_1' failed: Invalid
->>>> argument
->>> Any output before that ?
->> no, It only prints this line.
-> and setting the width to 1x in the driver so the rate file is properly
-> populated fixes this ?
-Yes, because a value is written in 
-/sys/class/infiniband/mlx5_X/ports/1/rate
->   I must be missing something as to what is going
-> on in this scenario.
-Without this bug fix, file /sys/class/infiniband/mlx5_X/ports/1/rate is 
-empty, which results in ibpanic.
-
--- Ghazale
+On Fri, Oct 27, 2017 at 10:13 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> Lift the Send and LocalInv completion handlers out of soft IRQ mode
+> to make room for other work. Also, move the Send CQ to a different
+> CPU than the CPU where the Receive CQ is running, for improved
+> scalability.
 >
-> sysfs.c:rate_show is inconsistent as it paves over an invalid speed
-> setting that to SDR but does not pave over invalid width returning
-> -EINVAL but this comment is in another "direction".
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  net/sunrpc/xprtrdma/verbs.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> -- Hal
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index 22128a8..4cfa893 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -558,7 +558,7 @@
 >
->> -- Ghazale
->>>    I'm trying to understand how far it gets. It
->>> looks to me that empty rate file would be parsed as 0 and ibstat would
->>> show that rate. ibpanic would occur if file was not found but I could be
->>> missing something.
->>>
->>
-
+>         sendcq = ib_alloc_cq(ia->ri_device, NULL,
+>                              ep->rep_attr.cap.max_send_wr + 1,
+> -                            0, IB_POLL_SOFTIRQ);
+> +                            1, IB_POLL_WORKQUEUE);
+>         if (IS_ERR(sendcq)) {
+>                 rc = PTR_ERR(sendcq);
+>                 dprintk("RPC:       %s: failed to create send CQ: %i\n",
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
