@@ -1,58 +1,99 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: Re: IB/mlx4: Use common error handling code in
- __mlx4_ib_create_flow()
-Date: Sat, 28 Oct 2017 09:39:44 +0200
-Message-ID: <cd1c87f8-84f5-ccff-2bf3-9c46de3c0f5e@users.sourceforge.net>
-References: <0bcea3cf-91e3-01d5-8d80-34cd6b611fb1@users.sourceforge.net>
- <20171027193902.GJ16127@mtr-leonro.local>
- <5cc2ecf7-cc6e-76e0-c73b-08ce717fef83@users.sourceforge.net>
- <7c5a7827-209c-9bb7-5b77-ac62d3d54604@intel.com>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] svcrdma: Enqueue after setting XPT_CLOSE in completion handlers
+Date: Sat, 28 Oct 2017 13:13:04 +0530
+Message-ID: <CANjDDBi15wrUqnnpgBabwQLg1iz92PJkbt6vN9OBFK9E2Ng5SQ@mail.gmail.com>
+References: <20171027144743.15444.3407.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <7c5a7827-209c-9bb7-5b77-ac62d3d54604@intel.com>
-Content-Language: en-GB
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>, linux-rdma@vger.kernel.org
-Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>, Yuval Shaia <yuval.shaia@oracle.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171027144743.15444.3407.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->> I guess that the shown change possibility can reduce the object code size
->> for the affected function.
-…
-> You guess?
+looks good
 
-I am convinced somehow!
+Reveiwed-By: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
- 
-> Well perhaps you should find out for certain.
-
-I am trying to point another general implementation detail out:
-A jump to an existing call of a function like “mlx4_free_cmd_mailbox”
-can be useful if you would like to optimise also this software for
-smaller code size.
-
-Are you looking for an information source which you would trust
-more (than me)?
-
-
-> Is it an appreciable impact?
-
-I hope so.
-
-But I showed only the replacement of two function calls here.
-I am curious if you care for a small effect at a special place.
-
-A similar refactoring can have a bigger influence in other
-software modules, can't it?
-
-
-There might be an other useful side effect. My concrete proposal
-can be questionable as usual.
-It seems that the software development attention was increased
-a bit so that contributors started thinking about the relevance
-of the error code “-EINVAL” at another source code place again.
-
-Regards,
-Markus
+On Fri, Oct 27, 2017 at 8:19 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> I noticed the server was sometimes not closing the connection after
+> a flushed Send. For example, if the client responds with an RNR NAK
+> to a Reply from the server, that client might be deadlocked, and
+> thus wouldn't send any more traffic. Thus the server wouldn't have
+> any opportunity to notice the XPT_CLOSE bit has been set.
+>
+> Enqueue the transport so that svcxprt notices the bit even if there
+> is no more transport activity after a flushed completion, QP access
+> error, or device removal event.
+>
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  net/sunrpc/xprtrdma/svc_rdma_transport.c |   11 ++++++++---
+>  1 file changed, 8 insertions(+), 3 deletions(-)
+>
+> Hi Bruce-
+>
+> Please consider this patch for v4.15. Thanks!
+>
+>
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> index 5caf8e7..46ec069 100644
+> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> @@ -290,6 +290,7 @@ static void qp_event_handler(struct ib_event *event, void *context)
+>                         ib_event_msg(event->event), event->event,
+>                         event->element.qp);
+>                 set_bit(XPT_CLOSE, &xprt->xpt_flags);
+> +               svc_xprt_enqueue(xprt);
+>                 break;
+>         }
+>  }
+> @@ -322,8 +323,7 @@ static void svc_rdma_wc_receive(struct ib_cq *cq, struct ib_wc *wc)
+>         set_bit(XPT_DATA, &xprt->sc_xprt.xpt_flags);
+>         if (test_bit(RDMAXPRT_CONN_PENDING, &xprt->sc_flags))
+>                 goto out;
+> -       svc_xprt_enqueue(&xprt->sc_xprt);
+> -       goto out;
+> +       goto out_enqueue;
+>
+>  flushed:
+>         if (wc->status != IB_WC_WR_FLUSH_ERR)
+> @@ -333,6 +333,8 @@ static void svc_rdma_wc_receive(struct ib_cq *cq, struct ib_wc *wc)
+>         set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
+>         svc_rdma_put_context(ctxt, 1);
+>
+> +out_enqueue:
+> +       svc_xprt_enqueue(&xprt->sc_xprt);
+>  out:
+>         svc_xprt_put(&xprt->sc_xprt);
+>  }
+> @@ -358,6 +360,7 @@ void svc_rdma_wc_send(struct ib_cq *cq, struct ib_wc *wc)
+>
+>         if (unlikely(wc->status != IB_WC_SUCCESS)) {
+>                 set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
+> +               svc_xprt_enqueue(&xprt->sc_xprt);
+>                 if (wc->status != IB_WC_WR_FLUSH_ERR)
+>                         pr_err("svcrdma: Send: %s (%u/0x%x)\n",
+>                                ib_wc_status_msg(wc->status),
+> @@ -569,8 +572,10 @@ static int rdma_listen_handler(struct rdma_cm_id *cma_id,
+>         case RDMA_CM_EVENT_DEVICE_REMOVAL:
+>                 dprintk("svcrdma: Device removal xprt=%p, cm_id=%p\n",
+>                         xprt, cma_id);
+> -               if (xprt)
+> +               if (xprt) {
+>                         set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
+> +                       svc_xprt_enqueue(&xprt->sc_xprt);
+> +               }
+>                 break;
+>
+>         default:
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
