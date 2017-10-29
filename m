@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 5/6] IB/mlx4: Add CQ moderation capability to query_device
-Date: Sun, 29 Oct 2017 15:51:39 +0200
-Message-ID: <20171029135140.32649-6-leon@kernel.org>
+Subject: [PATCH rdma-next v1 6/6] IB/mlx5: Add CQ moderation capability to query_device
+Date: Sun, 29 Oct 2017 15:51:40 +0200
+Message-ID: <20171029135140.32649-7-leon@kernel.org>
 References: <20171029135140.32649-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171029135140.32649-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -19,23 +19,27 @@ Signed-off-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 58845e67dad1..c6420e26f2d8 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -563,6 +563,9 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 		props->max_wq_type_rq = props->max_qp;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 838c47012388..18fe01826942 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -790,6 +790,13 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 		props->tm_caps.max_sge = MLX5_TM_MAX_SGE;
  	}
  
-+	props->cq_caps.max_cq_moderation_count = MLX4_MAX_CQ_COUNT;
-+	props->cq_caps.max_cq_moderation_period = MLX4_MAX_CQ_PERIOD;
++	if (MLX5_CAP_GEN(dev->mdev, cq_moderation)) {
++		props->cq_caps.max_cq_moderation_count =
++						MLX5_MAX_CQ_COUNT;
++		props->cq_caps.max_cq_moderation_period =
++						MLX5_MAX_CQ_PERIOD;
++	}
 +
- 	if (!mlx4_is_slave(dev->dev))
- 		err = mlx4_get_internal_clock_params(dev->dev, &clock_params);
- 
+ 	if (field_avail(typeof(resp), cqe_comp_caps, uhw->outlen)) {
+ 		resp.cqe_comp_caps.max_num =
+ 			MLX5_CAP_GEN(dev->mdev, cqe_compression) ?
 -- 
 2.14.2
 
