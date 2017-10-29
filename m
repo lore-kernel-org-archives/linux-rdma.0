@@ -1,117 +1,44 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 2/2] nvme-rdma: Add remote_invalidation module parameter
-Date: Sun, 29 Oct 2017 14:24:23 -0400
-Message-ID: <87A0B150-CE67-4C8C-914E-53F66411E1BB@oracle.com>
-References: <1509295101-14081-1-git-send-email-idanb@mellanox.com> <1509295101-14081-3-git-send-email-idanb@mellanox.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: Need to set if_index in ib_init_ah_from_wc() ?
+Date: Sun, 29 Oct 2017 12:26:24 -0600
+Message-ID: <20171029182624.GA7052@ziepe.ca>
+References: <CAL1RGDW6iHo2UYKbcJmcG=wCq63jvZB7nvOD=BJZwASSzc7Zhw@mail.gmail.com>
+ <20170130195412.GE24466@obsidianresearch.com>
+ <VI1PR0502MB30086B735FD4B5948B521673D14D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <CANjDDBhJK=s28zrdCASUVSSeem=NVRWwsHT=jWS2N4jGh2Uvfw@mail.gmail.com>
+ <VI1PR0502MB300803053059AA7CC0E6DA7DD1420@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <VI1PR0502MB30087224F41436F787C4997FD1460@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20171023173946.GP2106@mtr-leonro.local>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1509295101-14081-3-git-send-email-idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171023173946.GP2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Oct 23, 2017 at 08:39:46PM +0300, Leon Romanovsky wrote:
 
-> On Oct 29, 2017, at 12:38 PM, idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org wrote:
-> 
-> From: Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> NVMe over Fabrics in its secure "register_always" mode
-> registers and invalidates the user buffer upon each IO.
-> The protocol enables the host to request the susbsystem
-> to use SEND WITH INVALIDATE operation while returning the
-> response capsule and invalidate the local key
-> (remote_invalidation).
-> In some HW implementations, the local network adapter may
-> perform better while using local invalidation operations.
-> 
-> The results below show that running with local invalidation
-> rather then remote invalidation improve the iops one could
-> achieve by using the ConnectX-5Ex network adapter by x1.36 factor.
-> Nevertheless, using local invalidation induce more CPU overhead
-> than enabling the target to invalidate remotly, therefore,
-> because there is a CPU% vs IOPs limit tradeoff we propose to
-> have module parameter to define whether to request remote
-> invalidation or not.
-> 
-> The following results were taken against a single nvme over fabrics
-> subsystem with a single namespace backed by null_blk:
-> 
-> Block Size       s/g reg_wr      inline reg_wr    inline reg_wr + local inv
-> ++++++++++++   ++++++++++++++   ++++++++++++++++ +++++++++++++++++++++++++++
-> 512B            1446.6K/8.57%    5224.2K/76.21%   7143.3K/79.72%
-> 1KB             1390.6K/8.5%     4656.7K/71.69%   5860.6K/55.45%
-> 2KB             1343.8K/8.6%     3410.3K/38.96%   4106.7K/55.82%
-> 4KB             1254.8K/8.39%    2033.6K/15.86%   2165.3K/17.48%
-> 8KB             1079.5K/7.7%     1143.1K/7.27%    1158.2K/7.33%
-> 16KB            603.4K/3.64%     593.8K/3.4%      588.9K/3.77%
-> 32KB            294.8K/2.04%     293.7K/1.98%     294.4K/2.93%
-> 64KB            138.2K/1.32%     141.6K/1.26%     135.6K/1.34%
+> I would like to have proper deadline here, from one side, I don't want
+> to wait for Broadcom's fix forever, but from another, I don't want to
+> forward ANY patch which breaks other vendors.
 
-Units reported here are KIOPS and %CPU ? What was the benchmark?
+I've had the guess that each driver will need to provide a WC to gid
+table entry conversion function..
 
-Was any root cause analysis done to understand why the IOPS
-rate changes without RI? Reduction in avg RTT? Fewer long-
-running outliers? Lock contention in the ULP?
+Ideal hardware driver will report the gid table index in their
+internal WC. Other hardware like mlx wil have to parse the WC and the
+GRH headers and so forth to figure out the gid table index.
 
-I am curious enough to add a similar setting to NFS/RDMA,
-now that I have mlx5 devices.
+The gid table index is security sensitive, so it *MUST* be determined
+exactly and correctly.
 
+But we need to understand what the other rocee drivers have done in
+this area..
 
-> Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
-> drivers/nvme/host/rdma.c | 10 ++++++++--
-> 1 file changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-> index 92a03ff..7f8225d 100644
-> --- a/drivers/nvme/host/rdma.c
-> +++ b/drivers/nvme/host/rdma.c
-> @@ -146,6 +146,11 @@ static inline struct nvme_rdma_ctrl *to_rdma_ctrl(struct nvme_ctrl *ctrl)
-> MODULE_PARM_DESC(register_always,
-> 	 "Use memory registration even for contiguous memory regions");
-> 
-> +static bool remote_invalidation = true;
-> +module_param(remote_invalidation, bool, 0444);
-> +MODULE_PARM_DESC(remote_invalidation,
-> +	 "request remote invalidation from subsystem (default: true)");
-
-The use of a module parameter would be awkward in systems
-that have a heterogenous collection of HCAs.
-
-
-> +
-> static int nvme_rdma_cm_handler(struct rdma_cm_id *cm_id,
-> 		struct rdma_cm_event *event);
-> static void nvme_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc);
-> @@ -1152,8 +1157,9 @@ static int nvme_rdma_map_sg_fr(struct nvme_rdma_queue *queue,
-> 	sg->addr = cpu_to_le64(req->mr->iova);
-> 	put_unaligned_le24(req->mr->length, sg->length);
-> 	put_unaligned_le32(req->mr->rkey, sg->key);
-> -	sg->type = (NVME_KEY_SGL_FMT_DATA_DESC << 4) |
-> -			NVME_SGL_FMT_INVALIDATE;
-> +	sg->type = NVME_KEY_SGL_FMT_DATA_DESC << 4;
-> +	if (remote_invalidation)
-> +		sg->type |= NVME_SGL_FMT_INVALIDATE;
-> 
-> 	return 0;
-> }
-> -- 
-> 1.8.3.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-Chuck Lever
-
-
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
