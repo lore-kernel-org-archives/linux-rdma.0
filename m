@@ -1,51 +1,45 @@
 From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/2] mlx5: Use non-cached mapping when Blueflame
- is not used
-Date: Sun, 29 Oct 2017 23:26:04 +0200
-Message-ID: <6531033a-9d61-bbca-ac14-46b05973610c@dev.mellanox.co.il>
+Subject: Re: [PATCH rdma-core 2/2] mlx5: Fix wrong bitmap table allocation
+ size calculation
+Date: Sun, 29 Oct 2017 23:31:41 +0200
+Message-ID: <92cb91f8-25eb-9894-cf60-5940fa0091bd@dev.mellanox.co.il>
 References: <1509282070-1391-1-git-send-email-yishaih@mellanox.com>
- <1509282070-1391-2-git-send-email-yishaih@mellanox.com>
- <20171029173344.GA4488@ziepe.ca>
+ <1509282070-1391-3-git-send-email-yishaih@mellanox.com>
+ <20171029173703.GB4488@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171029173344.GA4488-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20171029173703.GB4488-uk2M96/98Pc@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
 Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/29/2017 7:33 PM, Jason Gunthorpe wrote:
-> On Sun, Oct 29, 2017 at 03:01:09PM +0200, Yishai Hadas wrote:
+On 10/29/2017 7:37 PM, Jason Gunthorpe wrote:
+> On Sun, Oct 29, 2017 at 03:01:10PM +0200, Yishai Hadas wrote:
 > 
->> diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
->> index ffe2c55..9e20a25 100644
->> +++ b/providers/mlx5/mlx5dv.h
->> @@ -632,6 +632,11 @@ enum mlx5dv_set_ctx_attr_type {
->>   	MLX5DV_CTX_ATTR_BUF_ALLOCATORS = 1,
->>   };
->>   
->> +enum {
->> +	MLX5_MMAP_GET_REGULAR_PAGES_CMD	= 0,
->> +	MLX5_MMAP_GET_NC_PAGES_CMD	= 3,
->> +};
->> +
+>> diff --git a/providers/mlx5/buf.c b/providers/mlx5/buf.c
+>> index 8196db6..0ba8188 100644
+>> +++ b/providers/mlx5/buf.c
+>> @@ -51,7 +51,7 @@ static int mlx5_bitmap_init(struct mlx5_bitmap *bitmap, uint32_t num,
+>>   	bitmap->avail = num;
+>>   	bitmap->mask = mask;
+>>   	bitmap->avail = bitmap->max;
+>> -	bitmap->table = calloc(BITS_TO_LONGS(bitmap->max), sizeof(uint32_t));
+>> +	bitmap->table = calloc(BITS_TO_LONGS(bitmap->max), sizeof(long));
 > 
-> These are added to a public header, but I couldn't see where they
-> would get used by a DV user??
+> bitmap->table is sensibly set to a 'unsigned long' but here, and in
+> several other related macros, 'long' is used instead.. Looks weird to
+> mix and match the sigend and unsigned versions.
+> 
+> Generally, I prefer:
+> 	bitmap->table = calloc(BITS_TO_LONGS(bitmap->max),
+> 	                       sizeof(*bitmap->table));
+> 
 
-A DV user already had access to the mlx5 mmap command before this series 
-by using the mlx5dv_get_qp() API:
-qp_out->uar_mmap_offset = mqp->bf->uar_mmap_offset;
-
-This offset value was used as part of the mmap() system call and reached 
-the mlx5 kernel driver, it encoded the required command.
-
-The enum that was added here, just exposed the optional commands which 
-post this series may be issued including the new 
-MLX5_MMAP_GET_NC_PAGES_CMD value.
+I'm fine with your suggestion, will use as part of V1.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
