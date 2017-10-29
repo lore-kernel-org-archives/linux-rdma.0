@@ -1,62 +1,110 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next] RDMA/bnxt_re: Remove unused vlan_tag variable
-Date: Sun, 29 Oct 2017 17:05:22 +0200
-Message-ID: <20171029150522.23641-1-leon@kernel.org>
+From: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 00/16] Flow counters support
+Date: Sun, 29 Oct 2017 17:21:20 +0200
+Message-ID: <CAFgAxU-UcRapsoRn3hNUn27xgY370gUJ+WWE4URBq84ufkCXtA@mail.gmail.com>
+References: <1508424118-27205-1-git-send-email-yishaih@mellanox.com>
+ <20171023165118.GA18097@obsidianresearch.com> <b003f6e5-d7ce-3775-a1dc-0fd0f507a515@dev.mellanox.co.il>
+ <20171025151734.GA15557@obsidianresearch.com> <AM6PR0502MB3783A1186AA0ABDCCD5359AEBD5A0@AM6PR0502MB3783.eurprd05.prod.outlook.com>
+ <20171027155955.GA15922@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171027155955.GA15922-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Rosenbaum <alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Fri, Oct 27, 2017 at 5:59 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Fri, Oct 27, 2017 at 03:46:57PM +0000, Guy Shattah wrote:
+>> On Wed, Oct 25, 2017 at 06:17:15PM +0300, Jason Gunthorpe wrote:
+>> >On Wed, Oct 25, 2017 at 05:58:15PM +0300, Yishai Hadas wrote:
+>>
+>> counters are not group in hardware unique but in an intuitive way.
+>
+> I don't think you understand my remark.
+>
+> I do not want to expose the idea of hardware limited groupings of
+> counters to the user at all.
+>
+> If the user needs counters 1,2 then the user should request those
+> counters only. Hardware that needs to sample, say, counter 1,2,3,4 to
+> get those will have to figure that out internally.
 
-The Broadcom driver produces the following compilation warning
+Since this is all about measuring verbs objects, it seems sensible for
+us to group the counters by that same verbs sets.
+But we don't have to go that way.
+We can keep a flat list describing all available counters for all verbs objects.
+Or maybe you're thinking of some other method for the user to learn
+about available counters and their respectful objects?
 
-drivers/infiniband/hw/bnxt_re/ib_verbs.c:
-	In function ‘bnxt_re_create_ah’:
-drivers/infiniband/hw/bnxt_re/ib_verbs.c:668:6:
-	warning: variable ‘vlan_tag’ set but not used [-Wunused-but-set-variable]
-	u16 vlan_tag;
+> If the API requires a complex query interface just for the user it use
+> it at all, then it is a total failure in my view. And that seems to be
+> what is proposed here.
+>
+>> >That is unfortunate, and kind of lame, but you can still use the
+>> >proposed API by re-ordering things. Continue to have
+>> >ibv_add_sampling_point_flow, however a NULL flow argument will make
+>> >the counters become added when the flow is created:
+>> >
+>> >?counters = ibv_create_counters([..]);
 
-Let's remove it till vlan_tag will be implemented properly.
+to clarify, does this create a single counter collection? what is
+referred to as counter_set in the RFC/patches? or multiple counter's'?
+I assume the '[..]' is ibv_context.
 
-Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index ebcdfb4f5f75..39e49d0e8467 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -665,7 +665,6 @@ struct ib_ah *bnxt_re_create_ah(struct ib_pd *ib_pd,
- 	struct bnxt_re_ah *ah;
- 	const struct ib_global_route *grh = rdma_ah_read_grh(ah_attr);
- 	int rc;
--	u16 vlan_tag;
- 	u8 nw_type;
+>> >?ibv_add_sampling_point_flow(counters, 1, NULL, [..])
 
- 	struct ib_gid_attr sgid_attr;
-@@ -711,11 +710,8 @@ struct ib_ah *bnxt_re_create_ah(struct ib_pd *ib_pd,
- 				grh->sgid_index);
- 			goto fail;
- 		}
--		if (sgid_attr.ndev) {
--			if (is_vlan_dev(sgid_attr.ndev))
--				vlan_tag = vlan_dev_vlan_id(sgid_attr.ndev);
-+		if (sgid_attr.ndev)
- 			dev_put(sgid_attr.ndev);
--		}
- 		/* Get network header type for this GID */
- 		nw_type = ib_gid_to_network_type(sgid_attr.gid_type, &sgid);
- 		switch (nw_type) {
---
-2.14.2
+so do we really need the flow object handle is this API (the 'NULL')?
+why not go with a 'ibv_set_sampling_point(counters, 1, [..])' which
+covers any/all counter definition for any object?
+and when needed add the ibv_attach_sampling_point_qp().
 
+and we need to clear the definition of '[..]'... does user learns what
+inputs are valid from a describe API, or some other method (re the
+above describe API question)?
+
+
+>> >?flow_attr.counters = counters;
+>> >?ibv_create_flow(qp, &flow_attr);
+
+Works OK for mlx5 HW/driver
+
+>> As mentioned earlier - current hardware support attachment of counters
+>> only during the creation of the object (flow/qp/etc).
+>
+> And as I explained, the above addresses that.
+>
+>> Your proposal could be useful in the case where a structure of a dynamic
+>> counter set is to be modified. However - since it is not the current case,
+>> there is no benefit in dividing the build of such a counter-set into
+>> several steps.
+>
+> The purpose is to make the API less dependent on specific
+> implementation details.
+>
+> Mellanox drivers may wish to implement ibv_add_sampling_point_* as
+> some kind of internal bookkeeping in userspace, other drives may wish
+> to do kernel calls. It depends on how each type of hardware works.
+
+Yes, we definitely need to make sure the API allows this u.s.
+bookkeeping and reduce the amount system calls.
+So the verbs CMD will allow 1 or more sampling points definitions.
+In an OVS use case there can be many 10,000'nd of flows + counters and
+this needs to be fast.
+
+> You need to stop looking at the API through a Mellanox only lense.
+
+In our patches we listed all vendor specific counter types in the
+vendor driver code, and allow access to this set through generic verbs
+in the describe API.
+In our api, any vendor could utilize the same api to expose their
+vendor specific counters.
+In your suggestion, how do vendors add their specific HW dependent counters?
+
+Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
