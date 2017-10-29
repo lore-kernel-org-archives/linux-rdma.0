@@ -1,7 +1,7 @@
 From: idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Subject: [PATCH 2/2] nvme-rdma: Add remote_invalidation module parameter
-Date: Sun, 29 Oct 2017 18:38:21 +0200
-Message-ID: <1509295101-14081-3-git-send-email-idanb@mellanox.com>
+Subject: [PATCH 1/2] IB/mlx5: posting klm/mtt list inline in the send queue for reg_wr
+Date: Sun, 29 Oct 2017 18:38:20 +0200
+Message-ID: <1509295101-14081-2-git-send-email-idanb@mellanox.com>
 References: <1509295101-14081-1-git-send-email-idanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1509295101-14081-1-git-send-email-idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,69 +12,141 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-NVMe over Fabrics in its secure "register_always" mode
-registers and invalidates the user buffer upon each IO.
-The protocol enables the host to request the susbsystem
-to use SEND WITH INVALIDATE operation while returning the
-response capsule and invalidate the local key
-(remote_invalidation).
-In some HW implementations, the local network adapter may
-perform better while using local invalidation operations.
+As most kernel RDMA ULPs, NVMe over Fabrics in its secure
+"register_always" mode registers and invalidates user buffer
+upon each IO.
 
-The results below show that running with local invalidation
-rather then remote invalidation improve the iops one could
-achieve by using the ConnectX-5Ex network adapter by x1.36 factor.
-Nevertheless, using local invalidation induce more CPU overhead
-than enabling the target to invalidate remotly, therefore,
-because there is a CPU% vs IOPs limit tradeoff we propose to
-have module parameter to define whether to request remote
-invalidation or not.
+Today the mlx5 driver is posting the registration work
+request using scatter/gather entry for the MTT/KLM list.
+
+The fetch of the MTT/KLM list becomes the bottleneck in
+number of IO operation could be done by NVMe over Fabrics
+host driver on a single adapter as shown below.
+
+This patch is adding the support for inline registration
+work request upon MTT/KLM list of size <=64B.
+
+The result for NVMe over Fabrics is increase of x3.6 for small
+IOs as shown below, I expect other ULPs (e.g iSER, NFS over RDMA)
+performance to be enhanced as well.
 
 The following results were taken against a single nvme over fabrics
 subsystem with a single namespace backed by null_blk:
 
-Block Size       s/g reg_wr      inline reg_wr    inline reg_wr + local inv
-++++++++++++   ++++++++++++++   ++++++++++++++++ +++++++++++++++++++++++++++
-512B            1446.6K/8.57%    5224.2K/76.21%   7143.3K/79.72%
-1KB             1390.6K/8.5%     4656.7K/71.69%   5860.6K/55.45%
-2KB             1343.8K/8.6%     3410.3K/38.96%   4106.7K/55.82%
-4KB             1254.8K/8.39%    2033.6K/15.86%   2165.3K/17.48%
-8KB             1079.5K/7.7%     1143.1K/7.27%    1158.2K/7.33%
-16KB            603.4K/3.64%     593.8K/3.4%      588.9K/3.77%
-32KB            294.8K/2.04%     293.7K/1.98%     294.4K/2.93%
-64KB            138.2K/1.32%     141.6K/1.26%     135.6K/1.34%
+Block Size       s/g reg_wr            inline reg_wr
+++++++++++     +++++++++++++++        ++++++++++++++++
+512B            1446.6K/8.57%          5224.2K/76.21%
+1KB             1390.6K/8.5%           4656.7K/71.69%
+2KB             1343.8K/8.6%           3410.3K/38.96%
+4KB             1254.8K/8.39%          2033.6K/15.86%
+8KB             1079.5K/7.7%           1143.1K/7.27%
+16KB            603.4K/3.64%           593.8K/3.4%
+32KB            294.8K/2.04%           293.7K/1.98%
+64KB            138.2K/1.32%           141.6K/1.26%
 
-Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/nvme/host/rdma.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 41 +++++++++++++++++++++++++++++++++++------
+ 1 file changed, 35 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-index 92a03ff..7f8225d 100644
---- a/drivers/nvme/host/rdma.c
-+++ b/drivers/nvme/host/rdma.c
-@@ -146,6 +146,11 @@ static inline struct nvme_rdma_ctrl *to_rdma_ctrl(struct nvme_ctrl *ctrl)
- MODULE_PARM_DESC(register_always,
- 	 "Use memory registration even for contiguous memory regions");
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index acb79d3..b25b93d 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -53,6 +53,7 @@ enum {
  
-+static bool remote_invalidation = true;
-+module_param(remote_invalidation, bool, 0444);
-+MODULE_PARM_DESC(remote_invalidation,
-+	 "request remote invalidation from subsystem (default: true)");
+ enum {
+ 	MLX5_IB_SQ_STRIDE	= 6,
++	MLX5_IB_SQ_UMR_INLINE_THRESHOLD = 64,
+ };
+ 
+ static const u32 mlx5_ib_opcode[] = {
+@@ -295,7 +296,8 @@ static int sq_overhead(struct ib_qp_init_attr *attr)
+ 			max(sizeof(struct mlx5_wqe_atomic_seg) +
+ 			    sizeof(struct mlx5_wqe_raddr_seg),
+ 			    sizeof(struct mlx5_wqe_umr_ctrl_seg) +
+-			    sizeof(struct mlx5_mkey_seg));
++			    sizeof(struct mlx5_mkey_seg) +
++			    MLX5_IB_SQ_UMR_INLINE_THRESHOLD / MLX5_IB_UMR_OCTOWORD);
+ 		break;
+ 
+ 	case IB_QPT_XRC_TGT:
+@@ -3164,13 +3166,15 @@ static __be64 sig_mkey_mask(void)
+ }
+ 
+ static void set_reg_umr_seg(struct mlx5_wqe_umr_ctrl_seg *umr,
+-			    struct mlx5_ib_mr *mr)
++			    struct mlx5_ib_mr *mr, bool umr_inline)
+ {
+ 	int size = mr->ndescs * mr->desc_size;
+ 
+ 	memset(umr, 0, sizeof(*umr));
+ 
+ 	umr->flags = MLX5_UMR_CHECK_NOT_FREE;
++	if (umr_inline)
++		umr->flags |= MLX5_UMR_INLINE;
+ 	umr->xlt_octowords = cpu_to_be16(get_xlt_octo(size));
+ 	umr->mkey_mask = frwr_mkey_mask();
+ }
+@@ -3341,6 +3345,24 @@ static void set_reg_data_seg(struct mlx5_wqe_data_seg *dseg,
+ 	dseg->lkey = cpu_to_be32(pd->ibpd.local_dma_lkey);
+ }
+ 
++static void set_reg_umr_inline_seg(void *seg, struct mlx5_ib_qp *qp,
++				   struct mlx5_ib_mr *mr, int mr_list_size)
++{
++	void *qend = qp->sq.qend;
++	void *addr = mr->descs;
++	int copy;
 +
- static int nvme_rdma_cm_handler(struct rdma_cm_id *cm_id,
- 		struct rdma_cm_event *event);
- static void nvme_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc);
-@@ -1152,8 +1157,9 @@ static int nvme_rdma_map_sg_fr(struct nvme_rdma_queue *queue,
- 	sg->addr = cpu_to_le64(req->mr->iova);
- 	put_unaligned_le24(req->mr->length, sg->length);
- 	put_unaligned_le32(req->mr->rkey, sg->key);
--	sg->type = (NVME_KEY_SGL_FMT_DATA_DESC << 4) |
--			NVME_SGL_FMT_INVALIDATE;
-+	sg->type = NVME_KEY_SGL_FMT_DATA_DESC << 4;
-+	if (remote_invalidation)
-+		sg->type |= NVME_SGL_FMT_INVALIDATE;
++        if (unlikely(seg + mr_list_size > qend)) {
++                copy = qend - seg;
++                memcpy(seg, addr, copy);
++                addr += copy;
++                mr_list_size -= copy;
++                seg = mlx5_get_send_wqe(qp, 0);
++        }
++        memcpy(seg, addr, mr_list_size);
++        seg += mr_list_size;
++}
++
+ static __be32 send_ieth(struct ib_send_wr *wr)
+ {
+ 	switch (wr->opcode) {
+@@ -3735,6 +3757,8 @@ static int set_reg_wr(struct mlx5_ib_qp *qp,
+ {
+ 	struct mlx5_ib_mr *mr = to_mmr(wr->mr);
+ 	struct mlx5_ib_pd *pd = to_mpd(qp->ibqp.pd);
++	int mr_list_size = mr->ndescs * mr->desc_size;
++	bool umr_inline = mr_list_size <= MLX5_IB_SQ_UMR_INLINE_THRESHOLD;
+ 
+ 	if (unlikely(wr->wr.send_flags & IB_SEND_INLINE)) {
+ 		mlx5_ib_warn(to_mdev(qp->ibqp.device),
+@@ -3742,7 +3766,7 @@ static int set_reg_wr(struct mlx5_ib_qp *qp,
+ 		return -EINVAL;
+ 	}
+ 
+-	set_reg_umr_seg(*seg, mr);
++	set_reg_umr_seg(*seg, mr, umr_inline);
+ 	*seg += sizeof(struct mlx5_wqe_umr_ctrl_seg);
+ 	*size += sizeof(struct mlx5_wqe_umr_ctrl_seg) / 16;
+ 	if (unlikely((*seg == qp->sq.qend)))
+@@ -3754,9 +3778,14 @@ static int set_reg_wr(struct mlx5_ib_qp *qp,
+ 	if (unlikely((*seg == qp->sq.qend)))
+ 		*seg = mlx5_get_send_wqe(qp, 0);
+ 
+-	set_reg_data_seg(*seg, mr, pd);
+-	*seg += sizeof(struct mlx5_wqe_data_seg);
+-	*size += (sizeof(struct mlx5_wqe_data_seg) / 16);
++	if (umr_inline) {
++		set_reg_umr_inline_seg(*seg, qp, mr, mr_list_size);
++		*size += get_xlt_octo(mr_list_size);
++	} else {
++                set_reg_data_seg(*seg, mr, pd);
++                *seg += sizeof(struct mlx5_wqe_data_seg);
++                *size += (sizeof(struct mlx5_wqe_data_seg) / 16);
++	}
  
  	return 0;
  }
