@@ -1,45 +1,55 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/2] mlx5: Fix wrong bitmap table allocation
- size calculation
-Date: Sun, 29 Oct 2017 23:31:41 +0200
-Message-ID: <92cb91f8-25eb-9894-cf60-5940fa0091bd@dev.mellanox.co.il>
-References: <1509282070-1391-1-git-send-email-yishaih@mellanox.com>
- <1509282070-1391-3-git-send-email-yishaih@mellanox.com>
- <20171029173703.GB4488@ziepe.ca>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH rdma-next] RDMA/cxgb4: Protect from possible dereference
+Date: Sun, 29 Oct 2017 16:29:50 -0500
+Message-ID: <001201d350fd$0dd04fa0$2970eee0$@opengridcomputing.com>
+References: <20171029193435.314-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain;
+        charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171029173703.GB4488-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20171029193435.314-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/29/2017 7:37 PM, Jason Gunthorpe wrote:
-> On Sun, Oct 29, 2017 at 03:01:10PM +0200, Yishai Hadas wrote:
 > 
->> diff --git a/providers/mlx5/buf.c b/providers/mlx5/buf.c
->> index 8196db6..0ba8188 100644
->> +++ b/providers/mlx5/buf.c
->> @@ -51,7 +51,7 @@ static int mlx5_bitmap_init(struct mlx5_bitmap *bitmap, uint32_t num,
->>   	bitmap->avail = num;
->>   	bitmap->mask = mask;
->>   	bitmap->avail = bitmap->max;
->> -	bitmap->table = calloc(BITS_TO_LONGS(bitmap->max), sizeof(uint32_t));
->> +	bitmap->table = calloc(BITS_TO_LONGS(bitmap->max), sizeof(long));
+> Smatch tool reports the following error:
+>   drivers/infiniband/hw/cxgb4/qp.c:1886
+> 	c4iw_create_qp() error: we previously assumed 'ucontext'
+> 	could be null (see line 1804)
 > 
-> bitmap->table is sensibly set to a 'unsigned long' but here, and in
-> several other related macros, 'long' is used instead.. Looks weird to
-> mix and match the sigend and unsigned versions.
+> Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/cxgb4/qp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> Generally, I prefer:
-> 	bitmap->table = calloc(BITS_TO_LONGS(bitmap->max),
-> 	                       sizeof(*bitmap->table));
+> diff --git a/drivers/infiniband/hw/cxgb4/qp.c
+> b/drivers/infiniband/hw/cxgb4/qp.c
+> index 57b23e33eb8b..4b3267358dff 100644
+> --- a/drivers/infiniband/hw/cxgb4/qp.c
+> +++ b/drivers/infiniband/hw/cxgb4/qp.c
+> @@ -1843,7 +1843,7 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd,
+> struct ib_qp_init_attr *attrs,
+>  	if (ret)
+>  		goto err_destroy_qp;
 > 
+> -	if (udata) {
+> +	if (udata && ucontext) {
+>  		sq_key_mm = kmalloc(sizeof(*sq_key_mm), GFP_KERNEL);
+>  		if (!sq_key_mm) {
+>  			ret = -ENOMEM;
 
-I'm fine with your suggestion, will use as part of V1.
+
+Hey Leon, doesn't udata imply ucontext?   It's not a big deal, though, I
+guess.
+
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
