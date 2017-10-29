@@ -1,45 +1,53 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH 1/2] IB/mlx5: posting klm/mtt list inline in the send
- queue for reg_wr
-Date: Sun, 29 Oct 2017 19:09:24 +0200
-Message-ID: <a97dd33b-1185-b2db-6df2-a636be963c71@grimberg.me>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 0/2] Performance Improvents for Secured Mode NVMe over
+ Fabrics and other RDMA ULPs
+Date: Sun, 29 Oct 2017 19:09:41 +0200
+Message-ID: <8cb59a0a-c902-0c0e-27a8-fdf9b98982ac@mellanox.com>
 References: <1509295101-14081-1-git-send-email-idanb@mellanox.com>
- <1509295101-14081-2-git-send-email-idanb@mellanox.com>
+ <e1ba4993-5c77-4754-967c-4da8ec34bf77@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1509295101-14081-2-git-send-email-idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <e1ba4993-5c77-4754-967c-4da8ec34bf77-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: he
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-> As most kernel RDMA ULPs, NVMe over Fabrics in its secure
-> "register_always" mode registers and invalidates user buffer
-> upon each IO.
 
-Again, lets drop the secured mode language.
+On 10/29/2017 6:59 PM, Sagi Grimberg wrote:
+> Hi Idan,
+> 
+> One minor nit, there is no "secured mode", its the normal sane
+> mode. The other mode compromises insecurity for performance.
+> 
+>> The following two patches are including performance
+>> optimizations for RDMA kernel ULPs that register/invalidate
+>> per IO (e.g. NVMe over Fabrics, iSER, NFS RDMA). The patches
+>> improve the IOPs could be achieved by a single network
+>> adapter with the above ULPs, specifically for NVMe over
+>> Fabrics the IOPs have improved x5 for small IO reads could
+>> be achieved in Linux using a single network adapter.
+> 
+> That is very good! Thanks for doing this!
+> You should note that its mlx5 specific enhancement, which is
+> an important device, but its not a performance improvement for
+> RDMA ULPs as it is.
 
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-> index acb79d3..b25b93d 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -53,6 +53,7 @@ enum {
->   
->   enum {
->   	MLX5_IB_SQ_STRIDE	= 6,
-> +	MLX5_IB_SQ_UMR_INLINE_THRESHOLD = 64,
->   };
+Sagi,
 
-Is this a device capability? Is it true for all mlx5 devices?
-can we get it from the FW instead?
+the subject refers to both patches :)
+And it mentions that more improvements are in the pipe, that will 
+improve the small write IOs for NVMEoF (at first stage).
 
-Otherwise, looks good to me,
+> 
+> What about mlx4 btw?
 
-Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+We still haven't try to improve the mlx4, but it's on our plate.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
