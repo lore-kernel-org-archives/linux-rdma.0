@@ -1,56 +1,61 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-next] RDMA/cxgb4: Protect from possible dereference
-Date: Sun, 29 Oct 2017 16:29:50 -0500
-Message-ID: <001201d350fd$0dd04fa0$2970eee0$@opengridcomputing.com>
-References: <20171029193435.314-1-leon@kernel.org>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH v3 00/13] dax: fix dma vs truncate and remove 'page-less'
+ support
+Date: Mon, 30 Oct 2017 08:52:33 +1100
+Message-ID: <20171029215233.GF3666@dastard>
+References: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171020074750.GA13568@lst.de>
+ <20171020093148.GA20304@lst.de>
+ <20171026105850.GA31161@quack2.suse.cz>
+ <1509061831.25213.2.camel@intel.com>
+ <20171027064854.GE3666@dastard>
+ <CAA9_cmdx7T2jnfw6TvL0_3ytfs-h-X06uF3_7Ex-YP12YKpwng@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171029193435.314-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <CAA9_cmdx7T2jnfw6TvL0_3ytfs-h-X06uF3_7Ex-YP12YKpwng@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "mhocko@suse.com" <mhocko@suse.com>, "jack@suse.cz" <jack@suse.cz>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "bfields@fieldses.org" <bfields@fieldses.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "paulus@samba.org" <paulus@samba.org>, "Hefty, Sean" <sean.hefty@intel.com>, "jlayton@poochiereds.net" <jlayton@poochiereds.net>, "mawilcox@microsoft.com" <mawilcox@microsoft.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "mpe@ellerman.id.au" <mpe@ellerman.id.au>, "dledford@redhat.com" <dledford@redhat.com>, "hch@lst.de" <hch@lst.de>, "jgunthorpe@obsidianresearch.com" <jgunthorpe@obsidianresearch.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "schwidefsky@de.ibm.com" <schwidefsky@de.ibm.com>, viro@zeniv.linux.
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Oct 27, 2017 at 01:42:16PM +0200, Dan Williams wrote:
+> [replying from my phone, please forgive formatting]
 > 
-> Smatch tool reports the following error:
->   drivers/infiniband/hw/cxgb4/qp.c:1886
-> 	c4iw_create_qp() error: we previously assumed 'ucontext'
-> 	could be null (see line 1804)
+> On Friday, October 27, 2017, Dave Chinner <david@fromorbit.com> wrote:
 > 
-> Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/infiniband/hw/cxgb4/qp.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/infiniband/hw/cxgb4/qp.c
-> b/drivers/infiniband/hw/cxgb4/qp.c
-> index 57b23e33eb8b..4b3267358dff 100644
-> --- a/drivers/infiniband/hw/cxgb4/qp.c
-> +++ b/drivers/infiniband/hw/cxgb4/qp.c
-> @@ -1843,7 +1843,7 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd,
-> struct ib_qp_init_attr *attrs,
->  	if (ret)
->  		goto err_destroy_qp;
+> > > Here are the two primary patches in
+> > > the series, do you think the extent-busy approach would be cleaner?
+> >
+> > The XFS_DAXDMA....
+> >
+> > $DEITY that patch is so ugly I can't even bring myself to type it.
 > 
-> -	if (udata) {
-> +	if (udata && ucontext) {
->  		sq_key_mm = kmalloc(sizeof(*sq_key_mm), GFP_KERNEL);
->  		if (!sq_key_mm) {
->  			ret = -ENOMEM;
+> 
+> Right, and so is the problem it's trying to solve. So where do you want to
+> go from here?
+> 
+> I could go back to the FL_ALLOCATED approach, but use page idle callbacks
+> instead of polling for the lease end notification. Or do we want to try
+> busy extents? My concern with busy extents is that it requires more per-fs
+> code.
 
+I don't care if it takes more per-fs code to solve the problem -
+dumping butt-ugly, nasty locking crap into filesystems that
+filesystem developers are completely unable to test is about the
+worst possible solution you can come up with.
 
-Hey Leon, doesn't udata imply ucontext?   It's not a big deal, though, I
-guess.
+Cheers,
 
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
