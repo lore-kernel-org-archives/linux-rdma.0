@@ -1,61 +1,37 @@
-From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: Re: IB/mlx4: Use common error handling code in
- __mlx4_ib_create_flow()
-Date: Mon, 30 Oct 2017 09:04:36 +0100
-Message-ID: <e2febce9-4b80-a40e-024e-5c24964301ac@users.sourceforge.net>
-References: <0bcea3cf-91e3-01d5-8d80-34cd6b611fb1@users.sourceforge.net>
- <70843f43-03c5-8295-643a-4f228ff2e907@intel.com>
- <0c92fc8e-ecb8-c7ed-0b4c-721752297222@users.sourceforge.net>
- <20171027193601.GI16127@mtr-leonro.local>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH 2/2] nvme-rdma: Add remote_invalidation module parameter
+Date: Mon, 30 Oct 2017 10:11:54 +0200
+Message-ID: <4423f96f-bf42-3603-aa6a-fa259a1d09d1@grimberg.me>
+References: <1509295101-14081-1-git-send-email-idanb@mellanox.com>
+ <1509295101-14081-3-git-send-email-idanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171027193601.GI16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-GB
+In-Reply-To: <1509295101-14081-3-git-send-email-idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->>> I mean you aren't really making the code any smaller
->>
->> Would anybody like to check corresponding effects in more detail
->> after a specific function call was replaced by a goto statement?
-> 
-> You are supposed to do it and not "anybody".
+Idan,
 
-I can offer another bit of information for this software development discussion.
+> NVMe over Fabrics in its secure "register_always" mode
+> registers and invalidates the user buffer upon each IO.
+> The protocol enables the host to request the susbsystem
+> to use SEND WITH INVALIDATE operation while returning the
+> response capsule and invalidate the local key
+> (remote_invalidation).
+> In some HW implementations, the local network adapter may
+> perform better while using local invalidation operations.
 
-The following build settings were active in my “Makefile” for this Linux test case.
+This is a device quirk and if you want to optimize for this
+you need to expose it via verbs interface. We won't add a module
+parameter for implementation specific stuff.
 
-…
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O0 -fomit-frame-pointer -std=gnu89
-…
-
-
-The affected source file can be compiled for the processor architecture “x86_64”
-by a tool like “GCC 6.4.1+r251631-1.3” from the software distribution
-“openSUSE Tumbleweed” with the following command example.
-
-my_cc=/usr/bin/gcc-6 \
-&& my_module=drivers/infiniband/hw/mlx4/main.o \
-&& git checkout next-20171009 \
-&& make -j4 CC="${my_cc}" HOSTCC="${my_cc}" allmodconfig "${my_module}" \
-&& size "${my_module}" \
-&& git checkout next_fine-tuning_in_mlx4_1 \
-&& make -j4 CC="${my_cc}" HOSTCC="${my_cc}" allmodconfig "${my_module}" \
-&& size "${my_module}"
-
-
-Do you find the following details useful for further clarification?
-
-text: -32
-data: 0
-bss:  0
-
-Regards,
-Markus
+Note that we currently need to rework the case where we use local
+invalidates and properly wait for them to complete.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
