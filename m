@@ -1,48 +1,46 @@
-From: idanb <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/2] nvme-rdma: Add remote_invalidation module parameter
-Date: Mon, 30 Oct 2017 14:35:42 +0200
-Message-ID: <22964904-2537-51c3-bf39-5b2197aec5b9@mellanox.com>
-References: <1509295101-14081-1-git-send-email-idanb@mellanox.com>
- <1509295101-14081-3-git-send-email-idanb@mellanox.com>
- <20171029175237.GD4488@ziepe.ca>
- <740c93f4-164e-d4e3-97b1-313a0420ae81@grimberg.me>
- <7e038d80-de95-8fb7-e313-825e40c03e88@mellanox.com>
- <38523e67-fa00-dd03-5b6f-34cd6f863c8f@grimberg.me>
- <5783e083-93d4-8e72-c380-03fc54a0291b@mellanox.com>
- <360f892f-b88d-0947-1590-ab1d64d4da13@grimberg.me>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 2/2] mlx5: Fix wrong bitmap table allocation
+ size calculation
+Date: Mon, 30 Oct 2017 14:45:22 +0200
+Message-ID: <fec7ff8b-3dbc-105a-aa6a-47397a3f90d2@dev.mellanox.co.il>
+References: <1509282070-1391-1-git-send-email-yishaih@mellanox.com>
+ <1509282070-1391-3-git-send-email-yishaih@mellanox.com>
+ <20171029173703.GB4488@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <360f892f-b88d-0947-1590-ab1d64d4da13-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <20171029173703.GB4488-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 10/29/2017 7:37 PM, Jason Gunthorpe wrote:
+> On Sun, Oct 29, 2017 at 03:01:10PM +0200, Yishai Hadas wrote:
+> 
+>> diff --git a/providers/mlx5/buf.c b/providers/mlx5/buf.c
+>> index 8196db6..0ba8188 100644
+>> +++ b/providers/mlx5/buf.c
+>> @@ -51,7 +51,7 @@ static int mlx5_bitmap_init(struct mlx5_bitmap *bitmap, uint32_t num,
+>>   	bitmap->avail = num;
+>>   	bitmap->mask = mask;
+>>   	bitmap->avail = bitmap->max;
+>> -	bitmap->table = calloc(BITS_TO_LONGS(bitmap->max), sizeof(uint32_t));
+>> +	bitmap->table = calloc(BITS_TO_LONGS(bitmap->max), sizeof(long));
+> 
+> bitmap->table is sensibly set to a 'unsigned long' but here, and in
+> several other related macros, 'long' is used instead.. Looks weird to
+> mix and match the sigend and unsigned versions.
+> 
+> Generally, I prefer:
+> 	bitmap->table = calloc(BITS_TO_LONGS(bitmap->max),
+> 	                       sizeof(*bitmap->table));
 
-On 10/30/2017 12:33 PM, Sagi Grimberg wrote:
->
->
->>>> I agree we should fix this, nevertheless I don't expect this to 
->>>> create an IO rate issue for long queue depths.
->>>> Indeed we will have a tradeoff here of latency vs rate.
->>>
->>> I suggest we hold back with this one for now, I have fixes for
->>> the local invalidate flow. Once we get them in we can see if
->>> this approach makes a difference, and if so, we need to expose
->>> it through a generic mechanism.
->>
->> I suggest that you'll post the patches to the list and we'll investigate
->> the latency implications, if the implications are negligible, we have a
->> win here for small IOs.
->>
->> When will you be able to post your patches?
->
-> I can post them now, but I prefer to test them first ;)
+PR was updated as of that suggestion:
+https://github.com/linux-rdma/rdma-core/pull/235
 
-Sounds good, we will check once you'll post them.
-I expect no impact on IOPs,  just latency.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
