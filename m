@@ -1,97 +1,62 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next] RDMA/cxgb4: Protect from possible dereference
-Date: Mon, 30 Oct 2017 07:30:24 +0200
-Message-ID: <20171030053024.GQ16127@mtr-leonro.local>
-References: <20171029193435.314-1-leon@kernel.org>
- <001201d350fd$0dd04fa0$2970eee0$@opengridcomputing.com>
+Subject: Re: Need to set if_index in ib_init_ah_from_wc() ?
+Date: Mon, 30 Oct 2017 07:32:47 +0200
+Message-ID: <20171030053247.GR16127@mtr-leonro.local>
+References: <CAL1RGDW6iHo2UYKbcJmcG=wCq63jvZB7nvOD=BJZwASSzc7Zhw@mail.gmail.com>
+ <20170130195412.GE24466@obsidianresearch.com>
+ <VI1PR0502MB30086B735FD4B5948B521673D14D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <CANjDDBhJK=s28zrdCASUVSSeem=NVRWwsHT=jWS2N4jGh2Uvfw@mail.gmail.com>
+ <VI1PR0502MB300803053059AA7CC0E6DA7DD1420@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <VI1PR0502MB30087224F41436F787C4997FD1460@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20171023173946.GP2106@mtr-leonro.local>
+ <CANjDDBiuFYo_3Y=0oGMza1N5SGcNcgKE8y1LscYK6bc44-YxGA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Zqu75NDXmDJGUu04"
+        protocol="application/pgp-signature"; boundary="MgcI0aUO3vrRQI/Z"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <001201d350fd$0dd04fa0$2970eee0$@opengridcomputing.com>
+In-Reply-To: <CANjDDBiuFYo_3Y=0oGMza1N5SGcNcgKE8y1LscYK6bc44-YxGA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---Zqu75NDXmDJGUu04
-Content-Type: text/plain; charset=utf-8
+--MgcI0aUO3vrRQI/Z
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Sun, Oct 29, 2017 at 04:29:50PM -0500, Steve Wise wrote:
-> >
-> > Smatch tool reports the following error:
-> >   drivers/infiniband/hw/cxgb4/qp.c:1886
-> > 	c4iw_create_qp() error: we previously assumed 'ucontext'
-> > 	could be null (see line 1804)
-> >
-> > Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > ---
-> >  drivers/infiniband/hw/cxgb4/qp.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/infiniband/hw/cxgb4/qp.c
-> > b/drivers/infiniband/hw/cxgb4/qp.c
-> > index 57b23e33eb8b..4b3267358dff 100644
-> > --- a/drivers/infiniband/hw/cxgb4/qp.c
-> > +++ b/drivers/infiniband/hw/cxgb4/qp.c
-> > @@ -1843,7 +1843,7 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd,
-> > struct ib_qp_init_attr *attrs,
-> >  	if (ret)
-> >  		goto err_destroy_qp;
-> >
-> > -	if (udata) {
-> > +	if (udata && ucontext) {
-> >  		sq_key_mm =3D kmalloc(sizeof(*sq_key_mm), GFP_KERNEL);
-> >  		if (!sq_key_mm) {
-> >  			ret =3D -ENOMEM;
+On Mon, Oct 30, 2017 at 09:29:01AM +0530, Devesh Sharma wrote:
+> Hi Leon/Parav,
 >
->
-> Hey Leon, doesn't udata imply ucontext?   It's not a big deal, though, I
-> guess.
-
-Yes, it is, but I don't see any other option to clean RDMA.
-
-=E2=9E=9C  linux-rdma git:(rdma-next) x checks
-Preparing /tmp/tmp.rkPKPYnNE2 (identifier tmp.rkPKPYnNE2)
-Checking out files: 100% (61292/61292), done.
-HEAD is now at e183225dff87 RDMA/cxgb4: Protect from possible dereference
-Redirecting the output to /tmp/tmp.VZsidBz0jJ
-There are 387 errors/warnings
-
->
-> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->
+> I have a working patch under QA to support this change. I should be
+> able to push in a day or two.
 
 Thanks
 
->
+By the way, can you please do not reply in top-posting format?
 
---Zqu75NDXmDJGUu04
+--MgcI0aUO3vrRQI/Z
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln2uPAACgkQ5GN7iDZy
-WKfuHBAAgU7lMc8ypII3kdT1P4hAaz4DMrzTZ6HkJXTbEJ3/oK5CTzyUprugUCrC
-zOojRDZ7usbdv/4zUIxH325RjRK6aHxNJHzypwMepg3ilRwaHhgCCLcnsyc9mNJ1
-XW1XuMhXsCjkZCuelkyhm6kSuYjeFVFGykmzag6Rgs45cE0/McR66lXyP1qezvCI
-REFfgOJk64oFnEvWggZIrJv4Edv4tY96zJJxfzLske4uSoQZ4SBLANfaipu1f4jV
-w1c67zZ1KWZDEGPopyvEr2wvtxPPdDICpMrTFTrQqUgODScohInhDihsJ8gxF9XL
-jvRyaDu7t6REiD/dNvzV6W6gszLd7KPQgoUCwJ1D47Pt7in20dXDcTs1tYcIDlIG
-LdpkQamtNGZ0rOyRo6ntF8eq/Hxr0wFUuIqsQ9BcPfVhKKli7xUlR4k50gY95agl
-xaPilaALKuRG084/ALQfphXdtKeLDEPer67sn6JUg5kqk5Ny44RAjzpJ72IJET2M
-/JQNrzD2CI5odEbU4/qRUpbNDUqO0wKr8UVIr5d5QASH4cyYKOdhGTXj+KLbXG8S
-4NdI+d/uXvo+8BOid6y4T68nR4YHz1mPwmFM5iYyty8CssFc6jb1iq0Wljhb5uwB
-EDJlABzB9VuLtQBJD+pVhYmE8NLuUpFE45xg0iMk/9jEz6Wet6I=
-=KQ1Y
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln2uX8ACgkQ5GN7iDZy
+WKcDKA/7BNAUAwgUBfQ808KG5pqb17u6U6UnGOAt8IBgCccd6B/cwtl58GxFcMGE
+/pTXYUlVW6/PktAiU1thPDFy8154eapsYO5nz+iWY0LmBtS98eK4E9UWiHVBsL1L
+imNblO05N0lVoYIVl+f62iXruODNWn9mSxY8jGu7SrfqP+k6KlUbcuFVYDpftDdF
+maZXyPmJ8dDsmB06mxUH1t1J9KtC3T03nOWGQoLpAnKxyPbn7SunxI7lFcT0CYvu
+qzelvhuYiR9uEyl0t5g0AMF8Awybn2sBdhkUwQ0mf5z+DImT4ZikZ0oI34SRXdmF
+c2NizoGcATQMLaR1zqgffQ5jn9w/etAeG9x8mL8L7RN90jx15GM3LaeTk74dHaI6
++Cn+taeXWrs/Afpx6MIhOK6B+l2XQmT+1olUILuLgyYpsB5oeoXflvwPAW1SUiuf
+aePX13Ie/OT6MosH0NdZ65kHcsyLoZBo6njdhV2KiQtGwMkF366etWprGL00omaO
+RZgZlxrVPk5Cv0Wx7L7oMGGx0qhQqYKW+ydVAzxQlfEEonYsSJCJaR/CJ59QAWNT
+jFfw0op2/BF5dz41wjzypUjY8FE5myvWeQjWFELwxM5prt+xX5dfRFD+VcKeA0mg
+oMNLdKFqkcSxkKIKN7WYq5oULlaqn0bCO1K3PECXMEEr3Hw3K1I=
+=IKlC
 -----END PGP SIGNATURE-----
 
---Zqu75NDXmDJGUu04--
+--MgcI0aUO3vrRQI/Z--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
