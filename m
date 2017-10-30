@@ -1,183 +1,76 @@
 From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/4] rpcrdma: Remove C structure definitions of XDR data items
-Date: Mon, 30 Oct 2017 09:26:27 +0530
-Message-ID: <CANjDDBggWLd7VobCoRBozVhVVbEtR6D0Ne-qOBvs+2qFQmEmNA@mail.gmail.com>
-References: <20171027164014.10826.10151.stgit@manet.1015granger.net>
- <20171027164402.10826.42984.stgit@manet.1015granger.net> <CANjDDBjUzfCJjaGb9aq9YC7ZKrvYoVuXThV3RV1fu-fo=Sjfew@mail.gmail.com>
- <63736984-243A-4F17-A146-57A0CA8E5061@oracle.com>
+Subject: Re: Need to set if_index in ib_init_ah_from_wc() ?
+Date: Mon, 30 Oct 2017 09:29:01 +0530
+Message-ID: <CANjDDBiuFYo_3Y=0oGMza1N5SGcNcgKE8y1LscYK6bc44-YxGA@mail.gmail.com>
+References: <CAL1RGDW6iHo2UYKbcJmcG=wCq63jvZB7nvOD=BJZwASSzc7Zhw@mail.gmail.com>
+ <20170130195412.GE24466@obsidianresearch.com> <VI1PR0502MB30086B735FD4B5948B521673D14D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <CANjDDBhJK=s28zrdCASUVSSeem=NVRWwsHT=jWS2N4jGh2Uvfw@mail.gmail.com>
+ <VI1PR0502MB300803053059AA7CC0E6DA7DD1420@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <VI1PR0502MB30087224F41436F787C4997FD1460@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20171023173946.GP2106@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <63736984-243A-4F17-A146-57A0CA8E5061-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20171023173946.GP2106-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Okay looks good to me.
+Hi Leon/Parav,
+
+I have a working patch under QA to support this change. I should be
+able to push in a day or two.
 
 -Regards
 Devesh
 
-On Sun, Oct 29, 2017 at 10:58 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->
->> On Oct 28, 2017, at 3:38 AM, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+On Mon, Oct 23, 2017 at 11:09 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Mon, Oct 23, 2017 at 04:28:43PM +0000, Parav Pandit wrote:
+>> Hi Devesh,
 >>
->> Hi Chuck,
+>> > -----Original Message-----
+>> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Parav Pandit
+>> > Sent: Wednesday, October 18, 2017 11:54 PM
+>> > To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+>> > Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>; Somnath Kotur
+>> > <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Matan Barak
+>> > <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Jason Gunthorpe
+>> > <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>; Roland Dreier
+>> > <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+>> > Subject: RE: Need to set if_index in ib_init_ah_from_wc() ?
+>> >
+>> > Hi Devesh,
+>> >
+>> > > -----Original Message-----
+>> > > From: Devesh Sharma [mailto:devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org]
+>> > > Sent: Wednesday, October 18, 2017 11:32 PM
+>> > > To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> > > Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>; Somnath Kotur
+>> > > <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Matan Barak
+>> > > <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Jason Gunthorpe
+>> > > <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>; Roland Dreier
+>> > > <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+>> > > Subject: Re: Need to set if_index in ib_init_ah_from_wc() ?
+>> > >
+>> > > Hello Parav,
+>> > >
+>> > > Thanks for you note here. I can supply you a fix, but before that
+>> > > please find a query inline below:
+>> >
+>> So I am going forward to fix the ib core as discussed.
+>> Please fix bnx_re driver whenever you find it appropriate in your schedule.
 >
-> Hi Devesh, thanks for the review!
+> I would like to have proper deadline here, from one side, I don't want
+> to wait for Broadcom's fix forever, but from another, I don't want to
+> forward ANY patch which breaks other vendors.
 >
+> Thanks
 >
->> Could add a pointer to the patch which replaced things with the new
->> data-structure in the commit message
->
-> How about this:
->
-> "Clean up: C-structure style XDR encoding and decoding logic has
-> been replaced over the past several merge windows on both the
-> client and server. These data structures are no longer used."
->
->
->> On Fri, Oct 27, 2017 at 10:14 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->>> Clean up: XDR structures have been replaced in all client and server
->>> transport code.
->>>
->>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>> ---
->>> include/linux/sunrpc/rpc_rdma.h |   59 ---------------------------------------
->>> net/sunrpc/xprtrdma/rpc_rdma.c  |    6 ++--
->>> net/sunrpc/xprtrdma/xprt_rdma.h |    6 ----
->>> 3 files changed, 3 insertions(+), 68 deletions(-)
->>>
->>> diff --git a/include/linux/sunrpc/rpc_rdma.h b/include/linux/sunrpc/rpc_rdma.h
->>> index b7e85b3..840afac 100644
->>> --- a/include/linux/sunrpc/rpc_rdma.h
->>> +++ b/include/linux/sunrpc/rpc_rdma.h
->>> @@ -50,65 +50,6 @@ enum {
->>>        RPCRDMA_V1_DEF_INLINE_SIZE      = 1024,
->>> };
->>>
->>> -struct rpcrdma_segment {
->>> -       __be32 rs_handle;       /* Registered memory handle */
->>> -       __be32 rs_length;       /* Length of the chunk in bytes */
->>> -       __be64 rs_offset;       /* Chunk virtual address or offset */
->>> -};
->>> -
->>> -/*
->>> - * read chunk(s), encoded as a linked list.
->>> - */
->>> -struct rpcrdma_read_chunk {
->>> -       __be32 rc_discrim;      /* 1 indicates presence */
->>> -       __be32 rc_position;     /* Position in XDR stream */
->>> -       struct rpcrdma_segment rc_target;
->>> -};
->>> -
->>> -/*
->>> - * write chunk, and reply chunk.
->>> - */
->>> -struct rpcrdma_write_chunk {
->>> -       struct rpcrdma_segment wc_target;
->>> -};
->>> -
->>> -/*
->>> - * write chunk(s), encoded as a counted array.
->>> - */
->>> -struct rpcrdma_write_array {
->>> -       __be32 wc_discrim;      /* 1 indicates presence */
->>> -       __be32 wc_nchunks;      /* Array count */
->>> -       struct rpcrdma_write_chunk wc_array[0];
->>> -};
->>> -
->>> -struct rpcrdma_msg {
->>> -       __be32 rm_xid;  /* Mirrors the RPC header xid */
->>> -       __be32 rm_vers; /* Version of this protocol */
->>> -       __be32 rm_credit;       /* Buffers requested/granted */
->>> -       __be32 rm_type; /* Type of message (enum rpcrdma_proc) */
->>> -       union {
->>> -
->>> -               struct {                        /* no chunks */
->>> -                       __be32 rm_empty[3];     /* 3 empty chunk lists */
->>> -               } rm_nochunks;
->>> -
->>> -               struct {                        /* no chunks and padded */
->>> -                       __be32 rm_align;        /* Padding alignment */
->>> -                       __be32 rm_thresh;       /* Padding threshold */
->>> -                       __be32 rm_pempty[3];    /* 3 empty chunk lists */
->>> -               } rm_padded;
->>> -
->>> -               struct {
->>> -                       __be32 rm_err;
->>> -                       __be32 rm_vers_low;
->>> -                       __be32 rm_vers_high;
->>> -               } rm_error;
->>> -
->>> -               __be32 rm_chunks[0];    /* read, write and reply chunks */
->>> -
->>> -       } rm_body;
->>> -};
->>> -
->>> /*
->>>  * XDR sizes, in quads
->>>  */
->>> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
->>> index 4fdeaac..45cb549 100644
->>> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
->>> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
->>> @@ -75,11 +75,11 @@ static unsigned int rpcrdma_max_call_header_size(unsigned int maxsegs)
->>>
->>>        /* Maximum Read list size */
->>>        maxsegs += 2;   /* segment for head and tail buffers */
->>> -       size = maxsegs * sizeof(struct rpcrdma_read_chunk);
->>> +       size = maxsegs * rpcrdma_readchunk_maxsz * sizeof(__be32);
->>>
->>>        /* Minimal Read chunk size */
->>>        size += sizeof(__be32); /* segment count */
->>> -       size += sizeof(struct rpcrdma_segment);
->>> +       size += rpcrdma_segment_maxsz * sizeof(__be32);
->>>        size += sizeof(__be32); /* list discriminator */
->>>
->>>        dprintk("RPC:       %s: max call header size = %u\n",
->>> @@ -102,7 +102,7 @@ static unsigned int rpcrdma_max_reply_header_size(unsigned int maxsegs)
->>>        /* Maximum Write list size */
->>>        maxsegs += 2;   /* segment for head and tail buffers */
->>>        size = sizeof(__be32);          /* segment count */
->>> -       size += maxsegs * sizeof(struct rpcrdma_segment);
->>> +       size += maxsegs * rpcrdma_segment_maxsz * sizeof(__be32);
->>>        size += sizeof(__be32); /* list discriminator */
->>>
->>>        dprintk("RPC:       %s: max reply header size = %u\n",
->>> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
->>> index 6e64c82..8b9954c 100644
->>> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
->>> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
->>> @@ -145,12 +145,6 @@ struct rpcrdma_regbuf {
->>>        return rb->rg_iov.lkey;
->>> }
->>>
->>> -static inline struct rpcrdma_msg *
->>> -rdmab_to_msg(struct rpcrdma_regbuf *rb)
->>> -{
->>> -       return (struct rpcrdma_msg *)rb->rg_base;
->>> -}
->>> -
->>> static inline struct ib_device *
->>> rdmab_device(struct rpcrdma_regbuf *rb)
->>> {
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> --
-> Chuck Lever
->
->
->
+>>
+>> > That will be good. More inline below.
+>>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
