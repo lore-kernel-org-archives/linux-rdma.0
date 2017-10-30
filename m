@@ -1,7 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH RFC] xprtrdma: Fail quickly if proto=rdma not supported
-Date: Mon, 30 Oct 2017 16:45:15 -0400
-Message-ID: <20171030202930.8929.36866.stgit@manet.1015granger.net>
+Subject: [PATCH RFC] rdma/ib: Add trace point macros to display
+ human-readable values
+Date: Mon, 30 Oct 2017 18:01:23 -0400
+Message-ID: <20171030215809.31286.46685.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -10,65 +11,166 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-rpcrdma_conn_upcall() converts RDMA CM connection events into
-errnos:
-
-  RDMA_CM_EVENT_ADDR_ERROR  -> EHOSTUNREACH
-
-  RDMA_CM_EVENT_ROUTE_ERROR -> ENETUNREACH
-
-  RDMA_CM_EVENT_UNREACHABLE  -> ENETDOWN
-
-mount.nfs seems to want to retry EHOSTUNREACH and friends forever.
-This makes mount.nfs appear to hang if I try to mount with
-proto=rdma via a conventional Ethernet device.
-
-If the admin has specified proto=rdma along with a server IP address
-that requires a local interface or network path that does not
-support RDMA, fail immediately with a permanent error during
-transport set up.
+These can be shared with all kernel ULPs, and more can easily be
+added as needed.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/transport.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ include/trace/events/rdma.h |  128 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 128 insertions(+)
+ create mode 100644 include/trace/events/rdma.h
 
-Hi all-
+Hi-
 
-I'm probably confused about when certain connection events fire.
+I'm putting together a series of patches for v4.16 (or later) that
+add static ftrace trace points to the RPC-over-RDMA client imple-
+mentation. As part of that effort, I've constructed some trace point
+helpers that might be useful for other kernel ULPs.
 
-I'd like to ensure that the RPC-over-RDMA client implementation
-can very quickly detect when RDMA can't be supported so that it
-can fall back to trying TCP (IPoIB) or reporting a problem.
+So far this patch adds just helpers that xprtrdma needs. It is not
+complete, but additional helpers can be introduced as they are
+needed.
+
+I'd like to hear comments about these, or please let me know if
+such helpers already exist and where xprtrdma can find them.
+
+Thanks!
 
 
-diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index 68ab522..5f534ba 100644
---- a/net/sunrpc/xprtrdma/transport.c
-+++ b/net/sunrpc/xprtrdma/transport.c
-@@ -396,12 +396,18 @@
- 	new_xprt = rpcx_to_rdmax(xprt);
- 
- 	rc = rpcrdma_ia_open(new_xprt, sap);
--	if (rc)
-+	switch (rc) {
-+	case 0:
-+		break;
-+	case -ENETDOWN:
-+	case -EHOSTUNREACH:
-+	case -ENETUNREACH:
-+		rc = -EINVAL;
-+		/* fall through */
-+	default:
- 		goto out1;
-+	}
- 
--	/*
--	 * initialize and create ep
--	 */
- 	new_xprt->rx_data = cdata;
- 	new_ep = &new_xprt->rx_ep;
- 
+diff --git a/include/trace/events/rdma.h b/include/trace/events/rdma.h
+new file mode 100644
+index 0000000..9d02fbe
+--- /dev/null
++++ b/include/trace/events/rdma.h
+@@ -0,0 +1,128 @@
++/*
++ * Copyright (c) 2017 Oracle.  All rights reserved.
++ */
++
++/*
++ * enum ib_event_type, from include/rdma/ib_verbs.h
++ */
++
++#define IB_EVENT_LIST				\
++	ib_event(CQ_ERR)			\
++	ib_event(QP_FATAL)			\
++	ib_event(QP_REQ_ERR)			\
++	ib_event(QP_ACCESS_ERR)			\
++	ib_event(COMM_EST)			\
++	ib_event(SQ_DRAINED)			\
++	ib_event(PATH_MIG)			\
++	ib_event(PATH_MIG_ERR)			\
++	ib_event(DEVICE_FATAL)			\
++	ib_event(PORT_ACTIVE)			\
++	ib_event(PORT_ERR)			\
++	ib_event(LID_CHANGE)			\
++	ib_event(PKEY_CHANGE)			\
++	ib_event(SM_CHANGE)			\
++	ib_event(SRQ_ERR)			\
++	ib_event(SRQ_LIMIT_REACHED)		\
++	ib_event(QP_LAST_WQE_REACHED)		\
++	ib_event(CLIENT_REREGISTER)		\
++	ib_event(GID_CHANGE)			\
++	ib_event_end(WQ_FATAL)
++
++#undef ib_event
++#undef ib_event_end
++
++#define ib_event(x)		TRACE_DEFINE_ENUM(IB_EVENT_##x);
++#define ib_event_end(x)		TRACE_DEFINE_ENUM(IB_EVENT_##x);
++
++IB_EVENT_LIST
++
++#undef ib_event
++#undef ib_event_end
++
++#define ib_event(x)		{ IB_EVENT_##x, #x },
++#define ib_event_end(x)		{ IB_EVENT_##x, #x }
++
++#define rdma_show_ib_event(x) \
++		__print_symbolic(x, IB_EVENT_LIST)
++
++/*
++ * enum ib_wc_status type, from include/rdma/ib_verbs.h
++ */
++#define IB_WC_STATUS_LIST			\
++	ib_wc_status(SUCCESS)			\
++	ib_wc_status(LOC_LEN_ERR)		\
++	ib_wc_status(LOC_QP_OP_ERR)		\
++	ib_wc_status(LOC_EEC_OP_ERR)		\
++	ib_wc_status(LOC_PROT_ERR)		\
++	ib_wc_status(WR_FLUSH_ERR)		\
++	ib_wc_status(MW_BIND_ERR)		\
++	ib_wc_status(BAD_RESP_ERR)		\
++	ib_wc_status(LOC_ACCESS_ERR)		\
++	ib_wc_status(REM_INV_REQ_ERR)		\
++	ib_wc_status(REM_ACCESS_ERR)		\
++	ib_wc_status(REM_OP_ERR)		\
++	ib_wc_status(RETRY_EXC_ERR)		\
++	ib_wc_status(RNR_RETRY_EXC_ERR)		\
++	ib_wc_status(LOC_RDD_VIOL_ERR)		\
++	ib_wc_status(REM_INV_RD_REQ_ERR)	\
++	ib_wc_status(REM_ABORT_ERR)		\
++	ib_wc_status(INV_EECN_ERR)		\
++	ib_wc_status(INV_EEC_STATE_ERR)		\
++	ib_wc_status(FATAL_ERR)			\
++	ib_wc_status(RESP_TIMEOUT_ERR)		\
++	ib_wc_status_end(GENERAL_ERR)
++
++#undef ib_wc_status
++#undef ib_wc_status_end
++
++#define ib_wc_status(x)		TRACE_DEFINE_ENUM(IB_WC_##x);
++#define ib_wc_status_end(x)	TRACE_DEFINE_ENUM(IB_WC_##x);
++
++IB_WC_STATUS_LIST
++
++#undef ib_wc_status
++#undef ib_wc_status_end
++
++#define ib_wc_status(x)		{ IB_WC_##x, #x },
++#define ib_wc_status_end(x)	{ IB_WC_##x, #x }
++
++#define rdma_show_wc_status(x) \
++		__print_symbolic(x, IB_WC_STATUS_LIST)
++
++/*
++ * enum rdma_cm_event_type, from include/rdma/rdma_cm.h
++ */
++#define RDMA_CM_EVENT_LIST			\
++	rdma_cm_event(ADDR_RESOLVED)		\
++	rdma_cm_event(ADDR_ERROR)		\
++	rdma_cm_event(ROUTE_RESOLVED)		\
++	rdma_cm_event(ROUTE_ERROR)		\
++	rdma_cm_event(CONNECT_REQUEST)		\
++	rdma_cm_event(CONNECT_RESPONSE)		\
++	rdma_cm_event(CONNECT_ERROR)		\
++	rdma_cm_event(UNREACHABLE)		\
++	rdma_cm_event(REJECTED)			\
++	rdma_cm_event(ESTABLISHED)		\
++	rdma_cm_event(DISCONNECTED)		\
++	rdma_cm_event(DEVICE_REMOVAL)		\
++	rdma_cm_event(MULTICAST_JOIN)		\
++	rdma_cm_event(MULTICAST_ERROR)		\
++	rdma_cm_event(ADDR_CHANGE)		\
++	rdma_cm_event_end(TIMEWAIT_EXIT)
++
++#undef rdma_cm_event
++#undef rdma_cm_event_end
++
++#define rdma_cm_event(x)	TRACE_DEFINE_ENUM(RDMA_CM_EVENT_##x);
++#define rdma_cm_event_end(x)	TRACE_DEFINE_ENUM(RDMA_CM_EVENT_##x);
++
++RDMA_CM_EVENT_LIST
++
++#undef rdma_cm_event
++#undef rdma_cm_event_end
++
++#define rdma_cm_event(x)	{ RDMA_CM_EVENT_##x, #x },
++#define rdma_cm_event_end(x)	{ RDMA_CM_EVENT_##x, #x }
++
++#define rdma_show_cm_event(x) \
++		__print_symbolic(x, RDMA_CM_EVENT_LIST)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
