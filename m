@@ -1,41 +1,43 @@
-From: idanb <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Subject: Re: [PATCH 2/2] nvme-rdma: Add remote_invalidation module parameter
-Date: Mon, 30 Oct 2017 12:31:06 +0200
-Message-ID: <5783e083-93d4-8e72-c380-03fc54a0291b@mellanox.com>
+Date: Mon, 30 Oct 2017 12:33:18 +0200
+Message-ID: <360f892f-b88d-0947-1590-ab1d64d4da13@grimberg.me>
 References: <1509295101-14081-1-git-send-email-idanb@mellanox.com>
  <1509295101-14081-3-git-send-email-idanb@mellanox.com>
  <20171029175237.GD4488@ziepe.ca>
  <740c93f4-164e-d4e3-97b1-313a0420ae81@grimberg.me>
  <7e038d80-de95-8fb7-e313-825e40c03e88@mellanox.com>
  <38523e67-fa00-dd03-5b6f-34cd6f863c8f@grimberg.me>
+ <5783e083-93d4-8e72-c380-03fc54a0291b@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <38523e67-fa00-dd03-5b6f-34cd6f863c8f-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <5783e083-93d4-8e72-c380-03fc54a0291b-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+To: idanb <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 10/30/2017 11:44 AM, Sagi Grimberg wrote:
->
->> I agree we should fix this, nevertheless I don't expect this to 
->> create an IO rate issue for long queue depths.
->> Indeed we will have a tradeoff here of latency vs rate.
->
-> I suggest we hold back with this one for now, I have fixes for
-> the local invalidate flow. Once we get them in we can see if
-> this approach makes a difference, and if so, we need to expose
-> it through a generic mechanism.
+>>> I agree we should fix this, nevertheless I don't expect this to 
+>>> create an IO rate issue for long queue depths.
+>>> Indeed we will have a tradeoff here of latency vs rate.
+>>
+>> I suggest we hold back with this one for now, I have fixes for
+>> the local invalidate flow. Once we get them in we can see if
+>> this approach makes a difference, and if so, we need to expose
+>> it through a generic mechanism.
+> 
+> I suggest that you'll post the patches to the list and we'll investigate
+> the latency implications, if the implications are negligible, we have a
+> win here for small IOs.
+> 
+> When will you be able to post your patches?
 
-I suggest that you'll post the patches to the list and we'll investigate
-the latency implications, if the implications are negligible, we have a
-win here for small IOs.
-
-When will you be able to post your patches?
+I can post them now, but I prefer to test them first ;)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
