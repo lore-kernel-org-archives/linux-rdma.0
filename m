@@ -1,67 +1,74 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] vmw_pvrdma: Add SRQ support
-Date: Mon, 30 Oct 2017 08:07:54 +0200
-Message-ID: <20171030060754.GT16127@mtr-leonro.local>
-References: <20171029224429.GA21993@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+Subject: Re: 4.13 ib_mthca NULL pointer dereference with OpenSM
+Date: Mon, 30 Oct 2017 09:19:56 +0200
+Message-ID: <20171030071956.GU16127@mtr-leonro.local>
+References: <CALpBJjoMLCqzVe5yKp4wCX-X-sH+=zv1QZfMvOWh2Ukh3c2LFg@mail.gmail.com>
+ <20171029191114.GO16127@mtr-leonro.local>
+ <CALpBJjoJpgR1QB-gzRJLOjGtjK4T2H4EbG1-R+ndodvznWkgwA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="kPvmKZRaHW6UEX9w"
+        protocol="application/pgp-signature"; boundary="1xJJiECQTZ8+YlWm"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171029224429.GA21993-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
+In-Reply-To: <CALpBJjoJpgR1QB-gzRJLOjGtjK4T2H4EbG1-R+ndodvznWkgwA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: Chris Blake <chrisrblake93-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---kPvmKZRaHW6UEX9w
+--1xJJiECQTZ8+YlWm
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Sun, Oct 29, 2017 at 03:44:46PM -0700, Bryan Tan wrote:
-> Enable userlevel applications to use SRQs.
+On Sun, Oct 29, 2017 at 02:35:23PM -0500, Chris Blake wrote:
+> On Sun, Oct 29, 2017 at 2:11 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> >
+> > Do you have CONFIG_SECURITY_INFINIBAND in your .config?
+> >
+> > Thanks
+> >
 >
-> Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Nitish Bhat <bnitish-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> ---
->  buildlib/fixup-include/rdma-vmw_pvrdma-abi.h |   4 +
->  providers/vmw_pvrdma/pvrdma-abi-fix.h        |  10 +
->  providers/vmw_pvrdma/pvrdma.h                |  41 ++++
->  providers/vmw_pvrdma/pvrdma_main.c           |   6 +
->  providers/vmw_pvrdma/pvrdma_ring.h           |   1 -
->  providers/vmw_pvrdma/qp.c                    | 319 +++++++++++++++++++++++----
->  6 files changed, 333 insertions(+), 48 deletions(-)
+> Hello,
 >
+> CONFIG_SECURITY_INFINIBAND is enabled on my kernel. All infiniband
+> config settings can be found here [0].
 
-Once kernel will be accepted, we will merge it.
+I did another glance to try and find the patch which affected it, but
+didn't really find it.
+
+Can you please try to set CONFIG_SECURITY_INFINIBAND=n and see if it
+helps?
 
 Thanks
 
---kPvmKZRaHW6UEX9w
+>
+> Thanks,
+> Chris Blake
+>
+> [0]: https://gist.github.com/riptidewave93/b3b83c13e93ab3be4254c855885f5b3a
+
+--1xJJiECQTZ8+YlWm
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln2wboACgkQ5GN7iDZy
-WKco6RAAnxex6m92KcNwCX0rkPYKHrHi93LZfGUfYf7z00w+TWS+mMW/nzpgcPhT
-TrHkC57S0h7hkbF9Ag6tKD7gpdUZ9MvA6uBEXwqlWiOi/TDp076jEvMIzEqstT0d
-S87xP68k+HQiHRwbTz8ix+wvYabubrm3zNJpSFUQ9b3RSyb38pZ2RACaYA6Dw467
-djbJhTlr8iMfgmOJcidGOOAW+jxGgSL4FzpjdE/i4tZJXUQqnQmg64e6R1J19b+E
-6+e0RxzWDrJieLzb7iwMoHSIC0aD1OkkfePTEetK99NNBRXhJmMXrJ+Q7CopfF7W
-bEbfRFYwT13o7EPthx0Kh6Ti/DOA2id4nyAYVS+RDXmXwVoK0P4PmsCFdgRQHOPo
-61G+SCJBdL2GlEKMsydC9nXibg/X1LHzC7DdGYIbmveJ1P0mdcNqojRShbkob/U9
-HDwELBKAeW9l5oH2IrbL7kz5EDuFv1vsv0irwH9lTA+dBYyyBQcgpBNf3x0z++7A
-OKGeWz/xTzib1kWA//jXkVxx51zG3t0X5RQliADotLG2wFHR4lfAWpeqQ9YfI/0N
-FqRIAv8LODJU2SnfNxJ2/lopHExuMuf+hocuQClBZ6MJ6aoqn8DWr40hwowWEMMV
-f7TTl0S1h4BqmaTHWxeJenNqyeyU8ERiI8iVHPEbTo9ZT8NVyZM=
-=dpga
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln20pwACgkQ5GN7iDZy
+WKejrxAAqiKEoNuPnJCuz9nH/56vnrxCLXAt1SvT50SPn6bBFbjZS3Z3rUjDOBX5
+MDTQaYISFHgx/C/KVNJ1PWWMKx9zsVC6YIJHK2B1YVydla0wrSVCeIOX/Bqw2cqo
+W95MRHG0b1xFeb7emV0eE8teulrrLq4+JhdjSEzwEAXgveKIJdpapcqso9fIct9J
+Fdft6TuKfD4om+Up+hgn9E+5o4yKXcHRzGJQF/fLSOrV/p4UQ19HuIoTHFMhjmtd
+RcYZjriUOx7FfXkEshLqFCyxeUPqEC5iLiGf0dfa+VUax7gDfTL5hkbRe0TrJlrQ
+9hzaeY74X1P3wbE5zbGDxDG57UdMSZyIGWj9ObNvby6tJ4kFnZPyrxxRvTUuA56v
+WuB1ezJdEaGxe5YPqveKKGwc9KNNNenOJDV5+cqVOziEAHbUTf4rveVMtlESdkWb
+CMPQKQy5rut0bSQ/P1cla8xPMYH4ydVGcahA0LnquK/FjeygFoboq4AIBWDP/z/L
+iAQ2CeALbv8kogqQaP7aCMOi/o+jc0tEPx1YzX5OgnhZ+bEQJXemgrt/445dDf+4
+iuu21iB29SHLtXvJGnvG6YKnpsRdOL5TXaq++kUO+/+MN9slKQLImisoIS62QBgl
+xpqkiHI7fPFpvOh+aKS4VhJH8F0C6ew9cZjACVkbWaGnqRZ9WCo=
+=SvBH
 -----END PGP SIGNATURE-----
 
---kPvmKZRaHW6UEX9w--
+--1xJJiECQTZ8+YlWm--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
