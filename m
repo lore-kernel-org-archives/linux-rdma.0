@@ -1,197 +1,83 @@
-From: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC] Vendor-specific QPs
-Date: Mon, 30 Oct 2017 15:23:24 +0000
-Message-ID: <VI1PR05MB12784029D1DE2689A8194A58B9590@VI1PR05MB1278.eurprd05.prod.outlook.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next v1 1/6] IB/uverbs: Allow CQ moderation with
+ modify CQ
+Date: Mon, 30 Oct 2017 17:28:15 +0200
+Message-ID: <20171030152815.GA16127@mtr-leonro.local>
+References: <20171029135140.32649-1-leon@kernel.org>
+ <20171029135140.32649-2-leon@kernel.org>
+ <20171029174345.GC4488@ziepe.ca>
+ <20171029182808.GN16127@mtr-leonro.local>
+ <20171030144807.GA12392@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="hIhQBbMWEy++B+zM"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20171030144807.GA12392-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The Problem
------------
-There is a need for QPs different from the Infiniband specification, and Dy=
-namically-Connected (DC) QP is one such example.
-Since it is not in the spec, we need a way to extend the provider to suppor=
-t such QPs without the restrictions of the IB core, such as the QP state-ma=
-chine (DC does not adhere to the same state model) or the checking of flag =
-parameter correctness (to allow for custom flags).
 
-Proposed Solution
------------------
-We propose using the "reserved" range of QP types to serve the vendor-speci=
-fic implementation, both within the Verbs API (API patch below) and the IB =
-subsystem (ib_core). The solution requires minor changes to IB core, namely=
- removing some restrictions that apply to standard QPs at creation, but mos=
-t of the flow (and the one for modify and destroy) remains identical.
+--hIhQBbMWEy++B+zM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The changes to support such QPs will remain in the vendor-specific area of =
-the API, i.e. Mellanox "Direct Verbs" portion, and the change in ib_core is=
- to use specific IB_QPT_RESERVED* definitions to cut through some of the re=
-quired checks (but still using most of the logic, where applicable). No cha=
-nge to libibverbs is required.
+On Mon, Oct 30, 2017 at 08:48:07AM -0600, Jason Gunthorpe wrote:
+> On Sun, Oct 29, 2017 at 08:28:08PM +0200, Leon Romanovsky wrote:
+>
+> > > > +int ib_uverbs_ex_modify_cq(struct ib_uverbs_file *file,
+> > > > +			   struct ib_device *ib_dev,
+> > > > +			   struct ib_udata *ucore,
+> > > > +			   struct ib_udata *uhw)
+> > >
+> > > Is this really a good idea?
+> > >
+> > > Why not ib_uverbs_set_cq_moderation ?
+> >
+> > It follows already existed ib_modify_cq(), see commit 2dd571622787
+> > ("IB/core: Add support for modify CQ")
+>
+> And that function should have been called set_cq_moderation:
+>
+> + * ib_modify_cq - Modifies moderation params of the CQ
+> + * @cq: The CQ to modify.
+> + * @cq_count: number of CQEs that will trigger an event
+> + * @cq_period: max period of time in usec before triggering an event
+> + *
+> + */
+> +int ib_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period);
 
-The proposed flow allows the user to create custom QPs using the DV API, an=
-d use the resulting objects (struct ibv_qp*) with other verb calls. This QP=
- creation call stack would include (in that order):
-1. mlx5_dv_create_qp (Embed arguments in the uhw and use reserved QPT)
-2. ibv_cmd_create_qp_ex
-3. ib_uverbs_create_qp
-4. mlx5_ib_create_qp
+I see it differently, this is extendable version of modify_cq, which is
+going to benefit all other users who will decide to extend it.
 
-This patch demonstrates changes to QP creation only (not modification or de=
-struction), but we expect changes will remain inside the provider, and most=
- likely the user could use standard control path (e.g. ibv_modify_qp and ib=
-v_destroy_qp) and data path (e.g. ibv_post_send/recv) on DC QPs as well.
+Thanks
 
+>
+> Jason
 
-Below are patches proposed for IB core and rdma-core, demonstrating the pro=
-posed change.
+--hIhQBbMWEy++B+zM
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core=
-/uverbs_cmd.c
-index 08d3d22..d7c4293 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1535,9 +1535,12 @@ static int create_qp(struct ib_uverbs_file *file,
-        }
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln3RQ8ACgkQ5GN7iDZy
+WKfItw//ed2Bs8FE6P5AbPjn1UtHq6MPYyThI7AMUCzytgVqjAlVlUFKQv0OULoO
+xNLisnXyTW3vHmere2x1gzX1TmRf6wQ5mN4XzC6P5c7Z3uDNyBuWVz40ocUBEBfa
+xbxP3JHuqGRoOv5K0ryKbdbl1FnHsq4E3vq7ppH8DE1qnZCIuiMhqMdyTz4l40DL
+GIih3sDcr+1LRBE3ycUu5kVZwdd4IcyQDcbArk0QC7O33T2Xvzfy9kUJ1qZQ6pPA
+91ztlbdKf7iHCfU7J5U1NifS1+FNw4gViATrNPcu1xE/AaFwEKTjCblZwNEPwRAm
+GytzbmBPl+ytGXj5hlTG4WHzAkKRYefucARIrSZTaj2gDLjAt5ZDS0dHk43dk2Pa
+PDX1ZCLN8sAIxVFuLSFVhJ0I7PMtg42mI8goW+m3MUDzcy/taLerHl5Wuvd6z55Z
+8Wr5sXOHNG8u8+xYE5QWFVglD9hscHIrtpGhHMWZZSlEJV49UQTF1P3nY7W2aQZ/
+4bZ9c7FW7oxqu5ZPKcYkIERKZ7MZzXt39x1CnppYJHJ+Wx4GYH6nQNFFxyfqSuqn
+qoXHSx7xCr3/EcualJIkC6WrhjqXmGTNByX+5Db+et4cGxHJy1NoYdHAKxiQDyAl
+6rMpyzNfsBHGzDaAcli2DPFrpesABm0rnenS2mIL0jnAJw3FiMw=
+=Hj0c
+-----END PGP SIGNATURE-----
 
-        if (cmd->qp_type !=3D IB_QPT_XRC_TGT) {
--               ret =3D ib_create_qp_security(qp, device);
--               if (ret)
--                       goto err_cb;
-+               if (cmd->qp_type !=3D IB_QPT_RESERVED3 &&
-+                   cmd->qp_type !=3D IB_QPT_RESERVED4) {
-+                       ret =3D ib_create_qp_security(qp, device);
-+                       if (ret)
-+                               goto err_cb;
-+               }
-
-                qp->real_qp       =3D qp;
-                qp->device        =3D device;
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/m=
-lx5/mlx5_ib.h
-index e1a3cb8..8d922e4 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -193,6 +193,8 @@ struct mlx5_ib_flow_db {
-#define MLX5_IB_SEND_UMR_UPDATE_PD_ACCESS       IB_SEND_RESERVED_END
-
-#define MLX5_IB_QPT_REG_UMR    IB_QPT_RESERVED1
-+#define MLX5_IB_QPT_DC_INI     IB_QPT_RESERVED3
-+#define MLX5_IB_QPT_DC_TGT     IB_QPT_RESERVED4
-/*
-  * IB_QPT_GSI creates the software wrapper around GSI, and MLX5_IB_QPT_HW_=
-GSI
-  * creates the actual hardware QP.
-
-
-
-
-diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h index 1a2e25=
-7..1084124 100644
---- a/providers/mlx5/mlx5dv.h
-+++ b/providers/mlx5/mlx5dv.h
-@@ -54,6 +54,16 @@ enum {
- 	MLX5_SND_DBR	=3D 1,
- };
-=20
-+enum mlx5dv_qp_type {
-+    MLX5DV_QPT_DC_SEND =3D IB_QPT_RESERVED3,
-+    MLX5DV_QPT_DC_RECV =3D IB_QPT_RESERVED4
-+};
-+
-+enum mlx5dv_qp_handshake_mode {
-+    MLX5DV_QP_HANDSHAKE_MODE_FULL =3D 0,
-+    MLX5DV_QP_HANDSHAKE_MODE_HALF
-+};
-+
- enum mlx5dv_context_comp_mask {
- 	MLX5DV_CONTEXT_MASK_CQE_COMPRESION	=3D 1 << 0,
- 	MLX5DV_CONTEXT_MASK_RESERVED		=3D 1 << 1,
-@@ -64,6 +74,18 @@ struct mlx5dv_cqe_comp_caps {
- 	uint32_t supported_format; /* enum mlx5dv_cqe_comp_res_format */  };
-=20
-+
-+ #define MLX5DV_DC_CAP_FULL_HANDSHAKE  (1 << 0) #define=20
-+ MLX5DV_DC_CAP_MAX_RESPONDERS  (1 << 1) #define=20
-+ MLX5DV_DC_CAP_CNAK_REVERSE_SL (1 << 2)
-+
-+struct mlx5dv_dc_caps {
-+    uint64_t cap_flags;
-+    uint32_t dct_max_responders;
-+    uint32_t dc_odp_caps;
-+};
-+
- /*
-  * Direct verbs device-specific attributes
-  */
-@@ -72,6 +94,7 @@ struct mlx5dv_context {
- 	uint64_t	flags;
- 	uint64_t	comp_mask;
- 	struct mlx5dv_cqe_comp_caps	cqe_comp_caps;
-+	struct mlx5dv_dc_caps dc_caps;
- };
-=20
- enum mlx5dv_context_flags {
-@@ -95,6 +118,50 @@ struct mlx5dv_cq_init_attr {  struct ibv_cq_ex *mlx5dv_=
-create_cq(struct ibv_context *context,
- 				   struct ibv_cq_init_attr_ex *cq_attr,
- 				   struct mlx5dv_cq_init_attr *mlx5_cq_attr);
-+
-+struct mlx5dv_qp_init_attr {
-+    uint32_t comp_mask;
-+    union {
-+        struct {
-+            enum mlx5dv_qp_handshake_mode mode;
-+            uint8_t  reverse_cnak_sl;
-+        } dc_send;
-+        struct {
-+            enum mlx5dv_qp_handshake_mode mode;
-+            uint64_t dc_key;
-+            uint32_t min_responders;
-+            uint32_t max_responders;
-+        } dc_recv;
-+    };
-+};
-+
-+struct ibv_qp *mlx5dv_create_qp(struct ibv_context *context,
-+                                struct ibv_qp_init_attr_ex *qp_init_attr_e=
-x,
-+                                struct mlx5dv_qp_init_attr=20
-+*mlx5_qp_init_attr);
-+
-+struct mlx5dv_send_wr {
-+    uint32_t comp_mask;
-+    union {
-+        struct {
-+            struct ibv_ah  *ah;
-+            uint32_t    remote_qpn;
-+            uint32_t    remote_qkey;
-+            uint64_t    remote_dc_key;
-+            uint8_t     reverse_data_sl;
-+        } dc_send;
-+    };
-+};
-+
-+struct mlx5dv_send_wr {
-+    struct mlx5dv_send_wr *next;
-+    struct mlx5dv_vendor_send_wr *mlx_wr;
-+    struct ibv_send_wr ibv_wr;
-+};
-+
-+int mlx5dv_post_send(struct ibv_qp *qp,
-+                     struct mlx5dv_send_wr *mlx5_wr,
-+                     struct mlx5dv_send_wr **bad_wr);
-+
- /*
-  * Most device capabilities are exported by ibv_query_device(...),
-  * but there is HW device-specific information which is important
-
+--hIhQBbMWEy++B+zM--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
