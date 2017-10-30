@@ -1,74 +1,93 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: 4.13 ib_mthca NULL pointer dereference with OpenSM
-Date: Mon, 30 Oct 2017 21:00:26 +0200
-Message-ID: <20171030190026.GB16127@mtr-leonro.local>
-References: <CALpBJjoMLCqzVe5yKp4wCX-X-sH+=zv1QZfMvOWh2Ukh3c2LFg@mail.gmail.com>
- <20171029191114.GO16127@mtr-leonro.local>
- <CALpBJjoJpgR1QB-gzRJLOjGtjK4T2H4EbG1-R+ndodvznWkgwA@mail.gmail.com>
- <20171030071956.GU16127@mtr-leonro.local>
- <CALpBJjqWrXu3b12EG2-AWKwKs9v2q5pTf11rXSy04C-5dGta6A@mail.gmail.com>
+Subject: Re: [PATCH rdma-next v1 1/6] IB/uverbs: Allow CQ moderation with
+ modify CQ
+Date: Mon, 30 Oct 2017 21:09:52 +0200
+Message-ID: <20171030190952.GC16127@mtr-leonro.local>
+References: <20171029135140.32649-1-leon@kernel.org>
+ <20171029135140.32649-2-leon@kernel.org>
+ <20171029174345.GC4488@ziepe.ca>
+ <20171029182808.GN16127@mtr-leonro.local>
+ <20171030144807.GA12392@ziepe.ca>
+ <20171030152815.GA16127@mtr-leonro.local>
+ <20171030155236.GC12392@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="xtcA6s3naMKOsC7S"
+        protocol="application/pgp-signature"; boundary="aIPTgi9H47uqouUT"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CALpBJjqWrXu3b12EG2-AWKwKs9v2q5pTf11rXSy04C-5dGta6A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20171030155236.GC12392-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chris Blake <chrisrblake93-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---xtcA6s3naMKOsC7S
+--aIPTgi9H47uqouUT
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Oct 30, 2017 at 01:39:42PM -0500, Chris Blake wrote:
-> On Mon, Oct 30, 2017 at 2:19 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+On Mon, Oct 30, 2017 at 09:52:36AM -0600, Jason Gunthorpe wrote:
+> On Mon, Oct 30, 2017 at 05:28:15PM +0200, Leon Romanovsky wrote:
+> > > + * ib_modify_cq - Modifies moderation params of the CQ
+> > > + * @cq: The CQ to modify.
+> > > + * @cq_count: number of CQEs that will trigger an event
+> > > + * @cq_period: max period of time in usec before triggering an event
+> > > + *
+> > > + */
+> > > +int ib_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period);
 > >
-> > Can you please try to set CONFIG_SECURITY_INFINIBAND=n and see if it
-> > helps?
-> >
-> > Thanks
-> >
+> > I see it differently, this is extendable version of modify_cq, which is
+> > going to benefit all other users who will decide to extend it.
 >
-> Hello Leon,
+> The only reason we have these goofy 'thick' APIs like modify_qp is
+> because people said they needed a very high rate of qp modifications
+> and could not tolerate the performance downside of a dis-aggregated
+> API.
 >
-> I went ahead and set CONFIG_SECURITY_INFINIBAND=n in my kernel, and so
-> far the issue seems resolved. I will run this for a week or so and
-> will get back to you, but things are looking promising. :)
+> I don't think CQ falls into that reasoning, so it should be
+> dis-aggregated.
+>
+> Many things in verbs are terrible examples of how to make APIs, we
+> should not just blindly copy things..
+
+"Many things" ???
+At least, you found something that is not terrible, I didn't find yet.
+
+For the libibverb's API, I completely agree with you that we need to
+strive to more simple API without overloaded functions with a lot of
+parameters and you can count on my voice and support for any effort
+to do so.
+
+However, I don't think that kernel to libibverbs API should follow the
+same path. The centralized entry points to the kernel provides better
+enforcement and minimizes system call bloat.
 
 Thanks
 
 >
-> Regards,
-> Chris Blake
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Jason
 
---xtcA6s3naMKOsC7S
+--aIPTgi9H47uqouUT
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln3dsoACgkQ5GN7iDZy
-WKfrtw/8DL8EGPoopCm6WPQ9AHUS+hGOkexCY5UZK3BSl+HhbVH6YnYdGA+J2LO7
-OCsto8tDQBofIryre3nfqvVn9NfjdKlDZs9sFekdrOqHI4Dr33XtM2h86k4NT7/4
-p2k+jMgwQ3aLMufXg1d/MjICb6D33pWFeUquOoizDRJRZP22MCn/+VKNTLHujP1R
-2ukiLkaY8X8jAhiuvVzpD35nDPuIcvOO38/htOvn90nE8oXRI1zmBN21/4meyHMa
-YuK19Q3IXhDPoXxkML86caUxzphw6/gi3zbAcYs8N3d4qVMGVIwn6F3ocpBzohYC
-dnlS0Oe6kdi4ip/BtZwMhLPDJhNmtz/RuQTkTEd6Ixj0xrpPN9AIMqgFGgGUqH1T
-CPYOXoFhVYSfTrC4ivsF3LS6RR2xyLqmNjTsEdhsEUAXuYzjWn0scj9JllyupPmP
-KWK+Hh7EmeHBdwc6MX5n3OEl6s/iKOhdGzOn6OWf9wnCQ4szADK/L5bz0uJ2tlAK
-tpWX5u9m0NukR3Jc0ClDM9aftrWLkFyuFy6URd4DzhINxpz9n8twKlWQlkqbgdjd
-KRNYaECLijgM8rBJdH7OmD2pJ6puhVPEX+OaJJwQE17fBqghIpLsEakUeAhIsdJa
-kjcK/VN/CEkQ5PV2FHi2Py0VtZ0Cpwhi6e8OLo3YThiSnO8QtfA=
-=rr4d
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln3eQAACgkQ5GN7iDZy
+WKcong/+KamWfig8qb713664ErUl1u7N0EGPnooWK6HnRNR1XxKlPgbMTmBGQgMX
+AHgJNrTyWu1z6xeprXBLRyvczBMzZu5lAzV4wM+uh5bjjWiKarst8P3u163MMACQ
+kgnRCF8oLhm9ooebkL1ic9WvaWGG+aN/SlBQU0PuxFlRwwbNfe8txqV9d3of1+Qi
++aMhxuZ4PCMGZdYiVRIHLjmTYBKCDcujjB+/S9hz2FNAACEo/Ba2jw3uI9aWrZub
+hco6hXAOVwFAJ1uPByO5zHYMJWaRRk+b5EmVX9ZXiD7eZHNlh/hbsP4iVBG5JGkE
+cb1RJU0ecDA21YpSJ7FTpMxQscIP/uPEk5OjRc0eG0eOHwNjEklso4pk4+s7YZ6t
+yuNX3KyskdgHNasQPHc1aSjvdvet1ME431+v9ObifIwT+OAATWOGTSrXN2+2sHCv
+bsS2HiVGgLU4ZchCCqItoE47+x8oWHJM0wvjTHw6Ynp3KnwFoGkk8rpmUfcnToRB
+/vs5j4TmXZ6R6vcu/sNAzAGlucsMu2yTTG+svKCHR/+DVRC01HsGskvZ6qnQzZoW
+w9Uj3ZmD6eDpmUsvYEHp/6RsuyPrvMKljr49usXwFwZXidWnljd/Z5XTkzoMF01p
+NIsmBA7Manv2etsXl2JtHIOvycH56dRp9qzx6lg/cLoaZ0RNwww=
+=jIUk
 -----END PGP SIGNATURE-----
 
---xtcA6s3naMKOsC7S--
+--aIPTgi9H47uqouUT--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
