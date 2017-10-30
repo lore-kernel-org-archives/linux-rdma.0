@@ -1,40 +1,41 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 0/3] mlx5 and NLDEV fixes
-Date: Mon, 30 Oct 2017 14:23:12 +0200
-Message-ID: <20171030122315.21924-1-leon@kernel.org>
+Subject: [PATCH rdma-rc 3/3] RDMA/nldev: Enforce device index check for port callback
+Date: Mon, 30 Oct 2017 14:23:15 +0200
+Message-ID: <20171030122315.21924-4-leon@kernel.org>
+References: <20171030122315.21924-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171030122315.21924-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-There are three patches targeted for this -RC, while mlx5 patches can
-easily go to -next, the nldev patch better to be forwarded to Linus in
-this cycle.
+IB device index is nldev's handler and it should be always checked.
 
-Because, we are in -rc7 now, I would really appreciate to hear your
-plans regarding nldev patch.
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Fixes: c3f66f7b0052 ("RDMA/netlink: Implement nldev port doit callback")
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/nldev.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-The patches are available in the git repository at:
-  git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-rc-2017-10-30
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 3ba24c428c3b..2fae850a3eff 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -214,7 +214,9 @@ static int nldev_port_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
 
-	Thanks
----------------------------------------
+ 	err = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
+ 			  nldev_policy, extack);
+-	if (err || !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
++	if (err ||
++	    !tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
++	    !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
+ 		return -EINVAL;
 
-Leon Romanovsky (1):
-  RDMA/nldev: Enforce device index check for port callback
-
-Majd Dibbiny (2):
-  IB/mlx5: Assign send CQ and recv CQ of UMR QP
-  IB/mlx5: Fix RoCE Address Path fields
-
- drivers/infiniband/core/nldev.c   | 4 +++-
- drivers/infiniband/hw/mlx5/main.c | 2 ++
- drivers/infiniband/hw/mlx5/qp.c   | 8 ++++++--
- 3 files changed, 11 insertions(+), 3 deletions(-)
-
+ 	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
 --
 2.14.2
 
