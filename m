@@ -1,49 +1,48 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 2/3] IB/mlx5: Fix RoCE Address Path fields
-Date: Mon, 30 Oct 2017 14:23:14 +0200
-Message-ID: <20171030122315.21924-3-leon@kernel.org>
-References: <20171030122315.21924-1-leon@kernel.org>
+From: idanb <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 2/2] nvme-rdma: Add remote_invalidation module parameter
+Date: Mon, 30 Oct 2017 14:35:42 +0200
+Message-ID: <22964904-2537-51c3-bf39-5b2197aec5b9@mellanox.com>
+References: <1509295101-14081-1-git-send-email-idanb@mellanox.com>
+ <1509295101-14081-3-git-send-email-idanb@mellanox.com>
+ <20171029175237.GD4488@ziepe.ca>
+ <740c93f4-164e-d4e3-97b1-313a0420ae81@grimberg.me>
+ <7e038d80-de95-8fb7-e313-825e40c03e88@mellanox.com>
+ <38523e67-fa00-dd03-5b6f-34cd6f863c8f@grimberg.me>
+ <5783e083-93d4-8e72-c380-03fc54a0291b@mellanox.com>
+ <360f892f-b88d-0947-1590-ab1d64d4da13@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171030122315.21924-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <360f892f-b88d-0947-1590-ab1d64d4da13-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When working over a RoCE network, the UDP source port should be set only
-for statically connected QPs (RC, UC and XRC).
+On 10/30/2017 12:33 PM, Sagi Grimberg wrote:
+>
+>
+>>>> I agree we should fix this, nevertheless I don't expect this to 
+>>>> create an IO rate issue for long queue depths.
+>>>> Indeed we will have a tradeoff here of latency vs rate.
+>>>
+>>> I suggest we hold back with this one for now, I have fixes for
+>>> the local invalidate flow. Once we get them in we can see if
+>>> this approach makes a difference, and if so, we need to expose
+>>> it through a generic mechanism.
+>>
+>> I suggest that you'll post the patches to the list and we'll investigate
+>> the latency implications, if the implications are negligible, we have a
+>> win here for small IOs.
+>>
+>> When will you be able to post your patches?
+>
+> I can post them now, but I prefer to test them first ;)
 
-Fixes: 2811ba51b049 ("IB/mlx5: Add RoCE fields to Address Vector")
-Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/qp.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index acb79d3a4f1d..a63060b93a43 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -2283,8 +2283,12 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 		if (err)
- 			return err;
- 		memcpy(path->rmac, ah->roce.dmac, sizeof(ah->roce.dmac));
--		path->udp_sport = mlx5_get_roce_udp_sport(dev, port,
--							  grh->sgid_index);
-+		if (qp->ibqp.qp_type == IB_QPT_RC ||
-+		    qp->ibqp.qp_type == IB_QPT_UC ||
-+		    qp->ibqp.qp_type == IB_QPT_XRC_INI ||
-+		    qp->ibqp.qp_type == IB_QPT_XRC_TGT)
-+			path->udp_sport = mlx5_get_roce_udp_sport(dev, port,
-+								  grh->sgid_index);
- 		path->dci_cfi_prio_sl = (sl & 0x7) << 4;
- 		if (gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP)
- 			path->ecn_dscp = (grh->traffic_class >> 2) & 0x3f;
--- 
-2.14.2
+Sounds good, we will check once you'll post them.
+I expect no impact on IOPs,  just latency.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
