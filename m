@@ -1,136 +1,134 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v3 00/13] dax: fix dma vs truncate and remove 'page-less' support
-Date: Mon, 30 Oct 2017 10:51:30 -0700
-Message-ID: <CAPcyv4jhrPz5Rcx=oLi7EVsR2_wVcKLo1Ekouj369HXu_Nf_nw@mail.gmail.com>
-References: <150846713528.24336.4459262264611579791.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171020074750.GA13568@lst.de> <20171020093148.GA20304@lst.de>
- <20171026105850.GA31161@quack2.suse.cz> <CAA9_cmeiT2CU8Nue-HMCv+AyuDmSzXoCVxD1bebt2+cBDRTWog@mail.gmail.com>
- <20171030020023.GG3666@dastard> <20171030083807.GA23278@quack2.suse.cz> <20171030112048.GA4133@dastard>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20171030112048.GA4133@dastard>
-Sender: owner-linux-mm@kvack.org
-To: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>, Michal Hocko <mhocko@suse.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "J. Bruce Fields" <bfields@fieldses.org>, linux-mm <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, Jeff Layton <jlayton@poochiereds.net>, Sean Hefty <sean.hefty@intel.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma <linux-rdma@vger.kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, Christoph Hellwig <hch@lst.de>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 2/2] nvme-rdma: Add remote_invalidation module parameter
+Date: Mon, 30 Oct 2017 14:18:42 -0400
+Message-ID: <2FB68C09-F811-44C9-9F48-826C074DDE14@oracle.com>
+References: <1509295101-14081-1-git-send-email-idanb@mellanox.com> <1509295101-14081-3-git-send-email-idanb@mellanox.com> <87A0B150-CE67-4C8C-914E-53F66411E1BB@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87A0B150-CE67-4C8C-914E-53F66411E1BB-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, hch <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 30, 2017 at 4:20 AM, Dave Chinner <david@fromorbit.com> wrote:
-> On Mon, Oct 30, 2017 at 09:38:07AM +0100, Jan Kara wrote:
->> Hi,
->>
->> On Mon 30-10-17 13:00:23, Dave Chinner wrote:
->> > On Sun, Oct 29, 2017 at 04:46:44PM -0700, Dan Williams wrote:
->> > > Coming back to this since Dave has made clear that new locking to
->> > > coordinate get_user_pages() is a no-go.
->> > >
->> > > We can unmap to force new get_user_pages() attempts to block on the
->> > > per-fs mmap lock, but if punch-hole finds any elevated pages it needs
->> > > to drop the mmap lock and wait. We need this lock dropped to get
->> > > around the problem that the driver will not start to drop page
->> > > references until it has elevated the page references on all the pages
->> > > in the I/O. If we need to drop the mmap lock that makes it impossible
->> > > to coordinate this unlock/retry loop within truncate_inode_pages_range
->> > > which would otherwise be the natural place to land this code.
->> > >
->> > > Would it be palatable to unmap and drain dma in any path that needs to
->> > > detach blocks from an inode? Something like the following that builds
->> > > on dax_wait_dma() tried to achieve, but does not introduce a new lock
->> > > for the fs to manage:
->> > >
->> > > retry:
->> > >     per_fs_mmap_lock(inode);
->> > >     unmap_mapping_range(mapping, start, end); /* new page references
->> > > cannot be established */
->> > >     if ((dax_page = dax_dma_busy_page(mapping, start, end)) != NULL) {
->> > >         per_fs_mmap_unlock(inode); /* new page references can happen,
->> > > so we need to start over */
->> > >         wait_for_page_idle(dax_page);
->> > >         goto retry;
->> > >     }
->> > >     truncate_inode_pages_range(mapping, start, end);
->> > >     per_fs_mmap_unlock(inode);
->> >
->> > These retry loops you keep proposing are just bloody horrible.  They
->> > are basically just a method for blocking an operation until whatever
->> > condition is preventing the invalidation goes away. IMO, that's an
->> > ugly solution no matter how much lipstick you dress it up with.
->> >
->> > i.e. the blocking loops mean the user process is going to be blocked
->> > for arbitrary lengths of time. That's not a solution, it's just
->> > passing the buck - now the userspace developers need to work around
->> > truncate/hole punch being randomly blocked for arbitrary lengths of
->> > time.
->>
->> So I see substantial difference between how you and Christoph think this
->> should be handled. Christoph writes in [1]:
->>
->> The point is that we need to prohibit long term elevated page counts
->> with DAX anyway - we can't just let people grab allocated blocks forever
->> while ignoring file system operations.  For stage 1 we'll just need to
->> fail those, and in the long run they will have to use a mechanism
->> similar to FL_LAYOUT locks to deal with file system allocation changes.
->>
->> So Christoph wants to block truncate until references are released, forbid
->> long term references until userspace acquiring them supports some kind of
->> lease-breaking. OTOH you suggest truncate should just proceed leaving
->> blocks allocated until references are released.
->
-> I don't see what I'm suggesting is a solution to long term elevated
-> page counts. Just something that can park extents until layout
-> leases are broken and references released. That's a few tens of
-> seconds at most.
->
->> We cannot have both... I'm leaning more towards the approach
->> Christoph suggests as it puts the burned to the place which is
->> causing it - the application having long term references - and
->> applications needing this should be sufficiently rare that we
->> don't have to devise a general mechanism in the kernel for this.
->
-> I have no problems with blocking truncate forever if that's the
-> desired solution for an elevated page count due to a DMA reference
-> to a page. But that has absolutely nothing to do with the filesystem
-> though - it's a page reference vs mapping invalidation problem, not
-> a filesystem/inode problem.
->
-> Perhaps pages with active DAX DMA mapping references need a page
-> flag to indicate that invalidation must block on the page similar to
-> the writeback flag...
 
-We effectively already have this flag since pages where
-is_zone_device_page() == true can only have their reference count
-elevated by get_user_pages().
+> On Oct 29, 2017, at 2:24 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+> 
+>> On Oct 29, 2017, at 12:38 PM, idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org wrote:
+>> 
+>> From: Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> 
+>> NVMe over Fabrics in its secure "register_always" mode
+>> registers and invalidates the user buffer upon each IO.
+>> The protocol enables the host to request the susbsystem
+>> to use SEND WITH INVALIDATE operation while returning the
+>> response capsule and invalidate the local key
+>> (remote_invalidation).
+>> In some HW implementations, the local network adapter may
+>> perform better while using local invalidation operations.
+>> 
+>> The results below show that running with local invalidation
+>> rather then remote invalidation improve the iops one could
+>> achieve by using the ConnectX-5Ex network adapter by x1.36 factor.
+>> Nevertheless, using local invalidation induce more CPU overhead
+>> than enabling the target to invalidate remotly, therefore,
+>> because there is a CPU% vs IOPs limit tradeoff we propose to
+>> have module parameter to define whether to request remote
+>> invalidation or not.
+>> 
+>> The following results were taken against a single nvme over fabrics
+>> subsystem with a single namespace backed by null_blk:
+>> 
+>> Block Size       s/g reg_wr      inline reg_wr    inline reg_wr + local inv
+>> ++++++++++++   ++++++++++++++   ++++++++++++++++ +++++++++++++++++++++++++++
+>> 512B            1446.6K/8.57%    5224.2K/76.21%   7143.3K/79.72%
+>> 1KB             1390.6K/8.5%     4656.7K/71.69%   5860.6K/55.45%
+>> 2KB             1343.8K/8.6%     3410.3K/38.96%   4106.7K/55.82%
+>> 4KB             1254.8K/8.39%    2033.6K/15.86%   2165.3K/17.48%
+>> 8KB             1079.5K/7.7%     1143.1K/7.27%    1158.2K/7.33%
+>> 16KB            603.4K/3.64%     593.8K/3.4%      588.9K/3.77%
+>> 32KB            294.8K/2.04%     293.7K/1.98%     294.4K/2.93%
+>> 64KB            138.2K/1.32%     141.6K/1.26%     135.6K/1.34%
+> 
+> Units reported here are KIOPS and %CPU ? What was the benchmark?
+> 
+> Was any root cause analysis done to understand why the IOPS
+> rate changes without RI? Reduction in avg RTT? Fewer long-
+> running outliers? Lock contention in the ULP?
+> 
+> I am curious enough to add a similar setting to NFS/RDMA,
+> now that I have mlx5 devices.
 
-More importantly we can not block invalidation on an elevated page
-count because that page count may never drop until all references have
-been acquired. I.e. iov_iter_get_pages() grabs a range of pages
-potentially across multiple vmas and does not drop any references in
-the range until all pages have had their count elevated.
+I see the plan is to change the NVMeoF initiator to wait for
+invalidation to complete, and then test again. However, I am
+still curious what we're dealing with for NFS/RDMA (which
+always waits for invalidation before allowing an RPC to
+complete).
 
->> If the solution Christoph suggests is acceptable to you, I think
->> we should first write a patch to forbid acquiring long term
->> references to DAX blocks.  On top of that we can implement
->> mechanism to block truncate while there are short term references
->> pending (and for that retry loops would be IMHO acceptable).
->
-> The problem with retry loops is that they are making a mess of an
-> already complex set of locking contraints on the indoe IO path. It's
-> rapidly descending into an unmaintainable mess - falling off the
-> locking cliff only make sthe code harder to maintain - please look
-> for solutions that don't require new locks or lock retry loops.
+I tested here with a pair of EDR CX-4s in RoCE mode. I found
+that there is a 15-20us latency penalty when Remote Invalid-
+ation is used with RDMA Read, but when used with RDMA Write,
+Remote Invalidation behaves as desired. The RDMA Read penalty
+vanishes after payloads are larger than about 8kB.
 
-I was hoping to make the retry loop no worse than the one we already
-perform for xfs_break_layouts(), and then the approach can be easily
-shared between ext4 and xfs.
+Simple QD=1 iozone test with direct I/O on NFSv3, and a tmpfs
+share on the NFS server. In this test, memory registration is
+used for all data payloads.
 
-However before we get there, we need quite a bit of reworks (require
-struct page for dax, use pfns in the dax radix, disable long held page
-reference counts for DAX i.e. RDMA / V4L2...). I'll submit those
-preparation steps first and then we can circle back to the "how to
-wait for DAX-DMA to end" problem.
+Remote Invalidation enabled, reclen in kB, output in
+microseconds:
+
+              kB  reclen    write  rewrite    read    reread
+          131072       1       47       54       27       27
+          131072       2       61       62       27       28
+          131072       4       63       62       28       28
+          131072       8       59       65       29       29
+          131072      16       67       66       31       32
+          131072      32       75       73       42       42
+          131072      64       92       87       64       44
+
+Remote Invalidation disabled, reclen in kB, output in
+microseconds
+
+              kB  reclen    write  rewrite    read    reread
+          131072       1       43       43       32       32
+          131072       2       45       52       32       32
+          131072       4       48       45       32       32
+          131072       8       68       64       33       33
+          131072      16       74       60       35       35
+          131072      32       85       82       49       41
+          131072      64      102       98       63       52
+
+I would expect a similar ~5us latency benefit for both RDMA
+Reads and RDMA Writes when Remote Invalidation is in use.
+Small I/Os involving RDMA Read are precisely where NFS/RDMA
+gains the most benefit from Remote Invalidation, so this
+result is disappointing.
+
+Unfortunately, the current version of RPC-over-RDMA does not
+have the ability to convey an Rkey for the target to invalid-
+ate remotely, though that is one of the features being
+considered for the next version.
+
+IOPS results (fio 70/30, multi-thread iozone, etc) are very
+clearly worse without Remote Invalidation, so I currently
+don't plan to submit a patch that allows RI to be disabled
+for some NFS/RDMA mounts. Currently the Linux NFS client
+indicates to servers that RI is supported whenever FRWR is
+supported on the client's HCA. The server is then free to
+decide whether to use Send With Invalidate with any Rkey
+in the current RPC.
+
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
