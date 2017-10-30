@@ -1,7 +1,7 @@
 From: Nicolai Stange <nicstange@gmail.com>
-Subject: [PATCH v3 4/8] debugfs: convert to debugfs_file_get() and -put()
-Date: Tue, 31 Oct 2017 00:15:50 +0100
-Message-ID: <20171030231554.6200-5-nicstange@gmail.com>
+Subject: [PATCH v3 3/8] debugfs: debugfs_real_fops(): drop __must_hold sparse annotation
+Date: Tue, 31 Oct 2017 00:15:49 +0100
+Message-ID: <20171030231554.6200-4-nicstange@gmail.com>
 References: <CAOjnSCazvybpH5ZhHn=iTLm_dVGEdr=W1pUQv6zowRisB1MWTQ@mail.gmail.com>
  <20171030231554.6200-1-nicstange@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -11,235 +11,53 @@ To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Johannes Berg <johannes@sipsolutions.net>, "Paul E.McKenney" <paulmck@linux.vnet.ibm.com>, Tyler Hall <tylerwhall@gmail.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nicolai Stange <nicstange@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Convert all calls to the now obsolete debugfs_use_file_start() and
-debugfs_use_file_finish() from the debugfs core itself to the new
-debugfs_file_get() and debugfs_file_put() API.
+Currently, debugfs_real_fops() is annotated with a
+__must_hold(&debugfs_srcu) sparse annotation.
 
-Fixes: 49d200deaa68 ("debugfs: prevent access to removed files' private
-                      data")
+With the conversion of the SRCU based protection of users against
+concurrent file removals to a per-file refcount based scheme, this becomes
+wrong.
+
+Drop this annotation.
+
 Signed-off-by: Nicolai Stange <nicstange@gmail.com>
 ---
- fs/debugfs/file.c | 106 ++++++++++++++++++++++++++----------------------------
- 1 file changed, 50 insertions(+), 56 deletions(-)
+ fs/debugfs/file.c       | 6 +-----
+ include/linux/debugfs.h | 3 +--
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
 diff --git a/fs/debugfs/file.c b/fs/debugfs/file.c
-index 08511678b782..d3a972b45ff0 100644
+index 6644bfdea2f8..08511678b782 100644
 --- a/fs/debugfs/file.c
 +++ b/fs/debugfs/file.c
-@@ -155,15 +155,12 @@ EXPORT_SYMBOL_GPL(debugfs_file_put);
+@@ -98,13 +98,9 @@ EXPORT_SYMBOL_GPL(debugfs_use_file_finish);
+ #define F_DENTRY(filp) ((filp)->f_path.dentry)
  
- static int open_proxy_open(struct inode *inode, struct file *filp)
+ const struct file_operations *debugfs_real_fops(const struct file *filp)
+-	__must_hold(&debugfs_srcu)
  {
--	const struct dentry *dentry = F_DENTRY(filp);
-+	struct dentry *dentry = F_DENTRY(filp);
- 	const struct file_operations *real_fops = NULL;
--	int srcu_idx, r;
-+	int r = 0;
- 
--	r = debugfs_use_file_start(dentry, &srcu_idx);
--	if (r) {
--		r = -ENOENT;
--		goto out;
--	}
-+	if (debugfs_file_get(dentry))
-+		return -ENOENT;
- 
- 	real_fops = debugfs_real_fops(filp);
- 	real_fops = fops_get(real_fops);
-@@ -180,7 +177,7 @@ static int open_proxy_open(struct inode *inode, struct file *filp)
- 		r = real_fops->open(inode, filp);
- 
- out:
--	debugfs_use_file_finish(srcu_idx);
-+	debugfs_file_put(dentry);
- 	return r;
+ 	struct debugfs_fsdata *fsd = F_DENTRY(filp)->d_fsdata;
+-	/*
+-	 * Neither the pointer to the struct file_operations, nor its
+-	 * contents ever change -- srcu_dereference() is not needed here.
+-	 */
++
+ 	return fsd->real_fops;
  }
+ EXPORT_SYMBOL_GPL(debugfs_real_fops);
+diff --git a/include/linux/debugfs.h b/include/linux/debugfs.h
+index 3b914d588148..c5eda259b9d6 100644
+--- a/include/linux/debugfs.h
++++ b/include/linux/debugfs.h
+@@ -95,8 +95,7 @@ int debugfs_use_file_start(const struct dentry *dentry, int *srcu_idx)
  
-@@ -194,16 +191,16 @@ const struct file_operations debugfs_open_proxy_file_operations = {
- #define FULL_PROXY_FUNC(name, ret_type, filp, proto, args)		\
- static ret_type full_proxy_ ## name(proto)				\
- {									\
--	const struct dentry *dentry = F_DENTRY(filp);			\
-+	struct dentry *dentry = F_DENTRY(filp);			\
- 	const struct file_operations *real_fops =			\
- 		debugfs_real_fops(filp);				\
--	int srcu_idx;							\
- 	ret_type r;							\
- 									\
--	r = debugfs_use_file_start(dentry, &srcu_idx);			\
--	if (likely(!r))						\
--		r = real_fops->name(args);				\
--	debugfs_use_file_finish(srcu_idx);				\
-+	r = debugfs_file_get(dentry);					\
-+	if (unlikely(r))						\
-+		return r;						\
-+	r = real_fops->name(args);					\
-+	debugfs_file_put(dentry);					\
- 	return r;							\
- }
+ void debugfs_use_file_finish(int srcu_idx) __releases(&debugfs_srcu);
  
-@@ -228,18 +225,15 @@ FULL_PROXY_FUNC(unlocked_ioctl, long, filp,
- static unsigned int full_proxy_poll(struct file *filp,
- 				struct poll_table_struct *wait)
- {
--	const struct dentry *dentry = F_DENTRY(filp);
- 	const struct file_operations *real_fops = debugfs_real_fops(filp);
--	int srcu_idx;
-+	struct dentry *dentry = F_DENTRY(filp);
- 	unsigned int r = 0;
+-const struct file_operations *debugfs_real_fops(const struct file *filp)
+-	__must_hold(&debugfs_srcu);
++const struct file_operations *debugfs_real_fops(const struct file *filp);
  
--	if (debugfs_use_file_start(dentry, &srcu_idx)) {
--		debugfs_use_file_finish(srcu_idx);
-+	if (debugfs_file_get(dentry))
- 		return POLLHUP;
--	}
- 
- 	r = real_fops->poll(filp, wait);
--	debugfs_use_file_finish(srcu_idx);
-+	debugfs_file_put(dentry);
- 	return r;
- }
- 
-@@ -283,16 +277,13 @@ static void __full_proxy_fops_init(struct file_operations *proxy_fops,
- 
- static int full_proxy_open(struct inode *inode, struct file *filp)
- {
--	const struct dentry *dentry = F_DENTRY(filp);
-+	struct dentry *dentry = F_DENTRY(filp);
- 	const struct file_operations *real_fops = NULL;
- 	struct file_operations *proxy_fops = NULL;
--	int srcu_idx, r;
-+	int r = 0;
- 
--	r = debugfs_use_file_start(dentry, &srcu_idx);
--	if (r) {
--		r = -ENOENT;
--		goto out;
--	}
-+	if (debugfs_file_get(dentry))
-+		return -ENOENT;
- 
- 	real_fops = debugfs_real_fops(filp);
- 	real_fops = fops_get(real_fops);
-@@ -330,7 +321,7 @@ static int full_proxy_open(struct inode *inode, struct file *filp)
- 	kfree(proxy_fops);
- 	fops_put(real_fops);
- out:
--	debugfs_use_file_finish(srcu_idx);
-+	debugfs_file_put(dentry);
- 	return r;
- }
- 
-@@ -341,13 +332,14 @@ const struct file_operations debugfs_full_proxy_file_operations = {
- ssize_t debugfs_attr_read(struct file *file, char __user *buf,
- 			size_t len, loff_t *ppos)
- {
-+	struct dentry *dentry = F_DENTRY(file);
- 	ssize_t ret;
--	int srcu_idx;
- 
--	ret = debugfs_use_file_start(F_DENTRY(file), &srcu_idx);
--	if (likely(!ret))
--		ret = simple_attr_read(file, buf, len, ppos);
--	debugfs_use_file_finish(srcu_idx);
-+	ret = debugfs_file_get(dentry);
-+	if (unlikely(ret))
-+		return ret;
-+	ret = simple_attr_read(file, buf, len, ppos);
-+	debugfs_file_put(dentry);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(debugfs_attr_read);
-@@ -355,13 +347,14 @@ EXPORT_SYMBOL_GPL(debugfs_attr_read);
- ssize_t debugfs_attr_write(struct file *file, const char __user *buf,
- 			 size_t len, loff_t *ppos)
- {
-+	struct dentry *dentry = F_DENTRY(file);
- 	ssize_t ret;
--	int srcu_idx;
- 
--	ret = debugfs_use_file_start(F_DENTRY(file), &srcu_idx);
--	if (likely(!ret))
--		ret = simple_attr_write(file, buf, len, ppos);
--	debugfs_use_file_finish(srcu_idx);
-+	ret = debugfs_file_get(dentry);
-+	if (unlikely(ret))
-+		return ret;
-+	ret = simple_attr_write(file, buf, len, ppos);
-+	debugfs_file_put(dentry);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(debugfs_attr_write);
-@@ -795,14 +788,14 @@ ssize_t debugfs_read_file_bool(struct file *file, char __user *user_buf,
- {
- 	char buf[3];
- 	bool val;
--	int r, srcu_idx;
-+	int r;
-+	struct dentry *dentry = F_DENTRY(file);
- 
--	r = debugfs_use_file_start(F_DENTRY(file), &srcu_idx);
--	if (likely(!r))
--		val = *(bool *)file->private_data;
--	debugfs_use_file_finish(srcu_idx);
--	if (r)
-+	r = debugfs_file_get(dentry);
-+	if (unlikely(r))
- 		return r;
-+	val = *(bool *)file->private_data;
-+	debugfs_file_put(dentry);
- 
- 	if (val)
- 		buf[0] = 'Y';
-@@ -820,8 +813,9 @@ ssize_t debugfs_write_file_bool(struct file *file, const char __user *user_buf,
- 	char buf[32];
- 	size_t buf_size;
- 	bool bv;
--	int r, srcu_idx;
-+	int r;
- 	bool *val = file->private_data;
-+	struct dentry *dentry = F_DENTRY(file);
- 
- 	buf_size = min(count, (sizeof(buf)-1));
- 	if (copy_from_user(buf, user_buf, buf_size))
-@@ -829,12 +823,11 @@ ssize_t debugfs_write_file_bool(struct file *file, const char __user *user_buf,
- 
- 	buf[buf_size] = '\0';
- 	if (strtobool(buf, &bv) == 0) {
--		r = debugfs_use_file_start(F_DENTRY(file), &srcu_idx);
--		if (likely(!r))
--			*val = bv;
--		debugfs_use_file_finish(srcu_idx);
--		if (r)
-+		r = debugfs_file_get(dentry);
-+		if (unlikely(r))
- 			return r;
-+		*val = bv;
-+		debugfs_file_put(dentry);
- 	}
- 
- 	return count;
-@@ -896,14 +889,15 @@ static ssize_t read_file_blob(struct file *file, char __user *user_buf,
- 			      size_t count, loff_t *ppos)
- {
- 	struct debugfs_blob_wrapper *blob = file->private_data;
-+	struct dentry *dentry = F_DENTRY(file);
- 	ssize_t r;
--	int srcu_idx;
- 
--	r = debugfs_use_file_start(F_DENTRY(file), &srcu_idx);
--	if (likely(!r))
--		r = simple_read_from_buffer(user_buf, count, ppos, blob->data,
--					blob->size);
--	debugfs_use_file_finish(srcu_idx);
-+	r = debugfs_file_get(dentry);
-+	if (unlikely(r))
-+		return r;
-+	r = simple_read_from_buffer(user_buf, count, ppos, blob->data,
-+				blob->size);
-+	debugfs_file_put(dentry);
- 	return r;
- }
- 
+ int debugfs_file_get(struct dentry *dentry);
+ void debugfs_file_put(struct dentry *dentry);
 -- 
 2.13.6
