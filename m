@@ -1,7 +1,7 @@
 From: Nicolai Stange <nicstange@gmail.com>
-Subject: [PATCH v3 8/8] debugfs: defer debugfs_fsdata allocation to first usage
-Date: Tue, 31 Oct 2017 00:15:54 +0100
-Message-ID: <20171030231554.6200-9-nicstange@gmail.com>
+Subject: [PATCH v3 1/8] debugfs: add support for more elaborate ->d_fsdata
+Date: Tue, 31 Oct 2017 00:15:47 +0100
+Message-ID: <20171030231554.6200-2-nicstange@gmail.com>
 References: <CAOjnSCazvybpH5ZhHn=iTLm_dVGEdr=W1pUQv6zowRisB1MWTQ@mail.gmail.com>
  <20171030231554.6200-1-nicstange@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -11,235 +11,163 @@ To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Johannes Berg <johannes@sipsolutions.net>, "Paul E.McKenney" <paulmck@linux.vnet.ibm.com>, Tyler Hall <tylerwhall@gmail.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nicolai Stange <nicstange@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Currently, __debugfs_create_file allocates one struct debugfs_fsdata
-instance for every file created. However, there are potentially many
-debugfs file around, most of which are never touched by userspace.
+Currently, the user provided fops, "real_fops", are stored directly into
+->d_fsdata.
 
-Thus, defer the allocations to the first usage, i.e. to the first
-debugfs_file_get().
+In order to be able to store more per-file state and thus prepare for more
+granular file removal protection, wrap the real_fops into a dynamically
+allocated container struct, debugfs_fsdata.
 
-A dentry's ->d_fsdata starts out to point to the "real", user provided
-fops. After a debugfs_fsdata instance has been allocated (and the real
-fops pointer has been moved over into its ->real_fops member),
-->d_fsdata is changed to point to it from then on. The two cases are
-distinguished by setting BIT(0) for the real fops case.
+A struct debugfs_fsdata gets allocated at file creation and freed from the
+newly intoduced ->d_release().
 
-struct debugfs_fsdata's foremost purpose is to track active users and to
-make debugfs_remove() block until they are done. Since no debugfs_fsdata
-instance means no active users, make debugfs_remove() return immediately
-in this case.
-
-Take care of possible races between debugfs_file_get() and
-debugfs_remove(): either debugfs_remove() must see a debugfs_fsdata
-instance and thus wait for possible active users or debugfs_file_get() must
-see a dead dentry and return immediately.
-
-Make a dentry's ->d_release(), i.e. debugfs_release_dentry(), check whether
-->d_fsdata is actually a debugfs_fsdata instance before kfree()ing it.
-
-Similarly, make debugfs_real_fops() check whether ->d_fsdata is actually
-a debugfs_fsdata instance before returning it, otherwise emit a warning.
-
-The set of possible error codes returned from debugfs_file_get() has grown
-from -EIO to -EIO and -ENOMEM. Make open_proxy_open() and full_proxy_open()
-pass the -ENOMEM onwards to their callers.
+Finally, move the implementation of debugfs_real_fops() out of the public
+debugfs header such that struct debugfs_fsdata's declaration can be kept
+private.
 
 Signed-off-by: Nicolai Stange <nicstange@gmail.com>
 ---
- fs/debugfs/file.c     | 55 ++++++++++++++++++++++++++++++++++++++++++---------
- fs/debugfs/inode.c    | 36 +++++++++++++++++----------------
- fs/debugfs/internal.h |  8 ++++++++
- 3 files changed, 73 insertions(+), 26 deletions(-)
+ fs/debugfs/file.c       | 12 ++++++++++++
+ fs/debugfs/inode.c      | 22 +++++++++++++++++++---
+ fs/debugfs/internal.h   |  4 ++++
+ include/linux/debugfs.h | 20 +++-----------------
+ 4 files changed, 38 insertions(+), 20 deletions(-)
 
 diff --git a/fs/debugfs/file.c b/fs/debugfs/file.c
-index bc3549c95574..65872340e301 100644
+index 6dabc4a10396..b6f5ddab66bf 100644
 --- a/fs/debugfs/file.c
 +++ b/fs/debugfs/file.c
-@@ -53,6 +53,15 @@ const struct file_operations *debugfs_real_fops(const struct file *filp)
- {
- 	struct debugfs_fsdata *fsd = F_DENTRY(filp)->d_fsdata;
+@@ -97,6 +97,18 @@ EXPORT_SYMBOL_GPL(debugfs_use_file_finish);
  
-+	if ((unsigned long)fsd & DEBUGFS_FSDATA_IS_REAL_FOPS_BIT) {
-+		/*
-+		 * Urgh, we've been called w/o a protecting
-+		 * debugfs_file_get().
-+		 */
-+		WARN_ON(1);
-+		return NULL;
-+	}
-+
- 	return fsd->real_fops;
- }
- EXPORT_SYMBOL_GPL(debugfs_real_fops);
-@@ -74,9 +83,35 @@ EXPORT_SYMBOL_GPL(debugfs_real_fops);
-  */
- int debugfs_file_get(struct dentry *dentry)
- {
--	struct debugfs_fsdata *fsd = dentry->d_fsdata;
-+	struct debugfs_fsdata *fsd;
-+	void *d_fsd;
-+
-+	d_fsd = READ_ONCE(dentry->d_fsdata);
-+	if (!((unsigned long)d_fsd & DEBUGFS_FSDATA_IS_REAL_FOPS_BIT)) {
-+		fsd = d_fsd;
-+	} else {
-+		fsd = kmalloc(sizeof(*fsd), GFP_KERNEL);
-+		if (!fsd)
-+			return -ENOMEM;
-+
-+		fsd->real_fops = (void *)((unsigned long)d_fsd &
-+					~DEBUGFS_FSDATA_IS_REAL_FOPS_BIT);
-+		refcount_set(&fsd->active_users, 1);
-+		init_completion(&fsd->active_users_drained);
-+		if (cmpxchg(&dentry->d_fsdata, d_fsd, fsd) != d_fsd) {
-+			kfree(fsd);
-+			fsd = READ_ONCE(dentry->d_fsdata);
-+		}
-+	}
+ #define F_DENTRY(filp) ((filp)->f_path.dentry)
  
--	/* Avoid starvation of removers. */
++const struct file_operations *debugfs_real_fops(const struct file *filp)
++	__must_hold(&debugfs_srcu)
++{
++	struct debugfs_fsdata *fsd = F_DENTRY(filp)->d_fsdata;
 +	/*
-+	 * In case of a successful cmpxchg() above, this check is
-+	 * strictly necessary and must follow it, see the comment in
-+	 * __debugfs_remove_file().
-+	 * OTOH, if the cmpxchg() hasn't been executed or wasn't
-+	 * successful, this serves the purpose of not starving
-+	 * removers.
++	 * Neither the pointer to the struct file_operations, nor its
++	 * contents ever change -- srcu_dereference() is not needed here.
 +	 */
- 	if (d_unlinked(dentry))
- 		return -EIO;
- 
-@@ -98,7 +133,7 @@ EXPORT_SYMBOL_GPL(debugfs_file_get);
-  */
- void debugfs_file_put(struct dentry *dentry)
++	return fsd->real_fops;
++}
++EXPORT_SYMBOL_GPL(debugfs_real_fops);
++
+ static int open_proxy_open(struct inode *inode, struct file *filp)
  {
--	struct debugfs_fsdata *fsd = dentry->d_fsdata;
-+	struct debugfs_fsdata *fsd = READ_ONCE(dentry->d_fsdata);
- 
- 	if (refcount_dec_and_test(&fsd->active_users))
- 		complete(&fsd->active_users_drained);
-@@ -109,10 +144,11 @@ static int open_proxy_open(struct inode *inode, struct file *filp)
- {
- 	struct dentry *dentry = F_DENTRY(filp);
- 	const struct file_operations *real_fops = NULL;
--	int r = 0;
-+	int r;
- 
--	if (debugfs_file_get(dentry))
--		return -ENOENT;
-+	r = debugfs_file_get(dentry);
-+	if (r)
-+		return r == -EIO ? -ENOENT : r;
- 
- 	real_fops = debugfs_real_fops(filp);
- 	real_fops = fops_get(real_fops);
-@@ -233,10 +269,11 @@ static int full_proxy_open(struct inode *inode, struct file *filp)
- 	struct dentry *dentry = F_DENTRY(filp);
- 	const struct file_operations *real_fops = NULL;
- 	struct file_operations *proxy_fops = NULL;
--	int r = 0;
-+	int r;
- 
--	if (debugfs_file_get(dentry))
--		return -ENOENT;
-+	r = debugfs_file_get(dentry);
-+	if (r)
-+		return r == -EIO ? -ENOENT : r;
- 
- 	real_fops = debugfs_real_fops(filp);
- 	real_fops = fops_get(real_fops);
+ 	const struct dentry *dentry = F_DENTRY(filp);
 diff --git a/fs/debugfs/inode.c b/fs/debugfs/inode.c
-index f587aded46b5..9dca4da059b3 100644
+index c59f015f386e..a9c3d3e9af39 100644
 --- a/fs/debugfs/inode.c
 +++ b/fs/debugfs/inode.c
-@@ -184,7 +184,10 @@ static const struct super_operations debugfs_super_operations = {
+@@ -185,6 +185,11 @@ static const struct super_operations debugfs_super_operations = {
+ 	.evict_inode	= debugfs_evict_inode,
+ };
  
- static void debugfs_release_dentry(struct dentry *dentry)
- {
--	kfree(dentry->d_fsdata);
-+	void *fsd = dentry->d_fsdata;
++static void debugfs_release_dentry(struct dentry *dentry)
++{
++	kfree(dentry->d_fsdata);
++}
 +
-+	if (!((unsigned long)fsd & DEBUGFS_FSDATA_IS_REAL_FOPS_BIT))
-+		kfree(dentry->d_fsdata);
- }
- 
  static struct vfsmount *debugfs_automount(struct path *path)
-@@ -344,35 +347,25 @@ static struct dentry *__debugfs_create_file(const char *name, umode_t mode,
+ {
+ 	debugfs_automount_t f;
+@@ -194,6 +199,7 @@ static struct vfsmount *debugfs_automount(struct path *path)
+ 
+ static const struct dentry_operations debugfs_dops = {
+ 	.d_delete = always_delete_dentry,
++	.d_release = debugfs_release_dentry,
+ 	.d_automount = debugfs_automount,
+ };
+ 
+@@ -341,24 +347,34 @@ static struct dentry *__debugfs_create_file(const char *name, umode_t mode,
  {
  	struct dentry *dentry;
  	struct inode *inode;
--	struct debugfs_fsdata *fsd;
--
--	fsd = kmalloc(sizeof(*fsd), GFP_KERNEL);
--	if (!fsd)
--		return NULL;
++	struct debugfs_fsdata *fsd;
++
++	fsd = kmalloc(sizeof(*fsd), GFP_KERNEL);
++	if (!fsd)
++		return NULL;
  
  	if (!(mode & S_IFMT))
  		mode |= S_IFREG;
  	BUG_ON(!S_ISREG(mode));
  	dentry = start_creating(name, parent);
  
--	if (IS_ERR(dentry)) {
--		kfree(fsd);
-+	if (IS_ERR(dentry))
+-	if (IS_ERR(dentry))
++	if (IS_ERR(dentry)) {
++		kfree(fsd);
  		return NULL;
--	}
++	}
  
  	inode = debugfs_get_inode(dentry->d_sb);
--	if (unlikely(!inode)) {
--		kfree(fsd);
-+	if (unlikely(!inode))
+-	if (unlikely(!inode))
++	if (unlikely(!inode)) {
++		kfree(fsd);
  		return failed_creating(dentry);
--	}
++	}
  
  	inode->i_mode = mode;
  	inode->i_private = data;
  
  	inode->i_fop = proxy_fops;
--	fsd->real_fops = real_fops;
--	refcount_set(&fsd->active_users, 1);
--	dentry->d_fsdata = fsd;
-+	dentry->d_fsdata = (void *)((unsigned long)real_fops |
-+				DEBUGFS_FSDATA_IS_REAL_FOPS_BIT);
+-	dentry->d_fsdata = (void *)real_fops;
++	fsd->real_fops = real_fops;
++	dentry->d_fsdata = fsd;
  
  	d_instantiate(dentry, inode);
  	fsnotify_create(d_inode(dentry->d_parent), dentry);
-@@ -635,8 +628,17 @@ static void __debugfs_remove_file(struct dentry *dentry, struct dentry *parent)
- 
- 	simple_unlink(d_inode(parent), dentry);
- 	d_delete(dentry);
--	fsd = dentry->d_fsdata;
--	init_completion(&fsd->active_users_drained);
-+
-+	/*
-+	 * Paired with the closing smp_mb() implied by a successful
-+	 * cmpxchg() in debugfs_file_get(): either
-+	 * debugfs_file_get() must see a dead dentry or we must see a
-+	 * debugfs_fsdata instance at ->d_fsdata here (or both).
-+	 */
-+	smp_mb();
-+	fsd = READ_ONCE(dentry->d_fsdata);
-+	if ((unsigned long)fsd & DEBUGFS_FSDATA_IS_REAL_FOPS_BIT)
-+		return;
- 	if (!refcount_dec_and_test(&fsd->active_users))
- 		wait_for_completion(&fsd->active_users_drained);
- }
 diff --git a/fs/debugfs/internal.h b/fs/debugfs/internal.h
-index 0eea99432840..cb1e8139c398 100644
+index b3e8443a1f47..512601eed3ce 100644
 --- a/fs/debugfs/internal.h
 +++ b/fs/debugfs/internal.h
-@@ -25,4 +25,12 @@ struct debugfs_fsdata {
- 	struct completion active_users_drained;
- };
+@@ -19,4 +19,8 @@ extern const struct file_operations debugfs_noop_file_operations;
+ extern const struct file_operations debugfs_open_proxy_file_operations;
+ extern const struct file_operations debugfs_full_proxy_file_operations;
  
-+/*
-+ * A dentry's ->d_fsdata either points to the real fops or to a
-+ * dynamically allocated debugfs_fsdata instance.
-+ * In order to distinguish between these two cases, a real fops
-+ * pointer gets its lowest bit set.
-+ */
-+#define DEBUGFS_FSDATA_IS_REAL_FOPS_BIT BIT(0)
++struct debugfs_fsdata {
++	const struct file_operations *real_fops;
++};
 +
  #endif /* _DEBUGFS_INTERNAL_H_ */
+diff --git a/include/linux/debugfs.h b/include/linux/debugfs.h
+index b93efc8feecd..cbee5f4a02a3 100644
+--- a/include/linux/debugfs.h
++++ b/include/linux/debugfs.h
+@@ -45,23 +45,6 @@ extern struct dentry *arch_debugfs_dir;
+ 
+ extern struct srcu_struct debugfs_srcu;
+ 
+-/**
+- * debugfs_real_fops - getter for the real file operation
+- * @filp: a pointer to a struct file
+- *
+- * Must only be called under the protection established by
+- * debugfs_use_file_start().
+- */
+-static inline const struct file_operations *debugfs_real_fops(const struct file *filp)
+-	__must_hold(&debugfs_srcu)
+-{
+-	/*
+-	 * Neither the pointer to the struct file_operations, nor its
+-	 * contents ever change -- srcu_dereference() is not needed here.
+-	 */
+-	return filp->f_path.dentry->d_fsdata;
+-}
+-
+ #define DEFINE_DEBUGFS_ATTRIBUTE(__fops, __get, __set, __fmt)		\
+ static int __fops ## _open(struct inode *inode, struct file *file)	\
+ {									\
+@@ -112,6 +95,9 @@ int debugfs_use_file_start(const struct dentry *dentry, int *srcu_idx)
+ 
+ void debugfs_use_file_finish(int srcu_idx) __releases(&debugfs_srcu);
+ 
++const struct file_operations *debugfs_real_fops(const struct file *filp)
++	__must_hold(&debugfs_srcu);
++
+ ssize_t debugfs_attr_read(struct file *file, char __user *buf,
+ 			size_t len, loff_t *ppos);
+ ssize_t debugfs_attr_write(struct file *file, const char __user *buf,
 -- 
 2.13.6
