@@ -1,61 +1,111 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/2] mlx5: Use non-cached mapping when Blueflame
- is not used
-Date: Tue, 31 Oct 2017 10:20:55 +0200
-Message-ID: <afb007f1-7284-f627-55f5-8529b289d01d@dev.mellanox.co.il>
-References: <1509282070-1391-1-git-send-email-yishaih@mellanox.com>
- <1509282070-1391-2-git-send-email-yishaih@mellanox.com>
- <20171029173344.GA4488@ziepe.ca>
- <6531033a-9d61-bbca-ac14-46b05973610c@dev.mellanox.co.il>
- <20171030145726.GB12392@ziepe.ca>
- <d8dc5ba0-2846-2052-9311-dc0273b4fbfb@dev.mellanox.co.il>
- <20171030163813.GB14731@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: [PATCH 1/3] nvme-rdma: don't suppress send completions
+Date: Tue, 31 Oct 2017 10:55:20 +0200
+Message-ID: <1509440122-1190-2-git-send-email-sagi@grimberg.me>
+References: <1509440122-1190-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171030163813.GB14731-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1509440122-1190-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/30/2017 6:38 PM, Jason Gunthorpe wrote:
-> On Mon, Oct 30, 2017 at 06:31:12PM +0200, Yishai Hadas wrote:
->> On 10/30/2017 4:57 PM, Jason Gunthorpe wrote:
->>> On Sun, Oct 29, 2017 at 11:26:04PM +0200, Yishai Hadas wrote:
->>>>>> @@ -632,6 +632,11 @@ enum mlx5dv_set_ctx_attr_type {
->>>>>>   	MLX5DV_CTX_ATTR_BUF_ALLOCATORS = 1,
->>>>>>   };
->>>>>> +enum {
->>>>>> +	MLX5_MMAP_GET_REGULAR_PAGES_CMD	= 0,
->>>>>> +	MLX5_MMAP_GET_NC_PAGES_CMD	= 3,
->>>>>> +};
->>>>>> +
->>>>>
->>>>> These are added to a public header, but I couldn't see where they
->>>>> would get used by a DV user??
->>>>
->>>> A DV user already had access to the mlx5 mmap command before this series by
->>>> using the mlx5dv_get_qp() API:
->>>> qp_out->uar_mmap_offset = mqp->bf->uar_mmap_offset;
->>>
->>> Okay.
->>>
->>> As long as existing users can reasonably be expected to handle this
->>> new value in the uar_mmap_offset output field...
->>>
->>
->> Yes, we expect existing users to work properly.
->>
->> This output field was exposed by the DV API to enable re-mmap of the UAR
->> address by a secondary process by using the same 'uar_mmap_offset'
->> regardless its internal command value.
-> 
-> Ah, I see.. Seems OK then.
+The entire completions suppress mechanism is currently
+broken because the HCA might retry a send operation
+(due to dropped ack) after the nvme transaction has completed.
 
-Thanks, series was merged.
+In order to handle this, we signal all send completions (besides
+async event which is not racing anything).
+
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ drivers/nvme/host/rdma.c | 40 ++++------------------------------------
+ 1 file changed, 4 insertions(+), 36 deletions(-)
+
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index 53ad241493a1..ccbae327fe72 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -1001,21 +1001,9 @@ static void nvme_rdma_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ 		nvme_rdma_wr_error(cq, wc, "SEND");
+ }
+ 
+-/*
+- * We want to signal completion at least every queue depth/2.  This returns the
+- * largest power of two that is not above half of (queue size + 1) to optimize
+- * (avoid divisions).
+- */
+-static inline bool nvme_rdma_queue_sig_limit(struct nvme_rdma_queue *queue)
+-{
+-	int limit = 1 << ilog2((queue->queue_size + 1) / 2);
+-
+-	return (atomic_inc_return(&queue->sig_count) & (limit - 1)) == 0;
+-}
+-
+ static int nvme_rdma_post_send(struct nvme_rdma_queue *queue,
+ 		struct nvme_rdma_qe *qe, struct ib_sge *sge, u32 num_sge,
+-		struct ib_send_wr *first, bool flush)
++		struct ib_send_wr *first)
+ {
+ 	struct ib_send_wr wr, *bad_wr;
+ 	int ret;
+@@ -1031,24 +1019,7 @@ static int nvme_rdma_post_send(struct nvme_rdma_queue *queue,
+ 	wr.sg_list    = sge;
+ 	wr.num_sge    = num_sge;
+ 	wr.opcode     = IB_WR_SEND;
+-	wr.send_flags = 0;
+-
+-	/*
+-	 * Unsignalled send completions are another giant desaster in the
+-	 * IB Verbs spec:  If we don't regularly post signalled sends
+-	 * the send queue will fill up and only a QP reset will rescue us.
+-	 * Would have been way to obvious to handle this in hardware or
+-	 * at least the RDMA stack..
+-	 *
+-	 * Always signal the flushes. The magic request used for the flush
+-	 * sequencer is not allocated in our driver's tagset and it's
+-	 * triggered to be freed by blk_cleanup_queue(). So we need to
+-	 * always mark it as signaled to ensure that the "wr_cqe", which is
+-	 * embedded in request's payload, is not freed when __ib_process_cq()
+-	 * calls wr_cqe->done().
+-	 */
+-	if (nvme_rdma_queue_sig_limit(queue) || flush)
+-		wr.send_flags |= IB_SEND_SIGNALED;
++	wr.send_flags = IB_SEND_SIGNALED;
+ 
+ 	if (first)
+ 		first->next = &wr;
+@@ -1122,7 +1093,7 @@ static void nvme_rdma_submit_async_event(struct nvme_ctrl *arg, int aer_idx)
+ 	ib_dma_sync_single_for_device(dev, sqe->dma, sizeof(*cmd),
+ 			DMA_TO_DEVICE);
+ 
+-	ret = nvme_rdma_post_send(queue, sqe, &sge, 1, NULL, false);
++	ret = nvme_rdma_post_send(queue, sqe, &sge, 1, NULL);
+ 	WARN_ON_ONCE(ret);
+ }
+ 
+@@ -1407,7 +1378,6 @@ static blk_status_t nvme_rdma_queue_rq(struct blk_mq_hw_ctx *hctx,
+ 	struct nvme_rdma_request *req = blk_mq_rq_to_pdu(rq);
+ 	struct nvme_rdma_qe *sqe = &req->sqe;
+ 	struct nvme_command *c = sqe->data;
+-	bool flush = false;
+ 	struct ib_device *dev;
+ 	blk_status_t ret;
+ 	int err;
+@@ -1439,10 +1409,8 @@ static blk_status_t nvme_rdma_queue_rq(struct blk_mq_hw_ctx *hctx,
+ 	ib_dma_sync_single_for_device(dev, sqe->dma,
+ 			sizeof(struct nvme_command), DMA_TO_DEVICE);
+ 
+-	if (req_op(rq) == REQ_OP_FLUSH)
+-		flush = true;
+ 	err = nvme_rdma_post_send(queue, sqe, req->sge, req->num_sge,
+-			req->mr->need_inval ? &req->reg_wr.wr : NULL, flush);
++			req->mr->need_inval ? &req->reg_wr.wr : NULL);
+ 	if (unlikely(err)) {
+ 		nvme_rdma_unmap_data(queue, rq);
+ 		goto err;
+-- 
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
