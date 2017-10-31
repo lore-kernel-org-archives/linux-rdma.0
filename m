@@ -1,57 +1,63 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: 4.13 ib_mthca NULL pointer dereference with OpenSM
-Date: Mon, 30 Oct 2017 22:24:35 -0600
-Message-ID: <20171031042435.GB7961@ziepe.ca>
-References: <CALpBJjoMLCqzVe5yKp4wCX-X-sH+=zv1QZfMvOWh2Ukh3c2LFg@mail.gmail.com>
- <20171029191114.GO16127@mtr-leonro.local>
- <CALpBJjoJpgR1QB-gzRJLOjGtjK4T2H4EbG1-R+ndodvznWkgwA@mail.gmail.com>
- <20171030071956.GU16127@mtr-leonro.local>
- <CALpBJjqWrXu3b12EG2-AWKwKs9v2q5pTf11rXSy04C-5dGta6A@mail.gmail.com>
- <20171030230156.GA4081@ziepe.ca>
- <VI1PR0502MB300860F7C004ABFB01079F53D15E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next] RDMA/bnxt_re: Remove unused vlan_tag variable
+Date: Tue, 31 Oct 2017 06:56:54 +0200
+Message-ID: <20171031045654.GD16127@mtr-leonro.local>
+References: <20171029150522.23641-1-leon@kernel.org>
+ <201710310908.yPZM7LsV%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="kgkihKxW3Un7xdgA"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <VI1PR0502MB300860F7C004ABFB01079F53D15E0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <201710310908.yPZM7LsV%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Chris Blake <chrisrblake93-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 31, 2017 at 03:16:42AM +0000, Parav Pandit wrote:
 
-> I am yet to review my below patch with Dan as he did most security
-> dev, but I suspect this might be the cause where rmpp list is not
-> initialized and mad processing is continued when security check
-> fails.
+--kgkihKxW3Un7xdgA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This patch sure looks needed to me, ib_free_recv_mad touches
-rmpp_list, so if it needs initializion then it certainly has to be
-done earlier..
+On Tue, Oct 31, 2017 at 09:36:54AM +0800, kbuild test robot wrote:
+> Hi Leon,
+>
+> I love your patch! Yet something to improve:
+>
+> [auto build test ERROR on rdma/master]
+> [also build test ERROR on v4.14-rc7 next-20171018]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+>
+> url:    https://github.com/0day-ci/linux/commits/Leon-Romanovsky/RDMA-bnxt_re-Remove-unused-vlan_tag-variable/20171031-085111
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git master
 
-Adding the new return sure makes alot of sense as well..
+It should be against k.o/for-next. There is no rdma_addr_find_l2_eth_by_grh() call there.
+https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git/tree/drivers/infiniband/hw/bnxt_re/ib_verbs.c?h=k.o/for-next#n659
 
-Hal, Ira, would you check this routine too? kernel oops's are bad..
+Thanks
 
-> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-> index f8f53bb..cb91245 100644
-> +++ b/drivers/infiniband/core/mad.c
-> @@ -1974,14 +1974,15 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
->         unsigned long flags;
->         int ret;
-> 
-> +       INIT_LIST_HEAD(&mad_recv_wc->rmpp_list);
->         ret = ib_mad_enforce_security(mad_agent_priv,
->                                       mad_recv_wc->wc->pkey_index);
->         if (ret) {
->                 ib_free_recv_mad(mad_recv_wc);
->                 deref_mad_agent(mad_agent_priv);
-> +               return;
->         }
-> 
-> -       INIT_LIST_HEAD(&mad_recv_wc->rmpp_list);
->         list_add(&mad_recv_wc->recv_buf.list, &mad_recv_wc->rmpp_list);
+--kgkihKxW3Un7xdgA
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln4ApYACgkQ5GN7iDZy
+WKc+lg//StZWW53g5RD8fZry0pAfi2kH6XM9/ifFX3XXdiOC66i0LpwOcJFBp3iX
+vgm9DXynlXt6lD1ZxyZaoJjiLz1gPjE04oNoQTf+RekgSee54XeqGuw4uRX4J491
+scn99LhKgFMYrpKMWKR6zot5en4VHdzFzh4ciZc4E687HlYthjMjaHN6ZapHnSLd
+DPcOn58FSV1j6Q1CM+nlSMt35spquZMoa6855nSgqkrGlU6cBf2DDtcm0thhD3eI
+Rl6OEKfxRytaT10aJrDqsDAB7iwyTe3hswARn2mDPfj+UL81/eG7Z+2Dp+HNmbyI
+SFycbi9BFwP9kPIXnIeivh/Y8k3csciljJ6/b0rywmdyjoz9Xy2OmSb2Qh4fXRP3
+kpxo4Zy9suZQcCQC63dDMU7/VaJjKpQ8vxEBj/8V/V8CAki5b87HaJjRcEVHt5bo
+6+MT6gQAX4cDWKLA+5CMiwY0NcCW4/2gQvkOSf4DobWQ2I2ukGSwVZsYpNR3xlwb
+WXiDmBWa1cgagr+CGqh1lhBn6XIn31+BE4qUaTWQogoK+Ozunj0qzYqr2NrGhR4U
+/0deNxXPwIPD9tSK90CQ360ErOoHFAuAEGy0z7Vkpu+9YrCGsBCMt2vgd0rhJ3de
+jEkWyrK91cQlfmCBDJHA0QUuM4XtTM749ntPA/klSsfu16GtAjE=
+=7jh+
+-----END PGP SIGNATURE-----
+
+--kgkihKxW3Un7xdgA--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
