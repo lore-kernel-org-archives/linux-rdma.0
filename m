@@ -1,59 +1,90 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: 4.13 ib_mthca NULL pointer dereference with OpenSM
-Date: Tue, 31 Oct 2017 10:20:42 -0500
-Message-ID: <5ab2d58d-8af8-c075-86f0-7010b8316cba@mellanox.com>
-References: <20171029191114.GO16127@mtr-leonro.local>
- <CALpBJjoJpgR1QB-gzRJLOjGtjK4T2H4EbG1-R+ndodvznWkgwA@mail.gmail.com>
- <20171030071956.GU16127@mtr-leonro.local>
- <CALpBJjqWrXu3b12EG2-AWKwKs9v2q5pTf11rXSy04C-5dGta6A@mail.gmail.com>
- <20171030230156.GA4081@ziepe.ca>
- <VI1PR0502MB300860F7C004ABFB01079F53D15E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20171031042435.GB7961@ziepe.ca>
- <e2a2aa84-71ce-36f0-91af-0854b24d4a6a@dev.mellanox.co.il>
- <60de3bab-f294-dd11-bcae-d179115f7c31@mellanox.com>
- <20171031150901.GA9852@ziepe.ca> <20171031151521.GK16127@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] IB/core: Avoid crash on pkey enforcement failed in received MADs
+Date: Tue, 31 Oct 2017 10:33:18 -0500
+Message-ID: <1509463998-49670-1-git-send-email-parav@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171031151521.GK16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chris Blake <chrisrblake93-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/31/2017 10:15 AM, Leon Romanovsky wrote:
-> On Tue, Oct 31, 2017 at 09:09:01AM -0600, Jason Gunthorpe wrote:
->> On Tue, Oct 31, 2017 at 10:01:49AM -0500, Daniel Jurgens wrote:
->>
->>>>> Adding the new return sure makes alot of sense as well..
->>>>>
->>>>> Hal, Ira, would you check this routine too? kernel oops's are bad..
->>>> Patch looks needed for just the point that Parav made above (that if
->>>> security check fails, then ib_free_recv_mad will cause the
->>>> mad_recv_wc->rmpp_list to be accessed so it needs to be initialized
->>>> before security is enforced).
->>> Agree the patch is needed regardless.
->> Someone please send it..
-> Parav/Daniel,
->
-> Please send it directly to the mailing list.
->
->>>> I don't have mthca to try this. Maybe Chris can try this patch (with
->>>> CONFIG_SECURITY_INFINIBAND=y).
->>> Chris, are you running with SELinux enabled? If this addresses your issue it means permission is denied, so once the crash is resolved additional policy will be required in order for it to work as expected.
->> If Chris has selinux turned on in his distro would you expect this
->> test to just fail? Doesn't that mean we have missed installing security labels
->> for things like opensm?
-> Chris has SELinux enabled, see his gist: https://gist.github.com/riptidewave93/b3b83c13e93ab3be4254c855885f5b3a
+Below kernel crash is observed when Pkey security enforcement fails on
+received MADs. This issue is reported in [1].
 
-That doesn't indicate if he has SELinux enabled or not, just that CONFIG_SECURITY_INFINIBAND is enabled.  Also, even if SELinux enabled in the kernel config it must be turned on via /etc/selinux/config, and also set into enforcing mode, if it were to cause this problem.  There's no enough info there to determine any of that.
+ib_free_recv_mad() accesses the rmpp_list, whose initialization is
+needed before accessing it.
+When security enformcent fails on received MADs, MAD processing avoided
+due to security checks failed.
 
-> Thanks
->
->> Jason
+OpenSM[3770]: SM port is down
+kernel: BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+kernel: IP: ib_free_recv_mad+0x44/0xa0 [ib_core]
+kernel: PGD 0
+kernel: P4D 0
+kernel:
+kernel: Oops: 0002 [#1] SMP
+kernel: CPU: 0 PID: 2833 Comm: kworker/0:1H Tainted: P          IO    4.13.4-1-pve #1
+kernel: Hardware name: Dell       XS23-TY3        /9CMP63, BIOS 1.71 09/17/2013
+kernel: Workqueue: ib-comp-wq ib_cq_poll_work [ib_core]
+kernel: task: ffffa069c6541600 task.stack: ffffb9a729054000
+kernel: RIP: 0010:ib_free_recv_mad+0x44/0xa0 [ib_core]
+kernel: RSP: 0018:ffffb9a729057d38 EFLAGS: 00010286
+kernel: RAX: ffffa069cb138a48 RBX: ffffa069cb138a10 RCX: 0000000000000000
+kernel: RDX: ffffb9a729057d38 RSI: 0000000000000000 RDI: ffffa069cb138a20
+kernel: RBP: ffffb9a729057d60 R08: ffffa072d2d49800 R09: ffffa069cb138ae0
+kernel: R10: ffffa069cb138ae0 R11: ffffa072b3994e00 R12: ffffb9a729057d38
+kernel: R13: ffffa069d1c90000 R14: 0000000000000000 R15: ffffa069d1c90880
+kernel: FS:  0000000000000000(0000) GS:ffffa069dba00000(0000) knlGS:0000000000000000
+kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+kernel: CR2: 0000000000000008 CR3: 00000011f51f2000 CR4: 00000000000006f0
+kernel: Call Trace:
+kernel:  ib_mad_recv_done+0x5cc/0xb50 [ib_core]
+kernel:  __ib_process_cq+0x5c/0xb0 [ib_core]
+kernel:  ib_cq_poll_work+0x20/0x60 [ib_core]
+kernel:  process_one_work+0x1e9/0x410
+kernel:  worker_thread+0x4b/0x410
+kernel:  kthread+0x109/0x140
+kernel:  ? process_one_work+0x410/0x410
+kernel:  ? kthread_create_on_node+0x70/0x70
+kernel:  ? SyS_exit_group+0x14/0x20
+kernel:  ret_from_fork+0x25/0x30
+kernel: RIP: ib_free_recv_mad+0x44/0xa0 [ib_core] RSP: ffffb9a729057d38
+kernel: CR2: 0000000000000008
 
+[1] : https://www.spinics.net/lists/linux-rdma/msg56190.html
+
+Fixes: 47a2b338fe63 ("IB/core: Enforce security on management datagrams")
+Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reported-by: Chris Blake <chrisrblake93-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/mad.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index f8f53bb..cb91245 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1974,14 +1974,15 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+ 	unsigned long flags;
+ 	int ret;
+ 
++	INIT_LIST_HEAD(&mad_recv_wc->rmpp_list);
+ 	ret = ib_mad_enforce_security(mad_agent_priv,
+ 				      mad_recv_wc->wc->pkey_index);
+ 	if (ret) {
+ 		ib_free_recv_mad(mad_recv_wc);
+ 		deref_mad_agent(mad_agent_priv);
++		return;
+ 	}
+ 
+-	INIT_LIST_HEAD(&mad_recv_wc->rmpp_list);
+ 	list_add(&mad_recv_wc->recv_buf.list, &mad_recv_wc->rmpp_list);
+ 	if (ib_mad_kernel_rmpp_agent(&mad_agent_priv->agent)) {
+ 		mad_recv_wc = ib_process_rmpp_recv_wc(mad_agent_priv,
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
