@@ -1,128 +1,131 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 00/15] dax: prep work for fixing dax-dma vs truncate
- collisions
-Date: Tue, 31 Oct 2017 16:21:33 -0700
-Message-ID: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 10/15] IB/core: disable memory registration of fileystem-dax
+ vmas
+Date: Tue, 31 Oct 2017 16:22:29 -0700
+Message-ID: <150949214929.24061.10464887309708944817.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-Sender: owner-linux-mm@kvack.org
-To: linux-nvdimm@lists.01.org
-Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Sean Hefty <sean.hefty@intel.com>, hch@lst.de, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Jeff Moyer <jmoyer@redhat.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, Ingo Molnar <mingo@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-media@vger.kernel.org, linux-fsdevel@vger.kernel.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Jens Axboe <axboe@kernel.dk>linux-
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <150949209290.24061.6283157778959640151.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is hopefully the uncontroversial lead-in set of changes that lay
-the groundwork for solving the dax-dma vs truncate problem. The overview
-of the changes is:
+Until there is a solution to the dma-to-dax vs truncate problem it is
+not safe to allow RDMA to create long standing memory registrations
+against filesytem-dax vmas. Device-dax vmas do not have this problem and
+are explicitly allowed.
 
-1/ Disable DAX when we do not have struct page entries backing dax
-   mappings, or otherwise allow limited DAX support for axonram and
-   dcssblk. Is anyone actually using the DAX capability of axonram
-   dcssblk?
+This is temporary until a "memory registration with layout-lease"
+mechanism can be implemented, and is limited to non-ODP (On Demand
+Paging) capable RDMA devices.
 
-2/ Disable code paths that establish potentially long lived DMA
-   access to a filesystem-dax memory mapping, i.e. RDMA and V4L2. In the
-   4.16 timeframe the plan is to introduce a "register memory for DMA
-   with a lease" mechanism for userspace to establish mappings but also
-   be responsible for tearing down the mapping when the kernel needs to
-   invalidate the mapping due to truncate or hole-punch.
-
-3/ Add a wakeup mechanism for awaiting for DAX pages to be released
-   from DMA access.
-
-This overall effort started when Christoph noted during the review of
-the MAP_DIRECT proposal:
-
-    get_user_pages on DAX doesn't give the same guarantees as on
-    pagecache or anonymous memory, and that is the problem we need to
-    fix. In fact I'm pretty sure if we try hard enough (and we might
-    have to try very hard) we can see the same problem with plain direct
-    I/O and without any RDMA involved, e.g. do a larger direct I/O write
-    to memory that is mmap()ed from a DAX file, then truncate the DAX
-    file and reallocate the blocks, and we might corrupt that new file.
-    We'll probably need a special setup where there is little other
-    chance but to reallocate those used blocks.
-
-    So what we need to do first is to fix get_user_pages vs unmapping
-    DAX mmap()ed blocks, be that from a hole punch, truncate, COW
-    operation, etc.
-
-Included in the changes is a nfit_test mechanism to trivially trigger
-this collision by delaying the put_page() that the block layer performs
-after performing direct-I/O to a filesystem-DAX page.
-
-Given the ongoing coordination of this set across multiple sub-systems
-and the dax core my proposal is to manage this as a branch in the nvdimm
-tree with acks from mm, rdma, v4l2, ext4, and xfs.
-
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/infiniband/core/umem.c |   49 +++++++++++++++++++++++++++++++---------
+ 1 file changed, 38 insertions(+), 11 deletions(-)
 
-Dan Williams (15):
-      dax: quiet bdev_dax_supported()
-      mm, dax: introduce pfn_t_special()
-      dax: require 'struct page' by default for filesystem dax
-      brd: remove dax support
-      dax: stop using VM_MIXEDMAP for dax
-      dax: stop using VM_HUGEPAGE for dax
-      dax: stop requiring a live device for dax_flush()
-      dax: store pfns in the radix
-      tools/testing/nvdimm: add 'bio_delay' mechanism
-      IB/core: disable memory registration of fileystem-dax vmas
-      [media] v4l2: disable filesystem-dax mapping support
-      mm, dax: enable filesystems to trigger page-idle callbacks
-      mm, devmap: introduce CONFIG_DEVMAP_MANAGED_PAGES
-      dax: associate mappings with inodes, and warn if dma collides with truncate
-      wait_bit: introduce {wait_on,wake_up}_devmap_idle
-
-
- arch/powerpc/platforms/Kconfig            |    1 
- arch/powerpc/sysdev/axonram.c             |    3 -
- drivers/block/Kconfig                     |   12 ---
- drivers/block/brd.c                       |   65 --------------
- drivers/dax/device.c                      |    1 
- drivers/dax/super.c                       |  113 +++++++++++++++++++++----
- drivers/infiniband/core/umem.c            |   49 ++++++++---
- drivers/media/v4l2-core/videobuf-dma-sg.c |   39 ++++++++-
- drivers/nvdimm/pmem.c                     |   13 +++
- drivers/s390/block/Kconfig                |    1 
- drivers/s390/block/dcssblk.c              |    4 +
- fs/Kconfig                                |    8 ++
- fs/dax.c                                  |  131 +++++++++++++++++++----------
- fs/ext2/file.c                            |    1 
- fs/ext2/super.c                           |    6 +
- fs/ext4/file.c                            |    1 
- fs/ext4/super.c                           |    6 +
- fs/xfs/xfs_file.c                         |    2 
- fs/xfs/xfs_super.c                        |   20 ++--
- include/linux/dax.h                       |   17 ++--
- include/linux/memremap.h                  |   24 +++++
- include/linux/mm.h                        |   47 ++++++----
- include/linux/mm_types.h                  |   20 +++-
- include/linux/pfn_t.h                     |   13 +++
- include/linux/vma.h                       |   33 +++++++
- include/linux/wait_bit.h                  |   10 ++
- kernel/memremap.c                         |   36 ++++++--
- kernel/sched/wait_bit.c                   |   64 ++++++++++++--
- mm/Kconfig                                |    5 +
- mm/hmm.c                                  |   13 ---
- mm/huge_memory.c                          |    8 +-
- mm/ksm.c                                  |    3 +
- mm/madvise.c                              |    2 
- mm/memory.c                               |   22 ++++-
- mm/migrate.c                              |    3 -
- mm/mlock.c                                |    5 +
- mm/mmap.c                                 |    8 +-
- mm/swap.c                                 |    3 -
- tools/testing/nvdimm/Kbuild               |    1 
- tools/testing/nvdimm/test/iomap.c         |   62 ++++++++++++++
- tools/testing/nvdimm/test/nfit.c          |   34 ++++++++
- tools/testing/nvdimm/test/nfit_test.h     |    1 
- 42 files changed, 650 insertions(+), 260 deletions(-)
- create mode 100644 include/linux/vma.h
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 21e60b1e2ff4..c30d286c1f24 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -147,19 +147,21 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 	umem->hugetlb   = 1;
+ 
+ 	page_list = (struct page **) __get_free_page(GFP_KERNEL);
+-	if (!page_list) {
+-		put_pid(umem->pid);
+-		kfree(umem);
+-		return ERR_PTR(-ENOMEM);
+-	}
++	if (!page_list)
++		goto err_pagelist;
+ 
+ 	/*
+-	 * if we can't alloc the vma_list, it's not so bad;
+-	 * just assume the memory is not hugetlb memory
++	 * If DAX is enabled we need the vma to protect against
++	 * registering filesystem-dax memory. Otherwise we can tolerate
++	 * a failure to allocate the vma_list and just assume that all
++	 * vmas are not hugetlb-vmas.
+ 	 */
+ 	vma_list = (struct vm_area_struct **) __get_free_page(GFP_KERNEL);
+-	if (!vma_list)
++	if (!vma_list) {
++		if (IS_ENABLED(CONFIG_FS_DAX))
++			goto err_vmalist;
+ 		umem->hugetlb = 0;
++	}
+ 
+ 	npages = ib_umem_num_pages(umem);
+ 
+@@ -199,15 +201,34 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 		if (ret < 0)
+ 			goto out;
+ 
+-		umem->npages += ret;
+ 		cur_base += ret * PAGE_SIZE;
+ 		npages   -= ret;
+ 
+ 		for_each_sg(sg_list_start, sg, ret, i) {
+-			if (vma_list && !is_vm_hugetlb_page(vma_list[i]))
+-				umem->hugetlb = 0;
++			struct vm_area_struct *vma;
++			struct inode *inode;
+ 
+ 			sg_set_page(sg, page_list[i], PAGE_SIZE, 0);
++			umem->npages++;
++
++			if (!vma_list)
++				continue;
++			vma = vma_list[i];
++
++			if (!is_vm_hugetlb_page(vma))
++				umem->hugetlb = 0;
++
++			if (!vma_is_dax(vma))
++				continue;
++
++			/* device-dax is safe for rdma... */
++			inode = file_inode(vma->vm_file);
++			if (inode->i_mode == S_IFCHR)
++				continue;
++
++			/* ...filesystem-dax is not. */
++			ret = -EOPNOTSUPP;
++			goto out;
+ 		}
+ 
+ 		/* preparing for next loop */
+@@ -242,6 +263,12 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 	free_page((unsigned long) page_list);
+ 
+ 	return ret < 0 ? ERR_PTR(ret) : umem;
++err_vmalist:
++	free_page((unsigned long) page_list);
++err_pagelist:
++	put_pid(umem->pid);
++	kfree(umem);
++	return ERR_PTR(-ENOMEM);
+ }
+ EXPORT_SYMBOL(ib_umem_get);
