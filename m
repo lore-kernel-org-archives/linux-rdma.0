@@ -1,34 +1,88 @@
-From: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Subject: Re: Computer issues...
-Date: Tue, 31 Oct 2017 10:51:43 -0700
-Message-ID: <CA+55aFyrYa83R12Ov2z1vsRx03yBNARR82Ftrpsx3BTz0MJrDQ@mail.gmail.com>
-References: <CA+mK3=-v-nMb-cRO2hGEmirxbNnRuW-OZWGC8d+sUoTcxKmt7w@mail.gmail.com>
- <1509363152.2295.5.camel@redhat.com> <5b0fbfd7-6747-da76-91a9-3fa4dc173bb0@redhat.com>
- <d6ab43f7-9698-7164-441b-02c1f5560abd@redhat.com> <CAKkHt7W_Cv_qGRs_R3zn6_PaXd7xAE0+D_Qghn7KUq+bzRHHjg@mail.gmail.com>
- <f3a0d17b-1a5c-b97c-e544-5b4524e71424@redhat.com> <783cf656-3cd7-c40d-48cf-a749f022a161@redhat.com>
- <e4fc7d4e-5295-caf9-be5b-6ac5a57a5d2d@redhat.com> <36640bfe-850b-a857-1cc9-58939ac50946@redhat.com>
- <20171031151302.GJ16127@mtr-leonro.local> <6803be08-bc2c-63fa-251c-eb73c2c74fd2@redhat.com>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: 4.13 ib_mthca NULL pointer dereference with OpenSM
+Date: Tue, 31 Oct 2017 17:58:44 +0000
+Message-ID: <VI1PR0502MB30087F45259AB1926365DBE0D15E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20171029191114.GO16127@mtr-leonro.local>
+ <CALpBJjoJpgR1QB-gzRJLOjGtjK4T2H4EbG1-R+ndodvznWkgwA@mail.gmail.com>
+ <20171030071956.GU16127@mtr-leonro.local>
+ <CALpBJjqWrXu3b12EG2-AWKwKs9v2q5pTf11rXSy04C-5dGta6A@mail.gmail.com>
+ <20171030230156.GA4081@ziepe.ca>
+ <VI1PR0502MB300860F7C004ABFB01079F53D15E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20171031042435.GB7961@ziepe.ca>
+ <e2a2aa84-71ce-36f0-91af-0854b24d4a6a@dev.mellanox.co.il>
+ <60de3bab-f294-dd11-bcae-d179115f7c31@mellanox.com>
+ <20171031150901.GA9852@ziepe.ca> <20171031151521.GK16127@mtr-leonro.local>
+ <5ab2d58d-8af8-c075-86f0-7010b8316cba@mellanox.com>
+ <CALpBJjorS-AK3Ua9UuUnWv33rYqBoeAXF9vsFALTff5Qv3hNSg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6803be08-bc2c-63fa-251c-eb73c2c74fd2-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CALpBJjorS-AK3Ua9UuUnWv33rYqBoeAXF9vsFALTff5Qv3hNSg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chris Blake <chrisrblake93-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 31, 2017 at 10:33 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->
-> Yeah.  Linus, as you can see from the story quoted above, I'm busy
-> rebuilding my primary workstation after frying four SSDs (doh!).  I've
-> reviewed the patch Leon is referencing here and I'm fine if he sends it
-> to you, or you can wait about a day or so and I can get it to you
-> (reinstall is done, now working on the restoring of backups, should be
-> mostly normal by sometime tomorrow).
-
-Ok, Leon, send me the patch directly, and I'll pick it up.
-
-                Linus
+SGkgQ2hyaXMsDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQ2hyaXMg
+Qmxha2UgW21haWx0bzpjaHJpc3JibGFrZTkzQGdtYWlsLmNvbV0NCj4gU2VudDogVHVlc2RheSwg
+T2N0b2JlciAzMSwgMjAxNyAxMjo1MCBQTQ0KPiBUbzogRGFuaWVsIEp1cmdlbnMgPGRhbmllbGpA
+bWVsbGFub3guY29tPg0KPiBDYzogTGVvbiBSb21hbm92c2t5IDxsZW9uQGtlcm5lbC5vcmc+OyBK
+YXNvbiBHdW50aG9ycGUgPGpnZ0B6aWVwZS5jYT47DQo+IEhhbCBSb3NlbnN0b2NrIDxoYWxAZGV2
+Lm1lbGxhbm94LmNvLmlsPjsgUGFyYXYgUGFuZGl0DQo+IDxwYXJhdkBtZWxsYW5veC5jb20+OyBs
+aW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgSGFsIFJvc2Vuc3RvY2sNCj4gPGhhbEBtZWxsYW5v
+eC5jb20+OyBJcmEgV2VpbnkgPGlyYS53ZWlueUBpbnRlbC5jb20+DQo+IFN1YmplY3Q6IFJlOiA0
+LjEzIGliX210aGNhIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSB3aXRoIE9wZW5TTQ0KPiANCj4g
+T24gVHVlLCBPY3QgMzEsIDIwMTcgYXQgMTA6MjAgQU0sIERhbmllbCBKdXJnZW5zIDxkYW5pZWxq
+QG1lbGxhbm94LmNvbT4NCj4gd3JvdGU6DQo+ID4gT24gMTAvMzEvMjAxNyAxMDoxNSBBTSwgTGVv
+biBSb21hbm92c2t5IHdyb3RlOg0KPiA+PiBPbiBUdWUsIE9jdCAzMSwgMjAxNyBhdCAwOTowOTow
+MUFNIC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6DQo+ID4+PiBPbiBUdWUsIE9jdCAzMSwg
+MjAxNyBhdCAxMDowMTo0OUFNIC0wNTAwLCBEYW5pZWwgSnVyZ2VucyB3cm90ZToNCj4gPj4+DQo+
+ID4+Pj4+PiBBZGRpbmcgdGhlIG5ldyByZXR1cm4gc3VyZSBtYWtlcyBhbG90IG9mIHNlbnNlIGFz
+IHdlbGwuLg0KPiA+Pj4+Pj4NCj4gPj4+Pj4+IEhhbCwgSXJhLCB3b3VsZCB5b3UgY2hlY2sgdGhp
+cyByb3V0aW5lIHRvbz8ga2VybmVsIG9vcHMncyBhcmUgYmFkLi4NCj4gPj4+Pj4gUGF0Y2ggbG9v
+a3MgbmVlZGVkIGZvciBqdXN0IHRoZSBwb2ludCB0aGF0IFBhcmF2IG1hZGUgYWJvdmUgKHRoYXQN
+Cj4gPj4+Pj4gaWYgc2VjdXJpdHkgY2hlY2sgZmFpbHMsIHRoZW4gaWJfZnJlZV9yZWN2X21hZCB3
+aWxsIGNhdXNlIHRoZQ0KPiA+Pj4+PiBtYWRfcmVjdl93Yy0+cm1wcF9saXN0IHRvIGJlIGFjY2Vz
+c2VkIHNvIGl0IG5lZWRzIHRvIGJlDQo+ID4+Pj4+IGluaXRpYWxpemVkIGJlZm9yZSBzZWN1cml0
+eSBpcyBlbmZvcmNlZCkuDQo+ID4+Pj4gQWdyZWUgdGhlIHBhdGNoIGlzIG5lZWRlZCByZWdhcmRs
+ZXNzLg0KPiA+Pj4gU29tZW9uZSBwbGVhc2Ugc2VuZCBpdC4uDQo+ID4+IFBhcmF2L0RhbmllbCwN
+Cj4gPj4NCj4gPj4gUGxlYXNlIHNlbmQgaXQgZGlyZWN0bHkgdG8gdGhlIG1haWxpbmcgbGlzdC4N
+Cj4gPj4NCj4gPj4+Pj4gSSBkb24ndCBoYXZlIG10aGNhIHRvIHRyeSB0aGlzLiBNYXliZSBDaHJp
+cyBjYW4gdHJ5IHRoaXMgcGF0Y2gNCj4gPj4+Pj4gKHdpdGggQ09ORklHX1NFQ1VSSVRZX0lORklO
+SUJBTkQ9eSkuDQo+ID4+Pj4gQ2hyaXMsIGFyZSB5b3UgcnVubmluZyB3aXRoIFNFTGludXggZW5h
+YmxlZD8gSWYgdGhpcyBhZGRyZXNzZXMgeW91ciBpc3N1ZSBpdA0KPiBtZWFucyBwZXJtaXNzaW9u
+IGlzIGRlbmllZCwgc28gb25jZSB0aGUgY3Jhc2ggaXMgcmVzb2x2ZWQgYWRkaXRpb25hbCBwb2xp
+Y3kgd2lsbA0KPiBiZSByZXF1aXJlZCBpbiBvcmRlciBmb3IgaXQgdG8gd29yayBhcyBleHBlY3Rl
+ZC4NCj4gPj4+IElmIENocmlzIGhhcyBzZWxpbnV4IHR1cm5lZCBvbiBpbiBoaXMgZGlzdHJvIHdv
+dWxkIHlvdSBleHBlY3QgdGhpcw0KPiA+Pj4gdGVzdCB0byBqdXN0IGZhaWw/IERvZXNuJ3QgdGhh
+dCBtZWFuIHdlIGhhdmUgbWlzc2VkIGluc3RhbGxpbmcNCj4gPj4+IHNlY3VyaXR5IGxhYmVscyBm
+b3IgdGhpbmdzIGxpa2Ugb3BlbnNtPw0KPiA+PiBDaHJpcyBoYXMgU0VMaW51eCBlbmFibGVkLCBz
+ZWUgaGlzIGdpc3Q6DQo+ID4+IGh0dHBzOi8vZW1lYTAxLnNhZmVsaW5rcy5wcm90ZWN0aW9uLm91
+dGxvb2suY29tLz91cmw9aHR0cHMlM0ElMkYlMkZnaQ0KPiA+Pg0KPiBzdC5naXRodWIuY29tJTJG
+cmlwdGlkZXdhdmU5MyUyRmIzYjgzYzEzZTkzYWIzYmU0MjU0Yzg1NTg4NWY1YjNhJmRhdA0KPiBh
+DQo+ID4+DQo+ID0wMiU3QzAxJTdDcGFyYXYlNDBtZWxsYW5veC5jb20lN0NmOTY4ZGYwNzJmNzE0
+M2NhMWFhNzA4ZDUyMDg3YzZiDQo+IDglN0MNCj4gPj4NCj4gYTY1Mjk3MWM3ZDJlNGQ5YmE2YTRk
+MTQ5MjU2ZjQ2MWIlN0MwJTdDMCU3QzYzNjQ1MDY4OTg5MTQxNjIzNyZzZA0KPiBhdGE9Vw0KPiA+
+PiA3NFFuNGxPczJNQmdWM3VIUFNuZ212dExDeHAlMkY4a0RreVoxY0lJaEdRMCUzRCZyZXNlcnZl
+ZD0wDQo+ID4NCj4gPiBUaGF0IGRvZXNuJ3QgaW5kaWNhdGUgaWYgaGUgaGFzIFNFTGludXggZW5h
+YmxlZCBvciBub3QsIGp1c3QgdGhhdA0KPiBDT05GSUdfU0VDVVJJVFlfSU5GSU5JQkFORCBpcyBl
+bmFibGVkLiAgQWxzbywgZXZlbiBpZiBTRUxpbnV4IGVuYWJsZWQgaW4gdGhlDQo+IGtlcm5lbCBj
+b25maWcgaXQgbXVzdCBiZSB0dXJuZWQgb24gdmlhIC9ldGMvc2VsaW51eC9jb25maWcsIGFuZCBh
+bHNvIHNldCBpbnRvDQo+IGVuZm9yY2luZyBtb2RlLCBpZiBpdCB3ZXJlIHRvIGNhdXNlIHRoaXMg
+cHJvYmxlbS4gIFRoZXJlJ3Mgbm8gZW5vdWdoIGluZm8gdGhlcmUNCj4gdG8gZGV0ZXJtaW5lIGFu
+eSBvZiB0aGF0Lg0KPiA+DQo+ID4+IFRoYW5rcw0KPiA+Pg0KPiA+Pj4gSmFzb24NCj4gPg0KPiA+
+DQo+IA0KPiBIZWxsbyBBbGwsDQo+IA0KPiBJIGhhdmUgaW5zdGFsbGVkIHRoZSBrZXJuZWwgd2l0
+aCB0aGUgbWVudGlvbmVkIHBhdGNoLCBhcyB3ZWxsIGFzDQo+IENPTkZJR19TRUNVUklUWV9JTkZJ
+TklCQU5EIGVuYWJsZWQuIFNhZGx5IEkgYW0gYmFjayB0byB0aGUgaXNzdWUgd2hlcmUgbXkNCj4g
+Y29tcHV0ZSBub2RlIGlzIHJlcG9ydGluZzoNCj4gDQo+IGtlcm5lbDogaW5maW5pYmFuZCBtdGhj
+YTA6IGliX3Bvc3Rfc2VuZF9tYWQgZXJyb3INClRoZXJlIHdlcmUgdHdvIGlzc3VlcyBpbiB5b3Vy
+IHJlcG9ydC4NCjEuIFBvc3Qgc2VuZCBmYWlsdXJlLg0KMi4gS2VybmVsIGNyYXNoIG9uIHJlY2Vp
+dmluZyBtYWQuDQpJIHByb3ZpZGVkIGZpeCBmb3IgMm5kIGlzc3VlLg0KRG8geW91IHN0aWxsIDJu
+ZCBpc3N1ZSAoY3Jhc2gpIGFmdGVyIGFwcGx5aW5nIHRoZSBmaXg/DQoNCkZvciAxc3QgcHJvYmxl
+bSwgRGFuIGhhcyBmZXcgcXVlc3Rpb25zL3N1Z2dlc3Rpb25zIHJlZ2FyZGluZyBjb25maWd1cmF0
+aW9uIG9mIHNlbGludXggcG9saWN5Lg0KQ2FuIHlvdSBwbGVhc2UgZ28gdGhyb3VnaCBpdD8NCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
