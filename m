@@ -1,76 +1,48 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: 4.13 ib_mthca NULL pointer dereference with OpenSM
-Date: Tue, 31 Oct 2017 08:49:18 -0400
-Message-ID: <e2a2aa84-71ce-36f0-91af-0854b24d4a6a@dev.mellanox.co.il>
-References: <CALpBJjoMLCqzVe5yKp4wCX-X-sH+=zv1QZfMvOWh2Ukh3c2LFg@mail.gmail.com>
- <20171029191114.GO16127@mtr-leonro.local>
- <CALpBJjoJpgR1QB-gzRJLOjGtjK4T2H4EbG1-R+ndodvznWkgwA@mail.gmail.com>
- <20171030071956.GU16127@mtr-leonro.local>
- <CALpBJjqWrXu3b12EG2-AWKwKs9v2q5pTf11rXSy04C-5dGta6A@mail.gmail.com>
- <20171030230156.GA4081@ziepe.ca>
- <VI1PR0502MB300860F7C004ABFB01079F53D15E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20171031042435.GB7961@ziepe.ca>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-core] libibumad/umad.c: In get_port, ignore sysfs
+ rate file errors
+Date: Tue, 31 Oct 2017 13:59:00 +0000
+Message-ID: <VI1PR0502MB3008457983654FCDEBB29064D15E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <f4ae658c-0e2a-c264-e0b6-f1ed639237eb@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171031042435.GB7961-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <f4ae658c-0e2a-c264-e0b6-f1ed639237eb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Chris Blake <chrisrblake93-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Ghazale Hosseinabadi <ghazale.hosseinabadi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/31/2017 12:24 AM, Jason Gunthorpe wrote:
-> On Tue, Oct 31, 2017 at 03:16:42AM +0000, Parav Pandit wrote:
-> 
->> I am yet to review my below patch with Dan as he did most security
->> dev, but I suspect this might be the cause where rmpp list is not
->> initialized and mad processing is continued when security check
->> fails.
-> 
-> This patch sure looks needed to me, ib_free_recv_mad touches
-> rmpp_list, so if it needs initializion then it certainly has to be
-> done earlier..
-Agreed.
-
-> Adding the new return sure makes alot of sense as well..
-> 
-> Hal, Ira, would you check this routine too? kernel oops's are bad..
-
-Patch looks needed for just the point that Parav made above (that if
-security check fails, then ib_free_recv_mad will cause the
-mad_recv_wc->rmpp_list to be accessed so it needs to be initialized
-before security is enforced).
-
-I don't have mthca to try this. Maybe Chris can try this patch (with
-CONFIG_SECURITY_INFINIBAND=y).
-
--- Hal
-
->> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
->> index f8f53bb..cb91245 100644
->> +++ b/drivers/infiniband/core/mad.c
->> @@ -1974,14 +1974,15 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
->>         unsigned long flags;
->>         int ret;
->>
->> +       INIT_LIST_HEAD(&mad_recv_wc->rmpp_list);
->>         ret = ib_mad_enforce_security(mad_agent_priv,
->>                                       mad_recv_wc->wc->pkey_index);
->>         if (ret) {
->>                 ib_free_recv_mad(mad_recv_wc);
->>                 deref_mad_agent(mad_agent_priv);
->> +               return;
->>         }
->>
->> -       INIT_LIST_HEAD(&mad_recv_wc->rmpp_list);
->>         list_add(&mad_recv_wc->recv_buf.list, &mad_recv_wc->rmpp_list);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1vd25l
+ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2Z2VyLmtlcm5l
+bC5vcmddIE9uIEJlaGFsZiBPZiBIYWwgUm9zZW5zdG9jaw0KPiBTZW50OiBUdWVzZGF5LCBPY3Rv
+YmVyIDMxLCAyMDE3IDc6MTUgQU0NCj4gVG86IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQo+
+IENjOiBHaGF6YWxlIEhvc3NlaW5hYmFkaSA8Z2hhemFsZS5ob3NzZWluYWJhZGlAb3JhY2xlLmNv
+bT4NCj4gU3ViamVjdDogW1BBVENIIHJkbWEtY29yZV0gbGliaWJ1bWFkL3VtYWQuYzogSW4gZ2V0
+X3BvcnQsIGlnbm9yZSBzeXNmcyByYXRlIGZpbGUNCj4gZXJyb3JzDQo+IA0KPiANCj4gVGhpcyBj
+YW4gY2F1c2UgaWJwYW5pYyBpbiBpYnN0YXQgd2hlbiB3aWR0aCBpcyBub3Qgc2V0IHByb3Blcmx5
+IGFzIGNhbiBvY2N1ciB3aGVuDQo+IFFTUEYgaXMgbm90IHBsdWdnZWQgaW50byBwb3J0Lg0KPiAN
+Cj4gaWJwYW5pYzogWzc4NTFdIG1haW46IHN0YXQgb2YgSUIgZGV2aWNlICdtbHg1XzEnIGZhaWxl
+ZDogSW52YWxpZCBhcmd1bWVudA0KPiANCj4gSXQncyBjYXVzZWQgYnkga2VybmVsIHN5c2ZzLmM6
+c2hvd19yYXRlIHJldHVybmluZyAtRUlOVkFMIGFuZCB0aGF0IGVycm9yIGJlaW5nDQo+IHRyZWF0
+ZWQgYXMgZmFpbHVyZSBpbiB1bWFkLmM6Z2V0X3BvcnQuDQo+IFdpdGggdGhpcyBjaGFuZ2UsIFJh
+dGUgaXMgZGlzcGxheWVkIGFzIDAgd2l0aCBpYnN0YXQgZm9yIHRoaXMgc2NlbmFyaW8uDQo+IA0K
+PiBTaWduZWQtb2ZmLWJ5OiBIYWwgUm9zZW5zdG9jayA8aGFsQG1lbGxhbm94LmNvbT4NCj4gLS0t
+DQo+ICBsaWJpYnVtYWQvdW1hZC5jIHwgMyArLS0NCj4gIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2Vy
+dGlvbigrKSwgMiBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQgYS9saWJpYnVtYWQvdW1h
+ZC5jIGIvbGliaWJ1bWFkL3VtYWQuYyBpbmRleCA1MzUyNTZlLi5kY2IyYzY4DQo+IDEwMDY0NA0K
+PiAtLS0gYS9saWJpYnVtYWQvdW1hZC5jDQo+ICsrKyBiL2xpYmlidW1hZC91bWFkLmMNCj4gQEAg
+LTE1MCw4ICsxNTAsNyBAQCBzdGF0aWMgaW50IGdldF9wb3J0KGNvbnN0IGNoYXIgKmNhX25hbWUs
+IGNvbnN0IGNoYXINCj4gKmRpciwgaW50IHBvcnRudW0sIHVtYWRfcG9ydA0KPiAgCQlnb3RvIGNs
+ZWFuOw0KPiAgCWlmIChzeXNfcmVhZF91aW50KHBvcnRfZGlyLCBTWVNfUE9SVF9QSFlfU1RBVEUs
+ICZwb3J0LT5waHlzX3N0YXRlKSA8DQo+IDApDQo+ICAJCWdvdG8gY2xlYW47DQo+IC0JaWYgKHN5
+c19yZWFkX3VpbnQocG9ydF9kaXIsIFNZU19QT1JUX1JBVEUsICZwb3J0LT5yYXRlKSA8IDApDQo+
+IC0JCWdvdG8gY2xlYW47DQo+ICsJc3lzX3JlYWRfdWludChwb3J0X2RpciwgU1lTX1BPUlRfUkFU
+RSwgJnBvcnQtPnJhdGUpOw0KPiAgCWlmIChzeXNfcmVhZF91aW50KHBvcnRfZGlyLCBTWVNfUE9S
+VF9DQVBNQVNLLCAmY2FwbWFzaykgPCAwKQ0KPiAgCQlnb3RvIGNsZWFuOw0KPiANCkxvb2tzIGdv
+b2QgdG8gbWUuDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
