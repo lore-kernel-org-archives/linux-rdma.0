@@ -1,52 +1,61 @@
 From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/2] Report software parsing capabilities
- through mlx5 DV
-Date: Tue, 31 Oct 2017 10:18:08 +0200
-Message-ID: <6b811248-0568-154e-cbf2-557dacb029f2@dev.mellanox.co.il>
-References: <1509275258-9808-1-git-send-email-yishaih@mellanox.com>
+Subject: Re: [PATCH rdma-core 1/2] mlx5: Use non-cached mapping when Blueflame
+ is not used
+Date: Tue, 31 Oct 2017 10:20:55 +0200
+Message-ID: <afb007f1-7284-f627-55f5-8529b289d01d@dev.mellanox.co.il>
+References: <1509282070-1391-1-git-send-email-yishaih@mellanox.com>
+ <1509282070-1391-2-git-send-email-yishaih@mellanox.com>
+ <20171029173344.GA4488@ziepe.ca>
+ <6531033a-9d61-bbca-ac14-46b05973610c@dev.mellanox.co.il>
+ <20171030145726.GB12392@ziepe.ca>
+ <d8dc5ba0-2846-2052-9311-dc0273b4fbfb@dev.mellanox.co.il>
+ <20171030163813.GB14731@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1509275258-9808-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20171030163813.GB14731-uk2M96/98Pc@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/29/2017 1:07 PM, Yishai Hadas wrote:
-> This patch set from Noa is the supplementary part of the kernel series that was
-> accepted upstream into 4.14, it reports software parsing capabilities through
-> the mlx5 DV API.
+On 10/30/2017 6:38 PM, Jason Gunthorpe wrote:
+> On Mon, Oct 30, 2017 at 06:31:12PM +0200, Yishai Hadas wrote:
+>> On 10/30/2017 4:57 PM, Jason Gunthorpe wrote:
+>>> On Sun, Oct 29, 2017 at 11:26:04PM +0200, Yishai Hadas wrote:
+>>>>>> @@ -632,6 +632,11 @@ enum mlx5dv_set_ctx_attr_type {
+>>>>>>   	MLX5DV_CTX_ATTR_BUF_ALLOCATORS = 1,
+>>>>>>   };
+>>>>>> +enum {
+>>>>>> +	MLX5_MMAP_GET_REGULAR_PAGES_CMD	= 0,
+>>>>>> +	MLX5_MMAP_GET_NC_PAGES_CMD	= 3,
+>>>>>> +};
+>>>>>> +
+>>>>>
+>>>>> These are added to a public header, but I couldn't see where they
+>>>>> would get used by a DV user??
+>>>>
+>>>> A DV user already had access to the mlx5 mmap command before this series by
+>>>> using the mlx5dv_get_qp() API:
+>>>> qp_out->uar_mmap_offset = mqp->bf->uar_mmap_offset;
+>>>
+>>> Okay.
+>>>
+>>> As long as existing users can reasonably be expected to handle this
+>>> new value in the uar_mmap_offset output field...
+>>>
+>>
+>> Yes, we expect existing users to work properly.
+>>
+>> This output field was exposed by the DV API to enable re-mmap of the UAR
+>> address by a secondary process by using the same 'uar_mmap_offset'
+>> regardless its internal command value.
 > 
-> Software parsing (SWP) is a feature that can be used to instruct the device to
-> stop using its internal parser and to parse packets on the transmit path
-> according to offsets set for each packet. Through this feature, the device
-> allows the handling of checksum and LSO by the hardware according to the
-> location of IP and TCP/UDP headers.
-> 
-> Patches:
-> #1: Report various SW parsing capabilities through mlx5 direct verbs interface.
-> #2: Update mlx5dv_query_device man page to include SWP information.
-> 
-> PR was sent:
-> https://github.com/linux-rdma/rdma-core/pull/234
-> 
-> Noa Osherovich (2):
->    mlx5: Report SW parsing capabilities through mlx5 direct verbs
->    mlx5: Update mlx5dv_query_device man page
-> 
->   providers/mlx5/man/mlx5dv_query_device.3 | 32 +++++++++++++++++++++++++++++++-
->   providers/mlx5/mlx5-abi.h                |  1 +
->   providers/mlx5/mlx5.c                    |  5 +++++
->   providers/mlx5/mlx5.h                    |  1 +
->   providers/mlx5/mlx5dv.h                  | 15 ++++++++++++++-
->   providers/mlx5/verbs.c                   |  1 +
->   6 files changed, 53 insertions(+), 2 deletions(-)
-> 
+> Ah, I see.. Seems OK then.
 
-Series was merged, thanks.
+Thanks, series was merged.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
