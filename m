@@ -1,48 +1,853 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH rdma-core] libibumad/umad.c: In get_port, ignore sysfs
- rate file errors
-Date: Tue, 31 Oct 2017 13:59:00 +0000
-Message-ID: <VI1PR0502MB3008457983654FCDEBB29064D15E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <f4ae658c-0e2a-c264-e0b6-f1ed639237eb@dev.mellanox.co.il>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next] RDMA/vmw_pvrdma: Add shared receive queue
+ support
+Date: Tue, 31 Oct 2017 16:02:07 +0200
+Message-ID: <20171031140205.GA4317@yuvallap>
+References: <20171030022037.GA20100@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f4ae658c-0e2a-c264-e0b6-f1ed639237eb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20171030022037.GA20100-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Ghazale Hosseinabadi <ghazale.hosseinabadi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1vd25l
-ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2Z2VyLmtlcm5l
-bC5vcmddIE9uIEJlaGFsZiBPZiBIYWwgUm9zZW5zdG9jaw0KPiBTZW50OiBUdWVzZGF5LCBPY3Rv
-YmVyIDMxLCAyMDE3IDc6MTUgQU0NCj4gVG86IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQo+
-IENjOiBHaGF6YWxlIEhvc3NlaW5hYmFkaSA8Z2hhemFsZS5ob3NzZWluYWJhZGlAb3JhY2xlLmNv
-bT4NCj4gU3ViamVjdDogW1BBVENIIHJkbWEtY29yZV0gbGliaWJ1bWFkL3VtYWQuYzogSW4gZ2V0
-X3BvcnQsIGlnbm9yZSBzeXNmcyByYXRlIGZpbGUNCj4gZXJyb3JzDQo+IA0KPiANCj4gVGhpcyBj
-YW4gY2F1c2UgaWJwYW5pYyBpbiBpYnN0YXQgd2hlbiB3aWR0aCBpcyBub3Qgc2V0IHByb3Blcmx5
-IGFzIGNhbiBvY2N1ciB3aGVuDQo+IFFTUEYgaXMgbm90IHBsdWdnZWQgaW50byBwb3J0Lg0KPiAN
-Cj4gaWJwYW5pYzogWzc4NTFdIG1haW46IHN0YXQgb2YgSUIgZGV2aWNlICdtbHg1XzEnIGZhaWxl
-ZDogSW52YWxpZCBhcmd1bWVudA0KPiANCj4gSXQncyBjYXVzZWQgYnkga2VybmVsIHN5c2ZzLmM6
-c2hvd19yYXRlIHJldHVybmluZyAtRUlOVkFMIGFuZCB0aGF0IGVycm9yIGJlaW5nDQo+IHRyZWF0
-ZWQgYXMgZmFpbHVyZSBpbiB1bWFkLmM6Z2V0X3BvcnQuDQo+IFdpdGggdGhpcyBjaGFuZ2UsIFJh
-dGUgaXMgZGlzcGxheWVkIGFzIDAgd2l0aCBpYnN0YXQgZm9yIHRoaXMgc2NlbmFyaW8uDQo+IA0K
-PiBTaWduZWQtb2ZmLWJ5OiBIYWwgUm9zZW5zdG9jayA8aGFsQG1lbGxhbm94LmNvbT4NCj4gLS0t
-DQo+ICBsaWJpYnVtYWQvdW1hZC5jIHwgMyArLS0NCj4gIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2Vy
-dGlvbigrKSwgMiBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQgYS9saWJpYnVtYWQvdW1h
-ZC5jIGIvbGliaWJ1bWFkL3VtYWQuYyBpbmRleCA1MzUyNTZlLi5kY2IyYzY4DQo+IDEwMDY0NA0K
-PiAtLS0gYS9saWJpYnVtYWQvdW1hZC5jDQo+ICsrKyBiL2xpYmlidW1hZC91bWFkLmMNCj4gQEAg
-LTE1MCw4ICsxNTAsNyBAQCBzdGF0aWMgaW50IGdldF9wb3J0KGNvbnN0IGNoYXIgKmNhX25hbWUs
-IGNvbnN0IGNoYXINCj4gKmRpciwgaW50IHBvcnRudW0sIHVtYWRfcG9ydA0KPiAgCQlnb3RvIGNs
-ZWFuOw0KPiAgCWlmIChzeXNfcmVhZF91aW50KHBvcnRfZGlyLCBTWVNfUE9SVF9QSFlfU1RBVEUs
-ICZwb3J0LT5waHlzX3N0YXRlKSA8DQo+IDApDQo+ICAJCWdvdG8gY2xlYW47DQo+IC0JaWYgKHN5
-c19yZWFkX3VpbnQocG9ydF9kaXIsIFNZU19QT1JUX1JBVEUsICZwb3J0LT5yYXRlKSA8IDApDQo+
-IC0JCWdvdG8gY2xlYW47DQo+ICsJc3lzX3JlYWRfdWludChwb3J0X2RpciwgU1lTX1BPUlRfUkFU
-RSwgJnBvcnQtPnJhdGUpOw0KPiAgCWlmIChzeXNfcmVhZF91aW50KHBvcnRfZGlyLCBTWVNfUE9S
-VF9DQVBNQVNLLCAmY2FwbWFzaykgPCAwKQ0KPiAgCQlnb3RvIGNsZWFuOw0KPiANCkxvb2tzIGdv
-b2QgdG8gbWUuDQo=
+On Sun, Oct 29, 2017 at 07:20:43PM -0700, Bryan Tan wrote:
+> Add the required functions needed to support SRQs. Currently, kernel
+> clients are not supported. SRQs will only be available in userspace.
+> 
+> Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Nitish Bhat <bnitish-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/vmw_pvrdma/Makefile         |   2 +-
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h         |  25 ++
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h |  54 ++++
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c    |  54 +++-
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c      |  57 +++-
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c     | 311 ++++++++++++++++++++++
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c   |   3 +
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h   |  18 ++
+>  include/uapi/rdma/vmw_pvrdma-abi.h                |   2 +
+>  9 files changed, 512 insertions(+), 14 deletions(-)
+>  create mode 100644 drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
+> 
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/Makefile b/drivers/infiniband/hw/vmw_pvrdma/Makefile
+> index 0194ed1..2f52e0a 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/Makefile
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/Makefile
+> @@ -1,3 +1,3 @@
+>  obj-$(CONFIG_INFINIBAND_VMWARE_PVRDMA) += vmw_pvrdma.o
+>  
+> -vmw_pvrdma-y := pvrdma_cmd.o pvrdma_cq.o pvrdma_doorbell.o pvrdma_main.o pvrdma_misc.o pvrdma_mr.o pvrdma_qp.o pvrdma_verbs.o
+> +vmw_pvrdma-y := pvrdma_cmd.o pvrdma_cq.o pvrdma_doorbell.o pvrdma_main.o pvrdma_misc.o pvrdma_mr.o pvrdma_qp.o pvrdma_srq.o pvrdma_verbs.o
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> index 984aa34..f53a446 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> @@ -162,6 +162,22 @@ struct pvrdma_ah {
+>  	struct pvrdma_av av;
+>  };
+>  
+> +struct pvrdma_srq {
+> +	struct ib_srq ibsrq;
+> +	int offset;
+> +	spinlock_t lock; /* SRQ lock. */
+> +	int wqe_cnt;
+> +	int wqe_size;
+> +	int max_gs;
+> +	struct ib_umem *umem;
+> +	struct pvrdma_ring_state *ring;
+> +	struct pvrdma_page_dir pdir;
+> +	u32 srq_handle;
+> +	int npages;
+> +	atomic_t refcnt;
+> +	wait_queue_head_t wait;
+> +};
+> +
+>  struct pvrdma_qp {
+>  	struct ib_qp ibqp;
+>  	u32 qp_handle;
+> @@ -171,6 +187,7 @@ struct pvrdma_qp {
+>  	struct ib_umem *rumem;
+>  	struct ib_umem *sumem;
+>  	struct pvrdma_page_dir pdir;
+> +	struct pvrdma_srq *srq;
+>  	int npages;
+>  	int npages_send;
+>  	int npages_recv;
+> @@ -210,6 +227,8 @@ struct pvrdma_dev {
+>  	struct pvrdma_page_dir cq_pdir;
+>  	struct pvrdma_cq **cq_tbl;
+>  	spinlock_t cq_tbl_lock;
+> +	struct pvrdma_srq **srq_tbl;
+> +	spinlock_t srq_tbl_lock;
+>  	struct pvrdma_qp **qp_tbl;
+>  	spinlock_t qp_tbl_lock;
+>  	struct pvrdma_uar_table uar_table;
+> @@ -221,6 +240,7 @@ struct pvrdma_dev {
+>  	bool ib_active;
+>  	atomic_t num_qps;
+>  	atomic_t num_cqs;
+> +	atomic_t num_srqs;
+>  	atomic_t num_pds;
+>  	atomic_t num_ahs;
+>  
+> @@ -256,6 +276,11 @@ static inline struct pvrdma_cq *to_vcq(struct ib_cq *ibcq)
+>  	return container_of(ibcq, struct pvrdma_cq, ibcq);
+>  }
+>  
+> +static inline struct pvrdma_srq *to_vsrq(struct ib_srq *ibsrq)
+> +{
+> +	return container_of(ibsrq, struct pvrdma_srq, ibsrq);
+> +}
+> +
+>  static inline struct pvrdma_user_mr *to_vmr(struct ib_mr *ibmr)
+>  {
+>  	return container_of(ibmr, struct pvrdma_user_mr, ibmr);
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+> index df0a6b5..6fd5a8f 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+> @@ -339,6 +339,10 @@ enum {
+>  	PVRDMA_CMD_DESTROY_UC,
+>  	PVRDMA_CMD_CREATE_BIND,
+>  	PVRDMA_CMD_DESTROY_BIND,
+> +	PVRDMA_CMD_CREATE_SRQ,
+> +	PVRDMA_CMD_MODIFY_SRQ,
+> +	PVRDMA_CMD_QUERY_SRQ,
+> +	PVRDMA_CMD_DESTROY_SRQ,
+>  	PVRDMA_CMD_MAX,
+>  };
+>  
+> @@ -361,6 +365,10 @@ enum {
+>  	PVRDMA_CMD_DESTROY_UC_RESP_NOOP,
+>  	PVRDMA_CMD_CREATE_BIND_RESP_NOOP,
+>  	PVRDMA_CMD_DESTROY_BIND_RESP_NOOP,
+> +	PVRDMA_CMD_CREATE_SRQ_RESP,
+> +	PVRDMA_CMD_MODIFY_SRQ_RESP,
+> +	PVRDMA_CMD_QUERY_SRQ_RESP,
+> +	PVRDMA_CMD_DESTROY_SRQ_RESP,
+>  	PVRDMA_CMD_MAX_RESP,
+>  };
+>  
+> @@ -495,6 +503,46 @@ struct pvrdma_cmd_destroy_cq {
+>  	u8 reserved[4];
+>  };
+>  
+> +struct pvrdma_cmd_create_srq {
+> +	struct pvrdma_cmd_hdr hdr;
+> +	u64 pdir_dma;
+> +	u32 pd_handle;
+> +	u32 nchunks;
+> +	struct pvrdma_srq_attr attrs;
+> +	u8 srq_type;
+> +	u8 reserved[7];
+> +};
+> +
+> +struct pvrdma_cmd_create_srq_resp {
+> +	struct pvrdma_cmd_resp_hdr hdr;
+> +	u32 srqn;
+> +	u8 reserved[4];
+> +};
+> +
+> +struct pvrdma_cmd_modify_srq {
+> +	struct pvrdma_cmd_hdr hdr;
+> +	u32 srq_handle;
+> +	u32 attr_mask;
+> +	struct pvrdma_srq_attr attrs;
+> +};
+> +
+> +struct pvrdma_cmd_query_srq {
+> +	struct pvrdma_cmd_hdr hdr;
+> +	u32 srq_handle;
+> +	u8 reserved[4];
+> +};
+> +
+> +struct pvrdma_cmd_query_srq_resp {
+> +	struct pvrdma_cmd_resp_hdr hdr;
+> +	struct pvrdma_srq_attr attrs;
+> +};
+> +
+> +struct pvrdma_cmd_destroy_srq {
+> +	struct pvrdma_cmd_hdr hdr;
+> +	u32 srq_handle;
+> +	u8 reserved[4];
+> +};
+> +
+>  struct pvrdma_cmd_create_qp {
+>  	struct pvrdma_cmd_hdr hdr;
+>  	u64 pdir_dma;
+> @@ -594,6 +642,10 @@ struct pvrdma_cmd_destroy_bind {
+>  	struct pvrdma_cmd_destroy_qp destroy_qp;
+>  	struct pvrdma_cmd_create_bind create_bind;
+>  	struct pvrdma_cmd_destroy_bind destroy_bind;
+> +	struct pvrdma_cmd_create_srq create_srq;
+> +	struct pvrdma_cmd_modify_srq modify_srq;
+> +	struct pvrdma_cmd_query_srq query_srq;
+> +	struct pvrdma_cmd_destroy_srq destroy_srq;
+>  };
+>  
+>  union pvrdma_cmd_resp {
+> @@ -608,6 +660,8 @@ struct pvrdma_cmd_destroy_bind {
+>  	struct pvrdma_cmd_create_qp_resp create_qp_resp;
+>  	struct pvrdma_cmd_query_qp_resp query_qp_resp;
+>  	struct pvrdma_cmd_destroy_qp_resp destroy_qp_resp;
+> +	struct pvrdma_cmd_create_srq_resp create_srq_resp;
+> +	struct pvrdma_cmd_query_srq_resp query_srq_resp;
+>  };
+>  
+>  #endif /* __PVRDMA_DEV_API_H__ */
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> index 6ce709a..7ce6687 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> @@ -118,6 +118,7 @@ static int pvrdma_init_device(struct pvrdma_dev *dev)
+>  	spin_lock_init(&dev->cmd_lock);
+>  	sema_init(&dev->cmd_sema, 1);
+>  	atomic_set(&dev->num_qps, 0);
+> +	atomic_set(&dev->num_srqs, 0);
+>  	atomic_set(&dev->num_cqs, 0);
+>  	atomic_set(&dev->num_pds, 0);
+>  	atomic_set(&dev->num_ahs, 0);
+> @@ -195,6 +196,11 @@ static int pvrdma_register_device(struct pvrdma_dev *dev)
+>  		(1ull << IB_USER_VERBS_CMD_MODIFY_QP)		|
+>  		(1ull << IB_USER_VERBS_CMD_QUERY_QP)		|
+>  		(1ull << IB_USER_VERBS_CMD_DESTROY_QP)		|
+> +		(1ull << IB_USER_VERBS_CMD_CREATE_SRQ)		|
+> +		(1ull << IB_USER_VERBS_CMD_MODIFY_SRQ)		|
+> +		(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)		|
+> +		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)		|
+> +		(1ull << IB_USER_VERBS_CMD_POST_SRQ_RECV)	|
+>  		(1ull << IB_USER_VERBS_CMD_POST_SEND)		|
+>  		(1ull << IB_USER_VERBS_CMD_POST_RECV)		|
+>  		(1ull << IB_USER_VERBS_CMD_CREATE_AH)		|
+> @@ -227,6 +233,11 @@ static int pvrdma_register_device(struct pvrdma_dev *dev)
+>  	dev->ib_dev.destroy_cq = pvrdma_destroy_cq;
+>  	dev->ib_dev.poll_cq = pvrdma_poll_cq;
+>  	dev->ib_dev.req_notify_cq = pvrdma_req_notify_cq;
+> +	dev->ib_dev.create_srq = pvrdma_create_srq;
+> +	dev->ib_dev.modify_srq = pvrdma_modify_srq;
+> +	dev->ib_dev.query_srq = pvrdma_query_srq;
+> +	dev->ib_dev.destroy_srq = pvrdma_destroy_srq;
+> +	dev->ib_dev.post_srq_recv = pvrdma_post_srq_recv;
+>  	dev->ib_dev.get_dma_mr = pvrdma_get_dma_mr;
+>  	dev->ib_dev.reg_user_mr	= pvrdma_reg_user_mr;
+>  	dev->ib_dev.dereg_mr = pvrdma_dereg_mr;
+> @@ -254,9 +265,20 @@ static int pvrdma_register_device(struct pvrdma_dev *dev)
+>  		goto err_cq_free;
+>  	spin_lock_init(&dev->qp_tbl_lock);
+>  
+> +	/* Check if SRQ is supported by backend */
+> +	if (dev->dsr->caps.max_srq > 0) {
+> +		dev->srq_tbl = kcalloc(dev->dsr->caps.max_srq, sizeof(void *),
+> +				       GFP_KERNEL);
+> +		if (!dev->srq_tbl)
+> +			goto err_qp_free;
+> +	} else {
+> +		dev->srq_tbl = NULL;
+> +	}
+> +	spin_lock_init(&dev->srq_tbl_lock);
+> +
+>  	ret = ib_register_device(&dev->ib_dev, NULL);
+>  	if (ret)
+> -		goto err_qp_free;
+> +		goto err_srq_free;
+>  
+>  	for (i = 0; i < ARRAY_SIZE(pvrdma_class_attributes); ++i) {
+>  		ret = device_create_file(&dev->ib_dev.dev,
+> @@ -271,6 +293,8 @@ static int pvrdma_register_device(struct pvrdma_dev *dev)
+>  
+>  err_class:
+>  	ib_unregister_device(&dev->ib_dev);
+> +err_srq_free:
+> +	kfree(dev->srq_tbl);
+>  err_qp_free:
+>  	kfree(dev->qp_tbl);
+>  err_cq_free:
+> @@ -353,6 +377,32 @@ static void pvrdma_cq_event(struct pvrdma_dev *dev, u32 cqn, int type)
+>  	}
+>  }
+>  
+> +static void pvrdma_srq_event(struct pvrdma_dev *dev, u32 srqn, int type)
+> +{
+> +	struct pvrdma_srq *srq;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&dev->srq_tbl_lock, flags);
+> +	srq = dev->srq_tbl[srqn % dev->dsr->caps.max_srq];
+> +	if (srq)
+> +		atomic_inc(&srq->refcnt);
+> +	spin_unlock_irqrestore(&dev->srq_tbl_lock, flags);
+> +
+> +	if (srq && srq->ibsrq.event_handler) {
+> +		struct ib_srq *ibsrq = &srq->ibsrq;
+> +		struct ib_event e;
+> +
+> +		e.device = ibsrq->device;
+> +		e.element.srq = ibsrq;
+> +		e.event = type; /* 1:1 mapping for now. */
+> +		ibsrq->event_handler(&e, ibsrq->srq_context);
+> +	}
+> +	if (srq) {
+> +		if (atomic_dec_and_test(&srq->refcnt))
+> +			wake_up(&srq->wait);
+> +	}
+> +}
+> +
+>  static void pvrdma_dispatch_event(struct pvrdma_dev *dev, int port,
+>  				  enum ib_event_type event)
+>  {
+> @@ -423,6 +473,7 @@ static irqreturn_t pvrdma_intr1_handler(int irq, void *dev_id)
+>  
+>  		case PVRDMA_EVENT_SRQ_ERR:
+>  		case PVRDMA_EVENT_SRQ_LIMIT_REACHED:
+> +			pvrdma_srq_event(dev, eqe->info, eqe->type);
+>  			break;
+>  
+>  		case PVRDMA_EVENT_PORT_ACTIVE:
+> @@ -1059,6 +1110,7 @@ static void pvrdma_pci_remove(struct pci_dev *pdev)
+>  	iounmap(dev->regs);
+>  	kfree(dev->sgid_tbl);
+>  	kfree(dev->cq_tbl);
+> +	kfree(dev->srq_tbl);
+>  	kfree(dev->qp_tbl);
+>  	pvrdma_uar_table_cleanup(dev);
+>  	iounmap(dev->driver_uar.map);
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+> index ed34d5a..4c4a9d1 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+> @@ -198,6 +198,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+>  	struct pvrdma_create_qp ucmd;
+>  	unsigned long flags;
+>  	int ret;
+> +	bool is_srq = !!init_attr->srq;
+>  
+>  	if (init_attr->create_flags) {
+>  		dev_warn(&dev->pdev->dev,
+> @@ -214,6 +215,14 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+>  		return ERR_PTR(-EINVAL);
+>  	}
+>  
+> +	if (is_srq) {
+> +		if (dev->dsr->caps.max_srq == 0) {
+
+Let us be consist, so if in function pvrdma_init_device the assumption is
+that max_srq can have negative value then also check it here. Or on the
+other hands if not (and i assume it is not) then modify the check on
+pvrdma_init_device.
+
+Also, suggesting:
+	if (is_srq && !dev->dsr->caps.max_srq)
+Or (if you do not accept my comment):
+	if (is_srq && dev->dsr->caps.max_srq == 0)
+
+> +			dev_warn(&dev->pdev->dev,
+> +				 "SRQs not supported by device\n");
+> +			return ERR_PTR(-EINVAL);
+> +		}
+> +	}
+> +
+>  	if (!atomic_add_unless(&dev->num_qps, 1, dev->dsr->caps.max_qp))
+>  		return ERR_PTR(-ENOMEM);
+>  
+> @@ -252,26 +261,36 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+>  				goto err_qp;
+>  			}
+>  
+> -			/* set qp->sq.wqe_cnt, shift, buf_size.. */
+> -			qp->rumem = ib_umem_get(pd->uobject->context,
+> -						ucmd.rbuf_addr,
+> -						ucmd.rbuf_size, 0, 0);
+> -			if (IS_ERR(qp->rumem)) {
+> -				ret = PTR_ERR(qp->rumem);
+> -				goto err_qp;
+> +			if (!is_srq) {
+> +				/* set qp->sq.wqe_cnt, shift, buf_size.. */
+> +				qp->rumem = ib_umem_get(pd->uobject->context,
+> +							ucmd.rbuf_addr,
+> +							ucmd.rbuf_size, 0, 0);
+> +				if (IS_ERR(qp->rumem)) {
+> +					ret = PTR_ERR(qp->rumem);
+> +					goto err_qp;
+> +				}
+> +				qp->srq = NULL;
+> +			} else {
+> +				qp->rumem = NULL;
+> +				qp->srq = to_vsrq(init_attr->srq);
+>  			}
+>  
+>  			qp->sumem = ib_umem_get(pd->uobject->context,
+>  						ucmd.sbuf_addr,
+>  						ucmd.sbuf_size, 0, 0);
+>  			if (IS_ERR(qp->sumem)) {
+> -				ib_umem_release(qp->rumem);
+> +				if (!is_srq)
+> +					ib_umem_release(qp->rumem);
+>  				ret = PTR_ERR(qp->sumem);
+>  				goto err_qp;
+>  			}
+>  
+>  			qp->npages_send = ib_umem_page_count(qp->sumem);
+> -			qp->npages_recv = ib_umem_page_count(qp->rumem);
+> +			if (!is_srq)
+> +				qp->npages_recv = ib_umem_page_count(qp->rumem);
+> +			else
+> +				qp->npages_recv = 0;
+>  			qp->npages = qp->npages_send + qp->npages_recv;
+>  		} else {
+>  			qp->is_kernel = true;
+> @@ -312,12 +331,14 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+>  
+>  		if (!qp->is_kernel) {
+>  			pvrdma_page_dir_insert_umem(&qp->pdir, qp->sumem, 0);
+> -			pvrdma_page_dir_insert_umem(&qp->pdir, qp->rumem,
+> -						    qp->npages_send);
+> +			if (!is_srq)
+> +				pvrdma_page_dir_insert_umem(&qp->pdir,
+> +							    qp->rumem,
+> +							    qp->npages_send);
+>  		} else {
+>  			/* Ring state is always the first page. */
+>  			qp->sq.ring = qp->pdir.pages[0];
+> -			qp->rq.ring = &qp->sq.ring[1];
+> +			qp->rq.ring = is_srq ? NULL : &qp->sq.ring[1];
+>  		}
+>  		break;
+>  	default:
+> @@ -333,6 +354,10 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+>  	cmd->pd_handle = to_vpd(pd)->pd_handle;
+>  	cmd->send_cq_handle = to_vcq(init_attr->send_cq)->cq_handle;
+>  	cmd->recv_cq_handle = to_vcq(init_attr->recv_cq)->cq_handle;
+> +	if (is_srq)
+> +		cmd->srq_handle = to_vsrq(init_attr->srq)->srq_handle;
+> +	else
+> +		cmd->srq_handle = 0;
+>  	cmd->max_send_wr = init_attr->cap.max_send_wr;
+>  	cmd->max_recv_wr = init_attr->cap.max_recv_wr;
+>  	cmd->max_send_sge = init_attr->cap.max_send_sge;
+> @@ -340,6 +365,8 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+>  	cmd->max_inline_data = init_attr->cap.max_inline_data;
+>  	cmd->sq_sig_all = (init_attr->sq_sig_type == IB_SIGNAL_ALL_WR) ? 1 : 0;
+>  	cmd->qp_type = ib_qp_type_to_pvrdma(init_attr->qp_type);
+> +	cmd->is_srq = is_srq;
+> +	cmd->lkey = 0;
+>  	cmd->access_flags = IB_ACCESS_LOCAL_WRITE;
+>  	cmd->total_chunks = qp->npages;
+>  	cmd->send_chunks = qp->npages_send - PVRDMA_QP_NUM_HEADER_PAGES;
+> @@ -815,6 +842,12 @@ int pvrdma_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+>  		return -EINVAL;
+>  	}
+>  
+> +	if (qp->srq) {
+> +		dev_warn(&dev->pdev->dev, "QP associated with SRQ\n");
+> +		*bad_wr = wr;
+> +		return -EINVAL;
+> +	}
+> +
+>  	spin_lock_irqsave(&qp->rq.lock, flags);
+>  
+>  	while (wr) {
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
+> new file mode 100644
+> index 0000000..59d4595
+> --- /dev/null
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
+> @@ -0,0 +1,311 @@
+> +/*
+> + * Copyright (c) 2016-2017 VMware, Inc.  All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of EITHER the GNU General Public License
+> + * version 2 as published by the Free Software Foundation or the BSD
+> + * 2-Clause License. This program is distributed in the hope that it
+> + * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
+> + * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+> + * See the GNU General Public License version 2 for more details at
+> + * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program available in the file COPYING in the main
+> + * directory of this source tree.
+> + *
+> + * The BSD 2-Clause License
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+> + * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+> + * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+> + * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+> + * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+> + * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+> + * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+> + * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+> + * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+> + * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+> + * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+> + * OF THE POSSIBILITY OF SUCH DAMAGE.
+> + */
+> +
+> +#include <asm/page.h>
+> +#include <linux/io.h>
+> +#include <linux/wait.h>
+> +#include <rdma/ib_addr.h>
+> +#include <rdma/ib_smi.h>
+> +#include <rdma/ib_user_verbs.h>
+> +
+> +#include "pvrdma.h"
+> +
+> +int pvrdma_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
+> +			 struct ib_recv_wr **bad_wr)
+> +{
+> +	/* No support for kernel clients. */
+> +	return -EOPNOTSUPP;
+> +}
+> +
+> +/**
+> + * pvrdma_query_srq - query shared receive queue
+> + * @ibsrq: the shared receive queue to query
+> + * @srq_attr: attributes to query and return to client
+> + *
+> + * @return: 0 for success, otherwise returns an errno.
+> + */
+> +int pvrdma_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *srq_attr)
+> +{
+> +	struct pvrdma_dev *dev = to_vdev(ibsrq->device);
+> +	struct pvrdma_srq *srq = to_vsrq(ibsrq);
+> +	union pvrdma_cmd_req req;
+> +	union pvrdma_cmd_resp rsp;
+> +	struct pvrdma_cmd_query_srq *cmd = &req.query_srq;
+> +	struct pvrdma_cmd_query_srq_resp *resp = &rsp.query_srq_resp;
+> +	int ret;
+> +
+> +	memset(cmd, 0, sizeof(*cmd));
+> +	cmd->hdr.cmd = PVRDMA_CMD_QUERY_SRQ;
+> +	cmd->srq_handle = srq->srq_handle;
+> +
+> +	ret = pvrdma_cmd_post(dev, &req, &rsp, PVRDMA_CMD_QUERY_SRQ_RESP);
+> +	if (ret < 0) {
+> +		dev_warn(&dev->pdev->dev,
+> +			 "could not query shared receive queue, error: %d\n",
+> +			 ret);
+> +		return -EINVAL;
+> +	}
+> +
+> +	srq_attr->srq_limit = resp->attrs.srq_limit;
+> +	srq_attr->max_wr = resp->attrs.max_wr;
+> +	srq_attr->max_sge = resp->attrs.max_sge;
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * pvrdma_create_srq - create shared receive queue
+> + * @pd: protection domain
+> + * @init_attr: shared receive queue attributes
+> + * @udata: user data
+> + *
+> + * @return: the ib_srq pointer on success, otherwise returns an errno.
+> + */
+> +struct ib_srq *pvrdma_create_srq(struct ib_pd *pd,
+> +				 struct ib_srq_init_attr *init_attr,
+> +				 struct ib_udata *udata)
+> +{
+> +	struct pvrdma_srq *srq = NULL;
+> +	struct pvrdma_dev *dev = to_vdev(pd->device);
+> +	union pvrdma_cmd_req req;
+> +	union pvrdma_cmd_resp rsp;
+> +	struct pvrdma_cmd_create_srq *cmd = &req.create_srq;
+> +	struct pvrdma_cmd_create_srq_resp *resp = &rsp.create_srq_resp;
+> +	struct pvrdma_create_srq ucmd;
+> +	unsigned long flags;
+> +	int ret;
+> +
+> +	if (init_attr->srq_type != IB_SRQT_BASIC)
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	if (init_attr->attr.max_wr  > dev->dsr->caps.max_srq_wr ||
+> +	    init_attr->attr.max_sge > dev->dsr->caps.max_srq_sge)
+
+Again - let us be consist, if we got warning in pvrdma_create_qp we should
+get one here as well.
+
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	if (!atomic_add_unless(&dev->num_srqs, 1, dev->dsr->caps.max_srq))
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	srq = kmalloc(sizeof(*srq), GFP_KERNEL);
+> +	if (!srq) {
+> +		ret = -ENOMEM;
+> +		goto err_srq;
+> +	}
+> +
+> +	spin_lock_init(&srq->lock);
+> +	atomic_set(&srq->refcnt, 1);
+> +	init_waitqueue_head(&srq->wait);
+> +
+> +	if (!(pd->uobject && udata)) {
+> +		/* No support for kernel clients. */
+> +		ret = -EOPNOTSUPP;
+> +		goto err_srq;
+> +	}
+
+Why this check cannot be performed before the above initialization??
+Also, suggesting a debug message here.
+
+> +
+> +	dev_dbg(&dev->pdev->dev,
+> +		"create shared receive queue from user space\n");
+> +
+> +	if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
+> +		ret = -EFAULT;
+> +		goto err_srq;
+> +	}
+> +
+> +	srq->umem = ib_umem_get(pd->uobject->context,
+> +				ucmd.buf_addr,
+> +				ucmd.buf_size, 0, 0);
+> +	if (IS_ERR(srq->umem)) {
+> +		ret = PTR_ERR(srq->umem);
+> +		goto err_srq;
+> +	}
+> +
+> +	srq->npages = ib_umem_page_count(srq->umem);
+> +
+> +	if (srq->npages < 0 || srq->npages > PVRDMA_PAGE_DIR_MAX_PAGES) {
+> +		dev_warn(&dev->pdev->dev,
+> +			 "overflow pages in shared receive queue\n");
+> +		ret = -EINVAL;
+> +		goto err_umem;
+> +	}
+> +
+> +	ret = pvrdma_page_dir_init(dev, &srq->pdir, srq->npages, false);
+> +	if (ret) {
+> +		dev_warn(&dev->pdev->dev,
+> +			 "could not allocate page directory\n");
+> +		goto err_umem;
+> +	}
+> +
+> +	pvrdma_page_dir_insert_umem(&srq->pdir, srq->umem, 0);
+> +
+> +	memset(cmd, 0, sizeof(*cmd));
+> +	cmd->hdr.cmd = PVRDMA_CMD_CREATE_SRQ;
+> +	cmd->srq_type = init_attr->srq_type;
+> +	cmd->nchunks = srq->npages;
+> +	cmd->pd_handle = to_vpd(pd)->pd_handle;
+> +	cmd->attrs.max_wr = init_attr->attr.max_wr;
+> +	cmd->attrs.max_sge = init_attr->attr.max_sge;
+> +	cmd->attrs.srq_limit = init_attr->attr.srq_limit;
+> +	cmd->pdir_dma = srq->pdir.dir_dma;
+> +
+> +	ret = pvrdma_cmd_post(dev, &req, &rsp, PVRDMA_CMD_CREATE_SRQ_RESP);
+> +	if (ret < 0) {
+> +		dev_warn(&dev->pdev->dev,
+> +			 "could not create shared receive queue, error: %d\n",
+> +			 ret);
+> +		goto err_page_dir;
+> +	}
+> +
+> +	srq->srq_handle = resp->srqn;
+> +	spin_lock_irqsave(&dev->srq_tbl_lock, flags);
+> +	dev->srq_tbl[srq->srq_handle % dev->dsr->caps.max_srq] = srq;
+> +	spin_unlock_irqrestore(&dev->srq_tbl_lock, flags);
+> +
+> +	/* Copy udata back. */
+> +	if (ib_copy_to_udata(udata, &srq->srq_handle, sizeof(__u32))) {
+> +		dev_warn(&dev->pdev->dev, "failed to copy back udata\n");
+> +		pvrdma_destroy_srq(&srq->ibsrq);
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +
+> +	return &srq->ibsrq;
+> +
+> +err_page_dir:
+> +	pvrdma_page_dir_cleanup(dev, &srq->pdir);
+> +err_umem:
+> +	ib_umem_release(srq->umem);
+> +err_srq:
+> +	kfree(srq);
+> +	atomic_dec(&dev->num_srqs);
+> +
+> +	return ERR_PTR(ret);
+> +}
+> +
+> +static void pvrdma_free_srq(struct pvrdma_dev *dev, struct pvrdma_srq *srq)
+> +{
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&dev->srq_tbl_lock, flags);
+> +	dev->srq_tbl[srq->srq_handle] = NULL;
+> +	spin_unlock_irqrestore(&dev->srq_tbl_lock, flags);
+> +
+> +	atomic_dec(&srq->refcnt);
+> +	wait_event(srq->wait, !atomic_read(&srq->refcnt));
+> +
+> +	/* There is no support for kernel clients, so this is safe. */
+> +	ib_umem_release(srq->umem);
+> +
+> +	pvrdma_page_dir_cleanup(dev, &srq->pdir);
+> +
+> +	kfree(srq);
+> +
+> +	atomic_dec(&dev->num_srqs);
+> +}
+> +
+> +/**
+> + * pvrdma_destroy_srq - destroy shared receive queue
+> + * @srq: the shared receive queue to destroy
+> + *
+> + * @return: 0 for success.
+> + */
+> +int pvrdma_destroy_srq(struct ib_srq *srq)
+> +{
+> +	struct pvrdma_srq *vsrq = to_vsrq(srq);
+> +	union pvrdma_cmd_req req;
+> +	struct pvrdma_cmd_destroy_srq *cmd = &req.destroy_srq;
+> +	struct pvrdma_dev *dev = to_vdev(srq->device);
+> +	int ret;
+> +
+> +	memset(cmd, 0, sizeof(*cmd));
+> +	cmd->hdr.cmd = PVRDMA_CMD_DESTROY_SRQ;
+> +	cmd->srq_handle = vsrq->srq_handle;
+> +
+> +	ret = pvrdma_cmd_post(dev, &req, NULL, 0);
+> +	if (ret < 0)
+> +		dev_warn(&dev->pdev->dev,
+> +			 "destroy shared receive queue failed, error: %d\n",
+> +			 ret);
+> +
+> +	pvrdma_free_srq(dev, vsrq);
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * pvrdma_modify_srq - modify shared receive queue attributes
+> + * @ibsrq: the shared receive queue to modify
+> + * @attr: the shared receive queue's new attributes
+> + * @attr_mask: attributes mask
+> + * @udata: user data
+> + *
+> + * @returns 0 on success, otherwise returns an errno.
+> + */
+> +int pvrdma_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+> +		      enum ib_srq_attr_mask attr_mask, struct ib_udata *udata)
+> +{
+> +	struct pvrdma_srq *vsrq = to_vsrq(ibsrq);
+> +	union pvrdma_cmd_req req;
+> +	struct pvrdma_cmd_modify_srq *cmd = &req.modify_srq;
+> +	struct pvrdma_dev *dev = to_vdev(ibsrq->device);
+> +	int ret;
+> +
+> +	/* No support for resizing SRQs. */
+> +	if (attr_mask & IB_SRQ_MAX_WR)
+> +		return -EINVAL;
+> +
+> +	memset(cmd, 0, sizeof(*cmd));
+> +	cmd->hdr.cmd = PVRDMA_CMD_MODIFY_SRQ;
+> +	cmd->srq_handle = vsrq->srq_handle;
+> +	cmd->attrs.srq_limit = attr->srq_limit;
+> +	cmd->attr_mask = attr_mask;
+> +
+> +	ret = pvrdma_cmd_post(dev, &req, NULL, 0);
+> +	if (ret < 0) {
+> +		dev_warn(&dev->pdev->dev,
+> +			 "could not modify shared receive queue, error: %d\n",
+> +			 ret);
+> +
+> +		return -EINVAL;
+> +	}
+> +
+> +	return ret;
+> +}
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
+> index 48776f5..16b9661 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
+> @@ -85,6 +85,9 @@ int pvrdma_query_device(struct ib_device *ibdev,
+>  	props->max_sge = dev->dsr->caps.max_sge;
+>  	props->max_sge_rd = PVRDMA_GET_CAP(dev, dev->dsr->caps.max_sge,
+>  					   dev->dsr->caps.max_sge_rd);
+> +	props->max_srq = dev->dsr->caps.max_srq;
+> +	props->max_srq_wr = dev->dsr->caps.max_srq_wr;
+> +	props->max_srq_sge = dev->dsr->caps.max_srq_sge;
+>  	props->max_cq = dev->dsr->caps.max_cq;
+>  	props->max_cqe = dev->dsr->caps.max_cqe;
+>  	props->max_mr = dev->dsr->caps.max_mr;
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
+> index 002a9b0..b7b2572 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
+> @@ -324,6 +324,13 @@ enum pvrdma_mw_type {
+>  	PVRDMA_MW_TYPE_2 = 2,
+>  };
+>  
+> +struct pvrdma_srq_attr {
+> +	u32			max_wr;
+> +	u32			max_sge;
+> +	u32			srq_limit;
+> +	u32			reserved;
+> +};
+> +
+>  struct pvrdma_qp_attr {
+>  	enum pvrdma_qp_state	qp_state;
+>  	enum pvrdma_qp_state	cur_qp_state;
+> @@ -420,6 +427,17 @@ int pvrdma_resize_cq(struct ib_cq *ibcq, int entries,
+>  struct ib_ah *pvrdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
+>  			       struct ib_udata *udata);
+>  int pvrdma_destroy_ah(struct ib_ah *ah);
+> +
+> +struct ib_srq *pvrdma_create_srq(struct ib_pd *pd,
+> +				 struct ib_srq_init_attr *init_attr,
+> +				 struct ib_udata *udata);
+> +int pvrdma_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+> +		      enum ib_srq_attr_mask attr_mask, struct ib_udata *udata);
+> +int pvrdma_query_srq(struct ib_srq *srq, struct ib_srq_attr *srq_attr);
+> +int pvrdma_destroy_srq(struct ib_srq *srq);
+> +int pvrdma_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
+> +			 struct ib_recv_wr **bad_wr);
+> +
+>  struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+>  			       struct ib_qp_init_attr *init_attr,
+>  			       struct ib_udata *udata);
+> diff --git a/include/uapi/rdma/vmw_pvrdma-abi.h b/include/uapi/rdma/vmw_pvrdma-abi.h
+> index c6569b0..846c6f4 100644
+> --- a/include/uapi/rdma/vmw_pvrdma-abi.h
+> +++ b/include/uapi/rdma/vmw_pvrdma-abi.h
+> @@ -158,6 +158,8 @@ struct pvrdma_resize_cq {
+>  
+>  struct pvrdma_create_srq {
+>  	__u64 buf_addr;
+> +	__u32 buf_size;
+> +	__u32 reserved;
+>  };
+>  
+>  struct pvrdma_create_srq_resp {
+> -- 
+> 1.8.5.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
