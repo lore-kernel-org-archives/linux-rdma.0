@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-core 2/3] libhns: Modify the usage of cmd_sn in hip08 RoCE userspace
-Date: Wed, 1 Nov 2017 18:00:39 +0800
-Message-ID: <1509530440-164400-3-git-send-email-oulijun@huawei.com>
+Subject: [PATCH rdma-core 1/3] libhns: Set owner bit of SQWQE in user mode
+Date: Wed, 1 Nov 2017 18:00:38 +0800
+Message-ID: <1509530440-164400-2-git-send-email-oulijun@huawei.com>
 References: <1509530440-164400-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,56 +12,41 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The cmd_sn field of CQ doorbell should be 1 for the first
-db rung. It inits for 0. It should be increment on each
-first db rung after a complemention Event.
+In hip08, it needs to set owner field of sqwqe when posting
+send wr. The owner field will be used by hardware. The set
+algorithm as follows:
+The value of owner should be 1 in the first lap, it should
+be 0 in the second lap and in turn.
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- providers/hns/hns_roce_u_hw_v2.c | 4 +++-
- providers/hns/hns_roce_u_hw_v2.h | 2 ++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ providers/hns/hns_roce_u_hw_v2.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
-index 900387c..7777e75 100644
+index 50059bf..900387c 100644
 --- a/providers/hns/hns_roce_u_hw_v2.c
 +++ b/providers/hns/hns_roce_u_hw_v2.c
-@@ -444,11 +444,13 @@ static int hns_roce_u_v2_poll_cq(struct ibv_cq *ibvcq, int ne,
- static int hns_roce_u_v2_arm_cq(struct ibv_cq *ibvcq, int solicited)
+@@ -473,6 +473,7 @@ static int hns_roce_u_v2_arm_cq(struct ibv_cq *ibvcq, int solicited)
+ static int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 				   struct ibv_send_wr **bad_wr)
  {
- 	uint32_t ci;
-+	uint32_t cmd_sn;
- 	uint32_t solicited_flag;
- 	struct hns_roce_v2_cq_db cq_db;
- 	struct hns_roce_cq *cq = to_hr_cq(ibvcq);
++	unsigned int sq_shift;
+ 	unsigned int ind_sge;
+ 	unsigned int ind;
+ 	int nreq;
+@@ -542,6 +543,11 @@ static int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 		roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_SE_S,
+ 			     (wr->send_flags & IBV_SEND_SOLICITED) ? 1 : 0);
  
- 	ci  = cq->cons_index & ((cq->cq_depth << 1) - 1);
-+	cmd_sn = cq->arm_sn & HNS_ROCE_CMDSN_MASK;
- 	solicited_flag = solicited ? HNS_ROCE_V2_CQ_DB_REQ_SOL :
- 				     HNS_ROCE_V2_CQ_DB_REQ_NEXT;
- 
-@@ -462,7 +464,7 @@ static int hns_roce_u_v2_arm_cq(struct ibv_cq *ibvcq, int solicited)
- 		       CQ_DB_PARAMETER_CQ_CONSUMER_IDX_S, ci);
- 
- 	roce_set_field(cq_db.parameter, CQ_DB_PARAMETER_CMD_SN_M,
--		       CQ_DB_PARAMETER_CMD_SN_S, 1);
-+		       CQ_DB_PARAMETER_CMD_SN_S, cmd_sn);
- 	roce_set_bit(cq_db.parameter, CQ_DB_PARAMETER_NOTIFY_S, solicited_flag);
- 
- 	hns_roce_write64((uint32_t *)&cq_db, to_hr_ctx(ibvcq->context),
-diff --git a/providers/hns/hns_roce_u_hw_v2.h b/providers/hns/hns_roce_u_hw_v2.h
-index 28aab60..196ba4e 100644
---- a/providers/hns/hns_roce_u_hw_v2.h
-+++ b/providers/hns/hns_roce_u_hw_v2.h
-@@ -38,6 +38,8 @@
- #define HNS_ROCE_V2_CQ_DB_REQ_SOL		1
- #define HNS_ROCE_V2_CQ_DB_REQ_NEXT		0
- 
-+#define HNS_ROCE_CMDSN_MASK			0x3
++		for (sq_shift = 0; (1 << sq_shift) < qp->sq.wqe_cnt; ++sq_shift)
++			;
++		roce_set_bit(rc_sq_wqe->byte_4, RC_SQ_WQE_BYTE_4_OWNER_S,
++			     ~(qp->sq.head >> sq_shift) & 0x1);
 +
- /* V2 REG DEFINITION */
- #define ROCEE_VF_DB_CFG0_OFFSET			0x0230
- 
+ 		wqe += sizeof(struct hns_roce_rc_sq_wqe);
+ 		/* set remote addr segment */
+ 		switch (ibvqp->qp_type) {
 -- 
 1.9.1
 
