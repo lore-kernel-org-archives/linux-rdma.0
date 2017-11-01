@@ -1,92 +1,46 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/3] libhns: Modify the usage of cmd_sn in hip08
- RoCE userspace
-Date: Wed, 1 Nov 2017 19:16:15 +0800
-Message-ID: <dc45e41b-54f6-6cd7-9d71-93594e2d3829@huawei.com>
-References: <1509530440-164400-1-git-send-email-oulijun@huawei.com>
- <1509530440-164400-3-git-send-email-oulijun@huawei.com>
- <20171101100656.GR16127@mtr-leonro.local>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: How far back does rdma-core X supports the kernel Y?
+Date: Wed, 1 Nov 2017 12:07:07 +0000
+Message-ID: <BN3PR07MB2578883C85DD3855C496F367F85F0@BN3PR07MB2578.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171101100656.GR16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-在 2017/11/1 18:06, Leon Romanovsky 写道:
-> On Wed, Nov 01, 2017 at 06:00:39PM +0800, Lijun Ou wrote:
->> The cmd_sn field of CQ doorbell should be 1 for the first
->> db rung. It inits for 0. It should be increment on each
->> first db rung after a complemention Event.
->>
->> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> ---
->>  providers/hns/hns_roce_u_hw_v2.c | 4 +++-
->>  providers/hns/hns_roce_u_hw_v2.h | 2 ++
->>  2 files changed, 5 insertions(+), 1 deletion(-)
->>
->> diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
->> index 900387c..7777e75 100644
->> --- a/providers/hns/hns_roce_u_hw_v2.c
->> +++ b/providers/hns/hns_roce_u_hw_v2.c
->> @@ -444,11 +444,13 @@ static int hns_roce_u_v2_poll_cq(struct ibv_cq *ibvcq, int ne,
->>  static int hns_roce_u_v2_arm_cq(struct ibv_cq *ibvcq, int solicited)
->>  {
->>  	uint32_t ci;
->> +	uint32_t cmd_sn;
->>  	uint32_t solicited_flag;
->>  	struct hns_roce_v2_cq_db cq_db;
->>  	struct hns_roce_cq *cq = to_hr_cq(ibvcq);
->>
->>  	ci  = cq->cons_index & ((cq->cq_depth << 1) - 1);
->> +	cmd_sn = cq->arm_sn & HNS_ROCE_CMDSN_MASK;
-> 
-> I didn't understand it from you commit message, so I'll ask it here.
-> cmd_en will be 1,2 and 3 now, is it ok?
-> 
-> Thanks
-> 
-Yes, the cmd_sn field of cq db hardware structure is defined 2 bit. the cmd_sn be only used
-when cq db type is cq doorbell notify.
-when notify completion event, cmd_sn is valid, the first notify, cmd_sn is 1;
-the user notify completion event a time, cmd_sn will be increment. if the value of cmd_sn
-when two notify doorbell continuously, the hardware will take it as the same notify request and
-update the notify type according to the protocol.
+Hi All,
+I've installed rdma-core-15 on kernel 4.3 and ran into issues.
 
-Thanks
+It seems this kernel doesn't include the following patch:
+https://github.com/torvalds/linux/commit/aa744cc01fe0f21dfbe2744d3fd5f2fb32=
+44c9b3
 
->>  	solicited_flag = solicited ? HNS_ROCE_V2_CQ_DB_REQ_SOL :
->>  				     HNS_ROCE_V2_CQ_DB_REQ_NEXT;
->>
->> @@ -462,7 +464,7 @@ static int hns_roce_u_v2_arm_cq(struct ibv_cq *ibvcq, int solicited)
->>  		       CQ_DB_PARAMETER_CQ_CONSUMER_IDX_S, ci);
->>
->>  	roce_set_field(cq_db.parameter, CQ_DB_PARAMETER_CMD_SN_M,
->> -		       CQ_DB_PARAMETER_CMD_SN_S, 1);
->> +		       CQ_DB_PARAMETER_CMD_SN_S, cmd_sn);
->>  	roce_set_bit(cq_db.parameter, CQ_DB_PARAMETER_NOTIFY_S, solicited_flag);
->>
->>  	hns_roce_write64((uint32_t *)&cq_db, to_hr_ctx(ibvcq->context),
->> diff --git a/providers/hns/hns_roce_u_hw_v2.h b/providers/hns/hns_roce_u_hw_v2.h
->> index 28aab60..196ba4e 100644
->> --- a/providers/hns/hns_roce_u_hw_v2.h
->> +++ b/providers/hns/hns_roce_u_hw_v2.h
->> @@ -38,6 +38,8 @@
->>  #define HNS_ROCE_V2_CQ_DB_REQ_SOL		1
->>  #define HNS_ROCE_V2_CQ_DB_REQ_NEXT		0
->>
->> +#define HNS_ROCE_CMDSN_MASK			0x3
->> +
->>  /* V2 REG DEFINITION */
->>  #define ROCEE_VF_DB_CFG0_OFFSET			0x0230
->>
->> --
->> 1.9.1
->>
+So IB_QP_SMAC is present in kernel 4.3 but not in rdma-core-15.
+This caused a failure here:
 
+int ibv_cmd_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+                      int attr_mask,
+                      struct ibv_modify_qp *cmd, size_t cmd_size)
+{
+        /*
+         * Masks over IBV_QP_DEST_QPN are only supported by
+         * ibv_cmd_modify_qp_ex.
+         */
+        if (attr_mask & ~((IBV_QP_DEST_QPN << 1) - 1))
+                return EOPNOTSUPP;
+        ...
+}
+
+Do we expect these versions to operate?
+If not, from what version do we support backward compatibility?
+Are there any other backward compatibility issues you are aware of?
+
+Thanks,
+Ram
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
