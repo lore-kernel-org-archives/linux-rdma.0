@@ -1,50 +1,107 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-next v1 1/6] IB/uverbs: Allow CQ moderation with
- modify CQ
-Date: Wed, 1 Nov 2017 20:41:30 +0200
-Message-ID: <3aca8fdd-7f87-66db-f931-86c941c9a12d@dev.mellanox.co.il>
-References: <20171029182808.GN16127@mtr-leonro.local>
- <20171030144807.GA12392@ziepe.ca> <20171030152815.GA16127@mtr-leonro.local>
- <20171030155236.GC12392@ziepe.ca> <20171030190952.GC16127@mtr-leonro.local>
- <20171030230753.GB4081@ziepe.ca> <20171031050802.GE16127@mtr-leonro.local>
- <13d687d9-80b4-621e-87bf-c6045da98c0c@dev.mellanox.co.il>
- <20171031154046.GB9852@ziepe.ca>
- <6e7e94e2-9b50-bfa4-a06a-b2452e1bc8a5@dev.mellanox.co.il>
- <20171101180616.GI1030@ziepe.ca>
+From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Subject: RE: [Patch v5 19/21] CIFS: SMBD: Read correct returned data length
+ for RDMA write (SMB read) I/O
+Date: Wed, 1 Nov 2017 18:48:15 +0000
+Message-ID: <MWHPR21MB0190BE663FBF3C448C282EC4CE5F0@MWHPR21MB0190.namprd21.prod.outlook.com>
+References: <20171018230920.21042-1-longli@exchange.microsoft.com>
+ <20171018230920.21042-20-longli@exchange.microsoft.com>
+ <CAKywueSUUgxdxcdJbpo0YJTcxauVebzO45UPLD46zzrKVurc5A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171101180616.GI1030-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <CAKywueSUUgxdxcdJbpo0YJTcxauVebzO45UPLD46zzrKVurc5A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Pavel Shilovsky <piastryyy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, samba-technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/1/2017 8:06 PM, Jason Gunthorpe wrote:
-> On Tue, Oct 31, 2017 at 07:06:05PM +0200, Yishai Hadas wrote:
-> 
->> The above argument could be issued also on SRQ/WQ which are not expected to
->> be changed in a high rate but uses the attr_mask notation with one system
->> call.
-> 
-> Yep, those perhaps should not have used the attr_mask scheme either
-> 
-
-But they have it as this is current spirit in verbs.
-
->> As this is currently the spirit of modify_xxx verbs in both user and kernel,
->> we may stay with that and consider this change for verbs2.0 all around when
->> it will come.
-> 
-> Well, there seem to be quite a lot of new API proposals now, and
-> stuffing each of them through some goofy comp_mask or attr_mask thing
-> seems like it is going to create a huge complex mess..
-
-I don't agree to above statement, attr_mask is well defined and easy to 
-be used in modify_xxx verbs. It can clearly mark which attributes are 
-going to be modified similar to some flags attribute.
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBQYXZlbCBTaGlsb3Zza3kgW21h
+aWx0bzpwaWFzdHJ5eXlAZ21haWwuY29tXQ0KPiBTZW50OiBXZWRuZXNkYXksIE5vdmVtYmVyIDEs
+IDIwMTcgOTo1MCBBTQ0KPiBUbzogTG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+DQo+IENj
+OiBTdGV2ZSBGcmVuY2ggPHNmcmVuY2hAc2FtYmEub3JnPjsgbGludXgtY2lmcyA8bGludXgtDQo+
+IGNpZnNAdmdlci5rZXJuZWwub3JnPjsgc2FtYmEtdGVjaG5pY2FsIDxzYW1iYS10ZWNobmljYWxA
+bGlzdHMuc2FtYmEub3JnPjsNCj4gS2VybmVsIE1haWxpbmcgTGlzdCA8bGludXgta2VybmVsQHZn
+ZXIua2VybmVsLm9yZz47IGxpbnV4LQ0KPiByZG1hQHZnZXIua2VybmVsLm9yZzsgVG9tIFRhbHBl
+eSA8dHRhbHBleUBtaWNyb3NvZnQuY29tPjsgTWF0dGhldw0KPiBXaWxjb3ggPG1hd2lsY294QG1p
+Y3Jvc29mdC5jb20+OyBTdGVwaGVuIEhlbW1pbmdlcg0KPiA8c3RoZW1taW5AbWljcm9zb2Z0LmNv
+bT47IExvbmcgTGkgPGxvbmdsaUBtaWNyb3NvZnQuY29tPg0KPiBTdWJqZWN0OiBSZTogW1BhdGNo
+IHY1IDE5LzIxXSBDSUZTOiBTTUJEOiBSZWFkIGNvcnJlY3QgcmV0dXJuZWQgZGF0YSBsZW5ndGgN
+Cj4gZm9yIFJETUEgd3JpdGUgKFNNQiByZWFkKSBJL08NCj4gDQo+IDIwMTctMTAtMTggMTY6MDkg
+R01ULTA3OjAwIExvbmcgTGkgPGxvbmdsaUBleGNoYW5nZS5taWNyb3NvZnQuY29tPjoNCj4gPiBG
+cm9tOiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNvbT4NCj4gPg0KPiA+IFRoaXMgcGF0Y2gg
+aXMgZm9yIHByZXBhcmluZyB1cHBlciBsYXllciBkb2luZyBTTUIgcmVhZCB2aWEgUkRNQSB3cml0
+ZS4NCj4gPg0KPiA+IFdoZW4gUkRNQSB3cml0ZSBpcyB1c2VkIGZvciBTTUIgcmVhZCwgdGhlIHJl
+dHVybmVkIGRhdGEgbGVuZ3RoIGlzIGluDQo+ID4gRGF0YVJlbWFpbmluZyBpbiB0aGUgcmVzcG9u
+c2UgcGFja2V0LiBSZWFkaW5nIGl0IHByb3Blcmx5IGJ5IGFkZGluZyBhDQo+ID4gcGFyYW1ldGVy
+IHRvIHNwZWNpZml5IHdoZXJlIHRoZSByZXR1cm5lZCBkYXRhIGxlbmd0aCBpcy4NCj4gPg0KPiA+
+IEFkZCB0aGUgZGVmaXRpb24gZm9yIG1lbW9yeSByZWdpc3RyYXRpb24gdG8gd2RhdGEgYW5kIHJl
+dHVybiB0aGUNCj4gPiBjb3JyZWN0IGxlbmd0aCBiYXNlZCBvbiBpZiBSRE1BIHdyaXRlIGlzIHVz
+ZWQuDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNv
+bT4NCj4gPiAtLS0NCj4gPiAgZnMvY2lmcy9jaWZzZ2xvYi5oIHwgMTMgKysrKysrKysrKystLSAg
+ZnMvY2lmcy9jaWZzc21iLmMgIHwgIDcNCj4gPiArKysrKystICBmcy9jaWZzL3NtYjFvcHMuYyAg
+fCAgNiArKysrKy0gIGZzL2NpZnMvc21iMm9wcy5jICB8IDEyDQo+ID4gKysrKysrKysrKy0tDQo+
+ID4gIDQgZmlsZXMgY2hhbmdlZCwgMzIgaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkNCj4g
+Pg0KPiA+IGRpZmYgLS1naXQgYS9mcy9jaWZzL2NpZnNnbG9iLmggYi9mcy9jaWZzL2NpZnNnbG9i
+LmggaW5kZXgNCj4gPiAyYWU3ZDAyLi5kZGY4M2Q4IDEwMDY0NA0KPiA+IC0tLSBhL2ZzL2NpZnMv
+Y2lmc2dsb2IuaA0KPiA+ICsrKyBiL2ZzL2NpZnMvY2lmc2dsb2IuaA0KPiA+IEBAIC0yMjgsOCAr
+MjI4LDE0IEBAIHN0cnVjdCBzbWJfdmVyc2lvbl9vcGVyYXRpb25zIHsNCj4gPiAgICAgICAgIF9f
+dTY0ICgqZ2V0X25leHRfbWlkKShzdHJ1Y3QgVENQX1NlcnZlcl9JbmZvICopOw0KPiA+ICAgICAg
+ICAgLyogZGF0YSBvZmZzZXQgZnJvbSByZWFkIHJlc3BvbnNlIG1lc3NhZ2UgKi8NCj4gPiAgICAg
+ICAgIHVuc2lnbmVkIGludCAoKnJlYWRfZGF0YV9vZmZzZXQpKGNoYXIgKik7DQo+ID4gLSAgICAg
+ICAvKiBkYXRhIGxlbmd0aCBmcm9tIHJlYWQgcmVzcG9uc2UgbWVzc2FnZSAqLw0KPiA+IC0gICAg
+ICAgdW5zaWduZWQgaW50ICgqcmVhZF9kYXRhX2xlbmd0aCkoY2hhciAqKTsNCj4gPiArICAgICAg
+IC8qDQo+ID4gKyAgICAgICAgKiBEYXRhIGxlbmd0aCBmcm9tIHJlYWQgcmVzcG9uc2UgbWVzc2Fn
+ZQ0KPiA+ICsgICAgICAgICogV2hlbiBpbl9yZW1haW5pbmcgaXMgdHJ1ZSwgdGhlIHJldHVybmVk
+IGRhdGEgbGVuZ3RoIGlzIGluDQo+ID4gKyAgICAgICAgKiBtZXNzYWdlIGZpZWxkIERhdGFSZW1h
+aW5pbmcgZm9yIG91dC1vZi1iYW5kIGRhdGEgcmVhZCAoZS5nDQo+IHRocm91Z2gNCj4gPiArICAg
+ICAgICAqIE1lbW9yeSBSZWdpc3RyYXRpb24gUkRNQSB3cml0ZSBpbiBTTUJEKS4NCj4gPiArICAg
+ICAgICAqIE90aGVyd2lzZSwgdGhlIHJldHVybmVkIGRhdGEgbGVuZ3RoIGlzIGluIG1lc3NhZ2Ug
+ZmllbGQgRGF0YUxlbmd0aC4NCj4gPiArICAgICAgICAqLw0KPiA+ICsgICAgICAgdW5zaWduZWQg
+aW50ICgqcmVhZF9kYXRhX2xlbmd0aCkoY2hhciAqLCBib29sIGluX3JlbWFpbmluZyk7DQo+ID4g
+ICAgICAgICAvKiBtYXAgc21iIHRvIGxpbnV4IGVycm9yICovDQo+ID4gICAgICAgICBpbnQgKCpt
+YXBfZXJyb3IpKGNoYXIgKiwgYm9vbCk7DQo+ID4gICAgICAgICAvKiBmaW5kIG1pZCBjb3JyZXNw
+b25kaW5nIHRvIHRoZSByZXNwb25zZSBtZXNzYWdlICovIEBADQo+ID4gLTExNDgsNiArMTE1NCw5
+IEBAIHN0cnVjdCBjaWZzX3JlYWRkYXRhIHsNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgIHN0cnVjdCBjaWZzX3JlYWRkYXRhICpyZGF0YSwNCj4gPiAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgIHN0cnVjdCBpb3ZfaXRlciAqaXRlcik7DQo+ID4gICAgICAgICBzdHJ1
+Y3Qga3ZlYyAgICAgICAgICAgICAgICAgICAgIGlvdlsyXTsNCj4gPiArI2lmZGVmIENPTkZJR19D
+SUZTX1NNQl9ESVJFQ1QNCj4gPiArICAgICAgIHN0cnVjdCBzbWJkX21yICAgICAgICAgICAgICAg
+ICAgKm1yOw0KPiA+ICsjZW5kaWYNCj4gPiAgICAgICAgIHVuc2lnbmVkIGludCAgICAgICAgICAg
+ICAgICAgICAgcGFnZXN6Ow0KPiA+ICAgICAgICAgdW5zaWduZWQgaW50ICAgICAgICAgICAgICAg
+ICAgICB0YWlsc3o7DQo+ID4gICAgICAgICB1bnNpZ25lZCBpbnQgICAgICAgICAgICAgICAgICAg
+IGNyZWRpdHM7DQo+ID4gZGlmZiAtLWdpdCBhL2ZzL2NpZnMvY2lmc3NtYi5jIGIvZnMvY2lmcy9j
+aWZzc21iLmMgaW5kZXgNCj4gPiAwOGZmNTZhLi5hMzQzZGI0IDEwMDY0NA0KPiA+IC0tLSBhL2Zz
+L2NpZnMvY2lmc3NtYi5jDQo+ID4gKysrIGIvZnMvY2lmcy9jaWZzc21iLmMNCj4gPiBAQCAtMTUz
+Myw4ICsxNTMzLDEzIEBAIGNpZnNfcmVhZHZfcmVjZWl2ZShzdHJ1Y3QgVENQX1NlcnZlcl9JbmZv
+DQo+ICpzZXJ2ZXIsIHN0cnVjdCBtaWRfcV9lbnRyeSAqbWlkKQ0KPiA+ICAgICAgICAgICAgICAg
+ICAgcmRhdGEtPmlvdlswXS5pb3ZfYmFzZSwgc2VydmVyLT50b3RhbF9yZWFkKTsNCj4gPg0KPiA+
+ICAgICAgICAgLyogaG93IG11Y2ggZGF0YSBpcyBpbiB0aGUgcmVzcG9uc2U/ICovDQo+ID4gLSAg
+ICAgICBkYXRhX2xlbiA9IHNlcnZlci0+b3BzLT5yZWFkX2RhdGFfbGVuZ3RoKGJ1Zik7DQo+ID4g
+KyNpZmRlZiBDT05GSUdfQ0lGU19TTUJfRElSRUNUDQo+ID4gKyAgICAgICBkYXRhX2xlbiA9IHNl
+cnZlci0+b3BzLT5yZWFkX2RhdGFfbGVuZ3RoKGJ1ZiwgcmRhdGEtPm1yKTsNCj4gPiArICAgICAg
+IGlmICghcmRhdGEtPm1yICYmIChkYXRhX29mZnNldCArIGRhdGFfbGVuID4gYnVmbGVuKSkgeyAj
+ZWxzZQ0KPiA+ICsgICAgICAgZGF0YV9sZW4gPSBzZXJ2ZXItPm9wcy0+cmVhZF9kYXRhX2xlbmd0
+aChidWYsIGZhbHNlKTsNCj4gPiAgICAgICAgIGlmIChkYXRhX29mZnNldCArIGRhdGFfbGVuID4g
+YnVmbGVuKSB7DQo+ID4gKyNlbmRpZg0KPiA+ICAgICAgICAgICAgICAgICAvKiBkYXRhX2xlbiBp
+cyBjb3JydXB0IC0tIGRpc2NhcmQgZnJhbWUgKi8NCj4gPiAgICAgICAgICAgICAgICAgcmRhdGEt
+PnJlc3VsdCA9IC1FSU87DQo+ID4gICAgICAgICAgICAgICAgIHJldHVybiBjaWZzX3JlYWR2X2Rp
+c2NhcmQoc2VydmVyLCBtaWQpOyBkaWZmIC0tZ2l0DQo+ID4gYS9mcy9jaWZzL3NtYjFvcHMuYyBi
+L2ZzL2NpZnMvc21iMW9wcy5jIGluZGV4IGE3MjNkZjMuLmI3MThiYjggMTAwNjQ0DQo+ID4gLS0t
+IGEvZnMvY2lmcy9zbWIxb3BzLmMNCj4gPiArKysgYi9mcy9jaWZzL3NtYjFvcHMuYw0KPiA+IEBA
+IC04Nyw5ICs4NywxMyBAQCBjaWZzX3JlYWRfZGF0YV9vZmZzZXQoY2hhciAqYnVmKSAgfQ0KPiA+
+DQo+ID4gIHN0YXRpYyB1bnNpZ25lZCBpbnQNCj4gPiAtY2lmc19yZWFkX2RhdGFfbGVuZ3RoKGNo
+YXIgKmJ1ZikNCj4gPiArY2lmc19yZWFkX2RhdGFfbGVuZ3RoKGNoYXIgKmJ1ZiwgYm9vbCBpbl9y
+ZW1haW5pbmcpDQo+ID4gIHsNCj4gPiAgICAgICAgIFJFQURfUlNQICpyc3AgPSAoUkVBRF9SU1Ag
+KilidWY7DQo+ID4gKyAgICAgICBpZiAoaW5fcmVtYWluaW5nKSB7DQo+ID4gKyAgICAgICAgICAg
+ICAgIGNpZnNfZGJnKFZGUywgIkludmFsaWQgU01CMSBjYWxsaW5nIHBhdGgsIGNoZWNrDQo+ID4g
+KyBjb2RlXG4iKTsNCj4gDQo+IEkgd291bGQgc3VnZ2VzdCB0byBkbyBXQVJOX09OKDEpIGluc3Rl
+YWQuDQoNCkkgd2lsbCBtYWtlIHRoZSBjaGFuZ2UuDQoNCj4gDQo+ID4gKyAgICAgICAgICAgICAg
+IHJldHVybiAwOw0KPiA+ICsgICAgICAgfQ0KPiA+ICAgICAgICAgcmV0dXJuIChsZTE2X3RvX2Nw
+dShyc3AtPkRhdGFMZW5ndGhIaWdoKSA8PCAxNikgKw0KPiA+ICAgICAgICAgICAgICAgIGxlMTZf
+dG9fY3B1KHJzcC0+RGF0YUxlbmd0aCk7ICB9DQo+IA0KPiANCj4gLS0NCj4gQmVzdCByZWdhcmRz
+LA0KPiBQYXZlbCBTaGlsb3Zza3kNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
