@@ -1,52 +1,57 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next 00/16] Flow counters support
-Date: Wed, 1 Nov 2017 15:16:29 -0600
-Message-ID: <20171101211629.GA18874@ziepe.ca>
-References: <20171025151734.GA15557@obsidianresearch.com>
- <AM6PR0502MB3783A1186AA0ABDCCD5359AEBD5A0@AM6PR0502MB3783.eurprd05.prod.outlook.com>
- <20171027155955.GA15922@obsidianresearch.com>
- <CAFgAxU-UcRapsoRn3hNUn27xgY370gUJ+WWE4URBq84ufkCXtA@mail.gmail.com>
- <20171029180019.GE4488@ziepe.ca>
- <CAFgAxU_CMxQ616wBd-vkvyJ905ndLHrabmWtJ-Ye_hgSwWqiag@mail.gmail.com>
- <20171101181807.GJ1030@ziepe.ca>
- <CAFgAxU-DsOr9T9P6gqvZ9AviE45_34vZ1WUgUehmF-kb2j8JtQ@mail.gmail.com>
- <20171101190119.GL1030@ziepe.ca>
- <CAFgAxU9FZQC3JC6sEjB9W3YqHyF5StJ8_=mDQsF0eCWr9010hw@mail.gmail.com>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 0/3] Fix request completion holes
+Date: Thu, 2 Nov 2017 00:23:01 +0200
+Message-ID: <553a6a6a-2a0e-4468-781c-f9976e231508@mellanox.com>
+References: <1509440122-1190-1-git-send-email-sagi@grimberg.me>
+ <8abcde91-9150-2982-3900-078619bcdac0@mellanox.com>
+ <a950a671-22a1-432c-555e-8309c8a64a88@grimberg.me>
+ <d9dcdb05-d001-53d8-7ed7-5fafc1709f4a@mellanox.com>
+ <ae5a6be3-f9c3-9926-ab0d-48b0a99cdb35@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1255"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAFgAxU9FZQC3JC6sEjB9W3YqHyF5StJ8_=mDQsF0eCWr9010hw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <ae5a6be3-f9c3-9926-ab0d-48b0a99cdb35-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: he
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Rosenbaum <alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, idanb <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 1, 2017 at 1:46 PM, Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> Then I think my proposed API makes the most sense overall since it
->> captures this use model as well, even if mlx currently does not support
->> this use model for flow counters.
 
-> it will force the kernel syscall on each modify, which is something
-> that will limit the usage at scale.
 
-No, it doesn't force that. As we've talked about the driver should
-book-keep in user space as required.
+On 11/1/2017 7:26 PM, Sagi Grimberg wrote:
+> 
+>> (4) Send signal with invalidation signal w/o moderation 3.4M / 4.6M
+> 
+> What about remote invalidation? That is how it will usually be used...
 
-> doing the bookkeeping in user space will require a trigger to commit
-> this to kernel/HW, which can be the modify() or an additional API.
+We haven't tested remote invalidation yet.
+> 
+>> (5) Send signal with invalidation signal w/ moderation 6.2M / 11.8M
+> 
+> What about latency effects? Any noticeable change?
+> 
+>> I understand that (1), (2) and (3) are invalid, the performance 
+>> reduction induce by mode (4) need to motivate us to enable cqe/event 
+>> moderation as soon as possible.
+> 
+> Well good, it means you can help test my adaptive coalescing code :)
 
-The trigger to push things to the kernel is something like creating a
-flow steering object.
+Of course.
 
-The driver can bundle the create of the counter object, and the send
-of the counters to add, in with the syscall for creating the flow
-steering object.
+> 
+> May I ask what moderation parameters did you use? it will be useful
+> to pin down the profile levels the adaptive moderator would bounce
+> between.
 
-Same argument for QP, similar argument for attaching to an existing
-QP.
+Sure, I mentioned the params earlier (cq_completions=32 cq_timeout=16).
 
-Jason
+Sagi,
+As we can see from our results, the changes made in this patchset must 
+be pushed together with some cq moderation (adaptive or manual option 
+meanwhile). In the testing, I created a module parameter but we can 
+create a different option for the user to configure.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
