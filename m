@@ -1,57 +1,52 @@
-From: Long Li <longli@microsoft.com>
-Subject: RE: [Patch v5 02/21] CIFS: SMBD: Establish SMB Direct connection
-Date: Wed, 1 Nov 2017 18:48:39 +0000
-Message-ID: <MWHPR21MB01908A0749954B39528DCBB3CE5F0@MWHPR21MB0190.namprd21.prod.outlook.com>
-References: <20171018230920.21042-1-longli@exchange.microsoft.com>
- <20171018230920.21042-3-longli@exchange.microsoft.com>
- <CAKywueQaUdUZaKX1_paQgPAorwRZ=Xv_7yyeFEgyTcYMrw3O-g@mail.gmail.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: How far back does rdma-core X supports the kernel Y?
+Date: Wed, 1 Nov 2017 12:53:19 -0600
+Message-ID: <20171101185319.GK1030@ziepe.ca>
+References: <BN3PR07MB2578883C85DD3855C496F367F85F0@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <20171101163915.GB1030@ziepe.ca>
+ <287a10c2-15a7-0748-c59e-3f084e7538f4@dev.mellanox.co.il>
+ <20171101180001.GH1030@ziepe.ca>
+ <3424c3a1-22cb-7330-81d6-0e1bf45ab755@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAKywueQaUdUZaKX1_paQgPAorwRZ=Xv_7yyeFEgyTcYMrw3O-g@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Shilovsky <piastryyy@gmail.com>
-Cc: Steve French <sfrench@samba.org>, linux-cifs <linux-cifs@vger.kernel.org>, samba-technical <samba-technical@lists.samba.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Tom Talpey <ttalpey@microsoft.com>, Matthew Wilcox <mawilcox@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3424c3a1-22cb-7330-81d6-0e1bf45ab755-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUGF2ZWwgU2hpbG92c2t5
-IFttYWlsdG86cGlhc3RyeXl5QGdtYWlsLmNvbV0NCj4gU2VudDogV2VkbmVzZGF5LCBOb3ZlbWJl
-ciAxLCAyMDE3IDEwOjE5IEFNDQo+IFRvOiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNvbT4N
-Cj4gQ2M6IFN0ZXZlIEZyZW5jaCA8c2ZyZW5jaEBzYW1iYS5vcmc+OyBsaW51eC1jaWZzIDxsaW51
-eC0NCj4gY2lmc0B2Z2VyLmtlcm5lbC5vcmc+OyBzYW1iYS10ZWNobmljYWwgPHNhbWJhLXRlY2hu
-aWNhbEBsaXN0cy5zYW1iYS5vcmc+Ow0KPiBLZXJuZWwgTWFpbGluZyBMaXN0IDxsaW51eC1rZXJu
-ZWxAdmdlci5rZXJuZWwub3JnPjsgbGludXgtDQo+IHJkbWFAdmdlci5rZXJuZWwub3JnOyBUb20g
-VGFscGV5IDx0dGFscGV5QG1pY3Jvc29mdC5jb20+OyBNYXR0aGV3DQo+IFdpbGNveCA8bWF3aWxj
-b3hAbWljcm9zb2Z0LmNvbT47IFN0ZXBoZW4gSGVtbWluZ2VyDQo+IDxzdGhlbW1pbkBtaWNyb3Nv
-ZnQuY29tPjsgTG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+DQo+IFN1YmplY3Q6IFJlOiBb
-UGF0Y2ggdjUgMDIvMjFdIENJRlM6IFNNQkQ6IEVzdGFibGlzaCBTTUIgRGlyZWN0IGNvbm5lY3Rp
-b24NCj4gDQo+IDIwMTctMTAtMTggMTY6MDkgR01ULTA3OjAwIExvbmcgTGkgPGxvbmdsaUBleGNo
-YW5nZS5taWNyb3NvZnQuY29tPjoNCj4gPiBGcm9tOiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0
-LmNvbT4NCj4gPg0KPiA+IEFkZCBjb2RlIHRvIGltcGxlbWVudCB0aGUgY29yZSBmdW5jdGlvbnMg
-dG8gZXN0YWJsaXNoIGEgU01CIERpcmVjdA0KPiBjb25uZWN0aW9uLg0KPiA+DQo+ID4gMS4gRXN0
-YWJsaXNoIGFuIFJETUEgY29ubmVjdGlvbiB0byBTTUIgc2VydmVyLg0KPiA+IDIuIE5lZ290aWF0
-ZSBhbmQgc2V0dXAgU01CIERpcmVjdCBwcm90b2NvbC4NCj4gPiAzLiBJbXBsZW1lbnQgaWRsZSBj
-b25uZWN0aW9uIHRpbWVyIGFuZCBjcmVkaXQgbWFuYWdlbWVudC4NCj4gPg0KPiA+IFNNQiBEaXJl
-Y3QgaXMgZW5hYmxlZCBieSBzZXR0aW5nIENPTkZJR19DSUZTX1NNQl9ESVJFQ1QuDQo+ID4NCj4g
-PiBBZGQgdG8gS2NvbmZpZyBhbmQgTWFrZWZpbGUgdG8gZW5hYmxlIGJ1aWxkaW5nIFNNQiBEaXJl
-Y3QuDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNv
-bT4NCj4gPiAtLS0NCj4gPiAgZnMvY2lmcy9LY29uZmlnICAgICB8ICAgIDcgKw0KPiA+ICBmcy9j
-aWZzL01ha2VmaWxlICAgIHwgICAgMiArDQo+ID4gIGZzL2NpZnMvc21iZGlyZWN0LmMgfCAxNTc2
-DQo+ID4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-DQo+ID4gIGZzL2NpZnMvc21iZGlyZWN0LmggfCAgMjY1ICsrKysrKysrKw0KPiA+ICA0IGZpbGVz
-IGNoYW5nZWQsIDE4NTAgaW5zZXJ0aW9ucygrKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2ZzL2Np
-ZnMvS2NvbmZpZyBiL2ZzL2NpZnMvS2NvbmZpZyBpbmRleCBmNzI0MzYxLi5jYjdkYjhkDQo+ID4g
-MTAwNjQ0DQo+ID4gLS0tIGEvZnMvY2lmcy9LY29uZmlnDQo+ID4gKysrIGIvZnMvY2lmcy9LY29u
-ZmlnDQo+ID4gQEAgLTE5MSw2ICsxOTEsMTMgQEAgY29uZmlnIENJRlNfU01CMzExDQo+ID4gICAg
-ICAgICAgIFRoaXMgZGlhbGVjdCBpbmNsdWRlcyBpbXByb3ZlZCBzZWN1cml0eSBuZWdvdGlhdGlv
-biBmZWF0dXJlcy4NCj4gPiAgICAgICAgICAgSWYgdW5zdXJlLCBzYXkgTg0KPiA+DQo+ID4gK2Nv
-bmZpZyBDSUZTX1NNQl9ESVJFQ1QNCj4gPiArICAgICAgIGJvb2wgIlNNQiBEaXJlY3Qgc3VwcG9y
-dCAoRXhwZXJpbWVudGFsKSINCj4gPiArICAgICAgIGRlcGVuZHMgb24gQ0lGUyAmJiBJTkZJTklC
-QU5EDQo+ID4gKyAgICAgICBoZWxwDQo+ID4gKyAgICAgICAgIEVuYWJsZXMgU01CIERpcmVjdCBl
-eHBlcmltZW50YWwgc3VwcG9ydCBmb3IgU01CIDMuMCwgMy4wMiBhbmQgMy4xLjEuDQo+ID4gKyAg
-ICAgICAgIFNNQiBEaXJlY3QgYWxsb3dzIHRyYW5zZmVycmluZyBTTUIgcGFja2V0cyBvdmVyIFJE
-TUEuDQo+ID4gKw0KPiANCj4gUGxlYXNlIGFkZCAiSWYgdW5zdXJlLCBzYXkgTi4iDQoNClN1cmUs
-IHdpbGwgbWFrZSB0aGUgY2hhbmdlLg0KDQo+IA0KPiAtLQ0KPiBCZXN0IHJlZ2FyZHMsDQo+IFBh
-dmVsIFNoaWxvdnNreQ0K
+On Wed, Nov 01, 2017 at 08:22:37PM +0200, Yishai Hadas wrote:
+> On 11/1/2017 8:00 PM, Jason Gunthorpe wrote:
+> >>>          if (attr_mask & ~((1ULL << (IBV_QP_DEST_QPN + 1)) - 1))
+> >>
+> >>The above rdma-core code is correct, look at verbs.h:
+> >>IBV_QP_DEST_QPN = 1 << 20,
+> >
+> >Okay, then it should be
+> >
+> >  if (attr_mask & ~(IB_QP_RATE_LIMIT - 1))
+> >
+> 
+> Why the library should support values that were never exposed in verbs.h ?
+
+I think Ram is explaining that the kernel rdma_cm provides the
+attr_mask to use with modify_qp, and that the 4.3 kernel sets the
+three now reserved bits. The expectation is that user space will flow
+those bits and values from the kernel rdma_cm interface back to
+uverbs.
+
+Userspace never looks at the attr_mask, and it does not matter that
+the values were never in verbs.h.
+
+rdma-core is expected to work on 4.3, so if 4.3 is using this kind of
+path, we cannot block it in userspace.
+
+At least, I think that is what Ram is saying.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
