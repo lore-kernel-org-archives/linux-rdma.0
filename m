@@ -1,66 +1,45 @@
-From: Zohar Ben Aharon <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: Perftest fails when declaring support for MW_TYPE_2A
-Date: Wed, 1 Nov 2017 15:46:50 +0000
-Message-ID: <DB3PR0502MB401294BE74C3F399ABFC9064A95F0@DB3PR0502MB4012.eurprd05.prod.outlook.com>
-References: <CY1PR0701MB2012478CF41D9E2292887ABC885F0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH RFC] rdma/ib: Add trace point macros to display
+ human-readable values
+Date: Wed, 1 Nov 2017 15:59:47 +0000
+Message-ID: <1509551986.2530.20.camel@wdc.com>
+References: <20171030215809.31286.46685.stgit@manet.1015granger.net>
+         <20171101062743.GO16127@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CY1PR0701MB2012478CF41D9E2292887ABC885F0-UpKza+2NMNLHMJvQ0dyT705OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <20171101062743.GO16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Content-Language: en-US
+Content-ID: <B0AACECF9F44694781F9641E178C0A41-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "lunnys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <lunnys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ido Shamay <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: "rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org" <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "corbet-T1hC0tSOHrs@public.gmane.org" <corbet-T1hC0tSOHrs@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks Michal ,
-
-Could you provide the package you were using ?=20
-Case you working on our git , Do you know in which it was broken ?=20
-
-Could you also add more information regarding the driver and device you wer=
-e using, and the command that you try to execute and caused that clash ?=20
-
-
-
-Thanks,=20
-
-Zohar=20
-
-
------Original Message-----
-From: Kalderon, Michal [mailto:Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org]=20
-Sent: Wednesday, November 1, 2017 5:36 PM
-To: Zohar Ben Aharon <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>;=
- lunnys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; Ido Shamay <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Elior, Ariel <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; leon=
-@kernel.org; Amrani, Ram <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: Perftest fails when declaring support for MW_TYPE_2A
-
-Hi Mellanox/ Accelio,=20
-
-There is a very old commit in perftest 96050b8b that assumes bit 23 in devi=
-ce cap flags means there is driver support for contiguous buffer allocation=
- of user data
-
-There is a clash with the following device capability defined in libibverbs=
-/verbs.h:=20
-#define IBV_DEVICE_MEM_WINDOW_TYPE_2A =3D 1 << 23
-
-Once driver advertises memory window type 2a capability, the perftest appli=
-cation fails.=20
-
-I found that IB_DEVICE_MR_ALLOCATE is defined as bit 23 for freebsd git hub=
- and accelio github And then I saw there are a lot of clashes between ib_ve=
-rbs + upstream kernel
-
-Clash between the two needs to be resolved.=20
-Perftest wise: Perhaps an additional parameter to perftest ?=20
-
-Please advise,
-Thanks,
-Michal
+T24gV2VkLCAyMDE3LTExLTAxIGF0IDA4OjI3ICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IEJhcnQsIFN0ZXZlDQo+IA0KPiBZb3UgYXR0ZW5kZWQgdGhlIE1TIHRyYWNrLCBhbmQgZm9y
+IHRoZSByZXN0IG9mIHVzLCB0aGUgcXVvdGUgYmVsb3cNCj4gc291bmRzIGEgbGl0dGxlIGJpdCBj
+cnlwdGljLiBEb2VzIHRoZSBxdW90ZSBiZWxvdyBtZWFuIHRoYXQgQ2h1Y2sncw0KPiBwcm9wb3Nh
+bCBpcyBuby1nbz8NCj4gDQo+IEZyb20gTFdOLm5ldCAiQW5vdGhlciBhdHRlbXB0IHRvIGFkZHJl
+c3MgdGhlIHRyYWNlcG9pbnQgQUJJIHByb2JsZW0iIFsxXQ0KPiANCj4gIlRoZSBzb2x1dGlvbiB0
+aGF0IHdhcyBhcnJpdmVkIGF0IGZvciBub3csIGFzIHJlbGF0ZWQgYnkgVG9ydmFsZHMsDQo+ICBp
+cyB0byBob2xkIG9mZiBvbiBhZGRpbmcgZXhwbGljaXQgdHJhY2Vwb2ludHMgdG8gdGhlIGtlcm5l
+bC4gSW5zdGVhZCwNCj4gIHN1cHBvcnQgd2lsbCBiZSBhZGRlZCB0byBtYWtlIGl0IGVhc3kgZm9y
+IGFuIGFwcGxpY2F0aW9uIHRvIGF0dGFjaCBhDQo+ICBCUEYgc2NyaXB0IHRvIGFueSBmdW5jdGlv
+biBpbiB0aGUga2VybmVsLCB3aXRoIGFjY2VzcyB0byB0aGF0IGZ1bmN0aW9uJ3MNCj4gIGFyZ3Vt
+ZW50cy4iDQo+IA0KPiBbMV0gaHR0cHM6Ly9sd24ubmV0L0FydGljbGVzLzczNzUzMC8NCg0KV2hh
+dCBJIHJlbWVtYmVyIGlzIHRoYXQgTGludXMgZG9lcyBub3QgcmVxdWlyZSB1cyB0byBhdm9pZCBi
+cmVha2luZyB1c2VyDQpzcGFjZSBhcHBsaWNhdGlvbnMgdGhhdCB1c2UgdHJhY2Vwb2ludHMuIFBv
+d2VydG9wIGhvd2V2ZXIgaXMgYW4gZXhjZXB0aW9uDQp0byB0aGlzIHJ1bGUuIEFsdGhvdWdoIGl0
+IHVzZXMgdHJhY2Vwb2ludHMsIHdlIG11c3Qgbm90IGJyZWFrIGl0LiBJIGFsc28NCnJlbWVtYmVy
+IHRoYXQgTGludXMgbm90aWNlZCB0aGF0IHRoZSBwdXJwb3NlIG9mIG1hbnkgdHJhY2Vwb2ludHMg
+aXMgdG8NCmFsbG93IHVzZXJzIHRvIHRyYWNlIGEgZnVuY3Rpb24gYW5kIGl0cyBhcmd1bWVudHMu
+IExpbnVzIHdhbnRzIGEgYmV0dGVyDQphcHByb2FjaCBmb3IgdHJhY2luZyBrZXJuZWwgZnVuY3Rp
+b25zIHRoYW4gYWRkaW5nIGFuIGV4cGxpY2l0IHRyYWNlcG9pbnQNCnRvIGVhY2gga2VybmVsIGZ1
+bmN0aW9uLiBNYXliZSBJIHdhc24ndCBsaXN0ZW5pbmcgY2FyZWZ1bGx5IGVub3VnaCBidXQgSQ0K
+aGF2ZW4ndCBoZWFyZCBMaW51cyBzYXlpbmcgdGhhdCB3ZSB3b3VsZCBub3QgYmUgYWxsb3dlZCB0
+byBhZGQgbmV3DQp0cmFjZXBvaW50cy4NCg0KQmFydC4=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
