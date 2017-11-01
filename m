@@ -1,216 +1,678 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 0/3] Fix request completion holes
-Date: Wed, 1 Nov 2017 18:09:05 +0200
-Message-ID: <510ae9b0-4aa4-35ee-58ff-50d58d358fbb@mellanox.com>
-References: <1509440122-1190-1-git-send-email-sagi@grimberg.me>
- <8abcde91-9150-2982-3900-078619bcdac0@mellanox.com>
- <a950a671-22a1-432c-555e-8309c8a64a88@grimberg.me>
- <d9dcdb05-d001-53d8-7ed7-5fafc1709f4a@mellanox.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-core 3/3] libhns: Fix endian format of payload and
+ immediate
+Date: Wed, 1 Nov 2017 10:13:28 -0600
+Message-ID: <20171101161328.GB7815@ziepe.ca>
+References: <1509530440-164400-1-git-send-email-oulijun@huawei.com>
+ <1509530440-164400-4-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-        boundary="------------74F290E53DE0F4EB7F8D6B99"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <d9dcdb05-d001-53d8-7ed7-5fafc1709f4a-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: he
+Content-Disposition: inline
+In-Reply-To: <1509530440-164400-4-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: idanb <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---------------74F290E53DE0F4EB7F8D6B99
-Content-Type: text/plain; charset="windows-1255"; format=flowed
-Content-Transfer-Encoding: 7bit
+On Wed, Nov 01, 2017 at 06:00:40PM +0800, Lijun Ou wrote:
+> @@ -385,7 +385,7 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *cq,
+>  		case HNS_ROCE_RECV_OP_RDMA_WRITE_IMM:
+>  			wc->opcode = IBV_WC_RECV_RDMA_WITH_IMM;
+>  			wc->wc_flags = IBV_WC_WITH_IMM;
+> -			wc->imm_data = cqe->rkey_immtdata;
+> +			wc->imm_data = be32toh(cqe->rkey_immtdata);
+>  			break;
 
+This can't be right, wc->imm_data is marked be32.
 
+Be aware, getting the swapping correct here is an interoperability
+issue. You should test your device aginst soft roce or mellanox
+hardware to ensure that the immediate data is being transfered
+properly. verbs is setup to require no swap if the hardware DMA's the
+immediate data byte for byte into the CQE.
 
-On 11/1/2017 6:02 PM, idanb wrote:
-> Sagi,
-> 
-> Thanks for you patches, Max and me ran your patches adding completion 
-> signaling for both send (command capsule) and local invalidation request.
-> 
-> The results were significant reduction of IOPs due to interrupts and 
-> completion processing, see below our results for READ/WRITE IOPs (512B, 
-> 64 Jobs):
-> 
-> (1) No send signal and no invalidation signal w/ moderation 7.4M / 11.9M
-> 
-> (2) No send signal and no invalidation signal w/o moderation 7.1M / 8.7M
-> 
-> (3) No send signal with invalidation signal w/o moderation 5.2M / 8.3M
-> 
-> (4) Send signal with invalidation signal w/o moderation 3.4M / 4.6M
-> 
-> (5) Send signal with invalidation signal w/ moderation 6.2M / 11.8M
-> 
-> 
-> I understand that (1), (2) and (3) are invalid, the performance 
-> reduction induce by mode (4) need to motivate us to enable cqe/event 
-> moderation as soon as possible.
-> 
+You need to make hns sparse clean. You can run sparse by installing
+the tool and then doing:
 
-attached the full report we ran with Sagi's patches (+ cq moderation 
-cases with cq_completions=32 cq_timeout=16 + old send signal [once in 
-queue_size/2])
+ mkdr build-sparse
+ cd build-sparse
+ CC=cgcc cmake -GNinja ..
+ ninja
 
---------------74F290E53DE0F4EB7F8D6B99
-Content-Type: text/plain; charset="UTF-8"; name="final_report.log"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename="final_report.log"
+ # See only the warnings from hns:
+ rm ./providers/hns/CMakeFiles/hns-rdmav16.dir/*.o
+ ninja
 
-READ: Signal with moderation
-+++++++++++++++++++++++++++++++
-read (512B, 32 CPUs, 32 jobs, iodepth=128): io=61146MB, bw=3057.2MB/s, iops=6261.9K, runt= 20001msec
-read (1k, 32 CPUs, 32 jobs, iodepth=128) : io=110943MB, bw=5546.1MB/s, iops=5680.2K, runt= 20001msec
-read (2k, 32 CPUs, 32 jobs, iodepth=128): io=163192MB, bw=8159.3MB/s, iops=4177.6K, runt= 20001msec
-read (4k, 32 CPUs, 32 jobs, iodepth=128): io=177120MB, bw=8855.2MB/s, iops=2266.1K, runt= 20002msec
-read (8k, 32 CPUs, 32 jobs, iodepth=128): io=187884MB, bw=9392.9MB/s, iops=1202.3K, runt= 20003msec
-read (16k, 32 CPUs, 32 jobs, iodepth=128): io=190151MB, bw=9505.7MB/s, iops=608359, runt= 20004msec
-read (32k, 32 CPUs, 32 jobs, iodepth=128): io=191209MB, bw=9556.7MB/s, iops=305812, runt= 20008msec
-read (64k, 32 CPUs, 32 jobs, iodepth=128): io=192417MB, bw=9611.8MB/s, iops=153787, runt= 20019msec
-read (512B, 32 CPUs, 64 jobs, iodepth=128): io=34871MB, bw=1743.5MB/s, iops=3570.7K, runt= 20001msec
-read (1k, 32 CPUs, 64 jobs, iodepth=128): io=106594MB, bw=5329.2MB/s, iops=5457.8K, runt= 20002msec
-read (2k, 32 CPUs, 64 jobs, iodepth=128): io=153952MB, bw=7696.9MB/s, iops=3940.8K, runt= 20002msec
-read (4k, 32 CPUs, 64 jobs, iodepth=128): io=171229MB, bw=8560.2MB/s, iops=2191.4K, runt= 20003msec
-read (8k, 32 CPUs, 64 jobs, iodepth=128): io=178982MB, bw=8946.9MB/s, iops=1145.2K, runt= 20005msec
-read (16k, 32 CPUs, 64 jobs, iodepth=128): io=182606MB, bw=9126.2MB/s, iops=584076, runt= 20009msec
-read (32k, 32 CPUs, 64 jobs, iodepth=128): io=183271MB, bw=9157.2MB/s, iops=293028, runt= 20014msec
-read (64k, 32 CPUs, 64 jobs, iodepth=128): io=169174MB, bw=8447.3MB/s, iops=135156, runt= 20027msec
+The basic result should look something like below which you can use as
+a starting point. I made some guesses, eg assuming hns does DMA in little
+endian:
 
-READ: Signal without moderation
-++++++++++++++++++++++++++++++++
-read : io=33410MB, bw=1670.5MB/s, iops=3420.1K, runt= 20001msec
-read : io=66287MB, bw=3314.2MB/s, iops=3393.8K, runt= 20001msec
-read : io=128976MB, bw=6448.5MB/s, iops=3301.7K, runt= 20001msec
-read : io=172651MB, bw=8631.8MB/s, iops=2209.8K, runt= 20002msec
-read : io=181532MB, bw=9076.2MB/s, iops=1161.8K, runt= 20001msec
-read : io=194935MB, bw=9744.9MB/s, iops=623667, runt= 20004msec
-read : io=192299MB, bw=9610.7MB/s, iops=307540, runt= 20009msec
-read : io=192919MB, bw=9635.9MB/s, iops=154173, runt= 20021msec
-read : io=31905MB, bw=1595.2MB/s, iops=3266.1K, runt= 20001msec
-read : io=69284MB, bw=3464.2MB/s, iops=3547.2K, runt= 20001msec
-read : io=146078MB, bw=7303.2MB/s, iops=3739.3K, runt= 20002msec
-read : io=168585MB, bw=8428.4MB/s, iops=2157.6K, runt= 20003msec
-read : io=181224MB, bw=9058.1MB/s, iops=1159.6K, runt= 20005msec
-read : io=184970MB, bw=9244.4MB/s, iops=591638, runt= 20009msec
-read : io=184823MB, bw=9234.8MB/s, iops=295510, runt= 20014msec
-read : io=175313MB, bw=8753.4MB/s, iops=140054, runt= 20028msec
+>From 7056eb6b40e0ee5d44960edfb2e1bd67d74caaee Mon Sep 17 00:00:00 2001
+From: Jason Gunthorpe <jgunthorpe-uk2M96/98Pc@public.gmane.org>
+Date: Wed, 1 Nov 2017 10:08:06 -0600
+Subject: [PATCH] hns: Make the provider sparse clean
 
-READ: No SEND Signal with moderation (with signal on local invalidation)
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-read : io=61968MB, bw=3098.3MB/s, iops=6345.3K, runt= 20001msec
-read : io=112583MB, bw=5628.9MB/s, iops=5763.1K, runt= 20001msec
-read : io=167024MB, bw=8350.9MB/s, iops=4275.7K, runt= 20001msec
-read : io=181638MB, bw=9081.1MB/s, iops=2324.8K, runt= 20002msec
-read : io=185373MB, bw=9267.3MB/s, iops=1186.3K, runt= 20003msec
-read : io=191548MB, bw=9575.6MB/s, iops=612832, runt= 20004msec
-read : io=190085MB, bw=9499.2MB/s, iops=303999, runt= 20009msec
-read : io=192519MB, bw=9616.9MB/s, iops=153868, runt= 20019msec
-read : io=58495MB, bw=2924.6MB/s, iops=5989.6K, runt= 20001msec
-read : io=109628MB, bw=5480.9MB/s, iops=5612.4K, runt= 20002msec
-read : io=156339MB, bw=7816.6MB/s, iops=4002.8K, runt= 20001msec
-read : io=171421MB, bw=8569.9MB/s, iops=2193.9K, runt= 20003msec
-read : io=179565MB, bw=8976.3MB/s, iops=1148.1K, runt= 20005msec
-read : io=182728MB, bw=9132.8MB/s, iops=584495, runt= 20008msec
-read : io=184840MB, bw=9235.2MB/s, iops=295551, runt= 20013msec
-read : io=180544MB, bw=9015.8MB/s, iops=144240, runt= 20027msec
+Assuming the provider works as-is, and runs on a little endian ARM,
+revise the annotations to indicate that the HW uses little endian
+data in the various DMA buffers, and flow the necessary swaps throughout.
 
-READ: No SEND Signal without moderation (with signal on local invalidation)
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-read : io=40289MB, bw=2014.4MB/s, iops=4125.5K, runt= 20001msec
-read : io=78689MB, bw=3934.3MB/s, iops=4028.7K, runt= 20001msec
-read : io=143805MB, bw=7189.1MB/s, iops=3681.3K, runt= 20001msec
-read : io=173558MB, bw=8677.4MB/s, iops=2221.4K, runt= 20002msec
-read : io=186197MB, bw=9308.5MB/s, iops=1191.5K, runt= 20003msec
-read : io=192793MB, bw=9637.8MB/s, iops=616812, runt= 20004msec
-read : io=192399MB, bw=9616.1MB/s, iops=307714, runt= 20008msec
-read : io=194790MB, bw=9731.8MB/s, iops=155707, runt= 20016msec
-read : io=50862MB, bw=2542.2MB/s, iops=5208.3K, runt= 20001msec
-read : io=103616MB, bw=5180.6MB/s, iops=5304.9K, runt= 20001msec
-read : io=150399MB, bw=7519.3MB/s, iops=3849.9K, runt= 20002msec
-read : io=173678MB, bw=8682.2MB/s, iops=2222.7K, runt= 20004msec
-read : io=181481MB, bw=9071.9MB/s, iops=1161.2K, runt= 20005msec
-read : io=186601MB, bw=9326.4MB/s, iops=596884, runt= 20008msec
-read : io=187268MB, bw=9356.9MB/s, iops=299419, runt= 20014msec
-read : io=176620MB, bw=8817.4MB/s, iops=141077, runt= 20031msec
+The htole/letoh swaps are no-op for this platform, which makes the only
+substantive change the handling of imm_data which is now mandatory
+swapped.
 
-Write: Signal with moderation
-+++++++++++++++++++++++++++++++
-write: io=115326MB, bw=5766.2MB/s, iops=11809K, runt= 20001msec
-write: io=148240MB, bw=7411.7MB/s, iops=7589.6K, runt= 20001msec
-write: io=161919MB, bw=8095.6MB/s, iops=4144.1K, runt= 20001msec
-write: io=171162MB, bw=8557.3MB/s, iops=2190.7K, runt= 20002msec
-write: io=199720MB, bw=9984.6MB/s, iops=1278.2K, runt= 20003msec
-write: io=206792MB, bw=10338MB/s, iops=661600, runt= 20004msec
-write: io=209549MB, bw=10474MB/s, iops=335161, runt= 20007msec
-write: io=208180MB, bw=10402MB/s, iops=166427, runt= 20014msec
-write: io=46900MB, bw=2344.1MB/s, iops=4802.4K, runt= 20001msec
-write: io=105243MB, bw=5261.1MB/s, iops=5388.2K, runt= 20001msec
-write: io=160543MB, bw=8026.4MB/s, iops=4109.6K, runt= 20002msec
-write: io=174457MB, bw=8721.2MB/s, iops=2232.7K, runt= 20004msec
-write: io=192598MB, bw=9627.2MB/s, iops=1232.4K, runt= 20004msec
-write: io=201587MB, bw=10076MB/s, iops=644851, runt= 20007msec
-write: io=205567MB, bw=10272MB/s, iops=328693, runt= 20013msec
-write: io=208508MB, bw=10412MB/s, iops=166590, runt= 20026msec
+Signed-off-by: Jason Gunthorpe <jgunthorpe-uk2M96/98Pc@public.gmane.org>
+---
+ CMakeLists.txt                   |   2 +-
+ providers/hns/hns_roce_u.h       |   8 +--
+ providers/hns/hns_roce_u_hw_v1.c |  61 ++++++++++-----------
+ providers/hns/hns_roce_u_hw_v1.h | 114 +++++++++++++++++++--------------------
+ providers/hns/hns_roce_u_hw_v2.c |  37 ++++++-------
+ providers/hns/hns_roce_u_hw_v2.h |  50 ++++++++---------
+ 6 files changed, 137 insertions(+), 135 deletions(-)
 
-Write: Signal without moderation
-+++++++++++++++++++++++++++++++++
-write: io=43445MB, bw=2172.2MB/s, iops=4448.6K, runt= 20001msec
-write: io=93361MB, bw=4667.9MB/s, iops=4779.9K, runt= 20001msec
-write: io=160929MB, bw=8046.6MB/s, iops=4119.6K, runt= 20001msec
-write: io=171522MB, bw=8575.3MB/s, iops=2195.3K, runt= 20002msec
-write: io=198314MB, bw=9914.2MB/s, iops=1269.2K, runt= 20003msec
-write: io=206332MB, bw=10315MB/s, iops=660129, runt= 20004msec
-write: io=207733MB, bw=10383MB/s, iops=332240, runt= 20008msec
-write: io=208141MB, bw=10399MB/s, iops=166379, runt= 20016msec
-write: io=45763MB, bw=2288.2MB/s, iops=4685.9K, runt= 20001msec
-write: io=100083MB, bw=5003.1MB/s, iops=5123.1K, runt= 20001msec
-write: io=159084MB, bw=7953.5MB/s, iops=4072.2K, runt= 20002msec
-write: io=173523MB, bw=8674.5MB/s, iops=2220.7K, runt= 20004msec
-write: io=189560MB, bw=9476.2MB/s, iops=1212.1K, runt= 20004msec
-write: io=199250MB, bw=9958.6MB/s, iops=637344, runt= 20008msec
-write: io=204977MB, bw=10243MB/s, iops=327767, runt= 20012msec
-write: io=208619MB, bw=10417MB/s, iops=166678, runt= 20026msec
-
-Write: No SEND Signal with moderation (with signal on local invalidation)
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-write: io=116784MB, bw=5838.1MB/s, iops=11958K, runt= 20001msec
-write: io=143658MB, bw=7182.6MB/s, iops=7354.1K, runt= 20001msec
-write: io=161343MB, bw=8066.4MB/s, iops=4129.1K, runt= 20002msec
-write: io=170761MB, bw=8537.3MB/s, iops=2185.6K, runt= 20002msec
-write: io=199668MB, bw=9982.5MB/s, iops=1277.8K, runt= 20002msec
-write: io=207307MB, bw=10363MB/s, iops=663248, runt= 20004msec
-write: io=209903MB, bw=10491MB/s, iops=335727, runt= 20007msec
-write: io=208268MB, bw=10406MB/s, iops=166489, runt= 20015msec
-write: io=87286MB, bw=4364.1MB/s, iops=8937.7K, runt= 20001msec
-write: io=145686MB, bw=7283.6MB/s, iops=7458.4K, runt= 20002msec
-write: io=160259MB, bw=8012.2MB/s, iops=4102.3K, runt= 20002msec
-write: io=174527MB, bw=8724.7MB/s, iops=2233.5K, runt= 20004msec
-write: io=193620MB, bw=9679.5MB/s, iops=1238.1K, runt= 20004msec
-write: io=202051MB, bw=10099MB/s, iops=646336, runt= 20007msec
-write: io=206876MB, bw=10337MB/s, iops=330770, runt= 20014msec
-write: io=208138MB, bw=10394MB/s, iops=166302, runt= 20025msec
-
-Write: No SEND Signal without moderation (with signal on local invalidation)
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-write: io=73271MB, bw=3663.4MB/s, iops=7502.6K, runt= 20001msec
-write: io=129638MB, bw=6481.6MB/s, iops=6637.2K, runt= 20001msec
-write: io=161002MB, bw=8049.3MB/s, iops=4121.3K, runt= 20002msec
-write: io=170759MB, bw=8537.1MB/s, iops=2185.5K, runt= 20002msec
-write: io=198565MB, bw=9927.3MB/s, iops=1270.7K, runt= 20002msec
-write: io=207304MB, bw=10363MB/s, iops=663239, runt= 20004msec
-write: io=207251MB, bw=10358MB/s, iops=331468, runt= 20008msec
-write: io=208262MB, bw=10405MB/s, iops=166484, runt= 20015msec
-write: io=81719MB, bw=4085.8MB/s, iops=8367.6K, runt= 20001msec
-write: io=145468MB, bw=7273.2MB/s, iops=7447.6K, runt= 20001msec
-write: io=159924MB, bw=7995.5MB/s, iops=4093.7K, runt= 20002msec
-write: io=174306MB, bw=8713.6MB/s, iops=2230.7K, runt= 20004msec
-write: io=186670MB, bw=9333.3MB/s, iops=1194.7K, runt= 20001msec
-write: io=201011MB, bw=10047MB/s, iops=642978, runt= 20008msec
-write: io=206175MB, bw=10303MB/s, iops=329681, runt= 20012msec
-write: io=208853MB, bw=10430MB/s, iops=166882, runt= 20024msec
-
---------------74F290E53DE0F4EB7F8D6B99--
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5e6f245a563ee4..2dbaaa92ea168f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -433,7 +433,7 @@ if (HAVE_COHERENT_DMA)
+ add_subdirectory(providers/bnxt_re)
+ add_subdirectory(providers/cxgb3) # NO SPARSE
+ add_subdirectory(providers/cxgb4) # NO SPARSE
+-add_subdirectory(providers/hns) # NO SPARSE
++add_subdirectory(providers/hns)
+ add_subdirectory(providers/i40iw) # NO SPARSE
+ add_subdirectory(providers/mlx4)
+ add_subdirectory(providers/mlx4/man)
+diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
+index ea645be720f8d4..5ab756ce7dac25 100644
+--- a/providers/hns/hns_roce_u.h
++++ b/providers/hns/hns_roce_u.h
+@@ -54,16 +54,16 @@
+ 
+ #define PFX				"hns: "
+ 
+-#define roce_get_field(origin, mask, shift) \
+-	(((origin) & (mask)) >> (shift))
++#define roce_get_field(origin, mask, shift)                                    \
++	(((le32toh(origin)) & (mask)) >> (shift))
+ 
+ #define roce_get_bit(origin, shift) \
+ 	roce_get_field((origin), (1ul << (shift)), (shift))
+ 
+ #define roce_set_field(origin, mask, shift, val) \
+ 	do { \
+-		(origin) &= (~(mask)); \
+-		(origin) |= (((unsigned int)(val) << (shift)) & (mask)); \
++		(origin) &= ~htole32(mask); \
++		(origin) |= htole32(((unsigned int)(val) << (shift)) & (mask)); \
+ 	} while (0)
+ 
+ #define roce_set_bit(origin, shift, val) \
+diff --git a/providers/hns/hns_roce_u_hw_v1.c b/providers/hns/hns_roce_u_hw_v1.c
+index 482eac90df2183..2ea46b38a61071 100644
+--- a/providers/hns/hns_roce_u_hw_v1.c
++++ b/providers/hns/hns_roce_u_hw_v1.c
+@@ -40,17 +40,17 @@
+ static inline void set_raddr_seg(struct hns_roce_wqe_raddr_seg *rseg,
+ 				 uint64_t remote_addr, uint32_t rkey)
+ {
+-	rseg->raddr    = remote_addr;
+-	rseg->rkey     = rkey;
++	rseg->raddr    = htole64(remote_addr);
++	rseg->rkey     = htole32(rkey);
+ 	rseg->len      = 0;
+ }
+ 
+ static void set_data_seg(struct hns_roce_wqe_data_seg *dseg, struct ibv_sge *sg)
+ {
+ 
+-	dseg->lkey = sg->lkey;
+-	dseg->addr = sg->addr;
+-	dseg->len = sg->length;
++	dseg->lkey = htole32(sg->lkey);
++	dseg->addr = htole64(sg->addr);
++	dseg->len = htole32(sg->length);
+ }
+ 
+ static void hns_roce_update_rq_head(struct hns_roce_context *ctx,
+@@ -337,13 +337,13 @@ static int hns_roce_v1_poll_one(struct hns_roce_cq *cq,
+ 			 get_send_wqe(*cur_qp, roce_get_field(cqe->cqe_byte_4,
+ 						CQE_BYTE_4_WQE_INDEX_M,
+ 						CQE_BYTE_4_WQE_INDEX_S));
+-		switch (sq_wqe->flag & HNS_ROCE_WQE_OPCODE_MASK) {
++		switch (le32toh(sq_wqe->flag) & HNS_ROCE_WQE_OPCODE_MASK) {
+ 		case HNS_ROCE_WQE_OPCODE_SEND:
+ 			wc->opcode = IBV_WC_SEND;
+ 			break;
+ 		case HNS_ROCE_WQE_OPCODE_RDMA_READ:
+ 			wc->opcode = IBV_WC_RDMA_READ;
+-			wc->byte_len = cqe->byte_cnt;
++			wc->byte_len = le32toh(cqe->byte_cnt);
+ 			break;
+ 		case HNS_ROCE_WQE_OPCODE_RDMA_WRITE:
+ 			wc->opcode = IBV_WC_RDMA_WRITE;
+@@ -355,11 +355,12 @@ static int hns_roce_v1_poll_one(struct hns_roce_cq *cq,
+ 			wc->status = IBV_WC_GENERAL_ERR;
+ 			break;
+ 		}
+-		wc->wc_flags = (sq_wqe->flag & HNS_ROCE_WQE_IMM ?
+-				IBV_WC_WITH_IMM : 0);
++		wc->wc_flags =
++		    (le32toh(sq_wqe->flag) & HNS_ROCE_WQE_IMM ? IBV_WC_WITH_IMM
++							      : 0);
+ 	} else {
+ 		/* Get opcode and flag in rq&srq */
+-		wc->byte_len = (cqe->byte_cnt);
++		wc->byte_len = le32toh(cqe->byte_cnt);
+ 
+ 		switch (roce_get_field(cqe->cqe_byte_4,
+ 				       CQE_BYTE_4_OPERATION_TYPE_M,
+@@ -368,14 +369,14 @@ static int hns_roce_v1_poll_one(struct hns_roce_cq *cq,
+ 		case HNS_ROCE_OPCODE_RDMA_WITH_IMM_RECEIVE:
+ 			wc->opcode   = IBV_WC_RECV_RDMA_WITH_IMM;
+ 			wc->wc_flags = IBV_WC_WITH_IMM;
+-			wc->imm_data = cqe->immediate_data;
++			wc->imm_data = htobe32(le32toh(cqe->immediate_data));
+ 			break;
+ 		case HNS_ROCE_OPCODE_SEND_DATA_RECEIVE:
+ 			if (roce_get_bit(cqe->cqe_byte_4,
+ 					 CQE_BYTE_4_IMMEDIATE_DATA_FLAG_S)) {
+ 				wc->opcode   = IBV_WC_RECV;
+ 				wc->wc_flags = IBV_WC_WITH_IMM;
+-				wc->imm_data = cqe->immediate_data;
++				wc->imm_data = htobe32(le32toh(cqe->immediate_data));
+ 			} else {
+ 				wc->opcode   = IBV_WC_RECV;
+ 				wc->wc_flags = 0;
+@@ -497,10 +498,10 @@ static int hns_roce_u_v1_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 
+ 		qp->sq.wrid[ind & (qp->sq.wqe_cnt - 1)] = wr->wr_id;
+ 		for (i = 0; i < wr->num_sge; i++)
+-			ctrl->msg_length += wr->sg_list[i].length;
++			ctrl->msg_length = htole32(le32toh(ctrl->msg_length) +
++						   wr->sg_list[i].length);
+ 
+-
+-		ctrl->flag |= ((wr->send_flags & IBV_SEND_SIGNALED) ?
++		ctrl->flag |= htole32(((wr->send_flags & IBV_SEND_SIGNALED) ?
+ 				HNS_ROCE_WQE_CQ_NOTIFY : 0) |
+ 			      (wr->send_flags & IBV_SEND_SOLICITED ?
+ 				HNS_ROCE_WQE_SE : 0) |
+@@ -508,11 +509,11 @@ static int hns_roce_u_v1_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 			       wr->opcode == IBV_WR_RDMA_WRITE_WITH_IMM) ?
+ 				HNS_ROCE_WQE_IMM : 0) |
+ 			      (wr->send_flags & IBV_SEND_FENCE ?
+-				HNS_ROCE_WQE_FENCE : 0);
++			       HNS_ROCE_WQE_FENCE : 0));
+ 
+ 		if (wr->opcode == IBV_WR_SEND_WITH_IMM ||
+ 		    wr->opcode == IBV_WR_RDMA_WRITE_WITH_IMM)
+-			ctrl->imm_data = wr->imm_data;
++			ctrl->imm_data = htole32(be32toh(wr->imm_data));
+ 
+ 		wqe += sizeof(struct hns_roce_wqe_ctrl_seg);
+ 
+@@ -541,7 +542,7 @@ static int hns_roce_u_v1_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 				ps_opcode = HNS_ROCE_WQE_OPCODE_MASK;
+ 				break;
+ 			}
+-			ctrl->flag |= (ps_opcode);
++			ctrl->flag |= htole32(ps_opcode);
+ 			wqe  += sizeof(struct hns_roce_wqe_raddr_seg);
+ 			break;
+ 		case IBV_QPT_UC:
+@@ -554,7 +555,7 @@ static int hns_roce_u_v1_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 
+ 		/* Inline */
+ 		if (wr->send_flags & IBV_SEND_INLINE && wr->num_sge) {
+-			if (ctrl->msg_length > qp->max_inline_data) {
++			if (le32toh(ctrl->msg_length) > qp->max_inline_data) {
+ 				ret = -1;
+ 				*bad_wr = wr;
+ 				printf("inline data len(1-32)=%d, send_flags = 0x%x, check failed!\r\n",
+@@ -569,13 +570,13 @@ static int hns_roce_u_v1_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 				wqe = wqe + wr->sg_list[i].length;
+ 			}
+ 
+-			ctrl->flag |= HNS_ROCE_WQE_INLINE;
++			ctrl->flag |= htole32(HNS_ROCE_WQE_INLINE);
+ 		} else {
+ 			/* set sge */
+ 			for (i = 0; i < wr->num_sge; i++)
+ 				set_data_seg(dseg+i, wr->sg_list + i);
+ 
+-			ctrl->flag |= wr->num_sge << HNS_ROCE_WQE_SGE_NUM_BIT;
++			ctrl->flag |= htole32(wr->num_sge << HNS_ROCE_WQE_SGE_NUM_BIT);
+ 		}
+ 
+ 		ind++;
+@@ -783,15 +784,15 @@ static int hns_roce_u_v1_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
+ 				       HNS_ROCE_RC_RQ_WQE_MAX_SGE_NUM);
+ 			sg = wr->sg_list;
+ 
+-			rq_wqe->va0 = (sg->addr);
+-			rq_wqe->l_key0 = (sg->lkey);
+-			rq_wqe->length0 = (sg->length);
++			rq_wqe->va0 = htole64(sg->addr);
++			rq_wqe->l_key0 = htole32(sg->lkey);
++			rq_wqe->length0 = htole32(sg->length);
+ 
+ 			sg = wr->sg_list + 1;
+ 
+-			rq_wqe->va1 = (sg->addr);
+-			rq_wqe->l_key1 = (sg->lkey);
+-			rq_wqe->length1 = (sg->length);
++			rq_wqe->va1 = htole64(sg->addr);
++			rq_wqe->l_key1 = htole32(sg->lkey);
++			rq_wqe->length1 = htole32(sg->length);
+ 		} else if (wr->num_sge == HNS_ROCE_RC_RQ_WQE_MAX_SGE_NUM - 1) {
+ 			roce_set_field(rq_wqe->u32_2,
+ 				       RC_RQ_WQE_NUMBER_OF_DATA_SEG_M,
+@@ -799,9 +800,9 @@ static int hns_roce_u_v1_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
+ 				       HNS_ROCE_RC_RQ_WQE_MAX_SGE_NUM - 1);
+ 			sg = wr->sg_list;
+ 
+-			rq_wqe->va0 = (sg->addr);
+-			rq_wqe->l_key0 = (sg->lkey);
+-			rq_wqe->length0 = (sg->length);
++			rq_wqe->va0 = htole64(sg->addr);
++			rq_wqe->l_key0 = htole32(sg->lkey);
++			rq_wqe->length0 = htole32(sg->length);
+ 
+ 		} else if (wr->num_sge == HNS_ROCE_RC_RQ_WQE_MAX_SGE_NUM - 2) {
+ 			roce_set_field(rq_wqe->u32_2,
+diff --git a/providers/hns/hns_roce_u_hw_v1.h b/providers/hns/hns_roce_u_hw_v1.h
+index 5ba34372c7fb9f..de5fe2d64e25f5 100644
+--- a/providers/hns/hns_roce_u_hw_v1.h
++++ b/providers/hns/hns_roce_u_hw_v1.h
+@@ -59,22 +59,22 @@ enum {
+ };
+ 
+ struct hns_roce_wqe_ctrl_seg {
+-	__be32		sgl_pa_h;
+-	__be32		flag;
+-	__be32		imm_data;
+-	__be32		msg_length;
++	__le32		sgl_pa_h;
++	__le32		flag;
++	__le32		imm_data;
++	__le32		msg_length;
+ };
+ 
+ struct hns_roce_wqe_data_seg {
+-	__be64		addr;
+-	__be32		lkey;
+-	__be32		len;
++	__le64		addr;
++	__le32		lkey;
++	__le32		len;
+ };
+ 
+ struct hns_roce_wqe_raddr_seg {
+-	__be32		rkey;
+-	__be32		len;
+-	__be64		raddr;
++	__le32		rkey;
++	__le32		len;
++	__le64		raddr;
+ };
+ 
+ enum {
+@@ -106,8 +106,8 @@ enum {
+ };
+ 
+ struct hns_roce_cq_db {
+-	unsigned int u32_4;
+-	unsigned int u32_8;
++	__le32 u32_4;
++	__le32 u32_8;
+ };
+ #define CQ_DB_U32_4_CONS_IDX_S 0
+ #define CQ_DB_U32_4_CONS_IDX_M   (((1UL << 16) - 1) << CQ_DB_U32_4_CONS_IDX_S)
+@@ -126,8 +126,8 @@ struct hns_roce_cq_db {
+ #define CQ_DB_U32_8_HW_SYNC_S 31
+ 
+ struct hns_roce_rq_db {
+-	unsigned int u32_4;
+-	unsigned int u32_8;
++	__le32 u32_4;
++	__le32 u32_8;
+ };
+ 
+ #define RQ_DB_U32_4_RQ_HEAD_S 0
+@@ -142,8 +142,8 @@ struct hns_roce_rq_db {
+ #define RQ_DB_U32_8_HW_SYNC_S 31
+ 
+ struct hns_roce_sq_db {
+-	unsigned int u32_4;
+-	unsigned int u32_8;
++	__le32 u32_4;
++	__le32 u32_8;
+ };
+ 
+ #define SQ_DB_U32_4_SQ_HEAD_S 0
+@@ -163,17 +163,17 @@ struct hns_roce_sq_db {
+ #define SQ_DB_U32_8_HW_SYNC 31
+ 
+ struct hns_roce_cqe {
+-	unsigned int cqe_byte_4;
++	__le32 cqe_byte_4;
+ 	union {
+-		unsigned int r_key;
+-		unsigned int immediate_data;
++		__le32 r_key;
++		__le32 immediate_data;
+ 	};
+-	unsigned int byte_cnt;
+-	unsigned int cqe_byte_16;
+-	unsigned int cqe_byte_20;
+-	unsigned int s_mac_l;
+-	unsigned int cqe_byte_28;
+-	unsigned int reserved;
++	__le32 byte_cnt;
++	__le32 cqe_byte_16;
++	__le32 cqe_byte_20;
++	__le32 s_mac_l;
++	__le32 cqe_byte_28;
++	__le32 reserved;
+ };
+ #define CQE_BYTE_4_OPERATION_TYPE_S 0
+ #define CQE_BYTE_4_OPERATION_TYPE_M   \
+@@ -200,43 +200,43 @@ struct hns_roce_cqe {
+ #define ROCEE_DB_OTHERS_L_0_REG				0x238
+ 
+ struct hns_roce_rc_send_wqe {
+-	unsigned int sgl_ba_31_0;
+-	unsigned int u32_1;
++	__le32 sgl_ba_31_0;
++	__le32 u32_1;
+ 	union {
+-		unsigned int r_key;
+-		unsigned int immediate_data;
++		__le32 r_key;
++		__le32 immediate_data;
+ 	};
+-	unsigned int msg_length;
+-	unsigned int rvd_3;
+-	unsigned int rvd_4;
+-	unsigned int rvd_5;
+-	unsigned int rvd_6;
+-	uint64_t     va0;
+-	unsigned int l_key0;
+-	unsigned int length0;
+-
+-	uint64_t     va1;
+-	unsigned int l_key1;
+-	unsigned int length1;
++	__le32 msg_length;
++	__le32 rvd_3;
++	__le32 rvd_4;
++	__le32 rvd_5;
++	__le32 rvd_6;
++	__le64     va0;
++	__le32 l_key0;
++	__le32 length0;
++
++	__le64     va1;
++	__le32 l_key1;
++	__le32 length1;
+ };
+ 
+ struct hns_roce_rc_rq_wqe {
+-	unsigned int u32_0;
+-	unsigned int sgl_ba_31_0;
+-	unsigned int u32_2;
+-	unsigned int rvd_5;
+-	unsigned int rvd_6;
+-	unsigned int rvd_7;
+-	unsigned int rvd_8;
+-	unsigned int rvd_9;
+-
+-	uint64_t     va0;
+-	unsigned int l_key0;
+-	unsigned int length0;
+-
+-	uint64_t     va1;
+-	unsigned int l_key1;
+-	unsigned int length1;
++	__le32 u32_0;
++	__le32 sgl_ba_31_0;
++	__le32 u32_2;
++	__le32 rvd_5;
++	__le32 rvd_6;
++	__le32 rvd_7;
++	__le32 rvd_8;
++	__le32 rvd_9;
++
++	__le64     va0;
++	__le32 l_key0;
++	__le32 length0;
++
++	__le64     va1;
++	__le32 l_key1;
++	__le32 length1;
+ };
+ #define RC_RQ_WQE_NUMBER_OF_DATA_SEG_S 16
+ #define RC_RQ_WQE_NUMBER_OF_DATA_SEG_M \
+diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
+index 50059bfea4aa40..48bd3de63df8a0 100644
+--- a/providers/hns/hns_roce_u_hw_v2.c
++++ b/providers/hns/hns_roce_u_hw_v2.c
+@@ -40,9 +40,9 @@
+ static void set_data_seg_v2(struct hns_roce_v2_wqe_data_seg *dseg,
+ 			 struct ibv_sge *sg)
+ {
+-	dseg->lkey = sg->lkey;
+-	dseg->addr = sg->addr;
+-	dseg->len = sg->length;
++	dseg->lkey = htole32(sg->lkey);
++	dseg->addr = htole64(sg->addr);
++	dseg->len = htole32(sg->length);
+ }
+ 
+ static void hns_roce_v2_handle_error_cqe(struct hns_roce_v2_cqe *cqe,
+@@ -341,7 +341,7 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *cq,
+ 
+ 		case HNS_ROCE_SQ_OP_RDMA_READ:
+ 			wc->opcode = IBV_WC_RDMA_READ;
+-			wc->byte_len = cqe->byte_cnt;
++			wc->byte_len = le32toh(cqe->byte_cnt);
+ 			wc->wc_flags = 0;
+ 			break;
+ 
+@@ -379,13 +379,13 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *cq,
+ 		}
+ 	} else {
+ 		/* Get opcode and flag in rq&srq */
+-		wc->byte_len = cqe->byte_cnt;
++		wc->byte_len = le32toh(cqe->byte_cnt);
+ 		switch (roce_get_field(cqe->byte_4, CQE_BYTE_4_OPCODE_M,
+ 			CQE_BYTE_4_OPCODE_S) & HNS_ROCE_V2_CQE_OPCODE_MASK) {
+ 		case HNS_ROCE_RECV_OP_RDMA_WRITE_IMM:
+ 			wc->opcode = IBV_WC_RECV_RDMA_WITH_IMM;
+ 			wc->wc_flags = IBV_WC_WITH_IMM;
+-			wc->imm_data = cqe->rkey_immtdata;
++			wc->imm_data = htobe32(le32toh(cqe->rkey_immtdata));
+ 			break;
+ 
+ 		case HNS_ROCE_RECV_OP_SEND:
+@@ -396,13 +396,13 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *cq,
+ 		case HNS_ROCE_RECV_OP_SEND_WITH_IMM:
+ 			wc->opcode = IBV_WC_RECV;
+ 			wc->wc_flags = IBV_WC_WITH_IMM;
+-			wc->imm_data = cqe->rkey_immtdata;
++			wc->imm_data = htobe32(le32toh(cqe->rkey_immtdata));
+ 			break;
+ 
+ 		case HNS_ROCE_RECV_OP_SEND_WITH_INV:
+ 			wc->opcode = IBV_WC_RECV;
+ 			wc->wc_flags = IBV_WC_WITH_INV;
+-			wc->imm_data = cqe->rkey_immtdata;
++			wc->invalidated_rkey = le32toh(cqe->rkey_immtdata);
+ 			break;
+ 		default:
+ 			wc->status = IBV_WC_GENERAL_ERR;
+@@ -517,11 +517,12 @@ static int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 
+ 		qp->sq.wrid[ind & (qp->sq.wqe_cnt - 1)] = wr->wr_id;
+ 		for (i = 0; i < wr->num_sge; i++)
+-			rc_sq_wqe->msg_len += wr->sg_list[i].length;
++			rc_sq_wqe->msg_len = htole32(le32toh(rc_sq_wqe->msg_len) +
++						     wr->sg_list[i].length);
+ 
+ 		if (wr->opcode == IBV_WR_SEND_WITH_IMM ||
+ 		    wr->opcode == IBV_WR_RDMA_WRITE_WITH_IMM)
+-			rc_sq_wqe->inv_key_immtdata = wr->imm_data;
++			rc_sq_wqe->inv_key_immtdata = htole32(be32toh(wr->imm_data));
+ 
+ 		roce_set_field(rc_sq_wqe->byte_16, RC_SQ_WQE_BYTE_16_SGE_NUM_M,
+ 			       RC_SQ_WQE_BYTE_16_SGE_NUM_S, wr->num_sge);
+@@ -552,8 +553,8 @@ static int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 					       RC_SQ_WQE_BYTE_4_OPCODE_M,
+ 					       RC_SQ_WQE_BYTE_4_OPCODE_S,
+ 					       HNS_ROCE_WQE_OP_RDMA_READ);
+-				rc_sq_wqe->va = wr->wr.rdma.remote_addr;
+-				rc_sq_wqe->rkey = wr->wr.rdma.rkey;
++				rc_sq_wqe->va = htole64(wr->wr.rdma.remote_addr);
++				rc_sq_wqe->rkey = htole32(wr->wr.rdma.rkey);
+ 				break;
+ 
+ 			case IBV_WR_RDMA_WRITE:
+@@ -561,8 +562,8 @@ static int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 					       RC_SQ_WQE_BYTE_4_OPCODE_M,
+ 					       RC_SQ_WQE_BYTE_4_OPCODE_S,
+ 					       HNS_ROCE_WQE_OP_RDMA_WRITE);
+-				rc_sq_wqe->va = wr->wr.rdma.remote_addr;
+-				rc_sq_wqe->rkey = wr->wr.rdma.rkey;
++				rc_sq_wqe->va = htole64(wr->wr.rdma.remote_addr);
++				rc_sq_wqe->rkey = htole32(wr->wr.rdma.rkey);
+ 				break;
+ 
+ 			case IBV_WR_RDMA_WRITE_WITH_IMM:
+@@ -570,8 +571,8 @@ static int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 				       RC_SQ_WQE_BYTE_4_OPCODE_M,
+ 				       RC_SQ_WQE_BYTE_4_OPCODE_S,
+ 				       HNS_ROCE_WQE_OP_RDMA_WRITE_WITH_IMM);
+-				rc_sq_wqe->va = wr->wr.rdma.remote_addr;
+-				rc_sq_wqe->rkey = wr->wr.rdma.rkey;
++				rc_sq_wqe->va = htole64(wr->wr.rdma.remote_addr);
++				rc_sq_wqe->rkey = htole32(wr->wr.rdma.rkey);
+ 				break;
+ 
+ 			case IBV_WR_SEND:
+@@ -585,7 +586,7 @@ static int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 					     RC_SQ_WQE_BYTE_4_OPCODE_M,
+ 					     RC_SQ_WQE_BYTE_4_OPCODE_S,
+ 					     HNS_ROCE_WQE_OP_SEND_WITH_INV);
+-				rc_sq_wqe->inv_key_immtdata = wr->imm_data;
++				rc_sq_wqe->inv_key_immtdata = htole32(wr->invalidate_rkey);
+ 				break;
+ 			case IBV_WR_SEND_WITH_IMM:
+ 				roce_set_field(rc_sq_wqe->byte_4,
+@@ -628,7 +629,7 @@ static int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 
+ 		/* Inline */
+ 		if (wr->send_flags & IBV_SEND_INLINE && wr->num_sge) {
+-			if (rc_sq_wqe->msg_len > qp->max_inline_data) {
++			if (le32toh(rc_sq_wqe->msg_len) > qp->max_inline_data) {
+ 				ret = -1;
+ 				*bad_wr = wr;
+ 				printf("data len=%d, send_flags = 0x%x!\r\n",
+diff --git a/providers/hns/hns_roce_u_hw_v2.h b/providers/hns/hns_roce_u_hw_v2.h
+index 28aab60acae16a..75a379a357c7a7 100644
+--- a/providers/hns/hns_roce_u_hw_v2.h
++++ b/providers/hns/hns_roce_u_hw_v2.h
+@@ -112,8 +112,8 @@ enum {
+ };
+ 
+ struct hns_roce_db {
+-	unsigned int	byte_4;
+-	unsigned int	parameter;
++	__le32	byte_4;
++	__le32	parameter;
+ };
+ #define DB_BYTE_4_TAG_S 0
+ #define DB_BYTE_4_TAG_M   (((1UL << 23) - 1) << DB_BYTE_4_TAG_S)
+@@ -138,8 +138,8 @@ struct hns_roce_db {
+ 	(((1UL << 3) - 1) << DB_PARAM_SL_S)
+ 
+ struct hns_roce_v2_cq_db {
+-	unsigned int	byte_4;
+-	unsigned int	parameter;
++	__le32	byte_4;
++	__le32	parameter;
+ };
+ 
+ #define CQ_DB_BYTE_4_TAG_S 0
+@@ -159,14 +159,14 @@ struct hns_roce_v2_cq_db {
+ 	(((1UL << 2) - 1) << CQ_DB_PARAMETER_CMD_SN_S)
+ 
+ struct hns_roce_v2_cqe {
+-	unsigned int	byte_4;
+-	unsigned int	rkey_immtdata;
+-	unsigned int	byte_12;
+-	unsigned int	byte_16;
+-	unsigned int	byte_cnt;
+-	unsigned int	smac;
+-	unsigned int	byte_28;
+-	unsigned int	byte_32;
++	__le32	byte_4;
++	__le32	rkey_immtdata;
++	__le32	byte_12;
++	__le32	byte_16;
++	__le32	byte_cnt;
++	__le32	smac;
++	__le32	byte_28;
++	__le32	byte_32;
+ };
+ 
+ #define CQE_BYTE_4_OPCODE_S 0
+@@ -209,13 +209,13 @@ struct hns_roce_v2_cqe {
+ #define CQE_BYTE_32_LPK_S 31
+ 
+ struct hns_roce_rc_sq_wqe {
+-	unsigned int	byte_4;
+-	unsigned int	msg_len;
+-	unsigned int	inv_key_immtdata;
+-	unsigned int	byte_16;
+-	unsigned int	byte_20;
+-	unsigned int	rkey;
+-	uint64_t	va;
++	__le32	byte_4;
++	__le32	msg_len;
++	__le32	inv_key_immtdata;
++	__le32	byte_16;
++	__le32	byte_20;
++	__le32	rkey;
++	__le64	va;
+ };
+ 
+ #define RC_SQ_WQE_BYTE_4_OPCODE_S 0
+@@ -247,15 +247,15 @@ struct hns_roce_rc_sq_wqe {
+ 	(((1UL << 24) - 1) << RC_SQ_WQE_BYTE_20_MSG_START_SGE_IDX_S)
+ 
+ struct hns_roce_v2_wqe_data_seg {
+-	__be32    len;
+-	__be32    lkey;
+-	__be64    addr;
++	__le32    len;
++	__le32    lkey;
++	__le64    addr;
+ };
+ 
+ struct hns_roce_v2_wqe_raddr_seg {
+-	__be32		rkey;
+-	__be32		len;
+-	__be64		raddr;
++	__le32		rkey;
++	__le32		len;
++	__le64		raddr;
+ };
+ 
+ #endif /* _HNS_ROCE_U_HW_V2_H */
+-- 
+2.7.4
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
