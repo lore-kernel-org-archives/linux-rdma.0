@@ -1,56 +1,41 @@
-From: Pavel Shilovsky <piastryyy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Patch v5 02/21] CIFS: SMBD: Establish SMB Direct connection
-Date: Wed, 1 Nov 2017 10:19:01 -0700
-Message-ID: <CAKywueQaUdUZaKX1_paQgPAorwRZ=Xv_7yyeFEgyTcYMrw3O-g@mail.gmail.com>
-References: <20171018230920.21042-1-longli@exchange.microsoft.com> <20171018230920.21042-3-longli@exchange.microsoft.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH 0/3] Fix request completion holes
+Date: Wed, 1 Nov 2017 19:26:26 +0200
+Message-ID: <ae5a6be3-f9c3-9926-ab0d-48b0a99cdb35@grimberg.me>
+References: <1509440122-1190-1-git-send-email-sagi@grimberg.me>
+ <8abcde91-9150-2982-3900-078619bcdac0@mellanox.com>
+ <a950a671-22a1-432c-555e-8309c8a64a88@grimberg.me>
+ <d9dcdb05-d001-53d8-7ed7-5fafc1709f4a@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171018230920.21042-3-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
-Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
-Cc: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, samba-technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Content-Type: text/plain; charset=windows-1255; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <d9dcdb05-d001-53d8-7ed7-5fafc1709f4a-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: idanb <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-2017-10-18 16:09 GMT-07:00 Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>:
-> From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
->
-> Add code to implement the core functions to establish a SMB Direct connection.
->
-> 1. Establish an RDMA connection to SMB server.
-> 2. Negotiate and setup SMB Direct protocol.
-> 3. Implement idle connection timer and credit management.
->
-> SMB Direct is enabled by setting CONFIG_CIFS_SMB_DIRECT.
->
-> Add to Kconfig and Makefile to enable building SMB Direct.
->
-> Signed-off-by: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-> ---
->  fs/cifs/Kconfig     |    7 +
->  fs/cifs/Makefile    |    2 +
->  fs/cifs/smbdirect.c | 1576 +++++++++++++++++++++++++++++++++++++++++++++++++++
->  fs/cifs/smbdirect.h |  265 +++++++++
->  4 files changed, 1850 insertions(+)
->
-> diff --git a/fs/cifs/Kconfig b/fs/cifs/Kconfig
-> index f724361..cb7db8d 100644
-> --- a/fs/cifs/Kconfig
-> +++ b/fs/cifs/Kconfig
-> @@ -191,6 +191,13 @@ config CIFS_SMB311
->           This dialect includes improved security negotiation features.
->           If unsure, say N
->
-> +config CIFS_SMB_DIRECT
-> +       bool "SMB Direct support (Experimental)"
-> +       depends on CIFS && INFINIBAND
-> +       help
-> +         Enables SMB Direct experimental support for SMB 3.0, 3.02 and 3.1.1.
-> +         SMB Direct allows transferring SMB packets over RDMA.
-> +
 
-Please add "If unsure, say N."
+> (4) Send signal with invalidation signal w/o moderation 3.4M / 4.6M
 
+What about remote invalidation? That is how it will usually be used...
+
+> (5) Send signal with invalidation signal w/ moderation 6.2M / 11.8M
+
+What about latency effects? Any noticeable change?
+
+> I understand that (1), (2) and (3) are invalid, the performance 
+> reduction induce by mode (4) need to motivate us to enable cqe/event 
+> moderation as soon as possible.
+
+Well good, it means you can help test my adaptive coalescing code :)
+
+May I ask what moderation parameters did you use? it will be useful
+to pin down the profile levels the adaptive moderator would bounce
+between.
 --
-Best regards,
-Pavel Shilovsky
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
