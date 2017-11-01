@@ -1,106 +1,62 @@
-From: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: Perftest fails when declaring support for MW_TYPE_2A
-Date: Wed, 1 Nov 2017 15:59:50 +0000
-Message-ID: <CY1PR0701MB20127EC91D843349616DE993885F0@CY1PR0701MB2012.namprd07.prod.outlook.com>
-References: <CY1PR0701MB2012478CF41D9E2292887ABC885F0@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <DB3PR0502MB401294BE74C3F399ABFC9064A95F0@DB3PR0502MB4012.eurprd05.prod.outlook.com>
+From: idanb <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 0/3] Fix request completion holes
+Date: Wed, 1 Nov 2017 18:02:38 +0200
+Message-ID: <d9dcdb05-d001-53d8-7ed7-5fafc1709f4a@mellanox.com>
+References: <1509440122-1190-1-git-send-email-sagi@grimberg.me>
+ <8abcde91-9150-2982-3900-078619bcdac0@mellanox.com>
+ <a950a671-22a1-432c-555e-8309c8a64a88@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=windows-1255; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <DB3PR0502MB401294BE74C3F399ABFC9064A95F0-uKIzJYYTohOPJQcb9Mlg0cDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <a950a671-22a1-432c-555e-8309c8a64a88-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Zohar Ben Aharon <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "lunnys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <lunnys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ido Shamay <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Zohar,=20
+Sagi,
 
-Thanks for the quick response. I'm working on your git.
-I don't think it was broken, more that perhaps it never worked over devices
-that advertise MEM_WINDOW_TYPE_2A
+Thanks for you patches, Max and me ran your patches adding completion 
+signaling for both send (command capsule) and local invalidation request.
 
->From a quick grep I see that the only ones that advertise TYPE_2A are mlx4 =
-and only under certain
-Conditions.=20
+The results were significant reduction of IOPs due to interrupts and 
+completion processing, see below our results for READ/WRITE IOPs (512B, 
+64 Jobs):
 
-I'm currently adding support for MW_TYPE_2A for our qedr driver and that's =
-how I=20
-Got the perftest failure.=20
+(1) No send signal and no invalidation signal w/ moderation 7.4M / 11.9M
 
-Ran ib_write_bw with all default values
-Got the error:=20
-Couldn't allocate MR
-Failed to create mr
-...=20
+(2) No send signal and no invalidation signal w/o moderation 7.1M / 8.7M
 
-Thanks,
-Michal
+(3) No send signal with invalidation signal w/o moderation 5.2M / 8.3M
 
-> -----Original Message-----
-> From: Zohar Ben Aharon [mailto:zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
-> Sent: Wednesday, November 01, 2017 5:47 PM
-> To: Kalderon, Michal <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; Gil Rockah
-> <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; lunnys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; Ido Shamay
-> <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Elior, Ariel <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>;
-> leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; Amrani, Ram <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> Subject: RE: Perftest fails when declaring support for MW_TYPE_2A
->=20
-> Thanks Michal ,
->=20
-> Could you provide the package you were using ?
-> Case you working on our git , Do you know in which it was broken ?
->=20
-> Could you also add more information regarding the driver and device you
-> were using, and the command that you try to execute and caused that clash
-> ?
->=20
->=20
->=20
+(4) Send signal with invalidation signal w/o moderation 3.4M / 4.6M
+
+(5) Send signal with invalidation signal w/ moderation 6.2M / 11.8M
+
+
+I understand that (1), (2) and (3) are invalid, the performance 
+reduction induce by mode (4) need to motivate us to enable cqe/event 
+moderation as soon as possible.
+
+
+On 10/31/2017 1:10 PM, Sagi Grimberg wrote:
+>> Thanks Sagi.
+>> We'll run these patches in our lab + our patches for the performance 
+>> improvments that we sent few days ago and update the results.
+>
 > Thanks,
->=20
-> Zohar
->=20
->=20
-> -----Original Message-----
-> From: Kalderon, Michal [mailto:Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org]
-> Sent: Wednesday, November 1, 2017 5:36 PM
-> To: Zohar Ben Aharon <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Gil Rockah
-> <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; lunnys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; Ido Shamay
-> <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Elior, Ariel <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>;
-> leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; Amrani, Ram <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> Subject: Perftest fails when declaring support for MW_TYPE_2A
->=20
-> Hi Mellanox/ Accelio,
->=20
-> There is a very old commit in perftest 96050b8b that assumes bit 23 in de=
-vice
-> cap flags means there is driver support for contiguous buffer allocation =
-of
-> user data
->=20
-> There is a clash with the following device capability defined in
-> libibverbs/verbs.h:
-> #define IBV_DEVICE_MEM_WINDOW_TYPE_2A =3D 1 << 23
->=20
-> Once driver advertises memory window type 2a capability, the perftest
-> application fails.
->=20
-> I found that IB_DEVICE_MR_ALLOCATE is defined as bit 23 for freebsd git h=
-ub
-> and accelio github And then I saw there are a lot of clashes between ib_v=
-erbs
-> + upstream kernel
->=20
-> Clash between the two needs to be resolved.
-> Perftest wise: Perhaps an additional parameter to perftest ?
->=20
-> Please advise,
-> Thanks,
-> Michal
+>
+>> I guess I'll need to run it with my cq moderation patches to get less 
+>> penalty in performance.
+>
+> Fine, but just a heads up, any cq moderation that is not adaptive is 
+> not something
+> that we'd like to pursue. I have a generic adaptive moderation library 
+> in the
+> works, so any ideas should be integrated into that (or something 
+> equivalent).
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
