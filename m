@@ -1,31 +1,59 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: How far back does rdma-core X supports the kernel Y?
-Date: Wed, 1 Nov 2017 12:00:01 -0600
-Message-ID: <20171101180001.GH1030@ziepe.ca>
-References: <BN3PR07MB2578883C85DD3855C496F367F85F0@BN3PR07MB2578.namprd07.prod.outlook.com>
- <20171101163915.GB1030@ziepe.ca>
- <287a10c2-15a7-0748-c59e-3f084e7538f4@dev.mellanox.co.il>
+From: Pavel Shilovsky <piastryyy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Patch v5 08/21] CIFS: SMBD: Upper layer reconnects to SMB Direct session
+Date: Wed, 1 Nov 2017 11:04:45 -0700
+Message-ID: <CAKywueRMRGhkw1zFh5HEBqV748hoq0DVsjGoVg8ttD22sTsYOQ@mail.gmail.com>
+References: <20171018230920.21042-1-longli@exchange.microsoft.com> <20171018230920.21042-9-longli@exchange.microsoft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <287a10c2-15a7-0748-c59e-3f084e7538f4-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171018230920.21042-9-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
+Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
+Cc: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, samba-technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> >          if (attr_mask & ~((1ULL << (IBV_QP_DEST_QPN + 1)) - 1))
-> 
-> The above rdma-core code is correct, look at verbs.h:
-> IBV_QP_DEST_QPN = 1 << 20,
+2017-10-18 16:09 GMT-07:00 Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>:
+> From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+>
+> Do a reconnect on SMB Direct when it is used as the connection. Reconnect can
+> happen for many reasons and it's mostly the decision of SMB2 upper layer.
+>
+> Signed-off-by: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> ---
+>  fs/cifs/connect.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
+>
+> diff --git a/fs/cifs/connect.c b/fs/cifs/connect.c
+> index 2c0b34a..8ca3c13 100644
+> --- a/fs/cifs/connect.c
+> +++ b/fs/cifs/connect.c
+> @@ -406,7 +406,14 @@ cifs_reconnect(struct TCP_Server_Info *server)
+>
+>                 /* we should try only the port we connected to before */
+>                 mutex_lock(&server->srv_mutex);
+> +#ifdef CONFIG_CIFS_SMB_DIRECT
+> +               if (server->rdma)
+> +                       rc = smbd_reconnect(server);
+> +               else
+> +                       rc = generic_ip_connect(server);
 
-Okay, then it should be
+Minor: here and in other similar places we can remove #else part below
+and put #endif before else block above.
 
- if (attr_mask & ~(IB_QP_RATE_LIMIT - 1))
+> +#else
+>                 rc = generic_ip_connect(server);
+> +#endif
+>                 if (rc) {
+>                         cifs_dbg(FYI, "reconnect error %d\n", rc);
+>                         mutex_unlock(&server->srv_mutex);
+> --
+> 2.7.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-cifs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+Pavel Shilovsky
