@@ -1,90 +1,66 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH RFC] rdma/ib: Add trace point macros to display
- human-readable values
-Date: Thu, 2 Nov 2017 18:34:11 +0200
-Message-ID: <20171102163411.GA16127@mtr-leonro.local>
-References: <20171030215809.31286.46685.stgit@manet.1015granger.net>
- <0370B773-BB98-49BD-9C9D-DFD3220CCC20@oracle.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH 0/3] Fix request completion holes
+Date: Thu, 2 Nov 2017 10:36:14 -0600
+Message-ID: <20171102163614.GK18874@ziepe.ca>
+References: <1509440122-1190-1-git-send-email-sagi@grimberg.me>
+ <8abcde91-9150-2982-3900-078619bcdac0@mellanox.com>
+ <a950a671-22a1-432c-555e-8309c8a64a88@grimberg.me>
+ <d9dcdb05-d001-53d8-7ed7-5fafc1709f4a@mellanox.com>
+ <20171101165036.GD1030@ziepe.ca>
+ <5f3955d2-9116-5f18-2299-cc697947d599@grimberg.me>
+ <20171101175819.GG1030@ziepe.ca>
+ <5810bb05-fffd-a0f2-3509-9d9b89a2ef32@grimberg.me>
+ <20171102151254.GE18874@ziepe.ca>
+ <022e01d353f6$3fcbafd0$bf630f70$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="5Jh2alslEMtI9ynf"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <0370B773-BB98-49BD-9C9D-DFD3220CCC20-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <022e01d353f6$3fcbafd0$bf630f70$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'idanb' <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Max Gurtovoy' <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Nov 02, 2017 at 11:18:42AM -0500, Steve Wise wrote:
 
---5Jh2alslEMtI9ynf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> iWARP spec too.   This is in regard to completion ordering though.  The local
+> invalidate send WR must have the IB_SEND_FENCE flag set if you want it to only
+> be executed after all prior send WRs are executed.
 
-On Thu, Nov 02, 2017 at 12:18:41PM -0400, Chuck Lever wrote:
->
-> > On Oct 30, 2017, at 6:01 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> >
-> > These can be shared with all kernel ULPs, and more can easily be
-> > added as needed.
-> >
-> > Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> > include/trace/events/rdma.h |  128 +++++++++++++++++++++++++++++++++++++++++++
-> > 1 file changed, 128 insertions(+)
-> > create mode 100644 include/trace/events/rdma.h
-> >
-> > Hi-
-> >
-> > I'm putting together a series of patches for v4.16 (or later) that
-> > add static ftrace trace points to the RPC-over-RDMA client imple-
-> > mentation. As part of that effort, I've constructed some trace point
-> > helpers that might be useful for other kernel ULPs.
-> >
-> > So far this patch adds just helpers that xprtrdma needs. It is not
-> > complete, but additional helpers can be introduced as they are
-> > needed.
-> >
-> > I'd like to hear comments about these, or please let me know if
-> > such helpers already exist and where xprtrdma can find them.
->
-> Now that the question of whether new trace points will be allowed
-> has been answered...
->
-> The helpers that are used for displaying errors in the kernel
-> log display the spelled out text, not the symbolic name of the
-> error code, as is done here.
->
-> Would the community prefer long-form text or symbolic error names
-> in trace reports?
+Oh right, yes, you need to have local invalidate fence to guarentee
+that, but usually a local operation will not refer to a RKEY, so
+execution ordering wont matter.
 
-IMHO, short names are preferred. It is intended for the developers who
-have access to the code, so anyway they will check the meaning if
-necessary.
+But this is a good general point, doesn't a ULP need to set FENCE on
+SEND, eg:
 
-Thanks
+ RDMA READ (rkey)
+ RDMA READ (rkey)
+ SEND w/ FENCE (tell remote to invalidate rkey)
 
---5Jh2alslEMtI9ynf
-Content-Type: application/pgp-signature; name="signature.asc"
+Otherwise IBA Table 79 says RDMA READ can pass SEND and we have a
+situation where the rkey has become invalidated when the remote is
+still trying to use it.
 
------BEGIN PGP SIGNATURE-----
+IBA actually explicitly calls this out (pg 538):
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln7SQMACgkQ5GN7iDZy
-WKes+A//YI1uLFuym2oF8vXFCCrkioLRK+ArxTMkmDh03MN+gSBBR3ehpQ4qrPv2
-i+dapI3YuRyDypPttshUJmOTaw92Q9u1BPPuSCm9MrWKq5yIOWYRZRRIBWOwTJwi
-Z7gLkkdvQudmM1hD77Z2hT91BveiZf7CXMJ8292L4tzc6f1Xb+GoKflDMVBpmKMN
-Ke0zEo4NsmUM+j9rBveVyJoHa4D0T6GoAqkJCQQgZ/Oa10SdvhZvTWLjgYjBfURF
-SSREIGDHeF+xQkJR8JPlG1gGMcKn9dgi1b4uYr+YWTXRx6WMuHUoeDTI7vM+Qnxa
-vr2ac3eDHZXJr0TlOKRi134nRr3XcAeN/8v4bkLJYzO1GQumms5c5NQ2G3iWQ8+v
-DcDvaN1ipZjTgpyX2tD7LkLaxdNsUkp+fw/WudSLxMvhdq28LHEwaG+iQIkmR7Ja
-SuyNoWRzUWJzB4qUXL1S2UWaJex5b5R4vPPo1kFZ2fld+sGR6WetNRD74WTM2eOm
-Pu2oKWtq/oCRIFRj7zMXjPsN7OPWGsLmkfVQjhP4Aoj335e1DMRdyt7n3nSSb79R
-Vk8iP4Vu+oXbRT4fv1VZPG6+TtP5mkeYNf49wwM3zcoBbHBeIcCfJwXBydwgEGLI
-hZpRbkqtE/lmivWn1HOHPq1PHrhLJ5qU2YfjLas12XqhrcQqDsU=
-=589q
------END PGP SIGNATURE-----
+ RDMA Read operations may be executed at the target after subse-
+ quent Send and Invalidate operation already performed the invalida-
+ tion at the target. That may cause the RDMA Read operation to fail.
+ Setting the Fence Indicator on the subsequent operations guarantees
+ that the RDMA Read will fully complete before the invalidation takes
+ place.
 
---5Jh2alslEMtI9ynf--
+None of our ULPs use IB_SEND_FENCE - so this is a bug!
+
+> Either way, the completions are always inserted into the cq
+> in-sq-submission-order and a signaled completion implies completions
+> of all prior unsignaled WRs.
+
+Yes, excactly what is relevant for this nvme case..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
