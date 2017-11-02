@@ -1,57 +1,41 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] librdmacm: Remove unneeded condition
-Date: Thu, 2 Nov 2017 20:03:17 +0200
-Message-ID: <20171102180316.GB7833@yuvallap>
-References: <20171102135134.5728-1-yuval.shaia@oracle.com>
- <20171102151252.GY16127@mtr-leonro.local>
+From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/5] cbuild: Add udev dependency to package list
+ of SuSE Leap
+Date: Thu, 2 Nov 2017 19:04:36 +0100
+Message-ID: <b2493da4-396e-5d24-ffa5-2fcccb9ee85c@suse.de>
+References: <20171102165556.22105-1-leon@kernel.org>
+ <20171102165556.22105-2-leon@kernel.org>
+ <3a06c93f-aa0f-93fa-1b74-af6388051f89@suse.de>
+ <20171102174220.GD16127@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171102151252.GY16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20171102174220.GD16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 02, 2017 at 05:12:52PM +0200, Leon Romanovsky wrote:
-> On Thu, Nov 02, 2017 at 03:51:34PM +0200, Yuval Shaia wrote:
-> > The check makes no difference - remove it.
-> >
-> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  librdmacm/cma.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/librdmacm/cma.c b/librdmacm/cma.c
-> > index 7aaf45f2..6eebe71b 100644
-> > --- a/librdmacm/cma.c
-> > +++ b/librdmacm/cma.c
-> > @@ -880,8 +880,8 @@ static int rdma_resolve_addr2(struct rdma_cm_id *id, struct sockaddr *src_addr,
-> >  	CMA_INIT_CMD(&cmd, sizeof cmd, RESOLVE_ADDR);
-> >  	id_priv = container_of(id, struct cma_id_private, id);
-> >  	cmd.id = id_priv->handle;
-> > -	if ((cmd.src_size = src_len))
-> 
-> Isn't this "=" should be "=="?
 
-No chance as cmd was just initialized.
 
-> 
-> > -		memcpy(&cmd.src_addr, src_addr, src_len);
-> > +	cmd.src_size = src_len;
-> > +	memcpy(&cmd.src_addr, src_addr, src_len);
-> >  	memcpy(&cmd.dst_addr, dst_addr, dst_len);
-> >  	cmd.dst_size = dst_len;
-> >  	cmd.timeout_ms = timeout_ms;
-> > --
-> > 2.13.6
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Le 02/11/2017 à 18:42, Leon Romanovsky a écrit :
+> On Thu, Nov 02, 2017 at 06:32:09PM +0100, Nicolas Morey-Chaisemartin wrote: >> Leon, Jason, is there any news on switching the upstream validation to build/validate for all distrib instead of just the "travis" one ? > > This is the ultimate goal of this series.
+Sounds good. In that case, it might be worth adding tumbleweed to the distrib beeing built.
+Most of the SUSE bleeding-edge user are using TW as it provides the latest kernel/packages.
 
+> > > After this series will be fixed and merged, we will have containerized SuSE/CentOS/Debian builds in travis, > and next step will be upload those artifacts to https://packagecloud.io/, so people won't need to create > distro packages for master branch. It will be there for them.
+FYI, I've already setup something in OBS that does it for the SUSE packages:
+https://build.opensuse.org/package/show/science:HPC:Head/rdma-core
+
+I've a Jenkins job that pulls github and automatically update this OBS repository.
+They definitly should *NOT* be used for anything but testing.
+
+> > > In regards of schedule, there is already weekend in IL and Alaa will continue > to work on this series next week. After that, I'll setup and connect packagecloud > to our account.
+Great !
+
+Nicolas
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
