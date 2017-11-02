@@ -1,37 +1,37 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-core] librdmacm: Remove unneeded condition
-Date: Thu,  2 Nov 2017 15:51:34 +0200
-Message-ID: <20171102135134.5728-1-yuval.shaia@oracle.com>
+From: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] bnxt_re: changing the ip address shouldn't affect new connections
+Date: Fri,  3 Nov 2017 02:39:04 +0530
+Message-ID: <20171102210904.13020-1-sriharsha.basavapatna@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The check makes no difference - remove it.
+While adding a new gid, the driver currently does not return the context
+back to the stack. A subsequent del_gid() (e.g, when ip address is changed)
+doesn't find the right context in the driver and it ends up dropping that
+request. This results in the HW caching a stale gid entry and traffic fails
+because of that. Fix by returning the proper context in bnxt_re_add_gid().
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- librdmacm/cma.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/librdmacm/cma.c b/librdmacm/cma.c
-index 7aaf45f2..6eebe71b 100644
---- a/librdmacm/cma.c
-+++ b/librdmacm/cma.c
-@@ -880,8 +880,8 @@ static int rdma_resolve_addr2(struct rdma_cm_id *id, struct sockaddr *src_addr,
- 	CMA_INIT_CMD(&cmd, sizeof cmd, RESOLVE_ADDR);
- 	id_priv = container_of(id, struct cma_id_private, id);
- 	cmd.id = id_priv->handle;
--	if ((cmd.src_size = src_len))
--		memcpy(&cmd.src_addr, src_addr, src_len);
-+	cmd.src_size = src_len;
-+	memcpy(&cmd.src_addr, src_addr, src_len);
- 	memcpy(&cmd.dst_addr, dst_addr, dst_len);
- 	cmd.dst_size = dst_len;
- 	cmd.timeout_ms = timeout_ms;
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 0d89621d9fe8..b210495ff33c 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -394,6 +394,7 @@ int bnxt_re_add_gid(struct ib_device *ibdev, u8 port_num,
+ 	ctx->idx = tbl_idx;
+ 	ctx->refcnt = 1;
+ 	ctx_tbl[tbl_idx] = ctx;
++	*context = ctx;
+ 
+ 	return rc;
+ }
 -- 
-2.13.6
+2.11.0.258.ge05806da9
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
