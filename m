@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-core 4/5] buildlib/cbuild: Add Ubuntu artful
-Date: Thu,  2 Nov 2017 18:55:55 +0200
-Message-ID: <20171102165556.22105-5-leon@kernel.org>
+Subject: [PATCH rdma-core 1/5] cbuild: Add udev dependency to package list of SuSE Leap
+Date: Thu,  2 Nov 2017 18:55:52 +0200
+Message-ID: <20171102165556.22105-2-leon@kernel.org>
 References: <20171102165556.22105-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171102165556.22105-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,39 +12,29 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch adds Ubuntu17.10 artful, that comes with GCC 7
+rpmbuild under SUSE requires udev and produces the following errors:
+
+error: Failed build dependencies:
+        pkgconfig(udev) is needed by rdma-core-16-0.x86_64
 
 Signed-off-by: Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- buildlib/cbuild | 7 +++++++
- 1 file changed, 7 insertions(+)
+ buildlib/cbuild | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/buildlib/cbuild b/buildlib/cbuild
-index 098bec9a..1ddc72c4 100755
+index 918bf233..d1455b6f 100755
 --- a/buildlib/cbuild
 +++ b/buildlib/cbuild
-@@ -181,6 +181,12 @@ class xenial(APTEnvironment):
-     name = "ubuntu-16.04";
-     aliases = {"xenial"};
-
-+class artful(APTEnvironment):
-+    docker_parent = "ubuntu:17.10"
-+    pkgs = xenial.pkgs
-+    name = "ubuntu-17.10";
-+    aliases = {"artful"};
-+
- class jessie(APTEnvironment):
-     docker_parent = "debian:8"
-     pkgs = xenial.pkgs;
-@@ -325,6 +331,7 @@ environments = [centos6(),
-                 travis(),
-                 trusty(),
-                 xenial(),
-+                artful(),
-                 jessie(),
-                 stretch(),
-                 fc26(),
+@@ -298,6 +298,7 @@ class leap(ZypperEnvironment):
+         'cmake',
+         'gcc',
+         'libnl3-devel',
++        'udev',
+         'libudev-devel',
+         'make',
+         'ninja',
 --
 2.14.2
 
