@@ -1,79 +1,56 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] librdmacm: Remove unneeded condition
-Date: Thu, 2 Nov 2017 17:12:52 +0200
-Message-ID: <20171102151252.GY16127@mtr-leonro.local>
-References: <20171102135134.5728-1-yuval.shaia@oracle.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH 0/3] Fix request completion holes
+Date: Thu, 2 Nov 2017 09:12:54 -0600
+Message-ID: <20171102151254.GE18874@ziepe.ca>
+References: <1509440122-1190-1-git-send-email-sagi@grimberg.me>
+ <8abcde91-9150-2982-3900-078619bcdac0@mellanox.com>
+ <a950a671-22a1-432c-555e-8309c8a64a88@grimberg.me>
+ <d9dcdb05-d001-53d8-7ed7-5fafc1709f4a@mellanox.com>
+ <20171101165036.GD1030@ziepe.ca>
+ <5f3955d2-9116-5f18-2299-cc697947d599@grimberg.me>
+ <20171101175819.GG1030@ziepe.ca>
+ <5810bb05-fffd-a0f2-3509-9d9b89a2ef32@grimberg.me>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="QoSTjIIX+pox8TBQ"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171102135134.5728-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <5810bb05-fffd-a0f2-3509-9d9b89a2ef32-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: idanb <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Nov 02, 2017 at 10:06:30AM +0200, Sagi Grimberg wrote:
+> 
+> >>the default mode utilize remote invalidation, so no, its not valid.
+> >
+> >Well, usually the ULP design should allow some things to be reaped
+> >async, and latency senstive things to be sync.
+> >
+> >Eg if you have a SEND using a local buffer with a RKEY, then you'd
+> >declare the RKEY data completed when SEND_WITH_INVALIDATE is returned.
+> >
+> >Recycling the lkey command buffer is an async process and can wait
+> >unsignaled until something signalled comes to push its completion
+> >through.
+> 
+> Not when using inline data with the send, which is the main issue
+> here. if we inline data to the command, we will use the local
+> dma lkey, which does not even have a local invalidate following it.
 
---QoSTjIIX+pox8TBQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Does nvme use inline data send and RKEY transfer in the same SEND?
+Then it would need to signal the SEND if remote invalidate is used,
+otherwise it only needs to signal the local invalidate for the RKEY..
 
-On Thu, Nov 02, 2017 at 03:51:34PM +0200, Yuval Shaia wrote:
-> The check makes no difference - remove it.
->
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  librdmacm/cma.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/librdmacm/cma.c b/librdmacm/cma.c
-> index 7aaf45f2..6eebe71b 100644
-> --- a/librdmacm/cma.c
-> +++ b/librdmacm/cma.c
-> @@ -880,8 +880,8 @@ static int rdma_resolve_addr2(struct rdma_cm_id *id, struct sockaddr *src_addr,
->  	CMA_INIT_CMD(&cmd, sizeof cmd, RESOLVE_ADDR);
->  	id_priv = container_of(id, struct cma_id_private, id);
->  	cmd.id = id_priv->handle;
-> -	if ((cmd.src_size = src_len))
+> >Local invalidate is defined to always be ordered by the spec, so it
+> >is required to guarentee that the SEND is completed.
 
-Isn't this "=" should be "=="?
+> So local invalidate completion is guaranteed to come after all the
+> completions prior to it in the send queue?
 
-> -		memcpy(&cmd.src_addr, src_addr, src_len);
-> +	cmd.src_size = src_len;
-> +	memcpy(&cmd.src_addr, src_addr, src_len);
->  	memcpy(&cmd.dst_addr, dst_addr, dst_len);
->  	cmd.dst_size = dst_len;
->  	cmd.timeout_ms = timeout_ms;
-> --
-> 2.13.6
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+IBA spec says so..
 
---QoSTjIIX+pox8TBQ
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln7NfQACgkQ5GN7iDZy
-WKfA1hAAm5i/3aEjdBpCVdDbtCHIwZELTMYRFlCxg6dCJqdsxZjxxuAy+o+xwMat
-A3KCmOcAG3zxYgAeomVcVxlmtOzZQmz7uFJCNwqh4YKtlHL1dMBNCqNDp3B53Hl4
-ClVf+ycQ5RUzcJojYkWQXcOu5gYcmyK5zCd58b2IhaKgHz6xtb5IrZGHxlWJSRwl
-5FKb4Uf8Hkl8GC/DnsCeEASt/VH8YxN0y7pJJJNyPRqU37cGPkcYgW88MHmJUfkX
-Zswv/2yoNNkShu5O65L1twsmhoDYahzzoMp5VCVrZKBlO+wh7eVI7LjNyrnAtGmB
-N5SjcX0qR56hGI+XZFAgYgQExk1zsHX18vSMn+e0WdstRSQgstT4/7Ek4j7cTrHd
-Ni2Hwl8Z1B/poQmo+9Lbs3p6WkNhtXral+zJWO9DhNMdN54Sa1VqMq+5q7wauDii
-cRPmg3zR2Qw9yfcWM1vxSBC39U7FZO//VZX0g3Bufl0DZ53uSLktEfSp1nd/29Vg
-SZNQwTSi5RPr6AsorsSuqIr2NN+uVeWQz191IIIOUb1ns2pBbJvTmmchujOd/pvW
-22hnQ/I7aqH8dzNy7ChcjX0MFDc/aRW+5lYEQEkt1aQcdzvE2v2QRgYx2Zi5xeTi
-6n3LY3yF22qRqlLQy4NDLmBD77YzraI9BDzojZvJPJPe28WOO3o=
-=lysB
------END PGP SIGNATURE-----
-
---QoSTjIIX+pox8TBQ--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
