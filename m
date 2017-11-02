@@ -1,37 +1,75 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-core 0/5] Perform package tests in Travis CI
-Date: Thu,  2 Nov 2017 18:55:51 +0200
-Message-ID: <20171102165556.22105-1-leon@kernel.org>
+Subject: [PATCH rdma-core 3/5] travis: Add RedHat and SuSE rpmbuild support
+Date: Thu,  2 Nov 2017 18:55:54 +0200
+Message-ID: <20171102165556.22105-4-leon@kernel.org>
+References: <20171102165556.22105-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171102165556.22105-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Nicolas Morey-Chaisemartin <nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Nicolas Morey-Chaisemartin <nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patchset comes from Alaa and he adds to Travis CI ability
-to reuse our cbuild script to build various packages.
+From: Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The PR is https://github.com/linux-rdma/rdma-core/pull/241
+Provide a new script for testing rpmbuild under RedHat and SuSE
+environments which validates both of the suse/rdma-core.spec and
+redhat/rdma-core.spec specfiles.
 
-Thanks
+The script performs the RPM package build test by utilizing the existing
+cbuild tool.
 
-Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Nicolas Morey-Chaisemartin <nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org>
-
-Alaa Hleihel (5):
-  cbuild: Add udev dependency to package list of SuSE Leap
-  cbuild: Properly create tarball for SuSE
-  travis: Add RedHat and SuSE rpmbuild support
-  buildlib/cbuild: Add Ubuntu artful
-  travis: Test Debian packaging under Artful container
-
+Signed-off-by: Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
  .travis.yml                 |  4 ++++
- buildlib/cbuild             | 27 ++++++++++++++++++++-------
  buildlib/package-build-test | 15 +++++++++++++++
- buildlib/travis-build       | 14 --------------
- 4 files changed, 39 insertions(+), 21 deletions(-)
+ 2 files changed, 19 insertions(+)
  create mode 100755 buildlib/package-build-test
 
+diff --git a/.travis.yml b/.travis.yml
+index c190a241..4d7b0cc0 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -42,6 +42,9 @@ addons:
+       - gcc-multilib
+       - lib32gcc-7-dev
+
++service:
++    - docker
++
+ before_script:
+   - export LATEST_GCC_LINARO_URL=`wget -qO - https://releases.linaro.org/components/toolchain/binaries/latest/aarch64-linux-gnu/ | grep -o '<a href=['"'"'"].*gcc-linaro-.*x86_64_aarch64-linux-gnu.tar.xz['"'"'"]'  |  sed -e 's/^<a href=["'"'"']//' -e 's/["'"'"']$//'`
+   - export LATEST_GCC_LINARO_TAR=`basename $LATEST_GCC_LINARO_URL`
+@@ -51,6 +54,7 @@ before_script:
+ script:
+   - buildlib/travis-build
+   - buildlib/travis-checkpatch
++  - buildlib/package-build-test
+   - buildlib/github-release
+ deploy:
+   # Deploy assets to Github releases
+diff --git a/buildlib/package-build-test b/buildlib/package-build-test
+new file mode 100755
+index 00000000..d767f61f
+--- /dev/null
++++ b/buildlib/package-build-test
+@@ -0,0 +1,15 @@
++#!/bin/bash
++
++# fail on errors
++set -e
++# be verbose
++set -x
++
++for OS in centos7 opensuse-42.2
++do
++	echo
++	echo "Checking package build for ${OS} ...."
++	echo
++	buildlib/cbuild build-images ${OS}
++	buildlib/cbuild pkg ${OS}
++done
 --
 2.14.2
 
