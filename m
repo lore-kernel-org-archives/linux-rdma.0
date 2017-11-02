@@ -1,102 +1,90 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC] Registering non-contiguous memory
-Date: Thu, 2 Nov 2017 18:31:25 +0200
-Message-ID: <20171102163125.GZ16127@mtr-leonro.local>
-References: <VI1PR05MB127817A311C332553E4391AFB9410@VI1PR05MB1278.eurprd05.prod.outlook.com>
- <DB5PR05MB1270529922F451A2CACF7AE9B95F0@DB5PR05MB1270.eurprd05.prod.outlook.com>
- <20171101165625.GE1030@ziepe.ca>
- <20171102050942.GU16127@mtr-leonro.local>
- <20171102161222.GH18874@ziepe.ca>
+Subject: Re: [PATCH RFC] rdma/ib: Add trace point macros to display
+ human-readable values
+Date: Thu, 2 Nov 2017 18:34:11 +0200
+Message-ID: <20171102163411.GA16127@mtr-leonro.local>
+References: <20171030215809.31286.46685.stgit@manet.1015granger.net>
+ <0370B773-BB98-49BD-9C9D-DFD3220CCC20@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="3w1+XHTy8jVCESz1"
+        protocol="application/pgp-signature"; boundary="5Jh2alslEMtI9ynf"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171102161222.GH18874-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <0370B773-BB98-49BD-9C9D-DFD3220CCC20-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---3w1+XHTy8jVCESz1
+--5Jh2alslEMtI9ynf
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Nov 02, 2017 at 10:12:22AM -0600, Jason Gunthorpe wrote:
-> On Thu, Nov 02, 2017 at 07:09:42AM +0200, Leon Romanovsky wrote:
-> > On Wed, Nov 01, 2017 at 10:56:25AM -0600, Jason Gunthorpe wrote:
-> > > On Wed, Nov 01, 2017 at 11:11:42AM +0000, Alex Margolin wrote:
-> > >
-> > > >  struct verbs_context {
-> > > >  	/*  "grows up" - new fields go here */
-> > > > +	struct ib_mw * (*alloc_mw_ex)(struct ibv_mw_alloc_attr
-> > > >  	*mw_alloc_attr);
-> > >
-> > > This patch is full of weird little mistakes like the above, wouldn't
-> > > compile and doesn't really seem capture the proposed API.
+On Thu, Nov 02, 2017 at 12:18:41PM -0400, Chuck Lever wrote:
+>
+> > On Oct 30, 2017, at 6:01 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 > >
-> > Those RFCs are intended to present concept and implementation direction.
-> > It is a little bit over-expectation to have working code and clean UAPI
-> > at this stage.
->
-> Clear communication is important.
->
-> If you have to send a code snippit to explain the idea then it had
-> better 'work'. I'm not asking for an implementation, but certainly
-> correct changes to verbs.h
->
-> > > We are now asking for complete rdma-core patches before talking about
-> > > merging new kernel uapi features. Please retry this RFC with the new
-> > > requirement.
+> > These can be shared with all kernel ULPs, and more can easily be
+> > added as needed.
 > >
-> > There are steps in development process, and first step before rushing
-> > into implementation details is to talk about concept. This is exactly
-> > what Alex did.
+> > Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> > include/trace/events/rdma.h |  128 +++++++++++++++++++++++++++++++++++++++++++
+> > 1 file changed, 128 insertions(+)
+> > create mode 100644 include/trace/events/rdma.h
+> >
+> > Hi-
+> >
+> > I'm putting together a series of patches for v4.16 (or later) that
+> > add static ftrace trace points to the RPC-over-RDMA client imple-
+> > mentation. As part of that effort, I've constructed some trace point
+> > helpers that might be useful for other kernel ULPs.
+> >
+> > So far this patch adds just helpers that xprtrdma needs. It is not
+> > complete, but additional helpers can be introduced as they are
+> > needed.
+> >
+> > I'd like to hear comments about these, or please let me know if
+> > such helpers already exist and where xprtrdma can find them.
 >
-> Mellanox already did the concept step internally, if you want external
-> review you need to clearly communicate the idea, and I don't think
-> these RFCs are detailed or clear enough.
-
-Maybe yes and maybe no,
-I didn't see anyone in this mailing list who asked more detailed
-explanation for Alex's RFC back then. I'm sure that Alex would be
-happy to explain it more, if something was unclear.
-
+> Now that the question of whether new trace points will be allowed
+> has been answered...
 >
-> Header file patch, man pages, documentation and an example are the
-> logical next steps to vet a proposed verbs API in the public forum.
-
-And I think that RFC should be much lighter than you wrote. Pseudo API,
-motivation and examples.
-
+> The helpers that are used for displaying errors in the kernel
+> log display the spelled out text, not the symbolic name of the
+> error code, as is done here.
 >
-> This is analogous to a standards body context, where the next step
-> would be to draft standards language, eg 'man pages' and API signatures.
->
-> Jason
+> Would the community prefer long-form text or symbolic error names
+> in trace reports?
 
---3w1+XHTy8jVCESz1
+IMHO, short names are preferred. It is intended for the developers who
+have access to the code, so anyway they will check the meaning if
+necessary.
+
+Thanks
+
+--5Jh2alslEMtI9ynf
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln7SF0ACgkQ5GN7iDZy
-WKeG2g//btwkd5vF6AB9uTnm/IOKR2QECIe5S4E5uebjvh21udRp6/XJ99gVwC5s
-eGbEGsz5fMqGA58OFfQbUTKKb+Vf30aJVp9Z44mdK8sD9W5BJL0ul1EV9frGZhaO
-cb08UeeasQ94GNQHO+iJQqiRG2GLHSQfxmSF/KZUVlhylaA0S/X2On8xPpeDbh50
-Uv1oUyOWp8OWQ7dBX8mqFgcJfy+uAPePhO46WRbkmDGqho7neWzZssRjmuEGgtWB
-5m7wM6I8qwlaaP7LBFipqpA8sfT2WnD/33aRg/FgV1zySl31o5WTAJyP4AqzPTfk
-8PxLRnfgFREyUOlRiNZN4cbGRIOMvFKvQ1jSJi7QM8u/OfJHt0mxt+tRdFHkMjob
-wgRKMgOQw3OO0MF3gH4wetFjNjEdum9qngbu6f2P+IQ/JvDhHJS1Mc9nWMTARdgZ
-N8f3bwCZfGg2SWHwxFAmthf+pNiZdXR6nv/VSn++moDeM3AHRfFrJ45W+laiI8IL
-CDqgOezUbz3rXhc9GpY4ca0nk3ietaHGu//lkfskvypqdYpGbiC6DfnNlopFnqtb
-Sj14Fl4KLci5MdM1tqKVB0McY5vXDe4cR2s25LaZAd5vWRgP8MJdsjrqd9g1ZCLM
-pK4qyq5Zpn1crUahxQpIQ6KLTN/tAhaiqJ/1Ill8O4iBde4mdMY=
-=qz2I
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln7SQMACgkQ5GN7iDZy
+WKes+A//YI1uLFuym2oF8vXFCCrkioLRK+ArxTMkmDh03MN+gSBBR3ehpQ4qrPv2
+i+dapI3YuRyDypPttshUJmOTaw92Q9u1BPPuSCm9MrWKq5yIOWYRZRRIBWOwTJwi
+Z7gLkkdvQudmM1hD77Z2hT91BveiZf7CXMJ8292L4tzc6f1Xb+GoKflDMVBpmKMN
+Ke0zEo4NsmUM+j9rBveVyJoHa4D0T6GoAqkJCQQgZ/Oa10SdvhZvTWLjgYjBfURF
+SSREIGDHeF+xQkJR8JPlG1gGMcKn9dgi1b4uYr+YWTXRx6WMuHUoeDTI7vM+Qnxa
+vr2ac3eDHZXJr0TlOKRi134nRr3XcAeN/8v4bkLJYzO1GQumms5c5NQ2G3iWQ8+v
+DcDvaN1ipZjTgpyX2tD7LkLaxdNsUkp+fw/WudSLxMvhdq28LHEwaG+iQIkmR7Ja
+SuyNoWRzUWJzB4qUXL1S2UWaJex5b5R4vPPo1kFZ2fld+sGR6WetNRD74WTM2eOm
+Pu2oKWtq/oCRIFRj7zMXjPsN7OPWGsLmkfVQjhP4Aoj335e1DMRdyt7n3nSSb79R
+Vk8iP4Vu+oXbRT4fv1VZPG6+TtP5mkeYNf49wwM3zcoBbHBeIcCfJwXBydwgEGLI
+hZpRbkqtE/lmivWn1HOHPq1PHrhLJ5qU2YfjLas12XqhrcQqDsU=
+=589q
 -----END PGP SIGNATURE-----
 
---3w1+XHTy8jVCESz1--
+--5Jh2alslEMtI9ynf--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
