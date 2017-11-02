@@ -1,29 +1,361 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2 4/8] IB/srpt: Change default behavior from using SRQ
- to using RC
-Date: Fri, 3 Nov 2017 19:53:51 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC626708EE@fmsmsx120.amr.corp.intel.com>
-References: <20171011172729.16984-1-bart.vanassche@wdc.com>
-         <20171011172729.16984-5-bart.vanassche@wdc.com>
-         <32E1700B9017364D9B60AED9960492BC6266931A@fmsmsx120.amr.corp.intel.com>
-         <1509658914.2484.21.camel@wdc.com>
-           <32E1700B9017364D9B60AED9960492BC6266E41A@fmsmsx120.amr.corp.intel.com>
- <1509725458.2473.23.camel@wdc.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH for-next] iw_cxgb4: remove BUG_ON() usage.
+Date: Thu, 2 Nov 2017 14:11:03 -0700
+Message-ID: <20171103195527.E4AE72BC82@smtp.opengridcomputing.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBJIHJ1biBydW4gb3VyIG1vcmUgZXh0ZW5zaXZlIHRlc3RzLg0KPiANCg0KT3VyIG1vcmUgZXh0
-ZW5zaXZlIHRlc3RzIGhhdmUgcGFzc2VkLg0KDQpJIHdvbmRlciBpZiBpdCBpcyBiZXR0ZXIgdG8g
-c3F1YXNoIHRoZSBtb3ZlIG9mIHRoZSBwb3N0IHJlY2VpdmVzIHdpdGggdGhpcyBwYXRjaCB0byBp
-bnN1cmUgaXQgYmlzZWN0cy4NCg0KRml4aW5nIHVwIHRoZSBmYWxsYmFjayBzdHVmZiBjYW4gY2Vy
-dGFpbmx5IGJlIGFkZGl0aW9uYWwgcGF0Y2hlcy4NCg0KRG91Zz8NCg0KTWlrZQ0K
+iw_cxgb4 has many BUG_ON()s that were left over from various enhancemnets
+made over the years.  Almost all of them should just be removed.  Some,
+however indicate a ULP usage error and can be handled w/o bringing down
+the system.
+
+If the condition cannot happen with correctly implemented cxgb4 sw/fw,
+then remove the BUG_ON.
+
+If the condition indicates a misbehaving ULP (like CQ overflows), add
+proper recovery logic.
+
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/cm.c       | 25 +++++++++----------------
+ drivers/infiniband/hw/cxgb4/cq.c       | 10 ----------
+ drivers/infiniband/hw/cxgb4/id_table.c |  1 -
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  1 -
+ drivers/infiniband/hw/cxgb4/provider.c |  4 ++--
+ drivers/infiniband/hw/cxgb4/qp.c       |  3 ---
+ drivers/infiniband/hw/cxgb4/t4.h       |  7 ++-----
+ 7 files changed, 13 insertions(+), 38 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 7eb8a85..21db3b4 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -912,8 +912,6 @@ static int send_mpa_req(struct c4iw_ep *ep, struct sk_buff *skb,
+ 	pr_debug("ep %p tid %u pd_len %d\n",
+ 		 ep, ep->hwtid, ep->plen);
+ 
+-	BUG_ON(skb_cloned(skb));
+-
+ 	mpalen = sizeof(*mpa) + ep->plen;
+ 	if (mpa_rev_to_use == 2)
+ 		mpalen += sizeof(struct mpa_v2_conn_params);
+@@ -996,7 +994,6 @@ static int send_mpa_req(struct c4iw_ep *ep, struct sk_buff *skb,
+ 	 */
+ 	skb_get(skb);
+ 	t4_set_arp_err_handler(skb, NULL, arp_failure_discard);
+-	BUG_ON(ep->mpa_skb);
+ 	ep->mpa_skb = skb;
+ 	ret = c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
+ 	if (ret)
+@@ -1082,7 +1079,6 @@ static int send_mpa_reject(struct c4iw_ep *ep, const void *pdata, u8 plen)
+ 	skb_get(skb);
+ 	set_wr_txq(skb, CPL_PRIORITY_DATA, ep->txq_idx);
+ 	t4_set_arp_err_handler(skb, NULL, mpa_start_arp_failure);
+-	BUG_ON(ep->mpa_skb);
+ 	ep->mpa_skb = skb;
+ 	ep->snd_seq += mpalen;
+ 	return c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
+@@ -1836,7 +1832,6 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		struct c4iw_qp_attributes attrs;
+ 
+ 		update_rx_credits(ep, dlen);
+-		BUG_ON(!ep->com.qp);
+ 		if (status)
+ 			pr_err("%s Unexpected streaming data." \
+ 			       " qpid %u ep %p state %d tid %u status %d\n",
+@@ -2109,7 +2104,7 @@ static int c4iw_reconnect(struct c4iw_ep *ep)
+ 	 * further connection establishment. As we are using the same EP pointer
+ 	 * for reconnect, few skbs are used during the previous c4iw_connect(),
+ 	 * which leaves the EP with inadequate skbs for further
+-	 * c4iw_reconnect(), Further causing an assert BUG_ON() due to empty
++	 * c4iw_reconnect(), Further causing a crash due to an empty
+ 	 * skb_list() during peer_abort(). Allocate skbs which is already used.
+ 	 */
+ 	size = (CN_MAX_CON_BUF - skb_queue_len(&ep->com.ep_skb_list));
+@@ -2356,7 +2351,6 @@ static int accept_cr(struct c4iw_ep *ep, struct sk_buff *skb,
+ 	enum chip_type adapter_type = ep->com.dev->rdev.lldi.adapter_type;
+ 
+ 	pr_debug("ep %p tid %u\n", ep, ep->hwtid);
+-	BUG_ON(skb_cloned(skb));
+ 
+ 	skb_get(skb);
+ 	rpl = cplhdr(skb);
+@@ -2440,7 +2434,6 @@ static int accept_cr(struct c4iw_ep *ep, struct sk_buff *skb,
+ static void reject_cr(struct c4iw_dev *dev, u32 hwtid, struct sk_buff *skb)
+ {
+ 	pr_debug("c4iw_dev %p tid %u\n", dev, hwtid);
+-	BUG_ON(skb_cloned(skb));
+ 	skb_trim(skb, sizeof(struct cpl_tid_release));
+ 	release_tid(&dev->rdev, hwtid, skb);
+ 	return;
+@@ -2713,7 +2706,7 @@ static int peer_close(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		disconnect = 0;
+ 		break;
+ 	default:
+-		BUG_ON(1);
++		WARN_ONCE(1, "Bad endpoint state %u\n", ep->com.state);
+ 	}
+ 	mutex_unlock(&ep->com.mutex);
+ 	if (disconnect)
+@@ -2813,7 +2806,7 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		mutex_unlock(&ep->com.mutex);
+ 		goto deref_ep;
+ 	default:
+-		BUG_ON(1);
++		WARN_ONCE(1, "Bad endpoint state %u\n", ep->com.state);
+ 		break;
+ 	}
+ 	dst_confirm(ep->dst);
+@@ -2900,7 +2893,7 @@ static int close_con_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	case DEAD:
+ 		break;
+ 	default:
+-		BUG_ON(1);
++		WARN_ONCE(1, "Bad endpoint state %u\n", ep->com.state);
+ 		break;
+ 	}
+ 	mutex_unlock(&ep->com.mutex);
+@@ -2918,7 +2911,6 @@ static int terminate(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	struct c4iw_qp_attributes attrs;
+ 
+ 	ep = get_ep_from_tid(dev, tid);
+-	BUG_ON(!ep);
+ 
+ 	if (ep && ep->com.qp) {
+ 		pr_warn("TERM received tid %u qpid %u\n",
+@@ -3018,7 +3010,10 @@ int c4iw_accept_cr(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 		goto err_out;
+ 	}
+ 
+-	BUG_ON(!qp);
++	if (!qp) {
++		err = -EINVAL;
++		goto err_out;
++	}
+ 
+ 	set_bit(ULP_ACCEPT, &ep->com.history);
+ 	if ((conn_param->ord > cur_max_read_depth(ep->com.dev)) ||
+@@ -3576,7 +3571,7 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
+ 			__func__, ep, ep->com.state);
+ 		break;
+ 	default:
+-		BUG();
++		WARN_ONCE(1, "Bad endpoint state %u\n", ep->com.state);
+ 		break;
+ 	}
+ 
+@@ -3676,7 +3671,6 @@ static void passive_ofld_conn_reply(struct c4iw_dev *dev, struct sk_buff *skb,
+ 	int ret;
+ 
+ 	rpl_skb = (struct sk_buff *)(unsigned long)req->cookie;
+-	BUG_ON(!rpl_skb);
+ 	if (req->retval) {
+ 		pr_err("%s passive open failure %d\n", __func__, req->retval);
+ 		mutex_lock(&dev->rdev.stats.lock);
+@@ -4103,7 +4097,6 @@ static void process_work(struct work_struct *work)
+ 		dev = *((struct c4iw_dev **) (skb->cb + sizeof(void *)));
+ 		opcode = rpl->ot.opcode;
+ 
+-		BUG_ON(!work_handlers[opcode]);
+ 		ret = work_handlers[opcode](dev, skb);
+ 		if (!ret)
+ 			kfree_skb(skb);
+diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
+index 8e2d490..ea55e95 100644
+--- a/drivers/infiniband/hw/cxgb4/cq.c
++++ b/drivers/infiniband/hw/cxgb4/cq.c
+@@ -188,7 +188,6 @@ int c4iw_flush_rq(struct t4_wq *wq, struct t4_cq *cq, int count)
+ 	int flushed = 0;
+ 	int in_use = wq->rq.in_use - count;
+ 
+-	BUG_ON(in_use < 0);
+ 	pr_debug("wq %p cq %p rq.in_use %u skip count %u\n",
+ 		 wq, cq, wq->rq.in_use, count);
+ 	while (in_use--) {
+@@ -231,14 +230,11 @@ int c4iw_flush_sq(struct c4iw_qp *qhp)
+ 	if (wq->sq.flush_cidx == -1)
+ 		wq->sq.flush_cidx = wq->sq.cidx;
+ 	idx = wq->sq.flush_cidx;
+-	BUG_ON(idx >= wq->sq.size);
+ 	while (idx != wq->sq.pidx) {
+ 		swsqe = &wq->sq.sw_sq[idx];
+-		BUG_ON(swsqe->flushed);
+ 		swsqe->flushed = 1;
+ 		insert_sq_cqe(wq, cq, swsqe);
+ 		if (wq->sq.oldest_read == swsqe) {
+-			BUG_ON(swsqe->opcode != FW_RI_READ_REQ);
+ 			advance_oldest_read(wq);
+ 		}
+ 		flushed++;
+@@ -259,7 +255,6 @@ static void flush_completed_wrs(struct t4_wq *wq, struct t4_cq *cq)
+ 	if (wq->sq.flush_cidx == -1)
+ 		wq->sq.flush_cidx = wq->sq.cidx;
+ 	cidx = wq->sq.flush_cidx;
+-	BUG_ON(cidx > wq->sq.size);
+ 
+ 	while (cidx != wq->sq.pidx) {
+ 		swsqe = &wq->sq.sw_sq[cidx];
+@@ -268,8 +263,6 @@ static void flush_completed_wrs(struct t4_wq *wq, struct t4_cq *cq)
+ 				cidx = 0;
+ 		} else if (swsqe->complete) {
+ 
+-			BUG_ON(swsqe->flushed);
+-
+ 			/*
+ 			 * Insert this completed cqe into the swcq.
+ 			 */
+@@ -613,7 +606,6 @@ static int poll_cq(struct t4_wq *wq, struct t4_cq *cq, struct t4_cqe *cqe,
+ 	 */
+ 	if (SQ_TYPE(hw_cqe)) {
+ 		int idx = CQE_WRID_SQ_IDX(hw_cqe);
+-		BUG_ON(idx >= wq->sq.size);
+ 
+ 		/*
+ 		* Account for any unsignaled completions completed by
+@@ -627,7 +619,6 @@ static int poll_cq(struct t4_wq *wq, struct t4_cq *cq, struct t4_cqe *cqe,
+ 			wq->sq.in_use -= wq->sq.size + idx - wq->sq.cidx;
+ 		else
+ 			wq->sq.in_use -= idx - wq->sq.cidx;
+-		BUG_ON(wq->sq.in_use <= 0 && wq->sq.in_use >= wq->sq.size);
+ 
+ 		wq->sq.cidx = (uint16_t)idx;
+ 		pr_debug("completing sq idx %u\n", wq->sq.cidx);
+@@ -638,7 +629,6 @@ static int poll_cq(struct t4_wq *wq, struct t4_cq *cq, struct t4_cqe *cqe,
+ 	} else {
+ 		pr_debug("completing rq idx %u\n", wq->rq.cidx);
+ 		*cookie = wq->rq.sw_rq[wq->rq.cidx].wr_id;
+-		BUG_ON(t4_rq_empty(wq));
+ 		if (c4iw_wr_log)
+ 			c4iw_log_wr_stats(wq, hw_cqe);
+ 		t4_rq_consume(wq);
+diff --git a/drivers/infiniband/hw/cxgb4/id_table.c b/drivers/infiniband/hw/cxgb4/id_table.c
+index 0161ae6..5c2cfde 100644
+--- a/drivers/infiniband/hw/cxgb4/id_table.c
++++ b/drivers/infiniband/hw/cxgb4/id_table.c
+@@ -73,7 +73,6 @@ void c4iw_id_free(struct c4iw_id_table *alloc, u32 obj)
+ 	unsigned long flags;
+ 
+ 	obj -= alloc->start;
+-	BUG_ON((int)obj < 0);
+ 
+ 	spin_lock_irqsave(&alloc->lock, flags);
+ 	clear_bit(obj, alloc->table);
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index 788ddb6..8d52582 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -364,7 +364,6 @@ static inline int _insert_handle(struct c4iw_dev *rhp, struct idr *idr,
+ 		idr_preload_end();
+ 	}
+ 
+-	BUG_ON(ret == -ENOSPC);
+ 	return ret < 0 ? ret : 0;
+ }
+ 
+diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
+index fb99a05..30206a5 100644
+--- a/drivers/infiniband/hw/cxgb4/provider.c
++++ b/drivers/infiniband/hw/cxgb4/provider.c
+@@ -310,8 +310,9 @@ static int c4iw_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 
+ 	pr_debug("ibdev %p, port %d, index %d, gid %p\n",
+ 		 ibdev, port, index, gid);
++	if (!port)
++		return -EINVAL;
+ 	dev = to_c4iw_dev(ibdev);
+-	BUG_ON(port == 0);
+ 	memset(&(gid->raw[0]), 0, sizeof(gid->raw));
+ 	memcpy(&(gid->raw[0]), dev->rdev.lldi.ports[port-1]->dev_addr, 6);
+ 	return 0;
+@@ -536,7 +537,6 @@ int c4iw_register_device(struct c4iw_dev *dev)
+ 	int i;
+ 
+ 	pr_debug("c4iw_dev %p\n", dev);
+-	BUG_ON(!dev->rdev.lldi.ports[0]);
+ 	strlcpy(dev->ibdev.name, "cxgb4_%d", IB_DEVICE_NAME_MAX);
+ 	memset(&dev->ibdev.node_guid, 0, sizeof(dev->ibdev.node_guid));
+ 	memcpy(&dev->ibdev.node_guid, dev->rdev.lldi.ports[0]->dev_addr, 6);
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 57b23e3..86d6550 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -689,7 +689,6 @@ static int build_memreg(struct t4_sq *sq, union t4_wr *wqe,
+ 			if (++p == (__be64 *)&sq->queue[sq->size])
+ 				p = (__be64 *)sq->queue;
+ 		}
+-		BUG_ON(rem < 0);
+ 		while (rem) {
+ 			*p = 0;
+ 			rem -= sizeof(*p);
+@@ -1568,7 +1567,6 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
+ 	case C4IW_QP_STATE_RTS:
+ 		switch (attrs->next_state) {
+ 		case C4IW_QP_STATE_CLOSING:
+-			BUG_ON(kref_read(&qhp->ep->com.kref) < 2);
+ 			t4_set_wq_in_error(&qhp->wq);
+ 			set_state(qhp, C4IW_QP_STATE_CLOSING);
+ 			ep = qhp->ep;
+@@ -1677,7 +1675,6 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
+ 	set_state(qhp, C4IW_QP_STATE_ERROR);
+ 	free = 1;
+ 	abort = 1;
+-	BUG_ON(!ep);
+ 	flush_qp(qhp);
+ 	wake_up(&qhp->wait);
+ out:
+diff --git a/drivers/infiniband/hw/cxgb4/t4.h b/drivers/infiniband/hw/cxgb4/t4.h
+index 427aaf2..e9ea942 100644
+--- a/drivers/infiniband/hw/cxgb4/t4.h
++++ b/drivers/infiniband/hw/cxgb4/t4.h
+@@ -425,7 +425,6 @@ static inline void t4_sq_produce(struct t4_wq *wq, u8 len16)
+ 
+ static inline void t4_sq_consume(struct t4_wq *wq)
+ {
+-	BUG_ON(wq->sq.in_use < 1);
+ 	if (wq->sq.cidx == wq->sq.flush_cidx)
+ 		wq->sq.flush_cidx = -1;
+ 	wq->sq.in_use--;
+@@ -600,7 +599,8 @@ static inline void t4_swcq_produce(struct t4_cq *cq)
+ 		pr_warn("%s cxgb4 sw cq overflow cqid %u\n",
+ 			__func__, cq->cqid);
+ 		cq->error = 1;
+-		BUG_ON(1);
++		cq->sw_in_use--;
++		return;
+ 	}
+ 	if (++cq->sw_pidx == cq->size)
+ 		cq->sw_pidx = 0;
+@@ -608,7 +608,6 @@ static inline void t4_swcq_produce(struct t4_cq *cq)
+ 
+ static inline void t4_swcq_consume(struct t4_cq *cq)
+ {
+-	BUG_ON(cq->sw_in_use < 1);
+ 	cq->sw_in_use--;
+ 	if (++cq->sw_cidx == cq->size)
+ 		cq->sw_cidx = 0;
+@@ -654,7 +653,6 @@ static inline int t4_next_hw_cqe(struct t4_cq *cq, struct t4_cqe **cqe)
+ 		ret = -EOVERFLOW;
+ 		cq->error = 1;
+ 		pr_err("cq overflow cqid %u\n", cq->cqid);
+-		BUG_ON(1);
+ 	} else if (t4_valid_cqe(cq, &cq->queue[cq->cidx])) {
+ 
+ 		/* Ensure CQE is flushed to memory */
+@@ -672,7 +670,6 @@ static inline struct t4_cqe *t4_next_sw_cqe(struct t4_cq *cq)
+ 		pr_warn("%s cxgb4 sw cq overflow cqid %u\n",
+ 			__func__, cq->cqid);
+ 		cq->error = 1;
+-		BUG_ON(1);
+ 		return NULL;
+ 	}
+ 	if (cq->sw_in_use)
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
