@@ -1,38 +1,79 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: [PATCH rdma-core] librdmacm: Remove unneeded condition
-Date: Thu, 2 Nov 2017 15:10:27 +0000
-Message-ID: <1509635426.2484.9.camel@wdc.com>
+Date: Thu, 2 Nov 2017 17:12:52 +0200
+Message-ID: <20171102151252.GY16127@mtr-leonro.local>
 References: <20171102135134.5728-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="QoSTjIIX+pox8TBQ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <20171102135134.5728-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <1A302A6E63398E408BBB032410611233-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE3LTExLTAyIGF0IDE1OjUxICswMjAwLCBZdXZhbCBTaGFpYSB3cm90ZToNCj4g
-VGhlIGNoZWNrIG1ha2VzIG5vIGRpZmZlcmVuY2UgLSByZW1vdmUgaXQuDQo+IA0KPiBTaWduZWQt
-b2ZmLWJ5OiBZdXZhbCBTaGFpYSA8eXV2YWwuc2hhaWFAb3JhY2xlLmNvbT4NCj4gLS0tDQo+ICBs
-aWJyZG1hY20vY21hLmMgfCA0ICsrLS0NCj4gIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMo
-KyksIDIgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvbGlicmRtYWNtL2NtYS5jIGIv
-bGlicmRtYWNtL2NtYS5jDQo+IGluZGV4IDdhYWY0NWYyLi42ZWViZTcxYiAxMDA2NDQNCj4gLS0t
-IGEvbGlicmRtYWNtL2NtYS5jDQo+ICsrKyBiL2xpYnJkbWFjbS9jbWEuYw0KPiBAQCAtODgwLDgg
-Kzg4MCw4IEBAIHN0YXRpYyBpbnQgcmRtYV9yZXNvbHZlX2FkZHIyKHN0cnVjdCByZG1hX2NtX2lk
-ICppZCwgc3RydWN0IHNvY2thZGRyICpzcmNfYWRkciwNCj4gIAlDTUFfSU5JVF9DTUQoJmNtZCwg
-c2l6ZW9mIGNtZCwgUkVTT0xWRV9BRERSKTsNCj4gIAlpZF9wcml2ID0gY29udGFpbmVyX29mKGlk
-LCBzdHJ1Y3QgY21hX2lkX3ByaXZhdGUsIGlkKTsNCj4gIAljbWQuaWQgPSBpZF9wcml2LT5oYW5k
-bGU7DQo+IC0JaWYgKChjbWQuc3JjX3NpemUgPSBzcmNfbGVuKSkNCj4gLQkJbWVtY3B5KCZjbWQu
-c3JjX2FkZHIsIHNyY19hZGRyLCBzcmNfbGVuKTsNCj4gKwljbWQuc3JjX3NpemUgPSBzcmNfbGVu
-Ow0KPiArCW1lbWNweSgmY21kLnNyY19hZGRyLCBzcmNfYWRkciwgc3JjX2xlbik7DQo+ICAJbWVt
-Y3B5KCZjbWQuZHN0X2FkZHIsIGRzdF9hZGRyLCBkc3RfbGVuKTsNCj4gIAljbWQuZHN0X3NpemUg
-PSBkc3RfbGVuOw0KPiAgCWNtZC50aW1lb3V0X21zID0gdGltZW91dF9tczsNCg0KU2hvdWxkbid0
-IHRoZSBkZXNjcmlwdGlvbiBoYXZlIGJlZW4gIlBhc3NpbmcgemVybyBhcyB0aGlyZCBhcmd1bWVu
-dCB0bw0KbWVtY3B5KCkgaXMgYWxsb3dlZCBzbyB0aGUgaWYtdGVzdCBpcyBub3QgbmVjZXNzYXJ5
-LiBIZW5jZSBsZWF2ZSBpdCBvdXQiPw0KDQpCYXJ0Lg==
+
+--QoSTjIIX+pox8TBQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, Nov 02, 2017 at 03:51:34PM +0200, Yuval Shaia wrote:
+> The check makes no difference - remove it.
+>
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  librdmacm/cma.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/librdmacm/cma.c b/librdmacm/cma.c
+> index 7aaf45f2..6eebe71b 100644
+> --- a/librdmacm/cma.c
+> +++ b/librdmacm/cma.c
+> @@ -880,8 +880,8 @@ static int rdma_resolve_addr2(struct rdma_cm_id *id, struct sockaddr *src_addr,
+>  	CMA_INIT_CMD(&cmd, sizeof cmd, RESOLVE_ADDR);
+>  	id_priv = container_of(id, struct cma_id_private, id);
+>  	cmd.id = id_priv->handle;
+> -	if ((cmd.src_size = src_len))
+
+Isn't this "=" should be "=="?
+
+> -		memcpy(&cmd.src_addr, src_addr, src_len);
+> +	cmd.src_size = src_len;
+> +	memcpy(&cmd.src_addr, src_addr, src_len);
+>  	memcpy(&cmd.dst_addr, dst_addr, dst_len);
+>  	cmd.dst_size = dst_len;
+>  	cmd.timeout_ms = timeout_ms;
+> --
+> 2.13.6
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--QoSTjIIX+pox8TBQ
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln7NfQACgkQ5GN7iDZy
+WKfA1hAAm5i/3aEjdBpCVdDbtCHIwZELTMYRFlCxg6dCJqdsxZjxxuAy+o+xwMat
+A3KCmOcAG3zxYgAeomVcVxlmtOzZQmz7uFJCNwqh4YKtlHL1dMBNCqNDp3B53Hl4
+ClVf+ycQ5RUzcJojYkWQXcOu5gYcmyK5zCd58b2IhaKgHz6xtb5IrZGHxlWJSRwl
+5FKb4Uf8Hkl8GC/DnsCeEASt/VH8YxN0y7pJJJNyPRqU37cGPkcYgW88MHmJUfkX
+Zswv/2yoNNkShu5O65L1twsmhoDYahzzoMp5VCVrZKBlO+wh7eVI7LjNyrnAtGmB
+N5SjcX0qR56hGI+XZFAgYgQExk1zsHX18vSMn+e0WdstRSQgstT4/7Ek4j7cTrHd
+Ni2Hwl8Z1B/poQmo+9Lbs3p6WkNhtXral+zJWO9DhNMdN54Sa1VqMq+5q7wauDii
+cRPmg3zR2Qw9yfcWM1vxSBC39U7FZO//VZX0g3Bufl0DZ53uSLktEfSp1nd/29Vg
+SZNQwTSi5RPr6AsorsSuqIr2NN+uVeWQz191IIIOUb1ns2pBbJvTmmchujOd/pvW
+22hnQ/I7aqH8dzNy7ChcjX0MFDc/aRW+5lYEQEkt1aQcdzvE2v2QRgYx2Zi5xeTi
+6n3LY3yF22qRqlLQy4NDLmBD77YzraI9BDzojZvJPJPe28WOO3o=
+=lysB
+-----END PGP SIGNATURE-----
+
+--QoSTjIIX+pox8TBQ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
