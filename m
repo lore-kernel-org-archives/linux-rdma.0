@@ -1,69 +1,201 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 0/3] Fix request completion holes
-Date: Thu, 2 Nov 2017 11:18:42 -0500
-Message-ID: <022e01d353f6$3fcbafd0$bf630f70$@opengridcomputing.com>
-References: <1509440122-1190-1-git-send-email-sagi@grimberg.me> <8abcde91-9150-2982-3900-078619bcdac0@mellanox.com> <a950a671-22a1-432c-555e-8309c8a64a88@grimberg.me> <d9dcdb05-d001-53d8-7ed7-5fafc1709f4a@mellanox.com> <20171101165036.GD1030@ziepe.ca> <5f3955d2-9116-5f18-2299-cc697947d599@grimberg.me> <20171101175819.GG1030@ziepe.ca> <5810bb05-fffd-a0f2-3509-9d9b89a2ef32@grimberg.me> <20171102151254.GE18874@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH RFC] rdma/ib: Add trace point macros to display human-readable values
+Date: Thu, 2 Nov 2017 12:18:41 -0400
+Message-ID: <0370B773-BB98-49BD-9C9D-DFD3220CCC20@oracle.com>
+References: <20171030215809.31286.46685.stgit@manet.1015granger.net>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171102151254.GE18874-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <20171030215809.31286.46685.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: 'idanb' <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Max Gurtovoy' <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+> On Oct 30, 2017, at 6:01 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+> These can be shared with all kernel ULPs, and more can easily be
+> added as needed.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> include/trace/events/rdma.h |  128 +++++++++++++++++++++++++++++++++++++++++++
+> 1 file changed, 128 insertions(+)
+> create mode 100644 include/trace/events/rdma.h
+> 
+> Hi-
+> 
+> I'm putting together a series of patches for v4.16 (or later) that
+> add static ftrace trace points to the RPC-over-RDMA client imple-
+> mentation. As part of that effort, I've constructed some trace point
+> helpers that might be useful for other kernel ULPs.
+> 
+> So far this patch adds just helpers that xprtrdma needs. It is not
+> complete, but additional helpers can be introduced as they are
+> needed.
+> 
+> I'd like to hear comments about these, or please let me know if
+> such helpers already exist and where xprtrdma can find them.
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-> Sent: Thursday, November 02, 2017 10:13 AM
-> To: Sagi Grimberg
-> Cc: idanb; Max Gurtovoy; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
-> nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; Christoph Hellwig
-> Subject: Re: [PATCH 0/3] Fix request completion holes
-> 
-> On Thu, Nov 02, 2017 at 10:06:30AM +0200, Sagi Grimberg wrote:
-> >
-> > >>the default mode utilize remote invalidation, so no, its not valid.
-> > >
-> > >Well, usually the ULP design should allow some things to be reaped
-> > >async, and latency senstive things to be sync.
-> > >
-> > >Eg if you have a SEND using a local buffer with a RKEY, then you'd
-> > >declare the RKEY data completed when SEND_WITH_INVALIDATE is returned.
-> > >
-> > >Recycling the lkey command buffer is an async process and can wait
-> > >unsignaled until something signalled comes to push its completion
-> > >through.
-> >
-> > Not when using inline data with the send, which is the main issue
-> > here. if we inline data to the command, we will use the local
-> > dma lkey, which does not even have a local invalidate following it.
-> 
-> Does nvme use inline data send and RKEY transfer in the same SEND?
-> Then it would need to signal the SEND if remote invalidate is used,
-> otherwise it only needs to signal the local invalidate for the RKEY..
-> 
-> > >Local invalidate is defined to always be ordered by the spec, so it
-> > >is required to guarentee that the SEND is completed.
-> 
-> > So local invalidate completion is guaranteed to come after all the
-> > completions prior to it in the send queue?
-> 
-> IBA spec says so..
-> 
+Now that the question of whether new trace points will be allowed
+has been answered...
 
-iWARP spec too.   This is in regard to completion ordering though.  The local
-invalidate send WR must have the IB_SEND_FENCE flag set if you want it to only
-be executed after all prior send WRs are executed.    Either way, the
-completions are always inserted into the cq in-sq-submission-order and a
-signaled completion implies completions of all prior unsignaled WRs.
+The helpers that are used for displaying errors in the kernel
+log display the spelled out text, not the symbolic name of the
+error code, as is done here.
 
-Steve.
+Would the community prefer long-form text or symbolic error names
+in trace reports?
+
+
+> Thanks!
+> 
+> 
+> diff --git a/include/trace/events/rdma.h b/include/trace/events/rdma.h
+> new file mode 100644
+> index 0000000..9d02fbe
+> --- /dev/null
+> +++ b/include/trace/events/rdma.h
+> @@ -0,0 +1,128 @@
+> +/*
+> + * Copyright (c) 2017 Oracle.  All rights reserved.
+> + */
+> +
+> +/*
+> + * enum ib_event_type, from include/rdma/ib_verbs.h
+> + */
+> +
+> +#define IB_EVENT_LIST				\
+> +	ib_event(CQ_ERR)			\
+> +	ib_event(QP_FATAL)			\
+> +	ib_event(QP_REQ_ERR)			\
+> +	ib_event(QP_ACCESS_ERR)			\
+> +	ib_event(COMM_EST)			\
+> +	ib_event(SQ_DRAINED)			\
+> +	ib_event(PATH_MIG)			\
+> +	ib_event(PATH_MIG_ERR)			\
+> +	ib_event(DEVICE_FATAL)			\
+> +	ib_event(PORT_ACTIVE)			\
+> +	ib_event(PORT_ERR)			\
+> +	ib_event(LID_CHANGE)			\
+> +	ib_event(PKEY_CHANGE)			\
+> +	ib_event(SM_CHANGE)			\
+> +	ib_event(SRQ_ERR)			\
+> +	ib_event(SRQ_LIMIT_REACHED)		\
+> +	ib_event(QP_LAST_WQE_REACHED)		\
+> +	ib_event(CLIENT_REREGISTER)		\
+> +	ib_event(GID_CHANGE)			\
+> +	ib_event_end(WQ_FATAL)
+> +
+> +#undef ib_event
+> +#undef ib_event_end
+> +
+> +#define ib_event(x)		TRACE_DEFINE_ENUM(IB_EVENT_##x);
+> +#define ib_event_end(x)		TRACE_DEFINE_ENUM(IB_EVENT_##x);
+> +
+> +IB_EVENT_LIST
+> +
+> +#undef ib_event
+> +#undef ib_event_end
+> +
+> +#define ib_event(x)		{ IB_EVENT_##x, #x },
+> +#define ib_event_end(x)		{ IB_EVENT_##x, #x }
+> +
+> +#define rdma_show_ib_event(x) \
+> +		__print_symbolic(x, IB_EVENT_LIST)
+> +
+> +/*
+> + * enum ib_wc_status type, from include/rdma/ib_verbs.h
+> + */
+> +#define IB_WC_STATUS_LIST			\
+> +	ib_wc_status(SUCCESS)			\
+> +	ib_wc_status(LOC_LEN_ERR)		\
+> +	ib_wc_status(LOC_QP_OP_ERR)		\
+> +	ib_wc_status(LOC_EEC_OP_ERR)		\
+> +	ib_wc_status(LOC_PROT_ERR)		\
+> +	ib_wc_status(WR_FLUSH_ERR)		\
+> +	ib_wc_status(MW_BIND_ERR)		\
+> +	ib_wc_status(BAD_RESP_ERR)		\
+> +	ib_wc_status(LOC_ACCESS_ERR)		\
+> +	ib_wc_status(REM_INV_REQ_ERR)		\
+> +	ib_wc_status(REM_ACCESS_ERR)		\
+> +	ib_wc_status(REM_OP_ERR)		\
+> +	ib_wc_status(RETRY_EXC_ERR)		\
+> +	ib_wc_status(RNR_RETRY_EXC_ERR)		\
+> +	ib_wc_status(LOC_RDD_VIOL_ERR)		\
+> +	ib_wc_status(REM_INV_RD_REQ_ERR)	\
+> +	ib_wc_status(REM_ABORT_ERR)		\
+> +	ib_wc_status(INV_EECN_ERR)		\
+> +	ib_wc_status(INV_EEC_STATE_ERR)		\
+> +	ib_wc_status(FATAL_ERR)			\
+> +	ib_wc_status(RESP_TIMEOUT_ERR)		\
+> +	ib_wc_status_end(GENERAL_ERR)
+> +
+> +#undef ib_wc_status
+> +#undef ib_wc_status_end
+> +
+> +#define ib_wc_status(x)		TRACE_DEFINE_ENUM(IB_WC_##x);
+> +#define ib_wc_status_end(x)	TRACE_DEFINE_ENUM(IB_WC_##x);
+> +
+> +IB_WC_STATUS_LIST
+> +
+> +#undef ib_wc_status
+> +#undef ib_wc_status_end
+> +
+> +#define ib_wc_status(x)		{ IB_WC_##x, #x },
+> +#define ib_wc_status_end(x)	{ IB_WC_##x, #x }
+> +
+> +#define rdma_show_wc_status(x) \
+> +		__print_symbolic(x, IB_WC_STATUS_LIST)
+> +
+> +/*
+> + * enum rdma_cm_event_type, from include/rdma/rdma_cm.h
+> + */
+> +#define RDMA_CM_EVENT_LIST			\
+> +	rdma_cm_event(ADDR_RESOLVED)		\
+> +	rdma_cm_event(ADDR_ERROR)		\
+> +	rdma_cm_event(ROUTE_RESOLVED)		\
+> +	rdma_cm_event(ROUTE_ERROR)		\
+> +	rdma_cm_event(CONNECT_REQUEST)		\
+> +	rdma_cm_event(CONNECT_RESPONSE)		\
+> +	rdma_cm_event(CONNECT_ERROR)		\
+> +	rdma_cm_event(UNREACHABLE)		\
+> +	rdma_cm_event(REJECTED)			\
+> +	rdma_cm_event(ESTABLISHED)		\
+> +	rdma_cm_event(DISCONNECTED)		\
+> +	rdma_cm_event(DEVICE_REMOVAL)		\
+> +	rdma_cm_event(MULTICAST_JOIN)		\
+> +	rdma_cm_event(MULTICAST_ERROR)		\
+> +	rdma_cm_event(ADDR_CHANGE)		\
+> +	rdma_cm_event_end(TIMEWAIT_EXIT)
+> +
+> +#undef rdma_cm_event
+> +#undef rdma_cm_event_end
+> +
+> +#define rdma_cm_event(x)	TRACE_DEFINE_ENUM(RDMA_CM_EVENT_##x);
+> +#define rdma_cm_event_end(x)	TRACE_DEFINE_ENUM(RDMA_CM_EVENT_##x);
+> +
+> +RDMA_CM_EVENT_LIST
+> +
+> +#undef rdma_cm_event
+> +#undef rdma_cm_event_end
+> +
+> +#define rdma_cm_event(x)	{ RDMA_CM_EVENT_##x, #x },
+> +#define rdma_cm_event_end(x)	{ RDMA_CM_EVENT_##x, #x }
+> +
+> +#define rdma_show_cm_event(x) \
+> +		__print_symbolic(x, RDMA_CM_EVENT_LIST)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+Chuck Lever
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
