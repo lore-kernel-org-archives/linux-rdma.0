@@ -1,38 +1,56 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 0/3] Fix request completion holes
-Date: Thu, 2 Nov 2017 12:55:22 -0500
-Message-ID: <02eb01d35403$c155ff30$4401fd90$@opengridcomputing.com>
-References: <1509440122-1190-1-git-send-email-sagi@grimberg.me> <8abcde91-9150-2982-3900-078619bcdac0@mellanox.com> <a950a671-22a1-432c-555e-8309c8a64a88@grimberg.me> <d9dcdb05-d001-53d8-7ed7-5fafc1709f4a@mellanox.com> <ae5a6be3-f9c3-9926-ab0d-48b0a99cdb35@grimberg.me>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-core 5/5] travis: Test Debian packaging under Artful
+ container
+Date: Thu, 2 Nov 2017 11:55:22 -0600
+Message-ID: <20171102175522.GR18874@ziepe.ca>
+References: <20171102165556.22105-1-leon@kernel.org>
+ <20171102165556.22105-6-leon@kernel.org>
+ <20171102170554.GO18874@ziepe.ca>
+ <20171102173255.GC16127@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ae5a6be3-f9c3-9926-ab0d-48b0a99cdb35-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <20171102173255.GC16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'idanb' <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Max Gurtovoy' <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Nicolas Morey-Chaisemartin <nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> What about latency effects? Any noticeable change?
+On Thu, Nov 02, 2017 at 07:32:55PM +0200, Leon Romanovsky wrote:
+> On Thu, Nov 02, 2017 at 11:05:54AM -0600, Jason Gunthorpe wrote:
+> > On Thu, Nov 02, 2017 at 06:55:56PM +0200, Leon Romanovsky wrote:
+> > > From: Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > >
+> > > This will be compiled with GCC 7 coming with Ubuntu Artful
+> >
+> > Hurm. This point of this is to test the latest gcc, not just the GCC
+> > in a distro.
+> >
+> > We should be testing gcc-8 here, but it isn't available for
+> > trusty right now. :(
+> >
+> > Then the lines:
+> >
+> >       - ubuntu-toolchain-r-test
+> >
+> > and
+> >
+> >       - gcc-7
+> >
+> > Should be removed from the .travis.yml as well in this patch.
 > 
-> > I understand that (1), (2) and (3) are invalid, the performance
-> > reduction induce by mode (4) need to motivate us to enable cqe/event
-> > moderation as soon as possible.
-> 
-> Well good, it means you can help test my adaptive coalescing code :)
-> 
-> May I ask what moderation parameters did you use? it will be useful
-> to pin down the profile levels the adaptive moderator would bounce
-> between.
-> 
+> lib32gcc-7-dev depends on gcc-7 and it depends on
+> ubuntu-toolchain-r-test.
 
-Hey Sagi, I can help too on testing this with iw_cxgb4.  Where is your current
-WIP?
+We can probably use the 32 bit packages that come with trusty..
 
-Steve.
+Arguably though it might be better to test with 32 bit gcc-latest..
 
+Even better would be to do 32 bit test under docker where we could make
+32 bit cross work 100% ..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
