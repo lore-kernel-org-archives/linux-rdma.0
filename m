@@ -1,38 +1,41 @@
-From: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] bnxt_re: changing the ip address shouldn't affect new connections
-Date: Fri,  3 Nov 2017 02:39:04 +0530
-Message-ID: <20171102210904.13020-1-sriharsha.basavapatna@broadcom.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-core 3/3] libhns: Fix endian format of payload and
+ immediate
+Date: Thu, 2 Nov 2017 09:06:55 -0600
+Message-ID: <20171102150655.GD18874@ziepe.ca>
+References: <1509530440-164400-1-git-send-email-oulijun@huawei.com>
+ <1509530440-164400-4-git-send-email-oulijun@huawei.com>
+ <20171101161328.GB7815@ziepe.ca>
+ <8dbc8305-f154-3b8c-795a-b5f1a6b53c73@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <8dbc8305-f154-3b8c-795a-b5f1a6b53c73-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-While adding a new gid, the driver currently does not return the context
-back to the stack. A subsequent del_gid() (e.g, when ip address is changed)
-doesn't find the right context in the driver and it ends up dropping that
-request. This results in the HW caching a stale gid entry and traffic fails
-because of that. Fix by returning the proper context in bnxt_re_add_gid().
+On Thu, Nov 02, 2017 at 02:03:18PM +0800, oulijun wrote:
+> >  mkdr build-sparse
+> >  cd build-sparse
+> >  CC=cgcc cmake -GNinja ..
+> >  ninja
+> > 
+> I have run the sparse successful and don't understand the result.
 
-Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 1 +
- 1 file changed, 1 insertion(+)
+Something is wrong with your local environment:
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 0d89621d9fe8..b210495ff33c 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -394,6 +394,7 @@ int bnxt_re_add_gid(struct ib_device *ibdev, u8 port_num,
- 	ctx->idx = tbl_idx;
- 	ctx->refcnt = 1;
- 	ctx_tbl[tbl_idx] = ctx;
-+	*context = ctx;
- 
- 	return rc;
- }
--- 
-2.11.0.258.ge05806da9
+> [10/190] Building C object util/CMakeFiles/rdma_util_pic.dir/mmio.c.o
+> /usr/include/linux/types.h:4:11: error: unable to open 'asm/types.h'
 
+Those headers should exist, they usually come with glibc, eg on Debian
+it comes from here:
+
+linux-libc-dev:amd64: /usr/include/x86_64-linux-gnu/asm/types.h
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
