@@ -1,42 +1,31 @@
-From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/5] cbuild: Add udev dependency to package list
- of SuSE Leap
-Date: Thu, 2 Nov 2017 19:04:36 +0100
-Message-ID: <b2493da4-396e-5d24-ffa5-2fcccb9ee85c@suse.de>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-core 2/5] cbuild: Properly create tarball for SuSE
+Date: Thu, 2 Nov 2017 12:12:17 -0600
+Message-ID: <20171102181217.GS18874@ziepe.ca>
 References: <20171102165556.22105-1-leon@kernel.org>
- <20171102165556.22105-2-leon@kernel.org>
- <3a06c93f-aa0f-93fa-1b74-af6388051f89@suse.de>
- <20171102174220.GD16127@mtr-leonro.local>
+ <20171102165556.22105-3-leon@kernel.org>
+ <20171102171738.GP18874@ziepe.ca>
+ <20171102175735.GE16127@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171102174220.GD16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: fr-xx-classique+reforme1990
+Content-Disposition: inline
+In-Reply-To: <20171102175735.GE16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Nicolas Morey-Chaisemartin <nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Nov 02, 2017 at 07:57:35PM +0200, Leon Romanovsky wrote:
 
+> > Are you running cbuild as root or something? What is the docker
+> > command the script uses?
+> 
+> For me too, it doesn't reproduce, most probably Alaa run it as a root.
 
-Le 02/11/2017 à 18:42, Leon Romanovsky a écrit :
-> On Thu, Nov 02, 2017 at 06:32:09PM +0100, Nicolas Morey-Chaisemartin wrote: >> Leon, Jason, is there any news on switching the upstream validation to build/validate for all distrib instead of just the "travis" one ? > > This is the ultimate goal of this series.
-Sounds good. In that case, it might be worth adding tumbleweed to the distrib beeing built.
-Most of the SUSE bleeding-edge user are using TW as it provides the latest kernel/packages.
+Okay lets instead ban running cbuild as root?
 
-> > > After this series will be fixed and merged, we will have containerized SuSE/CentOS/Debian builds in travis, > and next step will be upload those artifacts to https://packagecloud.io/, so people won't need to create > distro packages for master branch. It will be there for them.
-FYI, I've already setup something in OBS that does it for the SUSE packages:
-https://build.opensuse.org/package/show/science:HPC:Head/rdma-core
-
-I've a Jenkins job that pulls github and automatically update this OBS repository.
-They definitly should *NOT* be used for anything but testing.
-
-> > > In regards of schedule, there is already weekend in IL and Alaa will continue > to work on this series next week. After that, I'll setup and connect packagecloud > to our account.
-Great !
-
-Nicolas
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
