@@ -1,109 +1,113 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/5] cbuild: Add udev dependency to package
- list of SuSE Leap
-Date: Thu, 2 Nov 2017 19:42:20 +0200
-Message-ID: <20171102174220.GD16127@mtr-leonro.local>
-References: <20171102165556.22105-1-leon@kernel.org>
- <20171102165556.22105-2-leon@kernel.org>
- <3a06c93f-aa0f-93fa-1b74-af6388051f89@suse.de>
+From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next] RDMA/vmw_pvrdma: Add shared receive queue
+ support
+Date: Thu, 2 Nov 2017 10:52:25 -0700
+Message-ID: <20171102175225.GB24375@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+References: <20171030022037.GA20100@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+ <20171030060317.GS16127@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="HHsIqWg7hQfWlXNC"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3a06c93f-aa0f-93fa-1b74-af6388051f89-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <20171030060317.GS16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Oct 30, 2017 at 08:03:17AM +0200, Leon Romanovsky wrote:
+> > +struct pvrdma_srq {
+> > +	struct ib_srq ibsrq;
+> > +	int offset;
+> > +	spinlock_t lock; /* SRQ lock. */
+> > +	int wqe_cnt;
+> > +	int wqe_size;
+> > +	int max_gs;
+> > +	struct ib_umem *umem;
+> > +	struct pvrdma_ring_state *ring;
+> > +	struct pvrdma_page_dir pdir;
+> > +	u32 srq_handle;
+> > +	int npages;
+> > +	atomic_t refcnt;
+> 
+> I think that new fashion is to use refcnt_t for such counts.
+> 
 
---HHsIqWg7hQfWlXNC
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sure, I'll change this to refcount_t.
 
-On Thu, Nov 02, 2017 at 06:32:09PM +0100, Nicolas Morey-Chaisemartin wrote:
-> Leon, Jason, is there any news on switching the upstream validation to bu=
-ild/validate for all distrib instead of just the "travis" one ?
+> > +	/* Check if SRQ is supported by backend */
+> > +	if (dev->dsr->caps.max_srq > 0) {
+> > +		dev->srq_tbl = kcalloc(dev->dsr->caps.max_srq, sizeof(void *),
+> > +				       GFP_KERNEL);
+> 
+> Shouldn't the "sizeof(void *)" need to be "sizeof(struct pvrdma_srq *)"
 
-This is the ultimate goal of this series.
+Fixed.
 
-After this series will be fixed and merged, we will have containerized SuSE=
-/CentOS/Debian builds in travis,
-and next step will be upload those artifacts to https://packagecloud.io/, s=
-o people won't need to create
-distro packages for master branch. It will be there for them.
+> > +		if (!dev->srq_tbl)
+> > +			goto err_qp_free;
+> > +	} else {
+> > +		dev->srq_tbl = NULL;
+> 
+> dev is allocated with ib_alloc_device() and srq_tbl will be zero by default.
+> 
 
-In regards of schedule, there is already weekend in IL and Alaa will contin=
-ue
-to work on this series next week. After that, I'll setup and connect packag=
-ecloud
-to our account.
+Removed.
 
-Actual validation on real HW is performed by vendors internally.
+> > +static void pvrdma_srq_event(struct pvrdma_dev *dev, u32 srqn, int type)
+> > +{
+> > +	struct pvrdma_srq *srq;
+> > +	unsigned long flags;
+> > +
+> > +	spin_lock_irqsave(&dev->srq_tbl_lock, flags);
+> > +	srq = dev->srq_tbl[srqn % dev->dsr->caps.max_srq];
+> 
+> Are you sure that "dev->srq_tb != NULL && dev->dsr->caps.max_srq > 0" always here?
+> 
 
-Thanks
+Added a check for srq_tbl.
 
->
-> Nicolas
->
-> Le 02/11/2017 =E0 17:55, Leon Romanovsky a =E9crit=A0:
-> > From: Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> > rpmbuild under SUSE requires udev and produces the following errors:
-> >
-> > error: Failed build dependencies:
-> >         pkgconfig(udev) is needed by rdma-core-16-0.x86_64
-> >
-> > Signed-off-by: Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > ---
-> >  buildlib/cbuild | 1 +
-> >  1 file changed, 1 insertion(+)
-> >
-> > diff --git a/buildlib/cbuild b/buildlib/cbuild
-> > index 918bf233..d1455b6f 100755
-> > --- a/buildlib/cbuild
-> > +++ b/buildlib/cbuild
-> > @@ -298,6 +298,7 @@ class leap(ZypperEnvironment):
-> >          'cmake',
-> >          'gcc',
-> >          'libnl3-devel',
-> > +        'udev',
-> >          'libudev-devel',
-> >          'make',
-> >          'ninja',
-> > --
-> > 2.14.2
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> > +static void pvrdma_free_srq(struct pvrdma_dev *dev, struct pvrdma_srq *srq)
+> > +{
+> > +	unsigned long flags;
+> > +
+> > +	spin_lock_irqsave(&dev->srq_tbl_lock, flags);
+> > +	dev->srq_tbl[srq->srq_handle] = NULL;
+> 
+> Again, are you sure that dev->srq_tbl exist?
+> 
 
---HHsIqWg7hQfWlXNC
-Content-Type: application/pgp-signature; name="signature.asc"
+Here we assumed that the verbs layer will only call down to us to
+destroy a valid SRQ. If an SRQ has been created, then the srq_tbl
+should exist. I can add a check here if that's not behaviour we
+should rely on.
 
------BEGIN PGP SIGNATURE-----
+> > +int pvrdma_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+> > +		      enum ib_srq_attr_mask attr_mask, struct ib_udata *udata)
+> > +{
+> > +	struct pvrdma_srq *vsrq = to_vsrq(ibsrq);
+> > +	union pvrdma_cmd_req req;
+> > +	struct pvrdma_cmd_modify_srq *cmd = &req.modify_srq;
+> > +	struct pvrdma_dev *dev = to_vdev(ibsrq->device);
+> > +	int ret;
+> > +
+> > +	/* No support for resizing SRQs. */
+> 
+> Better to write that you support, so future additions to ib_srq_attr_mask
+> won't need to change your code.
+> 
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln7WPwACgkQ5GN7iDZy
-WKeBnxAAkrGiqZf/PaaIeNj68VSmbcmM/Bo33975GDqZbGqnZf6Uq5JeT5uh2dzp
-p33qKrR4TpXb9SrMYzXZa8WBOXqh8wFu8jZnpNoWSTsgl5uaj5Lax7Qn6t+AaIRs
-Mvtk4p7i6Z/Llo+5DoX26LQmemiUglcHECkv4aDfSCltek5v7NptyPqaRPIOGUYc
-mm660AmbGQ/DJrmFmXiXsF2kRbyrIEQ5Upt0KhAWxSdpFebdvj0KVvYqKG32Wwek
-YT6Wd1VAuLmt2GuccifWZ1P6+drXOaSoL4XCKaA0YOMZW9THgj8Ji8frUxwdPBXp
-mwQeuX0qXh+siirK2PKKHV05HybpWdiQYRKSYEqqK1/hfkitOM/s868gu/e0ZWJX
-LK1EFvnZzNNoKkkNSD71U+rOR+MKdJy+8P1zv84I2YE8uWio6m2WTKAJD+qrJU/c
-hLxGjy1Krf7BB64r+V7L/ewQn32r0KY7t+rqHv6r/Ev3X+Ln6pGQ+ZxEOk7KAy3+
-YqcVecWCzAc8bPtgOLlr7yHHbSOe1Kj+pdAaaQCx+AjQRUFxvcjnmA528KaZqSMZ
-41TGWwxd+CmXrnz0zuCT+qVfsJkrvUAFFvZ1DKSrp3TUKL6mW5a1nW93AQHcTzdQ
-585Ggh91JQ7H5m1ED1doTo/KrMGkAFena1qihg2JV2o5RffDgHg=
-=qcYq
------END PGP SIGNATURE-----
+I'm a little unclear on what you mean here. Do you mean that we
+should explicitly check for the only attribute we support
+(IB_SRQ_LIMIT) and fail otherwise?
 
---HHsIqWg7hQfWlXNC--
+> > +	if (attr_mask & IB_SRQ_MAX_WR)
+> > +		return -EINVAL;
+
+
+Thanks for the review!
+Bryan
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
