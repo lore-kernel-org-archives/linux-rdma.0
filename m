@@ -1,41 +1,83 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH v2 4/8] IB/srpt: Change default behavior from using SRQ to
- using RC
-Date: Thu, 2 Nov 2017 21:41:55 +0000
-Message-ID: <1509658914.2484.21.camel@wdc.com>
-References: <20171011172729.16984-1-bart.vanassche@wdc.com>
-         <20171011172729.16984-5-bart.vanassche@wdc.com>
-         <32E1700B9017364D9B60AED9960492BC6266931A@fmsmsx120.amr.corp.intel.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: [PATCH rdma-core] verbs: Do not block QP attr_masks used by older
+ kernels
+Date: Thu, 2 Nov 2017 15:50:31 -0600
+Message-ID: <20171102215031.GY18874@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC6266931A-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
-Content-ID: <10DB5CE5777A174A966E72404AD7B577-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE3LTExLTAyIGF0IDE4OjMwICswMDAwLCBNYXJjaW5pc3p5biwgTWlrZSB3cm90
-ZToNCj4gPiBTdWJqZWN0OiBbUEFUQ0ggdjIgNC84XSBJQi9zcnB0OiBDaGFuZ2UgZGVmYXVsdCBi
-ZWhhdmlvciBmcm9tIHVzaW5nIFNSUSB0bw0KPiA+IHVzaW5nIFJDDQo+IA0KPiBCYXJ0LCB0aGlz
-IGxhc3Qgb2YgdGhlIDQgdGFyZ2V0IHBhdGNoZXMgY2F1c2VzIG91ciBpbnRlcm5hbCBTUlAgdGVz
-dGluZyB0bw0KPiBmYWlsLg0KDQpTb3JyeSBmb3IgdGhpcy4gU2luY2UgSSBhc3N1bWUgdGhhdCB5
-b3UgYXJlIHJlZmVycmluZyB0byB0ZXN0cyB3aXRoIHRoZSBxaWINCm9yIGhmaTEgZHJpdmVyIGFu
-ZCBzaW5jZSBJIGRvIG5vdCBoYXZlIGFjY2VzcyB0byBhIHNldHVwIHdpdGggdGhhdCBoYXJkd2Fy
-ZQ0KSSB3aWxsIGhhdmUgdG8gcmVseSBvbiB5b3UgZm9yIGZ1cnRoZXIgYW5hbHlzaXMuDQoNCj4g
-SSdtIGxvb2tpbmcgYXQgd2h5IGJ1dC4uLg0KPiANCj4gPiBBZGQgbmV3IGNvbmZpZ2ZzIGF0dHJp
-YnV0ZXMgdGhhdCBhbGxvdyB0byBjb25maWd1cmUgd2hpY2ggbW9kZSB0byB1c2UNCj4gPiAoL3N5
-cy9rZXJuZWwvY29uZmlnL3RhcmdldC9zcnB0LyRHVUlELyRHVUlEL2F0dHJpYi91c2Vfc3JxKS4g
-Tm90ZToNCj4gPiBvbmx5IHRoZSBhdHRyaWJ1dGUgZm9yIHBvcnQgMSBpcyByZWxldmFudCBvbiBt
-dWx0aS1wb3J0IGFkYXB0ZXJzLg0KPiANCj4gSXQgbG9va3MgbGlrZSB0aGUgYWJvdmUgd29yayBh
-cm91bmQgY2Fubm90IHdvcmsuDQo+IFRoZSB1c2Vfc3JxIGlzIHRlc3RlZCBhbmQgdGhlICBTUlEg
-aXMgYWxsb2NhdGVkIHdoZW4gdGhlIGRldmljZSBpcyBhZGRlZC4NCj4gU2V0dGluZyBhIHRhcmdl
-dCByZWxhdGl2ZSBhdHRyaWJ1dGUgaXMgdG9vIGxhdGUgaW4gdGhlIHNlcXVlbmNlIHRvIGVuYWJs
-ZQ0KPiB0aGUgb2xkIFNSUSB1c2FnZS4NCg0KVGhhbmtzIGZvciB0aGUgcmVwb3J0LiBJIHdpbGwg
-cG9zdCBhIHBhdGNoIHNlcmllcyB0byBhZGRyZXNzIHRoaXMuDQoNCkJhcnQu
+At least the RDMA CM in 4.3 will give user space structs with these bits
+set. Those kernels require user space to pass those set bits back to the
+kernel. Blocking them causes RDMA CM to be unusable on older kernels.
+
+Fixes: 3ca7a1031486 ("ibverbs: Add support for packet pacing")
+Reported-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Jason Gunthorpe <jgunthorpe-uk2M96/98Pc@public.gmane.org>
+---
+ libibverbs/cmd.c   | 12 ++++++------
+ libibverbs/verbs.h |  9 +++++++++
+ 2 files changed, 15 insertions(+), 6 deletions(-)
+
+diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
+index 713a13c0f272b3..fbe822324c9dd5 100644
+--- a/libibverbs/cmd.c
++++ b/libibverbs/cmd.c
+@@ -1182,10 +1182,10 @@ int ibv_cmd_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 	struct ibv_query_qp_resp resp;
+ 
+ 	/*
+-	 * Masks over IBV_QP_DEST_QPN are not supported by
+-	 * that not extended command.
++	 * Starting with IB_QP_RATE_LIMIT the attribute must go through the
++	 * _ex path.
+ 	 */
+-	if (attr_mask & ~((IBV_QP_DEST_QPN << 1) - 1))
++	if (attr_mask & ~(IBV_QP_RATE_LIMIT - 1))
+ 		return EOPNOTSUPP;
+ 
+ 	IBV_INIT_CMD_RESP(cmd, cmd_size, QUERY_QP, &resp, sizeof resp);
+@@ -1352,10 +1352,10 @@ int ibv_cmd_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 		      struct ibv_modify_qp *cmd, size_t cmd_size)
+ {
+ 	/*
+-	 * Masks over IBV_QP_DEST_QPN are only supported by
+-	 * ibv_cmd_modify_qp_ex.
++	 * Starting with IB_QP_RATE_LIMIT the attribute must go through the
++	 * _ex path.
+ 	 */
+-	if (attr_mask & ~((IBV_QP_DEST_QPN << 1) - 1))
++	if (attr_mask & ~(IBV_QP_RATE_LIMIT - 1))
+ 		return EOPNOTSUPP;
+ 
+ 	IBV_INIT_CMD(cmd, cmd_size, MODIFY_QP);
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 1ab747bb757cf3..2a2264d300e1ca 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -909,6 +909,15 @@ enum ibv_qp_attr_mask {
+ 	IBV_QP_PATH_MIG_STATE		= 1 << 18,
+ 	IBV_QP_CAP			= 1 << 19,
+ 	IBV_QP_DEST_QPN			= 1 << 20,
++#if 0
++	/* These bits were supported on older kernels, but never exposed to
++	 * user space:
++	 */
++	_IBV_QP_COMPAT1			= 1 << 21,
++	_IBV_QP_COMPAT2			= 1 << 22,
++	_IBV_QP_COMPAT3			= 1 << 23,
++	_IBV_QP_COMPAT3			= 1 << 24,
++#endif
+ 	IBV_QP_RATE_LIMIT		= 1 << 25,
+ };
+ 
+-- 
+2.7.4
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
