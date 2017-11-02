@@ -1,62 +1,40 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [RFC] Registering non-contiguous memory
-Date: Thu, 2 Nov 2017 10:12:22 -0600
-Message-ID: <20171102161222.GH18874@ziepe.ca>
-References: <VI1PR05MB127817A311C332553E4391AFB9410@VI1PR05MB1278.eurprd05.prod.outlook.com>
- <DB5PR05MB1270529922F451A2CACF7AE9B95F0@DB5PR05MB1270.eurprd05.prod.outlook.com>
- <20171101165625.GE1030@ziepe.ca>
- <20171102050942.GU16127@mtr-leonro.local>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH 0/3] Fix request completion holes
+Date: Thu, 2 Nov 2017 18:15:54 +0200
+Message-ID: <6f19bb00-5d2d-91f4-1489-3b409b4a7c52@grimberg.me>
+References: <1509440122-1190-1-git-send-email-sagi@grimberg.me>
+ <8abcde91-9150-2982-3900-078619bcdac0@mellanox.com>
+ <a950a671-22a1-432c-555e-8309c8a64a88@grimberg.me>
+ <d9dcdb05-d001-53d8-7ed7-5fafc1709f4a@mellanox.com>
+ <20171101165036.GD1030@ziepe.ca>
+ <5f3955d2-9116-5f18-2299-cc697947d599@grimberg.me>
+ <20171101175819.GG1030@ziepe.ca>
+ <5810bb05-fffd-a0f2-3509-9d9b89a2ef32@grimberg.me>
+ <20171102151254.GE18874@ziepe.ca>
+ <6626939a-3626-181f-ccea-0f6482e7a3fc@grimberg.me>
+ <20171102155156.GG18874@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171102050942.GU16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20171102155156.GG18874-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: idanb <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 02, 2017 at 07:09:42AM +0200, Leon Romanovsky wrote:
-> On Wed, Nov 01, 2017 at 10:56:25AM -0600, Jason Gunthorpe wrote:
-> > On Wed, Nov 01, 2017 at 11:11:42AM +0000, Alex Margolin wrote:
-> >
-> > >  struct verbs_context {
-> > >  	/*  "grows up" - new fields go here */
-> > > +	struct ib_mw * (*alloc_mw_ex)(struct ibv_mw_alloc_attr
-> > >  	*mw_alloc_attr);
-> >
-> > This patch is full of weird little mistakes like the above, wouldn't
-> > compile and doesn't really seem capture the proposed API.
+
+>>> Then it would need to signal the SEND if remote invalidate is used,
+>>> otherwise it only needs to signal the local invalidate for the RKEY..
+>>
+>> Also if its simply using the local dma lkey without sending any rkey.
 > 
-> Those RFCs are intended to present concept and implementation direction.
-> It is a little bit over-expectation to have working code and clean UAPI
-> at this stage.
+> Right, OK, to be clear, my emails were only about the case where there
+> was a SEND and INVALIDATE required together, I wasn't discussing SEND
+> alone, that is already as good as it can be I think :)
 
-Clear communication is important.
-
-If you have to send a code snippit to explain the idea then it had
-better 'work'. I'm not asking for an implementation, but certainly
-correct changes to verbs.h
-
-> > We are now asking for complete rdma-core patches before talking about
-> > merging new kernel uapi features. Please retry this RFC with the new
-> > requirement.
-> 
-> There are steps in development process, and first step before rushing
-> into implementation details is to talk about concept. This is exactly
-> what Alex did.
-
-Mellanox already did the concept step internally, if you want external
-review you need to clearly communicate the idea, and I don't think
-these RFCs are detailed or clear enough.
-
-Header file patch, man pages, documentation and an example are the
-logical next steps to vet a proposed verbs API in the public forum.
-
-This is analogous to a standards body context, where the next step
-would be to draft standards language, eg 'man pages' and API signatures.
-
-Jason
+Not arguing here :)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
