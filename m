@@ -1,28 +1,39 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 10/15] IB/core: disable memory registration of
- fileystem-dax vmas
-Date: Thu, 2 Nov 2017 14:06:57 -0700
-Message-ID: <CAPcyv4g0-kXCXzGo6=3fwaRJTM_4N8BFp+-W71t4Vd_to7LDBA@mail.gmail.com>
-References: <150949209290.24061.6283157778959640151.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150949214929.24061.10464887309708944817.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171102201356.GD5732@lst.de>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/5] Perform package tests in Travis CI
+Date: Thu, 2 Nov 2017 15:18:51 -0600
+Message-ID: <20171102211851.GV18874@ziepe.ca>
+References: <20171102165556.22105-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20171102201356.GD5732@lst.de>
-Sender: owner-linux-mm@kvack.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Sean Hefty <sean.hefty@intel.com>, linux-xfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-rdma <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Linux MM <linux-mm@kvack.org>, Doug Ledford <dledford@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171102165556.22105-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Nicolas Morey-Chaisemartin <nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 2, 2017 at 1:13 PM, Christoph Hellwig <hch@lst.de> wrote:
-> Any chance we could add a new get_user_pages_longerm or similar
-> helper instead of opencoding this in the various callers?
+On Thu, Nov 02, 2017 at 06:55:51PM +0200, Leon Romanovsky wrote:
+> This patchset comes from Alaa and he adds to Travis CI ability
+> to reuse our cbuild script to build various packages.
+> 
+> The PR is https://github.com/linux-rdma/rdma-core/pull/241
 
-Sounds like a great idea to me, I'll take a look...
+Not to say we shouldn't apply this PR, but if we go down this road
+then we should also ultimately switch to circleci since it has actual
+native support for docker and crucially support for docker image
+caching.
 
+With that each of the docker images could be run in parallel instead
+of sequentially and it would resolve our general issues with having to
+use the ancient trusty baseline that travis uses.
+
+AFAIK the sticking point is that we need to have a public docker
+container registry, preferably co-located with circle ci's build
+workers..
+
+Jason
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
