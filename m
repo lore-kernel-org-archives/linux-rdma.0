@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 2/5] IB/srpt: Introduce helper functions for SRQ allocation and freeing
-Date: Fri, 3 Nov 2017 16:20:53 -0700
-Message-ID: <20171103232056.30614-3-bart.vanassche@wdc.com>
+Subject: [PATCH 3/5] IB/srpt: Introduce srpt_disconnect_ch_sync()
+Date: Fri, 3 Nov 2017 16:20:54 -0700
+Message-ID: <20171103232056.30614-4-bart.vanassche@wdc.com>
 References: <20171103232056.30614-1-bart.vanassche@wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,169 +12,88 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The only functional change in this patch is in the srpt_add_one()
-error path: if allocating the ring buffer for the SRQ fails, fall
-back to non-SRQ mode instead of disabling SRP target functionality.
+Except for changing a BUG_ON() call into a WARN_ON_ONCE() call, this
+patch does not change any functionality.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 115 +++++++++++++++++++++-------------
- 1 file changed, 72 insertions(+), 43 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 51 ++++++++++++++++++++++++-----------
+ 1 file changed, 35 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 98b1b80e476b..a5f232e9b1f3 100644
+index a5f232e9b1f3..1aeb8d6ae6d9 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2510,6 +2510,74 @@ static struct se_wwn *srpt_lookup_wwn(const char *name)
- 	return wwn;
+@@ -1787,6 +1787,40 @@ static int srpt_disconnect_ch(struct srpt_rdma_ch *ch)
+ 	return ret;
  }
  
-+static void srpt_free_srq(struct srpt_device *sdev)
++/*
++ * Send DREQ and wait for DREP. Return true if and only if this function
++ * changed the state of @ch.
++ */
++static bool srpt_disconnect_ch_sync(struct srpt_rdma_ch *ch)
++	__must_hold(&sdev->mutex)
 +{
-+	if (!sdev->srq)
-+		return;
++	DECLARE_COMPLETION_ONSTACK(release_done);
++	struct srpt_device *sdev = ch->sport->sdev;
++	bool wait;
 +
-+	ib_destroy_srq(sdev->srq);
-+	srpt_free_ioctx_ring((struct srpt_ioctx **)sdev->ioctx_ring, sdev,
-+			     sdev->srq_size, srp_max_req_size, DMA_FROM_DEVICE);
-+	sdev->srq = NULL;
++	lockdep_assert_held(&sdev->mutex);
++
++	pr_debug("ch %s-%d state %d\n", ch->sess_name, ch->qp->qp_num,
++		 ch->state);
++
++	WARN_ON(ch->release_done);
++	ch->release_done = &release_done;
++	wait = !list_empty(&ch->list);
++	srpt_disconnect_ch(ch);
++	mutex_unlock(&sdev->mutex);
++
++	if (!wait)
++		goto out;
++
++	while (wait_for_completion_timeout(&release_done, 180 * HZ) == 0)
++		pr_info("%s(%s-%d state %d): still waiting ...\n", __func__,
++			ch->sess_name, ch->qp->qp_num, ch->state);
++
++out:
++	mutex_lock(&sdev->mutex);
++	return wait;
 +}
 +
-+static int srpt_alloc_srq(struct srpt_device *sdev)
-+{
-+	struct ib_srq_init_attr srq_attr = {
-+		.event_handler = srpt_srq_event,
-+		.srq_context = (void *)sdev,
-+		.attr.max_wr = sdev->srq_size,
-+		.attr.max_sge = 1,
-+		.srq_type = IB_SRQT_BASIC,
-+	};
-+	struct ib_device *device = sdev->device;
-+	struct ib_srq *srq;
-+	int i;
-+
-+	WARN_ON_ONCE(sdev->srq);
-+	srq = ib_create_srq(sdev->pd, &srq_attr);
-+	if (IS_ERR(srq)) {
-+		pr_debug("ib_create_srq() failed: %ld\n", PTR_ERR(srq));
-+		return PTR_ERR(srq);
-+	}
-+
-+	pr_debug("create SRQ #wr= %d max_allow=%d dev= %s\n", sdev->srq_size,
-+		 sdev->device->attrs.max_srq_wr, device->name);
-+
-+	sdev->ioctx_ring = (struct srpt_recv_ioctx **)
-+		srpt_alloc_ioctx_ring(sdev, sdev->srq_size,
-+				      sizeof(*sdev->ioctx_ring[0]),
-+				      srp_max_req_size, DMA_FROM_DEVICE);
-+	if (!sdev->ioctx_ring) {
-+		ib_destroy_srq(srq);
-+		return -ENOMEM;
-+	}
-+
-+	sdev->use_srq = true;
-+	sdev->srq = srq;
-+
-+	for (i = 0; i < sdev->srq_size; ++i)
-+		srpt_post_recv(sdev, NULL, sdev->ioctx_ring[i]);
-+
-+	return 0;
-+}
-+
-+static int srpt_use_srq(struct srpt_device *sdev, bool use_srq)
-+{
-+	struct ib_device *device = sdev->device;
-+	int ret = 0;
-+
-+	if (!use_srq) {
-+		srpt_free_srq(sdev);
-+		sdev->use_srq = false;
-+	} else if (use_srq && !sdev->srq) {
-+		ret = srpt_alloc_srq(sdev);
-+	}
-+	pr_debug("%s(%s): use_srq = %d; ret = %d\n", __func__, device->name,
-+		 sdev->use_srq, ret);
-+	return ret;
-+}
-+
- /**
-  * srpt_add_one() - Infiniband device addition callback function.
-  */
-@@ -2517,7 +2585,6 @@ static void srpt_add_one(struct ib_device *device)
+ static void __srpt_close_all_ch(struct srpt_device *sdev)
  {
- 	struct srpt_device *sdev;
- 	struct srpt_port *sport;
--	struct ib_srq_init_attr srq_attr;
- 	int i;
- 
- 	pr_debug("device = %p\n", device);
-@@ -2539,38 +2606,7 @@ static void srpt_add_one(struct ib_device *device)
- 
- 	sdev->srq_size = min(srpt_srq_size, sdev->device->attrs.max_srq_wr);
- 
--	srq_attr.event_handler = srpt_srq_event;
--	srq_attr.srq_context = (void *)sdev;
--	srq_attr.attr.max_wr = sdev->srq_size;
--	srq_attr.attr.max_sge = 1;
--	srq_attr.attr.srq_limit = 0;
--	srq_attr.srq_type = IB_SRQT_BASIC;
+ 	struct srpt_rdma_ch *ch;
+@@ -2791,27 +2825,12 @@ static void srpt_release_cmd(struct se_cmd *se_cmd)
+  */
+ static void srpt_close_session(struct se_session *se_sess)
+ {
+-	DECLARE_COMPLETION_ONSTACK(release_done);
+ 	struct srpt_rdma_ch *ch = se_sess->fabric_sess_ptr;
+ 	struct srpt_device *sdev = ch->sport->sdev;
+-	bool wait;
 -
--	sdev->srq = sdev->port[0].port_attrib.use_srq ?
--		ib_create_srq(sdev->pd, &srq_attr) : ERR_PTR(-ENOTSUPP);
--	if (IS_ERR(sdev->srq)) {
--		pr_debug("ib_create_srq() failed: %ld\n", PTR_ERR(sdev->srq));
--
--		/* SRQ not supported. */
--		sdev->use_srq = false;
--	} else {
--		pr_debug("create SRQ #wr= %d max_allow=%d dev= %s\n",
--			 sdev->srq_size, sdev->device->attrs.max_srq_wr,
--			 device->name);
--
--		sdev->use_srq = true;
--
--		sdev->ioctx_ring = (struct srpt_recv_ioctx **)
--			srpt_alloc_ioctx_ring(sdev, sdev->srq_size,
--					      sizeof(*sdev->ioctx_ring[0]),
--					      srp_max_req_size,
--					      DMA_FROM_DEVICE);
--		if (!sdev->ioctx_ring)
--			goto err_pd;
--
--		for (i = 0; i < sdev->srq_size; ++i)
--			srpt_post_recv(sdev, NULL, sdev->ioctx_ring[i]);
--	}
-+	srpt_use_srq(sdev, sdev->port[0].port_attrib.use_srq);
+-	pr_debug("ch %s-%d state %d\n", ch->sess_name, ch->qp->qp_num,
+-		 ch->state);
  
- 	if (!srpt_service_guid)
- 		srpt_service_guid = be64_to_cpu(device->node_guid);
-@@ -2630,12 +2666,7 @@ static void srpt_add_one(struct ib_device *device)
- err_cm:
- 	ib_destroy_cm_id(sdev->cm_id);
- err_ring:
--	if (sdev->use_srq)
--		ib_destroy_srq(sdev->srq);
--	srpt_free_ioctx_ring((struct srpt_ioctx **)sdev->ioctx_ring, sdev,
--			     sdev->srq_size, srp_max_req_size,
--			     DMA_FROM_DEVICE);
--err_pd:
-+	srpt_free_srq(sdev);
- 	ib_dealloc_pd(sdev->pd);
- free_dev:
- 	kfree(sdev);
-@@ -2678,10 +2709,8 @@ static void srpt_remove_one(struct ib_device *device, void *client_data)
- 	spin_unlock(&srpt_dev_lock);
- 	srpt_release_sdev(sdev);
+ 	mutex_lock(&sdev->mutex);
+-	BUG_ON(ch->release_done);
+-	ch->release_done = &release_done;
+-	wait = !list_empty(&ch->list);
+-	srpt_disconnect_ch(ch);
++	srpt_disconnect_ch_sync(ch);
+ 	mutex_unlock(&sdev->mutex);
+-
+-	if (!wait)
+-		return;
+-
+-	while (wait_for_completion_timeout(&release_done, 180 * HZ) == 0)
+-		pr_info("%s(%s-%d state %d): still waiting ...\n", __func__,
+-			ch->sess_name, ch->qp->qp_num, ch->state);
+ }
  
--	if (sdev->use_srq)
--		ib_destroy_srq(sdev->srq);
--	srpt_free_ioctx_ring((struct srpt_ioctx **)sdev->ioctx_ring, sdev,
--			     sdev->srq_size, srp_max_req_size, DMA_FROM_DEVICE);
-+	srpt_free_srq(sdev);
-+
- 	ib_dealloc_pd(sdev->pd);
- 
- 	kfree(sdev);
+ /**
 -- 
 2.14.3
 
