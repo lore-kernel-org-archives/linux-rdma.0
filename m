@@ -1,45 +1,31 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2 4/8] IB/srpt: Change default behavior from using SRQ
- to using RC
-Date: Fri, 3 Nov 2017 13:05:27 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC6266BEA7@fmsmsx120.amr.corp.intel.com>
-References: <20171011172729.16984-1-bart.vanassche@wdc.com>
-         <20171011172729.16984-5-bart.vanassche@wdc.com>
-         <32E1700B9017364D9B60AED9960492BC6266931A@fmsmsx120.amr.corp.intel.com>
- <1509658914.2484.21.camel@wdc.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: =?utf-8?B?UmU6IOOAkGFzayBmb3IgaGVscOOAkQ==?=
+Date: Fri, 3 Nov 2017 14:59:11 +0000
+Message-ID: <1509721149.2473.3.camel@wdc.com>
+References: <757dcf37-4fb3-c6e9-c915-de10b4e2326f@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1509658914.2484.21.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <757dcf37-4fb3-c6e9-c915-de10b4e2326f-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
+Content-ID: <8E99758FDDD8A9418382F8D911B9D0A8-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiANCj4gU29ycnkgZm9yIHRoaXMuIFNpbmNlIEkgYXNzdW1lIHRoYXQgeW91IGFyZSByZWZlcnJp
-bmcgdG8gdGVzdHMgd2l0aCB0aGUgcWliDQo+IG9yIGhmaTEgZHJpdmVyIGFuZCBzaW5jZSBJIGRv
-IG5vdCBoYXZlIGFjY2VzcyB0byBhIHNldHVwIHdpdGggdGhhdCBoYXJkd2FyZQ0KPiBJIHdpbGwg
-aGF2ZSB0byByZWx5IG9uIHlvdSBmb3IgZnVydGhlciBhbmFseXNpcy4NCg0KSSB0dXJuZWQgb24g
-c29tZSBzdGF0aWMgdHJhY2luZyBhbmQgdGhlcmUgaXMgYSBzZXF1ZW5jZSBvZiBSTlIgbmFrcyBv
-biB0aGUgd2lyZSBmcm9tIHRoZSB0YXJnZXQuDQoNCkEgY3Vyc29yeSBsb29rIGF0IHRoZSBub3Jt
-YWwgQUNLIGFldGggZG9lc24ndCBzaG93IGFueSBpc3N1ZSB3aXRoIHRoZSBmbG93IGNvbnRyb2wu
-DQoNCkFnYWluLCBzdGlsbCBsb29raW5nLg0KDQpJIGRvbid0IGtub3cgaWYgcWliIGZhaWxzLCBi
-dXQgSSBzdXNwZWN0IGl0IHdpbGwuDQoNCldlIGhhdmUgbmlnaHRseSAxMiBob3VyIHRlc3RzIG9u
-IHRoZSBsYXN0ZXN0IHN0dWZmIHRoYXQgY2F1Z2h0IGl0Lg0KDQo+IA0KPiA+IEknbSBsb29raW5n
-IGF0IHdoeSBidXQuLi4NCj4gPg0KPiA+ID4gQWRkIG5ldyBjb25maWdmcyBhdHRyaWJ1dGVzIHRo
-YXQgYWxsb3cgdG8gY29uZmlndXJlIHdoaWNoIG1vZGUgdG8gdXNlDQo+ID4gPiAoL3N5cy9rZXJu
-ZWwvY29uZmlnL3RhcmdldC9zcnB0LyRHVUlELyRHVUlEL2F0dHJpYi91c2Vfc3JxKS4gTm90ZToN
-Cj4gPiA+IG9ubHkgdGhlIGF0dHJpYnV0ZSBmb3IgcG9ydCAxIGlzIHJlbGV2YW50IG9uIG11bHRp
-LXBvcnQgYWRhcHRlcnMuDQo+ID4NCj4gPiBJdCBsb29rcyBsaWtlIHRoZSBhYm92ZSB3b3JrIGFy
-b3VuZCBjYW5ub3Qgd29yay4NCj4gPiBUaGUgdXNlX3NycSBpcyB0ZXN0ZWQgYW5kIHRoZSAgU1JR
-IGlzIGFsbG9jYXRlZCB3aGVuIHRoZSBkZXZpY2UgaXMgYWRkZWQuDQo+ID4gU2V0dGluZyBhIHRh
-cmdldCByZWxhdGl2ZSBhdHRyaWJ1dGUgaXMgdG9vIGxhdGUgaW4gdGhlIHNlcXVlbmNlIHRvIGVu
-YWJsZQ0KPiA+IHRoZSBvbGQgU1JRIHVzYWdlLg0KPiANCj4gVGhhbmtzIGZvciB0aGUgcmVwb3J0
-LiBJIHdpbGwgcG9zdCBhIHBhdGNoIHNlcmllcyB0byBhZGRyZXNzIHRoaXMuDQo+IA0KDQpPay4N
-Cg0KRm9yIG5vdyBJIGNhbiBqdXN0IG1hbnVhbGx5IGRpc2FybSB3aXRoIGEgY29kZSBjaGFuZ2Ug
-dG8gZXhwZXJpbWVudC4NCg0KTWlrZQ0K
+T24gRnJpLCAyMDE3LTExLTAzIGF0IDE3OjE0ICswODAwLCBvdWxpanVuIHdyb3RlOg0KPiB1bmhh
+bmRsZWQgbGV2ZWwgMiB0cmFuc2xhdGlvbiBmYXVsdCAoMTEpIGF0IDB4MDAwMDAwMDAsIGVzciAw
+eDkyMDAwMDA2LCBpbiBsaWJyZG1hY20uc28uMS4xLjExDQo+IFtmZmZmOWE2ZTgwMDArMTEwMDBd
+DQoNCklzIHRoaXMgcGVyaGFwcyBhIHVzZXIgc3BhY2UgZmF1bHQgcmVwb3J0ZWQgYnkgdGhlIGtl
+cm5lbD8gRnJvbSBrZXJuZWwgc291cmNlDQpmaWxlIGFyY2gvYXJtNjQvbW0vZmF1bHQuYzoNCg0K
+CQlwcl9pbmZvKCIlc1slZF06IHVuaGFuZGxlZCAlcyAoJWQpIGF0IDB4JTA4bHgsIGVzciAweCUw
+M3giLA0KCQkJdHNrLT5jb21tLCB0YXNrX3BpZF9ucih0c2spLCBpbmYtPm5hbWUsIHNpZywNCgkJ
+CWFkZHIsIGVzcik7DQoNCllvdSB3aWxsIG5lZWQgdG8gaWRlbnRpZnkgd2hhdCBjb2RlIGluIGxp
+YnJkbWFjbSBjYXVzZWQgdGhpcyBmYXVsdCBieSB1c2luZw0KdG9vbHMgdGhhdCByZXBvcnQgYSBz
+dGFjayB0cmFjZSBmb3IgdGhlIGZhdWx0LiBIYWQgeW91IGFscmVhZHkgY29uc2lkZXJlZCB0bw0K
+cnVuIHRoZSBhcHBsaWNhdGlvbiB0aGF0IHVzZXMgbGlicmRtYWNtIGFuZCB0aGF0IHRyaWdnZXJz
+IHRoaXMgZmF1bHQgdW5kZXIgZ2RiDQpvciB2YWxncmluZD8NCg0KQmFydC4=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
