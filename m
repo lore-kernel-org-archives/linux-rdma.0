@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 1/5] IB/srpt: Post receive work requests after qp transition to INIT state
-Date: Fri, 3 Nov 2017 16:20:52 -0700
-Message-ID: <20171103232056.30614-2-bart.vanassche@wdc.com>
+Subject: [PATCH 5/5] IB/srpt: Ensure that modifying the use_srq configfs attribute works
+Date: Fri, 3 Nov 2017 16:20:56 -0700
+Message-ID: <20171103232056.30614-6-bart.vanassche@wdc.com>
 References: <20171103232056.30614-1-bart.vanassche@wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,45 +12,48 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+The use_srq configfs attribute is created after it is read. Hence
+modify srpt_tpg_attrib_use_srq_store() such that this function
+switches dynamically between non-SRQ and SRQ mode.
 
-Not all HCAs support posting receive work requests in the RESET
-state. Postpone posting receive work requests until after the
-transition to the INIT state.
-
-Fixes: commit dea262094cdf ("IB/srpt: Change default behavior from using SRQ to using RC")
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reported-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 304855b9b537..98b1b80e476b 100644
+index ca602eb50078..fde4f6741316 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1687,10 +1687,6 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
- 		goto err_destroy_cq;
- 	}
+@@ -3054,7 +3054,9 @@ static ssize_t srpt_tpg_attrib_use_srq_store(struct config_item *item,
+ {
+ 	struct se_portal_group *se_tpg = attrib_to_tpg(item);
+ 	struct srpt_port *sport = srpt_tpg_to_sport(se_tpg);
++	struct srpt_device *sdev = sport->sdev;
+ 	unsigned long val;
++	bool enabled;
+ 	int ret;
  
--	if (!sdev->use_srq)
--		for (i = 0; i < ch->rq_size; i++)
--			srpt_post_recv(sdev, ch, ch->ioctx_recv_ring[i]);
--
- 	atomic_set(&ch->sq_wr_avail, qp_init->cap.max_send_wr);
- 
- 	pr_debug("%s: max_cqe= %d max_sge= %d sq_size = %d cm_id= %p\n",
-@@ -1701,6 +1697,10 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
- 	if (ret)
- 		goto err_destroy_qp;
- 
-+	if (!sdev->use_srq)
-+		for (i = 0; i < ch->rq_size; i++)
-+			srpt_post_recv(sdev, ch, ch->ioctx_recv_ring[i]);
+ 	ret = kstrtoul(page, 0, &val);
+@@ -3062,7 +3064,17 @@ static ssize_t srpt_tpg_attrib_use_srq_store(struct config_item *item,
+ 		return ret;
+ 	if (val != !!val)
+ 		return -EINVAL;
 +
- out:
- 	kfree(qp_init);
- 	return ret;
++	ret = mutex_lock_interruptible(&sdev->mutex);
++	if (ret < 0)
++		return ret;
++	enabled = sport->enabled;
++	/* Log out all initiator systems before changing 'use_srq'. */
++	srpt_set_enabled(sport, false);
+ 	sport->port_attrib.use_srq = val;
++	srpt_use_srq(sdev, sport->port_attrib.use_srq);
++	srpt_set_enabled(sport, enabled);
++	mutex_unlock(&sdev->mutex);
+ 
+ 	return count;
+ }
 -- 
 2.14.3
 
