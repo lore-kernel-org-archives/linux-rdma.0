@@ -1,43 +1,66 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: =?UTF-8?B?UmU6IOOAkGFzayBmb3IgaGVscOOAkQ==?=
-Date: Sat, 4 Nov 2017 17:02:06 +0800
-Message-ID: <94c8a13d-6959-9000-751b-a323330e5f19@huawei.com>
-References: <757dcf37-4fb3-c6e9-c915-de10b4e2326f@huawei.com>
- <1509721149.2473.3.camel@wdc.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core 3/3] libhns: Fix endian format of payload and
+ immediate
+Date: Sat, 4 Nov 2017 12:08:46 +0200
+Message-ID: <20171104100846.GA1636@mtr-leonro.local>
+References: <1509530440-164400-1-git-send-email-oulijun@huawei.com>
+ <1509530440-164400-4-git-send-email-oulijun@huawei.com>
+ <20171101161328.GB7815@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1509721149.2473.3.camel-Sjgp3cTcYWE@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171101161328.GB7815-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-在 2017/11/3 22:59, Bart Van Assche 写道:
-> On Fri, 2017-11-03 at 17:14 +0800, oulijun wrote:
->> unhandled level 2 translation fault (11) at 0x00000000, esr 0x92000006, in librdmacm.so.1.1.11
->> [ffff9a6e8000+11000]
-> 
-> Is this perhaps a user space fault reported by the kernel? From kernel source
-> file arch/arm64/mm/fault.c:
-> 
-> 		pr_info("%s[%d]: unhandled %s (%d) at 0x%08lx, esr 0x%03x",
-> 			tsk->comm, task_pid_nr(tsk), inf->name, sig,
-> 			addr, esr);
-> 
-> You will need to identify what code in librdmacm caused this fault by using
-> tools that report a stack trace for the fault. Had you already considered to
-> run the application that uses librdmacm and that triggers this fault under gdb
-> or valgrind?
-> 
-> Bart.
-> 
-Hi，Bart Van Assche
-  Thank your help. I have identify the error code in librdmacm because cma device is not
-get sucessfully. your advice with locating these question is fined to me.
 
-Lijun Ou
+--17pEHd4RhPHOinZp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Wed, Nov 01, 2017 at 10:13:28AM -0600, Jason Gunthorpe wrote:
+> On Wed, Nov 01, 2017 at 06:00:40PM +0800, Lijun Ou wrote:
+> > @@ -385,7 +385,7 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *cq,
+> >  		case HNS_ROCE_RECV_OP_RDMA_WRITE_IMM:
+> >  			wc->opcode = IBV_WC_RECV_RDMA_WITH_IMM;
+> >  			wc->wc_flags = IBV_WC_WITH_IMM;
+> > -			wc->imm_data = cqe->rkey_immtdata;
+> > +			wc->imm_data = be32toh(cqe->rkey_immtdata);
+> >  			break;
+>
+> This can't be right, wc->imm_data is marked be32.
+
+Lijun,
+
+Are you going to fix it?
+
+Thanks
+
+--17pEHd4RhPHOinZp
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln9kaIACgkQ5GN7iDZy
+WKcBrw//dicsmOdJrL8O7gOjejXEv0WY/U+J2uvNnRGFOwzF+sBwEZZwwhyXlHnh
+gVYzw1NPPd1YiXWOD6Ci4VFFlD3cpdckVlrBIo9+Zk3+Mun0vUNAkUWVTjlgIVBB
+oeNWPmZBFsHsD+k6dVlpWEWEYHPZoL2eBGlMRXt+U/nul2igDv5vYsYPKpRBHTcW
+FooaeXiF2gnEwWMiYsykebuNsIpkw1LVWTP7uSej6auY9AqsBcFq6IUjlQYnOWEC
+qKBj5vJa/pUNnpLuzYsXkTVu0dwnPX2ayv2TAk2gxp6n7UJ9B9UiFnZwniVSoPc+
+VhJ1tlZVVkhAgDm+xwsOmncGpusItAq7anhlp8sr2s9JC92Boh/AfxdlHlpXJ6on
+ZE8ofQj8SMZ7gwGzHtkgZozeWsqq4YVf7HhgConkcLk/PRTf14h2jIX4fOCVuzNO
+NamVwvfenpq6/9Goh6Yn+HEVJ2z/Cn4gORtJtx1f2Op7DKmpLKh/735TBJOT7pQX
+s5HfTvMhYOdaBLakxPe4hDuc4TaMhZPs/t3MjIr7OpmcMBawsK8YceNQG/1TDDDD
++HxmjTo45ZSrwY5lGXqVf+0LprDEckCqeSptmbq7ZZujsykdwIAo2zudEsOAnAS/
+XVKW1PmGFC4w1t+Z9XM5ZL22DMWj6eIXDpvag0wJFU8NDC/cjEo=
+=D1/e
+-----END PGP SIGNATURE-----
+
+--17pEHd4RhPHOinZp--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
