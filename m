@@ -1,132 +1,69 @@
-From: Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
-Subject: [Patch v6 20/22] CIFS: SMBD: Read correct returned data length for RDMA write (SMB read) I/O
-Date: Sat,  4 Nov 2017 22:44:02 -0700
-Message-ID: <20171105054404.23886-21-longli@exchange.microsoft.com>
-References: <20171105054404.23886-1-longli@exchange.microsoft.com>
-Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171105054404.23886-1-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
-Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Cc: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core] librdmacm: Remove unneeded condition
+Date: Sun, 5 Nov 2017 09:26:58 +0200
+Message-ID: <20171105072657.GF31774@mtr-leonro.local>
+References: <20171102135134.5728-1-yuval.shaia@oracle.com>
+ <1509635426.2484.9.camel@wdc.com>
+ <20171102164528.GM18874@ziepe.ca>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="YToU2i3Vx8H2dn7O"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171102164528.GM18874-uk2M96/98Pc@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 
-This patch is for preparing upper layer doing SMB read via RDMA write.
+--YToU2i3Vx8H2dn7O
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-When RDMA write is used for SMB read, the returned data length is in
-DataRemaining in the response packet. Reading it properly by adding a
-parameter to specifiy where the returned data length is.
+On Thu, Nov 02, 2017 at 10:45:28AM -0600, Jason Gunthorpe wrote:
+> On Thu, Nov 02, 2017 at 03:10:27PM +0000, Bart Van Assche wrote:
+> > On Thu, 2017-11-02 at 15:51 +0200, Yuval Shaia wrote:
+> > > The check makes no difference - remove it.
+> >
+> > Shouldn't the description have been "Passing zero as third argument to
+> > memcpy() is allowed so the if-test is not necessary. Hence leave it out"?
+>
+> +1
 
-Add the defition for memory registration to wdata and return the correct
-length based on if RDMA write is used.
+Yuval ?
 
-Signed-off-by: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
----
- fs/cifs/cifsglob.h | 13 +++++++++++--
- fs/cifs/cifssmb.c  |  7 ++++++-
- fs/cifs/smb1ops.c  |  4 +++-
- fs/cifs/smb2ops.c  | 12 ++++++++++--
- 4 files changed, 30 insertions(+), 6 deletions(-)
+Thanks
 
-diff --git a/fs/cifs/cifsglob.h b/fs/cifs/cifsglob.h
-index 2ae7d02..ddf83d8 100644
---- a/fs/cifs/cifsglob.h
-+++ b/fs/cifs/cifsglob.h
-@@ -228,8 +228,14 @@ struct smb_version_operations {
- 	__u64 (*get_next_mid)(struct TCP_Server_Info *);
- 	/* data offset from read response message */
- 	unsigned int (*read_data_offset)(char *);
--	/* data length from read response message */
--	unsigned int (*read_data_length)(char *);
-+	/*
-+	 * Data length from read response message
-+	 * When in_remaining is true, the returned data length is in
-+	 * message field DataRemaining for out-of-band data read (e.g through
-+	 * Memory Registration RDMA write in SMBD).
-+	 * Otherwise, the returned data length is in message field DataLength.
-+	 */
-+	unsigned int (*read_data_length)(char *, bool in_remaining);
- 	/* map smb to linux error */
- 	int (*map_error)(char *, bool);
- 	/* find mid corresponding to the response message */
-@@ -1148,6 +1154,9 @@ struct cifs_readdata {
- 				struct cifs_readdata *rdata,
- 				struct iov_iter *iter);
- 	struct kvec			iov[2];
-+#ifdef CONFIG_CIFS_SMB_DIRECT
-+	struct smbd_mr			*mr;
-+#endif
- 	unsigned int			pagesz;
- 	unsigned int			tailsz;
- 	unsigned int			credits;
-diff --git a/fs/cifs/cifssmb.c b/fs/cifs/cifssmb.c
-index 08ff56a..a343db4 100644
---- a/fs/cifs/cifssmb.c
-+++ b/fs/cifs/cifssmb.c
-@@ -1533,8 +1533,13 @@ cifs_readv_receive(struct TCP_Server_Info *server, struct mid_q_entry *mid)
- 		 rdata->iov[0].iov_base, server->total_read);
- 
- 	/* how much data is in the response? */
--	data_len = server->ops->read_data_length(buf);
-+#ifdef CONFIG_CIFS_SMB_DIRECT
-+	data_len = server->ops->read_data_length(buf, rdata->mr);
-+	if (!rdata->mr && (data_offset + data_len > buflen)) {
-+#else
-+	data_len = server->ops->read_data_length(buf, false);
- 	if (data_offset + data_len > buflen) {
-+#endif
- 		/* data_len is corrupt -- discard frame */
- 		rdata->result = -EIO;
- 		return cifs_readv_discard(server, mid);
-diff --git a/fs/cifs/smb1ops.c b/fs/cifs/smb1ops.c
-index a723df3..3d495e4 100644
---- a/fs/cifs/smb1ops.c
-+++ b/fs/cifs/smb1ops.c
-@@ -87,9 +87,11 @@ cifs_read_data_offset(char *buf)
- }
- 
- static unsigned int
--cifs_read_data_length(char *buf)
-+cifs_read_data_length(char *buf, bool in_remaining)
- {
- 	READ_RSP *rsp = (READ_RSP *)buf;
-+	/* It's a bug reading remaining data for SMB1 packets */
-+	WARN_ON(in_remaining);
- 	return (le16_to_cpu(rsp->DataLengthHigh) << 16) +
- 	       le16_to_cpu(rsp->DataLength);
- }
-diff --git a/fs/cifs/smb2ops.c b/fs/cifs/smb2ops.c
-index 25028da..1bbd248 100644
---- a/fs/cifs/smb2ops.c
-+++ b/fs/cifs/smb2ops.c
-@@ -938,9 +938,13 @@ smb2_read_data_offset(char *buf)
- }
- 
- static unsigned int
--smb2_read_data_length(char *buf)
-+smb2_read_data_length(char *buf, bool in_remaining)
- {
- 	struct smb2_read_rsp *rsp = (struct smb2_read_rsp *)buf;
-+
-+	if (in_remaining)
-+		return le32_to_cpu(rsp->DataRemaining);
-+
- 	return le32_to_cpu(rsp->DataLength);
- }
- 
-@@ -2449,7 +2453,11 @@ handle_read_data(struct TCP_Server_Info *server, struct mid_q_entry *mid,
- 	}
- 
- 	data_offset = server->ops->read_data_offset(buf) + 4;
--	data_len = server->ops->read_data_length(buf);
-+#ifdef CONFIG_CIFS_SMB_DIRECT
-+	data_len = server->ops->read_data_length(buf, rdata->mr);
-+#else
-+	data_len = server->ops->read_data_length(buf, false);
-+#endif
- 
- 	if (data_offset < server->vals->read_rsp_size) {
- 		/*
--- 
-2.7.4
+>
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--YToU2i3Vx8H2dn7O
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln+vUEACgkQ5GN7iDZy
+WKdEog//U8RfW80De9/5CLWd/+sXPiclKXn2PRmdbiSD4DpLQc3Nt7+fMxLsTSZ/
+x9vUFAcafxrDbtTkqbJjTsIUmTjTpk434/sZTyCms/dCP0qELQ+CgjoGknjTGQPa
+FAdDrCTCrEiMZKfCADNXsHHUu1Gkkx1nyKAVFSR5Ws5FMVDV03INR+e+/v2IkAff
+G2RFv96qSlhoPN/E90LalpJXqh3FUmVDPiEUJeAXApM4yKUEwulfMbVukeczH2q/
+MoD91BjSiCJJE+Y3FVPVBYM8tDgKQZdyRtKm1tBQMUZY1f/Rucny0KvUaSunsE9Y
+2ON1yUOlVNcyYKVY6facLKFbaniwR3uPdqQ2IyczsiQk+MjEKEaW0sdvONt9/KpM
+Y4fhY4X3UY/Y1fIAu/tCghBjZL68bTfxdoOH2p/pFc6ozYp9HCpFchZOsLUUs1mA
+89pO8bzCsq0XiYu3BEb85UWQwDf1XEQOPf+XHpYoRfIt9+Z6T3gyV4HKxIJxux4U
+Iw/ocep6LJIVQhuJpUGfXoPW3hAfFsQO06X2bplZItptBZVHnyb0edQ1aWIX1uqZ
+VHLT3E+2GqjX1u71+qNl4AjKzDge87Y029k9E74K8+iZrXAsmj9OrcHUetwK3sMQ
+U7+/z2EF60iGQpvx0c0S2iYkIpJwW8Nr1WB5pO/iqa4RJOYswJA=
+=k3uC
+-----END PGP SIGNATURE-----
+
+--YToU2i3Vx8H2dn7O--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
