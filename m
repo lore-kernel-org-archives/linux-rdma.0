@@ -1,123 +1,74 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] verbs: Do not block QP attr_masks used by
- older kernels
-Date: Sun, 5 Nov 2017 09:10:29 +0200
-Message-ID: <20171105071029.GC31774@mtr-leonro.local>
-References: <20171102215031.GY18874@ziepe.ca>
+Subject: Re: [PATCH rdma-core 0/5] Perform package tests in Travis CI
+Date: Sun, 5 Nov 2017 09:17:27 +0200
+Message-ID: <20171105071727.GD31774@mtr-leonro.local>
+References: <20171102165556.22105-1-leon@kernel.org>
+ <20171102211851.GV18874@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="LQksG6bCIzRHxTLp"
+        protocol="application/pgp-signature"; boundary="BwCQnh7xodEAoBMC"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171102215031.GY18874-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20171102211851.GV18874-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Nicolas Morey-Chaisemartin <nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---LQksG6bCIzRHxTLp
+--BwCQnh7xodEAoBMC
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Nov 02, 2017 at 03:50:31PM -0600, Jason Gunthorpe wrote:
-> At least the RDMA CM in 4.3 will give user space structs with these bits
-> set. Those kernels require user space to pass those set bits back to the
-> kernel. Blocking them causes RDMA CM to be unusable on older kernels.
+On Thu, Nov 02, 2017 at 03:18:51PM -0600, Jason Gunthorpe wrote:
+> On Thu, Nov 02, 2017 at 06:55:51PM +0200, Leon Romanovsky wrote:
+> > This patchset comes from Alaa and he adds to Travis CI ability
+> > to reuse our cbuild script to build various packages.
+> >
+> > The PR is https://github.com/linux-rdma/rdma-core/pull/241
 >
-> Fixes: 3ca7a1031486 ("ibverbs: Add support for packet pacing")
-> Reported-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-uk2M96/98Pc@public.gmane.org>
-> ---
->  libibverbs/cmd.c   | 12 ++++++------
->  libibverbs/verbs.h |  9 +++++++++
->  2 files changed, 15 insertions(+), 6 deletions(-)
->
-> diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-> index 713a13c0f272b3..fbe822324c9dd5 100644
-> --- a/libibverbs/cmd.c
-> +++ b/libibverbs/cmd.c
-> @@ -1182,10 +1182,10 @@ int ibv_cmd_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
->  	struct ibv_query_qp_resp resp;
->
->  	/*
-> -	 * Masks over IBV_QP_DEST_QPN are not supported by
-> -	 * that not extended command.
-> +	 * Starting with IB_QP_RATE_LIMIT the attribute must go through the
-> +	 * _ex path.
->  	 */
-> -	if (attr_mask & ~((IBV_QP_DEST_QPN << 1) - 1))
-> +	if (attr_mask & ~(IBV_QP_RATE_LIMIT - 1))
->  		return EOPNOTSUPP;
->
->  	IBV_INIT_CMD_RESP(cmd, cmd_size, QUERY_QP, &resp, sizeof resp);
-> @@ -1352,10 +1352,10 @@ int ibv_cmd_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
->  		      struct ibv_modify_qp *cmd, size_t cmd_size)
->  {
->  	/*
-> -	 * Masks over IBV_QP_DEST_QPN are only supported by
-> -	 * ibv_cmd_modify_qp_ex.
-> +	 * Starting with IB_QP_RATE_LIMIT the attribute must go through the
-> +	 * _ex path.
->  	 */
-> -	if (attr_mask & ~((IBV_QP_DEST_QPN << 1) - 1))
-> +	if (attr_mask & ~(IBV_QP_RATE_LIMIT - 1))
->  		return EOPNOTSUPP;
->
->  	IBV_INIT_CMD(cmd, cmd_size, MODIFY_QP);
-> diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-> index 1ab747bb757cf3..2a2264d300e1ca 100644
-> --- a/libibverbs/verbs.h
-> +++ b/libibverbs/verbs.h
-> @@ -909,6 +909,15 @@ enum ibv_qp_attr_mask {
->  	IBV_QP_PATH_MIG_STATE		= 1 << 18,
->  	IBV_QP_CAP			= 1 << 19,
->  	IBV_QP_DEST_QPN			= 1 << 20,
-> +#if 0
-> +	/* These bits were supported on older kernels, but never exposed to
-> +	 * user space:
-> +	 */
-> +	_IBV_QP_COMPAT1			= 1 << 21,
-> +	_IBV_QP_COMPAT2			= 1 << 22,
-> +	_IBV_QP_COMPAT3			= 1 << 23,
-> +	_IBV_QP_COMPAT3			= 1 << 24,
-> +#endif
+> Not to say we shouldn't apply this PR, but if we go down this road
+> then we should also ultimately switch to circleci since it has actual
+> native support for docker and crucially support for docker image
+> caching.
 
-Why do we need "if 0" in production code (global header file)?
+I think that we are pushing the rdma-core into that direction and it
+is a matter of time when we will be there. As a first step we need to
+polish this PR and merge it, after that we should convert all our tests
+to run in containers, so the transition will be smooth.
 
-Thanks
-
->  	IBV_QP_RATE_LIMIT		= 1 << 25,
->  };
 >
-> --
-> 2.7.4
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> With that each of the docker images could be run in parallel instead
+> of sequentially and it would resolve our general issues with having to
+> use the ancient trusty baseline that travis uses.
+>
+> AFAIK the sticking point is that we need to have a public docker
+> container registry, preferably co-located with circle ci's build
+> workers..
+>
+> Jason
 
---LQksG6bCIzRHxTLp
+--BwCQnh7xodEAoBMC
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln+uVEACgkQ5GN7iDZy
-WKfHMxAAldWqWbl87C2IfnkgViKLIwIiuc30+pG+to9SS5Yeo9JIQZTP2FgwpwBI
-qH9itJnYBRPCSeetMDsBABEAh4xfAUuSpg5jdpf009r50Ez19bijNazJ594asSf1
-Twlyb1AkDujN9zC248NalHg66LxecmFVptkKkc01za5EVVDczuYo3KQAVilSOH/t
-SxLlWu8JZjKoYG+Ch9pSBSvFp3WBpLOIOUFoegxjvYX9TFd7fzBhdAHp4MYvbRTi
-4aId5CTlEZViGfQYST7WunO5PcGDRyQCDAXYRP6rpQ3xA1fypa5f65TD8b5vdR9p
-byW6a4lkdjPjnSgToC9wHzdl3OD2TaF1HXOfPhAhoNAjFoY5paW5Gbv9ZrJDBKKj
-pKBLiw+pNhBMBsVCG/pt188e61yg8A6l8fQnvVqw+Rdrmef6LkTEtgJSZBsx5zIJ
-0GXRPQQpRjyq6V/1QBe03ReD27shKGuU3O99CnSlE+4/gRDAiNbFAPqSqt4M1H1W
-vL9dRrXugQD/cY8Hxe+8fN6nfasPo9FkcypdwnQRPuyjtUY4jvPt2ZJybxHRF/5u
-DNKNIdrFrdiJMuFTgCXH+D5gKO3cRD+wbdr3U3EnZ0aGD1MjwK0PoBT1tcOxH+Bi
-Rq7fJOBY1XYG826CGU0LlRE4cYWHd6nvq8A0ohmp7pKq0xd43m4=
-=df8G
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln+uwYACgkQ5GN7iDZy
+WKeyAw//dhtrNg4EzLaP8cJLN6GW38DdS/f+tzbedC06oilat5u6p/imJylaVNE6
+wsd9Ii4ndJiHv9B+l9Icvj04VD56on3SIF1B9/3xeAszEhcUWvfeeXuW6qoc0fH1
+ZzJix5/9V96OC+BTBxvueAZiXIsTnrFcVvk6nwG6kWFyY4Fk6LAxg5xwyysC0P6c
+7hY192fwanh0dwx63HPpnfWr2BEiM1FU1Y/MbRzefmQWsW+dIHgPRRJVXaiE1q+H
+2Eo5y+1FTMVNp8lZTPNOur9Qza6ERpRS1kzhGDlBYh+HT7BWeXjLzRwv56rxEvrj
+HTJKMO0YKCEajbvD4oIt7YsTZsfKwYrZtgUc10sWIeqET6Flb6iqcONYvdlDJjqB
+Ko+VnvsCHAccafDa3pPdaBhST2ZCk2JMMbnbFPMQbQDwf4OfDRZGl5Y0eruCuPOI
+223sAsU1HyXuGVY4v9OyGnaSB03UnGDhTeFmtO+ALYw1DH+PfBuXFX4HqCi8RGnX
+V78eVMnSD/pCfavBbtRTWnmIzzOY4XYjK1+FhwVOWnjX+hKsI2mhUStTwNxA2ec/
+03+A2yvuFeSaFrkBrkUT4BX9+61A2DUnbflr9STlT6RzPMTyZJhMswJZeQuJvxjl
+GoeDswmxdKUK5B0OvG2q5wP0EnYA6mptst03AZjw/Yos91vt0w0=
+=yAY1
 -----END PGP SIGNATURE-----
 
---LQksG6bCIzRHxTLp--
+--BwCQnh7xodEAoBMC--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
