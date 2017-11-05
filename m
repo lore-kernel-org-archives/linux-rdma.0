@@ -1,54 +1,62 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-core v1 2/3] buildlib/cbuild: Add Ubuntu artful
-Date: Sun,  5 Nov 2017 16:45:01 +0200
-Message-ID: <20171105144503.32709-3-leon@kernel.org>
-References: <20171105144503.32709-1-leon@kernel.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171105144503.32709-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Nicolas Morey-Chaisemartin <nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Subject: RE: [Patch v5 08/21] CIFS: SMBD: Upper layer reconnects to SMB Direct
+ session
+Date: Sun, 5 Nov 2017 18:37:09 +0000
+Message-ID: <MWHPR21MB01904A80D5C08396A7209471CE530@MWHPR21MB0190.namprd21.prod.outlook.com>
+References: <20171018230920.21042-1-longli@exchange.microsoft.com>
+ <20171018230920.21042-9-longli@exchange.microsoft.com>
+ <CAKywueRMRGhkw1zFh5HEBqV748hoq0DVsjGoVg8ttD22sTsYOQ@mail.gmail.com>
+ <BN6PR21MB083455CADF03A6BD40863968CB5F0@BN6PR21MB0834.namprd21.prod.outlook.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BN6PR21MB083455CADF03A6BD40863968CB5F0-M7qishpO4ShSLOx3ThEYWs1VXTxX1y3OvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Language: en-US
+Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Pavel Shilovsky <piastryyy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, samba-technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-This patch adds Ubuntu17.10 artful, that comes with GCC 7
-
-Signed-off-by: Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- buildlib/cbuild | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/buildlib/cbuild b/buildlib/cbuild
-index fac1c3c6..e6a64e8a 100755
---- a/buildlib/cbuild
-+++ b/buildlib/cbuild
-@@ -181,6 +181,12 @@ class xenial(APTEnvironment):
-     name = "ubuntu-16.04";
-     aliases = {"xenial"};
- 
-+class artful(APTEnvironment):
-+    docker_parent = "ubuntu:17.10"
-+    pkgs = xenial.pkgs
-+    name = "ubuntu-17.10";
-+    aliases = {"artful"};
-+
- class jessie(APTEnvironment):
-     docker_parent = "debian:8"
-     pkgs = xenial.pkgs;
-@@ -325,6 +331,7 @@ environments = [centos6(),
-                 travis(),
-                 trusty(),
-                 xenial(),
-+                artful(),
-                 jessie(),
-                 stretch(),
-                 fc26(),
--- 
-2.15.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBNYXR0aGV3IFdpbGNveA0KPiBT
+ZW50OiBXZWRuZXNkYXksIE5vdmVtYmVyIDEsIDIwMTcgMTI6NDUgUE0NCj4gVG86IFBhdmVsIFNo
+aWxvdnNreSA8cGlhc3RyeXl5QGdtYWlsLmNvbT47IExvbmcgTGkgPGxvbmdsaUBtaWNyb3NvZnQu
+Y29tPg0KPiBDYzogU3RldmUgRnJlbmNoIDxzZnJlbmNoQHNhbWJhLm9yZz47IGxpbnV4LWNpZnMg
+PGxpbnV4LQ0KPiBjaWZzQHZnZXIua2VybmVsLm9yZz47IHNhbWJhLXRlY2huaWNhbCA8c2FtYmEt
+dGVjaG5pY2FsQGxpc3RzLnNhbWJhLm9yZz47DQo+IEtlcm5lbCBNYWlsaW5nIExpc3QgPGxpbnV4
+LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+OyBsaW51eC0NCj4gcmRtYUB2Z2VyLmtlcm5lbC5vcmc7
+IFRvbSBUYWxwZXkgPHR0YWxwZXlAbWljcm9zb2Z0LmNvbT47IFN0ZXBoZW4NCj4gSGVtbWluZ2Vy
+IDxzdGhlbW1pbkBtaWNyb3NvZnQuY29tPjsgTG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+
+DQo+IFN1YmplY3Q6IFJFOiBbUGF0Y2ggdjUgMDgvMjFdIENJRlM6IFNNQkQ6IFVwcGVyIGxheWVy
+IHJlY29ubmVjdHMgdG8gU01CDQo+IERpcmVjdCBzZXNzaW9uDQo+IA0KPiBGcm9tOiBQYXZlbCBT
+aGlsb3Zza3kgW21haWx0bzpwaWFzdHJ5eXlAZ21haWwuY29tXQ0KPiA+IDIwMTctMTAtMTggMTY6
+MDkgR01ULTA3OjAwIExvbmcgTGkgPGxvbmdsaUBleGNoYW5nZS5taWNyb3NvZnQuY29tPjoNCj4g
+PiA+IEZyb206IExvbmcgTGkgPGxvbmdsaUBtaWNyb3NvZnQuY29tPg0KPiA+ID4NCj4gPiA+IERv
+IGEgcmVjb25uZWN0IG9uIFNNQiBEaXJlY3Qgd2hlbiBpdCBpcyB1c2VkIGFzIHRoZSBjb25uZWN0
+aW9uLg0KPiA+ID4gUmVjb25uZWN0DQo+ID4gY2FuDQo+ID4gPiBoYXBwZW4gZm9yIG1hbnkgcmVh
+c29ucyBhbmQgaXQncyBtb3N0bHkgdGhlIGRlY2lzaW9uIG9mIFNNQjIgdXBwZXINCj4gbGF5ZXIu
+DQo+ID4gPg0KPiA+ID4gU2lnbmVkLW9mZi1ieTogTG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5j
+b20+DQo+ID4gPiAtLS0NCj4gPiA+ICBmcy9jaWZzL2Nvbm5lY3QuYyB8IDcgKysrKysrKw0KPiA+
+ID4gIDEgZmlsZSBjaGFuZ2VkLCA3IGluc2VydGlvbnMoKykNCj4gPiA+DQo+ID4gPiBkaWZmIC0t
+Z2l0IGEvZnMvY2lmcy9jb25uZWN0LmMgYi9mcy9jaWZzL2Nvbm5lY3QuYyBpbmRleA0KPiA+ID4g
+MmMwYjM0YS4uOGNhM2MxMyAxMDA2NDQNCj4gPiA+IC0tLSBhL2ZzL2NpZnMvY29ubmVjdC5jDQo+
+ID4gPiArKysgYi9mcy9jaWZzL2Nvbm5lY3QuYw0KPiA+ID4gQEAgLTQwNiw3ICs0MDYsMTQgQEAg
+Y2lmc19yZWNvbm5lY3Qoc3RydWN0IFRDUF9TZXJ2ZXJfSW5mbyAqc2VydmVyKQ0KPiA+ID4NCj4g
+PiA+ICAgICAgICAgICAgICAgICAvKiB3ZSBzaG91bGQgdHJ5IG9ubHkgdGhlIHBvcnQgd2UgY29u
+bmVjdGVkIHRvIGJlZm9yZSAqLw0KPiA+ID4gICAgICAgICAgICAgICAgIG11dGV4X2xvY2soJnNl
+cnZlci0+c3J2X211dGV4KTsNCj4gPiA+ICsjaWZkZWYgQ09ORklHX0NJRlNfU01CX0RJUkVDVA0K
+PiA+ID4gKyAgICAgICAgICAgICAgIGlmIChzZXJ2ZXItPnJkbWEpDQo+ID4gPiArICAgICAgICAg
+ICAgICAgICAgICAgICByYyA9IHNtYmRfcmVjb25uZWN0KHNlcnZlcik7DQo+ID4gPiArICAgICAg
+ICAgICAgICAgZWxzZQ0KPiA+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgcmMgPSBnZW5lcmlj
+X2lwX2Nvbm5lY3Qoc2VydmVyKTsNCj4gPg0KPiA+IE1pbm9yOiBoZXJlIGFuZCBpbiBvdGhlciBz
+aW1pbGFyIHBsYWNlcyB3ZSBjYW4gcmVtb3ZlICNlbHNlIHBhcnQgYmVsb3cNCj4gPiBhbmQgcHV0
+ICNlbmRpZiBiZWZvcmUgZWxzZSBibG9jayBhYm92ZS4NCj4gPg0KPiA+ID4gKyNlbHNlDQo+ID4g
+PiAgICAgICAgICAgICAgICAgcmMgPSBnZW5lcmljX2lwX2Nvbm5lY3Qoc2VydmVyKTsNCj4gPiA+
+ICsjZW5kaWYNCj4gDQo+IEknZCBzdWdnZXN0IHJhdGhlcjoNCj4gDQo+ICNpZmRlZiBDT05GSUdf
+Q0lGU19TTUJfRElSRUNUDQo+ICNkZWZpbmUgY2lmc19yZG1hX2VuYWJsZWQoc2VydmVyKQkoKHNl
+cnZlciktPnJkbWEpDQo+ICNlbHNlDQo+ICNkZWZpbmUgY2lmc19yZG1hX2VuYWJsZWQoc2VydmVy
+KQkwDQo+ICNlbmRpZg0KPiANCj4gVGhlbiB3ZSBkb24ndCBuZWVkIGFuIGlmZGVmIGluIHRoZSB1
+c2VycywganVzdDoNCj4gDQo+IAlpZiAoY2lmc19yZG1hX2VuYWJsZWQoc2VydmVyKSkNCj4gCQly
+YyA9IHNtYmRfcmVjb25uZWN0KHNlcnZlcik7DQo+IAllbHNlDQo+IAkJcmMgPSBnZW5lcmljX2lw
+X2Nvbm5lY3Qoc2VydmVyKTsNCg0KSSB3aWxsIGZpeCB0aGlzLiBUaGFuayB5b3UuDQoNCkxvbmcN
+Cg==
