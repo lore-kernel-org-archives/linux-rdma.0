@@ -1,79 +1,82 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC] Vendor-specific QPs
-Date: Sun, 5 Nov 2017 09:25:00 +0200
-Message-ID: <20171105072500.GE31774@mtr-leonro.local>
-References: <VI1PR05MB12784029D1DE2689A8194A58B9590@VI1PR05MB1278.eurprd05.prod.outlook.com>
- <20171102200158.GU18874@ziepe.ca>
+Subject: Re: [PATCH rdma-core] librdmacm: Remove unneeded condition
+Date: Sun, 5 Nov 2017 15:27:52 +0200
+Message-ID: <20171105132752.GH31774@mtr-leonro.local>
+References: <20171102135134.5728-1-yuval.shaia@oracle.com>
+ <1509635426.2484.9.camel@wdc.com>
+ <20171102164528.GM18874@ziepe.ca>
+ <20171105072657.GF31774@mtr-leonro.local>
+ <20171105093014.GA3948@yuvallap>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ZwgA9U+XZDXt4+m+"
+        protocol="application/pgp-signature"; boundary="L2Brqb15TUChFOBK"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171102200158.GU18874-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20171105093014.GA3948@yuvallap>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---ZwgA9U+XZDXt4+m+
+--L2Brqb15TUChFOBK
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Nov 02, 2017 at 02:01:58PM -0600, Jason Gunthorpe wrote:
-> On Mon, Oct 30, 2017 at 03:23:24PM +0000, Alex Margolin wrote:
+On Sun, Nov 05, 2017 at 11:30:15AM +0200, Yuval Shaia wrote:
+> On Sun, Nov 05, 2017 at 09:26:58AM +0200, Leon Romanovsky wrote:
+> > On Thu, Nov 02, 2017 at 10:45:28AM -0600, Jason Gunthorpe wrote:
+> > > On Thu, Nov 02, 2017 at 03:10:27PM +0000, Bart Van Assche wrote:
+> > > > On Thu, 2017-11-02 at 15:51 +0200, Yuval Shaia wrote:
+> > > > > The check makes no difference - remove it.
+> > > >
+> > > > Shouldn't the description have been "Passing zero as third argument to
+> > > > memcpy() is allowed so the if-test is not necessary. Hence leave it out"?
+> > >
+> > > +1
+> >
+> > Yuval ?
 >
-> > We propose using the "reserved" range of QP types to serve the
-> > vendor-specific implementation, both within the Verbs API (API patch
-> > below) and the IB subsystem (ib_core). The solution requires minor
-> > changes to IB core, namely removing some restrictions that apply to
-> > standard QPs at creation, but most of the flow (and the one for
-> > modify and destroy) remains identical.
+> Thanks Leon,
+> Just post new pull request with the revised commit message.
+> If still v1 is needed here for review then i'll post it.
+
+Thanks, applied.
+
 >
-> > The changes to support such QPs will remain in the vendor-specific
-> > area of the API, i.e. Mellanox "Direct Verbs" portion, and the
-> > change in ib_core is to use specific IB_QPT_RESERVED* definitions to
-> > cut through some of the required checks (but still using most of the
-> > logic, where applicable). No change to libibverbs is required.
+> >
+> > Thanks
+> >
+> > >
+> > > Jason
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
-> Don't like the idea of a generic RESERVED.
 >
-> Add a type called IB_QPT_DIRECT_VERBS and put any other information
 
-+1
-If we go in this route, it will be much easier for me to present QP types.
-
-root@mtr-leonro:~# /mnt/iproute2/rdma/rdma res show qp dev mlx5_1
-QPN	DEV	USER/KERNEL	TYPE	STATE	PID	COMM
-8	mlx5_1	USER		UD	RESET	1	rdma
-7	mlx5_1	USER		UD	RTS	1	rdma
-1	mlx5_1	USER		GSI	RTS	1	rdma
-1	mlx5_1	USER		GSI	RTS	1	rdma
-0	mlx5_1	USER		SMI	RTS	1	rdma
-
-Thanks
-
---ZwgA9U+XZDXt4+m+
+--L2Brqb15TUChFOBK
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln+vMwACgkQ5GN7iDZy
-WKcx+w//c2Pp2Z1G9Env2vsqqqV58QoKg7MF4KLRn3MQb26jfpRzi/2WjG6N0qhd
-lTldXQUKBDFJB3+l5F9JmYUlexn4LuwTqleL1s41r1gdZFenParcuBcbe6NFXCuV
-fz7oMFNl8EK/bnUsLViQwiWlBviK8dsPBcAZTdTG2fUfKum4krupb65N3j1WaNG6
-IafoDKOA8k7qIJnbhaABt3Vz1/TI2qRhE+a8vmuIhQwAcjuGt13zZDNySATBxd5s
-A10wMx84yEyB5ZueRjFQrNpy5OT+XSC7f49E49UlLVNtlkZQSqGudHV77NeSJtNw
-yP3iEqngcVo9q2nKi2ytBUhumiayXHvNZKnX30dM04pTHXCFYxEcoZa3rwU3wT3v
-TN5mXOH0jbg6Ko5Kqz/IJOhAxyfE03Jf6VqaNf7RfOmLzrj9tBKvNaY19wdsP6HP
-xpiGcJAbqeEqOvEdBS/+9FT2rxJlweYp8uhv1Z5GoChMVDKwufLuRx0CAq9IZMZX
-6usR6HI3bEvJSugYOJyh7bQCQulmdWrEfasxUummJOY5BG7N5e4DhVlMzAODfuDK
-sZZ6d/4BYF1tumq6IWkwoaspPZDYvUh0hCD6M7DHyfK5AL7tPv2bxNAnKyK2ZecT
-51PCt7gKmoazW6MsRjBC+h2iqKBxH1LUM/0+9ogmqGkx1lTzyIs=
-=Yz20
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln/EdcACgkQ5GN7iDZy
+WKcGlRAAt6i85zFsgbVL/iqiOUVJRThqkzxh1f8ykUAO0dbwPE1YWpK+YUCDAi01
+W6WwfzLLfW8K1zZnc65fZpYruQ6Xfw6GDGIyQay+SJ+SCGMVqWtKX824vfeFwNRq
+9+xaSHHdUYvsaD28CXrj8a5V0TQFLD4R2YaY6wtSEnxE8/zk1Eabcngio454fNZq
+vV7Vu15lSo2XGg4zfdS6fDmU+icqFhHe/CqeXbMGzZId1vYT50BqRBVoz/+nbtZV
+04EGvShUs9KMbL+SfiCdZKr7a6F3LRC+MN/DFFe6Hl7KnOMvKe4NtH6452zqeodI
++8Mno4YwkDw9AMi7Dov4G1CbBXyAQd/k+LAM51u/EUcjki50KLfU1XUtHwH6srCO
+0fq9F7yPx9mSuGRVLPIGcNxmuJQJ0GWFaKqYptQd2m7qCKNU9KwC8sQOPVRG6uZl
+rgVaP3eVZEfCCbw3dQgVEAG7tO7AMsqaPb65s0kcV8sZWatD/ZASPKlKy1d6Ex1V
+mqpN0xtFwQPYL1LeIGwI9Xg8cGYUq354O9ZKPr1Ax5iIZVRqbMf+4fJkEM/iwe/F
+BmNBNYJkQGhmN0LC1kiWaZot/tofW5N1DIk4N1jrm2vzuy9SFcWjDR8ciDyre5ES
+ExmHSornkK6rjfV0choymdCYxt/WUHQgi1ebFFNz+VVhNcsB5v4=
+=1Dq1
 -----END PGP SIGNATURE-----
 
---ZwgA9U+XZDXt4+m+--
+--L2Brqb15TUChFOBK--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
