@@ -1,116 +1,54 @@
-From: Alaa Hleihel <alaa-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/5] cbuild: Add udev dependency to package list
- of SuSE Leap
-Date: Sun, 5 Nov 2017 10:13:57 +0200
-Message-ID: <76d45899-f1ec-bbd1-e0dd-799e1fa4a400@dev.mellanox.co.il>
-References: <20171102165556.22105-1-leon@kernel.org>
- <20171102165556.22105-2-leon@kernel.org>
- <3a06c93f-aa0f-93fa-1b74-af6388051f89@suse.de>
- <20171102174220.GD16127@mtr-leonro.local>
- <b2493da4-396e-5d24-ffa5-2fcccb9ee85c@suse.de>
- <20171102183257.GI16127@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+From: Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
+Subject: [Patch v6 11/22] CIFS: SMBD: Implement function to destroy a SMB Direct connection
+Date: Sat,  4 Nov 2017 22:43:53 -0700
+Message-ID: <20171105054404.23886-12-longli@exchange.microsoft.com>
+References: <20171105054404.23886-1-longli@exchange.microsoft.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171102183257.GI16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20171105054404.23886-1-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Cc: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 
+Add function to tear down a SMB Direct connection. This is used by upper
+layer to free all SMB Direct connection and transport resources.
 
-On 02/11/2017 20:32, Leon Romanovsky wrote:
-> On Thu, Nov 02, 2017 at 07:04:36PM +0100, Nicolas Morey-Chaisemartin wrote:
->>
->> Le 02/11/2017 à 18:42, Leon Romanovsky a écrit :
->>> On Thu, Nov 02, 2017 at 06:32:09PM +0100, Nicolas Morey-Chaisemartin wrote: >> Leon, Jason, is there any news on switching the upstream validation to build/validate for all distrib instead of just the "travis" one ? > > This is the ultimate goal of this series.
->> Sounds good. In that case, it might be worth adding tumbleweed to the distrib beeing built.
->> Most of the SUSE bleeding-edge user are using TW as it provides the latest kernel/packages.
-> The preference is to have one latest distribution per distro, otherwise
-> the CI will take a lot of time to complete. It makes sense to replace
-> leap with tumblweed.
+Signed-off-by: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+---
+ fs/cifs/smbdirect.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-Hi Nicolas,
-
-I've tried to build RPMs for tumbleweed, but it fails with the following error:
-$ buildlib/cbuild pkg tumbleweed
-error: Failed build dependencies:
-        curl-mini is needed by rdma-core-16-0.x86_64
-
-Seems like there is no such package available for Tumbleweed ..
-
-########################################################################
-$ buildlib/cbuild pkg tumbleweed --run-shell
-builder-24bcec44f958:~/rpmbuild # cat /etc/issue
-Welcome to openSUSE Tumbleweed 20171102 - Kernel \r (\l).
-
-builder-24bcec44f958:~/rpmbuild # zypper search curl-mini
-Loading repository data...
-Reading installed packages...
-No matching items found.
-
-builder-24bcec44f958:~/rpmbuild # zypper search curl
-Loading repository data...
-Reading installed packages...
-
-S | Name                | Summary                                                      | Type
---+---------------------+--------------------------------------------------------------+--------
-  | curl                | A Tool for Transferring Data from URLs                       | package
-  | curlftpfs           | Filesystem for mounting FTP hosts using FUSE and libcurl     | package
-  | flickcurl           | Command-Line Tools for the Flickr Web Service                | package
-  | flickcurl-doc       | Documentation for flickcurl, a Flickr Web Service C library  | package
-  | gambas3-gb-net-curl | The advanced networking component for Gambas                 | package
-  | ghc-curl            | Haskell binding to libcurl                                   | package
-  | ghc-curl-devel      | Haskell curl library development files                       | package
-  | libcurl-devel       | A Tool for Transferring Data from URLs                       | package
-  | libcurl-devel-32bit | A Tool for Transferring Data from URLs                       | package
-i | libcurl4            | Version 4 of cURL shared library                             | package
-  | libcurl4-32bit      | Version 4 of cURL shared library                             | package
-  | libflickcurl-devel  | Development files for flickurl, a Flickr Web Service library | package
-  | libflickcurl0       | C Library API to the Flickr Web Service                      | package
-  | libflickcurl0-32bit | C Library API to the Flickr Web Service                      | package
-  | php7-curl           | libcurl integration for PHP                                  | package
-  | python-pycurl-doc   | Documentation for python-curl                                | package
-  | python2-pycurl      | PycURL -- cURL library module                                | package
-  | python3-pycurl      | PycURL -- cURL library module                                | package
-  | qemu-block-curl     | Universal CPU emulator -- cURL block support                 | package
-  | syslog-ng-curl      | Curl (HTTP) destination support for syslog-ng                | package
-  | tclcurl             | Tcl Binding to libcurl                                       | package
-  | xmms2-plugin-curl   | Curl support for xmms2                                       | package
-########################################################################
-
-
-However, after removing the requirement for curl-mini, I was able to build RPMs successfully under Tumbleweed.
-Can I submit a patch for removing these lines ?
-
---- a/suse/rdma-core.spec
-+++ b/suse/rdma-core.spec
-
--%if 0%{?suse_version} >= 1330
--BuildRequires:  curl-mini
--%endif
--
-
-
-Regards,
-Alaa
-
-
->>>>> After this series will be fixed and merged, we will have containerized SuSE/CentOS/Debian builds in travis, > and next step will be upload those artifacts to https://packagecloud.io/, so people won't need to create > distro packages for master branch. It will be there for them.
->> FYI, I've already setup something in OBS that does it for the SUSE packages:
->> https://build.opensuse.org/package/show/science:HPC:Head/rdma-core
->>
->> I've a Jenkins job that pulls github and automatically update this OBS repository.
->> They definitly should *NOT* be used for anything but testing.
->>
->>>>> In regards of schedule, there is already weekend in IL and Alaa will continue > to work on this series next week. After that, I'll setup and connect packagecloud > to our account.
->> Great !
->>
->> Nicolas
->>
+diff --git a/fs/cifs/smbdirect.c b/fs/cifs/smbdirect.c
+index f3ae3dc..5952276 100644
+--- a/fs/cifs/smbdirect.c
++++ b/fs/cifs/smbdirect.c
+@@ -1393,6 +1393,22 @@ static void idle_connection_timer(struct work_struct *work)
+ 			info->keep_alive_interval*HZ);
+ }
+ 
++/* Destroy this SMBD connection, called from upper layer */
++void smbd_destroy(struct smbd_connection *info)
++{
++	log_rdma_event(INFO, "destroying rdma session\n");
++
++	/* Kick off the disconnection process */
++	smbd_disconnect_rdma_connection(info);
++
++	log_rdma_event(INFO, "wait for transport being destroyed\n");
++	wait_event(info->wait_destroy,
++		info->transport_status == SMBD_DESTROYED);
++
++	destroy_workqueue(info->workqueue);
++	kfree(info);
++}
++
+ /*
+  * Reconnect this SMBD connection, called from upper layer
+  * return value: 0 on success, or actual error code
+-- 
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
