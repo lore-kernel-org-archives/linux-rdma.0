@@ -1,101 +1,50 @@
-From: Long Li <longli@exchange.microsoft.com>
-Subject: [Patch v6 22/22] CIFS: SMBD: Add SMB Direct debug counters
-Date: Sat,  4 Nov 2017 22:44:04 -0700
-Message-ID: <20171105054404.23886-23-longli@exchange.microsoft.com>
-References: <20171105054404.23886-1-longli@exchange.microsoft.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171105054404.23886-1-longli@exchange.microsoft.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Tom Talpey <ttalpey@microsoft.com>, Matthew Wilcox <mawilcox@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Long Li <longli@microsoft.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core] librdmacm: Remove unneeded condition
+Date: Sun, 5 Nov 2017 11:30:15 +0200
+Message-ID: <20171105093014.GA3948@yuvallap>
+References: <20171102135134.5728-1-yuval.shaia@oracle.com>
+ <1509635426.2484.9.camel@wdc.com>
+ <20171102164528.GM18874@ziepe.ca>
+ <20171105072657.GF31774@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171105072657.GF31774-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Long Li <longli@microsoft.com>
+On Sun, Nov 05, 2017 at 09:26:58AM +0200, Leon Romanovsky wrote:
+> On Thu, Nov 02, 2017 at 10:45:28AM -0600, Jason Gunthorpe wrote:
+> > On Thu, Nov 02, 2017 at 03:10:27PM +0000, Bart Van Assche wrote:
+> > > On Thu, 2017-11-02 at 15:51 +0200, Yuval Shaia wrote:
+> > > > The check makes no difference - remove it.
+> > >
+> > > Shouldn't the description have been "Passing zero as third argument to
+> > > memcpy() is allowed so the if-test is not necessary. Hence leave it out"?
+> >
+> > +1
+> 
+> Yuval ?
 
-For debugging and troubleshooting, export SMBDirect debug counters to
-/proc/fs/cifs/DebugData.
+Thanks Leon,
+Just post new pull request with the revised commit message.
+If still v1 is needed here for review then i'll post it.
 
-Signed-off-by: Long Li <longli@microsoft.com>
----
- fs/cifs/cifs_debug.c | 66 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 66 insertions(+)
+> 
+> Thanks
+> 
+> >
+> > Jason
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/fs/cifs/cifs_debug.c b/fs/cifs/cifs_debug.c
-index 7025d8d..cd65759 100644
---- a/fs/cifs/cifs_debug.c
-+++ b/fs/cifs/cifs_debug.c
-@@ -155,6 +155,72 @@ static int cifs_debug_data_proc_show(struct seq_file *m, void *v)
- 	list_for_each(tmp1, &cifs_tcp_ses_list) {
- 		server = list_entry(tmp1, struct TCP_Server_Info,
- 				    tcp_ses_list);
-+
-+#ifdef CONFIG_CIFS_SMB_DIRECT
-+		if (!server->rdma)
-+			goto skip_rdma;
-+
-+		seq_printf(m, "\nSMBDirect (in hex) protocol version: %x "
-+			"transport status: %x",
-+			server->smbd_conn->protocol,
-+			server->smbd_conn->transport_status);
-+		seq_printf(m, "\nConn receive_credit_max: %x "
-+			"send_credit_target: %x max_send_size: %x",
-+			server->smbd_conn->receive_credit_max,
-+			server->smbd_conn->send_credit_target,
-+			server->smbd_conn->max_send_size);
-+		seq_printf(m, "\nConn max_fragmented_recv_size: %x "
-+			"max_fragmented_send_size: %x max_receive_size:%x",
-+			server->smbd_conn->max_fragmented_recv_size,
-+			server->smbd_conn->max_fragmented_send_size,
-+			server->smbd_conn->max_receive_size);
-+		seq_printf(m, "\nConn keep_alive_interval: %x "
-+			"max_readwrite_size: %x rdma_readwrite_threshold: %x",
-+			server->smbd_conn->keep_alive_interval,
-+			server->smbd_conn->max_readwrite_size,
-+			server->smbd_conn->rdma_readwrite_threshold);
-+		seq_printf(m, "\nDebug count_get_receive_buffer: %x "
-+			"count_put_receive_buffer: %x count_send_empty: %x",
-+			server->smbd_conn->count_get_receive_buffer,
-+			server->smbd_conn->count_put_receive_buffer,
-+			server->smbd_conn->count_send_empty);
-+		seq_printf(m, "\nRead Queue count_reassembly_queue: %x "
-+			"count_enqueue_reassembly_queue: %x "
-+			"count_dequeue_reassembly_queue: %x "
-+			"fragment_reassembly_remaining: %x "
-+			"reassembly_data_length: %x "
-+			"reassembly_queue_length: %x",
-+			server->smbd_conn->count_reassembly_queue,
-+			server->smbd_conn->count_enqueue_reassembly_queue,
-+			server->smbd_conn->count_dequeue_reassembly_queue,
-+			server->smbd_conn->fragment_reassembly_remaining,
-+			server->smbd_conn->reassembly_data_length,
-+			server->smbd_conn->reassembly_queue_length);
-+		seq_printf(m, "\nCurrent Credits send_credits: %x "
-+			"receive_credits: %x receive_credit_target: %x",
-+			atomic_read(&server->smbd_conn->send_credits),
-+			atomic_read(&server->smbd_conn->receive_credits),
-+			server->smbd_conn->receive_credit_target);
-+		seq_printf(m, "\nPending send_pending: %x send_payload_pending:"
-+			" %x smbd_send_pending: %x smbd_recv_pending: %x",
-+			atomic_read(&server->smbd_conn->send_pending),
-+			atomic_read(&server->smbd_conn->send_payload_pending),
-+			server->smbd_conn->smbd_send_pending,
-+			server->smbd_conn->smbd_recv_pending);
-+		seq_printf(m, "\nReceive buffers count_receive_queue: %x "
-+			"count_empty_packet_queue: %x",
-+			server->smbd_conn->count_receive_queue,
-+			server->smbd_conn->count_empty_packet_queue);
-+		seq_printf(m, "\nMR responder_resources: %x "
-+			"max_frmr_depth: %x mr_type: %x",
-+			server->smbd_conn->responder_resources,
-+			server->smbd_conn->max_frmr_depth,
-+			server->smbd_conn->mr_type);
-+		seq_printf(m, "\nMR mr_ready_count: %x mr_used_count: %x",
-+			atomic_read(&server->smbd_conn->mr_ready_count),
-+			atomic_read(&server->smbd_conn->mr_used_count));
-+skip_rdma:
-+#endif
- 		seq_printf(m, "\nNumber of credits: %d", server->credits);
- 		i++;
- 		list_for_each(tmp2, &server->smb_ses_list) {
--- 
-2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
