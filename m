@@ -1,80 +1,158 @@
-From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: RE: [Patch v5 08/21] CIFS: SMBD: Upper layer reconnects to SMB Direct
- session
-Date: Sun, 5 Nov 2017 19:19:45 +0000
-Message-ID: <MWHPR21MB019066558DAE185D630EC2E7CE530@MWHPR21MB0190.namprd21.prod.outlook.com>
-References: <20171018230920.21042-1-longli@exchange.microsoft.com>
- <20171018230920.21042-9-longli@exchange.microsoft.com>
- <CAKywueRMRGhkw1zFh5HEBqV748hoq0DVsjGoVg8ttD22sTsYOQ@mail.gmail.com>
- <BN6PR21MB083455CADF03A6BD40863968CB5F0@BN6PR21MB0834.namprd21.prod.outlook.com>
- <MWHPR21MB01904A80D5C08396A7209471CE530@MWHPR21MB0190.namprd21.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <MWHPR21MB01904A80D5C08396A7209471CE530-saRRjQKJ25M/hL2NnenhuM1VXTxX1y3OvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Content-Language: en-US
-Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Pavel Shilovsky <piastryyy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-cifs <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/core: Make function rdma_copy_addr return void
+Date: Sun,  5 Nov 2017 23:08:17 +0200
+Message-ID: <20171105210817.17673-1-yuval.shaia@oracle.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, johannes.berg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogc2FtYmEtdGVjaG5pY2Fs
-IFttYWlsdG86c2FtYmEtdGVjaG5pY2FsLWJvdW5jZXNAbGlzdHMuc2FtYmEub3JnXQ0KPiBPbiBC
-ZWhhbGYgT2YgTG9uZyBMaSB2aWEgc2FtYmEtdGVjaG5pY2FsDQo+IFNlbnQ6IFN1bmRheSwgTm92
-ZW1iZXIgNSwgMjAxNyAxMDozNyBBTQ0KPiBUbzogTWF0dGhldyBXaWxjb3ggPG1hd2lsY294QG1p
-Y3Jvc29mdC5jb20+OyBQYXZlbCBTaGlsb3Zza3kNCj4gPHBpYXN0cnl5eUBnbWFpbC5jb20+DQo+
-IENjOiBsaW51eC1jaWZzIDxsaW51eC1jaWZzQHZnZXIua2VybmVsLm9yZz47IFN0ZXBoZW4gSGVt
-bWluZ2VyDQo+IDxzdGhlbW1pbkBtaWNyb3NvZnQuY29tPjsgbGludXgtcmRtYUB2Z2VyLmtlcm5l
-bC5vcmc7IHNhbWJhLXRlY2huaWNhbA0KPiA8c2FtYmEtdGVjaG5pY2FsQGxpc3RzLnNhbWJhLm9y
-Zz47IEtlcm5lbCBNYWlsaW5nIExpc3QgPGxpbnV4LQ0KPiBrZXJuZWxAdmdlci5rZXJuZWwub3Jn
-PjsgU3RldmUgRnJlbmNoIDxzZnJlbmNoQHNhbWJhLm9yZz4NCj4gU3ViamVjdDogUkU6IFtQYXRj
-aCB2NSAwOC8yMV0gQ0lGUzogU01CRDogVXBwZXIgbGF5ZXIgcmVjb25uZWN0cyB0byBTTUINCj4g
-RGlyZWN0IHNlc3Npb24NCj4gDQo+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiBG
-cm9tOiBNYXR0aGV3IFdpbGNveA0KPiA+IFNlbnQ6IFdlZG5lc2RheSwgTm92ZW1iZXIgMSwgMjAx
-NyAxMjo0NSBQTQ0KPiA+IFRvOiBQYXZlbCBTaGlsb3Zza3kgPHBpYXN0cnl5eUBnbWFpbC5jb20+
-OyBMb25nIExpDQo+ID4gPGxvbmdsaUBtaWNyb3NvZnQuY29tPg0KPiA+IENjOiBTdGV2ZSBGcmVu
-Y2ggPHNmcmVuY2hAc2FtYmEub3JnPjsgbGludXgtY2lmcyA8bGludXgtDQo+ID4gY2lmc0B2Z2Vy
-Lmtlcm5lbC5vcmc+OyBzYW1iYS10ZWNobmljYWwNCj4gPiA8c2FtYmEtdGVjaG5pY2FsQGxpc3Rz
-LnNhbWJhLm9yZz47DQo+ID4gS2VybmVsIE1haWxpbmcgTGlzdCA8bGludXgta2VybmVsQHZnZXIu
-a2VybmVsLm9yZz47IGxpbnV4LQ0KPiA+IHJkbWFAdmdlci5rZXJuZWwub3JnOyBUb20gVGFscGV5
-IDx0dGFscGV5QG1pY3Jvc29mdC5jb20+OyBTdGVwaGVuDQo+ID4gSGVtbWluZ2VyIDxzdGhlbW1p
-bkBtaWNyb3NvZnQuY29tPjsgTG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+DQo+ID4gU3Vi
-amVjdDogUkU6IFtQYXRjaCB2NSAwOC8yMV0gQ0lGUzogU01CRDogVXBwZXIgbGF5ZXIgcmVjb25u
-ZWN0cyB0bw0KPiA+IFNNQiBEaXJlY3Qgc2Vzc2lvbg0KPiA+DQo+ID4gRnJvbTogUGF2ZWwgU2hp
-bG92c2t5IFttYWlsdG86cGlhc3RyeXl5QGdtYWlsLmNvbV0NCj4gPiA+IDIwMTctMTAtMTggMTY6
-MDkgR01ULTA3OjAwIExvbmcgTGkgPGxvbmdsaUBleGNoYW5nZS5taWNyb3NvZnQuY29tPjoNCj4g
-PiA+ID4gRnJvbTogTG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+DQo+ID4gPiA+DQo+ID4g
-PiA+IERvIGEgcmVjb25uZWN0IG9uIFNNQiBEaXJlY3Qgd2hlbiBpdCBpcyB1c2VkIGFzIHRoZSBj
-b25uZWN0aW9uLg0KPiA+ID4gPiBSZWNvbm5lY3QNCj4gPiA+IGNhbg0KPiA+ID4gPiBoYXBwZW4g
-Zm9yIG1hbnkgcmVhc29ucyBhbmQgaXQncyBtb3N0bHkgdGhlIGRlY2lzaW9uIG9mIFNNQjIgdXBw
-ZXINCj4gPiBsYXllci4NCj4gPiA+ID4NCj4gPiA+ID4gU2lnbmVkLW9mZi1ieTogTG9uZyBMaSA8
-bG9uZ2xpQG1pY3Jvc29mdC5jb20+DQo+ID4gPiA+IC0tLQ0KPiA+ID4gPiAgZnMvY2lmcy9jb25u
-ZWN0LmMgfCA3ICsrKysrKysNCj4gPiA+ID4gIDEgZmlsZSBjaGFuZ2VkLCA3IGluc2VydGlvbnMo
-KykNCj4gPiA+ID4NCj4gPiA+ID4gZGlmZiAtLWdpdCBhL2ZzL2NpZnMvY29ubmVjdC5jIGIvZnMv
-Y2lmcy9jb25uZWN0LmMgaW5kZXgNCj4gPiA+ID4gMmMwYjM0YS4uOGNhM2MxMyAxMDA2NDQNCj4g
-PiA+ID4gLS0tIGEvZnMvY2lmcy9jb25uZWN0LmMNCj4gPiA+ID4gKysrIGIvZnMvY2lmcy9jb25u
-ZWN0LmMNCj4gPiA+ID4gQEAgLTQwNiw3ICs0MDYsMTQgQEAgY2lmc19yZWNvbm5lY3Qoc3RydWN0
-IFRDUF9TZXJ2ZXJfSW5mbw0KPiA+ID4gPiAqc2VydmVyKQ0KPiA+ID4gPg0KPiA+ID4gPiAgICAg
-ICAgICAgICAgICAgLyogd2Ugc2hvdWxkIHRyeSBvbmx5IHRoZSBwb3J0IHdlIGNvbm5lY3RlZCB0
-byBiZWZvcmUgKi8NCj4gPiA+ID4gICAgICAgICAgICAgICAgIG11dGV4X2xvY2soJnNlcnZlci0+
-c3J2X211dGV4KTsNCj4gPiA+ID4gKyNpZmRlZiBDT05GSUdfQ0lGU19TTUJfRElSRUNUDQo+ID4g
-PiA+ICsgICAgICAgICAgICAgICBpZiAoc2VydmVyLT5yZG1hKQ0KPiA+ID4gPiArICAgICAgICAg
-ICAgICAgICAgICAgICByYyA9IHNtYmRfcmVjb25uZWN0KHNlcnZlcik7DQo+ID4gPiA+ICsgICAg
-ICAgICAgICAgICBlbHNlDQo+ID4gPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIHJjID0gZ2Vu
-ZXJpY19pcF9jb25uZWN0KHNlcnZlcik7DQo+ID4gPg0KPiA+ID4gTWlub3I6IGhlcmUgYW5kIGlu
-IG90aGVyIHNpbWlsYXIgcGxhY2VzIHdlIGNhbiByZW1vdmUgI2Vsc2UgcGFydA0KPiA+ID4gYmVs
-b3cgYW5kIHB1dCAjZW5kaWYgYmVmb3JlIGVsc2UgYmxvY2sgYWJvdmUuDQo+ID4gPg0KPiA+ID4g
-PiArI2Vsc2UNCj4gPiA+ID4gICAgICAgICAgICAgICAgIHJjID0gZ2VuZXJpY19pcF9jb25uZWN0
-KHNlcnZlcik7DQo+ID4gPiA+ICsjZW5kaWYNCj4gPg0KPiA+IEknZCBzdWdnZXN0IHJhdGhlcjoN
-Cj4gPg0KPiA+ICNpZmRlZiBDT05GSUdfQ0lGU19TTUJfRElSRUNUDQo+ID4gI2RlZmluZSBjaWZz
-X3JkbWFfZW5hYmxlZChzZXJ2ZXIpCSgoc2VydmVyKS0+cmRtYSkNCj4gPiAjZWxzZQ0KPiA+ICNk
-ZWZpbmUgY2lmc19yZG1hX2VuYWJsZWQoc2VydmVyKQkwDQo+ID4gI2VuZGlmDQo+ID4NCj4gPiBU
-aGVuIHdlIGRvbid0IG5lZWQgYW4gaWZkZWYgaW4gdGhlIHVzZXJzLCBqdXN0Og0KPiA+DQo+ID4g
-CWlmIChjaWZzX3JkbWFfZW5hYmxlZChzZXJ2ZXIpKQ0KPiA+IAkJcmMgPSBzbWJkX3JlY29ubmVj
-dChzZXJ2ZXIpOw0KPiA+IAllbHNlDQo+ID4gCQlyYyA9IGdlbmVyaWNfaXBfY29ubmVjdChzZXJ2
-ZXIpOw0KDQpJdCBkb2Vzbid0IHdvcmsgd2VsbCwgYmVjYXVzZSBzbWJkX3JlY29ubmVjdCBpcyBk
-ZWZpbmVkIHdoZW4gQ09ORklHX0NJRlNfU01CX0RJUkVDVCBpcyBzZXQuIE5vdyB0aGUgY29tcGls
-ZXIgaXMgY29tcGxhaW5pbmcgaXQgY2FuJ3QgZmluZCB0aGlzIGZ1bmN0aW9uLiBNYXliZSBjb21w
-aWxlciBpcyBub3Qgc21hcnQgZW5vdWdoIDopDQoNCkkgaGF2ZSBzZW50IHY2IGZvciBhbGwgdGhl
-IG90aGVyIGNvbW1lbnRzLg0K
+Function returns zero - make it void.
+
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/core/addr.c | 25 +++++++++++++------------
+ drivers/infiniband/core/cma.c  |  8 ++------
+ include/rdma/ib_addr.h         |  4 ++--
+ 3 files changed, 17 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 12523f630b61..f14ee741e6f0 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -229,8 +229,8 @@ void rdma_addr_unregister_client(struct rdma_addr_client *client)
+ }
+ EXPORT_SYMBOL(rdma_addr_unregister_client);
+ 
+-int rdma_copy_addr(struct rdma_dev_addr *dev_addr, struct net_device *dev,
+-		     const unsigned char *dst_dev_addr)
++void rdma_copy_addr(struct rdma_dev_addr *dev_addr, struct net_device *dev,
++		    const unsigned char *dst_dev_addr)
+ {
+ 	dev_addr->dev_type = dev->type;
+ 	memcpy(dev_addr->src_dev_addr, dev->dev_addr, MAX_ADDR_LEN);
+@@ -238,7 +238,6 @@ int rdma_copy_addr(struct rdma_dev_addr *dev_addr, struct net_device *dev,
+ 	if (dst_dev_addr)
+ 		memcpy(dev_addr->dst_dev_addr, dst_dev_addr, MAX_ADDR_LEN);
+ 	dev_addr->bound_dev_if = dev->ifindex;
+-	return 0;
+ }
+ EXPORT_SYMBOL(rdma_copy_addr);
+ 
+@@ -247,15 +246,14 @@ int rdma_translate_ip(const struct sockaddr *addr,
+ 		      u16 *vlan_id)
+ {
+ 	struct net_device *dev;
+-	int ret = -EADDRNOTAVAIL;
+ 
+ 	if (dev_addr->bound_dev_if) {
+ 		dev = dev_get_by_index(dev_addr->net, dev_addr->bound_dev_if);
+ 		if (!dev)
+ 			return -ENODEV;
+-		ret = rdma_copy_addr(dev_addr, dev, NULL);
++		rdma_copy_addr(dev_addr, dev, NULL);
+ 		dev_put(dev);
+-		return ret;
++		return 0;
+ 	}
+ 
+ 	switch (addr->sa_family) {
+@@ -264,9 +262,9 @@ int rdma_translate_ip(const struct sockaddr *addr,
+ 			((const struct sockaddr_in *)addr)->sin_addr.s_addr);
+ 
+ 		if (!dev)
+-			return ret;
++			return -EADDRNOTAVAIL;
+ 
+-		ret = rdma_copy_addr(dev_addr, dev, NULL);
++		rdma_copy_addr(dev_addr, dev, NULL);
+ 		dev_addr->bound_dev_if = dev->ifindex;
+ 		if (vlan_id)
+ 			*vlan_id = rdma_vlan_dev_vlan_id(dev);
+@@ -279,7 +277,7 @@ int rdma_translate_ip(const struct sockaddr *addr,
+ 			if (ipv6_chk_addr(dev_addr->net,
+ 					  &((const struct sockaddr_in6 *)addr)->sin6_addr,
+ 					  dev, 1)) {
+-				ret = rdma_copy_addr(dev_addr, dev, NULL);
++				rdma_copy_addr(dev_addr, dev, NULL);
+ 				dev_addr->bound_dev_if = dev->ifindex;
+ 				if (vlan_id)
+ 					*vlan_id = rdma_vlan_dev_vlan_id(dev);
+@@ -290,7 +288,7 @@ int rdma_translate_ip(const struct sockaddr *addr,
+ 		break;
+ #endif
+ 	}
+-	return ret;
++	return 0;
+ }
+ EXPORT_SYMBOL(rdma_translate_ip);
+ 
+@@ -346,7 +344,8 @@ static int dst_fetch_ha(struct dst_entry *dst, struct rdma_dev_addr *dev_addr,
+ 			neigh_event_send(n, NULL);
+ 		ret = -ENODATA;
+ 	} else {
+-		ret = rdma_copy_addr(dev_addr, dst->dev, n->ha);
++		rdma_copy_addr(dev_addr, dst->dev, n->ha);
++		ret = 0;
+ 	}
+ 	rcu_read_unlock();
+ 
+@@ -494,7 +493,9 @@ static int addr_resolve_neigh(struct dst_entry *dst,
+ 	if (!(dst->dev->flags & IFF_NOARP))
+ 		return fetch_ha(dst, addr, dst_in, seq);
+ 
+-	return rdma_copy_addr(addr, dst->dev, NULL);
++	rdma_copy_addr(addr, dst->dev, NULL);
++
++	return 0;
+ }
+ 
+ static int addr_resolve(struct sockaddr *src_in,
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 852c8fec8088..0527a6a7ef26 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1846,9 +1846,7 @@ static struct rdma_id_private *cma_new_conn_id(struct rdma_cm_id *listen_id,
+ 		rt->path_rec[1] = *ib_event->param.req_rcvd.alternate_path;
+ 
+ 	if (net_dev) {
+-		ret = rdma_copy_addr(&rt->addr.dev_addr, net_dev, NULL);
+-		if (ret)
+-			goto err;
++		rdma_copy_addr(&rt->addr.dev_addr, net_dev, NULL);
+ 	} else {
+ 		if (!cma_protocol_roce(listen_id) &&
+ 		    cma_any_addr(cma_src_addr(id_priv))) {
+@@ -1894,9 +1892,7 @@ static struct rdma_id_private *cma_new_udp_id(struct rdma_cm_id *listen_id,
+ 		goto err;
+ 
+ 	if (net_dev) {
+-		ret = rdma_copy_addr(&id->route.addr.dev_addr, net_dev, NULL);
+-		if (ret)
+-			goto err;
++		rdma_copy_addr(&id->route.addr.dev_addr, net_dev, NULL);
+ 	} else {
+ 		if (!cma_any_addr(cma_src_addr(id_priv))) {
+ 			ret = cma_translate_addr(cma_src_addr(id_priv),
+diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
+index ec5008cf5d51..5647f3932ffe 100644
+--- a/include/rdma/ib_addr.h
++++ b/include/rdma/ib_addr.h
+@@ -125,8 +125,8 @@ int rdma_resolve_ip_route(struct sockaddr *src_addr,
+ 
+ void rdma_addr_cancel(struct rdma_dev_addr *addr);
+ 
+-int rdma_copy_addr(struct rdma_dev_addr *dev_addr, struct net_device *dev,
+-	      const unsigned char *dst_dev_addr);
++void rdma_copy_addr(struct rdma_dev_addr *dev_addr, struct net_device *dev,
++		    const unsigned char *dst_dev_addr);
+ 
+ int rdma_addr_size(struct sockaddr *addr);
+ 
+-- 
+2.13.6
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
