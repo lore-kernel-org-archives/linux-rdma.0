@@ -1,83 +1,71 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] librdmacm: Remove unneeded condition
-Date: Sun, 5 Nov 2017 15:27:52 +0200
-Message-ID: <20171105132752.GH31774@mtr-leonro.local>
-References: <20171102135134.5728-1-yuval.shaia@oracle.com>
- <1509635426.2484.9.camel@wdc.com>
- <20171102164528.GM18874@ziepe.ca>
- <20171105072657.GF31774@mtr-leonro.local>
- <20171105093014.GA3948@yuvallap>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="L2Brqb15TUChFOBK"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171105093014.GA3948@yuvallap>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Long Li <longli@exchange.microsoft.com>
+Subject: [Patch v6 09/22] CIFS: SMBD: Implement function to reconnect to a SMB Direct transport
+Date: Sat,  4 Nov 2017 22:43:51 -0700
+Message-ID: <20171105054404.23886-10-longli@exchange.microsoft.com>
+References: <20171105054404.23886-1-longli@exchange.microsoft.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171105054404.23886-1-longli@exchange.microsoft.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Tom Talpey <ttalpey@microsoft.com>, Matthew Wilcox <mawilcox@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Long Li <longli@microsoft.com>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Long Li <longli@microsoft.com>
 
---L2Brqb15TUChFOBK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Add function to implement a reconnect to SMB Direct. This involves tearing
+down the current connection and establishing/negotiating a new connection.
 
-On Sun, Nov 05, 2017 at 11:30:15AM +0200, Yuval Shaia wrote:
-> On Sun, Nov 05, 2017 at 09:26:58AM +0200, Leon Romanovsky wrote:
-> > On Thu, Nov 02, 2017 at 10:45:28AM -0600, Jason Gunthorpe wrote:
-> > > On Thu, Nov 02, 2017 at 03:10:27PM +0000, Bart Van Assche wrote:
-> > > > On Thu, 2017-11-02 at 15:51 +0200, Yuval Shaia wrote:
-> > > > > The check makes no difference - remove it.
-> > > >
-> > > > Shouldn't the description have been "Passing zero as third argument to
-> > > > memcpy() is allowed so the if-test is not necessary. Hence leave it out"?
-> > >
-> > > +1
-> >
-> > Yuval ?
->
-> Thanks Leon,
-> Just post new pull request with the revised commit message.
-> If still v1 is needed here for review then i'll post it.
+Signed-off-by: Long Li <longli@microsoft.com>
+---
+ fs/cifs/smbdirect.c | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-Thanks, applied.
-
->
-> >
-> > Thanks
-> >
-> > >
-> > > Jason
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
-
---L2Brqb15TUChFOBK
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAln/EdcACgkQ5GN7iDZy
-WKcGlRAAt6i85zFsgbVL/iqiOUVJRThqkzxh1f8ykUAO0dbwPE1YWpK+YUCDAi01
-W6WwfzLLfW8K1zZnc65fZpYruQ6Xfw6GDGIyQay+SJ+SCGMVqWtKX824vfeFwNRq
-9+xaSHHdUYvsaD28CXrj8a5V0TQFLD4R2YaY6wtSEnxE8/zk1Eabcngio454fNZq
-vV7Vu15lSo2XGg4zfdS6fDmU+icqFhHe/CqeXbMGzZId1vYT50BqRBVoz/+nbtZV
-04EGvShUs9KMbL+SfiCdZKr7a6F3LRC+MN/DFFe6Hl7KnOMvKe4NtH6452zqeodI
-+8Mno4YwkDw9AMi7Dov4G1CbBXyAQd/k+LAM51u/EUcjki50KLfU1XUtHwH6srCO
-0fq9F7yPx9mSuGRVLPIGcNxmuJQJ0GWFaKqYptQd2m7qCKNU9KwC8sQOPVRG6uZl
-rgVaP3eVZEfCCbw3dQgVEAG7tO7AMsqaPb65s0kcV8sZWatD/ZASPKlKy1d6Ex1V
-mqpN0xtFwQPYL1LeIGwI9Xg8cGYUq354O9ZKPr1Ax5iIZVRqbMf+4fJkEM/iwe/F
-BmNBNYJkQGhmN0LC1kiWaZot/tofW5N1DIk4N1jrm2vzuy9SFcWjDR8ciDyre5ES
-ExmHSornkK6rjfV0choymdCYxt/WUHQgi1ebFFNz+VVhNcsB5v4=
-=1Dq1
------END PGP SIGNATURE-----
-
---L2Brqb15TUChFOBK--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/fs/cifs/smbdirect.c b/fs/cifs/smbdirect.c
+index 47d999f..f3ae3dc 100644
+--- a/fs/cifs/smbdirect.c
++++ b/fs/cifs/smbdirect.c
+@@ -1393,6 +1393,42 @@ static void idle_connection_timer(struct work_struct *work)
+ 			info->keep_alive_interval*HZ);
+ }
+ 
++/*
++ * Reconnect this SMBD connection, called from upper layer
++ * return value: 0 on success, or actual error code
++ */
++int smbd_reconnect(struct TCP_Server_Info *server)
++{
++	log_rdma_event(INFO, "reconnecting rdma session\n");
++
++	if (!server->smbd_conn) {
++		log_rdma_event(ERR, "rdma session already destroyed\n");
++		return -EINVAL;
++	}
++
++	/*
++	 * This is possible if transport is disconnected and we haven't received
++	 * notification from RDMA, but upper layer has detected timeout
++	 */
++	if (server->smbd_conn->transport_status == SMBD_CONNECTED) {
++		log_rdma_event(INFO, "disconnecting transport\n");
++		smbd_disconnect_rdma_connection(server->smbd_conn);
++	}
++
++	/* wait until the transport is destroyed */
++	wait_event(server->smbd_conn->wait_destroy,
++		server->smbd_conn->transport_status == SMBD_DESTROYED);
++
++	destroy_workqueue(server->smbd_conn->workqueue);
++	kfree(server->smbd_conn);
++
++	log_rdma_event(INFO, "creating rdma session\n");
++	server->smbd_conn = smbd_get_connection(
++		server, (struct sockaddr *) &server->dstaddr);
++
++	return server->smbd_conn ? 0 : -ENOENT;
++}
++
+ static void destroy_caches_and_workqueue(struct smbd_connection *info)
+ {
+ 	destroy_receive_buffers(info);
+-- 
+2.7.4
