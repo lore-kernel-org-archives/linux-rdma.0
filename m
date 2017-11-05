@@ -1,58 +1,62 @@
-From: Alaa Hleihel <alaa-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/5] travis: Add RedHat and SuSE rpmbuild
- support
-Date: Sun, 5 Nov 2017 11:19:23 +0200
-Message-ID: <f4351195-48e4-a9b4-e7a9-8a8c46b79f8a@dev.mellanox.co.il>
-References: <20171102165556.22105-1-leon@kernel.org>
- <20171102165556.22105-4-leon@kernel.org> <20171102173123.GQ18874@ziepe.ca>
- <8a65f42d-01d4-6c4a-1bed-b1989cdb9e70@suse.de>
- <20171102194420.GT18874@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171102194420.GT18874-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
+Subject: [Patch v6 17/22] CIFS: SMBD: Upper layer sends data via RDMA send
+Date: Sat,  4 Nov 2017 22:43:59 -0700
+Message-ID: <20171105054404.23886-18-longli@exchange.microsoft.com>
+References: <20171105054404.23886-1-longli@exchange.microsoft.com>
+Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171105054404.23886-1-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
+Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Cc: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 
+With SMB Direct connected, use it for sending data via RDMA send.
 
-On 02/11/2017 21:44, Jason Gunthorpe wrote:
-> On Thu, Nov 02, 2017 at 06:34:08PM +0100, Nicolas Morey-Chaisemartin wrote:
->>
->> Le 02/11/2017 à 18:31, Jason Gunthorpe a écrit :
->>> On Thu, Nov 02, 2017 at 06:55:54PM +0200, Leon Romanovsky wrote:
->>>> From: Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>>
->>>> Provide a new script for testing rpmbuild under RedHat and SuSE
->>>> environments which validates both of the suse/rdma-core.spec and
->>>> redhat/rdma-core.spec specfiles.
->>>>
->>>> The script performs the RPM package build test by utilizing the existing
->>>> cbuild tool.
->>> This breaks cbuild pkg travis - we should not attempt to build using
->>> docker when run outside travis:
->> I'm guessing you meant *in*side travis ?
-> No, outside.. This point of these patches is to run docker inside the
-> travis environment, my comment that when not running under real travis
-> we should not try to invoke docker.
+Signed-off-by: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+---
+ fs/cifs/transport.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-Thanks Jason, I will fix it.
-
-Regards,
-Alaa
-
-> Jason
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/fs/cifs/transport.c b/fs/cifs/transport.c
+index 7efbab0..1b51d08 100644
+--- a/fs/cifs/transport.c
++++ b/fs/cifs/transport.c
+@@ -37,6 +37,9 @@
+ #include "cifsglob.h"
+ #include "cifsproto.h"
+ #include "cifs_debug.h"
++#ifdef CONFIG_CIFS_SMB_DIRECT
++#include "smbdirect.h"
++#endif
+ 
+ void
+ cifs_wake_up_task(struct mid_q_entry *mid)
+@@ -229,7 +232,12 @@ __smb_send_rqst(struct TCP_Server_Info *server, struct smb_rqst *rqst)
+ 	struct socket *ssocket = server->ssocket;
+ 	struct msghdr smb_msg;
+ 	int val = 1;
+-
++#ifdef CONFIG_CIFS_SMB_DIRECT
++	if (server->smbd_conn) {
++		rc = smbd_send(server->smbd_conn, rqst);
++		goto smbd_done;
++	}
++#endif
+ 	if (ssocket == NULL)
+ 		return -ENOTSOCK;
+ 
+@@ -298,7 +306,9 @@ __smb_send_rqst(struct TCP_Server_Info *server, struct smb_rqst *rqst)
+ 		 */
+ 		server->tcpStatus = CifsNeedReconnect;
+ 	}
+-
++#ifdef CONFIG_CIFS_SMB_DIRECT
++smbd_done:
++#endif
+ 	if (rc < 0 && rc != -EINTR)
+ 		cifs_dbg(VFS, "Error %d sending data on socket to server\n",
+ 			 rc);
+-- 
+2.7.4
