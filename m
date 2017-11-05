@@ -1,56 +1,77 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/3] Debian 15.1-1 changes
-Date: Thu, 30 Nov 2017 23:09:48 +0100
-Message-ID: <1512079788.3878.1.camel@profitbricks.com>
-References: <20171130123940.25795-1-benjamin.drung@profitbricks.com>
-         <20171130174750.GD7754@ziepe.ca> <1512066118.4246.2.camel@profitbricks.com>
-         <20171130185822.GE7754@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171130185822.GE7754-uk2M96/98Pc@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Long Li <longli@exchange.microsoft.com>
+Subject: [Patch v6 01/22] CIFS: SMBD: Add parameter rdata to smb2_new_read_req
+Date: Sat,  4 Nov 2017 22:43:43 -0700
+Message-ID: <20171105054404.23886-2-longli@exchange.microsoft.com>
+References: <20171105054404.23886-1-longli@exchange.microsoft.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171105054404.23886-1-longli@exchange.microsoft.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Tom Talpey <ttalpey@microsoft.com>, Matthew Wilcox <mawilcox@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Long Li <longli@microsoft.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Am Donnerstag, den 30.11.2017, 11:58 -0700 schrieb Jason Gunthorpe:
-> On Thu, Nov 30, 2017 at 07:21:58PM +0100, Benjamin Drung wrote:
-> > Am Donnerstag, den 30.11.2017, 10:47 -0700 schrieb Jason Gunthorpe:
-> > > On Thu, Nov 30, 2017 at 01:39:37PM +0100, Benjamin Drung wrote:
-> > > 
-> > > >   debian: Add m68k as non-coherent DMA architecture
-> > > >   debian: Mark libraries as Multi-Arch: same
-> > > 
-> > > As Leon says, shouldn't these go on the mainline branch also?
-> > 
-> > The complete patch set targets the master branch.
-> 
-> Oh, I see how you working this, I saw them already applied to the
-> debian branch and didn't quite get it :)
-> 
-> Looks fine to me
+From: Long Li <longli@microsoft.com>
 
-Since you approved these change, may I do the rebase and merge to master
-or is that task restricted to certain people or workflows?
+This patch is for preparing upper layer for doing SMB read via RDMA write.
 
+When the SMB read packet header is assembled, SMB Direct code needs to know
+the I/O layout if this request is to use a RDMA write. rdata has all the
+information of I/O layout for memory registration.
+
+Add rdata to smb2_new_read_req.
+
+Signed-off-by: Long Li <longli@microsoft.com>
+---
+ fs/cifs/smb2pdu.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/fs/cifs/smb2pdu.c b/fs/cifs/smb2pdu.c
+index bab3da6..32ad590 100644
+--- a/fs/cifs/smb2pdu.c
++++ b/fs/cifs/smb2pdu.c
+@@ -2350,18 +2350,21 @@ SMB2_flush(const unsigned int xid, struct cifs_tcon *tcon, u64 persistent_fid,
+  */
+ static int
+ smb2_new_read_req(void **buf, unsigned int *total_len,
+-		  struct cifs_io_parms *io_parms, unsigned int remaining_bytes,
+-		  int request_type)
++	struct cifs_io_parms *io_parms, struct cifs_readdata *rdata,
++	unsigned int remaining_bytes, int request_type)
+ {
+ 	int rc = -EACCES;
+ 	struct smb2_read_plain_req *req = NULL;
+ 	struct smb2_sync_hdr *shdr;
++	struct TCP_Server_Info *server;
+ 
+ 	rc = smb2_plain_req_init(SMB2_READ, io_parms->tcon, (void **) &req,
+ 				 total_len);
+ 	if (rc)
+ 		return rc;
+-	if (io_parms->tcon->ses->server == NULL)
++
++	server = io_parms->tcon->ses->server;
++	if (server == NULL)
+ 		return -ECONNABORTED;
+ 
+ 	shdr = &req->sync_hdr;
+@@ -2489,7 +2492,8 @@ smb2_async_readv(struct cifs_readdata *rdata)
+ 
+ 	server = io_parms.tcon->ses->server;
+ 
+-	rc = smb2_new_read_req((void **) &buf, &total_len, &io_parms, 0, 0);
++	rc = smb2_new_read_req(
++		(void **) &buf, &total_len, &io_parms, rdata, 0, 0);
+ 	if (rc) {
+ 		if (rc == -EAGAIN && rdata->credits) {
+ 			/* credits was reset by reconnect */
+@@ -2557,7 +2561,7 @@ SMB2_read(const unsigned int xid, struct cifs_io_parms *io_parms,
+ 	struct cifs_ses *ses = io_parms->tcon->ses;
+ 
+ 	*nbytes = 0;
+-	rc = smb2_new_read_req((void **)&req, &total_len, io_parms, 0, 0);
++	rc = smb2_new_read_req((void **)&req, &total_len, io_parms, NULL, 0, 0);
+ 	if (rc)
+ 		return rc;
+ 
 -- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-URL:  http://www.profitbricks.com
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Geschäftsführer: Andreas Gauger, Achim Weiss.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.7.4
