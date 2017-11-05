@@ -1,84 +1,47 @@
-From: Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
-Subject: [Patch v6 08/22] CIFS: SMBD: Upper layer connects to SMBDirect session
-Date: Sat,  4 Nov 2017 22:43:50 -0700
-Message-ID: <20171105054404.23886-9-longli@exchange.microsoft.com>
-References: <20171105054404.23886-1-longli@exchange.microsoft.com>
+From: Alaa Hleihel <alaa-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 2/5] cbuild: Properly create tarball for SuSE
+Date: Sun, 5 Nov 2017 10:19:50 +0200
+Message-ID: <e92e2213-d08a-b3ae-5d34-ff0b331f83c2@dev.mellanox.co.il>
+References: <20171102165556.22105-1-leon@kernel.org>
+ <20171102165556.22105-3-leon@kernel.org> <20171102171738.GP18874@ziepe.ca>
+ <20171102175735.GE16127@mtr-leonro.local> <20171102181217.GS18874@ziepe.ca>
+ <20171102182526.GG16127@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171105054404.23886-1-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
+In-Reply-To: <20171102182526.GG16127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Cc: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Nicolas Morey-Chaisemartin <nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 
-When "rdma" is specified in the mount option, make CIFS connect to
-SMB Direct.
 
-Signed-off-by: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
----
- fs/cifs/connect.c | 27 ++++++++++++++++++++++++---
- 1 file changed, 24 insertions(+), 3 deletions(-)
+On 02/11/2017 20:25, Leon Romanovsky wrote:
+> On Thu, Nov 02, 2017 at 12:12:17PM -0600, Jason Gunthorpe wrote:
+>> On Thu, Nov 02, 2017 at 07:57:35PM +0200, Leon Romanovsky wrote:
+>>
+>>>> Are you running cbuild as root or something? What is the docker
+>>>> command the script uses?
+>>> For me too, it doesn't reproduce, most probably Alaa run it as a root.
+>> Okay lets instead ban running cbuild as root?
+> I'm fine with that, but lets wait till Sunday before dropping this patch,
+> so Alaa will have chance to respond.
+>
+> Thanks
 
-diff --git a/fs/cifs/connect.c b/fs/cifs/connect.c
-index b5a575f..2c0b34a 100644
---- a/fs/cifs/connect.c
-+++ b/fs/cifs/connect.c
-@@ -44,7 +44,6 @@
- #include <net/ipv6.h>
- #include <linux/parser.h>
- #include <linux/bvec.h>
--
- #include "cifspdu.h"
- #include "cifsglob.h"
- #include "cifsproto.h"
-@@ -56,6 +55,9 @@
- #include "rfc1002pdu.h"
- #include "fscache.h"
- #include "smb2proto.h"
-+#ifdef CONFIG_CIFS_SMB_DIRECT
-+#include "smbdirect.h"
-+#endif
- 
- #define CIFS_PORT 445
- #define RFC1001_PORT 139
-@@ -2279,13 +2281,32 @@ cifs_get_tcp_session(struct smb_vol *volume_info)
- 		tcp_ses->echo_interval = volume_info->echo_interval * HZ;
- 	else
- 		tcp_ses->echo_interval = SMB_ECHO_INTERVAL_DEFAULT * HZ;
--
-+	if (tcp_ses->rdma) {
-+#ifdef CONFIG_CIFS_SMB_DIRECT
-+		tcp_ses->smbd_conn = smbd_get_connection(
-+			tcp_ses, (struct sockaddr *)&volume_info->dstaddr);
-+		if (tcp_ses->smbd_conn) {
-+			cifs_dbg(VFS, "RDMA transport established\n");
-+			rc = 0;
-+			goto smbd_connected;
-+		} else {
-+			rc = -ENOENT;
-+			goto out_err_crypto_release;
-+		}
-+#else
-+		cifs_dbg(VFS, "CONFIG_CIFS_SMB_DIRECT is not enabled\n");
-+		rc = -ENOENT;
-+		goto out_err_crypto_release;
-+#endif
-+	}
- 	rc = ip_connect(tcp_ses);
- 	if (rc < 0) {
- 		cifs_dbg(VFS, "Error connecting to socket. Aborting operation.\n");
- 		goto out_err_crypto_release;
- 	}
--
-+#ifdef CONFIG_CIFS_SMB_DIRECT
-+smbd_connected:
-+#endif
- 	/*
- 	 * since we're in a cifs function already, we know that
- 	 * this will succeed. No need for try_module_get().
--- 
-2.7.4
+Hi,
+
+Correct, I saw this issue when I tested the build using 'root' user.
+I'll drop this patch.
+
+Regards,
+Alaa
+
+
+>> Jason
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
