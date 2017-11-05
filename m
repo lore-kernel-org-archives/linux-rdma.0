@@ -1,54 +1,65 @@
-From: Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
-Subject: [Patch v6 11/22] CIFS: SMBD: Implement function to destroy a SMB Direct connection
-Date: Sat,  4 Nov 2017 22:43:53 -0700
-Message-ID: <20171105054404.23886-12-longli@exchange.microsoft.com>
-References: <20171105054404.23886-1-longli@exchange.microsoft.com>
+From: Alaa Hleihel <alaa-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 5/5] travis: Test Debian packaging under Artful
+ container
+Date: Sun, 5 Nov 2017 12:00:56 +0200
+Message-ID: <2e2d65c2-845e-13ad-1022-a859b2fef6a7@dev.mellanox.co.il>
+References: <20171102165556.22105-1-leon@kernel.org>
+ <20171102165556.22105-6-leon@kernel.org> <20171102170554.GO18874@ziepe.ca>
+ <20171102173255.GC16127@mtr-leonro.local> <20171102175522.GR18874@ziepe.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171105054404.23886-1-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
+In-Reply-To: <20171102175522.GR18874-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Cc: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Nicolas Morey-Chaisemartin <nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 
-Add function to tear down a SMB Direct connection. This is used by upper
-layer to free all SMB Direct connection and transport resources.
 
-Signed-off-by: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
----
- fs/cifs/smbdirect.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+On 02/11/2017 19:55, Jason Gunthorpe wrote:
+> On Thu, Nov 02, 2017 at 07:32:55PM +0200, Leon Romanovsky wrote:
+>> On Thu, Nov 02, 2017 at 11:05:54AM -0600, Jason Gunthorpe wrote:
+>>> On Thu, Nov 02, 2017 at 06:55:56PM +0200, Leon Romanovsky wrote:
+>>>> From: Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>>
+>>>> This will be compiled with GCC 7 coming with Ubuntu Artful
+>>> Hurm. This point of this is to test the latest gcc, not just the GCC
+>>> in a distro.
+>>>
+>>> We should be testing gcc-8 here, but it isn't available for
+>>> trusty right now. :(
+>>>
+>>> Then the lines:
+>>>
+>>>       - ubuntu-toolchain-r-test
+>>>
+>>> and
+>>>
+>>>       - gcc-7
+>>>
+>>> Should be removed from the .travis.yml as well in this patch.
+>> lib32gcc-7-dev depends on gcc-7 and it depends on
+>> ubuntu-toolchain-r-test.
+> We can probably use the 32 bit packages that come with trusty..
 
-diff --git a/fs/cifs/smbdirect.c b/fs/cifs/smbdirect.c
-index f3ae3dc..5952276 100644
---- a/fs/cifs/smbdirect.c
-+++ b/fs/cifs/smbdirect.c
-@@ -1393,6 +1393,22 @@ static void idle_connection_timer(struct work_struct *work)
- 			info->keep_alive_interval*HZ);
- }
- 
-+/* Destroy this SMBD connection, called from upper layer */
-+void smbd_destroy(struct smbd_connection *info)
-+{
-+	log_rdma_event(INFO, "destroying rdma session\n");
-+
-+	/* Kick off the disconnection process */
-+	smbd_disconnect_rdma_connection(info);
-+
-+	log_rdma_event(INFO, "wait for transport being destroyed\n");
-+	wait_event(info->wait_destroy,
-+		info->transport_status == SMBD_DESTROYED);
-+
-+	destroy_workqueue(info->workqueue);
-+	kfree(info);
-+}
-+
- /*
-  * Reconnect this SMBD connection, called from upper layer
-  * return value: 0 on success, or actual error code
--- 
-2.7.4
+OK, I'll remove GCC-7 and deb helpers installations from travis.yml.
+
+Regards,
+Alaa
+
+> Arguably though it might be better to test with 32 bit gcc-latest..
+>
+> Even better would be to do 32 bit test under docker where we could make
+> 32 bit cross work 100% ..
+>
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
