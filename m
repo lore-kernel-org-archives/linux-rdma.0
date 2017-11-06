@@ -1,112 +1,833 @@
-From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: RE: [Patch v5 08/21] CIFS: SMBD: Upper layer reconnects to SMB Direct
- session
-Date: Mon, 6 Nov 2017 18:59:56 +0000
-Message-ID: <MWHPR21MB0846AFBFCA9D6CDC97060C5DCE500@MWHPR21MB0846.namprd21.prod.outlook.com>
-References: <20171018230920.21042-1-longli@exchange.microsoft.com>
- <20171018230920.21042-9-longli@exchange.microsoft.com>
- <CAKywueRMRGhkw1zFh5HEBqV748hoq0DVsjGoVg8ttD22sTsYOQ@mail.gmail.com>
- <BN6PR21MB083455CADF03A6BD40863968CB5F0@BN6PR21MB0834.namprd21.prod.outlook.com>
- <MWHPR21MB01904A80D5C08396A7209471CE530@MWHPR21MB0190.namprd21.prod.outlook.com>
- <MWHPR21MB019066558DAE185D630EC2E7CE530@MWHPR21MB0190.namprd21.prod.outlook.com>
- <DM5PR21MB08439FAD284B66941BD4E1A3CB500@DM5PR21MB0843.namprd21.prod.outlook.com>
+From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH for-next v1] RDMA/vmw_pvrdma: Add shared receive queue support
+Date: Mon, 6 Nov 2017 11:48:53 -0800
+Message-ID: <20171106194847.GA5038@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <DM5PR21MB08439FAD284B66941BD4E1A3CB500-wL6gkCBjFTaTOEAW4KKL081VXTxX1y3OvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Content-Language: en-US
-Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Pavel Shilovsky <piastryyy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-cifs <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBNYXR0aGV3IFdpbGNveA0KPiBT
-ZW50OiBNb25kYXksIE5vdmVtYmVyIDYsIDIwMTcgMTA6MTAgQU0NCj4gVG86IExvbmcgTGkgPGxv
-bmdsaUBtaWNyb3NvZnQuY29tPjsgUGF2ZWwgU2hpbG92c2t5IDxwaWFzdHJ5eXlAZ21haWwuY29t
-Pg0KPiBDYzogbGludXgtY2lmcyA8bGludXgtY2lmc0B2Z2VyLmtlcm5lbC5vcmc+OyBTdGVwaGVu
-IEhlbW1pbmdlcg0KPiA8c3RoZW1taW5AbWljcm9zb2Z0LmNvbT47IGxpbnV4LXJkbWFAdmdlci5r
-ZXJuZWwub3JnOyBLZXJuZWwgTWFpbGluZw0KPiBMaXN0IDxsaW51eC1rZXJuZWxAdmdlci5rZXJu
-ZWwub3JnPjsgU3RldmUgRnJlbmNoIDxzZnJlbmNoQHNhbWJhLm9yZz4NCj4gU3ViamVjdDogUkU6
-IFtQYXRjaCB2NSAwOC8yMV0gQ0lGUzogU01CRDogVXBwZXIgbGF5ZXIgcmVjb25uZWN0cyB0byBT
-TUINCj4gRGlyZWN0IHNlc3Npb24NCj4gDQo+IE9oLCBJIGhhZG4ndCBub3RpY2VkIHRoYXQuICBU
-aGVuIEkgYW1lbmQgbXkgc3VnZ2VzdGlvbiB0byBiZToNCj4gDQo+ICNpZmRlZiBDT05GSUdfQ0lG
-U19TTUJfRElSRUNUDQo+ICNkZWZpbmUgY2lmc19yZG1hX2VuYWJsZWQoc2VydmVyKQkoKHNlcnZl
-ciktPnJkbWEpDQo+ICNlbHNlDQo+ICNkZWZpbmUgY2lmc19yZG1hX2VuYWJsZWQoc2VydmVyKQkw
-DQo+IHN0YXRpYyBpbmxpbmUgdm9pZCBjaWZzX3JlY29ubmVjdChzdHJ1Y3QgVENQX1NlcnZlcl9J
-bmZvICpzZXJ2ZXIpIHsgfSAjZW5kaWYNCg0KSSB3aWxsIGFkZHJlc3MgdGhvc2UgYW5kIHVwZGF0
-ZSBwYXRjaC4NCg0KPiANCj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+IEZyb206
-IExvbmcgTGkNCj4gPiBTZW50OiBTdW5kYXksIE5vdmVtYmVyIDUsIDIwMTcgMjoyMCBQTQ0KPiA+
-IFRvOiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNvbT47IE1hdHRoZXcgV2lsY294DQo+ID4g
-PG1hd2lsY294QG1pY3Jvc29mdC5jb20+OyBQYXZlbCBTaGlsb3Zza3kgPHBpYXN0cnl5eUBnbWFp
-bC5jb20+DQo+ID4gQ2M6IGxpbnV4LWNpZnMgPGxpbnV4LWNpZnNAdmdlci5rZXJuZWwub3JnPjsg
-U3RlcGhlbiBIZW1taW5nZXINCj4gPiA8c3RoZW1taW5AbWljcm9zb2Z0LmNvbT47IGxpbnV4LXJk
-bWFAdmdlci5rZXJuZWwub3JnOyBLZXJuZWwgTWFpbGluZw0KPiA+IExpc3QgPGxpbnV4LWtlcm5l
-bEB2Z2VyLmtlcm5lbC5vcmc+OyBTdGV2ZSBGcmVuY2ggPHNmcmVuY2hAc2FtYmEub3JnPg0KPiA+
-IFN1YmplY3Q6IFJFOiBbUGF0Y2ggdjUgMDgvMjFdIENJRlM6IFNNQkQ6IFVwcGVyIGxheWVyIHJl
-Y29ubmVjdHMgdG8NCj4gPiBTTUIgRGlyZWN0IHNlc3Npb24NCj4gPg0KPiA+DQo+ID4NCj4gPiA+
-IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gPiBGcm9tOiBzYW1iYS10ZWNobmljYWwN
-Cj4gPiA+IFttYWlsdG86c2FtYmEtdGVjaG5pY2FsLWJvdW5jZXNAbGlzdHMuc2FtYmEub3JnXQ0K
-PiA+ID4gT24gQmVoYWxmIE9mIExvbmcgTGkgdmlhIHNhbWJhLXRlY2huaWNhbA0KPiA+ID4gU2Vu
-dDogU3VuZGF5LCBOb3ZlbWJlciA1LCAyMDE3IDEwOjM3IEFNDQo+ID4gPiBUbzogTWF0dGhldyBX
-aWxjb3ggPG1hd2lsY294QG1pY3Jvc29mdC5jb20+OyBQYXZlbCBTaGlsb3Zza3kNCj4gPiA+IDxw
-aWFzdHJ5eXlAZ21haWwuY29tPg0KPiA+ID4gQ2M6IGxpbnV4LWNpZnMgPGxpbnV4LWNpZnNAdmdl
-ci5rZXJuZWwub3JnPjsgU3RlcGhlbiBIZW1taW5nZXINCj4gPiA+IDxzdGhlbW1pbkBtaWNyb3Nv
-ZnQuY29tPjsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7DQo+ID4gPiBzYW1iYS10ZWNobmlj
-YWwgPHNhbWJhLXRlY2huaWNhbEBsaXN0cy5zYW1iYS5vcmc+OyBLZXJuZWwgTWFpbGluZw0KPiA+
-ID4gTGlzdCA8bGludXgtIGtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+OyBTdGV2ZSBGcmVuY2gNCj4g
-PiA+IDxzZnJlbmNoQHNhbWJhLm9yZz4NCj4gPiA+IFN1YmplY3Q6IFJFOiBbUGF0Y2ggdjUgMDgv
-MjFdIENJRlM6IFNNQkQ6IFVwcGVyIGxheWVyIHJlY29ubmVjdHMgdG8NCj4gPiA+IFNNQiBEaXJl
-Y3Qgc2Vzc2lvbg0KPiA+ID4NCj4gPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4g
-PiA+ID4gRnJvbTogTWF0dGhldyBXaWxjb3gNCj4gPiA+ID4gU2VudDogV2VkbmVzZGF5LCBOb3Zl
-bWJlciAxLCAyMDE3IDEyOjQ1IFBNDQo+ID4gPiA+IFRvOiBQYXZlbCBTaGlsb3Zza3kgPHBpYXN0
-cnl5eUBnbWFpbC5jb20+OyBMb25nIExpDQo+ID4gPiA+IDxsb25nbGlAbWljcm9zb2Z0LmNvbT4N
-Cj4gPiA+ID4gQ2M6IFN0ZXZlIEZyZW5jaCA8c2ZyZW5jaEBzYW1iYS5vcmc+OyBsaW51eC1jaWZz
-IDxsaW51eC0NCj4gPiA+ID4gY2lmc0B2Z2VyLmtlcm5lbC5vcmc+OyBzYW1iYS10ZWNobmljYWwN
-Cj4gPiA+ID4gPHNhbWJhLXRlY2huaWNhbEBsaXN0cy5zYW1iYS5vcmc+Ow0KPiA+ID4gPiBLZXJu
-ZWwgTWFpbGluZyBMaXN0IDxsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnPjsgbGludXgtDQo+
-ID4gPiA+IHJkbWFAdmdlci5rZXJuZWwub3JnOyBUb20gVGFscGV5IDx0dGFscGV5QG1pY3Jvc29m
-dC5jb20+Ow0KPiBTdGVwaGVuDQo+ID4gPiA+IEhlbW1pbmdlciA8c3RoZW1taW5AbWljcm9zb2Z0
-LmNvbT47IExvbmcgTGkNCj4gPGxvbmdsaUBtaWNyb3NvZnQuY29tPg0KPiA+ID4gPiBTdWJqZWN0
-OiBSRTogW1BhdGNoIHY1IDA4LzIxXSBDSUZTOiBTTUJEOiBVcHBlciBsYXllciByZWNvbm5lY3Rz
-DQo+ID4gPiA+IHRvIFNNQiBEaXJlY3Qgc2Vzc2lvbg0KPiA+ID4gPg0KPiA+ID4gPiBGcm9tOiBQ
-YXZlbCBTaGlsb3Zza3kgW21haWx0bzpwaWFzdHJ5eXlAZ21haWwuY29tXQ0KPiA+ID4gPiA+IDIw
-MTctMTAtMTggMTY6MDkgR01ULTA3OjAwIExvbmcgTGkNCj4gPGxvbmdsaUBleGNoYW5nZS5taWNy
-b3NvZnQuY29tPjoNCj4gPiA+ID4gPiA+IEZyb206IExvbmcgTGkgPGxvbmdsaUBtaWNyb3NvZnQu
-Y29tPg0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+IERvIGEgcmVjb25uZWN0IG9uIFNNQiBEaXJl
-Y3Qgd2hlbiBpdCBpcyB1c2VkIGFzIHRoZSBjb25uZWN0aW9uLg0KPiA+ID4gPiA+ID4gUmVjb25u
-ZWN0DQo+ID4gPiA+ID4gY2FuDQo+ID4gPiA+ID4gPiBoYXBwZW4gZm9yIG1hbnkgcmVhc29ucyBh
-bmQgaXQncyBtb3N0bHkgdGhlIGRlY2lzaW9uIG9mIFNNQjINCj4gPiA+ID4gPiA+IHVwcGVyDQo+
-ID4gPiA+IGxheWVyLg0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+IFNpZ25lZC1vZmYtYnk6IExv
-bmcgTGkgPGxvbmdsaUBtaWNyb3NvZnQuY29tPg0KPiA+ID4gPiA+ID4gLS0tDQo+ID4gPiA+ID4g
-PiAgZnMvY2lmcy9jb25uZWN0LmMgfCA3ICsrKysrKysNCj4gPiA+ID4gPiA+ICAxIGZpbGUgY2hh
-bmdlZCwgNyBpbnNlcnRpb25zKCspDQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gZGlmZiAtLWdp
-dCBhL2ZzL2NpZnMvY29ubmVjdC5jIGIvZnMvY2lmcy9jb25uZWN0LmMgaW5kZXgNCj4gPiA+ID4g
-PiA+IDJjMGIzNGEuLjhjYTNjMTMgMTAwNjQ0DQo+ID4gPiA+ID4gPiAtLS0gYS9mcy9jaWZzL2Nv
-bm5lY3QuYw0KPiA+ID4gPiA+ID4gKysrIGIvZnMvY2lmcy9jb25uZWN0LmMNCj4gPiA+ID4gPiA+
-IEBAIC00MDYsNyArNDA2LDE0IEBAIGNpZnNfcmVjb25uZWN0KHN0cnVjdCBUQ1BfU2VydmVyX0lu
-Zm8NCj4gPiA+ID4gPiA+ICpzZXJ2ZXIpDQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gICAgICAg
-ICAgICAgICAgIC8qIHdlIHNob3VsZCB0cnkgb25seSB0aGUgcG9ydCB3ZSBjb25uZWN0ZWQgdG8g
-YmVmb3JlICovDQo+ID4gPiA+ID4gPiAgICAgICAgICAgICAgICAgbXV0ZXhfbG9jaygmc2VydmVy
-LT5zcnZfbXV0ZXgpOw0KPiA+ID4gPiA+ID4gKyNpZmRlZiBDT05GSUdfQ0lGU19TTUJfRElSRUNU
-DQo+ID4gPiA+ID4gPiArICAgICAgICAgICAgICAgaWYgKHNlcnZlci0+cmRtYSkNCj4gPiA+ID4g
-PiA+ICsgICAgICAgICAgICAgICAgICAgICAgIHJjID0gc21iZF9yZWNvbm5lY3Qoc2VydmVyKTsN
-Cj4gPiA+ID4gPiA+ICsgICAgICAgICAgICAgICBlbHNlDQo+ID4gPiA+ID4gPiArICAgICAgICAg
-ICAgICAgICAgICAgICByYyA9IGdlbmVyaWNfaXBfY29ubmVjdChzZXJ2ZXIpOw0KPiA+ID4gPiA+
-DQo+ID4gPiA+ID4gTWlub3I6IGhlcmUgYW5kIGluIG90aGVyIHNpbWlsYXIgcGxhY2VzIHdlIGNh
-biByZW1vdmUgI2Vsc2UgcGFydA0KPiA+ID4gPiA+IGJlbG93IGFuZCBwdXQgI2VuZGlmIGJlZm9y
-ZSBlbHNlIGJsb2NrIGFib3ZlLg0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiArI2Vsc2UNCj4gPiA+
-ID4gPiA+ICAgICAgICAgICAgICAgICByYyA9IGdlbmVyaWNfaXBfY29ubmVjdChzZXJ2ZXIpOw0K
-PiA+ID4gPiA+ID4gKyNlbmRpZg0KPiA+ID4gPg0KPiA+ID4gPiBJJ2Qgc3VnZ2VzdCByYXRoZXI6
-DQo+ID4gPiA+DQo+ID4gPiA+ICNpZmRlZiBDT05GSUdfQ0lGU19TTUJfRElSRUNUDQo+ID4gPiA+
-ICNkZWZpbmUgY2lmc19yZG1hX2VuYWJsZWQoc2VydmVyKQkoKHNlcnZlciktPnJkbWEpDQo+ID4g
-PiA+ICNlbHNlDQo+ID4gPiA+ICNkZWZpbmUgY2lmc19yZG1hX2VuYWJsZWQoc2VydmVyKQkwDQo+
-ID4gPiA+ICNlbmRpZg0KPiA+ID4gPg0KPiA+ID4gPiBUaGVuIHdlIGRvbid0IG5lZWQgYW4gaWZk
-ZWYgaW4gdGhlIHVzZXJzLCBqdXN0Og0KPiA+ID4gPg0KPiA+ID4gPiAJaWYgKGNpZnNfcmRtYV9l
-bmFibGVkKHNlcnZlcikpDQo+ID4gPiA+IAkJcmMgPSBzbWJkX3JlY29ubmVjdChzZXJ2ZXIpOw0K
-PiA+ID4gPiAJZWxzZQ0KPiA+ID4gPiAJCXJjID0gZ2VuZXJpY19pcF9jb25uZWN0KHNlcnZlcik7
-DQo+ID4NCj4gPiBJdCBkb2Vzbid0IHdvcmsgd2VsbCwgYmVjYXVzZSBzbWJkX3JlY29ubmVjdCBp
-cyBkZWZpbmVkIHdoZW4NCj4gPiBDT05GSUdfQ0lGU19TTUJfRElSRUNUIGlzIHNldC4gTm93IHRo
-ZSBjb21waWxlciBpcyBjb21wbGFpbmluZyBpdA0KPiA+IGNhbid0IGZpbmQgdGhpcyBmdW5jdGlv
-bi4gTWF5YmUgY29tcGlsZXIgaXMgbm90IHNtYXJ0IGVub3VnaCA6KQ0KPiA+DQo+ID4gSSBoYXZl
-IHNlbnQgdjYgZm9yIGFsbCB0aGUgb3RoZXIgY29tbWVudHMuDQo=
+Add the required functions needed to support SRQs. Currently, kernel
+clients are not supported. SRQs will only be available in userspace.
+
+Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Nitish Bhat <bnitish-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+---
+v0 -> v1 Changelog:
+- Change SRQ functions to be more consistent with the QP functions
+- Move check for kernel clients to before resource initialization
+- Use refcount_t instead of atomic_t
+- Change allocation from (void *) to (struct pvrdma_srq *)
+- Remove unnecessary initialization of srq_tbl to NULL
+- Check for srq_tbl in SRQ event handler
+- Only register SRQ functions with IB/core when the underlying
+  device has SRQ capabilities.
+---
+ drivers/infiniband/hw/vmw_pvrdma/Makefile         |   2 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma.h         |  25 ++
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h |  54 ++++
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c    |  59 +++-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c      |  55 +++-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c     | 319 ++++++++++++++++++++++
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c   |   3 +
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h   |  18 ++
+ include/uapi/rdma/vmw_pvrdma-abi.h                |   2 +
+ 9 files changed, 523 insertions(+), 14 deletions(-)
+ create mode 100644 drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
+
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/Makefile b/drivers/infiniband/hw/vmw_pvrdma/Makefile
+index 0194ed1..2f52e0a 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/Makefile
++++ b/drivers/infiniband/hw/vmw_pvrdma/Makefile
+@@ -1,3 +1,3 @@
+ obj-$(CONFIG_INFINIBAND_VMWARE_PVRDMA) += vmw_pvrdma.o
+ 
+-vmw_pvrdma-y := pvrdma_cmd.o pvrdma_cq.o pvrdma_doorbell.o pvrdma_main.o pvrdma_misc.o pvrdma_mr.o pvrdma_qp.o pvrdma_verbs.o
++vmw_pvrdma-y := pvrdma_cmd.o pvrdma_cq.o pvrdma_doorbell.o pvrdma_main.o pvrdma_misc.o pvrdma_mr.o pvrdma_qp.o pvrdma_srq.o pvrdma_verbs.o
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+index 984aa34..63bc2ef 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+@@ -162,6 +162,22 @@ struct pvrdma_ah {
+ 	struct pvrdma_av av;
+ };
+ 
++struct pvrdma_srq {
++	struct ib_srq ibsrq;
++	int offset;
++	spinlock_t lock; /* SRQ lock. */
++	int wqe_cnt;
++	int wqe_size;
++	int max_gs;
++	struct ib_umem *umem;
++	struct pvrdma_ring_state *ring;
++	struct pvrdma_page_dir pdir;
++	u32 srq_handle;
++	int npages;
++	refcount_t refcnt;
++	wait_queue_head_t wait;
++};
++
+ struct pvrdma_qp {
+ 	struct ib_qp ibqp;
+ 	u32 qp_handle;
+@@ -171,6 +187,7 @@ struct pvrdma_qp {
+ 	struct ib_umem *rumem;
+ 	struct ib_umem *sumem;
+ 	struct pvrdma_page_dir pdir;
++	struct pvrdma_srq *srq;
+ 	int npages;
+ 	int npages_send;
+ 	int npages_recv;
+@@ -210,6 +227,8 @@ struct pvrdma_dev {
+ 	struct pvrdma_page_dir cq_pdir;
+ 	struct pvrdma_cq **cq_tbl;
+ 	spinlock_t cq_tbl_lock;
++	struct pvrdma_srq **srq_tbl;
++	spinlock_t srq_tbl_lock;
+ 	struct pvrdma_qp **qp_tbl;
+ 	spinlock_t qp_tbl_lock;
+ 	struct pvrdma_uar_table uar_table;
+@@ -221,6 +240,7 @@ struct pvrdma_dev {
+ 	bool ib_active;
+ 	atomic_t num_qps;
+ 	atomic_t num_cqs;
++	atomic_t num_srqs;
+ 	atomic_t num_pds;
+ 	atomic_t num_ahs;
+ 
+@@ -256,6 +276,11 @@ static inline struct pvrdma_cq *to_vcq(struct ib_cq *ibcq)
+ 	return container_of(ibcq, struct pvrdma_cq, ibcq);
+ }
+ 
++static inline struct pvrdma_srq *to_vsrq(struct ib_srq *ibsrq)
++{
++	return container_of(ibsrq, struct pvrdma_srq, ibsrq);
++}
++
+ static inline struct pvrdma_user_mr *to_vmr(struct ib_mr *ibmr)
+ {
+ 	return container_of(ibmr, struct pvrdma_user_mr, ibmr);
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+index df0a6b5..6fd5a8f 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+@@ -339,6 +339,10 @@ enum {
+ 	PVRDMA_CMD_DESTROY_UC,
+ 	PVRDMA_CMD_CREATE_BIND,
+ 	PVRDMA_CMD_DESTROY_BIND,
++	PVRDMA_CMD_CREATE_SRQ,
++	PVRDMA_CMD_MODIFY_SRQ,
++	PVRDMA_CMD_QUERY_SRQ,
++	PVRDMA_CMD_DESTROY_SRQ,
+ 	PVRDMA_CMD_MAX,
+ };
+ 
+@@ -361,6 +365,10 @@ enum {
+ 	PVRDMA_CMD_DESTROY_UC_RESP_NOOP,
+ 	PVRDMA_CMD_CREATE_BIND_RESP_NOOP,
+ 	PVRDMA_CMD_DESTROY_BIND_RESP_NOOP,
++	PVRDMA_CMD_CREATE_SRQ_RESP,
++	PVRDMA_CMD_MODIFY_SRQ_RESP,
++	PVRDMA_CMD_QUERY_SRQ_RESP,
++	PVRDMA_CMD_DESTROY_SRQ_RESP,
+ 	PVRDMA_CMD_MAX_RESP,
+ };
+ 
+@@ -495,6 +503,46 @@ struct pvrdma_cmd_destroy_cq {
+ 	u8 reserved[4];
+ };
+ 
++struct pvrdma_cmd_create_srq {
++	struct pvrdma_cmd_hdr hdr;
++	u64 pdir_dma;
++	u32 pd_handle;
++	u32 nchunks;
++	struct pvrdma_srq_attr attrs;
++	u8 srq_type;
++	u8 reserved[7];
++};
++
++struct pvrdma_cmd_create_srq_resp {
++	struct pvrdma_cmd_resp_hdr hdr;
++	u32 srqn;
++	u8 reserved[4];
++};
++
++struct pvrdma_cmd_modify_srq {
++	struct pvrdma_cmd_hdr hdr;
++	u32 srq_handle;
++	u32 attr_mask;
++	struct pvrdma_srq_attr attrs;
++};
++
++struct pvrdma_cmd_query_srq {
++	struct pvrdma_cmd_hdr hdr;
++	u32 srq_handle;
++	u8 reserved[4];
++};
++
++struct pvrdma_cmd_query_srq_resp {
++	struct pvrdma_cmd_resp_hdr hdr;
++	struct pvrdma_srq_attr attrs;
++};
++
++struct pvrdma_cmd_destroy_srq {
++	struct pvrdma_cmd_hdr hdr;
++	u32 srq_handle;
++	u8 reserved[4];
++};
++
+ struct pvrdma_cmd_create_qp {
+ 	struct pvrdma_cmd_hdr hdr;
+ 	u64 pdir_dma;
+@@ -594,6 +642,10 @@ struct pvrdma_cmd_destroy_bind {
+ 	struct pvrdma_cmd_destroy_qp destroy_qp;
+ 	struct pvrdma_cmd_create_bind create_bind;
+ 	struct pvrdma_cmd_destroy_bind destroy_bind;
++	struct pvrdma_cmd_create_srq create_srq;
++	struct pvrdma_cmd_modify_srq modify_srq;
++	struct pvrdma_cmd_query_srq query_srq;
++	struct pvrdma_cmd_destroy_srq destroy_srq;
+ };
+ 
+ union pvrdma_cmd_resp {
+@@ -608,6 +660,8 @@ struct pvrdma_cmd_destroy_bind {
+ 	struct pvrdma_cmd_create_qp_resp create_qp_resp;
+ 	struct pvrdma_cmd_query_qp_resp query_qp_resp;
+ 	struct pvrdma_cmd_destroy_qp_resp destroy_qp_resp;
++	struct pvrdma_cmd_create_srq_resp create_srq_resp;
++	struct pvrdma_cmd_query_srq_resp query_srq_resp;
+ };
+ 
+ #endif /* __PVRDMA_DEV_API_H__ */
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+index 6ce709a..1f4e187 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+@@ -118,6 +118,7 @@ static int pvrdma_init_device(struct pvrdma_dev *dev)
+ 	spin_lock_init(&dev->cmd_lock);
+ 	sema_init(&dev->cmd_sema, 1);
+ 	atomic_set(&dev->num_qps, 0);
++	atomic_set(&dev->num_srqs, 0);
+ 	atomic_set(&dev->num_cqs, 0);
+ 	atomic_set(&dev->num_pds, 0);
+ 	atomic_set(&dev->num_ahs, 0);
+@@ -254,9 +255,32 @@ static int pvrdma_register_device(struct pvrdma_dev *dev)
+ 		goto err_cq_free;
+ 	spin_lock_init(&dev->qp_tbl_lock);
+ 
++	/* Check if SRQ is supported by backend */
++	if (dev->dsr->caps.max_srq) {
++		dev->ib_dev.uverbs_cmd_mask |=
++			(1ull << IB_USER_VERBS_CMD_CREATE_SRQ)	|
++			(1ull << IB_USER_VERBS_CMD_MODIFY_SRQ)	|
++			(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)	|
++			(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)	|
++			(1ull << IB_USER_VERBS_CMD_POST_SRQ_RECV);
++
++		dev->ib_dev.create_srq = pvrdma_create_srq;
++		dev->ib_dev.modify_srq = pvrdma_modify_srq;
++		dev->ib_dev.query_srq = pvrdma_query_srq;
++		dev->ib_dev.destroy_srq = pvrdma_destroy_srq;
++		dev->ib_dev.post_srq_recv = pvrdma_post_srq_recv;
++
++		dev->srq_tbl = kcalloc(dev->dsr->caps.max_srq,
++				       sizeof(struct pvrdma_srq *),
++				       GFP_KERNEL);
++		if (!dev->srq_tbl)
++			goto err_qp_free;
++	}
++	spin_lock_init(&dev->srq_tbl_lock);
++
+ 	ret = ib_register_device(&dev->ib_dev, NULL);
+ 	if (ret)
+-		goto err_qp_free;
++		goto err_srq_free;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(pvrdma_class_attributes); ++i) {
+ 		ret = device_create_file(&dev->ib_dev.dev,
+@@ -271,6 +295,8 @@ static int pvrdma_register_device(struct pvrdma_dev *dev)
+ 
+ err_class:
+ 	ib_unregister_device(&dev->ib_dev);
++err_srq_free:
++	kfree(dev->srq_tbl);
+ err_qp_free:
+ 	kfree(dev->qp_tbl);
+ err_cq_free:
+@@ -353,6 +379,35 @@ static void pvrdma_cq_event(struct pvrdma_dev *dev, u32 cqn, int type)
+ 	}
+ }
+ 
++static void pvrdma_srq_event(struct pvrdma_dev *dev, u32 srqn, int type)
++{
++	struct pvrdma_srq *srq;
++	unsigned long flags;
++
++	spin_lock_irqsave(&dev->srq_tbl_lock, flags);
++	if (dev->srq_tbl)
++		srq = dev->srq_tbl[srqn % dev->dsr->caps.max_srq];
++	else
++		srq = NULL;
++	if (srq)
++		refcount_inc(&srq->refcnt);
++	spin_unlock_irqrestore(&dev->srq_tbl_lock, flags);
++
++	if (srq && srq->ibsrq.event_handler) {
++		struct ib_srq *ibsrq = &srq->ibsrq;
++		struct ib_event e;
++
++		e.device = ibsrq->device;
++		e.element.srq = ibsrq;
++		e.event = type; /* 1:1 mapping for now. */
++		ibsrq->event_handler(&e, ibsrq->srq_context);
++	}
++	if (srq) {
++		if (refcount_dec_and_test(&srq->refcnt))
++			wake_up(&srq->wait);
++	}
++}
++
+ static void pvrdma_dispatch_event(struct pvrdma_dev *dev, int port,
+ 				  enum ib_event_type event)
+ {
+@@ -423,6 +478,7 @@ static irqreturn_t pvrdma_intr1_handler(int irq, void *dev_id)
+ 
+ 		case PVRDMA_EVENT_SRQ_ERR:
+ 		case PVRDMA_EVENT_SRQ_LIMIT_REACHED:
++			pvrdma_srq_event(dev, eqe->info, eqe->type);
+ 			break;
+ 
+ 		case PVRDMA_EVENT_PORT_ACTIVE:
+@@ -1059,6 +1115,7 @@ static void pvrdma_pci_remove(struct pci_dev *pdev)
+ 	iounmap(dev->regs);
+ 	kfree(dev->sgid_tbl);
+ 	kfree(dev->cq_tbl);
++	kfree(dev->srq_tbl);
+ 	kfree(dev->qp_tbl);
+ 	pvrdma_uar_table_cleanup(dev);
+ 	iounmap(dev->driver_uar.map);
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+index ed34d5a..10420a1 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+@@ -198,6 +198,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+ 	struct pvrdma_create_qp ucmd;
+ 	unsigned long flags;
+ 	int ret;
++	bool is_srq = !!init_attr->srq;
+ 
+ 	if (init_attr->create_flags) {
+ 		dev_warn(&dev->pdev->dev,
+@@ -214,6 +215,12 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 
++	if (is_srq && !dev->dsr->caps.max_srq) {
++		dev_warn(&dev->pdev->dev,
++			 "SRQs not supported by device\n");
++		return ERR_PTR(-EINVAL);
++	}
++
+ 	if (!atomic_add_unless(&dev->num_qps, 1, dev->dsr->caps.max_qp))
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -252,26 +259,36 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+ 				goto err_qp;
+ 			}
+ 
+-			/* set qp->sq.wqe_cnt, shift, buf_size.. */
+-			qp->rumem = ib_umem_get(pd->uobject->context,
+-						ucmd.rbuf_addr,
+-						ucmd.rbuf_size, 0, 0);
+-			if (IS_ERR(qp->rumem)) {
+-				ret = PTR_ERR(qp->rumem);
+-				goto err_qp;
++			if (!is_srq) {
++				/* set qp->sq.wqe_cnt, shift, buf_size.. */
++				qp->rumem = ib_umem_get(pd->uobject->context,
++							ucmd.rbuf_addr,
++							ucmd.rbuf_size, 0, 0);
++				if (IS_ERR(qp->rumem)) {
++					ret = PTR_ERR(qp->rumem);
++					goto err_qp;
++				}
++				qp->srq = NULL;
++			} else {
++				qp->rumem = NULL;
++				qp->srq = to_vsrq(init_attr->srq);
+ 			}
+ 
+ 			qp->sumem = ib_umem_get(pd->uobject->context,
+ 						ucmd.sbuf_addr,
+ 						ucmd.sbuf_size, 0, 0);
+ 			if (IS_ERR(qp->sumem)) {
+-				ib_umem_release(qp->rumem);
++				if (!is_srq)
++					ib_umem_release(qp->rumem);
+ 				ret = PTR_ERR(qp->sumem);
+ 				goto err_qp;
+ 			}
+ 
+ 			qp->npages_send = ib_umem_page_count(qp->sumem);
+-			qp->npages_recv = ib_umem_page_count(qp->rumem);
++			if (!is_srq)
++				qp->npages_recv = ib_umem_page_count(qp->rumem);
++			else
++				qp->npages_recv = 0;
+ 			qp->npages = qp->npages_send + qp->npages_recv;
+ 		} else {
+ 			qp->is_kernel = true;
+@@ -312,12 +329,14 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+ 
+ 		if (!qp->is_kernel) {
+ 			pvrdma_page_dir_insert_umem(&qp->pdir, qp->sumem, 0);
+-			pvrdma_page_dir_insert_umem(&qp->pdir, qp->rumem,
+-						    qp->npages_send);
++			if (!is_srq)
++				pvrdma_page_dir_insert_umem(&qp->pdir,
++							    qp->rumem,
++							    qp->npages_send);
+ 		} else {
+ 			/* Ring state is always the first page. */
+ 			qp->sq.ring = qp->pdir.pages[0];
+-			qp->rq.ring = &qp->sq.ring[1];
++			qp->rq.ring = is_srq ? NULL : &qp->sq.ring[1];
+ 		}
+ 		break;
+ 	default:
+@@ -333,6 +352,10 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+ 	cmd->pd_handle = to_vpd(pd)->pd_handle;
+ 	cmd->send_cq_handle = to_vcq(init_attr->send_cq)->cq_handle;
+ 	cmd->recv_cq_handle = to_vcq(init_attr->recv_cq)->cq_handle;
++	if (is_srq)
++		cmd->srq_handle = to_vsrq(init_attr->srq)->srq_handle;
++	else
++		cmd->srq_handle = 0;
+ 	cmd->max_send_wr = init_attr->cap.max_send_wr;
+ 	cmd->max_recv_wr = init_attr->cap.max_recv_wr;
+ 	cmd->max_send_sge = init_attr->cap.max_send_sge;
+@@ -340,6 +363,8 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+ 	cmd->max_inline_data = init_attr->cap.max_inline_data;
+ 	cmd->sq_sig_all = (init_attr->sq_sig_type == IB_SIGNAL_ALL_WR) ? 1 : 0;
+ 	cmd->qp_type = ib_qp_type_to_pvrdma(init_attr->qp_type);
++	cmd->is_srq = is_srq;
++	cmd->lkey = 0;
+ 	cmd->access_flags = IB_ACCESS_LOCAL_WRITE;
+ 	cmd->total_chunks = qp->npages;
+ 	cmd->send_chunks = qp->npages_send - PVRDMA_QP_NUM_HEADER_PAGES;
+@@ -815,6 +840,12 @@ int pvrdma_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 		return -EINVAL;
+ 	}
+ 
++	if (qp->srq) {
++		dev_warn(&dev->pdev->dev, "QP associated with SRQ\n");
++		*bad_wr = wr;
++		return -EINVAL;
++	}
++
+ 	spin_lock_irqsave(&qp->rq.lock, flags);
+ 
+ 	while (wr) {
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
+new file mode 100644
+index 0000000..826ccb8
+--- /dev/null
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
+@@ -0,0 +1,319 @@
++/*
++ * Copyright (c) 2016-2017 VMware, Inc.  All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of EITHER the GNU General Public License
++ * version 2 as published by the Free Software Foundation or the BSD
++ * 2-Clause License. This program is distributed in the hope that it
++ * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
++ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
++ * See the GNU General Public License version 2 for more details at
++ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program available in the file COPYING in the main
++ * directory of this source tree.
++ *
++ * The BSD 2-Clause License
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
++ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
++ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
++ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
++ * OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++#include <asm/page.h>
++#include <linux/io.h>
++#include <linux/wait.h>
++#include <rdma/ib_addr.h>
++#include <rdma/ib_smi.h>
++#include <rdma/ib_user_verbs.h>
++
++#include "pvrdma.h"
++
++int pvrdma_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
++			 struct ib_recv_wr **bad_wr)
++{
++	/* No support for kernel clients. */
++	return -EOPNOTSUPP;
++}
++
++/**
++ * pvrdma_query_srq - query shared receive queue
++ * @ibsrq: the shared receive queue to query
++ * @srq_attr: attributes to query and return to client
++ *
++ * @return: 0 for success, otherwise returns an errno.
++ */
++int pvrdma_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *srq_attr)
++{
++	struct pvrdma_dev *dev = to_vdev(ibsrq->device);
++	struct pvrdma_srq *srq = to_vsrq(ibsrq);
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_query_srq *cmd = &req.query_srq;
++	struct pvrdma_cmd_query_srq_resp *resp = &rsp.query_srq_resp;
++	int ret;
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_QUERY_SRQ;
++	cmd->srq_handle = srq->srq_handle;
++
++	ret = pvrdma_cmd_post(dev, &req, &rsp, PVRDMA_CMD_QUERY_SRQ_RESP);
++	if (ret < 0) {
++		dev_warn(&dev->pdev->dev,
++			 "could not query shared receive queue, error: %d\n",
++			 ret);
++		return -EINVAL;
++	}
++
++	srq_attr->srq_limit = resp->attrs.srq_limit;
++	srq_attr->max_wr = resp->attrs.max_wr;
++	srq_attr->max_sge = resp->attrs.max_sge;
++
++	return 0;
++}
++
++/**
++ * pvrdma_create_srq - create shared receive queue
++ * @pd: protection domain
++ * @init_attr: shared receive queue attributes
++ * @udata: user data
++ *
++ * @return: the ib_srq pointer on success, otherwise returns an errno.
++ */
++struct ib_srq *pvrdma_create_srq(struct ib_pd *pd,
++				 struct ib_srq_init_attr *init_attr,
++				 struct ib_udata *udata)
++{
++	struct pvrdma_srq *srq = NULL;
++	struct pvrdma_dev *dev = to_vdev(pd->device);
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_create_srq *cmd = &req.create_srq;
++	struct pvrdma_cmd_create_srq_resp *resp = &rsp.create_srq_resp;
++	struct pvrdma_create_srq ucmd;
++	unsigned long flags;
++	int ret;
++
++	if (!(pd->uobject && udata)) {
++		/* No support for kernel clients. */
++		dev_warn(&dev->pdev->dev,
++			 "no shared receive queue support for kernel client\n");
++		return ERR_PTR(-EOPNOTSUPP);
++	}
++
++	if (init_attr->srq_type != IB_SRQT_BASIC) {
++		dev_warn(&dev->pdev->dev,
++			 "shared receive queue type %d not supported\n",
++			 init_attr->srq_type);
++		return ERR_PTR(-EINVAL);
++	}
++
++	if (init_attr->attr.max_wr  > dev->dsr->caps.max_srq_wr ||
++	    init_attr->attr.max_sge > dev->dsr->caps.max_srq_sge) {
++		dev_warn(&dev->pdev->dev,
++			 "shared receive queue size invalid\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	if (!atomic_add_unless(&dev->num_srqs, 1, dev->dsr->caps.max_srq))
++		return ERR_PTR(-ENOMEM);
++
++	srq = kmalloc(sizeof(*srq), GFP_KERNEL);
++	if (!srq) {
++		ret = -ENOMEM;
++		goto err_srq;
++	}
++
++	spin_lock_init(&srq->lock);
++	refcount_set(&srq->refcnt, 1);
++	init_waitqueue_head(&srq->wait);
++
++	dev_dbg(&dev->pdev->dev,
++		"create shared receive queue from user space\n");
++
++	if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
++		ret = -EFAULT;
++		goto err_srq;
++	}
++
++	srq->umem = ib_umem_get(pd->uobject->context,
++				ucmd.buf_addr,
++				ucmd.buf_size, 0, 0);
++	if (IS_ERR(srq->umem)) {
++		ret = PTR_ERR(srq->umem);
++		goto err_srq;
++	}
++
++	srq->npages = ib_umem_page_count(srq->umem);
++
++	if (srq->npages < 0 || srq->npages > PVRDMA_PAGE_DIR_MAX_PAGES) {
++		dev_warn(&dev->pdev->dev,
++			 "overflow pages in shared receive queue\n");
++		ret = -EINVAL;
++		goto err_umem;
++	}
++
++	ret = pvrdma_page_dir_init(dev, &srq->pdir, srq->npages, false);
++	if (ret) {
++		dev_warn(&dev->pdev->dev,
++			 "could not allocate page directory\n");
++		goto err_umem;
++	}
++
++	pvrdma_page_dir_insert_umem(&srq->pdir, srq->umem, 0);
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_CREATE_SRQ;
++	cmd->srq_type = init_attr->srq_type;
++	cmd->nchunks = srq->npages;
++	cmd->pd_handle = to_vpd(pd)->pd_handle;
++	cmd->attrs.max_wr = init_attr->attr.max_wr;
++	cmd->attrs.max_sge = init_attr->attr.max_sge;
++	cmd->attrs.srq_limit = init_attr->attr.srq_limit;
++	cmd->pdir_dma = srq->pdir.dir_dma;
++
++	ret = pvrdma_cmd_post(dev, &req, &rsp, PVRDMA_CMD_CREATE_SRQ_RESP);
++	if (ret < 0) {
++		dev_warn(&dev->pdev->dev,
++			 "could not create shared receive queue, error: %d\n",
++			 ret);
++		goto err_page_dir;
++	}
++
++	srq->srq_handle = resp->srqn;
++	spin_lock_irqsave(&dev->srq_tbl_lock, flags);
++	dev->srq_tbl[srq->srq_handle % dev->dsr->caps.max_srq] = srq;
++	spin_unlock_irqrestore(&dev->srq_tbl_lock, flags);
++
++	/* Copy udata back. */
++	if (ib_copy_to_udata(udata, &srq->srq_handle, sizeof(__u32))) {
++		dev_warn(&dev->pdev->dev, "failed to copy back udata\n");
++		pvrdma_destroy_srq(&srq->ibsrq);
++		return ERR_PTR(-EINVAL);
++	}
++
++	return &srq->ibsrq;
++
++err_page_dir:
++	pvrdma_page_dir_cleanup(dev, &srq->pdir);
++err_umem:
++	ib_umem_release(srq->umem);
++err_srq:
++	kfree(srq);
++	atomic_dec(&dev->num_srqs);
++
++	return ERR_PTR(ret);
++}
++
++static void pvrdma_free_srq(struct pvrdma_dev *dev, struct pvrdma_srq *srq)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&dev->srq_tbl_lock, flags);
++	dev->srq_tbl[srq->srq_handle] = NULL;
++	spin_unlock_irqrestore(&dev->srq_tbl_lock, flags);
++
++	refcount_dec(&srq->refcnt);
++	wait_event(srq->wait, !refcount_read(&srq->refcnt));
++
++	/* There is no support for kernel clients, so this is safe. */
++	ib_umem_release(srq->umem);
++
++	pvrdma_page_dir_cleanup(dev, &srq->pdir);
++
++	kfree(srq);
++
++	atomic_dec(&dev->num_srqs);
++}
++
++/**
++ * pvrdma_destroy_srq - destroy shared receive queue
++ * @srq: the shared receive queue to destroy
++ *
++ * @return: 0 for success.
++ */
++int pvrdma_destroy_srq(struct ib_srq *srq)
++{
++	struct pvrdma_srq *vsrq = to_vsrq(srq);
++	union pvrdma_cmd_req req;
++	struct pvrdma_cmd_destroy_srq *cmd = &req.destroy_srq;
++	struct pvrdma_dev *dev = to_vdev(srq->device);
++	int ret;
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_DESTROY_SRQ;
++	cmd->srq_handle = vsrq->srq_handle;
++
++	ret = pvrdma_cmd_post(dev, &req, NULL, 0);
++	if (ret < 0)
++		dev_warn(&dev->pdev->dev,
++			 "destroy shared receive queue failed, error: %d\n",
++			 ret);
++
++	pvrdma_free_srq(dev, vsrq);
++
++	return 0;
++}
++
++/**
++ * pvrdma_modify_srq - modify shared receive queue attributes
++ * @ibsrq: the shared receive queue to modify
++ * @attr: the shared receive queue's new attributes
++ * @attr_mask: attributes mask
++ * @udata: user data
++ *
++ * @returns 0 on success, otherwise returns an errno.
++ */
++int pvrdma_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
++		      enum ib_srq_attr_mask attr_mask, struct ib_udata *udata)
++{
++	struct pvrdma_srq *vsrq = to_vsrq(ibsrq);
++	union pvrdma_cmd_req req;
++	struct pvrdma_cmd_modify_srq *cmd = &req.modify_srq;
++	struct pvrdma_dev *dev = to_vdev(ibsrq->device);
++	int ret;
++
++	/* Only support SRQ limit. */
++	if (!(attr_mask & IB_SRQ_LIMIT))
++		return -EINVAL;
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_MODIFY_SRQ;
++	cmd->srq_handle = vsrq->srq_handle;
++	cmd->attrs.srq_limit = attr->srq_limit;
++	cmd->attr_mask = attr_mask;
++
++	ret = pvrdma_cmd_post(dev, &req, NULL, 0);
++	if (ret < 0) {
++		dev_warn(&dev->pdev->dev,
++			 "could not modify shared receive queue, error: %d\n",
++			 ret);
++
++		return -EINVAL;
++	}
++
++	return ret;
++}
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
+index 48776f5..16b9661 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
+@@ -85,6 +85,9 @@ int pvrdma_query_device(struct ib_device *ibdev,
+ 	props->max_sge = dev->dsr->caps.max_sge;
+ 	props->max_sge_rd = PVRDMA_GET_CAP(dev, dev->dsr->caps.max_sge,
+ 					   dev->dsr->caps.max_sge_rd);
++	props->max_srq = dev->dsr->caps.max_srq;
++	props->max_srq_wr = dev->dsr->caps.max_srq_wr;
++	props->max_srq_sge = dev->dsr->caps.max_srq_sge;
+ 	props->max_cq = dev->dsr->caps.max_cq;
+ 	props->max_cqe = dev->dsr->caps.max_cqe;
+ 	props->max_mr = dev->dsr->caps.max_mr;
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
+index 002a9b0..b7b2572 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
+@@ -324,6 +324,13 @@ enum pvrdma_mw_type {
+ 	PVRDMA_MW_TYPE_2 = 2,
+ };
+ 
++struct pvrdma_srq_attr {
++	u32			max_wr;
++	u32			max_sge;
++	u32			srq_limit;
++	u32			reserved;
++};
++
+ struct pvrdma_qp_attr {
+ 	enum pvrdma_qp_state	qp_state;
+ 	enum pvrdma_qp_state	cur_qp_state;
+@@ -420,6 +427,17 @@ int pvrdma_resize_cq(struct ib_cq *ibcq, int entries,
+ struct ib_ah *pvrdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
+ 			       struct ib_udata *udata);
+ int pvrdma_destroy_ah(struct ib_ah *ah);
++
++struct ib_srq *pvrdma_create_srq(struct ib_pd *pd,
++				 struct ib_srq_init_attr *init_attr,
++				 struct ib_udata *udata);
++int pvrdma_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
++		      enum ib_srq_attr_mask attr_mask, struct ib_udata *udata);
++int pvrdma_query_srq(struct ib_srq *srq, struct ib_srq_attr *srq_attr);
++int pvrdma_destroy_srq(struct ib_srq *srq);
++int pvrdma_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
++			 struct ib_recv_wr **bad_wr);
++
+ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+ 			       struct ib_qp_init_attr *init_attr,
+ 			       struct ib_udata *udata);
+diff --git a/include/uapi/rdma/vmw_pvrdma-abi.h b/include/uapi/rdma/vmw_pvrdma-abi.h
+index c6569b0..846c6f4 100644
+--- a/include/uapi/rdma/vmw_pvrdma-abi.h
++++ b/include/uapi/rdma/vmw_pvrdma-abi.h
+@@ -158,6 +158,8 @@ struct pvrdma_resize_cq {
+ 
+ struct pvrdma_create_srq {
+ 	__u64 buf_addr;
++	__u32 buf_size;
++	__u32 reserved;
+ };
+ 
+ struct pvrdma_create_srq_resp {
+-- 
+1.8.5.6
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
