@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 02/11] IB/hfi1: Reduce 8051 command timeout
-Date: Mon, 06 Nov 2017 06:38:23 -0800
-Message-ID: <20171106143821.27539.86712.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 03/11] IB/hfi1: Remove wrapper function in mmu_rb
+Date: Mon, 06 Nov 2017 06:38:30 -0800
+Message-ID: <20171106143828.27539.31875.stgit@scvm10.sc.intel.com>
 References: <20171106143510.27539.65950.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,38 +10,68 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171106143510.27539.65950.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Duane McCrory <duane.mccrory-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Timeout of 20 seconds is too long for active wait performed
-for 8051 command completion. It was required for scenarios
-when transition to polling was requested before offline.quiet
-state was reached. Currently wait for offline.quiet is
-properly implemented and timeout can be reduced to 1 second.
+Wrapper functions were used to call the same function
+mmu_notifier_mem_invalidate for 2 callbacks in
+mmu_notifier.
+The commit 7def96f0a973 ("IB/hfi1: update to new mmu_notifier semantic")
+removed the invalidate_page callback.
+Therefore, the wrapper function is no longer needed.
 
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Duane McCrory <duane.mccrory-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/hfi1/mmu_rb.c |   24 +++++++-----------------
+ 1 files changed, 7 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
-index fc122c1..133e313 100644
---- a/drivers/infiniband/hw/hfi1/chip.h
-+++ b/drivers/infiniband/hw/hfi1/chip.h
-@@ -560,7 +560,7 @@ enum {
- /* timeouts */
- #define LINK_RESTART_DELAY 1000		/* link restart delay, in ms */
- #define TIMEOUT_8051_START 5000         /* 8051 start timeout, in ms */
--#define DC8051_COMMAND_TIMEOUT 20000	/* DC8051 command timeout, in ms */
-+#define DC8051_COMMAND_TIMEOUT 1000	/* DC8051 command timeout, in ms */
- #define FREEZE_STATUS_TIMEOUT 20	/* wait for freeze indicators, in ms */
- #define VL_STATUS_CLEAR_TIMEOUT 5000	/* per-VL status clear, in ms */
- #define CCE_STATUS_TIMEOUT 10		/* time to clear CCE Status, in ms */
+diff --git a/drivers/infiniband/hw/hfi1/mmu_rb.c b/drivers/infiniband/hw/hfi1/mmu_rb.c
+index 175002c..e7b3ce1 100644
+--- a/drivers/infiniband/hw/hfi1/mmu_rb.c
++++ b/drivers/infiniband/hw/hfi1/mmu_rb.c
+@@ -67,12 +67,9 @@ struct mmu_rb_handler {
+ 
+ static unsigned long mmu_node_start(struct mmu_rb_node *);
+ static unsigned long mmu_node_last(struct mmu_rb_node *);
+-static inline void mmu_notifier_range_start(struct mmu_notifier *,
+-					    struct mm_struct *,
+-					    unsigned long, unsigned long);
+-static void mmu_notifier_mem_invalidate(struct mmu_notifier *,
+-					struct mm_struct *,
+-					unsigned long, unsigned long);
++static void mmu_notifier_range_start(struct mmu_notifier *,
++				     struct mm_struct *,
++				     unsigned long, unsigned long);
+ static struct mmu_rb_node *__mmu_rb_search(struct mmu_rb_handler *,
+ 					   unsigned long, unsigned long);
+ static void do_remove(struct mmu_rb_handler *handler,
+@@ -286,17 +283,10 @@ void hfi1_mmu_rb_remove(struct mmu_rb_handler *handler,
+ 	handler->ops->remove(handler->ops_arg, node);
+ }
+ 
+-static inline void mmu_notifier_range_start(struct mmu_notifier *mn,
+-					    struct mm_struct *mm,
+-					    unsigned long start,
+-					    unsigned long end)
+-{
+-	mmu_notifier_mem_invalidate(mn, mm, start, end);
+-}
+-
+-static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
+-					struct mm_struct *mm,
+-					unsigned long start, unsigned long end)
++static void mmu_notifier_range_start(struct mmu_notifier *mn,
++				     struct mm_struct *mm,
++				     unsigned long start,
++				     unsigned long end)
+ {
+ 	struct mmu_rb_handler *handler =
+ 		container_of(mn, struct mmu_rb_handler, mn);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
