@@ -1,138 +1,77 @@
-From: Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: RE: [Patch v5 08/21] CIFS: SMBD: Upper layer reconnects to SMB Direct
- session
-Date: Mon, 6 Nov 2017 20:25:58 +0000
-Message-ID: <CY4PR21MB0182E4A75B9499B34C8BDF54A0500@CY4PR21MB0182.namprd21.prod.outlook.com>
-References: <20171018230920.21042-1-longli@exchange.microsoft.com>
- <20171018230920.21042-9-longli@exchange.microsoft.com>
- <CAKywueRMRGhkw1zFh5HEBqV748hoq0DVsjGoVg8ttD22sTsYOQ@mail.gmail.com>
- <BN6PR21MB083455CADF03A6BD40863968CB5F0@BN6PR21MB0834.namprd21.prod.outlook.com>
- <MWHPR21MB01904A80D5C08396A7209471CE530@MWHPR21MB0190.namprd21.prod.outlook.com>
- <MWHPR21MB019066558DAE185D630EC2E7CE530@MWHPR21MB0190.namprd21.prod.outlook.com>
- <DM5PR21MB08439FAD284B66941BD4E1A3CB500@DM5PR21MB0843.namprd21.prod.outlook.com>
- <MWHPR21MB0846AFBFCA9D6CDC97060C5DCE500@MWHPR21MB0846.namprd21.prod.outlook.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: rdma-core stable releases
+Date: Mon, 6 Nov 2017 22:32:30 +0200
+Message-ID: <20171106203230.GA999@mtr-leonro.local>
+References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
+ <20171106182756.GD18802@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <MWHPR21MB0846AFBFCA9D6CDC97060C5DCE500-saRRjQKJ25OdAu0pOMKhMc1VXTxX1y3OvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Content-Language: en-US
-Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Pavel Shilovsky <piastryyy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-cifs <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="IJpNTDwzlM2Ie8A6"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171106182756.GD18802-uk2M96/98Pc@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1jaWZzLW93bmVyQHZn
-ZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LWNpZnMtDQo+IG93bmVyQHZnZXIua2VybmVsLm9y
-Z10gT24gQmVoYWxmIE9mIExvbmcgTGkNCj4gU2VudDogTW9uZGF5LCBOb3ZlbWJlciA2LCAyMDE3
-IDI6MDAgUE0NCj4gVG86IE1hdHRoZXcgV2lsY294IDxtYXdpbGNveEBtaWNyb3NvZnQuY29tPjsg
-UGF2ZWwgU2hpbG92c2t5DQo+IDxwaWFzdHJ5eXlAZ21haWwuY29tPg0KPiBDYzogbGludXgtY2lm
-cyA8bGludXgtY2lmc0B2Z2VyLmtlcm5lbC5vcmc+OyBTdGVwaGVuIEhlbW1pbmdlcg0KPiA8c3Ro
-ZW1taW5AbWljcm9zb2Z0LmNvbT47IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBLZXJuZWwg
-TWFpbGluZyBMaXN0DQo+IDxsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnPjsgU3RldmUgRnJl
-bmNoIDxzZnJlbmNoQHNhbWJhLm9yZz4NCj4gU3ViamVjdDogUkU6IFtQYXRjaCB2NSAwOC8yMV0g
-Q0lGUzogU01CRDogVXBwZXIgbGF5ZXIgcmVjb25uZWN0cyB0byBTTUINCj4gRGlyZWN0IHNlc3Np
-b24NCj4gDQo+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiBGcm9tOiBNYXR0aGV3
-IFdpbGNveA0KPiA+IFNlbnQ6IE1vbmRheSwgTm92ZW1iZXIgNiwgMjAxNyAxMDoxMCBBTQ0KPiA+
-IFRvOiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNvbT47IFBhdmVsIFNoaWxvdnNreSA8cGlh
-c3RyeXl5QGdtYWlsLmNvbT4NCj4gPiBDYzogbGludXgtY2lmcyA8bGludXgtY2lmc0B2Z2VyLmtl
-cm5lbC5vcmc+OyBTdGVwaGVuIEhlbW1pbmdlcg0KPiA+IDxzdGhlbW1pbkBtaWNyb3NvZnQuY29t
-PjsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IEtlcm5lbCBNYWlsaW5nDQo+ID4gTGlzdCA8
-bGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZz47IFN0ZXZlIEZyZW5jaCA8c2ZyZW5jaEBzYW1i
-YS5vcmc+DQo+ID4gU3ViamVjdDogUkU6IFtQYXRjaCB2NSAwOC8yMV0gQ0lGUzogU01CRDogVXBw
-ZXIgbGF5ZXIgcmVjb25uZWN0cyB0byBTTUINCj4gPiBEaXJlY3Qgc2Vzc2lvbg0KPiA+DQo+ID4g
-T2gsIEkgaGFkbid0IG5vdGljZWQgdGhhdC4gIFRoZW4gSSBhbWVuZCBteSBzdWdnZXN0aW9uIHRv
-IGJlOg0KPiA+DQo+ID4gI2lmZGVmIENPTkZJR19DSUZTX1NNQl9ESVJFQ1QNCj4gPiAjZGVmaW5l
-IGNpZnNfcmRtYV9lbmFibGVkKHNlcnZlcikJKChzZXJ2ZXIpLT5yZG1hKQ0KPiA+ICNlbHNlDQo+
-ID4gI2RlZmluZSBjaWZzX3JkbWFfZW5hYmxlZChzZXJ2ZXIpCTANCj4gPiBzdGF0aWMgaW5saW5l
-IHZvaWQgY2lmc19yZWNvbm5lY3Qoc3RydWN0IFRDUF9TZXJ2ZXJfSW5mbyAqc2VydmVyKSB7IH0g
-I2VuZGlmDQo+IA0KPiBJIHdpbGwgYWRkcmVzcyB0aG9zZSBhbmQgdXBkYXRlIHBhdGNoLg0KDQpJ
-IGRvbid0IHRoaW5rIHN0dWJiaW5nIHN1Y2ggYSBnZW5lcmljLWxvb2tpbmcgZnVuY3Rpb24gY2lm
-c19yZWNvbm5lY3QoKSB1bmRlciBhbiBSRE1BIGNvbmRpdGlvbmFsIGlzIGEgZ29vZCBpZGVhLiBJ
-dCB3b3VsZCBzZWVtIHRvIGhpZGUgd2hhdCdzIHRydWx5IGdvaW5nIG9uLCBhbmQgZGVlcGx5IGNv
-bmZ1c2Ugc29tZW9uZSB3aG8gdHJpZWQgdG8gY29kZSBjaWZzX3JlY29ubmVjdCgpIG9uIGFueSBv
-dGhlciBjb2RlIHBhdGgsIHRoaW5raW5nIGl0IHdvdWxkLCB3ZWxsLCByZWNvbm5lY3QuDQoNCkhv
-dyBhYm91dCBjaWZzX3JkbWFfcmVjb25uZWN0KCk/IFRoYXQgd291bGQgYmUgZmluZSB0byBvdmVy
-cmlkZS4NCg0KVG9tLg0KDQo+IA0KPiA+DQo+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0t
-LQ0KPiA+ID4gRnJvbTogTG9uZyBMaQ0KPiA+ID4gU2VudDogU3VuZGF5LCBOb3ZlbWJlciA1LCAy
-MDE3IDI6MjAgUE0NCj4gPiA+IFRvOiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNvbT47IE1h
-dHRoZXcgV2lsY294DQo+ID4gPiA8bWF3aWxjb3hAbWljcm9zb2Z0LmNvbT47IFBhdmVsIFNoaWxv
-dnNreSA8cGlhc3RyeXl5QGdtYWlsLmNvbT4NCj4gPiA+IENjOiBsaW51eC1jaWZzIDxsaW51eC1j
-aWZzQHZnZXIua2VybmVsLm9yZz47IFN0ZXBoZW4gSGVtbWluZ2VyDQo+ID4gPiA8c3RoZW1taW5A
-bWljcm9zb2Z0LmNvbT47IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBLZXJuZWwgTWFpbGlu
-Zw0KPiA+ID4gTGlzdCA8bGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZz47IFN0ZXZlIEZyZW5j
-aCA8c2ZyZW5jaEBzYW1iYS5vcmc+DQo+ID4gPiBTdWJqZWN0OiBSRTogW1BhdGNoIHY1IDA4LzIx
-XSBDSUZTOiBTTUJEOiBVcHBlciBsYXllciByZWNvbm5lY3RzIHRvDQo+ID4gPiBTTUIgRGlyZWN0
-IHNlc3Npb24NCj4gPiA+DQo+ID4gPg0KPiA+ID4NCj4gPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNz
-YWdlLS0tLS0NCj4gPiA+ID4gRnJvbTogc2FtYmEtdGVjaG5pY2FsDQo+ID4gPiA+IFttYWlsdG86
-c2FtYmEtdGVjaG5pY2FsLWJvdW5jZXNAbGlzdHMuc2FtYmEub3JnXQ0KPiA+ID4gPiBPbiBCZWhh
-bGYgT2YgTG9uZyBMaSB2aWEgc2FtYmEtdGVjaG5pY2FsDQo+ID4gPiA+IFNlbnQ6IFN1bmRheSwg
-Tm92ZW1iZXIgNSwgMjAxNyAxMDozNyBBTQ0KPiA+ID4gPiBUbzogTWF0dGhldyBXaWxjb3ggPG1h
-d2lsY294QG1pY3Jvc29mdC5jb20+OyBQYXZlbCBTaGlsb3Zza3kNCj4gPiA+ID4gPHBpYXN0cnl5
-eUBnbWFpbC5jb20+DQo+ID4gPiA+IENjOiBsaW51eC1jaWZzIDxsaW51eC1jaWZzQHZnZXIua2Vy
-bmVsLm9yZz47IFN0ZXBoZW4gSGVtbWluZ2VyDQo+ID4gPiA+IDxzdGhlbW1pbkBtaWNyb3NvZnQu
-Y29tPjsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7DQo+ID4gPiA+IHNhbWJhLXRlY2huaWNh
-bCA8c2FtYmEtdGVjaG5pY2FsQGxpc3RzLnNhbWJhLm9yZz47IEtlcm5lbCBNYWlsaW5nDQo+ID4g
-PiA+IExpc3QgPGxpbnV4LSBrZXJuZWxAdmdlci5rZXJuZWwub3JnPjsgU3RldmUgRnJlbmNoDQo+
-ID4gPiA+IDxzZnJlbmNoQHNhbWJhLm9yZz4NCj4gPiA+ID4gU3ViamVjdDogUkU6IFtQYXRjaCB2
-NSAwOC8yMV0gQ0lGUzogU01CRDogVXBwZXIgbGF5ZXIgcmVjb25uZWN0cyB0bw0KPiA+ID4gPiBT
-TUIgRGlyZWN0IHNlc3Npb24NCj4gPiA+ID4NCj4gPiA+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3Nh
-Z2UtLS0tLQ0KPiA+ID4gPiA+IEZyb206IE1hdHRoZXcgV2lsY294DQo+ID4gPiA+ID4gU2VudDog
-V2VkbmVzZGF5LCBOb3ZlbWJlciAxLCAyMDE3IDEyOjQ1IFBNDQo+ID4gPiA+ID4gVG86IFBhdmVs
-IFNoaWxvdnNreSA8cGlhc3RyeXl5QGdtYWlsLmNvbT47IExvbmcgTGkNCj4gPiA+ID4gPiA8bG9u
-Z2xpQG1pY3Jvc29mdC5jb20+DQo+ID4gPiA+ID4gQ2M6IFN0ZXZlIEZyZW5jaCA8c2ZyZW5jaEBz
-YW1iYS5vcmc+OyBsaW51eC1jaWZzIDxsaW51eC0NCj4gPiA+ID4gPiBjaWZzQHZnZXIua2VybmVs
-Lm9yZz47IHNhbWJhLXRlY2huaWNhbA0KPiA+ID4gPiA+IDxzYW1iYS10ZWNobmljYWxAbGlzdHMu
-c2FtYmEub3JnPjsNCj4gPiA+ID4gPiBLZXJuZWwgTWFpbGluZyBMaXN0IDxsaW51eC1rZXJuZWxA
-dmdlci5rZXJuZWwub3JnPjsgbGludXgtDQo+ID4gPiA+ID4gcmRtYUB2Z2VyLmtlcm5lbC5vcmc7
-IFRvbSBUYWxwZXkgPHR0YWxwZXlAbWljcm9zb2Z0LmNvbT47DQo+ID4gU3RlcGhlbg0KPiA+ID4g
-PiA+IEhlbW1pbmdlciA8c3RoZW1taW5AbWljcm9zb2Z0LmNvbT47IExvbmcgTGkNCj4gPiA8bG9u
-Z2xpQG1pY3Jvc29mdC5jb20+DQo+ID4gPiA+ID4gU3ViamVjdDogUkU6IFtQYXRjaCB2NSAwOC8y
-MV0gQ0lGUzogU01CRDogVXBwZXIgbGF5ZXIgcmVjb25uZWN0cw0KPiA+ID4gPiA+IHRvIFNNQiBE
-aXJlY3Qgc2Vzc2lvbg0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gRnJvbTogUGF2ZWwgU2hpbG92c2t5
-IFttYWlsdG86cGlhc3RyeXl5QGdtYWlsLmNvbV0NCj4gPiA+ID4gPiA+IDIwMTctMTAtMTggMTY6
-MDkgR01ULTA3OjAwIExvbmcgTGkNCj4gPiA8bG9uZ2xpQGV4Y2hhbmdlLm1pY3Jvc29mdC5jb20+
-Og0KPiA+ID4gPiA+ID4gPiBGcm9tOiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNvbT4NCj4g
-PiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ID4gRG8gYSByZWNvbm5lY3Qgb24gU01CIERpcmVjdCB3
-aGVuIGl0IGlzIHVzZWQgYXMgdGhlIGNvbm5lY3Rpb24uDQo+ID4gPiA+ID4gPiA+IFJlY29ubmVj
-dA0KPiA+ID4gPiA+ID4gY2FuDQo+ID4gPiA+ID4gPiA+IGhhcHBlbiBmb3IgbWFueSByZWFzb25z
-IGFuZCBpdCdzIG1vc3RseSB0aGUgZGVjaXNpb24gb2YgU01CMg0KPiA+ID4gPiA+ID4gPiB1cHBl
-cg0KPiA+ID4gPiA+IGxheWVyLg0KPiA+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gPiBTaWduZWQt
-b2ZmLWJ5OiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNvbT4NCj4gPiA+ID4gPiA+ID4gLS0t
-DQo+ID4gPiA+ID4gPiA+ICBmcy9jaWZzL2Nvbm5lY3QuYyB8IDcgKysrKysrKw0KPiA+ID4gPiA+
-ID4gPiAgMSBmaWxlIGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygrKQ0KPiA+ID4gPiA+ID4gPg0KPiA+
-ID4gPiA+ID4gPiBkaWZmIC0tZ2l0IGEvZnMvY2lmcy9jb25uZWN0LmMgYi9mcy9jaWZzL2Nvbm5l
-Y3QuYyBpbmRleA0KPiA+ID4gPiA+ID4gPiAyYzBiMzRhLi44Y2EzYzEzIDEwMDY0NA0KPiA+ID4g
-PiA+ID4gPiAtLS0gYS9mcy9jaWZzL2Nvbm5lY3QuYw0KPiA+ID4gPiA+ID4gPiArKysgYi9mcy9j
-aWZzL2Nvbm5lY3QuYw0KPiA+ID4gPiA+ID4gPiBAQCAtNDA2LDcgKzQwNiwxNCBAQCBjaWZzX3Jl
-Y29ubmVjdChzdHJ1Y3QgVENQX1NlcnZlcl9JbmZvDQo+ID4gPiA+ID4gPiA+ICpzZXJ2ZXIpDQo+
-ID4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiA+ICAgICAgICAgICAgICAgICAvKiB3ZSBzaG91bGQg
-dHJ5IG9ubHkgdGhlIHBvcnQgd2UgY29ubmVjdGVkIHRvIGJlZm9yZSAqLw0KPiA+ID4gPiA+ID4g
-PiAgICAgICAgICAgICAgICAgbXV0ZXhfbG9jaygmc2VydmVyLT5zcnZfbXV0ZXgpOw0KPiA+ID4g
-PiA+ID4gPiArI2lmZGVmIENPTkZJR19DSUZTX1NNQl9ESVJFQ1QNCj4gPiA+ID4gPiA+ID4gKyAg
-ICAgICAgICAgICAgIGlmIChzZXJ2ZXItPnJkbWEpDQo+ID4gPiA+ID4gPiA+ICsgICAgICAgICAg
-ICAgICAgICAgICAgIHJjID0gc21iZF9yZWNvbm5lY3Qoc2VydmVyKTsNCj4gPiA+ID4gPiA+ID4g
-KyAgICAgICAgICAgICAgIGVsc2UNCj4gPiA+ID4gPiA+ID4gKyAgICAgICAgICAgICAgICAgICAg
-ICAgcmMgPSBnZW5lcmljX2lwX2Nvbm5lY3Qoc2VydmVyKTsNCj4gPiA+ID4gPiA+DQo+ID4gPiA+
-ID4gPiBNaW5vcjogaGVyZSBhbmQgaW4gb3RoZXIgc2ltaWxhciBwbGFjZXMgd2UgY2FuIHJlbW92
-ZSAjZWxzZSBwYXJ0DQo+ID4gPiA+ID4gPiBiZWxvdyBhbmQgcHV0ICNlbmRpZiBiZWZvcmUgZWxz
-ZSBibG9jayBhYm92ZS4NCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiA+ICsjZWxzZQ0KPiA+ID4g
-PiA+ID4gPiAgICAgICAgICAgICAgICAgcmMgPSBnZW5lcmljX2lwX2Nvbm5lY3Qoc2VydmVyKTsN
-Cj4gPiA+ID4gPiA+ID4gKyNlbmRpZg0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gSSdkIHN1Z2dlc3Qg
-cmF0aGVyOg0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gI2lmZGVmIENPTkZJR19DSUZTX1NNQl9ESVJF
-Q1QNCj4gPiA+ID4gPiAjZGVmaW5lIGNpZnNfcmRtYV9lbmFibGVkKHNlcnZlcikJKChzZXJ2ZXIp
-LT5yZG1hKQ0KPiA+ID4gPiA+ICNlbHNlDQo+ID4gPiA+ID4gI2RlZmluZSBjaWZzX3JkbWFfZW5h
-YmxlZChzZXJ2ZXIpCTANCj4gPiA+ID4gPiAjZW5kaWYNCj4gPiA+ID4gPg0KPiA+ID4gPiA+IFRo
-ZW4gd2UgZG9uJ3QgbmVlZCBhbiBpZmRlZiBpbiB0aGUgdXNlcnMsIGp1c3Q6DQo+ID4gPiA+ID4N
-Cj4gPiA+ID4gPiAJaWYgKGNpZnNfcmRtYV9lbmFibGVkKHNlcnZlcikpDQo+ID4gPiA+ID4gCQly
-YyA9IHNtYmRfcmVjb25uZWN0KHNlcnZlcik7DQo+ID4gPiA+ID4gCWVsc2UNCj4gPiA+ID4gPiAJ
-CXJjID0gZ2VuZXJpY19pcF9jb25uZWN0KHNlcnZlcik7DQo+ID4gPg0KPiA+ID4gSXQgZG9lc24n
-dCB3b3JrIHdlbGwsIGJlY2F1c2Ugc21iZF9yZWNvbm5lY3QgaXMgZGVmaW5lZCB3aGVuDQo+ID4g
-PiBDT05GSUdfQ0lGU19TTUJfRElSRUNUIGlzIHNldC4gTm93IHRoZSBjb21waWxlciBpcyBjb21w
-bGFpbmluZyBpdA0KPiA+ID4gY2FuJ3QgZmluZCB0aGlzIGZ1bmN0aW9uLiBNYXliZSBjb21waWxl
-ciBpcyBub3Qgc21hcnQgZW5vdWdoIDopDQo+ID4gPg0KPiA+ID4gSSBoYXZlIHNlbnQgdjYgZm9y
-IGFsbCB0aGUgb3RoZXIgY29tbWVudHMuDQo+IBPvv73vv73subsc77+9Ju+/vX7vv70m77+9GO+/
-ve+/vSstDQo+IO+/ve+/vd22F++/ve+/vXfvv73vv73Lm++/ve+/ve+/vW3vv71i77+977+9XO+/
-ve+/vSLvv73vv71ebu+/vXLvv73vv73vv71677+9Gu+/ve+/vWjvv73vv73vv73vv70m77+977+9
-Hu+/vUfvv73vv73vv71o77+9Ayjvv73pmo4NCj4g77+93aJqIu+/ve+/vRrvv70bbe+/ve+/ve+/
-ve+/ve+/vXrvv73elu+/ve+/ve+/vWbvv73vv73vv71o77+977+977+9fu+/vW3vv70NCg==
+
+--IJpNTDwzlM2Ie8A6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Nov 06, 2017 at 11:27:56AM -0700, Jason Gunthorpe wrote:
+> On Mon, Nov 06, 2017 at 06:21:47PM +0000, Kalderon, Michal wrote:
+>
+> > I'd like to here if anyone has any objects / concerns on the matter
+> > in general, and if there is a consensus about the need and whether
+> > this is something the rdma-core maintainers would be willing to
+> > provide.
+>
+> Previous discussions on this topic concluded that if someone wishes to
+> maintain a stable branch scheme then we'd make space for that (eg a
+> github branch or whatever).
+>
+> I don't think the existing maintainers are interested in directly
+> working on this project, so there is room for a new volunteer!
+
+The offline discussion was with Vlad.
+This is the quote of my latest response to him:
+
+"There is a need to post request to the mailing list with description of
+why do you need it and the volunteer name to manage it.
+
+It should come with file in Documentation with explanation how such
+stable branches are managed, for how long, if releases are going
+to be done and then, ..."
+
+Thanks
+
+>
+> Jason
+
+--IJpNTDwzlM2Ie8A6
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloAxsgACgkQ5GN7iDZy
+WKfUdg/+JplPxnDk5qM6EeUyFOeOxeotgWKqKQnn+qLQTpTLu+t7YYF87GnMOsWB
+WWbWEp+5jWWnZ3wj2KM3OtLE9S4jUkXrvN8R4l1N1arlbVUOqvOof0Ywak6zAdg1
+5Y3RSBup3pAFaGfoaNpn/dvY6rmGXjSY5ctxaX9bHmHx8ncItyq2V14QgNPdVlXr
+/CCh2ynzH7iDX68qitfrFZvzUutnSat1BYU+984R0luXUe1KDOuDZAW9U/U9QxUV
+4JxX1X+/Iv6D9jGBq5sEw7cTzby51hW7T3M0YHWBIbS/i4y76Mk0A5690pbp65E0
+WuJhFUpM/qe5TLqhAFulh6LLB1BzhYYoYBj/+XR/6ox7OWSBR8VRjLipZDemnqWs
+PtPT4RCeaNf0A7Vwi8ux19qLK6eXNEehvnXEaLrJSDkQrbvt7jVsRvrpIUrENRl2
+0M0Km3iqElsc2ClVcKfECbjc7/GspHpqmeMJy2n4FTM5ly41eMVNzUWb9dLt1Soh
+O25YYKvcf5Drj5kh4Vh46DuDvwVPq7wcUiYartMdxfEn+DmwV+4vGHIpZz2bf5Rc
+eQV4WhddnL2Z5VNpFrPIFmrx2/eOuxeMoW2qnAGhS+35OUl8iTP99YpgcYpMzgY7
+fqWPvyfD091CL0qOdFanDxGj861Zfu3QYuYPM9jyfXKW5BpMZOE=
+=3kBU
+-----END PGP SIGNATURE-----
+
+--IJpNTDwzlM2Ie8A6--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
