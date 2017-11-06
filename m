@@ -1,48 +1,34 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/3] libhns: Fix endian format of payload and
- immediate
-Date: Mon, 6 Nov 2017 09:43:05 +0800
-Message-ID: <7dba9ad9-5a71-c4fe-b2b9-ccc35c188f8c@huawei.com>
-References: <1509530440-164400-1-git-send-email-oulijun@huawei.com>
- <1509530440-164400-4-git-send-email-oulijun@huawei.com>
- <20171101161328.GB7815@ziepe.ca> <20171104100846.GA1636@mtr-leonro.local>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/5] cbuild: Add udev dependency to package
+ list of SuSE Leap
+Date: Sun, 5 Nov 2017 19:05:18 -0700
+Message-ID: <20171106020518.GC12187@ziepe.ca>
+References: <20171102165556.22105-1-leon@kernel.org>
+ <20171102165556.22105-2-leon@kernel.org>
+ <3a06c93f-aa0f-93fa-1b74-af6388051f89@suse.de>
+ <20171102174220.GD16127@mtr-leonro.local>
+ <b2493da4-396e-5d24-ffa5-2fcccb9ee85c@suse.de>
+ <20171102183257.GI16127@mtr-leonro.local>
+ <76d45899-f1ec-bbd1-e0dd-799e1fa4a400@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171104100846.GA1636-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <76d45899-f1ec-bbd1-e0dd-799e1fa4a400-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alaa Hleihel <alaa-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-在 2017/11/4 18:08, Leon Romanovsky 写道:
-> On Wed, Nov 01, 2017 at 10:13:28AM -0600, Jason Gunthorpe wrote:
->> On Wed, Nov 01, 2017 at 06:00:40PM +0800, Lijun Ou wrote:
->>> @@ -385,7 +385,7 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *cq,
->>>  		case HNS_ROCE_RECV_OP_RDMA_WRITE_IMM:
->>>  			wc->opcode = IBV_WC_RECV_RDMA_WITH_IMM;
->>>  			wc->wc_flags = IBV_WC_WITH_IMM;
->>> -			wc->imm_data = cqe->rkey_immtdata;
->>> +			wc->imm_data = be32toh(cqe->rkey_immtdata);
->>>  			break;
->>
->> This can't be right, wc->imm_data is marked be32.
-> 
-> Lijun,
-> 
-> Are you going to fix it?
-> 
-> Thanks
-> 
-Yes， I think that it is not fixed. I have tested the roce device aginst hip08, D05(ARM64) and
-CX3, and I also have tested the D05 aginst cx3 and D05.  I also tried to run sparse and
-don't produce a userful result. I also  follow Jason's advice. Is it ok?
+On Sun, Nov 05, 2017 at 10:13:57AM +0200, Alaa Hleihel wrote:
+ 
+> -%if 0%{?suse_version} >= 1330
+> -BuildRequires:? curl-mini
+> -%endif
 
-Thanks
-Lijun Ou
+No idea what it would need curl to build, so the above seems right to me?
 
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
