@@ -1,7 +1,7 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 4/4] RDMA/bnxt_re: synchronize poll_cq and req_notify_cq verbs
-Date: Mon,  6 Nov 2017 08:07:32 -0800
-Message-ID: <1509984452-18336-5-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH 2/4] RDMA/bnxt_re: Set QP state in case of response completion errors
+Date: Mon,  6 Nov 2017 08:07:30 -0800
+Message-ID: <1509984452-18336-3-git-send-email-selvin.xavier@broadcom.com>
 References: <1509984452-18336-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1509984452-18336-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
@@ -10,50 +10,42 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Synchronize poll_cq and req_notify_cq verbs using cq_lock,
-instead of the lower level qplib->hwq.lock.
+Moves the driver QP state to error in case of response completion
+errors. Handles the scenarios which doesn't generate a terminal CQE.
 
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 96ec797..d5770aa 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -2999,8 +2999,10 @@ int bnxt_re_req_notify_cq(struct ib_cq *ib_cq,
- 			  enum ib_cq_notify_flags ib_cqn_flags)
- {
- 	struct bnxt_re_cq *cq = container_of(ib_cq, struct bnxt_re_cq, ib_cq);
--	int type = 0;
-+	int type = 0, rc = 0;
-+	unsigned long flags;
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+index 31ea9f4..805a612 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+@@ -2118,6 +2118,7 @@ static int bnxt_qplib_cq_process_res_rc(struct bnxt_qplib_cq *cq,
+ 	*pcqe = cqe;
  
-+	spin_lock_irqsave(&cq->cq_lock, flags);
- 	/* Trigger on the very next completion */
- 	if (ib_cqn_flags & IB_CQ_NEXT_COMP)
- 		type = DBR_DBR_TYPE_CQ_ARMALL;
-@@ -3010,12 +3012,15 @@ int bnxt_re_req_notify_cq(struct ib_cq *ib_cq,
+ 	if (hwcqe->status != CQ_RES_RC_STATUS_OK) {
++		qp->state = CMDQ_MODIFY_QP_NEW_STATE_ERR;
+ 		 /* Add qp to flush list of the CQ */
+ 		bnxt_qplib_lock_buddy_cq(qp, cq);
+ 		__bnxt_qplib_add_flush_qp(qp);
+@@ -2181,6 +2182,7 @@ static int bnxt_qplib_cq_process_res_ud(struct bnxt_qplib_cq *cq,
+ 	*pcqe = cqe;
  
- 	/* Poll to see if there are missed events */
- 	if ((ib_cqn_flags & IB_CQ_REPORT_MISSED_EVENTS) &&
--	    !(bnxt_qplib_is_cq_empty(&cq->qplib_cq)))
--		return 1;
--
-+	    !(bnxt_qplib_is_cq_empty(&cq->qplib_cq))) {
-+		rc = 1;
-+		goto exit;
-+	}
- 	bnxt_qplib_req_notify_cq(&cq->qplib_cq, type);
+ 	if (hwcqe->status != CQ_RES_RC_STATUS_OK) {
++		qp->state = CMDQ_MODIFY_QP_NEW_STATE_ERR;
+ 		/* Add qp to flush list of the CQ */
+ 		bnxt_qplib_lock_buddy_cq(qp, cq);
+ 		__bnxt_qplib_add_flush_qp(qp);
+@@ -2268,6 +2270,7 @@ static int bnxt_qplib_cq_process_res_raweth_qp1(struct bnxt_qplib_cq *cq,
+ 	*pcqe = cqe;
  
--	return 0;
-+exit:
-+	spin_unlock_irqrestore(&cq->cq_lock, flags);
-+	return rc;
- }
- 
- /* Memory Regions */
+ 	if (hwcqe->status != CQ_RES_RC_STATUS_OK) {
++		qp->state = CMDQ_MODIFY_QP_NEW_STATE_ERR;
+ 		/* Add qp to flush list of the CQ */
+ 		bnxt_qplib_lock_buddy_cq(qp, cq);
+ 		__bnxt_qplib_add_flush_qp(qp);
 -- 
 2.5.5
 
