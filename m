@@ -1,63 +1,97 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 3/4] RDMA/bnxt_re: Flush CQ notification Work Queue before destroying QP
-Date: Mon,  6 Nov 2017 08:07:31 -0800
-Message-ID: <1509984452-18336-4-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH 1/4] RDMA/bnxt_re: Add memory barriers when processing CQ/EQ entries
+Date: Mon,  6 Nov 2017 08:07:29 -0800
+Message-ID: <1509984452-18336-2-git-send-email-selvin.xavier@broadcom.com>
 References: <1509984452-18336-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1509984452-18336-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Destroy_qp shall wait for any outstanding CQ notification to be
-flushed out before proceeding with QP destroy. Flushing the WQ
-before destroying the QP.
+From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
+The code determines if the next ring entry is valid before proceeding
+further to read the rest of the entry. The CPU can re-order and read
+the rest of the entry first, possibly reading a stale entry, if DMA
+of a new entry happens right after reading it.
+
+Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 1 +
- drivers/infiniband/hw/bnxt_re/qplib_fp.c | 7 +++++++
- drivers/infiniband/hw/bnxt_re/qplib_fp.h | 1 +
- 3 files changed, 9 insertions(+)
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c   | 21 +++++++++++++++++++++
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c |  4 ++++
+ 2 files changed, 25 insertions(+)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index ebcdfb4..96ec797 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -788,6 +788,7 @@ int bnxt_re_destroy_qp(struct ib_qp *ib_qp)
- 	struct bnxt_re_dev *rdev = qp->rdev;
- 	int rc;
- 
-+	bnxt_qplib_flush_cqn_wq(&qp->qplib_qp);
- 	bnxt_qplib_del_flush_qp(&qp->qplib_qp);
- 	rc = bnxt_qplib_destroy_qp(&rdev->qplib_res, &qp->qplib_qp);
- 	if (rc) {
 diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-index 805a612..c0f8133 100644
+index a82044d..31ea9f4 100644
 --- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
 +++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-@@ -2537,3 +2537,10 @@ void bnxt_qplib_req_notify_cq(struct bnxt_qplib_cq *cq, u32 arm_type)
- 	atomic_set(&cq->arm_state, 1);
- 	spin_unlock_irqrestore(&cq->hwq.lock, flags);
- }
+@@ -292,6 +292,12 @@ static void bnxt_qplib_service_nq(unsigned long data)
+ 		if (!NQE_CMP_VALID(nqe, raw_cons, hwq->max_elements))
+ 			break;
+ 
++		/*
++		 * The valid test of the entry must be done first before
++		 * reading any further.
++		 */
++		dma_rmb();
 +
-+void bnxt_qplib_flush_cqn_wq(struct bnxt_qplib_qp *qp)
-+{
-+	flush_workqueue(qp->scq->nq->cqn_wq);
-+	if (qp->scq != qp->rcq)
-+		flush_workqueue(qp->rcq->nq->cqn_wq);
-+}
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.h b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-index 8ead70c..c582d4e 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-@@ -478,4 +478,5 @@ void bnxt_qplib_release_cq_locks(struct bnxt_qplib_qp *qp,
- int bnxt_qplib_process_flush_list(struct bnxt_qplib_cq *cq,
- 				  struct bnxt_qplib_cqe *cqe,
- 				  int num_cqes);
-+void bnxt_qplib_flush_cqn_wq(struct bnxt_qplib_qp *qp);
- #endif /* __BNXT_QPLIB_FP_H__ */
+ 		type = le16_to_cpu(nqe->info10_type) & NQ_BASE_TYPE_MASK;
+ 		switch (type) {
+ 		case NQ_BASE_TYPE_CQ_NOTIFICATION:
+@@ -1113,6 +1119,11 @@ static void __clean_cq(struct bnxt_qplib_cq *cq, u64 qp)
+ 		hw_cqe = &hw_cqe_ptr[CQE_PG(i)][CQE_IDX(i)];
+ 		if (!CQE_CMP_VALID(hw_cqe, i, cq_hwq->max_elements))
+ 			continue;
++		/*
++		 * The valid test of the entry must be done first before
++		 * reading any further.
++		 */
++		dma_rmb();
+ 		switch (hw_cqe->cqe_type_toggle & CQ_BASE_CQE_TYPE_MASK) {
+ 		case CQ_BASE_CQE_TYPE_REQ:
+ 		case CQ_BASE_CQE_TYPE_TERMINAL:
+@@ -1896,6 +1907,11 @@ static int do_wa9060(struct bnxt_qplib_qp *qp, struct bnxt_qplib_cq *cq,
+ 			/* If the next hwcqe is VALID */
+ 			if (CQE_CMP_VALID(peek_hwcqe, peek_raw_cq_cons,
+ 					  cq->hwq.max_elements)) {
++			/*
++			 * The valid test of the entry must be done first before
++			 * reading any further.
++			 */
++				dma_rmb();
+ 				/* If the next hwcqe is a REQ */
+ 				if ((peek_hwcqe->cqe_type_toggle &
+ 				    CQ_BASE_CQE_TYPE_MASK) ==
+@@ -2440,6 +2456,11 @@ int bnxt_qplib_poll_cq(struct bnxt_qplib_cq *cq, struct bnxt_qplib_cqe *cqe,
+ 		if (!CQE_CMP_VALID(hw_cqe, raw_cons, cq->hwq.max_elements))
+ 			break;
+ 
++		/*
++		 * The valid test of the entry must be done first before
++		 * reading any further.
++		 */
++		dma_rmb();
+ 		/* From the device's respective CQE format to qplib_wc*/
+ 		switch (hw_cqe->cqe_type_toggle & CQ_BASE_CQE_TYPE_MASK) {
+ 		case CQ_BASE_CQE_TYPE_REQ:
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+index 6d11614..751170a 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+@@ -357,6 +357,10 @@ static void bnxt_qplib_service_creq(unsigned long data)
+ 		creqe = &creq_ptr[get_creq_pg(sw_cons)][get_creq_idx(sw_cons)];
+ 		if (!CREQ_CMP_VALID(creqe, raw_cons, creq->max_elements))
+ 			break;
++		/* The valid test of the entry must be done first before
++		 * reading any further.
++		 */
++		dma_rmb();
+ 
+ 		type = creqe->type & CREQ_BASE_TYPE_MASK;
+ 		switch (type) {
 -- 
 2.5.5
 
