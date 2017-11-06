@@ -1,238 +1,78 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 06/11] IB/hfi1: Do not allocate PIO send contexts
- for VNIC
-Date: Mon, 06 Nov 2017 06:38:52 -0800
-Message-ID: <20171106143850.27539.47399.stgit@scvm10.sc.intel.com>
-References: <20171106143510.27539.65950.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 00/11] IB/hfi1: Driver fixes for 11/6/2017
+Date: Mon, 06 Nov 2017 06:38:07 -0800
+Message-ID: <20171106143510.27539.65950.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171106143510.27539.65950.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jan Sokolowski <jan.sokolowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Duane McCrory <duane.mccrory-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grzegorz Morys <grzegorz.morys-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Hi Doug,
 
-OPA VNIC does not use PIO contexts and instead only uses SDMA
-engines. Do not allocate PIO contexts for VNIC ports.
+More fixes for our drivers. Nothing scary or out of the ordinary here. There
+is a core change, but it is for extended lids. This does include a patch
+suggested by Dan and is based off of his patch and the ensuing discussion on the
+list.
 
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+As always patches available for browsing at:
+https://github.com/ddalessa/kernel/tree/for-4.15
+
 ---
- drivers/infiniband/hw/hfi1/chip.c      |   10 ++++-----
- drivers/infiniband/hw/hfi1/driver.c    |    5 ++--
- drivers/infiniband/hw/hfi1/init.c      |    3 +--
- drivers/infiniband/hw/hfi1/pio.c       |   17 ---------------
- drivers/infiniband/hw/hfi1/pio.h       |    6 -----
- drivers/infiniband/hw/hfi1/vnic_main.c |   37 ++------------------------------
- 6 files changed, 10 insertions(+), 68 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 2523b62..bb3b65a 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -6816,7 +6816,8 @@ static void rxe_kernel_unfreeze(struct hfi1_devdata *dd)
- 		rcd = hfi1_rcd_get_by_index(dd, i);
- 
- 		/* Ensure all non-user contexts(including vnic) are enabled */
--		if (!rcd || !rcd->sc || (rcd->sc->type == SC_USER)) {
-+		if (!rcd ||
-+		    (i >= dd->first_dyn_alloc_ctxt && !rcd->is_vnic)) {
- 			hfi1_rcd_put(rcd);
- 			continue;
- 		}
-@@ -8093,8 +8094,7 @@ static void is_rcv_avail_int(struct hfi1_devdata *dd, unsigned int source)
- 		rcd = hfi1_rcd_get_by_index(dd, source);
- 		if (rcd) {
- 			/* Check for non-user contexts, including vnic */
--			if ((source < dd->first_dyn_alloc_ctxt) ||
--			    (rcd->sc && (rcd->sc->type == SC_KERNEL)))
-+			if (source < dd->first_dyn_alloc_ctxt || rcd->is_vnic)
- 				rcd->do_interrupt(rcd, 0);
- 			else
- 				handle_user_interrupt(rcd);
-@@ -8124,8 +8124,8 @@ static void is_rcv_urgent_int(struct hfi1_devdata *dd, unsigned int source)
- 		rcd = hfi1_rcd_get_by_index(dd, source);
- 		if (rcd) {
- 			/* only pay attention to user urgent interrupts */
--			if ((source >= dd->first_dyn_alloc_ctxt) &&
--			    (!rcd->sc || (rcd->sc->type == SC_USER)))
-+			if (source >= dd->first_dyn_alloc_ctxt &&
-+			    !rcd->is_vnic)
- 				handle_user_interrupt(rcd);
- 
- 			hfi1_rcd_put(rcd);
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index 07a32a1..4f65ac6 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -929,10 +929,9 @@ void set_all_slowpath(struct hfi1_devdata *dd)
- 		rcd = hfi1_rcd_get_by_index(dd, i);
- 		if (!rcd)
- 			continue;
--		if ((i < dd->first_dyn_alloc_ctxt) ||
--		    (rcd->sc && (rcd->sc->type == SC_KERNEL))) {
-+		if (i < dd->first_dyn_alloc_ctxt || rcd->is_vnic)
- 			rcd->do_interrupt = &handle_receive_interrupt;
--		}
-+
- 		hfi1_rcd_put(rcd);
- 	}
- }
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index f29e7a3..8e3b3e7 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1807,8 +1807,7 @@ int hfi1_create_rcvhdrq(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
- 		amt = PAGE_ALIGN(rcd->rcvhdrq_cnt * rcd->rcvhdrqentsize *
- 				 sizeof(u32));
- 
--		if ((rcd->ctxt < dd->first_dyn_alloc_ctxt) ||
--		    (rcd->sc && (rcd->sc->type == SC_KERNEL)))
-+		if (rcd->ctxt < dd->first_dyn_alloc_ctxt || rcd->is_vnic)
- 			gfp_flags = GFP_KERNEL;
- 		else
- 			gfp_flags = GFP_USER;
-diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
-index 7108a4b..c929f5b 100644
---- a/drivers/infiniband/hw/hfi1/pio.c
-+++ b/drivers/infiniband/hw/hfi1/pio.c
-@@ -703,7 +703,6 @@ struct send_context *sc_alloc(struct hfi1_devdata *dd, int type,
- {
- 	struct send_context_info *sci;
- 	struct send_context *sc = NULL;
--	int req_type = type;
- 	dma_addr_t dma;
- 	unsigned long flags;
- 	u64 reg;
-@@ -730,13 +729,6 @@ struct send_context *sc_alloc(struct hfi1_devdata *dd, int type,
- 		return NULL;
- 	}
- 
--	/*
--	 * VNIC contexts are dynamically allocated.
--	 * Hence, pick a user context for VNIC.
--	 */
--	if (type == SC_VNIC)
--		type = SC_USER;
--
- 	spin_lock_irqsave(&dd->sc_lock, flags);
- 	ret = sc_hw_alloc(dd, type, &sw_index, &hw_context);
- 	if (ret) {
-@@ -746,15 +738,6 @@ struct send_context *sc_alloc(struct hfi1_devdata *dd, int type,
- 		return NULL;
- 	}
- 
--	/*
--	 * VNIC contexts are used by kernel driver.
--	 * Hence, mark them as kernel contexts.
--	 */
--	if (req_type == SC_VNIC) {
--		dd->send_contexts[sw_index].type = SC_KERNEL;
--		type = SC_KERNEL;
--	}
--
- 	sci = &dd->send_contexts[sw_index];
- 	sci->sc = sc;
- 
-diff --git a/drivers/infiniband/hw/hfi1/pio.h b/drivers/infiniband/hw/hfi1/pio.h
-index 99ca5ed..058b08f 100644
---- a/drivers/infiniband/hw/hfi1/pio.h
-+++ b/drivers/infiniband/hw/hfi1/pio.h
-@@ -54,12 +54,6 @@
- #define SC_USER   3	/* must be the last one: it may take all left */
- #define SC_MAX    4	/* count of send context types */
- 
--/*
-- * SC_VNIC types are allocated (dynamically) from the user context pool,
-- * (SC_USER) and used by kernel driver as kernel contexts (SC_KERNEL).
-- */
--#define SC_VNIC   SC_MAX
--
- /* invalid send context index */
- #define INVALID_SCI 0xff
- 
-diff --git a/drivers/infiniband/hw/hfi1/vnic_main.c b/drivers/infiniband/hw/hfi1/vnic_main.c
-index 1a17708..5d65582 100644
---- a/drivers/infiniband/hw/hfi1/vnic_main.c
-+++ b/drivers/infiniband/hw/hfi1/vnic_main.c
-@@ -67,8 +67,6 @@ static int setup_vnic_ctxt(struct hfi1_devdata *dd, struct hfi1_ctxtdata *uctxt)
- 	unsigned int rcvctrl_ops = 0;
- 	int ret;
- 
--	hfi1_init_ctxt(uctxt->sc);
--
- 	uctxt->do_interrupt = &handle_receive_interrupt;
- 
- 	/* Now allocate the RcvHdr queue and eager buffers. */
-@@ -96,8 +94,6 @@ static int setup_vnic_ctxt(struct hfi1_devdata *dd, struct hfi1_ctxtdata *uctxt)
- 		rcvctrl_ops |= HFI1_RCVCTRL_TAILUPD_ENB;
- 
- 	hfi1_rcvctrl(uctxt->dd, rcvctrl_ops, uctxt);
--
--	uctxt->is_vnic = true;
- done:
- 	return ret;
- }
-@@ -122,20 +118,7 @@ static int allocate_vnic_ctxt(struct hfi1_devdata *dd,
- 			HFI1_CAP_KGET(NODROP_EGR_FULL) |
- 			HFI1_CAP_KGET(DMA_RTAIL);
- 	uctxt->seq_cnt = 1;
--
--	/* Allocate and enable a PIO send context */
--	uctxt->sc = sc_alloc(dd, SC_VNIC, uctxt->rcvhdrqentsize,
--			     uctxt->numa_id);
--
--	ret = uctxt->sc ? 0 : -ENOMEM;
--	if (ret)
--		goto bail;
--
--	dd_dev_dbg(dd, "allocated vnic send context %u(%u)\n",
--		   uctxt->sc->sw_index, uctxt->sc->hw_context);
--	ret = sc_enable(uctxt->sc);
--	if (ret)
--		goto bail;
-+	uctxt->is_vnic = true;
- 
- 	if (dd->num_msix_entries)
- 		hfi1_set_vnic_msix_info(uctxt);
-@@ -144,11 +127,7 @@ static int allocate_vnic_ctxt(struct hfi1_devdata *dd,
- 	dd_dev_dbg(dd, "created vnic context %d\n", uctxt->ctxt);
- 	*vnic_ctxt = uctxt;
- 
--	return ret;
--bail:
--	hfi1_free_ctxt(uctxt);
--	dd_dev_dbg(dd, "vnic allocation failed. rc %d\n", ret);
--	return ret;
-+	return 0;
- }
- 
- static void deallocate_vnic_ctxt(struct hfi1_devdata *dd,
-@@ -170,18 +149,6 @@ static void deallocate_vnic_ctxt(struct hfi1_devdata *dd,
- 		     HFI1_RCVCTRL_ONE_PKT_EGR_DIS |
- 		     HFI1_RCVCTRL_NO_RHQ_DROP_DIS |
- 		     HFI1_RCVCTRL_NO_EGR_DROP_DIS, uctxt);
--	/*
--	 * VNIC contexts are allocated from user context pool.
--	 * Release them back to user context pool.
--	 *
--	 * Reset context integrity checks to default.
--	 * (writes to CSRs probably belong in chip.c)
--	 */
--	write_kctxt_csr(dd, uctxt->sc->hw_context, SEND_CTXT_CHECK_ENABLE,
--			hfi1_pkt_default_send_ctxt_mask(dd, SC_USER));
--	sc_disable(uctxt->sc);
--
--	dd->send_contexts[uctxt->sc->sw_index].type = SC_USER;
- 
- 	uctxt->event_flags = 0;
- 
+Dennis Dalessandro (1):
+      IB/hfi1: Handle initial value of 0 for CCTI setting
 
+Don Hiatt (2):
+      IB/core: Convert OPA AH to IB for Extended LIDs only
+      IB/hfi1: Mask upper 16Bits of Extended LID prior to rvt_cq_entry
+
+Grzegorz Morys (1):
+      IB/hfi1: Prohibit invalid Init to Armed state transition
+
+Jakub Byczkowski (1):
+      IB/hfi1: Reduce 8051 command timeout
+
+Jan Sokolowski (3):
+      IB/hfi1: Allow MgmtAllowed on B2B setups
+      IB/hfi1: Remove unnecessary if check
+      IB/hfi1: Send 'reboot' as planned down remote reason
+
+Kamenee Arumugam (1):
+      IB/hfi1: Remove wrapper function in mmu_rb
+
+Mike Marciniszyn (1):
+      IB/hfi1: Fix a wrapping test to insure the correct timeout
+
+Niranjana Vishwanathapura (1):
+      IB/hfi1: Do not allocate PIO send contexts for VNIC
+
+
+ drivers/infiniband/core/uverbs_marshall.c |    3 +-
+ drivers/infiniband/hw/hfi1/chip.c         |   55 +++++------------------------
+ drivers/infiniband/hw/hfi1/chip.h         |    2 +
+ drivers/infiniband/hw/hfi1/driver.c       |    5 +--
+ drivers/infiniband/hw/hfi1/hfi.h          |    3 ++
+ drivers/infiniband/hw/hfi1/init.c         |    3 +-
+ drivers/infiniband/hw/hfi1/intr.c         |   43 +++++++++++++++++++++++
+ drivers/infiniband/hw/hfi1/mad.c          |   44 ++++++++++++++---------
+ drivers/infiniband/hw/hfi1/mad.h          |    2 +
+ drivers/infiniband/hw/hfi1/mmu_rb.c       |   24 ++++---------
+ drivers/infiniband/hw/hfi1/pio.c          |   17 ---------
+ drivers/infiniband/hw/hfi1/pio.h          |    6 ---
+ drivers/infiniband/hw/hfi1/rc.c           |    4 +-
+ drivers/infiniband/hw/hfi1/ruc.c          |    2 +
+ drivers/infiniband/hw/hfi1/uc.c           |    2 +
+ drivers/infiniband/hw/hfi1/ud.c           |    6 ++-
+ drivers/infiniband/hw/hfi1/user_sdma.c    |   30 ++++++++--------
+ drivers/infiniband/hw/hfi1/vnic_main.c    |   37 +-------------------
+ 18 files changed, 118 insertions(+), 170 deletions(-)
+
+--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
