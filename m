@@ -1,92 +1,128 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2] IB/ocrdma_hw: remove unnecessary code in
- ocrdma_mbx_dealloc_lkey
-Date: Tue, 7 Nov 2017 18:28:04 +0200
-Message-ID: <20171107162804.GM18825@mtr-leonro.local>
-References: <20171107083022.Horde.E7wKXkvErbmdKSHiwomsj7N@gator4166.hostgator.com>
- <20171107144517.GA25631@embeddedor.com>
- <20171107145018.GJ18825@mtr-leonro.local>
- <20171107085637.Horde.qFzN3uJQkHeQUTyEgZzV4mv@gator4166.hostgator.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="bgLLobvf7eP6VP5c"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171107085637.Horde.qFzN3uJQkHeQUTyEgZzV4mv-fU+oOHjIBR1LoJgMfuPDHBfZZeVsHd8q@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gustavo A. R. Silva" <garsilva-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>
-Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next] IB/core: Only maintain real QPs in the security lists
+Date: Tue,  7 Nov 2017 18:33:26 +0200
+Message-ID: <20171107163326.23881-1-leon@kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, Daniel Jurgens <danielj@mellanox.com>, stable@vger.kernel.org, Leon Romanovsky <leon@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Daniel Jurgens <danielj@mellanox.com>
 
---bgLLobvf7eP6VP5c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+When modify QP is called on a shared QP update the security context for
+the real QP. When security is subsequently enforced the shared QP
+handles will be checked as well.
 
-On Tue, Nov 07, 2017 at 08:56:37AM -0600, Gustavo A. R. Silva wrote:
->
-> Quoting Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>:
->
-> > On Tue, Nov 07, 2017 at 08:45:17AM -0600, Gustavo A. R. Silva wrote:
-> > > Check on return value and goto label mbx_err are unnecessary.
-> > >
-> > > Addresses-Coverity-ID: 1268780
-> > > Signed-off-by: Gustavo A. R. Silva <garsilva-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>
-> > > Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > > ---
-> > > Changes in v2:
-> > >  Remove assignment from "int status = -ENOMEM" as suggested by Leon
-> > > Romanovsky.
-> > >
-> > >  drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 6 ++----
-> > >  1 file changed, 2 insertions(+), 4 deletions(-)
-> >
-> > Please use git send-email to send patches and not reply to the conversation.
-> >
->
-> I'm using mutt.
-> What would be the advantage of using git send-email in this case?
+Without this change shared QP handles get added to the port/pkey lists,
+which is a bug, because not all shared QP handles will be checked for
+access. Also the shared QP security context wouldn't get removed from
+the port/pkey lists causing access to free memory and list corruption
+when they are destroyed.
 
-New mail headers, so it won't appear as Reply-To and will be presented
-correctly in mutt's threaded mode.
+Cc: stable@vger.kernel.org
+Fixes: d291f1a65232 ("IB/core: Enforce PKey security on QPs")
+Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
+Reviewed-by: Parav Pandit <parav@mellanox.com>
+Signed-off-by: Leon Romanovsky <leon@kernel.org>
+---
+ drivers/infiniband/core/security.c | 51 +++++++++++++++++++++-----------------
+ 1 file changed, 28 insertions(+), 23 deletions(-)
 
-You can do it with mutt too.
+diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
+index 455cba7f9640..23278ed5be45 100644
+--- a/drivers/infiniband/core/security.c
++++ b/drivers/infiniband/core/security.c
+@@ -87,16 +87,14 @@ static int enforce_qp_pkey_security(u16 pkey,
+ 	if (ret)
+ 		return ret;
 
->
-> > Thanks,
-> > Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> Thank you
-> --
-> Gustavo A. R. Silva
->
->
->
->
->
+-	if (qp_sec->qp == qp_sec->qp->real_qp) {
+-		list_for_each_entry(shared_qp_sec,
+-				    &qp_sec->shared_qp_list,
+-				    shared_qp_list) {
+-			ret = security_ib_pkey_access(shared_qp_sec->security,
+-						      subnet_prefix,
+-						      pkey);
+-			if (ret)
+-				return ret;
+-		}
++	list_for_each_entry(shared_qp_sec,
++			    &qp_sec->shared_qp_list,
++			    shared_qp_list) {
++		ret = security_ib_pkey_access(shared_qp_sec->security,
++					      subnet_prefix,
++					      pkey);
++		if (ret)
++			return ret;
+ 	}
+ 	return 0;
+ }
+@@ -560,15 +558,22 @@ int ib_security_modify_qp(struct ib_qp *qp,
+ 	int ret = 0;
+ 	struct ib_ports_pkeys *tmp_pps;
+ 	struct ib_ports_pkeys *new_pps;
+-	bool special_qp = (qp->qp_type == IB_QPT_SMI ||
+-			   qp->qp_type == IB_QPT_GSI ||
+-			   qp->qp_type >= IB_QPT_RESERVED1);
++	struct ib_qp *real_qp = qp->real_qp;
++	bool special_qp = (real_qp->qp_type == IB_QPT_SMI ||
++			   real_qp->qp_type == IB_QPT_GSI ||
++			   real_qp->qp_type >= IB_QPT_RESERVED1);
+ 	bool pps_change = ((qp_attr_mask & (IB_QP_PKEY_INDEX | IB_QP_PORT)) ||
+ 			   (qp_attr_mask & IB_QP_ALT_PATH));
 
---bgLLobvf7eP6VP5c
-Content-Type: application/pgp-signature; name="signature.asc"
++	/* The port/pkey settings are maintained only for the real QP. Open
++	 * handles on the real QP will be in the shared_qp_list. When
++	 * enforcing security on the real QP all the shared QPs will be
++	 * checked as well.
++	 */
++
+ 	if (pps_change && !special_qp) {
+-		mutex_lock(&qp->qp_sec->mutex);
+-		new_pps = get_new_pps(qp,
++		mutex_lock(&real_qp->qp_sec->mutex);
++		new_pps = get_new_pps(real_qp,
+ 				      qp_attr,
+ 				      qp_attr_mask);
 
------BEGIN PGP SIGNATURE-----
+@@ -586,14 +591,14 @@ int ib_security_modify_qp(struct ib_qp *qp,
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloB3xQACgkQ5GN7iDZy
-WKf/HQ/+LWE2OjgEi7vbj9fG4GW6Lwjrdc0CR9mscnh0kErEAAzATS2cnJ0l8/IO
-7SE/wVg8N6qGGK/1y7jFywSLQCkoIsgNRltyP2d0nZ33eLqzrqn1yRrXEFhsAYIO
-kVEMZ1RiBN6HIKXQlmfhZaiWzzMj4/MQ0ekdCUYyc6VyyO7MG134rs1/bfkDcNr2
-JGrOsH2/aNfMAI0IyYW1VvlYMwbDAoZYcNLOkI64Kzv3RKsaFIrrGCQCJB8WOn8Y
-tLB2khXEIx45WOoMpT7qQ9h1DETio5kUd5BabPvqbJDyOy8Rb/dZyltH8YcswZZ2
-zshpqQn5COBOeCDPM6mOr4mSiDFPMx42ECxb53p8Fnwt+SJeUyZHMyLU3zzkCWC5
-00DkM1XYnX6PXPb3MCzUi9pj9rb6nYmw3yppJRqk+mzuZnSYwYGqjEKNId27BED2
-+cmyX1d/OBs5wp/ud24+5LPdpQuovYN7UAr6mclTaAd1cMu+tw2NZXwtQQL4bt+f
-iNjjnnnncTa06IFsGl6ivLlqnR/dxD+BUTJlZa/huVJJG3LLEhu38H1TIaX2ASJd
-rCXSxahHRh1mzRL/Ehv8c2U7vyJuEvx02QKH8DAdwQwy1eXuqhFFs1By9eZX8btg
-PfO2sr/cUyoI9NrxdiXkAUR44jZfC8mz8MYYabWJj+OTGQ+I/yI=
-=ERc0
------END PGP SIGNATURE-----
+ 		if (!ret)
+ 			ret = check_qp_port_pkey_settings(new_pps,
+-							  qp->qp_sec);
++							  real_qp->qp_sec);
+ 	}
 
---bgLLobvf7eP6VP5c--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	if (!ret)
+-		ret = qp->device->modify_qp(qp->real_qp,
+-					    qp_attr,
+-					    qp_attr_mask,
+-					    udata);
++		ret = real_qp->device->modify_qp(real_qp,
++						 qp_attr,
++						 qp_attr_mask,
++						 udata);
+
+ 	if (pps_change && !special_qp) {
+ 		/* Clean up the lists and free the appropriate
+@@ -602,8 +607,8 @@ int ib_security_modify_qp(struct ib_qp *qp,
+ 		if (ret) {
+ 			tmp_pps = new_pps;
+ 		} else {
+-			tmp_pps = qp->qp_sec->ports_pkeys;
+-			qp->qp_sec->ports_pkeys = new_pps;
++			tmp_pps = real_qp->qp_sec->ports_pkeys;
++			real_qp->qp_sec->ports_pkeys = new_pps;
+ 		}
+
+ 		if (tmp_pps) {
+@@ -611,7 +616,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
+ 			port_pkey_list_remove(&tmp_pps->alt);
+ 		}
+ 		kfree(tmp_pps);
+-		mutex_unlock(&qp->qp_sec->mutex);
++		mutex_unlock(&real_qp->qp_sec->mutex);
+ 	}
+ 	return ret;
+ }
