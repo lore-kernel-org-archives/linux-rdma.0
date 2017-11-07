@@ -1,8 +1,8 @@
 From: noreply-+ipbUBPD95tH4x6Dk/4f9A@public.gmane.org
-Subject: [recipe build #1478890] of ~linux-rdma rdma-core-daily in trusty:
+Subject: [recipe build #1478898] of ~linux-rdma rdma-core-daily in trusty:
  Failed to build
-Date: Tue, 07 Nov 2017 13:32:13 -0000
-Message-ID: <151006153317.15220.13656620600569053903.launchpad@alphecca.canonical.com>
+Date: Tue, 07 Nov 2017 13:34:14 -0000
+Message-ID: <151006165458.15220.2977358668138036059.launchpad@alphecca.canonical.com>
 Reply-To: noreply-+ipbUBPD95tH4x6Dk/4f9A@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -17,12 +17,12 @@ List-Id: linux-rdma@vger.kernel.org
  * Archive: ~linux-rdma/ubuntu/rdma-core-daily
  * Distroseries: trusty
  * Duration: 2 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebuild/1478890/+files/buildlog.txt.gz
+ * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebuild/1478898/+files/buildlog.txt.gz
  * Upload Log: 
- * Builder: https://launchpad.net/builders/lgw01-amd64-033
+ * Builder: https://launchpad.net/builders/lgw01-amd64-026
 
 -- 
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebuild/1478890
+https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebuild/1478898
 Your team Linux RDMA is the requester of the build.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
