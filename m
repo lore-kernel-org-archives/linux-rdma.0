@@ -1,128 +1,118 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next] IB/core: Only maintain real QPs in the security lists
-Date: Tue,  7 Nov 2017 18:33:26 +0200
-Message-ID: <20171107163326.23881-1-leon@kernel.org>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, Daniel Jurgens <danielj@mellanox.com>, stable@vger.kernel.org, Leon Romanovsky <leon@kernel.org>
+From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH net] rds: ib: Fix NULL pointer dereference in debug code
+Date: Tue, 7 Nov 2017 08:41:29 -0800
+Message-ID: <a27599c6-b08e-27fd-6e47-96a547d83529@oracle.com>
+References: <20171107153334.24401-1-Haakon.Bugge@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171107153334.24401-1-Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?Q?H=c3=a5kon_Bugge?= <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "David S . Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wei.lin.guay-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj@mellanox.com>
+On 11/7/2017 7:33 AM, Håkon Bugge wrote:
+> rds_ib_recv_refill() is a function that refills an IB receive
+> queue. It can be called from both the CQE handler (tasklet) and a
+> worker thread.
+> 
+> Just after the call to ib_post_recv(), a debug message is printed with
+> rdsdebug():
+> 
+>              ret = ib_post_recv(ic->i_cm_id->qp, &recv->r_wr, &failed_wr);
+>              rdsdebug("recv %p ibinc %p page %p addr %lu ret %d\n", recv,
+>                       recv->r_ibinc, sg_page(&recv->r_frag->f_sg),
+>                       (long) ib_sg_dma_address(
+>                              ic->i_cm_id->device,
+>                              &recv->r_frag->f_sg),
+>                      ret);
+> 
+> Now consider an invocation of rds_ib_recv_refill() from the worker
+> thread, which is preemptible. Further, assume that the worker thread
+> is preempted between the ib_post_recv() and rdsdebug() statements.
+> 
+> Then, if the preemption is due to a receive CQE event, the
+> rds_ib_recv_cqe_handler() will be invoked. This function processes
+> receive completions, including freeing up data structures, such as the
+> recv->r_frag.
+> 
+> In this scenario, rds_ib_recv_cqe_handler() will process the receive
+> WR posted above. That implies, that the recv->r_frag has been freed
+> before the above rdsdebug() statement has been executed. When it is
+> later executed, we will have a NULL pointer dereference:
+>
+Yes. Good catch.
 
-When modify QP is called on a shared QP update the security context for
-the real QP. When security is subsequently enforced the shared QP
-handles will be checked as well.
+> [ 4088.068008] BUG: unable to handle kernel NULL pointer dereference at 0000000000000020
+> [ 4088.076754] IP: rds_ib_recv_refill+0x87/0x620 [rds_rdma]
+> [ 4088.082686] PGD 0 P4D 0
+> [ 4088.085515] Oops: 0000 [#1] SMP
+> [ 4088.089015] Modules linked in: rds_rdma(OE) rds(OE) rpcsec_gss_krb5(E) nfsv4(E) dns_resolver(E) nfs(E) fscache(E) mlx4_ib(E) ib_ipoib(E) rdma_ucm(E) ib_ucm(E) ib_uverbs(E) ib_umad(E) rdma_cm(E) ib_cm(E) iw_cm(E) ib_core(E) binfmt_misc(E) sb_edac(E) intel_powerclamp(E) coretemp(E) kvm_intel(E) kvm(E) irqbypass(E) crct10dif_pclmul(E) crc32_pclmul(E) ghash_clmulni_intel(E) pcbc(E) aesni_intel(E) crypto_simd(E) iTCO_wdt(E) glue_helper(E) iTCO_vendor_support(E) sg(E) cryptd(E) pcspkr(E) ipmi_si(E) ipmi_devintf(E) ipmi_msghandler(E) shpchp(E) ioatdma(E) i2c_i801(E) wmi(E) lpc_ich(E) mei_me(E) mei(E) mfd_core(E) nfsd(E) auth_rpcgss(E) nfs_acl(E) lockd(E) grace(E) sunrpc(E) ip_tables(E) ext4(E) mbcache(E) jbd2(E) fscrypto(E) mgag200(E) i2c_algo_bit(E) drm_kms_helper(E) syscopyarea(E) sysfillr
+ ect(E) sysimgblt(E)
+> [ 4088.168486]  fb_sys_fops(E) ahci(E) ixgbe(E) libahci(E) ttm(E) mdio(E) ptp(E) pps_core(E) drm(E) sd_mod(E) libata(E) crc32c_intel(E) mlx4_core(E) i2c_core(E) dca(E) megaraid_sas(E) dm_mirror(E) dm_region_hash(E) dm_log(E) dm_mod(E) [last unloaded: rds]
+> [ 4088.193442] CPU: 20 PID: 1244 Comm: kworker/20:2 Tainted: G           OE   4.14.0-rc7.master.20171105.ol7.x86_64 #1
+> [ 4088.205097] Hardware name: Oracle Corporation ORACLE SERVER X5-2L/ASM,MOBO TRAY,2U, BIOS 31110000 03/03/2017
+> [ 4088.216074] Workqueue: ib_cm cm_work_handler [ib_cm]
+> [ 4088.221614] task: ffff885fa11d0000 task.stack: ffffc9000e598000
+> [ 4088.228224] RIP: 0010:rds_ib_recv_refill+0x87/0x620 [rds_rdma]
+> [ 4088.234736] RSP: 0018:ffffc9000e59bb68 EFLAGS: 00010286
+> [ 4088.240568] RAX: 0000000000000000 RBX: ffffc9002115d050 RCX: ffffc9002115d050
+> [ 4088.248535] RDX: ffffffffa0521380 RSI: ffffffffa0522158 RDI: ffffffffa0525580
+> [ 4088.256498] RBP: ffffc9000e59bbf8 R08: 0000000000000005 R09: 0000000000000000
+> [ 4088.264465] R10: 0000000000000339 R11: 0000000000000001 R12: 0000000000000000
+> [ 4088.272433] R13: ffff885f8c9d8000 R14: ffffffff81a0a060 R15: ffff884676268000
+> [ 4088.280397] FS:  0000000000000000(0000) GS:ffff885fbec80000(0000) knlGS:0000000000000000
+> [ 4088.289434] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [ 4088.295846] CR2: 0000000000000020 CR3: 0000000001e09005 CR4: 00000000001606e0
+> [ 4088.303816] Call Trace:
+> [ 4088.306557]  rds_ib_cm_connect_complete+0xe0/0x220 [rds_rdma]
+> [ 4088.312982]  ? __dynamic_pr_debug+0x8c/0xb0
+> [ 4088.317664]  ? __queue_work+0x142/0x3c0
+> [ 4088.321944]  rds_rdma_cm_event_handler+0x19e/0x250 [rds_rdma]
+> [ 4088.328370]  cma_ib_handler+0xcd/0x280 [rdma_cm]
+> [ 4088.333522]  cm_process_work+0x25/0x120 [ib_cm]
+> [ 4088.338580]  cm_work_handler+0xd6b/0x17aa [ib_cm]
+> [ 4088.343832]  process_one_work+0x149/0x360
+> [ 4088.348307]  worker_thread+0x4d/0x3e0
+> [ 4088.352397]  kthread+0x109/0x140
+> [ 4088.355996]  ? rescuer_thread+0x380/0x380
+> [ 4088.360467]  ? kthread_park+0x60/0x60
+> [ 4088.364563]  ret_from_fork+0x25/0x30
+> [ 4088.368548] Code: 48 89 45 90 48 89 45 98 eb 4d 0f 1f 44 00 00 48 8b 43 08 48 89 d9 48 c7 c2 80 13 52 a0 48 c7 c6 58 21 52 a0 48 c7 c7 80 55 52 a0 <4c> 8b 48 20 44 89 64 24 08 48 8b 40 30 49 83 e1 fc 48 89 04 24
+> [ 4088.389612] RIP: rds_ib_recv_refill+0x87/0x620 [rds_rdma] RSP: ffffc9000e59bb68
+> [ 4088.397772] CR2: 0000000000000020
+> [ 4088.401505] ---[ end trace fe922e6ccf004431 ]---
+>
+Next time get rid of the timestamp in the stack trace.
 
-Without this change shared QP handles get added to the port/pkey lists,
-which is a bug, because not all shared QP handles will be checked for
-access. Also the shared QP security context wouldn't get removed from
-the port/pkey lists causing access to free memory and list corruption
-when they are destroyed.
-
-Cc: stable@vger.kernel.org
-Fixes: d291f1a65232 ("IB/core: Enforce PKey security on QPs")
-Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
-Reviewed-by: Parav Pandit <parav@mellanox.com>
-Signed-off-by: Leon Romanovsky <leon@kernel.org>
----
- drivers/infiniband/core/security.c | 51 +++++++++++++++++++++-----------------
- 1 file changed, 28 insertions(+), 23 deletions(-)
-
-diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
-index 455cba7f9640..23278ed5be45 100644
---- a/drivers/infiniband/core/security.c
-+++ b/drivers/infiniband/core/security.c
-@@ -87,16 +87,14 @@ static int enforce_qp_pkey_security(u16 pkey,
- 	if (ret)
- 		return ret;
-
--	if (qp_sec->qp == qp_sec->qp->real_qp) {
--		list_for_each_entry(shared_qp_sec,
--				    &qp_sec->shared_qp_list,
--				    shared_qp_list) {
--			ret = security_ib_pkey_access(shared_qp_sec->security,
--						      subnet_prefix,
--						      pkey);
--			if (ret)
--				return ret;
--		}
-+	list_for_each_entry(shared_qp_sec,
-+			    &qp_sec->shared_qp_list,
-+			    shared_qp_list) {
-+		ret = security_ib_pkey_access(shared_qp_sec->security,
-+					      subnet_prefix,
-+					      pkey);
-+		if (ret)
-+			return ret;
- 	}
- 	return 0;
- }
-@@ -560,15 +558,22 @@ int ib_security_modify_qp(struct ib_qp *qp,
- 	int ret = 0;
- 	struct ib_ports_pkeys *tmp_pps;
- 	struct ib_ports_pkeys *new_pps;
--	bool special_qp = (qp->qp_type == IB_QPT_SMI ||
--			   qp->qp_type == IB_QPT_GSI ||
--			   qp->qp_type >= IB_QPT_RESERVED1);
-+	struct ib_qp *real_qp = qp->real_qp;
-+	bool special_qp = (real_qp->qp_type == IB_QPT_SMI ||
-+			   real_qp->qp_type == IB_QPT_GSI ||
-+			   real_qp->qp_type >= IB_QPT_RESERVED1);
- 	bool pps_change = ((qp_attr_mask & (IB_QP_PKEY_INDEX | IB_QP_PORT)) ||
- 			   (qp_attr_mask & IB_QP_ALT_PATH));
-
-+	/* The port/pkey settings are maintained only for the real QP. Open
-+	 * handles on the real QP will be in the shared_qp_list. When
-+	 * enforcing security on the real QP all the shared QPs will be
-+	 * checked as well.
-+	 */
-+
- 	if (pps_change && !special_qp) {
--		mutex_lock(&qp->qp_sec->mutex);
--		new_pps = get_new_pps(qp,
-+		mutex_lock(&real_qp->qp_sec->mutex);
-+		new_pps = get_new_pps(real_qp,
- 				      qp_attr,
- 				      qp_attr_mask);
-
-@@ -586,14 +591,14 @@ int ib_security_modify_qp(struct ib_qp *qp,
-
- 		if (!ret)
- 			ret = check_qp_port_pkey_settings(new_pps,
--							  qp->qp_sec);
-+							  real_qp->qp_sec);
- 	}
-
- 	if (!ret)
--		ret = qp->device->modify_qp(qp->real_qp,
--					    qp_attr,
--					    qp_attr_mask,
--					    udata);
-+		ret = real_qp->device->modify_qp(real_qp,
-+						 qp_attr,
-+						 qp_attr_mask,
-+						 udata);
-
- 	if (pps_change && !special_qp) {
- 		/* Clean up the lists and free the appropriate
-@@ -602,8 +607,8 @@ int ib_security_modify_qp(struct ib_qp *qp,
- 		if (ret) {
- 			tmp_pps = new_pps;
- 		} else {
--			tmp_pps = qp->qp_sec->ports_pkeys;
--			qp->qp_sec->ports_pkeys = new_pps;
-+			tmp_pps = real_qp->qp_sec->ports_pkeys;
-+			real_qp->qp_sec->ports_pkeys = new_pps;
- 		}
-
- 		if (tmp_pps) {
-@@ -611,7 +616,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
- 			port_pkey_list_remove(&tmp_pps->alt);
- 		}
- 		kfree(tmp_pps);
--		mutex_unlock(&qp->qp_sec->mutex);
-+		mutex_unlock(&real_qp->qp_sec->mutex);
- 	}
- 	return ret;
- }
+> This bug was provoked by compiling rds out-of-tree with
+> EXTRA_CFLAGS="-DRDS_DEBUG -DDEBUG" and inserting an artificial delay
+> between the rdsdebug() and ib_ib_port_recv() statements:
+> 
+>     	       /* XXX when can this fail? */
+> 	       ret = ib_post_recv(ic->i_cm_id->qp, &recv->r_wr, &failed_wr);
+> +		if (can_wait)
+> +			usleep_range(1000, 5000);
+> 	       rdsdebug("recv %p ibinc %p page %p addr %lu ret %d\n", recv,
+> 			recv->r_ibinc, sg_page(&recv->r_frag->f_sg),
+> 			(long) ib_sg_dma_address(
+> 
+> The fix is simply to move the rdsdebug() statement up before the
+> ib_post_recv() and remove the printing of ret, which is taken care of
+> anyway by the non-debug code.
+> 
+> Signed-off-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Wei Lin Guay <wei.lin.guay-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>   net/rds/ib_recv.c | 10 +++++-----
+>   1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+Acked-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
