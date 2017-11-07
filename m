@@ -1,63 +1,50 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 0/3] introduce get_user_pages_longterm()
-Date: Mon, 06 Nov 2017 16:57:10 -0800
-Message-ID: <151001623063.16354.14661493921524115663.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 2/3] IB/core: disable memory registration of fileystem-dax
+ vmas
+Date: Mon, 06 Nov 2017 16:57:21 -0800
+Message-ID: <151001624138.16354.16836728315400060928.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151001623063.16354.14661493921524115663.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <151001623063.16354.14661493921524115663.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: owner-linux-mm@kvack.org
 To: akpm@linux-foundation.org
-Cc: Sean Hefty <sean.hefty@intel.com>, Jan Kara <jack@suse.cz>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, stable@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Christoph Hellwig <hch@lst.de>, linux-media@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-mm@kvack.org, Doug Ledford <dledford@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Andrew,
+Until there is a solution to the dma-to-dax vs truncate problem it is
+not safe to allow RDMA to create long standing memory registrations
+against filesytem-dax vmas.
 
-Here is a new get_user_pages api for cases where a driver intends to
-keep an elevated page count indefinitely. This is distinct from usages
-like iov_iter_get_pages where the elevated page counts are transient.
-The iov_iter_get_pages cases immediately turn around and submit the
-pages to a device driver which will put_page when the i/o operation
-completes (under kernel control).
-
-In the longterm case userspace is responsible for dropping the page
-reference at some undefined point in the future. This is untenable for
-filesystem-dax case where the filesystem is in control of the lifetime
-of the block / page and needs reasonable limits on how long it can wait
-for pages in a mapping to become idle.
-
-Fixing filesystems to actually wait for dax pages to be idle before
-blocks from a truncate/hole-punch operation are repurposed is saved for
-a later patch series.
-
-Also, allowing longterm registration of dax mappings is a future patch
-series that introduces a "map with lease" semantic where the kernel can
-revoke a lease and force userspace to drop its page references.
-
-I have also tagged these for -stable to purposely break cases that might
-assume that longterm memory registrations for filesystem-dax mappings
-were supported by the kernel. The behavior regression this policy change
-implies is one of the reasons we maintain the "dax enabled. Warning:
-EXPERIMENTAL, use at your own risk" notification when mounting a
-filesystem in dax mode.
-
-It is worth noting the device-dax interface does not suffer the same
-constraints since it does not support file space management operations
-like hole-punch.
-
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: <linux-rdma@vger.kernel.org>
+Cc: <stable@vger.kernel.org>
+Reported-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/infiniband/core/umem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Dan Williams (3):
-      mm: introduce get_user_pages_longterm
-      IB/core: disable memory registration of fileystem-dax vmas
-      [media] v4l2: disable filesystem-dax mapping support
-
-
- drivers/infiniband/core/umem.c            |    2 -
- drivers/media/v4l2-core/videobuf-dma-sg.c |    5 +-
- include/linux/mm.h                        |    3 +
- mm/gup.c                                  |   75 +++++++++++++++++++++++++++++
- 4 files changed, 82 insertions(+), 3 deletions(-)
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 21e60b1e2ff4..130606c3b07c 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -191,7 +191,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 	sg_list_start = umem->sg_head.sgl;
+ 
+ 	while (npages) {
+-		ret = get_user_pages(cur_base,
++		ret = get_user_pages_longterm(cur_base,
+ 				     min_t(unsigned long, npages,
+ 					   PAGE_SIZE / sizeof (struct page *)),
+ 				     gup_flags, page_list, vma_list);
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
