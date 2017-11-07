@@ -1,49 +1,66 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rdma-core stable releases
-Date: Mon, 6 Nov 2017 23:44:04 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F9B617463E@ORSMSX101.amr.corp.intel.com>
-References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <20171106182756.GD18802@ziepe.ca> <20171106203230.GA999@mtr-leonro.local>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH 0/3] introduce get_user_pages_longterm()
+Date: Mon, 06 Nov 2017 16:57:10 -0800
+Message-ID: <151001623063.16354.14661493921524115663.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171106203230.GA999-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org
+Cc: Sean Hefty <sean.hefty@intel.com>, Jan Kara <jack@suse.cz>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, stable@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-mm@kvack.org, Jeff Moyer <jmoyer@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Christoph Hellwig <hch@lst.de>, linux-media@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > Previous discussions on this topic concluded that if someone wishes to
-> > maintain a stable branch scheme then we'd make space for that (eg a
-> > github branch or whatever).
-> >
-> > I don't think the existing maintainers are interested in directly
-> > working on this project, so there is room for a new volunteer!
-> 
-> The offline discussion was with Vlad.
-> This is the quote of my latest response to him:
-> 
-> "There is a need to post request to the mailing list with description of why do
-> you need it and the volunteer name to manage it.
-> 
-> It should come with file in Documentation with explanation how such stable
-> branches are managed, for how long, if releases are going to be done and
-> then, ..."
+Andrew,
 
-We certainly see the value in a stable branch for rdma-core, especially with 
-the various distro's on different release cadences. I may have a resource
-that can help create and maintain this stable branch. Working on the why, 
-who, and how document. In the meantime, if anyone else wants to step 
-up that is also fine.
+Here is a new get_user_pages api for cases where a driver intends to
+keep an elevated page count indefinitely. This is distinct from usages
+like iov_iter_get_pages where the elevated page counts are transient.
+The iov_iter_get_pages cases immediately turn around and submit the
+pages to a device driver which will put_page when the i/o operation
+completes (under kernel control).
 
--arlin
+In the longterm case userspace is responsible for dropping the page
+reference at some undefined point in the future. This is untenable for
+filesystem-dax case where the filesystem is in control of the lifetime
+of the block / page and needs reasonable limits on how long it can wait
+for pages in a mapping to become idle.
+
+Fixing filesystems to actually wait for dax pages to be idle before
+blocks from a truncate/hole-punch operation are repurposed is saved for
+a later patch series.
+
+Also, allowing longterm registration of dax mappings is a future patch
+series that introduces a "map with lease" semantic where the kernel can
+revoke a lease and force userspace to drop its page references.
+
+I have also tagged these for -stable to purposely break cases that might
+assume that longterm memory registrations for filesystem-dax mappings
+were supported by the kernel. The behavior regression this policy change
+implies is one of the reasons we maintain the "dax enabled. Warning:
+EXPERIMENTAL, use at your own risk" notification when mounting a
+filesystem in dax mode.
+
+It is worth noting the device-dax interface does not suffer the same
+constraints since it does not support file space management operations
+like hole-punch.
+
+---
+
+Dan Williams (3):
+      mm: introduce get_user_pages_longterm
+      IB/core: disable memory registration of fileystem-dax vmas
+      [media] v4l2: disable filesystem-dax mapping support
 
 
-
+ drivers/infiniband/core/umem.c            |    2 -
+ drivers/media/v4l2-core/videobuf-dma-sg.c |    5 +-
+ include/linux/mm.h                        |    3 +
+ mm/gup.c                                  |   75 +++++++++++++++++++++++++++++
+ 4 files changed, 82 insertions(+), 3 deletions(-)
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
