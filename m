@@ -1,48 +1,45 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH for-next 2/4] RDMA/hns: Add IOMMU enable support in hip08
-Date: Tue, 7 Nov 2017 08:48:38 -0700
-Message-ID: <20171107154838.GC21466@ziepe.ca>
-References: <1506763741-81429-1-git-send-email-xavier.huwei@huawei.com>
- <1506763741-81429-3-git-send-email-xavier.huwei@huawei.com>
- <20170930161023.GI2965@mtr-leonro.local>
- <59DF60A3.7080803@huawei.com>
- <5fe5f9b9-2c2b-ab3c-dafa-3e2add051bbb@arm.com>
- <59F97BBE.5070207@huawei.com>
- <fc7433af-4fa7-6b78-6bec-26941a427002@arm.com>
- <5A011E49.6060407@huawei.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-core] librdmacm: Store error code from getaddrinfo
+ in errno
+Date: Tue, 7 Nov 2017 08:56:02 -0700
+Message-ID: <20171107155602.GD21466@ziepe.ca>
+References: <20171107095038.7348-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5A011E49.6060407@huawei.com>
-Sender: owner-linux-mm@kvack.org
-To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Cc: Robin Murphy <robin.murphy@arm.com>, Leon Romanovsky <leon@kernel.org>, shaobo.xu@intel.com, xavier.huwei@tom.com, lijun_nudt@163.com, oulijun@huawei.com, linux-rdma@vger.kernel.org, charles.chenxin@huawei.com, linuxarm@huawei.com, iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, dledford@redhat.com, liuyixian@huawei.com, zhangxiping3@huawei.com, shaoboxu@tom.com
+In-Reply-To: <20171107095038.7348-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 07, 2017 at 10:45:29AM +0800, Wei Hu (Xavier) wrote:
+On Tue, Nov 07, 2017 at 11:50:38AM +0200, Yuval Shaia wrote:
+> +++ b/librdmacm/addrinfo.c
+> @@ -227,7 +227,7 @@ static int ucma_getaddrinfo(const char *node, const char *service,
+>  		ret = getaddrinfo(node, service, NULL, &ai);
+>  	}
+>  	if (ret)
+> -		return ret;
+> +		return ERR(ret);
 
->     We reconstruct the code as below:
+No, you cannot assign the return value from getaddrinfo directly errno, they
+are not the same number space.
 
->             It replaces dma_alloc_coherent with __get_free_pages and
-> dma_map_single functions. So, we can vmap serveral ptrs returned by
-> __get_free_pages, right?
+> diff --git a/librdmacm/examples/cmatose.c b/librdmacm/examples/cmatose.c
+> index b1c9dd13..625849ce 100644
+> +++ b/librdmacm/examples/cmatose.c
+> @@ -507,7 +507,7 @@ static int run_server(void)
+>  
+>  	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &test.rai);
+>  	if (ret) {
+> -		printf("cmatose: getrdmaaddr error: %s\n", gai_strerror(ret));
+> +		printf("cmatose: getrdmaaddr error: %s\n", gai_strerror(errno));
 
-Can't you just use vmalloc and dma_map that? Other drivers follow that
-approach..
-
-However, dma_alloc_coherent and dma_map_single are not the same
-thing. You can't touch the vmap memory once you call dma_map unless
-the driver also includes dma cache flushing calls in all the right
-places.
-
-The difference is that alloc_coherent will return non-cachable memory
-if necessary, while get_free_pages does not.
+Also nope, gai_strerror does not process errnos.
 
 Jason
-
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
