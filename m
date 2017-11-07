@@ -1,8 +1,8 @@
 From: Ubuntu Installer <archive-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>
 Subject: [~linux-rdma/ubuntu/rdma-core-daily]
- rdma-core_16~201711071133~ubuntu16.04.1_source.changes (Rejected)
-Date: Tue, 07 Nov 2017 13:35:25 -0000
-Message-ID: <151006172533.30516.7116029658278129744.launchpad@alphecca.canonical.com>
+ rdma-core_16~201711071133~ubuntu18.04.1_source.changes (Rejected)
+Date: Tue, 07 Nov 2017 13:35:24 -0000
+Message-ID: <151006172435.30516.14139434465555259126.launchpad@alphecca.canonical.com>
 Reply-To: Ubuntu Installer <archive-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,10 +13,10 @@ To: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Rejected:
-File rdma-core_16~201711071133~ubuntu16.04.1.tar.xz already exists in PPA named rdma-core-daily for Linux RDMA, but uploaded version has different contents. See more information about this error in https://help.launchpad.net/Packaging/UploadErrors.
+File rdma-core_16~201711071133~ubuntu18.04.1.tar.xz already exists in PPA named rdma-core-daily for Linux RDMA, but uploaded version has different contents. See more information about this error in https://help.launchpad.net/Packaging/UploadErrors.
 Files specified in DSC are broken or missing, skipping package unpack verification.
 
-rdma-core (16~201711071133~ubuntu16.04.1) xenial; urgency=low
+rdma-core (16~201711071133~ubuntu18.04.1) bionic; urgency=low
 
   * Auto build.
 
