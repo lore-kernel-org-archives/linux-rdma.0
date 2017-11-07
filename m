@@ -1,37 +1,48 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/3] libhns: Fix endian format of payload and
- immediate
-Date: Tue, 7 Nov 2017 08:41:33 -0700
-Message-ID: <20171107154133.GB21466@ziepe.ca>
-References: <1509530440-164400-1-git-send-email-oulijun@huawei.com>
- <1509530440-164400-4-git-send-email-oulijun@huawei.com>
- <20171101161328.GB7815@ziepe.ca>
- <20171104100846.GA1636@mtr-leonro.local>
- <7dba9ad9-5a71-c4fe-b2b9-ccc35c188f8c@huawei.com>
- <20171106020945.GA26011@ziepe.ca>
- <2622b4b1-5bc4-ec04-c9a4-d78d5a727f4c@huawei.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH for-next 2/4] RDMA/hns: Add IOMMU enable support in hip08
+Date: Tue, 7 Nov 2017 08:48:38 -0700
+Message-ID: <20171107154838.GC21466@ziepe.ca>
+References: <1506763741-81429-1-git-send-email-xavier.huwei@huawei.com>
+ <1506763741-81429-3-git-send-email-xavier.huwei@huawei.com>
+ <20170930161023.GI2965@mtr-leonro.local>
+ <59DF60A3.7080803@huawei.com>
+ <5fe5f9b9-2c2b-ab3c-dafa-3e2add051bbb@arm.com>
+ <59F97BBE.5070207@huawei.com>
+ <fc7433af-4fa7-6b78-6bec-26941a427002@arm.com>
+ <5A011E49.6060407@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <2622b4b1-5bc4-ec04-c9a4-d78d5a727f4c-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <5A011E49.6060407@huawei.com>
+Sender: owner-linux-mm@kvack.org
+To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Cc: Robin Murphy <robin.murphy@arm.com>, Leon Romanovsky <leon@kernel.org>, shaobo.xu@intel.com, xavier.huwei@tom.com, lijun_nudt@163.com, oulijun@huawei.com, linux-rdma@vger.kernel.org, charles.chenxin@huawei.com, linuxarm@huawei.com, iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, dledford@redhat.com, liuyixian@huawei.com, zhangxiping3@huawei.com, shaoboxu@tom.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 07, 2017 at 06:59:05PM +0800, oulijun wrote:
-> 在 2017/11/6 10:09, Jason Gunthorpe 写道:
-> > My patch fixes all the sparse problems.
+On Tue, Nov 07, 2017 at 10:45:29AM +0800, Wei Hu (Xavier) wrote:
 
->   Do I need to clean this patch and send a new patch refer to Jason's patch?
+>     We reconstruct the code as below:
 
-Test and ack my patch instead, it already incorporates this patch in
-the correct way.
+>             It replaces dma_alloc_coherent with __get_free_pages and
+> dma_map_single functions. So, we can vmap serveral ptrs returned by
+> __get_free_pages, right?
+
+Can't you just use vmalloc and dma_map that? Other drivers follow that
+approach..
+
+However, dma_alloc_coherent and dma_map_single are not the same
+thing. You can't touch the vmap memory once you call dma_map unless
+the driver also includes dma cache flushing calls in all the right
+places.
+
+The difference is that alloc_coherent will return non-cachable memory
+if necessary, while get_free_pages does not.
 
 Jason
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
