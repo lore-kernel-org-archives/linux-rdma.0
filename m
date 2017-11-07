@@ -1,60 +1,60 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Launchpad linux-rdma group and rdma-core daily builds
-Date: Tue, 07 Nov 2017 14:50:06 +0100
-Message-ID: <1510062606.32330.13.camel@profitbricks.com>
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: Re: [PATCH] IB/ocrdma_hw: remove unnecessary code in
+ ocrdma_mbx_dealloc_lkey
+Date: Tue, 07 Nov 2017 08:27:30 -0600
+Message-ID: <20171107082730.Horde.E4rpZA7ga1h-VUypbnAbXHl@gator4166.hostgator.com>
+References: <20171106143514.GA19786@embeddedor.com>
+ <20171107063135.GA3815@yuvallap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171107063135.GA3815@yuvallap>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yuval Shaia <yuval.shaia@oracle.com>
+Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Hi Yuval,
 
-as previously discussed, I created a linux-rdma group on Launchpad
-(using this mailing list as contact address):
-https://launchpad.net/~linux-rdma
+Quoting Yuval Shaia <yuval.shaia@oracle.com>:
 
-In addition, I created a rdma-core project (owned by linux-rdma):
-https://launchpad.net/rdma-core
+> On Mon, Nov 06, 2017 at 08:35:14AM -0600, Gustavo A. R. Silva wrote:
+>> Check on return value and goto label mbx_err are unnecessary.
+>>
+>> Addresses-Coverity-ID: 1268780
+>
+> What's that?
+>
 
-I setup a git repository import for rdma-core:
-https://code.launchpad.net/~linux-rdma/rdma-core/+git/master
+Coverity is a static code analyzer.
+I am fixing Coverity issues and that is the ID Coverity assigned to  
+this particular issue.
 
-Then I created a build recipe for rdma-core:
-https://code.launchpad.net/~linux-rdma/+recipe/rdma-core-daily
+>> ---
+>>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 4 +---
+>>  1 file changed, 1 insertion(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c  
+>> b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+>> index f8c14c7..db02bbb 100644
+>> --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+>> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+>> @@ -1956,9 +1956,7 @@ int ocrdma_mbx_dealloc_lkey(struct ocrdma_dev  
+>> *dev, int fr_mr, u32 lkey)
+>>  	cmd->lkey = lkey;
+>>  	cmd->rsvd_frmr = fr_mr ? 1 : 0;
+>>  	status = ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
+>> -	if (status)
+>> -		goto mbx_err;
+>> -mbx_err:
+>> +
+>>  	kfree(cmd);
+>>  	return status;
+>
+> Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
+>
 
-which publishes the packages in the rdma-core-daily PPA:
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily
-
-The package was built successfully for Ubuntu 16.04 (xenial) and newer.
-The build fails for Ubuntu 14.04 (trusty) due to the missing
-libsystemd-dev package. Thus I excluded Ubuntu 14.04 (trusty) from the
-daily builds. The upload failure mails that you can see on the mailing
-list probably came from the clashing auto build and my manual build
-request.
-
-I invite every rdma-core developer (but not users) to join the linux-
-rdma Launchpad group. You need a Launchpad account and then you can
-request to join the group.
-
--- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-URL: https://www.profitbricks.de
-
-Sitz der Gesellschaft: Berlin
-Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
-Geschäftsführer: Achim Weiss, Matthias Steinberg
+Thank you
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Gustavo A. R. Silva
