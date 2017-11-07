@@ -1,140 +1,227 @@
-From: Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
-Subject: [Patch v7 03/22] CIFS: SMBD: Add rdma mount option
-Date: Tue,  7 Nov 2017 01:54:55 -0700
-Message-ID: <20171107085514.12693-4-longli@exchange.microsoft.com>
-References: <20171107085514.12693-1-longli@exchange.microsoft.com>
-Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171107085514.12693-1-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
-Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Cc: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH rdma-core] librdmacm: Store error code from getaddrinfo in errno
+Date: Tue,  7 Nov 2017 11:50:38 +0200
+Message-ID: <20171107095038.7348-1-yuval.shaia@oracle.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+A return value of -1 from rdma_getaddrinfo can indicates either
+EAI_BADFLAGS returned from getaddrinfo or a generic error returned by
+rdma_getaddrinfo itself.
 
-Add "rdma" to CIFS mount options to connect to SMB Direct.
-Add checks to validate this is used on SMB 3.X dialects.
+Fix this conflict by sticking to the existing convention where -1
+indicates an error while the actual underling error code is stored in
+errno.
 
-To connect to SMBDirect, use "mount.cifs -o rdma,vers=3.x".
-At the time of this patch, 3.x can be 3.0, 3.02 or 3.1.1.
-
-Signed-off-by: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- fs/cifs/cifs_debug.c |  2 ++
- fs/cifs/cifsfs.c     |  2 ++
- fs/cifs/cifsglob.h   |  5 +++++
- fs/cifs/connect.c    | 15 ++++++++++++++-
- 4 files changed, 23 insertions(+), 1 deletion(-)
+ librdmacm/addrinfo.c              | 2 +-
+ librdmacm/examples/cmatose.c      | 4 ++--
+ librdmacm/examples/cmtime.c       | 4 ++--
+ librdmacm/examples/rdma_client.c  | 2 +-
+ librdmacm/examples/rdma_server.c  | 2 +-
+ librdmacm/examples/rdma_xclient.c | 2 +-
+ librdmacm/examples/rdma_xserver.c | 2 +-
+ librdmacm/examples/riostream.c    | 5 ++++-
+ librdmacm/examples/rstream.c      | 9 ++++++---
+ librdmacm/examples/udaddy.c       | 4 ++--
+ 10 files changed, 21 insertions(+), 15 deletions(-)
 
-diff --git a/fs/cifs/cifs_debug.c b/fs/cifs/cifs_debug.c
-index 9727e1d..ba0870d 100644
---- a/fs/cifs/cifs_debug.c
-+++ b/fs/cifs/cifs_debug.c
-@@ -171,6 +171,8 @@ static int cifs_debug_data_proc_show(struct seq_file *m, void *v)
- 				ses->ses_count, ses->serverOS, ses->serverNOS,
- 				ses->capabilities, ses->status);
- 			}
-+			if (server->rdma)
-+				seq_printf(m, "RDMA\n\t");
- 			seq_printf(m, "TCP status: %d\n\tLocal Users To "
- 				   "Server: %d SecMode: 0x%x Req On Wire: %d",
- 				   server->tcpStatus, server->srv_count,
-diff --git a/fs/cifs/cifsfs.c b/fs/cifs/cifsfs.c
-index 180b335..e15fbf1 100644
---- a/fs/cifs/cifsfs.c
-+++ b/fs/cifs/cifsfs.c
-@@ -327,6 +327,8 @@ cifs_show_address(struct seq_file *s, struct TCP_Server_Info *server)
- 	default:
- 		seq_puts(s, "(unknown)");
+diff --git a/librdmacm/addrinfo.c b/librdmacm/addrinfo.c
+index 7e660659..b5f45f69 100644
+--- a/librdmacm/addrinfo.c
++++ b/librdmacm/addrinfo.c
+@@ -227,7 +227,7 @@ static int ucma_getaddrinfo(const char *node, const char *service,
+ 		ret = getaddrinfo(node, service, NULL, &ai);
  	}
-+	if (server->rdma)
-+		seq_puts(s, ",rdma");
- }
+ 	if (ret)
+-		return ret;
++		return ERR(ret);
  
- static void
-diff --git a/fs/cifs/cifsglob.h b/fs/cifs/cifsglob.h
-index 808486c..5585516 100644
---- a/fs/cifs/cifsglob.h
-+++ b/fs/cifs/cifsglob.h
-@@ -530,6 +530,7 @@ struct smb_vol {
- 	bool nopersistent:1;
- 	bool resilient:1; /* noresilient not required since not fored for CA */
- 	bool domainauto:1;
-+	bool rdma:1;
- 	unsigned int rsize;
- 	unsigned int wsize;
- 	bool sockopt_tcp_nodelay:1;
-@@ -646,6 +647,10 @@ struct TCP_Server_Info {
- 	bool	sec_kerberos;		/* supports plain Kerberos */
- 	bool	sec_mskerberos;		/* supports legacy MS Kerberos */
- 	bool	large_buf;		/* is current buffer large? */
-+	/* use SMBD connection instead of socket */
-+	bool	rdma;
-+	/* point to the SMBD connection if RDMA is used instead of socket */
-+	struct smbd_connection *smbd_conn;
- 	struct delayed_work	echo; /* echo ping workqueue job */
- 	char	*smallbuf;	/* pointer to current "small" buffer */
- 	char	*bigbuf;	/* pointer to current "big" buffer */
-diff --git a/fs/cifs/connect.c b/fs/cifs/connect.c
-index 59647eb..b5a575f 100644
---- a/fs/cifs/connect.c
-+++ b/fs/cifs/connect.c
-@@ -92,7 +92,7 @@ enum {
- 	Opt_multiuser, Opt_sloppy, Opt_nosharesock,
- 	Opt_persistent, Opt_nopersistent,
- 	Opt_resilient, Opt_noresilient,
--	Opt_domainauto,
-+	Opt_domainauto, Opt_rdma,
+ 	ret = ucma_convert_to_rai(rai, hints, ai);
+ 	freeaddrinfo(ai);
+diff --git a/librdmacm/examples/cmatose.c b/librdmacm/examples/cmatose.c
+index b1c9dd13..625849ce 100644
+--- a/librdmacm/examples/cmatose.c
++++ b/librdmacm/examples/cmatose.c
+@@ -507,7 +507,7 @@ static int run_server(void)
  
- 	/* Mount options which take numeric value */
- 	Opt_backupuid, Opt_backupgid, Opt_uid,
-@@ -183,6 +183,7 @@ static const match_table_t cifs_mount_option_tokens = {
- 	{ Opt_resilient, "resilienthandles"},
- 	{ Opt_noresilient, "noresilienthandles"},
- 	{ Opt_domainauto, "domainauto"},
-+	{ Opt_rdma, "rdma"},
- 
- 	{ Opt_backupuid, "backupuid=%s" },
- 	{ Opt_backupgid, "backupgid=%s" },
-@@ -1538,6 +1539,9 @@ cifs_parse_mount_options(const char *mountdata, const char *devname,
- 		case Opt_domainauto:
- 			vol->domainauto = true;
- 			break;
-+		case Opt_rdma:
-+			vol->rdma = true;
-+			break;
- 
- 		/* Numeric Values */
- 		case Opt_backupuid:
-@@ -1928,6 +1932,11 @@ cifs_parse_mount_options(const char *mountdata, const char *devname,
- 		goto cifs_parse_mount_err;
+ 	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &test.rai);
+ 	if (ret) {
+-		printf("cmatose: getrdmaaddr error: %s\n", gai_strerror(ret));
++		printf("cmatose: getrdmaaddr error: %s\n", gai_strerror(errno));
+ 		goto out;
  	}
  
-+	if (vol->rdma && vol->vals->protocol_id < SMB30_PROT_ID) {
-+		cifs_dbg(VFS, "SMB Direct requires Version >=3.0\n");
-+		goto cifs_parse_mount_err;
-+	}
-+
- #ifndef CONFIG_KEYS
- 	/* Muliuser mounts require CONFIG_KEYS support */
- 	if (vol->multiuser) {
-@@ -2131,6 +2140,9 @@ static int match_server(struct TCP_Server_Info *server, struct smb_vol *vol)
- 	if (server->echo_interval != vol->echo_interval * HZ)
- 		return 0;
+@@ -580,7 +580,7 @@ static int run_client(void)
  
-+	if (server->rdma != vol->rdma)
-+		return 0;
-+
- 	return 1;
- }
+ 	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &test.rai);
+ 	if (ret) {
+-		printf("cmatose: getaddrinfo error: %s\n", gai_strerror(ret));
++		printf("cmatose: getaddrinfo error: %s\n", gai_strerror(errno));
+ 		return ret;
+ 	}
  
-@@ -2229,6 +2241,7 @@ cifs_get_tcp_session(struct smb_vol *volume_info)
- 	tcp_ses->noblocksnd = volume_info->noblocksnd;
- 	tcp_ses->noautotune = volume_info->noautotune;
- 	tcp_ses->tcp_nodelay = volume_info->sockopt_tcp_nodelay;
-+	tcp_ses->rdma = volume_info->rdma;
- 	tcp_ses->in_flight = 0;
- 	tcp_ses->credits = 1;
- 	init_waitqueue_head(&tcp_ses->response_q);
+diff --git a/librdmacm/examples/cmtime.c b/librdmacm/examples/cmtime.c
+index aa96b901..dc881701 100644
+--- a/librdmacm/examples/cmtime.c
++++ b/librdmacm/examples/cmtime.c
+@@ -462,7 +462,7 @@ static int run_server(void)
+ 
+ 	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &rai);
+ 	if (ret) {
+-		printf("getrdmaaddr error: %s\n", gai_strerror(ret));
++		printf("getrdmaaddr error: %s\n", gai_strerror(errno));
+ 		goto out;
+ 	}
+ 
+@@ -491,7 +491,7 @@ static int run_client(void)
+ 
+ 	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &rai);
+ 	if (ret) {
+-		printf("getaddrinfo error: %s\n", gai_strerror(ret));
++		printf("getaddrinfo error: %s\n", gai_strerror(errno));
+ 		return ret;
+ 	}
+ 
+diff --git a/librdmacm/examples/rdma_client.c b/librdmacm/examples/rdma_client.c
+index c27047c5..0bfd9323 100644
+--- a/librdmacm/examples/rdma_client.c
++++ b/librdmacm/examples/rdma_client.c
+@@ -56,7 +56,7 @@ static int run(void)
+ 	hints.ai_port_space = RDMA_PS_TCP;
+ 	ret = rdma_getaddrinfo(server, port, &hints, &res);
+ 	if (ret) {
+-		printf("rdma_getaddrinfo: %s\n", gai_strerror(ret));
++		printf("rdma_getaddrinfo: %s\n", gai_strerror(errno));
+ 		goto out;
+ 	}
+ 
+diff --git a/librdmacm/examples/rdma_server.c b/librdmacm/examples/rdma_server.c
+index bcf649fe..89feaa64 100644
+--- a/librdmacm/examples/rdma_server.c
++++ b/librdmacm/examples/rdma_server.c
+@@ -57,7 +57,7 @@ static int run(void)
+ 	hints.ai_port_space = RDMA_PS_TCP;
+ 	ret = rdma_getaddrinfo(NULL, port, &hints, &res);
+ 	if (ret) {
+-		printf("rdma_getaddrinfo: %s\n", gai_strerror(ret));
++		printf("rdma_getaddrinfo: %s\n", gai_strerror(errno));
+ 		return ret;
+ 	}
+ 
+diff --git a/librdmacm/examples/rdma_xclient.c b/librdmacm/examples/rdma_xclient.c
+index 63dfb6df..0466c1a6 100644
+--- a/librdmacm/examples/rdma_xclient.c
++++ b/librdmacm/examples/rdma_xclient.c
+@@ -82,7 +82,7 @@ static int test(void)
+ 
+ 	ret = rdma_getaddrinfo(server, port, &hints, &res);
+ 	if (ret) {
+-		printf("rdma_getaddrinfo: %s\n", gai_strerror(ret));
++		printf("rdma_getaddrinfo: %s\n", gai_strerror(errno));
+ 		return ret;
+ 	}
+ 
+diff --git a/librdmacm/examples/rdma_xserver.c b/librdmacm/examples/rdma_xserver.c
+index 8d8ac314..6cc00927 100644
+--- a/librdmacm/examples/rdma_xserver.c
++++ b/librdmacm/examples/rdma_xserver.c
+@@ -79,7 +79,7 @@ static int test(void)
+ 
+ 	ret = rdma_getaddrinfo(NULL, port, &hints, &res);
+ 	if (ret) {
+-		printf("rdma_getaddrinfo: %s\n", gai_strerror(ret));
++		printf("rdma_getaddrinfo: %s\n", gai_strerror(errno));
+ 		return ret;
+ 	}
+ 
+diff --git a/librdmacm/examples/riostream.c b/librdmacm/examples/riostream.c
+index bdf4fd34..872cfcdc 100644
+--- a/librdmacm/examples/riostream.c
++++ b/librdmacm/examples/riostream.c
+@@ -358,6 +358,8 @@ static int server_listen(void)
+ 	if (use_rgai) {
+ 		rai_hints.ai_flags |= RAI_PASSIVE;
+ 		ret = rdma_getaddrinfo(src_addr, port, &rai_hints, &rai);
++		if (ret == -1)
++			ret = errno;
+ 	} else {
+ 		ai_hints.ai_flags |= AI_PASSIVE;
+ 		ret = getaddrinfo(src_addr, port, &ai_hints, &ai);
+@@ -444,7 +446,8 @@ static int client_connect(void)
+ 	ret = use_rgai ? rdma_getaddrinfo(dst_addr, port, &rai_hints, &rai) :
+ 			 getaddrinfo(dst_addr, port, &ai_hints, &ai);
+ 	if (ret) {
+-		printf("getaddrinfo: %s\n", gai_strerror(ret));
++		printf("getaddrinfo: %s\n", gai_strerror(use_rgai ? errno :
++							 ret));
+ 		return ret;
+ 	}
+ 
+diff --git a/librdmacm/examples/rstream.c b/librdmacm/examples/rstream.c
+index 7523269c..c1d7bb49 100644
+--- a/librdmacm/examples/rstream.c
++++ b/librdmacm/examples/rstream.c
+@@ -327,7 +327,8 @@ static int server_listen(void)
+ 		ret = getaddrinfo(src_addr, port, &ai_hints, &ai);
+ 	}
+ 	if (ret) {
+-		printf("getaddrinfo: %s\n", gai_strerror(ret));
++		printf("getaddrinfo: %s\n", gai_strerror(use_rgai ? errno :
++							 ret));
+ 		return ret;
+ 	}
+ 
+@@ -412,7 +413,8 @@ static int client_connect(void)
+ 			 getaddrinfo(dst_addr, port, &ai_hints, &ai);
+ 
+ 	if (ret) {
+-		printf("getaddrinfo: %s\n", gai_strerror(ret));
++		printf("getaddrinfo: %s\n", gai_strerror(use_rgai ? errno :
++							 ret));
+ 		return ret;
+ 	}
+ 
+@@ -425,7 +427,8 @@ static int client_connect(void)
+ 			ret = getaddrinfo(src_addr, port, &ai_hints, &ai_src);
+ 		}
+ 		if (ret) {
+-			printf("getaddrinfo src_addr: %s\n", gai_strerror(ret));
++			printf("getaddrinfo src_addr: %s\n",
++			       gai_strerror(use_rgai ? errno : ret));
+ 			return ret;
+ 		}
+ 	}
+diff --git a/librdmacm/examples/udaddy.c b/librdmacm/examples/udaddy.c
+index b1ac90c3..fae3d09c 100644
+--- a/librdmacm/examples/udaddy.c
++++ b/librdmacm/examples/udaddy.c
+@@ -514,7 +514,7 @@ static int run_server(void)
+ 
+ 	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &test.rai);
+ 	if (ret) {
+-		printf("udaddy: getrdmaaddr error: %s\n", gai_strerror(ret));
++		printf("udaddy: getrdmaaddr error: %s\n", gai_strerror(errno));
+ 		goto out;
+ 	}
+ 
+@@ -563,7 +563,7 @@ static int run_client(void)
+ 
+ 	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &test.rai);
+ 	if (ret) {
+-		printf("udaddy: getaddrinfo error: %s\n", gai_strerror(ret));
++		printf("udaddy: getaddrinfo error: %s\n", gai_strerror(errno));
+ 		return ret;
+ 	}
+ 
 -- 
-2.7.4
+2.13.6
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
