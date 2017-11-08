@@ -1,7 +1,8 @@
 From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH rdma-core 1/4] suse: add a bcond to disable usage of curl-mini
-Date: Wed, 8 Nov 2017 15:31:20 +0100
-Message-ID: <2897ea63-deca-2304-f2ce-8a1a778d02d6@suse.de>
+Subject: [PATCH rdma-core 2/4] cbuild: allow envs to pass custom options to
+ rpmbuild
+Date: Wed, 8 Nov 2017 15:31:24 +0100
+Message-ID: <1ab960a4-a747-6e3e-17f3-a5f5c41b3669@suse.de>
 References: <627d02ab-1e95-8e1e-c7d3-f3db02fce75a@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
@@ -15,35 +16,23 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
 ---
- suse/rdma-core.spec | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ buildlib/cbuild | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/suse/rdma-core.spec b/suse/rdma-core.spec
-index 03c4a296..4f3638f3 100644
---- a/suse/rdma-core.spec
-+++ b/suse/rdma-core.spec
-@@ -77,9 +77,21 @@ Obsoletes:      rdma < %{version}
- Provides:       ofed = %{version}
- Obsoletes:      ofed < %{version}
+diff --git a/buildlib/cbuild b/buildlib/cbuild
+index e6a64e8a..eb5349de 100755
+--- a/buildlib/cbuild
++++ b/buildlib/cbuild
+@@ -474,7 +474,8 @@ os.symlink({tarfn!r},os.path.join("SOURCES",tarfn));
+            tarfn=tarfn,
+            tspec_file=tspec_file);
  
-+# Trickery to handle both SUSE OpenBuild System and Manual build
-+# In OBS, rdma-core must use curl-mini instead of curl to avoid
-+# a build dependency loop:
-+# rdma-core -> cmake -> curl -> ... -> boost -> rdma-core
-+# Thus we force a BuildRequires to curl-mini which as no impact
-+# as it is not used during the build.
-+# However curl-mini is not a published RPM. This would prevent any build
-+# outside of OBS. Thus we add a bcond to allow manual build.
-+# To force build without the use of curl-mini, --without=curlmini
-+# should be passed to rpmbuild
- %if 0%{?suse_version} >= 1330
-+%if %{with curlmini}
- BuildRequires:  curl-mini
- %endif
-+%endif
+-            bopts = ["-bb",tspec_file];
++            extra_opts = getattr(env,"rpmbuild_options", [])
++            bopts = ["-bb",tspec_file] + extra_opts;
  
- # Tumbleweed's cmake RPM macro adds -Wl,--no-undefined to the module flags
- # which is totally inappropriate and breaks building 'ENABLE_EXPORTS' style
+             print >> F,'os.execlp("rpmbuild","rpmbuild",%s)'%(
+                 ",".join(repr(I) for I in bopts));
 -- 
 2.14.1.461.g503560879
 
