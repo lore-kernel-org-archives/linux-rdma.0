@@ -1,57 +1,69 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [rdma-core] librdmacm: Make return value from ucma_init consist
-Date: Wed, 8 Nov 2017 16:49:49 +0200
-Message-ID: <20171108144949.GU18825@mtr-leonro.local>
-References: <20171107084321.6396-1-yuval.shaia@oracle.com>
+Subject: Re: [PATCH rdma-core 0/4] Cleanp SUSE Tumbleweed build
+Date: Wed, 8 Nov 2017 16:50:42 +0200
+Message-ID: <20171108145042.GV18825@mtr-leonro.local>
+References: <627d02ab-1e95-8e1e-c7d3-f3db02fce75a@suse.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Vr2UxLU0KdcKBaxP"
+        protocol="application/pgp-signature"; boundary="w1A23YewkF9s+fLd"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171107084321.6396-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <627d02ab-1e95-8e1e-c7d3-f3db02fce75a-l3A5Bk7waGM@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---Vr2UxLU0KdcKBaxP
+--w1A23YewkF9s+fLd
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Nov 07, 2017 at 10:43:21AM +0200, Yuval Shaia wrote:
-> When check_abi_version fails we must be consist with rest of exit flows
-> of the function and return -1 and set errno with the actual error code.
+On Wed, Nov 08, 2017 at 03:30:38PM +0100, Nicolas Morey-Chaisemartin wrote:
+> This series is to fix the issue reported by Alaa here: https://www.spinics.net/lists/linux-rdma/msg56580.html
 >
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  librdmacm/cma.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+> #1 adds details on the existing situation and an option in the spec file to allow rpmbuild to work
+> #2 adds support for env specific rpmbuild options
+> #3 Add the option from #1 to the tumbleweed env
+> #4 switches the default SUSE env to tumbleweed for validation
 >
+> Nicolas Morey-Chaisemartin (4):
+>   suse: add a bcond to disable usage of curl-mini
+>   cbuild: allow envs to pass custom options to rpmbuild
+>   cbuild: disable curl-mini usage for tumbleweed env
+>   buidlib: validate tumbleweed instead of leap 42.3
+>
+>  buildlib/cbuild             |  4 +++-
+>  buildlib/package-build-test |  2 +-
+>  suse/rdma-core.spec         | 12 ++++++++++++
+>  3 files changed, 16 insertions(+), 2 deletions(-)
+>
+
+Please pay attention and try to avoid empty commit logs.
 
 Thanks, applied.
 
---Vr2UxLU0KdcKBaxP
+--w1A23YewkF9s+fLd
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloDGY0ACgkQ5GN7iDZy
-WKdsmA//eekBoXTpDEHEtrbXrZ63PlHOwLXfyI3FK+/k52qV4Ory0nVAW1GxluSC
-/RlcQqxegcnX66uOTvArk3G6mX+xeWVk2lap0Q+qMxyG1j2K4gGWrpzO0cYMla6U
-vtpuV+rXI6/Mm8UDaAqaZXzydQLWOxZnhR+dRIxNoorPdxgOa2rzKl5g7t7JsWNx
-g7tJXIegP+x+GnW7q0+zsIcMGm6WuMqlwyVtUaCl4ZYoieCvKNbKUvfn+jmLU/pk
-qPtKwVACb4mjn9Pauruk+qFCbDNpt80q0mGyR7+HAJM4wgN2kQhhr6GqZpDV8+V6
-yfPnrRaKf2xRPdhCHsKD9WuDIwaJqezsV1uUTXsPNpgijOJ0zrvSy+zHHwZqXjGq
-JaqLi4IcdzuDTLW9TofRzUnoAJ8ZfPKTxb5f1oLxqHKmenkKaWasV4YnuFA8fawV
-F4OM/DPkN1jMeh2qg3DZ9xw1Hh9145kTMRetRGYI3EKVxHM3Eoinv4d2H9rLAHUC
-+yufttAeNt1kB/aaOPl+s8OcBLzlnG0/fX9dn43R93ZTDIbb099sswEDuqF3V+6p
-SNLVx+9m4uZM1j1T1nzlE7E9wbhaay8TvyP5DKvt1eHyKKZ/pvfpw8SbEI1ONx3i
-089jPGsk0D6qcXz0zmpn5PFAwx8SepZbgdrSV/84GKiibvM57Lw=
-=adFE
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloDGcIACgkQ5GN7iDZy
+WKe9NhAApGy9/VZl43Lq2hNRJFiMWBgA7mzxudzCZr+TKjeSQ2JCiKXMnnjV5kLA
+2+0soIUxsqv7PqzX2Lwrlyac6Es+mlMnmUjerDpUTpIontdgXBrlPjva0iAfqjV4
+w6GycZI6WYPmo/fo8bdqOqRDufxuNTNUf19NNivQie0jNrMGBg/HKblKIcguYJzO
+xWbw+Vvfv+s+O1RUPNAOLL57FBmTrSetVJIqvdAuDWpYXhbCnM2Ik+VUk5kDKH7R
+qQceyoSdWlhuvrkmBrLhxvgJ/6mWvqCpAbAFfCBhX6BQ7hbGrM56BzTxQBa04VA7
+HbiEfxSPNAWv9fZaJZTp/6hoH9zhPexYZAUnvGlZJbiZi++CYqmFzq/Tl+Ep5CcL
+OkzojvEeULRmkhzpQI+YQsGkENaE5gEgG/JoU1sAQeIPjPomNpBWGHqfDVZDVhXM
+ZUKcTRSFrS6qpk0TPEUx3U31XxQcyhH/kyAtw6YhknmrxQe5MiKTGc5GJUP5+mfO
+g/+ETWqmqLH0mU3SM1ojXjA9ORy7iigwoI27xYexi9rXMlez97y/58hu8ZalzHXd
+pUZtOWupbFsGwKX7RYayhi5FNvCVlYof4Q4aMnm5LeJ0RSCWoTCq0vWIg/1qqi2W
+BoXvd2nsASeI3f9Mzo/5iCbWeDLPaQDCnzD+A6pWZDbBCzObejY=
+=M6vg
 -----END PGP SIGNATURE-----
 
---Vr2UxLU0KdcKBaxP--
+--w1A23YewkF9s+fLd--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
