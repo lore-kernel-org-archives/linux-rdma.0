@@ -1,8 +1,8 @@
 From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH rdma-core 2/4] cbuild: allow envs to pass custom options to
- rpmbuild
-Date: Wed, 8 Nov 2017 15:31:24 +0100
-Message-ID: <1ab960a4-a747-6e3e-17f3-a5f5c41b3669@suse.de>
+Subject: [PATCH rdma-core 3/4] cbuild: disable curl-mini usage for tumbleweed
+ env
+Date: Wed, 8 Nov 2017 15:31:27 +0100
+Message-ID: <9199caee-e7a3-07dc-76b3-6e075336c725@suse.de>
 References: <627d02ab-1e95-8e1e-c7d3-f3db02fce75a@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
@@ -16,23 +16,21 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
 ---
- buildlib/cbuild | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ buildlib/cbuild | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/buildlib/cbuild b/buildlib/cbuild
-index e6a64e8a..eb5349de 100755
+index eb5349de..32bb70df 100755
 --- a/buildlib/cbuild
 +++ b/buildlib/cbuild
-@@ -474,7 +474,8 @@ os.symlink({tarfn!r},os.path.join("SOURCES",tarfn));
-            tarfn=tarfn,
-            tspec_file=tspec_file);
+@@ -322,6 +322,7 @@ class tumbleweed(ZypperEnvironment):
+     pkgs = leap.pkgs;
+     name = "tumbleweed";
+     specfile = "suse/rdma-core.spec";
++    rpmbuild_options = [ "--without=curlmini" ];
  
--            bopts = ["-bb",tspec_file];
-+            extra_opts = getattr(env,"rpmbuild_options", [])
-+            bopts = ["-bb",tspec_file] + extra_opts;
+ # -------------------------------------------------------------------------
  
-             print >> F,'os.execlp("rpmbuild","rpmbuild",%s)'%(
-                 ",".join(repr(I) for I in bopts));
 -- 
 2.14.1.461.g503560879
 
