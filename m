@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH v3 1/9] RDMA/core: Add implicit per-device completion queue pools
-Date: Wed,  8 Nov 2017 11:57:34 +0200
-Message-ID: <20171108095742.25365-2-sagi@grimberg.me>
+Subject: [PATCH v3 3/9] IB/iser: use implicit CQ allocation
+Date: Wed,  8 Nov 2017 11:57:36 +0200
+Message-ID: <20171108095742.25365-4-sagi@grimberg.me>
 References: <20171108095742.25365-1-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171108095742.25365-1-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
@@ -10,493 +10,220 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Allow a ULP to ask the core to implicitly assign a completion
-queue to a queue-pair based on a least-used search on a per-device
-cq pools. The device CQ pools grow in a lazy fashion with every
-QP creation.
-
-In addition, expose an affinity hint for a queue pair creation.
-If passed, the core will attempt to attach a CQ with a completion
-vector that is directed to the cpu core as the affinity hint
-provided.
-
 Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+[hch: ported to the new API]
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/core/core_priv.h |   6 ++
- drivers/infiniband/core/cq.c        | 193 ++++++++++++++++++++++++++++++++++++
- drivers/infiniband/core/device.c    |   4 +
- drivers/infiniband/core/verbs.c     |  69 +++++++++++--
- include/rdma/ib_verbs.h             |  31 ++++--
- 5 files changed, 291 insertions(+), 12 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.h | 19 --------
+ drivers/infiniband/ulp/iser/iser_verbs.c | 82 ++++----------------------------
+ 2 files changed, 8 insertions(+), 93 deletions(-)
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index a1d687a664f8..4f6cd4cf5116 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -179,6 +179,12 @@ static inline bool rdma_is_upper_dev_rcu(struct net_device *dev,
- 	return netdev_has_upper_dev_all_rcu(dev, upper);
- }
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index c1ae4aeae2f9..cc4134acebdf 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -317,18 +317,6 @@ struct iser_conn;
+ struct ib_conn;
+ struct iscsi_iser_task;
  
-+void ib_init_cq_pools(struct ib_device *dev);
-+void ib_purge_cq_pools(struct ib_device *dev);
-+struct ib_cq *ib_find_get_cq(struct ib_device *dev, unsigned int nr_cqe,
-+		enum ib_poll_context poll_ctx, int affinity_hint);
-+void ib_put_cq(struct ib_cq *cq, unsigned int nr_cqe);
-+
- int addr_init(void);
- void addr_cleanup(void);
- 
-diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
-index f2ae75fa3128..8b9f9be5386b 100644
---- a/drivers/infiniband/core/cq.c
-+++ b/drivers/infiniband/core/cq.c
-@@ -15,6 +15,9 @@
- #include <linux/slab.h>
- #include <rdma/ib_verbs.h>
- 
-+/* XXX: wild guess - should not be too large or too small to avoid wastage */
-+#define IB_CQE_BATCH			1024
-+
- /* # of WCs to poll for with a single call to ib_poll_cq */
- #define IB_POLL_BATCH			16
- 
-@@ -149,6 +152,8 @@ struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
- 	cq->cq_context = private;
- 	cq->poll_ctx = poll_ctx;
- 	atomic_set(&cq->usecnt, 0);
-+	cq->cqe_used = 0;
-+	cq->comp_vector = comp_vector;
- 
- 	cq->wc = kmalloc_array(IB_POLL_BATCH, sizeof(*cq->wc), GFP_KERNEL);
- 	if (!cq->wc)
-@@ -194,6 +199,8 @@ void ib_free_cq(struct ib_cq *cq)
- 
- 	if (WARN_ON_ONCE(atomic_read(&cq->usecnt)))
- 		return;
-+	if (WARN_ON_ONCE(cq->cqe_used != 0))
-+		return;
- 
- 	switch (cq->poll_ctx) {
- 	case IB_POLL_DIRECT:
-@@ -213,3 +220,189 @@ void ib_free_cq(struct ib_cq *cq)
- 	WARN_ON_ONCE(ret);
- }
- EXPORT_SYMBOL(ib_free_cq);
-+
-+void ib_init_cq_pools(struct ib_device *dev)
-+{
-+	int i;
-+
-+	spin_lock_init(&dev->cq_lock);
-+	for (i = 0; i < ARRAY_SIZE(dev->cq_pools); i++)
-+		INIT_LIST_HEAD(&dev->cq_pools[i]);
-+}
-+
-+void ib_purge_cq_pools(struct ib_device *dev)
-+{
-+	struct ib_cq *cq, *n;
-+	LIST_HEAD(tmp_list);
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(dev->cq_pools); i++) {
-+		unsigned long flags;
-+
-+		spin_lock_irqsave(&dev->cq_lock, flags);
-+		list_splice_init(&dev->cq_pools[i], &tmp_list);
-+		spin_unlock_irqrestore(&dev->cq_lock, flags);
-+	}
-+
-+	list_for_each_entry_safe(cq, n, &tmp_list, pool_entry)
-+		ib_free_cq(cq);
-+}
-+
-+/**
-+ * ib_find_vector_affinity() - Find the first completion vector mapped to a given
-+ *     cpu core affinity
-+ * @device:            rdma device
-+ * @cpu:               cpu for the corresponding completion vector affinity
-+ * @vector:            output target completion vector
-+ *
-+ * If the device expose vector affinity we will search each of the vectors
-+ * and if we find one that gives us the desired cpu core we return true
-+ * and assign @vector to the corresponding completion vector. Otherwise
-+ * we return false. We stop at the first appropriate completion vector
-+ * we find as we don't have any preference for multiple vectors with the
-+ * same affinity.
-+ */
-+static bool ib_find_vector_affinity(struct ib_device *device, int cpu,
-+		unsigned int *vector)
-+{
-+	bool found = false;
-+	unsigned int c;
-+	int vec;
-+
-+	if (cpu == -1)
-+		goto out;
-+
-+	for (vec = 0; vec < device->num_comp_vectors; vec++) {
-+		const struct cpumask *mask;
-+
-+		mask = ib_get_vector_affinity(device, vec);
-+		if (!mask)
-+			goto out;
-+
-+		for_each_cpu(c, mask) {
-+			if (c == cpu) {
-+				*vector = vec;
-+				found = true;
-+				goto out;
-+			}
-+		}
-+	}
-+
-+out:
-+	return found;
-+}
-+
-+static int ib_alloc_cqs(struct ib_device *dev, int nr_cqes,
-+		enum ib_poll_context poll_ctx)
-+{
-+	LIST_HEAD(tmp_list);
-+	struct ib_cq *cq;
-+	unsigned long flags;
-+	int nr_cqs, ret, i;
-+
-+	/*
-+	 * Allocated at least as many CQEs as requested, and otherwise
-+	 * a reasonable batch size so that we can share CQs between
-+	 * multiple users instead of allocating a larger number of CQs.
-+	 */
-+	nr_cqes = max(nr_cqes, min(dev->attrs.max_cqe, IB_CQE_BATCH));
-+	nr_cqs = min_t(int, dev->num_comp_vectors, num_possible_cpus());
-+	for (i = 0; i < nr_cqs; i++) {
-+		cq = ib_alloc_cq(dev, NULL, nr_cqes, i, poll_ctx);
-+		if (IS_ERR(cq)) {
-+			ret = PTR_ERR(cq);
-+			pr_err("%s: failed to create CQ ret=%d\n",
-+				__func__, ret);
-+			goto out_free_cqs;
-+		}
-+		list_add_tail(&cq->pool_entry, &tmp_list);
-+	}
-+
-+	spin_lock_irqsave(&dev->cq_lock, flags);
-+	list_splice(&tmp_list, &dev->cq_pools[poll_ctx]);
-+	spin_unlock_irqrestore(&dev->cq_lock, flags);
-+
-+	return 0;
-+
-+out_free_cqs:
-+	list_for_each_entry(cq, &tmp_list, pool_entry)
-+		ib_free_cq(cq);
-+	return ret;
-+}
-+
-+/*
-+ * ib_find_get_cq() - Find the least used completion queue that matches
-+ *     a given affinity hint (or least used for wild card affinity)
-+ *     and fits nr_cqe
-+ * @dev:              rdma device
-+ * @nr_cqe:           number of needed cqe entries
-+ * @poll_ctx:         cq polling context
-+ * @affinity_hint:    affinity hint (-1) for wild-card assignment
-+ *
-+ * Finds a cq that satisfies @affinity_hint and @nr_cqe requirements and claim
-+ * entries in it for us. In case there is no available cq, allocate a new cq
-+ * with the requirements and add it to the device pool.
-+ */
-+struct ib_cq *ib_find_get_cq(struct ib_device *dev, unsigned int nr_cqe,
-+		enum ib_poll_context poll_ctx, int affinity_hint)
-+{
-+	struct ib_cq *cq, *found;
-+	unsigned long flags;
-+	int vector, ret;
-+
-+	if (poll_ctx >= ARRAY_SIZE(dev->cq_pools))
-+		return ERR_PTR(-EINVAL);
-+
-+	if (!ib_find_vector_affinity(dev, affinity_hint, &vector)) {
-+		/*
-+		 * Couldn't find matching vector affinity so project
-+		 * the affinty to the device completion vector range
-+		 */
-+		vector = affinity_hint % dev->num_comp_vectors;
-+	}
-+
-+restart:
-+	/*
-+	 * Find the least used CQ with correct affinity and
-+	 * enough free cq entries
-+	 */
-+	found = NULL;
-+	spin_lock_irqsave(&dev->cq_lock, flags);
-+	list_for_each_entry(cq, &dev->cq_pools[poll_ctx], pool_entry) {
-+		if (vector != -1 && vector != cq->comp_vector)
-+			continue;
-+		if (cq->cqe_used + nr_cqe > cq->cqe)
-+			continue;
-+		if (found && cq->cqe_used >= found->cqe_used)
-+			continue;
-+		found = cq;
-+	}
-+
-+	if (found) {
-+		found->cqe_used += nr_cqe;
-+		spin_unlock_irqrestore(&dev->cq_lock, flags);
-+		return found;
-+	}
-+	spin_unlock_irqrestore(&dev->cq_lock, flags);
-+
-+	/*
-+	 * Didn't find a match or ran out of CQs,
-+	 * device pool, allocate a new array of CQs.
-+	 */
-+	ret = ib_alloc_cqs(dev, nr_cqe, poll_ctx);
-+	if (ret)
-+		return ERR_PTR(ret);
-+
-+	/* Now search again */
-+	goto restart;
-+}
-+
-+void ib_put_cq(struct ib_cq *cq, unsigned int nr_cqe)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cq->device->cq_lock, flags);
-+	cq->cqe_used -= nr_cqe;
-+	WARN_ON_ONCE(cq->cqe_used < 0);
-+	spin_unlock_irqrestore(&cq->device->cq_lock, flags);
-+}
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 84fc32a2c8b3..c828845c46d8 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -468,6 +468,8 @@ int ib_register_device(struct ib_device *device,
- 		device->dma_device = parent;
- 	}
- 
-+	ib_init_cq_pools(device);
-+
- 	mutex_lock(&device_mutex);
- 
- 	if (strchr(device->name, '%')) {
-@@ -590,6 +592,8 @@ void ib_unregister_device(struct ib_device *device)
- 	up_write(&lists_rwsem);
- 
- 	device->reg_state = IB_DEV_UNREGISTERED;
-+
-+	ib_purge_cq_pools(device);
- }
- EXPORT_SYMBOL(ib_unregister_device);
- 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index de57d6c11a25..fcc9ecba6741 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -793,14 +793,16 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 			   struct ib_qp_init_attr *qp_init_attr)
- {
- 	struct ib_device *device = pd ? pd->device : qp_init_attr->xrcd->device;
-+	struct ib_cq *cq = NULL;
- 	struct ib_qp *qp;
--	int ret;
-+	u32 nr_cqes = 0;
-+	int ret = -EINVAL;
- 
- 	if (qp_init_attr->rwq_ind_tbl &&
- 	    (qp_init_attr->recv_cq ||
- 	    qp_init_attr->srq || qp_init_attr->cap.max_recv_wr ||
- 	    qp_init_attr->cap.max_recv_sge))
--		return ERR_PTR(-EINVAL);
-+		goto out;
- 
- 	/*
- 	 * If the callers is using the RDMA API calculate the resources
-@@ -811,9 +813,51 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 	if (qp_init_attr->cap.max_rdma_ctxs)
- 		rdma_rw_init_qp(device, qp_init_attr);
- 
-+	if (qp_init_attr->create_flags & IB_QP_CREATE_ASSIGN_CQS) {
-+		int affinity = -1;
-+
-+		if (WARN_ON(qp_init_attr->recv_cq))
-+			goto out;
-+		if (WARN_ON(qp_init_attr->send_cq))
-+			goto out;
-+
-+		if (qp_init_attr->create_flags & IB_QP_CREATE_AFFINITY_HINT)
-+			affinity = qp_init_attr->affinity_hint;
-+
-+		nr_cqes = qp_init_attr->cap.max_recv_wr +
-+			  qp_init_attr->cap.max_send_wr;
-+		if (nr_cqes) {
-+			cq = ib_find_get_cq(device, nr_cqes,
-+					    qp_init_attr->poll_ctx, affinity);
-+			if (IS_ERR(cq)) {
-+				ret = PTR_ERR(cq);
-+				goto out;
-+			}
-+
-+			if (qp_init_attr->cap.max_send_wr)
-+				qp_init_attr->send_cq = cq;
-+
-+			if (qp_init_attr->cap.max_recv_wr) {
-+				qp_init_attr->recv_cq = cq;
-+
-+				/*
-+				 * Low-level drivers expect max_recv_wr == 0
-+				 * for the SRQ case:
-+				 */
-+				if (qp_init_attr->srq)
-+					qp_init_attr->cap.max_recv_wr = 0;
-+			}
-+		}
-+
-+		qp_init_attr->create_flags &=
-+			~(IB_QP_CREATE_ASSIGN_CQS | IB_QP_CREATE_AFFINITY_HINT);
-+	}
-+
- 	qp = device->create_qp(pd, qp_init_attr, NULL);
--	if (IS_ERR(qp))
--		return qp;
-+	if (IS_ERR(qp)) {
-+		ret = PTR_ERR(qp);
-+		goto out_put_cq;
-+	}
- 
- 	ret = ib_create_qp_security(qp, device);
- 	if (ret) {
-@@ -826,6 +870,7 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 	qp->uobject    = NULL;
- 	qp->qp_type    = qp_init_attr->qp_type;
- 	qp->rwq_ind_tbl = qp_init_attr->rwq_ind_tbl;
-+	qp->nr_cqes    = nr_cqes;
- 
- 	atomic_set(&qp->usecnt, 0);
- 	qp->mrs_used = 0;
-@@ -865,8 +910,7 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 		ret = rdma_rw_init_mrs(qp, qp_init_attr);
- 		if (ret) {
- 			pr_err("failed to init MR pool ret= %d\n", ret);
--			ib_destroy_qp(qp);
--			return ERR_PTR(ret);
-+			goto out_destroy_qp;
- 		}
- 	}
- 
-@@ -880,6 +924,14 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 				 device->attrs.max_sge_rd);
- 
- 	return qp;
-+
-+out_destroy_qp:
-+	ib_destroy_qp(qp);
-+out_put_cq:
-+	if (cq)
-+		ib_put_cq(cq, nr_cqes);
-+out:
-+	return ERR_PTR(ret);
- }
- EXPORT_SYMBOL(ib_create_qp);
- 
-@@ -1478,6 +1530,11 @@ int ib_destroy_qp(struct ib_qp *qp)
- 			atomic_dec(&ind_tbl->usecnt);
- 		if (sec)
- 			ib_destroy_qp_security_end(sec);
-+
-+		if (qp->nr_cqes) {
-+			WARN_ON_ONCE(rcq && rcq != scq);
-+			ib_put_cq(scq, qp->nr_cqes);
-+		}
- 	} else {
- 		if (sec)
- 			ib_destroy_qp_security_abort(sec);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index bdb1279a415b..56d42e753eb4 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1098,11 +1098,22 @@ enum ib_qp_create_flags {
- 	IB_QP_CREATE_SCATTER_FCS		= 1 << 8,
- 	IB_QP_CREATE_CVLAN_STRIPPING		= 1 << 9,
- 	IB_QP_CREATE_SOURCE_QPN			= 1 << 10,
-+
-+	/* only used by the core, not passed to low-level drivers */
-+	IB_QP_CREATE_ASSIGN_CQS			= 1 << 24,
-+	IB_QP_CREATE_AFFINITY_HINT		= 1 << 25,
-+
- 	/* reserve bits 26-31 for low level drivers' internal use */
- 	IB_QP_CREATE_RESERVED_START		= 1 << 26,
- 	IB_QP_CREATE_RESERVED_END		= 1 << 31,
- };
- 
-+enum ib_poll_context {
-+	IB_POLL_SOFTIRQ,	/* poll from softirq context */
-+	IB_POLL_WORKQUEUE,	/* poll from workqueue */
-+	IB_POLL_DIRECT,		/* caller context, no hw completions */
-+};
-+
- /*
-  * Note: users may not call ib_close_qp or ib_destroy_qp from the event_handler
-  * callback to destroy the passed in QP.
-@@ -1124,6 +1135,13 @@ struct ib_qp_init_attr {
- 	 * Only needed for special QP types, or when using the RW API.
- 	 */
- 	u8			port_num;
-+
-+	/*
-+	 * Only needed when not passing in explicit CQs.
-+	 */
-+	enum ib_poll_context	poll_ctx;
-+	int			affinity_hint;
-+
- 	struct ib_rwq_ind_table *rwq_ind_tbl;
- 	u32			source_qpn;
- };
-@@ -1536,12 +1554,6 @@ struct ib_ah {
- 
- typedef void (*ib_comp_handler)(struct ib_cq *cq, void *cq_context);
- 
--enum ib_poll_context {
--	IB_POLL_DIRECT,		/* caller context, no hw completions */
--	IB_POLL_SOFTIRQ,	/* poll from softirq context */
--	IB_POLL_WORKQUEUE,	/* poll from workqueue */
+-/**
+- * struct iser_comp - iSER completion context
+- *
+- * @cq:         completion queue
+- * @active_qps: Number of active QPs attached
+- *              to completion context
+- */
+-struct iser_comp {
+-	struct ib_cq		*cq;
+-	int                      active_qps;
 -};
 -
- struct ib_cq {
- 	struct ib_device       *device;
- 	struct ib_uobject      *uobject;
-@@ -1549,9 +1561,12 @@ struct ib_cq {
- 	void                  (*event_handler)(struct ib_event *, void *);
- 	void                   *cq_context;
- 	int               	cqe;
-+	unsigned int		cqe_used;
- 	atomic_t          	usecnt; /* count number of work queues */
- 	enum ib_poll_context	poll_ctx;
-+	int			comp_vector;
- 	struct ib_wc		*wc;
-+	struct list_head	pool_entry;
- 	union {
- 		struct irq_poll		iop;
- 		struct work_struct	work;
-@@ -1731,6 +1746,7 @@ struct ib_qp {
- 	struct ib_rwq_ind_table *rwq_ind_tbl;
- 	struct ib_qp_security  *qp_sec;
- 	u8			port;
-+	u32			nr_cqes;
+ /**
+  * struct iser_device - Memory registration operations
+  *     per-device registration schemes
+@@ -365,9 +353,6 @@ struct iser_reg_ops {
+  * @event_handler: IB events handle routine
+  * @ig_list:	   entry in devices list
+  * @refcount:      Reference counter, dominated by open iser connections
+- * @comps_used:    Number of completion contexts used, Min between online
+- *                 cpus and device max completion vectors
+- * @comps:         Dinamically allocated array of completion handlers
+  * @reg_ops:       Registration ops
+  * @remote_inv_sup: Remote invalidate is supported on this device
+  */
+@@ -377,8 +362,6 @@ struct iser_device {
+ 	struct ib_event_handler      event_handler;
+ 	struct list_head             ig_list;
+ 	int                          refcount;
+-	int			     comps_used;
+-	struct iser_comp	     *comps;
+ 	const struct iser_reg_ops    *reg_ops;
+ 	bool                         remote_inv_sup;
  };
+@@ -456,7 +439,6 @@ struct iser_fr_pool {
+  * @sig_count:           send work request signal count
+  * @rx_wr:               receive work request for batch posts
+  * @device:              reference to iser device
+- * @comp:                iser completion context
+  * @fr_pool:             connection fast registration poool
+  * @pi_support:          Indicate device T10-PI support
+  */
+@@ -467,7 +449,6 @@ struct ib_conn {
+ 	u8                           sig_count;
+ 	struct ib_recv_wr	     rx_wr[ISER_MIN_POSTED_RX];
+ 	struct iser_device          *device;
+-	struct iser_comp	    *comp;
+ 	struct iser_fr_pool          fr_pool;
+ 	bool			     pi_support;
+ 	struct ib_cqe		     reg_cqe;
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 55a73b0ed4c6..8f8d853b1dc9 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -68,40 +68,17 @@ static void iser_event_handler(struct ib_event_handler *handler,
+ static int iser_create_device_ib_res(struct iser_device *device)
+ {
+ 	struct ib_device *ib_dev = device->ib_device;
+-	int ret, i, max_cqe;
++	int ret;
  
- struct ib_mr {
-@@ -2338,6 +2354,9 @@ struct ib_device {
+ 	ret = iser_assign_reg_ops(device);
+ 	if (ret)
+ 		return ret;
  
- 	u32                          index;
+-	device->comps_used = min_t(int, num_online_cpus(),
+-				 ib_dev->num_comp_vectors);
+-
+-	device->comps = kcalloc(device->comps_used, sizeof(*device->comps),
+-				GFP_KERNEL);
+-	if (!device->comps)
+-		goto comps_err;
+-
+-	max_cqe = min(ISER_MAX_CQ_LEN, ib_dev->attrs.max_cqe);
+-
+-	iser_info("using %d CQs, device %s supports %d vectors max_cqe %d\n",
+-		  device->comps_used, ib_dev->name,
+-		  ib_dev->num_comp_vectors, max_cqe);
+-
+ 	device->pd = ib_alloc_pd(ib_dev,
+ 		iser_always_reg ? 0 : IB_PD_UNSAFE_GLOBAL_RKEY);
+-	if (IS_ERR(device->pd))
+-		goto pd_err;
+-
+-	for (i = 0; i < device->comps_used; i++) {
+-		struct iser_comp *comp = &device->comps[i];
+-
+-		comp->cq = ib_alloc_cq(ib_dev, comp, max_cqe, i,
+-				       IB_POLL_SOFTIRQ);
+-		if (IS_ERR(comp->cq)) {
+-			comp->cq = NULL;
+-			goto cq_err;
+-		}
++	if (IS_ERR(device->pd)) {
++		ret = PTR_ERR(device->pd);
++		goto out;
+ 	}
  
-+	spinlock_t		     cq_lock;
-+	struct list_head	     cq_pools[IB_POLL_WORKQUEUE + 1];
-+
- 	/**
- 	 * The following mandatory functions are used only at device
- 	 * registration.  Keep functions such as these at the end of this
+ 	INIT_IB_EVENT_HANDLER(&device->event_handler, ib_dev,
+@@ -109,19 +86,9 @@ static int iser_create_device_ib_res(struct iser_device *device)
+ 	ib_register_event_handler(&device->event_handler);
+ 	return 0;
+ 
+-cq_err:
+-	for (i = 0; i < device->comps_used; i++) {
+-		struct iser_comp *comp = &device->comps[i];
+-
+-		if (comp->cq)
+-			ib_free_cq(comp->cq);
+-	}
+-	ib_dealloc_pd(device->pd);
+-pd_err:
+-	kfree(device->comps);
+-comps_err:
++out:
+ 	iser_err("failed to allocate an IB resource\n");
+-	return -1;
++	return ret;
+ }
+ 
+ /**
+@@ -130,20 +97,8 @@ static int iser_create_device_ib_res(struct iser_device *device)
+  */
+ static void iser_free_device_ib_res(struct iser_device *device)
+ {
+-	int i;
+-
+-	for (i = 0; i < device->comps_used; i++) {
+-		struct iser_comp *comp = &device->comps[i];
+-
+-		ib_free_cq(comp->cq);
+-		comp->cq = NULL;
+-	}
+-
+ 	ib_unregister_event_handler(&device->event_handler);
+ 	ib_dealloc_pd(device->pd);
+-
+-	kfree(device->comps);
+-	device->comps = NULL;
+ 	device->pd = NULL;
+ }
+ 
+@@ -423,7 +378,6 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
+ 	struct ib_device	*ib_dev;
+ 	struct ib_qp_init_attr	init_attr;
+ 	int			ret = -ENOMEM;
+-	int index, min_index = 0;
+ 
+ 	BUG_ON(ib_conn->device == NULL);
+ 
+@@ -431,23 +385,10 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
+ 	ib_dev = device->ib_device;
+ 
+ 	memset(&init_attr, 0, sizeof init_attr);
+-
+-	mutex_lock(&ig.connlist_mutex);
+-	/* select the CQ with the minimal number of usages */
+-	for (index = 0; index < device->comps_used; index++) {
+-		if (device->comps[index].active_qps <
+-		    device->comps[min_index].active_qps)
+-			min_index = index;
+-	}
+-	ib_conn->comp = &device->comps[min_index];
+-	ib_conn->comp->active_qps++;
+-	mutex_unlock(&ig.connlist_mutex);
+-	iser_info("cq index %d used for ib_conn %p\n", min_index, ib_conn);
+-
++	init_attr.create_flags = IB_QP_CREATE_ASSIGN_CQS;
+ 	init_attr.event_handler = iser_qp_event_callback;
+ 	init_attr.qp_context	= (void *)ib_conn;
+-	init_attr.send_cq	= ib_conn->comp->cq;
+-	init_attr.recv_cq	= ib_conn->comp->cq;
++	init_attr.poll_ctx = IB_POLL_SOFTIRQ;
+ 	init_attr.cap.max_recv_wr  = ISER_QP_MAX_RECV_DTOS;
+ 	init_attr.cap.max_send_sge = 2;
+ 	init_attr.cap.max_recv_sge = 1;
+@@ -483,11 +424,7 @@ static int iser_create_ib_conn_res(struct ib_conn *ib_conn)
+ 	return ret;
+ 
+ out_err:
+-	mutex_lock(&ig.connlist_mutex);
+-	ib_conn->comp->active_qps--;
+-	mutex_unlock(&ig.connlist_mutex);
+ 	iser_err("unable to alloc mem or create resource, err %d\n", ret);
+-
+ 	return ret;
+ }
+ 
+@@ -597,9 +534,6 @@ static void iser_free_ib_conn_res(struct iser_conn *iser_conn,
+ 		  iser_conn, ib_conn->cma_id, ib_conn->qp);
+ 
+ 	if (ib_conn->qp != NULL) {
+-		mutex_lock(&ig.connlist_mutex);
+-		ib_conn->comp->active_qps--;
+-		mutex_unlock(&ig.connlist_mutex);
+ 		rdma_destroy_qp(ib_conn->cma_id);
+ 		ib_conn->qp = NULL;
+ 	}
 -- 
 2.14.1
 
