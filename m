@@ -1,244 +1,139 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 1/2] Align flow steering commands with other objects
-Date: Wed,  8 Nov 2017 18:18:16 +0200
-Message-ID: <1510157897-10384-2-git-send-email-yishaih@mellanox.com>
-References: <1510157897-10384-1-git-send-email-yishaih@mellanox.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 0/9] Introduce per-device completion queue pools
+Date: Wed, 8 Nov 2017 11:42:12 -0500
+Message-ID: <F7FAF7FD-AE2C-4428-A779-06C9768E0C73@oracle.com>
+References: <20171108095742.25365-1-sagi@grimberg.me>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1510157897-10384-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20171108095742.25365-1-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch aligns ibv_cmd_create/destroy_flow with creation/destruction
-of other objects as of QP/CQ/SRQ,etc.
 
-The above APIs expect to issue the commands with the kernel but not to
-make the allocation/destruction of ibv_flow. This is the logic for other
-objects around.
+> On Nov 8, 2017, at 4:57 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+> 
+> This is the third re-incarnation of the CQ pool patches proposed
+> by Christoph and I.
+> 
+> Our ULPs often want to make smart decisions on completion vector
+> affinitization when using multiple completion queues spread on
+> multiple cpu cores. We can see examples for this in iser, srp, nvme-rdma.
+> 
+> This patch set attempts to move this smartness to the rdma core by
+> introducing per-device CQ pools that by definition spread
+> across cpu cores. In addition, we completely make the completion
+> queue allocation transparent to the ULP by adding affinity hints
+> to create_qp which tells the rdma core to select (or allocate)
+> a completion queue that has the needed affinity for it.
+> 
+> This API gives us a similar approach to whats used in the networking
+> stack where the device completion queues are hidden from the application.
+> With the affinitization hints, we also do not compromise performance
+> as the completion queue will be affinitized correctly.
+> 
+> One thing that should be noticed is that now different ULPs using this
+> API may share completion queues (given that they use the same polling context).
+> However, even without this API they share interrupt vectors (and CPUs
+> that are assigned to them). Thus aggregating consumers on less completion
+> queues will result in better overall completion processing efficiency per
+> completion event (or interrupt).
 
-This change enables in the following patch some specific mlx4 handling
-around cleanup on fatal in the destroy flow.
+Hi Sagi, glad to see progress on this!
 
-Note:
-The change is done in one patch which involves verbs and providers as done
-in the kernel in such cases when an internal API is changed.
+When running on the same CPU, Send and Receive completions compete
+for the same finite CPU resource. In addition, they compete with
+soft IRQ tasks that are also pinned to that CPU, and any other
+BOUND workqueue tasks that are running there.
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- libibverbs/cmd.c       | 15 +++++----------
- libibverbs/driver.h    |  3 ++-
- providers/mlx4/mlx4.c  |  4 ++--
- providers/mlx4/mlx4.h  |  2 ++
- providers/mlx4/verbs.c | 30 ++++++++++++++++++++++++++++++
- providers/mlx5/mlx5.c  |  4 ++--
- providers/mlx5/mlx5.h  |  2 ++
- providers/mlx5/verbs.c | 29 +++++++++++++++++++++++++++++
- 8 files changed, 74 insertions(+), 15 deletions(-)
+Send and Receive completions often have significant work to do
+(for example, DMA syncing or unmapping followed by some parsing
+of the completion results) and are all serialized on ib_poll_wq or
+by soft IRQ.
 
-diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-index 713a13c..30813b4 100644
---- a/libibverbs/cmd.c
-+++ b/libibverbs/cmd.c
-@@ -1864,12 +1864,12 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
- 	return 0;
- }
- 
--struct ibv_flow *ibv_cmd_create_flow(struct ibv_qp *qp,
--				     struct ibv_flow_attr *flow_attr)
-+int ibv_cmd_create_flow(struct ibv_qp *qp,
-+			struct ibv_flow *flow_id,
-+			struct ibv_flow_attr *flow_attr)
- {
- 	struct ibv_create_flow *cmd;
- 	struct ibv_create_flow_resp resp;
--	struct ibv_flow *flow_id;
- 	size_t cmd_size;
- 	size_t written_size;
- 	int i, err;
-@@ -1879,9 +1879,6 @@ struct ibv_flow *ibv_cmd_create_flow(struct ibv_qp *qp,
- 	cmd_size = sizeof(*cmd) + (flow_attr->num_of_specs *
- 				  sizeof(struct ibv_kern_spec));
- 	cmd = alloca(cmd_size);
--	flow_id = malloc(sizeof(*flow_id));
--	if (!flow_id)
--		return NULL;
- 	memset(cmd, 0, cmd_size);
- 
- 	cmd->qp_handle = qp->handle;
-@@ -1916,10 +1913,9 @@ struct ibv_flow *ibv_cmd_create_flow(struct ibv_qp *qp,
- 
- 	flow_id->context = qp->context;
- 	flow_id->handle = resp.flow_handle;
--	return flow_id;
-+	return 0;
- err:
--	free(flow_id);
--	return NULL;
-+	return errno;
- }
- 
- int ibv_cmd_destroy_flow(struct ibv_flow *flow_id)
-@@ -1933,7 +1929,6 @@ int ibv_cmd_destroy_flow(struct ibv_flow *flow_id)
- 
- 	if (write(flow_id->context->cmd_fd, &cmd, sizeof(cmd)) != sizeof(cmd))
- 		ret = errno;
--	free(flow_id);
- 	return ret;
- }
- 
-diff --git a/libibverbs/driver.h b/libibverbs/driver.h
-index a3cdbe1..5b19442 100644
---- a/libibverbs/driver.h
-+++ b/libibverbs/driver.h
-@@ -355,7 +355,8 @@ int ibv_cmd_destroy_ah(struct ibv_ah *ah);
- int ibv_cmd_attach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
- int ibv_cmd_detach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
- 
--struct ibv_flow *ibv_cmd_create_flow(struct ibv_qp *qp,
-+int ibv_cmd_create_flow(struct ibv_qp *qp,
-+				     struct ibv_flow *flow_id,
- 				     struct ibv_flow_attr *flow_attr);
- int ibv_cmd_destroy_flow(struct ibv_flow *flow_id);
- int ibv_cmd_create_wq(struct ibv_context *context,
-diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
-index 6de0bee..5261f68 100644
---- a/providers/mlx4/mlx4.c
-+++ b/providers/mlx4/mlx4.c
-@@ -246,8 +246,8 @@ static int mlx4_init_context(struct verbs_device *v_device,
- 	verbs_set_ctx_op(verbs_ctx, get_srq_num, verbs_get_srq_num);
- 	verbs_set_ctx_op(verbs_ctx, create_qp_ex, mlx4_create_qp_ex);
- 	verbs_set_ctx_op(verbs_ctx, open_qp, mlx4_open_qp);
--	verbs_set_ctx_op(verbs_ctx, ibv_create_flow, ibv_cmd_create_flow);
--	verbs_set_ctx_op(verbs_ctx, ibv_destroy_flow, ibv_cmd_destroy_flow);
-+	verbs_set_ctx_op(verbs_ctx, ibv_create_flow, mlx4_create_flow);
-+	verbs_set_ctx_op(verbs_ctx, ibv_destroy_flow, mlx4_destroy_flow);
- 	verbs_set_ctx_op(verbs_ctx, create_cq_ex, mlx4_create_cq_ex);
- 	verbs_set_ctx_op(verbs_ctx, query_device_ex, mlx4_query_device_ex);
- 	verbs_set_ctx_op(verbs_ctx, query_rt_values, mlx4_query_rt_values);
-diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
-index 14f2720..5786a10 100644
---- a/providers/mlx4/mlx4.h
-+++ b/providers/mlx4/mlx4.h
-@@ -424,5 +424,7 @@ struct ibv_rwq_ind_table *mlx4_create_rwq_ind_table(struct ibv_context *context,
- int mlx4_destroy_rwq_ind_table(struct ibv_rwq_ind_table *rwq_ind_table);
- int mlx4_post_wq_recv(struct ibv_wq *ibwq, struct ibv_recv_wr *wr,
- 		      struct ibv_recv_wr **bad_wr);
-+struct ibv_flow *mlx4_create_flow(struct ibv_qp *qp, struct ibv_flow_attr *flow_attr);
-+int mlx4_destroy_flow(struct ibv_flow *flow_id);
- 
- #endif /* MLX4_H */
-diff --git a/providers/mlx4/verbs.c b/providers/mlx4/verbs.c
-index b966ef2..7ecaeb1 100644
---- a/providers/mlx4/verbs.c
-+++ b/providers/mlx4/verbs.c
-@@ -1519,6 +1519,36 @@ int mlx4_modify_wq(struct ibv_wq *ibwq, struct ibv_wq_attr *attr)
- 	return ret;
- }
- 
-+struct ibv_flow *mlx4_create_flow(struct ibv_qp *qp, struct ibv_flow_attr *flow_attr)
-+{
-+	struct ibv_flow *flow_id;
-+	int ret;
-+
-+	flow_id = calloc(1, sizeof *flow_id);
-+	if (!flow_id)
-+		return NULL;
-+
-+	ret = ibv_cmd_create_flow(qp, flow_id, flow_attr);
-+	if (!ret)
-+		return flow_id;
-+
-+	free(flow_id);
-+	return NULL;
-+}
-+
-+int mlx4_destroy_flow(struct ibv_flow *flow_id)
-+{
-+	int ret;
-+
-+	ret = ibv_cmd_destroy_flow(flow_id);
-+
-+	if (ret)
-+		return ret;
-+
-+	free(flow_id);
-+	return 0;
-+}
-+
- int mlx4_destroy_wq(struct ibv_wq *ibwq)
- {
- 	struct mlx4_context *mcontext = to_mctx(ibwq->context);
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index 16f9891..cbdfc40 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -1000,8 +1000,8 @@ static int mlx5_init_context(struct verbs_device *vdev,
- 	verbs_set_ctx_op(v_ctx, get_srq_num, mlx5_get_srq_num);
- 	verbs_set_ctx_op(v_ctx, query_device_ex, mlx5_query_device_ex);
- 	verbs_set_ctx_op(v_ctx, query_rt_values, mlx5_query_rt_values);
--	verbs_set_ctx_op(v_ctx, ibv_create_flow, ibv_cmd_create_flow);
--	verbs_set_ctx_op(v_ctx, ibv_destroy_flow, ibv_cmd_destroy_flow);
-+	verbs_set_ctx_op(v_ctx, ibv_create_flow, mlx5_create_flow);
-+	verbs_set_ctx_op(v_ctx, ibv_destroy_flow, mlx5_destroy_flow);
- 	verbs_set_ctx_op(v_ctx, create_cq_ex, mlx5_create_cq_ex);
- 	verbs_set_ctx_op(v_ctx, create_wq, mlx5_create_wq);
- 	verbs_set_ctx_op(v_ctx, modify_wq, mlx5_modify_wq);
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index fafafe7..5978e2e 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -745,6 +745,8 @@ int mlx5_destroy_wq(struct ibv_wq *wq);
- struct ibv_rwq_ind_table *mlx5_create_rwq_ind_table(struct ibv_context *context,
- 						    struct ibv_rwq_ind_table_init_attr *init_attr);
- int mlx5_destroy_rwq_ind_table(struct ibv_rwq_ind_table *rwq_ind_table);
-+struct ibv_flow *mlx5_create_flow(struct ibv_qp *qp, struct ibv_flow_attr *flow_attr);
-+int mlx5_destroy_flow(struct ibv_flow *flow_id);
- struct ibv_srq *mlx5_create_srq_ex(struct ibv_context *context,
- 				   struct ibv_srq_init_attr_ex *attr);
- int mlx5_post_srq_ops(struct ibv_srq *srq,
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index 486de04..fea81f9 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -2325,6 +2325,35 @@ int mlx5_destroy_wq(struct ibv_wq *wq)
- 	return 0;
- }
- 
-+struct ibv_flow *mlx5_create_flow(struct ibv_qp *qp, struct ibv_flow_attr *flow_attr)
-+{
-+	struct ibv_flow *flow_id;
-+	int ret;
-+
-+	flow_id = calloc(1, sizeof *flow_id);
-+	if (!flow_id)
-+		return NULL;
-+
-+	ret = ibv_cmd_create_flow(qp, flow_id, flow_attr);
-+	if (!ret)
-+		return flow_id;
-+
-+	free(flow_id);
-+	return NULL;
-+}
-+
-+int mlx5_destroy_flow(struct ibv_flow *flow_id)
-+{
-+	int ret;
-+
-+	ret = ibv_cmd_destroy_flow(flow_id);
-+	if (ret)
-+		return ret;
-+
-+	free(flow_id);
-+	return 0;
-+}
-+
- struct ibv_rwq_ind_table *mlx5_create_rwq_ind_table(struct ibv_context *context,
- 						    struct ibv_rwq_ind_table_init_attr *init_attr)
- {
--- 
-1.8.3.1
+This limits IOPS, and restricts other users of that shared CQ.
+
+I recognize that handling interrupts on the same core where they
+fired is best, but some of this work has to be allowed to migrate
+when this CPU core is already fully utilized. A lot of the RDMA
+core and ULP workqueues are BOUND, which prevents task migration,
+even in the upper layers.
+
+I would like to see a capability of intelligently spreading the
+CQ workload for a single QP onto more CPU cores.
+
+As an example, I've found that ensuring that NFS/RDMA's Receive
+and Send completions are handled on separate CPU cores results in
+slightly higher IOPS (~5%) and lower latency jitter on one mount
+point.
+
+This is more critical now that our ULPs are handling more Send
+completions.
+
+
+> In addition, we introduce a configfs knob to our nvme-target to
+> bound I/O threads to a given cpulist (can be a subset). This is
+> useful for numa configurations where the backend device access is
+> configured with care to numa affinity, and we want to restrict rdma
+> device and I/O threads affinity accordingly.
+> 
+> The patch set convert iser, isert, srpt, svcrdma, nvme-rdma and
+> nvmet-rdma to use the new API.
+
+Is there a straightforward way to assess whether this work
+improves scalability and performance when multiple ULPs share a
+device?
+
+
+> Comments and feedback is welcome.
+> 
+> Christoph Hellwig (1):
+>  nvme-rdma: use implicit CQ allocation
+> 
+> Sagi Grimberg (8):
+>  RDMA/core: Add implicit per-device completion queue pools
+>  IB/isert: use implicit CQ allocation
+>  IB/iser: use implicit CQ allocation
+>  IB/srpt: use implicit CQ allocation
+>  svcrdma: Use RDMA core implicit CQ allocation
+>  nvmet-rdma: use implicit CQ allocation
+>  nvmet: allow assignment of a cpulist for each nvmet port
+>  nvmet-rdma: assign cq completion vector based on the port allowed cpus
+> 
+> drivers/infiniband/core/core_priv.h      |   6 +
+> drivers/infiniband/core/cq.c             | 193 +++++++++++++++++++++++++++++++
+> drivers/infiniband/core/device.c         |   4 +
+> drivers/infiniband/core/verbs.c          |  69 ++++++++++-
+> drivers/infiniband/ulp/iser/iscsi_iser.h |  19 ---
+> drivers/infiniband/ulp/iser/iser_verbs.c |  82 ++-----------
+> drivers/infiniband/ulp/isert/ib_isert.c  | 165 ++++----------------------
+> drivers/infiniband/ulp/isert/ib_isert.h  |  16 ---
+> drivers/infiniband/ulp/srpt/ib_srpt.c    |  46 +++-----
+> drivers/infiniband/ulp/srpt/ib_srpt.h    |   1 -
+> drivers/nvme/host/rdma.c                 |  62 +++++-----
+> drivers/nvme/target/configfs.c           |  75 ++++++++++++
+> drivers/nvme/target/nvmet.h              |   4 +
+> drivers/nvme/target/rdma.c               |  71 +++++-------
+> include/linux/sunrpc/svc_rdma.h          |   2 -
+> include/rdma/ib_verbs.h                  |  31 ++++-
+> net/sunrpc/xprtrdma/svc_rdma_transport.c |  22 +---
+> 17 files changed, 468 insertions(+), 400 deletions(-)
+> 
+> -- 
+> 2.14.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+Chuck Lever
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
