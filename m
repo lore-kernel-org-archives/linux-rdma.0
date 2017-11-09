@@ -1,7 +1,7 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] librdmacm: Print correct error message from rdma_getaddrinfo
-Date: Thu,  9 Nov 2017 10:03:07 +0200
-Message-ID: <20171109080307.4825-1-yuval.shaia@oracle.com>
+Subject: [PATCH rdma-core] librdmacm: Print correct error message from rdma_getaddrinfo
+Date: Thu,  9 Nov 2017 10:04:24 +0200
+Message-ID: <20171109080424.4900-1-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
