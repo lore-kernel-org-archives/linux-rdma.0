@@ -1,48 +1,53 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH infiniband-diags] ibdiag_common.c: In
- is_port_info_extended_supported, query PortInfo for port 0 when node is a
- switch
-Date: Thu, 9 Nov 2017 02:13:31 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E67D5009B@CRSMSX101.amr.corp.intel.com>
-References: <831b3d02-ecc9-b394-88ea-4e371f3a7e72@dev.mellanox.co.il>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core] librdmacm: Store error code from getaddrinfo
+ in errno
+Date: Thu, 9 Nov 2017 09:57:10 +0200
+Message-ID: <20171109075709.GA3260@yuvallap>
+References: <20171107095038.7348-1-yuval.shaia@oracle.com>
+ <20171107155602.GD21466@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <831b3d02-ecc9-b394-88ea-4e371f3a7e72-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20171107155602.GD21466-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiANCj4gDQo+IHRvIGJlIGFibGUgdG8gb2J0YWluIENhcGFiaWxpdHlNYXNrIGFuZCBDYXBhYmls
-aXR5TWFzazIgYXMgdGhlc2UgZmllbGRzIGFyZSBub3QNCj4gdXNlZCBvbiBzd2l0Y2ggZXh0ZXJu
-YWwgcG9ydHMgKG9ubHkgb24gc3dpdGNoIHBvcnQgMCkNCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEhh
-bCBSb3NlbnN0b2NrIDxoYWxAbWVsbGFub3guY29tPg0KDQpUaGFua3MhDQoNClRoaXMgYW5kIA0K
-DQoJQWRkIHN1cHBvcnQgZm9yIFFQMURyb3BwZWQgY291bnRlciBpbiBQb3J0Q291bnRlcnMgYXR0
-cmlidXRlDQoNCmFjY2VwdGVkLA0KSXJhDQoNCg0KPiAtLS0NCj4gIHNyYy9pYmRpYWdfY29tbW9u
-LmMgfCAxMiArKysrKysrKysrKy0NCj4gIDEgZmlsZSBjaGFuZ2VkLCAxMSBpbnNlcnRpb25zKCsp
-LCAxIGRlbGV0aW9uKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvc3JjL2liZGlhZ19jb21tb24uYyBi
-L3NyYy9pYmRpYWdfY29tbW9uLmMgaW5kZXggOTI0NTE0Ni4uYzMzY2FjYw0KPiAxMDA2NDQNCj4g
-LS0tIGEvc3JjL2liZGlhZ19jb21tb24uYw0KPiArKysgYi9zcmMvaWJkaWFnX2NvbW1vbi5jDQo+
-IEBAIC01MDYsOCArNTA2LDE4IEBAIGludCBpc19wb3J0X2luZm9fZXh0ZW5kZWRfc3VwcG9ydGVk
-KGliX3BvcnRpZF90ICoNCj4gZGVzdCwgaW50IHBvcnQsDQo+ICAJdWludDhfdCBkYXRhW0lCX1NN
-UF9EQVRBX1NJWkVdID0geyAwIH07DQo+ICAJdWludDMyX3QgY2FwX21hc2s7DQo+ICAJdWludDE2
-X3QgY2FwX21hc2syOw0KPiArCWludCB0eXBlLCBwb3J0bnVtOw0KPiANCj4gLQlpZiAoIXNtcF9x
-dWVyeV92aWEoZGF0YSwgZGVzdCwgSUJfQVRUUl9QT1JUX0lORk8sIHBvcnQsIDAsIHNyY3BvcnQp
-KQ0KPiArCWlmICghc21wX3F1ZXJ5X3ZpYShkYXRhLCBkZXN0LCBJQl9BVFRSX05PREVfSU5GTywg
-MCwgMCwgc3JjcG9ydCkpDQo+ICsJCUlCRVhJVCgibm9kZSBpbmZvIHF1ZXJ5IGZhaWxlZCIpOw0K
-PiArDQo+ICsJbWFkX2RlY29kZV9maWVsZChkYXRhLCBJQl9OT0RFX1RZUEVfRiwgJnR5cGUpOw0K
-PiArCWlmICh0eXBlID09IElCX05PREVfU1dJVENIKQ0KPiArCQlwb3J0bnVtID0gMDsNCj4gKwll
-bHNlDQo+ICsJCXBvcnRudW0gPSBwb3J0Ow0KPiArDQo+ICsJaWYgKCFzbXBfcXVlcnlfdmlhKGRh
-dGEsIGRlc3QsIElCX0FUVFJfUE9SVF9JTkZPLCBwb3J0bnVtLCAwLA0KPiArc3JjcG9ydCkpDQo+
-ICAJCUlCRVhJVCgicG9ydCBpbmZvIHF1ZXJ5IGZhaWxlZCIpOw0KPiANCj4gIAltYWRfZGVjb2Rl
-X2ZpZWxkKGRhdGEsIElCX1BPUlRfQ0FQTUFTS19GLCAmY2FwX21hc2spOw0KPiAtLQ0KPiAyLjgu
-NA0KPiANCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxp
-bmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluIHRoZSBib2R5DQo+IG9mIGEgbWVzc2FnZSB0
-byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21vIGluZm8gYXQNCj4gaHR0
-cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+On Tue, Nov 07, 2017 at 08:56:02AM -0700, Jason Gunthorpe wrote:
+> On Tue, Nov 07, 2017 at 11:50:38AM +0200, Yuval Shaia wrote:
+> > +++ b/librdmacm/addrinfo.c
+> > @@ -227,7 +227,7 @@ static int ucma_getaddrinfo(const char *node, const char *service,
+> >  		ret = getaddrinfo(node, service, NULL, &ai);
+> >  	}
+> >  	if (ret)
+> > -		return ret;
+> > +		return ERR(ret);
+
+Fine, dropping this, will fix only the printouts then.
+
+> 
+> No, you cannot assign the return value from getaddrinfo directly errno, they
+> are not the same number space.
+> 
+> > diff --git a/librdmacm/examples/cmatose.c b/librdmacm/examples/cmatose.c
+> > index b1c9dd13..625849ce 100644
+> > +++ b/librdmacm/examples/cmatose.c
+> > @@ -507,7 +507,7 @@ static int run_server(void)
+> >  
+> >  	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &test.rai);
+> >  	if (ret) {
+> > -		printf("cmatose: getrdmaaddr error: %s\n", gai_strerror(ret));
+> > +		printf("cmatose: getrdmaaddr error: %s\n", gai_strerror(errno));
+> 
+> Also nope, gai_strerror does not process errnos.
+> 
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
