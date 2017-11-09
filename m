@@ -1,101 +1,140 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Computer issues...
-Date: Thu, 09 Nov 2017 11:44:21 -0500
-Message-ID: <1510245861.12910.26.camel@redhat.com>
-References: <CA+mK3=-v-nMb-cRO2hGEmirxbNnRuW-OZWGC8d+sUoTcxKmt7w@mail.gmail.com>
-         <1509363152.2295.5.camel@redhat.com>
-         <5b0fbfd7-6747-da76-91a9-3fa4dc173bb0@redhat.com>
-         <d6ab43f7-9698-7164-441b-02c1f5560abd@redhat.com>
-         <CAKkHt7W_Cv_qGRs_R3zn6_PaXd7xAE0+D_Qghn7KUq+bzRHHjg@mail.gmail.com>
-         <f3a0d17b-1a5c-b97c-e544-5b4524e71424@redhat.com>
-         <783cf656-3cd7-c40d-48cf-a749f022a161@redhat.com>
-         <e4fc7d4e-5295-caf9-be5b-6ac5a57a5d2d@redhat.com>
-         <36640bfe-850b-a857-1cc9-58939ac50946@redhat.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH v3 0/9] Introduce per-device completion queue pools
+Date: Thu, 9 Nov 2017 19:06:37 +0200
+Message-ID: <b502f211-c477-3acd-be01-eaf645edc117@grimberg.me>
+References: <20171108095742.25365-1-sagi@grimberg.me>
+ <F7FAF7FD-AE2C-4428-A779-06C9768E0C73@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-w1rygCX02bAe/q7NSmIA"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <36640bfe-850b-a857-1cc9-58939ac50946-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <F7FAF7FD-AE2C-4428-A779-06C9768E0C73-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> Hi Sagi, glad to see progress on this!
 
---=-w1rygCX02bAe/q7NSmIA
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Hi Chuck,
 
-On Tue, 2017-10-31 at 10:32 -0400, Doug Ledford wrote:
-> Fortunately, I keep backups and what not, but I am currently
-> sending this email from my laptop and I will likely loose the next day
-> to two days to the task of reinstalling from scratch, then restoring
-> from backup (even as I write this, my laptop is writing a Fedora 27 Beta
-> USB boot key).  Joy!
+> When running on the same CPU, Send and Receive completions compete
+> for the same finite CPU resource. In addition, they compete with
+> soft IRQ tasks that are also pinned to that CPU, and any other
+> BOUND workqueue tasks that are running there.
 
-The story of what I had to do this last week is worthy of telling over a
-beer some time.  Suffice it to say, I'm mostly back up and operational
-at this point.
+Thats true.
 
-The "I have backups" turned out to be "I have backups that are looking
-right now like they are 2 years old" until I found the root cause and
-was finally able to get to the current backups.
+> Send and Receive completions often have significant work to do
+> (for example, DMA syncing or unmapping followed by some parsing
+> of the completion results) and are all serialized on ib_poll_wq or
+> by soft IRQ.
 
-And there was another incident and another drive got fried (I will never
-buy mixed brands of modular power supplies ever again).
+Yes, that's correct.
 
-And I shipped the two drives that were actual rotational drives (I
-originally said four SSDs, I was incorrect in that, I had forgotten that
-the 4 drive caddy that got fried was actually 3 SSDs and one laptop hard
-drive, then the 5th drive to get fried was a 3 1/2" internal sata drive)
-off for possible controller replacement (not to the manufacturer, but to
-a company that specializes in replacing bad controller boards for a flat
-rate fee), but they didn't have any spare boards to fit my 3 1/2" drive,
-they said it was too new and there was no inventory on its controller
-yet.  Still waiting to hear on the other one.
+> This limits IOPS, and restricts other users of that shared CQ.
 
-And even if they have a controller board, there's no guarantee that any
-data on the drive will be retrievable, thanks to my 4 year old.  He was
-home sick with strep throat last Thursday, but I'd given him some
-tylenol and his antibiotic and even treated him to a small mocha from
-starbucks (yes, he likes chocolate flavored coffee), and I had
-inadvertently forgotten to get him decaf, so he was full of energy and
-happy, and I was sitting at my computer printing out the paperwork to
-ship off the two rotational drives, and he says to me "Daddy, these work
-really well here!" and I look over and he's got two magnets off of the
-kitchen refrigerator and each hard drive has one magnet sitting on its
-metal top cover.  So who knows if those things are even recoverable at
-all at this point.  This happened *before* I found the root cause to my
-missing backups.  So you can imagine how happy I was when I saw those
-magnets :-/.
+I agree that's true for a single queue aspect. When multiple queues
+are used, usually centralizing context to their cpu core is probably
+the best approach to achieve linear scalability, otherwise we pay
+more for context switches, cacheline bounces, resource contention, etc.
 
-Anyway, I'm going to be processing patches over the next few days.  I
-didn't want people thinking that I wasn't aware of the time and the
-upcoming merge window, I'm still tracking it as best as I can while I
-rebuild everything ;-)
---=-w1rygCX02bAe/q7NSmIA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+> I recognize that handling interrupts on the same core where they
+> fired is best, but some of this work has to be allowed to migrate
+> when this CPU core is already fully utilized. A lot of the RDMA
+> core and ULP workqueues are BOUND, which prevents task migration,
+> even in the upper layers.
 
------BEGIN PGP SIGNATURE-----
+So for the ib_comp_wq, started as an UNBOUND workqueue, but the fact
+that unbound worqueue workers are not cpu bound did not fit well
+with cpu/numa locality used with high-end storage devices and was a 
+source of latency
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloEheUACgkQuCajMw5X
-L90g2g//cLappMkq7naPMU3no1A/PKvor4H9xtF+82ATxITBtDaGJNTGEW1+kfvB
-wR0nwIuwvSU1gBOAdiPX2524+te5O/tugpDGrD01nXBbAcEifbB7O9hlR6b74tM9
-QGiXpwFpykWKX/A/AdRAzBNf1ri6OyVEryvVqOZD6JJH6cPFmiCxIPm9i7abL4bW
-4g+TQTe6pf7hL1SjbzwVtrJlcsXyPEO/t3pT5UlBo6ZC/vwSK5qWxVvCuWyr9lHL
-wM9SIFssKj34iG5Za7RpI+Nupuhyh7tE6oxhJmF8D/H6W37rHqJSzn8reFYcHwC9
-kCzE26vgYMtBZX2zP17RB1NhK53J8NQJEOV2DNCpOZfFqdcmKZDMtpEjZCxKnnXd
-2u+fK6EcUkuMFTxe4T7BNhNjqUawnSgUdWX8cUAFGMlrzLcGkN3UqlG3g2W4to9X
-9h6y5LphC+rZ7uyznpnTgBazDHBzTVzCWibXpY2NAHjv8qC6QVI27w9CbR7rrE3u
-AEG4nUGTlEXA1InLqi8u5862LOiDQl0ihTxcQ5qA7NJm7zsOYzCGa52rPFQH/kSu
-7wlLQMXoDh8l+X29IUQjd5F2xvSzImgkV/KADkucGqk2h2EHhZm09VUIf0mpL/EP
-5dmFxF/VioWYN3p7evbs+6IMC+q/jrFY5n5vIMcaG/7BXwxA4sE=
-=OdDd
------END PGP SIGNATURE-----
+See:
+--
+commit b7363e67b23e04c23c2a99437feefac7292a88bc
+Author: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Date:   Wed Mar 8 22:03:17 2017 +0200
 
---=-w1rygCX02bAe/q7NSmIA--
+     IB/device: Convert ib-comp-wq to be CPU-bound
 
+     This workqueue is used by our storage target mode ULPs
+     via the new CQ API. Recent observations when working
+     with very high-end flash storage devices reveal that
+     UNBOUND workqueue threads can migrate between cpu cores
+     and even numa nodes (although some numa locality is accounted
+     for).
+
+     While this attribute can be useful in some workloads,
+     it does not fit in very nicely with the normal
+     run-to-completion model we usually use in our target-mode
+     ULPs and the block-mq irq<->cpu affinity facilities.
+
+     The whole block-mq concept is that the completion will
+     land on the same cpu where the submission was performed.
+     The fact that our submitter thread is migrating cpus
+     can break this locality.
+
+     We assume that as a target mode ULP, we will serve multiple
+     initiators/clients and we can spread the load enough without
+     having to use unbound kworkers.
+
+     Also, while we're at it, expose this workqueue via sysfs which
+     is harmless and can be useful for debug.
+--
+
+The rational is that storage targets (or file servers) usually serve
+multiple clients and the spreading across cpu cores for more efficient
+utilization would come from spreading the completion vectors.
+
+However if this is not the case, then by all means we need a knob for
+it (maybe have two ib completion workqueues and ULP will choose).
+
+> I would like to see a capability of intelligently spreading the
+> CQ workload for a single QP onto more CPU cores.
+
+That is a different use case than what I was trying to achieve. In
+ulp consumers such as nvme-rdma (or srp and alike) will use multiple
+qp-cq pairs (usually even per-core) and for that use-case, probably
+cpu locality is a better approach to take imo.
+
+How likely that multiple NFS mount-points will be used on a single
+server? Is that something you are looking for to optimize? or is
+the single (or few) mount-points per server the common use-case?
+If its the latter, then I perfectly agree with you, and we should
+come up with a core api for it (probably rds or smc will want it
+too).
+
+> As an example, I've found that ensuring that NFS/RDMA's Receive
+> and Send completions are handled on separate CPU cores results in
+> slightly higher IOPS (~5%) and lower latency jitter on one mount
+> point.
+
+That is valuable information. I do agree that what you are proposing
+is useful. I'll need some time to think on that.
+
+> This is more critical now that our ULPs are handling more Send
+> completions.
+
+We still need to fix some more...
+
+>> In addition, we introduce a configfs knob to our nvme-target to
+>> bound I/O threads to a given cpulist (can be a subset). This is
+>> useful for numa configurations where the backend device access is
+>> configured with care to numa affinity, and we want to restrict rdma
+>> device and I/O threads affinity accordingly.
+>>
+>> The patch set convert iser, isert, srpt, svcrdma, nvme-rdma and
+>> nvmet-rdma to use the new API.
+> 
+> Is there a straightforward way to assess whether this work
+> improves scalability and performance when multiple ULPs share a
+> device?
+
+I guess the only way is running multiple ULPs in parallel? I tried
+running iser+nvme-rdma in parallel but my poor 2 VMs are not the best
+performance platform I can evaluate this...
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
