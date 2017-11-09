@@ -1,97 +1,37 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v3 1/9] RDMA/core: Add implicit per-device completion
- queue pools
-Date: Thu, 9 Nov 2017 19:31:28 +0200
-Message-ID: <23b598f2-6982-0d15-69e4-c526c627ec33@grimberg.me>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH v3 0/9] Introduce per-device completion queue pools
+Date: Thu, 9 Nov 2017 17:31:57 +0000
+Message-ID: <1510248716.2608.17.camel@wdc.com>
 References: <20171108095742.25365-1-sagi@grimberg.me>
- <20171108095742.25365-2-sagi@grimberg.me>
- <fe2c23b7-2923-2693-28c3-6a6f399bda26@mellanox.com>
+         <1510245771.2608.6.camel@wdc.com>
+         <d5820b65-b428-7cd1-f7f1-7d8d89d21cf5@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1255; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <fe2c23b7-2923-2693-28c3-6a6f399bda26-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <d5820b65-b428-7cd1-f7f1-7d8d89d21cf5-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Content-Language: en-US
+Content-ID: <8BC65298D6454948A2DFC82C3A2BFFDE-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
->> +static int ib_alloc_cqs(struct ib_device *dev, int nr_cqes,
->> +        enum ib_poll_context poll_ctx)
->> +{
->> +    LIST_HEAD(tmp_list);
->> +    struct ib_cq *cq;
->> +    unsigned long flags;
->> +    int nr_cqs, ret, i;
->> +
->> +    /*
->> +     * Allocated at least as many CQEs as requested, and otherwise
->> +     * a reasonable batch size so that we can share CQs between
->> +     * multiple users instead of allocating a larger number of CQs.
->> +     */
->> +    nr_cqes = max(nr_cqes, min(dev->attrs.max_cqe, IB_CQE_BATCH));
-> 
-> did you mean min() ?
-
-No, I meant max. If we choose the CQ size, we choose the min between the
-default and the device capability, if the user chooses, we rely that it
-asked for no more than the device capability (and if not, allocation
-will fail, as it should).
-
->> +restart:
->> +    /*
->> +     * Find the least used CQ with correct affinity and
->> +     * enough free cq entries
->> +     */
->> +    found = NULL;
->> +    spin_lock_irqsave(&dev->cq_lock, flags);
->> +    list_for_each_entry(cq, &dev->cq_pools[poll_ctx], pool_entry) {
->> +        if (vector != -1 && vector != cq->comp_vector)
-> 
-> how vector can be -1 ?
-
--1 is a wild-card affinity hint value that chooses the least used cq
-(see ib_create_qp).
-
->> @@ -811,9 +813,51 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
->>       if (qp_init_attr->cap.max_rdma_ctxs)
->>           rdma_rw_init_qp(device, qp_init_attr);
->> +    if (qp_init_attr->create_flags & IB_QP_CREATE_ASSIGN_CQS) {
->> +        int affinity = -1;
->> +
->> +        if (WARN_ON(qp_init_attr->recv_cq))
->> +            goto out;
->> +        if (WARN_ON(qp_init_attr->send_cq))
->> +            goto out;
->> +
->> +        if (qp_init_attr->create_flags & IB_QP_CREATE_AFFINITY_HINT)
->> +            affinity = qp_init_attr->affinity_hint;
->> +
->> +        nr_cqes = qp_init_attr->cap.max_recv_wr +
->> +              qp_init_attr->cap.max_send_wr;
->> +        if (nr_cqes) {
-> 
-> what will happen if nr_cqes == 0 in that case ?
-
-The same thing that would happen without this code I think. This is
-creating a qp without ability to post send and/or receive work requests.
-
->> @@ -2338,6 +2354,9 @@ struct ib_device {
->>       u32                          index;
->> +    spinlock_t             cq_lock;
-> 
-> maybe can be called cq_pools_lock (cq_lock is general) ?
-
-I can change that.
-
->> +    struct list_head         cq_pools[IB_POLL_WORKQUEUE + 1];
-> 
-> maybe it's better to add and use IB_POLL_LAST ?
-
-Yea, I can change that.
+T24gVGh1LCAyMDE3LTExLTA5IGF0IDE5OjIyICswMjAwLCBTYWdpIEdyaW1iZXJnIHdyb3RlOg0K
+PiBCdXQgSSdtIGFmcmFpZCBkb24ndCB1bmRlcnN0YW5kIGhvdyB0aGUgZmFjdCB0aGF0IFVMUHMg
+d2lsbCBydW4gb24NCj4gZGlmZmVyZW50IHBvcnRzIG1hdHRlcj8gaG93IHdvdWxkIHRoZSBmYWN0
+IHRoYXQgd2UgaGFkIHR3byBkaWZmZXJlbnQNCj4gcG9vbHMgb24gZGlmZmVyZW50IHBvcnRzIG1h
+a2UgYSBkaWZmZXJlbmNlPw0KDQpJZiBlYWNoIFJETUEgcG9ydCBpcyBvbmx5IHVzZWQgYnkgYSBz
+aW5nbGUgVUxQIHRoZW4gdGhlIFVMUCBkcml2ZXIgY2FuIHByb3ZpZGUNCmEgYmV0dGVyIHZhbHVl
+IGZvciB0aGUgQ1Egc2l6ZSB0aGFuIElCX0NRRV9CQVRDSC4gSWYgQ1EgcG9vbHMgd291bGQgYmUg
+Y3JlYXRlZA0KYnkgVUxQcyB0aGVuIGl0IHdvdWxkIGJlIGVhc3kgZm9yIFVMUHMgdG8gcGFzcyB0
+aGVpciBjaG9pY2Ugb2YgQ1Egc2l6ZSB0byB0aGUNClJETUEgY29yZS4NCg0KSW4gY2FzZSBtdWx0
+aXBsZSBVTFBzIHNoYXJlIGFuIFJETUEgcG9ydCB0aGVuIHdoaWNoIENRIGlzIGNob3NlbiBmb3Ig
+dGhlIFVMUA0Kd2lsbCBkZXBlbmQgb24gdGhlIG9yZGVyIGluIHdoaWNoIHRoZSBVTFAgZHJpdmVy
+cyBhcmUgbG9hZGVkLiBUaGlzIG1heSBsZWFkIHRvDQpoYXJkIHRvIGRlYnVnIHBlcmZvcm1hbmNl
+IGlzc3VlcywgZS5nLiBkdWUgdG8gZGlmZmVyZW50IGxvY2sgY29udGVudGlvbg0KYmVoYXZpb3Iu
+IFRoYXQncyBhbm90aGVyIHJlYXNvbiB3aHkgcGVyLVVMUCBDUSBwb29scyBsb29rIG1vcmUgaW50
+ZXJlc3RpbmcgdG8NCm1lIHRoYW4gb25lIENRIHBvb2wgcGVyIEhDQS4NCg0KQmFydC4=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
