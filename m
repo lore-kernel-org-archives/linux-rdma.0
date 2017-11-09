@@ -1,35 +1,29 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v2 2/3] nvme-rdma: don't complete requests before a
-        send work request has completed
-Date: Thu, 9 Nov 2017 10:21:10 +0100
-Message-ID: <20171109092110.GB16966@lst.de>
-References: <20171108100616.26605-1-sagi@grimberg.me> <20171108100616.26605-3-sagi@grimberg.me>
+Subject: Re: [PATCH v2 3/3] nvme-rdma: wait for local invalidation before
+        completing a request
+Date: Thu, 9 Nov 2017 10:39:45 +0100
+Message-ID: <20171109093945.GB17515@lst.de>
+References: <20171108100616.26605-1-sagi@grimberg.me> <20171108100616.26605-4-sagi@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171108100616.26605-3-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <20171108100616.26605-4-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> +	}
-> +
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	req->send_completed = true;
-> +	end = req->resp_completed;
-> +	spin_unlock_irqrestore(&req->lock, flags);
+On Wed, Nov 08, 2017 at 12:06:16PM +0200, Sagi Grimberg wrote:
+> We must not complete a request before the host memory region is
+> invalidated. Luckily we have send with invalidate protocol support
+> so we usually don't need to execute it, but in case the target
+> did not invalidate a memory region for us, we must wait for
+> the invalidation to complete before unmapping host memory and
+> completing the I/O.
 
-Wouldn't it be better to use atomic bitops (test_and_set_bit and co)
-for these flags instead of needing a irqsave lock?
-
->  	err = nvme_rdma_post_send(queue, sqe, req->sge, req->num_sge,
-> -			req->mr->need_inval ? &req->reg_wr.wr : NULL);
-> +			req->mr->need_inval ? &req->reg_wr.wr : NULL, true);
-
-Looks like the unsignalled completions just removed in the last patch
-are coming back here.
+Looks good, but a change to atomic bitops would require a respin
+here as well.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
