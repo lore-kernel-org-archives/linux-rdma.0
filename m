@@ -1,76 +1,82 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] RDMA/cxgb4: Annotate r2 and stag as __be32
-Date: Fri, 10 Nov 2017 13:05:56 -0500
-Message-ID: <1510337156.3735.7.camel@redhat.com>
-References: <20171025201019.7367-1-leon@kernel.org>
-         <037e01d34dcd$845c1ce0$8d1456a0$@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-VY2NnlhYWb2AubB05TTS"
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH 1/2] iw_cxgb4: only call the cq comp_handler when the cq is
+ armed
+Date: Thu, 9 Nov 2017 07:14:43 -0800
+Message-ID: <20171110182301.0122F8760@linode.aoot.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <037e01d34dcd$845c1ce0$8d1456a0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+The ULPs completion handler should only be called if the CQ is
+armed for notification.
 
---=-VY2NnlhYWb2AubB05TTS
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/ev.c |  8 +++++---
+ drivers/infiniband/hw/cxgb4/qp.c | 20 ++++++++++++--------
+ 2 files changed, 17 insertions(+), 11 deletions(-)
 
-On Wed, 2017-10-25 at 15:12 -0500, Steve Wise wrote:
-> >=20
-> > Chelsio cxgb4 HW is big-endian, hence there is need to properly
-> > annotate r2 and stag fields as __be32 and not __u32 to fix the
-> > following sparse warnings.
-> >=20
-> >   drivers/infiniband/hw/cxgb4/qp.c:614:16:
-> >     warning: incorrect type in assignment (different base types)
-> >       expected unsigned int [unsigned] [usertype] r2
-> >       got restricted __be32 [usertype] <noident>
-> >   drivers/infiniband/hw/cxgb4/qp.c:615:18:
-> >     warning: incorrect type in assignment (different base types)
-> >       expected unsigned int [unsigned] [usertype] stag
-> >       got restricted __be32 [usertype] <noident>
-> >=20
-> > Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->=20
-> Looks fine. Thanks Leon!
->=20
-> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->=20
-
-Applied, thanks.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-VY2NnlhYWb2AubB05TTS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloF6oQACgkQuCajMw5X
-L91CUxAAq+6a4l91RmeP9AIdEtQSDHZHChZ/m6R+iSkMpgc803ZCBeJBqzlroryr
-wYW4Jsqged2qqxCYaTKAkrfyxog7enhr/d7l2ArNcl2/UbJXpZTBv0ASTiRqpAVk
-o2A0ve0+YMxGBLIJm6Mzg4YdqjnALe+WujOw5LTocF7OJIFbopfTrvQo0QMxC+KH
-xCBQMJz3vYOEeyY/D5W/KzIwbUxUx5UwOiiOa2eWDKsP3NifKPwbJXz7t/Se6g6i
-BAxe1LPUANq3Q4OeqlcHihq8Agpsa3syFKV2kmCIotTGBoFnpz7xEkCoYdexNOJR
-DSakrTK6jzOi1lSxXJdquoMNVd0rbrazw3SNnNL81I3vyxansQxgzzZ5fTIbmwbt
-qUg3FMo6aQVo1lkVy78VYdQemnIZQdDBI8k8ozmw+6QxHi1qPMIH9pJVSJ0WGJcS
-LQ488LWmD1otKPDFsSJhl1O3pmbJ2SsOieVdwO9KpuDtls9wpsKFPeai/GiMhHZa
-2VaQzEYq1fM6pK7818p+lv5rniobiNUicGL3AL1F6hzIkPrIZhIeZwhT/3LgEZLY
-IMQjS4yDNTDTs00nqTx7lRF3ZgaFZtR6x1F1LH20sAf3YbN0gf1QahxZ6zbEYTse
-eFTHYMERxXQE7p0hPf13MrX1lTd6exHXsVg7AIAlVymCshRluHQ=
-=trOX
------END PGP SIGNATURE-----
-
---=-VY2NnlhYWb2AubB05TTS--
+diff --git a/drivers/infiniband/hw/cxgb4/ev.c b/drivers/infiniband/hw/cxgb4/ev.c
+index b8c7cc9..a252d5c 100644
+--- a/drivers/infiniband/hw/cxgb4/ev.c
++++ b/drivers/infiniband/hw/cxgb4/ev.c
+@@ -109,9 +109,11 @@ static void post_qp_event(struct c4iw_dev *dev, struct c4iw_cq *chp,
+ 	if (qhp->ibqp.event_handler)
+ 		(*qhp->ibqp.event_handler)(&event, qhp->ibqp.qp_context);
+ 
+-	spin_lock_irqsave(&chp->comp_handler_lock, flag);
+-	(*chp->ibcq.comp_handler)(&chp->ibcq, chp->ibcq.cq_context);
+-	spin_unlock_irqrestore(&chp->comp_handler_lock, flag);
++	if (t4_clear_cq_armed(&chp->cq)) {
++		spin_lock_irqsave(&chp->comp_handler_lock, flag);
++		(*chp->ibcq.comp_handler)(&chp->ibcq, chp->ibcq.cq_context);
++		spin_unlock_irqrestore(&chp->comp_handler_lock, flag);
++	}
+ }
+ 
+ void c4iw_ev_dispatch(struct c4iw_dev *dev, struct t4_cqe *err_cqe)
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 86d6550..1f6210b 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -813,10 +813,12 @@ static void complete_sq_drain_wr(struct c4iw_qp *qhp, struct ib_send_wr *wr)
+ 	t4_swcq_produce(cq);
+ 	spin_unlock_irqrestore(&schp->lock, flag);
+ 
+-	spin_lock_irqsave(&schp->comp_handler_lock, flag);
+-	(*schp->ibcq.comp_handler)(&schp->ibcq,
+-				   schp->ibcq.cq_context);
+-	spin_unlock_irqrestore(&schp->comp_handler_lock, flag);
++	if (t4_clear_cq_armed(&schp->cq)) {
++		spin_lock_irqsave(&schp->comp_handler_lock, flag);
++		(*schp->ibcq.comp_handler)(&schp->ibcq,
++					   schp->ibcq.cq_context);
++		spin_unlock_irqrestore(&schp->comp_handler_lock, flag);
++	}
+ }
+ 
+ static void complete_rq_drain_wr(struct c4iw_qp *qhp, struct ib_recv_wr *wr)
+@@ -842,10 +844,12 @@ static void complete_rq_drain_wr(struct c4iw_qp *qhp, struct ib_recv_wr *wr)
+ 	t4_swcq_produce(cq);
+ 	spin_unlock_irqrestore(&rchp->lock, flag);
+ 
+-	spin_lock_irqsave(&rchp->comp_handler_lock, flag);
+-	(*rchp->ibcq.comp_handler)(&rchp->ibcq,
+-				   rchp->ibcq.cq_context);
+-	spin_unlock_irqrestore(&rchp->comp_handler_lock, flag);
++	if (t4_clear_cq_armed(&rchp->cq)) {
++		spin_lock_irqsave(&rchp->comp_handler_lock, flag);
++		(*rchp->ibcq.comp_handler)(&rchp->ibcq,
++					   rchp->ibcq.cq_context);
++		spin_unlock_irqrestore(&rchp->comp_handler_lock, flag);
++	}
+ }
+ 
+ int c4iw_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
