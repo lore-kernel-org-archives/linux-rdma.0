@@ -1,41 +1,35 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] nvme-rdma: don't suppress send completions
-Date: Thu, 9 Nov 2017 10:18:58 +0100
-Message-ID: <20171109091858.GA16966@lst.de>
-References: <20171108100616.26605-1-sagi@grimberg.me> <20171108100616.26605-2-sagi@grimberg.me>
+Subject: Re: [PATCH v2 2/3] nvme-rdma: don't complete requests before a
+        send work request has completed
+Date: Thu, 9 Nov 2017 10:21:10 +0100
+Message-ID: <20171109092110.GB16966@lst.de>
+References: <20171108100616.26605-1-sagi@grimberg.me> <20171108100616.26605-3-sagi@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171108100616.26605-2-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <20171108100616.26605-3-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 08, 2017 at 12:06:14PM +0200, Sagi Grimberg wrote:
-> The entire completions suppress mechanism is currently
-> broken because the HCA might retry a send operation
-> (due to dropped ack) after the nvme transaction has completed.
-> 
-> In order to handle this, we signal all send completions (besides
-> async event which is not racing anything).
+> +	}
+> +
+> +	spin_lock_irqsave(&req->lock, flags);
+> +	req->send_completed = true;
+> +	end = req->resp_completed;
+> +	spin_unlock_irqrestore(&req->lock, flags);
 
-Oh well, so much for all these unsignalled completion optimizations..
+Wouldn't it be better to use atomic bitops (test_and_set_bit and co)
+for these flags instead of needing a irqsave lock?
 
-So in which cases do unsignalled completions work at all?  Seems like
-we need to fix up a lot of other ULPs as well.
+>  	err = nvme_rdma_post_send(queue, sqe, req->sge, req->num_sge,
+> -			req->mr->need_inval ? &req->reg_wr.wr : NULL);
+> +			req->mr->need_inval ? &req->reg_wr.wr : NULL, true);
 
-Looks fine:
-
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-
-> -	 */
-> -	if (nvme_rdma_queue_sig_limit(queue) || flush)
-> -		wr.send_flags |= IB_SEND_SIGNALED;
-> +	wr.send_flags = IB_SEND_SIGNALED;
-
-But..  Is there any benefit in just setting IB_SIGNAL_ALL_WR on the QP?
+Looks like the unsignalled completions just removed in the last patch
+are coming back here.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
