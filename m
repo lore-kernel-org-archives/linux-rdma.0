@@ -1,47 +1,37 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: possible isert bug in tear down sequence
-Date: Thu, 9 Nov 2017 12:36:54 +0000
-Message-ID: <BN3PR07MB2578825BFC784DF5DDB6E125F8570@BN3PR07MB2578.namprd07.prod.outlook.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core] verbs: Do not block QP attr_masks used by older
+ kernels
+Date: Thu, 9 Nov 2017 15:24:58 +0200
+Message-ID: <6c9163c0-a7b2-e75c-f106-8252d11863a2@dev.mellanox.co.il>
+References: <20171102215031.GY18874@ziepe.ca>
+ <BN3PR07MB2578908EF39AF93B472208ADF8510@BN3PR07MB2578.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BN3PR07MB2578908EF39AF93B472208ADF8510-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I am experiencing an issue with isert's receive handler:
-	static void isert_recv_done(struct ib_cq *cq, struct ib_wc *wc)
-	{
-		struct isert_conn *isert_conn =3D wc->qp->qp_context;
-		...
-	}
-The first line dereferences the QP. But I'm hitting a case where the QP was=
- already
-deleted so this is bad. The scenario is triggered via 'ifconfig <Ethernet d=
-evice> down',
-whilst the initiator and target are connected.
+On 11/7/2017 8:21 AM, Amrani, Ram wrote:
+>> At least the RDMA CM in 4.3 will give user space structs with these bits
+>> set. Those kernels require user space to pass those set bits back to the
+>> kernel. Blocking them causes RDMA CM to be unusable on older kernels.
+>>
+>> Fixes: 3ca7a1031486 ("ibverbs: Add support for packet pacing")
+>> Reported-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>> Signed-off-by: Jason Gunthorpe <jgunthorpe-uk2M96/98Pc@public.gmane.org>
+>> ---
+> 
+> Thank you, Jason.
+> 
+> Ram
+> 
 
-The handler is invoked via a work queue. Hence it is asynchronous.
-It is valid to continue polling the CQ after the QP has been deleted, but i=
-t isn't valid
-to dereference the QP due to this asynchronous nature. This is funny becaus=
-e the
-QP was destroyed by isert itself. The problem is, that even if isert raises=
- a flag
-saying "I issued a destroy sequence so ignore this CQE" it will still need =
-another
-way to get to iser_conn that isn't via the qp.
-
-I see that NFSoRDMA works differently and thus probably don't suffer from t=
-his issue.
-
-Do you find this analysis correct?
-
-Thanks,
-Ram
-
+Thanks, merged.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
