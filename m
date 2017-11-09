@@ -1,107 +1,98 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v2] IB/ocrdma_hw: remove unnecessary code in
- ocrdma_mbx_dealloc_lkey
-Date: Thu, 9 Nov 2017 10:28:34 +0200
-Message-ID: <20171109082834.GA18825@mtr-leonro.local>
-References: <20171107083022.Horde.E7wKXkvErbmdKSHiwomsj7N@gator4166.hostgator.com>
- <20171107144517.GA25631@embeddedor.com>
- <20171107145018.GJ18825@mtr-leonro.local>
- <20171107085637.Horde.qFzN3uJQkHeQUTyEgZzV4mv@gator4166.hostgator.com>
- <20171107162804.GM18825@mtr-leonro.local>
- <20171108141625.Horde.KGzDIfS83FFw-l2cUJ_EO95@gator4166.hostgator.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 03/13] Attach/detach SoftiWarp to/from network and
+ RDMA subsystem
+Date: Thu, 9 Nov 2017 10:46:10 +0200
+Message-ID: <20171109084610.GB18825@mtr-leonro.local>
+References: <20171008130342.GV25829@mtr-leonro.local>
+ <20171006122853.16310-1-bmt@zurich.ibm.com>
+ <20171006122853.16310-4-bmt@zurich.ibm.com>
+ <OF14995472.9A0A4CF8-ON002581D2.005950C6-002581D2.005C2475@notes.na.collabserv.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="213E7WwkW+nU62+Y"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="PVZB3C997XEKXh6G"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171108141625.Horde.KGzDIfS83FFw-l2cUJ_EO95@gator4166.hostgator.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Doug Ledford <dledford@redhat.com>, Yuval Shaia <yuval.shaia@oracle.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <OF14995472.9A0A4CF8-ON002581D2.005950C6-002581D2.005C2475-8eTO7WVQ4XIsd+ienQ86orlN3bxYEBpz@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---213E7WwkW+nU62+Y
+--PVZB3C997XEKXh6G
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Nov 08, 2017 at 02:16:25PM -0600, Gustavo A. R. Silva wrote:
+On Wed, Nov 08, 2017 at 04:46:26PM +0000, Bernard Metzler wrote:
+> -----Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote: -----
 >
-> Quoting Leon Romanovsky <leon@kernel.org>:
->
-> > On Tue, Nov 07, 2017 at 08:56:37AM -0600, Gustavo A. R. Silva wrote:
-> > >
-> > > Quoting Leon Romanovsky <leon@kernel.org>:
-> > >
-> > > > On Tue, Nov 07, 2017 at 08:45:17AM -0600, Gustavo A. R. Silva wrote:
-> > > > > Check on return value and goto label mbx_err are unnecessary.
-> > > > >
-> > > > > Addresses-Coverity-ID: 1268780
-> > > > > Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
-> > > > > Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
-> > > > > ---
-> > > > > Changes in v2:
-> > > > >  Remove assignment from "int status = -ENOMEM" as suggested by Leon
-> > > > > Romanovsky.
-> > > > >
-> > > > >  drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 6 ++----
-> > > > >  1 file changed, 2 insertions(+), 4 deletions(-)
-> > > >
-> > > > Please use git send-email to send patches and not reply to the
-> > > conversation.
-> > > >
-> > >
-> > > I'm using mutt.
-> > > What would be the advantage of using git send-email in this case?
+> >> + */
+> >> +static __init int siw_init_module(void)
+> >> +{
+> >> +	int rv;
+> >> +	int nr_cpu;
+> >> +
+> >> +	if (SENDPAGE_THRESH < SIW_MAX_INLINE) {
+> >> +		pr_info("siw: sendpage threshold too small: %u\n",
+> >> +			(int)SENDPAGE_THRESH);
+> >> +		rv = EINVAL;
+> >> +		goto out;
+> >> +	}
+> >> +	/*
+> >> +	 * The xprtrdma module needs at least some rudimentary bus to set
+> >> +	 * some devices path MTU.
+> >> +	 */
+> >> +	rv = bus_register(&siw_bus);
 > >
-> > New mail headers, so it won't appear as Reply-To and will be presented
-> > correctly in mutt's threaded mode.
-> >
+> >bus register for the driver? no way.
 >
-> Oh I actually did that on purpose.
+> I admit - this looks ugly. And the comment above is incomplete.
+> I did this mainly to allow siw to register with loopback devices.
+> During device registration, we need to present a real parent device:
+> device_add() needs it, as called by ib_device_register_sysfs().
+> The loopback device does not have a parent device, nor dma_ops.
+> The dma_ops can be satisfied by global dma_virt_ops. But I did not
+> find a similar 'virtual parent device' I could present during registration.
+> So I 'invented' that one.
 >
-> So the preferred way to do this is to send the vN of the patch as a reply to
-> the first patch?
-> or as a new thread?
+> I see no other way yet than dropping loopback device support, if this
+> approach is not acceptable. But, we found it nice to have, since performance
+> for the loopback case improved significantly.
+>
+> Any suggestion on how to enable loopback support (referencing 127.0.0.x
+> addresses during connection management) in a more elegant way would
+> be highly appreciated....
+>
 
-As a new thread, please. It gives numerous advantages: nice view in mutt,
-easy followed links in web archives and maintainer's acceptance email as
-a response to actual vN patch and not to initial patch.
+RXE solved it by relying on loopback from netdevice, see rxe_dma_device call
+in rxe_register_device.
+
+Will it work for SIW?
 
 Thanks
 
->
-> Thanks
-> --
-> Gustavo A. R. Silva
->
->
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---213E7WwkW+nU62+Y
+--PVZB3C997XEKXh6G
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloEEbEACgkQ5GN7iDZy
-WKd7HhAAj0IX4IUW7iLi/Vx9PT+HurMJYBVHuBjcg7TnpJgH3YAouQ+GdvUXQwyh
-alU+OATTi1UQdHnzcoRVoGs+NklDOZg59Ss651peKeg+Ut6y4taMPH8u9oGojO5I
-boLeHm5/zjKGN1bb1KgW24GPSMiK7Jn+fbTmhM47iJ0H6Ja7JVgZNR+mhKArv2ZE
-vhjjcryaKWgpHUiG73Tu3FsV410lMWGwmTutBB26dz1oZH8oYg/wZKvLhaWHxLid
-oVErczqcFogl9d+iGqGY+jFsxXCFYXPegv1EbEQIwYQDM0ta4+OmlwpsdRstEXWY
-epgsIPVCsvLgSEx3RvWK3Dhc5pMSH5zKQXlF8E5BfGA35nT5UiHKhjY3F5jN24zg
-WsFKGfyXt5S+7rhUZpL6Sq2FHgQdD1xZGt9Loz5Bm8Z9rB0lVbefWR1jBCMFesFC
-RM2DUev9i4XPF5KWC6ETcoZiTcYb8cDUczInXbIjavXAgAnY5mLr0+zTCZCckFxW
-RrNSF3gCsayII1T2fh98ZHiHR+RuiUfMRhXdFFCbW47k0puNyvSULMth0LrIptaG
-X03kfd4VOtcQejqcBOnZoQiWzFSLSohaki/LejA8op+7IWt8kESUed5diZt2jN2C
-M+l2ptNfkqxu7+kOB4ZsGQ6dctem93P//vMazwGIMvKNqjUN2x0=
-=gM3h
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloEFdIACgkQ5GN7iDZy
+WKdKgw//U8JHy0a3KyeYvOAbxNiWBGxiHtIs7EjVOTiv9DWz6jQ9k6fYZgCgBRHG
+UAAErIBCMHEBj0pyqNchOmTZaP7erezo/YOE9YfuwmmU/qM10PU38+NADLW0l3lq
+vvqOrZDkn/ydsvJWAzatzVMBcKuMjEAjFt/nk/gs7o2/qJAi1tp5cdM/oFIqvipS
+1PB4YmzB4YM0bw6+0BLQ+OCJ5Sj5mkyRbPbX4qoq3Ir+5jy2GQxysfqyco4ON2/e
+h1PZRjF/9xrOG7qVvfsiO39uvC2pht8OW5cxs64HH3OCnbtG8HcmmGgHJ9R06MDf
+ihSeCTSZ+YRMtHwgL3hg84hWZWxzXkmshY5KnH7Rsy+kUIGUk1jXtIcwb3MHnOFf
+ru5IdtyvqWhcW5go34JNR6JkrKWDlE7Ev5yDRL648sKNFmREIEwnlx0ij7znn/bl
+EjSAyrvGBUDI6GdZTX1RqUUMfO7mBA3LYefSYEbVlQ2Vd47vfB+dMYUiXPFgaPjK
+wJ5rIWOTDm2x5Ev3jI33eLh3YGqGMd1BrXkPnZu/js6rkXCFby2M6RUaOtKUXbw3
+OoSLHiDcTb7bZNjnnA7tDUN+Y9xSOeWhmVVjuwJvH21IzpDJDO44o1q/l8/OB3C/
+vJ7oQ/PWt1rzDZzJw7J90k8rrbRj3XZAp0PkVWfVv8M5XSnNPJg=
+=0tSK
 -----END PGP SIGNATURE-----
 
---213E7WwkW+nU62+Y--
+--PVZB3C997XEKXh6G--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
