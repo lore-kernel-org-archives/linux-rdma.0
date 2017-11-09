@@ -1,48 +1,41 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 1/2] bnxt_re/lib: fix the memory barrier call during poll-cq
-Date: Thu,  9 Nov 2017 04:10:57 -0500
-Message-ID: <1510218658-16710-2-git-send-email-devesh.sharma@broadcom.com>
-References: <1510218658-16710-1-git-send-email-devesh.sharma@broadcom.com>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] nvme-rdma: don't suppress send completions
+Date: Thu, 9 Nov 2017 10:18:58 +0100
+Message-ID: <20171109091858.GA16966@lst.de>
+References: <20171108100616.26605-1-sagi@grimberg.me> <20171108100616.26605-2-sagi@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1510218658-16710-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171108100616.26605-2-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Putting a read barrier before issuing a read on valid bit
-is incorrect. When checking for the validity of CQE in the
-CQ buffer the code must wait for the read-barrier to finish
-after issuing a read operaion on CQE valid bit.
+On Wed, Nov 08, 2017 at 12:06:14PM +0200, Sagi Grimberg wrote:
+> The entire completions suppress mechanism is currently
+> broken because the HCA might retry a send operation
+> (due to dropped ack) after the nvme transaction has completed.
+> 
+> In order to handle this, we signal all send completions (besides
+> async event which is not racing anything).
 
-Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
----
- providers/bnxt_re/main.h | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+Oh well, so much for all these unsignalled completion optimizations..
 
-diff --git a/providers/bnxt_re/main.h b/providers/bnxt_re/main.h
-index 9688fec..82c8948 100644
---- a/providers/bnxt_re/main.h
-+++ b/providers/bnxt_re/main.h
-@@ -366,9 +366,13 @@ static inline uint8_t bnxt_re_to_ibv_wc_status(uint8_t bnxt_wcst,
- static inline uint8_t bnxt_re_is_cqe_valid(struct bnxt_re_cq *cq,
- 					   struct bnxt_re_bcqe *hdr)
- {
-+	uint8_t valid = 0;
-+
-+	valid = ((le32toh(hdr->flg_st_typ_ph) &
-+		  BNXT_RE_BCQE_PH_MASK) == cq->phase);
- 	udma_from_device_barrier();
--	return ((le32toh(hdr->flg_st_typ_ph) &
--		 BNXT_RE_BCQE_PH_MASK) == cq->phase);
-+
-+	return valid;
- }
- 
- static inline void bnxt_re_change_cq_phase(struct bnxt_re_cq *cq)
--- 
-1.8.3.1
+So in which cases do unsignalled completions work at all?  Seems like
+we need to fix up a lot of other ULPs as well.
 
+Looks fine:
+
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+
+> -	 */
+> -	if (nvme_rdma_queue_sig_limit(queue) || flush)
+> -		wr.send_flags |= IB_SEND_SIGNALED;
+> +	wr.send_flags = IB_SEND_SIGNALED;
+
+But..  Is there any benefit in just setting IB_SIGNAL_ALL_WR on the QP?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
