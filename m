@@ -1,83 +1,57 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/2] bnxt_re/lib: increament psn in case of 0
- length packets
-Date: Thu, 9 Nov 2017 11:51:38 +0200
-Message-ID: <20171109095138.GE18825@mtr-leonro.local>
-References: <1510218658-16710-1-git-send-email-devesh.sharma@broadcom.com>
- <1510218658-16710-3-git-send-email-devesh.sharma@broadcom.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: XRC Questions for Mellanox and All
+Date: Thu, 9 Nov 2017 10:12:31 +0000
+Message-ID: <BN3PR07MB2578462C1760953F6D4690E2F8570@BN3PR07MB2578.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="bE2XbrxqIoa/xW9+"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1510218658-16710-3-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Mellanox, All,
+I've been reading XRC code, currently implemented only by Mellanox.
+I have a few questions regarding specifications vs. implementation.
 
---bE2XbrxqIoa/xW9+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+ (1) The protocol specifies:
+11.6.3.2 AFFILIATED ASYNCHRONOUS ERRORS
+...
+The following describes the new Affiliated Asynchronous Errors for
+XRC TGT QPs:
+* XRC Domain Violation - Responder's Receive Queue detected an
+XRC Domain that does not match the XRC Domain of the XRC SRQ.
+* Invalid XRCETH - Responder detected that the XRC SRQ does not
+exist or is not in the right state or wire protocol violation.
 
-On Thu, Nov 09, 2017 at 04:10:58AM -0500, Devesh Sharma wrote:
-> If application posts a 0 length packte, post send routine
-> is skipping to increament the psn number. This will cause
-> PSN number to go out of sync and evantually connection would
-> terminate due to sequence error.
->
-> post_send routine must increament the psn number by 1 even
-> for zero length packets.
+I don't see any dedicated entries in the enum ib_event_type.
+Why? How, do you currently treat these errors?
 
-s/increament/increment in all places.
+(2) The protocol specifies:
+11.4.2.1 POLL FOR COMPLETION
+...
+Output Modifiers:
+...
+* Local XRC TGT QP Number. Returned only for completions
+of WRs posted to XRC SRQs.
 
-Thanks
+I don't see any dedicated field in the struct ib_wc.
+Why? How, do you currently return this value, if at all?
 
->
-> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> ---
->  providers/bnxt_re/verbs.c | 2 ++
->  1 file changed, 2 insertions(+)
->
-> diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
-> index 4d9b044..9d4e02b 100644
-> --- a/providers/bnxt_re/verbs.c
-> +++ b/providers/bnxt_re/verbs.c
-> @@ -1048,6 +1048,8 @@ static void bnxt_re_fill_psns(struct bnxt_re_qp *qp, struct bnxt_re_psns *psns,
->  		pkt_cnt = (len / qp->mtu);
->  		if (len % qp->mtu)
->  			pkt_cnt++;
-> +		if (len == 0)
-> +			pkt_cnt = 1;
->  		nxt_psn = ((qp->sq_psn + pkt_cnt) & BNXT_RE_PSNS_NPSN_MASK);
->  		psns->flg_npsn = htole32(nxt_psn);
->  		qp->sq_psn = nxt_psn;
-> --
-> 1.8.3.1
->
+(3) The protocol specifies:
+11.4.2.1 POLL FOR COMPLETION=20
+A new "XRC violation error" is returned for requests that caused the respon=
+der
+to return a "NAK-Invalid RD Request" NAK. This could have been
+caused by either a Remote XRC Domain Violation or an XRCETH Violation
+as detailed in the transport section.
 
---bE2XbrxqIoa/xW9+
-Content-Type: application/pgp-signature; name="signature.asc"
+What entry from the enum ib_wc_status do you use for this?
 
------BEGIN PGP SIGNATURE-----
+Thanks,
+Ram
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloEJSoACgkQ5GN7iDZy
-WKdi/xAAzOR3v2N+Fdd2qu3MLt7TufFd7jYW2/TsEjiqRz7yzY+xzexZpTAUpu8z
-43rLOy/kLtMvB1PCF4vljeBC1jTD/PRXBzcbLTnS9SUeoV4fpq9wtM+7juZbcxwQ
-h5sy5d5i7lB90OycRysZ6ymsZvUz5aixACsEXpswbb7q1Joh8jtOvSdQ2KXXZoXa
-WMnQseyMDbxCv0Rhy2SCPyD22elIYhLccmHsg8vk7+Xo/7pOVroK3aM41VxGCvqh
-+vQR8jBtTKNVgLufiRB4DAqb5Gc0XuFSVeEiB30EzRfe3J0fxXZqOJIdK546M83V
-l8L/F6get8JcMpxn6jnCFkmVnnYnsPPeqng1trKffbAsSuMsd/LL57+CNFqZCDb2
-ryHy16dj03Ui+8+x4GqnRfqgs1CCNsLfX/WrcvrnzZ2HulI/DJzYSWcejF3Y1W5+
-V28U2iX7SF4Kh5edWZTxs3vtHcRqHaNU1sDHQo0WJ0RjUuDptQO2+b2X/USqjfAH
-on5TvQqtM5Yofd/+Uapeq1NXoY281Js7P3/V1pbokVhrBe2WOfknssU5eMQuSS+L
-CmQd/Z9ACSP72Iqi6rcV6AUXRZyB2Y7ckM2diScV+bX+cSdX/GR2OBSW3haNwtUA
-NvlG+tEOr273wQa9W/OiTit7O1lI8CsLgHgNMCxmHlkBIle15bs=
-=U/bP
------END PGP SIGNATURE-----
-
---bE2XbrxqIoa/xW9+--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
