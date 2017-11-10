@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 08/11] {topost} RDMA/hns: Add sq_invld_flg field in QP context
-Date: Fri, 10 Nov 2017 16:55:50 +0800
-Message-ID: <1510304153-91394-9-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 10/11] {topost} RDMA/hns: Unify the calculation for hem index in hip08
+Date: Fri, 10 Nov 2017 16:55:52 +0800
+Message-ID: <1510304153-91394-11-git-send-email-oulijun@huawei.com>
 References: <1510304153-91394-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,48 +12,47 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In hip08 RoCE, it need to add the sq_invld_flg field
-in QP context for RoCE hardware.
+The calculation of hem index are different between hns_roce_table_get
+and hns_roce_table_find. When the table chunk size of TRRL is not
+divisible by object size, it will faile to find the trrl table.
 
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+This patch is to update the calculation of the hem index in the
+hns_roce_table_find to the same as which in the hns_roce_table_get.
+
 Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 ++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 6 ++++--
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hem.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index d74a522..c1f3325 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2042,6 +2042,8 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index f1f8fa4..8b733a6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -724,7 +724,8 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
+ 	struct hns_roce_hem *hem;
+ 	struct page *page = NULL;
+ 	unsigned long mhop_obj = obj;
+-	unsigned long idx;
++	unsigned long obj_per_chunk;
++	unsigned long idx_offset;
+ 	int offset, dma_offset;
+ 	int i, j;
+ 	u32 hem_idx = 0;
+@@ -735,9 +736,10 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
+ 	mutex_lock(&table->mutex);
  
- 	roce_set_bit(qpc_mask->byte_168_irrl_idx,
- 		     V2_QPC_BYTE_168_MSG_RTY_LP_FLG_S, 0);
-+	roce_set_bit(qpc_mask->byte_168_irrl_idx,
-+		     V2_QPC_BYTE_168_SQ_INVLD_FLG_S, 0);
- 	roce_set_field(qpc_mask->byte_168_irrl_idx,
- 		       V2_QPC_BYTE_168_IRRL_IDX_LSB_M,
- 		       V2_QPC_BYTE_168_IRRL_IDX_LSB_S, 0);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 3d9114e..04b7a51 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -606,8 +606,10 @@ struct hns_roce_v2_qp_context {
- 
- #define V2_QPC_BYTE_168_MSG_RTY_LP_FLG_S 20
- 
--#define	V2_QPC_BYTE_168_LP_SGEN_INI_S 21
--#define V2_QPC_BYTE_168_LP_SGEN_INI_M GENMASK(23, 21)
-+#define V2_QPC_BYTE_168_SQ_INVLD_FLG_S 21
-+
-+#define	V2_QPC_BYTE_168_LP_SGEN_INI_S 22
-+#define V2_QPC_BYTE_168_LP_SGEN_INI_M GENMASK(23, 22)
- 
- #define	V2_QPC_BYTE_168_SQ_SHIFT_BAK_S 24
- #define V2_QPC_BYTE_168_SQ_SHIFT_BAK_M GENMASK(27, 24)
+ 	if (!hns_roce_check_whether_mhop(hr_dev, table->type)) {
+-		idx = (obj & (table->num_obj - 1)) * table->obj_size;
+-		hem = table->hem[idx / table->table_chunk_size];
+-		dma_offset = offset = idx % table->table_chunk_size;
++		obj_per_chunk = table->table_chunk_size / table->obj_size;
++		hem = table->hem[(obj & (table->num_obj - 1)) / obj_per_chunk];
++		idx_offset = (obj & (table->num_obj - 1)) % obj_per_chunk;
++		dma_offset = offset = idx_offset * table->obj_size;
+ 	} else {
+ 		hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop);
+ 		/* mtt mhop */
 -- 
 1.9.1
 
