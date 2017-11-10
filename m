@@ -1,35 +1,68 @@
-From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rdma-core stable releases
-Date: Fri, 10 Nov 2017 21:21:24 +0000
-Message-ID: <9C6B67F36DCAFC479B1CF6A967258A8CA951013D@ORSMSX115.amr.corp.intel.com>
-References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <20171106182756.GD18802@ziepe.ca>
- <6012d1c3-cd18-25e8-c5ae-3d678142177b@suse.de>
- <54347E5A035A054EAE9D05927FB467F9B61778A9@ORSMSX101.amr.corp.intel.com>
- <20171110202455.GP18825@mtr-leonro.local> <20171110211448.GF17451@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171110211448.GF17451-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] infiniband: avoid uninitialized variable warning in create_udata
+Date: Fri, 10 Nov 2017 23:10:31 +0100
+Message-ID: <20171110221053.3549147-1-arnd@arndb.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>, Dan Carpenter <dan.carpenter@oracle.com>, Arnd Bergmann <arnd@arndb.de>, Matan Barak <matanb@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Leon Romanovsky <leon@kernel.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Jason wrote,
+As Dan pointed out, the rework I did makes it harder for smatch and other
+static checkers to figure out what is going on with the uninitialized
+pointers.
 
->There should also be absolutely no ABI changes in the -stable branchs.
+By open-coding the call in create_udata(), we make it more readable for
+both humans and tools.
 
-I agree and stable branch should be for bug fixes only, new features should be only included in the master branch that is for the next major release of rdma-core.
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Fixes: 12f727721eee ("IB/uverbs: clean up INIT_UDATA_BUF_OR_NULL usage")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/infiniband/core/uverbs_std_types.c | 21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
->Ultimately I think people will settle on a couple of revisions that ended up being used in distros, OFED, MOFED, etc.
-
-I also agree, most likely not every new rdma-core release will also need to have a stable branch. Probably just the ones that are ending up in distros. I think this is what the kernel does too,
-Right ?
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+index b095bce7f238..c3ee5d9b336d 100644
+--- a/drivers/infiniband/core/uverbs_std_types.c
++++ b/drivers/infiniband/core/uverbs_std_types.c
+@@ -227,27 +227,26 @@ static void create_udata(struct uverbs_attr_bundle *ctx,
+ 	 * to use uverbs_attr_bundle instead of ib_udata.
+ 	 * Assume attr == 0 is input and attr == 1 is output.
+ 	 */
+-	void __user *inbuf;
+-	size_t inbuf_len = 0;
+-	void __user *outbuf;
+-	size_t outbuf_len = 0;
+ 	const struct uverbs_attr *uhw_in =
+ 		uverbs_attr_get(ctx, UVERBS_UHW_IN);
+ 	const struct uverbs_attr *uhw_out =
+ 		uverbs_attr_get(ctx, UVERBS_UHW_OUT);
+ 
+ 	if (!IS_ERR(uhw_in)) {
+-		inbuf = uhw_in->ptr_attr.ptr;
+-		inbuf_len = uhw_in->ptr_attr.len;
++		udata->inbuf = uhw_in->ptr_attr.ptr;
++		udata->inlen = uhw_in->ptr_attr.len;
++	} else {
++		udata->inbuf = NULL;
++		udata->inlen = 0;
+ 	}
+ 
+ 	if (!IS_ERR(uhw_out)) {
+-		outbuf = uhw_out->ptr_attr.ptr;
+-		outbuf_len = uhw_out->ptr_attr.len;
++		udata->outbuf = uhw_out->ptr_attr.ptr;
++		udata->outlen = uhw_out->ptr_attr.len;
++	} else {
++		udata->outbuf = NULL;
++		udata->outlen = 0;
+ 	}
+-
+-	ib_uverbs_init_udata_buf_or_null(udata, inbuf, outbuf, inbuf_len,
+-					 outbuf_len);
+ }
+ 
+ static int uverbs_create_cq_handler(struct ib_device *ib_dev,
+-- 
+2.9.0
