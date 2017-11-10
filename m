@@ -1,41 +1,44 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: rdma-core stable releases
-Date: Fri, 10 Nov 2017 14:14:48 -0700
-Message-ID: <20171110211448.GF17451@ziepe.ca>
-References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <20171106182756.GD18802@ziepe.ca>
- <6012d1c3-cd18-25e8-c5ae-3d678142177b@suse.de>
- <54347E5A035A054EAE9D05927FB467F9B61778A9@ORSMSX101.amr.corp.intel.com>
- <20171110202455.GP18825@mtr-leonro.local>
+Subject: Re: [PATCH rdma-next v1 1/6] IB/uverbs: Allow CQ moderation with
+ modify CQ
+Date: Fri, 10 Nov 2017 14:16:52 -0700
+Message-ID: <20171110211652.GG17451@ziepe.ca>
+References: <20171029135140.32649-1-leon@kernel.org>
+ <20171029135140.32649-2-leon@kernel.org>
+ <20171029174345.GC4488@ziepe.ca>
+ <20171029182808.GN16127@mtr-leonro.local>
+ <20171030144807.GA12392@ziepe.ca>
+ <20171030152815.GA16127@mtr-leonro.local>
+ <1510341329.3735.19.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171110202455.GP18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1510341329.3735.19.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 10, 2017 at 10:24:55PM +0200, Leon Romanovsky wrote:
-> More or less, you wrote everything that I expected, just need to post it
-> as a patch so I can apply it to rdma-core.
+On Fri, Nov 10, 2017 at 02:15:29PM -0500, Doug Ledford wrote:
 
-Also please describe how to get patches into -stable, eg similar to
-the kernel, mark with fixes and cc the stable maintainer.
+> signature of ib_modify_cq to a generic, extendable signature, or we need
+> to change the name as Jason points out so we match name and parameter
+> signature in the same spirit.
 
-There should also be absolutely no ABI changes in the -stable branchs.
+The kernel side should focus on setting cq moderation, as I understand
+we have ULPs that want to adjust this dynamically so higher
+performance through a simplified API makes the most sense. No need to
+mirror libibverbs.
 
-> The thing which is important to me is how long that stable will be
-> maintained and how often they will be opened, I don't want to see 12
-> stable branches after 3 years of running rdma-core. It releases
-> every 2-3 months, so theoretically we can find ourselves creating
-> stable branches after every release (4 per year).
+> Let's please make this consistent before merging.  BTW, because so much
+> of the rest of the API uses things like modify_qp with an attr struct
+> and a single entry point, I'm leaning towards following that here for
+> the sake of API consistency.
 
-Should be up to the people doing this, IMHO.
-
-Ultimately I think people will settle on a couple of revisions that
-ended up being used in distros, OFED, MOFED, etc.
+Should we introduce a create_cq_ex as well at this point? It is really
+weird in verbs to have a modify attrs without a create also accepting
+the attrs.
 
 Jason
 --
