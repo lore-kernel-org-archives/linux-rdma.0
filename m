@@ -1,44 +1,68 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next v1 1/6] IB/uverbs: Allow CQ moderation with
- modify CQ
-Date: Fri, 10 Nov 2017 14:16:52 -0700
-Message-ID: <20171110211652.GG17451@ziepe.ca>
-References: <20171029135140.32649-1-leon@kernel.org>
- <20171029135140.32649-2-leon@kernel.org>
- <20171029174345.GC4488@ziepe.ca>
- <20171029182808.GN16127@mtr-leonro.local>
- <20171030144807.GA12392@ziepe.ca>
- <20171030152815.GA16127@mtr-leonro.local>
- <1510341329.3735.19.camel@redhat.com>
+Subject: Re: [PATCH rdma-core 3/3] libhns: Fix endian format of payload and
+ immediate
+Date: Fri, 10 Nov 2017 14:18:18 -0700
+Message-ID: <20171110211818.GH17451@ziepe.ca>
+References: <1509530440-164400-1-git-send-email-oulijun@huawei.com>
+ <1509530440-164400-4-git-send-email-oulijun@huawei.com>
+ <20171101161328.GB7815@ziepe.ca>
+ <8dbc8305-f154-3b8c-795a-b5f1a6b53c73@huawei.com>
+ <20171102150655.GD18874@ziepe.ca>
+ <b2e9430c-a801-bef1-a491-8f983a525cab@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1510341329.3735.19.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <b2e9430c-a801-bef1-a491-8f983a525cab-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 10, 2017 at 02:15:29PM -0500, Doug Ledford wrote:
+On Wed, Nov 08, 2017 at 10:05:22AM +0800, oulijun wrote:
+> 在 2017/11/2 23:06, Jason Gunthorpe 写道:
+> > On Thu, Nov 02, 2017 at 02:03:18PM +0800, oulijun wrote:
+> >>>  mkdr build-sparse
+> >>>  cd build-sparse
+> >>>  CC=cgcc cmake -GNinja ..
+> >>>  ninja
+> >>>
+> >> I have run the sparse successful and don't understand the result.
+> > 
+> > Something is wrong with your local environment:
+> > 
+> >> [10/190] Building C object util/CMakeFiles/rdma_util_pic.dir/mmio.c.o
+> >> /usr/include/linux/types.h:4:11: error: unable to open 'asm/types.h'
+> > 
+> > Those headers should exist, they usually come with glibc, eg on Debian
+> > it comes from here:
+> > 
+> > linux-libc-dev:amd64: /usr/include/x86_64-linux-gnu/asm/types.h
+> > 
+> > Jason
+> > 
+> > 
+> Hi, Jason
+>    I have trying to run sparse according to your way and it is always fail in
+> the last two days.
+>    the print log is
+> 	/usr/include/linux/types.h:4:11: error: unable to open 'asm/types.h'
+> 
+>    I do some steps for attempt resolving it and it is fail.
+>    1). I am trying to change the files' limit
+> 	chmod 757 /usr/include/x86_64-linux-gnu/asm/*
+>    2). I am also trying to run the cmd
+> 	sudo CC=cgcc cmake -GNinja ..
+>  	sudo ninja
+>    3). And I am trying to do others for asking my colleague.
+> 
+>    Can you give some good advice for me?
 
-> signature of ib_modify_cq to a generic, extendable signature, or we need
-> to change the name as Jason points out so we match name and parameter
-> signature in the same spirit.
-
-The kernel side should focus on setting cq moderation, as I understand
-we have ULPs that want to adjust this dynamically so higher
-performance through a simplified API makes the most sense. No need to
-mirror libibverbs.
-
-> Let's please make this consistent before merging.  BTW, because so much
-> of the rest of the API uses things like modify_qp with an attr struct
-> and a single entry point, I'm leaning towards following that here for
-> the sake of API consistency.
-
-Should we introduce a create_cq_ex as well at this point? It is really
-weird in verbs to have a modify attrs without a create also accepting
-the attrs.
+I can't think what could be wrong with your setup, I assume something
+bad happened to your OS. Try re-installing the packages, make sure
+'gcc' points to something that came with ubuntu, look at strace from
+cgcc to understand why it is failing..
 
 Jason
 --
