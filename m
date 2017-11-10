@@ -1,10 +1,11 @@
-From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V2 rdma-core 2/2] libhns: Modify the usage of cmd_sn in hip08 RoCE userspace
-Date: Fri, 10 Nov 2017 18:20:53 +0800
-Message-ID: <1510309253-229097-3-git-send-email-oulijun@huawei.com>
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V2 rdma-core 0/2] Bugfixes for hip08 libhns
+Date: Fri, 10 Nov 2017 17:45:11 +0800
+Message-ID: <c56afe42-413e-37e7-68d4-e72db9aba0b7@huawei.com>
 References: <1510309253-229097-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="gbk"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1510309253-229097-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -12,61 +13,39 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The cmd_sn field of CQ doorbell inits for 0. It should be
-increment on each first db rung after a complemention Event.
-if the cmd_sn of notify doorbell Adjacent two times is the
-same, the hardware will distinguish it for the same notify
-request and update its type according to the priority level
-of next event and solicited event.
+ÔÚ 2017/11/10 18:20, Lijun Ou Ð´µÀ:
+> This path series update the usage of two fields in cq doorbell and
+> sqwqe.
+> 
+> Change from V1:
+> 1. Update commit log
+> 2. Remove the third patch, name is
+>    libhns: Fix endian format of payload and immediate
+> 
+> Lijun Ou (2):
+>   libhns: Set owner bit of SQWQE in user mode
+>   libhns: Modify the usage of cmd_sn in hip08 RoCE userspace
+> 
+>  providers/hns/hns_roce_u_hw_v2.c | 10 +++++++++-
+>  providers/hns/hns_roce_u_hw_v2.h |  2 ++
+>  2 files changed, 11 insertions(+), 1 deletion(-)
+> 
+Hi, leon&jgunthorpe
+   In PATCH V2 version, I am remove the patch
+	libhns: Fix endian format of payload and immediate
 
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
----
- providers/hns/hns_roce_u_hw_v2.c | 4 +++-
- providers/hns/hns_roce_u_hw_v2.h | 2 ++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+   I am trying to test it by using jason's patch and it has some questions within the next few days
+	hns: Make the provider sparse clean
 
-diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
-index 900387c..7777e75 100644
---- a/providers/hns/hns_roce_u_hw_v2.c
-+++ b/providers/hns/hns_roce_u_hw_v2.c
-@@ -444,11 +444,13 @@ static int hns_roce_u_v2_poll_cq(struct ibv_cq *ibvcq, int ne,
- static int hns_roce_u_v2_arm_cq(struct ibv_cq *ibvcq, int solicited)
- {
- 	uint32_t ci;
-+	uint32_t cmd_sn;
- 	uint32_t solicited_flag;
- 	struct hns_roce_v2_cq_db cq_db;
- 	struct hns_roce_cq *cq = to_hr_cq(ibvcq);
- 
- 	ci  = cq->cons_index & ((cq->cq_depth << 1) - 1);
-+	cmd_sn = cq->arm_sn & HNS_ROCE_CMDSN_MASK;
- 	solicited_flag = solicited ? HNS_ROCE_V2_CQ_DB_REQ_SOL :
- 				     HNS_ROCE_V2_CQ_DB_REQ_NEXT;
- 
-@@ -462,7 +464,7 @@ static int hns_roce_u_v2_arm_cq(struct ibv_cq *ibvcq, int solicited)
- 		       CQ_DB_PARAMETER_CQ_CONSUMER_IDX_S, ci);
- 
- 	roce_set_field(cq_db.parameter, CQ_DB_PARAMETER_CMD_SN_M,
--		       CQ_DB_PARAMETER_CMD_SN_S, 1);
-+		       CQ_DB_PARAMETER_CMD_SN_S, cmd_sn);
- 	roce_set_bit(cq_db.parameter, CQ_DB_PARAMETER_NOTIFY_S, solicited_flag);
- 
- 	hns_roce_write64((uint32_t *)&cq_db, to_hr_ctx(ibvcq->context),
-diff --git a/providers/hns/hns_roce_u_hw_v2.h b/providers/hns/hns_roce_u_hw_v2.h
-index 28aab60..196ba4e 100644
---- a/providers/hns/hns_roce_u_hw_v2.h
-+++ b/providers/hns/hns_roce_u_hw_v2.h
-@@ -38,6 +38,8 @@
- #define HNS_ROCE_V2_CQ_DB_REQ_SOL		1
- #define HNS_ROCE_V2_CQ_DB_REQ_NEXT		0
- 
-+#define HNS_ROCE_CMDSN_MASK			0x3
-+
- /* V2 REG DEFINITION */
- #define ROCEE_VF_DB_CFG0_OFFSET			0x0230
- 
--- 
-1.9.1
+   I am tested it aginst D05(ARM64), when use hip08 as server and D05 as client, it is ok
+   when use hip08 as client and D05 as server, it is fail. These test use the rdma operation with immediately scene.
+
+   I have attending to resolving this bug and will send a patch serperately after resolved it
+
+Thanks
+Lijun Ou
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
