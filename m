@@ -1,50 +1,67 @@
-From: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] librdmacm: Add support for extended join multicast
- API
-Date: Fri, 10 Nov 2017 10:28:38 -0600 (CST)
-Message-ID: <alpine.DEB.2.20.1711101026470.29707@nuc-kabylake>
-References: <20171109171609.169281977@linux.com> <20171109171618.882248508@linux.com> <79363650-6aca-111c-4b8c-b1c620be5cde@dev.mellanox.co.il>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/3] RDMA/hns: Add rereg mr & RoCEv2 support for hip08
+Date: Fri, 10 Nov 2017 12:15:48 -0500
+Message-ID: <1510334148.3735.1.camel@redhat.com>
+References: <1509009025-101743-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-6scbcVDqFstEoC1qul5T"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <79363650-6aca-111c-4b8c-b1c620be5cde-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1509009025-101743-1-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobohsu-9Onoh4P/yGk@public.gmane.org, shaoboxu-WVlzvzqoTvw@public.gmane.org, shaobo.xu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Subject: rdma-core: Fixup comments in librdmacm
 
-Fix up the two comments that Hal showed were incorrect.
+--=-6scbcVDqFstEoC1qul5T
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+On Thu, 2017-10-26 at 17:10 +0800, Wei Hu (Xavier) wrote:
+> This patch-set introduce rereg mr support, RoCEv2 support for hip08.
+>=20
+> Wei Hu (Xavier) (3):
+>   RDMA/hns: Add rereg mr support for hip08
+>   RDMA/hns: Generate gid type of RoCEv2
+>   RDMA/hns: Configure sgid type for hip08 RoCE
+>=20
+>  drivers/infiniband/hw/hns/hns_roce_cmd.h    |   3 +
+>  drivers/infiniband/hw/hns/hns_roce_device.h |  17 +++-
+>  drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |   7 +-
+>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  79 +++++++++++++++++-
+>  drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |   7 ++
+>  drivers/infiniband/hw/hns/hns_roce_main.c   |  20 +++--
+>  drivers/infiniband/hw/hns/hns_roce_mr.c     | 123 ++++++++++++++++++++++=
+++++++
+>  7 files changed, 242 insertions(+), 14 deletions(-)
+>=20
 
-Index: rdma-core/librdmacm/cma.c
-===================================================================
---- rdma-core.orig/librdmacm/cma.c
-+++ rdma-core/librdmacm/cma.c
-@@ -2040,7 +2040,7 @@ static int ucma_process_join(struct cma_
- 	if (!evt->id_priv->id.qp)
- 		return 0;
+Thanks, series applied.
+--=-6scbcVDqFstEoC1qul5T
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
--	/* Don't attach QP to multicast if joined as send only */
-+	/* Don't attach QP to multicast if joined as send only full member */
- 	if (evt->mc->join_flags == RDMA_MC_JOIN_FLAG_SENDONLY_FULLMEMBER)
- 		return 0;
+-----BEGIN PGP SIGNATURE-----
 
-Index: rdma-core/librdmacm/rdma_cma.h
-===================================================================
---- rdma-core.orig/librdmacm/rdma_cma.h
-+++ rdma-core/librdmacm/rdma_cma.h
-@@ -578,7 +578,7 @@ int rdma_join_multicast(struct rdma_cm_i
- int rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr);
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloF3sQACgkQuCajMw5X
+L90uVw/+LZ0F+iNo0F6lyLnXJ0gFywCb4cTLNFta/wNaxxxo8tidZHiFfuwu7K7v
+xv+x+iiWJID45TIDqX0xVzbHUyAy/RNfBlfaHzXctDR3V+tae4VTQW2l+DCWn4Ha
+DJ3NB8RdmvA6+34HWvdgQc6AU7FIuayfNSkqgAYWJY+EZMmkaqhGv5+ePqCT64Bk
+L348jp/XztEnhgNTDAolulJFtvH+YbWFY4Ho6oybpAaO4D8w7/HYzQ08lkVekijP
+cS57wm4E55D3C5Zrj/bCmRSwqALUnDNHI0pK8VwGbbiKTVn8m9+HHOdInLxdeCKq
+aJ0U00oqkCLcStCZZpUF69yjLHJwGbUuRABEoyFg7rxmTZmHkKAzK+tIshwWwRu0
+1QrPuK3Z6Hk4ogkjDJXivIGve8ST706E0dWoF+8m0URrzreNH1UOjpl83HdEsx7v
+ILS5rs8RKrgXbViid6Ar8lZxmxR7pFepdffRG+K4ziIGMssMsmCSBrAIIyBxQFkI
+6JzAhiMfEVBsznQuIeckhu+BJvPm3n6/M7uOIc7dYZBGWE9y7JhCLDw+8jb8rtj0
+iRrJcqRnXgTGTOxCadPh9IGaIqrT2aCjvsYCNfIwXxlpbwWOJBzzv0MZOvh5qL7N
++Q7hd+ul7E6TMfCnWbO+WF+PYTanj2m7IA++uH6TJ0/mis+1F4o=
+=0vyg
+-----END PGP SIGNATURE-----
 
- /**
-- * in_multicast_ex - Joins a multicast group with options.
-+ * rdma_join_multicast_ex - Joins a multicast group with options.
-  * @id: Communication identifier associated with the request.
-  * @mc_join_attr: Extensive struct containing multicast join parameters.
-  * @context: User-defined context associated with the join request.
+--=-6scbcVDqFstEoC1qul5T--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
