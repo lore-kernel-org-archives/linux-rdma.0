@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 06/11] {topost} RDMA/hns: Set sq_cur_sge_blk_addr field in QPC in hip08
-Date: Fri, 10 Nov 2017 16:55:48 +0800
-Message-ID: <1510304153-91394-7-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 09/11] {topost} RDMA/hns: Set the owner field of SQWQE in hip08 RoCE
+Date: Fri, 10 Nov 2017 16:55:51 +0800
+Message-ID: <1510304153-91394-10-git-send-email-oulijun@huawei.com>
 References: <1510304153-91394-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,65 +12,49 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If the extend sges exist, the sq_cur_sge_blk_addr field in QPC
-(qp context) should be configured.
+the owner need to be set when posting sqwqe in hip08 RoCE.
+The owner be used according to the below algorithm:
+The value of owner should be 1 in the first lap, it
+should be 0 in the second lap and in turn.
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 16 ++++++++++++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  2 +-
- 2 files changed, 17 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index b2513bd..ee2d832 100644
+index c1f3325..7008fa3 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2566,6 +2566,7 @@ static int modify_qp_rtr_to_rts(struct ib_qp *ibqp,
- 	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
- 	struct device *dev = hr_dev->dev;
- 	dma_addr_t dma_handle;
-+	u32 page_size;
- 	u64 *mtts;
+@@ -62,6 +62,7 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 	struct hns_roce_v2_db sq_db;
+ 	unsigned int sge_ind = 0;
+ 	unsigned int wqe_sz = 0;
++	unsigned int owner_bit;
+ 	unsigned long flags;
+ 	unsigned int ind;
+ 	void *wqe = NULL;
+@@ -104,6 +105,7 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 		qp->sq.wrid[(qp->sq.head + nreq) & (qp->sq.wqe_cnt - 1)] =
+ 								      wr->wr_id;
  
- 	/* Search qp buf's mtts */
-@@ -2608,6 +2609,21 @@ static int modify_qp_rtr_to_rts(struct ib_qp *ibqp,
- 		       V2_QPC_BYTE_168_SQ_CUR_BLK_ADDR_M,
- 		       V2_QPC_BYTE_168_SQ_CUR_BLK_ADDR_S, 0);
++		owner_bit = ~(qp->sq.head >> ilog2(qp->sq.wqe_cnt)) & 0x1;
+ 		rc_sq_wqe = wqe;
+ 		memset(rc_sq_wqe, 0, sizeof(*rc_sq_wqe));
+ 		for (i = 0; i < wr->num_sge; i++)
+@@ -120,6 +122,9 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 		roce_set_bit(rc_sq_wqe->byte_4, V2_RC_SEND_WQE_BYTE_4_CQE_S,
+ 			    (wr->send_flags & IB_SEND_SIGNALED) ? 1 : 0);
  
-+	page_size = 1 << (hr_dev->caps.mtt_buf_pg_sz + PAGE_SHIFT);
-+	context->sq_cur_sge_blk_addr = hr_qp->sq.max_gs > 2 ?
-+				      ((u32)(mtts[hr_qp->sge.offset / page_size]
-+				      >> PAGE_ADDR_SHIFT)) : 0;
-+	roce_set_field(context->byte_184_irrl_idx,
-+		       V2_QPC_BYTE_184_SQ_CUR_SGE_BLK_ADDR_M,
-+		       V2_QPC_BYTE_184_SQ_CUR_SGE_BLK_ADDR_S,
-+		       hr_qp->sq.max_gs > 2 ?
-+		       (mtts[hr_qp->sge.offset / page_size] >>
-+		       (32 + PAGE_ADDR_SHIFT)) : 0);
-+	qpc_mask->sq_cur_sge_blk_addr = 0;
-+	roce_set_field(qpc_mask->byte_184_irrl_idx,
-+		       V2_QPC_BYTE_184_SQ_CUR_SGE_BLK_ADDR_M,
-+		       V2_QPC_BYTE_184_SQ_CUR_SGE_BLK_ADDR_S, 0);
++		roce_set_bit(rc_sq_wqe->byte_4, V2_RC_SEND_WQE_BYTE_4_OWNER_S,
++			     owner_bit);
 +
- 	context->rx_sq_cur_blk_addr = (u32)(mtts[0] >> PAGE_ADDR_SHIFT);
- 	roce_set_field(context->byte_232_irrl_sge,
- 		       V2_QPC_BYTE_232_RX_SQ_CUR_BLK_ADDR_M,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index ea14225..3d9114e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -353,7 +353,7 @@ struct hns_roce_v2_qp_context {
- 	u32	byte_168_irrl_idx;
- 	u32	byte_172_sq_psn;
- 	u32	byte_176_msg_pktn;
--	u32	sq_cur_sqe_blk_addr;
-+	u32	sq_cur_sge_blk_addr;
- 	u32	byte_184_irrl_idx;
- 	u32	cur_sge_offset;
- 	u32	byte_192_ext_sge;
+ 		switch (wr->opcode) {
+ 		case IB_WR_RDMA_READ:
+ 			roce_set_field(rc_sq_wqe->byte_4,
 -- 
 1.9.1
 
