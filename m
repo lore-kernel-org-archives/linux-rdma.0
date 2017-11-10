@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 01/11] {topost} RDMA/hns: Update calculation of irrl_ba field for hip08
-Date: Fri, 10 Nov 2017 16:55:43 +0800
-Message-ID: <1510304153-91394-2-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 08/11] {topost} RDMA/hns: Add sq_invld_flg field in QP context
+Date: Fri, 10 Nov 2017 16:55:50 +0800
+Message-ID: <1510304153-91394-9-git-send-email-oulijun@huawei.com>
 References: <1510304153-91394-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,36 +12,48 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The irrl(initiator RDMA Read/Atomic list) base address of qp
-context is assigned for addr[63:6]. This patch mainly fixed
-it.
+In hip08 RoCE, it need to add the sq_invld_flg field
+in QP context for RoCE hardware.
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 ++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 6 ++++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 3b0cf55..a950f78 100644
+index d74a522..c1f3325 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2393,11 +2393,11 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
- 		       V2_QPC_BYTE_108_RX_REQ_EPSN_M,
- 		       V2_QPC_BYTE_108_RX_REQ_EPSN_S, 0);
+@@ -2042,6 +2042,8 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
  
--	context->irrl_ba = (u32)dma_handle_2;
-+	context->irrl_ba = (u32)(dma_handle_2 >> 6);
- 	qpc_mask->irrl_ba = 0;
- 	roce_set_field(context->byte_208_irrl, V2_QPC_BYTE_208_IRRL_BA_M,
- 		       V2_QPC_BYTE_208_IRRL_BA_S,
--		      (dma_handle_2 >> 32) & V2_QPC_BYTE_208_IRRL_BA_M);
-+		       dma_handle_2 >> (32 + 6));
- 	roce_set_field(qpc_mask->byte_208_irrl, V2_QPC_BYTE_208_IRRL_BA_M,
- 		       V2_QPC_BYTE_208_IRRL_BA_S, 0);
+ 	roce_set_bit(qpc_mask->byte_168_irrl_idx,
+ 		     V2_QPC_BYTE_168_MSG_RTY_LP_FLG_S, 0);
++	roce_set_bit(qpc_mask->byte_168_irrl_idx,
++		     V2_QPC_BYTE_168_SQ_INVLD_FLG_S, 0);
+ 	roce_set_field(qpc_mask->byte_168_irrl_idx,
+ 		       V2_QPC_BYTE_168_IRRL_IDX_LSB_M,
+ 		       V2_QPC_BYTE_168_IRRL_IDX_LSB_S, 0);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 3d9114e..04b7a51 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -606,8 +606,10 @@ struct hns_roce_v2_qp_context {
  
+ #define V2_QPC_BYTE_168_MSG_RTY_LP_FLG_S 20
+ 
+-#define	V2_QPC_BYTE_168_LP_SGEN_INI_S 21
+-#define V2_QPC_BYTE_168_LP_SGEN_INI_M GENMASK(23, 21)
++#define V2_QPC_BYTE_168_SQ_INVLD_FLG_S 21
++
++#define	V2_QPC_BYTE_168_LP_SGEN_INI_S 22
++#define V2_QPC_BYTE_168_LP_SGEN_INI_M GENMASK(23, 22)
+ 
+ #define	V2_QPC_BYTE_168_SQ_SHIFT_BAK_S 24
+ #define V2_QPC_BYTE_168_SQ_SHIFT_BAK_M GENMASK(27, 24)
 -- 
 1.9.1
 
