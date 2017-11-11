@@ -1,79 +1,91 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: rdma-core stable releases
-Date: Sat, 11 Nov 2017 09:46:25 +0200
-Message-ID: <20171111074625.GR18825@mtr-leonro.local>
+Date: Sat, 11 Nov 2017 09:57:04 +0200
+Message-ID: <20171111075704.GS18825@mtr-leonro.local>
 References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
  <20171106182756.GD18802@ziepe.ca>
  <6012d1c3-cd18-25e8-c5ae-3d678142177b@suse.de>
  <54347E5A035A054EAE9D05927FB467F9B61778A9@ORSMSX101.amr.corp.intel.com>
- <20171110202455.GP18825@mtr-leonro.local>
- <20171110211448.GF17451@ziepe.ca>
- <9C6B67F36DCAFC479B1CF6A967258A8CA951013D@ORSMSX115.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="lBUySHvE0PL2msxU"
+        protocol="application/pgp-signature"; boundary="29v4wwwYFo25Y52C"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <9C6B67F36DCAFC479B1CF6A967258A8CA951013D-8oqHQFITsIFqS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <54347E5A035A054EAE9D05927FB467F9B61778A9-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---lBUySHvE0PL2msxU
+--29v4wwwYFo25Y52C
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Nov 10, 2017 at 09:21:24PM +0000, Woodruff, Robert J wrote:
-> Jason wrote,
+On Fri, Nov 10, 2017 at 06:36:28PM +0000, Davis, Arlin R wrote:
+> > I agree there is a big need for that. Currently reviewing all the patches I haven't
+> > read (only 1000 mails to go...) to see if they need to be backported on top on
+> > rdma-core 15 for the next SLES.
+> > I'd gladly help maintaining this as I'm spending time on it anyway.
+> > I'll leave wiser people debate and ready a doc on how this should be done
+> > though :)
+> >
+> > Nicolas
 >
-> >There should also be absolutely no ABI changes in the -stable branchs.
+> Thanks Nicolas.
 >
-> I agree and stable branch should be for bug fixes only, new features should be only included in the master branch that is for the next major release of rdma-core.
+> Ok, I am not sure what details the rdma-core maintainers are looking for in a document. Let me start the discussion with the following:
 >
-> >Ultimately I think people will settle on a couple of revisions that ended up being used in distros, OFED, MOFED, etc.
+> Stable Branch Release
 >
-> I also agree, most likely not every new rdma-core release will also need to have a stable branch. Probably just the ones that are ending up in distros. I think this is what the kernel does too,
-> Right ?
+> Current Maintainer: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+>
+> Upstream rdma-core is considered stable after each mainline release. Branched stable releases, off a mainline release, are on as-needed basis and limited to bug fixes. All bug fixes are to be backported from mainline and applied by stable branch maintainer. Branched stable releases will append an additional release number (e.g. 15.1) and will ensure that Travis CI reports a successful build.  Mention the frequency of stable releases or keep it "as is" cadence?
+>
+> See versioning.md for setting package version on a stable branch.
 
-I'm not sure about it.
-For example LTS trees are created primarily for Android [1].
 
-Various distros take new kernel every year or two, so it limits number of stable branches.
-In our case, MOFED has 6-months cycle. I don't know anything about OFED cycles.
+Nicolas,
+
+I created new branch "stable-v15" in rdma-core repo [1]. Versioning and
+releasing should be done by tags, see release document [2]. You should
+check in advance that release script [3] creates proper files, and
+double check our CI scripts to ensure they don't filter out that stable
+branch.
 
 Thanks
 
-[1] https://lwn.net/Articles/738225/
+[1] https://github.com/linux-rdma/rdma-core/tree/stable-v15
+[2] https://github.com/linux-rdma/rdma-core/blob/master/Documentation/release.md
+[3] https://github.com/linux-rdma/rdma-core/blob/master/buildlib/github-release
 
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Arlin
+>
+>
+>
 
---lBUySHvE0PL2msxU
+--29v4wwwYFo25Y52C
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloGqtEACgkQ5GN7iDZy
-WKdX9Q/9EY9vcRQL55UkiKQtO1B//l6yoMxF/j8WlXjxdu42bsLUPpZNmGfiWknj
-csl16GxuN/R+GCkdyQx+oYCuwPUxS7Ajozl1xUE/dVVNu7kQ1x+rnbv9SC9PGnEa
-GXk4Gh7P/toSeOKICd+rUjonICP/AY0s2prj41cVCTSZxIrc9rzIQ+oHGiS36qyu
-UnT9Z+0YxDgfaDn/bwKCyUZIqGsN6lUFBR0PF9bYZfaNgRQMcIjTSU0diAqFVAld
-LgUUtQ9ex95tEnkX00DaETmXWxm+iMTU+hseByhmOdq4BT97uYd4JPcDwrIznL4H
-ifzahxT0ASYjG5NuT1Bk0/pA5Qbu+J+pXzdr5fzDSvvm/2/OIh7icZ+8shnuAcDA
-vL12BQY2PEAzKfax/mDyNY6kn2/AHEZ7Yc/FSIkuhuUrNLA9iy4sllecqG8JE0CQ
-88YZdN6oOPEF8xWNod7TAZiaLMfg0hmWSIA2XbKiJHxjPV/3nOgHecYgJ9YjX05K
-OjZfBjXRadNgdJsAZ5nrp5dHh0fac9grZdPfSmZ3eYJOyTSpnEjpB22Y+5BbeHqC
-14U3cMurQXf0ufiXB344VzvPxbNL47KjLGIoG92ysV/Z/SHeGdIfiyN7dsxlAmYJ
-NW4DZLPTc6chw7yauXq7FpQwmoUbls5RFQG7BswWPcwZekD65mQ=
-=EJng
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloGrVAACgkQ5GN7iDZy
+WKdz+RAArd07irx45ghGshcvbW01HC/dw/7K2nT3psHGxB6LhqC2F0+YPxpjLgU0
+LO+uCkIF2xTWL7lvEnWSGTqxBT5haV7MCIwBhe3HtyV8VgxkcITM4z1cfVeYG7N9
+gC1I1QTg29H4765cPbQU0Iam8a/amKGJFx13DCWNjfbFL2cu5gbdG0o05uFzddGi
+879tLnAnEDx0m0LXz9P2wGUDE7AKgJOSBnVLjBxKBfsFuIm3+c00hJPJO+MLRf1F
+Zx+occvy7QKJ5QodHMf23VoPRnTgl3MNsjzzrVf/cd8Jd+aST6H8lw8mrCy+3QMZ
+BCoU3uB9DNuPQF3jETHQ1sERieM2j4+UXfzJ0Bz2FLLL9USn6/J9FoujFgHhw/pA
+Dl19du9THu/1Br/YAbozdYe6IYBByMr4oP7COo73hhpI4wfFTc6fV6ZSmFjC/Bd7
+JMZ67MY/yQglNKCVuHd9J+1iHB0qT+fmSTAOEl8r9MBsbiyHVtN7TcyY5uf+yrEt
+FqREBn4NT82josNwObGj1sSE6RvhsvGjcPp7CtWJ0t3A14Y4ZGFjtv5S3gPP7YyD
+5YCnQlF1doP+ZX6X/iSJhOxqPRA5yIEUPW4fOFlwEqw8E6vcn1LNYUE7jaACqL+W
+q53hh66SASuH7yXmjTmwYpxln02nMPXmwqmvWke2byRl0Nez7GI=
+=Rn9y
 -----END PGP SIGNATURE-----
 
---lBUySHvE0PL2msxU--
+--29v4wwwYFo25Y52C--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
