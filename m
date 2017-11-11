@@ -1,91 +1,99 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: rdma-core stable releases
-Date: Sat, 11 Nov 2017 09:57:04 +0200
-Message-ID: <20171111075704.GS18825@mtr-leonro.local>
-References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <20171106182756.GD18802@ziepe.ca>
- <6012d1c3-cd18-25e8-c5ae-3d678142177b@suse.de>
- <54347E5A035A054EAE9D05927FB467F9B61778A9@ORSMSX101.amr.corp.intel.com>
+Subject: Re: [PATCH rdma-next v1 1/6] IB/uverbs: Allow CQ moderation with
+ modify CQ
+Date: Sat, 11 Nov 2017 10:09:43 +0200
+Message-ID: <20171111080943.GT18825@mtr-leonro.local>
+References: <20171029135140.32649-1-leon@kernel.org>
+ <20171029135140.32649-2-leon@kernel.org>
+ <20171029174345.GC4488@ziepe.ca>
+ <20171029182808.GN16127@mtr-leonro.local>
+ <20171030144807.GA12392@ziepe.ca>
+ <20171030152815.GA16127@mtr-leonro.local>
+ <1510341329.3735.19.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="29v4wwwYFo25Y52C"
+        protocol="application/pgp-signature"; boundary="mQQrPwpUFXnyQ/Ik"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <54347E5A035A054EAE9D05927FB467F9B61778A9-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1510341329.3735.19.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---29v4wwwYFo25Y52C
+--mQQrPwpUFXnyQ/Ik
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Nov 10, 2017 at 06:36:28PM +0000, Davis, Arlin R wrote:
-> > I agree there is a big need for that. Currently reviewing all the patches I haven't
-> > read (only 1000 mails to go...) to see if they need to be backported on top on
-> > rdma-core 15 for the next SLES.
-> > I'd gladly help maintaining this as I'm spending time on it anyway.
-> > I'll leave wiser people debate and ready a doc on how this should be done
-> > though :)
+On Fri, Nov 10, 2017 at 02:15:29PM -0500, Doug Ledford wrote:
+> On Mon, 2017-10-30 at 17:28 +0200, Leon Romanovsky wrote:
+> > On Mon, Oct 30, 2017 at 08:48:07AM -0600, Jason Gunthorpe wrote:
+> > > On Sun, Oct 29, 2017 at 08:28:08PM +0200, Leon Romanovsky wrote:
+> > >
+> > > > > > +int ib_uverbs_ex_modify_cq(struct ib_uverbs_file *file,
+> > > > > > +			   struct ib_device *ib_dev,
+> > > > > > +			   struct ib_udata *ucore,
+> > > > > > +			   struct ib_udata *uhw)
+> > > > >
+> > > > > Is this really a good idea?
+> > > > >
+> > > > > Why not ib_uverbs_set_cq_moderation ?
+> > > >
+> > > > It follows already existed ib_modify_cq(), see commit 2dd571622787
+> > > > ("IB/core: Add support for modify CQ")
+> > >
+> > > And that function should have been called set_cq_moderation:
+> > >
+> > > + * ib_modify_cq - Modifies moderation params of the CQ
+> > > + * @cq: The CQ to modify.
+> > > + * @cq_count: number of CQEs that will trigger an event
+> > > + * @cq_period: max period of time in usec before triggering an event
+> > > + *
+> > > + */
+> > > +int ib_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period);
 > >
-> > Nicolas
+> > I see it differently, this is extendable version of modify_cq, which is
+> > going to benefit all other users who will decide to extend it.
 >
-> Thanks Nicolas.
+> If it's the extendable version, then it should have just passed the attr
+> struct (or equivalent), it shouldn't have spelled out the moderation
+> parameters in the function signature.  So, either we need to change the
+> signature of ib_modify_cq to a generic, extendable signature, or we need
+> to change the name as Jason points out so we match name and parameter
+> signature in the same spirit.
 >
-> Ok, I am not sure what details the rdma-core maintainers are looking for in a document. Let me start the discussion with the following:
->
-> Stable Branch Release
->
-> Current Maintainer: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
->
-> Upstream rdma-core is considered stable after each mainline release. Branched stable releases, off a mainline release, are on as-needed basis and limited to bug fixes. All bug fixes are to be backported from mainline and applied by stable branch maintainer. Branched stable releases will append an additional release number (e.g. 15.1) and will ensure that Travis CI reports a successful build.  Mention the frequency of stable releases or keep it "as is" cadence?
->
-> See versioning.md for setting package version on a stable branch.
+> Also, as you point out, need to update the log message to not use
+> cookie.
 
-
-Nicolas,
-
-I created new branch "stable-v15" in rdma-core repo [1]. Versioning and
-releasing should be done by tags, see release document [2]. You should
-check in advance that release script [3] creates proper files, and
-double check our CI scripts to ensure they don't filter out that stable
-branch.
+I'll fix commit log, rebase and resubmit, but it is not clear to me the
+benefits of changing kernel version of modify_cq and all their users
+to extended version. I think that we better convert them once they
+actually will require it.
 
 Thanks
 
-[1] https://github.com/linux-rdma/rdma-core/tree/stable-v15
-[2] https://github.com/linux-rdma/rdma-core/blob/master/Documentation/release.md
-[3] https://github.com/linux-rdma/rdma-core/blob/master/buildlib/github-release
-
->
-> Arlin
->
->
->
-
---29v4wwwYFo25Y52C
+--mQQrPwpUFXnyQ/Ik
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloGrVAACgkQ5GN7iDZy
-WKdz+RAArd07irx45ghGshcvbW01HC/dw/7K2nT3psHGxB6LhqC2F0+YPxpjLgU0
-LO+uCkIF2xTWL7lvEnWSGTqxBT5haV7MCIwBhe3HtyV8VgxkcITM4z1cfVeYG7N9
-gC1I1QTg29H4765cPbQU0Iam8a/amKGJFx13DCWNjfbFL2cu5gbdG0o05uFzddGi
-879tLnAnEDx0m0LXz9P2wGUDE7AKgJOSBnVLjBxKBfsFuIm3+c00hJPJO+MLRf1F
-Zx+occvy7QKJ5QodHMf23VoPRnTgl3MNsjzzrVf/cd8Jd+aST6H8lw8mrCy+3QMZ
-BCoU3uB9DNuPQF3jETHQ1sERieM2j4+UXfzJ0Bz2FLLL9USn6/J9FoujFgHhw/pA
-Dl19du9THu/1Br/YAbozdYe6IYBByMr4oP7COo73hhpI4wfFTc6fV6ZSmFjC/Bd7
-JMZ67MY/yQglNKCVuHd9J+1iHB0qT+fmSTAOEl8r9MBsbiyHVtN7TcyY5uf+yrEt
-FqREBn4NT82josNwObGj1sSE6RvhsvGjcPp7CtWJ0t3A14Y4ZGFjtv5S3gPP7YyD
-5YCnQlF1doP+ZX6X/iSJhOxqPRA5yIEUPW4fOFlwEqw8E6vcn1LNYUE7jaACqL+W
-q53hh66SASuH7yXmjTmwYpxln02nMPXmwqmvWke2byRl0Nez7GI=
-=Rn9y
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloGsEcACgkQ5GN7iDZy
+WKdCIQ//XwDNOcGBZ22ZyFkSF9a+53uOWhrPuCi5OgHnHAYFYjgjwknmdMFz+WQT
+igsq9EaL4tUBUpWTwIrOZQRwm0WlvB5UtSw/a/I8kdhOBFF+SBklVqMBjkAXUbCA
+MbHzmoiIEzPZgtLy/qYlqqH3MUHkV85To8Hc4faysB7JHH6jmwnmxALkycAiOPsF
+vfIZbisaOQEP93nlK01WamA8UysGDZweLTa43DViCFPguzXXs6qiYS8FH8hK1xDb
+Z23s3j1v4LVp+qadVAroIbWH+PFo3Tg3lbE598IZhj9hCzwe8u9Xi9fvfWiFTB3l
+mUDTBsQCsvm7U2daP2L9kcgDGBltSBUxKxCjYOv1ru2QAf0AEGDccBagWpHhvG82
+f5MR2/mHHJfUHqpG3WmlUSiHy3U2jvXoC6X9fh4Os6SWcnM/qzIsHeI2+9CKZDTp
+nOOVRfjmRARp52ZeubFHTj/b6gsS8thz0sVYqutUjCwxBgmG53B7IR37sHiQ5xrQ
+8tJZjuMFEwM5YQxtQa5ldmXwlE6AXQdF3auxHAZcg1V8TkxUILLiSIubVKbAP/tl
+6WLXN7lNbyqQ2L2bEDU7Dl3HjDA6nM5/TgZalhEmzcneJWxn3gZi7/PBpoyYguPz
+xQfFd51gYAGRb1SqdJa5eWK6JZ5sULrCiu8wBskc/G9PSBsqafw=
+=uMpM
 -----END PGP SIGNATURE-----
 
---29v4wwwYFo25Y52C--
+--mQQrPwpUFXnyQ/Ik--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
