@@ -1,82 +1,79 @@
-From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/3] ibacm: Fix a retry loop calculation race condition
-Date: Fri, 10 Nov 2017 17:29:18 -0500
-Message-ID: <20171110222907.10387.1185.stgit@phlsvslse11.ph.intel.com>
-References: <20171110222658.10387.16845.stgit@phlsvslse11.ph.intel.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: rdma-core stable releases
+Date: Sat, 11 Nov 2017 09:46:25 +0200
+Message-ID: <20171111074625.GR18825@mtr-leonro.local>
+References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
+ <20171106182756.GD18802@ziepe.ca>
+ <6012d1c3-cd18-25e8-c5ae-3d678142177b@suse.de>
+ <54347E5A035A054EAE9D05927FB467F9B61778A9@ORSMSX101.amr.corp.intel.com>
+ <20171110202455.GP18825@mtr-leonro.local>
+ <20171110211448.GF17451@ziepe.ca>
+ <9C6B67F36DCAFC479B1CF6A967258A8CA951013D@ORSMSX115.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="lBUySHvE0PL2msxU"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171110222658.10387.16845.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <9C6B67F36DCAFC479B1CF6A967258A8CA951013D-8oqHQFITsIFqS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The retry loop calculation uses a conversion to int of an unsigned
-64 bit number (next_expire) minus the current time to decide if
-event_wait() should be called.  This calculation works correctly as
-long as the next_expire value is not the default value (-1).
+--lBUySHvE0PL2msxU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-If the next_expire is the default value, periodically this subtraction
-can result in a very large postive timeout value (days rather than
-milliseconds).
+On Fri, Nov 10, 2017 at 09:21:24PM +0000, Woodruff, Robert J wrote:
+> Jason wrote,
+>
+> >There should also be absolutely no ABI changes in the -stable branchs.
+>
+> I agree and stable branch should be for bug fixes only, new features should be only included in the master branch that is for the next major release of rdma-core.
+>
+> >Ultimately I think people will settle on a couple of revisions that ended up being used in distros, OFED, MOFED, etc.
+>
+> I also agree, most likely not every new rdma-core release will also need to have a stable branch. Probably just the ones that are ending up in distros. I think this is what the kernel does too,
+> Right ?
 
-For example:
-next_expire  = 0xFFFFFFFFFFFFFFFF  (-1)
-current_ms = 0x15f7db52146  (today's ms since 1970)
+I'm not sure about it.
+For example LTS trees are created primarily for Android [1].
 
-max_delay_ms = (int) next_expire - future_ms
+Various distros take new kernel every year or two, so it limits number of stable branches.
+In our case, MOFED has 6-months cycle. I don't know anything about OFED cycles.
 
-future_ms  = 0x15f80000000  = max_delay_ms 2147483647
-future_ms  = 0x16080000000  = max_delay_ms 2147483647
+Thanks
 
-Converting max_delay_ms to days:
-2147483647 / 1000 / 60 / 60 / 24 == 24 days
+[1] https://lwn.net/Articles/738225/
 
-0xxx180000000 - 0xxx080000000 = 4294967296
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-every 48 days, this issue repeats
+--lBUySHvE0PL2msxU
+Content-Type: application/pgp-signature; name="signature.asc"
 
-This calculation can occur if a wait_cnt is incremented and a message
-expiration is handled so that next_expire is not updated.  If wait_cnt
-is incremented before the wait calculation is done (the race condition),
-event_wait() can be called with the potentially very large value.
+-----BEGIN PGP SIGNATURE-----
 
-If next_expire is not updated, do not do the wait calculation and
-avoid the race condition.
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloGqtEACgkQ5GN7iDZy
+WKdX9Q/9EY9vcRQL55UkiKQtO1B//l6yoMxF/j8WlXjxdu42bsLUPpZNmGfiWknj
+csl16GxuN/R+GCkdyQx+oYCuwPUxS7Ajozl1xUE/dVVNu7kQ1x+rnbv9SC9PGnEa
+GXk4Gh7P/toSeOKICd+rUjonICP/AY0s2prj41cVCTSZxIrc9rzIQ+oHGiS36qyu
+UnT9Z+0YxDgfaDn/bwKCyUZIqGsN6lUFBR0PF9bYZfaNgRQMcIjTSU0diAqFVAld
+LgUUtQ9ex95tEnkX00DaETmXWxm+iMTU+hseByhmOdq4BT97uYd4JPcDwrIznL4H
+ifzahxT0ASYjG5NuT1Bk0/pA5Qbu+J+pXzdr5fzDSvvm/2/OIh7icZ+8shnuAcDA
+vL12BQY2PEAzKfax/mDyNY6kn2/AHEZ7Yc/FSIkuhuUrNLA9iy4sllecqG8JE0CQ
+88YZdN6oOPEF8xWNod7TAZiaLMfg0hmWSIA2XbKiJHxjPV/3nOgHecYgJ9YjX05K
+OjZfBjXRadNgdJsAZ5nrp5dHh0fac9grZdPfSmZ3eYJOyTSpnEjpB22Y+5BbeHqC
+14U3cMurQXf0ufiXB344VzvPxbNL47KjLGIoG92ysV/Z/SHeGdIfiyN7dsxlAmYJ
+NW4DZLPTc6chw7yauXq7FpQwmoUbls5RFQG7BswWPcwZekD65mQ=
+=EJng
+-----END PGP SIGNATURE-----
 
-Reported-by: Morys Grzegorz <grzegorz.morys-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- ibacm/prov/acmp/src/acmp.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
-index d707b8e..884fc48 100644
---- a/ibacm/prov/acmp/src/acmp.c
-+++ b/ibacm/prov/acmp/src/acmp.c
-@@ -1579,10 +1579,12 @@ static void *acmp_retry_handler(void *context)
- 		pthread_mutex_unlock(&acmp_dev_lock);
- 
- 		acmp_process_timeouts();
--		wait = (int) (next_expire - time_stamp_ms());
--		if (wait > 0 && atomic_get(&wait_cnt)) {
--			pthread_testcancel();
--			event_wait(&timeout_event, wait);
-+		if (next_expire != -1) {
-+			wait = (int) (next_expire - time_stamp_ms());
-+			if (wait > 0 && atomic_get(&wait_cnt)) {
-+				pthread_testcancel();
-+				event_wait(&timeout_event, wait);
-+			}
- 		}
- 	}
- 
-
+--lBUySHvE0PL2msxU--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
