@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RFC rdma-core 5/5] mlx5: Handles QP creation with a given parent domain
-Date: Sun, 12 Nov 2017 23:41:43 +0200
-Message-ID: <1510522903-6838-6-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH RFC rdma-core 1/5] verbs: Introduce thread domain and its related verbs
+Date: Sun, 12 Nov 2017 23:41:39 +0200
+Message-ID: <1510522903-6838-2-git-send-email-yishaih@mellanox.com>
 References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1510522903-6838-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,149 +10,141 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch comes to demonstrate the expected usage of parent domain
-and its internal thread domain as part of QP creation.
+The ibv_thread_domain is a user space object that can be used by an
+application to mark that few verbs resources will be used from single
+thread.
 
-In case a parent domain was set, its internal protection domain (i.e.
-ibv_pd) will be used for the PD usage and if a thread domain exists its
-dedicated UAR will be used by passing its index to the mlx5
-kernel driver. In that way application can control the UAR that this QP
-will use and share it with other QPs upon their creation by suppling the
-same thread domain.
+As a result the driver can share some hardware resources for those
+resources and can drop few locks when it accesses them.
 
-A full patch will be supplied as part the final series post this RFC.
+This patch introduces this object and its related verbs, more details about
+the expected usage are described as part of the man page of this commit.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/mlx5-abi.h |  3 ++-
- providers/mlx5/verbs.c    | 41 +++++++++++++++++++++++++++++++++++++----
- 2 files changed, 39 insertions(+), 5 deletions(-)
+ libibverbs/man/ibv_alloc_td.3 | 52 +++++++++++++++++++++++++++++++++++++++++++
+ libibverbs/verbs.h            | 35 +++++++++++++++++++++++++++++
+ 2 files changed, 87 insertions(+)
+ create mode 100755 libibverbs/man/ibv_alloc_td.3
 
-diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
-index d1e8b9d..1c6116c 100644
---- a/providers/mlx5/mlx5-abi.h
-+++ b/providers/mlx5/mlx5-abi.h
-@@ -43,6 +43,7 @@
- enum {
- 	MLX5_QP_FLAG_SIGNATURE		= 1 << 0,
- 	MLX5_QP_FLAG_SCATTER_CQE	= 1 << 1,
-+	MLX5_QP_FLAG_UAR_INDEX		= 1 << 2,
+diff --git a/libibverbs/man/ibv_alloc_td.3 b/libibverbs/man/ibv_alloc_td.3
+new file mode 100755
+index 0000000..8fc2eef
+--- /dev/null
++++ b/libibverbs/man/ibv_alloc_td.3
+@@ -0,0 +1,52 @@
++.\" -*- nroff -*-
++.\" Licensed under the OpenIB.org BSD license (FreeBSD Variant) - See COPYING.md
++.\"
++.TH IBV_ALLOC_TD 3 2017-11-06 libibverbs "Libibverbs Programmer's Manual"
++.SH "NAME"
++ibv_alloc_td(), ibv_dealloc_td() \- allocate and deallocate thread domain object
++.SH "SYNOPSIS"
++.nf
++.B #include <infiniband/verbs.h>
++.sp
++.BI "struct ibv_td *ibv_alloc_td(struct ibv_context " "*context");
++.sp
++.BI "int ibv_dealloc_td(struct ibv_td " "*td");
++.fi
++.SH "DESCRIPTION"
++.B ibv_alloc_td()
++allocates a thread domain object for the RDMA device context
++.I context\fR.
++.sp
++The thread domain object defines how the verbs libraries will use locks and additional HW mapping to achieve best performance for handling multi-thread or single-thread protection.
++An application defines the serialization thread accesses scope by choosing which thread domain object will be used when creating verbs resources.
++.sp
++All verbs resources created with a unique thread domain object should be accessed in a serialized sequence by no more than single thread at a time.
++.sp
++Using verbs resources without a thread domain object means application can't commit to any threading access serialization model and the verbs library has to provide full thread safe access.
++.sp
++A
++.I struct ibv_td
++can be added to a parent domain via
++.B ibv_alloc_parent_domain()\fR.
++.sp
++.B ibv_dealloc_td()
++will deallocate the thread domain
++.I td\fR.
++All resources created with the
++.I td
++should be destroyed prior to deallocating the
++.I td\fR.
++.SH "RETURN VALUE"
++.B ibv_alloc_td()
++returns a pointer to the allocated struct
++.I ibv_td
++object, or NULL if the request fails (and sets errno to indicates the failure reason).
++.sp
++.B ibv_dealloc_td()
++returns 0 on success, or the value of errno on failure (which indicates the failure reason).
++.SH "SEE ALSO"
++.BR ibv_alloc_parent_domain (3),
++.SH "AUTHORS"
++.TP
++Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
++
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 6465aa9..c6c536f 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -549,6 +549,10 @@ struct ibv_pd {
+ 	uint32_t		handle;
  };
  
- enum {
-@@ -196,7 +197,7 @@ struct mlx5_create_qp {
- 	__u32				rq_wqe_shift;
- 	__u32				flags;
- 	__u32                           uidx;
--	__u32                           reserved;
-+	__u32                           uar_user_index;
- 	/* SQ buffer address - used for Raw Packet QP */
- 	__u64                           sq_buf_addr;
- };
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index 13844b3..85e3841 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -1094,11 +1094,14 @@ static int mlx5_calc_wq_size(struct mlx5_context *ctx,
++struct ibv_td {
++	struct ibv_context     *context;
++};
++
+ enum ibv_xrcd_init_attr_mask {
+ 	IBV_XRCD_INIT_ATTR_FD	    = 1 << 0,
+ 	IBV_XRCD_INIT_ATTR_OFLAGS   = 1 << 1,
+@@ -1637,6 +1641,8 @@ enum verbs_context_mask {
+ 
+ struct verbs_context {
+ 	/*  "grows up" - new fields go here */
++	int (*dealloc_td)(struct ibv_td *td);
++	struct ibv_td *(*alloc_td)(struct ibv_context *context);
+ 	int (*post_srq_ops)(struct ibv_srq *srq,
+ 			    struct ibv_ops_wr *op,
+ 			    struct ibv_ops_wr **bad_op);
+@@ -2177,6 +2183,35 @@ ibv_create_qp_ex(struct ibv_context *context, struct ibv_qp_init_attr_ex *qp_ini
  }
  
- static void map_uuar(struct ibv_context *context, struct mlx5_qp *qp,
--		     int uuar_index)
-+		     int uuar_index, struct mlx5_bf *dyn_bf)
- {
- 	struct mlx5_context *ctx = to_mctx(context);
- 
--	qp->bf = &ctx->bfs[uuar_index];
-+	if (!dyn_bf)
-+		qp->bf = &ctx->bfs[uuar_index];
-+	else
-+		qp->bf = dyn_bf;
- }
- 
- static const char *qptype2key(enum ibv_qp_type type)
-@@ -1309,6 +1312,19 @@ enum {
- 					IBV_QP_INIT_ATTR_RX_HASH),
- };
- 
-+static void mlx5_get_domains(struct ibv_pd *pd, struct ibv_pd **protection_domain,
-+				struct ibv_td **td)
+ /**
++ * ibv_alloc_td - Allocate a thread domain
++ */
++static inline struct ibv_td *ibv_alloc_td(struct ibv_context *context)
 +{
-+	struct mlx5_pd *mpd = to_mpd(pd);
-+	if (mpd->is_parent_domain) {
-+		*protection_domain = mpd->protection_domain;
-+		*td  = mpd->td;
-+	} else {
-+		*protection_domain = pd;
-+		*td = NULL;
++	struct verbs_context *vctx;
++
++	vctx = verbs_get_ctx_op(context, alloc_td);
++	if (!vctx) {
++		errno = ENOSYS;
++		return NULL;
 +	}
++	return vctx->alloc_td(context);
 +}
 +
- static struct ibv_qp *create_qp(struct ibv_context *context,
- 			 struct ibv_qp_init_attr_ex *attr)
- {
-@@ -1322,6 +1338,10 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 	int32_t				usr_idx = 0;
- 	uint32_t			uuar_index;
- 	FILE *fp = ctx->dbg_fp;
-+	struct ibv_pd *pd;
-+	struct ibv_td *td;
-+	struct mlx5_td *mtd = NULL;
-+	struct ibv_pd *attr_pd = attr->pd;
- 
- 	if (attr->comp_mask & ~MLX5_CREATE_QP_SUP_COMP_MASK)
- 		return NULL;
-@@ -1335,6 +1355,13 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 		mlx5_dbg(fp, MLX5_DBG_QP, "\n");
- 		return NULL;
- 	}
++/**
++ * ibv_dealloc_td - Free a thread domain
++ */
++static inline int ibv_dealloc_td(struct ibv_td *td)
++{
++	struct verbs_context *vctx;
 +
-+	mlx5_get_domains(attr->pd, &pd, &td);
-+	if (!pd)
-+		goto err;
-+	attr->pd = pd;
-+	if (td)
-+		mtd = to_mtd(td);
- 	ibqp = (struct ibv_qp *)&qp->verbs_qp;
- 	qp->ibv_qp = ibqp;
- 
-@@ -1440,6 +1467,11 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 		cmd.uidx = usr_idx;
- 	}
- 
-+	if (mtd) {
-+		cmd.uar_user_index = mtd->bf->uuarn;
-+		cmd.flags |= MLX5_QP_FLAG_UAR_INDEX;
-+	}
++	vctx = verbs_get_ctx_op(td->context, dealloc_td);
++	if (!vctx)
++		return ENOSYS;
 +
- 	if (attr->comp_mask & MLX5_CREATE_QP_EX2_COMP_MASK)
- 		ret = mlx5_cmd_create_qp_ex(context, attr, &cmd, qp, &resp_ex);
- 	else
-@@ -1465,7 +1497,7 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 		pthread_mutex_unlock(&ctx->qp_table_mutex);
- 	}
- 
--	map_uuar(context, qp, uuar_index);
-+	map_uuar(context, qp, uuar_index, mtd ? mtd->bf : NULL);
- 
- 	qp->rq.max_post = qp->rq.wqe_cnt;
- 	if (attr->sq_sig_all)
-@@ -1481,6 +1513,7 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 	qp->rsc.rsn = (ctx->cqe_version && !is_xrc_tgt(attr->qp_type)) ?
- 		      usr_idx : ibqp->qp_num;
- 
-+	attr->pd = attr_pd;
- 	return ibqp;
- 
- err_destroy:
-@@ -1500,7 +1533,7 @@ err_free_qp_buf:
- 
- err:
- 	free(qp);
--
-+	attr->pd = attr_pd;
- 	return NULL;
- }
- 
++	return vctx->dealloc_td(td);
++}
++
++/**
+  * ibv_query_rt_values_ex - Get current real time @values of a device.
+  * @values - in/out - defines the attributes we need to query/queried.
+  * (Or's bits of enum ibv_values_mask on values->comp_mask field)
 -- 
 1.8.3.1
 
