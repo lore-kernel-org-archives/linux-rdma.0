@@ -1,87 +1,113 @@
-From: Chris Blake <chrisrblake93-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: 4.13 ib_mthca NULL pointer dereference with OpenSM
-Date: Sun, 12 Nov 2017 17:38:20 -0600
-Message-ID: <CALpBJjogf5ONOmMTr9Z8RQ_78aON=_zSSJ+K-_VQyRRXO6vkAQ@mail.gmail.com>
-References: <20171030230156.GA4081@ziepe.ca> <VI1PR0502MB300860F7C004ABFB01079F53D15E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20171031042435.GB7961@ziepe.ca> <e2a2aa84-71ce-36f0-91af-0854b24d4a6a@dev.mellanox.co.il>
- <60de3bab-f294-dd11-bcae-d179115f7c31@mellanox.com> <20171031150901.GA9852@ziepe.ca>
- <20171031151521.GK16127@mtr-leonro.local> <5ab2d58d-8af8-c075-86f0-7010b8316cba@mellanox.com>
- <CALpBJjorS-AK3Ua9UuUnWv33rYqBoeAXF9vsFALTff5Qv3hNSg@mail.gmail.com>
- <fa1abfd0-e9fc-e842-8a21-c214e9dc8e9e@mellanox.com> <20171031192340.GA18578@ziepe.ca>
- <799ce928-2e7c-7f60-951a-3a88544b7510@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH RFC rdma-core 4/5] mlx5: Add support for ibv_parent domain and its related verbs
+Date: Sun, 12 Nov 2017 23:41:42 +0200
+Message-ID: <1510522903-6838-5-git-send-email-yishaih@mellanox.com>
+References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <799ce928-2e7c-7f60-951a-3a88544b7510-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1510522903-6838-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 31, 2017 at 2:44 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrot=
-e:
-> On 10/31/2017 2:23 PM, Jason Gunthorpe wrote:
->> On Tue, Oct 31, 2017 at 12:22 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> =
-wrote:
->>
->>> Sounds like the crash is resolved and now you're getting a denial
->>> from a security module.  I looked in the code, it looks like
->> If Chris was hitting that crash it means his security module failed the
->> mad action, as that is the only way to trigger it.
->>
->>> AppArmor doesn't register any callbacks for the ib_* security hooks,
->>> and if no hook is registered it should return 0.  Can you tell me
->>> more about your setup so I can create a reproducer? What OS are you
->>> using? Can you double check that SELinux isn't enabled (see output
->>> of sestatus).
->> Which suggests to me that apparmour is not working properly with the
->> rdma selinux patches??
->
-> It seems that way.  I can't explain it looking at the code, I'm trying to=
- reproduce it for debug.
->
->  A point of clarification, the RDMA "SELinux" patches aren't SELinux spec=
-ific.  They interact with the LSM, a layer of abstraction between the secur=
-ity modules and the rest of the kernel.   Zero or more security modules lik=
-e SELinux or AppArmor can implement the security hooks.  The default return=
- value for the hook in question is 0 if no modules implement it.  It doesn'=
-t look like AppArmor implements it.
->
->> Jason
->>
->
+This patch is the initial implementation of ibv_alloc/dealloc_parent
+domain verbs in the mlx5 driver.
 
-Hello All,
+The driver uses internally mlx5_pd structure which its prefix holds
+the legacy ibv_pd so that the return ibv_pd can be used with any verb
+around that gets a protection domain.
 
-As a follow up to this issue, I went ahead and installed v4.14-rc8
-mainline from http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.14-rc8/
-to do some testing. I disabled apparmor via the cmdline (I added
-apparmor=3D0 security=3D"") and this seems to have worked:
+In addition, the driver saves an indication whether this ibv_pd is a
+parent domain and as such may hold a thread domain and a pointer to a
+previously allocated protection domain.
 
-root@C6100-1-N4:~# cat /proc/cmdline
-BOOT_IMAGE=3D/boot/vmlinuz-4.14.0-041400rc8-generic
-root=3D/dev/mapper/pve-root ro apparmor=3D0 security=3D quiet
-root@C6100-1-N4:~# apparmor_status
-apparmor module is loaded.
-apparmor filesystem is not mounted.
+In downstream patches the mlx5 driver will consider upon getting an
+ibv_pd which fields should be used based on the above indicator.
 
-However, I am still having the issue with up_post_send_mad error:
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ providers/mlx5/mlx5.c  |  2 ++
+ providers/mlx5/mlx5.h  |  9 +++++++++
+ providers/mlx5/verbs.c | 23 +++++++++++++++++++++++
+ 3 files changed, 34 insertions(+)
 
-root@C6100-1-N4:~# uptime
- 17:36:30 up 35 min,  1 user,  load average: 0.13, 0.06, 0.01
-root@C6100-1-N4:~# dmesg | grep "infiniband mthca0: ib_post_send_mad
-error" | wc -l
-848
+diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
+index 0c073e2..b160373 100644
+--- a/providers/mlx5/mlx5.c
++++ b/providers/mlx5/mlx5.c
+@@ -1011,6 +1011,8 @@ static int mlx5_init_context(struct verbs_device *vdev,
+ 	verbs_set_ctx_op(v_ctx, post_srq_ops, mlx5_post_srq_ops);
+ 	verbs_set_ctx_op(v_ctx, alloc_td, mlx5_alloc_td);
+ 	verbs_set_ctx_op(v_ctx, dealloc_td, mlx5_dealloc_td);
++	verbs_set_ctx_op(v_ctx, alloc_parent_domain, mlx5_alloc_parent_domain);
++	verbs_set_ctx_op(v_ctx, dealloc_parent_domain, mlx5_dealloc_parent_domain);
+ 
+ 	memset(&device_attr, 0, sizeof(device_attr));
+ 	if (!mlx5_query_device_ex(ctx, NULL, &device_attr,
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index da0aa91..f9b83ad 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -319,6 +319,9 @@ struct mlx5_buf {
+ struct mlx5_pd {
+ 	struct ibv_pd			ibv_pd;
+ 	uint32_t			pdn;
++	int 				is_parent_domain;
++	struct ibv_td			*td;
++	struct ibv_pd			*protection_domain;
+ };
+ 
+ struct mlx5_td {
+@@ -766,6 +769,12 @@ int mlx5_post_srq_ops(struct ibv_srq *srq,
+ struct ibv_td *mlx5_alloc_td(struct ibv_context *context);
+ int mlx5_dealloc_td(struct ibv_td *td);
+ 
++struct ibv_pd *mlx5_alloc_parent_domain(struct ibv_context *context,
++					struct ibv_parent_domain_init_attr *attr);
++
++int mlx5_dealloc_parent_domain(struct ibv_pd *parent_domain);
++
++
+ static inline void *mlx5_find_uidx(struct mlx5_context *ctx, uint32_t uidx)
+ {
+ 	int tind = uidx >> MLX5_UIDX_TABLE_SHIFT;
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index 8cf14c0..13844b3 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -196,6 +196,29 @@ int mlx5_dealloc_td(struct ibv_td *ib_td)
+ 	return 0;
+ }
+ 
++struct ibv_pd *mlx5_alloc_parent_domain(struct ibv_context *context,
++			struct ibv_parent_domain_init_attr *attr)
++{
++	struct mlx5_pd	*pd;
++
++	pd = calloc(1, sizeof *pd);
++	if (!pd)
++		return NULL;
++
++	pd->is_parent_domain = 1;
++	pd->td = attr->td;
++	pd->protection_domain= attr->pd;
++
++	pd->ibv_pd.context = context;
++	return &pd->ibv_pd;
++}
++
++int mlx5_dealloc_parent_domain(struct ibv_pd *parent_domain)
++{
++	free(to_mpd(parent_domain));
++	return 0;
++}
++
+ int mlx5_free_pd(struct ibv_pd *pd)
+ {
+ 	int ret;
+-- 
+1.8.3.1
 
-I will admit that I have little knowledge of apparmor, but from the
-above if "ib_post_send_mad error" is caused by apparmor as previously
-suggested, wouldn't disabling it resolve the issue?
-
-Let me know if you have any other things you would like me to test.
-
-Regards,
-Chris Blake
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
