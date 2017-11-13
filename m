@@ -1,38 +1,57 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: rdma-core stable releases
-Date: Mon, 13 Nov 2017 10:23:29 +0000
-Message-ID: <BN3PR07MB25783C04CF1715A8B5A5F088F82B0@BN3PR07MB2578.namprd07.prod.outlook.com>
-References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <20171106182756.GD18802@ziepe.ca>
- <6012d1c3-cd18-25e8-c5ae-3d678142177b@suse.de>
- <54347E5A035A054EAE9D05927FB467F9B61778A9@ORSMSX101.amr.corp.intel.com>
- <20171110202455.GP18825@mtr-leonro.local> <20171110211448.GF17451@ziepe.ca>
- <1eba9063-80a4-ad9d-4adf-93770b9ed7c9@suse.de>
- <20171113070856.GZ18825@mtr-leonro.local>
- <BN3PR07MB2578CD2BC31353CA84CE7CD1F82B0@BN3PR07MB2578.namprd07.prod.outlook.com>
- <02b4efe8-1af5-aa9e-ed7e-ed8be1b57cdd@suse.de>
- <5f8fc6d7-b73d-a81f-2d86-4e27518ef65c@suse.de>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v1] RDMA/bnxt_re: report vlan_id and sl in qp1 recv
+ completion
+Date: Mon, 13 Nov 2017 12:25:19 +0200
+Message-ID: <20171113102519.GF18825@mtr-leonro.local>
+References: <1510127325-26879-1-git-send-email-devesh.sharma@broadcom.com>
+ <CANjDDBi6TXx0fiXGEwP22TVe9meuc+BSOLD4ynkSaQJ4YkEjiQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="kPcv0S3lnZZ9UV+7"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5f8fc6d7-b73d-a81f-2d86-4e27518ef65c-l3A5Bk7waGM@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CANjDDBi6TXx0fiXGEwP22TVe9meuc+BSOLD4ynkSaQJ4YkEjiQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBJJ20gZ3Vlc3NpbmcgeW91ciBjb25jZXJuIGlzIGZvciB0aGlzIHBhdGNoOg0KPiDCoMKgwqAg
-dmVyYnM6IERvIG5vdCBibG9jayBRUCBhdHRyX21hc2tzIHVzZWQgYnkgb2xkZXIga2VybmVscw0K
-PiANCj4gVGhlIG5ldyBiaXRzIGNvdWxkIGJlIGFjY2VwdGVkLg0KPiBCdXQgYXMgdGhlIG5ldyBl
-bnVtIHZhbHVlcyBoYXZlIDAgZWZmZWN0ICh0aGUgZml4IGluIGl0c2VsZiBpcyBqdXN0IHRoZSBm
-aXJzdCB0d28gaHVua3MgdGhhdCBjaGFuZ2UgdGhlIGJpdG1hc2sgY29tcHV0YXRpb25zKSwgaXQn
-ZA0KPiBiZSBiZXR0ZXIgdG8gcmVzdWJtaXQgdGhlIHBhdGNoIHdpdGhvdXQgdGhlIG5ldyBiaXRz
-IGZvciB0aGUgc3RhYmxlIGJyYW5jaC4NCg0KSSBoYWQgc29tZXRoaW5nIGVsc2UgaW4gbWluZCwg
-dGhhdCBpcyBub3QgeWV0IHJlbGV2YW50IHRvIHVwc3RyZWFtLg0KQXMgZm9yIHRoaXMgcGF0Y2gs
-IEknZCB0YWtlIHRoZSBjb21tZW50cy4gVGhleSBiZWFyIGltcG9ydGFuY2UgYXMgd2VsbC4NCg0K
-UmFtDQoNCg==
+
+--kPcv0S3lnZZ9UV+7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Nov 13, 2017 at 02:30:50PM +0530, Devesh Sharma wrote:
+> Hi Doug,
+>
+> I have already sent v1 as Parav asked, if there are no other comments
+> on this patch, could you please pull this in.
+
+Please stop top-posting.
+
+Thanks
+
+--kPcv0S3lnZZ9UV+7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloJcw8ACgkQ5GN7iDZy
+WKcnEBAAt+os7TPJd0GaTg1R9ex/jj3Z1UfFxzlNw8UH24L9tQJ8IIjKCZTqR/nd
+RmbAFY0Msb+2flg8E/RxhqXsQjyyF4bjBp1GI+rHg4AuksiLejZnoMNc3/Vkco/a
+G5Lg3fjsKU2Sn2D7QDquVjDCm/JHuiW9uUarPrTwgl8kq5om+9PBlMm7xyYb1VPK
+yJi9EidvaKjR9k7rhT4GsqG8ST2HZls9f9HmYZGoy9FivxhZDacSE5p2J5OCNHds
+OnVw3tWwXW5M7CRUQIHyiAnpgxCOBxY7e+CQLtOC5llU3HfK72HGXCn/mIkrXDSf
+Mwjtznz7McqZ1U00Ie+ONPEyjJknqOleqWOUmZ8sfJNCly7AmK+0x2Ve7ZVqXk2u
+dSWrd/r0TjPumhK9O218wqO71N+o6Xr69KFmv1oMKM7LkLDnb1KmKYmSAdj0eK16
+ZVkoS1Io8D/x3cRdMiEtUCySiulOs20DSqfLcJU8frcZNA6FZiHRwfEHMlGi0hYc
+zeX0Yuf4jW+AJUdknFBtnmkFeBkFVhABED/DNuhAvQW8JDkON1AJfF6mI4mXd9GZ
+/iHCX8tEfJnBBPQIkP2wRLuZIF+NjuKmfbaqukIYE1e+EyEAAJ45h2W0jFaVJd9Y
+gucfDSpHNXBfynArVRGkFotcFUTCm8F/8IklDa3RltSWE0aOhfo=
+=Glx1
+-----END PGP SIGNATURE-----
+
+--kPcv0S3lnZZ9UV+7--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
