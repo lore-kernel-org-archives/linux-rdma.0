@@ -1,56 +1,45 @@
-From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH rdma-core 1/2] buildlib: use cmake to find python
-Date: Mon, 13 Nov 2017 14:00:15 +0100
-Message-ID: <1923c475-0597-a597-36a5-8a33cccae6ef@suse.de>
+From: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 2/3] ibacm: Calculate correct tv_nsec value in
+ event_wait()
+Date: Mon, 13 Nov 2017 13:30:20 +0000
+Message-ID: <14063C7AD467DE4B82DEDB5C278E86639F0C01A1@FMSMSX108.amr.corp.intel.com>
+References: <20171110222658.10387.16845.stgit@phlsvslse11.ph.intel.com>
+ <20171110222853.10387.81730.stgit@phlsvslse11.ph.intel.com>
+ <20171111162610.GL17451@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: fr-xx-classique+reforme1990
+In-Reply-To: <20171111162610.GL17451-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Depending on the system, python might not be available as pythomn (but python2, python3, etc.)
-Use FIND_PACKAGE to get the right executable.
+> -----Original Message-----
+> From: Jason Gunthorpe [mailto:jgg-uk2M96/98Pc@public.gmane.org]
+> Sent: Saturday, November 11, 2017 11:26 AM
+> To: Ruhl, Michael J <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH 2/3] ibacm: Calculate correct tv_nsec value in
+> event_wait()
+> 
+> On Fri, Nov 10, 2017 at 05:29:02PM -0500, Michael J. Ruhl wrote:
+> >  	gettimeofday(&curtime, NULL);
+> 
+> Ugh, the use of gettimeofday for this kind of stuff is also a serious bug.
+> 
+> This needs to use clock_gettime(CLOCK_MONOTONIC) and
+> pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
 
-Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
----
- CMakeLists.txt                | 3 +++
- buildlib/rdma_functions.cmake | 2 +-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+Yeah, that one is a lot cleaner.  I will get a new patch out shortly.
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 5e6f245a..a283fba3 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -279,6 +279,9 @@ else()
-   set(HAVE_FULL_SYMBOL_VERSIONS 1)
- endif()
+Thanks,
+
+Mike
  
-+# Look for Python
-+FIND_PACKAGE (PythonInterp)
-+
- #-------------------------
- # Find libraries
- # pthread
-diff --git a/buildlib/rdma_functions.cmake b/buildlib/rdma_functions.cmake
-index d69afd3d..53a978e8 100644
---- a/buildlib/rdma_functions.cmake
-+++ b/buildlib/rdma_functions.cmake
-@@ -144,7 +144,7 @@ function(rdma_shared_provider DEST VERSION_SCRIPT SOVERSION VERSION)
-   install(TARGETS ${DEST} DESTINATION "${CMAKE_INSTALL_LIBDIR}")
- 
-   # Compute a relative symlink from VERBS_PROVIDER_DIR to LIBDIR
--  execute_process(COMMAND python ${CMAKE_SOURCE_DIR}/buildlib/relpath
-+  execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/buildlib/relpath
-     "${CMAKE_INSTALL_FULL_LIBDIR}/lib${DEST}.so.${VERSION}"
-     "${VERBS_PROVIDER_DIR}"
-     OUTPUT_VARIABLE DEST_LINK_PATH OUTPUT_STRIP_TRAILING_WHITESPACE
--- 
-2.15.0.167.g7819e496d
-
-
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
