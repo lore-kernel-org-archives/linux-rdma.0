@@ -1,113 +1,48 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Patches for rdma-core stable-v15
-Date: Mon, 13 Nov 2017 17:14:37 +0200
-Message-ID: <20171113151437.GL18825@mtr-leonro.local>
-References: <6ccc2110-2e27-bacd-b821-f862785a10ca@suse.de>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: rdma-core stable releases
+Date: Mon, 13 Nov 2017 17:35:49 +0200
+Message-ID: <5A09BBD5.3000606@dev.mellanox.co.il>
+References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
+ <20171106182756.GD18802@ziepe.ca>
+ <6012d1c3-cd18-25e8-c5ae-3d678142177b@suse.de>
+ <54347E5A035A054EAE9D05927FB467F9B61778A9@ORSMSX101.amr.corp.intel.com>
+ <20171111075704.GS18825@mtr-leonro.local>
+ <CANjDDBiaw1VsJXbhNS2VJtpWE7XAx2diP7zXKr-CVViDZyMPGA@mail.gmail.com>
+ <20171113071507.GA18825@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="nf2vo/mUTtJdHW8B"
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <6ccc2110-2e27-bacd-b821-f862785a10ca-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <20171113071507.GA18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jgunthorpe-uk2M96/98Pc@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---nf2vo/mUTtJdHW8B
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Nov 13, 2017 at 04:02:26PM +0100, Nicolas Morey-Chaisemartin wrote:
-> Hi all,
+On 11/13/2017 09:15 AM, Leon Romanovsky wrote:
+> On Mon, Nov 13, 2017 at 08:47:38AM +0530, Devesh Sharma wrote:
+>> Hello Everyone,
+>>
+>> Can someone guide me how to initiate a pull of my recent submission to
+>> the stable branch. This is quite urgent.
+> Most probably, we will follow kernel rules for stable@.
+> It means patches should be in master branch, no pull requests and we
+> will use some tag to inform Nicolas to pick that fix for stable too.
 >
-> After looking into the ML, here are the candidates for the stable-v15 bra=
-nch.
-> Can the authors please confirm that they should be applied there ?
+> At least, there is a need to write (copy/paste from kernel) initial document
+> with description of process.
 >
-> Please let me know if I missed any.
-
-In addition to the your list, I would like to see the following patches too:
-commit dbf7bd2151815a12428caef6874149523c0bda8e
-Author: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date:   Wed Oct 25 12:04:53 2017 +0300
-
-    verbs: Fix declaration of C++ include file in C-block
-
-commit 6a74285158a146f23cbf8a804fd9de32df0d5ed2
-Author: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date:   Mon Oct 9 10:56:21 2017 +0300
-
-    verbs: Fix C++ compilation break
-
-commit 983f80191923c082324295ea68ac91d34daaa4c8
-Author: Nelio Laranjeiro <nelio.laranjeiro-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-Date:   Tue Sep 26 16:05:11 2017 +0200
-
-    verbs: fix compilation error with ICC
-
-commit bf03566e0aa976afc5dfbf917296280e9fa55bb8
-Author: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Date:   Mon Oct 2 04:17:09 2017 +0800
-
-    hns: Fix create QP structure layout
-
-
-Thanks
-
+> Also, I didn't hear commitment from OFED developers that they use this
+> stable branch.
 >
-> Nicolas
->
-> ---
->
-> Devesh Sharma (1):
-> =A0=A0=A0=A0=A0 bnxt_re/lib: increment psn in case of 0 length packets
->
-> Hal Rosenstock (1):
-> =A0=A0=A0=A0=A0 libibumad/umad.c: In get_port, ignore sysfs rate file err=
-ors
->
-> Jason Gunthorpe (1):
-> =A0=A0=A0=A0=A0 verbs: Do not block QP attr_masks used by older kernels
->
-> Michael J. Ruhl (2):
-> =A0=A0=A0=A0=A0 ibacm: Incorrect usage of BE byte order of MLID attach/de=
-tach_mcast()
-> =A0=A0=A0=A0=A0 ibacm: Incorrect list used for subnet list causes a segfa=
-ult
->
-> Ram Amrani (1):
-> =A0=A0=A0=A0=A0 libqedr: fix inline data copy
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Thanks
 
---nf2vo/mUTtJdHW8B
-Content-Type: application/pgp-signature; name="signature.asc"
+Leon,
+I am going to use "stable-v15"  branch for OFED-4.8-1 release once it 
+will include all the relevant fixes.
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloJtt0ACgkQ5GN7iDZy
-WKdz9g/+Lq3DPJnVGSCkuLDBjSm011FGvc06+gRzIp3ukvQXP/DC9Lkc+Is4mHFl
-D1VLuJD+ELatgXZJarl9cX2Ils2znXerIMYmgaQ7tR+veJH4uman6UUvpbeggTZO
-/SIM5K5bIFrQX5JosxpI+da3dL1+edeInu58mXbt4YLKxN7LLD4JUFFIzxDvjz3A
-bQ8Ws1JxDd0rLh9gQVWMxqZV7AdZcpkIzgPIPlwvn9WUmECLLY3jQpKM1fSOv14A
-37oEGp7EgBShO+xVPgLSrGahyNSEjGdiclkfAjVGbZ2OHBliw7vTfm3ZolS3Lz7o
-3uQq6FFGdAiL8XvL99yCKh8rCqP5x1TgHM1F25JllixH6yQ6Q2lF2j2xoJCajcm3
-bd8r0rCStsvT8g7M6VZLnfvTZ9AQtbRI57TAM/rfoiFofK2dEOn8pCcusBiHkSTK
-2/Jl69vZLOAieZtQ3WH74guFMkXzR7KNCzGXdH3aKKtoDCky/j7OJ6Rapp5oRcMR
-7HAZfm0Y1/OFGLWnBwjqL3LIQMlZ1l0bpbP2zduRUaaztDRABWB9oU2B1jGv3xnl
-N8VikPRqZnEj3rD12VVKBKxt31ew3wDczKLjoWUlCm/L9k60dtghq3RP2Z4t3Rv6
-cJbyiUWEmigqA71hk5cgbeATmb+Iu6kw14dE2aS/IDhEju2+0f8=
-=Lc0J
------END PGP SIGNATURE-----
-
---nf2vo/mUTtJdHW8B--
+Regards,
+Vladimir
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
