@@ -1,31 +1,31 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [RFC PATCH] RDMA/cma: Remove netlink interface of CMA statistics
-Date: Mon, 13 Nov 2017 12:24:32 -0700
-Message-ID: <20171113192432.GL6918@ziepe.ca>
-References: <20171113144024.26655-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-core 1/2] buildlib: use cmake to find python
+Date: Mon, 13 Nov 2017 12:31:39 -0700
+Message-ID: <20171113193139.GN6918@ziepe.ca>
+References: <1923c475-0597-a597-36a5-8a33cccae6ef@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171113144024.26655-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1923c475-0597-a597-36a5-8a33cccae6ef-l3A5Bk7waGM@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 13, 2017 at 04:40:24PM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> CMA statistics were exposed to users through netlink interface long time
-> ago, but it wasn't exposed using netlink extensibility approach. The
-> current implementation was based on struct and not attributes.
-> 
-> Let's remove it, before anyone is actually start to use it and prevents us
-> to write it properly.
+On Mon, Nov 13, 2017 at 02:00:15PM +0100, Nicolas Morey-Chaisemartin wrote:
+> Depending on the system, python might not be available as pythomn (but python2, python3, etc.)
+> Use FIND_PACKAGE to get the right executable.
 
-You should describe why you think it is safe to remove a uAPI from the
-kernel in the commit message.. When was it introduced? Why was a uAPI
-added with no users??
+Looks fine to me.
+
+>    # Compute a relative symlink from VERBS_PROVIDER_DIR to LIBDIR
+> -  execute_process(COMMAND python ${CMAKE_SOURCE_DIR}/buildlib/relpath
+> +  execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/buildlib/relpath
+
+I'm assuming this little script works with python3 ?
+
+cbuild won't though..
 
 Jason
 --
