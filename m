@@ -1,43 +1,60 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rdma-core stable releases
-Date: Mon, 13 Nov 2017 21:19:35 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F9B61790BA@ORSMSX101.amr.corp.intel.com>
-References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <20171106182756.GD18802@ziepe.ca>
- <6012d1c3-cd18-25e8-c5ae-3d678142177b@suse.de>
- <54347E5A035A054EAE9D05927FB467F9B61778A9@ORSMSX101.amr.corp.intel.com>
- <20171111075704.GS18825@mtr-leonro.local>
- <CANjDDBiaw1VsJXbhNS2VJtpWE7XAx2diP7zXKr-CVViDZyMPGA@mail.gmail.com>
- <20171113071507.GA18825@mtr-leonro.local>
- <5A09BBD5.3000606@dev.mellanox.co.il> <20171113191846.GJ6918@ziepe.ca>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3] RDMA/core: Make function rdma_copy_addr return void
+Date: Mon, 13 Nov 2017 16:19:42 -0500
+Message-ID: <1510607982.3735.40.camel@redhat.com>
+References: <20171107084909.6561-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-ZUOmQ1MsIvqS9MCvdQk5"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171113191846.GJ6918-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20171107084909.6561-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, johannes.berg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> On Mon, Nov 13, 2017 at 05:35:49PM +0200, Vladimir Sokolovsky wrote:
-> > I am going to use "stable-v15"  branch for OFED-4.8-1 release once it
-> > will include all the relevant fixes.
-> 
-> Do you have a list of fixes you are already carrying in OFED? That might help
-> Nicolas
 
-Devesh Sharma (2):
-	bnxt_re/lib: increment psn in case of 0 length packets
-	bnxt_re/lib: fix the memory barrier call during poll-cq
+--=-ZUOmQ1MsIvqS9MCvdQk5
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Ram Amrani (1):
-	libqedr: fix inline data copy
+On Tue, 2017-11-07 at 10:49 +0200, Yuval Shaia wrote:
+> Function returns zero - make it void.
+>=20
+> While there make struct net_device const.
+>=20
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+Thanks, applied.
 
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-ZUOmQ1MsIvqS9MCvdQk5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
+-----BEGIN PGP SIGNATURE-----
 
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloKDG4ACgkQuCajMw5X
+L90gRxAAhrjsZxguL/ZcO3cwjws3PmcnTXi68mkzzKAQN0XmXEwIR36s1KrboMUb
+boxbrK2fc7ZK/qFX7rbuxKmrAy77OqDUNg+MvB/LecOCRVzrRA4wTxt5CinvrHWI
+FU9nVT4f5NvTm5ZvB31tUBSLWj7vTdF7jLPN69wciJq6nZMpDVkvWvOGT2EyI899
+fOYOi1labVjUPT2YJyzPq5zoo7kJFdXNL28e6C8fFCFxL+4yCGfVnAwW+fGfBues
+S0j7BTNBbBHFDlOtcgSL01CH7E7k3uxM5y0qpzIin/vShDyBrJSL07vh7Ocs7pX5
+GNSkOneaRPJLoBcP5JNDQbz9e+UZvgXhRnXBvXJUJfUZ2FC46pJE7gVScSn+8cau
+j1bddyWFHEKXozjSfFcsIASdnwEXfTmbL4c7AfdvG8ujdlyXafYWd7xxx1WYf40t
+i9WgVswa6WScJ/DNImnpb16r5RKBEGdcsKx7y5g0ZgEsPS+VMroH4DhIhzuJ6hoD
+SuHwaF69SseN8N0ZEa0Zficpt9uMXf9VwsqHTtCOBX76UOT7GScxJHUWJ7BqAslJ
+8Iolux0gomB4eGwvwZqZ3B8KLso50dPeKznfDMsxcYKJf0/tGN1HN6ulfjo4FbO2
+7OFnN4Am031c8grdalgM0SJKKaeTEgoBfk9seC5PwQ1ZvT7ZVIM=
+=l0KJ
+-----END PGP SIGNATURE-----
+
+--=-ZUOmQ1MsIvqS9MCvdQk5--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
