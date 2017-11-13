@@ -1,81 +1,92 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: Patches for rdma-core stable-v15
-Date: Mon, 13 Nov 2017 12:42:17 -0700
-Message-ID: <20171113194217.GB22222@ziepe.ca>
-References: <6ccc2110-2e27-bacd-b821-f862785a10ca@suse.de>
- <20171113151437.GL18825@mtr-leonro.local>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next 0/5] RDMA core/mlx4/mlx5 fixes and MTT
+ improvements
+Date: Mon, 13 Nov 2017 14:44:29 -0500
+Message-ID: <1510602269.3735.25.camel@redhat.com>
+References: <20171102132228.20985-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-Q7h8JlSovHa5TLxsV4XR"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171113151437.GL18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20171102132228.20985-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jgunthorpe-uk2M96/98Pc@public.gmane.org, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 13, 2017 at 05:14:37PM +0200, Leon Romanovsky wrote:
-> On Mon, Nov 13, 2017 at 04:02:26PM +0100, Nicolas Morey-Chaisemartin wrote:
-> > Hi all,
-> >
-> > After looking into the ML, here are the candidates for the stable-v15 branch.
-> > Can the authors please confirm that they should be applied there ?
-> >
-> > Please let me know if I missed any.
-> 
-> In addition to the your list, I would like to see the following patches too:
-> commit dbf7bd2151815a12428caef6874149523c0bda8e
-> Author: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Date:   Wed Oct 25 12:04:53 2017 +0300
-> 
->     verbs: Fix declaration of C++ include file in C-block
-> 
-> commit 6a74285158a146f23cbf8a804fd9de32df0d5ed2
-> Author: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Date:   Mon Oct 9 10:56:21 2017 +0300
-> 
->     verbs: Fix C++ compilation break
-> 
-> commit 983f80191923c082324295ea68ac91d34daaa4c8
-> Author: Nelio Laranjeiro <nelio.laranjeiro-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-> Date:   Tue Sep 26 16:05:11 2017 +0200
-> 
->     verbs: fix compilation error with ICC
-> 
-> commit bf03566e0aa976afc5dfbf917296280e9fa55bb8
-> Author: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Date:   Mon Oct 2 04:17:09 2017 +0800
-> 
->     hns: Fix create QP structure layout
-> 
-> 
-> Thanks
-> 
-> >
-> > Nicolas
-> >
-> >
-> > Devesh Sharma (1):
-> >       bnxt_re/lib: increment psn in case of 0 length packets
-> >
-> > Hal Rosenstock (1):
-> >       libibumad/umad.c: In get_port, ignore sysfs rate file errors
-> >
-> > Jason Gunthorpe (1):
-> >       verbs: Do not block QP attr_masks used by older kernels
-> >
-> > Michael J. Ruhl (2):
-> >       ibacm: Incorrect usage of BE byte order of MLID attach/detach_mcast()
-> >       ibacm: Incorrect list used for subnet list causes a segfault
-> >
-> > Ram Amrani (1):
-> >       libqedr: fix inline data copy
-> >
 
-These all look sensible to me..
+--=-Q7h8JlSovHa5TLxsV4XR
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Jason
+On Thu, 2017-11-02 at 15:22 +0200, Leon Romanovsky wrote:
+> * Optimization to mlx4 MTT logic
+> * Fixup to mlx5 ABI alignment
+> * Code simplification to IB/core
+>=20
+> The patches are available in the git repository at:
+>   git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-n=
+ext-2017-11-02
+>=20
+> 	Thanks
+> ---------------------------------------
+>=20
+> Guy Levi (2):
+>   IB/mlx4: Use optimal numbers of MTT entries
+>   IB/mlx4: Add contig support for control objects
+>=20
+> Mark Bloch (1):
+>   IB/mlx4: Increase maximal message size under UD QP
+>=20
+> Noa Osherovich (1):
+>   IB/mlx5: Fix ABI alignment to 64 bit
+>=20
+> Parav Pandit (1):
+>   IB/core: Avoid unnecessary return value check
+>=20
+>  drivers/infiniband/core/security.c   |  15 +-
+>  drivers/infiniband/hw/mlx4/cq.c      |   8 +-
+>  drivers/infiniband/hw/mlx4/mlx4_ib.h |   2 +
+>  drivers/infiniband/hw/mlx4/mr.c      | 284 +++++++++++++++++++++++++++++=
++++---
+>  drivers/infiniband/hw/mlx4/qp.c      |  10 +-
+>  include/uapi/rdma/mlx5-abi.h         |   1 +
+>  6 files changed, 280 insertions(+), 40 deletions(-)
+>=20
+> --
+> 2.14.2
+>=20
+
+Thanks Leon, series applied.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-Q7h8JlSovHa5TLxsV4XR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloJ9h0ACgkQuCajMw5X
+L92bfA/8DON+Zgz3yTYU/Kt8pWvx9rPR+KYHLgYTpjfpMp/XVoOsVgX1kGFDi9e0
+2oClFauUO7TucMeqZbzEshdn9RjHqtVM/65WREIGMM0TPbIHjMKhzlXc6cv06DgH
+IYIKxUQ2+RQD6eys+fMsD8R9txtbSfmZbIycYvnGxIDVZfR55COPIzO+JGj7PPp2
+n2FSZUux36Reb1/fQk/0HOjgUnhHolbdi1rpZh7a4VE6Miiewo0ULDCWqSK6O5fp
+/OmzLlEQeg3ynwvgaIHtSCgCyH7Prp39tnOq7Ma01P6A/niv45kuy6z6qte+NSZe
+dcQL6psWTmg5ReGkS7/yujpF+uWmNlbpdw3N2Nk8WBHDSA/KAuW6yAO0nJAMsxAx
+i6Xg+5ZL92bYbOx7TKWg8up0WAbB4q2r6qAOUD7CTGCHdEDHW5ik6CurcI4jK+NG
+ZKH5Z1SaNGKT63VjAuTtYDkcTU7PcVlRAxe27Z1aPz12rcTgWXBkc6tJqonm0PT7
+TlzjoOj71IKt4FihNfP8vTCsdK/tVF/ZIWibW9XQZ/hBxeG0CiVPjBlrpTNxbq8C
+Y+CymISJ3m1t3YPheTLbeV732JumUp6tVNYjMJkQhsiKUETKZr8cC7TNSBcOnwsi
+gAeKrQW6yfzeK1YRJCUu0wsMWZRKS7L6fuuAc+KcCALZMO+SHxE=
+=ksr9
+-----END PGP SIGNATURE-----
+
+--=-Q7h8JlSovHa5TLxsV4XR--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
