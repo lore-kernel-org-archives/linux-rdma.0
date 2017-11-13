@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v2 6/7] IB/mlx5: Add CQ moderation capability to query_device
-Date: Mon, 13 Nov 2017 10:51:18 +0200
-Message-ID: <20171113085119.1705-7-leon@kernel.org>
+Subject: [PATCH rdma-next v2 2/7] IB/mlx4: Exposing modify CQ callback to uverbs layer
+Date: Mon, 13 Nov 2017 10:51:14 +0200
+Message-ID: <20171113085119.1705-3-leon@kernel.org>
 References: <20171113085119.1705-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171113085119.1705-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,34 +12,58 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-query_device can now obtain the maximum values for
-cq_max_count and cq_period, needed for cq moderation.
+Exposed mlx4_ib_modify_cq to be called from ib device
+verb list.
 
 Signed-off-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/infiniband/hw/mlx4/main.c    | 3 +++
+ drivers/infiniband/hw/mlx4/mlx4_ib.h | 1 +
+ include/linux/mlx4/cq.h              | 3 +++
+ 3 files changed, 7 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 838c47012388..18fe01826942 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -790,6 +790,13 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		props->tm_caps.max_sge = MLX5_TM_MAX_SGE;
- 	}
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index c636842c5be0..58845e67dad1 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2733,6 +2733,9 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	ibdev->ib_dev.get_dev_fw_str    = get_fw_ver_str;
+ 	ibdev->ib_dev.disassociate_ucontext = mlx4_ib_disassociate_ucontext;
 
-+	if (MLX5_CAP_GEN(dev->mdev, cq_moderation)) {
-+		props->cq_caps.max_cq_moderation_count =
-+						MLX5_MAX_CQ_COUNT;
-+		props->cq_caps.max_cq_moderation_period =
-+						MLX5_MAX_CQ_PERIOD;
-+	}
++	ibdev->ib_dev.uverbs_ex_cmd_mask |=
++		(1ull << IB_USER_VERBS_EX_CMD_MODIFY_CQ);
 +
- 	if (field_avail(typeof(resp), cqe_comp_caps, uhw->outlen)) {
- 		resp.cqe_comp_caps.max_num =
- 			MLX5_CAP_GEN(dev->mdev, cqe_compression) ?
+ 	if ((dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS) &&
+ 	    ((mlx4_ib_port_link_layer(&ibdev->ib_dev, 1) ==
+ 	    IB_LINK_LAYER_ETHERNET) ||
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 1fa19820355a..9a55064ed69a 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -47,6 +47,7 @@
+ #include <linux/mlx4/device.h>
+ #include <linux/mlx4/doorbell.h>
+ #include <linux/mlx4/qp.h>
++#include <linux/mlx4/cq.h>
+
+ #define MLX4_IB_DRV_NAME	"mlx4_ib"
+
+diff --git a/include/linux/mlx4/cq.h b/include/linux/mlx4/cq.h
+index 09cebe528488..508e8cc5ee86 100644
+--- a/include/linux/mlx4/cq.h
++++ b/include/linux/mlx4/cq.h
+@@ -136,6 +136,9 @@ enum {
+ 	MLX4_CQE_BAD_FCS                 = 1 << 4,
+ };
+
++#define MLX4_MAX_CQ_PERIOD (BIT(16) - 1)
++#define MLX4_MAX_CQ_COUNT (BIT(16) - 1)
++
+ static inline void mlx4_cq_arm(struct mlx4_cq *cq, u32 cmd,
+ 			       void __iomem *uar_page,
+ 			       spinlock_t *doorbell_lock)
 --
 2.15.0
 
