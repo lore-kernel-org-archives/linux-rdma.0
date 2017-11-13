@@ -1,68 +1,35 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
 Subject: Re: rdma-core stable releases
-Date: Mon, 13 Nov 2017 09:15:07 +0200
-Message-ID: <20171113071507.GA18825@mtr-leonro.local>
+Date: Mon, 13 Nov 2017 08:18:02 +0100
+Message-ID: <5d8ea61a-2b48-ef39-a617-c0cc75066bc0@suse.de>
 References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
  <20171106182756.GD18802@ziepe.ca>
  <6012d1c3-cd18-25e8-c5ae-3d678142177b@suse.de>
  <54347E5A035A054EAE9D05927FB467F9B61778A9@ORSMSX101.amr.corp.intel.com>
- <20171111075704.GS18825@mtr-leonro.local>
- <CANjDDBiaw1VsJXbhNS2VJtpWE7XAx2diP7zXKr-CVViDZyMPGA@mail.gmail.com>
+ <20171110202455.GP18825@mtr-leonro.local> <20171110211448.GF17451@ziepe.ca>
+ <1eba9063-80a4-ad9d-4adf-93770b9ed7c9@suse.de>
+ <20171113070856.GZ18825@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="1ysCV03AuJYXZqZy"
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CANjDDBiaw1VsJXbhNS2VJtpWE7XAx2diP7zXKr-CVViDZyMPGA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20171113070856.GZ18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---1ysCV03AuJYXZqZy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Mon, Nov 13, 2017 at 08:47:38AM +0530, Devesh Sharma wrote:
-> Hello Everyone,
->
-> Can someone guide me how to initiate a pull of my recent submission to
-> the stable branch. This is quite urgent.
+Le 13/11/2017 à 08:08, Leon Romanovsky a écrit :
+> On Mon, Nov 13, 2017 at 08:01:48AM +0100, Nicolas Morey-Chaisemartin wrote: >> >> >> Le 10/11/2017 à 22:14, Jason Gunthorpe a écrit : >>> On Fri, Nov 10, 2017 at 10:24:55PM +0200, Leon Romanovsky wrote: >>>> More or less, you wrote everything that I expected, just need to post it >>>> as a patch so I can apply it to rdma-core. >>> Also please describe how to get patches into -stable, eg similar to >>> the kernel, mark with fixes and cc the stable maintainer. >>> >>> There should also be absolutely no ABI changes in the -stable branchs. >> >> Agreed. Ideally we would add something to CI so that it detects ABI breake on stable branches. >> I know SUSE has something like this for maintenance fixes. I'll look into it. > > DPDK runs ABI compliance checker. > http://ispras.linuxbase.org/index.
+ php/ABI_compliance_checker > > I would love to see it running for rdma-core. > > Thanks > >
+The only issue I can foresee with these is that we need to run the ABI checker on both the "old" and "new" versions.
+We would probably need to do something at release time to generate and publish the ABI xml file somewhere (either in the repo, or github) so that we can check against it later without recompiling it.
 
-Most probably, we will follow kernel rules for stable@.
-It means patches should be in master branch, no pull requests and we
-will use some tag to inform Nicolas to pick that fix for stable too.
+Nicolas
 
-At least, there is a need to write (copy/paste from kernel) initial document
-with description of process.
-
-Also, I didn't hear commitment from OFED developers that they use this
-stable branch.
-
-Thanks
-
---1ysCV03AuJYXZqZy
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloJRnsACgkQ5GN7iDZy
-WKfMHA/+JyzG3jePKE9gSJTztsFs3FR/xhlXtTGhC2XvugT1/pW8NcdQYE37xXDL
-lrwzXZZjSAeFBAAc1gxIGcYBd6KhWfrwm8IeWALWRADmnz/e8+kSc6aJNdd7KcQ3
-N+HyC87F5BBxwftBU6TFdmcy0cwvZQTtzEoUe9NdeSReg7pr7D0nUniui3NFU07L
-X7ssyfVK5kYq47GugxYvnC/zTlevkHjigt6dFguFpMQH+rdIbcqnQeRaQuxKKK88
-Lc+7Jz46C3ZbqWq/byexogos9CuRkeYXnKbe0j8K14I0LFlZ2+izttrEAILWxTDh
-6tmBR9sSN/0eAL2hVUsltWbXBgs4jZYLHMEGwl3fEawIS1CBXIC2Iz/utLKSa7mK
-MnUryxq2wBZvkW695qfR7dFQwa+U+ZcA1r5Y6L2geMkvTnbPnAKB50i0ZgC0HIo/
-0wK3WhgMm0R79sJmJQic05kWhQOv9+cSiGoV0ZOqmDzkjhewxuQsA9+a0sH+2plL
-5dsFt6kBiFL/0xznESDMWbQYP8mcJZ7FOvA1txCwVaDu2Sp5W474/2BPnzkIda7m
-JnxYc9u2Bc2M9a+f6z1uf2qi/95aClCxCU1tA4CJTQoAXkQKHR2uw7WH5BGfN8Fz
-DY59vD9/USv5j//3di1KBvP19ikK8FktOBtqDqoOmp3DpEAMPdw=
-=eZaW
------END PGP SIGNATURE-----
-
---1ysCV03AuJYXZqZy--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
