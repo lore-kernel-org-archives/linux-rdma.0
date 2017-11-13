@@ -1,42 +1,38 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
 Subject: Re: rdma-core stable releases
-Date: Mon, 13 Nov 2017 12:08:58 -0700
-Message-ID: <20171113190858.GE6918@ziepe.ca>
+Date: Mon, 13 Nov 2017 12:10:47 -0700
+Message-ID: <20171113191047.GF6918@ziepe.ca>
 References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
  <20171106182756.GD18802@ziepe.ca>
  <6012d1c3-cd18-25e8-c5ae-3d678142177b@suse.de>
  <54347E5A035A054EAE9D05927FB467F9B61778A9@ORSMSX101.amr.corp.intel.com>
  <20171110202455.GP18825@mtr-leonro.local>
  <20171110211448.GF17451@ziepe.ca>
- <9C6B67F36DCAFC479B1CF6A967258A8CA951013D@ORSMSX115.amr.corp.intel.com>
- <20171111074625.GR18825@mtr-leonro.local>
+ <1eba9063-80a4-ad9d-4adf-93770b9ed7c9@suse.de>
+ <20171113070856.GZ18825@mtr-leonro.local>
+ <5d8ea61a-2b48-ef39-a617-c0cc75066bc0@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171111074625.GR18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <5d8ea61a-2b48-ef39-a617-c0cc75066bc0-l3A5Bk7waGM@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Nov 11, 2017 at 09:46:25AM +0200, Leon Romanovsky wrote:
+On Mon, Nov 13, 2017 at 08:18:02AM +0100, Nicolas Morey-Chaisemartin wrote:
 
-> I'm not sure about it.
-> For example LTS trees are created primarily for Android [1].
-> 
-> Various distros take new kernel every year or two, so it limits number of stable branches.
-> In our case, MOFED has 6-months cycle. I don't know anything about OFED cycles.
+> The only issue I can foresee with these is that we need to run the
+> ABI checker on both the "old" and "new" versions.  We would probably
+> need to do something at release time to generate and publish the ABI
+> xml file somewhere (either in the repo, or github) so that we can
+> check against it later without recompiling it.
 
-In this case the LTS kernel process is attempting to generate
-consensus downstream on what kernel version to use.. I'm not sure we
-should care so much about that for RDMA.
+When you start the stable branch you can include the reference ABI
+output as the first commit.
 
-It is best for eveyone that each downstream disto take the latest
-rdma-core available when they are starting their release process and
-not try and stick to some older and less featured LTS version.
-
-Jason
+Jaason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
