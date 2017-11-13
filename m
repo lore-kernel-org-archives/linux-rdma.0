@@ -1,42 +1,69 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: 4.13 ib_mthca NULL pointer dereference with OpenSM
-Date: Mon, 13 Nov 2017 11:47:56 -0600
-Message-ID: <e985eec0-a820-114d-46c6-4a31cf6d891d@mellanox.com>
-References: <20171030230156.GA4081@ziepe.ca>
- <VI1PR0502MB300860F7C004ABFB01079F53D15E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20171031042435.GB7961@ziepe.ca>
- <e2a2aa84-71ce-36f0-91af-0854b24d4a6a@dev.mellanox.co.il>
- <60de3bab-f294-dd11-bcae-d179115f7c31@mellanox.com>
- <20171031150901.GA9852@ziepe.ca> <20171031151521.GK16127@mtr-leonro.local>
- <5ab2d58d-8af8-c075-86f0-7010b8316cba@mellanox.com>
- <CALpBJjorS-AK3Ua9UuUnWv33rYqBoeAXF9vsFALTff5Qv3hNSg@mail.gmail.com>
- <fa1abfd0-e9fc-e842-8a21-c214e9dc8e9e@mellanox.com>
- <20171031192340.GA18578@ziepe.ca>
- <799ce928-2e7c-7f60-951a-3a88544b7510@mellanox.com>
- <CALpBJjogf5ONOmMTr9Z8RQ_78aON=_zSSJ+K-_VQyRRXO6vkAQ@mail.gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next] RDMA/bnxt_re: Remove unused vlan_tag variable
+Date: Mon, 13 Nov 2017 13:53:42 -0500
+Message-ID: <1510599222.3735.22.camel@redhat.com>
+References: <20171029150522.23641-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-9ATYEIEYVzs0NtJM+DhQ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CALpBJjogf5ONOmMTr9Z8RQ_78aON=_zSSJ+K-_VQyRRXO6vkAQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20171029150522.23641-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chris Blake <chrisrblake93-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/12/2017 5:38 PM, Chris Blake wrote:
-> I will admit that I have little knowledge of apparmor, but from the
-> above if "ib_post_send_mad error" is caused by apparmor as previously
-> suggested, wouldn't disabling it resolve the issue?
->
-> Let me know if you have any other things you would like me to test.
 
-Hi Chris, I sent you a patch in a separate email that will isolate which check is failing. Can you try that and send me the output? Sorry to ask you to do this, I've still not been able to reproduce.
+--=-9ATYEIEYVzs0NtJM+DhQ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> Regards,
-> Chris Blake
+On Sun, 2017-10-29 at 17:05 +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>=20
+> The Broadcom driver produces the following compilation warning
+>=20
+> drivers/infiniband/hw/bnxt_re/ib_verbs.c:
+>         In function =E2=80=98bnxt_re_create_ah=E2=80=99:
+> drivers/infiniband/hw/bnxt_re/ib_verbs.c:668:6:
+>         warning: variable =E2=80=98vlan_tag=E2=80=99 set but not used [-W=
+unused-but-set-variable]
+>         u16 vlan_tag;
+>=20
+> Let's remove it till vlan_tag will be implemented properly.
+>=20
+> Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+Thanks, applied.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-9ATYEIEYVzs0NtJM+DhQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloJ6jYACgkQuCajMw5X
+L92ggBAAgSS8f94Tgx2ysuiH6VYBKQMvHGLwEvMRF5pZ7A1Fc/rgbU6ALxGmNaK5
+MDmfZv8bWjLJ3FUSe2ot9d6f+38XCsNex1PpTSF+nDRqq4dK9lWsinDCcYeBPECy
+johh1YCoIJsGUt+IKsH60HcBdoZ5uL8l9O+LwODfkTos02NVQ3QRs7h9U6ImqT/O
+977RYyruTJIo2UW1VWIHqPny0ju30G1akRnexB8BMJIWXIqv/oaimJT4D0GrBw49
+GhFTqaRH/Fny+NpbWuoQOuFVfaEFej3cBP5VXmJ2mMItA5ipBcRAEibrcbx/UYTY
+jbO/UYngyA9K2ZbucIUMfjVKy7ghvf/bnp2mBoF90JykTOnucNiRQ4hAyPoTz6XL
+zIh3Knnu2555Iv8VeD4yBr2qaLx3hlUD6usC3h4Q4JQgkJpcfY0+XAZnpW/51OtC
+GRhOb1+uUtRkCojc9zbC//vJZDZTceKwk300hfFvMbK3aihGtdmXN8+SrFWa/R6i
+F/y7M7pYY64t5VFg3NsWQPFsAKQ/islzx6eKi+UoC4cLkc6RSJIdEoPTEz8xmU/7
+GZWWNNtG9FVFBWzmeYd376U5evo+kA4vrLoVaaGxArSmyMEXawqgMg32e2CiwnpQ
+LbS0Hs1C08IV5rmX2suGq1ehbLG3OPyi/XGpXeJM9V4uhRxJU6g=
+=mRBx
+-----END PGP SIGNATURE-----
+
+--=-9ATYEIEYVzs0NtJM+DhQ--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
