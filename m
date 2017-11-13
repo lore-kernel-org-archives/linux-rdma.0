@@ -1,78 +1,97 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/4] Add support for CQ moderation
-Date: Mon, 13 Nov 2017 17:08:34 -0500
-Message-ID: <1510610914.3735.48.camel@redhat.com>
-References: <1509372543-26603-1-git-send-email-yishaih@mellanox.com>
+Subject: Re: [PATCH v2 0/3] Fix request completion holes
+Date: Mon, 13 Nov 2017 17:10:44 -0500
+Message-ID: <1510611044.3735.49.camel@redhat.com>
+References: <20171108100616.26605-1-sagi@grimberg.me>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-ELL/JGQtSbdX/oD+NLpx"
+        protocol="application/pgp-signature"; boundary="=-zRk3TFdNG5bRraO2Zc5B"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1509372543-26603-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20171108100616.26605-1-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-ELL/JGQtSbdX/oD+NLpx
+--=-zRk3TFdNG5bRraO2Zc5B
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2017-10-30 at 16:08 +0200, Yishai Hadas wrote:
-> This series from Yonatan is the supplementary part of the kernel series t=
-hat
-> was sent for 4.15 few days ago.
+On Wed, 2017-11-08 at 12:06 +0200, Sagi Grimberg wrote:
+> We have two holes in nvme-rdma when completing request.
 >=20
-> The series introduces the ibv_modify_cq verb to enable CQ moderation, it =
-can be
-> extended in the future for other options by using the attr_mask field.
+> 1. We never wait for send work request to complete before completing
+> a request. It is possible that the HCA retries a send operation (due
+> to dropped ack) after the nvme cqe has already arrived back to the host.
+> If we unmap the host buffer upon reception of the cqe, the HCA might
+> get iommu errors when attempting to access an unmapped host buffer.
+> We must wait also for the send completion before completing a request,
+> most of the time it will be before the nvme cqe has arrived back so
+> we pay only for the extra cq entry processing.
 >=20
-> By using the ibv_modify_cq verb a user can moderate completion events by
-> specifying the number of completions that cause an event and the timeout =
-in
-> micro seconds to cause the event even if the number of completions was no=
-t
-> reached.
+> 2. We don't wait for the request memory region to be fully invalidated
+> in case the target didn't invalidate remotely. We must wait for the local
+> invalidation to complete before completing the request.
 >=20
-> The series includes below:
-> Patch #1: Exposes the related moderation capabilities via ibv_query_devic=
-e_ex.
-> Patch #2  Introduces the ibv_modify_cq verb to enable the moderation.
-> Patch #3: Add support in mlx4 driver.
-> Patch #4: Add support in mlx5 driver.
+> Note that we might face two concurrent completion processing contexts for
+> a single request. One is the ib_cq irq-poll context and the second is
+> blk_mq_poll which is invoked from IOCB_HIPRI requests. Thus we need the
+> completion flags updates (send/receive) to be atomic. A new request
+> lock is introduced to guarantee the mutual exclusion of the completion
+> flags updates.
 >=20
-> PR was sent:
-> https://github.com/linux-rdma/rdma-core/pull/238
+> Note that we could have used a per-queue lock for these updates (which
+> would have generated less locks as we have less queues), but given that
+> we access the request in the completion handlers we might benefit by havi=
+ng
+> the lock local in the request. I'm open to suggestions though.
+>=20
+> Changes from v1:
+> - Added atomic send/resp_completed updated (via per-request lock)
+>=20
+> Sagi Grimberg (3):
+>   nvme-rdma: don't suppress send completions
+>   nvme-rdma: don't complete requests before a send work request has
+>     completed
+>   nvme-rdma: wait for local invalidation before completing a request
+>=20
+>  drivers/nvme/host/rdma.c | 125 ++++++++++++++++++++++++++---------------=
+------
+>  1 file changed, 70 insertions(+), 55 deletions(-)
+>=20
 
-Kernel support was merged today, so I merged this too.  Thanks.
+Sagi, are you ready for me to take this series in?  It seemed like there
+was a question as to whether you might want to try atomics instead of
+spin locks, or do you want to stick with spinlocks?
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-ELL/JGQtSbdX/oD+NLpx
+--=-zRk3TFdNG5bRraO2Zc5B
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloKF+IACgkQuCajMw5X
-L90KGg//VhfbYWjLsDqUit4G4BhKgEe8UD+nFIg+NZcy6LInjn5Ma8uCFyI1+jFa
-k/ix4rQXcFNsGAHFvoWs6U4sDg+eCiCnAbUdi0PWj7UGOpjrW2Ui3qpHKtEpzfDP
-EoYO324vb5ZGsFVYbQDYXhmkeIMY0DZ+ie2McmSixTRPTGdIGsKFVvL+lVf0pqzc
-IfXrSzecyPId9JL/LvZ8NEvO61DDJUJ3ObkJAXqivFtbxbkP3hAUIiltwCT8AH2u
-CVI6bHMvLLNoLAgr0s51Q1xL6kQNJ28H6aYO6pQ8FEcKScDR6uBUw1l75BcSM8cp
-1jMShxWrPUtPmCb3VE7zAEguvBAmz+gMf6QatF7PC8Kupm88dU7JZlWq6Mr7XHbC
-nAMEYNWeYXQi8E6Mfa3JoAysEvGyxOFgUvQVTdfr0EDSUaf584f+Psi/pj2ASEI5
-viMMP2Z9btaF+wHjXlDsQ9ZoiITyP/SRJHFB1mM2NhyA7uxAsA5rEs6DRqN4ndxo
-Z6piUbCGHxdXJA2Ns/4SjpXEfSuYWkMnMk8bPXXn3KJuGzPjyqLW7JBqUGEMdy2y
-EalqFQOliYavMwUHV2nWOFawlqIhsebbtgxvmI3XQHGjKZBhr3uyzdtHrvdPDsta
-MMrFTdJ3Dya3PUGPZgvr3eAb/qNkaDpeE1l63L1oH8a4KYNYefA=
-=pvmR
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloKGGQACgkQuCajMw5X
+L90pvg//cRktPI7rW4rySMIfQBR8aIfW7U9yAjUgOiO/v0Oz/QhHp/fjtzS9eiWv
+QAl1CsSujCrb8Wlhrw95VwNeWhErtLWty1JxzwoEMUbqwQkzj+tOscUJwm4FVU9b
+yEKj0RmSargYpcyAHo5O/N4FtyhycHiGyb/BYyPVioQwzmVy4BbpwCqp5elvgYsY
+BqCE2T43zTaZCqgB2+uHoVXKvUydxJ/n6QUX8mkULyznwowzEm/C9NFdIcUAM1/m
+luFPj/QWtoShpi/zBfnqIAjIvtQ3gwqcMGr1EmjWq9Q9l/tEQtHutJleBrtzIe0w
+7jpatW9WpSWqNxOznUIftXI3xyB6Wty4bGX7iocmyc30MVEwX0rTcHSUpYk0Eco2
+BVCEziboKZALNR6FRwzY0VUoiHoBU5Ca2DKDzXLcJMrxznfVHaRlHQLbXn4PfiU4
+NYiv4GBFwKyAysgVqxgmDguk3M06Bar5h6hsupDEVrHF01VlnWabxiYHPJBCIWVa
+4a0/0KUagGb859uFIxzgBV4BLZPWX8d0itMwXEZL9m7PFVwhs+4OHa+FjGQUFyR7
+np8QijYAmijQexxBW5Uixk9rnWoPj3sDE0FzRptMkqZIQYI0Waiy3uaKQV2JUYMi
+kB+ou1s/MJcMPaY8YFuIFjsYCXEgv/q5exDRQU4xtycjf36tOj0=
+=wx62
 -----END PGP SIGNATURE-----
 
---=-ELL/JGQtSbdX/oD+NLpx--
+--=-zRk3TFdNG5bRraO2Zc5B--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
