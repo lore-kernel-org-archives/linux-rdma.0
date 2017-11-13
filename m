@@ -1,66 +1,35 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH RFC rdma-core 4/5] mlx5: Add support for ibv_parent
- domain and its related verbs
-Date: Mon, 13 Nov 2017 13:03:20 -0700
-Message-ID: <20171113200320.GE22610@ziepe.ca>
+Subject: Re: [PATCH RFC rdma-core 5/5] mlx5: Handles QP creation with a given
+ parent domain
+Date: Mon, 13 Nov 2017 13:05:18 -0700
+Message-ID: <20171113200518.GF22610@ziepe.ca>
 References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
- <1510522903-6838-5-git-send-email-yishaih@mellanox.com>
+ <1510522903-6838-6-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1510522903-6838-5-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1510522903-6838-6-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Nov 12, 2017 at 11:41:42PM +0200, Yishai Hadas wrote:
+On Sun, Nov 12, 2017 at 11:41:43PM +0200, Yishai Hadas wrote:
+> This patch comes to demonstrate the expected usage of parent domain
+> and its internal thread domain as part of QP creation.
+> 
+> In case a parent domain was set, its internal protection domain (i.e.
+> ibv_pd) will be used for the PD usage and if a thread domain exists its
+> dedicated UAR will be used by passing its index to the mlx5
+> kernel driver. In that way application can control the UAR that this QP
+> will use and share it with other QPs upon their creation by suppling the
+> same thread domain.
+> 
+> A full patch will be supplied as part the final series post this RFC.
 
-> @@ -319,6 +319,9 @@ struct mlx5_buf {
->  struct mlx5_pd {
->  	struct ibv_pd			ibv_pd;
->  	uint32_t			pdn;
-> +	int 				is_parent_domain;
-> +	struct ibv_td			*td;
-> +	struct ibv_pd			*protection_domain;
-
-is_parent_domain can just be protection_domain != NULL
-
-> +struct ibv_pd *mlx5_alloc_parent_domain(struct ibv_context *context,
-> +			struct ibv_parent_domain_init_attr *attr)
-> +{
-> +	struct mlx5_pd	*pd;
-> +
-> +	pd = calloc(1, sizeof *pd);
-> +	if (!pd)
-> +		return NULL;
-> +
-> +	pd->is_parent_domain = 1;
-> +	pd->td = attr->td;
-> +	pd->protection_domain= attr->pd;
-
-Don't we need some kind of ref counting here?
-
-What is the intention for the final version of this patch?
-
-Are you going to do
-  pd->ibv_pd = *attr->pd;
-
-During create?
-
-Or change every call site very roughly like like..
-
-inline struct mlx5_pd *resolve_pd(struct ibv_pd *pd)
-{
-   if (pd->protection_domain)
-      return pd->protection_domain;
-   return pd;
-}
-
-mlx5_foo(struct ibv_pd *arg_pd)
-{
-    struct mlx5_pd *pd = resolve_pd(arg_pd);
+I thought the plan was to have API entry points under mlx5dv to
+access and set the UAR on the TD? Is that still the case?
 
 Jason
 --
