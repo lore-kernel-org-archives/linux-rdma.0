@@ -1,65 +1,38 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V2 rdma-core 0/2] Bugfixes for hip08 libhns
-Date: Mon, 13 Nov 2017 08:54:08 +0200
-Message-ID: <20171113065408.GY18825@mtr-leonro.local>
-References: <1510309253-229097-1-git-send-email-oulijun@huawei.com>
+From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: rdma-core stable releases
+Date: Mon, 13 Nov 2017 08:01:48 +0100
+Message-ID: <1eba9063-80a4-ad9d-4adf-93770b9ed7c9@suse.de>
+References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
+ <20171106182756.GD18802@ziepe.ca>
+ <6012d1c3-cd18-25e8-c5ae-3d678142177b@suse.de>
+ <54347E5A035A054EAE9D05927FB467F9B61778A9@ORSMSX101.amr.corp.intel.com>
+ <20171110202455.GP18825@mtr-leonro.local> <20171110211448.GF17451@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="nWqF9Q8pq9VTXuIf"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1510309253-229097-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20171110211448.GF17451-uk2M96/98Pc@public.gmane.org>
+Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---nWqF9Q8pq9VTXuIf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Fri, Nov 10, 2017 at 06:20:51PM +0800, Lijun Ou wrote:
-> This path series update the usage of two fields in cq doorbell and
-> sqwqe.
+Le 10/11/2017 à 22:14, Jason Gunthorpe a écrit :
+> On Fri, Nov 10, 2017 at 10:24:55PM +0200, Leon Romanovsky wrote:
+>> More or less, you wrote everything that I expected, just need to post it
+>> as a patch so I can apply it to rdma-core.
+> Also please describe how to get patches into -stable, eg similar to
+> the kernel, mark with fixes and cc the stable maintainer.
 >
-> Change from V1:
-> 1. Update commit log
-> 2. Remove the third patch, name is
->    libhns: Fix endian format of payload and immediate
->
-> Lijun Ou (2):
->   libhns: Set owner bit of SQWQE in user mode
->   libhns: Modify the usage of cmd_sn in hip08 RoCE userspace
->
->  providers/hns/hns_roce_u_hw_v2.c | 10 +++++++++-
->  providers/hns/hns_roce_u_hw_v2.h |  2 ++
->  2 files changed, 11 insertions(+), 1 deletion(-)
->
+> There should also be absolutely no ABI changes in the -stable branchs.
 
-Thanks, applied.
+Agreed. Ideally we would add something to CI so that it detects ABI breake on stable branches.
+I know SUSE has something like this for maintenance fixes. I'll look into it.
 
---nWqF9Q8pq9VTXuIf
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloJQZAACgkQ5GN7iDZy
-WKcaQxAAogJn/DDe5nQBKkBX2AHVBUWLCkXkKrnoYyE/3LKXjeL9vXQug/wg4qoq
-Nte4yZGgnrx6oU5wmbezhYwX2LyMXVdFAPK+aC+YyGaqU/R8YaarBpPC64ll/eSA
-NimrvBOPyBTXvw0G2TVv2BjIK7ht+1oHH2C0oDetXyFN6i3dQtOXar+5YUDA+vz8
-43LcFYXkzfg/31j2Uqe9pTm61qQuAeGE7pxBCYWEVhnBTBzEdxXU+GAxUiZI0zAN
-R1wIH7iIBU4Wgx8zZ8voU5cnf+UZRfb9Tu7Q8dYS4u7Sv15Kir99ZaO/5QE4roiT
-RCrfVFM9iHuOkecHkZr6jLmSbISKUBQeUIAXP7Q6UUcBAJvL3hnOfkWiaLcDk9Oi
-dwi+J/CpsyBrMKZp0ONC09AK76PUYNwqu6tXVar0QIWuwJvQZmDlep1M/X5EkJvm
-zuEutZUx56+5eOV1kM4BU8ri77GahW8wPyDF8FPjM22051VkU2IfaRbSJaWTS2He
-Y+bwQVxCvvRacMZb57XvXCtCRK55LBEqGDrxPcL15uMNBTGcIfZhTseOMQkH/ghU
-5JD2J+Q2BlNiitUEh4JK3MpDqRixi5bj3vqvNAypgoYsWMwyyMeTdcFDz/ijrPFu
-E8gU8x/LLndX7GOhBcGlTB6SMU5MoYe+krW+6wcnyXPRQtDd9rY=
-=RYL6
------END PGP SIGNATURE-----
-
---nWqF9Q8pq9VTXuIf--
+Nicolas
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
