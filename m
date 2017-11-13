@@ -1,83 +1,71 @@
-From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 4/4] ibacm: Use MONOTONIC time base to avoid timer
- expiration issues
-Date: Mon, 13 Nov 2017 16:25:04 -0500
-Message-ID: <20171113212454.24293.68783.stgit@phlsvslse11.ph.intel.com>
-References: <20171113212220.24293.97479.stgit@phlsvslse11.ph.intel.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1] RDMA/bnxt_re: report vlan_id and sl in qp1 recv
+ completion
+Date: Mon, 13 Nov 2017 16:28:13 -0500
+Message-ID: <1510608493.3735.42.camel@redhat.com>
+References: <1510127325-26879-1-git-send-email-devesh.sharma@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-LNYQ4NyDz1VIvW8fKxbN"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171113212220.24293.97479.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <1510127325-26879-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The event_wait() function uses the CLOCK_REALTIME time base for
-calculating expiration times (default time base for gettimeofday()).
+--=-LNYQ4NyDz1VIvW8fKxbN
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Using the CLOCK_REALTIME time base can introduce incorrect expiration
-timeout calculations if the REALTIME clock changes, making a timeout
-too long (possibly hours or days), or too short.
+On Wed, 2017-11-08 at 02:48 -0500, Devesh Sharma wrote:
+> In a real RoCE v2 network it is possible to have two
+> Sections of network have same IP hence same gid. However
+> those may have different vlans. During connection resolution
+> it is important to report the actual vlan on which the
+> MAD packet was received instead of relying on other means
+> to resolve vlan-id. ib_find_gid_index should not be used
+> to resolve the vlan-id using sgid of the local system
+> where the packet was received.
+>=20
+> Our device has the capability to report the actual VLAN-ID
+> in the GSI qp completions. Since we have the capability our
+> driver should move away from resolving the vlan-id with the
+> help of SGID at the destination port.
+>=20
+> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Reported-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Update time base usage to the CLOCK_MONOTONIC time base to avoid time
-change issues.
+Thanks, applied.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- ibacm/linux/osd.h |   20 +++++++++++---------
- 1 files changed, 11 insertions(+), 9 deletions(-)
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-LNYQ4NyDz1VIvW8fKxbN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-diff --git a/ibacm/linux/osd.h b/ibacm/linux/osd.h
-index d6cbb8f..1901a89 100644
---- a/ibacm/linux/osd.h
-+++ b/ibacm/linux/osd.h
-@@ -88,20 +88,23 @@ typedef struct { volatile int val; } atomic_t;
- typedef struct { pthread_cond_t cond; pthread_mutex_t mutex; } event_t;
- static inline void event_init(event_t *e)
- {
--	pthread_cond_init(&e->cond, NULL);
-+	pthread_condattr_t attr;
-+
-+	pthread_condattr_init(&attr);
-+	pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
-+	pthread_cond_init(&e->cond, &attr);
- 	pthread_mutex_init(&e->mutex, NULL);
- }
- #define event_signal(e)	pthread_cond_signal(&(e)->cond)
- #define ONE_SEC_IN_NSEC  1000000000
- static inline int event_wait(event_t *e, int timeout)
- {
--	struct timeval curtime;
- 	struct timespec wait;
- 	int ret;
- 
--	gettimeofday(&curtime, NULL);
--	wait.tv_sec = curtime.tv_sec + ((unsigned) timeout) / 1000;
--	wait.tv_nsec = (curtime.tv_usec + (((unsigned) timeout) % 1000) * 1000) * 1000;
-+	clock_gettime(CLOCK_MONOTONIC, &wait);
-+	wait.tv_sec = wait.tv_sec + ((unsigned) timeout) / 1000;
-+	wait.tv_nsec = (wait.tv_nsec + (((unsigned) timeout) % 1000) * 1000000);
- 	if (wait.tv_nsec > ONE_SEC_IN_NSEC) {
- 		wait.tv_sec++;
- 		wait.tv_nsec -= ONE_SEC_IN_NSEC;
-@@ -114,10 +117,9 @@ static inline int event_wait(event_t *e, int timeout)
- 
- static inline uint64_t time_stamp_us(void)
- {
--	struct timeval curtime;
--	timerclear(&curtime);
--	gettimeofday(&curtime, NULL);
--	return (uint64_t) curtime.tv_sec * 1000000 + (uint64_t) curtime.tv_usec;
-+	struct timespec t;
-+	clock_gettime(CLOCK_MONOTONIC, &t);
-+	return ((uint64_t)t.tv_sec * ONE_SEC_IN_NSEC + (uint64_t)t.tv_nsec) / 1000;
- }
- 
- #define time_stamp_ms()  (time_stamp_us() / (uint64_t) 1000)
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloKDm0ACgkQuCajMw5X
+L93VrxAAo7gTtjyZnBOF9p0y8yYyzUtBxbG5qjRf3xw8efR2JeOU2IsEwpiTYGD2
+n6GMnsCNxN3IJ5T/8JpY5ohrdCcoL6cbs2ApHbe1BvBKx10gjB8WDRu1JuNNjfEJ
+w11UM06Xg3BVnZ/NMLXYRgue92d8YCQUTR+tmbEDzFksTcHGzhBVEiCMpRUeb76N
+6jxSg+OYTEALrJ7E68btC3U9jwbrJlrVE1R6WpQ6HwsZw+7sA+a+Nxoaa5xsHS9k
+eko+QpYxlfN8JyAArNQloKaZ2VJi6ZSnIQ4ESzHUqTAhi30e+Eayfd0BSm3N098g
+7wcYXSuwTG+TFeYle6SqYlGN1dUeS/b53tUBsvBAI6TzEAVT9ZKU2u0wf9Imwtjp
+vwsz6O5LGzzJ65U9wQdBhHOFuFhy8I7N88/AT6HvzXyK6JOuh67Qk2d1vBD55i0y
+ojS4MMyTEsUMVpWhBF+ARg3wLZ+sSR8yoswvAuoXchIqJiPox0kbwaE38ccwizpV
+cZ4fvYnSCQGbd6+e5BHybnafuTJydusbb7MiA4DTNmuNgXalNSGwqn2NC6Uzfn5b
+1dzKRguhgMbBmV0pSSt25mk6wPEVnLv58KFH/IAwUCJ6h9WK9HDH3Avi7RLRdjCA
+6QV2Wk9IoOo53nAx4ae3dgik66niyTL6LjrpIlBDpIIGfI5JQO4=
+=V8MJ
+-----END PGP SIGNATURE-----
+
+--=-LNYQ4NyDz1VIvW8fKxbN--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
