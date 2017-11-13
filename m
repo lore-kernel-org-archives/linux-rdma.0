@@ -1,70 +1,85 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH rdma-next] IB/core: Only maintain real QPs in the
- security lists
-Date: Mon, 13 Nov 2017 16:24:55 -0500
-Message-ID: <1510608295.3735.41.camel@redhat.com>
-References: <20171107163326.23881-1-leon@kernel.org>
+From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2 4/4] ibacm: Use MONOTONIC time base to avoid timer
+ expiration issues
+Date: Mon, 13 Nov 2017 16:25:04 -0500
+Message-ID: <20171113212454.24293.68783.stgit@phlsvslse11.ph.intel.com>
+References: <20171113212220.24293.97479.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-IyJgYag1nNKmjVqSmvpO"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20171107163326.23881-1-leon@kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org, Daniel Jurgens <danielj@mellanox.com>, stable@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171113212220.24293.97479.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
---=-IyJgYag1nNKmjVqSmvpO
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+The event_wait() function uses the CLOCK_REALTIME time base for
+calculating expiration times (default time base for gettimeofday()).
 
-On Tue, 2017-11-07 at 18:33 +0200, Leon Romanovsky wrote:
-> From: Daniel Jurgens <danielj@mellanox.com>
->=20
-> When modify QP is called on a shared QP update the security context for
-> the real QP. When security is subsequently enforced the shared QP
-> handles will be checked as well.
->=20
-> Without this change shared QP handles get added to the port/pkey lists,
-> which is a bug, because not all shared QP handles will be checked for
-> access. Also the shared QP security context wouldn't get removed from
-> the port/pkey lists causing access to free memory and list corruption
-> when they are destroyed.
->=20
-> Cc: stable@vger.kernel.org
-> Fixes: d291f1a65232 ("IB/core: Enforce PKey security on QPs")
-> Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
-> Reviewed-by: Parav Pandit <parav@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leon@kernel.org>
+Using the CLOCK_REALTIME time base can introduce incorrect expiration
+timeout calculations if the REALTIME clock changes, making a timeout
+too long (possibly hours or days), or too short.
 
-Thanks, applied.
+Update time base usage to the CLOCK_MONOTONIC time base to avoid time
+change issues.
 
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ ibacm/linux/osd.h |   20 +++++++++++---------
+ 1 files changed, 11 insertions(+), 9 deletions(-)
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-IyJgYag1nNKmjVqSmvpO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+diff --git a/ibacm/linux/osd.h b/ibacm/linux/osd.h
+index d6cbb8f..1901a89 100644
+--- a/ibacm/linux/osd.h
++++ b/ibacm/linux/osd.h
+@@ -88,20 +88,23 @@ typedef struct { volatile int val; } atomic_t;
+ typedef struct { pthread_cond_t cond; pthread_mutex_t mutex; } event_t;
+ static inline void event_init(event_t *e)
+ {
+-	pthread_cond_init(&e->cond, NULL);
++	pthread_condattr_t attr;
++
++	pthread_condattr_init(&attr);
++	pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
++	pthread_cond_init(&e->cond, &attr);
+ 	pthread_mutex_init(&e->mutex, NULL);
+ }
+ #define event_signal(e)	pthread_cond_signal(&(e)->cond)
+ #define ONE_SEC_IN_NSEC  1000000000
+ static inline int event_wait(event_t *e, int timeout)
+ {
+-	struct timeval curtime;
+ 	struct timespec wait;
+ 	int ret;
+ 
+-	gettimeofday(&curtime, NULL);
+-	wait.tv_sec = curtime.tv_sec + ((unsigned) timeout) / 1000;
+-	wait.tv_nsec = (curtime.tv_usec + (((unsigned) timeout) % 1000) * 1000) * 1000;
++	clock_gettime(CLOCK_MONOTONIC, &wait);
++	wait.tv_sec = wait.tv_sec + ((unsigned) timeout) / 1000;
++	wait.tv_nsec = (wait.tv_nsec + (((unsigned) timeout) % 1000) * 1000000);
+ 	if (wait.tv_nsec > ONE_SEC_IN_NSEC) {
+ 		wait.tv_sec++;
+ 		wait.tv_nsec -= ONE_SEC_IN_NSEC;
+@@ -114,10 +117,9 @@ static inline int event_wait(event_t *e, int timeout)
+ 
+ static inline uint64_t time_stamp_us(void)
+ {
+-	struct timeval curtime;
+-	timerclear(&curtime);
+-	gettimeofday(&curtime, NULL);
+-	return (uint64_t) curtime.tv_sec * 1000000 + (uint64_t) curtime.tv_usec;
++	struct timespec t;
++	clock_gettime(CLOCK_MONOTONIC, &t);
++	return ((uint64_t)t.tv_sec * ONE_SEC_IN_NSEC + (uint64_t)t.tv_nsec) / 1000;
+ }
+ 
+ #define time_stamp_ms()  (time_stamp_us() / (uint64_t) 1000)
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloKDacACgkQuCajMw5X
-L916FRAAn7x0IB3KBvscByVR0PvSkDlR0npkdU5OAOLUX+Lz1YVemwJcDLiBZ53B
-tD2zcux2thSkj9wf7waV9YRp/rmONVSGr8OKBERRVmfumQmJFbX6lzWBpesUw2sR
-63HG/HDEMoWJplSxeCZsiZRjNKa8vX5mN2ZWI43Bsr8ZwyBx3o/Dn9vMzUsksSAV
-zPFg6BPGjf2HiliSB7zf+nzNh9bcKJiDma/EAryouJLSq2IX0TvAzbsmNbQCs9v7
-hAROBZxXPqIUaOdMdXxraBhbXW40NUka/eJddgtyctDSxmSZ3dkDVJzhhbG4hqmI
-kCAOoayoujfx6VN11e9/YIP2oD2wps4VBvglNptEE/63vDW/ipmT2c8/hH1yyNva
-Mmt0v2HYhIufJgCLgsSlv0+l7CTnszrFdZtRveRqnbymPFSF/TMhy8tOB7mYwquq
-tm+nlDIOVHrlB01sqOnQvQWFkVsj/ksqB15b+9Q0N/Ao9e2oMBFUmPYp5NYBZCs+
-sStp5k0+E26zUL2aPSkdQEBHAhh2so7gAQhyWrtNdkixgrp9UT9QRKbk3/cRm2M3
-gsmp/mL5BG7P3nCHOoNmY4JZ6R8ZRs1pdU+sGl+HMiY9Uo6Ja45zE0UqVFkAx/ub
-RfFboexmOohRUwlgKF7An6KvxuBOeg7WLcgHup7oz3+RGokqKXY=
-=H8Lz
------END PGP SIGNATURE-----
-
---=-IyJgYag1nNKmjVqSmvpO--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
