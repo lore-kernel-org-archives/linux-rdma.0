@@ -1,35 +1,37 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH RFC rdma-core 5/5] mlx5: Handles QP creation with a given
- parent domain
-Date: Mon, 13 Nov 2017 13:05:18 -0700
-Message-ID: <20171113200518.GF22610@ziepe.ca>
+Subject: Re: [PATCH RFC rdma-core 0/5] Add thread domain support
+Date: Mon, 13 Nov 2017 13:06:51 -0700
+Message-ID: <20171113200651.GG22610@ziepe.ca>
 References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
- <1510522903-6838-6-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1510522903-6838-6-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1510522903-6838-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Nov 12, 2017 at 11:41:43PM +0200, Yishai Hadas wrote:
-> This patch comes to demonstrate the expected usage of parent domain
-> and its internal thread domain as part of QP creation.
+On Sun, Nov 12, 2017 at 11:41:38PM +0200, Yishai Hadas wrote:
+> This RFC series is based on some initial discussion that was in the mailing
+> list to support resource domain.
 > 
-> In case a parent domain was set, its internal protection domain (i.e.
-> ibv_pd) will be used for the PD usage and if a thread domain exists its
-> dedicated UAR will be used by passing its index to the mlx5
-> kernel driver. In that way application can control the UAR that this QP
-> will use and share it with other QPs upon their creation by suppling the
-> same thread domain.
+> The series includes detailed man pages of the suggested APIs and initial
+> patches in both verbs and mlx5 driver to demonstrate the expected usage.
 > 
-> A full patch will be supplied as part the final series post this RFC.
+> The motivation behind the series is to allow an application finer
+> grain control over share hardware resources and locks when the
+> resources are used by the same thread.
 
-I thought the plan was to have API entry points under mlx5dv to
-access and set the UAR on the TD? Is that still the case?
+I think I'm basically fine with this approach.
+
+It is weird trade off to have a ibv_pd have two roles, but this seems
+like the least bad option when compared with revising every single
+ABI.
+
+I assume you'll also add a create_cq_ex to accept a PD instead of a
+device?
 
 Jason
 --
