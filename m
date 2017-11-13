@@ -1,7 +1,7 @@
 From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH rdma-core 2/2] suse: use python3 by default
-Date: Mon, 13 Nov 2017 14:00:27 +0100
-Message-ID: <5d515246-0d12-d1a8-eb62-d4a027fa67df@suse.de>
+Subject: [PATCH rdma-core 1/2] buildlib: use cmake to find python
+Date: Mon, 13 Nov 2017 14:00:15 +0100
+Message-ID: <1923c475-0597-a597-36a5-8a33cccae6ef@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
@@ -11,42 +11,45 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Tumbleweed is to drop older python versions to switch to python3.
-Add python3 to the build setup and BuildRequires.
+Depending on the system, python might not be available as pythomn (but python2, python3, etc.)
+Use FIND_PACKAGE to get the right executable.
 
 Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
 ---
- buildlib/cbuild     | 2 +-
- suse/rdma-core.spec | 1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ CMakeLists.txt                | 3 +++
+ buildlib/rdma_functions.cmake | 2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/buildlib/cbuild b/buildlib/cbuild
-index 32bb70df..97703e01 100755
---- a/buildlib/cbuild
-+++ b/buildlib/cbuild
-@@ -309,7 +309,7 @@ class leap(ZypperEnvironment):
-         'make',
-         'ninja',
-         'pkg-config',
--        'python',
-+        'python3',
-         'rpm-build',
-         'systemd-devel',
-         'valgrind-devel',
-diff --git a/suse/rdma-core.spec b/suse/rdma-core.spec
-index 4f3638f3..b6de096a 100644
---- a/suse/rdma-core.spec
-+++ b/suse/rdma-core.spec
-@@ -58,6 +58,7 @@ BuildRequires:  pkgconfig(libsystemd)
- BuildRequires:  pkgconfig(libudev)
- BuildRequires:  pkgconfig(systemd)
- BuildRequires:  pkgconfig(udev)
-+BuildRequires:  python3-base
- %ifnarch s390 s390x
- BuildRequires:  valgrind-devel
- %endif
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5e6f245a..a283fba3 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -279,6 +279,9 @@ else()
+   set(HAVE_FULL_SYMBOL_VERSIONS 1)
+ endif()
+ 
++# Look for Python
++FIND_PACKAGE (PythonInterp)
++
+ #-------------------------
+ # Find libraries
+ # pthread
+diff --git a/buildlib/rdma_functions.cmake b/buildlib/rdma_functions.cmake
+index d69afd3d..53a978e8 100644
+--- a/buildlib/rdma_functions.cmake
++++ b/buildlib/rdma_functions.cmake
+@@ -144,7 +144,7 @@ function(rdma_shared_provider DEST VERSION_SCRIPT SOVERSION VERSION)
+   install(TARGETS ${DEST} DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+ 
+   # Compute a relative symlink from VERBS_PROVIDER_DIR to LIBDIR
+-  execute_process(COMMAND python ${CMAKE_SOURCE_DIR}/buildlib/relpath
++  execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/buildlib/relpath
+     "${CMAKE_INSTALL_FULL_LIBDIR}/lib${DEST}.so.${VERSION}"
+     "${VERBS_PROVIDER_DIR}"
+     OUTPUT_VARIABLE DEST_LINK_PATH OUTPUT_STRIP_TRAILING_WHITESPACE
 -- 
 2.15.0.167.g7819e496d
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
