@@ -1,73 +1,93 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/qib: remove redundant setting of any in for-loop
-Date: Mon, 13 Nov 2017 16:52:58 -0500
-Message-ID: <1510609978.3735.43.camel@redhat.com>
-References: <20171020072103.10337-1-colin.king@canonical.com>
-         <1508484951.6806.46.camel@perches.com> <1510336823.3735.4.camel@redhat.com>
-         <32E1700B9017364D9B60AED9960492BC626823A0@fmsmsx120.amr.corp.intel.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next] iw_cxgb4: Fix possible circular dependency
+ locking warning
+Date: Mon, 13 Nov 2017 16:59:39 -0500
+Message-ID: <1510610379.3735.44.camel@redhat.com>
+References: <1510229853-25875-1-git-send-email-bharat@chelsio.com>
+         <012b01d35969$48d7d9a0$da878ce0$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-8dmeFDYWMKRlWFV+cccK"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC626823A0@fmsmsx120.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, Joe Perches <joe@perches.com>, Colin King <colin.king@canonical.com>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Cc: "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>
+        protocol="application/pgp-signature"; boundary="=-mhsttwMfNcBKvqa/8OUx"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <012b01d35969$48d7d9a0$da878ce0$@opengridcomputing.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-8dmeFDYWMKRlWFV+cccK
+--=-mhsttwMfNcBKvqa/8OUx
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2017-11-10 at 19:07 +0000, Marciniszyn, Mike wrote:
-> > > On Fri, 2017-10-20 at 09:21 +0200, Colin King wrote:
-> > > > From: Colin Ian King <colin.king@canonical.com>
-> > > >=20
-> > > > The variable all is being set but is never read after this
-> > > > hence it can be removed from the for loop initialization.
-> > > > Cleans up clang warning:
-> > >=20
-> > > any is really used as bool and is initialized at function
-> > > entry.  The earlier loop also reinitializes any unnecessarily.
+On Thu, 2017-11-09 at 08:44 -0600, Steve Wise wrote:
 > >=20
-> > Denny, can you weigh in on what you want in this thread?  Thanks.
+> > Locking sequence of iw_cxgb4 and RoCE drivers in ib_register_device() i=
+s
+> > slightly different and this leads to possible circular dependency locki=
+ng
+> > warning when both the devices are brought up.
 > >=20
+> > Here is the locking sequence upto ib_register_device():
+> > iw_cxgb4: rtnl_mutex(net stack) --> uld_mutex --> device_mutex
+> > RoCE drivers: device_mutex --> rtnl_mutex
+> >=20
+> > Here is the possibility of cross locking:
+> >=20
+> > 	CPU #0 (iw_cxgb4) 		     CPU #1 (RoCE drivers)
+> >=20
+> > -> on interface up cxgb4_up()
+> > executed with rtnl_mutex held
+> > -> hold uld_mutex and try
+> > registering ib device
+> > 					-> In ib_register_device() hold
+> > 					   device_mutex
+> > -> hold device mutex in
+> > ib_register_device
+> > 					-> try acquiring rtnl_mutex in
+> > 					   ib_enum_roce_netdev()
+> >=20
+> > Current patch schedules the ib_register_device() functionality of
+> > iw_cxgb4 to a workqueue to prevent the possible cross-locking.
+> > Also rename the labels in c4iw_reister_device().
+> >=20
+> > Signed-off-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 >=20
-> I am ok with both Colin's and Joe's patch.
+> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 >=20
-> Joe's patch would require additional testing vs. the trivial warning fix.
 >=20
-> Then there is a "guideline"  to keep fixes separate from clean up...
->=20
-> Doug,  do you want a tested patch from me?
 
-Preferably, yes :-)
+Thanks, applied.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-8dmeFDYWMKRlWFV+cccK
+--=-mhsttwMfNcBKvqa/8OUx
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloKFDoACgkQuCajMw5X
-L92fPRAAk9h1kkSRnxwwyJBgJY4eEijD35MRIEpvg1ERn7aXO/R+wSpPPytBkZAe
-MFeSDavYD9OSK+yqobwhD8V8aXOSrCvkXXjGZ/FNN3Cq0mbZ4F+aZf+SIoL3Y2tR
-a9T/C9ef7XY+irPZlUwc68S2KQnRmqbURZbHRRgwMuIz0qyH/ZAk3bC3QV8pisMv
-j2G8vlRVKB2lnVLHq/bfS4xsuTGIHZW/2dyXb1aTN9qTSzMokIW7tJ0rK4SWM2oH
-vV4CMT58PU0P5WRrH30cd2IMXIU6Tcsm03YrI/GyMW01eoawWm4dHp70jNWG6ddW
-vBz5W/mTvQF4K0OVRtlAcIiT/j3iExiVfxM/TZDwskhE61GnY7mUtKb50iK7clZY
-fMwRZWc1CG1/wpjPGSjO+6/qG8acH7vHe4/1BloybNm3PfakulIq0Z19lKD4HfRO
-kGySsi0WsR4ADhxNu8C8P2LSQEeqMJeBQ9x6todE5zVB3mYlmI9aFIQeMVRD3SHr
-vMWNklMwiBSuKQH7qVKWS0dZ22xRePoyMrLaTSw/Pz20q0809xIFyhhFhkIpnId9
-kPy8Tu0Z6D8AHE4nBnHtC5E2r+TusrvEZ+9/4XrmgWjdhHTXbWD/i8spvttsj5xg
-xlfjZHgFDuUVjvAFp9w2Mv3wgqd0Nc7G2LI6rnwz9LqGVNII9o0=
-=J+Q7
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloKFcsACgkQuCajMw5X
+L914KQ//aa3d0W/ZOy8FWToj8Xe5RSbcTWDdcr77/gf7/pckvMDAIp/OIXLq4xkT
+CkS+8zxUMktQnSmYDlUBunUm2o1P/vAXY0jI04+o3ES8FQzaoAF6We8j0Nn3u/6i
+I/bYGLK2AAoVfjZtXozQdb3GrJp0hyLOxIRUW8JXxBsjFDbY9rlIC1vtFnZ/D0TH
+fMpPuNdyRdRjV705Db12WDP6CXP8cCrtWjTLdIQgW/nX4QNy3rwjZho44cpi+Gre
+I5bRBt2wihjaUN28SzjYoiAuvY90bOYHNH+IQuKSj6zc8XlkaFgzzKKRXfQOs9ma
+PqGQXVBMKQn5ROEnE10Czz6l+SQVtHKY6Qvp+frdJR/EsWGd+pNuBn3cL0noyey3
+0EcUXnfTkCDE2FSr28YVXlTL4B8LCMkgUNfNQrupvAy9Ma/MZyrUOftDpDloguvC
+RBvcsLadKbbgz015+oq3UevsfaxvZEPuV9LLafMvtC83o/N6sxf97MIGX2d1+GKE
+LRV0DQNXdBM5mD48Rgd8/EzAzFp0FyGR10Noi7P2AyNml2hqZnPHDF3fEMJ7VPri
+tA2RdkD1k4/4Q4NE64Iq9RBWJ2hweaMC+ZGZIOZPxl6CapavZX1ahZ2AP3f+0xht
++A3qdJ58wlVNU9cqdbJsjDp+gwPkplTSVKn5YBzMktykm/lbafc=
+=zfgA
 -----END PGP SIGNATURE-----
 
---=-8dmeFDYWMKRlWFV+cccK--
+--=-mhsttwMfNcBKvqa/8OUx--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
