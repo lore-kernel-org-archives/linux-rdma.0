@@ -1,45 +1,65 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: rdma-core stable releases
-Date: Mon, 13 Nov 2017 08:47:10 +0000
-Message-ID: <BN3PR07MB2578CD2BC31353CA84CE7CD1F82B0@BN3PR07MB2578.namprd07.prod.outlook.com>
-References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <20171106182756.GD18802@ziepe.ca>
- <6012d1c3-cd18-25e8-c5ae-3d678142177b@suse.de>
- <54347E5A035A054EAE9D05927FB467F9B61778A9@ORSMSX101.amr.corp.intel.com>
- <20171110202455.GP18825@mtr-leonro.local> <20171110211448.GF17451@ziepe.ca>
- <1eba9063-80a4-ad9d-4adf-93770b9ed7c9@suse.de>
- <20171113070856.GZ18825@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next v2 0/7] Expose CQ moderation to user space
+Date: Mon, 13 Nov 2017 10:51:12 +0200
+Message-ID: <20171113085119.1705-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171113070856.GZ18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> DPDK runs ABI compliance checker.
-> http://ispras.linuxbase.org/index.php/ABI_compliance_checker
->=20
-> I would love to see it running for rdma-core.
->=20
-> Thanks
->=20
-> >
-> > Nicolas
+Changelog:
+v1->v2:
+ * Replaced word cookie to be CQE in commit messages.
+ * Added patch to rename ib_modify_cq() to be rdma_set_moderation()
+v0->v1:
+ * Dropped comp_mask, there is already attr_mask
+ * Put CQ moderartion into special struct instead of general struct
+ * ib_uverbs_ex_modify_cq
 
-It is logical that ABI version changes won't be supported. As well as new f=
-eatures that affect the ABI.
-Still, I would like to have the following fix ability -=20
-Use a bit in an existing u32, via adding an entry to an existing enum.
-I can imagine this being used as a feature disable/enable.
+------------------------------------------------------------------------------
+This patch set exposes CQ moderation. This will allow to moderate
+number of CQEs needed to create an event. Such change brings performance
+improvement by reducing pressure on application to receive event per-CQE.
 
-What do you consider as an "ABI change"?
+The proposed semantics follows the well-established kernel semantics.
+  * cq_max_count - defines the number of cookies needed to create an event.                                                                                            * cq_period    - defines the timeout between last event and a new one
+		   that will occur even if cq_max_count was not reached
 
-Thanks,
-Ram
+The patches are available in the git repository at:
+  git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-next-2017-11-13
+
+	Thanks
+---------------------------------------
+
+Leon Romanovsky (1):
+  RDMA/core: Rename kernel modify_cq to better describe its usage
+
+Yonatan Cohen (6):
+  IB/uverbs: Allow CQ moderation with modify CQ
+  IB/mlx4: Exposing modify CQ callback to uverbs layer
+  IB/mlx5: Exposing modify CQ callback to uverbs layer
+  IB/uverbs: Add CQ moderation capability to query_device
+  IB/mlx4: Add CQ moderation capability to query_device
+  IB/mlx5: Add CQ moderation capability to query_device
+
+ drivers/infiniband/core/uverbs.h             |  1 +
+ drivers/infiniband/core/uverbs_cmd.c         | 51 ++++++++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_main.c        |  1 +
+ drivers/infiniband/core/verbs.c              |  4 +--
+ drivers/infiniband/hw/mlx4/main.c            |  6 ++++
+ drivers/infiniband/hw/mlx4/mlx4_ib.h         |  1 +
+ drivers/infiniband/hw/mlx5/cq.c              |  3 ++
+ drivers/infiniband/hw/mlx5/main.c            | 10 +++++-
+ drivers/infiniband/ulp/ipoib/ipoib_ethtool.c |  5 +--
+ include/linux/mlx4/cq.h                      |  3 ++
+ include/linux/mlx5/cq.h                      |  3 ++
+ include/rdma/ib_verbs.h                      | 14 ++++++--
+ include/uapi/rdma/ib_user_verbs.h            | 22 +++++++++++-
+ 13 files changed, 116 insertions(+), 8 deletions(-)
+
+--
+2.15.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
