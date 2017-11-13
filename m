@@ -1,83 +1,70 @@
-From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 3/4] ibacm: Fix a retry loop calculation race condition
-Date: Mon, 13 Nov 2017 16:24:49 -0500
-Message-ID: <20171113212437.24293.43071.stgit@phlsvslse11.ph.intel.com>
-References: <20171113212220.24293.97479.stgit@phlsvslse11.ph.intel.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH rdma-next] IB/core: Only maintain real QPs in the
+ security lists
+Date: Mon, 13 Nov 2017 16:24:55 -0500
+Message-ID: <1510608295.3735.41.camel@redhat.com>
+References: <20171107163326.23881-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171113212220.24293.97479.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-IyJgYag1nNKmjVqSmvpO"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20171107163326.23881-1-leon@kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, Daniel Jurgens <danielj@mellanox.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The retry loop calculation uses a conversion to int of an unsigned
-64 bit number (next_expire) minus the current time to decide if
-event_wait() should be called.  This calculation works correctly as
-long as the next_expire value is not the default value (-1).
+--=-IyJgYag1nNKmjVqSmvpO
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-If the next_expire is the default value, periodically this subtraction
-can result in a very large postive timeout value (days rather than
-milliseconds).
+On Tue, 2017-11-07 at 18:33 +0200, Leon Romanovsky wrote:
+> From: Daniel Jurgens <danielj@mellanox.com>
+>=20
+> When modify QP is called on a shared QP update the security context for
+> the real QP. When security is subsequently enforced the shared QP
+> handles will be checked as well.
+>=20
+> Without this change shared QP handles get added to the port/pkey lists,
+> which is a bug, because not all shared QP handles will be checked for
+> access. Also the shared QP security context wouldn't get removed from
+> the port/pkey lists causing access to free memory and list corruption
+> when they are destroyed.
+>=20
+> Cc: stable@vger.kernel.org
+> Fixes: d291f1a65232 ("IB/core: Enforce PKey security on QPs")
+> Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
+> Reviewed-by: Parav Pandit <parav@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leon@kernel.org>
 
-For example:
-next_expire  = 0xFFFFFFFFFFFFFFFF  (-1)
-current_ms = 0x15f7db52146  (today's ms since 1970)
+Thanks, applied.
 
-max_delay_ms = (int) next_expire - future_ms
 
-future_ms  = 0x15f80000000  = max_delay_ms 2147483647
-future_ms  = 0x16080000000  = max_delay_ms 2147483647
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-IyJgYag1nNKmjVqSmvpO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Converting max_delay_ms to days:
-2147483647 / 1000 / 60 / 60 / 24 == 24 days
+-----BEGIN PGP SIGNATURE-----
 
-0xxx180000000 - 0xxx080000000 = 4294967296
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloKDacACgkQuCajMw5X
+L916FRAAn7x0IB3KBvscByVR0PvSkDlR0npkdU5OAOLUX+Lz1YVemwJcDLiBZ53B
+tD2zcux2thSkj9wf7waV9YRp/rmONVSGr8OKBERRVmfumQmJFbX6lzWBpesUw2sR
+63HG/HDEMoWJplSxeCZsiZRjNKa8vX5mN2ZWI43Bsr8ZwyBx3o/Dn9vMzUsksSAV
+zPFg6BPGjf2HiliSB7zf+nzNh9bcKJiDma/EAryouJLSq2IX0TvAzbsmNbQCs9v7
+hAROBZxXPqIUaOdMdXxraBhbXW40NUka/eJddgtyctDSxmSZ3dkDVJzhhbG4hqmI
+kCAOoayoujfx6VN11e9/YIP2oD2wps4VBvglNptEE/63vDW/ipmT2c8/hH1yyNva
+Mmt0v2HYhIufJgCLgsSlv0+l7CTnszrFdZtRveRqnbymPFSF/TMhy8tOB7mYwquq
+tm+nlDIOVHrlB01sqOnQvQWFkVsj/ksqB15b+9Q0N/Ao9e2oMBFUmPYp5NYBZCs+
+sStp5k0+E26zUL2aPSkdQEBHAhh2so7gAQhyWrtNdkixgrp9UT9QRKbk3/cRm2M3
+gsmp/mL5BG7P3nCHOoNmY4JZ6R8ZRs1pdU+sGl+HMiY9Uo6Ja45zE0UqVFkAx/ub
+RfFboexmOohRUwlgKF7An6KvxuBOeg7WLcgHup7oz3+RGokqKXY=
+=H8Lz
+-----END PGP SIGNATURE-----
 
-every 48 days, this issue repeats
-
-This calculation can occur if a wait_cnt is incremented and a message
-expiration is handled so that next_expire is not updated.  If wait_cnt
-is incremented before the wait calculation is done (the race condition),
-event_wait() can be called with the potentially very large value.
-
-If next_expire is not updated, do not do the wait calculation and
-avoid the race condition.
-
-Reported-by: Morys Grzegorz <grzegorz.morys-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- ibacm/prov/acmp/src/acmp.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
-index d707b8e..884fc48 100644
---- a/ibacm/prov/acmp/src/acmp.c
-+++ b/ibacm/prov/acmp/src/acmp.c
-@@ -1579,10 +1579,12 @@ static void *acmp_retry_handler(void *context)
- 		pthread_mutex_unlock(&acmp_dev_lock);
- 
- 		acmp_process_timeouts();
--		wait = (int) (next_expire - time_stamp_ms());
--		if (wait > 0 && atomic_get(&wait_cnt)) {
--			pthread_testcancel();
--			event_wait(&timeout_event, wait);
-+		if (next_expire != -1) {
-+			wait = (int) (next_expire - time_stamp_ms());
-+			if (wait > 0 && atomic_get(&wait_cnt)) {
-+				pthread_testcancel();
-+				event_wait(&timeout_event, wait);
-+			}
- 		}
- 	}
- 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-IyJgYag1nNKmjVqSmvpO--
