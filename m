@@ -1,65 +1,32 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] bnxt_re: changing the ip address shouldn't affect new
- connections
-Date: Mon, 13 Nov 2017 15:13:55 -0500
-Message-ID: <1510604035.3735.31.camel@redhat.com>
-References: <20171102210904.13020-1-sriharsha.basavapatna@broadcom.com>
+From: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC rdma-core 5/5] mlx5: Handles QP creation with a given
+ parent domain
+Date: Mon, 13 Nov 2017 22:24:33 +0200
+Message-ID: <CAFgAxU_ZPcB-oZ6DrDtHdVeOpT5S_CTvYxn4VUcU3t7S4PCJHQ@mail.gmail.com>
+References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
+ <1510522903-6838-6-git-send-email-yishaih@mellanox.com> <20171113200518.GF22610@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-JFrlx7R/YwN+cQ5y37G7"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171102210904.13020-1-sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20171113200518.GF22610-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Alex @ Mellanox" <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Nov 13, 2017 at 10:05 PM, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote:
+> On Sun, Nov 12, 2017 at 11:41:43PM +0200, Yishai Hadas wrote:
+>
+> I thought the plan was to have API entry points under mlx5dv to
+> access and set the UAR on the TD? Is that still the case?
 
---=-JFrlx7R/YwN+cQ5y37G7
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+It is not needed for now. the UAR index maps nicely to the td object.
+the uar index hint was needed for cases where there are very few uar's
+in the HW to allocate for potential too many threads.
 
-On Fri, 2017-11-03 at 02:39 +0530, Sriharsha Basavapatna wrote:
-> While adding a new gid, the driver currently does not return the context
-> back to the stack. A subsequent del_gid() (e.g, when ip address is change=
-d)
-> doesn't find the right context in the driver and it ends up dropping that
-> request. This results in the HW caching a stale gid entry and traffic fai=
-ls
-> because of that. Fix by returning the proper context in bnxt_re_add_gid()=
-.
->=20
-> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+we will expose the MAX uar's available for a context via DV API.
 
-Thanks, applied.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-JFrlx7R/YwN+cQ5y37G7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloJ/QMACgkQuCajMw5X
-L926sRAAwsQnTJo8tVrcRitJsMLOshebEAsUJnotwiGFZFO/ZtSqvWJT6G/Z6yph
-w5U8FdV0lEawJ0KkiDvYT8Pfo0YqSMn/a2ZQs8QX2kE4mJlg7Ib0e9baFWQvZ9Ox
-mdIsBZR4Kq82Mz6fZ9WCTbOaWFX0Zc1GKoddh4lRqWZhj8CRWmrupo9D8DtMaJrc
-F8XH4X606+xQj+hxZgwwcDHb3DFbl7ffcKUHEaPmRSlWA/UGPqaLghCjV5aM3xYZ
-5pG/5wr/5tsWlYId33ehs7e51+L8VK1/VPN7oWB/WtX/k7cAF7Ljt48Fg1Rfmoy+
-NSJ1S7Errkvm4f/GL4d2nK8fvgF0lsggoXnjrOuXl92XABAvy2Jc/qFEj3e+cpYa
-eLkFU4kV3/KVVSnnfNn57Byje8eTwoZO7KipgprFcL0uUa+1NqkAZLaNatEbjJEZ
-hX0b4ks1RnqnJEi2cPgaaJ+eCENGlL5EtE/Broc7bdnb4GdaV7n6BONNGyW9v4jX
-xOLuCAVP2FzK6VICXmxXg8VKMo4o7Fnype1wlHD2MBaC9ewB0Ys5+R3FsqBbw0fW
-uv/XyaqcmI9+COSLOk9Y/Z/6oO7uKdZysM4r8q/IrC8T8N/6xcqBgZNwlOvZoE12
-M/LdmdB/MC7llewK+r/qBXbBcgKHmtTJG1dFW6YsgyZUoSn2FNY=
-=ijix
------END PGP SIGNATURE-----
-
---=-JFrlx7R/YwN+cQ5y37G7--
-
+Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
