@@ -1,89 +1,102 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: Patches for rdma-core stable-v15
-Date: Mon, 13 Nov 2017 22:32:30 +0530
-Message-ID: <CANjDDBgqg_i53_pZW-ctiW2GUVc4nft4JQuHZLFEZYiJyzXdTQ@mail.gmail.com>
-References: <6ccc2110-2e27-bacd-b821-f862785a10ca@suse.de> <20171113151437.GL18825@mtr-leonro.local>
- <f5e11706-5c7e-a79e-fcf3-4d3df5f35632@suse.de> <20171113163812.GN18825@mtr-leonro.local>
+From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Subject: [PATCH rdma-core] Documentation: add documentation about stable
+ branches
+Date: Mon, 13 Nov 2017 18:03:39 +0100
+Message-ID: <44465a29-bbfc-83ae-8bd4-7d6c11590f2a@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171113163812.GN18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Nicolas,
+Add doc file to detail the stable- process: release, submission.
 
-Please include following patch as well along with the one you have
-listed already
+Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
+---
 
-bnxt_re/lib: fix the memory barrier call during poll-cq
-commit-id: f4e67f1027011a6f9081b6239b866f27f750f678
+The nice version without markup can be seen here: https://github.com/nmorey/rdma-core/blob/dev/master/stable-guide/Documentation/stable.md
 
--Regards
-Devesh
+ Documentation/stable.md | 64 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
+ create mode 100644 Documentation/stable.md
 
-On Mon, Nov 13, 2017 at 10:08 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Mon, Nov 13, 2017 at 05:19:46PM +0100, Nicolas Morey-Chaisemartin wrot=
-e:
->>
->>
->> Le 13/11/2017 =C3=A0 16:14, Leon Romanovsky a =C3=A9crit :
->> > On Mon, Nov 13, 2017 at 04:02:26PM +0100, Nicolas Morey-Chaisemartin w=
-rote:
->> >> Hi all,
->> >>
->> >> After looking into the ML, here are the candidates for the stable-v15=
- branch.
->> >> Can the authors please confirm that they should be applied there ?
->> >>
->> >> Please let me know if I missed any.
->> > In addition to the your list, I would like to see the following patche=
-s too:
->> > commit dbf7bd2151815a12428caef6874149523c0bda8e
->> > Author: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> > Date:   Wed Oct 25 12:04:53 2017 +0300
->> >
->> >     verbs: Fix declaration of C++ include file in C-block
->> >
->> > commit 6a74285158a146f23cbf8a804fd9de32df0d5ed2
->> > Author: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> > Date:   Mon Oct 9 10:56:21 2017 +0300
->> >
->> >     verbs: Fix C++ compilation break
->> >
->> > commit 983f80191923c082324295ea68ac91d34daaa4c8
->> > Author: Nelio Laranjeiro <nelio.laranjeiro-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
->> > Date:   Tue Sep 26 16:05:11 2017 +0200
->> >
->> >     verbs: fix compilation error with ICC
->> >
->> > commit bf03566e0aa976afc5dfbf917296280e9fa55bb8
->> > Author: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> > Date:   Mon Oct 2 04:17:09 2017 +0800
->> >
->> >     hns: Fix create QP structure layout
->> >
->> >
->> > Thanks
->> >
->> >
->>
->> Added to the list.
->> Should we backport the changes done for travis validation ?
->> It doesn't impact the code per say but it'd be nice to have the same val=
-idation running in the stable branch.
->
-> It depends on the easiest path: backport CI to stable, or teach main CI
-> to run for stable too.
->
-> Thanks
->
->>
->> Nicolas
->>
+diff --git a/Documentation/stable.md b/Documentation/stable.md
+new file mode 100644
+index 00000000..b9405848
+--- /dev/null
++++ b/Documentation/stable.md
+@@ -0,0 +1,64 @@
++# Stable Branch Release
++
++
++## General
++
++Current Maintainer: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
++
++Upstream rdma-core is considered stable after each mainline release.
++Branched stable releases, off a mainline release, are on as-needed basis and limited to bug fixes only.
++
++All bug fixes are to be backported from mainline and applied by stable branch maintainer.
++
++Branched stable releases will append an additional release number (e.g. 15.1) and will ensure that Travis CI reports a successful build.
++
++Regular stable releases will be generated at the same time as mainline releases.
++Additional stable releases can be generated if the need arise (Needed by distributions or OFED).
++
++## Patch Rules
++
++ * It must be obviously correct and tested.
++ * It cannot be bigger than 100 lines, with context.
++ * It must fix only one thing.
++ * It must fix a real bug that bothers people (not a, “This could be a problem...” type thing).
++
++## Submitting to the stable branch
++
++Submissions to the stable branch follow the same process as [kernel-stable](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/process/stable-kernel-rules.rst).
++
++### Option 1
++
++Patches sent to master should add the tag:
++
++   `Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org`
++
++in the sign-off area. Once the patch is merged, it will be applied to the stable tree
++without anything else needing to be done by the author or subsystem maintainer.
++
++If the patch should be applied to more than one release, add the info version as such:
++
++   `Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org # v15.1 v14`
++
++
++### Option 2
++
++After the patch has been merged to master, send an email to
++stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org containing the subject of the patch, the commit ID,
++why you think it should be applied, and what rdma-core version you wish it to
++be applied to.
++
++### Option 3
++
++Send the patch, after verifying that it follows the above rules, to stable-Xl5UnYtxxKxKjwt+cz+3dw@public.gmane.org
++You must note the upstream commit ID in the changelog of your submission,
++ as well as the rdma-core version you wish it to be applied to.
++
++Option 1 is strongly preferred, is the easiest and most common.
++Option 2 and Option 3 are more useful if the patch isn’t deemed worthy at the time it is applied to a public git tree (for instance, because it deserves more regression testing first).
++Option 3 is especially useful if the patch needs some special handling to apply to an older version.
++
++Note that for Option 3, if the patch deviates from the original upstream patch (for example because it had to be backported) this must be very clearly documented and justified in the patch description.
++
++## Versioning
++
++See versioning.md for setting package version on a stable branch.
+\ No newline at end of file
+-- 
+2.15.0.169.g3d3eebb67.dirty
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
