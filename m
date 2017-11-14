@@ -1,59 +1,30 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 6/6] IB/qib: Fix comparison error with qperf
- compare/swap test
-Date: Tue, 14 Nov 2017 04:34:52 -0800
-Message-ID: <20171114123450.10579.77204.stgit@scvm10.sc.intel.com>
-References: <20171114122859.10579.79788.stgit@scvm10.sc.intel.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH V3 net-next] net: hns3: Updates MSI/MSI-X alloc/free
+ APIs(depricated) to new APIs
+Date: Tue, 14 Nov 2017 21:46:12 +0900 (KST)
+Message-ID: <20171114.214612.632435634031888429.davem@davemloft.net>
+References: <20171113113938.8660-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20171114122859.10579.79788.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171113113938.8660-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Cc: yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Date: Mon, 13 Nov 2017 11:39:38 +0000
 
-This failure exists with qib:
+> This patch migrates the HNS3 driver code from use of depricated PCI
+> MSI/MSI-X interrupt vector allocation/free APIs to new common APIs.
+> 
+> Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Suggested-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 
-ver_rc_compare_swap:
-mismatch, sequence 2, expected 123456789abcdef, got 0
-
-The request builder was using the incorrect inlines to
-build the request header resulting in incorrect data
-in the atomic header.
-
-Fix by using the appropriate inlines to create the request.
-
-Cc: <stable@vger.kernel.org> # 4.9.x+
-Fixes: 261a4351844b ("IB/qib,IB/hfi: Use core common header file")
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
----
- drivers/infiniband/hw/qib/qib_rc.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
-index 8f5754f..e4a9ba1 100644
---- a/drivers/infiniband/hw/qib/qib_rc.c
-+++ b/drivers/infiniband/hw/qib/qib_rc.c
-@@ -434,13 +434,13 @@ int qib_make_rc_req(struct rvt_qp *qp, unsigned long *flags)
- 				qp->s_state = OP(COMPARE_SWAP);
- 				put_ib_ateth_swap(wqe->atomic_wr.swap,
- 						  &ohdr->u.atomic_eth);
--				put_ib_ateth_swap(wqe->atomic_wr.compare_add,
--						  &ohdr->u.atomic_eth);
-+				put_ib_ateth_compare(wqe->atomic_wr.compare_add,
-+						     &ohdr->u.atomic_eth);
- 			} else {
- 				qp->s_state = OP(FETCH_ADD);
- 				put_ib_ateth_swap(wqe->atomic_wr.compare_add,
- 						  &ohdr->u.atomic_eth);
--				put_ib_ateth_swap(0, &ohdr->u.atomic_eth);
-+				put_ib_ateth_compare(0, &ohdr->u.atomic_eth);
- 			}
- 			put_ib_ateth_vaddr(wqe->atomic_wr.remote_addr,
- 					   &ohdr->u.atomic_eth);
+Applied.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
