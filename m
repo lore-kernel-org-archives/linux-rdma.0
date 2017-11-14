@@ -1,64 +1,85 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: vmw_pvrdma: Add SRQ support - broke rdma-core
-Date: Tue, 14 Nov 2017 21:00:29 +0200
-Message-ID: <20171114190029.GI18825@mtr-leonro.local>
-References: <20171114085143.GS18825@mtr-leonro.local>
- <20171114182720.GC18825@mtr-leonro.local>
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: rdma-core debian/master branch
+Date: Tue, 14 Nov 2017 20:01:06 +0100
+Message-ID: <1510686066.4026.43.camel@profitbricks.com>
+References: <1510658470.4026.27.camel@profitbricks.com>
+         <20171114184725.GH18825@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="4Wcu3uPC65WqUq/x"
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-d6K6x0JuGRNP2IVkc1oD"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171114182720.GC18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20171114184725.GH18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---4Wcu3uPC65WqUq/x
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-d6K6x0JuGRNP2IVkc1oD
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 14, 2017 at 08:27:20PM +0200, Leon Romanovsky wrote:
-> On Tue, Nov 14, 2017 at 10:51:43AM +0200, Leon Romanovsky wrote:
-> > The commit 25f07300bfb7 ("vmw_pvrdma: Add SRQ support") causes to build
-> > failures in Travis CI [1] and on my system too [2].
-> >
-> > Please fix.
->
-> I reverted the commit, please fix compilation error and resubmit.
->
-> Commit: 32bf4efb8605 ("Revert "vmw_pvrdma: Add SRQ support" because it causes build failures")
+Am Dienstag, den 14.11.2017, 20:47 +0200 schrieb Leon Romanovsky:
+> On Tue, Nov 14, 2017 at 12:21:10PM +0100, Benjamin Drung wrote:
+> > Hi,
+> >=20
+> > I have a debian/master branch in my personal rdma-core fork:
+> > https://github.com/bdrung/rdma-core/commits/debian/master
+> > In addition, I tagged the upload with debian/15-1.
+> >=20
+> > This branch contains the exact content of the uploaded package to
+> > Debian. It would be nice if this branch could be included in the
+> > linux-
+> > rdma/rdma-core repository.
+>=20
+> Is it possible to align it with stable-v15 branch?
 
-Just as a pointer, it fails on the systems with kernel's include/uapi/rdma/vmw_pvrdma-abi.h
-file available, so fixup is not applied but without your definition yet.
+Not really. This branch is more or less aligned with the master branch
+(as long as Debian does not hit the feature freeze), i.e. I will upload
+rdma-core 16 to Debian unstable once it is released (instead of 15.1).
 
-> Thanks
+And I will do an 15-2 upload to address the build failures. So there is
+some divergence (at least in debian/changelog).
 
+--=20
+Benjamin Drung
+System Developer
+Debian & Ubuntu Developer
 
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
 
---4Wcu3uPC65WqUq/x
+Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+URL: https://www.profitbricks.de
+
+Sitz der Gesellschaft: Berlin
+Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
+Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss, Matthias Steinberg
+--=-d6K6x0JuGRNP2IVkc1oD
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloLPUwACgkQ5GN7iDZy
-WKcauA//VjkDZflDyXQs+q99iGyMC7M7TU2Qgp1U23ZZiExyPwPnwuEraZrUiczY
-CQLR4afPBim5qokesXIvh8QPJePVHBYJo44JrfNz53kxFWdl/ar6S5rgyw/g7GYj
-6bjyUQP76pOmVsohH0fZwol8eX/bjjVutTyn3UrEYfrE6h4UIyd+lbUmOFOelKDb
-lCjltbOVE7oBOmAMYTw2o1moWpOEScpET9Ow5Okjg16I+74/xLe8ud7RUNOs7R0c
-Th+tLky6kMCZ+U1n93mHKkR/IThW0+T0ZKmK4erJ2jfijmRyO0gkfiX7cF5amZE1
-7TNfkJPevo9F1fhaJbyHarGMH4LWndFS114l5eeUlfDYo/vNBuCnS1XNG2ZeHYG5
-6ztMHEJZ4zr+nPmv28i48l0KiSgCdkOjaj/0U4SN2HKTngUrnqd96S78wSUr2kO/
-u5qNmKD77sfitYzCaeBCpoMBGiIGur3r1Bmg2+aP7NYb1LhSChhDUa39pYdvQSXT
-6n7Pdge+NMKsGSWnktp4g/LKSaorXCcj0CuX1XBqfxq1LykhCF8SN/Kbv8q6ffuN
-S89uTpGEbhGRGKEiDKooDaQG9lEEkj/EX0AUanyoKlC7sMk239Dt8OQjQZu202gg
-vM+QdY97ut7BSx04LJlDdhjjxx5WmOsvygHNkxZ1CPbu1JX6J7w=
-=N7cI
+iQIcBAABCAAGBQJaCz1yAAoJEN2M1aXejH56ig8QAKh8EJxK8VgsCItIAORm1hgZ
+sTWQyh45hq/RcZPVv0qbGcOvWEl50Jx3eFg5TRiiJlEGndqZFIBlV5pja1/ofAYz
+X5Cu7l816UoRvBu5zG9Z2H3m1Wn9lfueyzRZmj0mYWYC+ef5OXJANXj0P0QXTlB9
+T+AwGqX/R5UKr0sW8V54F0BI0oK23gZYL+Y1ASKMi0zjFUpMTdNGafPfAzgqSKTN
+EyReyktNhjaAOSnt5Is2M59WhvqbPMhWgUdyVxD/y5re0qaJRpCUMj6jhvSd6rb7
+pinh5spemZ7rqvg6Juhntxe6/LzyLfPrgZdfyxHIdtY9q1cr7i3N2WYVe1HhBkJk
+XbQlBftLJ4Pjs5hwRcsjOZSzYUxEe8LFhOYs1ymmW2eNYH2R8ERoURFpUtSL+E2y
+SrW9rAgVeYcaLMtiO88yBFM44rYnse28JeF3cZD+I93GEojY3wTl+Yl8oaiXy3gX
+yPLxVbI96OFC46CNQ8zJiqlZBu8AC0o4hty6D14n6I8myZy5r+hwshc3gcEwspWH
+lADTL61w/K8GaSmWPBeMxDVhjMHIzMHRpHC7Gpohnb7f7HTMVFehJVW4IsiTMuRG
+fVHpo84AkKgRU0+YobPnjidGAhmuw1Xj7Yx8r66PzOaUfuW9W+slkmdIDCL+FTnc
+79pVksVHbB0LsxSFKG5Y
+=4zzz
 -----END PGP SIGNATURE-----
 
---4Wcu3uPC65WqUq/x--
+--=-d6K6x0JuGRNP2IVkc1oD--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
