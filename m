@@ -1,54 +1,51 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH rdma-next 28/31] IB/cm: Fix avoid sleep while spin lock is
- held
-Date: Tue, 14 Nov 2017 22:32:14 +0000
-Message-ID: <VI1PR0502MB300897A41317A06FFA5CC329D1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-next 27/31] IB/cm: Fix honor address handle
+ attribute init error
+Date: Tue, 14 Nov 2017 16:38:41 -0700
+Message-ID: <20171114233841.GC25894@ziepe.ca>
 References: <20171114125218.20477-1-leon@kernel.org>
- <20171114125218.20477-29-leon@kernel.org>
- <CAJ3xEMixWZvCVDYTK1-2w0pYdy65HExvN2ae7y=hAkk6htrETg@mail.gmail.com>
- <VI1PR0502MB3008970D8D6034E4A2D952DED1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <CAJ3xEMhdp_2BYPA+s+We5Qgatye8hNLUYGnZu0ZimpPb86U-VQ@mail.gmail.com>
+ <20171114125218.20477-28-leon@kernel.org>
+ <CAJ3xEMjPsD7+YnN80A7Z3WjxEey20=TYKpxrRK_mRhKVMEnA8Q@mail.gmail.com>
+ <VI1PR0502MB3008514AED6DA3E970381088D1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <CAJ3xEMg6bJt0obWHrSae86ZUN7RgCYqWJJiQXw9on82P=zO_VA@mail.gmail.com>
+ <VI1PR0502MB300851A707AFA9DEC77B232ED1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMhdp_2BYPA+s+We5Qgatye8hNLUYGnZu0ZimpPb86U-VQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <VI1PR0502MB300851A707AFA9DEC77B232ED1280-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogT3IgR2VybGl0eiBbbWFp
-bHRvOmdlcmxpdHoub3JAZ21haWwuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBOb3ZlbWJlciAxNCwg
-MjAxNyA0OjIxIFBNDQo+IFRvOiBQYXJhdiBQYW5kaXQgPHBhcmF2QG1lbGxhbm94LmNvbT4NCj4g
-Q2M6IERvdWcgTGVkZm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT47IGxpbnV4LXJkbWFAdmdlci5r
-ZXJuZWwub3JnOyBIZWZ0eSwNCj4gU2VhbiA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+OyBMZW9uIFJv
-bWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggcmRt
-YS1uZXh0IDI4LzMxXSBJQi9jbTogRml4IGF2b2lkIHNsZWVwIHdoaWxlIHNwaW4gbG9jayBpcw0K
-PiBoZWxkDQo+IA0KPiBPbiBXZWQsIE5vdiAxNSwgMjAxNyBhdCAxMjoxNiBBTSwgUGFyYXYgUGFu
-ZGl0IDxwYXJhdkBtZWxsYW5veC5jb20+DQo+IHdyb3RlOg0KPiA+PiBGcm9tOiBPciBHZXJsaXR6
-IFttYWlsdG86Z2VybGl0ei5vckBnbWFpbC5jb21dDQo+ID4+IFN1YmplY3Q6IFJlOiBbUEFUQ0gg
-cmRtYS1uZXh0IDI4LzMxXSBJQi9jbTogRml4IGF2b2lkIHNsZWVwIHdoaWxlDQo+ID4+IHNwaW4g
-bG9jayBpcw0KPiA+Pj4gRnJvbTogUGFyYXYgUGFuZGl0IDxwYXJhdkBtZWxsYW5veC5jb20+DQo+
-IA0KPiA+Pj4gSW4gY2FzZSBvZiBMQVAgYXJlIHVzZWQgZm9yIFJvQ0UNCj4gDQo+ID4+IEFGQUlL
-IEFQTSBpcyBub3Qgc3VwcG9ydGVkIHdpdGggUm9DRSwgaXNuJ3QgdGhhdD8gaWYgeWVzLCBvbiB3
-aGF0DQo+ID4+IEhXL1JvQ0UgbW9kZSBhbmQgaG93IGRvIHlvdSB0ZXN0IHRoYXQ/DQo+IA0KPiA+
-IFRoaXMgcGFydGljdWxhciBwYXRjaCBpbiB0aGlzIHNlcmllcyBpcyBub3QgdGVzdGVkIG9uIFJv
-Q0UuDQo+ID4gQVBNIGlzIG5vdCBzdXBwb3J0ZWQgYnV0IGluamVjdGluZyBzdWNoIGZyYW1lIGlu
-IG5ldHdvcmsgaXMgbm90IGltcG9zc2libGUuDQo+ID4gV2UgZG9u4oCZdCBoYXZlIHBhcnRpY3Vs
-YXIgY2hlY2tzIHRvIHJlamVjdCBzdWNoIGZyYW1lIGZvciBSb0NFLg0KPiA+IFNvIEkgcHJlZmVy
-IHRvIGZpeCB0aGUgaXNzdWUgYmVmb3JlIGdldHRpbmcgc3VjaCBoYW5nL29vcHMgcmVwb3J0IHdo
-ZW4gaXNzdWUgaXMNCj4gZXZpZGVudCBpbiBjb2RlLg0KPiANCj4gbWVudGlvbmluZyB0ZXN0aW5n
-LCBpbiB0aGlzIHNlcmllcyB5b3UgZGlkIGJ1bmNoIG9mIGZpeGVzIGZvciB0aGUgSUIgY29yZSwg
-Q00gYW5kDQo+IENNQS4NCj4gDQo+IFdvdWxkIGJlIGdvb2QgdG8gYWRkIGEgc2VjdGlvbiBpbiB0
-aGUgY292ZXIgbGV0dGVyIG1lbnRpb25pbmcgdW5kZXIgd2hpY2ggdHlwZQ0KPiBvZiB0ZXN0aW5n
-IHRoZSBtb2RpZmllZCBjb2RlIGhhcyBnb25lIHRocm91Z2guDQpJdCdzIGJlZW4gdGVzdGVkIGZv
-ciBSb0NFdjEsIHYyLCBJUG9JQiB3aXRoIENvbm5lY3RYNCwgQ29ubmVjdFgzIEhDQSB3aXRoIHBl
-cmZ0ZXN0LCBycGluZywga3JwaW5nIHRvb2xzLg0KSW4gZmV3IGluZGl2aWR1YWwgcGF0Y2gsIGl0
-J3MgYmVlbiBtZW50aW9uZWQgaG93IGlzIHRoaXMgdGVzdGVkLg0KDQo+IA0KPiBTZWVtcyB0aGF0
-IHlvdSBkaWQgYSBoZWxsIG9mIGhhcmRlbmluZyB0byB0aGUgSUIgY29yZSwgY29vbCEhDQpUaGFu
-a3MgT3IuDQo=
+On Tue, Nov 14, 2017 at 10:27:42PM +0000, Parav Pandit wrote:
+
+> > On Wed, Nov 15, 2017 at 12:13 AM, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > wrote:
+> > >> From: Or Gerlitz [mailto:gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+> > 
+> > >> any reason not to point out the commit that introduced the bug?
+> > > No particular reason. I am not sure few years back it was bug or not. In current
+> > code it appear so.
+> > > So I continued without Fixes commit line.
+> > 
+> > 
+> > The idea is that you do the git blaming and such work to get the
+> > Fixes line, and later, the maintainer of the sub-system and
+> > maintainers of stable kernel use that to decide if/where they want
+> > this to go beyond the -rc kernel you are fixing
+
+> Yes, I understand. But would that be a bug in initial commit, which
+> transport was it handling.. without error code check what could have
+> gone wrong..  I do not have answer for those questions. So I omitted
+> the Fixes line.  Wherever I knew for sure in this or other series, I
+> have added.
+
+While the fixes line is nice, the more important question is if any of
+these patches should have a 'Cc: stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org' ?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
