@@ -1,9 +1,9 @@
 From: Launchpad Buildd System <noreply-+ipbUBPD95tH4x6Dk/4f9A@public.gmane.org>
-Subject: [Build #13727948] i386 build of rdma-core
- 16~201711132208~ubuntu17.10.1 in ubuntu artful RELEASE
+Subject: [Build #13727960] i386 build of rdma-core
+ 16~201711132208~ubuntu17.04.1 in ubuntu zesty RELEASE
  [~linux-rdma/ubuntu/rdma-core-daily]
-Date: Tue, 14 Nov 2017 09:19:06 -0000
-Message-ID: <151065114631.18183.18010416961515595119.launchpad@alphecca.canonical.com>
+Date: Tue, 14 Nov 2017 09:20:05 -0000
+Message-ID: <151065120583.18183.17676829184594181909.launchpad@alphecca.canonical.com>
 Reply-To: Launchpad Buildd System <noreply-+ipbUBPD95tH4x6Dk/4f9A@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,14 +15,14 @@ List-Id: linux-rdma@vger.kernel.org
 
 
  * Source Package: rdma-core
- * Version: 16~201711132208~ubuntu17.10.1
+ * Version: 16~201711132208~ubuntu17.04.1
  * Architecture: i386
  * Archive: ~linux-rdma/ubuntu/rdma-core-daily
  * Component: main
  * State: Failed to build
  * Duration: 2 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+build/13727948/+files/buildlog_ubuntu-artful-i386.rdma-core_16~201711132208~ubuntu17.10.1_BUILDING.txt.gz
- * Builder: https://launchpad.net/builders/lcy01-amd64-003
+ * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+build/13727960/+files/buildlog_ubuntu-zesty-i386.rdma-core_16~201711132208~ubuntu17.04.1_BUILDING.txt.gz
+ * Builder: https://launchpad.net/builders/lcy01-amd64-015
  * Source: not available
 
 
@@ -31,8 +31,8 @@ If you want further information about this situation, feel free to
 contact a member of the Launchpad Buildd Administrators team.
 
 -- 
-i386 build of rdma-core 16~201711132208~ubuntu17.10.1 in ubuntu artful RELEASE
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+build/13727948
+i386 build of rdma-core 16~201711132208~ubuntu17.04.1 in ubuntu zesty RELEASE
+https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+build/13727960
 
 You are receiving this email because you created this version of this
 package.
