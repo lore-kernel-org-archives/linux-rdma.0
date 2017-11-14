@@ -1,40 +1,58 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH 1/2] librdmacm: Add support for extended join multicast
- API V2
-Date: Tue, 14 Nov 2017 12:25:58 -0700
-Message-ID: <20171114192558.GL4263@ziepe.ca>
-References: <20171114185720.609975150@linux.com>
- <20171114185739.838757957@linux.com>
+Subject: Re: vmw_pvrdma: Add SRQ support - broke rdma-core
+Date: Tue, 14 Nov 2017 12:28:58 -0700
+Message-ID: <20171114192858.GM4263@ziepe.ca>
+References: <20171114085143.GS18825@mtr-leonro.local>
+ <20171114182720.GC18825@mtr-leonro.local>
+ <20171114190029.GI18825@mtr-leonro.local>
+ <20171114192510.GA6083@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171114185739.838757957-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20171114192510.GA6083-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 14, 2017 at 12:57:21PM -0600, Christoph Lameter wrote:
-> diff --git a/debian/librdmacm1.symbols b/debian/librdmacm1.symbols
-> index 7cec5c6..a7d8085 100644
-> +++ b/debian/librdmacm1.symbols
-> @@ -31,6 +31,7 @@ librdmacm.so.1 librdmacm1 #MINVER#
->   rdma_get_src_port@RDMACM_1.0 1.0.19
->   rdma_getaddrinfo@RDMACM_1.0 1.0.15
->   rdma_join_multicast@RDMACM_1.0 1.0.15
-> + rdma_join_multicast_ex@RDMACM_1.1 1.0.15
->   rdma_leave_multicast@RDMACM_1.0 1.0.15
+On Tue, Nov 14, 2017 at 11:25:12AM -0800, Bryan Tan wrote:
+> On Tue, Nov 14, 2017 at 09:00:29PM +0200, Leon Romanovsky wrote:
+> > On Tue, Nov 14, 2017 at 08:27:20PM +0200, Leon Romanovsky wrote:
+> > > On Tue, Nov 14, 2017 at 10:51:43AM +0200, Leon Romanovsky wrote:
+> > > > The commit 25f07300bfb7 ("vmw_pvrdma: Add SRQ support") causes to build
+> > > > failures in Travis CI [1] and on my system too [2].
+> > > >
+> > > > Please fix.
+> > >
+> > > I reverted the commit, please fix compilation error and resubmit.
+> > >
+> > > Commit: 32bf4efb8605 ("Revert "vmw_pvrdma: Add SRQ support" because it causes build failures")
+> > 
+> > Just as a pointer, it fails on the systems with kernel's include/uapi/rdma/vmw_pvrdma-abi.h
+> > file available, so fixup is not applied but without your definition yet.
+> 
+> Thanks for the notice, I should have tried building on a kernel without
+> the updated ABI header. We had a question though, what would be the best
+> approach to fix this?
 
-I'm sorry I missed this in the first look.. Needs to be
+The cmake scheme always uses the distro header if the distro header
+passes the 'test'. Till now the test for pvrdma.h was existance only.
 
- rdma_join_multicast_ex@RDMACM_1.1 16
+Now that you depend on new stuff, you have to update the test to see
+if the header is new enough.
 
-Ie package version 16, not the really old 1.0.15
+> We didn't bump up the ABI version after discussion on the pull
+> request.
 
-Everything else looks fine to me:
+Correct.
 
-Reviewed-by: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+> there is an ABI version mismatch, or if a macro is not defined (in this
+> case, PVRDMA_UAR_SRQ_OFFSET)? I thought that we'd use the fixup over the
+> ABI header exposed by the kernel, but my assumption there was wrong.
+
+Look in buildlib/RDMA_LinuxHeaders.cmake and copy something like the
+rdma/rdma_netlink.h line, but test for PVRDMA_UAR_SRQ_OFFSET.
 
 Jason
 --
