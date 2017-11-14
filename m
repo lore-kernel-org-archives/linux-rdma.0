@@ -1,8 +1,7 @@
 From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 2/4] ibacm: Calculate correct tv_nsec value in
- event_wait()
-Date: Tue, 14 Nov 2017 11:43:32 -0500
-Message-ID: <20171114164324.24557.29863.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v3 3/4] ibacm: Fix a retry loop calculation race condition
+Date: Tue, 14 Nov 2017 11:43:47 -0500
+Message-ID: <20171114164337.24557.45231.stgit@phlsvslse11.ph.intel.com>
 References: <20171114164006.24557.72093.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,46 +14,68 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The event_wait() function calculates a tv_nsec value based on the
-given timeout.  If the tv_nsec value calculation ends ups larger
-than 1 second, the pthread_cond_timedwait() will return EINVAL,
-and will not wait.
+The retry loop calculation uses a conversion to int of an unsigned
+64 bit number (next_expire) minus the current time to decide if
+event_wait() should be called.  This calculation works correctly as
+long as the next_expire value is not the default value (-1).
 
-This causes the retry loop to spin (busy wait) until the actual
-timeout occurs.
+If the next_expire is the default value, periodically this subtraction
+can result in a very large postive timeout value (days rather than
+milliseconds).
 
-Ensure that the tv_nsec value is less than 1 second.
+For example:
+next_expire  = 0xFFFFFFFFFFFFFFFF  (-1)
+current_ms = 0x15f7db52146  (today's ms since 1970)
 
+max_delay_ms = (int) next_expire - future_ms
+
+future_ms  = 0x15f80000000  = max_delay_ms 2147483647
+future_ms  = 0x16080000000  = max_delay_ms 2147483647
+
+Converting max_delay_ms to days:
+2147483647 / 1000 / 60 / 60 / 24 == 24 days
+
+0xxx180000000 - 0xxx080000000 = 4294967296
+
+every 48 days, this issue repeats
+
+This calculation can occur if a wait_cnt is incremented and a message
+expiration is handled so that next_expire is not updated.  If wait_cnt
+is incremented before the wait calculation is done (the race condition),
+event_wait() can be called with the potentially very large value.
+
+If next_expire is not updated, do not do the wait calculation and
+avoid the race condition.
+
+Reported-by: Morys Grzegorz <grzegorz.morys-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- ibacm/linux/osd.h |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ ibacm/prov/acmp/src/acmp.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/ibacm/linux/osd.h b/ibacm/linux/osd.h
-index 95713e6..eabf5ed 100644
---- a/ibacm/linux/osd.h
-+++ b/ibacm/linux/osd.h
-@@ -92,6 +92,7 @@ static inline void event_init(event_t *e)
- 	pthread_mutex_init(&e->mutex, NULL);
- }
- #define event_signal(e)	pthread_cond_signal(&(e)->cond)
-+#define ONE_SEC_IN_NSEC  1000000000ULL
- static inline int event_wait(event_t *e, int timeout)
- {
- 	struct timeval curtime;
-@@ -101,6 +102,10 @@ static inline int event_wait(event_t *e, int timeout)
- 	gettimeofday(&curtime, NULL);
- 	wait.tv_sec = curtime.tv_sec + ((unsigned) timeout) / 1000;
- 	wait.tv_nsec = (curtime.tv_usec + (((unsigned) timeout) % 1000) * 1000) * 1000;
-+	if (wait.tv_nsec > ONE_SEC_IN_NSEC) {
-+		wait.tv_sec++;
-+		wait.tv_nsec -= ONE_SEC_IN_NSEC;
-+	}
- 	pthread_mutex_lock(&e->mutex);
- 	ret = pthread_cond_timedwait(&e->cond, &e->mutex, &wait);
- 	pthread_mutex_unlock(&e->mutex);
+diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
+index d707b8e..884fc48 100644
+--- a/ibacm/prov/acmp/src/acmp.c
++++ b/ibacm/prov/acmp/src/acmp.c
+@@ -1579,10 +1579,12 @@ static void *acmp_retry_handler(void *context)
+ 		pthread_mutex_unlock(&acmp_dev_lock);
+ 
+ 		acmp_process_timeouts();
+-		wait = (int) (next_expire - time_stamp_ms());
+-		if (wait > 0 && atomic_get(&wait_cnt)) {
+-			pthread_testcancel();
+-			event_wait(&timeout_event, wait);
++		if (next_expire != -1) {
++			wait = (int) (next_expire - time_stamp_ms());
++			if (wait > 0 && atomic_get(&wait_cnt)) {
++				pthread_testcancel();
++				event_wait(&timeout_event, wait);
++			}
+ 		}
+ 	}
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
