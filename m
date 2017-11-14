@@ -1,9 +1,9 @@
 From: Launchpad Buildd System <noreply-+ipbUBPD95tH4x6Dk/4f9A@public.gmane.org>
-Subject: [Build #13727960] i386 build of rdma-core
- 16~201711132208~ubuntu17.04.1 in ubuntu zesty RELEASE
+Subject: [Build #13727961] amd64 build of rdma-core
+ 16~201711132208~ubuntu18.04.1 in ubuntu bionic RELEASE
  [~linux-rdma/ubuntu/rdma-core-daily]
-Date: Tue, 14 Nov 2017 09:20:05 -0000
-Message-ID: <151065120583.18183.17676829184594181909.launchpad@alphecca.canonical.com>
+Date: Tue, 14 Nov 2017 09:20:06 -0000
+Message-ID: <151065120602.18183.5672591742069863523.launchpad@alphecca.canonical.com>
 Reply-To: Launchpad Buildd System <noreply-+ipbUBPD95tH4x6Dk/4f9A@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,14 +15,14 @@ List-Id: linux-rdma@vger.kernel.org
 
 
  * Source Package: rdma-core
- * Version: 16~201711132208~ubuntu17.04.1
- * Architecture: i386
+ * Version: 16~201711132208~ubuntu18.04.1
+ * Architecture: amd64
  * Archive: ~linux-rdma/ubuntu/rdma-core-daily
  * Component: main
  * State: Failed to build
  * Duration: 2 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+build/13727960/+files/buildlog_ubuntu-zesty-i386.rdma-core_16~201711132208~ubuntu17.04.1_BUILDING.txt.gz
- * Builder: https://launchpad.net/builders/lcy01-amd64-015
+ * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+build/13727961/+files/buildlog_ubuntu-bionic-amd64.rdma-core_16~201711132208~ubuntu18.04.1_BUILDING.txt.gz
+ * Builder: https://launchpad.net/builders/lcy01-amd64-019
  * Source: not available
 
 
@@ -31,8 +31,8 @@ If you want further information about this situation, feel free to
 contact a member of the Launchpad Buildd Administrators team.
 
 -- 
-i386 build of rdma-core 16~201711132208~ubuntu17.04.1 in ubuntu zesty RELEASE
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+build/13727960
+amd64 build of rdma-core 16~201711132208~ubuntu18.04.1 in ubuntu bionic RELEASE
+https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+build/13727961
 
 You are receiving this email because you created this version of this
 package.
