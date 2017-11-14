@@ -1,48 +1,33 @@
-From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: Patches for rdma-core stable-v15
-Date: Tue, 14 Nov 2017 15:41:33 +0100
-Message-ID: <068edead-ca0c-f378-bf6f-e16b46534906@suse.de>
-References: <6ccc2110-2e27-bacd-b821-f862785a10ca@suse.de>
- <BN3PR07MB257876D3FE069B77DC7AFFBFF8280@BN3PR07MB2578.namprd07.prod.outlook.com>
- <CANjDDBjv4C_TJWtgJ=zVPef+TQqSFBNuf5dnUnVRf0k4+sf8nA@mail.gmail.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [RFC PATCH] RDMA/cma: Remove netlink interface of CMA statistics
+Date: Tue, 14 Nov 2017 08:23:50 -0700
+Message-ID: <20171114152350.GA4263@ziepe.ca>
+References: <20171113144024.26655-1-leon@kernel.org>
+ <20171113192432.GL6918@ziepe.ca>
+ <20171114080550.GR18825@mtr-leonro.local>
+ <CAJ3xEMhfdXz8zQFetjQPfe7HZiCi+N0z6r9XSucuTzQo1--PBg@mail.gmail.com>
+ <20171114095605.GU18825@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CANjDDBjv4C_TJWtgJ=zVPef+TQqSFBNuf5dnUnVRf0k4+sf8nA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: fr-xx-classique+reforme1990
+Content-Disposition: inline
+In-Reply-To: <20171114095605.GU18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Nov 14, 2017 at 11:56:05AM +0200, Leon Romanovsky wrote:
 
+> > what didn't work exactly?
+> 
+> Started from compilation, continued to wrong data presented.
+> There is no need to carry 7-years old code, which no one cares about it.
 
-Le 14/11/2017 à 15:29, Devesh Sharma a écrit :
-> Ack'ing following two patches :
->
->>> Devesh Sharma (1):
->>>       bnxt_re/lib: increment psn in case of 0 length packets
-> And
->
->> Yeah,
->>
->> Jason is asking for further amendments to the barrier mechanism we
->> have today in rdma-core. That can be handled in a separate patch
->> series.  For now this should be good to go unless Jason suggests
->> otherwise.
-> It should be fine as is. This is just something we should fix in
-> mainline to ensure we don't get burned by a newer compiler or
-> something.
->
-> bnxt_re/lib: fix the memory barrier call during poll-cq
-> commit-id: f4e67f1027011a6f9081b6239b866f27f750f678
->
+If it legiminately doesn't actually work then that is reason enough to
+be able to drop a uAPI, IMHO.
 
-Both picked in stable-v15.
-
-Nicolas
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
