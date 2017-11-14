@@ -1,43 +1,36 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/6] debian: Let libibverbs1 16 break
- ibverbs-providers 15
-Date: Tue, 14 Nov 2017 13:39:39 -0700
-Message-ID: <20171114203939.GT4263@ziepe.ca>
-References: <20171114200247.25890-1-benjamin.drung@profitbricks.com>
- <20171114200247.25890-2-benjamin.drung@profitbricks.com>
+Subject: Re: [PATCH rdma-core 3/3] debian: Update changelog to include Debian
+ upload
+Date: Tue, 14 Nov 2017 13:42:44 -0700
+Message-ID: <20171114204244.GU4263@ziepe.ca>
+References: <20171114113330.2715-1-benjamin.drung@profitbricks.com>
+ <20171114113330.2715-4-benjamin.drung@profitbricks.com>
+ <20171114202823.GQ4263@ziepe.ca>
+ <1510691646.4026.50.camel@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171114200247.25890-2-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <1510691646.4026.50.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 14, 2017 at 09:02:42PM +0100, Benjamin Drung wrote:
-> ibverbs-providers uses the private symbols of libibverbs1. Thus
-> libibverbs1 will not work with an old version version of
-> ibverbs-providers if the private symbol version is bumped.
-> 
-> Bump the ibverbs-providers version that libibverbs1 breaks which was
-> forgotten on the symbol version bump. See also commit
-> 611b7cc3b8e0d79aa986f042f486fccc95d73679. Append a tilde to support
-> the lower version numbers (e.g. 16~201711132208) in the PPA builds.
+On Tue, Nov 14, 2017 at 09:34:06PM +0100, Benjamin Drung wrote:
 
-This seems strange to me, we don't really need Breaks semantics here.
+> I can often find debian packaging from upstream projects that either
+> use their complete own packaging or a very outdated fork of the
+> packaging from Debian.
 
-Shouldn't we do something like:
+But it creates a technical problem, eg now that you are going to make
+a -2, where will the changelog commit go?
 
-Package: ibverbs-providers
-Depends: [..], libibverbs1 (= ${binary:Version}),
+Ideally the changelog commit should match the actual git tree that was
+used to produce the debian source tar ball. Otherwise things start to
+get very confusing :)
 
-?
-
-We really do not want to encourage mixing and matching versions.
-
-IIRC the existing breaks is only because of how the new packages
-interact with the legacy ones??
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
