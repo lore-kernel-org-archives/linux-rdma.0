@@ -1,25 +1,40 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: Patches for rdma-core stable-v15
-Date: Tue, 14 Nov 2017 14:15:16 +0000
-Message-ID: <BN3PR07MB257876D3FE069B77DC7AFFBFF8280@BN3PR07MB2578.namprd07.prod.outlook.com>
-References: <6ccc2110-2e27-bacd-b821-f862785a10ca@suse.de>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: RE: [PATCH V3 net-next] net: hns3: Updates MSI/MSI-X alloc/free
+ APIs(depricated) to new APIs
+Date: Tue, 14 Nov 2017 14:23:34 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93B97A60C@FRAEML521-MBX.china.huawei.com>
+References: <20171113113938.8660-1-salil.mehta@huawei.com>
+ <20171114.214612.632435634031888429.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6ccc2110-2e27-bacd-b821-f862785a10ca-l3A5Bk7waGM@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20171114.214612.632435634031888429.davem@davemloft.net>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org" <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jgunthorpe-uk2M96/98Pc@public.gmane.org" <jgunthorpe-uk2M96/98Pc@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org" <stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "lipeng (Y)" <lipeng321@huawei.com>, "hch@lst.de" <hch@lst.de>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBIaSBhbGwsDQo+IA0KPiBBZnRlciBsb29raW5nIGludG8gdGhlIE1MLCBoZXJlIGFyZSB0aGUg
-Y2FuZGlkYXRlcyBmb3IgdGhlIHN0YWJsZS12MTUgYnJhbmNoLg0KPiBDYW4gdGhlIGF1dGhvcnMg
-cGxlYXNlIGNvbmZpcm0gdGhhdCB0aGV5IHNob3VsZCBiZSBhcHBsaWVkIHRoZXJlID8NCj4gDQo+
-IFBsZWFzZSBsZXQgbWUga25vdyBpZiBJIG1pc3NlZCBhbnkuDQo+IA0KPiBOaWNvbGFzDQo+IA0K
-PiAtLS0NCg0KLi4uDQoNCj4gUmFtIEFtcmFuaSAoMSk6DQo+IMKgwqDCoMKgwqAgbGlicWVkcjog
-Zml4IGlubGluZSBkYXRhIGNvcHkNCj4gDQoNCg0KQUNLDQoNClRoYW5rcywNClJhbQ0KDQo=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: David Miller [mailto:davem@davemloft.net]
+> Sent: Tuesday, November 14, 2017 12:46 PM
+> To: Salil Mehta
+> Cc: Zhuangyuzeng (Yisen); lipeng (Y); hch@lst.de;
+> mehta.salil.lnk@gmail.com; netdev@vger.kernel.org; linux-
+> kernel@vger.kernel.org; linux-rdma@vger.kernel.org; Linuxarm
+> Subject: Re: [PATCH V3 net-next] net: hns3: Updates MSI/MSI-X
+> alloc/free APIs(depricated) to new APIs
+> 
+> From: Salil Mehta <salil.mehta@huawei.com>
+> Date: Mon, 13 Nov 2017 11:39:38 +0000
+> 
+> > This patch migrates the HNS3 driver code from use of depricated PCI
+> > MSI/MSI-X interrupt vector allocation/free APIs to new common APIs.
+> >
+> > Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
+> > Suggested-by: Christoph Hellwig <hch@lst.de>
+> 
+> Applied.
+
+Thanks David.
