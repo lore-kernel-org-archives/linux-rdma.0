@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 22/31] IB/core: Removed unused function
-Date: Tue, 14 Nov 2017 14:52:09 +0200
-Message-ID: <20171114125218.20477-23-leon@kernel.org>
+Subject: [PATCH rdma-next 21/31] RDMA/core: Avoid redundant memcpy in resolving address
+Date: Tue, 14 Nov 2017 14:52:08 +0200
+Message-ID: <20171114125218.20477-22-leon@kernel.org>
 References: <20171114125218.20477-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171114125218.20477-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,63 +12,49 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-rdma_addr_find_smac_by_sgid() is exported symbol not used by any kernel
-module. Therefore its removed.
+rdma_resolve_ip works on the rdma_dev_addr pointer even from worker
+thread context. Therefore there is no need to store that in context.
+At the same time, resolve_cb() callback function invokes memcpy on
+source and destination addresses which are essentially same.
+Therefore both are removed.
 
 Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/addr.c | 23 -----------------------
- include/rdma/ib_addr.h         |  1 -
- 2 files changed, 24 deletions(-)
+ drivers/infiniband/core/addr.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
 diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index 6679dd43fe08..e0086901d64c 100644
+index da4469c38eac..6679dd43fe08 100644
 --- a/drivers/infiniband/core/addr.c
 +++ b/drivers/infiniband/core/addr.c
-@@ -793,29 +793,6 @@ int rdma_addr_find_l2_eth_by_grh(const union ib_gid *sgid,
- 	return 0;
- }
+@@ -744,7 +744,6 @@ void rdma_addr_cancel(struct rdma_dev_addr *addr)
+ EXPORT_SYMBOL(rdma_addr_cancel);
  
--int rdma_addr_find_smac_by_sgid(union ib_gid *sgid, u8 *smac, u16 *vlan_id)
--{
--	int ret = 0;
--	struct rdma_dev_addr dev_addr;
--	union {
--		struct sockaddr     _sockaddr;
--		struct sockaddr_in  _sockaddr_in;
--		struct sockaddr_in6 _sockaddr_in6;
--	} gid_addr;
--
--	rdma_gid2ip(&gid_addr._sockaddr, sgid);
--
--	memset(&dev_addr, 0, sizeof(dev_addr));
--	dev_addr.net = &init_net;
--	ret = rdma_translate_ip(&gid_addr._sockaddr, &dev_addr, vlan_id);
--	if (ret)
--		return ret;
--
--	memcpy(smac, dev_addr.src_dev_addr, ETH_ALEN);
--	return ret;
--}
--EXPORT_SYMBOL(rdma_addr_find_smac_by_sgid);
--
- static int netevent_callback(struct notifier_block *self, unsigned long event,
- 	void *ctx)
+ struct resolve_cb_context {
+-	struct rdma_dev_addr *addr;
+ 	struct completion comp;
+ 	int status;
+ };
+@@ -752,9 +751,6 @@ struct resolve_cb_context {
+ static void resolve_cb(int status, struct sockaddr *src_addr,
+ 	     struct rdma_dev_addr *addr, void *context)
  {
-diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-index d5c3bbb84608..3d17073ea338 100644
---- a/include/rdma/ib_addr.h
-+++ b/include/rdma/ib_addr.h
-@@ -131,7 +131,6 @@ void rdma_copy_addr(struct rdma_dev_addr *dev_addr,
+-	if (!status)
+-		memcpy(((struct resolve_cb_context *)context)->addr,
+-		       addr, sizeof(struct rdma_dev_addr));
+ 	((struct resolve_cb_context *)context)->status = status;
+ 	complete(&((struct resolve_cb_context *)context)->comp);
+ }
+@@ -780,7 +776,6 @@ int rdma_addr_find_l2_eth_by_grh(const union ib_gid *sgid,
+ 	dev_addr.bound_dev_if = ndev->ifindex;
+ 	dev_addr.net = &init_net;
  
- int rdma_addr_size(struct sockaddr *addr);
- 
--int rdma_addr_find_smac_by_sgid(union ib_gid *sgid, u8 *smac, u16 *vlan_id);
- int rdma_addr_find_l2_eth_by_grh(const union ib_gid *sgid,
- 				 const union ib_gid *dgid,
- 				 u8 *dmac, const struct net_device *ndev,
+-	ctx.addr = &dev_addr;
+ 	init_completion(&ctx.comp);
+ 	ret = rdma_resolve_ip(&self, &sgid_addr._sockaddr, &dgid_addr._sockaddr,
+ 			&dev_addr, 1000, resolve_cb, &ctx);
 -- 
 2.15.0
 
