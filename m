@@ -1,55 +1,60 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 4/4] IB/core: disable memory registration of
- fileystem-dax vmas
-Date: Tue, 14 Nov 2017 11:56:50 -0800
-Message-ID: <151068941011.7446.7766030590347262502.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151068938905.7446.12333914805308312313.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC rdma-core 0/5] Add thread domain support
+Date: Tue, 14 Nov 2017 22:14:18 +0200
+Message-ID: <CAFgAxU-sRYPU83kpcgg=BVi2x5LtdetzjCEcKdCivUcoRqg9Mw@mail.gmail.com>
+References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
+ <20171113200651.GG22610@ziepe.ca> <CAFgAxU9Svu8jKBMzY91cOUFF9wngowbFZd+yKUBz9M60rcWfkg@mail.gmail.com>
+ <20171114025745.GO22610@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <151068938905.7446.12333914805308312313.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-mm@kvack.org, Doug Ledford <dledford@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171114025745.GO22610-uk2M96/98Pc@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Alex @ Mellanox" <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Until there is a solution to the dma-to-dax vs truncate problem it is
-not safe to allow RDMA to create long standing memory registrations
-against filesytem-dax vmas.
+oops, I did not reply-all...  adding the ML back
+although Yishai replied/answered most of this anyway.
 
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: <linux-rdma@vger.kernel.org>
-Cc: <stable@vger.kernel.org>
-Fixes: 3565fce3a659 ("mm, x86: get_user_pages() for dax mappings")
-Reported-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/infiniband/core/umem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 21e60b1e2ff4..130606c3b07c 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -191,7 +191,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 	sg_list_start = umem->sg_head.sgl;
- 
- 	while (npages) {
--		ret = get_user_pages(cur_base,
-+		ret = get_user_pages_longterm(cur_base,
- 				     min_t(unsigned long, npages,
- 					   PAGE_SIZE / sizeof (struct page *)),
- 				     gup_flags, page_list, vma_list);
-
+On Tue, Nov 14, 2017 at 4:57 AM, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote:
+>
+> On Mon, Nov 13, 2017 at 10:32:06PM +0200, Alex Rosenbaum wrote:
+>
+> > > I assume you'll also add a create_cq_ex to accept a PD instead of a
+> > > device?
+>
+> > currently we're mainly focusing on improving the inter-QP locks.
+> > we did not plan to improve the CQ related locking at this point so we
+> > did not plan to add parent domain to the create CQ in this series.
+> > once Mellanox (or someone else) will improve the CQ related locks it
+> > will definitely be the first step.
+>
+> I would like to see the evolve into a more complete solution, not just
+> for simple locking but also NUMA issues as well.
+>
+> Eg I would like to see it replace the rather limited comp_vector in the
+> CQ.
+>
+> Adding APIs like
+>
+> ibv_td_set_cpuset()
+>  * Tell the library the application has bound the calling threads to
+>  certain CPU(s). This may help the library & kernel make a NUMA
+>  decision, eg by choosing the right MSI-X or memory allocation strategy.
+>
+> ibv_td_set_locking_mode()
+>  * Disable locking inside the library assuming the caller guarentees
+>    external locking or single-threaded operation.
+>
+> etc
+>
+> And given Doug's preference to keep the API style, lets use some
+> comp_mask approach and a ib_td_modify & create whatsit.
+>
+> Jason
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
