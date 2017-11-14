@@ -1,7 +1,7 @@
 From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH rdma-core 5/6] debian: Drop lintian overrides for false positives
-Date: Tue, 14 Nov 2017 21:02:46 +0100
-Message-ID: <20171114200247.25890-6-benjamin.drung@profitbricks.com>
+Subject: [PATCH rdma-core 2/6] debian: Replace priority extra by optional
+Date: Tue, 14 Nov 2017 21:02:43 +0100
+Message-ID: <20171114200247.25890-3-benjamin.drung@profitbricks.com>
 References: <20171114200247.25890-1-benjamin.drung@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171114200247.25890-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
@@ -10,34 +10,52 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-lintian 2.5.59 does not complain about the false positives any more.
-Thus the lintian overrides can be removed.
+Since Debian Policy version 4.0.1, the priority extra has been
+deprecated.
+
+Refer to Debian Policy Manual section 2.5 (Priorities) for details.
 
 Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- debian/libibumad-dev.lintian-overrides | 3 ---
- debian/libibumad3.lintian-overrides    | 2 --
- 2 files changed, 5 deletions(-)
- delete mode 100644 debian/libibumad-dev.lintian-overrides
- delete mode 100644 debian/libibumad3.lintian-overrides
+ debian/control | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/debian/libibumad-dev.lintian-overrides b/debian/libibumad-dev.lintian-overrides
-deleted file mode 100644
-index ed71b738..00000000
---- a/debian/libibumad-dev.lintian-overrides
-+++ /dev/null
-@@ -1,3 +0,0 @@
--# False positive for Certificate Authoritys (CAs)
--libibumad-dev: spelling-error-in-manpage usr/share/man/man3/umad_get_cas_names.3.gz cas case
--libibumad-dev: spelling-error-in-manpage usr/share/man/man3/umad_get_cas_names.3.gz CAs Case
-diff --git a/debian/libibumad3.lintian-overrides b/debian/libibumad3.lintian-overrides
-deleted file mode 100644
-index cb001b96..00000000
---- a/debian/libibumad3.lintian-overrides
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# False positive for Certificate Authoritys (CAs)
--libibumad3: spelling-error-in-binary usr/lib/x86_64-linux-gnu/libibumad.so.3.0.15 cas case
+diff --git a/debian/control b/debian/control
+index 8c0957c7..403f0527 100644
+--- a/debian/control
++++ b/debian/control
+@@ -155,7 +155,6 @@ Description: Library for direct userspace use of RDMA (InfiniBand/iWARP)
+ 
+ Package: libibverbs1-dbg
+ Section: debug
+-Priority: extra
+ Architecture: linux-any
+ Multi-Arch: same
+ Depends: libibverbs1 (= ${binary:Version}), ${misc:Depends}
+@@ -199,7 +198,6 @@ Description: InfiniBand Communication Manager (CM) library
+ 
+ Package: libibcm1-dbg
+ Section: debug
+-Priority: extra
+ Architecture: linux-any
+ Depends: libibcm1 (= ${binary:Version}), ${misc:Depends}
+ Description: Debug symbols for the libibcm1 library
+@@ -238,7 +236,6 @@ Description: InfiniBand Userspace Management Datagram (uMAD) library
+ 
+ Package: libibumad3-dbg
+ Section: debug
+-Priority: extra
+ Architecture: linux-any
+ Depends: libibumad3 (= ${binary:Version}), ${misc:Depends}
+ Description: Debug symbols for the libibumad3 library
+@@ -295,7 +292,6 @@ Description: Library for managing RDMA connections
+ 
+ Package: librdmacm1-dbg
+ Section: debug
+-Priority: extra
+ Architecture: linux-any
+ Depends: librdmacm1 (= ${binary:Version}), ${misc:Depends}
+ Description: Debug symbols for the librdmacm library
 -- 
 2.14.1
 
