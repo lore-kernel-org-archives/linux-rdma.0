@@ -1,46 +1,48 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 28/31] IB/cm: Fix avoid sleep while spin lock is held
-Date: Wed, 15 Nov 2017 00:21:08 +0200
-Message-ID: <CAJ3xEMhdp_2BYPA+s+We5Qgatye8hNLUYGnZu0ZimpPb86U-VQ@mail.gmail.com>
-References: <20171114125218.20477-1-leon@kernel.org> <20171114125218.20477-29-leon@kernel.org>
- <CAJ3xEMixWZvCVDYTK1-2w0pYdy65HExvN2ae7y=hAkk6htrETg@mail.gmail.com> <VI1PR0502MB3008970D8D6034E4A2D952DED1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 27/31] IB/cm: Fix honor address handle attribute
+ init error
+Date: Tue, 14 Nov 2017 22:27:42 +0000
+Message-ID: <VI1PR0502MB300851A707AFA9DEC77B232ED1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20171114125218.20477-1-leon@kernel.org>
+ <20171114125218.20477-28-leon@kernel.org>
+ <CAJ3xEMjPsD7+YnN80A7Z3WjxEey20=TYKpxrRK_mRhKVMEnA8Q@mail.gmail.com>
+ <VI1PR0502MB3008514AED6DA3E970381088D1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <CAJ3xEMg6bJt0obWHrSae86ZUN7RgCYqWJJiQXw9on82P=zO_VA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB3008970D8D6034E4A2D952DED1280-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <CAJ3xEMg6bJt0obWHrSae86ZUN7RgCYqWJJiQXw9on82P=zO_VA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 15, 2017 at 12:16 AM, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> From: Or Gerlitz [mailto:gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
->> Subject: Re: [PATCH rdma-next 28/31] IB/cm: Fix avoid sleep while spin l=
-ock is
->>> From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
->>> In case of LAP are used for RoCE
-
->> AFAIK APM is not supported with RoCE, isn't that? if yes, on what HW/RoC=
-E
->> mode and how do you test that?
-
-> This particular patch in this series is not tested on RoCE.
-> APM is not supported but injecting such frame in network is not impossibl=
-e.
-> We don=E2=80=99t have particular checks to reject such frame for RoCE.
-> So I prefer to fix the issue before getting such hang/oops report when is=
-sue is evident in code.
-
-mentioning testing, in this series you did bunch of fixes for the IB
-core, CM and CMA.
-
-Would be good to add a section in the cover letter mentioning under which t=
-ype
-of testing the modified code has gone through.
-
-Seems that you did a hell of hardening to the IB core, cool!!
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogT3IgR2VybGl0eiBbbWFp
+bHRvOmdlcmxpdHoub3JAZ21haWwuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBOb3ZlbWJlciAxNCwg
+MjAxNyA0OjE4IFBNDQo+IFRvOiBQYXJhdiBQYW5kaXQgPHBhcmF2QG1lbGxhbm94LmNvbT4NCj4g
+Q2M6IERvdWcgTGVkZm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT47IGxpbnV4LXJkbWFAdmdlci5r
+ZXJuZWwub3JnOyBIZWZ0eSwNCj4gU2VhbiA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+OyBMZW9uIFJv
+bWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggcmRt
+YS1uZXh0IDI3LzMxXSBJQi9jbTogRml4IGhvbm9yIGFkZHJlc3MgaGFuZGxlIGF0dHJpYnV0ZQ0K
+PiBpbml0IGVycm9yDQo+IA0KPiBPbiBXZWQsIE5vdiAxNSwgMjAxNyBhdCAxMjoxMyBBTSwgUGFy
+YXYgUGFuZGl0IDxwYXJhdkBtZWxsYW5veC5jb20+DQo+IHdyb3RlOg0KPiA+PiBGcm9tOiBPciBH
+ZXJsaXR6IFttYWlsdG86Z2VybGl0ei5vckBnbWFpbC5jb21dDQo+IA0KPiA+PiBhbnkgcmVhc29u
+IG5vdCB0byBwb2ludCBvdXQgdGhlIGNvbW1pdCB0aGF0IGludHJvZHVjZWQgdGhlIGJ1Zz8NCj4g
+PiBObyBwYXJ0aWN1bGFyIHJlYXNvbi4gSSBhbSBub3Qgc3VyZSBmZXcgeWVhcnMgYmFjayBpdCB3
+YXMgYnVnIG9yIG5vdC4gSW4gY3VycmVudA0KPiBjb2RlIGl0IGFwcGVhciBzby4NCj4gPiBTbyBJ
+IGNvbnRpbnVlZCB3aXRob3V0IEZpeGVzIGNvbW1pdCBsaW5lLg0KPiANCj4gDQo+IFRoZSBpZGVh
+IGlzIHRoYXQgeW91IGRvIHRoZSBnaXQgYmxhbWluZyBhbmQgc3VjaCB3b3JrIHRvIGdldCB0aGUg
+Rml4ZXMgbGluZSwgYW5kDQo+IGxhdGVyLCB0aGUgbWFpbnRhaW5lciBvZiB0aGUgc3ViLXN5c3Rl
+bSBhbmQgbWFpbnRhaW5lcnMgb2Ygc3RhYmxlIGtlcm5lbCB1c2UgdGhhdA0KPiB0byBkZWNpZGUg
+aWYvd2hlcmUgdGhleSB3YW50IHRoaXMgdG8gZ28gYmV5b25kIHRoZSAtcmMga2VybmVsIHlvdSBh
+cmUgZml4aW5nDQpZZXMsICBJIHVuZGVyc3RhbmQuIEJ1dCB3b3VsZCB0aGF0IGJlIGEgYnVnIGlu
+IGluaXRpYWwgY29tbWl0LCB3aGljaCB0cmFuc3BvcnQgd2FzIGl0IGhhbmRsaW5nLi4gd2l0aG91
+dCBlcnJvciBjb2RlIGNoZWNrIHdoYXQgY291bGQgaGF2ZSBnb25lIHdyb25nLi4NCkkgZG8gbm90
+IGhhdmUgYW5zd2VyIGZvciB0aG9zZSBxdWVzdGlvbnMuIFNvIEkgb21pdHRlZCB0aGUgRml4ZXMg
+bGluZS4NCldoZXJldmVyIEkga25ldyBmb3Igc3VyZSBpbiB0aGlzIG9yIG90aGVyIHNlcmllcywg
+SSBoYXZlIGFkZGVkLg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
