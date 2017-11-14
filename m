@@ -1,52 +1,37 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH v3 3/4] ibacm: Fix a retry loop calculation race condition
-Date: Tue, 14 Nov 2017 16:55:22 -0700
-Message-ID: <20171114235522.GE25894@ziepe.ca>
+Subject: Re: [PATCH v3 4/4] ibacm: Use MONOTONIC time base to avoid timer
+ expiration issues
+Date: Tue, 14 Nov 2017 16:56:25 -0700
+Message-ID: <20171114235625.GF25894@ziepe.ca>
 References: <20171114164006.24557.72093.stgit@phlsvslse11.ph.intel.com>
- <20171114164337.24557.45231.stgit@phlsvslse11.ph.intel.com>
+ <20171114164352.24557.86825.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171114164337.24557.45231.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <20171114164352.24557.86825.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 14, 2017 at 11:43:47AM -0500, Michael J. Ruhl wrote:
-
-> diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
-> index d707b8e..884fc48 100644
-> +++ b/ibacm/prov/acmp/src/acmp.c
-> @@ -1579,10 +1579,12 @@ static void *acmp_retry_handler(void *context)
->  		pthread_mutex_unlock(&acmp_dev_lock);
+On Tue, Nov 14, 2017 at 11:44:17AM -0500, Michael J. Ruhl wrote:
+>  static inline int event_wait(event_t *e, int timeout)
+>  {
+> -	struct timeval curtime;
+>  	struct timespec wait;
+>  	int ret;
 >  
->  		acmp_process_timeouts();
-> -		wait = (int) (next_expire - time_stamp_ms());
-> -		if (wait > 0 && atomic_get(&wait_cnt)) {
-> -			pthread_testcancel();
-> -			event_wait(&timeout_event, wait);
-> +		if (next_expire != -1) {
-> +			wait = (int) (next_expire - time_stamp_ms());
+> -	gettimeofday(&curtime, NULL);
+> -	wait.tv_sec = curtime.tv_sec + ((unsigned) timeout) / 1000;
+> -	wait.tv_nsec = (curtime.tv_usec + (((unsigned) timeout) % 1000) * 1000) * 1000;
+> +	clock_gettime(CLOCK_MONOTONIC, &wait);
+> +	wait.tv_sec = wait.tv_sec + ((unsigned int) timeout) / 1000;
+> +	wait.tv_nsec = (wait.tv_nsec + (((unsigned int) timeout) % 1000) * 1000000);
 
-This (int) cast is also wrong..
-
-If you want to do signed subtraction then you need to cast the
-arguments to '-' not the result, and since time_stamp_ms() is u64,
-casting it to int will truncate.
-
-wait needs to be int64_t, next_expire should be int64_t and then no
-casts are needed.
-
-All of time_stamp_* should return int64_t
-
-And the #define time_stamp_* should not be macros, but inline
-functions returning int64_t to make the return type guarenteed and
-clear.
-
-This isn't really related to this series, but if you send a followup
-patch it would be nice since it has been now been noticed :)
+since timeout must be positive just declare it as 'unsigned int' in the
+function signature and all the ugly casts go away and the function
+argument range is now documented..
 
 Jason
 --
