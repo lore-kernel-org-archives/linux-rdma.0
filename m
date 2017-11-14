@@ -1,111 +1,49 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3 0/4] ibacm: acmp retry issues
-Date: Tue, 14 Nov 2017 21:40:35 +0200
-Message-ID: <20171114194035.GJ18825@mtr-leonro.local>
-References: <20171114164006.24557.72093.stgit@phlsvslse11.ph.intel.com>
- <20171114184603.GG18825@mtr-leonro.local>
- <14063C7AD467DE4B82DEDB5C278E86639F0C279D@FMSMSX108.amr.corp.intel.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: rdma-core stable releases
+Date: Tue, 14 Nov 2017 12:43:58 -0700
+Message-ID: <20171114194358.GN4263@ziepe.ca>
+References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
+ <20171106182756.GD18802@ziepe.ca>
+ <6012d1c3-cd18-25e8-c5ae-3d678142177b@suse.de>
+ <54347E5A035A054EAE9D05927FB467F9B61778A9@ORSMSX101.amr.corp.intel.com>
+ <20171110202455.GP18825@mtr-leonro.local>
+ <20171110211448.GF17451@ziepe.ca>
+ <1eba9063-80a4-ad9d-4adf-93770b9ed7c9@suse.de>
+ <20171113070856.GZ18825@mtr-leonro.local>
+ <ab4f8a20-8b32-ff5d-cf82-97e69a660cce@suse.de>
+ <20171114110558.GX18825@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="CZSH3HuPF+BTlXjX"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <14063C7AD467DE4B82DEDB5C278E86639F0C279D-AtyAts71sc88Ug9VwtkbtrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20171114110558.GX18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---CZSH3HuPF+BTlXjX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Nov 14, 2017 at 07:10:45PM +0000, Ruhl, Michael J wrote:
->
->
-> > -----Original Message-----
-> > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
-> > Sent: Tuesday, November 14, 2017 1:46 PM
-> > To: Ruhl, Michael J <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: Re: [PATCH v3 0/4] ibacm: acmp retry issues
+On Tue, Nov 14, 2017 at 01:05:58PM +0200, Leon Romanovsky wrote:
+> On Tue, Nov 14, 2017 at 11:27:40AM +0100, Nicolas Morey-Chaisemartin wrote:
 > >
-> > On Tue, Nov 14, 2017 at 11:43:00AM -0500, Michael J. Ruhl wrote:
-> > > While testing the retry mechanism for the acmp provider, I observed
-> > > that the retry event_wait() did not appear to be working correctly.
-> > > After studying the issue a bit more, I discovered that there were a
-> > > couple of issues.
-> > >
-> > > This patch set addresses those issues.
-> > >
-> > > v2 - added patch for MONOTONIC time base
-> > > v3 - Updated and cleaned various type cast issues
-> > >
-> > > ---
-> > >
-> > > Michael J. Ruhl (4):
-> > >       ibacm: Fix an incorrect expiration check for the retry timer
-> > >       ibacm: Calculate correct tv_nsec value in event_wait()
-> > >       ibacm: Fix a retry loop calculation race condition
-> > >       ibacm: Use MONOTONIC time base to avoid timer expiration issues
-> > >
-> > >
-> > >  ibacm/linux/osd.h          |   25 ++++++++++++++++---------
-> > >  ibacm/prov/acmp/src/acmp.c |   12 +++++++-----
-> > >  2 files changed, 23 insertions(+), 14 deletions(-)
-> > >
 > >
-> > Can you please use [PATCH rdma-core ..] format for rdma-core patches?
->
-> Hi Leon,
->
-> Yes, I will reformat.
->
-> Is there a place to put patch set version information?  i.e [PATCH rdma-core v4, x/y]?  (should I just drop it for this patch set?)
+> > Le 13/11/2017 à 08:08, Leon Romanovsky a écrit :
+> > > On Mon, Nov 13, 2017 at 08:01:48AM +0100, Nicolas Morey-Chaisemartin wrote: >> >> >> Le 10/11/2017 à 22:14, Jason Gunthorpe a écrit : >>> On Fri, Nov 10, 2017 at 10:24:55PM +0200, Leon Romanovsky wrote: >>>> More or less, you wrote everything that I expected, just need to post it >>>> as a patch so I can apply it to rdma-core. >>> Also please describe how to get patches into -stable, eg similar to >>> the kernel, mark with fixes and cc the stable maintainer. >>> >>> There should also be absolutely no ABI changes in the -stable branchs. >> >> Agreed. Ideally we would add something to CI so that it detects ABI breake on stable branches. >> I know SUSE has something like this for maintenance fixes. I'll look into it. > > DPDK runs ABI compliance checker. > http://ispras.linuxbase.org/
+ index.php/ABI_compliance_checker > > I would love to see it running for rdma-core. > > Thanks >
+> > Got the scripts ready for this BUT the versions available in docker of abi-dump/abi-compliance-checker are not compatible.
+> > As both are GPLv2, could I import them into buildlib ?
+> 
+> I'm not a lawyer, Our dual license policy is relevant for source
+> code and build scripts only. The tools for our CI can be GPLv2-only.
 
-1. There is no need to resubmit this series.
-2. I'm looking for "rdma-core", anything else (versions and locations) is up to you.
+Right, but it is very important that any important code come with the
+right license files in COPYING.* so you'd have to at least add
+COPYING.LGPL and update debian/copyright and COPYING.md
 
->
-> Thanks,
->
-> Mike
->
-> > We are using patchworks to handle queue and it is so handy to filter
-> > patches in such way:
-> > https://patchwork.kernel.org/project/linux-rdma/list/?q=rdma-core
-> >
-> > Thanks
-> >
-> > > --
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The files look small enough that we could choose to include them in
+buildlib.
 
---CZSH3HuPF+BTlXjX
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloLRrMACgkQ5GN7iDZy
-WKcBqw//Wl2jH/kdYZW52Ic3H2ZW9vjdI2JK5q1E46meRzoTFDY86mo89AKoWehP
-qNMqt7C48nsMQQxm9H4jE5m518IH8isea16guaYT2hWHrC5zGQEaYnJyuQFHE4sC
-Z1q0pTV38lAlpcTTrY+DAnLAgTjU5nF/gq6UUGM5YY9BBVjlktor1kjrdCFvGL1+
-sC4cP0PuPAC2Jz0LP3zuuxP2Mt3G+0h0t4fxftc4UFEjGgksCa9Aj6wxCJEAoGhy
-GUqIf/mFdhNrdCYSrxF8pskRSJOVxCJzJdim+xTHR8TOxmwRowXGSLqvq0xHcS/E
-Nxc6wh38/OtaTeRcC0LYbRnP2IAXcsNWqL5EYvKdKfcdhjrzWNQQSiYk0w1DVBrA
-ykGAHC7njHPFubgBi+jL1K+61t5jhZF0seCncq+ARBznd/hRUoWiiUHAxS0shUNt
-iSNELFLkUyQC8rLFRlRIS2oluPkgbEZreiemFUAMuDcWmk8Yr8xQy6o0gQrmw9d7
-p1iMDhIPKheaObTOiTfjAZayFMK3PX/XKReKVmUdqk99QLupEf/sGBEpJkRX/3eg
-lE7RHmlBanR2rWRKztX2wzUiSvCRiv1En8WpvIqEYptlOBo6uFByVvs2g+FScAnY
-xo9wd+l8enXCPAmnCb/p8G3UUflEfWpfxzBNCoBcrr6Gs8OL/MM=
-=2I72
------END PGP SIGNATURE-----
-
---CZSH3HuPF+BTlXjX--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
