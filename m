@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 29/31] IB/{core, cm, cma, ipoib}: Rename ib_init_ah_from_path to ib_init_ah_attr_from_path
-Date: Tue, 14 Nov 2017 14:52:16 +0200
-Message-ID: <20171114125218.20477-30-leon@kernel.org>
+Subject: [PATCH rdma-next 31/31] IB/cm: Refactor to avoid setting path record software only fields
+Date: Tue, 14 Nov 2017 14:52:18 +0200
+Message-ID: <20171114125218.20477-32-leon@kernel.org>
 References: <20171114125218.20477-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171114125218.20477-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,115 +12,138 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Since ib_init_ah_from_path initializes the address handle attribute, it is
-renamed to reflect so.
+When path ah_attr initialization from path record
+fails, ib_cm_send_rej() uses av.ah_attr fields to send out reject
+message. In such cases initialization of path record software fields
+is not needed. Code is simplified for same.
+
+Additionally in current code in cm_req_handler, when ib_get_cached_gid
+fails for a given sgid_index of the GID of the GRH of the incoming CM MAD,
+error code 12 is sent. This error code refers to primary GID in incoming
+CM REQ and not for the GID in in MAD packet.
+Therefore code is refactored to send code 5 (unsupported request) for such
+error.
 
 Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/cm.c              |  4 ++--
- drivers/infiniband/core/cma.c             |  7 ++++---
- drivers/infiniband/core/sa_query.c        |  8 ++++----
- drivers/infiniband/ulp/ipoib/ipoib_main.c |  3 ++-
- include/rdma/ib_sa.h                      | 10 +++++-----
- 5 files changed, 17 insertions(+), 15 deletions(-)
+ drivers/infiniband/core/cm.c | 92 +++++++++++++++++++++-----------------------
+ 1 file changed, 44 insertions(+), 48 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 19fd1699dc52..3bb82c6ec88d 100644
+index e5d96bd3c377..dc61e66ae7e6 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -494,8 +494,8 @@ static int cm_init_av_by_path(struct sa_path_rec *path, struct cm_av *av,
- 		return ret;
- 
- 	av->port = port;
--	ret = ib_init_ah_from_path(cm_dev->ib_device, port->port_num, path,
--				   &av->ah_attr);
-+	ret = ib_init_ah_attr_from_path(cm_dev->ib_device, port->port_num, path,
-+					&av->ah_attr);
- 	if (ret)
- 		return ret;
- 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 19769ea4d71f..5ab646a24089 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -3396,9 +3396,10 @@ static int cma_sidr_rep_handler(struct ib_cm_id *cm_id,
- 			event.status = ret;
- 			break;
- 		}
--		ib_init_ah_from_path(id_priv->id.device, id_priv->id.port_num,
--				     id_priv->id.route.path_rec,
--				     &event.param.ud.ah_attr);
-+		ib_init_ah_attr_from_path(id_priv->id.device,
-+					  id_priv->id.port_num,
-+					  id_priv->id.route.path_rec,
-+					  &event.param.ud.ah_attr);
- 		event.param.ud.qp_num = rep->qpn;
- 		event.param.ud.qkey = rep->qkey;
- 		event.event = RDMA_CM_EVENT_ESTABLISHED;
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index ab5e1024fea9..7cd37e77debb 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -1227,9 +1227,9 @@ static u8 get_src_path_mask(struct ib_device *device, u8 port_num)
- 	return src_path_mask;
- }
- 
--int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
--			 struct sa_path_rec *rec,
--			 struct rdma_ah_attr *ah_attr)
-+int ib_init_ah_attr_from_path(struct ib_device *device, u8 port_num,
-+			      struct sa_path_rec *rec,
-+			      struct rdma_ah_attr *ah_attr)
- {
- 	int ret;
- 	u16 gid_index;
-@@ -1341,7 +1341,7 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
- 
- 	return 0;
- }
--EXPORT_SYMBOL(ib_init_ah_from_path);
-+EXPORT_SYMBOL(ib_init_ah_attr_from_path);
- 
- static int alloc_mad(struct ib_sa_query *query, gfp_t gfp_mask)
- {
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 33f592cee5d8..71a66a7d265e 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -768,7 +768,8 @@ static void path_rec_completion(int status,
- 	if (!status) {
- 		struct rdma_ah_attr av;
- 
--		if (!ib_init_ah_from_path(priv->ca, priv->port, pathrec, &av))
-+		if (!ib_init_ah_attr_from_path(priv->ca, priv->port,
-+					       pathrec, &av))
- 			ah = ipoib_create_ah(dev, priv->pd, &av);
+@@ -1868,56 +1868,52 @@ static int cm_req_handler(struct cm_work *work)
+ 				work->port->port_num,
+ 				grh->sgid_index,
+ 				&gid, &gid_attr);
+-	if (!ret) {
+-		if (gid_attr.ndev) {
+-			work->path[0].rec_type =
+-				sa_conv_gid_to_pathrec_type(gid_attr.gid_type);
+-			sa_path_set_ifindex(&work->path[0],
+-					    gid_attr.ndev->ifindex);
+-			sa_path_set_ndev(&work->path[0],
+-					 dev_net(gid_attr.ndev));
++	if (ret) {
++		if (gid_attr.ndev)
+ 			dev_put(gid_attr.ndev);
+-		} else {
+-			cm_path_set_rec_type(work->port->cm_dev->ib_device,
+-					     work->port->port_num,
+-					     &work->path[0],
+-					     &req_msg->primary_local_gid);
+-		}
+-		if (cm_req_has_alt_path(req_msg))
+-			work->path[1].rec_type = work->path[0].rec_type;
+-		cm_format_paths_from_req(req_msg, &work->path[0],
+-					 &work->path[1]);
+-		if (cm_id_priv->av.ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE)
+-			sa_path_set_dmac(&work->path[0],
+-					 cm_id_priv->av.ah_attr.roce.dmac);
+-		work->path[0].hop_limit = grh->hop_limit;
+-		ret = cm_init_av_by_path(&work->path[0], &cm_id_priv->av,
+-					 cm_id_priv);
++		ib_send_cm_rej(cm_id, IB_CM_REJ_UNSUPPORTED, NULL, 0, NULL, 0);
++		goto rejected;
  	}
- 
-diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
-index 1f7f604db5aa..811cfcfcbe3d 100644
---- a/include/rdma/ib_sa.h
-+++ b/include/rdma/ib_sa.h
-@@ -549,12 +549,12 @@ int ib_init_ah_from_mcmember(struct ib_device *device, u8 port_num,
- 			     struct rdma_ah_attr *ah_attr);
- 
- /**
-- * ib_init_ah_from_path - Initialize address handle attributes based on an SA
-- *   path record.
-+ * ib_init_ah_attr_from_path - Initialize address handle attributes based on
-+ *   an SA path record.
-  */
--int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
--			 struct sa_path_rec *rec,
--			 struct rdma_ah_attr *ah_attr);
-+int ib_init_ah_attr_from_path(struct ib_device *device, u8 port_num,
-+			      struct sa_path_rec *rec,
-+			      struct rdma_ah_attr *ah_attr);
- 
- /**
-  * ib_sa_pack_path - Conert a path record from struct ib_sa_path_rec
++
++	if (gid_attr.ndev) {
++		work->path[0].rec_type =
++			sa_conv_gid_to_pathrec_type(gid_attr.gid_type);
++		sa_path_set_ifindex(&work->path[0],
++				    gid_attr.ndev->ifindex);
++		sa_path_set_ndev(&work->path[0],
++				 dev_net(gid_attr.ndev));
++		dev_put(gid_attr.ndev);
++	} else {
++		cm_path_set_rec_type(work->port->cm_dev->ib_device,
++				     work->port->port_num,
++				     &work->path[0],
++				     &req_msg->primary_local_gid);
++	}
++	if (cm_req_has_alt_path(req_msg))
++		work->path[1].rec_type = work->path[0].rec_type;
++	cm_format_paths_from_req(req_msg, &work->path[0],
++				 &work->path[1]);
++	if (cm_id_priv->av.ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE)
++		sa_path_set_dmac(&work->path[0],
++				 cm_id_priv->av.ah_attr.roce.dmac);
++	work->path[0].hop_limit = grh->hop_limit;
++	ret = cm_init_av_by_path(&work->path[0], &cm_id_priv->av,
++				 cm_id_priv);
+ 	if (ret) {
+-		int err = ib_get_cached_gid(work->port->cm_dev->ib_device,
+-					    work->port->port_num, 0,
+-					    &work->path[0].sgid,
+-					    &gid_attr);
+-		if (!err && gid_attr.ndev) {
+-			work->path[0].rec_type =
+-				sa_conv_gid_to_pathrec_type(gid_attr.gid_type);
+-			sa_path_set_ifindex(&work->path[0],
+-					    gid_attr.ndev->ifindex);
+-			sa_path_set_ndev(&work->path[0],
+-					 dev_net(gid_attr.ndev));
+-			dev_put(gid_attr.ndev);
+-		} else {
+-			cm_path_set_rec_type(work->port->cm_dev->ib_device,
+-					     work->port->port_num,
+-					     &work->path[0],
+-					     &req_msg->primary_local_gid);
+-		}
+-		if (cm_req_has_alt_path(req_msg))
+-			work->path[1].rec_type = work->path[0].rec_type;
+-		ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_GID,
+-			       &work->path[0].sgid, sizeof work->path[0].sgid,
+-			       NULL, 0);
++		int err;
++
++		err = ib_get_cached_gid(work->port->cm_dev->ib_device,
++					work->port->port_num, 0,
++					&work->path[0].sgid,
++					NULL);
++		if (err)
++			ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_GID,
++				       NULL, 0, NULL, 0);
++		else
++			ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_GID,
++				       &work->path[0].sgid,
++				       sizeof(work->path[0].sgid),
++				       NULL, 0);
+ 		goto rejected;
+ 	}
+ 	if (cm_req_has_alt_path(req_msg)) {
+@@ -1926,7 +1922,7 @@ static int cm_req_handler(struct cm_work *work)
+ 		if (ret) {
+ 			ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_ALT_GID,
+ 				       &work->path[0].sgid,
+-				       sizeof work->path[0].sgid, NULL, 0);
++				       sizeof(work->path[0].sgid), NULL, 0);
+ 			goto rejected;
+ 		}
+ 	}
 -- 
 2.15.0
 
