@@ -1,57 +1,43 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/3] debian: Update changelog to include
- Debian upload
-Date: Tue, 14 Nov 2017 21:34:06 +0100
-Message-ID: <1510691646.4026.50.camel@profitbricks.com>
-References: <20171114113330.2715-1-benjamin.drung@profitbricks.com>
-         <20171114113330.2715-4-benjamin.drung@profitbricks.com>
-         <20171114202823.GQ4263@ziepe.ca>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/6] debian: Let libibverbs1 16 break
+ ibverbs-providers 15
+Date: Tue, 14 Nov 2017 13:39:39 -0700
+Message-ID: <20171114203939.GT4263@ziepe.ca>
+References: <20171114200247.25890-1-benjamin.drung@profitbricks.com>
+ <20171114200247.25890-2-benjamin.drung@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171114202823.GQ4263-uk2M96/98Pc@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171114200247.25890-2-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Am Dienstag, den 14.11.2017, 13:28 -0700 schrieb Jason Gunthorpe:
-> On Tue, Nov 14, 2017 at 12:33:30PM +0100, Benjamin Drung wrote:
-> > rdma-core 15-1 was accepted in Debian. Include the changelog from
-> > that
-> > upload.
+On Tue, Nov 14, 2017 at 09:02:42PM +0100, Benjamin Drung wrote:
+> ibverbs-providers uses the private symbols of libibverbs1. Thus
+> libibverbs1 will not work with an old version version of
+> ibverbs-providers if the private symbol version is bumped.
 > 
-> I was thinking we'd keep the distro changelogs some place else? We
-> are
-> not going to try and store RH or suse changelogs for instance.
-> 
-> Not a big deal for this one, obviously.
+> Bump the ibverbs-providers version that libibverbs1 breaks which was
+> forgotten on the symbol version bump. See also commit
+> 611b7cc3b8e0d79aa986f042f486fccc95d73679. Append a tilde to support
+> the lower version numbers (e.g. 16~201711132208) in the PPA builds.
 
-The advantage to include the changelog entries from Debian in the
-master tree is that users can see that the packaging is the same and
-that it is up-to-date. And user can see which version Debian package
-version corresponds to the version from the master branch.
+This seems strange to me, we don't really need Breaks semantics here.
 
-I can often find debian packaging from upstream projects that either
-use their complete own packaging or a very outdated fork of the
-packaging from Debian.
+Shouldn't we do something like:
 
--- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
+Package: ibverbs-providers
+Depends: [..], libibverbs1 (= ${binary:Version}),
 
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
+?
 
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-URL: https://www.profitbricks.de
+We really do not want to encourage mixing and matching versions.
 
-Sitz der Gesellschaft: Berlin
-Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
-Geschäftsführer: Achim Weiss, Matthias Steinberg
+IIRC the existing breaks is only because of how the new packages
+interact with the legacy ones??
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
