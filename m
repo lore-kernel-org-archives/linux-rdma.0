@@ -1,62 +1,61 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 0/9] Introduce per-device completion queue pools
-Date: Tue, 14 Nov 2017 12:06:16 +0200
-Message-ID: <1abee653-425d-940a-a51c-7fcd43af7203@mellanox.com>
-References: <20171108095742.25365-1-sagi@grimberg.me>
- <1510245771.2608.6.camel@wdc.com>
- <d5820b65-b428-7cd1-f7f1-7d8d89d21cf5@grimberg.me>
- <1510248716.2608.17.camel@wdc.com>
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH rdma-core] Documentation: add documentation about stable
+ branches
+Date: Tue, 14 Nov 2017 11:10:48 +0100
+Message-ID: <1510654248.4026.11.camel@profitbricks.com>
+References: <44465a29-bbfc-83ae-8bd4-7d6c11590f2a@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1510248716.2608.17.camel-Sjgp3cTcYWE@public.gmane.org>
-Content-Language: he
+In-Reply-To: <44465a29-bbfc-83ae-8bd4-7d6c11590f2a-l3A5Bk7waGM@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 11/9/2017 7:31 PM, Bart Van Assche wrote:
-> On Thu, 2017-11-09 at 19:22 +0200, Sagi Grimberg wrote:
->> But I'm afraid don't understand how the fact that ULPs will run on
->> different ports matter? how would the fact that we had two different
->> pools on different ports make a difference?
+Am Montag, den 13.11.2017, 18:03 +0100 schrieb Nicolas Morey-
+Chaisemartin:
+> Add doc file to detail the stable- process: release, submission.
 > 
-> If each RDMA port is only used by a single ULP then the ULP driver can provide
-> a better value for the CQ size than IB_CQE_BATCH. If CQ pools would be created
-> by ULPs then it would be easy for ULPs to pass their choice of CQ size to the
-> RDMA core.
-
-I also prefer more the CQ pools per ULP approach (like we did with the 
-MR pools per QP) in the first stage. For example, we saw a big 
-improvement in NVMEoF performance when we did CQ moderation (currently 
-local implementation in our labs). If we'll moderate shared CQ (iser + 
-nvmf CQ) we can ruin other ULP performance. ISER/SRP/NVMEoF/NFS has 
-different needs and different architectures, so even adaptive moderation 
-will not supply the best performance in that case.
-
-We can (I meant I can :)) also implement SRQ pool per ULP (and then push 
-my NVMEoF target SRQ per completion vector feature that saves resource 
-allocation and still gives us very good numbers - almost same as using a 
-non shared RQ).
-
+> Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-WDPRK7U/wSs@public.gmane.org
+> m>
+> ---
 > 
-> In case multiple ULPs share an RDMA port then which CQ is chosen for the ULP
-> will depend on the order in which the ULP drivers are loaded. This may lead to
-> hard to debug performance issues, e.g. due to different lock contention
-> behavior. That's another reason why per-ULP CQ pools look more interesting to
-> me than one CQ pool per HCA.
-
-debug is also a good point..
-
+> The nice version without markup can be seen here: https://github.com/
+> nmorey/rdma-core/blob/dev/master/stable-guide/Documentation/stable.md
 > 
-> Bart.
+>  Documentation/stable.md | 64
+> +++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 64 insertions(+)
+>  create mode 100644 Documentation/stable.md
+> 
+> diff --git a/Documentation/stable.md b/Documentation/stable.md
+> new file mode 100644
+> index 00000000..b9405848
+> --- /dev/null
+> +++ b/Documentation/stable.md
+> @@ -0,0 +1,64 @@
+> [...]
+> +See versioning.md for setting package version on a stable branch.
+> \ No newline at end of file
 
--Max.
+Please add a newline at the end of the stable.md file.
 
+-- 
+Benjamin Drung
+System Developer
+Debian & Ubuntu Developer
+
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
+
+Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+URL: https://www.profitbricks.de
+
+Sitz der Gesellschaft: Berlin
+Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
+Geschäftsführer: Achim Weiss, Matthias Steinberg
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
