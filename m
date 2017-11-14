@@ -1,46 +1,89 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH v2 4/4] ibacm: Use MONOTONIC time base to avoid timer
- expiration issues
-Date: Mon, 13 Nov 2017 20:04:14 -0700
-Message-ID: <20171114030414.GP22610@ziepe.ca>
-References: <20171113212220.24293.97479.stgit@phlsvslse11.ph.intel.com>
- <20171113212454.24293.68783.stgit@phlsvslse11.ph.intel.com>
+From: Girish Moodalbail <girish.moodalbail@oracle.com>
+Subject: Re: KASAN: use-after-free Read in rds_tcp_dev_event
+Date: Mon, 13 Nov 2017 19:30:39 -0800
+Message-ID: <9e71dff9-7ba8-a3c2-6862-fb8557546a54@oracle.com>
+References: <001a1148d244ade0aa055d6a69b9@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171113212454.24293.68783.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <001a1148d244ade0aa055d6a69b9@google.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: syzbot <bot+643ecad3f5bb49700e839363b608c4928f6db8f0@syzkaller.appspotmail.com>, davem@davemloft.net, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, santosh.shilimkar@oracle.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 13, 2017 at 04:25:04PM -0500, Michael J. Ruhl wrote:
+On 11/7/17 12:28 PM, syzbot wrote:
+> Hello,
+> 
+> syzkaller hit the following crash on 287683d027a3ff83feb6c7044430c79881664ecf
+> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/master
+> compiler: gcc (GCC) 7.1.1 20170620
+> .config is attached
+> Raw console output is attached.
+> 
+> 
+> 
+> 
+> ==================================================================
+> BUG: KASAN: use-after-free in rds_tcp_kill_sock net/rds/tcp.c:530 [inline]
+> BUG: KASAN: use-after-free in rds_tcp_dev_event+0xc01/0xc90 net/rds/tcp.c:568
+> Read of size 8 at addr ffff8801cd879200 by task kworker/u4:3/147
+> 
+> CPU: 0 PID: 147 Comm: kworker/u4:3 Not tainted 4.14.0-rc7+ #156
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 
+> 01/01/2011
+> Workqueue: netns cleanup_net
+> Call Trace:
+>   __dump_stack lib/dump_stack.c:16 [inline]
+>   dump_stack+0x194/0x257 lib/dump_stack.c:52
+>   print_address_description+0x73/0x250 mm/kasan/report.c:252
+>   kasan_report_error mm/kasan/report.c:351 [inline]
+>   kasan_report+0x25b/0x340 mm/kasan/report.c:409
+>   __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+>   rds_tcp_kill_sock net/rds/tcp.c:530 [inline]
+>   rds_tcp_dev_event+0xc01/0xc90 net/rds/tcp.c:568
 
-Sorry, noticed a few more wonky things:
+The issue here is that we are trying to reference a network namespace (struct 
+net *) that is long gone (i.e., L532 below -- c_net is the culprit).
 
->  #define event_signal(e)	pthread_cond_signal(&(e)->cond)
->  #define ONE_SEC_IN_NSEC  1000000000
+     528         spin_lock_irq(&rds_tcp_conn_lock);
+     529         list_for_each_entry_safe(tc, _tc, &rds_tcp_conn_list,
+                      t_tcp_node) {
+     530                 struct net *c_net = tc->t_cpath->cp_conn->c_net;
+     531
+     532                 if (net != c_net || !tc->t_sock)
+     533                         continue;
+     534                 if (!list_has_conn(&tmp_list, tc->t_cpath->cp_conn))
+     535                         list_move_tail(&tc->t_tcp_node, &tmp_list);
+     536         }
+     537         spin_unlock_irq(&rds_tcp_conn_lock);
+     538         list_for_each_entry_safe(tc, _tc, &tmp_list, t_tcp_node) {
+     539                 rds_tcp_conn_paths_destroy(tc->t_cpath->cp_conn);
+     540                 rds_conn_destroy(tc->t_cpath->cp_conn);
+     541         }
 
-That should be 1000000000ULL so math doesn't accidental truncate
+When a network namespace is deleted, devices within that namespace are 
+unregistered and removed one by one. RDS is notified about this event through 
+rds_tcp_dev_event() callback. When the loopback device is removed from the 
+namespace, the above RDS callback function destroys all the RDS connections in 
+that namespace.
 
-> +	clock_gettime(CLOCK_MONOTONIC, &wait);
-> +	wait.tv_sec = wait.tv_sec + ((unsigned) timeout) / 1000;
-> +	wait.tv_nsec = (wait.tv_nsec + (((unsigned) timeout) % 1000) * 1000000);
+The loop@L529 above walks through each of the rds_tcp connection in the global 
+list (rds_tcp_conn_list) to see if that connection belongs to the namespace in 
+question. It collects all such connections and destroys them (L538-540). 
+However, it leaves behind some of the rds_tcp connections that shared the same 
+underlying RDS connection (L534 and 535). These connections with pointer to 
+stale network namespace are left behind in the global list. When the 2nd network 
+namespace is deleted, we will hit the above stale pointer and hit UAF panic.
 
-Why the odd casts to (unsigned) ? That should be (unsigned int)
+I think we should move away from global list to a per-namespace list. The global 
+list are used only in two places (both of which are per-namespace operations):
 
-> -	return (uint64_t) curtime.tv_sec * 1000000 + (uint64_t) curtime.tv_usec;
-> +	struct timespec t;
-> +	clock_gettime(CLOCK_MONOTONIC, &t);
-> +	return ((uint64_t)t.tv_sec * ONE_SEC_IN_NSEC + (uint64_t)t.tv_nsec) / 1000;
+  - to destroy all the RDS connections belonging to a namespace when the
+    network namespace is being deleted.
+  - to reset all the RDS connections  when socket parameters for a namespace are
+    modified using sysctl
 
-These casts to uint64_t are also wrong, time is technically
-signed. The change to ONE_SEC_IN_NSEC should remove the need
-for the casting.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+~Girish
