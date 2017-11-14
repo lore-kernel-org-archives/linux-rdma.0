@@ -1,35 +1,83 @@
-From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: rdma-core stable releases
-Date: Tue, 14 Nov 2017 11:27:40 +0100
-Message-ID: <ab4f8a20-8b32-ff5d-cf82-97e69a660cce@suse.de>
-References: <CY1PR0701MB2012C57AB3FDE0232D72F70688500@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <20171106182756.GD18802@ziepe.ca>
- <6012d1c3-cd18-25e8-c5ae-3d678142177b@suse.de>
- <54347E5A035A054EAE9D05927FB467F9B61778A9@ORSMSX101.amr.corp.intel.com>
- <20171110202455.GP18825@mtr-leonro.local> <20171110211448.GF17451@ziepe.ca>
- <1eba9063-80a4-ad9d-4adf-93770b9ed7c9@suse.de>
- <20171113070856.GZ18825@mtr-leonro.local>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH RFC rdma-core 4/5] mlx5: Add support for ibv_parent domain
+ and its related verbs
+Date: Tue, 14 Nov 2017 12:29:14 +0200
+Message-ID: <4232d248-8fb3-1d64-e117-6034d9240a05@dev.mellanox.co.il>
+References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
+ <1510522903-6838-5-git-send-email-yishaih@mellanox.com>
+ <20171113200320.GE22610@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171113070856.GZ18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: fr-xx-classique+reforme1990
+In-Reply-To: <20171113200320.GE22610-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 11/13/2017 10:03 PM, Jason Gunthorpe wrote:
+> On Sun, Nov 12, 2017 at 11:41:42PM +0200, Yishai Hadas wrote:
+> 
+>> @@ -319,6 +319,9 @@ struct mlx5_buf {
+>>   struct mlx5_pd {
+>>   	struct ibv_pd			ibv_pd;
+>>   	uint32_t			pdn;
+>> +	int 				is_parent_domain;
+>> +	struct ibv_td			*td;
+>> +	struct ibv_pd			*protection_domain;
+> 
+> is_parent_domain can just be protection_domain != NULL
 
+It's not enough, there might be cases that protection_domain is NULL but 
+still the object is a parent domain as of in the CQ case where td may be 
+applicable but not the protection_domain. Better having here clear 
+indication which is set upon the creation API rather than some semantic.
 
-Le 13/11/2017 à 08:08, Leon Romanovsky a écrit :
-> On Mon, Nov 13, 2017 at 08:01:48AM +0100, Nicolas Morey-Chaisemartin wrote: >> >> >> Le 10/11/2017 à 22:14, Jason Gunthorpe a écrit : >>> On Fri, Nov 10, 2017 at 10:24:55PM +0200, Leon Romanovsky wrote: >>>> More or less, you wrote everything that I expected, just need to post it >>>> as a patch so I can apply it to rdma-core. >>> Also please describe how to get patches into -stable, eg similar to >>> the kernel, mark with fixes and cc the stable maintainer. >>> >>> There should also be absolutely no ABI changes in the -stable branchs. >> >> Agreed. Ideally we would add something to CI so that it detects ABI breake on stable branches. >> I know SUSE has something like this for maintenance fixes. I'll look into it. > > DPDK runs ABI compliance checker. > http://ispras.linuxbase.org/index.
- php/ABI_compliance_checker > > I would love to see it running for rdma-core. > > Thanks >
-Got the scripts ready for this BUT the versions available in docker of abi-dump/abi-compliance-checker are not compatible.
-As both are GPLv2, could I import them into buildlib ?
+>> +struct ibv_pd *mlx5_alloc_parent_domain(struct ibv_context *context,
+>> +			struct ibv_parent_domain_init_attr *attr)
+>> +{
+>> +	struct mlx5_pd	*pd;
+>> +
+>> +	pd = calloc(1, sizeof *pd);
+>> +	if (!pd)
+>> +		return NULL;
+>> +
+>> +	pd->is_parent_domain = 1;
+>> +	pd->td = attr->td;
+>> +	pd->protection_domain= attr->pd;
+> 
+> Don't we need some kind of ref counting here?
+> 
 
-Nicolas
+We thought about it as well, however reference counting can't prevent 
+race conditions when more than one thread uses the API.
+We expect the application to work as the API is documented. (e.g. 
+dealloc_parent_domain() first and then its internal protection domain 
+and thread domain.
 
+Similar behavior exists also in current code which puts the 
+responsibility on the application to correctly use the API instead of 
+using some reference counting /locks inside the libraries.
+
+For example if one thread is calling alloc_pd() and then create_qp() and 
+second thread will call in parallel to dealloc_pd() and it will run 
+before the create_qp() will ended the application might oops in the user 
+area when ibv_pd will be used post its free as part of the command.
+
+> What is the intention for the final version of this patch?
+
+The next patch of this RFC around QP creation introduces the expected usage.
+
+Look at:
+static void mlx5_get_domains(struct ibv_pd *pd, struct ibv_pd
+                             **protection_domain, struct ibv_td **td)
+
+It gets an ibv_pd and returns both the protection domain and the thread 
+domain. This helper function will be used in other mlx5 verbs around 
+that gets an ibv_pd. In the final series there may be a separate patch 
+for that post this patch that introduces the parent domain.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
