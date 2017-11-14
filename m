@@ -1,84 +1,65 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: rdma-core debian/master branch
-Date: Tue, 14 Nov 2017 20:01:06 +0100
-Message-ID: <1510686066.4026.43.camel@profitbricks.com>
-References: <1510658470.4026.27.camel@profitbricks.com>
-         <20171114184725.GH18825@mtr-leonro.local>
+From: Nicolas Morey-Chaisemartin <nicolas-PVCUbA2IIkVH1sytvemUSjhD77mM7E+b@public.gmane.org>
+Subject: [PATCH rdma-core 3/5] buildlib: add script to check ABI
+Date: Tue, 14 Nov 2017 19:58:00 +0100
+Message-ID: <beba081a-4191-67b0-2eed-01aa24fafd82@morey-chaisemartin.com>
+References: <8306e0d4-3f4f-1d06-74e1-c971fc63f7b8@suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-d6K6x0JuGRNP2IVkc1oD"
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171114184725.GH18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <8306e0d4-3f4f-1d06-74e1-c971fc63f7b8-l3A5Bk7waGM@public.gmane.org>
+Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Add travis-checkabi which generates a dump of all rdma-core libraries
+ABI and checks them against a ref if they exists.
 
---=-d6K6x0JuGRNP2IVkc1oD
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
+Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org # v15
+---
+ buildlib/travis-checkabi | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+ create mode 100755 buildlib/travis-checkabi
 
-Am Dienstag, den 14.11.2017, 20:47 +0200 schrieb Leon Romanovsky:
-> On Tue, Nov 14, 2017 at 12:21:10PM +0100, Benjamin Drung wrote:
-> > Hi,
-> >=20
-> > I have a debian/master branch in my personal rdma-core fork:
-> > https://github.com/bdrung/rdma-core/commits/debian/master
-> > In addition, I tagged the upload with debian/15-1.
-> >=20
-> > This branch contains the exact content of the uploaded package to
-> > Debian. It would be nice if this branch could be included in the
-> > linux-
-> > rdma/rdma-core repository.
->=20
-> Is it possible to align it with stable-v15 branch?
+diff --git a/buildlib/travis-checkabi b/buildlib/travis-checkabi
+new file mode 100755
+index 00000000..7afa3b59
+--- /dev/null
++++ b/buildlib/travis-checkabi
+@@ -0,0 +1,28 @@
++#!/bin/bash
++
++# Stop on error
++set -e
++# Echo all commands to Travis log
++set -x
++
++REF_DIR=buildlib/ABI
++NEW_DIR=build-abi/ABI
++
++./buildlib/gen-abi
++
++# Current ABI not available !
++if [ ! -d $NEW_DIR ]; then
++	echo "ERROR: Missing ABI description files" >&2
++	exit 1
++fi
++# No reference ABI to match against.
++if [ ! -d $REF_DIR ]; then
++	echo "INFO: Skipping ABI check. No reference available"
++	exit 0
++fi
++
++for FILE in $(find $NEW_DIR -name "*.dump"); do 
++	DUMP=$(basename $FILE)
++	LIBNAME=$(echo $DUMP | sed -e 's/\(.*\).so.*/\1/')
++	./buildlib/abi-checker/abi-compliance-checker.pl -l $LIBNAME -old $REF_DIR/$DUMP -new $NEW_DIR/$DUMP
++done
+-- 
+2.15.0.168.g9a51f1b30.dirty
 
-Not really. This branch is more or less aligned with the master branch
-(as long as Debian does not hit the feature freeze), i.e. I will upload
-rdma-core 16 to Debian unstable once it is released (instead of 15.1).
-
-And I will do an 15-2 upload to address the build failures. So there is
-some divergence (at least in debian/changelog).
-
---=20
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-URL: https://www.profitbricks.de
-
-Sitz der Gesellschaft: Berlin
-Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
-Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss, Matthias Steinberg
---=-d6K6x0JuGRNP2IVkc1oD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAABCAAGBQJaCz1yAAoJEN2M1aXejH56ig8QAKh8EJxK8VgsCItIAORm1hgZ
-sTWQyh45hq/RcZPVv0qbGcOvWEl50Jx3eFg5TRiiJlEGndqZFIBlV5pja1/ofAYz
-X5Cu7l816UoRvBu5zG9Z2H3m1Wn9lfueyzRZmj0mYWYC+ef5OXJANXj0P0QXTlB9
-T+AwGqX/R5UKr0sW8V54F0BI0oK23gZYL+Y1ASKMi0zjFUpMTdNGafPfAzgqSKTN
-EyReyktNhjaAOSnt5Is2M59WhvqbPMhWgUdyVxD/y5re0qaJRpCUMj6jhvSd6rb7
-pinh5spemZ7rqvg6Juhntxe6/LzyLfPrgZdfyxHIdtY9q1cr7i3N2WYVe1HhBkJk
-XbQlBftLJ4Pjs5hwRcsjOZSzYUxEe8LFhOYs1ymmW2eNYH2R8ERoURFpUtSL+E2y
-SrW9rAgVeYcaLMtiO88yBFM44rYnse28JeF3cZD+I93GEojY3wTl+Yl8oaiXy3gX
-yPLxVbI96OFC46CNQ8zJiqlZBu8AC0o4hty6D14n6I8myZy5r+hwshc3gcEwspWH
-lADTL61w/K8GaSmWPBeMxDVhjMHIzMHRpHC7Gpohnb7f7HTMVFehJVW4IsiTMuRG
-fVHpo84AkKgRU0+YobPnjidGAhmuw1Xj7Yx8r66PzOaUfuW9W+slkmdIDCL+FTnc
-79pVksVHbB0LsxSFKG5Y
-=4zzz
------END PGP SIGNATURE-----
-
---=-d6K6x0JuGRNP2IVkc1oD--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
