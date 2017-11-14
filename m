@@ -1,87 +1,50 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH for-next 4/6] IB/CM: Change sgid to IB GID when handling
- CM request
-Date: Tue, 14 Nov 2017 18:50:13 +0000
-Message-ID: <VI1PR0502MB3008698B4478B2973FE1FA27D1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20171114122859.10579.79788.stgit@scvm10.sc.intel.com>
- <20171114123436.10579.95655.stgit@scvm10.sc.intel.com>
+From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH rdma-core stable-v15] verbs: Do not block QP attr_masks
+ used by older kernels
+Date: Tue, 14 Nov 2017 19:50:45 +0100
+Message-ID: <0a24c63b-c108-3301-e78f-7e38d58f5bdb@suse.de>
+References: <636b5412-e41e-40ed-46da-a0e83bd5b049@suse.de>
+ <20171114180451.GB18825@mtr-leonro.local> <20171114184912.GD4263@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171114123436.10579.95655.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20171114184912.GD4263-uk2M96/98Pc@public.gmane.org>
+Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgRGVubmlzLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IGxpbnV4
-LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtcmRtYS0NCj4gb3duZXJA
-dmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgRGVubmlzIERhbGVzc2FuZHJvDQo+IFNlbnQ6
-IFR1ZXNkYXksIE5vdmVtYmVyIDE0LCAyMDE3IDY6MzUgQU0NCj4gVG86IGRsZWRmb3JkQHJlZGhh
-dC5jb20NCj4gQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBEb24gSGlhdHQgPGRvbi5o
-aWF0dEBpbnRlbC5jb20+OyBJcmEgV2VpbnkNCj4gPGlyYS53ZWlueUBpbnRlbC5jb20+DQo+IFN1
-YmplY3Q6IFtQQVRDSCBmb3ItbmV4dCA0LzZdIElCL0NNOiBDaGFuZ2Ugc2dpZCB0byBJQiBHSUQg
-d2hlbiBoYW5kbGluZyBDTQ0KPiByZXF1ZXN0DQo+IA0KPiBGcm9tOiBEb24gSGlhdHQgPGRvbi5o
-aWF0dEBpbnRlbC5jb20+DQo+IA0KPiBVTFBzIGRvIG5vdCB1bmRlcnN0YW5kIE9QQSBHSURzIGFu
-ZCB3aWxsIHJlamVjdCBDTSByZXF1ZXN0cyBpZiB0aGUgc2dpZCBkb2VzDQo+IG5vdCBtYXRjaCB0
-aGUgbG9jYWxfZ2lkLiBJbiBvcmRlciB0byBmaXggdGhpcyBiZWhhdmlvciB3ZSBjb252ZXJ0IHRo
-ZSBPUEEgR0lEDQo+IGJhY2sgdG8gYW4gSUIgR0lELg0KPiANCj4gUmV2aWV3ZWQtYnk6IElyYSBX
-ZWlueSA8aXJhLndlaW55QGludGVsLmNvbT4NCj4gU2lnbmVkLW9mZi1ieTogRG9uIEhpYXR0IDxk
-b24uaGlhdHRAaW50ZWwuY29tPg0KPiBTaWduZWQtb2ZmLWJ5OiBEZW5uaXMgRGFsZXNzYW5kcm8g
-PGRlbm5pcy5kYWxlc3NhbmRyb0BpbnRlbC5jb20+DQo+IC0tLQ0KPiAgZHJpdmVycy9pbmZpbmli
-YW5kL2NvcmUvY20uYyB8ICAgMzgNCj4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrLS0NCj4gIDEgZmlsZXMgY2hhbmdlZCwgMzYgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMo
-LSkNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9jbS5jIGIvZHJp
-dmVycy9pbmZpbmliYW5kL2NvcmUvY20uYyBpbmRleA0KPiA1OTI3ZWU0Li5mOWY2ZjVlIDEwMDY0
-NA0KPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9jbS5jDQo+ICsrKyBiL2RyaXZlcnMv
-aW5maW5pYmFuZC9jb3JlL2NtLmMNCj4gQEAgLTE1NjAsNiArMTU2MCwzNyBAQCBzdGF0aWMgdTE2
-IGNtX2dldF9idGhfcGtleShzdHJ1Y3QgY21fd29yayAqd29yaykNCj4gIAlyZXR1cm4gcGtleTsN
-Cj4gIH0NCj4gDQo+ICsvKioNCj4gKyAqIENvbnZlcnQgT1BBIFNHSUQgdG8gSUIgU0dJRA0KPiAr
-ICogVUxQcyAoc3VjaCBhcyBJUG9JQikgZG8gbm90IHVuZGVyc3RhbmQgT1BBIEdJRHMgYW5kIHdp
-bGwNCj4gKyAqIHJlamVjdCB0aGVtIGFzIHRoZSBsb2NhbF9naWQgd2lsbCBub3QgbWF0Y2ggdGhl
-IHNnaWQuIFRoZXJlZm9yZSwNCj4gKyAqIGNoYW5nZSB0aGUgcGF0aHJlYydzIFNHSUQgdG8gYW4g
-SUIgU0dJRC4NCj4gKyAqDQpBZGRyZXNzIGFuZCBvdGhlciBjb252ZXJzaW9ucyBhcmUgaW4gaWJf
-c2EuaCBzdWNoIGFzIHBhdGhfY29udl9vcGFfdG9faWIoKS4NCkRvIHBhdGhfY29udl9vcGFfdG9f
-aWIgZnVuY3Rpb24gYWxzbyBuZWVkIHN1Y2ggb3BhIHRvIGliIGdpZCBjb252ZXJzaW9uPw0KQ2Fu
-IHlvdSBwbGFjZSBjbV9vcGFfdG9faWJfc2dpZCBmdW5jdGlvbiBpbiBjb3JlL2FkZHIuYyBhcyBp
-dCBkZWFscyB3aXRoIGFkZHJlc3Nlcy4NCg0KV2hpbGUgcmVwbHlpbmcgYmFjayB0byBDTSByZXF1
-ZXN0LCBpcyBpdCBvayB0byByZXBseSBiYWNrIHdpdGggSUIgR0lEIGFuZCByZXZlcnNlIGNvbnZl
-cnNpb24gbm90IG5lZWRlZCBvciBpdCByZXBsaWVzIHdpdGggT1BBIEdJRD8NCg0KPiArICogQHdv
-cms6IFdvcmsgY29tcGxldGlvbg0KPiArICogQHBhdGg6IFBhdGggcmVjb3JkDQo+ICsgKi8NCj4g
-K3N0YXRpYyB2b2lkIGNtX29wYV90b19pYl9zZ2lkKHN0cnVjdCBjbV93b3JrICp3b3JrLA0KPiAr
-CQkJICAgICAgc3RydWN0IHNhX3BhdGhfcmVjICpwYXRoKQ0KPiArew0KPiArCXN0cnVjdCBpYl9k
-ZXZpY2UgKmRldiA9IHdvcmstPnBvcnQtPmNtX2Rldi0+aWJfZGV2aWNlOw0KPiArCXN0cnVjdCBp
-Yl9naWRfYXR0ciBnaWRfYXR0cjsNCj4gKwl1OCBwb3J0X251bSA9IHdvcmstPnBvcnQtPnBvcnRf
-bnVtOw0KPiArDQo+ICsJaWYgKHJkbWFfY2FwX29wYV9haChkZXYsIHBvcnRfbnVtKSAmJg0KPiAr
-CSAgICAoaWJfaXNfb3BhX2dpZCgmcGF0aC0+c2dpZCkpKSB7DQo+ICsJCXVuaW9uIGliX2dpZCBz
-Z2lkOw0KPiArDQo+ICsJCWlmIChpYl9nZXRfY2FjaGVkX2dpZChkZXYsIHBvcnRfbnVtLCAwLA0K
-T25seSBnaWQgMCBuZWVkcyBjb252ZXJzaW9uPw0KDQo+ICsJCQkJICAgICAgJnNnaWQsICZnaWRf
-YXR0cikpIHsNClNpbmNlIGdpZCBhdHRyaWJ1dGUgaXMgbm90IHVzZWQgaGVyZSBhbmQgYXBwbGlj
-YWJsZSB0byBSb0NFIGFuZCBpdHMgb3B0aW9uYWwsIGNhbiB5b3UgcGFzcyBOVUxMIGFuZCBhdm9p
-ZCBnaWRfYXR0cj8NCg0KPiArCQkJZGV2X3dhcm4oJmRldi0+ZGV2LA0KPiArCQkJCSAiRXJyb3Ig
-dXBkYXRpbmcgc2dpZCBpbiBDTSByZXF1ZXN0XG4iKTsNCj4gKwkJCXJldHVybjsNCj4gKwkJfQ0K
-PiArDQo+ICsJCXBhdGgtPnNnaWQgPSBzZ2lkOw0KPiArCX0NCj4gK30NCj4gKw0KPiAgc3RhdGlj
-IHZvaWQgY21fZm9ybWF0X3JlcV9ldmVudChzdHJ1Y3QgY21fd29yayAqd29yaywNCj4gIAkJCQlz
-dHJ1Y3QgY21faWRfcHJpdmF0ZSAqY21faWRfcHJpdiwNCj4gIAkJCQlzdHJ1Y3QgaWJfY21faWQg
-Kmxpc3Rlbl9pZCkNCj4gQEAgLTE1NzMsMTAgKzE2MDQsMTMgQEAgc3RhdGljIHZvaWQgY21fZm9y
-bWF0X3JlcV9ldmVudChzdHJ1Y3QgY21fd29yaw0KPiAqd29yaywNCj4gIAlwYXJhbS0+YnRoX3Br
-ZXkgPSBjbV9nZXRfYnRoX3BrZXkod29yayk7DQo+ICAJcGFyYW0tPnBvcnQgPSBjbV9pZF9wcml2
-LT5hdi5wb3J0LT5wb3J0X251bTsNCj4gIAlwYXJhbS0+cHJpbWFyeV9wYXRoID0gJndvcmstPnBh
-dGhbMF07DQo+IC0JaWYgKHJlcV9tc2ctPmFsdF9sb2NhbF9saWQpDQo+ICsJY21fb3BhX3RvX2li
-X3NnaWQod29yaywgcGFyYW0tPnByaW1hcnlfcGF0aCk7DQo+ICsJaWYgKGNtX3JlcV9oYXNfYWx0
-X3BhdGgocmVxX21zZykpIHsNCj4gIAkJcGFyYW0tPmFsdGVybmF0ZV9wYXRoID0gJndvcmstPnBh
-dGhbMV07DQo+IC0JZWxzZQ0KPiArCQljbV9vcGFfdG9faWJfc2dpZCh3b3JrLCBwYXJhbS0+YWx0
-ZXJuYXRlX3BhdGgpOw0KPiArCX0gZWxzZSB7DQo+ICAJCXBhcmFtLT5hbHRlcm5hdGVfcGF0aCA9
-IE5VTEw7DQo+ICsJfQ0KPiAgCXBhcmFtLT5yZW1vdGVfY2FfZ3VpZCA9IHJlcV9tc2ctPmxvY2Fs
-X2NhX2d1aWQ7DQo+ICAJcGFyYW0tPnJlbW90ZV9xa2V5ID0gYmUzMl90b19jcHUocmVxX21zZy0+
-bG9jYWxfcWtleSk7DQo+ICAJcGFyYW0tPnJlbW90ZV9xcG4gPSBiZTMyX3RvX2NwdShjbV9yZXFf
-Z2V0X2xvY2FsX3FwbihyZXFfbXNnKSk7DQo+IA0KPiAtLQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9t
-IHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtcmRtYSIgaW4gdGhl
-IGJvZHkNCj4gb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcgTW9yZSBt
-YWpvcmRvbW8gaW5mbyBhdA0KPiBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZv
-Lmh0bWwNCg==
+
+
+Le 14/11/2017 à 19:49, Jason Gunthorpe a écrit :
+> On Tue, Nov 14, 2017 at 08:04:51PM +0200, Leon Romanovsky wrote:
+>> On Tue, Nov 14, 2017 at 03:40:25PM +0100, Nicolas Morey-Chaisemartin wrote:
+>>> At least the RDMA CM in 4.3 will give user space structs with these bits
+>>> set. Those kernels require user space to pass those set bits back to the
+>>> kernel. Blocking them causes RDMA CM to be unusable on older kernels.
+>>>
+>>> Stable-fix: Drop changes to verbs.h of the original fix,
+>>>  that are not needed for the fix itself.
+>>>
+>>> Fixes: 3ca7a1031486 ("ibverbs: Add support for packet pacing")
+>>> Commit-id: ce88cef301b ("verbs: Do not block QP attr_masks used by older kernels")
+>>> Reported-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>>> Signed-off-by: Jason Gunthorpe <jgunthorpe-uk2M96/98Pc@public.gmane.org>
+>>>
+>> You need to add your Signed-off-by.
+Yep. Will do when applying.
+
+> And please add something like
+>
+>     commit 9276717b9e297a62d1151a43d1cd286213f68eb7 upstream.
+>
+> after the subject line for all patches ...
+
+That's what the Commit-id is for :)
+Do you prefer Upstream-commit-id ?
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
