@@ -1,49 +1,32 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH RFC rdma-core 1/5] verbs: Introduce thread domain and its
- related verbs
-Date: Tue, 14 Nov 2017 12:17:54 -0700
-Message-ID: <20171114191754.GI4263@ziepe.ca>
+Subject: Re: [PATCH RFC rdma-core 0/5] Add thread domain support
+Date: Tue, 14 Nov 2017 12:18:30 -0700
+Message-ID: <20171114191830.GJ4263@ziepe.ca>
 References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
- <1510522903-6838-2-git-send-email-yishaih@mellanox.com>
- <20171113195822.GD22610@ziepe.ca>
- <3719edfc-282a-db5b-2474-3cf1355fb301@dev.mellanox.co.il>
+ <20171113200651.GG22610@ziepe.ca>
+ <ef4ab602-694d-f3be-9473-3fca4d97f6f2@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3719edfc-282a-db5b-2474-3cf1355fb301-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <ef4ab602-694d-f3be-9473-3fca4d97f6f2-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 14, 2017 at 10:26:16AM +0200, Yishai Hadas wrote:
-> On 11/13/2017 9:58 PM, Jason Gunthorpe wrote:
-> >On Sun, Nov 12, 2017 at 11:41:39PM +0200, Yishai Hadas wrote:
-> >
-> >>+struct ibv_td {
-> >>+	struct ibv_context     *context;
-> >>+};
-> >
-> >As much as possible, I would like to see any new objects be 'opaque'
-> >to the application, so this should just be
-> >
-> >struct ibv_td;
-> >
-> >And ibv_td should be defined in driver.h or something
-> >
-> >This avoids leaking internal details and means we don't have to commit
-> >to an ABI for the insides of these structs.
-> >
+On Tue, Nov 14, 2017 at 02:09:35PM +0200, Yishai Hadas wrote:
+> On 11/13/2017 10:06 PM, Jason Gunthorpe wrote:
+
+> 2) As TD may include some other properties as of core/numa information, need
+> to have its creation API extended from day one by having a comp_mask in
+> place.
 > 
-> ibv_td should expose in verbs.h the 'context' as the inline function
-> ibv_alloc_td() needs it to get the verbs_context and call the driver
-> function if was set.
+> struct ibv_td_init_attr {	
+> 	uint32_t comp_mask;
+> };
 
-You mean ibv_dealloc_td, OK..
-
-Related to my other point, ibv_alloc_td should probably accept a
-ibv_pd as an argument instead.
+Yes OK, let's do that
 
 Jason
 --
