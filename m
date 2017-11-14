@@ -1,40 +1,63 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: RE: [PATCH V3 net-next] net: hns3: Updates MSI/MSI-X alloc/free
- APIs(depricated) to new APIs
-Date: Tue, 14 Nov 2017 14:23:34 +0000
-Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93B97A60C@FRAEML521-MBX.china.huawei.com>
-References: <20171113113938.8660-1-salil.mehta@huawei.com>
- <20171114.214612.632435634031888429.davem@davemloft.net>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: Patches for rdma-core stable-v15
+Date: Tue, 14 Nov 2017 19:59:08 +0530
+Message-ID: <CANjDDBjv4C_TJWtgJ=zVPef+TQqSFBNuf5dnUnVRf0k4+sf8nA@mail.gmail.com>
+References: <6ccc2110-2e27-bacd-b821-f862785a10ca@suse.de> <BN3PR07MB257876D3FE069B77DC7AFFBFF8280@BN3PR07MB2578.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20171114.214612.632435634031888429.davem@davemloft.net>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "lipeng (Y)" <lipeng321@huawei.com>, "hch@lst.de" <hch@lst.de>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BN3PR07MB257876D3FE069B77DC7AFFBFF8280-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jgunthorpe-uk2M96/98Pc@public.gmane.org" <jgunthorpe-uk2M96/98Pc@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org" <stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: David Miller [mailto:davem@davemloft.net]
-> Sent: Tuesday, November 14, 2017 12:46 PM
-> To: Salil Mehta
-> Cc: Zhuangyuzeng (Yisen); lipeng (Y); hch@lst.de;
-> mehta.salil.lnk@gmail.com; netdev@vger.kernel.org; linux-
-> kernel@vger.kernel.org; linux-rdma@vger.kernel.org; Linuxarm
-> Subject: Re: [PATCH V3 net-next] net: hns3: Updates MSI/MSI-X
-> alloc/free APIs(depricated) to new APIs
-> 
-> From: Salil Mehta <salil.mehta@huawei.com>
-> Date: Mon, 13 Nov 2017 11:39:38 +0000
-> 
-> > This patch migrates the HNS3 driver code from use of depricated PCI
-> > MSI/MSI-X interrupt vector allocation/free APIs to new common APIs.
-> >
-> > Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
-> > Suggested-by: Christoph Hellwig <hch@lst.de>
-> 
-> Applied.
+Ack'ing following two patches :
 
-Thanks David.
+> > Devesh Sharma (1):
+> >       bnxt_re/lib: increment psn in case of 0 length packets
+
+And
+
+> Yeah,
+>
+> Jason is asking for further amendments to the barrier mechanism we
+> have today in rdma-core. That can be handled in a separate patch
+> series.  For now this should be good to go unless Jason suggests
+> otherwise.
+
+It should be fine as is. This is just something we should fix in
+mainline to ensure we don't get burned by a newer compiler or
+something.
+
+bnxt_re/lib: fix the memory barrier call during poll-cq
+commit-id: f4e67f1027011a6f9081b6239b866f27f750f678
+
+On Tue, Nov 14, 2017 at 7:45 PM, Amrani, Ram <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org> wrote:
+>> Hi all,
+>>
+>> After looking into the ML, here are the candidates for the stable-v15 branch.
+>> Can the authors please confirm that they should be applied there ?
+>>
+>> Please let me know if I missed any.
+>>
+>> Nicolas
+>>
+>> ---
+>
+> ...
+>
+>> Ram Amrani (1):
+>>       libqedr: fix inline data copy
+>>
+>
+>
+> ACK
+>
+> Thanks,
+> Ram
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
