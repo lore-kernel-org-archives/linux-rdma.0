@@ -1,152 +1,106 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 31/31] IB/cm: Refactor to avoid setting path record software only fields
-Date: Tue, 14 Nov 2017 14:52:18 +0200
-Message-ID: <20171114125218.20477-32-leon@kernel.org>
-References: <20171114125218.20477-1-leon@kernel.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next 3/6] IB/SA: Check dlid before SA agent queries
+ for ClassPortInfo
+Date: Tue, 14 Nov 2017 08:11:41 -0500
+Message-ID: <9f775a16-08b4-033b-7003-93a327bf68f8@dev.mellanox.co.il>
+References: <20171114122859.10579.79788.stgit@scvm10.sc.intel.com>
+ <20171114123428.10579.94740.stgit@scvm10.sc.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171114125218.20477-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20171114123428.10579.94740.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Venkata Sandeep Dhanalakota <venkata.s.dhanalakota-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 11/14/2017 7:34 AM, Dennis Dalessandro wrote:
+> From: Venkata Sandeep Dhanalakota <venkata.s.dhanalakota-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> SA queries SM for class port info when there is a LID_CHANGE event.
+> 
+> When a base lid is configured before fm is started ie when smlid is
+> not yet assigned, SA handles the LID_CHANGE event and tries query SM
+> with lid 0. This will cause an hang.
+> 
+> [ 1106.958820] INFO: task kworker/2:0:23 blocked for more than 120 seconds.
+> [ 1106.965082] Tainted: G O 4.12.0+ #1
+> [ 1106.969602] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
+>  this message.
+> [ 1106.977227] kworker/2:0 D 0 23 2 0x00000000
+> [ 1106.977250] Workqueue: infiniband update_ib_cpi [ib_core]
+> [ 1106.977261] Call Trace:
+> [ 1106.977273] __schedule+0x28e/0x860
+> [ 1106.977285] schedule+0x36/0x80
+> [ 1106.977298] schedule_timeout+0x1a3/0x2e0
+> [ 1106.977310] ? radix_tree_iter_tag_clear+0x1b/0x20
+> [ 1106.977322] ? idr_alloc+0x64/0x90
+> [ 1106.977334] wait_for_completion+0xe3/0x140
+> [ 1106.977347] ? wake_up_q+0x80/0x80
+> [ 1106.977369] update_ib_cpi+0x163/0x210 [ib_core]
+> [ 1106.977381] process_one_work+0x147/0x370
+> [ 1106.977394] worker_thread+0x4a/0x390
+> [ 1106.977406] kthread+0x109/0x140
+> [ 1106.977418] ? process_one_work+0x370/0x370
+> [ 1106.977430] ? kthread_park+0x60/0x60
+> [ 1106.977443] ret_from_fork+0x22/0x30
+> 
+> Always ensure a proper smlid is assigned before querying SM for cpi.
+> 
+> Fixes: ee1c60b1bff ("IB/SA: Modify SA to implicitly cache Class Port info")
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Venkata Sandeep Dhanalakota <venkata.s.dhanalakota-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/sa_query.c |   10 ++++++++++
+>  1 files changed, 10 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+> index ab5e102..24b9b5f 100644
+> --- a/drivers/infiniband/core/sa_query.c
+> +++ b/drivers/infiniband/core/sa_query.c
+> @@ -1345,6 +1345,7 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
+>  
+>  static int alloc_mad(struct ib_sa_query *query, gfp_t gfp_mask)
+>  {
+> +	struct rdma_ah_attr ah_attr;
+>  	unsigned long flags;
+>  
+>  	spin_lock_irqsave(&query->port->ah_lock, flags);
+> @@ -1356,6 +1357,15 @@ static int alloc_mad(struct ib_sa_query *query, gfp_t gfp_mask)
+>  	query->sm_ah = query->port->sm_ah;
+>  	spin_unlock_irqrestore(&query->port->ah_lock, flags);
+>  
+> +	/*
+> +	 * Always check if sm_ah has valid dlid assigned,
+> +	 * before querying for class port info
+> +	 */
+> +	if ((rdma_query_ah(query->sm_ah->ah, &ah_attr) < 0) ||
+> +	    !rdma_ah_get_dlid(&ah_attr)) {
 
-When path ah_attr initialization from path record
-fails, ib_cm_send_rej() uses av.ah_attr fields to send out reject
-message. In such cases initialization of path record software fields
-is not needed. Code is simplified for same.
+Isn't valid SM LID more complex than just != 0 ?
 
-Additionally in current code in cm_req_handler, when ib_get_cached_gid
-fails for a given sgid_index of the GID of the GRH of the incoming CM MAD,
-error code 12 is sent. This error code refers to primary GID in incoming
-CM REQ and not for the GID in in MAD packet.
-Therefore code is refactored to send code 5 (unsupported request) for such
-error.
+For IB, invalid SM LID is != 0 and not in multicast LID range (>= 0xC000
+which includes the permissive LID). At a minimum (for at least IB), this
+check should also include the permissive LID.
 
-Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/core/cm.c | 92 +++++++++++++++++++++-----------------------
- 1 file changed, 44 insertions(+), 48 deletions(-)
+-- Hal
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index e5d96bd3c377..dc61e66ae7e6 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -1868,56 +1868,52 @@ static int cm_req_handler(struct cm_work *work)
- 				work->port->port_num,
- 				grh->sgid_index,
- 				&gid, &gid_attr);
--	if (!ret) {
--		if (gid_attr.ndev) {
--			work->path[0].rec_type =
--				sa_conv_gid_to_pathrec_type(gid_attr.gid_type);
--			sa_path_set_ifindex(&work->path[0],
--					    gid_attr.ndev->ifindex);
--			sa_path_set_ndev(&work->path[0],
--					 dev_net(gid_attr.ndev));
-+	if (ret) {
-+		if (gid_attr.ndev)
- 			dev_put(gid_attr.ndev);
--		} else {
--			cm_path_set_rec_type(work->port->cm_dev->ib_device,
--					     work->port->port_num,
--					     &work->path[0],
--					     &req_msg->primary_local_gid);
--		}
--		if (cm_req_has_alt_path(req_msg))
--			work->path[1].rec_type = work->path[0].rec_type;
--		cm_format_paths_from_req(req_msg, &work->path[0],
--					 &work->path[1]);
--		if (cm_id_priv->av.ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE)
--			sa_path_set_dmac(&work->path[0],
--					 cm_id_priv->av.ah_attr.roce.dmac);
--		work->path[0].hop_limit = grh->hop_limit;
--		ret = cm_init_av_by_path(&work->path[0], &cm_id_priv->av,
--					 cm_id_priv);
-+		ib_send_cm_rej(cm_id, IB_CM_REJ_UNSUPPORTED, NULL, 0, NULL, 0);
-+		goto rejected;
- 	}
-+
-+	if (gid_attr.ndev) {
-+		work->path[0].rec_type =
-+			sa_conv_gid_to_pathrec_type(gid_attr.gid_type);
-+		sa_path_set_ifindex(&work->path[0],
-+				    gid_attr.ndev->ifindex);
-+		sa_path_set_ndev(&work->path[0],
-+				 dev_net(gid_attr.ndev));
-+		dev_put(gid_attr.ndev);
-+	} else {
-+		cm_path_set_rec_type(work->port->cm_dev->ib_device,
-+				     work->port->port_num,
-+				     &work->path[0],
-+				     &req_msg->primary_local_gid);
-+	}
-+	if (cm_req_has_alt_path(req_msg))
-+		work->path[1].rec_type = work->path[0].rec_type;
-+	cm_format_paths_from_req(req_msg, &work->path[0],
-+				 &work->path[1]);
-+	if (cm_id_priv->av.ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE)
-+		sa_path_set_dmac(&work->path[0],
-+				 cm_id_priv->av.ah_attr.roce.dmac);
-+	work->path[0].hop_limit = grh->hop_limit;
-+	ret = cm_init_av_by_path(&work->path[0], &cm_id_priv->av,
-+				 cm_id_priv);
- 	if (ret) {
--		int err = ib_get_cached_gid(work->port->cm_dev->ib_device,
--					    work->port->port_num, 0,
--					    &work->path[0].sgid,
--					    &gid_attr);
--		if (!err && gid_attr.ndev) {
--			work->path[0].rec_type =
--				sa_conv_gid_to_pathrec_type(gid_attr.gid_type);
--			sa_path_set_ifindex(&work->path[0],
--					    gid_attr.ndev->ifindex);
--			sa_path_set_ndev(&work->path[0],
--					 dev_net(gid_attr.ndev));
--			dev_put(gid_attr.ndev);
--		} else {
--			cm_path_set_rec_type(work->port->cm_dev->ib_device,
--					     work->port->port_num,
--					     &work->path[0],
--					     &req_msg->primary_local_gid);
--		}
--		if (cm_req_has_alt_path(req_msg))
--			work->path[1].rec_type = work->path[0].rec_type;
--		ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_GID,
--			       &work->path[0].sgid, sizeof work->path[0].sgid,
--			       NULL, 0);
-+		int err;
-+
-+		err = ib_get_cached_gid(work->port->cm_dev->ib_device,
-+					work->port->port_num, 0,
-+					&work->path[0].sgid,
-+					NULL);
-+		if (err)
-+			ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_GID,
-+				       NULL, 0, NULL, 0);
-+		else
-+			ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_GID,
-+				       &work->path[0].sgid,
-+				       sizeof(work->path[0].sgid),
-+				       NULL, 0);
- 		goto rejected;
- 	}
- 	if (cm_req_has_alt_path(req_msg)) {
-@@ -1926,7 +1922,7 @@ static int cm_req_handler(struct cm_work *work)
- 		if (ret) {
- 			ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_ALT_GID,
- 				       &work->path[0].sgid,
--				       sizeof work->path[0].sgid, NULL, 0);
-+				       sizeof(work->path[0].sgid), NULL, 0);
- 			goto rejected;
- 		}
- 	}
--- 
-2.15.0
-
+> +		kref_put(&query->sm_ah->ref, free_sm_ah);
+> +		return -EAGAIN;
+> +	}
+>  	query->mad_buf = ib_create_send_mad(query->port->agent, 1,
+>  					    query->sm_ah->pkey_index,
+>  					    0, IB_MGMT_SA_HDR, IB_MGMT_SA_DATA,
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
