@@ -1,79 +1,44 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC PATCH] RDMA/cma: Remove netlink interface of CMA statistics
-Date: Tue, 14 Nov 2017 10:05:50 +0200
-Message-ID: <20171114080550.GR18825@mtr-leonro.local>
-References: <20171113144024.26655-1-leon@kernel.org>
- <20171113192432.GL6918@ziepe.ca>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH RFC rdma-core 1/5] verbs: Introduce thread domain and its
+ related verbs
+Date: Tue, 14 Nov 2017 10:26:16 +0200
+Message-ID: <3719edfc-282a-db5b-2474-3cf1355fb301@dev.mellanox.co.il>
+References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
+ <1510522903-6838-2-git-send-email-yishaih@mellanox.com>
+ <20171113195822.GD22610@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="82sSsPTX2JCK/L1V"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171113192432.GL6918-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20171113195822.GD22610-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 11/13/2017 9:58 PM, Jason Gunthorpe wrote:
+> On Sun, Nov 12, 2017 at 11:41:39PM +0200, Yishai Hadas wrote:
+> 
+>> +struct ibv_td {
+>> +	struct ibv_context     *context;
+>> +};
+> 
+> As much as possible, I would like to see any new objects be 'opaque'
+> to the application, so this should just be
+> 
+> struct ibv_td;
+> 
+> And ibv_td should be defined in driver.h or something
+> 
+> This avoids leaking internal details and means we don't have to commit
+> to an ABI for the insides of these structs.
+> 
 
---82sSsPTX2JCK/L1V
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Nov 13, 2017 at 12:24:32PM -0700, Jason Gunthorpe wrote:
-> On Mon, Nov 13, 2017 at 04:40:24PM +0200, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> > CMA statistics were exposed to users through netlink interface long time
-> > ago, but it wasn't exposed using netlink extensibility approach. The
-> > current implementation was based on struct and not attributes.
-> >
-> > Let's remove it, before anyone is actually start to use it and prevents us
-> > to write it properly.
->
-> You should describe why you think it is safe to remove a uAPI from the
-> kernel in the commit message.. When was it introduced? Why was a uAPI
-> added with no users??
-
-I didn't want to invest time before I actually see that it is possible.
-The purpose of this RFC is to hear feedback and see if anyone cares enough
-about that code.
-
-The code was introduced a long time ago [1] as an attempt to provide
-netstat-like information. It had simple demo application, which didn't
-work for me, before I started to refactor ib_netlink.
-
-Also latest fixes from Parav in the actual callback implementation support
-my feelings that the kernel part is broken too.
-
-Is it enough to proceed with the submission of actual patch?
-
-Thanks
-
->
-> Jason
-
---82sSsPTX2JCK/L1V
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloKo94ACgkQ5GN7iDZy
-WKctkg//XOEZO4oSPCxpBTQ1XhRCNJ9Dfb0Pc6fTBo7Aw3myo8Y13H9nO8CjI3Uf
-WNpqBGP/PnrD0lK8IyUhaSr16bx5SVyDrsQgb0MX11QULIYqak+LiywctjIi8img
-q+p4JAWqKzIQje/UmC9BGkS+4WMLG4Akw5at9Z1KxhAU+NNI+HttfdGwNFff2LvT
-qVEUFKoQ71IRKDfGvMB7eR6EwZVzgNGHJx5eUYHfEAq8WTx198yCf/Vgg+dJrwBw
-Hstzh/ayVS/cC1Nh39PoC1gHz24krmKTeOFInnHECzcuS5zey9mZoKeMypo4vU3r
-Jf+LeUCE8E1nOsmmhz1WpXza2zkzoFg/jzT1PgJs4SGo1rbQtQpiryfgQb5yY+Wu
-ucKmLZXfkQlOGcVTgRCekETRIODsUKxw4YKm5PE3DfKyPU/tDc3dciLCZMMg6ChH
-Z860Ym43CyCDlNuBAY0+UEIAOAfdxBsYEZuQ8ZcI2fWIkLFEwRo6cexQBIwUxdee
-kZXtgi1EPPt0nF937BiXitqIGo/EsDN5QHHdsd/YjGdZILJxKTxBE48OskQHtQwF
-XJWNYMxXIXQNe0mNP+AR7L89ek6b3H22uY8/PWlstuX+tJc6DBwY82VLXngyfbzE
-frQ07rw/0um/bKVNZGdn//YfWG1TXFkSOBJRv5C3mowPgEjT1ng=
-=5EIo
------END PGP SIGNATURE-----
-
---82sSsPTX2JCK/L1V--
+ibv_td should expose in verbs.h the 'context' as the inline function 
+ibv_alloc_td() needs it to get the verbs_context and call the driver 
+function if was set. Further extensions if will come should be 'opaque' 
+as you pointed.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
