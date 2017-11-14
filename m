@@ -1,33 +1,41 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH] RDMA/cma: Remove netlink interface of CMA statistics
-Date: Tue, 14 Nov 2017 18:04:07 +0200
-Message-ID: <CAJ3xEMhM0xfNxRU+37oWKq_w=MGtE3sUXy38bARgX5-3G9zhvw@mail.gmail.com>
-References: <20171113144024.26655-1-leon@kernel.org> <20171113192432.GL6918@ziepe.ca>
- <20171114080550.GR18825@mtr-leonro.local> <CAJ3xEMhfdXz8zQFetjQPfe7HZiCi+N0z6r9XSucuTzQo1--PBg@mail.gmail.com>
- <20171114095605.GU18825@mtr-leonro.local>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH v3 0/9] Introduce per-device completion queue pools
+Date: Tue, 14 Nov 2017 16:21:28 +0000
+Message-ID: <1510676487.2280.4.camel@wdc.com>
+References: <20171108095742.25365-1-sagi@grimberg.me>
+         <1510245771.2608.6.camel@wdc.com>
+         <d5820b65-b428-7cd1-f7f1-7d8d89d21cf5@grimberg.me>
+         <1510248716.2608.17.camel@wdc.com>
+         <6af627c8-2814-d562-21a2-f10788e44458@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171114095605.GU18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <6af627c8-2814-d562-21a2-f10788e44458-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-US
+Content-ID: <DB86B1C6B8E1A943A3DD9FBFECE30339-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 14, 2017 at 11:56 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On Tue, Nov 14, 2017 at 10:51:31AM +0200, Or Gerlitz wrote:
-
->> what didn't work exactly?
-
-> Started from compilation, continued to wrong data presented.
-> There is no need to carry 7-years old code, which no one cares about it.
-
-The cma kernel code doesn't compile for seven years, impossible.. you
-are referring maybe to some user-space code. Re presenting wrong data,
-again, you mean the user-space code or the kernel code sending wrong
-data to user-space? please be precise.
-
-Or.
+T24gTW9uLCAyMDE3LTExLTEzIGF0IDIyOjMxICswMjAwLCBTYWdpIEdyaW1iZXJnIHdyb3RlOg0K
+PiBPbiBUaHUsIDIwMTctMTEtMDkgYXQgMTc6MzEgKzAwMDAsIEJhcnQgVmFuIEFzc2NoZSB3cm90
+ZToNCj4gPiBJbiBjYXNlIG11bHRpcGxlIFVMUHMgc2hhcmUgYW4gUkRNQSBwb3J0IHRoZW4gd2hp
+Y2ggQ1EgaXMgY2hvc2VuIGZvciB0aGUgVUxQDQo+ID4gd2lsbCBkZXBlbmQgb24gdGhlIG9yZGVy
+IGluIHdoaWNoIHRoZSBVTFAgZHJpdmVycyBhcmUgbG9hZGVkLiBUaGlzIG1heSBsZWFkIHRvDQo+
+ID4gaGFyZCB0byBkZWJ1ZyBwZXJmb3JtYW5jZSBpc3N1ZXMsIGUuZy4gZHVlIHRvIGRpZmZlcmVu
+dCBsb2NrIGNvbnRlbnRpb24NCj4gPiBiZWhhdmlvci4gVGhhdCdzIGFub3RoZXIgcmVhc29uIHdo
+eSBwZXItVUxQIENRIHBvb2xzIGxvb2sgbW9yZSBpbnRlcmVzdGluZyB0bw0KPiA+IG1lIHRoYW4g
+b25lIENRIHBvb2wgcGVyIEhDQS4NCj4gDQo+IFRoZSBVTFAgaXMgZnJlZSB0byBwYXNzIGluIGFu
+IGFmZmluaXR5IGhpbnQgdG8gZW5mb3JjZSBsb2NhbGl0eSB0byBhDQo+IHNwZWNpZmljIGNwdSBj
+b3JlLiBXb3VsZCB0aGF0IHNvbHZlIHRoaXMgaXNzdWU/DQoNCk9ubHkgZm9yIG1seDUgYWRhcHRl
+cnMgYmVjYXVzZSBvbmx5IHRoZSBtbHg1IGRyaXZlciBpbXBsZW1lbnRzDQouZ2V0X3ZlY3Rvcl9h
+ZmZpbml0eSgpLiBGb3Igb3RoZXIgYWRhcHRlcnMgdGhlIGZvbGxvd2luZyBjb2RlIGlzIHVzZWQg
+dG8gY2hvc2UgYQ0KdmVjdG9yOg0KDQogICAgdmVjdG9yID0gYWZmaW5pdHlfaGludCAlIGRldi0+
+bnVtX2NvbXBfdmVjdG9yczsNCg0KVGhhdCBtZWFucyB3aGV0aGVyIG9yIG5vdCBhIHNpbmdsZSBD
+USB3aWxsIGJlIHVzZWQgYnkgZGlmZmVyZW50IENQVXMgZGVwZW5kcyBvbg0KaG93IHRoZSBVTFAg
+YXNzb2NpYXRlcyAnYWZmaW5pdHlfaGludCcgd2l0aCBDUFVzLg0KDQpCYXJ0Lg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
