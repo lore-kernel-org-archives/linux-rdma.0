@@ -1,62 +1,41 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 09/31] IB/core: Make sure that PSN does not overflow
-Date: Tue, 14 Nov 2017 14:51:56 +0200
-Message-ID: <20171114125218.20477-10-leon@kernel.org>
+Subject: [PATCH rdma-next 08/31] RDMA/cma: Fix consider size of destination address
+Date: Tue, 14 Nov 2017 14:51:55 +0200
+Message-ID: <20171114125218.20477-9-leon@kernel.org>
 References: <20171114125218.20477-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171114125218.20477-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The rq/sq->psn is 24 bits as defined in the IB spec,therefore we mask
-out the 8 most significant bits to avoid overflow in modify qp.
+While copying destination address in statistics, consider size of
+destination address.
 
-Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: ce117ffac2e9 ("RDMA/cma: Export AF_IB statistics")
+Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/infiniband/core/cma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 75ebd74f8bbd..584b6029cb44 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1321,6 +1321,7 @@ static int ib_resolve_eth_dmac(struct ib_device *device,
- int ib_modify_qp_with_udata(struct ib_qp *qp, struct ib_qp_attr *attr,
- 			    int attr_mask, struct ib_udata *udata)
- {
-+	u8 port = attr_mask & IB_QP_PORT ? attr->port_num : qp->port;
- 	int ret;
- 
- 	if (attr_mask & IB_QP_AV) {
-@@ -1328,6 +1329,21 @@ int ib_modify_qp_with_udata(struct ib_qp *qp, struct ib_qp_attr *attr,
- 		if (ret)
- 			return ret;
- 	}
-+
-+	if (rdma_ib_or_roce(qp->device, port)) {
-+		if (attr_mask & IB_QP_RQ_PSN && attr->rq_psn & ~0xffffff) {
-+			pr_warn("%s: %s rq_psn overflow, masking to 24 bits\n",
-+				__func__, qp->device->name);
-+			attr->rq_psn &= 0xffffff;
-+		}
-+
-+		if (attr_mask & IB_QP_SQ_PSN && attr->sq_psn & ~0xffffff) {
-+			pr_warn("%s: %s sq_psn overflow, masking to 24 bits\n",
-+				__func__, qp->device->name);
-+			attr->sq_psn &= 0xffffff;
-+		}
-+	}
-+
- 	ret = ib_security_modify_qp(qp, attr, attr_mask, udata);
- 	if (!ret && (attr_mask & IB_QP_PORT))
- 		qp->port = attr->port_num;
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 1fdb473b5df7..9841e7ca5c06 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -4431,7 +4431,7 @@ static int cma_get_id_stats(struct sk_buff *skb, struct netlink_callback *cb)
+ 					  RDMA_NL_RDMA_CM_ATTR_SRC_ADDR))
+ 				goto out;
+ 			if (ibnl_put_attr(skb, nlh,
+-					  rdma_addr_size(cma_src_addr(id_priv)),
++					  rdma_addr_size(cma_dst_addr(id_priv)),
+ 					  cma_dst_addr(id_priv),
+ 					  RDMA_NL_RDMA_CM_ATTR_DST_ADDR))
+ 				goto out;
 -- 
 2.15.0
 
