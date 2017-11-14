@@ -1,47 +1,35 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH 1/2] librdmacm: Add support for extended join multicast
- API V2
-Date: Tue, 14 Nov 2017 12:56:59 -0700
-Message-ID: <20171114195659.GP4263@ziepe.ca>
-References: <20171114185720.609975150@linux.com>
- <20171114185739.838757957@linux.com>
- <20171114192558.GL4263@ziepe.ca>
- <alpine.DEB.2.20.1711141349370.13532@nuc-kabylake>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [PATCH rdma-core 0/6] More Debian packaging cleanup
+Date: Tue, 14 Nov 2017 21:02:41 +0100
+Message-ID: <20171114200247.25890-1-benjamin.drung@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1711141349370.13532@nuc-kabylake>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 14, 2017 at 01:50:54PM -0600, Christopher Lameter wrote:
-> On Tue, 14 Nov 2017, Jason Gunthorpe wrote:
-> 
-> > Ie package version 16, not the really old 1.0.15
-> 
-> Ok fixup patch:
-> 
-> From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-> Subject: Increase rdma_join_multicast_ex package version to 1.0.16
-> 
-> Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-> 
-> Index: rdma-core/debian/librdmacm1.symbols
-> ===================================================================
-> +++ rdma-core/debian/librdmacm1.symbols
-> @@ -31,7 +31,7 @@ librdmacm.so.1 librdmacm1 #MINVER#
->   rdma_get_src_port@RDMACM_1.0 1.0.19
->   rdma_getaddrinfo@RDMACM_1.0 1.0.15
->   rdma_join_multicast@RDMACM_1.0 1.0.15
-> - rdma_join_multicast_ex@RDMACM_1.1 1.0.15
-> + rdma_join_multicast_ex@RDMACM_1.1 1.0.16
+This patch series contain some packaging clean-up.
 
-No, just '16', not '1.0.16'
+Benjamin Drung (6):
+  debian: Let libibverbs1 16 break ibverbs-providers 15
+  debian: Replace priority extra by optional
+  debian: Relax dh-systemd build dependency
+  debian: Bump Standards-Version to 4.1.1
+  debian: Drop lintian overrides for false positives
+  debian: Run wrap-and-sort
 
-Jason
+ debian/control                         | 10 +++-------
+ debian/libibumad-dev.lintian-overrides |  3 ---
+ debian/libibumad3.lintian-overrides    |  2 --
+ debian/libibverbs-dev.install          |  2 +-
+ debian/rdma-core.install               |  2 +-
+ 5 files changed, 5 insertions(+), 14 deletions(-)
+ delete mode 100644 debian/libibumad-dev.lintian-overrides
+ delete mode 100644 debian/libibumad3.lintian-overrides
+
+-- 
+2.14.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
