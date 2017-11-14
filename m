@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 21/31] RDMA/core: Avoid redundant memcpy in resolving address
-Date: Tue, 14 Nov 2017 14:52:08 +0200
-Message-ID: <20171114125218.20477-22-leon@kernel.org>
+Subject: [PATCH rdma-next 23/31] RDMA/{core, cma}: Simplify rdma_translate_ip
+Date: Tue, 14 Nov 2017 14:52:10 +0200
+Message-ID: <20171114125218.20477-24-leon@kernel.org>
 References: <20171114125218.20477-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171114125218.20477-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,49 +12,103 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-rdma_resolve_ip works on the rdma_dev_addr pointer even from worker
-thread context. Therefore there is no need to store that in context.
-At the same time, resolve_cb() callback function invokes memcpy on
-source and destination addresses which are essentially same.
-Therefore both are removed.
+Since no caller needs vlan, rdma_translate_ip is simplified to avoid
+vlan pointer.
 
 Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/addr.c | 5 -----
- 1 file changed, 5 deletions(-)
+ drivers/infiniband/core/addr.c | 11 +++--------
+ drivers/infiniband/core/cma.c  |  4 ++--
+ include/rdma/ib_addr.h         |  2 +-
+ 3 files changed, 6 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index da4469c38eac..6679dd43fe08 100644
+index e0086901d64c..0ae18608761c 100644
 --- a/drivers/infiniband/core/addr.c
 +++ b/drivers/infiniband/core/addr.c
-@@ -744,7 +744,6 @@ void rdma_addr_cancel(struct rdma_dev_addr *addr)
- EXPORT_SYMBOL(rdma_addr_cancel);
+@@ -243,8 +243,7 @@ void rdma_copy_addr(struct rdma_dev_addr *dev_addr,
+ EXPORT_SYMBOL(rdma_copy_addr);
  
- struct resolve_cb_context {
--	struct rdma_dev_addr *addr;
- 	struct completion comp;
- 	int status;
- };
-@@ -752,9 +751,6 @@ struct resolve_cb_context {
- static void resolve_cb(int status, struct sockaddr *src_addr,
- 	     struct rdma_dev_addr *addr, void *context)
+ int rdma_translate_ip(const struct sockaddr *addr,
+-		      struct rdma_dev_addr *dev_addr,
+-		      u16 *vlan_id)
++		      struct rdma_dev_addr *dev_addr)
  {
--	if (!status)
--		memcpy(((struct resolve_cb_context *)context)->addr,
--		       addr, sizeof(struct rdma_dev_addr));
- 	((struct resolve_cb_context *)context)->status = status;
- 	complete(&((struct resolve_cb_context *)context)->comp);
- }
-@@ -780,7 +776,6 @@ int rdma_addr_find_l2_eth_by_grh(const union ib_gid *sgid,
- 	dev_addr.bound_dev_if = ndev->ifindex;
- 	dev_addr.net = &init_net;
+ 	struct net_device *dev;
  
--	ctx.addr = &dev_addr;
- 	init_completion(&ctx.comp);
- 	ret = rdma_resolve_ip(&self, &sgid_addr._sockaddr, &dgid_addr._sockaddr,
- 			&dev_addr, 1000, resolve_cb, &ctx);
+@@ -267,8 +266,6 @@ int rdma_translate_ip(const struct sockaddr *addr,
+ 
+ 		rdma_copy_addr(dev_addr, dev, NULL);
+ 		dev_addr->bound_dev_if = dev->ifindex;
+-		if (vlan_id)
+-			*vlan_id = rdma_vlan_dev_vlan_id(dev);
+ 		dev_put(dev);
+ 		break;
+ #if IS_ENABLED(CONFIG_IPV6)
+@@ -280,8 +277,6 @@ int rdma_translate_ip(const struct sockaddr *addr,
+ 					  dev, 1)) {
+ 				rdma_copy_addr(dev_addr, dev, NULL);
+ 				dev_addr->bound_dev_if = dev->ifindex;
+-				if (vlan_id)
+-					*vlan_id = rdma_vlan_dev_vlan_id(dev);
+ 				break;
+ 			}
+ 		}
+@@ -481,7 +476,7 @@ static int addr_resolve_neigh(struct dst_entry *dst,
+ 	if (dst->dev->flags & IFF_LOOPBACK) {
+ 		int ret;
+ 
+-		ret = rdma_translate_ip(dst_in, addr, NULL);
++		ret = rdma_translate_ip(dst_in, addr);
+ 		if (!ret)
+ 			memcpy(addr->dst_dev_addr, addr->src_dev_addr,
+ 			       MAX_ADDR_LEN);
+@@ -558,7 +553,7 @@ static int addr_resolve(struct sockaddr *src_in,
+ 	}
+ 
+ 	if (ndev->flags & IFF_LOOPBACK) {
+-		ret = rdma_translate_ip(dst_in, addr, NULL);
++		ret = rdma_translate_ip(dst_in, addr);
+ 		/*
+ 		 * Put the loopback device and get the translated
+ 		 * device instead.
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 48f593bafe33..19769ea4d71f 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -601,7 +601,7 @@ static int cma_translate_addr(struct sockaddr *addr, struct rdma_dev_addr *dev_a
+ 	int ret;
+ 
+ 	if (addr->sa_family != AF_IB) {
+-		ret = rdma_translate_ip(addr, dev_addr, NULL);
++		ret = rdma_translate_ip(addr, dev_addr);
+ 	} else {
+ 		cma_translate_ib((struct sockaddr_ib *) addr, dev_addr);
+ 		ret = 0;
+@@ -2131,7 +2131,7 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
+ 	mutex_lock_nested(&conn_id->handler_mutex, SINGLE_DEPTH_NESTING);
+ 	conn_id->state = RDMA_CM_CONNECT;
+ 
+-	ret = rdma_translate_ip(laddr, &conn_id->id.route.addr.dev_addr, NULL);
++	ret = rdma_translate_ip(laddr, &conn_id->id.route.addr.dev_addr);
+ 	if (ret) {
+ 		mutex_unlock(&conn_id->handler_mutex);
+ 		rdma_destroy_id(new_cm_id);
+diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
+index 3d17073ea338..dc0b642e0175 100644
+--- a/include/rdma/ib_addr.h
++++ b/include/rdma/ib_addr.h
+@@ -94,7 +94,7 @@ struct rdma_dev_addr {
+  * The dev_addr->net field must be initialized.
+  */
+ int rdma_translate_ip(const struct sockaddr *addr,
+-		      struct rdma_dev_addr *dev_addr, u16 *vlan_id);
++		      struct rdma_dev_addr *dev_addr);
+ 
+ /**
+  * rdma_resolve_ip - Resolve source and destination IP addresses to
 -- 
 2.15.0
 
