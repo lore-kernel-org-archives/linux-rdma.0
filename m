@@ -1,89 +1,277 @@
-From: Girish Moodalbail <girish.moodalbail@oracle.com>
-Subject: Re: KASAN: use-after-free Read in rds_tcp_dev_event
-Date: Mon, 13 Nov 2017 19:30:39 -0800
-Message-ID: <9e71dff9-7ba8-a3c2-6862-fb8557546a54@oracle.com>
-References: <001a1148d244ade0aa055d6a69b9@google.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V2 net] net: hns3: Updates MSI/MSI-X alloc/free
+ APIs(depricated) to new APIs
+Date: Tue, 14 Nov 2017 08:23:47 +0200
+Message-ID: <20171114062346.GA3085@yuvallap>
+References: <20171109163813.7704-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <001a1148d244ade0aa055d6a69b9@google.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: syzbot <bot+643ecad3f5bb49700e839363b608c4928f6db8f0@syzkaller.appspotmail.com>, davem@davemloft.net, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, santosh.shilimkar@oracle.com, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171109163813.7704-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/7/17 12:28 PM, syzbot wrote:
-> Hello,
+On Thu, Nov 09, 2017 at 04:38:13PM +0000, Salil Mehta wrote:
+> This patch migrates the HNS3 driver code from use of depricated PCI
+> MSI/MSI-X interrupt vector allocation/free APIs to new common APIs.
 > 
-> syzkaller hit the following crash on 287683d027a3ff83feb6c7044430c79881664ecf
-> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/master
-> compiler: gcc (GCC) 7.1.1 20170620
-> .config is attached
-> Raw console output is attached.
+> Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Suggested-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> ---
+> PATCH V2: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>   Link -> https://lkml.org/lkml/2017/11/9/138
+> PATCH V1: Initial Submit
+> ---
+>  .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 107 +++++++--------------
+>  .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |  15 ++-
+>  2 files changed, 42 insertions(+), 80 deletions(-)
+
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+
+> 
+> diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
+> index c1cdbfd..d65c599 100644
+> --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
+> +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
+> @@ -885,14 +885,14 @@ static int hclge_query_pf_resource(struct hclge_dev *hdev)
+>  	hdev->pkt_buf_size = __le16_to_cpu(req->buf_size) << HCLGE_BUF_UNIT_S;
+>  
+>  	if (hnae3_dev_roce_supported(hdev)) {
+> -		hdev->num_roce_msix =
+> +		hdev->num_roce_msi =
+>  		hnae_get_field(__le16_to_cpu(req->pf_intr_vector_number),
+>  			       HCLGE_PF_VEC_NUM_M, HCLGE_PF_VEC_NUM_S);
+>  
+>  		/* PF should have NIC vectors and Roce vectors,
+>  		 * NIC vectors are queued before Roce vectors.
+>  		 */
+> -		hdev->num_msi = hdev->num_roce_msix  + HCLGE_ROCE_VECTOR_OFFSET;
+> +		hdev->num_msi = hdev->num_roce_msi  + HCLGE_ROCE_VECTOR_OFFSET;
+>  	} else {
+>  		hdev->num_msi =
+>  		hnae_get_field(__le16_to_cpu(req->pf_intr_vector_number),
+> @@ -1835,7 +1835,7 @@ static int hclge_init_roce_base_info(struct hclge_vport *vport)
+>  	struct hnae3_handle *roce = &vport->roce;
+>  	struct hnae3_handle *nic = &vport->nic;
+>  
+> -	roce->rinfo.num_vectors = vport->back->num_roce_msix;
+> +	roce->rinfo.num_vectors = vport->back->num_roce_msi;
+>  
+>  	if (vport->back->num_msi_left < vport->roce.rinfo.num_vectors ||
+>  	    vport->back->num_msi_left == 0)
+> @@ -1853,67 +1853,47 @@ static int hclge_init_roce_base_info(struct hclge_vport *vport)
+>  	return 0;
+>  }
+>  
+> -static int hclge_init_msix(struct hclge_dev *hdev)
+> +static int hclge_init_msi(struct hclge_dev *hdev)
+>  {
+>  	struct pci_dev *pdev = hdev->pdev;
+> -	int ret, i;
+> -
+> -	hdev->msix_entries = devm_kcalloc(&pdev->dev, hdev->num_msi,
+> -					  sizeof(struct msix_entry),
+> -					  GFP_KERNEL);
+> -	if (!hdev->msix_entries)
+> -		return -ENOMEM;
+> -
+> -	hdev->vector_status = devm_kcalloc(&pdev->dev, hdev->num_msi,
+> -					   sizeof(u16), GFP_KERNEL);
+> -	if (!hdev->vector_status)
+> -		return -ENOMEM;
+> +	int vectors;
+> +	int i;
+>  
+> -	for (i = 0; i < hdev->num_msi; i++) {
+> -		hdev->msix_entries[i].entry = i;
+> -		hdev->vector_status[i] = HCLGE_INVALID_VPORT;
+> +	vectors = pci_alloc_irq_vectors(pdev, 1, hdev->num_msi,
+> +					PCI_IRQ_MSI | PCI_IRQ_MSIX);
+> +	if (vectors < 0) {
+> +		dev_err(&pdev->dev,
+> +			"failed(%d) to allocate MSI/MSI-X vectors\n",
+> +			vectors);
+> +		return vectors;
+>  	}
+> +	if (vectors < hdev->num_msi)
+> +		dev_warn(&hdev->pdev->dev,
+> +			 "requested %d MSI/MSI-X, but allocated %d MSI/MSI-X\n",
+> +			 hdev->num_msi, vectors);
+>  
+> -	hdev->num_msi_left = hdev->num_msi;
+> -	hdev->base_msi_vector = hdev->pdev->irq;
+> +	hdev->num_msi = vectors;
+> +	hdev->num_msi_left = vectors;
+> +	hdev->base_msi_vector = pdev->irq;
+>  	hdev->roce_base_vector = hdev->base_msi_vector +
+>  				HCLGE_ROCE_VECTOR_OFFSET;
+>  
+> -	ret = pci_enable_msix_range(hdev->pdev, hdev->msix_entries,
+> -				    hdev->num_msi, hdev->num_msi);
+> -	if (ret < 0) {
+> -		dev_info(&hdev->pdev->dev,
+> -			 "MSI-X vector alloc failed: %d\n", ret);
+> -		return ret;
+> -	}
+> -
+> -	return 0;
+> -}
+> -
+> -static int hclge_init_msi(struct hclge_dev *hdev)
+> -{
+> -	struct pci_dev *pdev = hdev->pdev;
+> -	int vectors;
+> -	int i;
+> -
+>  	hdev->vector_status = devm_kcalloc(&pdev->dev, hdev->num_msi,
+>  					   sizeof(u16), GFP_KERNEL);
+> -	if (!hdev->vector_status)
+> +	if (!hdev->vector_status) {
+> +		pci_free_irq_vectors(pdev);
+>  		return -ENOMEM;
+> +	}
+>  
+>  	for (i = 0; i < hdev->num_msi; i++)
+>  		hdev->vector_status[i] = HCLGE_INVALID_VPORT;
+>  
+> -	vectors = pci_alloc_irq_vectors(pdev, 1, hdev->num_msi, PCI_IRQ_MSI);
+> -	if (vectors < 0) {
+> -		dev_err(&pdev->dev, "MSI vectors enable failed %d\n", vectors);
+> -		return -EINVAL;
+> +	hdev->vector_irq = devm_kcalloc(&pdev->dev, hdev->num_msi,
+> +					sizeof(int), GFP_KERNEL);
+> +	if (!hdev->vector_irq) {
+> +		pci_free_irq_vectors(pdev);
+> +		return -ENOMEM;
+>  	}
+> -	hdev->num_msi = vectors;
+> -	hdev->num_msi_left = vectors;
+> -	hdev->base_msi_vector = pdev->irq;
+> -	hdev->roce_base_vector = hdev->base_msi_vector +
+> -				HCLGE_ROCE_VECTOR_OFFSET;
+>  
+>  	return 0;
+>  }
+> @@ -2341,6 +2321,7 @@ static int hclge_get_vector(struct hnae3_handle *handle, u16 vector_num,
+>  					vport->vport_id *
+>  					HCLGE_VECTOR_VF_OFFSET;
+>  				hdev->vector_status[i] = vport->vport_id;
+> +				hdev->vector_irq[i] = vector->vector;
+>  
+>  				vector++;
+>  				alloc++;
+> @@ -2359,15 +2340,10 @@ static int hclge_get_vector_index(struct hclge_dev *hdev, int vector)
+>  {
+>  	int i;
+>  
+> -	for (i = 0; i < hdev->num_msi; i++) {
+> -		if (hdev->msix_entries) {
+> -			if (vector == hdev->msix_entries[i].vector)
+> -				return i;
+> -		} else {
+> -			if (vector == (hdev->base_msi_vector + i))
+> -				return i;
+> -		}
+> -	}
+> +	for (i = 0; i < hdev->num_msi; i++)
+> +		if (vector == hdev->vector_irq[i])
+> +			return i;
+> +
+>  	return -EINVAL;
+>  }
+>  
+> @@ -4072,14 +4048,7 @@ static void hclge_pci_uninit(struct hclge_dev *hdev)
+>  {
+>  	struct pci_dev *pdev = hdev->pdev;
+>  
+> -	if (hdev->flag & HCLGE_FLAG_USE_MSIX) {
+> -		pci_disable_msix(pdev);
+> -		devm_kfree(&pdev->dev, hdev->msix_entries);
+> -		hdev->msix_entries = NULL;
+> -	} else {
+> -		pci_disable_msi(pdev);
+> -	}
+> -
+> +	pci_free_irq_vectors(pdev);
+>  	pci_clear_master(pdev);
+>  	pci_release_mem_regions(pdev);
+>  	pci_disable_device(pdev);
+> @@ -4097,7 +4066,6 @@ static int hclge_init_ae_dev(struct hnae3_ae_dev *ae_dev)
+>  		goto err_hclge_dev;
+>  	}
+>  
+> -	hdev->flag |= HCLGE_FLAG_USE_MSIX;
+>  	hdev->pdev = pdev;
+>  	hdev->ae_dev = ae_dev;
+>  	ae_dev->priv = hdev;
+> @@ -4126,12 +4094,9 @@ static int hclge_init_ae_dev(struct hnae3_ae_dev *ae_dev)
+>  		return ret;
+>  	}
+>  
+> -	if (hdev->flag & HCLGE_FLAG_USE_MSIX)
+> -		ret = hclge_init_msix(hdev);
+> -	else
+> -		ret = hclge_init_msi(hdev);
+> +	ret = hclge_init_msi(hdev);
+>  	if (ret) {
+> -		dev_err(&pdev->dev, "Init msix/msi error, ret = %d.\n", ret);
+> +		dev_err(&pdev->dev, "Init MSI/MSI-X error, ret = %d.\n", ret);
+>  		return ret;
+>  	}
+>  
+> diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
+> index 9fcfd93..ab87843 100644
+> --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
+> +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
+> @@ -400,9 +400,6 @@ struct hclge_dev {
+>  	u16 num_tqps;			/* Num task queue pairs of this PF */
+>  	u16 num_req_vfs;		/* Num VFs requested for this PF */
+>  
+> -	u16 num_roce_msix;		/* Num of roce vectors for this PF */
+> -	int roce_base_vector;
+> -
+>  	/* Base task tqp physical id of this PF */
+>  	u16 base_tqp_pid;
+>  	u16 alloc_rss_size;		/* Allocated RSS task queue */
+> @@ -429,8 +426,10 @@ struct hclge_dev {
+>  	u16 num_msi_left;
+>  	u16 num_msi_used;
+>  	u32 base_msi_vector;
+> -	struct msix_entry *msix_entries;
+>  	u16 *vector_status;
+> +	int *vector_irq;
+> +	u16 num_roce_msi;	/* Num of roce vectors for this PF */
+> +	int roce_base_vector;
+>  
+>  	u16 pending_udp_bitmap;
+>  
+> @@ -454,11 +453,9 @@ struct hclge_dev {
+>  	struct hnae3_client *nic_client;
+>  	struct hnae3_client *roce_client;
+>  
+> -#define HCLGE_FLAG_USE_MSI	0x00000001
+> -#define HCLGE_FLAG_USE_MSIX	0x00000002
+> -#define HCLGE_FLAG_MAIN		0x00000004
+> -#define HCLGE_FLAG_DCB_CAPABLE	0x00000008
+> -#define HCLGE_FLAG_DCB_ENABLE	0x00000010
+> +#define HCLGE_FLAG_MAIN			BIT(0)
+> +#define HCLGE_FLAG_DCB_CAPABLE		BIT(1)
+> +#define HCLGE_FLAG_DCB_ENABLE		BIT(2)
+>  	u32 flag;
+>  
+>  	u32 pkt_buf_size; /* Total pf buf size for tx/rx */
+> -- 
+> 2.7.4
 > 
 > 
-> 
-> 
-> ==================================================================
-> BUG: KASAN: use-after-free in rds_tcp_kill_sock net/rds/tcp.c:530 [inline]
-> BUG: KASAN: use-after-free in rds_tcp_dev_event+0xc01/0xc90 net/rds/tcp.c:568
-> Read of size 8 at addr ffff8801cd879200 by task kworker/u4:3/147
-> 
-> CPU: 0 PID: 147 Comm: kworker/u4:3 Not tainted 4.14.0-rc7+ #156
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 
-> 01/01/2011
-> Workqueue: netns cleanup_net
-> Call Trace:
->   __dump_stack lib/dump_stack.c:16 [inline]
->   dump_stack+0x194/0x257 lib/dump_stack.c:52
->   print_address_description+0x73/0x250 mm/kasan/report.c:252
->   kasan_report_error mm/kasan/report.c:351 [inline]
->   kasan_report+0x25b/0x340 mm/kasan/report.c:409
->   __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
->   rds_tcp_kill_sock net/rds/tcp.c:530 [inline]
->   rds_tcp_dev_event+0xc01/0xc90 net/rds/tcp.c:568
-
-The issue here is that we are trying to reference a network namespace (struct 
-net *) that is long gone (i.e., L532 below -- c_net is the culprit).
-
-     528         spin_lock_irq(&rds_tcp_conn_lock);
-     529         list_for_each_entry_safe(tc, _tc, &rds_tcp_conn_list,
-                      t_tcp_node) {
-     530                 struct net *c_net = tc->t_cpath->cp_conn->c_net;
-     531
-     532                 if (net != c_net || !tc->t_sock)
-     533                         continue;
-     534                 if (!list_has_conn(&tmp_list, tc->t_cpath->cp_conn))
-     535                         list_move_tail(&tc->t_tcp_node, &tmp_list);
-     536         }
-     537         spin_unlock_irq(&rds_tcp_conn_lock);
-     538         list_for_each_entry_safe(tc, _tc, &tmp_list, t_tcp_node) {
-     539                 rds_tcp_conn_paths_destroy(tc->t_cpath->cp_conn);
-     540                 rds_conn_destroy(tc->t_cpath->cp_conn);
-     541         }
-
-When a network namespace is deleted, devices within that namespace are 
-unregistered and removed one by one. RDS is notified about this event through 
-rds_tcp_dev_event() callback. When the loopback device is removed from the 
-namespace, the above RDS callback function destroys all the RDS connections in 
-that namespace.
-
-The loop@L529 above walks through each of the rds_tcp connection in the global 
-list (rds_tcp_conn_list) to see if that connection belongs to the namespace in 
-question. It collects all such connections and destroys them (L538-540). 
-However, it leaves behind some of the rds_tcp connections that shared the same 
-underlying RDS connection (L534 and 535). These connections with pointer to 
-stale network namespace are left behind in the global list. When the 2nd network 
-namespace is deleted, we will hit the above stale pointer and hit UAF panic.
-
-I think we should move away from global list to a per-namespace list. The global 
-list are used only in two places (both of which are per-namespace operations):
-
-  - to destroy all the RDS connections belonging to a namespace when the
-    network namespace is being deleted.
-  - to reset all the RDS connections  when socket parameters for a namespace are
-    modified using sysctl
-
-Thanks,
-~Girish
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
