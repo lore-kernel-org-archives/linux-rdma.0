@@ -1,34 +1,49 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 06/31] IB/ipoib: Avoid memory leak if neigh
- destination was changed
-Date: Tue, 14 Nov 2017 23:51:09 +0200
-Message-ID: <CAJ3xEMjPD-MwKHknnYVBzzhSoxCFWE2i9jOCC500yEn5pFXarg@mail.gmail.com>
-References: <20171114125218.20477-1-leon@kernel.org> <20171114125218.20477-7-leon@kernel.org>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 31/31] IB/cm: Refactor to avoid setting path
+ record software only fields
+Date: Tue, 14 Nov 2017 22:11:04 +0000
+Message-ID: <VI1PR0502MB3008CEF7DF9257A4D6AFBD1FD1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20171114125218.20477-1-leon@kernel.org>
+ <20171114125218.20477-32-leon@kernel.org>
+ <CAJ3xEMhyZQM5dp2VKoiVDz3Q524d_kO=a0PUMJt_xmQK-nkPsg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171114125218.20477-7-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <CAJ3xEMhyZQM5dp2VKoiVDz3Q524d_kO=a0PUMJt_xmQK-nkPsg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 14, 2017 at 2:51 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> If from some reason the SM responses to path query request with response
-> that doesn't contain the exact SGID, ipoib should warn and change that
-> part of the response before push it to the path record DB.
-> Otherwise, new record will be added to the path record DB with no access
-> to them from the ipoib.
->
-> Demonstration of the bug is as the follow:
-
-this series contains bunch of fixes, any reason to direct them to
--next (4.16) and not -rc (4.15)
-
-Also, in most of the cases ppl didn't provide a Fixes: line with the
-offending patch, any reason to skip that?
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogT3IgR2VybGl0eiBbbWFp
+bHRvOmdlcmxpdHoub3JAZ21haWwuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBOb3ZlbWJlciAxNCwg
+MjAxNyAzOjEzIFBNDQo+IFRvOiBQYXJhdiBQYW5kaXQgPHBhcmF2QG1lbGxhbm94LmNvbT4NCj4g
+Q2M6IERvdWcgTGVkZm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT47IGxpbnV4LXJkbWFAdmdlci5r
+ZXJuZWwub3JnOyBIZWZ0eSwNCj4gU2VhbiA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+OyBMZW9uIFJv
+bWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggcmRt
+YS1uZXh0IDMxLzMxXSBJQi9jbTogUmVmYWN0b3IgdG8gYXZvaWQgc2V0dGluZyBwYXRoDQo+IHJl
+Y29yZCBzb2Z0d2FyZSBvbmx5IGZpZWxkcw0KPiANCj4gT24gVHVlLCBOb3YgMTQsIDIwMTcgYXQg
+Mjo1MiBQTSwgTGVvbiBSb21hbm92c2t5IDxsZW9uQGtlcm5lbC5vcmc+IHdyb3RlOg0KPiA+IEZy
+b206IFBhcmF2IFBhbmRpdCA8cGFyYXZAbWVsbGFub3guY29tPg0KPiA+DQo+ID4gV2hlbiBwYXRo
+IGFoX2F0dHIgaW5pdGlhbGl6YXRpb24gZnJvbSBwYXRoIHJlY29yZCBmYWlscywNCj4gPiBpYl9j
+bV9zZW5kX3JlaigpIHVzZXMgYXYuYWhfYXR0ciBmaWVsZHMgdG8gc2VuZCBvdXQgcmVqZWN0IG1l
+c3NhZ2UuIEluDQo+ID4gc3VjaCBjYXNlcyBpbml0aWFsaXphdGlvbiBvZiBwYXRoIHJlY29yZCBz
+b2Z0d2FyZSBmaWVsZHMgaXMgbm90DQo+ID4gbmVlZGVkLiBDb2RlIGlzIHNpbXBsaWZpZWQgZm9y
+IHNhbWUuDQo+IA0KPiBpcyAiQ29kZSBpcyBzaW1wbGlmaWVkIGZvciBzYW1lIiAgY3V0IGluIHRo
+ZSBtaWRkbGUsIEkgZmFpbCB0byB1bmRlcnN0YW5kIHRoZQ0KPiBzZW50ZW5jZS4NCj4gDQpDb2Rl
+IGlzIHNpbXBsaWZpZWQgdG8gYXZvaWQgc3VjaCBpbml0aWFsaXphdGlvbi4NCg0KPiANCj4gPiBB
+ZGRpdGlvbmFsbHkgaW4gY3VycmVudCBjb2RlIGluIGNtX3JlcV9oYW5kbGVyLCB3aGVuIGliX2dl
+dF9jYWNoZWRfZ2lkDQo+ID4gZmFpbHMgZm9yIGEgZ2l2ZW4gc2dpZF9pbmRleCBvZiB0aGUgR0lE
+IG9mIHRoZSBHUkggb2YgdGhlIGluY29taW5nIENNDQo+ID4gTUFELCBlcnJvciBjb2RlIDEyIGlz
+IHNlbnQuIFRoaXMgZXJyb3IgY29kZSByZWZlcnMgdG8gcHJpbWFyeSBHSUQgaW4NCj4gPiBpbmNv
+bWluZyBDTSBSRVEgYW5kIG5vdCBmb3IgdGhlIEdJRCBpbiBpbiBNQUQgcGFja2V0Lg0KPiA+IFRo
+ZXJlZm9yZSBjb2RlIGlzIHJlZmFjdG9yZWQgdG8gc2VuZCBjb2RlIDUgKHVuc3VwcG9ydGVkIHJl
+cXVlc3QpIGZvcg0KPiA+IHN1Y2ggZXJyb3IuDQo+IA0KPiBZb3UgZG8gdHdvIGxvZ2ljYWwgY2hh
+bmdlcyBpbiBvbmUgcGF0Y2gsIGRvZXNuJ3Qgc2VlbSByaWdodCB0byBtZS4NCkJvdGggbG9naWNh
+bCBjaGFuZ2VzIGFyZSBpbiBzYW1lIGZ1bmN0aW9uIGZldyBsaW5lcyBhcGFydCBhcm91bmQgR0lE
+IGNoZWNrLg0KU28gSGFsIGFuZCBJIGNvbnRpbnVlZCB0byBoYXZlIGluIG9uZSBwYXRjaC4NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
