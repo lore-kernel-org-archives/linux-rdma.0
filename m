@@ -1,66 +1,64 @@
-From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH rdma-core 3/5] buildlib: add script to check ABI
-Date: Tue, 14 Nov 2017 19:59:35 +0100
-Message-ID: <b56b8c48-d1c8-6754-fe9b-897dd931fbf9@suse.de>
-References: <8306e0d4-3f4f-1d06-74e1-c971fc63f7b8@suse.de>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: vmw_pvrdma: Add SRQ support - broke rdma-core
+Date: Tue, 14 Nov 2017 21:00:29 +0200
+Message-ID: <20171114190029.GI18825@mtr-leonro.local>
+References: <20171114085143.GS18825@mtr-leonro.local>
+ <20171114182720.GC18825@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="4Wcu3uPC65WqUq/x"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8306e0d4-3f4f-1d06-74e1-c971fc63f7b8-l3A5Bk7waGM@public.gmane.org>
-Content-Language: fr-xx-classique+reforme1990
+Content-Disposition: inline
+In-Reply-To: <20171114182720.GC18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add travis-checkabi which generates a dump of all rdma-core libraries
-ABI and checks them against a ref if they exists.
 
-Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
-Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org # v15
----
- buildlib/travis-checkabi | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
- create mode 100755 buildlib/travis-checkabi
+--4Wcu3uPC65WqUq/x
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/buildlib/travis-checkabi b/buildlib/travis-checkabi
-new file mode 100755
-index 00000000..7afa3b59
---- /dev/null
-+++ b/buildlib/travis-checkabi
-@@ -0,0 +1,28 @@
-+#!/bin/bash
-+
-+# Stop on error
-+set -e
-+# Echo all commands to Travis log
-+set -x
-+
-+REF_DIR=buildlib/ABI
-+NEW_DIR=build-abi/ABI
-+
-+./buildlib/gen-abi
-+
-+# Current ABI not available !
-+if [ ! -d $NEW_DIR ]; then
-+	echo "ERROR: Missing ABI description files" >&2
-+	exit 1
-+fi
-+# No reference ABI to match against.
-+if [ ! -d $REF_DIR ]; then
-+	echo "INFO: Skipping ABI check. No reference available"
-+	exit 0
-+fi
-+
-+for FILE in $(find $NEW_DIR -name "*.dump"); do 
-+	DUMP=$(basename $FILE)
-+	LIBNAME=$(echo $DUMP | sed -e 's/\(.*\).so.*/\1/')
-+	./buildlib/abi-checker/abi-compliance-checker.pl -l $LIBNAME -old $REF_DIR/$DUMP -new $NEW_DIR/$DUMP
-+done
--- 
-2.15.0.168.g9a51f1b30.dirty
+On Tue, Nov 14, 2017 at 08:27:20PM +0200, Leon Romanovsky wrote:
+> On Tue, Nov 14, 2017 at 10:51:43AM +0200, Leon Romanovsky wrote:
+> > The commit 25f07300bfb7 ("vmw_pvrdma: Add SRQ support") causes to build
+> > failures in Travis CI [1] and on my system too [2].
+> >
+> > Please fix.
+>
+> I reverted the commit, please fix compilation error and resubmit.
+>
+> Commit: 32bf4efb8605 ("Revert "vmw_pvrdma: Add SRQ support" because it causes build failures")
+
+Just as a pointer, it fails on the systems with kernel's include/uapi/rdma/vmw_pvrdma-abi.h
+file available, so fixup is not applied but without your definition yet.
+
+> Thanks
 
 
+
+--4Wcu3uPC65WqUq/x
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloLPUwACgkQ5GN7iDZy
+WKcauA//VjkDZflDyXQs+q99iGyMC7M7TU2Qgp1U23ZZiExyPwPnwuEraZrUiczY
+CQLR4afPBim5qokesXIvh8QPJePVHBYJo44JrfNz53kxFWdl/ar6S5rgyw/g7GYj
+6bjyUQP76pOmVsohH0fZwol8eX/bjjVutTyn3UrEYfrE6h4UIyd+lbUmOFOelKDb
+lCjltbOVE7oBOmAMYTw2o1moWpOEScpET9Ow5Okjg16I+74/xLe8ud7RUNOs7R0c
+Th+tLky6kMCZ+U1n93mHKkR/IThW0+T0ZKmK4erJ2jfijmRyO0gkfiX7cF5amZE1
+7TNfkJPevo9F1fhaJbyHarGMH4LWndFS114l5eeUlfDYo/vNBuCnS1XNG2ZeHYG5
+6ztMHEJZ4zr+nPmv28i48l0KiSgCdkOjaj/0U4SN2HKTngUrnqd96S78wSUr2kO/
+u5qNmKD77sfitYzCaeBCpoMBGiIGur3r1Bmg2+aP7NYb1LhSChhDUa39pYdvQSXT
+6n7Pdge+NMKsGSWnktp4g/LKSaorXCcj0CuX1XBqfxq1LykhCF8SN/Kbv8q6ffuN
+S89uTpGEbhGRGKEiDKooDaQG9lEEkj/EX0AUanyoKlC7sMk239Dt8OQjQZu202gg
+vM+QdY97ut7BSx04LJlDdhjjxx5WmOsvygHNkxZ1CPbu1JX6J7w=
+=N7cI
+-----END PGP SIGNATURE-----
+
+--4Wcu3uPC65WqUq/x--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
