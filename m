@@ -1,57 +1,48 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH RFC rdma-core 0/5] Add thread domain support
-Date: Tue, 14 Nov 2017 14:09:35 +0200
-Message-ID: <ef4ab602-694d-f3be-9473-3fca4d97f6f2@dev.mellanox.co.il>
-References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
- <20171113200651.GG22610@ziepe.ca>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH for-next 0/6] IB/hfi1, qib, cm,
+ sa: Last set for 4.15 merge window
+Date: Tue, 14 Nov 2017 04:34:08 -0800
+Message-ID: <20171114122859.10579.79788.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171113200651.GG22610-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, Jan Sokolowski <jan.sokolowski@intel.com>, linux-rdma@vger.kernel.org, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Venkata Sandeep Dhanalakota <venkata.s.dhanalakota@intel.com>, Don Hiatt <don.hiatt@intel.com>, Ira Weiny <ira.weiny@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/13/2017 10:06 PM, Jason Gunthorpe wrote:
-> On Sun, Nov 12, 2017 at 11:41:38PM +0200, Yishai Hadas wrote:
->> This RFC series is based on some initial discussion that was in the mailing
->> list to support resource domain.
->>
->> The series includes detailed man pages of the suggested APIs and initial
->> patches in both verbs and mlx5 driver to demonstrate the expected usage.
->>
->> The motivation behind the series is to allow an application finer
->> grain control over share hardware resources and locks when the
->> resources are used by the same thread.
-> 
-> I think I'm basically fine with this approach.
+Hi Doug,
 
-Fine, good news.
+Here is the latest set of patches I have that we'd like to land in 4.15. There
+are some driver fixes, including a qib that is marked as stable. We also have
+a CM and SA patch thrown in the mix.
 
-> I assume you'll also add a create_cq_ex to accept a PD instead of a
-> device?
-> 
+As always patches available for browsing at:
+https://github.com/ddalessa/kernel/tree/for-4.15
 
-Future looking:
-1) ibv_cq_init_attr_ex may be extended to get also parent_domain when 
-there will be some driver code that will implement it, prefer not to 
-introduce an un-supported API.
+---
 
-2) As TD may include some other properties as of core/numa information, 
-need to have its creation API extended from day one by having a 
-comp_mask in place.
+Dennis Dalessandro (1):
+      IB/hfi1: Initialize bth1 in 16B rc ack builder
 
-struct ibv_td_init_attr {	
-	uint32_t comp_mask;
-};
+Don Hiatt (2):
+      IB/hfi1: Mask the path bits with the LMC for 16B RC Acks
+      IB/CM: Change sgid to IB GID when handling CM request
 
-struct ibv_td *ibv_alloc_td(struct ibv_context *context,
-                               struct ibv_td_init_attr *attr)
+Jan Sokolowski (1):
+      IB/hfi1: Use 4096 for default active MTU in query_qp
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Mike Marciniszyn (1):
+      IB/qib: Fix comparison error with qperf compare/swap test
+
+Venkata Sandeep Dhanalakota (1):
+      IB/SA: Check dlid before SA agent queries for ClassPortInfo
+
+
+ drivers/infiniband/core/cm.c       |   38 ++++++++++++++++++++++++++++++++++--
+ drivers/infiniband/core/sa_query.c |   10 +++++++++
+ drivers/infiniband/hw/hfi1/rc.c    |   10 +++++----
+ drivers/infiniband/hw/hfi1/verbs.c |    2 +-
+ drivers/infiniband/hw/qib/qib_rc.c |    6 +++---
+ 5 files changed, 55 insertions(+), 11 deletions(-)
