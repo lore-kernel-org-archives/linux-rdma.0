@@ -1,98 +1,43 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/2] librdmacm: Mckey test support for send only full member
-Date: Tue, 14 Nov 2017 12:57:22 -0600
-Message-ID: <20171114185739.923017203@linux.com>
-References: <20171114185720.609975150@linux.com>
+From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Subject: [PATCH rdma-core 4/5] buildlib: run ABI check in travis-build
+Date: Tue, 14 Nov 2017 19:58:06 +0100
+Message-ID: <866df5d4-2a54-2014-a180-1fd0dc43d0fa@suse.de>
+References: <8306e0d4-3f4f-1d06-74e1-c971fc63f7b8@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=0002-librdmacm-Mckey-test-support-for-send-only-full-memb.patch
+In-Reply-To: <8306e0d4-3f4f-1d06-74e1-c971fc63f7b8-l3A5Bk7waGM@public.gmane.org>
+Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Run travis-checkabi during travis build
 
-From: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 2/2] librdmacm: Mckey test support for send only full member
-
-Use rdma_join_multicast_ex instead of rdma_join_multicast.
-Added a new flag to -o to mckey, this flag will allow mckey
-to join a MC as Send Only Full Member.
-
-Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-
+Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
+Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org # v15
 ---
- librdmacm/examples/mckey.c |   18 +++++++++++++++---
- 1 files changed, 15 insertions(+), 3 deletions(-)
+ buildlib/travis-build | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/librdmacm/examples/mckey.c b/librdmacm/examples/mckey.c
-index 60cf8a2..d2b1aeb 100644
---- a/librdmacm/examples/mckey.c
-+++ b/librdmacm/examples/mckey.c
-@@ -77,6 +77,7 @@ static int connections = 1;
- static int message_size = 100;
- static int message_count = 10;
- static int is_sender;
-+static int send_only = 0;
- static int unmapped_addr;
- static char *dst_addr;
- static char *src_addr;
-@@ -241,6 +242,7 @@ static void connect_error(void)
- static int addr_handler(struct cmatest_node *node)
- {
- 	int ret;
-+	struct rdma_cm_join_mc_attr_ex mc_attr;
+diff --git a/buildlib/travis-build b/buildlib/travis-build
+index bf86baa7..f8e5ee05 100755
+--- a/buildlib/travis-build
++++ b/buildlib/travis-build
+@@ -5,6 +5,10 @@ set -e
+ # Echo all commands to Travis log
+ set -x
  
- 	ret = verify_test_params(node);
- 	if (ret)
-@@ -256,7 +258,13 @@ static int addr_handler(struct cmatest_node *node)
- 			goto err;
- 	}
++
++# Build in debug mode and check the ABI against the ref
++./buildlib/travis-checkabi
++
+ mkdir build-clang build32 build-sparse build-aarch64
  
--	ret = rdma_join_multicast(node->cma_id, test.dst_addr, node);
-+	mc_attr.comp_mask = RDMA_CM_JOIN_MC_ATTR_ADDRESS | RDMA_CM_JOIN_MC_ATTR_JOIN_FLAGS;
-+	mc_attr.addr = test.dst_addr;
-+	mc_attr.join_flags = send_only ? RDMA_MC_JOIN_FLAG_SENDONLY_FULLMEMBER : \
-+					 RDMA_MC_JOIN_FLAG_FULLMEMBER;
-+
-+	ret = rdma_join_multicast_ex(node->cma_id, &mc_attr, node);
-+
- 	if (ret) {
- 		perror("mckey: failure joining");
- 		goto err;
-@@ -555,8 +563,7 @@ int main(int argc, char **argv)
- {
- 	int op, ret;
- 
--
--	while ((op = getopt(argc, argv, "m:M:sb:c:C:S:p:")) != -1) {
-+	while ((op = getopt(argc, argv, "m:M:sb:c:C:S:p:o")) != -1) {
- 		switch (op) {
- 		case 'm':
- 			dst_addr = optarg;
-@@ -584,6 +591,10 @@ int main(int argc, char **argv)
- 		case 'p':
- 			port_space = strtol(optarg, NULL, 0);
- 			break;
-+                case 'o':
-+                        send_only = 1;
-+                        break;
-+
- 		default:
- 			printf("usage: %s\n", argv[0]);
- 			printf("\t-m multicast_address\n");
-@@ -596,6 +607,7 @@ int main(int argc, char **argv)
- 			printf("\t[-S message_size]\n");
- 			printf("\t[-p port_space - %#x for UDP (default), "
- 			       "%#x for IPOIB]\n", RDMA_PS_UDP, RDMA_PS_IPOIB);
-+			printf("\t[-o join as sendonly fullmember]\n");
- 			exit(1);
- 		}
- 	}
+ # Build with latest clang first
 -- 
-1.7.1
+2.15.0.168.g9a51f1b30.dirty
 
 
 --
