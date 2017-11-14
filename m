@@ -1,49 +1,48 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next 27/31] IB/cm: Fix honor address handle
- attribute init error
-Date: Tue, 14 Nov 2017 16:38:41 -0700
-Message-ID: <20171114233841.GC25894@ziepe.ca>
+Subject: Re: [PATCH rdma-next 09/31] IB/core: Make sure that PSN does not
+ overflow
+Date: Tue, 14 Nov 2017 16:44:33 -0700
+Message-ID: <20171114234433.GD25894@ziepe.ca>
 References: <20171114125218.20477-1-leon@kernel.org>
- <20171114125218.20477-28-leon@kernel.org>
- <CAJ3xEMjPsD7+YnN80A7Z3WjxEey20=TYKpxrRK_mRhKVMEnA8Q@mail.gmail.com>
- <VI1PR0502MB3008514AED6DA3E970381088D1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <CAJ3xEMg6bJt0obWHrSae86ZUN7RgCYqWJJiQXw9on82P=zO_VA@mail.gmail.com>
- <VI1PR0502MB300851A707AFA9DEC77B232ED1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20171114125218.20477-10-leon@kernel.org>
+ <CAJ3xEMj+QYJs7cTaP7-Z2WGoPZN2ujh+_2sQhW7ZKg0ZGjQacg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <VI1PR0502MB300851A707AFA9DEC77B232ED1280-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <CAJ3xEMj+QYJs7cTaP7-Z2WGoPZN2ujh+_2sQhW7ZKg0ZGjQacg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 14, 2017 at 10:27:42PM +0000, Parav Pandit wrote:
+On Tue, Nov 14, 2017 at 11:23:07PM +0200, Or Gerlitz wrote:
+> > +
+> > +       if (rdma_ib_or_roce(qp->device, port)) {
+> > +               if (attr_mask & IB_QP_RQ_PSN && attr->rq_psn & ~0xffffff) {
+> > +                       pr_warn("%s: %s rq_psn overflow, masking to 24 bits\n",
+> > +                               __func__, qp->device->name);
+> > +                       attr->rq_psn &= 0xffffff;
+> > +               }
+> > +
+> > +               if (attr_mask & IB_QP_SQ_PSN && attr->sq_psn & ~0xffffff) {
+> > +                       pr_warn("%s: %s sq_psn overflow, masking to 24 bits\n",
+> > +                               __func__, qp->device->name);
+> > +                       attr->sq_psn &= 0xffffff;
+> > +               }
+> > +       }
+> > +
+> 
+> Isn't this what we tried to push in the past and Jason/Sean rejected [1]?
+> 
+> [1] https://marc.info/?l=linux-rdma&m=142309249413868&w=2
 
-> > On Wed, Nov 15, 2017 at 12:13 AM, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > wrote:
-> > >> From: Or Gerlitz [mailto:gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> > 
-> > >> any reason not to point out the commit that introduced the bug?
-> > > No particular reason. I am not sure few years back it was bug or not. In current
-> > code it appear so.
-> > > So I continued without Fixes commit line.
-> > 
-> > 
-> > The idea is that you do the git blaming and such work to get the
-> > Fixes line, and later, the maintainer of the sub-system and
-> > maintainers of stable kernel use that to decide if/where they want
-> > this to go beyond the -rc kernel you are fixing
+No, this version is what I asked for originally in that thread:
 
-> Yes, I understand. But would that be a bug in initial commit, which
-> transport was it handling.. without error code check what could have
-> gone wrong..  I do not have answer for those questions. So I omitted
-> the Fixes line.  Wherever I knew for sure in this or other series, I
-> have added.
+  I think we'd be better off keeping the current behavior of masking
+  the PSN, not enforcing the limit.
 
-While the fixes line is nice, the more important question is if any of
-these patches should have a 'Cc: stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org' ?
+The issue was because the link'd version returned an error.
 
 Jason
 --
