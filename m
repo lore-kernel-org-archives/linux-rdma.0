@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] IB/qib: remove redundant setting of any in for-loop
-Date: Tue, 14 Nov 2017 16:29:36 -0500
-Message-ID: <20171114212936.17403.34341.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 2/2] IB/qib: Cleanup qib_set_part_key() with direct returns
+Date: Tue, 14 Nov 2017 16:29:41 -0500
+Message-ID: <20171114212941.17403.71398.stgit@phlsvslse11.ph.intel.com>
 References: <20171114212905.17403.77778.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,35 +13,135 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
 
-The variable all is being set but is never read after this
-hence it can be removed from the for loop initialization.
-Cleans up clang warning:
+Perhaps the function is better written without
+the empty bail: label and without setting ret
+and just using return.
 
-drivers/infiniband/hw/qib/qib_file_ops.c:640:7: warning: Value
-stored to 'any' is never read
+Combining the int/bool conversion of any and the
+direct returns makes the resulting code clearer.
 
 Tested-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Signed-off-by: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_file_ops.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/qib/qib_file_ops.c |   66 +++++++++++-------------------
+ 1 file changed, 24 insertions(+), 42 deletions(-)
 
 diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
-index 9396c18..b25571f 100644
+index b25571f..7613564 100644
 --- a/drivers/infiniband/hw/qib/qib_file_ops.c
 +++ b/drivers/infiniband/hw/qib/qib_file_ops.c
-@@ -637,7 +637,7 @@ static int qib_set_part_key(struct qib_ctxtdata *rcd, u16 key)
- 		ret = -EBUSY;
- 		goto bail;
+@@ -568,20 +568,16 @@ static int qib_tid_free(struct qib_ctxtdata *rcd, unsigned subctxt,
+ static int qib_set_part_key(struct qib_ctxtdata *rcd, u16 key)
+ {
+ 	struct qib_pportdata *ppd = rcd->ppd;
+-	int i, any = 0, pidx = -1;
++	int i, pidx = -1;
++	bool any = false;
+ 	u16 lkey = key & 0x7FFF;
+-	int ret;
+ 
+-	if (lkey == (QIB_DEFAULT_P_KEY & 0x7FFF)) {
++	if (lkey == (QIB_DEFAULT_P_KEY & 0x7FFF))
+ 		/* nothing to do; this key always valid */
+-		ret = 0;
+-		goto bail;
+-	}
++		return 0;
+ 
+-	if (!lkey) {
+-		ret = -EINVAL;
+-		goto bail;
+-	}
++	if (!lkey)
++		return -EINVAL;
+ 
+ 	/*
+ 	 * Set the full membership bit, because it has to be
+@@ -594,18 +590,14 @@ static int qib_set_part_key(struct qib_ctxtdata *rcd, u16 key)
+ 	for (i = 0; i < ARRAY_SIZE(rcd->pkeys); i++) {
+ 		if (!rcd->pkeys[i] && pidx == -1)
+ 			pidx = i;
+-		if (rcd->pkeys[i] == key) {
+-			ret = -EEXIST;
+-			goto bail;
+-		}
++		if (rcd->pkeys[i] == key)
++			return -EEXIST;
  	}
+-	if (pidx == -1) {
+-		ret = -EBUSY;
+-		goto bail;
+-	}
 -	for (any = i = 0; i < ARRAY_SIZE(ppd->pkeys); i++) {
++	if (pidx == -1)
++		return -EBUSY;
 +	for (i = 0; i < ARRAY_SIZE(ppd->pkeys); i++) {
+ 		if (!ppd->pkeys[i]) {
+-			any++;
++			any = true;
+ 			continue;
+ 		}
+ 		if (ppd->pkeys[i] == key) {
+@@ -613,44 +605,34 @@ static int qib_set_part_key(struct qib_ctxtdata *rcd, u16 key)
+ 
+ 			if (atomic_inc_return(pkrefs) > 1) {
+ 				rcd->pkeys[pidx] = key;
+-				ret = 0;
+-				goto bail;
+-			} else {
+-				/*
+-				 * lost race, decrement count, catch below
+-				 */
+-				atomic_dec(pkrefs);
+-				any++;
++				return 0;
+ 			}
++			/*
++			 * lost race, decrement count, catch below
++			 */
++			atomic_dec(pkrefs);
++			any = true;
+ 		}
+-		if ((ppd->pkeys[i] & 0x7FFF) == lkey) {
++		if ((ppd->pkeys[i] & 0x7FFF) == lkey)
+ 			/*
+ 			 * It makes no sense to have both the limited and
+ 			 * full membership PKEY set at the same time since
+ 			 * the unlimited one will disable the limited one.
+ 			 */
+-			ret = -EEXIST;
+-			goto bail;
+-		}
+-	}
+-	if (!any) {
+-		ret = -EBUSY;
+-		goto bail;
++			return -EEXIST;
+ 	}
++	if (!any)
++		return -EBUSY;
+ 	for (i = 0; i < ARRAY_SIZE(ppd->pkeys); i++) {
  		if (!ppd->pkeys[i] &&
  		    atomic_inc_return(&ppd->pkeyrefs[i]) == 1) {
  			rcd->pkeys[pidx] = key;
+ 			ppd->pkeys[i] = key;
+ 			(void) ppd->dd->f_set_ib_cfg(ppd, QIB_IB_CFG_PKEYS, 0);
+-			ret = 0;
+-			goto bail;
++			return 0;
+ 		}
+ 	}
+-	ret = -EBUSY;
+-
+-bail:
+-	return ret;
++	return -EBUSY;
+ }
+ 
+ /**
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
