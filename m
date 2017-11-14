@@ -1,58 +1,36 @@
-From: Nicolas Morey-Chaisemartin <nicolas-PVCUbA2IIkVH1sytvemUSjhD77mM7E+b@public.gmane.org>
-Subject: [PATCH rdma-core 2/5] buildlib: add script to dump ABI
-Date: Tue, 14 Nov 2017 19:57:55 +0100
-Message-ID: <8bcdf747-5613-8990-5742-8a9b6e552ac9@morey-chaisemartin.com>
-References: <8306e0d4-3f4f-1d06-74e1-c971fc63f7b8@suse.de>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH RFC rdma-core 2/5] verbs: Introduce parent domain and its
+ related verbs
+Date: Tue, 14 Nov 2017 12:08:52 -0700
+Message-ID: <20171114190852.GG4263@ziepe.ca>
+References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
+ <1510522903-6838-3-git-send-email-yishaih@mellanox.com>
+ <20171113195331.GC22610@ziepe.ca>
+ <4c8448c2-373a-bbc1-73be-f792599b8b0a@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8306e0d4-3f4f-1d06-74e1-c971fc63f7b8-l3A5Bk7waGM@public.gmane.org>
-Content-Language: fr-xx-classique+reforme1990
+Content-Disposition: inline
+In-Reply-To: <4c8448c2-373a-bbc1-73be-f792599b8b0a-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Builds rdma-core in -Og/Debug mode and use abi-dumper to generate 1 xml
- per .so.*.* file.
-Do not use .so file directly. Providers have no symbol exported
- and cause abi-dumer to exit with an error.
+On Tue, Nov 14, 2017 at 10:34:25AM +0200, Yishai Hadas wrote:
 
-Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
-Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org # v15
----
- buildlib/gen-abi | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
- create mode 100755 buildlib/gen-abi
+> >I don't think we should have a dealloc for this, since it is ibv_pd it
+> >should go through the normal ibv_dealloc_pd. Having two deletors for
+> >the same type is too hard to use.
+> 
+> I'm fine with that, just to be clear here, the application will still need
+> to call twice for ibv_dealloc_pd() once to free the parent domain collection
+> and later to free the protection name, this will make it fully symmetric
+> from allocation/free point of view.
 
-diff --git a/buildlib/gen-abi b/buildlib/gen-abi
-new file mode 100755
-index 00000000..6dff8ddb
---- /dev/null
-+++ b/buildlib/gen-abi
-@@ -0,0 +1,18 @@
-+#!/bin/bash
-+
-+# Stop on error
-+set -e
-+# Echo all commands to Travis log
-+set -x
-+
-+mkdir build-abi
-+cd build-abi
-+CFLAGS="-g -Og" cmake -GNinja -DCMAKE_BUILD_TYPE=Debug ..
-+ninja
-+
-+mkdir ABI
-+for FILE in $(find lib -name "*.so.*.*"); do 
-+	LIB=$(basename $FILE)
-+	MODULE_VER=$(echo $LIB | sed -e 's/.*.so\.\(.*\)/\1/')
-+	../buildlib/abi-checker/abi-dumper.pl  -lver $MODULE_VER $FILE -o ABI/$LIB.dump
-+done
--- 
-2.15.0.168.g9a51f1b30.dirty
+Yes
 
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
