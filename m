@@ -1,26 +1,35 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Subject: RE: [PATCH] IB/qib: remove redundant setting of any in for-loop
-Date: Tue, 14 Nov 2017 21:40:00 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC62686F29@fmsmsx120.amr.corp.intel.com>
-References: <20171020072103.10337-1-colin.king@canonical.com>
-         <1508484951.6806.46.camel@perches.com> <1510336823.3735.4.camel@redhat.com>
-         <32E1700B9017364D9B60AED9960492BC626823A0@fmsmsx120.amr.corp.intel.com>
- <1510609978.3735.43.camel@redhat.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 06/31] IB/ipoib: Avoid memory leak if neigh
+ destination was changed
+Date: Tue, 14 Nov 2017 23:51:09 +0200
+Message-ID: <CAJ3xEMjPD-MwKHknnYVBzzhSoxCFWE2i9jOCC500yEn5pFXarg@mail.gmail.com>
+References: <20171114125218.20477-1-leon@kernel.org> <20171114125218.20477-7-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <1510609978.3735.43.camel@redhat.com>
-Content-Language: en-US
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Joe Perches <joe@perches.com>, Colin King <colin.king@canonical.com>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Cc: "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171114125218.20477-7-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IERvdWcsICBkbyB5b3Ugd2FudCBhIHRlc3RlZCBwYXRjaCBmcm9tIG1lPw0KPiANCj4gUHJl
-ZmVyYWJseSwgeWVzIDotKQ0KPiANCg0KVGhlc2UgcGF0Y2hlcyBhcmUgaW4gYSB0d28gcGF0Y2gg
-c2VyaWVzOg0KaHR0cHM6Ly9tYXJjLmluZm8vP2w9bGludXgtcmRtYSZtPTE1MTA2OTQ5NzUwNjky
-MyZ3PTINCg0KVGhlIGZpcnN0IGlzIENvbGluJ3Mgd2FybmluZyBmaXggYW5kIHRoZSBzZWNvbmQg
-aXMgSm9lJ3MgY2xlYW51cC4NCg0KTXkgdmFsdWUgYWRkIGlzIHRoZSB0ZXN0aW5nLiAgOikNCg0K
-VGhleSBwYXNzIG91ciBwc20gdGVzdGluZy4NCg0KVGhhbmtzIGZvciB0aGUgcGF0Y2hlcyENCg0K
-TWlrZQ0K
+On Tue, Nov 14, 2017 at 2:51 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> If from some reason the SM responses to path query request with response
+> that doesn't contain the exact SGID, ipoib should warn and change that
+> part of the response before push it to the path record DB.
+> Otherwise, new record will be added to the path record DB with no access
+> to them from the ipoib.
+>
+> Demonstration of the bug is as the follow:
+
+this series contains bunch of fixes, any reason to direct them to
+-next (4.16) and not -rc (4.15)
+
+Also, in most of the cases ppl didn't provide a Fixes: line with the
+offending patch, any reason to skip that?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
