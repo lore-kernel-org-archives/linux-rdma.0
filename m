@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 14/31] RDMA/cma: Simplify netdev check
-Date: Tue, 14 Nov 2017 14:52:01 +0200
-Message-ID: <20171114125218.20477-15-leon@kernel.org>
+Subject: [PATCH rdma-next 16/31] RDMA/cma: Introduce and use helper functions to init work
+Date: Tue, 14 Nov 2017 14:52:03 +0200
+Message-ID: <20171114125218.20477-17-leon@kernel.org>
 References: <20171114125218.20477-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171114125218.20477-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,79 +12,123 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Current code checks for NULL ndev twice where 2nd check is always
-invalid given the fact that during route resolving stage, device address
-must be bound to netdevice interface.
-
-This patch simplifies such check.
+Introduce and user helper functions to initialize work for address
+resolved and route resolved event that avoid code duplication at few
+places.
 
 Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 35 ++++++++++++++++-------------------
- 1 file changed, 16 insertions(+), 19 deletions(-)
+ drivers/infiniband/core/cma.c | 53 ++++++++++++++++++++-----------------------
+ 1 file changed, 25 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index e63a51b68ed5..168f1230756b 100644
+index f986597201fa..48f593bafe33 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -2527,8 +2527,10 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
- 	struct rdma_addr *addr = &route->addr;
- 	struct cma_work *work;
- 	int ret;
--	struct net_device *ndev = NULL;
-+	struct net_device *ndev;
- 	enum ib_gid_type gid_type = IB_GID_TYPE_ROCE;
-+	unsigned long supported_gids;
-+
- 	u8 default_roce_tos = id_priv->cma_dev->default_roce_tos[id_priv->id.port_num -
- 					rdma_start_port(id_priv->cma_dev->device)];
- 	u8 tos = id_priv->tos_set ? id_priv->tos : default_roce_tos;
-@@ -2549,30 +2551,25 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+@@ -2413,6 +2413,26 @@ static void cma_ndev_work_handler(struct work_struct *_work)
+ 	kfree(work);
+ }
  
- 	route->num_paths = 1;
- 
--	if (addr->dev_addr.bound_dev_if) {
--		unsigned long supported_gids;
--
--		ndev = dev_get_by_index(&init_net, addr->dev_addr.bound_dev_if);
--		if (!ndev) {
--			ret = -ENODEV;
--			goto err2;
--		}
--
--		supported_gids = roce_gid_type_mask_support(id_priv->id.device,
--							    id_priv->id.port_num);
--		gid_type = cma_route_gid_type(addr->dev_addr.network,
--					      supported_gids,
--					      id_priv->gid_type);
--		route->path_rec->rec_type =
--			sa_conv_gid_to_pathrec_type(gid_type);
--		sa_path_set_ndev(route->path_rec, &init_net);
--		sa_path_set_ifindex(route->path_rec, ndev->ifindex);
-+	if (!addr->dev_addr.bound_dev_if) {
-+		ret = -ENODEV;
-+		goto err2;
- 	}
++static void cma_init_resolve_route_work(struct cma_work *work,
++					struct rdma_id_private *id_priv)
++{
++	work->id = id_priv;
++	INIT_WORK(&work->work, cma_work_handler);
++	work->old_state = RDMA_CM_ROUTE_QUERY;
++	work->new_state = RDMA_CM_ROUTE_RESOLVED;
++	work->event.event = RDMA_CM_EVENT_ROUTE_RESOLVED;
++}
 +
-+	ndev = dev_get_by_index(&init_net, addr->dev_addr.bound_dev_if);
- 	if (!ndev) {
- 		ret = -ENODEV;
++static void cma_init_resolve_addr_work(struct cma_work *work,
++				       struct rdma_id_private *id_priv)
++{
++	work->id = id_priv;
++	INIT_WORK(&work->work, cma_work_handler);
++	work->old_state = RDMA_CM_ADDR_QUERY;
++	work->new_state = RDMA_CM_ADDR_RESOLVED;
++	work->event.event = RDMA_CM_EVENT_ADDR_RESOLVED;
++}
++
+ static int cma_resolve_ib_route(struct rdma_id_private *id_priv, int timeout_ms)
+ {
+ 	struct rdma_route *route = &id_priv->id.route;
+@@ -2423,11 +2443,7 @@ static int cma_resolve_ib_route(struct rdma_id_private *id_priv, int timeout_ms)
+ 	if (!work)
+ 		return -ENOMEM;
+ 
+-	work->id = id_priv;
+-	INIT_WORK(&work->work, cma_work_handler);
+-	work->old_state = RDMA_CM_ROUTE_QUERY;
+-	work->new_state = RDMA_CM_ROUTE_RESOLVED;
+-	work->event.event = RDMA_CM_EVENT_ROUTE_RESOLVED;
++	cma_init_resolve_route_work(work, id_priv);
+ 
+ 	route->path_rec = kmalloc(sizeof *route->path_rec, GFP_KERNEL);
+ 	if (!route->path_rec) {
+@@ -2482,11 +2498,7 @@ static int cma_resolve_iw_route(struct rdma_id_private *id_priv, int timeout_ms)
+ 	if (!work)
+ 		return -ENOMEM;
+ 
+-	work->id = id_priv;
+-	INIT_WORK(&work->work, cma_work_handler);
+-	work->old_state = RDMA_CM_ROUTE_QUERY;
+-	work->new_state = RDMA_CM_ROUTE_RESOLVED;
+-	work->event.event = RDMA_CM_EVENT_ROUTE_RESOLVED;
++	cma_init_resolve_route_work(work, id_priv);
+ 	queue_work(cma_wq, &work->work);
+ 	return 0;
+ }
+@@ -2540,9 +2552,6 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 	if (!work)
+ 		return -ENOMEM;
+ 
+-	work->id = id_priv;
+-	INIT_WORK(&work->work, cma_work_handler);
+-
+ 	route->path_rec = kzalloc(sizeof *route->path_rec, GFP_KERNEL);
+ 	if (!route->path_rec) {
+ 		ret = -ENOMEM;
+@@ -2602,11 +2611,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
  		goto err2;
  	}
  
-+	supported_gids = roce_gid_type_mask_support(id_priv->id.device,
-+						    id_priv->id.port_num);
-+	gid_type = cma_route_gid_type(addr->dev_addr.network,
-+				      supported_gids,
-+				      id_priv->gid_type);
-+	route->path_rec->rec_type = sa_conv_gid_to_pathrec_type(gid_type);
-+	sa_path_set_ndev(route->path_rec, &init_net);
-+	sa_path_set_ifindex(route->path_rec, ndev->ifindex);
- 	sa_path_set_dmac(route->path_rec, addr->dev_addr.dst_dev_addr);
+-	work->old_state = RDMA_CM_ROUTE_QUERY;
+-	work->new_state = RDMA_CM_ROUTE_RESOLVED;
+-	work->event.event = RDMA_CM_EVENT_ROUTE_RESOLVED;
+-	work->event.status = 0;
+-
++	cma_init_resolve_route_work(work, id_priv);
+ 	queue_work(cma_wq, &work->work);
  
- 	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
+ 	return 0;
+@@ -2786,11 +2791,7 @@ static int cma_resolve_loopback(struct rdma_id_private *id_priv)
+ 	rdma_addr_get_sgid(&id_priv->id.route.addr.dev_addr, &gid);
+ 	rdma_addr_set_dgid(&id_priv->id.route.addr.dev_addr, &gid);
+ 
+-	work->id = id_priv;
+-	INIT_WORK(&work->work, cma_work_handler);
+-	work->old_state = RDMA_CM_ADDR_QUERY;
+-	work->new_state = RDMA_CM_ADDR_RESOLVED;
+-	work->event.event = RDMA_CM_EVENT_ADDR_RESOLVED;
++	cma_init_resolve_addr_work(work, id_priv);
+ 	queue_work(cma_wq, &work->work);
+ 	return 0;
+ err:
+@@ -2816,11 +2817,7 @@ static int cma_resolve_ib_addr(struct rdma_id_private *id_priv)
+ 	rdma_addr_set_dgid(&id_priv->id.route.addr.dev_addr, (union ib_gid *)
+ 		&(((struct sockaddr_ib *) &id_priv->id.route.addr.dst_addr)->sib_addr));
+ 
+-	work->id = id_priv;
+-	INIT_WORK(&work->work, cma_work_handler);
+-	work->old_state = RDMA_CM_ADDR_QUERY;
+-	work->new_state = RDMA_CM_ADDR_RESOLVED;
+-	work->event.event = RDMA_CM_EVENT_ADDR_RESOLVED;
++	cma_init_resolve_addr_work(work, id_priv);
+ 	queue_work(cma_wq, &work->work);
+ 	return 0;
+ err:
 -- 
 2.15.0
 
