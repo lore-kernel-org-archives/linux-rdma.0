@@ -1,41 +1,58 @@
-From: Sowmini Varadhan <sowmini.varadhan-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: KASAN: use-after-free Read in rds_tcp_dev_event
-Date: Tue, 14 Nov 2017 01:57:00 -0500
-Message-ID: <20171114065700.GK26261@oracle.com>
-References: <001a1148d244ade0aa055d6a69b9@google.com>
- <9e71dff9-7ba8-a3c2-6862-fb8557546a54@oracle.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: rdma-core_15-1_amd64.changes ACCEPTED into unstable, unstable
+Date: Tue, 14 Nov 2017 09:20:56 +0200
+Message-ID: <20171114072056.GP18825@mtr-leonro.local>
+References: <E1eENiD-000EaM-BG@fasolo.debian.org>
+ <20171114023711.GA22633@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="VHnRLfjpj1i6VFsc"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <9e71dff9-7ba8-a3c2-6862-fb8557546a54-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20171114023711.GA22633-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Girish Moodalbail <girish.moodalbail-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: syzbot <bot+643ecad3f5bb49700e839363b608c4928f6db8f0-Pl5Pbv+GP7P466ipTTIvnc23WoclnBCfAL8bYrjMMd8@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, syzkaller-bugs-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On (11/13/17 19:30), Girish Moodalbail wrote:
-> (L538-540). However, it leaves behind some of the rds_tcp connections that
-> shared the same underlying RDS connection (L534 and 535). These connections
-> with pointer to stale network namespace are left behind in the global list.
 
-It leaves behind no such thing. After mprds, you want to collect
-only one instance of the conn that is being removed, that's why
-lines 534-535 skips over duplicat instances of the same conn
-(for multiple paths in the same conn).
+--VHnRLfjpj1i6VFsc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> When the 2nd network namespace is deleted, we will hit the above stale
-> pointer and hit UAF panic.
-> I think we should move away from global list to a per-namespace list. The
-> global list are used only in two places (both of which are per-namespace
-> operations):
+On Mon, Nov 13, 2017 at 07:37:11PM -0700, Jason Gunthorpe wrote:
+> Great news! Good job!
 
-Nice try, but not so. 
+Thanks a lot.
 
-Let me look at this tomorrow, I missed this mail in my mbox.
+>
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---Sowmini
+--VHnRLfjpj1i6VFsc
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloKmVgACgkQ5GN7iDZy
+WKeSXRAAlibucr1Fzob6cLrIwNXvgssTtVSU531AL0DMbcKJ0xOLgw9JM8XvIDqq
+J0tp5+O/htZx1C9XJCaOI/70rYqoexvox/uldJY+fxKt3GS7YQLiysfN8S2bKp3M
+dtDPqtgXuZU6Uq/GLNLa+ttWRy6paaGn2kqgULRBQ6dIG7Z9orbaGtiR+0XoEo1d
+PCRJcZCdqZRhgduivLM4CUPHHdS3HsiHqzjdu4zgVAcEsTCt3XyhJNmnZkUOzz6H
+vcyGaKNVd06zDxGX6VepCwk+8fUEoaXJtUX9FxRtswfjxO+BCRW43dyuQTRv0JW7
+3VE9sJb8AFi3iM6Oq3BIZE9wxiLLHcFMBIMbOb5X2UA1WO5l+aTkokkzzo3sHKJP
+V3LpFFxs2kU7Z8RjZkwJM361k7uK/UYJ3W4c7wY7/9xL0DV4+GKbpDXleKBFlnSh
+NayjMyBBDRWqXRhlhBHCW7dWlnT68WxXKX69h8V+R6weDt5NSi+AQQNTb3QUnfpz
+wryRIAF2bLo0hlRc2kyL28Q7nG38r70DtYwuGH9VsF/SUNeSjehXrGcGgM+/GO1y
+ToZs1mPsSJMR1YjC3Z6C1cgQqjJXsr4nTxAjMBWDPD+DBVphJNmGAeYZ6YWEBjUz
+bVPvl2RMk97R8geVpWLohOGgUFj7k+iLCvOWjAI+ow3UW6OV1Uw=
+=/8Kn
+-----END PGP SIGNATURE-----
+
+--VHnRLfjpj1i6VFsc--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
