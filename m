@@ -1,68 +1,48 @@
-From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH rdma-core 4/5] buildlib: run ABI check in travis-build
-Date: Wed, 15 Nov 2017 18:57:40 +0100
-Message-ID: <8399389a-952f-c017-aff9-6df0bbdada83@suse.de>
-References: <8306e0d4-3f4f-1d06-74e1-c971fc63f7b8@suse.de>
- <866df5d4-2a54-2014-a180-1fd0dc43d0fa@suse.de>
- <20171115055825.GS18825@mtr-leonro.local>
- <a6eadf81-1557-bf9c-c163-61461bc5c271@suse.de>
- <20171115173453.GB18825@mtr-leonro.local>
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: kernel space iWARP broken with CONFIG_SECURITY_INFINIBAND enabled
+Date: Wed, 15 Nov 2017 12:21:08 -0600
+Message-ID: <8ac43c6a-e2d9-572e-b4bf-03cdf3be57a8@mellanox.com>
+References: <20171115131525.GB25574@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171115173453.GB18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: fr-xx-classique+reforme1990
+In-Reply-To: <20171115131525.GB25574-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-XVmvHMARGATQT0dZR+AlfA@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-Le 15/11/2017 à 18:34, Leon Romanovsky a écrit :
-> On Wed, Nov 15, 2017 at 06:24:32PM +0100, Nicolas Morey-Chaisemartin wrote:
->>
->> Le 15/11/2017 à 06:58, Leon Romanovsky a écrit :
->>> On Tue, Nov 14, 2017 at 07:58:06PM +0100, Nicolas Morey-Chaisemartin wrote:
->>>> Run travis-checkabi during travis build
->>>>
->>>> Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
->>>> Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org # v15
->>>> ---
->>>>  buildlib/travis-build | 4 ++++
->>>>  1 file changed, 4 insertions(+)
->>>>
->>>> diff --git a/buildlib/travis-build b/buildlib/travis-build
->>>> index bf86baa7..f8e5ee05 100755
->>>> --- a/buildlib/travis-build
->>>> +++ b/buildlib/travis-build
->>>> @@ -5,6 +5,10 @@ set -e
->>>>  # Echo all commands to Travis log
->>>>  set -x
->>>>
->>>> +
->>>> +# Build in debug mode and check the ABI against the ref
->>>> +./buildlib/travis-checkabi
->>> Will it run for all commits, including master?
->> Yes and no.
->> The script is called for all commits. But one of the first thing it does is checking that reference file exists and ignore if they don't (see Patch 3):
->>
->> +# No reference ABI to match against.
->> +if [ ! -d $REF_DIR ]; then
->> +	echo "INFO: Skipping ABI check. No reference available"
->> +	exit 0
->> +fi
->> +
->>
->> It might be worth doing this test first in the script to avoid the debug build / abi-dumper calls.
-> Yes, please.
+On 11/15/2017 7:15 AM, Potnuri Bharat Teja wrote:
+> Hi all,
+> With CONFIG_SECURITY_INFINIBAND kernel config option enabled iWARP kernel 
+> space applications are failing at rdma_create_qp(). Apparantly SELinux 
+> support for Infiniband RDMA caused this regression.
 >
-> Thanks
+> Here is the failure with NVMEof discovery:
+> [  129.294943] nvme nvme0: rdma_resolve_addr wait failed (-22).
 >
+> Failure is at ib_get_cached_pkey(), for invalid pkey_index, called by the 
+> following call chain: 
+> rdma_create_qp()-> cma_init_conn_qp()-> ib_modify_qp()-> 
+> ib_security_modify_qp()-> check_qp_port_pkey_settings()-> 
+> get_pkey_and_subnet_prefix()
 >
+> SELinux support for Infiniband RDMA:
+> https://emea01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.spinics.net%2Flists%2Flinux-rdma%2Fmsg38705.html&data=02%7C01%7Cdanielj%40mellanox.com%7C562dfe4029994b668c8808d52c2af77a%7Ca652971c7d2e4d9ba6a4d149256f461b%7C0%7C0%7C636463485413049982&sdata=zjyS9aC9I2vRRxPyrIeLmCAl0Cg3cNJS7Tfz96Fzl%2F4%3D&reserved=0
+>
+> I am trying to understand how IB security enforcing works with iWARP. 
+> From the commit messages these appears to be an IB specific changes.
+> If true, how is iw_cm supposed to handle it?
+> iWARP doesn't use or have partition keys (pkey), How is this handled by the 
+> IB security enforcing changes?
+>
+> Thanks,
+> Bharat.
+>  
 
-Fixed in the github PR.
+Thanks Bharat, would you mind testing a patch for me? I don't have any iWARP hardware. I'll send to you it by EOB today.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
