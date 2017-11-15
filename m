@@ -1,45 +1,65 @@
 From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 31/31] IB/cm: Refactor to avoid setting path
- record software only fields
-Date: Wed, 15 Nov 2017 09:56:37 +0200
-Message-ID: <CAJ3xEMjQZgRBugy79xRZOFJOonPJzxyXv=+hAZ-+vHM7KemZ4w@mail.gmail.com>
-References: <20171114125218.20477-1-leon@kernel.org> <20171114125218.20477-32-leon@kernel.org>
- <CAJ3xEMhyZQM5dp2VKoiVDz3Q524d_kO=a0PUMJt_xmQK-nkPsg@mail.gmail.com> <VI1PR0502MB3008CEF7DF9257A4D6AFBD1FD1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+Subject: Re: [PATCH rdma-next 27/31] IB/cm: Fix honor address handle attribute
+ init error
+Date: Wed, 15 Nov 2017 09:59:23 +0200
+Message-ID: <CAJ3xEMiB6VUp1Kb9HBS5jkqnYN61UP6DYNxqs1T8qGLCUGELcg@mail.gmail.com>
+References: <20171114125218.20477-1-leon@kernel.org> <20171114125218.20477-28-leon@kernel.org>
+ <CAJ3xEMjPsD7+YnN80A7Z3WjxEey20=TYKpxrRK_mRhKVMEnA8Q@mail.gmail.com>
+ <VI1PR0502MB3008514AED6DA3E970381088D1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <CAJ3xEMg6bJt0obWHrSae86ZUN7RgCYqWJJiQXw9on82P=zO_VA@mail.gmail.com>
+ <VI1PR0502MB300851A707AFA9DEC77B232ED1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20171114233841.GC25894@ziepe.ca> <20171115053155.GO18825@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB3008CEF7DF9257A4D6AFBD1FD1280-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <20171115053155.GO18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 15, 2017 at 12:11 AM, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> From: Or Gerlitz [mailto:gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-
->> On Tue, Nov 14, 2017 at 2:52 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->> > From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> >
->> > When path ah_attr initialization from path record fails,
->> > ib_cm_send_rej() uses av.ah_attr fields to send out reject message. In
->> > such cases initialization of path record software fields is not
->> > needed. Code is simplified for same.
+On Wed, Nov 15, 2017 at 7:31 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> On Tue, Nov 14, 2017 at 04:38:41PM -0700, Jason Gunthorpe wrote:
+>> On Tue, Nov 14, 2017 at 10:27:42PM +0000, Parav Pandit wrote:
 >>
->> is "Code is simplified for same"  cut in the middle, I fail to understand the
->> sentence.
+>> > > On Wed, Nov 15, 2017 at 12:13 AM, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> > > wrote:
+>> > > >> From: Or Gerlitz [mailto:gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+>> > >
+>> > > >> any reason not to point out the commit that introduced the bug?
+>> > > > No particular reason. I am not sure few years back it was bug or not. In current
+>> > > code it appear so.
+>> > > > So I continued without Fixes commit line.
+>> > >
+>> > >
+>> > > The idea is that you do the git blaming and such work to get the
+>> > > Fixes line, and later, the maintainer of the sub-system and
+>> > > maintainers of stable kernel use that to decide if/where they want
+>> > > this to go beyond the -rc kernel you are fixing
 >>
-> Code is simplified to avoid such initialization.
+>> > Yes, I understand. But would that be a bug in initial commit, which
+>> > transport was it handling.. without error code check what could have
+>> > gone wrong..  I do not have answer for those questions. So I omitted
+>> > the Fixes line.  Wherever I knew for sure in this or other series, I
+>> > have added.
+>>
+>> While the fixes line is nice, the more important question is if any of
+>> these patches should have a 'Cc: stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org' ?
+>
+> No, this is why I didn't ask to add Fixes line, because stable@ takes
+> patches in semi-automatic mode by looking after Fixes line.
 
-so fix  that in the next version, ok?
+And what's wrong with that? IMHO the right thing to do for fixes is
 
->> You do two logical changes in one patch, doesn't seem right to me.
+(1) putng the Fixes line
+(2) cc the author of the offending patch
 
-> Both logical changes are in same function few lines apart around GID check.
-> So Hal and I continued to have in one patch.
+This way you can get them a chance to review the fix and point out to
+you problems in the patch that may e.g introduce a 2nd problem or
+a side effect you don't envision. This is what we do on netdev,
+practically always.
 
-
-As long as it's not terribly problematic, patch has to carry one logical change,
-I don't see why not apply this practice here too.
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
