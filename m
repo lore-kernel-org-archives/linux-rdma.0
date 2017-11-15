@@ -1,85 +1,85 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 06/31] IB/ipoib: Avoid memory leak if neigh
- destination was changed
-Date: Wed, 15 Nov 2017 07:11:50 +0200
-Message-ID: <20171115051150.GL18825@mtr-leonro.local>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 08/31] RDMA/cma: Fix consider size of
+ destination address
+Date: Wed, 15 Nov 2017 07:25:03 +0200
+Message-ID: <20171115052503.GM18825@mtr-leonro.local>
 References: <20171114125218.20477-1-leon@kernel.org>
- <20171114125218.20477-7-leon@kernel.org>
- <CAJ3xEMjPD-MwKHknnYVBzzhSoxCFWE2i9jOCC500yEn5pFXarg@mail.gmail.com>
+ <20171114125218.20477-9-leon@kernel.org>
+ <CAJ3xEMiA7G48_boRVJK336n2DNT8voJVJMiT-qhqpfXqz7aNxQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="BwgxZU5iS1dWSTZh"
+        protocol="application/pgp-signature"; boundary="htvT4BrJhvkgK8RF"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ3xEMjPD-MwKHknnYVBzzhSoxCFWE2i9jOCC500yEn5pFXarg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAJ3xEMiA7G48_boRVJK336n2DNT8voJVJMiT-qhqpfXqz7aNxQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---BwgxZU5iS1dWSTZh
+--htvT4BrJhvkgK8RF
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Nov 14, 2017 at 11:51:09PM +0200, Or Gerlitz wrote:
+On Tue, Nov 14, 2017 at 11:18:41PM +0200, Or Gerlitz wrote:
 > On Tue, Nov 14, 2017 at 2:51 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> > From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > >
-> > If from some reason the SM responses to path query request with response
-> > that doesn't contain the exact SGID, ipoib should warn and change that
-> > part of the response before push it to the path record DB.
-> > Otherwise, new record will be added to the path record DB with no access
-> > to them from the ipoib.
+> > While copying destination address in statistics, consider size of
+> > destination address.
 > >
-> > Demonstration of the bug is as the follow:
+> > Fixes: ce117ffac2e9 ("RDMA/cma: Export AF_IB statistics")
+> > Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > ---
+> >  drivers/infiniband/core/cma.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> > index 1fdb473b5df7..9841e7ca5c06 100644
+> > --- a/drivers/infiniband/core/cma.c
+> > +++ b/drivers/infiniband/core/cma.c
+> > @@ -4431,7 +4431,7 @@ static int cma_get_id_stats(struct sk_buff *skb, struct netlink_callback *cb)
 >
-> this series contains bunch of fixes, any reason to direct them to
-> -next (4.16) and not -rc (4.15)
+> Leon, isn't that the code you want to remove in your other patch?
 
-Doug didn't send his pull request yet and most probably we will have two
-pull requests in this merge window, one with already accepted code and
-another with fixes from Denny and us. So all these patches are targeted
-for 4.15.
+Yes, I want, but those two parallel things, I posted RFC to see if
+anyone actually is using it and if everything goes smooth, I'll post
+proper patch for next cycle (4.16).
 
-
->
-> Also, in most of the cases ppl didn't provide a Fixes: line with the
-> offending patch, any reason to skip that?
-
-There are two main reasons:
-1. I didn't request to add Fixes for refactoring code (most Parav's
-patches), because I don't want that code to be picked for stable@ trees
-by Greg's and Sasha's automatic scripts.
-2. Sometimes, it is not clear the origin of the bug and the chances to
-have wrong Fixes are higher than to have right ones.
-
-Everything else is my mistake during review. Can you point me to
-specific commits where you would like to see Fixes with right Fixes? I'll add.
+Right now, code exists in the tree and Parav has fix to it (he is not
+using it too).
 
 Thanks
 
---BwgxZU5iS1dWSTZh
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--htvT4BrJhvkgK8RF
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloLzJYACgkQ5GN7iDZy
-WKeq8w/+K5OH5fzptIUAoxoenPpLt0zB3qnsb91XRkMkAJGjpopzrkRHS4RojndZ
-ZDmcip3LQRD0QeUClRJkhX/GkpWDKRb3Q6u/ssoYpLebA1BCLnOs5cW+7cZqGgJL
-xCcvgXNNRoYxob2o5u4RPJZsOqlmu1x0RkeJ0+Zxwkymi9EPgvNVscpc44bKfMMG
-FsUMAiE8u3AXAVHUO2ppKhIwNtpIypKOPt2dbEoOfDlNmbmj+wLUASr0PLHsYvuS
-yPNE5t10sJcCFKXaOJcbChmjm/sDJdeanJcljiXSYauJg5mhjpJ6JFppfaa7i1CL
-ulbn8v5O+C4gEzJG15wojUtCqChkOWGCGwdxOMUsAl8f08GGlH5/6c7H0EsqMA2e
-rpXR7FDxta4t0SztPf0xY8mJctLho3sng8yR9LVPexCQ58GE9OkaCjL5Do2rePve
-0D87dyVBmbLVedzKE1N4qT4AW+flUgkP3kiFFzO2OrJcihmO0LJMszzygLCmKoFy
-isXOBWKBetUeOsEeTGJTcPhJXvfipodBqStcZFkb0SYEi3wQk1+bvO/3Z5I1GG4Y
-rGo6rcPwtx74ogTvPb/ZmdcaNJ5bRNRiI0GJWQx46VoooMUvi70KwXs0mQ5x9+a3
-qJFxAJ6ajt+Qnh8pFsAt/7sg8IzjT3tvyhqFGAHR/bs3cG+mDBE=
-=nPMt
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloLz68ACgkQ5GN7iDZy
+WKdXIg/+OLBOD0ciiMJ6RIrlZDYFEe6TGO4hkMf8lK106SiOjSE1aJm3ONHDHpml
+TYxNYCJVIbFuO2JaaFWhTFarbD2BzZgjwIhrr5ik4fqjjW6jnLZk4j32NoPP2jsN
+4YgExhL53EITG99MwTrgdBaut8kR8OF0+FgQoJa0kpFKAFAij/BCfHh+JkJlA3Ee
+qjdud+5DaHEIFSRoj6gly+YNOx+3FHj+b8tBWcGoa9BLxCykG2mk20d2BDKgBN80
+OTWRqVzOYAAG4HnZ2Ck1fVtX2Dzgfnz2lVcw2dnGGMrh3U9+7jEahyoyHndjXSOg
+Gd7QTn/nfgRJFTUlUMo1DyLQd+gfbce+4/wQlFwKkBdmXmKE2g2bTp30tMj06AGV
+hvnudJR/YYvBhF+O7ObEtYmH3jatPZJFlnUl/QqenOXvPpasilOlx9quLE0ri+1E
+djplafN2P+HhqPqNbwJnmSsCNaZZHSPk8n6IFmOlBFa3vsSTklAuNdIIgk+m0EF9
+IvugjMyt+KSFKqfsDKCSrwKTcb0Ud1hRLutcypij3/swWmOSiiTSHSW6nGj4l/0K
+IvRIUfH15NXb9Se4wHmzhaDrTQHhK4yFzw1Mi3K52Ogjg2LBfb4BS6wo/GmU/w3d
+a76g4kNsMNJCvpbWJQpqfWxO3oV3jMGswII64zbxQaPVvhJ+cR8=
+=fKFh
 -----END PGP SIGNATURE-----
 
---BwgxZU5iS1dWSTZh--
+--htvT4BrJhvkgK8RF--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
