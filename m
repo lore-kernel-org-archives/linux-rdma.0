@@ -1,41 +1,54 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 0/3] mlx5 - Enhanced CQ features
-Date: Wed, 15 Nov 2017 16:23:39 +0200
-Message-ID: <1510755822-15945-1-git-send-email-yishaih@mellanox.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/2] verbs: Report the device's PCI write end
+ paddding capability
+Date: Wed, 15 Nov 2017 08:15:18 -0700
+Message-ID: <20171115151518.GM25894@ziepe.ca>
+References: <1510667228-18579-1-git-send-email-yishaih@mellanox.com>
+ <1510667228-18579-2-git-send-email-yishaih@mellanox.com>
+ <20171114203344.GS4263@ziepe.ca>
+ <915b8140-2f83-1bc2-3334-b2454f4abb33@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <915b8140-2f83-1bc2-3334-b2454f4abb33-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This series from Guy is the supplementary part of the kernel series that was
-merged into 4.15 'for-next' branch by Doug.
+On Wed, Nov 15, 2017 at 03:10:30PM +0200, Yishai Hadas wrote:
 
-The series exposes to mlx5 DV users some enhanced CQ features as of:
-- Expose 128B CQE compression capability.
-- Create padded 128B CQE.
+> The man page was updated with a detailed description on the above
+> capability, see PR:
+> https://github.com/linux-rdma/rdma-core/pull/250
 
-PR was sent:
-https://github.com/linux-rdma/rdma-core/pull/253
+Yah, that is nicer
 
-Yishai
+Here is some copy-editing:
 
-Guy Levi (3):
-  mlx5: Expose 128B CQE compression capability
-  mlx5: Expose 128B padded CQE capability in direct verb
-  mlx5: Support padded CQE by mlx5dv_create_cq
+Extended device capability flags (device_cap_flags_ex):
+.br
+.TP 7
+IBV_DEVICE_PCI_WRITE_END_PADDING
 
- providers/mlx5/man/mlx5dv_query_device.3 |  2 ++
- providers/mlx5/mlx5-abi.h                | 13 +++++++++++--
- providers/mlx5/mlx5.c                    |  6 ++++++
- providers/mlx5/mlx5.h                    |  2 ++
- providers/mlx5/mlx5dv.h                  | 11 ++++++++++-
- providers/mlx5/verbs.c                   | 29 +++++++++++++++++++++++++++++
- 6 files changed, 60 insertions(+), 3 deletions(-)
+Indicates the device has support for padding PCI writes to a full cache line.
 
--- 
-1.8.3.1
+Padding packets to full cache lines reduces the amount of traffic required at
+the memory controller at the expense of creating more traffic on the PCI-E
+port.
 
+Workloads that have a high CPU memory load and low PCI-E utilization will
+benefit from this feature, while workloads that have a high PCI-E utilization
+and small packets will be harmed.
+
+For instance, with a 128 byte cache line size, the transfer of any packets
+less than 128 bytes will require a full 128 transfer on PCI, pontentially
+doubling the required PCI-E bandwith.
+
+This feature can be enabled on a QP or WQ basis via the
+IBV_QP_CREATE_PCI_WRITE_END_PADDING or IBV_WQ_FLAGS_PCI_WRITE_END_PADDING
+flags.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
