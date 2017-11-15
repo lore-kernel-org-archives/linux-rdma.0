@@ -1,85 +1,76 @@
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 08/31] RDMA/cma: Fix consider size of
- destination address
-Date: Wed, 15 Nov 2017 07:25:03 +0200
-Message-ID: <20171115052503.GM18825@mtr-leonro.local>
-References: <20171114125218.20477-1-leon@kernel.org>
- <20171114125218.20477-9-leon@kernel.org>
- <CAJ3xEMiA7G48_boRVJK336n2DNT8voJVJMiT-qhqpfXqz7aNxQ@mail.gmail.com>
+Subject: Re: [RFC PATCH] RDMA/cma: Remove netlink interface of CMA statistics
+Date: Wed, 15 Nov 2017 07:29:26 +0200
+Message-ID: <20171115052926.GN18825@mtr-leonro.local>
+References: <20171113144024.26655-1-leon@kernel.org>
+ <20171113192432.GL6918@ziepe.ca>
+ <20171114080550.GR18825@mtr-leonro.local>
+ <CAJ3xEMhfdXz8zQFetjQPfe7HZiCi+N0z6r9XSucuTzQo1--PBg@mail.gmail.com>
+ <20171114095605.GU18825@mtr-leonro.local>
+ <CAJ3xEMhM0xfNxRU+37oWKq_w=MGtE3sUXy38bARgX5-3G9zhvw@mail.gmail.com>
+ <20171114173516.GZ18825@mtr-leonro.local>
+ <CAJ3xEMgJJX0FXMK9Rj=kGmNGkF14tBe03zfwzKHnEEp=cEDVxw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="htvT4BrJhvkgK8RF"
+        protocol="application/pgp-signature"; boundary="syFoTkIPJOUHjbp1"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ3xEMiA7G48_boRVJK336n2DNT8voJVJMiT-qhqpfXqz7aNxQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAJ3xEMgJJX0FXMK9Rj=kGmNGkF14tBe03zfwzKHnEEp=cEDVxw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---htvT4BrJhvkgK8RF
+--syFoTkIPJOUHjbp1
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Nov 14, 2017 at 11:18:41PM +0200, Or Gerlitz wrote:
-> On Tue, Nov 14, 2017 at 2:51 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> > From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> > While copying destination address in statistics, consider size of
-> > destination address.
-> >
-> > Fixes: ce117ffac2e9 ("RDMA/cma: Export AF_IB statistics")
-> > Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > ---
-> >  drivers/infiniband/core/cma.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> > index 1fdb473b5df7..9841e7ca5c06 100644
-> > --- a/drivers/infiniband/core/cma.c
-> > +++ b/drivers/infiniband/core/cma.c
-> > @@ -4431,7 +4431,7 @@ static int cma_get_id_stats(struct sk_buff *skb, struct netlink_callback *cb)
+On Tue, Nov 14, 2017 at 11:05:51PM +0200, Or Gerlitz wrote:
+> On Tue, Nov 14, 2017 at 7:35 PM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
 >
-> Leon, isn't that the code you want to remove in your other patch?
+> > Can you help me to find an answer to my initial question?
+> > Are you using this CMA netlink interface?
+> > Do you know anyone who is using this interface?
+>
+> The rdma netlink code existed way before you got there and it has
+> various UAPIs that were/are used by multiple vendors..
+>
+> AFAIK we had @ Voltaire some management/provisioning SW that used these
+> CMA UAPIs and I am not sure where did it go after the V-acquisition
 
-Yes, I want, but those two parallel things, I posted RFC to see if
-anyone actually is using it and if everything goes smooth, I'll post
-proper patch for next cycle (4.16).
-
-Right now, code exists in the tree and Parav has fix to it (he is not
-using it too).
+I got my answers, you are not using this CMA netlink part and don't know
+anyone real with real code who uses.
 
 Thanks
+
 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---htvT4BrJhvkgK8RF
+--syFoTkIPJOUHjbp1
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloLz68ACgkQ5GN7iDZy
-WKdXIg/+OLBOD0ciiMJ6RIrlZDYFEe6TGO4hkMf8lK106SiOjSE1aJm3ONHDHpml
-TYxNYCJVIbFuO2JaaFWhTFarbD2BzZgjwIhrr5ik4fqjjW6jnLZk4j32NoPP2jsN
-4YgExhL53EITG99MwTrgdBaut8kR8OF0+FgQoJa0kpFKAFAij/BCfHh+JkJlA3Ee
-qjdud+5DaHEIFSRoj6gly+YNOx+3FHj+b8tBWcGoa9BLxCykG2mk20d2BDKgBN80
-OTWRqVzOYAAG4HnZ2Ck1fVtX2Dzgfnz2lVcw2dnGGMrh3U9+7jEahyoyHndjXSOg
-Gd7QTn/nfgRJFTUlUMo1DyLQd+gfbce+4/wQlFwKkBdmXmKE2g2bTp30tMj06AGV
-hvnudJR/YYvBhF+O7ObEtYmH3jatPZJFlnUl/QqenOXvPpasilOlx9quLE0ri+1E
-djplafN2P+HhqPqNbwJnmSsCNaZZHSPk8n6IFmOlBFa3vsSTklAuNdIIgk+m0EF9
-IvugjMyt+KSFKqfsDKCSrwKTcb0Ud1hRLutcypij3/swWmOSiiTSHSW6nGj4l/0K
-IvRIUfH15NXb9Se4wHmzhaDrTQHhK4yFzw1Mi3K52Ogjg2LBfb4BS6wo/GmU/w3d
-a76g4kNsMNJCvpbWJQpqfWxO3oV3jMGswII64zbxQaPVvhJ+cR8=
-=fKFh
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloL0LYACgkQ5GN7iDZy
+WKd4JQ//X4zscd2xgBE19FJJvJiKH2KPkvR8NMV2aqtmgePayb87a6/81+OuJfh2
+M3eZD70K4a9NebK3fgiV3JlQxLfq0iWFEIkBSFfjY4rynb+TTNw/1eYLp78/PgZ4
+Mat1gL6D3ecjMznErJM9p4Cbq9XIXKk8nJBqgQcfYOswu+NF8dIPHUkIU4+04YQG
+jigo05Ud0ibKdn6nchzKvj+vvRFbpS2zjRDHHG4tX4F5j/bCvJFt+C8H82AEvB1V
+Z4fviC7AKzqEMXrmhFFcVN9MWj24tJZQXgMVtJp5vxPCMhZ40ex66xHHQwWU0wIE
+CA+ub/HXX24a3C2UDV1OYs5/HUgS+7YBZpa2R1PsCx6XLdeBTKYlS3zzz6lNai/0
+5kjDf+i+N0KS38rFjCfmlaSDu12iNSKbYNhNYaHxjUtQiRJ5urmsj8ge8zR9YJan
+dLgprxSTBeojzcV8ki78ZzN0INMCeZUMP02FeP8yqGM0vLBtaLq6fu8qisX+SzNF
+Tt+Y3LhdJFnFpiFii9AMk6Rf7+UkNMJ8Rwzs2Acxsqxs8UJMbJ2DHR3giW4H5QoL
+k3j4jGWdBFdDTfePSySiIv8JEORRXESBofEK7Sk5kf/XHV80Cbs6QbwRQ1te/Tgx
+bfjNQHZ3CRk0agHfCtk7aXBnrLtzSByvTEbAzSDgaBzHPMQXOgU=
+=ERb9
 -----END PGP SIGNATURE-----
 
---htvT4BrJhvkgK8RF--
+--syFoTkIPJOUHjbp1--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
