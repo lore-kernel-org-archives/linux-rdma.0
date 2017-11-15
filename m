@@ -1,128 +1,44 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/3] libhns: Fix endian format of payload and
- immediate
-Date: Wed, 15 Nov 2017 18:02:23 +0800
-Message-ID: <ef20c38b-201c-a039-c7c4-c5878fd0ee1c@huawei.com>
-References: <1509530440-164400-1-git-send-email-oulijun@huawei.com>
- <1509530440-164400-4-git-send-email-oulijun@huawei.com>
- <20171101161328.GB7815@ziepe.ca>
- <8dbc8305-f154-3b8c-795a-b5f1a6b53c73@huawei.com>
- <20171102150655.GD18874@ziepe.ca>
- <b2e9430c-a801-bef1-a491-8f983a525cab@huawei.com>
- <20171110211818.GH17451@ziepe.ca>
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: rdma-core and Mellanox OFED kernel
+Date: Wed, 15 Nov 2017 10:03:42 +0000
+Message-ID: <CCAC8026-0531-4CAC-988C-1A7BA8624899@mellanox.com>
+References: <1510739346.4026.61.camel@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171110211818.GH17451-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <1510739346.4026.61.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-在 2017/11/11 5:18, Jason Gunthorpe 写道:
-> On Wed, Nov 08, 2017 at 10:05:22AM +0800, oulijun wrote:
->> 在 2017/11/2 23:06, Jason Gunthorpe 写道:
->>> On Thu, Nov 02, 2017 at 02:03:18PM +0800, oulijun wrote:
->>>>>  mkdr build-sparse
->>>>>  cd build-sparse
->>>>>  CC=cgcc cmake -GNinja ..
->>>>>  ninja
->>>>>
->>>> I have run the sparse successful and don't understand the result.
->>>
->>> Something is wrong with your local environment:
->>>
->>>> [10/190] Building C object util/CMakeFiles/rdma_util_pic.dir/mmio.c.o
->>>> /usr/include/linux/types.h:4:11: error: unable to open 'asm/types.h'
->>>
->>> Those headers should exist, they usually come with glibc, eg on Debian
->>> it comes from here:
->>>
->>> linux-libc-dev:amd64: /usr/include/x86_64-linux-gnu/asm/types.h
->>>
->>> Jason
->>>
->>>
->> Hi, Jason
->>    I have trying to run sparse according to your way and it is always fail in
->> the last two days.
->>    the print log is
->> 	/usr/include/linux/types.h:4:11: error: unable to open 'asm/types.h'
->>
->>    I do some steps for attempt resolving it and it is fail.
->>    1). I am trying to change the files' limit
->> 	chmod 757 /usr/include/x86_64-linux-gnu/asm/*
->>    2). I am also trying to run the cmd
->> 	sudo CC=cgcc cmake -GNinja ..
->>  	sudo ninja
->>    3). And I am trying to do others for asking my colleague.
->>
->>    Can you give some good advice for me?
-> 
-> I can't think what could be wrong with your setup, I assume something
-> bad happened to your OS. Try re-installing the packages, make sure
-> 'gcc' points to something that came with ubuntu, look at strace from
-> cgcc to understand why it is failing..
-> 
-> Jason
-> --
-Hi, Jason
-  I have re-installed the following packages:
-
-1. apt-get install build-essential cmake gcc libudev-dev libnl-3-dev libnl-route-3-dev ninja-build pkg-config valgrind
-2. apt-get install sparse
-
-sure, I can sure that it is installed successfully.
-
-As a result, I alos re-run the cmds:
-mkdr build-sparse
-cd build-sparse
- CC=cgcc cmake -GNinja ..
-
-The print log is:
-ubuntu@a8d50a1f660b:~/rdma-v16/rdma-core/build-sparse$ CC=cgcc cmake -GNinja ..
--- The C compiler identification is GNU 4.8.4
--- Check for working C compiler using: Ninja
--- Check for working C compiler using: Ninja -- works
--- Detecting C compiler ABI info
--- Detecting C compiler ABI info - done
--- Found PkgConfig: /usr/bin/pkg-config (found version "0.26")
--- Performing Test HAVE_NO_SPARSE
--- Performing Test HAVE_NO_SPARSE - Failed
-Traceback (most recent call last):
-  File "/home/ubuntu/rdma-v16/rdma-core/buildlib/gen-sparse.py", line 137, in <module>
-Patch from '/home/ubuntu/rdma-v16/rdma-core/buildlib/sparse-include/23/sys-socket.h.diff' failed
-Unable to apply any patch to 'sys/socket.h', tries 1
-Patch from '/home/ubuntu/rdma-v16/rdma-core/buildlib/sparse-include/25/netinet-in.h.diff' failed
-Patch from '/home/ubuntu/rdma-v16/rdma-core/buildlib/sparse-include/23/netinet-in.h.diff' failed
-    raise ValueError("Patch applications failed");
-ValueError: Patch applications failed
-CMake Error at buildlib/RDMA_Sparse.cmake:27 (message):
-  glibc header file patching for sparse failed.  Review include/*.rej and fix
-  the rejects, then do /home/ubuntu/rdma-v16/rdma-core/buildlib/gen-sparse.py
-  -out /home/ubuntu/rdma-v16/rdma-core/build-sparse/include/ --src
-  /home/ubuntu/rdma-v16/rdma-core/ --save
-Call Stack (most recent call first):
-  CMakeLists.txt:148 (RDMA_CheckSparse)
-
-
--- Configuring incomplete, errors occurred!
-See also "/home/ubuntu/rdma-v16/rdma-core/build-sparse/CMakeFiles/CMakeOutput.log".
-See also "/home/ubuntu/rdma-v16/rdma-core/build-sparse/CMakeFiles/CMakeError.log".
-
-Maybe do I  some mistakes?
-
-thanks
-Lijun Ou
-
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
-
+DQo+IE9uIE5vdiAxNSwgMjAxNywgYXQgMTE6NDkgQU0sIEJlbmphbWluIERydW5nIDxiZW5qYW1p
+bi5kcnVuZ0Bwcm9maXRicmlja3MuY29tPiB3cm90ZToNCj4gDQo+IEhpLA0KPiANCj4gY2FuIHJk
+bWEtY29yZSBjb21iaW5lZCB3aXRoIHRoZSBNZWxsYW5veCBPRkVEIGtlcm5lbCBtb2R1bGVzIG9y
+IGFyZQ0KPiB0aGVyZSBpbmNvbXBhdGliaWxpdGllcz8NCg0KSGkgQmVuamFtaW4sDQoNClJkbWEt
+Y29yZSBhbmQgTWVsbGFub3ggT0ZFRCBhcmUgY29tcGF0aWJsZS4NCg0KVGhhbmtzDQoNCj4gDQo+
+IC0tIA0KPiBCZW5qYW1pbiBEcnVuZw0KPiBTeXN0ZW0gRGV2ZWxvcGVyDQo+IERlYmlhbiAmIFVi
+dW50dSBEZXZlbG9wZXINCj4gDQo+IFByb2ZpdEJyaWNrcyBHbWJIDQo+IEdyZWlmc3dhbGRlciBT
+dHIuIDIwNw0KPiBEIC0gMTA0MDUgQmVybGluDQo+IA0KPiBFbWFpbDogYmVuamFtaW4uZHJ1bmdA
+cHJvZml0YnJpY2tzLmNvbQ0KPiBVUkw6IGh0dHBzOi8vZW1lYTAxLnNhZmVsaW5rcy5wcm90ZWN0
+aW9uLm91dGxvb2suY29tLz91cmw9aHR0cHMlM0ElMkYlMkZ3d3cucHJvZml0YnJpY2tzLmRlJmRh
+dGE9MDIlN0MwMSU3Q21hamQlNDBtZWxsYW5veC5jb20lN0MxNWQxMDcwZmEwMGE0YjY1MjZhMDA4
+ZDUyYzBlMjFkMiU3Q2E2NTI5NzFjN2QyZTRkOWJhNmE0ZDE0OTI1NmY0NjFiJTdDMCU3QzAlN0M2
+MzY0NjMzNjE2NTE0MjcwOTAmc2RhdGE9d1BoMzNtRk40alFIQ2s0UkRGRlI2OWxURXlST3REUVg4
+ejMzUGVrREdCSSUzRCZyZXNlcnZlZD0wDQo+IA0KPiBTaXR6IGRlciBHZXNlbGxzY2hhZnQ6IEJl
+cmxpbg0KPiBSZWdpc3RlcmdlcmljaHQ6IEFtdHNnZXJpY2h0IENoYXJsb3R0ZW5idXJnLCBIUkIg
+MTI1NTA2IEINCj4gR2VzY2jDpGZ0c2bDvGhyZXI6IEFjaGltIFdlaXNzLCBNYXR0aGlhcyBTdGVp
+bmJlcmcNCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxp
+bmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0
+byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0
+dHBzOi8vZW1lYTAxLnNhZmVsaW5rcy5wcm90ZWN0aW9uLm91dGxvb2suY29tLz91cmw9aHR0cCUz
+QSUyRiUyRnZnZXIua2VybmVsLm9yZyUyRm1ham9yZG9tby1pbmZvLmh0bWwmZGF0YT0wMiU3QzAx
+JTdDbWFqZCU0MG1lbGxhbm94LmNvbSU3QzE1ZDEwNzBmYTAwYTRiNjUyNmEwMDhkNTJjMGUyMWQy
+JTdDYTY1Mjk3MWM3ZDJlNGQ5YmE2YTRkMTQ5MjU2ZjQ2MWIlN0MwJTdDMCU3QzYzNjQ2MzM2MTY1
+MTQyNzA5MCZzZGF0YT14TzNqeVBuUTQ0UUglMkZTMzdtT1p1VVh6QWFpSlpqZ1FPeTVHYlE0MHZa
+Q0klM0QmcmVzZXJ2ZWQ9MA0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
