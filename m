@@ -1,36 +1,29 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/2] verbs: Report the device's PCI write end
- paddding capability
-Date: Wed, 15 Nov 2017 15:10:30 +0200
-Message-ID: <915b8140-2f83-1bc2-3334-b2454f4abb33@dev.mellanox.co.il>
-References: <1510667228-18579-1-git-send-email-yishaih@mellanox.com>
- <1510667228-18579-2-git-send-email-yishaih@mellanox.com>
- <20171114203344.GS4263@ziepe.ca>
+From: owner-61a8vm9lEZVf4u+23C9RwQ@public.gmane.org (Debian Bug Tracking System)
+Subject: Processed: libibverbs-dev no longer ships infiniband/driver.h
+Date: Wed, 15 Nov 2017 13:12:05 +0000
+Message-ID: <handler.s.B.15107514116787.transcript@bugs.debian.org>
+References: <151075140461.17370.2844187627354872362.reportbug@localhost>
+ <151075140461.17370.2844187627354872362.reportbug@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171114203344.GS4263-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Adrian Bunk <bunk-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/14/2017 10:33 PM, Jason Gunthorpe wrote:
-> On Tue, Nov 14, 2017 at 03:47:07PM +0200, Yishai Hadas wrote:
-> 
->>    * enum range is limited to 4 bytes.
->>    */
->>   #define IBV_DEVICE_RAW_SCATTER_FCS (1ULL << 34)
->> +#define IBV_DEVICE_PCI_WRITE_END_PADDING (1ULL << 36)
-> 
-> Man page?
-> 
+Processing control commands:
 
-The man page was updated with a detailed description on the above 
-capability, see PR:
-https://github.com/linux-rdma/rdma-core/pull/250
+> affects -1 libibverbs-dev src:librdmacm src:libcxgb3 src:libmlx4 src:libipathverbs src:libmlx5 src:libibcm src:libmthca src:libnes src:libfabric
+Bug #881814 [src:rdma-core] libibverbs-dev no longer ships infiniband/driver.h
+Added indication that 881814 affects libibverbs-dev, src:librdmacm, src:libcxgb3, src:libmlx4, src:libipathverbs, src:libmlx5, src:libibcm, src:libmthca, src:libnes, and src:libfabric
+
+-- 
+881814: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=881814
+Debian Bug Tracking System
+Contact owner-61a8vm9lEZVf4u+23C9RwQ@public.gmane.org with problems
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
