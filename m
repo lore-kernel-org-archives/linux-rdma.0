@@ -1,8 +1,8 @@
 From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-core v4 1/4] ibacm: Fix an incorrect expiration check
- for the retry timer
-Date: Wed, 15 Nov 2017 14:34:44 -0500
-Message-ID: <20171115193430.470.61687.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH rdma-core v4 2/4] ibacm: Calculate correct tv_nsec value in
+ event_wait()
+Date: Wed, 15 Nov 2017 14:35:02 -0500
+Message-ID: <20171115193449.470.91750.stgit@phlsvslse11.ph.intel.com>
 References: <20171115193155.470.85049.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,56 +15,46 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The acmp_process_wait_queue() checks to see if a message expiration
-time has passed.
+The event_wait() function calculates a tv_nsec value based on the
+given timeout.  If the tv_nsec value calculation ends ups larger
+than 1 second, the pthread_cond_timedwait() will return EINVAL,
+and will not wait.
 
-Because the check is for less than (<), if the timeout expires matches
-the current time, the check will result in a timeout value of 0, and
-the wait loop will spin until the next millisecond has passed.
+This causes the retry loop to spin (busy wait) until the actual
+timeout occurs.
 
-Using example values to demonstrate the issue, we can see:
-
-With '<':
-wait = -2106577636 (no work)
-wait = 2510        (message wait)
-(process spins)
-wait = 0           (expires - current time == 0)
-wait = 0
-wait = 0
-...                (1 ms of output)
-wait = 0
-wait = -2106580147 (retry complete)
-wait = 2512
-
-With '<=':
-wait = -2106688780 (no work)
-wait = 2512        ( message wait)
-(process sleeps)
-wait = -2106691293 (retry complete)
-wait = 2512
-
-Expire the message if the expires is less than or equal.
+Ensure that the tv_nsec value is less than 1 second.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- ibacm/prov/acmp/src/acmp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ ibacm/linux/osd.h |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
-index 78d9a29..d707b8e 100644
---- a/ibacm/prov/acmp/src/acmp.c
-+++ b/ibacm/prov/acmp/src/acmp.c
-@@ -1507,7 +1507,7 @@ static void acmp_process_wait_queue(struct acmp_ep *ep, uint64_t *next_expire)
- 	struct ibv_send_wr *bad_wr;
- 
- 	list_for_each_safe(&ep->wait_queue, msg, next, entry) {
--		if (msg->expires < time_stamp_ms()) {
-+		if (msg->expires <= time_stamp_ms()) {
- 			list_del(&msg->entry);
- 			(void) atomic_dec(&wait_cnt);
- 			if (--msg->tries) {
+diff --git a/ibacm/linux/osd.h b/ibacm/linux/osd.h
+index 95713e6..eabf5ed 100644
+--- a/ibacm/linux/osd.h
++++ b/ibacm/linux/osd.h
+@@ -92,6 +92,7 @@ static inline void event_init(event_t *e)
+ 	pthread_mutex_init(&e->mutex, NULL);
+ }
+ #define event_signal(e)	pthread_cond_signal(&(e)->cond)
++#define ONE_SEC_IN_NSEC  1000000000ULL
+ static inline int event_wait(event_t *e, int timeout)
+ {
+ 	struct timeval curtime;
+@@ -101,6 +102,10 @@ static inline int event_wait(event_t *e, int timeout)
+ 	gettimeofday(&curtime, NULL);
+ 	wait.tv_sec = curtime.tv_sec + ((unsigned) timeout) / 1000;
+ 	wait.tv_nsec = (curtime.tv_usec + (((unsigned) timeout) % 1000) * 1000) * 1000;
++	if (wait.tv_nsec > ONE_SEC_IN_NSEC) {
++		wait.tv_sec++;
++		wait.tv_nsec -= ONE_SEC_IN_NSEC;
++	}
+ 	pthread_mutex_lock(&e->mutex);
+ 	ret = pthread_cond_timedwait(&e->cond, &e->mutex, &wait);
+ 	pthread_mutex_unlock(&e->mutex);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
