@@ -1,8 +1,8 @@
 From: "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-core v4 3/4] ibacm: Fix a retry loop calculation race
- condition
-Date: Wed, 15 Nov 2017 14:35:18 -0500
-Message-ID: <20171115193507.470.1997.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH rdma-core v4 4/4] ibacm: Use MONOTONIC time base to avoid
+ timer expiration issues
+Date: Wed, 15 Nov 2017 14:35:35 -0500
+Message-ID: <20171115193524.470.17499.stgit@phlsvslse11.ph.intel.com>
 References: <20171115193155.470.85049.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,68 +15,72 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The retry loop calculation uses a conversion to int of an unsigned
-64 bit number (next_expire) minus the current time to decide if
-event_wait() should be called.  This calculation works correctly as
-long as the next_expire value is not the default value (-1).
+The event_wait() function uses the CLOCK_REALTIME time base for
+calculating expiration times (default time base for gettimeofday()).
 
-If the next_expire is the default value, periodically this subtraction
-can result in a very large postive timeout value (days rather than
-milliseconds).
+Using the CLOCK_REALTIME time base can introduce incorrect expiration
+timeout calculations if the REALTIME clock changes, making a timeout
+too long (possibly hours or days), or too short.
 
-For example:
-next_expire  = 0xFFFFFFFFFFFFFFFF  (-1)
-current_ms = 0x15f7db52146  (today's ms since 1970)
+Update time base usage to the CLOCK_MONOTONIC time base to avoid time
+change issues.
 
-max_delay_ms = (int) next_expire - future_ms
+Use appropriate typing to avoid unnecessary typecasting.
 
-future_ms  = 0x15f80000000  = max_delay_ms 2147483647
-future_ms  = 0x16080000000  = max_delay_ms 2147483647
-
-Converting max_delay_ms to days:
-2147483647 / 1000 / 60 / 60 / 24 == 24 days
-
-0xxx180000000 - 0xxx080000000 = 4294967296
-
-every 48 days, this issue repeats
-
-This calculation can occur if a wait_cnt is incremented and a message
-expiration is handled so that next_expire is not updated.  If wait_cnt
-is incremented before the wait calculation is done (the race condition),
-event_wait() can be called with the potentially very large value.
-
-If next_expire is not updated, do not do the wait calculation and
-avoid the race condition.
-
-Reported-by: Morys Grzegorz <grzegorz.morys-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- ibacm/prov/acmp/src/acmp.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ ibacm/linux/osd.h |   22 ++++++++++++----------
+ 1 files changed, 12 insertions(+), 10 deletions(-)
 
-diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
-index d707b8e..884fc48 100644
---- a/ibacm/prov/acmp/src/acmp.c
-+++ b/ibacm/prov/acmp/src/acmp.c
-@@ -1579,10 +1579,12 @@ static void *acmp_retry_handler(void *context)
- 		pthread_mutex_unlock(&acmp_dev_lock);
+diff --git a/ibacm/linux/osd.h b/ibacm/linux/osd.h
+index eabf5ed..4ef7b55 100644
+--- a/ibacm/linux/osd.h
++++ b/ibacm/linux/osd.h
+@@ -88,20 +88,23 @@ typedef struct { volatile int val; } atomic_t;
+ typedef struct { pthread_cond_t cond; pthread_mutex_t mutex; } event_t;
+ static inline void event_init(event_t *e)
+ {
+-	pthread_cond_init(&e->cond, NULL);
++	pthread_condattr_t attr;
++
++	pthread_condattr_init(&attr);
++	pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
++	pthread_cond_init(&e->cond, &attr);
+ 	pthread_mutex_init(&e->mutex, NULL);
+ }
+ #define event_signal(e)	pthread_cond_signal(&(e)->cond)
+ #define ONE_SEC_IN_NSEC  1000000000ULL
+-static inline int event_wait(event_t *e, int timeout)
++static inline int event_wait(event_t *e, unsigned int timeout)
+ {
+-	struct timeval curtime;
+ 	struct timespec wait;
+ 	int ret;
  
- 		acmp_process_timeouts();
--		wait = (int) (next_expire - time_stamp_ms());
--		if (wait > 0 && atomic_get(&wait_cnt)) {
--			pthread_testcancel();
--			event_wait(&timeout_event, wait);
-+		if (next_expire != -1) {
-+			wait = (int) (next_expire - time_stamp_ms());
-+			if (wait > 0 && atomic_get(&wait_cnt)) {
-+				pthread_testcancel();
-+				event_wait(&timeout_event, wait);
-+			}
- 		}
- 	}
+-	gettimeofday(&curtime, NULL);
+-	wait.tv_sec = curtime.tv_sec + ((unsigned) timeout) / 1000;
+-	wait.tv_nsec = (curtime.tv_usec + (((unsigned) timeout) % 1000) * 1000) * 1000;
++	clock_gettime(CLOCK_MONOTONIC, &wait);
++	wait.tv_sec = wait.tv_sec + timeout / 1000;
++	wait.tv_nsec = wait.tv_nsec + (timeout % 1000) * 1000000;
+ 	if (wait.tv_nsec > ONE_SEC_IN_NSEC) {
+ 		wait.tv_sec++;
+ 		wait.tv_nsec -= ONE_SEC_IN_NSEC;
+@@ -114,10 +117,9 @@ static inline int event_wait(event_t *e, int timeout)
  
+ static inline uint64_t time_stamp_us(void)
+ {
+-	struct timeval curtime;
+-	timerclear(&curtime);
+-	gettimeofday(&curtime, NULL);
+-	return (uint64_t) curtime.tv_sec * 1000000 + (uint64_t) curtime.tv_usec;
++	struct timespec t;
++	clock_gettime(CLOCK_MONOTONIC, &t);
++	return (t.tv_sec * ONE_SEC_IN_NSEC + t.tv_nsec) / 1000;
+ }
+ 
+ #define time_stamp_ms()  (time_stamp_us() / (uint64_t) 1000)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
