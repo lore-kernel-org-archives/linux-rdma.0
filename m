@@ -1,49 +1,54 @@
-From: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] librdmacm: Add support for extended join multicast
- API V2
-Date: Wed, 15 Nov 2017 09:22:14 -0600 (CST)
-Message-ID: <alpine.DEB.2.20.1711150921450.19575@nuc-kabylake>
-References: <20171114185720.609975150@linux.com> <20171114185739.838757957@linux.com> <20171114192558.GL4263@ziepe.ca> <alpine.DEB.2.20.1711141349370.13532@nuc-kabylake> <20171114195659.GP4263@ziepe.ca>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-core 3/3] libhns: Fix endian format of payload and
+ immediate
+Date: Wed, 15 Nov 2017 08:34:36 -0700
+Message-ID: <20171115153436.GO25894@ziepe.ca>
+References: <1509530440-164400-1-git-send-email-oulijun@huawei.com>
+ <1509530440-164400-4-git-send-email-oulijun@huawei.com>
+ <20171101161328.GB7815@ziepe.ca>
+ <8dbc8305-f154-3b8c-795a-b5f1a6b53c73@huawei.com>
+ <20171102150655.GD18874@ziepe.ca>
+ <b2e9430c-a801-bef1-a491-8f983a525cab@huawei.com>
+ <20171110211818.GH17451@ziepe.ca>
+ <ef20c38b-201c-a039-c7c4-c5878fd0ee1c@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171114195659.GP4263-uk2M96/98Pc@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <ef20c38b-201c-a039-c7c4-c5878fd0ee1c-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 14 Nov 2017, Jason Gunthorpe wrote:
+On Wed, Nov 15, 2017 at 06:02:23PM +0800, oulijun wrote:
+> As a result, I alos re-run the cmds:
+> mkdr build-sparse
+> cd build-sparse
+>  CC=cgcc cmake -GNinja ..
+> 
+> The print log is:
+> ubuntu@a8d50a1f660b:~/rdma-v16/rdma-core/build-sparse$ CC=cgcc cmake -GNinja ..
+> Traceback (most recent call last):
+>   File "/home/ubuntu/rdma-v16/rdma-core/buildlib/gen-sparse.py", line 137, in <module>
+> Patch from '/home/ubuntu/rdma-v16/rdma-core/buildlib/sparse-include/23/sys-socket.h.diff' failed
+> Unable to apply any patch to 'sys/socket.h', tries 1
+> Patch from '/home/ubuntu/rdma-v16/rdma-core/buildlib/sparse-include/25/netinet-in.h.diff' failed
+> Patch from '/home/ubuntu/rdma-v16/rdma-core/buildlib/sparse-include/23/netinet-in.h.diff' failed
+>     raise ValueError("Patch applications failed");
+> ValueError: Patch applications failed
+> CMake Error at buildlib/RDMA_Sparse.cmake:27 (message):
+>   glibc header file patching for sparse failed.  Review include/*.rej and fix
+>   the rejects, then do /home/ubuntu/rdma-v16/rdma-core/buildlib/gen-sparse.py
+>   -out /home/ubuntu/rdma-v16/rdma-core/build-sparse/include/ --src
+>   /home/ubuntu/rdma-v16/rdma-core/ --save
+> Call Stack (most recent call first):
+>   CMakeLists.txt:148 (RDMA_CheckSparse)
 
-> > Index: rdma-core/debian/librdmacm1.symbols
-> > ===================================================================
-> > +++ rdma-core/debian/librdmacm1.symbols
-> > @@ -31,7 +31,7 @@ librdmacm.so.1 librdmacm1 #MINVER#
-> >   rdma_get_src_port@RDMACM_1.0 1.0.19
-> >   rdma_getaddrinfo@RDMACM_1.0 1.0.15
-> >   rdma_join_multicast@RDMACM_1.0 1.0.15
-> > - rdma_join_multicast_ex@RDMACM_1.1 1.0.15
-> > + rdma_join_multicast_ex@RDMACM_1.1 1.0.16
->
-> No, just '16', not '1.0.16'
+Okay, this is a different error, which version of ubuntu are you
+using? I will fix it for you
 
-Subject: Increase rdma_join_multicast_ex package version to 16
-
-Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-
-Index: rdma-core/debian/librdmacm1.symbols
-===================================================================
---- rdma-core.orig/debian/librdmacm1.symbols
-+++ rdma-core/debian/librdmacm1.symbols
-@@ -31,7 +31,7 @@ librdmacm.so.1 librdmacm1 #MINVER#
-  rdma_get_src_port@RDMACM_1.0 1.0.19
-  rdma_getaddrinfo@RDMACM_1.0 1.0.15
-  rdma_join_multicast@RDMACM_1.0 1.0.15
-- rdma_join_multicast_ex@RDMACM_1.1 1.0.15
-+ rdma_join_multicast_ex@RDMACM_1.1 16
-  rdma_leave_multicast@RDMACM_1.0 1.0.15
-  rdma_listen@RDMACM_1.0 1.0.15
-  rdma_migrate_id@RDMACM_1.0 1.0.15
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
