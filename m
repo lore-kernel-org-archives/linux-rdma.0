@@ -1,69 +1,69 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/3] debian: Update changelog to include
- Debian upload
-Date: Wed, 15 Nov 2017 10:23:51 +0100
-Message-ID: <1510737831.4026.59.camel@profitbricks.com>
-References: <20171114113330.2715-1-benjamin.drung@profitbricks.com>
-         <20171114113330.2715-4-benjamin.drung@profitbricks.com>
-         <20171114202823.GQ4263@ziepe.ca>
-         <1510691646.4026.50.camel@profitbricks.com>
-         <20171114204244.GU4263@ziepe.ca>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH RFC rdma-core 1/5] verbs: Introduce thread domain and its
+ related verbs
+Date: Wed, 15 Nov 2017 11:34:01 +0200
+Message-ID: <774e2f74-8361-6941-a015-27a2014d8cc9@dev.mellanox.co.il>
+References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
+ <1510522903-6838-2-git-send-email-yishaih@mellanox.com>
+ <20171113195822.GD22610@ziepe.ca>
+ <3719edfc-282a-db5b-2474-3cf1355fb301@dev.mellanox.co.il>
+ <20171114191754.GI4263@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171114204244.GU4263-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20171114191754.GI4263-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Am Dienstag, den 14.11.2017, 13:42 -0700 schrieb Jason Gunthorpe:
-> On Tue, Nov 14, 2017 at 09:34:06PM +0100, Benjamin Drung wrote:
+On 11/14/2017 9:17 PM, Jason Gunthorpe wrote:
+> On Tue, Nov 14, 2017 at 10:26:16AM +0200, Yishai Hadas wrote:
+>> On 11/13/2017 9:58 PM, Jason Gunthorpe wrote:
+>>> On Sun, Nov 12, 2017 at 11:41:39PM +0200, Yishai Hadas wrote:
+>>>
+>>>> +struct ibv_td {
+>>>> +	struct ibv_context     *context;
+>>>> +};
+>>>
+>>> As much as possible, I would like to see any new objects be 'opaque'
+>>> to the application, so this should just be
+>>>
+>>> struct ibv_td;
+>>>
+>>> And ibv_td should be defined in driver.h or something
+>>>
+>>> This avoids leaking internal details and means we don't have to commit
+>>> to an ABI for the insides of these structs.
+>>>
+>>
+>> ibv_td should expose in verbs.h the 'context' as the inline function
+>> ibv_alloc_td() needs it to get the verbs_context and call the driver
+>> function if was set.
 > 
-> > I can often find debian packaging from upstream projects that
-> > either
-> > use their complete own packaging or a very outdated fork of the
-> > packaging from Debian.
+> You mean ibv_dealloc_td, OK..
 > 
-> But it creates a technical problem, eg now that you are going to make
-> a -2, where will the changelog commit go?
-
-When all commits for -2 are accepted in the master branch, I would
-update debian/changelog to have the 15-2 entry between 15-1 and 16-1.
-
-An alternative would be to just have one changelog entry in the master
-branch and document the basis, e.g.:
-
-rdma-core (16-1) unstable; urgency=low
-
-  * New upstream release.
-  * Packaging is based on rdma-core 15-2 from Debian
-  * Downgrade debhelper to >= 9 to support Debian 7 & 8
-
- -- Jason Gunthorpe <jgg-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>  Tue, 14 Nov 2017 12:24:09 +0100
-
-> Ideally the changelog commit should match the actual git tree that
-> was
-> used to produce the debian source tar ball. Otherwise things start to
-> get very confusing :)
+> Related to my other point, ibv_alloc_td should probably accept a
+> ibv_pd as an argument instead.
 > 
-> Jason
--- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
 
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
+Why ibv_alloc_td() should get an ibv_pd ? do you have a typo here ?
 
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-URL: https://www.profitbricks.de
+The expected API for ibv_alloc_td() as was previously discussed expects 
+to be as follows:
 
-Sitz der Gesellschaft: Berlin
-Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
-Geschäftsführer: Achim Weiss, Matthias Steinberg
+struct ibv_td {
+	struct ibv_context     *context;
+};
+
+struct ibv_td_init_attr {	
+	uint32_t comp_mask;
+};
+
+struct ibv_td *ibv_alloc_td(struct ibv_context *context,
+                             struct ibv_td_init_attr *attr);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
