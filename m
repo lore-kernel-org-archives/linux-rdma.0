@@ -1,35 +1,128 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: rdma-core and Mellanox OFED kernel
-Date: Wed, 15 Nov 2017 10:49:06 +0100
-Message-ID: <1510739346.4026.61.camel@profitbricks.com>
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 3/3] libhns: Fix endian format of payload and
+ immediate
+Date: Wed, 15 Nov 2017 18:02:23 +0800
+Message-ID: <ef20c38b-201c-a039-c7c4-c5878fd0ee1c@huawei.com>
+References: <1509530440-164400-1-git-send-email-oulijun@huawei.com>
+ <1509530440-164400-4-git-send-email-oulijun@huawei.com>
+ <20171101161328.GB7815@ziepe.ca>
+ <8dbc8305-f154-3b8c-795a-b5f1a6b53c73@huawei.com>
+ <20171102150655.GD18874@ziepe.ca>
+ <b2e9430c-a801-bef1-a491-8f983a525cab@huawei.com>
+ <20171110211818.GH17451@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171110211818.GH17451-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+在 2017/11/11 5:18, Jason Gunthorpe 写道:
+> On Wed, Nov 08, 2017 at 10:05:22AM +0800, oulijun wrote:
+>> 在 2017/11/2 23:06, Jason Gunthorpe 写道:
+>>> On Thu, Nov 02, 2017 at 02:03:18PM +0800, oulijun wrote:
+>>>>>  mkdr build-sparse
+>>>>>  cd build-sparse
+>>>>>  CC=cgcc cmake -GNinja ..
+>>>>>  ninja
+>>>>>
+>>>> I have run the sparse successful and don't understand the result.
+>>>
+>>> Something is wrong with your local environment:
+>>>
+>>>> [10/190] Building C object util/CMakeFiles/rdma_util_pic.dir/mmio.c.o
+>>>> /usr/include/linux/types.h:4:11: error: unable to open 'asm/types.h'
+>>>
+>>> Those headers should exist, they usually come with glibc, eg on Debian
+>>> it comes from here:
+>>>
+>>> linux-libc-dev:amd64: /usr/include/x86_64-linux-gnu/asm/types.h
+>>>
+>>> Jason
+>>>
+>>>
+>> Hi, Jason
+>>    I have trying to run sparse according to your way and it is always fail in
+>> the last two days.
+>>    the print log is
+>> 	/usr/include/linux/types.h:4:11: error: unable to open 'asm/types.h'
+>>
+>>    I do some steps for attempt resolving it and it is fail.
+>>    1). I am trying to change the files' limit
+>> 	chmod 757 /usr/include/x86_64-linux-gnu/asm/*
+>>    2). I am also trying to run the cmd
+>> 	sudo CC=cgcc cmake -GNinja ..
+>>  	sudo ninja
+>>    3). And I am trying to do others for asking my colleague.
+>>
+>>    Can you give some good advice for me?
+> 
+> I can't think what could be wrong with your setup, I assume something
+> bad happened to your OS. Try re-installing the packages, make sure
+> 'gcc' points to something that came with ubuntu, look at strace from
+> cgcc to understand why it is failing..
+> 
+> Jason
+> --
+Hi, Jason
+  I have re-installed the following packages:
 
-can rdma-core combined with the Mellanox OFED kernel modules or are
-there incompatibilities?
+1. apt-get install build-essential cmake gcc libudev-dev libnl-3-dev libnl-route-3-dev ninja-build pkg-config valgrind
+2. apt-get install sparse
 
--- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
+sure, I can sure that it is installed successfully.
 
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
+As a result, I alos re-run the cmds:
+mkdr build-sparse
+cd build-sparse
+ CC=cgcc cmake -GNinja ..
 
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-URL: https://www.profitbricks.de
+The print log is:
+ubuntu@a8d50a1f660b:~/rdma-v16/rdma-core/build-sparse$ CC=cgcc cmake -GNinja ..
+-- The C compiler identification is GNU 4.8.4
+-- Check for working C compiler using: Ninja
+-- Check for working C compiler using: Ninja -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Found PkgConfig: /usr/bin/pkg-config (found version "0.26")
+-- Performing Test HAVE_NO_SPARSE
+-- Performing Test HAVE_NO_SPARSE - Failed
+Traceback (most recent call last):
+  File "/home/ubuntu/rdma-v16/rdma-core/buildlib/gen-sparse.py", line 137, in <module>
+Patch from '/home/ubuntu/rdma-v16/rdma-core/buildlib/sparse-include/23/sys-socket.h.diff' failed
+Unable to apply any patch to 'sys/socket.h', tries 1
+Patch from '/home/ubuntu/rdma-v16/rdma-core/buildlib/sparse-include/25/netinet-in.h.diff' failed
+Patch from '/home/ubuntu/rdma-v16/rdma-core/buildlib/sparse-include/23/netinet-in.h.diff' failed
+    raise ValueError("Patch applications failed");
+ValueError: Patch applications failed
+CMake Error at buildlib/RDMA_Sparse.cmake:27 (message):
+  glibc header file patching for sparse failed.  Review include/*.rej and fix
+  the rejects, then do /home/ubuntu/rdma-v16/rdma-core/buildlib/gen-sparse.py
+  -out /home/ubuntu/rdma-v16/rdma-core/build-sparse/include/ --src
+  /home/ubuntu/rdma-v16/rdma-core/ --save
+Call Stack (most recent call first):
+  CMakeLists.txt:148 (RDMA_CheckSparse)
 
-Sitz der Gesellschaft: Berlin
-Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
-Geschäftsführer: Achim Weiss, Matthias Steinberg
+
+-- Configuring incomplete, errors occurred!
+See also "/home/ubuntu/rdma-v16/rdma-core/build-sparse/CMakeFiles/CMakeOutput.log".
+See also "/home/ubuntu/rdma-v16/rdma-core/build-sparse/CMakeFiles/CMakeError.log".
+
+Maybe do I  some mistakes?
+
+thanks
+Lijun Ou
+
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
