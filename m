@@ -1,44 +1,52 @@
-From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: rdma-core and Mellanox OFED kernel
-Date: Wed, 15 Nov 2017 10:03:42 +0000
-Message-ID: <CCAC8026-0531-4CAC-988C-1A7BA8624899@mellanox.com>
-References: <1510739346.4026.61.camel@profitbricks.com>
+From: "M,Shakour Rosarita" <hassantara789-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Hello Dear...
+Date: Wed, 15 Nov 2017 11:38:15 +0000
+Message-ID: <CAMyxZDE0oLsvNkEuwqreU+ts7=O+YuPgJ3YtzLjz78_fp-hW3g__46697.0600690276$1510745900$gmane$org@mail.gmail.com>
+Reply-To: mshakourrosarita22-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1510739346.4026.61.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQo+IE9uIE5vdiAxNSwgMjAxNywgYXQgMTE6NDkgQU0sIEJlbmphbWluIERydW5nIDxiZW5qYW1p
-bi5kcnVuZ0Bwcm9maXRicmlja3MuY29tPiB3cm90ZToNCj4gDQo+IEhpLA0KPiANCj4gY2FuIHJk
-bWEtY29yZSBjb21iaW5lZCB3aXRoIHRoZSBNZWxsYW5veCBPRkVEIGtlcm5lbCBtb2R1bGVzIG9y
-IGFyZQ0KPiB0aGVyZSBpbmNvbXBhdGliaWxpdGllcz8NCg0KSGkgQmVuamFtaW4sDQoNClJkbWEt
-Y29yZSBhbmQgTWVsbGFub3ggT0ZFRCBhcmUgY29tcGF0aWJsZS4NCg0KVGhhbmtzDQoNCj4gDQo+
-IC0tIA0KPiBCZW5qYW1pbiBEcnVuZw0KPiBTeXN0ZW0gRGV2ZWxvcGVyDQo+IERlYmlhbiAmIFVi
-dW50dSBEZXZlbG9wZXINCj4gDQo+IFByb2ZpdEJyaWNrcyBHbWJIDQo+IEdyZWlmc3dhbGRlciBT
-dHIuIDIwNw0KPiBEIC0gMTA0MDUgQmVybGluDQo+IA0KPiBFbWFpbDogYmVuamFtaW4uZHJ1bmdA
-cHJvZml0YnJpY2tzLmNvbQ0KPiBVUkw6IGh0dHBzOi8vZW1lYTAxLnNhZmVsaW5rcy5wcm90ZWN0
-aW9uLm91dGxvb2suY29tLz91cmw9aHR0cHMlM0ElMkYlMkZ3d3cucHJvZml0YnJpY2tzLmRlJmRh
-dGE9MDIlN0MwMSU3Q21hamQlNDBtZWxsYW5veC5jb20lN0MxNWQxMDcwZmEwMGE0YjY1MjZhMDA4
-ZDUyYzBlMjFkMiU3Q2E2NTI5NzFjN2QyZTRkOWJhNmE0ZDE0OTI1NmY0NjFiJTdDMCU3QzAlN0M2
-MzY0NjMzNjE2NTE0MjcwOTAmc2RhdGE9d1BoMzNtRk40alFIQ2s0UkRGRlI2OWxURXlST3REUVg4
-ejMzUGVrREdCSSUzRCZyZXNlcnZlZD0wDQo+IA0KPiBTaXR6IGRlciBHZXNlbGxzY2hhZnQ6IEJl
-cmxpbg0KPiBSZWdpc3RlcmdlcmljaHQ6IEFtdHNnZXJpY2h0IENoYXJsb3R0ZW5idXJnLCBIUkIg
-MTI1NTA2IEINCj4gR2VzY2jDpGZ0c2bDvGhyZXI6IEFjaGltIFdlaXNzLCBNYXR0aGlhcyBTdGVp
-bmJlcmcNCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxp
-bmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0
-byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0
-dHBzOi8vZW1lYTAxLnNhZmVsaW5rcy5wcm90ZWN0aW9uLm91dGxvb2suY29tLz91cmw9aHR0cCUz
-QSUyRiUyRnZnZXIua2VybmVsLm9yZyUyRm1ham9yZG9tby1pbmZvLmh0bWwmZGF0YT0wMiU3QzAx
-JTdDbWFqZCU0MG1lbGxhbm94LmNvbSU3QzE1ZDEwNzBmYTAwYTRiNjUyNmEwMDhkNTJjMGUyMWQy
-JTdDYTY1Mjk3MWM3ZDJlNGQ5YmE2YTRkMTQ5MjU2ZjQ2MWIlN0MwJTdDMCU3QzYzNjQ2MzM2MTY1
-MTQyNzA5MCZzZGF0YT14TzNqeVBuUTQ0UUglMkZTMzdtT1p1VVh6QWFpSlpqZ1FPeTVHYlE0MHZa
-Q0klM0QmcmVzZXJ2ZWQ9MA0K
+Hello Dear...
+
+I know that this message will come to you as a surprise. I hoped that
+you will not expose or betray this trust and confident that I am about
+to repose on you, my name is M, Shakour Rosarita. I am 19 years old
+Girl, female, from Tartu Syria, (never married) 61 kg, white in
+complexion, and I am currently living in the refugee camp here in
+Abidjan Ivory Coast, My late beloved father M,Shakour Hassin was a
+renowned businessman and owner of Natour Petrol Station in Syria, he
+was killed in a stampede riot in Tartu, Syria.
+When I got the news about my parents. I fled to a nearby country
+Jordan before I joined a ferry to Africa and came to Abidjan capital
+city Ivory Coast West Africa find safety here.
+I came in 2015 to Abidjan and I now live in refugee camps here as
+refugees are allowed freely to enter here without, My late father
+deposited (US$6.200.000.00m) My late father kept the money at the bank
+of Africa, I want you to help me transfer the money to your hand so
+that you will help me bring me into your country for my continue
+education.
+
+I sent my pictures here for you to see. Who I am seriously looking for
+a good-person in my life, so I want to hear from you soon and learn
+more about you.
+
+I am an open-minded and friendly girl to share a good time with you
+and have fun and enjoy on the go, bird watching, the rest of our
+lives. My Hobbies, tourism books, dance, music, soccer, tennis,
+swimming and cinema.
+I would just think about you, including your dose and doesn=E2=80=99t .I
+believe we will do well together, and live like one family.
+Thank you and God bless you, for you in your promise to help me here,
+looking forward to your reply by the grace of God and have a good day.
+I hope you send me your photos as well? I await your next reply in
+faith please reply through my private email at
+(mshakourrosarita22-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org):
+Thanks.
+Ms Rosarita
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
