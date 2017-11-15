@@ -1,29 +1,42 @@
-From: owner-61a8vm9lEZVf4u+23C9RwQ@public.gmane.org (Debian Bug Tracking System)
-Subject: Processed: libibverbs-dev no longer ships infiniband/driver.h
-Date: Wed, 15 Nov 2017 13:12:05 +0000
-Message-ID: <handler.s.B.15107514116787.transcript@bugs.debian.org>
-References: <151075140461.17370.2844187627354872362.reportbug@localhost>
- <151075140461.17370.2844187627354872362.reportbug@localhost>
+From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: kernel space iWARP broken with CONFIG_SECURITY_INFINIBAND enabled
+Date: Wed, 15 Nov 2017 18:45:26 +0530
+Message-ID: <20171115131525.GB25574@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adrian Bunk <bunk-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-XVmvHMARGATQT0dZR+AlfA@public.gmane.org, danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Processing control commands:
+Hi all,
+With CONFIG_SECURITY_INFINIBAND kernel config option enabled iWARP kernel 
+space applications are failing at rdma_create_qp(). Apparantly SELinux 
+support for Infiniband RDMA caused this regression.
 
-> affects -1 libibverbs-dev src:librdmacm src:libcxgb3 src:libmlx4 src:libipathverbs src:libmlx5 src:libibcm src:libmthca src:libnes src:libfabric
-Bug #881814 [src:rdma-core] libibverbs-dev no longer ships infiniband/driver.h
-Added indication that 881814 affects libibverbs-dev, src:librdmacm, src:libcxgb3, src:libmlx4, src:libipathverbs, src:libmlx5, src:libibcm, src:libmthca, src:libnes, and src:libfabric
+Here is the failure with NVMEof discovery:
+[  129.294943] nvme nvme0: rdma_resolve_addr wait failed (-22).
 
--- 
-881814: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=881814
-Debian Bug Tracking System
-Contact owner-61a8vm9lEZVf4u+23C9RwQ@public.gmane.org with problems
+Failure is at ib_get_cached_pkey(), for invalid pkey_index, called by the 
+following call chain: 
+rdma_create_qp()-> cma_init_conn_qp()-> ib_modify_qp()-> 
+ib_security_modify_qp()-> check_qp_port_pkey_settings()-> 
+get_pkey_and_subnet_prefix()
+
+SELinux support for Infiniband RDMA:
+https://www.spinics.net/lists/linux-rdma/msg38705.html
+
+I am trying to understand how IB security enforcing works with iWARP. 
+>From the commit messages these appears to be an IB specific changes.
+If true, how is iw_cm supposed to handle it?
+iWARP doesn't use or have partition keys (pkey), How is this handled by the 
+IB security enforcing changes?
+
+Thanks,
+Bharat.
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
