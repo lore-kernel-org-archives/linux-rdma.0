@@ -1,54 +1,49 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/2] verbs: Report the device's PCI write end
- paddding capability
-Date: Wed, 15 Nov 2017 08:15:18 -0700
-Message-ID: <20171115151518.GM25894@ziepe.ca>
-References: <1510667228-18579-1-git-send-email-yishaih@mellanox.com>
- <1510667228-18579-2-git-send-email-yishaih@mellanox.com>
- <20171114203344.GS4263@ziepe.ca>
- <915b8140-2f83-1bc2-3334-b2454f4abb33@dev.mellanox.co.il>
+From: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/2] librdmacm: Add support for extended join multicast
+ API V2
+Date: Wed, 15 Nov 2017 09:22:14 -0600 (CST)
+Message-ID: <alpine.DEB.2.20.1711150921450.19575@nuc-kabylake>
+References: <20171114185720.609975150@linux.com> <20171114185739.838757957@linux.com> <20171114192558.GL4263@ziepe.ca> <alpine.DEB.2.20.1711141349370.13532@nuc-kabylake> <20171114195659.GP4263@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <915b8140-2f83-1bc2-3334-b2454f4abb33-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20171114195659.GP4263-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 15, 2017 at 03:10:30PM +0200, Yishai Hadas wrote:
+On Tue, 14 Nov 2017, Jason Gunthorpe wrote:
 
-> The man page was updated with a detailed description on the above
-> capability, see PR:
-> https://github.com/linux-rdma/rdma-core/pull/250
+> > Index: rdma-core/debian/librdmacm1.symbols
+> > ===================================================================
+> > +++ rdma-core/debian/librdmacm1.symbols
+> > @@ -31,7 +31,7 @@ librdmacm.so.1 librdmacm1 #MINVER#
+> >   rdma_get_src_port@RDMACM_1.0 1.0.19
+> >   rdma_getaddrinfo@RDMACM_1.0 1.0.15
+> >   rdma_join_multicast@RDMACM_1.0 1.0.15
+> > - rdma_join_multicast_ex@RDMACM_1.1 1.0.15
+> > + rdma_join_multicast_ex@RDMACM_1.1 1.0.16
+>
+> No, just '16', not '1.0.16'
 
-Yah, that is nicer
+Subject: Increase rdma_join_multicast_ex package version to 16
 
-Here is some copy-editing:
+Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 
-Extended device capability flags (device_cap_flags_ex):
-.br
-.TP 7
-IBV_DEVICE_PCI_WRITE_END_PADDING
-
-Indicates the device has support for padding PCI writes to a full cache line.
-
-Padding packets to full cache lines reduces the amount of traffic required at
-the memory controller at the expense of creating more traffic on the PCI-E
-port.
-
-Workloads that have a high CPU memory load and low PCI-E utilization will
-benefit from this feature, while workloads that have a high PCI-E utilization
-and small packets will be harmed.
-
-For instance, with a 128 byte cache line size, the transfer of any packets
-less than 128 bytes will require a full 128 transfer on PCI, pontentially
-doubling the required PCI-E bandwith.
-
-This feature can be enabled on a QP or WQ basis via the
-IBV_QP_CREATE_PCI_WRITE_END_PADDING or IBV_WQ_FLAGS_PCI_WRITE_END_PADDING
-flags.
+Index: rdma-core/debian/librdmacm1.symbols
+===================================================================
+--- rdma-core.orig/debian/librdmacm1.symbols
++++ rdma-core/debian/librdmacm1.symbols
+@@ -31,7 +31,7 @@ librdmacm.so.1 librdmacm1 #MINVER#
+  rdma_get_src_port@RDMACM_1.0 1.0.19
+  rdma_getaddrinfo@RDMACM_1.0 1.0.15
+  rdma_join_multicast@RDMACM_1.0 1.0.15
+- rdma_join_multicast_ex@RDMACM_1.1 1.0.15
++ rdma_join_multicast_ex@RDMACM_1.1 16
+  rdma_leave_multicast@RDMACM_1.0 1.0.15
+  rdma_listen@RDMACM_1.0 1.0.15
+  rdma_migrate_id@RDMACM_1.0 1.0.15
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
