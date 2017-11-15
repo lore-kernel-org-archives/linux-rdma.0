@@ -1,49 +1,79 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: kernel space iWARP broken with CONFIG_SECURITY_INFINIBAND enabled
-Date: Wed, 15 Nov 2017 12:21:08 -0600
-Message-ID: <8ac43c6a-e2d9-572e-b4bf-03cdf3be57a8@mellanox.com>
-References: <20171115131525.GB25574@chelsio.com>
+From: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v3 3/4] ibacm: Fix a retry loop calculation race
+ condition
+Date: Wed, 15 Nov 2017 19:20:02 +0000
+Message-ID: <14063C7AD467DE4B82DEDB5C278E86639F0C2EBA@FMSMSX108.amr.corp.intel.com>
+References: <20171114164006.24557.72093.stgit@phlsvslse11.ph.intel.com>
+ <20171114164337.24557.45231.stgit@phlsvslse11.ph.intel.com>
+ <20171114235522.GE25894@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171115131525.GB25574-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20171114235522.GE25894-uk2M96/98Pc@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-XVmvHMARGATQT0dZR+AlfA@public.gmane.org
-Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/15/2017 7:15 AM, Potnuri Bharat Teja wrote:
-> Hi all,
-> With CONFIG_SECURITY_INFINIBAND kernel config option enabled iWARP kernel 
-> space applications are failing at rdma_create_qp(). Apparantly SELinux 
-> support for Infiniband RDMA caused this regression.
->
-> Here is the failure with NVMEof discovery:
-> [  129.294943] nvme nvme0: rdma_resolve_addr wait failed (-22).
->
-> Failure is at ib_get_cached_pkey(), for invalid pkey_index, called by the 
-> following call chain: 
-> rdma_create_qp()-> cma_init_conn_qp()-> ib_modify_qp()-> 
-> ib_security_modify_qp()-> check_qp_port_pkey_settings()-> 
-> get_pkey_and_subnet_prefix()
->
-> SELinux support for Infiniband RDMA:
-> https://emea01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.spinics.net%2Flists%2Flinux-rdma%2Fmsg38705.html&data=02%7C01%7Cdanielj%40mellanox.com%7C562dfe4029994b668c8808d52c2af77a%7Ca652971c7d2e4d9ba6a4d149256f461b%7C0%7C0%7C636463485413049982&sdata=zjyS9aC9I2vRRxPyrIeLmCAl0Cg3cNJS7Tfz96Fzl%2F4%3D&reserved=0
->
-> I am trying to understand how IB security enforcing works with iWARP. 
-> From the commit messages these appears to be an IB specific changes.
-> If true, how is iw_cm supposed to handle it?
-> iWARP doesn't use or have partition keys (pkey), How is this handled by the 
-> IB security enforcing changes?
->
-> Thanks,
-> Bharat.
->  
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
+> Sent: Tuesday, November 14, 2017 6:55 PM
+> To: Ruhl, Michael J <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH v3 3/4] ibacm: Fix a retry loop calculation race condition
+> 
+> On Tue, Nov 14, 2017 at 11:43:47AM -0500, Michael J. Ruhl wrote:
+> 
+> > diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
+> > index d707b8e..884fc48 100644
+> > +++ b/ibacm/prov/acmp/src/acmp.c
+> > @@ -1579,10 +1579,12 @@ static void *acmp_retry_handler(void *context)
+> >  		pthread_mutex_unlock(&acmp_dev_lock);
+> >
+> >  		acmp_process_timeouts();
+> > -		wait = (int) (next_expire - time_stamp_ms());
+> > -		if (wait > 0 && atomic_get(&wait_cnt)) {
+> > -			pthread_testcancel();
+> > -			event_wait(&timeout_event, wait);
+> > +		if (next_expire != -1) {
+> > +			wait = (int) (next_expire - time_stamp_ms());
+> 
+> This (int) cast is also wrong..
+> 
+> If you want to do signed subtraction then you need to cast the
+> arguments to '-' not the result, and since time_stamp_ms() is u64,
+> casting it to int will truncate.
+> 
+> wait needs to be int64_t, next_expire should be int64_t and then no
+> casts are needed.
 
-Thanks Bharat, would you mind testing a patch for me? I don't have any iWARP hardware. I'll send to you it by EOB today.
+Hmm, I think that the truncate is what is happening when delay issue (caused by the race condition) occurs.
+I need to explore this some more, your suggested change my obviate the issue.
 
+> All of time_stamp_* should return int64_t
+> 
+> And the #define time_stamp_* should not be macros, but inline
+> functions returning int64_t to make the return type guarenteed and
+> clear.
+> 
+> This isn't really related to this series, but if you send a followup
+> patch it would be nice since it has been now been noticed :)
+
+I will do this in a follow on patch, but need more time to test so it will not be in this series.
+
+Thanks for the comments!
+
+Mike
+
+
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
