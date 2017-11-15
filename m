@@ -1,49 +1,57 @@
 From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH] RDMA/cma: Remove netlink interface of CMA statistics
-Date: Wed, 15 Nov 2017 09:50:22 +0200
-Message-ID: <CAJ3xEMjrTvY+hq=1Q3tmPk_QiZtpO8dLMmCtrPjJgbtOeiU=6Q@mail.gmail.com>
-References: <20171113144024.26655-1-leon@kernel.org> <20171113192432.GL6918@ziepe.ca>
- <20171114080550.GR18825@mtr-leonro.local> <CAJ3xEMhfdXz8zQFetjQPfe7HZiCi+N0z6r9XSucuTzQo1--PBg@mail.gmail.com>
- <20171114095605.GU18825@mtr-leonro.local> <CAJ3xEMhM0xfNxRU+37oWKq_w=MGtE3sUXy38bARgX5-3G9zhvw@mail.gmail.com>
- <20171114173516.GZ18825@mtr-leonro.local> <CAJ3xEMgJJX0FXMK9Rj=kGmNGkF14tBe03zfwzKHnEEp=cEDVxw@mail.gmail.com>
- <20171115052926.GN18825@mtr-leonro.local>
+Subject: Re: [PATCH rdma-next 28/31] IB/cm: Fix avoid sleep while spin lock is held
+Date: Wed, 15 Nov 2017 09:52:53 +0200
+Message-ID: <CAJ3xEMiQc_am=rqYg2TyNqU1s9uGSE-wcVxGmW244x8XJNDuyg@mail.gmail.com>
+References: <20171114125218.20477-1-leon@kernel.org> <20171114125218.20477-29-leon@kernel.org>
+ <CAJ3xEMixWZvCVDYTK1-2w0pYdy65HExvN2ae7y=hAkk6htrETg@mail.gmail.com>
+ <VI1PR0502MB3008970D8D6034E4A2D952DED1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <CAJ3xEMhdp_2BYPA+s+We5Qgatye8hNLUYGnZu0ZimpPb86U-VQ@mail.gmail.com> <VI1PR0502MB300897A41317A06FFA5CC329D1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171115052926.GN18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <VI1PR0502MB300897A41317A06FFA5CC329D1280-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 15, 2017 at 7:29 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On Tue, Nov 14, 2017 at 11:05:51PM +0200, Or Gerlitz wrote:
->> On Tue, Nov 14, 2017 at 7:35 PM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+On Wed, Nov 15, 2017 at 12:32 AM, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> From: Or Gerlitz [mailto:gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+
+>> >>> In case of LAP are used for RoCE
+
+>> >> AFAIK APM is not supported with RoCE, isn't that? if yes, on what
+>> >> HW/RoCE mode and how do you test that?
+
+>> > This particular patch in this series is not tested on RoCE.
+>> > APM is not supported but injecting such frame in network is not imposs=
+ible.
+>> > We don=E2=80=99t have particular checks to reject such frame for RoCE.
+>> > So I prefer to fix the issue before getting such hang/oops report when=
+ issue is
+>> evident in code.
 >>
->> > Can you help me to find an answer to my initial question?
->> > Are you using this CMA netlink interface?
->> > Do you know anyone who is using this interface?
+>> mentioning testing, in this series you did bunch of fixes for the IB cor=
+e, CM and
+>> CMA.
 >>
->> The rdma netlink code existed way before you got there and it has
->> various UAPIs that were/are used by multiple vendors..
->>
->> AFAIK we had @ Voltaire some management/provisioning SW that used these
->> CMA UAPIs and I am not sure where did it go after the V-acquisition
->
-> I got my answers, you are not using this CMA netlink part and don't know
-> anyone real with real code who uses.
+>> Would be good to add a section in the cover letter mentioning under whic=
+h type
+>> of testing the modified code has gone through.
 
-This is UAPI, and you want to delete it, so your job is to go through
-all the required
-procedures for that.
+> It's been tested for RoCEv1, v2, IPoIB with ConnectX4, ConnectX3 HCA with=
+ perftest, rping, krping tools.
+> In few individual patch, it's been mentioned how is this tested.
 
-But before that, you ignored my question asking what is broken in the
-current code, please don't.
+Please also add more info (and in the cover letter please) on IPv4 vs
+IPv6, unicast vs multicast, etc.
+You touched the CMA and addr modules quite heavily on all these areas,
+need to cover them in testing.
 
-You can't come to someone's code say it's broken without providing the data
-and ask to revert it.
-
-Or.
+did you test APM? I don't think it would be correct to change the CM APM co=
+de
+without proper testing.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
