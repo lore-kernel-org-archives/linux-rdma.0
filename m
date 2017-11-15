@@ -1,72 +1,33 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next 06/31] IB/ipoib: Avoid memory leak if neigh
- destination was changed
-Date: Tue, 14 Nov 2017 17:15:10 -0700
-Message-ID: <20171115001510.GG25894@ziepe.ca>
+Subject: Re: [PATCH rdma-next 01/31] IB/core: Fix do not add RoCEv2 default
+ GID when IPv6 is disabled
+Date: Tue, 14 Nov 2017 17:18:17 -0700
+Message-ID: <20171115001817.GH25894@ziepe.ca>
 References: <20171114125218.20477-1-leon@kernel.org>
- <20171114125218.20477-7-leon@kernel.org>
+ <20171114125218.20477-2-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171114125218.20477-7-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20171114125218.20477-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 14, 2017 at 02:51:53PM +0200, Leon Romanovsky wrote:
-> From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> If from some reason the SM responses to path query request with response
-> that doesn't contain the exact SGID, ipoib should warn and change that
-> part of the response before push it to the path record DB.
-> Otherwise, new record will be added to the path record DB with no access
-> to them from the ipoib.
-> 
-> Demonstration of the bug is as the follow:
-> ipoib wants to send to GID fe80:0000:0000:0000:0002:c903:00ef:5ee2, it
-> creates new record in the DB with that gid as a key, and issues a new
-> request to the sm.
-> Now, the SM from some reason returns path-record with other SGID (for
-> example, fe80:0000:0000:0001:0002:c903:00ef:5ee2 that contains the local
-> subnet prefix) now ipoib will overwrite the current entry with the new
-> one, and if new request to the original GID arrives ipoib  will not find
-> it in the DB (was overwritten) and will create new record that in its
-> turn will also be overwritten by the response from the SM, and so on
-> till the driver eats all the device memory.
-> 
-> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->  drivers/infiniband/ulp/ipoib/ipoib_main.c | 10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index 12b7f911f0e5..b173d618c59c 100644
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -775,6 +775,16 @@ static void path_rec_completion(int status,
->  	spin_lock_irqsave(&priv->lock, flags);
->  
->  	if (!IS_ERR_OR_NULL(ah)) {
-> +		/* check there is no mismatch from the request */
-> +		if (memcmp(pathrec->dgid.raw, path->pathrec.dgid.raw,
-> +			   sizeof(union ib_gid))) {
-> +			pr_warn("%s got PathRec for gid %pI6 while asked for %pI6\n",
-> +				dev->name, pathrec->dgid.raw, path->pathrec.dgid.raw);
-> +			/* overwrite the response from the sm  before copy to the db */
-> +			memcpy(pathrec->dgid.raw, path->pathrec.dgid.raw,
-> +			       sizeof(union ib_gid));
+On Tue, Nov 14, 2017 at 02:51:48PM +0200, Leon Romanovsky wrote:
 
-This doesn't seem like it should be a warning, and replacing the
-good DGID from the SA with local garbage seems really wrong.
+> +	/* Default GID is created using unique GUID and local subnet prefix,
+> +	 * as described in section 4.1.1 and 3.5.10 in IB spec 1.3.
+> +	 * Therefore don't create RoCEv2 default GID based on it that
+> +	 * resembles as IPv6 GID based on link local address when IPv6 is
+> +	 * disabled in kernel.
+> +	 */
+> +	if (!IS_ENABLED(CONFIG_IPV6))
+> +		gid_type_mask &= ~BIT(IB_GID_TYPE_ROCE_UDP_ENCAP);
 
-The SA should be free to return a correct DGID, for instance by
-replacing a old or link local subnet prefix with the current value of
-the subnet prefix, or by returning a different gid index for the
-destination depending on mulitpath requirements.
-
-So the right thing to do here is to somehow make ipoib use the data
-from the SA.
+There is also a sysctl to globally disable ipv6, I would think it
+would be better to check than then a CONFIG symbol?
 
 Jason
 --
