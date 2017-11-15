@@ -1,92 +1,92 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 27/31] IB/cm: Fix honor address handle
- attribute init error
-Date: Wed, 15 Nov 2017 07:31:55 +0200
-Message-ID: <20171115053155.GO18825@mtr-leonro.local>
-References: <20171114125218.20477-1-leon@kernel.org>
- <20171114125218.20477-28-leon@kernel.org>
- <CAJ3xEMjPsD7+YnN80A7Z3WjxEey20=TYKpxrRK_mRhKVMEnA8Q@mail.gmail.com>
- <VI1PR0502MB3008514AED6DA3E970381088D1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <CAJ3xEMg6bJt0obWHrSae86ZUN7RgCYqWJJiQXw9on82P=zO_VA@mail.gmail.com>
- <VI1PR0502MB300851A707AFA9DEC77B232ED1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20171114233841.GC25894@ziepe.ca>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Bug#881731: rdma-core: FTBFS on armhf and mips*: missing providers that need coherent DMA
+Date: Wed, 15 Nov 2017 07:44:00 +0200
+Message-ID: <20171115054400.GP18825@mtr-leonro.local>
+References: <151067381730.19157.7563136692092597267.reportbug@ghostwheel.internal.ucko.debian.net> <20171114190805.GF4263@ziepe.ca> <151067381730.19157.7563136692092597267.reportbug@ghostwheel.internal.ucko.debian.net> <7f295a93-e27e-6661-7e57-743818e12ef5@redhat.com> <151067381730.19157.7563136692092597267.reportbug@ghostwheel.internal.ucko.debian.net>
+Reply-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 881731-61a8vm9lEZVf4u+23C9RwQ@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="nBNKYIkUhonyaPEg"
+        protocol="application/pgp-signature"; boundary="5BSwYavaev5qNTlX"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171114233841.GC25894-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <7f295a93-e27e-6661-7e57-743818e12ef5-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 881731-61a8vm9lEZVf4u+23C9RwQ@public.gmane.org
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---nBNKYIkUhonyaPEg
+--5BSwYavaev5qNTlX
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Nov 14, 2017 at 04:38:41PM -0700, Jason Gunthorpe wrote:
-> On Tue, Nov 14, 2017 at 10:27:42PM +0000, Parav Pandit wrote:
+On Tue, Nov 14, 2017 at 03:41:13PM -0500, Don Dutile wrote:
+> On 11/14/2017 02:08 PM, Jason Gunthorpe wrote:
+> > > However, it would of course be better to teach udma_barrier.h about
+> > > these architectures.
+> >
+> > The issue is that some architectures just can't do cache coherent DMA
+> > on any implementation. eg m68k
+> >
+> > There is no correct udma_barrier.h at all in those cases.
+> >
+> > We need to teach debian to follow cmake and exclude the missing
+> > installables in these cases..
+> >
+> > Or do not build at all on these arch's..
+> >
+> > Jason
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> Jason:
+> Why am I being cc'd on this debian bug?
+> I also received a notice about a bug fix in debian, and I had zip to do with it.
 >
-> > > On Wed, Nov 15, 2017 at 12:13 AM, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > wrote:
-> > > >> From: Or Gerlitz [mailto:gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> > >
-> > > >> any reason not to point out the commit that introduced the bug?
-> > > > No particular reason. I am not sure few years back it was bug or not. In current
-> > > code it appear so.
-> > > > So I continued without Fixes commit line.
-> > >
-> > >
-> > > The idea is that you do the git blaming and such work to get the
-> > > Fixes line, and later, the maintainer of the sub-system and
-> > > maintainers of stable kernel use that to decide if/where they want
-> > > this to go beyond the -rc kernel you are fixing
->
-> > Yes, I understand. But would that be a bug in initial commit, which
-> > transport was it handling.. without error code check what could have
-> > gone wrong..  I do not have answer for those questions. So I omitted
-> > the Fixes line.  Wherever I knew for sure in this or other series, I
-> > have added.
->
-> While the fixes line is nice, the more important question is if any of
-> these patches should have a 'Cc: stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org' ?
+> Is my name tagged in Debian wrt rdma for some reason? by someone? other?
 
-No, this is why I didn't ask to add Fixes line, because stable@ takes
-patches in semi-automatic mode by looking after Fixes line.
+Don,
+
+All of us received this email [1], because maintainer of rdma-core package
+is mailing list:
+
+"Package: src:rdma-core; Maintainer for src:rdma-core is Linux RDMA
+Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>;"
+
+[1] https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=881731
 
 Thanks
 
-
 >
-> Jason
+> -dd
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---nBNKYIkUhonyaPEg
+--5BSwYavaev5qNTlX
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloL0UsACgkQ5GN7iDZy
-WKcd+A/9HzlGXY3Xw7As6VuEU1n5rSMFjOc6StnTdUMKIkeioDHlq9ptLqxB12G6
-arOKgoUO3NeKgO2AF1NHE0Z6eohqWtbS96RoX7ZW86KPoX8NZBo6RpfeBdpYL3nm
-Qxy4DX0fWMVDXHTRaVO+KhItr9ZlnxDXI+e/62A8yW876ws+FSCJCWyTnevaMaqW
-23BHM4nabYMeM3r4RPbFGVO1pwLvoHUsE2i493FlbgS1EHRkm7/odRnmczSfq1nh
-Q1YncQ4sYvxrLUAU8eNVNvQpSFzH3tLHyjNfzfix8YF5qbisW5JK8WuzEle4QHD4
-y8C9aMuPJnGByG4G3faUSbQ2FJCUmNQUpDelF9/0JXH8reazZ5pNmo69/bhdHYvF
-ySvZ4IdtgIYjDcZllMNYiwen9bK7n/NTKdSHdhByiVgcSBl3r60SQGs2+duw6Yap
-uAIBcwyH4Tr7HspT7OsD2YmiOkr85+B7Je4aYuMB7VAqPV2GRNNqmOdClcLw66M0
-5SSVSzpfAoYidQq0udjOzj2uilMeG084MKohFnTXeMGwX6196I9GDwkau7Fi/qOK
-iExznxDxlsYa1kctlj69G01Wo3owf3h/dIh25vfxECVh8rjXvJgfwcobcEFW4bv1
-JaXmJLeQLpEt98ESGxNuwyWGJak1eyRbJM6SWzR9sKhXtyGNOyw=
-=C0ZV
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloL1CAACgkQ5GN7iDZy
+WKdCWw/6Ax3O69sYK68msjwdtxFXe181yRI1VLriAynRKYH+Srxq8G8JvDc8vWfI
+Rit2dVofkkC0FJrFRCIjEBPqPOQsJrkyBOMqP5xpAIDZWQBeMRtQTG1YRLHqs8Iq
+jqhQn7Qv8i+4bq9DCt+S8HbBljTA6WKmA7jf8U2LhVKvzNSqH+9nOPKD0eoEHHoo
+kRZhrek1JCoy9gr4tVH1BuyhPrCsP9HGAAhwt7lxJ8GAC6FbmS0jVYT65meuGpzQ
+2bJ8SFRTBdamSa+sG9qPabLH85Ht3Ll1cJJCtIbvlqRMenIutNyoDliV6BkQp+/V
+H8yFNWyszFghbCjA4VUcGOsHmz4Un46tIEM7pFAsZ9n6yPrmiNTJilw1bTG5uYeN
+RAhYc04xE7fmRQVVxqI0FYqw5CB5H9wuIDFpbHzcmyk+6ImMDOy7VcERJ4si17fB
+YOW4YqaTY7Su7y8QkecQWOcmoO3xlHJGQ7ZHfDSuGKW50fWRPFECfcbBzZ+nlF0B
+7+4eu5KAN5ty914KiBRomxV6oC+vZIGza4285aWT2QTbiuKVhfYhNo28top9RWYl
+gpi0rmSWAMHA2Qw8BRwIkL8Z1BWXRev1lan8zlGcfori17vC9+/6pilpGq9kdbJR
+HNEtQBVmPWA8SqhIG97KB/r1FS5IFRNCdHU4d5wAUIUwHf2kSsg=
+=pTgU
 -----END PGP SIGNATURE-----
 
---nBNKYIkUhonyaPEg--
+--5BSwYavaev5qNTlX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
