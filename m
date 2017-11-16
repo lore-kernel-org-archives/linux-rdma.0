@@ -1,47 +1,65 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH/RFC] RDMA/iwpm: Fix uninitialized error code in iwpm_send_mapinfo()
-Date: Thu, 16 Nov 2017 13:51:15 +0100
-Message-ID: <CAK8P3a3nSyn5KaaSM00-99bk3LAdpSzsorX5wffp+jsBHN9tgg@mail.gmail.com>
-References: <1510827964-11100-1-git-send-email-geert@linux-m68k.org>
- <CAK8P3a2D6dnQELKww5V-=mNAzrD-XQoWtNTXCmgMtsnFnujq5A@mail.gmail.com>
- <CAMuHMdXcvBDGvQ0K38POmarUY65ntTw5-xh9s=Sk4ZH+98MrhQ@mail.gmail.com>
- <CAK8P3a38=xM+NSxuc+5gXXe0vWGxf6+Z6Av01YFiFWyseT1_ng@mail.gmail.com> <CAMuHMdWA5cge8HomTuZ960rGCKueFmG6_KX4VCkY0XGWZfZZ2g@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/2] Debian packaging changes for 15-2
+Date: Thu, 16 Nov 2017 15:15:32 +0200
+Message-ID: <20171116131532.GJ18825@mtr-leonro.local>
+References: <20171116122937.31770-1-benjamin.drung@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="IPwq7vKbcnUIujWQ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAMuHMdWA5cge8HomTuZ960rGCKueFmG6_KX4VCkY0XGWZfZZ2g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171116122937.31770-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Cc: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 16, 2017 at 1:03 PM, Geert Uytterhoeven
-<geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org> wrote:
-> Hi Arnd,
+
+--IPwq7vKbcnUIujWQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, Nov 16, 2017 at 01:29:35PM +0100, Benjamin Drung wrote:
+> In addition to my previous set of packaging changes, here are the remaining
+> changes from my rdma-core 15-2 upload to Debian unstable. Let's see if
+> rdma-core builds now on all architectures. Build log overview:
+> https://buildd.debian.org/status/package.php?p=rdma-core
 >
-> On Thu, Nov 16, 2017 at 12:32 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
->> On Thu, Nov 16, 2017 at 12:05 PM, Geert Uytterhoeven
->> <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org> wrote:
->> I see my problem now, my randconfig test series has a patch I never sent
->> out, see https://pastebin.com/ZJDHP7g4 ;-)
+> In addition, I added myself to MAINTAINERS.
 >
-> I was already wondering why I suddenly started seeing many non-false
-> positives reaching Linus' tree ;-)
-> Lately you've been catching all of them in -next, before they had a chance
-> to appear in upstream.
+> Benjamin Drung (2):
+>   debian: Don't install disabled providers on archs that miss coherent
+>     DMA
+>   Add myself as Debian packaging maintainer
+>
+>  MAINTAINERS  |  5 +++++
+>  debian/rules | 12 ++++++++++++
+>  2 files changed, 17 insertions(+)
+>
 
-The patch is only for older compilers that I don't regularly test with, it
-should not have made a big difference here.
+Thanks, merged.
 
-I was going to submit the patch but took a look at some of the remaining
-warnings and came across the bug leading to https://lkml.org/lkml/2017/9/15/384,
-so I ended up not sending it, but still had it in my queue.
+--IPwq7vKbcnUIujWQ
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Not sure what happened to that patch though, I think it was in linux-next
-at some point (which means I dropped it during rebasing), but it's not
-there now.
+-----BEGIN PGP SIGNATURE-----
 
-       Arnd
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloNj3QACgkQ5GN7iDZy
+WKcyoQ//dm0/hZhLUWsvAz86FNaTn9DfI5535RU6FTmiWQ9FUIqv4JmwduY416AI
+O07voi2X/pD/Skd6PRVyBm3QhlwA8vKUxWWIngPAZj7wgzxzuXCCQWkiERGs7fYv
+XfzzzrB4Gyu1reoKmWo8sX2yCKGTyyht2ZlLs6+NuVmJ3YfpIdmrrb5hv28Iw0la
+imr1lcvsVHGCTf40KT7ZLtOdutpebM8X6No9YQAw5IMdNA2w/V5txxJuaCvHDoed
++SD6MUXvNunH11HO8LLr/Z2YMO6vWy1y1qD8BnZWbJcuqiuSXJiuXk1URrWczUNA
+Xwb45l20zsXUMNHdo0ntOxuSrZV2AgGP+Ebad7TcXXYUkVaCkbddUczzTaP8WWqr
+lFqIn0Ivtd+rOfErQy8NR36P8zMKP9pG8slxX7qkkdwnl+F2uftO3w/nSQxGic43
+PulxYdnUWcPmddB79dProo4rvZmu4Nc1iJaHGm9D/izI6SjI4sxmsbtwOPIYhvAC
+6sVBLhJyIM3QMeHuAi3VhD1ONVX4dUTW+wq6J3HlQowzfkOUiJUoXAgJ+qCOMcj6
+1j0orV6KH1ZAfh5XBl1jnVNOKXXLVwxxBTr3SsNupxQxxu1DkfYuy/cNpox9s8lb
+RXSs9xaP/+Frzkfo4n3UHbreZ3Re1AjnnTqoLQvrT+PfJrnwNb0=
+=B6zj
+-----END PGP SIGNATURE-----
+
+--IPwq7vKbcnUIujWQ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
