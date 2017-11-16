@@ -1,47 +1,55 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/3] mlx5 - Enhanced CQ features
-Date: Thu, 16 Nov 2017 11:27:41 +0200
-Message-ID: <b072a830-1400-df51-87da-59fc273d2ce0@dev.mellanox.co.il>
-References: <1510755822-15945-1-git-send-email-yishaih@mellanox.com>
+From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Subject: [PATCH/RFC] RDMA/iwpm: Fix uninitialized error code in iwpm_send_mapinfo()
+Date: Thu, 16 Nov 2017 11:26:04 +0100
+Message-ID: <1510827964-11100-1-git-send-email-geert@linux-m68k.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1510755822-15945-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/15/2017 4:23 PM, Yishai Hadas wrote:
-> This series from Guy is the supplementary part of the kernel series that was
-> merged into 4.15 'for-next' branch by Doug.
-> 
-> The series exposes to mlx5 DV users some enhanced CQ features as of:
-> - Expose 128B CQE compression capability.
-> - Create padded 128B CQE.
-> 
-> PR was sent:
-> https://github.com/linux-rdma/rdma-core/pull/253
-> 
-> Yishai
-> 
-> Guy Levi (3):
->    mlx5: Expose 128B CQE compression capability
->    mlx5: Expose 128B padded CQE capability in direct verb
->    mlx5: Support padded CQE by mlx5dv_create_cq
-> 
->   providers/mlx5/man/mlx5dv_query_device.3 |  2 ++
->   providers/mlx5/mlx5-abi.h                | 13 +++++++++++--
->   providers/mlx5/mlx5.c                    |  6 ++++++
->   providers/mlx5/mlx5.h                    |  2 ++
->   providers/mlx5/mlx5dv.h                  | 11 ++++++++++-
->   providers/mlx5/verbs.c                   | 29 +++++++++++++++++++++++++++++
->   6 files changed, 60 insertions(+), 3 deletions(-)
-> 
+With gcc-4.1.2:
 
-Thanks, series was merged.
+    drivers/infiniband/core/iwpm_util.c: In function ‘iwpm_send_mapinfo’:
+    drivers/infiniband/core/iwpm_util.c:647: warning: ‘ret’ may be used uninitialized in this function
+
+Indeed, if nl_client is not found in any of the scanned has buckets, ret
+will be used uninitialized.
+
+Preinitialize ret to zero to fix this.
+
+Fixes: 30dc5e63d6a5ad24 ("RDMA/core: Add support for iWARP Port Mapper user space service")
+Signed-off-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+---
+RFC as I have no idea if this can ever happen, and if yes, what's the
+correct behavior to handle it:
+  - return 0,
+  - return an error code,
+  - don't send anything,
+  - anything else?
+---
+ drivers/infiniband/core/iwpm_util.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
+index 3c4faadb8cddd7fd..eb000b540495acd1 100644
+--- a/drivers/infiniband/core/iwpm_util.c
++++ b/drivers/infiniband/core/iwpm_util.c
+@@ -644,7 +644,7 @@ int iwpm_send_mapinfo(u8 nl_client, int iwpm_pid)
+ 	int i = 0, nlmsg_bytes = 0;
+ 	unsigned long flags;
+ 	const char *err_str = "";
+-	int ret;
++	int ret = 0;
+ 
+ 	skb = dev_alloc_skb(NLMSG_GOODSIZE);
+ 	if (!skb) {
+-- 
+2.7.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
