@@ -1,42 +1,79 @@
-From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Subject: Re: [PATCH/RFC] RDMA/iwpm: Fix uninitialized error code in iwpm_send_mapinfo()
-Date: Thu, 16 Nov 2017 13:03:53 +0100
-Message-ID: <CAMuHMdWA5cge8HomTuZ960rGCKueFmG6_KX4VCkY0XGWZfZZ2g@mail.gmail.com>
-References: <1510827964-11100-1-git-send-email-geert@linux-m68k.org>
- <CAK8P3a2D6dnQELKww5V-=mNAzrD-XQoWtNTXCmgMtsnFnujq5A@mail.gmail.com>
- <CAMuHMdXcvBDGvQ0K38POmarUY65ntTw5-xh9s=Sk4ZH+98MrhQ@mail.gmail.com> <CAK8P3a38=xM+NSxuc+5gXXe0vWGxf6+Z6Av01YFiFWyseT1_ng@mail.gmail.com>
+From: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH rdma-core v4 4/4] ibacm: Use MONOTONIC time base to
+ avoid timer expiration issues
+Date: Thu, 16 Nov 2017 12:09:19 +0000
+Message-ID: <14063C7AD467DE4B82DEDB5C278E86639F0C3461@FMSMSX108.amr.corp.intel.com>
+References: <20171115193155.470.85049.stgit@phlsvslse11.ph.intel.com>
+ <20171115193524.470.17499.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAK8P3a38=xM+NSxuc+5gXXe0vWGxf6+Z6Av01YFiFWyseT1_ng-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20171115193524.470.17499.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Arnd,
-
-On Thu, Nov 16, 2017 at 12:32 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
-> On Thu, Nov 16, 2017 at 12:05 PM, Geert Uytterhoeven
-> <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org> wrote:
-> I see my problem now, my randconfig test series has a patch I never sent
-> out, see https://pastebin.com/ZJDHP7g4 ;-)
-
-I was already wondering why I suddenly started seeing many non-false
-positives reaching Linus' tree ;-)
-Lately you've been catching all of them in -next, before they had a chance
-to appear in upstream.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+SG1tLA0KDQpJIGRvbid0IGtub3cgd2hlcmUgbXkgY292ZXIgbGV0dGVyIHdlbnQgZm9yIHRoaXMg
+cGF0Y2ggc2V0Lg0KDQp2NCBjbGVhbnMgdXAgdGhlIHN1Z2dlc3RlZCB0eXBlIGNhc3RpbmcgaXNz
+dWVzIGluIHRoaXMgcGF0Y2guDQoNClRoYW5rcywNCk1pa2UNCg0KPiAtLS0tLU9yaWdpbmFsIE1l
+c3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFp
+bHRvOmxpbnV4LXJkbWEtDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIE1p
+Y2hhZWwgSi4gUnVobA0KPiBTZW50OiBXZWRuZXNkYXksIE5vdmVtYmVyIDE1LCAyMDE3IDI6MzYg
+UE0NCj4gVG86IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFtQQVRDSCBy
+ZG1hLWNvcmUgdjQgNC80XSBpYmFjbTogVXNlIE1PTk9UT05JQyB0aW1lIGJhc2UgdG8gYXZvaWQN
+Cj4gdGltZXIgZXhwaXJhdGlvbiBpc3N1ZXMNCj4gDQo+IEZyb206IE1pY2hhZWwgSi4gUnVobCA8
+bWljaGFlbC5qLnJ1aGxAaW50ZWwuY29tPg0KPiANCj4gVGhlIGV2ZW50X3dhaXQoKSBmdW5jdGlv
+biB1c2VzIHRoZSBDTE9DS19SRUFMVElNRSB0aW1lIGJhc2UgZm9yDQo+IGNhbGN1bGF0aW5nIGV4
+cGlyYXRpb24gdGltZXMgKGRlZmF1bHQgdGltZSBiYXNlIGZvciBnZXR0aW1lb2ZkYXkoKSkuDQo+
+IA0KPiBVc2luZyB0aGUgQ0xPQ0tfUkVBTFRJTUUgdGltZSBiYXNlIGNhbiBpbnRyb2R1Y2UgaW5j
+b3JyZWN0IGV4cGlyYXRpb24NCj4gdGltZW91dCBjYWxjdWxhdGlvbnMgaWYgdGhlIFJFQUxUSU1F
+IGNsb2NrIGNoYW5nZXMsIG1ha2luZyBhIHRpbWVvdXQNCj4gdG9vIGxvbmcgKHBvc3NpYmx5IGhv
+dXJzIG9yIGRheXMpLCBvciB0b28gc2hvcnQuDQo+IA0KPiBVcGRhdGUgdGltZSBiYXNlIHVzYWdl
+IHRvIHRoZSBDTE9DS19NT05PVE9OSUMgdGltZSBiYXNlIHRvIGF2b2lkIHRpbWUNCj4gY2hhbmdl
+IGlzc3Vlcy4NCj4gDQo+IFVzZSBhcHByb3ByaWF0ZSB0eXBpbmcgdG8gYXZvaWQgdW5uZWNlc3Nh
+cnkgdHlwZWNhc3RpbmcuDQo+IA0KPiBSZXZpZXdlZC1ieTogTWlrZSBNYXJjaW5pc3p5biA8bWlr
+ZS5tYXJjaW5pc3p5bkBpbnRlbC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IE1pY2hhZWwgSi4gUnVo
+bCA8bWljaGFlbC5qLnJ1aGxAaW50ZWwuY29tPg0KPiAtLS0NCj4gIGliYWNtL2xpbnV4L29zZC5o
+IHwgICAyMiArKysrKysrKysrKystLS0tLS0tLS0tDQo+ICAxIGZpbGVzIGNoYW5nZWQsIDEyIGlu
+c2VydGlvbnMoKyksIDEwIGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2liYWNtL2xp
+bnV4L29zZC5oIGIvaWJhY20vbGludXgvb3NkLmgNCj4gaW5kZXggZWFiZjVlZC4uNGVmN2I1NSAx
+MDA2NDQNCj4gLS0tIGEvaWJhY20vbGludXgvb3NkLmgNCj4gKysrIGIvaWJhY20vbGludXgvb3Nk
+LmgNCj4gQEAgLTg4LDIwICs4OCwyMyBAQCB0eXBlZGVmIHN0cnVjdCB7IHZvbGF0aWxlIGludCB2
+YWw7IH0gYXRvbWljX3Q7DQo+ICB0eXBlZGVmIHN0cnVjdCB7IHB0aHJlYWRfY29uZF90IGNvbmQ7
+IHB0aHJlYWRfbXV0ZXhfdCBtdXRleDsgfSBldmVudF90Ow0KPiAgc3RhdGljIGlubGluZSB2b2lk
+IGV2ZW50X2luaXQoZXZlbnRfdCAqZSkNCj4gIHsNCj4gLQlwdGhyZWFkX2NvbmRfaW5pdCgmZS0+
+Y29uZCwgTlVMTCk7DQo+ICsJcHRocmVhZF9jb25kYXR0cl90IGF0dHI7DQo+ICsNCj4gKwlwdGhy
+ZWFkX2NvbmRhdHRyX2luaXQoJmF0dHIpOw0KPiArCXB0aHJlYWRfY29uZGF0dHJfc2V0Y2xvY2so
+JmF0dHIsIENMT0NLX01PTk9UT05JQyk7DQo+ICsJcHRocmVhZF9jb25kX2luaXQoJmUtPmNvbmQs
+ICZhdHRyKTsNCj4gIAlwdGhyZWFkX211dGV4X2luaXQoJmUtPm11dGV4LCBOVUxMKTsNCj4gIH0N
+Cj4gICNkZWZpbmUgZXZlbnRfc2lnbmFsKGUpCXB0aHJlYWRfY29uZF9zaWduYWwoJihlKS0+Y29u
+ZCkNCj4gICNkZWZpbmUgT05FX1NFQ19JTl9OU0VDICAxMDAwMDAwMDAwVUxMDQo+IC1zdGF0aWMg
+aW5saW5lIGludCBldmVudF93YWl0KGV2ZW50X3QgKmUsIGludCB0aW1lb3V0KQ0KPiArc3RhdGlj
+IGlubGluZSBpbnQgZXZlbnRfd2FpdChldmVudF90ICplLCB1bnNpZ25lZCBpbnQgdGltZW91dCkN
+Cj4gIHsNCj4gLQlzdHJ1Y3QgdGltZXZhbCBjdXJ0aW1lOw0KPiAgCXN0cnVjdCB0aW1lc3BlYyB3
+YWl0Ow0KPiAgCWludCByZXQ7DQo+IA0KPiAtCWdldHRpbWVvZmRheSgmY3VydGltZSwgTlVMTCk7
+DQo+IC0Jd2FpdC50dl9zZWMgPSBjdXJ0aW1lLnR2X3NlYyArICgodW5zaWduZWQpIHRpbWVvdXQp
+IC8gMTAwMDsNCj4gLQl3YWl0LnR2X25zZWMgPSAoY3VydGltZS50dl91c2VjICsgKCgodW5zaWdu
+ZWQpIHRpbWVvdXQpICUgMTAwMCkgKiAxMDAwKQ0KPiAqIDEwMDA7DQo+ICsJY2xvY2tfZ2V0dGlt
+ZShDTE9DS19NT05PVE9OSUMsICZ3YWl0KTsNCj4gKwl3YWl0LnR2X3NlYyA9IHdhaXQudHZfc2Vj
+ICsgdGltZW91dCAvIDEwMDA7DQo+ICsJd2FpdC50dl9uc2VjID0gd2FpdC50dl9uc2VjICsgKHRp
+bWVvdXQgJSAxMDAwKSAqIDEwMDAwMDA7DQo+ICAJaWYgKHdhaXQudHZfbnNlYyA+IE9ORV9TRUNf
+SU5fTlNFQykgew0KPiAgCQl3YWl0LnR2X3NlYysrOw0KPiAgCQl3YWl0LnR2X25zZWMgLT0gT05F
+X1NFQ19JTl9OU0VDOw0KPiBAQCAtMTE0LDEwICsxMTcsOSBAQCBzdGF0aWMgaW5saW5lIGludCBl
+dmVudF93YWl0KGV2ZW50X3QgKmUsIGludCB0aW1lb3V0KQ0KPiANCj4gIHN0YXRpYyBpbmxpbmUg
+dWludDY0X3QgdGltZV9zdGFtcF91cyh2b2lkKQ0KPiAgew0KPiAtCXN0cnVjdCB0aW1ldmFsIGN1
+cnRpbWU7DQo+IC0JdGltZXJjbGVhcigmY3VydGltZSk7DQo+IC0JZ2V0dGltZW9mZGF5KCZjdXJ0
+aW1lLCBOVUxMKTsNCj4gLQlyZXR1cm4gKHVpbnQ2NF90KSBjdXJ0aW1lLnR2X3NlYyAqIDEwMDAw
+MDAgKyAodWludDY0X3QpIGN1cnRpbWUudHZfdXNlYzsNCj4gKwlzdHJ1Y3QgdGltZXNwZWMgdDsN
+Cj4gKwljbG9ja19nZXR0aW1lKENMT0NLX01PTk9UT05JQywgJnQpOw0KPiArCXJldHVybiAodC50
+dl9zZWMgKiBPTkVfU0VDX0lOX05TRUMgKyB0LnR2X25zZWMpIC8gMTAwMDsNCj4gIH0NCj4gDQo+
+ICAjZGVmaW5lIHRpbWVfc3RhbXBfbXMoKSAgKHRpbWVfc3RhbXBfdXMoKSAvICh1aW50NjRfdCkg
+MTAwMCkNCj4gDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRo
+ZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbg0KPiB0aGUgYm9keSBvZiBhIG1lc3Nh
+Z2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0
+ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
