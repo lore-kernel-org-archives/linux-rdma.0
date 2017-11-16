@@ -1,7 +1,7 @@
 From: Nicolas Morey-Chaisemartin <nmoreychaisemartin-IBi9RG/b67k@public.gmane.org>
-Subject: [PATCHv2 rdma-core 1/5] buidlib: import abi checking tools
-Date: Thu, 16 Nov 2017 18:37:35 +0100
-Message-ID: <a5f1ce1a-aa0d-e0ec-2701-97325bedca6b@suse.com>
+Subject: [PATCHv2 rdma-core 2/5] buildlib: add script to dump ABI
+Date: Thu, 16 Nov 2017 18:37:39 +0100
+Message-ID: <676022a1-13da-efd7-d73c-96a2a93e1188@suse.com>
 References: <551ccda1-bb8d-45bf-1c7c-22a82fc64efc@suse.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
@@ -13,44 +13,45 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add submodules for abi-dumper  v1.1 and abi-compliance-checker v2.2
+Builds rdma-core in -Og/Debug mode and use abi-dumper to generate 1 xml
+ per .so.*.* file.
+Do not use .so file directly. Providers have no symbol exported
+ and cause abi-dumer to exit with an error.
 
 Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
+Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org # v15
 ---
- .gitmodules                     | 6 ++++++
- buildlib/abi-compliance-checker | 1 +
- buildlib/abi-dumper             | 1 +
- 3 files changed, 8 insertions(+)
- create mode 100644 .gitmodules
- create mode 160000 buildlib/abi-compliance-checker
- create mode 160000 buildlib/abi-dumper
+ buildlib/gen-abi | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+ create mode 100755 buildlib/gen-abi
 
-diff --git a/.gitmodules b/.gitmodules
-new file mode 100644
-index 00000000..b195afc3
+diff --git a/buildlib/gen-abi b/buildlib/gen-abi
+new file mode 100755
+index 00000000..f551aa96
 --- /dev/null
-+++ b/.gitmodules
-@@ -0,0 +1,6 @@
-+[submodule "buildlib/abi-dumper"]
-+	path = buildlib/abi-dumper
-+	url = https://github.com/lvc/abi-dumper.git
-+[submodule "buildlib/abi-compliance-checker"]
-+	path = buildlib/abi-compliance-checker
-+	url = https://github.com/lvc/abi-compliance-checker.git
-diff --git a/buildlib/abi-compliance-checker b/buildlib/abi-compliance-checker
-new file mode 160000
-index 00000000..e3db9ec3
---- /dev/null
-+++ b/buildlib/abi-compliance-checker
-@@ -0,0 +1 @@
-+Subproject commit e3db9ec34127d0a4f109cc4923e191b0822a0e51
-diff --git a/buildlib/abi-dumper b/buildlib/abi-dumper
-new file mode 160000
-index 00000000..000c4cf9
---- /dev/null
-+++ b/buildlib/abi-dumper
-@@ -0,0 +1 @@
-+Subproject commit 000c4cf9d20f4f671c4099bcba8ebe3052fe3e1a
++++ b/buildlib/gen-abi
+@@ -0,0 +1,21 @@
++#!/bin/bash
++
++# Stop on error
++set -e
++# Echo all commands to Travis log
++set -x
++
++# Force submodule checkout of the needed tools
++git submodule update --init --force
++
++mkdir build-abi
++cd build-abi
++CFLAGS="-g -Og" cmake -GNinja -DCMAKE_BUILD_TYPE=Debug ..
++ninja
++
++mkdir ABI
++for FILE in $(find lib -name "*.so.*.*"); do
++	LIB=$(basename $FILE)
++	MODULE_VER=$(echo $LIB | sed -e 's/.*.so\.\(.*\)/\1/')
++	../buildlib/abi-dumper/abi-dumper.pl  -lver $MODULE_VER $FILE -o ABI/$LIB.dump
++done
 -- 
 2.15.0.168.g9a51f1b30.dirty
 
