@@ -1,70 +1,48 @@
 From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH rdma-next 28/31] IB/cm: Fix avoid sleep while spin lock is
- held
-Date: Wed, 15 Nov 2017 23:10:54 +0000
-Message-ID: <VI1PR0502MB30081717A7E8BEC1B7CFD471D1290@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+Subject: RE: [PATCH rdma-next 03/31] IB/core: Depend on IPv6 stack to resolve
+ link local address
+Date: Thu, 16 Nov 2017 02:21:45 +0000
+Message-ID: <VI1PR0502MB3008EEEEF2531ADC830237E3D12E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 References: <20171114125218.20477-1-leon@kernel.org>
- <20171114125218.20477-29-leon@kernel.org>
- <CAJ3xEMixWZvCVDYTK1-2w0pYdy65HExvN2ae7y=hAkk6htrETg@mail.gmail.com>
- <VI1PR0502MB3008970D8D6034E4A2D952DED1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <CAJ3xEMhdp_2BYPA+s+We5Qgatye8hNLUYGnZu0ZimpPb86U-VQ@mail.gmail.com>
- <VI1PR0502MB300897A41317A06FFA5CC329D1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <CAJ3xEMiQc_am=rqYg2TyNqU1s9uGSE-wcVxGmW244x8XJNDuyg@mail.gmail.com>
+ <20171114125218.20477-4-leon@kernel.org> <20171115003238.GI25894@ziepe.ca>
+ <VI1PR0502MB30080133A617972DC6F362F1D1290@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20171115044129.GL25894@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMiQc_am=rqYg2TyNqU1s9uGSE-wcVxGmW244x8XJNDuyg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20171115044129.GL25894-uk2M96/98Pc@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBPciBHZXJsaXR6IFttYWlsdG86
-Z2VybGl0ei5vckBnbWFpbC5jb21dDQo+IFNlbnQ6IFdlZG5lc2RheSwgTm92ZW1iZXIgMTUsIDIw
-MTcgMTo1MyBBTQ0KPiBUbzogUGFyYXYgUGFuZGl0IDxwYXJhdkBtZWxsYW5veC5jb20+DQo+IENj
-OiBEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+OyBsaW51eC1yZG1hQHZnZXIua2Vy
-bmVsLm9yZzsgSGVmdHksDQo+IFNlYW4gPHNlYW4uaGVmdHlAaW50ZWwuY29tPjsgTGVvbiBSb21h
-bm92c2t5IDxsZW9ucm9AbWVsbGFub3guY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHJkbWEt
-bmV4dCAyOC8zMV0gSUIvY206IEZpeCBhdm9pZCBzbGVlcCB3aGlsZSBzcGluIGxvY2sgaXMNCj4g
-aGVsZA0KPiANCj4gT24gV2VkLCBOb3YgMTUsIDIwMTcgYXQgMTI6MzIgQU0sIFBhcmF2IFBhbmRp
-dCA8cGFyYXZAbWVsbGFub3guY29tPg0KPiB3cm90ZToNCj4gPj4gRnJvbTogT3IgR2VybGl0eiBb
-bWFpbHRvOmdlcmxpdHoub3JAZ21haWwuY29tXQ0KPiANCj4gPj4gPj4+IEluIGNhc2Ugb2YgTEFQ
-IGFyZSB1c2VkIGZvciBSb0NFDQo+IA0KPiA+PiA+PiBBRkFJSyBBUE0gaXMgbm90IHN1cHBvcnRl
-ZCB3aXRoIFJvQ0UsIGlzbid0IHRoYXQ/IGlmIHllcywgb24gd2hhdA0KPiA+PiA+PiBIVy9Sb0NF
-IG1vZGUgYW5kIGhvdyBkbyB5b3UgdGVzdCB0aGF0Pw0KPiANCj4gPj4gPiBUaGlzIHBhcnRpY3Vs
-YXIgcGF0Y2ggaW4gdGhpcyBzZXJpZXMgaXMgbm90IHRlc3RlZCBvbiBSb0NFLg0KPiA+PiA+IEFQ
-TSBpcyBub3Qgc3VwcG9ydGVkIGJ1dCBpbmplY3Rpbmcgc3VjaCBmcmFtZSBpbiBuZXR3b3JrIGlz
-IG5vdCBpbXBvc3NpYmxlLg0KPiA+PiA+IFdlIGRvbuKAmXQgaGF2ZSBwYXJ0aWN1bGFyIGNoZWNr
-cyB0byByZWplY3Qgc3VjaCBmcmFtZSBmb3IgUm9DRS4NCj4gPj4gPiBTbyBJIHByZWZlciB0byBm
-aXggdGhlIGlzc3VlIGJlZm9yZSBnZXR0aW5nIHN1Y2ggaGFuZy9vb3BzIHJlcG9ydA0KPiA+PiA+
-IHdoZW4gaXNzdWUgaXMNCj4gPj4gZXZpZGVudCBpbiBjb2RlLg0KPiA+Pg0KPiA+PiBtZW50aW9u
-aW5nIHRlc3RpbmcsIGluIHRoaXMgc2VyaWVzIHlvdSBkaWQgYnVuY2ggb2YgZml4ZXMgZm9yIHRo
-ZSBJQg0KPiA+PiBjb3JlLCBDTSBhbmQgQ01BLg0KPiA+Pg0KPiA+PiBXb3VsZCBiZSBnb29kIHRv
-IGFkZCBhIHNlY3Rpb24gaW4gdGhlIGNvdmVyIGxldHRlciBtZW50aW9uaW5nIHVuZGVyDQo+ID4+
-IHdoaWNoIHR5cGUgb2YgdGVzdGluZyB0aGUgbW9kaWZpZWQgY29kZSBoYXMgZ29uZSB0aHJvdWdo
-Lg0KPiANCj4gPiBJdCdzIGJlZW4gdGVzdGVkIGZvciBSb0NFdjEsIHYyLCBJUG9JQiB3aXRoIENv
-bm5lY3RYNCwgQ29ubmVjdFgzIEhDQSB3aXRoDQo+IHBlcmZ0ZXN0LCBycGluZywga3JwaW5nIHRv
-b2xzLg0KPiA+IEluIGZldyBpbmRpdmlkdWFsIHBhdGNoLCBpdCdzIGJlZW4gbWVudGlvbmVkIGhv
-dyBpcyB0aGlzIHRlc3RlZC4NCj4gDQo+IFBsZWFzZSBhbHNvIGFkZCBtb3JlIGluZm8gKGFuZCBp
-biB0aGUgY292ZXIgbGV0dGVyIHBsZWFzZSkgb24gSVB2NCB2cyBJUHY2LCB1bmljYXN0DQo+IHZz
-IG11bHRpY2FzdCwgZXRjLg0KSXMgdGhlcmUgYSB0ZW1wbGF0ZSB0aGF0IHlvdSBjYW4gc2hhcmUg
-dGhhdCBsaW51eC1yZG1hIGZvbGxvd3MgdGhhdCBJIGNhbiB1c2UgdG8gbWVudGlvbiB3aGF0IHRl
-c3RzIGFyZSBkb25lPw0KQW55IGV4YW1wbGUgcGFzdCBjb3ZlciBsZXR0ZXJzIHRoYXQgSSBjYW4g
-cmVmZXIgYXMgcmVmZXJlbmNlPw0KDQpEZXBlbmRpbmcgb24gaG93IG11Y2ggaW5mb3JtYXRpb24g
-eW91IGV4cGVjdCBpbiBjb3ZlciBsZXR0ZXIsIHRoaXMgcGF0Y2hzZXQgY2FuIGhhdmUgbWFueSBy
-ZXZpc2lvbnMganVzdCBmb3IgY292ZXIgbGV0dGVyLg0KU28gaXQgd291bGQgYmUgYmVzdCBmb3Ig
-eW91IHRvIHNoYXJlIHRoZSB0ZW1wbGF0ZSB0aGF0IEkgY2FuIGZpbGwgaW4gZm9yIHYxLg0KDQo+
-IFlvdSB0b3VjaGVkIHRoZSBDTUEgYW5kIGFkZHIgbW9kdWxlcyBxdWl0ZSBoZWF2aWx5IG9uIGFs
-bCB0aGVzZSBhcmVhcywgbmVlZCB0bw0KPiBjb3ZlciB0aGVtIGluIHRlc3RpbmcuDQpXaGljaCBh
-cmUgdGhvc2UgdGVzdHMgdGhhdCBJIHNob3VsZCBleGVjdXRlIGFwYXJ0IGZyb20gYWJvdmUgc3Vt
-bWFyeT8NCg0KPiANCj4gZGlkIHlvdSB0ZXN0IEFQTT8gSSBkb24ndCB0aGluayBpdCB3b3VsZCBi
-ZSBjb3JyZWN0IHRvIGNoYW5nZSB0aGUgQ00gQVBNIGNvZGUNCj4gd2l0aG91dCBwcm9wZXIgdGVz
-dGluZy4NCkFzIEkgYWxyZWFkeSB0b2xkIHRoaXMgcGFydGljdWxhciBwYXRjaCBpcyBub3QgdGVz
-dGVkLiBBbGwgb3RoZXJzIGFyZSBuZWVkbGVzcyB0byBzYXkgdGVzdGVkLg0KSSBkbyBub3QgaGF2
-ZSBBUE0gc2V0dXAgdG8gdGVzdCB0aGlzIGZpeC4NCkkgYW0gb2sgdG8gZHJvcCB0aGlzIHBhdGNo
-IGFuZCBwcm92aWRlIGZpeCB3aGVuIGNyYXNoIG9jY3VycyBsYXRlciBvbi4NCg==
+
+
+> -----Original Message-----
+> From: Jason Gunthorpe [mailto:jgg-uk2M96/98Pc@public.gmane.org]
+> Sent: Tuesday, November 14, 2017 10:41 PM
+> To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>; Doug Ledford
+> <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH rdma-next 03/31] IB/core: Depend on IPv6 stack to res=
+olve
+> link local address
+>=20
+> On Wed, Nov 15, 2017 at 04:04:37AM +0000, Parav Pandit wrote:
+>=20
+> > > Has this distinction been captured in the patch?
+> > Yes. When SGID type is RoCEv2, it performs ARP/ND.
+>=20
+> Good then..
+>=20
+> > This is described in commit log - it uses
+> > rdma_addr_find_l2_eth_by_grh() which performs ND.
+>=20
+> I find your commit messages very hard to understand.
+>=20
+Thanks Jason for the input. I will improve upon in future commits.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
