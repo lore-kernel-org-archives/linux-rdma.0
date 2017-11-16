@@ -1,69 +1,56 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH/RFC] RDMA/iwpm: Fix uninitialized error code in iwpm_send_mapinfo()
-Date: Thu, 16 Nov 2017 12:32:03 +0100
-Message-ID: <CAK8P3a38=xM+NSxuc+5gXXe0vWGxf6+Z6Av01YFiFWyseT1_ng@mail.gmail.com>
-References: <1510827964-11100-1-git-send-email-geert@linux-m68k.org>
- <CAK8P3a2D6dnQELKww5V-=mNAzrD-XQoWtNTXCmgMtsnFnujq5A@mail.gmail.com> <CAMuHMdXcvBDGvQ0K38POmarUY65ntTw5-xh9s=Sk4ZH+98MrhQ@mail.gmail.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 28/31] IB/cm: Fix avoid sleep while spin lock is held
+Date: Thu, 16 Nov 2017 13:50:19 +0200
+Message-ID: <CAJ3xEMhjV9b5-WVe4QOO41KniK0ogBRukXX1T1bjw-E+Z5QbDA@mail.gmail.com>
+References: <20171114125218.20477-1-leon@kernel.org> <20171114125218.20477-29-leon@kernel.org>
+ <CAJ3xEMixWZvCVDYTK1-2w0pYdy65HExvN2ae7y=hAkk6htrETg@mail.gmail.com>
+ <VI1PR0502MB3008970D8D6034E4A2D952DED1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <CAJ3xEMhdp_2BYPA+s+We5Qgatye8hNLUYGnZu0ZimpPb86U-VQ@mail.gmail.com>
+ <VI1PR0502MB300897A41317A06FFA5CC329D1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <CAJ3xEMiQc_am=rqYg2TyNqU1s9uGSE-wcVxGmW244x8XJNDuyg@mail.gmail.com> <VI1PR0502MB30081717A7E8BEC1B7CFD471D1290@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAMuHMdXcvBDGvQ0K38POmarUY65ntTw5-xh9s=Sk4ZH+98MrhQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <VI1PR0502MB30081717A7E8BEC1B7CFD471D1290-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Cc: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 16, 2017 at 12:05 PM, Geert Uytterhoeven
-<geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org> wrote:
-> Hi Arnd,
->
-> On Thu, Nov 16, 2017 at 11:50 AM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
->> On Thu, Nov 16, 2017 at 11:26 AM, Geert Uytterhoeven
->> <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org> wrote:
->>> With gcc-4.1.2:
->>>
->>>     drivers/infiniband/core/iwpm_util.c: In function =E2=80=98iwpm_send=
-_mapinfo=E2=80=99:
->>>     drivers/infiniband/core/iwpm_util.c:647: warning: =E2=80=98ret=E2=
-=80=99 may be used uninitialized in this function
->>>
->>> Indeed, if nl_client is not found in any of the scanned has buckets, re=
-t
->>> will be used uninitialized.
->>>
->>> Preinitialize ret to zero to fix this.
->>>
->>> Fixes: 30dc5e63d6a5ad24 ("RDMA/core: Add support for iWARP Port Mapper =
-user space service")
->>> Signed-off-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
->>> ---
->>> RFC as I have no idea if this can ever happen, and if yes, what's the
->>> correct behavior to handle it:
->>>   - return 0,
->>>   - return an error code,
->>>   - don't send anything,
->>>   - anything else?
->>
->> This looks like a reasonable warning. I don't see on my box with any com=
-piler
->> version. Do you have a configuration I can use to reproduce it, I'd just=
- like
->> to see out of curiosity which other compilers report it.
->
-> m68k/allmodconfig
+On Thu, Nov 16, 2017 at 1:10 AM, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> From: Or Gerlitz [mailto:gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
 
-I see my problem now, my randconfig test series has a patch I never sent
-out, see https://pastebin.com/ZJDHP7g4 ;-)
+>> Please also add more info (and in the cover letter please) on IPv4 vs IPv6, unicast
+>> vs multicast, etc.
 
-With plan linux-next, I see the warning on x86 with gcc-4.3 and older, but
-not on newer gcc versions or clang (I tried them all).
+> Is there a template that you can share that linux-rdma follows that I can use to mention what tests are done?
+> Any example past cover letters that I can refer as reference?
 
-I also see that x86 builds broke again in recent kernels with gcc-4.2
-and older unless you revert ec1e1b610917 ("objtool: Prevent GCC
-from merging annotate_unreachable(), take 2").
+I suggest you ask the sub-system maintainers (Doug, Jason) what do they expect
+for such a heavy duty change set.
 
-       Arnd
+
+> Depending on how much information you expect in cover letter, this patchset can have many revisions just for cover letter.
+> So it would be best for you to share the template that I can fill in for v1.
+
+You are still on V0 and complaining on many revisions...
+
+>> You touched the CMA and addr modules quite heavily on all these areas, need to
+>> cover them in testing.
+
+> Which are those tests that I should execute apart from above summary?
+
+If there is rdma verification suit @ mlnx that runs rdma user/kernel cm/cma
+based applications on ib/roce environments, can run through it.
+
+>> did you test APM? I don't think it would be correct to change the CM APM code
+>> without proper testing.
+
+> As I already told this particular patch is not tested. All others are needless to say tested.
+> I do not have APM setup to test this fix.
+> I am ok to drop this patch and provide fix when crash occurs later on.
+
+I suggest you ask the CM maintainer (Sean) for his opinion on that matter.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
