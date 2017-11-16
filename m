@@ -1,7 +1,7 @@
 From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH rdma-core 1/3] debian: Include architecture.mk for DEB_HOST_ARCH definition
-Date: Thu, 16 Nov 2017 17:32:44 +0100
-Message-ID: <20171116163246.29736-2-benjamin.drung@profitbricks.com>
+Subject: [PATCH rdma-core 2/3] debian: Add alpha, hppa, sh4 as non-coherent DMA archs
+Date: Thu, 16 Nov 2017 17:32:45 +0100
+Message-ID: <20171116163246.29736-3-benjamin.drung@profitbricks.com>
 References: <20171116163246.29736-1-benjamin.drung@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171116163246.29736-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
@@ -10,28 +10,27 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-dpkg-buildpackage will set DEB_HOST_ARCH, but a direct call of the
-debian/rules makefile will not set this environment variable. Therefore
-include /usr/share/dpkg/architecture.mk to get this variable set in all
-cases. This will fix the build failure on Travis CI.
+The architectures alpha, hppa, and sh4 do not support coherent DMA.
+Therefore also exclude those.
 
 Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- debian/rules | 2 ++
- 1 file changed, 2 insertions(+)
+ debian/rules | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/debian/rules b/debian/rules
-index b0fbe1d6..1201f6a6 100755
+index 1201f6a6..030eb6b9 100755
 --- a/debian/rules
 +++ b/debian/rules
-@@ -1,5 +1,7 @@
- #!/usr/bin/make -f
+@@ -4,7 +4,7 @@ include /usr/share/dpkg/architecture.mk
  
-+include /usr/share/dpkg/architecture.mk
-+
  export DEB_BUILD_MAINT_OPTIONS=hardening=+all
  
- NO_COHERENT_DMA_ARCHS = armel armhf mips mips64el mipsel
+-NO_COHERENT_DMA_ARCHS = armel armhf mips mips64el mipsel
++NO_COHERENT_DMA_ARCHS = alpha armel armhf hppa mips mips64el mipsel sh4
+ 
+ %:
+ 	dh $@ --with systemd --builddirectory=build-deb
 -- 
 2.14.1
 
