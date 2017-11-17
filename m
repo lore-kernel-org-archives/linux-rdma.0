@@ -1,62 +1,60 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 6/8] i40iw: Move MPA request event for loopback after connect
-Date: Fri, 17 Nov 2017 10:46:55 -0600
-Message-ID: <20171117164657.14824-7-henry.orosco@intel.com>
-References: <20171117164657.14824-1-henry.orosco@intel.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH] rdma: Add Jason as a co-maintainer
+Date: Fri, 17 Nov 2017 17:54:34 +0000
+Message-ID: <1510941272.2846.46.camel@wdc.com>
+References: <20171116204400.GA28216@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171117164657.14824-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20171116204400.GA28216-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <7574EFB13CAC4347A10EB6D73CD51B42-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-For loopback, MPA request event is generated when cm_node
-is initialized, which allows applications to act on the
-connect request before i40iw_connect() has completed.
-In some cases, the reject flow executes in parallel with
-the connect flow and doesn't delete an APBVT entry,
-because the apbvt_set variable is still not set by the
-connect flow. Move the MPA request event to the end of
-i40iw_connect() to notify application for a connect
-request, after connect has completed.
-
-Fixes: f27b4746f378 ("i40iw: add connection management code")
-Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/i40iw/i40iw_cm.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index e145417..3a35d56 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -2947,8 +2947,6 @@ static struct i40iw_cm_node *i40iw_create_cm_node(
- 			loopback_remotenode->tcp_cntxt.snd_wnd = cm_node->tcp_cntxt.rcv_wnd;
- 			cm_node->tcp_cntxt.snd_wscale = loopback_remotenode->tcp_cntxt.rcv_wscale;
- 			loopback_remotenode->tcp_cntxt.snd_wscale = cm_node->tcp_cntxt.rcv_wscale;
--			loopback_remotenode->state = I40IW_CM_STATE_MPAREQ_RCVD;
--			i40iw_create_event(loopback_remotenode, I40IW_CM_EVENT_MPA_REQ);
- 		}
- 		return cm_node;
- 	}
-@@ -3864,6 +3862,11 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 			goto err;
- 	}
- 
-+	if (cm_node->loopbackpartner) {
-+		cm_node->loopbackpartner->state = I40IW_CM_STATE_MPAREQ_RCVD;
-+		i40iw_create_event(cm_node->loopbackpartner, I40IW_CM_EVENT_MPA_REQ);
-+	}
-+
- 	i40iw_debug(cm_node->dev,
- 		    I40IW_DEBUG_CM,
- 		    "Api - connect(): port=0x%04x, cm_node=%p, cm_id = %p.\n",
--- 
-2.8.3
-
+T24gVGh1LCAyMDE3LTExLTE2IGF0IDEzOjQ0IC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IGRpZmYgLS1naXQgYS9NQUlOVEFJTkVSUyBiL01BSU5UQUlORVJTDQo+IGluZGV4IDdmOWM0
+ZjNmYzk0MTlkLi5kNGU2MjFlMzUwZjJjZiAxMDA2NDQNCj4gLS0tIGEvTUFJTlRBSU5FUlMNCj4g
+KysrIGIvTUFJTlRBSU5FUlMNCj4gQEAgLTY4MjcsNiArNjgyNyw3IEBAIEY6CWRyaXZlcnMvaXBh
+Y2svDQo+ICANCj4gIElORklOSUJBTkQgU1VCU1lTVEVNDQo+ICBNOglEb3VnIExlZGZvcmQgPGRs
+ZWRmb3JkQHJlZGhhdC5jb20+DQo+ICtNOglKYXNvbiBHdW50aG9ycGUgPGpnZ0BtZWxsYW5veC5j
+b20+DQo+ICBMOglsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KPiAgVzoJaHR0cDovL3d3dy5v
+cGVuZmFicmljcy5vcmcvDQo+ICBROglodHRwOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcHJvamVj
+dC9saW51eC1yZG1hL2xpc3QvDQoNCkhlbGxvIERvdWcgYW5kIEphc29uLA0KDQpUaGFua3MgRG91
+ZyBmb3IgaGF2aW5nIGFkZGVkIGEgY28tbWFpbnRhaW5lci4gSmFzb24sIHRoYW5rIHlvdSBmb3Ig
+d2lsbGluZw0KdG8gYmUgYSBjby1tYWludGFpbmVyLg0KDQpKYXNvbiwgaWYgeW91IGFyZSBnb2lu
+ZyB0byBzZW5kIHB1bGwgcmVxdWVzdHMgdG8gTGludXMgeW91IHNob3VsZCBiZSBhd2FyZQ0Kb2Yg
+dGhlIGZvbGxvd2luZzoNCiogTGludXMgdHJ1c3RzIHB1bGwgcmVxdWVzdHMgZnJvbSBhIGtlcm5l
+bC5vcmcgcmVwb3NpdG9yeSBtb3JlIHRoYW4gcHVsbA0KICByZXF1ZXN0cyBmcm9tIGEgcmVwb3Np
+dG9yeSBvdXRzaWRlIGtlcm5lbC5vcmcgKGUuZy4gZ2l0aHViKS4gQW55IHJlcXVlc3RzDQogIHRv
+IHB1bGwgZnJvbSBlLmcuIGdpdGh1YiBtdXN0IGJlIFBHUC1zaWduZWQuDQoqIElmIHlvdSBzZW5k
+IGFuIGUtbWFpbCB0byBXdSBGZW5nZ3VhbmcgdGhlbiBoZSB3aWxsIGFkZCBhIGJyYW5jaCBmcm9t
+IHlvdXINCiAgcmVwb3NpdG9yeSB0byBoaXMgemVyby1kYXkgdGVzdGluZy4gVGhpcyBpcyBhIGdy
+ZWF0IHdheSB0byBjYXRjaCBidWlsZA0KICBmYWlsdXJlcyBiZWZvcmUgbGludXgtbmV4dCBjYXRj
+aGVzIHRoZXNlLg0KKiBBbnkgcGF0Y2hlcyB0aGF0IHdpbGwgYmUgc2VudCB0byBMaW51cyBtdXN0
+IGhhdmUgYmVlbiBpbiB0aGUgZm9yLW5leHQNCiAgcmVwb3NpdG9yeSBmb3IgYXQgbGVhc3QgYSBm
+ZXcgZGF5cy4gUmVxdWVzdHMgdG8gYWRkIGEgYnJhbmNoIHRvIGxpbnV4LW5leHQNCiAgc2hvdWxk
+IGJlIHNlbnQgdG8gU3RlcGhlbiBSb3Rod2VsbCB3aXRoIGxpbnV4LW5leHQgaW4gQ2MuDQoqIE1h
+aW50YWluZXJzIGFyZSBleHBlY3RlZCB0byBrZWVwIGFuIGV5ZSBvbiBtZXJnZSBjb25mbGljdHMg
+YW5kIG90aGVyIHJlcG9ydHMNCiAgc2VudCBvdXQgdG8gdGhlIGxpbnV4LW5leHQgbWFpbGluZyBs
+aXN0DQogIChodHRwOi8vdmdlci5rZXJuZWwub3JnL3ZnZXItbGlzdHMuaHRtbCNsaW51eC1uZXh0
+KS4NCiogUmViYXNpbmcgYSB0cmVlIHRoYXQgd2lsbCBiZSBzZW50IHRvIExpbnVzIGlzIGNvbXBs
+ZXRlbHkgaW5hY2NlcHRhYmxlLiBBDQogIHF1b3RlIGZyb20gTGludXM6ICJBbmQgaW4gZ2VuZXJh
+bCwgeW91IHNpbXBseSBzaG91bGQgbmV2ZXIgcmViYXNlIGNvbW1pdHMNCiAgdGhhdCBoYXZlIGFs
+cmVhZHkgYmVlbiBwdWJsaWNpemVkLiIgU291cmNlOiBMaW51cyBUb3J2YWxkcywgUmU6IGxpbnV4
+LW5leHQ6DQogIFNpZ25lZC1vZmYtYnkgbWlzc2luZyBmb3IgY29tbWl0IGluIHRoZSBkcml2ZXJz
+LXg4NiB0cmVlLCBsaW51eC1uZXh0IG1haWxpbmcNCiAgbGlzdCwgMiBBdWd1c3QgMjAxNyAoaHR0
+cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMva2VybmVsL21zZzI1NzE1ODQuaHRtbCkuDQoqIEJh
+Y2ttZXJnaW5nIChtZXJnaW5nIGEgbGF0ZXIgcmMgaW50byBhIG1haW50YWluZXIgdHJlZSkgdG8g
+cHVsbCBpbiByYyBmaXhlcw0KICBmcm9tIG90aGVyIG1haW50YWluZXJzIGlzIGNvbnNpZGVyZWQg
+aW5hY2NlcHRhYmxlIHRvby4gSWYgcGF0Y2hlcyBmcm9tIG90aGVyDQogIG1haW50YWluZXJzIGFy
+ZSByZWFsbHkgbmVlZGVkIEkgdGhpbmsgaXQgaXMgYWNjZXB0YWJsZSB0byBtZXJnZSBhIG1haW50
+YWluZXINCiAgdHJlZSBpbnRvIExpbnVzJyB0cmVlIGFuZCB0byBhcHBseSBsYXRlIHJjIHBhdGNo
+ZXMgb24gdG9wIG9mIHRoYXQgbWVyZ2VkDQogIHRyZWUuDQoNClNlZSBhbHNvIGh0dHBzOi8vbHdu
+Lm5ldC9BcnRpY2xlcy8zMjg0MzYvLg0KDQpCZXN0IHJlZ2FyZHMsDQoNCkJhcnQu
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
