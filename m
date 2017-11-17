@@ -1,40 +1,35 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: vmw_pvrdma: Add SRQ support - broke rdma-core
-Date: Fri, 17 Nov 2017 16:37:21 -0700
-Message-ID: <20171117233721.GV4276@ziepe.ca>
-References: <20171114085143.GS18825@mtr-leonro.local>
- <20171114182720.GC18825@mtr-leonro.local>
- <20171114190029.GI18825@mtr-leonro.local>
- <20171114192510.GA6083@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171114192858.GM4263@ziepe.ca>
- <20171115024924.GA23574@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171115031526.GJ25894@ziepe.ca>
- <20171115221052.GA16946@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171116052119.GF18825@mtr-leonro.local>
- <20171116185450.GB16946@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+Subject: Re: [PATCH rdma-core 3/3] debian: Update changelog to include Debian
+ upload
+Date: Fri, 17 Nov 2017 16:41:26 -0700
+Message-ID: <20171117234126.GW4276@ziepe.ca>
+References: <20171114113330.2715-1-benjamin.drung@profitbricks.com>
+ <20171114113330.2715-4-benjamin.drung@profitbricks.com>
+ <20171114202823.GQ4263@ziepe.ca>
+ <1510691646.4026.50.camel@profitbricks.com>
+ <20171114204244.GU4263@ziepe.ca>
+ <1510737831.4026.59.camel@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171116185450.GB16946-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
+In-Reply-To: <1510737831.4026.59.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 16, 2017 at 10:54:51AM -0800, Bryan Tan wrote:
+On Wed, Nov 15, 2017 at 10:23:51AM +0100, Benjamin Drung wrote:
 
-> I've updated the PR after taking in Jason's suggestion of swapping the
-> order of the patches that I missed, and ran travis builds on both
-> commits. The travis build on the PR is failing, but it looks like the
-> top of tree travis build is failing as well.
+> When all commits for -2 are accepted in the master branch, I would
+> update debian/changelog to have the 15-2 entry between 15-1 and 16-1.
 
-Please move the test update to the prior patch, I left a note on
-github to be clear.
+Ok, lets try it like that
 
-Travis should be fixed right away.
+> An alternative would be to just have one changelog entry in the master
+> branch and document the basis, e.g.:
 
-Please force push the change and we should be able to merge it!
+This is closer to what I was originally thinking
 
 Jason
 --
