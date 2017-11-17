@@ -1,44 +1,43 @@
-From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: Patches for rdma-core stable-v15
-Date: Fri, 17 Nov 2017 07:54:28 +0100
-Message-ID: <1319a1f9-062a-751b-52ee-247ec1779513@suse.de>
-References: <6ccc2110-2e27-bacd-b821-f862785a10ca@suse.de>
- <20171113151437.GL18825@mtr-leonro.local>
- <f5e11706-5c7e-a79e-fcf3-4d3df5f35632@suse.de>
- <20171113163812.GN18825@mtr-leonro.local>
- <9460d921-47ee-eb05-10fc-a9f09e53a1bf@suse.de>
- <54347E5A035A054EAE9D05927FB467F9B617AF6F@ORSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/8] i40iw: Fixes in i40iw for 4.15
+Date: Fri, 17 Nov 2017 10:46:49 -0600
+Message-ID: <20171117164657.14824-1-henry.orosco@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54347E5A035A054EAE9D05927FB467F9B617AF6F-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org" <stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The following patches are for the 4.15 kernel. Most are
+fixes, one is for code cleanup (i40iw: Change accelerated
+flag to bool).
 
-Le 16/11/2017 à 22:57, Davis, Arlin R a écrit :
->> I've backported all the patches to run docker for centos and tumbleweed and
->> it seems to work out of the box :)
->> https://travis-ci.org/nmorey/rdma-core/builds/301507907
->>
-> Are we ready for our first rdma-core stable-branch release? All fixes needed for OFED are now in stable-v15 so we are ready to wrap up the OFED 4.8-1 release.
->
-> Arlin
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Chien Tin Tung (2):
+  i40iw: Use sqsize to initialize cqp_requests elements
+  i40iw: Allocate a sdbuf per CQP WQE
 
-The fix patches are all there.
-I'd like to add the abi checks to the branch as soon as they are merged to master.
-I've a branch ready to push changes to the buildlib/redhat/suse dir for validation in Travis.
+Henry Orosco (2):
+  i40iw: Notify user of established connection after QP in RTS
+  i40iw: Change accelerated flag to bool
 
-Nicolas
+Mustafa Ismail (3):
+  i40iw: Do not free sqbuf when event is I40IW_TIMER_TYPE_CLOSE
+  i40iw: Correct ARP index mask
+  i40iw: Reinitialize add_sd_cnt
+
+Tatyana Nikolova (1):
+  i40iw: Move MPA request event for loopback after connect
+
+ drivers/infiniband/hw/i40iw/i40iw_cm.c   | 30 +++++++++++++----------
+ drivers/infiniband/hw/i40iw/i40iw_cm.h   |  2 +-
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 41 ++++++++++++++++++++++----------
+ drivers/infiniband/hw/i40iw/i40iw_d.h    |  6 +++--
+ drivers/infiniband/hw/i40iw/i40iw_main.c |  3 ++-
+ 5 files changed, 53 insertions(+), 29 deletions(-)
+
+-- 
+2.8.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
