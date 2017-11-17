@@ -1,48 +1,49 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH RFC rdma-core 1/5] verbs: Introduce thread domain and its
- related verbs
-Date: Fri, 17 Nov 2017 11:42:48 -0700
-Message-ID: <20171117184248.GN4276@ziepe.ca>
-References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
- <1510522903-6838-2-git-send-email-yishaih@mellanox.com>
- <20171113195822.GD22610@ziepe.ca>
- <3719edfc-282a-db5b-2474-3cf1355fb301@dev.mellanox.co.il>
- <20171114191754.GI4263@ziepe.ca>
- <774e2f74-8361-6941-a015-27a2014d8cc9@dev.mellanox.co.il>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/3] IB/core: add a simple SRQ pool per PD
+Date: Fri, 17 Nov 2017 21:12:46 +0200
+Message-ID: <c94d2e03-dd32-ff0a-789f-aae4d65f3955@mellanox.com>
+References: <1510852885-25519-1-git-send-email-maxg@mellanox.com>
+ <1510852885-25519-2-git-send-email-maxg@mellanox.com>
+ <20171116181049.GO18825@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1255"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <774e2f74-8361-6941-a015-27a2014d8cc9-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20171116181049.GO18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: he
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: hch-jcswGhMUV9g@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 15, 2017 at 11:34:01AM +0200, Yishai Hadas wrote:
-
-> >>ibv_td should expose in verbs.h the 'context' as the inline function
-> >>ibv_alloc_td() needs it to get the verbs_context and call the driver
-> >>function if was set.
-> >
-> >You mean ibv_dealloc_td, OK..
-> >
-> >Related to my other point, ibv_alloc_td should probably accept a
-> >ibv_pd as an argument instead.
-> >
+>> +#ifndef _RDMA_SRQ_POOL_H
+>> +#define _RDMA_SRQ_POOL_H 1
+>> +
+>> +#include <rdma/ib_verbs.h>
+>> +
+>> +struct ib_srq *ib_srq_pool_get(struct ib_pd *pd);
+>> +void ib_srq_pool_put(struct ib_pd *pd, struct ib_srq *srq);
+>> +
+>> +int ib_srq_pool_init(struct ib_pd *pd, int nr,
+>> +		struct ib_srq_init_attr *srq_attr);
+>> +void ib_srq_pool_destroy(struct ib_pd *pd);
 > 
-> Why ibv_alloc_td() should get an ibv_pd ? do you have a typo here ?
+> Can you please use rdma_ prefix instead of ib_ prefix?
+> 
+> Thanks
+> 
 
-No..
+Do you mean rdma_srq_pool_get instead of ib_srq_pool_get ? is this new 
+convetion ? this is a pool that contain ib_srq objects and not rdma_srq 
+objects..
 
-Since ibv_alloc_td returns a 'ibv_pd' with additional information, it
-makes no sense to have an API that can return an 'ibv_pd' that is not
-actually a PD.
+I can do it if needed.
 
-So, all TD's have to be created from a PD, and the concept of a TD
-without a PD should be entirely removed from the API.
-
-Jason
+>> +
+>> +#endif /* _RDMA_SRQ_POOL_H */
+>> --
+>> 1.8.3.1
+>>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
