@@ -1,7 +1,7 @@
 From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/8] i40iw: Do not free sqbuf when event is I40IW_TIMER_TYPE_CLOSE
-Date: Fri, 17 Nov 2017 10:46:52 -0600
-Message-ID: <20171117164657.14824-4-henry.orosco@intel.com>
+Subject: [PATCH 4/8] i40iw: Correct ARP index mask
+Date: Fri, 17 Nov 2017 10:46:53 -0600
+Message-ID: <20171117164657.14824-5-henry.orosco@intel.com>
 References: <20171117164657.14824-1-henry.orosco@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171117164657.14824-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,47 +12,29 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-When the event type is I40IW_TIMER_TYPE_CLOSE, there is no sqbuf and
-it should not be freed as one in i40iw_schedule_cm_timer().
+ARP Index is 16 bits wide not 12 bits. Adjust
+the mask for the full 16 bits.
 
-Fixes: f27b4746f378 ("i40iw: add connection management code")
+Fixes: 4e9042e647ff ("i40iw: add hw and utils files")
 Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_cm.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_d.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index 493d6ef..e145417 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -1043,7 +1043,7 @@ static int i40iw_parse_mpa(struct i40iw_cm_node *cm_node, u8 *buffer, u32 *type,
-  * i40iw_schedule_cm_timer
-  * @@cm_node: connection's node
-  * @sqbuf: buffer to send
-- * @type: if it es send ot close
-+ * @type: if it is send or close
-  * @send_retrans: if rexmits to be done
-  * @close_when_complete: is cm_node to be removed
-  *
-@@ -1067,7 +1067,8 @@ int i40iw_schedule_cm_timer(struct i40iw_cm_node *cm_node,
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_d.h b/drivers/infiniband/hw/i40iw/i40iw_d.h
+index 1077b78..029083c 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_d.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_d.h
+@@ -1114,7 +1114,7 @@
+ #define I40IWQPC_VLANTAG_MASK (0xffffULL << I40IWQPC_VLANTAG_SHIFT)
  
- 	new_send = kzalloc(sizeof(*new_send), GFP_ATOMIC);
- 	if (!new_send) {
--		i40iw_free_sqbuf(vsi, (void *)sqbuf);
-+		if (type != I40IW_TIMER_TYPE_CLOSE)
-+			i40iw_free_sqbuf(vsi, (void *)sqbuf);
- 		return -ENOMEM;
- 	}
- 	new_send->retrycount = I40IW_DEFAULT_RETRYS;
-@@ -1082,7 +1083,6 @@ int i40iw_schedule_cm_timer(struct i40iw_cm_node *cm_node,
- 		new_send->timetosend += (HZ / 10);
- 		if (cm_node->close_entry) {
- 			kfree(new_send);
--			i40iw_free_sqbuf(vsi, (void *)sqbuf);
- 			i40iw_pr_err("already close entry\n");
- 			return -EINVAL;
- 		}
+ #define I40IWQPC_ARPIDX_SHIFT 48
+-#define I40IWQPC_ARPIDX_MASK (0xfffULL << I40IWQPC_ARPIDX_SHIFT)
++#define I40IWQPC_ARPIDX_MASK (0xffffULL << I40IWQPC_ARPIDX_SHIFT)
+ 
+ #define I40IWQPC_FLOWLABEL_SHIFT 0
+ #define I40IWQPC_FLOWLABEL_MASK (0xfffffUL << I40IWQPC_FLOWLABEL_SHIFT)
 -- 
 2.8.3
 
