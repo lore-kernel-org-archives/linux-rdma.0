@@ -1,60 +1,86 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
 Subject: Re: [PATCH] rdma: Add Jason as a co-maintainer
-Date: Fri, 17 Nov 2017 17:54:34 +0000
-Message-ID: <1510941272.2846.46.camel@wdc.com>
+Date: Fri, 17 Nov 2017 11:14:10 -0700
+Message-ID: <20171117181410.GL4276@ziepe.ca>
 References: <20171116204400.GA28216@mellanox.com>
+ <1510941272.2846.46.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171116204400.GA28216-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <7574EFB13CAC4347A10EB6D73CD51B42-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1510941272.2846.46.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE3LTExLTE2IGF0IDEzOjQ0IC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IGRpZmYgLS1naXQgYS9NQUlOVEFJTkVSUyBiL01BSU5UQUlORVJTDQo+IGluZGV4IDdmOWM0
-ZjNmYzk0MTlkLi5kNGU2MjFlMzUwZjJjZiAxMDA2NDQNCj4gLS0tIGEvTUFJTlRBSU5FUlMNCj4g
-KysrIGIvTUFJTlRBSU5FUlMNCj4gQEAgLTY4MjcsNiArNjgyNyw3IEBAIEY6CWRyaXZlcnMvaXBh
-Y2svDQo+ICANCj4gIElORklOSUJBTkQgU1VCU1lTVEVNDQo+ICBNOglEb3VnIExlZGZvcmQgPGRs
-ZWRmb3JkQHJlZGhhdC5jb20+DQo+ICtNOglKYXNvbiBHdW50aG9ycGUgPGpnZ0BtZWxsYW5veC5j
-b20+DQo+ICBMOglsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KPiAgVzoJaHR0cDovL3d3dy5v
-cGVuZmFicmljcy5vcmcvDQo+ICBROglodHRwOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcHJvamVj
-dC9saW51eC1yZG1hL2xpc3QvDQoNCkhlbGxvIERvdWcgYW5kIEphc29uLA0KDQpUaGFua3MgRG91
-ZyBmb3IgaGF2aW5nIGFkZGVkIGEgY28tbWFpbnRhaW5lci4gSmFzb24sIHRoYW5rIHlvdSBmb3Ig
-d2lsbGluZw0KdG8gYmUgYSBjby1tYWludGFpbmVyLg0KDQpKYXNvbiwgaWYgeW91IGFyZSBnb2lu
-ZyB0byBzZW5kIHB1bGwgcmVxdWVzdHMgdG8gTGludXMgeW91IHNob3VsZCBiZSBhd2FyZQ0Kb2Yg
-dGhlIGZvbGxvd2luZzoNCiogTGludXMgdHJ1c3RzIHB1bGwgcmVxdWVzdHMgZnJvbSBhIGtlcm5l
-bC5vcmcgcmVwb3NpdG9yeSBtb3JlIHRoYW4gcHVsbA0KICByZXF1ZXN0cyBmcm9tIGEgcmVwb3Np
-dG9yeSBvdXRzaWRlIGtlcm5lbC5vcmcgKGUuZy4gZ2l0aHViKS4gQW55IHJlcXVlc3RzDQogIHRv
-IHB1bGwgZnJvbSBlLmcuIGdpdGh1YiBtdXN0IGJlIFBHUC1zaWduZWQuDQoqIElmIHlvdSBzZW5k
-IGFuIGUtbWFpbCB0byBXdSBGZW5nZ3VhbmcgdGhlbiBoZSB3aWxsIGFkZCBhIGJyYW5jaCBmcm9t
-IHlvdXINCiAgcmVwb3NpdG9yeSB0byBoaXMgemVyby1kYXkgdGVzdGluZy4gVGhpcyBpcyBhIGdy
-ZWF0IHdheSB0byBjYXRjaCBidWlsZA0KICBmYWlsdXJlcyBiZWZvcmUgbGludXgtbmV4dCBjYXRj
-aGVzIHRoZXNlLg0KKiBBbnkgcGF0Y2hlcyB0aGF0IHdpbGwgYmUgc2VudCB0byBMaW51cyBtdXN0
-IGhhdmUgYmVlbiBpbiB0aGUgZm9yLW5leHQNCiAgcmVwb3NpdG9yeSBmb3IgYXQgbGVhc3QgYSBm
-ZXcgZGF5cy4gUmVxdWVzdHMgdG8gYWRkIGEgYnJhbmNoIHRvIGxpbnV4LW5leHQNCiAgc2hvdWxk
-IGJlIHNlbnQgdG8gU3RlcGhlbiBSb3Rod2VsbCB3aXRoIGxpbnV4LW5leHQgaW4gQ2MuDQoqIE1h
-aW50YWluZXJzIGFyZSBleHBlY3RlZCB0byBrZWVwIGFuIGV5ZSBvbiBtZXJnZSBjb25mbGljdHMg
-YW5kIG90aGVyIHJlcG9ydHMNCiAgc2VudCBvdXQgdG8gdGhlIGxpbnV4LW5leHQgbWFpbGluZyBs
-aXN0DQogIChodHRwOi8vdmdlci5rZXJuZWwub3JnL3ZnZXItbGlzdHMuaHRtbCNsaW51eC1uZXh0
-KS4NCiogUmViYXNpbmcgYSB0cmVlIHRoYXQgd2lsbCBiZSBzZW50IHRvIExpbnVzIGlzIGNvbXBs
-ZXRlbHkgaW5hY2NlcHRhYmxlLiBBDQogIHF1b3RlIGZyb20gTGludXM6ICJBbmQgaW4gZ2VuZXJh
-bCwgeW91IHNpbXBseSBzaG91bGQgbmV2ZXIgcmViYXNlIGNvbW1pdHMNCiAgdGhhdCBoYXZlIGFs
-cmVhZHkgYmVlbiBwdWJsaWNpemVkLiIgU291cmNlOiBMaW51cyBUb3J2YWxkcywgUmU6IGxpbnV4
-LW5leHQ6DQogIFNpZ25lZC1vZmYtYnkgbWlzc2luZyBmb3IgY29tbWl0IGluIHRoZSBkcml2ZXJz
-LXg4NiB0cmVlLCBsaW51eC1uZXh0IG1haWxpbmcNCiAgbGlzdCwgMiBBdWd1c3QgMjAxNyAoaHR0
-cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMva2VybmVsL21zZzI1NzE1ODQuaHRtbCkuDQoqIEJh
-Y2ttZXJnaW5nIChtZXJnaW5nIGEgbGF0ZXIgcmMgaW50byBhIG1haW50YWluZXIgdHJlZSkgdG8g
-cHVsbCBpbiByYyBmaXhlcw0KICBmcm9tIG90aGVyIG1haW50YWluZXJzIGlzIGNvbnNpZGVyZWQg
-aW5hY2NlcHRhYmxlIHRvby4gSWYgcGF0Y2hlcyBmcm9tIG90aGVyDQogIG1haW50YWluZXJzIGFy
-ZSByZWFsbHkgbmVlZGVkIEkgdGhpbmsgaXQgaXMgYWNjZXB0YWJsZSB0byBtZXJnZSBhIG1haW50
-YWluZXINCiAgdHJlZSBpbnRvIExpbnVzJyB0cmVlIGFuZCB0byBhcHBseSBsYXRlIHJjIHBhdGNo
-ZXMgb24gdG9wIG9mIHRoYXQgbWVyZ2VkDQogIHRyZWUuDQoNClNlZSBhbHNvIGh0dHBzOi8vbHdu
-Lm5ldC9BcnRpY2xlcy8zMjg0MzYvLg0KDQpCZXN0IHJlZ2FyZHMsDQoNCkJhcnQu
+On Fri, Nov 17, 2017 at 05:54:34PM +0000, Bart Van Assche wrote:
+> Thanks Doug for having added a co-maintainer. Jason, thank you for willing
+> to be a co-maintainer.
+
+Thank you Bart!
+
+> Jason, if you are going to send pull requests to Linus you should be aware
+> of the following:
+
+I think we will work up to that, obviously I will be working with Doug
+and his expertise and experience will guide what happens.
+
+A new git tree has been setup for RDMA:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/
+
+This will replace Doug's personal k.o tree effective immediately as
+the cannonical source for the RDMA work in progress.
+
+Both Doug and I have write privileges to this tree.
+
+> * Linus trusts pull requests from a kernel.org repository more than pull
+>   requests from a repository outside kernel.org (e.g. github). Any requests
+>   to pull from e.g. github must be PGP-signed.
+
+Done
+
+> * If you send an e-mail to Wu Fengguang then he will add a branch from your
+>   repository to his zero-day testing. This is a great way to catch build
+>   failures before linux-next catches these.
+
+Thanks
+
+> * Any patches that will be sent to Linus must have been in the for-next
+>   repository for at least a few days. Requests to add a branch to linux-next
+>   should be sent to Stephen Rothwell with linux-next in Cc.
+
+Doug will send Stephen Rothwell a note to move his for-next pull for
+RDMA from Doug's personal directory to:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
+
+Branch k.o/for-next
+
+> * Maintainers are expected to keep an eye on merge conflicts and other reports
+>   sent out to the linux-next mailing list
+>   (http://vger.kernel.org/vger-lists.html#linux-next).
+
+Good advice..
+
+> * Rebasing a tree that will be sent to Linus is completely inacceptable. A
+>   quote from Linus: "And in general, you simply should never rebase commits
+>   that have already been publicized." Source: Linus Torvalds, Re: linux-next:
+>   Signed-off-by missing for commit in the drivers-x86 tree, linux-next mailing
+>   list, 2 August 2017 (https://www.spinics.net/lists/kernel/msg2571584.html).
+
+Yes, of course
+
+> * Backmerging (merging a later rc into a maintainer tree) to pull in rc fixes
+>   from other maintainers is considered inacceptable too. If patches from other
+>   maintainers are really needed I think it is acceptable to merge a maintainer
+>   tree into Linus' tree and to apply late rc patches on top of that merged
+>   tree.
+
+Yes, this gets tricky if two trees have to coordinate..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
