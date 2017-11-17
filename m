@@ -1,84 +1,46 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH] rdma: Add Jason as a co-maintainer
-Date: Fri, 17 Nov 2017 11:14:10 -0700
-Message-ID: <20171117181410.GL4276@ziepe.ca>
-References: <20171116204400.GA28216@mellanox.com>
- <1510941272.2846.46.camel@wdc.com>
+Subject: Re: [PATCH RFC rdma-core 1/5] verbs: Introduce thread domain and its
+ related verbs
+Date: Fri, 17 Nov 2017 11:42:48 -0700
+Message-ID: <20171117184248.GN4276@ziepe.ca>
+References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
+ <1510522903-6838-2-git-send-email-yishaih@mellanox.com>
+ <20171113195822.GD22610@ziepe.ca>
+ <3719edfc-282a-db5b-2474-3cf1355fb301@dev.mellanox.co.il>
+ <20171114191754.GI4263@ziepe.ca>
+ <774e2f74-8361-6941-a015-27a2014d8cc9@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1510941272.2846.46.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <774e2f74-8361-6941-a015-27a2014d8cc9-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 17, 2017 at 05:54:34PM +0000, Bart Van Assche wrote:
-> Thanks Doug for having added a co-maintainer. Jason, thank you for willing
-> to be a co-maintainer.
+On Wed, Nov 15, 2017 at 11:34:01AM +0200, Yishai Hadas wrote:
 
-Thank you Bart!
+> >>ibv_td should expose in verbs.h the 'context' as the inline function
+> >>ibv_alloc_td() needs it to get the verbs_context and call the driver
+> >>function if was set.
+> >
+> >You mean ibv_dealloc_td, OK..
+> >
+> >Related to my other point, ibv_alloc_td should probably accept a
+> >ibv_pd as an argument instead.
+> >
+> 
+> Why ibv_alloc_td() should get an ibv_pd ? do you have a typo here ?
 
-> Jason, if you are going to send pull requests to Linus you should be aware
-> of the following:
+No..
 
-I think we will work up to that, obviously I will be working with Doug
-and his expertise and experience will guide what happens.
+Since ibv_alloc_td returns a 'ibv_pd' with additional information, it
+makes no sense to have an API that can return an 'ibv_pd' that is not
+actually a PD.
 
-A new git tree has been setup for RDMA:
-
-  https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/
-
-This will replace Doug's personal k.o tree effective immediately as
-the cannonical source for the RDMA work in progress.
-
-Both Doug and I have write privileges to this tree.
-
-> * Linus trusts pull requests from a kernel.org repository more than pull
->   requests from a repository outside kernel.org (e.g. github). Any requests
->   to pull from e.g. github must be PGP-signed.
-
-Done
-
-> * If you send an e-mail to Wu Fengguang then he will add a branch from your
->   repository to his zero-day testing. This is a great way to catch build
->   failures before linux-next catches these.
-
-Thanks
-
-> * Any patches that will be sent to Linus must have been in the for-next
->   repository for at least a few days. Requests to add a branch to linux-next
->   should be sent to Stephen Rothwell with linux-next in Cc.
-
-Doug will send Stephen Rothwell a note to move his for-next pull for
-RDMA from Doug's personal directory to:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
-
-Branch k.o/for-next
-
-> * Maintainers are expected to keep an eye on merge conflicts and other reports
->   sent out to the linux-next mailing list
->   (http://vger.kernel.org/vger-lists.html#linux-next).
-
-Good advice..
-
-> * Rebasing a tree that will be sent to Linus is completely inacceptable. A
->   quote from Linus: "And in general, you simply should never rebase commits
->   that have already been publicized." Source: Linus Torvalds, Re: linux-next:
->   Signed-off-by missing for commit in the drivers-x86 tree, linux-next mailing
->   list, 2 August 2017 (https://www.spinics.net/lists/kernel/msg2571584.html).
-
-Yes, of course
-
-> * Backmerging (merging a later rc into a maintainer tree) to pull in rc fixes
->   from other maintainers is considered inacceptable too. If patches from other
->   maintainers are really needed I think it is acceptable to merge a maintainer
->   tree into Linus' tree and to apply late rc patches on top of that merged
->   tree.
-
-Yes, this gets tricky if two trees have to coordinate..
+So, all TD's have to be created from a PD, and the concept of a TD
+without a PD should be entirely removed from the API.
 
 Jason
 --
