@@ -1,59 +1,59 @@
 From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 8/8] i40iw: Change accelerated flag to bool
-Date: Fri, 17 Nov 2017 10:46:57 -0600
-Message-ID: <20171117164657.14824-9-henry.orosco@intel.com>
+Subject: [PATCH 6/8] i40iw: Move MPA request event for loopback after connect
+Date: Fri, 17 Nov 2017 10:46:55 -0600
+Message-ID: <20171117164657.14824-7-henry.orosco@intel.com>
 References: <20171117164657.14824-1-henry.orosco@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171117164657.14824-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The accelerated flag only utilizes two values: 0 and 1.
-Modify accelerated flag in struct i40iw_cm_node to bool.
+From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
+For loopback, MPA request event is generated when cm_node
+is initialized, which allows applications to act on the
+connect request before i40iw_connect() has completed.
+In some cases, the reject flow executes in parallel with
+the connect flow and doesn't delete an APBVT entry,
+because the apbvt_set variable is still not set by the
+connect flow. Move the MPA request event to the end of
+i40iw_connect() to notify application for a connect
+request, after connect has completed.
+
+Fixes: f27b4746f378 ("i40iw: add connection management code")
+Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_cm.c | 4 ++--
- drivers/infiniband/hw/i40iw/i40iw_cm.h | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index a2b242d..f41a302 100644
+index e145417..3a35d56 100644
 --- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
 +++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -3691,7 +3691,7 @@ int i40iw_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 	cm_node->qhash_set = false;
- 	i40iw_modify_qp(&iwqp->ibqp, &attr, IB_QP_STATE, NULL);
+@@ -2947,8 +2947,6 @@ static struct i40iw_cm_node *i40iw_create_cm_node(
+ 			loopback_remotenode->tcp_cntxt.snd_wnd = cm_node->tcp_cntxt.rcv_wnd;
+ 			cm_node->tcp_cntxt.snd_wscale = loopback_remotenode->tcp_cntxt.rcv_wscale;
+ 			loopback_remotenode->tcp_cntxt.snd_wscale = cm_node->tcp_cntxt.rcv_wscale;
+-			loopback_remotenode->state = I40IW_CM_STATE_MPAREQ_RCVD;
+-			i40iw_create_event(loopback_remotenode, I40IW_CM_EVENT_MPA_REQ);
+ 		}
+ 		return cm_node;
+ 	}
+@@ -3864,6 +3862,11 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 			goto err;
+ 	}
  
--	cm_node->accelerated = 1;
-+	cm_node->accelerated = true;
- 	status = i40iw_send_cm_event(cm_node, cm_id, IW_CM_EVENT_ESTABLISHED, 0);
- 	if (status)
- 		i40iw_debug(dev, I40IW_DEBUG_CM, "error sending cm event - ESTABLISHED\n");
-@@ -4056,7 +4056,7 @@ static void i40iw_cm_event_connected(struct i40iw_cm_event *event)
- 	cm_node->qhash_set = false;
- 	i40iw_modify_qp(&iwqp->ibqp, &attr, IB_QP_STATE, NULL);
- 
--	cm_node->accelerated = 1;
-+	cm_node->accelerated = true;
- 	status = i40iw_send_cm_event(cm_node, cm_id, IW_CM_EVENT_CONNECT_REPLY, 0);
- 	if (status)
- 		i40iw_debug(dev, I40IW_DEBUG_CM, "error sending cm event - CONNECT_REPLY\n");
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.h b/drivers/infiniband/hw/i40iw/i40iw_cm.h
-index 0d5840d..e09b1f5 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.h
-@@ -337,7 +337,7 @@ struct i40iw_cm_node {
- 	u16     mpav2_ird_ord;
- 	struct iw_cm_id *cm_id;
- 	struct list_head list;
--	int accelerated;
-+	bool accelerated;
- 	struct i40iw_cm_listener *listener;
- 	int apbvt_set;
- 	int accept_pend;
++	if (cm_node->loopbackpartner) {
++		cm_node->loopbackpartner->state = I40IW_CM_STATE_MPAREQ_RCVD;
++		i40iw_create_event(cm_node->loopbackpartner, I40IW_CM_EVENT_MPA_REQ);
++	}
++
+ 	i40iw_debug(cm_node->dev,
+ 		    I40IW_DEBUG_CM,
+ 		    "Api - connect(): port=0x%04x, cm_node=%p, cm_id = %p.\n",
 -- 
 2.8.3
 
