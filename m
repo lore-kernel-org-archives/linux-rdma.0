@@ -1,81 +1,104 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH rdma-next 28/31] IB/cm: Fix avoid sleep while spin lock is
- held
-Date: Sat, 18 Nov 2017 06:29:06 +0000
-Message-ID: <VI1PR0502MB3008B6C892E98D3AD5013063D12C0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20171114125218.20477-1-leon@kernel.org>
- <20171114125218.20477-29-leon@kernel.org>
- <CAJ3xEMixWZvCVDYTK1-2w0pYdy65HExvN2ae7y=hAkk6htrETg@mail.gmail.com>
- <VI1PR0502MB3008970D8D6034E4A2D952DED1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <CAJ3xEMhdp_2BYPA+s+We5Qgatye8hNLUYGnZu0ZimpPb86U-VQ@mail.gmail.com>
- <VI1PR0502MB300897A41317A06FFA5CC329D1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <CAJ3xEMiQc_am=rqYg2TyNqU1s9uGSE-wcVxGmW244x8XJNDuyg@mail.gmail.com>
- <VI1PR0502MB30081717A7E8BEC1B7CFD471D1290@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <CAJ3xEMhjV9b5-WVe4QOO41KniK0ogBRukXX1T1bjw-E+Z5QbDA@mail.gmail.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] rdma: Add Jason as a co-maintainer
+Date: Sat, 18 Nov 2017 09:26:25 +0200
+Message-ID: <20171118072625.GQ18825@mtr-leonro.local>
+References: <20171116204400.GA28216@mellanox.com>
+ <1510941272.2846.46.camel@wdc.com>
+ <20171117181410.GL4276@ziepe.ca>
+ <1510947901.3973.26.camel@redhat.com>
+ <20171117213227.GQ4276@ziepe.ca>
+ <1510969467.3973.83.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMhjV9b5-WVe4QOO41KniK0ogBRukXX1T1bjw-E+Z5QbDA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="oXuB1DDkBcw8yjUl"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1510969467.3973.83.camel@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Bart Van Assche <Bart.VanAssche@wdc.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBPciBHZXJsaXR6IFttYWlsdG86
-Z2VybGl0ei5vckBnbWFpbC5jb21dDQo+IFNlbnQ6IFRodXJzZGF5LCBOb3ZlbWJlciAxNiwgMjAx
-NyA1OjUwIEFNDQo+IFRvOiBQYXJhdiBQYW5kaXQgPHBhcmF2QG1lbGxhbm94LmNvbT4NCj4gQ2M6
-IERvdWcgTGVkZm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT47IGxpbnV4LXJkbWFAdmdlci5rZXJu
-ZWwub3JnOyBIZWZ0eSwNCj4gU2VhbiA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+OyBMZW9uIFJvbWFu
-b3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggcmRtYS1u
-ZXh0IDI4LzMxXSBJQi9jbTogRml4IGF2b2lkIHNsZWVwIHdoaWxlIHNwaW4gbG9jayBpcw0KPiBo
-ZWxkDQo+IA0KPiBPbiBUaHUsIE5vdiAxNiwgMjAxNyBhdCAxOjEwIEFNLCBQYXJhdiBQYW5kaXQg
-PHBhcmF2QG1lbGxhbm94LmNvbT4gd3JvdGU6DQo+ID4+IEZyb206IE9yIEdlcmxpdHogW21haWx0
-bzpnZXJsaXR6Lm9yQGdtYWlsLmNvbV0NCj4gDQo+ID4+IFBsZWFzZSBhbHNvIGFkZCBtb3JlIGlu
-Zm8gKGFuZCBpbiB0aGUgY292ZXIgbGV0dGVyIHBsZWFzZSkgb24gSVB2NCB2cw0KPiA+PiBJUHY2
-LCB1bmljYXN0IHZzIG11bHRpY2FzdCwgZXRjLg0KPiANCj4gPiBJcyB0aGVyZSBhIHRlbXBsYXRl
-IHRoYXQgeW91IGNhbiBzaGFyZSB0aGF0IGxpbnV4LXJkbWEgZm9sbG93cyB0aGF0IEkgY2FuIHVz
-ZSB0bw0KPiBtZW50aW9uIHdoYXQgdGVzdHMgYXJlIGRvbmU/DQo+ID4gQW55IGV4YW1wbGUgcGFz
-dCBjb3ZlciBsZXR0ZXJzIHRoYXQgSSBjYW4gcmVmZXIgYXMgcmVmZXJlbmNlPw0KPiANCj4gSSBz
-dWdnZXN0IHlvdSBhc2sgdGhlIHN1Yi1zeXN0ZW0gbWFpbnRhaW5lcnMgKERvdWcsIEphc29uKSB3
-aGF0IGRvIHRoZXkgZXhwZWN0DQo+IGZvciBzdWNoIGEgaGVhdnkgZHV0eSBjaGFuZ2Ugc2V0Lg0K
-PiANCj4gDQo+ID4gRGVwZW5kaW5nIG9uIGhvdyBtdWNoIGluZm9ybWF0aW9uIHlvdSBleHBlY3Qg
-aW4gY292ZXIgbGV0dGVyLCB0aGlzIHBhdGNoc2V0DQo+IGNhbiBoYXZlIG1hbnkgcmV2aXNpb25z
-IGp1c3QgZm9yIGNvdmVyIGxldHRlci4NCj4gPiBTbyBpdCB3b3VsZCBiZSBiZXN0IGZvciB5b3Ug
-dG8gc2hhcmUgdGhlIHRlbXBsYXRlIHRoYXQgSSBjYW4gZmlsbCBpbiBmb3IgdjEuDQo+IA0KPiBZ
-b3UgYXJlIHN0aWxsIG9uIFYwIGFuZCBjb21wbGFpbmluZyBvbiBtYW55IHJldmlzaW9ucy4uLg0K
-PiANCj4gPj4gWW91IHRvdWNoZWQgdGhlIENNQSBhbmQgYWRkciBtb2R1bGVzIHF1aXRlIGhlYXZp
-bHkgb24gYWxsIHRoZXNlDQo+ID4+IGFyZWFzLCBuZWVkIHRvIGNvdmVyIHRoZW0gaW4gdGVzdGlu
-Zy4NCj4gDQo+ID4gV2hpY2ggYXJlIHRob3NlIHRlc3RzIHRoYXQgSSBzaG91bGQgZXhlY3V0ZSBh
-cGFydCBmcm9tIGFib3ZlIHN1bW1hcnk/DQo+IA0KPiBJZiB0aGVyZSBpcyByZG1hIHZlcmlmaWNh
-dGlvbiBzdWl0IEAgbWxueCB0aGF0IHJ1bnMgcmRtYSB1c2VyL2tlcm5lbCBjbS9jbWENCj4gYmFz
-ZWQgYXBwbGljYXRpb25zIG9uIGliL3JvY2UgZW52aXJvbm1lbnRzLCBjYW4gcnVuIHRocm91Z2gg
-aXQuDQo+IA0KSSBoYXZlIHJ1biBzdWNoIHZlcmlmaWNhdGlvbiBzdWl0IGluIFJvQ0UgZW52aXJv
-bm1lbnQuDQpJQiB3YXMgbm90IHBvc3NpYmxlIHRvIHJ1biBkdWUgdG8gY2VydGFpbiB0ZW1wb3Jh
-cnkgc2V0dXAgY29uc3RyYWlucy4NCkhvd2V2ZXIgYXMgSSBtZW50aW9uZWQgYmVmb3JlLA0KSUIs
-IHBlcmZ0ZXN0cywgcnBpbmcsIGtycGluZywgaXBlcmYgKElQb0lCKSB3ZXJlIGRvbmUgZm9yIElC
-IGluIFZNIGFuZCBub24gVk0gc2VydmVycy4NClNhbWUgdGVzdHMgd2l0aCBSb0NFdjEsIFJvQ0V2
-MiwgSVB2NCBtdWx0aWNhc3Qgd2l0aCBtY2tleSwgYW5kIHRlc3RzIHJlbGF0ZWQgdG8gSVB2NiBi
-dWcgZml4ZXMgYXJlIGFsc28gcmFuLg0KQ2VydGFpbiBlcnJvcnMgcmVsYXRlZCB0byB0aW1pbmdz
-IGFyZSBpbmplY3RlZCBpbiBjb2RlIHRvIHRlc3QgdGhlbSBmb3IgZXJyb3IgcGF0aC4NCg0KPiA+
-PiBkaWQgeW91IHRlc3QgQVBNPyBJIGRvbid0IHRoaW5rIGl0IHdvdWxkIGJlIGNvcnJlY3QgdG8g
-Y2hhbmdlIHRoZSBDTQ0KPiA+PiBBUE0gY29kZSB3aXRob3V0IHByb3BlciB0ZXN0aW5nLg0KPiAN
-Cj4gPiBBcyBJIGFscmVhZHkgdG9sZCB0aGlzIHBhcnRpY3VsYXIgcGF0Y2ggaXMgbm90IHRlc3Rl
-ZC4gQWxsIG90aGVycyBhcmUgbmVlZGxlc3MgdG8NCj4gc2F5IHRlc3RlZC4NCj4gPiBJIGRvIG5v
-dCBoYXZlIEFQTSBzZXR1cCB0byB0ZXN0IHRoaXMgZml4Lg0KPiA+IEkgYW0gb2sgdG8gZHJvcCB0
-aGlzIHBhdGNoIGFuZCBwcm92aWRlIGZpeCB3aGVuIGNyYXNoIG9jY3VycyBsYXRlciBvbi4NCj4g
-DQo+IEkgc3VnZ2VzdCB5b3UgYXNrIHRoZSBDTSBtYWludGFpbmVyIChTZWFuKSBmb3IgaGlzIG9w
-aW5pb24gb24gdGhhdCBtYXR0ZXIuDQpZb3UgaGF2ZSBhbHJlYWR5IGFkZGVkIGhpbSBpbiBDQyBs
-aXN0IHNvIGlmIGhlIGhhcyBzcGVjaWZpY3MgSSB3aWxsIGxldCBoaW0gcmVzcG9uZC4NCkkgaGF2
-ZW4ndCBzZWVuIHRlc3QgY29uZmlybWF0aW9uIGZyb20gUm9sYW5kIGZvciBzaW1pbGFyIGZpeCBz
-dWJtaXR0ZWQgbGFzdCB0aW1lIGluIG90aGVyIGNtIGhhbmRsZXIuDQoNCkxlb24sDQpPbmNlIGFk
-ZXF1YXRlIHJldmlldyBpcyBkb25lLCBsZXQgbWUga25vdyBvbiBob3cgdG8gcHJvY2VlZC4NCkkg
-aGF2ZSBhZGRpdGlvbmFsIDYgcGF0Y2hlcyBpbiBvbmUgcGF0Y2hzZXQgdGhhdCBmaXhlcyB0d28g
-YnVncyBmb3IgUm9DRTsgd2l0aG91dCB3aGljaCBjZXJ0YWluIHVzZXJzIGFwcGxpY2F0aW9ucyBh
-cmUgYnJva2VuIGZvciBSb0NFLg0KVGhvc2UgZml4ZXMgZGVwZW5kIG9uIHRoaXMgc2VyaWVzLg0K
-DQo=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--oXuB1DDkBcw8yjUl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Nov 17, 2017 at 08:44:27PM -0500, Doug Ledford wrote:
+>
+> If you split step 5 above into 5a) Push from local work repo to local
+> prep repo and 5b) Do full kernel build in prep repo to test that all
+> code needed to compile is tracked by git, it would catch that mistake
+> before it makes it outside the firewall.  That's a change I may make
+> just to be on the safe side in the future.
+
+I'm using git worktree command [1] for that.
+
+If it helps, this is snippet from my scripts:
+
+-----------------------------------------
+REPORT_FILE=$(mktemp)
+
+function do_one {
+	SHA1=$1
+	REPORT_FILE=$2
+	PDIR=$(mktemp -d)
+
+	git worktree add $PDIR $SHA1
+	echo "Redirecting the output to $REPORT_FILE"
+	pushd $PDIR &>> $REPORT_FILE
+	x checkpatch HEAD $PDIR &>> $REPORT_FILE
+	cp $KCONFIG . &>> $REPORT_FILE
+	make olddefconfig &>> $REPORT_FILE
+	echo "===== FULL COMPILE =========" &>> $REPORT_FILE
+	make -s -j 4 &>> $REPORT_FILE
+	echo "===== SUB COMPILE =========" &>> $REPORT_FILE
+	make -s -j 4 W=1 drivers/infiniband/ drivers/net/ethernet/mellanox/ &>> $REPORT_FILE
+	echo "===== SMATCH =========" &>> $REPORT_FILE
+	make CHECK="$SMATCH -p=kernel" C=1 drivers/infiniband/ drivers/net/ethernet/mellanox/ -s -j 4 &>> $REPORT_FILE
+	echo "===== SPARSE =========" &>> $REPORT_FILE
+	make CHECK="$SPARSE" C=2 drivers/infiniband/ drivers/net/ethernet/mellanox/ -s -j 4  &>> $REPORT_FILE
+	popd &>> $REPORT_FILE
+	rm -rf $PDIR
+	git worktree prune
+	# TODO: separate checkpatch errors, sparse, smatch
+	NUMB_OF_ERRORS=$(awk -F": " '{print $1}' $REPORT_FILE | grep ":" | sort | uniq |wc -l)
+	echo "There are $NUMB_OF_ERRORS errors/warnings"
+}
+
+do_one $SHA1 $REPORT_FILE
+------------------------------------------
+
+Thanks
+
+[1] https://git-scm.com/docs/git-worktree
+
+>
+> --
+> Doug Ledford <dledford@redhat.com>
+>     GPG KeyID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+
+
+--oXuB1DDkBcw8yjUl
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloP4KAACgkQ5GN7iDZy
+WKdXghAAovQgEU2AB3dDY/ps8OE/ciVizkKjCu2jYNJkZNtszIbDKHvqUVd9lBUE
+KaMCtq4FnJpp7oSPVm9KvfDiRJnaTgvLUComgiUYUO8AbNmuQA7xJ+/Jbq6iOJx5
+IPvqqnljlOpWfg3sEFSA/W6MPN/NeQw+D3ngdhBt1S5AA8/oZ1Xn3UKcRwSNL6Pa
+tbQSs0pT5VYIFCLH7NghL/TJ1WiJVWNEyON01kL9AlmaULqb09NjtnH9+Adhqf+p
+M0ZJM7L8l0Wr+VKzV2+FHYRSsaH1K3Gk0ZqApSLf+L4C57JcVNENQ9NsIDdlSznw
+k+6KyILCGO7zuFKFzihssIhLr/MX6zJb9Iep0dp+FVcp7wafw2gzKDbMKazkJeTC
+ICJQikxSncAZYHeJa45BMk9Rb/DhwNYSPbthBjqzNteKJwFtESRuEgLWh/hb0/H3
+wJMgXBMRgA0DtVi7ffj4FEUt7xHckaXcRhLn/4Z0/NO1HQky912zpdX4isDk6+c6
+0GYXAznvXbF3nPkEC2nw76n+piL1WoZq8axqRi7TyJUj24WLdg6C5mqoR7H6VkOC
+4bI+VDTwwsouaqbraYHp8swEY8PqrtWlqLNHBmGVK/CRHVf0cYJuRC2CcFfIsufp
+3njXM9aFKVOZ3B5zrDd5E21WtEwFcgC74DZwLf6X6Cs+E9pbpi4=
+=m+gx
+-----END PGP SIGNATURE-----
+
+--oXuB1DDkBcw8yjUl--
