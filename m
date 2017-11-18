@@ -1,139 +1,80 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] rdma: Add Jason as a co-maintainer
-Date: Fri, 17 Nov 2017 20:44:27 -0500
-Message-ID: <1510969467.3973.83.camel@redhat.com>
-References: <20171116204400.GA28216@mellanox.com>
-         <1510941272.2846.46.camel@wdc.com> <20171117181410.GL4276@ziepe.ca>
-         <1510947901.3973.26.camel@redhat.com> <20171117213227.GQ4276@ziepe.ca>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 28/31] IB/cm: Fix avoid sleep while spin lock is
+ held
+Date: Sat, 18 Nov 2017 06:29:06 +0000
+Message-ID: <VI1PR0502MB3008B6C892E98D3AD5013063D12C0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20171114125218.20477-1-leon@kernel.org>
+ <20171114125218.20477-29-leon@kernel.org>
+ <CAJ3xEMixWZvCVDYTK1-2w0pYdy65HExvN2ae7y=hAkk6htrETg@mail.gmail.com>
+ <VI1PR0502MB3008970D8D6034E4A2D952DED1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <CAJ3xEMhdp_2BYPA+s+We5Qgatye8hNLUYGnZu0ZimpPb86U-VQ@mail.gmail.com>
+ <VI1PR0502MB300897A41317A06FFA5CC329D1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <CAJ3xEMiQc_am=rqYg2TyNqU1s9uGSE-wcVxGmW244x8XJNDuyg@mail.gmail.com>
+ <VI1PR0502MB30081717A7E8BEC1B7CFD471D1290@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <CAJ3xEMhjV9b5-WVe4QOO41KniK0ogBRukXX1T1bjw-E+Z5QbDA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-Ri0Ur1CJO/iKs90X7P+w"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171117213227.GQ4276-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <CAJ3xEMhjV9b5-WVe4QOO41KniK0ogBRukXX1T1bjw-E+Z5QbDA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-Ri0Ur1CJO/iKs90X7P+w
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 2017-11-17 at 14:32 -0700, Jason Gunthorpe wrote:
-> On Fri, Nov 17, 2017 at 02:45:01PM -0500, Doug Ledford wrote:
->=20
-> > On that point...I have my github repo tied into the 0day infrastructure=
-,
-> > not the official repo.  I do that because I've publicly announced that
-> > my github repo is a WIP repo, and that it might be rebased.  That allow=
-s
-> > me to correct build issues by fixing up the broken patch and thereby
-> > keep bisectability at its highest.  If you use a branch/tag on k.o for
-> > your 0day testing, then fixes have to be incremental and depending on
-> > which patch broke the build, there might be a significant segment of
-> > code that is no longer bisectable.
->=20
-> .. and this is because the k.o repo is setup to disallow force push
-> for each branch, so a 0 day testing branch cannot be rebased?
-
-Well, there are ways around the system if you really wanted to do so.=20
-You can push to k.o with an empty ref, aka something like 'git push k.o
-:k.o/for-next', which will delete the old branch.  Then you could rebase
-it locally and repush it.  But that would make you a very evil person
-and if Linus found out he would (rightfully!) yell at you for many
-paragraphs with lots of all caps ;-).
-
-The other option is to delete the bad branch and push a new branch with
-a different name and the rebase already done.  I did that a couple times
-in the early days of this job.  Now a days, I wouldn't even do this for
-anything short of a disk corrupting issue or something like that.  I've
-come to appreciate just how much people rely on unchanging commit IDs.
-
-So the fact that the k.o repos don't allow non-fast-forward pushes is an
-inconvenience, but it doesn't stop you from doing it if you really
-wanted to.  But it's very bad form to do so, and that's the real reason
-that I keep my 0day source on github and tell people regularly that my
-github repo is a "rebase allowed" repo.
-
-So, my workflow in order to prevent getting a bad branch on k.o goes
-something like this:
-
-1) Bundle up patches that belong together as a bundle in patchworks
-2) Review patches
-3) Download bundle from patchworks, apply using git -am.  Do any edits
-to commit messages at this stage, either by hand editing the bundle file
-before you run git -am, or afterwards by doing a git rebase -i.
-4) Build locally and frequently as you take stuff in.  I suggest a build
-between each bundle.  It's much easier to fix up errors when they aren't
-buried 40 patches deep in your day's work.  I use partial builds for the
-intermediate builds (make SUBDIRS=3Ddrivers/infiniband usually, but other
-directories if the bundle touched code elsewhere).
-5) When I think I'm basically done for the day, then I do a final, full
-kernel build.
-6) Push to 0day repo, wait for results.  This is a good time to do
-whatever run testing you plan on doing for this push.
-7) Push to k.o once 0day and your testing has passed.
-
-Following that workflow minimizes the chances of having a broken push to
-k.o.  If something does actually slip through this workflow, then you
-just fix it incrementally unless leaving the issue will cause a meltdown
-of the Internet or something.
-
-The one thing it doesn't catch, which is actually what caused the time
-or two I had to delete a branch and make a new branch on k.o, is when
-you have to manually apply a patch because git am said the patch didn't
-apply cleanly.
-
-Most times, just running patch -p1 -l < .git/rebase-apply/patch gets the
-patch in.  Git am will reject patches for any fuzz.  If we were using
-git merge/pull, there is often enough context for git to know when to
-allow the fuzz, but the am mode of git doesn't have that info and dumps
-on very minor issues.
-
-So you manually apply the patch, accepting some fuzz, and inspect the
-result.  Where I screwed up in the past, is when the patch adds a
-totally new file to the repo.  My usual workflow after applying the
-patch manually, and then inspecting any suspect areas and hand editing
-files when hunks get rejected, is to run git add -u.  This fails to add
-new files to the commit.  So, I had to add an additional git status step
-to see if there are any new, untracked files before I run the final git
-am --continue.
-
-If you split step 5 above into 5a) Push from local work repo to local
-prep repo and 5b) Do full kernel build in prep repo to test that all
-code needed to compile is tracked by git, it would catch that mistake
-before it makes it outside the firewall.  That's a change I may make
-just to be on the safe side in the future.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-Ri0Ur1CJO/iKs90X7P+w
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloPkHsACgkQuCajMw5X
-L90Xfg//bfIpfxS7e4I2h5jecrQky6q1mMYN3i6bra/U4F8xY2yLhvGRJUXHKS4Q
-6vW4rlaP0FblA3pnn3vXiVf5GW9eruQ4uNwF9d4yVMWP1a48qS4LGCf1COhSSbTl
-M+dMyTiRRfgBcsgsWOfbIs40sej5bNUgTpH1xvN9a/JUkotsBttq+xDwS1lmN+G8
-zgE2Rks6XJuRF0hw4x9V5mMMY3uN7QhQWa9HFdmu9ulVcueGfCHaOO8OT2jE21+l
-qyrzUur+Le33S9qn2sFd+n8MRFuL0uzU3EdMtmo5klkB8um/pEPiPCWmOEyk735B
-L8ndZ3Q8YK/LCQAtatURg69+UAWOsaR2jTKpyktv5xPPAr0diTcvusl5oizNUPbQ
-EMD6p3f/v4U8b1a2dRqxN7hCsaAhiPzh+tKY23YNobPvSQLmHBrEYE3AwlyVcS9R
-8nW5fhKkk8fPGw9t0oNFadk2HjRZ+7byj/v9PIhkNoiQemyzYAunIKaikQiRt6Qo
-0vjNGx8Ub0juMfHW35Lr9/m4J6TF8Hyz62YmoeiKM/slUOPXVhLBMQYlkZ9Mzm4R
-u3G1f7A+1wstUSX1Bxnh1jSukPi2ITACxw8aq9zMfstlDWOd9H3tZJIgz9psMwzx
-GFSQfmY2kKmdjsrTNigAZnsqkM5DrsuGA7jwTrhtIPPh8vxj8QU=
-=ZE6N
------END PGP SIGNATURE-----
-
---=-Ri0Ur1CJO/iKs90X7P+w--
-
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBPciBHZXJsaXR6IFttYWlsdG86
+Z2VybGl0ei5vckBnbWFpbC5jb21dDQo+IFNlbnQ6IFRodXJzZGF5LCBOb3ZlbWJlciAxNiwgMjAx
+NyA1OjUwIEFNDQo+IFRvOiBQYXJhdiBQYW5kaXQgPHBhcmF2QG1lbGxhbm94LmNvbT4NCj4gQ2M6
+IERvdWcgTGVkZm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT47IGxpbnV4LXJkbWFAdmdlci5rZXJu
+ZWwub3JnOyBIZWZ0eSwNCj4gU2VhbiA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+OyBMZW9uIFJvbWFu
+b3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggcmRtYS1u
+ZXh0IDI4LzMxXSBJQi9jbTogRml4IGF2b2lkIHNsZWVwIHdoaWxlIHNwaW4gbG9jayBpcw0KPiBo
+ZWxkDQo+IA0KPiBPbiBUaHUsIE5vdiAxNiwgMjAxNyBhdCAxOjEwIEFNLCBQYXJhdiBQYW5kaXQg
+PHBhcmF2QG1lbGxhbm94LmNvbT4gd3JvdGU6DQo+ID4+IEZyb206IE9yIEdlcmxpdHogW21haWx0
+bzpnZXJsaXR6Lm9yQGdtYWlsLmNvbV0NCj4gDQo+ID4+IFBsZWFzZSBhbHNvIGFkZCBtb3JlIGlu
+Zm8gKGFuZCBpbiB0aGUgY292ZXIgbGV0dGVyIHBsZWFzZSkgb24gSVB2NCB2cw0KPiA+PiBJUHY2
+LCB1bmljYXN0IHZzIG11bHRpY2FzdCwgZXRjLg0KPiANCj4gPiBJcyB0aGVyZSBhIHRlbXBsYXRl
+IHRoYXQgeW91IGNhbiBzaGFyZSB0aGF0IGxpbnV4LXJkbWEgZm9sbG93cyB0aGF0IEkgY2FuIHVz
+ZSB0bw0KPiBtZW50aW9uIHdoYXQgdGVzdHMgYXJlIGRvbmU/DQo+ID4gQW55IGV4YW1wbGUgcGFz
+dCBjb3ZlciBsZXR0ZXJzIHRoYXQgSSBjYW4gcmVmZXIgYXMgcmVmZXJlbmNlPw0KPiANCj4gSSBz
+dWdnZXN0IHlvdSBhc2sgdGhlIHN1Yi1zeXN0ZW0gbWFpbnRhaW5lcnMgKERvdWcsIEphc29uKSB3
+aGF0IGRvIHRoZXkgZXhwZWN0DQo+IGZvciBzdWNoIGEgaGVhdnkgZHV0eSBjaGFuZ2Ugc2V0Lg0K
+PiANCj4gDQo+ID4gRGVwZW5kaW5nIG9uIGhvdyBtdWNoIGluZm9ybWF0aW9uIHlvdSBleHBlY3Qg
+aW4gY292ZXIgbGV0dGVyLCB0aGlzIHBhdGNoc2V0DQo+IGNhbiBoYXZlIG1hbnkgcmV2aXNpb25z
+IGp1c3QgZm9yIGNvdmVyIGxldHRlci4NCj4gPiBTbyBpdCB3b3VsZCBiZSBiZXN0IGZvciB5b3Ug
+dG8gc2hhcmUgdGhlIHRlbXBsYXRlIHRoYXQgSSBjYW4gZmlsbCBpbiBmb3IgdjEuDQo+IA0KPiBZ
+b3UgYXJlIHN0aWxsIG9uIFYwIGFuZCBjb21wbGFpbmluZyBvbiBtYW55IHJldmlzaW9ucy4uLg0K
+PiANCj4gPj4gWW91IHRvdWNoZWQgdGhlIENNQSBhbmQgYWRkciBtb2R1bGVzIHF1aXRlIGhlYXZp
+bHkgb24gYWxsIHRoZXNlDQo+ID4+IGFyZWFzLCBuZWVkIHRvIGNvdmVyIHRoZW0gaW4gdGVzdGlu
+Zy4NCj4gDQo+ID4gV2hpY2ggYXJlIHRob3NlIHRlc3RzIHRoYXQgSSBzaG91bGQgZXhlY3V0ZSBh
+cGFydCBmcm9tIGFib3ZlIHN1bW1hcnk/DQo+IA0KPiBJZiB0aGVyZSBpcyByZG1hIHZlcmlmaWNh
+dGlvbiBzdWl0IEAgbWxueCB0aGF0IHJ1bnMgcmRtYSB1c2VyL2tlcm5lbCBjbS9jbWENCj4gYmFz
+ZWQgYXBwbGljYXRpb25zIG9uIGliL3JvY2UgZW52aXJvbm1lbnRzLCBjYW4gcnVuIHRocm91Z2gg
+aXQuDQo+IA0KSSBoYXZlIHJ1biBzdWNoIHZlcmlmaWNhdGlvbiBzdWl0IGluIFJvQ0UgZW52aXJv
+bm1lbnQuDQpJQiB3YXMgbm90IHBvc3NpYmxlIHRvIHJ1biBkdWUgdG8gY2VydGFpbiB0ZW1wb3Jh
+cnkgc2V0dXAgY29uc3RyYWlucy4NCkhvd2V2ZXIgYXMgSSBtZW50aW9uZWQgYmVmb3JlLA0KSUIs
+IHBlcmZ0ZXN0cywgcnBpbmcsIGtycGluZywgaXBlcmYgKElQb0lCKSB3ZXJlIGRvbmUgZm9yIElC
+IGluIFZNIGFuZCBub24gVk0gc2VydmVycy4NClNhbWUgdGVzdHMgd2l0aCBSb0NFdjEsIFJvQ0V2
+MiwgSVB2NCBtdWx0aWNhc3Qgd2l0aCBtY2tleSwgYW5kIHRlc3RzIHJlbGF0ZWQgdG8gSVB2NiBi
+dWcgZml4ZXMgYXJlIGFsc28gcmFuLg0KQ2VydGFpbiBlcnJvcnMgcmVsYXRlZCB0byB0aW1pbmdz
+IGFyZSBpbmplY3RlZCBpbiBjb2RlIHRvIHRlc3QgdGhlbSBmb3IgZXJyb3IgcGF0aC4NCg0KPiA+
+PiBkaWQgeW91IHRlc3QgQVBNPyBJIGRvbid0IHRoaW5rIGl0IHdvdWxkIGJlIGNvcnJlY3QgdG8g
+Y2hhbmdlIHRoZSBDTQ0KPiA+PiBBUE0gY29kZSB3aXRob3V0IHByb3BlciB0ZXN0aW5nLg0KPiAN
+Cj4gPiBBcyBJIGFscmVhZHkgdG9sZCB0aGlzIHBhcnRpY3VsYXIgcGF0Y2ggaXMgbm90IHRlc3Rl
+ZC4gQWxsIG90aGVycyBhcmUgbmVlZGxlc3MgdG8NCj4gc2F5IHRlc3RlZC4NCj4gPiBJIGRvIG5v
+dCBoYXZlIEFQTSBzZXR1cCB0byB0ZXN0IHRoaXMgZml4Lg0KPiA+IEkgYW0gb2sgdG8gZHJvcCB0
+aGlzIHBhdGNoIGFuZCBwcm92aWRlIGZpeCB3aGVuIGNyYXNoIG9jY3VycyBsYXRlciBvbi4NCj4g
+DQo+IEkgc3VnZ2VzdCB5b3UgYXNrIHRoZSBDTSBtYWludGFpbmVyIChTZWFuKSBmb3IgaGlzIG9w
+aW5pb24gb24gdGhhdCBtYXR0ZXIuDQpZb3UgaGF2ZSBhbHJlYWR5IGFkZGVkIGhpbSBpbiBDQyBs
+aXN0IHNvIGlmIGhlIGhhcyBzcGVjaWZpY3MgSSB3aWxsIGxldCBoaW0gcmVzcG9uZC4NCkkgaGF2
+ZW4ndCBzZWVuIHRlc3QgY29uZmlybWF0aW9uIGZyb20gUm9sYW5kIGZvciBzaW1pbGFyIGZpeCBz
+dWJtaXR0ZWQgbGFzdCB0aW1lIGluIG90aGVyIGNtIGhhbmRsZXIuDQoNCkxlb24sDQpPbmNlIGFk
+ZXF1YXRlIHJldmlldyBpcyBkb25lLCBsZXQgbWUga25vdyBvbiBob3cgdG8gcHJvY2VlZC4NCkkg
+aGF2ZSBhZGRpdGlvbmFsIDYgcGF0Y2hlcyBpbiBvbmUgcGF0Y2hzZXQgdGhhdCBmaXhlcyB0d28g
+YnVncyBmb3IgUm9DRTsgd2l0aG91dCB3aGljaCBjZXJ0YWluIHVzZXJzIGFwcGxpY2F0aW9ucyBh
+cmUgYnJva2VuIGZvciBSb0NFLg0KVGhvc2UgZml4ZXMgZGVwZW5kIG9uIHRoaXMgc2VyaWVzLg0K
+DQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
