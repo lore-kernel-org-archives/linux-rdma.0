@@ -1,85 +1,91 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: rdma-core debian/master branch
-Date: Sat, 18 Nov 2017 09:32:52 +0200
-Message-ID: <20171118073252.GR18825@mtr-leonro.local>
-References: <1510658470.4026.27.camel@profitbricks.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/3] IB/core: add a simple SRQ pool per PD
+Date: Sat, 18 Nov 2017 09:36:56 +0200
+Message-ID: <20171118073656.GS18825@mtr-leonro.local>
+References: <1510852885-25519-1-git-send-email-maxg@mellanox.com>
+ <1510852885-25519-2-git-send-email-maxg@mellanox.com>
+ <20171116181049.GO18825@mtr-leonro.local>
+ <c94d2e03-dd32-ff0a-789f-aae4d65f3955@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="UCHdqI5XWSmvgF35"
+        protocol="application/pgp-signature"; boundary="m35yhtyYP/lVCYkX"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1510658470.4026.27.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <c94d2e03-dd32-ff0a-789f-aae4d65f3955-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: hch-jcswGhMUV9g@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---UCHdqI5XWSmvgF35
-Content-Type: text/plain; charset=iso-8859-1
+--m35yhtyYP/lVCYkX
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 14, 2017 at 12:21:10PM +0100, Benjamin Drung wrote:
-> Hi,
+On Fri, Nov 17, 2017 at 09:12:46PM +0200, Max Gurtovoy wrote:
+> > > +#ifndef _RDMA_SRQ_POOL_H
+> > > +#define _RDMA_SRQ_POOL_H 1
+> > > +
+> > > +#include <rdma/ib_verbs.h>
+> > > +
+> > > +struct ib_srq *ib_srq_pool_get(struct ib_pd *pd);
+> > > +void ib_srq_pool_put(struct ib_pd *pd, struct ib_srq *srq);
+> > > +
+> > > +int ib_srq_pool_init(struct ib_pd *pd, int nr,
+> > > +		struct ib_srq_init_attr *srq_attr);
+> > > +void ib_srq_pool_destroy(struct ib_pd *pd);
+> >
+> > Can you please use rdma_ prefix instead of ib_ prefix?
+> >
+> > Thanks
+> >
 >
-> I have a debian/master branch in my personal rdma-core fork:
-> https://github.com/bdrung/rdma-core/commits/debian/master
-> In addition, I tagged the upload with debian/15-1.
->
-> This branch contains the exact content of the uploaded package to
-> Debian. It would be nice if this branch could be included in the linux-
-> rdma/rdma-core repository.
+> Do you mean rdma_srq_pool_get instead of ib_srq_pool_get ? is this new
+> convetion ? this is a pool that contain ib_srq objects and not rdma_srq
+> objects..
 
-Benjamin,
+I want to follow similar pattern as was chosen for various popular pools
+implementation, like dma_pool_, mempool e.t.c
 
-I added you to the list of people who can write to the rdma-core
-repository. Please create your debian/* branches.
+IMHO rdma_srqpool_* looks cleaner than it is now.
 
 Thanks
 
 >
-> --
-> Benjamin Drung
-> System Developer
-> Debian & Ubuntu Developer
+> I can do it if needed.
+
 >
-> ProfitBricks GmbH
-> Greifswalder Str. 207
-> D - 10405 Berlin
->
-> Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-> URL: https://www.profitbricks.de
->
-> Sitz der Gesellschaft: Berlin
-> Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
-> Gesch=E4ftsf=FChrer: Achim Weiss, Matthias Steinberg
+> > > +
+> > > +#endif /* _RDMA_SRQ_POOL_H */
+> > > --
+> > > 1.8.3.1
+> > >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---UCHdqI5XWSmvgF35
+--m35yhtyYP/lVCYkX
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloP4iQACgkQ5GN7iDZy
-WKcwFhAAlMMwlGD5tviNV/o7cFd7MBB5qA2gYmOBeCGturmpYnQrtJqUvJVKF+lf
-zou0AAqgv83xnc2ri3Lt5OSl6Wq3QyUS/EEEriV1Yr70MJCFchBK9VkiXW8rK3/l
-4B694cBmVamQqunDeby0687MyJz36PbD2tues4PJA/y+0hToSc9icq5bn1GCagzq
-6LXBS70d5SeeQCJFiHdZjcYYmijCfwLqNkT31YDfc5M7gqEzRMklstOonHF5leHI
-QkWRoX7EF+uL9NwZIE6ioZUHzt4lYvvt64BfeLcRYWccaWjQLUGh4uiHfj3p/m6S
-KiJHioVpCNR/dG7IB5Z2x5iKlJ27GcCVSLDIGMPhZEVQR5pZgCIEsa3LtqE7KG8Y
-Wf7KB0BO5gFmmOQA/JNVjrYtGSMXpaz50eFxXXJEhiF39itsL86a8prJhIp7qUUs
-gA5D6FR4iLcXmuJRgWd8wiajYthPxXy/mZJigK0pBguV70lwnE5rUGT9sg0toPuJ
-bZaE4dfEtytTAFhJ/OLBL178GLQnF0d4/C9Viiasv2+lMf6xT/oc/vnOIRAavGvI
-hZEAIHFlwDSsmVVKvDeuzuPHdU5+/kqyiQV+XK0P8CFwLCja0mtJINGM6sVIYeGl
-WCc+0TeK3vkMT/5RhQMfWO7j/ETMjgwOcjHaTWHV7GccKcqreK0=
-=oUni
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloP4xgACgkQ5GN7iDZy
+WKfNVA//csFnNIPapNb4SBZ5lfnuAPfcuTI8rgWTfJftS7YpPfx0oIQGv/c5nuUI
+afSNaieVjCLHPTo7u75zhMnLxW3MNb9X0Z00VT8xewkaURW+q1dWxOdOAr1QpU8f
+ZAT+35yhjKS112d6Kr2MgXsVbUhKJWhUw+l+nrTB7wA2Hb9EMfL0fPTkxmzPKYI6
+oJvxFJXDYAOZIpejPmvf5TY4JLvCc6eA6cpjmykuN9II/uFD2eq1PDwBah+RtNEx
+7hwRRUjG20URI9Zr+pnvV65EK4rN/4NMGefeAXWqQlUDaX1QCzLGfRaVZnscXlJl
+Gs+Se9rd9ZAvJvkCBd2WaixekxMFFTXF5Ug6HQHWr8pKODBj9nC/z+jmIGSeR0KC
+WCQjol3cOTbDEzES3yfgTweelKFgefSpRLY87D6I4YWg3usezV630RsU3SurZ3vj
+BTooraNIJFTFC0ICdaQlvChci4dtk0xZY9gckSyk+HPe57DiDVTFCmxBHae3hcsV
+XPHzz12f7a+NMoEEIdTV7ttq5SCYCFWP2W+IIrPUSvhuhFkbNfhYPeyXYfkMy5zX
+y09NucpUGGh17U4EskzNYjM0pTANwGNeYYAlpqzLy3iGnRtxNjZ915WrhoM3kP8F
+3ixeMcWTL7F0uj6a7RH37puT8Ll96S5mZvMVFwnqRd4P818nNgg=
+=Mk5p
 -----END PGP SIGNATURE-----
 
---UCHdqI5XWSmvgF35--
+--m35yhtyYP/lVCYkX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
