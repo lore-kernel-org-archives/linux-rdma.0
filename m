@@ -1,70 +1,51 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core] mlx4: Add a report of RSS capabilities in ibv_query_device_ex
-Date: Sun, 19 Nov 2017 18:56:22 +0200
-Message-ID: <1511110582-20014-1-git-send-email-yishaih@mellanox.com>
+From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Subject: [PATCH] IB: INFINIBAND should depend on HAS_DMA
+Date: Sun, 19 Nov 2017 19:58:30 +0100
+Message-ID: <1511117910-25003-1-git-send-email-geert@linux-m68k.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+If NO_DMA=y:
 
-Report few extra RSS capabilities that were missed in previous patches.
+    ERROR: "bad_dma_ops" [net/sunrpc/xprtrdma/rpcrdma.ko] undefined!
+    ERROR: "bad_dma_ops" [net/smc/smc.ko] undefined!
+    ERROR: "bad_dma_ops" [net/rds/rds_rdma.ko] undefined!
+    ERROR: "bad_dma_ops" [net/9p/9pnet_rdma.ko] undefined!
+    ERROR: "bad_dma_ops" [drivers/nvme/target/nvmet-rdma.ko] undefined!
+    ERROR: "bad_dma_ops" [drivers/nvme/host/nvme-rdma.ko] undefined!
+    ERROR: "bad_dma_ops" [drivers/infiniband/ulp/srpt/ib_srpt.ko] undefined!
+    ERROR: "bad_dma_ops" [drivers/infiniband/ulp/srp/ib_srp.ko] undefined!
+    ERROR: "bad_dma_ops" [drivers/infiniband/ulp/isert/ib_isert.ko] undefined!
+    ERROR: "bad_dma_ops" [drivers/infiniband/ulp/iser/ib_iser.ko] undefined!
+    ERROR: "bad_dma_ops" [drivers/infiniband/ulp/ipoib/ib_ipoib.ko] undefined!
+    ERROR: "bad_dma_ops" [drivers/infiniband/core/ib_core.ko] undefined!
 
-Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Before, this was handled implicitly by the dependency on PCI.
+Add an explicit dependency on HAS_DMA to fix this.
+
+Fixes: 931bc0d91639f8fb ("IB: Move PCI dependency from root KConfig to HW's KConfigs")
+Signed-off-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
 ---
+ drivers/infiniband/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The matching kernel part was already merged into 4.15.
-PR was sent:
-https://github.com/linux-rdma/rdma-core/pull/256
-
- providers/mlx4/mlx4-abi.h | 8 +++++++-
- providers/mlx4/verbs.c    | 3 +++
- 2 files changed, 10 insertions(+), 1 deletion(-)
-
-diff --git a/providers/mlx4/mlx4-abi.h b/providers/mlx4/mlx4-abi.h
-index 4f2132c..c4783d2 100644
---- a/providers/mlx4/mlx4-abi.h
-+++ b/providers/mlx4/mlx4-abi.h
-@@ -99,13 +99,19 @@ struct mlx4_resize_cq {
- 	__u64				buf_addr;
- };
- 
-+struct mlx4_rss_caps {
-+	__u64 rx_hash_fields_mask; /* enum ibv_rx_hash_fields */
-+	__u8 rx_hash_function; /* enum ibv_rx_hash_function_flags */
-+	__u8 reserved[7];
-+};
-+
- struct mlx4_query_device_ex_resp {
- 	struct ibv_query_device_resp_ex ibv_resp;
- 	__u32				comp_mask;
- 	__u32				response_length;
- 	__u64				hca_core_clock_offset;
- 	__u32				max_inl_recv_sz;
--	__u32				reserved;
-+	struct mlx4_rss_caps            rss_caps; /* vendor data channel */
- };
- 
- struct mlx4_query_device_ex {
-diff --git a/providers/mlx4/verbs.c b/providers/mlx4/verbs.c
-index 8532882..8a2773f 100644
---- a/providers/mlx4/verbs.c
-+++ b/providers/mlx4/verbs.c
-@@ -87,6 +87,9 @@ int mlx4_query_device_ex(struct ibv_context *context,
- 	if (err)
- 		return err;
- 
-+	attr->rss_caps.rx_hash_fields_mask = resp.rss_caps.rx_hash_fields_mask;
-+	attr->rss_caps.rx_hash_function = resp.rss_caps.rx_hash_function;
-+
- 	if (resp.comp_mask & MLX4_QUERY_DEV_RESP_MASK_CORE_CLOCK_OFFSET) {
- 		mctx->core_clock.offset = resp.hca_core_clock_offset;
- 		mctx->core_clock.offset_valid = 1;
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index 98ac46ed7214f574..cbf186522016f97f 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -1,6 +1,6 @@
+ menuconfig INFINIBAND
+ 	tristate "InfiniBand support"
+-	depends on HAS_IOMEM
++	depends on HAS_IOMEM && HAS_DMA
+ 	depends on NET
+ 	depends on INET
+ 	depends on m || IPV6 != m
 -- 
-1.8.3.1
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
