@@ -1,66 +1,73 @@
-From: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH RFC rdma-core 1/5] verbs: Introduce thread domain and its
- related verbs
-Date: Sun, 19 Nov 2017 08:43:16 +0200
-Message-ID: <CAFgAxU_m=i9kG1h2Rbqe+YtVYpea8-Ez5qvm6dQU4tZPgOUqhA@mail.gmail.com>
-References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
- <1510522903-6838-2-git-send-email-yishaih@mellanox.com> <20171113195822.GD22610@ziepe.ca>
- <3719edfc-282a-db5b-2474-3cf1355fb301@dev.mellanox.co.il> <20171114191754.GI4263@ziepe.ca>
- <774e2f74-8361-6941-a015-27a2014d8cc9@dev.mellanox.co.il> <20171117184248.GN4276@ziepe.ca>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Please update the linux-next location for the RDMA subsystem
+Date: Sun, 19 Nov 2017 08:46:40 +0200
+Message-ID: <20171119064640.GV18825@mtr-leonro.local>
+References: <1510948060.3973.29.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="3vuPqocktzL7+mDR"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171117184248.GN4276-uk2M96/98Pc@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1510948060.3973.29.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Alex @ Mellanox" <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 17, 2017 at 8:42 PM, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote:
-> On Wed, Nov 15, 2017 at 11:34:01AM +0200, Yishai Hadas wrote:
+
+--3vuPqocktzL7+mDR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Nov 17, 2017 at 02:47:40PM -0500, Doug Ledford wrote:
+> Hi Stephen,
 >
->> >>ibv_td should expose in verbs.h the 'context' as the inline function
->> >>ibv_alloc_td() needs it to get the verbs_context and call the driver
->> >>function if was set.
->> >
->> >You mean ibv_dealloc_td, OK..
->> >
->> >Related to my other point, ibv_alloc_td should probably accept a
->> >ibv_pd as an argument instead.
->> >
->>
->> Why ibv_alloc_td() should get an ibv_pd ? do you have a typo here ?
+> Jason Gunthorpe is now co-maintaining the RDMA subsystem with me.  We
+> have a shared repo that we can both write into.  I would like you to re-
+> aim the RDMA linux-next pull point to:
 >
-> No..
+> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-
+> next
+
+Doug,
+
+Does it make sense to get rid of "k.o" notation for for-next and for-rc branches?
+It is already on kernel.org and seems to me as a redundant.
+
+
+Thanks
+
 >
-> Since ibv_alloc_td returns a 'ibv_pd' with additional information, it
-> makes no sense to have an API that can return an 'ibv_pd' that is not
-> actually a PD.
+> Thanks!
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG KeyID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-This new ibv_alloc_td() returns a ibv_td (Thread Domain), and it only
-manages the Thread related information
 
-The new ibv_alloc_parent_domain() returns a ibv_pd.
-https://www.spinics.net/lists/linux-rdma/msg56891.html
-The Parent Domain gets as input the protection domain (i.e. ibv_pd),
-thread domain (i.e. ibv_td) and potential other domains in the future
-(e.g. loopback).
-Here you can claim you want to enforce that a parent domain 'ibv_pd'
-will always include a protection domain 'ibv_pd', so that the struct
-ibv_pd values are always valid. Just need to update the man page for
-that.
-Maybe that's the source of the confusion?
 
-> So, all TD's have to be created from a PD, and the concept of a TD
-> without a PD should be entirely removed from the API.
+--3vuPqocktzL7+mDR
+Content-Type: application/pgp-signature; name="signature.asc"
 
-I can definitely see an application that wants to do something smart
-with it's CQ's, like per thread or NUMA aware logic. While it has many
-QPs' which it can't commit to any thread logic.
-Here we'll force the user to provide some protection domain while
-creating the CQ's with specific TD's. It doesn't have to be so.
+-----BEGIN PGP SIGNATURE-----
 
-Alex
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloRKNAACgkQ5GN7iDZy
+WKc+GQ/5AVjtnQaugioLykICsQdvsY7i8XGRVlQI3X+P3UjOIIoc1MYm5Rxfg04E
+6LMY2JaJwRVqEZ7pLQON9Yu0gadC8zx+ujatksWeQThw04vqjkgVaq7AACe8rU9d
+jiwWk892KB4H3UsFlm9uU7MTBLKVK7K4IeUkbrD1mPmGiW8179SWbnK7WExZle/b
+RMONduf5C2XnaJQaKNLCwXHTE8lAsSY9j6gtMeZ4+AxGQ7/KsC9tMkb83vKdl21H
+McydmO2HopPZPX+f7bfHHh9nHzr+z0MHEXHZLDfRxJNy5BuqKoodwLHoMEsOAZer
+VZ5iEnR1FgsPgoB6idAiTLZ248wsfssE+2VlLQTfIiiYVScGRdbBiCHX+IYcvsFv
+pIzAC78L9SlDmqxY7/uRPH+7h5atCRCEjX3FyMNnOfbfdVp+AQzLvciN6WtTbimH
+fRXKYHgsjDQ9eDO8xNfM9536RzfCea4/SOJkKHMpJyxxAnHC7LMAnw7fpIXbIwcA
+8l78nrjuDfprJ+QZbjZs7N6kgD2AcrC/AxwFv0O7IIEmFvy7NZTaYY9+QwmwslFZ
+D1/W8eXK5rj1eS9HnTgMs0PdnuVrClIfuYV2cNGVHhHQEb4teDBKam0jj/kBiarp
+4diz3AApSkh3zYWiu2A6EQdx8wp7heZIcS+aXi7mINCNgRE1ijo=
+=jGpH
+-----END PGP SIGNATURE-----
+
+--3vuPqocktzL7+mDR--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
