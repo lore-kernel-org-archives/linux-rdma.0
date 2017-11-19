@@ -1,78 +1,54 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: XRC Questions for Mellanox and All
-Date: Sun, 19 Nov 2017 12:02:10 +0000
-Message-ID: <BN3PR07MB2578DE457E8E49E57CF49F17F82D0@BN3PR07MB2578.namprd07.prod.outlook.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: XRC Questions for Mellanox and All
+Date: Sun, 19 Nov 2017 14:09:35 +0200
+Message-ID: <20171119120935.GX18825@mtr-leonro.local>
 References: <BN3PR07MB2578462C1760953F6D4690E2F8570@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <BN3PR07MB2578DE457E8E49E57CF49F17F82D0@BN3PR07MB2578.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="PkjaFWTMPc1xXyFZ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BN3PR07MB2578462C1760953F6D4690E2F8570-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <BN3PR07MB2578DE457E8E49E57CF49F17F82D0-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Leon, Mellanox,
-Can you help get a comment on this e-mail?
 
-(Added Sean and Roland as by git log they seem related too)
+--PkjaFWTMPc1xXyFZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Thanks,
-Ram
+On Sun, Nov 19, 2017 at 12:02:10PM +0000, Amrani, Ram wrote:
+> Hi Leon, Mellanox,
+> Can you help get a comment on this e-mail?
 
+Jack is working on it,
 
-> -----Original Message-----
-> [This sender failed our fraud detection checks and may not be who they ap=
-pear to be. Learn about spoofing at
-> http://aka.ms/LearnAboutSpoofing]
->=20
-> Hi Mellanox, All,
-> I've been reading XRC code, currently implemented only by Mellanox.
-> I have a few questions regarding specifications vs. implementation.
->=20
->  (1) The protocol specifies:
-> 11.6.3.2 AFFILIATED ASYNCHRONOUS ERRORS
-> ...
-> The following describes the new Affiliated Asynchronous Errors for
-> XRC TGT QPs:
-> * XRC Domain Violation - Responder's Receive Queue detected an
-> XRC Domain that does not match the XRC Domain of the XRC SRQ.
-> * Invalid XRCETH - Responder detected that the XRC SRQ does not
-> exist or is not in the right state or wire protocol violation.
->=20
-> I don't see any dedicated entries in the enum ib_event_type.
-> Why? How, do you currently treat these errors?
->=20
-> (2) The protocol specifies:
-> 11.4.2.1 POLL FOR COMPLETION
-> ...
-> Output Modifiers:
-> ...
-> * Local XRC TGT QP Number. Returned only for completions
-> of WRs posted to XRC SRQs.
->=20
-> I don't see any dedicated field in the struct ib_wc.
-> Why? How, do you currently return this value, if at all?
->=20
-> (3) The protocol specifies:
-> 11.4.2.1 POLL FOR COMPLETION
-> A new "XRC violation error" is returned for requests that caused the resp=
-onder
-> to return a "NAK-Invalid RD Request" NAK. This could have been
-> caused by either a Remote XRC Domain Violation or an XRCETH Violation
-> as detailed in the transport section.
->=20
-> What entry from the enum ib_wc_status do you use for this?
->=20
-> Thanks,
-> Ram
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+
+--PkjaFWTMPc1xXyFZ
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloRdH8ACgkQ5GN7iDZy
+WKf/DhAAzZY7+hJCz/qDV3ZxaJ35JutP4LBnM8rWUgmmhIXZjw7RvXWn6hCtOuJH
+jjFJY9xxmPum+rAMQqFiD/g8k/XmreX3xWNGwhSdujLpnFgWKhDYCKW6q3Hr2KYh
+JSDReOeZaN7o3OeMNg5s8HyT832pHQ5Q4YMri3LLzFTF/1C6n91kUVXvnxzxUFeb
+DrcOqKRlV/xZRG2lv7839ljMeTPLoAQ7pdIjoUf0Ezf9i7Z9gd1VGDo5sKMZHB/X
+EgX8RmWQ2ABVP0MzwB+P0IRD60JvpUfRD2+HaLUa1yf4eBu6gq2znU0n0zJhnZIQ
+qMB9kvYKv3q3B42ZD4I9JXOmXczA39lErdp1H4N0/Cddju12sCxHrZGwz6++ksU2
+z1rfEnRvoPLbnbaL8dgVW4Kyk9a/flKmEXZ3QYws/wl6bIjAhgf55KTfqZ4z+wVp
+sFrK6ngtOuPqkIjQZ+zfLdzxeqGQNUQCC3JUyyoXk+VebJ/+qz4jeS4rtUn2KM+Q
+47XnZg+mhf7FbpPwnCvSwJN7un6urUHmDkTOykecFunCVeVkqj8+MNDJp8HUqxSO
+j3hosGkWXg4BZJPF7RXhu6rVD+n4T2G2z/Mkq2KsfvooSE3Nv2qbhhM467xRXk33
+0eGPBrqUFWc4hLGMEfSxCjcseBvW7upVNVABqIVbmuuq/fbEI1g=
+=tr5I
+-----END PGP SIGNATURE-----
+
+--PkjaFWTMPc1xXyFZ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
