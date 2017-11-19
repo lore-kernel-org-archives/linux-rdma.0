@@ -1,42 +1,72 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 0/2] mlx5: Add striding RQ support via the DV API
-Date: Sun, 19 Nov 2017 21:21:06 +0200
-Message-ID: <1511119268-5934-1-git-send-email-yishaih@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: mthca misuse of get_user_pages() (was Re: [git pull] vfs.git
+ get_user_pages_fast() conversion)
+Date: Sun, 19 Nov 2017 21:23:54 +0000
+Message-ID: <20171119212354.GU21978@ZenIV.linux.org.uk>
+References: <20171117030205.GL21978@ZenIV.linux.org.uk>
+ <CA+55aFy+gsHRm+rBmimU3-PS_NUWyAd5Aq12=ygezQdX7_7LAg@mail.gmail.com>
+ <20171117213215.GQ21978@ZenIV.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171117213215.GQ21978@ZenIV.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This series from Noa is the supplementary part of the kernel series that was
-merged into 4.15.
+On Fri, Nov 17, 2017 at 09:32:15PM +0000, Al Viro wrote:
 
-This series exposes to mlx5 DV users the ability to create an RQ with the
-striding functionality.
+[snip]
+> drivers/infiniband/hw/mthca/mthca_memfree.c:475:        ret = get_user_pages(uaddr & PAGE_MASK, 1, FOLL_WRITE, pages, NULL);
+[snip]
 
-PR was sent:
-https://github.com/linux-rdma/rdma-core/pull/257
+> Itanic
+> one is almost certainly buggered - we are not holding ->mmap_sem there.
 
-Yishai
-Noa Osherovich (2):
-  mlx5: Report Multi-Packet RQ capabilities through mlx5 direct verbs
-  mlx5: Allow creation of a Multi-Packet RQ using direct verbs
+So's the mthca one - that caller (mthca_map_user_db()) does not take ->mmap_sem
+and at least some of its calls are immediately preceded by copy_from_user().
+If we don't have ->mmap_sem there, this get_user_pages() is oopsably racy; if
+we do, those copy_from_user() calls is deadlock-prone.
 
- debian/ibverbs-providers.symbols         |  2 +
- providers/mlx5/CMakeLists.txt            |  2 +-
- providers/mlx5/libmlx5.map               |  5 +++
- providers/mlx5/man/mlx5dv_query_device.3 | 14 ++++++-
- providers/mlx5/mlx5-abi.h                | 15 ++++++-
- providers/mlx5/mlx5.c                    |  5 +++
- providers/mlx5/mlx5.h                    |  1 +
- providers/mlx5/mlx5dv.h                  | 59 +++++++++++++++++++++++++++-
- providers/mlx5/verbs.c                   | 67 +++++++++++++++++++++++++++++---
- 9 files changed, 159 insertions(+), 11 deletions(-)
+To make things even nastier, mthca_map_user_db() does grab a mutex around the
+chunk that contains get_user_pages() call:
+        mutex_lock(&db_tab->mutex);
+several lines prior.  And _that_ is taken on a whole lot of codepaths; if any of
+those happen to be under ->mmap_sem, we can't grab ->mmap_sem just around that
+get_user_pages().  I've poked around a bit, but I'm really unfamiliar with that
+code...  The questions so far:
+	* can mthca_map_user_db() ever be called under ->mmap_sem?  Looks like
+it shouldn't, but...
+	* do we really need that get_user_pages() under ->mutex?  Would something
+like
+	....
+        if (db_tab->page[i].refcount) {
+                ++db_tab->page[i].refcount;
+                goto out;
+        }
+        mutex_unlock(&db_tab->mutex);
+	ret = get_user_pages_fast(uaddr & PAGE_MASK, 1, true, pages);
+        if (ret < 0)
+                return ret;
+        mutex_lock(&db_tab->mutex);
+        if (unlikely(db_tab->page[i].refcount)) {
+		/* lost the race */
+		put_page(pages[0]);
+                ++db_tab->page[i].refcount;
+                goto out;
+	}
+	....
+in place of the current
+        if (db_tab->page[i].refcount) {
+                ++db_tab->page[i].refcount;
+                goto out;
+        }
 
--- 
-1.8.3.1
+        ret = get_user_pages(uaddr & PAGE_MASK, 1, FOLL_WRITE, pages, NULL);
+        if (ret < 0)
+                goto out;
+be a usable solution?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Comments?
