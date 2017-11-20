@@ -1,68 +1,70 @@
-From: Leif Sahlberg <lsahlber-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Patch v6 07/22] CIFS: SMBD: Implement function to create a SMB
- Direct connection
-Date: Mon, 20 Nov 2017 02:38:50 -0500 (EST)
-Message-ID: <1711300759.28570763.1511163530669.JavaMail.zimbra@redhat.com>
-References: <20171105054404.23886-1-longli@exchange.microsoft.com> <20171105054404.23886-8-longli@exchange.microsoft.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Problem of changing the =?utf-8?Q?inli?=
+ =?utf-8?Q?ne_mode_or_turning_on_the_encapsulation_support_of_Mellanox_NI?=
+ =?utf-8?B?Q+KAmXM=?= eswitch
+Date: Mon, 20 Nov 2017 10:02:41 +0200
+Message-ID: <20171120080241.GB18825@mtr-leonro.local>
+References: <HK2PR01MB0834534F555D6F532694DE5AF5220@HK2PR01MB0834.apcprd01.prod.exchangelabs.com>
+ <20171120072351.GA18825@mtr-leonro.local>
+ <HK2PR01MB083483A928DBF1EC8643BEA3F5220@HK2PR01MB0834.apcprd01.prod.exchangelabs.com>
+ <83fb4706-2a4c-9e25-b5b6-92e433a7c746@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171105054404.23886-8-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
-Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
-Cc: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="3tt15+HBgQgyptxg"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <83fb4706-2a4c-9e25-b5b6-92e433a7c746-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Junxue ZHANG <jzhangcs-t+iU6Fs6CelnrVKH7T7RYw@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Byron Yi <yibairen1994-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Acked-by: Ronnie Sahlberg <lsahlber-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
+--3tt15+HBgQgyptxg
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
------ Original Message -----
-From: "Long Li" <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
-To: "Steve French" <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Christoph Hellwig" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Tom Talpey" <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "Matthew Wilcox" <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "Stephen Hemminger" <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Cc: "Long Li" <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Sent: Sunday, 5 November, 2017 4:43:49 PM
-Subject: [Patch v6 07/22] CIFS: SMBD: Implement function to create a SMB Direct connection
+On Mon, Nov 20, 2017 at 09:28:53AM +0200, Mark Bloch wrote:
+> >> NIC hardware model:
+> >> =E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=
+=94=E2=80=94
+> >> ConnectX=C2=AE-4 EN network interface card, 40GbE dual-port QSFP28, PC=
+Ie3.0
+> >> x8, tall bracket, ROHS R6
+> >>
+>
+> We don't support encap/decap with ConnectX-4.
+> You should use ConnectX-4 LX or ConnectX-5.
+> Note that on ConnectX-5 you don't need to turn inline support as it isn't=
+ needed.
 
-From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+I spoke with Mark and it looks like documentation issue.
 
-The upper layer calls this function to connect to peer through SMB Direct.
-Each SMB Direct connection is based on a RDMA RC Queue Pair.
+Thanks
 
-Signed-off-by: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
----
- fs/cifs/smbdirect.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+--3tt15+HBgQgyptxg
+Content-Type: application/pgp-signature; name="signature.asc"
 
-diff --git a/fs/cifs/smbdirect.c b/fs/cifs/smbdirect.c
-index 7af49cd..47d999f 100644
---- a/fs/cifs/smbdirect.c
-+++ b/fs/cifs/smbdirect.c
-@@ -1652,3 +1652,20 @@ struct smbd_connection *_smbd_get_connection(
- 	kfree(info);
- 	return NULL;
- }
-+
-+struct smbd_connection *smbd_get_connection(
-+	struct TCP_Server_Info *server, struct sockaddr *dstaddr)
-+{
-+	struct smbd_connection *ret;
-+	int port = SMBD_PORT;
-+
-+try_again:
-+	ret = _smbd_get_connection(server, dstaddr, port);
-+
-+	/* Try SMB_PORT if SMBD_PORT doesn't work */
-+	if (!ret && port == SMBD_PORT) {
-+		port = SMB_PORT;
-+		goto try_again;
-+	}
-+	return ret;
-+}
--- 
-2.7.4
+-----BEGIN PGP SIGNATURE-----
 
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloSjCEACgkQ5GN7iDZy
+WKeh7Q//frJVRiuUgcpu0yU+rHLnZ2rTAZ1vd9fXaAbEzzwC4RITOxgEIlceHH6a
+7CHDFoOutSc85HUd+TVhNZNNH3mJUustBTURE1ouiMlLxBrbqfafVmxWVdw5XVs7
+m+tC2VEgtWDiyYEMraILEQa4skg8iD03SZSeodXS1AVpgonz4njbMM+xr7Hj7R8e
+afq+pyHvnkTTdo1J6RTReRRCeQihz1bpfzjMGvcYyhJBnRXbViQJwS21Kc9IfXC0
+5L/Za5fJ6CweBaoTMr42AG6oU2gTwpJQdR1i1Fzyl2abpY7m5RdV5/WcQALXWfmR
+Q4s4lHD+vFystEiPRgm7Q1tWCRLZROmXqJGG0hygbR8LtS/fsGN/ZOqySzhvmd6M
+SnVJASPPZXZPbaVoCd/M2eW48EYW7Yk86Sii0ZjFwpDEeY4IqmzB27dlm8OjJSGA
+/3UPZty347UciuLmS6MkwTTLixivE1a90ePdqgO82VmJBYwe+NbGbAJoHxwhOsNq
+elXFSPw8E2yJdSkXDTqWYNIDZn4SNA5D1KnqD6i2gflCIHUMZoyz2kbJSL3vePXG
+WkgJuTmkjwS54TRAktOLVjIWytxacdjXJqKacK2btsFbEOVDvj9OiXSBxc4lbgQw
+VTHZnG9xkECawMEj9fLQ9moOfGH0xE6SNJ5PeLsqArZxoTDH8p0=
+=WbjL
+-----END PGP SIGNATURE-----
+
+--3tt15+HBgQgyptxg--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-cifs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
