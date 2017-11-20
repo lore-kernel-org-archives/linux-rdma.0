@@ -1,155 +1,161 @@
-From: Junxue ZHANG <jzhangcs-t+iU6Fs6CelnrVKH7T7RYw@public.gmane.org>
-Subject: =?Windows-1252?Q?Problem_of_changing_the_inline_mode_or_turning_on_the_en?=
- =?Windows-1252?Q?capsulation_support_of_Mellanox_NIC=92s_eswitch?=
-Date: Mon, 20 Nov 2017 03:29:00 +0000
-Message-ID: <HK2PR01MB0834534F555D6F532694DE5AF5220@HK2PR01MB0834.apcprd01.prod.exchangelabs.com>
+From: Steve French <smfrench-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Patch v6 04/22] CIFS: SMBD: Add SMB Direct protocol initial
+ values and constants
+Date: Sun, 19 Nov 2017 21:53:35 -0600
+Message-ID: <CAH2r5mu847=bMXvV8rpqFbQkk3H47dXKRZJRwG-egE+=KiYZSQ@mail.gmail.com>
+References: <20171105054404.23886-1-longli@exchange.microsoft.com> <20171105054404.23886-5-longli@exchange.microsoft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20171105054404.23886-5-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
+Cc: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, samba-technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi all,=20
+Have merged the first 4 patches in the series (had to merge patch 1 by
+hand to deal with merge conflicts) - am examining the rest.  Let me
+know if updates needed/expected soon  for any of the rest of the
+series
 
-I encountered a problem when I tried to change the inline mode or turn on t=
-he encapsulation support of Mellanox NIC=92s eswitch. I wonder if anyone co=
-uld help me with this. Thanks.
+On Sun, Nov 5, 2017 at 12:43 AM, Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org> wrote:
+> From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+>
+> To prepare for protocol implementation, add constants and user-configurable
+> values for the SMB Direct protocol.
+>
+> Signed-off-by: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> ---
+>  fs/cifs/smbdirect.c | 77 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  fs/cifs/smbdirect.h | 21 +++++++++++++++
+>  2 files changed, 98 insertions(+)
+>  create mode 100644 fs/cifs/smbdirect.c
+>  create mode 100644 fs/cifs/smbdirect.h
+>
+> diff --git a/fs/cifs/smbdirect.c b/fs/cifs/smbdirect.c
+> new file mode 100644
+> index 0000000..d3c16f8
+> --- /dev/null
+> +++ b/fs/cifs/smbdirect.c
+> @@ -0,0 +1,77 @@
+> +/*
+> + *   Copyright (C) 2017, Microsoft Corporation.
+> + *
+> + *   Author(s): Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> + *
+> + *   This program is free software;  you can redistribute it and/or modify
+> + *   it under the terms of the GNU General Public License as published by
+> + *   the Free Software Foundation; either version 2 of the License, or
+> + *   (at your option) any later version.
+> + *
+> + *   This program is distributed in the hope that it will be useful,
+> + *   but WITHOUT ANY WARRANTY;  without even the implied warranty of
+> + *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+> + *   the GNU General Public License for more details.
+> + */
+> +#include "smbdirect.h"
+> +
+> +/* SMBD version number */
+> +#define SMBD_V1        0x0100
+> +
+> +/* Port numbers for SMBD transport */
+> +#define SMB_PORT       445
+> +#define SMBD_PORT      5445
+> +
+> +/* Address lookup and resolve timeout in ms */
+> +#define RDMA_RESOLVE_TIMEOUT   5000
+> +
+> +/* SMBD negotiation timeout in seconds */
+> +#define SMBD_NEGOTIATE_TIMEOUT 120
+> +
+> +/* SMBD minimum receive size and fragmented sized defined in [MS-SMBD] */
+> +#define SMBD_MIN_RECEIVE_SIZE          128
+> +#define SMBD_MIN_FRAGMENTED_SIZE       131072
+> +
+> +/*
+> + * Default maximum number of RDMA read/write outstanding on this connection
+> + * This value is possibly decreased during QP creation on hardware limit
+> + */
+> +#define SMBD_CM_RESPONDER_RESOURCES    32
+> +
+> +/* Maximum number of retries on data transfer operations */
+> +#define SMBD_CM_RETRY                  6
+> +/* No need to retry on Receiver Not Ready since SMBD manages credits */
+> +#define SMBD_CM_RNR_RETRY              0
+> +
+> +/*
+> + * User configurable initial values per SMBD transport connection
+> + * as defined in [MS-SMBD] 3.1.1.1
+> + * Those may change after a SMBD negotiation
+> + */
+> +/* The local peer's maximum number of credits to grant to the peer */
+> +int smbd_receive_credit_max = 255;
+> +
+> +/* The remote peer's credit request of local peer */
+> +int smbd_send_credit_target = 255;
+> +
+> +/* The maximum single message size can be sent to remote peer */
+> +int smbd_max_send_size = 1364;
+> +
+> +/*  The maximum fragmented upper-layer payload receive size supported */
+> +int smbd_max_fragmented_recv_size = 1024 * 1024;
+> +
+> +/*  The maximum single-message size which can be received */
+> +int smbd_max_receive_size = 8192;
+> +
+> +/* The timeout to initiate send of a keepalive message on idle */
+> +int smbd_keep_alive_interval = 120;
+> +
+> +/*
+> + * User configurable initial values for RDMA transport
+> + * The actual values used may be lower and are limited to hardware capabilities
+> + */
+> +/* Default maximum number of SGEs in a RDMA write/read */
+> +int smbd_max_frmr_depth = 2048;
+> +
+> +/* If payload is less than this byte, use RDMA send/recv not read/write */
+> +int rdma_readwrite_threshold = 4096;
+> diff --git a/fs/cifs/smbdirect.h b/fs/cifs/smbdirect.h
+> new file mode 100644
+> index 0000000..c55f28b
+> --- /dev/null
+> +++ b/fs/cifs/smbdirect.h
+> @@ -0,0 +1,21 @@
+> +/*
+> + *   Copyright (C) 2017, Microsoft Corporation.
+> + *
+> + *   Author(s): Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> + *
+> + *   This program is free software;  you can redistribute it and/or modify
+> + *   it under the terms of the GNU General Public License as published by
+> + *   the Free Software Foundation; either version 2 of the License, or
+> + *   (at your option) any later version.
+> + *
+> + *   This program is distributed in the hope that it will be useful,
+> + *   but WITHOUT ANY WARRANTY;  without even the implied warranty of
+> + *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+> + *   the GNU General Public License for more details.
+> + */
+> +#ifndef _SMBDIRECT_H
+> +#define _SMBDIRECT_H
+> +
+> +/* Default maximum number of SGEs in a RDMA send/recv */
+> +#define SMBDIRECT_MAX_SGE      16
+> +#endif
+> --
+> 2.7.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-cifs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I want to use VXLan with OVS and try to offload the rules in hardware. I do=
-n=92t know whether it is necessary to turn on the encapsulation support. It=
- would also be of great help if anyone could tell me the correct way to acc=
-omplish that. Thanks.
 
 
-Problem:=20
-=97=97=97=97=97=97=97=97=97
-I can successfully turned on the switchdev mode of my Mellanox NIC. But whe=
-n I tried to change the inline-mode or turn on the encapsulation support, i=
-t failed.
+-- 
+Thanks,
 
-I can create VFs successfully and use those VFs with switch with link inlin=
-e mode and encapsulation support off.
-
-How to reproduce:
-=97=97=97=97=97=97=97=97=97
-Before each of the following steps, I first turn the switchdev mode off and=
- turn on the legacy mode.
-
-1. Change the inline mode:
-
-$ devlink dev eswitch set pci/0000:81:00.0 mode switchdev inline-mode netwo=
-rk
-devlink answers: Invalid argument
-
-Output of Syslog:
-Nov 20 00:05:04 ip-192-168-2-203 kernel: [ 2968.592023] mlx5_0:wait_for_asy=
-nc_commands:735:(pid 2332): done with all pending requests
-Nov 20 00:05:04 ip-192-168-2-203 systemd-udevd[2335]: Could not generate pe=
-rsistent MAC address for eth0: No such file or directory
-Nov 20 00:05:04 ip-192-168-2-203 systemd-udevd[2340]: Could not generate pe=
-rsistent MAC address for eth1: No such file or directory
-Nov 20 00:05:04 ip-192-168-2-203 kernel: [ 2968.707239] (0000:81:00.0): E-S=
-witch: SRIOV enabled: active vports(3)
-Nov 20 00:05:04 ip-192-168-2-203 kernel: [ 2968.707712] mlx5_core 0000:81:0=
-0.0: mlx5_cmd_check:710:(pid 2332): MODIFY_NIC_VPORT_CONTEXT(0x755) op_mod(=
-0x0) failed, status bad parameter(0x3), syndrome (0x40ea03)
-Nov 20 00:05:04 ip-192-168-2-203 kernel: [ 2968.707790] (0000:81:00.0): E-S=
-witch: Failed to set min inline on vport 1
-
-2. Turn on the encapsulation:
-
-$ devlink dev eswitch set pci/0000:81:00.0 mode switchdev encap enable
-devlink answers: Operation not supported
-
-Output of Syslog:
-
-Nov 20 00:06:16 ip-192-168-2-203 kernel: [ 3040.121748] (0000:81:00.0): E-S=
-witch: disable SRIOV: active vports(3) mode(1)
-Nov 20 00:06:16 ip-192-168-2-203 kernel: [ 3040.161942] (0000:81:00.0): E-S=
-witch: E-Switch enable SRIOV: nvfs(2) mode (2)
-Nov 20 00:06:18 ip-192-168-2-203 kernel: [ 3042.847377] mlx5_0:wait_for_asy=
-nc_commands:735:(pid 2371): done with all pending requests
-Nov 20 00:06:19 ip-192-168-2-203 systemd-udevd[2374]: Could not generate pe=
-rsistent MAC address for eth0: No such file or directory
-Nov 20 00:06:19 ip-192-168-2-203 systemd-udevd[2379]: Could not generate pe=
-rsistent MAC address for eth1: No such file or directory
-Nov 20 00:06:19 ip-192-168-2-203 kernel: [ 3042.961906] (0000:81:00.0): E-S=
-witch: SRIOV enabled: active vports(3)
-
-3. Query the status
-
-$ devlink dev eswitch show pci/0000:81:00.0
-pci/0000:81:00.0: mode switchdev inline-mode link encap disable
-
-
-NIC hardware model:
-=97=97=97=97=97=97=97=97=97
-ConnectX=AE-4 EN network interface card, 40GbE dual-port QSFP28, PCIe3.0 x8=
-, tall bracket, ROHS R6
-
-
-NIC firmware:
-=97=97=97=97=97=97=97=97=97
-$ mstflint -d 81:00.1 q
-
-Image type:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 FS3
-FW Version:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 12.21.1000
-FW Release Date:=A0=A0=A0=A0=A0=A0 29.10.2017
-Product Version:=A0=A0=A0=A0=A0=A0 rel-12_21_1000
-Rom Info:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 type=3DPXE version=3D3.5.3=
-05 devid=3D4115 cpu=3DAMD64
-Description:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 UID=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0 GuidsNumber
-Base GUID:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ec0d9a0300373802=A0=A0=A0=A0=
-=A0=A0=A0 4
-Base MAC:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 0000ec0d9a373802=A0=A0=A0=
-=A0=A0=A0=A0 4
-Image VSD:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 N/A
-Device VSD:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 N/A
-PSID:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 MT_2130110027
-Security Attributes:=A0=A0 N/A
-
-Linux distribution:
-=97=97=97=97=97=97=97=97=97
-$ cat /etc/*-release
-
-PRETTY_NAME=3D"Debian GNU/Linux 9 (stretch)"
-NAME=3D"Debian GNU/Linux"
-VERSION_ID=3D"9"
-VERSION=3D"9 (stretch)"
-ID=3Ddebian
-HOME_URL=3D"https://www.debian.org/"
-SUPPORT_URL=3D"https://www.debian.org/support"
-BUG_REPORT_URL=3D"https://bugs.debian.org/"
-
-Linux kernel:
-=97=97=97=97=97=97=97=97=97
-$ uname -r
-
-4.14.0-rc7-amd64
-
-NIC driver:
-=97=97=97=97=97=97=97=97=97
-$ ethtool -i ens6f0
-
-driver: mlx5_core
-version: 5.0-0
-firmware-version: 12.21.1000 (MT_2130110027)
-expansion-rom-version:
-bus-info: 0000:81:00.0
-supports-statistics: yes
-supports-test: yes
-supports-eeprom-access: no
-supports-register-dump: no
-supports-priv-flags: yes
-
-Best,
-
-Junxue
-
+Steve
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
