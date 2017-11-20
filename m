@@ -1,34 +1,58 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] Fix request completion holes
-Date: Mon, 20 Nov 2017 10:33:11 +0200
-Message-ID: <37edfd7b-2de3-ba30-8770-8a14266d7cdd@grimberg.me>
-References: <20171108100616.26605-1-sagi@grimberg.me>
- <1510611044.3735.49.camel@redhat.com>
- <e89f72c6-12ce-c149-c81e-f3adb43a8e9e@grimberg.me>
- <20171120073755.GA2236@infradead.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/3] Fix remaining Debian build failures
+Date: Mon, 20 Nov 2017 10:33:12 +0200
+Message-ID: <20171120083312.GE18825@mtr-leonro.local>
+References: <20171116163246.29736-1-benjamin.drung@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="LRGBJGUSW9Vdlukj"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171120073755.GA2236-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20171116163246.29736-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
->>> Sagi, are you ready for me to take this series in?  It seemed like there
->>> was a question as to whether you might want to try atomics instead of
->>> spin locks, or do you want to stick with spinlocks?
->>
->> I still need a review for this, and I think we'll get it in through the
->> nvme tree (via the block tree). Thanks.
-> 
-> I've  done an initial review pass, but I'd really like to see someone
-> who has more RDMA experience to take a look as well.
+--LRGBJGUSW9Vdlukj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Perhaps Max can have a look?
+On Thu, Nov 16, 2017 at 05:32:43PM +0100, Benjamin Drung wrote:
+> Fix the remaining build failures on
+> https://buildd.debian.org/status/package.php?p=rdma-core and the Travis CI
+> build failure.
+>
+> Benjamin Drung (3):
+>   debian: Include architecture.mk for DEB_HOST_ARCH definition
+>   debian: Add alpha, hppa, sh4 as non-coherent DMA archs
+>   debian: Do not require valgrind on x32
+>
+
+Thanks, applied.
+
+--LRGBJGUSW9Vdlukj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloSk0gACgkQ5GN7iDZy
+WKclPBAAurS3g0OKSOsfgj5JbgtYfodqpFHK1NrYbuJGmplFYxVAn3TlTthwuAbn
+qbRWb0rpsYgqXV+9xv9vANyvUFWV7YjNiC4jWsO+KD7Iwhz4fHaIO189CHS+wD7H
+cx9iKCuzjZ+b9yBDOpqZETdVVMWC5sc8d85xlcGS6VWSTunwoXroLZVDBc908gEx
+Ick4Om+Zxx9oyezyBD6MvoIhyfiZpLCWr3JyfopHoBK2zt4FJhlc7gXjR+cC1ePj
+Vlyg4+XwhM84ATSfARkwZBsezCgz+X+xkYfwCNmnsnEp7xoTz3ebTPt9HA1jCcy4
+ZafvMGlpojA2o12dX0ssSxiAmvRqg1RiKqHIfYe/bQGhfTj8+3QY9DcPkZeyyKlh
+spAis9FqFTliGXWZgKsMgeKIIuoaY11q6TMCzrFGfAyUT4N1pGmZy8tz2PlBbgx6
+GIuyxAHZmNNKjjZZd2t0onFbQSNgx5NOaN9Dv/HxeJlycah5MGHvAWA9GgrEnALP
+lbA08wJYYkGFdIPiRfA/De+FvuDVdnd1+PF20mvtN6EIwkwXvlvq4K1RxPJjb3Sk
+N5KhAlpJizWvtyHeT2y1NpBMos1JI59bUeUy6yUYbPEHApZx1Yx+Fvh8lngJJoZi
+CTdyJOWMS00I+tcvD8/ZoLKgJXJ0XJ5bzQb2rOh1vSNW7ofZ97k=
+=ZTi8
+-----END PGP SIGNATURE-----
+
+--LRGBJGUSW9Vdlukj--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
