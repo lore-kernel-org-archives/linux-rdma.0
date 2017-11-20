@@ -1,69 +1,176 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] rdma: Add Jason as a co-maintainer
-Date: Mon, 20 Nov 2017 18:10:16 +0200
-Message-ID: <20171120161016.GL18825@mtr-leonro.local>
-References: <20171116204400.GA28216@mellanox.com>
+From: Steve French <smfrench@gmail.com>
+Subject: Re: [Patch v7 06/22] CIFS: SMBD: export protocol initial values
+Date: Mon, 20 Nov 2017 10:55:37 -0600
+Message-ID: <CAH2r5mtz=-i8-e7CMqWn+uh-dk8_YvKimfoO_wQJUKhv502JUQ@mail.gmail.com>
+References: <20171107085514.12693-1-longli@exchange.microsoft.com>
+ <20171107085514.12693-7-longli@exchange.microsoft.com> <1490537439.28570701.1511163461828.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="QafmyB0AUxEAAzWJ"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171116204400.GA28216-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1490537439.28570701.1511163461828.JavaMail.zimbra@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leif Sahlberg <lsahlber@redhat.com>
+Cc: Long Li <longli@exchange.microsoft.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Tom Talpey <ttalpey@microsoft.com>, Matthew Wilcox <mawilcox@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Long Li <longli@microsoft.com>
 List-Id: linux-rdma@vger.kernel.org
 
+merged into cifs-2.6.git for-next after cleaning up a couple checkpatch war=
+nings
 
---QafmyB0AUxEAAzWJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Nov 16, 2017 at 01:44:00PM -0700, Jason Gunthorpe wrote:
-> As was discussed in September and October, add Jason along with
-> Doug to have a team maintainership model for the RDMA subystem.
+On Mon, Nov 20, 2017 at 1:37 AM, Leif Sahlberg <lsahlber@redhat.com> wrote:
+> Acked-by: Ronnie Sahlberg <lsahlber@redhat.com>
 >
-> Mellanox Technologies will be funding Jason's independent work on
-> the maintainership.
 >
-> Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ----- Original Message -----
+> From: "Long Li" <longli@exchange.microsoft.com>
+> To: "Steve French" <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba=
+-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.k=
+ernel.org, "Christoph Hellwig" <hch@infradead.org>, "Tom Talpey" <ttalpey@m=
+icrosoft.com>, "Matthew Wilcox" <mawilcox@microsoft.com>, "Stephen Hemminge=
+r" <sthemmin@microsoft.com>
+> Cc: "Long Li" <longli@microsoft.com>
+> Sent: Tuesday, 7 November, 2017 7:54:58 PM
+> Subject: [Patch v7 06/22] CIFS: SMBD: export protocol initial values
+>
+> From: Long Li <longli@microsoft.com>
+>
+> For use-configurable SMB Direct protocol values, export them to /proc/fs/=
+cifs.
+>
+> Signed-off-by: Long Li <longli@microsoft.com>
 > ---
->  .mailmap    | 2 ++
->  MAINTAINERS | 1 +
->  2 files changed, 3 insertions(+)
+>  fs/cifs/cifs_debug.c | 79 ++++++++++++++++++++++++++++++++++++++++++++++=
+++++++
+>  1 file changed, 79 insertions(+)
 >
+> diff --git a/fs/cifs/cifs_debug.c b/fs/cifs/cifs_debug.c
+> index ba0870d..7025d8d 100644
+> --- a/fs/cifs/cifs_debug.c
+> +++ b/fs/cifs/cifs_debug.c
+> @@ -30,6 +30,9 @@
+>  #include "cifsproto.h"
+>  #include "cifs_debug.h"
+>  #include "cifsfs.h"
+> +#ifdef CONFIG_CIFS_SMB_DIRECT
+> +#include "smbdirect.h"
+> +#endif
+>
+>  void
+>  cifs_dump_mem(char *label, void *data, int length)
+> @@ -371,6 +374,54 @@ static const struct file_operations cifs_stats_proc_=
+fops =3D {
+>  };
+>  #endif /* STATS */
+>
+> +#ifdef CONFIG_CIFS_SMB_DIRECT
+> +#define PROC_FILE_DEFINE(name) \
+> +static ssize_t name##_write(struct file *file, const char __user *buffer=
+, \
+> +       size_t count, loff_t *ppos) \
+> +{ \
+> +       int rc; \
+> +       rc =3D kstrtoint_from_user(buffer, count, 10, & name ); \
+> +       if (rc) \
+> +               return rc; \
+> +       return count; \
+> +} \
+> +static int name##_proc_show(struct seq_file *m, void *v) \
+> +{ \
+> +       seq_printf(m, "%d\n", name ); \
+> +       return 0; \
+> +} \
+> +static int name##_open(struct inode *inode, struct file *file) \
+> +{ \
+> +       return single_open(file, name##_proc_show, NULL); \
+> +} \
+> +\
+> +static const struct file_operations cifs_##name##_proc_fops =3D { \
+> +       .open           =3D name##_open, \
+> +       .read           =3D seq_read, \
+> +       .llseek         =3D seq_lseek, \
+> +       .release        =3D single_release, \
+> +       .write          =3D name##_write, \
+> +}
+> +
+> +extern int rdma_readwrite_threshold;
+> +extern int smbd_max_frmr_depth;
+> +extern int smbd_keep_alive_interval;
+> +extern int smbd_max_receive_size;
+> +extern int smbd_max_fragmented_recv_size;
+> +extern int smbd_max_send_size;
+> +extern int smbd_send_credit_target;
+> +extern int smbd_receive_credit_max;
+> +
+> +PROC_FILE_DEFINE(rdma_readwrite_threshold);
+> +PROC_FILE_DEFINE(smbd_max_frmr_depth);
+> +PROC_FILE_DEFINE(smbd_keep_alive_interval);
+> +PROC_FILE_DEFINE(smbd_max_receive_size);
+> +PROC_FILE_DEFINE(smbd_max_fragmented_recv_size);
+> +PROC_FILE_DEFINE(smbd_max_send_size);
+> +PROC_FILE_DEFINE(smbd_send_credit_target);
+> +PROC_FILE_DEFINE(smbd_receive_credit_max);
+> +#endif
+> +
+>  static struct proc_dir_entry *proc_fs_cifs;
+>  static const struct file_operations cifsFYI_proc_fops;
+>  static const struct file_operations cifs_lookup_cache_proc_fops;
+> @@ -398,6 +449,24 @@ cifs_proc_init(void)
+>                     &cifs_security_flags_proc_fops);
+>         proc_create("LookupCacheEnabled", 0, proc_fs_cifs,
+>                     &cifs_lookup_cache_proc_fops);
+> +#ifdef CONFIG_CIFS_SMB_DIRECT
+> +       proc_create("rdma_readwrite_threshold", 0, proc_fs_cifs,
+> +               &cifs_rdma_readwrite_threshold_proc_fops);
+> +       proc_create("smbd_max_frmr_depth", 0, proc_fs_cifs,
+> +               &cifs_smbd_max_frmr_depth_proc_fops);
+> +       proc_create("smbd_keep_alive_interval", 0, proc_fs_cifs,
+> +               &cifs_smbd_keep_alive_interval_proc_fops);
+> +       proc_create("smbd_max_receive_size", 0, proc_fs_cifs,
+> +               &cifs_smbd_max_receive_size_proc_fops);
+> +       proc_create("smbd_max_fragmented_recv_size", 0, proc_fs_cifs,
+> +               &cifs_smbd_max_fragmented_recv_size_proc_fops);
+> +       proc_create("smbd_max_send_size", 0, proc_fs_cifs,
+> +               &cifs_smbd_max_send_size_proc_fops);
+> +       proc_create("smbd_send_credit_target", 0, proc_fs_cifs,
+> +               &cifs_smbd_send_credit_target_proc_fops);
+> +       proc_create("smbd_receive_credit_max", 0, proc_fs_cifs,
+> +               &cifs_smbd_receive_credit_max_proc_fops);
+> +#endif
+>  }
+>
+>  void
+> @@ -415,6 +484,16 @@ cifs_proc_clean(void)
+>         remove_proc_entry("SecurityFlags", proc_fs_cifs);
+>         remove_proc_entry("LinuxExtensionsEnabled", proc_fs_cifs);
+>         remove_proc_entry("LookupCacheEnabled", proc_fs_cifs);
+> +#ifdef CONFIG_CIFS_SMB_DIRECT
+> +       remove_proc_entry("rdma_readwrite_threshold", proc_fs_cifs);
+> +       remove_proc_entry("smbd_max_frmr_depth", proc_fs_cifs);
+> +       remove_proc_entry("smbd_keep_alive_interval", proc_fs_cifs);
+> +       remove_proc_entry("smbd_max_receive_size", proc_fs_cifs);
+> +       remove_proc_entry("smbd_max_fragmented_recv_size", proc_fs_cifs);
+> +       remove_proc_entry("smbd_max_send_size", proc_fs_cifs);
+> +       remove_proc_entry("smbd_send_credit_target", proc_fs_cifs);
+> +       remove_proc_entry("smbd_receive_credit_max", proc_fs_cifs);
+> +#endif
+>         remove_proc_entry("fs/cifs", NULL);
+>  }
+>
+> --
+> 2.7.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-cifs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-cifs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Doug and Jason,
 
-Can you forward the current fixes to Linus?
 
-I have more fixes from Parav and fix to iWARP from Daniel, but I prefer
-to have proper RDMA branches before I'm posting them.
+--=20
+Thanks,
 
-Thanks
-
---QafmyB0AUxEAAzWJ
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloS/mgACgkQ5GN7iDZy
-WKekJBAAkUYYwdzQ1Fer0vd1SzFfKZTUhHjhLWAiPm+lW97YsS6XNQ6JFXhB1RLu
-QYtTkhqRDvKSP8dL+11qxdU7C9U2dwwAasuBuuPj4M6WUraaXaGml+9281RQvqmI
-b+8tMhzRlq404//QKFNMRIgwW2t6HwChJlE+4oLSGcu+2nQtEMpSKqDniQBCvWQE
-USdrsAFmuYEpb1CbcuP3Mlq24imE0MZ8DfZBO13Gtg3GpIHKMxfmOq2c+s8OLSM0
-Ea6VrfizT83TGxtypXKDWwymdSJb2umsgn6SrbtiMBV5Y8FozoJkBC55Do6jnxci
-7zMz3UiBf9CLKqRCkeOCY1JrjifiETgjRjI0kLl2LtMHHFYfYWB0RX6Jy/wjzIkd
-dk9biGAJwTzDe9xQx6hGejpQHwpqyju/2kX0nzRDBopmoHk/5IssHfCy7ltWjrqY
-albYhp/KQfWl8ersJ/XW5AyM8/94d7mZji3V7Jx6fYoZWbMxkoC7Ryrx70qjo0oh
-JgU1LuziflUNh1tyIpukm7XFBM8PsetOAUdQhlOAUSV+j0GDEkx8wZIpYmWkfaia
-D9k4eILKAvHyQcDpwSiFb/uFPv4ZL55eUe5GfV9aiSc1+cYyhq2cBUwUrp4V7ZAu
-jluxGBm8XnhdfDUS9qGeK+jx6YXxb+awmUmj38t/gUeqwCYVics=
-=Sru2
------END PGP SIGNATURE-----
-
---QafmyB0AUxEAAzWJ--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Steve
