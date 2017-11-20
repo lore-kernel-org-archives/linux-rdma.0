@@ -1,55 +1,96 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH v3 0/3] Fix request completion holes
-Date: Mon, 20 Nov 2017 12:41:53 +0200
-Message-ID: <20171120104156.31344-1-sagi@grimberg.me>
+Subject: [PATCH v3 2/3] nvme-rdma: don't complete requests before a send work request has completed
+Date: Mon, 20 Nov 2017 12:41:55 +0200
+Message-ID: <20171120104156.31344-3-sagi@grimberg.me>
+References: <20171120104156.31344-1-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171120104156.31344-1-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We have two holes in nvme-rdma when completing request.
+In order to guarantee that the HCA will never get an access violation
+(either from invalidated rkey or from iommu) when retrying a send
+operation we must complete a request only when both send completion
+and the nvme cqe has arrived. We need to set the send/recv completions
+flags atomically because we might have more than a single context
+accessing the request concurrently (one is cq irq-poll context and
+the other is user-polling used in IOCB_HIPRI).
 
-1. We never wait for send work request to complete before completing
-a request. It is possible that the HCA retries a send operation (due
-to dropped ack) after the nvme cqe has already arrived back to the host.
-If we unmap the host buffer upon reception of the cqe, the HCA might
-get iommu errors when attempting to access an unmapped host buffer.
-We must wait also for the send completion before completing a request,
-most of the time it will be before the nvme cqe has arrived back so
-we pay only for the extra cq entry processing.
+Only then we are safe to invalidate the rkey (if needed), unmap
+the host buffers, and complete the IO.
 
-2. We don't wait for the request memory region to be fully invalidated
-in case the target didn't invalidate remotely. We must wait for the local
-invalidation to complete before completing the request.
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ drivers/nvme/host/rdma.c | 27 +++++++++++++++++++++++----
+ 1 file changed, 23 insertions(+), 4 deletions(-)
 
-Note that we might face two concurrent completion processing contexts for
-a single request. One is the ib_cq irq-poll context and the second is
-blk_mq_poll which is invoked from IOCB_HIPRI requests. Thus we need the
-completion flags updates (send/receive) to be atomic. A new request
-lock is introduced to guarantee the mutual exclusion of the completion
-flags updates.
-
-Thanks to Christoph for suggesting request refcounts instead of a private
-lock.
-
-Changes from v2:
-- Fixed send completion signalling in patch 1 (still signal conditionally
-  as we still want to suppress it for async events)
-- replaced req->lock with req->ref for micro-optimization (Christoph)
-
-Changes from v1:
-- Added atomic send/resp_completed updated (via per-request lock)
-
-Sagi Grimberg (3):
-  nvme-rdma: don't suppress send completions
-  nvme-rdma: don't complete requests before a send work request has
-    completed
-  nvme-rdma: wait for local invalidation before completing a request
-
- drivers/nvme/host/rdma.c | 105 ++++++++++++++++++++++-------------------------
- 1 file changed, 50 insertions(+), 55 deletions(-)
-
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index 85c98589a5e0..1692d2318abe 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -59,6 +59,8 @@ struct nvme_rdma_request {
+ 	struct nvme_request	req;
+ 	struct ib_mr		*mr;
+ 	struct nvme_rdma_qe	sqe;
++	struct nvme_completion	cqe;
++	refcount_t		ref;
+ 	struct ib_sge		sge[1 + NVME_RDMA_MAX_INLINE_SEGMENTS];
+ 	u32			num_sge;
+ 	int			nents;
+@@ -1162,6 +1164,7 @@ static int nvme_rdma_map_data(struct nvme_rdma_queue *queue,
+ 	req->num_sge = 1;
+ 	req->inline_data = false;
+ 	req->mr->need_inval = false;
++	refcount_set(&req->ref, 2); /* send and recv completions */
+ 
+ 	c->common.flags |= NVME_CMD_SGL_METABUF;
+ 
+@@ -1198,8 +1201,19 @@ static int nvme_rdma_map_data(struct nvme_rdma_queue *queue,
+ 
+ static void nvme_rdma_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+-	if (unlikely(wc->status != IB_WC_SUCCESS))
++	struct nvme_rdma_qe *qe =
++		container_of(wc->wr_cqe, struct nvme_rdma_qe, cqe);
++	struct nvme_rdma_request *req =
++		container_of(qe, struct nvme_rdma_request, sqe);
++	struct request *rq = blk_mq_rq_from_pdu(req);
++
++	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+ 		nvme_rdma_wr_error(cq, wc, "SEND");
++		return;
++	}
++
++	if (refcount_dec_and_test(&req->ref))
++		nvme_end_request(rq, req->cqe.status, req->cqe.result);
+ }
+ 
+ static int nvme_rdma_post_send(struct nvme_rdma_queue *queue,
+@@ -1318,14 +1332,19 @@ static int nvme_rdma_process_nvme_rsp(struct nvme_rdma_queue *queue,
+ 	}
+ 	req = blk_mq_rq_to_pdu(rq);
+ 
+-	if (rq->tag == tag)
+-		ret = 1;
++	req->cqe.status = cqe->status;
++	req->cqe.result = cqe->result;
+ 
+ 	if ((wc->wc_flags & IB_WC_WITH_INVALIDATE) &&
+ 	    wc->ex.invalidate_rkey == req->mr->rkey)
+ 		req->mr->need_inval = false;
+ 
+-	nvme_end_request(rq, cqe->status, cqe->result);
++	if (refcount_dec_and_test(&req->ref)) {
++		if (rq->tag == tag)
++			ret = 1;
++		nvme_end_request(rq, req->cqe.status, req->cqe.result);
++	}
++
+ 	return ret;
+ }
+ 
 -- 
 2.14.1
 
