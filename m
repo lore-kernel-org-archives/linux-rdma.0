@@ -1,45 +1,31 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/8] i40iw: Allocate a sdbuf per CQP WQE
-Date: Mon, 20 Nov 2017 15:29:59 -0600
-Message-ID: <20171120212959.GA14928@ssaleem-MOBL4.amr.corp.intel.com>
+Subject: Re: [PATCH 8/8] i40iw: Change accelerated flag to bool
+Date: Mon, 20 Nov 2017 15:31:55 -0600
+Message-ID: <20171120213155.GB14928@ssaleem-MOBL4.amr.corp.intel.com>
 References: <20171117164657.14824-1-henry.orosco@intel.com>
- <20171117164657.14824-3-henry.orosco@intel.com>
- <20171120183800.GD29075@ziepe.ca>
+ <20171117164657.14824-9-henry.orosco@intel.com>
+ <20171120183954.GE29075@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171120183800.GD29075-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20171120183954.GE29075-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 20, 2017 at 11:38:00AM -0700, Jason Gunthorpe wrote:
-> On Fri, Nov 17, 2017 at 10:46:51AM -0600, Henry Orosco wrote:
-> > From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > 
-> > Currently there is only one sdbuf per Control QP(CQP) for programming
-> > Segment Descriptor(SD) command thus limiting the number of SD work
-> > requests that can be posted to one.  Allocate enough memory for one
-> > sdbuf per CQP SQ WQE to allow more than one SD command at a time.
-> > When a SD command is posted, it will use the corresponding sdbuf for
-> > the WQE.
+On Mon, Nov 20, 2017 at 11:39:54AM -0700, Jason Gunthorpe wrote:
+> On Fri, Nov 17, 2017 at 10:46:57AM -0600, Henry Orosco wrote:
+> > The accelerated flag only utilizes two values: 0 and 1.
+> > Modify accelerated flag in struct i40iw_cm_node to bool.
 > 
-> It is not clear to me from this description why this would be a rc
-> candidate?
-> 
-> Is this is a bug? or is it adding a feature of increasing the number
-> of 'SD work requests'?
+> I think this is not rc material
 >
 
-Its a bug fix as we are reusing the same SD buffer
-for all WQEs posted. This is incorrect and will become
-a problem if we have multiple simultaneous SD WQEs 
-being posted.
+That's right. It can be deferred for 4.16
 
 Shiraz
-
  
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
