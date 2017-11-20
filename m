@@ -1,56 +1,55 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH 2/8] i40iw: Allocate a sdbuf per CQP WQE
-Date: Mon, 20 Nov 2017 14:46:28 -0700
-Message-ID: <20171120214628.GQ29075@ziepe.ca>
-References: <20171117164657.14824-1-henry.orosco@intel.com>
- <20171117164657.14824-3-henry.orosco@intel.com>
- <20171120183800.GD29075@ziepe.ca>
- <20171120212959.GA14928@ssaleem-MOBL4.amr.corp.intel.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH] RDMA/cma: Remove netlink interface of CMA statistics
+Date: Tue, 21 Nov 2017 00:14:01 +0200
+Message-ID: <CAJ3xEMhKEXB3-RJFyEh2dE8dr6OOpQPZ2rJ14MoKQ-2sB0GTXg@mail.gmail.com>
+References: <20171113192432.GL6918@ziepe.ca> <20171114080550.GR18825@mtr-leonro.local>
+ <CAJ3xEMhfdXz8zQFetjQPfe7HZiCi+N0z6r9XSucuTzQo1--PBg@mail.gmail.com>
+ <20171114095605.GU18825@mtr-leonro.local> <CAJ3xEMhM0xfNxRU+37oWKq_w=MGtE3sUXy38bARgX5-3G9zhvw@mail.gmail.com>
+ <20171114173516.GZ18825@mtr-leonro.local> <CAJ3xEMgJJX0FXMK9Rj=kGmNGkF14tBe03zfwzKHnEEp=cEDVxw@mail.gmail.com>
+ <20171115052926.GN18825@mtr-leonro.local> <CAJ3xEMjrTvY+hq=1Q3tmPk_QiZtpO8dLMmCtrPjJgbtOeiU=6Q@mail.gmail.com>
+ <CAJ3xEMjst4EaFYfUVwqiOzsh5pVPj85joPYsGsap8p6tQYUwew@mail.gmail.com> <20171120194152.GN29075@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171120212959.GA14928-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
+In-Reply-To: <20171120194152.GN29075-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 20, 2017 at 03:29:59PM -0600, Shiraz Saleem wrote:
-> On Mon, Nov 20, 2017 at 11:38:00AM -0700, Jason Gunthorpe wrote:
-> > On Fri, Nov 17, 2017 at 10:46:51AM -0600, Henry Orosco wrote:
-> > > From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > 
-> > > Currently there is only one sdbuf per Control QP(CQP) for programming
-> > > Segment Descriptor(SD) command thus limiting the number of SD work
-> > > requests that can be posted to one.  Allocate enough memory for one
-> > > sdbuf per CQP SQ WQE to allow more than one SD command at a time.
-> > > When a SD command is posted, it will use the corresponding sdbuf for
-> > > the WQE.
-> > 
-> > It is not clear to me from this description why this would be a rc
-> > candidate?
-> > 
-> > Is this is a bug? or is it adding a feature of increasing the number
-> > of 'SD work requests'?
-> >
-> 
-> Its a bug fix as we are reusing the same SD buffer
-> for all WQEs posted. This is incorrect and will become
-> a problem if we have multiple simultaneous SD WQEs 
-> being posted.
+On Mon, Nov 20, 2017 at 9:41 PM, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote:
 
-OK, can you send me a revised commit description making it clear what
-the bug is and how it could be hit? Maybe something like:
+> Well, I would like to know the issues as well, as I've already said I
+> think they should be described in the commit message.
 
- The driver only allocated one Segment Descriptor (SD) per ???, but there
- is nothing preventing multiple WQEs from trying to use the same
- SD. In this case new WQEs can corrupt past SD's resulting in
- mis-execution of the WQE.
+> But also, at the RFC stage the onus is on other people, particularly
+> people that want to keep the feature, to explain where it is being
+> used and why..
 
- Fix this by allocating a SD for every possible WQE and blah blah
+we did it to allow user space track rdma-cm connections through the rdma
+subsystem netlink infra-structure, e.g one can come up with netstat like
+reporting of rdma listeners and connections, this is it!
 
-Jason
+> We need to decide if we drop the RFC and fix the implementation, apply
+> the the RFC, or add a deprecation printk warning, or something..
+
+right. To my opinion, if there are issues in the implementation, lets fix them,
+I don't see why remove this implementation and replace it with a new one
+that does the same thing.
+
+> Please try to be productive here and concentrate on adding information
+> and not nit-picking the process! We all know removing a uapi is a big
+> deal.
+
+Re usage I provided what I know.
+
+When a patch is sent  to remove code "which has problems" and the author
+doesn't provide any information on the nature nor the details of the problems
+after being asked three times - what this has to do with nit picking
+or processes?
+it's something totally different, isn't that?
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
