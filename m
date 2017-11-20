@@ -1,44 +1,30 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v2 2/3] nvme-rdma: don't complete requests before a send
- work request has completed
-Date: Mon, 20 Nov 2017 11:28:04 +0200
-Message-ID: <58bdc9c0-f98e-9d9f-f81e-fbed572f922e@grimberg.me>
-References: <20171108100616.26605-1-sagi@grimberg.me>
- <20171108100616.26605-3-sagi@grimberg.me> <20171109092110.GB16966@lst.de>
- <0f368bc9-2e9f-4008-316c-46b85661a274@grimberg.me>
- <20171120083130.GC27552@lst.de>
- <384d8a51-aa2f-5954-c9fd-a0c88d7e5364@grimberg.me>
- <20171120084102.GA28456@lst.de>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] nvme-rdma: don't suppress send completions
+Date: Mon, 20 Nov 2017 10:32:05 +0100
+Message-ID: <20171120093205.GB29719@lst.de>
+References: <20171108100616.26605-1-sagi@grimberg.me> <20171108100616.26605-2-sagi@grimberg.me> <20171109091858.GA16966@lst.de> <921c4331-9456-3783-423a-9c5c5e405131@grimberg.me> <20171120081809.GB27552@lst.de> <4ac0bc2e-498b-0fc1-4e30-7ff76bd036f1@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171120084102.GA28456-jcswGhMUV9g@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <4ac0bc2e-498b-0fc1-4e30-7ff76bd036f1-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->>> Both send and recv completed only ever go from not set to set on a live
->>> requests, so that's easy.  need_inval only goes from set to cleared
->>> so I'm not too worried about it either, but due to the lack of atomic
->>> bitops there it will need better memory barries, or just a switch
->>> to bitops..
->>>
->>> But looking at this in a little more detail I wonder if we just want
->>> a recount on the nvme_rdma_request, untested patch below.
->>
->> I'll give it a shot.
-> 
-> Btw, in our brave new world that should probably be a refcnt_t instead
-> of an atomic_t, but that's a trivial search and replace.
+On Mon, Nov 20, 2017 at 10:33:02AM +0200, Sagi Grimberg wrote:
+>> I don't really like having a special case just for this slow path
+>> special case.  So if we can avoid it without too much overhead let's
+>> do it, otherwise we can keep it as-is.
+>
+> Saving the state of the request completions adds complication in
+> general, and we don't even have a request for AENs so it would mean to
+> keep it under the queue, and we don't really race anything because we
+> don't have inline data there. So I think its simpler to keep it as is.
 
-Works like a charm :)
-
-Sending a newer v3 soon.
-
-Thanks Christoph!
+Ok, let's keep it.  But please add a comment explaining why the
+non-signalled completions are fine for the AER but no one else.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
