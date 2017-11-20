@@ -1,51 +1,37 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH] rdma: Add Jason as a co-maintainer
-Date: Mon, 20 Nov 2017 11:06:31 -0700
-Message-ID: <20171120180631.GE626@mellanox.com>
-References: <20171116204400.GA28216@mellanox.com>
- <20171120161016.GL18825@mtr-leonro.local>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH 2/8] i40iw: Allocate a sdbuf per CQP WQE
+Date: Mon, 20 Nov 2017 11:38:00 -0700
+Message-ID: <20171120183800.GD29075@ziepe.ca>
+References: <20171117164657.14824-1-henry.orosco@intel.com>
+ <20171117164657.14824-3-henry.orosco@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171120161016.GL18825@mtr-leonro.local>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20171117164657.14824-3-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 20, 2017 at 06:10:16PM +0200, Leon Romanovsky wrote:
-> On Thu, Nov 16, 2017 at 01:44:00PM -0700, Jason Gunthorpe wrote:
-> > As was discussed in September and October, add Jason along with
-> > Doug to have a team maintainership model for the RDMA subystem.
-> >
-> > Mellanox Technologies will be funding Jason's independent work on
-> > the maintainership.
-> >
-> > Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-> >  .mailmap    | 2 ++
-> >  MAINTAINERS | 1 +
-> >  2 files changed, 3 insertions(+)
-> >
+On Fri, Nov 17, 2017 at 10:46:51AM -0600, Henry Orosco wrote:
+> From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> Doug and Jason,
-> 
-> Can you forward the current fixes to Linus?
-> 
-> I have more fixes from Parav and fix to iWARP from Daniel, but I prefer
-> to have proper RDMA branches before I'm posting them.
+> Currently there is only one sdbuf per Control QP(CQP) for programming
+> Segment Descriptor(SD) command thus limiting the number of SD work
+> requests that can be posted to one.  Allocate enough memory for one
+> sdbuf per CQP SQ WQE to allow more than one SD command at a time.
+> When a SD command is posted, it will use the corresponding sdbuf for
+> the WQE.
 
-I belive Doug has already sent the pull request for this merge window,
-and the new shared tree location is fully up to date, and there are
-no accepted but unset patches at this time?
+It is not clear to me from this description why this would be a rc
+candidate?
 
-Do you see otherwise?
-
-We are now doing patches for rc.
-
-The iWarp security fix from Daniel is definitely rc material.
-
-Can you split that 33 patch series into things you think are rc
-material?
+Is this is a bug? or is it adding a feature of increasing the number
+of 'SD work requests'?
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
