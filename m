@@ -1,117 +1,68 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH v3 3/3] nvme-rdma: wait for local invalidation before completing a request
-Date: Mon, 20 Nov 2017 12:41:56 +0200
-Message-ID: <20171120104156.31344-4-sagi@grimberg.me>
-References: <20171120104156.31344-1-sagi@grimberg.me>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH v2 2/3] nvme-rdma: don't complete requests before a
+        send work request has completed
+Date: Mon, 20 Nov 2017 11:49:21 +0100
+Message-ID: <20171120104921.GA31309@lst.de>
+References: <20171108100616.26605-1-sagi@grimberg.me> <20171108100616.26605-3-sagi@grimberg.me> <20171109092110.GB16966@lst.de> <0f368bc9-2e9f-4008-316c-46b85661a274@grimberg.me> <20171120083130.GC27552@lst.de> <384d8a51-aa2f-5954-c9fd-a0c88d7e5364@grimberg.me> <20171120084102.GA28456@lst.de> <58bdc9c0-f98e-9d9f-f81e-fbed572f922e@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171120104156.31344-1-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <58bdc9c0-f98e-9d9f-f81e-fbed572f922e-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We must not complete a request before the host memory region is
-invalidated. Luckily we have send with invalidate protocol support
-so we usually don't need to execute it, but in case the target
-did not invalidate a memory region for us, we must wait for
-the invalidation to complete before unmapping host memory and
-completing the I/O.
+Btw, I think we can avoid 2 atomic ops for the remote invalidation
+path with a simple update like the one below:
 
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
----
- drivers/nvme/host/rdma.c | 40 +++++++++++++++++++++++++---------------
- 1 file changed, 25 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-index 1692d2318abe..a3802de0f248 100644
+index 5627d81735d2..2032cd8ad431 100644
 --- a/drivers/nvme/host/rdma.c
 +++ b/drivers/nvme/host/rdma.c
-@@ -1018,8 +1018,18 @@ static void nvme_rdma_memreg_done(struct ib_cq *cq, struct ib_wc *wc)
+@@ -1141,7 +1141,6 @@ static int nvme_rdma_map_sg_fr(struct nvme_rdma_queue *queue,
+ 			     IB_ACCESS_REMOTE_WRITE;
  
- static void nvme_rdma_inv_rkey_done(struct ib_cq *cq, struct ib_wc *wc)
- {
--	if (unlikely(wc->status != IB_WC_SUCCESS))
-+	struct nvme_rdma_request *req =
-+		container_of(wc->wr_cqe, struct nvme_rdma_request, reg_cqe);
-+	struct request *rq = blk_mq_rq_from_pdu(req);
-+
-+	if (unlikely(wc->status != IB_WC_SUCCESS)) {
- 		nvme_rdma_wr_error(cq, wc, "LOCAL_INV");
-+		return;
-+	}
-+
-+	if (refcount_dec_and_test(&req->ref))
-+		nvme_end_request(rq, req->cqe.status, req->cqe.result);
-+
- }
+ 	req->mr->need_inval = true;
+-	atomic_inc(&req->ref);
  
- static int nvme_rdma_inv_rkey(struct nvme_rdma_queue *queue,
-@@ -1030,7 +1040,7 @@ static int nvme_rdma_inv_rkey(struct nvme_rdma_queue *queue,
- 		.opcode		    = IB_WR_LOCAL_INV,
- 		.next		    = NULL,
- 		.num_sge	    = 0,
--		.send_flags	    = 0,
-+		.send_flags	    = IB_SEND_SIGNALED,
- 		.ex.invalidate_rkey = req->mr->rkey,
- 	};
- 
-@@ -1044,24 +1054,12 @@ static void nvme_rdma_unmap_data(struct nvme_rdma_queue *queue,
- 		struct request *rq)
- {
- 	struct nvme_rdma_request *req = blk_mq_rq_to_pdu(rq);
--	struct nvme_rdma_ctrl *ctrl = queue->ctrl;
- 	struct nvme_rdma_device *dev = queue->device;
- 	struct ib_device *ibdev = dev->dev;
--	int res;
- 
- 	if (!blk_rq_bytes(rq))
- 		return;
- 
--	if (req->mr->need_inval && test_bit(NVME_RDMA_Q_LIVE, &req->queue->flags)) {
--		res = nvme_rdma_inv_rkey(queue, req);
--		if (unlikely(res < 0)) {
--			dev_err(ctrl->ctrl.device,
--				"Queueing INV WR for rkey %#x failed (%d)\n",
--				req->mr->rkey, res);
--			nvme_rdma_error_recovery(queue->ctrl);
--		}
--	}
--
- 	ib_dma_unmap_sg(ibdev, req->sg_table.sgl,
- 			req->nents, rq_data_dir(rq) ==
- 				    WRITE ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
-@@ -1150,6 +1148,8 @@ static int nvme_rdma_map_sg_fr(struct nvme_rdma_queue *queue,
- 	sg->type = (NVME_KEY_SGL_FMT_DATA_DESC << 4) |
- 			NVME_SGL_FMT_INVALIDATE;
- 
-+	refcount_inc(&req->ref);
-+
- 	return 0;
- }
- 
-@@ -1336,8 +1336,18 @@ static int nvme_rdma_process_nvme_rsp(struct nvme_rdma_queue *queue,
+ 	sg->addr = cpu_to_le64(req->mr->iova);
+ 	put_unaligned_le24(req->mr->length, sg->length);
+@@ -1328,10 +1327,9 @@ static int nvme_rdma_process_nvme_rsp(struct nvme_rdma_queue *queue,
+ 	req->cqe.status = cqe->status;
  	req->cqe.result = cqe->result;
  
- 	if ((wc->wc_flags & IB_WC_WITH_INVALIDATE) &&
--	    wc->ex.invalidate_rkey == req->mr->rkey)
-+	    wc->ex.invalidate_rkey == req->mr->rkey) {
- 		req->mr->need_inval = false;
-+		refcount_dec(&req->ref);
-+	} else if (req->mr->need_inval) {
-+		ret = nvme_rdma_inv_rkey(queue, req);
-+		if (unlikely(ret < 0)) {
-+			dev_err(queue->ctrl->ctrl.device,
-+				"Queueing INV WR for rkey %#x failed (%d)\n",
-+				req->mr->rkey, ret);
-+			nvme_rdma_error_recovery(queue->ctrl);
+-	if ((wc->wc_flags & IB_WC_WITH_INVALIDATE) &&
+-	    wc->ex.invalidate_rkey == req->mr->rkey) {
+-		atomic_dec(&req->ref);
+-	} else if (req->mr->need_inval) {
++	if (req->mr->need_inval &&
++	    (!(wc->wc_flags & IB_WC_WITH_INVALIDATE) ||
++	     wc->ex.invalidate_rkey != req->mr->rkey)) {
+ 		ret = nvme_rdma_inv_rkey(queue, req);
+ 		if (unlikely(ret < 0)) {
+ 			dev_err(queue->ctrl->ctrl.device,
+@@ -1339,12 +1337,12 @@ static int nvme_rdma_process_nvme_rsp(struct nvme_rdma_queue *queue,
+ 				req->mr->rkey, ret);
+ 			nvme_rdma_error_recovery(queue->ctrl);
+ 		}
+-	}
+-
+-	if (atomic_dec_and_test(&req->ref)) {
+-		if (rq->tag == tag)
+-			ret = 1;
+-		nvme_end_request(rq, req->cqe.status, req->cqe.result);
++	} else {
++		if (atomic_dec_and_test(&req->ref)) {
++			if (rq->tag == tag)
++				ret = 1;
++			nvme_end_request(rq, req->cqe.status, req->cqe.result);
 +		}
-+	}
+ 	}
  
- 	if (refcount_dec_and_test(&req->ref)) {
- 		if (rq->tag == tag)
--- 
-2.14.1
-
+ 	return ret;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
