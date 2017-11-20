@@ -1,101 +1,40 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: rstream application
-Date: Mon, 20 Nov 2017 08:46:27 -0500
-Message-ID: <9f5a7e36-2e3a-977e-0447-e0096897ebb9@dev.mellanox.co.il>
-References: <CY1PR0701MB20123BEF45FFB6AF762D4468882E0@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <CY1PR0701MB2012D019C936BFC566F41DD4882E0@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <32c5f678-a7b2-7b62-730c-533dce361cc8@dev.mellanox.co.il>
- <CY1PR0701MB2012EE40430568E547868596882D0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+From: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC rdma-core 1/5] verbs: Introduce thread domain and its
+ related verbs
+Date: Mon, 20 Nov 2017 16:05:16 +0200
+Message-ID: <CAFgAxU9YoEN51rNwsbn+zDpMqUY-YeMRk8d4qz1cS9yGozJMjw@mail.gmail.com>
+References: <1510522903-6838-1-git-send-email-yishaih@mellanox.com>
+ <1510522903-6838-2-git-send-email-yishaih@mellanox.com> <20171113195822.GD22610@ziepe.ca>
+ <3719edfc-282a-db5b-2474-3cf1355fb301@dev.mellanox.co.il> <20171114191754.GI4263@ziepe.ca>
+ <774e2f74-8361-6941-a015-27a2014d8cc9@dev.mellanox.co.il> <20171117184248.GN4276@ziepe.ca>
+ <CAFgAxU_m=i9kG1h2Rbqe+YtVYpea8-Ez5qvm6dQU4tZPgOUqhA@mail.gmail.com> <20171119153219.GZ4276@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CY1PR0701MB2012EE40430568E547868596882D0-UpKza+2NMNLHMJvQ0dyT705OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20171119153219.GZ4276-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Alex @ Mellanox" <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/19/2017 5:59 AM, Kalderon, Michal wrote:
->> From: Hal Rosenstock [mailto:hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
->> Sent: Thursday, November 16, 2017 4:13 PM
->> To: Kalderon, Michal <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; Jason Gunthorpe
->> <jgg-uk2M96/98Pc@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Cc: Elior, Ariel <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; Amrani, Ram
->> <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; Radzi, Amit <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; Hefty,
->> Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> Subject: Re: rstream application
->>
->> On 11/16/2017 5:39 AM, Kalderon, Michal wrote:
->>> Hi,
->>>
->>> We've been debugging an issue with the rstream application, would be glad
->> to get your help.
->>> This application is part of the OFA logo program and therefore we've been
->> debugging it.
->>> Intermittently we get an error: Connection refused (stale connection ) on
->> the second connect in the test.
->>> (rstream -S all -T a )
->>> It looks like in some cases the server side gets a new connection
->>> request before destroying the cm-id, Leaving the remote id and remote
->>> qp in the remote_id_table and remote_qp_table
->>
->> The connection goes into timewait state on disconnect. This timeout is 2
->> * PathRecord:PacketLifeTime plus the remote's Ack Delay.
->>
->> RoCE spec says "The default value for SubnetTimeout shall be 18 and can be
->> modified by Ethernet management practices.The default SubnetTimeout
->> value can be used as an upper bound estimate of InfiniBand PacketLifeTime".
->>
->> A subsequent incoming REQ for same remote ID and remote QPN while in
->> this state will result in REJ for stale connection. This is at CM and CMA levels. I
->> am not sure whether or not the errors returned from rconnect are sufficient
->> to isolate this case from other connection refusal cases. Sean would know.
->>
->> I think there is same issue in some other rsocket examples as well.
-> 
-> In this case the application only knows it is rejected and not that it is stale. But perhaps
-> the application can retry several times to re-connect if it gets an error in anycase? 
-> (similar to perftest for instance)
+On Sun, Nov 19, 2017 at 5:32 PM, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote:
+> On Sun, Nov 19, 2017 at 08:43:16AM +0200, Alex Rosenbaum wrote:
+>
+> So I'd like to see:
+>
+>   struct ibv_parent_domain_init_attr {
+> -         struct ibv_pd *pd; /* referance to a protection domain, or NULL */
+> +         struct ibv_pd *pd; /* referance to a protection domain, can not be NULL */
+>
+> And even if we did use the PD for consistency, it doesn't hurt at all
+> to pass in a PD&TD to the CQ object and then have the CQ ignore the
+> PD portion.
 
-perftest should be able to determine this case from reason code as
-reason is available from RDMA CM and it's not using rsockets as is
-rstream and other r* examples.
+I see no problem with this direction.
+We'll take it to next step now.
 
-> Sean, Hal, do you agree with this direction ? 
-
-Only downside is retrying for cases where reconnect would never work but
-I don't see better alternative since there appears to be no way to get
-underlying reason in order to bifurcate the various cases.
-
-Also, this approach needs some policy as to when to stop retrying the
-reconnect.
-
--- Hal
-
-> Specifically for the rstream application, it seems that if close event is called before the 
-> Request-handler got a chance to process the new request, the function cm_enter_timewait
-> is called and removes the remote_id. And remote_qp from the tables. In the bad case, 
-> cm_enter_timewait is called later on. So it all falls down to a timing issue in whether the 
-> close event on the socket was called on the server before the new request was called.
-> 
->>
->> -- Hal
-> thanks
->>
->>> Attached are two traces (using ftrace) good_trace when second connect
->>> succeeds bad_trace when second connect attempt fails
->>>
->>> I think this can be considered as an application issue, and rstream
->>> could be modified to try and re-connect In case it fails.
->>>
->>> Your input on this will be highly appreciated,
->>>
->>> Thanks,
->>> Michal
->>>
-> 
+Thanks,
+Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
