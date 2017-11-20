@@ -1,52 +1,44 @@
-From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: =?UTF-8?Q?Re:_Problem_of_changing_the_inline_mode_or_turning_on_the?=
- =?UTF-8?Q?_encapsulation_support_of_Mellanox_NIC=e2=80=99s_eswitch?=
-Date: Mon, 20 Nov 2017 11:13:20 +0200
-Message-ID: <a7979b18-6b52-2d9a-0263-e56bcb119967@mellanox.com>
-References: <HK2PR01MB0834534F555D6F532694DE5AF5220@HK2PR01MB0834.apcprd01.prod.exchangelabs.com>
- <20171120072351.GA18825@mtr-leonro.local>
- <HK2PR01MB083483A928DBF1EC8643BEA3F5220@HK2PR01MB0834.apcprd01.prod.exchangelabs.com>
- <83fb4706-2a4c-9e25-b5b6-92e433a7c746@mellanox.com>
- <20171120080241.GB18825@mtr-leonro.local>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH v2 2/3] nvme-rdma: don't complete requests before a send
+ work request has completed
+Date: Mon, 20 Nov 2017 11:28:04 +0200
+Message-ID: <58bdc9c0-f98e-9d9f-f81e-fbed572f922e@grimberg.me>
+References: <20171108100616.26605-1-sagi@grimberg.me>
+ <20171108100616.26605-3-sagi@grimberg.me> <20171109092110.GB16966@lst.de>
+ <0f368bc9-2e9f-4008-316c-46b85661a274@grimberg.me>
+ <20171120083130.GC27552@lst.de>
+ <384d8a51-aa2f-5954-c9fd-a0c88d7e5364@grimberg.me>
+ <20171120084102.GA28456@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171120080241.GB18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20171120084102.GA28456-jcswGhMUV9g@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Junxue ZHANG <jzhangcs-t+iU6Fs6CelnrVKH7T7RYw@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Byron Yi <yibairen1994-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Junxue,
-
-On 20/11/2017 10:02, Leon Romanovsky wrote:
-> On Mon, Nov 20, 2017 at 09:28:53AM +0200, Mark Bloch wrote:
->>>> NIC hardware model:
->>>> —————————
->>>> ConnectX®-4 EN network interface card, 40GbE dual-port QSFP28, PCIe3.0
->>>> x8, tall bracket, ROHS R6
->>>>
+>>> Both send and recv completed only ever go from not set to set on a live
+>>> requests, so that's easy.  need_inval only goes from set to cleared
+>>> so I'm not too worried about it either, but due to the lack of atomic
+>>> bitops there it will need better memory barries, or just a switch
+>>> to bitops..
+>>>
+>>> But looking at this in a little more detail I wonder if we just want
+>>> a recount on the nvme_rdma_request, untested patch below.
 >>
->> We don't support encap/decap with ConnectX-4.
->> You should use ConnectX-4 LX or ConnectX-5.
->> Note that on ConnectX-5 you don't need to turn inline support as it isn't needed.
+>> I'll give it a shot.
 > 
-> I spoke with Mark and it looks like documentation issue.
->
+> Btw, in our brave new world that should probably be a refcnt_t instead
+> of an atomic_t, but that's a trivial search and replace.
 
-We will update our community doc to reflect we don't support vxlan encap/decap on
-ConnectX-4.
-I also would like to note, that you posted your question on the RDMA mailing list
-while most/all discussions about devlink/switchdev/eswitch take place on the netdev mailing
-list, if you have any more questions you should ask there, you will get a much faster replay
-as most the netdev guys don't watch the RDMA mailing list :) 
+Works like a charm :)
 
-> Thanks
-> 
+Sending a newer v3 soon.
 
-Mark
+Thanks Christoph!
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
