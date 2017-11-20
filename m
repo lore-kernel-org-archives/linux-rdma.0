@@ -1,59 +1,59 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [RFC PATCH] RDMA/cma: Remove netlink interface of CMA statistics
-Date: Mon, 20 Nov 2017 12:41:52 -0700
-Message-ID: <20171120194152.GN29075@ziepe.ca>
-References: <20171113192432.GL6918@ziepe.ca>
- <20171114080550.GR18825@mtr-leonro.local>
- <CAJ3xEMhfdXz8zQFetjQPfe7HZiCi+N0z6r9XSucuTzQo1--PBg@mail.gmail.com>
- <20171114095605.GU18825@mtr-leonro.local>
- <CAJ3xEMhM0xfNxRU+37oWKq_w=MGtE3sUXy38bARgX5-3G9zhvw@mail.gmail.com>
- <20171114173516.GZ18825@mtr-leonro.local>
- <CAJ3xEMgJJX0FXMK9Rj=kGmNGkF14tBe03zfwzKHnEEp=cEDVxw@mail.gmail.com>
- <20171115052926.GN18825@mtr-leonro.local>
- <CAJ3xEMjrTvY+hq=1Q3tmPk_QiZtpO8dLMmCtrPjJgbtOeiU=6Q@mail.gmail.com>
- <CAJ3xEMjst4EaFYfUVwqiOzsh5pVPj85joPYsGsap8p6tQYUwew@mail.gmail.com>
+Subject: Re: [PATCH 1/2] librdmacm: Add support for extended join multicast
+ API V2
+Date: Mon, 20 Nov 2017 12:46:14 -0700
+Message-ID: <20171120194614.GO29075@ziepe.ca>
+References: <20171114185720.609975150@linux.com>
+ <20171114185739.838757957@linux.com>
+ <20171114192558.GL4263@ziepe.ca>
+ <alpine.DEB.2.20.1711141349370.13532@nuc-kabylake>
+ <20171114195659.GP4263@ziepe.ca>
+ <alpine.DEB.2.20.1711150921450.19575@nuc-kabylake>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ3xEMjst4EaFYfUVwqiOzsh5pVPj85joPYsGsap8p6tQYUwew-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1711150921450.19575@nuc-kabylake>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 16, 2017 at 01:53:03PM +0200, Or Gerlitz wrote:
-> On Wed, Nov 15, 2017 at 9:50 AM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+On Wed, Nov 15, 2017 at 09:22:14AM -0600, Christopher Lameter wrote:
+> On Tue, 14 Nov 2017, Jason Gunthorpe wrote:
 > 
-> > But before that, you ignored my question asking what is broken in the
-> > current code, please don't.
+> > > Index: rdma-core/debian/librdmacm1.symbols
+> > > ===================================================================
+> > > +++ rdma-core/debian/librdmacm1.symbols
+> > > @@ -31,7 +31,7 @@ librdmacm.so.1 librdmacm1 #MINVER#
+> > >   rdma_get_src_port@RDMACM_1.0 1.0.19
+> > >   rdma_getaddrinfo@RDMACM_1.0 1.0.15
+> > >   rdma_join_multicast@RDMACM_1.0 1.0.15
+> > > - rdma_join_multicast_ex@RDMACM_1.1 1.0.15
+> > > + rdma_join_multicast_ex@RDMACM_1.1 1.0.16
+> >
+> > No, just '16', not '1.0.16'
 > 
-> > You can't come to someone's code say it's broken without providing the data
-> > and ask to revert it.
+> Subject: Increase rdma_join_multicast_ex package version to 16
 > 
-> Doug, Jason,
+> Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 > 
-> I have asked multiple times what is broken in the cma netlink code and
-> no answer.
-> 
-> Please suggest how to proceed with this patch, there's a claim there
-> that the code
-> which is removed has issues but no data is given.
+> Index: rdma-core/debian/librdmacm1.symbols
+> ===================================================================
+> +++ rdma-core/debian/librdmacm1.symbols
+> @@ -31,7 +31,7 @@ librdmacm.so.1 librdmacm1 #MINVER#
+>   rdma_get_src_port@RDMACM_1.0 1.0.19
+>   rdma_getaddrinfo@RDMACM_1.0 1.0.15
+>   rdma_join_multicast@RDMACM_1.0 1.0.15
+> - rdma_join_multicast_ex@RDMACM_1.1 1.0.15
+> + rdma_join_multicast_ex@RDMACM_1.1 16
+>   rdma_leave_multicast@RDMACM_1.0 1.0.15
+>   rdma_listen@RDMACM_1.0 1.0.15
+>   rdma_migrate_id@RDMACM_1.0 1.0.15
 
-Well, I would like to know the issues as well, as I've already said I
-think they should be described in the commit message.
+This series was applied via PR with some more revisions from me.
 
-But also, at the RFC stage the onus is on other people, particularly
-people that want to keep the feature, to explain where it is being
-used and why..
-
-We need to decide if we drop the RFC and fix the implementation, apply
-the the RFC, or add a deprecation printk warning, or something..
-
-Please try to be productive here and concentrate on adding information
-and not nit-picking the process! We all know removing a uapi is a big
-deal.
-
+Thanks,
 Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
