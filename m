@@ -1,227 +1,131 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Problem of changing the =?utf-8?Q?inli?=
- =?utf-8?Q?ne_mode_or_turning_on_the_encapsulation_support_of_Mellanox_NI?=
- =?utf-8?B?Q+KAmXM=?= eswitch
-Date: Mon, 20 Nov 2017 09:23:51 +0200
-Message-ID: <20171120072351.GA18825@mtr-leonro.local>
+From: Junxue ZHANG <jzhangcs-t+iU6Fs6CelnrVKH7T7RYw@public.gmane.org>
+Subject: =?utf-8?B?UkU6IFByb2JsZW0gb2YgY2hhbmdpbmcgdGhlIGlubGluZSBtb2RlIG9yIHR1?=
+ =?utf-8?B?cm5pbmcgb24gdGhlIGVuY2Fwc3VsYXRpb24gc3VwcG9ydCBvZiBNZWxsYW5v?=
+ =?utf-8?B?eCBOSUPigJlzIGVzd2l0Y2g=?=
+Date: Mon, 20 Nov 2017 07:26:10 +0000
+Message-ID: <HK2PR01MB083483A928DBF1EC8643BEA3F5220@HK2PR01MB0834.apcprd01.prod.exchangelabs.com>
 References: <HK2PR01MB0834534F555D6F532694DE5AF5220@HK2PR01MB0834.apcprd01.prod.exchangelabs.com>
+ <20171120072351.GA18825@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="j4rZmesUqe38Ef+x"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <HK2PR01MB0834534F555D6F532694DE5AF5220-j5d1BCxnhFliu6CZMbmO22kgRNbfFy2WiWZaQy0nMoadU/p4gVGmPFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20171120072351.GA18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Junxue ZHANG <jzhangcs-t+iU6Fs6CelnrVKH7T7RYw@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Byron Yi <yibairen1994-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---j4rZmesUqe38Ef+x
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Nov 20, 2017 at 03:29:00AM +0000, Junxue ZHANG wrote:
-> Hi all,
->
-> I encountered a problem when I tried to change the inline mode or turn on=
- the encapsulation support of Mellanox NIC=E2=80=99s eswitch. I wonder if a=
-nyone could help me with this. Thanks.
->
-> I want to use VXLan with OVS and try to offload the rules in hardware. I =
-don=E2=80=99t know whether it is necessary to turn on the encapsulation sup=
-port. It would also be of great help if anyone could tell me the correct wa=
-y to accomplish that. Thanks.
->
-
-+ Saeed and Or
-
-
-The failure in drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-990         err =3D esw_inline_mode_from_devlink(mode, &mlx5_mode);
-991         if (err)
-992                 goto out;
-993
-994         for (vport =3D 1; vport < esw->enabled_vports; vport++) {
-995                 err =3D mlx5_modify_nic_vport_min_inline(dev, vport, ml=
-x5_mode);
-996                 if (err) {
-997                         esw_warn(dev, "Failed to set min inline on vpor=
-t %d\n",
-998                                  vport);
-999                         goto revert_inline_mode;
-1000                 }
-1001         }
-
-Thanks
-
->
-> Problem:
-> =E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=
-=E2=80=94
-> I can successfully turned on the switchdev mode of my Mellanox NIC. But w=
-hen I tried to change the inline-mode or turn on the encapsulation support,=
- it failed.
->
-> I can create VFs successfully and use those VFs with switch with link inl=
-ine mode and encapsulation support off.
->
-> How to reproduce:
-> =E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=
-=E2=80=94
-> Before each of the following steps, I first turn the switchdev mode off a=
-nd turn on the legacy mode.
->
-> 1. Change the inline mode:
->
-> $ devlink dev eswitch set pci/0000:81:00.0 mode switchdev inline-mode net=
-work
-> devlink answers: Invalid argument
->
-> Output of Syslog:
-> Nov 20 00:05:04 ip-192-168-2-203 kernel: [ 2968.592023] mlx5_0:wait_for_a=
-sync_commands:735:(pid 2332): done with all pending requests
-> Nov 20 00:05:04 ip-192-168-2-203 systemd-udevd[2335]: Could not generate =
-persistent MAC address for eth0: No such file or directory
-> Nov 20 00:05:04 ip-192-168-2-203 systemd-udevd[2340]: Could not generate =
-persistent MAC address for eth1: No such file or directory
-> Nov 20 00:05:04 ip-192-168-2-203 kernel: [ 2968.707239] (0000:81:00.0): E=
--Switch: SRIOV enabled: active vports(3)
-> Nov 20 00:05:04 ip-192-168-2-203 kernel: [ 2968.707712] mlx5_core 0000:81=
-:00.0: mlx5_cmd_check:710:(pid 2332): MODIFY_NIC_VPORT_CONTEXT(0x755) op_mo=
-d(0x0) failed, status bad parameter(0x3), syndrome (0x40ea03)
-> Nov 20 00:05:04 ip-192-168-2-203 kernel: [ 2968.707790] (0000:81:00.0): E=
--Switch: Failed to set min inline on vport 1
->
-> 2. Turn on the encapsulation:
->
-> $ devlink dev eswitch set pci/0000:81:00.0 mode switchdev encap enable
-> devlink answers: Operation not supported
->
-> Output of Syslog:
->
-> Nov 20 00:06:16 ip-192-168-2-203 kernel: [ 3040.121748] (0000:81:00.0): E=
--Switch: disable SRIOV: active vports(3) mode(1)
-> Nov 20 00:06:16 ip-192-168-2-203 kernel: [ 3040.161942] (0000:81:00.0): E=
--Switch: E-Switch enable SRIOV: nvfs(2) mode (2)
-> Nov 20 00:06:18 ip-192-168-2-203 kernel: [ 3042.847377] mlx5_0:wait_for_a=
-sync_commands:735:(pid 2371): done with all pending requests
-> Nov 20 00:06:19 ip-192-168-2-203 systemd-udevd[2374]: Could not generate =
-persistent MAC address for eth0: No such file or directory
-> Nov 20 00:06:19 ip-192-168-2-203 systemd-udevd[2379]: Could not generate =
-persistent MAC address for eth1: No such file or directory
-> Nov 20 00:06:19 ip-192-168-2-203 kernel: [ 3042.961906] (0000:81:00.0): E=
--Switch: SRIOV enabled: active vports(3)
->
-> 3. Query the status
->
-> $ devlink dev eswitch show pci/0000:81:00.0
-> pci/0000:81:00.0: mode switchdev inline-mode link encap disable
->
->
-> NIC hardware model:
-> =E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=
-=E2=80=94
-> ConnectX=C2=AE-4 EN network interface card, 40GbE dual-port QSFP28, PCIe3=
-=2E0 x8, tall bracket, ROHS R6
->
->
-> NIC firmware:
-> =E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=
-=E2=80=94
-> $ mstflint -d 81:00.1 q
->
-> Image type:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0 FS3
-> FW Version:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0 12.21.1000
-> FW Release Date:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 29.10.2017
-> Product Version:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 rel-12_21_1000
-> Rom Info:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0 type=3DPXE version=3D3.5.305 devid=3D4115 cpu=3DAMD64
-> Description:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 =
-UID=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0 GuidsNumber
-> Base GUID:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0 ec0d9a0300373802=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 4
-> Base MAC:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0 0000ec0d9a373802=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 4
-> Image VSD:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0 N/A
-> Device VSD:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0 N/A
-> PSID:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 MT_2130110027
-> Security Attributes:=C2=A0=C2=A0 N/A
->
-> Linux distribution:
-> =E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=
-=E2=80=94
-> $ cat /etc/*-release
->
-> PRETTY_NAME=3D"Debian GNU/Linux 9 (stretch)"
-> NAME=3D"Debian GNU/Linux"
-> VERSION_ID=3D"9"
-> VERSION=3D"9 (stretch)"
-> ID=3Ddebian
-> HOME_URL=3D"https://www.debian.org/"
-> SUPPORT_URL=3D"https://www.debian.org/support"
-> BUG_REPORT_URL=3D"https://bugs.debian.org/"
->
-> Linux kernel:
-> =E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=
-=E2=80=94
-> $ uname -r
->
-> 4.14.0-rc7-amd64
->
-> NIC driver:
-> =E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=E2=80=94=
-=E2=80=94
-> $ ethtool -i ens6f0
->
-> driver: mlx5_core
-> version: 5.0-0
-> firmware-version: 12.21.1000 (MT_2130110027)
-> expansion-rom-version:
-> bus-info: 0000:81:00.0
-> supports-statistics: yes
-> supports-test: yes
-> supports-eeprom-access: no
-> supports-register-dump: no
-> supports-priv-flags: yes
->
-> Best,
->
-> Junxue
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---j4rZmesUqe38Ef+x
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloSgwcACgkQ5GN7iDZy
-WKe/ZA/9EJNyxFcylR++CBWicRD1D0YstcgWNfJz2oGRE19S7JBDR6lr16pmn5u8
-YZTRkeLvrkFnf8WejiDHkv0RxNTIczEAsmhS1EgWjJ7hYXAuUMMtfx0FxhP1ECDZ
-PSrD/+D4C0InWitpCB6JDm4YFJl760MD+EypqhFYzW/YCaGwhfmtwK81YMSs50kt
-tOQQuSNkGbH4Wbnh2a52VcNcnbjyV7quQ2mEgmCMMTotAG6Me69pPuIR/B5mA9qD
-w1Jp506aGri0gydWYlzymhp+vuGlQMj08dtdWaf3skyheUwMSB7LBytdhD2Hq5TW
-1aAhL7f9RCziDl9/t+uu1GOmyHnvCxCqApOlr6jCYvWXuUploFqsqwhOeob4vE9m
-n/nco9G+Q1DeOVc7mOsTda/XZ6bOzpFrZvlo6CeTYv383a8/RD0T/J1xJZiC4cxw
-jA7ow/hMIrDYwI2PTCi/Iwmwyv9nRaZzrq3ER/3SiIAHIYcD96sxOhdklEvX2whT
-y65w7Pt51LvShyeiDkafE04CQlxwaAsdke2nQZq8TxabJCtUvc9Xom8EShyeZMUp
-cluzYhyDuFmjokT0RjCF+esNfQn2elv5o2Ff/psUl0kE5Kn/BxnvpdUglWK3f5UY
-KNtRDY/tztoUzOlOdeCnBc0Il3YFXi2jUvU6CfEj257zmFZXdyE=
-=swOk
------END PGP SIGNATURE-----
-
---j4rZmesUqe38Ef+x--
+KyBCYWlyZW4NCg0KVGhhbmtzDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBM
+ZW9uIFJvbWFub3Zza3kgW21haWx0bzpsZW9uQGtlcm5lbC5vcmddIA0KU2VudDogTW9uZGF5LCBO
+b3ZlbWJlciAyMCwgMjAxNyAzOjI0IFBNDQpUbzogSnVueHVlIFpIQU5HIDxqemhhbmdjc0Bjb25u
+ZWN0LnVzdC5oaz47IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1AbWVsbGFub3guY29tPg0KQ2M6IGxp
+bnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBPciBHZXJsaXR6IDxvZ2VybGl0ekBtZWxsYW5veC5j
+b20+DQpTdWJqZWN0OiBSZTogUHJvYmxlbSBvZiBjaGFuZ2luZyB0aGUgaW5saW5lIG1vZGUgb3Ig
+dHVybmluZyBvbiB0aGUgZW5jYXBzdWxhdGlvbiBzdXBwb3J0IG9mIE1lbGxhbm94IE5JQ+KAmXMg
+ZXN3aXRjaA0KDQpPbiBNb24sIE5vdiAyMCwgMjAxNyBhdCAwMzoyOTowMEFNICswMDAwLCBKdW54
+dWUgWkhBTkcgd3JvdGU6DQo+IEhpIGFsbCwNCj4NCj4gSSBlbmNvdW50ZXJlZCBhIHByb2JsZW0g
+d2hlbiBJIHRyaWVkIHRvIGNoYW5nZSB0aGUgaW5saW5lIG1vZGUgb3IgdHVybiBvbiB0aGUgZW5j
+YXBzdWxhdGlvbiBzdXBwb3J0IG9mIE1lbGxhbm94IE5JQ+KAmXMgZXN3aXRjaC4gSSB3b25kZXIg
+aWYgYW55b25lIGNvdWxkIGhlbHAgbWUgd2l0aCB0aGlzLiBUaGFua3MuDQo+DQo+IEkgd2FudCB0
+byB1c2UgVlhMYW4gd2l0aCBPVlMgYW5kIHRyeSB0byBvZmZsb2FkIHRoZSBydWxlcyBpbiBoYXJk
+d2FyZS4gSSBkb27igJl0IGtub3cgd2hldGhlciBpdCBpcyBuZWNlc3NhcnkgdG8gdHVybiBvbiB0
+aGUgZW5jYXBzdWxhdGlvbiBzdXBwb3J0LiBJdCB3b3VsZCBhbHNvIGJlIG9mIGdyZWF0IGhlbHAg
+aWYgYW55b25lIGNvdWxkIHRlbGwgbWUgdGhlIGNvcnJlY3Qgd2F5IHRvIGFjY29tcGxpc2ggdGhh
+dC4gVGhhbmtzLg0KPg0KDQorIFNhZWVkIGFuZCBPcg0KDQoNClRoZSBmYWlsdXJlIGluIGRyaXZl
+cnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lc3dpdGNoX29mZmxvYWRzLmMNCjk5
+MCAgICAgICAgIGVyciA9IGVzd19pbmxpbmVfbW9kZV9mcm9tX2RldmxpbmsobW9kZSwgJm1seDVf
+bW9kZSk7DQo5OTEgICAgICAgICBpZiAoZXJyKQ0KOTkyICAgICAgICAgICAgICAgICBnb3RvIG91
+dDsNCjk5Mw0KOTk0ICAgICAgICAgZm9yICh2cG9ydCA9IDE7IHZwb3J0IDwgZXN3LT5lbmFibGVk
+X3Zwb3J0czsgdnBvcnQrKykgew0KOTk1ICAgICAgICAgICAgICAgICBlcnIgPSBtbHg1X21vZGlm
+eV9uaWNfdnBvcnRfbWluX2lubGluZShkZXYsIHZwb3J0LCBtbHg1X21vZGUpOw0KOTk2ICAgICAg
+ICAgICAgICAgICBpZiAoZXJyKSB7DQo5OTcgICAgICAgICAgICAgICAgICAgICAgICAgZXN3X3dh
+cm4oZGV2LCAiRmFpbGVkIHRvIHNldCBtaW4gaW5saW5lIG9uIHZwb3J0ICVkXG4iLA0KOTk4ICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZwb3J0KTsNCjk5OSAgICAgICAgICAgICAg
+ICAgICAgICAgICBnb3RvIHJldmVydF9pbmxpbmVfbW9kZTsNCjEwMDAgICAgICAgICAgICAgICAg
+IH0NCjEwMDEgICAgICAgICB9DQoNClRoYW5rcw0KDQo+DQo+IFByb2JsZW06DQo+IOKAlOKAlOKA
+lOKAlOKAlOKAlOKAlOKAlOKAlA0KPiBJIGNhbiBzdWNjZXNzZnVsbHkgdHVybmVkIG9uIHRoZSBz
+d2l0Y2hkZXYgbW9kZSBvZiBteSBNZWxsYW5veCBOSUMuIEJ1dCB3aGVuIEkgdHJpZWQgdG8gY2hh
+bmdlIHRoZSBpbmxpbmUtbW9kZSBvciB0dXJuIG9uIHRoZSBlbmNhcHN1bGF0aW9uIHN1cHBvcnQs
+IGl0IGZhaWxlZC4NCj4NCj4gSSBjYW4gY3JlYXRlIFZGcyBzdWNjZXNzZnVsbHkgYW5kIHVzZSB0
+aG9zZSBWRnMgd2l0aCBzd2l0Y2ggd2l0aCBsaW5rIGlubGluZSBtb2RlIGFuZCBlbmNhcHN1bGF0
+aW9uIHN1cHBvcnQgb2ZmLg0KPg0KPiBIb3cgdG8gcmVwcm9kdWNlOg0KPiDigJTigJTigJTigJTi
+gJTigJTigJTigJTigJQNCj4gQmVmb3JlIGVhY2ggb2YgdGhlIGZvbGxvd2luZyBzdGVwcywgSSBm
+aXJzdCB0dXJuIHRoZSBzd2l0Y2hkZXYgbW9kZSBvZmYgYW5kIHR1cm4gb24gdGhlIGxlZ2FjeSBt
+b2RlLg0KPg0KPiAxLiBDaGFuZ2UgdGhlIGlubGluZSBtb2RlOg0KPg0KPiAkIGRldmxpbmsgZGV2
+IGVzd2l0Y2ggc2V0IHBjaS8wMDAwOjgxOjAwLjAgbW9kZSBzd2l0Y2hkZXYgaW5saW5lLW1vZGUg
+DQo+IG5ldHdvcmsgZGV2bGluayBhbnN3ZXJzOiBJbnZhbGlkIGFyZ3VtZW50DQo+DQo+IE91dHB1
+dCBvZiBTeXNsb2c6DQo+IE5vdiAyMCAwMDowNTowNCBpcC0xOTItMTY4LTItMjAzIGtlcm5lbDog
+WyAyOTY4LjU5MjAyM10gDQo+IG1seDVfMDp3YWl0X2Zvcl9hc3luY19jb21tYW5kczo3MzU6KHBp
+ZCAyMzMyKTogZG9uZSB3aXRoIGFsbCBwZW5kaW5nIA0KPiByZXF1ZXN0cyBOb3YgMjAgMDA6MDU6
+MDQgaXAtMTkyLTE2OC0yLTIwMyBzeXN0ZW1kLXVkZXZkWzIzMzVdOiBDb3VsZCANCj4gbm90IGdl
+bmVyYXRlIHBlcnNpc3RlbnQgTUFDIGFkZHJlc3MgZm9yIGV0aDA6IE5vIHN1Y2ggZmlsZSBvciAN
+Cj4gZGlyZWN0b3J5IE5vdiAyMCAwMDowNTowNCBpcC0xOTItMTY4LTItMjAzIHN5c3RlbWQtdWRl
+dmRbMjM0MF06IENvdWxkIA0KPiBub3QgZ2VuZXJhdGUgcGVyc2lzdGVudCBNQUMgYWRkcmVzcyBm
+b3IgZXRoMTogTm8gc3VjaCBmaWxlIG9yIA0KPiBkaXJlY3RvcnkgTm92IDIwIDAwOjA1OjA0IGlw
+LTE5Mi0xNjgtMi0yMDMga2VybmVsOiBbIDI5NjguNzA3MjM5XSANCj4gKDAwMDA6ODE6MDAuMCk6
+IEUtU3dpdGNoOiBTUklPViBlbmFibGVkOiBhY3RpdmUgdnBvcnRzKDMpIE5vdiAyMCANCj4gMDA6
+MDU6MDQgaXAtMTkyLTE2OC0yLTIwMyBrZXJuZWw6IFsgMjk2OC43MDc3MTJdIG1seDVfY29yZSAN
+Cj4gMDAwMDo4MTowMC4wOiBtbHg1X2NtZF9jaGVjazo3MTA6KHBpZCAyMzMyKTogDQo+IE1PRElG
+WV9OSUNfVlBPUlRfQ09OVEVYVCgweDc1NSkgb3BfbW9kKDB4MCkgZmFpbGVkLCBzdGF0dXMgYmFk
+IA0KPiBwYXJhbWV0ZXIoMHgzKSwgc3luZHJvbWUgKDB4NDBlYTAzKSBOb3YgMjAgMDA6MDU6MDQg
+aXAtMTkyLTE2OC0yLTIwMyANCj4ga2VybmVsOiBbIDI5NjguNzA3NzkwXSAoMDAwMDo4MTowMC4w
+KTogRS1Td2l0Y2g6IEZhaWxlZCB0byBzZXQgbWluIA0KPiBpbmxpbmUgb24gdnBvcnQgMQ0KPg0K
+PiAyLiBUdXJuIG9uIHRoZSBlbmNhcHN1bGF0aW9uOg0KPg0KPiAkIGRldmxpbmsgZGV2IGVzd2l0
+Y2ggc2V0IHBjaS8wMDAwOjgxOjAwLjAgbW9kZSBzd2l0Y2hkZXYgZW5jYXAgZW5hYmxlIA0KPiBk
+ZXZsaW5rIGFuc3dlcnM6IE9wZXJhdGlvbiBub3Qgc3VwcG9ydGVkDQo+DQo+IE91dHB1dCBvZiBT
+eXNsb2c6DQo+DQo+IE5vdiAyMCAwMDowNjoxNiBpcC0xOTItMTY4LTItMjAzIGtlcm5lbDogWyAz
+MDQwLjEyMTc0OF0gDQo+ICgwMDAwOjgxOjAwLjApOiBFLVN3aXRjaDogZGlzYWJsZSBTUklPVjog
+YWN0aXZlIHZwb3J0cygzKSBtb2RlKDEpIE5vdiANCj4gMjAgMDA6MDY6MTYgaXAtMTkyLTE2OC0y
+LTIwMyBrZXJuZWw6IFsgMzA0MC4xNjE5NDJdICgwMDAwOjgxOjAwLjApOiANCj4gRS1Td2l0Y2g6
+IEUtU3dpdGNoIGVuYWJsZSBTUklPVjogbnZmcygyKSBtb2RlICgyKSBOb3YgMjAgMDA6MDY6MTgg
+DQo+IGlwLTE5Mi0xNjgtMi0yMDMga2VybmVsOiBbIDMwNDIuODQ3Mzc3XSANCj4gbWx4NV8wOndh
+aXRfZm9yX2FzeW5jX2NvbW1hbmRzOjczNToocGlkIDIzNzEpOiBkb25lIHdpdGggYWxsIHBlbmRp
+bmcgDQo+IHJlcXVlc3RzIE5vdiAyMCAwMDowNjoxOSBpcC0xOTItMTY4LTItMjAzIHN5c3RlbWQt
+dWRldmRbMjM3NF06IENvdWxkIA0KPiBub3QgZ2VuZXJhdGUgcGVyc2lzdGVudCBNQUMgYWRkcmVz
+cyBmb3IgZXRoMDogTm8gc3VjaCBmaWxlIG9yIA0KPiBkaXJlY3RvcnkgTm92IDIwIDAwOjA2OjE5
+IGlwLTE5Mi0xNjgtMi0yMDMgc3lzdGVtZC11ZGV2ZFsyMzc5XTogQ291bGQgDQo+IG5vdCBnZW5l
+cmF0ZSBwZXJzaXN0ZW50IE1BQyBhZGRyZXNzIGZvciBldGgxOiBObyBzdWNoIGZpbGUgb3IgDQo+
+IGRpcmVjdG9yeSBOb3YgMjAgMDA6MDY6MTkgaXAtMTkyLTE2OC0yLTIwMyBrZXJuZWw6IFsgMzA0
+Mi45NjE5MDZdIA0KPiAoMDAwMDo4MTowMC4wKTogRS1Td2l0Y2g6IFNSSU9WIGVuYWJsZWQ6IGFj
+dGl2ZSB2cG9ydHMoMykNCj4NCj4gMy4gUXVlcnkgdGhlIHN0YXR1cw0KPg0KPiAkIGRldmxpbmsg
+ZGV2IGVzd2l0Y2ggc2hvdyBwY2kvMDAwMDo4MTowMC4wDQo+IHBjaS8wMDAwOjgxOjAwLjA6IG1v
+ZGUgc3dpdGNoZGV2IGlubGluZS1tb2RlIGxpbmsgZW5jYXAgZGlzYWJsZQ0KPg0KPg0KPiBOSUMg
+aGFyZHdhcmUgbW9kZWw6DQo+IOKAlOKAlOKAlOKAlOKAlOKAlOKAlOKAlOKAlA0KPiBDb25uZWN0
+WMKuLTQgRU4gbmV0d29yayBpbnRlcmZhY2UgY2FyZCwgNDBHYkUgZHVhbC1wb3J0IFFTRlAyOCwg
+UENJZTMuMCANCj4geDgsIHRhbGwgYnJhY2tldCwgUk9IUyBSNg0KPg0KPg0KPiBOSUMgZmlybXdh
+cmU6DQo+IOKAlOKAlOKAlOKAlOKAlOKAlOKAlOKAlOKAlA0KPiAkIG1zdGZsaW50IC1kIDgxOjAw
+LjEgcQ0KPg0KPiBJbWFnZSB0eXBlOsKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgRlMzDQo+IEZXIFZl
+cnNpb246wqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAxMi4yMS4xMDAwDQo+IEZXIFJlbGVhc2UgRGF0
+ZTrCoMKgwqDCoMKgwqAgMjkuMTAuMjAxNw0KPiBQcm9kdWN0IFZlcnNpb246wqDCoMKgwqDCoMKg
+IHJlbC0xMl8yMV8xMDAwDQo+IFJvbSBJbmZvOsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHR5
+cGU9UFhFIHZlcnNpb249My41LjMwNSBkZXZpZD00MTE1IGNwdT1BTUQ2NA0KPiBEZXNjcmlwdGlv
+bjrCoMKgwqDCoMKgwqDCoMKgwqDCoCBVSUTCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAg
+R3VpZHNOdW1iZXIgQmFzZSBHVUlEOsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCANCj4gZWMwZDlh
+MDMwMDM3MzgwMsKgwqDCoMKgwqDCoMKgIDQgQmFzZSBNQUM6wqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqAgMDAwMGVjMGQ5YTM3MzgwMsKgwqDCoMKgwqDCoMKgIA0KPiA0IEltYWdlIFZTRDrCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqAgTi9BIERldmljZSBWU0Q6wqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oCBOL0ENCj4gUFNJRDrCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIE1UXzIxMzAx
+MTAwMjcNCj4gU2VjdXJpdHkgQXR0cmlidXRlczrCoMKgIE4vQQ0KPg0KPiBMaW51eCBkaXN0cmli
+dXRpb246DQo+IOKAlOKAlOKAlOKAlOKAlOKAlOKAlOKAlOKAlA0KPiAkIGNhdCAvZXRjLyotcmVs
+ZWFzZQ0KPg0KPiBQUkVUVFlfTkFNRT0iRGViaWFuIEdOVS9MaW51eCA5IChzdHJldGNoKSINCj4g
+TkFNRT0iRGViaWFuIEdOVS9MaW51eCINCj4gVkVSU0lPTl9JRD0iOSINCj4gVkVSU0lPTj0iOSAo
+c3RyZXRjaCkiDQo+IElEPWRlYmlhbg0KPiBIT01FX1VSTD0iaHR0cHM6Ly93d3cuZGViaWFuLm9y
+Zy8iDQo+IFNVUFBPUlRfVVJMPSJodHRwczovL3d3dy5kZWJpYW4ub3JnL3N1cHBvcnQiDQo+IEJV
+R19SRVBPUlRfVVJMPSJodHRwczovL2J1Z3MuZGViaWFuLm9yZy8iDQo+DQo+IExpbnV4IGtlcm5l
+bDoNCj4g4oCU4oCU4oCU4oCU4oCU4oCU4oCU4oCU4oCUDQo+ICQgdW5hbWUgLXINCj4NCj4gNC4x
+NC4wLXJjNy1hbWQ2NA0KPg0KPiBOSUMgZHJpdmVyOg0KPiDigJTigJTigJTigJTigJTigJTigJTi
+gJTigJQNCj4gJCBldGh0b29sIC1pIGVuczZmMA0KPg0KPiBkcml2ZXI6IG1seDVfY29yZQ0KPiB2
+ZXJzaW9uOiA1LjAtMA0KPiBmaXJtd2FyZS12ZXJzaW9uOiAxMi4yMS4xMDAwIChNVF8yMTMwMTEw
+MDI3KQ0KPiBleHBhbnNpb24tcm9tLXZlcnNpb246DQo+IGJ1cy1pbmZvOiAwMDAwOjgxOjAwLjAN
+Cj4gc3VwcG9ydHMtc3RhdGlzdGljczogeWVzDQo+IHN1cHBvcnRzLXRlc3Q6IHllcw0KPiBzdXBw
+b3J0cy1lZXByb20tYWNjZXNzOiBubw0KPiBzdXBwb3J0cy1yZWdpc3Rlci1kdW1wOiBubw0KPiBz
+dXBwb3J0cy1wcml2LWZsYWdzOiB5ZXMNCj4NCj4gQmVzdCwNCj4NCj4gSnVueHVlDQo+DQo+IC0t
+DQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNj
+cmliZSBsaW51eC1yZG1hIiANCj4gaW4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9t
+b0B2Z2VyLmtlcm5lbC5vcmcgTW9yZSBtYWpvcmRvbW8gDQo+IGluZm8gYXQgIGh0dHA6Ly92Z2Vy
+Lmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
