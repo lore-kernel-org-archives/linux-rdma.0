@@ -1,197 +1,152 @@
-From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: =?UTF-8?Q?Re:_Problem_of_changing_the_inline_mode_or_turning_on_the?=
- =?UTF-8?Q?_encapsulation_support_of_Mellanox_NIC=e2=80=99s_eswitch?=
-Date: Mon, 20 Nov 2017 09:28:53 +0200
-Message-ID: <83fb4706-2a4c-9e25-b5b6-92e433a7c746@mellanox.com>
-References: <HK2PR01MB0834534F555D6F532694DE5AF5220@HK2PR01MB0834.apcprd01.prod.exchangelabs.com>
- <20171120072351.GA18825@mtr-leonro.local>
- <HK2PR01MB083483A928DBF1EC8643BEA3F5220@HK2PR01MB0834.apcprd01.prod.exchangelabs.com>
+From: Leif Sahlberg <lsahlber-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Patch v7 06/22] CIFS: SMBD: export protocol initial values
+Date: Mon, 20 Nov 2017 02:37:41 -0500 (EST)
+Message-ID: <1490537439.28570701.1511163461828.JavaMail.zimbra@redhat.com>
+References: <20171107085514.12693-1-longli@exchange.microsoft.com> <20171107085514.12693-7-longli@exchange.microsoft.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <HK2PR01MB083483A928DBF1EC8643BEA3F5220-j5d1BCxnhFliu6CZMbmO22kgRNbfFy2WiWZaQy0nMoadU/p4gVGmPFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Junxue ZHANG <jzhangcs-t+iU6Fs6CelnrVKH7T7RYw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Byron Yi <yibairen1994-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171107085514.12693-7-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
+Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
+Cc: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Acked-by: Ronnie Sahlberg <lsahlber-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
-On 20/11/2017 09:26, Junxue ZHANG wrote:
-> + Bairen
-> 
-> Thanks
-> 
-> -----Original Message-----
-> From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org] 
-> Sent: Monday, November 20, 2017 3:24 PM
-> To: Junxue ZHANG <jzhangcs-t+iU6Fs6CelnrVKH7T7RYw@public.gmane.org>; Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Subject: Re: Problem of changing the inline mode or turning on the encapsulation support of Mellanox NIC’s eswitch
-> 
-> On Mon, Nov 20, 2017 at 03:29:00AM +0000, Junxue ZHANG wrote:
->> Hi all,
->>
->> I encountered a problem when I tried to change the inline mode or turn on the encapsulation support of Mellanox NIC’s eswitch. I wonder if anyone could help me with this. Thanks.
->>
->> I want to use VXLan with OVS and try to offload the rules in hardware. I don’t know whether it is necessary to turn on the encapsulation support. It would also be of great help if anyone could tell me the correct way to accomplish that. Thanks.
->>
-> 
-> + Saeed and Or
-> 
-> 
-> The failure in drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> 990         err = esw_inline_mode_from_devlink(mode, &mlx5_mode);
-> 991         if (err)
-> 992                 goto out;
-> 993
-> 994         for (vport = 1; vport < esw->enabled_vports; vport++) {
-> 995                 err = mlx5_modify_nic_vport_min_inline(dev, vport, mlx5_mode);
-> 996                 if (err) {
-> 997                         esw_warn(dev, "Failed to set min inline on vport %d\n",
-> 998                                  vport);
-> 999                         goto revert_inline_mode;
-> 1000                 }
-> 1001         }
-> 
-> Thanks
-> 
->>
->> Problem:
->> —————————
->> I can successfully turned on the switchdev mode of my Mellanox NIC. But when I tried to change the inline-mode or turn on the encapsulation support, it failed.
->>
->> I can create VFs successfully and use those VFs with switch with link inline mode and encapsulation support off.
->>
->> How to reproduce:
->> —————————
->> Before each of the following steps, I first turn the switchdev mode off and turn on the legacy mode.
->>
->> 1. Change the inline mode:
->>
->> $ devlink dev eswitch set pci/0000:81:00.0 mode switchdev inline-mode 
->> network devlink answers: Invalid argument
->>
->> Output of Syslog:
->> Nov 20 00:05:04 ip-192-168-2-203 kernel: [ 2968.592023] 
->> mlx5_0:wait_for_async_commands:735:(pid 2332): done with all pending 
->> requests Nov 20 00:05:04 ip-192-168-2-203 systemd-udevd[2335]: Could 
->> not generate persistent MAC address for eth0: No such file or 
->> directory Nov 20 00:05:04 ip-192-168-2-203 systemd-udevd[2340]: Could 
->> not generate persistent MAC address for eth1: No such file or 
->> directory Nov 20 00:05:04 ip-192-168-2-203 kernel: [ 2968.707239] 
->> (0000:81:00.0): E-Switch: SRIOV enabled: active vports(3) Nov 20 
->> 00:05:04 ip-192-168-2-203 kernel: [ 2968.707712] mlx5_core 
->> 0000:81:00.0: mlx5_cmd_check:710:(pid 2332): 
->> MODIFY_NIC_VPORT_CONTEXT(0x755) op_mod(0x0) failed, status bad 
->> parameter(0x3), syndrome (0x40ea03) Nov 20 00:05:04 ip-192-168-2-203 
->> kernel: [ 2968.707790] (0000:81:00.0): E-Switch: Failed to set min 
->> inline on vport 1
->>
->> 2. Turn on the encapsulation:
->>
->> $ devlink dev eswitch set pci/0000:81:00.0 mode switchdev encap enable 
->> devlink answers: Operation not supported
->>
->> Output of Syslog:
->>
->> Nov 20 00:06:16 ip-192-168-2-203 kernel: [ 3040.121748] 
->> (0000:81:00.0): E-Switch: disable SRIOV: active vports(3) mode(1) Nov 
->> 20 00:06:16 ip-192-168-2-203 kernel: [ 3040.161942] (0000:81:00.0): 
->> E-Switch: E-Switch enable SRIOV: nvfs(2) mode (2) Nov 20 00:06:18 
->> ip-192-168-2-203 kernel: [ 3042.847377] 
->> mlx5_0:wait_for_async_commands:735:(pid 2371): done with all pending 
->> requests Nov 20 00:06:19 ip-192-168-2-203 systemd-udevd[2374]: Could 
->> not generate persistent MAC address for eth0: No such file or 
->> directory Nov 20 00:06:19 ip-192-168-2-203 systemd-udevd[2379]: Could 
->> not generate persistent MAC address for eth1: No such file or 
->> directory Nov 20 00:06:19 ip-192-168-2-203 kernel: [ 3042.961906] 
->> (0000:81:00.0): E-Switch: SRIOV enabled: active vports(3)
->>
->> 3. Query the status
->>
->> $ devlink dev eswitch show pci/0000:81:00.0
->> pci/0000:81:00.0: mode switchdev inline-mode link encap disable
->>
->>
->> NIC hardware model:
->> —————————
->> ConnectX®-4 EN network interface card, 40GbE dual-port QSFP28, PCIe3.0 
->> x8, tall bracket, ROHS R6
->>
+----- Original Message -----
+From: "Long Li" <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
+To: "Steve French" <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Christoph Hellwig" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Tom Talpey" <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "Matthew Wilcox" <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "Stephen Hemminger" <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Cc: "Long Li" <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Sent: Tuesday, 7 November, 2017 7:54:58 PM
+Subject: [Patch v7 06/22] CIFS: SMBD: export protocol initial values
 
-We don't support encap/decap with ConnectX-4.
-You should use ConnectX-4 LX or ConnectX-5.
-Note that on ConnectX-5 you don't need to turn inline support as it isn't needed.
+From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 
->>
->> NIC firmware:
->> —————————
->> $ mstflint -d 81:00.1 q
->>
->> Image type:            FS3
->> FW Version:            12.21.1000
->> FW Release Date:       29.10.2017
->> Product Version:       rel-12_21_1000
->> Rom Info:              type=PXE version=3.5.305 devid=4115 cpu=AMD64
->> Description:           UID                GuidsNumber Base GUID:             
->> ec0d9a0300373802        4 Base MAC:              0000ec0d9a373802        
->> 4 Image VSD:             N/A Device VSD:            N/A
->> PSID:                  MT_2130110027
->> Security Attributes:   N/A
->>
->> Linux distribution:
->> —————————
->> $ cat /etc/*-release
->>
->> PRETTY_NAME="Debian GNU/Linux 9 (stretch)"
->> NAME="Debian GNU/Linux"
->> VERSION_ID="9"
->> VERSION="9 (stretch)"
->> ID=debian
->> HOME_URL="https://emea01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.debian.org%2F&data=02%7C01%7Cmarkb%40mellanox.com%7Cc0875a82b80b4adbe85b08d52fe7fcef%7Ca652971c7d2e4d9ba6a4d149256f461b%7C0%7C0%7C636467595842031971&sdata=omVFnV%2BIjJaYJ5zx%2BuSSjIQOHtynMuod6zFSuMB%2FpjY%3D&reserved=0"
->> SUPPORT_URL="https://emea01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.debian.org%2Fsupport&data=02%7C01%7Cmarkb%40mellanox.com%7Cc0875a82b80b4adbe85b08d52fe7fcef%7Ca652971c7d2e4d9ba6a4d149256f461b%7C0%7C0%7C636467595842031971&sdata=MUkGR8tCG8qrVC4TIvsoBZvSVFg4CSJF89e9u1s7WI8%3D&reserved=0"
->> BUG_REPORT_URL="https://emea01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fbugs.debian.org%2F&data=02%7C01%7Cmarkb%40mellanox.com%7Cc0875a82b80b4adbe85b08d52fe7fcef%7Ca652971c7d2e4d9ba6a4d149256f461b%7C0%7C0%7C636467595842031971&sdata=xOtp4QasDS5BZFwl%2BqyebXZ9w6cgpP4B5bM7PsAuOG0%3D&reserved=0"
->>
->> Linux kernel:
->> —————————
->> $ uname -r
->>
->> 4.14.0-rc7-amd64
->>
->> NIC driver:
->> —————————
->> $ ethtool -i ens6f0
->>
->> driver: mlx5_core
->> version: 5.0-0
->> firmware-version: 12.21.1000 (MT_2130110027)
->> expansion-rom-version:
->> bus-info: 0000:81:00.0
->> supports-statistics: yes
->> supports-test: yes
->> supports-eeprom-access: no
->> supports-register-dump: no
->> supports-priv-flags: yes
->>
->> Best,
->>
->> Junxue
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" 
->> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo 
->> info at  https://emea01.safelinks.protection.outlook.com/?url=http%3A%2F%2Fvger.kernel.org%2Fmajordomo-info.html&data=02%7C01%7Cmarkb%40mellanox.com%7Cc0875a82b80b4adbe85b08d52fe7fcef%7Ca652971c7d2e4d9ba6a4d149256f461b%7C0%7C0%7C636467595842031971&sdata=2IO9bkNKf8jDtMB5E2n%2FiAPS55oS7g%2BeTWsi%2F8IHadQ%3D&reserved=0
-> N�����r��y���b�X��ǧv�^�)޺{.n�+����{��ٚ�{ay�
-ʇڙ�,j��f���h���z�
-�w���
-���j:+v���w�j�m��������zZ+�����ݢj"��!�i
-> 
+For use-configurable SMB Direct protocol values, export them to /proc/fs/cifs.
 
-Mark.
+Signed-off-by: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+---
+ fs/cifs/cifs_debug.c | 79 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 79 insertions(+)
+
+diff --git a/fs/cifs/cifs_debug.c b/fs/cifs/cifs_debug.c
+index ba0870d..7025d8d 100644
+--- a/fs/cifs/cifs_debug.c
++++ b/fs/cifs/cifs_debug.c
+@@ -30,6 +30,9 @@
+ #include "cifsproto.h"
+ #include "cifs_debug.h"
+ #include "cifsfs.h"
++#ifdef CONFIG_CIFS_SMB_DIRECT
++#include "smbdirect.h"
++#endif
+ 
+ void
+ cifs_dump_mem(char *label, void *data, int length)
+@@ -371,6 +374,54 @@ static const struct file_operations cifs_stats_proc_fops = {
+ };
+ #endif /* STATS */
+ 
++#ifdef CONFIG_CIFS_SMB_DIRECT
++#define PROC_FILE_DEFINE(name) \
++static ssize_t name##_write(struct file *file, const char __user *buffer, \
++	size_t count, loff_t *ppos) \
++{ \
++	int rc; \
++	rc = kstrtoint_from_user(buffer, count, 10, & name ); \
++	if (rc) \
++		return rc; \
++	return count; \
++} \
++static int name##_proc_show(struct seq_file *m, void *v) \
++{ \
++	seq_printf(m, "%d\n", name ); \
++	return 0; \
++} \
++static int name##_open(struct inode *inode, struct file *file) \
++{ \
++	return single_open(file, name##_proc_show, NULL); \
++} \
++\
++static const struct file_operations cifs_##name##_proc_fops = { \
++	.open		= name##_open, \
++	.read		= seq_read, \
++	.llseek		= seq_lseek, \
++	.release	= single_release, \
++	.write		= name##_write, \
++}
++
++extern int rdma_readwrite_threshold;
++extern int smbd_max_frmr_depth;
++extern int smbd_keep_alive_interval;
++extern int smbd_max_receive_size;
++extern int smbd_max_fragmented_recv_size;
++extern int smbd_max_send_size;
++extern int smbd_send_credit_target;
++extern int smbd_receive_credit_max;
++
++PROC_FILE_DEFINE(rdma_readwrite_threshold);
++PROC_FILE_DEFINE(smbd_max_frmr_depth);
++PROC_FILE_DEFINE(smbd_keep_alive_interval);
++PROC_FILE_DEFINE(smbd_max_receive_size);
++PROC_FILE_DEFINE(smbd_max_fragmented_recv_size);
++PROC_FILE_DEFINE(smbd_max_send_size);
++PROC_FILE_DEFINE(smbd_send_credit_target);
++PROC_FILE_DEFINE(smbd_receive_credit_max);
++#endif
++
+ static struct proc_dir_entry *proc_fs_cifs;
+ static const struct file_operations cifsFYI_proc_fops;
+ static const struct file_operations cifs_lookup_cache_proc_fops;
+@@ -398,6 +449,24 @@ cifs_proc_init(void)
+ 		    &cifs_security_flags_proc_fops);
+ 	proc_create("LookupCacheEnabled", 0, proc_fs_cifs,
+ 		    &cifs_lookup_cache_proc_fops);
++#ifdef CONFIG_CIFS_SMB_DIRECT
++	proc_create("rdma_readwrite_threshold", 0, proc_fs_cifs,
++		&cifs_rdma_readwrite_threshold_proc_fops);
++	proc_create("smbd_max_frmr_depth", 0, proc_fs_cifs,
++		&cifs_smbd_max_frmr_depth_proc_fops);
++	proc_create("smbd_keep_alive_interval", 0, proc_fs_cifs,
++		&cifs_smbd_keep_alive_interval_proc_fops);
++	proc_create("smbd_max_receive_size", 0, proc_fs_cifs,
++		&cifs_smbd_max_receive_size_proc_fops);
++	proc_create("smbd_max_fragmented_recv_size", 0, proc_fs_cifs,
++		&cifs_smbd_max_fragmented_recv_size_proc_fops);
++	proc_create("smbd_max_send_size", 0, proc_fs_cifs,
++		&cifs_smbd_max_send_size_proc_fops);
++	proc_create("smbd_send_credit_target", 0, proc_fs_cifs,
++		&cifs_smbd_send_credit_target_proc_fops);
++	proc_create("smbd_receive_credit_max", 0, proc_fs_cifs,
++		&cifs_smbd_receive_credit_max_proc_fops);
++#endif
+ }
+ 
+ void
+@@ -415,6 +484,16 @@ cifs_proc_clean(void)
+ 	remove_proc_entry("SecurityFlags", proc_fs_cifs);
+ 	remove_proc_entry("LinuxExtensionsEnabled", proc_fs_cifs);
+ 	remove_proc_entry("LookupCacheEnabled", proc_fs_cifs);
++#ifdef CONFIG_CIFS_SMB_DIRECT
++	remove_proc_entry("rdma_readwrite_threshold", proc_fs_cifs);
++	remove_proc_entry("smbd_max_frmr_depth", proc_fs_cifs);
++	remove_proc_entry("smbd_keep_alive_interval", proc_fs_cifs);
++	remove_proc_entry("smbd_max_receive_size", proc_fs_cifs);
++	remove_proc_entry("smbd_max_fragmented_recv_size", proc_fs_cifs);
++	remove_proc_entry("smbd_max_send_size", proc_fs_cifs);
++	remove_proc_entry("smbd_send_credit_target", proc_fs_cifs);
++	remove_proc_entry("smbd_receive_credit_max", proc_fs_cifs);
++#endif
+ 	remove_proc_entry("fs/cifs", NULL);
+ }
+ 
+-- 
+2.7.4
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-cifs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
