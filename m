@@ -1,128 +1,107 @@
-From: Steve French <smfrench-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Patch v7 00/22] CIFS: Implement SMB Direct protocol
-Date: Mon, 20 Nov 2017 23:16:20 -0600
-Message-ID: <CAH2r5mswDyvdmgsM9+rae1vy6JdxN8-YHUs67vywqDxqcp5YNA@mail.gmail.com>
-References: <20171107085514.12693-1-longli@exchange.microsoft.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC PATCH] RDMA/cma: Remove netlink interface of CMA statistics
+Date: Tue, 21 Nov 2017 07:53:08 +0200
+Message-ID: <20171121055308.GN18825@mtr-leonro.local>
+References: <CAJ3xEMhfdXz8zQFetjQPfe7HZiCi+N0z6r9XSucuTzQo1--PBg@mail.gmail.com>
+ <20171114095605.GU18825@mtr-leonro.local>
+ <CAJ3xEMhM0xfNxRU+37oWKq_w=MGtE3sUXy38bARgX5-3G9zhvw@mail.gmail.com>
+ <20171114173516.GZ18825@mtr-leonro.local>
+ <CAJ3xEMgJJX0FXMK9Rj=kGmNGkF14tBe03zfwzKHnEEp=cEDVxw@mail.gmail.com>
+ <20171115052926.GN18825@mtr-leonro.local>
+ <CAJ3xEMjrTvY+hq=1Q3tmPk_QiZtpO8dLMmCtrPjJgbtOeiU=6Q@mail.gmail.com>
+ <CAJ3xEMjst4EaFYfUVwqiOzsh5pVPj85joPYsGsap8p6tQYUwew@mail.gmail.com>
+ <20171120194152.GN29075@ziepe.ca>
+ <CAJ3xEMhKEXB3-RJFyEh2dE8dr6OOpQPZ2rJ14MoKQ-2sB0GTXg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="Xr0h8fiiTMtsWkNx"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171107085514.12693-1-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMhKEXB3-RJFyEh2dE8dr6OOpQPZ2rJ14MoKQ-2sB0GTXg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
-Cc: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, samba-technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Have remerged (to cifs-2.6.git for-next) the first seven in this
-series - after he incorporated the fixes for the recent feedback on
-the series to a few (and I cleaned up a few minor checkpatch nits).
 
-On Tue, Nov 7, 2017 at 2:54 AM, Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org> wrote:
-> From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
->
-> Starting with SMB2 dialect 3.0, Microsoft introduced SMB Direct transport
-> protocol for transferring upper layer (SMB2) payload over RDMA via Infiniband,
-> RoCE or iWARP. The prococol is published in [MS-SMBD]
-> (https://msdn.microsoft.com/en-us/library/hh536346.aspx).
->
-> Change log:
-> v2:
-> Implemented RDMA read/write via memory registration.
-> Re-arranged patches for review [Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>].
-> Restructured the code and fixed bugs on protocol timer and keepalive
-> [Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>].
->
-> v3:
-> Improved performance by introducing an additional queue for handling
-> empty packets and reducing lock contention on IRQ path.
-> Added light weight profiling by reading TSC.
-> Improved the code for checking SMB versions when mounting with rdma option
-> [Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>].
-> Moved to use pages instead of buffers for passing I/O for RDMA
-> [Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>].
-> Removed redundant code and refactored I/O code paths
-> [Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>].
->
-> v4:
-> Fixed connectivity issues with iWAPR devices.
-> Exported configurable protocol parameters to /proc/fs/cifs
-> [Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>]
-> Re-arranged patches for review
-> [Pavel Shilovsky <piastryyy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>].
->
-> v5:
-> Fixed compiling errors on ia64, i386 and when INFINIBAND is not
-> configured. [kbuild test robot]
-> Profiling is removed and will be introduced in a seperate patch.
->
-> v6:
-> Report internal code error via WARN_ON(). Change description in
-> Kconfig [Pavel Shilovsky <piastryyy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>].
->
-> v7:
-> Removed the use of #ifdef CONFIG_CIFS_SMB_DIRECT in upper layer
-> code calling transport I/O. [Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>,
-> Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>]
->
-> Long Li (22):
->   CIFS: SMBD: Add parameter rdata to smb2_new_read_req
->   CIFS: SMBD: Introduce kernel config option CONFIG_CIFS_SMB_DIRECT
->   CIFS: SMBD: Add rdma mount option
->   CIFS: SMBD: Add SMB Direct protocol initial values and constants
->   CIFS: SMBD: Establish SMB Direct connection
->   CIFS: SMBD: export protocol initial values
->   CIFS: SMBD: Implement function to create a SMB Direct connection
->   CIFS: SMBD: Upper layer connects to SMBDirect session
->   CIFS: SMBD: Implement function to reconnect to a SMB Direct transport
->   CIFS: SMBD: Upper layer reconnects to SMB Direct session
->   CIFS: SMBD: Implement function to destroy a SMB Direct connection
->   CIFS: SMBD: Upper layer destroys SMB Direct session on shutdown or
->     umount
->   CIFS: SMBD: Set SMB Direct maximum read or write size for I/O
->   CIFS: SMBD: Implement function to receive data via RDMA receive
->   CIFS: SMBD: Upper layer receives data via RDMA receive
->   CIFS: SMBD: Implement function to send data via RDMA send
->   CIFS: SMBD: Upper layer sends data via RDMA send
->   CIFS: SMBD: Implement RDMA memory registration
->   CIFS: SMBD: Upper layer performs SMB write via RDMA read through
->     memory registration
->   CIFS: SMBD: Read correct returned data length for RDMA write (SMB
->     read) I/O
->   CIFS: SMBD: Upper layer performs SMB read via RDMA write through
->     memory registration
->   CIFS: SMBD: Add SMB Direct debug counters
->
->  fs/cifs/Kconfig      |    8 +
->  fs/cifs/Makefile     |    2 +
->  fs/cifs/cifs_debug.c |  147 +++
->  fs/cifs/cifsfs.c     |    2 +
->  fs/cifs/cifsglob.h   |   21 +-
->  fs/cifs/cifssmb.c    |   15 +-
->  fs/cifs/connect.c    |   53 +-
->  fs/cifs/file.c       |   17 +-
->  fs/cifs/smb1ops.c    |    4 +-
->  fs/cifs/smb2ops.c    |   24 +-
->  fs/cifs/smb2pdu.c    |  127 ++-
->  fs/cifs/smbdirect.c  | 2617 ++++++++++++++++++++++++++++++++++++++++++++++++++
->  fs/cifs/smbdirect.h  |  330 +++++++
->  fs/cifs/transport.c  |    8 +-
->  14 files changed, 3344 insertions(+), 31 deletions(-)
->  create mode 100644 fs/cifs/smbdirect.c
->  create mode 100644 fs/cifs/smbdirect.h
->
-> --
-> 2.7.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-cifs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Xr0h8fiiTMtsWkNx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Tue, Nov 21, 2017 at 12:14:01AM +0200, Or Gerlitz wrote:
+> On Mon, Nov 20, 2017 at 9:41 PM, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote:
+>
+> > Well, I would like to know the issues as well, as I've already said I
+> > think they should be described in the commit message.
+>
+> > But also, at the RFC stage the onus is on other people, particularly
+> > people that want to keep the feature, to explain where it is being
+> > used and why..
+>
+> we did it to allow user space track rdma-cm connections through the rdma
+> subsystem netlink infra-structure, e.g one can come up with netstat like
+> reporting of rdma listeners and connections, this is it!
 
+And after 7 years did anyone use it? The answer is no and it is because
+this interface was added without any real user space application which
+was supposed to use it.
 
--- 
-Thanks,
+>
+> > We need to decide if we drop the RFC and fix the implementation, apply
+> > the the RFC, or add a deprecation printk warning, or something..
+>
+> right. To my opinion, if there are issues in the implementation, lets fix them,
+> I don't see why remove this implementation and replace it with a new one
+> that does the same thing.
 
-Steve
+Just looking at the code without deep dive.
+
+1. Lack of extensibility, in case of desire to add new field to
+rdma_cm_id_stats, you will need to throw away this struct and add new
+netlink attribute.
+2. Device list lock for data retrieval - user can prevent device from
+recovery (maybe).
+3. It doesn't return device ID !!!!!
+4. Completely unscalable by sending message per-struct and not using
+netlink nested tables.
+5. No check of device identifiers -> returns everything.
+4. There is no nlmsg_end at the end of message.
+
+Are you going to fix it?
+
+>
+> > Please try to be productive here and concentrate on adding information
+> > and not nit-picking the process! We all know removing a uapi is a big
+> > deal.
+>
+> Re usage I provided what I know.
+
+It is wishful thinking, I'm interested in real users and real applications.
+Do you know about such?
+
+Thanks
+
+--Xr0h8fiiTMtsWkNx
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloTv0QACgkQ5GN7iDZy
+WKf//Q//bS49teIfFHJ74u+zLrb+hiqPURpj+SJVJ1vQMfN3FrPf9ZxozDHQFk1p
+zHl1DGZmiVh/RfzLxuTxJ4IT3Zzx7H20f7P0jlUmCn7YmDInOcnVRHJICzbEs7o6
+F9YuCsNqm25fr92GcJzoNgpHyjFDZKJadSlVhDhdCWoT2t4yqT/kh0/zwVBkHlTr
+plQnD2806ReSGQOzH61C7y+w0OHlVZenWo9j+ZOswsO0D4q+hubuzgizoXImdwia
+argv1TzgKnnsFAuf/u/iB+cElXg96BjgrW05wnokHV3mYNuZ6HuULS7nc9bz9cN6
+dZ+cQiVTUtDZu2fTgGuUbg2JrhKabtqt+EttxPPKsnj/7pUOWPMJpbiWbUH4moqd
+H6coYnv30Z5Y+xS+Lk21PTkvukEcz0xRA2x/8pmMcPcSNo3xfFcTcbTjHi064a0e
+VrS1yfxSABU+BAc05nqr+cQ5fnD6PJe/Gn4gCavCr/yQRxoISdhKckmyhf1RMOx/
+Dl4O8G924C8zHc1dMeHTsyKP73dssH7uRwUrXnvs2gKC+bR3AN554zJRCnBjroQ3
+Pm5SyHRY8LGFdYb0WJeFUMxyamPgjOtjsilk89e+x76EUPVRPjVdb4h2MsUbppzO
+b5nfiVIT3qsCZqW5fYgnL8q2GWe1Jgw03liri+2mLaGh5V1dN7E=
+=+N3G
+-----END PGP SIGNATURE-----
+
+--Xr0h8fiiTMtsWkNx--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
