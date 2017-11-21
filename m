@@ -1,42 +1,57 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH rdma-core] cxgb4: Add missing null termination of hca_table
-Date: Tue, 21 Nov 2017 08:27:17 -0700
-Message-ID: <20171121152717.GA18003@ziepe.ca>
+From: Mark Bloch <markb@mellanox.com>
+Subject: Re: [PATCH rdma-rc 1/2] IB/core: Only enforce security for InfiniBand
+Date: Tue, 21 Nov 2017 17:33:04 +0200
+Message-ID: <3eff140b-8f0f-1c4f-07b7-9dec46090a1e@mellanox.com>
+References: <20171121102618.31216-1-leon@kernel.org>
+ <20171121102618.31216-2-leon@kernel.org>
+ <4f5268b5-e5b6-a7d9-2096-70b4ae8facaf@mellanox.com>
+ <20171121132215.GU18825@mtr-leonro.local>
+ <9bb92ec4-d29f-55b7-d3ba-33bfe451ea6c@mellanox.com>
+ <20171121151409.GA29826@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20171121151409.GA29826@mellanox.com>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Daniel Jurgens <danielj@mellanox.com>, Paul Moore <paul@paul-moore.com>, Don Dutile <ddutile@redhat.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Otherwise there are random crashes during device discovery.
 
-Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- providers/cxgb3/iwch.c | 1 +
- 1 file changed, 1 insertion(+)
 
-Fix a little typo I made when reworking the init scheme.
+On 21/11/2017 17:14, Jason Gunthorpe wrote:
+> On Tue, Nov 21, 2017 at 03:56:19PM +0200, Mark Bloch wrote:
+> 
+>> I just gave mlx4 as an example, but I was talking more about the ability of the RDMA
+>> subsystem to support mixed port types, so in this case, if in the future a vendor
+>> will come with an ib_device with 2 ports, one is IB and one is iWARP bad things will happen.
+> 
+> That will never be allowed.
+> 
 
-https://github.com/linux-rdma/rdma-core/pull/262
+You say never be allowed, I say code talks, and in the code we don't have this restriction.
+maybe we should add something?
 
-diff --git a/providers/cxgb3/iwch.c b/providers/cxgb3/iwch.c
-index 3cc1d4c185e97e..da9179fbbe2a8d 100644
---- a/providers/cxgb3/iwch.c
-+++ b/providers/cxgb3/iwch.c
-@@ -72,6 +72,7 @@ static const struct verbs_match_ent hca_table[] = {
- 	HCA(CHELSIO, T3B02, T3B),
- 	HCA(CHELSIO, T3C20, T3B),
- 	HCA(CHELSIO, S320E, T3B),
-+	{},
- };
- 
- static struct ibv_context_ops iwch_ctx_ops = {
--- 
-2.7.4
+LSM security enforcement should only take place on IB devices, Daniel's comment even says that:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	/* If this isn't an IB device don't create the security context */
+> +	if (!is_ib)
+> +		return 0;
+
+but how do we define an ib device with different port types?
+also while today we only deal with pkeys (if I remember currently) in the future
+we might add other bits, and those bits might not play nicely in the that configuration.
+
+Maybe we should make sure all the ports are IB, and if not, flag it to the user (dmesg?)
+
+> Even mixing roce and IB on the same device should be banned, IMHO.
+
+> If APM does not work between the ports then they do not belong on the
+> same device.
+> 
+> Jason
+> 
+
+Mark.
