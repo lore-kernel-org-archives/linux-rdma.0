@@ -1,53 +1,28 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/8] i40iw: Allocate a sdbuf per CQP WQE
-Date: Mon, 20 Nov 2017 22:12:25 -0600
-Message-ID: <20171121041225.GA1116@ssaleem-MOBL4.amr.corp.intel.com>
-References: <20171117164657.14824-1-henry.orosco@intel.com>
- <20171117164657.14824-3-henry.orosco@intel.com>
- <20171120183800.GD29075@ziepe.ca>
- <20171120212959.GA14928@ssaleem-MOBL4.amr.corp.intel.com>
- <20171120214628.GQ29075@ziepe.ca>
+Subject: Re: [PATCH] i40w: Remove garbage at end of INFINIBAND_I40IW Kconfig
+ section
+Date: Mon, 20 Nov 2017 22:21:28 -0600
+Message-ID: <20171121042128.GB1116@ssaleem-MOBL4.amr.corp.intel.com>
+References: <1511117961-25096-1-git-send-email-geert@linux-m68k.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171120214628.GQ29075-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <1511117961-25096-1-git-send-email-geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 20, 2017 at 02:46:28PM -0700, Jason Gunthorpe wrote:
-> On Mon, Nov 20, 2017 at 03:29:59PM -0600, Shiraz Saleem wrote:
-> > On Mon, Nov 20, 2017 at 11:38:00AM -0700, Jason Gunthorpe wrote:
-> > > On Fri, Nov 17, 2017 at 10:46:51AM -0600, Henry Orosco wrote:
-> > > > From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > > 
-> > > > Currently there is only one sdbuf per Control QP(CQP) for programming
-> > > > Segment Descriptor(SD) command thus limiting the number of SD work
-> > > > requests that can be posted to one.  Allocate enough memory for one
-> > > > sdbuf per CQP SQ WQE to allow more than one SD command at a time.
-> > > > When a SD command is posted, it will use the corresponding sdbuf for
-> > > > the WQE.
-> > > 
-> > > It is not clear to me from this description why this would be a rc
-> > > candidate?
-> > > 
-> > > Is this is a bug? or is it adding a feature of increasing the number
-> > > of 'SD work requests'?
-> > >
-> > 
-> > Its a bug fix as we are reusing the same SD buffer
-> > for all WQEs posted. This is incorrect and will become
-> > a problem if we have multiple simultaneous SD WQEs 
-> > being posted.
+On Sun, Nov 19, 2017 at 07:59:21PM +0100, Geert Uytterhoeven wrote:
+> Remove leftover garbage (containing Kconfig dependencies for another
+> symbol?)
 > 
-> OK, can you send me a revised commit description making it clear what
-> the bug is and how it could be hit? Maybe something like:
+> Signed-off-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+> ---
 
-Ok. Will resend with revised commit message.
-
-
+Acked-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
