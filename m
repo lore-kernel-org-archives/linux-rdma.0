@@ -1,7 +1,7 @@
 From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 4/7] i40iw: Correct ARP index mask
-Date: Tue, 21 Nov 2017 12:44:59 -0600
-Message-ID: <20171121184502.14056-5-henry.orosco@intel.com>
+Subject: [PATCH v2 5/7] i40iw: Reinitialize add_sd_cnt
+Date: Tue, 21 Nov 2017 12:45:00 -0600
+Message-ID: <20171121184502.14056-6-henry.orosco@intel.com>
 References: <20171121184502.14056-1-henry.orosco@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171121184502.14056-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,29 +12,29 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-ARP Index is 16 bits wide not 12 bits. Adjust
-the mask for the full 16 bits.
+add_sd_cnt in info structure passed to i40iw_create_hmc_obj_type
+must be 0 and since it is modified during the call, it must be
+reset in the loop.
 
-Fixes: 4e9042e647ff ("i40iw: add hw and utils files")
+Fixes: 8e06af711bf2 ("i40iw: add main, hdr, status")
 Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_d.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/i40iw/i40iw_main.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_d.h b/drivers/infiniband/hw/i40iw/i40iw_d.h
-index 1077b78..029083c 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_d.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_d.h
-@@ -1114,7 +1114,7 @@
- #define I40IWQPC_VLANTAG_MASK (0xffffULL << I40IWQPC_VLANTAG_SHIFT)
- 
- #define I40IWQPC_ARPIDX_SHIFT 48
--#define I40IWQPC_ARPIDX_MASK (0xfffULL << I40IWQPC_ARPIDX_SHIFT)
-+#define I40IWQPC_ARPIDX_MASK (0xffffULL << I40IWQPC_ARPIDX_SHIFT)
- 
- #define I40IWQPC_FLOWLABEL_SHIFT 0
- #define I40IWQPC_FLOWLABEL_MASK (0xfffffUL << I40IWQPC_FLOWLABEL_SHIFT)
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
+index 1f9d9c7..3aecf4c 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_main.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
+@@ -483,6 +483,7 @@ static enum i40iw_status_code i40iw_create_hmc_objs(struct i40iw_device *iwdev,
+ 	for (i = 0; i < IW_HMC_OBJ_TYPE_NUM; i++) {
+ 		info.rsrc_type = iw_hmc_obj_types[i];
+ 		info.count = dev->hmc_info->hmc_obj[info.rsrc_type].cnt;
++		info.add_sd_cnt = 0;
+ 		status = i40iw_create_hmc_obj_type(dev, &info);
+ 		if (status) {
+ 			i40iw_pr_err("create obj type %d status = %d\n",
 -- 
 2.8.3
 
