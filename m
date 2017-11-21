@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH rdma-core 1/3] libibumad: Add umad_sa_mcm.h for umad SA
- MCMemberRecord support
-Date: Mon, 20 Nov 2017 20:41:07 -0500
-Message-ID: <b41cb58f-9881-bca9-8439-2a2327caa076@dev.mellanox.co.il>
+Subject: [PATCH rdma-core 2/3] libibumad: Add umad_sa_mcm_rereg_test.c to
+ tests
+Date: Mon, 20 Nov 2017 20:41:17 -0500
+Message-ID: <272f5ad4-3630-e4e0-72ea-2500d18d3a36@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -13,33 +13,37 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
+Port of infiniband-diags/src/mcm_rereg_test.c to use
+umad_sa_mcm.h and libibumad (eliminated use of libibmad)
+
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibumad/CMakeLists.txt |   1 +
- libibumad/umad_sa_mcm.h  | 193 +++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 194 insertions(+)
- create mode 100644 libibumad/umad_sa_mcm.h
+ libibumad/tests/CMakeLists.txt           |   3 +
+ libibumad/tests/umad_sa_mcm_rereg_test.c | 582 +++++++++++++++++++++++++++++++
+ 2 files changed, 585 insertions(+)
+ create mode 100644 libibumad/tests/umad_sa_mcm_rereg_test.c
 
-diff --git a/libibumad/CMakeLists.txt b/libibumad/CMakeLists.txt
-index ba2463b..b85c94a 100644
---- a/libibumad/CMakeLists.txt
-+++ b/libibumad/CMakeLists.txt
-@@ -2,6 +2,7 @@ publish_headers(infiniband
-   umad.h
-   umad_cm.h
-   umad_sa.h
-+  umad_sa_mcm.h
-   umad_sm.h
-   umad_str.h
-   umad_types.h
-diff --git a/libibumad/umad_sa_mcm.h b/libibumad/umad_sa_mcm.h
+diff --git a/libibumad/tests/CMakeLists.txt b/libibumad/tests/CMakeLists.txt
+index 68bb714..2092b81 100644
+--- a/libibumad/tests/CMakeLists.txt
++++ b/libibumad/tests/CMakeLists.txt
+@@ -4,4 +4,7 @@ target_link_libraries(umad_reg2 LINK_PRIVATE ibumad)
+ rdma_test_executable(umad_register2 umad_register2.c)
+ target_link_libraries(umad_register2 LINK_PRIVATE ibumad)
+ 
++rdma_test_executable(umad_sa_mcm_rereg_test umad_sa_mcm_rereg_test.c)
++target_link_libraries(umad_sa_mcm_rereg_test LINK_PRIVATE ibumad)
++
+ rdma_test_executable(umad_compile_test umad_compile_test.c)
+diff --git a/libibumad/tests/umad_sa_mcm_rereg_test.c b/libibumad/tests/umad_sa_mcm_rereg_test.c
 new file mode 100644
-index 0000000..4aaaf02
+index 0000000..0e82aba
 --- /dev/null
-+++ b/libibumad/umad_sa_mcm.h
-@@ -0,0 +1,193 @@
++++ b/libibumad/tests/umad_sa_mcm_rereg_test.c
+@@ -0,0 +1,582 @@
 +/*
-+ * Copyright (c) 2017 Mellanox Technologies LTD. All rights reserved.
++ * Copyright (c) 2017 Mellanox Technologies Ltd. All rights reserved.
++ * Copyright (c) 2006-2009 Voltaire, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -70,167 +74,555 @@ index 0000000..4aaaf02
 + * SOFTWARE.
 + *
 + */
-+#ifndef _UMAD_SA_MCM_H
-+#define _UMAD_SA_MCM_H
 +
-+#include <infiniband/umad_types.h>
-+#include <infiniband/umad_sa.h>
++#include <stdio.h>
++#include <string.h>
++#include <errno.h>
++#include <inttypes.h>
++#include <unistd.h>
 +
-+#ifdef __cplusplus
-+extern "C" {
++#include <infiniband/umad.h>
++#include <infiniband/umad_sa_mcm.h>
++
++#define info(fmt, ...) fprintf(stderr, "INFO: " fmt, ## __VA_ARGS__)
++#define err(fmt, ...) fprintf(stderr, "ERR: " fmt, ## __VA_ARGS__)
++#ifdef NOISY_DEBUG
++#define dbg(fmt, ...) fprintf(stderr, "DBG: " fmt, ## __VA_ARGS__)
++#else
++#define dbg(fmt, ...) {}
 +#endif
 +
-+/* Component mask bits for MCMemberRecord */
-+enum {
-+	UMAD_SA_MCM_COMP_MASK_MGID		= (1ULL << 0),
-+	UMAD_SA_MCM_COMP_MASK_PORT_GID		= (1ULL << 1),
-+	UMAD_SA_MCM_COMP_MASK_QKEY		= (1ULL << 2),
-+	UMAD_SA_MCM_COMP_MASK_MLID		= (1ULL << 3),
-+	UMAD_SA_MCM_COMP_MASK_MTU_SEL		= (1ULL << 4),
-+	UMAD_SA_MCM_COMP_MASK_MTU		= (1ULL << 5),
-+	UMAD_SA_MCM_COMP_MASK_TCLASS		= (1ULL << 6),
-+	UMAD_SA_MCM_COMP_MASK_PKEY		= (1ULL << 7),
-+	UMAD_SA_MCM_COMP_MASK_RATE_SEL		= (1ULL << 8),
-+	UMAD_SA_MCM_COMP_MASK_RATE		= (1ULL << 9),
-+	UMAD_SA_MCM_COMP_MASK_LIFE_TIME_SEL	= (1ULL << 10),
-+	UMAD_SA_MCM_COMP_MASK_LIFE_TIME		= (1ULL << 11),
-+	UMAD_SA_MCM_COMP_MASK_SL		= (1ULL << 12),
-+	UMAD_SA_MCM_COMP_MASK_FLOW_LABEL	= (1ULL << 13),
-+	UMAD_SA_MCM_COMP_MASK_HOP_LIMIT		= (1ULL << 14),
-+	UMAD_SA_MCM_COMP_MASK_SCOPE		= (1ULL << 15),
-+	UMAD_SA_MCM_COMP_MASK_JOIN_STATE	= (1ULL << 16),
-+	UMAD_SA_MCM_COMP_MASK_PROXY_JOIN	= (1ULL << 17)
++#define DEFAULT_TIMEOUT 100		/* milliseconds */
++#define MAX_PORT_GUIDS 64
++
++/* Use null MGID to request SA assigned MGID */
++static const uint8_t null_mgid[16] = {
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 +};
 +
-+/*
-+ * Should this enum be moved to umad_sa.h and MCM_ removed
-+ * as these are shared by PathRecord and MultiPathRecord ?
-+ */
-+enum {
-+	UMAD_SA_MCM_SELECTOR_GREATER_THAN	= 0,
-+	UMAD_SA_MCM_SELECTOR_LESS_THAN		= 1,
-+	UMAD_SA_MCM_SELECTOR_EXACTLY		= 2,
-+	UMAD_SA_MCM_SELECTOR_LARGEST_AVAIL	= 3,	/* rate & MTU */
-+	UMAD_SA_MCM_SELECTOR_SMALLEST_AVAIL	= 3	/* packet lifetime */
++static int create, join, leave;
++static uint8_t rate = 0xff, mtu = 0xff, sl = 0xff;
++static umad_port_t umad_port;
++
++struct guid_trid {
++	uint8_t gid[16];
++	__be64 guid;
++	uint64_t trid[2];
 +};
 +
-+/* Similarly for the following 2 defines */
-+#define UMAD_SA_MCM_SELECTOR_SHIFT		6
-+#define UMAD_SA_MCM_RATE_MTU_PKT_LIFE_MASK	0x3f
-+
-+enum {
-+	UMAD_SA_MCM_JOIN_STATE_FULL_MEMBER	= (1 << 0),
-+	UMAD_SA_MCM_JOIN_STATE_NON_MEMBER	= (1 << 1),
-+	UMAD_SA_MCM_JOIN_STATE_SEND_ONLY_NON_MEMBER = (1 << 2),
-+	UMAD_SA_MCM_JOIN_STATE_SEND_ONLY_FULL_MEMBER = (1 << 3)
-+};
-+
-+struct umad_sa_mcmember_record {
-+	uint8_t mgid[16];	/* network-byte order */
-+	uint8_t portgid[16];	/* network-byte order */
-+	__be32	qkey;
-+	__be16	mlid;
-+	uint8_t mtu;		/* 2 bit selector included */
-+	uint8_t tclass;
-+	__be16	pkey;
-+	uint8_t rate;		/* 2 bit selector included */
-+	uint8_t pkt_life;	/* 2 bit selector included */
-+	__be32	sl_flow_hop;	/* SL: 4 bits, FlowLabel: 20 bits, */
-+				/* HopLimit: 8 bits */
-+	uint8_t scope_state;	/* Scope: 4 bits, JoinState: 4 bits */
-+	uint8_t proxy_join;	/* ProxyJoin: 1 bit (computed by SA) */
-+	uint8_t reserved[2];
-+	uint8_t pad[4];		/* SA records are multiple of 8 bytes */
-+};
-+
-+static inline void
-+umad_sa_mcm_get_sl_flow_hop(__be32 sl_flow_hop, uint8_t * const p_sl,
-+			    uint32_t * const p_flow_lbl, uint8_t * const p_hop)
++static void build_user_mad_addr(uint8_t *umad)
 +{
-+	uint32_t tmp;
++	umad_set_addr(umad, umad_port.sm_lid, 1, umad_port.sm_sl, UMAD_QKEY);
 +
-+	tmp = ntohl(sl_flow_hop);
-+	if (p_hop)
-+		*p_hop = (uint8_t) tmp;
-+
-+	tmp >>= 8;
-+	if (p_flow_lbl)
-+		*p_flow_lbl = (uint32_t) (tmp & 0xfffff);
-+
-+	tmp >>= 20;
-+	if (p_sl)
-+		*p_sl = (uint8_t) tmp;
++	/*
++	 * The following 2 umad calls are redundant
++	 * as umad was originally cleared to
++	 */
++	umad_set_grh(umad, NULL);
++	umad_set_pkey(umad, 0);		/* just pkey index 0 for now !!! */
 +}
 +
-+static inline __be32
-+umad_sa_mcm_set_sl_flow_hop(uint8_t sl, uint32_t flow_label, uint8_t hop_limit)
++static void build_mcm_rec(struct umad_sa_packet *sa, uint8_t method,
++			  const uint8_t mgid[], const uint8_t port_gid[],
++			  uint64_t tid, int creat)
 +{
-+	uint32_t tmp;
++	struct umad_sa_mcmember_record *mcm;
 +
-+	tmp = (sl << 28) | ((flow_label & 0xfffff) << 8) | hop_limit;
-+	return htonl(tmp);
++	memset(sa, 0, sizeof(*sa));
++
++	sa->mad_hdr.base_version = UMAD_BASE_VERSION;
++	sa->mad_hdr.mgmt_class = UMAD_CLASS_SUBN_ADM;
++	sa->mad_hdr.class_version = UMAD_SA_CLASS_VERSION;
++	sa->mad_hdr.method = method;
++	sa->mad_hdr.tid = htobe64(tid);
++	sa->mad_hdr.attr_id = htons(UMAD_SA_ATTR_MCMEMBER_REC);
++	if (creat)
++		sa->comp_mask = htobe64(UMAD_SA_MCM_COMP_MASK_MGID |
++					UMAD_SA_MCM_COMP_MASK_PORT_GID |
++					UMAD_SA_MCM_COMP_MASK_QKEY |
++					UMAD_SA_MCM_COMP_MASK_TCLASS |
++					UMAD_SA_MCM_COMP_MASK_PKEY |
++					UMAD_SA_MCM_COMP_MASK_SL |
++					UMAD_SA_MCM_COMP_MASK_FLOW_LABEL |
++					UMAD_SA_MCM_COMP_MASK_JOIN_STATE);
++	else
++		sa->comp_mask = htobe64(UMAD_SA_MCM_COMP_MASK_MGID |
++					UMAD_SA_MCM_COMP_MASK_PORT_GID |
++					UMAD_SA_MCM_COMP_MASK_JOIN_STATE);
++
++	mcm = (struct umad_sa_mcmember_record *) sa->data;
++	memcpy(mcm->mgid, mgid, sizeof(mcm->mgid));
++	memcpy(mcm->portgid, port_gid, sizeof(mcm->portgid));
++	umad_sa_mcm_set_join_state(mcm, UMAD_SA_MCM_JOIN_STATE_FULL_MEMBER);
++	if (creat) {
++		mcm->qkey = htonl(0xb1b);
++		/* assume full default partition (in index 0) */
++		mcm->pkey = htons(0xffff);
++		if (rate != 0xff) {
++			sa->comp_mask |=
++				htobe64(UMAD_SA_MCM_COMP_MASK_RATE_SEL |
++					UMAD_SA_MCM_COMP_MASK_RATE);
++			mcm->rate = (UMAD_SA_MCM_SELECTOR_EXACTLY <<
++				     UMAD_SA_MCM_SELECTOR_SHIFT) |
++				    (rate & UMAD_SA_MCM_RATE_MTU_PKT_LIFE_MASK);
++		}
++		if (mtu != 0xff) {
++			sa->comp_mask |= htobe64(UMAD_SA_MCM_COMP_MASK_MTU_SEL |
++						 UMAD_SA_MCM_COMP_MASK_MTU);
++			mcm->mtu = (UMAD_SA_MCM_SELECTOR_EXACTLY <<
++				    UMAD_SA_MCM_SELECTOR_SHIFT) |
++				   (mtu & UMAD_SA_MCM_RATE_MTU_PKT_LIFE_MASK);
++		}
++		if (sl != 0xff) {
++			sa->comp_mask |= htobe64(UMAD_SA_MCM_COMP_MASK_SL);
++			mcm->sl_flow_hop =
++				umad_sa_mcm_set_sl_flow_hop(sl, 0, 0);
++		}
++	}
 +}
 +
-+static inline void
-+umad_sa_mcm_get_scope_state(const uint8_t scope_state, uint8_t * const p_scope,
-+			    uint8_t * const p_state)
++static int mcm_send(int portid, int agentid, uint8_t *umad, int len, int tmo,
++		    uint8_t method, const uint8_t mgid[],
++		    struct guid_trid *entry, int creat)
 +{
-+	uint8_t tmp_scope_state;
++	struct umad_sa_packet *sa = umad_get_mad(umad);
 +
-+	if (p_state)
-+		*p_state = (uint8_t) (scope_state & 0x0f);
++	build_mcm_rec(sa, method, mgid, entry->gid, entry->trid[0], creat);
++	if (umad_send(portid, agentid, umad, len, tmo, 0) < 0) {
++		err("umad_send %s failed: %s\n",
++		    (method == UMAD_METHOD_GET) ? "query" : "non query",
++		    strerror(errno));
++		return -1;
++	}
++	dbg("umad_send %d: tid = 0x%" PRIx64 "\n", method,
++	    be64toh(sa->mad_hdr.tid));
 +
-+	tmp_scope_state = scope_state >> 4;
-+
-+	if (p_scope)
-+		*p_scope = (uint8_t) (tmp_scope_state & 0x0f);
++	return 0;
 +}
 +
-+static inline uint8_t
-+umad_sa_mcm_set_scope_state(const uint8_t scope, const uint8_t state)
++static int rereg_port_gid(int portid, int agentid,
++			  uint8_t *umad, int len, int tmo,
++			  const uint8_t mgid[], struct guid_trid *entry)
 +{
-+	uint8_t scope_state;
++	struct umad_sa_packet *sa = umad_get_mad(umad);
 +
-+	scope_state = scope;
-+	scope_state = scope_state << 4;
-+	scope_state = scope_state | state;
-+	return scope_state;
++	build_mcm_rec(sa, UMAD_SA_METHOD_DELETE, mgid,
++		      entry->gid, entry->trid[0], 0);
++	if (umad_send(portid, agentid, umad, len, tmo, 0) < 0) {
++		err("umad_send leave failed: %s\n", strerror(errno));
++		return -1;
++	}
++	dbg("umad_send leave: tid = 0x%" PRIx64 "\n", be64toh(sa->mad_hdr.tid));
++	entry->trid[0] = be64toh(sa->mad_hdr.tid);	/* for agent ID */
++
++	sa->mad_hdr.method = UMAD_METHOD_SET;
++	sa->mad_hdr.tid = htobe64(entry->trid[1]);
++	if (umad_send(portid, agentid, umad, len, tmo, 0) < 0) {
++		err("umad_send join failed: %s\n", strerror(errno));
++		return -1;
++	}
++	dbg("umad_send join: tid = 0x%" PRIx64 "\n", be64toh(sa->mad_hdr.tid));
++	entry->trid[1] = be64toh(sa->mad_hdr.tid);	/* for agent ID */
++
++	return 0;
 +}
 +
-+static inline void
-+umad_sa_mcm_set_join_state(struct umad_sa_mcmember_record *p_mc_rec,
-+			   const uint8_t state)
++static int rereg_send_all(int portid, int agentid, int tmo,
++			  const uint8_t mgid[], struct guid_trid *list,
++			  unsigned int cnt)
 +{
-+	/* keep the scope as it is */
-+	p_mc_rec->scope_state = (p_mc_rec->scope_state & 0xf0) | (0x0f & state);
++	uint8_t *umad;
++	int len = sizeof(struct umad_hdr) + UMAD_LEN_DATA;
++	unsigned int i, sent = 0;
++	int ret;
++
++	info("%s... cnt = %u\n", __func__, cnt);
++
++	umad = calloc(1, len + umad_size());
++	if (!umad) {
++		err("cannot alloc mem for umad: %s\n", strerror(errno));
++		return -1;
++	}
++	build_user_mad_addr(umad);
++
++	for (i = 0; i < cnt; i++) {
++		ret = rereg_port_gid(portid, agentid, umad, len, tmo,
++				     mgid, &list[i]);
++		if (ret < 0) {
++			err("%s: rereg_port_gid guid 0x%016" PRIx64
++			    " failed\n", __func__, be64toh(list[i].guid));
++			continue;
++		}
++		sent++;
++	}
++
++	info("%s: sent %u of %u requests\n", __func__, sent * 2, cnt * 2);
++
++	free(umad);
++
++	return 0;
 +}
 +
-+static inline int
-+umad_sa_mcm_get_proxy_join(struct umad_sa_mcmember_record *p_mc_rec)
++static int mcm_recv(int portid, uint8_t *umad, int length, int tmo)
 +{
-+	return ((p_mc_rec->proxy_join & 0x80) == 0x80);
-+}
-+
-+/*
-+ * Similarly, should the next 2 helpers be moved to umad_sa.h
-+ * without mcm_ in the function name ?
-+ */
-+static inline uint8_t
-+umad_sa_mcm_get_rate_mtu_or_life(uint8_t rate_mtu_or_life)
-+{
-+	return (rate_mtu_or_life & 0x3f);
-+}
-+
-+static inline uint8_t
-+umad_sa_mcm_set_rate_mtu_or_life(uint8_t selector, uint8_t rate_mtu_or_life)
-+{
-+	return (((selector & 0x3) << 6) | (rate_mtu_or_life & 0x3f));
-+}
-+
-+#ifdef __cplusplus
-+}
++	int ret, retry = 0;
++	int len = length;
++#ifdef NOISY_DEBUG
++	struct umad_hdr *mad;
 +#endif
-+#endif				/* _UMAD_SA_MCM_H */
++
++	while ((ret = umad_recv(portid, umad, &len, tmo)) < 0 &&
++	       errno == ETIMEDOUT) {
++		if (retry++ > 3)
++			return 0;
++	}
++	if (ret < 0) {
++		err("umad_recv %d failed: %s\n", ret, strerror(errno));
++		return -1;
++	}
++
++#ifdef NOISY_DEBUG
++	mad = umad_get_mad(umad);
++#endif
++	dbg("umad_recv (retries %d), tid = 0x%" PRIx64
++	    ": len = %d, status = %d\n", retry,
++	    be64toh(mad->tid), len, umad_status(umad));
++
++	return 1;
++}
++
++static int rereg_recv_all(int portid, int agentid, int tmo,
++			  const uint8_t mgid[], struct guid_trid *list,
++			  unsigned int cnt)
++{
++	uint8_t *umad;
++	struct umad_hdr *mad;
++	int len = sizeof(struct umad_hdr) + UMAD_LEN_DATA;
++	uint64_t trid;
++	unsigned int n, i, j;
++	uint16_t status;
++	uint8_t method;
++
++	info("%s...\n", __func__);
++
++	umad = calloc(1, len + umad_size());
++	if (!umad) {
++		err("cannot alloc mem for umad: %s\n", strerror(errno));
++		return -1;
++	}
++	mad = umad_get_mad(umad);
++
++	n = 0;
++	while (mcm_recv(portid, umad, len, tmo) > 0) {
++		dbg("%s: done %d\n", __func__, n);
++		n++;
++
++		method = mad->method;
++		status = ntohs(mad->status);
++		trid = be64toh(mad->tid);
++
++		if (status)
++			dbg("MAD status 0x%x, method 0x%x\n", status, method);
++
++		if (status &&
++		    (method == UMAD_METHOD_GET_RESP ||
++		     method == UMAD_SA_METHOD_DELETE_RESP)) {
++			for (i = 0; i < cnt; i++)
++				for (j = 0; j < 2; j++)
++					if (trid == list[i].trid[j])
++						break;
++			if (i == cnt) {
++				err("cannot find trid 0x%" PRIx64
++				    ", status 0x%x, method 0x%x\n",
++				    trid, status, method);
++				continue;
++			}
++			info("guid 0x%016" PRIx64
++			     ": status 0x%x, method 0x%x. Retrying\n",
++			     be64toh(list[i].guid), status, method);
++			rereg_port_gid(portid, agentid, umad, len, tmo,
++				       mgid, &list[i]);
++		}
++	}
++
++	info("%s: got %u responses\n", __func__, n);
++
++	free(umad);
++	return 0;
++}
++
++static int query_all(int portid, int agentid, int tmo, uint8_t method,
++		     const uint8_t mgid[], struct guid_trid *list,
++		     int creat, unsigned int cnt)
++{
++	uint8_t *umad;
++	struct umad_hdr *mad;
++	int len = sizeof(struct umad_hdr) + UMAD_LEN_DATA;
++	unsigned int i, sent = 0;
++	int ret;
++	uint16_t status;
++	uint8_t mcgid[16];
++
++	info("%s...\n", __func__);
++
++	memcpy(mcgid, mgid, 16);
++
++	umad = calloc(1, len + umad_size());
++	if (!umad) {
++		err("cannot alloc mem for umad: %s\n", strerror(errno));
++		return -1;
++	}
++	build_user_mad_addr(umad);
++	mad = umad_get_mad(umad);
++
++	for (i = 0; i < cnt; i++) {
++		ret = mcm_send(portid, agentid, umad, len, tmo,
++			       method, mcgid, &list[i], creat);
++		if (ret < 0) {
++			err("%s: mcm_send failed\n", __func__);
++			continue;
++		}
++		sent++;
++
++		ret = mcm_recv(portid, umad, len, tmo);
++		if (ret < 0) {
++			err("%s: mcm_recv failed\n", __func__);
++			continue;
++		}
++
++		status = ntohs(mad->status);
++		if (status)
++			info(
++			    "guid 0x%016" PRIx64 ": status 0x%x, method 0x%x\n",
++			    be64toh(list[i].guid), status, mad->method);
++		else if (creat && i == 0) {
++			if (memcmp(mgid, null_mgid, 16) == 0) {
++				struct umad_sa_packet *sa = (void *) mad;
++				struct umad_sa_mcmember_record *mcm;
++
++				mcm = (struct umad_sa_mcmember_record *)
++					sa->data;
++				memcpy(mcgid, mcm->mgid, 16);
++			}
++		}
++	}
++
++	info("%s: %u of %u queried\n", __func__, sent, cnt);
++
++	free(umad);
++	return 0;
++}
++
++static int test_port(const char *guid_file, int portid, int agentid, int tmo,
++		     const uint8_t mgid[])
++{
++	char line[256];
++	FILE *f;
++	uint8_t port_gid[16];
++	uint64_t guidho;
++	__be64 prefix, guid;
++	uint64_t trid;
++	struct guid_trid *list;
++	int i = 0, j;
++
++	list = calloc(MAX_PORT_GUIDS, sizeof(*list));
++	if (!list) {
++		err("cannot alloc mem for guid/trid list: %s\n",
++		    strerror(errno));
++		return -1;
++	}
++
++	f = fopen(guid_file, "r");
++	if (!f) {
++		err("cannot open %s: %s\n", guid_file, strerror(errno));
++		return -1;
++	}
++
++	trid = 0x12345678;	/* starting tid */
++	prefix = umad_port.gid_prefix;
++
++	while (fgets(line, sizeof(line), f)) {
++		guidho = strtoull(line, NULL, 0);
++		guid = htobe64(guidho);
++		memcpy(&port_gid[0], &prefix, 8);
++		memcpy(&port_gid[8], &guid, 8);
++
++		list[i].guid = guid;
++		memcpy(list[i].gid, port_gid, sizeof(list[i].gid));
++		for (j = 0; j < 2; j++)
++			list[i].trid[j] = trid++;
++
++		if (++i >= MAX_PORT_GUIDS)
++			break;
++	}
++	fclose(f);
++
++	if (create)
++		query_all(portid, agentid, tmo, UMAD_METHOD_SET,
++			  mgid, list, 1, i);
++	else if (join)
++		query_all(portid, agentid, tmo, UMAD_METHOD_SET,
++			 mgid, list, 0, i);
++	else if (leave)
++		query_all(portid, agentid, tmo, UMAD_SA_METHOD_DELETE,
++			  mgid, list, 0, i);
++	else {
++		/* no operation specified - default to rereg */
++		rereg_send_all(portid, agentid, tmo, mgid, list, i);
++		rereg_recv_all(portid, agentid, tmo, mgid, list, i);
++
++		query_all(portid, agentid, tmo, UMAD_METHOD_GET,
++			  mgid, list, 0, i);
++	}
++
++	free(list);
++	return 0;
++}
++
++static void show_usage(const char *prog_name)
++{
++	fprintf(stderr,
++		"%s [-C <ca_name>] [-P <ca_port>] [-F <port_guid_file>] [-t <timeout_ms>] [-g <mgid>] [-c] [-j] [-l] [-r <rate>] [-m <mtu>] [-s <sl>] [-h]\n",
++		prog_name);
++	fprintf(stderr,
++		"	-C <ca_name>	use the specified ca_name\n");
++	fprintf(stderr,
++		"	-P <ca_port>	use the specific ca_port\n");
++	fprintf(stderr,
++		"	-F <port_guid_file>	use the specified port_guid_file\n");
++	fprintf(stderr,
++		"				defaults to port_guids.lst\n");
++	fprintf(stderr,
++		"	-t <timeout_ms>	override the default timeout of 100 milliseconds\n");
++	fprintf(stderr,
++		"	-g <mgid>	MGID of MC group in IPv6 format\n");
++	fprintf(stderr,
++		"			defaults to IPv4 broadcast group if not specified\n");
++	fprintf(stderr,
++		"			To create SA assigned group, use either :: or 0:0:0:0:0:0:0:0\n");
++	fprintf(stderr, "	-c		create MC group with ports\n");
++	fprintf(stderr, "	-j		join ports to MC group\n");
++	fprintf(stderr,
++		"	-l		remove ports from MC group (leave)\n");
++	fprintf(stderr,
++		"	operation defaults to reregister ports if none if c, j, l are specified\n\n");
++	fprintf(stderr,
++		"	-r <rate>	Encoded rate value (for create)\n");
++	fprintf(stderr,
++		"	-m <mtu>	Encoded mtu value (for create)\n");
++	fprintf(stderr, "	-s <sl>		SL (for create)\n");
++	fprintf(stderr, "	-h		show this usage message\n");
++}
++
++int main(int argc, char **argv)
++{
++	char *ibd_ca = NULL;
++	int ibd_ca_port = 0;
++	const char *guid_file = "port_guids.list";
++	int tmo = DEFAULT_TIMEOUT;
++	int c, portid, agentid;
++	const char *prog_name;
++	const char *const optstring = "F:C:P:t:g:cjlr:m:s:h";
++	/* IPoIB broadcast group (for full default pkey) */
++	uint8_t mgid[16] = {
++		0xff, 0x12, 0x40, 0x1b, 0xff, 0xff, 0x00, 0x00,
++		0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff
++	};
++
++	prog_name = argv[0];
++	while ((c = getopt(argc, argv, optstring)) != -1) {
++		switch (c) {
++		case 'C':
++			ibd_ca = optarg;
++			break;
++		case 'P':
++			ibd_ca_port = strtoul(optarg, NULL, 0);
++			break;
++		case 'F':
++			guid_file = optarg;
++			break;
++		case 't':
++			tmo = atoi(optarg);
++			break;
++		case 'g':
++			if (inet_pton(AF_INET6, optarg, &mgid) <= 0) {
++				fprintf(stderr, "mgid could not be parsed\n");
++				exit(EXIT_FAILURE);
++			}
++			break;
++		case 'c':
++			create = 1;
++			break;
++		case 'j':
++			join = 1;
++			break;
++		case 'l':
++			leave = 1;
++			break;
++		case 'r':
++			rate = atoi(optarg);
++			break;
++		case 'm':
++			mtu = atoi(optarg);
++			break;
++		case 's':
++			sl = atoi(optarg);
++			break;
++		case 'h':
++			show_usage(prog_name);
++			exit(EXIT_SUCCESS);
++			break;
++		default:
++			fprintf(stderr, "Unrecognized option: -%c\n", optopt);
++			show_usage(prog_name);
++			exit(EXIT_FAILURE);
++			break;
++		}
++	}
++
++	if (umad_get_port(ibd_ca, ibd_ca_port, &umad_port) < 0) {
++		if (ibd_ca == NULL)
++			err(
++			   "umad_get_port failed for first IB CA port %d: %s\n",
++			   ibd_ca_port, strerror(errno));
++		else
++			err("umad_get_port failed for CA %s port %d: %s\n",
++			    ibd_ca, ibd_ca_port, strerror(errno));
++		umad_done();
++		return -1;
++	}
++	info("using %s port %d guid 0x%016" PRIx64 "\n",
++	     umad_port.ca_name, umad_port.portnum,
++	     be64toh(umad_port.port_guid));
++
++	portid = umad_open_port(umad_port.ca_name, umad_port.portnum);
++	if (portid < 0) {
++		err("umad_open_port failed: %s\n", strerror(errno));
++		umad_release_port(&umad_port);
++		umad_done();
++		return -1;
++	}
++
++	agentid = umad_register(portid, UMAD_CLASS_SUBN_ADM,
++				UMAD_SA_CLASS_VERSION, 0, NULL);
++	if (agentid < 0) {
++		err("umad_register failed: %s\n", strerror(errno));
++		umad_release_port(&umad_port);
++		umad_close_port(portid);
++		umad_done();
++		return -1;
++	}
++
++	test_port(guid_file, portid, agentid, tmo, mgid);
++
++	umad_release_port(&umad_port);
++	umad_unregister(portid, agentid);
++	umad_close_port(portid);
++	umad_done();
++
++	return 0;
++}
 -- 
 2.8.4
 
