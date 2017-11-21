@@ -1,45 +1,84 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-rc 1/2] IB/core: Only enforce security for InfiniBand
-Date: Tue, 21 Nov 2017 11:57:44 -0700
-Message-ID: <20171121185744.GF18272@ziepe.ca>
-References: <20171121132215.GU18825@mtr-leonro.local>
- <9bb92ec4-d29f-55b7-d3ba-33bfe451ea6c@mellanox.com>
- <20171121151409.GA29826@mellanox.com>
- <3eff140b-8f0f-1c4f-07b7-9dec46090a1e@mellanox.com>
- <410e7b54-02f5-849c-e3ad-56cc61f66647@mellanox.com>
- <20171121160442.GB18272@ziepe.ca>
- <20171121163454.GW18825@mtr-leonro.local>
- <20171121163648.GC18272@ziepe.ca>
- <20171121164802.GY18825@mtr-leonro.local>
- <fa4b7d56-5617-2b9f-65dc-386ab69c4e8f@redhat.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next] i40iw: Change accelerated flag to bool
+Date: Tue, 21 Nov 2017 21:06:05 +0200
+Message-ID: <20171121190604.GA24195@yuvallap>
+References: <20171121185234.13752-1-henry.orosco@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <fa4b7d56-5617-2b9f-65dc-386ab69c4e8f@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Don Dutile <ddutile@redhat.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Daniel Jurgens <danielj@mellanox.com>, Mark Bloch <markb@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Paul Moore <paul@paul-moore.com>, stable@vger.kernel.org
+In-Reply-To: <20171121185234.13752-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 21, 2017 at 01:16:43PM -0500, Don Dutile wrote:
+On Tue, Nov 21, 2017 at 12:52:34PM -0600, Henry Orosco wrote:
+> The accelerated flag only utilizes two values: 0 and 1.
+> Modify accelerated flag in struct i40iw_cm_node to bool.
 
-> >>I don't really think it is really too user visible.. Only the device
-> >>and port number change, but only if running in mixed mode.
-> >
-> >Ahh, correct me if I'm wrong, you are proposing to split mlx4_ib devices
-> >to two devices once it is configured in mixed mode, so everyone will
-> >have one port only. Did I understand you correctly?
+Can you also take care of the exact same thing in nes driver on the same
+patch-set?
 
-> Which would require splitting resources that are shared now? other
-> splitting issue(s)?
+Besides that
 
-A change like this would be almost transparent to most users. The cx3
-card in mixed mode will look like a mlx5 card does: two single port
-RDMA devices.
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-I think only a minimal amount of stuff is actually shared between
-ports, and as cx5 already demonstrates there isn't really a notable
-downside to having two kernel RDMA devices.
-
-Jason
+> 
+> Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+> 
+> NOTE: This patch is dependent on the following patch.
+>   "i40iw: Notify user of established connection after QP in RTS"
+> 
+>  drivers/infiniband/hw/i40iw/i40iw_cm.c | 4 ++--
+>  drivers/infiniband/hw/i40iw/i40iw_cm.h | 2 +-
+>  2 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+> index a2b242d..f41a302 100644
+> --- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
+> +++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+> @@ -3691,7 +3691,7 @@ int i40iw_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+>  	cm_node->qhash_set = false;
+>  	i40iw_modify_qp(&iwqp->ibqp, &attr, IB_QP_STATE, NULL);
+>  
+> -	cm_node->accelerated = 1;
+> +	cm_node->accelerated = true;
+>  	status = i40iw_send_cm_event(cm_node, cm_id, IW_CM_EVENT_ESTABLISHED, 0);
+>  	if (status)
+>  		i40iw_debug(dev, I40IW_DEBUG_CM, "error sending cm event - ESTABLISHED\n");
+> @@ -4056,7 +4056,7 @@ static void i40iw_cm_event_connected(struct i40iw_cm_event *event)
+>  	cm_node->qhash_set = false;
+>  	i40iw_modify_qp(&iwqp->ibqp, &attr, IB_QP_STATE, NULL);
+>  
+> -	cm_node->accelerated = 1;
+> +	cm_node->accelerated = true;
+>  	status = i40iw_send_cm_event(cm_node, cm_id, IW_CM_EVENT_CONNECT_REPLY, 0);
+>  	if (status)
+>  		i40iw_debug(dev, I40IW_DEBUG_CM, "error sending cm event - CONNECT_REPLY\n");
+> diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.h b/drivers/infiniband/hw/i40iw/i40iw_cm.h
+> index 0d5840d..e09b1f5 100644
+> --- a/drivers/infiniband/hw/i40iw/i40iw_cm.h
+> +++ b/drivers/infiniband/hw/i40iw/i40iw_cm.h
+> @@ -337,7 +337,7 @@ struct i40iw_cm_node {
+>  	u16     mpav2_ird_ord;
+>  	struct iw_cm_id *cm_id;
+>  	struct list_head list;
+> -	int accelerated;
+> +	bool accelerated;
+>  	struct i40iw_cm_listener *listener;
+>  	int apbvt_set;
+>  	int accept_pend;
+> -- 
+> 2.8.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
