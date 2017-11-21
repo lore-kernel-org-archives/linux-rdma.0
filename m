@@ -1,71 +1,80 @@
-From: Mark Bloch <markb@mellanox.com>
-Subject: Re: [PATCH rdma-rc 1/2] IB/core: Only enforce security for InfiniBand
-Date: Tue, 21 Nov 2017 12:44:10 +0200
-Message-ID: <4f5268b5-e5b6-a7d9-2096-70b4ae8facaf@mellanox.com>
-References: <20171121102618.31216-1-leon@kernel.org>
- <20171121102618.31216-2-leon@kernel.org>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH rdma-core] libhns: Add rereg mr interface in userspace
+Date: Tue, 21 Nov 2017 20:20:46 +0800
+Message-ID: <1511266846-137693-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20171121102618.31216-2-leon@kernel.org>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: linux-rdma@vger.kernel.org, Daniel Jurgens <danielj@mellanox.com>, Paul Moore <paul@paul-moore.com>, Don Dutile <ddutile@redhat.com>, stable@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+This patch adds the rereg mr verbs in userspace.
 
-On 21/11/2017 12:26, Leon Romanovsky wrote:
-> From: Daniel Jurgens <danielj@mellanox.com>
-> 
-> For now the only LSM security enforcement mechanism available is
-> specific to InfiniBand. Bypass enforcement for non-IB link types.
-> This fixes a regression where modify_qp fails for iWARP because
-> querying the PKEY returns -EINVAL.
-> 
-> Cc: Paul Moore <paul@paul-moore.com>
-> Cc: Don Dutile <ddutile@redhat.com>
-> Cc: stable@vger.kernel.org
-> Reported-by: Potnuri Bharat Teja <bharat@chelsio.com>
-> Fixes: d291f1a65232("IB/core: Enforce PKey security on QPs")
-> Fixes: 47a2b338fe63("IB/core: Enforce security on management datagrams")
-> Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
-> Reviewed-by: Parav Pandit <parav@mellanox.com>
-> Tested-by: Potnuri Bharat Teja <bharat@chelsio.com>
-> Signed-off-by: Leon Romanovsky <leon@kernel.org>
-> ---
->  drivers/infiniband/core/security.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
-> index 23278ed5be45..314bf1137c7b 100644
-> --- a/drivers/infiniband/core/security.c
-> +++ b/drivers/infiniband/core/security.c
-> @@ -417,8 +417,17 @@ void ib_close_shared_qp_security(struct ib_qp_security *sec)
->  
->  int ib_create_qp_security(struct ib_qp *qp, struct ib_device *dev)
->  {
-> +	u8 i = rdma_start_port(dev);
-> +	bool is_ib = false;
->  	int ret;
->  
-> +	while (i <= rdma_end_port(dev) && !is_ib)
-> +		is_ib = rdma_protocol_ib(dev, i++);
-> +
+Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+ providers/hns/hns_roce_u.c       |  1 +
+ providers/hns/hns_roce_u.h       |  2 ++
+ providers/hns/hns_roce_u_verbs.c | 14 ++++++++++++++
+ 3 files changed, 17 insertions(+)
 
-What happens if we have mixed port types?
-I believe mlx4 can expose two ports where each port uses a different ll protocol.
-Was that changed?
+diff --git a/providers/hns/hns_roce_u.c b/providers/hns/hns_roce_u.c
+index ababd9c..9b5de44 100644
+--- a/providers/hns/hns_roce_u.c
++++ b/providers/hns/hns_roce_u.c
+@@ -118,6 +118,7 @@ static struct ibv_context *hns_roce_alloc_context(struct ibv_device *ibdev,
+ 	context->ibv_ctx.ops.alloc_pd	   = hns_roce_u_alloc_pd;
+ 	context->ibv_ctx.ops.dealloc_pd    = hns_roce_u_free_pd;
+ 	context->ibv_ctx.ops.reg_mr	   = hns_roce_u_reg_mr;
++	context->ibv_ctx.ops.rereg_mr	   = hns_roce_u_rereg_mr;
+ 	context->ibv_ctx.ops.dereg_mr	   = hns_roce_u_dereg_mr;
+ 
+ 	context->ibv_ctx.ops.create_cq     = hns_roce_u_create_cq;
+diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
+index 0e98f22..2f4f3dc 100644
+--- a/providers/hns/hns_roce_u.h
++++ b/providers/hns/hns_roce_u.h
+@@ -254,6 +254,8 @@ int hns_roce_u_free_pd(struct ibv_pd *pd);
+ 
+ struct ibv_mr *hns_roce_u_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
+ 				 int access);
++int hns_roce_u_rereg_mr(struct ibv_mr *mr, int flags, struct ibv_pd *pd,
++			void *addr, size_t length, int access);
+ int hns_roce_u_dereg_mr(struct ibv_mr *mr);
+ 
+ struct ibv_cq *hns_roce_u_create_cq(struct ibv_context *context, int cqe,
+diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
+index d0ab10a..4fa188f 100644
+--- a/providers/hns/hns_roce_u_verbs.c
++++ b/providers/hns/hns_roce_u_verbs.c
+@@ -150,6 +150,20 @@ struct ibv_mr *hns_roce_u_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
+ 	return mr;
+ }
+ 
++int hns_roce_u_rereg_mr(struct ibv_mr *mr, int flags, struct ibv_pd *pd,
++			void *addr, size_t length, int access)
++{
++	struct ibv_rereg_mr cmd;
++	struct ibv_rereg_mr_resp resp;
++
++	if (flags & IBV_REREG_MR_KEEP_VALID)
++		return ENOTSUP;
++
++	return ibv_cmd_rereg_mr(mr, flags, addr, length, (uintptr_t)addr,
++				access, pd, &cmd, sizeof(cmd), &resp,
++				sizeof(resp));
++}
++
+ int hns_roce_u_dereg_mr(struct ibv_mr *mr)
+ {
+ 	int ret;
+-- 
+1.9.1
 
-> +	/* If this isn't an IB device don't create the security context */
-> +	if (!is_ib)
-> +		return 0;
-> +
->  	qp->qp_sec = kzalloc(sizeof(*qp->qp_sec), GFP_KERNEL);
->  	if (!qp->qp_sec)
->  		return -ENOMEM;
-> 
-
-Mark.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
