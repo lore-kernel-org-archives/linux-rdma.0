@@ -1,57 +1,46 @@
-From: Don Dutile <ddutile@redhat.com>
-Subject: Re: [PATCH rdma-rc 1/2] IB/core: Only enforce security for InfiniBand
-Date: Tue, 21 Nov 2017 13:16:43 -0500
-Message-ID: <fa4b7d56-5617-2b9f-65dc-386ab69c4e8f@redhat.com>
-References: <20171121102618.31216-2-leon@kernel.org>
- <4f5268b5-e5b6-a7d9-2096-70b4ae8facaf@mellanox.com>
- <20171121132215.GU18825@mtr-leonro.local>
- <9bb92ec4-d29f-55b7-d3ba-33bfe451ea6c@mellanox.com>
- <20171121151409.GA29826@mellanox.com>
- <3eff140b-8f0f-1c4f-07b7-9dec46090a1e@mellanox.com>
- <410e7b54-02f5-849c-e3ad-56cc61f66647@mellanox.com>
- <20171121160442.GB18272@ziepe.ca> <20171121163454.GW18825@mtr-leonro.local>
- <20171121163648.GC18272@ziepe.ca> <20171121164802.GY18825@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20171121164802.GY18825@mtr-leonro.local>
-Sender: stable-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Daniel Jurgens <danielj@mellanox.com>, Mark Bloch <markb@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Paul Moore <paul@paul-moore.com>, stable@vger.kernel.org
+From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2 0/7] i40iw: Fixes in i40iw for 4.15
+Date: Tue, 21 Nov 2017 12:44:55 -0600
+Message-ID: <20171121184502.14056-1-henry.orosco@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/21/2017 11:48 AM, Leon Romanovsky wrote:
-> On Tue, Nov 21, 2017 at 09:36:48AM -0700, Jason Gunthorpe wrote:
->> On Tue, Nov 21, 2017 at 06:34:54PM +0200, Leon Romanovsky wrote:
->>> On Tue, Nov 21, 2017 at 09:04:42AM -0700, Jason Gunthorpe wrote:
->>>> On Tue, Nov 21, 2017 at 09:37:27AM -0600, Daniel Jurgens wrote:
->>>>
->>>>> The only warning that would make sense is if the mixed ports aren't
->>>>> all IB or RoCE. As you note, CX-3 can mix those two, we don't want to
->>>>> see warnings about that.
->>>>
->>>> I would really like to see cx3 be changed to not do that, then we
->>>> could finalize this issue upstream: All device ports must be the same
->>>> protocol.
->>>
->>> I don't see the point of such artificial limitation, the users who
->>> brought CX-3 have option to work in mixed mode and IMHO it is not right
->>> to deprecate such ability just because it is hard for us to code for it.
->>
->> I don't really think it is really too user visible.. Only the device
->> and port number change, but only if running in mixed mode.
->
-> Ahh, correct me if I'm wrong, you are proposing to split mlx4_ib devices
-> to two devices once it is configured in mixed mode, so everyone will
-> have one port only. Did I understand you correctly?
->
-Which would require splitting resources that are shared now? other splitting issue(s)?
+The following patches are for the 4.15 kernel.
 
->>
->> It is not just 'hard for us' it is impossible to reconcile the
->> differences between ports when enforcing device level things.
->>
->> This keeps coming up again and again..
->>
->> Jason
+Change Log
+
+v1-v2:
+  Updated comments for "i40iw: Allocate a sdbuf per CQP WQE"
+  Removed "i40iw: Change accelerated flag to bool" from series
+
+Chien Tin Tung (2):
+  i40iw: Use sqsize to initialize cqp_requests elements
+  i40iw: Allocate a sdbuf per CQP WQE
+
+Henry Orosco (1):
+  i40iw: Notify user of established connection after QP in RTS
+
+Mustafa Ismail (3):
+  i40iw: Do not free sqbuf when event is I40IW_TIMER_TYPE_CLOSE
+  i40iw: Correct ARP index mask
+  i40iw: Reinitialize add_sd_cnt
+
+Tatyana Nikolova (1):
+  i40iw: Move MPA request event for loopback after connect
+
+ drivers/infiniband/hw/i40iw/i40iw_cm.c   | 28 +++++++++++++---------
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 41 ++++++++++++++++++++++----------
+ drivers/infiniband/hw/i40iw/i40iw_d.h    |  6 +++--
+ drivers/infiniband/hw/i40iw/i40iw_main.c |  3 ++-
+ 4 files changed, 51 insertions(+), 27 deletions(-)
+
+-- 
+2.8.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
