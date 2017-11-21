@@ -1,63 +1,46 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 6/7] i40iw: Move MPA request event for loopback after connect
-Date: Tue, 21 Nov 2017 12:45:01 -0600
-Message-ID: <20171121184502.14056-7-henry.orosco@intel.com>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 0/7] i40iw: Fixes in i40iw for 4.15
+Date: Tue, 21 Nov 2017 11:52:17 -0700
+Message-ID: <20171121185217.GI29826@mellanox.com>
 References: <20171121184502.14056-1-henry.orosco@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <20171121184502.14056-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Tue, Nov 21, 2017 at 12:44:55PM -0600, Henry Orosco wrote:
+> The following patches are for the 4.15 kernel.
 
-For loopback, MPA request event is generated when cm_node
-is initialized, which allows applications to act on the
-connect request before i40iw_connect() has completed.
-In some cases, the reject flow executes in parallel with
-the connect flow and doesn't delete an APBVT entry,
-because the apbvt_set variable is still not set by the
-connect flow. Move the MPA request event to the end of
-i40iw_connect() to notify application for a connect
-request, after connect has completed.
+These all seem reasonable to me, but again, can you revise the
+commit messages so they are acceptable for -rc?
 
-Fixes: f27b4746f378 ("i40iw: add connection management code")
-Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/i40iw/i40iw_cm.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+Linus did not entirely like the commit messages last cycle, so please
+lets all try harder to be clear, think of writing your commit messages
+in terms of:
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index e145417..3a35d56 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -2947,8 +2947,6 @@ static struct i40iw_cm_node *i40iw_create_cm_node(
- 			loopback_remotenode->tcp_cntxt.snd_wnd = cm_node->tcp_cntxt.rcv_wnd;
- 			cm_node->tcp_cntxt.snd_wscale = loopback_remotenode->tcp_cntxt.rcv_wscale;
- 			loopback_remotenode->tcp_cntxt.snd_wscale = cm_node->tcp_cntxt.rcv_wscale;
--			loopback_remotenode->state = I40IW_CM_STATE_MPAREQ_RCVD;
--			i40iw_create_event(loopback_remotenode, I40IW_CM_EVENT_MPA_REQ);
- 		}
- 		return cm_node;
- 	}
-@@ -3864,6 +3862,11 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 			goto err;
- 	}
- 
-+	if (cm_node->loopbackpartner) {
-+		cm_node->loopbackpartner->state = I40IW_CM_STATE_MPAREQ_RCVD;
-+		i40iw_create_event(cm_node->loopbackpartner, I40IW_CM_EVENT_MPA_REQ);
-+	}
-+
- 	i40iw_debug(cm_node->dev,
- 		    I40IW_DEBUG_CM,
- 		    "Api - connect(): port=0x%04x, cm_node=%p, cm_id = %p.\n",
--- 
-2.8.3
+ - What is the bug this is fixing? How does the user perceive the bug?
+ - How did this work before? Did it?
 
+Many of these messages are just describing what the patch is doing,
+without providing context why it is an acceptable change for RC.
+
+Eg here:
+
+ Use sqsize instead of I40IW_CQP_SW_SQSIZE_2048 to initialize
+ cqp_requests elements in the for-loop as sqsize is used
+ to allocate memory for cqp_requests.
+
+That obviously desribes what the patch does, and I can learn the same
+thing by reading the patch, but it does not help anyone understand
+what the bug is, how the bug presents to the user, or if it this
+patch should be in -rc.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
