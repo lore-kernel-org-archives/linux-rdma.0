@@ -1,69 +1,50 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] Eliminate BEGIN_C_DECLS and END_C_DECLS macros
- in libibverbs and libibumad headers
-Date: Tue, 21 Nov 2017 20:15:04 +0200
-Message-ID: <20171121181504.GZ18825@mtr-leonro.local>
-References: <774ff06e-2274-13e3-00c0-97ccba78b1a6@dev.mellanox.co.il>
+From: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 1/2] IB/core: Only enforce security for InfiniBand
+Date: Tue, 21 Nov 2017 13:15:31 -0500
+Message-ID: <f60834d5-1a48-55f2-271d-de5b34966233@redhat.com>
+References: <20171121102618.31216-1-leon@kernel.org>
+ <20171121102618.31216-2-leon@kernel.org>
+ <4f5268b5-e5b6-a7d9-2096-70b4ae8facaf@mellanox.com>
+ <20171121132215.GU18825@mtr-leonro.local>
+ <9bb92ec4-d29f-55b7-d3ba-33bfe451ea6c@mellanox.com>
+ <20171121151409.GA29826@mellanox.com>
+ <3eff140b-8f0f-1c4f-07b7-9dec46090a1e@mellanox.com>
+ <410e7b54-02f5-849c-e3ad-56cc61f66647@mellanox.com>
+ <20171121160442.GB18272@ziepe.ca> <20171121163454.GW18825@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="KWaDWegkxD8vyHxu"
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <774ff06e-2274-13e3-00c0-97ccba78b1a6-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20171121163454.GW18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---KWaDWegkxD8vyHxu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Nov 20, 2017 at 09:42:50PM -0500, Hal Rosenstock wrote:
+On 11/21/2017 11:34 AM, Leon Romanovsky wrote:
+> On Tue, Nov 21, 2017 at 09:04:42AM -0700, Jason Gunthorpe wrote:
+>> On Tue, Nov 21, 2017 at 09:37:27AM -0600, Daniel Jurgens wrote:
+>>
+>>> The only warning that would make sense is if the mixed ports aren't
+>>> all IB or RoCE. As you note, CX-3 can mix those two, we don't want to
+>>> see warnings about that.
+>>
+>> I would really like to see cx3 be changed to not do that, then we
+>> could finalize this issue upstream: All device ports must be the same
+>> protocol.
 >
-> to reduce symbol pollution
+> I don't see the point of such artificial limitation, the users who
+> brought CX-3 have option to work in mixed mode and IMHO it is not right
+> to deprecate such ability just because it is hard for us to code for it.
 >
-> Replace these macros with open coding
+We use cx-3 (& cx-4 & cx-5) in mixed mode all over our RDMA cluster.
+Loosing that feature is not an option.
+
+> Thanks
 >
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  libibumad/umad.h       | 14 +++++---------
->  libibumad/umad_cm.h    | 14 +++++---------
->  libibumad/umad_sa.h    | 14 +++++---------
->  libibumad/umad_sm.h    | 14 +++++---------
->  libibumad/umad_str.h   | 14 +++++---------
->  libibumad/umad_types.h | 14 +++++---------
->  libibverbs/driver.h    |  8 --------
->  libibverbs/marshall.h  | 14 +++++---------
->  libibverbs/tm_types.h  | 14 +++++---------
->  libibverbs/verbs.h     | 17 +++++++----------
->  10 files changed, 47 insertions(+), 90 deletions(-)
->
+>>
+>> Jason
 
-Thanks, applied.
-
---KWaDWegkxD8vyHxu
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloUbSgACgkQ5GN7iDZy
-WKdhFQ//QvqprtCJHG5PwktOCTB5oufDTfy5O2A3A6a6dNzVDLzbgDhZELevsNlA
-p2QygAymk/aRgfJA97l8/NscQXYJtWX+sHQj6bYHmnLdNkTEPahYGzriTPdtJk5c
-SZB8rLMqFWbNNOa7p85TcEbdGYinr50u7dlhAHtJp4ptvqDhTL2aBguum/jpSpqU
-B8gTsRGR84bnzF4uu7KGkY5IfC0STqs2+hsSimtBGqWLh6S8YO13RuvZ8xuvjHOp
-n9VpPEwF4N4THMrujTUZAuPzp0h4+zuib57nK4XcPpsZJ23H2yQKyd6KSvrUCVjY
-HdJXXclvu7vh/XafULYr24CFJr/9DXyJfO8cLUq2aN84vJIe1JkXqkLB2wWRi1av
-hG3srdtNwvZqO2OmkynO9Fa8iMYb+svN+r4vy9IRq5zQbJHFfN+DtR30mIaox7Xi
-2J/ioWkyyZTm9uv8fLOuiTOcbNGBsBil+m10V1C+STDTu72jwmqqocTA5plqFaV2
-YFV9sFTM0Whi8uyPPHRN449SPajC0QwcpDRhJJ3VCcK5s3CEFfd+seZL7LS3L0nB
-gzDsWJlmxfHwpC5LUtH+SMQ/um7qPNiJOoTJoMmVUodWYvyQp0sd2nfMPKBnLeHf
-YdGmxcLBjIWrnPdvqpdYOFr7gvYeAY136VbWmut8vXx9F6xR6iM=
-=OeCH
------END PGP SIGNATURE-----
-
---KWaDWegkxD8vyHxu--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
