@@ -1,57 +1,69 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/2] mlx5: Allow creation of a Multi-Packet RQ
- using direct verbs
-Date: Tue, 21 Nov 2017 10:20:19 -0700
-Message-ID: <20171121172019.GE18272@ziepe.ca>
-References: <1511119268-5934-1-git-send-email-yishaih@mellanox.com>
- <1511119268-5934-3-git-send-email-yishaih@mellanox.com>
- <20171120190434.GG29075@ziepe.ca>
- <f164e1c4-e3b2-8778-448e-1fb0da6e6dc1@dev.mellanox.co.il>
- <20171121155304.GA18272@ziepe.ca>
- <63dd046b-ac6d-3ff2-0dc5-82d29bac9393@dev.mellanox.co.il>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core] Eliminate BEGIN_C_DECLS and END_C_DECLS macros
+ in libibverbs and libibumad headers
+Date: Tue, 21 Nov 2017 20:15:04 +0200
+Message-ID: <20171121181504.GZ18825@mtr-leonro.local>
+References: <774ff06e-2274-13e3-00c0-97ccba78b1a6@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="KWaDWegkxD8vyHxu"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <63dd046b-ac6d-3ff2-0dc5-82d29bac9393-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <774ff06e-2274-13e3-00c0-97ccba78b1a6-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 21, 2017 at 07:17:00PM +0200, Yishai Hadas wrote:
 
-> >Will bitwise invert a 32 bit value then 0 extend it to 64 bits, which
-> >is not the intention.
-> 
-> Are you are referring to a case that the user will turn on a bit in the
-> comp_mask over the 32 bits and won't get an error ? Look at
-> MLX5DV_CQ_INIT_ATTR_MASK_RESERVED usage it has the same potential issue.
+--KWaDWegkxD8vyHxu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Yes, I'm not surprised, this is possibly systemically broken. We
-should add the helper and deploy it everywhere we are doing this style
-of check.
+On Mon, Nov 20, 2017 at 09:42:50PM -0500, Hal Rosenstock wrote:
+>
+> to reduce symbol pollution
+>
+> Replace these macros with open coding
+>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  libibumad/umad.h       | 14 +++++---------
+>  libibumad/umad_cm.h    | 14 +++++---------
+>  libibumad/umad_sa.h    | 14 +++++---------
+>  libibumad/umad_sm.h    | 14 +++++---------
+>  libibumad/umad_str.h   | 14 +++++---------
+>  libibumad/umad_types.h | 14 +++++---------
+>  libibverbs/driver.h    |  8 --------
+>  libibverbs/marshall.h  | 14 +++++---------
+>  libibverbs/tm_types.h  | 14 +++++---------
+>  libibverbs/verbs.h     | 17 +++++++----------
+>  10 files changed, 47 insertions(+), 90 deletions(-)
+>
 
-> >if (!check_comp_mask(mlx5wq_attr->comp_mask,
-> >      MLX5DV_WQ_INIT_ATTR_MASK_STRIDING_RQ))
-> >        return -EINVAL;
-> >I also dislike the unnecessary extra enum..
-> 
-> I prefer staying with the above enum (i.e. DV_CREATE_WQ_SUPPORTED_COMP_MASK)
-> to hold the supported bits as done in mlx5 for QP & CQ. (see
-> MLX5_CREATE_QP_SUP_COMP_MASK). In that way the code around check_comp_mask()
-> won't be changed when extra bits will be added.
+Thanks, applied.
 
-Well, it is up to you, but I dislike this because it sprinkles the
-logic around too much. Seeing clearly a line 'check_comp_mask' at the
-top of the function that lists all the supported bits makes it very
-easy to understand and review.
+--KWaDWegkxD8vyHxu
+Content-Type: application/pgp-signature; name="signature.asc"
 
-If there was more than one user of DV_CREATE_WQ_SUPPORTED_COMP_MASK I
-could understand having it, but since there isn't, it is just ugly
-noise.
+-----BEGIN PGP SIGNATURE-----
 
-Jason
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloUbSgACgkQ5GN7iDZy
+WKdhFQ//QvqprtCJHG5PwktOCTB5oufDTfy5O2A3A6a6dNzVDLzbgDhZELevsNlA
+p2QygAymk/aRgfJA97l8/NscQXYJtWX+sHQj6bYHmnLdNkTEPahYGzriTPdtJk5c
+SZB8rLMqFWbNNOa7p85TcEbdGYinr50u7dlhAHtJp4ptvqDhTL2aBguum/jpSpqU
+B8gTsRGR84bnzF4uu7KGkY5IfC0STqs2+hsSimtBGqWLh6S8YO13RuvZ8xuvjHOp
+n9VpPEwF4N4THMrujTUZAuPzp0h4+zuib57nK4XcPpsZJ23H2yQKyd6KSvrUCVjY
+HdJXXclvu7vh/XafULYr24CFJr/9DXyJfO8cLUq2aN84vJIe1JkXqkLB2wWRi1av
+hG3srdtNwvZqO2OmkynO9Fa8iMYb+svN+r4vy9IRq5zQbJHFfN+DtR30mIaox7Xi
+2J/ioWkyyZTm9uv8fLOuiTOcbNGBsBil+m10V1C+STDTu72jwmqqocTA5plqFaV2
+YFV9sFTM0Whi8uyPPHRN449SPajC0QwcpDRhJJ3VCcK5s3CEFfd+seZL7LS3L0nB
+gzDsWJlmxfHwpC5LUtH+SMQ/um7qPNiJOoTJoMmVUodWYvyQp0sd2nfMPKBnLeHf
+YdGmxcLBjIWrnPdvqpdYOFr7gvYeAY136VbWmut8vXx9F6xR6iM=
+=OeCH
+-----END PGP SIGNATURE-----
+
+--KWaDWegkxD8vyHxu--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
