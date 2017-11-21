@@ -1,81 +1,65 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-rc 1/2] IB/core: Only enforce security for InfiniBand
-Date: Tue, 21 Nov 2017 22:40:20 +0200
-Message-ID: <20171121204020.GA18825@mtr-leonro.local>
-References: <9bb92ec4-d29f-55b7-d3ba-33bfe451ea6c@mellanox.com>
- <20171121151409.GA29826@mellanox.com>
- <3eff140b-8f0f-1c4f-07b7-9dec46090a1e@mellanox.com>
- <410e7b54-02f5-849c-e3ad-56cc61f66647@mellanox.com>
- <20171121160442.GB18272@ziepe.ca>
- <20171121163454.GW18825@mtr-leonro.local>
- <20171121163648.GC18272@ziepe.ca>
- <20171121164802.GY18825@mtr-leonro.local>
- <fa4b7d56-5617-2b9f-65dc-386ab69c4e8f@redhat.com>
- <20171121185744.GF18272@ziepe.ca>
+From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 0/7] i40iw: Fixes in i40iw for 4.15
+Date: Tue, 21 Nov 2017 16:02:50 -0600
+Message-ID: <20171121220250.GA932@horosco-MOBL2.amr.corp.intel.com>
+References: <20171121184502.14056-1-henry.orosco@intel.com>
+ <20171121185217.GI29826@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="+wesONWNZXg3eyIu"
-Return-path: <stable-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171121185744.GF18272@ziepe.ca>
-Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Don Dutile <ddutile@redhat.com>, Daniel Jurgens <danielj@mellanox.com>, Mark Bloch <markb@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Paul Moore <paul@paul-moore.com>, stable@vger.kernel.org
+In-Reply-To: <20171121185217.GI29826-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---+wesONWNZXg3eyIu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Nov 21, 2017 at 11:57:44AM -0700, Jason Gunthorpe wrote:
-> On Tue, Nov 21, 2017 at 01:16:43PM -0500, Don Dutile wrote:
->
-> > >>I don't really think it is really too user visible.. Only the device
-> > >>and port number change, but only if running in mixed mode.
-> > >
-> > >Ahh, correct me if I'm wrong, you are proposing to split mlx4_ib devices
-> > >to two devices once it is configured in mixed mode, so everyone will
-> > >have one port only. Did I understand you correctly?
->
-> > Which would require splitting resources that are shared now? other
-> > splitting issue(s)?
->
-> A change like this would be almost transparent to most users. The cx3
-> card in mixed mode will look like a mlx5 card does: two single port
-> RDMA devices.
->
-> I think only a minimal amount of stuff is actually shared between
-> ports, and as cx5 already demonstrates there isn't really a notable
-> downside to having two kernel RDMA devices.
-
-CX4+ cards have completely different HW architecture in opposite to CX3,
-and mlx5 implementation doesn't mean that your suggestion is doable for
-mlx4. It worth to check it.
-
-Thanks
-
->
+On Tue, Nov 21, 2017 at 11:52:17AM -0700, Jason Gunthorpe wrote:
+> On Tue, Nov 21, 2017 at 12:44:55PM -0600, Henry Orosco wrote:
+> > The following patches are for the 4.15 kernel.
+> 
+> These all seem reasonable to me, but again, can you revise the
+> commit messages so they are acceptable for -rc?
+> 
+> Linus did not entirely like the commit messages last cycle, so please
+> lets all try harder to be clear, think of writing your commit messages
+> in terms of:
+> 
+>  - What is the bug this is fixing? How does the user perceive the bug?
+>  - How did this work before? Did it?
+> 
+> Many of these messages are just describing what the patch is doing,
+> without providing context why it is an acceptable change for RC.
+> 
+> Eg here:
+> 
+>  Use sqsize instead of I40IW_CQP_SW_SQSIZE_2048 to initialize
+>  cqp_requests elements in the for-loop as sqsize is used
+>  to allocate memory for cqp_requests.
+> 
+> That obviously desribes what the patch does, and I can learn the same
+> thing by reading the patch, but it does not help anyone understand
+> what the bug is, how the bug presents to the user, or if it this
+> patch should be in -rc.
+> 
 > Jason
 
---+wesONWNZXg3eyIu
-Content-Type: application/pgp-signature; name="signature.asc"
+Sorry, I incorrectly labeled
+"i40iw: Use sqsize to initialize cqp_requests elements" as
+a bug fix. This will be deferred to for-next.
 
------BEGIN PGP SIGNATURE-----
+Additionally, the author is needed to re-evaluate the commit
+description for following patch "i40iw: Reinitialize add_sd_cnt",
+but is currently out this week. It will be removed from this patch
+series and sent later.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloUjzQACgkQ5GN7iDZy
-WKeNjQ//f2mmJdW0iG+Yn9eiM7GnRuvY+RDyPH0NGIbjeh9y87j6btkvVEBCc/RF
-NZg68E+GYxsW/lYHgsH99NnDzv/zno6YN04gN8odjbIuhKZy9eUaQnDZINu2HVWI
-dbGNlgcQkCYXBiXIdGfFX82+f4X8xqL3MNKX3eoAOEHsGKOaJqd0zyONDrF0ziyG
-gGQXp48NPcqRzuG2O1VxIDDsub1KoSSnATkuwKaKeO14FEonoENENWTHK52k6ktz
-ShXc46iAxagYeio4wHFjxZwKsk4reup6wKwsU/ybaKvfm+/Ngm7iy2ZM2P8DUoCc
-KOxCDXiLknn6wltb0EyIH4SCaKZvHP5AHkQG6WgbqBkMfrR+K9hQ+xATx00oOUhE
-uioc0UXGgo3IAbUHu9T1U48Q8s+rM1j12CZjNVULwgXMsNF9rc7alc2RDasGhSbA
-G4quF8rhn2UYUxEPpIvXE+6melhubf+ryiK00f3m102KWJIsJaayYafgf9RsxYx/
-q2ZxiVoOMPJQxhEeHLGjZgLso0fO9AFuJ0Sl87z2SPVPQ/F+L6KBCgSksJM3azgM
-DgXYkro30mZHVnUpdYc65FXL3tFFiq9e3y3ArGmdLJn3kj95TiM6NkYFvj2aZ/8R
-8WhmdbXTHnKtnBBPCbAcrclHwNKoLh3a/4pFugl4AzINgNB/eEo=
-=8QTD
------END PGP SIGNATURE-----
+I will send a new series shortly.
 
---+wesONWNZXg3eyIu--
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
