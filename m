@@ -1,109 +1,128 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] rdma: Add Jason as a co-maintainer
-Date: Tue, 21 Nov 2017 07:04:56 +0200
-Message-ID: <20171121050456.GM18825@mtr-leonro.local>
-References: <20171116204400.GA28216@mellanox.com>
- <20171120161016.GL18825@mtr-leonro.local>
- <20171120180631.GE626@mellanox.com>
+From: Steve French <smfrench-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Patch v7 00/22] CIFS: Implement SMB Direct protocol
+Date: Mon, 20 Nov 2017 23:16:20 -0600
+Message-ID: <CAH2r5mswDyvdmgsM9+rae1vy6JdxN8-YHUs67vywqDxqcp5YNA@mail.gmail.com>
+References: <20171107085514.12693-1-longli@exchange.microsoft.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="s6piCcVGN+AZ9P50"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171120180631.GE626-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20171107085514.12693-1-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
+Cc: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, samba-technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Have remerged (to cifs-2.6.git for-next) the first seven in this
+series - after he incorporated the fixes for the recent feedback on
+the series to a few (and I cleaned up a few minor checkpatch nits).
 
---s6piCcVGN+AZ9P50
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Nov 20, 2017 at 11:06:31AM -0700, Jason Gunthorpe wrote:
-> On Mon, Nov 20, 2017 at 06:10:16PM +0200, Leon Romanovsky wrote:
-> > On Thu, Nov 16, 2017 at 01:44:00PM -0700, Jason Gunthorpe wrote:
-> > > As was discussed in September and October, add Jason along with
-> > > Doug to have a team maintainership model for the RDMA subystem.
-> > >
-> > > Mellanox Technologies will be funding Jason's independent work on
-> > > the maintainership.
-> > >
-> > > Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > >  .mailmap    | 2 ++
-> > >  MAINTAINERS | 1 +
-> > >  2 files changed, 3 insertions(+)
-> > >
-> >
-> > Doug and Jason,
-> >
-> > Can you forward the current fixes to Linus?
-> >
-> > I have more fixes from Parav and fix to iWARP from Daniel, but I prefer
-> > to have proper RDMA branches before I'm posting them.
+On Tue, Nov 7, 2017 at 2:54 AM, Long Li <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org> wrote:
+> From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 >
-> I belive Doug has already sent the pull request for this merge window,
-> and the new shared tree location is fully up to date, and there are
-> no accepted but unset patches at this time?
-
-I still see for-rc points to old (4.14) code.
-https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=k.o/for-rc
-
-There is a need to advance -rc to be equal to -next during merge window,
-so we will be able to actually base our -rc/-next patches.
-
+> Starting with SMB2 dialect 3.0, Microsoft introduced SMB Direct transport
+> protocol for transferring upper layer (SMB2) payload over RDMA via Infiniband,
+> RoCE or iWARP. The prococol is published in [MS-SMBD]
+> (https://msdn.microsoft.com/en-us/library/hh536346.aspx).
 >
-> Do you see otherwise?
+> Change log:
+> v2:
+> Implemented RDMA read/write via memory registration.
+> Re-arranged patches for review [Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>].
+> Restructured the code and fixed bugs on protocol timer and keepalive
+> [Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>].
 >
-> We are now doing patches for rc.
+> v3:
+> Improved performance by introducing an additional queue for handling
+> empty packets and reducing lock contention on IRQ path.
+> Added light weight profiling by reading TSC.
+> Improved the code for checking SMB versions when mounting with rdma option
+> [Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>].
+> Moved to use pages instead of buffers for passing I/O for RDMA
+> [Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>].
+> Removed redundant code and refactored I/O code paths
+> [Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>].
 >
-> The iWarp security fix from Daniel is definitely rc material.
-
-There is no need to wait for -rc1 to send bug fixes and Linus accepts and
-welcomes bug fixes during merge window, see the pull requests from Dave
-and others.
-
+> v4:
+> Fixed connectivity issues with iWAPR devices.
+> Exported configurable protocol parameters to /proc/fs/cifs
+> [Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>]
+> Re-arranged patches for review
+> [Pavel Shilovsky <piastryyy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>].
 >
-> Can you split that 33 patch series into things you think are rc
-> material?
-
-I'll take a look, but most probably I'll skip the split exercise.
-
-This patch set was tested as one series and separation will require
-two addition passes for the verification: one for-rc and another for
-for-next.
-
-Thanks
-
+> v5:
+> Fixed compiling errors on ia64, i386 and when INFINIBAND is not
+> configured. [kbuild test robot]
+> Profiling is removed and will be introduced in a seperate patch.
 >
-> Jason
+> v6:
+> Report internal code error via WARN_ON(). Change description in
+> Kconfig [Pavel Shilovsky <piastryyy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>].
+>
+> v7:
+> Removed the use of #ifdef CONFIG_CIFS_SMB_DIRECT in upper layer
+> code calling transport I/O. [Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>,
+> Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>]
+>
+> Long Li (22):
+>   CIFS: SMBD: Add parameter rdata to smb2_new_read_req
+>   CIFS: SMBD: Introduce kernel config option CONFIG_CIFS_SMB_DIRECT
+>   CIFS: SMBD: Add rdma mount option
+>   CIFS: SMBD: Add SMB Direct protocol initial values and constants
+>   CIFS: SMBD: Establish SMB Direct connection
+>   CIFS: SMBD: export protocol initial values
+>   CIFS: SMBD: Implement function to create a SMB Direct connection
+>   CIFS: SMBD: Upper layer connects to SMBDirect session
+>   CIFS: SMBD: Implement function to reconnect to a SMB Direct transport
+>   CIFS: SMBD: Upper layer reconnects to SMB Direct session
+>   CIFS: SMBD: Implement function to destroy a SMB Direct connection
+>   CIFS: SMBD: Upper layer destroys SMB Direct session on shutdown or
+>     umount
+>   CIFS: SMBD: Set SMB Direct maximum read or write size for I/O
+>   CIFS: SMBD: Implement function to receive data via RDMA receive
+>   CIFS: SMBD: Upper layer receives data via RDMA receive
+>   CIFS: SMBD: Implement function to send data via RDMA send
+>   CIFS: SMBD: Upper layer sends data via RDMA send
+>   CIFS: SMBD: Implement RDMA memory registration
+>   CIFS: SMBD: Upper layer performs SMB write via RDMA read through
+>     memory registration
+>   CIFS: SMBD: Read correct returned data length for RDMA write (SMB
+>     read) I/O
+>   CIFS: SMBD: Upper layer performs SMB read via RDMA write through
+>     memory registration
+>   CIFS: SMBD: Add SMB Direct debug counters
+>
+>  fs/cifs/Kconfig      |    8 +
+>  fs/cifs/Makefile     |    2 +
+>  fs/cifs/cifs_debug.c |  147 +++
+>  fs/cifs/cifsfs.c     |    2 +
+>  fs/cifs/cifsglob.h   |   21 +-
+>  fs/cifs/cifssmb.c    |   15 +-
+>  fs/cifs/connect.c    |   53 +-
+>  fs/cifs/file.c       |   17 +-
+>  fs/cifs/smb1ops.c    |    4 +-
+>  fs/cifs/smb2ops.c    |   24 +-
+>  fs/cifs/smb2pdu.c    |  127 ++-
+>  fs/cifs/smbdirect.c  | 2617 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  fs/cifs/smbdirect.h  |  330 +++++++
+>  fs/cifs/transport.c  |    8 +-
+>  14 files changed, 3344 insertions(+), 31 deletions(-)
+>  create mode 100644 fs/cifs/smbdirect.c
+>  create mode 100644 fs/cifs/smbdirect.h
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> 2.7.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-cifs" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---s6piCcVGN+AZ9P50
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloTs/gACgkQ5GN7iDZy
-WKcbbQ//cGUxU4g8hsI7vPR26Dx1Vqm0GCmQR/06NkiBI9TYFPlOZxUWw/VBqHM0
-wOps3xbdjV7RpOx3GQGBxzG0uumsigwgR6asGpqcQDFNPo+Zxz/d8Lra45T9DPTK
-cL2TmyDuOlwT7uT676KgYWYgaNy2uHTdCdXM4fUllqEiw3E8rG3mgJCHDgBz122t
-Z+P9RpbdgXIAWPHyiETUgpK9eTmC9mcfPVnpte6Xa56O++OKr7batS7WK7hz2bfs
-00D8I8snbv6OAX4wFPtelWouvMuDe7ursYg8rEkx1jziMQq/xJs52g0cB5OQ7kw0
-S4jhaZppWCuhn9WUdzVw+EHrxVx8aYfc0OrS8ZRZtg6RfUBVP2HHp7WkZJ17R2Rn
-o44UUBHd8krAHPSuafg1of2YgcF4JtiFdi9FyKDxmtTQ6um6EfScGoBesvC0EMwP
-vSU4I5USGoJN2kFSO1Wf7e0llz8qrckCWtwNuWGGDGyNHaQtROz1AJKH1O8ywHfs
-oT5fXCqs1KDBq15LuCqErh9wqepHY/I8J0dZaSvip9TS0w7lFiIqhvW8NhvFJ6/B
-VoicbNZZVU+30IMge24YZxlsqFQERCBnku6WSKrOsbAx4OVi1foO3rR2QQ5iHIaV
-9pjzf1URBsKrqhg30IHaJrcUmz/6kHUZc+FmJhoQKIXIClsV4e4=
-=2nh1
------END PGP SIGNATURE-----
+-- 
+Thanks,
 
---s6piCcVGN+AZ9P50--
+Steve
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
