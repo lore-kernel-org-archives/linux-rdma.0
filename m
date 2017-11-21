@@ -1,64 +1,47 @@
 From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 0/7] i40iw: Fixes in i40iw for 4.15
-Date: Tue, 21 Nov 2017 16:02:50 -0600
-Message-ID: <20171121220250.GA932@horosco-MOBL2.amr.corp.intel.com>
-References: <20171121184502.14056-1-henry.orosco@intel.com>
- <20171121185217.GI29826@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH v3 0/5] i40iw: Fixes in i40iw for 4.15
+Date: Tue, 21 Nov 2017 16:18:29 -0600
+Message-ID: <20171121221834.12524-1-henry.orosco@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171121185217.GI29826-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 21, 2017 at 11:52:17AM -0700, Jason Gunthorpe wrote:
-> On Tue, Nov 21, 2017 at 12:44:55PM -0600, Henry Orosco wrote:
-> > The following patches are for the 4.15 kernel.
-> 
-> These all seem reasonable to me, but again, can you revise the
-> commit messages so they are acceptable for -rc?
-> 
-> Linus did not entirely like the commit messages last cycle, so please
-> lets all try harder to be clear, think of writing your commit messages
-> in terms of:
-> 
->  - What is the bug this is fixing? How does the user perceive the bug?
->  - How did this work before? Did it?
-> 
-> Many of these messages are just describing what the patch is doing,
-> without providing context why it is an acceptable change for RC.
-> 
-> Eg here:
-> 
->  Use sqsize instead of I40IW_CQP_SW_SQSIZE_2048 to initialize
->  cqp_requests elements in the for-loop as sqsize is used
->  to allocate memory for cqp_requests.
-> 
-> That obviously desribes what the patch does, and I can learn the same
-> thing by reading the patch, but it does not help anyone understand
-> what the bug is, how the bug presents to the user, or if it this
-> patch should be in -rc.
-> 
-> Jason
+The following patches are for the 4.15 kernel.
 
-Sorry, I incorrectly labeled
-"i40iw: Use sqsize to initialize cqp_requests elements" as
-a bug fix. This will be deferred to for-next.
+Change Log
 
-Additionally, the author is needed to re-evaluate the commit
-description for following patch "i40iw: Reinitialize add_sd_cnt",
-but is currently out this week. It will be removed from this patch
-series and sent later.
+v2-v3:
+  Updated comments for "i40iw: Correct ARP index mask"
+  Removed "i40iw: Use sqsize to initialize cqp_requests elements"
+  Removed "i40iw: Reinitialize add_sd_cnt"
 
-I will send a new series shortly.
+v1-v2:
+  Updated comments for "i40iw: Allocate a sdbuf per CQP WQE"
+  Removed "i40iw: Change accelerated flag to bool"
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Chien Tin Tung (1):
+  i40iw: Allocate a sdbuf per CQP WQE
+
+Henry Orosco (1):
+  i40iw: Notify user of established connection after QP in RTS
+
+Mustafa Ismail (2):
+  i40iw: Do not free sqbuf when event is I40IW_TIMER_TYPE_CLOSE
+  i40iw: Correct ARP index mask
+
+Tatyana Nikolova (1):
+  i40iw: Move MPA request event for loopback after connect
+
+ drivers/infiniband/hw/i40iw/i40iw_cm.c   | 28 +++++++++++++---------
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 41 ++++++++++++++++++++++----------
+ drivers/infiniband/hw/i40iw/i40iw_d.h    |  6 +++--
+ 3 files changed, 49 insertions(+), 26 deletions(-)
+
+-- 
+2.8.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
