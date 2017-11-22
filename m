@@ -1,49 +1,132 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [RFC] Vendor-specific QPs
-Date: Wed, 22 Nov 2017 11:07:31 -0700
-Message-ID: <20171122180731.GS18272@ziepe.ca>
-References: <VI1PR05MB12784029D1DE2689A8194A58B9590@VI1PR05MB1278.eurprd05.prod.outlook.com>
- <20171102200158.GU18874@ziepe.ca>
- <VI1PR05MB1278EA7700D1BEB63383FC52B9200@VI1PR05MB1278.eurprd05.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: [PATCH v5 1/4] nvme-rdma: don't suppress send completions
+Date: Wed, 22 Nov 2017 20:58:35 +0200
+Message-ID: <20171122185838.28855-2-sagi@grimberg.me>
+References: <20171122185838.28855-1-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <VI1PR05MB1278EA7700D1BEB63383FC52B9200-79XLn2atqDMOK6E67s+DINqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <20171122185838.28855-1-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 22, 2017 at 05:47:42PM +0000, Alex Margolin wrote:
+The entire completions suppress mechanism is currently
+broken because the HCA might retry a send operation
+(due to dropped ack) after the nvme transaction has completed.
 
-> To follow up on the previous discussion,
-> we changed the RFC proposal to focus on this single type for vendor QP.
+In order to handle this, we signal all send completions (besides
+async event which is not racing anything).
 
-Okay.. So in future sending MIME attached patches is very hard to do
-anything with.. I have provided my comments as best I can below:
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ drivers/nvme/host/rdma.c | 46 +++++++++-------------------------------------
+ 1 file changed, 9 insertions(+), 37 deletions(-)
 
-- The QPT should be IB_QPT_DRIVER
-  Please scrub the word 'vendor' from your vocabulary and all patches.
-  Everything is *DRIVER* specific if it uses the dv interface.
-- It makes me annoyed that 'enum ib_qp_type' is not in a uapi header,
-  please consider sending a patch to fix this while you are touching
-  this area
-- I don't know if having a huge multiplex 'mlx5dv_create_qp' is such a
-  great idea. Since the DV API is linked, it would make more sense to
-  have a specially 'mlx5dv_create_dct' sort of API so that we have
-  better visibility on what the app needs of the dv library. Eg a dct
-  using app will fail to link on older dv libraries.
-- The libmlx5.map is wrong..
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index fdd6659a09a0..85c98589a5e0 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -77,7 +77,6 @@ enum nvme_rdma_queue_flags {
+ 
+ struct nvme_rdma_queue {
+ 	struct nvme_rdma_qe	*rsp_ring;
+-	atomic_t		sig_count;
+ 	int			queue_size;
+ 	size_t			cmnd_capsule_len;
+ 	struct nvme_rdma_ctrl	*ctrl;
+@@ -510,7 +509,6 @@ static int nvme_rdma_alloc_queue(struct nvme_rdma_ctrl *ctrl,
+ 		queue->cmnd_capsule_len = sizeof(struct nvme_command);
+ 
+ 	queue->queue_size = queue_size;
+-	atomic_set(&queue->sig_count, 0);
+ 
+ 	queue->cm_id = rdma_create_id(&init_net, nvme_rdma_cm_handler, queue,
+ 			RDMA_PS_TCP, IB_QPT_RC);
+@@ -1204,21 +1202,9 @@ static void nvme_rdma_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ 		nvme_rdma_wr_error(cq, wc, "SEND");
+ }
+ 
+-/*
+- * We want to signal completion at least every queue depth/2.  This returns the
+- * largest power of two that is not above half of (queue size + 1) to optimize
+- * (avoid divisions).
+- */
+-static inline bool nvme_rdma_queue_sig_limit(struct nvme_rdma_queue *queue)
+-{
+-	int limit = 1 << ilog2((queue->queue_size + 1) / 2);
+-
+-	return (atomic_inc_return(&queue->sig_count) & (limit - 1)) == 0;
+-}
+-
+ static int nvme_rdma_post_send(struct nvme_rdma_queue *queue,
+ 		struct nvme_rdma_qe *qe, struct ib_sge *sge, u32 num_sge,
+-		struct ib_send_wr *first, bool flush)
++		struct ib_send_wr *first, bool signal)
+ {
+ 	struct ib_send_wr wr, *bad_wr;
+ 	int ret;
+@@ -1234,24 +1220,7 @@ static int nvme_rdma_post_send(struct nvme_rdma_queue *queue,
+ 	wr.sg_list    = sge;
+ 	wr.num_sge    = num_sge;
+ 	wr.opcode     = IB_WR_SEND;
+-	wr.send_flags = 0;
+-
+-	/*
+-	 * Unsignalled send completions are another giant desaster in the
+-	 * IB Verbs spec:  If we don't regularly post signalled sends
+-	 * the send queue will fill up and only a QP reset will rescue us.
+-	 * Would have been way to obvious to handle this in hardware or
+-	 * at least the RDMA stack..
+-	 *
+-	 * Always signal the flushes. The magic request used for the flush
+-	 * sequencer is not allocated in our driver's tagset and it's
+-	 * triggered to be freed by blk_cleanup_queue(). So we need to
+-	 * always mark it as signaled to ensure that the "wr_cqe", which is
+-	 * embedded in request's payload, is not freed when __ib_process_cq()
+-	 * calls wr_cqe->done().
+-	 */
+-	if (nvme_rdma_queue_sig_limit(queue) || flush)
+-		wr.send_flags |= IB_SEND_SIGNALED;
++	wr.send_flags = signal ? IB_SEND_SIGNALED : 0;
+ 
+ 	if (first)
+ 		first->next = &wr;
+@@ -1322,6 +1291,12 @@ static void nvme_rdma_submit_async_event(struct nvme_ctrl *arg)
+ 	ib_dma_sync_single_for_device(dev, sqe->dma, sizeof(*cmd),
+ 			DMA_TO_DEVICE);
+ 
++	/*
++	 * async events do not race with reply completions and don't
++	 * contain inline data, thus are safe to suppress. so in order
++	 * to avoid the complexity of detecting async event send completions
++	 * in the hot path we simply suppress their send completions.
++	 */
+ 	ret = nvme_rdma_post_send(queue, sqe, &sge, 1, NULL, false);
+ 	WARN_ON_ONCE(ret);
+ }
+@@ -1607,7 +1582,6 @@ static blk_status_t nvme_rdma_queue_rq(struct blk_mq_hw_ctx *hctx,
+ 	struct nvme_rdma_request *req = blk_mq_rq_to_pdu(rq);
+ 	struct nvme_rdma_qe *sqe = &req->sqe;
+ 	struct nvme_command *c = sqe->data;
+-	bool flush = false;
+ 	struct ib_device *dev;
+ 	blk_status_t ret;
+ 	int err;
+@@ -1639,10 +1613,8 @@ static blk_status_t nvme_rdma_queue_rq(struct blk_mq_hw_ctx *hctx,
+ 	ib_dma_sync_single_for_device(dev, sqe->dma,
+ 			sizeof(struct nvme_command), DMA_TO_DEVICE);
+ 
+-	if (req_op(rq) == REQ_OP_FLUSH)
+-		flush = true;
+ 	err = nvme_rdma_post_send(queue, sqe, req->sge, req->num_sge,
+-			req->mr->need_inval ? &req->reg_wr.wr : NULL, flush);
++			req->mr->need_inval ? &req->reg_wr.wr : NULL, true);
+ 	if (unlikely(err)) {
+ 		nvme_rdma_unmap_data(queue, rq);
+ 		goto err;
+-- 
+2.14.1
 
-Otherwise, this is broadly what I had in mind when we talked about
-this at the last conference.
-
-The idea is to simply shunt eveything to the driver path until someone
-bothers to standadize the features. DC will not be exposed to the core
-RDMA code in the kernel.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
