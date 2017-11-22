@@ -1,56 +1,68 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [Regression bug] Can't control IPoIB VLAN interfaces if selinux
- enabled
-Date: Wed, 22 Nov 2017 07:43:36 -0600
-Message-ID: <b7f5557c-3fea-9ea3-6c03-f8ebddbf7a0b@mellanox.com>
-References: <20171122120336.GA11241@dhcp-13-42.nay.redhat.com>
+From: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: QPN re-use?  was RE: rstream application
+Date: Wed, 22 Nov 2017 13:44:56 +0000
+Message-ID: <CY1PR0701MB201272A9D57012EB34E9E08188200@CY1PR0701MB2012.namprd07.prod.outlook.com>
+References: <1828884A29C6694DAF28B7E6B8A82373AB1AC922@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171122120336.GA11241-Y5OA6DF/u0nid9cnFhDO8BcY2uh10dtjAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB1AC922-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "refpolicy-F833r1i0HHaU+1/U8MakDg@public.gmane.org" <refpolicy-F833r1i0HHaU+1/U8MakDg@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/22/2017 6:03 AM, Honggang LI wrote:
-> Hi, Daniel
->
-> 409dcf31538a selinux: Add a cache for quicker retreival of PKey SIDs
-> ab861dfca165 selinux: Add IB Port SMP access vector
-> cfc4d882d417 selinux: Implement Infiniband PKey "Access" access vector
-> 3a976fa6767f selinux: Allocate and free infiniband security hooks
-> a806f7a1616f selinux: Create policydb version for Infiniband support
-> 47a2b338fe63 IB/core: Enforce security on management datagrams
-> 8f408ab64be6 selinux lsm IB/core: Implement LSM notification system
-> d291f1a65232 IB/core: Enforce PKey security on QPs
-> 883c71feaf2e IB/core: IB cache enhancements to support Infiniband security
->
-> I think your patchset introduces a regression bug. If we created
-> multiple IPoIB VLAN interfaces, the TCP/IP network will be impacted.
->
-> 1) Upstream kernel-4.12.0-rc2.409dcf31538a, can't control IPoIB VLAN
-> interface over ifdown/ifup. ifup/ifdown over bare IPoIB interface works.
-> System Ethernet card can get DHCP IP address and up as expected.
->
-> 2) Upstream kernel-4.14.0.0c86a6bd85ff, the TCP/IP network does not
-> work at all, as all IP interfaces, which include Ethernet interface and
-> IPoIB/VLAN interfaces, will failed to be initialized.
->
-> Issue can be reproduced with mlx4/mlx5/qib hardware. IPoIB works
-> when selinux disabled.
->
-> Please see attachment for details.
->
-> thanks
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Hefty, Sean
+> Sent: Tuesday, November 21, 2017 6:27 PM
+> To: Kalderon, Michal <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; Jason Gunthorpe
+> <jgg-uk2M96/98Pc@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Elior, Ariel <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; Amrani, Ram
+> <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; Radzi, Amit <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> Subject: QPN re-use? was RE: rstream application
+>=20
+> > Rstream client connects to server, runs latency test, calls rs_close
+> > and then connects Again before running the bandwidth test. The issue
+> > occurs on the second connect (after latency and before bandwidth).
+> > Server does the same. It seems the close state in some cases doesn't
+> > complete Before the second connect request arrives.
+> > Yes, the hardware re-uses QPNs once they are destroyed.
+>=20
+> If the issue is that the QP is in time wait, I'm not sure this is complet=
+ely an
+> application issue.  The QP being re-used could have been allocated by
+> another application, with timewait being set to something large.  This
+> wouldn't be an rstream issue, but something all applications would be
+> required to handle.
+>=20
+> It sounds like there needs to be some sort of coordination of QPN re-use
+> between the drivers and CM, especially if the driver wants to re-use QPNs=
+ as
+> LIFO.
 
-Upstream refpolicy has a patch that allow access to unlabeled PKeys, is it applied in your policy? Even if it is there could additional distro specific changes required, for the unconfined user for example.
+Thanks, Sean. This makes sense. So are you suggesting and additional API be=
+tween CM
+And driver to notify when a QPN can be re-used ?=20
+Just to emphasize though, the problem could still occur if on client side t=
+he QPN is released
+After timewait, but timewait didn't pass on server-side. (this is similar t=
+o the case here,=20
+The QPN re-use was on the client side, where the connection was no longer i=
+n time-wait, but
+Existed in the server side remote-qp tables ).=20
 
-https://github.com/TresysTechnology/refpolicy/commit/25a5b2427447eb14edb07ce302217d37528813bc
+Thanks,
+Michal
 
-Apologies if this link is converted into a monstrosity to a Microsoft proxy. It will take you to github.
+>=20
+> - Sean
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in =
+the
+> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
