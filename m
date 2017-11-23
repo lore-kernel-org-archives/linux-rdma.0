@@ -1,8 +1,8 @@
 From: Ubuntu Installer <archive-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>
 Subject: [~linux-rdma/ubuntu/rdma-core-daily]
- rdma-core_16~201711221003+gitc6ee15f~ubuntu17.10.1_source.changes (Rejected)
-Date: Thu, 23 Nov 2017 10:48:13 -0000
-Message-ID: <151143409344.12510.7741278903941209122.launchpad@alphecca.canonical.com>
+ rdma-core_16~201711221003+gitc6ee15f~ubuntu17.04.1_source.changes (Rejected)
+Date: Thu, 23 Nov 2017 10:48:20 -0000
+Message-ID: <151143410018.12510.14537581399669064858.launchpad@alphecca.canonical.com>
 Reply-To: Ubuntu Installer <archive-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,10 +13,10 @@ To: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Rejected:
-File rdma-core_16~201711221003+gitc6ee15f~ubuntu17.10.1.tar.xz already exists in PPA named rdma-core-daily for Linux RDMA, but uploaded version has different contents. See more information about this error in https://help.launchpad.net/Packaging/UploadErrors.
+File rdma-core_16~201711221003+gitc6ee15f~ubuntu17.04.1.tar.xz already exists in PPA named rdma-core-daily for Linux RDMA, but uploaded version has different contents. See more information about this error in https://help.launchpad.net/Packaging/UploadErrors.
 Files specified in DSC are broken or missing, skipping package unpack verification.
 
-rdma-core (16~201711221003+gitc6ee15f~ubuntu17.10.1) artful; urgency=low
+rdma-core (16~201711221003+gitc6ee15f~ubuntu17.04.1) zesty; urgency=low
 
   * Auto build.
 
