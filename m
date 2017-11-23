@@ -1,105 +1,72 @@
-From: Long Li <longli@exchange.microsoft.com>
-Subject: [Patch v8 00/16] CIFS: Implement SMB Direct protocol
-Date: Wed, 22 Nov 2017 17:38:33 -0700
-Message-ID: <20171123003849.17093-1-longli@exchange.microsoft.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Tom Talpey <ttalpey@microsoft.com>, Matthew Wilcox <mawilcox@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Long Li <longli@microsoft.com>
+From: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
+Subject: Re: [PATCH 1/1] qed: Add firmware 8.33.1.0
+Date: Thu, 23 Nov 2017 01:08:37 +0000
+Message-ID: <1511399317.14687.0.camel@decadent.org.uk>
+References: <20171011075753.8900-1-rahul.verma@cavium.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha512";
+        protocol="application/pgp-signature"; boundary="=-JYe2FBNTIQ9tPXUh5T7B"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171011075753.8900-1-rahul.verma-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rahul Verma <rahul.verma-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, kyle-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-firmware-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ariel.elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Long Li <longli@microsoft.com>
 
-Starting with SMB2 dialect 3.0, Microsoft introduced SMB Direct transport
-protocol for transferring upper layer (SMB2) payload over RDMA via Infiniband,
-RoCE or iWARP. The prococol is published in [MS-SMBD]
-(https://msdn.microsoft.com/en-us/library/hh536346.aspx).
+--=-JYe2FBNTIQ9tPXUh5T7B
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Change log:
-v2:
-Implemented RDMA read/write via memory registration.
-Re-arranged patches for review [Christoph Hellwig <hch@infradead.org>].
-Restructured the code and fixed bugs on protocol timer and keepalive
-[Tom Talpey <ttalpey@microsoft.com>].
+On Wed, 2017-10-11 at 00:57 -0700, Rahul Verma wrote:
+> The new qed firmware contains fixes to firmware and added
+> support for new features,
+> -Add UFP support and drop action support.
+> -DCQCN support for unlimited number of QP
+> -Add IP type to GFT filter profile.
+> -Added new TCP function counters.
+> -Support flow ID in aRFS flow.
+>=20
+> Signed-off-by: Rahul Verma <rahul.verma-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> ---
+>  WHENCE                                  |   1 +
+>  qed/qed_init_values_zipped-8.33.1.0.bin | Bin 0 -> 838612 bytes
+>  2 files changed, 1 insertion(+)
+>  create mode 100755 qed/qed_init_values_zipped-8.33.1.0.bin
+[...]
 
-v3:
-Improved performance by introducing an additional queue for handling
-empty packets and reducing lock contention on IRQ path.
-Added light weight profiling by reading TSC.
-Improved the code for checking SMB versions when mounting with rdma option
-[Leon Romanovsky <leon@kernel.org>].
-Moved to use pages instead of buffers for passing I/O for RDMA
-[Christoph Hellwig <hch@infradead.org>].
-Removed redundant code and refactored I/O code paths
-[Christoph Hellwig <hch@infradead.org>, Tom Talpey <ttalpey@microsoft.com>].
+Applied; sorry for the delay.
 
-v4:
-Fixed connectivity issues with iWAPR devices.
-Exported configurable protocol parameters to /proc/fs/cifs
-[Steve French <sfrench@samba.org>]
-Re-arranged patches for review
-[Pavel Shilovsky <piastryyy@gmail.com>].
+Ben.
 
-v5:
-Fixed compiling errors on ia64, i386 and when INFINIBAND is not
-configured. [kbuild test robot]
-Profiling is removed and will be introduced in a seperate patch.
+--=20
+Ben Hutchings
+When in doubt, use brute force. - Ken Thompson
 
-v6:
-Report internal code error via WARN_ON(). Change description in
-Kconfig [Pavel Shilovsky <piastryyy@gmail.com>].
 
-v7:
-Removed the use of #ifdef CONFIG_CIFS_SMB_DIRECT in upper layer
-code calling transport I/O. [Matthew Wilcox <mawilcox@microsoft.com>,
-Tom Talpey <ttalpey@microsoft.com>]
+--=-JYe2FBNTIQ9tPXUh5T7B
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-v8:
-Fixed comment typos and removed unused code
-[Ronnie Sahlberg <lsahlber@redhat.com>]
-Removed the first 7 patches in v7, which have been merged.
-Restructed the code to move relevant function definitions to later patches.
-[Pavel Shilovsky <piastryyy@gmail.com>]
-Added a patch to disable signing when RDMA is in use. Signing will be
-enabled after it is properly implemented in SMB Direct code paths.
-Fixed an issue on passing the incorrect offset to smbd_buffer_descriptor_v1
-when RDMA read is used for SMB write. This was caused by recent CIFS
-patches to remove packet length from SMB2 packet header.
+-----BEGIN PGP SIGNATURE-----
 
-Long Li (16):
-  CIFS: SMBD: Upper layer connects to SMBDirect session
-  CIFS: SMBD: Implement function to reconnect to a SMB Direct transport
-  CIFS: SMBD: Upper layer reconnects to SMB Direct session
-  CIFS: SMBD: Implement function to destroy a SMB Direct connection
-  CIFS: SMBD: Upper layer destroys SMB Direct session on shutdown or
-    umount
-  CIFS: SMBD: Set SMB Direct maximum read or write size for I/O
-  CIFS: SMBD: Implement function to receive data via RDMA receive
-  CIFS: SMBD: Upper layer receives data via RDMA receive
-  CIFS: SMBD: Implement function to send data via RDMA send
-  CIFS: SMBD: Upper layer sends data via RDMA send
-  CIFS: SMBD: Implement RDMA memory registration
-  CIFS: SMBD: Upper layer performs SMB write via RDMA read through
-    memory registration
-  CIFS: SMBD: Read correct returned data length for RDMA write (SMB
-    read) I/O
-  CIFS: SMBD: Upper layer performs SMB read via RDMA write through
-    memory registration
-  CIFS: SMBD: Add SMB Direct debug counters
-  CIFS: SMBD: Disable signing on SMB direct transport
+iQIzBAABCgAdFiEErCspvTSmr92z9o8157/I7JWGEQkFAloWH5UACgkQ57/I7JWG
+EQnBkQ//fA6tXCzJTONP4w2W2bXxN6uCTkkbHzo/huCA6qCusogxzYYH9frofRrs
+CA9+8hQeAFxCHBv1Oh8E5zxEKXZlx3deszbRtzGj/jfN8Ke+SERZ//2pgU5t5NjO
+jLYPHiEo9gfRR5pnxp8MSQK/ey3Jn7s+M70275lHJqJqcU1ypU2VGKkXKhWx3PfU
+4LcsxiX9ZTKyFZXjBx9V5/vlj8KDbojwHMqTNBSGVDsuFEie6KVJ01mnfCPsfheM
+zPzHl/qSYSwIJJAUM3eSICeW6EvZnnlnmexHWBCeyFRoer4bRNi/Vj8Htt/WPch1
+csoeFOvJs68tTCUddesYOCbBSIR7pmfLgfR3//11wGBZwmWSS6pdZE32v/VzNXhs
+JVywxJ1DaUOJarpqWTk8Q/i7Z4RPPT1cQgh/MvRWY/2AVQaHFZd9aekPbxGcNV33
+4hQ0CPMi9siU/JZnrKIZVz57m5FjAG1lqe/yC/Ijv3yli5nJXGmkwrGR2RU5knRn
+khm9V0VY1gcKBV2wztF5IzZDFNJ/BwNDCRQcsga6S5q18nyCz4At7AbYg44Q0HZY
+qtmPJqUxKrio6lDL2mmCvTNe4UNwzixGXpCQiy/DLtLLYZDnM2AVRulECNqlvJSC
+YFXrbwEs/xa5o4WMF9utdAlnj+V/hrvaAT6dwgj2GYyS0o33+Kg=
+=KI6S
+-----END PGP SIGNATURE-----
 
- fs/cifs/cifs_debug.c |  66 ++++
- fs/cifs/cifsglob.h   |  16 +-
- fs/cifs/cifssmb.c    |  15 +-
- fs/cifs/connect.c    |  46 ++-
- fs/cifs/file.c       |  17 +-
- fs/cifs/smb1ops.c    |   4 +-
- fs/cifs/smb2ops.c    |  24 +-
- fs/cifs/smb2pdu.c    | 117 ++++++-
- fs/cifs/smbdirect.c  | 947 +++++++++++++++++++++++++++++++++++++++++++++++++++
- fs/cifs/smbdirect.h  |  72 ++++
- fs/cifs/transport.c  |   8 +-
- 11 files changed, 1308 insertions(+), 24 deletions(-)
-
--- 
-2.7.4
+--=-JYe2FBNTIQ9tPXUh5T7B--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
