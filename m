@@ -1,9 +1,9 @@
-From: noreply-+ipbUBPD95tH4x6Dk/4f9A@public.gmane.org
-Subject: [recipe build #1488698] of ~linux-rdma rdma-core-daily in xenial:
- Failed to upload
+From: Ubuntu Installer <archive-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>
+Subject: [~linux-rdma/ubuntu/rdma-core-daily]
+ rdma-core_16~201711221003+gitc6ee15f~ubuntu16.04.1_source.changes (Rejected)
 Date: Thu, 23 Nov 2017 10:48:13 -0000
-Message-ID: <151143409325.12510.2908331285161186733.launchpad@alphecca.canonical.com>
-Reply-To: noreply-+ipbUBPD95tH4x6Dk/4f9A@public.gmane.org
+Message-ID: <151143409309.12510.5265802771849552463.launchpad@alphecca.canonical.com>
+Reply-To: Ubuntu Installer <archive-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8BIT
@@ -12,18 +12,23 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- * State: Failed to upload
- * Recipe: linux-rdma/rdma-core-daily
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Distroseries: xenial
- * Duration: 2 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebuild/1488698/+files/buildlog.txt.gz
- * Upload Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebuild/1488698/+files/upload_1488698_log.txt
- * Builder: https://launchpad.net/builders/lgw01-amd64-029
+Rejected:
+File rdma-core_16~201711221003+gitc6ee15f~ubuntu16.04.1.tar.xz already exists in PPA named rdma-core-daily for Linux RDMA, but uploaded version has different contents. See more information about this error in https://help.launchpad.net/Packaging/UploadErrors.
+Files specified in DSC are broken or missing, skipping package unpack verification.
+
+rdma-core (16~201711221003+gitc6ee15f~ubuntu16.04.1) xenial; urgency=low
+
+  * Auto build.
+
+===
+
+If you don't understand why your files were rejected please send an email
+to launchpad-users-oU9gvf+ajcQ97yFScArB1dHuzzzSOjJt@public.gmane.org for help (requires membership).
 
 -- 
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebuild/1488698
-Your team Linux RDMA is the requester of the build.
+https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily
+You are receiving this email because your team Linux RDMA is the most
+recent person listed in this package's changelog.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
