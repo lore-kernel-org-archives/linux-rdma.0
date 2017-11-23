@@ -1,8 +1,8 @@
 From: noreply-+ipbUBPD95tH4x6Dk/4f9A@public.gmane.org
-Subject: [recipe build #1488699] of ~linux-rdma rdma-core-daily in zesty:
+Subject: [recipe build #1488700] of ~linux-rdma rdma-core-daily in artful:
  Failed to upload
-Date: Thu, 23 Nov 2017 10:48:20 -0000
-Message-ID: <151143410027.12510.11264857258396943642.launchpad@alphecca.canonical.com>
+Date: Thu, 23 Nov 2017 10:48:13 -0000
+Message-ID: <151143409352.12510.5387802848434001820.launchpad@alphecca.canonical.com>
 Reply-To: noreply-+ipbUBPD95tH4x6Dk/4f9A@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,14 +15,14 @@ List-Id: linux-rdma@vger.kernel.org
  * State: Failed to upload
  * Recipe: linux-rdma/rdma-core-daily
  * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Distroseries: zesty
+ * Distroseries: artful
  * Duration: 2 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebuild/1488699/+files/buildlog.txt.gz
- * Upload Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebuild/1488699/+files/upload_1488699_log.txt
- * Builder: https://launchpad.net/builders/lgw01-amd64-021
+ * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebuild/1488700/+files/buildlog.txt.gz
+ * Upload Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebuild/1488700/+files/upload_1488700_log.txt
+ * Builder: https://launchpad.net/builders/lgw01-amd64-055
 
 -- 
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebuild/1488699
+https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebuild/1488700
 Your team Linux RDMA is the requester of the build.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
