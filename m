@@ -1,60 +1,45 @@
-From: "Radzi, Amit" <Amit.Radzi-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: QPN re-use?  was RE: rstream application
-Date: Thu, 23 Nov 2017 12:18:18 +0000
-Message-ID: <CY4PR07MB2968E656A083CA1F34FE6345EB210@CY4PR07MB2968.namprd07.prod.outlook.com>
-References: <1828884A29C6694DAF28B7E6B8A82373AB1AC922@ORSMSX109.amr.corp.intel.com>
- <CY1PR0701MB201272A9D57012EB34E9E08188200@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <1828884A29C6694DAF28B7E6B8A82373AB1AD065@ORSMSX109.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-core 0/3] Add tunnel support
+Date: Thu, 23 Nov 2017 15:53:23 +0200
+Message-ID: <1511445206-18951-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB1AD065-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > Thanks, Sean. This makes sense. So are you suggesting and additional
-> > API between CM And driver to notify when a QPN can be re-used ?
->=20
-> This was what I was suggesting, but the point you make below may mean tha=
-t it
-> won't help that much.  :/
+This series from Maor is the supplementary part of the kernel series that was
+merged into 4.15.
 
-I think it will still help. In the general case (and this restream specific=
- case) the client destroys the QP locally, destroys the cm id (which sends =
-a disconnect request) and creates a new one which sends the new connect req=
-uest (with the same local QPN).
-If there was an interface that the CM will tell the driver that the QPN can=
- be used only when moving to idle (in a successful case after the disconnec=
-t response arrives) we won't have a problem since the client will get a dif=
-ferent QPN.
-There still might be a case where for example the disconnect request will b=
-e dropped (and moving to timewait and idle without retrying the disconnect)=
- we might still get a reject from the server since he didn't see the discon=
-nect but that is rare and will have to be addressed in the application laye=
-r.
+It introduces the following support for tunneling packets:
+1) RSS on the tunneled packet.
+2) Tunneling offloads support for mlx5 devices via the DV API.
 
->=20
-> > Just to emphasize though, the problem could still occur if on client
-> > side the QPN is released After timewait, but timewait didn't pass on
-> > server-side. (this is similar to the case here, The QPN re-use was
-> > on the client side, where the connection was no longer in time-wait,
-> > but Existed in the server side remote-qp tables ).
->=20
-> IMO, the best solution is for drivers to cycle through qpn space before
-> attempting to re-use any.  Otherwise, this problem is more likely to occu=
-r.
->=20
-> I can't easily think of a great alternative.
+PR was sent:
+https://github.com/linux-rdma/rdma-core/pull/265
 
-We can do that but that but it will not always help either (e.g. there is o=
-nly one QPN available).
+Yishai
 
->=20
-> - Sean
+Maor Gottlieb (3):
+  verbs: Add support in RSS of the inner packet
+  mlx5: Add tunnel offloads support in direct verbs
+  mlx5: Report tunneling offloads capabilities
+
+ debian/ibverbs-providers.symbols         |  1 +
+ libibverbs/man/ibv_create_qp_ex.3        | 21 +++++++++++++
+ libibverbs/verbs.h                       |  7 ++++-
+ providers/mlx5/libmlx5.map               |  1 +
+ providers/mlx5/man/mlx5dv_query_device.3 | 15 ++++++++-
+ providers/mlx5/mlx5-abi.h                |  5 ++-
+ providers/mlx5/mlx5.c                    |  5 +++
+ providers/mlx5/mlx5.h                    |  1 +
+ providers/mlx5/mlx5dv.h                  | 27 +++++++++++++++-
+ providers/mlx5/verbs.c                   | 53 ++++++++++++++++++++++++++++----
+ 10 files changed, 126 insertions(+), 10 deletions(-)
+
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
