@@ -1,121 +1,109 @@
 From: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC kernel+rdma-core 0/6] Custom/propriatery QP type support
-Date: Sun, 26 Nov 2017 19:45:11 +0200
-Message-ID: <1511718317-3381-1-git-send-email-alexma@mellanox.com>
+Subject: [RFC internal rdma-next 1/2] IB/core: Introduce vendor QP type
+Date: Sun, 26 Nov 2017 19:45:12 +0200
+Message-ID: <1511718317-3381-2-git-send-email-alexma@mellanox.com>
+References: <1511718317-3381-1-git-send-email-alexma@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1511718317-3381-1-git-send-email-alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This RFC is a follow-up for the previous "Vendor-specific QPs" RFC 
-( https://www.spinics.net/lists/linux-rdma/msg56322.html ). Below is the
-originla RFC text (the patch was not formatted correctly, so I'm resending).
-Also, I'd like to provide some insight into the decision to propose a single
-QP creation API rather than per-QP-type calls.
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The alternative to the proposed mlx5dv_create_qp() is to have different calls
-for each QP type, such as mlx5dv_create_dct() and mlx5dv_create_dci() in this case.
-In both cases the function would retunr strcut *ibv_qp - usable with any other
-QP-related call. We consider the former to be closer to Verbs style, while the
-latter will require a new function for each new QP type and may lead to some
-boiler-plate code - typically such functions will just pass these arguments to
-the provider via the kernel (as a "custom QP").
+Vendors can implement type of QPs that are not described in the
+Infiniband specification. To still be able to use the IB/core layer
+services (e.g. user object management) without tainting this layer with
+vendor proprietary logic a new QP type is added - IB_QPT_VENDOR. This
+will be a general QP type that core layer doesn't know about its true nature.
+When a command like create_qp() is passed to vendor driver the extra data
+that is required is taken from the vendor channel.
+Although IB/core layer doesn't know the details of the vendor QP it can
+assume that all vendor QP has some things in common that seperate them
+from standard QPs and therefore code is allowed to make decisions based
+on this QP type.
 
-Another (minor) issue would be dynamic loading, if the app is build with a newer
-version and some mlx5dv_create_recent_qp() - which is not present in the local
-version of the library (though this problem has some solutions). 
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_cmd.c | 9 ++++++---
+ drivers/infiniband/core/verbs.c      | 3 +++
+ include/rdma/ib_verbs.h              | 2 ++
+ 3 files changed, 11 insertions(+), 3 deletions(-)
 
-
-Original RFC Text
------------------
-The purpose of this RFC is to show method by which a vendor can add a software
-interface support for a QP type that is not described in the InfiniBand spec.
-Generally speaking, a QP is an software object used by abstract software interface
-to send and receive data to and from the hardware. The InfiniBand spec describes
-several types of QPs, different from each other by the service that they provide.
-Vendors that implement network services that are not described in the InfiniBand
-spec may want to use the verbs interface to create, modify, query and destroy a QP
-to maintain a software object that keeps the context of the hardware QP. However,
-we don't want to taint the IB/core layer with code that is vendor specific and
-leave all vendor logic to be done in the vendor driver. To do this we suggest a new
-QP type - IB_QPT_VENDOR which is almost all the addition to IB/core. The following
-describes the flow to create a vendor QP but it can be easily applied to modify query
-and destroy operations.
-
-A vendor that implements a new QP type will provide an interface to send a command to
-the kernel to create a QP of this type. Of course that this is probably not enough
-data to create the QP so the vendor will also provide in that interface a way to pass
-extra data that is required to create the QP. This extra data will be passed through the
-vendor channel which is not described here. The IB/core layer in the kernel may process
-the command with respect to the new QP type but without assuming anything that is not
-general to all vendor QPs. For example the IB/core layer may not validate the that the
-receive CQ is different from the send CQ for vendor QP but it may assume that that zero
-length send queue means that send CQ is not present.
-
-This message will be followed by patches that implement the above and use the mlx5 driver
-as an example vendor.
-
-The following patches to kernel show the changes in code that are required to 
-- IB/core: Introduce vendor QP type
-- IB/mlx5: Example use of vendor QP
-
-The following patches to userspace show the changes in code
-- verbs: Intorduce QP type IBV_QPT_VENDOR
-- mlx5: Introduce mlx5dv_create_qp()
-
-
-and an application that want to create a vendor QP (in this case the send part of the DC
-transport service)  will look like this
-
-{
-                struct ibv_context      *context;
-                struct ibv_pd           *pd;
-                struct ibv_cq           *cq;
-                struct ibv_qp           *qp;
-                int                     qp_depth = 128;
-                struct ibv_qp_attr      attr;
-                struct ibv_qp_init_attr_ex      init_attr;
-                struct mlx5dv_qp_init_attr      dv_init_attr;
-
-                context = ibv_open_device(ib_dev);
-                if (!context) {
-                        fprintf(stderr, "Couldn't get context for %s\n",
-                                        ibv_get_device_name(ib_dev));
-                        return -1;
-                }
-                pd = ibv_alloc_pd(context);
-                if (!pd) {
-                        fprintf(stderr, "Couldn't allocate PD\n");
-                        return -1;
-                }
-                cq = ibv_create_cq(context, qp_depth + 1, NULL, NULL, 0);
-                if (cq) {
-                        fprintf(stderr, "Couldn't create CQ\n");
-                        return -1;
-                }
-
-                init_attr.send_cq = cq;
-                init_attr.recv_cq = cq;
-                init_attr.cap.max_send_wr  = 100;
-                init_attr.cap.max_send_sge  = 1;
-                init_attr.qp_type = IBV_QPT_VENDOR;
-                init_attr.pd = pd;
-
-                dv_init_attr.vendor_qp_type = MLX5_VENDOR_QPT_DCI;
-
-                qp = mlx5dv_create_qp(context, &init_attr, &dv_init_attr);
-                if (qp) {
-                        fprintf(stderr, "Couldn't create QP\n");
-                        return -1;
-                }
-
-                fprintf(stdout, "Success: Create DC send QP\n");
-        }
-
-
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 52a2cf2..21d8f55 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1374,6 +1374,7 @@ static int create_qp(struct ib_uverbs_file *file,
+ 	int				ret;
+ 	struct ib_rwq_ind_table *ind_tbl = NULL;
+ 	bool has_sq = true;
++	bool has_rq = true;
+ 
+ 	if (cmd->qp_type == IB_QPT_RAW_PACKET && !capable(CAP_NET_RAW))
+ 		return -EPERM;
+@@ -1412,8 +1413,10 @@ static int create_qp(struct ib_uverbs_file *file,
+ 		goto err_put;
+ 	}
+ 
+-	if (ind_tbl && !cmd->max_send_wr)
++	if ((ind_tbl || cmd->qp_type == IB_QPT_VENDOR) && !cmd->max_send_wr)
+ 		has_sq = false;
++	if (cmd->qp_type == IB_QPT_VENDOR && !cmd->max_recv_wr)
++		has_rq = false;
+ 
+ 	if (cmd->qp_type == IB_QPT_XRC_TGT) {
+ 		xrcd_uobj = uobj_get_read(uobj_get_type(xrcd), cmd->pd_handle,
+@@ -1445,7 +1448,7 @@ static int create_qp(struct ib_uverbs_file *file,
+ 			}
+ 
+ 			if (!ind_tbl) {
+-				if (cmd->recv_cq_handle != cmd->send_cq_handle) {
++				if (cmd->recv_cq_handle != cmd->send_cq_handle && has_rq) {
+ 					rcq = uobj_get_obj_read(cq, cmd->recv_cq_handle,
+ 								file->ucontext);
+ 					if (!rcq) {
+@@ -1459,7 +1462,7 @@ static int create_qp(struct ib_uverbs_file *file,
+ 		if (has_sq)
+ 			scq = uobj_get_obj_read(cq, cmd->send_cq_handle,
+ 						file->ucontext);
+-		if (!ind_tbl)
++		if (!ind_tbl && has_rq)
+ 			rcq = rcq ?: scq;
+ 		pd  = uobj_get_obj_read(pd, cmd->pd_handle, file->ucontext);
+ 		if (!pd || (!scq && has_sq)) {
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index de57d6c..9b5afeb5 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1196,6 +1196,9 @@ int ib_modify_qp_is_ok(enum ib_qp_state cur_state, enum ib_qp_state next_state,
+ {
+ 	enum ib_qp_attr_mask req_param, opt_param;
+ 
++	if (type >= IB_QPT_MAX)
++		return 0;
++
+ 	if (cur_state  < 0 || cur_state  > IB_QPS_ERR ||
+ 	    next_state < 0 || next_state > IB_QPS_ERR)
+ 		return 0;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index e8608b2..93a305b 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1069,7 +1069,9 @@ enum ib_qp_type {
+ 	IB_QPT_RAW_PACKET = 8,
+ 	IB_QPT_XRC_INI = 9,
+ 	IB_QPT_XRC_TGT,
++	/* IB_QPT_MAX is the higher value for QP types that the InfiniBand spec describes */
+ 	IB_QPT_MAX,
++	IB_QPT_VENDOR =0xFFF,
+ 	/* Reserve a range for qp types internal to the low level driver.
+ 	 * These qp types will not be visible at the IB core layer, so the
+ 	 * IB_QPT_MAX usages should not be affected in the core layer
 -- 
 1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
