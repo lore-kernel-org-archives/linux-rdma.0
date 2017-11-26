@@ -1,36 +1,64 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: possible isert bug in tear down sequence
-Date: Sun, 26 Nov 2017 12:23:58 +0000
-Message-ID: <BN3PR07MB25782DD1336B7EF780BC8C19F8240@BN3PR07MB2578.namprd07.prod.outlook.com>
-References: <BN3PR07MB2578825BFC784DF5DDB6E125F8570@BN3PR07MB2578.namprd07.prod.outlook.com>
- <e196fa80-d7ad-cfa7-651b-f343c0198a84@grimberg.me>
- <BN3PR07MB2578A4A4D5B2A7C0DBA91843F8240@BN3PR07MB2578.namprd07.prod.outlook.com>
- <77fdee90-b51c-1f38-16ea-0183a223f06c@grimberg.me>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V2 rdma-core] libhns: Add rereg mr interface in userspace
+Date: Sun, 26 Nov 2017 15:11:16 +0200
+Message-ID: <20171126131116.GI29104@mtr-leonro.local>
+References: <1511579396-43112-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="xJK8B5Wah2CMJs8h"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <77fdee90-b51c-1f38-16ea-0183a223f06c-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1511579396-43112-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBEb2VzIHRoaXMgZml4IHlvdXIgaXNzdWU6DQo+IC0tDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJz
-L2luZmluaWJhbmQvdWxwL2lzZXJ0L2liX2lzZXJ0LmMNCj4gYi9kcml2ZXJzL2luZmluaWJhbmQv
-dWxwL2lzZXJ0L2liX2lzZXJ0LmMNCj4gaW5kZXggY2VhYmRiODVkZjhiLi45ZDQ3ODViYTI0Y2Ig
-MTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvaXNlcnQvaWJfaXNlcnQuYw0K
-PiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lzZXJ0L2liX2lzZXJ0LmMNCj4gQEAgLTc0
-MSw2ICs3NDEsNyBAQCBpc2VydF9jb25uZWN0X2Vycm9yKHN0cnVjdCByZG1hX2NtX2lkICpjbWFf
-aWQpDQo+ICAgew0KPiAgICAgICAgICBzdHJ1Y3QgaXNlcnRfY29ubiAqaXNlcnRfY29ubiA9IGNt
-YV9pZC0+cXAtPnFwX2NvbnRleHQ7DQo+IA0KPiArICAgICAgIGliX2RyYWluX3FwKGlzZXJ0X2Nv
-bm4tPnFwKTsNCj4gICAgICAgICAgbGlzdF9kZWxfaW5pdCgmaXNlcnRfY29ubi0+bm9kZSk7DQo+
-ICAgICAgICAgIGlzZXJ0X2Nvbm4tPmNtX2lkID0gTlVMTDsNCj4gICAgICAgICAgaXNlcnRfcHV0
-X2Nvbm4oaXNlcnRfY29ubik7DQo+IC0tDQoNClllcywgdGhhdCBpcyBleGFjdGx5IHdoYXQgSSBt
-ZWFuIGFuZCB3YW50ZWQgdG8gY2hlY2sgd2l0aCB5b3UuDQpBcyBJJ20gcmVtb3RlIGRlYnVnZ2lu
-Zy4gSXQgd2lsbCB0YWtlIG1lIGZldyBkYXlzIHRvIE9LIGl0Lg0KDQpUaGFua3MsDQpSYW0NCg0K
-DQoNCg==
+
+--xJK8B5Wah2CMJs8h
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Sat, Nov 25, 2017 at 11:09:56AM +0800, Lijun Ou wrote:
+> This patch adds the rereg mr verbs in userspace.
+>
+> Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> ---
+> Change from V1:
+> 1. Remove the if statement
+> ---
+>  providers/hns/hns_roce_u.c       |  1 +
+>  providers/hns/hns_roce_u.h       |  2 ++
+>  providers/hns/hns_roce_u_verbs.c | 11 +++++++++++
+>  3 files changed, 14 insertions(+)
+>
+
+Thanks, pending successful Travis CI check.
+https://github.com/linux-rdma/rdma-core/pull/266
+
+--xJK8B5Wah2CMJs8h
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloavXMACgkQ5GN7iDZy
+WKdkFg//eTJNQfWqGQxojI+5fLhlau9mAiap/C2LG0UxyfIj3DqnkgsfLRMovQNN
+nCR/ZxsrC+OM3pMEPB9D1acpuBkiYDLF/VczCZ0tClMGbORCC2QAfP/aA4dWC+ol
+tLxXeE9YrKPtTDKw9YyHL2+DHB0ej+zgAb4mrtX3IDSb4cSVkvZQvXfwL1OBM7Yk
+xB5khgSEnbJ4yh6yT6ByCBm0Z+aPnoCWX/FTVvOnNxMiEgjuJItqDmnIvniNCrbm
+N2GR3q+/mqeNySe42MY721rgk9PcqItl+aCa4wuoXNiiIHcvbGlYq8XU7lKJ/FET
+LtPT3qqopIIa/8mz0mp+RpR3f0EPkrqRmwQ5jZqJmm2S0hp8PXQ0Ql1oYa+N8kSl
+YWz8WZL3NEQJttw1ihqSomrzYS+m2RG3JGieKrVUABnT1LdvPjzBO+s4GpF6XGEF
+w3KIyxJY4vnNppMXmvWVklWx5dzwSag88gLkRk2qSMCncolWdvmQ7DzwOWFS9WAH
+zkJ/HQbVyD60NIv/nK0Ai41f31w6oBY1/sP7CQmOpto9Yi1xnGQuvgctl91HuA59
+QGLqYwUDrbg/v9H1UIzTSYEX/P3yNj5CFmJJDIRiw9ICw/eGmNCutYmFNLTDwHy8
+pWo3ip1UT995Hu+yASGmbOm4txi/JMsYoiNJiVK1NjAZI0TV+XE=
+=iGXn
+-----END PGP SIGNATURE-----
+
+--xJK8B5Wah2CMJs8h--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
