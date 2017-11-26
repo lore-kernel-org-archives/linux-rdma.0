@@ -1,60 +1,75 @@
-From: "Amrani, Ram" <Ram.Amrani@cavium.com>
-Subject: RE: possible isert bug in tear down sequence
-Date: Sun, 26 Nov 2017 11:54:33 +0000
-Message-ID: <BN3PR07MB2578A4A4D5B2A7C0DBA91843F8240@BN3PR07MB2578.namprd07.prod.outlook.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: possible isert bug in tear down sequence
+Date: Sun, 26 Nov 2017 14:18:10 +0200
+Message-ID: <77fdee90-b51c-1f38-16ea-0183a223f06c@grimberg.me>
 References: <BN3PR07MB2578825BFC784DF5DDB6E125F8570@BN3PR07MB2578.namprd07.prod.outlook.com>
  <e196fa80-d7ad-cfa7-651b-f343c0198a84@grimberg.me>
+ <BN3PR07MB2578A4A4D5B2A7C0DBA91843F8240@BN3PR07MB2578.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <e196fa80-d7ad-cfa7-651b-f343c0198a84@grimberg.me>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BN3PR07MB2578A4A4D5B2A7C0DBA91843F8240-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Content-Language: en-US
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>
-Cc: "Kalderon, Michal" <Michal.Kalderon@cavium.com>, "Elior, Ariel" <Ariel.Elior@cavium.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgU2FnaSwgdGFyZ2V0LWRldmVsLA0KDQo+IFRoZXJlIGFyZSB0d28gcG9zc2liaWxpdGllcyBo
-ZXJlOg0KPiAxLiBXZSBoYXZlIGEgYnVnIGluIGlzZXJ0IHdoaWNoIHBvc3RzIGEgd3IgYWZ0ZXIg
-Y2FsbGluZyBpYl9kcmFpbl9xcCgpDQo+IHdoaWNoIGlzIHZlcnkgbGlrZWx5LCBidXQgZ2l2ZW4g
-dGhhdCB0aGlzIGlzIGEgcmVjdiBjb21wbGV0aW9uIEkgc29ydGENCj4gZG91YnQgaXQgYmVjYXVz
-ZSBpdCBtZWFucyB0aGF0IHRoZSBRUCBpcyBub3QgZXZlbiBpbiBlcnJvciBzdGF0ZSAob3IgaXMN
-Cj4gaXQgYW5kIGl0cyBhbiBGTFVTSCBlcnJvciBjb21wbGV0aW9uPykNCj4gDQo+IDIuIFRoZSBk
-ZXZpY2UgeW91IHRlc3RlZCB3aXRoIGRpZCBub3QgcmVhbGx5IGRyYWluIHRoZSBxcCBwcm9wZXJs
-eSBhbmQgYQ0KPiBzdHJheSBjb21wbGV0aW9uIGZvdW5kIGl0cyB3YXkgYWZ0ZXJ3YXJkcy4gV2hh
-dCBkZXZpY2UgZGlkIHlvdSB0ZXN0DQo+IHdpdGg/DQoNCkkgdXNlZCBhIFEtTG9naWMgRXZlcmVz
-dCA0IGRldmljZS4NCg0KPg0KDQpMZXQgbWUgYWRkIGEgdGhpcmQgcG9zc2liaWxpdHksIHRoYXQg
-aXMgd2hhdCB3ZSBhcmUgaGl0dGluZzoNCkkgc2VlIHRoYXQgaXNlcnQgdXNlcyBpc2VydF9jbWFf
-aGFuZGxlcigpIGFuZCBpbiB0aGUgZm9sbG93aW5nIGNhc2VzDQpkcmFpbiB3b24ndCBiZSBpbnZv
-a2VkOg0KICAgICAgICBjYXNlIFJETUFfQ01fRVZFTlRfUkVKRUNURUQ6ICAgICAgIC8qIEZBTExU
-SFJVICovDQogICAgICAgICAgICAgICAgaXNlcnRfaW5mbygiQ29ubmVjdGlvbiByZWplY3RlZDog
-JXNcbiIsDQogICAgICAgICAgICAgICAgICAgICAgICAgICByZG1hX3JlamVjdF9tc2coY21hX2lk
-LCBldmVudC0+c3RhdHVzKSk7DQogICAgICAgIGNhc2UgUkRNQV9DTV9FVkVOVF9VTlJFQUNIQUJM
-RTogICAgLyogRkFMTFRIUlUgKi8NCiAgICAgICAgY2FzZSBSRE1BX0NNX0VWRU5UX0NPTk5FQ1Rf
-RVJST1I6DQogICAgICAgICAgICAgICAgcmV0ID0gaXNlcnRfY29ubmVjdF9lcnJvcihjbWFfaWQp
-Ow0KICAgICAgICAgICAgICAgIGJyZWFrOw0KDQpTcGVjaWZpY2FsbHksIEkgaGl0IHRoZSByZWpl
-Y3RlZCBjYXNlLiBTZWUgZG1lc2cgYmVsb3cgd2l0aCBhZGRlZCBwcmludHMgKHJyci4uLikuDQpX
-ZSBBcmUgdXNpbmcgDQoNClsgMjQ1NS4yNDE5NzhdIHJyciBjcmVhdGVkIFFQIGZmZmY4ODBlOTg0
-ZDZjMDANClsgMjQ1NS4yNDE5ODJdIGlzZXJ0OiBpc2VydF9sb2dpbl9wb3N0X3JlY3Y6IFNldHVw
-IHNnZTogYWRkcjogZWIxOWU0MDAwIGxlbmd0aDogODI2OCAweDAwMDAwMDAwDQpbIDI0NTUuMjQx
-OTg3XSBycnIgcG9zdF9yZWN2IHFwPWZmZmY4ODBlOTg0ZDZjMDAsIHdyX2lkPWZmZmY4ODBlYjE5
-ZTYwNjQNClsgMjQ1NS4yNDIxMDhdIGlzZXJ0OiBpc2VydF9jbWFfaGFuZGxlcjogcmVqZWN0ZWQg
-KDgpOiBzdGF0dXMgMTAgaWQgZmZmZjg4MGViMWY5YjAwMCBucCBmZmZmODgxMDQ1NGQyYzQwDQpb
-IDI0NTUuMjQyMTE0XSBpc2VydDogaXNlcnRfY21hX2hhbmRsZXI6IENvbm5lY3Rpb24gcmVqZWN0
-ZWQ6IHN0YWxlIGNvbm4NClsgMjQ1NS4yNDIxMjFdIGlzZXJ0OiBpc2VydF9yZWxlYXNlX2tyZWY6
-IGNvbm4gZmZmZjg4MGViMTllMjAwMCBmaW5hbCBrcmVmIGt3b3JrZXIvNzoyLzYwNTgNClsgMjQ1
-NS4yNDIxMjddIGlzZXJ0OiBpc2VydF9jb25uZWN0X3JlbGVhc2U6IGNvbm4gZmZmZjg4MGViMTll
-MjAwMA0KWyAyNDU1LjI0MjE1Nl0gcnJyIHBvbGxfcmVjdiBxcD1mZmZmODgwZTk4NGQ2YzAwIFJE
-TUFfQ1FFX1JFU1BfU1RTX1dPUktfUkVRVUVTVF9GTFVTSEVEX0VSUiwgd3JfaWQ9ZmZmZjg4MGVi
-MTllNjA2NA0KWyAyNDU1LjI0MjE1N10gcnJyIGRlc3Ryb3llZCBRUCBmZmZmODgwZTk4NGQ2YzAw
-DQpbIDI0NTUuMjQyMTY0XSBNb2R1bGVzIGxpbmtlZCBpbjogbmV0Y29uc29sZSB0YXJnZXRfY29y
-ZV91c2VyIHRhcmdldF9jb3JlX3BzY3NpIHRhcmdldF9jb3JlX2ZpbGUgdGFyZ2V0X2NvcmVfaWJs
-b2NrDQpbIDI0NTUuMjQyMTgzXSBCVUc6IHVuYWJsZSB0byBoYW5kbGUga2VybmVsDQpbIDI0NTUu
-MjQyMjAyXSAgWzxmZmZmZmZmZmEwODIzODEzPl0gaXNlcnRfbG9naW5fcmVjdl9kb25lKzB4MjMv
-MHgxNjAgW2liX2lzZXJ0XQ0KDQpBIFFQIGdldHMgY3JlYXRlZCwgcG9zdF9yZWN2IGlzIGludm9r
-ZWQsIHBvbGxfY3EgYXMgd2VsbCAoZmx1c2hlZCkgdGhlIFFQIGlzIGRlc3Ryb3llZCBhbmQgdGhl
-biB0aGUgd29ya3F1ZXVlIHRyaWVzIHRvIGRlcmVmZXJlbmNlIHRoZSBRUC4uLg0KDQpJJ20gY2hl
-Y2tpbmcgd2h5IHRoZSBjb25uZWN0aW9uIGdvdCBzdGFsZSwgYnV0IGFueXdheSBJIHRoaW5rIGli
-X2RyYWluX3FwKCkgc2hvdWxkIGJlIGludm9rZWQuDQoNCldoYXQgZG8geW91IHRoaW5rPw0KDQpU
-aGFua3MsDQpSYW0NCg0K
+Hey Ram,
+
+> Let me add a third possibility, that is what we are hitting:
+> I see that isert uses isert_cma_handler() and in the following cases
+> drain won't be invoked:
+>          case RDMA_CM_EVENT_REJECTED:       /* FALLTHRU */
+>                  isert_info("Connection rejected: %s\n",
+>                             rdma_reject_msg(cma_id, event->status));
+>          case RDMA_CM_EVENT_UNREACHABLE:    /* FALLTHRU */
+>          case RDMA_CM_EVENT_CONNECT_ERROR:
+>                  ret = isert_connect_error(cma_id);
+>                  break;
+> 
+> Specifically, I hit the rejected case. See dmesg below with added prints (rrr...).
+> We Are using
+> 
+> [ 2455.241978] rrr created QP ffff880e984d6c00
+> [ 2455.241982] isert: isert_login_post_recv: Setup sge: addr: eb19e4000 length: 8268 0x00000000
+> [ 2455.241987] rrr post_recv qp=ffff880e984d6c00, wr_id=ffff880eb19e6064
+> [ 2455.242108] isert: isert_cma_handler: rejected (8): status 10 id ffff880eb1f9b000 np ffff8810454d2c40
+> [ 2455.242114] isert: isert_cma_handler: Connection rejected: stale conn
+> [ 2455.242121] isert: isert_release_kref: conn ffff880eb19e2000 final kref kworker/7:2/6058
+> [ 2455.242127] isert: isert_connect_release: conn ffff880eb19e2000
+> [ 2455.242156] rrr poll_recv qp=ffff880e984d6c00 RDMA_CQE_RESP_STS_WORK_REQUEST_FLUSHED_ERR, wr_id=ffff880eb19e6064
+> [ 2455.242157] rrr destroyed QP ffff880e984d6c00
+> [ 2455.242164] Modules linked in: netconsole target_core_user target_core_pscsi target_core_file target_core_iblock
+> [ 2455.242183] BUG: unable to handle kernel
+> [ 2455.242202]  [<ffffffffa0823813>] isert_login_recv_done+0x23/0x160 [ib_isert]
+> 
+> A QP gets created, post_recv is invoked, poll_cq as well (flushed) the QP is destroyed and then the workqueue tries to dereference the QP...
+> 
+> I'm checking why the connection got stale, but anyway I think ib_drain_qp() should be invoked.
+
+100% correct :)
+
+> What do you think?
+
+Does this fix your issue:
+--
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c 
+b/drivers/infiniband/ulp/isert/ib_isert.c
+index ceabdb85df8b..9d4785ba24cb 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -741,6 +741,7 @@ isert_connect_error(struct rdma_cm_id *cma_id)
+  {
+         struct isert_conn *isert_conn = cma_id->qp->qp_context;
+
++       ib_drain_qp(isert_conn->qp);
+         list_del_init(&isert_conn->node);
+         isert_conn->cm_id = NULL;
+         isert_put_conn(isert_conn);
+--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
