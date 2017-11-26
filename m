@@ -1,7 +1,7 @@
 From: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC rdma-next 2/2] IB/mlx5: Example use of vendor QP
-Date: Sun, 26 Nov 2017 19:45:13 +0200
-Message-ID: <1511718317-3381-3-git-send-email-alexma@mellanox.com>
+Subject: [RFC rdma-core 2/4] mlx5: Introduce mlx5dv_create_qp()
+Date: Sun, 26 Nov 2017 19:45:15 +0200
+Message-ID: <1511718317-3381-5-git-send-email-alexma@mellanox.com>
 References: <1511718317-3381-1-git-send-email-alexma@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1511718317-3381-1-git-send-email-alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,122 +12,157 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-An example that shows how to use the IB_QPT_VENDOR QP type
-to create a DCI QP - specific only to mlx5 driver.
-More specifically, validating state transition cannot be with
-ib_modify_qp_is_ok() which knows only what are the  state
-transition rules for InfiniBand spec QPs.
+A vendor QP has a generic type that doesn't add any additional info
+about this QP, not even to the vendor itself. It is required to add more
+info about the specific type of the QP and extra initialization data
+without tainting the verbs interface command layout. For this purpose
+the application calls mlx5dv_create_qp() instead of ibv_create_qp() and
+passes the vendor specific data along with the generic QP
+initialization data. This function still calls the ibv_cmd_create_qp()
+but extra data is now piggybacking on the standard command structure.
+Since this function returns an object of type (ibv_qp *) any function
+that take (ibv_qp *) as an argument will work with this object. For
+instance, ibv_modify_qp() will be used to modify the state of a QP that
+was created with mlx5dv_creae_qp().
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  6 ++++++
- drivers/infiniband/hw/mlx5/qp.c      | 24 +++++++++++++++++++++++-
- include/uapi/rdma/mlx5-abi.h         |  2 ++
- 3 files changed, 31 insertions(+), 1 deletion(-)
+ providers/mlx5/mlx5-abi.h |  5 +++++
+ providers/mlx5/mlx5dv.h   | 39 +++++++++++++++++++++++++++++++++++++++
+ providers/mlx5/verbs.c    | 19 +++++++++++++++----
+ 3 files changed, 59 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 189e80c..b8a3a63 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -209,6 +209,11 @@ struct mlx5_ib_flow_db {
- #define MLX5_IB_UPD_XLT_ACCESS	      BIT(5)
- #define MLX5_IB_UPD_XLT_INDIRECT      BIT(6)
+diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
+index d1e8b9d..71e2424 100644
+--- a/providers/mlx5/mlx5-abi.h
++++ b/providers/mlx5/mlx5-abi.h
+@@ -163,6 +163,9 @@ struct mlx5_create_qp_drv_ex {
+ 	__u32			reserved;
+ 	/* SQ buffer address - used for Raw Packet QP */
+ 	__u64			sq_buf_addr;
++	__u32			vendor_qp_type;
++	__u32			reserved1;
++
+ };
  
-+enum {
-+	MLX5_VENDOR_QPT_DCT	= 1,
+ struct mlx5_create_qp_ex {
+@@ -199,6 +202,8 @@ struct mlx5_create_qp {
+ 	__u32                           reserved;
+ 	/* SQ buffer address - used for Raw Packet QP */
+ 	__u64                           sq_buf_addr;
++	__u32				vendor_qp_type;
++	__u32                           reserved1;
+ };
+ 
+ struct mlx5_create_qp_resp {
+diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
+index 600f6e1..0fc4021 100644
+--- a/providers/mlx5/mlx5dv.h
++++ b/providers/mlx5/mlx5dv.h
+@@ -107,6 +107,45 @@ struct mlx5dv_cq_init_attr {
+ struct ibv_cq_ex *mlx5dv_create_cq(struct ibv_context *context,
+ 				   struct ibv_cq_init_attr_ex *cq_attr,
+ 				   struct mlx5dv_cq_init_attr *mlx5_cq_attr);
++
++enum mlx5dv_dc_type{
++	MLX5_VENDOR_QPT_DCT     = 1,
 +	MLX5_VENDOR_QPT_DCI,
 +};
 +
- /* Private QP creation flags to be passed in ib_qp_init_attr.create_flags.
-  *
-  * These flags are intended for internal use by the mlx5_ib driver, and they
-@@ -389,6 +394,7 @@ struct mlx5_ib_qp {
- 	struct list_head	cq_send_list;
- 	u32			rate_limit;
- 	u32                     underlay_qpn;
-+	u32			vendor_qp_type;
++enum mlx5dv_dc_handshake_mode {
++	MLX5DV_QP_HANDSHAKE_MODE_FULL = 0,
++	MLX5DV_QP_HANDSHAKE_MODE_HALF
++};
++
++enum mlx5dv_qp_init_attr_mask {
++	MLX5DV_QP_INIT_ATTR_MASK_DC	= 1 << 0,
++};
++
++struct mlx5dv_dc_attr {
++	enum mlx5dv_dc_type vendor_qp_type;
++	union {
++		struct {
++			enum mlx5dv_dc_handshake_mode	mode;
++			uint8_t	reverse_cnak_sl;
++		} dc_ini;
++		struct {
++			uint64_t access_key;
++			uint32_t min_responders;
++			uint32_t max_responders;
++		} dc_tgt;
++	};
++};
++
++struct mlx5dv_qp_init_attr {
++	uint64_t comp_mask;
++	struct mlx5dv_dc_attr dc_attr;
++};
++
++struct ibv_qp *mlx5dv_create_qp(struct ibv_context *context,
++				struct ibv_qp_init_attr_ex *qp_init_attr_ex,
++				struct mlx5dv_qp_init_attr *mlx5_qp_init_attr);
++
+ /*
+  * Most device capabilities are exported by ibv_query_device(...),
+  * but there is HW device-specific information which is important
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index c2e8c64..835a226 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -1244,7 +1244,8 @@ enum {
  };
  
- struct mlx5_ib_cq_buf {
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index acb79d3..5c2bd14 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1527,6 +1527,11 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	spin_lock_init(&qp->sq.lock);
- 	spin_lock_init(&qp->rq.lock);
- 
-+	if (init_attr->qp_type == IB_QPT_VENDOR) {
-+		if (!udata)
-+			return -ENOSYS;
-+	}
-+
- 	if (init_attr->rwq_ind_tbl) {
- 		if (!udata)
- 			return -ENOSYS;
-@@ -1596,6 +1601,7 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 			mlx5_ib_dbg(dev, "copy failed\n");
- 			return -EFAULT;
- 		}
-+		qp->vendor_qp_type = ucmd.vendor_qp_type;
- 
- 		err = get_qp_user_index(to_mucontext(pd->uobject->context),
- 					&ucmd, udata->inlen, &uidx);
-@@ -2086,6 +2092,7 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
- 	case IB_QPT_RC:
- 	case IB_QPT_UC:
- 	case IB_QPT_UD:
-+	case IB_QPT_VENDOR:
- 	case IB_QPT_SMI:
- 	case MLX5_IB_QPT_HW_GSI:
- 	case MLX5_IB_QPT_REG_UMR:
-@@ -2934,6 +2941,15 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 	return err;
- }
- 
-+int mlx5_ib_modify_qp_is_ok(struct ib_qp *ibqp, struct ib_qp_attr *attr,
-+			    int attr_mask, struct ib_udata *udata)
-+{
-+	struct mlx5_ib_qp *qp = to_mqp(ibqp);
-+
-+	/* put some real logic here based on value of qp->vendor_qp_type */
-+	return 1;
-+}
-+
- int mlx5_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		      int attr_mask, struct ib_udata *udata)
+ static struct ibv_qp *create_qp(struct ibv_context *context,
+-			 struct ibv_qp_init_attr_ex *attr)
++				struct ibv_qp_init_attr_ex *attr,
++				struct mlx5dv_qp_init_attr *mlx5_qp_init_attr)
  {
-@@ -2971,10 +2987,16 @@ int mlx5_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 			goto out;
- 		}
- 	} else if (qp_type != MLX5_IB_QPT_REG_UMR &&
--	    !ib_modify_qp_is_ok(cur_state, new_state, qp_type, attr_mask, ll)) {
-+		   qp_type != IB_QPT_VENDOR &&
-+		   !ib_modify_qp_is_ok(cur_state, new_state, qp_type, attr_mask, ll)) {
- 		mlx5_ib_dbg(dev, "invalid QP state transition from %d to %d, qp_type %d, attr_mask 0x%x\n",
- 			    cur_state, new_state, ibqp->qp_type, attr_mask);
- 		goto out;
-+	} else if ((qp_type == IB_QPT_VENDOR) &&
-+		    !mlx5_ib_modify_qp_is_ok(ibqp, attr, attr_mask, udata)) {
-+			mlx5_ib_dbg(dev, "invalid QP state transition from %d to %d, qp_type %d, attr_mask 0x%x\n",
-+			    cur_state, new_state, ibqp->qp_type, attr_mask);
-+			goto out;
+ 	struct mlx5_create_qp		cmd;
+ 	struct mlx5_create_qp_resp	resp;
+@@ -1374,6 +1375,9 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
+ 		cmd.uidx = usr_idx;
  	}
  
- 	if ((attr_mask & IB_QP_PORT) &&
-diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-index 23dba2d..6701102 100644
---- a/include/uapi/rdma/mlx5-abi.h
-+++ b/include/uapi/rdma/mlx5-abi.h
-@@ -248,6 +248,8 @@ struct mlx5_ib_create_qp {
- 	__u32	uidx;
- 	__u32	reserved0;
- 	__u64	sq_buf_addr;
-+	__u32	vendor_qp_type;
-+	__u32	reserved1;
- };
++	if (mlx5_qp_init_attr) {
++		cmd.vendor_qp_type = mlx5_qp_init_attr->vendor_qp_type;
++	}
+ 	if (attr->comp_mask & MLX5_CREATE_QP_EX2_COMP_MASK)
+ 		ret = mlx5_cmd_create_qp_ex(context, attr, &cmd, qp, &resp_ex);
+ 	else
+@@ -1448,7 +1452,7 @@ struct ibv_qp *mlx5_create_qp(struct ibv_pd *pd,
+ 	memcpy(&attrx, attr, sizeof(*attr));
+ 	attrx.comp_mask = IBV_QP_INIT_ATTR_PD;
+ 	attrx.pd = pd;
+-	qp = create_qp(pd->context, &attrx);
++	qp = create_qp(pd->context, &attrx, NULL);
+ 	if (qp)
+ 		memcpy(attr, &attrx, sizeof(*attr));
  
- /* RX Hash function flags */
+@@ -1785,7 +1789,14 @@ int mlx5_detach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid)
+ struct ibv_qp *mlx5_create_qp_ex(struct ibv_context *context,
+ 				 struct ibv_qp_init_attr_ex *attr)
+ {
+-	return create_qp(context, attr);
++	return create_qp(context, attr, NULL);
++}
++
++struct ibv_qp *mlx5dv_create_qp(struct ibv_context *context,
++				struct ibv_qp_init_attr_ex *qp_init_attr_ex,
++				struct mlx5dv_qp_init_attr *mlx5_qp_init_attr)
++{
++	return create_qp(context, qp_init_attr_ex, mlx5_qp_init_attr);
+ }
+ 
+ int mlx5_get_srq_num(struct ibv_srq *srq, uint32_t *srq_num)
+@@ -1870,7 +1881,7 @@ create_cmd_qp(struct ibv_context *context,
+ 	init_attr.send_cq = srq_attr->cq;
+ 	init_attr.recv_cq = srq_attr->cq;
+ 
+-	qp = create_qp(context, &init_attr);
++	qp = create_qp(context, &init_attr, NULL);
+ 	if (!qp)
+ 		return NULL;
+ 
 -- 
 1.8.3.1
 
