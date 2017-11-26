@@ -1,78 +1,72 @@
-From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V2 rdma-core] libhns: Add rereg mr interface in userspace
-Date: Sat, 25 Nov 2017 11:09:56 +0800
-Message-ID: <1511579396-43112-1-git-send-email-oulijun@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] RDMA/vmw_pvrdma: Do not re-calculate npages
+Date: Sun, 26 Nov 2017 13:51:35 +0200
+Message-ID: <20171126115135.5824-1-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds the rereg mr verbs in userspace.
+There is no need to re-calculate the number of pages since it is already
+done in ib_umem_get.
 
-Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
-Change from V1:
-1. Remove the if statement
----
- providers/hns/hns_roce_u.c       |  1 +
- providers/hns/hns_roce_u.h       |  2 ++
- providers/hns/hns_roce_u_verbs.c | 11 +++++++++++
- 3 files changed, 14 insertions(+)
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_mr.c | 15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff --git a/providers/hns/hns_roce_u.c b/providers/hns/hns_roce_u.c
-index ababd9c..9b5de44 100644
---- a/providers/hns/hns_roce_u.c
-+++ b/providers/hns/hns_roce_u.c
-@@ -118,6 +118,7 @@ static struct ibv_context *hns_roce_alloc_context(struct ibv_device *ibdev,
- 	context->ibv_ctx.ops.alloc_pd	   = hns_roce_u_alloc_pd;
- 	context->ibv_ctx.ops.dealloc_pd    = hns_roce_u_free_pd;
- 	context->ibv_ctx.ops.reg_mr	   = hns_roce_u_reg_mr;
-+	context->ibv_ctx.ops.rereg_mr	   = hns_roce_u_rereg_mr;
- 	context->ibv_ctx.ops.dereg_mr	   = hns_roce_u_dereg_mr;
- 
- 	context->ibv_ctx.ops.create_cq     = hns_roce_u_create_cq;
-diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
-index 0e98f22..2f4f3dc 100644
---- a/providers/hns/hns_roce_u.h
-+++ b/providers/hns/hns_roce_u.h
-@@ -254,6 +254,8 @@ int hns_roce_u_free_pd(struct ibv_pd *pd);
- 
- struct ibv_mr *hns_roce_u_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 				 int access);
-+int hns_roce_u_rereg_mr(struct ibv_mr *mr, int flags, struct ibv_pd *pd,
-+			void *addr, size_t length, int access);
- int hns_roce_u_dereg_mr(struct ibv_mr *mr);
- 
- struct ibv_cq *hns_roce_u_create_cq(struct ibv_context *context, int cqe,
-diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
-index d0ab10a..046f0a4 100644
---- a/providers/hns/hns_roce_u_verbs.c
-+++ b/providers/hns/hns_roce_u_verbs.c
-@@ -150,6 +150,17 @@ struct ibv_mr *hns_roce_u_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 	return mr;
- }
- 
-+int hns_roce_u_rereg_mr(struct ibv_mr *mr, int flags, struct ibv_pd *pd,
-+			void *addr, size_t length, int access)
-+{
-+	struct ibv_rereg_mr cmd;
-+	struct ibv_rereg_mr_resp resp;
-+
-+	return ibv_cmd_rereg_mr(mr, flags, addr, length, (uintptr_t)addr,
-+				access, pd, &cmd, sizeof(cmd), &resp,
-+				sizeof(resp));
-+}
-+
- int hns_roce_u_dereg_mr(struct ibv_mr *mr)
- {
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_mr.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_mr.c
+index 8519f3212e52..fa96fa4fb829 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_mr.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_mr.c
+@@ -119,10 +119,7 @@ struct ib_mr *pvrdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	union pvrdma_cmd_resp rsp;
+ 	struct pvrdma_cmd_create_mr *cmd = &req.create_mr;
+ 	struct pvrdma_cmd_create_mr_resp *resp = &rsp.create_mr_resp;
+-	int nchunks;
  	int ret;
+-	int entry;
+-	struct scatterlist *sg;
+ 
+ 	if (length == 0 || length > dev->dsr->caps.max_mr_size) {
+ 		dev_warn(&dev->pdev->dev, "invalid mem region length\n");
+@@ -137,13 +134,9 @@ struct ib_mr *pvrdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 		return ERR_CAST(umem);
+ 	}
+ 
+-	nchunks = 0;
+-	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry)
+-		nchunks += sg_dma_len(sg) >> PAGE_SHIFT;
+-
+-	if (nchunks < 0 || nchunks > PVRDMA_PAGE_DIR_MAX_PAGES) {
++	if (umem->npages < 0 || umem->npages > PVRDMA_PAGE_DIR_MAX_PAGES) {
+ 		dev_warn(&dev->pdev->dev, "overflow %d pages in mem region\n",
+-			 nchunks);
++			 umem->npages);
+ 		ret = -EINVAL;
+ 		goto err_umem;
+ 	}
+@@ -158,7 +151,7 @@ struct ib_mr *pvrdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	mr->mmr.size = length;
+ 	mr->umem = umem;
+ 
+-	ret = pvrdma_page_dir_init(dev, &mr->pdir, nchunks, false);
++	ret = pvrdma_page_dir_init(dev, &mr->pdir, umem->npages, false);
+ 	if (ret) {
+ 		dev_warn(&dev->pdev->dev,
+ 			 "could not allocate page directory\n");
+@@ -175,7 +168,7 @@ struct ib_mr *pvrdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	cmd->length = length;
+ 	cmd->pd_handle = to_vpd(pd)->pd_handle;
+ 	cmd->access_flags = access_flags;
+-	cmd->nchunks = nchunks;
++	cmd->nchunks = umem->npages;
+ 	cmd->pdir_dma = mr->pdir.dir_dma;
+ 
+ 	ret = pvrdma_cmd_post(dev, &req, &rsp, PVRDMA_CMD_CREATE_MR_RESP);
 -- 
-1.9.1
+2.13.6
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
