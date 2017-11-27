@@ -1,106 +1,30 @@
 From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: [PATCH 2/3] RDMA/hns: Get rid of virt_to_page and vmap calls after dma_alloc_coherent
-Date: Mon, 27 Nov 2017 10:41:23 +0800
-Message-ID: <1511750484-102395-3-git-send-email-xavier.huwei@huawei.com>
-References: <1511750484-102395-1-git-send-email-xavier.huwei@huawei.com>
+Subject: [PATCH 0/3] RDMA/hns: Bug fixes in hns RoCE driver
+Date: Mon, 27 Nov 2017 10:41:21 +0800
+Message-ID: <1511750484-102395-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1511750484-102395-1-git-send-email-xavier.huwei@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: dledford@redhat.com
 Cc: xavier.huwei@huawei.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, xavier.huwei@tom.com, xavier_huwei@163.com, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-In general dma_alloc_coherent() return a CPU virtual address and
-a DMA address, and we have no guarantee that the virtual address
-is either in the linear map or vmalloc, and not some other special
-place. we have no guarantee that the underlying memory even has
-an associated struct page at all.
+This patch-set introduces three patches to fix about the memory
+related issues.
 
-In current code, there are incorrect usage as below:
-dma_alloc_coherent + virt_to_page + vmap. This patch fixes it to
-get rid of virt_to_page and vmap calls.
+Wei Hu (Xavier) (3):
+  RDMA/hns: Fix the issue of IOVA not page continuous in hip08
+  RDMA/hns: Get rid of virt_to_page and vmap calls after
+    dma_alloc_coherent
+  RDMA/hns: Get rid of page operation after dma_alloc_coherent
 
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
-Signed-off-by: Shaobo Xu <xushaobo2@huawei.com>
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Signed-off-by: Yixian Liu <liuyixian@huawei.com>
-Signed-off-by: Xiping Zhang (Francis) <zhangxiping3@huawei.com>
----
  drivers/infiniband/hw/hns/hns_roce_alloc.c  | 23 -----------------------
  drivers/infiniband/hw/hns/hns_roce_device.h |  4 +---
- 2 files changed, 1 insertion(+), 26 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hem.c    | 25 +++++++++++++------------
+ drivers/infiniband/hw/hns/hns_roce_hem.h    |  1 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 22 +++++++++++++++-------
+ 5 files changed, 30 insertions(+), 45 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
-index 3e4c525..a40ec93 100644
---- a/drivers/infiniband/hw/hns/hns_roce_alloc.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
-@@ -162,14 +162,10 @@ void hns_roce_buf_free(struct hns_roce_dev *hr_dev, u32 size,
- {
- 	int i;
- 	struct device *dev = hr_dev->dev;
--	u32 bits_per_long = BITS_PER_LONG;
- 
- 	if (buf->nbufs == 1) {
- 		dma_free_coherent(dev, size, buf->direct.buf, buf->direct.map);
- 	} else {
--		if (bits_per_long == 64 && buf->page_shift == PAGE_SHIFT)
--			vunmap(buf->direct.buf);
--
- 		for (i = 0; i < buf->nbufs; ++i)
- 			if (buf->page_list[i].buf)
- 				dma_free_coherent(dev, 1 << buf->page_shift,
-@@ -185,9 +181,7 @@ int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
- {
- 	int i = 0;
- 	dma_addr_t t;
--	struct page **pages;
- 	struct device *dev = hr_dev->dev;
--	u32 bits_per_long = BITS_PER_LONG;
- 	u32 page_size = 1 << page_shift;
- 	u32 order;
- 
-@@ -236,23 +230,6 @@ int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
- 			buf->page_list[i].map = t;
- 			memset(buf->page_list[i].buf, 0, page_size);
- 		}
--		if (bits_per_long == 64 && page_shift == PAGE_SHIFT) {
--			pages = kmalloc_array(buf->nbufs, sizeof(*pages),
--					      GFP_KERNEL);
--			if (!pages)
--				goto err_free;
--
--			for (i = 0; i < buf->nbufs; ++i)
--				pages[i] = virt_to_page(buf->page_list[i].buf);
--
--			buf->direct.buf = vmap(pages, buf->nbufs, VM_MAP,
--					       PAGE_KERNEL);
--			kfree(pages);
--			if (!buf->direct.buf)
--				goto err_free;
--		} else {
--			buf->direct.buf = NULL;
--		}
- 	}
- 
- 	return 0;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index dde5178..dcfd209 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -795,11 +795,9 @@ static inline void hns_roce_write64_k(__be32 val[2], void __iomem *dest)
- 
- static inline void *hns_roce_buf_offset(struct hns_roce_buf *buf, int offset)
- {
--	u32 bits_per_long_val = BITS_PER_LONG;
- 	u32 page_size = 1 << buf->page_shift;
- 
--	if ((bits_per_long_val == 64 && buf->page_shift == PAGE_SHIFT) ||
--	    buf->nbufs == 1)
-+	if (buf->nbufs == 1)
- 		return (char *)(buf->direct.buf) + offset;
- 	else
- 		return (char *)(buf->page_list[offset >> buf->page_shift].buf) +
 -- 
 1.9.1
