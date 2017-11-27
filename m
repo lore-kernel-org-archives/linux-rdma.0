@@ -1,34 +1,31 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH 0/3] RDMA/hns: Bug fixes in hns RoCE driver
-Date: Mon, 27 Nov 2017 11:36:37 -0700
-Message-ID: <20171127183637.GA13966@ziepe.ca>
-References: <1511750484-102395-1-git-send-email-xavier.huwei@huawei.com>
+Subject: Re: [PATCH rdma-rc v1 2/2] RDMA/cma: Make sure that PSN is not over
+ max allowed
+Date: Mon, 27 Nov 2017 11:37:55 -0700
+Message-ID: <20171127183755.GB13966@ziepe.ca>
+References: <20171126182354.18709-1-leon@kernel.org>
+ <20171126182354.18709-3-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1511750484-102395-1-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20171126182354.18709-3-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xavier.huwei-WVlzvzqoTvw@public.gmane.org, xavier_huwei-9Onoh4P/yGk@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 27, 2017 at 10:41:21AM +0800, Wei Hu (Xavier) wrote:
-> This patch-set introduces three patches to fix about the memory
-> related issues.
+On Sun, Nov 26, 2017 at 08:23:54PM +0200, Leon Romanovsky wrote:
+> From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> This patch limits the initial value for PSN to 24 bits as
+> spec requires.
 
-If these patches are for-rc can you revise the commit message to more
-clearly explain what the bug is, and supply Fixes lines?
+Since this is for-rc, what is the user visible bug this corrects?
 
-Otherwise these will go to 4.16
+I think it is because the QP setup can fail if reserved bits in the
+CMA message happen to be set?
 
-It looks like the first one is for-rc material as it looks like DMA
-will fail sometimes if the smmu is enabled?
-
-The other two are less clear to me - is this just fixing the code to
-conform to the DMA API, or is there an actual real user-impacting bug here?
-
-Thanks
 Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
