@@ -1,34 +1,50 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] i40iw: remove unused 'timeval' struct member
-Date: Tue, 28 Nov 2017 12:37:26 -0600
-Message-ID: <20171128183726.GA7524@ssaleem-MOBL4.amr.corp.intel.com>
-References: <20171127113819.2413554-1-arnd@arndb.de>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH 0/3] RDMA/hns: Bug fixes in hns RoCE driver
+Date: Tue, 28 Nov 2017 11:39:10 -0700
+Message-ID: <20171128183910.GA21325@ziepe.ca>
+References: <1511750484-102395-1-git-send-email-xavier.huwei@huawei.com>
+ <20171127183637.GA13966@ziepe.ca>
+ <20171128061517.GO29104@mtr-leonro.local>
+ <6e9c4251-8e56-54e2-b186-d3d5b1b85204@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171127113819.2413554-1-arnd-r2nGTMty4D4@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "y2038-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <y2038-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, "Ismail, Mustafa" <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Orosco, Henry" <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <6e9c4251-8e56-54e2-b186-d3d5b1b85204@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: Leon Romanovsky <leon@kernel.org>, "Wei Hu (Xavier)" <xavier.huwei@huawei.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, xavier.huwei@tom.com, xavier_huwei@163.com, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 27, 2017 at 04:38:09AM -0700, Arnd Bergmann wrote:
-> There is a stale entry in i40iw_cm_tcp_context that apparently
-> was copied from the 'nes' driver but never used in i40iw.
-> I'm trying to kill off all users of timeval as part of the
-> y2038-safety work, so let's just remove this one.
+On Tue, Nov 28, 2017 at 08:20:09AM -0500, Dennis Dalessandro wrote:
+> >
+> >If you treat all unmarked patches (without mentioning in cover letter or
+> >subject title) as targeted to for-next, it will make your life much more
+> >easier than trying to pick each patch alone. As an outcome, it will make
+> >the patch flow more predictable for us.
+
 > 
-> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-> ---
+> Agree with Leon here. Unless otherwise stated, I would think for-next should
+> always be the default target. I try to tag my subject with for-next or
+> for-rc to make it clear.
 
-Thanks!
+For Leon and Dennis I know they mark things, but other people seem to
+be sending bug fixes that are rc material without any firm indication
+one way or the other. I read the patches and that is my main question.
 
-Acked-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Of course if they do not come in RC acceptable format then they wait
+in patchworks until -next is opened.
 
+> Now of course that being said here is an exception. I sent a series 2 weeks
+> ago that didn't make Doug's pull request for 4.15. I'd like to see some of
+> that stuff land in the rc if there are no objections. The driver changes at
+> least, the CM/SA can probably push off to for-next.
+ 
+> I could resubmit just the series, or you could just pick the 4 driver
+> patches from patchworks whatever is easiest.
 
+I marked them in patchworks, but can you review the commit messages
+and make sure you think Linus will see them as rc material too?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Jason
