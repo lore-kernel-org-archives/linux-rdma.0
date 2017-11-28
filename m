@@ -1,53 +1,181 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags 6/6] ibdiag_common.c: In
- is_port_info_extended_supported, query PortInfo for port 0 when node is a
- switch
-Date: Tue, 28 Nov 2017 17:12:19 -0500
-Message-ID: <372d2c64-ce18-4264-267b-294bac8524be@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-rc v3] IB/core: Only enforce security for InfiniBand
+Date: Wed, 29 Nov 2017 00:01:21 +0200
+Message-ID: <1511906481-92114-1-git-send-email-danielj@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-to be able to obtain CapabilityMask and CapabilityMask2
+For now the only LSM security enforcement mechanism available is
+specific to InfiniBand. Bypass enforcement for non-IB link types.
+This fixes a regression where modify_qp fails for iWARP because
+querying the PKEY returns -EINVAL.
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
+Cc: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Reported-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Fixes: d291f1a65232("IB/core: Enforce PKey security on QPs")
+Fixes: 47a2b338fe63("IB/core: Enforce security on management datagrams")
+Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Tested-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- src/ibdiag_common.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+Changelog:
+v2->v3: Fix build warning
+v1->v2: Fixed build errors
+v0->v1: Added proper SElinux patch
+---
+ drivers/infiniband/core/security.c | 47 +++++++++++++++++++++++++++++++++++---
+ 1 file changed, 44 insertions(+), 3 deletions(-)
 
-diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-index 9245146..c33cacc 100644
---- a/src/ibdiag_common.c
-+++ b/src/ibdiag_common.c
-@@ -506,8 +506,18 @@ int is_port_info_extended_supported(ib_portid_t * dest, int port,
- 	uint8_t data[IB_SMP_DATA_SIZE] = { 0 };
- 	uint32_t cap_mask;
- 	uint16_t cap_mask2;
-+	int type, portnum;
+diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
+index 209d057..5bc323f 100644
+--- a/drivers/infiniband/core/security.c
++++ b/drivers/infiniband/core/security.c
+@@ -417,8 +417,17 @@ void ib_close_shared_qp_security(struct ib_qp_security *sec)
  
--	if (!smp_query_via(data, dest, IB_ATTR_PORT_INFO, port, 0, srcport))
-+	if (!smp_query_via(data, dest, IB_ATTR_NODE_INFO, 0, 0, srcport))
-+		IBEXIT("node info query failed");
-+
-+	mad_decode_field(data, IB_NODE_TYPE_F, &type);
-+	if (type == IB_NODE_SWITCH)
-+		portnum = 0;
-+	else
-+		portnum = port;
-+
-+	if (!smp_query_via(data, dest, IB_ATTR_PORT_INFO, portnum, 0, srcport))
- 		IBEXIT("port info query failed");
+ int ib_create_qp_security(struct ib_qp *qp, struct ib_device *dev)
+ {
++	u8 i = rdma_start_port(dev);
++	bool is_ib = false;
+ 	int ret;
  
- 	mad_decode_field(data, IB_PORT_CAPMASK_F, &cap_mask);
++	while (i <= rdma_end_port(dev) && !is_ib)
++		is_ib = rdma_protocol_ib(dev, i++);
++
++	/* If this isn't an IB device don't create the security context */
++	if (!is_ib)
++		return 0;
++
+ 	qp->qp_sec = kzalloc(sizeof(*qp->qp_sec), GFP_KERNEL);
+ 	if (!qp->qp_sec)
+ 		return -ENOMEM;
+@@ -441,6 +450,10 @@ int ib_create_qp_security(struct ib_qp *qp, struct ib_device *dev)
+ 
+ void ib_destroy_qp_security_begin(struct ib_qp_security *sec)
+ {
++	/* Return if not IB */
++	if (!sec)
++		return;
++
+ 	mutex_lock(&sec->mutex);
+ 
+ 	/* Remove the QP from the lists so it won't get added to
+@@ -470,6 +483,10 @@ void ib_destroy_qp_security_abort(struct ib_qp_security *sec)
+ 	int ret;
+ 	int i;
+ 
++	/* Return if not IB */
++	if (!sec)
++		return;
++
+ 	/* If a concurrent cache update is in progress this
+ 	 * QP security could be marked for an error state
+ 	 * transition.  Wait for this to complete.
+@@ -505,6 +522,10 @@ void ib_destroy_qp_security_end(struct ib_qp_security *sec)
+ {
+ 	int i;
+ 
++	/* Return if not IB */
++	if (!sec)
++		return;
++
+ 	/* If a concurrent cache update is occurring we must
+ 	 * wait until this QP security structure is processed
+ 	 * in the QP to error flow before destroying it because
+@@ -557,7 +578,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
+ {
+ 	int ret = 0;
+ 	struct ib_ports_pkeys *tmp_pps;
+-	struct ib_ports_pkeys *new_pps;
++	struct ib_ports_pkeys *new_pps = NULL;
+ 	struct ib_qp *real_qp = qp->real_qp;
+ 	bool special_qp = (real_qp->qp_type == IB_QPT_SMI ||
+ 			   real_qp->qp_type == IB_QPT_GSI ||
+@@ -565,17 +586,25 @@ int ib_security_modify_qp(struct ib_qp *qp,
+ 	bool pps_change = ((qp_attr_mask & (IB_QP_PKEY_INDEX | IB_QP_PORT)) ||
+ 			   (qp_attr_mask & IB_QP_ALT_PATH));
+ 
++	WARN_ONCE((qp_attr_mask & IB_QP_PORT &&
++		   rdma_protocol_ib(real_qp->device, qp_attr->port_num) &&
++		   !real_qp->qp_sec),
++		   "%s: QP security is not initialized for IB QP: %d\n",
++		   __func__, real_qp->qp_num);
++
+ 	/* The port/pkey settings are maintained only for the real QP. Open
+ 	 * handles on the real QP will be in the shared_qp_list. When
+ 	 * enforcing security on the real QP all the shared QPs will be
+ 	 * checked as well.
+ 	 */
+ 
+-	if (pps_change && !special_qp) {
++	if (pps_change && !special_qp && real_qp->qp_sec) {
+ 		mutex_lock(&real_qp->qp_sec->mutex);
+ 		new_pps = get_new_pps(real_qp,
+ 				      qp_attr,
+ 				      qp_attr_mask);
++		if (!new_pps)
++			return -ENOMEM;
+ 
+ 		/* Add this QP to the lists for the new port
+ 		 * and pkey settings before checking for permission
+@@ -600,7 +629,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
+ 						 qp_attr_mask,
+ 						 udata);
+ 
+-	if (pps_change && !special_qp) {
++	if (new_pps) {
+ 		/* Clean up the lists and free the appropriate
+ 		 * ports_pkeys structure.
+ 		 */
+@@ -630,6 +659,9 @@ static int ib_security_pkey_access(struct ib_device *dev,
+ 	u16 pkey;
+ 	int ret;
+ 
++	if (!rdma_protocol_ib(dev, port_num))
++		return 0;
++
+ 	ret = ib_get_cached_pkey(dev, port_num, pkey_index, &pkey);
+ 	if (ret)
+ 		return ret;
+@@ -663,6 +695,9 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
+ {
+ 	int ret;
+ 
++	if (!rdma_protocol_ib(agent->device, agent->port_num))
++		return 0;
++
+ 	ret = security_ib_alloc_security(&agent->security);
+ 	if (ret)
+ 		return ret;
+@@ -688,6 +723,9 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
+ 
+ void ib_mad_agent_security_cleanup(struct ib_mad_agent *agent)
+ {
++	if (!rdma_protocol_ib(agent->device, agent->port_num))
++		return;
++
+ 	security_ib_free_security(agent->security);
+ 	if (agent->lsm_nb_reg)
+ 		unregister_lsm_notifier(&agent->lsm_nb);
+@@ -695,6 +733,9 @@ void ib_mad_agent_security_cleanup(struct ib_mad_agent *agent)
+ 
+ int ib_mad_enforce_security(struct ib_mad_agent_private *map, u16 pkey_index)
+ {
++	if (!rdma_protocol_ib(map->agent.device, map->agent.port_num))
++		return 0;
++
+ 	if (map->agent.qp->qp_type == IB_QPT_SMI && !map->agent.smp_allowed)
+ 		return -EACCES;
+ 
 -- 
-2.8.4
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
