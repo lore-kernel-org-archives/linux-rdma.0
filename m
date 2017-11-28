@@ -1,136 +1,113 @@
-From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V2 rdma-rc 3/3] RDMA/hns: Get rid of page operation after dma_alloc_coherent
-Date: Tue, 28 Nov 2017 15:10:28 +0800
-Message-ID: <1511853028-35191-4-git-send-email-xavier.huwei@huawei.com>
+From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Subject: [PATCH V2 rdma-rc 2/3] RDMA/hns: Get rid of virt_to_page and vmap calls after dma_alloc_coherent
+Date: Tue, 28 Nov 2017 15:10:27 +0800
+Message-ID: <1511853028-35191-3-git-send-email-xavier.huwei@huawei.com>
 References: <1511853028-35191-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1511853028-35191-1-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobo.xu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, xavier.huwei-WVlzvzqoTvw@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1511853028-35191-1-git-send-email-xavier.huwei@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com, jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org, linuxarm@huawei.com, linux-kernel@vger.kernel.org, shaobo.xu@intel.com, xavier.huwei@tom.com, zhangxiping3@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
 In general dma_alloc_coherent() return a CPU virtual address and
-a DMA address, and we have no guarantee that the underlying memory
-even has an associated struct page at all.
+a DMA address, and we have no guarantee that the virtual address
+is either in the linear map or vmalloc, and not some other special
+place. we have no guarantee that the underlying memory even has
+an associated struct page at all.
 
-This patch gets rid of the page operation after dma_alloc_coherent,
-and records the VA returned form dma_alloc_coherent in the struct
-of hem in hns RoCE driver.
+In current code, there are incorrect usage as below:
+dma_alloc_coherent + virt_to_page + vmap. There will probably
+introduce coherency problem. This patch fixes it to get rid of
+virt_to_page and vmap calls at Leon's suggestion. The related
+link: https://lkml.org/lkml/2017/11/7/34
 
 Fixes: 9a44353("IB/hns: Add driver files for hns RoCE driver")
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Xiping Zhang (Francis) <zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+Signed-off-by: Shaobo Xu <xushaobo2@huawei.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
+Signed-off-by: Yixian Liu <liuyixian@huawei.com>
+Signed-off-by: Xiping Zhang (Francis) <zhangxiping3@huawei.com>
 ---
 changelog:
  v1 -> v2: Revise the commit message and add Fixes line at Jason's
     comment. The related link: https://lkml.org/lkml/2017/11/27/841
 ---
- drivers/infiniband/hw/hns/hns_roce_hem.c | 25 +++++++++++++------------
- drivers/infiniband/hw/hns/hns_roce_hem.h |  1 +
- 2 files changed, 14 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_alloc.c  | 23 -----------------------
+ drivers/infiniband/hw/hns/hns_roce_device.h |  4 +---
+ 2 files changed, 1 insertion(+), 26 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index 8b733a6..0eeabfb 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -224,6 +224,7 @@ static struct hns_roce_hem *hns_roce_alloc_hem(struct hns_roce_dev *hr_dev,
- 			sg_init_table(chunk->mem, HNS_ROCE_HEM_CHUNK_LEN);
- 			chunk->npages = 0;
- 			chunk->nsg = 0;
-+			memset(chunk->buf, 0, sizeof(chunk->buf));
- 			list_add_tail(&chunk->list, &hem->chunk_list);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+index 3e4c525..a40ec93 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_alloc.c
++++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+@@ -162,14 +162,10 @@ void hns_roce_buf_free(struct hns_roce_dev *hr_dev, u32 size,
+ {
+ 	int i;
+ 	struct device *dev = hr_dev->dev;
+-	u32 bits_per_long = BITS_PER_LONG;
+ 
+ 	if (buf->nbufs == 1) {
+ 		dma_free_coherent(dev, size, buf->direct.buf, buf->direct.map);
+ 	} else {
+-		if (bits_per_long == 64 && buf->page_shift == PAGE_SHIFT)
+-			vunmap(buf->direct.buf);
+-
+ 		for (i = 0; i < buf->nbufs; ++i)
+ 			if (buf->page_list[i].buf)
+ 				dma_free_coherent(dev, 1 << buf->page_shift,
+@@ -185,9 +181,7 @@ int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
+ {
+ 	int i = 0;
+ 	dma_addr_t t;
+-	struct page **pages;
+ 	struct device *dev = hr_dev->dev;
+-	u32 bits_per_long = BITS_PER_LONG;
+ 	u32 page_size = 1 << page_shift;
+ 	u32 order;
+ 
+@@ -236,23 +230,6 @@ int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
+ 			buf->page_list[i].map = t;
+ 			memset(buf->page_list[i].buf, 0, page_size);
  		}
- 
-@@ -240,8 +241,7 @@ static struct hns_roce_hem *hns_roce_alloc_hem(struct hns_roce_dev *hr_dev,
- 		if (!buf)
- 			goto fail;
- 
--		sg_set_buf(mem, buf, PAGE_SIZE << order);
--		WARN_ON(mem->offset);
-+		chunk->buf[chunk->npages] = buf;
- 		sg_dma_len(mem) = PAGE_SIZE << order;
- 
- 		++chunk->npages;
-@@ -267,8 +267,8 @@ void hns_roce_free_hem(struct hns_roce_dev *hr_dev, struct hns_roce_hem *hem)
- 	list_for_each_entry_safe(chunk, tmp, &hem->chunk_list, list) {
- 		for (i = 0; i < chunk->npages; ++i)
- 			dma_free_coherent(hr_dev->dev,
--				   chunk->mem[i].length,
--				   lowmem_page_address(sg_page(&chunk->mem[i])),
-+				   sg_dma_len(&chunk->mem[i]),
-+				   chunk->buf[i],
- 				   sg_dma_address(&chunk->mem[i]));
- 		kfree(chunk);
- 	}
-@@ -722,11 +722,12 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
- 	struct hns_roce_hem_chunk *chunk;
- 	struct hns_roce_hem_mhop mhop;
- 	struct hns_roce_hem *hem;
--	struct page *page = NULL;
-+	void *addr = NULL;
- 	unsigned long mhop_obj = obj;
- 	unsigned long obj_per_chunk;
- 	unsigned long idx_offset;
- 	int offset, dma_offset;
-+	int length;
- 	int i, j;
- 	u32 hem_idx = 0;
- 
-@@ -763,25 +764,25 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
- 
- 	list_for_each_entry(chunk, &hem->chunk_list, list) {
- 		for (i = 0; i < chunk->npages; ++i) {
-+			length = sg_dma_len(&chunk->mem[i]);
- 			if (dma_handle && dma_offset >= 0) {
--				if (sg_dma_len(&chunk->mem[i]) >
--				    (u32)dma_offset)
-+				if (length > (u32)dma_offset)
- 					*dma_handle = sg_dma_address(
- 						&chunk->mem[i]) + dma_offset;
--				dma_offset -= sg_dma_len(&chunk->mem[i]);
-+				dma_offset -= length;
- 			}
- 
--			if (chunk->mem[i].length > (u32)offset) {
--				page = sg_page(&chunk->mem[i]);
-+			if (length > (u32)offset) {
-+				addr = chunk->buf[i] + offset;
- 				goto out;
- 			}
--			offset -= chunk->mem[i].length;
-+			offset -= length;
- 		}
+-		if (bits_per_long == 64 && page_shift == PAGE_SHIFT) {
+-			pages = kmalloc_array(buf->nbufs, sizeof(*pages),
+-					      GFP_KERNEL);
+-			if (!pages)
+-				goto err_free;
+-
+-			for (i = 0; i < buf->nbufs; ++i)
+-				pages[i] = virt_to_page(buf->page_list[i].buf);
+-
+-			buf->direct.buf = vmap(pages, buf->nbufs, VM_MAP,
+-					       PAGE_KERNEL);
+-			kfree(pages);
+-			if (!buf->direct.buf)
+-				goto err_free;
+-		} else {
+-			buf->direct.buf = NULL;
+-		}
  	}
  
- out:
- 	mutex_unlock(&table->mutex);
--	return page ? lowmem_page_address(page) + offset : NULL;
-+	return addr;
- }
- EXPORT_SYMBOL_GPL(hns_roce_table_find);
+ 	return 0;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index dde5178..dcfd209 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -795,11 +795,9 @@ static inline void hns_roce_write64_k(__be32 val[2], void __iomem *dest)
  
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.h b/drivers/infiniband/hw/hns/hns_roce_hem.h
-index db66db1..e8850d5 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.h
-@@ -78,6 +78,7 @@ struct hns_roce_hem_chunk {
- 	int			 npages;
- 	int			 nsg;
- 	struct scatterlist	 mem[HNS_ROCE_HEM_CHUNK_LEN];
-+	void			 *buf[HNS_ROCE_HEM_CHUNK_LEN];
- };
+ static inline void *hns_roce_buf_offset(struct hns_roce_buf *buf, int offset)
+ {
+-	u32 bits_per_long_val = BITS_PER_LONG;
+ 	u32 page_size = 1 << buf->page_shift;
  
- struct hns_roce_hem {
+-	if ((bits_per_long_val == 64 && buf->page_shift == PAGE_SHIFT) ||
+-	    buf->nbufs == 1)
++	if (buf->nbufs == 1)
+ 		return (char *)(buf->direct.buf) + offset;
+ 	else
+ 		return (char *)(buf->page_list[offset >> buf->page_shift].buf) +
 -- 
 1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
