@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags 4/6] ib[netdiscover portstate].c: Add HDR
- support
-Date: Tue, 28 Nov 2017 17:12:01 -0500
-Message-ID: <5e17e529-a54e-e425-eb89-dbce256bc8f1@dev.mellanox.co.il>
+Subject: [PATCH infiniband-diags 3/6] libibmad: Add support for HDRFECMode
+ fields in PortInfoExtended attribute
+Date: Tue, 28 Nov 2017 17:11:56 -0500
+Message-ID: <fc3566ee-d24d-73ec-054d-8eb18fcf5214@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -14,46 +14,74 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-Per MgtWG comments #9364-9366
+Per MgtWG comment #9367
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/ibnetdiscover.c | 3 +++
- src/ibportstate.c   | 7 ++++++-
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ libibmad/include/infiniband/mad.h |  7 +++++++
+ libibmad/src/dump.c               | 12 ++++++++++--
+ libibmad/src/fields.c             |  7 +++++++
+ 3 files changed, 24 insertions(+), 2 deletions(-)
 
-diff --git a/src/ibnetdiscover.c b/src/ibnetdiscover.c
-index 68374a2..6f360bb 100644
---- a/src/ibnetdiscover.c
-+++ b/src/ibnetdiscover.c
-@@ -115,6 +115,9 @@ char *dump_linkspeedext_compat(uint32_t espeed, uint32_t speed, uint32_t fdr10)
- 	case 2:
- 		return ("EDR");
- 		break;
-+	case 4:
-+		return ("HDR");
-+		break;
- 	}
- 	return ("???");
- }
-diff --git a/src/ibportstate.c b/src/ibportstate.c
-index 06bd5d2..6b78fa7 100644
---- a/src/ibportstate.c
-+++ b/src/ibportstate.c
-@@ -356,7 +356,12 @@ static void validate_speed(int speed, int peerspeed, int lsa)
+diff --git a/libibmad/include/infiniband/mad.h b/libibmad/include/infiniband/mad.h
+index 7f6b886..da82636 100644
+--- a/libibmad/include/infiniband/mad.h
++++ b/libibmad/include/infiniband/mad.h
+@@ -1315,6 +1315,13 @@ enum MAD_FIELDS {
+ 	 */
+ 	IB_PC_QP1_DROP_F,
  
- static void validate_extended_speed(int espeed, int peerespeed, int lsea)
++	/*
++	 * More PortInfoExtended fields
++	 */
++	IB_PORT_EXT_HDR_FEC_MODE_SUPPORTED_F,
++	IB_PORT_EXT_HDR_FEC_MODE_ENABLED_F,
++	IB_PORT_EXT_HDR_FEC_MODE_LAST_F,
++
+ 	IB_FIELD_LAST_		/* must be last */
+ };
+ 
+diff --git a/libibmad/src/dump.c b/libibmad/src/dump.c
+index 98d5a34..d71c529 100644
+--- a/libibmad/src/dump.c
++++ b/libibmad/src/dump.c
+@@ -1183,8 +1183,16 @@ void mad_dump_classportinfo(char *buf, int bufsz, void *val, int valsz)
+ 
+ void mad_dump_portinfo_ext(char *buf, int bufsz, void *val, int valsz)
  {
--	if ((espeed & peerespeed & 0x2)) {
-+	if ((espeed & peerespeed & 0x4)) {
-+		if (lsea != 4)
-+			IBWARN
-+			    ("Peer ports operating at active extended speed %d rather than 4 (53.125 Gbps)",
-+			     lsea);
-+	} else if ((espeed & peerespeed & 0x2)) {
- 		if (lsea != 2)
- 			IBWARN
- 			    ("Peer ports operating at active extended speed %d rather than 2 (25.78125 Gbps)",
+-	_dump_fields(buf, bufsz, val, IB_PORT_EXT_FIRST_F,
+-		     IB_PORT_EXT_LAST_F);
++	int cnt;
++
++	cnt = _dump_fields(buf, bufsz, val, IB_PORT_EXT_FIRST_F,
++			   IB_PORT_EXT_LAST_F);
++	if (cnt < 0)
++		return;
++
++	_dump_fields(buf + cnt, bufsz - cnt, val,
++		     IB_PORT_EXT_HDR_FEC_MODE_SUPPORTED_F,
++		     IB_PORT_EXT_HDR_FEC_MODE_LAST_F);
+ }
+ 
+ void xdump(FILE * file, char *msg, void *p, int size)
+diff --git a/libibmad/src/fields.c b/libibmad/src/fields.c
+index bf48689..61fd540 100644
+--- a/libibmad/src/fields.c
++++ b/libibmad/src/fields.c
+@@ -1009,6 +1009,13 @@ static const ib_field_t ib_mad_f[] = {
+ 	 */
+ 	{160, 16, "QP1Dropped", mad_dump_uint},
+ 
++	/*
++	 * More PortInfoExtended fields
++	 */
++	{112, 16, "HDRFECModeSupported", mad_dump_hex},
++	{128, 16, "HDRFECModeEnabled", mad_dump_hex},
++	{0, 0},			/* IB_PORT_EXT_HDR_FEC_MODE_LAST_F */
++
+ 	{0, 0}			/* IB_FIELD_LAST_ */
+ };
+ 
 -- 
 2.8.4
 
