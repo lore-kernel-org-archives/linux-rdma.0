@@ -1,51 +1,95 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: Issue with IB/ipoib: Remove device when one port fails to init
-Date: Tue, 28 Nov 2017 14:00:12 -0700
-Message-ID: <20171128210012.GE21325@ziepe.ca>
-References: <AM4PR0501MB1972F0E7AC9B7559563CAEC0C3560@AM4PR0501MB1972.eurprd05.prod.outlook.com>
- <20171108140645.GA5683@yuvallap>
- <03848fab-3c72-681e-e32f-14560a84f59a@mellanox.com>
- <VI1PR0502MB36143F956ACD3518BC13C9CFB6560@VI1PR0502MB3614.eurprd05.prod.outlook.com>
- <20171108161356.GC6935@yuvallap>
- <20171109113923.GB2949@yuvallap>
- <VI1PR0502MB3614A65D0F63E0CDBBD00EF6B6570@VI1PR0502MB3614.eurprd05.prod.outlook.com>
- <20171109172112.GA3726@yuvallap>
- <AM4PR0501MB19723DE7524AA90DC8A2C111C33A0@AM4PR0501MB1972.eurprd05.prod.outlook.com>
- <20171128190345.GB2640@yuvallap>
+From: Daniel Jurgens <danielj@mellanox.com>
+Subject: Re: [PATCH rdma-rc v2] IB/core: Only enforce security for InfiniBand
+Date: Tue, 28 Nov 2017 15:03:39 -0600
+Message-ID: <69c9bc09-7d95-3fef-f1c9-487b34af8300@mellanox.com>
+References: <20171127112554.29666-1-leon@kernel.org>
+ <bd207403-a03f-5ced-7f44-6294c5a3ac8e@redhat.com>
+ <47653af5-68af-0aa1-e811-0d6d42935648@mellanox.com>
+ <16d5d4c2-ea9e-765a-b0b7-a867c6a757d6@redhat.com>
+ <71158cbc-030c-41f7-5ee9-d930bb6c4849@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171128190345.GB2640@yuvallap>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <71158cbc-030c-41f7-5ee9-d930bb6c4849@redhat.com>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: Don Dutile <ddutile@redhat.com>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: linux-rdma@vger.kernel.org, Paul Moore <paul@paul-moore.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 28, 2017 at 09:03:46PM +0200, Yuval Shaia wrote:
-
-> I agree that patch as it is now does not really handle the case where one
-> port fails so it needs to be fixed.
-> 
-> The thing is that from your perspective the idea itself is wrong, i.e. if
-> one (of for example two ports) fails the driver needs to continue and serve
-> the other port and just print error message.
-
-On this point, I think if ports are completely independent at the ipoib
-layer then they should not become linked during the add process.
-
-ie if a port is working and a second port fails then it should not
-kill the first port.
-
-However, it is unfortunate we have no recovery from this case at all.
-
-Alex V: However, why is the current behavior a problem? Is this
-because of a dual port card with IB and ROCE concurrently? And the
-add 'fails' the ROCE port even though it isn't even really a failure?
-We certainly shouldn't print in that case..
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 11/28/2017 2:38 PM, Don Dutile wrote:
+> On 11/27/2017 06:28 PM, Don Dutile wrote:
+>> On 11/27/2017 05:58 PM, Daniel Jurgens wrote:
+>>> On 11/27/2017 4:03 PM, Don Dutile wrote:
+>>>> On 11/27/2017 06:25 AM, Leon Romanovsky wrote:
+>>>>> From: Daniel Jurgens <danielj@mellanox.com>
+>>>>>
+>>>>>
+>>>>> -    if (pps_change && !special_qp) {
+>>>>> +    if (pps_change && !special_qp && real_qp->qp_sec) {
+>>>>>          mutex_lock(&real_qp->qp_sec->mutex);
+>>>>>          new_pps = get_new_pps(real_qp,
+>>>>>                        qp_attr,
+>>>>> @@ -600,7 +627,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
+>>>>>                           qp_attr_mask,
+>>>>>                           udata);
+>>>>>
+>>>>> -    if (pps_change && !special_qp) {
+>>>>> +    if (pps_change && !special_qp && real_qp->qp_sec) {
+>>>>>          /* Clean up the lists and free the appropriate
+>>>>>           * ports_pkeys structure.
+>>>>>           */
+>>>>>
+>>>> This patch breaks the kernel build on RHEL b/c it generates
+>>>> a warning in the second if (pps_change && !special_qp && real_qp->qp_sec) {}
+>>>> that new_pps may not be assigned. ... build warnings in RHEL kernel == build failure (on x86).
+>>>>
+>>>> That's b/c the patch adds real_qp->qp_sec to if's conditions,
+>>>> and  the compiler cannot determine if real_qp->qp_sec cannot be modified
+>>>> between the first check like it, above, which sets the value of new_pps,
+>>>> and the second check that uses it, because real_qp is passed into the device->modify()
+>>>> function call btwn those two if() check's.
+>>>>
+>>>> The code needs to do something like this in the first if-check:
+>>>>    .....
+>>>> bool new_pps_gotten = false;
+>>>>    ....
+>>>>
+>>>> if (pps_change && !special_qp && real_qp->qp_sec) {
+>>>>     mutex_lock(&real_qp->qp_sec->mutex);
+>>>>     new_pps = get_new_pps(real_qp,
+>>>>                   qp_attr,
+>>>>                   qp_attr_mask);
+>>>>     new_pps_gotten = true;
+>>>>         ....
+>>>> }
+>>>>      ....
+>>>>
+>>>> and change the second if check to be:
+>>>>
+>>>> if (new_pps_gotten) {
+>>>>     * Clean up the lists and free the appropriate
+>>>>      .....
+>>>>
+>>>
+>>> Thanks Don, I think it's better to initialize new_pps to NULL, vs introducing a new variable. Also, there needs to be a check of new_pps after getting it.
+>>>
+>> yup, I considered that as well.
+>> wasn't sure if lockdep checking code would not like the fact that a mutex_lock() could be taken,
+>> but if new_pps == NULL after the get call(it may always succeed, but an analyzer may not conclude the same),
+>> that the mutex_unlock() wouldn't be called.
+>>
+>> the double, same-condition if-check with the fcn call in btwn seems like it ought to be
+>> restructured differently so the mutex lock/unlock pairs are contained neatly in a single if-clause,
+>> and the new_pps alloc & use would be similarly containted.
+>>
+>> -dd
+>>
+>> -
+> Is someone doing a v3? I didn't see an email today w/another patch version.
+> ... at least I wasn't directly cc'd on one anyhow... off to check linux-rdma folder...
+> nothing there... and I don't find a v3 in Leon's tree either.
+>
+>
+I sent a fix-up patch to Leon, but it seems he didn't get to it today. I'll resend this afternoon.
