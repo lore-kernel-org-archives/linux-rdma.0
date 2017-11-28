@@ -1,90 +1,32 @@
-From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH RFC] iser-target: avoid reinitializing rdma contexts for isert commands
-Date: Tue, 28 Nov 2017 23:58:07 +0530
-Message-ID: <1511893687-29298-1-git-send-email-bharat@chelsio.com>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/2] i40iw: remove unused 'timeval' struct member
+Date: Tue, 28 Nov 2017 12:37:26 -0600
+Message-ID: <20171128183726.GA7524@ssaleem-MOBL4.amr.corp.intel.com>
+References: <20171127113819.2413554-1-arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171127113819.2413554-1-arnd-r2nGTMty4D4@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
-Cc: target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "y2038-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <y2038-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, "Ismail, Mustafa" <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Orosco, Henry" <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-isert commands that failed during isert_rdma_rw_ctx_post() are queued to
-Queue-Full(QF) queue and are scheduled to be reposted during queue-full
-queue processing. During this reposting, the rdma contexts are initialised
-again in isert_rdma_rw_ctx_post(), which is leaking significant memory.
+On Mon, Nov 27, 2017 at 04:38:09AM -0700, Arnd Bergmann wrote:
+> There is a stale entry in i40iw_cm_tcp_context that apparently
+> was copied from the 'nes' driver but never used in i40iw.
+> I'm trying to kill off all users of timeval as part of the
+> y2038-safety work, so let's just remove this one.
+> 
+> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+> ---
 
-unreferenced object 0xffff8830201d9640 (size 64):
-  comm "kworker/0:2", pid 195, jiffies 4295374851 (age 4528.436s)
-  hex dump (first 32 bytes):
-    00 60 8b cb 2e 00 00 00 00 10 00 00 00 00 00 00  .`..............
-    00 90 e3 cb 2e 00 00 00 00 10 00 00 00 00 00 00  ................
-  backtrace:
-    [<ffffffff8170711e>] kmemleak_alloc+0x4e/0xb0
-    [<ffffffff811f8ba5>] __kmalloc+0x125/0x2b0
-    [<ffffffffa046b24f>] rdma_rw_ctx_init+0x15f/0x6f0 [ib_core]
-    [<ffffffffa07ab644>] isert_rdma_rw_ctx_post+0xc4/0x3c0 [ib_isert]
-    [<ffffffffa07ad972>] isert_put_datain+0x112/0x1c0 [ib_isert]
-    [<ffffffffa07dddce>] lio_queue_data_in+0x2e/0x30 [iscsi_target_mod]
-    [<ffffffffa076c322>] target_qf_do_work+0x2b2/0x4b0 [target_core_mod]
-    [<ffffffff81080c3b>] process_one_work+0x1db/0x5d0
-    [<ffffffff8108107d>] worker_thread+0x4d/0x3e0
-    [<ffffffff81088667>] kthread+0x117/0x150
-    [<ffffffff81713fa7>] ret_from_fork+0x27/0x40
-    [<ffffffffffffffff>] 0xffffffffffffffff
+Thanks!
 
-Here is patch to use the older rdma contexts while reposting
-the isert commands intead of reinitialising them.
+Acked-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Signed-off-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/ulp/isert/ib_isert.c | 7 +++++++
- drivers/infiniband/ulp/isert/ib_isert.h | 1 +
- 2 files changed, 8 insertions(+)
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 720dfb3a1ac2..fd55163801a3 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -2123,6 +2123,9 @@ isert_rdma_rw_ctx_post(struct isert_cmd *cmd, struct isert_conn *conn,
- 	u32 rkey, offset;
- 	int ret;
- 
-+	if (cmd->ctx_init_done)
-+		goto rdma_ctx_post;
-+
- 	if (dir == DMA_FROM_DEVICE) {
- 		addr = cmd->write_va;
- 		rkey = cmd->write_stag;
-@@ -2150,11 +2153,15 @@ isert_rdma_rw_ctx_post(struct isert_cmd *cmd, struct isert_conn *conn,
- 				se_cmd->t_data_sg, se_cmd->t_data_nents,
- 				offset, addr, rkey, dir);
- 	}
-+
- 	if (ret < 0) {
- 		isert_err("Cmd: %p failed to prepare RDMA res\n", cmd);
- 		return ret;
- 	}
- 
-+	cmd->ctx_init_done = true;
-+
-+rdma_ctx_post:
- 	ret = rdma_rw_ctx_post(&cmd->rw, conn->qp, port_num, cqe, chain_wr);
- 	if (ret < 0)
- 		isert_err("Cmd: %p failed to post RDMA res\n", cmd);
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index d6fd248320ae..3b296bac4f60 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -126,6 +126,7 @@ struct isert_cmd {
- 	struct rdma_rw_ctx	rw;
- 	struct work_struct	comp_work;
- 	struct scatterlist	sg;
-+	bool			ctx_init_done;
- };
- 
- static inline struct isert_cmd *tx_desc_to_cmd(struct iser_tx_desc *desc)
--- 
-2.5.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
