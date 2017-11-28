@@ -1,9 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags 1/6] ibdiag_common.c: In
- is_port_info_extended_supported, query PortInfo for port, 0 when node is a
- switch for HDR support
-Date: Tue, 28 Nov 2017 17:11:39 -0500
-Message-ID: <94344ecd-c036-9927-b3a5-e21201de03ec@dev.mellanox.co.il>
+Subject: [PATCH infiniband-diags 2/6] libibmad/dump.c: Add HDR support for
+ PortInfo LinkSpeedExt* fields
+Date: Tue, 28 Nov 2017 17:11:47 -0500
+Message-ID: <41adffa2-8e7e-20da-19d6-523e89bca9a8@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -15,26 +14,45 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-Per MgtWG comment #9363
+Per MgtWG comments #9364-9366
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibmad/src/dump.c | 2 ++
- 1 file changed, 2 insertions(+)
+ libibmad/src/dump.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/libibmad/src/dump.c b/libibmad/src/dump.c
-index 2244f38..1f41e62 100644
+index 1f41e62..98d5a34 100644
 --- a/libibmad/src/dump.c
 +++ b/libibmad/src/dump.c
-@@ -632,6 +632,8 @@ void mad_dump_portcapmask2(char *buf, int bufsz, void *val, int valsz)
- 		s += sprintf(s, "\t\t\t\tIsSwitchPortStateTableSupported\n");
- 	if (mask & (1 << 4))
- 		s += sprintf(s, "\t\t\t\tIsLinkWidth2xSupported\n");
-+	if (mask & (1 << 5))
-+		s += sprintf(s, "\t\t\t\tIsLinkSpeedHDRSupported\n");
+@@ -336,6 +336,9 @@ void mad_dump_linkspeedext(char *buf, int bufsz, void *val, int valsz)
+ 	case 2:
+ 		snprintf(buf, bufsz, "25.78125 Gbps");
+ 		break;
++	case 4:
++		snprintf(buf, bufsz, "53.125 Gbps");
++		break;
+ 	default:
+ 		snprintf(buf, bufsz, "undefined (%d)", speed);
+ 		break;
+@@ -355,13 +358,16 @@ static void dump_linkspeedext(char *buf, int bufsz, int speed)
+ 		n += snprintf(buf + n, bufsz - n, "14.0625 Gbps or ");
+ 	if (n < bufsz && speed & 0x2)
+ 		n += snprintf(buf + n, bufsz - n, "25.78125 Gbps or ");
++	if (n < bufsz && speed & 0x4)
++		n += snprintf(buf + n, bufsz - n, "53.125 Gbps or ");
++
+ 	if (n >= bufsz) {
+ 		if (bufsz > 3)
+ 			buf[n - 4] = '\0';
+ 		return;
+ 	}
  
- 	if (s != buf)
- 		*(--s) = 0;
+-	if (speed >> 2) {
++	if (speed >> 3) {
+ 		n += snprintf(buf + n, bufsz - n, "undefined (%d)", speed);
+ 		return;
+ 	} else if (bufsz > 3)
 -- 
 2.8.4
 
