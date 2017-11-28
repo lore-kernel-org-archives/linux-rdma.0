@@ -1,52 +1,94 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/3] RDMA/hns: Bug fixes in hns RoCE driver
-Date: Tue, 28 Nov 2017 15:27:23 -0500
-Message-ID: <c3d23cf8-ed10-73a3-7b5b-8c58b7aa4781@intel.com>
-References: <1511750484-102395-1-git-send-email-xavier.huwei@huawei.com>
- <20171127183637.GA13966@ziepe.ca> <20171128061517.GO29104@mtr-leonro.local>
- <6e9c4251-8e56-54e2-b186-d3d5b1b85204@intel.com>
- <20171128183910.GA21325@ziepe.ca> <1511895042.28512.6.camel@wdc.com>
- <20171128193311.GB21325@ziepe.ca>
+From: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-rc v2] IB/core: Only enforce security for InfiniBand
+Date: Tue, 28 Nov 2017 15:38:16 -0500
+Message-ID: <71158cbc-030c-41f7-5ee9-d930bb6c4849@redhat.com>
+References: <20171127112554.29666-1-leon@kernel.org>
+ <bd207403-a03f-5ced-7f44-6294c5a3ac8e@redhat.com>
+ <47653af5-68af-0aa1-e811-0d6d42935648@mellanox.com>
+ <16d5d4c2-ea9e-765a-b0b7-a867c6a757d6@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171128193311.GB21325-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <16d5d4c2-ea9e-765a-b0b7-a867c6a757d6-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "xavier_huwei-9Onoh4P/yGk@public.gmane.org" <xavier_huwei-9Onoh4P/yGk@public.gmane.org>, "linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "xavier.huwei-WVlzvzqoTvw@public.gmane.org" <xavier.huwei-WVlzvzqoTvw@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/28/2017 2:33 PM, Jason Gunthorpe wrote:
-> On Tue, Nov 28, 2017 at 06:50:44PM +0000, Bart Van Assche wrote:
->> On Tue, 2017-11-28 at 11:39 -0700, Jason Gunthorpe wrote:
->>> On Tue, Nov 28, 2017 at 08:20:09AM -0500, Dennis Dalessandro wrote:
->>>> I could resubmit just the series, or you could just pick the 4 driver
->>>> patches from patchworks whatever is easiest.
+On 11/27/2017 06:28 PM, Don Dutile wrote:
+> On 11/27/2017 05:58 PM, Daniel Jurgens wrote:
+>> On 11/27/2017 4:03 PM, Don Dutile wrote:
+>>> On 11/27/2017 06:25 AM, Leon Romanovsky wrote:
+>>>> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>>
+>>>>
+>>>> -    if (pps_change && !special_qp) {
+>>>> +    if (pps_change && !special_qp && real_qp->qp_sec) {
+>>>>          mutex_lock(&real_qp->qp_sec->mutex);
+>>>>          new_pps = get_new_pps(real_qp,
+>>>>                        qp_attr,
+>>>> @@ -600,7 +627,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
+>>>>                           qp_attr_mask,
+>>>>                           udata);
+>>>>
+>>>> -    if (pps_change && !special_qp) {
+>>>> +    if (pps_change && !special_qp && real_qp->qp_sec) {
+>>>>          /* Clean up the lists and free the appropriate
+>>>>           * ports_pkeys structure.
+>>>>           */
+>>>>
+>>> This patch breaks the kernel build on RHEL b/c it generates
+>>> a warning in the second if (pps_change && !special_qp && real_qp->qp_sec) {}
+>>> that new_pps may not be assigned. ... build warnings in RHEL kernel == build failure (on x86).
 >>>
->>> I marked them in patchworks, but can you review the commit messages
->>> and make sure you think Linus will see them as rc material too?
+>>> That's b/c the patch adds real_qp->qp_sec to if's conditions,
+>>> and  the compiler cannot determine if real_qp->qp_sec cannot be modified
+>>> between the first check like it, above, which sets the value of new_pps,
+>>> and the second check that uses it, because real_qp is passed into the device->modify()
+>>> function call btwn those two if() check's.
+>>>
+>>> The code needs to do something like this in the first if-check:
+>>>    .....
+>>> bool new_pps_gotten = false;
+>>>    ....
+>>>
+>>> if (pps_change && !special_qp && real_qp->qp_sec) {
+>>>     mutex_lock(&real_qp->qp_sec->mutex);
+>>>     new_pps = get_new_pps(real_qp,
+>>>                   qp_attr,
+>>>                   qp_attr_mask);
+>>>     new_pps_gotten = true;
+>>>         ....
+>>> }
+>>>      ....
+>>>
+>>> and change the second if check to be:
+>>>
+>>> if (new_pps_gotten) {
+>>>     * Clean up the lists and free the appropriate
+>>>      .....
+>>>
 >>
->> My understanding is that the rc stage is intended primarily for fixes for
->> bugs introduced during the merge window. For all patches that do not fix
->> bugs introduced during the merge window it should be evaluated carefully
->> whether or not these are important enough to be included in a rc pull request.
-> 
-> Oh? I thought it was more up to the maintainer discretion within some
-> limits. Eg I thought we were running rdma more with the 'if it is OK
-> for -stable, then it is OK -rc' kind of mentality?
+>> Thanks Don, I think it's better to initialize new_pps to NULL, vs introducing a new variable. Also, there needs to be a check of new_pps after getting it.
+>>
+> yup, I considered that as well.
+> wasn't sure if lockdep checking code would not like the fact that a mutex_lock() could be taken,
+> but if new_pps == NULL after the get call(it may always succeed, but an analyzer may not conclude the same),
+> that the mutex_unlock() wouldn't be called.
+>
+> the double, same-condition if-check with the fcn call in btwn seems like it ought to be
+> restructured differently so the mutex lock/unlock pairs are contained neatly in a single if-clause,
+> and the new_pps alloc & use would be similarly containted.
+>
+> -dd
+>
+> -
+Is someone doing a v3? I didn't see an email today w/another patch version.
+... at least I wasn't directly cc'd on one anyhow... off to check linux-rdma folder...
+nothing there... and I don't find a v3 in Leon's tree either.
 
-That's always been my understanding.
 
-> eg -rc is for stablization and bugfixing only, and not restricted only
-> to bugs introduced in the latest merge window??
-
-Makes no sense to me to have a hard restriction here. Security fixes, 
-panics, and other serious bugs should certainly qualify. Of course that 
-is subject to how complex the fix is.
-
--Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
