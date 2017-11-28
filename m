@@ -1,7 +1,9 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags 0/6] Support HDR link speed
-Date: Tue, 28 Nov 2017 17:11:32 -0500
-Message-ID: <b3507cfd-4370-abe4-4dae-c62c291623e8@dev.mellanox.co.il>
+Subject: [PATCH infiniband-diags 1/6] ibdiag_common.c: In
+ is_port_info_extended_supported, query PortInfo for port, 0 when node is a
+ switch for HDR support
+Date: Tue, 28 Nov 2017 17:11:39 -0500
+Message-ID: <94344ecd-c036-9927-b3a5-e21201de03ec@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -12,15 +14,30 @@ To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add support in libibmad and infiniband-diags for HDR extended link speed
-per MgtWG comments #9359-9377 and #9379.
 
-1/6 libibmad/dump.c: Add PortInfo CapabilityMask2 bit decode for HDR support
-2/6 libibmad/dump.c: Add HDR support for PortInfo LinkSpeedExt* fields
-3/6 libibmad: Add support for HDRFECMode fields in PortInfoExtended attribute
-4/6 ib[netdiscover portstate].c: Add HDR support
-5/6 [perfquery.c ibdiag_comon.h]: Add support for HDR RS-FEC
-6/6 ibdiag_common.c: In is_port_info_extended_supported, query PortInfo for port 0 when node is a switch
+Per MgtWG comment #9363
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ libibmad/src/dump.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/libibmad/src/dump.c b/libibmad/src/dump.c
+index 2244f38..1f41e62 100644
+--- a/libibmad/src/dump.c
++++ b/libibmad/src/dump.c
+@@ -632,6 +632,8 @@ void mad_dump_portcapmask2(char *buf, int bufsz, void *val, int valsz)
+ 		s += sprintf(s, "\t\t\t\tIsSwitchPortStateTableSupported\n");
+ 	if (mask & (1 << 4))
+ 		s += sprintf(s, "\t\t\t\tIsLinkWidth2xSupported\n");
++	if (mask & (1 << 5))
++		s += sprintf(s, "\t\t\t\tIsLinkSpeedHDRSupported\n");
+ 
+ 	if (s != buf)
+ 		*(--s) = 0;
+-- 
+2.8.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
