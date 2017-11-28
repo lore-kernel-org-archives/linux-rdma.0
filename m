@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags 3/6] libibmad: Add support for HDRFECMode
- fields in PortInfoExtended attribute
-Date: Tue, 28 Nov 2017 17:11:56 -0500
-Message-ID: <fc3566ee-d24d-73ec-054d-8eb18fcf5214@dev.mellanox.co.il>
+Subject: [PATCH infiniband-diags 5/6] [perfquery.c ibdiag_common.h]: Add
+ support for HDR RS-FEC
+Date: Tue, 28 Nov 2017 17:12:07 -0500
+Message-ID: <ecd315f7-9e91-b957-54a0-4be10d5a766a@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -14,73 +14,47 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-Per MgtWG comment #9367
+HDR uses different RS-FEC. Original RS-FEC is RS(528,514) and is
+bit 2 in FECMode fields and value 2 in FECModeActive field.
+HDR uses RS(544,514) which is bit 4 in HDRFECMode fields and
+value 4 in FECModeActive field.
+
+Per MgtWG comments #9367 and #9368
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibmad/include/infiniband/mad.h |  7 +++++++
- libibmad/src/dump.c               | 12 ++++++++++--
- libibmad/src/fields.c             |  7 +++++++
- 3 files changed, 24 insertions(+), 2 deletions(-)
+ include/ibdiag_common.h | 4 ++++
+ src/perfquery.c         | 3 ++-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/libibmad/include/infiniband/mad.h b/libibmad/include/infiniband/mad.h
-index 7f6b886..da82636 100644
---- a/libibmad/include/infiniband/mad.h
-+++ b/libibmad/include/infiniband/mad.h
-@@ -1315,6 +1315,13 @@ enum MAD_FIELDS {
- 	 */
- 	IB_PC_QP1_DROP_F,
+diff --git a/include/ibdiag_common.h b/include/ibdiag_common.h
+index b8c5987..ae93ba3 100644
+--- a/include/ibdiag_common.h
++++ b/include/ibdiag_common.h
+@@ -114,6 +114,10 @@ extern char *ibd_nd_format;
+ #define IB_PORT_EXT_LOW_LATENCY_RS_FEC_MODE_ACTIVE (CL_HTON16(0x0003))
+ #endif
  
-+	/*
-+	 * More PortInfoExtended fields
-+	 */
-+	IB_PORT_EXT_HDR_FEC_MODE_SUPPORTED_F,
-+	IB_PORT_EXT_HDR_FEC_MODE_ENABLED_F,
-+	IB_PORT_EXT_HDR_FEC_MODE_LAST_F,
++#ifndef IB_PORT_EXT_RS_FEC2_MODE_ACTIVE
++#define IB_PORT_EXT_RS_FEC2_MODE_ACTIVE (CL_HTON16(0x0004))
++#endif
 +
- 	IB_FIELD_LAST_		/* must be last */
- };
- 
-diff --git a/libibmad/src/dump.c b/libibmad/src/dump.c
-index 98d5a34..d71c529 100644
---- a/libibmad/src/dump.c
-+++ b/libibmad/src/dump.c
-@@ -1183,8 +1183,16 @@ void mad_dump_classportinfo(char *buf, int bufsz, void *val, int valsz)
- 
- void mad_dump_portinfo_ext(char *buf, int bufsz, void *val, int valsz)
- {
--	_dump_fields(buf, bufsz, val, IB_PORT_EXT_FIRST_F,
--		     IB_PORT_EXT_LAST_F);
-+	int cnt;
-+
-+	cnt = _dump_fields(buf, bufsz, val, IB_PORT_EXT_FIRST_F,
-+			   IB_PORT_EXT_LAST_F);
-+	if (cnt < 0)
-+		return;
-+
-+	_dump_fields(buf + cnt, bufsz - cnt, val,
-+		     IB_PORT_EXT_HDR_FEC_MODE_SUPPORTED_F,
-+		     IB_PORT_EXT_HDR_FEC_MODE_LAST_F);
- }
- 
- void xdump(FILE * file, char *msg, void *p, int size)
-diff --git a/libibmad/src/fields.c b/libibmad/src/fields.c
-index bf48689..61fd540 100644
---- a/libibmad/src/fields.c
-+++ b/libibmad/src/fields.c
-@@ -1009,6 +1009,13 @@ static const ib_field_t ib_mad_f[] = {
- 	 */
- 	{160, 16, "QP1Dropped", mad_dump_uint},
- 
-+	/*
-+	 * More PortInfoExtended fields
-+	 */
-+	{112, 16, "HDRFECModeSupported", mad_dump_hex},
-+	{128, 16, "HDRFECModeEnabled", mad_dump_hex},
-+	{0, 0},			/* IB_PORT_EXT_HDR_FEC_MODE_LAST_F */
-+
- 	{0, 0}			/* IB_FIELD_LAST_ */
- };
+ /* SM PortInfoExtended CapabilityMask Bits */
+ #ifndef IB_PORT_EXT_CAP_IS_FEC_MODE_SUPPORTED
+ #define IB_PORT_EXT_CAP_IS_FEC_MODE_SUPPORTED (CL_HTON32(0x00000001))
+diff --git a/src/perfquery.c b/src/perfquery.c
+index 6bc4d9c..19d4273 100644
+--- a/src/perfquery.c
++++ b/src/perfquery.c
+@@ -571,7 +571,8 @@ static uint8_t is_rsfec_mode_active(ib_portid_t * portid, int port,
+ 				 &fec_mode_active);
+ 		if((pie_capmask &
+ 		    CL_NTOH32(IB_PORT_EXT_CAP_IS_FEC_MODE_SUPPORTED)) &&
+-		   (CL_NTOH16(IB_PORT_EXT_RS_FEC_MODE_ACTIVE) == (fec_mode_active & 0xffff)))
++		   ((CL_NTOH16(IB_PORT_EXT_RS_FEC_MODE_ACTIVE) == (fec_mode_active & 0xffff)) ||
++                    (CL_NTOH16(IB_PORT_EXT_RS_FEC2_MODE_ACTIVE) == (fec_mode_active & 0xffff))))
+ 			return 1;
+ 	}
  
 -- 
 2.8.4
