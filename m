@@ -1,8 +1,9 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags 5/6] [perfquery.c ibdiag_common.h]: Add
- support for HDR RS-FEC
-Date: Tue, 28 Nov 2017 17:12:07 -0500
-Message-ID: <ecd315f7-9e91-b957-54a0-4be10d5a766a@dev.mellanox.co.il>
+Subject: [PATCH infiniband-diags 6/6] ibdiag_common.c: In
+ is_port_info_extended_supported, query PortInfo for port 0 when node is a
+ switch
+Date: Tue, 28 Nov 2017 17:12:19 -0500
+Message-ID: <372d2c64-ce18-4264-267b-294bac8524be@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -14,48 +15,37 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-HDR uses different RS-FEC. Original RS-FEC is RS(528,514) and is
-bit 2 in FECMode fields and value 2 in FECModeActive field.
-HDR uses RS(544,514) which is bit 4 in HDRFECMode fields and
-value 4 in FECModeActive field.
-
-Per MgtWG comments #9367 and #9368
+to be able to obtain CapabilityMask and CapabilityMask2
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/ibdiag_common.h | 4 ++++
- src/perfquery.c         | 3 ++-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ src/ibdiag_common.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/include/ibdiag_common.h b/include/ibdiag_common.h
-index b8c5987..ae93ba3 100644
---- a/include/ibdiag_common.h
-+++ b/include/ibdiag_common.h
-@@ -114,6 +114,10 @@ extern char *ibd_nd_format;
- #define IB_PORT_EXT_LOW_LATENCY_RS_FEC_MODE_ACTIVE (CL_HTON16(0x0003))
- #endif
+diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+index 9245146..c33cacc 100644
+--- a/src/ibdiag_common.c
++++ b/src/ibdiag_common.c
+@@ -506,8 +506,18 @@ int is_port_info_extended_supported(ib_portid_t * dest, int port,
+ 	uint8_t data[IB_SMP_DATA_SIZE] = { 0 };
+ 	uint32_t cap_mask;
+ 	uint16_t cap_mask2;
++	int type, portnum;
  
-+#ifndef IB_PORT_EXT_RS_FEC2_MODE_ACTIVE
-+#define IB_PORT_EXT_RS_FEC2_MODE_ACTIVE (CL_HTON16(0x0004))
-+#endif
+-	if (!smp_query_via(data, dest, IB_ATTR_PORT_INFO, port, 0, srcport))
++	if (!smp_query_via(data, dest, IB_ATTR_NODE_INFO, 0, 0, srcport))
++		IBEXIT("node info query failed");
 +
- /* SM PortInfoExtended CapabilityMask Bits */
- #ifndef IB_PORT_EXT_CAP_IS_FEC_MODE_SUPPORTED
- #define IB_PORT_EXT_CAP_IS_FEC_MODE_SUPPORTED (CL_HTON32(0x00000001))
-diff --git a/src/perfquery.c b/src/perfquery.c
-index 6bc4d9c..19d4273 100644
---- a/src/perfquery.c
-+++ b/src/perfquery.c
-@@ -571,7 +571,8 @@ static uint8_t is_rsfec_mode_active(ib_portid_t * portid, int port,
- 				 &fec_mode_active);
- 		if((pie_capmask &
- 		    CL_NTOH32(IB_PORT_EXT_CAP_IS_FEC_MODE_SUPPORTED)) &&
--		   (CL_NTOH16(IB_PORT_EXT_RS_FEC_MODE_ACTIVE) == (fec_mode_active & 0xffff)))
-+		   ((CL_NTOH16(IB_PORT_EXT_RS_FEC_MODE_ACTIVE) == (fec_mode_active & 0xffff)) ||
-+                    (CL_NTOH16(IB_PORT_EXT_RS_FEC2_MODE_ACTIVE) == (fec_mode_active & 0xffff))))
- 			return 1;
- 	}
++	mad_decode_field(data, IB_NODE_TYPE_F, &type);
++	if (type == IB_NODE_SWITCH)
++		portnum = 0;
++	else
++		portnum = port;
++
++	if (!smp_query_via(data, dest, IB_ATTR_PORT_INFO, portnum, 0, srcport))
+ 		IBEXIT("port info query failed");
  
+ 	mad_decode_field(data, IB_PORT_CAPMASK_F, &cap_mask);
 -- 
 2.8.4
 
