@@ -1,96 +1,206 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/2] IB/hfi1: Do not warn on lid conversions for OPA
-Date: Wed, 29 Nov 2017 07:59:49 -0500
-Message-ID: <20171129125948.31113.59826.stgit@phlsvslse11.ph.intel.com>
-References: <20171129125943.31113.29038.stgit@phlsvslse11.ph.intel.com>
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-rc v3] IB/core: Only enforce security for InfiniBand
+Date: Wed, 29 Nov 2017 07:49:48 -0600
+Message-ID: <df278511-feb0-5311-e08c-055bbb9b19c6@mellanox.com>
+References: <1511906481-92114-1-git-send-email-danielj@mellanox.com>
+ <20171129070821.GA4237@yuvallap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171129125943.31113.29038.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <20171129070821.GA4237@yuvallap>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-commits-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 11/29/2017 1:08 AM, Yuval Shaia wrote:
+> On Wed, Nov 29, 2017 at 12:01:21AM +0200, Dan Jurgens wrote:
+>> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> For now the only LSM security enforcement mechanism available is
+>> specific to InfiniBand. Bypass enforcement for non-IB link types.
+>> This fixes a regression where modify_qp fails for iWARP because
+>> querying the PKEY returns -EINVAL.
+>>
+>> Cc: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
+>> Cc: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Reported-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+>> Fixes: d291f1a65232("IB/core: Enforce PKey security on QPs")
+>> Fixes: 47a2b338fe63("IB/core: Enforce security on management datagrams")
+>> Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Tested-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+>> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>> ---
+>> Changelog:
+>> v2->v3: Fix build warning
+>> v1->v2: Fixed build errors
+>> v0->v1: Added proper SElinux patch
+>> ---
+>>  drivers/infiniband/core/security.c | 47 +++++++++++++++++++++++++++++++++++---
+>>  1 file changed, 44 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
+>> index 209d057..5bc323f 100644
+>> --- a/drivers/infiniband/core/security.c
+>> +++ b/drivers/infiniband/core/security.c
+>> @@ -417,8 +417,17 @@ void ib_close_shared_qp_security(struct ib_qp_security *sec)
+>>  
+>>  int ib_create_qp_security(struct ib_qp *qp, struct ib_device *dev)
+>>  {
+>> +	u8 i = rdma_start_port(dev);
+>> +	bool is_ib = false;
+>>  	int ret;
+>>  
+>> +	while (i <= rdma_end_port(dev) && !is_ib)
+>> +		is_ib = rdma_protocol_ib(dev, i++);
+>> +
+>> +	/* If this isn't an IB device don't create the security context */
+>> +	if (!is_ib)
+>> +		return 0;
+>> +
+>>  	qp->qp_sec = kzalloc(sizeof(*qp->qp_sec), GFP_KERNEL);
+>>  	if (!qp->qp_sec)
+>>  		return -ENOMEM;
+>> @@ -441,6 +450,10 @@ int ib_create_qp_security(struct ib_qp *qp, struct ib_device *dev)
+>>  
+>>  void ib_destroy_qp_security_begin(struct ib_qp_security *sec)
+>>  {
+>> +	/* Return if not IB */
+>> +	if (!sec)
+>> +		return;
+>> +
+> If we do the check here then suggesting to remove it from ib_destroy_qp.
 
-Upstream commit 4988be5813ff2afdc0d8bfa315ef34a577d3efbf.
+That would be a bug, this function can still be called and would crash on NULL pointer accesses.
 
-On OPA devices opa_local_smp_check will receive 32Bit LIDs when the LID
-is Extended. In such cases, it is okay to lose the upper 16 bits of the
-LID as this information is obtained elsewhere. Do not issue a warning
-when calling ib_lid_cpu16() in this case by masking out the upper 16Bits.
+>
+>>  	mutex_lock(&sec->mutex);
+>>  
+>>  	/* Remove the QP from the lists so it won't get added to
+>> @@ -470,6 +483,10 @@ void ib_destroy_qp_security_abort(struct ib_qp_security *sec)
+>>  	int ret;
+>>  	int i;
+>>  
+>> +	/* Return if not IB */
+>> +	if (!sec)
+>> +		return;
+>> +
+>>  	/* If a concurrent cache update is in progress this
+>>  	 * QP security could be marked for an error state
+>>  	 * transition.  Wait for this to complete.
+>> @@ -505,6 +522,10 @@ void ib_destroy_qp_security_end(struct ib_qp_security *sec)
+>>  {
+>>  	int i;
+>>  
+>> +	/* Return if not IB */
+>> +	if (!sec)
+>> +		return;
+>> +
+> Ditto.
 
-[75920.148985] ------------[ cut here ]------------
-[75920.154651] WARNING: CPU: 0 PID: 1718 at ./include/rdma/ib_verbs.h:3788 hfi1_process_mad+0x1c1f/0x1c80 [hfi1]
-[75920.166192] Modules linked in: ib_ipoib hfi1(E) rdmavt(E) rdma_ucm(E) ib_ucm(E) rdma_cm(E) ib_cm(E) iw_cm(E) ib_umad(E) ib_uverbs(E) ib_core(E) libiscsi scsi_transport_iscsi dm_mirror dm_region_hash dm_log dm_mod dax x86_pkg_temp_thermal intel_powerclamp coretemp kvm irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc aesni_intel mei_me ipmi_si iTCO_wdt iTCO_vendor_support crypto_simd ipmi_devintf pcspkr mei sg i2c_i801 glue_helper lpc_ich shpchp ioatdma mfd_core wmi ipmi_msghandler cryptd acpi_power_meter acpi_pad nfsd auth_rpcgss nfs_acl lockd grace sunrpc ip_tables xfs libcrc32c sd_mod mgag200 drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops ttm drm igb ptp ahci libahci pps_core crc32c_intel libata dca i2c_algo_bit i2c_core [last unloaded: ib_core]
-[75920.246331] CPU: 0 PID: 1718 Comm: kworker/0:1H Tainted: G        W I E   4.13.0-rc7+ #1
-[75920.255907] Hardware name: Intel Corporation S2600WT2/S2600WT2, BIOS SE5C610.86B.01.01.0008.021120151325 02/11/2015
-[75920.268158] Workqueue: ib-comp-wq ib_cq_poll_work [ib_core]
-[75920.274934] task: ffff88084a718000 task.stack: ffffc9000a424000
-[75920.282123] RIP: 0010:hfi1_process_mad+0x1c1f/0x1c80 [hfi1]
-[75920.288881] RSP: 0018:ffffc9000a427c38 EFLAGS: 00010206
-[75920.295265] RAX: 0000000000010001 RBX: ffff8808361420e8 RCX: ffff880837811d80
-[75920.303784] RDX: 0000000000000002 RSI: 0000000000007fff RDI: ffff880837811d80
-[75920.312302] RBP: ffffc9000a427d38 R08: 0000000000000000 R09: ffff8808361420e8
-[75920.320819] R10: ffff88083841f0e8 R11: ffffc9000a427da8 R12: 0000000000000001
-[75920.329335] R13: ffff880837810000 R14: 0000000000000000 R15: ffff88084f1a4800
-[75920.337849] FS:  0000000000000000(0000) GS:ffff88085f400000(0000) knlGS:0000000000000000
-[75920.347450] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[75920.354405] CR2: 00007f9e4b3d9000 CR3: 0000000001c09000 CR4: 00000000001406f0
-[75920.362947] Call Trace:
-[75920.366257]  ? ib_mad_recv_done+0x258/0x9b0 [ib_core]
-[75920.372457]  ? ib_mad_recv_done+0x258/0x9b0 [ib_core]
-[75920.378652]  ? __kmalloc+0x1df/0x210
-[75920.383229]  ib_mad_recv_done+0x305/0x9b0 [ib_core]
-[75920.389270]  __ib_process_cq+0x5d/0xb0 [ib_core]
-[75920.395032]  ib_cq_poll_work+0x20/0x60 [ib_core]
-[75920.400777]  process_one_work+0x149/0x360
-[75920.405836]  worker_thread+0x4d/0x3c0
-[75920.410505]  kthread+0x109/0x140
-[75920.414681]  ? rescuer_thread+0x380/0x380
-[75920.419731]  ? kthread_park+0x60/0x60
-[75920.424406]  ret_from_fork+0x25/0x30
-[75920.428972] Code: 4c 89 9d 58 ff ff ff 49 89 45 00 66 b8 00 02 49 89 45 08 e8 44 27 89 e0 4c 8b 9d 58 ff ff ff e9 d8 f6 ff ff 0f ff e9 55 e7 ff ff <0f> ff e9 3b e5 ff ff 0f ff 0f 1f 84 00 00 00 00 00 e9 4b e9 ff
-[75921.451269] ---[ end trace cf26df27c9597265 ]---
+Same here.
 
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.14.x
-Fixes: 62ede7779904 ("Add OPA extended LID support")
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/hfi1/mad.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+>
+>>  	/* If a concurrent cache update is occurring we must
+>>  	 * wait until this QP security structure is processed
+>>  	 * in the QP to error flow before destroying it because
+>> @@ -557,7 +578,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
+>>  {
+>>  	int ret = 0;
+>>  	struct ib_ports_pkeys *tmp_pps;
+>> -	struct ib_ports_pkeys *new_pps;
+>> +	struct ib_ports_pkeys *new_pps = NULL;
+>>  	struct ib_qp *real_qp = qp->real_qp;
+>>  	bool special_qp = (real_qp->qp_type == IB_QPT_SMI ||
+>>  			   real_qp->qp_type == IB_QPT_GSI ||
+>> @@ -565,17 +586,25 @@ int ib_security_modify_qp(struct ib_qp *qp,
+>>  	bool pps_change = ((qp_attr_mask & (IB_QP_PKEY_INDEX | IB_QP_PORT)) ||
+>>  			   (qp_attr_mask & IB_QP_ALT_PATH));
+>>  
+>> +	WARN_ONCE((qp_attr_mask & IB_QP_PORT &&
+>> +		   rdma_protocol_ib(real_qp->device, qp_attr->port_num) &&
+>> +		   !real_qp->qp_sec),
+>> +		   "%s: QP security is not initialized for IB QP: %d\n",
+>> +		   __func__, real_qp->qp_num);
+>> +
+>>  	/* The port/pkey settings are maintained only for the real QP. Open
+>>  	 * handles on the real QP will be in the shared_qp_list. When
+>>  	 * enforcing security on the real QP all the shared QPs will be
+>>  	 * checked as well.
+>>  	 */
+>>  
+>> -	if (pps_change && !special_qp) {
+>> +	if (pps_change && !special_qp && real_qp->qp_sec) {
+>>  		mutex_lock(&real_qp->qp_sec->mutex);
+>>  		new_pps = get_new_pps(real_qp,
+>>  				      qp_attr,
+>>  				      qp_attr_mask);
+>> +		if (!new_pps)
+>> +			return -ENOMEM;
+>>  
+>>  		/* Add this QP to the lists for the new port
+>>  		 * and pkey settings before checking for permission
+>> @@ -600,7 +629,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
+>>  						 qp_attr_mask,
+>>  						 udata);
+>>  
+>> -	if (pps_change && !special_qp) {
+>> +	if (new_pps) {
+>>  		/* Clean up the lists and free the appropriate
+>>  		 * ports_pkeys structure.
+>>  		 */
+>> @@ -630,6 +659,9 @@ static int ib_security_pkey_access(struct ib_device *dev,
+>>  	u16 pkey;
+>>  	int ret;
+>>  
+>> +	if (!rdma_protocol_ib(dev, port_num))
+>> +		return 0;
+>> +
+>>  	ret = ib_get_cached_pkey(dev, port_num, pkey_index, &pkey);
+>>  	if (ret)
+>>  		return ret;
+>> @@ -663,6 +695,9 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
+>>  {
+>>  	int ret;
+>>  
+>> +	if (!rdma_protocol_ib(agent->device, agent->port_num))
+>> +		return 0;
+>> +
+>>  	ret = security_ib_alloc_security(&agent->security);
+>>  	if (ret)
+>>  		return ret;
+>> @@ -688,6 +723,9 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
+>>  
+>>  void ib_mad_agent_security_cleanup(struct ib_mad_agent *agent)
+>>  {
+>> +	if (!rdma_protocol_ib(agent->device, agent->port_num))
+>> +		return;
+>> +
+>>  	security_ib_free_security(agent->security);
+>>  	if (agent->lsm_nb_reg)
+>>  		unregister_lsm_notifier(&agent->lsm_nb);
+>> @@ -695,6 +733,9 @@ void ib_mad_agent_security_cleanup(struct ib_mad_agent *agent)
+>>  
+>>  int ib_mad_enforce_security(struct ib_mad_agent_private *map, u16 pkey_index)
+>>  {
+>> +	if (!rdma_protocol_ib(map->agent.device, map->agent.port_num))
+>> +		return 0;
+>> +
+>>  	if (map->agent.qp->qp_type == IB_QPT_SMI && !map->agent.smp_allowed)
+>>  		return -EACCES;
+>>  
+>> -- 
+>> 1.8.3.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index f4c0ffc..07b80fa 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -4293,7 +4293,6 @@ static int opa_local_smp_check(struct hfi1_ibport *ibp,
- 			       const struct ib_wc *in_wc)
- {
- 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
--	u16 slid = ib_lid_cpu16(in_wc->slid);
- 	u16 pkey;
- 
- 	if (in_wc->pkey_index >= ARRAY_SIZE(ppd->pkeys))
-@@ -4320,7 +4319,11 @@ static int opa_local_smp_check(struct hfi1_ibport *ibp,
- 	 */
- 	if (pkey == LIM_MGMT_P_KEY || pkey == FULL_MGMT_P_KEY)
- 		return 0;
--	ingress_pkey_table_fail(ppd, pkey, slid);
-+	/*
-+	 * On OPA devices it is okay to lose the upper 16 bits of LID as this
-+	 * information is obtained elsewhere. Mask off the upper 16 bits.
-+	 */
-+	ingress_pkey_table_fail(ppd, pkey, ib_lid_cpu16(0xFFFF & in_wc->slid));
- 	return 1;
- }
- 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
