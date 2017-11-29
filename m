@@ -1,203 +1,92 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next] IB/ipoib: Replace printk with pr_warn
-Date: Wed, 29 Nov 2017 13:09:05 +0200
-Message-ID: <20171129110905.GX29104@mtr-leonro.local>
-References: <20171129092429.10293-1-yuval.shaia@oracle.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/2] IB/core: Do not warn on lid conversions for OPA
+Date: Wed, 29 Nov 2017 07:59:43 -0500
+Message-ID: <20171129125943.31113.29038.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="GFHULmA0mO3kKGOo"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171129092429.10293-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-commits-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
---GFHULmA0mO3kKGOo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Upstream commit 6588e412fe872ed81f3fb8d9b4561a66ecb763d0.
 
-On Wed, Nov 29, 2017 at 11:24:29AM +0200, Yuval Shaia wrote:
-> pr_* is the preferred way to print messages, replace all
-> printk(KERN_WARN, ...) with pr_warn.
->
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib_cm.c    |  8 ++++----
->  drivers/infiniband/ulp/ipoib/ipoib_main.c  | 23 +++++++++++------------
->  drivers/infiniband/ulp/ipoib/ipoib_verbs.c |  6 +++---
->  3 files changed, 18 insertions(+), 19 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> index 87f4bd99cdf7..c0a596e4c258 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> @@ -876,7 +876,7 @@ int ipoib_cm_dev_open(struct net_device *dev)
->
->  	priv->cm.id = ib_create_cm_id(priv->ca, ipoib_cm_rx_handler, dev);
->  	if (IS_ERR(priv->cm.id)) {
-> -		printk(KERN_WARNING "%s: failed to create CM ID\n", priv->ca->name);
-> +		pr_warn("%s: failed to create CM ID\n", priv->ca->name);
->  		ret = PTR_ERR(priv->cm.id);
->  		goto err_cm;
->  	}
-> @@ -884,8 +884,8 @@ int ipoib_cm_dev_open(struct net_device *dev)
->  	ret = ib_cm_listen(priv->cm.id, cpu_to_be64(IPOIB_CM_IETF_ID | priv->qp->qp_num),
->  			   0);
->  	if (ret) {
-> -		printk(KERN_WARNING "%s: failed to listen on ID 0x%llx\n", priv->ca->name,
-> -		       IPOIB_CM_IETF_ID | priv->qp->qp_num);
-> +		pr_warn("%s: failed to listen on ID 0x%llx\n", priv->ca->name,
-> +			IPOIB_CM_IETF_ID | priv->qp->qp_num);
->  		goto err_listen;
->  	}
->
-> @@ -1562,7 +1562,7 @@ static void ipoib_cm_create_srq(struct net_device *dev, int max_sge)
->  	priv->cm.srq = ib_create_srq(priv->pd, &srq_init_attr);
->  	if (IS_ERR(priv->cm.srq)) {
->  		if (PTR_ERR(priv->cm.srq) != -ENOSYS)
-> -			printk(KERN_WARNING "%s: failed to allocate SRQ, error %ld\n",
-> +			pr_warn("%s: failed to allocate SRQ, error %ld\n",
->  			       priv->ca->name, PTR_ERR(priv->cm.srq));
->  		priv->cm.srq = NULL;
->  		return;
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index 12b7f911f0e5..6930ee0d63cf 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -1663,8 +1663,8 @@ static int ipoib_dev_init_default(struct net_device *dev)
->
->  	priv->tx_ring = vzalloc(ipoib_sendq_size * sizeof *priv->tx_ring);
->  	if (!priv->tx_ring) {
-> -		printk(KERN_WARNING "%s: failed to allocate TX ring (%d entries)\n",
-> -		       priv->ca->name, ipoib_sendq_size);
-> +		pr_warn("%s: failed to allocate TX ring (%d entries)\n",
-> +			priv->ca->name, ipoib_sendq_size);
+On OPA devices the user_mad recv_handler can receive 32Bit LIDs
+(e.g. OPA_PERMISSIVE_LID) and it is okay to lose the upper 16 bits
+of the LID as this information is obtained elsewhere. Do not issue
+a warning when calling ib_lid_be16() in this case by masking out
+the upper 16Bits.
 
-Besides the fact that this print should be removed, it looks fine.
-Thanks for doing it.
+[75667.310846] ------------[ cut here ]------------
+[75667.316447] WARNING: CPU: 0 PID: 1718 at ./include/rdma/ib_verbs.h:3799 recv_handler+0x15a/0x170 [ib_umad]
+[75667.327640] Modules linked in: ib_ipoib hfi1(E) rdmavt(E) rdma_ucm(E) ib_ucm(E) rdma_cm(E) ib_cm(E) iw_cm(E) ib_umad(E) ib_uverbs(E) ib_core(E) libiscsi scsi_transport_iscsi dm_mirror dm_region_hash dm_log dm_mod dax x86_pkg_temp_thermal intel_powerclamp coretemp kvm irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc aesni_intel mei_me ipmi_si iTCO_wdt iTCO_vendor_support crypto_simd ipmi_devintf pcspkr mei sg i2c_i801 glue_helper lpc_ich shpchp ioatdma mfd_core wmi ipmi_msghandler cryptd acpi_power_meter acpi_pad nfsd auth_rpcgss nfs_acl lockd grace sunrpc ip_tables xfs libcrc32c sd_mod mgag200 drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops ttm drm igb ptp ahci libahci pps_core crc32c_intel libata dca i2c_algo_bit i2c_core [last unloaded: ib_core]
+[75667.407704] CPU: 0 PID: 1718 Comm: kworker/0:1H Tainted: G        W I E   4.13.0-rc7+ #1
+[75667.417310] Hardware name: Intel Corporation S2600WT2/S2600WT2, BIOS SE5C610.86B.01.01.0008.021120151325 02/11/2015
+[75667.429555] Workqueue: ib-comp-wq ib_cq_poll_work [ib_core]
+[75667.436360] task: ffff88084a718000 task.stack: ffffc9000a424000
+[75667.443549] RIP: 0010:recv_handler+0x15a/0x170 [ib_umad]
+[75667.450090] RSP: 0018:ffffc9000a427ce8 EFLAGS: 00010286
+[75667.456508] RAX: 00000000ffffffff RBX: ffff88085159ce80 RCX: 0000000000000000
+[75667.465094] RDX: ffff88085a47b068 RSI: 0000000000000000 RDI: ffff88085159cf00
+[75667.473668] RBP: ffffc9000a427d38 R08: 000000000001efc0 R09: ffff88085159ce80
+[75667.482228] R10: ffff88085f007480 R11: ffff88084acf20e8 R12: ffff88085a47b020
+[75667.490824] R13: ffff881056842e10 R14: ffff881056840200 R15: ffff88104c8d0800
+[75667.499390] FS:  0000000000000000(0000) GS:ffff88085f400000(0000) knlGS:0000000000000000
+[75667.509028] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[75667.516080] CR2: 00007f9e4b3d9000 CR3: 0000000001c09000 CR4: 00000000001406f0
+[75667.524664] Call Trace:
+[75667.528044]  ? find_mad_agent+0x7c/0x1b0 [ib_core]
+[75667.534031]  ? ib_mark_mad_done+0x73/0xa0 [ib_core]
+[75667.540142]  ib_mad_recv_done+0x423/0x9b0 [ib_core]
+[75667.546215]  __ib_process_cq+0x5d/0xb0 [ib_core]
+[75667.552007]  ib_cq_poll_work+0x20/0x60 [ib_core]
+[75667.557766]  process_one_work+0x149/0x360
+[75667.562844]  worker_thread+0x4d/0x3c0
+[75667.567529]  kthread+0x109/0x140
+[75667.571713]  ? rescuer_thread+0x380/0x380
+[75667.576775]  ? kthread_park+0x60/0x60
+[75667.581447]  ret_from_fork+0x25/0x30
+[75667.586014] Code: 43 4a 0f b6 45 c6 88 43 4b 48 8b 45 b0 48 89 43 4c 48 8b 45 b8 48 89 43 54 8b 45 c0 0f c8 89 43 5c e9 79 ff ff ff e8 16 4e fa e0 <0f> ff e9 42 ff ff ff 66 66 66 66 66 66 2e 0f 1f 84 00 00 00 00
+[75667.608323] ---[ end trace cf26df27c9597264 ]---
 
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.14.x
+Fixes: 62ede7779904 ("Add OPA extended LID support")
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/core/user_mad.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
->  		goto out_rx_ring_cleanup;
->  	}
->
-> @@ -2204,8 +2204,7 @@ static struct net_device *ipoib_add_port(const char *format,
->
->  	result = ib_query_port(hca, port, &attr);
->  	if (result) {
-> -		printk(KERN_WARNING "%s: ib_query_port %d failed\n",
-> -		       hca->name, port);
-> +		pr_warn("%s: ib_query_port %d failed\n", hca->name, port);
->  		goto device_init_failed;
->  	}
->
-> @@ -2220,8 +2219,8 @@ static struct net_device *ipoib_add_port(const char *format,
->
->  	result = ib_query_pkey(hca, port, 0, &priv->pkey);
->  	if (result) {
-> -		printk(KERN_WARNING "%s: ib_query_pkey port %d failed (ret = %d)\n",
-> -		       hca->name, port, result);
-> +		pr_warn("%s: ib_query_pkey port %d failed (ret = %d)\n",
-> +			hca->name, port, result);
->  		goto device_init_failed;
->  	}
->
-> @@ -2238,8 +2237,8 @@ static struct net_device *ipoib_add_port(const char *format,
->
->  	result = ib_query_gid(hca, port, 0, &priv->local_gid, NULL);
->  	if (result) {
-> -		printk(KERN_WARNING "%s: ib_query_gid port %d failed (ret = %d)\n",
-> -		       hca->name, port, result);
-> +		pr_warn("%s: ib_query_gid port %d failed (ret = %d)\n",
-> +			hca->name, port, result);
->  		goto device_init_failed;
->  	}
->
-> @@ -2249,8 +2248,8 @@ static struct net_device *ipoib_add_port(const char *format,
->
->  	result = ipoib_dev_init(priv->dev, hca, port);
->  	if (result) {
-> -		printk(KERN_WARNING "%s: failed to initialize port %d (ret = %d)\n",
-> -		       hca->name, port, result);
-> +		pr_warn("%s: failed to initialize port %d (ret = %d)\n",
-> +			hca->name, port, result);
->  		goto device_init_failed;
->  	}
->
-> @@ -2260,8 +2259,8 @@ static struct net_device *ipoib_add_port(const char *format,
->
->  	result = register_netdev(priv->dev);
->  	if (result) {
-> -		printk(KERN_WARNING "%s: couldn't register ipoib port %d; error %d\n",
-> -		       hca->name, port, result);
-> +		pr_warn("%s: couldn't register ipoib port %d; error %d\n",
-> +			hca->name, port, result);
->  		goto register_failed;
->  	}
->
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-> index a1ed25422b72..984a88096f39 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-> @@ -178,7 +178,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
->  	priv->recv_cq = ib_create_cq(priv->ca, ipoib_ib_rx_completion, NULL,
->  				     priv, &cq_attr);
->  	if (IS_ERR(priv->recv_cq)) {
-> -		printk(KERN_WARNING "%s: failed to create receive CQ\n", ca->name);
-> +		pr_warn("%s: failed to create receive CQ\n", ca->name);
->  		goto out_cm_dev_cleanup;
->  	}
->
-> @@ -187,7 +187,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
->  	priv->send_cq = ib_create_cq(priv->ca, ipoib_ib_tx_completion, NULL,
->  				     priv, &cq_attr);
->  	if (IS_ERR(priv->send_cq)) {
-> -		printk(KERN_WARNING "%s: failed to create send CQ\n", ca->name);
-> +		pr_warn("%s: failed to create send CQ\n", ca->name);
->  		goto out_free_recv_cq;
->  	}
->
-> @@ -208,7 +208,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
->
->  	priv->qp = ib_create_qp(priv->pd, &init_attr);
->  	if (IS_ERR(priv->qp)) {
-> -		printk(KERN_WARNING "%s: failed to create QP\n", ca->name);
-> +		pr_warn("%s: failed to create QP\n", ca->name);
->  		goto out_free_send_cq;
->  	}
->
-> --
-> 2.13.6
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index c1696e6..603acaf 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -229,7 +229,16 @@ static void recv_handler(struct ib_mad_agent *agent,
+ 	packet->mad.hdr.status	   = 0;
+ 	packet->mad.hdr.length	   = hdr_size(file) + mad_recv_wc->mad_len;
+ 	packet->mad.hdr.qpn	   = cpu_to_be32(mad_recv_wc->wc->src_qp);
+-	packet->mad.hdr.lid	   = ib_lid_be16(mad_recv_wc->wc->slid);
++	/*
++	 * On OPA devices it is okay to lose the upper 16 bits of LID as this
++	 * information is obtained elsewhere. Mask off the upper 16 bits.
++	 */
++	if (agent->device->port_immutable[agent->port_num].core_cap_flags &
++	    RDMA_CORE_PORT_INTEL_OPA)
++		packet->mad.hdr.lid = ib_lid_be16(0xFFFF &
++						  mad_recv_wc->wc->slid);
++	else
++		packet->mad.hdr.lid = ib_lid_be16(mad_recv_wc->wc->slid);
+ 	packet->mad.hdr.sl	   = mad_recv_wc->wc->sl;
+ 	packet->mad.hdr.path_bits  = mad_recv_wc->wc->dlid_path_bits;
+ 	packet->mad.hdr.pkey_index = mad_recv_wc->wc->pkey_index;
 
---GFHULmA0mO3kKGOo
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloelVEACgkQ5GN7iDZy
-WKeKfhAAxBfRe9CUHlLUEGvXUI5kEcbWvuHXZHKaYiBGTyYNxZatzRCWLnaEP4en
-zfzpgOai+EmytPizcn+blRCfSW2yP3JUBtRhWWYYcNXeBRKIGB5EPTrZiCT5Tpg3
-X6sf1r0+e1esP0vxQVnVrSEYwENUxhl0pl05+jbpT86f2fXTkdIB61Jx9YpqnBJS
-pfxyKsgEN7g6UzxFigAgqtwTRxyTdPgMcQPz0XdVnFtvFIgiIXCCvDOGYIEI4NtG
-8jUCoN0JidkFo9KiAI7nHeHMkVXrpbzE2ir8sqoyu/SBEM8s3s6ne/jqao26rWmi
-vPf/1gVpZ++ltIyZgxGKh6g1DmyW2OeCbh51WGyjh2hzST7XFpRP2pPE2Rv4oN7B
-3cwCyQ/owrVPUSWAS6F+sl/O1XOrA0+I9YJrkgIUvz5iPGm5RroA5MBNax1e7tP7
-n6lsgSpBM+nOOHlMyvQltv7NrDQN+/j1h7ZDVicnMCu+hiAMAIb3bj8mJw2s7b80
-39ihGivpOMQQCQjux5f5lJHlLjvTqicwi7D9pyDN7ZT0LwfRYhpEvwdbTpGP9t19
-N9/49SEJaROqY2Lr7LCs0kPnXlr4o/aoTPoZ7by2sC++RHKuefuGRRDX9rHyIkPR
-3zFI+ua0V7gjOjbadKVBo6c0s9sjKe8cGG+94iXUBDq+1yjYLqs=
-=nG8K
------END PGP SIGNATURE-----
-
---GFHULmA0mO3kKGOo--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
