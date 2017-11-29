@@ -1,25 +1,186 @@
-From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next] IB/ipoib: Replace printk with pr_warn
-Date: Wed, 29 Nov 2017 08:41:02 -0800
-Message-ID: <eb7d2146-fe1a-3231-54c3-b9e1b4534c5b@oracle.com>
-References: <20171129092429.10293-1-yuval.shaia@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-rc v4] IB/core: Only enforce security for InfiniBand
+Date: Wed, 29 Nov 2017 20:10:39 +0200
+Message-ID: <1511979039-1605-1-git-send-email-danielj@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171129092429.10293-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/29/2017 1:24 AM, Yuval Shaia wrote:
-> pr_* is the preferred way to print messages, replace all
-> printk(KERN_WARN, ...) with pr_warn.
-> 
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+For now the only LSM security enforcement mechanism available is
+specific to InfiniBand. Bypass enforcement for non-IB link types.
+This fixes a regression where modify_qp fails for iWARP because
+querying the PKEY returns -EINVAL.
+
+Cc: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
+Cc: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Reported-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Fixes: d291f1a65232("IB/core: Enforce PKey security on QPs")
+Fixes: 47a2b338fe63("IB/core: Enforce security on management datagrams")
+Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Tested-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+Changelog:
+v3->v4: Unlock in error flow
+v2->v3: Fix build warning
+v1->v2: Fixed build errors
+v0->v1: Added proper SElinux patch
+---
+ drivers/infiniband/core/security.c | 50 +++++++++++++++++++++++++++++++++++---
+ 1 file changed, 46 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
+index 209d057..817d554 100644
+--- a/drivers/infiniband/core/security.c
++++ b/drivers/infiniband/core/security.c
+@@ -417,8 +417,17 @@ void ib_close_shared_qp_security(struct ib_qp_security *sec)
+ 
+ int ib_create_qp_security(struct ib_qp *qp, struct ib_device *dev)
+ {
++	u8 i = rdma_start_port(dev);
++	bool is_ib = false;
+ 	int ret;
+ 
++	while (i <= rdma_end_port(dev) && !is_ib)
++		is_ib = rdma_protocol_ib(dev, i++);
++
++	/* If this isn't an IB device don't create the security context */
++	if (!is_ib)
++		return 0;
++
+ 	qp->qp_sec = kzalloc(sizeof(*qp->qp_sec), GFP_KERNEL);
+ 	if (!qp->qp_sec)
+ 		return -ENOMEM;
+@@ -441,6 +450,10 @@ int ib_create_qp_security(struct ib_qp *qp, struct ib_device *dev)
+ 
+ void ib_destroy_qp_security_begin(struct ib_qp_security *sec)
+ {
++	/* Return if not IB */
++	if (!sec)
++		return;
++
+ 	mutex_lock(&sec->mutex);
+ 
+ 	/* Remove the QP from the lists so it won't get added to
+@@ -470,6 +483,10 @@ void ib_destroy_qp_security_abort(struct ib_qp_security *sec)
+ 	int ret;
+ 	int i;
+ 
++	/* Return if not IB */
++	if (!sec)
++		return;
++
+ 	/* If a concurrent cache update is in progress this
+ 	 * QP security could be marked for an error state
+ 	 * transition.  Wait for this to complete.
+@@ -505,6 +522,10 @@ void ib_destroy_qp_security_end(struct ib_qp_security *sec)
+ {
+ 	int i;
+ 
++	/* Return if not IB */
++	if (!sec)
++		return;
++
+ 	/* If a concurrent cache update is occurring we must
+ 	 * wait until this QP security structure is processed
+ 	 * in the QP to error flow before destroying it because
+@@ -557,7 +578,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
+ {
+ 	int ret = 0;
+ 	struct ib_ports_pkeys *tmp_pps;
+-	struct ib_ports_pkeys *new_pps;
++	struct ib_ports_pkeys *new_pps = NULL;
+ 	struct ib_qp *real_qp = qp->real_qp;
+ 	bool special_qp = (real_qp->qp_type == IB_QPT_SMI ||
+ 			   real_qp->qp_type == IB_QPT_GSI ||
+@@ -565,18 +586,27 @@ int ib_security_modify_qp(struct ib_qp *qp,
+ 	bool pps_change = ((qp_attr_mask & (IB_QP_PKEY_INDEX | IB_QP_PORT)) ||
+ 			   (qp_attr_mask & IB_QP_ALT_PATH));
+ 
++	WARN_ONCE((qp_attr_mask & IB_QP_PORT &&
++		   rdma_protocol_ib(real_qp->device, qp_attr->port_num) &&
++		   !real_qp->qp_sec),
++		   "%s: QP security is not initialized for IB QP: %d\n",
++		   __func__, real_qp->qp_num);
++
+ 	/* The port/pkey settings are maintained only for the real QP. Open
+ 	 * handles on the real QP will be in the shared_qp_list. When
+ 	 * enforcing security on the real QP all the shared QPs will be
+ 	 * checked as well.
+ 	 */
+ 
+-	if (pps_change && !special_qp) {
++	if (pps_change && !special_qp && real_qp->qp_sec) {
+ 		mutex_lock(&real_qp->qp_sec->mutex);
+ 		new_pps = get_new_pps(real_qp,
+ 				      qp_attr,
+ 				      qp_attr_mask);
+-
++		if (!new_pps) {
++			mutex_unlock(&real_qp->qp_sec->mutex);
++			return -ENOMEM;
++		}
+ 		/* Add this QP to the lists for the new port
+ 		 * and pkey settings before checking for permission
+ 		 * in case there is a concurrent cache update
+@@ -600,7 +630,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
+ 						 qp_attr_mask,
+ 						 udata);
+ 
+-	if (pps_change && !special_qp) {
++	if (new_pps) {
+ 		/* Clean up the lists and free the appropriate
+ 		 * ports_pkeys structure.
+ 		 */
+@@ -630,6 +660,9 @@ static int ib_security_pkey_access(struct ib_device *dev,
+ 	u16 pkey;
+ 	int ret;
+ 
++	if (!rdma_protocol_ib(dev, port_num))
++		return 0;
++
+ 	ret = ib_get_cached_pkey(dev, port_num, pkey_index, &pkey);
+ 	if (ret)
+ 		return ret;
+@@ -663,6 +696,9 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
+ {
+ 	int ret;
+ 
++	if (!rdma_protocol_ib(agent->device, agent->port_num))
++		return 0;
++
+ 	ret = security_ib_alloc_security(&agent->security);
+ 	if (ret)
+ 		return ret;
+@@ -688,6 +724,9 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
+ 
+ void ib_mad_agent_security_cleanup(struct ib_mad_agent *agent)
+ {
++	if (!rdma_protocol_ib(agent->device, agent->port_num))
++		return;
++
+ 	security_ib_free_security(agent->security);
+ 	if (agent->lsm_nb_reg)
+ 		unregister_lsm_notifier(&agent->lsm_nb);
+@@ -695,6 +734,9 @@ void ib_mad_agent_security_cleanup(struct ib_mad_agent *agent)
+ 
+ int ib_mad_enforce_security(struct ib_mad_agent_private *map, u16 pkey_index)
+ {
++	if (!rdma_protocol_ib(map->agent.device, map->agent.port_num))
++		return 0;
++
+ 	if (map->agent.qp->qp_type == IB_QPT_SMI && !map->agent.smp_allowed)
+ 		return -EACCES;
+ 
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
