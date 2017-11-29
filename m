@@ -1,49 +1,96 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH v2] RDMA/iwpm: Fix uninitialized error code in iwpm_send_mapinfo()
-Date: Wed, 29 Nov 2017 09:47:33 +0100
-Message-ID: <1511945253-29296-1-git-send-email-geert@linux-m68k.org>
+From: Dmitry Monakhov <dmonakhov-GEFAQzZX7r8dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] ib: Init subsystems if compiled to vmlinuz-core
+Date: Wed, 29 Nov 2017 13:53:42 +0300
+Message-ID: <87o9nlpd8p.fsf@openvz.org>
+References: <20171129090949.27602-1-dmonakhov@openvz.org> <20171129094703.GW29104@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Roland Dreier <roland@purestorage.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171129094703.GW29104-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-With gcc-4.1.2:
+Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> writes:
 
-    drivers/infiniband/core/iwpm_util.c: In function ‘iwpm_send_mapinfo’:
-    drivers/infiniband/core/iwpm_util.c:647: warning: ‘ret’ may be used uninitialized in this function
+> On Wed, Nov 29, 2017 at 09:09:49AM +0000, Dmitry Monakhov wrote:
+>> Once infiniband was compiled as core component it's subsystems must be
+>> enabled before device initialization. Otherwise this result NULL pointer
+>> dereference during mlx4_core init, calltrace:
+>> ->device_add
+>>   if (dev->class) {
+>>      deref  dev->class->p =>NULLPTR
+>>
+>> #Config
+>> CONFIG_NET_DEVLINK=y
+>> CONFIG_MAY_USE_DEVLINK=y
+>> CONFIG_MLX4_EN=y
+>>
+>> Signed-off-by: Dmitry Monakhov <dmonakhov-GEFAQzZX7r8dnm+yROfE0A@public.gmane.org>
+>> ---
+>>  drivers/infiniband/core/cm.c        | 2 +-
+>>  drivers/infiniband/core/device.c    | 2 +-
+>>  drivers/infiniband/ulp/srp/ib_srp.c | 2 +-
+>>  3 files changed, 3 insertions(+), 3 deletions(-)
+>
+> First please follow submission rules (patch versioning and changelog)
+> and second, I have hard time to believe that those changes in CM and SRP
+> are really needed.
+Ok. Seems you are right.
+CM: ib_cm_init is always called prior to it's user (ib_ucm_init )
+SRP: srp_class used only internally.
 
-Indeed, if nl_client is not found in any of the scanned has buckets, ret
-will be used uninitialized.
-
-Preinitialize ret to -EINVAL to fix this.
-
-Fixes: 30dc5e63d6a5ad24 ("RDMA/core: Add support for iWARP Port Mapper user space service")
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
----
-v2:
-  - Use -EINVAL instead of zero,
-  - Move the preinitialization to just before the loop, to catach future
-    early offenders,
-  - Drop RFC state.
----
- drivers/infiniband/core/iwpm_util.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
-index 3c4faadb8cddd7fd..81528f64061a49df 100644
---- a/drivers/infiniband/core/iwpm_util.c
-+++ b/drivers/infiniband/core/iwpm_util.c
-@@ -654,6 +654,7 @@ int iwpm_send_mapinfo(u8 nl_client, int iwpm_pid)
- 	}
- 	skb_num++;
- 	spin_lock_irqsave(&iwpm_mapinfo_lock, flags);
-+	ret = -EINVAL;
- 	for (i = 0; i < IWPM_MAPINFO_HASH_SIZE; i++) {
- 		hlist_for_each_entry(map_info, &iwpm_hash_bucket[i],
- 				     hlist_node) {
--- 
-2.7.4
+First version is enouth. Sorry for a noise.
+>
+> Can you please provide actual kernel panic *without* any changes to init
+> sequences?
+>
+> Thanks
+>
+>>
+>> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+>> index 4c4b465..1012fd8 100644
+>> --- a/drivers/infiniband/core/cm.c
+>> +++ b/drivers/infiniband/core/cm.c
+>> @@ -4370,6 +4370,6 @@ static void __exit ib_cm_cleanup(void)
+>>  	idr_destroy(&cm.local_id_table);
+>>  }
+>>
+>> -module_init(ib_cm_init);
+>> +subsys_initcall(ib_cm_init);
+>>  module_exit(ib_cm_cleanup);
+>>
+>> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+>> index 84fc32a..5e1be49 100644
+>> --- a/drivers/infiniband/core/device.c
+>> +++ b/drivers/infiniband/core/device.c
+>> @@ -1253,5 +1253,5 @@ static void __exit ib_core_cleanup(void)
+>>
+>>  MODULE_ALIAS_RDMA_NETLINK(RDMA_NL_LS, 4);
+>>
+>> -module_init(ib_core_init);
+>> +subsys_initcall(ib_core_init);
+>>  module_exit(ib_core_cleanup);
+>> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+>> index fa5ccdb..0c21a71 100644
+>> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+>> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+>> @@ -3785,5 +3785,5 @@ static void __exit srp_cleanup_module(void)
+>>  	destroy_workqueue(srp_remove_wq);
+>>  }
+>>
+>> -module_init(srp_init_module);
+>> +subsys_initcall(srp_init_module);
+>>  module_exit(srp_cleanup_module);
+>> --
+>> 1.8.3.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
