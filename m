@@ -1,187 +1,80 @@
-From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-rc v4] IB/core: Only enforce security for InfiniBand
-Date: Wed, 29 Nov 2017 20:10:39 +0200
-Message-ID: <1511979039-1605-1-git-send-email-danielj@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH v3 0/4] introduce get_user_pages_longterm()
+Date: Wed, 29 Nov 2017 10:05:29 -0800
+Message-ID: <151197872943.26211.6551382719053304996.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org
+Cc: Inki Dae <inki.dae@samsung.com>, Jan Kara <jack@suse.cz>, Joonyoung Shim <jy0922.shim@samsung.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Seung-Woo Kim <sw0312.kim@samsung.com>, Jeff Moyer <jmoyer@redhat.com>, stable@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-mm@kvack.org, Doug Ledford <dledford@redhat.com>, Mel Gorman <mgorman@suse.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, Kyungmin Park <kyungmin.park@samsung.com>, Sean Hefty <sean.hefty@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, hch@lst.de, Vlastimil Babka <vbabka@suse.cz>, linux-media@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Changes since v2 [1]:
+* Add a comment for the vma_is_fsdax() check in get_vaddr_frames() (Jan)
+* Collect Jan's Reviewed-by.
+* Rebased on v4.15-rc1
 
-For now the only LSM security enforcement mechanism available is
-specific to InfiniBand. Bypass enforcement for non-IB link types.
-This fixes a regression where modify_qp fails for iWARP because
-querying the PKEY returns -EINVAL.
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2017-November/013295.html
 
-Cc: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
-Cc: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Reported-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Fixes: d291f1a65232("IB/core: Enforce PKey security on QPs")
-Fixes: 47a2b338fe63("IB/core: Enforce security on management datagrams")
-Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Tested-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+The summary text below is unchanged from v2.
+
 ---
-Changelog:
-v3->v4: Unlock in error flow
-v2->v3: Fix build warning
-v1->v2: Fixed build errors
-v0->v1: Added proper SElinux patch
----
- drivers/infiniband/core/security.c | 50 +++++++++++++++++++++++++++++++++++---
- 1 file changed, 46 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
-index 209d057..817d554 100644
---- a/drivers/infiniband/core/security.c
-+++ b/drivers/infiniband/core/security.c
-@@ -417,8 +417,17 @@ void ib_close_shared_qp_security(struct ib_qp_security *sec)
- 
- int ib_create_qp_security(struct ib_qp *qp, struct ib_device *dev)
- {
-+	u8 i = rdma_start_port(dev);
-+	bool is_ib = false;
- 	int ret;
- 
-+	while (i <= rdma_end_port(dev) && !is_ib)
-+		is_ib = rdma_protocol_ib(dev, i++);
-+
-+	/* If this isn't an IB device don't create the security context */
-+	if (!is_ib)
-+		return 0;
-+
- 	qp->qp_sec = kzalloc(sizeof(*qp->qp_sec), GFP_KERNEL);
- 	if (!qp->qp_sec)
- 		return -ENOMEM;
-@@ -441,6 +450,10 @@ int ib_create_qp_security(struct ib_qp *qp, struct ib_device *dev)
- 
- void ib_destroy_qp_security_begin(struct ib_qp_security *sec)
- {
-+	/* Return if not IB */
-+	if (!sec)
-+		return;
-+
- 	mutex_lock(&sec->mutex);
- 
- 	/* Remove the QP from the lists so it won't get added to
-@@ -470,6 +483,10 @@ void ib_destroy_qp_security_abort(struct ib_qp_security *sec)
- 	int ret;
- 	int i;
- 
-+	/* Return if not IB */
-+	if (!sec)
-+		return;
-+
- 	/* If a concurrent cache update is in progress this
- 	 * QP security could be marked for an error state
- 	 * transition.  Wait for this to complete.
-@@ -505,6 +522,10 @@ void ib_destroy_qp_security_end(struct ib_qp_security *sec)
- {
- 	int i;
- 
-+	/* Return if not IB */
-+	if (!sec)
-+		return;
-+
- 	/* If a concurrent cache update is occurring we must
- 	 * wait until this QP security structure is processed
- 	 * in the QP to error flow before destroying it because
-@@ -557,7 +578,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
- {
- 	int ret = 0;
- 	struct ib_ports_pkeys *tmp_pps;
--	struct ib_ports_pkeys *new_pps;
-+	struct ib_ports_pkeys *new_pps = NULL;
- 	struct ib_qp *real_qp = qp->real_qp;
- 	bool special_qp = (real_qp->qp_type == IB_QPT_SMI ||
- 			   real_qp->qp_type == IB_QPT_GSI ||
-@@ -565,18 +586,27 @@ int ib_security_modify_qp(struct ib_qp *qp,
- 	bool pps_change = ((qp_attr_mask & (IB_QP_PKEY_INDEX | IB_QP_PORT)) ||
- 			   (qp_attr_mask & IB_QP_ALT_PATH));
- 
-+	WARN_ONCE((qp_attr_mask & IB_QP_PORT &&
-+		   rdma_protocol_ib(real_qp->device, qp_attr->port_num) &&
-+		   !real_qp->qp_sec),
-+		   "%s: QP security is not initialized for IB QP: %d\n",
-+		   __func__, real_qp->qp_num);
-+
- 	/* The port/pkey settings are maintained only for the real QP. Open
- 	 * handles on the real QP will be in the shared_qp_list. When
- 	 * enforcing security on the real QP all the shared QPs will be
- 	 * checked as well.
- 	 */
- 
--	if (pps_change && !special_qp) {
-+	if (pps_change && !special_qp && real_qp->qp_sec) {
- 		mutex_lock(&real_qp->qp_sec->mutex);
- 		new_pps = get_new_pps(real_qp,
- 				      qp_attr,
- 				      qp_attr_mask);
--
-+		if (!new_pps) {
-+			mutex_unlock(&real_qp->qp_sec->mutex);
-+			return -ENOMEM;
-+		}
- 		/* Add this QP to the lists for the new port
- 		 * and pkey settings before checking for permission
- 		 * in case there is a concurrent cache update
-@@ -600,7 +630,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
- 						 qp_attr_mask,
- 						 udata);
- 
--	if (pps_change && !special_qp) {
-+	if (new_pps) {
- 		/* Clean up the lists and free the appropriate
- 		 * ports_pkeys structure.
- 		 */
-@@ -630,6 +660,9 @@ static int ib_security_pkey_access(struct ib_device *dev,
- 	u16 pkey;
- 	int ret;
- 
-+	if (!rdma_protocol_ib(dev, port_num))
-+		return 0;
-+
- 	ret = ib_get_cached_pkey(dev, port_num, pkey_index, &pkey);
- 	if (ret)
- 		return ret;
-@@ -663,6 +696,9 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
- {
- 	int ret;
- 
-+	if (!rdma_protocol_ib(agent->device, agent->port_num))
-+		return 0;
-+
- 	ret = security_ib_alloc_security(&agent->security);
- 	if (ret)
- 		return ret;
-@@ -688,6 +724,9 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
- 
- void ib_mad_agent_security_cleanup(struct ib_mad_agent *agent)
- {
-+	if (!rdma_protocol_ib(agent->device, agent->port_num))
-+		return;
-+
- 	security_ib_free_security(agent->security);
- 	if (agent->lsm_nb_reg)
- 		unregister_lsm_notifier(&agent->lsm_nb);
-@@ -695,6 +734,9 @@ void ib_mad_agent_security_cleanup(struct ib_mad_agent *agent)
- 
- int ib_mad_enforce_security(struct ib_mad_agent_private *map, u16 pkey_index)
- {
-+	if (!rdma_protocol_ib(map->agent.device, map->agent.port_num))
-+		return 0;
-+
- 	if (map->agent.qp->qp_type == IB_QPT_SMI && !map->agent.smp_allowed)
- 		return -EACCES;
- 
--- 
-1.8.3.1
+Andrew,
+
+Here is a new get_user_pages api for cases where a driver intends to
+keep an elevated page count indefinitely. This is distinct from usages
+like iov_iter_get_pages where the elevated page counts are transient.
+The iov_iter_get_pages cases immediately turn around and submit the
+pages to a device driver which will put_page when the i/o operation
+completes (under kernel control).
+
+In the longterm case userspace is responsible for dropping the page
+reference at some undefined point in the future. This is untenable for
+filesystem-dax case where the filesystem is in control of the lifetime
+of the block / page and needs reasonable limits on how long it can wait
+for pages in a mapping to become idle.
+
+Fixing filesystems to actually wait for dax pages to be idle before
+blocks from a truncate/hole-punch operation are repurposed is saved for
+a later patch series.
+
+Also, allowing longterm registration of dax mappings is a future patch
+series that introduces a "map with lease" semantic where the kernel can
+revoke a lease and force userspace to drop its page references.
+
+I have also tagged these for -stable to purposely break cases that might
+assume that longterm memory registrations for filesystem-dax mappings
+were supported by the kernel. The behavior regression this policy change
+implies is one of the reasons we maintain the "dax enabled. Warning:
+EXPERIMENTAL, use at your own risk" notification when mounting a
+filesystem in dax mode.
+
+It is worth noting the device-dax interface does not suffer the same
+constraints since it does not support file space management operations
+like hole-punch.
+
+---
+
+Dan Williams (4):
+      mm: introduce get_user_pages_longterm
+      mm: fail get_vaddr_frames() for filesystem-dax mappings
+      [media] v4l2: disable filesystem-dax mapping support
+      IB/core: disable memory registration of fileystem-dax vmas
+
+
+ drivers/infiniband/core/umem.c            |    2 -
+ drivers/media/v4l2-core/videobuf-dma-sg.c |    5 +-
+ include/linux/fs.h                        |   14 ++++++
+ include/linux/mm.h                        |   13 ++++++
+ mm/frame_vector.c                         |   12 +++++
+ mm/gup.c                                  |   64 +++++++++++++++++++++++++++++
+ 6 files changed, 107 insertions(+), 3 deletions(-)
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
