@@ -1,11 +1,13 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] IB/core: Do not warn on lid conversions for OPA
-Date: Wed, 29 Nov 2017 07:59:43 -0500
-Message-ID: <20171129125943.31113.29038.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 2/2] IB/hfi1: Do not warn on lid conversions for OPA
+Date: Wed, 29 Nov 2017 07:59:49 -0500
+Message-ID: <20171129125948.31113.59826.stgit@phlsvslse11.ph.intel.com>
+References: <20171129125943.31113.29038.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171129125943.31113.29038.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-commits-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -13,45 +15,45 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Upstream commit 6588e412fe872ed81f3fb8d9b4561a66ecb763d0.
+Upstream commit 4988be5813ff2afdc0d8bfa315ef34a577d3efbf.
 
-On OPA devices the user_mad recv_handler can receive 32Bit LIDs
-(e.g. OPA_PERMISSIVE_LID) and it is okay to lose the upper 16 bits
-of the LID as this information is obtained elsewhere. Do not issue
-a warning when calling ib_lid_be16() in this case by masking out
-the upper 16Bits.
+On OPA devices opa_local_smp_check will receive 32Bit LIDs when the LID
+is Extended. In such cases, it is okay to lose the upper 16 bits of the
+LID as this information is obtained elsewhere. Do not issue a warning
+when calling ib_lid_cpu16() in this case by masking out the upper 16Bits.
 
-[75667.310846] ------------[ cut here ]------------
-[75667.316447] WARNING: CPU: 0 PID: 1718 at ./include/rdma/ib_verbs.h:3799 recv_handler+0x15a/0x170 [ib_umad]
-[75667.327640] Modules linked in: ib_ipoib hfi1(E) rdmavt(E) rdma_ucm(E) ib_ucm(E) rdma_cm(E) ib_cm(E) iw_cm(E) ib_umad(E) ib_uverbs(E) ib_core(E) libiscsi scsi_transport_iscsi dm_mirror dm_region_hash dm_log dm_mod dax x86_pkg_temp_thermal intel_powerclamp coretemp kvm irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc aesni_intel mei_me ipmi_si iTCO_wdt iTCO_vendor_support crypto_simd ipmi_devintf pcspkr mei sg i2c_i801 glue_helper lpc_ich shpchp ioatdma mfd_core wmi ipmi_msghandler cryptd acpi_power_meter acpi_pad nfsd auth_rpcgss nfs_acl lockd grace sunrpc ip_tables xfs libcrc32c sd_mod mgag200 drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops ttm drm igb ptp ahci libahci pps_core crc32c_intel libata dca i2c_algo_bit i2c_core [last unloaded: ib_core]
-[75667.407704] CPU: 0 PID: 1718 Comm: kworker/0:1H Tainted: G        W I E   4.13.0-rc7+ #1
-[75667.417310] Hardware name: Intel Corporation S2600WT2/S2600WT2, BIOS SE5C610.86B.01.01.0008.021120151325 02/11/2015
-[75667.429555] Workqueue: ib-comp-wq ib_cq_poll_work [ib_core]
-[75667.436360] task: ffff88084a718000 task.stack: ffffc9000a424000
-[75667.443549] RIP: 0010:recv_handler+0x15a/0x170 [ib_umad]
-[75667.450090] RSP: 0018:ffffc9000a427ce8 EFLAGS: 00010286
-[75667.456508] RAX: 00000000ffffffff RBX: ffff88085159ce80 RCX: 0000000000000000
-[75667.465094] RDX: ffff88085a47b068 RSI: 0000000000000000 RDI: ffff88085159cf00
-[75667.473668] RBP: ffffc9000a427d38 R08: 000000000001efc0 R09: ffff88085159ce80
-[75667.482228] R10: ffff88085f007480 R11: ffff88084acf20e8 R12: ffff88085a47b020
-[75667.490824] R13: ffff881056842e10 R14: ffff881056840200 R15: ffff88104c8d0800
-[75667.499390] FS:  0000000000000000(0000) GS:ffff88085f400000(0000) knlGS:0000000000000000
-[75667.509028] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[75667.516080] CR2: 00007f9e4b3d9000 CR3: 0000000001c09000 CR4: 00000000001406f0
-[75667.524664] Call Trace:
-[75667.528044]  ? find_mad_agent+0x7c/0x1b0 [ib_core]
-[75667.534031]  ? ib_mark_mad_done+0x73/0xa0 [ib_core]
-[75667.540142]  ib_mad_recv_done+0x423/0x9b0 [ib_core]
-[75667.546215]  __ib_process_cq+0x5d/0xb0 [ib_core]
-[75667.552007]  ib_cq_poll_work+0x20/0x60 [ib_core]
-[75667.557766]  process_one_work+0x149/0x360
-[75667.562844]  worker_thread+0x4d/0x3c0
-[75667.567529]  kthread+0x109/0x140
-[75667.571713]  ? rescuer_thread+0x380/0x380
-[75667.576775]  ? kthread_park+0x60/0x60
-[75667.581447]  ret_from_fork+0x25/0x30
-[75667.586014] Code: 43 4a 0f b6 45 c6 88 43 4b 48 8b 45 b0 48 89 43 4c 48 8b 45 b8 48 89 43 54 8b 45 c0 0f c8 89 43 5c e9 79 ff ff ff e8 16 4e fa e0 <0f> ff e9 42 ff ff ff 66 66 66 66 66 66 2e 0f 1f 84 00 00 00 00
-[75667.608323] ---[ end trace cf26df27c9597264 ]---
+[75920.148985] ------------[ cut here ]------------
+[75920.154651] WARNING: CPU: 0 PID: 1718 at ./include/rdma/ib_verbs.h:3788 hfi1_process_mad+0x1c1f/0x1c80 [hfi1]
+[75920.166192] Modules linked in: ib_ipoib hfi1(E) rdmavt(E) rdma_ucm(E) ib_ucm(E) rdma_cm(E) ib_cm(E) iw_cm(E) ib_umad(E) ib_uverbs(E) ib_core(E) libiscsi scsi_transport_iscsi dm_mirror dm_region_hash dm_log dm_mod dax x86_pkg_temp_thermal intel_powerclamp coretemp kvm irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc aesni_intel mei_me ipmi_si iTCO_wdt iTCO_vendor_support crypto_simd ipmi_devintf pcspkr mei sg i2c_i801 glue_helper lpc_ich shpchp ioatdma mfd_core wmi ipmi_msghandler cryptd acpi_power_meter acpi_pad nfsd auth_rpcgss nfs_acl lockd grace sunrpc ip_tables xfs libcrc32c sd_mod mgag200 drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops ttm drm igb ptp ahci libahci pps_core crc32c_intel libata dca i2c_algo_bit i2c_core [last unloaded: ib_core]
+[75920.246331] CPU: 0 PID: 1718 Comm: kworker/0:1H Tainted: G        W I E   4.13.0-rc7+ #1
+[75920.255907] Hardware name: Intel Corporation S2600WT2/S2600WT2, BIOS SE5C610.86B.01.01.0008.021120151325 02/11/2015
+[75920.268158] Workqueue: ib-comp-wq ib_cq_poll_work [ib_core]
+[75920.274934] task: ffff88084a718000 task.stack: ffffc9000a424000
+[75920.282123] RIP: 0010:hfi1_process_mad+0x1c1f/0x1c80 [hfi1]
+[75920.288881] RSP: 0018:ffffc9000a427c38 EFLAGS: 00010206
+[75920.295265] RAX: 0000000000010001 RBX: ffff8808361420e8 RCX: ffff880837811d80
+[75920.303784] RDX: 0000000000000002 RSI: 0000000000007fff RDI: ffff880837811d80
+[75920.312302] RBP: ffffc9000a427d38 R08: 0000000000000000 R09: ffff8808361420e8
+[75920.320819] R10: ffff88083841f0e8 R11: ffffc9000a427da8 R12: 0000000000000001
+[75920.329335] R13: ffff880837810000 R14: 0000000000000000 R15: ffff88084f1a4800
+[75920.337849] FS:  0000000000000000(0000) GS:ffff88085f400000(0000) knlGS:0000000000000000
+[75920.347450] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[75920.354405] CR2: 00007f9e4b3d9000 CR3: 0000000001c09000 CR4: 00000000001406f0
+[75920.362947] Call Trace:
+[75920.366257]  ? ib_mad_recv_done+0x258/0x9b0 [ib_core]
+[75920.372457]  ? ib_mad_recv_done+0x258/0x9b0 [ib_core]
+[75920.378652]  ? __kmalloc+0x1df/0x210
+[75920.383229]  ib_mad_recv_done+0x305/0x9b0 [ib_core]
+[75920.389270]  __ib_process_cq+0x5d/0xb0 [ib_core]
+[75920.395032]  ib_cq_poll_work+0x20/0x60 [ib_core]
+[75920.400777]  process_one_work+0x149/0x360
+[75920.405836]  worker_thread+0x4d/0x3c0
+[75920.410505]  kthread+0x109/0x140
+[75920.414681]  ? rescuer_thread+0x380/0x380
+[75920.419731]  ? kthread_park+0x60/0x60
+[75920.424406]  ret_from_fork+0x25/0x30
+[75920.428972] Code: 4c 89 9d 58 ff ff ff 49 89 45 00 66 b8 00 02 49 89 45 08 e8 44 27 89 e0 4c 8b 9d 58 ff ff ff e9 d8 f6 ff ff 0f ff e9 55 e7 ff ff <0f> ff e9 3b e5 ff ff 0f ff 0f 1f 84 00 00 00 00 00 e9 4b e9 ff
+[75921.451269] ---[ end trace cf26df27c9597265 ]---
 
 Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.14.x
 Fixes: 62ede7779904 ("Add OPA extended LID support")
@@ -61,31 +63,34 @@ Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@pub
 Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/user_mad.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/hfi1/mad.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index c1696e6..603acaf 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -229,7 +229,16 @@ static void recv_handler(struct ib_mad_agent *agent,
- 	packet->mad.hdr.status	   = 0;
- 	packet->mad.hdr.length	   = hdr_size(file) + mad_recv_wc->mad_len;
- 	packet->mad.hdr.qpn	   = cpu_to_be32(mad_recv_wc->wc->src_qp);
--	packet->mad.hdr.lid	   = ib_lid_be16(mad_recv_wc->wc->slid);
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index f4c0ffc..07b80fa 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -4293,7 +4293,6 @@ static int opa_local_smp_check(struct hfi1_ibport *ibp,
+ 			       const struct ib_wc *in_wc)
+ {
+ 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+-	u16 slid = ib_lid_cpu16(in_wc->slid);
+ 	u16 pkey;
+ 
+ 	if (in_wc->pkey_index >= ARRAY_SIZE(ppd->pkeys))
+@@ -4320,7 +4319,11 @@ static int opa_local_smp_check(struct hfi1_ibport *ibp,
+ 	 */
+ 	if (pkey == LIM_MGMT_P_KEY || pkey == FULL_MGMT_P_KEY)
+ 		return 0;
+-	ingress_pkey_table_fail(ppd, pkey, slid);
 +	/*
 +	 * On OPA devices it is okay to lose the upper 16 bits of LID as this
 +	 * information is obtained elsewhere. Mask off the upper 16 bits.
 +	 */
-+	if (agent->device->port_immutable[agent->port_num].core_cap_flags &
-+	    RDMA_CORE_PORT_INTEL_OPA)
-+		packet->mad.hdr.lid = ib_lid_be16(0xFFFF &
-+						  mad_recv_wc->wc->slid);
-+	else
-+		packet->mad.hdr.lid = ib_lid_be16(mad_recv_wc->wc->slid);
- 	packet->mad.hdr.sl	   = mad_recv_wc->wc->sl;
- 	packet->mad.hdr.path_bits  = mad_recv_wc->wc->dlid_path_bits;
- 	packet->mad.hdr.pkey_index = mad_recv_wc->wc->pkey_index;
++	ingress_pkey_table_fail(ppd, pkey, ib_lid_cpu16(0xFFFF & in_wc->slid));
+ 	return 1;
+ }
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
