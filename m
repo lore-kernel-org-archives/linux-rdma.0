@@ -1,67 +1,37 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 0/6] IB/hfi1, qib, cm, sa: Last set for 4.15
- merge window
-Date: Wed, 29 Nov 2017 13:43:03 -0500
-Message-ID: <0b5b45ef-9a05-7c89-7926-27d097bae68e@intel.com>
-References: <20171114122859.10579.79788.stgit@scvm10.sc.intel.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH 2/2] IB/hfi1: Do not warn on lid conversions for OPA
+Date: Wed, 29 Nov 2017 11:43:24 -0700
+Message-ID: <20171129184324.GF4011@ziepe.ca>
+References: <20171129125943.31113.29038.stgit@phlsvslse11.ph.intel.com>
+ <20171129125948.31113.59826.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171114122859.10579.79788.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20171129125948.31113.59826.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jan Sokolowski <jan.sokolowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Venkata Sandeep Dhanalakota <venkata.s.dhanalakota-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-commits-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/14/2017 7:34 AM, Dennis Dalessandro wrote:
-> Hi Doug,
+On Wed, Nov 29, 2017 at 07:59:49AM -0500, Mike Marciniszyn wrote:
+> From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> Here is the latest set of patches I have that we'd like to land in 4.15. There
-> are some driver fixes, including a qib that is marked as stable. We also have
-> a CM and SA patch thrown in the mix.
+> Upstream commit 4988be5813ff2afdc0d8bfa315ef34a577d3efbf.
 > 
-> As always patches available for browsing at:
-> https://github.com/ddalessa/kernel/tree/for-4.15
-> 
-> ---
-> 
-> Dennis Dalessandro (1):
->        IB/hfi1: Initialize bth1 in 16B rc ack builder
+> On OPA devices opa_local_smp_check will receive 32Bit LIDs when the LID
+> is Extended. In such cases, it is okay to lose the upper 16 bits of the
+> LID as this information is obtained elsewhere. Do not issue a warning
+> when calling ib_lid_cpu16() in this case by masking out the upper 16Bits.
 
-This is probably the only one that really needs to go for the rc. The 
-rest can push off till 4.16 I think. This is trivial and prevents use of 
-an uninitialized variable.
+The concept for the 32 bit lids was to keep it 32 bit inside the
+kernel, ingress_key_table_fail puts the lid into
+err_info_constraint.slid which is already 32 bits, so this cannot be
+the right place for this.
 
-> Don Hiatt (2):
->        IB/hfi1: Mask the path bits with the LMC for 16B RC Acks
->        IB/CM: Change sgid to IB GID when handling CM request
+These truncations should only appear at the uapi boundary.
 
-These two fix problems introduced in 4.13
-
-> Jan Sokolowski (1):
->        IB/hfi1: Use 4096 for default active MTU in query_qp
-
-This is not a critical bug fix.
-
-> Mike Marciniszyn (1):
->        IB/qib: Fix comparison error with qperf compare/swap test
-
-This one is an older bug in qib.
-
-> Venkata Sandeep Dhanalakota (1):
->        IB/SA: Check dlid before SA agent queries for ClassPortInfo
-
-Still under discussion/rework.
-
-Jason, if you want to pull:
-https://patchwork.kernel.org/patch/10057487/
-for the -rc I can submit a v2 of the other 5 once Sandeep's rework is ready.
-
--Denny
-
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
