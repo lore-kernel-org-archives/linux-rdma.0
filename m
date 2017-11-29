@@ -1,151 +1,101 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-rc v2] IB/core: Only enforce security for InfiniBand
-Date: Wed, 29 Nov 2017 07:11:15 +0200
-Message-ID: <20171129051115.GS29104@mtr-leonro.local>
-References: <20171127112554.29666-1-leon@kernel.org>
- <bd207403-a03f-5ced-7f44-6294c5a3ac8e@redhat.com>
- <47653af5-68af-0aa1-e811-0d6d42935648@mellanox.com>
- <16d5d4c2-ea9e-765a-b0b7-a867c6a757d6@redhat.com>
- <71158cbc-030c-41f7-5ee9-d930bb6c4849@redhat.com>
- <69c9bc09-7d95-3fef-f1c9-487b34af8300@mellanox.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: Issue with IB/ipoib: Remove device when one port fails to init
+Date: Wed, 29 Nov 2017 07:16:26 +0200
+Message-ID: <20171129051626.GT29104@mtr-leonro.local>
+References: <20171108140645.GA5683@yuvallap>
+ <03848fab-3c72-681e-e32f-14560a84f59a@mellanox.com>
+ <VI1PR0502MB36143F956ACD3518BC13C9CFB6560@VI1PR0502MB3614.eurprd05.prod.outlook.com>
+ <20171108161356.GC6935@yuvallap>
+ <20171109113923.GB2949@yuvallap>
+ <VI1PR0502MB3614A65D0F63E0CDBBD00EF6B6570@VI1PR0502MB3614.eurprd05.prod.outlook.com>
+ <20171109172112.GA3726@yuvallap>
+ <AM4PR0501MB19723DE7524AA90DC8A2C111C33A0@AM4PR0501MB1972.eurprd05.prod.outlook.com>
+ <20171128190345.GB2640@yuvallap>
+ <20171128210012.GE21325@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="e8/wErwm0bqugfcz"
-Return-path: <stable-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="mvuFargmsA+C2jC8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <69c9bc09-7d95-3fef-f1c9-487b34af8300@mellanox.com>
-Sender: stable-owner@vger.kernel.org
-To: Daniel Jurgens <danielj@mellanox.com>
-Cc: Don Dutile <ddutile@redhat.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, linux-rdma@vger.kernel.org, Paul Moore <paul@paul-moore.com>, stable@vger.kernel.org
+In-Reply-To: <20171128210012.GE21325-uk2M96/98Pc@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---e8/wErwm0bqugfcz
-Content-Type: text/plain; charset=iso-8859-1
+--mvuFargmsA+C2jC8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 28, 2017 at 03:03:39PM -0600, Daniel Jurgens wrote:
-> On 11/28/2017 2:38 PM, Don Dutile wrote:
-> > On 11/27/2017 06:28 PM, Don Dutile wrote:
-> >> On 11/27/2017 05:58 PM, Daniel Jurgens wrote:
-> >>> On 11/27/2017 4:03 PM, Don Dutile wrote:
-> >>>> On 11/27/2017 06:25 AM, Leon Romanovsky wrote:
-> >>>>> From: Daniel Jurgens <danielj@mellanox.com>
-> >>>>>
-> >>>>>
-> >>>>> -=A0=A0=A0 if (pps_change && !special_qp) {
-> >>>>> +=A0=A0=A0 if (pps_change && !special_qp && real_qp->qp_sec) {
-> >>>>> =A0=A0=A0=A0=A0=A0=A0=A0 mutex_lock(&real_qp->qp_sec->mutex);
-> >>>>> =A0=A0=A0=A0=A0=A0=A0=A0 new_pps =3D get_new_pps(real_qp,
-> >>>>> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =
-qp_attr,
-> >>>>> @@ -600,7 +627,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
-> >>>>> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0 qp_attr_mask,
-> >>>>> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0 udata);
-> >>>>>
-> >>>>> -=A0=A0=A0 if (pps_change && !special_qp) {
-> >>>>> +=A0=A0=A0 if (pps_change && !special_qp && real_qp->qp_sec) {
-> >>>>> =A0=A0=A0=A0=A0=A0=A0=A0 /* Clean up the lists and free the appropr=
-iate
-> >>>>> =A0=A0=A0=A0=A0=A0=A0=A0=A0 * ports_pkeys structure.
-> >>>>> =A0=A0=A0=A0=A0=A0=A0=A0=A0 */
-> >>>>>
-> >>>> This patch breaks the kernel build on RHEL b/c it generates
-> >>>> a warning in the second if (pps_change && !special_qp && real_qp->qp=
-_sec) {}
-> >>>> that new_pps may not be assigned. ... build warnings in RHEL kernel =
-=3D=3D build failure (on x86).
-> >>>>
-> >>>> That's b/c the patch adds real_qp->qp_sec to if's conditions,
-> >>>> and=A0 the compiler cannot determine if real_qp->qp_sec cannot be mo=
-dified
-> >>>> between the first check like it, above, which sets the value of new_=
-pps,
-> >>>> and the second check that uses it, because real_qp is passed into th=
-e device->modify()
-> >>>> function call btwn those two if() check's.
-> >>>>
-> >>>> The code needs to do something like this in the first if-check:
-> >>>> =A0=A0 .....
-> >>>> bool new_pps_gotten =3D false;
-> >>>> =A0=A0 ....
-> >>>>
-> >>>> if (pps_change && !special_qp && real_qp->qp_sec) {
-> >>>> =A0=A0=A0 mutex_lock(&real_qp->qp_sec->mutex);
-> >>>> =A0=A0=A0 new_pps =3D get_new_pps(real_qp,
-> >>>> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 qp_attr,
-> >>>> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 qp_attr_mask);
-> >>>> =A0=A0=A0 new_pps_gotten =3D true;
-> >>>> =A0=A0=A0=A0=A0=A0=A0 ....
-> >>>> }
-> >>>> =A0=A0=A0=A0 ....
-> >>>>
-> >>>> and change the second if check to be:
-> >>>>
-> >>>> if (new_pps_gotten) {
-> >>>> =A0=A0=A0 * Clean up the lists and free the appropriate
-> >>>> =A0=A0=A0=A0 .....
-> >>>>
-> >>>
-> >>> Thanks Don, I think it's better to initialize new_pps to NULL, vs int=
-roducing a new variable. Also, there needs to be a check of new_pps after g=
-etting it.
-> >>>
-> >> yup, I considered that as well.
-> >> wasn't sure if lockdep checking code would not like the fact that a mu=
-tex_lock() could be taken,
-> >> but if new_pps =3D=3D NULL after the get call(it may always succeed, b=
-ut an analyzer may not conclude the same),
-> >> that the mutex_unlock() wouldn't be called.
-> >>
-> >> the double, same-condition if-check with the fcn call in btwn seems li=
-ke it ought to be
-> >> restructured differently so the mutex lock/unlock pairs are contained =
-neatly in a single if-clause,
-> >> and the new_pps alloc & use would be similarly containted.
-> >>
-> >> -dd
-> >>
-> >> -
-> > Is someone doing a v3? I didn't see an email today w/another patch vers=
-ion.
-> > ... at least I wasn't directly cc'd on one anyhow... off to check linux=
--rdma folder...
-> > nothing there... and I don't find a v3 in Leon's tree either.
+On Tue, Nov 28, 2017 at 02:00:12PM -0700, Jason Gunthorpe wrote:
+> On Tue, Nov 28, 2017 at 09:03:46PM +0200, Yuval Shaia wrote:
+>
+> > I agree that patch as it is now does not really handle the case where one
+> > port fails so it needs to be fixed.
 > >
-> >
-> I sent a fix-up patch to Leon, but it seems he didn't get to it today. I'=
-ll resend this afternoon.
+> > The thing is that from your perspective the idea itself is wrong, i.e. if
+> > one (of for example two ports) fails the driver needs to continue and serve
+> > the other port and just print error message.
+>
+> On this point, I think if ports are completely independent at the ipoib
+> layer then they should not become linked during the add process.
+>
+> ie if a port is working and a second port fails then it should not
+> kill the first port.
+>
+> However, it is unfortunate we have no recovery from this case at all.
+>
+> Alex V: However, why is the current behavior a problem? Is this
+> because of a dual port card with IB and ROCE concurrently? And the
+> add 'fails' the ROCE port even though it isn't even really a failure?
+> We certainly shouldn't print in that case..
 
-Thanks Daniel for handling this.
+It is a problem for one port cards too, i see such print on my system:
+root@mtr-leonro:~# dmesg |grep Fail
+[    7.785329] Failed to init port, removing it
+root@mtr-leonro:~# /mnt/iproute2/rdma/rdma link
+1/1: mlx5_0/1: subnet_prefix fe80:0000:0000:0000 lid 13399 sm_lid 49151
+lmc 0 state ACTIVE physical_state LINK_UP
+2/1: mlx5_1/1: subnet_prefix fe80:0000:0000:0000 lid 13400 sm_lid 49151
+lmc 0 state ACTIVE physical_state LINK_UP
+3/1: mlx5_2/1: subnet_prefix fe80:0000:0000:0000 lid 13401 sm_lid 49151
+lmc 0 state ACTIVE physical_state LINK_UP
+4/1: mlx5_3/1: state DOWN physical_state DISABLED
+5/1: mlx5_4/1: subnet_prefix fe80:0000:0000:0000 lid 13403 sm_lid 49151
+lmc 0 state ACTIVE physical_state LINK_UP
+
+Thanks
 
 >
+> Jason
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---e8/wErwm0bqugfcz
+--mvuFargmsA+C2jC8
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloeQXIACgkQ5GN7iDZy
-WKcfYQ/9E+O4UpTFR9rinkFTb2oYv8fX9xZvd2tsR/CwcSHHnRIL5PbCS58S7a9x
-UYr34XYeDI45iIi8FZv4Mz7HEbknIduSqlBIb7EwyV5+TpIi0xiicT21uUhCz5qy
-jAe6CssbPQug3ZDP+xEYX+atijKAn9/5zyz+N3NzV6IciEdmkGW/dwD3WB1tcjVE
-s7Y4b9AEhp8g/biq18jNssDqpQp6heeYuQXzkU408T3CyuNfDrC5BODz0D1H5bF4
-NJDsToWDjeIZ7BMlcyBDQacK896FoOBKWFTyQs9pa6w9M1THyf2zM0HeAmj3sa4O
-SPNvH8OCRVnnw2/a/y6snTSGChiC727MeOs1zNCdtxH0xwV2J6fQ/GzfALZUf53m
-MDfoVYPIBUexhAeSq+tRbzflXBJanr0RS9j0SVFPxcbg22haIaKUJdF06hIkzbdd
-97/u4rrs3YpZ+HlvuDJyUiuC1FqwclBTFWj9/I7mby8JWCBke7/k6adjU5RznwkZ
-CmK1yqVQZvkXkTY+T/WfqZOLakpO3OheS1HQQ25LybrfmvcnlNi727ba0q7lCn8L
-7r9Ez/PXs+QZk7spbf4gMdk5nbw+7nXpmvwDwF+7GYMdXWzLTA1jiW+ravqEJ0lx
-mtQRXs/ZpomoKHf34iormgBQm6SFtWD4EvvwOsQMmMFFXJWsBlM=
-=kLj5
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloeQqoACgkQ5GN7iDZy
+WKfN5g/+Lljuh2oGRq3F2+L+4OiZ4QFnAD+kV7ChSG+UW8NRC0vm28R10p56+2R4
+5FGk/J4HVtdNY99HUWtvsOOUxSeJsGyvYGO+iPB00XZJds1/3vTVaipCDZWpahyq
+k6O8WXaiBBeG19Yv7ORxfTILbVgjFT+7eInEOe5yyjO/8fOqfuvI8oZbGXa+UO/x
+tIXuTGOkMwQfMDVHmSJqVwQrdt490DLCSY0079Znc4jDlZMFbSnzesFCjr6eneJc
+2HJKFCICaP6sZ4c9y7i8ivMO+NvcoPFnFrFBpjKS1u1jg/+IBRTAZ755d3GSYmkt
+OyyiSGWMvP1KH/eQ9cYgAaoTQlz7yD2znbwWtT+UvLbc1zdWB5jFspPwFdiwBn3l
+x7lVcqhBmM0hAuhCbH12R1mXTD+Mi1dncyC2rBsayWsKyBzTrFWbf0/Id+nC3AsL
+rj3iJYZ0U5IC1hgHa7gsyo5HS+fXnmfT1QEc0zxQR+XiocT26+5nGx2TiZimI5vb
+uWkKSUDKr+zX1Qvz020U+BCVcpNIeQr+jGWRqpSWftiYR43xWecRE0LWKRTa8Tjq
+wUpISy+evoifN+B0yZy3o6NA2T0HWWxwS7jDwyNU1oM9jc01myYZKDOqGlFoZWXT
+N4mxLAEbEbxwYSBml9piu8F2for0Yas1sM9iMX9M6JgFsHrXPnQ=
+=dmJo
 -----END PGP SIGNATURE-----
 
---e8/wErwm0bqugfcz--
+--mvuFargmsA+C2jC8--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
