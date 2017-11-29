@@ -1,168 +1,117 @@
-From: Yanjun Zhu <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next] IB/ipoib: Replace printk with pr_warn
-Date: Wed, 29 Nov 2017 17:29:23 +0800
-Message-ID: <2dc6b60d-837b-45c1-376f-d858d51b6b6d@oracle.com>
-References: <20171129092429.10293-1-yuval.shaia@oracle.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] ib: Init subsystems if compiled to vmlinuz-core
+Date: Wed, 29 Nov 2017 11:47:03 +0200
+Message-ID: <20171129094703.GW29104@mtr-leonro.local>
+References: <20171129090949.27602-1-dmonakhov@openvz.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="+S4DbcR7QPeSsP0V"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171129092429.10293-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20171129090949.27602-1-dmonakhov-GEFAQzZX7r8dnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dmitry Monakhov <dmonakhov-GEFAQzZX7r8dnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+--+S4DbcR7QPeSsP0V
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 2017/11/29 17:24, Yuval Shaia wrote:
-> pr_* is the preferred way to print messages, replace all
-> printk(KERN_WARN, ...) with pr_warn.
+On Wed, Nov 29, 2017 at 09:09:49AM +0000, Dmitry Monakhov wrote:
+> Once infiniband was compiled as core component it's subsystems must be
+> enabled before device initialization. Otherwise this result NULL pointer
+> dereference during mlx4_core init, calltrace:
+> ->device_add
+>   if (dev->class) {
+>      deref  dev->class->p =>NULLPTR
 >
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> #Config
+> CONFIG_NET_DEVLINK=y
+> CONFIG_MAY_USE_DEVLINK=y
+> CONFIG_MLX4_EN=y
+>
+> Signed-off-by: Dmitry Monakhov <dmonakhov-GEFAQzZX7r8dnm+yROfE0A@public.gmane.org>
 > ---
->   drivers/infiniband/ulp/ipoib/ipoib_cm.c    |  8 ++++----
->   drivers/infiniband/ulp/ipoib/ipoib_main.c  | 23 +++++++++++------------
->   drivers/infiniband/ulp/ipoib/ipoib_verbs.c |  6 +++---
->   3 files changed, 18 insertions(+), 19 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> index 87f4bd99cdf7..c0a596e4c258 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> @@ -876,7 +876,7 @@ int ipoib_cm_dev_open(struct net_device *dev)
->   
->   	priv->cm.id = ib_create_cm_id(priv->ca, ipoib_cm_rx_handler, dev);
->   	if (IS_ERR(priv->cm.id)) {
-> -		printk(KERN_WARNING "%s: failed to create CM ID\n", priv->ca->name);
-> +		pr_warn("%s: failed to create CM ID\n", priv->ca->name);
->   		ret = PTR_ERR(priv->cm.id);
->   		goto err_cm;
->   	}
-> @@ -884,8 +884,8 @@ int ipoib_cm_dev_open(struct net_device *dev)
->   	ret = ib_cm_listen(priv->cm.id, cpu_to_be64(IPOIB_CM_IETF_ID | priv->qp->qp_num),
->   			   0);
->   	if (ret) {
-> -		printk(KERN_WARNING "%s: failed to listen on ID 0x%llx\n", priv->ca->name,
-> -		       IPOIB_CM_IETF_ID | priv->qp->qp_num);
-> +		pr_warn("%s: failed to listen on ID 0x%llx\n", priv->ca->name,
-> +			IPOIB_CM_IETF_ID | priv->qp->qp_num);
->   		goto err_listen;
->   	}
->   
-> @@ -1562,7 +1562,7 @@ static void ipoib_cm_create_srq(struct net_device *dev, int max_sge)
->   	priv->cm.srq = ib_create_srq(priv->pd, &srq_init_attr);
->   	if (IS_ERR(priv->cm.srq)) {
->   		if (PTR_ERR(priv->cm.srq) != -ENOSYS)
-> -			printk(KERN_WARNING "%s: failed to allocate SRQ, error %ld\n",
-> +			pr_warn("%s: failed to allocate SRQ, error %ld\n",
->   			       priv->ca->name, PTR_ERR(priv->cm.srq));
->   		priv->cm.srq = NULL;
->   		return;
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index 12b7f911f0e5..6930ee0d63cf 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -1663,8 +1663,8 @@ static int ipoib_dev_init_default(struct net_device *dev)
->   
->   	priv->tx_ring = vzalloc(ipoib_sendq_size * sizeof *priv->tx_ring);
->   	if (!priv->tx_ring) {
-> -		printk(KERN_WARNING "%s: failed to allocate TX ring (%d entries)\n",
-> -		       priv->ca->name, ipoib_sendq_size);
-> +		pr_warn("%s: failed to allocate TX ring (%d entries)\n",
-> +			priv->ca->name, ipoib_sendq_size);
->   		goto out_rx_ring_cleanup;
->   	}
->   
-> @@ -2204,8 +2204,7 @@ static struct net_device *ipoib_add_port(const char *format,
->   
->   	result = ib_query_port(hca, port, &attr);
->   	if (result) {
-> -		printk(KERN_WARNING "%s: ib_query_port %d failed\n",
-> -		       hca->name, port);
-> +		pr_warn("%s: ib_query_port %d failed\n", hca->name, port);
->   		goto device_init_failed;
->   	}
->   
-> @@ -2220,8 +2219,8 @@ static struct net_device *ipoib_add_port(const char *format,
->   
->   	result = ib_query_pkey(hca, port, 0, &priv->pkey);
->   	if (result) {
-> -		printk(KERN_WARNING "%s: ib_query_pkey port %d failed (ret = %d)\n",
-> -		       hca->name, port, result);
-> +		pr_warn("%s: ib_query_pkey port %d failed (ret = %d)\n",
-> +			hca->name, port, result);
->   		goto device_init_failed;
->   	}
->   
-> @@ -2238,8 +2237,8 @@ static struct net_device *ipoib_add_port(const char *format,
->   
->   	result = ib_query_gid(hca, port, 0, &priv->local_gid, NULL);
->   	if (result) {
-> -		printk(KERN_WARNING "%s: ib_query_gid port %d failed (ret = %d)\n",
-> -		       hca->name, port, result);
-> +		pr_warn("%s: ib_query_gid port %d failed (ret = %d)\n",
-> +			hca->name, port, result);
->   		goto device_init_failed;
->   	}
->   
-> @@ -2249,8 +2248,8 @@ static struct net_device *ipoib_add_port(const char *format,
->   
->   	result = ipoib_dev_init(priv->dev, hca, port);
->   	if (result) {
-> -		printk(KERN_WARNING "%s: failed to initialize port %d (ret = %d)\n",
-> -		       hca->name, port, result);
-> +		pr_warn("%s: failed to initialize port %d (ret = %d)\n",
-> +			hca->name, port, result);
->   		goto device_init_failed;
->   	}
->   
-> @@ -2260,8 +2259,8 @@ static struct net_device *ipoib_add_port(const char *format,
->   
->   	result = register_netdev(priv->dev);
->   	if (result) {
-> -		printk(KERN_WARNING "%s: couldn't register ipoib port %d; error %d\n",
-> -		       hca->name, port, result);
-> +		pr_warn("%s: couldn't register ipoib port %d; error %d\n",
-> +			hca->name, port, result);
->   		goto register_failed;
->   	}
->   
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-> index a1ed25422b72..984a88096f39 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-> @@ -178,7 +178,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
->   	priv->recv_cq = ib_create_cq(priv->ca, ipoib_ib_rx_completion, NULL,
->   				     priv, &cq_attr);
->   	if (IS_ERR(priv->recv_cq)) {
-> -		printk(KERN_WARNING "%s: failed to create receive CQ\n", ca->name);
-> +		pr_warn("%s: failed to create receive CQ\n", ca->name);
->   		goto out_cm_dev_cleanup;
->   	}
->   
-> @@ -187,7 +187,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
->   	priv->send_cq = ib_create_cq(priv->ca, ipoib_ib_tx_completion, NULL,
->   				     priv, &cq_attr);
->   	if (IS_ERR(priv->send_cq)) {
-> -		printk(KERN_WARNING "%s: failed to create send CQ\n", ca->name);
-> +		pr_warn("%s: failed to create send CQ\n", ca->name);
->   		goto out_free_recv_cq;
->   	}
->   
-> @@ -208,7 +208,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
->   
->   	priv->qp = ib_create_qp(priv->pd, &init_attr);
->   	if (IS_ERR(priv->qp)) {
-> -		printk(KERN_WARNING "%s: failed to create QP\n", ca->name);
-> +		pr_warn("%s: failed to create QP\n", ca->name);
->   		goto out_free_send_cq;
->   	}
->   
-Reviewed-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>  drivers/infiniband/core/cm.c        | 2 +-
+>  drivers/infiniband/core/device.c    | 2 +-
+>  drivers/infiniband/ulp/srp/ib_srp.c | 2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
 
-Thanks a lot.
-Zhu Yanjun
+First please follow submission rules (patch versioning and changelog)
+and second, I have hard time to believe that those changes in CM and SRP
+are really needed.
+
+Can you please provide actual kernel panic *without* any changes to init
+sequences?
+
+Thanks
+
+>
+> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+> index 4c4b465..1012fd8 100644
+> --- a/drivers/infiniband/core/cm.c
+> +++ b/drivers/infiniband/core/cm.c
+> @@ -4370,6 +4370,6 @@ static void __exit ib_cm_cleanup(void)
+>  	idr_destroy(&cm.local_id_table);
+>  }
+>
+> -module_init(ib_cm_init);
+> +subsys_initcall(ib_cm_init);
+>  module_exit(ib_cm_cleanup);
+>
+> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+> index 84fc32a..5e1be49 100644
+> --- a/drivers/infiniband/core/device.c
+> +++ b/drivers/infiniband/core/device.c
+> @@ -1253,5 +1253,5 @@ static void __exit ib_core_cleanup(void)
+>
+>  MODULE_ALIAS_RDMA_NETLINK(RDMA_NL_LS, 4);
+>
+> -module_init(ib_core_init);
+> +subsys_initcall(ib_core_init);
+>  module_exit(ib_core_cleanup);
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+> index fa5ccdb..0c21a71 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -3785,5 +3785,5 @@ static void __exit srp_cleanup_module(void)
+>  	destroy_workqueue(srp_remove_wq);
+>  }
+>
+> -module_init(srp_init_module);
+> +subsys_initcall(srp_init_module);
+>  module_exit(srp_cleanup_module);
+> --
+> 1.8.3.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--+S4DbcR7QPeSsP0V
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAloeghcACgkQ5GN7iDZy
+WKf6KQ//UHB4Zvcom/tqISTsB7HPp9z1d59TWhSK+AOisjN/W2eLq1BricZVlM+m
+410/7s7qAOoDOtMxfLO676vAtNlGKY8bz2ZM0bsUD1tCgAf8IrozCj9Zfn6mvLhr
+s96nLOY0gy4LuEKvt+4KCPnR3nBHdKg9TeoNzECdmgd0ezIBbqaouhXL5qSAS8q9
+R9WQF/b6t+9+yjpkZm9iYUVANoLZ5VrapANgI5n5zECjnLaoYQe7aZplGp3qnlW8
+Dv1FUZEG62jCUYlUAj2zwgL2VMplF9JaUQTj0Jw8tbGHKnfvVMML/2e0Ad+pgWTP
+X2Jclhv7UPw5mzZc3A1F3Xu/4dEZ54Ix4VJVaWmxV2+PItNsf8Lwl0IxMlLZe9n/
+fWoylIjLZHzxkoLmsz4fC6PohL/PtvX08xHK2UVPLYwxhLYGE0mFQYfiPPSMNobS
+KjbVtovs3QBqyArUybUaJe4haio++byN+zXrxS+/aqnYw/vC/el9To6css884U5t
+ycGhI1+it4Pm8ZdVv0hTBOVxNgSZDK4/QZ8fG9NNMAD1ong2C+Bt8npVvlwvU+ie
+hCQ6mlPEM1nGHEsQ22v+znrX31bpqYJZVjuVXzxJ9CXfIL1J1nvLX531HOKm11Tv
+islvGoBCVhu8VEZMBtrNBeGRrCoqp34JUEI7+Ahks6ToypnNn0U=
+=96n6
+-----END PGP SIGNATURE-----
+
+--+S4DbcR7QPeSsP0V--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
