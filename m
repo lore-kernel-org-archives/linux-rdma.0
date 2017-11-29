@@ -1,55 +1,120 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v3 4/4] IB/core: disable memory registration of
- fileystem-dax vmas
-Date: Wed, 29 Nov 2017 10:05:51 -0800
-Message-ID: <151197875158.26211.7203330105253426435.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151197872943.26211.6551382719053304996.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH 1/2] IB/core: Do not warn on lid conversions for OPA
+Date: Wed, 29 Nov 2017 18:17:28 +0000
+Message-ID: <VI1PR0502MB30086F9ADA549CD6C6F550AFD13B0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20171129125943.31113.29038.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <151197872943.26211.6551382719053304996.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, stable@vger.kernel.org, hch@lst.de, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-mm@kvack.org, Doug Ledford <dledford@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171129125943.31113.29038.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-commits-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-commits-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Until there is a solution to the dma-to-dax vs truncate problem it is
-not safe to allow RDMA to create long standing memory registrations
-against filesytem-dax vmas.
-
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: <linux-rdma@vger.kernel.org>
-Cc: <stable@vger.kernel.org>
-Fixes: 3565fce3a659 ("mm, x86: get_user_pages() for dax mappings")
-Reported-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/infiniband/core/umem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 21e60b1e2ff4..130606c3b07c 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -191,7 +191,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 	sg_list_start = umem->sg_head.sgl;
- 
- 	while (npages) {
--		ret = get_user_pages(cur_base,
-+		ret = get_user_pages_longterm(cur_base,
- 				     min_t(unsigned long, npages,
- 					   PAGE_SIZE / sizeof (struct page *)),
- 				     gup_flags, page_list, vma_list);
-
+SGkgTWlrZSwNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1y
+ZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJkbWEtDQo+IG93bmVyQHZn
+ZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIE1pa2UgTWFyY2luaXN6eW4NCj4gU2VudDogV2Vk
+bmVzZGF5LCBOb3ZlbWJlciAyOSwgMjAxNyA3OjAwIEFNDQo+IFRvOiBzdGFibGVAdmdlci5rZXJu
+ZWwub3JnDQo+IENjOiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgc3RhYmxlLWNvbW1pdHNA
+dmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFtQQVRDSCAxLzJdIElCL2NvcmU6IERvIG5vdCB3
+YXJuIG9uIGxpZCBjb252ZXJzaW9ucyBmb3IgT1BBDQo+IA0KPiBGcm9tOiBEb24gSGlhdHQgPGRv
+bi5oaWF0dEBpbnRlbC5jb20+DQo+IA0KPiBVcHN0cmVhbSBjb21taXQgNjU4OGU0MTJmZTg3MmVk
+ODFmM2ZiOGQ5YjQ1NjFhNjZlY2I3NjNkMC4NCj4gDQo+IE9uIE9QQSBkZXZpY2VzIHRoZSB1c2Vy
+X21hZCByZWN2X2hhbmRsZXIgY2FuIHJlY2VpdmUgMzJCaXQgTElEcyAoZS5nLg0KPiBPUEFfUEVS
+TUlTU0lWRV9MSUQpIGFuZCBpdCBpcyBva2F5IHRvIGxvc2UgdGhlIHVwcGVyIDE2IGJpdHMgb2Yg
+dGhlIExJRCBhcyB0aGlzDQo+IGluZm9ybWF0aW9uIGlzIG9idGFpbmVkIGVsc2V3aGVyZS4gRG8g
+bm90IGlzc3VlIGEgd2FybmluZyB3aGVuIGNhbGxpbmcNCj4gaWJfbGlkX2JlMTYoKSBpbiB0aGlz
+IGNhc2UgYnkgbWFza2luZyBvdXQgdGhlIHVwcGVyIDE2Qml0cy4NCj4gDQo+IFs3NTY2Ny4zMTA4
+NDZdIC0tLS0tLS0tLS0tLVsgY3V0IGhlcmUgXS0tLS0tLS0tLS0tLSBbNzU2NjcuMzE2NDQ3XSBX
+QVJOSU5HOg0KPiBDUFU6IDAgUElEOiAxNzE4IGF0IC4vaW5jbHVkZS9yZG1hL2liX3ZlcmJzLmg6
+Mzc5OSByZWN2X2hhbmRsZXIrMHgxNWEvMHgxNzANCj4gW2liX3VtYWRdIFs3NTY2Ny4zMjc2NDBd
+IE1vZHVsZXMgbGlua2VkIGluOiBpYl9pcG9pYiBoZmkxKEUpIHJkbWF2dChFKQ0KPiByZG1hX3Vj
+bShFKSBpYl91Y20oRSkgcmRtYV9jbShFKSBpYl9jbShFKSBpd19jbShFKSBpYl91bWFkKEUpIGli
+X3V2ZXJicyhFKQ0KPiBpYl9jb3JlKEUpIGxpYmlzY3NpIHNjc2lfdHJhbnNwb3J0X2lzY3NpIGRt
+X21pcnJvciBkbV9yZWdpb25faGFzaCBkbV9sb2cNCj4gZG1fbW9kIGRheCB4ODZfcGtnX3RlbXBf
+dGhlcm1hbCBpbnRlbF9wb3dlcmNsYW1wIGNvcmV0ZW1wIGt2bQ0KPiBpcnFieXBhc3MgY3JjdDEw
+ZGlmX3BjbG11bCBjcmMzMl9wY2xtdWwgZ2hhc2hfY2xtdWxuaV9pbnRlbCBwY2JjIGFlc25pX2lu
+dGVsDQo+IG1laV9tZSBpcG1pX3NpIGlUQ09fd2R0IGlUQ09fdmVuZG9yX3N1cHBvcnQgY3J5cHRv
+X3NpbWQgaXBtaV9kZXZpbnRmDQo+IHBjc3BrciBtZWkgc2cgaTJjX2k4MDEgZ2x1ZV9oZWxwZXIg
+bHBjX2ljaCBzaHBjaHAgaW9hdGRtYSBtZmRfY29yZSB3bWkNCj4gaXBtaV9tc2doYW5kbGVyIGNy
+eXB0ZCBhY3BpX3Bvd2VyX21ldGVyIGFjcGlfcGFkIG5mc2QgYXV0aF9ycGNnc3MgbmZzX2FjbA0K
+PiBsb2NrZCBncmFjZSBzdW5ycGMgaXBfdGFibGVzIHhmcyBsaWJjcmMzMmMgc2RfbW9kIG1nYWcy
+MDAgZHJtX2ttc19oZWxwZXINCj4gc3lzY29weWFyZWEgc3lzZmlsbHJlY3Qgc3lzaW1nYmx0IGZi
+X3N5c19mb3BzIHR0bSBkcm0gaWdiIHB0cCBhaGNpIGxpYmFoY2kNCj4gcHBzX2NvcmUgY3JjMzJj
+X2ludGVsIGxpYmF0YSBkY2EgaTJjX2FsZ29fYml0IGkyY19jb3JlIFtsYXN0IHVubG9hZGVkOiBp
+Yl9jb3JlXQ0KPiBbNzU2NjcuNDA3NzA0XSBDUFU6IDAgUElEOiAxNzE4IENvbW06IGt3b3JrZXIv
+MDoxSCBUYWludGVkOiBHICAgICAgICBXIEkgRQ0KPiA0LjEzLjAtcmM3KyAjMQ0KPiBbNzU2Njcu
+NDE3MzEwXSBIYXJkd2FyZSBuYW1lOiBJbnRlbCBDb3Jwb3JhdGlvbiBTMjYwMFdUMi9TMjYwMFdU
+MiwgQklPUw0KPiBTRTVDNjEwLjg2Qi4wMS4wMS4wMDA4LjAyMTEyMDE1MTMyNSAwMi8xMS8yMDE1
+IFs3NTY2Ny40Mjk1NTVdDQo+IFdvcmtxdWV1ZTogaWItY29tcC13cSBpYl9jcV9wb2xsX3dvcmsg
+W2liX2NvcmVdIFs3NTY2Ny40MzYzNjBdIHRhc2s6DQo+IGZmZmY4ODA4NGE3MTgwMDAgdGFzay5z
+dGFjazogZmZmZmM5MDAwYTQyNDAwMCBbNzU2NjcuNDQzNTQ5XSBSSVA6DQo+IDAwMTA6cmVjdl9o
+YW5kbGVyKzB4MTVhLzB4MTcwIFtpYl91bWFkXSBbNzU2NjcuNDUwMDkwXSBSU1A6DQo+IDAwMTg6
+ZmZmZmM5MDAwYTQyN2NlOCBFRkxBR1M6IDAwMDEwMjg2IFs3NTY2Ny40NTY1MDhdIFJBWDoNCj4g
+MDAwMDAwMDBmZmZmZmZmZiBSQlg6IGZmZmY4ODA4NTE1OWNlODAgUkNYOiAwMDAwMDAwMDAwMDAw
+MDAwDQo+IFs3NTY2Ny40NjUwOTRdIFJEWDogZmZmZjg4MDg1YTQ3YjA2OCBSU0k6IDAwMDAwMDAw
+MDAwMDAwMDAgUkRJOg0KPiBmZmZmODgwODUxNTljZjAwIFs3NTY2Ny40NzM2NjhdIFJCUDogZmZm
+ZmM5MDAwYTQyN2QzOCBSMDg6DQo+IDAwMDAwMDAwMDAwMWVmYzAgUjA5OiBmZmZmODgwODUxNTlj
+ZTgwIFs3NTY2Ny40ODIyMjhdIFIxMDoNCj4gZmZmZjg4MDg1ZjAwNzQ4MCBSMTE6IGZmZmY4ODA4
+NGFjZjIwZTggUjEyOiBmZmZmODgwODVhNDdiMDIwDQo+IFs3NTY2Ny40OTA4MjRdIFIxMzogZmZm
+Zjg4MTA1Njg0MmUxMCBSMTQ6IGZmZmY4ODEwNTY4NDAyMDAgUjE1Og0KPiBmZmZmODgxMDRjOGQw
+ODAwIFs3NTY2Ny40OTkzOTBdIEZTOiAgMDAwMDAwMDAwMDAwMDAwMCgwMDAwKQ0KPiBHUzpmZmZm
+ODgwODVmNDAwMDAwKDAwMDApIGtubEdTOjAwMDAwMDAwMDAwMDAwMDAgWzc1NjY3LjUwOTAyOF0g
+Q1M6ICAwMDEwDQo+IERTOiAwMDAwIEVTOiAwMDAwIENSMDogMDAwMDAwMDA4MDA1MDAzMyBbNzU2
+NjcuNTE2MDgwXSBDUjI6DQo+IDAwMDA3ZjllNGIzZDkwMDAgQ1IzOiAwMDAwMDAwMDAxYzA5MDAw
+IENSNDogMDAwMDAwMDAwMDE0MDZmMA0KPiBbNzU2NjcuNTI0NjY0XSBDYWxsIFRyYWNlOg0KPiBb
+NzU2NjcuNTI4MDQ0XSAgPyBmaW5kX21hZF9hZ2VudCsweDdjLzB4MWIwIFtpYl9jb3JlXSBbNzU2
+NjcuNTM0MDMxXSAgPw0KPiBpYl9tYXJrX21hZF9kb25lKzB4NzMvMHhhMCBbaWJfY29yZV0gWzc1
+NjY3LjU0MDE0Ml0NCj4gaWJfbWFkX3JlY3ZfZG9uZSsweDQyMy8weDliMCBbaWJfY29yZV0gWzc1
+NjY3LjU0NjIxNV0NCj4gX19pYl9wcm9jZXNzX2NxKzB4NWQvMHhiMCBbaWJfY29yZV0gWzc1NjY3
+LjU1MjAwN10NCj4gaWJfY3FfcG9sbF93b3JrKzB4MjAvMHg2MCBbaWJfY29yZV0gWzc1NjY3LjU1
+Nzc2Nl0NCj4gcHJvY2Vzc19vbmVfd29yaysweDE0OS8weDM2MCBbNzU2NjcuNTYyODQ0XSAgd29y
+a2VyX3RocmVhZCsweDRkLzB4M2MwDQo+IFs3NTY2Ny41Njc1MjldICBrdGhyZWFkKzB4MTA5LzB4
+MTQwIFs3NTY2Ny41NzE3MTNdICA/DQo+IHJlc2N1ZXJfdGhyZWFkKzB4MzgwLzB4MzgwIFs3NTY2
+Ny41NzY3NzVdICA/IGt0aHJlYWRfcGFyaysweDYwLzB4NjANCj4gWzc1NjY3LjU4MTQ0N10gIHJl
+dF9mcm9tX2ZvcmsrMHgyNS8weDMwIFs3NTY2Ny41ODYwMTRdIENvZGU6IDQzIDRhIDBmIGI2DQo+
+IDQ1IGM2IDg4IDQzIDRiIDQ4IDhiIDQ1IGIwIDQ4IDg5IDQzIDRjIDQ4IDhiIDQ1IGI4IDQ4IDg5
+IDQzIDU0IDhiIDQ1IGMwIDBmIGM4IDg5DQo+IDQzIDVjIGU5IDc5IGZmIGZmIGZmIGU4IDE2IDRl
+IGZhIGUwIDwwZj4gZmYgZTkgNDIgZmYgZmYgZmYgNjYgNjYgNjYgNjYgNjYgNjYgMmUgMGYgMWYN
+Cj4gODQgMDAgMDAgMDAgMDAgWzc1NjY3LjYwODMyM10gLS0tWyBlbmQgdHJhY2UgY2YyNmRmMjdj
+OTU5NzI2NCBdLS0tDQo+IA0KPiBDYzogPHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmc+ICMgNC4xNC54
+DQo+IEZpeGVzOiA2MmVkZTc3Nzk5MDQgKCJBZGQgT1BBIGV4dGVuZGVkIExJRCBzdXBwb3J0IikN
+Cj4gUmV2aWV3ZWQtYnk6IE1pa2UgTWFyY2luaXN6eW4gPG1pa2UubWFyY2luaXN6eW5AaW50ZWwu
+Y29tPg0KPiBTaWduZWQtb2ZmLWJ5OiBEb24gSGlhdHQgPGRvbi5oaWF0dEBpbnRlbC5jb20+DQo+
+IFNpZ25lZC1vZmYtYnk6IERlbm5pcyBEYWxlc3NhbmRybyA8ZGVubmlzLmRhbGVzc2FuZHJvQGlu
+dGVsLmNvbT4NCj4gUmV2aWV3ZWQtYnk6IExlb24gUm9tYW5vdnNreSA8bGVvbnJvQG1lbGxhbm94
+LmNvbT4NCj4gU2lnbmVkLW9mZi1ieTogRG91ZyBMZWRmb3JkIDxkbGVkZm9yZEByZWRoYXQuY29t
+Pg0KPiAtLS0NCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3VzZXJfbWFkLmMgfCAgIDExICsr
+KysrKysrKystDQo+ICAxIGZpbGUgY2hhbmdlZCwgMTAgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlv
+bigtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3VzZXJfbWFk
+LmMNCj4gYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91c2VyX21hZC5jDQo+IGluZGV4IGMxNjk2
+ZTYuLjYwM2FjYWYgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3VzZXJf
+bWFkLmMNCj4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXNlcl9tYWQuYw0KPiBAQCAt
+MjI5LDcgKzIyOSwxNiBAQCBzdGF0aWMgdm9pZCByZWN2X2hhbmRsZXIoc3RydWN0IGliX21hZF9h
+Z2VudCAqYWdlbnQsDQo+ICAJcGFja2V0LT5tYWQuaGRyLnN0YXR1cwkgICA9IDA7DQo+ICAJcGFj
+a2V0LT5tYWQuaGRyLmxlbmd0aAkgICA9IGhkcl9zaXplKGZpbGUpICsgbWFkX3JlY3Zfd2MtPm1h
+ZF9sZW47DQo+ICAJcGFja2V0LT5tYWQuaGRyLnFwbgkgICA9IGNwdV90b19iZTMyKG1hZF9yZWN2
+X3djLT53Yy0+c3JjX3FwKTsNCj4gLQlwYWNrZXQtPm1hZC5oZHIubGlkCSAgID0gaWJfbGlkX2Jl
+MTYobWFkX3JlY3Zfd2MtPndjLT5zbGlkKTsNCj4gKwkvKg0KPiArCSAqIE9uIE9QQSBkZXZpY2Vz
+IGl0IGlzIG9rYXkgdG8gbG9zZSB0aGUgdXBwZXIgMTYgYml0cyBvZiBMSUQgYXMgdGhpcw0KPiAr
+CSAqIGluZm9ybWF0aW9uIGlzIG9idGFpbmVkIGVsc2V3aGVyZS4gTWFzayBvZmYgdGhlIHVwcGVy
+IDE2IGJpdHMuDQo+ICsJICovDQo+ICsJaWYgKGFnZW50LT5kZXZpY2UtPnBvcnRfaW1tdXRhYmxl
+W2FnZW50LT5wb3J0X251bV0uY29yZV9jYXBfZmxhZ3MNCj4gJg0KPiArCSAgICBSRE1BX0NPUkVf
+UE9SVF9JTlRFTF9PUEEpDQpDYW4geW91IHBsZWFzZSB1c2UgZXhpc3RpbmcgQVBJIHJkbWFfY2Fw
+X29wYV9tYWQoKSBoZXJlPw0KDQo+ICsJCXBhY2tldC0+bWFkLmhkci5saWQgPSBpYl9saWRfYmUx
+NigweEZGRkYgJg0KPiArCQkJCQkJICBtYWRfcmVjdl93Yy0+d2MtPnNsaWQpOw0KPiArCWVsc2UN
+Cj4gKwkJcGFja2V0LT5tYWQuaGRyLmxpZCA9IGliX2xpZF9iZTE2KG1hZF9yZWN2X3djLT53Yy0+
+c2xpZCk7DQo+ICAJcGFja2V0LT5tYWQuaGRyLnNsCSAgID0gbWFkX3JlY3Zfd2MtPndjLT5zbDsN
+Cj4gIAlwYWNrZXQtPm1hZC5oZHIucGF0aF9iaXRzICA9IG1hZF9yZWN2X3djLT53Yy0+ZGxpZF9w
+YXRoX2JpdHM7DQo+ICAJcGFja2V0LT5tYWQuaGRyLnBrZXlfaW5kZXggPSBtYWRfcmVjdl93Yy0+
+d2MtPnBrZXlfaW5kZXg7DQo+IA0KPiAtLQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlz
+dDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtcmRtYSIgaW4gdGhlIGJvZHkNCj4g
+b2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcgTW9yZSBtYWpvcmRvbW8g
+aW5mbyBhdA0KPiBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
