@@ -1,46 +1,68 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v3 4/4] IB/core: disable memory registration of
- fileystem-dax vmas
-Date: Wed, 29 Nov 2017 11:36:13 -0700
-Message-ID: <20171129183613.GD4011@ziepe.ca>
-References: <151197872943.26211.6551382719053304996.stgit@dwillia2-desk3.amr.corp.intel.com>
- <151197875158.26211.7203330105253426435.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 0/6] IB/hfi1, qib, cm, sa: Last set for 4.15
+ merge window
+Date: Wed, 29 Nov 2017 13:43:03 -0500
+Message-ID: <0b5b45ef-9a05-7c89-7926-27d097bae68e@intel.com>
+References: <20171114122859.10579.79788.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <151197875158.26211.7203330105253426435.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: akpm@linux-foundation.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, stable@vger.kernel.org, hch@lst.de, linux-mm@kvack.org, Doug Ledford <dledford@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171114122859.10579.79788.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jan Sokolowski <jan.sokolowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Venkata Sandeep Dhanalakota <venkata.s.dhanalakota-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 29, 2017 at 10:05:51AM -0800, Dan Williams wrote:
-> Until there is a solution to the dma-to-dax vs truncate problem it is
-> not safe to allow RDMA to create long standing memory registrations
-> against filesytem-dax vmas.
+On 11/14/2017 7:34 AM, Dennis Dalessandro wrote:
+> Hi Doug,
 > 
-> Cc: Sean Hefty <sean.hefty@intel.com>
-> Cc: Doug Ledford <dledford@redhat.com>
-> Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-> Cc: Jeff Moyer <jmoyer@redhat.com>
-> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-> Cc: <linux-rdma@vger.kernel.org>
-> Cc: <stable@vger.kernel.org>
-> Fixes: 3565fce3a659 ("mm, x86: get_user_pages() for dax mappings")
-> Reported-by: Christoph Hellwig <hch@lst.de>
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->  drivers/infiniband/core/umem.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Here is the latest set of patches I have that we'd like to land in 4.15. There
+> are some driver fixes, including a qib that is marked as stable. We also have
+> a CM and SA patch thrown in the mix.
+> 
+> As always patches available for browsing at:
+> https://github.com/ddalessa/kernel/tree/for-4.15
+> 
+> ---
+> 
+> Dennis Dalessandro (1):
+>        IB/hfi1: Initialize bth1 in 16B rc ack builder
 
-No problem here with drivers/rdma. This will go through another tree
-with the rest of the series? In which case here is a co-maintainer ack
-for this patch:
+This is probably the only one that really needs to go for the rc. The 
+rest can push off till 4.16 I think. This is trivial and prevents use of 
+an uninitialized variable.
 
-Acked-by: Jason Gunthorpe <jgg@mellanox.com>
+> Don Hiatt (2):
+>        IB/hfi1: Mask the path bits with the LMC for 16B RC Acks
+>        IB/CM: Change sgid to IB GID when handling CM request
 
-Dan, can you please update my address to jgg@ziepe.ca, thanks :)
+These two fix problems introduced in 4.13
 
-Jason
+> Jan Sokolowski (1):
+>        IB/hfi1: Use 4096 for default active MTU in query_qp
+
+This is not a critical bug fix.
+
+> Mike Marciniszyn (1):
+>        IB/qib: Fix comparison error with qperf compare/swap test
+
+This one is an older bug in qib.
+
+> Venkata Sandeep Dhanalakota (1):
+>        IB/SA: Check dlid before SA agent queries for ClassPortInfo
+
+Still under discussion/rework.
+
+Jason, if you want to pull:
+https://patchwork.kernel.org/patch/10057487/
+for the -rc I can submit a v2 of the other 5 once Sandeep's rework is ready.
+
+-Denny
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
