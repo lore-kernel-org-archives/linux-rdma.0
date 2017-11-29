@@ -1,37 +1,65 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/hfi1: Do not warn on lid conversions for OPA
-Date: Wed, 29 Nov 2017 11:43:24 -0700
-Message-ID: <20171129184324.GF4011@ziepe.ca>
-References: <20171129125943.31113.29038.stgit@phlsvslse11.ph.intel.com>
- <20171129125948.31113.59826.stgit@phlsvslse11.ph.intel.com>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH for-next 0/6] IB/hfi1, qib, cm, sa: Last set for 4.15
+ merge window
+Date: Wed, 29 Nov 2017 18:47:39 +0000
+Message-ID: <VI1PR0502MB3008FD5232D8F5CECAD4BB9AD13B0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20171114122859.10579.79788.stgit@scvm10.sc.intel.com>
+ <0b5b45ef-9a05-7c89-7926-27d097bae68e@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171129125948.31113.59826.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <0b5b45ef-9a05-7c89-7926-27d097bae68e-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-commits-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jan Sokolowski <jan.sokolowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Venkata Sandeep Dhanalakota <venkata.s.dhanalakota-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 29, 2017 at 07:59:49AM -0500, Mike Marciniszyn wrote:
-> From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> Upstream commit 4988be5813ff2afdc0d8bfa315ef34a577d3efbf.
-> 
-> On OPA devices opa_local_smp_check will receive 32Bit LIDs when the LID
-> is Extended. In such cases, it is okay to lose the upper 16 bits of the
-> LID as this information is obtained elsewhere. Do not issue a warning
-> when calling ib_lid_cpu16() in this case by masking out the upper 16Bits.
-
-The concept for the 32 bit lids was to keep it 32 bit inside the
-kernel, ingress_key_table_fail puts the lid into
-err_info_constraint.slid which is already 32 bits, so this cannot be
-the right place for this.
-
-These truncations should only appear at the uapi boundary.
-
-Jason
+SGkgRGVubmlzLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IGxpbnV4
+LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtcmRtYS0NCj4gb3duZXJA
+dmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgRGVubmlzIERhbGVzc2FuZHJvDQo+IFNlbnQ6
+IFdlZG5lc2RheSwgTm92ZW1iZXIgMjksIDIwMTcgMTI6NDMgUE0NCj4gVG86IGRsZWRmb3JkQHJl
+ZGhhdC5jb207IEphc29uIEd1bnRob3JwZSA8amdnQHppZXBlLmNhPg0KPiBDYzogTWlrZSBNYXJj
+aW5pc3p5biA8bWlrZS5tYXJjaW5pc3p5bkBpbnRlbC5jb20+OyBKYW4gU29rb2xvd3NraQ0KPiA8
+amFuLnNva29sb3dza2lAaW50ZWwuY29tPjsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IE1p
+Y2hhZWwgSi4gUnVobA0KPiA8bWljaGFlbC5qLnJ1aGxAaW50ZWwuY29tPjsgVmVua2F0YSBTYW5k
+ZWVwIERoYW5hbGFrb3RhDQo+IDx2ZW5rYXRhLnMuZGhhbmFsYWtvdGFAaW50ZWwuY29tPjsgRG9u
+IEhpYXR0IDxkb24uaGlhdHRAaW50ZWwuY29tPjsgSXJhDQo+IFdlaW55IDxpcmEud2VpbnlAaW50
+ZWwuY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIGZvci1uZXh0IDAvNl0gSUIvaGZpMSwgcWli
+LCBjbSwgc2E6IExhc3Qgc2V0IGZvciA0LjE1IG1lcmdlDQo+IHdpbmRvdw0KPiANCj4gT24gMTEv
+MTQvMjAxNyA3OjM0IEFNLCBEZW5uaXMgRGFsZXNzYW5kcm8gd3JvdGU6DQo+ID4gSGkgRG91ZywN
+Cj4gPg0KPiA+IEhlcmUgaXMgdGhlIGxhdGVzdCBzZXQgb2YgcGF0Y2hlcyBJIGhhdmUgdGhhdCB3
+ZSdkIGxpa2UgdG8gbGFuZCBpbg0KPiA+IDQuMTUuIFRoZXJlIGFyZSBzb21lIGRyaXZlciBmaXhl
+cywgaW5jbHVkaW5nIGEgcWliIHRoYXQgaXMgbWFya2VkIGFzDQo+ID4gc3RhYmxlLiBXZSBhbHNv
+IGhhdmUgYSBDTSBhbmQgU0EgcGF0Y2ggdGhyb3duIGluIHRoZSBtaXguDQo+ID4NCj4gPiBBcyBh
+bHdheXMgcGF0Y2hlcyBhdmFpbGFibGUgZm9yIGJyb3dzaW5nIGF0Og0KPiA+IGh0dHBzOi8vZ2l0
+aHViLmNvbS9kZGFsZXNzYS9rZXJuZWwvdHJlZS9mb3ItNC4xNQ0KPiA+DQo+ID4gLS0tDQo+ID4N
+Cj4gPiBEZW5uaXMgRGFsZXNzYW5kcm8gKDEpOg0KPiA+ICAgICAgICBJQi9oZmkxOiBJbml0aWFs
+aXplIGJ0aDEgaW4gMTZCIHJjIGFjayBidWlsZGVyDQo+IA0KPiBUaGlzIGlzIHByb2JhYmx5IHRo
+ZSBvbmx5IG9uZSB0aGF0IHJlYWxseSBuZWVkcyB0byBnbyBmb3IgdGhlIHJjLiBUaGUgcmVzdCBj
+YW4gcHVzaA0KPiBvZmYgdGlsbCA0LjE2IEkgdGhpbmsuIFRoaXMgaXMgdHJpdmlhbCBhbmQgcHJl
+dmVudHMgdXNlIG9mIGFuIHVuaW5pdGlhbGl6ZWQgdmFyaWFibGUuDQo+IA0KPiA+IERvbiBIaWF0
+dCAoMik6DQo+ID4gICAgICAgIElCL2hmaTE6IE1hc2sgdGhlIHBhdGggYml0cyB3aXRoIHRoZSBM
+TUMgZm9yIDE2QiBSQyBBY2tzDQo+ID4gICAgICAgIElCL0NNOiBDaGFuZ2Ugc2dpZCB0byBJQiBH
+SUQgd2hlbiBoYW5kbGluZyBDTSByZXF1ZXN0DQo+IA0KVGhlcmUgYXJlIGNvdXBsZSBvZiBxdWVy
+aWVzIGFuZCBpbnB1dHMgdG8gYW1lbmQgYWJvdmUgcGF0Y2ggb2YgSUIvQ00uDQpEaWQgeW91IGdl
+dCBhIGNoYW5jZSB0byBhZGRyZXNzIHRoZW0/DQoNCg0KPiBUaGVzZSB0d28gZml4IHByb2JsZW1z
+IGludHJvZHVjZWQgaW4gNC4xMw0KPiANCj4gPiBKYW4gU29rb2xvd3NraSAoMSk6DQo+ID4gICAg
+ICAgIElCL2hmaTE6IFVzZSA0MDk2IGZvciBkZWZhdWx0IGFjdGl2ZSBNVFUgaW4gcXVlcnlfcXAN
+Cj4gDQo+IFRoaXMgaXMgbm90IGEgY3JpdGljYWwgYnVnIGZpeC4NCj4gDQo+ID4gTWlrZSBNYXJj
+aW5pc3p5biAoMSk6DQo+ID4gICAgICAgIElCL3FpYjogRml4IGNvbXBhcmlzb24gZXJyb3Igd2l0
+aCBxcGVyZiBjb21wYXJlL3N3YXAgdGVzdA0KPiANCj4gVGhpcyBvbmUgaXMgYW4gb2xkZXIgYnVn
+IGluIHFpYi4NCj4gDQo+ID4gVmVua2F0YSBTYW5kZWVwIERoYW5hbGFrb3RhICgxKToNCj4gPiAg
+ICAgICAgSUIvU0E6IENoZWNrIGRsaWQgYmVmb3JlIFNBIGFnZW50IHF1ZXJpZXMgZm9yIENsYXNz
+UG9ydEluZm8NCj4gDQo+IFN0aWxsIHVuZGVyIGRpc2N1c3Npb24vcmV3b3JrLg0KPiANCj4gSmFz
+b24sIGlmIHlvdSB3YW50IHRvIHB1bGw6DQo+IGh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcv
+cGF0Y2gvMTAwNTc0ODcvDQo+IGZvciB0aGUgLXJjIEkgY2FuIHN1Ym1pdCBhIHYyIG9mIHRoZSBv
+dGhlciA1IG9uY2UgU2FuZGVlcCdzIHJld29yayBpcyByZWFkeS4NCj4gDQo+IC1EZW5ueQ0KPiAN
+Cj4gDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5l
+ICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbiB0aGUgYm9keQ0KPiBvZiBhIG1lc3NhZ2UgdG8g
+bWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZyBNb3JlIG1ham9yZG9tbyBpbmZvIGF0DQo+IGh0dHA6
+Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
