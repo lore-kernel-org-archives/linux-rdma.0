@@ -1,207 +1,109 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-rc v3] IB/core: Only enforce security for InfiniBand
-Date: Wed, 29 Nov 2017 07:49:48 -0600
-Message-ID: <df278511-feb0-5311-e08c-055bbb9b19c6@mellanox.com>
-References: <1511906481-92114-1-git-send-email-danielj@mellanox.com>
- <20171129070821.GA4237@yuvallap>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Please update the linux-next location for the RDMA subsystem
+Date: Wed, 29 Nov 2017 11:12:44 -0500
+Message-ID: <9a80e43d-d32a-742b-fa6b-adacb152e8dd@redhat.com>
+References: <1510948060.3973.29.camel@redhat.com>
+ <20171119064640.GV18825@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="Rq4e6NHrlSUonJtVxrjnfTepmCMnhmavv"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171129070821.GA4237@yuvallap>
-Content-Language: en-US
+In-Reply-To: <20171119064640.GV18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/29/2017 1:08 AM, Yuval Shaia wrote:
-> On Wed, Nov 29, 2017 at 12:01:21AM +0200, Dan Jurgens wrote:
->> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--Rq4e6NHrlSUonJtVxrjnfTepmCMnhmavv
+Content-Type: multipart/mixed; boundary="sPaakwE1LvEiAdDUwHOmEX3FvSwFpjFav";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Message-ID: <9a80e43d-d32a-742b-fa6b-adacb152e8dd-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Please update the linux-next location for the RDMA subsystem
+References: <1510948060.3973.29.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20171119064640.GV18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20171119064640.GV18825-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+
+--sPaakwE1LvEiAdDUwHOmEX3FvSwFpjFav
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
+
+On 11/19/17 1:46 AM, Leon Romanovsky wrote:
+> On Fri, Nov 17, 2017 at 02:47:40PM -0500, Doug Ledford wrote:
+>> Hi Stephen,
 >>
->> For now the only LSM security enforcement mechanism available is
->> specific to InfiniBand. Bypass enforcement for non-IB link types.
->> This fixes a regression where modify_qp fails for iWARP because
->> querying the PKEY returns -EINVAL.
+>> Jason Gunthorpe is now co-maintaining the RDMA subsystem with me.  We
+>> have a shared repo that we can both write into.  I would like you to r=
+e-
+>> aim the RDMA linux-next pull point to:
 >>
->> Cc: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
->> Cc: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Reported-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
->> Fixes: d291f1a65232("IB/core: Enforce PKey security on QPs")
->> Fixes: 47a2b338fe63("IB/core: Enforce security on management datagrams")
->> Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Tested-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
->> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->> ---
->> Changelog:
->> v2->v3: Fix build warning
->> v1->v2: Fixed build errors
->> v0->v1: Added proper SElinux patch
->> ---
->>  drivers/infiniband/core/security.c | 47 +++++++++++++++++++++++++++++++++++---
->>  1 file changed, 44 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
->> index 209d057..5bc323f 100644
->> --- a/drivers/infiniband/core/security.c
->> +++ b/drivers/infiniband/core/security.c
->> @@ -417,8 +417,17 @@ void ib_close_shared_qp_security(struct ib_qp_security *sec)
->>  
->>  int ib_create_qp_security(struct ib_qp *qp, struct ib_device *dev)
->>  {
->> +	u8 i = rdma_start_port(dev);
->> +	bool is_ib = false;
->>  	int ret;
->>  
->> +	while (i <= rdma_end_port(dev) && !is_ib)
->> +		is_ib = rdma_protocol_ib(dev, i++);
->> +
->> +	/* If this isn't an IB device don't create the security context */
->> +	if (!is_ib)
->> +		return 0;
->> +
->>  	qp->qp_sec = kzalloc(sizeof(*qp->qp_sec), GFP_KERNEL);
->>  	if (!qp->qp_sec)
->>  		return -ENOMEM;
->> @@ -441,6 +450,10 @@ int ib_create_qp_security(struct ib_qp *qp, struct ib_device *dev)
->>  
->>  void ib_destroy_qp_security_begin(struct ib_qp_security *sec)
->>  {
->> +	/* Return if not IB */
->> +	if (!sec)
->> +		return;
->> +
-> If we do the check here then suggesting to remove it from ib_destroy_qp.
+>> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-
+>> next
+>=20
+> Doug,
+>=20
+> Does it make sense to get rid of "k.o" notation for for-next and for-rc=
+ branches?
+> It is already on kernel.org and seems to me as a redundant.
 
-That would be a bug, this function can still be called and would crash on NULL pointer accesses.
+Jason and I talked about this offline.  The reason it's there is
+actually more technical than anything else.  In order to have WIP
+branches that you want to quickly/easily get on github, but to not have
+them pollute k.o with WIP branches that haven't passed 0day yet, the
+easy solution is to add this to your .git/config for your kernel repo:
 
->
->>  	mutex_lock(&sec->mutex);
->>  
->>  	/* Remove the QP from the lists so it won't get added to
->> @@ -470,6 +483,10 @@ void ib_destroy_qp_security_abort(struct ib_qp_security *sec)
->>  	int ret;
->>  	int i;
->>  
->> +	/* Return if not IB */
->> +	if (!sec)
->> +		return;
->> +
->>  	/* If a concurrent cache update is in progress this
->>  	 * QP security could be marked for an error state
->>  	 * transition.  Wait for this to complete.
->> @@ -505,6 +522,10 @@ void ib_destroy_qp_security_end(struct ib_qp_security *sec)
->>  {
->>  	int i;
->>  
->> +	/* Return if not IB */
->> +	if (!sec)
->> +		return;
->> +
-> Ditto.
+        push =3D refs/heads/k.o/*:refs/heads/k.o/*
+        push =3D +refs/tags/for-linus*:refs/tags/for-linus*
+        push =3D +refs/tags/for-next*:refs/tags/for-next*
+        push =3D refs/heads/master:refs/heads/master
 
-Same here.
+That keeps only the stuff you really want going to k.o going there, and
+everything can then go to your WIP repository.  Going forward, whether
+Jason decides to use a github repo for 0day like I do or not, it now has
+a second benefit in that we can each have our own private namespace,
+which is basically anything not in k.o/, and treat the k.o/ namespace as
+a shared namespace where we worry about branch name conflicts, fast
+forward only updates, etc.  So, it's redundant to the people pulling,
+but I still think it has value for Jason and I.
 
->
->>  	/* If a concurrent cache update is occurring we must
->>  	 * wait until this QP security structure is processed
->>  	 * in the QP to error flow before destroying it because
->> @@ -557,7 +578,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
->>  {
->>  	int ret = 0;
->>  	struct ib_ports_pkeys *tmp_pps;
->> -	struct ib_ports_pkeys *new_pps;
->> +	struct ib_ports_pkeys *new_pps = NULL;
->>  	struct ib_qp *real_qp = qp->real_qp;
->>  	bool special_qp = (real_qp->qp_type == IB_QPT_SMI ||
->>  			   real_qp->qp_type == IB_QPT_GSI ||
->> @@ -565,17 +586,25 @@ int ib_security_modify_qp(struct ib_qp *qp,
->>  	bool pps_change = ((qp_attr_mask & (IB_QP_PKEY_INDEX | IB_QP_PORT)) ||
->>  			   (qp_attr_mask & IB_QP_ALT_PATH));
->>  
->> +	WARN_ONCE((qp_attr_mask & IB_QP_PORT &&
->> +		   rdma_protocol_ib(real_qp->device, qp_attr->port_num) &&
->> +		   !real_qp->qp_sec),
->> +		   "%s: QP security is not initialized for IB QP: %d\n",
->> +		   __func__, real_qp->qp_num);
->> +
->>  	/* The port/pkey settings are maintained only for the real QP. Open
->>  	 * handles on the real QP will be in the shared_qp_list. When
->>  	 * enforcing security on the real QP all the shared QPs will be
->>  	 * checked as well.
->>  	 */
->>  
->> -	if (pps_change && !special_qp) {
->> +	if (pps_change && !special_qp && real_qp->qp_sec) {
->>  		mutex_lock(&real_qp->qp_sec->mutex);
->>  		new_pps = get_new_pps(real_qp,
->>  				      qp_attr,
->>  				      qp_attr_mask);
->> +		if (!new_pps)
->> +			return -ENOMEM;
->>  
->>  		/* Add this QP to the lists for the new port
->>  		 * and pkey settings before checking for permission
->> @@ -600,7 +629,7 @@ int ib_security_modify_qp(struct ib_qp *qp,
->>  						 qp_attr_mask,
->>  						 udata);
->>  
->> -	if (pps_change && !special_qp) {
->> +	if (new_pps) {
->>  		/* Clean up the lists and free the appropriate
->>  		 * ports_pkeys structure.
->>  		 */
->> @@ -630,6 +659,9 @@ static int ib_security_pkey_access(struct ib_device *dev,
->>  	u16 pkey;
->>  	int ret;
->>  
->> +	if (!rdma_protocol_ib(dev, port_num))
->> +		return 0;
->> +
->>  	ret = ib_get_cached_pkey(dev, port_num, pkey_index, &pkey);
->>  	if (ret)
->>  		return ret;
->> @@ -663,6 +695,9 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
->>  {
->>  	int ret;
->>  
->> +	if (!rdma_protocol_ib(agent->device, agent->port_num))
->> +		return 0;
->> +
->>  	ret = security_ib_alloc_security(&agent->security);
->>  	if (ret)
->>  		return ret;
->> @@ -688,6 +723,9 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
->>  
->>  void ib_mad_agent_security_cleanup(struct ib_mad_agent *agent)
->>  {
->> +	if (!rdma_protocol_ib(agent->device, agent->port_num))
->> +		return;
->> +
->>  	security_ib_free_security(agent->security);
->>  	if (agent->lsm_nb_reg)
->>  		unregister_lsm_notifier(&agent->lsm_nb);
->> @@ -695,6 +733,9 @@ void ib_mad_agent_security_cleanup(struct ib_mad_agent *agent)
->>  
->>  int ib_mad_enforce_security(struct ib_mad_agent_private *map, u16 pkey_index)
->>  {
->> +	if (!rdma_protocol_ib(map->agent.device, map->agent.port_num))
->> +		return 0;
->> +
->>  	if (map->agent.qp->qp_type == IB_QPT_SMI && !map->agent.smp_allowed)
->>  		return -EACCES;
->>  
->> -- 
->> 1.8.3.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
+D
 
 
+--sPaakwE1LvEiAdDUwHOmEX3FvSwFpjFav--
+
+--Rq4e6NHrlSUonJtVxrjnfTepmCMnhmavv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAloe3HwACgkQuCajMw5X
+L93CRg//cZI+IJVccZf/NOjQwPpbCy73dVaXYzfOxWUfYnJ2fLZ/r5CNxdJFbUqA
+rO+tTT31Lx6ib6E58/SYkN3/mtZqNNwGqsF25Jb7jvJ0zLASJxUetEBWEpw3scMI
+xaI1LoMNCy+bRiG53dPFq9XGovbkjKFzj2nmAiM67+qeZ20bvESWIqgs1KN082sO
+VKJcXb+7ekfG1/f5PyTTGkEn3mvXtvdUXsWQpghBUELuU8IIZ1DfnzNa/s8+OWU9
+m2koWXgc1idspOsPocEe73sWKv/N7wRd0NY456MOFl03Nvtwh42pDA5paHSWyXoq
+1H48EJeAtEptr0rgUV8hnb5v34EI3neJG0sQLT5MaAIy53IA5aBLd84/ihIN91w1
+/Ambsy3ZvkyBvo8NygMase4VxSq6MHG7j9ZDLQTb2HQ5/Yz0xjJgLkxr4QHYJ7L6
+zC/q8oL9x3RfVmgNLIPOFIR+2n6ysjDVV9vvONQZbvE+b/P94KxksL3tCb69/adX
+Pq8Loq3VQLEslWMHqNlz15jiiuae6WuexL4HnQ/vzV08MQROFnlZXh8VjlKSB7Z9
+gA/HCUzfp2xU4L5cVTHVQe2xFgarAIBTFETzw6qywmxAGXtg51kt4W8T0TXN+P5g
+OXJkFIUnIRA8ifrbStaNoWTDhP15QIynrB1e/f8aU71ECk8N1Ug=
+=JcDo
+-----END PGP SIGNATURE-----
+
+--Rq4e6NHrlSUonJtVxrjnfTepmCMnhmavv--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
