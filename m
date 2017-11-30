@@ -1,38 +1,32 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/3] Debian 15.1-1 changes
-Date: Thu, 30 Nov 2017 11:58:22 -0700
-Message-ID: <20171130185822.GE7754@ziepe.ca>
-References: <20171130123940.25795-1-benjamin.drung@profitbricks.com>
- <20171130174750.GD7754@ziepe.ca>
- <1512066118.4246.2.camel@profitbricks.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v3 1/4] mm: introduce get_user_pages_longterm
+Date: Thu, 30 Nov 2017 12:01:17 -0700
+Message-ID: <20171130190117.GF7754@ziepe.ca>
+References: <151197872943.26211.6551382719053304996.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <151197873499.26211.11687422577653326365.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171130095323.ovrq2nenb6ztiapy@dhcp22.suse.cz>
+ <CAPcyv4giMvMfP=yZr=EDRAdTWyCwWydb4JVhT6YSWP8W0PHgGQ@mail.gmail.com>
+ <20171130174201.stbpuye4gu5rxwkm@dhcp22.suse.cz>
+ <CAPcyv4h5GUueqB-QhbWbn39SBPDE-rOte6UcmAHSWQdVyrF2Rw@mail.gmail.com>
+ <20171130181741.2y5nyflyhqxg6y5p@dhcp22.suse.cz>
+ <CAPcyv4hwsGQCUcTdpT7UVJyPN0RJz+CAqGNvTSK9Ka1nsypQjA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1512066118.4246.2.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <CAPcyv4hwsGQCUcTdpT7UVJyPN0RJz+CAqGNvTSK9Ka1nsypQjA@mail.gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linux MM <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 30, 2017 at 07:21:58PM +0100, Benjamin Drung wrote:
-> Am Donnerstag, den 30.11.2017, 10:47 -0700 schrieb Jason Gunthorpe:
-> > On Thu, Nov 30, 2017 at 01:39:37PM +0100, Benjamin Drung wrote:
-> > 
-> > >   debian: Add m68k as non-coherent DMA architecture
-> > >   debian: Mark libraries as Multi-Arch: same
-> > 
-> > As Leon says, shouldn't these go on the mainline branch also?
+On Thu, Nov 30, 2017 at 10:32:42AM -0800, Dan Williams wrote:
+> > Who and how many LRU pages can pin that way and how do you prevent nasty
+> > users to DoS systems this way?
 > 
-> The complete patch set targets the master branch.
+> I assume this is something the RDMA community has had to contend with?
+> I'm not an RDMA person, I'm just here to fix dax.
 
-Oh, I see how you working this, I saw them already applied to the
-debian branch and didn't quite get it :)
-
-Looks fine to me
+The RDMA implementation respects the mlock rlimit
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
