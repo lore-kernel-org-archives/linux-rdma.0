@@ -1,32 +1,141 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v3 1/4] mm: introduce get_user_pages_longterm
-Date: Thu, 30 Nov 2017 12:01:17 -0700
-Message-ID: <20171130190117.GF7754@ziepe.ca>
-References: <151197872943.26211.6551382719053304996.stgit@dwillia2-desk3.amr.corp.intel.com>
- <151197873499.26211.11687422577653326365.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171130095323.ovrq2nenb6ztiapy@dhcp22.suse.cz>
- <CAPcyv4giMvMfP=yZr=EDRAdTWyCwWydb4JVhT6YSWP8W0PHgGQ@mail.gmail.com>
- <20171130174201.stbpuye4gu5rxwkm@dhcp22.suse.cz>
- <CAPcyv4h5GUueqB-QhbWbn39SBPDE-rOte6UcmAHSWQdVyrF2Rw@mail.gmail.com>
- <20171130181741.2y5nyflyhqxg6y5p@dhcp22.suse.cz>
- <CAPcyv4hwsGQCUcTdpT7UVJyPN0RJz+CAqGNvTSK9Ka1nsypQjA@mail.gmail.com>
+From: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Creating cyclecounter and lock member in timecounter structure [
+ Was Re: [RFC 1/4] drm/i915/perf: Add support to correlate GPU timestamp with
+ system time]
+Date: Thu, 30 Nov 2017 13:03:34 -0800
+Message-ID: <CALzJLG9JXOnr3EQ2zLcmwKx8S9-CGONRRBSAd9XwHdemEgOn2A@mail.gmail.com>
+References: <1510748034-14034-1-git-send-email-sagar.a.kamble@intel.com>
+ <1510748034-14034-2-git-send-email-sagar.a.kamble@intel.com>
+ <151074872901.26264.3145709294590477412@mail.alporthouse.com>
+ <d529503f-2eb3-b353-763d-901235383c6c@intel.com> <alpine.DEB.2.20.1711231947280.2364@nanos>
+ <83805c37-99b2-2922-e8e8-ea435f9da7d0@intel.com> <alpine.DEB.2.20.1711241429050.1757@nanos>
+ <63a2a495-1bdb-5d47-1202-9b538e9601d8@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4hwsGQCUcTdpT7UVJyPN0RJz+CAqGNvTSK9Ka1nsypQjA@mail.gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linux MM <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <63a2a495-1bdb-5d47-1202-9b538e9601d8-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagar Arun Kamble <sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 30, 2017 at 10:32:42AM -0800, Dan Williams wrote:
-> > Who and how many LRU pages can pin that way and how do you prevent nasty
-> > users to DoS systems this way?
-> 
-> I assume this is something the RDMA community has had to contend with?
-> I'm not an RDMA person, I'm just here to fix dax.
+On Mon, Nov 27, 2017 at 2:05 AM, Sagar Arun Kamble
+<sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>
+>
+> On 11/24/2017 7:01 PM, Thomas Gleixner wrote:
+>>
+>> On Fri, 24 Nov 2017, Sagar Arun Kamble wrote:
+>>>
+>>> On 11/24/2017 12:29 AM, Thomas Gleixner wrote:
+>>>>
+>>>> On Thu, 23 Nov 2017, Sagar Arun Kamble wrote:
+>>>>>
+>>>>> We needed inputs on possible optimization that can be done to
+>>>>> timecounter/cyclecounter structures/usage.
+>>>>> This mail is in response to review of patch
+>>>>> https://patchwork.freedesktop.org/patch/188448/.
+>>>>>
+>>>>> As Chris's observation below, about dozen of timecounter users in the
+>>>>> kernel
+>>>>> have below structures
+>>>>> defined individually:
+>>>>>
+>>>>> spinlock_t lock;
+>>>>> struct cyclecounter cc;
+>>>>> struct timecounter tc;
+>>>>>
+>>>>> Can we move lock and cc to tc? That way it will be convenient.
+>>>>> Also it will allow unifying the locking/overflow watchdog handling
+>>>>> across
+>>>>> all
+>>>>> drivers.
+>>>>
+>>>> Looks like none of the timecounter usage sites has a real need to
+>>>> separate
+>>>> timecounter and cyclecounter.
+>>>
+>>> Yes. Will share patch for this change.
+>>>
+>>>> The lock is a different question. The locking of the various drivers
+>>>> differs and I have no idea how you want to handle that. Just sticking
+>>>> the
+>>>> lock into the datastructure and then not making use of it in the
+>>>> timercounter code and leave it to the callsites does not make sense.
+>>>
+>>> Most of the locks are held around timecounter_read. In some instances it
+>>> is held when cyclecounter is updated standalone or is updated along with
+>>> timecounter calls.  Was thinking if we move the lock in timecounter
+>>> functions, drivers just have to do locking around its operations on
+>>> cyclecounter. But then another problem I see is there are variation of
+>>> locking calls like lock_irqsave, lock_bh, write_lock_irqsave (some using
+>>> rwlock_t). Should this all locking be left to driver only then?
+>>
+>> You could have the lock in the struct and protect the inner workings in
+>> the
+>> related core functions.
+>>
+>> That might remove locking requirements from some of the callers and the
+>> others still have their own thing around it.
+>
+>
+> For drivers having static/fixed cyclecounter, we can rely only on lock
+> inside timecounter.
+> Most of the network drivers update cyclecounter at runtime and they will
+> have to rely on two locks if
+> we add one to timecounter. This may not be efficient for them. Also the lock
+> in timecounter has to be less restrictive (may be seqlock) I guess.
+>
+> Cc'd Mellanox list for inputs on this.
+>
+> I have started feeling that the current approach of drivers managing the
+> locks is the right one so better leave the
+> lock out of timecounter.
+>
 
-The RDMA implementation respects the mlock rlimit
+I agree here,
 
-Jason
+In mlx5 we rely on our own read/write lock to serialize access to
+mlx5_clock struct (mlx5 timecounter and cyclecounter).
+the access is not as simple as
+lock()
+call time_counter_API
+unlock()
+
+Sometimes we also explicitly update/adjust timecycles counters with
+mlx5 specific calculations after we read the timecounter all inside
+our lock.
+e.g.
+@mlx5_ptp_adjfreq()
+
+    write_lock_irqsave(&clock->lock, flags);
+    timecounter_read(&clock->tc);
+    clock->cycles.mult = neg_adj ? clock->nominal_c_mult - diff :
+                       clock->nominal_c_mult + diff;
+    write_unlock_irqrestore(&clock->lock, flags);
+
+So i don't think it will be a simple task to have a generic thread
+safe timecounter API, without the need to specifically adjust it for
+all driver use-cases.
+Also as said above, in runtime it is not obvious in which context the
+timecounter will be accessed irq/soft irq/user.
+
+let's keep it as is, and let the driver decide which locking scheme is
+most suitable for it.
+
+Thanks,
+Saeed.
+
+>> Thanks,
+>>
+>>         tglx
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
