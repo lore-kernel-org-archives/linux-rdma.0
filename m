@@ -1,55 +1,61 @@
-From: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2] RDMA/iwpm: Fix uninitialized error code in
- iwpm_send_mapinfo()
-Date: Fri, 1 Dec 2017 19:58:39 +0000
-Message-ID: <13AA599688F47243B14FCFCCC2C803BB3C65ABA3@fmsmsx104.amr.corp.intel.com>
-References: <1511945253-29296-1-git-send-email-geert@linux-m68k.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH rdma-rc] iw_cxgb4: only clear the ARMED bit if a notification
+ is needed
+Date: Thu, 30 Nov 2017 09:41:56 -0800
+Message-ID: <20171201213130.1ED79E0C84@smtp.ogc.us>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1511945253-29296-1-git-send-email-geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEdlZXJ0IFV5dHRlcmhvZXZl
-biBbbWFpbHRvOmdlZXJ0QGxpbnV4LW02OGsub3JnXQ0KPiBTZW50OiBXZWRuZXNkYXksIE5vdmVt
-YmVyIDI5LCAyMDE3IDI6NDggQU0NCj4gVG86IE5pa29sb3ZhLCBUYXR5YW5hIEUgPHRhdHlhbmEu
-ZS5uaWtvbG92YUBpbnRlbC5jb20+OyBSb2xhbmQgRHJlaWVyDQo+IDxyb2xhbmRAcHVyZXN0b3Jh
-Z2UuY29tPjsgSmFzb24gR3VudGhvcnBlIDxqZ2dAemllcGUuY2E+OyBEb3VnDQo+IExlZGZvcmQg
-PGRsZWRmb3JkQHJlZGhhdC5jb20+DQo+IENjOiBBcm5kIEJlcmdtYW5uIDxhcm5kQGFybmRiLmRl
-PjsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBrZXJuZWxAdmdlci5rZXJu
-ZWwub3JnOyBHZWVydCBVeXR0ZXJob2V2ZW4gPGdlZXJ0QGxpbnV4LW02OGsub3JnPg0KPiBTdWJq
-ZWN0OiBbUEFUQ0ggdjJdIFJETUEvaXdwbTogRml4IHVuaW5pdGlhbGl6ZWQgZXJyb3IgY29kZSBp
-bg0KPiBpd3BtX3NlbmRfbWFwaW5mbygpDQo+IA0KPiBXaXRoIGdjYy00LjEuMjoNCj4gDQo+ICAg
-ICBkcml2ZXJzL2luZmluaWJhbmQvY29yZS9pd3BtX3V0aWwuYzogSW4gZnVuY3Rpb24g4oCYaXdw
-bV9zZW5kX21hcGluZm/igJk6DQo+ICAgICBkcml2ZXJzL2luZmluaWJhbmQvY29yZS9pd3BtX3V0
-aWwuYzo2NDc6IHdhcm5pbmc6IOKAmHJldOKAmSBtYXkgYmUgdXNlZA0KPiB1bmluaXRpYWxpemVk
-IGluIHRoaXMgZnVuY3Rpb24NCj4gDQo+IEluZGVlZCwgaWYgbmxfY2xpZW50IGlzIG5vdCBmb3Vu
-ZCBpbiBhbnkgb2YgdGhlIHNjYW5uZWQgaGFzIGJ1Y2tldHMsIHJldCB3aWxsIGJlDQo+IHVzZWQg
-dW5pbml0aWFsaXplZC4NCj4gDQo+IFByZWluaXRpYWxpemUgcmV0IHRvIC1FSU5WQUwgdG8gZml4
-IHRoaXMuDQo+IA0KPiBGaXhlczogMzBkYzVlNjNkNmE1YWQyNCAoIlJETUEvY29yZTogQWRkIHN1
-cHBvcnQgZm9yIGlXQVJQIFBvcnQgTWFwcGVyDQo+IHVzZXIgc3BhY2Ugc2VydmljZSIpDQo+IFNp
-Z25lZC1vZmYtYnk6IEdlZXJ0IFV5dHRlcmhvZXZlbiA8Z2VlcnRAbGludXgtbTY4ay5vcmc+DQo+
-IC0tLQ0KPiB2MjoNCj4gICAtIFVzZSAtRUlOVkFMIGluc3RlYWQgb2YgemVybywNCj4gICAtIE1v
-dmUgdGhlIHByZWluaXRpYWxpemF0aW9uIHRvIGp1c3QgYmVmb3JlIHRoZSBsb29wLCB0byBjYXRh
-Y2ggZnV0dXJlDQo+ICAgICBlYXJseSBvZmZlbmRlcnMsDQo+ICAgLSBEcm9wIFJGQyBzdGF0ZS4N
-Cj4gLS0tDQo+ICBkcml2ZXJzL2luZmluaWJhbmQvY29yZS9pd3BtX3V0aWwuYyB8IDEgKw0KPiAg
-MSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspDQo+IA0KDQpUaGFua3MuDQpSZXZpZXdlZC1i
-eTogVGF0eWFuYSBOaWtvbG92YSA8dGF0eWFuYS5lLm5pa29sb3ZhQGludGVsLmNvbT4NCg0KPiBk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvaXdwbV91dGlsLmMNCj4gYi9kcml2
-ZXJzL2luZmluaWJhbmQvY29yZS9pd3BtX3V0aWwuYw0KPiBpbmRleCAzYzRmYWFkYjhjZGRkN2Zk
-Li44MTUyOGY2NDA2MWE0OWRmIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvY29y
-ZS9pd3BtX3V0aWwuYw0KPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9pd3BtX3V0aWwu
-Yw0KPiBAQCAtNjU0LDYgKzY1NCw3IEBAIGludCBpd3BtX3NlbmRfbWFwaW5mbyh1OCBubF9jbGll
-bnQsIGludCBpd3BtX3BpZCkNCj4gIAl9DQo+ICAJc2tiX251bSsrOw0KPiAgCXNwaW5fbG9ja19p
-cnFzYXZlKCZpd3BtX21hcGluZm9fbG9jaywgZmxhZ3MpOw0KPiArCXJldCA9IC1FSU5WQUw7DQo+
-ICAJZm9yIChpID0gMDsgaSA8IElXUE1fTUFQSU5GT19IQVNIX1NJWkU7IGkrKykgew0KPiAgCQlo
-bGlzdF9mb3JfZWFjaF9lbnRyeShtYXBfaW5mbywgJml3cG1faGFzaF9idWNrZXRbaV0sDQo+ICAJ
-CQkJICAgICBobGlzdF9ub2RlKSB7DQo+IC0tDQo+IDIuNy40DQoNCg==
+In __flush_qp(), the CQ ARMED bit was being cleared regardless of
+whether any notification is actually needed.  This resulted in the iser
+termination logic getting stuck in ib_drain_sq() because the CQ was not
+marked ARMED and thus the drain CQE notification wasn't triggered.
+
+This new bug was exposed when this commit was merged:
+
+commit cbb40fadd31c ("iw_cxgb4: only call the cq comp_handler when the
+cq is armed")
+
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/qp.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 5ee7fe4..355e288 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -1285,21 +1285,21 @@ static void __flush_qp(struct c4iw_qp *qhp, struct c4iw_cq *rchp,
+ 	spin_unlock_irqrestore(&rchp->lock, flag);
+ 
+ 	if (schp == rchp) {
+-		if (t4_clear_cq_armed(&rchp->cq) &&
+-		    (rq_flushed || sq_flushed)) {
++		if ((rq_flushed || sq_flushed) &&
++		    t4_clear_cq_armed(&rchp->cq)) {
+ 			spin_lock_irqsave(&rchp->comp_handler_lock, flag);
+ 			(*rchp->ibcq.comp_handler)(&rchp->ibcq,
+ 						   rchp->ibcq.cq_context);
+ 			spin_unlock_irqrestore(&rchp->comp_handler_lock, flag);
+ 		}
+ 	} else {
+-		if (t4_clear_cq_armed(&rchp->cq) && rq_flushed) {
++		if (rq_flushed && t4_clear_cq_armed(&rchp->cq)) {
+ 			spin_lock_irqsave(&rchp->comp_handler_lock, flag);
+ 			(*rchp->ibcq.comp_handler)(&rchp->ibcq,
+ 						   rchp->ibcq.cq_context);
+ 			spin_unlock_irqrestore(&rchp->comp_handler_lock, flag);
+ 		}
+-		if (t4_clear_cq_armed(&schp->cq) && sq_flushed) {
++		if (sq_flushed && t4_clear_cq_armed(&schp->cq)) {
+ 			spin_lock_irqsave(&schp->comp_handler_lock, flag);
+ 			(*schp->ibcq.comp_handler)(&schp->ibcq,
+ 						   schp->ibcq.cq_context);
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
