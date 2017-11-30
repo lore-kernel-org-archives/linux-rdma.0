@@ -1,69 +1,42 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH rdma-core 3/3] debian: Update changelog to include Debian uploads
-Date: Thu, 30 Nov 2017 13:39:40 +0100
-Message-ID: <20171130123940.25795-4-benjamin.drung@profitbricks.com>
-References: <20171130123940.25795-1-benjamin.drung@profitbricks.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171130123940.25795-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] iw_cxgb4: make pointer reg_workq static
+Date: Thu, 30 Nov 2017 13:30:06 +0000
+Message-ID: <20171130133006.19699-1-colin.king@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steve Wise <swise@chelsio.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-rdma-core 15-2, 15-3, and 15.1-1 were uploaded to Debian unstable.
-Include the changelogs from these uploads.
+From: Colin Ian King <colin.king@canonical.com>
 
-Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+The pointer reg_workq is local to the source and does not need to be
+in global scope, so make it static.
+
+Cleans up sparse warning:
+drivers/infiniband/hw/cxgb4/device.c:69:25: warning: symbol 'reg_workq'
+was not declared. Should it be static?
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- debian/changelog | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ drivers/infiniband/hw/cxgb4/device.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/debian/changelog b/debian/changelog
-index 44a83eaa..3336f331 100644
---- a/debian/changelog
-+++ b/debian/changelog
-@@ -4,6 +4,37 @@ rdma-core (16.0-1) unstable; urgency=low
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index af77d128d242..91cbe3aae32e 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -66,7 +66,7 @@ MODULE_PARM_DESC(c4iw_wr_log_size_order,
  
-  -- Jason Gunthorpe <jgg-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>  Tue, 14 Nov 2017 12:24:09 +0100
+ static LIST_HEAD(uld_ctx_list);
+ static DEFINE_MUTEX(dev_mutex);
+-struct workqueue_struct *reg_workq;
++static struct workqueue_struct *reg_workq;
  
-+rdma-core (15.1-1) unstable; urgency=medium
-+
-+  * New upstream release.
-+  * Add m68k as non-coherent DMA architecture
-+  * Mark libraries as Multi-Arch: same
-+
-+ -- Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>  Thu, 30 Nov 2017 12:08:26 +0100
-+
-+rdma-core (15-3) unstable; urgency=medium
-+
-+  * debian/rules: Include architecture.mk for DEB_HOST_ARCH definition
-+  * Add alpha, hppa, sh4 as non-coherent DMA archs
-+  * Do not require valgrind on x32 (not available there due to build failure)
-+
-+ -- Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>  Thu, 16 Nov 2017 17:33:48 +0100
-+
-+rdma-core (15-2) unstable; urgency=medium
-+
-+  * Do not build ibacm for non-Linux architectures
-+  * Do not require valgrind if not available
-+  * Let libibverbs1 15 break ibverbs-providers 14
-+  * Drop dh-systemd build dependency
-+  * Bump Standards-Version to 4.1.1 (no changes needed)
-+  * Drop lintian overrides for false positives
-+  * Set myself as maintainer (instead of linux-rdma)
-+  * Do not try to install disabled ibverbs providers on architectures that do
-+    not provide cache coherent DMA (Closes: #881731)
-+  * Explicitly list private libibverbs symbols
-+
-+ -- Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>  Thu, 16 Nov 2017 12:55:28 +0100
-+
- rdma-core (15-1) unstable; urgency=medium
- 
-   * New upstream version. ibverbs-providers combines the source packages
+ #define DB_FC_RESUME_SIZE 64
+ #define DB_FC_RESUME_DELAY 1
 -- 
 2.14.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
