@@ -1,87 +1,97 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 4.8-1 GA release is available
-Date: Fri, 1 Dec 2017 03:02:16 +0200
-Message-ID: <fee4318e-265a-68c8-50b5-35bebf242251@dev.mellanox.co.il>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH for-next 4/6] IB/CM: Change sgid to IB GID when handling
+ CM request
+Date: Fri, 1 Dec 2017 01:27:47 +0000
+Message-ID: <VI1PR0502MB300851F2F0186177E201F4E8D1390@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20171114122859.10579.79788.stgit@scvm10.sc.intel.com>
+ <20171114123436.10579.95655.stgit@scvm10.sc.intel.com>
+ <VI1PR0502MB3008698B4478B2973FE1FA27D1280@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <3d9177ff-b546-15aa-b237-e776e82dac1d@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3d9177ff-b546-15aa-b237-e776e82dac1d-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-OFED-4.8-1 is available at:
-
-http://openfabrics.org/downloads/OFED/ofed-4.8-1/OFED-4.8-1.tgz
-
-
-To get BUILD_ID run ofed_info
-
-Please report any issues in bugzilla
-http://bugs.openfabrics.org/bugzilla/ for OFED 4.8-1
-
-
-Release notes:
-
-http://openfabrics.org/downloads/OFED/release_notes/OFED_4.8-1-release_notes
-
-OFED-4.8-1 Main Changes from OFED-4.8
--------------------------------------------------------------------------------
-1. compat-rdma
-- openibd: rpcrdma added to the list of modules to unload
-- bnxt_en/bnxt_re: Support ulp_shutdown hook
-- bnxt_re: BZ 2655 Fix nfs client hang with a call trace on stress traffic
-- bnxt_re: BZ 2654 Fix traffic failure after changing ip address
-- bnxt_re: BZ 2656 fix a crash in qp error event processing
-- bnxt_en: BZ 2649 Enabling DCB parameter for bnxt_en
-- Fixes for i40iw which have been included in kernels 4.12 and 4.13
-- qedr: fix BZ 2642 - parse VLAN ID and priority correctly
-- bnxt_en: Bug 2645 - Set default completion ring for async events
-- bnxt_re: bz 2646 - 
-0012-bnxt_re-Make-room-for-mapping-beyond-32-entries.patch
-- ib_srp: Fixed backport - issue 2635
-- bnxt_en: Misc bug fixes
-- bnxt_re: Fix bnxt_en installation in the latest daily builds
-- bnxt_re: Adding bug fix patches
-- bnxt_re: Backports for SLES12SP0/SP1/SP2 and RH7.0/7.1
-- NFS/RDMA backport patch for SLES12SP2
-- NFS/RDMA backport patch to revert source files to 4.6 kernel in order 
-to facilitate dependency on distro SUNRPC. Include fix to use correct 
-ib_map_mr_sg signature from OFED4.8.
-- makefile: Added CONFIG_BNXT parameter to override kernel's default
-- compat-rdma.spec: Fixed QED firmware installation
-- configure: Fix typos introduced by 
-b8520c5751cc6c40bb2f5ba8533a34dc260f86f2
-- configure: Fix typo
-- Merge branch 'master' of https://github.com/selvintxavier/compat-rdma
-- Fixed SRP support on RHEL7.2 by using blk_iopoll API in ib_core
-- bnxt_re: Add bnxt_re backports
-- bnxt_re: Enable bnxt_re building
-- Removed previously applied patch 
-0057-qed-Fix-error-in-the-dcbx-app-meta-data.patch
-- Add qedr
-
-2. Updated packages
-- rdma-core stable-v15
-- libfabric-1.5.2
-- fabtests-1.5.2
-- mstflint-4.8.0
-
-3. ofed_scripts
-- Added support for rdma-core new packaging format
-- install.pl: Added support for using source RPM per Distro
-- install.pl: Enable nfsrdma on RHEL7.3 and SLES12 SP2
-- Fix syntax error after libbnxt_re-rdmav2
-- Add bnxt_re support
-- Add qedr
-
-
-Regards,
-Vladimir
-
+SGkgRG9uLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IERvbiBIaWF0
+dCBbbWFpbHRvOmRvbi5oaWF0dEBpbnRlbC5jb21dDQo+IFNlbnQ6IFRodXJzZGF5LCBOb3ZlbWJl
+ciAzMCwgMjAxNyA1OjQwIFBNDQo+IFRvOiBQYXJhdiBQYW5kaXQgPHBhcmF2QG1lbGxhbm94LmNv
+bT47IERlbm5pcyBEYWxlc3NhbmRybw0KPiA8ZGVubmlzLmRhbGVzc2FuZHJvQGludGVsLmNvbT47
+IGRsZWRmb3JkQHJlZGhhdC5jb20NCj4gQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBJ
+cmEgV2VpbnkgPGlyYS53ZWlueUBpbnRlbC5jb20+Ow0KPiBkb24uaGlhdHRAaW50ZWwuY29tDQo+
+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggZm9yLW5leHQgNC82XSBJQi9DTTogQ2hhbmdlIHNnaWQgdG8g
+SUIgR0lEIHdoZW4gaGFuZGxpbmcNCj4gQ00gcmVxdWVzdA0KPiANCj4gSGkgUGFyYXYsDQo+IA0K
+PiBPbiAxMS8xNC8yMDE3IDEwOjUwIEFNLCBQYXJhdiBQYW5kaXQgd3JvdGU6DQo+ID4gSGkgRGVu
+bmlzLA0KPiA+DQo+ID4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4+IEZyb206IGxp
+bnV4LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtcmRtYS0NCj4gPj4g
+b3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgRGVubmlzIERhbGVzc2FuZHJvDQo+
+ID4+IFNlbnQ6IFR1ZXNkYXksIE5vdmVtYmVyIDE0LCAyMDE3IDY6MzUgQU0NCj4gPj4gVG86IGRs
+ZWRmb3JkQHJlZGhhdC5jb20NCj4gPj4gQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBE
+b24gSGlhdHQgPGRvbi5oaWF0dEBpbnRlbC5jb20+OyBJcmENCj4gPj4gV2VpbnkgPGlyYS53ZWlu
+eUBpbnRlbC5jb20+DQo+ID4+IFN1YmplY3Q6IFtQQVRDSCBmb3ItbmV4dCA0LzZdIElCL0NNOiBD
+aGFuZ2Ugc2dpZCB0byBJQiBHSUQgd2hlbg0KPiA+PiBoYW5kbGluZyBDTSByZXF1ZXN0DQo+ID4+
+DQo+ID4+IEZyb206IERvbiBIaWF0dCA8ZG9uLmhpYXR0QGludGVsLmNvbT4NCj4gPj4NCj4gPj4g
+VUxQcyBkbyBub3QgdW5kZXJzdGFuZCBPUEEgR0lEcyBhbmQgd2lsbCByZWplY3QgQ00gcmVxdWVz
+dHMgaWYgdGhlDQo+ID4+IHNnaWQgZG9lcyBub3QgbWF0Y2ggdGhlIGxvY2FsX2dpZC4gSW4gb3Jk
+ZXIgdG8gZml4IHRoaXMgYmVoYXZpb3Igd2UNCj4gPj4gY29udmVydCB0aGUgT1BBIEdJRCBiYWNr
+IHRvIGFuIElCIEdJRC4NCj4gPj4NCj4gPj4gUmV2aWV3ZWQtYnk6IElyYSBXZWlueSA8aXJhLndl
+aW55QGludGVsLmNvbT4NCj4gPj4gU2lnbmVkLW9mZi1ieTogRG9uIEhpYXR0IDxkb24uaGlhdHRA
+aW50ZWwuY29tPg0KPiA+PiBTaWduZWQtb2ZmLWJ5OiBEZW5uaXMgRGFsZXNzYW5kcm8gPGRlbm5p
+cy5kYWxlc3NhbmRyb0BpbnRlbC5jb20+DQo+ID4+IC0tLQ0KPiA+PiAgIGRyaXZlcnMvaW5maW5p
+YmFuZC9jb3JlL2NtLmMgfCAgIDM4DQo+ID4+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKy0tDQo+ID4+ICAgMSBmaWxlcyBjaGFuZ2VkLCAzNiBpbnNlcnRpb25zKCspLCAyIGRl
+bGV0aW9ucygtKQ0KPiA+Pg0KPiA+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2Nv
+cmUvY20uYw0KPiA+PiBiL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2NtLmMgaW5kZXggNTkyN2Vl
+NC4uZjlmNmY1ZSAxMDA2NDQNCj4gPj4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvY20u
+Yw0KPiA+PiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9jbS5jDQo+ID4+IEBAIC0xNTYw
+LDYgKzE1NjAsMzcgQEAgc3RhdGljIHUxNiBjbV9nZXRfYnRoX3BrZXkoc3RydWN0IGNtX3dvcmsN
+Cj4gKndvcmspDQo+ID4+ICAgCXJldHVybiBwa2V5Ow0KPiA+PiAgIH0NCj4gPj4NCj4gPj4gKy8q
+Kg0KPiA+PiArICogQ29udmVydCBPUEEgU0dJRCB0byBJQiBTR0lEDQo+ID4+ICsgKiBVTFBzIChz
+dWNoIGFzIElQb0lCKSBkbyBub3QgdW5kZXJzdGFuZCBPUEEgR0lEcyBhbmQgd2lsbA0KPiA+PiAr
+ICogcmVqZWN0IHRoZW0gYXMgdGhlIGxvY2FsX2dpZCB3aWxsIG5vdCBtYXRjaCB0aGUgc2dpZC4g
+VGhlcmVmb3JlLA0KPiA+PiArICogY2hhbmdlIHRoZSBwYXRocmVjJ3MgU0dJRCB0byBhbiBJQiBT
+R0lELg0KPiA+PiArICoNCj4gPiBBZGRyZXNzIGFuZCBvdGhlciBjb252ZXJzaW9ucyBhcmUgaW4g
+aWJfc2EuaCBzdWNoIGFzIHBhdGhfY29udl9vcGFfdG9faWIoKS4NCj4gPiBEbyBwYXRoX2NvbnZf
+b3BhX3RvX2liIGZ1bmN0aW9uIGFsc28gbmVlZCBzdWNoIG9wYSB0byBpYiBnaWQgY29udmVyc2lv
+bj8NCj4gPiBDYW4geW91IHBsYWNlIGNtX29wYV90b19pYl9zZ2lkIGZ1bmN0aW9uIGluIGNvcmUv
+YWRkci5jIGFzIGl0IGRlYWxzIHdpdGgNCj4gYWRkcmVzc2VzLg0KPiBTaW5jZSB0aGlzIGZ1bmN0
+aW9uIGlzIG9ubHkgdXNlZCBieSB0aGUgQ00gKGFuZCBpcyBvbmx5IG5lY2Vzc2FyeSBiZWNhdXNl
+IHRoZQ0KPiByZXNwb25kZXIgaXMgbm90IHBlcmZvcm1pbmcgYSBwYXRoIHJlY29yZCBxdWVyeSBp
+dHNlbGYsIHdoaWxlIHRoZSByZXF1ZXN0ZXIgaGFzDQo+IGFscmVhZHkgZG9uZSBxdWVyeSBmb3Ig
+dXMpIHRoZXJlIGlzIG5vIHBvaW50IGluIG1vdmluZyBpdCB0byBjb3JlL2FkZHIuYy4gRnVydGhl
+ciwNCj4gaWYgd2UgZG8gbW92ZSB0aGUgZnVuY3Rpb24gdGhlcmUsIHdlIHdpbGwgaGF2ZSB0byBp
+bmNsdWRlIGFsbCB0aGUgcmVxdWlyZWQgaW5jbHVkZQ0KPiBmaWxlcyAocGF0aHJlYywgd2MsIGhl
+bHBlcg0KPiBmdW5jdGlvbnMpIC4gR2l2ZW4gdGhlIGxpbWl0ZWQgYXBwbGljYWJpbGl0eSBvZiB0
+aGlzIGZ1bmN0aW9uIEkgcHJlZmVyIHRvIGtlZXAgaXQgYXMgYQ0KPiBzdGF0aWMgZnVuY3Rpb24g
+YXMgaXQgaXMuDQo+ID4gV2hpbGUgcmVwbHlpbmcgYmFjayB0byBDTSByZXF1ZXN0LCBpcyBpdCBv
+ayB0byByZXBseSBiYWNrIHdpdGggSUIgR0lEIGFuZA0KPiByZXZlcnNlIGNvbnZlcnNpb24gbm90
+IG5lZWRlZCBvciBpdCByZXBsaWVzIHdpdGggT1BBIEdJRD8NCj4gDQo+IFllcywgaXQgaXMgb2th
+eSB0byByZXBseSBiYWNrIHdpdGggYW4gSUIgR0lEIGFuZCB3ZSBkbyBub3QgbmVlZCB0aGUgcmV2
+ZXJzZQ0KPiBjb252ZXJzaW9uIChlZmZlY3RpdmVseSB0aGV5IGFyZSB0aGUgc2FtZSB0aGluZyBh
+cyB0aGUgcmVxdWVzdGVyIGluIHRoaXMgY2FzZSBoYXMNCj4gYWxyZWFkeSBkb25lIGEgcGF0aHJl
+YyBxdWVyeSBhbmQgZG9lcyBub3RoaW5nIHdpdGggdGhlIHJlcGx5LCBhbmQsIGV2ZW4gaWYgaXQN
+Cj4gZG9lcyB0aGUgcmVxdWVzdGVyIGFscmVhZHkgaGFzIHRoZSBJQiBnaWQgYW5kIHdpbGwga25v
+dyBob3cgdG8gcmVzb2x2ZSBpdCkuDQpPay4NCg0KPiA+PiArICogQHdvcms6IFdvcmsgY29tcGxl
+dGlvbg0KPiA+PiArICogQHBhdGg6IFBhdGggcmVjb3JkDQo+ID4+ICsgKi8NCj4gPj4gK3N0YXRp
+YyB2b2lkIGNtX29wYV90b19pYl9zZ2lkKHN0cnVjdCBjbV93b3JrICp3b3JrLA0KPiA+PiArCQkJ
+ICAgICAgc3RydWN0IHNhX3BhdGhfcmVjICpwYXRoKQ0KPiA+PiArew0KPiA+PiArCXN0cnVjdCBp
+Yl9kZXZpY2UgKmRldiA9IHdvcmstPnBvcnQtPmNtX2Rldi0+aWJfZGV2aWNlOw0KPiA+PiArCXN0
+cnVjdCBpYl9naWRfYXR0ciBnaWRfYXR0cjsNCj4gPj4gKwl1OCBwb3J0X251bSA9IHdvcmstPnBv
+cnQtPnBvcnRfbnVtOw0KPiA+PiArDQo+ID4+ICsJaWYgKHJkbWFfY2FwX29wYV9haChkZXYsIHBv
+cnRfbnVtKSAmJg0KPiA+PiArCSAgICAoaWJfaXNfb3BhX2dpZCgmcGF0aC0+c2dpZCkpKSB7DQo+
+ID4+ICsJCXVuaW9uIGliX2dpZCBzZ2lkOw0KPiA+PiArDQo+ID4+ICsJCWlmIChpYl9nZXRfY2Fj
+aGVkX2dpZChkZXYsIHBvcnRfbnVtLCAwLA0KPiA+IE9ubHkgZ2lkIDAgbmVlZHMgY29udmVyc2lv
+bj8NCj4gWWVzLMKgIGJlY2F1c2UgZ2lkIDEgaXMgdGhlIE9QQSBnaWQgKHBlciB0aGUgT1BBIHNw
+ZWMgdGhlcmUgaXMgb25seSBvbmUgZ2lkIHBlciBwb3J0DQo+IHNvIGdpZCAxIGlzIGEgY2FjaGlu
+ZyBwb2ludCBmb3IgdGhlIG9wYSBnaWQpLg0KPiA+PiArCQkJCSAgICAgICZzZ2lkLCAmZ2lkX2F0
+dHIpKSB7DQo+ID4gU2luY2UgZ2lkIGF0dHJpYnV0ZSBpcyBub3QgdXNlZCBoZXJlIGFuZCBhcHBs
+aWNhYmxlIHRvIFJvQ0UgYW5kIGl0cyBvcHRpb25hbCwgY2FuDQo+IHlvdSBwYXNzIE5VTEwgYW5k
+IGF2b2lkIGdpZF9hdHRyPw0KPiBXaWxsIGRvLg0KT2suIFRoYW5rcy4NCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
