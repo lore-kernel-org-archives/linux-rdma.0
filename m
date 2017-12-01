@@ -1,46 +1,51 @@
-From: Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3 1/4] mm: introduce get_user_pages_longterm
-Date: Fri, 1 Dec 2017 11:12:18 +0100
-Message-ID: <20171201101218.mxjyv4fc4cjwhf2o@dhcp22.suse.cz>
-References: <151197872943.26211.6551382719053304996.stgit@dwillia2-desk3.amr.corp.intel.com>
- <151197873499.26211.11687422577653326365.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171130095323.ovrq2nenb6ztiapy@dhcp22.suse.cz>
- <CAPcyv4giMvMfP=yZr=EDRAdTWyCwWydb4JVhT6YSWP8W0PHgGQ@mail.gmail.com>
- <20171130174201.stbpuye4gu5rxwkm@dhcp22.suse.cz>
- <CAPcyv4h5GUueqB-QhbWbn39SBPDE-rOte6UcmAHSWQdVyrF2Rw@mail.gmail.com>
- <20171130181741.2y5nyflyhqxg6y5p@dhcp22.suse.cz>
- <CAPcyv4hwsGQCUcTdpT7UVJyPN0RJz+CAqGNvTSK9Ka1nsypQjA@mail.gmail.com>
- <20171130190117.GF7754@ziepe.ca>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [PATCH net-next] net: hns3: Refactors "reset" handling code in
+ HCLGE layer of HNS3 driver
+Date: Fri, 1 Dec 2017 14:44:15 +0100
+Message-ID: <20171201134415.GD22599@lunn.ch>
+References: <20171201033744.19104-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171130190117.GF7754-uk2M96/98Pc@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171201033744.19104-1-salil.mehta@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Salil Mehta <salil.mehta@huawei.com>
+Cc: davem@davemloft.net, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu 30-11-17 12:01:17, Jason Gunthorpe wrote:
-> On Thu, Nov 30, 2017 at 10:32:42AM -0800, Dan Williams wrote:
-> > > Who and how many LRU pages can pin that way and how do you prevent nasty
-> > > users to DoS systems this way?
-> > 
-> > I assume this is something the RDMA community has had to contend with?
-> > I'm not an RDMA person, I'm just here to fix dax.
+On Fri, Dec 01, 2017 at 03:37:44AM +0000, Salil Mehta wrote:
+> This patch refactors the code of the reset feature in HCLGE layer
+> of HNS3 PF driver. Prime motivation to do this change is:
+> 1. To reduce the time for which common miscellaneous Vector 0
+>    interrupt is disabled because of the reset.
+> 2. Simplification of reset request submission and pending reset
+>    logic.
+> 3. Simplification of the common miscellaneous interrupt handler
+>    routine(for Vector 0) used to handle reset and other sources
+>    of Vector 0 interrupt.
 > 
-> The RDMA implementation respects the mlock rlimit
+> To achieve above below few things have been done:
+> 1. Interrupt is disabled while common miscellaneous interrupt
+>    handler is entered and re-enabled before it is exit. This
+>    reduces the interrupt handling latency as compared to older
+>    interrupt handling scheme where interrupt was being disabled
+>    in interrupt handler context and re-enabled in task context
+>    some time later.
+> 2. Introduces new reset service task for honoring software reset
+>    requests like from network stack related to timeout and serving
+>    the pending reset request(to reset the driver and associated
+>    clients).
+> 3. Made Miscellaneous interrupt handler more generic to handle
+>    all sources including reset interrupt source.
 
-OK, so then I am kind of lost in why do we need a special g-u-p variant.
-The documentation doesn't say and quite contrary it assumes that the
-caller knows what he is doing. This cannot be the right approach.
+Hi Salil
 
-In other words, what does V4L2 does in the same context? Does it account
-the pinned memory or it allows user to pin arbitrary amount of memory.
--- 
-Michal Hocko
-SUSE Labs
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is a rather large patch. Can you break it up? It seems like you
+should be able to break it up into at least three parts, maybe more.
+
+You are aiming to have small patches which are obviously correct. It
+is much easier to review than one big patch which is not obvious at
+all.
+
+	Andrew
