@@ -1,96 +1,143 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/3] Debian 15.1-1 changes
-Date: Fri, 1 Dec 2017 07:57:32 +0200
-Message-ID: <20171201055732.GC8126@mtr-leonro.local>
-References: <20171130123940.25795-1-benjamin.drung@profitbricks.com>
- <20171130174750.GD7754@ziepe.ca>
- <1512066118.4246.2.camel@profitbricks.com>
- <20171130185822.GE7754@ziepe.ca>
- <1512079788.3878.1.camel@profitbricks.com>
+From: Sagar Arun Kamble <sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Creating cyclecounter and lock member in timecounter structure [
+ Was Re: [RFC 1/4] drm/i915/perf: Add support to correlate GPU timestamp with
+ system time]
+Date: Fri, 1 Dec 2017 13:12:02 +0530
+Message-ID: <21599c2b-a89a-4047-cff8-d56c6312cd4b@intel.com>
+References: <1510748034-14034-1-git-send-email-sagar.a.kamble@intel.com>
+ <1510748034-14034-2-git-send-email-sagar.a.kamble@intel.com>
+ <151074872901.26264.3145709294590477412@mail.alporthouse.com>
+ <d529503f-2eb3-b353-763d-901235383c6c@intel.com>
+ <alpine.DEB.2.20.1711231947280.2364@nanos>
+ <83805c37-99b2-2922-e8e8-ea435f9da7d0@intel.com>
+ <alpine.DEB.2.20.1711241429050.1757@nanos>
+ <63a2a495-1bdb-5d47-1202-9b538e9601d8@intel.com>
+ <CALzJLG9JXOnr3EQ2zLcmwKx8S9-CGONRRBSAd9XwHdemEgOn2A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="z4+8/lEcDcG5Ke9S"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1512079788.3878.1.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <CALzJLG9JXOnr3EQ2zLcmwKx8S9-CGONRRBSAd9XwHdemEgOn2A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---z4+8/lEcDcG5Ke9S
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 30, 2017 at 11:09:48PM +0100, Benjamin Drung wrote:
-> Am Donnerstag, den 30.11.2017, 11:58 -0700 schrieb Jason Gunthorpe:
-> > On Thu, Nov 30, 2017 at 07:21:58PM +0100, Benjamin Drung wrote:
-> > > Am Donnerstag, den 30.11.2017, 10:47 -0700 schrieb Jason Gunthorpe:
-> > > > On Thu, Nov 30, 2017 at 01:39:37PM +0100, Benjamin Drung wrote:
-> > > >
-> > > > >   debian: Add m68k as non-coherent DMA architecture
-> > > > >   debian: Mark libraries as Multi-Arch: same
-> > > >
-> > > > As Leon says, shouldn't these go on the mainline branch also?
-> > >
-> > > The complete patch set targets the master branch.
-> >
-> > Oh, I see how you working this, I saw them already applied to the
-> > debian branch and didn't quite get it :)
-> >
-> > Looks fine to me
+On 12/1/2017 2:33 AM, Saeed Mahameed wrote:
+> On Mon, Nov 27, 2017 at 2:05 AM, Sagar Arun Kamble
+> <sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>>
+>> On 11/24/2017 7:01 PM, Thomas Gleixner wrote:
+>>> On Fri, 24 Nov 2017, Sagar Arun Kamble wrote:
+>>>> On 11/24/2017 12:29 AM, Thomas Gleixner wrote:
+>>>>> On Thu, 23 Nov 2017, Sagar Arun Kamble wrote:
+>>>>>> We needed inputs on possible optimization that can be done to
+>>>>>> timecounter/cyclecounter structures/usage.
+>>>>>> This mail is in response to review of patch
+>>>>>> https://patchwork.freedesktop.org/patch/188448/.
+>>>>>>
+>>>>>> As Chris's observation below, about dozen of timecounter users in the
+>>>>>> kernel
+>>>>>> have below structures
+>>>>>> defined individually:
+>>>>>>
+>>>>>> spinlock_t lock;
+>>>>>> struct cyclecounter cc;
+>>>>>> struct timecounter tc;
+>>>>>>
+>>>>>> Can we move lock and cc to tc? That way it will be convenient.
+>>>>>> Also it will allow unifying the locking/overflow watchdog handling
+>>>>>> across
+>>>>>> all
+>>>>>> drivers.
+>>>>> Looks like none of the timecounter usage sites has a real need to
+>>>>> separate
+>>>>> timecounter and cyclecounter.
+>>>> Yes. Will share patch for this change.
+>>>>
+>>>>> The lock is a different question. The locking of the various drivers
+>>>>> differs and I have no idea how you want to handle that. Just sticking
+>>>>> the
+>>>>> lock into the datastructure and then not making use of it in the
+>>>>> timercounter code and leave it to the callsites does not make sense.
+>>>> Most of the locks are held around timecounter_read. In some instances it
+>>>> is held when cyclecounter is updated standalone or is updated along with
+>>>> timecounter calls.  Was thinking if we move the lock in timecounter
+>>>> functions, drivers just have to do locking around its operations on
+>>>> cyclecounter. But then another problem I see is there are variation of
+>>>> locking calls like lock_irqsave, lock_bh, write_lock_irqsave (some using
+>>>> rwlock_t). Should this all locking be left to driver only then?
+>>> You could have the lock in the struct and protect the inner workings in
+>>> the
+>>> related core functions.
+>>>
+>>> That might remove locking requirements from some of the callers and the
+>>> others still have their own thing around it.
+>>
+>> For drivers having static/fixed cyclecounter, we can rely only on lock
+>> inside timecounter.
+>> Most of the network drivers update cyclecounter at runtime and they will
+>> have to rely on two locks if
+>> we add one to timecounter. This may not be efficient for them. Also the lock
+>> in timecounter has to be less restrictive (may be seqlock) I guess.
+>>
+>> Cc'd Mellanox list for inputs on this.
+>>
+>> I have started feeling that the current approach of drivers managing the
+>> locks is the right one so better leave the
+>> lock out of timecounter.
+>>
+> I agree here,
 >
-> Since you approved these change, may I do the rebase and merge to master
-> or is that task restricted to certain people or workflows?
+> In mlx5 we rely on our own read/write lock to serialize access to
+> mlx5_clock struct (mlx5 timecounter and cyclecounter).
+> the access is not as simple as
+> lock()
+> call time_counter_API
+> unlock()
+>
+> Sometimes we also explicitly update/adjust timecycles counters with
+> mlx5 specific calculations after we read the timecounter all inside
+> our lock.
+> e.g.
+> @mlx5_ptp_adjfreq()
+>
+>      write_lock_irqsave(&clock->lock, flags);
+>      timecounter_read(&clock->tc);
+>      clock->cycles.mult = neg_adj ? clock->nominal_c_mult - diff :
+>                         clock->nominal_c_mult + diff;
+>      write_unlock_irqrestore(&clock->lock, flags);
+>
+> So i don't think it will be a simple task to have a generic thread
+> safe timecounter API, without the need to specifically adjust it for
+> all driver use-cases.
+> Also as said above, in runtime it is not obvious in which context the
+> timecounter will be accessed irq/soft irq/user.
+>
+> let's keep it as is, and let the driver decide which locking scheme is
+> most suitable for it.
 
-debian/* is yours, feel free to merge it.
+Yes. Thanks for your inputs Saeed.
 
-Thanks
+Regards
+Sagar
 
 >
-> --
-> Benjamin Drung
-> System Developer
-> Debian & Ubuntu Developer
+> Thanks,
+> Saeed.
 >
-> ProfitBricks GmbH
-> Greifswalder Str. 207
-> D - 10405 Berlin
->
-> Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-> URL:  http://www.profitbricks.com
->
-> Sitz der Gesellschaft: Berlin.
-> Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-> Gesch=E4ftsf=FChrer: Andreas Gauger, Achim Weiss.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>> Thanks,
+>>>
+>>>          tglx
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---z4+8/lEcDcG5Ke9S
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlog70kACgkQ5GN7iDZy
-WKeG8g//dfAoxZmIbYVkWeDFUH0SL5VoS6sNbKAAZ32vITT4Y9IlW2YO+GVf1cXl
-yEHUE/Hls9L57izgXADJfR0PgWEF/8gQae5/4BMe5Wx6wuXZYMCEHTd5bqcsr+A1
-9SbMHJhDVpwnIMgZZFSbSOra9Btyh9/UQO87Cb8yokPQSTz8XihpSKbAOY/ILtVz
-6yH0abM3SIBrcKrVh8qCVQBBenHyF+ltFZKWPQS6peJxiXFw3Y17JHX5LRmWGcgO
-AsLdgaYn3A/sMwX7biQAwAlvfyWZb8+f/mJXruDIFxoAiiy4HkEATivUyHePIpzf
-dwd3JSdvupKT0K/jkBHENd6ocaK/vKxlJmJZ/XlVLpLEzXwog7c7eXejRFYt9X7D
-jIlIG7hhcWC3b6/P4cOuzoRe/Ckauqb0XYpsESyzd5yLwVZDqzXN6rmJuoe+oPiy
-ZF6ngVOTMtbEAkH1ddYtO8xGWELIBdmpZEVTSwGO7Rqq7p/T54hBFZev2WyY/yPD
-UBnMYvlIuGxCYH+ReFDnmILx7sBxyc3n9MEWPQxYJPZ91ycjFIoYLUt55OCmfeNK
-Z5OqpzEeVvK7iRiq1BmnelLJUt1Zvrf2DboyhnZJxlxHEWKozLgGUfdcR6ucGRHa
-JCI23JVnTwhF2bVktzKNlxhWZmGZsFxrDmpyuQSnt1GDYYyclgI=
-=iM46
------END PGP SIGNATURE-----
-
---z4+8/lEcDcG5Ke9S--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
