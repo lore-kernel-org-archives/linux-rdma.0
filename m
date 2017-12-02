@@ -1,121 +1,73 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH 1/1] timecounter: Make cyclecounter struct
- part of timecounter struct
-Date: Sat, 2 Dec 2017 10:04:58 -0800
-Message-ID: <20171202180458.winwznbstsi355ed@localhost>
-References: <1512189095-28654-1-git-send-email-sagar.a.kamble@intel.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH net-next] net: hns3: Refactors "reset" handling code in
+ HCLGE layer of HNS3 driver
+Date: Sat, 2 Dec 2017 18:06:48 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93BB5D6DC@FRAEML521-MBX.china.huawei.com>
+References: <20171201033744.19104-1-salil.mehta@huawei.com>
+ <20171201134415.GD22599@lunn.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1512189095-28654-1-git-send-email-sagar.a.kamble@intel.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Sagar Arun Kamble <sagar.a.kamble@intel.com>
-Cc: alsa-devel@alsa-project.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, linux-kernel@vger.kernel.org, Chris Wilson <chris@chris-wilson.co.uk>, John Stultz <john.stultz@linaro.org>, intel-wired-lan@lists.osuosl.org, Thomas Gleixner <tglx@linutronix.de>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171201134415.GD22599-g2DYL2Zd6BY@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>
+Cc: "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Zhuangyuzeng (Yisen)" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "lipeng (Y)" <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Dec 02, 2017 at 10:01:35AM +0530, Sagar Arun Kamble wrote:
-> There is no real need for the users of timecounters to define cyclecounter
-> and timecounter variables separately. Since timecounter will always be
-> based on cyclecounter, have cyclecounter struct as member of timecounter
-> struct.
+Hi Andrew,
 
-Overall, this is a welcome change.  However, it doesn't go far enough,
-IMHO, and I'll explain that more below.
+> -----Original Message-----
+> From: Andrew Lunn [mailto:andrew-g2DYL2Zd6BY@public.gmane.org]
+> Sent: Friday, December 01, 2017 1:44 PM
+> To: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org; Zhuangyuzeng (Yisen)
+> <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; lipeng (Y) <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>;
+> mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+> kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm
+> <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Subject: Re: [PATCH net-next] net: hns3: Refactors "reset" handling
+> code in HCLGE layer of HNS3 driver
+> 
+> On Fri, Dec 01, 2017 at 03:37:44AM +0000, Salil Mehta wrote:
+> > This patch refactors the code of the reset feature in HCLGE layer
+> > of HNS3 PF driver. Prime motivation to do this change is:
+> > 1. To reduce the time for which common miscellaneous Vector 0
+> >    interrupt is disabled because of the reset.
+> > 2. Simplification of reset request submission and pending reset
+> >    logic.
+> > 3. Simplification of the common miscellaneous interrupt handler
+> >    routine(for Vector 0) used to handle reset and other sources
+> >    of Vector 0 interrupt.
+> >
+> > To achieve above below few things have been done:
+> > 1. Interrupt is disabled while common miscellaneous interrupt
+> >    handler is entered and re-enabled before it is exit. This
+> >    reduces the interrupt handling latency as compared to older
+> >    interrupt handling scheme where interrupt was being disabled
+> >    in interrupt handler context and re-enabled in task context
+> >    some time later.
+> > 2. Introduces new reset service task for honoring software reset
+> >    requests like from network stack related to timeout and serving
+> >    the pending reset request(to reset the driver and associated
+> >    clients).
+> > 3. Made Miscellaneous interrupt handler more generic to handle
+> >    all sources including reset interrupt source.
+> 
+> Hi Salil
+> 
+> This is a rather large patch. Can you break it up? It seems like you
+> should be able to break it up into at least three parts, maybe more.
+> 
+> You are aiming to have small patches which are obviously correct. It
+> is much easier to review than one big patch which is not obvious at
+> all.
+Ok. No issues. I will try to fix this in V2 version.
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_clock.c b/drivers/net/ethernet/mellanox/mlx4/en_clock.c
-> index 0247885..35987b5 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/en_clock.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/en_clock.c
-...
-
-As it stands now, timecounter_init() is used for two totally different
-reasons.  Some callers only want to set the time, ...
-
-> @@ -207,7 +207,7 @@ static int mlx4_en_phc_settime(struct ptp_clock_info *ptp,
->  
->  	/* reset the timecounter */
->  	write_seqlock_irqsave(&mdev->clock_lock, flags);
-> -	timecounter_init(&mdev->clock, &mdev->cycles, ns);
-> +	timecounter_init(&mdev->clock, ns);
->  	write_sequnlock_irqrestore(&mdev->clock_lock, flags);
->  
->  	return 0;
-
-... while others initialize the data structure the first time:
-
-> @@ -274,17 +274,17 @@ void mlx4_en_init_timestamp(struct mlx4_en_dev *mdev)
->  
->  	seqlock_init(&mdev->clock_lock);
->  
-> -	memset(&mdev->cycles, 0, sizeof(mdev->cycles));
-> -	mdev->cycles.read = mlx4_en_read_clock;
-> -	mdev->cycles.mask = CLOCKSOURCE_MASK(48);
-> -	mdev->cycles.shift = freq_to_shift(dev->caps.hca_core_clock);
-> -	mdev->cycles.mult =
-> -		clocksource_khz2mult(1000 * dev->caps.hca_core_clock, mdev->cycles.shift);
-> -	mdev->nominal_c_mult = mdev->cycles.mult;
-> +	memset(&mdev->clock.cc, 0, sizeof(mdev->clock.cc));
-> +	mdev->clock.cc.read = mlx4_en_read_clock;
-> +	mdev->clock.cc.mask = CLOCKSOURCE_MASK(48);
-> +	mdev->clock.cc.shift = freq_to_shift(dev->caps.hca_core_clock);
-> +	mdev->clock.cc.mult =
-> +		clocksource_khz2mult(1000 * dev->caps.hca_core_clock,
-> +				     mdev->clock.cc.shift);
-> +	mdev->nominal_c_mult = mdev->clock.cc.mult;
->  
->  	write_seqlock_irqsave(&mdev->clock_lock, flags);
-> -	timecounter_init(&mdev->clock, &mdev->cycles,
-> -			 ktime_to_ns(ktime_get_real()));
-> +	timecounter_init(&mdev->clock, ktime_to_ns(ktime_get_real()));
-
-I'd like to see two followup patches to this one:
-
-1. Convert timecounter_init() callers to a new timecounter_reset()
-   function where the intent is to reset the time.
-
-2. Change timecounter_init() to take the cyclecounter fields as
-   arguments.
-
-	void timecounter_init(struct timecounter *tc,
-			      u64 (*read)(const struct cyclecounter *cc),
-			      u64 mask,
-			      u32 mult,
-			      u32 shift,
-			      u64 start_tstamp);
-
-Then we can clean up all this stuff:
-
-	mdev->clock.cc.read = mlx4_en_read_clock;
-	mdev->clock.cc.mask = CLOCKSOURCE_MASK(48);
-	mdev->clock.cc.shift = freq_to_shift(dev->caps.hca_core_clock);
-	mdev->clock.cc.mult = clocksource_khz2mult(...);
-
-This second step can be phased in by calling the new function
-timecounter_initialize() and converting the drivers one by one.
-
-> diff --git a/include/linux/timecounter.h b/include/linux/timecounter.h
-> index 2496ad4..6daca06 100644
-> --- a/include/linux/timecounter.h
-> +++ b/include/linux/timecounter.h
-...
-> @@ -98,7 +98,6 @@ static inline void timecounter_adjtime(struct timecounter *tc, s64 delta)
->  /**
->   * timecounter_init - initialize a time counter
->   * @tc:			Pointer to time counter which is to be initialized/reset
-> - * @cc:			A cycle counter, ready to be used.
-
-This "ready to used" requirement should go.  The init() function
-should make the instance ready to be used all at once.
-
-Thanks,
-Richard
+> 
+> 	Andrew
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
