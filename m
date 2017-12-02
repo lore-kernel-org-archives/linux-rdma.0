@@ -1,38 +1,37 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH V2 rdma-rc 0/3] RDMA/hns: Bug fixes in hns RoCE driver
-Date: Fri, 1 Dec 2017 17:04:09 -0700
-Message-ID: <20171202000409.GP7754@ziepe.ca>
-References: <1511853028-35191-1-git-send-email-xavier.huwei@huawei.com>
+Subject: Re: [PATCH tip/core/rcu 16/21] drivers/infiniband: Remove
+ now-redundant smp_read_barrier_depends()
+Date: Fri, 1 Dec 2017 17:11:09 -0700
+Message-ID: <20171202001109.GQ7754@ziepe.ca>
+References: <20171201195053.GA23494@linux.vnet.ibm.com>
+ <1512157876-24665-16-git-send-email-paulmck@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1511853028-35191-1-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1512157876-24665-16-git-send-email-paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shaobo.xu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, xavier.huwei-WVlzvzqoTvw@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jiangshanlai-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dipankar-xthvdsQ13ZrQT0dZR+AlfA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, mathieu.desnoyers-vg+e7yoeK/dWk0Htik3J/w@public.gmane.org, josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, fweisbec-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Richard Henderson <rth-hL46jP5Bxq7R7s880joybQ@public.gmane.org>, Ivan Kokshaysky <ink-biIs/Y0ymYJMZLIVYojuPNP0rXTJTi09@public.gmane.org>, Matt Turner <mattst88-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Michael Cree <mcree-q3Ck4f9/EBK9koe0gwxAeg@public.gmane.org>, Andrea Parri <parri.andrea-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 28, 2017 at 03:10:25PM +0800, Wei Hu (Xavier) wrote:
-> This patch-set introduces three patches to fix the memory related
-> issues. one fixes DMA operation failure when smmu is enabled.
-> the other two patches fixes incorrect usage of dma API that may
-> cause coherency problems.
+On Fri, Dec 01, 2017 at 11:51:11AM -0800, Paul E. McKenney wrote:
+> The smp_read_barrier_depends() does nothing at all except on DEC Alpha,
+> and no current DEC Alpha systems use Infiniband:
 > 
-> Wei Hu (Xavier) (3):
->   RDMA/hns: Fix the issue of IOVA not page continuous in hip08
->   RDMA/hns: Get rid of virt_to_page and vmap calls after
->     dma_alloc_coherent
->   RDMA/hns: Get rid of page operation after dma_alloc_coherent
-> 
->  drivers/infiniband/hw/hns/hns_roce_alloc.c  | 23 -----------------------
->  drivers/infiniband/hw/hns/hns_roce_device.h |  4 +---
->  drivers/infiniband/hw/hns/hns_roce_hem.c    | 25 +++++++++++++------------
->  drivers/infiniband/hw/hns/hns_roce_hem.h    |  1 +
->  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 22 +++++++++++++++-------
->  5 files changed, 30 insertions(+), 45 deletions(-)
+> 	lkml.kernel.org/r/20171023085921.jwbntptn6ictbnvj@tower
 
-Applied to for-rc, Thanks
+I understand DEC Alpha has PCI, and we continue to support several
+RDMA devices that used the PCI bus.
+
+However, the hif1, rdma vt and qib drivers modified in this patch are
+PCI-Express ONLY. So I think this idea is fine, but would revise the
+commit message to focus on PCI-E not Infiniband.
+
+>  drivers/dma/ioat/dma.c              | 2 --
+>  drivers/infiniband/Kconfig          | 1 +
+
+Did you mean to have ioat/dma.c in this patch?
 
 Jason
 --
