@@ -1,391 +1,203 @@
-From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH net-next 6/8] net: hns3: Add mailbox support to PF driver
-Date: Sun, 3 Dec 2017 12:33:05 +0000
-Message-ID: <20171203123307.19820-7-salil.mehta@huawei.com>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: [PATCH net-next 8/8] net: hns3: Add mailbox interrupt handling to PF driver
+Date: Sun, 3 Dec 2017 12:33:07 +0000
+Message-ID: <20171203123307.19820-9-salil.mehta@huawei.com>
 References: <20171203123307.19820-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171203123307.19820-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
-Cc: salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171203123307.19820-1-salil.mehta@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-Command queue provides the provision of Mailbox command which
-can be used for communication between PF and VF. PF handles
-messages from various VFs for fetching various information like,
-queue, vlan, link status related etc. It also handles the request
-from various VFs to perform certain privileged operations.
+All PF mailbox events are conveyed through a common interrupt
+(vector 0). This interrupt vector is shared by reset and mailbox.
 
-This patch adds the support of a message handler for handling
-such various command requests from VF.
+This patch adds the handling of mailbox interrupt event and its
+deferred processing in context to a separate mailbox task.
 
-Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: lipeng <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
+Signed-off-by: lipeng <lipeng321@huawei.com>
 ---
- .../net/ethernet/hisilicon/hns3/hns3pf/Makefile    |   2 +-
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    |   1 +
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |   2 +
- .../net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c | 309 +++++++++++++++++++++
- 4 files changed, 313 insertions(+), 1 deletion(-)
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 66 ++++++++++++++++++++--
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |  8 ++-
+ 2 files changed, 69 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
-index d077fa02b66e..393a1b379efb 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
-@@ -5,6 +5,6 @@
- ccflags-y := -Idrivers/net/ethernet/hisilicon/hns3
- 
- obj-$(CONFIG_HNS3_HCLGE) += hclge.o
--hclge-objs = hclge_main.o hclge_cmd.o hclge_mdio.o hclge_tm.o
-+hclge-objs = hclge_main.o hclge_cmd.o hclge_mdio.o hclge_tm.o hclge_mbx.o
- 
- hclge-$(CONFIG_HNS3_DCB) += hclge_dcb.o
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-index 063be1c50a1d..af9d92a3800e 100644
+index 7d9fa4e2b16a..58ef3cf94e3f 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-@@ -21,6 +21,7 @@
- #include "hclge_cmd.h"
- #include "hclge_dcb.h"
- #include "hclge_main.h"
-+#include "hclge_mbx.h"
- #include "hclge_mdio.h"
- #include "hclge_tm.h"
- #include "hnae3.h"
+@@ -2227,6 +2227,12 @@ static int hclge_mac_init(struct hclge_dev *hdev)
+ 	return hclge_cfg_func_mta_filter(hdev, 0, hdev->accept_mta_mc);
+ }
+ 
++static void hclge_mbx_task_schedule(struct hclge_dev *hdev)
++{
++	if (!test_and_set_bit(HCLGE_STATE_MBX_SERVICE_SCHED, &hdev->state))
++		schedule_work(&hdev->mbx_service_task);
++}
++
+ static void hclge_reset_task_schedule(struct hclge_dev *hdev)
+ {
+ 	if (!test_and_set_bit(HCLGE_STATE_RST_SERVICE_SCHED, &hdev->state))
+@@ -2372,9 +2378,18 @@ static void hclge_service_complete(struct hclge_dev *hdev)
+ static u32 hclge_check_event_cause(struct hclge_dev *hdev, u32 *clearval)
+ {
+ 	u32 rst_src_reg;
++	u32 cmdq_src_reg;
+ 
+ 	/* fetch the events from their corresponding regs */
+ 	rst_src_reg = hclge_read_dev(&hdev->hw, HCLGE_MISC_RESET_STS_REG);
++	cmdq_src_reg = hclge_read_dev(&hdev->hw, HCLGE_VECTOR0_CMDQ_SRC_REG);
++
++	/* Assumption: If by any chance reset and mailbox events are reported
++	 * together then we will only process reset event in this go and will
++	 * defer the processing of the mailbox events. Since, we would have not
++	 * cleared RX CMDQ event this time we would receive again another
++	 * interrupt from H/W just for the mailbox.
++	 */
+ 
+ 	/* check for vector0 reset event sources */
+ 	if (BIT(HCLGE_VECTOR0_GLOBALRESET_INT_B) & rst_src_reg) {
+@@ -2395,14 +2410,27 @@ static u32 hclge_check_event_cause(struct hclge_dev *hdev, u32 *clearval)
+ 		return HCLGE_VECTOR0_EVENT_RST;
+ 	}
+ 
++	/* check for vector0 mailbox(=CMDQ RX) event source */
++	if (BIT(HCLGE_VECTOR0_RX_CMDQ_INT_B) & cmdq_src_reg) {
++		cmdq_src_reg &= ~BIT(HCLGE_VECTOR0_RX_CMDQ_INT_B);
++		*clearval = cmdq_src_reg;
++		return HCLGE_VECTOR0_EVENT_MBX;
++	}
++
+ 	return HCLGE_VECTOR0_EVENT_OTHER;
+ }
+ 
+ static void hclge_clear_event_cause(struct hclge_dev *hdev, u32 event_type,
+ 				    u32 regclr)
+ {
+-	if (event_type == HCLGE_VECTOR0_EVENT_RST)
++	switch (event_type) {
++	case HCLGE_VECTOR0_EVENT_RST:
+ 		hclge_write_dev(&hdev->hw, HCLGE_MISC_RESET_STS_REG, regclr);
++		break;
++	case HCLGE_VECTOR0_EVENT_MBX:
++		hclge_write_dev(&hdev->hw, HCLGE_VECTOR0_CMDQ_SRC_REG, regclr);
++		break;
++	}
+ }
+ 
+ static void hclge_enable_vector(struct hclge_misc_vector *vector, bool enable)
+@@ -2419,13 +2447,23 @@ static irqreturn_t hclge_misc_irq_handle(int irq, void *data)
+ 	hclge_enable_vector(&hdev->misc_vector, false);
+ 	event_cause = hclge_check_event_cause(hdev, &clearval);
+ 
+-	/* vector 0 interrupt is shared with reset and mailbox source events.
+-	 * For now, we are not handling mailbox events.
+-	 */
++	/* vector 0 interrupt is shared with reset and mailbox source events.*/
+ 	switch (event_cause) {
+ 	case HCLGE_VECTOR0_EVENT_RST:
+ 		hclge_reset_task_schedule(hdev);
+ 		break;
++	case HCLGE_VECTOR0_EVENT_MBX:
++		/* If we are here then,
++		 * 1. Either we are not handling any mbx task and we are not
++		 *    scheduled as well
++		 *                        OR
++		 * 2. We could be handling a mbx task but nothing more is
++		 *    scheduled.
++		 * In both cases, we should schedule mbx task as there are more
++		 * mbx messages reported by this interrupt.
++		 */
++		hclge_mbx_task_schedule(hdev);
++
+ 	default:
+ 		dev_dbg(&hdev->pdev->dev,
+ 			"received unknown or unhandled event of vector0\n");
+@@ -2704,6 +2742,21 @@ static void hclge_reset_service_task(struct work_struct *work)
+ 	clear_bit(HCLGE_STATE_RST_HANDLING, &hdev->state);
+ }
+ 
++static void hclge_mailbox_service_task(struct work_struct *work)
++{
++	struct hclge_dev *hdev =
++		container_of(work, struct hclge_dev, mbx_service_task);
++
++	if (test_and_set_bit(HCLGE_STATE_MBX_HANDLING, &hdev->state))
++		return;
++
++	clear_bit(HCLGE_STATE_MBX_SERVICE_SCHED, &hdev->state);
++
++	hclge_mbx_handler(hdev);
++
++	clear_bit(HCLGE_STATE_MBX_HANDLING, &hdev->state);
++}
++
+ static void hclge_service_task(struct work_struct *work)
+ {
+ 	struct hclge_dev *hdev =
+@@ -4808,6 +4861,7 @@ static int hclge_init_ae_dev(struct hnae3_ae_dev *ae_dev)
+ 	timer_setup(&hdev->service_timer, hclge_service_timer, 0);
+ 	INIT_WORK(&hdev->service_task, hclge_service_task);
+ 	INIT_WORK(&hdev->rst_service_task, hclge_reset_service_task);
++	INIT_WORK(&hdev->mbx_service_task, hclge_mailbox_service_task);
+ 
+ 	/* Enable MISC vector(vector0) */
+ 	hclge_enable_vector(&hdev->misc_vector, true);
+@@ -4816,6 +4870,8 @@ static int hclge_init_ae_dev(struct hnae3_ae_dev *ae_dev)
+ 	set_bit(HCLGE_STATE_DOWN, &hdev->state);
+ 	clear_bit(HCLGE_STATE_RST_SERVICE_SCHED, &hdev->state);
+ 	clear_bit(HCLGE_STATE_RST_HANDLING, &hdev->state);
++	clear_bit(HCLGE_STATE_MBX_SERVICE_SCHED, &hdev->state);
++	clear_bit(HCLGE_STATE_MBX_HANDLING, &hdev->state);
+ 
+ 	pr_info("%s driver initialization finished.\n", HCLGE_DRIVER_NAME);
+ 	return 0;
+@@ -4929,6 +4985,8 @@ static void hclge_uninit_ae_dev(struct hnae3_ae_dev *ae_dev)
+ 		cancel_work_sync(&hdev->service_task);
+ 	if (hdev->rst_service_task.func)
+ 		cancel_work_sync(&hdev->rst_service_task);
++	if (hdev->mbx_service_task.func)
++		cancel_work_sync(&hdev->mbx_service_task);
+ 
+ 	if (mac->phydev)
+ 		mdiobus_unregister(mac->mdio_bus);
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-index aacec438b933..028817c7d67c 100644
+index c7c9a28b97ca..fb043b54583d 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-@@ -554,4 +554,6 @@ int hclge_set_vf_vlan_common(struct hclge_dev *vport, int vfid,
+@@ -92,6 +92,11 @@
+ #define HCLGE_VECTOR0_CORERESET_INT_B	6
+ #define HCLGE_VECTOR0_IMPRESET_INT_B	7
  
- int hclge_buffer_alloc(struct hclge_dev *hdev);
- int hclge_rss_init_hw(struct hclge_dev *hdev);
++/* Vector0 interrupt CMDQ event source register(RW) */
++#define HCLGE_VECTOR0_CMDQ_SRC_REG	0x27100
++/* CMDQ register bits for RX event(=MBX event) */
++#define HCLGE_VECTOR0_RX_CMDQ_INT_B	1
 +
-+void hclge_mbx_handler(struct hclge_dev *hdev);
- #endif
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
-new file mode 100644
-index 000000000000..da8b0c9ef353
---- /dev/null
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
-@@ -0,0 +1,309 @@
-+/*
-+ * Copyright (c) 2016-2017 Hisilicon Limited.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include "hclge_main.h"
-+#include "hclge_mbx.h"
-+#include "hnae3.h"
-+
-+/* hclge_gen_resp_to_vf: used to generate a synchronous response to VF when PF
-+ * receives a mailbox message from VF.
-+ * @vport: pointer to struct hclge_vport
-+ * @vf_to_pf_req: pointer to hclge_mbx_vf_to_pf_cmd of the original mailbox
-+ *		  message
-+ * @resp_status: indicate to VF whether its request success(0) or failed.
-+ */
-+static int hclge_gen_resp_to_vf(struct hclge_vport *vport,
-+				struct hclge_mbx_vf_to_pf_cmd *vf_to_pf_req,
-+				int resp_status,
-+				u8 *resp_data, u16 resp_data_len)
-+{
-+	struct hclge_mbx_pf_to_vf_cmd *resp_pf_to_vf;
-+	struct hclge_dev *hdev = vport->back;
-+	enum hclge_cmd_status status;
-+	struct hclge_desc desc;
-+
-+	resp_pf_to_vf = (struct hclge_mbx_pf_to_vf_cmd *)desc.data;
-+
-+	if (resp_data_len > HCLGE_MBX_MAX_RESP_DATA_SIZE) {
-+		dev_err(&hdev->pdev->dev,
-+			"PF fail to gen resp to VF len %d exceeds max len %d\n",
-+			resp_data_len,
-+			HCLGE_MBX_MAX_RESP_DATA_SIZE);
-+	}
-+
-+	hclge_cmd_setup_basic_desc(&desc, HCLGEVF_OPC_MBX_PF_TO_VF, false);
-+
-+	resp_pf_to_vf->dest_vfid = cpu_to_le16(vf_to_pf_req->mbx_src_vfid);
-+	resp_pf_to_vf->msg_len = vf_to_pf_req->msg_len;
-+
-+	resp_pf_to_vf->msg[0] = HCLGE_MBX_PF_VF_RESP;
-+	resp_pf_to_vf->msg[1] = vf_to_pf_req->msg[0];
-+	resp_pf_to_vf->msg[2] = vf_to_pf_req->msg[1];
-+	resp_pf_to_vf->msg[3] = (resp_status == 0) ? 0 : 1;
-+
-+	if (resp_data && resp_data_len > 0)
-+		memcpy(&resp_pf_to_vf->msg[4], resp_data, resp_data_len);
-+
-+	status = hclge_cmd_send(&hdev->hw, &desc, 1);
-+	if (status)
-+		dev_err(&hdev->pdev->dev,
-+			"PF failed(=%d) to send response to VF\n", status);
-+
-+	return status;
-+}
-+
-+static int hclge_send_mbx_msg(struct hclge_vport *vport, u8 *msg, u16 msg_len,
-+			      u16 mbx_opcode, u16 dest_vfid)
-+{
-+	struct hclge_mbx_pf_to_vf_cmd *resp_pf_to_vf;
-+	struct hclge_dev *hdev = vport->back;
-+	enum hclge_cmd_status status;
-+	struct hclge_desc desc;
-+
-+	resp_pf_to_vf = (struct hclge_mbx_pf_to_vf_cmd *)desc.data;
-+
-+	hclge_cmd_setup_basic_desc(&desc, HCLGEVF_OPC_MBX_PF_TO_VF, false);
-+
-+	resp_pf_to_vf->dest_vfid = dest_vfid;
-+	resp_pf_to_vf->msg_len = msg_len;
-+	resp_pf_to_vf->msg[0] = mbx_opcode;
-+
-+	memcpy(&resp_pf_to_vf->msg[1], msg, msg_len);
-+
-+	status = hclge_cmd_send(&hdev->hw, &desc, 1);
-+	if (status)
-+		dev_err(&hdev->pdev->dev,
-+			"PF failed(=%d) to send mailbox message to VF\n",
-+			status);
-+
-+	return status;
-+}
-+
-+static int hclge_set_vf_promisc_mode(struct hclge_vport *vport,
-+				     struct hclge_mbx_vf_to_pf_cmd *req)
-+{
-+	bool en = req->msg[1] ? true : false;
-+	struct hclge_promisc_param param;
-+
-+	/* always enable broadcast promisc bit */
-+	hclge_promisc_param_init(&param, en, en, true, vport->vport_id);
-+	return hclge_cmd_set_promisc_mode(vport->back, &param);
-+}
-+
-+static int hclge_set_vf_uc_mac_addr(struct hclge_vport *vport,
-+				    struct hclge_mbx_vf_to_pf_cmd *mbx_req,
-+				    bool gen_resp)
-+{
-+	const u8 *mac_addr = (const u8 *)(&mbx_req->msg[2]);
-+	struct hclge_dev *hdev = vport->back;
-+	int status;
-+
-+	if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_UC_MODIFY) {
-+		const u8 *old_addr = (const u8 *)(&mbx_req->msg[8]);
-+
-+		hclge_rm_uc_addr_common(vport, old_addr);
-+		status = hclge_add_uc_addr_common(vport, mac_addr);
-+	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_UC_ADD) {
-+		status = hclge_add_uc_addr_common(vport, mac_addr);
-+	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_UC_REMOVE) {
-+		status = hclge_rm_uc_addr_common(vport, mac_addr);
-+	} else {
-+		dev_err(&hdev->pdev->dev,
-+			"failed to set unicast mac addr, unknown subcode %d\n",
-+			mbx_req->msg[1]);
-+		return -EIO;
-+	}
-+
-+	if (gen_resp)
-+		hclge_gen_resp_to_vf(vport, mbx_req, status, NULL, 0);
-+
-+	return 0;
-+}
-+
-+static int hclge_set_vf_mc_mac_addr(struct hclge_vport *vport,
-+				    struct hclge_mbx_vf_to_pf_cmd *mbx_req,
-+				    bool gen_resp)
-+{
-+	const u8 *mac_addr = (const u8 *)(&mbx_req->msg[2]);
-+	struct hclge_dev *hdev = vport->back;
-+	int status;
-+
-+	if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_MC_ADD) {
-+		status = hclge_add_mc_addr_common(vport, mac_addr);
-+	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_MC_REMOVE) {
-+		status = hclge_rm_mc_addr_common(vport, mac_addr);
-+	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_MC_FUNC_MTA_ENABLE) {
-+		u8 func_id = vport->vport_id;
-+		bool enable = mbx_req->msg[2];
-+
-+		status = hclge_cfg_func_mta_filter(hdev, func_id, enable);
-+	} else {
-+		dev_err(&hdev->pdev->dev,
-+			"failed to set mcast mac addr, unknown subcode %d\n",
-+			mbx_req->msg[1]);
-+		return -EIO;
-+	}
-+
-+	if (gen_resp)
-+		hclge_gen_resp_to_vf(vport, mbx_req, status, NULL, 0);
-+
-+	return 0;
-+}
-+
-+static int hclge_set_vf_vlan_cfg(struct hclge_vport *vport,
-+				 struct hclge_mbx_vf_to_pf_cmd *mbx_req,
-+				 bool gen_resp)
-+{
-+	struct hclge_dev *hdev = vport->back;
-+	int status = 0;
-+
-+	if (mbx_req->msg[1] == HCLGE_MBX_VLAN_FILTER) {
-+		u16 vlan, proto;
-+		bool is_kill;
-+
-+		is_kill = !!mbx_req->msg[2];
-+		memcpy(&vlan, &mbx_req->msg[3], sizeof(vlan));
-+		memcpy(&proto, &mbx_req->msg[5], sizeof(proto));
-+		status = hclge_set_vf_vlan_common(hdev, vport->vport_id,
-+						  is_kill, vlan, 0, proto);
-+	}
-+
-+	if (gen_resp)
-+		status = hclge_gen_resp_to_vf(vport, mbx_req, status, NULL, 0);
-+
-+	return status;
-+}
-+
-+static int hclge_get_vf_tcinfo(struct hclge_vport *vport,
-+			       struct hclge_mbx_vf_to_pf_cmd *mbx_req,
-+			       bool gen_resp)
-+{
-+	struct hclge_dev *hdev = vport->back;
-+	int ret;
-+
-+	ret = hclge_gen_resp_to_vf(vport, mbx_req, 0, &hdev->hw_tc_map,
-+				   sizeof(u8));
-+
-+	return ret;
-+}
-+
-+static int hclge_get_vf_queue_info(struct hclge_vport *vport,
-+				   struct hclge_mbx_vf_to_pf_cmd *mbx_req,
-+				   bool gen_resp)
-+{
-+#define HCLGE_TQPS_RSS_INFO_LEN		8
-+	struct hclge_dev *hdev = vport->back;
-+	u8 resp_data[HCLGE_TQPS_RSS_INFO_LEN];
-+
-+	/* get the queue related info */
-+	memcpy(&resp_data[0], &vport->alloc_tqps, sizeof(u16));
-+	memcpy(&resp_data[2], &hdev->rss_size_max, sizeof(u16));
-+	memcpy(&resp_data[4], &hdev->num_desc, sizeof(u16));
-+	memcpy(&resp_data[6], &hdev->rx_buf_len, sizeof(u16));
-+
-+	return hclge_gen_resp_to_vf(vport, mbx_req, 0, resp_data,
-+				    HCLGE_TQPS_RSS_INFO_LEN);
-+}
-+
-+static int hclge_get_link_info(struct hclge_vport *vport,
-+			       struct hclge_mbx_vf_to_pf_cmd *mbx_req)
-+{
-+	struct hclge_dev *hdev = vport->back;
-+	u16 link_status;
-+	u16 dest_vfid;
-+	u8 msg_data[2];
-+
-+	/* mac.link can only be 0 or 1 */
-+	link_status = (u16)hdev->hw.mac.link;
-+	memcpy(&msg_data[0], &link_status, sizeof(u16));
-+	dest_vfid = cpu_to_le16(mbx_req->mbx_src_vfid);
-+
-+	/* send this requested info to VF */
-+	return hclge_send_mbx_msg(vport, msg_data, sizeof(u16),
-+				  HCLGE_MBX_LINK_STAT_CHANGE, dest_vfid);
-+}
-+
-+void hclge_mbx_handler(struct hclge_dev *hdev)
-+{
-+	struct hclge_cmq_ring *crq = &hdev->hw.cmq.crq;
-+	struct hclge_mbx_vf_to_pf_cmd *req;
-+	struct hclge_vport *vport;
-+	struct hclge_desc *desc;
-+	int ret;
-+
-+	/* handle all the mailbox requests in the queue */
-+	while (hnae_get_bit(crq->desc[crq->next_to_use].flag,
-+			    HCLGE_CMDQ_RX_OUTVLD_B)) {
-+		desc = &crq->desc[crq->next_to_use];
-+		req = (struct hclge_mbx_vf_to_pf_cmd *)desc->data;
-+
-+		vport = &hdev->vport[req->mbx_src_vfid];
-+
-+		switch (req->msg[0]) {
-+		case HCLGE_MBX_SET_PROMISC_MODE:
-+			ret = hclge_set_vf_promisc_mode(vport, req);
-+			if (ret)
-+				dev_err(&hdev->pdev->dev,
-+					"PF fail(%d) to set VF promisc mode\n",
-+					ret);
-+			break;
-+		case HCLGE_MBX_SET_UNICAST:
-+			ret = hclge_set_vf_uc_mac_addr(vport, req, false);
-+			if (ret)
-+				dev_err(&hdev->pdev->dev,
-+					"PF fail(%d) to set VF UC MAC Addr\n",
-+					ret);
-+			break;
-+		case HCLGE_MBX_SET_MULTICAST:
-+			ret = hclge_set_vf_mc_mac_addr(vport, req, false);
-+			if (ret)
-+				dev_err(&hdev->pdev->dev,
-+					"PF fail(%d) to set VF MC MAC Addr\n",
-+					ret);
-+			break;
-+		case HCLGE_MBX_SET_VLAN:
-+			ret = hclge_set_vf_vlan_cfg(vport, req, false);
-+			if (ret)
-+				dev_err(&hdev->pdev->dev,
-+					"PF failed(%d) to config VF's VLAN\n",
-+					ret);
-+			break;
-+		case HCLGE_MBX_GET_QINFO:
-+			ret = hclge_get_vf_queue_info(vport, req, true);
-+			if (ret)
-+				dev_err(&hdev->pdev->dev,
-+					"PF failed(%d) to get Q info for VF\n",
-+					ret);
-+			break;
-+		case HCLGE_MBX_GET_TCINFO:
-+			ret = hclge_get_vf_tcinfo(vport, req, true);
-+			if (ret)
-+				dev_err(&hdev->pdev->dev,
-+					"PF failed(%d) to get TC info for VF\n",
-+					ret);
-+			break;
-+		case HCLGE_MBX_GET_LINK_STATUS:
-+			ret = hclge_get_link_info(vport, req);
-+			if (ret)
-+				dev_err(&hdev->pdev->dev,
-+					"PF fail(%d) to get link stat for VF\n",
-+					ret);
-+			break;
-+		default:
-+			dev_err(&hdev->pdev->dev,
-+				"un-supported mailbox message, code = %d\n",
-+				req->msg[0]);
-+			break;
-+		}
-+		hclge_mbx_ring_ptr_move_crq(crq);
-+	}
-+
-+	/* Write back CMDQ_RQ header pointer, M7 need this pointer */
-+	hclge_write_dev(&hdev->hw, HCLGE_NIC_CRQ_HEAD_REG, crq->next_to_use);
-+}
+ enum HCLGE_DEV_STATE {
+ 	HCLGE_STATE_REINITING,
+ 	HCLGE_STATE_DOWN,
+@@ -101,8 +106,8 @@ enum HCLGE_DEV_STATE {
+ 	HCLGE_STATE_SERVICE_SCHED,
+ 	HCLGE_STATE_RST_SERVICE_SCHED,
+ 	HCLGE_STATE_RST_HANDLING,
++	HCLGE_STATE_MBX_SERVICE_SCHED,
+ 	HCLGE_STATE_MBX_HANDLING,
+-	HCLGE_STATE_MBX_IRQ,
+ 	HCLGE_STATE_MAX
+ };
+ 
+@@ -479,6 +484,7 @@ struct hclge_dev {
+ 	struct timer_list service_timer;
+ 	struct work_struct service_task;
+ 	struct work_struct rst_service_task;
++	struct work_struct mbx_service_task;
+ 
+ 	bool cur_promisc;
+ 	int num_alloc_vfs;	/* Actual number of VFs allocated */
 -- 
 2.11.0
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
