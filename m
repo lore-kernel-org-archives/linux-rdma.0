@@ -1,127 +1,120 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1] xprtrdma: Spread reply processing over more CPUs
-Date: Sat, 02 Dec 2017 16:31:39 -0500
-Message-ID: <20171202212840.11321.83261.stgit@manet.1015granger.net>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/3] Debian 15.1-1 changes
+Date: Sun, 3 Dec 2017 08:55:01 +0200
+Message-ID: <20171203065501.GA2110@mtr-leonro.local>
+References: <20171130123940.25795-1-benjamin.drung@profitbricks.com>
+ <20171130174750.GD7754@ziepe.ca>
+ <1512066118.4246.2.camel@profitbricks.com>
+ <20171130185822.GE7754@ziepe.ca>
+ <1512079788.3878.1.camel@profitbricks.com>
+ <20171201055732.GC8126@mtr-leonro.local>
+ <1512151985.9183.4.camel@profitbricks.com>
+ <20171201182806.GL7754@ziepe.ca>
+ <20171202084019.GG8126@mtr-leonro.local>
+ <20171202162856.GA28143@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ReaqsoxgOBHFXBhH"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171202162856.GA28143-uk2M96/98Pc@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Commit d8f532d20ee4 ("xprtrdma: Invoke rpcrdma_reply_handler
-directly from RECV completion") introduced a performance regression
-for NFS I/O small enough to not need memory registration. In multi-
-threaded benchmarks that generate primarily small I/O requests,
-IOPS throughput is reduced by nearly a third. This patch restores
-the previous level of throughput.
 
-Because workqueues are typically BOUND (in particular ib_comp_wq,
-nfsiod_workqueue, and rpciod_workqueue), NFS/RDMA workloads tend
-to aggregate on the CPU that is handling Receive completions.
+--ReaqsoxgOBHFXBhH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The usual approach to addressing this problem is to create a QP
-and CQ for each CPU, and then schedule transactions on the QP
-for the CPU where you want the transaction to complete. The
-transaction then does not require an extra context switch during
-completion to end up on the same CPU where the transaction was
-started.
+On Sat, Dec 02, 2017 at 09:28:56AM -0700, Jason Gunthorpe wrote:
+> On Sat, Dec 02, 2017 at 10:40:19AM +0200, Leon Romanovsky wrote:
+> > On Fri, Dec 01, 2017 at 11:28:06AM -0700, Jason Gunthorpe wrote:
+> > > On Fri, Dec 01, 2017 at 07:13:05PM +0100, Benjamin Drung wrote:
+> > > > GitHub does not allow to rebase & merge the pull request. Is there any
+> > > > reason to not allow the rebase & merge workflow? My commits are atomic
+> > > > and the git history is cleaner without the merge commits.
+> > >
+> > > We have been using the merge workflow. I'm not sure this was every
+> > > really discussed which is best or not.
+> > >
+> > > The git history is simpler with rebase, but merge preserves the 'what
+> > > did I test' and preserves the series boundaries, which are also useful things.
+> >
+> > We are also putting cover letters into the merge commit for documentation
+> > purposes.
+>
+> Are we?
 
-This approach doesn't work for the Linux NFS/RDMA client because
-currently the Linux NFS client does not support multiple connections
-per client-server pair, and the RDMA core API does not make it
-straightforward for ULPs to determine which CPU is responsible for
-handling Receive completions for a CQ.
+Rarely,
 
-So for the moment, record the CPU number in the rpcrdma_req before
-the transport sends each RPC Call. Then during Receive completion,
-queue the RPC completion on that same CPU.
+Merge: cea6f4e0 e0ed9229
+Author: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Date:   Thu Sep 28 16:58:57 2017 +0300
 
-Additionally, move all RPC completion processing to the deferred
-handler so that even RPCs with simple small replies complete on
-the CPU that sent the corresponding RPC Call.
+    Merge branch 'jgunthorpe-new-init'
 
-Fixes: d8f532d20ee4 ("xprtrdma: Invoke rpcrdma_reply_handler ...")
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
+    * jgunthorpe-new-init:
+      rxe: Use VERBS_NAME_MATCH to match the rxe device
+      hns: Use the generic modalias matcher
+      cxgb: Use the new common PCI matching infrastructure
+      providers: Use the new common PCI matching infrastructure
+      verbs: Provide common code to match providers against kernel devices
+      verbs: Remove the init_device entry point
+      providers: Use the new match_device and allocate_device ops
+      verbs: Split init_device into a match and alloc/bind step
+      cxgb4: Move sysconf up to driver_init
+      verbs: Change verbs_register_driver to accept the ops struct directly
 
-Hi Anna-
 
-Could you pull this into v4.15-rc ?
+> I wish github did that :(
 
- net/sunrpc/xprtrdma/rpc_rdma.c  |    7 +------
- net/sunrpc/xprtrdma/transport.c |    2 ++
- net/sunrpc/xprtrdma/verbs.c     |    2 +-
- net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
- 4 files changed, 5 insertions(+), 7 deletions(-)
+Github is doing it, it will help if PR authors place cover letter in
+their PR.
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index e33591f..5e846f7 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -1367,12 +1367,7 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *rep)
- 	clear_bit(RPCRDMA_REQ_F_PENDING, &req->rl_flags);
- 
- 	trace_xprtrdma_reply(rqst->rq_task, rep, req, credits);
--
--	if (list_empty(&req->rl_registered) &&
--	    !test_bit(RPCRDMA_REQ_F_TX_RESOURCES, &req->rl_flags))
--		rpcrdma_complete_rqst(rep);
--	else
--		queue_work(rpcrdma_receive_wq, &rep->rr_work);
-+	queue_work_on(req->rl_cpu, rpcrdma_receive_wq, &rep->rr_work);
- 	return;
- 
- out_badstatus:
-diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index 8f677ab..3543c13 100644
---- a/net/sunrpc/xprtrdma/transport.c
-+++ b/net/sunrpc/xprtrdma/transport.c
-@@ -52,6 +52,7 @@
- #include <linux/slab.h>
- #include <linux/seq_file.h>
- #include <linux/sunrpc/addr.h>
-+#include <linux/smp.h>
- 
- #include "xprt_rdma.h"
- 
-@@ -654,6 +655,7 @@
- 		task->tk_pid, __func__, rqst->rq_callsize,
- 		rqst->rq_rcvsize, req);
- 
-+	req->rl_cpu = smp_processor_id();
- 	req->rl_connect_cookie = 0;	/* our reserved value */
- 	rpcrdma_set_xprtdata(rqst, req);
- 	rqst->rq_buffer = req->rl_sendbuf->rg_base;
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 8c169f1..495b655 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -83,7 +83,7 @@
- 	struct workqueue_struct *recv_wq;
- 
- 	recv_wq = alloc_workqueue("xprtrdma_receive",
--				  WQ_MEM_RECLAIM | WQ_UNBOUND | WQ_HIGHPRI,
-+				  WQ_MEM_RECLAIM | WQ_HIGHPRI,
- 				  0);
- 	if (!recv_wq)
- 		return -ENOMEM;
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 430a6de..69883a9 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -334,6 +334,7 @@ enum {
- struct rpcrdma_buffer;
- struct rpcrdma_req {
- 	struct list_head	rl_list;
-+	int			rl_cpu;
- 	unsigned int		rl_connect_cookie;
- 	struct rpcrdma_buffer	*rl_buffer;
- 	struct rpcrdma_rep	*rl_reply;
+> On the plus side it does sign all
+> merge commits made through the web interface
+>
+> commit 4925a85fc53f8f037a6792df450891340ee5a76b
+> gpg: Signature made Mon 20 Nov 2017 01:34:16 AM MST using RSA key ID 3AFDEB23
+> gpg: Good signature from "GitHub (web-flow commit signing) <noreply-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>"
+> gpg: WARNING: This key is not certified with a trusted signature!
+> gpg:          There is no indication that the signature belongs to the owner.
+> Primary key fingerprint: 5DE3 E050 9C47 EA3C F04A  42D3 4AEE 18F8 3AFD EB23
+> Merge: 3d9b214443effe 9db80df802bf91
+> Author: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Date:   Mon Nov 20 10:34:16 2017 +0200
+>
+>     Merge pull request #254 from jgunthorpe/rdma_cm_mc
+>
+>     Support for the MC join flag in RDMA CM
+>
+>
+> Jason
 
+--ReaqsoxgOBHFXBhH
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlojn6UACgkQ5GN7iDZy
+WKfxsQ/9FTa/vhlu5SKwk9mubTlvuCy8aexX3kHDfrpAc/7xJSvQL5Fi74BLCv0D
+F36TGWhTfwClNbvNZ8gCJ+4WJmjdv2GaKHYj2BP/u83RBr4RAcvSpJ/lcypswtND
+jh2BIuTX8lLib4szlPzCIrZhMGyiAC7GAHW20LgtmQvWck4HqZ9s3yacyPNkm36e
+Xf9s+PjHIlTEky7NW8oQh80rwBVQ294t9x6pHwXcEDgpg1RPxf8EkJHatmUT4lvL
+EMS45G8en4TLPdh+kDN+5g6uWm2u8qZ/vAx8DUkbQFzdK0pzh3Im8BF3UnN3hBOh
+LxVpMrq7pJ9s2PvknaGBsxKFDywIvRIQl3o3bp3Ohr5XpWlqtzTs+Ek3pK5tFtfr
+LWKgDO7w4yM1MNgqfyl2nGbNGaz1qBTbv5jqHldhjvO3fOhU3fS2oaZT2BC4/lRc
+2/YstlkitN5K0ave1u9En/xnDOJc66MbV/fQE2AruSx+m3YVSaj74D7rempUveSw
+23K6VgfaNt9jUGWxgJJcz/ys1rQ6HSJAdY8FHoy4DbZt94YBv0cQaUOdTYQzrXqK
+geN89s1FbxIiXd8DEbeMDKZ33GnpnXAy6/mFf+49fXDPazh/HTBJI74V4l8nvF71
+gh10mzNd/GFmUDSzb3lBmnWaDUBYDVp1dX+49zi2taUin2cRHho=
+=ks8J
+-----END PGP SIGNATURE-----
+
+--ReaqsoxgOBHFXBhH--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
