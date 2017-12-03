@@ -1,57 +1,31 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: possible core cq bug
-Date: Sun, 3 Dec 2017 18:53:16 +0200
-Message-ID: <e7782921-b55a-a628-02d4-874d88049ec5@grimberg.me>
-References: <052101d36ba2$7e5b4120$7b11c360$@opengridcomputing.com>
- <be658098-28a6-e5a8-cebf-5865096f99ce@grimberg.me>
- <006c01d36c4a$c79cfb50$56d6f1f0$@opengridcomputing.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/3] Add tunnel support
+Date: Sun, 3 Dec 2017 10:10:23 -0700
+Message-ID: <20171203171023.GB8566@ziepe.ca>
+References: <1511445206-18951-1-git-send-email-yishaih@mellanox.com>
+ <3b1a36fb-8c9c-1c28-539b-57fd4050d8e2@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <006c01d36c4a$c79cfb50$56d6f1f0$@opengridcomputing.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <3b1a36fb-8c9c-1c28-539b-57fd4050d8e2-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Sun, Dec 03, 2017 at 06:45:55PM +0200, Yishai Hadas wrote:
+> https://github.com/linux-rdma/rdma-core/pull/265
+> PR was updated according to some notes given in GITHUB, V1 was sent as well.
+> (Still don't see it in the ML ..)
 
->>> If an application creates its cq for DIRECT poll mode using ib_create_cq()
->>> instead of ib_alloc_cq(),  and then uses ib_drain_qp() to drain its qp,
->>> ib_drain_sq/rq() will always hang forever because cq->wc is NULL.  IE
->>> ib_create_cq() doesn't allocate cq->wc, and ib_alloc_cq() does.  Yet the
->>> __ib_process_cq() requires cq->wc to actually complete any completions
->> and
->>> calling the cqe_done function.
->>>
->>> Is this a bug in the CQ core code or the application?
->>
->> Take a look in __ib_drain_rq/__ib_drain_sq for
->> cq->poll_ctx == IB_POLL_DIRECT. The drain routine polls
->> the completion queue from time to time...
-> 
-> Yes, but it ends up calling __ib_process_cq() which doesn't actually poll the CQ because cq->wc is NULL.
+When you force push a PR please add a comment indicating what was
+changed so people know to look again.. Especially if it doesn't need
+to be re-sent to the mailing list..
 
-Do you mean that the CQ allocation wasn't done with ib_alloc_cq? That
-indeed would be a bug. We can WARN on it as well so the application
-will know to allocate its CQ with ib_alloc_cq.
+Seems fine to me
 
-Does something like this makes sense?
---
-diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
-index f2ae75fa3128..90eac56b5f1a 100644
---- a/drivers/infiniband/core/cq.c
-+++ b/drivers/infiniband/core/cq.c
-@@ -69,7 +69,7 @@ static int __ib_process_cq(struct ib_cq *cq, int budget)
-   */
-  int ib_process_cq_direct(struct ib_cq *cq, int budget)
-  {
--       WARN_ON_ONCE(cq->poll_ctx != IB_POLL_DIRECT);
-+       WARN_ON_ONCE(cq->poll_ctx != IB_POLL_DIRECT || !cq->wc);
-
-         return __ib_process_cq(cq, budget);
-  }
---
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
