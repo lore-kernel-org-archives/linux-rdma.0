@@ -1,32 +1,38 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: stuck iscsi/iser target with linux-4.15.0-rc1
-Date: Sun, 3 Dec 2017 15:29:12 +0200
-Message-ID: <0ba7e891-f020-26fb-9945-9e824332593c@grimberg.me>
-References: <000801d36ac6$9e9f5f70$dbde1e50$@opengridcomputing.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: possible core cq bug
+Date: Sun, 3 Dec 2017 09:24:15 -0600
+Message-ID: <006c01d36c4a$c79cfb50$56d6f1f0$@opengridcomputing.com>
+References: <052101d36ba2$7e5b4120$7b11c360$@opengridcomputing.com> <be658098-28a6-e5a8-cebf-5865096f99ce@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+        charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <000801d36ac6$9e9f5f70$dbde1e50$@opengridcomputing.com>
-Content-Language: en-US
+In-Reply-To: <be658098-28a6-e5a8-cebf-5865096f99ce-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Steve,
-
-> Hey, while working on some changes in the cxgb4 qp_drain functionality, I
-> encountered this stall.  To reproduce it, I attach 2 ram disks via iser over
-> cxgb4 and run an fio test.  While the test is running, I tear down the target
-> stack with 'targetcli clearconfig true'
 > 
-> While this could be something with my qp_drain logic, I don't see that in these
-> stuck threads.  Has anybody seen this?
+> > If an application creates its cq for DIRECT poll mode using ib_create_cq()
+> > instead of ib_alloc_cq(),  and then uses ib_drain_qp() to drain its qp,
+> > ib_drain_sq/rq() will always hang forever because cq->wc is NULL.  IE
+> > ib_create_cq() doesn't allocate cq->wc, and ib_alloc_cq() does.  Yet the
+> > __ib_process_cq() requires cq->wc to actually complete any completions
+> and
+> > calling the cqe_done function.
+> >
+> > Is this a bug in the CQ core code or the application?
+> 
+> Take a look in __ib_drain_rq/__ib_drain_sq for
+> cq->poll_ctx == IB_POLL_DIRECT. The drain routine polls
+> the completion queue from time to time...
 
-Not for a while, can you turn the debug prints in
-target_wait_for_sess_cmds so we can understand which commands are
-hanging?
+Yes, but it ends up calling __ib_process_cq() which doesn't actually poll the CQ because cq->wc is NULL. 
+
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
