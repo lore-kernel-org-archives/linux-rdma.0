@@ -1,50 +1,74 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 0/3] Add tunnel support
-Date: Sun,  3 Dec 2017 18:03:34 +0200
-Message-ID: <1512317017-6223-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 1/3] verbs: Add support in RSS of the inner packet
+Date: Sun,  3 Dec 2017 18:03:35 +0200
+Message-ID: <1512317017-6223-2-git-send-email-yishaih@mellanox.com>
+References: <1512317017-6223-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1512317017-6223-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sending V1 to handle few notes from GITHUB, details below.
+From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This series from Maor is the supplementary part of the kernel series that was
-merged into 4.15.
+Some user space application would like to do RSS on the inner packet
+fields instead of the outer. When user will set the IBV_RX_HASH_INNER
+bit with one of the other hash fields, then the RSS will be on the inner
+packet.
 
-It introduces the following support for tunneling packets:
-1) RSS on the tunneled packet.
-2) Tunneling offloads support for mlx5 devices via the DV API.
+Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ libibverbs/man/ibv_create_qp_ex.3 | 20 ++++++++++++++++++++
+ libibverbs/verbs.h                |  3 ++-
+ 2 files changed, 22 insertions(+), 1 deletion(-)
 
-PR:
-https://github.com/linux-rdma/rdma-core/pull/265
-
-Changes from V0:
-- Moved to use (1UL << 31) for IBV_RX_HASH_INNER as part of the enum.
-- Improved the man page to better describe the inner/outer terms.
-- Sorted the names of the exported symbols from mlx5 that were introduced
-  as part of this V16 release.
-
-Yishai
-
-Maor Gottlieb (3):
-  verbs: Add support in RSS of the inner packet
-  mlx5: Add tunnel offloads support in direct verbs
-  mlx5: Report tunneling offloads capabilities
-
- debian/ibverbs-providers.symbols         |  1 +
- libibverbs/man/ibv_create_qp_ex.3        | 20 ++++++++++++
- libibverbs/verbs.h                       |  3 +-
- providers/mlx5/libmlx5.map               |  1 +
- providers/mlx5/man/mlx5dv_query_device.3 | 15 ++++++++-
- providers/mlx5/mlx5-abi.h                |  5 ++-
- providers/mlx5/mlx5.c                    |  5 +++
- providers/mlx5/mlx5.h                    |  1 +
- providers/mlx5/mlx5dv.h                  | 27 +++++++++++++++-
- providers/mlx5/verbs.c                   | 53 ++++++++++++++++++++++++++++----
- 10 files changed, 121 insertions(+), 10 deletions(-)
-
+diff --git a/libibverbs/man/ibv_create_qp_ex.3 b/libibverbs/man/ibv_create_qp_ex.3
+index 865b5fe..bb2d1b6 100644
+--- a/libibverbs/man/ibv_create_qp_ex.3
++++ b/libibverbs/man/ibv_create_qp_ex.3
+@@ -72,6 +72,26 @@ uint64_t               rx_hash_fields_mask;    /* RX fields that should particip
+ .in -8
+ };
+ .fi
++
++.nf
++enum ibv_rx_hash_fields {
++.in +8
++IBV_RX_HASH_SRC_IPV4            = 1 << 0,
++IBV_RX_HASH_DST_IPV4            = 1 << 1,
++IBV_RX_HASH_SRC_IPV6            = 1 << 2,
++IBV_RX_HASH_DST_IPV6            = 1 << 3,
++IBV_RX_HASH_SRC_PORT_TCP        = 1 << 4,
++IBV_RX_HASH_DST_PORT_TCP        = 1 << 5,
++IBV_RX_HASH_SRC_PORT_UDP        = 1 << 6,
++IBV_RX_HASH_DST_PORT_UDP        = 1 << 7,
++/* When using tunneling protocol, e.g. VXLAN, then we have an inner (encapsulated packet) and outer.
++ * For applying RSS on the inner packet, then the following field should be set with one of the L3/L4 fields.
++*/
++IBV_RX_HASH_INNER		= (1UL << 31),
++.in -8
++};
++.fi
++
+ .PP
+ The function
+ .B ibv_create_qp_ex()
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index ce18b50..0785c77 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -241,7 +241,8 @@ enum ibv_rx_hash_fields {
+ 	IBV_RX_HASH_SRC_PORT_TCP	= 1 << 4,
+ 	IBV_RX_HASH_DST_PORT_TCP	= 1 << 5,
+ 	IBV_RX_HASH_SRC_PORT_UDP	= 1 << 6,
+-	IBV_RX_HASH_DST_PORT_UDP	= 1 << 7
++	IBV_RX_HASH_DST_PORT_UDP	= 1 << 7,
++	IBV_RX_HASH_INNER		= (1UL << 31),
+ };
+ 
+ struct ibv_rss_caps {
 -- 
 1.8.3.1
 
