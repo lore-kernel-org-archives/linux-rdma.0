@@ -1,230 +1,57 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 2/3] mlx5: Add tunnel offloads support in direct verbs
-Date: Sun,  3 Dec 2017 18:03:36 +0200
-Message-ID: <1512317017-6223-3-git-send-email-yishaih@mellanox.com>
-References: <1512317017-6223-1-git-send-email-yishaih@mellanox.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: possible core cq bug
+Date: Sun, 3 Dec 2017 18:53:16 +0200
+Message-ID: <e7782921-b55a-a628-02d4-874d88049ec5@grimberg.me>
+References: <052101d36ba2$7e5b4120$7b11c360$@opengridcomputing.com>
+ <be658098-28a6-e5a8-cebf-5865096f99ce@grimberg.me>
+ <006c01d36c4a$c79cfb50$56d6f1f0$@opengridcomputing.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1512317017-6223-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <006c01d36c4a$c79cfb50$56d6f1f0$@opengridcomputing.com>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In order to enable offloading such as checksum and LRO for incoming
-tunneling traffic, the QP should be created with tunnel offloads flag -
-MLX5DV_QP_CREATE_TUNNEL_OFFLOAD.
+>>> If an application creates its cq for DIRECT poll mode using ib_create_cq()
+>>> instead of ib_alloc_cq(),  and then uses ib_drain_qp() to drain its qp,
+>>> ib_drain_sq/rq() will always hang forever because cq->wc is NULL.  IE
+>>> ib_create_cq() doesn't allocate cq->wc, and ib_alloc_cq() does.  Yet the
+>>> __ib_process_cq() requires cq->wc to actually complete any completions
+>> and
+>>> calling the cqe_done function.
+>>>
+>>> Is this a bug in the CQ core code or the application?
+>>
+>> Take a look in __ib_drain_rq/__ib_drain_sq for
+>> cq->poll_ctx == IB_POLL_DIRECT. The drain routine polls
+>> the completion queue from time to time...
+> 
+> Yes, but it ends up calling __ib_process_cq() which doesn't actually poll the CQ because cq->wc is NULL.
 
-Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- debian/ibverbs-providers.symbols |  1 +
- providers/mlx5/libmlx5.map       |  1 +
- providers/mlx5/mlx5-abi.h        |  3 ++-
- providers/mlx5/mlx5dv.h          | 17 +++++++++++++
- providers/mlx5/verbs.c           | 52 +++++++++++++++++++++++++++++++++++-----
- 5 files changed, 67 insertions(+), 7 deletions(-)
+Do you mean that the CQ allocation wasn't done with ib_alloc_cq? That
+indeed would be a bug. We can WARN on it as well so the application
+will know to allocate its CQ with ib_alloc_cq.
 
-diff --git a/debian/ibverbs-providers.symbols b/debian/ibverbs-providers.symbols
-index 08ff906..b3adfe6 100644
---- a/debian/ibverbs-providers.symbols
-+++ b/debian/ibverbs-providers.symbols
-@@ -14,4 +14,5 @@ libmlx5.so.1 ibverbs-providers #MINVER#
-  mlx5dv_query_device@MLX5_1.0 13
-  mlx5dv_create_cq@MLX5_1.1 14
-  mlx5dv_set_context_attr@MLX5_1.2 15
-+ mlx5dv_create_qp@MLX5_1.3 16
-  mlx5dv_create_wq@MLX5_1.3 16
-diff --git a/providers/mlx5/libmlx5.map b/providers/mlx5/libmlx5.map
-index b1402dc..f797822 100644
---- a/providers/mlx5/libmlx5.map
-+++ b/providers/mlx5/libmlx5.map
-@@ -20,5 +20,6 @@ MLX5_1.2 {
- 
- MLX5_1.3 {
- 	global:
-+		mlx5dv_create_qp;
- 		mlx5dv_create_wq;
- } MLX5_1.2;
-diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
-index e1aa618..b0b6704 100644
---- a/providers/mlx5/mlx5-abi.h
-+++ b/providers/mlx5/mlx5-abi.h
-@@ -43,6 +43,7 @@
- enum {
- 	MLX5_QP_FLAG_SIGNATURE		= 1 << 0,
- 	MLX5_QP_FLAG_SCATTER_CQE	= 1 << 1,
-+	MLX5_QP_FLAG_TUNNEL_OFFLOADS	= 1 << 2,
- };
- 
- enum {
-@@ -182,7 +183,7 @@ struct mlx5_create_qp_ex_rss {
- 	__u8 reserved[6];
- 	__u8 rx_hash_key[128];
- 	__u32   comp_mask;
--	__u32   reserved1;
-+	__u32   create_flags;
- };
- 
- struct mlx5_create_qp_resp_ex {
-diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
-index 9a30546..95a1697 100644
---- a/providers/mlx5/mlx5dv.h
-+++ b/providers/mlx5/mlx5dv.h
-@@ -126,6 +126,23 @@ struct mlx5dv_cq_init_attr {
- struct ibv_cq_ex *mlx5dv_create_cq(struct ibv_context *context,
- 				   struct ibv_cq_init_attr_ex *cq_attr,
- 				   struct mlx5dv_cq_init_attr *mlx5_cq_attr);
-+
-+enum mlx5dv_qp_create_flags {
-+	MLX5DV_QP_CREATE_TUNNEL_OFFLOADS = 1 << 0,
-+};
-+
-+enum mlx5dv_qp_init_attr_mask {
-+	MLX5DV_QP_INIT_ATTR_MASK_QP_CREATE_FLAGS	= 1 << 0,
-+};
-+
-+struct mlx5dv_qp_init_attr {
-+	uint64_t comp_mask;	/* Use enum mlx5dv_qp_init_attr_mask */
-+	uint32_t create_flags;	/* Use enum mlx5dv_qp_create_flags */
-+};
-+
-+struct ibv_qp *mlx5dv_create_qp(struct ibv_context *context,
-+				struct ibv_qp_init_attr_ex *qp_attr,
-+				struct mlx5dv_qp_init_attr *mlx5_qp_attr);
- /*
-  * Most device capabilities are exported by ibv_query_device(...),
-  * but there is HW device-specific information which is important
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index d8ec300..7d36434 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -1210,7 +1210,8 @@ static void mlx5_free_qp_buf(struct mlx5_qp *qp)
- 
- static int mlx5_cmd_create_rss_qp(struct ibv_context *context,
- 				 struct ibv_qp_init_attr_ex *attr,
--				 struct mlx5_qp *qp)
-+				 struct mlx5_qp *qp,
-+				 uint32_t mlx5_create_flags)
- {
- 	struct mlx5_create_qp_ex_rss cmd_ex_rss = {};
- 	struct mlx5_create_qp_resp_ex resp = {};
-@@ -1224,6 +1225,7 @@ static int mlx5_cmd_create_rss_qp(struct ibv_context *context,
- 	cmd_ex_rss.rx_hash_fields_mask = attr->rx_hash_conf.rx_hash_fields_mask;
- 	cmd_ex_rss.rx_hash_function = attr->rx_hash_conf.rx_hash_function;
- 	cmd_ex_rss.rx_key_len = attr->rx_hash_conf.rx_hash_key_len;
-+	cmd_ex_rss.create_flags = mlx5_create_flags;
- 	memcpy(cmd_ex_rss.rx_hash_key, attr->rx_hash_conf.rx_hash_key,
- 			attr->rx_hash_conf.rx_hash_key_len);
- 
-@@ -1277,6 +1279,10 @@ enum {
- };
- 
- enum {
-+	MLX5_DV_CREATE_QP_SUP_COMP_MASK = MLX5DV_QP_INIT_ATTR_MASK_QP_CREATE_FLAGS
-+};
-+
-+enum {
- 	MLX5_CREATE_QP_EX2_COMP_MASK = (IBV_QP_INIT_ATTR_CREATE_FLAGS |
- 					IBV_QP_INIT_ATTR_MAX_TSO_HEADER |
- 					IBV_QP_INIT_ATTR_IND_TABLE |
-@@ -1284,7 +1290,8 @@ enum {
- };
- 
- static struct ibv_qp *create_qp(struct ibv_context *context,
--			 struct ibv_qp_init_attr_ex *attr)
-+				struct ibv_qp_init_attr_ex *attr,
-+				struct mlx5dv_qp_init_attr *mlx5_qp_attr)
- {
- 	struct mlx5_create_qp		cmd;
- 	struct mlx5_create_qp_resp	resp;
-@@ -1295,6 +1302,7 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 	struct ibv_qp		       *ibqp;
- 	int32_t				usr_idx = 0;
- 	uint32_t			uuar_index;
-+	uint32_t			mlx5_create_flags = 0;
- 	FILE *fp = ctx->dbg_fp;
- 
- 	if (attr->comp_mask & ~MLX5_CREATE_QP_SUP_COMP_MASK)
-@@ -1327,14 +1335,39 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 	memset(&resp, 0, sizeof(resp));
- 	memset(&resp_ex, 0, sizeof(resp_ex));
- 
-+	if (mlx5_qp_attr) {
-+		if (!check_comp_mask(mlx5_qp_attr->comp_mask,
-+				     MLX5_DV_CREATE_QP_SUP_COMP_MASK)) {
-+			mlx5_dbg(fp, MLX5_DBG_QP,
-+				 "Unsupported vendor comp_mask for create_qp\n");
-+			errno = EINVAL;
-+			goto err;
-+		}
-+
-+		if (mlx5_qp_attr->comp_mask &
-+		    MLX5DV_QP_INIT_ATTR_MASK_QP_CREATE_FLAGS) {
-+			if (mlx5_qp_attr->create_flags &
-+			    MLX5DV_QP_CREATE_TUNNEL_OFFLOADS) {
-+				mlx5_create_flags = MLX5_QP_FLAG_TUNNEL_OFFLOADS;
-+			} else {
-+				mlx5_dbg(fp, MLX5_DBG_QP,
-+					 "Unsupported creation flags requested for create_qp\n");
-+				errno = EINVAL;
-+				goto err;
-+			}
-+		}
-+	}
-+
- 	if (attr->comp_mask & IBV_QP_INIT_ATTR_RX_HASH) {
--		ret = mlx5_cmd_create_rss_qp(context, attr, qp);
-+		ret = mlx5_cmd_create_rss_qp(context, attr, qp,
-+					     mlx5_create_flags);
- 		if (ret)
- 			goto err;
- 
- 		return ibqp;
- 	}
- 
-+	cmd.flags = mlx5_create_flags;
- 	qp->wq_sig = qp_sig_enabled();
- 	if (qp->wq_sig)
- 		cmd.flags |= MLX5_QP_FLAG_SIGNATURE;
-@@ -1488,7 +1521,7 @@ struct ibv_qp *mlx5_create_qp(struct ibv_pd *pd,
- 	memcpy(&attrx, attr, sizeof(*attr));
- 	attrx.comp_mask = IBV_QP_INIT_ATTR_PD;
- 	attrx.pd = pd;
--	qp = create_qp(pd->context, &attrx);
-+	qp = create_qp(pd->context, &attrx, NULL);
- 	if (qp)
- 		memcpy(attr, &attrx, sizeof(*attr));
- 
-@@ -1825,7 +1858,14 @@ int mlx5_detach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid)
- struct ibv_qp *mlx5_create_qp_ex(struct ibv_context *context,
- 				 struct ibv_qp_init_attr_ex *attr)
- {
--	return create_qp(context, attr);
-+	return create_qp(context, attr, NULL);
-+}
-+
-+struct ibv_qp *mlx5dv_create_qp(struct ibv_context *context,
-+				struct ibv_qp_init_attr_ex *qp_attr,
-+				struct mlx5dv_qp_init_attr *mlx5_qp_attr)
-+{
-+	return create_qp(context, qp_attr, mlx5_qp_attr);
- }
- 
- int mlx5_get_srq_num(struct ibv_srq *srq, uint32_t *srq_num)
-@@ -1910,7 +1950,7 @@ create_cmd_qp(struct ibv_context *context,
- 	init_attr.send_cq = srq_attr->cq;
- 	init_attr.recv_cq = srq_attr->cq;
- 
--	qp = create_qp(context, &init_attr);
-+	qp = create_qp(context, &init_attr, NULL);
- 	if (!qp)
- 		return NULL;
- 
--- 
-1.8.3.1
+Does something like this makes sense?
+--
+diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
+index f2ae75fa3128..90eac56b5f1a 100644
+--- a/drivers/infiniband/core/cq.c
++++ b/drivers/infiniband/core/cq.c
+@@ -69,7 +69,7 @@ static int __ib_process_cq(struct ib_cq *cq, int budget)
+   */
+  int ib_process_cq_direct(struct ib_cq *cq, int budget)
+  {
+-       WARN_ON_ONCE(cq->poll_ctx != IB_POLL_DIRECT);
++       WARN_ON_ONCE(cq->poll_ctx != IB_POLL_DIRECT || !cq->wc);
 
+         return __ib_process_cq(cq, budget);
+  }
+--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
