@@ -1,56 +1,87 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 net-next 0/3] net: hns3: Refactors "reset" handling code in HCLGE layer of HNS3 driver
-Date: Mon, 4 Dec 2017 01:29:52 +0000
-Message-ID: <20171204012955.17560-1-salil.mehta@huawei.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V1 rdma-core 0/3] Add tunnel support
+Date: Mon, 4 Dec 2017 06:28:04 +0200
+Message-ID: <20171204042804.GB2110@mtr-leonro.local>
+References: <1512317017-6223-1-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="H+4ONPRPur6+Ovig"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1512317017-6223-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch refactors the code of the reset feature in HCLGE layer
-of HNS3 PF driver. Prime motivation to do this change is: 
-1. To reduce the time for which common miscellaneous Vector 0
-   interrupt is disabled because of the reset. Simplification
-   of the common miscellaneous interrupt handler routine(for
-   Vector 0) used to handle reset and other sources of Vector
-   0 interrupt.
-2. Separate the task for handling the reset
-3. Simplification of reset request submission and pending reset
-   logic.
 
+--H+4ONPRPur6+Ovig
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-To achieve above below few things have been done:
-1. Interrupt is disabled while common miscellaneous interrupt
-   handler is entered and re-enabled before it is exit. This
-   reduces the interrupt handling latency as compared to older
-   interrupt handling scheme where interrupt was being disabled
-   in interrupt handler context and re-enabled in task context
-   some time later. Made Miscellaneous interrupt handler more
-   generic to handle all sources including reset interrupt source.
-2. New reset service task has been introduced to service the 
-   reset handling.
-3. Introduces new reset service task for honoring software reset
-   requests like from network stack related to timeout and serving
-   the pending reset request(to reset the driver and associated
-   clients).
+On Sun, Dec 03, 2017 at 06:03:34PM +0200, Yishai Hadas wrote:
+> Sending V1 to handle few notes from GITHUB, details below.
+>
+> This series from Maor is the supplementary part of the kernel series that was
+> merged into 4.15.
+>
+> It introduces the following support for tunneling packets:
+> 1) RSS on the tunneled packet.
+> 2) Tunneling offloads support for mlx5 devices via the DV API.
+>
+> PR:
+> https://github.com/linux-rdma/rdma-core/pull/265
+>
+> Changes from V0:
+> - Moved to use (1UL << 31) for IBV_RX_HASH_INNER as part of the enum.
+> - Improved the man page to better describe the inner/outer terms.
+> - Sorted the names of the exported symbols from mlx5 that were introduced
+>   as part of this V16 release.
+>
+> Yishai
+>
+> Maor Gottlieb (3):
+>   verbs: Add support in RSS of the inner packet
+>   mlx5: Add tunnel offloads support in direct verbs
+>   mlx5: Report tunneling offloads capabilities
+>
+>  debian/ibverbs-providers.symbols         |  1 +
+>  libibverbs/man/ibv_create_qp_ex.3        | 20 ++++++++++++
+>  libibverbs/verbs.h                       |  3 +-
+>  providers/mlx5/libmlx5.map               |  1 +
+>  providers/mlx5/man/mlx5dv_query_device.3 | 15 ++++++++-
+>  providers/mlx5/mlx5-abi.h                |  5 ++-
+>  providers/mlx5/mlx5.c                    |  5 +++
+>  providers/mlx5/mlx5.h                    |  1 +
+>  providers/mlx5/mlx5dv.h                  | 27 +++++++++++++++-
+>  providers/mlx5/verbs.c                   | 53 ++++++++++++++++++++++++++++----
+>  10 files changed, 121 insertions(+), 10 deletions(-)
+>
 
+Thanks, merged.
 
-Change Log:
-Patch V2: Addressed comment by Andrew Lunn
-   Link: https://lkml.org/lkml/2017/12/1/366
-Patch V1: Initial Submit
+--H+4ONPRPur6+Ovig
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Salil Mehta (3):
-  net: hns3: Refactor of the reset interrupt handling logic
-  net: hns3: Add reset service task for handling reset requests
-  net: hns3: Refactors the requested reset & pending reset handling code
+-----BEGIN PGP SIGNATURE-----
 
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 222 ++++++++++++++-------
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |  12 +-
- 2 files changed, 166 insertions(+), 68 deletions(-)
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlokztQACgkQ5GN7iDZy
+WKfK5g//W2FjYcHdJZhz2XWXWOMv2d/VcbXnL9X1rY8/0wFn59B/CpXzm7dWa72V
+2nTAqGm4D2G0muuvbgPRdXSyzImRR3GkxcExzsfBRvPsUfQZEn/aRvheh+Q6YJy3
+p1aqESXbQErz/anrD7zjoZhLmahhs80wf9RhEkowwGGPHxI8VPhgfrvm1+yXlq6c
+1wlPhi07mzWQjLdz4UyfH7EVtrTBweOtRlSGV1+xrSFPtDPGESKBx8sg7kVIUqWC
+XQFgV5Pdt3XwOVKktvhyA+/q1JwGVtgOr71RAkWZbyzQ9J/nW0gkyMqnobmLwmwn
+Dcg+mghgdzVU6HSO+5GCESPGpPbGV9FHdgqoeNitbLiRFr9F55PU6LdBCQx8GGev
+0GfT7b8asCpoSLmPyMffkcidGZMMaArDGr3DOEghu6S8LOJmGiDCfN7HlvMK4Qgo
+PuNQr0U/iPL8mkgYi3sHCYbCUNkMd1A7XFlzl+Gf4wvCYt3Nr3BF8FirBRSgQBz0
+y2Litr96TBWS4HChlQN53wu7kYvIL91R2ttzN2gRzSt8iWvtT9SvgiYnlHaqQFYY
+HgU1lHFE3flehPmhdLH/Zec4seIAmcsQIBDV/lT6vgzdK6xmkdfKGBouq1N4iz91
+0dKBm/XZKm1gKlYBJp1Q04ulwTJQc1fxBO4SQH225jmgW3NlFz8=
+=Jor/
+-----END PGP SIGNATURE-----
 
--- 
-2.11.0
+--H+4ONPRPur6+Ovig--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
