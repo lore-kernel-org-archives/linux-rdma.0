@@ -1,40 +1,39 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH rdma-core] udev.md: Fix typo 'le.g.acy' -> 'legacy'
-Date: Mon,  4 Dec 2017 16:42:55 +0100
-Message-ID: <20171204154255.7067-1-benjamin.drung@profitbricks.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: stuck iscsi/iser target with linux-4.15.0-rc1
+Date: Mon, 4 Dec 2017 09:49:06 -0600
+Message-ID: <018901d36d17$6a703410$3f509c30$@opengridcomputing.com>
+References: <000801d36ac6$9e9f5f70$dbde1e50$@opengridcomputing.com> <0ba7e891-f020-26fb-9945-9e824332593c@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <0ba7e891-f020-26fb-9945-9e824332593c-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'target-devel' <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
----
- Documentation/udev.md | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> Hey Steve,
+> 
+> > Hey, while working on some changes in the cxgb4 qp_drain functionality, I
+> > encountered this stall.  To reproduce it, I attach 2 ram disks via iser over
+> > cxgb4 and run an fio test.  While the test is running, I tear down the target
+> > stack with 'targetcli clearconfig true'
+> >
+> > While this could be something with my qp_drain logic, I don't see that in these
+> > stuck threads.  Has anybody seen this?
+> 
+> Not for a while, can you turn the debug prints in
+> target_wait_for_sess_cmds so we can understand which commands are
+> hanging?
 
-diff --git a/Documentation/udev.md b/Documentation/udev.md
-index 7da3ed94..002340cd 100644
---- a/Documentation/udev.md
-+++ b/Documentation/udev.md
-@@ -75,12 +75,12 @@ ethernet devices.
- Services that cannot handle hot plug must be ordered after
- systemd-udev-settle.service, which will wait for udev to complete loading
- modules and scheduling systemd services. This ensures that all RDMA hardware
--present at boot is setup before proceeding to run the le.g.acy service.
-+present at boot is setup before proceeding to run the legacy service.
- 
--Admins using le.g.acy services can also place their RDMA hardware modules
-+Admins using legacy services can also place their RDMA hardware modules
- (e.g.  mlx4_ib) directly in /etc/modules-load.d/ or in their initrd which will
- cause systemd to defer passing to sysinit.target until all RDMA hardware is
--setup, this is usually sufficient for le.g.acy services. This is probably the
-+setup, this is usually sufficient for legacy services. This is probably the
- default behavior in many configurations.
- 
- # Systemd Ordering
--- 
-2.14.1
+Here ya go:
+
+[239800.115739] target_wait_for_sess_cmds: Waiting for se_cmd: ffff88034082c998 t_state: 6, fabric state: 12
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
