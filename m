@@ -1,40 +1,72 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: stuck iscsi/iser target with linux-4.15.0-rc1
-Date: Mon, 4 Dec 2017 09:49:06 -0600
-Message-ID: <018901d36d17$6a703410$3f509c30$@opengridcomputing.com>
-References: <000801d36ac6$9e9f5f70$dbde1e50$@opengridcomputing.com> <0ba7e891-f020-26fb-9945-9e824332593c@grimberg.me>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags 6/6] ibdiag_common.c: In
+ is_port_info_extended_supported, query PortInfo for port 0 when node is a
+ switch
+Date: Mon, 4 Dec 2017 11:02:19 -0500
+Message-ID: <45c51322-b4c7-4b5e-e0e4-92343b4f381d@dev.mellanox.co.il>
+References: <372d2c64-ce18-4264-267b-294bac8524be@dev.mellanox.co.il>
+ <20171204154052.GA23691@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <0ba7e891-f020-26fb-9945-9e824332593c-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <20171204154052.GA23691-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'target-devel' <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 12/4/2017 10:40 AM, ira.weiny wrote:
+> On Tue, Nov 28, 2017 at 05:12:19PM -0500, Hal Rosenstock wrote:
+>>
+>> to be able to obtain CapabilityMask and CapabilityMask2
+>>
+>> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Hey Steve,
 > 
-> > Hey, while working on some changes in the cxgb4 qp_drain functionality, I
-> > encountered this stall.  To reproduce it, I attach 2 ram disks via iser over
-> > cxgb4 and run an fio test.  While the test is running, I tear down the target
-> > stack with 'targetcli clearconfig true'
-> >
-> > While this could be something with my qp_drain logic, I don't see that in these
-> > stuck threads.  Has anybody seen this?
+> Rejected.  I already took an earlier version of this patch and I don't see any
+> difference in this one...
+
+My bad ;-( I missed that this patch was already incorporated upstream.
+
+-- Hal
+
+> Ira
 > 
-> Not for a while, can you turn the debug prints in
-> target_wait_for_sess_cmds so we can understand which commands are
-> hanging?
-
-Here ya go:
-
-[239800.115739] target_wait_for_sess_cmds: Waiting for se_cmd: ffff88034082c998 t_state: 6, fabric state: 12
-
-
+> 
+>> ---
+>>  src/ibdiag_common.c | 12 +++++++++++-
+>>  1 file changed, 11 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+>> index 9245146..c33cacc 100644
+>> --- a/src/ibdiag_common.c
+>> +++ b/src/ibdiag_common.c
+>> @@ -506,8 +506,18 @@ int is_port_info_extended_supported(ib_portid_t * dest, int port,
+>>  	uint8_t data[IB_SMP_DATA_SIZE] = { 0 };
+>>  	uint32_t cap_mask;
+>>  	uint16_t cap_mask2;
+>> +	int type, portnum;
+>>  
+>> -	if (!smp_query_via(data, dest, IB_ATTR_PORT_INFO, port, 0, srcport))
+>> +	if (!smp_query_via(data, dest, IB_ATTR_NODE_INFO, 0, 0, srcport))
+>> +		IBEXIT("node info query failed");
+>> +
+>> +	mad_decode_field(data, IB_NODE_TYPE_F, &type);
+>> +	if (type == IB_NODE_SWITCH)
+>> +		portnum = 0;
+>> +	else
+>> +		portnum = port;
+>> +
+>> +	if (!smp_query_via(data, dest, IB_ATTR_PORT_INFO, portnum, 0, srcport))
+>>  		IBEXIT("port info query failed");
+>>  
+>>  	mad_decode_field(data, IB_PORT_CAPMASK_F, &cap_mask);
+>> -- 
+>> 2.8.4
+>>
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
