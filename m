@@ -1,64 +1,54 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH v3 1/4] mm: introduce get_user_pages_longterm
-Date: Mon, 4 Dec 2017 10:31:56 +0100
-Message-ID: <20171204093156.mp36zkcwrxkenixb@dhcp22.suse.cz>
-References: <20171130095323.ovrq2nenb6ztiapy@dhcp22.suse.cz>
- <CAPcyv4giMvMfP=yZr=EDRAdTWyCwWydb4JVhT6YSWP8W0PHgGQ@mail.gmail.com>
- <20171130174201.stbpuye4gu5rxwkm@dhcp22.suse.cz>
- <CAPcyv4h5GUueqB-QhbWbn39SBPDE-rOte6UcmAHSWQdVyrF2Rw@mail.gmail.com>
- <20171130181741.2y5nyflyhqxg6y5p@dhcp22.suse.cz>
- <CAPcyv4hwsGQCUcTdpT7UVJyPN0RJz+CAqGNvTSK9Ka1nsypQjA@mail.gmail.com>
- <20171130190117.GF7754@ziepe.ca>
- <20171201101218.mxjyv4fc4cjwhf2o@dhcp22.suse.cz>
- <20171201160204.GI7754@ziepe.ca>
- <CAPcyv4hvk8rfV_=5EX3QPFLZ=LB4=hWG5h4Z42koNYim9DB3FQ@mail.gmail.com>
+From: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 0/2] Revise eq support for hip06 & hip08
+Date: Mon, 4 Dec 2017 17:33:17 +0800
+Message-ID: <4636858b-4ae8-e37e-d2d3-44441560f266@huawei.com>
+References: <1510651577-20794-1-git-send-email-liuyixian@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4hvk8rfV_=5EX3QPFLZ=LB4=hWG5h4Z42koNYim9DB3FQ@mail.gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Andrew Morton <akpm@linux-foundation.org>, Linux MM <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1510651577-20794-1-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri 01-12-17 08:29:53, Dan Williams wrote:
-> On Fri, Dec 1, 2017 at 8:02 AM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> >
-> > On Fri, Dec 01, 2017 at 11:12:18AM +0100, Michal Hocko wrote:
-> > > On Thu 30-11-17 12:01:17, Jason Gunthorpe wrote:
-> > > > On Thu, Nov 30, 2017 at 10:32:42AM -0800, Dan Williams wrote:
-> > > > > > Who and how many LRU pages can pin that way and how do you prevent nasty
-> > > > > > users to DoS systems this way?
-> > > > >
-> > > > > I assume this is something the RDMA community has had to contend with?
-> > > > > I'm not an RDMA person, I'm just here to fix dax.
-> > > >
-> > > > The RDMA implementation respects the mlock rlimit
-> > >
-> > > OK, so then I am kind of lost in why do we need a special g-u-p variant.
-> > > The documentation doesn't say and quite contrary it assumes that the
-> > > caller knows what he is doing. This cannot be the right approach.
-> >
-> > I thought it was because get_user_pages_longterm is supposed to fail
-> > on DAX mappings?
+Hi Doug,
+
+Should I make some changes for this patch-set for the further review?
+
+Regards
+
+
+On 2017/11/14 17:26, Yixian Liu wrote:
+> This patch-set refactor eq code for hip06 and add eq
+> support for hip08.
 > 
-> Correct, the rlimit checks are a separate issue,
-> get_user_pages_longterm is only there to avoid open coding vma lookup
-> and vma_is_fsdax() checks in multiple code paths.
-
-Then it is a terrible misnomer. One would expect this is a proper way to
-get a longterm pin on a page.
- 
-> > And maybe we should think about moving the rlimit accounting into this
-> > new function too someday?
+> Yixian Liu (2):
+>   RDMA/hns: Refactor eq code for hip06
+>   RDMA/hns: Add eq support of hip08
 > 
-> DAX pages are not accounted in any rlimit because they are statically
-> allocated reserved memory regions.
+>  drivers/infiniband/hw/hns/Makefile          |    2 +-
+>  drivers/infiniband/hw/hns/hns_roce_cmd.c    |    1 +
+>  drivers/infiniband/hw/hns/hns_roce_cmd.h    |   10 +
+>  drivers/infiniband/hw/hns/hns_roce_common.h |   11 +
+>  drivers/infiniband/hw/hns/hns_roce_cq.c     |   19 +-
+>  drivers/infiniband/hw/hns/hns_roce_device.h |   83 +-
+>  drivers/infiniband/hw/hns/hns_roce_eq.c     |  759 -----------------
+>  drivers/infiniband/hw/hns/hns_roce_eq.h     |  134 ---
+>  drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  740 ++++++++++++++++-
+>  drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |   44 +-
+>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 1177 ++++++++++++++++++++++++++-
+>  drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  192 ++++-
+>  drivers/infiniband/hw/hns/hns_roce_main.c   |   16 +-
+>  drivers/infiniband/hw/hns/hns_roce_qp.c     |    1 +
+>  14 files changed, 2251 insertions(+), 938 deletions(-)
+>  delete mode 100644 drivers/infiniband/hw/hns/hns_roce_eq.c
+>  delete mode 100644 drivers/infiniband/hw/hns/hns_roce_eq.h
+> 
 
-Which is OK, but how do you prevent anybody calling this function on
-normal LRU pages?
-
--- 
-Michal Hocko
-SUSE Labs
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
