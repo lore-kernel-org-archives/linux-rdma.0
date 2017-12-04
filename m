@@ -1,79 +1,55 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v3 1/4] mm: introduce get_user_pages_longterm
-Date: Mon, 4 Dec 2017 09:01:12 -0800
-Message-ID: <CAPcyv4gpaYwOuq9WJ=WoDeFknw=1ZrGzV0CVDgqLEmUqAuQc9A@mail.gmail.com>
-References: <20171130095323.ovrq2nenb6ztiapy@dhcp22.suse.cz>
- <CAPcyv4giMvMfP=yZr=EDRAdTWyCwWydb4JVhT6YSWP8W0PHgGQ@mail.gmail.com>
- <20171130174201.stbpuye4gu5rxwkm@dhcp22.suse.cz> <CAPcyv4h5GUueqB-QhbWbn39SBPDE-rOte6UcmAHSWQdVyrF2Rw@mail.gmail.com>
- <20171130181741.2y5nyflyhqxg6y5p@dhcp22.suse.cz> <CAPcyv4hwsGQCUcTdpT7UVJyPN0RJz+CAqGNvTSK9Ka1nsypQjA@mail.gmail.com>
- <20171130190117.GF7754@ziepe.ca> <20171201101218.mxjyv4fc4cjwhf2o@dhcp22.suse.cz>
- <20171201160204.GI7754@ziepe.ca> <CAPcyv4hvk8rfV_=5EX3QPFLZ=LB4=hWG5h4Z42koNYim9DB3FQ@mail.gmail.com>
- <20171204093156.mp36zkcwrxkenixb@dhcp22.suse.cz>
+From: Don Hiatt <don.hiatt@intel.com>
+Subject: Re: [PATCH 2/2] IB/hfi1: Do not warn on lid conversions for OPA
+Date: Mon, 4 Dec 2017 09:28:07 -0800
+Message-ID: <caedb116-7e5a-5461-0c72-500b56d5b6be@intel.com>
+References: <20171129125943.31113.29038.stgit@phlsvslse11.ph.intel.com>
+ <20171129125948.31113.59826.stgit@phlsvslse11.ph.intel.com>
+ <20171129184324.GF4011@ziepe.ca> <20171204121333.GC18589@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20171204093156.mp36zkcwrxkenixb@dhcp22.suse.cz>
-Sender: owner-linux-mm@kvack.org
-To: Michal Hocko <mhocko@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Andrew Morton <akpm@linux-foundation.org>, Linux MM <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-rdma <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20171204121333.GC18589@kroah.com>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org, linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 4, 2017 at 1:31 AM, Michal Hocko <mhocko@kernel.org> wrote:
+
+
+On 12/4/2017 4:13 AM, Greg KH wrote:
+> On Wed, Nov 29, 2017 at 11:43:24AM -0700, Jason Gunthorpe wrote:
+>> On Wed, Nov 29, 2017 at 07:59:49AM -0500, Mike Marciniszyn wrote:
+>>> From: Don Hiatt <don.hiatt@intel.com>
+>>>
+>>> Upstream commit 4988be5813ff2afdc0d8bfa315ef34a577d3efbf.
+>>>
+>>> On OPA devices opa_local_smp_check will receive 32Bit LIDs when the LID
+>>> is Extended. In such cases, it is okay to lose the upper 16 bits of the
+>>> LID as this information is obtained elsewhere. Do not issue a warning
+>>> when calling ib_lid_cpu16() in this case by masking out the upper 16Bits.
+>> The concept for the 32 bit lids was to keep it 32 bit inside the
+>> kernel, ingress_key_table_fail puts the lid into
+>> err_info_constraint.slid which is already 32 bits, so this cannot be
+>> the right place for this.
+>>
+>> These truncations should only appear at the uapi boundary.
+> Ok, but that's what the change in Linus's tree does.  If you object to
+> that, please fix it there :)
+Hi Jason,
+
+I have changes for this that I can submit as a follow on patch, please 
+let me know
+if this is how you'd like to proceed.
+
+don
+
+
+> thanks,
 >
-> On Fri 01-12-17 08:29:53, Dan Williams wrote:
-> > On Fri, Dec 1, 2017 at 8:02 AM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> > >
-> > > On Fri, Dec 01, 2017 at 11:12:18AM +0100, Michal Hocko wrote:
-> > > > On Thu 30-11-17 12:01:17, Jason Gunthorpe wrote:
-> > > > > On Thu, Nov 30, 2017 at 10:32:42AM -0800, Dan Williams wrote:
-> > > > > > > Who and how many LRU pages can pin that way and how do you prevent nasty
-> > > > > > > users to DoS systems this way?
-> > > > > >
-> > > > > > I assume this is something the RDMA community has had to contend with?
-> > > > > > I'm not an RDMA person, I'm just here to fix dax.
-> > > > >
-> > > > > The RDMA implementation respects the mlock rlimit
-> > > >
-> > > > OK, so then I am kind of lost in why do we need a special g-u-p variant.
-> > > > The documentation doesn't say and quite contrary it assumes that the
-> > > > caller knows what he is doing. This cannot be the right approach.
-> > >
-> > > I thought it was because get_user_pages_longterm is supposed to fail
-> > > on DAX mappings?
-> >
-> > Correct, the rlimit checks are a separate issue,
-> > get_user_pages_longterm is only there to avoid open coding vma lookup
-> > and vma_is_fsdax() checks in multiple code paths.
->
-> Then it is a terrible misnomer. One would expect this is a proper way to
-> get a longterm pin on a page.
-
-Yes, I can see that. The "get_user_pages_longterm" symbol name is
-encoding the lifetime expectations of the caller vs properly
-implementing 'longterm' pinning. However the proper interface to
-establish a long term pin does not currently exist needs and
-ultimately needs more coordination with userspace. We need a way for
-the kernel to explicitly revoke the pin. So, this
-get_user_pages_longterm change is only a stop-gap to prevent data
-corruption and userspace from growing further expectations that
-filesystem-dax supports long term pinning through the legacy
-interfaces.
-
-> > > And maybe we should think about moving the rlimit accounting into this
-> > > new function too someday?
-> >
-> > DAX pages are not accounted in any rlimit because they are statically
-> > allocated reserved memory regions.
->
-> Which is OK, but how do you prevent anybody calling this function on
-> normal LRU pages?
-
-I don't, and didn't consider this angle as it's a consideration that
-is missing from the existing gup interfaces. It is an additional gap
-we need to fill.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> greg k-h
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
