@@ -1,180 +1,240 @@
-From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V2 net-next 2/3] net: hns3: Add reset service task for handling reset requests
-Date: Mon, 4 Dec 2017 01:29:54 +0000
-Message-ID: <20171204012955.17560-3-salil.mehta@huawei.com>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: [PATCH V2 net-next 1/3] net: hns3: Refactor of the reset interrupt handling logic
+Date: Mon, 4 Dec 2017 01:29:53 +0000
+Message-ID: <20171204012955.17560-2-salil.mehta@huawei.com>
 References: <20171204012955.17560-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171204012955.17560-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
-Cc: salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171204012955.17560-1-salil.mehta@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-Existing common service task was being used to service the reset
-requests. This patch tries to make the handling of reset cleaner
-by separating task to handle the reset requests. This might in
-turn help in adapting similar handling approach for other
-interrupt events like mailbox, sharing vector 0 interrupt.
+The reset interrupt event shares common miscellaneous interrupt
+Vector 0. In the existing reset interrupt handling we disable
+the Vector 0 interrupt in misc interrupt handler and re-enable
+them later in context to common service task.
 
-Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: lipeng <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+This also means other event sources like mailbox would also be
+deferred or if the interrupt event was due to mailbox(which shall
+be supported for VF soon), it could delay the reset handling.
+
+This patch reorganizes the reset interrupt handling logic and
+makes it more fair to other events.
+
+Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
+Signed-off-by: lipeng <lipeng321@huawei.com>
 ---
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 41 ++++++++++++++++------
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |  4 +++
- 2 files changed, 34 insertions(+), 11 deletions(-)
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 103 ++++++++++++++-------
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |   7 ++
+ 2 files changed, 78 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-index 0c0543e84957..345868470201 100644
+index 59ed806a52c3..0c0543e84957 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-@@ -2226,6 +2226,12 @@ static int hclge_mac_init(struct hclge_dev *hdev)
- 	return hclge_cfg_func_mta_filter(hdev, 0, hdev->accept_mta_mc);
+@@ -2362,6 +2362,46 @@ static void hclge_service_complete(struct hclge_dev *hdev)
+ 	clear_bit(HCLGE_STATE_SERVICE_SCHED, &hdev->state);
  }
  
-+static void hclge_reset_task_schedule(struct hclge_dev *hdev)
++static u32 hclge_check_event_cause(struct hclge_dev *hdev, u32 *clearval)
 +{
-+	if (!test_and_set_bit(HCLGE_STATE_RST_SERVICE_SCHED, &hdev->state))
-+		schedule_work(&hdev->rst_service_task);
++	u32 rst_src_reg;
++
++	/* fetch the events from their corresponding regs */
++	rst_src_reg = hclge_read_dev(&hdev->hw, HCLGE_MISC_RESET_STS_REG);
++
++	/* check for vector0 reset event sources */
++	if (BIT(HCLGE_VECTOR0_GLOBALRESET_INT_B) & rst_src_reg) {
++		set_bit(HNAE3_GLOBAL_RESET, &hdev->reset_pending);
++		*clearval = BIT(HCLGE_VECTOR0_GLOBALRESET_INT_B);
++		return HCLGE_VECTOR0_EVENT_RST;
++	}
++
++	if (BIT(HCLGE_VECTOR0_CORERESET_INT_B) & rst_src_reg) {
++		set_bit(HNAE3_CORE_RESET, &hdev->reset_pending);
++		*clearval = BIT(HCLGE_VECTOR0_CORERESET_INT_B);
++		return HCLGE_VECTOR0_EVENT_RST;
++	}
++
++	if (BIT(HCLGE_VECTOR0_IMPRESET_INT_B) & rst_src_reg) {
++		set_bit(HNAE3_IMP_RESET, &hdev->reset_pending);
++		*clearval = BIT(HCLGE_VECTOR0_IMPRESET_INT_B);
++		return HCLGE_VECTOR0_EVENT_RST;
++	}
++
++	/* mailbox event sharing vector 0 interrupt would be placed here */
++
++	return HCLGE_VECTOR0_EVENT_OTHER;
 +}
 +
- static void hclge_task_schedule(struct hclge_dev *hdev)
++static void hclge_clear_event_cause(struct hclge_dev *hdev, u32 event_type,
++				    u32 regclr)
++{
++	if (event_type == HCLGE_VECTOR0_EVENT_RST)
++		hclge_write_dev(&hdev->hw, HCLGE_MISC_RESET_STS_REG, regclr);
++
++	/* mailbox event sharing vector 0 interrupt would be placed here */
++}
++
+ static void hclge_enable_vector(struct hclge_misc_vector *vector, bool enable)
  {
- 	if (!test_bit(HCLGE_STATE_DOWN, &hdev->state) &&
-@@ -2421,7 +2427,7 @@ static irqreturn_t hclge_misc_irq_handle(int irq, void *data)
- 	 */
- 	switch (event_cause) {
- 	case HCLGE_VECTOR0_EVENT_RST:
--		/* reset task to be scheduled here */
-+		hclge_reset_task_schedule(hdev);
- 		break;
- 	default:
- 		dev_dbg(&hdev->pdev->dev,
-@@ -2584,6 +2590,9 @@ static void hclge_do_reset(struct hclge_dev *hdev, enum hnae3_reset_type type)
- 	case HNAE3_FUNC_RESET:
- 		dev_info(&pdev->dev, "PF Reset requested\n");
- 		hclge_func_reset_cmd(hdev, 0);
-+		/* schedule again to check later */
-+		set_bit(HNAE3_FUNC_RESET, &hdev->reset_pending);
-+		hclge_reset_task_schedule(hdev);
- 		break;
- 	default:
- 		dev_warn(&pdev->dev,
-@@ -2605,14 +2614,9 @@ static void hclge_reset_event(struct hnae3_handle *handle,
- 	case HNAE3_FUNC_RESET:
- 	case HNAE3_CORE_RESET:
- 	case HNAE3_GLOBAL_RESET:
--		if (test_bit(HCLGE_STATE_RESET_INT, &hdev->state)) {
--			dev_err(&hdev->pdev->dev, "Already in reset state");
--			return;
--		}
--		hdev->reset_type = reset;
--		set_bit(HCLGE_STATE_RESET_INT, &hdev->state);
--		set_bit(HCLGE_STATE_SERVICE_SCHED, &hdev->state);
+ 	writel(enable ? 1 : 0, vector->addr);
+@@ -2370,10 +2410,28 @@ static void hclge_enable_vector(struct hclge_misc_vector *vector, bool enable)
+ static irqreturn_t hclge_misc_irq_handle(int irq, void *data)
+ {
+ 	struct hclge_dev *hdev = data;
++	u32 event_cause;
++	u32 clearval;
+ 
+ 	hclge_enable_vector(&hdev->misc_vector, false);
+-	if (!test_and_set_bit(HCLGE_STATE_SERVICE_SCHED, &hdev->state))
 -		schedule_work(&hdev->service_task);
-+		/* request reset & schedule reset task */
-+		set_bit(reset, &hdev->reset_request);
-+		hclge_reset_task_schedule(hdev);
- 		break;
- 	default:
- 		dev_warn(&hdev->pdev->dev, "Unsupported reset event:%d", reset);
-@@ -2658,9 +2662,19 @@ static void hclge_reset_subtask(struct hclge_dev *hdev)
- 	hdev->reset_type = HNAE3_NONE_RESET;
++	event_cause = hclge_check_event_cause(hdev, &clearval);
++
++	/* vector 0 interrupt is shared with reset and mailbox source events.
++	 * For now, we are not handling mailbox events.
++	 */
++	switch (event_cause) {
++	case HCLGE_VECTOR0_EVENT_RST:
++		/* reset task to be scheduled here */
++		break;
++	default:
++		dev_dbg(&hdev->pdev->dev,
++			"received unknown or unhandled event of vector0\n");
++		break;
++	}
++
++	/* we should clear the source of interrupt */
++	hclge_clear_event_cause(hdev, event_cause, clearval);
++	hclge_enable_vector(&hdev->misc_vector, true);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -2404,9 +2462,9 @@ static int hclge_misc_irq_init(struct hclge_dev *hdev)
+ 
+ 	hclge_get_misc_vector(hdev);
+ 
+-	ret = devm_request_irq(&hdev->pdev->dev,
+-			       hdev->misc_vector.vector_irq,
+-			       hclge_misc_irq_handle, 0, "hclge_misc", hdev);
++	/* this would be explicitly freed in the end */
++	ret = request_irq(hdev->misc_vector.vector_irq, hclge_misc_irq_handle,
++			  0, "hclge_misc", hdev);
+ 	if (ret) {
+ 		hclge_free_vector(hdev, 0);
+ 		dev_err(&hdev->pdev->dev, "request misc irq(%d) fail\n",
+@@ -2416,6 +2474,12 @@ static int hclge_misc_irq_init(struct hclge_dev *hdev)
+ 	return ret;
  }
  
--static void hclge_misc_irq_service_task(struct hclge_dev *hdev)
-+static void hclge_reset_service_task(struct work_struct *work)
++static void hclge_misc_irq_uninit(struct hclge_dev *hdev)
++{
++	free_irq(hdev->misc_vector.vector_irq, hdev);
++	hclge_free_vector(hdev, 0);
++}
++
+ static int hclge_notify_client(struct hclge_dev *hdev,
+ 			       enum hnae3_reset_notify_type type)
  {
-+	struct hclge_dev *hdev =
-+		container_of(work, struct hclge_dev, rst_service_task);
-+
-+	if (test_and_set_bit(HCLGE_STATE_RST_HANDLING, &hdev->state))
-+		return;
-+
-+	clear_bit(HCLGE_STATE_RST_SERVICE_SCHED, &hdev->state);
-+
+@@ -2471,12 +2535,6 @@ static int hclge_reset_wait(struct hclge_dev *hdev)
+ 		cnt++;
+ 	}
+ 
+-	/* must clear reset status register to
+-	 * prevent driver detect reset interrupt again
+-	 */
+-	reg = hclge_read_dev(&hdev->hw, HCLGE_MISC_RESET_STS_REG);
+-	hclge_write_dev(&hdev->hw, HCLGE_MISC_RESET_STS_REG, reg);
+-
+ 	if (cnt >= HCLGE_RESET_WAIT_CNT) {
+ 		dev_warn(&hdev->pdev->dev,
+ 			 "Wait for reset timeout: %d\n", hdev->reset_type);
+@@ -2534,22 +2592,6 @@ static void hclge_do_reset(struct hclge_dev *hdev, enum hnae3_reset_type type)
+ 	}
+ }
+ 
+-static enum hnae3_reset_type hclge_detected_reset_event(struct hclge_dev *hdev)
+-{
+-	enum hnae3_reset_type rst_level = HNAE3_NONE_RESET;
+-	u32 rst_reg_val;
+-
+-	rst_reg_val = hclge_read_dev(&hdev->hw, HCLGE_MISC_RESET_STS_REG);
+-	if (BIT(HCLGE_VECTOR0_GLOBALRESET_INT_B) & rst_reg_val)
+-		rst_level = HNAE3_GLOBAL_RESET;
+-	else if (BIT(HCLGE_VECTOR0_CORERESET_INT_B) & rst_reg_val)
+-		rst_level = HNAE3_CORE_RESET;
+-	else if (BIT(HCLGE_VECTOR0_IMPRESET_INT_B) & rst_reg_val)
+-		rst_level = HNAE3_IMP_RESET;
+-
+-	return rst_level;
+-}
+-
+ static void hclge_reset_event(struct hnae3_handle *handle,
+ 			      enum hnae3_reset_type reset)
+ {
+@@ -2584,9 +2626,6 @@ static void hclge_reset_subtask(struct hclge_dev *hdev)
+ 
+ 	do_reset = hdev->reset_type != HNAE3_NONE_RESET;
+ 
+-	/* Reset is detected by interrupt */
+-	if (hdev->reset_type == HNAE3_NONE_RESET)
+-		hdev->reset_type = hclge_detected_reset_event(hdev);
+ 
+ 	if (hdev->reset_type == HNAE3_NONE_RESET)
+ 		return;
+@@ -2622,7 +2661,6 @@ static void hclge_reset_subtask(struct hclge_dev *hdev)
+ static void hclge_misc_irq_service_task(struct hclge_dev *hdev)
+ {
  	hclge_reset_subtask(hdev);
-+
-+	clear_bit(HCLGE_STATE_RST_HANDLING, &hdev->state);
+-	hclge_enable_vector(&hdev->misc_vector, true);
  }
  
  static void hclge_service_task(struct work_struct *work)
-@@ -2668,7 +2682,6 @@ static void hclge_service_task(struct work_struct *work)
- 	struct hclge_dev *hdev =
- 		container_of(work, struct hclge_dev, service_task);
- 
--	hclge_misc_irq_service_task(hdev);
- 	hclge_update_speed_duplex(hdev);
- 	hclge_update_link_status(hdev);
- 	hclge_update_stats_for_all(hdev);
-@@ -4699,6 +4712,7 @@ static int hclge_init_ae_dev(struct hnae3_ae_dev *ae_dev)
+@@ -4661,6 +4699,7 @@ static int hclge_init_ae_dev(struct hnae3_ae_dev *ae_dev)
  	hdev->pdev = pdev;
  	hdev->ae_dev = ae_dev;
  	hdev->reset_type = HNAE3_NONE_RESET;
-+	hdev->reset_request = 0;
- 	hdev->reset_pending = 0;
++	hdev->reset_pending = 0;
  	ae_dev->priv = hdev;
  
-@@ -4811,12 +4825,15 @@ static int hclge_init_ae_dev(struct hnae3_ae_dev *ae_dev)
+ 	ret = hclge_pci_init(hdev);
+@@ -4895,8 +4934,8 @@ static void hclge_uninit_ae_dev(struct hnae3_ae_dev *ae_dev)
  
- 	timer_setup(&hdev->service_timer, hclge_service_timer, 0);
- 	INIT_WORK(&hdev->service_task, hclge_service_task);
-+	INIT_WORK(&hdev->rst_service_task, hclge_reset_service_task);
- 
- 	/* Enable MISC vector(vector0) */
- 	hclge_enable_vector(&hdev->misc_vector, true);
- 
- 	set_bit(HCLGE_STATE_SERVICE_INITED, &hdev->state);
- 	set_bit(HCLGE_STATE_DOWN, &hdev->state);
-+	clear_bit(HCLGE_STATE_RST_SERVICE_SCHED, &hdev->state);
-+	clear_bit(HCLGE_STATE_RST_HANDLING, &hdev->state);
- 
- 	pr_info("%s driver initialization finished.\n", HCLGE_DRIVER_NAME);
- 	return 0;
-@@ -4928,6 +4945,8 @@ static void hclge_uninit_ae_dev(struct hnae3_ae_dev *ae_dev)
- 		del_timer_sync(&hdev->service_timer);
- 	if (hdev->service_task.func)
- 		cancel_work_sync(&hdev->service_task);
-+	if (hdev->rst_service_task.func)
-+		cancel_work_sync(&hdev->rst_service_task);
- 
- 	if (mac->phydev)
- 		mdiobus_unregister(mac->mdio_bus);
+ 	/* Disable MISC vector(vector0) */
+ 	hclge_enable_vector(&hdev->misc_vector, false);
+-	hclge_free_vector(hdev, 0);
+ 	hclge_destroy_cmd_queue(&hdev->hw);
++	hclge_misc_irq_uninit(hdev);
+ 	hclge_pci_uninit(hdev);
+ 	ae_dev->priv = NULL;
+ }
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-index d4429496f4b5..fd04fd23b76a 100644
+index 7027814ea5d7..d4429496f4b5 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-@@ -99,6 +99,8 @@ enum HCLGE_DEV_STATE {
- 	HCLGE_STATE_REMOVING,
- 	HCLGE_STATE_SERVICE_INITED,
- 	HCLGE_STATE_SERVICE_SCHED,
-+	HCLGE_STATE_RST_SERVICE_SCHED,
-+	HCLGE_STATE_RST_HANDLING,
- 	HCLGE_STATE_MBX_HANDLING,
- 	HCLGE_STATE_MBX_IRQ,
- 	HCLGE_STATE_RESET_INT,
-@@ -426,6 +428,7 @@ struct hclge_dev {
+@@ -105,6 +105,12 @@ enum HCLGE_DEV_STATE {
+ 	HCLGE_STATE_MAX
+ };
+ 
++enum hclge_evt_cause {
++	HCLGE_VECTOR0_EVENT_RST,
++	HCLGE_VECTOR0_EVENT_MBX,
++	HCLGE_VECTOR0_EVENT_OTHER,
++};
++
+ #define HCLGE_MPF_ENBALE 1
+ struct hclge_caps {
+ 	u16 num_tqp;
+@@ -420,6 +426,7 @@ struct hclge_dev {
  	unsigned long state;
  
  	enum hnae3_reset_type reset_type;
-+	unsigned long reset_request;	/* reset has been requested */
- 	unsigned long reset_pending;	/* client rst is pending to be served */
++	unsigned long reset_pending;	/* client rst is pending to be served */
  	u32 fw_version;
  	u16 num_vmdq_vport;		/* Num vmdq vport this PF has set up */
-@@ -476,6 +479,7 @@ struct hclge_dev {
- 	unsigned long service_timer_previous;
- 	struct timer_list service_timer;
- 	struct work_struct service_task;
-+	struct work_struct rst_service_task;
- 
- 	bool cur_promisc;
- 	int num_alloc_vfs;	/* Actual number of VFs allocated */
+ 	u16 num_tqps;			/* Num task queue pairs of this PF */
 -- 
 2.11.0
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
