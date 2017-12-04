@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 net-next 1/3] net: hns3: Refactor of the reset interrupt handling logic
-Date: Mon, 4 Dec 2017 01:29:53 +0000
-Message-ID: <20171204012955.17560-2-salil.mehta@huawei.com>
+Subject: [PATCH V2 net-next 3/3] net: hns3: Refactors the requested reset & pending reset handling code
+Date: Mon, 4 Dec 2017 01:29:55 +0000
+Message-ID: <20171204012955.17560-4-salil.mehta@huawei.com>
 References: <20171204012955.17560-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,229 +12,181 @@ To: davem@davemloft.net
 Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-The reset interrupt event shares common miscellaneous interrupt
-Vector 0. In the existing reset interrupt handling we disable
-the Vector 0 interrupt in misc interrupt handler and re-enable
-them later in context to common service task.
+In exisiting code, the way to detect if driver/client reset should
+be executed or if hardware should be be soft resetted was overly
+complex.
 
-This also means other event sources like mailbox would also be
-deferred or if the interrupt event was due to mailbox(which shall
-be supported for VF soon), it could delay the reset handling.
+Existing code use to read the interrupt status register from task
+context to figure out if the interrupt source event was reset and
+then use clear the interrupt source for reset while waiting for the
+hardware to finish the reset. This behaviour again was confusing
+and overly complex in terms of the flow.
 
-This patch reorganizes the reset interrupt handling logic and
-makes it more fair to other events.
+This patch simplifies the handling of the requested reset and the
+pending reset(i.e. reset which have already been asserted by the
+software and hardware has acknowledged back to driver that it is
+processing the hardware reset through interrupt)
 
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 Signed-off-by: lipeng <lipeng321@huawei.com>
 ---
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 103 ++++++++++++++-------
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |   7 ++
- 2 files changed, 78 insertions(+), 32 deletions(-)
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 100 +++++++++++++--------
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |   1 -
+ 2 files changed, 65 insertions(+), 36 deletions(-)
 
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-index 59ed806a52c3..0c0543e84957 100644
+index 345868470201..d07c700c7ff8 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-@@ -2362,6 +2362,46 @@ static void hclge_service_complete(struct hclge_dev *hdev)
- 	clear_bit(HCLGE_STATE_SERVICE_SCHED, &hdev->state);
- }
- 
-+static u32 hclge_check_event_cause(struct hclge_dev *hdev, u32 *clearval)
-+{
-+	u32 rst_src_reg;
-+
-+	/* fetch the events from their corresponding regs */
-+	rst_src_reg = hclge_read_dev(&hdev->hw, HCLGE_MISC_RESET_STS_REG);
-+
-+	/* check for vector0 reset event sources */
-+	if (BIT(HCLGE_VECTOR0_GLOBALRESET_INT_B) & rst_src_reg) {
-+		set_bit(HNAE3_GLOBAL_RESET, &hdev->reset_pending);
-+		*clearval = BIT(HCLGE_VECTOR0_GLOBALRESET_INT_B);
-+		return HCLGE_VECTOR0_EVENT_RST;
-+	}
-+
-+	if (BIT(HCLGE_VECTOR0_CORERESET_INT_B) & rst_src_reg) {
-+		set_bit(HNAE3_CORE_RESET, &hdev->reset_pending);
-+		*clearval = BIT(HCLGE_VECTOR0_CORERESET_INT_B);
-+		return HCLGE_VECTOR0_EVENT_RST;
-+	}
-+
-+	if (BIT(HCLGE_VECTOR0_IMPRESET_INT_B) & rst_src_reg) {
-+		set_bit(HNAE3_IMP_RESET, &hdev->reset_pending);
-+		*clearval = BIT(HCLGE_VECTOR0_IMPRESET_INT_B);
-+		return HCLGE_VECTOR0_EVENT_RST;
-+	}
-+
-+	/* mailbox event sharing vector 0 interrupt would be placed here */
-+
-+	return HCLGE_VECTOR0_EVENT_OTHER;
-+}
-+
-+static void hclge_clear_event_cause(struct hclge_dev *hdev, u32 event_type,
-+				    u32 regclr)
-+{
-+	if (event_type == HCLGE_VECTOR0_EVENT_RST)
-+		hclge_write_dev(&hdev->hw, HCLGE_MISC_RESET_STS_REG, regclr);
-+
-+	/* mailbox event sharing vector 0 interrupt would be placed here */
-+}
-+
- static void hclge_enable_vector(struct hclge_misc_vector *vector, bool enable)
- {
- 	writel(enable ? 1 : 0, vector->addr);
-@@ -2370,10 +2410,28 @@ static void hclge_enable_vector(struct hclge_misc_vector *vector, bool enable)
- static irqreturn_t hclge_misc_irq_handle(int irq, void *data)
- {
- 	struct hclge_dev *hdev = data;
-+	u32 event_cause;
-+	u32 clearval;
- 
- 	hclge_enable_vector(&hdev->misc_vector, false);
--	if (!test_and_set_bit(HCLGE_STATE_SERVICE_SCHED, &hdev->state))
--		schedule_work(&hdev->service_task);
-+	event_cause = hclge_check_event_cause(hdev, &clearval);
-+
-+	/* vector 0 interrupt is shared with reset and mailbox source events.
-+	 * For now, we are not handling mailbox events.
-+	 */
-+	switch (event_cause) {
-+	case HCLGE_VECTOR0_EVENT_RST:
-+		/* reset task to be scheduled here */
-+		break;
-+	default:
-+		dev_dbg(&hdev->pdev->dev,
-+			"received unknown or unhandled event of vector0\n");
-+		break;
-+	}
-+
-+	/* we should clear the source of interrupt */
-+	hclge_clear_event_cause(hdev, event_cause, clearval);
-+	hclge_enable_vector(&hdev->misc_vector, true);
- 
- 	return IRQ_HANDLED;
- }
-@@ -2404,9 +2462,9 @@ static int hclge_misc_irq_init(struct hclge_dev *hdev)
- 
- 	hclge_get_misc_vector(hdev);
- 
--	ret = devm_request_irq(&hdev->pdev->dev,
--			       hdev->misc_vector.vector_irq,
--			       hclge_misc_irq_handle, 0, "hclge_misc", hdev);
-+	/* this would be explicitly freed in the end */
-+	ret = request_irq(hdev->misc_vector.vector_irq, hclge_misc_irq_handle,
-+			  0, "hclge_misc", hdev);
- 	if (ret) {
- 		hclge_free_vector(hdev, 0);
- 		dev_err(&hdev->pdev->dev, "request misc irq(%d) fail\n",
-@@ -2416,6 +2474,12 @@ static int hclge_misc_irq_init(struct hclge_dev *hdev)
+@@ -17,7 +17,7 @@
+ #include <linux/netdevice.h>
+ #include <linux/pci.h>
+ #include <linux/platform_device.h>
+-
++#include <net/rtnetlink.h>
+ #include "hclge_cmd.h"
+ #include "hclge_dcb.h"
+ #include "hclge_main.h"
+@@ -2569,12 +2569,12 @@ static int hclge_func_reset_cmd(struct hclge_dev *hdev, int func_id)
  	return ret;
  }
  
-+static void hclge_misc_irq_uninit(struct hclge_dev *hdev)
-+{
-+	free_irq(hdev->misc_vector.vector_irq, hdev);
-+	hclge_free_vector(hdev, 0);
-+}
-+
- static int hclge_notify_client(struct hclge_dev *hdev,
- 			       enum hnae3_reset_notify_type type)
+-static void hclge_do_reset(struct hclge_dev *hdev, enum hnae3_reset_type type)
++static void hclge_do_reset(struct hclge_dev *hdev)
  {
-@@ -2471,12 +2535,6 @@ static int hclge_reset_wait(struct hclge_dev *hdev)
- 		cnt++;
- 	}
+ 	struct pci_dev *pdev = hdev->pdev;
+ 	u32 val;
  
--	/* must clear reset status register to
--	 * prevent driver detect reset interrupt again
--	 */
--	reg = hclge_read_dev(&hdev->hw, HCLGE_MISC_RESET_STS_REG);
--	hclge_write_dev(&hdev->hw, HCLGE_MISC_RESET_STS_REG, reg);
--
- 	if (cnt >= HCLGE_RESET_WAIT_CNT) {
- 		dev_warn(&hdev->pdev->dev,
- 			 "Wait for reset timeout: %d\n", hdev->reset_type);
-@@ -2534,22 +2592,6 @@ static void hclge_do_reset(struct hclge_dev *hdev, enum hnae3_reset_type type)
+-	switch (type) {
++	switch (hdev->reset_type) {
+ 	case HNAE3_GLOBAL_RESET:
+ 		val = hclge_read_dev(&hdev->hw, HCLGE_GLOBAL_RESET_REG);
+ 		hnae_set_bit(val, HCLGE_GLOBAL_RESET_BIT, 1);
+@@ -2596,11 +2596,56 @@ static void hclge_do_reset(struct hclge_dev *hdev, enum hnae3_reset_type type)
+ 		break;
+ 	default:
+ 		dev_warn(&pdev->dev,
+-			 "Unsupported reset type: %d\n", type);
++			 "Unsupported reset type: %d\n", hdev->reset_type);
+ 		break;
  	}
  }
  
--static enum hnae3_reset_type hclge_detected_reset_event(struct hclge_dev *hdev)
--{
--	enum hnae3_reset_type rst_level = HNAE3_NONE_RESET;
--	u32 rst_reg_val;
--
--	rst_reg_val = hclge_read_dev(&hdev->hw, HCLGE_MISC_RESET_STS_REG);
--	if (BIT(HCLGE_VECTOR0_GLOBALRESET_INT_B) & rst_reg_val)
--		rst_level = HNAE3_GLOBAL_RESET;
--	else if (BIT(HCLGE_VECTOR0_CORERESET_INT_B) & rst_reg_val)
--		rst_level = HNAE3_CORE_RESET;
--	else if (BIT(HCLGE_VECTOR0_IMPRESET_INT_B) & rst_reg_val)
--		rst_level = HNAE3_IMP_RESET;
--
--	return rst_level;
--}
--
++static enum hnae3_reset_type hclge_get_reset_level(struct hclge_dev *hdev,
++						   unsigned long *addr)
++{
++	enum hnae3_reset_type rst_level = HNAE3_NONE_RESET;
++
++	/* return the highest priority reset level amongst all */
++	if (test_bit(HNAE3_GLOBAL_RESET, addr))
++		rst_level = HNAE3_GLOBAL_RESET;
++	else if (test_bit(HNAE3_CORE_RESET, addr))
++		rst_level = HNAE3_CORE_RESET;
++	else if (test_bit(HNAE3_IMP_RESET, addr))
++		rst_level = HNAE3_IMP_RESET;
++	else if (test_bit(HNAE3_FUNC_RESET, addr))
++		rst_level = HNAE3_FUNC_RESET;
++
++	/* now, clear all other resets */
++	clear_bit(HNAE3_GLOBAL_RESET, addr);
++	clear_bit(HNAE3_CORE_RESET, addr);
++	clear_bit(HNAE3_IMP_RESET, addr);
++	clear_bit(HNAE3_FUNC_RESET, addr);
++
++	return rst_level;
++}
++
++static void hclge_reset(struct hclge_dev *hdev)
++{
++	/* perform reset of the stack & ae device for a client */
++
++	hclge_notify_client(hdev, HNAE3_DOWN_CLIENT);
++
++	if (!hclge_reset_wait(hdev)) {
++		rtnl_lock();
++		hclge_notify_client(hdev, HNAE3_UNINIT_CLIENT);
++		hclge_reset_ae_dev(hdev->ae_dev);
++		hclge_notify_client(hdev, HNAE3_INIT_CLIENT);
++		rtnl_unlock();
++	} else {
++		/* schedule again to check pending resets later */
++		set_bit(hdev->reset_type, &hdev->reset_pending);
++		hclge_reset_task_schedule(hdev);
++	}
++
++	hclge_notify_client(hdev, HNAE3_UP_CLIENT);
++}
++
  static void hclge_reset_event(struct hnae3_handle *handle,
  			      enum hnae3_reset_type reset)
  {
-@@ -2584,9 +2626,6 @@ static void hclge_reset_subtask(struct hclge_dev *hdev)
+@@ -2626,39 +2671,24 @@ static void hclge_reset_event(struct hnae3_handle *handle,
  
- 	do_reset = hdev->reset_type != HNAE3_NONE_RESET;
- 
--	/* Reset is detected by interrupt */
--	if (hdev->reset_type == HNAE3_NONE_RESET)
--		hdev->reset_type = hclge_detected_reset_event(hdev);
- 
- 	if (hdev->reset_type == HNAE3_NONE_RESET)
- 		return;
-@@ -2622,7 +2661,6 @@ static void hclge_reset_subtask(struct hclge_dev *hdev)
- static void hclge_misc_irq_service_task(struct hclge_dev *hdev)
+ static void hclge_reset_subtask(struct hclge_dev *hdev)
  {
- 	hclge_reset_subtask(hdev);
--	hclge_enable_vector(&hdev->misc_vector, true);
- }
+-	bool do_reset;
+-
+-	do_reset = hdev->reset_type != HNAE3_NONE_RESET;
+-
+-
+-	if (hdev->reset_type == HNAE3_NONE_RESET)
+-		return;
+-
+-	switch (hdev->reset_type) {
+-	case HNAE3_FUNC_RESET:
+-	case HNAE3_CORE_RESET:
+-	case HNAE3_GLOBAL_RESET:
+-	case HNAE3_IMP_RESET:
+-		hclge_notify_client(hdev, HNAE3_DOWN_CLIENT);
++	/* check if there is any ongoing reset in the hardware. This status can
++	 * be checked from reset_pending. If there is then, we need to wait for
++	 * hardware to complete reset.
++	 *    a. If we are able to figure out in reasonable time that hardware
++	 *       has fully resetted then, we can proceed with driver, client
++	 *       reset.
++	 *    b. else, we can come back later to check this status so re-sched
++	 *       now.
++	 */
++	hdev->reset_type = hclge_get_reset_level(hdev, &hdev->reset_pending);
++	if (hdev->reset_type != HNAE3_NONE_RESET)
++		hclge_reset(hdev);
  
- static void hclge_service_task(struct work_struct *work)
-@@ -4661,6 +4699,7 @@ static int hclge_init_ae_dev(struct hnae3_ae_dev *ae_dev)
- 	hdev->pdev = pdev;
- 	hdev->ae_dev = ae_dev;
+-		if (do_reset)
+-			hclge_do_reset(hdev, hdev->reset_type);
+-		else
+-			set_bit(HCLGE_STATE_RESET_INT, &hdev->state);
++	/* check if we got any *new* reset requests to be honored */
++	hdev->reset_type = hclge_get_reset_level(hdev, &hdev->reset_request);
++	if (hdev->reset_type != HNAE3_NONE_RESET)
++		hclge_do_reset(hdev);
+ 
+-		if (!hclge_reset_wait(hdev)) {
+-			hclge_notify_client(hdev, HNAE3_UNINIT_CLIENT);
+-			hclge_reset_ae_dev(hdev->ae_dev);
+-			hclge_notify_client(hdev, HNAE3_INIT_CLIENT);
+-			clear_bit(HCLGE_STATE_RESET_INT, &hdev->state);
+-		}
+-		hclge_notify_client(hdev, HNAE3_UP_CLIENT);
+-		break;
+-	default:
+-		dev_err(&hdev->pdev->dev, "Unsupported reset type:%d\n",
+-			hdev->reset_type);
+-		break;
+-	}
  	hdev->reset_type = HNAE3_NONE_RESET;
-+	hdev->reset_pending = 0;
- 	ae_dev->priv = hdev;
- 
- 	ret = hclge_pci_init(hdev);
-@@ -4895,8 +4934,8 @@ static void hclge_uninit_ae_dev(struct hnae3_ae_dev *ae_dev)
- 
- 	/* Disable MISC vector(vector0) */
- 	hclge_enable_vector(&hdev->misc_vector, false);
--	hclge_free_vector(hdev, 0);
- 	hclge_destroy_cmd_queue(&hdev->hw);
-+	hclge_misc_irq_uninit(hdev);
- 	hclge_pci_uninit(hdev);
- 	ae_dev->priv = NULL;
  }
+ 
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-index 7027814ea5d7..d4429496f4b5 100644
+index fd04fd23b76a..aacec438b933 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-@@ -105,6 +105,12 @@ enum HCLGE_DEV_STATE {
+@@ -103,7 +103,6 @@ enum HCLGE_DEV_STATE {
+ 	HCLGE_STATE_RST_HANDLING,
+ 	HCLGE_STATE_MBX_HANDLING,
+ 	HCLGE_STATE_MBX_IRQ,
+-	HCLGE_STATE_RESET_INT,
  	HCLGE_STATE_MAX
  };
  
-+enum hclge_evt_cause {
-+	HCLGE_VECTOR0_EVENT_RST,
-+	HCLGE_VECTOR0_EVENT_MBX,
-+	HCLGE_VECTOR0_EVENT_OTHER,
-+};
-+
- #define HCLGE_MPF_ENBALE 1
- struct hclge_caps {
- 	u16 num_tqp;
-@@ -420,6 +426,7 @@ struct hclge_dev {
- 	unsigned long state;
- 
- 	enum hnae3_reset_type reset_type;
-+	unsigned long reset_pending;	/* client rst is pending to be served */
- 	u32 fw_version;
- 	u16 num_vmdq_vport;		/* Num vmdq vport this PF has set up */
- 	u16 num_tqps;			/* Num task queue pairs of this PF */
 -- 
 2.11.0
