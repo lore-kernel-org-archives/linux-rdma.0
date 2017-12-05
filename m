@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH 8/8] verbs: Get rid of verbs_set_ctx_op
-Date: Tue,  5 Dec 2017 16:17:21 -0700
-Message-ID: <20171205231721.19410-9-jgg@ziepe.ca>
+Subject: [PATCH 6/8] verbs: Fill in the libibverbs.map file
+Date: Tue,  5 Dec 2017 16:17:19 -0700
+Message-ID: <20171205231721.19410-7-jgg@ziepe.ca>
 References: <20171205231721.19410-1-jgg@ziepe.ca>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171205231721.19410-1-jgg-uk2M96/98Pc@public.gmane.org>
@@ -12,121 +12,93 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-No longer necessary now that the providers are private to verbs.
+Several of the 'latest' verbs are missing from the map file.
+
+The linker does the right thing anyhow since they are tagged with the
+.symver assembler directive, but let us list them anyhow so that the
+map file is a complete list of symbols.
+
+This also sorts the list
 
 Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/verbs.h    |  5 -----
- providers/mlx4/mlx4.c | 34 +++++++++++++++++-----------------
- providers/mlx5/mlx5.c | 34 +++++++++++++++++-----------------
- 3 files changed, 34 insertions(+), 39 deletions(-)
+ libibverbs/libibverbs.map.in | 56 +++++++++++++++++++++++++++++++-------------
+ 1 file changed, 40 insertions(+), 16 deletions(-)
 
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 34995d9c4437fa..58d8d8e3c31509 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -1703,11 +1703,6 @@ static inline struct verbs_context *verbs_get_ctx(struct ibv_context *ctx)
- 	(!__vctx || (__vctx->sz < sizeof(*__vctx) - offsetof(struct verbs_context, op)) || \
- 	 !__vctx->op) ? NULL : __vctx; })
+diff --git a/libibverbs/libibverbs.map.in b/libibverbs/libibverbs.map.in
+index d65f06c43de992..3f635a94b82d58 100644
+--- a/libibverbs/libibverbs.map.in
++++ b/libibverbs/libibverbs.map.in
+@@ -53,29 +53,53 @@ IBVERBS_1.0 {
  
--#define verbs_set_ctx_op(_vctx, op, ptr) ({ \
--	struct verbs_context *vctx = _vctx; \
--	if (vctx && (vctx->sz >= sizeof(*vctx) - offsetof(struct verbs_context, op))) \
--		vctx->op = ptr; })
+ IBVERBS_1.1 {
+ 	global:
+-		ibv_get_device_list;
+-		ibv_free_device_list;
+-		ibv_get_device_name;
+-		ibv_get_device_guid;
+-		ibv_open_device;
++		ibv_ack_async_event;
++		ibv_ack_cq_events;
++		ibv_alloc_pd;
++		ibv_attach_mcast;
+ 		ibv_close_device;
 -
- /**
-  * ibv_get_device_list - Get list of IB devices currently available
-  * @num_devices: optional.  if non-NULL, set to the number of devices
-diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
-index 1ba2b427071fcb..d2ccd328625c80 100644
---- a/providers/mlx4/mlx4.c
-+++ b/providers/mlx4/mlx4.c
-@@ -238,23 +238,23 @@ static int mlx4_init_context(struct verbs_device *v_device,
- 			mlx4_map_internal_clock(dev, ibv_ctx);
- 	}
+-		ibv_init_ah_from_wc;
++		ibv_create_ah;
+ 		ibv_create_ah_from_wc;
+-		ibv_fork_init;
+-		ibv_dontfork_range;
++		ibv_create_cq;
++		ibv_create_qp;
++		ibv_create_srq;
++		ibv_dealloc_pd;
++		ibv_dereg_mr;
++		ibv_destroy_ah;
++		ibv_destroy_cq;
++		ibv_destroy_qp;
++		ibv_destroy_srq;
++		ibv_detach_mcast;
+ 		ibv_dofork_range;
+-		ibv_register_driver;
+-
++		ibv_dontfork_range;
++		ibv_event_type_str;
++		ibv_fork_init;
++		ibv_free_device_list;
++		ibv_get_async_event;
++		ibv_get_cq_event;
++		ibv_get_device_guid;
++		ibv_get_device_list;
++		ibv_get_device_name;
++		ibv_init_ah_from_wc;
++		ibv_modify_qp;
++		ibv_modify_srq;
+ 		ibv_node_type_str;
++		ibv_open_device;
+ 		ibv_port_state_str;
+-		ibv_event_type_str;
+-		ibv_wc_status_str;
+-
++		ibv_query_device;
++		ibv_query_gid;
++		ibv_query_pkey;
++		ibv_query_port;
++		ibv_query_qp;
++		ibv_query_srq;
+ 		ibv_rate_to_mbps;
+-		mbps_to_ibv_rate;
+-
++		ibv_reg_mr;
++		ibv_register_driver;
++		ibv_rereg_mr;
++		ibv_resize_cq;
+ 		ibv_resolve_eth_l2_from_gid;
++		ibv_wc_status_str;
++		mbps_to_ibv_rate;
  
--	verbs_set_ctx_op(verbs_ctx, close_xrcd, mlx4_close_xrcd);
--	verbs_set_ctx_op(verbs_ctx, open_xrcd, mlx4_open_xrcd);
--	verbs_set_ctx_op(verbs_ctx, create_srq_ex, mlx4_create_srq_ex);
--	verbs_set_ctx_op(verbs_ctx, get_srq_num, verbs_get_srq_num);
--	verbs_set_ctx_op(verbs_ctx, create_qp_ex, mlx4_create_qp_ex);
--	verbs_set_ctx_op(verbs_ctx, open_qp, mlx4_open_qp);
--	verbs_set_ctx_op(verbs_ctx, ibv_create_flow, mlx4_create_flow);
--	verbs_set_ctx_op(verbs_ctx, ibv_destroy_flow, mlx4_destroy_flow);
--	verbs_set_ctx_op(verbs_ctx, create_cq_ex, mlx4_create_cq_ex);
--	verbs_set_ctx_op(verbs_ctx, query_device_ex, mlx4_query_device_ex);
--	verbs_set_ctx_op(verbs_ctx, query_rt_values, mlx4_query_rt_values);
--	verbs_set_ctx_op(verbs_ctx, create_wq, mlx4_create_wq);
--	verbs_set_ctx_op(verbs_ctx, modify_wq, mlx4_modify_wq);
--	verbs_set_ctx_op(verbs_ctx, destroy_wq, mlx4_destroy_wq);
--	verbs_set_ctx_op(verbs_ctx, create_rwq_ind_table, mlx4_create_rwq_ind_table);
--	verbs_set_ctx_op(verbs_ctx, destroy_rwq_ind_table, mlx4_destroy_rwq_ind_table);
--	verbs_set_ctx_op(verbs_ctx, modify_cq, mlx4_modify_cq);
-+	verbs_ctx->close_xrcd = mlx4_close_xrcd;
-+	verbs_ctx->open_xrcd = mlx4_open_xrcd;
-+	verbs_ctx->create_srq_ex = mlx4_create_srq_ex;
-+	verbs_ctx->get_srq_num = verbs_get_srq_num;
-+	verbs_ctx->create_qp_ex = mlx4_create_qp_ex;
-+	verbs_ctx->open_qp = mlx4_open_qp;
-+	verbs_ctx->ibv_create_flow = mlx4_create_flow;
-+	verbs_ctx->ibv_destroy_flow = mlx4_destroy_flow;
-+	verbs_ctx->create_cq_ex = mlx4_create_cq_ex;
-+	verbs_ctx->query_device_ex = mlx4_query_device_ex;
-+	verbs_ctx->query_rt_values = mlx4_query_rt_values;
-+	verbs_ctx->create_wq = mlx4_create_wq;
-+	verbs_ctx->modify_wq = mlx4_modify_wq;
-+	verbs_ctx->destroy_wq = mlx4_destroy_wq;
-+	verbs_ctx->create_rwq_ind_table = mlx4_create_rwq_ind_table;
-+	verbs_ctx->destroy_rwq_ind_table = mlx4_destroy_rwq_ind_table;
-+	verbs_ctx->modify_cq = mlx4_modify_cq;
- 
- 	return 0;
- 
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index 70afbd46f57b05..f1379abac482e1 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -999,23 +999,23 @@ static int mlx5_init_context(struct verbs_device *vdev,
- 
- 	context->ibv_ctx.ops = mlx5_ctx_ops;
- 
--	verbs_set_ctx_op(v_ctx, create_qp_ex, mlx5_create_qp_ex);
--	verbs_set_ctx_op(v_ctx, open_xrcd, mlx5_open_xrcd);
--	verbs_set_ctx_op(v_ctx, close_xrcd, mlx5_close_xrcd);
--	verbs_set_ctx_op(v_ctx, create_srq_ex, mlx5_create_srq_ex);
--	verbs_set_ctx_op(v_ctx, get_srq_num, mlx5_get_srq_num);
--	verbs_set_ctx_op(v_ctx, query_device_ex, mlx5_query_device_ex);
--	verbs_set_ctx_op(v_ctx, query_rt_values, mlx5_query_rt_values);
--	verbs_set_ctx_op(v_ctx, ibv_create_flow, mlx5_create_flow);
--	verbs_set_ctx_op(v_ctx, ibv_destroy_flow, mlx5_destroy_flow);
--	verbs_set_ctx_op(v_ctx, create_cq_ex, mlx5_create_cq_ex);
--	verbs_set_ctx_op(v_ctx, create_wq, mlx5_create_wq);
--	verbs_set_ctx_op(v_ctx, modify_wq, mlx5_modify_wq);
--	verbs_set_ctx_op(v_ctx, destroy_wq, mlx5_destroy_wq);
--	verbs_set_ctx_op(v_ctx, create_rwq_ind_table, mlx5_create_rwq_ind_table);
--	verbs_set_ctx_op(v_ctx, destroy_rwq_ind_table, mlx5_destroy_rwq_ind_table);
--	verbs_set_ctx_op(v_ctx, post_srq_ops, mlx5_post_srq_ops);
--	verbs_set_ctx_op(v_ctx, modify_cq, mlx5_modify_cq);
-+	v_ctx->create_qp_ex = mlx5_create_qp_ex;
-+	v_ctx->open_xrcd = mlx5_open_xrcd;
-+	v_ctx->close_xrcd = mlx5_close_xrcd;
-+	v_ctx->create_srq_ex = mlx5_create_srq_ex;
-+	v_ctx->get_srq_num = mlx5_get_srq_num;
-+	v_ctx->query_device_ex = mlx5_query_device_ex;
-+	v_ctx->query_rt_values = mlx5_query_rt_values;
-+	v_ctx->ibv_create_flow = mlx5_create_flow;
-+	v_ctx->ibv_destroy_flow = mlx5_destroy_flow;
-+	v_ctx->create_cq_ex = mlx5_create_cq_ex;
-+	v_ctx->create_wq = mlx5_create_wq;
-+	v_ctx->modify_wq = mlx5_modify_wq;
-+	v_ctx->destroy_wq = mlx5_destroy_wq;
-+	v_ctx->create_rwq_ind_table = mlx5_create_rwq_ind_table;
-+	v_ctx->destroy_rwq_ind_table = mlx5_destroy_rwq_ind_table;
-+	v_ctx->post_srq_ops = mlx5_post_srq_ops;
-+	v_ctx->modify_cq = mlx5_modify_cq;
- 
- 	memset(&device_attr, 0, sizeof(device_attr));
- 	if (!mlx5_query_device_ex(ctx, NULL, &device_attr,
+ 		/* These historical symbols are now private to libibverbs, but used by
+ 		   other rdma-core libraries. Do not change them. */
 -- 
 2.15.1
 
