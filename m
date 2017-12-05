@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH 7/8] verbs: Remove dead _HAS_ defines for providers
-Date: Tue,  5 Dec 2017 16:17:20 -0700
-Message-ID: <20171205231721.19410-8-jgg@ziepe.ca>
+Subject: [PATCH 5/8] verbs: Remove bogus cq_fd
+Date: Tue,  5 Dec 2017 16:17:18 -0700
+Message-ID: <20171205231721.19410-6-jgg@ziepe.ca>
 References: <20171205231721.19410-1-jgg@ziepe.ca>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171205231721.19410-1-jgg-uk2M96/98Pc@public.gmane.org>
@@ -12,33 +12,37 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Nothing looks at these anymore.
+No reason to call close on something we know is -1.
 
+This was left by accident after ABI version < 2 support was removed.
+
+Fixes: 6be16586e081 ("Infrastructure to support verbs extensions")
 Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/driver.h | 2 --
- 1 file changed, 2 deletions(-)
+ libibverbs/device.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/libibverbs/driver.h b/libibverbs/driver.h
-index 04071a73583406..4f2a9486880e11 100644
---- a/libibverbs/driver.h
-+++ b/libibverbs/driver.h
-@@ -247,7 +247,6 @@ int ibv_cmd_open_xrcd(struct ibv_context *context, struct verbs_xrcd *xrcd,
- 		      struct ibv_open_xrcd *cmd, size_t cmd_size,
- 		      struct ibv_open_xrcd_resp *resp, size_t resp_size);
- int ibv_cmd_close_xrcd(struct verbs_xrcd *xrcd);
--#define IBV_CMD_REG_MR_HAS_RESP_PARAMS
- int ibv_cmd_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 		   uint64_t hca_va, int access,
- 		   struct ibv_mr *mr, struct ibv_reg_mr *cmd,
-@@ -281,7 +280,6 @@ int ibv_cmd_create_cq_ex(struct ibv_context *context,
- 			 size_t resp_size);
- int ibv_cmd_poll_cq(struct ibv_cq *cq, int ne, struct ibv_wc *wc);
- int ibv_cmd_req_notify_cq(struct ibv_cq *cq, int solicited_only);
--#define IBV_CMD_RESIZE_CQ_HAS_RESP_PARAMS
- int ibv_cmd_resize_cq(struct ibv_cq *cq, int cqe,
- 		      struct ibv_resize_cq *cmd, size_t cmd_size,
- 		      struct ibv_resize_cq_resp *resp, size_t resp_size);
+diff --git a/libibverbs/device.c b/libibverbs/device.c
+index 16a7d4caeac5a0..4fb759c6474ad7 100644
+--- a/libibverbs/device.c
++++ b/libibverbs/device.c
+@@ -275,7 +275,6 @@ LATEST_SYMVER_FUNC(ibv_close_device, 1_1, "IBVERBS_1.1",
+ {
+ 	int async_fd = context->async_fd;
+ 	int cmd_fd   = context->cmd_fd;
+-	int cq_fd    = -1;
+ 	struct verbs_context *context_ex;
+ 	struct verbs_device *verbs_device = verbs_get_device(context->device);
+ 	struct ibv_device *device = context->device;
+@@ -291,8 +290,6 @@ LATEST_SYMVER_FUNC(ibv_close_device, 1_1, "IBVERBS_1.1",
+ 
+ 	close(async_fd);
+ 	close(cmd_fd);
+-	if (abi_ver <= 2)
+-		close(cq_fd);
+ 	ibverbs_device_put(device);
+ 
+ 	return 0;
 -- 
 2.15.1
 
