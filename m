@@ -1,42 +1,36 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/mlx4: Potential buffer overflow in _mlx4_set_path()
-Date: Tue, 5 Dec 2017 17:39:23 +0300
-Message-ID: <20171205143923.26dqc3ekhbmtmsgt@mwanda>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH] RDMA/cxgb4: Add a sanity check in process_work()
+Date: Tue, 5 Dec 2017 09:05:28 -0600
+Message-ID: <017901d36dda$7cab1000$76013000$@opengridcomputing.com>
+References: <20171205143654.n5ybdhj3ga2tp7t4@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20171205143654.n5ybdhj3ga2tp7t4@mwanda>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Dan Carpenter' <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Smatch complains about this code:
+> 
+> The story is that Smatch marks skb->data as untrusted so it generates
+> a warning message here:
+> 
+>     drivers/infiniband/hw/cxgb4/cm.c:4100 process_work()
+>     error: buffer overflow 'work_handlers' 241 <= 255
+> 
+> In other places which handle this such as t4_uld_rx_handler() there is
+> some checking to make sure that the function pointer is not NULL.  I
+> have added bounds checking and a check for NULL here as well.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-    drivers/infiniband/hw/mlx4/qp.c:1827 _mlx4_set_path()
-    error: buffer overflow 'dev->dev->caps.gid_table_len' 3 <= 255
+Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-The mlx4_ib_gid_index_to_real_index() does check that "port" is within
-bounds, but we don't check the return value for errors.  It seems simple
-enough to add a check for that.
 
-Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-Static analysis.  Not tested.
-
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 013049bcdb53..817257f105aa 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1824,6 +1824,8 @@ static int _mlx4_set_path(struct mlx4_ib_dev *dev,
- 			mlx4_ib_gid_index_to_real_index(dev, port,
- 							grh->sgid_index);
- 
-+		if (real_sgid_index < 0)
-+			return real_sgid_index;
- 		if (real_sgid_index >= dev->dev->caps.gid_table_len[port]) {
- 			pr_err("sgid_index (%u) too large. max is %d\n",
- 			       real_sgid_index, dev->dev->caps.gid_table_len[port] - 1);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
