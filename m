@@ -1,52 +1,97 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-rc 2/4] IB/core: Don't enforce PKey security on SMI MADs
-Date: Tue,  5 Dec 2017 22:30:02 +0200
-Message-ID: <20171205203004.28386-3-leon@kernel.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-rc 3/4] IB/mlx4: Fix RSS hash fields restrictions
+Date: Tue,  5 Dec 2017 22:30:03 +0200
+Message-ID: <20171205203004.28386-4-leon@kernel.org>
 References: <20171205203004.28386-1-leon@kernel.org>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20171205203004.28386-1-leon@kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: linux-rdma@vger.kernel.org, Leon Romanovsky <leon@kernel.org>, Daniel Jurgens <danielj@mellanox.com>, stable@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171205203004.28386-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj@mellanox.com>
+From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Per the infiniband spec an SMI MAD can have any PKey. Checking the pkey
-on SMI MADs is not necessary, and it seems that some older adapters
-using the mthca driver don't follow the convention of using the default
-PKey, resulting in false denials, or errors querying the PKey cache.
+Mistakenly the driver didn't allow RSS hash fields combinations which
+involve both IPv4 and IPv6 protocols. This bug caused to failures for
+user's use cases for RSS.
 
-SMI MAD security is still enforced, only agents allowed to manage the
-subnet are able to receive or send SMI MADs.
+Consequently, this patch fixes this bug and allows any combination that
+the HW can support.
 
-Reported-by: Chris Blake <chrisrblake93@gmail.com>
-Cc: <stable@vger.kernel.org> # v4.12
-Fixes: 47a2b338fe63 ("IB/core: Enforce security on management datagrams")
-Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
-Reviewed-by: Parav Pandit <parav@mellanox.com>
-Signed-off-by: Leon Romanovsky <leon@kernel.org>
+Additionally, the patch fixes the driver to return an error in case the
+user provides an unsupported mask for RSS hash fields.
+
+Fixes: 3078f5f1bd8b ("IB/mlx4: Add support for RSS QP")
+Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/security.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx4/qp.c | 26 +++++++++++++++++++-------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
-index a337386652b0..feafdb961c48 100644
---- a/drivers/infiniband/core/security.c
-+++ b/drivers/infiniband/core/security.c
-@@ -739,8 +739,11 @@ int ib_mad_enforce_security(struct ib_mad_agent_private *map, u16 pkey_index)
- 	if (!rdma_protocol_ib(map->agent.device, map->agent.port_num))
- 		return 0;
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 013049bcdb53..caf490ab24c8 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -666,6 +666,19 @@ static int set_qp_rss(struct mlx4_ib_dev *dev, struct mlx4_ib_rss *rss_ctx,
+ 		return (-EOPNOTSUPP);
+ 	}
  
--	if (map->agent.qp->qp_type == IB_QPT_SMI && !map->agent.smp_allowed)
--		return -EACCES;
-+	if (map->agent.qp->qp_type == IB_QPT_SMI) {
-+		if (!map->agent.smp_allowed)
-+			return -EACCES;
-+		return 0;
++	if (ucmd->rx_hash_fields_mask & ~(MLX4_IB_RX_HASH_SRC_IPV4	|
++					  MLX4_IB_RX_HASH_DST_IPV4	|
++					  MLX4_IB_RX_HASH_SRC_IPV6	|
++					  MLX4_IB_RX_HASH_DST_IPV6	|
++					  MLX4_IB_RX_HASH_SRC_PORT_TCP	|
++					  MLX4_IB_RX_HASH_DST_PORT_TCP	|
++					  MLX4_IB_RX_HASH_SRC_PORT_UDP	|
++					  MLX4_IB_RX_HASH_DST_PORT_UDP)) {
++		pr_debug("RX Hash fields_mask has unsupported mask (0x%llx)\n",
++			 ucmd->rx_hash_fields_mask);
++		return (-EOPNOTSUPP);
 +	}
++
+ 	if ((ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_SRC_IPV4) &&
+ 	    (ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_DST_IPV4)) {
+ 		rss_ctx->flags = MLX4_RSS_IPV4;
+@@ -691,11 +704,11 @@ static int set_qp_rss(struct mlx4_ib_dev *dev, struct mlx4_ib_rss *rss_ctx,
+ 			return (-EOPNOTSUPP);
+ 		}
  
- 	return ib_security_pkey_access(map->agent.device,
- 				       map->agent.port_num,
+-		if (rss_ctx->flags & MLX4_RSS_IPV4) {
++		if (rss_ctx->flags & MLX4_RSS_IPV4)
+ 			rss_ctx->flags |= MLX4_RSS_UDP_IPV4;
+-		} else if (rss_ctx->flags & MLX4_RSS_IPV6) {
++		if (rss_ctx->flags & MLX4_RSS_IPV6)
+ 			rss_ctx->flags |= MLX4_RSS_UDP_IPV6;
+-		} else {
++		if (!(rss_ctx->flags & (MLX4_RSS_IPV6 | MLX4_RSS_IPV4))) {
+ 			pr_debug("RX Hash fields_mask is not supported - UDP must be set with IPv4 or IPv6\n");
+ 			return (-EOPNOTSUPP);
+ 		}
+@@ -707,15 +720,14 @@ static int set_qp_rss(struct mlx4_ib_dev *dev, struct mlx4_ib_rss *rss_ctx,
+ 
+ 	if ((ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_SRC_PORT_TCP) &&
+ 	    (ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_DST_PORT_TCP)) {
+-		if (rss_ctx->flags & MLX4_RSS_IPV4) {
++		if (rss_ctx->flags & MLX4_RSS_IPV4)
+ 			rss_ctx->flags |= MLX4_RSS_TCP_IPV4;
+-		} else if (rss_ctx->flags & MLX4_RSS_IPV6) {
++		if (rss_ctx->flags & MLX4_RSS_IPV6)
+ 			rss_ctx->flags |= MLX4_RSS_TCP_IPV6;
+-		} else {
++		if (!(rss_ctx->flags & (MLX4_RSS_IPV6 | MLX4_RSS_IPV4))) {
+ 			pr_debug("RX Hash fields_mask is not supported - TCP must be set with IPv4 or IPv6\n");
+ 			return (-EOPNOTSUPP);
+ 		}
+-
+ 	} else if ((ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_SRC_PORT_TCP) ||
+ 		   (ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_DST_PORT_TCP)) {
+ 		pr_debug("RX Hash fields_mask is not supported - both TCP SRC and DST must be set\n");
 -- 
 2.15.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
