@@ -1,55 +1,61 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] udev.md: Fix typo 'le.g.acy' -> 'legacy'
-Date: Tue, 5 Dec 2017 19:39:57 +0200
-Message-ID: <20171205173957.GJ2110@mtr-leonro.local>
-References: <20171204154255.7067-1-benjamin.drung@profitbricks.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="YZVh52eu0Ophig4D"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171204154255.7067-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 1/4] nfs: Define NFS_RDMA_PORT
+Date: Tue, 5 Dec 2017 13:49:56 -0500
+Message-ID: <06D33DF4-6BAC-411B-8A08-5098E52720C6@oracle.com>
+References: <20171204190904.18629.70341.stgit@manet.1015granger.net> <20171204191330.18629.77069.stgit@manet.1015granger.net> <CANjDDBg3qsn5oWzmTSi5e3eKJKkdEceh0GUTe+pFDAGCxkDqGg@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CANjDDBg3qsn5oWzmTSi5e3eKJKkdEceh0GUTe+pFDAGCxkDqGg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---YZVh52eu0Ophig4D
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> On Dec 5, 2017, at 10:09 AM, Devesh Sharma =
+<devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+>=20
+> Hi Chuck,
+>=20
+> Will this change avoid the "echo rdma 20049" on the nfs server during
+> nfs server start?
 
-On Mon, Dec 04, 2017 at 04:42:55PM +0100, Benjamin Drung wrote:
-> Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> ---
->  Documentation/udev.md | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->
+I'm not familiar with this issue. Is there a bug report ?
 
-Thanks, merged
 
---YZVh52eu0Ophig4D
-Content-Type: application/pgp-signature; name="signature.asc"
+> -Regards
+> Devesh
+>=20
+> On Tue, Dec 5, 2017 at 12:43 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> =
+wrote:
+>> The NFS/RDMA port assignment is specified in Section 9 of RFC 8267.
+>>=20
+>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> ---
+>> include/uapi/linux/nfs.h |    1 +
+>> 1 file changed, 1 insertion(+)
+>>=20
+>> diff --git a/include/uapi/linux/nfs.h b/include/uapi/linux/nfs.h
+>> index 057d22a..946cb62 100644
+>> --- a/include/uapi/linux/nfs.h
+>> +++ b/include/uapi/linux/nfs.h
+>> @@ -12,6 +12,7 @@
+>>=20
+>> #define NFS_PROGRAM    100003
+>> #define NFS_PORT       2049
+>> +#define NFS_RDMA_PORT  20049
+>> #define NFS_MAXDATA    8192
+>> #define NFS_MAXPATHLEN 1024
+>> #define NFS_MAXNAMLEN  255
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlom2e0ACgkQ5GN7iDZy
-WKdI0BAApIW6Kq3YIrPzp4t2S45GVT6/aABOK/thCcblUbck9K6+2Tcfd0Y1akyp
-uAr345xA64XW0Adu2qL/ScFajkakjicJwxX/41WGAy+DLIBKVcDIypk97lGfWsDT
-SsYQfdGeMT9RG4lvP8XYUUHLDH04Zp6wY3RSSt9psvJ9POgrB6CbJCJmPEE74UKw
-7rOG9mFIvXQTOSY+aooxtzgVx0LKa/m/mmvfl2XybRnE6eeWpQvtrIaLg2MN1lGB
-Z3Qye9joLkE30h0kW6ammDmKYjPYR4xGMFg/HS3yTmLyjYF48KNf44k+BqqEdK+1
-Sg7RJQT2OdOdU9pk/FdfNnJBwJhkgoGep33mckszgdXUU+wGFSCjwENKqrbP4/3k
-G349ZjndKBcJq2NLdgcacnNO2Cit53N8TU+e1OE4NCkrG6T+04jrRo72rzgaQGEw
-Dd/IpP3QrsFfKjsEiIgGjCGexag7hBO/IfwPcEc9NXHBahH86rksRwnqwcQtVbhJ
-VOQoNhd2rG8tvV4ceo2gfRquZPN8UF80TAyb6GlWJOyismAhkHUx+T9HHf21GF6M
-8Cm4+SM5L/ajs2aJygdJ3xwchr5iXL0mvOSb9ccMp5sZ7AvUeBxO2cJlb1NNYpXV
-7mUJRW5BihLODpB9N1tADzci4qcxke6AgG/Bwwa6tFCwACz1Nm4=
-=e4Nu
------END PGP SIGNATURE-----
-
---YZVh52eu0Ophig4D--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
