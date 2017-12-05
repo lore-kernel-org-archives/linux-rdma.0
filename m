@@ -1,50 +1,42 @@
 From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] RDMA/cxgb4: Add a sanity check in process_work()
-Date: Tue, 5 Dec 2017 17:36:54 +0300
-Message-ID: <20171205143654.n5ybdhj3ga2tp7t4@mwanda>
+Subject: [PATCH] IB/mlx4: Potential buffer overflow in _mlx4_set_path()
+Date: Tue, 5 Dec 2017 17:39:23 +0300
+Message-ID: <20171205143923.26dqc3ekhbmtmsgt@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The story is that Smatch marks skb->data as untrusted so it generates
-a warning message here:
+Smatch complains about this code:
 
-    drivers/infiniband/hw/cxgb4/cm.c:4100 process_work()
-    error: buffer overflow 'work_handlers' 241 <= 255
+    drivers/infiniband/hw/mlx4/qp.c:1827 _mlx4_set_path()
+    error: buffer overflow 'dev->dev->caps.gid_table_len' 3 <= 255
 
-In other places which handle this such as t4_uld_rx_handler() there is
-some checking to make sure that the function pointer is not NULL.  I
-have added bounds checking and a check for NULL here as well.
+The mlx4_ib_gid_index_to_real_index() does check that "port" is within
+bounds, but we don't check the return value for errors.  It seems simple
+enough to add a check for that.
 
 Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+Static analysis.  Not tested.
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 21db3b48a617..844c9e78df8b 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -4097,9 +4097,15 @@ static void process_work(struct work_struct *work)
- 		dev = *((struct c4iw_dev **) (skb->cb + sizeof(void *)));
- 		opcode = rpl->ot.opcode;
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 013049bcdb53..817257f105aa 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1824,6 +1824,8 @@ static int _mlx4_set_path(struct mlx4_ib_dev *dev,
+ 			mlx4_ib_gid_index_to_real_index(dev, port,
+ 							grh->sgid_index);
  
--		ret = work_handlers[opcode](dev, skb);
--		if (!ret)
-+		if (opcode >= ARRAY_SIZE(work_handlers) ||
-+		    !work_handlers[opcode]) {
-+			pr_err("No handler for opcode 0x%x.\n", opcode);
- 			kfree_skb(skb);
-+		} else {
-+			ret = work_handlers[opcode](dev, skb);
-+			if (!ret)
-+				kfree_skb(skb);
-+		}
- 		process_timedout_eps();
- 	}
- }
++		if (real_sgid_index < 0)
++			return real_sgid_index;
+ 		if (real_sgid_index >= dev->dev->caps.gid_table_len[port]) {
+ 			pr_err("sgid_index (%u) too large. max is %d\n",
+ 			       real_sgid_index, dev->dev->caps.gid_table_len[port] - 1);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
