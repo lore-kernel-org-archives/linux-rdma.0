@@ -1,115 +1,62 @@
-From: Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 2/4] nfs: Referrals should use the same proto setting
- as their parent
-Date: Tue, 5 Dec 2017 10:36:20 -0500
-Message-ID: <396baae6-8372-e7bc-97e4-d5c27b341f8d@Netapp.com>
-References: <20171204190904.18629.70341.stgit@manet.1015granger.net>
- <20171204191338.18629.29071.stgit@manet.1015granger.net>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx4: Potential buffer overflow in _mlx4_set_path()
+Date: Tue, 5 Dec 2017 17:53:18 +0200
+Message-ID: <20171205155318.GH2110@mtr-leonro.local>
+References: <20171205143923.26dqc3ekhbmtmsgt@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171204191338.18629.29071.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Content-Language: en-US
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="TKYYegg/GYAC5JIZ"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171205143923.26dqc3ekhbmtmsgt@mwanda>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Chuck,
 
-On 12/04/2017 02:13 PM, Chuck Lever wrote:
-> Helen Chao <helen.chao-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> noticed that when a user
-> traverses a referral on an NFS/RDMA mount, the resulting submount
-> always uses TCP.
-> 
-> This behavior does not match the vers= setting when traversing
-> a referral (vers=4.1 is preserved). It also does not match the
-> behavior of crossing from the pseudofs into a real filesystem
-> (proto=rdma is preserved in that case).
-> 
-> The Linux NFS client does not currently support the
-> fs_locations_info attribute. The situation is similar for all
-> NFSv4 servers I know of. Therefore until the community has broad
-> support for fs_locations_info, when following a referral:
-> 
->  - First try to connect with RPC-over-RDMA. This will fail quickly
->    if the client has no RDMA-capable interfaces.
-> 
->  - If connecting with RPC-over-RDMA fails, or the RPC-over-RDMA
->    transport is not available, use TCP.
+--TKYYegg/GYAC5JIZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Won't this have the opposite problem if the client and server have RDMA interfaces, but are currently mounted over TCP instead?
-
-Anna
-
-> 
-> Reported-by: Helen Chao <helen.chao-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On Tue, Dec 05, 2017 at 05:39:23PM +0300, Dan Carpenter wrote:
+> Smatch complains about this code:
+>
+>     drivers/infiniband/hw/mlx4/qp.c:1827 _mlx4_set_path()
+>     error: buffer overflow 'dev->dev->caps.gid_table_len' 3 <= 255
+>
+> The mlx4_ib_gid_index_to_real_index() does check that "port" is within
+> bounds, but we don't check the return value for errors.  It seems simple
+> enough to add a check for that.
+>
+> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > ---
->  fs/nfs/nfs4client.c    |   23 ++++++++++++++++++++---
->  fs/nfs/nfs4namespace.c |    2 --
->  2 files changed, 20 insertions(+), 5 deletions(-)
-> 
-> diff --git a/fs/nfs/nfs4client.c b/fs/nfs/nfs4client.c
-> index 12bbab0..a3d5592 100644
-> --- a/fs/nfs/nfs4client.c
-> +++ b/fs/nfs/nfs4client.c
-> @@ -1114,19 +1114,36 @@ struct nfs_server *nfs4_create_referral_server(struct nfs_clone_mount *data,
->  	/* Initialise the client representation from the parent server */
->  	nfs_server_copy_userdata(server, parent_server);
->  
-> -	/* Get a client representation.
-> -	 * Note: NFSv4 always uses TCP, */
-> +	/* Get a client representation */
-> +#ifdef CONFIG_SUNRPC_XPRT_RDMA
-> +	rpc_set_port(data->addr, NFS_RDMA_PORT);
->  	error = nfs4_set_client(server, data->hostname,
->  				data->addr,
->  				data->addrlen,
->  				parent_client->cl_ipaddr,
-> -				rpc_protocol(parent_server->client),
-> +				XPRT_TRANSPORT_RDMA,
-> +				parent_server->client->cl_timeout,
-> +				parent_client->cl_mvops->minor_version,
-> +				parent_client->cl_net);
-> +	if (!error)
-> +		goto init_server;
-> +#endif	/* CONFIG_SUNRPC_XPRT_RDMA */
-> +
-> +	rpc_set_port(data->addr, NFS_PORT);
-> +	error = nfs4_set_client(server, data->hostname,
-> +				data->addr,
-> +				data->addrlen,
-> +				parent_client->cl_ipaddr,
-> +				XPRT_TRANSPORT_TCP,
->  				parent_server->client->cl_timeout,
->  				parent_client->cl_mvops->minor_version,
->  				parent_client->cl_net);
->  	if (error < 0)
->  		goto error;
->  
-> +#ifdef CONFIG_SUNRPC_XPRT_RDMA
-> +init_server:
-> +#endif
->  	error = nfs_init_server_rpcclient(server, parent_server->client->cl_timeout, data->authflavor);
->  	if (error < 0)
->  		goto error;
-> diff --git a/fs/nfs/nfs4namespace.c b/fs/nfs/nfs4namespace.c
-> index 8c3f327..24f06dc 100644
-> --- a/fs/nfs/nfs4namespace.c
-> +++ b/fs/nfs/nfs4namespace.c
-> @@ -270,8 +270,6 @@ static struct vfsmount *try_location(struct nfs_clone_mount *mountdata,
->  		if (mountdata->addrlen == 0)
->  			continue;
->  
-> -		rpc_set_port(mountdata->addr, NFS_PORT);
-> -
->  		memcpy(page2, buf->data, buf->len);
->  		page2[buf->len] = '\0';
->  		mountdata->hostname = page2;
-> 
+
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+--TKYYegg/GYAC5JIZ
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlomwO4ACgkQ5GN7iDZy
+WKdRIRAAj1eb+sN6jiVjyp20LbFFXkURc64+I+EARd7HTw+DpHhsFregOPaN7PEO
+bs2EjJn3FZ2fKudljGaRFbAxNbntsY4074SLQYNqw2KN36m0ReUS1nU98SJBODrY
+Sj32ablhP5ODihVdiZCevoMvRvEClC524uX8NoAlowN9yF8FtUGKq1C1MX+3tTG4
+bximJfme9GrCKeLH0Yq7hBoQHDmLTb6cDAlZt32M98Edj7K2KytEq/z/5LC5loam
+i+wRUc/ngvAQRC3ucuCUNU22r4LWUfrugDXjoK62h8z97xly+eIebMahC80evJ/8
+Pa7720E+usYL7uCR4pFgKFVzz980W0E47N5Y9Dip94efoWCQkv1dRHgOplnOkgyM
+/FytTlC91CtXBwZF6QOnXmxtcVSkYOdsT/OofeijogfAE9oaAL2axiA4pCsEVbsW
+UNmNn5siLIkBgjX4T/hCjbWjErpS7oMMHWldOp2UU7wTyIb9pC7YTRtibpoVYHY6
+jvpMR1raALfh8FModaWooLTJoQObP81X+nSkUwnVTuNp2A/bpXVxMEuSqjAwfZEk
+4BMSNbX9YoH6BWsP/IYp3FhphE6o/YmDDKes8oUqjmetPdLz1A+AdUs3B3K+0gvj
+mQhkFOKlnrz2l+746K3NGBamubf9ONb1JHqyzTlscr7Go44YbVM=
+=m4Uz
+-----END PGP SIGNATURE-----
+
+--TKYYegg/GYAC5JIZ--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
