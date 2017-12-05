@@ -1,144 +1,41 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 4/4] RDMA/netlink: Fix general protection fault
-Date: Tue,  5 Dec 2017 22:30:04 +0200
-Message-ID: <20171205203004.28386-5-leon@kernel.org>
-References: <20171205203004.28386-1-leon@kernel.org>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: [PATCH 1/8] verbs: Fix typo in copying IBV_FLOW_SPEC_UDP/TCP 'val'
+Date: Tue,  5 Dec 2017 16:17:14 -0700
+Message-ID: <20171205231721.19410-2-jgg@ziepe.ca>
+References: <20171205231721.19410-1-jgg@ziepe.ca>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171205203004.28386-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20171205231721.19410-1-jgg-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, syzkaller <syzkaller-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The RDMA netlink core code checks validity of messages by ensuring
-that type and operand are in range. It works well for almost all
-clients except NLDEV, which has cb_table less than number of operands.
+The 'val' is a struct ibv_flow_tcp_udp_filter, not a ipv4_filter.
 
-Request to access such operand will trigger the following kernel panic.
+ipv4_filter is 8 bytes while tcp_udp_filter is only 4 bytes. So this
+does not result in any bug, it is just a mistake.
 
-This patch updates all places where cb_table is declared for the
-consistency, but only NLDEV is actually need it.
-
-general protection fault: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN
-Modules linked in:
-CPU: 0 PID: 522 Comm: syz-executor6 Not tainted 4.13.0+ #4
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.7.5-0-ge51488c-20140602_164612-nilsson.home.kraxel.org 04/01/2014
-task: ffff8800657799c0 task.stack: ffff8800695d000
-RIP: 0010:rdma_nl_rcv_msg+0x13a/0x4c0
-RSP: 0018:ffff8800695d7838 EFLAGS: 00010207
-RAX: dffffc0000000000 RBX: 1ffff1000d2baf0b RCX: 00000000704ff4d7
-RDX: 0000000000000000 RSI: ffffffff81ddb03c RDI: 00000003827fa6bc
-RBP: ffff8800695d7900 R08: ffffffff82ec0578 R09: 0000000000000000
-R10: ffff8800695d7900 R11: 0000000000000001 R12: 000000000000001c
-R13: ffff880069d31e00 R14: 00000000ffffffff R15: ffff880069d357c0
-FS:  00007fee6acb8700(0000) GS:ffff88006ca00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00000000201a9000 CR3: 0000000059766000 CR4: 00000000000006b0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- ? rdma_nl_multicast+0x80/0x80
- rdma_nl_rcv+0x36b/0x4d0
- ? ibnl_put_attr+0xc0/0xc0
- netlink_unicast+0x4bd/0x6d0
- ? netlink_sendskb+0x50/0x50
- ? drop_futex_key_refs.isra.4+0x68/0xb0
- netlink_sendmsg+0x9ab/0xbd0
- ? nlmsg_notify+0x140/0x140
- ? wake_up_q+0xa1/0xf0
- ? drop_futex_key_refs.isra.4+0x68/0xb0
- sock_sendmsg+0x88/0xd0
- sock_write_iter+0x228/0x3c0
- ? sock_sendmsg+0xd0/0xd0
- ? do_futex+0x3e5/0xb20
- ? iov_iter_init+0xaf/0x1d0
- __vfs_write+0x46e/0x640
- ? sched_clock_cpu+0x1b/0x190
- ? __vfs_read+0x620/0x620
- ? __fget+0x23a/0x390
- ? rw_verify_area+0xca/0x290
- vfs_write+0x192/0x490
- SyS_write+0xde/0x1c0
- ? SyS_read+0x1c0/0x1c0
- ? trace_hardirqs_on_thunk+0x1a/0x1c
- entry_SYSCALL_64_fastpath+0x18/0xad
-RIP: 0033:0x7fee6a74a219
-RSP: 002b:00007fee6acb7d58 EFLAGS: 00000212 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 0000000000638000 RCX: 00007fee6a74a219
-RDX: 0000000000000078 RSI: 0000000020141000 RDI: 0000000000000006
-RBP: 0000000000000046 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000212 R12: ffff8800695d7f98
-R13: 0000000020141000 R14: 0000000000000006 R15: 00000000ffffffff
-Code: d6 48 b8 00 00 00 00 00 fc ff df 66 41 81 e4 ff 03 44 8d 72 ff 4a 8d 3c b5 c0 a6 7f 82 44 89 b5 4c ff ff ff 48 89 f9 48 c1 e9 03 <0f> b6 0c 01 48 89 f8 83 e0 07 83 c0 03 38 c8 7c 08 84 c9 0f 85
-RIP: rdma_nl_rcv_msg+0x13a/0x4c0 RSP: ffff8800695d7838
----[ end trace ba085d123959c8ec ]---
-Kernel panic - not syncing: Fatal exception
-
-Cc: syzkaller <syzkaller-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Fixes: b4c598a67ea1 ("RDMA/netlink: Implement nldev device dumpit calback")
-Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: 389de6a6ef4e ("Add receive flow steering support")
+Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c    | 2 +-
- drivers/infiniband/core/device.c | 2 +-
- drivers/infiniband/core/iwcm.c   | 2 +-
- drivers/infiniband/core/nldev.c  | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ libibverbs/cmd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index f6983357145d..6294a7001d33 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -4458,7 +4458,7 @@ static int cma_get_id_stats(struct sk_buff *skb, struct netlink_callback *cb)
- 	return skb->len;
- }
- 
--static const struct rdma_nl_cbs cma_cb_table[] = {
-+static const struct rdma_nl_cbs cma_cb_table[RDMA_NL_RDMA_CM_NUM_OPS] = {
- 	[RDMA_NL_RDMA_CM_ID_STATS] = { .dump = cma_get_id_stats},
- };
- 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 5e1be4949d5f..30914f3baa5f 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -1146,7 +1146,7 @@ struct net_device *ib_get_net_dev_by_params(struct ib_device *dev,
- }
- EXPORT_SYMBOL(ib_get_net_dev_by_params);
- 
--static const struct rdma_nl_cbs ibnl_ls_cb_table[] = {
-+static const struct rdma_nl_cbs ibnl_ls_cb_table[RDMA_NL_LS_NUM_OPS] = {
- 	[RDMA_NL_LS_OP_RESOLVE] = {
- 		.doit = ib_nl_handle_resolve_resp,
- 		.flags = RDMA_NL_ADMIN_PERM,
-diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-index e9e189ec7502..5d676cff41f4 100644
---- a/drivers/infiniband/core/iwcm.c
-+++ b/drivers/infiniband/core/iwcm.c
-@@ -80,7 +80,7 @@ const char *__attribute_const__ iwcm_reject_msg(int reason)
- }
- EXPORT_SYMBOL(iwcm_reject_msg);
- 
--static struct rdma_nl_cbs iwcm_nl_cb_table[] = {
-+static struct rdma_nl_cbs iwcm_nl_cb_table[RDMA_NL_IWPM_NUM_OPS] = {
- 	[RDMA_NL_IWPM_REG_PID] = {.dump = iwpm_register_pid_cb},
- 	[RDMA_NL_IWPM_ADD_MAPPING] = {.dump = iwpm_add_mapping_cb},
- 	[RDMA_NL_IWPM_QUERY_MAPPING] = {.dump = iwpm_add_and_query_mapping_cb},
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 2fae850a3eff..9a05245a1acf 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -303,7 +303,7 @@ out:	cb->args[0] = idx;
- 	return skb->len;
- }
- 
--static const struct rdma_nl_cbs nldev_cb_table[] = {
-+static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 	[RDMA_NLDEV_CMD_GET] = {
- 		.doit = nldev_get_doit,
- 		.dump = nldev_get_dumpit,
+diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
+index 62fcd0e4e2f400..b957550ed6fbdb 100644
+--- a/libibverbs/cmd.c
++++ b/libibverbs/cmd.c
+@@ -1844,7 +1844,7 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
+ 	case IBV_FLOW_SPEC_UDP | IBV_FLOW_SPEC_INNER:
+ 		kern_spec->tcp_udp.size = sizeof(struct ibv_kern_spec_tcp_udp);
+ 		memcpy(&kern_spec->tcp_udp.val, &ib_spec->tcp_udp.val,
+-		       sizeof(struct ibv_flow_ipv4_filter));
++		       sizeof(struct ibv_flow_tcp_udp_filter));
+ 		memcpy(&kern_spec->tcp_udp.mask, &ib_spec->tcp_udp.mask,
+ 		       sizeof(struct ibv_flow_tcp_udp_filter));
+ 		break;
 -- 
 2.15.1
 
