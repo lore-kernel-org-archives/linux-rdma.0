@@ -1,41 +1,48 @@
-From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] rdma-core: Add missing systemd-devel dependency to the SUSE rdma-core.spec
-Date: Tue,  5 Dec 2017 17:40:05 -0600
-Message-ID: <20171205234005.10904-1-tatyana.e.nikolova@intel.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: [PATCH 2/8] verbs: Remove duplicate NULL test from flow ops
+Date: Tue,  5 Dec 2017 16:17:15 -0700
+Message-ID: <20171205231721.19410-3-jgg@ziepe.ca>
+References: <20171205231721.19410-1-jgg@ziepe.ca>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171205231721.19410-1-jgg-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Without systemd-devel, all rdma-core daemons are using shim version of
-systemd include file (in-turn, shim version of systemd functions)
-causing them to not communicate with systemd.
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add the missing required systemd-devel package to SUSE's rdma-core.spec
-so the correct header file is used and correct functions are linked
-with the daemons.
+The verbs_get_ctx_op macro already checks if the op is NULL.
 
-Fixes: 8854eefa60b5 ("suse: Add spec file for SUSE")
-Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- suse/rdma-core.spec | 1 +
- 1 file changed, 1 insertion(+)
+ libibverbs/verbs.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/suse/rdma-core.spec b/suse/rdma-core.spec
-index 0eba0507..912a77c5 100644
---- a/suse/rdma-core.spec
-+++ b/suse/rdma-core.spec
-@@ -57,6 +57,7 @@ BuildRequires:  pkgconfig
- BuildRequires:  pkgconfig(libsystemd)
- BuildRequires:  pkgconfig(libudev)
- BuildRequires:  pkgconfig(systemd)
-+BuildRequires:  pkgconfig(systemd-devel)
- BuildRequires:  pkgconfig(udev)
- BuildRequires:  python3-base
- %ifnarch s390 s390x
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index b39dc30a6d2a6e..b9db76bc628707 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -1832,7 +1832,7 @@ static inline struct ibv_flow *ibv_create_flow(struct ibv_qp *qp,
+ {
+ 	struct verbs_context *vctx = verbs_get_ctx_op(qp->context,
+ 						      ibv_create_flow);
+-	if (!vctx || !vctx->ibv_create_flow) {
++	if (!vctx) {
+ 		errno = ENOSYS;
+ 		return NULL;
+ 	}
+@@ -1844,7 +1844,7 @@ static inline int ibv_destroy_flow(struct ibv_flow *flow_id)
+ {
+ 	struct verbs_context *vctx = verbs_get_ctx_op(flow_id->context,
+ 						      ibv_destroy_flow);
+-	if (!vctx || !vctx->ibv_destroy_flow)
++	if (!vctx)
+ 		return -ENOSYS;
+ 	return vctx->ibv_destroy_flow(flow_id);
+ }
 -- 
-2.14.2
+2.15.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
