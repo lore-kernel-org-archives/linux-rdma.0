@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-rc 1/4] IB/core: Bound check alternate path port number
-Date: Tue,  5 Dec 2017 22:30:01 +0200
-Message-ID: <20171205203004.28386-2-leon@kernel.org>
+Subject: [PATCH rdma-rc 2/4] IB/core: Don't enforce PKey security on SMI MADs
+Date: Tue,  5 Dec 2017 22:30:02 +0200
+Message-ID: <20171205203004.28386-3-leon@kernel.org>
 References: <20171205203004.28386-1-leon@kernel.org>
 Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20171205203004.28386-1-leon@kernel.org>
@@ -12,34 +12,41 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Daniel Jurgens <danielj@mellanox.com>
 
-The alternate port number is used as an array index in the IB
-security implementation, invalid values can result in a kernel panic.
+Per the infiniband spec an SMI MAD can have any PKey. Checking the pkey
+on SMI MADs is not necessary, and it seems that some older adapters
+using the mthca driver don't follow the convention of using the default
+PKey, resulting in false denials, or errors querying the PKey cache.
 
+SMI MAD security is still enforced, only agents allowed to manage the
+subnet are able to receive or send SMI MADs.
+
+Reported-by: Chris Blake <chrisrblake93@gmail.com>
 Cc: <stable@vger.kernel.org> # v4.12
-Fixes: d291f1a65232 ("IB/core: Enforce PKey security on QPs")
+Fixes: 47a2b338fe63 ("IB/core: Enforce security on management datagrams")
 Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
 Reviewed-by: Parav Pandit <parav@mellanox.com>
 Signed-off-by: Leon Romanovsky <leon@kernel.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/infiniband/core/security.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 16d55710b116..d0202bb176a4 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1971,6 +1971,12 @@ static int modify_qp(struct ib_uverbs_file *file,
- 		goto release_qp;
- 	}
+diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
+index a337386652b0..feafdb961c48 100644
+--- a/drivers/infiniband/core/security.c
++++ b/drivers/infiniband/core/security.c
+@@ -739,8 +739,11 @@ int ib_mad_enforce_security(struct ib_mad_agent_private *map, u16 pkey_index)
+ 	if (!rdma_protocol_ib(map->agent.device, map->agent.port_num))
+ 		return 0;
  
-+	if ((cmd->base.attr_mask & IB_QP_ALT_PATH) &&
-+	    !rdma_is_port_valid(qp->device, cmd->base.alt_port_num)) {
-+		ret = -EINVAL;
-+		goto release_qp;
+-	if (map->agent.qp->qp_type == IB_QPT_SMI && !map->agent.smp_allowed)
+-		return -EACCES;
++	if (map->agent.qp->qp_type == IB_QPT_SMI) {
++		if (!map->agent.smp_allowed)
++			return -EACCES;
++		return 0;
 +	}
-+
- 	attr->qp_state		  = cmd->base.qp_state;
- 	attr->cur_qp_state	  = cmd->base.cur_qp_state;
- 	attr->path_mtu		  = cmd->base.path_mtu;
+ 
+ 	return ib_security_pkey_access(map->agent.device,
+ 				       map->agent.port_num,
 -- 
 2.15.1
