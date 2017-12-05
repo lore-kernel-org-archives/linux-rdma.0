@@ -1,61 +1,64 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Potential buffer overflow in _mlx4_set_path()
-Date: Tue, 5 Dec 2017 17:53:18 +0200
-Message-ID: <20171205155318.GH2110@mtr-leonro.local>
-References: <20171205143923.26dqc3ekhbmtmsgt@mwanda>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net-next 1/8] net: hns3: Add HNS3 VF IMP(Integrated
+ Management Proc) cmd interface
+Date: Tue, 05 Dec 2017 11:37:44 -0500 (EST)
+Message-ID: <20171205.113744.2040678170803031734.davem@davemloft.net>
+References: <20171203123307.19820-1-salil.mehta@huawei.com>
+        <20171203123307.19820-2-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="TKYYegg/GYAC5JIZ"
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171205143923.26dqc3ekhbmtmsgt@mwanda>
+In-Reply-To: <20171203123307.19820-2-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Cc: yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Date: Sun, 3 Dec 2017 12:33:00 +0000
 
---TKYYegg/GYAC5JIZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> +static int hclgevf_ring_space(struct hclgevf_cmq_ring *ring)
+> +{
+> +	int ntu = ring->next_to_use;
+> +	int ntc = ring->next_to_clean;
+> +	int used = (ntu - ntc + ring->desc_num) % ring->desc_num;
 
-On Tue, Dec 05, 2017 at 05:39:23PM +0300, Dan Carpenter wrote:
-> Smatch complains about this code:
->
->     drivers/infiniband/hw/mlx4/qp.c:1827 _mlx4_set_path()
->     error: buffer overflow 'dev->dev->caps.gid_table_len' 3 <= 255
->
-> The mlx4_ib_gid_index_to_real_index() does check that "port" is within
-> bounds, but we don't check the return value for errors.  It seems simple
-> enough to add a check for that.
->
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
+Order local variables from longest to shortest line, please.
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Audit your entire submission for this issue.
 
---TKYYegg/GYAC5JIZ
-Content-Type: application/pgp-signature; name="signature.asc"
+> +static int hclgevf_cmd_csq_done(struct hclgevf_hw *hw)
+> +{
+> +	u32 head = hclgevf_read_dev(hw, HCLGEVF_NIC_CSQ_HEAD_REG);
+> +	return head == hw->cmq.csq.next_to_use;
+> +}
 
------BEGIN PGP SIGNATURE-----
+Please return bool from this function.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlomwO4ACgkQ5GN7iDZy
-WKdRIRAAj1eb+sN6jiVjyp20LbFFXkURc64+I+EARd7HTw+DpHhsFregOPaN7PEO
-bs2EjJn3FZ2fKudljGaRFbAxNbntsY4074SLQYNqw2KN36m0ReUS1nU98SJBODrY
-Sj32ablhP5ODihVdiZCevoMvRvEClC524uX8NoAlowN9yF8FtUGKq1C1MX+3tTG4
-bximJfme9GrCKeLH0Yq7hBoQHDmLTb6cDAlZt32M98Edj7K2KytEq/z/5LC5loam
-i+wRUc/ngvAQRC3ucuCUNU22r4LWUfrugDXjoK62h8z97xly+eIebMahC80evJ/8
-Pa7720E+usYL7uCR4pFgKFVzz980W0E47N5Y9Dip94efoWCQkv1dRHgOplnOkgyM
-/FytTlC91CtXBwZF6QOnXmxtcVSkYOdsT/OofeijogfAE9oaAL2axiA4pCsEVbsW
-UNmNn5siLIkBgjX4T/hCjbWjErpS7oMMHWldOp2UU7wTyIb9pC7YTRtibpoVYHY6
-jvpMR1raALfh8FModaWooLTJoQObP81X+nSkUwnVTuNp2A/bpXVxMEuSqjAwfZEk
-4BMSNbX9YoH6BWsP/IYp3FhphE6o/YmDDKes8oUqjmetPdLz1A+AdUs3B3K+0gvj
-mQhkFOKlnrz2l+746K3NGBamubf9ONb1JHqyzTlscr7Go44YbVM=
-=m4Uz
------END PGP SIGNATURE-----
+> +void hclgevf_cmd_setup_basic_desc(struct hclgevf_desc *desc,
+> +				  enum hclgevf_opcode_type opcode, bool is_read)
+> +{
+> +	memset((void *)desc, 0, sizeof(struct hclgevf_desc));
 
---TKYYegg/GYAC5JIZ--
+You never need casts like this, when the functions argument is void any
+pointer can be passed in as-is.
+
+> +
+> +	/* If the command is sync, wait for the firmware to write back,
+> +	 * if multi descriptors to be sent, use the first one to check
+> +	 */
+> +	if (HCLGEVF_SEND_SYNC(le16_to_cpu(desc->flag))) {
+> +		do {
+> +			if (hclgevf_cmd_csq_done(hw))
+> +				break;
+> +			udelay(1);
+> +			timeout++;
+> +		} while (timeout < hw->cmq.tx_timeout);
+> +	}
+
+This is potentially a long timeout with a spinlock held.  Consider using
+sleeping and completions.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
