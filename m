@@ -1,98 +1,93 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 1/4] nfs: Define NFS_RDMA_PORT
-Date: Wed, 6 Dec 2017 09:52:26 -0500
-Message-ID: <D1CAA846-EF79-4A1B-9BFE-70EDA1B7BBF5@oracle.com>
-References: <20171204190904.18629.70341.stgit@manet.1015granger.net> <20171204191330.18629.77069.stgit@manet.1015granger.net> <CANjDDBg3qsn5oWzmTSi5e3eKJKkdEceh0GUTe+pFDAGCxkDqGg@mail.gmail.com> <06D33DF4-6BAC-411B-8A08-5098E52720C6@oracle.com> <CANjDDBiTSDfzvj6qLaeEf+-Jx=XA9W2rzA2wW_q45MfauwffPA@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CANjDDBiTSDfzvj6qLaeEf+-Jx=XA9W2rzA2wW_q45MfauwffPA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge@oracle.com>
+Subject: [PATCH net] rds: Fix NULL pointer dereference in __rds_rdma_map
+Date: Wed,  6 Dec 2017 17:18:28 +0100
+Message-ID: <20171206161828.8368-1-Haakon.Bugge@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S . Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+This is a fix for syzkaller719569, where memory registration was
+attempted without any underlying transport being loaded.
 
-> On Dec 6, 2017, at 1:04 AM, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> =
-wrote:
->=20
-> Oh! apologies if I was not clear what I wanted to say. I was thinking
-> this change will avoid the step to write the nfsrdma port number into
-> /proc/fs/nfsd/portlist file after starting the nfs server. This is
-> step is a part of configuring nfs-rdma server. However, for tcp such
-> entries are present by default in this file.
+Analysis of the case reveals that it is the setsockopt() RDS_GET_MR
+(2) and RDS_GET_MR_FOR_DEST (7) that are vulnerable.
 
-Hi Devesh-
+Here is an example stack trace when the bug is hit:
 
-I don't have to do this manually on my server, but maybe that's
-because RHEL 7 system start-up scripts already handle it?
+BUG: unable to handle kernel NULL pointer dereference at 00000000000000c0
+IP: __rds_rdma_map+0x36/0x440 [rds]
+PGD 2f93d03067 P4D 2f93d03067 PUD 2f93d02067 PMD 0
+Oops: 0000 [#1] SMP
+Modules linked in: bridge stp llc tun rpcsec_gss_krb5 nfsv4
+dns_resolver nfs fscache rds binfmt_misc sb_edac intel_powerclamp
+coretemp kvm_intel kvm irqbypass crct10dif_pclmul c rc32_pclmul
+ghash_clmulni_intel pcbc aesni_intel crypto_simd glue_helper cryptd
+iTCO_wdt mei_me sg iTCO_vendor_support ipmi_si mei ipmi_devintf nfsd
+shpchp pcspkr i2c_i801 ioatd ma ipmi_msghandler wmi lpc_ich mfd_core
+auth_rpcgss nfs_acl lockd grace sunrpc ip_tables ext4 mbcache jbd2
+mgag200 i2c_algo_bit drm_kms_helper ixgbe syscopyarea ahci sysfillrect
+sysimgblt libahci mdio fb_sys_fops ttm ptp libata sd_mod mlx4_core drm
+crc32c_intel pps_core megaraid_sas i2c_core dca dm_mirror
+dm_region_hash dm_log dm_mod
+CPU: 48 PID: 45787 Comm: repro_set2 Not tainted 4.14.2-3.el7uek.x86_64 #2
+Hardware name: Oracle Corporation ORACLE SERVER X5-2L/ASM,MOBO TRAY,2U, BIOS 31110000 03/03/2017
+task: ffff882f9190db00 task.stack: ffffc9002b994000
+RIP: 0010:__rds_rdma_map+0x36/0x440 [rds]
+RSP: 0018:ffffc9002b997df0 EFLAGS: 00010202
+RAX: 0000000000000000 RBX: ffff882fa2182580 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffc9002b997e40 RDI: ffff882fa2182580
+RBP: ffffc9002b997e30 R08: 0000000000000000 R09: 0000000000000002
+R10: ffff885fb29e3838 R11: 0000000000000000 R12: ffff882fa2182580
+R13: ffff882fa2182580 R14: 0000000000000002 R15: 0000000020000ffc
+FS:  00007fbffa20b700(0000) GS:ffff882fbfb80000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000000000c0 CR3: 0000002f98a66006 CR4: 00000000001606e0
+Call Trace:
+ rds_get_mr+0x56/0x80 [rds]
+ rds_setsockopt+0x172/0x340 [rds]
+ ? __fget_light+0x25/0x60
+ ? __fdget+0x13/0x20
+ SyS_setsockopt+0x80/0xe0
+ do_syscall_64+0x67/0x1b0
+ entry_SYSCALL64_slow_path+0x25/0x25
+RIP: 0033:0x7fbff9b117f9
+RSP: 002b:00007fbffa20aed8 EFLAGS: 00000293 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 00000000000c84a4 RCX: 00007fbff9b117f9
+RDX: 0000000000000002 RSI: 0000400000000114 RDI: 000000000000109b
+RBP: 00007fbffa20af10 R08: 0000000000000020 R09: 00007fbff9dd7860
+R10: 0000000020000ffc R11: 0000000000000293 R12: 0000000000000000
+R13: 00007fbffa20b9c0 R14: 00007fbffa20b700 R15: 0000000000000021
 
-Bring this up in a separate thread on linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-and we can work it out. To answer your original question: no,
-I don't believe this patch will change server start-up behavior.
+Code: 41 56 41 55 49 89 fd 41 54 53 48 83 ec 18 8b 87 f0 02 00 00 48
+89 55 d0 48 89 4d c8 85 c0 0f 84 2d 03 00 00 48 8b 87 00 03 00 00 <48>
+83 b8 c0 00 00 00 00 0f 84 25 03 00 0 0 48 8b 06 48 8b 56 08
 
+The fix is to check the existence of an underlying transport in
+__rds_rdma_map().
 
-> -Regards
-> Devesh
->=20
-> On Wed, Dec 6, 2017 at 12:19 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> =
-wrote:
->>=20
->>> On Dec 5, 2017, at 10:09 AM, Devesh Sharma =
-<devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
->>>=20
->>> Hi Chuck,
->>>=20
->>> Will this change avoid the "echo rdma 20049" on the nfs server =
-during
->>> nfs server start?
->>=20
->> I'm not familiar with this issue. Is there a bug report ?
->>=20
->>=20
->>> -Regards
->>> Devesh
->>>=20
->>> On Tue, Dec 5, 2017 at 12:43 AM, Chuck Lever =
-<chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->>>> The NFS/RDMA port assignment is specified in Section 9 of RFC 8267.
->>>>=20
->>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>>> ---
->>>> include/uapi/linux/nfs.h |    1 +
->>>> 1 file changed, 1 insertion(+)
->>>>=20
->>>> diff --git a/include/uapi/linux/nfs.h b/include/uapi/linux/nfs.h
->>>> index 057d22a..946cb62 100644
->>>> --- a/include/uapi/linux/nfs.h
->>>> +++ b/include/uapi/linux/nfs.h
->>>> @@ -12,6 +12,7 @@
->>>>=20
->>>> #define NFS_PROGRAM    100003
->>>> #define NFS_PORT       2049
->>>> +#define NFS_RDMA_PORT  20049
->>>> #define NFS_MAXDATA    8192
->>>> #define NFS_MAXPATHLEN 1024
->>>> #define NFS_MAXNAMLEN  255
->>=20
->> --
->> Chuck Lever
->>=20
->>=20
->>=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" =
-in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+---
+ net/rds/rdma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/net/rds/rdma.c b/net/rds/rdma.c
+index 8886f15abe90..bc2f1e0977d6 100644
+--- a/net/rds/rdma.c
++++ b/net/rds/rdma.c
+@@ -183,7 +183,7 @@ static int __rds_rdma_map(struct rds_sock *rs, struct rds_get_mr_args *args,
+ 	long i;
+ 	int ret;
+ 
+-	if (rs->rs_bound_addr == 0) {
++	if (rs->rs_bound_addr == 0 || !rs->rs_transport) {
+ 		ret = -ENOTCONN; /* XXX not a great errno */
+ 		goto out;
+ 	}
+-- 
+2.13.6
