@@ -1,70 +1,71 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v1 1/4] nfs: Define NFS_RDMA_PORT
-Date: Wed, 6 Dec 2017 11:34:26 +0530
-Message-ID: <CANjDDBiTSDfzvj6qLaeEf+-Jx=XA9W2rzA2wW_q45MfauwffPA@mail.gmail.com>
-References: <20171204190904.18629.70341.stgit@manet.1015granger.net>
- <20171204191330.18629.77069.stgit@manet.1015granger.net> <CANjDDBg3qsn5oWzmTSi5e3eKJKkdEceh0GUTe+pFDAGCxkDqGg@mail.gmail.com>
- <06D33DF4-6BAC-411B-8A08-5098E52720C6@oracle.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [ANNOUNCE] rdma-core-16 has been tagged/released
+Date: Wed, 6 Dec 2017 10:49:51 +0200
+Message-ID: <20171206084951.GM2110@mtr-leonro.local>
+References: <20171204051158.GD2110@mtr-leonro.local>
+ <118a9369-7819-f921-373f-8036cdf33943@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <06D33DF4-6BAC-411B-8A08-5098E52720C6-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="nzri8VXeXB/g5ayr"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <118a9369-7819-f921-373f-8036cdf33943-l3A5Bk7waGM@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Oh! apologies if I was not clear what I wanted to say. I was thinking
-this change will avoid the step to write the nfsrdma port number into
-/proc/fs/nfsd/portlist file after starting the nfs server. This is
-step is a part of configuring nfs-rdma server. However, for tcp such
-entries are present by default in this file.
 
--Regards
-Devesh
+--nzri8VXeXB/g5ayr
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Dec 6, 2017 at 12:19 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+On Wed, Dec 06, 2017 at 09:05:30AM +0100, Nicolas Morey-Chaisemartin wrote:
 >
->> On Dec 5, 2017, at 10:09 AM, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
->>
->> Hi Chuck,
->>
->> Will this change avoid the "echo rdma 20049" on the nfs server during
->> nfs server start?
+> Le 04/12/2017 =E0 06:11, Leon Romanovsky a =E9crit=A0:
+> > Here's the information from the tag:
+> >
+> > tag v16
+> > Tagger: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > Date:   Mon Dec 4 06:50:59 2017 +0200
+> >
+> > rdma-core-16
+> >
+> > Updates from version 15:
 >
-> I'm not familiar with this issue. Is there a bug report ?
+> As we changed the release number in the CMakeList to X.0, it would be goo=
+d to also tag the release with vX.0 next time to be coherent.
+
+I did it intentionally to be coherent with previous released tags.
+
+Thanks
+
 >
->
->> -Regards
->> Devesh
->>
->> On Tue, Dec 5, 2017 at 12:43 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->>> The NFS/RDMA port assignment is specified in Section 9 of RFC 8267.
->>>
->>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>> ---
->>> include/uapi/linux/nfs.h |    1 +
->>> 1 file changed, 1 insertion(+)
->>>
->>> diff --git a/include/uapi/linux/nfs.h b/include/uapi/linux/nfs.h
->>> index 057d22a..946cb62 100644
->>> --- a/include/uapi/linux/nfs.h
->>> +++ b/include/uapi/linux/nfs.h
->>> @@ -12,6 +12,7 @@
->>>
->>> #define NFS_PROGRAM    100003
->>> #define NFS_PORT       2049
->>> +#define NFS_RDMA_PORT  20049
->>> #define NFS_MAXDATA    8192
->>> #define NFS_MAXPATHLEN 1024
->>> #define NFS_MAXNAMLEN  255
->
-> --
-> Chuck Lever
->
->
->
+> Nicolas
+
+--nzri8VXeXB/g5ayr
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlonry4ACgkQ5GN7iDZy
+WKfQGBAAwot5U00QysBpre7vNa6IulQ8LQWfXvhoso8lWtqxwJuCLDQK0Inp2mU2
+F1s+xPvX1Fip90qpGW5WlTORcFLslh/eR7MmYK8XHIbjn0b03D4pKw4ckA3enk69
+oTBgP1AuhaxUWKObeByh6mxVWjpIEYIDRcVDV3LzDQduT4gNfGZJSFz1CjuI4Yak
+SS4DNN48WoWJHVQuVnA70MA8Hj4+gqH/+DbNkZ/wtveBZbKRYV1JRoqz12vTBosj
+P/Euhju+AUA31A4atcN28Yfvc7gUoQ9d8YRoD2bYBs+r+8A1ujk0BqEz9s25Xs1G
+50qBX66Bw/dlpmxUmUeo29Af2kRTHRjfRgicZNtz09SfdHEHAiUOkKegHtcN3l8F
+jSqhnT+6VfNAQI3coHlwzOccJLV+pJ44YF+BMrvzZ1deSR7sO1u+doPX4WeYotqo
+KFYkpMuzJkhKod6K6tQOGP5A33l0h0+75SD8OE0pfSvTQB/lsCN0456FZBFUrYKv
+DwjQQJanjSp0DTpBTcPgVv/Y2P7SLAewMwG8WxQulwPJlKRzqLAJtXLwq1GgfXqk
+hhGY+tIVWq+TCk6El940MeSmoP0sSK2FOuRALCcDVvQAihxM+1f1f2w+0nLvjM2d
+945BW1IiLQ4uuhzryXgxlafgyrdOnPZt4Pe1BaQnT1+ECH+hSgM=
+=qaUa
+-----END PGP SIGNATURE-----
+
+--nzri8VXeXB/g5ayr--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
