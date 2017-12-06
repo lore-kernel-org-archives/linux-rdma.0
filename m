@@ -1,115 +1,83 @@
-From: Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Intel-wired-lan] [PATCH 1/1] timecounter: Make cyclecounter
- struct part of timecounter struct
-Date: Wed, 06 Dec 2017 08:24:56 -0800
-Message-ID: <1512577496.8693.0.camel@intel.com>
-References: <1512189095-28654-1-git-send-email-sagar.a.kamble@intel.com>
-Reply-To: jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH net] rds: Fix NULL pointer dereference in __rds_rdma_map
+Date: Wed, 6 Dec 2017 08:34:46 -0800
+Message-ID: <3b6cafb4-e65c-9c16-591e-6166be21f4ee@oracle.com>
+References: <20171206161828.8368-1-Haakon.Bugge@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-AYN6I3A77kR9u855MsqY"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1512189095-28654-1-git-send-email-sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagar Arun Kamble <sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171206161828.8368-1-Haakon.Bugge@oracle.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?Q?H=c3=a5kon_Bugge?= <Haakon.Bugge@oracle.com>, "David S . Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-AYN6I3A77kR9u855MsqY
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, 2017-12-02 at 10:01 +0530, Sagar Arun Kamble wrote:
-> There is no real need for the users of timecounters to define
-> cyclecounter
-> and timecounter variables separately. Since timecounter will always
-> be
-> based on cyclecounter, have cyclecounter struct as member of
-> timecounter
-> struct.
->=20
-> Suggested-by: Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>
-> Signed-off-by: Sagar Arun Kamble <sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>
-> Cc: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-> Cc: Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
-> Cc: kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org
-
-Acked-by: Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-For the changes to the Intel drivers.
-
+On 12/6/2017 8:18 AM, Håkon Bugge wrote:
+> This is a fix for syzkaller719569, where memory registration was
+> attempted without any underlying transport being loaded.
+> 
+> Analysis of the case reveals that it is the setsockopt() RDS_GET_MR
+> (2) and RDS_GET_MR_FOR_DEST (7) that are vulnerable.
+> 
+> Here is an example stack trace when the bug is hit:
+> 
+> BUG: unable to handle kernel NULL pointer dereference at 00000000000000c0
+> IP: __rds_rdma_map+0x36/0x440 [rds]
+> PGD 2f93d03067 P4D 2f93d03067 PUD 2f93d02067 PMD 0
+> Oops: 0000 [#1] SMP
+> Modules linked in: bridge stp llc tun rpcsec_gss_krb5 nfsv4
+> dns_resolver nfs fscache rds binfmt_misc sb_edac intel_powerclamp
+> coretemp kvm_intel kvm irqbypass crct10dif_pclmul c rc32_pclmul
+> ghash_clmulni_intel pcbc aesni_intel crypto_simd glue_helper cryptd
+> iTCO_wdt mei_me sg iTCO_vendor_support ipmi_si mei ipmi_devintf nfsd
+> shpchp pcspkr i2c_i801 ioatd ma ipmi_msghandler wmi lpc_ich mfd_core
+> auth_rpcgss nfs_acl lockd grace sunrpc ip_tables ext4 mbcache jbd2
+> mgag200 i2c_algo_bit drm_kms_helper ixgbe syscopyarea ahci sysfillrect
+> sysimgblt libahci mdio fb_sys_fops ttm ptp libata sd_mod mlx4_core drm
+> crc32c_intel pps_core megaraid_sas i2c_core dca dm_mirror
+> dm_region_hash dm_log dm_mod
+> CPU: 48 PID: 45787 Comm: repro_set2 Not tainted 4.14.2-3.el7uek.x86_64 #2
+> Hardware name: Oracle Corporation ORACLE SERVER X5-2L/ASM,MOBO TRAY,2U, BIOS 31110000 03/03/2017
+> task: ffff882f9190db00 task.stack: ffffc9002b994000
+> RIP: 0010:__rds_rdma_map+0x36/0x440 [rds]
+> RSP: 0018:ffffc9002b997df0 EFLAGS: 00010202
+> RAX: 0000000000000000 RBX: ffff882fa2182580 RCX: 0000000000000000
+> RDX: 0000000000000000 RSI: ffffc9002b997e40 RDI: ffff882fa2182580
+> RBP: ffffc9002b997e30 R08: 0000000000000000 R09: 0000000000000002
+> R10: ffff885fb29e3838 R11: 0000000000000000 R12: ffff882fa2182580
+> R13: ffff882fa2182580 R14: 0000000000000002 R15: 0000000020000ffc
+> FS:  00007fbffa20b700(0000) GS:ffff882fbfb80000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 00000000000000c0 CR3: 0000002f98a66006 CR4: 00000000001606e0
+> Call Trace:
+>   rds_get_mr+0x56/0x80 [rds]
+>   rds_setsockopt+0x172/0x340 [rds]
+>   ? __fget_light+0x25/0x60
+>   ? __fdget+0x13/0x20
+>   SyS_setsockopt+0x80/0xe0
+>   do_syscall_64+0x67/0x1b0
+>   entry_SYSCALL64_slow_path+0x25/0x25
+> RIP: 0033:0x7fbff9b117f9
+> RSP: 002b:00007fbffa20aed8 EFLAGS: 00000293 ORIG_RAX: 0000000000000036
+> RAX: ffffffffffffffda RBX: 00000000000c84a4 RCX: 00007fbff9b117f9
+> RDX: 0000000000000002 RSI: 0000400000000114 RDI: 000000000000109b
+> RBP: 00007fbffa20af10 R08: 0000000000000020 R09: 00007fbff9dd7860
+> R10: 0000000020000ffc R11: 0000000000000293 R12: 0000000000000000
+> R13: 00007fbffa20b9c0 R14: 00007fbffa20b700 R15: 0000000000000021
+> 
+> Code: 41 56 41 55 49 89 fd 41 54 53 48 83 ec 18 8b 87 f0 02 00 00 48
+> 89 55 d0 48 89 4d c8 85 c0 0f 84 2d 03 00 00 48 8b 87 00 03 00 00 <48>
+> 83 b8 c0 00 00 00 00 0f 84 25 03 00 0 0 48 8b 06 48 8b 56 08
+> 
+> The fix is to check the existence of an underlying transport in
+> __rds_rdma_map().
+> 
+> Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+> Reported-by: syzbot <syzkaller@googlegroups.com>
 > ---
->  arch/microblaze/kernel/timer.c                     | 20 ++++++------
->  drivers/clocksource/arm_arch_timer.c               | 19 ++++++------
->  drivers/net/ethernet/amd/xgbe/xgbe-dev.c           |  3 +-
->  drivers/net/ethernet/amd/xgbe/xgbe-ptp.c           |  9 +++---
->  drivers/net/ethernet/amd/xgbe/xgbe.h               |  1 -
->  drivers/net/ethernet/broadcom/bnx2x/bnx2x.h        |  1 -
->  drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c   | 20 ++++++------
->  drivers/net/ethernet/freescale/fec.h               |  1 -
->  drivers/net/ethernet/freescale/fec_ptp.c           | 30 +++++++++---
-> ------
->  drivers/net/ethernet/intel/e1000e/e1000.h          |  1 -
->  drivers/net/ethernet/intel/e1000e/netdev.c         | 27 ++++++++--
-> ------
->  drivers/net/ethernet/intel/e1000e/ptp.c            |  2 +-
->  drivers/net/ethernet/intel/igb/igb.h               |  1 -
->  drivers/net/ethernet/intel/igb/igb_ptp.c           | 25 ++++++++--
-> -----
->  drivers/net/ethernet/intel/ixgbe/ixgbe.h           |  1 -
->  drivers/net/ethernet/intel/ixgbe/ixgbe_ptp.c       | 17 +++++-----
->  drivers/net/ethernet/mellanox/mlx4/en_clock.c      | 28 ++++++++--
-> -------
->  drivers/net/ethernet/mellanox/mlx4/mlx4_en.h       |  1 -
->  .../net/ethernet/mellanox/mlx5/core/lib/clock.c    | 34 ++++++++++
-> ----------
->  drivers/net/ethernet/qlogic/qede/qede_ptp.c        | 20 ++++++------
->  drivers/net/ethernet/ti/cpts.c                     | 36
-> ++++++++++++----------
->  drivers/net/ethernet/ti/cpts.h                     |  1 -
->  include/linux/mlx5/driver.h                        |  1 -
->  include/linux/timecounter.h                        |  4 +--
->  include/sound/hdaudio.h                            |  1 -
->  kernel/time/timecounter.c                          | 28 ++++++++--
-> -------
->  sound/hda/hdac_stream.c                            |  7 +++--
->  virt/kvm/arm/arch_timer.c                          |  6 ++--
->  28 files changed, 163 insertions(+), 182 deletions(-)
---=-AYN6I3A77kR9u855MsqY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Thanks Haakon for testing and posting out the discussed change
+out.
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEiTyZWz+nnTrOJ1LZ5W/vlVpL7c4FAlooGdgACgkQ5W/vlVpL
-7c7J0Q/9HHk6upECLnqxfft9A4opsw2bj4joMDVrmj4+wvdSrNvrbzQAJPwEl3El
-fWwGBKNKmNyGjNa9dpEnactZ2xBtTLk9I9j1RvhdCS8JbQ8DYwxtlb9hAw6dk60z
-/gn5M+pcYi7is5wNvZqMA81Ocek0QSi8Egnz3TLh+voV5g5opi7u/VdlsiczBAUo
-fH+lqWPTSL4i19swopOjZdAYNKLqWMDeP40L8Zsbb5ZtNrib+8YAb82YuP1Tw+eQ
-6jbHZFp5iB+WBRHo8xZ3QzENh9XdHoTmcX3tAUPRcqy9dJozsmXdIEJiJk7qNjgz
-6XwtGJIle6jDXg9HOzkV8/2dv2v1J6CR0UAK0KsXQWhYKVBSN2Uj4gqxWuLczpcI
-mHJ7MKWU9QnvcQEcVfQwO1b2y+reSjGyz9ABz5J6VwnvT+8Pcn2oPAIsOuVvRuJs
-6tIRAinKealwOv8oRZ97zhoPTM+Sf4OC803GxHtwZ56jNRId6nSUbq2+qyJBwK1R
-a7QLLkNdDIN6nt2VP6yywd+HrYtBo9CtJgS+mVNm6QhsTC4/wHGNeMLnjZ5i0LEW
-J7gDCG78Wgrd6UoaZx6afq1S8rXvWBzFt9LEnHrcEezlMehbmYHdWajSWLZ6d7YD
-Bq+D+QpbdGhyKIWEfspq1unwyw8CNCPAzKvb6w+hEdebk0Ia9Fc=
-=rvB5
------END PGP SIGNATURE-----
-
---=-AYN6I3A77kR9u855MsqY--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
