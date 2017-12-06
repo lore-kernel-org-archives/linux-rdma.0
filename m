@@ -1,47 +1,96 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH rdma-core 0/8] Small verbs cleanups
-Date: Tue,  5 Dec 2017 16:17:13 -0700
-Message-ID: <20171205231721.19410-1-jgg@ziepe.ca>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 1/4] nfs: Define NFS_RDMA_PORT
+Date: Wed, 6 Dec 2017 09:52:26 -0500
+Message-ID: <D1CAA846-EF79-4A1B-9BFE-70EDA1B7BBF5@oracle.com>
+References: <20171204190904.18629.70341.stgit@manet.1015granger.net> <20171204191330.18629.77069.stgit@manet.1015granger.net> <CANjDDBg3qsn5oWzmTSi5e3eKJKkdEceh0GUTe+pFDAGCxkDqGg@mail.gmail.com> <06D33DF4-6BAC-411B-8A08-5098E52720C6@oracle.com> <CANjDDBiTSDfzvj6qLaeEf+-Jx=XA9W2rzA2wW_q45MfauwffPA@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CANjDDBiTSDfzvj6qLaeEf+-Jx=XA9W2rzA2wW_q45MfauwffPA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Small verbs changes that should have no binary impact. These are just little
-cleanups I've noticed lately.
+> On Dec 6, 2017, at 1:04 AM, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> =
+wrote:
+>=20
+> Oh! apologies if I was not clear what I wanted to say. I was thinking
+> this change will avoid the step to write the nfsrdma port number into
+> /proc/fs/nfsd/portlist file after starting the nfs server. This is
+> step is a part of configuring nfs-rdma server. However, for tcp such
+> entries are present by default in this file.
 
-This is a PR:
+Hi Devesh-
 
-https://github.com/linux-rdma/rdma-core/pull/270
+I don't have to do this manually on my server, but maybe that's
+because RHEL 7 system start-up scripts already handle it?
 
-Jason Gunthorpe (8):
-  verbs: Fix typo in copying IBV_FLOW_SPEC_UDP/TCP 'val'
-  verbs: Remove duplicate NULL test from flow ops
-  verbs: Get rid of verbs_context->has_comp_mask
-  verbs: Bitwise flag values should be unsigned
-  verbs: Remove bogus cq_fd
-  verbs: Fill in the libibverbs.map file
-  verbs: Remove dead _HAS_ defines for providers
-  verbs: Get rid of verbs_set_ctx_op
+Bring this up in a separate thread on linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+and we can work it out. To answer your original question: no,
+I don't believe this patch will change server start-up behavior.
 
- libibverbs/cmd.c                  |  2 +-
- libibverbs/device.c               |  3 ---
- libibverbs/driver.h               |  2 --
- libibverbs/libibverbs.map.in      | 56 ++++++++++++++++++++++++++++-----------
- libibverbs/man/ibv_query_device.3 |  2 +-
- libibverbs/verbs.h                | 36 ++++++++-----------------
- providers/mlx4/cq.c               |  2 +-
- providers/mlx4/mlx4.c             | 36 ++++++++++++-------------
- providers/mlx5/cq.c               |  2 +-
- providers/mlx5/mlx5.c             | 34 ++++++++++++------------
- providers/mlx5/mlx5.h             |  2 +-
- 11 files changed, 90 insertions(+), 87 deletions(-)
 
--- 
-2.15.1
+> -Regards
+> Devesh
+>=20
+> On Wed, Dec 6, 2017 at 12:19 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> =
+wrote:
+>>=20
+>>> On Dec 5, 2017, at 10:09 AM, Devesh Sharma =
+<devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+>>>=20
+>>> Hi Chuck,
+>>>=20
+>>> Will this change avoid the "echo rdma 20049" on the nfs server =
+during
+>>> nfs server start?
+>>=20
+>> I'm not familiar with this issue. Is there a bug report ?
+>>=20
+>>=20
+>>> -Regards
+>>> Devesh
+>>>=20
+>>> On Tue, Dec 5, 2017 at 12:43 AM, Chuck Lever =
+<chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+>>>> The NFS/RDMA port assignment is specified in Section 9 of RFC 8267.
+>>>>=20
+>>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>>> ---
+>>>> include/uapi/linux/nfs.h |    1 +
+>>>> 1 file changed, 1 insertion(+)
+>>>>=20
+>>>> diff --git a/include/uapi/linux/nfs.h b/include/uapi/linux/nfs.h
+>>>> index 057d22a..946cb62 100644
+>>>> --- a/include/uapi/linux/nfs.h
+>>>> +++ b/include/uapi/linux/nfs.h
+>>>> @@ -12,6 +12,7 @@
+>>>>=20
+>>>> #define NFS_PROGRAM    100003
+>>>> #define NFS_PORT       2049
+>>>> +#define NFS_RDMA_PORT  20049
+>>>> #define NFS_MAXDATA    8192
+>>>> #define NFS_MAXPATHLEN 1024
+>>>> #define NFS_MAXNAMLEN  255
+>>=20
+>> --
+>> Chuck Lever
+>>=20
+>>=20
+>>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" =
+in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+Chuck Lever
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
