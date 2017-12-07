@@ -1,89 +1,63 @@
 From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
 Subject: Re: [PATCH] rdma-core: Add missing systemd-devel dependency to the
  SUSE rdma-core.spec
-Date: Thu, 7 Dec 2017 10:57:08 +0100
-Message-ID: <c12fd49f-5dd3-1e33-d3ee-2b865527c8d6@suse.de>
+Date: Thu, 7 Dec 2017 11:16:20 +0100
+Message-ID: <d47ea839-09dd-df5c-871d-43162f4b18aa@suse.de>
 References: <20171205234005.10904-1-tatyana.e.nikolova@intel.com>
  <024a3b6a-2f04-36ee-5d4f-51f9e8cb719e@suse.de>
  <20171206171349.GF29197@mellanox.com>
+ <c6d617e2-a531-b159-c67a-ddd9179ff424@suse.de>
+ <20171206172731.GA3564@mellanox.com>
+ <13AA599688F47243B14FCFCCC2C803BB3C65CD63@fmsmsx104.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171206171349.GF29197-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <13AA599688F47243B14FCFCCC2C803BB3C65CD63-96pTJSsuoYQ64kNsxIetb7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-Le 06/12/2017 à 18:13, Jason Gunthorpe a écrit :
-> On Wed, Dec 06, 2017 at 09:00:50AM +0100, Nicolas Morey-Chaisemartin wrote:
->>
->> Le 06/12/2017 à 00:40, Tatyana Nikolova a écrit :
->>> Without systemd-devel, all rdma-core daemons are using shim version of
->>> systemd include file (in-turn, shim version of systemd functions)
->>> causing them to not communicate with systemd.
->>>
->>> Add the missing required systemd-devel package to SUSE's rdma-core.spec
->>> so the correct header file is used and correct functions are linked
->>> with the daemons.
->>>
->>> Fixes: 8854eefa60b5 ("suse: Add spec file for SUSE")
->>> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>>  suse/rdma-core.spec | 1 +
->>>  1 file changed, 1 insertion(+)
->>>
->>> diff --git a/suse/rdma-core.spec b/suse/rdma-core.spec
->>> index 0eba0507..912a77c5 100644
->>> +++ b/suse/rdma-core.spec
->>> @@ -57,6 +57,7 @@ BuildRequires:  pkgconfig
->>>  BuildRequires:  pkgconfig(libsystemd)
->>>  BuildRequires:  pkgconfig(libudev)
->>>  BuildRequires:  pkgconfig(systemd)
->>> +BuildRequires:  pkgconfig(systemd-devel)
->>>  BuildRequires:  pkgconfig(udev)
->>>  BuildRequires:  python3-base
->>>  %ifnarch s390 s390x
->> You should not need that.
->> This is what this line is for:
->>
->>  BuildRequires:  pkgconfig(systemd)
-> I actually think pkgconfig(systemd) is a mistake in the spec file..
+Le 06/12/2017 à 23:06, Nikolova, Tatyana E a écrit :
 >
-> This brings in the libraries:
 >
->   BuildRequires:  pkgconfig(libsystemd)
+> The patch was prompted when the rdma-core daemons were unable to start on a SLES12SP2 system, because the shim version of the systemd functions were used instead. Unfortunately I don't have the details on how rdma-core was installed on this system.
+
+If you don't mind me asking, why are you trying to do this on SLE12SP2 ?
+SP2 is using now ancient libraries from OFEd (pre rdma-core).
+Even it compiled right for SP2, I have very strong doubt about the system being fully working unless you recompile all IB related RPMs...
+
+I strongly advise doing this from a SLE12SP3 which uses rdma-core v14.
 >
-> This is does something else and isn't needed, AFAIK:
+> Checking the current SUSE spec file on the same system (without systemd-devel installed), it indeed detects a missing dependency:
+> "error: Failed build dependencies: pkgconfig(libsystemd) is needed by rdma-core-15-0.x86_64"
 >
->   BuildRequires:  pkgconfig(systemd)
-
-I just checked:
-This pulls in systemd (or systemd-mini)
-
-And pkgconfig(udev) pulls udev or udev-mini.
-So they are not compulsory build requirements (as we require the -devel they should be installed by dependency) but they don't hurt.
-
+> However libsystemd packages (libsystemd0-228-117.12.x86_64 and libsystemd0-32bit-228-117.12.x86_64) are installed on this system, but systemd-devel is necessary to install the required headers, for example "sd-daemon.h" needed by the daemons. 
 >
-> Probably something like
->
-> BuildRequires:  pkgconfig(libsystemd) | (pkgconfig(libsystemd-journal), pkgconfig(libsystemd-id128), pkgconfig(libsystemd-daemon))
+> Maybe it would be better to replace pkgconfig(libsystemd) with pkgconfig(systemd-devel) in the spec file, since systemd-devel requires libsystemd?
 
 
-On a recent systemd, systemd-devel provides all those (probably for compat reason during migration):
-$ rpm -q --provides systemd-devel
-pkgconfig(libsystemd) = 228
-pkgconfig(libsystemd-daemon) = 228
-pkgconfig(libsystemd-id128) = 228
-pkgconfig(libsystemd-journal) = 228
-pkgconfig(libsystemd-login) = 228
+Coud you try with this instead of your patch:
+diff --git a/suse/rdma-core.spec b/suse/rdma-core.spec
+index 5be0e1e8..fa41b724 100644
+--- a/suse/rdma-core.spec
++++ b/suse/rdma-core.spec
+@@ -54,7 +54,8 @@ BuildRequires:  binutils
+ BuildRequires:  cmake >= 2.8.11
+ BuildRequires:  gcc
+ BuildRequires:  pkgconfig
+-BuildRequires:  pkgconfig(libsystemd)
++BuildRequires:  pkgconfig(libsystemd-daemon)
++BuildRequires:  pkgconfig(libsystemd-journal)
+ BuildRequires:  pkgconfig(libudev)
+ BuildRequires:  pkgconfig(systemd)
+ BuildRequires:  pkgconfig(udev)
 
-
-So I can porobably safely changes the BuildRequires to the libsystemd-XXXX.
-If I'm not mistaken, we just need the -daemon and -journal ones.
+Nicolas
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
