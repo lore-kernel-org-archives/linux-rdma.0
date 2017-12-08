@@ -1,39 +1,90 @@
-From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-rc 0/6] vmw_pvrdma fixes for 4.15
-Date: Fri, 8 Dec 2017 10:58:23 -0800
-Message-ID: <20171208185818.GA28514@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] register_to_trap(): Increase number of iterations from 3
+ to 5
+Date: Fri, 8 Dec 2017 13:59:19 -0500
+Message-ID: <4ef83e46-7adf-d667-dabb-d075a9fc8f04@dev.mellanox.co.il>
+References: <20171208172237.312-1-bart.vanassche@wdc.com>
+ <c92fa8ad-7d15-29fa-4c09-b7593e7160cf@dev.mellanox.co.il>
+ <e06c1dc0-509e-3fc0-4b0d-49d695a1421e@dev.mellanox.co.il>
+ <1512758149.26126.3.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1512758149.26126.3.camel-Sjgp3cTcYWE@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org" <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Do some cleanup and fixes related to the comments received during SRQ
-support upstreaming that applied to existing code. Also add in two
-missed macros used by the userlevel library for SRQs, a missed
-ib_umem_release, and an incorrect usage of the new refcount_t type.
+On 12/8/2017 1:35 PM, Bart Van Assche wrote:
+> On Fri, 2017-12-08 at 13:17 -0500, Hal Rosenstock wrote:
+>> Given what Nicolas wrote, maybe this should be split into 2 patches with
+>> first being refactoring but not changing counter and leave the counter
+>> increase for Nicolas.
+> 
+> Hello Hal,
+> 
+> How about the patch below?
+> 
+> Thanks,
+> 
+> Bart.
+> 
+> 
+> [PATCH for rdma-core] register_to_trap(): Specify number of iterations once
+> 
+> Rearrange the loop in register_to_trap() and also the if-statement
+> after that loop such that the number of iterations only occurs once.
+> 
+> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+> Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> Cc: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+> ---
+>  srp_daemon/srp_handle_traps.c | 11 +++++------
+>  1 file changed, 5 insertions(+), 6 deletions(-)
+> 
+> diff --git a/srp_daemon/srp_handle_traps.c b/srp_daemon/srp_handle_traps.c
+> index 6d94634ef6df..6b36b15cc84c 100644
+> --- a/srp_daemon/srp_handle_traps.c
+> +++ b/srp_daemon/srp_handle_traps.c
+> @@ -550,8 +550,8 @@ static int register_to_trap(struct sync_resources *sync_res,
+>  	struct ibv_sge sg;
+>  	struct ibv_send_wr *_bad_wr = NULL;
+>  	struct ibv_send_wr **bad_wr = &_bad_wr;
+> -	int counter = 0;
+> -	int rc = 0;
+> +	int counter;
+> +	int rc;
+>  	int ret;
+>  	long long unsigned comp_mask = 0;
+>  
+> @@ -609,7 +609,7 @@ static int register_to_trap(struct sync_resources *sync_res,
+>  	p_sa_mad->comp_mask = htobe64(comp_mask);
+>  	pr_debug("comp_mask: %llx\n", comp_mask);
+>  
+> -	do {
+> +	for (counter = 3, rc = 0; counter > 0 && rc == 0; counter--) {
+>  		pthread_mutex_lock(res->mad_buffer_mutex);
+>  		res->mad_buffer->mad_hdr.base_version = 0; // flag that the buffer is empty
+>  		pthread_mutex_unlock(res->mad_buffer_mutex);
+> @@ -640,10 +640,9 @@ static int register_to_trap(struct sync_resources *sync_res,
+>  			}
+>  			pthread_mutex_unlock(res->mad_buffer_mutex);
+>  		} while (rc == 2); // while old response.
+> +	}
+>  
+> -	} while (rc == 0 && ++counter < 3);
+> -
+> -	if (counter==3) {
+> +	if (counter == 0) {
+>  		pr_err("No response to inform info registration\n");
+>  		return -EAGAIN;
+>  	}
+> 
 
-Bryan Tan (6):
-  RDMA/vmw_pvrdma: Clarify QP is_kernel logic
-  RDMA/vmw_pvrdma: Call ib_umem_release on destroy QP path
-  RDMA/vmw_pvrdma: Use more specific sizeof in kcalloc
-  RDMA/vmw_pvrdma: Use refcount_dec_and_test to avoid warning
-  RDMA/vmw_pvrdma: Use refcount_t instead of atomic_t
-  RDMA/vmw_pvrdma: Add UAR SRQ macros in ABI header file
-
- drivers/infiniband/hw/vmw_pvrdma/pvrdma.h      |  4 ++--
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c   |  6 +++---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 19 ++++++++-----------
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c   | 20 +++++++++++++-------
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c  |  4 ++--
- include/uapi/rdma/vmw_pvrdma-abi.h             |  2 ++
- 6 files changed, 30 insertions(+), 25 deletions(-)
-
--- 
-1.8.5.6
-
+Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
