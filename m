@@ -1,50 +1,40 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH TRIVIAL rdma-core] srp_daemon.c: Cosmetic change to some error
- messages
-Date: Fri, 8 Dec 2017 14:27:10 -0500
-Message-ID: <e2975299-b1e8-25a3-c263-6a4cac991bc6@dev.mellanox.co.il>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH TRIVIAL rdma-core] srp_daemon.c: Cosmetic change to some
+ error messages
+Date: Fri, 8 Dec 2017 19:32:57 +0000
+Message-ID: <1512761576.26126.4.camel@wdc.com>
+References: <e2975299-b1e8-25a3-c263-6a4cac991bc6@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <e2975299-b1e8-25a3-c263-6a4cac991bc6-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
+Content-ID: <3995B115362E274DAC999414C01788E9-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-Change opensm to SM
-
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- srp_daemon/srp_daemon.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
-index 2465ccd..cec36db 100644
---- a/srp_daemon/srp_daemon.c
-+++ b/srp_daemon/srp_daemon.c
-@@ -2212,7 +2212,7 @@ catas_start:
- 			if (res->ud_res->ah) {
- 				if (register_to_traps(res, 1))
- 					pr_err("Fail to register to traps, maybe there "
--					       "is no opensm running on fabric or IB port is down\n");
-+					       "is no SM running on fabric or IB port is down\n");
- 				else
- 					subscribed = 1;
- 			}
-@@ -2346,7 +2346,7 @@ static int recalc(struct resources *res)
- 
- 	umad_res->sm_lid = strtol(val, NULL, 0);
- 	if (umad_res->sm_lid == 0) {
--		pr_err("SM LID is 0, maybe no opensm is running\n");
-+		pr_err("SM LID is 0, maybe no SM is running\n");
- 		return -1;
- 	}
- 
--- 
-2.8.4
-
+T24gRnJpLCAyMDE3LTEyLTA4IGF0IDE0OjI3IC0wNTAwLCBIYWwgUm9zZW5zdG9jayB3cm90ZToN
+Cj4gQ2hhbmdlIG9wZW5zbSB0byBTTQ0KPiANCj4gU2lnbmVkLW9mZi1ieTogSGFsIFJvc2Vuc3Rv
+Y2sgPGhhbEBtZWxsYW5veC5jb20+DQo+IC0tLQ0KPiAgc3JwX2RhZW1vbi9zcnBfZGFlbW9uLmMg
+fCA0ICsrLS0NCj4gIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25z
+KC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvc3JwX2RhZW1vbi9zcnBfZGFlbW9uLmMgYi9zcnBfZGFl
+bW9uL3NycF9kYWVtb24uYw0KPiBpbmRleCAyNDY1Y2NkLi5jZWMzNmRiIDEwMDY0NA0KPiAtLS0g
+YS9zcnBfZGFlbW9uL3NycF9kYWVtb24uYw0KPiArKysgYi9zcnBfZGFlbW9uL3NycF9kYWVtb24u
+Yw0KPiBAQCAtMjIxMiw3ICsyMjEyLDcgQEAgY2F0YXNfc3RhcnQ6DQo+ICAJCQlpZiAocmVzLT51
+ZF9yZXMtPmFoKSB7DQo+ICAJCQkJaWYgKHJlZ2lzdGVyX3RvX3RyYXBzKHJlcywgMSkpDQo+ICAJ
+CQkJCXByX2VycigiRmFpbCB0byByZWdpc3RlciB0byB0cmFwcywgbWF5YmUgdGhlcmUgIg0KPiAt
+CQkJCQkgICAgICAgImlzIG5vIG9wZW5zbSBydW5uaW5nIG9uIGZhYnJpYyBvciBJQiBwb3J0IGlz
+IGRvd25cbiIpOw0KPiArCQkJCQkgICAgICAgImlzIG5vIFNNIHJ1bm5pbmcgb24gZmFicmljIG9y
+IElCIHBvcnQgaXMgZG93blxuIik7DQo+ICAJCQkJZWxzZQ0KPiAgCQkJCQlzdWJzY3JpYmVkID0g
+MTsNCj4gIAkJCX0NCj4gQEAgLTIzNDYsNyArMjM0Niw3IEBAIHN0YXRpYyBpbnQgcmVjYWxjKHN0
+cnVjdCByZXNvdXJjZXMgKnJlcykNCj4gIA0KPiAgCXVtYWRfcmVzLT5zbV9saWQgPSBzdHJ0b2wo
+dmFsLCBOVUxMLCAwKTsNCj4gIAlpZiAodW1hZF9yZXMtPnNtX2xpZCA9PSAwKSB7DQo+IC0JCXBy
+X2VycigiU00gTElEIGlzIDAsIG1heWJlIG5vIG9wZW5zbSBpcyBydW5uaW5nXG4iKTsNCj4gKwkJ
+cHJfZXJyKCJTTSBMSUQgaXMgMCwgbWF5YmUgbm8gU00gaXMgcnVubmluZ1xuIik7DQo+ICAJCXJl
+dHVybiAtMTsNCj4gIAl9DQoNClJldmlld2VkLWJ5OiBCYXJ0IFZhbiBBc3NjaGUgPGJhcnQudmFu
+YXNzY2hlQHdkYy5jb20+DQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
