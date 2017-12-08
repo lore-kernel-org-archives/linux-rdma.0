@@ -1,45 +1,49 @@
-From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-rc 6/6] RDMA/vmw_pvrdma: Add UAR SRQ macros in ABI header
- file
-Date: Fri, 8 Dec 2017 11:03:26 -0800
-Message-ID: <20171208190317.GA3636@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
-References: <20171208185818.GA28514@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH TRIVIAL rdma-core] srp_daemon.c: Cosmetic change to some error
+ messages
+Date: Fri, 8 Dec 2017 14:27:10 -0500
+Message-ID: <e2975299-b1e8-25a3-c263-6a4cac991bc6@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171208185818.GA28514-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add the two UAR SRQ macros that are required by the userlevel
-library.
 
-Fixes: 8b10ba783c9d ("RDMA/vmw_pvrdma: Add shared receive queue support")
-Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Change opensm to SM
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/uapi/rdma/vmw_pvrdma-abi.h | 2 ++
- 1 file changed, 2 insertions(+)
+ srp_daemon/srp_daemon.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/rdma/vmw_pvrdma-abi.h b/include/uapi/rdma/vmw_pvrdma-abi.h
-index aaa352f..4007cac 100644
---- a/include/uapi/rdma/vmw_pvrdma-abi.h
-+++ b/include/uapi/rdma/vmw_pvrdma-abi.h
-@@ -58,6 +58,8 @@
- #define PVRDMA_UAR_CQ_ARM_SOL		BIT(29)		/* Arm solicited bit. */
- #define PVRDMA_UAR_CQ_ARM		BIT(30)		/* Arm bit. */
- #define PVRDMA_UAR_CQ_POLL		BIT(31)		/* Poll bit. */
-+#define PVRDMA_UAR_SRQ_OFFSET		8		/* SRQ doorbell. */
-+#define PVRDMA_UAR_SRQ_RECV		BIT(30)		/* Recv bit. */
+diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
+index 2465ccd..cec36db 100644
+--- a/srp_daemon/srp_daemon.c
++++ b/srp_daemon/srp_daemon.c
+@@ -2212,7 +2212,7 @@ catas_start:
+ 			if (res->ud_res->ah) {
+ 				if (register_to_traps(res, 1))
+ 					pr_err("Fail to register to traps, maybe there "
+-					       "is no opensm running on fabric or IB port is down\n");
++					       "is no SM running on fabric or IB port is down\n");
+ 				else
+ 					subscribed = 1;
+ 			}
+@@ -2346,7 +2346,7 @@ static int recalc(struct resources *res)
  
- enum pvrdma_wr_opcode {
- 	PVRDMA_WR_RDMA_WRITE,
+ 	umad_res->sm_lid = strtol(val, NULL, 0);
+ 	if (umad_res->sm_lid == 0) {
+-		pr_err("SM LID is 0, maybe no opensm is running\n");
++		pr_err("SM LID is 0, maybe no SM is running\n");
+ 		return -1;
+ 	}
+ 
 -- 
-1.8.5.6
+2.8.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
