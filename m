@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 net-next 7/8] net: hns3: Change PF to add ring-vect binding & resetQ to mailbox
-Date: Fri, 8 Dec 2017 21:17:01 +0000
-Message-ID: <20171208211702.20104-8-salil.mehta@huawei.com>
+Subject: [PATCH V2 net-next 5/8] net: hns3: Unified HNS3 {VF|PF} Ethernet Driver for hip08 SoC
+Date: Fri, 8 Dec 2017 21:16:59 +0000
+Message-ID: <20171208211702.20104-6-salil.mehta@huawei.com>
 References: <20171208211702.20104-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,403 +12,203 @@ To: davem@davemloft.net
 Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-This patch is required to support ring-vector binding and reset
-of TQPs requested by the VF driver to the PF driver. Mailbox
-handler is added with corresponding VF commands/messages to
-handle the request.
+Most of the NAPI handling interface, skb buffer management,
+management of the RX/TX descriptors, ethool interface etc.
+has quite a bit of code which is common to VF and PF driver.
+
+This patch makes the exisitng PF's HNS3 ENET driver as the
+common ENET driver for both Virtual & Physical Function. This
+will help in reduction of redundancy and better management of
+code.
 
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 Signed-off-by: lipeng <lipeng321@huawei.com>
 ---
-Patch V2: Addressed some internal comments
-Patch V1: Initial Submit
----
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 138 +++++++--------------
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |   7 +-
- .../net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c | 106 ++++++++++++++++
- 3 files changed, 159 insertions(+), 92 deletions(-)
+ drivers/net/ethernet/hisilicon/hns3/Makefile       |  6 +++++-
+ drivers/net/ethernet/hisilicon/hns3/hnae3.c        | 14 ++++++++++++--
+ drivers/net/ethernet/hisilicon/hns3/hnae3.h        |  7 ++++---
+ .../hisilicon/hns3/{hns3pf => }/hns3_dcbnl.c       |  2 +-
+ .../hisilicon/hns3/{hns3pf => }/hns3_enet.c        |  2 ++
+ .../hisilicon/hns3/{hns3pf => }/hns3_enet.h        |  0
+ .../hisilicon/hns3/{hns3pf => }/hns3_ethtool.c     | 22 +++++++++++++++++++++-
+ .../net/ethernet/hisilicon/hns3/hns3pf/Makefile    |  5 -----
+ .../ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c  |  1 +
+ 9 files changed, 46 insertions(+), 13 deletions(-)
+ rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_dcbnl.c (97%)
+ rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_enet.c (99%)
+ rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_enet.h (100%)
+ rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_ethtool.c (97%)
 
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-index 980fcdf..3b1fc49 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-@@ -3256,49 +3256,48 @@ int hclge_rss_init_hw(struct hclge_dev *hdev)
- 	return ret;
- }
- 
--int hclge_map_vport_ring_to_vector(struct hclge_vport *vport, int vector_id,
--				   struct hnae3_ring_chain_node *ring_chain)
-+int hclge_bind_ring_with_vector(struct hclge_vport *vport,
-+				int vector_id, bool en,
-+				struct hnae3_ring_chain_node *ring_chain)
- {
- 	struct hclge_dev *hdev = vport->back;
--	struct hclge_ctrl_vector_chain_cmd *req;
- 	struct hnae3_ring_chain_node *node;
- 	struct hclge_desc desc;
--	int ret;
-+	struct hclge_ctrl_vector_chain_cmd *req
-+		= (struct hclge_ctrl_vector_chain_cmd *)desc.data;
-+	enum hclge_cmd_status status;
-+	enum hclge_opcode_type op;
-+	u16 tqp_type_and_id;
- 	int i;
- 
--	hclge_cmd_setup_basic_desc(&desc, HCLGE_OPC_ADD_RING_TO_VECTOR, false);
+diff --git a/drivers/net/ethernet/hisilicon/hns3/Makefile b/drivers/net/ethernet/hisilicon/hns3/Makefile
+index 244664b..48af9b1 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/Makefile
++++ b/drivers/net/ethernet/hisilicon/hns3/Makefile
+@@ -1,8 +1,12 @@
+ #
+ # Makefile for the HISILICON network device drivers.
+ #
 -
--	req = (struct hclge_ctrl_vector_chain_cmd *)desc.data;
-+	op = en ? HCLGE_OPC_ADD_RING_TO_VECTOR : HCLGE_OPC_DEL_RING_TO_VECTOR;
-+	hclge_cmd_setup_basic_desc(&desc, op, false);
- 	req->int_vector_id = vector_id;
+ obj-$(CONFIG_HNS3) += hns3pf/
+ obj-$(CONFIG_HNS3) += hns3vf/
  
- 	i = 0;
- 	for (node = ring_chain; node; node = node->next) {
--		u16 type_and_id = 0;
--
--		hnae_set_field(type_and_id, HCLGE_INT_TYPE_M, HCLGE_INT_TYPE_S,
-+		tqp_type_and_id = le16_to_cpu(req->tqp_type_and_id[i]);
-+		hnae_set_field(tqp_type_and_id,  HCLGE_INT_TYPE_M,
-+			       HCLGE_INT_TYPE_S,
- 			       hnae_get_bit(node->flag, HNAE3_RING_TYPE_B));
--		hnae_set_field(type_and_id, HCLGE_TQP_ID_M, HCLGE_TQP_ID_S,
--			       node->tqp_index);
--		hnae_set_field(type_and_id, HCLGE_INT_GL_IDX_M,
--			       HCLGE_INT_GL_IDX_S,
--			       hnae_get_bit(node->flag, HNAE3_RING_TYPE_B));
--		req->tqp_type_and_id[i] = cpu_to_le16(type_and_id);
--		req->vfid = vport->vport_id;
--
-+		hnae_set_field(tqp_type_and_id, HCLGE_TQP_ID_M,
-+			       HCLGE_TQP_ID_S, node->tqp_index);
-+		req->tqp_type_and_id[i] = cpu_to_le16(tqp_type_and_id);
- 		if (++i >= HCLGE_VECTOR_ELEMENTS_PER_CMD) {
- 			req->int_cause_num = HCLGE_VECTOR_ELEMENTS_PER_CMD;
-+			req->vfid = vport->vport_id;
+ obj-$(CONFIG_HNS3) += hnae3.o
++
++obj-$(CONFIG_HNS3_ENET) += hns3.o
++hns3-objs = hns3_enet.o hns3_ethtool.o
++
++hns3-$(CONFIG_HNS3_DCB) += hns3_dcbnl.o
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hnae3.c b/drivers/net/ethernet/hisilicon/hns3/hnae3.c
+index 5bcb223..02145f2 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hnae3.c
++++ b/drivers/net/ethernet/hisilicon/hns3/hnae3.c
+@@ -196,9 +196,18 @@ int hnae3_register_ae_dev(struct hnae3_ae_dev *ae_dev)
+ 	const struct pci_device_id *id;
+ 	struct hnae3_ae_algo *ae_algo;
+ 	struct hnae3_client *client;
+-	int ret = 0;
++	int ret = 0, lock_acquired;
++
++	/* we can get deadlocked if SRIOV is being enabled in context to probe
++	 * and probe gets called again in same context. This can happen when
++	 * pci_enable_sriov() is called to create VFs from PF probes context.
++	 * Therefore, for simplicity uniformly defering further probing in all
++	 * cases where we detect contention.
++	 */
++	lock_acquired = mutex_trylock(&hnae3_common_lock);
++	if (!lock_acquired)
++		return -EPROBE_DEFER;
  
--			ret = hclge_cmd_send(&hdev->hw, &desc, 1);
--			if (ret) {
-+			status = hclge_cmd_send(&hdev->hw, &desc, 1);
-+			if (status) {
- 				dev_err(&hdev->pdev->dev,
- 					"Map TQP fail, status is %d.\n",
--					ret);
--				return ret;
-+					status);
-+				return -EIO;
- 			}
- 			i = 0;
+-	mutex_lock(&hnae3_common_lock);
+ 	list_add_tail(&ae_dev->node, &hnae3_ae_dev_list);
  
- 			hclge_cmd_setup_basic_desc(&desc,
--						   HCLGE_OPC_ADD_RING_TO_VECTOR,
-+						   op,
- 						   false);
- 			req->int_vector_id = vector_id;
+ 	/* Check if there are matched ae_algo */
+@@ -211,6 +220,7 @@ int hnae3_register_ae_dev(struct hnae3_ae_dev *ae_dev)
+ 
+ 		if (!ae_dev->ops) {
+ 			dev_err(&ae_dev->pdev->dev, "ae_dev ops are null\n");
++			ret = -EOPNOTSUPP;
+ 			goto out_err;
  		}
-@@ -3306,21 +3305,21 @@ int hclge_map_vport_ring_to_vector(struct hclge_vport *vport, int vector_id,
  
- 	if (i > 0) {
- 		req->int_cause_num = i;
--
--		ret = hclge_cmd_send(&hdev->hw, &desc, 1);
--		if (ret) {
-+		req->vfid = vport->vport_id;
-+		status = hclge_cmd_send(&hdev->hw, &desc, 1);
-+		if (status) {
- 			dev_err(&hdev->pdev->dev,
--				"Map TQP fail, status is %d.\n", ret);
--			return ret;
-+				"Map TQP fail, status is %d.\n", status);
-+			return -EIO;
- 		}
- 	}
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hnae3.h b/drivers/net/ethernet/hisilicon/hns3/hnae3.h
+index 67c59e1..a9e2b32 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hnae3.h
++++ b/drivers/net/ethernet/hisilicon/hns3/hnae3.h
+@@ -452,9 +452,10 @@ struct hnae3_unic_private_info {
+ 	struct hnae3_queue **tqp;  /* array base of all TQPs of this instance */
+ };
  
- 	return 0;
+-#define HNAE3_SUPPORT_MAC_LOOPBACK    1
+-#define HNAE3_SUPPORT_PHY_LOOPBACK    2
+-#define HNAE3_SUPPORT_SERDES_LOOPBACK 4
++#define HNAE3_SUPPORT_MAC_LOOPBACK    BIT(0)
++#define HNAE3_SUPPORT_PHY_LOOPBACK    BIT(1)
++#define HNAE3_SUPPORT_SERDES_LOOPBACK BIT(2)
++#define HNAE3_SUPPORT_VF	      BIT(3)
+ 
+ struct hnae3_handle {
+ 	struct hnae3_client *client;
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_dcbnl.c b/drivers/net/ethernet/hisilicon/hns3/hns3_dcbnl.c
+similarity index 97%
+rename from drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_dcbnl.c
+rename to drivers/net/ethernet/hisilicon/hns3/hns3_dcbnl.c
+index 925619a..eb82700 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_dcbnl.c
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3_dcbnl.c
+@@ -93,7 +93,7 @@ void hns3_dcbnl_setup(struct hnae3_handle *handle)
+ {
+ 	struct net_device *dev = handle->kinfo.netdev;
+ 
+-	if (!handle->kinfo.dcb_ops)
++	if ((!handle->kinfo.dcb_ops) || (handle->flags & HNAE3_SUPPORT_VF))
+ 		return;
+ 
+ 	dev->dcbnl_ops = &hns3_dcbnl_ops;
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
+similarity index 99%
+rename from drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
+rename to drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
+index 5941509..c2c1323 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
+@@ -52,6 +52,8 @@ static const struct pci_device_id hns3_pci_tbl[] = {
+ 	 HNAE3_DEV_SUPPORT_ROCE_DCB_BITS},
+ 	{PCI_VDEVICE(HUAWEI, HNAE3_DEV_ID_100G_RDMA_MACSEC),
+ 	 HNAE3_DEV_SUPPORT_ROCE_DCB_BITS},
++	{PCI_VDEVICE(HUAWEI, HNAE3_DEV_ID_100G_VF), 0},
++	{PCI_VDEVICE(HUAWEI, HNAE3_DEV_ID_100G_RDMA_DCB_PFC_VF), 0},
+ 	/* required last entry */
+ 	{0, }
+ };
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
+similarity index 100%
+rename from drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
+rename to drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c b/drivers/net/ethernet/hisilicon/hns3/hns3_ethtool.c
+similarity index 97%
+rename from drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c
+rename to drivers/net/ethernet/hisilicon/hns3/hns3_ethtool.c
+index a21470c..65a69b4 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3_ethtool.c
+@@ -849,6 +849,21 @@ static int hns3_nway_reset(struct net_device *netdev)
+ 	return genphy_restart_aneg(phy);
  }
  
--static int hclge_map_handle_ring_to_vector(
--		struct hnae3_handle *handle, int vector,
--		struct hnae3_ring_chain_node *ring_chain)
-+static int hclge_map_ring_to_vector(struct hnae3_handle *handle,
-+				    int vector,
-+				    struct hnae3_ring_chain_node *ring_chain)
- {
- 	struct hclge_vport *vport = hclge_get_vport(handle);
- 	struct hclge_dev *hdev = vport->back;
-@@ -3329,24 +3328,20 @@ static int hclge_map_handle_ring_to_vector(
- 	vector_id = hclge_get_vector_index(hdev, vector);
- 	if (vector_id < 0) {
- 		dev_err(&hdev->pdev->dev,
--			"Get vector index fail. ret =%d\n", vector_id);
-+			"Get vector index fail. vector_id =%d\n", vector_id);
- 		return vector_id;
- 	}
++static const struct ethtool_ops hns3vf_ethtool_ops = {
++	.get_drvinfo = hns3_get_drvinfo,
++	.get_ringparam = hns3_get_ringparam,
++	.set_ringparam = hns3_set_ringparam,
++	.get_strings = hns3_get_strings,
++	.get_ethtool_stats = hns3_get_stats,
++	.get_sset_count = hns3_get_sset_count,
++	.get_rxnfc = hns3_get_rxnfc,
++	.get_rxfh_key_size = hns3_get_rss_key_size,
++	.get_rxfh_indir_size = hns3_get_rss_indir_size,
++	.get_rxfh = hns3_get_rss,
++	.set_rxfh = hns3_set_rss,
++	.get_link_ksettings = hns3_get_link_ksettings,
++};
++
+ static const struct ethtool_ops hns3_ethtool_ops = {
+ 	.self_test = hns3_self_test,
+ 	.get_drvinfo = hns3_get_drvinfo,
+@@ -872,5 +887,10 @@ static const struct ethtool_ops hns3_ethtool_ops = {
  
--	return hclge_map_vport_ring_to_vector(vport, vector_id, ring_chain);
-+	return hclge_bind_ring_with_vector(vport, vector_id, true, ring_chain);
+ void hns3_ethtool_set_ops(struct net_device *netdev)
+ {
+-	netdev->ethtool_ops = &hns3_ethtool_ops;
++	struct hnae3_handle *h = hns3_get_handle(netdev);
++
++	if (h->flags & HNAE3_SUPPORT_VF)
++		netdev->ethtool_ops = &hns3vf_ethtool_ops;
++	else
++		netdev->ethtool_ops = &hns3_ethtool_ops;
  }
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
+index d2b20d0..d077fa0 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
+@@ -8,8 +8,3 @@ obj-$(CONFIG_HNS3_HCLGE) += hclge.o
+ hclge-objs = hclge_main.o hclge_cmd.o hclge_mdio.o hclge_tm.o
  
--static int hclge_unmap_ring_from_vector(
--	struct hnae3_handle *handle, int vector,
--	struct hnae3_ring_chain_node *ring_chain)
-+static int hclge_unmap_ring_frm_vector(struct hnae3_handle *handle,
-+				       int vector,
-+				       struct hnae3_ring_chain_node *ring_chain)
- {
- 	struct hclge_vport *vport = hclge_get_vport(handle);
- 	struct hclge_dev *hdev = vport->back;
--	struct hclge_ctrl_vector_chain_cmd *req;
--	struct hnae3_ring_chain_node *node;
--	struct hclge_desc desc;
--	int i, vector_id;
--	int ret;
-+	int vector_id, ret;
- 
- 	vector_id = hclge_get_vector_index(hdev, vector);
- 	if (vector_id < 0) {
-@@ -3355,54 +3350,17 @@ static int hclge_unmap_ring_from_vector(
- 		return vector_id;
- 	}
- 
--	hclge_cmd_setup_basic_desc(&desc, HCLGE_OPC_DEL_RING_TO_VECTOR, false);
+ hclge-$(CONFIG_HNS3_DCB) += hclge_dcb.o
 -
--	req = (struct hclge_ctrl_vector_chain_cmd *)desc.data;
--	req->int_vector_id = vector_id;
+-obj-$(CONFIG_HNS3_ENET) += hns3.o
+-hns3-objs = hns3_enet.o hns3_ethtool.o
 -
--	i = 0;
--	for (node = ring_chain; node; node = node->next) {
--		u16 type_and_id = 0;
--
--		hnae_set_field(type_and_id, HCLGE_INT_TYPE_M, HCLGE_INT_TYPE_S,
--			       hnae_get_bit(node->flag, HNAE3_RING_TYPE_B));
--		hnae_set_field(type_and_id, HCLGE_TQP_ID_M, HCLGE_TQP_ID_S,
--			       node->tqp_index);
--		hnae_set_field(type_and_id, HCLGE_INT_GL_IDX_M,
--			       HCLGE_INT_GL_IDX_S,
--			       hnae_get_bit(node->flag, HNAE3_RING_TYPE_B));
--
--		req->tqp_type_and_id[i] = cpu_to_le16(type_and_id);
--		req->vfid = vport->vport_id;
--
--		if (++i >= HCLGE_VECTOR_ELEMENTS_PER_CMD) {
--			req->int_cause_num = HCLGE_VECTOR_ELEMENTS_PER_CMD;
--
--			ret = hclge_cmd_send(&hdev->hw, &desc, 1);
--			if (ret) {
--				dev_err(&hdev->pdev->dev,
--					"Unmap TQP fail, status is %d.\n",
--					ret);
--				return ret;
--			}
--			i = 0;
--			hclge_cmd_setup_basic_desc(&desc,
--						   HCLGE_OPC_DEL_RING_TO_VECTOR,
--						   false);
--			req->int_vector_id = vector_id;
--		}
-+	ret = hclge_bind_ring_with_vector(vport, vector_id, false, ring_chain);
-+	if (ret) {
-+		dev_err(&handle->pdev->dev,
-+			"Unmap ring from vector fail. vectorid=%d, ret =%d\n",
-+			vector_id,
-+			ret);
-+		return ret;
- 	}
+-hns3-$(CONFIG_HNS3_DCB) += hns3_dcbnl.o
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
+index a878c63..fdfc8a7 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
+@@ -316,6 +316,7 @@ static int hclgevf_set_handle_info(struct hclgevf_dev *hdev)
+ 	nic->ae_algo = &ae_algovf;
+ 	nic->pdev = hdev->pdev;
+ 	nic->numa_node_mask = hdev->numa_node_mask;
++	nic->flags |= HNAE3_SUPPORT_VF;
  
--	if (i > 0) {
--		req->int_cause_num = i;
--
--		ret = hclge_cmd_send(&hdev->hw, &desc, 1);
--		if (ret) {
--			dev_err(&hdev->pdev->dev,
--				"Unmap TQP fail, status is %d.\n", ret);
--			return ret;
--		}
--	}
-+	/* Free this MSIX or MSI vector */
-+	hclge_free_vector(hdev, vector_id);
- 
- 	return 0;
- }
-@@ -4423,7 +4381,7 @@ static int hclge_get_reset_status(struct hclge_dev *hdev, u16 queue_id)
- 	return hnae_get_bit(req->ready_to_reset, HCLGE_TQP_RESET_B);
- }
- 
--static void hclge_reset_tqp(struct hnae3_handle *handle, u16 queue_id)
-+void hclge_reset_tqp(struct hnae3_handle *handle, u16 queue_id)
- {
- 	struct hclge_vport *vport = hclge_get_vport(handle);
- 	struct hclge_dev *hdev = vport->back;
-@@ -4995,8 +4953,8 @@ static const struct hnae3_ae_ops hclge_ops = {
- 	.uninit_ae_dev = hclge_uninit_ae_dev,
- 	.init_client_instance = hclge_init_client_instance,
- 	.uninit_client_instance = hclge_uninit_client_instance,
--	.map_ring_to_vector = hclge_map_handle_ring_to_vector,
--	.unmap_ring_from_vector = hclge_unmap_ring_from_vector,
-+	.map_ring_to_vector = hclge_map_ring_to_vector,
-+	.unmap_ring_from_vector = hclge_unmap_ring_frm_vector,
- 	.get_vector = hclge_get_vector,
- 	.set_promisc_mode = hclge_set_promisc_mode,
- 	.set_loopback = hclge_set_loopback,
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-index 028817c..c7c9a28 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-@@ -539,8 +539,10 @@ int hclge_cfg_func_mta_filter(struct hclge_dev *hdev,
- 			      u8 func_id,
- 			      bool enable);
- struct hclge_vport *hclge_get_vport(struct hnae3_handle *handle);
--int hclge_map_vport_ring_to_vector(struct hclge_vport *vport, int vector,
--				   struct hnae3_ring_chain_node *ring_chain);
-+int hclge_bind_ring_with_vector(struct hclge_vport *vport,
-+				int vector_id, bool en,
-+				struct hnae3_ring_chain_node *ring_chain);
-+
- static inline int hclge_get_queue_id(struct hnae3_queue *queue)
- {
- 	struct hclge_tqp *tqp = container_of(queue, struct hclge_tqp, q);
-@@ -556,4 +558,5 @@ int hclge_buffer_alloc(struct hclge_dev *hdev);
- int hclge_rss_init_hw(struct hclge_dev *hdev);
- 
- void hclge_mbx_handler(struct hclge_dev *hdev);
-+void hclge_reset_tqp(struct hnae3_handle *handle, u16 queue_id);
- #endif
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
-index a993735..7a82444 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
-@@ -85,6 +85,91 @@ static int hclge_send_mbx_msg(struct hclge_vport *vport, u8 *msg, u16 msg_len,
- 	return status;
- }
- 
-+static void hclge_free_vector_ring_chain(struct hnae3_ring_chain_node *head)
-+{
-+	struct hnae3_ring_chain_node *chain_tmp, *chain;
-+
-+	chain = head->next;
-+
-+	while (chain) {
-+		chain_tmp = chain->next;
-+		kzfree(chain);
-+		chain = chain_tmp;
-+	}
-+}
-+
-+/* hclge_get_ring_chain_from_mbx: get ring type & tqpid from mailbox message
-+ * msg[0]: opcode
-+ * msg[1]: <not relevant to this function>
-+ * msg[2]: ring_num
-+ * msg[3]: first ring type (TX|RX)
-+ * msg[4]: first tqp id
-+ * msg[5] ~ msg[14]: other ring type and tqp id
-+ */
-+static int hclge_get_ring_chain_from_mbx(
-+			struct hclge_mbx_vf_to_pf_cmd *req,
-+			struct hnae3_ring_chain_node *ring_chain,
-+			struct hclge_vport *vport)
-+{
-+#define HCLGE_RING_NODE_VARIABLE_NUM		3
-+#define HCLGE_RING_MAP_MBX_BASIC_MSG_NUM	3
-+	struct hnae3_ring_chain_node *cur_chain, *new_chain;
-+	int ring_num;
-+	int i;
-+
-+	ring_num = req->msg[2];
-+
-+	hnae_set_bit(ring_chain->flag, HNAE3_RING_TYPE_B, req->msg[3]);
-+	ring_chain->tqp_index =
-+			hclge_get_queue_id(vport->nic.kinfo.tqp[req->msg[4]]);
-+
-+	cur_chain = ring_chain;
-+
-+	for (i = 1; i < ring_num; i++) {
-+		new_chain = kzalloc(sizeof(*new_chain), GFP_KERNEL);
-+		if (!new_chain)
-+			goto err;
-+
-+		hnae_set_bit(new_chain->flag, HNAE3_RING_TYPE_B,
-+			     req->msg[HCLGE_RING_NODE_VARIABLE_NUM * i +
-+			     HCLGE_RING_MAP_MBX_BASIC_MSG_NUM]);
-+
-+		new_chain->tqp_index =
-+		hclge_get_queue_id(vport->nic.kinfo.tqp
-+			[req->msg[HCLGE_RING_NODE_VARIABLE_NUM * i +
-+			HCLGE_RING_MAP_MBX_BASIC_MSG_NUM + 1]]);
-+
-+		cur_chain->next = new_chain;
-+		cur_chain = new_chain;
-+	}
-+
-+	return 0;
-+err:
-+	hclge_free_vector_ring_chain(ring_chain);
-+	return -ENOMEM;
-+}
-+
-+static int hclge_map_unmap_ring_to_vf_vector(struct hclge_vport *vport, bool en,
-+					     struct hclge_mbx_vf_to_pf_cmd *req)
-+{
-+	struct hnae3_ring_chain_node ring_chain;
-+	int vector_id = req->msg[1];
-+	int ret;
-+
-+	memset(&ring_chain, 0, sizeof(ring_chain));
-+	ret = hclge_get_ring_chain_from_mbx(req, &ring_chain, vport);
-+	if (ret)
-+		return ret;
-+
-+	ret = hclge_bind_ring_with_vector(vport, vector_id, en, &ring_chain);
-+	if (ret)
-+		return ret;
-+
-+	hclge_free_vector_ring_chain(&ring_chain);
-+
-+	return 0;
-+}
-+
- static int hclge_set_vf_promisc_mode(struct hclge_vport *vport,
- 				     struct hclge_mbx_vf_to_pf_cmd *req)
- {
-@@ -230,6 +315,16 @@ static int hclge_get_link_info(struct hclge_vport *vport,
- 				  HCLGE_MBX_LINK_STAT_CHANGE, dest_vfid);
- }
- 
-+static void hclge_reset_vf_queue(struct hclge_vport *vport,
-+				 struct hclge_mbx_vf_to_pf_cmd *mbx_req)
-+{
-+	u16 queue_id;
-+
-+	memcpy(&queue_id, &mbx_req->msg[0], sizeof(queue_id));
-+
-+	hclge_reset_tqp(&vport->nic, queue_id);
-+}
-+
- void hclge_mbx_handler(struct hclge_dev *hdev)
- {
- 	struct hclge_cmq_ring *crq = &hdev->hw.cmq.crq;
-@@ -247,6 +342,14 @@ void hclge_mbx_handler(struct hclge_dev *hdev)
- 		vport = &hdev->vport[req->mbx_src_vfid];
- 
- 		switch (req->msg[0]) {
-+		case HCLGE_MBX_MAP_RING_TO_VECTOR:
-+			ret = hclge_map_unmap_ring_to_vf_vector(vport, true,
-+								req);
-+			break;
-+		case HCLGE_MBX_UNMAP_RING_TO_VECTOR:
-+			ret = hclge_map_unmap_ring_to_vf_vector(vport, false,
-+								req);
-+			break;
- 		case HCLGE_MBX_SET_PROMISC_MODE:
- 			ret = hclge_set_vf_promisc_mode(vport, req);
- 			if (ret)
-@@ -296,6 +399,9 @@ void hclge_mbx_handler(struct hclge_dev *hdev)
- 					"PF fail(%d) to get link stat for VF\n",
- 					ret);
- 			break;
-+		case HCLGE_MBX_QUEUE_RESET:
-+			hclge_reset_vf_queue(vport, req);
-+			break;
- 		default:
- 			dev_err(&hdev->pdev->dev,
- 				"un-supported mailbox message, code = %d\n",
+ 	if (hdev->ae_dev->dev_type != HNAE3_DEV_KNIC) {
+ 		dev_err(&hdev->pdev->dev, "unsupported device type %d\n",
 -- 
 2.7.4
