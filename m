@@ -1,8 +1,8 @@
 From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-rc 3/6] RDMA/vmw_pvrdma: Use more specific sizeof in
- kcalloc
-Date: Fri, 8 Dec 2017 11:01:56 -0800
-Message-ID: <20171208190149.GA32730@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+Subject: [PATCH for-rc 4/6] RDMA/vmw_pvrdma: Use refcount_dec_and_test to
+ avoid warning
+Date: Fri, 8 Dec 2017 11:02:24 -0800
+Message-ID: <20171208190218.GA744@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 References: <20171208185818.GA28514@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -13,37 +13,34 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Convert the sizeof(void *) in two kcalloc calls to be more
-specific for the arrays that are being allocated.
+refcount_dec generates a warning when the operation
+causes the refcount to hit zero. Avoid this by using
+refcount_dec_and_test.
 
+Fixes: 8b10ba783c9d ("RDMA/vmw_pvrdma: Add shared receive queue support")
 Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 4 ++--
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-index 1f4e187..941e324 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-@@ -243,13 +243,13 @@ static int pvrdma_register_device(struct pvrdma_dev *dev)
- 	mutex_init(&dev->port_mutex);
- 	spin_lock_init(&dev->desc_lock);
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
+index 826ccb8..a2b1a3c 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
+@@ -236,8 +236,8 @@ static void pvrdma_free_srq(struct pvrdma_dev *dev, struct pvrdma_srq *srq)
+ 	dev->srq_tbl[srq->srq_handle] = NULL;
+ 	spin_unlock_irqrestore(&dev->srq_tbl_lock, flags);
  
--	dev->cq_tbl = kcalloc(dev->dsr->caps.max_cq, sizeof(void *),
-+	dev->cq_tbl = kcalloc(dev->dsr->caps.max_cq, sizeof(struct pvrdma_cq *),
- 			      GFP_KERNEL);
- 	if (!dev->cq_tbl)
- 		return ret;
- 	spin_lock_init(&dev->cq_tbl_lock);
+-	refcount_dec(&srq->refcnt);
+-	wait_event(srq->wait, !refcount_read(&srq->refcnt));
++	if (!refcount_dec_and_test(&srq->refcnt))
++		wait_event(srq->wait, !refcount_read(&srq->refcnt));
  
--	dev->qp_tbl = kcalloc(dev->dsr->caps.max_qp, sizeof(void *),
-+	dev->qp_tbl = kcalloc(dev->dsr->caps.max_qp, sizeof(struct pvrdma_qp *),
- 			      GFP_KERNEL);
- 	if (!dev->qp_tbl)
- 		goto err_cq_free;
+ 	/* There is no support for kernel clients, so this is safe. */
+ 	ib_umem_release(srq->umem);
 -- 
 1.8.5.6
 
