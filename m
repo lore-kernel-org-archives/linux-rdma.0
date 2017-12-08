@@ -1,42 +1,332 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 2/2] i40iw: Reinitialize add_sd_cnt
-Date: Fri,  8 Dec 2017 14:34:29 -0600
-Message-ID: <1512765269-145929-3-git-send-email-henry.orosco@intel.com>
-References: <1512765269-145929-1-git-send-email-henry.orosco@intel.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V2 net-next 2/8] net: hns3: Add mailbox support to VF driver
+Date: Fri, 8 Dec 2017 21:16:56 +0000
+Message-ID: <20171208211702.20104-3-salil.mehta@huawei.com>
+References: <20171208211702.20104-1-salil.mehta@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1512765269-145929-1-git-send-email-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20171208211702.20104-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Cc: salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This patch adds the support of the mailbox to the VF driver. The
+mailbox shall be used as an interface to communicate with the
+PF driver for various purposes like {set|get} MAC related
+operations, reset, link status etc. The mailbox supports both
+synchronous and asynchronous command send to PF driver.
 
-add_sd_cnt in info structure passed to i40iw_create_hmc_obj_type
-must be 0 and since it is modified during the call, it must be
-reset in the loop. This avoids unnecessarily reprogramming the
-SDs multiple times with the same values.
-
-Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: lipeng <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_main.c | 1 +
- 1 file changed, 1 insertion(+)
+Patch V2: Addressed some internal commnets
+Patch V1: Initial Submit
+---
+ drivers/net/ethernet/hisilicon/hns3/hclge_mbx.h    |  94 +++++++++++
+ .../ethernet/hisilicon/hns3/hns3vf/hclgevf_mbx.c   | 188 +++++++++++++++++++++
+ 2 files changed, 282 insertions(+)
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hclge_mbx.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_mbx.c
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
-index 1f9d9c7..3aecf4c 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_main.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-@@ -483,6 +483,7 @@ static enum i40iw_status_code i40iw_create_hmc_objs(struct i40iw_device *iwdev,
- 	for (i = 0; i < IW_HMC_OBJ_TYPE_NUM; i++) {
- 		info.rsrc_type = iw_hmc_obj_types[i];
- 		info.count = dev->hmc_info->hmc_obj[info.rsrc_type].cnt;
-+		info.add_sd_cnt = 0;
- 		status = i40iw_create_hmc_obj_type(dev, &info);
- 		if (status) {
- 			i40iw_pr_err("create obj type %d status = %d\n",
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hclge_mbx.h b/drivers/net/ethernet/hisilicon/hns3/hclge_mbx.h
+new file mode 100644
+index 0000000..5a6ebfca
+--- /dev/null
++++ b/drivers/net/ethernet/hisilicon/hns3/hclge_mbx.h
+@@ -0,0 +1,94 @@
++/*
++ * Copyright (c) 2016-2017 Hisilicon Limited.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#ifndef __HCLGE_MBX_H
++#define __HCLGE_MBX_H
++#include <linux/init.h>
++#include <linux/mutex.h>
++#include <linux/types.h>
++
++#define HCLGE_MBX_VF_MSG_DATA_NUM	16
++
++enum HCLGE_MBX_OPCODE {
++	HCLGE_MBX_RESET = 0x01,		/* (VF -> PF) assert reset */
++	HCLGE_MBX_SET_UNICAST,		/* (VF -> PF) set UC addr */
++	HCLGE_MBX_SET_MULTICAST,	/* (VF -> PF) set MC addr */
++	HCLGE_MBX_SET_VLAN,		/* (VF -> PF) set VLAN */
++	HCLGE_MBX_MAP_RING_TO_VECTOR,	/* (VF -> PF) map ring-to-vector */
++	HCLGE_MBX_UNMAP_RING_TO_VECTOR,	/* (VF -> PF) unamp ring-to-vector */
++	HCLGE_MBX_SET_PROMISC_MODE,	/* (VF -> PF) set promiscuous mode */
++	HCLGE_MBX_SET_MACVLAN,		/* (VF -> PF) set unicast filter */
++	HCLGE_MBX_API_NEGOTIATE,	/* (VF -> PF) negotiate API version */
++	HCLGE_MBX_GET_QINFO,		/* (VF -> PF) get queue config */
++	HCLGE_MBX_GET_TCINFO,		/* (VF -> PF) get TC config */
++	HCLGE_MBX_GET_RETA,		/* (VF -> PF) get RETA */
++	HCLGE_MBX_GET_RSS_KEY,		/* (VF -> PF) get RSS key */
++	HCLGE_MBX_GET_MAC_ADDR,		/* (VF -> PF) get MAC addr */
++	HCLGE_MBX_PF_VF_RESP,		/* (PF -> VF) generate respone to VF */
++	HCLGE_MBX_GET_BDNUM,		/* (VF -> PF) get BD num */
++	HCLGE_MBX_GET_BUFSIZE,		/* (VF -> PF) get buffer size */
++	HCLGE_MBX_GET_STREAMID,		/* (VF -> PF) get stream id */
++	HCLGE_MBX_SET_AESTART,		/* (VF -> PF) start ae */
++	HCLGE_MBX_SET_TSOSTATS,		/* (VF -> PF) get tso stats */
++	HCLGE_MBX_LINK_STAT_CHANGE,	/* (PF -> VF) link status has changed */
++	HCLGE_MBX_GET_BASE_CONFIG,	/* (VF -> PF) get config */
++	HCLGE_MBX_BIND_FUNC_QUEUE,	/* (VF -> PF) bind function and queue */
++	HCLGE_MBX_GET_LINK_STATUS,	/* (VF -> PF) get link status */
++	HCLGE_MBX_QUEUE_RESET,		/* (VF -> PF) reset queue */
++};
++
++/* below are per-VF mac-vlan subcodes */
++enum hclge_mbx_mac_vlan_subcode {
++	HCLGE_MBX_MAC_VLAN_UC_MODIFY = 0,	/* modify UC mac addr */
++	HCLGE_MBX_MAC_VLAN_UC_ADD,		/* add a new UC mac addr */
++	HCLGE_MBX_MAC_VLAN_UC_REMOVE,		/* remove a new UC mac addr */
++	HCLGE_MBX_MAC_VLAN_MC_MODIFY,		/* modify MC mac addr */
++	HCLGE_MBX_MAC_VLAN_MC_ADD,		/* add new MC mac addr */
++	HCLGE_MBX_MAC_VLAN_MC_REMOVE,		/* remove MC mac addr */
++	HCLGE_MBX_MAC_VLAN_MC_FUNC_MTA_ENABLE,	/* config func MTA enable */
++};
++
++/* below are per-VF vlan cfg subcodes */
++enum hclge_mbx_vlan_cfg_subcode {
++	HCLGE_MBX_VLAN_FILTER = 0,	/* set vlan filter */
++	HCLGE_MBX_VLAN_TX_OFF_CFG,	/* set tx side vlan offload */
++	HCLGE_MBX_VLAN_RX_OFF_CFG,	/* set rx side vlan offload */
++};
++
++#define HCLGE_MBX_MAX_MSG_SIZE	16
++#define HCLGE_MBX_MAX_RESP_DATA_SIZE	8
++
++struct hclgevf_mbx_resp_status {
++	struct mutex mbx_mutex; /* protects against contending sync cmd resp */
++	u32 origin_mbx_msg;
++	bool received_resp;
++	int resp_status;
++	u8 additional_info[HCLGE_MBX_MAX_RESP_DATA_SIZE];
++};
++
++struct hclge_mbx_vf_to_pf_cmd {
++	u8 rsv;
++	u8 mbx_src_vfid; /* Auto filled by IMP */
++	u8 rsv1[2];
++	u8 msg_len;
++	u8 rsv2[3];
++	u8 msg[HCLGE_MBX_MAX_MSG_SIZE];
++};
++
++struct hclge_mbx_pf_to_vf_cmd {
++	u8 dest_vfid;
++	u8 rsv[3];
++	u8 msg_len;
++	u8 rsv1[3];
++	u16 msg[8];
++};
++
++#define hclge_mbx_ring_ptr_move_crq(crq) \
++	(crq->next_to_use = (crq->next_to_use + 1) % crq->desc_num)
++#endif
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_mbx.c b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_mbx.c
+new file mode 100644
+index 0000000..fb3380b
+--- /dev/null
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_mbx.c
+@@ -0,0 +1,188 @@
++/*
++ * Copyright (c) 2016-2017 Hisilicon Limited.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include "hclge_mbx.h"
++#include "hclgevf_main.h"
++#include "hnae3.h"
++
++static void hclgevf_reset_mbx_resp_status(struct hclgevf_dev *hdev)
++{
++	/* this function should be called with mbx_resp.mbx_mutex held
++	 * to prtect the received_response from race condition
++	 */
++	hdev->mbx_resp.received_resp  = false;
++	hdev->mbx_resp.origin_mbx_msg = 0;
++	hdev->mbx_resp.resp_status    = 0;
++	memset(hdev->mbx_resp.additional_info, 0, HCLGE_MBX_MAX_RESP_DATA_SIZE);
++}
++
++/* hclgevf_get_mbx_resp: used to get a response from PF after VF sends a mailbox
++ * message to PF.
++ * @hdev: pointer to struct hclgevf_dev
++ * @resp_msg: pointer to store the original message type and response status
++ * @len: the resp_msg data array length.
++ */
++static int hclgevf_get_mbx_resp(struct hclgevf_dev *hdev, u16 code0, u16 code1,
++				u8 *resp_data, u16 resp_len)
++{
++#define HCLGEVF_MAX_TRY_TIMES	500
++#define HCLGEVF_SLEEP_USCOEND	1000
++	struct hclgevf_mbx_resp_status *mbx_resp;
++	u16 r_code0, r_code1;
++	int i = 0;
++
++	if (resp_len > HCLGE_MBX_MAX_RESP_DATA_SIZE) {
++		dev_err(&hdev->pdev->dev,
++			"VF mbx response len(=%d) exceeds maximum(=%d)\n",
++			resp_len,
++			HCLGE_MBX_MAX_RESP_DATA_SIZE);
++		return -EINVAL;
++	}
++
++	while ((!hdev->mbx_resp.received_resp) && (i < HCLGEVF_MAX_TRY_TIMES)) {
++		udelay(HCLGEVF_SLEEP_USCOEND);
++		i++;
++	}
++
++	if (i >= HCLGEVF_MAX_TRY_TIMES) {
++		dev_err(&hdev->pdev->dev,
++			"VF could not get mbx resp(=%d) from PF in %d tries\n",
++			hdev->mbx_resp.received_resp, i);
++		return -EIO;
++	}
++
++	mbx_resp = &hdev->mbx_resp;
++	r_code0 = (u16)(mbx_resp->origin_mbx_msg >> 16);
++	r_code1 = (u16)(mbx_resp->origin_mbx_msg & 0xff);
++	if (resp_data)
++		memcpy(resp_data, &mbx_resp->additional_info[0], resp_len);
++
++	hclgevf_reset_mbx_resp_status(hdev);
++
++	if (!(r_code0 == code0 && r_code1 == code1 && !mbx_resp->resp_status)) {
++		dev_err(&hdev->pdev->dev,
++			"VF could not match resp code(code0=%d,code1=%d), %d",
++			code0, code1, mbx_resp->resp_status);
++		return -EIO;
++	}
++
++	return 0;
++}
++
++int hclgevf_send_mbx_msg(struct hclgevf_dev *hdev, u16 code, u16 subcode,
++			 const u8 *msg_data, u8 msg_len, bool need_resp,
++			 u8 *resp_data, u16 resp_len)
++{
++	struct hclge_mbx_vf_to_pf_cmd *req;
++	struct hclgevf_desc desc;
++	int status;
++
++	req = (struct hclge_mbx_vf_to_pf_cmd *)desc.data;
++
++	/* first two bytes are reserved for code & subcode */
++	if (msg_len > (HCLGE_MBX_MAX_MSG_SIZE - 2)) {
++		dev_err(&hdev->pdev->dev,
++			"VF send mbx msg fail, msg len %d exceeds max len %d\n",
++			msg_len, HCLGE_MBX_MAX_MSG_SIZE);
++		return -EINVAL;
++	}
++
++	hclgevf_cmd_setup_basic_desc(&desc, HCLGEVF_OPC_MBX_VF_TO_PF, false);
++	req->msg[0] = code;
++	req->msg[1] = subcode;
++	memcpy(&req->msg[2], msg_data, msg_len);
++
++	/* synchronous send */
++	if (need_resp) {
++		mutex_lock(&hdev->mbx_resp.mbx_mutex);
++		hclgevf_reset_mbx_resp_status(hdev);
++		status = hclgevf_cmd_send(&hdev->hw, &desc, 1);
++		if (status) {
++			dev_err(&hdev->pdev->dev,
++				"VF failed(=%d) to send mbx message to PF\n",
++				status);
++			mutex_unlock(&hdev->mbx_resp.mbx_mutex);
++			return status;
++		}
++
++		status = hclgevf_get_mbx_resp(hdev, code, subcode, resp_data,
++					      resp_len);
++		mutex_unlock(&hdev->mbx_resp.mbx_mutex);
++	} else {
++		/* asynchronous send */
++		status = hclgevf_cmd_send(&hdev->hw, &desc, 1);
++		if (status) {
++			dev_err(&hdev->pdev->dev,
++				"VF failed(=%d) to send mbx message to PF\n",
++				status);
++			return status;
++		}
++	}
++
++	return status;
++}
++
++void hclgevf_mbx_handler(struct hclgevf_dev *hdev)
++{
++	struct hclgevf_mbx_resp_status *resp;
++	struct hclge_mbx_pf_to_vf_cmd *req;
++	struct hclgevf_cmq_ring *crq;
++	struct hclgevf_desc *desc;
++	u16 link_status, flag;
++	u8 *temp;
++	int i;
++
++	resp = &hdev->mbx_resp;
++	crq = &hdev->hw.cmq.crq;
++
++	flag = le16_to_cpu(crq->desc[crq->next_to_use].flag);
++	while (hnae_get_bit(flag, HCLGEVF_CMDQ_RX_OUTVLD_B)) {
++		desc = &crq->desc[crq->next_to_use];
++		req = (struct hclge_mbx_pf_to_vf_cmd *)desc->data;
++
++		switch (req->msg[0]) {
++		case HCLGE_MBX_PF_VF_RESP:
++			if (resp->received_resp)
++				dev_warn(&hdev->pdev->dev,
++					 "VF mbx resp flag not clear(%d)\n",
++					 req->msg[1]);
++
++			resp->origin_mbx_msg = (req->msg[1] << 16);
++			resp->origin_mbx_msg |= req->msg[2];
++			resp->received_resp = true;
++
++			resp->resp_status = req->msg[3];
++
++			temp = (u8 *)&req->msg[4];
++			for (i = 0; i < HCLGE_MBX_MAX_RESP_DATA_SIZE; i++) {
++				resp->additional_info[i] = *temp;
++				temp++;
++			}
++			break;
++		case HCLGE_MBX_LINK_STAT_CHANGE:
++			link_status = le16_to_cpu(req->msg[1]);
++
++			/* update upper layer with new link link status */
++			hclgevf_update_link_status(hdev, link_status);
++
++			break;
++		default:
++			dev_err(&hdev->pdev->dev,
++				"VF received unsupported(%d) mbx msg from PF\n",
++				req->msg[0]);
++			break;
++		}
++		hclge_mbx_ring_ptr_move_crq(crq);
++		flag = le16_to_cpu(crq->desc[crq->next_to_use].flag);
++	}
++
++	/* Write back CMDQ_RQ header pointer, M7 need this pointer */
++	hclgevf_write_dev(&hdev->hw, HCLGEVF_NIC_CRQ_HEAD_REG,
++			  crq->next_to_use);
++}
 -- 
-1.8.3.1
+2.7.4
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
