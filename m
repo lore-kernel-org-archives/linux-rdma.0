@@ -1,39 +1,64 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [RFC rdma-core] srp_daemon: handle SM lid change
-Date: Fri, 8 Dec 2017 16:41:06 +0000
-Message-ID: <1512751264.26126.1.camel@wdc.com>
-References: <1978d0ad-909f-ed8b-5b54-e8c465d3641f@dev.mellanox.co.il>
-         <82bd1d9a-7e6a-324e-1e00-43fcf130faf0@suse.com>
-         <82dc0912-3ac3-9548-2c3b-703c6e1c9c95@dev.mellanox.co.il>
-         <dce98958-a6e2-b289-2a58-609d1914affb@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Subject: [PATCH] register_to_trap(): Increase number of iterations from 3 to 5
+Date: Fri,  8 Dec 2017 09:22:37 -0800
+Message-ID: <20171208172237.312-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <dce98958-a6e2-b289-2a58-609d1914affb-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <AFBE917AE0B4E94283970E5C749EB2E6-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "nmoreychaisemartin-IBi9RG/b67k@public.gmane.org" <nmoreychaisemartin-IBi9RG/b67k@public.gmane.org>, "dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCAyMDE3LTEyLTA4IGF0IDA4OjU2IC0wNTAwLCBEZW5uaXMgRGFsZXNzYW5kcm8gd3Jv
-dGU6DQo+IE9uIDEyLzgvMjAxNyA4OjMzIEFNLCBIYWwgUm9zZW5zdG9jayB3cm90ZToNCj4gPiA+
-ICAgaW50IGNyZWF0ZV9haChzdHJ1Y3QgdWRfcmVzb3VyY2VzICp1ZF9yZXMpDQo+ID4gPiBAQCAt
-NjQxLDcgKzY0OSw3IEBAIHN0YXRpYyBpbnQgcmVnaXN0ZXJfdG9fdHJhcChzdHJ1Y3Qgc3luY19y
-ZXNvdXJjZXMgKnN5bmNfcmVzLA0KPiA+ID4gICAJCQlwdGhyZWFkX211dGV4X3VubG9jayhyZXMt
-Pm1hZF9idWZmZXJfbXV0ZXgpOw0KPiA+ID4gICAJCX0gd2hpbGUgKHJjID09IDIpOyAvLyB3aGls
-ZSBvbGQgcmVzcG9uc2UuDQo+ID4gPiAgIA0KPiA+ID4gLQl9IHdoaWxlIChyYyA9PSAwICYmICsr
-Y291bnRlciA8IDMpOw0KPiA+ID4gKwl9IHdoaWxlIChyYyA9PSAwICYmICsrY291bnRlciA8IDUp
-Ow0KPiA+ID4gICANCj4gPiA+ICAgCWlmIChjb3VudGVyPT0zKSB7DQo+ID4gDQo+ID4gVGhpcyBz
-aG91bGQgYmUgY2hhbmdlZCBmcm9tIDMgdG8gNSBhbHNvLiBDaGFuZ2UgYm90aCB0byBzb21lIGRl
-ZmluZSA/DQo+IA0KPiBZZXMgcGxlYXNlIGNoYW5nZSB0aGVzZSB0byBhICNkZWZpbmUgd2l0aCBh
-IHNvbWUgd2hhdCBkZXNjcmlwdGl2ZSBuYW1lLiANCj4gVGhhdCB3b3VsZCBtYWtlIHRoZSBjb2Rl
-IG11Y2ggYmV0dGVyIHRvIHJlYWQuDQoNCkl0IHdvdWxkIGJlIGV2ZW4gYmV0dGVyIHRvIGNoYW5n
-ZSB0aGUgbG9vcCBzdWNoIHRoYXQgaXQgY291bnRzIGRvd24gaW5zdGVhZA0Kb2YgdXAuIFRoZW4g
-dGhlIGlmLXN0YXRlbWVudCBhZnRlciB0aGUgbG9vcCBjYW4gdGVzdCB3aGV0aGVyIHRoZSBjb3Vu
-dGVyIGhhcw0KcmVhY2hlZCB6ZXJvIGFuZCB0aGUgY29uc3RhbnQgdGhhdCByZXByZXNlbnRzIHRo
-ZSBudW1iZXIgb2YgaXRlcmF0aW9ucyB3aWxsDQpvbmx5IG9jY3VyIG9uY2UuDQoNCkJhcnQu
+Master SM changes can take more than three seconds. Hence increase
+the time during which to wait for a master SM to appear from 3 to 5
+seconds.
+
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+---
+ srp_daemon/srp_handle_traps.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/srp_daemon/srp_handle_traps.c b/srp_daemon/srp_handle_traps.c
+index 6d94634ef6df..dda746a5c69d 100644
+--- a/srp_daemon/srp_handle_traps.c
++++ b/srp_daemon/srp_handle_traps.c
+@@ -550,8 +550,8 @@ static int register_to_trap(struct sync_resources *sync_res,
+ 	struct ibv_sge sg;
+ 	struct ibv_send_wr *_bad_wr = NULL;
+ 	struct ibv_send_wr **bad_wr = &_bad_wr;
+-	int counter = 0;
+-	int rc = 0;
++	int counter;
++	int rc;
+ 	int ret;
+ 	long long unsigned comp_mask = 0;
+ 
+@@ -609,7 +609,7 @@ static int register_to_trap(struct sync_resources *sync_res,
+ 	p_sa_mad->comp_mask = htobe64(comp_mask);
+ 	pr_debug("comp_mask: %llx\n", comp_mask);
+ 
+-	do {
++	for (counter = 5, rc = 0; counter > 0 && rc == 0; counter--) {
+ 		pthread_mutex_lock(res->mad_buffer_mutex);
+ 		res->mad_buffer->mad_hdr.base_version = 0; // flag that the buffer is empty
+ 		pthread_mutex_unlock(res->mad_buffer_mutex);
+@@ -640,10 +640,9 @@ static int register_to_trap(struct sync_resources *sync_res,
+ 			}
+ 			pthread_mutex_unlock(res->mad_buffer_mutex);
+ 		} while (rc == 2); // while old response.
++	}
+ 
+-	} while (rc == 0 && ++counter < 3);
+-
+-	if (counter==3) {
++	if (counter == 0) {
+ 		pr_err("No response to inform info registration\n");
+ 		return -EAGAIN;
+ 	}
+-- 
+2.15.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
