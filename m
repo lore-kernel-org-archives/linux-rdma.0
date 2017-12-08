@@ -1,60 +1,39 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH] register_to_trap(): Increase number of iterations from 3
- to 5
-Date: Fri, 8 Dec 2017 18:35:51 +0000
-Message-ID: <1512758149.26126.3.camel@wdc.com>
-References: <20171208172237.312-1-bart.vanassche@wdc.com>
-         <c92fa8ad-7d15-29fa-4c09-b7593e7160cf@dev.mellanox.co.il>
-         <e06c1dc0-509e-3fc0-4b0d-49d695a1421e@dev.mellanox.co.il>
+From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH for-rc 0/6] vmw_pvrdma fixes for 4.15
+Date: Fri, 8 Dec 2017 10:58:23 -0800
+Message-ID: <20171208185818.GA28514@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e06c1dc0-509e-3fc0-4b0d-49d695a1421e-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
-Content-ID: <B9EE4D2671F1634794260E9679FD6C6F-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org" <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCAyMDE3LTEyLTA4IGF0IDEzOjE3IC0wNTAwLCBIYWwgUm9zZW5zdG9jayB3cm90ZToN
-Cj4gR2l2ZW4gd2hhdCBOaWNvbGFzIHdyb3RlLCBtYXliZSB0aGlzIHNob3VsZCBiZSBzcGxpdCBp
-bnRvIDIgcGF0Y2hlcyB3aXRoDQo+IGZpcnN0IGJlaW5nIHJlZmFjdG9yaW5nIGJ1dCBub3QgY2hh
-bmdpbmcgY291bnRlciBhbmQgbGVhdmUgdGhlIGNvdW50ZXINCj4gaW5jcmVhc2UgZm9yIE5pY29s
-YXMuDQoNCkhlbGxvIEhhbCwNCg0KSG93IGFib3V0IHRoZSBwYXRjaCBiZWxvdz8NCg0KVGhhbmtz
-LA0KDQpCYXJ0Lg0KDQoNCltQQVRDSCBmb3IgcmRtYS1jb3JlXSByZWdpc3Rlcl90b190cmFwKCk6
-IFNwZWNpZnkgbnVtYmVyIG9mIGl0ZXJhdGlvbnMgb25jZQ0KDQpSZWFycmFuZ2UgdGhlIGxvb3Ag
-aW4gcmVnaXN0ZXJfdG9fdHJhcCgpIGFuZCBhbHNvIHRoZSBpZi1zdGF0ZW1lbnQNCmFmdGVyIHRo
-YXQgbG9vcCBzdWNoIHRoYXQgdGhlIG51bWJlciBvZiBpdGVyYXRpb25zIG9ubHkgb2NjdXJzIG9u
-Y2UuDQoNClNpZ25lZC1vZmYtYnk6IEJhcnQgVmFuIEFzc2NoZSA8YmFydC52YW5hc3NjaGVAd2Rj
-LmNvbT4NCkNjOiBIYWwgUm9zZW5zdG9jayA8aGFsQGRldi5tZWxsYW5veC5jby5pbD4NCkNjOiBO
-aWNvbGFzIE1vcmV5LUNoYWlzZW1hcnRpbiA8Tk1vcmV5Q2hhaXNlbWFydGluQHN1c2UuZGU+DQot
-LS0NCiBzcnBfZGFlbW9uL3NycF9oYW5kbGVfdHJhcHMuYyB8IDExICsrKysrLS0tLS0tDQogMSBm
-aWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkNCg0KZGlmZiAtLWdp
-dCBhL3NycF9kYWVtb24vc3JwX2hhbmRsZV90cmFwcy5jIGIvc3JwX2RhZW1vbi9zcnBfaGFuZGxl
-X3RyYXBzLmMNCmluZGV4IDZkOTQ2MzRlZjZkZi4uNmIzNmIxNWNjODRjIDEwMDY0NA0KLS0tIGEv
-c3JwX2RhZW1vbi9zcnBfaGFuZGxlX3RyYXBzLmMNCisrKyBiL3NycF9kYWVtb24vc3JwX2hhbmRs
-ZV90cmFwcy5jDQpAQCAtNTUwLDggKzU1MCw4IEBAIHN0YXRpYyBpbnQgcmVnaXN0ZXJfdG9fdHJh
-cChzdHJ1Y3Qgc3luY19yZXNvdXJjZXMgKnN5bmNfcmVzLA0KIAlzdHJ1Y3QgaWJ2X3NnZSBzZzsN
-CiAJc3RydWN0IGlidl9zZW5kX3dyICpfYmFkX3dyID0gTlVMTDsNCiAJc3RydWN0IGlidl9zZW5k
-X3dyICoqYmFkX3dyID0gJl9iYWRfd3I7DQotCWludCBjb3VudGVyID0gMDsNCi0JaW50IHJjID0g
-MDsNCisJaW50IGNvdW50ZXI7DQorCWludCByYzsNCiAJaW50IHJldDsNCiAJbG9uZyBsb25nIHVu
-c2lnbmVkIGNvbXBfbWFzayA9IDA7DQogDQpAQCAtNjA5LDcgKzYwOSw3IEBAIHN0YXRpYyBpbnQg
-cmVnaXN0ZXJfdG9fdHJhcChzdHJ1Y3Qgc3luY19yZXNvdXJjZXMgKnN5bmNfcmVzLA0KIAlwX3Nh
-X21hZC0+Y29tcF9tYXNrID0gaHRvYmU2NChjb21wX21hc2spOw0KIAlwcl9kZWJ1ZygiY29tcF9t
-YXNrOiAlbGx4XG4iLCBjb21wX21hc2spOw0KIA0KLQlkbyB7DQorCWZvciAoY291bnRlciA9IDMs
-IHJjID0gMDsgY291bnRlciA+IDAgJiYgcmMgPT0gMDsgY291bnRlci0tKSB7DQogCQlwdGhyZWFk
-X211dGV4X2xvY2socmVzLT5tYWRfYnVmZmVyX211dGV4KTsNCiAJCXJlcy0+bWFkX2J1ZmZlci0+
-bWFkX2hkci5iYXNlX3ZlcnNpb24gPSAwOyAvLyBmbGFnIHRoYXQgdGhlIGJ1ZmZlciBpcyBlbXB0
-eQ0KIAkJcHRocmVhZF9tdXRleF91bmxvY2socmVzLT5tYWRfYnVmZmVyX211dGV4KTsNCkBAIC02
-NDAsMTAgKzY0MCw5IEBAIHN0YXRpYyBpbnQgcmVnaXN0ZXJfdG9fdHJhcChzdHJ1Y3Qgc3luY19y
-ZXNvdXJjZXMgKnN5bmNfcmVzLA0KIAkJCX0NCiAJCQlwdGhyZWFkX211dGV4X3VubG9jayhyZXMt
-Pm1hZF9idWZmZXJfbXV0ZXgpOw0KIAkJfSB3aGlsZSAocmMgPT0gMik7IC8vIHdoaWxlIG9sZCBy
-ZXNwb25zZS4NCisJfQ0KIA0KLQl9IHdoaWxlIChyYyA9PSAwICYmICsrY291bnRlciA8IDMpOw0K
-LQ0KLQlpZiAoY291bnRlcj09Mykgew0KKwlpZiAoY291bnRlciA9PSAwKSB7DQogCQlwcl9lcnIo
-Ik5vIHJlc3BvbnNlIHRvIGluZm9ybSBpbmZvIHJlZ2lzdHJhdGlvblxuIik7DQogCQlyZXR1cm4g
-LUVBR0FJTjsNCiAJfQ0KLS0gDQoyLjE1LjENCg==
+Do some cleanup and fixes related to the comments received during SRQ
+support upstreaming that applied to existing code. Also add in two
+missed macros used by the userlevel library for SRQs, a missed
+ib_umem_release, and an incorrect usage of the new refcount_t type.
+
+Bryan Tan (6):
+  RDMA/vmw_pvrdma: Clarify QP is_kernel logic
+  RDMA/vmw_pvrdma: Call ib_umem_release on destroy QP path
+  RDMA/vmw_pvrdma: Use more specific sizeof in kcalloc
+  RDMA/vmw_pvrdma: Use refcount_dec_and_test to avoid warning
+  RDMA/vmw_pvrdma: Use refcount_t instead of atomic_t
+  RDMA/vmw_pvrdma: Add UAR SRQ macros in ABI header file
+
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma.h      |  4 ++--
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c   |  6 +++---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 19 ++++++++-----------
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c   | 20 +++++++++++++-------
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c  |  4 ++--
+ include/uapi/rdma/vmw_pvrdma-abi.h             |  2 ++
+ 6 files changed, 30 insertions(+), 25 deletions(-)
+
+-- 
+1.8.5.6
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
