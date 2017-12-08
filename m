@@ -1,145 +1,47 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 net-next 0/8] Hisilicon Network Subsystem 3 VF Ethernet Driver
-Date: Fri, 8 Dec 2017 21:16:54 +0000
-Message-ID: <20171208211702.20104-1-salil.mehta@huawei.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH for-rc 6/6] RDMA/vmw_pvrdma: Add UAR SRQ macros in ABI
+ header file
+Date: Fri, 8 Dec 2017 16:28:09 -0700
+Message-ID: <20171208232809.GA23239@ziepe.ca>
+References: <20171208185818.GA28514@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+ <20171208190317.GA3636@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171208190317.GA3636-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch-set contains the support of the HNS3 (Hisilicon Network Subsystem 3)
-Virtual Function Ethernet driver for hip08 family of SoCs. The Physical Function
-driver is already part of the Linux mainline. 
+On Fri, Dec 08, 2017 at 11:03:26AM -0800, Bryan Tan wrote:
+> Add the two UAR SRQ macros that are required by the userlevel
+> library.
+> 
+> Fixes: 8b10ba783c9d ("RDMA/vmw_pvrdma: Add shared receive queue support")
+> Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+>  include/uapi/rdma/vmw_pvrdma-abi.h | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/include/uapi/rdma/vmw_pvrdma-abi.h b/include/uapi/rdma/vmw_pvrdma-abi.h
+> index aaa352f..4007cac 100644
+> +++ b/include/uapi/rdma/vmw_pvrdma-abi.h
+> @@ -58,6 +58,8 @@
+>  #define PVRDMA_UAR_CQ_ARM_SOL		BIT(29)		/* Arm solicited bit. */
+>  #define PVRDMA_UAR_CQ_ARM		BIT(30)		/* Arm bit. */
+>  #define PVRDMA_UAR_CQ_POLL		BIT(31)		/* Poll bit. */
+> +#define PVRDMA_UAR_SRQ_OFFSET		8		/* SRQ doorbell. */
+> +#define PVRDMA_UAR_SRQ_RECV		BIT(30)		/* Recv bit. */
 
-This VF driver has its Hardware Compatibility Layer and has commom/unified ENET
-layer/client/ethtool code with the PF driver. It also has support of mailbox to
-communicate with the HNS3 PF driver. The basic architecture of VF driver is
-derivative of the PF driver. Just like PF driver, this driver is also PCI
-Express based.
+I didn't think BIT() was allowed in uapi headers? Where does it get
+defined in user space?
 
-This driver is the ongoing development work and HNS3 VF Ethernet driver would be
-incrementally enhanced with more new features.
-
-High Level Architecture:
-
-                     [ Ethtool ]
-	                 | 
-                 [ Ethernet Client ] ... [ RoCE Client ] 
-                         |                     |           
-                   [ HNAE Device ]             |________       
-                         |                     |       |
-    ---------------------------------------------      |
-                                                       |
-     [ HNAE3 Framework (Register/unregister) ]         |
-                                                       |
-    ---------------------------------------------      |
-                         |                             |
-                 [ VF HCLGE Layer ]                    |
-                  |             |                      |
-                  |             |                      |
-                  |             |                      |
-                  |     [ VF Mailbox (To PF via IMP) ] |                 
-                  |             |                      |   
-             [ IMP command Interface ]  [ IMP command Interface ]
-                        |                              |
-                        |                              |
-           (A B O V E  R U N S  O N  G U E S T  S Y S T E M)
-    -------------------------------------------------------------
-              Q E M U / V F I O / K V M (on Host System)
-    -------------------------------------------------------------
-            HIP08  H A R D W A R E (limited to VF by SMMU)
-
-    [ IMP/Mgmt Processor (hardware common to system/cmd based) ]
-
-
-                Fig 1.   HNS3 Virtual Function Driver
-
-
-                    
-
-    	[ dcbnl ]  [ Ethtool ]
-            |          |
-   	[  Ethernet Client  ]  [ ODP/UIO Client ] . . .[ RoCE Client ]     
-              |_____________________|                 |
-                         |                   _________|        
-                   [ HNAE Device ]           |        |
-                         |                   |        |
-    ---------------------------------------------     |
-                                                      |
-     [ HNAE3 Framework (Register/unregister) ]        |
-                                                      |
-    ---------------------------------------------     |
-                         |                            |
-                  [ HCLGE Layer ]                     |
-         ________________|_________________           |
-        |                |                 |          |
-     [ DCB ]             |                 |          |
-        |                |                 |          |
-  [ Scheduler/Shaper ] [ MDIO ]      [ PF Mailbox ]   |
-        |                |                 |          |
-        |________________|_________________|          |     
-                         |                            |
-             [ IMP command Interface ]     [ IMP command Interface ] 
-    ----------------------------------------------------------------
-              HIP08  H A R D W A R E                  
-
-    [ IMP/Mgmt Processor (hardware common to system/cmd based) ]
-
-
-               Fig 2.    Existing HNS3 PF Driver (added with mailbox)
-
-Change Log Summary:
-Patch V2: 1. Addressed some comments by David Miller.
-	  2. Addressed some internal comments on various patches
-Patch V1: Initial Submit
-
-NOTE: This patch depends upon https://lkml.org/lkml/2017/11/30/1079
-
-Salil Mehta (8):
-  net: hns3: Add HNS3 VF IMP(Integrated Management Proc) cmd interface
-  net: hns3: Add mailbox support to VF driver
-  net: hns3: Add HNS3 VF HCL(Hardware Compatibility Layer) Support
-  net: hns3: Add HNS3 VF driver to kernel build framework
-  net: hns3: Unified HNS3 {VF|PF} Ethernet Driver for hip08 SoC
-  net: hns3: Add mailbox support to PF driver
-  net: hns3: Change PF to add ring-vect binding & resetQ to mailbox
-  net: hns3: Add mailbox interrupt handling to PF driver
-
- drivers/net/ethernet/hisilicon/Kconfig             |   28 +-
- drivers/net/ethernet/hisilicon/hns3/Makefile       |    7 +-
- drivers/net/ethernet/hisilicon/hns3/hclge_mbx.h    |   94 ++
- drivers/net/ethernet/hisilicon/hns3/hnae3.c        |   14 +-
- drivers/net/ethernet/hisilicon/hns3/hnae3.h        |    7 +-
- .../hisilicon/hns3/{hns3pf => }/hns3_dcbnl.c       |    2 +-
- .../hisilicon/hns3/{hns3pf => }/hns3_enet.c        |    2 +
- .../hisilicon/hns3/{hns3pf => }/hns3_enet.h        |    0
- .../hisilicon/hns3/{hns3pf => }/hns3_ethtool.c     |   22 +-
- .../net/ethernet/hisilicon/hns3/hns3pf/Makefile    |    7 +-
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    |  207 +--
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |   17 +-
- .../net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c |  416 ++++++
- .../net/ethernet/hisilicon/hns3/hns3vf/Makefile    |    8 +
- .../ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.c   |  348 +++++
- .../ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.h   |  262 ++++
- .../ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c  | 1495 ++++++++++++++++++++
- .../ethernet/hisilicon/hns3/hns3vf/hclgevf_main.h  |  170 +++
- .../ethernet/hisilicon/hns3/hns3vf/hclgevf_mbx.c   |  188 +++
- 19 files changed, 3171 insertions(+), 123 deletions(-)
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hclge_mbx.h
- rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_dcbnl.c (97%)
- rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_enet.c (99%)
- rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_enet.h (100%)
- rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_ethtool.c (97%)
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/Makefile
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.c
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.h
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.h
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_mbx.c
-
--- 
-2.7.4
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
