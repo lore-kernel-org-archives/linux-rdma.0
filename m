@@ -1,51 +1,62 @@
-From: Philippe Ombredanne <pombredanne-od1rfyK75/E@public.gmane.org>
-Subject: Re: [PATCH V2 net-next 2/8] net: hns3: Add mailbox support to VF driver
-Date: Sat, 9 Dec 2017 01:16:44 +0100
-Message-ID: <CAOFm3uH0G7hA0kpiH+SivdLQ6hH_Prq7_gHg6O-hoaO94dPoTQ@mail.gmail.com>
-References: <20171208211702.20104-1-salil.mehta@huawei.com> <20171208211702.20104-3-salil.mehta@huawei.com>
+From: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: 0-day service tree move for rdma
+Date: Sat, 9 Dec 2017 10:26:16 +0800
+Message-ID: <20171209022616.mqpubc6aib5rtcgf@wfg-t540p.sh.intel.com>
+References: <20171209001111.GA23222@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171208211702.20104-3-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171209001111.GA23222-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: kbuild-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKP <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sali,
+Hi Jason,
 
-On Fri, Dec 8, 2017 at 10:16 PM, Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:
-> This patch adds the support of the mailbox to the VF driver. The
-> mailbox shall be used as an interface to communicate with the
-> PF driver for various purposes like {set|get} MAC related
-> operations, reset, link status etc. The mailbox supports both
-> synchronous and asynchronous command send to PF driver.
+On Fri, Dec 08, 2017 at 05:11:11PM -0700, Jason Gunthorpe wrote:
+>Hi Fengguang,
 >
-> Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: lipeng <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-[...]
-> --- /dev/null
-> +++ b/drivers/net/ethernet/hisilicon/hns3/hclge_mbx.h
-> @@ -0,0 +1,94 @@
-> +/*
-> + * Copyright (c) 2016-2017 Hisilicon Limited.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + */
+>RDMA has moved to a co-maintainer and shared tree model for our
+>official repo, can you update the 0-day build service information?
 
-Why not use the new SPDX ids?
-e.g.
-> +/* SPDX-License-Identifier: GPL-2.0+ */
-> +/* Copyright (c) 2016-2017 Hisilicon Limited. */
+My pleasure!
 
-See Linus posts and Thomas doc patches for details.
+>I looked at your lktp git tree and came up with the patch below, not
+>sure it is totally right, and wasn't able to check 'subsystems'..
 
--- 
-Cordially
-Philippe Ombredanne
+The subsystems annotation are to help find the most relevant base git
+tree to git-am LKML patches.
+
+For example,
+
+        [PATCH] ib: do some change
+
+If your tree has "ib" included in the subsystems field, then the patch
+will have higher match score to your git tree.
+
+>The main thing is we'd like to test all branches in rdma.git, and
+>loose patches posted to our mailing list (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
+>and both of us would receive email'd build completion notifications.
+
+OK.
+
+>Thank you for running this service, we in the RDMA community have
+>found it valuable!
+
+Thank you for your appreciations!
+
+>+git_am_branch: for-next
+>+integration_testing_branches: for-next
+
+integration_testing_branches automatically indicates git_am_branch.
+The former also means the branch is merge tested by linux-next.
+
+So I'll remove the git_am_branch line.
+
+Thanks,
+Fengguang
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
