@@ -1,25 +1,60 @@
-From: "Mr Sheng Li Hung" <adriana.elizarraraz-d4AIltEf0nVYxB0tnECJ6MM5IpDPU1no@public.gmane.org>
-Subject: Seasons greetings
-Date: Mon, 11 Dec 2017 03:52:01 -0800
-Message-ID: <20171211115536.2CF85610DCBE@mail.diputadospan.org.mx>
-Reply-To: shengli19-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+From: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v1] IB/srp: replace custom implementation of hex2bin()
+Date: Mon, 11 Dec 2017 15:05:05 +0200
+Message-ID: <20171211130505.34631-1-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <adriana.elizarraraz-d4AIltEf0nVYxB0tnECJ6MM5IpDPU1no@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I am Mr.Sheng Li Hung, from china I got your information while search for
-a reliable person, I have a very profitable business proposition for you
-and i can assure you that you will not regret been part of this mutual
-beneficial transaction after completion. Kindly get back to me for more
-details on this email id: shengli19-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
+From: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Thanks
-Sheng Li Hung
+There is no need to have a duplication of the generic library, i.e.
+hex2bin().
+
+Replace the open coded variant.
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 972d4b3c5223..62d88212c1b0 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -3110,7 +3110,6 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+ {
+ 	char *options, *sep_opt;
+ 	char *p;
+-	char dgid[3];
+ 	substring_t args[MAX_OPT_ARGS];
+ 	int opt_mask = 0;
+ 	int token;
+@@ -3162,16 +3161,10 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+ 				goto out;
+ 			}
+ 
+-			for (i = 0; i < 16; ++i) {
+-				strlcpy(dgid, p + i * 2, sizeof(dgid));
+-				if (sscanf(dgid, "%hhx",
+-					   &target->orig_dgid.raw[i]) < 1) {
+-					ret = -EINVAL;
+-					kfree(p);
+-					goto out;
+-				}
+-			}
++			ret = hex2bin(target->orig_dgid.raw, p, 16);
+ 			kfree(p);
++			if (ret < 0)
++				goto out;
+ 			break;
+ 
+ 		case SRP_OPT_PKEY:
+-- 
+2.15.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
