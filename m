@@ -1,33 +1,45 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [v1] IB/srp: replace custom implementation of hex2bin()
-Date: Mon, 11 Dec 2017 16:41:36 -0700
-Message-ID: <20171211234136.GJ32020@ziepe.ca>
-References: <20171211130505.34631-1-andriy.shevchenko@linux.intel.com>
+Subject: Re: [v3,1/9] RDMA/core: Add implicit per-device completion queue
+ pools
+Date: Mon, 11 Dec 2017 16:50:44 -0700
+Message-ID: <20171211235044.GA32331@ziepe.ca>
+References: <20171108095742.25365-2-sagi@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171211130505.34631-1-andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+In-Reply-To: <20171108095742.25365-2-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 11, 2017 at 03:05:05PM +0200, Andy Shevchenko wrote:
-> From: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+On Wed, Nov 08, 2017 at 11:57:34AM +0200, Sagi Grimberg wrote:
+> Allow a ULP to ask the core to implicitly assign a completion
+> queue to a queue-pair based on a least-used search on a per-device
+> cq pools. The device CQ pools grow in a lazy fashion with every
+> QP creation.
 > 
-> There is no need to have a duplication of the generic library, i.e.
-> hex2bin().
+> In addition, expose an affinity hint for a queue pair creation.
+> If passed, the core will attempt to attach a CQ with a completion
+> vector that is directed to the cpu core as the affinity hint
+> provided.
 > 
-> Replace the open coded variant.
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> Acked-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
->  drivers/infiniband/ulp/srp/ib_srp.c | 13 +++----------
->  1 file changed, 3 insertions(+), 10 deletions(-)
+> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 
-applied to for-next, thanks
+Sagi, Bart,
 
+Did we reach a conclusion on this? Is v3 the series to take, and
+should it all go through the RDMA tree? It looks like there are some
+missing acks for that??
+
+I think there was also an unapplied comment from bart in the
+patchworks notes...
+
+Could you please add some commit messages when you resend it? Not sure
+I should be accepting such large commits with empty messages???
+
+Thanks,
 Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
