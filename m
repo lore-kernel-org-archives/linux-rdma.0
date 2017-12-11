@@ -1,42 +1,33 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH 6/8] verbs: Fill in the libibverbs.map file
-Date: Mon, 11 Dec 2017 08:48:11 -0700
-Message-ID: <20171211154811.GA6162@ziepe.ca>
-References: <20171205231721.19410-1-jgg@ziepe.ca>
- <20171205231721.19410-7-jgg@ziepe.ca>
- <38cbce8e-d177-b4eb-efec-c54951b1cb29@dev.mellanox.co.il>
+Subject: Re: [PATCH for-next 0/2] Revise eq support for hip06 & hip08
+Date: Mon, 11 Dec 2017 08:49:02 -0700
+Message-ID: <20171211154902.GA27709@ziepe.ca>
+References: <1510651577-20794-1-git-send-email-liuyixian@huawei.com>
+ <4636858b-4ae8-e37e-d2d3-44441560f266@huawei.com>
+ <6d0a2aee-54e0-90dd-5293-7f8a5dac7d36@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <38cbce8e-d177-b4eb-efec-c54951b1cb29-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <6d0a2aee-54e0-90dd-5293-7f8a5dac7d36-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 10, 2017 at 07:01:52PM +0200, Yishai Hadas wrote:
-> On 12/6/2017 1:17 AM, Jason Gunthorpe wrote:
-> >From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> >Several of the 'latest' verbs are missing from the map file.
+On Mon, Dec 11, 2017 at 04:55:23PM +0800, Liuyixian (Eason) wrote:
+> Hi Jason,
 > 
-> Which 'latest' verbs are you referring to ? quite hard to follow post the
-> sort.
-
-Pretty much all the ones listed as '+' in - 'latest' means they are
-using LATEST_SYMVER_FUNC
-
-> >The linker does the right thing anyhow since they are tagged with the
-> >.symver assembler directive, but let us list them anyhow so that the
-> >map file is a complete list of symbols.
+> This patch-set was based on Doug's RDMA tree:
+> git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
 > 
-> If the linker does the work why do we really need to maintain it now and in
-> the future ?
+> Should I resend this patch-set based on the new shared RDMA git tree?
+> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
 
-Technicaly all symbols should be in the map file. I would view the
-linker exposing symbols not in the map file as some weird behavior we
-shouldn't rely on.
+At this point it needs to apply cleanly on rc2 which is what is on the
+rdma tree right now.
+
+If it doesn't then you need to retest/resend..
 
 Jason
 --
