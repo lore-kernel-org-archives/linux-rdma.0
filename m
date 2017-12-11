@@ -1,18 +1,73 @@
-From: "Mrs Alice Walton" <adriana.elizarraraz-d4AIltEf0nVYxB0tnECJ6MM5IpDPU1no@public.gmane.org>
-Subject: Dear Friend
-Date: Sun, 10 Dec 2017 09:16:37 -0800
-Message-ID: <20171210171942.C6A2C610DB5B@mail.diputadospan.org.mx>
-Reply-To: contact-zpqeW+HYUT5f8KMLZ49M8w@public.gmane.org
+From: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 0/2] Revise eq support for hip06 & hip08
+Date: Mon, 11 Dec 2017 16:55:23 +0800
+Message-ID: <6d0a2aee-54e0-90dd-5293-7f8a5dac7d36@huawei.com>
+References: <1510651577-20794-1-git-send-email-liuyixian@huawei.com>
+ <4636858b-4ae8-e37e-d2d3-44441560f266@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
+In-Reply-To: <4636858b-4ae8-e37e-d2d3-44441560f266-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <adriana.elizarraraz-d4AIltEf0nVYxB0tnECJ6MM5IpDPU1no@public.gmane.org>
+To: jgg-uk2M96/98Pc@public.gmane.org
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-my name is Mrs. Alice Walton, a business woman an America Citizen and the heiress to the fortune of Walmart stores, born October 7, 1949. I have a mission for you worth $100,000,000.00(Hundred Million United State Dollars) which I intend using for CHARITY
+Hi Jason,
+
+This patch-set was based on Doug's RDMA tree:
+git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+
+Should I resend this patch-set based on the new shared RDMA git tree?
+git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
+
+Thanks
+
+On 2017/12/4 17:33, Liuyixian (Eason) wrote:
+> Hi Doug,
+> 
+> Should I make some changes for this patch-set for the further review?
+> 
+> Regards
+> 
+> 
+> On 2017/11/14 17:26, Yixian Liu wrote:
+>> This patch-set refactor eq code for hip06 and add eq
+>> support for hip08.
+>>
+>> Yixian Liu (2):
+>>   RDMA/hns: Refactor eq code for hip06
+>>   RDMA/hns: Add eq support of hip08
+>>
+>>  drivers/infiniband/hw/hns/Makefile          |    2 +-
+>>  drivers/infiniband/hw/hns/hns_roce_cmd.c    |    1 +
+>>  drivers/infiniband/hw/hns/hns_roce_cmd.h    |   10 +
+>>  drivers/infiniband/hw/hns/hns_roce_common.h |   11 +
+>>  drivers/infiniband/hw/hns/hns_roce_cq.c     |   19 +-
+>>  drivers/infiniband/hw/hns/hns_roce_device.h |   83 +-
+>>  drivers/infiniband/hw/hns/hns_roce_eq.c     |  759 -----------------
+>>  drivers/infiniband/hw/hns/hns_roce_eq.h     |  134 ---
+>>  drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  740 ++++++++++++++++-
+>>  drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |   44 +-
+>>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 1177 ++++++++++++++++++++++++++-
+>>  drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  192 ++++-
+>>  drivers/infiniband/hw/hns/hns_roce_main.c   |   16 +-
+>>  drivers/infiniband/hw/hns/hns_roce_qp.c     |    1 +
+>>  14 files changed, 2251 insertions(+), 938 deletions(-)
+>>  delete mode 100644 drivers/infiniband/hw/hns/hns_roce_eq.c
+>>  delete mode 100644 drivers/infiniband/hw/hns/hns_roce_eq.h
+>>
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> .
+> 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
