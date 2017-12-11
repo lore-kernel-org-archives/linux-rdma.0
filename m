@@ -1,55 +1,38 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: RE: [PATCH V2 net-next 2/8] net: hns3: Add mailbox support to VF
- driver
-Date: Mon, 11 Dec 2017 16:04:41 +0000
-Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93BB72023@FRAEML521-MBX.china.huawei.com>
-References: <20171208211702.20104-1-salil.mehta@huawei.com>
- <20171208211702.20104-3-salil.mehta@huawei.com>
- <CAOFm3uH0G7hA0kpiH+SivdLQ6hH_Prq7_gHg6O-hoaO94dPoTQ@mail.gmail.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [rdma-rc] iw_cxgb4: only clear the ARMED bit if a notification is needed
+Date: Mon, 11 Dec 2017 10:12:48 -0600
+Message-ID: <05ea01d3729a$e3634460$aa29cd20$@opengridcomputing.com>
+References: <20171201213130.1ED79E0C84@smtp.ogc.us> <20171207211637.GA9479@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOFm3uH0G7hA0kpiH+SivdLQ6hH_Prq7_gHg6O-hoaO94dPoTQ@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Philippe Ombredanne <pombredanne@nexb.com>
-Cc: "David S. Miller" <davem@davemloft.net>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "lipeng (Y)" <lipeng321@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171207211637.GA9479-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgUGhpbGlwcGUsDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUGhp
-bGlwcGUgT21icmVkYW5uZSBbbWFpbHRvOnBvbWJyZWRhbm5lQG5leGIuY29tXQ0KPiBTZW50OiBT
-YXR1cmRheSwgRGVjZW1iZXIgMDksIDIwMTcgMTI6MTcgQU0NCj4gVG86IFNhbGlsIE1laHRhIDxz
-YWxpbC5tZWh0YUBodWF3ZWkuY29tPg0KPiBDYzogRGF2aWQgUy4gTWlsbGVyIDxkYXZlbUBkYXZl
-bWxvZnQubmV0PjsgWmh1YW5neXV6ZW5nIChZaXNlbikNCj4gPHlpc2VuLnpodWFuZ0BodWF3ZWku
-Y29tPjsgbGlwZW5nIChZKSA8bGlwZW5nMzIxQGh1YXdlaS5jb20+Ow0KPiBtZWh0YS5zYWxpbC5s
-bmtAZ21haWwuY29tOyBuZXRkZXZAdmdlci5rZXJuZWwub3JnOyBMS01MIDxsaW51eC0NCj4ga2Vy
-bmVsQHZnZXIua2VybmVsLm9yZz47IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBMaW51eGFy
-bQ0KPiA8bGludXhhcm1AaHVhd2VpLmNvbT4NCj4gU3ViamVjdDogUmU6IFtQQVRDSCBWMiBuZXQt
-bmV4dCAyLzhdIG5ldDogaG5zMzogQWRkIG1haWxib3ggc3VwcG9ydCB0bw0KPiBWRiBkcml2ZXIN
-Cj4gDQo+IFNhbGksDQoNClNhbGkgLS0tPiBTYWxpbA0KDQpUaGFua3MNCj4gDQo+IE9uIEZyaSwg
-RGVjIDgsIDIwMTcgYXQgMTA6MTYgUE0sIFNhbGlsIE1laHRhIDxzYWxpbC5tZWh0YUBodWF3ZWku
-Y29tPg0KPiB3cm90ZToNCj4gPiBUaGlzIHBhdGNoIGFkZHMgdGhlIHN1cHBvcnQgb2YgdGhlIG1h
-aWxib3ggdG8gdGhlIFZGIGRyaXZlci4gVGhlDQo+ID4gbWFpbGJveCBzaGFsbCBiZSB1c2VkIGFz
-IGFuIGludGVyZmFjZSB0byBjb21tdW5pY2F0ZSB3aXRoIHRoZQ0KPiA+IFBGIGRyaXZlciBmb3Ig
-dmFyaW91cyBwdXJwb3NlcyBsaWtlIHtzZXR8Z2V0fSBNQUMgcmVsYXRlZA0KPiA+IG9wZXJhdGlv
-bnMsIHJlc2V0LCBsaW5rIHN0YXR1cyBldGMuIFRoZSBtYWlsYm94IHN1cHBvcnRzIGJvdGgNCj4g
-PiBzeW5jaHJvbm91cyBhbmQgYXN5bmNocm9ub3VzIGNvbW1hbmQgc2VuZCB0byBQRiBkcml2ZXIu
-DQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBTYWxpbCBNZWh0YSA8c2FsaWwubWVodGFAaHVhd2Vp
-LmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBsaXBlbmcgPGxpcGVuZzMyMUBodWF3ZWkuY29tPg0K
-PiBbLi4uXQ0KPiA+IC0tLSAvZGV2L251bGwNCj4gPiArKysgYi9kcml2ZXJzL25ldC9ldGhlcm5l
-dC9oaXNpbGljb24vaG5zMy9oY2xnZV9tYnguaA0KPiA+IEBAIC0wLDAgKzEsOTQgQEANCj4gPiAr
-LyoNCj4gPiArICogQ29weXJpZ2h0IChjKSAyMDE2LTIwMTcgSGlzaWxpY29uIExpbWl0ZWQuDQo+
-ID4gKyAqDQo+ID4gKyAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJl
-ZGlzdHJpYnV0ZSBpdCBhbmQvb3INCj4gbW9kaWZ5DQo+ID4gKyAqIGl0IHVuZGVyIHRoZSB0ZXJt
-cyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgYXMgcHVibGlzaGVkDQo+IGJ5DQo+
-ID4gKyAqIHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247IGVpdGhlciB2ZXJzaW9uIDIgb2Yg
-dGhlIExpY2Vuc2UsIG9yDQo+ID4gKyAqIChhdCB5b3VyIG9wdGlvbikgYW55IGxhdGVyIHZlcnNp
-b24uDQo+ID4gKyAqLw0KPiANCj4gV2h5IG5vdCB1c2UgdGhlIG5ldyBTUERYIGlkcz8NCldlIGNh
-bi4gSSB3aWxsIGNoYW5nZSB0aGUgaGVhZGVycyBmb3IgZmlsZXMgWy5jIC5oIE1ha2VmaWxlXSBw
-YXJ0IG9mIEhOUzMNClZGIGRyaXZlciBjaGFuZ2UgaW4gbmV4dCBWMyBwYXRjaCBzdWJtaXQuDQoN
-Cj4gZS5nLg0KPiA+ICsvKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogR1BMLTIuMCsgKi8NCj4g
-PiArLyogQ29weXJpZ2h0IChjKSAyMDE2LTIwMTcgSGlzaWxpY29uIExpbWl0ZWQuICovDQo+IA0K
-PiBTZWUgTGludXMgcG9zdHMgYW5kIFRob21hcyBkb2MgcGF0Y2hlcyBmb3IgZGV0YWlscy4NClN1
-cmUuDQoNClRoYW5rcyENCj4gDQo+IC0tDQo+IENvcmRpYWxseQ0KPiBQaGlsaXBwZSBPbWJyZWRh
-bm5lDQo=
+> 
+> Applied to -rc, thanks
+> 
+> Jason
+
+Thanks!  I also have this one for -rc:
+
+https://www.spinics.net/lists/linux-rdma/msg57860.html
+
+Steve.
+
+
+
+---
+This email has been checked for viruses by AVG.
+http://www.avg.com
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
