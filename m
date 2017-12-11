@@ -1,26 +1,61 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH v1] IB/srp: replace custom implementation of hex2bin()
-Date: Mon, 11 Dec 2017 20:00:24 +0000
-Message-ID: <1513022423.2747.17.camel@sandisk.com>
-References: <20171211130505.34631-1-andriy.shevchenko@linux.intel.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH for-rc 6/6] RDMA/vmw_pvrdma: Add UAR SRQ macros in ABI
+ header file
+Date: Mon, 11 Dec 2017 13:12:24 -0700
+Message-ID: <20171211201224.GC27709@ziepe.ca>
+References: <20171208185818.GA28514@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+ <20171208190317.GA3636@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+ <20171208232809.GA23239@ziepe.ca>
+ <20171211183554.GB20684@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171211130505.34631-1-andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <1E6628EFB2086242BF46425A19A3A16C-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171211183554.GB20684-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE3LTEyLTExIGF0IDE1OjA1ICswMjAwLCBBbmR5IFNoZXZjaGVua28gd3JvdGU6
-DQo+IEZyb206IEFuZHkgU2hldmNoZW5rbyA8YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbT4NCj4g
-DQo+IFRoZXJlIGlzIG5vIG5lZWQgdG8gaGF2ZSBhIGR1cGxpY2F0aW9uIG9mIHRoZSBnZW5lcmlj
-IGxpYnJhcnksIGkuZS4NCj4gaGV4MmJpbigpLg0KPiANCj4gUmVwbGFjZSB0aGUgb3BlbiBjb2Rl
-ZCB2YXJpYW50Lg0KDQpBY2tlZC1ieTogQmFydCBWYW4gQXNzY2hlIDxiYXJ0LnZhbmFzc2NoZUB3
-ZGMuY29tPg0KDQo=
+On Mon, Dec 11, 2017 at 10:35:55AM -0800, Bryan Tan wrote:
+> On Fri, Dec 08, 2017 at 04:28:09PM -0700, Jason Gunthorpe wrote:
+> > On Fri, Dec 08, 2017 at 11:03:26AM -0800, Bryan Tan wrote:
+> > > Add the two UAR SRQ macros that are required by the userlevel
+> > > library.
+> > > 
+> > > Fixes: 8b10ba783c9d ("RDMA/vmw_pvrdma: Add shared receive queue support")
+> > > Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > >  include/uapi/rdma/vmw_pvrdma-abi.h | 2 ++
+> > >  1 file changed, 2 insertions(+)
+> > > 
+> > > diff --git a/include/uapi/rdma/vmw_pvrdma-abi.h b/include/uapi/rdma/vmw_pvrdma-abi.h
+> > > index aaa352f..4007cac 100644
+> > > +++ b/include/uapi/rdma/vmw_pvrdma-abi.h
+> > > @@ -58,6 +58,8 @@
+> > >  #define PVRDMA_UAR_CQ_ARM_SOL		BIT(29)		/* Arm solicited bit. */
+> > >  #define PVRDMA_UAR_CQ_ARM		BIT(30)		/* Arm bit. */
+> > >  #define PVRDMA_UAR_CQ_POLL		BIT(31)		/* Poll bit. */
+> > > +#define PVRDMA_UAR_SRQ_OFFSET		8		/* SRQ doorbell. */
+> > > +#define PVRDMA_UAR_SRQ_RECV		BIT(30)		/* Recv bit. */
+> > 
+> > I didn't think BIT() was allowed in uapi headers? Where does it get
+> > defined in user space?
+> > 
+> > Jason
+> 
+> Looks like we had BIT() defined in userspace.
+
+In rdma-core? Please remove that too :)
+
+> Seems like the rest of the headers just use a bit shift? If that's
+> fine I can send out a V2 with the BIT()s removed.
+
+Yes please remove them all
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
