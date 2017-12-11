@@ -1,59 +1,111 @@
-From: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v1] IB/srp: replace custom implementation of hex2bin()
-Date: Mon, 11 Dec 2017 15:05:05 +0200
-Message-ID: <20171211130505.34631-1-andriy.shevchenko@linux.intel.com>
+From: Nicolas Morey-Chaisemartin <nmoreychaisemartin-IBi9RG/b67k@public.gmane.org>
+Subject: [RFC rdma-core 2/2] srp_daemon: fix CQ handling
+Date: Mon, 11 Dec 2017 15:46:00 +0100
+Message-ID: <f35bfdad-9027-d2be-9706-b5a0edd9a778@suse.com>
+References: <82dc0912-3ac3-9548-2c3b-703c6e1c9c95@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <82dc0912-3ac3-9548-2c3b-703c6e1c9c95-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+SM traps are polled through poll_cq which waited for a CQ event
+before polling the CQ itself.
+However it may happens that multiple completions are attached
+to a single event. As stated by the ibv_get_cq_event, it is required
+to poll the the CQ to get those event after the call to
+ibv_req_notify_cq.
 
-There is no need to have a duplication of the generic library, i.e.
-hex2bin().
+As completion need to be handled one by one in an outer function,
+start by polling the CQ and return the event (if any) before waiting
+for the next completion event.
 
-Replace the open coded variant.
+The buggy use case seem to appear when the master SM is switched multiple
+times between two nodes. As the number of ping-pong between the SM increases,
+the number of traps sent to notify that the SM just became master increases
+too. This causes burst of completions linked to a single event.
+Note that the race condition is also possible in other scenario.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+ srp_daemon/srp_handle_traps.c | 40 ++++++++++++++++++++++++++++------------
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 972d4b3c5223..62d88212c1b0 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -3110,7 +3110,6 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+This patch goes on top of the one proposed in the thread.
+
+ 1 file changed, 28 insertions(+), 12 deletions(-)
+
+diff --git a/srp_daemon/srp_handle_traps.c b/srp_daemon/srp_handle_traps.c
+index b1d051c6..eaa57979 100644
+--- a/srp_daemon/srp_handle_traps.c
++++ b/srp_daemon/srp_handle_traps.c
+@@ -496,6 +496,27 @@ static int stop_threads(struct sync_resources *sync_res)
+ 	return result;
+ }
+ 
++tatic int poll_cq_once(struct sync_resources *sync_res, struct ibv_cq *cq,
++           struct ibv_wc *wc)
++{
++	int ret;
++	ret = ibv_poll_cq(cq, 1, wc);
++	if (ret < 0) {
++		pr_err("poll CQ failed\n");
++		return ret;
++	}
++
++	if (ret > 0 && wc->status != IBV_WC_SUCCESS) {
++		if (!stop_threads(sync_res))
++			pr_err("got bad completion with status: 0x%x\n",
++			       wc->status);
++		return -ret;
++	}
++
++	return ret;
++}
++
++
+ static int poll_cq(struct sync_resources *sync_res, struct ibv_cq *cq,
+ 		   struct ibv_wc *wc, struct ibv_comp_channel *channel)
  {
- 	char *options, *sep_opt;
- 	char *p;
--	char dgid[3];
- 	substring_t args[MAX_OPT_ARGS];
- 	int opt_mask = 0;
- 	int token;
-@@ -3162,16 +3161,10 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				goto out;
- 			}
+@@ -504,6 +525,12 @@ static int poll_cq(struct sync_resources *sync_res, struct ibv_cq *cq,
+ 	void          *ev_ctx;
  
--			for (i = 0; i < 16; ++i) {
--				strlcpy(dgid, p + i * 2, sizeof(dgid));
--				if (sscanf(dgid, "%hhx",
--					   &target->orig_dgid.raw[i]) < 1) {
--					ret = -EINVAL;
--					kfree(p);
--					goto out;
--				}
--			}
-+			ret = hex2bin(target->orig_dgid.raw, p, 16);
- 			kfree(p);
-+			if (ret < 0)
-+				goto out;
- 			break;
+ 	if (channel) {
++		/* Poll CQ once. There may be extra completion that
++		 * were associated to the previous event */
++		ret = poll_cq_once(sync_res, cq, wc);
++		if (ret)
++			return ret;
++
+ 		if (ibv_get_cq_event(channel, &ev_cq, &ev_ctx)) {
+ 			pr_err("Failed to get cq_event\n");
+ 			return -1;
+@@ -524,18 +551,7 @@ static int poll_cq(struct sync_resources *sync_res, struct ibv_cq *cq,
+ 	}
  
- 		case SRP_OPT_PKEY:
+ 	do {
+-		ret = ibv_poll_cq(cq, 1, wc);
+-		if (ret < 0) {
+-			pr_err("poll CQ failed\n");
+-			return ret;
+-		}
+-
+-		if (ret > 0 && wc->status != IBV_WC_SUCCESS) {
+-			if (!stop_threads(sync_res))
+-				pr_err("got bad completion with status: 0x%x\n",
+-				       wc->status);
+-			return -ret;
+-		}
++		ret = poll_cq_once(sync_res, cq, wc);
+ 
+ 		if (ret == 0 && channel) {
+ 			pr_err("Weird poll returned no cqe after CQ event\n");
 -- 
-2.15.0
+2.15.1.272.g8e603414b
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
