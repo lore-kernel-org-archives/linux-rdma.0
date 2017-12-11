@@ -1,37 +1,50 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [rdma-rc] iw_cxgb4: only clear the ARMED bit if a notification is needed
-Date: Mon, 11 Dec 2017 10:12:48 -0600
-Message-ID: <05ea01d3729a$e3634460$aa29cd20$@opengridcomputing.com>
-References: <20171201213130.1ED79E0C84@smtp.ogc.us> <20171207211637.GA9479@ziepe.ca>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 6/8] verbs: Fill in the libibverbs.map file
+Date: Mon, 11 Dec 2017 18:22:37 +0200
+Message-ID: <56bb7926-5179-376d-a353-3d02fbd3b463@dev.mellanox.co.il>
+References: <20171205231721.19410-1-jgg@ziepe.ca>
+ <20171205231721.19410-7-jgg@ziepe.ca>
+ <38cbce8e-d177-b4eb-efec-c54951b1cb29@dev.mellanox.co.il>
+ <20171211154811.GA6162@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171207211637.GA9479-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <20171211154811.GA6162-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 12/11/2017 5:48 PM, Jason Gunthorpe wrote:
+> On Sun, Dec 10, 2017 at 07:01:52PM +0200, Yishai Hadas wrote:
+>> On 12/6/2017 1:17 AM, Jason Gunthorpe wrote:
+>>> From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>
+>>> Several of the 'latest' verbs are missing from the map file.
+>>
+>> Which 'latest' verbs are you referring to ? quite hard to follow post the
+>> sort.
 > 
-> Applied to -rc, thanks
+> Pretty much all the ones listed as '+' in - 'latest' means they are
+> using LATEST_SYMVER_FUNC
 > 
-> Jason
+>>> The linker does the right thing anyhow since they are tagged with the
+>>> .symver assembler directive, but let us list them anyhow so that the
+>>> map file is a complete list of symbols.
+>>
+>> If the linker does the work why do we really need to maintain it now and in
+>> the future ?
+> 
+> Technicaly all symbols should be in the map file. I would view the
+> linker exposing symbols not in the map file as some weird behavior we
+> shouldn't rely on.
 
-Thanks!  I also have this one for -rc:
-
-https://www.spinics.net/lists/linux-rdma/msg57860.html
-
-Steve.
-
-
-
----
-This email has been checked for viruses by AVG.
-http://www.avg.com
-
+You have added the extra symbols under 'IBVERBS_1.1', but this section 
+already includes 'IBVERBS_1.0' at part of its definition in the map 
+file. For example 'ibv_destroy_srq' now appears twice in both 1.0 and 1.1.
+Why current map file is not well-defined without this patch ?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
