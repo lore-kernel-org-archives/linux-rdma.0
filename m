@@ -1,50 +1,47 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
 Subject: Re: [PATCH 6/8] verbs: Fill in the libibverbs.map file
-Date: Mon, 11 Dec 2017 18:22:37 +0200
-Message-ID: <56bb7926-5179-376d-a353-3d02fbd3b463@dev.mellanox.co.il>
+Date: Mon, 11 Dec 2017 09:27:14 -0700
+Message-ID: <20171211162714.GB27709@ziepe.ca>
 References: <20171205231721.19410-1-jgg@ziepe.ca>
  <20171205231721.19410-7-jgg@ziepe.ca>
  <38cbce8e-d177-b4eb-efec-c54951b1cb29@dev.mellanox.co.il>
  <20171211154811.GA6162@ziepe.ca>
+ <56bb7926-5179-376d-a353-3d02fbd3b463@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171211154811.GA6162-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <56bb7926-5179-376d-a353-3d02fbd3b463-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/11/2017 5:48 PM, Jason Gunthorpe wrote:
-> On Sun, Dec 10, 2017 at 07:01:52PM +0200, Yishai Hadas wrote:
->> On 12/6/2017 1:17 AM, Jason Gunthorpe wrote:
->>> From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>
->>> Several of the 'latest' verbs are missing from the map file.
->>
->> Which 'latest' verbs are you referring to ? quite hard to follow post the
->> sort.
-> 
-> Pretty much all the ones listed as '+' in - 'latest' means they are
-> using LATEST_SYMVER_FUNC
-> 
->>> The linker does the right thing anyhow since they are tagged with the
->>> .symver assembler directive, but let us list them anyhow so that the
->>> map file is a complete list of symbols.
->>
->> If the linker does the work why do we really need to maintain it now and in
->> the future ?
-> 
-> Technicaly all symbols should be in the map file. I would view the
-> linker exposing symbols not in the map file as some weird behavior we
-> shouldn't rely on.
+On Mon, Dec 11, 2017 at 06:22:37PM +0200, Yishai Hadas wrote:
+> On 12/11/2017 5:48 PM, Jason Gunthorpe wrote:
+ 
+> You have added the extra symbols under 'IBVERBS_1.1', but this section
+> already includes 'IBVERBS_1.0' at part of its definition in the map
+> file.
 
-You have added the extra symbols under 'IBVERBS_1.1', but this section 
-already includes 'IBVERBS_1.0' at part of its definition in the map 
-file. For example 'ibv_destroy_srq' now appears twice in both 1.0 and 1.1.
-Why current map file is not well-defined without this patch ?
+Each section only defines the smybols for a single symbol version.
+
+> For example 'ibv_destroy_srq' now appears twice in both 1.0 and 1.1.
+
+Correct - ibv_destroy_srq has two symbols and must appear twice in the
+map file:
+
+debian/libibverbs1.symbols: ibv_destroy_srq@IBVERBS_1.0 1.1.6
+debian/libibverbs1.symbols: ibv_destroy_srq@IBVERBS_1.1 1.1.6
+
+libibverbs/compat-1_0.c:COMPAT_SYMVER_FUNC(ibv_destroy_srq, 1_0, "IBVERBS_1.0",
+libibverbs/verbs.c:LATEST_SYMVER_FUNC(ibv_destroy_srq, 1_1, "IBVERBS_1.1",
+
+> Why current map file is not well-defined without this patch ?
+
+Every stanza should list every symobl defined for the varsion.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
