@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags 1/2] smpdump.c: Minor fix for when umad_recv
- fails
-Date: Mon, 11 Dec 2017 09:57:03 -0500
-Message-ID: <bf63fe27-d04e-140c-6ed2-61a7c719d2ee@dev.mellanox.co.il>
+Subject: [PATCH infiniband-diags 2/2] smpdump.c: Print number of bytes
+ returned by umad_recv
+Date: Mon, 11 Dec 2017 09:57:23 -0500
+Message-ID: <499f1d77-7da6-2c00-e826-bf4d0809f48a@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -14,27 +14,24 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-There is no SMP and hence no SMP in this case.
-Error displayed should be based on errno.
-
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/smpdump.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/smpdump.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/src/smpdump.c b/src/smpdump.c
-index 6105ec8..bc8559a 100644
+index bc8559a..bb304d4 100644
 --- a/src/smpdump.c
 +++ b/src/smpdump.c
-@@ -279,7 +279,7 @@ int main(int argc, char *argv[])
- 		IBPANIC("send failed");
- 
+@@ -281,6 +281,8 @@ int main(int argc, char *argv[])
  	if (umad_recv(portid, umad, &length, -1) != mad_agent)
--		IBPANIC("recv error: %s", drmad_status_str(smp));
-+		IBPANIC("recv error: %s", strerror(errno));
+ 		IBPANIC("recv error: %s", strerror(errno));
  
++	printf("%d bytes received\n", length);
++
  	if (!dump_char) {
  		xdump(stdout, 0, smp->data, 64);
+ 		if (smp->status)
 -- 
 2.8.4
 
