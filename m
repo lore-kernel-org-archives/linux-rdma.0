@@ -1,35 +1,32 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: i40w: Remove garbage at end of INFINIBAND_I40IW Kconfig section
-Date: Mon, 11 Dec 2017 16:37:53 -0700
-Message-ID: <20171211233753.GC32020@ziepe.ca>
-References: <1511117961-25096-1-git-send-email-geert@linux-m68k.org>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: RDMA/vmw_pvrdma: Do not re-calculate npages
+Date: Mon, 11 Dec 2017 16:38:10 -0700
+Message-ID: <20171211233810.GD32020@ziepe.ca>
+References: <20171126115135.5824-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1511117961-25096-1-git-send-email-geert@linux-m68k.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Faisal Latif <faisal.latif@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20171126115135.5824-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Nov 19, 2017 at 07:59:21PM +0100, Geert Uytterhoeven wrote:
-> Remove leftover garbage (containing Kconfig dependencies for another
-> symbol?)
+On Sun, Nov 26, 2017 at 01:51:35PM +0200, Yuval Shaia wrote:
+> There is no need to re-calculate the number of pages since it is already
+> done in ib_umem_get.
 > 
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Acked-by: Shiraz Saleem <shiraz.saleem@intel.com>
->  drivers/infiniband/hw/i40iw/Kconfig | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/i40iw/Kconfig b/drivers/infiniband/hw/i40iw/Kconfig
-> index f6d20ba88c03df3c..2962979c06e9ef51 100644
-> +++ b/drivers/infiniband/hw/i40iw/Kconfig
-> @@ -5,4 +5,3 @@ config INFINIBAND_I40IW
->  	select GENERIC_ALLOCATOR
->  	Intel(R) Ethernet X722 iWARP Driver
-> -	INET && I40IW && INFINIBAND && I40E
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Acked-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Tested-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_mr.c | 15 ++++-----------
+>  1 file changed, 4 insertions(+), 11 deletions(-)
 
 Applied to for-next, thanks
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
