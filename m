@@ -1,49 +1,60 @@
-From: Nicolas Morey-Chaisemartin <nmoreychaisemartin-IBi9RG/b67k@public.gmane.org>
-Subject: Re: [RFC rdma-core 2/2] srp_daemon: fix CQ handling
-Date: Mon, 11 Dec 2017 17:38:07 +0100
-Message-ID: <31e8bc8d-2d76-95ad-37cb-62576bd4afa9@suse.com>
-References: <82dc0912-3ac3-9548-2c3b-703c6e1c9c95@dev.mellanox.co.il>
- <f35bfdad-9027-d2be-9706-b5a0edd9a778@suse.com>
- <1513009807.2747.11.camel@wdc.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 6/8] verbs: Fill in the libibverbs.map file
+Date: Mon, 11 Dec 2017 19:59:43 +0200
+Message-ID: <a72997ae-4516-9819-c3a0-c042f8baa9da@dev.mellanox.co.il>
+References: <20171205231721.19410-1-jgg@ziepe.ca>
+ <20171205231721.19410-7-jgg@ziepe.ca>
+ <38cbce8e-d177-b4eb-efec-c54951b1cb29@dev.mellanox.co.il>
+ <20171211154811.GA6162@ziepe.ca>
+ <56bb7926-5179-376d-a353-3d02fbd3b463@dev.mellanox.co.il>
+ <20171211162714.GB27709@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1513009807.2747.11.camel-Sjgp3cTcYWE@public.gmane.org>
-Content-Language: fr-xx-classique+reforme1990
+In-Reply-To: <20171211162714.GB27709-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 12/11/2017 6:27 PM, Jason Gunthorpe wrote:
+> On Mon, Dec 11, 2017 at 06:22:37PM +0200, Yishai Hadas wrote:
+>> On 12/11/2017 5:48 PM, Jason Gunthorpe wrote:
+>   
+>> You have added the extra symbols under 'IBVERBS_1.1', but this section
+>> already includes 'IBVERBS_1.0' at part of its definition in the map
+>> file.
+> 
+> Each section only defines the smybols for a single symbol version.
+> 
+>> For example 'ibv_destroy_srq' now appears twice in both 1.0 and 1.1.
+> 
+> Correct - ibv_destroy_srq has two symbols and must appear twice in the
+> map file:
+> 
+> debian/libibverbs1.symbols: ibv_destroy_srq@IBVERBS_1.0 1.1.6
+> debian/libibverbs1.symbols: ibv_destroy_srq@IBVERBS_1.1 1.1.6
+> 
+> libibverbs/compat-1_0.c:COMPAT_SYMVER_FUNC(ibv_destroy_srq, 1_0, "IBVERBS_1.0",
+> libibverbs/verbs.c:LATEST_SYMVER_FUNC(ibv_destroy_srq, 1_1, "IBVERBS_1.1",
+> 
+>> Why current map file is not well-defined without this patch ?
+> 
+> Every stanza should list every symobl defined for the varsion.
+> 
 
+Agree, so this patch comes to improve/fix the original patch [1] from 
+2007 which introduced 'IBVERBS_1.1' and relied on the linker with the 
+symvers mechanism, correct ?
 
-Le 11/12/2017 à 17:30, Bart Van Assche a écrit :
-> On Mon, 2017-12-11 at 15:46 +0100, Nicolas Morey-Chaisemartin wrote:
->> +tatic int poll_cq_once(struct sync_resources *sync_res, struct ibv_cq *cq,
->> +           struct ibv_wc *wc)
-> Has this patch been tested? I don't think that "tatic" is a valid keyword?
+[1]
+commit fd448acccecab2740b7f35f1fadc64fae6d6b9d3
+Author: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Date:   Mon Jan 29 09:22:18 2007 -0800
 
-Typo during the rebase. But the overall fix was tested yes. I'm looking for insight to make sure my understanding of the issue (and the way to fix it) is valid.
->
->> +		/* Poll CQ once. There may be extra completion that
->> +		 * were associated to the previous event */
->> +		ret = poll_cq_once(sync_res, cq, wc);
->> +		if (ret)
->> +			return ret;
-> How many extra completions can be associated with an event? Is polling once
-> sufficient? If so, please update the comment ("an" is missing / "were" ->
-> "was").
-There can be more than one.
-This should be enough becausethey would all be consumed through the call to poll_cq.
-As long as there as completion in the CQ, they will be returned directly without waiting for an event.
-Once there are no more, the code will wait for the next event again.
-
-I'll fix the typo and the log.
-
-Thanks
-
-Nicolas
+     Add ABI compatibility for apps linked against libibverbs 1.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
