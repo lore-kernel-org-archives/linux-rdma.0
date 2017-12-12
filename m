@@ -1,657 +1,398 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V3 net-next 1/8] net: hns3: Add HNS3 VF IMP(Integrated Management Proc) cmd interface
-Date: Tue, 12 Dec 2017 17:51:58 +0000
-Message-ID: <20171212175205.236-2-salil.mehta@huawei.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V3 net-next 6/8] net: hns3: Add mailbox support to PF driver
+Date: Tue, 12 Dec 2017 17:52:03 +0000
+Message-ID: <20171212175205.236-7-salil.mehta@huawei.com>
 References: <20171212175205.236-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171212175205.236-1-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171212175205.236-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Cc: salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds support of command interface for communication with
-the IMP(Integrated Management Processor) for HNS3 Virtual Function
-Driver.
+Command queue provides the provision of Mailbox command which
+can be used for communication between PF and VF. PF handles
+messages from various VFs for fetching various information like,
+queue, vlan, link status related etc. It also handles the request
+from various VFs to perform certain privileged operations.
 
-Each VF has support of CQP(Command Queue Pair) ring interface.
-Each CQP consis of send queue CSQ and receive queue CRQ.
-There are various commands a VF may support, like to query frimware
-version, TQP management, statistics, interrupt related, mailbox etc.
+This patch adds the support of a message handler for handling
+such various command requests from VF.
 
-This also contains code to initialize the command queue, manage the
-command queue descriptors and Rx/Tx protocol with the command processor
-in the form of various commands/results and acknowledgements.
-
-Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
-Signed-off-by: lipeng <lipeng321@huawei.com>
+Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: lipeng <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
-Patch V3: Addressed comment from Philippe Ombredanne
+Patch V3: Addressed SPDX change requested by Philippe Ombredanne
   Link: https://lkml.org/lkml/2017/12/8/874
-Patch V2: Reworked comments by David Miller(except one comment on the
-          udelay() while holding locks. Needs further discussion)
-  Link: https://lkml.org/lkml/2017/12/5/639
+Patch V2: No Change
 Patch V1: Initial Submit
 ---
- .../ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.c   | 344 +++++++++++++++++++++
- .../ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.h   | 256 +++++++++++++++
- 2 files changed, 600 insertions(+)
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.c
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.h
+ .../net/ethernet/hisilicon/hns3/hns3pf/Makefile    |   3 +-
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    |   1 +
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |   2 +
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c | 306 +++++++++++++++++++++
+ 4 files changed, 311 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
 
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.c b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.c
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
+index d077fa0..cb8ddd0 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
+@@ -1,3 +1,4 @@
++# SPDX-License-Identifier: GPL-2.0+
+ #
+ # Makefile for the HISILICON network device drivers.
+ #
+@@ -5,6 +6,6 @@
+ ccflags-y := -Idrivers/net/ethernet/hisilicon/hns3
+ 
+ obj-$(CONFIG_HNS3_HCLGE) += hclge.o
+-hclge-objs = hclge_main.o hclge_cmd.o hclge_mdio.o hclge_tm.o
++hclge-objs = hclge_main.o hclge_cmd.o hclge_mdio.o hclge_tm.o hclge_mbx.o
+ 
+ hclge-$(CONFIG_HNS3_DCB) += hclge_dcb.o
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
+index d07c700..980fcdf 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
+@@ -21,6 +21,7 @@
+ #include "hclge_cmd.h"
+ #include "hclge_dcb.h"
+ #include "hclge_main.h"
++#include "hclge_mbx.h"
+ #include "hclge_mdio.h"
+ #include "hclge_tm.h"
+ #include "hnae3.h"
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
+index aacec43..028817c 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
+@@ -554,4 +554,6 @@ int hclge_set_vf_vlan_common(struct hclge_dev *vport, int vfid,
+ 
+ int hclge_buffer_alloc(struct hclge_dev *hdev);
+ int hclge_rss_init_hw(struct hclge_dev *hdev);
++
++void hclge_mbx_handler(struct hclge_dev *hdev);
+ #endif
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
 new file mode 100644
-index 0000000..04b03d8
+index 0000000..5eb8fff
 --- /dev/null
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.c
-@@ -0,0 +1,344 @@
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
+@@ -0,0 +1,306 @@
 +// SPDX-License-Identifier: GPL-2.0+
 +/*
 + * Copyright (c) 2016-2017 Hisilicon Limited.
 + */
 +
-+#include <linux/device.h>
-+#include <linux/dma-direction.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/err.h>
-+#include <linux/pci.h>
-+#include <linux/slab.h>
-+#include "hclgevf_cmd.h"
-+#include "hclgevf_main.h"
++#include "hclge_main.h"
++#include "hclge_mbx.h"
 +#include "hnae3.h"
 +
-+#define hclgevf_is_csq(ring) ((ring)->flag & HCLGEVF_TYPE_CSQ)
-+#define hclgevf_ring_to_dma_dir(ring) (hclgevf_is_csq(ring) ? \
-+					DMA_TO_DEVICE : DMA_FROM_DEVICE)
-+#define cmq_ring_to_dev(ring)   (&(ring)->dev->pdev->dev)
-+
-+static int hclgevf_ring_space(struct hclgevf_cmq_ring *ring)
-+{
-+	int ntc = ring->next_to_clean;
-+	int ntu = ring->next_to_use;
-+	int used;
-+
-+	used = (ntu - ntc + ring->desc_num) % ring->desc_num;
-+
-+	return ring->desc_num - used - 1;
-+}
-+
-+static int hclgevf_cmd_csq_clean(struct hclgevf_hw *hw)
-+{
-+	struct hclgevf_cmq_ring *csq = &hw->cmq.csq;
-+	u16 ntc = csq->next_to_clean;
-+	struct hclgevf_desc *desc;
-+	int clean = 0;
-+	u32 head;
-+
-+	desc = &csq->desc[ntc];
-+	head = hclgevf_read_dev(hw, HCLGEVF_NIC_CSQ_HEAD_REG);
-+	while (head != ntc) {
-+		memset(desc, 0, sizeof(*desc));
-+		ntc++;
-+		if (ntc == csq->desc_num)
-+			ntc = 0;
-+		desc = &csq->desc[ntc];
-+		clean++;
-+	}
-+	csq->next_to_clean = ntc;
-+
-+	return clean;
-+}
-+
-+static bool hclgevf_cmd_csq_done(struct hclgevf_hw *hw)
-+{
-+	u32 head;
-+
-+	head = hclgevf_read_dev(hw, HCLGEVF_NIC_CSQ_HEAD_REG);
-+
-+	return head == hw->cmq.csq.next_to_use;
-+}
-+
-+static bool hclgevf_is_special_opcode(u16 opcode)
-+{
-+	u16 spec_opcode[] = {0x30, 0x31, 0x32};
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(spec_opcode); i++) {
-+		if (spec_opcode[i] == opcode)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
-+static int hclgevf_alloc_cmd_desc(struct hclgevf_cmq_ring *ring)
-+{
-+	int size = ring->desc_num * sizeof(struct hclgevf_desc);
-+
-+	ring->desc = kzalloc(size, GFP_KERNEL);
-+	if (!ring->desc)
-+		return -ENOMEM;
-+
-+	ring->desc_dma_addr = dma_map_single(cmq_ring_to_dev(ring), ring->desc,
-+					     size, DMA_BIDIRECTIONAL);
-+
-+	if (dma_mapping_error(cmq_ring_to_dev(ring), ring->desc_dma_addr)) {
-+		ring->desc_dma_addr = 0;
-+		kfree(ring->desc);
-+		ring->desc = NULL;
-+		return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
-+static void hclgevf_free_cmd_desc(struct hclgevf_cmq_ring *ring)
-+{
-+	dma_unmap_single(cmq_ring_to_dev(ring), ring->desc_dma_addr,
-+			 ring->desc_num * sizeof(ring->desc[0]),
-+			 hclgevf_ring_to_dma_dir(ring));
-+
-+	ring->desc_dma_addr = 0;
-+	kfree(ring->desc);
-+	ring->desc = NULL;
-+}
-+
-+static int hclgevf_init_cmd_queue(struct hclgevf_dev *hdev,
-+				  struct hclgevf_cmq_ring *ring)
-+{
-+	struct hclgevf_hw *hw = &hdev->hw;
-+	int ring_type = ring->flag;
-+	u32 reg_val;
-+	int ret;
-+
-+	ring->desc_num = HCLGEVF_NIC_CMQ_DESC_NUM;
-+	spin_lock_init(&ring->lock);
-+	ring->next_to_clean = 0;
-+	ring->next_to_use = 0;
-+	ring->dev = hdev;
-+
-+	/* allocate CSQ/CRQ descriptor */
-+	ret = hclgevf_alloc_cmd_desc(ring);
-+	if (ret) {
-+		dev_err(&hdev->pdev->dev, "failed(%d) to alloc %s desc\n", ret,
-+			(ring_type == HCLGEVF_TYPE_CSQ) ? "CSQ" : "CRQ");
-+		return ret;
-+	}
-+
-+	/* initialize the hardware registers with csq/crq dma-address,
-+	 * descriptor number, head & tail pointers
-+	 */
-+	switch (ring_type) {
-+	case HCLGEVF_TYPE_CSQ:
-+		reg_val = (u32)ring->desc_dma_addr;
-+		hclgevf_write_dev(hw, HCLGEVF_NIC_CSQ_BASEADDR_L_REG, reg_val);
-+		reg_val = (u32)((ring->desc_dma_addr >> 31) >> 1);
-+		hclgevf_write_dev(hw, HCLGEVF_NIC_CSQ_BASEADDR_H_REG, reg_val);
-+
-+		reg_val = (ring->desc_num >> HCLGEVF_NIC_CMQ_DESC_NUM_S);
-+		reg_val |= HCLGEVF_NIC_CMQ_ENABLE;
-+		hclgevf_write_dev(hw, HCLGEVF_NIC_CSQ_DEPTH_REG, reg_val);
-+
-+		hclgevf_write_dev(hw, HCLGEVF_NIC_CSQ_TAIL_REG, 0);
-+		hclgevf_write_dev(hw, HCLGEVF_NIC_CSQ_HEAD_REG, 0);
-+		break;
-+	case HCLGEVF_TYPE_CRQ:
-+		reg_val = (u32)ring->desc_dma_addr;
-+		hclgevf_write_dev(hw, HCLGEVF_NIC_CRQ_BASEADDR_L_REG, reg_val);
-+		reg_val = (u32)((ring->desc_dma_addr >> 31) >> 1);
-+		hclgevf_write_dev(hw, HCLGEVF_NIC_CRQ_BASEADDR_H_REG, reg_val);
-+
-+		reg_val = (ring->desc_num >> HCLGEVF_NIC_CMQ_DESC_NUM_S);
-+		reg_val |= HCLGEVF_NIC_CMQ_ENABLE;
-+		hclgevf_write_dev(hw, HCLGEVF_NIC_CRQ_DEPTH_REG, reg_val);
-+
-+		hclgevf_write_dev(hw, HCLGEVF_NIC_CRQ_TAIL_REG, 0);
-+		hclgevf_write_dev(hw, HCLGEVF_NIC_CRQ_HEAD_REG, 0);
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+void hclgevf_cmd_setup_basic_desc(struct hclgevf_desc *desc,
-+				  enum hclgevf_opcode_type opcode, bool is_read)
-+{
-+	memset(desc, 0, sizeof(struct hclgevf_desc));
-+	desc->opcode = cpu_to_le16(opcode);
-+	desc->flag = cpu_to_le16(HCLGEVF_CMD_FLAG_NO_INTR |
-+				 HCLGEVF_CMD_FLAG_IN);
-+	if (is_read)
-+		desc->flag |= cpu_to_le16(HCLGEVF_CMD_FLAG_WR);
-+	else
-+		desc->flag &= cpu_to_le16(~HCLGEVF_CMD_FLAG_WR);
-+}
-+
-+/* hclgevf_cmd_send - send command to command queue
-+ * @hw: pointer to the hw struct
-+ * @desc: prefilled descriptor for describing the command
-+ * @num : the number of descriptors to be sent
-+ *
-+ * This is the main send command for command queue, it
-+ * sends the queue, cleans the queue, etc
++/* hclge_gen_resp_to_vf: used to generate a synchronous response to VF when PF
++ * receives a mailbox message from VF.
++ * @vport: pointer to struct hclge_vport
++ * @vf_to_pf_req: pointer to hclge_mbx_vf_to_pf_cmd of the original mailbox
++ *		  message
++ * @resp_status: indicate to VF whether its request success(0) or failed.
 + */
-+int hclgevf_cmd_send(struct hclgevf_hw *hw, struct hclgevf_desc *desc, int num)
++static int hclge_gen_resp_to_vf(struct hclge_vport *vport,
++				struct hclge_mbx_vf_to_pf_cmd *vf_to_pf_req,
++				int resp_status,
++				u8 *resp_data, u16 resp_data_len)
 +{
-+	struct hclgevf_dev *hdev = (struct hclgevf_dev *)hw->hdev;
-+	struct hclgevf_desc *desc_to_use;
-+	bool complete = false;
-+	u32 timeout = 0;
-+	int handle = 0;
-+	int status = 0;
-+	u16 retval;
-+	u16 opcode;
-+	int ntc;
++	struct hclge_mbx_pf_to_vf_cmd *resp_pf_to_vf;
++	struct hclge_dev *hdev = vport->back;
++	enum hclge_cmd_status status;
++	struct hclge_desc desc;
 +
-+	spin_lock_bh(&hw->cmq.csq.lock);
++	resp_pf_to_vf = (struct hclge_mbx_pf_to_vf_cmd *)desc.data;
 +
-+	if (num > hclgevf_ring_space(&hw->cmq.csq)) {
-+		spin_unlock_bh(&hw->cmq.csq.lock);
-+		return -EBUSY;
++	if (resp_data_len > HCLGE_MBX_MAX_RESP_DATA_SIZE) {
++		dev_err(&hdev->pdev->dev,
++			"PF fail to gen resp to VF len %d exceeds max len %d\n",
++			resp_data_len,
++			HCLGE_MBX_MAX_RESP_DATA_SIZE);
 +	}
 +
-+	/* Record the location of desc in the ring for this time
-+	 * which will be use for hardware to write back
-+	 */
-+	ntc = hw->cmq.csq.next_to_use;
-+	opcode = le16_to_cpu(desc[0].opcode);
-+	while (handle < num) {
-+		desc_to_use = &hw->cmq.csq.desc[hw->cmq.csq.next_to_use];
-+		*desc_to_use = desc[handle];
-+		(hw->cmq.csq.next_to_use)++;
-+		if (hw->cmq.csq.next_to_use == hw->cmq.csq.desc_num)
-+			hw->cmq.csq.next_to_use = 0;
-+		handle++;
-+	}
++	hclge_cmd_setup_basic_desc(&desc, HCLGEVF_OPC_MBX_PF_TO_VF, false);
 +
-+	/* Write to hardware */
-+	hclgevf_write_dev(hw, HCLGEVF_NIC_CSQ_TAIL_REG,
-+			  hw->cmq.csq.next_to_use);
++	resp_pf_to_vf->dest_vfid = vf_to_pf_req->mbx_src_vfid;
++	resp_pf_to_vf->msg_len = vf_to_pf_req->msg_len;
 +
-+	/* If the command is sync, wait for the firmware to write back,
-+	 * if multi descriptors to be sent, use the first one to check
-+	 */
-+	if (HCLGEVF_SEND_SYNC(le16_to_cpu(desc->flag))) {
-+		do {
-+			if (hclgevf_cmd_csq_done(hw))
-+				break;
-+			udelay(1);
-+			timeout++;
-+		} while (timeout < hw->cmq.tx_timeout);
-+	}
++	resp_pf_to_vf->msg[0] = HCLGE_MBX_PF_VF_RESP;
++	resp_pf_to_vf->msg[1] = vf_to_pf_req->msg[0];
++	resp_pf_to_vf->msg[2] = vf_to_pf_req->msg[1];
++	resp_pf_to_vf->msg[3] = (resp_status == 0) ? 0 : 1;
 +
-+	if (hclgevf_cmd_csq_done(hw)) {
-+		complete = true;
-+		handle = 0;
++	if (resp_data && resp_data_len > 0)
++		memcpy(&resp_pf_to_vf->msg[4], resp_data, resp_data_len);
 +
-+		while (handle < num) {
-+			/* Get the result of hardware write back */
-+			desc_to_use = &hw->cmq.csq.desc[ntc];
-+			desc[handle] = *desc_to_use;
-+
-+			if (likely(!hclgevf_is_special_opcode(opcode)))
-+				retval = le16_to_cpu(desc[handle].retval);
-+			else
-+				retval = le16_to_cpu(desc[0].retval);
-+
-+			if ((enum hclgevf_cmd_return_status)retval ==
-+			    HCLGEVF_CMD_EXEC_SUCCESS)
-+				status = 0;
-+			else
-+				status = -EIO;
-+			hw->cmq.last_status = (enum hclgevf_cmd_status)retval;
-+			ntc++;
-+			handle++;
-+			if (ntc == hw->cmq.csq.desc_num)
-+				ntc = 0;
-+		}
-+	}
-+
-+	if (!complete)
-+		status = -EAGAIN;
-+
-+	/* Clean the command send queue */
-+	handle = hclgevf_cmd_csq_clean(hw);
-+	if (handle != num) {
-+		dev_warn(&hdev->pdev->dev,
-+			 "cleaned %d, need to clean %d\n", handle, num);
-+	}
-+
-+	spin_unlock_bh(&hw->cmq.csq.lock);
++	status = hclge_cmd_send(&hdev->hw, &desc, 1);
++	if (status)
++		dev_err(&hdev->pdev->dev,
++			"PF failed(=%d) to send response to VF\n", status);
 +
 +	return status;
 +}
 +
-+static int  hclgevf_cmd_query_firmware_version(struct hclgevf_hw *hw,
-+					       u32 *version)
++static int hclge_send_mbx_msg(struct hclge_vport *vport, u8 *msg, u16 msg_len,
++			      u16 mbx_opcode, u8 dest_vfid)
 +{
-+	struct hclgevf_query_version_cmd *resp;
-+	struct hclgevf_desc desc;
++	struct hclge_mbx_pf_to_vf_cmd *resp_pf_to_vf;
++	struct hclge_dev *hdev = vport->back;
++	enum hclge_cmd_status status;
++	struct hclge_desc desc;
++
++	resp_pf_to_vf = (struct hclge_mbx_pf_to_vf_cmd *)desc.data;
++
++	hclge_cmd_setup_basic_desc(&desc, HCLGEVF_OPC_MBX_PF_TO_VF, false);
++
++	resp_pf_to_vf->dest_vfid = dest_vfid;
++	resp_pf_to_vf->msg_len = msg_len;
++	resp_pf_to_vf->msg[0] = mbx_opcode;
++
++	memcpy(&resp_pf_to_vf->msg[1], msg, msg_len);
++
++	status = hclge_cmd_send(&hdev->hw, &desc, 1);
++	if (status)
++		dev_err(&hdev->pdev->dev,
++			"PF failed(=%d) to send mailbox message to VF\n",
++			status);
++
++	return status;
++}
++
++static int hclge_set_vf_promisc_mode(struct hclge_vport *vport,
++				     struct hclge_mbx_vf_to_pf_cmd *req)
++{
++	bool en = req->msg[1] ? true : false;
++	struct hclge_promisc_param param;
++
++	/* always enable broadcast promisc bit */
++	hclge_promisc_param_init(&param, en, en, true, vport->vport_id);
++	return hclge_cmd_set_promisc_mode(vport->back, &param);
++}
++
++static int hclge_set_vf_uc_mac_addr(struct hclge_vport *vport,
++				    struct hclge_mbx_vf_to_pf_cmd *mbx_req,
++				    bool gen_resp)
++{
++	const u8 *mac_addr = (const u8 *)(&mbx_req->msg[2]);
++	struct hclge_dev *hdev = vport->back;
 +	int status;
 +
-+	resp = (struct hclgevf_query_version_cmd *)desc.data;
++	if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_UC_MODIFY) {
++		const u8 *old_addr = (const u8 *)(&mbx_req->msg[8]);
 +
-+	hclgevf_cmd_setup_basic_desc(&desc, HCLGEVF_OPC_QUERY_FW_VER, 1);
-+	status = hclgevf_cmd_send(hw, &desc, 1);
-+	if (!status)
-+		*version = le32_to_cpu(resp->firmware);
++		hclge_rm_uc_addr_common(vport, old_addr);
++		status = hclge_add_uc_addr_common(vport, mac_addr);
++	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_UC_ADD) {
++		status = hclge_add_uc_addr_common(vport, mac_addr);
++	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_UC_REMOVE) {
++		status = hclge_rm_uc_addr_common(vport, mac_addr);
++	} else {
++		dev_err(&hdev->pdev->dev,
++			"failed to set unicast mac addr, unknown subcode %d\n",
++			mbx_req->msg[1]);
++		return -EIO;
++	}
++
++	if (gen_resp)
++		hclge_gen_resp_to_vf(vport, mbx_req, status, NULL, 0);
++
++	return 0;
++}
++
++static int hclge_set_vf_mc_mac_addr(struct hclge_vport *vport,
++				    struct hclge_mbx_vf_to_pf_cmd *mbx_req,
++				    bool gen_resp)
++{
++	const u8 *mac_addr = (const u8 *)(&mbx_req->msg[2]);
++	struct hclge_dev *hdev = vport->back;
++	int status;
++
++	if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_MC_ADD) {
++		status = hclge_add_mc_addr_common(vport, mac_addr);
++	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_MC_REMOVE) {
++		status = hclge_rm_mc_addr_common(vport, mac_addr);
++	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_MC_FUNC_MTA_ENABLE) {
++		u8 func_id = vport->vport_id;
++		bool enable = mbx_req->msg[2];
++
++		status = hclge_cfg_func_mta_filter(hdev, func_id, enable);
++	} else {
++		dev_err(&hdev->pdev->dev,
++			"failed to set mcast mac addr, unknown subcode %d\n",
++			mbx_req->msg[1]);
++		return -EIO;
++	}
++
++	if (gen_resp)
++		hclge_gen_resp_to_vf(vport, mbx_req, status, NULL, 0);
++
++	return 0;
++}
++
++static int hclge_set_vf_vlan_cfg(struct hclge_vport *vport,
++				 struct hclge_mbx_vf_to_pf_cmd *mbx_req,
++				 bool gen_resp)
++{
++	struct hclge_dev *hdev = vport->back;
++	int status = 0;
++
++	if (mbx_req->msg[1] == HCLGE_MBX_VLAN_FILTER) {
++		u16 vlan, proto;
++		bool is_kill;
++
++		is_kill = !!mbx_req->msg[2];
++		memcpy(&vlan, &mbx_req->msg[3], sizeof(vlan));
++		memcpy(&proto, &mbx_req->msg[5], sizeof(proto));
++		status = hclge_set_vf_vlan_common(hdev, vport->vport_id,
++						  is_kill, vlan, 0,
++						  cpu_to_be16(proto));
++	}
++
++	if (gen_resp)
++		status = hclge_gen_resp_to_vf(vport, mbx_req, status, NULL, 0);
 +
 +	return status;
 +}
 +
-+int hclgevf_cmd_init(struct hclgevf_dev *hdev)
++static int hclge_get_vf_tcinfo(struct hclge_vport *vport,
++			       struct hclge_mbx_vf_to_pf_cmd *mbx_req,
++			       bool gen_resp)
 +{
-+	u32 version;
++	struct hclge_dev *hdev = vport->back;
 +	int ret;
 +
-+	/* setup Tx write back timeout */
-+	hdev->hw.cmq.tx_timeout = HCLGEVF_CMDQ_TX_TIMEOUT;
-+
-+	/* setup queue CSQ/CRQ rings */
-+	hdev->hw.cmq.csq.flag = HCLGEVF_TYPE_CSQ;
-+	ret = hclgevf_init_cmd_queue(hdev, &hdev->hw.cmq.csq);
-+	if (ret) {
-+		dev_err(&hdev->pdev->dev,
-+			"failed(%d) to initialize CSQ ring\n", ret);
-+		return ret;
-+	}
-+
-+	hdev->hw.cmq.crq.flag = HCLGEVF_TYPE_CRQ;
-+	ret = hclgevf_init_cmd_queue(hdev, &hdev->hw.cmq.crq);
-+	if (ret) {
-+		dev_err(&hdev->pdev->dev,
-+			"failed(%d) to initialize CRQ ring\n", ret);
-+		goto err_csq;
-+	}
-+
-+	/* get firmware version */
-+	ret = hclgevf_cmd_query_firmware_version(&hdev->hw, &version);
-+	if (ret) {
-+		dev_err(&hdev->pdev->dev,
-+			"failed(%d) to query firmware version\n", ret);
-+		goto err_crq;
-+	}
-+	hdev->fw_version = version;
-+
-+	dev_info(&hdev->pdev->dev, "The firmware version is %08x\n", version);
-+
-+	return 0;
-+err_crq:
-+	hclgevf_free_cmd_desc(&hdev->hw.cmq.crq);
-+err_csq:
-+	hclgevf_free_cmd_desc(&hdev->hw.cmq.csq);
++	ret = hclge_gen_resp_to_vf(vport, mbx_req, 0, &hdev->hw_tc_map,
++				   sizeof(u8));
 +
 +	return ret;
 +}
 +
-+void hclgevf_cmd_uninit(struct hclgevf_dev *hdev)
++static int hclge_get_vf_queue_info(struct hclge_vport *vport,
++				   struct hclge_mbx_vf_to_pf_cmd *mbx_req,
++				   bool gen_resp)
 +{
-+	hclgevf_free_cmd_desc(&hdev->hw.cmq.csq);
-+	hclgevf_free_cmd_desc(&hdev->hw.cmq.crq);
-+}
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.h b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.h
-new file mode 100644
-index 0000000..ad8adfe
---- /dev/null
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.h
-@@ -0,0 +1,256 @@
-+/* SPDX-License-Identifier: GPL-2.0+ */
-+/* Copyright (c) 2016-2017 Hisilicon Limited. */
++#define HCLGE_TQPS_RSS_INFO_LEN		8
++	u8 resp_data[HCLGE_TQPS_RSS_INFO_LEN];
++	struct hclge_dev *hdev = vport->back;
 +
-+#ifndef __HCLGEVF_CMD_H
-+#define __HCLGEVF_CMD_H
-+#include <linux/io.h>
-+#include <linux/types.h>
-+#include "hnae3.h"
++	/* get the queue related info */
++	memcpy(&resp_data[0], &vport->alloc_tqps, sizeof(u16));
++	memcpy(&resp_data[2], &hdev->rss_size_max, sizeof(u16));
++	memcpy(&resp_data[4], &hdev->num_desc, sizeof(u16));
++	memcpy(&resp_data[6], &hdev->rx_buf_len, sizeof(u16));
 +
-+#define HCLGEVF_CMDQ_TX_TIMEOUT		200
-+#define HCLGEVF_CMDQ_RX_INVLD_B		0
-+#define HCLGEVF_CMDQ_RX_OUTVLD_B	1
-+
-+struct hclgevf_hw;
-+struct hclgevf_dev;
-+
-+struct hclgevf_desc {
-+	__le16 opcode;
-+	__le16 flag;
-+	__le16 retval;
-+	__le16 rsv;
-+	__le32 data[6];
-+};
-+
-+struct hclgevf_desc_cb {
-+	dma_addr_t dma;
-+	void *va;
-+	u32 length;
-+};
-+
-+struct hclgevf_cmq_ring {
-+	dma_addr_t desc_dma_addr;
-+	struct hclgevf_desc *desc;
-+	struct hclgevf_desc_cb *desc_cb;
-+	struct hclgevf_dev  *dev;
-+	u32 head;
-+	u32 tail;
-+
-+	u16 buf_size;
-+	u16 desc_num;
-+	int next_to_use;
-+	int next_to_clean;
-+	u8 flag;
-+	spinlock_t lock; /* Command queue lock */
-+};
-+
-+enum hclgevf_cmd_return_status {
-+	HCLGEVF_CMD_EXEC_SUCCESS	= 0,
-+	HCLGEVF_CMD_NO_AUTH	= 1,
-+	HCLGEVF_CMD_NOT_EXEC	= 2,
-+	HCLGEVF_CMD_QUEUE_FULL	= 3,
-+};
-+
-+enum hclgevf_cmd_status {
-+	HCLGEVF_STATUS_SUCCESS	= 0,
-+	HCLGEVF_ERR_CSQ_FULL	= -1,
-+	HCLGEVF_ERR_CSQ_TIMEOUT	= -2,
-+	HCLGEVF_ERR_CSQ_ERROR	= -3
-+};
-+
-+struct hclgevf_cmq {
-+	struct hclgevf_cmq_ring csq;
-+	struct hclgevf_cmq_ring crq;
-+	u16 tx_timeout; /* Tx timeout */
-+	enum hclgevf_cmd_status last_status;
-+};
-+
-+#define HCLGEVF_CMD_FLAG_IN_VALID_SHIFT		0
-+#define HCLGEVF_CMD_FLAG_OUT_VALID_SHIFT	1
-+#define HCLGEVF_CMD_FLAG_NEXT_SHIFT		2
-+#define HCLGEVF_CMD_FLAG_WR_OR_RD_SHIFT		3
-+#define HCLGEVF_CMD_FLAG_NO_INTR_SHIFT		4
-+#define HCLGEVF_CMD_FLAG_ERR_INTR_SHIFT		5
-+
-+#define HCLGEVF_CMD_FLAG_IN		BIT(HCLGEVF_CMD_FLAG_IN_VALID_SHIFT)
-+#define HCLGEVF_CMD_FLAG_OUT		BIT(HCLGEVF_CMD_FLAG_OUT_VALID_SHIFT)
-+#define HCLGEVF_CMD_FLAG_NEXT		BIT(HCLGEVF_CMD_FLAG_NEXT_SHIFT)
-+#define HCLGEVF_CMD_FLAG_WR		BIT(HCLGEVF_CMD_FLAG_WR_OR_RD_SHIFT)
-+#define HCLGEVF_CMD_FLAG_NO_INTR	BIT(HCLGEVF_CMD_FLAG_NO_INTR_SHIFT)
-+#define HCLGEVF_CMD_FLAG_ERR_INTR	BIT(HCLGEVF_CMD_FLAG_ERR_INTR_SHIFT)
-+
-+enum hclgevf_opcode_type {
-+	/* Generic command */
-+	HCLGEVF_OPC_QUERY_FW_VER	= 0x0001,
-+	/* TQP command */
-+	HCLGEVF_OPC_QUERY_TX_STATUS	= 0x0B03,
-+	HCLGEVF_OPC_QUERY_RX_STATUS	= 0x0B13,
-+	HCLGEVF_OPC_CFG_COM_TQP_QUEUE	= 0x0B20,
-+	/* TSO cmd */
-+	HCLGEVF_OPC_TSO_GENERIC_CONFIG	= 0x0C01,
-+	/* RSS cmd */
-+	HCLGEVF_OPC_RSS_GENERIC_CONFIG	= 0x0D01,
-+	HCLGEVF_OPC_RSS_INDIR_TABLE	= 0x0D07,
-+	HCLGEVF_OPC_RSS_TC_MODE		= 0x0D08,
-+	/* Mailbox cmd */
-+	HCLGEVF_OPC_MBX_VF_TO_PF	= 0x2001,
-+};
-+
-+#define HCLGEVF_TQP_REG_OFFSET		0x80000
-+#define HCLGEVF_TQP_REG_SIZE		0x200
-+
-+struct hclgevf_tqp_map {
-+	__le16 tqp_id;	/* Absolute tqp id for in this pf */
-+	u8 tqp_vf; /* VF id */
-+#define HCLGEVF_TQP_MAP_TYPE_PF		0
-+#define HCLGEVF_TQP_MAP_TYPE_VF		1
-+#define HCLGEVF_TQP_MAP_TYPE_B		0
-+#define HCLGEVF_TQP_MAP_EN_B		1
-+	u8 tqp_flag;	/* Indicate it's pf or vf tqp */
-+	__le16 tqp_vid; /* Virtual id in this pf/vf */
-+	u8 rsv[18];
-+};
-+
-+#define HCLGEVF_VECTOR_ELEMENTS_PER_CMD	10
-+
-+enum hclgevf_int_type {
-+	HCLGEVF_INT_TX = 0,
-+	HCLGEVF_INT_RX,
-+	HCLGEVF_INT_EVENT,
-+};
-+
-+struct hclgevf_ctrl_vector_chain {
-+	u8 int_vector_id;
-+	u8 int_cause_num;
-+#define HCLGEVF_INT_TYPE_S	0
-+#define HCLGEVF_INT_TYPE_M	0x3
-+#define HCLGEVF_TQP_ID_S	2
-+#define HCLGEVF_TQP_ID_M	(0x3fff << HCLGEVF_TQP_ID_S)
-+	__le16 tqp_type_and_id[HCLGEVF_VECTOR_ELEMENTS_PER_CMD];
-+	u8 vfid;
-+	u8 resv;
-+};
-+
-+struct hclgevf_query_version_cmd {
-+	__le32 firmware;
-+	__le32 firmware_rsv[5];
-+};
-+
-+#define HCLGEVF_RSS_HASH_KEY_OFFSET	4
-+#define HCLGEVF_RSS_HASH_KEY_NUM	16
-+struct hclgevf_rss_config_cmd {
-+	u8 hash_config;
-+	u8 rsv[7];
-+	u8 hash_key[HCLGEVF_RSS_HASH_KEY_NUM];
-+};
-+
-+struct hclgevf_rss_input_tuple_cmd {
-+	u8 ipv4_tcp_en;
-+	u8 ipv4_udp_en;
-+	u8 ipv4_stcp_en;
-+	u8 ipv4_fragment_en;
-+	u8 ipv6_tcp_en;
-+	u8 ipv6_udp_en;
-+	u8 ipv6_stcp_en;
-+	u8 ipv6_fragment_en;
-+	u8 rsv[16];
-+};
-+
-+#define HCLGEVF_RSS_CFG_TBL_SIZE	16
-+
-+struct hclgevf_rss_indirection_table_cmd {
-+	u16 start_table_index;
-+	u16 rss_set_bitmap;
-+	u8 rsv[4];
-+	u8 rss_result[HCLGEVF_RSS_CFG_TBL_SIZE];
-+};
-+
-+#define HCLGEVF_RSS_TC_OFFSET_S		0
-+#define HCLGEVF_RSS_TC_OFFSET_M		(0x3ff << HCLGEVF_RSS_TC_OFFSET_S)
-+#define HCLGEVF_RSS_TC_SIZE_S		12
-+#define HCLGEVF_RSS_TC_SIZE_M		(0x7 << HCLGEVF_RSS_TC_SIZE_S)
-+#define HCLGEVF_RSS_TC_VALID_B		15
-+#define HCLGEVF_MAX_TC_NUM		8
-+struct hclgevf_rss_tc_mode_cmd {
-+	u16 rss_tc_mode[HCLGEVF_MAX_TC_NUM];
-+	u8 rsv[8];
-+};
-+
-+#define HCLGEVF_LINK_STS_B	0
-+#define HCLGEVF_LINK_STATUS	BIT(HCLGEVF_LINK_STS_B)
-+struct hclgevf_link_status_cmd {
-+	u8 status;
-+	u8 rsv[23];
-+};
-+
-+#define HCLGEVF_RING_ID_MASK	0x3ff
-+#define HCLGEVF_TQP_ENABLE_B	0
-+
-+struct hclgevf_cfg_com_tqp_queue_cmd {
-+	__le16 tqp_id;
-+	__le16 stream_id;
-+	u8 enable;
-+	u8 rsv[19];
-+};
-+
-+struct hclgevf_cfg_tx_queue_pointer_cmd {
-+	__le16 tqp_id;
-+	__le16 tx_tail;
-+	__le16 tx_head;
-+	__le16 fbd_num;
-+	__le16 ring_offset;
-+	u8 rsv[14];
-+};
-+
-+#define HCLGEVF_TSO_ENABLE_B	0
-+struct hclgevf_cfg_tso_status_cmd {
-+	u8 tso_enable;
-+	u8 rsv[23];
-+};
-+
-+#define HCLGEVF_TYPE_CRQ		0
-+#define HCLGEVF_TYPE_CSQ		1
-+#define HCLGEVF_NIC_CSQ_BASEADDR_L_REG	0x27000
-+#define HCLGEVF_NIC_CSQ_BASEADDR_H_REG	0x27004
-+#define HCLGEVF_NIC_CSQ_DEPTH_REG	0x27008
-+#define HCLGEVF_NIC_CSQ_TAIL_REG	0x27010
-+#define HCLGEVF_NIC_CSQ_HEAD_REG	0x27014
-+#define HCLGEVF_NIC_CRQ_BASEADDR_L_REG	0x27018
-+#define HCLGEVF_NIC_CRQ_BASEADDR_H_REG	0x2701c
-+#define HCLGEVF_NIC_CRQ_DEPTH_REG	0x27020
-+#define HCLGEVF_NIC_CRQ_TAIL_REG	0x27024
-+#define HCLGEVF_NIC_CRQ_HEAD_REG	0x27028
-+#define HCLGEVF_NIC_CMQ_EN_B		16
-+#define HCLGEVF_NIC_CMQ_ENABLE		BIT(HCLGEVF_NIC_CMQ_EN_B)
-+#define HCLGEVF_NIC_CMQ_DESC_NUM	1024
-+#define HCLGEVF_NIC_CMQ_DESC_NUM_S	3
-+#define HCLGEVF_NIC_CMDQ_INT_SRC_REG	0x27100
-+
-+static inline void hclgevf_write_reg(void __iomem *base, u32 reg, u32 value)
-+{
-+	writel(value, base + reg);
++	return hclge_gen_resp_to_vf(vport, mbx_req, 0, resp_data,
++				    HCLGE_TQPS_RSS_INFO_LEN);
 +}
 +
-+static inline u32 hclgevf_read_reg(u8 __iomem *base, u32 reg)
++static int hclge_get_link_info(struct hclge_vport *vport,
++			       struct hclge_mbx_vf_to_pf_cmd *mbx_req)
 +{
-+	u8 __iomem *reg_addr = READ_ONCE(base);
++	struct hclge_dev *hdev = vport->back;
++	u16 link_status;
++	u8 msg_data[2];
++	u8 dest_vfid;
 +
-+	return readl(reg_addr + reg);
++	/* mac.link can only be 0 or 1 */
++	link_status = (u16)hdev->hw.mac.link;
++	memcpy(&msg_data[0], &link_status, sizeof(u16));
++	dest_vfid = mbx_req->mbx_src_vfid;
++
++	/* send this requested info to VF */
++	return hclge_send_mbx_msg(vport, msg_data, sizeof(u8),
++				  HCLGE_MBX_LINK_STAT_CHANGE, dest_vfid);
 +}
 +
-+#define hclgevf_write_dev(a, reg, value) \
-+	hclgevf_write_reg((a)->io_base, (reg), (value))
-+#define hclgevf_read_dev(a, reg) \
-+	hclgevf_read_reg((a)->io_base, (reg))
++void hclge_mbx_handler(struct hclge_dev *hdev)
++{
++	struct hclge_cmq_ring *crq = &hdev->hw.cmq.crq;
++	struct hclge_mbx_vf_to_pf_cmd *req;
++	struct hclge_vport *vport;
++	struct hclge_desc *desc;
++	int ret;
 +
-+#define HCLGEVF_SEND_SYNC(flag) \
-+	((flag) & HCLGEVF_CMD_FLAG_NO_INTR)
++	/* handle all the mailbox requests in the queue */
++	while (hnae_get_bit(crq->desc[crq->next_to_use].flag,
++			    HCLGE_CMDQ_RX_OUTVLD_B)) {
++		desc = &crq->desc[crq->next_to_use];
++		req = (struct hclge_mbx_vf_to_pf_cmd *)desc->data;
 +
-+int hclgevf_cmd_init(struct hclgevf_dev *hdev);
-+void hclgevf_cmd_uninit(struct hclgevf_dev *hdev);
++		vport = &hdev->vport[req->mbx_src_vfid];
 +
-+int hclgevf_cmd_send(struct hclgevf_hw *hw, struct hclgevf_desc *desc, int num);
-+void hclgevf_cmd_setup_basic_desc(struct hclgevf_desc *desc,
-+				  enum hclgevf_opcode_type opcode,
-+				  bool is_read);
-+#endif
++		switch (req->msg[0]) {
++		case HCLGE_MBX_SET_PROMISC_MODE:
++			ret = hclge_set_vf_promisc_mode(vport, req);
++			if (ret)
++				dev_err(&hdev->pdev->dev,
++					"PF fail(%d) to set VF promisc mode\n",
++					ret);
++			break;
++		case HCLGE_MBX_SET_UNICAST:
++			ret = hclge_set_vf_uc_mac_addr(vport, req, false);
++			if (ret)
++				dev_err(&hdev->pdev->dev,
++					"PF fail(%d) to set VF UC MAC Addr\n",
++					ret);
++			break;
++		case HCLGE_MBX_SET_MULTICAST:
++			ret = hclge_set_vf_mc_mac_addr(vport, req, false);
++			if (ret)
++				dev_err(&hdev->pdev->dev,
++					"PF fail(%d) to set VF MC MAC Addr\n",
++					ret);
++			break;
++		case HCLGE_MBX_SET_VLAN:
++			ret = hclge_set_vf_vlan_cfg(vport, req, false);
++			if (ret)
++				dev_err(&hdev->pdev->dev,
++					"PF failed(%d) to config VF's VLAN\n",
++					ret);
++			break;
++		case HCLGE_MBX_GET_QINFO:
++			ret = hclge_get_vf_queue_info(vport, req, true);
++			if (ret)
++				dev_err(&hdev->pdev->dev,
++					"PF failed(%d) to get Q info for VF\n",
++					ret);
++			break;
++		case HCLGE_MBX_GET_TCINFO:
++			ret = hclge_get_vf_tcinfo(vport, req, true);
++			if (ret)
++				dev_err(&hdev->pdev->dev,
++					"PF failed(%d) to get TC info for VF\n",
++					ret);
++			break;
++		case HCLGE_MBX_GET_LINK_STATUS:
++			ret = hclge_get_link_info(vport, req);
++			if (ret)
++				dev_err(&hdev->pdev->dev,
++					"PF fail(%d) to get link stat for VF\n",
++					ret);
++			break;
++		default:
++			dev_err(&hdev->pdev->dev,
++				"un-supported mailbox message, code = %d\n",
++				req->msg[0]);
++			break;
++		}
++		hclge_mbx_ring_ptr_move_crq(crq);
++	}
++
++	/* Write back CMDQ_RQ header pointer, M7 need this pointer */
++	hclge_write_dev(&hdev->hw, HCLGE_NIC_CRQ_HEAD_REG, crq->next_to_use);
++}
 -- 
 2.7.4
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
