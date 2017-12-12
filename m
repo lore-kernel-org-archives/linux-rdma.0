@@ -1,49 +1,118 @@
-From: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/2] Revise eq support for hip06 & hip08
-Date: Tue, 12 Dec 2017 18:42:13 +0800
-Message-ID: <27c5acfa-40c2-c455-eb46-da052b29e50e@huawei.com>
-References: <1510651577-20794-1-git-send-email-liuyixian@huawei.com>
- <4636858b-4ae8-e37e-d2d3-44441560f266@huawei.com>
- <6d0a2aee-54e0-90dd-5293-7f8a5dac7d36@huawei.com>
- <20171211154902.GA27709@ziepe.ca>
+From: Nicolas Morey-Chaisemartin <nmoreychaisemartin-IBi9RG/b67k@public.gmane.org>
+Subject: [PATCH rdma-core 1/2] srp_daemon: handle SM lid change
+Date: Tue, 12 Dec 2017 15:08:19 +0100
+Message-ID: <dba1097c-8ab9-7086-a976-46e6d3c4a165@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171211154902.GA27709-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
+Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org, bvanassche-HInyCGIudOg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jason,
+When srp_daemon was running and the master SM host changes,
+ srp_daemon output these errors at every scan:
+srp_daemon[25394]: No response to inform info registration
+srp_daemon[25394]: Fail to register to traps, maybe there is no opensm
+ running on fabric or IB port is down
 
-Thanks for your message.
+This was introduced by commit 4952e5f Fix a memory leak.
+A side effect of this patch was that create_ah was only called when the
+ port lid changes. Which meant register_to_traps used an older, obsolete,
+ version of sm_lid and failed to connect to it.
 
-This patch-set has been tested okay both on for-next and for-rc.
-I assume that the patch-set should go to for-next branch as it is about irq feature.
+This patch fixes this behaviour by checking for both local lid changes and
+ SM lid changes, and calling create_ah on any of these events.
 
-What's your opinion?
+Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
+Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org # v14, v15, v16
+---
+ srp_daemon/srp_daemon.c       | 10 ++++++----
+ srp_daemon/srp_daemon.h       |  2 +-
+ srp_daemon/srp_handle_traps.c | 14 +++++++++++---
+ 3 files changed, 18 insertions(+), 8 deletions(-)
 
-On 2017/12/11 23:49, Jason Gunthorpe wrote:
-> On Mon, Dec 11, 2017 at 04:55:23PM +0800, Liuyixian (Eason) wrote:
->> Hi Jason,
->>
->> This patch-set was based on Doug's RDMA tree:
->> git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
->>
->> Should I resend this patch-set based on the new shared RDMA git tree?
->> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
-> 
-> At this point it needs to apply cleanly on rc2 which is what is on the
-> rdma tree right now.
-> 
-> If it doesn't then you need to retest/resend..
-> 
-> Jason
-> 
-> 
+diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
+index 2465ccd9..36df5c3b 100644
+--- a/srp_daemon/srp_daemon.c
++++ b/srp_daemon/srp_daemon.c
+@@ -1103,7 +1103,7 @@ static int get_shared_pkeys(struct resources *res,
+ 	int i, num_pkeys = 0;
+ 	uint16_t pkey;
+ 	uint16_t local_port_lid = get_port_lid(res->ud_res->ib_ctx,
+-					       config->port_num);
++					       config->port_num, NULL);
+ 
+ 	in_mad_buf = malloc(sizeof(struct ib_user_mad) +
+ 			    node_table_response_size);
+@@ -2092,7 +2092,7 @@ int main(int argc, char *argv[])
+ {
+ 	int			ret;
+ 	struct resources       *res;
+-	uint16_t 		lid;
++	uint16_t 		lid, sm_lid;
+ 	uint16_t 		pkey;
+ 	union umad_gid 		gid;
+ 	struct target_details  *target;
+@@ -2196,8 +2196,10 @@ catas_start:
+ 
+ 			pr_debug("Starting a recalculation\n");
+ 			port_lid = get_port_lid(res->ud_res->ib_ctx,
+-					   config->port_num);
+-			if (port_lid != res->ud_res->port_attr.lid) {
++						config->port_num, &sm_lid);
++			if (port_lid != res->ud_res->port_attr.lid ||
++				sm_lid != res->ud_res->port_attr.sm_lid) {
++
+ 				if (res->ud_res->ah) {
+ 					ibv_destroy_ah(res->ud_res->ah);
+ 					res->ud_res->ah = NULL;
+diff --git a/srp_daemon/srp_daemon.h b/srp_daemon/srp_daemon.h
+index 5d268ed3..864b3d42 100644
+--- a/srp_daemon/srp_daemon.h
++++ b/srp_daemon/srp_daemon.h
+@@ -299,7 +299,7 @@ void *run_thread_listen_to_events(void *res_in);
+ int get_node(struct umad_resources *umad_res, uint16_t dlid, uint64_t *guid);
+ int create_trap_resources(struct ud_resources *ud_res);
+ int register_to_traps(struct resources *res, int subscribe);
+-uint16_t get_port_lid(struct ibv_context *ib_ctx, int port_num);
++uint16_t get_port_lid(struct ibv_context *ib_ctx, int port_num, uint16_t *sm_lid);
+ int create_ah(struct ud_resources *ud_res);
+ void push_gid_to_list(struct sync_resources *res, union umad_gid *gid,
+ 		      uint16_t pkey);
+diff --git a/srp_daemon/srp_handle_traps.c b/srp_daemon/srp_handle_traps.c
+index 6d94634e..25f2b9ab 100644
+--- a/srp_daemon/srp_handle_traps.c
++++ b/srp_daemon/srp_handle_traps.c
+@@ -340,12 +340,20 @@ int ud_resources_create(struct ud_resources *res)
+ 	return 0;
+ }
+ 
+-uint16_t get_port_lid(struct ibv_context *ib_ctx, int port_num)
++uint16_t get_port_lid(struct ibv_context *ib_ctx, int port_num, uint16_t *sm_lid)
+ {
+ 	struct ibv_port_attr port_attr;
++	int ret;
++
++	ret = ibv_query_port(ib_ctx, port_num, &port_attr);
+ 
+-	return ibv_query_port(ib_ctx, port_num, &port_attr) == 0 ?
+-		port_attr.lid : 0;
++	if (!ret) {
++		if (sm_lid)
++			*sm_lid = port_attr.sm_lid;
++		return port_attr.lid;
++	}
++
++	return 0;
+ }
+ 
+ int create_ah(struct ud_resources *ud_res)
+-- 
+2.15.1.272.g8e603414b
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
