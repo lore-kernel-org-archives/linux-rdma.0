@@ -1,109 +1,89 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V3 net-next 4/8] net: hns3: Add HNS3 VF driver to kernel build framework
-Date: Tue, 12 Dec 2017 17:52:01 +0000
-Message-ID: <20171212175205.236-5-salil.mehta@huawei.com>
-References: <20171212175205.236-1-salil.mehta@huawei.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH for-rc 4/6] RDMA/vmw_pvrdma: Use refcount_dec_and_test to
+ avoid warning
+Date: Tue, 12 Dec 2017 11:55:30 -0700
+Message-ID: <20171212185530.GB16603@ziepe.ca>
+References: <20171208185818.GA28514@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+ <20171208190218.GA744@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+ <20171208233049.GB23239@ziepe.ca>
+ <20171211183314.GA20684@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+ <20171211201421.GD27709@ziepe.ca>
+ <20171211215936.GC20684@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+ <20171211221425.GA7551@ziepe.ca>
+ <20171212171300.GD20684@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171212175205.236-1-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171212171300.GD20684-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch introduces the new Makefiles and updates existing
-Makefiles required to build the HNS3 Virtual Function driver.
-This also updates the Kconfig for introduction of new menuconfig
-entries related to VF driver.
+> > What? You can't combine one thread doing
+> > 
+> >  if (refcount_dec_and_test(&srq->refcnt))
+> >          wake_up(&srq->wait);
+> > 
+> > With
+> >   if (!refcount_dec_and_test(&srq->refcnt))
+> > 	wait_event(srq->wait, !refcount_read(&srq->refcnt));
+> > 
+> > It makes no sense, how is that a refcount???
+> > 
+> > They can't *BOTH* refcount_dec_and_test!
+> >
+> > I can understand doing
+> >
+> >   if (refcount_dec_and_test(&srq->refcnt))
+> >          wake_up(&srq->wait);
+> >
+> > and then
+> > 
+> >    wait_event(srq->wait, !refcount_read(&srq->refcnt));
+> > 
+> > That makes perfect sense.
+> 
+> Perhaps I am mistaken in my understanding of refcounts here, but
+> what is wrong with this? If it's not that the refcount is set to
+> 1 on resource creation (which, by your earlier suggestion of
+> checking refcnt == 1, seems to be fine), and both callers (the
+> resource event handler and resource destroy call) need to make
+> sure the destroy sequence only happens once (when the refcount
+> reaches 0), then using refcount_dec_and_test seems right to me.
 
-Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
-Signed-off-by: lipeng <lipeng321@huawei.com>
----
-Patch V3: Addressed SPDX change requested by Philippe Ombredanne
-  Link: https://lkml.org/lkml/2017/12/8/874
-Patch V2: No change
-Patch V1: Initial Submit
----
- drivers/net/ethernet/hisilicon/Kconfig             | 28 +++++++++++++++-------
- drivers/net/ethernet/hisilicon/hns3/Makefile       |  2 ++
- .../net/ethernet/hisilicon/hns3/hns3vf/Makefile    |  9 +++++++
- 3 files changed, 30 insertions(+), 9 deletions(-)
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/Makefile
+I think the issue here is trying to fit an optimized approach that was
+using atomics into a refcount.
 
-diff --git a/drivers/net/ethernet/hisilicon/Kconfig b/drivers/net/ethernet/hisilicon/Kconfig
-index 30000b6..8bcf470 100644
---- a/drivers/net/ethernet/hisilicon/Kconfig
-+++ b/drivers/net/ethernet/hisilicon/Kconfig
-@@ -94,15 +94,6 @@ config HNS3_HCLGE
- 	  compatibility layer. The engine would be used in Hisilicon hip08 family of
- 	  SoCs and further upcoming SoCs.
- 
--config HNS3_ENET
--	tristate "Hisilicon HNS3 Ethernet Device Support"
--	depends on 64BIT && PCI
--	depends on HNS3 && HNS3_HCLGE
--	---help---
--	  This selects the Ethernet Driver for Hisilicon Network Subsystem 3 for hip08
--	  family of SoCs. This module depends upon HNAE3 driver to access the HNAE3
--	  devices and their associated operations.
--
- config HNS3_DCB
- 	bool "Hisilicon HNS3 Data Center Bridge Support"
- 	default n
-@@ -112,4 +103,23 @@ config HNS3_DCB
- 
- 	  If unsure, say N.
- 
-+config HNS3_HCLGEVF
-+    tristate "Hisilicon HNS3VF Acceleration Engine & Compatibility Layer Support"
-+    depends on PCI_MSI
-+    depends on HNS3
-+	depends on HNS3_HCLGE
-+    ---help---
-+	  This selects the HNS3 VF drivers network acceleration engine & its hardware
-+	  compatibility layer. The engine would be used in Hisilicon hip08 family of
-+	  SoCs and further upcoming SoCs.
-+
-+config HNS3_ENET
-+	tristate "Hisilicon HNS3 Ethernet Device Support"
-+	depends on 64BIT && PCI
-+	depends on HNS3
-+	---help---
-+	  This selects the Ethernet Driver for Hisilicon Network Subsystem 3 for hip08
-+	  family of SoCs. This module depends upon HNAE3 driver to access the HNAE3
-+	  devices and their associated operations.
-+
- endif # NET_VENDOR_HISILICON
-diff --git a/drivers/net/ethernet/hisilicon/hns3/Makefile b/drivers/net/ethernet/hisilicon/hns3/Makefile
-index a9349e1..c450945 100644
---- a/drivers/net/ethernet/hisilicon/hns3/Makefile
-+++ b/drivers/net/ethernet/hisilicon/hns3/Makefile
-@@ -1,7 +1,9 @@
-+# SPDX-License-Identifier: GPL-2.0+
- #
- # Makefile for the HISILICON network device drivers.
- #
- 
- obj-$(CONFIG_HNS3) += hns3pf/
-+obj-$(CONFIG_HNS3) += hns3vf/
- 
- obj-$(CONFIG_HNS3) += hnae3.o
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3vf/Makefile b/drivers/net/ethernet/hisilicon/hns3/hns3vf/Makefile
-new file mode 100644
-index 0000000..fb93bbd
---- /dev/null
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3vf/Makefile
-@@ -0,0 +1,9 @@
-+# SPDX-License-Identifier: GPL-2.0+
-+#
-+# Makefile for the HISILICON network device drivers.
-+#
-+
-+ccflags-y := -Idrivers/net/ethernet/hisilicon/hns3
-+
-+obj-$(CONFIG_HNS3_HCLGEVF) += hclgevf.o
-+hclgevf-objs = hclgevf_main.o hclgevf_cmd.o hclgevf_mbx.o
-\ No newline at end of file
--- 
-2.7.4
+I have certain expectations when I see something called 'refcount'
+that this scheme really doesn't follow anymore, and those expectations
+are pretty much matched by the protections inside refcount against
+going to 0 and so on.
+
+The algorithm works OK, but I'm not sure it is a 'refcount', more of a
+'usecnt'..
+
+On the other hand, having the refcount overflow protections in this
+path does seem useful.
+
+I did a random audit of refcount_dec_and_test existing users and
+didn't find any that use this pattern.
+
+What you've actually built here is a rwsem out of an atomic and a wait
+queue..
+
+So, what is wrong with a rwsem?
+
+> What we're doing is effectively the same as how mlx5 handles
+> this (see drivers/net/ethernet/mellanox/mlx5/core/srq.c) I
+> suppose using refcount_t requires one to follow a particular
+> model of usage but I'm not sure how this isn't right.
+
+I didn't say it was wrong, I asked 'how is that a refcount??'
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
