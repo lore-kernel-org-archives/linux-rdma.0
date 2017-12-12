@@ -1,121 +1,36 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/2] srp_daemon: handle SM lid change
-Date: Tue, 12 Dec 2017 09:38:55 -0500
-Message-ID: <8060e2bf-e250-2cd5-3ef6-4d056073a9a4@dev.mellanox.co.il>
-References: <dba1097c-8ab9-7086-a976-46e6d3c4a165@suse.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH rdma-core] Fix typo 'bandwith' -> 'bandwidth'
+Date: Tue, 12 Dec 2017 15:24:04 +0000
+Message-ID: <1513092243.3704.0.camel@wdc.com>
+References: <20171212101525.29108-1-benjamin.drung@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <dba1097c-8ab9-7086-a976-46e6d3c4a165-IBi9RG/b67k@public.gmane.org>
+In-Reply-To: <20171212101525.29108-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Content-Language: en-US
+Content-ID: <6E2AC74BF19BE9459BF1401BE0338A7E-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicolas Morey-Chaisemartin <nmoreychaisemartin-IBi9RG/b67k@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org, bvanassche-HInyCGIudOg@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/12/2017 9:08 AM, Nicolas Morey-Chaisemartin wrote:
-> When srp_daemon was running and the master SM host changes,
->  srp_daemon output these errors at every scan:
-> srp_daemon[25394]: No response to inform info registration
-> srp_daemon[25394]: Fail to register to traps, maybe there is no opensm
->  running on fabric or IB port is down
-> 
-> This was introduced by commit 4952e5f Fix a memory leak.
-> A side effect of this patch was that create_ah was only called when the
->  port lid changes. Which meant register_to_traps used an older, obsolete,
->  version of sm_lid and failed to connect to it.
-> 
-> This patch fixes this behaviour by checking for both local lid changes and
->  SM lid changes, and calling create_ah on any of these events.
-> 
-> Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
-> Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org # v14, v15, v16
-> ---
->  srp_daemon/srp_daemon.c       | 10 ++++++----
->  srp_daemon/srp_daemon.h       |  2 +-
->  srp_daemon/srp_handle_traps.c | 14 +++++++++++---
->  3 files changed, 18 insertions(+), 8 deletions(-)
-> 
-> diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
-> index 2465ccd9..36df5c3b 100644
-> --- a/srp_daemon/srp_daemon.c
-> +++ b/srp_daemon/srp_daemon.c
-> @@ -1103,7 +1103,7 @@ static int get_shared_pkeys(struct resources *res,
->  	int i, num_pkeys = 0;
->  	uint16_t pkey;
->  	uint16_t local_port_lid = get_port_lid(res->ud_res->ib_ctx,
-> -					       config->port_num);
-> +					       config->port_num, NULL);
->  
->  	in_mad_buf = malloc(sizeof(struct ib_user_mad) +
->  			    node_table_response_size);
-> @@ -2092,7 +2092,7 @@ int main(int argc, char *argv[])
->  {
->  	int			ret;
->  	struct resources       *res;
-> -	uint16_t 		lid;
-> +	uint16_t 		lid, sm_lid;
->  	uint16_t 		pkey;
->  	union umad_gid 		gid;
->  	struct target_details  *target;
-> @@ -2196,8 +2196,10 @@ catas_start:
->  
->  			pr_debug("Starting a recalculation\n");
->  			port_lid = get_port_lid(res->ud_res->ib_ctx,
-> -					   config->port_num);
-> -			if (port_lid != res->ud_res->port_attr.lid) {
-> +						config->port_num, &sm_lid);
-> +			if (port_lid != res->ud_res->port_attr.lid ||
-> +				sm_lid != res->ud_res->port_attr.sm_lid) {
-> +
->  				if (res->ud_res->ah) {
->  					ibv_destroy_ah(res->ud_res->ah);
->  					res->ud_res->ah = NULL;
-> diff --git a/srp_daemon/srp_daemon.h b/srp_daemon/srp_daemon.h
-> index 5d268ed3..864b3d42 100644
-> --- a/srp_daemon/srp_daemon.h
-> +++ b/srp_daemon/srp_daemon.h
-> @@ -299,7 +299,7 @@ void *run_thread_listen_to_events(void *res_in);
->  int get_node(struct umad_resources *umad_res, uint16_t dlid, uint64_t *guid);
->  int create_trap_resources(struct ud_resources *ud_res);
->  int register_to_traps(struct resources *res, int subscribe);
-> -uint16_t get_port_lid(struct ibv_context *ib_ctx, int port_num);
-> +uint16_t get_port_lid(struct ibv_context *ib_ctx, int port_num, uint16_t *sm_lid);
->  int create_ah(struct ud_resources *ud_res);
->  void push_gid_to_list(struct sync_resources *res, union umad_gid *gid,
->  		      uint16_t pkey);
-> diff --git a/srp_daemon/srp_handle_traps.c b/srp_daemon/srp_handle_traps.c
-> index 6d94634e..25f2b9ab 100644
-> --- a/srp_daemon/srp_handle_traps.c
-> +++ b/srp_daemon/srp_handle_traps.c
-> @@ -340,12 +340,20 @@ int ud_resources_create(struct ud_resources *res)
->  	return 0;
->  }
->  
-> -uint16_t get_port_lid(struct ibv_context *ib_ctx, int port_num)
-> +uint16_t get_port_lid(struct ibv_context *ib_ctx, int port_num, uint16_t *sm_lid)
->  {
->  	struct ibv_port_attr port_attr;
-> +	int ret;
-> +
-> +	ret = ibv_query_port(ib_ctx, port_num, &port_attr);
->  
-> -	return ibv_query_port(ib_ctx, port_num, &port_attr) == 0 ?
-> -		port_attr.lid : 0;
-> +	if (!ret) {
-> +		if (sm_lid)
-> +			*sm_lid = port_attr.sm_lid;
-> +		return port_attr.lid;
-> +	}
-> +
-> +	return 0;
->  }
->  
->  int create_ah(struct ud_resources *ud_res)
-> 
-
-Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+T24gVHVlLCAyMDE3LTEyLTEyIGF0IDExOjE1ICswMTAwLCBCZW5qYW1pbiBEcnVuZyB3cm90ZToN
+Cj4gU2lnbmVkLW9mZi1ieTogQmVuamFtaW4gRHJ1bmcgPGJlbmphbWluLmRydW5nQHByb2ZpdGJy
+aWNrcy5jb20+DQo+IC0tLQ0KPiAgbGliaWJ2ZXJicy9tYW4vaWJ2X3F1ZXJ5X2RldmljZV9leC4z
+IHwgMiArLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0p
+DQo+IA0KPiBkaWZmIC0tZ2l0IGEvbGliaWJ2ZXJicy9tYW4vaWJ2X3F1ZXJ5X2RldmljZV9leC4z
+IGIvbGliaWJ2ZXJicy9tYW4vaWJ2X3F1ZXJ5X2RldmljZV9leC4zDQo+IGluZGV4IDExNzI1MjNh
+Li4zYzY0YWJmMyAxMDA2NDQNCj4gLS0tIGEvbGliaWJ2ZXJicy9tYW4vaWJ2X3F1ZXJ5X2Rldmlj
+ZV9leC4zDQo+ICsrKyBiL2xpYmlidmVyYnMvbWFuL2lidl9xdWVyeV9kZXZpY2VfZXguMw0KPiBA
+QCAtMTI1LDcgKzEyNSw3IEBAIHV0aWxpemF0aW9uIGFuZCBzbWFsbCBwYWNrZXRzIHdpbGwgYmUg
+aGFybWVkLg0KPiAgDQo+ICBGb3IgaW5zdGFuY2UsIHdpdGggYSAxMjggYnl0ZSBjYWNoZSBsaW5l
+IHNpemUsIHRoZSB0cmFuc2ZlciBvZiBhbnkNCj4gIHBhY2tldHMgbGVzcyB0aGFuIDEyOCBieXRl
+cyB3aWxsIHJlcXVpcmUgYSBmdWxsIDEyOCB0cmFuc2ZlciBvbiBQQ0ksDQo+IC1wb250ZW50aWFs
+bHkgZG91YmxpbmcgdGhlIHJlcXVpcmVkIFBDSS1FIGJhbmR3aXRoLg0KPiArcG9udGVudGlhbGx5
+IGRvdWJsaW5nIHRoZSByZXF1aXJlZCBQQ0ktRSBiYW5kd2lkdGguDQoNCkl0IHNlZW1zIHRvIG1l
+IGxpa2UgdGhlcmUgaXMgYW5vdGhlciB0eXBvIGluIHRoZSBzYW1lIGxpbmUsIG5hbWVseSAicG9u
+dGVudGlhbGx5Ii4NClNob3VsZG4ndCB0aGF0IHR5cG8gYmUgZml4ZWQgdG9vPw0KDQpCYXJ0Lg0K
+DQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
