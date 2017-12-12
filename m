@@ -1,398 +1,109 @@
-From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V3 net-next 6/8] net: hns3: Add mailbox support to PF driver
-Date: Tue, 12 Dec 2017 17:52:03 +0000
-Message-ID: <20171212175205.236-7-salil.mehta@huawei.com>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: [PATCH V3 net-next 4/8] net: hns3: Add HNS3 VF driver to kernel build framework
+Date: Tue, 12 Dec 2017 17:52:01 +0000
+Message-ID: <20171212175205.236-5-salil.mehta@huawei.com>
 References: <20171212175205.236-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171212175205.236-1-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
-Cc: salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171212175205.236-1-salil.mehta@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-Command queue provides the provision of Mailbox command which
-can be used for communication between PF and VF. PF handles
-messages from various VFs for fetching various information like,
-queue, vlan, link status related etc. It also handles the request
-from various VFs to perform certain privileged operations.
+This patch introduces the new Makefiles and updates existing
+Makefiles required to build the HNS3 Virtual Function driver.
+This also updates the Kconfig for introduction of new menuconfig
+entries related to VF driver.
 
-This patch adds the support of a message handler for handling
-such various command requests from VF.
-
-Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: lipeng <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
+Signed-off-by: lipeng <lipeng321@huawei.com>
 ---
 Patch V3: Addressed SPDX change requested by Philippe Ombredanne
   Link: https://lkml.org/lkml/2017/12/8/874
-Patch V2: No Change
+Patch V2: No change
 Patch V1: Initial Submit
 ---
- .../net/ethernet/hisilicon/hns3/hns3pf/Makefile    |   3 +-
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    |   1 +
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |   2 +
- .../net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c | 306 +++++++++++++++++++++
- 4 files changed, 311 insertions(+), 1 deletion(-)
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
+ drivers/net/ethernet/hisilicon/Kconfig             | 28 +++++++++++++++-------
+ drivers/net/ethernet/hisilicon/hns3/Makefile       |  2 ++
+ .../net/ethernet/hisilicon/hns3/hns3vf/Makefile    |  9 +++++++
+ 3 files changed, 30 insertions(+), 9 deletions(-)
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/Makefile
 
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
-index d077fa0..cb8ddd0 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
-@@ -1,3 +1,4 @@
+diff --git a/drivers/net/ethernet/hisilicon/Kconfig b/drivers/net/ethernet/hisilicon/Kconfig
+index 30000b6..8bcf470 100644
+--- a/drivers/net/ethernet/hisilicon/Kconfig
++++ b/drivers/net/ethernet/hisilicon/Kconfig
+@@ -94,15 +94,6 @@ config HNS3_HCLGE
+ 	  compatibility layer. The engine would be used in Hisilicon hip08 family of
+ 	  SoCs and further upcoming SoCs.
+ 
+-config HNS3_ENET
+-	tristate "Hisilicon HNS3 Ethernet Device Support"
+-	depends on 64BIT && PCI
+-	depends on HNS3 && HNS3_HCLGE
+-	---help---
+-	  This selects the Ethernet Driver for Hisilicon Network Subsystem 3 for hip08
+-	  family of SoCs. This module depends upon HNAE3 driver to access the HNAE3
+-	  devices and their associated operations.
+-
+ config HNS3_DCB
+ 	bool "Hisilicon HNS3 Data Center Bridge Support"
+ 	default n
+@@ -112,4 +103,23 @@ config HNS3_DCB
+ 
+ 	  If unsure, say N.
+ 
++config HNS3_HCLGEVF
++    tristate "Hisilicon HNS3VF Acceleration Engine & Compatibility Layer Support"
++    depends on PCI_MSI
++    depends on HNS3
++	depends on HNS3_HCLGE
++    ---help---
++	  This selects the HNS3 VF drivers network acceleration engine & its hardware
++	  compatibility layer. The engine would be used in Hisilicon hip08 family of
++	  SoCs and further upcoming SoCs.
++
++config HNS3_ENET
++	tristate "Hisilicon HNS3 Ethernet Device Support"
++	depends on 64BIT && PCI
++	depends on HNS3
++	---help---
++	  This selects the Ethernet Driver for Hisilicon Network Subsystem 3 for hip08
++	  family of SoCs. This module depends upon HNAE3 driver to access the HNAE3
++	  devices and their associated operations.
++
+ endif # NET_VENDOR_HISILICON
+diff --git a/drivers/net/ethernet/hisilicon/hns3/Makefile b/drivers/net/ethernet/hisilicon/hns3/Makefile
+index a9349e1..c450945 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/Makefile
++++ b/drivers/net/ethernet/hisilicon/hns3/Makefile
+@@ -1,7 +1,9 @@
 +# SPDX-License-Identifier: GPL-2.0+
  #
  # Makefile for the HISILICON network device drivers.
  #
-@@ -5,6 +6,6 @@
- ccflags-y := -Idrivers/net/ethernet/hisilicon/hns3
  
- obj-$(CONFIG_HNS3_HCLGE) += hclge.o
--hclge-objs = hclge_main.o hclge_cmd.o hclge_mdio.o hclge_tm.o
-+hclge-objs = hclge_main.o hclge_cmd.o hclge_mdio.o hclge_tm.o hclge_mbx.o
+ obj-$(CONFIG_HNS3) += hns3pf/
++obj-$(CONFIG_HNS3) += hns3vf/
  
- hclge-$(CONFIG_HNS3_DCB) += hclge_dcb.o
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-index d07c700..980fcdf 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-@@ -21,6 +21,7 @@
- #include "hclge_cmd.h"
- #include "hclge_dcb.h"
- #include "hclge_main.h"
-+#include "hclge_mbx.h"
- #include "hclge_mdio.h"
- #include "hclge_tm.h"
- #include "hnae3.h"
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-index aacec43..028817c 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-@@ -554,4 +554,6 @@ int hclge_set_vf_vlan_common(struct hclge_dev *vport, int vfid,
- 
- int hclge_buffer_alloc(struct hclge_dev *hdev);
- int hclge_rss_init_hw(struct hclge_dev *hdev);
-+
-+void hclge_mbx_handler(struct hclge_dev *hdev);
- #endif
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
+ obj-$(CONFIG_HNS3) += hnae3.o
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3vf/Makefile b/drivers/net/ethernet/hisilicon/hns3/hns3vf/Makefile
 new file mode 100644
-index 0000000..5eb8fff
+index 0000000..fb93bbd
 --- /dev/null
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
-@@ -0,0 +1,306 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+/*
-+ * Copyright (c) 2016-2017 Hisilicon Limited.
-+ */
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3vf/Makefile
+@@ -0,0 +1,9 @@
++# SPDX-License-Identifier: GPL-2.0+
++#
++# Makefile for the HISILICON network device drivers.
++#
 +
-+#include "hclge_main.h"
-+#include "hclge_mbx.h"
-+#include "hnae3.h"
++ccflags-y := -Idrivers/net/ethernet/hisilicon/hns3
 +
-+/* hclge_gen_resp_to_vf: used to generate a synchronous response to VF when PF
-+ * receives a mailbox message from VF.
-+ * @vport: pointer to struct hclge_vport
-+ * @vf_to_pf_req: pointer to hclge_mbx_vf_to_pf_cmd of the original mailbox
-+ *		  message
-+ * @resp_status: indicate to VF whether its request success(0) or failed.
-+ */
-+static int hclge_gen_resp_to_vf(struct hclge_vport *vport,
-+				struct hclge_mbx_vf_to_pf_cmd *vf_to_pf_req,
-+				int resp_status,
-+				u8 *resp_data, u16 resp_data_len)
-+{
-+	struct hclge_mbx_pf_to_vf_cmd *resp_pf_to_vf;
-+	struct hclge_dev *hdev = vport->back;
-+	enum hclge_cmd_status status;
-+	struct hclge_desc desc;
-+
-+	resp_pf_to_vf = (struct hclge_mbx_pf_to_vf_cmd *)desc.data;
-+
-+	if (resp_data_len > HCLGE_MBX_MAX_RESP_DATA_SIZE) {
-+		dev_err(&hdev->pdev->dev,
-+			"PF fail to gen resp to VF len %d exceeds max len %d\n",
-+			resp_data_len,
-+			HCLGE_MBX_MAX_RESP_DATA_SIZE);
-+	}
-+
-+	hclge_cmd_setup_basic_desc(&desc, HCLGEVF_OPC_MBX_PF_TO_VF, false);
-+
-+	resp_pf_to_vf->dest_vfid = vf_to_pf_req->mbx_src_vfid;
-+	resp_pf_to_vf->msg_len = vf_to_pf_req->msg_len;
-+
-+	resp_pf_to_vf->msg[0] = HCLGE_MBX_PF_VF_RESP;
-+	resp_pf_to_vf->msg[1] = vf_to_pf_req->msg[0];
-+	resp_pf_to_vf->msg[2] = vf_to_pf_req->msg[1];
-+	resp_pf_to_vf->msg[3] = (resp_status == 0) ? 0 : 1;
-+
-+	if (resp_data && resp_data_len > 0)
-+		memcpy(&resp_pf_to_vf->msg[4], resp_data, resp_data_len);
-+
-+	status = hclge_cmd_send(&hdev->hw, &desc, 1);
-+	if (status)
-+		dev_err(&hdev->pdev->dev,
-+			"PF failed(=%d) to send response to VF\n", status);
-+
-+	return status;
-+}
-+
-+static int hclge_send_mbx_msg(struct hclge_vport *vport, u8 *msg, u16 msg_len,
-+			      u16 mbx_opcode, u8 dest_vfid)
-+{
-+	struct hclge_mbx_pf_to_vf_cmd *resp_pf_to_vf;
-+	struct hclge_dev *hdev = vport->back;
-+	enum hclge_cmd_status status;
-+	struct hclge_desc desc;
-+
-+	resp_pf_to_vf = (struct hclge_mbx_pf_to_vf_cmd *)desc.data;
-+
-+	hclge_cmd_setup_basic_desc(&desc, HCLGEVF_OPC_MBX_PF_TO_VF, false);
-+
-+	resp_pf_to_vf->dest_vfid = dest_vfid;
-+	resp_pf_to_vf->msg_len = msg_len;
-+	resp_pf_to_vf->msg[0] = mbx_opcode;
-+
-+	memcpy(&resp_pf_to_vf->msg[1], msg, msg_len);
-+
-+	status = hclge_cmd_send(&hdev->hw, &desc, 1);
-+	if (status)
-+		dev_err(&hdev->pdev->dev,
-+			"PF failed(=%d) to send mailbox message to VF\n",
-+			status);
-+
-+	return status;
-+}
-+
-+static int hclge_set_vf_promisc_mode(struct hclge_vport *vport,
-+				     struct hclge_mbx_vf_to_pf_cmd *req)
-+{
-+	bool en = req->msg[1] ? true : false;
-+	struct hclge_promisc_param param;
-+
-+	/* always enable broadcast promisc bit */
-+	hclge_promisc_param_init(&param, en, en, true, vport->vport_id);
-+	return hclge_cmd_set_promisc_mode(vport->back, &param);
-+}
-+
-+static int hclge_set_vf_uc_mac_addr(struct hclge_vport *vport,
-+				    struct hclge_mbx_vf_to_pf_cmd *mbx_req,
-+				    bool gen_resp)
-+{
-+	const u8 *mac_addr = (const u8 *)(&mbx_req->msg[2]);
-+	struct hclge_dev *hdev = vport->back;
-+	int status;
-+
-+	if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_UC_MODIFY) {
-+		const u8 *old_addr = (const u8 *)(&mbx_req->msg[8]);
-+
-+		hclge_rm_uc_addr_common(vport, old_addr);
-+		status = hclge_add_uc_addr_common(vport, mac_addr);
-+	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_UC_ADD) {
-+		status = hclge_add_uc_addr_common(vport, mac_addr);
-+	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_UC_REMOVE) {
-+		status = hclge_rm_uc_addr_common(vport, mac_addr);
-+	} else {
-+		dev_err(&hdev->pdev->dev,
-+			"failed to set unicast mac addr, unknown subcode %d\n",
-+			mbx_req->msg[1]);
-+		return -EIO;
-+	}
-+
-+	if (gen_resp)
-+		hclge_gen_resp_to_vf(vport, mbx_req, status, NULL, 0);
-+
-+	return 0;
-+}
-+
-+static int hclge_set_vf_mc_mac_addr(struct hclge_vport *vport,
-+				    struct hclge_mbx_vf_to_pf_cmd *mbx_req,
-+				    bool gen_resp)
-+{
-+	const u8 *mac_addr = (const u8 *)(&mbx_req->msg[2]);
-+	struct hclge_dev *hdev = vport->back;
-+	int status;
-+
-+	if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_MC_ADD) {
-+		status = hclge_add_mc_addr_common(vport, mac_addr);
-+	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_MC_REMOVE) {
-+		status = hclge_rm_mc_addr_common(vport, mac_addr);
-+	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_MC_FUNC_MTA_ENABLE) {
-+		u8 func_id = vport->vport_id;
-+		bool enable = mbx_req->msg[2];
-+
-+		status = hclge_cfg_func_mta_filter(hdev, func_id, enable);
-+	} else {
-+		dev_err(&hdev->pdev->dev,
-+			"failed to set mcast mac addr, unknown subcode %d\n",
-+			mbx_req->msg[1]);
-+		return -EIO;
-+	}
-+
-+	if (gen_resp)
-+		hclge_gen_resp_to_vf(vport, mbx_req, status, NULL, 0);
-+
-+	return 0;
-+}
-+
-+static int hclge_set_vf_vlan_cfg(struct hclge_vport *vport,
-+				 struct hclge_mbx_vf_to_pf_cmd *mbx_req,
-+				 bool gen_resp)
-+{
-+	struct hclge_dev *hdev = vport->back;
-+	int status = 0;
-+
-+	if (mbx_req->msg[1] == HCLGE_MBX_VLAN_FILTER) {
-+		u16 vlan, proto;
-+		bool is_kill;
-+
-+		is_kill = !!mbx_req->msg[2];
-+		memcpy(&vlan, &mbx_req->msg[3], sizeof(vlan));
-+		memcpy(&proto, &mbx_req->msg[5], sizeof(proto));
-+		status = hclge_set_vf_vlan_common(hdev, vport->vport_id,
-+						  is_kill, vlan, 0,
-+						  cpu_to_be16(proto));
-+	}
-+
-+	if (gen_resp)
-+		status = hclge_gen_resp_to_vf(vport, mbx_req, status, NULL, 0);
-+
-+	return status;
-+}
-+
-+static int hclge_get_vf_tcinfo(struct hclge_vport *vport,
-+			       struct hclge_mbx_vf_to_pf_cmd *mbx_req,
-+			       bool gen_resp)
-+{
-+	struct hclge_dev *hdev = vport->back;
-+	int ret;
-+
-+	ret = hclge_gen_resp_to_vf(vport, mbx_req, 0, &hdev->hw_tc_map,
-+				   sizeof(u8));
-+
-+	return ret;
-+}
-+
-+static int hclge_get_vf_queue_info(struct hclge_vport *vport,
-+				   struct hclge_mbx_vf_to_pf_cmd *mbx_req,
-+				   bool gen_resp)
-+{
-+#define HCLGE_TQPS_RSS_INFO_LEN		8
-+	u8 resp_data[HCLGE_TQPS_RSS_INFO_LEN];
-+	struct hclge_dev *hdev = vport->back;
-+
-+	/* get the queue related info */
-+	memcpy(&resp_data[0], &vport->alloc_tqps, sizeof(u16));
-+	memcpy(&resp_data[2], &hdev->rss_size_max, sizeof(u16));
-+	memcpy(&resp_data[4], &hdev->num_desc, sizeof(u16));
-+	memcpy(&resp_data[6], &hdev->rx_buf_len, sizeof(u16));
-+
-+	return hclge_gen_resp_to_vf(vport, mbx_req, 0, resp_data,
-+				    HCLGE_TQPS_RSS_INFO_LEN);
-+}
-+
-+static int hclge_get_link_info(struct hclge_vport *vport,
-+			       struct hclge_mbx_vf_to_pf_cmd *mbx_req)
-+{
-+	struct hclge_dev *hdev = vport->back;
-+	u16 link_status;
-+	u8 msg_data[2];
-+	u8 dest_vfid;
-+
-+	/* mac.link can only be 0 or 1 */
-+	link_status = (u16)hdev->hw.mac.link;
-+	memcpy(&msg_data[0], &link_status, sizeof(u16));
-+	dest_vfid = mbx_req->mbx_src_vfid;
-+
-+	/* send this requested info to VF */
-+	return hclge_send_mbx_msg(vport, msg_data, sizeof(u8),
-+				  HCLGE_MBX_LINK_STAT_CHANGE, dest_vfid);
-+}
-+
-+void hclge_mbx_handler(struct hclge_dev *hdev)
-+{
-+	struct hclge_cmq_ring *crq = &hdev->hw.cmq.crq;
-+	struct hclge_mbx_vf_to_pf_cmd *req;
-+	struct hclge_vport *vport;
-+	struct hclge_desc *desc;
-+	int ret;
-+
-+	/* handle all the mailbox requests in the queue */
-+	while (hnae_get_bit(crq->desc[crq->next_to_use].flag,
-+			    HCLGE_CMDQ_RX_OUTVLD_B)) {
-+		desc = &crq->desc[crq->next_to_use];
-+		req = (struct hclge_mbx_vf_to_pf_cmd *)desc->data;
-+
-+		vport = &hdev->vport[req->mbx_src_vfid];
-+
-+		switch (req->msg[0]) {
-+		case HCLGE_MBX_SET_PROMISC_MODE:
-+			ret = hclge_set_vf_promisc_mode(vport, req);
-+			if (ret)
-+				dev_err(&hdev->pdev->dev,
-+					"PF fail(%d) to set VF promisc mode\n",
-+					ret);
-+			break;
-+		case HCLGE_MBX_SET_UNICAST:
-+			ret = hclge_set_vf_uc_mac_addr(vport, req, false);
-+			if (ret)
-+				dev_err(&hdev->pdev->dev,
-+					"PF fail(%d) to set VF UC MAC Addr\n",
-+					ret);
-+			break;
-+		case HCLGE_MBX_SET_MULTICAST:
-+			ret = hclge_set_vf_mc_mac_addr(vport, req, false);
-+			if (ret)
-+				dev_err(&hdev->pdev->dev,
-+					"PF fail(%d) to set VF MC MAC Addr\n",
-+					ret);
-+			break;
-+		case HCLGE_MBX_SET_VLAN:
-+			ret = hclge_set_vf_vlan_cfg(vport, req, false);
-+			if (ret)
-+				dev_err(&hdev->pdev->dev,
-+					"PF failed(%d) to config VF's VLAN\n",
-+					ret);
-+			break;
-+		case HCLGE_MBX_GET_QINFO:
-+			ret = hclge_get_vf_queue_info(vport, req, true);
-+			if (ret)
-+				dev_err(&hdev->pdev->dev,
-+					"PF failed(%d) to get Q info for VF\n",
-+					ret);
-+			break;
-+		case HCLGE_MBX_GET_TCINFO:
-+			ret = hclge_get_vf_tcinfo(vport, req, true);
-+			if (ret)
-+				dev_err(&hdev->pdev->dev,
-+					"PF failed(%d) to get TC info for VF\n",
-+					ret);
-+			break;
-+		case HCLGE_MBX_GET_LINK_STATUS:
-+			ret = hclge_get_link_info(vport, req);
-+			if (ret)
-+				dev_err(&hdev->pdev->dev,
-+					"PF fail(%d) to get link stat for VF\n",
-+					ret);
-+			break;
-+		default:
-+			dev_err(&hdev->pdev->dev,
-+				"un-supported mailbox message, code = %d\n",
-+				req->msg[0]);
-+			break;
-+		}
-+		hclge_mbx_ring_ptr_move_crq(crq);
-+	}
-+
-+	/* Write back CMDQ_RQ header pointer, M7 need this pointer */
-+	hclge_write_dev(&hdev->hw, HCLGE_NIC_CRQ_HEAD_REG, crq->next_to_use);
-+}
++obj-$(CONFIG_HNS3_HCLGEVF) += hclgevf.o
++hclgevf-objs = hclgevf_main.o hclgevf_cmd.o hclgevf_mbx.o
+\ No newline at end of file
 -- 
 2.7.4
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
