@@ -1,46 +1,69 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [for-next,1/2] i40iw: Use sqsize to initialize cqp_requests
- elements
-Date: Tue, 12 Dec 2017 16:12:55 -0600
-Message-ID: <20171212221255.GA17116@ssaleem-MOBL4.amr.corp.intel.com>
-References: <1512765269-145929-2-git-send-email-henry.orosco@intel.com>
- <20171211234108.GH32020@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH v2 rdma-next] i40iw: Change accelerated flag to bool
+Date: Tue, 12 Dec 2017 16:31:27 -0600
+Message-ID: <20171212223127.892-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171211234108.GH32020-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: "Orosco, Henry" <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 11, 2017 at 04:41:08PM -0700, Jason Gunthorpe wrote:
-> On Fri, Dec 08, 2017 at 02:34:28PM -0600, Henry Orosco wrote:
-> > From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > 
-> > Use sqsize instead of I40IW_CQP_SW_SQSIZE_2048 to initialize
-> > cqp_requests elements in the for-loop as sqsize is used
-> > to allocate memory for cqp_requests.
-> > 
-> > Signed-off-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >  drivers/infiniband/hw/i40iw/i40iw_main.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> Applied to for-next, thanks
-> 
-> There was a 3rd patch about the 'bool' change that now cross depends
-> with for-next and for-rc. I think you have to re-spin that one against
-> for-rc as there is another usage of 'accelerated' added there?
-> 
+From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Hi Jason - I sent an updated ver. of this patch "i40iw: Change accelerated flag to bool"
-against the for-rc branch.
+The accelerated flag only utilizes two values: 0 and 1.
+Modify accelerated flag in struct i40iw_cm_node to bool.
 
-Shiraz
+Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+v0->v1:
+* respun against for-rc to apply cleanly on top
+  of dependent patch a7c6dfe215a7
+  ("i40iw: Notify user of established connection after QP in RTS")
+v1->v2:
+* Updated correct patch author
 
+ drivers/infiniband/hw/i40iw/i40iw_cm.c | 4 ++--
+ drivers/infiniband/hw/i40iw/i40iw_cm.h | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index 77870f9..0d4c2f4 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -3691,7 +3691,7 @@ int i40iw_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 	cm_node->qhash_set = false;
+ 	i40iw_modify_qp(&iwqp->ibqp, &attr, IB_QP_STATE, NULL);
+ 
+-	cm_node->accelerated = 1;
++	cm_node->accelerated = true;
+ 	status =
+ 		i40iw_send_cm_event(cm_node, cm_id, IW_CM_EVENT_ESTABLISHED, 0);
+ 	if (status)
+@@ -4058,7 +4058,7 @@ static void i40iw_cm_event_connected(struct i40iw_cm_event *event)
+ 	cm_node->qhash_set = false;
+ 	i40iw_modify_qp(&iwqp->ibqp, &attr, IB_QP_STATE, NULL);
+ 
+-	cm_node->accelerated = 1;
++	cm_node->accelerated = true;
+ 	status = i40iw_send_cm_event(cm_node, cm_id, IW_CM_EVENT_CONNECT_REPLY,
+ 				     0);
+ 	if (status)
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.h b/drivers/infiniband/hw/i40iw/i40iw_cm.h
+index 0d5840d..e09b1f5 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.h
+@@ -337,7 +337,7 @@ struct i40iw_cm_node {
+ 	u16     mpav2_ird_ord;
+ 	struct iw_cm_id *cm_id;
+ 	struct list_head list;
+-	int accelerated;
++	bool accelerated;
+ 	struct i40iw_cm_listener *listener;
+ 	int apbvt_set;
+ 	int accept_pend;
+-- 
+2.8.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
