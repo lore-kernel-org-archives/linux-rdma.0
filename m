@@ -1,46 +1,32 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [v3,1/9] RDMA/core: Add implicit per-device completion queue
- pools
-Date: Mon, 11 Dec 2017 16:50:44 -0700
-Message-ID: <20171211235044.GA32331@ziepe.ca>
-References: <20171108095742.25365-2-sagi@grimberg.me>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: XRC Questions for Mellanox and All
+Date: Tue, 12 Dec 2017 09:49:31 +0000
+Message-ID: <BN3PR07MB2578AD1BAC34493F0026D5B0F8340@BN3PR07MB2578.namprd07.prod.outlook.com>
+References: <BN3PR07MB2578462C1760953F6D4690E2F8570@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <BN3PR07MB2578DE457E8E49E57CF49F17F82D0@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <20171119120935.GX18825@mtr-leonro.local>
+ <BN3PR07MB2578D6D405479F378F8363E2F82D0@BN3PR07MB2578.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171108095742.25365-2-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <BN3PR07MB2578D6D405479F378F8363E2F82D0-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 08, 2017 at 11:57:34AM +0200, Sagi Grimberg wrote:
-> Allow a ULP to ask the core to implicitly assign a completion
-> queue to a queue-pair based on a least-used search on a per-device
-> cq pools. The device CQ pools grow in a lazy fashion with every
-> QP creation.
-> 
-> In addition, expose an affinity hint for a queue pair creation.
-> If passed, the core will attempt to attach a CQ with a completion
-> vector that is directed to the cpu core as the affinity hint
-> provided.
-> 
-> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> > Jack is working on it,
+> >
+>=20
+> I'll patiently wait for a response then.
+>=20
+> Thanks,
+> Ram
+>=20
 
-Sagi, Bart,
-
-Did we reach a conclusion on this? Is v3 the series to take, and
-should it all go through the RDMA tree? It looks like there are some
-missing acks for that??
-
-I think there was also an unapplied comment from bart in the
-patchworks notes...
-
-Could you please add some commit messages when you resend it? Not sure
-I should be accepting such large commits with empty messages???
-
-Thanks,
-Jason
+Any news on this?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
