@@ -1,32 +1,34 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: XRC Questions for Mellanox and All
-Date: Tue, 12 Dec 2017 09:49:31 +0000
-Message-ID: <BN3PR07MB2578AD1BAC34493F0026D5B0F8340@BN3PR07MB2578.namprd07.prod.outlook.com>
-References: <BN3PR07MB2578462C1760953F6D4690E2F8570@BN3PR07MB2578.namprd07.prod.outlook.com>
- <BN3PR07MB2578DE457E8E49E57CF49F17F82D0@BN3PR07MB2578.namprd07.prod.outlook.com>
- <20171119120935.GX18825@mtr-leonro.local>
- <BN3PR07MB2578D6D405479F378F8363E2F82D0@BN3PR07MB2578.namprd07.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [PATCH rdma-core] Fix typo 'bandwith' -> 'bandwidth'
+Date: Tue, 12 Dec 2017 11:15:25 +0100
+Message-ID: <20171212101525.29108-1-benjamin.drung@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BN3PR07MB2578D6D405479F378F8363E2F82D0-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > Jack is working on it,
-> >
->=20
-> I'll patiently wait for a response then.
->=20
-> Thanks,
-> Ram
->=20
+Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+---
+ libibverbs/man/ibv_query_device_ex.3 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Any news on this?
+diff --git a/libibverbs/man/ibv_query_device_ex.3 b/libibverbs/man/ibv_query_device_ex.3
+index 1172523a..3c64abf3 100644
+--- a/libibverbs/man/ibv_query_device_ex.3
++++ b/libibverbs/man/ibv_query_device_ex.3
+@@ -125,7 +125,7 @@ utilization and small packets will be harmed.
+ 
+ For instance, with a 128 byte cache line size, the transfer of any
+ packets less than 128 bytes will require a full 128 transfer on PCI,
+-pontentially doubling the required PCI-E bandwith.
++pontentially doubling the required PCI-E bandwidth.
+ 
+ This feature can be enabled on a QP or WQ basis via the
+ IBV_QP_CREATE_PCI_WRITE_END_PADDING or IBV_WQ_FLAGS_PCI_WRITE_END_PADDING
+-- 
+2.14.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
