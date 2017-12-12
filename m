@@ -1,49 +1,146 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/2] srp_daemon: fix CQ handling
-Date: Tue, 12 Dec 2017 17:38:54 +0000
-Message-ID: <1513100334.2999.21.camel@wdc.com>
-References: <05bbb67fea5e3cae535c0d9d21866cf8ad76f74f.1513087686.git.NMoreyChaisemartin@suse.com>
-         <19c1241b-6a22-f8c2-32a2-6233f62cc39c@suse.com>
-         <1513098293.2999.15.camel@wdc.com>
-         <e584830f-64a0-d5b6-c3b7-1cb6e0f4df90@suse.com>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: [PATCH V3 net-next 0/8] Hisilicon Network Subsystem 3 VF Ethernet Driver
+Date: Tue, 12 Dec 2017 17:51:57 +0000
+Message-ID: <20171212175205.236-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e584830f-64a0-d5b6-c3b7-1cb6e0f4df90-IBi9RG/b67k@public.gmane.org>
-Content-Language: en-US
-Content-ID: <1344551B565144489842D56DE0CB9927-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "nmoreychaisemartin-IBi9RG/b67k@public.gmane.org" <nmoreychaisemartin-IBi9RG/b67k@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "bvanassche-HInyCGIudOg@public.gmane.org" <bvanassche-HInyCGIudOg@public.gmane.org>, "stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org" <stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE3LTEyLTEyIGF0IDE4OjI4ICswMTAwLCBOaWNvbGFzIE1vcmV5LUNoYWlzZW1h
-cnRpbiB3cm90ZToNCj4gTGUgMTIvMTIvMjAxNyDDoCAxODowNCwgQmFydCBWYW4gQXNzY2hlIGEg
-w6ljcml0IDoNCj4gPiBPbiBUdWUsIDIwMTctMTItMTIgYXQgMTU6MDggKzAxMDAsIE5pY29sYXMg
-TW9yZXktQ2hhaXNlbWFydGluIHdyb3RlOg0KPiA+ID4gKwlpZiAocmV0IDwgMCkgew0KPiA+ID4g
-KwkJcHJfZXJyKCJwb2xsIENRIGZhaWxlZFxuIik7DQo+ID4gPiArCQlyZXR1cm4gcmV0Ow0KPiA+
-ID4gKwl9DQo+ID4gPiArDQo+ID4gPiArCWlmIChyZXQgPiAwICYmIHdjLT5zdGF0dXMgIT0gSUJW
-X1dDX1NVQ0NFU1MpIHsNCj4gPiA+ICsJCWlmICghc3RvcF90aHJlYWRzKHN5bmNfcmVzKSkNCj4g
-PiA+ICsJCQlwcl9lcnIoImdvdCBiYWQgY29tcGxldGlvbiB3aXRoIHN0YXR1czogMHgleFxuIiwN
-Cj4gPiA+ICsJCQkgICAgICAgd2MtPnN0YXR1cyk7DQo+ID4gPiArCQlyZXR1cm4gLXJldDsNCj4g
-PiA+ICsJfQ0KPiA+ID4gKw0KPiA+ID4gKwlyZXR1cm4gcmV0Ow0KPiA+ID4gK30NCj4gPiANCj4g
-PiBUaGlzIGZ1bmN0aW9uIGNhbiByZXR1cm4gbmVnYXRpdmUgdmFsdWVzLCBwb3NpdGl2ZSB2YWx1
-ZXMgb3IgemVyby4gUGxlYXNlDQo+ID4gbW9kaWZ5IGl0IHN1Y2ggdGhhdCBlaXRoZXIgMCBvciBh
-IG5lZ2F0aXZlIFVuaXggZXJyb3IgY29kZSBpcyByZXR1cm5lZC4gVGhpcw0KPiA+IHdpbGwgbWFr
-ZSBpdCBlYXNpZXIgdG8gcmVhZCB0aGlzIGZ1bmN0aW9uIGFuZCBhbHNvIHRoZSBjb2RlIHRoYXQg
-Y2FsbHMgdGhpcw0KPiA+IGZ1bmN0aW9uLg0KPiANCj4gV2Ugc3RpbGwgbmVlZCB0byBkaWZmZXJl
-bmNpYXRlIGJldHdlZW4gT0sgd2l0aCAwIGNvbXBsZXRpb25zIHBvbGxlZCwgYW5kIE9LIHdpdGgg
-MSBjb21wbGV0aW9uLg0KPiBJIGRpZCBpdCB0aGlzIHdheSB0byBsaW1pdCB0aGUgc2lkZSBlZmZl
-Y3Qgb2YgZmFjdG9yaW5nIHRoZSBjb2RlLg0KPiBXb3VsZCB5b3Ugd2FudCBwb2xsX2NxX29uY2Ug
-dG8gcmV0dXJuIC1FQUdBSU4gIHdoZW4gbm8gY29tcGxldGlvbiB3YXMgZm91bmQ/DQoNCkhlbGxv
-IE5pY29sYXMsDQoNCklmIHlvdSB0aGluayBhbm90aGVyIGFwcHJvYWNoIHdvdWxkIHdvcmsgYmV0
-dGVyIGZvciB0aGUgcmV0dXJuIHZhbHVlcyB0aGFuDQp3aGF0IEkgcHJvcG9zZWQgaXQncyBmaW5l
-IHRvIHVzZSB0aGF0IGFwcHJvYWNoLiBNeSBwcmltYXJ5IGNvbmNlcm4gaXMgdGhhdA0KdGhlIG1l
-YW5pbmcgb2YgdGhlIHJldHVybiB2YWx1ZXMgZ2V0cyBkb2N1bWVudGVkIGFuZCBhbHNvIHRoYXQg
-dGhlIG1lYW5pbmcNCm9mIHRoZSByZXR1cm4gdmFsdWVzIGlzIGNsZWFyIHdpdGhvdXQgaGF2aW5n
-IHRvIHJlYWQgdGhlIGltcGxlbWVudGF0aW9uIG9mDQp0aGlzIGZ1bmN0aW9uLg0KDQpCYXJ0Lg==
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This patch-set contains the support of the HNS3 (Hisilicon Network Subsystem 3)
+Virtual Function Ethernet driver for hip08 family of SoCs. The Physical Function
+driver is already part of the Linux mainline. 
+
+This VF driver has its Hardware Compatibility Layer and has commom/unified ENET
+layer/client/ethtool code with the PF driver. It also has support of mailbox to
+communicate with the HNS3 PF driver. The basic architecture of VF driver is
+derivative of the PF driver. Just like PF driver, this driver is also PCI
+Express based.
+
+This driver is the ongoing development work and HNS3 VF Ethernet driver would be
+incrementally enhanced with more new features.
+
+High Level Architecture:
+
+                     [ Ethtool ]
+	                 | 
+                 [ Ethernet Client ] ... [ RoCE Client ] 
+                         |                     |           
+                   [ HNAE Device ]             |________       
+                         |                     |       |
+    ---------------------------------------------      |
+                                                       |
+     [ HNAE3 Framework (Register/unregister) ]         |
+                                                       |
+    ---------------------------------------------      |
+                         |                             |
+                 [ VF HCLGE Layer ]                    |
+                  |             |                      |
+                  |             |                      |
+                  |             |                      |
+                  |     [ VF Mailbox (To PF via IMP) ] |                 
+                  |             |                      |   
+             [ IMP command Interface ]  [ IMP command Interface ]
+                        |                              |
+                        |                              |
+           (A B O V E  R U N S  O N  G U E S T  S Y S T E M)
+    -------------------------------------------------------------
+              Q E M U / V F I O / K V M (on Host System)
+    -------------------------------------------------------------
+            HIP08  H A R D W A R E (limited to VF by SMMU)
+
+   [ IMP/Mgmt Processor (hardware common to system/cmd based) ]
+
+
+                Fig 1.   HNS3 Virtual Function Driver
+
+
+                    
+
+    	[ dcbnl ]  [ Ethtool ]
+            |          |
+   	[  Ethernet Client  ]  [ ODP/UIO Client ] . . .[ RoCE Client ]     
+              |_____________________|                 |
+                         |                   _________|        
+                   [ HNAE Device ]           |        |
+                         |                   |        |
+    ---------------------------------------------     |
+                                                      |
+     [ HNAE3 Framework (Register/unregister) ]        |
+                                                      |
+    ---------------------------------------------     |
+                         |                            |
+                  [ HCLGE Layer ]                     |
+         ________________|_________________           |
+        |                |                 |          |
+     [ DCB ]             |                 |          |
+        |                |                 |          |
+  [ Scheduler/Shaper ] [ MDIO ]      [ PF Mailbox ]   |
+        |                |                 |          |
+        |________________|_________________|          |     
+                         |                            |
+             [ IMP command Interface ]     [ IMP command Interface ] 
+    ----------------------------------------------------------------
+              HIP08  H A R D W A R E                  
+
+  [ IMP/Mgmt Processor (hardware common to system/cmd based) ]
+
+
+               Fig 2.    Existing HNS3 PF Driver (added with mailbox)
+
+
+Change Log Summary:
+Patch V3: Addressed SPDX change requested by Philippe Ombredanne
+Patch V2: 1. Addressed some comments by David Miller.
+	  2. Addressed some internal comments on various patches
+Patch V1: Initial Submit
+
+
+Salil Mehta (8):
+  net: hns3: Add HNS3 VF IMP(Integrated Management Proc) cmd interface
+  net: hns3: Add mailbox support to VF driver
+  net: hns3: Add HNS3 VF HCL(Hardware Compatibility Layer) Support
+  net: hns3: Add HNS3 VF driver to kernel build framework
+  net: hns3: Unified HNS3 {VF|PF} Ethernet Driver for hip08 SoC
+  net: hns3: Add mailbox support to PF driver
+  net: hns3: Change PF to add ring-vect binding & resetQ to mailbox
+  net: hns3: Add mailbox interrupt handling to PF driver
+
+ drivers/net/ethernet/hisilicon/Kconfig             |   28 +-
+ drivers/net/ethernet/hisilicon/hns3/Makefile       |    7 +
+ drivers/net/ethernet/hisilicon/hns3/hclge_mbx.h    |   88 ++
+ drivers/net/ethernet/hisilicon/hns3/hnae3.c        |   14 +-
+ drivers/net/ethernet/hisilicon/hns3/hnae3.h        |    7 +-
+ .../hisilicon/hns3/{hns3pf => }/hns3_dcbnl.c       |    2 +-
+ .../hisilicon/hns3/{hns3pf => }/hns3_enet.c        |    2 +
+ .../hisilicon/hns3/{hns3pf => }/hns3_enet.h        |    0
+ .../hisilicon/hns3/{hns3pf => }/hns3_ethtool.c     |   22 +-
+ .../net/ethernet/hisilicon/hns3/hns3pf/Makefile    |    8 +-
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    |  207 +--
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |   17 +-
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c |  412 ++++++
+ .../net/ethernet/hisilicon/hns3/hns3vf/Makefile    |    9 +
+ .../ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.c   |  344 +++++
+ .../ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.h   |  256 ++++
+ .../ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c  | 1491 ++++++++++++++++++++
+ .../ethernet/hisilicon/hns3/hns3vf/hclgevf_main.h  |  164 +++
+ .../ethernet/hisilicon/hns3/hns3vf/hclgevf_mbx.c   |  184 +++
+ 19 files changed, 3140 insertions(+), 122 deletions(-)
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hclge_mbx.h
+ rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_dcbnl.c (97%)
+ rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_enet.c (99%)
+ rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_enet.h (100%)
+ rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_ethtool.c (97%)
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/Makefile
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_mbx.c
+
+-- 
+2.7.4
