@@ -1,34 +1,42 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [for-next] IB/ipoib: Warn when one port fails to initialize
-Date: Wed, 13 Dec 2017 11:19:22 -0700
-Message-ID: <20171213181922.GB5984@ziepe.ca>
-References: <20171129063402.3963-1-yuval.shaia@oracle.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [v2] RDMA/iwpm: Fix uninitialized error code in
+ iwpm_send_mapinfo()
+Date: Wed, 13 Dec 2017 11:19:39 -0700
+Message-ID: <20171213181939.GC5984@ziepe.ca>
+References: <1511945253-29296-1-git-send-email-geert@linux-m68k.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171129063402.3963-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+In-Reply-To: <1511945253-29296-1-git-send-email-geert@linux-m68k.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Roland Dreier <roland@purestorage.com>, Doug Ledford <dledford@redhat.com>, Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 29, 2017 at 08:34:02AM +0200, Yuval Shaia wrote:
-> If one port fails to initialize an error message should indicate the
-> reason and driver should continue serving the working port(s) and other
-> HCA(s).
+On Wed, Nov 29, 2017 at 09:47:33AM +0100, Geert Uytterhoeven wrote:
+> With gcc-4.1.2:
 > 
-> Fixes: e4b2d06892c7 ("IB/ipoib: Remove device when one port fails to
-> init").
+>     drivers/infiniband/core/iwpm_util.c: In function ‘iwpm_send_mapinfo’:
+>     drivers/infiniband/core/iwpm_util.c:647: warning: ‘ret’ may be used uninitialized in this function
 > 
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->  drivers/infiniband/ulp/ipoib/ipoib_main.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
+> Indeed, if nl_client is not found in any of the scanned has buckets, ret
+> will be used uninitialized.
+> 
+> Preinitialize ret to -EINVAL to fix this.
+> 
+> Fixes: 30dc5e63d6a5ad24 ("RDMA/core: Add support for iWARP Port Mapper user space service")
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> Reviewed-by: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
+> v2:
+>   - Use -EINVAL instead of zero,
+>   - Move the preinitialization to just before the loop, to catach future
+>     early offenders,
+>   - Drop RFC state.
+>  drivers/infiniband/core/iwpm_util.c | 1 +
+>  1 file changed, 1 insertion(+)
 
-Thanks, applied to -next
+Thanks applied to -next.
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
