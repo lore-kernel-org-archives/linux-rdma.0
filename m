@@ -1,93 +1,92 @@
-From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-rc 1/6] RDMA/vmw_pvrdma: Clarify QP is_kernel logic
-Date: Wed, 13 Dec 2017 11:08:26 -0800
-Message-ID: <20171213190825.GH20684@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-rc 2/6] RDMA/vmw_pvrdma: Call ib_umem_release on
+ destroy QP path
+Date: Wed, 13 Dec 2017 21:16:16 +0200
+Message-ID: <20171213191615.GB6074@yuvallap>
 References: <20171208185818.GA28514@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171208190010.GA31023@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171213090246.GD2669@yuvallap>
+ <20171208190106.GA32066@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+ <20171213085317.GC2669@yuvallap>
+ <20171213161755.GB16920@ziepe.ca>
+ <20171213184012.GA2516@yuvallap>
+ <20171213185517.GG20684@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+ <20171213190421.GA6074@yuvallap>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171213090246.GD2669@yuvallap>
+In-Reply-To: <20171213190421.GA6074@yuvallap>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 13, 2017 at 11:02:46AM +0200, Yuval Shaia wrote:
-> On Fri, Dec 08, 2017 at 11:00:17AM -0800, Bryan Tan wrote:
-> > Be more consistent in checking is_kernel flag for QPs.
-> 
-> Consist with what?
-> (asking because expecting also pvrdma_create_cq to be fixed).
-
-I had updated create SRQ's is_kernel in the same way. Thanks for
-pointing out that I had missed it in create CQ.
-
+On Wed, Dec 13, 2017 at 09:04:22PM +0200, Yuval Shaia wrote:
+> On Wed, Dec 13, 2017 at 10:55:18AM -0800, Bryan Tan wrote:
+> > On Wed, Dec 13, 2017 at 08:40:13PM +0200, Yuval Shaia wrote:
+> > > On Wed, Dec 13, 2017 at 09:17:55AM -0700, Jason Gunthorpe wrote:
+> > > > On Wed, Dec 13, 2017 at 10:53:18AM +0200, Yuval Shaia wrote:
+> > > > > On Fri, Dec 08, 2017 at 11:01:18AM -0800, Bryan Tan wrote:
+> > > > > > The QP cleanup did not previously call ib_umem_release. Fix this.
+> > > > > > 
+> > > > > > Testing Done: ibv_rc_pingpong, rping, perftests.
+> > > > > > 
+> > > > > > Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
+> > > > > > Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > > > > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > > > > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > > > > Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > > > >  drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c | 7 +++++++
+> > > > > >  1 file changed, 7 insertions(+)
+> > > > > > 
+> > > > > > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+> > > > > > index b932b7e..77e7e57 100644
+> > > > > > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+> > > > > > @@ -430,6 +430,13 @@ static void pvrdma_free_qp(struct pvrdma_qp *qp)
+> > > > > >  	atomic_dec(&qp->refcnt);
+> > > > > >  	wait_event(qp->wait, !atomic_read(&qp->refcnt));
+> > > > > >  
+> > > > > > +	if (!qp->is_kernel) {
+> > > > > > +		if (qp->rumem)
+> > > > > 
+> > > > > IS_ERR_OR_NULL?
+> > > > 
+> > > > How can we get an ERR_PTR in rumem?
+> > > 
+> > > qp->rumem is set with ib_umem_get which can either return ib_umem pointer
+> > > or ERR_PTR.
+> > > So i looked at other places which calls ib_umem_release. The first one that
+> > > pops up is bnxt_re which do this check with IS_ERR_OR_NULL?.
+> > > 
+> > > So assuming it can be used here.
 > > 
-> > Testing Done: ibv_rc_pingpong, rping, perftests.
+> > We check in pvrdma_qp.c pvrdma_create_qp the result of ib_umem_get.
+> > If it's ERR_PTR we fail the QP creation:
+> > 
+> > > qp->rumem = ib_umem_get(pd->uobject->context,
+> > > 			ucmd.rbuf_addr,
+> > > 			ucmd.rbuf_size, 0, 0);
+> > > if (IS_ERR(qp->rumem)) {
+> > > 	ret = PTR_ERR(qp->rumem);
+> > > 	goto err_qp;
+> > > }
+> > 
+> > so checking IS_ERR_OR_NULL isn't necessary here (and same for sumem).
 > 
-> These are all userspace tests, right?
+> I see.
+> Missed that.
 
-Yes. That was accidentally carried over from our how we
-format our commits internally. I'll remove the "Testing Done"
-line here and in the next commit message.
+That being said i have no other questions.
 
-> > 
-> > Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c | 7 +++----
-> >  1 file changed, 3 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> > index 10420a1..b932b7e 100644
-> > --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> > @@ -249,8 +249,9 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
-> >  		init_waitqueue_head(&qp->wait);
-> >  
-> >  		qp->state = IB_QPS_RESET;
-> > +		qp->is_kernel = !(pd->uobject && udata);
-> >  
-> > -		if (pd->uobject && udata) {
-> > +		if (!qp->is_kernel) {
-> >  			dev_dbg(&dev->pdev->dev,
-> >  				"create queuepair from user space\n");
-> >  
-> > @@ -291,8 +292,6 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
-> >  				qp->npages_recv = 0;
-> >  			qp->npages = qp->npages_send + qp->npages_recv;
-> >  		} else {
-> > -			qp->is_kernel = true;
-> > -
-> >  			ret = pvrdma_set_sq_size(to_vdev(pd->device),
-> >  						 &init_attr->cap, qp);
-> >  			if (ret)
-> > @@ -394,7 +393,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
-> >  err_pdir:
-> >  	pvrdma_page_dir_cleanup(dev, &qp->pdir);
-> >  err_umem:
-> > -	if (pd->uobject && udata) {
-> > +	if (!qp->is_kernel) {
-> >  		if (qp->rumem)
-> >  			ib_umem_release(qp->rumem);
-> >  		if (qp->sumem)
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+
 > 
-> Regardless of the comments:
-> 
-> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> 
-> > -- 
-> > 1.8.5.6
 > > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  https://urldefense.proofpoint.com/v2/url?u=http-3A__vger.kernel.org_majordomo-2Dinfo.html&d=DwIBAg&c=uilaK90D4TOVoH58JNXRgQ&r=MjCVwEZlX7H-yXFOZ8b3IdkUDz9tjnFu-2RVvpFiKHw&m=M9b99UdgNMHlndgR9oY0KSFjeYht9EpUHM4iqxKTcUE&s=d8rmC5ZUNj2gLH8KOcrCgMmMg6484BYoXivYSjKEha0&e=
+> > Thanks,
+> > Bryan
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
