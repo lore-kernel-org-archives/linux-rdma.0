@@ -1,42 +1,38 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [v2] RDMA/iwpm: Fix uninitialized error code in
- iwpm_send_mapinfo()
-Date: Wed, 13 Dec 2017 11:19:39 -0700
-Message-ID: <20171213181939.GC5984@ziepe.ca>
-References: <1511945253-29296-1-git-send-email-geert@linux-m68k.org>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: iw_cxgb4: make pointer reg_workq static
+Date: Wed, 13 Dec 2017 11:19:56 -0700
+Message-ID: <20171213181956.GD5984@ziepe.ca>
+References: <20171130133006.19699-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1511945253-29296-1-git-send-email-geert@linux-m68k.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>, Roland Dreier <roland@purestorage.com>, Doug Ledford <dledford@redhat.com>, Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20171130133006.19699-1-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 29, 2017 at 09:47:33AM +0100, Geert Uytterhoeven wrote:
-> With gcc-4.1.2:
+On Thu, Nov 30, 2017 at 01:30:06PM +0000, Colin Ian King wrote:
+> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 > 
->     drivers/infiniband/core/iwpm_util.c: In function ‘iwpm_send_mapinfo’:
->     drivers/infiniband/core/iwpm_util.c:647: warning: ‘ret’ may be used uninitialized in this function
+> The pointer reg_workq is local to the source and does not need to be
+> in global scope, so make it static.
 > 
-> Indeed, if nl_client is not found in any of the scanned has buckets, ret
-> will be used uninitialized.
+> Cleans up sparse warning:
+> drivers/infiniband/hw/cxgb4/device.c:69:25: warning: symbol 'reg_workq'
+> was not declared. Should it be static?
 > 
-> Preinitialize ret to -EINVAL to fix this.
-> 
-> Fixes: 30dc5e63d6a5ad24 ("RDMA/core: Add support for iWARP Port Mapper user space service")
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Reviewed-by: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
-> v2:
->   - Use -EINVAL instead of zero,
->   - Move the preinitialization to just before the loop, to catach future
->     early offenders,
->   - Drop RFC state.
->  drivers/infiniband/core/iwpm_util.c | 1 +
->  1 file changed, 1 insertion(+)
+> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+>  drivers/infiniband/hw/cxgb4/device.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks applied to -next.
+Thanks, applied to -next
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
