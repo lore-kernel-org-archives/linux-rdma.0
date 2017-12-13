@@ -1,8 +1,8 @@
-From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
 Subject: Re: [PATCH for-rc 2/6] RDMA/vmw_pvrdma: Call ib_umem_release on
  destroy QP path
-Date: Wed, 13 Dec 2017 10:55:18 -0800
-Message-ID: <20171213185517.GG20684@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+Date: Wed, 13 Dec 2017 11:56:13 -0700
+Message-ID: <20171213185613.GE16920@ziepe.ca>
 References: <20171208185818.GA28514@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
  <20171208190106.GA32066@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
  <20171213085317.GC2669@yuvallap>
@@ -15,7 +15,7 @@ Content-Disposition: inline
 In-Reply-To: <20171213184012.GA2516@yuvallap>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 On Wed, Dec 13, 2017 at 08:40:13PM +0200, Yuval Shaia wrote:
@@ -50,26 +50,48 @@ On Wed, Dec 13, 2017 at 08:40:13PM +0200, Yuval Shaia wrote:
 > 
 > qp->rumem is set with ib_umem_get which can either return ib_umem pointer
 > or ERR_PTR.
+
+In generall ERR_PTR's should not be permanently stored in structs and
+I do not expect to see IS_ERR_OR_NULL used. Several kernel devs
+consider is an abomination, and it certainly should *NEVER* be used
+on a ptr which cannot, by design, have an ERR_PTR in it.
+
+At least vmw_pvrdma appears to be OK:
+
+                                qp->rumem = ib_umem_get(pd->uobject->context,
+                                                        ucmd.rbuf_addr,
+                                                        ucmd.rbuf_size, 0, 0);
+
+                                if (IS_ERR(qp->rumem)) {
+                                        ret = PTR_ERR(qp->rumem);
+                                        goto err_qp;
+[..]
+err_qp:
+        kfree(qp);
+
+
+So we cannot have a 'qp' struct with an ERR_PTR in rumem.
+
 > So i looked at other places which calls ib_umem_release. The first one that
 > pops up is bnxt_re which do this check with IS_ERR_OR_NULL?.
-> 
-> So assuming it can be used here.
 
-We check in pvrdma_qp.c pvrdma_create_qp the result of ib_umem_get.
-If it's ERR_PTR we fail the QP creation:
+The test in bnxt looks wrong to me, and should be removed:
 
-> qp->rumem = ib_umem_get(pd->uobject->context,
-> 			ucmd.rbuf_addr,
-> 			ucmd.rbuf_size, 0, 0);
-> if (IS_ERR(qp->rumem)) {
-> 	ret = PTR_ERR(qp->rumem);
-> 	goto err_qp;
-> }
+                umem = ib_umem_get(context, ureq.qprva, bytes,
+                                   IB_ACCESS_LOCAL_WRITE, 1);
+                if (IS_ERR(umem))
+                        goto rqfail;
+                qp->rumem = umem;
 
-so checking IS_ERR_OR_NULL isn't necessary here (and same for sumem).
+So rumem can never be assigned to PTR_ERR, and this is garbage:
 
-Thanks,
-Bryan
+        if (!IS_ERR_OR_NULL(qp->rumem))
+                ib_umem_release(qp->rumem);
+
+
+Similar remark for other tests in that driver. Care to send a patch?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
