@@ -1,108 +1,63 @@
-From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-rc 1/6] RDMA/vmw_pvrdma: Clarify QP is_kernel logic
-Date: Wed, 13 Dec 2017 13:22:01 -0800
-Message-ID: <20171213212159.GA1641@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
-References: <20171208185818.GA28514@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171208190010.GA31023@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171213090246.GD2669@yuvallap>
- <20171213190825.GH20684@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171213192008.GC6074@yuvallap>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: stuck iscsi/iser target with linux-4.15.0-rc1
+Date: Wed, 13 Dec 2017 15:40:12 -0600
+Message-ID: <01bd01d3745a$f4bc82f0$de3588d0$@opengridcomputing.com>
+References: <000801d36ac6$9e9f5f70$dbde1e50$@opengridcomputing.com> <0ba7e891-f020-26fb-9945-9e824332593c@grimberg.me> <018901d36d17$6a703410$3f509c30$@opengridcomputing.com> <1dee9f68-a81b-b7b8-9e70-e0ef5c63c520@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+        charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171213192008.GC6074@yuvallap>
+In-Reply-To: <1dee9f68-a81b-b7b8-9e70-e0ef5c63c520-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'target-devel' <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 13, 2017 at 09:20:09PM +0200, Yuval Shaia wrote:
-> On Wed, Dec 13, 2017 at 11:08:26AM -0800, Bryan Tan wrote:
-> > On Wed, Dec 13, 2017 at 11:02:46AM +0200, Yuval Shaia wrote:
-> > > On Fri, Dec 08, 2017 at 11:00:17AM -0800, Bryan Tan wrote:
-> > > > Be more consistent in checking is_kernel flag for QPs.
-> > > 
-> > > Consist with what?
-> > > (asking because expecting also pvrdma_create_cq to be fixed).
-> > 
-> > I had updated create SRQ's is_kernel in the same way. Thanks for
-> > pointing out that I had missed it in create CQ.
-> > 
-> > > > 
-> > > > Testing Done: ibv_rc_pingpong, rping, perftests.
-> > > 
-> > > These are all userspace tests, right?
-> > 
-> > Yes. That was accidentally carried over from our how we
-> > format our commits internally. I'll remove the "Testing Done"
-> > line here and in the next commit message.
+> > [239800.115739] target_wait_for_sess_cmds: Waiting for se_cmd:
+> ffff88034082c998 t_state: 6, fabric state: 12
 > 
-> But...since you exposed this info my question remains, you changed a flow
-> of a branch that checks if verb was requested by kernel or userspace but
-> you tested it only with userspace tools.
+> Hmm, this means that the command was delegated to isert to send
+> data+response... Which means we lose a reference put somewhere here.
+> 
+> I'm assuming that this happens before your changes to ib_drain_qp
+> correct? If this does not happen without your changes it might indicate
+> that drain_qp is missing an error (or successful?) completion which
+> would prevent a final reference drop (isert_completion_put).
 
-Given that it was an if-else and the nature of the change
-I felt it sufficient to test with userspace applications.
-A kernel QP is also created for CM, which is used in rping.
-I just tested the patch series with krping though, and no
-issues there.
+Hey Sagi, I'm trying to reproduce this on CX4 cards with mlx5.  I have the two nodes setup via RoCEv2 and rping works over mlx5 fine, but when I try to discover the iSER targets, the initiator fails with:
 
-> > 
-> > > > 
-> > > > Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > > > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > > > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > > > Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > > > ---
-> > > >  drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c | 7 +++----
-> > > >  1 file changed, 3 insertions(+), 4 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> > > > index 10420a1..b932b7e 100644
-> > > > --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> > > > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> > > > @@ -249,8 +249,9 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
-> > > >  		init_waitqueue_head(&qp->wait);
-> > > >  
-> > > >  		qp->state = IB_QPS_RESET;
-> > > > +		qp->is_kernel = !(pd->uobject && udata);
-> > > >  
-> > > > -		if (pd->uobject && udata) {
-> > > > +		if (!qp->is_kernel) {
-> > > >  			dev_dbg(&dev->pdev->dev,
-> > > >  				"create queuepair from user space\n");
-> > > >  
-> > > > @@ -291,8 +292,6 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
-> > > >  				qp->npages_recv = 0;
-> > > >  			qp->npages = qp->npages_send + qp->npages_recv;
-> > > >  		} else {
-> > > > -			qp->is_kernel = true;
-> > > > -
-> > > >  			ret = pvrdma_set_sq_size(to_vdev(pd->device),
-> > > >  						 &init_attr->cap, qp);
-> > > >  			if (ret)
-> > > > @@ -394,7 +393,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
-> > > >  err_pdir:
-> > > >  	pvrdma_page_dir_cleanup(dev, &qp->pdir);
-> > > >  err_umem:
-> > > > -	if (pd->uobject && udata) {
-> > > > +	if (!qp->is_kernel) {
-> > > >  		if (qp->rumem)
-> > > >  			ib_umem_release(qp->rumem);
-> > > >  		if (qp->sumem)
-> > > 
-> > > Regardless of the comments:
-> > > 
-> > > Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > > 
-> > > > -- 
-> > > > 1.8.5.6
-> > > > 
-> > > > --
-> > > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > More majordomo info at  https://urldefense.proofpoint.com/v2/url?u=http-3A__vger.kernel.org_majordomo-2Dinfo.html&d=DwIBAg&c=uilaK90D4TOVoH58JNXRgQ&r=MjCVwEZlX7H-yXFOZ8b3IdkUDz9tjnFu-2RVvpFiKHw&m=M9b99UdgNMHlndgR9oY0KSFjeYht9EpUHM4iqxKTcUE&s=d8rmC5ZUNj2gLH8KOcrCgMmMg6484BYoXivYSjKEha0&e=
+[root@potato1 ~]# iscsiadm -m discovery -t sendtargets -p 172.16.99.239:3260 -I iser
+iscsiadm: recv's end state machine bug?
+iscsiadm: Could not perform SendTargets discovery: iSCSI PDU timed out
+[root@potato1 ~]# uname -r
+4.15.0-rc3+
+
+And the target logs this:
+
+[  873.240460] mlx5_0:dump_cqe:277:(pid 494): dump error cqe
+[  873.246665] 00000000 00000000 00000000 00000000
+[  873.251942] 00000000 00000000 00000000 00000000
+[  873.257214] 00000000 00000000 00000000 00000000
+[  873.262472] 00000000 00008a12 0a0000f6 00014bd2
+[  873.267711] isert: isert_print_wc: send failure: invalid request error (9) vend_err 8a
+
+Any ideas?  I'm using straight 4.15.0-rc3 + a workaround to avoid crashing my x86 systems at bootup from here:
+
+https://www.mail-archive.com/netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg203210.html'
+
+Steve.
+Thanks,
+
+Steve.
+
+
+
+---
+This email has been checked for viruses by AVG.
+http://www.avg.com
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
