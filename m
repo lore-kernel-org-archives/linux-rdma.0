@@ -1,40 +1,29 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: infiniband: cxgb4: use ktime_get for timestamps
-Date: Wed, 13 Dec 2017 11:19:06 -0700
-Message-ID: <20171213181906.GA5984@ziepe.ca>
-References: <20171127114518.2662754-1-arnd@arndb.de>
+Subject: Re: [for-next] IB/ipoib: Warn when one port fails to initialize
+Date: Wed, 13 Dec 2017 11:19:22 -0700
+Message-ID: <20171213181922.GB5984@ziepe.ca>
+References: <20171129063402.3963-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171127114518.2662754-1-arnd-r2nGTMty4D4@public.gmane.org>
+In-Reply-To: <20171129063402.3963-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bharat Potnuri <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 27, 2017 at 12:44:53PM +0100, Arnd Bergmann wrote:
-> The debugfs file prints the difference between host timestamps as a
-> seconds/nanoseconds tuple, along with a 64-bit nanoseconds hardware
-> timestamp. The host time is read using getnstimeofday() which is
-> deprecated because of the y2038 overflow, and it suffers from time jumps
-> during settimeofday() and leap seconds.
+On Wed, Nov 29, 2017 at 08:34:02AM +0200, Yuval Shaia wrote:
+> If one port fails to initialize an error message should indicate the
+> reason and driver should continue serving the working port(s) and other
+> HCA(s).
 > 
-> Converting to ktime_get_ts64() would solve those two, but I'm going
-> a little further here by changing to ktime_get() and printing 64-bit
-> nanoseconds on both host and hw timestamps.  This simplifies the code
-> further and makes the output easier to understand.
+> Fixes: e4b2d06892c7 ("IB/ipoib: Remove device when one port fails to
+> init").
 > 
-> The format of the debugfs file obviously changes here, but this should
-> only be read by humans and not scripts, so I assume it's fine.
-> 
-> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-> Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->  drivers/infiniband/hw/cxgb4/device.c   | 34 +++++++++++++++-------------------
->  drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  4 ++--
->  drivers/infiniband/hw/cxgb4/qp.c       |  6 +++---
->  drivers/infiniband/hw/cxgb4/t4.h       |  4 ++--
->  4 files changed, 22 insertions(+), 26 deletions(-)
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>  drivers/infiniband/ulp/ipoib/ipoib_main.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
 
 Thanks, applied to -next
 
