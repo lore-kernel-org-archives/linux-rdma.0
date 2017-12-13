@@ -1,37 +1,91 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/ipoib: Restore MM behavior in case of tx_ring allocation failure
-Date: Wed, 13 Dec 2017 12:25:19 +0200
-Message-ID: <20171213102519.4929-1-yuval.shaia@oracle.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH V3 net-next 3/8] net: hns3: Add HNS3 VF HCL(Hardware
+ Compatibility Layer) Support
+Date: Wed, 13 Dec 2017 10:35:10 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93BB76189@FRAEML521-MBX.china.huawei.com>
+References: <20171212175205.236-1-salil.mehta@huawei.com>
+ <20171212175205.236-4-salil.mehta@huawei.com>
+ <CAOFm3uGs2yO4jfFZSVzZMbE6cbgzzkSBDPFAO_fbt-1XKx7FpQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAOFm3uGs2yO4jfFZSVzZMbE6cbgzzkSBDPFAO_fbt-1XKx7FpQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, ajaykumar.hotchandani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Philippe Ombredanne <pombredanne-od1rfyK75/E@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Zhuangyuzeng (Yisen)" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "lipeng (Y)" <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Salil Mehta <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-memalloc_noio_save modifies the behavior of MM, we must restore it after
-we are done.
-
-Fixes: d83187dda9b9 IB/IPoIB: Convert IPoIB to memalloc_noio_* calls
-
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_cm.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 87f4bd99cdf7..2c13123bfd69 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -1145,6 +1145,7 @@ static int ipoib_cm_tx_init(struct ipoib_cm_tx *p, u32 qpn,
- 	noio_flag = memalloc_noio_save();
- 	p->tx_ring = vzalloc(ipoib_sendq_size * sizeof(*p->tx_ring));
- 	if (!p->tx_ring) {
-+		memalloc_noio_restore(noio_flag);
- 		ret = -ENOMEM;
- 		goto err_tx;
- 	}
--- 
-2.14.3
-
+SGkgUGhpbGlwcGUsDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUGhp
+bGlwcGUgT21icmVkYW5uZSBbbWFpbHRvOnBvbWJyZWRhbm5lQG5leGIuY29tXQ0KPiBTZW50OiBU
+dWVzZGF5LCBEZWNlbWJlciAxMiwgMjAxNyAxMDo0MSBQTQ0KPiBUbzogU2FsaWwgTWVodGEgPHNh
+bGlsLm1laHRhQGh1YXdlaS5jb20+DQo+IENjOiBEYXZpZCBTLiBNaWxsZXIgPGRhdmVtQGRhdmVt
+bG9mdC5uZXQ+OyBaaHVhbmd5dXplbmcgKFlpc2VuKQ0KPiA8eWlzZW4uemh1YW5nQGh1YXdlaS5j
+b20+OyBsaXBlbmcgKFkpIDxsaXBlbmczMjFAaHVhd2VpLmNvbT47IFNhbGlsDQo+IE1laHRhIDxt
+ZWh0YS5zYWxpbC5sbmtAZ21haWwuY29tPjsgbmV0ZGV2QHZnZXIua2VybmVsLm9yZzsgTEtNTCA8
+bGludXgtDQo+IGtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+OyBsaW51eC1yZG1hQHZnZXIua2VybmVs
+Lm9yZzsgTGludXhhcm0NCj4gPGxpbnV4YXJtQGh1YXdlaS5jb20+DQo+IFN1YmplY3Q6IFJlOiBb
+UEFUQ0ggVjMgbmV0LW5leHQgMy84XSBuZXQ6IGhuczM6IEFkZCBITlMzIFZGDQo+IEhDTChIYXJk
+d2FyZSBDb21wYXRpYmlsaXR5IExheWVyKSBTdXBwb3J0DQo+IA0KPiBEZWFyIFNhbGlsLA0KPiAN
+Cj4gT24gVHVlLCBEZWMgMTIsIDIwMTcgYXQgNjo1MiBQTSwgU2FsaWwgTWVodGEgPHNhbGlsLm1l
+aHRhQGh1YXdlaS5jb20+DQo+IHdyb3RlOg0KPiA+IFRoaXMgcGF0Y2ggYWRkcyB0aGUgc3VwcG9y
+dCBvZiBoYXJkd2FyZSBjb21wYXRpYmlsdGl5IGxheWVyIHRvIHRoZQ0KPiA+IEhOUzMgVkYgRHJp
+dmVyLiBUaGlzIGxheWVyIGltcGxlbWVudHMgdmFyaW91cyB7c2V0fGdldH0gb3BlcmF0aW9ucw0K
+PiA+IG92ZXIgTUFDIGFkZHJlc3MgZm9yIGEgdmlydHVhbCBwb3J0LCBSU1MgcmVsYXRlZCBjb25m
+aWd1cmF0aW9uLA0KPiA+IGZldGNoZXMgdGhlIGxpbmsgc3RhdHVzIGluZm8gZnJvbSBQRiwgZG9l
+cyB2YXJpb3VzIFZMQU4gcmVsYXRlZA0KPiA+IGNvbmZpZ3VyYXRpb24gb3ZlciB0aGUgdmlydHVh
+bCBwb3J0LCBxdWVyaWVzIHRoZSBzdGF0aXN0aWNzIGZyb20NCj4gPiB0aGUgaGFyZHdhcmUgZXRj
+Lg0KPiA+DQo+ID4gVGhpcyBsYXllciBjYW4gZGlyZWN0bHkgaW50ZXJhY3Qgd2l0aCBoYXJkd2Fy
+ZSB0aHJvdWdoIHRoZQ0KPiA+IElNUChJbnRlZ3JhdGVkIE1hbmdlbWVudCBQcm9jZXNzb3IpIGlu
+dGVyZmFjZSBvciBjYW4gdXNlIG1haWxib3gNCj4gPiB0byBpbnRlcmFjdCB3aXRoIHRoZSBQRiBk
+cml2ZXIuDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBTYWxpbCBNZWh0YSA8c2FsaWwubWVodGFA
+aHVhd2VpLmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBsaXBlbmcgPGxpcGVuZzMyMUBodWF3ZWku
+Y29tPg0KPiA+IC0tLQ0KPiA+IFBhdGNoIFYzOiBBZGRyZXNzZWQgU1BEWCBjaGFuZ2UgcmVxdWVz
+dGVkIGJ5IFBoaWxpcHBlIE9tYnJlZGFubmUNCj4gPiAgIExpbms6IGh0dHBzOi8vbGttbC5vcmcv
+bGttbC8yMDE3LzEyLzgvODc0DQo+ID4gUGF0Y2ggVjI6IEFkZHJlc3NlZCBzb21lIGludGVybmFs
+IGNvbW1lbnRzDQo+ID4gUGF0Y2ggVjE6IEluaXRpYWwgU3VibWl0DQo+ID4gLS0tDQo+ID4gIC4u
+Li9ldGhlcm5ldC9oaXNpbGljb24vaG5zMy9obnMzdmYvaGNsZ2V2Zl9tYWluLmMgIHwgMTQ5MA0K
+PiArKysrKysrKysrKysrKysrKysrKw0KPiA+ICAuLi4vZXRoZXJuZXQvaGlzaWxpY29uL2huczMv
+aG5zM3ZmL2hjbGdldmZfbWFpbi5oICB8ICAxNjQgKysrDQo+ID4gIDIgZmlsZXMgY2hhbmdlZCwg
+MTY1NCBpbnNlcnRpb25zKCspDQo+ID4gIGNyZWF0ZSBtb2RlIDEwMDY0NA0KPiBkcml2ZXJzL25l
+dC9ldGhlcm5ldC9oaXNpbGljb24vaG5zMy9obnMzdmYvaGNsZ2V2Zl9tYWluLmMNCj4gPiAgY3Jl
+YXRlIG1vZGUgMTAwNjQ0DQo+IGRyaXZlcnMvbmV0L2V0aGVybmV0L2hpc2lsaWNvbi9obnMzL2hu
+czN2Zi9oY2xnZXZmX21haW4uaA0KPiA+DQo+ID4gZGlmZiAtLWdpdA0KPiBhL2RyaXZlcnMvbmV0
+L2V0aGVybmV0L2hpc2lsaWNvbi9obnMzL2huczN2Zi9oY2xnZXZmX21haW4uYw0KPiBiL2RyaXZl
+cnMvbmV0L2V0aGVybmV0L2hpc2lsaWNvbi9obnMzL2huczN2Zi9oY2xnZXZmX21haW4uYw0KPiA+
+IG5ldyBmaWxlIG1vZGUgMTAwNjQ0DQo+ID4gaW5kZXggMDAwMDAwMC4uZmY1NWY0Yw0KPiA+IC0t
+LSAvZGV2L251bGwNCj4gPiArKysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9oaXNpbGljb24vaG5z
+My9obnMzdmYvaGNsZ2V2Zl9tYWluLmMNCj4gPiBAQCAtMCwwICsxLDE0OTAgQEANCj4gPiArLy8g
+U1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEdQTC0yLjArDQo+ID4gKy8qDQo+ID4gKyAqIENvcHly
+aWdodCAoYykgMjAxNi0yMDE3IEhpc2lsaWNvbiBMaW1pdGVkLg0KPiA+ICsgKi8NCj4gDQo+IFRo
+aXMgaXMganVzdCBtZSBuaXRwaWNraW5nIGFuZCB0aGlzIGlzIGVudGlyZWx5IHVwIHRvIHlvdS4u
+Li4gYnV0IGluDQo+IHN1Y2ggYSBzaW1wbGUgY2FzZSB5b3UgY291bGQgZ28gYWxsIHRoZSB3YXkg
+dG9vOg0KPiANCj4gPiArLy8gU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEdQTC0yLjArDQo+ID4g
+Ky8vIENvcHlyaWdodCAoYykgMjAxNi0yMDE3IEhpc2lsaWNvbiBMaW1pdGVkLg0KPiANCj4gSW4g
+dGhpcyBjYXNlIHRoaXMgY2FuIG1ha2UgdGhlIHRoaW5nIGxvb2sgbW9yZSBjb25zaXN0ZW50Lg0K
+T2sgSSBjYW4gZG8gdGhhdCwgbm8gaXNzdWVzIHdpdGggdGhhdC4NCg0KQXMgc3VjaCwgSSBjaGFu
+Z2VkIGFjY29yZGluZyB0byBKb25hdGhhbiBDb3JiZXQncyBhcnRpY2xlIG9uIExXTi4NCmh0dHBz
+Oi8vbHduLm5ldC9BcnRpY2xlcy83MzkxODMvDQphbmQgYWxzbyBzZWFyY2hlZCB0aGUgU1BEWCBp
+ZGVudGlmaWVyIHVzYWdlIGluIHRoZSBleGlzdGluZyBrZXJuZWwNCmFuZCBJIGNhbiBzZWUgY29t
+bXVuaXR5IGZvbGxvd2luZyBkaWZmZXJlbnQgd2F5cyBpbmNsdWRpbmcNCg0KKCopIEZvciBLZXJu
+ZWwgQyBmaWxlczoNCg0KLy8gU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEdQTC0yLjArDQovLyBD
+b3B5cmlnaHQgKGMpIDIwMTYtMjAxNyBIaXNpbGljb24gTGltaXRlZC4gDQoNCk9SDQoNCi8vIFNQ
+RFgtTGljZW5zZS1JZGVudGlmaWVyOiBHUEwtMi4wKw0KLyoNCiAqIENvcHlyaWdodCAoYykgMjAx
+Ni0yMDE3IEhpc2lsaWNvbiBMaW1pdGVkLg0KICovDQoNCk9SDQoNCi8vIFNQRFgtTGljZW5zZS1J
+ZGVudGlmaWVyOiBHUEwtMi4wKw0KDQooKikgRm9yIEtlcm5lbCBoIGZpbGVzOg0KDQovKiBTUERY
+LUxpY2Vuc2UtSWRlbnRpZmllcjogR1BMLTIuMCsgKi8NCi8qIENvcHlyaWdodCAoYykgMjAxNi0y
+MDE3IEhpc2lsaWNvbiBMaW1pdGVkLiAqLw0KDQooKikgRm9yIE1ha2VmaWxlcw0KDQojIFNQRFgt
+TGljZW5zZS1JZGVudGlmaWVyOiBHUEwtMi4wKw0KDQpPUg0KDQojIGlkOiBNYWtlZmlsZQ0KIyBT
+UERYLUxpY2Vuc2UtSWRlbnRpZmllcjogR1BMLTIuMCsNCg0KDQpJIGNvdWxkIGFsc28gbWFrZSBv
+dXQgZnJvbSBkaWZmZXJlbnQgYXJ0aWNsZXMsIGluY2x1ZGluZyBmcm9tIHRoZSBiZWxvdywNCkxp
+bnVzIHN1Z2dlc3RpbmcgbW92aW5nIHRvICIvLyIgdHlwZSBpbnN0ZWFkIG9mIHN0YXJyZWQgb25l
+cyBmb3IgaGVhZGVycy4NCg0KSXQgbG9va3MgU1BEWCBjaGFuZ2UgaXMgc3RpbGwgYSBzdWdnZXN0
+aW9uPw0KDQoNCj4gU2VlIGFsc28gTGludXMgY29tbWVudGFyaWVzIGFib3V0IHRoaXMgWzFdWzJd
+WzNdWzRdDQo+IA0KPiBbMV0gaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTcvMTEvMjUvMTMzDQo+
+IFsyXSBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxNy8xMS8yNS8xMjUNCj4gWzNdIGh0dHBzOi8v
+bGttbC5vcmcvbGttbC8yMDE3LzExLzIvNzE1DQo+IFs0XSBodHRwczovL2xrbWwub3JnL2xrbWwv
+MjAxNy8xMS8yLzgwNQ0KU3VyZSwgdGhhbmtzLg0KDQoNClNhbGlsDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
