@@ -1,84 +1,37 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-rc 1/6] RDMA/vmw_pvrdma: Clarify QP is_kernel logic
-Date: Wed, 13 Dec 2017 11:02:46 +0200
-Message-ID: <20171213090246.GD2669@yuvallap>
-References: <20171208185818.GA28514@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171208190010.GA31023@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH] IB/ipoib: Restore MM behavior in case of tx_ring allocation failure
+Date: Wed, 13 Dec 2017 12:25:19 +0200
+Message-ID: <20171213102519.4929-1-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171208190010.GA31023-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, ajaykumar.hotchandani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 08, 2017 at 11:00:17AM -0800, Bryan Tan wrote:
-> Be more consistent in checking is_kernel flag for QPs.
+memalloc_noio_save modifies the behavior of MM, we must restore it after
+we are done.
 
-Consist with what?
-(asking because expecting also pvrdma_create_cq to be fixed).
+Fixes: d83187dda9b9 IB/IPoIB: Convert IPoIB to memalloc_noio_* calls
 
-> 
-> Testing Done: ibv_rc_pingpong, rping, perftests.
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-These are all userspace tests, right?
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index 87f4bd99cdf7..2c13123bfd69 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -1145,6 +1145,7 @@ static int ipoib_cm_tx_init(struct ipoib_cm_tx *p, u32 qpn,
+ 	noio_flag = memalloc_noio_save();
+ 	p->tx_ring = vzalloc(ipoib_sendq_size * sizeof(*p->tx_ring));
+ 	if (!p->tx_ring) {
++		memalloc_noio_restore(noio_flag);
+ 		ret = -ENOMEM;
+ 		goto err_tx;
+ 	}
+-- 
+2.14.3
 
-> 
-> Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c | 7 +++----
->  1 file changed, 3 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> index 10420a1..b932b7e 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> @@ -249,8 +249,9 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
->  		init_waitqueue_head(&qp->wait);
->  
->  		qp->state = IB_QPS_RESET;
-> +		qp->is_kernel = !(pd->uobject && udata);
->  
-> -		if (pd->uobject && udata) {
-> +		if (!qp->is_kernel) {
->  			dev_dbg(&dev->pdev->dev,
->  				"create queuepair from user space\n");
->  
-> @@ -291,8 +292,6 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
->  				qp->npages_recv = 0;
->  			qp->npages = qp->npages_send + qp->npages_recv;
->  		} else {
-> -			qp->is_kernel = true;
-> -
->  			ret = pvrdma_set_sq_size(to_vdev(pd->device),
->  						 &init_attr->cap, qp);
->  			if (ret)
-> @@ -394,7 +393,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
->  err_pdir:
->  	pvrdma_page_dir_cleanup(dev, &qp->pdir);
->  err_umem:
-> -	if (pd->uobject && udata) {
-> +	if (!qp->is_kernel) {
->  		if (qp->rumem)
->  			ib_umem_release(qp->rumem);
->  		if (qp->sumem)
-
-Regardless of the comments:
-
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-> -- 
-> 1.8.5.6
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
