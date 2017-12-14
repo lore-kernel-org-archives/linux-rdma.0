@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH v4 net-next 7/8] net: hns3: Change PF to add ring-vect binding & resetQ to mailbox
-Date: Thu, 14 Dec 2017 18:03:08 +0000
-Message-ID: <20171214180309.14480-8-salil.mehta@huawei.com>
+Subject: [PATCH v4 net-next 6/8] net: hns3: Add mailbox support to PF driver
+Date: Thu, 14 Dec 2017 18:03:07 +0000
+Message-ID: <20171214180309.14480-7-salil.mehta@huawei.com>
 References: <20171214180309.14480-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,400 +12,381 @@ To: davem@davemloft.net
 Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-This patch is required to support ring-vector binding and reset
-of TQPs requested by the VF driver to the PF driver. Mailbox
-handler is added with corresponding VF commands/messages to
-handle the request.
+Command queue provides the provision of Mailbox command which
+can be used for communication between PF and VF. PF handles
+messages from various VFs for fetching various information like,
+queue, vlan, link status related etc. It also handles the request
+from various VFs to perform certain privileged operations.
+
+This patch adds the support of a message handler for handling
+such various command requests from VF.
 
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 Signed-off-by: lipeng <lipeng321@huawei.com>
 ---
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 138 +++++++--------------
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |   7 +-
- .../net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c | 106 ++++++++++++++++
- 3 files changed, 159 insertions(+), 92 deletions(-)
+Patch V4: Addressed comment from Philippe Ombredanne
+  Link: https://lkml.org/lkml/2017/12/12/1194
+Patch V3: Addressed SPDX change requested by Philippe Ombredanne
+  Link: https://lkml.org/lkml/2017/12/8/874
+Patch V2: No Change
+Patch V1: Initial Submit
+---
+ .../net/ethernet/hisilicon/hns3/hns3pf/Makefile    |   3 +-
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    |   1 +
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |   2 +
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c | 304 +++++++++++++++++++++
+ 4 files changed, 309 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
 
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
+index d077fa0..cb8ddd0 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
+@@ -1,3 +1,4 @@
++# SPDX-License-Identifier: GPL-2.0+
+ #
+ # Makefile for the HISILICON network device drivers.
+ #
+@@ -5,6 +6,6 @@
+ ccflags-y := -Idrivers/net/ethernet/hisilicon/hns3
+ 
+ obj-$(CONFIG_HNS3_HCLGE) += hclge.o
+-hclge-objs = hclge_main.o hclge_cmd.o hclge_mdio.o hclge_tm.o
++hclge-objs = hclge_main.o hclge_cmd.o hclge_mdio.o hclge_tm.o hclge_mbx.o
+ 
+ hclge-$(CONFIG_HNS3_DCB) += hclge_dcb.o
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-index 980fcdf..3b1fc49 100644
+index d07c700..980fcdf 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-@@ -3256,49 +3256,48 @@ int hclge_rss_init_hw(struct hclge_dev *hdev)
- 	return ret;
- }
- 
--int hclge_map_vport_ring_to_vector(struct hclge_vport *vport, int vector_id,
--				   struct hnae3_ring_chain_node *ring_chain)
-+int hclge_bind_ring_with_vector(struct hclge_vport *vport,
-+				int vector_id, bool en,
-+				struct hnae3_ring_chain_node *ring_chain)
- {
- 	struct hclge_dev *hdev = vport->back;
--	struct hclge_ctrl_vector_chain_cmd *req;
- 	struct hnae3_ring_chain_node *node;
- 	struct hclge_desc desc;
--	int ret;
-+	struct hclge_ctrl_vector_chain_cmd *req
-+		= (struct hclge_ctrl_vector_chain_cmd *)desc.data;
-+	enum hclge_cmd_status status;
-+	enum hclge_opcode_type op;
-+	u16 tqp_type_and_id;
- 	int i;
- 
--	hclge_cmd_setup_basic_desc(&desc, HCLGE_OPC_ADD_RING_TO_VECTOR, false);
--
--	req = (struct hclge_ctrl_vector_chain_cmd *)desc.data;
-+	op = en ? HCLGE_OPC_ADD_RING_TO_VECTOR : HCLGE_OPC_DEL_RING_TO_VECTOR;
-+	hclge_cmd_setup_basic_desc(&desc, op, false);
- 	req->int_vector_id = vector_id;
- 
- 	i = 0;
- 	for (node = ring_chain; node; node = node->next) {
--		u16 type_and_id = 0;
--
--		hnae_set_field(type_and_id, HCLGE_INT_TYPE_M, HCLGE_INT_TYPE_S,
-+		tqp_type_and_id = le16_to_cpu(req->tqp_type_and_id[i]);
-+		hnae_set_field(tqp_type_and_id,  HCLGE_INT_TYPE_M,
-+			       HCLGE_INT_TYPE_S,
- 			       hnae_get_bit(node->flag, HNAE3_RING_TYPE_B));
--		hnae_set_field(type_and_id, HCLGE_TQP_ID_M, HCLGE_TQP_ID_S,
--			       node->tqp_index);
--		hnae_set_field(type_and_id, HCLGE_INT_GL_IDX_M,
--			       HCLGE_INT_GL_IDX_S,
--			       hnae_get_bit(node->flag, HNAE3_RING_TYPE_B));
--		req->tqp_type_and_id[i] = cpu_to_le16(type_and_id);
--		req->vfid = vport->vport_id;
--
-+		hnae_set_field(tqp_type_and_id, HCLGE_TQP_ID_M,
-+			       HCLGE_TQP_ID_S, node->tqp_index);
-+		req->tqp_type_and_id[i] = cpu_to_le16(tqp_type_and_id);
- 		if (++i >= HCLGE_VECTOR_ELEMENTS_PER_CMD) {
- 			req->int_cause_num = HCLGE_VECTOR_ELEMENTS_PER_CMD;
-+			req->vfid = vport->vport_id;
- 
--			ret = hclge_cmd_send(&hdev->hw, &desc, 1);
--			if (ret) {
-+			status = hclge_cmd_send(&hdev->hw, &desc, 1);
-+			if (status) {
- 				dev_err(&hdev->pdev->dev,
- 					"Map TQP fail, status is %d.\n",
--					ret);
--				return ret;
-+					status);
-+				return -EIO;
- 			}
- 			i = 0;
- 
- 			hclge_cmd_setup_basic_desc(&desc,
--						   HCLGE_OPC_ADD_RING_TO_VECTOR,
-+						   op,
- 						   false);
- 			req->int_vector_id = vector_id;
- 		}
-@@ -3306,21 +3305,21 @@ int hclge_map_vport_ring_to_vector(struct hclge_vport *vport, int vector_id,
- 
- 	if (i > 0) {
- 		req->int_cause_num = i;
--
--		ret = hclge_cmd_send(&hdev->hw, &desc, 1);
--		if (ret) {
-+		req->vfid = vport->vport_id;
-+		status = hclge_cmd_send(&hdev->hw, &desc, 1);
-+		if (status) {
- 			dev_err(&hdev->pdev->dev,
--				"Map TQP fail, status is %d.\n", ret);
--			return ret;
-+				"Map TQP fail, status is %d.\n", status);
-+			return -EIO;
- 		}
- 	}
- 
- 	return 0;
- }
- 
--static int hclge_map_handle_ring_to_vector(
--		struct hnae3_handle *handle, int vector,
--		struct hnae3_ring_chain_node *ring_chain)
-+static int hclge_map_ring_to_vector(struct hnae3_handle *handle,
-+				    int vector,
-+				    struct hnae3_ring_chain_node *ring_chain)
- {
- 	struct hclge_vport *vport = hclge_get_vport(handle);
- 	struct hclge_dev *hdev = vport->back;
-@@ -3329,24 +3328,20 @@ static int hclge_map_handle_ring_to_vector(
- 	vector_id = hclge_get_vector_index(hdev, vector);
- 	if (vector_id < 0) {
- 		dev_err(&hdev->pdev->dev,
--			"Get vector index fail. ret =%d\n", vector_id);
-+			"Get vector index fail. vector_id =%d\n", vector_id);
- 		return vector_id;
- 	}
- 
--	return hclge_map_vport_ring_to_vector(vport, vector_id, ring_chain);
-+	return hclge_bind_ring_with_vector(vport, vector_id, true, ring_chain);
- }
- 
--static int hclge_unmap_ring_from_vector(
--	struct hnae3_handle *handle, int vector,
--	struct hnae3_ring_chain_node *ring_chain)
-+static int hclge_unmap_ring_frm_vector(struct hnae3_handle *handle,
-+				       int vector,
-+				       struct hnae3_ring_chain_node *ring_chain)
- {
- 	struct hclge_vport *vport = hclge_get_vport(handle);
- 	struct hclge_dev *hdev = vport->back;
--	struct hclge_ctrl_vector_chain_cmd *req;
--	struct hnae3_ring_chain_node *node;
--	struct hclge_desc desc;
--	int i, vector_id;
--	int ret;
-+	int vector_id, ret;
- 
- 	vector_id = hclge_get_vector_index(hdev, vector);
- 	if (vector_id < 0) {
-@@ -3355,54 +3350,17 @@ static int hclge_unmap_ring_from_vector(
- 		return vector_id;
- 	}
- 
--	hclge_cmd_setup_basic_desc(&desc, HCLGE_OPC_DEL_RING_TO_VECTOR, false);
--
--	req = (struct hclge_ctrl_vector_chain_cmd *)desc.data;
--	req->int_vector_id = vector_id;
--
--	i = 0;
--	for (node = ring_chain; node; node = node->next) {
--		u16 type_and_id = 0;
--
--		hnae_set_field(type_and_id, HCLGE_INT_TYPE_M, HCLGE_INT_TYPE_S,
--			       hnae_get_bit(node->flag, HNAE3_RING_TYPE_B));
--		hnae_set_field(type_and_id, HCLGE_TQP_ID_M, HCLGE_TQP_ID_S,
--			       node->tqp_index);
--		hnae_set_field(type_and_id, HCLGE_INT_GL_IDX_M,
--			       HCLGE_INT_GL_IDX_S,
--			       hnae_get_bit(node->flag, HNAE3_RING_TYPE_B));
--
--		req->tqp_type_and_id[i] = cpu_to_le16(type_and_id);
--		req->vfid = vport->vport_id;
--
--		if (++i >= HCLGE_VECTOR_ELEMENTS_PER_CMD) {
--			req->int_cause_num = HCLGE_VECTOR_ELEMENTS_PER_CMD;
--
--			ret = hclge_cmd_send(&hdev->hw, &desc, 1);
--			if (ret) {
--				dev_err(&hdev->pdev->dev,
--					"Unmap TQP fail, status is %d.\n",
--					ret);
--				return ret;
--			}
--			i = 0;
--			hclge_cmd_setup_basic_desc(&desc,
--						   HCLGE_OPC_DEL_RING_TO_VECTOR,
--						   false);
--			req->int_vector_id = vector_id;
--		}
-+	ret = hclge_bind_ring_with_vector(vport, vector_id, false, ring_chain);
-+	if (ret) {
-+		dev_err(&handle->pdev->dev,
-+			"Unmap ring from vector fail. vectorid=%d, ret =%d\n",
-+			vector_id,
-+			ret);
-+		return ret;
- 	}
- 
--	if (i > 0) {
--		req->int_cause_num = i;
--
--		ret = hclge_cmd_send(&hdev->hw, &desc, 1);
--		if (ret) {
--			dev_err(&hdev->pdev->dev,
--				"Unmap TQP fail, status is %d.\n", ret);
--			return ret;
--		}
--	}
-+	/* Free this MSIX or MSI vector */
-+	hclge_free_vector(hdev, vector_id);
- 
- 	return 0;
- }
-@@ -4423,7 +4381,7 @@ static int hclge_get_reset_status(struct hclge_dev *hdev, u16 queue_id)
- 	return hnae_get_bit(req->ready_to_reset, HCLGE_TQP_RESET_B);
- }
- 
--static void hclge_reset_tqp(struct hnae3_handle *handle, u16 queue_id)
-+void hclge_reset_tqp(struct hnae3_handle *handle, u16 queue_id)
- {
- 	struct hclge_vport *vport = hclge_get_vport(handle);
- 	struct hclge_dev *hdev = vport->back;
-@@ -4995,8 +4953,8 @@ static const struct hnae3_ae_ops hclge_ops = {
- 	.uninit_ae_dev = hclge_uninit_ae_dev,
- 	.init_client_instance = hclge_init_client_instance,
- 	.uninit_client_instance = hclge_uninit_client_instance,
--	.map_ring_to_vector = hclge_map_handle_ring_to_vector,
--	.unmap_ring_from_vector = hclge_unmap_ring_from_vector,
-+	.map_ring_to_vector = hclge_map_ring_to_vector,
-+	.unmap_ring_from_vector = hclge_unmap_ring_frm_vector,
- 	.get_vector = hclge_get_vector,
- 	.set_promisc_mode = hclge_set_promisc_mode,
- 	.set_loopback = hclge_set_loopback,
+@@ -21,6 +21,7 @@
+ #include "hclge_cmd.h"
+ #include "hclge_dcb.h"
+ #include "hclge_main.h"
++#include "hclge_mbx.h"
+ #include "hclge_mdio.h"
+ #include "hclge_tm.h"
+ #include "hnae3.h"
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-index 028817c..c7c9a28 100644
+index aacec43..028817c 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-@@ -539,8 +539,10 @@ int hclge_cfg_func_mta_filter(struct hclge_dev *hdev,
- 			      u8 func_id,
- 			      bool enable);
- struct hclge_vport *hclge_get_vport(struct hnae3_handle *handle);
--int hclge_map_vport_ring_to_vector(struct hclge_vport *vport, int vector,
--				   struct hnae3_ring_chain_node *ring_chain);
-+int hclge_bind_ring_with_vector(struct hclge_vport *vport,
-+				int vector_id, bool en,
-+				struct hnae3_ring_chain_node *ring_chain);
-+
- static inline int hclge_get_queue_id(struct hnae3_queue *queue)
- {
- 	struct hclge_tqp *tqp = container_of(queue, struct hclge_tqp, q);
-@@ -556,4 +558,5 @@ int hclge_buffer_alloc(struct hclge_dev *hdev);
- int hclge_rss_init_hw(struct hclge_dev *hdev);
+@@ -554,4 +554,6 @@ int hclge_set_vf_vlan_common(struct hclge_dev *vport, int vfid,
  
- void hclge_mbx_handler(struct hclge_dev *hdev);
-+void hclge_reset_tqp(struct hnae3_handle *handle, u16 queue_id);
+ int hclge_buffer_alloc(struct hclge_dev *hdev);
+ int hclge_rss_init_hw(struct hclge_dev *hdev);
++
++void hclge_mbx_handler(struct hclge_dev *hdev);
  #endif
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
-index 24b1f14..96f453f 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
+new file mode 100644
+index 0000000..24b1f14
+--- /dev/null
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mbx.c
-@@ -79,6 +79,91 @@ static int hclge_send_mbx_msg(struct hclge_vport *vport, u8 *msg, u16 msg_len,
- 	return status;
- }
- 
-+static void hclge_free_vector_ring_chain(struct hnae3_ring_chain_node *head)
+@@ -0,0 +1,304 @@
++// SPDX-License-Identifier: GPL-2.0+
++// Copyright (c) 2016-2017 Hisilicon Limited.
++
++#include "hclge_main.h"
++#include "hclge_mbx.h"
++#include "hnae3.h"
++
++/* hclge_gen_resp_to_vf: used to generate a synchronous response to VF when PF
++ * receives a mailbox message from VF.
++ * @vport: pointer to struct hclge_vport
++ * @vf_to_pf_req: pointer to hclge_mbx_vf_to_pf_cmd of the original mailbox
++ *		  message
++ * @resp_status: indicate to VF whether its request success(0) or failed.
++ */
++static int hclge_gen_resp_to_vf(struct hclge_vport *vport,
++				struct hclge_mbx_vf_to_pf_cmd *vf_to_pf_req,
++				int resp_status,
++				u8 *resp_data, u16 resp_data_len)
 +{
-+	struct hnae3_ring_chain_node *chain_tmp, *chain;
++	struct hclge_mbx_pf_to_vf_cmd *resp_pf_to_vf;
++	struct hclge_dev *hdev = vport->back;
++	enum hclge_cmd_status status;
++	struct hclge_desc desc;
 +
-+	chain = head->next;
++	resp_pf_to_vf = (struct hclge_mbx_pf_to_vf_cmd *)desc.data;
 +
-+	while (chain) {
-+		chain_tmp = chain->next;
-+		kzfree(chain);
-+		chain = chain_tmp;
++	if (resp_data_len > HCLGE_MBX_MAX_RESP_DATA_SIZE) {
++		dev_err(&hdev->pdev->dev,
++			"PF fail to gen resp to VF len %d exceeds max len %d\n",
++			resp_data_len,
++			HCLGE_MBX_MAX_RESP_DATA_SIZE);
 +	}
++
++	hclge_cmd_setup_basic_desc(&desc, HCLGEVF_OPC_MBX_PF_TO_VF, false);
++
++	resp_pf_to_vf->dest_vfid = vf_to_pf_req->mbx_src_vfid;
++	resp_pf_to_vf->msg_len = vf_to_pf_req->msg_len;
++
++	resp_pf_to_vf->msg[0] = HCLGE_MBX_PF_VF_RESP;
++	resp_pf_to_vf->msg[1] = vf_to_pf_req->msg[0];
++	resp_pf_to_vf->msg[2] = vf_to_pf_req->msg[1];
++	resp_pf_to_vf->msg[3] = (resp_status == 0) ? 0 : 1;
++
++	if (resp_data && resp_data_len > 0)
++		memcpy(&resp_pf_to_vf->msg[4], resp_data, resp_data_len);
++
++	status = hclge_cmd_send(&hdev->hw, &desc, 1);
++	if (status)
++		dev_err(&hdev->pdev->dev,
++			"PF failed(=%d) to send response to VF\n", status);
++
++	return status;
 +}
 +
-+/* hclge_get_ring_chain_from_mbx: get ring type & tqpid from mailbox message
-+ * msg[0]: opcode
-+ * msg[1]: <not relevant to this function>
-+ * msg[2]: ring_num
-+ * msg[3]: first ring type (TX|RX)
-+ * msg[4]: first tqp id
-+ * msg[5] ~ msg[14]: other ring type and tqp id
-+ */
-+static int hclge_get_ring_chain_from_mbx(
-+			struct hclge_mbx_vf_to_pf_cmd *req,
-+			struct hnae3_ring_chain_node *ring_chain,
-+			struct hclge_vport *vport)
++static int hclge_send_mbx_msg(struct hclge_vport *vport, u8 *msg, u16 msg_len,
++			      u16 mbx_opcode, u8 dest_vfid)
 +{
-+#define HCLGE_RING_NODE_VARIABLE_NUM		3
-+#define HCLGE_RING_MAP_MBX_BASIC_MSG_NUM	3
-+	struct hnae3_ring_chain_node *cur_chain, *new_chain;
-+	int ring_num;
-+	int i;
++	struct hclge_mbx_pf_to_vf_cmd *resp_pf_to_vf;
++	struct hclge_dev *hdev = vport->back;
++	enum hclge_cmd_status status;
++	struct hclge_desc desc;
 +
-+	ring_num = req->msg[2];
++	resp_pf_to_vf = (struct hclge_mbx_pf_to_vf_cmd *)desc.data;
 +
-+	hnae_set_bit(ring_chain->flag, HNAE3_RING_TYPE_B, req->msg[3]);
-+	ring_chain->tqp_index =
-+			hclge_get_queue_id(vport->nic.kinfo.tqp[req->msg[4]]);
++	hclge_cmd_setup_basic_desc(&desc, HCLGEVF_OPC_MBX_PF_TO_VF, false);
 +
-+	cur_chain = ring_chain;
++	resp_pf_to_vf->dest_vfid = dest_vfid;
++	resp_pf_to_vf->msg_len = msg_len;
++	resp_pf_to_vf->msg[0] = mbx_opcode;
 +
-+	for (i = 1; i < ring_num; i++) {
-+		new_chain = kzalloc(sizeof(*new_chain), GFP_KERNEL);
-+		if (!new_chain)
-+			goto err;
++	memcpy(&resp_pf_to_vf->msg[1], msg, msg_len);
 +
-+		hnae_set_bit(new_chain->flag, HNAE3_RING_TYPE_B,
-+			     req->msg[HCLGE_RING_NODE_VARIABLE_NUM * i +
-+			     HCLGE_RING_MAP_MBX_BASIC_MSG_NUM]);
++	status = hclge_cmd_send(&hdev->hw, &desc, 1);
++	if (status)
++		dev_err(&hdev->pdev->dev,
++			"PF failed(=%d) to send mailbox message to VF\n",
++			status);
 +
-+		new_chain->tqp_index =
-+		hclge_get_queue_id(vport->nic.kinfo.tqp
-+			[req->msg[HCLGE_RING_NODE_VARIABLE_NUM * i +
-+			HCLGE_RING_MAP_MBX_BASIC_MSG_NUM + 1]]);
++	return status;
++}
 +
-+		cur_chain->next = new_chain;
-+		cur_chain = new_chain;
++static int hclge_set_vf_promisc_mode(struct hclge_vport *vport,
++				     struct hclge_mbx_vf_to_pf_cmd *req)
++{
++	bool en = req->msg[1] ? true : false;
++	struct hclge_promisc_param param;
++
++	/* always enable broadcast promisc bit */
++	hclge_promisc_param_init(&param, en, en, true, vport->vport_id);
++	return hclge_cmd_set_promisc_mode(vport->back, &param);
++}
++
++static int hclge_set_vf_uc_mac_addr(struct hclge_vport *vport,
++				    struct hclge_mbx_vf_to_pf_cmd *mbx_req,
++				    bool gen_resp)
++{
++	const u8 *mac_addr = (const u8 *)(&mbx_req->msg[2]);
++	struct hclge_dev *hdev = vport->back;
++	int status;
++
++	if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_UC_MODIFY) {
++		const u8 *old_addr = (const u8 *)(&mbx_req->msg[8]);
++
++		hclge_rm_uc_addr_common(vport, old_addr);
++		status = hclge_add_uc_addr_common(vport, mac_addr);
++	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_UC_ADD) {
++		status = hclge_add_uc_addr_common(vport, mac_addr);
++	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_UC_REMOVE) {
++		status = hclge_rm_uc_addr_common(vport, mac_addr);
++	} else {
++		dev_err(&hdev->pdev->dev,
++			"failed to set unicast mac addr, unknown subcode %d\n",
++			mbx_req->msg[1]);
++		return -EIO;
 +	}
++
++	if (gen_resp)
++		hclge_gen_resp_to_vf(vport, mbx_req, status, NULL, 0);
 +
 +	return 0;
-+err:
-+	hclge_free_vector_ring_chain(ring_chain);
-+	return -ENOMEM;
 +}
 +
-+static int hclge_map_unmap_ring_to_vf_vector(struct hclge_vport *vport, bool en,
-+					     struct hclge_mbx_vf_to_pf_cmd *req)
++static int hclge_set_vf_mc_mac_addr(struct hclge_vport *vport,
++				    struct hclge_mbx_vf_to_pf_cmd *mbx_req,
++				    bool gen_resp)
 +{
-+	struct hnae3_ring_chain_node ring_chain;
-+	int vector_id = req->msg[1];
++	const u8 *mac_addr = (const u8 *)(&mbx_req->msg[2]);
++	struct hclge_dev *hdev = vport->back;
++	int status;
++
++	if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_MC_ADD) {
++		status = hclge_add_mc_addr_common(vport, mac_addr);
++	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_MC_REMOVE) {
++		status = hclge_rm_mc_addr_common(vport, mac_addr);
++	} else if (mbx_req->msg[1] == HCLGE_MBX_MAC_VLAN_MC_FUNC_MTA_ENABLE) {
++		u8 func_id = vport->vport_id;
++		bool enable = mbx_req->msg[2];
++
++		status = hclge_cfg_func_mta_filter(hdev, func_id, enable);
++	} else {
++		dev_err(&hdev->pdev->dev,
++			"failed to set mcast mac addr, unknown subcode %d\n",
++			mbx_req->msg[1]);
++		return -EIO;
++	}
++
++	if (gen_resp)
++		hclge_gen_resp_to_vf(vport, mbx_req, status, NULL, 0);
++
++	return 0;
++}
++
++static int hclge_set_vf_vlan_cfg(struct hclge_vport *vport,
++				 struct hclge_mbx_vf_to_pf_cmd *mbx_req,
++				 bool gen_resp)
++{
++	struct hclge_dev *hdev = vport->back;
++	int status = 0;
++
++	if (mbx_req->msg[1] == HCLGE_MBX_VLAN_FILTER) {
++		u16 vlan, proto;
++		bool is_kill;
++
++		is_kill = !!mbx_req->msg[2];
++		memcpy(&vlan, &mbx_req->msg[3], sizeof(vlan));
++		memcpy(&proto, &mbx_req->msg[5], sizeof(proto));
++		status = hclge_set_vf_vlan_common(hdev, vport->vport_id,
++						  is_kill, vlan, 0,
++						  cpu_to_be16(proto));
++	}
++
++	if (gen_resp)
++		status = hclge_gen_resp_to_vf(vport, mbx_req, status, NULL, 0);
++
++	return status;
++}
++
++static int hclge_get_vf_tcinfo(struct hclge_vport *vport,
++			       struct hclge_mbx_vf_to_pf_cmd *mbx_req,
++			       bool gen_resp)
++{
++	struct hclge_dev *hdev = vport->back;
 +	int ret;
 +
-+	memset(&ring_chain, 0, sizeof(ring_chain));
-+	ret = hclge_get_ring_chain_from_mbx(req, &ring_chain, vport);
-+	if (ret)
-+		return ret;
++	ret = hclge_gen_resp_to_vf(vport, mbx_req, 0, &hdev->hw_tc_map,
++				   sizeof(u8));
 +
-+	ret = hclge_bind_ring_with_vector(vport, vector_id, en, &ring_chain);
-+	if (ret)
-+		return ret;
-+
-+	hclge_free_vector_ring_chain(&ring_chain);
-+
-+	return 0;
++	return ret;
 +}
 +
- static int hclge_set_vf_promisc_mode(struct hclge_vport *vport,
- 				     struct hclge_mbx_vf_to_pf_cmd *req)
- {
-@@ -224,6 +309,16 @@ static int hclge_get_link_info(struct hclge_vport *vport,
- 				  HCLGE_MBX_LINK_STAT_CHANGE, dest_vfid);
- }
- 
-+static void hclge_reset_vf_queue(struct hclge_vport *vport,
-+				 struct hclge_mbx_vf_to_pf_cmd *mbx_req)
++static int hclge_get_vf_queue_info(struct hclge_vport *vport,
++				   struct hclge_mbx_vf_to_pf_cmd *mbx_req,
++				   bool gen_resp)
 +{
-+	u16 queue_id;
++#define HCLGE_TQPS_RSS_INFO_LEN		8
++	u8 resp_data[HCLGE_TQPS_RSS_INFO_LEN];
++	struct hclge_dev *hdev = vport->back;
 +
-+	memcpy(&queue_id, &mbx_req->msg[2], sizeof(queue_id));
++	/* get the queue related info */
++	memcpy(&resp_data[0], &vport->alloc_tqps, sizeof(u16));
++	memcpy(&resp_data[2], &hdev->rss_size_max, sizeof(u16));
++	memcpy(&resp_data[4], &hdev->num_desc, sizeof(u16));
++	memcpy(&resp_data[6], &hdev->rx_buf_len, sizeof(u16));
 +
-+	hclge_reset_tqp(&vport->nic, queue_id);
++	return hclge_gen_resp_to_vf(vport, mbx_req, 0, resp_data,
++				    HCLGE_TQPS_RSS_INFO_LEN);
 +}
 +
- void hclge_mbx_handler(struct hclge_dev *hdev)
- {
- 	struct hclge_cmq_ring *crq = &hdev->hw.cmq.crq;
-@@ -241,6 +336,14 @@ void hclge_mbx_handler(struct hclge_dev *hdev)
- 		vport = &hdev->vport[req->mbx_src_vfid];
- 
- 		switch (req->msg[0]) {
-+		case HCLGE_MBX_MAP_RING_TO_VECTOR:
-+			ret = hclge_map_unmap_ring_to_vf_vector(vport, true,
-+								req);
++static int hclge_get_link_info(struct hclge_vport *vport,
++			       struct hclge_mbx_vf_to_pf_cmd *mbx_req)
++{
++	struct hclge_dev *hdev = vport->back;
++	u16 link_status;
++	u8 msg_data[2];
++	u8 dest_vfid;
++
++	/* mac.link can only be 0 or 1 */
++	link_status = (u16)hdev->hw.mac.link;
++	memcpy(&msg_data[0], &link_status, sizeof(u16));
++	dest_vfid = mbx_req->mbx_src_vfid;
++
++	/* send this requested info to VF */
++	return hclge_send_mbx_msg(vport, msg_data, sizeof(u8),
++				  HCLGE_MBX_LINK_STAT_CHANGE, dest_vfid);
++}
++
++void hclge_mbx_handler(struct hclge_dev *hdev)
++{
++	struct hclge_cmq_ring *crq = &hdev->hw.cmq.crq;
++	struct hclge_mbx_vf_to_pf_cmd *req;
++	struct hclge_vport *vport;
++	struct hclge_desc *desc;
++	int ret;
++
++	/* handle all the mailbox requests in the queue */
++	while (hnae_get_bit(crq->desc[crq->next_to_use].flag,
++			    HCLGE_CMDQ_RX_OUTVLD_B)) {
++		desc = &crq->desc[crq->next_to_use];
++		req = (struct hclge_mbx_vf_to_pf_cmd *)desc->data;
++
++		vport = &hdev->vport[req->mbx_src_vfid];
++
++		switch (req->msg[0]) {
++		case HCLGE_MBX_SET_PROMISC_MODE:
++			ret = hclge_set_vf_promisc_mode(vport, req);
++			if (ret)
++				dev_err(&hdev->pdev->dev,
++					"PF fail(%d) to set VF promisc mode\n",
++					ret);
 +			break;
-+		case HCLGE_MBX_UNMAP_RING_TO_VECTOR:
-+			ret = hclge_map_unmap_ring_to_vf_vector(vport, false,
-+								req);
++		case HCLGE_MBX_SET_UNICAST:
++			ret = hclge_set_vf_uc_mac_addr(vport, req, false);
++			if (ret)
++				dev_err(&hdev->pdev->dev,
++					"PF fail(%d) to set VF UC MAC Addr\n",
++					ret);
 +			break;
- 		case HCLGE_MBX_SET_PROMISC_MODE:
- 			ret = hclge_set_vf_promisc_mode(vport, req);
- 			if (ret)
-@@ -290,6 +393,9 @@ void hclge_mbx_handler(struct hclge_dev *hdev)
- 					"PF fail(%d) to get link stat for VF\n",
- 					ret);
- 			break;
-+		case HCLGE_MBX_QUEUE_RESET:
-+			hclge_reset_vf_queue(vport, req);
++		case HCLGE_MBX_SET_MULTICAST:
++			ret = hclge_set_vf_mc_mac_addr(vport, req, false);
++			if (ret)
++				dev_err(&hdev->pdev->dev,
++					"PF fail(%d) to set VF MC MAC Addr\n",
++					ret);
 +			break;
- 		default:
- 			dev_err(&hdev->pdev->dev,
- 				"un-supported mailbox message, code = %d\n",
++		case HCLGE_MBX_SET_VLAN:
++			ret = hclge_set_vf_vlan_cfg(vport, req, false);
++			if (ret)
++				dev_err(&hdev->pdev->dev,
++					"PF failed(%d) to config VF's VLAN\n",
++					ret);
++			break;
++		case HCLGE_MBX_GET_QINFO:
++			ret = hclge_get_vf_queue_info(vport, req, true);
++			if (ret)
++				dev_err(&hdev->pdev->dev,
++					"PF failed(%d) to get Q info for VF\n",
++					ret);
++			break;
++		case HCLGE_MBX_GET_TCINFO:
++			ret = hclge_get_vf_tcinfo(vport, req, true);
++			if (ret)
++				dev_err(&hdev->pdev->dev,
++					"PF failed(%d) to get TC info for VF\n",
++					ret);
++			break;
++		case HCLGE_MBX_GET_LINK_STATUS:
++			ret = hclge_get_link_info(vport, req);
++			if (ret)
++				dev_err(&hdev->pdev->dev,
++					"PF fail(%d) to get link stat for VF\n",
++					ret);
++			break;
++		default:
++			dev_err(&hdev->pdev->dev,
++				"un-supported mailbox message, code = %d\n",
++				req->msg[0]);
++			break;
++		}
++		hclge_mbx_ring_ptr_move_crq(crq);
++	}
++
++	/* Write back CMDQ_RQ header pointer, M7 need this pointer */
++	hclge_write_dev(&hdev->hw, HCLGE_NIC_CRQ_HEAD_REG, crq->next_to_use);
++}
 -- 
 2.7.4
