@@ -1,8 +1,8 @@
 From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 for-rc 2/8] RDMA/vmw_pvrdma: Call ib_umem_release on
- destroy QP path
-Date: Wed, 13 Dec 2017 16:21:33 -0800
-Message-ID: <20171214002123.GA13402@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+Subject: [PATCH v1 for-rc 3/8] RDMA/vmw_pvrdma: Use more specific sizeof in
+ kcalloc
+Date: Wed, 13 Dec 2017 16:22:20 -0800
+Message-ID: <20171214002208.GA14215@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 References: <20171214001753.GA9780@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -13,35 +13,37 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The QP cleanup did not previously call ib_umem_release. Fix this.
+Convert the sizeof(void *) in two kcalloc calls to be more
+specific for the arrays that are being allocated.
 
-Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
 Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-index b932b7e..77e7e57 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-@@ -430,6 +430,13 @@ static void pvrdma_free_qp(struct pvrdma_qp *qp)
- 	atomic_dec(&qp->refcnt);
- 	wait_event(qp->wait, !atomic_read(&qp->refcnt));
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+index 1f4e187..941e324 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+@@ -243,13 +243,13 @@ static int pvrdma_register_device(struct pvrdma_dev *dev)
+ 	mutex_init(&dev->port_mutex);
+ 	spin_lock_init(&dev->desc_lock);
  
-+	if (!qp->is_kernel) {
-+		if (qp->rumem)
-+			ib_umem_release(qp->rumem);
-+		if (qp->sumem)
-+			ib_umem_release(qp->sumem);
-+	}
-+
- 	pvrdma_page_dir_cleanup(dev, &qp->pdir);
+-	dev->cq_tbl = kcalloc(dev->dsr->caps.max_cq, sizeof(void *),
++	dev->cq_tbl = kcalloc(dev->dsr->caps.max_cq, sizeof(struct pvrdma_cq *),
+ 			      GFP_KERNEL);
+ 	if (!dev->cq_tbl)
+ 		return ret;
+ 	spin_lock_init(&dev->cq_tbl_lock);
  
- 	kfree(qp);
+-	dev->qp_tbl = kcalloc(dev->dsr->caps.max_qp, sizeof(void *),
++	dev->qp_tbl = kcalloc(dev->dsr->caps.max_qp, sizeof(struct pvrdma_qp *),
+ 			      GFP_KERNEL);
+ 	if (!dev->qp_tbl)
+ 		goto err_cq_free;
 -- 
 1.8.5.6
 
