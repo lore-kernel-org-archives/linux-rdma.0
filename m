@@ -1,118 +1,86 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 for-rc 1/8] RDMA/vmw_pvrdma: Clarify QP and CQ
- is_kernel logic
-Date: Thu, 14 Dec 2017 11:30:17 +0200
-Message-ID: <20171214093016.GB3254@yuvallap>
-References: <20171214001753.GA9780@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171214001937.GA11378@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH rdma-core] srp_daemon: Install signal handler for ibsrpdm
+Date: Thu, 14 Dec 2017 19:02:41 +0800
+Message-ID: <20171214110241.4701-1-honli@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171214001937.GA11378-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 13, 2017 at 04:19:43PM -0800, Bryan Tan wrote:
-> Be more consistent in setting and checking is_kernel
-> flag for QPs and CQs.
-> 
-> Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c | 9 ++++-----
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c | 7 +++----
->  2 files changed, 7 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-> index 3562c0c..ea8db5e6 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-> @@ -132,8 +132,9 @@ struct ib_cq *pvrdma_create_cq(struct ib_device *ibdev,
->  	}
->  
->  	cq->ibcq.cqe = entries;
-> +	cq->is_kernel = !context;
->  
-> -	if (context) {
-> +	if (!cq->is_kernel) {
->  		if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
->  			ret = -EFAULT;
->  			goto err_cq;
-> @@ -148,8 +149,6 @@ struct ib_cq *pvrdma_create_cq(struct ib_device *ibdev,
->  
->  		npages = ib_umem_page_count(cq->umem);
->  	} else {
-> -		cq->is_kernel = true;
-> -
->  		/* One extra page for shared ring state */
->  		npages = 1 + (entries * sizeof(struct pvrdma_cqe) +
->  			      PAGE_SIZE - 1) / PAGE_SIZE;
-> @@ -202,7 +201,7 @@ struct ib_cq *pvrdma_create_cq(struct ib_device *ibdev,
->  	dev->cq_tbl[cq->cq_handle % dev->dsr->caps.max_cq] = cq;
->  	spin_unlock_irqrestore(&dev->cq_tbl_lock, flags);
->  
-> -	if (context) {
-> +	if (!cq->is_kernel) {
->  		cq->uar = &(to_vucontext(context)->uar);
->  
->  		/* Copy udata back. */
-> @@ -219,7 +218,7 @@ struct ib_cq *pvrdma_create_cq(struct ib_device *ibdev,
->  err_page_dir:
->  	pvrdma_page_dir_cleanup(dev, &cq->pdir);
->  err_umem:
-> -	if (context)
-> +	if (!cq->is_kernel)
->  		ib_umem_release(cq->umem);
->  err_cq:
->  	atomic_dec(&dev->num_cqs);
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> index 10420a1..b932b7e 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-> @@ -249,8 +249,9 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
->  		init_waitqueue_head(&qp->wait);
->  
->  		qp->state = IB_QPS_RESET;
-> +		qp->is_kernel = !(pd->uobject && udata);
->  
-> -		if (pd->uobject && udata) {
-> +		if (!qp->is_kernel) {
->  			dev_dbg(&dev->pdev->dev,
->  				"create queuepair from user space\n");
->  
-> @@ -291,8 +292,6 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
->  				qp->npages_recv = 0;
->  			qp->npages = qp->npages_send + qp->npages_recv;
->  		} else {
-> -			qp->is_kernel = true;
-> -
->  			ret = pvrdma_set_sq_size(to_vdev(pd->device),
->  						 &init_attr->cap, qp);
->  			if (ret)
-> @@ -394,7 +393,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
->  err_pdir:
->  	pvrdma_page_dir_cleanup(dev, &qp->pdir);
->  err_umem:
-> -	if (pd->uobject && udata) {
-> +	if (!qp->is_kernel) {
->  		if (qp->rumem)
->  			ib_umem_release(qp->rumem);
->  		if (qp->sumem)
-> -- 
-> 1.8.5.6
+From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+[root@localhost ~]# /usr/sbin/ibsrpdm -c -d /dev/infiniband/umad0
+id_ext=0002c90300317810,ioc_guid=0002c90300317810,dgid=fe800000000000000002c90300317811,pkey=ffff,service_id=0002c90300317810
 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[root@localhost ~]# echo $?
+130
+
+fd3005f0cd34 moves the signal handler setup from ibsrpdm path. So,
+default signal handler will be used when it receives signal SIGINT.
+ibsrpdm will exit with non-zero exit code as default signal handler
+killed it. ibsrpdm should return with exit code zero, if no error
+emerged.
+
+main->ibsrpdm->free_res->pthread_kill(res->async_ev_thread, SIGINT)
+
+Beside the wrong exit code, there is an extra blank line at the end of
+output of ibsrpdm.
+
+Fixes: fd3005f0cd34 ("srp_daemon: Move the setup of the wakeup_pipe after openlog")
+Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ srp_daemon/srp_daemon.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
+index cec36db2..0d00d712 100644
+--- a/srp_daemon/srp_daemon.c
++++ b/srp_daemon/srp_daemon.c
+@@ -1996,7 +1996,6 @@ static void cleanup_wakeup_fd(void)
+ 
+ static int setup_wakeup_fd(void)
+ {
+-	struct sigaction sa = {};
+ 	int ret;
+ 
+ 	ret = pipe2(wakeup_pipe, O_NONBLOCK | O_CLOEXEC);
+@@ -2005,11 +2004,6 @@ static int setup_wakeup_fd(void)
+ 		return -1;
+ 	}
+ 
+-	sigemptyset(&sa.sa_mask);
+-	sa.sa_handler = signal_handler;
+-	sigaction(SIGINT, &sa, NULL);
+-	sigaction(SIGTERM, &sa, NULL);
+-	sigaction(SRP_CATAS_ERR, &sa, NULL);
+ 	return 0;
+ }
+ 
+@@ -2100,6 +2094,7 @@ int main(int argc, char *argv[])
+ 	int			lockfd = -1;
+ 	int			received_signal = 0;
+ 	bool                    systemd;
++	struct sigaction        sa = {};
+ 
+ #ifndef __CHECKER__
+ 	/*
+@@ -2117,6 +2112,12 @@ int main(int argc, char *argv[])
+ 	BUILD_ASSERT(sizeof(struct srp_dm_iou_info) == 132);
+ 	BUILD_ASSERT(sizeof(struct srp_dm_ioc_prof) == 128);
+ 
++	sigemptyset(&sa.sa_mask);
++	sa.sa_handler = signal_handler;
++	sigaction(SIGINT, &sa, NULL);
++	sigaction(SIGTERM, &sa, NULL);
++	sigaction(SRP_CATAS_ERR, &sa, NULL);
++
+ 	if (strcmp(argv[0] + max_t(int, 0, strlen(argv[0]) - strlen("ibsrpdm")),
+ 		   "ibsrpdm") == 0) {
+ 		ret = ibsrpdm(argc, argv);
+-- 
+2.14.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
