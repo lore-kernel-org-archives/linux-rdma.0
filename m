@@ -1,86 +1,39 @@
-From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-core] srp_daemon: Install signal handler for ibsrpdm
-Date: Thu, 14 Dec 2017 19:02:41 +0800
-Message-ID: <20171214110241.4701-1-honli@redhat.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [linux-rdma/rdma-core] libibverb/examples: Add command line
+ option to enable buffer validation (#273)
+Date: Thu, 14 Dec 2017 14:09:16 +0000
+Message-ID: <BN3PR07MB25782A5BA5D0999F73040CC8F80A0@BN3PR07MB2578.namprd07.prod.outlook.com>
+References: <linux-rdma/rdma-core/pull/273@github.com>
+ <linux-rdma/rdma-core/pull/273/issue_event/1386542099@github.com>
+ <BN3PR07MB257832CED7D7E8902C08931DF80A0@BN3PR07MB2578.namprd07.prod.outlook.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BN3PR07MB257832CED7D7E8902C08931DF80A0-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-
-[root@localhost ~]# /usr/sbin/ibsrpdm -c -d /dev/infiniband/umad0
-id_ext=0002c90300317810,ioc_guid=0002c90300317810,dgid=fe800000000000000002c90300317811,pkey=ffff,service_id=0002c90300317810
-
-[root@localhost ~]# echo $?
-130
-
-fd3005f0cd34 moves the signal handler setup from ibsrpdm path. So,
-default signal handler will be used when it receives signal SIGINT.
-ibsrpdm will exit with non-zero exit code as default signal handler
-killed it. ibsrpdm should return with exit code zero, if no error
-emerged.
-
-main->ibsrpdm->free_res->pthread_kill(res->async_ev_thread, SIGINT)
-
-Beside the wrong exit code, there is an extra blank line at the end of
-output of ibsrpdm.
-
-Fixes: fd3005f0cd34 ("srp_daemon: Move the setup of the wakeup_pipe after openlog")
-Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- srp_daemon/srp_daemon.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
-
-diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
-index cec36db2..0d00d712 100644
---- a/srp_daemon/srp_daemon.c
-+++ b/srp_daemon/srp_daemon.c
-@@ -1996,7 +1996,6 @@ static void cleanup_wakeup_fd(void)
- 
- static int setup_wakeup_fd(void)
- {
--	struct sigaction sa = {};
- 	int ret;
- 
- 	ret = pipe2(wakeup_pipe, O_NONBLOCK | O_CLOEXEC);
-@@ -2005,11 +2004,6 @@ static int setup_wakeup_fd(void)
- 		return -1;
- 	}
- 
--	sigemptyset(&sa.sa_mask);
--	sa.sa_handler = signal_handler;
--	sigaction(SIGINT, &sa, NULL);
--	sigaction(SIGTERM, &sa, NULL);
--	sigaction(SRP_CATAS_ERR, &sa, NULL);
- 	return 0;
- }
- 
-@@ -2100,6 +2094,7 @@ int main(int argc, char *argv[])
- 	int			lockfd = -1;
- 	int			received_signal = 0;
- 	bool                    systemd;
-+	struct sigaction        sa = {};
- 
- #ifndef __CHECKER__
- 	/*
-@@ -2117,6 +2112,12 @@ int main(int argc, char *argv[])
- 	BUILD_ASSERT(sizeof(struct srp_dm_iou_info) == 132);
- 	BUILD_ASSERT(sizeof(struct srp_dm_ioc_prof) == 128);
- 
-+	sigemptyset(&sa.sa_mask);
-+	sa.sa_handler = signal_handler;
-+	sigaction(SIGINT, &sa, NULL);
-+	sigaction(SIGTERM, &sa, NULL);
-+	sigaction(SRP_CATAS_ERR, &sa, NULL);
-+
- 	if (strcmp(argv[0] + max_t(int, 0, strlen(argv[0]) - strlen("ibsrpdm")),
- 		   "ibsrpdm") == 0) {
- 		ret = ibsrpdm(argc, argv);
--- 
-2.14.2
-
+W3Jlc2VuZCBhcyBwbGFpbiB0ZXh0XQ0KDQpIaSBKYXNvbiwgWXV2YWwsDQpJ4oCZdmUgc3RhcnRl
+ZCBhIHJldmlldyBvbiB0aGlzIGEgY291cGxlIG9mIGRheXMgYWdvLiBJdOKAmXMgdGhlIGZpcnN0
+IHRpbWUgSeKAmXZlIGRvbmUgdGhpcy4NCkRpZCB5b3UgZ2V0IGUtbWFpbHMgYWJvdXQgaXQ/IEhv
+dyBjb21lIGl0IGdldHMgbWVyZ2VkIHdpdGhvdXQgcmVzcG9uc2U/DQpQbGVhc2UgY29tbWVudCBv
+biBteSByZW1hcmtzLg0KDQpUaGFua3MsDQpSYW0NCg0KDQpGcm9tOiBKYXNvbiBHdW50aG9ycGUg
+W21haWx0bzpub3RpZmljYXRpb25zQGdpdGh1Yi5jb21dIA0KU2VudDogV2VkbmVzZGF5LCBEZWNl
+bWJlciAxMywgMjAxNyAxMTozNCBQTQ0KVG86IGxpbnV4LXJkbWEvcmRtYS1jb3JlIDxtYWlsdG86
+cmRtYS1jb3JlQG5vcmVwbHkuZ2l0aHViLmNvbT4NCkNjOiByYW1yYW5peCA8bWFpbHRvOnJhbS5h
+bXJhbmlAZ21haWwuY29tPjsgQ29tbWVudCA8bWFpbHRvOmNvbW1lbnRAbm9yZXBseS5naXRodWIu
+Y29tPg0KU3ViamVjdDogUmU6IFtsaW51eC1yZG1hL3JkbWEtY29yZV0gbGliaWJ2ZXJiL2V4YW1w
+bGVzOiBBZGQgY29tbWFuZCBsaW5lIG9wdGlvbiB0byBlbmFibGUgYnVmZmVyIHZhbGlkYXRpb24g
+KCMyNzMpDQoNCk1lcmdlZCBodHRwczovL2dpdGh1Yi5jb20vbGludXgtcmRtYS9yZG1hLWNvcmUv
+cHVsbC8yNzMuDQrigJQNCllvdSBhcmUgcmVjZWl2aW5nIHRoaXMgYmVjYXVzZSB5b3UgY29tbWVu
+dGVkLg0KUmVwbHkgdG8gdGhpcyBlbWFpbCBkaXJlY3RseSwgaHR0cHM6Ly9naXRodWIuY29tL2xp
+bnV4LXJkbWEvcmRtYS1jb3JlL3B1bGwvMjczI2V2ZW50LTEzODY1NDIwOTksIG9yIGh0dHBzOi8v
+Z2l0aHViLmNvbS9ub3RpZmljYXRpb25zL3Vuc3Vic2NyaWJlLWF1dGgvQU5NQlZpYW5Sc2N5d3VI
+N2lyVXBLZ3RseURnTC1VWEVrczV0QUVMWmdhSnBaTTRROTlNZi4NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
