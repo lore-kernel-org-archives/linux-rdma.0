@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH v4 net-next 5/8] net: hns3: Unified HNS3 {VF|PF} Ethernet Driver for hip08 SoC
-Date: Thu, 14 Dec 2017 18:03:06 +0000
-Message-ID: <20171214180309.14480-6-salil.mehta@huawei.com>
+Subject: [PATCH v4 net-next 8/8] net: hns3: Add mailbox interrupt handling to PF driver
+Date: Thu, 14 Dec 2017 18:03:09 +0000
+Message-ID: <20171214180309.14480-9-salil.mehta@huawei.com>
 References: <20171214180309.14480-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,198 +12,195 @@ To: davem@davemloft.net
 Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-Most of the NAPI handling interface, skb buffer management,
-management of the RX/TX descriptors, ethool interface etc.
-has quite a bit of code which is common to VF and PF driver.
+All PF mailbox events are conveyed through a common interrupt
+(vector 0). This interrupt vector is shared by reset and mailbox.
 
-This patch makes the exisitng PF's HNS3 ENET driver as the
-common ENET driver for both Virtual & Physical Function. This
-will help in reduction of redundancy and better management of
-code.
+This patch adds the handling of mailbox interrupt event and its
+deferred processing in context to a separate mailbox task.
 
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 Signed-off-by: lipeng <lipeng321@huawei.com>
 ---
- drivers/net/ethernet/hisilicon/hns3/Makefile       |  5 +++++
- drivers/net/ethernet/hisilicon/hns3/hnae3.c        | 14 ++++++++++++--
- drivers/net/ethernet/hisilicon/hns3/hnae3.h        |  7 ++++---
- .../hisilicon/hns3/{hns3pf => }/hns3_dcbnl.c       |  2 +-
- .../hisilicon/hns3/{hns3pf => }/hns3_enet.c        |  2 ++
- .../hisilicon/hns3/{hns3pf => }/hns3_enet.h        |  0
- .../hisilicon/hns3/{hns3pf => }/hns3_ethtool.c     | 22 +++++++++++++++++++++-
- .../net/ethernet/hisilicon/hns3/hns3pf/Makefile    |  5 -----
- .../ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c  |  1 +
- 9 files changed, 46 insertions(+), 12 deletions(-)
- rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_dcbnl.c (97%)
- rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_enet.c (99%)
- rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_enet.h (100%)
- rename drivers/net/ethernet/hisilicon/hns3/{hns3pf => }/hns3_ethtool.c (97%)
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 68 +++++++++++++++++++---
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |  8 ++-
+ 2 files changed, 68 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/net/ethernet/hisilicon/hns3/Makefile b/drivers/net/ethernet/hisilicon/hns3/Makefile
-index c450945..002534f 100644
---- a/drivers/net/ethernet/hisilicon/hns3/Makefile
-+++ b/drivers/net/ethernet/hisilicon/hns3/Makefile
-@@ -7,3 +7,8 @@ obj-$(CONFIG_HNS3) += hns3pf/
- obj-$(CONFIG_HNS3) += hns3vf/
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
+index 3b1fc49..e97fd66 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
+@@ -2227,6 +2227,12 @@ static int hclge_mac_init(struct hclge_dev *hdev)
+ 	return hclge_cfg_func_mta_filter(hdev, 0, hdev->accept_mta_mc);
+ }
  
- obj-$(CONFIG_HNS3) += hnae3.o
++static void hclge_mbx_task_schedule(struct hclge_dev *hdev)
++{
++	if (!test_and_set_bit(HCLGE_STATE_MBX_SERVICE_SCHED, &hdev->state))
++		schedule_work(&hdev->mbx_service_task);
++}
 +
-+obj-$(CONFIG_HNS3_ENET) += hns3.o
-+hns3-objs = hns3_enet.o hns3_ethtool.o
+ static void hclge_reset_task_schedule(struct hclge_dev *hdev)
+ {
+ 	if (!test_and_set_bit(HCLGE_STATE_RST_SERVICE_SCHED, &hdev->state))
+@@ -2372,9 +2378,18 @@ static void hclge_service_complete(struct hclge_dev *hdev)
+ static u32 hclge_check_event_cause(struct hclge_dev *hdev, u32 *clearval)
+ {
+ 	u32 rst_src_reg;
++	u32 cmdq_src_reg;
+ 
+ 	/* fetch the events from their corresponding regs */
+ 	rst_src_reg = hclge_read_dev(&hdev->hw, HCLGE_MISC_RESET_STS_REG);
++	cmdq_src_reg = hclge_read_dev(&hdev->hw, HCLGE_VECTOR0_CMDQ_SRC_REG);
 +
-+hns3-$(CONFIG_HNS3_DCB) += hns3_dcbnl.o
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hnae3.c b/drivers/net/ethernet/hisilicon/hns3/hnae3.c
-index 5bcb223..02145f2 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hnae3.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hnae3.c
-@@ -196,9 +196,18 @@ int hnae3_register_ae_dev(struct hnae3_ae_dev *ae_dev)
- 	const struct pci_device_id *id;
- 	struct hnae3_ae_algo *ae_algo;
- 	struct hnae3_client *client;
--	int ret = 0;
-+	int ret = 0, lock_acquired;
-+
-+	/* we can get deadlocked if SRIOV is being enabled in context to probe
-+	 * and probe gets called again in same context. This can happen when
-+	 * pci_enable_sriov() is called to create VFs from PF probes context.
-+	 * Therefore, for simplicity uniformly defering further probing in all
-+	 * cases where we detect contention.
++	/* Assumption: If by any chance reset and mailbox events are reported
++	 * together then we will only process reset event in this go and will
++	 * defer the processing of the mailbox events. Since, we would have not
++	 * cleared RX CMDQ event this time we would receive again another
++	 * interrupt from H/W just for the mailbox.
 +	 */
-+	lock_acquired = mutex_trylock(&hnae3_common_lock);
-+	if (!lock_acquired)
-+		return -EPROBE_DEFER;
  
--	mutex_lock(&hnae3_common_lock);
- 	list_add_tail(&ae_dev->node, &hnae3_ae_dev_list);
+ 	/* check for vector0 reset event sources */
+ 	if (BIT(HCLGE_VECTOR0_GLOBALRESET_INT_B) & rst_src_reg) {
+@@ -2395,7 +2410,12 @@ static u32 hclge_check_event_cause(struct hclge_dev *hdev, u32 *clearval)
+ 		return HCLGE_VECTOR0_EVENT_RST;
+ 	}
  
- 	/* Check if there are matched ae_algo */
-@@ -211,6 +220,7 @@ int hnae3_register_ae_dev(struct hnae3_ae_dev *ae_dev)
+-	/* mailbox event sharing vector 0 interrupt would be placed here */
++	/* check for vector0 mailbox(=CMDQ RX) event source */
++	if (BIT(HCLGE_VECTOR0_RX_CMDQ_INT_B) & cmdq_src_reg) {
++		cmdq_src_reg &= ~BIT(HCLGE_VECTOR0_RX_CMDQ_INT_B);
++		*clearval = cmdq_src_reg;
++		return HCLGE_VECTOR0_EVENT_MBX;
++	}
  
- 		if (!ae_dev->ops) {
- 			dev_err(&ae_dev->pdev->dev, "ae_dev ops are null\n");
-+			ret = -EOPNOTSUPP;
- 			goto out_err;
- 		}
- 
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hnae3.h b/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-index 67c59e1..a9e2b32 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-+++ b/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-@@ -452,9 +452,10 @@ struct hnae3_unic_private_info {
- 	struct hnae3_queue **tqp;  /* array base of all TQPs of this instance */
- };
- 
--#define HNAE3_SUPPORT_MAC_LOOPBACK    1
--#define HNAE3_SUPPORT_PHY_LOOPBACK    2
--#define HNAE3_SUPPORT_SERDES_LOOPBACK 4
-+#define HNAE3_SUPPORT_MAC_LOOPBACK    BIT(0)
-+#define HNAE3_SUPPORT_PHY_LOOPBACK    BIT(1)
-+#define HNAE3_SUPPORT_SERDES_LOOPBACK BIT(2)
-+#define HNAE3_SUPPORT_VF	      BIT(3)
- 
- struct hnae3_handle {
- 	struct hnae3_client *client;
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_dcbnl.c b/drivers/net/ethernet/hisilicon/hns3/hns3_dcbnl.c
-similarity index 97%
-rename from drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_dcbnl.c
-rename to drivers/net/ethernet/hisilicon/hns3/hns3_dcbnl.c
-index 925619a..eb82700 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_dcbnl.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3_dcbnl.c
-@@ -93,7 +93,7 @@ void hns3_dcbnl_setup(struct hnae3_handle *handle)
+ 	return HCLGE_VECTOR0_EVENT_OTHER;
+ }
+@@ -2403,10 +2423,14 @@ static u32 hclge_check_event_cause(struct hclge_dev *hdev, u32 *clearval)
+ static void hclge_clear_event_cause(struct hclge_dev *hdev, u32 event_type,
+ 				    u32 regclr)
  {
- 	struct net_device *dev = handle->kinfo.netdev;
- 
--	if (!handle->kinfo.dcb_ops)
-+	if ((!handle->kinfo.dcb_ops) || (handle->flags & HNAE3_SUPPORT_VF))
- 		return;
- 
- 	dev->dcbnl_ops = &hns3_dcbnl_ops;
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
-similarity index 99%
-rename from drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
-rename to drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
-index 5941509..c2c1323 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
-@@ -52,6 +52,8 @@ static const struct pci_device_id hns3_pci_tbl[] = {
- 	 HNAE3_DEV_SUPPORT_ROCE_DCB_BITS},
- 	{PCI_VDEVICE(HUAWEI, HNAE3_DEV_ID_100G_RDMA_MACSEC),
- 	 HNAE3_DEV_SUPPORT_ROCE_DCB_BITS},
-+	{PCI_VDEVICE(HUAWEI, HNAE3_DEV_ID_100G_VF), 0},
-+	{PCI_VDEVICE(HUAWEI, HNAE3_DEV_ID_100G_RDMA_DCB_PFC_VF), 0},
- 	/* required last entry */
- 	{0, }
- };
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
-similarity index 100%
-rename from drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
-rename to drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c b/drivers/net/ethernet/hisilicon/hns3/hns3_ethtool.c
-similarity index 97%
-rename from drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c
-rename to drivers/net/ethernet/hisilicon/hns3/hns3_ethtool.c
-index a21470c..65a69b4 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3_ethtool.c
-@@ -849,6 +849,21 @@ static int hns3_nway_reset(struct net_device *netdev)
- 	return genphy_restart_aneg(phy);
+-	if (event_type == HCLGE_VECTOR0_EVENT_RST)
++	switch (event_type) {
++	case HCLGE_VECTOR0_EVENT_RST:
+ 		hclge_write_dev(&hdev->hw, HCLGE_MISC_RESET_STS_REG, regclr);
+-
+-	/* mailbox event sharing vector 0 interrupt would be placed here */
++		break;
++	case HCLGE_VECTOR0_EVENT_MBX:
++		hclge_write_dev(&hdev->hw, HCLGE_VECTOR0_CMDQ_SRC_REG, regclr);
++		break;
++	}
  }
  
-+static const struct ethtool_ops hns3vf_ethtool_ops = {
-+	.get_drvinfo = hns3_get_drvinfo,
-+	.get_ringparam = hns3_get_ringparam,
-+	.set_ringparam = hns3_set_ringparam,
-+	.get_strings = hns3_get_strings,
-+	.get_ethtool_stats = hns3_get_stats,
-+	.get_sset_count = hns3_get_sset_count,
-+	.get_rxnfc = hns3_get_rxnfc,
-+	.get_rxfh_key_size = hns3_get_rss_key_size,
-+	.get_rxfh_indir_size = hns3_get_rss_indir_size,
-+	.get_rxfh = hns3_get_rss,
-+	.set_rxfh = hns3_set_rss,
-+	.get_link_ksettings = hns3_get_link_ksettings,
-+};
-+
- static const struct ethtool_ops hns3_ethtool_ops = {
- 	.self_test = hns3_self_test,
- 	.get_drvinfo = hns3_get_drvinfo,
-@@ -872,5 +887,10 @@ static const struct ethtool_ops hns3_ethtool_ops = {
+ static void hclge_enable_vector(struct hclge_misc_vector *vector, bool enable)
+@@ -2423,13 +2447,23 @@ static irqreturn_t hclge_misc_irq_handle(int irq, void *data)
+ 	hclge_enable_vector(&hdev->misc_vector, false);
+ 	event_cause = hclge_check_event_cause(hdev, &clearval);
  
- void hns3_ethtool_set_ops(struct net_device *netdev)
- {
--	netdev->ethtool_ops = &hns3_ethtool_ops;
-+	struct hnae3_handle *h = hns3_get_handle(netdev);
+-	/* vector 0 interrupt is shared with reset and mailbox source events.
+-	 * For now, we are not handling mailbox events.
+-	 */
++	/* vector 0 interrupt is shared with reset and mailbox source events.*/
+ 	switch (event_cause) {
+ 	case HCLGE_VECTOR0_EVENT_RST:
+ 		hclge_reset_task_schedule(hdev);
+ 		break;
++	case HCLGE_VECTOR0_EVENT_MBX:
++		/* If we are here then,
++		 * 1. Either we are not handling any mbx task and we are not
++		 *    scheduled as well
++		 *                        OR
++		 * 2. We could be handling a mbx task but nothing more is
++		 *    scheduled.
++		 * In both cases, we should schedule mbx task as there are more
++		 * mbx messages reported by this interrupt.
++		 */
++		hclge_mbx_task_schedule(hdev);
 +
-+	if (h->flags & HNAE3_SUPPORT_VF)
-+		netdev->ethtool_ops = &hns3vf_ethtool_ops;
-+	else
-+		netdev->ethtool_ops = &hns3_ethtool_ops;
+ 	default:
+ 		dev_dbg(&hdev->pdev->dev,
+ 			"received unknown or unhandled event of vector0\n");
+@@ -2708,6 +2742,21 @@ static void hclge_reset_service_task(struct work_struct *work)
+ 	clear_bit(HCLGE_STATE_RST_HANDLING, &hdev->state);
  }
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
-index d2b20d0..d077fa0 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
-@@ -8,8 +8,3 @@ obj-$(CONFIG_HNS3_HCLGE) += hclge.o
- hclge-objs = hclge_main.o hclge_cmd.o hclge_mdio.o hclge_tm.o
  
- hclge-$(CONFIG_HNS3_DCB) += hclge_dcb.o
--
--obj-$(CONFIG_HNS3_ENET) += hns3.o
--hns3-objs = hns3_enet.o hns3_ethtool.o
--
--hns3-$(CONFIG_HNS3_DCB) += hns3_dcbnl.o
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
-index f5a2a69..3186605 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
-@@ -310,6 +310,7 @@ static int hclgevf_set_handle_info(struct hclgevf_dev *hdev)
- 	nic->ae_algo = &ae_algovf;
- 	nic->pdev = hdev->pdev;
- 	nic->numa_node_mask = hdev->numa_node_mask;
-+	nic->flags |= HNAE3_SUPPORT_VF;
++static void hclge_mailbox_service_task(struct work_struct *work)
++{
++	struct hclge_dev *hdev =
++		container_of(work, struct hclge_dev, mbx_service_task);
++
++	if (test_and_set_bit(HCLGE_STATE_MBX_HANDLING, &hdev->state))
++		return;
++
++	clear_bit(HCLGE_STATE_MBX_SERVICE_SCHED, &hdev->state);
++
++	hclge_mbx_handler(hdev);
++
++	clear_bit(HCLGE_STATE_MBX_HANDLING, &hdev->state);
++}
++
+ static void hclge_service_task(struct work_struct *work)
+ {
+ 	struct hclge_dev *hdev =
+@@ -4815,6 +4864,7 @@ static int hclge_init_ae_dev(struct hnae3_ae_dev *ae_dev)
+ 	timer_setup(&hdev->service_timer, hclge_service_timer, 0);
+ 	INIT_WORK(&hdev->service_task, hclge_service_task);
+ 	INIT_WORK(&hdev->rst_service_task, hclge_reset_service_task);
++	INIT_WORK(&hdev->mbx_service_task, hclge_mailbox_service_task);
  
- 	if (hdev->ae_dev->dev_type != HNAE3_DEV_KNIC) {
- 		dev_err(&hdev->pdev->dev, "unsupported device type %d\n",
+ 	/* Enable MISC vector(vector0) */
+ 	hclge_enable_vector(&hdev->misc_vector, true);
+@@ -4823,6 +4873,8 @@ static int hclge_init_ae_dev(struct hnae3_ae_dev *ae_dev)
+ 	set_bit(HCLGE_STATE_DOWN, &hdev->state);
+ 	clear_bit(HCLGE_STATE_RST_SERVICE_SCHED, &hdev->state);
+ 	clear_bit(HCLGE_STATE_RST_HANDLING, &hdev->state);
++	clear_bit(HCLGE_STATE_MBX_SERVICE_SCHED, &hdev->state);
++	clear_bit(HCLGE_STATE_MBX_HANDLING, &hdev->state);
+ 
+ 	pr_info("%s driver initialization finished.\n", HCLGE_DRIVER_NAME);
+ 	return 0;
+@@ -4936,6 +4988,8 @@ static void hclge_uninit_ae_dev(struct hnae3_ae_dev *ae_dev)
+ 		cancel_work_sync(&hdev->service_task);
+ 	if (hdev->rst_service_task.func)
+ 		cancel_work_sync(&hdev->rst_service_task);
++	if (hdev->mbx_service_task.func)
++		cancel_work_sync(&hdev->mbx_service_task);
+ 
+ 	if (mac->phydev)
+ 		mdiobus_unregister(mac->mdio_bus);
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
+index c7c9a28..fb043b5 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
+@@ -92,6 +92,11 @@
+ #define HCLGE_VECTOR0_CORERESET_INT_B	6
+ #define HCLGE_VECTOR0_IMPRESET_INT_B	7
+ 
++/* Vector0 interrupt CMDQ event source register(RW) */
++#define HCLGE_VECTOR0_CMDQ_SRC_REG	0x27100
++/* CMDQ register bits for RX event(=MBX event) */
++#define HCLGE_VECTOR0_RX_CMDQ_INT_B	1
++
+ enum HCLGE_DEV_STATE {
+ 	HCLGE_STATE_REINITING,
+ 	HCLGE_STATE_DOWN,
+@@ -101,8 +106,8 @@ enum HCLGE_DEV_STATE {
+ 	HCLGE_STATE_SERVICE_SCHED,
+ 	HCLGE_STATE_RST_SERVICE_SCHED,
+ 	HCLGE_STATE_RST_HANDLING,
++	HCLGE_STATE_MBX_SERVICE_SCHED,
+ 	HCLGE_STATE_MBX_HANDLING,
+-	HCLGE_STATE_MBX_IRQ,
+ 	HCLGE_STATE_MAX
+ };
+ 
+@@ -479,6 +484,7 @@ struct hclge_dev {
+ 	struct timer_list service_timer;
+ 	struct work_struct service_task;
+ 	struct work_struct rst_service_task;
++	struct work_struct mbx_service_task;
+ 
+ 	bool cur_promisc;
+ 	int num_alloc_vfs;	/* Actual number of VFs allocated */
 -- 
 2.7.4
