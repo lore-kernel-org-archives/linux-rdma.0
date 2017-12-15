@@ -1,8 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 10/16] xprtrdma: Move unmap-safe logic to
- rpcrdma_marshal_req
-Date: Thu, 14 Dec 2017 20:57:14 -0500
-Message-ID: <20171215015714.13776.40984.stgit@manet.1015granger.net>
+Subject: [PATCH v1 11/16] xprtrdma: buf_free not called for CB replies
+Date: Thu, 14 Dec 2017 20:57:23 -0500
+Message-ID: <20171215015722.13776.98976.stgit@manet.1015granger.net>
 References: <20171215015403.13776.46706.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,54 +13,62 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up. This logic is related to marshaling the request, and I'd
-like to keep everything that touches req->rl_registered close
-together, for CPU cache efficiency.
+Since commit 5a6d1db45569 ("SUNRPC: Add a transport-specific private
+field in rpc_rqst"), the rpc_rqst's for RPC-over-RDMA backchannel
+operations leave rq_buffer set to NULL.
+
+xprt_release does not invoke ->op->buf_free when rq_buffer is NULL.
+The RPCRDMA_REQ_F_BACKCHANNEL check in xprt_rdma_free is therefore
+redundant because xprt_rdma_free is not invoked for backchannel
+requests.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c  |   11 +++++++++++
- net/sunrpc/xprtrdma/transport.c |    5 -----
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ net/sunrpc/xprtrdma/backchannel.c |    1 -
+ net/sunrpc/xprtrdma/transport.c   |    3 ---
+ net/sunrpc/xprtrdma/xprt_rdma.h   |    3 +--
+ 3 files changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index d7463bc..dd7c0aa 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -821,6 +821,17 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
- 		rtype = rpcrdma_areadch;
- 	}
+diff --git a/net/sunrpc/xprtrdma/backchannel.c b/net/sunrpc/xprtrdma/backchannel.c
+index 256c67b..11fb38f 100644
+--- a/net/sunrpc/xprtrdma/backchannel.c
++++ b/net/sunrpc/xprtrdma/backchannel.c
+@@ -43,7 +43,6 @@ static int rpcrdma_bc_setup_rqst(struct rpcrdma_xprt *r_xprt,
+ 	req = rpcrdma_create_req(r_xprt);
+ 	if (IS_ERR(req))
+ 		return PTR_ERR(req);
+-	__set_bit(RPCRDMA_REQ_F_BACKCHANNEL, &req->rl_flags);
  
-+	/* If this is a retransmit, discard previously registered
-+	 * chunks. Very likely the connection has been replaced,
-+	 * so these registrations are invalid and unusable.
-+	 */
-+	while (unlikely(!list_empty(&req->rl_registered))) {
-+		struct rpcrdma_mw *mw;
-+
-+		mw = rpcrdma_pop_mw(&req->rl_registered);
-+		rpcrdma_defer_mr_recovery(mw);
-+	}
-+
- 	/* This implementation supports the following combinations
- 	 * of chunk lists in one RPC-over-RDMA Call message:
- 	 *
+ 	rb = rpcrdma_alloc_regbuf(RPCRDMA_HDRBUF_SIZE,
+ 				  DMA_TO_DEVICE, GFP_KERNEL);
 diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index cebcd02..d77dee5 100644
+index d77dee5..d0cd6d4 100644
 --- a/net/sunrpc/xprtrdma/transport.c
 +++ b/net/sunrpc/xprtrdma/transport.c
-@@ -731,11 +731,6 @@
- 	if (!xprt_connected(xprt))
- 		goto drop_connection;
+@@ -686,9 +686,6 @@
+ 	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(rqst->rq_xprt);
+ 	struct rpcrdma_req *req = rpcr_to_rdmar(rqst);
  
--	/* On retransmit, remove any previously registered chunks */
--	if (unlikely(!list_empty(&req->rl_registered)))
--		r_xprt->rx_ia.ri_ops->ro_unmap_sync(r_xprt,
--						    &req->rl_registered);
+-	if (test_bit(RPCRDMA_REQ_F_BACKCHANNEL, &req->rl_flags))
+-		return;
 -
- 	rc = rpcrdma_marshal_req(r_xprt, rqst);
- 	if (rc < 0)
- 		goto failed_marshal;
+ 	dprintk("RPC:       %s: called on 0x%p\n", __func__, req->rl_reply);
+ 
+ 	if (test_bit(RPCRDMA_REQ_F_PENDING, &req->rl_flags))
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 7c09e2a..ed7e513 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -354,8 +354,7 @@ struct rpcrdma_req {
+ 
+ /* rl_flags */
+ enum {
+-	RPCRDMA_REQ_F_BACKCHANNEL = 0,
+-	RPCRDMA_REQ_F_PENDING,
++	RPCRDMA_REQ_F_PENDING = 0,
+ 	RPCRDMA_REQ_F_TX_RESOURCES,
+ };
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
