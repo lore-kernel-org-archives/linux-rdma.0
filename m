@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 04/16] xprtrdma: Per-mode handling for Remote Invalidation
-Date: Thu, 14 Dec 2017 20:56:26 -0500
-Message-ID: <20171215015626.13776.10844.stgit@manet.1015granger.net>
+Subject: [PATCH v1 05/16] xprtrdma: Remove ri_reminv_expected
+Date: Thu, 14 Dec 2017 20:56:34 -0500
+Message-ID: <20171215015634.13776.96134.stgit@manet.1015granger.net>
 References: <20171215015403.13776.46706.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,158 +13,49 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Refactoring change: Remote Invalidation is particular to the memory
-registration mode that is use. Use a callout instead of a generic
-function to handle Remote Invalidation.
+Clean up.
 
-This gets rid of the 8-byte flags field in struct rpcrdma_mw, of
-which only a single bit flag has been allocated.
+Commit b5f0afbea4f2 ("xprtrdma: Per-connection pad optimization")
+should have removed this.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/frwr_ops.c  |   24 +++++++++++++++++++++---
- net/sunrpc/xprtrdma/rpc_rdma.c  |   24 ++++--------------------
- net/sunrpc/xprtrdma/verbs.c     |    1 -
- net/sunrpc/xprtrdma/xprt_rdma.h |    8 ++------
- 4 files changed, 27 insertions(+), 30 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c     |    2 --
+ net/sunrpc/xprtrdma/xprt_rdma.h |    1 -
+ 2 files changed, 3 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index 773e66e..e1f7303 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -450,6 +450,26 @@
- 	return ERR_PTR(-ENOTCONN);
- }
- 
-+/* Handle a remotely invalidated mw on the @mws list
-+ */
-+static void
-+frwr_op_reminv(struct rpcrdma_rep *rep, struct list_head *mws)
-+{
-+	struct rpcrdma_mw *mw;
-+
-+	list_for_each_entry(mw, mws, mw_list)
-+		if (mw->mw_handle == rep->rr_inv_rkey) {
-+			struct rpcrdma_xprt *r_xprt = mw->mw_xprt;
-+
-+			list_del(&mw->mw_list);
-+			mw->frmr.fr_state = FRMR_IS_INVALID;
-+			ib_dma_unmap_sg(r_xprt->rx_ia.ri_device,
-+					mw->mw_sg, mw->mw_nents, mw->mw_dir);
-+			rpcrdma_put_mw(r_xprt, mw);
-+			break;	/* only one invalidated MR per RPC */
-+		}
-+}
-+
- /* Invalidate all memory regions that were registered for "req".
-  *
-  * Sleeps until it is safe for the host CPU to access the
-@@ -478,9 +498,6 @@
- 	list_for_each_entry(mw, mws, mw_list) {
- 		mw->frmr.fr_state = FRMR_IS_INVALID;
- 
--		if (mw->mw_flags & RPCRDMA_MW_F_RI)
--			continue;
--
- 		f = &mw->frmr;
- 		dprintk("RPC:       %s: invalidating frmr %p\n",
- 			__func__, f);
-@@ -553,6 +570,7 @@
- 
- const struct rpcrdma_memreg_ops rpcrdma_frwr_memreg_ops = {
- 	.ro_map				= frwr_op_map,
-+	.ro_reminv			= frwr_op_reminv,
- 	.ro_unmap_sync			= frwr_op_unmap_sync,
- 	.ro_recover_mr			= frwr_op_recover_mr,
- 	.ro_open			= frwr_op_open,
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index a3f2ab2..d7463bc 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -984,24 +984,6 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
- 	return fixup_copy_count;
- }
- 
--/* Caller must guarantee @rep remains stable during this call.
-- */
--static void
--rpcrdma_mark_remote_invalidation(struct list_head *mws,
--				 struct rpcrdma_rep *rep)
--{
--	struct rpcrdma_mw *mw;
--
--	if (!(rep->rr_wc_flags & IB_WC_WITH_INVALIDATE))
--		return;
--
--	list_for_each_entry(mw, mws, mw_list)
--		if (mw->mw_handle == rep->rr_inv_rkey) {
--			mw->mw_flags = RPCRDMA_MW_F_RI;
--			break; /* only one invalidated MR per RPC */
--		}
--}
--
- /* By convention, backchannel calls arrive via rdma_msg type
-  * messages, and never populate the chunk lists. This makes
-  * the RPC/RDMA header small and fixed in size, so it is
-@@ -1339,9 +1321,11 @@ void rpcrdma_deferred_completion(struct work_struct *work)
- 	struct rpcrdma_rep *rep =
- 			container_of(work, struct rpcrdma_rep, rr_work);
- 	struct rpcrdma_req *req = rpcr_to_rdmar(rep->rr_rqst);
-+	struct rpcrdma_xprt *r_xprt = rep->rr_rxprt;
- 
--	rpcrdma_mark_remote_invalidation(&req->rl_registered, rep);
--	rpcrdma_release_rqst(rep->rr_rxprt, req);
-+	if (rep->rr_wc_flags & IB_WC_WITH_INVALIDATE)
-+		r_xprt->rx_ia.ri_ops->ro_reminv(rep, &req->rl_registered);
-+	rpcrdma_release_rqst(r_xprt, req);
- 	rpcrdma_complete_rqst(rep);
- }
- 
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 6eecd97..1cf1eb4 100644
+index 1cf1eb4..4a9b6f8 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -1307,7 +1307,6 @@ struct rpcrdma_mw *
+@@ -192,7 +192,6 @@
+ 	unsigned int rsize, wsize;
  
- 	if (!mw)
- 		goto out_nomws;
--	mw->mw_flags = 0;
- 	return mw;
- 
- out_nomws:
+ 	/* Default settings for RPC-over-RDMA Version One */
+-	r_xprt->rx_ia.ri_reminv_expected = false;
+ 	r_xprt->rx_ia.ri_implicit_roundup = xprt_rdma_pad_optimize;
+ 	rsize = RPCRDMA_V1_DEF_INLINE_SIZE;
+ 	wsize = RPCRDMA_V1_DEF_INLINE_SIZE;
+@@ -200,7 +199,6 @@
+ 	if (pmsg &&
+ 	    pmsg->cp_magic == rpcrdma_cmp_magic &&
+ 	    pmsg->cp_version == RPCRDMA_CMP_VERSION) {
+-		r_xprt->rx_ia.ri_reminv_expected = true;
+ 		r_xprt->rx_ia.ri_implicit_roundup = true;
+ 		rsize = rpcrdma_decode_buffer_size(pmsg->cp_send_size);
+ 		wsize = rpcrdma_decode_buffer_size(pmsg->cp_recv_size);
 diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 3b63e61..e787dda 100644
+index e787dda..80ea3db 100644
 --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -272,7 +272,6 @@ struct rpcrdma_mw {
- 	struct scatterlist	*mw_sg;
- 	int			mw_nents;
- 	enum dma_data_direction	mw_dir;
--	unsigned long		mw_flags;
- 	union {
- 		struct rpcrdma_fmr	fmr;
- 		struct rpcrdma_frmr	frmr;
-@@ -284,11 +283,6 @@ struct rpcrdma_mw {
- 	struct list_head	mw_all;
- };
- 
--/* mw_flags */
--enum {
--	RPCRDMA_MW_F_RI		= 1,
--};
--
- /*
-  * struct rpcrdma_req -- structure central to the request/reply sequence.
-  *
-@@ -485,6 +479,8 @@ struct rpcrdma_memreg_ops {
- 			(*ro_map)(struct rpcrdma_xprt *,
- 				  struct rpcrdma_mr_seg *, int, bool,
- 				  struct rpcrdma_mw **);
-+	void		(*ro_reminv)(struct rpcrdma_rep *rep,
-+				     struct list_head *mws);
- 	void		(*ro_unmap_sync)(struct rpcrdma_xprt *,
- 					 struct list_head *);
- 	void		(*ro_recover_mr)(struct rpcrdma_mw *);
+@@ -77,7 +77,6 @@ struct rpcrdma_ia {
+ 	unsigned int		ri_max_inline_write;
+ 	unsigned int		ri_max_inline_read;
+ 	unsigned int		ri_max_send_sges;
+-	bool			ri_reminv_expected;
+ 	bool			ri_implicit_roundup;
+ 	enum ib_mr_type		ri_mrtype;
+ 	unsigned long		ri_flags;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
