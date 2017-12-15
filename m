@@ -1,66 +1,43 @@
-From: Sagar Arun Kamble <sagar.a.kamble@intel.com>
-Subject: [PATCH 11/27] net/mlx4: Use timecounter_initialize interface
-Date: Fri, 15 Dec 2017 13:08:26 +0530
-Message-ID: <1513323522-15021-12-git-send-email-sagar.a.kamble@intel.com>
-References: <1513323522-15021-1-git-send-email-sagar.a.kamble@intel.com>
+From: Philippe Ombredanne <pombredanne@nexb.com>
+Subject: Re: [PATCH v4 net-next 0/8] Hisilicon Network Subsystem 3 VF Ethernet Driver
+Date: Fri, 15 Dec 2017 11:28:15 +0100
+Message-ID: <CAOFm3uGEwqVN1zLDRBWcZ+nctqwvVbVc-5cH8wFHPs+POkvBVg@mail.gmail.com>
+References: <20171214180309.14480-1-salil.mehta@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1513323522-15021-1-git-send-email-sagar.a.kamble@intel.com>
+In-Reply-To: <20171214180309.14480-1-salil.mehta@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Sagar Arun Kamble <sagar.a.kamble@intel.com>, Richard Cochran <richardcochran@gmail.com>, Tariq Toukan <tariqt@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+To: Salil Mehta <salil.mehta@huawei.com>
+Cc: "David S. Miller" <davem@davemloft.net>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "lipeng (Y)" <lipeng321@huawei.com>, Salil Mehta <mehta.salil.lnk@gmail.com>, netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-With new interface timecounter_initialize we can initialize timecounter
-fields and underlying cyclecounter together. Update mlx4 timecounter
-init with this new function.
+Salil,
 
-Signed-off-by: Sagar Arun Kamble <sagar.a.kamble@intel.com>
-Cc: Richard Cochran <richardcochran@gmail.com>
-Cc: Tariq Toukan <tariqt@mellanox.com>
-Cc: netdev@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
----
- drivers/net/ethernet/mellanox/mlx4/en_clock.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+On Thu, Dec 14, 2017 at 7:03 PM, Salil Mehta <salil.mehta@huawei.com> wrote:
+> This patch-set contains the support of the HNS3 (Hisilicon Network Subsystem 3)
+> Virtual Function Ethernet driver for hip08 family of SoCs. The Physical Function
+> driver is already part of the Linux mainline.
+>
+> This VF driver has its Hardware Compatibility Layer and has commom/unified ENET
+> layer/client/ethtool code with the PF driver. It also has support of mailbox to
+> communicate with the HNS3 PF driver. The basic architecture of VF driver is
+> derivative of the PF driver. Just like PF driver, this driver is also PCI
+> Express based.
+>
+<snip>
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_clock.c b/drivers/net/ethernet/mellanox/mlx4/en_clock.c
-index 35987b5..dd736cc 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_clock.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_clock.c
-@@ -264,6 +264,7 @@ void mlx4_en_init_timestamp(struct mlx4_en_dev *mdev)
- {
- 	struct mlx4_dev *dev = mdev->dev;
- 	unsigned long flags;
-+	u32 mult, shift;
- 
- 	/* mlx4_en_init_timestamp is called for each netdev.
- 	 * mdev->ptp_clock is common for all ports, skip initialization if
-@@ -274,17 +275,17 @@ void mlx4_en_init_timestamp(struct mlx4_en_dev *mdev)
- 
- 	seqlock_init(&mdev->clock_lock);
- 
--	memset(&mdev->clock.cc, 0, sizeof(mdev->clock.cc));
--	mdev->clock.cc.read = mlx4_en_read_clock;
--	mdev->clock.cc.mask = CLOCKSOURCE_MASK(48);
--	mdev->clock.cc.shift = freq_to_shift(dev->caps.hca_core_clock);
--	mdev->clock.cc.mult =
--		clocksource_khz2mult(1000 * dev->caps.hca_core_clock,
--				     mdev->clock.cc.shift);
-+	shift = freq_to_shift(dev->caps.hca_core_clock);
-+	mult = clocksource_khz2mult(1000 * dev->caps.hca_core_clock, shift);
- 	mdev->nominal_c_mult = mdev->clock.cc.mult;
- 
- 	write_seqlock_irqsave(&mdev->clock_lock, flags);
--	timecounter_init(&mdev->clock, ktime_to_ns(ktime_get_real()));
-+	timecounter_initialize(&mdev->clock,
-+			       mlx4_en_read_clock,
-+			       CLOCKSOURCE_MASK(48),
-+			       mult,
-+			       shift,
-+			       ktime_to_ns(ktime_get_real()));
- 	write_sequnlock_irqrestore(&mdev->clock_lock, flags);
- 
- 	/* Configure the PHC */
+> Change Log Summary:
+> Patch V4: Addressed SPDX related comment by Philippe Ombredanne
+> Patch V3: Addressed SPDX change requested by Philippe Ombredanne
+
+Thank you.
+
+For the use of SPDX tags (and this only!) you have my cheerful ack for
+the whole patch set.
+
+Acked-by: Philippe Ombredanne <pombredanne@nexb.com>
+
 -- 
-1.9.1
+Cordially
+Philippe Ombredanne
