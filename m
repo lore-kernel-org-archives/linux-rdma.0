@@ -1,8 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 08/16] xprtrdma: Remove another sockaddr_storage field
- (cdata::addr)
-Date: Thu, 14 Dec 2017 20:56:58 -0500
-Message-ID: <20171215015658.13776.5532.stgit@manet.1015granger.net>
+Subject: [PATCH v1 09/16] xprtrdma: Support IPv6 in xprt_rdma_set_port
+Date: Thu, 14 Dec 2017 20:57:06 -0500
+Message-ID: <20171215015706.13776.10025.stgit@manet.1015granger.net>
 References: <20171215015403.13776.46706.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,152 +13,61 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Save more space in struct rpcrdma_xprt by removing the redundant
-"addr" field from struct rpcrdma_create_data_internal. Wherever
-we have rpcrdma_xprt, we also have the rpc_xprt, which has a
-sockaddr_storage field with the same content.
+Clean up a harmless oversight. xprtrdma's ->set_port method has
+never properly supported IPv6.
+
+This issue has never been a problem because NFS/RDMA mounts have
+always required "port=20049", thus so far, rpcbind is not invoked
+for these mounts.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/transport.c |    8 ++------
- net/sunrpc/xprtrdma/verbs.c     |   20 +++++++++-----------
- net/sunrpc/xprtrdma/xprt_rdma.h |    3 +--
- 3 files changed, 12 insertions(+), 19 deletions(-)
+ net/sunrpc/xprtrdma/transport.c |   28 ++++++++++++++++++++++++----
+ 1 file changed, 24 insertions(+), 4 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index f6d171e..8ba0aa8 100644
+index 8ba0aa8..cebcd02 100644
 --- a/net/sunrpc/xprtrdma/transport.c
 +++ b/net/sunrpc/xprtrdma/transport.c
-@@ -361,9 +361,7 @@
- 	/*
- 	 * Set up RDMA-specific connect data.
- 	 */
--
--	sap = (struct sockaddr *)&cdata.addr;
--	memcpy(sap, args->dstaddr, args->addrlen);
-+	sap = args->dstaddr;
- 
- 	/* Ensure xprt->addr holds valid server TCP (not RDMA)
- 	 * address, for any side protocols which peek at it */
-@@ -397,7 +395,7 @@
- 
- 	new_xprt = rpcx_to_rdmax(xprt);
- 
--	rc = rpcrdma_ia_open(new_xprt, sap);
-+	rc = rpcrdma_ia_open(new_xprt);
- 	if (rc)
- 		goto out1;
- 
-@@ -483,8 +481,6 @@
- 
- 	sap = (struct sockaddr_in *)&xprt->addr;
- 	sap->sin_port = htons(port);
--	sap = (struct sockaddr_in *)&rpcx_to_rdmad(xprt).addr;
--	sap->sin_port = htons(port);
- 	dprintk("RPC:       %s: %u\n", __func__, port);
+@@ -474,14 +474,34 @@
+ 	rpcrdma_ep_disconnect(ep, ia);
  }
  
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 0b4d6a3..d6c737d 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -294,8 +294,7 @@
- }
- 
- static struct rdma_cm_id *
--rpcrdma_create_id(struct rpcrdma_xprt *xprt,
--			struct rpcrdma_ia *ia, struct sockaddr *addr)
-+rpcrdma_create_id(struct rpcrdma_xprt *xprt, struct rpcrdma_ia *ia)
++/**
++ * xprt_rdma_set_port - update server port with rpcbind result
++ * @xprt: controlling RPC transport
++ * @port: new port value
++ *
++ * Transport connect status is unchanged.
++ */
+ static void
+ xprt_rdma_set_port(struct rpc_xprt *xprt, u16 port)
  {
- 	unsigned long wtimeout = msecs_to_jiffies(RDMA_RESOLVE_TIMEOUT) + 1;
- 	struct rdma_cm_id *id;
-@@ -314,7 +313,9 @@
- 	}
+-	struct sockaddr_in *sap;
++	struct sockaddr *sap = (struct sockaddr *)&xprt->addr;
++	char buf[8];
++
++	dprintk("RPC:       %s: setting port for xprt %p (%s:%s) to %u\n",
++		__func__, xprt,
++		xprt->address_strings[RPC_DISPLAY_ADDR],
++		xprt->address_strings[RPC_DISPLAY_PORT],
++		port);
++
++	rpc_set_port(sap, port);
  
- 	ia->ri_async_rc = -ETIMEDOUT;
--	rc = rdma_resolve_addr(id, NULL, addr, RDMA_RESOLVE_TIMEOUT);
-+	rc = rdma_resolve_addr(id, NULL,
-+			       (struct sockaddr *)&xprt->rx_xprt.addr,
-+			       RDMA_RESOLVE_TIMEOUT);
- 	if (rc) {
- 		dprintk("RPC:       %s: rdma_resolve_addr() failed %i\n",
- 			__func__, rc);
-@@ -361,19 +362,18 @@
+-	sap = (struct sockaddr_in *)&xprt->addr;
+-	sap->sin_port = htons(port);
+-	dprintk("RPC:       %s: %u\n", __func__, port);
++	kfree(xprt->address_strings[RPC_DISPLAY_PORT]);
++	snprintf(buf, sizeof(buf), "%u", port);
++	xprt->address_strings[RPC_DISPLAY_PORT] = kstrdup(buf, GFP_KERNEL);
++
++	kfree(xprt->address_strings[RPC_DISPLAY_HEX_PORT]);
++	snprintf(buf, sizeof(buf), "%4hx", port);
++	xprt->address_strings[RPC_DISPLAY_HEX_PORT] = kstrdup(buf, GFP_KERNEL);
+ }
  
  /**
-  * rpcrdma_ia_open - Open and initialize an Interface Adapter.
-- * @xprt: controlling transport
-- * @addr: IP address of remote peer
-+ * @xprt: transport with IA to (re)initialize
-  *
-  * Returns 0 on success, negative errno if an appropriate
-  * Interface Adapter could not be found and opened.
-  */
- int
--rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr)
-+rpcrdma_ia_open(struct rpcrdma_xprt *xprt)
- {
- 	struct rpcrdma_ia *ia = &xprt->rx_ia;
- 	int rc;
- 
--	ia->ri_id = rpcrdma_create_id(xprt, ia, addr);
-+	ia->ri_id = rpcrdma_create_id(xprt, ia);
- 	if (IS_ERR(ia->ri_id)) {
- 		rc = PTR_ERR(ia->ri_id);
- 		goto out_err;
-@@ -649,13 +649,12 @@
- rpcrdma_ep_recreate_xprt(struct rpcrdma_xprt *r_xprt,
- 			 struct rpcrdma_ep *ep, struct rpcrdma_ia *ia)
- {
--	struct sockaddr *sap = (struct sockaddr *)&r_xprt->rx_data.addr;
- 	int rc, err;
- 
- 	pr_info("%s: r_xprt = %p\n", __func__, r_xprt);
- 
- 	rc = -EHOSTUNREACH;
--	if (rpcrdma_ia_open(r_xprt, sap))
-+	if (rpcrdma_ia_open(r_xprt))
- 		goto out1;
- 
- 	rc = -ENOMEM;
-@@ -687,7 +686,6 @@
- rpcrdma_ep_reconnect(struct rpcrdma_xprt *r_xprt, struct rpcrdma_ep *ep,
- 		     struct rpcrdma_ia *ia)
- {
--	struct sockaddr *sap = (struct sockaddr *)&r_xprt->rx_data.addr;
- 	struct rdma_cm_id *id, *old;
- 	int err, rc;
- 
-@@ -696,7 +694,7 @@
- 	rpcrdma_ep_disconnect(ep, ia);
- 
- 	rc = -EHOSTUNREACH;
--	id = rpcrdma_create_id(r_xprt, ia, sap);
-+	id = rpcrdma_create_id(r_xprt, ia);
- 	if (IS_ERR(id))
- 		goto out;
- 
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 0b28026..7c09e2a 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -430,7 +430,6 @@ struct rpcrdma_buffer {
-  * This data should be set with mount options
-  */
- struct rpcrdma_create_data_internal {
--	struct sockaddr_storage	addr;	/* RDMA server address */
- 	unsigned int	max_requests;	/* max requests (slots) in flight */
- 	unsigned int	rsize;		/* mount rsize - max read hdr+data */
- 	unsigned int	wsize;		/* mount wsize - max write hdr+data */
-@@ -543,7 +542,7 @@ struct rpcrdma_xprt {
- /*
-  * Interface Adapter calls - xprtrdma/verbs.c
-  */
--int rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr);
-+int rpcrdma_ia_open(struct rpcrdma_xprt *xprt);
- void rpcrdma_ia_remove(struct rpcrdma_ia *ia);
- void rpcrdma_ia_close(struct rpcrdma_ia *);
- bool frwr_is_supported(struct rpcrdma_ia *);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
