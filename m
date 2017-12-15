@@ -1,58 +1,171 @@
-From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] srp_daemon: Install signal handler for ibsrpdm
-Date: Fri, 15 Dec 2017 09:36:28 +0800
-Message-ID: <20171215013628.GA743@dhcp-13-42.nay.redhat.com>
-References: <20171214110241.4701-1-honli@redhat.com>
- <1513263572.2986.2.camel@wdc.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1 04/16] xprtrdma: Per-mode handling for Remote Invalidation
+Date: Thu, 14 Dec 2017 20:56:26 -0500
+Message-ID: <20171215015626.13776.10844.stgit@manet.1015granger.net>
+References: <20171215015403.13776.46706.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1513263572.2986.2.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <20171215015403.13776.46706.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 14, 2017 at 02:59:34PM +0000, Bart Van Assche wrote:
-> On Thu, 2017-12-14 at 19:02 +0800, Honggang LI wrote:
-> > fd3005f0cd34 moves the signal handler setup from ibsrpdm path. So,
-> > default signal handler will be used when it receives signal SIGINT.
-> > ibsrpdm will exit with non-zero exit code as default signal handler
-> > killed it.
-> 
-> Can you explain why you think that ibsrpdm needs a signal handler?
+Refactoring change: Remote Invalidation is particular to the memory
+registration mode that is use. Use a callout instead of a generic
+function to handle Remote Invalidation.
 
-main
-  ibsrpdm
-    alloc_res
-      pthread_create(&res->res.async_ev_thread [1]
-    ....
-    free_res
-      if (res->async_ev_thread) { pthread_kill(res->async_ev_thread, SIGINT); [2]
+This gets rid of the 8-byte flags field in struct rpcrdma_mw, of
+which only a single bit flag has been allocated.
 
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ net/sunrpc/xprtrdma/frwr_ops.c  |   24 +++++++++++++++++++++---
+ net/sunrpc/xprtrdma/rpc_rdma.c  |   24 ++++--------------------
+ net/sunrpc/xprtrdma/verbs.c     |    1 -
+ net/sunrpc/xprtrdma/xprt_rdma.h |    8 ++------
+ 4 files changed, 27 insertions(+), 30 deletions(-)
 
-The ibsrpdm program create a thread in [1], and send a SIGINT in [2].
-The default behavior of SIGINT is to terminate the process.
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 773e66e..e1f7303 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -450,6 +450,26 @@
+ 	return ERR_PTR(-ENOTCONN);
+ }
+ 
++/* Handle a remotely invalidated mw on the @mws list
++ */
++static void
++frwr_op_reminv(struct rpcrdma_rep *rep, struct list_head *mws)
++{
++	struct rpcrdma_mw *mw;
++
++	list_for_each_entry(mw, mws, mw_list)
++		if (mw->mw_handle == rep->rr_inv_rkey) {
++			struct rpcrdma_xprt *r_xprt = mw->mw_xprt;
++
++			list_del(&mw->mw_list);
++			mw->frmr.fr_state = FRMR_IS_INVALID;
++			ib_dma_unmap_sg(r_xprt->rx_ia.ri_device,
++					mw->mw_sg, mw->mw_nents, mw->mw_dir);
++			rpcrdma_put_mw(r_xprt, mw);
++			break;	/* only one invalidated MR per RPC */
++		}
++}
++
+ /* Invalidate all memory regions that were registered for "req".
+  *
+  * Sleeps until it is safe for the host CPU to access the
+@@ -478,9 +498,6 @@
+ 	list_for_each_entry(mw, mws, mw_list) {
+ 		mw->frmr.fr_state = FRMR_IS_INVALID;
+ 
+-		if (mw->mw_flags & RPCRDMA_MW_F_RI)
+-			continue;
+-
+ 		f = &mw->frmr;
+ 		dprintk("RPC:       %s: invalidating frmr %p\n",
+ 			__func__, f);
+@@ -553,6 +570,7 @@
+ 
+ const struct rpcrdma_memreg_ops rpcrdma_frwr_memreg_ops = {
+ 	.ro_map				= frwr_op_map,
++	.ro_reminv			= frwr_op_reminv,
+ 	.ro_unmap_sync			= frwr_op_unmap_sync,
+ 	.ro_recover_mr			= frwr_op_recover_mr,
+ 	.ro_open			= frwr_op_open,
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index a3f2ab2..d7463bc 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -984,24 +984,6 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
+ 	return fixup_copy_count;
+ }
+ 
+-/* Caller must guarantee @rep remains stable during this call.
+- */
+-static void
+-rpcrdma_mark_remote_invalidation(struct list_head *mws,
+-				 struct rpcrdma_rep *rep)
+-{
+-	struct rpcrdma_mw *mw;
+-
+-	if (!(rep->rr_wc_flags & IB_WC_WITH_INVALIDATE))
+-		return;
+-
+-	list_for_each_entry(mw, mws, mw_list)
+-		if (mw->mw_handle == rep->rr_inv_rkey) {
+-			mw->mw_flags = RPCRDMA_MW_F_RI;
+-			break; /* only one invalidated MR per RPC */
+-		}
+-}
+-
+ /* By convention, backchannel calls arrive via rdma_msg type
+  * messages, and never populate the chunk lists. This makes
+  * the RPC/RDMA header small and fixed in size, so it is
+@@ -1339,9 +1321,11 @@ void rpcrdma_deferred_completion(struct work_struct *work)
+ 	struct rpcrdma_rep *rep =
+ 			container_of(work, struct rpcrdma_rep, rr_work);
+ 	struct rpcrdma_req *req = rpcr_to_rdmar(rep->rr_rqst);
++	struct rpcrdma_xprt *r_xprt = rep->rr_rxprt;
+ 
+-	rpcrdma_mark_remote_invalidation(&req->rl_registered, rep);
+-	rpcrdma_release_rqst(rep->rr_rxprt, req);
++	if (rep->rr_wc_flags & IB_WC_WITH_INVALIDATE)
++		r_xprt->rx_ia.ri_ops->ro_reminv(rep, &req->rl_registered);
++	rpcrdma_release_rqst(r_xprt, req);
+ 	rpcrdma_complete_rqst(rep);
+ }
+ 
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 6eecd97..1cf1eb4 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -1307,7 +1307,6 @@ struct rpcrdma_mw *
+ 
+ 	if (!mw)
+ 		goto out_nomws;
+-	mw->mw_flags = 0;
+ 	return mw;
+ 
+ out_nomws:
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 3b63e61..e787dda 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -272,7 +272,6 @@ struct rpcrdma_mw {
+ 	struct scatterlist	*mw_sg;
+ 	int			mw_nents;
+ 	enum dma_data_direction	mw_dir;
+-	unsigned long		mw_flags;
+ 	union {
+ 		struct rpcrdma_fmr	fmr;
+ 		struct rpcrdma_frmr	frmr;
+@@ -284,11 +283,6 @@ struct rpcrdma_mw {
+ 	struct list_head	mw_all;
+ };
+ 
+-/* mw_flags */
+-enum {
+-	RPCRDMA_MW_F_RI		= 1,
+-};
+-
+ /*
+  * struct rpcrdma_req -- structure central to the request/reply sequence.
+  *
+@@ -485,6 +479,8 @@ struct rpcrdma_memreg_ops {
+ 			(*ro_map)(struct rpcrdma_xprt *,
+ 				  struct rpcrdma_mr_seg *, int, bool,
+ 				  struct rpcrdma_mw **);
++	void		(*ro_reminv)(struct rpcrdma_rep *rep,
++				     struct list_head *mws);
+ 	void		(*ro_unmap_sync)(struct rpcrdma_xprt *,
+ 					 struct list_head *);
+ 	void		(*ro_recover_mr)(struct rpcrdma_mw *);
 
-According to the man page of pthread_kill:
- Signal dispositions are process-wide: if a signal handler is installed,
- the handler will be invoked in the thread _thread_, but if the disposition 
- of the signal is "stop", "continue", or "terminate", this action will 
- affect the whole process.
-
-If we did not install a signal handler for ibsrpdm, ibsrpdm will be
-terminated in [2], when it free the resource. ibsrpdm expected to return
-to the main program after it free the resource. However, it failed as it
-killed by default signal handler.
-
-> 
-> > ibsrpdm should return with exit code zero, if no error emerged.
-> 
-> That's correct, but if it was interrupted by a signal handler an error
-> code should be returned.
-> 
-> Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
