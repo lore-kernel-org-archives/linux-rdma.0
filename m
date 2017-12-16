@@ -1,49 +1,110 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v2 0/5] Support for generalized use of make C={1,2} via
- a wrapper program
-Date: Sat, 16 Dec 2017 09:00:01 -0800
-Message-ID: <1513443601.4647.36.camel@perches.com>
-References: <cover.630ac8faeeda67bf7a778c158174422042942d08.1513430008.git-series.knut.omang@oracle.com>
-         <1513437684.4647.30.camel@perches.com>
-         <1513441634.31439.34.camel@oracle.com>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [GIT PULL] Please pull RDMA subsystem changes
+Date: Sat, 16 Dec 2017 10:12:17 -0700
+Message-ID: <20171216171217.GA16500@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1513441634.31439.34.camel@oracle.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Knut Omang <knut.omang@oracle.com>, linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Nicolas Palix <nicolas.palix@imag.fr>, Jonathan Corbet <corbet@lwn.net>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, Matthew Wilcox <willy@infradead.org>, cocci@systeme.lip6.fr, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org, Doug Ledford <dledford@redhat.com>, =?ISO-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>, Shuah Khan <shuah@kernel.org>, linux-kbuild@vger.kernel.org, Michal Marek <michal.lkml@markovi.net>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2017-12-16 at 17:27 +0100, Knut Omang wrote:
-> On Sat, 2017-12-16 at 07:21 -0800, Joe Perches wrote:
-> > On Sat, 2017-12-16 at 15:42 +0100, Knut Omang wrote:
-> > > This patch series implements features to make it easier to run checkers on the
-> > > entire kernel as part of automatic and developer testing.
-> > 
-> > This seems like a useful and reasonable series, thanks.
-> 
-> thanks, appreciated,
-> 
-> > Do please take Julia's grammar updates.
-> 
-> will do,
-> 
-> > How is this series to be applied?
-> 
-> I am open for suggestions.
-> 
-> Let's leave patch #3 out for now.
-> 
-> It's safe to apply #1 (and #2) alone.
 
-I'd just as soon combine patch #1 and an updated 
-patch #2 into a single patch and get that applied
-sooner than later.
+--tKW2IUtsqtDRztdT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> They don't break anything by getting into the RDMA or RDS subsystem 
-> without patch #1, alternatively they can go together with the set of cleanup patches I
-> have prepared for each of RDMA and RDS after #1 is in.
+Hi Linus,
 
-right.
+More fixes from testing done on the rc kernel, including more SELinux testing.
+Looking forward, lockdep found regression today in ipoib which is still
+being fixed.
+
+The following changes since commit 315d160c5a4e034a576a13aa21e7235d5c9ec609:
+
+  IB/core: Only enforce security for InfiniBand (2017-12-01 12:21:28 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+
+for you to fetch changes up to 9d98e19ba08f6aa33a4a1414f3dfe8440e67530c:
+
+  IB/ipoib: Restore MM behavior in case of tx_ring allocation failure (2017-12-13 10:31:57 -0700)
+
+----------------------------------------------------------------
+Second pull request for 4.15-rc
+
+- Fix for SELinux on the umad SMI path. Some old hardware
+  does not fill the PKey properly exposing another bug in the newer
+  SELinux code.
+- Check the input port as we can exceed array bounds from this
+  user supplied value
+- Users are unable to use the hash field support as they want due to
+  incorrect checks on the field restrictions, correct that so the
+  feature works as intended
+- User triggerable oops in the NETLINK_RDMA handler
+- cxgb4 driver fix for a bad interaction with CQ flushing in iser
+  caused by patches in this merge window, and bad CQ flushing during
+  normal close.
+- Unbalanced memalloc_noio in ipoib in an error path.
+
+----------------------------------------------------------------
+Daniel Jurgens (2):
+      IB/core: Bound check alternate path port number
+      IB/core: Don't enforce PKey security on SMI MADs
+
+Guy Levi (1):
+      IB/mlx4: Fix RSS hash fields restrictions
+
+Leon Romanovsky (1):
+      RDMA/netlink: Fix general protection fault
+
+Steve Wise (2):
+      iw_cxgb4: only clear the ARMED bit if a notification is needed
+      iw_cxgb4: only insert drain cqes if wq is flushed
+
+Yuval Shaia (1):
+      IB/ipoib: Restore MM behavior in case of tx_ring allocation failure
+
+ drivers/infiniband/core/cma.c           |  2 +-
+ drivers/infiniband/core/device.c        |  2 +-
+ drivers/infiniband/core/iwcm.c          |  2 +-
+ drivers/infiniband/core/nldev.c         |  2 +-
+ drivers/infiniband/core/security.c      |  7 +++++--
+ drivers/infiniband/core/uverbs_cmd.c    |  6 ++++++
+ drivers/infiniband/hw/cxgb4/cq.c        |  5 +++++
+ drivers/infiniband/hw/cxgb4/qp.c        | 22 ++++++++++++++++------
+ drivers/infiniband/hw/mlx4/qp.c         | 26 +++++++++++++++++++-------
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c |  1 +
+ 10 files changed, 56 insertions(+), 19 deletions(-)
+
+--tKW2IUtsqtDRztdT
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCgAGBQJaNVPuAAoJEDht9xV+IJsa2zIP/2/eQ57uEhig3AQWuEc2LmPd
+Rk8FNAlMHo/CEDOYHXeDNcEOq3PVIJDzgokVNBq36jWc0OoO6Ktdaaq46IKxeFyh
+hb58kU0JdFHfeXUpXg2/0ZUjo7u4ZWMLjOm87k62My/OXZKqqaomV+w3qyJ5SpzB
+ur+iSxgMICs7rwWmhlkyqSTEAUANhjQ5iRb72VMDuPixu0VFlqBX6iyLy248sgts
+3PCmPJIEDrY2JoVwTLdg2YdEz0WEPz9xNdtBUZ++M7Es1IT50MWAA2u/5WrbWcAU
+cEIOpDdYNMYd88vhV9LKDJLksvl/FOoOhpddlToXT9D0JPuTtRSrjiDqjvvnswDF
+/XDxScsdz+FW/GRn23i2kq81EzURgLe46yOqilYodheoqwaE2FzxVL+JK8V5Quwo
+lESEaPdiCA3ZqFRnUxwT4QuDXmBKU+9IfDyBBSeLBEtLX6l8v8N6mIXpWbz6P2db
+2muqcPDe3Xf0iuKDn8YK67QzqIM9QYL0N4xnACJFP4lZFACmljIJoVVwqD9tH306
+PhiI5Y3SWnnaA+3s3Dvl4c6txYyfo0BD1GPZgHJGKp5ICL7kcgW5uEIRSJLBxxhx
+4pXwESmjplUZObe1nzNWfaCaNDA+bmQ5VuooIMj+ywpmIo5WPDuJpN0ykZXoZ+Mq
+m/LWq+r1xjfRRhVzGeTP
+=hsoH
+-----END PGP SIGNATURE-----
+
+--tKW2IUtsqtDRztdT--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
