@@ -1,56 +1,57 @@
-From: Knut Omang <knut.omang@oracle.com>
-Subject: Re: [PATCH v2 0/5] Support for generalized use of make C={1,2} via
- a wrapper program
-Date: Sat, 16 Dec 2017 18:11:45 +0100
-Message-ID: <1513444305.31439.37.camel@oracle.com>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: Re: [PATCH v2 4/5] rds: Add runchecks.cfg for net/rds
+Date: Sat, 16 Dec 2017 09:45:25 -0800
+Message-ID: <20171216094525.5e9c985c@xeon-e3>
 References: <cover.630ac8faeeda67bf7a778c158174422042942d08.1513430008.git-series.knut.omang@oracle.com>
-         <1513437684.4647.30.camel@perches.com>
-         <1513441634.31439.34.camel@oracle.com>
-         <1513443601.4647.36.camel@perches.com>
+        <4dc9b2fc0ddd1eb91d9b8785ae4886c6b08f3ee5.1513430008.git-series.knut.omang@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1513443601.4647.36.camel@perches.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>, linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, Nicolas Palix <nicolas.palix@imag.fr>, Jonathan Corbet <corbet@lwn.net>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, Matthew Wilcox <willy@infradead.org>, cocci@systeme.lip6.fr, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org, Doug Ledford <dledford@redhat.com>, =?ISO-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>, Shuah Khan <shuah@kernel.org>, linux-kbuild@vger.kernel.org, Michal Marek <michal.lkml@markovi.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4dc9b2fc0ddd1eb91d9b8785ae4886c6b08f3ee5.1513430008.git-series.knut.omang@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Knut Omang <knut.omang@oracle.com>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S. Miller" <davem@davemloft.net>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2017-12-16 at 09:00 -0800, Joe Perches wrote:
-> On Sat, 2017-12-16 at 17:27 +0100, Knut Omang wrote:
-> > On Sat, 2017-12-16 at 07:21 -0800, Joe Perches wrote:
-> > > On Sat, 2017-12-16 at 15:42 +0100, Knut Omang wrote:
-> > > > This patch series implements features to make it easier to run checkers on the
-> > > > entire kernel as part of automatic and developer testing.
-> > > 
-> > > This seems like a useful and reasonable series, thanks.
-> > 
-> > thanks, appreciated,
-> > 
-> > > Do please take Julia's grammar updates.
-> > 
-> > will do,
-> > 
-> > > How is this series to be applied?
-> > 
-> > I am open for suggestions.
-> > 
-> > Let's leave patch #3 out for now.
-> > 
-> > It's safe to apply #1 (and #2) alone.
-> 
-> I'd just as soon combine patch #1 and an updated 
-> patch #2 into a single patch and get that applied
-> sooner than later.
+On Sat, 16 Dec 2017 15:42:29 +0100
+Knut Omang <knut.omang@oracle.com> wrote:
 
-Ok, will do that.
+> +
+> +# Important to fix from a quality perspective:
+> +#
+> +except AVOID_BUG connection.c ib.c ib_cm.c ib_rdma.c ib_recv.c ib_ring.c ib_send.c info.c loop.c message.c
+> +except AVOID_BUG rdma.c recv.c send.c stats.c tcp_recv.c transport.c
+> +except MEMORY_BARRIER ib_recv.c send.c tcp_send.c
+> +except WAITQUEUE_ACTIVE cong.c ib_rdma.c ib_ring.c ib_send.c
+> +except UNNECESSARY_ELSE bind.c ib_cm.c
+> +except MACRO_ARG_PRECEDENCE connection.c ib.h rds.h
+> +except MACRO_ARG_REUSE rds.h
+> +except ALLOC_SIZEOF_STRUCT cong.c ib.c ib_cm.c loop.c message.c rdma.c
+> +except UNCOMMENTED_DEFINITION ib_cm.c
+> +
+> +# Code simplification:
+> +#
+> +except ALLOC_WITH_MULTIPLY ib.c
+> +except PREFER_PR_LEVEL ib_cm.c ib_recv.c ib_send.c rdma_transport.c threads.c transport.c
+> +except UNNECESSARY_ELSE ib_fmr.c
+> +except UNNECESSARY_PARENTHESES ib_rdma.c rdma.c recv.c send.c
+> +except PRINTK_RATELIMITED ib_frmr.c
+> +except EMBEDDED_FUNCTION_NAME ib_rdma.c
+> +
+> +# Style and readability:
+> +#
+> +except BRACES ib_cm.c ib_rdma.c ib_recv.c send.c transport.c
+> +except OOM_MESSAGE ib.c tcp.c
+> +except LONG_LINE_STRING ib.c ib_recv.c ib_send.c
+> +except FUNCTION_ARGUMENTS ib.h ib_mr.h rds.h tcp.h
+> +except OPEN_ENDED_LINE recv.c ib_recv.c
+> +
+> +# Candidates to leave as exceptions (don't fix):
+> +except MULTIPLE_ASSIGNMENTS ib_send.c
+> +except LONG_LINE_STRING connection.c
+> +except OPEN_BRACE connection.c
+> +
 
-> > They don't break anything by getting into the RDMA or RDS subsystem 
-> > without patch #1, alternatively they can go together with the set of cleanup patches I
-> > have prepared for each of RDMA and RDS after #1 is in.
-> 
-> right.
-
-Thanks,
-Knut
+Why start letting subsystems have a free-pass?
+Also this would mean that new patches to IB would continue the bad habits.
