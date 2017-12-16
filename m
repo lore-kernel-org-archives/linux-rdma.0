@@ -1,24 +1,23 @@
 From: Knut Omang <knut.omang@oracle.com>
-Subject: [PATCH v2 5/5] RDMA/core: Add runchecks.cfg for drivers/infiniband/core
-Date: Sat, 16 Dec 2017 15:42:30 +0100
-Message-ID: <0ce3c307255b22d23f49d13213b76044647e6f60.1513430008.git-series.knut.omang@oracle.com>
+Subject: [PATCH v2 4/5] rds: Add runchecks.cfg for net/rds
+Date: Sat, 16 Dec 2017 15:42:29 +0100
+Message-ID: <4dc9b2fc0ddd1eb91d9b8785ae4886c6b08f3ee5.1513430008.git-series.knut.omang@oracle.com>
 References: <cover.630ac8faeeda67bf7a778c158174422042942d08.1513430008.git-series.knut.omang@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <cover.630ac8faeeda67bf7a778c158174422042942d08.1513430008.git-series.knut.omang@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Knut Omang <knut.omang@oracle.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>, =?UTF-8?q?=C3=85smund=20=C3=98stvold?= <asmund.ostvold@oracle.com>
+Cc: Knut Omang <knut.omang@oracle.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S. Miller" <davem@davemloft.net>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a runchecks.cfg to drivers/infiniband/core
-to start "reining in" future checker errors,
-and making it easier to selectively clean up existing
-issues.
+Add a runchecks.cfg to net/rds to start "reining in"
+future checker errors, and making it easier to
+selectively clean up existing issues.
 
-This runchecks.cfg lets make C=2 M=drivers/infiniband/core
+This runchecks.cfg lets make C=2 M=net/rds
 pass with all errors/warnings suppressed
 
 See Documentation/dev-tools/runchecks.rst for
@@ -28,18 +27,18 @@ Signed-off-by: Knut Omang <knut.omang@oracle.com>
 Reviewed-by: Håkon Bugge <haakon.bugge@oracle.com>
 Reviewed-by: Åsmund Østvold <asmund.ostvold@oracle.com>
 ---
- drivers/infiniband/core/runchecks.cfg | 83 ++++++++++++++++++++++++++++-
- 1 file changed, 83 insertions(+)
- create mode 100644 drivers/infiniband/core/runchecks.cfg
+ net/rds/runchecks.cfg | 76 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 76 insertions(+)
+ create mode 100644 net/rds/runchecks.cfg
 
-diff --git a/drivers/infiniband/core/runchecks.cfg b/drivers/infiniband/core/runchecks.cfg
+diff --git a/net/rds/runchecks.cfg b/net/rds/runchecks.cfg
 new file mode 100644
-index 0000000..75ca57c
+index 0000000..2a02701
 --- /dev/null
-+++ b/drivers/infiniband/core/runchecks.cfg
-@@ -0,0 +1,83 @@
++++ b/net/rds/runchecks.cfg
+@@ -0,0 +1,76 @@
 +#
-+# checker suppression lists for drivers/infiniband/core
++# checker suppression lists for net/rds
 +#
 +# see Documentation/dev-tools/runchecks.rst
 +#
@@ -50,76 +49,69 @@ index 0000000..75ca57c
 +# Accept somewhat longer lines:
 +line_len 110
 +
-+# Uncategorized:
++# Important to fix from a quality perspective:
 +#
-+except TRAILING_STATEMENTS packer.c
-+except NON_OCTAL_PERMISSIONS rw.c
-+except STATIC_CONST_CHAR_ARRAY sysfs.c
-+except SYMBOLIC_PERMS sysfs.c
-+except NEEDLESS_IF sysfs.c
-+except NAKED_SSCANF device.c
-+except ALLOC_WITH_MULTIPLY fmr_pool.c iwpm_util.c cma.c
-+except MULTIPLE_ASSIGNMENTS rw.c verbs.c
-+except ALLOC_SIZEOF_STRUCT sysfs.c iwpm_util.c iwpm_msg.c cma.c cm.c iwcm.c
-+except LOGICAL_CONTINUATIONS mad.c iwpm_util.c user_mad.c
-+
-+# Important to fix/go through from a quality perspective:
-+#
-+except AVOID_BUG rw.c mad.c cm.c iwcm.c cma.c
-+except UNCOMMENTED_DEFINITION ucma.c fmr_pool.c multicast.c mad_rmpp.c
-+except UNCOMMENTED_DEFINITION ucm.c umem.c cma.c user_mad.c cm.c
-+except ASSIGN_IN_IF mad.c cma.c uverbs_ioctl_merge.c
-+except SUSPECT_CODE_INDENT iwpm_util.c cma.c uverbs_ioctl.c user_mad.c uverbs_cmd.c
-+except COMPLEX_MACRO uverbs_ioctl_merge.c
-+except BOOL_COMPARISON roce_gid_mgmt.c
++except AVOID_BUG connection.c ib.c ib_cm.c ib_rdma.c ib_recv.c ib_ring.c ib_send.c info.c loop.c message.c
++except AVOID_BUG rdma.c recv.c send.c stats.c tcp_recv.c transport.c
++except MEMORY_BARRIER ib_recv.c send.c tcp_send.c
++except WAITQUEUE_ACTIVE cong.c ib_rdma.c ib_ring.c ib_send.c
++except UNNECESSARY_ELSE bind.c ib_cm.c
++except MACRO_ARG_PRECEDENCE connection.c ib.h rds.h
++except MACRO_ARG_REUSE rds.h
++except ALLOC_SIZEOF_STRUCT cong.c ib.c ib_cm.c loop.c message.c rdma.c
++except UNCOMMENTED_DEFINITION ib_cm.c
 +
 +# Code simplification:
 +#
-+except UNNECESSARY_ELSE cache.c mad.c mad_rmpp.c
-+except UNNECESSARY_PARENTHESES cma.c sa_query.c mad.c ucma.c mad_rmpp.c umem.c
-+except UNNECESSARY_PARENTHESES user_mad.c uverbs_cmd.c uverbs_marshall.c cm.c
-+except EMBEDDED_FUNCTION_NAME mad.c umem.c cma.c ucma.c user_mad.c
-+except RETURN_VOID sysfs.c sa_query.c mad.c cma.c ucm.c uverbs_main.c umem.c
-+except CONSTANT_COMPARISON smi.c
-+except OOM_MESSAGE iwpm_util.c
++except ALLOC_WITH_MULTIPLY ib.c
++except PREFER_PR_LEVEL ib_cm.c ib_recv.c ib_send.c rdma_transport.c threads.c transport.c
++except UNNECESSARY_ELSE ib_fmr.c
++except UNNECESSARY_PARENTHESES ib_rdma.c rdma.c recv.c send.c
++except PRINTK_RATELIMITED ib_frmr.c
++except EMBEDDED_FUNCTION_NAME ib_rdma.c
 +
 +# Style and readability:
 +#
-+except OPEN_BRACE cache.c mad.c umem_odp.c umem_rbtree.c cm.c
-+except MULTILINE_DEREFERENCE mad.c cm.c cma.c uverbs_main.c
-+except LONG_LINE cma.c
-+except PARENTHESIS_ALIGNMENT umem.c cm.c
-+except FUNCTION_ARGUMENTS verbs.c uverbs_cmd.c sa_query.c sysfs.c
++except BRACES ib_cm.c ib_rdma.c ib_recv.c send.c transport.c
++except OOM_MESSAGE ib.c tcp.c
++except LONG_LINE_STRING ib.c ib_recv.c ib_send.c
++except FUNCTION_ARGUMENTS ib.h ib_mr.h rds.h tcp.h
++except OPEN_ENDED_LINE recv.c ib_recv.c
 +
 +# Candidates to leave as exceptions (don't fix):
-+except SPACING umem_rbtree.c
-+except MACRO_ARG_REUSE ud_header.c sa_query.c uverbs_ioctl_merge.c
++except MULTIPLE_ASSIGNMENTS ib_send.c
++except LONG_LINE_STRING connection.c
++except OPEN_BRACE connection.c
 +
 +# These are in most of the source files, ignore for all files:
 +#
-+pervasive BLOCK_COMMENT_STYLE ENOSYS BRACES OPEN_ENDED_LINE
++pervasive NETWORKING_BLOCK_COMMENT_STYLE BLOCK_COMMENT_STYLE
 +
 +# These are easily autocorrected by checkpatch with --fix-inplace:
++# Just ignore here - fixed in a separate commit:
 +#
-+pervasive SIZEOF_PARENTHESIS SPACING LINE_SPACING SPACE_BEFORE_TAB TABSTOP
-+pervasive TRAILING_WHITESPACE POINTER_LOCATION INITIALISED_STATIC
-+pervasive CODE_INDENT ELSE_AFTER_BRACE SYMBOLIC_PERMS LEADING_SPACE
-+pervasive PARENTHESIS_ALIGNMENT COMPARISON_TO_NULL TYPO_SPELLING
++pervasive PREFER_KERNEL_TYPES LINE_SPACING SPACING SPACE_BEFORE_TAB SPLIT_STRING
++pervasive BIT_MACRO SIZEOF_PARENTHESIS LOGICAL_CONTINUATIONS GLOBAL_INITIALISERS
++pervasive ALLOC_WITH_MULTIPLY TABSTOP
++
++# These were easy to fix manually while getting make C=2 to pass.
++# Fixed in a separate commit:
++#
++pervasive SUSPECT_CODE_INDENT PARENTHESIS_ALIGNMENT BRACES PRINTF_L COMPARISON_TO_NULL
++pervasive LOGICAL_CONTINUATIONS
++
 +
 +checker sparse
 +##############
 +
-+except SHADOW sysfs.c fmr_pool.c user_mad.c uverbs_main.c ucm.c ucma.c
-+except RETURN_VOID roce_gid_mgmt.c
-+except TYPESIGN ucm.c ucma.c
++except VLA connection.c
++except COND_ADDRESS_ARRAY connection.c
++except PTR_SUBTRACTION_BLOWS ib_recv.c
++except TYPESIGN ib_frmr.c
 +
-+# From linux/device.h:
-+except RETURN_VOID ucm.c
++# This is coming from linux/dma-mapping.h:
++except RETURN_VOID ib_cm.c
 +
-+checker checkdoc
-+################
-+
-+except PARAM_DESC verbs.c device.c fmr_pool.c cache.c sa_query.c
-+except X_PARAM verbs.c fmr_pool.c cache.c
++pervasive BITWISE SHADOW
 -- 
 git-series 0.9.1
