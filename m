@@ -1,391 +1,176 @@
-From: Knut Omang <knut.omang@oracle.com>
-Subject: Re: [PATCH v2 4/5] rds: Add runchecks.cfg for net/rds
-Date: Sun, 17 Dec 2017 02:57:22 +0100
-Message-ID: <1513475842.31439.91.camel@oracle.com>
+From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 0/5] Support for generalized use of make C={1,2} via
+ a wrapper program
+Date: Sun, 17 Dec 2017 03:14:10 +0100
+Message-ID: <1513476850.31439.108.camel@oracle.com>
 References: <cover.630ac8faeeda67bf7a778c158174422042942d08.1513430008.git-series.knut.omang@oracle.com>
-         <4dc9b2fc0ddd1eb91d9b8785ae4886c6b08f3ee5.1513430008.git-series.knut.omang@oracle.com>
-         <20171216094525.5e9c985c@xeon-e3> <1513448673.4647.45.camel@perches.com>
+         <20171216094745.5e41ac51@xeon-e3>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1513448673.4647.45.camel@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>, Stephen Hemminger <stephen@networkplumber.org>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171216094745.5e41ac51@xeon-e3>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nicolas Palix <nicolas.palix-wMUr/XMoy4A@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, cocci-/FJkirnvOdkvYVN+rsErww@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?ISO-8859-1?Q?Micka=EBl_Sala=FCn?= <mic-WFhQfpSGs3bR7s880joybQ@public.gmane.org>, Shuah Khan <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michal Marek <michal.lkml-yyZNWGI4GtDR7s880joybQ@public.gmane.org>, Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, John Haxby <john.haxby-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, =?ISO-8859-1?Q?=C5smund_=D8stvold?= <asmund.ostvold-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Kees Cook <keescoo>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2017-12-16 at 10:24 -0800, Joe Perches wrote:
-> On Sat, 2017-12-16 at 09:45 -0800, Stephen Hemminger wrote:
-> > On Sat, 16 Dec 2017 15:42:29 +0100 Knut Omang <knut.omang@oracle.com> wrote:
-> > > +# Code simplification:
-> > > +#
-> > > +except ALLOC_WITH_MULTIPLY ib.c
-> > > +except PREFER_PR_LEVEL ib_cm.c ib_recv.c ib_send.c rdma_transport.c threads.c
-> transport.c
-> > > +except UNNECESSARY_ELSE ib_fmr.c
-> > > +except UNNECESSARY_PARENTHESES ib_rdma.c rdma.c recv.c send.c
-> > > +except PRINTK_RATELIMITED ib_frmr.c
-> > > +except EMBEDDED_FUNCTION_NAME ib_rdma.c
-> > > +
-> > > +# Style and readability:
-> > > +#
-> > > +except BRACES ib_cm.c ib_rdma.c ib_recv.c send.c transport.c
-> > > +except OOM_MESSAGE ib.c tcp.c
-> > > +except LONG_LINE_STRING ib.c ib_recv.c ib_send.c
-> > > +except FUNCTION_ARGUMENTS ib.h ib_mr.h rds.h tcp.h
-> > > +except OPEN_ENDED_LINE recv.c ib_recv.c
-> > > +
-> > > +# Candidates to leave as exceptions (don't fix):
-> > > +except MULTIPLE_ASSIGNMENTS ib_send.c
-> > > +except LONG_LINE_STRING connection.c
-> > > +except OPEN_BRACE connection.c
-> > > +
+On Sat, 2017-12-16 at 09:47 -0800, Stephen Hemminger wrote:
+> On Sat, 16 Dec 2017 15:42:25 +0100
+> Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+> > This patch series implements features to make it easier to run checkers on the
+> > entire kernel as part of automatic and developer testing.
 > > 
-> > Why start letting subsystems have a free-pass?
-> > Also this would mean that new patches to IB would continue the bad habits.
+> > This is done by replacing the sparse specific setup for the C={1,2} variable
+> > in the makefiles with setup for running scripts/runchecks, a new program that
+> > can run any number of different "checkers". The behaviour of runchecks is
+> > defined by simple "global" configuration in scripts/runchecks.cfg which can be
+> > extended by local configuration applying to individual files, directories or
+> > subtrees in the source.
+> > 
+> > It also fixes a minor issue with "checkpatch --fix-inplace" found during testing
+> > (patch #3).
+> > 
+> > The runchecks.cfg files are parsed according to this minimal language:
+> > 
+> >        # comments
+> >        # "Global configuration in scripts/runchecks.cfg:
+> >        checker <name>
+> >        typedef NAME regex
+> >        run <list of checkers or "all"
+> > 
+> >        # "local" configuration:
+> >        line_len <n>
+> >        except checkpatch_type [files ...]
+> >        pervasive checkpatch_type1 [checkpatch_type2 ...]
+> > 
+> > With "make C=2" runchecks first parse the file scripts/runchecks.cfg, then
+> > look for a file named 'runchecks.cfg' in the same directory as the source file.
+> > If that file exists, it will be parsed and it's local configuration applied to
+> > allow suppression on a per checker, per check and per file basis.
+> > If a "local" configuration does not exist, either in the source directory or
+> > above, make will simply silently ignore the file.
+> > 
+> > The idea is that the community can work to add runchecks.cfg files to
+> > directories, serving both as documentation and as a way for subsystem
+> > maintainers to enforce policies and individual tastes as well as TODOs and/or
+> > priorities, to make it easier for newcomers to contribute in this area. By
+> > ignoring directories/subtrees without such files, automation can start right
+> > away as it is trivially possible to run errorless with C=2 for the entire
+> > kernel.
+> > 
+> > For the checker maintainers this should be a benefit as well: new
+> > or improved checks would generate new errors/warnings. With automatic testing
+> > for the checkers, these new checks would generate error reports and cause
+> > builds to fail. Adding the new check a 'pervasive' option at the top level or
+> > even for specific files, marked with a "new check - please consider fixing" comment
+> > or similar would make those builds pass while documenting and making the new check
+> > more visible.
+> > 
+> > The patches includes a documentation file with some more details.
+> > 
+> > This patch set has evolved from an earlier shell script implementation I made
+> > as only a wrapper script around checkpatch. That version have been used for a
+> > number of years on a driver project I worked on where we had automatic checkin
+> > regression testing. I extended that to also run checkpatch to avoid having to
+> > clean up frequent unintended whitespace changes and style violations from others...
+> > 
+> > I have also tested this version on some directories I am familiar with.  The
+> > result of that work is available in two patch sets of 10 and 11 patches, but we
+> > agreed that it would be better to post them as separate patch sets later.
+> > 
+> > Those patch sets illustrates how I picture the "flow" from just "reining in" the
+> > checkpatch detections to actually fixing classes of checkpatch issues one by
+> > one, while updating the checkpatch.cfg file(s) to have 0 errors or warnings at
+> > any commit boundary.
+> > 
+> > The combined set is available here:
+> > 
+> >    git://github.com/knuto/linux.git  branch runchecks
+> > 
+> > I only include version 0 of runchecks.cfg in the two directories I
+> > worked on here as the final two patches. These files both documents where
+> > the issues are in those two directories, and can be used by the maintainer
+> > to indicate to potential helpers what to focus on as I have tried to
+> > illustrate by means of comments.
+> > 
+> > Changes from v1:
+> > -----------------
+> > Based on feedback, the implementation is completely rewritten and extended.
+> > Instead of patches to checkpatch, and a sole checkpatch focus, it is now a
+> > generic solution implemented in python, for any type of checkers, extendable
+> > through some basic generic functionality, and for special needs by subclassing
+> > the Checker class in the implementation.
+> > 
+> > This implementation fully supports checkpatch, sparse and
+> > checkdoc == kernel-doc -none, and also has been tested with coccicheck.
+> > To facilitate the same mechanism of using check types to filter what
+> > checks to be suppressed, I introduced the concept of "typedefs" which allows
+> > runchecks to effectively augment the check type space of the checker in cases
+> > where types either are not available at all (checkdoc) or where only a few
+> > can be filtered out (sparse)
+> > 
+> > With this in place it also became trivial to make the look and feel similar
+> > for sparse and checkdoc as for checkpatch, with some optional color support
+> > too, to make fixing issues in the code, the goal of this whole exercise,
+> > much more pleasant IMHO :-)
+> > 
+> > Thanks,
+> > Knut
+> > 
+> > Knut Omang (5):
+> >   runchecks: Generalize make C={1,2} to support multiple checkers
+> >   Documentation: Add doc for runchecks, a checker runner
+> >   checkpatch: Improve --fix-inplace for TABSTOP
+> >   rds: Add runchecks.cfg for net/rds
+> >   RDMA/core: Add runchecks.cfg for drivers/infiniband/core
+> > 
+> >  Documentation/dev-tools/coccinelle.rst |  12 +-
+> >  Documentation/dev-tools/index.rst      |   1 +-
+> >  Documentation/dev-tools/runchecks.rst  | 215 ++++++++-
+> >  Documentation/dev-tools/sparse.rst     |  30 +-
+> >  Documentation/kbuild/kbuild.txt        |   9 +-
+> >  Makefile                               |  23 +-
+> >  drivers/infiniband/core/runchecks.cfg  |  83 +++-
+> >  net/rds/runchecks.cfg                  |  76 +++-
+> >  scripts/Makefile.build                 |   4 +-
+> >  scripts/checkpatch.pl                  |   2 +-
+> >  scripts/runchecks                      | 734 ++++++++++++++++++++++++++-
+> >  scripts/runchecks.cfg                  |  63 ++-
+> >  scripts/runchecks_help.txt             |  43 ++-
+> >  13 files changed, 1274 insertions(+), 21 deletions(-)
+> >  create mode 100644 Documentation/dev-tools/runchecks.rst
+> >  create mode 100644 drivers/infiniband/core/runchecks.cfg
+> >  create mode 100644 net/rds/runchecks.cfg
+> >  create mode 100755 scripts/runchecks
+> >  create mode 100644 scripts/runchecks.cfg
+> >  create mode 100644 scripts/runchecks_help.txt
+> > 
+> > base-commit: ae64f9bd1d3621b5e60d7363bc20afb46aede215
 > 
-> I agree with this comment at least for net/rds.
-> 
-> Most of these existing messages from checkpatch should
-> probably be inspected and corrected where possible to
-> minimize the style differences between this subsystem
-> and the rest of the kernel.
+> I like the ability to add more checkers and keep then in the main
+> upstream tree. But adding overrides for specific subsystems goes against
+> the policy that all subsystems should be treated equally.
 
-Please get me right here, I want us to fix all or at least most the issues, unless there
-are very good reasons for keeping some. But to fix a problem, partitioning it into easy
-manageable and distributable pieces can often be a good idea. It also allows us to focus
-on the most important or easiest issues first - my comments here are intended as
-examples/guidance/classification.
+This is a tool to enable automated testing for as many checks as possible, as soon as
+possible. Like any tool, it can be misused, but that's IMHO an orthogonal problem that I
+think the maintainers will be more than capable of preventing.
 
-> For instance, here's a trivial patch to substitute
-> pr_<level> for printks and a couple braces next to
-> these substitutions.
+Think of this as a tightening screw: We eliminate errors class by class or file by file,
+and in the same commit narrows in the list of exceptions. That way we can fix issues piece
+by piece while avoiding a lot of regressions in already clean parts.
 
-yes - I have about 10 such patches for RDMA and 10 for RDS 
-fixing various issues "queued up" here - done while I worked on the logic:
+> There was discussion at Kernel Summit about how the different
+> subsystems already have different rules. This appears to be a
+> way to make that worse.
 
-https://github.com/knuto/linux/tree/runchecks
-
-I just felt that mixing them up with the runchecks functionality itself would be wrong,
-but wanted to throw in these two configuration files to give you some example of how it
-can be used.
+IMHO this is a tool that should help maintainers implement the policies they desire.
+But the tool itself does not dictate any such.
 
 Thanks,
 Knut
-
-> btw:
-> 
-> in ib_cm, why is one call to ib_modify_qp emitted
-> with a -ret and the other with a positive err?
-
-
-> 
-> ---
->  net/rds/ib_cm.c          | 21 ++++++++++-----------
->  net/rds/ib_recv.c        |  5 ++---
->  net/rds/ib_send.c        | 23 ++++++++++++-----------
->  net/rds/rdma_transport.c | 14 +++++++-------
->  net/rds/send.c           |  8 ++++----
->  net/rds/tcp_send.c       |  4 +---
->  net/rds/threads.c        |  6 ++----
->  net/rds/transport.c      | 12 ++++++------
->  8 files changed, 44 insertions(+), 49 deletions(-)
-> 
-> diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-> index 80fb6f63e768..92694c9cb7c9 100644
-> --- a/net/rds/ib_cm.c
-> +++ b/net/rds/ib_cm.c
-> @@ -86,7 +86,7 @@ rds_ib_tune_rnr(struct rds_ib_connection *ic, struct ib_qp_attr *attr)
->  	attr->min_rnr_timer = IB_RNR_TIMER_000_32;
->  	ret = ib_modify_qp(ic->i_cm_id->qp, attr, IB_QP_MIN_RNR_TIMER);
->  	if (ret)
-> -		printk(KERN_NOTICE "ib_modify_qp(IB_QP_MIN_RNR_TIMER): err=%d\n",
-> -ret);
-> +		pr_notice("ib_modify_qp(IB_QP_MIN_RNR_TIMER): err=%d\n", -ret);
->  }
->  
->  /*
-> @@ -146,13 +146,12 @@ void rds_ib_cm_connect_complete(struct rds_connection *conn,
-> struct rdma_cm_even
->  	qp_attr.qp_state = IB_QPS_RTS;
->  	err = ib_modify_qp(ic->i_cm_id->qp, &qp_attr, IB_QP_STATE);
->  	if (err)
-> -		printk(KERN_NOTICE "ib_modify_qp(IB_QP_STATE, RTS): err=%d\n", err);
-> +		pr_notice("ib_modify_qp(IB_QP_STATE, RTS): err=%d\n", err);
->  
->  	/* update ib_device with this local ipaddr */
->  	err = rds_ib_update_ipaddr(ic->rds_ibdev, conn->c_laddr);
->  	if (err)
-> -		printk(KERN_ERR "rds_ib_update_ipaddr failed (%d)\n",
-> -			err);
-> +		pr_err("rds_ib_update_ipaddr failed (%d)\n", err);
->  
->  	/* If the peer gave us the last packet it saw, process this as if
->  	 * we had received a regular ACK. */
-> @@ -594,8 +593,7 @@ static u32 rds_ib_protocol_compatible(struct rdma_cm_event *event)
->  
->  	/* Be paranoid. RDS always has privdata */
->  	if (!event->param.conn.private_data_len) {
-> -		printk(KERN_NOTICE "RDS incoming connection has no private data, "
-> -			"rejecting\n");
-> +		pr_notice("RDS incoming connection has no private data, rejecting\n");
->  		return 0;
->  	}
->  
-> @@ -609,11 +607,12 @@ static u32 rds_ib_protocol_compatible(struct rdma_cm_event *event)
->  		version = RDS_PROTOCOL_3_0;
->  		while ((common >>= 1) != 0)
->  			version++;
-> -	} else
-> -		printk_ratelimited(KERN_NOTICE "RDS: Connection from %pI4 using
-> incompatible protocol version %u.%u\n",
-> -				&dp->dp_saddr,
-> -				dp->dp_protocol_major,
-> -				dp->dp_protocol_minor);
-> +	} else {
-> +		pr_notice_ratelimited("RDS: Connection from %pI4 using incompatible
-> protocol version %u.%u\n",
-> +				      &dp->dp_saddr,
-> +				      dp->dp_protocol_major,
-> +				      dp->dp_protocol_minor);
-> +	}
->  	return version;
->  }
->  
-> diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
-> index b4e421aa9727..9dfc8233c488 100644
-> --- a/net/rds/ib_recv.c
-> +++ b/net/rds/ib_recv.c
-> @@ -105,7 +105,7 @@ static int rds_ib_recv_alloc_cache(struct rds_ib_refill_cache
-> *cache)
->  
->  	cache->percpu = alloc_percpu(struct rds_ib_cache_head);
->  	if (!cache->percpu)
-> -	       return -ENOMEM;
-> +		return -ENOMEM;
->  
->  	for_each_possible_cpu(cpu) {
->  		head = per_cpu_ptr(cache->percpu, cpu);
-> @@ -399,8 +399,7 @@ void rds_ib_recv_refill(struct rds_connection *conn, int prefill,
-> gfp_t gfp)
->  	while ((prefill || rds_conn_up(conn)) &&
->  	       rds_ib_ring_alloc(&ic->i_recv_ring, 1, &pos)) {
->  		if (pos >= ic->i_recv_ring.w_nr) {
-> -			printk(KERN_NOTICE "Argh - ring alloc returned pos=%u\n",
-> -					pos);
-> +			pr_notice("Argh - ring alloc returned pos=%u\n", pos);
->  			break;
->  		}
->  
-> diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
-> index 8557a1cae041..cb1ce8d06582 100644
-> --- a/net/rds/ib_send.c
-> +++ b/net/rds/ib_send.c
-> @@ -180,9 +180,8 @@ static struct rds_message *rds_ib_send_unmap_op(struct
-> rds_ib_connection *ic,
->  		}
->  		break;
->  	default:
-> -		printk_ratelimited(KERN_NOTICE
-> -			       "RDS/IB: %s: unexpected opcode 0x%x in WR!\n",
-> -			       __func__, send->s_wr.opcode);
-> +		pr_notice_ratelimited("RDS/IB: %s: unexpected opcode 0x%x in WR!\n",
-> +				      __func__, send->s_wr.opcode);
->  		break;
->  	}
->  
-> @@ -730,8 +729,8 @@ int rds_ib_xmit(struct rds_connection *conn, struct rds_message *rm,
->  		 first, &first->s_wr, ret, failed_wr);
->  	BUG_ON(failed_wr != &first->s_wr);
->  	if (ret) {
-> -		printk(KERN_WARNING "RDS/IB: ib_post_send to %pI4 "
-> -		       "returned %d\n", &conn->c_faddr, ret);
-> +		pr_warn("RDS/IB: ib_post_send to %pI4 returned %d\n",
-> +			&conn->c_faddr, ret);
->  		rds_ib_ring_unalloc(&ic->i_send_ring, work_alloc);
->  		rds_ib_sub_signaled(ic, nr_sig);
->  		if (prev->s_op) {
-> @@ -827,15 +826,16 @@ int rds_ib_xmit_atomic(struct rds_connection *conn, struct
-> rm_atomic_op *op)
->  		 send, &send->s_atomic_wr, ret, failed_wr);
->  	BUG_ON(failed_wr != &send->s_atomic_wr.wr);
->  	if (ret) {
-> -		printk(KERN_WARNING "RDS/IB: atomic ib_post_send to %pI4 "
-> -		       "returned %d\n", &conn->c_faddr, ret);
-> +		pr_warn("RDS/IB: atomic ib_post_send to %pI4 returned %d\n",
-> +			&conn->c_faddr, ret);
->  		rds_ib_ring_unalloc(&ic->i_send_ring, work_alloc);
->  		rds_ib_sub_signaled(ic, nr_sig);
->  		goto out;
->  	}
->  
->  	if (unlikely(failed_wr != &send->s_atomic_wr.wr)) {
-> -		printk(KERN_WARNING "RDS/IB: atomic ib_post_send() rc=%d, but
-> failed_wqe updated!\n", ret);
-> +		pr_warn("RDS/IB: atomic ib_post_send() rc=%d, but failed_wqe
-> updated!\n",
-> +			ret);
->  		BUG_ON(failed_wr != &send->s_atomic_wr.wr);
->  	}
->  
-> @@ -967,15 +967,16 @@ int rds_ib_xmit_rdma(struct rds_connection *conn, struct
-> rm_rdma_op *op)
->  		 first, &first->s_rdma_wr.wr, ret, failed_wr);
->  	BUG_ON(failed_wr != &first->s_rdma_wr.wr);
->  	if (ret) {
-> -		printk(KERN_WARNING "RDS/IB: rdma ib_post_send to %pI4 "
-> -		       "returned %d\n", &conn->c_faddr, ret);
-> +		pr_warn("RDS/IB: rdma ib_post_send to %pI4 returned %d\n",
-> +			&conn->c_faddr, ret);
->  		rds_ib_ring_unalloc(&ic->i_send_ring, work_alloc);
->  		rds_ib_sub_signaled(ic, nr_sig);
->  		goto out;
->  	}
->  
->  	if (unlikely(failed_wr != &first->s_rdma_wr.wr)) {
-> -		printk(KERN_WARNING "RDS/IB: ib_post_send() rc=%d, but failed_wqe
-> updated!\n", ret);
-> +		pr_warn("RDS/IB: ib_post_send() rc=%d, but failed_wqe updated!\n",
-> +			ret);
->  		BUG_ON(failed_wr != &first->s_rdma_wr.wr);
->  	}
->  
-> diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
-> index fc59821f0a27..0ccb1cde4c52 100644
-> --- a/net/rds/rdma_transport.c
-> +++ b/net/rds/rdma_transport.c
-> @@ -131,7 +131,7 @@ int rds_rdma_cm_event_handler(struct rdma_cm_id *cm_id,
->  
->  	default:
->  		/* things like device disconnect? */
-> -		printk(KERN_ERR "RDS: unknown event %u (%s)!\n",
-> +		pr_err("RDS: unknown event %u (%s)!\n",
->  		       event->event, rdma_event_msg(event->event));
->  		break;
->  	}
-> @@ -156,8 +156,8 @@ static int rds_rdma_listen_init(void)
->  			       RDMA_PS_TCP, IB_QPT_RC);
->  	if (IS_ERR(cm_id)) {
->  		ret = PTR_ERR(cm_id);
-> -		printk(KERN_ERR "RDS/RDMA: failed to setup listener, "
-> -		       "rdma_create_id() returned %d\n", ret);
-> +		pr_err("RDS/RDMA: failed to setup listener, rdma_create_id() returned
-> %d\n",
-> +		       ret);
->  		return ret;
->  	}
->  
-> @@ -171,15 +171,15 @@ static int rds_rdma_listen_init(void)
->  	 */
->  	ret = rdma_bind_addr(cm_id, (struct sockaddr *)&sin);
->  	if (ret) {
-> -		printk(KERN_ERR "RDS/RDMA: failed to setup listener, "
-> -		       "rdma_bind_addr() returned %d\n", ret);
-> +		pr_err("RDS/RDMA: failed to setup listener, rdma_bind_addr() returned
-> %d\n",
-> +		       ret);
->  		goto out;
->  	}
->  
->  	ret = rdma_listen(cm_id, 128);
->  	if (ret) {
-> -		printk(KERN_ERR "RDS/RDMA: failed to setup listener, "
-> -		       "rdma_listen() returned %d\n", ret);
-> +		pr_err("RDS/RDMA: failed to setup listener, rdma_listen() returned
-> %d\n",
-> +		       ret);
->  		goto out;
->  	}
->  
-> diff --git a/net/rds/send.c b/net/rds/send.c
-> index b52cdc8ae428..f9bc3d499576 100644
-> --- a/net/rds/send.c
-> +++ b/net/rds/send.c
-> @@ -1130,15 +1130,15 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t
-> payload_len)
->  	}
->  
->  	if (rm->rdma.op_active && !conn->c_trans->xmit_rdma) {
-> -		printk_ratelimited(KERN_NOTICE "rdma_op %p conn xmit_rdma %p\n",
-> -			       &rm->rdma, conn->c_trans->xmit_rdma);
-> +		pr_notice_ratelimited("rdma_op %p conn xmit_rdma %p\n",
-> +				      &rm->rdma, conn->c_trans->xmit_rdma);
->  		ret = -EOPNOTSUPP;
->  		goto out;
->  	}
->  
->  	if (rm->atomic.op_active && !conn->c_trans->xmit_atomic) {
-> -		printk_ratelimited(KERN_NOTICE "atomic_op %p conn xmit_atomic %p\n",
-> -			       &rm->atomic, conn->c_trans->xmit_atomic);
-> +		pr_notice_ratelimited("atomic_op %p conn xmit_atomic %p\n",
-> +				      &rm->atomic, conn->c_trans->xmit_atomic);
->  		ret = -EOPNOTSUPP;
->  		goto out;
->  	}
-> diff --git a/net/rds/tcp_send.c b/net/rds/tcp_send.c
-> index dc860d1bb608..0e23e9d06c7e 100644
-> --- a/net/rds/tcp_send.c
-> +++ b/net/rds/tcp_send.c
-> @@ -153,9 +153,7 @@ int rds_tcp_xmit(struct rds_connection *conn, struct rds_message
-> *rm,
->  			 * an incoming RST.
->  			 */
->  			if (rds_conn_path_up(cp)) {
-> -				pr_warn("RDS/tcp: send to %pI4 on cp [%d]"
-> -					"returned %d, "
-> -					"disconnecting and reconnecting\n",
-> +				pr_warn("RDS/tcp: send to %pI4 on cp [%d]returned %d,
-> disconnecting and reconnecting\n",
->  					&conn->c_faddr, cp->cp_index, ret);
->  				rds_conn_path_drop(cp, false);
->  			}
-> diff --git a/net/rds/threads.c b/net/rds/threads.c
-> index f121daa402c8..499a0a8287cc 100644
-> --- a/net/rds/threads.c
-> +++ b/net/rds/threads.c
-> @@ -74,10 +74,8 @@ EXPORT_SYMBOL_GPL(rds_wq);
->  void rds_connect_path_complete(struct rds_conn_path *cp, int curr)
->  {
->  	if (!rds_conn_path_transition(cp, curr, RDS_CONN_UP)) {
-> -		printk(KERN_WARNING "%s: Cannot transition to state UP, "
-> -				"current state is %d\n",
-> -				__func__,
-> -				atomic_read(&cp->cp_state));
-> +		pr_warn("%s: Cannot transition to state UP, current state is %d\n",
-> +			__func__, atomic_read(&cp->cp_state));
->  		rds_conn_path_drop(cp, false);
->  		return;
->  	}
-> diff --git a/net/rds/transport.c b/net/rds/transport.c
-> index 0b188dd0a344..a0d7ccecdec3 100644
-> --- a/net/rds/transport.c
-> +++ b/net/rds/transport.c
-> @@ -46,12 +46,12 @@ void rds_trans_register(struct rds_transport *trans)
->  
->  	down_write(&rds_trans_sem);
->  
-> -	if (transports[trans->t_type])
-> -		printk(KERN_ERR "RDS Transport type %d already registered\n",
-> -			trans->t_type);
-> -	else {
-> +	if (transports[trans->t_type]) {
-> +		pr_err("RDS Transport type %d already registered\n",
-> +		       trans->t_type);
-> +	} else {
->  		transports[trans->t_type] = trans;
-> -		printk(KERN_INFO "Registered RDS/%s transport\n", trans->t_name);
-> +		pr_info("Registered RDS/%s transport\n", trans->t_name);
->  	}
->  
->  	up_write(&rds_trans_sem);
-> @@ -63,7 +63,7 @@ void rds_trans_unregister(struct rds_transport *trans)
->  	down_write(&rds_trans_sem);
->  
->  	transports[trans->t_type] = NULL;
-> -	printk(KERN_INFO "Unregistered RDS/%s transport\n", trans->t_name);
-> +	pr_info("Unregistered RDS/%s transport\n", trans->t_name);
->  
->  	up_write(&rds_trans_sem);
->  }
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
