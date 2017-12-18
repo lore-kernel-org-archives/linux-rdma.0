@@ -1,59 +1,63 @@
-From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 4/5] rds: Add runchecks.cfg for net/rds
-Date: Mon, 18 Dec 2017 11:28:05 -0800
-Message-ID: <b808c33b-e318-c7d2-80c6-319167d11e01@oracle.com>
-References: <cover.630ac8faeeda67bf7a778c158174422042942d08.1513430008.git-series.knut.omang@oracle.com>
- <4dc9b2fc0ddd1eb91d9b8785ae4886c6b08f3ee5.1513430008.git-series.knut.omang@oracle.com>
- <20171216094525.5e9c985c@xeon-e3> <1513448673.4647.45.camel@perches.com>
- <499ec5ae-d1d5-3bb2-8e10-de48283a1c2e@oracle.com>
- <1513476136.31439.96.camel@oracle.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [rdma-next, 02/31] IB/{core/cm}: Fix dmac query for IPv6 link
+ local destination
+Date: Mon, 18 Dec 2017 13:38:46 -0700
+Message-ID: <20171218203846.GA18377@ziepe.ca>
+References: <20171114125218.20477-3-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1513476136.31439.96.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20171114125218.20477-3-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/16/2017 6:02 PM, Knut Omang wrote:
-> On Sat, 2017-12-16 at 12:00 -0800, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org wrote:
->> On 12/16/17 10:24 AM, Joe Perches wrote:
+On Tue, Nov 14, 2017 at 02:51:49PM +0200, Leon Romanovsky wrote:
 
-[...]
->>> Most of these existing messages from checkpatch should
->>> probably be inspected and corrected where possible to
->>> minimize the style differences between this subsystem
->>> and the rest of the kernel.
->>>
->>> For instance, here's a trivial patch to substitute
->>> pr_<level> for printks and a couple braces next to
->>> these substitutions.
->>>
->> Thanks Joe. I actually had a similar patch a while back but
->> since it was lot of churn, and code was already merged,
->> never submitted it and then later forgot about it.
->>
->> Will look into it.
-> 
-> Please look at my set here first - I have already spent considerable time cleaning up
-> stuff while working on this:
-> 
+> +static int ib_resolve_unicast_gid_dmac(struct ib_device *device,
+> +				       struct rdma_ah_attr *ah_attr)
+> +{
+> +	struct ib_gid_attr sgid_attr;
+> +	struct ib_global_route *grh;
+> +	int hop_limit = 0xff;
+> +	union ib_gid sgid;
+> +	int ret;
+> +
+> +	grh = rdma_ah_retrieve_grh(ah_attr);
+> +
+> +	ret = ib_query_gid(device,
+> +			   rdma_ah_get_port_num(ah_attr),
+> +			   grh->sgid_index,
+> +			   &sgid, &sgid_attr);
 
-Just closing the loop. As discussed, I can use your patches without
-any new tool dependency since existing checkpatch.pl already gives
-those warnings. I started picking up Joes patch but since you have
-changes, can use them instead once you untie them with runcheck.
+[..]
 
-Regarding the $subject, just re-iterating that I don't want any custom
-script for RDS and want to just follow generic guidelines followed by
-netdev for all net/* code.
+> +		ret = get_sgid_index_from_eth(device, port_num,
+> +					      vlan_id, &dgid,
+> +					      gid_type, &gid_index);
+>  		if (ret)
+>  			return ret;
+> +		flow_class = be32_to_cpu(grh->version_tclass_flow);
+> +		rdma_ah_set_grh(ah_attr, &sgid,
+> +				flow_class & 0xFFFFF,
+> +				(u8)gid_index, hoplimit,
+> +				(flow_class >> 20) & 0xFF);
+> +		return ib_resolve_unicast_gid_dmac(device, ah_attr);
 
-Regards,
-Santosh
+This patch looks like a major improvement, so I am going to take it.
 
+However, I dislike this flow here, calling get_sgid_index_from_eth to
+get an index then converting the index to a ib_gid_attr via
+ib_query_gid is silly.
+
+We should have support APIs that go directly from the WC & GRH to a
+gid_attr without the racy inbetween step of gid_index.
+
+Can you send a followup to fix it?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
