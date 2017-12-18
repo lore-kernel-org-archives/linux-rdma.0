@@ -1,53 +1,38 @@
-From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 for-rc 0/8] vmw_pvrdma fixes for 4.15
-Date: Mon, 18 Dec 2017 13:42:44 -0800
-Message-ID: <20171218214244.GA19558@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
-References: <20171214001753.GA9780@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171218182511.GH19070@mellanox.com>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: stuck iscsi/iser target with linux-4.15.0-rc1
+Date: Mon, 18 Dec 2017 15:43:44 -0600
+Message-ID: <03bd01d37849$47497ae0$d5dc70a0$@opengridcomputing.com>
+References: <000801d36ac6$9e9f5f70$dbde1e50$@opengridcomputing.com> <0ba7e891-f020-26fb-9945-9e824332593c@grimberg.me> <018901d36d17$6a703410$3f509c30$@opengridcomputing.com> <1dee9f68-a81b-b7b8-9e70-e0ef5c63c520@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171218182511.GH19070-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain;
+        charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1dee9f68-a81b-b7b8-9e70-e0ef5c63c520@grimberg.me>
+Content-Language: en-us
+Sender: target-devel-owner@vger.kernel.org
+To: 'Sagi Grimberg' <sagi@grimberg.me>, 'target-devel' <target-devel@vger.kernel.org>
+Cc: linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 18, 2017 at 11:25:11AM -0700, Jason Gunthorpe wrote:
-> On Wed, Dec 13, 2017 at 04:17:59PM -0800, Bryan Tan wrote:
-> > 
-> > Do some cleanup and fixes related to the comments received during SRQ
-> > support upstreaming that applied to existing code. Also add in two
-> > missed macros used by the userlevel library for SRQs, a missed
-> > ib_umem_release, an incorrect usage of the new refcount_t type,
-> > and switched from use of wait queues to completions.
-> > 
-> > v0 -> v1 changelog:
-> > - Removed use of BIT() in UAPI header
-> > - Make setting/usage of is_kernel consistent between QP/CQ/SRQ
-> > - Use completions instead of wait queues for resource destroy
-> > - Cleaned up commit messages
+
+> > [239800.115739] target_wait_for_sess_cmds: Waiting for se_cmd:
+> ffff88034082c998 t_state: 6, fabric state: 12
 > 
-> This series would be fine for -next, the patches look OK to me now.
+> Hmm, this means that the command was delegated to isert to send
+> data+response... Which means we lose a reference put somewhere here.
 > 
-> But there are too many non-rc things to be for-rc.
-> 
-> If you want this in -rc for some reason then you need to send a series
-> with just those commits, otherwise it will go to -next.
+> I'm assuming that this happens before your changes to ib_drain_qp
+> correct? If this does not happen without your changes it might indicate
+> that drain_qp is missing an error (or successful?) completion which
+> would prevent a final reference drop (isert_completion_put).
 
-I will send out a series with the following commits:
+The issue doesn't happen on 4.15-rc4 with mlx4, but it does with cxgb4.  There have been some bad problems with cxgb4's drain logic, so I need to just root cause this, because backing up to see if it used to work is problematic and will hit other issues with drain.  The qp does get drained, and I confirmed it has no pending send or recv wrs.  The associated cq's last 2 completions are from the ib_drain_qp() logic, so I need to somehow determine what completion got lost/dropped/whatever. 
 
->   RDMA/vmw_pvrdma: Call ib_umem_release on destroy QP path
->   RDMA/vmw_pvrdma: Use refcount_dec_and_test to avoid warning
->   RDMA/vmw_pvrdma: Use completion instead of wait queue
->   RDMA/vmw_pvrdma: Add UAR SRQ macros in ABI header file
+Do you have any thoughts on debugging this?  Turning on isert debug is bad because the IO load is very high.  I sort of need something that I can do after it gets stuck.  So I can change the wait_for_completion() to a wait_for_completion_timeout() and if it times out, go figure out what it is stuck on.  
 
-And I will clarify the commit message in the last commit there.
 
-Thanks!
-Bryan
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+---
+This email has been checked for viruses by AVG.
+http://www.avg.com
