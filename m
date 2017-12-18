@@ -1,52 +1,53 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: stuck iscsi/iser target with linux-4.15.0-rc1
-Date: Mon, 18 Dec 2017 11:12:11 -0600
-Message-ID: <030e01d37823$57f99800$07ecc800$@opengridcomputing.com>
-References: <000801d36ac6$9e9f5f70$dbde1e50$@opengridcomputing.com> <0ba7e891-f020-26fb-9945-9e824332593c@grimberg.me> <018901d36d17$6a703410$3f509c30$@opengridcomputing.com> <1dee9f68-a81b-b7b8-9e70-e0ef5c63c520@grimberg.me> <01bd01d3745a$f4bc82f0$de3588d0$@opengridcomputing.com> <01c701d37462$87371f30$95a55d90$@opengridcomputing.com> <01c901d37462$be431240$3ac936c0$@opengridcomputing.com> <cbe1b731-8e37-884a-1406-6a7ca1f6a0be@mellanox.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: BUG: unable to handle kernel NULL pointer dereference in
+ rds_send_xmit
+Date: Mon, 18 Dec 2017 12:12:13 -0500 (EST)
+Message-ID: <20171218.121213.289437104214632276.davem@davemloft.net>
+References: <001a1145ac5480242305609956b3@google.com>
+        <5ba83a68-0103-d514-1b22-900f755f5aa4@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cbe1b731-8e37-884a-1406-6a7ca1f6a0be-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Max Gurtovoy' <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'target-devel' <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5ba83a68-0103-d514-1b22-900f755f5aa4@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: santosh.shilimkar@oracle.com
+Cc: bot+aaf54a8c644d559d34dedcf3126aac68a20c9e63@syzkaller.appspotmail.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Date: Mon, 18 Dec 2017 08:28:05 -0800
+
+> On 12/18/2017 12:43 AM, syzbot wrote:
+>> Hello,
+>> syzkaller hit the following crash on
+>> 6084b576dca2e898f5c101baef151f7bfdbb606d
+>> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/master
+>> compiler: gcc (GCC) 7.1.1 20170620
+>> .config is attached
+>> Raw console output is attached.
+>> Unfortunately, I don't have any reproducer for this bug yet.
+>> BUG: unable to handle kernel NULL pointer dereference at
+>> 0000000000000028
+>> program syz-executor6 is using a deprecated SCSI ioctl, please convert
+>> it to SG_IO
+>> IP: rds_send_xmit+0x80/0x930 net/rds/send.c:186
 > 
-> hi Steve,
+> Looks like another one tripping on empty transport. Mostly below
+> should
+> address it but we will test it if it does.
 > 
-> On 12/14/2017 12:35 AM, Steve Wise wrote:
-> >>
-> >> I tried with 4.14.0 and got the same results.  I then backed up to 4.9.44 and I
-> can
-> >> discovery/login again.  I'll see if I can bisect this out, unless somebody knows
-> >> about current problems with iser?
-> >
-> > Actually, 4.9.44 has the same issue.  It works with iscsi/tcp, not iser. I must be
-> doing something wrong in my setup.
+> diff --git a/net/rds/send.c b/net/rds/send.c
+> index 7244d2e..e2d0eaa 100644
+> --- a/net/rds/send.c
+> +++ b/net/rds/send.c
+> @@ -183,7 +183,7 @@ int rds_send_xmit(struct rds_conn_path *cp)
+>                 goto out;
+>         }
 > 
-> can you run "targetcli ls" on your target side ?
-> also "iscsiadm -V" on the initiator side ?
-> can you try running with ib link layer ?
-> 
-> I'll try to find similar setup to repro in our labs.
+> -       if (conn->c_trans->xmit_path_prepare)
+> +       if (conn->c_trans && conn->c_trans->xmit_path_prepare)
+>                 conn->c_trans->xmit_path_prepare(cp);
 
-Hi Max, I'm setting this up on other systems at the moment.  If I can reproduce any of this, I'll reply with more details.
-
-Thanks!
-
-Steve.
-
-
-
----
-This email has been checked for viruses by AVG.
-http://www.avg.com
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We're seeming to accumulate a lot of checks like this, maybe there
+is a more general way to deal with this problem?
