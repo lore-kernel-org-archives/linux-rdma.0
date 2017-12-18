@@ -1,38 +1,84 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: stuck iscsi/iser target with linux-4.15.0-rc1
-Date: Mon, 18 Dec 2017 15:43:44 -0600
-Message-ID: <03bd01d37849$47497ae0$d5dc70a0$@opengridcomputing.com>
-References: <000801d36ac6$9e9f5f70$dbde1e50$@opengridcomputing.com> <0ba7e891-f020-26fb-9945-9e824332593c@grimberg.me> <018901d36d17$6a703410$3f509c30$@opengridcomputing.com> <1dee9f68-a81b-b7b8-9e70-e0ef5c63c520@grimberg.me>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [rdma-next, 06/31] IB/ipoib: Avoid memory leak if neigh
+ destination was changed
+Date: Mon, 18 Dec 2017 15:40:48 -0700
+Message-ID: <20171218224048.GA28327@ziepe.ca>
+References: <20171114125218.20477-7-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1dee9f68-a81b-b7b8-9e70-e0ef5c63c520@grimberg.me>
-Content-Language: en-us
-Sender: target-devel-owner@vger.kernel.org
-To: 'Sagi Grimberg' <sagi@grimberg.me>, 'target-devel' <target-devel@vger.kernel.org>
-Cc: linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171114125218.20477-7-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-> > [239800.115739] target_wait_for_sess_cmds: Waiting for se_cmd:
-> ffff88034082c998 t_state: 6, fabric state: 12
+On Tue, Nov 14, 2017 at 02:51:53PM +0200, Leon Romanovsky wrote:
+> From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Hmm, this means that the command was delegated to isert to send
-> data+response... Which means we lose a reference put somewhere here.
+> If from some reason the SM responses to path query request with response
+> that doesn't contain the exact SGID, ipoib should warn and change that
+> part of the response before push it to the path record DB.
+> Otherwise, new record will be added to the path record DB with no access
+> to them from the ipoib.
 > 
-> I'm assuming that this happens before your changes to ib_drain_qp
-> correct? If this does not happen without your changes it might indicate
-> that drain_qp is missing an error (or successful?) completion which
-> would prevent a final reference drop (isert_completion_put).
+> Demonstration of the bug is as the follow:
+> ipoib wants to send to GID fe80:0000:0000:0000:0002:c903:00ef:5ee2, it
+> creates new record in the DB with that gid as a key, and issues a new
+> request to the sm.
+> Now, the SM from some reason returns path-record with other SGID (for
+> example, fe80:0000:0000:0001:0002:c903:00ef:5ee2 that contains the local
+> subnet prefix) now ipoib will overwrite the current entry with the new
+> one, and if new request to the original GID arrives ipoib  will not find
+> it in the DB (was overwritten) and will create new record that in its
+> turn will also be overwritten by the response from the SM, and so on
+> till the driver eats all the device memory.
+> 
+> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>  drivers/infiniband/ulp/ipoib/ipoib_main.c | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> index 12b7f911f0e5..b173d618c59c 100644
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> @@ -775,6 +775,16 @@ static void path_rec_completion(int status,
+>  	spin_lock_irqsave(&priv->lock, flags);
+>  
+>  	if (!IS_ERR_OR_NULL(ah)) {
+> +		/* check there is no mismatch from the request */
+> +		if (memcmp(pathrec->dgid.raw, path->pathrec.dgid.raw,
+> +			   sizeof(union ib_gid))) {
+> +			pr_warn("%s got PathRec for gid %pI6 while asked for %pI6\n",
+> +				dev->name, pathrec->dgid.raw, path->pathrec.dgid.raw);
+> +			/* overwrite the response from the sm  before copy to the db */
+> +			memcpy(pathrec->dgid.raw, path->pathrec.dgid.raw,
+> +			       sizeof(union ib_gid));
+> +		}
+> +
+>  		path->pathrec = *pathrec;
 
-The issue doesn't happen on 4.15-rc4 with mlx4, but it does with cxgb4.  There have been some bad problems with cxgb4's drain logic, so I need to just root cause this, because backing up to see if it used to work is problematic and will hit other issues with drain.  The qp does get drained, and I confirmed it has no pending send or recv wrs.  The associated cq's last 2 completions are from the ib_drain_qp() logic, so I need to somehow determine what completion got lost/dropped/whatever. 
+I applied this, but converted the pr_warn to ipoib_dbg (it is not an
+error for the SA to change the DGID), reworded the commit message and
+comment:
 
-Do you have any thoughts on debugging this?  Turning on isert debug is bad because the IO load is very high.  I sort of need something that I can do after it gets stuck.  So I can change the wait_for_completion() to a wait_for_completion_timeout() and if it times out, go figure out what it is stuck on.  
-
-
-
----
-This email has been checked for viruses by AVG.
-http://www.avg.com
+		/*
+		 * pathrec.dgid is used as the database key from the LLADDR,
+		 * it must remain unchanged even if the SA returns a different
+		 * GID to use in the AH.
+		 */
+		if (memcmp(pathrec->dgid.raw, path->pathrec.dgid.raw,
+			   sizeof(union ib_gid))) {
+			ipoib_dbg(
+				priv,
+				"%s got PathRec for gid %pI6 while asked for %pI6\n",
+				dev->name, pathrec->dgid.raw,
+				path->pathrec.dgid.raw);
+			memcpy(pathrec->dgid.raw, path->pathrec.dgid.raw,
+			       sizeof(union ib_gid));
+		}
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
