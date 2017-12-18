@@ -1,61 +1,76 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [rdma-next, 02/31] IB/{core/cm}: Fix dmac query for IPv6 link
- local destination
-Date: Mon, 18 Dec 2017 13:38:46 -0700
-Message-ID: <20171218203846.GA18377@ziepe.ca>
-References: <20171114125218.20477-3-leon@kernel.org>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [rdma-next, 01/31] IB/core: Fix do not add RoCEv2 default GID
+ when IPv6 is disabled
+Date: Mon, 18 Dec 2017 13:48:18 -0700
+Message-ID: <20171218204818.GA18725@ziepe.ca>
+References: <20171114125218.20477-2-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171114125218.20477-3-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20171114125218.20477-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 14, 2017 at 02:51:49PM +0200, Leon Romanovsky wrote:
+On Tue, Nov 14, 2017 at 02:51:48PM +0200, Leon Romanovsky wrote:
+> From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Currently two RoCE default GIDs are added whenever HCA supports RoCEv1
+> and RoCEv2. Default GIDs are created using unique GUID and well known
+> prefix as defined by the IB spec 1.3 section 4.1.1 and 3.5.10.
+> 
+> For few HCAs GUID is derived from the MAC address of the netdev. Due to
+> this scheme, default RoCEv2 GID resemebles link-local IPv6 based GID.
+> Even when IPv6 is disabled at compile time in kernel, default RoCEv2 GID
+> can get added. When such RoCEv2 GID is used, offload HCA starts using
+> IPv6 packets for QP.
+> This leads to sending IPv6 packets in network from a host which has IPv6
+> disabled kernel.
+> 
+> This can be seen with below simple test.
+> ib_send_bw -x 1 -d mlx5_1
+> ib_send_bw -x 1 -d mlx5_1 <ip_v4_addr>
+> 
+> It may not be a good idea to send/receive IPv6 packets on kernel which
+> has IPv6 disabled.
+> 
+> Therefore lets honor networking stack's IPv6 disabled setting.
+> This patch avoids adding RoCEv2 based default GID when IPv6 is
+> disabled in kernel.
+> 
+> ibv_devinfo -v output can be seen as below on IPv6 disabled kernel as
+> below with one IPv4 address assign to netdevice.
+> 
+> GID[  0]: fe80:0000:0000:0000:268a:07ff:fe55:4661
+> GID[  2]: 0000:0000:0000:0000:0000:ffff:c3a8:0124
+> GID[  3]: 0000:0000:0000:0000:0000:ffff:c3a8:0124
+> 
+> This also ensures that any RoCE specific legacy application who has
+> assumed GID indexes for IP addresses start from 2, still continue to
+> have such IP based GIDs assigned from start index of 2.
 
-> +static int ib_resolve_unicast_gid_dmac(struct ib_device *device,
-> +				       struct rdma_ah_attr *ah_attr)
-> +{
-> +	struct ib_gid_attr sgid_attr;
-> +	struct ib_global_route *grh;
-> +	int hop_limit = 0xff;
-> +	union ib_gid sgid;
-> +	int ret;
-> +
-> +	grh = rdma_ah_retrieve_grh(ah_attr);
-> +
-> +	ret = ib_query_gid(device,
-> +			   rdma_ah_get_port_num(ah_attr),
-> +			   grh->sgid_index,
-> +			   &sgid, &sgid_attr);
+I'm not going to take this patch.. The entire concept is wrong.
 
-[..]
+rocev2 should *NOT* be creating a default IPv6 address, ever. So
+turning that off is simply the wrong solution to this problem.
 
-> +		ret = get_sgid_index_from_eth(device, port_num,
-> +					      vlan_id, &dgid,
-> +					      gid_type, &gid_index);
->  		if (ret)
->  			return ret;
-> +		flow_class = be32_to_cpu(grh->version_tclass_flow);
-> +		rdma_ah_set_grh(ah_attr, &sgid,
-> +				flow_class & 0xFFFFF,
-> +				(u8)gid_index, hoplimit,
-> +				(flow_class >> 20) & 0xFF);
-> +		return ib_resolve_unicast_gid_dmac(device, ah_attr);
+rocev2 is IP based and must exclusively follow the IP address list in
+the host.
 
-This patch looks like a major improvement, so I am going to take it.
+It must never invent its own IP that is not associated with a netdev.
 
-However, I dislike this flow here, calling get_sgid_index_from_eth to
-get an index then converting the index to a ib_gid_attr via
-ib_query_gid is silly.
+Creating a rocev1 compatability DGID does makes sense, but that is a
+*DGID* and it must never be co-mingled with rocev2 packets.
 
-We should have support APIs that go directly from the WC & GRH to a
-gid_attr without the racy inbetween step of gid_index.
+> Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Can you send a followup to fix it?
+BTW, Leon when you send these patches please make sure the Reviewer's
+are CC'd as they should see and have a chance to respond to review
+comments.. I added Eli manually in this case..
 
 Jason
 --
