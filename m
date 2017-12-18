@@ -1,49 +1,47 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Subject: Re: [rds-devel] BUG: unable to handle kernel NULL pointer
- dereference in rds_send_xmit
-Date: Mon, 18 Dec 2017 12:22:51 -0500
-Message-ID: <20171218172251.GD26203@oracle.com>
-References: <001a1145ac5480242305609956b3@google.com>
- <5ba83a68-0103-d514-1b22-900f755f5aa4@oracle.com>
- <20171218.121213.289437104214632276.davem@davemloft.net>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH v2 0/5] Support for generalized use of make C={1,2} via a
+ wrapper program
+Date: Mon, 18 Dec 2017 10:46:04 -0700
+Message-ID: <20171218174604.GA19056@ziepe.ca>
+References: <cover.630ac8faeeda67bf7a778c158174422042942d08.1513430008.git-series.knut.omang@oracle.com>
+ <20171216094745.5e41ac51@xeon-e3>
+ <1513476850.31439.108.camel@oracle.com>
+ <20171218050043.GA1307@ziepe.ca>
+ <1513576817.31581.58.camel@perches.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171218.121213.289437104214632276.davem@davemloft.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: santosh.shilimkar@oracle.com, rds-devel@oss.oracle.com, bot+aaf54a8c644d559d34dedcf3126aac68a20c9e63@syzkaller.appspotmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com, linux-kernel@vger.kernel.org
+In-Reply-To: <1513576817.31581.58.camel-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Cc: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nicolas Palix <nicolas.palix-wMUr/XMoy4A@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, cocci-/FJkirnvOdkvYVN+rsErww@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic-WFhQfpSGs3bR7s880joybQ@public.gmane.org>, Shuah Khan <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michal Marek <michal.lkml-yyZNWGI4GtDR7s880joybQ@public.gmane.org>, Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, John Haxby <john.haxby-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, =?utf-8?Q?=C3=85smund_=C3=98stvold?= <asmund.ostvold-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Masahiro
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-> Date: Mon, 18 Dec 2017 08:28:05 -0800
-  :
-> > Looks like another one tripping on empty transport. Mostly below
-> > should
-> > address it but we will test it if it does.
+On Sun, Dec 17, 2017 at 10:00:17PM -0800, Joe Perches wrote:
 
-that was my first thought, but it cannot be the case here: rds_sendmsg
-etc itself would have bombed if that were the case, and the packet
-would never have gotten queued.
-
-This is unlike f3069c6d33, where an applications skips the transport
-binding (either misses the explicit bind, or gets the wrong transport
-due to an implicit bind) before it triggers the setsockopt.
-
-I suspect that the problems is that the conn (and thus c_trans)
-have gotten destroyed, but the cp_send_w work got incorrectly 
-re-queued. For example, rds_cong_queue_updates() (because the
-peer sent a congestion update) can happen in softirq context, 
-and would end up requeing work in the middle of rds_conn_destroy, 
-after we have assumed that everything is quisced.
-
-On (12/18/17 12:12), David Miller wrote:
+> > Today when we run checkers we get so many warnings it is too hard to
+> > make any sense of it.
 > 
-> We're seeming to accumulate a lot of checks like this, maybe there
-> is a more general way to deal with this problem?
+> Here is a list of the checkpatch messages for drivers/infiniband
+> sorted by type.
+> 
+> Many of these might be corrected by using
+> 
+> $ ./scripts/checkpatch.pl -f --fix-inplace --types=<TYPE> \
+>   $(git ls-files drivers/infiniband/)
 
-Yeah, I was thinking about this..  let me try to reprodcue this in-house
-and get back with a patchset.  
+How many of these do you think it is worth to fix?
 
---Sowmini
+We do get a steady trickle of changes in this topic every cycle.
+
+Is it better to just do a big number of them all at once? Do you have
+an idea how disruptive this kind of work is to the whole patch flow
+eg new patches no longer applying to for-next, backports no longer
+applying, merge conflicts?
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
