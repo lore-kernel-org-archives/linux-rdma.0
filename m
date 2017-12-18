@@ -1,45 +1,53 @@
-From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 0/5] Support for generalized use of make C={1,2} via
- a wrapper program
-Date: Mon, 18 Dec 2017 07:30:03 -0800
-Message-ID: <1513611003.31581.71.camel@perches.com>
-References: <cover.630ac8faeeda67bf7a778c158174422042942d08.1513430008.git-series.knut.omang@oracle.com>
-         <20171216094745.5e41ac51@xeon-e3> <1513476850.31439.108.camel@oracle.com>
-         <20171218050043.GA1307@ziepe.ca> <1513576817.31581.58.camel@perches.com>
-         <1513602315.22938.49.camel@oracle.com>
+From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: BUG: unable to handle kernel NULL pointer dereference in
+ rds_send_xmit
+Date: Mon, 18 Dec 2017 08:28:05 -0800
+Message-ID: <5ba83a68-0103-d514-1b22-900f755f5aa4@oracle.com>
+References: <001a1145ac5480242305609956b3@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1513602315.22938.49.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <001a1145ac5480242305609956b3-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nicolas Palix <nicolas.palix-wMUr/XMoy4A@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, cocci-/FJkirnvOdkvYVN+rsErww@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?ISO-8859-1?Q?Micka=EBl_Sala=FCn?= <mic-WFhQfpSGs3bR7s880joybQ@public.gmane.org>, Shuah Khan <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michal Marek <michal.lkml-yyZNWGI4GtDR7s880joybQ@public.gmane.org>, Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, John Haxby <john.haxby-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, =?ISO-8859-1?Q?=C5smund_=D8stvold?= <asmund.ostvold-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Ke
+To: syzbot <bot+aaf54a8c644d559d34dedcf3126aac68a20c9e63-Pl5Pbv+GP7P466ipTTIvnc23WoclnBCfAL8bYrjMMd8@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, syzkaller-bugs-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-12-18 at 14:05 +0100, Knut Omang wrote:
-> > Here is a list of the checkpatch messages for drivers/infiniband
-> > sorted by type.
-> > 
-> > Many of these might be corrected by using
-> > 
-> > $ ./scripts/checkpatch.pl -f --fix-inplace --types=<TYPE> \
-> >   $(git ls-files drivers/infiniband/)
+On 12/18/2017 12:43 AM, syzbot wrote:
+> Hello,
 > 
-> Yes, and I already did that work piece by piece for individual types,
-> just to test the runchecks tool, and want to post that set once the 
-> runchecks script and Makefile changes itself are in,
+> syzkaller hit the following crash on 
+> 6084b576dca2e898f5c101baef151f7bfdbb606d
+> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/master
+> compiler: gcc (GCC) 7.1.1 20170620
+> .config is attached
+> Raw console output is attached.
+> 
+> Unfortunately, I don't have any reproducer for this bug yet.
+> 
+> 
+> BUG: unable to handle kernel NULL pointer dereference at 0000000000000028
+> program syz-executor6 is using a deprecated SCSI ioctl, please convert 
+> it to SG_IO
+> IP: rds_send_xmit+0x80/0x930 net/rds/send.c:186
 
-I think those are independent of any runcheck tool changes and
-could be posted now.  In general, don't keep patches in a local
-tree waiting on some other unrelated patch.
+Looks like another one tripping on empty transport. Mostly below should
+address it but we will test it if it does.
 
-Just fyi:
+diff --git a/net/rds/send.c b/net/rds/send.c
+index 7244d2e..e2d0eaa 100644
+--- a/net/rds/send.c
++++ b/net/rds/send.c
+@@ -183,7 +183,7 @@ int rds_send_xmit(struct rds_conn_path *cp)
+                 goto out;
+         }
 
-There is a script that helps automate checkpatch "by-type" conversions
-with compilation, .o difference checking, and git commit editing.
+-       if (conn->c_trans->xmit_path_prepare)
++       if (conn->c_trans && conn->c_trans->xmit_path_prepare)
+                 conn->c_trans->xmit_path_prepare(cp);
 
-https://lkml.org/lkml/2014/7/11/794
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
