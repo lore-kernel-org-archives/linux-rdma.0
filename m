@@ -1,67 +1,49 @@
-From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: BUG: unable to handle kernel NULL pointer dereference in
- rds_send_xmit
-Date: Mon, 18 Dec 2017 09:16:01 -0800
-Message-ID: <b0a4bd8a-3b53-e187-b9e9-aa96baadd11d@oracle.com>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Subject: Re: [rds-devel] BUG: unable to handle kernel NULL pointer
+ dereference in rds_send_xmit
+Date: Mon, 18 Dec 2017 12:22:51 -0500
+Message-ID: <20171218172251.GD26203@oracle.com>
 References: <001a1145ac5480242305609956b3@google.com>
  <5ba83a68-0103-d514-1b22-900f755f5aa4@oracle.com>
  <20171218.121213.289437104214632276.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171218.121213.289437104214632276.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: bot+aaf54a8c644d559d34dedcf3126aac68a20c9e63-Pl5Pbv+GP7P466ipTTIvnc23WoclnBCfAL8bYrjMMd8@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, syzkaller-bugs-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171218.121213.289437104214632276.davem@davemloft.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: santosh.shilimkar@oracle.com, rds-devel@oss.oracle.com, bot+aaf54a8c644d559d34dedcf3126aac68a20c9e63@syzkaller.appspotmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/18/2017 9:12 AM, David Miller wrote:
-> From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
 > Date: Mon, 18 Dec 2017 08:28:05 -0800
-> 
->> On 12/18/2017 12:43 AM, syzbot wrote:
->>> Hello,
->>> syzkaller hit the following crash on
->>> 6084b576dca2e898f5c101baef151f7bfdbb606d
->>> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/master
->>> compiler: gcc (GCC) 7.1.1 20170620
->>> .config is attached
->>> Raw console output is attached.
->>> Unfortunately, I don't have any reproducer for this bug yet.
->>> BUG: unable to handle kernel NULL pointer dereference at
->>> 0000000000000028
->>> program syz-executor6 is using a deprecated SCSI ioctl, please convert
->>> it to SG_IO
->>> IP: rds_send_xmit+0x80/0x930 net/rds/send.c:186
->>
->> Looks like another one tripping on empty transport. Mostly below
->> should
->> address it but we will test it if it does.
->>
->> diff --git a/net/rds/send.c b/net/rds/send.c
->> index 7244d2e..e2d0eaa 100644
->> --- a/net/rds/send.c
->> +++ b/net/rds/send.c
->> @@ -183,7 +183,7 @@ int rds_send_xmit(struct rds_conn_path *cp)
->>                  goto out;
->>          }
->>
->> -       if (conn->c_trans->xmit_path_prepare)
->> +       if (conn->c_trans && conn->c_trans->xmit_path_prepare)
->>                  conn->c_trans->xmit_path_prepare(cp);
+  :
+> > Looks like another one tripping on empty transport. Mostly below
+> > should
+> > address it but we will test it if it does.
+
+that was my first thought, but it cannot be the case here: rds_sendmsg
+etc itself would have bombed if that were the case, and the packet
+would never have gotten queued.
+
+This is unlike f3069c6d33, where an applications skips the transport
+binding (either misses the explicit bind, or gets the wrong transport
+due to an implicit bind) before it triggers the setsockopt.
+
+I suspect that the problems is that the conn (and thus c_trans)
+have gotten destroyed, but the cp_send_w work got incorrectly 
+re-queued. For example, rds_cong_queue_updates() (because the
+peer sent a congestion update) can happen in softirq context, 
+and would end up requeing work in the middle of rds_conn_destroy, 
+after we have assumed that everything is quisced.
+
+On (12/18/17 12:12), David Miller wrote:
 > 
 > We're seeming to accumulate a lot of checks like this, maybe there
 > is a more general way to deal with this problem?
-> 
-Agree. Some of these additional transports hooks got added later
-to specific transports which needs them. Will review this overall
-and see if it can be addressed generically.
 
-Regards,
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yeah, I was thinking about this..  let me try to reprodcue this in-house
+and get back with a patchset.  
+
+--Sowmini
