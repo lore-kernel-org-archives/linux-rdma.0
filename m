@@ -1,95 +1,60 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v2 0/5] Support for generalized use of make C={1,2} via a
- wrapper program
-Date: Mon, 18 Dec 2017 21:24:36 +0200
-Message-ID: <20171218192436.GF18894@mtr-leonro.local>
+From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 4/5] rds: Add runchecks.cfg for net/rds
+Date: Mon, 18 Dec 2017 11:28:05 -0800
+Message-ID: <b808c33b-e318-c7d2-80c6-319167d11e01@oracle.com>
 References: <cover.630ac8faeeda67bf7a778c158174422042942d08.1513430008.git-series.knut.omang@oracle.com>
- <20171216094745.5e41ac51@xeon-e3>
- <1513476850.31439.108.camel@oracle.com>
- <20171218050043.GA1307@ziepe.ca>
- <1513576817.31581.58.camel@perches.com>
- <20171218174604.GA19056@ziepe.ca>
- <1513619815.2798.2.camel@wdc.com>
- <1513622390.31439.239.camel@oracle.com>
+ <4dc9b2fc0ddd1eb91d9b8785ae4886c6b08f3ee5.1513430008.git-series.knut.omang@oracle.com>
+ <20171216094525.5e9c985c@xeon-e3> <1513448673.4647.45.camel@perches.com>
+ <499ec5ae-d1d5-3bb2-8e10-de48283a1c2e@oracle.com>
+ <1513476136.31439.96.camel@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ytoMbUMiTKPMT3hY"
-Return-path: <linux-kbuild-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1513622390.31439.239.camel@oracle.com>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: Knut Omang <knut.omang@oracle.com>
-Cc: Bart Van Assche <Bart.VanAssche@wdc.com>, "joe@perches.com" <joe@perches.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "corbet@lwn.net" <corbet@lwn.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "keescook@chromium.org" <keescook@chromium.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "willy@infradead.org" <willy@infradead.org>, "nicolas.palix@imag.fr" <nicolas.palix@imag.fr>, "asmund.ostvold@oracle.com" <asmund.ostvold@oracle.com>, "john.haxby@oracle.com" <john.haxby@oracle.com>, "alexander.levin@verizon.com" <alexander.levin@verizon.com>, "mchehab@kernel.org" <mchehab@kernel.org>, "haakon.bugge@oracle.com" <haakon.bugge@oracle.com>, "michal.lkml@markovi.net" <michal.lkml@markovi.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1513476136.31439.96.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 12/16/2017 6:02 PM, Knut Omang wrote:
+> On Sat, 2017-12-16 at 12:00 -0800, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org wrote:
+>> On 12/16/17 10:24 AM, Joe Perches wrote:
 
---ytoMbUMiTKPMT3hY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+[...]
+>>> Most of these existing messages from checkpatch should
+>>> probably be inspected and corrected where possible to
+>>> minimize the style differences between this subsystem
+>>> and the rest of the kernel.
+>>>
+>>> For instance, here's a trivial patch to substitute
+>>> pr_<level> for printks and a couple braces next to
+>>> these substitutions.
+>>>
+>> Thanks Joe. I actually had a similar patch a while back but
+>> since it was lot of churn, and code was already merged,
+>> never submitted it and then later forgot about it.
+>>
+>> Will look into it.
+> 
+> Please look at my set here first - I have already spent considerable time cleaning up
+> stuff while working on this:
+> 
 
-On Mon, Dec 18, 2017 at 07:39:50PM +0100, Knut Omang wrote:
-> On Mon, 2017-12-18 at 17:56 +0000, Bart Van Assche wrote:
-> > On Mon, 2017-12-18 at 10:46 -0700, Jason Gunthorpe wrote:
-> > > On Sun, Dec 17, 2017 at 10:00:17PM -0800, Joe Perches wrote:
-> > >
-> > > > > Today when we run checkers we get so many warnings it is too hard to
-> > > > > make any sense of it.
-> > > >
-> > > > Here is a list of the checkpatch messages for drivers/infiniband
-> > > > sorted by type.
-> > > >
-> > > > Many of these might be corrected by using
-> > > >
-> > > > $ ./scripts/checkpatch.pl -f --fix-inplace --types=<TYPE> \
-> > > >   $(git ls-files drivers/infiniband/)
-> > >
-> > > How many of these do you think it is worth to fix?
-> > >
-> > > We do get a steady trickle of changes in this topic every cycle.
-> > >
-> > > Is it better to just do a big number of them all at once? Do you have
-> > > an idea how disruptive this kind of work is to the whole patch flow
-> > > eg new patches no longer applying to for-next, backports no longer
-> > > applying, merge conflicts?
-> >
-> > In my opinion patches that only change the coding style and do not change any
-> > functionality are annoying. Before posting a patch that fixes a bug the change
-> > history (git log -p) has to be cheched to figure out which patch introduced
-> > the bug. Patches that only change coding style pollute the change history.
->
-> I agree with you - the problem is that style issues should not have existed.
-> But when they do it becomes a problem to remove them and a problem to
-> keep them - for instance us who try to be compliant by having style helpers
-> in our editor, we end up having to manually revert old style mistakes back in
-> to avoid making unrelated whitespace changes or similar.
+Just closing the loop. As discussed, I can use your patches without
+any new tool dependency since existing checkpatch.pl already gives
+those warnings. I started picking up Joes patch but since you have
+changes, can use them instead once you untie them with runcheck.
 
-If the checkpatch.pl complains about coding style for the new patch in
-newly added code, I'm asking from the author to prepare cleanup patch so
-it will be applied before actual patch.
+Regarding the $subject, just re-iterating that I don't want any custom
+script for RDS and want to just follow generic guidelines followed by
+netdev for all net/* code.
 
-In case, complains are for code which patch are not touching, I'm
-submitting it as is.
+Regards,
+Santosh
 
-Thanks
-
---ytoMbUMiTKPMT3hY
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo4FfMACgkQ5GN7iDZy
-WKeZbA/+M78g8C0fiVZcdr0khjWthv6ReuG6QjJ8sc81w9zj16tXO2yJa/6A+R+7
-VeneSLf7FfsAAOKaJQf85QW7tv9uzSZ5Zdf599xGZcm7RcRAC5BAqjRoVnRYUa0W
-s+dFbJzzBlGZqT2WTOIi7qpx5WxLuoZq5dVtnMzM9/ITCM/q446ZR6Bj8fviFrFA
-iYf125p+zG6Vdi0qcT91KnsXaWPNMPOsM4iHu+1T2uhiWtuAog/HkN1Xhgzhz1Pi
-VxCYSznadcoHIGa4FcoeJOk2Z3FMgsWKhUVgPwJU3toITCSKOupNfY2p4Lacw1eI
-WUaRBVGRp3iWleHVkxr6LqxwBGM1XD6Cw4pRibFKjej2QIpCr5Mc/MEJY4U3JdSU
-M/OKJ2CQp9oeDE/1VFfDSiRhTGurIQKrG7eglnbYqjQZlw1gqd1WcrPgK8BCNHq0
-5Q5R60fTWYx8RxM3JwLI73kbKK22S0D7F7aaE3EN67OVwxD0PViqFNOyII/sBM4N
-7vy2M3mWy2epM0afZM2mSNXHfY2YrlgX5t+mOaBXG1NxEtX7S047Ra8XULOhngCC
-PzXNPDoSZ0EAIgWb7JDkdUoO4E2p290A4TGFcMJLVfwgmpuWb59aD0TZyizJWfVt
-GZSFAp4XU8M818l/GQQfIAZPu7oBNq+muZVchDgBvcuYN2NMxyc=
-=mfcT
------END PGP SIGNATURE-----
-
---ytoMbUMiTKPMT3hY--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
