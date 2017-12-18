@@ -1,42 +1,64 @@
-From: Bart Van Assche <Bart.VanAssche@wdc.com>
-Subject: Re: [PATCH v2 0/5] Support for generalized use of make C={1,2} via a
- wrapper program
-Date: Mon, 18 Dec 2017 17:56:57 +0000
-Message-ID: <1513619815.2798.2.camel@wdc.com>
-References: <cover.630ac8faeeda67bf7a778c158174422042942d08.1513430008.git-series.knut.omang@oracle.com>
-         <20171216094745.5e41ac51@xeon-e3> <1513476850.31439.108.camel@oracle.com>
-         <20171218050043.GA1307@ziepe.ca> <1513576817.31581.58.camel@perches.com>
-         <20171218174604.GA19056@ziepe.ca>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v1 for-rc 0/8] vmw_pvrdma fixes for 4.15
+Date: Mon, 18 Dec 2017 11:25:11 -0700
+Message-ID: <20171218182511.GH19070@mellanox.com>
+References: <20171214001753.GA9780@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171218174604.GA19056@ziepe.ca>
-Content-Language: en-US
-Content-ID: <5B34137F6E43E048AB6974A87AAEB18E@namprd04.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "joe@perches.com" <joe@perches.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>
-Cc: "corbet@lwn.net" <corbet@lwn.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "keescook@chromium.org" <keescook@chromium.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "willy@infradead.org" <willy@infradead.org>, "knut.omang@oracle.com" <knut.omang@oracle.com>, "nicolas.palix@imag.fr" <nicolas.palix@imag.fr>, "asmund.ostvold@oracle.com" <asmund.ostvold@oracle.com>, "john.haxby@oracle.com" <john.haxby@oracle.com>, "alexander.levin@verizon.com" <alexander.levin@verizon.com>, "mchehab@kernel.org" <mchehab@kernel.org>, "haakon.bugge@oracle.com" <haakon.bugge@oracle.com>, "michal.lkml@markovi.net" <michal.lkml@markovi.net>, "Gilles.Muller@lip6.fr" <Gilles.Muller@lip6.fr>, yama
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171214001753.GA9780-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE3LTEyLTE4IGF0IDEwOjQ2IC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIFN1biwgRGVjIDE3LCAyMDE3IGF0IDEwOjAwOjE3UE0gLTA4MDAsIEpvZSBQZXJjaGVz
-IHdyb3RlOg0KPiANCj4gPiA+IFRvZGF5IHdoZW4gd2UgcnVuIGNoZWNrZXJzIHdlIGdldCBzbyBt
-YW55IHdhcm5pbmdzIGl0IGlzIHRvbyBoYXJkIHRvDQo+ID4gPiBtYWtlIGFueSBzZW5zZSBvZiBp
-dC4NCj4gPiANCj4gPiBIZXJlIGlzIGEgbGlzdCBvZiB0aGUgY2hlY2twYXRjaCBtZXNzYWdlcyBm
-b3IgZHJpdmVycy9pbmZpbmliYW5kDQo+ID4gc29ydGVkIGJ5IHR5cGUuDQo+ID4gDQo+ID4gTWFu
-eSBvZiB0aGVzZSBtaWdodCBiZSBjb3JyZWN0ZWQgYnkgdXNpbmcNCj4gPiANCj4gPiAkIC4vc2Ny
-aXB0cy9jaGVja3BhdGNoLnBsIC1mIC0tZml4LWlucGxhY2UgLS10eXBlcz08VFlQRT4gXA0KPiA+
-ICAgJChnaXQgbHMtZmlsZXMgZHJpdmVycy9pbmZpbmliYW5kLykNCj4gDQo+IEhvdyBtYW55IG9m
-IHRoZXNlIGRvIHlvdSB0aGluayBpdCBpcyB3b3J0aCB0byBmaXg/DQo+IA0KPiBXZSBkbyBnZXQg
-YSBzdGVhZHkgdHJpY2tsZSBvZiBjaGFuZ2VzIGluIHRoaXMgdG9waWMgZXZlcnkgY3ljbGUuDQo+
-IA0KPiBJcyBpdCBiZXR0ZXIgdG8ganVzdCBkbyBhIGJpZyBudW1iZXIgb2YgdGhlbSBhbGwgYXQg
-b25jZT8gRG8geW91IGhhdmUNCj4gYW4gaWRlYSBob3cgZGlzcnVwdGl2ZSB0aGlzIGtpbmQgb2Yg
-d29yayBpcyB0byB0aGUgd2hvbGUgcGF0Y2ggZmxvdw0KPiBlZyBuZXcgcGF0Y2hlcyBubyBsb25n
-ZXIgYXBwbHlpbmcgdG8gZm9yLW5leHQsIGJhY2twb3J0cyBubyBsb25nZXINCj4gYXBwbHlpbmcs
-IG1lcmdlIGNvbmZsaWN0cz8NCg0KSW4gbXkgb3BpbmlvbiBwYXRjaGVzIHRoYXQgb25seSBjaGFu
-Z2UgdGhlIGNvZGluZyBzdHlsZSBhbmQgZG8gbm90IGNoYW5nZSBhbnkNCmZ1bmN0aW9uYWxpdHkg
-YXJlIGFubm95aW5nLiBCZWZvcmUgcG9zdGluZyBhIHBhdGNoIHRoYXQgZml4ZXMgYSBidWcgdGhl
-IGNoYW5nZQ0KaGlzdG9yeSAoZ2l0IGxvZyAtcCkgaGFzIHRvIGJlIGNoZWNoZWQgdG8gZmlndXJl
-IG91dCB3aGljaCBwYXRjaCBpbnRyb2R1Y2VkDQp0aGUgYnVnLiBQYXRjaGVzIHRoYXQgb25seSBj
-aGFuZ2UgY29kaW5nIHN0eWxlIHBvbGx1dGUgdGhlIGNoYW5nZSBoaXN0b3J5Lg0KDQpCYXJ0Lg==
+On Wed, Dec 13, 2017 at 04:17:59PM -0800, Bryan Tan wrote:
+> 
+> Do some cleanup and fixes related to the comments received during SRQ
+> support upstreaming that applied to existing code. Also add in two
+> missed macros used by the userlevel library for SRQs, a missed
+> ib_umem_release, an incorrect usage of the new refcount_t type,
+> and switched from use of wait queues to completions.
+> 
+> v0 -> v1 changelog:
+> - Removed use of BIT() in UAPI header
+> - Make setting/usage of is_kernel consistent between QP/CQ/SRQ
+> - Use completions instead of wait queues for resource destroy
+> - Cleaned up commit messages
+
+This series would be fine for -next, the patches look OK to me now.
+
+But there are too many non-rc things to be for-rc.
+
+If you want this in -rc for some reason then you need to send a series
+with just those commits, otherwise it will go to -next.
+
+These fix actual bugs and could be for-rc
+
+>   RDMA/vmw_pvrdma: Call ib_umem_release on destroy QP path
+>   RDMA/vmw_pvrdma: Use refcount_dec_and_test to avoid warning
+>   RDMA/vmw_pvrdma: Use completion instead of wait queue
+
+These are clearly not for-rc:
+
+>   RDMA/vmw_pvrdma: Use more specific sizeof in kcalloc
+>   RDMA/vmw_pvrdma: Use refcount_t instead of atomic_t
+
+Does this fix a bug or is it just a style change? Can't tell:
+
+>   RDMA/vmw_pvrdma: Clarify QP and CQ is_kernel logic
+
+These two are boarder line. Would need a better commit message explaining
+why these need to be in -rc:
+
+>   RDMA/vmw_pvrdma: Remove usage of BIT() from UAPI header
+>   RDMA/vmw_pvrdma: Add UAR SRQ macros in ABI header file
+
+Let me know what you want.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
