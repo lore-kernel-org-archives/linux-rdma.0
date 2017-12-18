@@ -1,176 +1,174 @@
-From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 5/5] RDMA/core: Add runchecks.cfg for
- drivers/infiniband/core
-Date: Mon, 18 Dec 2017 13:36:26 +0100
-Message-ID: <1513600586.22938.29.camel@oracle.com>
+From: Knut Omang <knut.omang@oracle.com>
+Subject: Re: [PATCH v2 0/5] Support for generalized use of make C={1,2} via
+ a wrapper program
+Date: Mon, 18 Dec 2017 14:05:15 +0100
+Message-ID: <1513602315.22938.49.camel@oracle.com>
 References: <cover.630ac8faeeda67bf7a778c158174422042942d08.1513430008.git-series.knut.omang@oracle.com>
-         <0ce3c307255b22d23f49d13213b76044647e6f60.1513430008.git-series.knut.omang@oracle.com>
-         <20171218080223.GB18894@mtr-leonro.local>
+         <20171216094745.5e41ac51@xeon-e3> <1513476850.31439.108.camel@oracle.com>
+         <20171218050043.GA1307@ziepe.ca> <1513576817.31581.58.camel@perches.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171218080223.GB18894-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?ISO-8859-1?Q?H=E5kon?= Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, =?ISO-8859-1?Q?=C5smund_=D8stvold?= <asmund.ostvold-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kbuild-owner@vger.kernel.org>
+In-Reply-To: <1513576817.31581.58.camel@perches.com>
+Sender: linux-kbuild-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Stephen Hemminger <stephen@networkplumber.org>, linux-kernel@vger.kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>, Nicolas Palix <nicolas.palix@imag.fr>, Jonathan Corbet <corbet@lwn.net>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, Matthew Wilcox <willy@infradead.org>, cocci@systeme.lip6.fr, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org, Doug Ledford <dledford@redhat.com>, =?ISO-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>, Shuah Khan <shuah@kernel.org>, linux-kbuild@vger.kernel.org, Michal Marek <michal.lkml@markovi.net>, Julia Lawall <Julia.Lawall@lip6.fr>, John Haxby <john.haxby@oracle.com>, =?ISO-8859-1?Q?=C5smund_=D8stvold?= <asmund.ostvold@oracle.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Ke
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-12-18 at 10:02 +0200, Leon Romanovsky wrote:
-> On Sat, Dec 16, 2017 at 03:42:30PM +0100, Knut Omang wrote:
-> > Add a runchecks.cfg to drivers/infiniband/core
-> > to start "reining in" future checker errors,
-> > and making it easier to selectively clean up existing
-> > issues.
-> >=20
-> > This runchecks.cfg lets make C=3D2 M=3Ddrivers/infiniband/core
-> > pass with all errors/warnings suppressed
-> >=20
-> > See Documentation/dev-tools/runchecks.rst for
-> > motivation and details.
-> >=20
-> > Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: H=C3=A5kon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: =C3=85smund =C3=98stvold <asmund.ostvold-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/infiniband/core/runchecks.cfg | 83 +++++++++++++++++++++++++++=
-+-
-> >  1 file changed, 83 insertions(+)
-> >  create mode 100644 drivers/infiniband/core/runchecks.cfg
-> >=20
-> > diff --git a/drivers/infiniband/core/runchecks.cfg b/drivers/infiniband=
-/core/runchecks.cfg
-> > new file mode 100644
-> > index 0000000..75ca57c
-> > --- /dev/null
-> > +++ b/drivers/infiniband/core/runchecks.cfg
-> > @@ -0,0 +1,83 @@
-> > +#
-> > +# checker suppression lists for drivers/infiniband/core
-> > +#
-> > +# see Documentation/dev-tools/runchecks.rst
-> > +#
-> > +
-> > +checker checkpatch
-> > +##################
-> > +
-> > +# Accept somewhat longer lines:
-> > +line_len 110
-> > +
-> > +# Uncategorized:
-> > +#
-> > +except TRAILING_STATEMENTS packer.c
-> > +except NON_OCTAL_PERMISSIONS rw.c
-> > +except STATIC_CONST_CHAR_ARRAY sysfs.c
-> > +except SYMBOLIC_PERMS sysfs.c
-> > +except NEEDLESS_IF sysfs.c
-> > +except NAKED_SSCANF device.c
-> > +except ALLOC_WITH_MULTIPLY fmr_pool.c iwpm_util.c cma.c
-> > +except MULTIPLE_ASSIGNMENTS rw.c verbs.c
-> > +except ALLOC_SIZEOF_STRUCT sysfs.c iwpm_util.c iwpm_msg.c cma.c cm.c i=
-wcm.c
-> > +except LOGICAL_CONTINUATIONS mad.c iwpm_util.c user_mad.c
-> > +
-> > +# Important to fix/go through from a quality perspective:
-> > +#
-> > +except AVOID_BUG rw.c mad.c cm.c iwcm.c cma.c
-> > +except UNCOMMENTED_DEFINITION ucma.c fmr_pool.c multicast.c mad_rmpp.c
-> > +except UNCOMMENTED_DEFINITION ucm.c umem.c cma.c user_mad.c cm.c
-> > +except ASSIGN_IN_IF mad.c cma.c uverbs_ioctl_merge.c
-> > +except SUSPECT_CODE_INDENT iwpm_util.c cma.c uverbs_ioctl.c user_mad.c=
- uverbs_cmd.c
-> > +except COMPLEX_MACRO uverbs_ioctl_merge.c
-> > +except BOOL_COMPARISON roce_gid_mgmt.c
-> > +
-> > +# Code simplification:
-> > +#
-> > +except UNNECESSARY_ELSE cache.c mad.c mad_rmpp.c
-> > +except UNNECESSARY_PARENTHESES cma.c sa_query.c mad.c ucma.c mad_rmpp.=
-c umem.c
-> > +except UNNECESSARY_PARENTHESES user_mad.c uverbs_cmd.c uverbs_marshall=
-.c cm.c
-> > +except EMBEDDED_FUNCTION_NAME mad.c umem.c cma.c ucma.c user_mad.c
-> > +except RETURN_VOID sysfs.c sa_query.c mad.c cma.c ucm.c uverbs_main.c =
-umem.c
-> > +except CONSTANT_COMPARISON smi.c
-> > +except OOM_MESSAGE iwpm_util.c
-> > +
-> > +# Style and readability:
-> > +#
-> > +except OPEN_BRACE cache.c mad.c umem_odp.c umem_rbtree.c cm.c
-> > +except MULTILINE_DEREFERENCE mad.c cm.c cma.c uverbs_main.c
-> > +except LONG_LINE cma.c
-> > +except PARENTHESIS_ALIGNMENT umem.c cm.c
-> > +except FUNCTION_ARGUMENTS verbs.c uverbs_cmd.c sa_query.c sysfs.c
-> > +
-> > +# Candidates to leave as exceptions (don't fix):
-> > +except SPACING umem_rbtree.c
-> > +except MACRO_ARG_REUSE ud_header.c sa_query.c uverbs_ioctl_merge.c
-> > +
-> > +# These are in most of the source files, ignore for all files:
-> > +#
-> > +pervasive BLOCK_COMMENT_STYLE ENOSYS BRACES OPEN_ENDED_LINE
-> > +
-> > +# These are easily autocorrected by checkpatch with --fix-inplace:
-> > +#
-> > +pervasive SIZEOF_PARENTHESIS SPACING LINE_SPACING SPACE_BEFORE_TAB TAB=
-STOP
-> > +pervasive TRAILING_WHITESPACE POINTER_LOCATION INITIALISED_STATIC
-> > +pervasive CODE_INDENT ELSE_AFTER_BRACE SYMBOLIC_PERMS LEADING_SPACE
-> > +pervasive PARENTHESIS_ALIGNMENT COMPARISON_TO_NULL TYPO_SPELLING
-> > +
-> > +checker sparse
-> > +##############
-> > +
-> > +except SHADOW sysfs.c fmr_pool.c user_mad.c uverbs_main.c ucm.c ucma.c
-> > +except RETURN_VOID roce_gid_mgmt.c
-> > +except TYPESIGN ucm.c ucma.c
-> > +
-> > +# From linux/device.h:
-> > +except RETURN_VOID ucm.c
-> > +
-> > +checker checkdoc
-> > +################
-> > +
-> > +except PARAM_DESC verbs.c device.c fmr_pool.c cache.c sa_query.c
-> > +except X_PARAM verbs.c fmr_pool.c cache.c
->=20
-> I missed most of the patches from this series and previous version too,
-> but in regards to IB. I don't want to see static checkers exceptions for
-> core code. It does make a lot of sense for drivers which can be unmaintai=
-ned.
+On Sun, 2017-12-17 at 22:00 -0800, Joe Perches wrote:
+> On Sun, 2017-12-17 at 22:00 -0700, Jason Gunthorpe wrote:
+> > On Sun, Dec 17, 2017 at 03:14:10AM +0100, Knut Omang wrote:
+> > 
+> > > > I like the ability to add more checkers and keep then in the main
+> > > > upstream tree. But adding overrides for specific subsystems goes against
+> > > > the policy that all subsystems should be treated equally.
+> > > 
+> > > This is a tool to enable automated testing for as many checks as
+> > > possible, as soon as possible. Like any tool, it can be misused, but
+> > > that's IMHO an orthogonal problem that I think the maintainers will
+> > > be more than capable of preventing.
+> > > 
+> > > Think of this as a tightening screw: We eliminate errors class by
+> > > class or file by file, and in the same commit narrows in the list of
+> > > exceptions. That way we can fix issues piece by piece while avoiding
+> > > a lot of regressions in already clean parts.
+> > 
+> > Since you used drivers/infiniband as an example for this script..
+> > 
+> > I will say I agree with this idea.
+> > 
+> > It is not that we *want* infiniband to be different from the rest of
+> > the kernel, it is that we have this historical situation where we
+> > don't have a code base that already passes the various static checker
+> > things.
+> > 
+> > I would like it very much if I could run 'make static checker' and see
+> > no warnings. This helps me know that I when I accept patches I am not
+> > introducing new problems to code that has already been cleaned up.
+> > 
+> > Today when we run checkers we get so many warnings it is too hard to
+> > make any sense of it.
+> 
+> Here is a list of the checkpatch messages for drivers/infiniband
+> sorted by type.
+> 
+> Many of these might be corrected by using
+> 
+> $ ./scripts/checkpatch.pl -f --fix-inplace --types=<TYPE> \
+>   $(git ls-files drivers/infiniband/)
 
-And I couldn't agree more. But some aid in assessing the scope of the task=
-=20
-and tracking progress/prevent regressions would be good, wouldn't it?
+Yes, and I already did that work piece by piece for individual types,
+just to test the runchecks tool, and want to post that set once the 
+runchecks script and Makefile changes itself are in,
 
-This file + enabling a build bot to run make C=3D2 allows you to prevent=
-=20
-any checker error types from appearing anywhere in core apart from for=20
-the exception files and starting from this point of.
+see:
 
-> Also, I agree with other reviewers, there is no excuse for adding
-> checkpatch specifics per-subsystem/folder, the differences are better
-> to be treated in checkpatch.pl itself.
+https://github.com/torvalds/linux/compare/master...knuto:runchecks
 
-Hopefully my intention should be clearer if you look at the documentation:
+What I personally like about this approach is that with the runchecks.cfg file
+one can focus easily on one or two check types at a time, create a commit out of that
+and at the same time "tighten" runchecks.cfg - changes in that file then serves as 
+documentation for what got changed and use maintainers can use comments to indicate 
+why the remaining exceptions are still there - and there's a one-stop for anyone 
+wanting to contribute to checkpatch/sparse/doc fixes.
 
-https://lkml.org/lkml/2017/12/16/135
-
-The best is if no exceptions are needed, but until then let's at least get
-automatic testing so that you and other reviewers can focus on the more imp=
-ortant=20
-issues?
+And it will be possible to run bisect with make C=2 and always have 0 errors.
 
 Thanks,
 Knut
-
->=20
-> Thanks
->=20
-> > --
-> > git-series 0.9.1
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+>    5243 CHECK:CAMELCASE
+>    4487 WARNING:LONG_LINE
+>    1755 CHECK:PARENTHESIS_ALIGNMENT
+>    1664 CHECK:SPACING
+>     910 WARNING:FUNCTION_ARGUMENTS
+>     742 CHECK:OPEN_ENDED_LINE
+>     685 CHECK:BRACES
+>     643 CHECK:UNNECESSARY_PARENTHESES
+>     478 WARNING:SIZEOF_PARENTHESIS
+>     361 WARNING:UNSPECIFIED_INT
+>     342 WARNING:LONG_LINE_COMMENT
+>     338 ERROR:SPACING
+>     338 CHECK:LINE_SPACING
+>     306 WARNING:SPLIT_STRING
+>     278 WARNING:SPACING
+>     242 WARNING:SYMBOLIC_PERMS
+>     194 WARNING:BLOCK_COMMENT_STYLE
+>     175 CHECK:BIT_MACRO
+>     158 WARNING:SPACE_BEFORE_TAB
+>     154 WARNING:LINE_SPACING
+>     139 CHECK:MACRO_ARG_REUSE
+>     133 CHECK:UNCOMMENTED_DEFINITION
+>     122 CHECK:AVOID_BUG
+>     103 CHECK:COMPARISON_TO_NULL
+>     101 WARNING:ENOSYS
+>      89 WARNING:BRACES
+>      78 WARNING:PREFER_PR_LEVEL
+>      74 WARNING:MULTILINE_DEREFERENCE
+>      59 CHECK:TYPO_SPELLING
+>      52 WARNING:EMBEDDED_FUNCTION_NAME
+>      52 CHECK:MULTIPLE_ASSIGNMENTS
+>      50 CHECK:PREFER_KERNEL_TYPES
+>      45 WARNING:RETURN_VOID
+>      39 WARNING:UNNECESSARY_ELSE
+>      38 ERROR:POINTER_LOCATION
+>      37 WARNING:ALLOC_WITH_MULTIPLY
+>      36 CHECK:ALLOC_SIZEOF_STRUCT
+>      35 CHECK:AVOID_EXTERNS
+>      34 WARNING:PRINTK_WITHOUT_KERN_LEVEL
+>      33 ERROR:CODE_INDENT
+>      32 WARNING:PREFER_PACKED
+>      32 CHECK:LOGICAL_CONTINUATIONS
+>      29 WARNING:MEMORY_BARRIER
+>      29 WARNING:LEADING_SPACE
+>      28 WARNING:DEEP_INDENTATION
+>      27 CHECK:USLEEP_RANGE
+>      23 WARNING:SUSPECT_CODE_INDENT
+>      23 ERROR:TRAILING_STATEMENTS
+>      21 WARNING:LONG_LINE_STRING
+>      20 WARNING:CONSIDER_KSTRTO
+>      18 WARNING:CONSTANT_COMPARISON
+>      18 ERROR:OPEN_BRACE
+>      15 WARNING:QUOTED_WHITESPACE_BEFORE_NEWLINE
+>      14 WARNING:VOLATILE
+>      14 ERROR:SWITCH_CASE_INDENT_LEVEL
+>      11 WARNING:OOM_MESSAGE
+>      11 WARNING:INCLUDE_LINUX
+>      10 WARNING:SSCANF_TO_KSTRTO
+>      10 WARNING:INDENTED_LABEL
+>       9 ERROR:GLOBAL_INITIALISERS
+>       9 ERROR:COMPLEX_MACRO
+>       9 ERROR:ASSIGN_IN_IF
+>       8 WARNING:UNNECESSARY_BREAK
+>       6 WARNING:PRINTF_L
+>       6 WARNING:MISORDERED_TYPE
+>       6 ERROR:INITIALISED_STATIC
+>       5 WARNING:TABSTOP
+>       5 WARNING:SINGLE_STATEMENT_DO_WHILE_MACRO
+>       5 WARNING:NAKED_SSCANF
+>       4 WARNING:NEEDLESS_IF
+>       4 ERROR:RETURN_PARENTHESES
+>       4 CHECK:BOOL_COMPARISON
+>       3 WARNING:TRAILING_SEMICOLON
+>       3 WARNING:STATIC_CONST_CHAR_ARRAY
+>       3 ERROR:TRAILING_WHITESPACE
+>       2 WARNING:UNNECESSARY_PARENTHESES
+>       2 WARNING:MISSING_SPACE
+>       2 WARNING:LOGGING_CONTINUATION
+>       2 CHECK:ARCH_DEFINES
+>       1 WARNING:TYPECAST_INT_CONSTANT
+>       1 WARNING:PREFER_DEV_LEVEL
+>       1 WARNING:NR_CPUS
+>       1 WARNING:NEW_TYPEDEFS
+>       1 WARNING:MINMAX
+>       1 WARNING:MACRO_WITH_FLOW_CONTROL
+>       1 WARNING:LINE_CONTINUATIONS
+>       1 WARNING:DO_WHILE_MACRO_WITH_TRAILING_SEMICOLON
+>       1 WARNING:DEFAULT_NO_BREAK
+>       1 WARNING:CONST_STRUCT
+>       1 WARNING:CONSIDER_COMPLETION
+>       1 ERROR:WHILE_AFTER_BRACE
+>       1 ERROR:ELSE_AFTER_BRACE
+>       1 CHECK:REDUNDANT_CODE
+> 
