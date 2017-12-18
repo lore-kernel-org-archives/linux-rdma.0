@@ -1,64 +1,35 @@
-From: Knut Omang <knut.omang@oracle.com>
-Subject: Re: [PATCH v2 0/5] Support for generalized use of make C={1,2} via
- a wrapper program
-Date: Mon, 18 Dec 2017 19:39:50 +0100
-Message-ID: <1513622390.31439.239.camel@oracle.com>
+From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 5/5] RDMA/core: Add runchecks.cfg for
+ drivers/infiniband/core
+Date: Mon, 18 Dec 2017 11:03:51 -0800
+Message-ID: <1513623831.31581.121.camel@perches.com>
 References: <cover.630ac8faeeda67bf7a778c158174422042942d08.1513430008.git-series.knut.omang@oracle.com>
-         <20171216094745.5e41ac51@xeon-e3> <1513476850.31439.108.camel@oracle.com>
-         <20171218050043.GA1307@ziepe.ca> <1513576817.31581.58.camel@perches.com>
-         <20171218174604.GA19056@ziepe.ca> <1513619815.2798.2.camel@wdc.com>
+         <0ce3c307255b22d23f49d13213b76044647e6f60.1513430008.git-series.knut.omang@oracle.com>
+         <20171218080223.GB18894@mtr-leonro.local>
+         <1513600586.22938.29.camel@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kbuild-owner@vger.kernel.org>
-In-Reply-To: <1513619815.2798.2.camel@wdc.com>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@wdc.com>, "joe@perches.com" <joe@perches.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>
-Cc: "corbet@lwn.net" <corbet@lwn.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "keescook@chromium.org" <keescook@chromium.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "willy@infradead.org" <willy@infradead.org>, "nicolas.palix@imag.fr" <nicolas.palix@imag.fr>, "asmund.ostvold@oracle.com" <asmund.ostvold@oracle.com>, "john.haxby@oracle.com" <john.haxby@oracle.com>, "alexander.levin@verizon.com" <alexander.levin@verizon.com>, "mchehab@kernel.org" <mchehab@kernel.org>, "haakon.bugge@oracle.com" <haakon.bugge@oracle.com>, "michal.lkml@markovi.net" <michal.lkml@markovi.net>, "Gilles.Muller@lip6.fr" <Gilles.Muller@lip6.fr>, "yamada.masahiro@socionext.com" <yamada.masahiro@socionext.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1513600586.22938.29.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?ISO-8859-1?Q?H=E5kon?= Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, =?ISO-8859-1?Q?=C5smund_=D8stvold?= <asmund.ostvold-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-12-18 at 17:56 +0000, Bart Van Assche wrote:
-> On Mon, 2017-12-18 at 10:46 -0700, Jason Gunthorpe wrote:
-> > On Sun, Dec 17, 2017 at 10:00:17PM -0800, Joe Perches wrote:
-> > 
-> > > > Today when we run checkers we get so many warnings it is too hard to
-> > > > make any sense of it.
-> > > 
-> > > Here is a list of the checkpatch messages for drivers/infiniband
-> > > sorted by type.
-> > > 
-> > > Many of these might be corrected by using
-> > > 
-> > > $ ./scripts/checkpatch.pl -f --fix-inplace --types=<TYPE> \
-> > >   $(git ls-files drivers/infiniband/)
-> > 
-> > How many of these do you think it is worth to fix?
-> > 
-> > We do get a steady trickle of changes in this topic every cycle.
-> > 
-> > Is it better to just do a big number of them all at once? Do you have
-> > an idea how disruptive this kind of work is to the whole patch flow
-> > eg new patches no longer applying to for-next, backports no longer
-> > applying, merge conflicts?
-> 
-> In my opinion patches that only change the coding style and do not change any
-> functionality are annoying. Before posting a patch that fixes a bug the change
-> history (git log -p) has to be cheched to figure out which patch introduced
-> the bug. Patches that only change coding style pollute the change history.
+On Mon, 2017-12-18 at 13:36 +0100, Knut Omang wrote:
+> On Mon, 2017-12-18 at 10:02 +0200, Leon Romanovsky wrote:
+[]
+> > Also, I agree with other reviewers, there is no excuse for adding
+> > checkpatch specifics per-subsystem/folder, the differences are better
+> > to be treated in checkpatch.pl itself.
 
-I agree with you - the problem is that style issues should not have existed. 
-But when they do it becomes a problem to remove them and a problem to 
-keep them - for instance us who try to be compliant by having style helpers 
-in our editor, we end up having to manually revert old style mistakes back in
-to avoid making unrelated whitespace changes or similar.
+What other reviewers are those?
 
-I think what we get with this patch set is that there's a way to rein in the
-issues and to enable some regression testing without enforcing a lot of work 
-or annoying history issues *right away*. That way this problem can be tackled when
-appropriate for the subsystem in question, and the reason for holding back on 
-some changes can be documented in the local runchecks.cfg file, focusing
-willing helping hands on the issues considered most important for that 
-subsystem.
+As a checkpatch maintainer, I don't believe it's appropriate
+to add many per-subsystem specific rules to checkpatch.
 
-Thanks,
-Knut
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
