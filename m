@@ -1,43 +1,63 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH rdma-core] srp_daemon: Install signal handler for ibsrpdm
-Date: Tue, 19 Dec 2017 16:57:35 +0000
-Message-ID: <1513702653.2535.3.camel@wdc.com>
-References: <20171214110241.4701-1-honli@redhat.com>
-         <1513263572.2986.2.camel@wdc.com>
-         <20171215013628.GA743@dhcp-13-42.nay.redhat.com>
-         <20171215172800.GA12434@ziepe.ca>
-         <20171219122050.GA19682@dhcp-13-42.nay.redhat.com>
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] hw: Fix permissions for OCRDMA_RESET_STATS
+Date: Tue, 19 Dec 2017 23:14:03 +0530
+Message-ID: <CA+sbYW06=taq46tUxP0nto2Tj0p_Jt--AobDwP4TaEwK9mnqLQ@mail.gmail.com>
+References: <1502207797-25589-1-git-send-email-vasilyev@ispras.ru>
+ <20170815183158.GB24282@mtr-leonro.local> <CA+sbYW2FHpCH+=f_v6j7J6eQhw++wQeUp1GmX=h-CwVA2OSr4w@mail.gmail.com>
+ <20171219123030.GD2942@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171219122050.GA19682-Y5OA6DF/u0nid9cnFhDO8BcY2uh10dtjAL8bYrjMMd8@public.gmane.org>
-Content-Language: en-US
-Content-ID: <EC480B659848F54FAF76C0F364CD1805-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <20171219123030.GD2942-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Anton Vasilyev <vasilyev-ufN2psIa012HXe+LvDLADg@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Michael Mera <dev-5Y08+B5RRAgbhb6IIWwbbQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ldv-project-tpLiQldItUH5n4uC9ZG1Ww@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE3LTEyLTE5IGF0IDIwOjIwICswODAwLCBIb25nZ2FuZyBMSSB3cm90ZToNCj4g
-QXMgaWJzcnBkbSBhbHdheXMgb25seSBydW4gb25jZSwgYmVjYXVzZSAiY29uZmlnLT5vbmNlIiBo
-YXMgYmVlbg0KPiBhc3NpZ25lZCB0byAxLiBJIHdvdWxkIHN1Z2dlc3QgdG8gYXBwbHkgdGhpcyBw
-YXRjaC4NCj4gDQo+IGRpZmYgLS1naXQgYS9zcnBfZGFlbW9uL3NycF9kYWVtb24uYyBiL3NycF9k
-YWVtb24vc3JwX2RhZW1vbi5jDQo+IGluZGV4IGNlYzM2ZGIyLi40MDEyYTdkYiAxMDA2NDQNCj4g
-LS0tIGEvc3JwX2RhZW1vbi9zcnBfZGFlbW9uLmMNCj4gKysrIGIvc3JwX2RhZW1vbi9zcnBfZGFl
-bW9uLmMNCj4gQEAgLTE5NDUsMTIgKzE5NDUsMTIgQEAgc3RhdGljIHN0cnVjdCByZXNvdXJjZXMg
-KmFsbG9jX3Jlcyh2b2lkKQ0KPiAgCQkJCSAgICAgcnVuX3RocmVhZF9nZXRfdHJhcF9ub3RpY2Vz
-LCAmcmVzLT5yZXMpOw0KPiAgCQlpZiAocmV0KQ0KPiAgCQkJZ290byBlcnI7DQo+IC0JfQ0KPiAg
-DQo+IC0JcmV0ID0gcHRocmVhZF9jcmVhdGUoJnJlcy0+cmVzLmFzeW5jX2V2X3RocmVhZCwgTlVM
-TCwNCj4gLQkJCSAgICAgcnVuX3RocmVhZF9saXN0ZW5fdG9fZXZlbnRzLCAmcmVzLT5yZXMpOw0K
-PiAtCWlmIChyZXQpDQo+IC0JCWdvdG8gZXJyOw0KPiArCQlyZXQgPSBwdGhyZWFkX2NyZWF0ZSgm
-cmVzLT5yZXMuYXN5bmNfZXZfdGhyZWFkLCBOVUxMLA0KPiArCQkJCSAgICAgcnVuX3RocmVhZF9s
-aXN0ZW5fdG9fZXZlbnRzLCAmcmVzLT5yZXMpOw0KPiArCQlpZiAocmV0KQ0KPiArCQkJZ290byBl
-cnI7DQo+ICsJfQ0KPiAgDQo+ICAJaWYgKGNvbmZpZy0+cmV0cnlfdGltZW91dCAmJiAhY29uZmln
-LT5vbmNlKSB7DQo+ICAJCXJldCA9IHB0aHJlYWRfY3JlYXRlKCZyZXMtPnJlcy5yZWNvbm5lY3Rf
-dGhyZWFkLCBOVUxMLA0KDQpQbGVhc2Ugc3VibWl0IHRoaXMgYXMgYSBwcm9wZXIgcGF0Y2ggYW5k
-IGFkZCB0aGUgZm9sbG93aW5nOg0KDQpSZXZpZXdlZC1ieTogQmFydCBWYW4gQXNzY2hlIDxiYXJ0
-LnZhbmFzc2NoZUB3ZGMuY29tPg0KDQpUaGFua3MsDQoNCkJhcnQuDQoNCg==
+On Tue, Dec 19, 2017 at 6:00 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>> status = ocrdma_nonemb_mbx_cmd(dev, mqe, dev->stats_mem.va);
+>
+> It still doesn't make a lot of sense to me:
+>
+> ocrdma_mbx_rdma_stats():
+> 1315        if (reset)
+> 1316                 req->reset_stats = reset;
+> 1317
+> 1318         status = ocrdma_nonemb_mbx_cmd(dev, mqe, dev->stats_mem.va);
+>
+>
+> 1117 static int ocrdma_nonemb_mbx_cmd(struct ocrdma_dev *dev, struct ocrdma_mqe *mqe,
+> 1118                                  void *payload_va)
+> 1119 {
+> 1120         int status;
+> 1121         struct ocrdma_mbx_rsp *rsp = payload_va;
+> 1122
+> 1123         if ((mqe->hdr.spcl_sge_cnt_emb & OCRDMA_MQE_HDR_EMB_MASK)
+> 1124                                 OCRDMA_MQE_HDR_EMB_SHIFT)
+> 1125                 BUG();
+> 1126
+> 1127         status = ocrdma_mbx_cmd(dev, mqe);
+>
+> You are not using rsp and/or payload_va to provide data to ocrdma_mbx_cmd.
+>
+> How are you passing reset_stats information to FW?
+>
+This is a command where the response size is more than  236 bytes. So this is
+sent as a non-embedded command where the req/resp will be available in
+payload_va
+and phys address of payload_va (payload_pa) will be send down to
+firmware as MQE. FW will dma the mailbox
+from the payload_pa and response is transferred back.
+
+req->reset_stats = reset; is actually setting the corresponding bit in
+the request structure @payload_va.
+FW receives reset_stats once the request is DMA-ed from payload_pa.
+
+> Thanks
+>
+
+Thanks,
+Selvin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
