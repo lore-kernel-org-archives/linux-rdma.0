@@ -1,50 +1,81 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH for-next] iw_cxgb4: Change error/warn prints to pr_debug
-Date: Tue, 19 Dec 2017 13:16:39 -0700
-Message-ID: <20171219201639.GA14814@ziepe.ca>
-References: <1513680256-8153-1-git-send-email-bharat@chelsio.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1513680256-8153-1-git-send-email-bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [pull request][for-next 00/11] Mellanox, mlx5 E-Switch updates 2017-12-19
+Date: Tue, 19 Dec 2017 12:33:29 -0800
+Message-ID: <20171219203340.2600-1-saeedm@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 19, 2017 at 04:14:16PM +0530, Potnuri Bharat Teja wrote:
-> @@ -64,12 +64,6 @@
->  #define DRV_NAME "iw_cxgb4"
->  #define MOD DRV_NAME ":"
->  
-> -#ifdef pr_fmt
-> -#undef pr_fmt
-> -#endif
-> -
-> -#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> -
+Hi Dave and Doug,
 
-Lots of other places in RDMA set a prefix, can we come to some agreement if we
-should drop or keep this unverisally?
+==============
+This series includes updates for mlx5 E-Switch infrastructures,
+to be merged into net-next and rdma-next trees.
 
-drivers/infiniband/core/mad.c:#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-drivers/infiniband/core/netlink.c:#define pr_fmt(fmt) "%s:%s: " fmt, KBUILD_MODNAME, __func__
-drivers/infiniband/core/user_mad.c:#define pr_fmt(fmt) "user_mad: " fmt
-drivers/infiniband/hw/cxgb3/cxio_hal.h:#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-drivers/infiniband/hw/cxgb4/iw_cxgb4.h:#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-drivers/infiniband/hw/hfi1/driver.c:#define pr_fmt(fmt) DRIVER_NAME ": " fmt
-drivers/infiniband/hw/hfi1/file_ops.c:#define pr_fmt(fmt) DRIVER_NAME ": " fmt
-drivers/infiniband/hw/hfi1/init.c:#define pr_fmt(fmt) DRIVER_NAME ": " fmt
-drivers/infiniband/hw/mlx4/mlx4_ib.h:#define pr_fmt(fmt)        "<" MLX4_IB_DRV_NAME "> %s: " fmt, __func__
-drivers/infiniband/hw/qib/qib_diag.c:#define pr_fmt(fmt) QIB_DRV_NAME ": " fmt
-drivers/infiniband/hw/qib/qib_file_ops.c:#define pr_fmt(fmt) QIB_DRV_NAME ": " fmt
-drivers/infiniband/hw/qib/qib_iba7322.c:#define pr_fmt(fmt) QIB_DRV_NAME " " fmt
-drivers/infiniband/hw/qib/qib_init.c:#define pr_fmt(fmt) QIB_DRV_NAME ": " fmt
-drivers/infiniband/sw/rxe/rxe.h:#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-drivers/infiniband/ulp/srp/ib_srp.c:#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-drivers/infiniband/ulp/srpt/ib_srpt.c:#define pr_fmt(fmt) DRV_NAME " " fmt
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Mark's patches provide E-Switch refactoring that generalize the mlx5
+E-Switch vf representors interfaces and data structures. The serious is
+mainly focused on moving ethernet (netdev) specific representors logic out
+of E-Switch (eswitch.c) into mlx5e representor module (en_rep.c), which
+provides better separation and allows future support for other types of vf
+representors (e.g. RDMA).
+
+Gal's patches at the end of this serious, provide a simple syntax fix and
+two other patches that handles vport ingress/egress ACL steering name
+spaces to be aligned with the Firmware/Hardware specs.
+===============
+
+This patchset is based on rc4 and I see that net-next is still on rc3, i hope
+this is not a problem.
+
+Please pull and let me know if there's any problem.
+
+Thanks,
+Saeed.
+
+---
+
+The following changes since commit 1291a0d5049dbc06baaaf66a9ff3f53db493b19b:
+
+  Linux 4.15-rc4 (2017-12-17 18:59:59 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git tags/mlx5-shared-4.16-1
+
+for you to fetch changes up to e39cdfc72337490405b9382843b2fbdd09d7a49e:
+
+  net/mlx5: Separate ingress/egress namespaces for each vport (2017-12-18 22:49:54 -0800)
+
+----------------------------------------------------------------
+mlx5-shared-4.16-1
+
+mlx5 shared code for both rdma-next and net-next trees.
+
+----------------------------------------------------------------
+Gal Pressman (3):
+      net/mlx5e: E-Switch, Use the name of static array instead of its address
+      net/mlx5: Fix ingress/egress naming mistake
+      net/mlx5: Separate ingress/egress namespaces for each vport
+
+Mark Bloch (8):
+      net/mlx5: E-Switch, Refactor vport representors initialization
+      net/mlx5: E-Switch, Refactor load/unload of representors
+      net/mlx5: E-Switch, Simplify representor load/unload callback API
+      net/mlx5: E-Switch, Move mlx5e only logic outside E-Switch
+      net/mlx5: E-Switch, Create a dedicated send to vport rule deletion function
+      net/mlx5e: Move ethernet representors data into separate struct
+      net/mlx5: E-Switch, Create generic header struct to be used by representors
+      net/mlx5e: E-Switch, Move send-to-vport rule struct to en_rep
+
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.c   | 147 ++++++++++----
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.h   |  14 ++
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    |  15 +-
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |  48 +++--
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.h  |  45 +++--
+ .../ethernet/mellanox/mlx5/core/eswitch_offloads.c | 219 ++++++++++++---------
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.c  | 145 +++++++++++---
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.h  |   4 +-
+ include/linux/mlx5/fs.h                            |   4 +
+ 9 files changed, 427 insertions(+), 214 deletions(-)
