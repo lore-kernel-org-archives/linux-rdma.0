@@ -1,68 +1,69 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: XRC Questions for Mellanox and All
-Date: Tue, 19 Dec 2017 07:41:02 +0200
-Message-ID: <20171219054102.GH18894@mtr-leonro.local>
-References: <BN3PR07MB2578462C1760953F6D4690E2F8570@BN3PR07MB2578.namprd07.prod.outlook.com>
- <BN3PR07MB2578DE457E8E49E57CF49F17F82D0@BN3PR07MB2578.namprd07.prod.outlook.com>
- <20171119120935.GX18825@mtr-leonro.local>
- <BN3PR07MB2578D6D405479F378F8363E2F82D0@BN3PR07MB2578.namprd07.prod.outlook.com>
- <BN3PR07MB2578AD1BAC34493F0026D5B0F8340@BN3PR07MB2578.namprd07.prod.outlook.com>
+Subject: Re: [PATCH rdma-core 1/2] srp_daemon: handle SM lid change
+Date: Tue, 19 Dec 2017 07:46:47 +0200
+Message-ID: <20171219054647.GI18894@mtr-leonro.local>
+References: <dba1097c-8ab9-7086-a976-46e6d3c4a165@suse.com>
+ <0ca80873-0eb0-9c64-f813-dee94b82eea6@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="2NLGdgz3UMHa/lqP"
+        protocol="application/pgp-signature"; boundary="YrlhzR9YrZtruaFS"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <BN3PR07MB2578AD1BAC34493F0026D5B0F8340-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <0ca80873-0eb0-9c64-f813-dee94b82eea6-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nicolas Morey-Chaisemartin <nmoreychaisemartin-IBi9RG/b67k@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org, bvanassche-HInyCGIudOg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---2NLGdgz3UMHa/lqP
+--YrlhzR9YrZtruaFS
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Dec 12, 2017 at 09:49:31AM +0000, Amrani, Ram wrote:
-> > > Jack is working on it,
-> > >
+On Wed, Dec 13, 2017 at 06:32:30AM -0500, Dennis Dalessandro wrote:
+> On 12/12/2017 9:08 AM, Nicolas Morey-Chaisemartin wrote:
+> > When srp_daemon was running and the master SM host changes,
+> >   srp_daemon output these errors at every scan:
+> > srp_daemon[25394]: No response to inform info registration
+> > srp_daemon[25394]: Fail to register to traps, maybe there is no opensm
+> >   running on fabric or IB port is down
 > >
-> > I'll patiently wait for a response then.
+> > This was introduced by commit 4952e5f Fix a memory leak.
+> > A side effect of this patch was that create_ah was only called when the
+> >   port lid changes. Which meant register_to_traps used an older, obsolete,
+> >   version of sm_lid and failed to connect to it.
 > >
-> > Thanks,
-> > Ram
+> > This patch fixes this behaviour by checking for both local lid changes and
+> >   SM lid changes, and calling create_ah on any of these events.
 > >
->
-> Any news on this?
+> > Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
+> > Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org # v14, v15, v16
 
-Ram,
-
-I know that it doesn't look like this, but we (Jack and me) didn't
-forget it. It was supposed to be answered by Liran.
+There is no need to mention all versions, it is enough to write first one.
 
 Thanks
 
---2NLGdgz3UMHa/lqP
+--YrlhzR9YrZtruaFS
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo4pm4ACgkQ5GN7iDZy
-WKfh8Q//bNs/ZIov993Svw80V4tG+Fxws6xUXKQKjhZByEiZALQGpgoE8oWhtfRy
-B+3VpblZ9YtbvDGoewht211j0UQUSA/ADfQGXdXVAfTToGZgekOHKfj7P8eJMC0W
-XceTez+pa0k4LLzdVfZEU/XqlA1hmKJqWMF/saa1+5tFWwg6QweErnlW1Sv5RLNh
-gjr80QGhZBV/dUkGF7B2kxDjMzPzIG0rjzoVHu57Y3xVMlDLgj/D2Se1gmQnu1VF
-opN0Oc+g0PN+vfW4VjEFybDHzdvRSzoQJb4EQtW3QgM5oqltppFs4VP+pT96i2rA
-LeKaFNSKXpNuCi7k1lNHo6g5DRPCiqfQzBFRnWs4/iCo1tCkYnAi1bKkvOO0RE9Y
-q+mKV4+5bJ1KB/Zs7yDwArOJNmA/Ag1flK2QEO39jkzYeskMsBLHW6dgH1045awM
-3q3bR3O9shZwErBRDm0B4/sF8xnDnTsPDQsQV+KQHBzAJn5J2QZP2IneHeclBkUJ
-do466XitPaPNPDk8jcomLpZwDqM3+EByihb8SqHc7ckQbv6LvE89ZjTAB3a2Itgy
-/XOgwgRyco7yNFPf0Ji0el3mYTYQ8DV3fssIkMHe0Z3pNOzZzY8Bd5cm5qV16Y3A
-IfzH2/GhMUPFacVycw5amvY6nxbBpoJ+qn6ogp13VuelAd/f/do=
-=G9zH
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo4p8cACgkQ5GN7iDZy
+WKflsQ/+IAirL3lgxlJPxEI1QypX+3vy6zUbfHWj52uh8l2esDOuteYBPdtob/Xh
+bWio0HPEaPWk2H9rh2RhUGA4N4r2ZtJyGi8Km/EKSehiVRsCUQxCLMHCwsA/5CAm
+QxLgrrhZoiOAEhCx0tPbCQBq6wCDBP5gbLgq1QanQVa9BXONMTJ/B1TuINugSAPL
+NeY1PrD9ifPOqHWUryjLq+eplP/akNXRB4E5I8YvqVx5CuYLaw5VOduIW57ZadUm
+uOJHeqwyYKyhhf7iv58ObKS3fyW0nK1HeKJRMuqcYv7OguqsE1d+2VccRAC956hy
+4sdCFs/P91cQj0ew3/g5BDKFGktydR1hp4EoIWVcq++GA+GSQk4b1+dpmkRTkc1c
+Cj52UUQjowGo6RgL0NUrsW6rFifpHTqXBl1etAm4Cat671P0MtYVZCBK+Dl4+oeF
+Kmk3uyUVZX8Vr945xaNgK9exj4Dbaq7Zf8I0k3WZO/M3bRJljtakCv7p21PKh0cP
+gG6h/5ZjqGrIEpgs/h/2VyKR1R/gUBRsB0/lzMCrXpUCpc4AHoits3NWNd1s4mmC
+WDQu40f7tc/qjvTePbyNYF0cpcLhgWOCJghqs9QnMvHzfMKeDQJeLfpZu7AZLvJz
+d1iYsuKQxaRVeKWTJYwbTLNS0skVHYSbTtLyTdqWO4E4cuBtAYk=
+=0i52
 -----END PGP SIGNATURE-----
 
---2NLGdgz3UMHa/lqP--
+--YrlhzR9YrZtruaFS--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
