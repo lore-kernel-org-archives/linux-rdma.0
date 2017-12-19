@@ -1,60 +1,56 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: stuck iscsi/iser target with linux-4.15.0-rc1
-Date: Tue, 19 Dec 2017 16:21:03 -0600
-Message-ID: <018001d37917$a7d85e20$f7891a60$@opengridcomputing.com>
-References: <000801d36ac6$9e9f5f70$dbde1e50$@opengridcomputing.com> <0ba7e891-f020-26fb-9945-9e824332593c@grimberg.me> <018901d36d17$6a703410$3f509c30$@opengridcomputing.com> <1dee9f68-a81b-b7b8-9e70-e0ef5c63c520@grimberg.me>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH for-next] iw_cxgb4: Change error/warn prints to pr_debug
+Date: Tue, 19 Dec 2017 15:23:00 -0700
+Message-ID: <20171219222300.GH14814@ziepe.ca>
+References: <1513680256-8153-1-git-send-email-bharat@chelsio.com>
+ <20171219201639.GA14814@ziepe.ca>
+ <017901d3790e$030ddea0$09299be0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: 
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <017901d3790e$030ddea0$09299be0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'target-devel' <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Dec 19, 2017 at 03:12:01PM -0600, Steve Wise wrote:
+> > On Tue, Dec 19, 2017 at 04:14:16PM +0530, Potnuri Bharat Teja wrote:
+> > > @@ -64,12 +64,6 @@
+> > >  #define DRV_NAME "iw_cxgb4"
+> > >  #define MOD DRV_NAME ":"
+> > >
+> > > -#ifdef pr_fmt
+> > > -#undef pr_fmt
+> > > -#endif
+> > > -
+> > > -#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> > > -
+> > 
+> > Lots of other places in RDMA set a prefix, can we come to some agreement
+> if
+> > we
+> > should drop or keep this unverisally?
 > 
-> >
-> > Do you have any thoughts on debugging this?  Turning on isert debug is bad
-> > because the IO load is very high.  I sort of need something that I can do after it
-> > gets stuck.  So I can change the wait_for_completion() to a
-> > wait_for_completion_timeout() and if it times out, go figure out what it is
-> stuck
-> > on.
+> Either way we go, pr_fmt being redefined screws up pr_debug() which
+> optionally prepends the function, line, module names depending on the
+> dynamic debug settings.  You end up with the module name embedded in the
+> middle of the log statement, and duplicated with +m is used.  That is why
+> Bharat removed it from iw_cxgb4.  
 > 
-> This snipit from isert_put_cmd() looks interesting:
-> 
-> ...
->                         /*
->                          * Check for special case during comp_err where
->                          * WRITE_PENDING has been handed off from core,
->                          * but requires an extra target_put_sess_cmd()
->                          * before transport_generic_free_cmd() below.
->                          */
->                         if (comp_err &&
->                             cmd->se_cmd.t_state == TRANSPORT_WRITE_PENDING) {
->                                 struct se_cmd *se_cmd = &cmd->se_cmd;
-> 
->                                 target_put_sess_cmd(se_cmd);
->                         }
-> ...
+> In general, I like module names in log statements, but we just need to do it
+> the right way to avoid the pr_debug issue...
 
-Hey Sagi, 
+Seems like a bigger problem than for linux-rdma?
 
-I found my bug: If a wr chain is posted to iw_cxgb4  and needs to be flushed, only the first wr in the chain was being flushed.  The rest never completed.  This completion leak was causing the failure to deref IO commands...
+Shouldn't many of these prints be using dev_* stuff and be prefixed
+with their device name?
 
-Steve.
+Usually pr should only be used in places where the device does not yet
+exist.
 
-
-
-
-
----
-This email has been checked for viruses by AVG.
-http://www.avg.com
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
