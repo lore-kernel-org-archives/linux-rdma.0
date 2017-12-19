@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [for-next 11/11] net/mlx5: Separate ingress/egress namespaces for each vport
-Date: Tue, 19 Dec 2017 12:33:40 -0800
-Message-ID: <20171219203340.2600-12-saeedm@mellanox.com>
+Subject: [for-next 09/11] net/mlx5e: E-Switch, Use the name of static array instead of its address
+Date: Tue, 19 Dec 2017 12:33:38 -0800
+Message-ID: <20171219203340.2600-10-saeedm@mellanox.com>
 References: <20171219203340.2600-1-saeedm@mellanox.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20171219203340.2600-1-saeedm@mellanox.com>
@@ -12,290 +12,86 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Gal Pressman <galp@mellanox.com>
 
-Each vport has its own root flow table for the ACL flow tables and root
-flow table is per namespace, therefore we should create a namespace for
-each vport.
+Using the address of a static array is the same as using its name (in
+this specific use-case), but it's confusing and makes the code less
+readable.
 
-Fixes: efdc810ba39d ("net/mlx5: Flow steering, Add vport ACL support")
+Fixes: 1bd27b11c1df ("net/mlx5: Introduce E-switch QoS management")
+Fixes: bd77bf1cb595 ("net/mlx5: Add SRIOV VF max rate configuration support")
 Signed-off-by: Gal Pressman <galp@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c |  10 +-
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 145 ++++++++++++++++++----
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.h |   4 +-
- include/linux/mlx5/fs.h                           |   4 +
- 4 files changed, 133 insertions(+), 30 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 26 +++++++++++------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index cdf65ed8714c..7649e36653d9 100644
+index 6d4cbdb69823..cdf65ed8714c 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -867,9 +867,10 @@ static int esw_vport_enable_egress_acl(struct mlx5_eswitch *esw,
- 	esw_debug(dev, "Create vport[%d] egress ACL log_max_size(%d)\n",
- 		  vport->vport, MLX5_CAP_ESW_EGRESS_ACL(dev, log_max_ft_size));
+@@ -1290,7 +1290,7 @@ static int esw_create_tsar(struct mlx5_eswitch *esw)
  
--	root_ns = mlx5_get_flow_namespace(dev, MLX5_FLOW_NAMESPACE_ESW_EGRESS);
-+	root_ns = mlx5_get_flow_vport_acl_namespace(dev, MLX5_FLOW_NAMESPACE_ESW_EGRESS,
-+						    vport->vport);
- 	if (!root_ns) {
--		esw_warn(dev, "Failed to get E-Switch egress flow namespace\n");
-+		esw_warn(dev, "Failed to get E-Switch egress flow namespace for vport (%d)\n", vport->vport);
- 		return -EOPNOTSUPP;
- 	}
+ 	err = mlx5_create_scheduling_element_cmd(dev,
+ 						 SCHEDULING_HIERARCHY_E_SWITCH,
+-						 &tsar_ctx,
++						 tsar_ctx,
+ 						 &esw->qos.root_tsar_id);
+ 	if (err) {
+ 		esw_warn(esw->dev, "E-Switch create TSAR failed (%d)\n", err);
+@@ -1333,20 +1333,20 @@ static int esw_vport_enable_qos(struct mlx5_eswitch *esw, int vport_num,
+ 	if (vport->qos.enabled)
+ 		return -EEXIST;
  
-@@ -984,9 +985,10 @@ static int esw_vport_enable_ingress_acl(struct mlx5_eswitch *esw,
- 	esw_debug(dev, "Create vport[%d] ingress ACL log_max_size(%d)\n",
- 		  vport->vport, MLX5_CAP_ESW_INGRESS_ACL(dev, log_max_ft_size));
+-	MLX5_SET(scheduling_context, &sched_ctx, element_type,
++	MLX5_SET(scheduling_context, sched_ctx, element_type,
+ 		 SCHEDULING_CONTEXT_ELEMENT_TYPE_VPORT);
+-	vport_elem = MLX5_ADDR_OF(scheduling_context, &sched_ctx,
++	vport_elem = MLX5_ADDR_OF(scheduling_context, sched_ctx,
+ 				  element_attributes);
+ 	MLX5_SET(vport_element, vport_elem, vport_number, vport_num);
+-	MLX5_SET(scheduling_context, &sched_ctx, parent_element_id,
++	MLX5_SET(scheduling_context, sched_ctx, parent_element_id,
+ 		 esw->qos.root_tsar_id);
+-	MLX5_SET(scheduling_context, &sched_ctx, max_average_bw,
++	MLX5_SET(scheduling_context, sched_ctx, max_average_bw,
+ 		 initial_max_rate);
+-	MLX5_SET(scheduling_context, &sched_ctx, bw_share, initial_bw_share);
++	MLX5_SET(scheduling_context, sched_ctx, bw_share, initial_bw_share);
  
--	root_ns = mlx5_get_flow_namespace(dev, MLX5_FLOW_NAMESPACE_ESW_INGRESS);
-+	root_ns = mlx5_get_flow_vport_acl_namespace(dev, MLX5_FLOW_NAMESPACE_ESW_INGRESS,
-+						    vport->vport);
- 	if (!root_ns) {
--		esw_warn(dev, "Failed to get E-Switch ingress flow namespace\n");
-+		esw_warn(dev, "Failed to get E-Switch ingress flow namespace for vport (%d)\n", vport->vport);
- 		return -EOPNOTSUPP;
- 	}
+ 	err = mlx5_create_scheduling_element_cmd(dev,
+ 						 SCHEDULING_HIERARCHY_E_SWITCH,
+-						 &sched_ctx,
++						 sched_ctx,
+ 						 &vport->qos.esw_tsar_ix);
+ 	if (err) {
+ 		esw_warn(esw->dev, "E-Switch create TSAR vport element failed (vport=%d,err=%d)\n",
+@@ -1392,22 +1392,22 @@ static int esw_vport_qos_config(struct mlx5_eswitch *esw, int vport_num,
+ 	if (!vport->qos.enabled)
+ 		return -EIO;
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index 5e786e29f93a..45e75b1010f7 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -2014,16 +2014,6 @@ struct mlx5_flow_namespace *mlx5_get_flow_namespace(struct mlx5_core_dev *dev,
- 			return &steering->fdb_root_ns->ns;
- 		else
- 			return NULL;
--	case MLX5_FLOW_NAMESPACE_ESW_EGRESS:
--		if (steering->esw_egress_root_ns)
--			return &steering->esw_egress_root_ns->ns;
--		else
--			return NULL;
--	case MLX5_FLOW_NAMESPACE_ESW_INGRESS:
--		if (steering->esw_ingress_root_ns)
--			return &steering->esw_ingress_root_ns->ns;
--		else
--			return NULL;
- 	case MLX5_FLOW_NAMESPACE_SNIFFER_RX:
- 		if (steering->sniffer_rx_root_ns)
- 			return &steering->sniffer_rx_root_ns->ns;
-@@ -2054,6 +2044,33 @@ struct mlx5_flow_namespace *mlx5_get_flow_namespace(struct mlx5_core_dev *dev,
- }
- EXPORT_SYMBOL(mlx5_get_flow_namespace);
+-	MLX5_SET(scheduling_context, &sched_ctx, element_type,
++	MLX5_SET(scheduling_context, sched_ctx, element_type,
+ 		 SCHEDULING_CONTEXT_ELEMENT_TYPE_VPORT);
+-	vport_elem = MLX5_ADDR_OF(scheduling_context, &sched_ctx,
++	vport_elem = MLX5_ADDR_OF(scheduling_context, sched_ctx,
+ 				  element_attributes);
+ 	MLX5_SET(vport_element, vport_elem, vport_number, vport_num);
+-	MLX5_SET(scheduling_context, &sched_ctx, parent_element_id,
++	MLX5_SET(scheduling_context, sched_ctx, parent_element_id,
+ 		 esw->qos.root_tsar_id);
+-	MLX5_SET(scheduling_context, &sched_ctx, max_average_bw,
++	MLX5_SET(scheduling_context, sched_ctx, max_average_bw,
+ 		 max_rate);
+-	MLX5_SET(scheduling_context, &sched_ctx, bw_share, bw_share);
++	MLX5_SET(scheduling_context, sched_ctx, bw_share, bw_share);
+ 	bitmask |= MODIFY_SCHEDULING_ELEMENT_IN_MODIFY_BITMASK_MAX_AVERAGE_BW;
+ 	bitmask |= MODIFY_SCHEDULING_ELEMENT_IN_MODIFY_BITMASK_BW_SHARE;
  
-+struct mlx5_flow_namespace *mlx5_get_flow_vport_acl_namespace(struct mlx5_core_dev *dev,
-+							      enum mlx5_flow_namespace_type type,
-+							      int vport)
-+{
-+	struct mlx5_flow_steering *steering = dev->priv.steering;
-+
-+	if (!steering || vport >= MLX5_TOTAL_VPORTS(dev))
-+		return NULL;
-+
-+	switch (type) {
-+	case MLX5_FLOW_NAMESPACE_ESW_EGRESS:
-+		if (steering->esw_egress_root_ns &&
-+		    steering->esw_egress_root_ns[vport])
-+			return &steering->esw_egress_root_ns[vport]->ns;
-+		else
-+			return NULL;
-+	case MLX5_FLOW_NAMESPACE_ESW_INGRESS:
-+		if (steering->esw_ingress_root_ns &&
-+		    steering->esw_ingress_root_ns[vport])
-+			return &steering->esw_ingress_root_ns[vport]->ns;
-+		else
-+			return NULL;
-+	default:
-+		return NULL;
-+	}
-+}
-+
- static struct fs_prio *fs_create_prio(struct mlx5_flow_namespace *ns,
- 				      unsigned int prio, int num_levels)
- {
-@@ -2331,13 +2348,41 @@ static void cleanup_root_ns(struct mlx5_flow_root_namespace *root_ns)
- 	clean_tree(&root_ns->ns.node);
- }
- 
-+static void cleanup_egress_acls_root_ns(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_flow_steering *steering = dev->priv.steering;
-+	int i;
-+
-+	if (!steering->esw_egress_root_ns)
-+		return;
-+
-+	for (i = 0; i < MLX5_TOTAL_VPORTS(dev); i++)
-+		cleanup_root_ns(steering->esw_egress_root_ns[i]);
-+
-+	kfree(steering->esw_egress_root_ns);
-+}
-+
-+static void cleanup_ingress_acls_root_ns(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_flow_steering *steering = dev->priv.steering;
-+	int i;
-+
-+	if (!steering->esw_ingress_root_ns)
-+		return;
-+
-+	for (i = 0; i < MLX5_TOTAL_VPORTS(dev); i++)
-+		cleanup_root_ns(steering->esw_ingress_root_ns[i]);
-+
-+	kfree(steering->esw_ingress_root_ns);
-+}
-+
- void mlx5_cleanup_fs(struct mlx5_core_dev *dev)
- {
- 	struct mlx5_flow_steering *steering = dev->priv.steering;
- 
- 	cleanup_root_ns(steering->root_ns);
--	cleanup_root_ns(steering->esw_egress_root_ns);
--	cleanup_root_ns(steering->esw_ingress_root_ns);
-+	cleanup_egress_acls_root_ns(dev);
-+	cleanup_ingress_acls_root_ns(dev);
- 	cleanup_root_ns(steering->fdb_root_ns);
- 	cleanup_root_ns(steering->sniffer_rx_root_ns);
- 	cleanup_root_ns(steering->sniffer_tx_root_ns);
-@@ -2406,34 +2451,86 @@ static int init_fdb_root_ns(struct mlx5_flow_steering *steering)
- 	return PTR_ERR(prio);
- }
- 
--static int init_egress_acl_root_ns(struct mlx5_flow_steering *steering)
-+static int init_egress_acl_root_ns(struct mlx5_flow_steering *steering, int vport)
- {
- 	struct fs_prio *prio;
- 
--	steering->esw_egress_root_ns = create_root_ns(steering, FS_FT_ESW_EGRESS_ACL);
--	if (!steering->esw_egress_root_ns)
-+	steering->esw_egress_root_ns[vport] = create_root_ns(steering, FS_FT_ESW_EGRESS_ACL);
-+	if (!steering->esw_egress_root_ns[vport])
- 		return -ENOMEM;
- 
- 	/* create 1 prio*/
--	prio = fs_create_prio(&steering->esw_egress_root_ns->ns, 0,
--			      MLX5_TOTAL_VPORTS(steering->dev));
-+	prio = fs_create_prio(&steering->esw_egress_root_ns[vport]->ns, 0, 1);
- 	return PTR_ERR_OR_ZERO(prio);
- }
- 
--static int init_ingress_acl_root_ns(struct mlx5_flow_steering *steering)
-+static int init_ingress_acl_root_ns(struct mlx5_flow_steering *steering, int vport)
- {
- 	struct fs_prio *prio;
- 
--	steering->esw_ingress_root_ns = create_root_ns(steering, FS_FT_ESW_INGRESS_ACL);
--	if (!steering->esw_ingress_root_ns)
-+	steering->esw_ingress_root_ns[vport] = create_root_ns(steering, FS_FT_ESW_INGRESS_ACL);
-+	if (!steering->esw_ingress_root_ns[vport])
- 		return -ENOMEM;
- 
- 	/* create 1 prio*/
--	prio = fs_create_prio(&steering->esw_ingress_root_ns->ns, 0,
--			      MLX5_TOTAL_VPORTS(steering->dev));
-+	prio = fs_create_prio(&steering->esw_ingress_root_ns[vport]->ns, 0, 1);
- 	return PTR_ERR_OR_ZERO(prio);
- }
- 
-+static int init_egress_acls_root_ns(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_flow_steering *steering = dev->priv.steering;
-+	int err;
-+	int i;
-+
-+	steering->esw_egress_root_ns = kcalloc(MLX5_TOTAL_VPORTS(dev),
-+					       sizeof(*steering->esw_egress_root_ns),
-+					       GFP_KERNEL);
-+	if (!steering->esw_egress_root_ns)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < MLX5_TOTAL_VPORTS(dev); i++) {
-+		err = init_egress_acl_root_ns(steering, i);
-+		if (err)
-+			goto cleanup_root_ns;
-+	}
-+
-+	return 0;
-+
-+cleanup_root_ns:
-+	for (i--; i >= 0; i--)
-+		cleanup_root_ns(steering->esw_egress_root_ns[i]);
-+	kfree(steering->esw_egress_root_ns);
-+	return err;
-+}
-+
-+static int init_ingress_acls_root_ns(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_flow_steering *steering = dev->priv.steering;
-+	int err;
-+	int i;
-+
-+	steering->esw_ingress_root_ns = kcalloc(MLX5_TOTAL_VPORTS(dev),
-+						sizeof(*steering->esw_ingress_root_ns),
-+						GFP_KERNEL);
-+	if (!steering->esw_ingress_root_ns)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < MLX5_TOTAL_VPORTS(dev); i++) {
-+		err = init_ingress_acl_root_ns(steering, i);
-+		if (err)
-+			goto cleanup_root_ns;
-+	}
-+
-+	return 0;
-+
-+cleanup_root_ns:
-+	for (i--; i >= 0; i--)
-+		cleanup_root_ns(steering->esw_ingress_root_ns[i]);
-+	kfree(steering->esw_ingress_root_ns);
-+	return err;
-+}
-+
- int mlx5_init_fs(struct mlx5_core_dev *dev)
- {
- 	struct mlx5_flow_steering *steering;
-@@ -2476,12 +2573,12 @@ int mlx5_init_fs(struct mlx5_core_dev *dev)
- 				goto err;
- 		}
- 		if (MLX5_CAP_ESW_EGRESS_ACL(dev, ft_support)) {
--			err = init_egress_acl_root_ns(steering);
-+			err = init_egress_acls_root_ns(dev);
- 			if (err)
- 				goto err;
- 		}
- 		if (MLX5_CAP_ESW_INGRESS_ACL(dev, ft_support)) {
--			err = init_ingress_acl_root_ns(steering);
-+			err = init_ingress_acls_root_ns(dev);
- 			if (err)
- 				goto err;
- 		}
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-index 397d24a621a4..3e571045626f 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-@@ -71,8 +71,8 @@ struct mlx5_flow_steering {
- 	struct kmem_cache               *ftes_cache;
- 	struct mlx5_flow_root_namespace *root_ns;
- 	struct mlx5_flow_root_namespace *fdb_root_ns;
--	struct mlx5_flow_root_namespace *esw_egress_root_ns;
--	struct mlx5_flow_root_namespace *esw_ingress_root_ns;
-+	struct mlx5_flow_root_namespace **esw_egress_root_ns;
-+	struct mlx5_flow_root_namespace **esw_ingress_root_ns;
- 	struct mlx5_flow_root_namespace	*sniffer_tx_root_ns;
- 	struct mlx5_flow_root_namespace	*sniffer_rx_root_ns;
- };
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index b25e7baa273e..a0b48afcb422 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -95,6 +95,10 @@ struct mlx5_flow_destination {
- struct mlx5_flow_namespace *
- mlx5_get_flow_namespace(struct mlx5_core_dev *dev,
- 			enum mlx5_flow_namespace_type type);
-+struct mlx5_flow_namespace *
-+mlx5_get_flow_vport_acl_namespace(struct mlx5_core_dev *dev,
-+				  enum mlx5_flow_namespace_type type,
-+				  int vport);
- 
- struct mlx5_flow_table *
- mlx5_create_auto_grouped_flow_table(struct mlx5_flow_namespace *ns,
+ 	err = mlx5_modify_scheduling_element_cmd(dev,
+ 						 SCHEDULING_HIERARCHY_E_SWITCH,
+-						 &sched_ctx,
++						 sched_ctx,
+ 						 vport->qos.esw_tsar_ix,
+ 						 bitmask);
+ 	if (err) {
 -- 
 2.14.2
