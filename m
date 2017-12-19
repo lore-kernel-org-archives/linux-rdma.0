@@ -1,63 +1,55 @@
-From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] hw: Fix permissions for OCRDMA_RESET_STATS
-Date: Tue, 19 Dec 2017 23:14:03 +0530
-Message-ID: <CA+sbYW06=taq46tUxP0nto2Tj0p_Jt--AobDwP4TaEwK9mnqLQ@mail.gmail.com>
-References: <1502207797-25589-1-git-send-email-vasilyev@ispras.ru>
- <20170815183158.GB24282@mtr-leonro.local> <CA+sbYW2FHpCH+=f_v6j7J6eQhw++wQeUp1GmX=h-CwVA2OSr4w@mail.gmail.com>
- <20171219123030.GD2942@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [rdma-core PATCH] srp_daemon: Don't create async_ev_thread if only run once
+Date: Wed, 20 Dec 2017 03:09:58 +0800
+Message-ID: <20171219190958.3189-1-honli@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171219123030.GD2942-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Anton Vasilyev <vasilyev-ufN2psIa012HXe+LvDLADg@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Michael Mera <dev-5Y08+B5RRAgbhb6IIWwbbQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ldv-project-tpLiQldItUH5n4uC9ZG1Ww@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 19, 2017 at 6:00 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->> status = ocrdma_nonemb_mbx_cmd(dev, mqe, dev->stats_mem.va);
->
-> It still doesn't make a lot of sense to me:
->
-> ocrdma_mbx_rdma_stats():
-> 1315        if (reset)
-> 1316                 req->reset_stats = reset;
-> 1317
-> 1318         status = ocrdma_nonemb_mbx_cmd(dev, mqe, dev->stats_mem.va);
->
->
-> 1117 static int ocrdma_nonemb_mbx_cmd(struct ocrdma_dev *dev, struct ocrdma_mqe *mqe,
-> 1118                                  void *payload_va)
-> 1119 {
-> 1120         int status;
-> 1121         struct ocrdma_mbx_rsp *rsp = payload_va;
-> 1122
-> 1123         if ((mqe->hdr.spcl_sge_cnt_emb & OCRDMA_MQE_HDR_EMB_MASK)
-> 1124                                 OCRDMA_MQE_HDR_EMB_SHIFT)
-> 1125                 BUG();
-> 1126
-> 1127         status = ocrdma_mbx_cmd(dev, mqe);
->
-> You are not using rsp and/or payload_va to provide data to ocrdma_mbx_cmd.
->
-> How are you passing reset_stats information to FW?
->
-This is a command where the response size is more than  236 bytes. So this is
-sent as a non-embedded command where the req/resp will be available in
-payload_va
-and phys address of payload_va (payload_pa) will be send down to
-firmware as MQE. FW will dma the mailbox
-from the payload_pa and response is transferred back.
+From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-req->reset_stats = reset; is actually setting the corresponding bit in
-the request structure @payload_va.
-FW receives reset_stats once the request is DMA-ed from payload_pa.
+fd3005f0cd34 moves the signal handler setup from ibsrpdm path. So,
+default signal handler will be used when the main pthread send signal
+SIGINT to pthread async_ev_thread. ibsrpdm will exit with non-zero
+exit code as default signal handler killed it. ibsrpdm should return
+with exit code zero, if no error emerged.
 
-> Thanks
->
+We should not create async_ev_thread for ibsrpdm.
 
-Thanks,
-Selvin
+Fixes: fd3005f0cd34 ("srp_daemon: Move the setup of the wakeup_pipe after openlog")
+Reviewed-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ srp_daemon/srp_daemon.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
+index cec36db2..4012a7db 100644
+--- a/srp_daemon/srp_daemon.c
++++ b/srp_daemon/srp_daemon.c
+@@ -1945,12 +1945,12 @@ static struct resources *alloc_res(void)
+ 				     run_thread_get_trap_notices, &res->res);
+ 		if (ret)
+ 			goto err;
+-	}
+ 
+-	ret = pthread_create(&res->res.async_ev_thread, NULL,
+-			     run_thread_listen_to_events, &res->res);
+-	if (ret)
+-		goto err;
++		ret = pthread_create(&res->res.async_ev_thread, NULL,
++				     run_thread_listen_to_events, &res->res);
++		if (ret)
++			goto err;
++	}
+ 
+ 	if (config->retry_timeout && !config->once) {
+ 		ret = pthread_create(&res->res.reconnect_thread, NULL,
+-- 
+2.14.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
