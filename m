@@ -1,54 +1,45 @@
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 rdma-core] srp_daemon: Remove duplicate sync_res shutdown
-Date: Tue, 19 Dec 2017 14:51:02 -0700
-Message-ID: <20171219215102.GA28841@ziepe.ca>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: stuck iscsi/iser target with linux-4.15.0-rc1
+Date: Tue, 19 Dec 2017 15:53:38 -0600
+Message-ID: <017b01d37913$d36afce0$7a40f6a0$@opengridcomputing.com>
+References: <000801d36ac6$9e9f5f70$dbde1e50$@opengridcomputing.com> <0ba7e891-f020-26fb-9945-9e824332593c@grimberg.me> <018901d36d17$6a703410$3f509c30$@opengridcomputing.com> <1dee9f68-a81b-b7b8-9e70-e0ef5c63c520@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain;
+        charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: 
+Content-Language: en-us
+Sender: target-devel-owner@vger.kernel.org
+To: 'Sagi Grimberg' <sagi@grimberg.me>, 'target-devel' <target-devel@vger.kernel.org>
+Cc: linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The very first thing free_res does is the same lock/signal/unlock
-sequence, so there is no reason to open code it before calling
-free_res.
+> 
+> Do you have any thoughts on debugging this?  Turning on isert debug is bad
+> because the IO load is very high.  I sort of need something that I can do after it
+> gets stuck.  So I can change the wait_for_completion() to a
+> wait_for_completion_timeout() and if it times out, go figure out what it is stuck
+> on.
 
-res->sync_res always exists at this point so remove the assert too.
+This snipit from isert_put_cmd() looks interesting:
 
-Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+...
+                        /*
+                         * Check for special case during comp_err where
+                         * WRITE_PENDING has been handed off from core,
+                         * but requires an extra target_put_sess_cmd()
+                         * before transport_generic_free_cmd() below.
+                         */
+                        if (comp_err &&
+                            cmd->se_cmd.t_state == TRANSPORT_WRITE_PENDING) {
+                                struct se_cmd *se_cmd = &cmd->se_cmd;
+
+                                target_put_sess_cmd(se_cmd);
+                        }
+...
+
+
 ---
- srp_daemon/srp_daemon.c | 6 ------
- 1 file changed, 6 deletions(-)
-
-v3:
-- Delete stray edit
-
-Bart, Yes, must have been a stray editor edit, I did not even look at v2 in
-the mailer before sending it, since the one line change was so simple :(
-This one compiles.
-
-diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
-index cec36db2e0f12e..5995e6a6173046 100644
---- a/srp_daemon/srp_daemon.c
-+++ b/srp_daemon/srp_daemon.c
-@@ -2073,12 +2073,6 @@ static int ibsrpdm(int argc, char *argv[])
- 	if (ret)
- 		pr_err("Querying SRP targets failed\n");
- 
--	assert(res->sync_res);
--	pthread_mutex_lock(&res->sync_res->retry_mutex);
--	res->sync_res->stop_threads = 1;
--	pthread_cond_signal(&res->sync_res->retry_cond);
--	pthread_mutex_unlock(&res->sync_res->retry_mutex);
--
- 	free_res(res);
- umad_done:
- 	umad_done();
--- 
-2.15.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This email has been checked for viruses by AVG.
+http://www.avg.com
