@@ -1,103 +1,145 @@
-From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] srp_daemon: Install signal handler for ibsrpdm
-Date: Tue, 19 Dec 2017 20:20:50 +0800
-Message-ID: <20171219122050.GA19682@dhcp-13-42.nay.redhat.com>
-References: <20171214110241.4701-1-honli@redhat.com>
- <1513263572.2986.2.camel@wdc.com>
- <20171215013628.GA743@dhcp-13-42.nay.redhat.com>
- <20171215172800.GA12434@ziepe.ca>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] hw: Fix permissions for OCRDMA_RESET_STATS
+Date: Tue, 19 Dec 2017 14:30:30 +0200
+Message-ID: <20171219123030.GD2942@mtr-leonro.local>
+References: <1502207797-25589-1-git-send-email-vasilyev@ispras.ru>
+ <20170815183158.GB24282@mtr-leonro.local>
+ <CA+sbYW2FHpCH+=f_v6j7J6eQhw++wQeUp1GmX=h-CwVA2OSr4w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="vni90+aGYgRvsTuO"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171215172800.GA12434-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <CA+sbYW2FHpCH+=f_v6j7J6eQhw++wQeUp1GmX=h-CwVA2OSr4w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Anton Vasilyev <vasilyev-ufN2psIa012HXe+LvDLADg@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Michael Mera <dev-5Y08+B5RRAgbhb6IIWwbbQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ldv-project-tpLiQldItUH5n4uC9ZG1Ww@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 15, 2017 at 10:28:00AM -0700, Jason Gunthorpe wrote:
-> On Fri, Dec 15, 2017 at 09:36:28AM +0800, Honggang LI wrote:
-> > On Thu, Dec 14, 2017 at 02:59:34PM +0000, Bart Van Assche wrote:
-> > > On Thu, 2017-12-14 at 19:02 +0800, Honggang LI wrote:
-> > > > fd3005f0cd34 moves the signal handler setup from ibsrpdm path. So,
-> > > > default signal handler will be used when it receives signal SIGINT.
-> > > > ibsrpdm will exit with non-zero exit code as default signal handler
-> > > > killed it.
-> > > 
-> > > Can you explain why you think that ibsrpdm needs a signal handler?
-> > 
-> > main
-> >   ibsrpdm
-> >     alloc_res
-> >       pthread_create(&res->res.async_ev_thread [1]
-> >     ....
-> >     free_res
-> >       if (res->async_ev_thread) { pthread_kill(res->async_ev_thread, SIGINT); [2]
-> > 
-> > 
-> > The ibsrpdm program create a thread in [1], and send a SIGINT in [2].
-> > The default behavior of SIGINT is to terminate the process.
-> 
-> Yuk, no, using signals like this is horrifyingly buggy.
 
-OK, I agree with you. The "signal_handler", which calls "wake_up_main_loop",
-is not the right solution, because wakeup_pipe never used by ibsrpdm.
+--vni90+aGYgRvsTuO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-<snip>
-void wake_up_main_loop(char ch)
-{
-        int res;
+On Tue, Dec 19, 2017 at 03:59:30PM +0530, Selvin Xavier wrote:
+> On Wed, Aug 16, 2017 at 12:01 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> > On Tue, Aug 08, 2017 at 06:56:37PM +0300, Anton Vasilyev wrote:
+> >> Debugfs file reset_stats is created with S_IRUSR permissions,
+> >> but ocrdma_dbgfs_ops_read() doesn't support OCRDMA_RESET_STATS,
+> >> whereas ocrdma_dbgfs_ops_write() supports only OCRDMA_RESET_STATS.
+> >>
+> >> The patch fixes misstype with permissions.
+> >>
+> >> Found by Linux Driver Verification project (linuxtesting.org).
+> >>
+> >> Signed-off-by: Anton Vasilyev <vasilyev-ufN2psIa012HXe+LvDLADg@public.gmane.org>
+> >> ---
+> >>  drivers/infiniband/hw/ocrdma/ocrdma_stats.c | 2 +-
+> >>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
+> >> index 66056f9..d42c617 100644
+> >> --- a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
+> >> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
+> >> @@ -834,7 +834,7 @@ void ocrdma_add_port_stats(struct ocrdma_dev *dev)
+> >>
+> >>       dev->reset_stats.type = OCRDMA_RESET_STATS;
+> >>       dev->reset_stats.dev = dev;
+> >> -     if (!debugfs_create_file("reset_stats", S_IRUSR, dev->dir,
+> >> +     if (!debugfs_create_file("reset_stats", S_IWUSR, dev->dir,
+> >>                               &dev->reset_stats, &ocrdma_dbg_ops))
+> >>               goto err;
+> >>
+> >
+> > If I didn't miss anything, the reset_stats knob wouldn't work.
+> >
+> > Any read of statistics from that debugfs will trigger the call to
+> > ocrdma_update_stats and it will call to ocrdma_mbx_rdma_stats(dev, false).
+> >
+> > For write operations to that "reset_stats", there is call
+> > to ocrdma_mbx_rdma_stats with second argument (reset) as true.
+> >
+> > But it doesn't do much with that "reset" argument, except update of reset_stats.
+> >
+> > git grep reset_stats drivers/infiniband/hw/ocrdma/* drivers/net/ethernet/emulex/
+> > drivers/infiniband/hw/ocrdma/ocrdma.h:  struct ocrdma_stats reset_stats;
+> > drivers/infiniband/hw/ocrdma/ocrdma_hw.c:               req->reset_stats = reset;
+>
+> "reset" filed is passed down to the FW mailbox command to reset the
+> stats maintained by FW.
+> req is a pointer to dev->stats_mem.va and this is used to send down
+> the command to FW.
+> status = ocrdma_nonemb_mbx_cmd(dev, mqe, dev->stats_mem.va);
 
-	assert(wakeup_pipe[1] >= 0); // this 'assert' will be failed
-<snip>	
+It still doesn't make a lot of sense to me:
+
+ocrdma_mbx_rdma_stats():
+1315        if (reset)
+1316                 req->reset_stats = reset;
+1317
+1318         status = ocrdma_nonemb_mbx_cmd(dev, mqe, dev->stats_mem.va);
 
 
-> Here is a sketch on how to fix it properly. All the users of
-> pthread_kill should be eliminated.
-> 
-> Though overall, there is really no reason to even cleanup the threads,
-> just call exit?
+1117 static int ocrdma_nonemb_mbx_cmd(struct ocrdma_dev *dev, struct ocrdma_mqe *mqe,
+1118                                  void *payload_va)
+1119 {
+1120         int status;
+1121         struct ocrdma_mbx_rsp *rsp = payload_va;
+1122
+1123         if ((mqe->hdr.spcl_sge_cnt_emb & OCRDMA_MQE_HDR_EMB_MASK)
+1124                                 OCRDMA_MQE_HDR_EMB_SHIFT)
+1125                 BUG();
+1126
+1127         status = ocrdma_mbx_cmd(dev, mqe);
 
-No, if one pthread just calls 'exit', the entire process will be
-terminated immediately. So, we need to cleanup the threads.
+You are not using rsp and/or payload_va to provide data to ocrdma_mbx_cmd.
 
-I think the source of current issue is the async_ev_thread pthread.
-We should *NOT* create such pthread for ibsrpdm.
+How are you passing reset_stats information to FW?
 
-I checked the old srptools git repo.
+Thanks
 
-git://git.openfabrics.org/~bvanassche/srptools.git
 
-Commit ab57a5b92eb3b8c9221f77235a028814a462d2cb merges "ibsrpdm" into
-"srp_daemon". The old ibsrpdm program is a single thread program.
-srp_daemon is multi-thread program.
 
-As ibsrpdm always only run once, because "config->once" has been
-assigned to 1. I would suggest to apply this patch.
 
-diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
-index cec36db2..4012a7db 100644
---- a/srp_daemon/srp_daemon.c
-+++ b/srp_daemon/srp_daemon.c
-@@ -1945,12 +1945,12 @@ static struct resources *alloc_res(void)
- 				     run_thread_get_trap_notices, &res->res);
- 		if (ret)
- 			goto err;
--	}
- 
--	ret = pthread_create(&res->res.async_ev_thread, NULL,
--			     run_thread_listen_to_events, &res->res);
--	if (ret)
--		goto err;
-+		ret = pthread_create(&res->res.async_ev_thread, NULL,
-+				     run_thread_listen_to_events, &res->res);
-+		if (ret)
-+			goto err;
-+	}
- 
- 	if (config->retry_timeout && !config->once) {
- 		ret = pthread_create(&res->res.reconnect_thread, NULL,
+>
+>
+> > drivers/infiniband/hw/ocrdma/ocrdma_sli.h:      u8 reset_stats;
+> > drivers/infiniband/hw/ocrdma/ocrdma_stats.c:    dev->reset_stats.type = OCRDMA_RESET_STATS;
+> > drivers/infiniband/hw/ocrdma/ocrdma_stats.c:    dev->reset_stats.dev = dev;
+> > drivers/infiniband/hw/ocrdma/ocrdma_stats.c:    if (!debugfs_create_file("reset_stats", S_IRUSR, dev->dir,
+> > drivers/infiniband/hw/ocrdma/ocrdma_stats.c:                            &dev->reset_stats, &ocrdma_dbg_ops))
+> > drivers/net/ethernet/emulex/benet/be_cmds.c:    req->cmd_params.params.reset_stats = 0;
+> > drivers/net/ethernet/emulex/benet/be_cmds.h:    u8 reset_stats;
+> >
+> > Thanks
+>
+> The patch looks good to me.
+> Acked-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+>
+> Thanks
+> Selvin
+
+--vni90+aGYgRvsTuO
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo5BmUACgkQ5GN7iDZy
+WKdSmg//d6DoH5ffYPx8CVU8qeBOgMFB3YhsKsTDZ/QKjVtuKpe8/tafpewRtI02
+amESA0hICym/X85pEz+ce2/lRZFHeHHdlTSNq9EiVsyK/MvvyR6SU/ce4b/nrui5
+nAzCRdAdIT3wH+Fbr5yvqdi0ACVBk7Z7ijDgbN1K0mMwrOksv7b01w+aDhv0mOc5
+aTCBolphUWcUjavco+ScfAlBP3EQtxGMdMKeuY0WwYGNGoUz+peCth1rQ+zVZat2
+ElrwD13w7bxRb5WYoFu6XQZDS0YQ0+C3fL8XXEY3NRDSDlq6htgjWD5WbD7lxB23
+sn7qyx8DSzEeE6+PVnyyqsWaRkBFqWJwUtATx+eDX95XjLZlncKxEEry6ai6lG/s
+34NulGDrXwdyH2FOGOwAT4PdL+hcvFbpq8z36FD2mKfhPjUUrZ1em+D9SFJhm2DN
+0zMJNJFyQhFVKpCDWPCup/jv0oS+xQdrQR6tIOcM8i5vaTYt84gcGND9Q/gSzGR5
+THZ2AEnuRoCuWasGatMucXRlA8OtBwb4OJNtvLX7ryJ5ymHdoMKMw4lk4EwmT+2N
+59+XQrb7MW+5Vgzg73lBMplTzqZ6pUdyMzEej1/WJsMd6LUHul/GeZGaHNrCra+X
+yMP++C5i7PB4/Ma93I4+vvT47awpH1KmXxboeNVyR8CJSFwL1Xk=
+=XJ39
+-----END PGP SIGNATURE-----
+
+--vni90+aGYgRvsTuO--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
