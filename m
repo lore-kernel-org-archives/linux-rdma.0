@@ -1,64 +1,49 @@
-From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] srp_daemon: Install signal handler for ibsrpdm
-Date: Wed, 20 Dec 2017 03:12:23 +0800
-Message-ID: <20171219191223.GA3139@dhcp-13-42.nay.redhat.com>
-References: <20171214110241.4701-1-honli@redhat.com>
- <1513263572.2986.2.camel@wdc.com>
- <20171215013628.GA743@dhcp-13-42.nay.redhat.com>
- <20171215172800.GA12434@ziepe.ca>
- <20171219122050.GA19682@dhcp-13-42.nay.redhat.com>
- <1513702653.2535.3.camel@wdc.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH for-next] iw_cxgb4: Change error/warn prints to pr_debug
+Date: Tue, 19 Dec 2017 13:16:39 -0700
+Message-ID: <20171219201639.GA14814@ziepe.ca>
+References: <1513680256-8153-1-git-send-email-bharat@chelsio.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1513702653.2535.3.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <1513680256-8153-1-git-send-email-bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 19, 2017 at 04:57:35PM +0000, Bart Van Assche wrote:
-> On Tue, 2017-12-19 at 20:20 +0800, Honggang LI wrote:
-> > As ibsrpdm always only run once, because "config->once" has been
-> > assigned to 1. I would suggest to apply this patch.
-> > 
-> > diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
-> > index cec36db2..4012a7db 100644
-> > --- a/srp_daemon/srp_daemon.c
-> > +++ b/srp_daemon/srp_daemon.c
-> > @@ -1945,12 +1945,12 @@ static struct resources *alloc_res(void)
-> >  				     run_thread_get_trap_notices, &res->res);
-> >  		if (ret)
-> >  			goto err;
-> > -	}
-> >  
-> > -	ret = pthread_create(&res->res.async_ev_thread, NULL,
-> > -			     run_thread_listen_to_events, &res->res);
-> > -	if (ret)
-> > -		goto err;
-> > +		ret = pthread_create(&res->res.async_ev_thread, NULL,
-> > +				     run_thread_listen_to_events, &res->res);
-> > +		if (ret)
-> > +			goto err;
-> > +	}
-> >  
-> >  	if (config->retry_timeout && !config->once) {
-> >  		ret = pthread_create(&res->res.reconnect_thread, NULL,
-> 
-> Please submit this as a proper patch and add the following:
+On Tue, Dec 19, 2017 at 04:14:16PM +0530, Potnuri Bharat Teja wrote:
+> @@ -64,12 +64,6 @@
+>  #define DRV_NAME "iw_cxgb4"
+>  #define MOD DRV_NAME ":"
+>  
+> -#ifdef pr_fmt
+> -#undef pr_fmt
+> -#endif
+> -
+> -#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> -
 
-[rdma-core PATCH] srp_daemon: Don't create async_ev_thread if only run once
+Lots of other places in RDMA set a prefix, can we come to some agreement if we
+should drop or keep this unverisally?
 
-I sent the patch with that $SUBJECT.
-
-thanks
-> Reviewed-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-> 
-> Thanks,
-> 
-> Bart.
-> 
+drivers/infiniband/core/mad.c:#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+drivers/infiniband/core/netlink.c:#define pr_fmt(fmt) "%s:%s: " fmt, KBUILD_MODNAME, __func__
+drivers/infiniband/core/user_mad.c:#define pr_fmt(fmt) "user_mad: " fmt
+drivers/infiniband/hw/cxgb3/cxio_hal.h:#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+drivers/infiniband/hw/cxgb4/iw_cxgb4.h:#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+drivers/infiniband/hw/hfi1/driver.c:#define pr_fmt(fmt) DRIVER_NAME ": " fmt
+drivers/infiniband/hw/hfi1/file_ops.c:#define pr_fmt(fmt) DRIVER_NAME ": " fmt
+drivers/infiniband/hw/hfi1/init.c:#define pr_fmt(fmt) DRIVER_NAME ": " fmt
+drivers/infiniband/hw/mlx4/mlx4_ib.h:#define pr_fmt(fmt)        "<" MLX4_IB_DRV_NAME "> %s: " fmt, __func__
+drivers/infiniband/hw/qib/qib_diag.c:#define pr_fmt(fmt) QIB_DRV_NAME ": " fmt
+drivers/infiniband/hw/qib/qib_file_ops.c:#define pr_fmt(fmt) QIB_DRV_NAME ": " fmt
+drivers/infiniband/hw/qib/qib_iba7322.c:#define pr_fmt(fmt) QIB_DRV_NAME " " fmt
+drivers/infiniband/hw/qib/qib_init.c:#define pr_fmt(fmt) QIB_DRV_NAME ": " fmt
+drivers/infiniband/sw/rxe/rxe.h:#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+drivers/infiniband/ulp/srp/ib_srp.c:#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+drivers/infiniband/ulp/srpt/ib_srpt.c:#define pr_fmt(fmt) DRV_NAME " " fmt
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
