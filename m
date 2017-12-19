@@ -1,45 +1,43 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: stuck iscsi/iser target with linux-4.15.0-rc1
-Date: Tue, 19 Dec 2017 15:53:38 -0600
-Message-ID: <017b01d37913$d36afce0$7a40f6a0$@opengridcomputing.com>
-References: <000801d36ac6$9e9f5f70$dbde1e50$@opengridcomputing.com> <0ba7e891-f020-26fb-9945-9e824332593c@grimberg.me> <018901d36d17$6a703410$3f509c30$@opengridcomputing.com> <1dee9f68-a81b-b7b8-9e70-e0ef5c63c520@grimberg.me>
+From: Marcelo Ricardo Leitner <marcelo.leitner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [pull request][for-next 00/11] Mellanox, mlx5 E-Switch updates
+ 2017-12-19
+Date: Tue, 19 Dec 2017 19:54:14 -0200
+Message-ID: <20171219215414.GH6122@localhost.localdomain>
+References: <20171219203340.2600-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: 
-Content-Language: en-us
-Sender: target-devel-owner@vger.kernel.org
-To: 'Sagi Grimberg' <sagi@grimberg.me>, 'target-devel' <target-devel@vger.kernel.org>
-Cc: linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171219203340.2600-1-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Dec 19, 2017 at 12:33:29PM -0800, Saeed Mahameed wrote:
+> Hi Dave and Doug,
 > 
-> Do you have any thoughts on debugging this?  Turning on isert debug is bad
-> because the IO load is very high.  I sort of need something that I can do after it
-> gets stuck.  So I can change the wait_for_completion() to a
-> wait_for_completion_timeout() and if it times out, go figure out what it is stuck
-> on.
+> ==============
+> This series includes updates for mlx5 E-Switch infrastructures,
+> to be merged into net-next and rdma-next trees.
+> 
+> Mark's patches provide E-Switch refactoring that generalize the mlx5
+> E-Switch vf representors interfaces and data structures. The serious is
+> mainly focused on moving ethernet (netdev) specific representors logic out
+> of E-Switch (eswitch.c) into mlx5e representor module (en_rep.c), which
+> provides better separation and allows future support for other types of vf
+> representors (e.g. RDMA).
+> 
+> Gal's patches at the end of this serious, provide a simple syntax fix and
+> two other patches that handles vport ingress/egress ACL steering name
+> spaces to be aligned with the Firmware/Hardware specs.
 
-This snipit from isert_put_cmd() looks interesting:
+Patch 10 actually looks quite worrysome if a card would support only
+one ingress or egress, but if all of them support both, then it should
+be fine yes. Is that possible, to support only one direction?
 
-...
-                        /*
-                         * Check for special case during comp_err where
-                         * WRITE_PENDING has been handed off from core,
-                         * but requires an extra target_put_sess_cmd()
-                         * before transport_generic_free_cmd() below.
-                         */
-                        if (comp_err &&
-                            cmd->se_cmd.t_state == TRANSPORT_WRITE_PENDING) {
-                                struct se_cmd *se_cmd = &cmd->se_cmd;
-
-                                target_put_sess_cmd(se_cmd);
-                        }
-...
-
-
----
-This email has been checked for viruses by AVG.
-http://www.avg.com
+  Marcelo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
