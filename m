@@ -1,39 +1,75 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [linux-rdma/rdma-core] libibverb/examples: Add command line
- option to enable buffer validation (#273)
-Date: Tue, 19 Dec 2017 09:14:05 +0000
-Message-ID: <BN3PR07MB2578FA8F232AF156B35B134EF80F0@BN3PR07MB2578.namprd07.prod.outlook.com>
-References: <linux-rdma/rdma-core/pull/273@github.com>
- <linux-rdma/rdma-core/pull/273/issue_event/1386542099@github.com>
- <BN3PR07MB257832CED7D7E8902C08931DF80A0@BN3PR07MB2578.namprd07.prod.outlook.com>
- <BN3PR07MB25782A5BA5D0999F73040CC8F80A0@BN3PR07MB2578.namprd07.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Chelsio Cudbg <chelsiocudbg-YEAOTlfEoH4oZ4o0MQTwmEh/o/VBkw4H@public.gmane.org>
+Subject: [PATCH for-next] iw_cxgb4: Change error/warn prints to pr_debug
+Date: Tue, 19 Dec 2017 15:38:28 +0530
+Message-ID: <1513678108-6634-1-git-send-email-chelsiocudbg@users.noreply.github.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BN3PR07MB25782A5BA5D0999F73040CC8F80A0-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBIaSBKYXNvbiwgWXV2YWwsDQo+IEnigJl2ZSBzdGFydGVkIGEgcmV2aWV3IG9uIHRoaXMgYSBj
-b3VwbGUgb2YgZGF5cyBhZ28uIEl04oCZcyB0aGUgZmlyc3QgdGltZSBJ4oCZdmUgZG9uZSB0aGlz
-Lg0KPiBEaWQgeW91IGdldCBlLW1haWxzIGFib3V0IGl0PyBIb3cgY29tZSBpdCBnZXRzIG1lcmdl
-ZCB3aXRob3V0IHJlc3BvbnNlPw0KPiBQbGVhc2UgY29tbWVudCBvbiBteSByZW1hcmtzLg0KPiAN
-Cj4gVGhhbmtzLA0KPiBSYW0NCj4gDQoNCkkgc3RpbGwgZGlkbid0IHNlZSBhbnkgZS1tYWlsLg0K
-UHJvYmFibHkgdGhlIHJldmlldyBkb2Vzbid0IHdvcmsgYWZ0ZXIgdGhlIHBhdGNoIGhhcyBiZWVu
-IGNvbW1pdHRlZC4NCk15IGNvbW1lbnRzOg0KDQorCXByaW50ZigiICAtYywgLS1jaGsJICAgICAg
-ICAgICAgdmFsaWRhdGUgcmVjZWl2ZWQgYnVmZmVyXG4iKTsNCldoeSBub3QgaGF2ZSB0aGUgZGVm
-YXVsdCBzZXQgdG8gJ3ZhbGlkYXRlJz8NClRoZSBvbmx5IHJlYXNvbiBub3QgdG8gdXNlIHZhbGlk
-YXRlIGlzIGZvciBwZXJmb3JtYW5jZSBhbmQgSSBkb24ndCB0aGluayB0aGlzIGFwcGxpY2F0aW9u
-IGNoZWNrcyB0aGF0Li4uDQpTdGlsbCwgaWYgdGhpcyBpcyBpbXBvcnRhbnQgdGhlbiB0aGUgdXNl
-ciBjYW4gY2hvb3NlIHRvIGRpc2FibGUgdmFsaWRhdGlvbi4NCg0KKwkJCWZvciAoaW50IGkgPSAw
-OyBpIDwgc2l6ZTsgaSArPSBwYWdlX3NpemUpDQpJIGV4cGVjdCAoYW5kIElNSE8gdXNlcnMgZXhw
-ZWN0IHRvbykgdGhhdCBkYXRhIHZhbGlkYXRpb24gaXMgb24gdGhlIGVudGlyZSBidWZmZXIuIFdo
-YXQgaXMgaGFwcGVuaW5nIGhlcmUgaXMgdGhhdCBvbmx5IGEgc2luZ2xlIGJ5dGUgcGVyIHBhZ2Ug
-aXMgY2hlY2tlZC4NCg0KVGhhbmtzLA0KUmFtDQoNCg0K
+From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+
+These prints not neccesarily mean error, so changing them to debug.
+Redifining pr_fmt to print the kernel module name, prints the module
+name twice when +m flag of pr_debug is enabled, hence removing the
+pr_fmt redefinition.
+
+Signed-off-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/cm.c       | 4 ++--
+ drivers/infiniband/hw/cxgb4/ev.c       | 2 +-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h | 6 ------
+ 3 files changed, 3 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 21db3b48a617..eecdfb0c6be6 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -3567,8 +3567,8 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
+ 	case MORIBUND:
+ 	case ABORTING:
+ 	case DEAD:
+-		pr_info("%s ignoring disconnect ep %p state %u\n",
+-			__func__, ep, ep->com.state);
++		pr_debug("ignoring disconnect ep %p state %u\n",
++			 ep, ep->com.state);
+ 		break;
+ 	default:
+ 		WARN_ONCE(1, "Bad endpoint state %u\n", ep->com.state);
+diff --git a/drivers/infiniband/hw/cxgb4/ev.c b/drivers/infiniband/hw/cxgb4/ev.c
+index a252d5c40ae3..3e9d8b277ab9 100644
+--- a/drivers/infiniband/hw/cxgb4/ev.c
++++ b/drivers/infiniband/hw/cxgb4/ev.c
+@@ -236,7 +236,7 @@ int c4iw_ev_handler(struct c4iw_dev *dev, u32 qid)
+ 		if (atomic_dec_and_test(&chp->refcnt))
+ 			wake_up(&chp->wait);
+ 	} else {
+-		pr_warn("%s unknown cqid 0x%x\n", __func__, qid);
++		pr_debug("unknown cqid 0x%x\n", qid);
+ 		spin_unlock_irqrestore(&dev->lock, flag);
+ 	}
+ 	return 0;
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index 470f97a79ebb..7d6ec29ec9d7 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -64,12 +64,6 @@
+ #define DRV_NAME "iw_cxgb4"
+ #define MOD DRV_NAME ":"
+ 
+-#ifdef pr_fmt
+-#undef pr_fmt
+-#endif
+-
+-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-
+ #include "t4.h"
+ 
+ #define PBL_OFF(rdev_p, a) ((a) - (rdev_p)->lldi.vr->pbl.start)
+-- 
+2.5.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
