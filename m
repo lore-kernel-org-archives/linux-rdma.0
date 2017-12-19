@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 08/11] IB/rdmavt: Allocate CQ memory on the correct
- node
-Date: Mon, 18 Dec 2017 19:57:06 -0800
-Message-ID: <20171219035704.2126.25872.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 09/11] rdma: Update maintainer contact for Intel
+ RDMA drivers
+Date: Mon, 18 Dec 2017 19:57:13 -0800
+Message-ID: <20171219035711.2126.47130.stgit@scvm10.sc.intel.com>
 References: <20171219034753.2126.78386.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,61 +11,40 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171219034753.2126.78386.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Ensure both Mike and I are listed as maintainer contacts for Intel's qib,
+hfi1, and rdmavt drivers.
 
-CQ allocation does not ensure that completion queue entries
-and the completion queue structure are allocated on the correct
-numa node.
-
-Fix by allocating the rvt_cq and kernel CQ entries on the device node,
-leaving the user CQ entries on the default local node.  Also ensure
-CQ resizes use the correct allocator when extending a CQ.
-
-Reviewed-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/cq.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
+ MAINTAINERS |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
-index 97d71e4..88fa4d4 100644
---- a/drivers/infiniband/sw/rdmavt/cq.c
-+++ b/drivers/infiniband/sw/rdmavt/cq.c
-@@ -198,7 +198,7 @@ struct ib_cq *rvt_create_cq(struct ib_device *ibdev,
- 		return ERR_PTR(-EINVAL);
+diff --git a/MAINTAINERS b/MAINTAINERS
+index dafc9c3..d4b725e 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -11053,7 +11053,8 @@ S:	Maintained
+ F:	drivers/firmware/qemu_fw_cfg.c
  
- 	/* Allocate the completion queue structure. */
--	cq = kzalloc(sizeof(*cq), GFP_KERNEL);
-+	cq = kzalloc_node(sizeof(*cq), GFP_KERNEL, rdi->dparms.node);
- 	if (!cq)
- 		return ERR_PTR(-ENOMEM);
+ QIB DRIVER
+-M:	Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
++M:	Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
++M:	Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ S:	Supported
+ F:	drivers/infiniband/hw/qib/
+@@ -11351,6 +11352,7 @@ F:	drivers/net/ethernet/rdc/r6040.c
  
-@@ -214,7 +214,9 @@ struct ib_cq *rvt_create_cq(struct ib_device *ibdev,
- 		sz += sizeof(struct ib_uverbs_wc) * (entries + 1);
- 	else
- 		sz += sizeof(struct ib_wc) * (entries + 1);
--	wc = vmalloc_user(sz);
-+	wc = udata ?
-+		vmalloc_user(sz) :
-+		vzalloc_node(sz, rdi->dparms.node);
- 	if (!wc) {
- 		ret = ERR_PTR(-ENOMEM);
- 		goto bail_cq;
-@@ -369,7 +371,9 @@ int rvt_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
- 		sz += sizeof(struct ib_uverbs_wc) * (cqe + 1);
- 	else
- 		sz += sizeof(struct ib_wc) * (cqe + 1);
--	wc = vmalloc_user(sz);
-+	wc = udata ?
-+		vmalloc_user(sz) :
-+		vzalloc_node(sz, rdi->dparms.node);
- 	if (!wc)
- 		return -ENOMEM;
- 
+ RDMAVT - RDMA verbs software
+ M:	Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
++M:	Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ S:	Supported
+ F:	drivers/infiniband/sw/rdmavt
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
