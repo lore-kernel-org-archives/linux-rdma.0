@@ -1,110 +1,21 @@
-From: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [pull request][for-next 00/11] Mellanox, mlx5 E-Switch updates 2017-12-19
-Date: Tue, 19 Dec 2017 15:36:41 -0800
-Message-ID: <CALzJLG92v50ng+mOR1NRp1cycgqoJsJrsqWUXn0JZY4zvmLozg@mail.gmail.com>
-References: <20171219203340.2600-1-saeedm@mellanox.com> <20171219215414.GH6122@localhost.localdomain>
- <CALzJLG9i4g7c8vKbw7k+o=Pv5GcqWi6AATpOQXj09_KwqvWkmQ@mail.gmail.com> <20171219224600.GJ6122@localhost.localdomain>
+From: Jakub Kicinski <jakub.kicinski@netronome.com>
+Subject: Re: [PATCH net-next] qed*: Utilize FW 8.33.1.0
+Date: Tue, 19 Dec 2017 15:46:51 -0800
+Message-ID: <20171219154651.30930d2a@cakuba.netronome.com>
+References: <1513692323-26684-1-git-send-email-Tomer.Tayar@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171219224600.GJ6122-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcelo Ricardo Leitner <marcelo.leitner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1513692323-26684-1-git-send-email-Tomer.Tayar@cavium.com>
+Sender: netdev-owner@vger.kernel.org
+To: Tomer Tayar <Tomer.Tayar@cavium.com>
+Cc: davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, Ariel Elior <Ariel.Elior@cavium.com>, Michal Kalderon <Michal.Kalderon@cavium.com>, Yuval Bason <Yuval.Bason@cavium.com>, Ram Amrani <Ram.Amrani@cavium.com>, Manish Chopra <Manish.Chopra@cavium.com>, Chad Dupuis <Chad.Dupuis@cavium.com>, Manish Rangankar <Manish.Rangankar@cavium.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 19, 2017 at 2:46 PM, Marcelo Ricardo Leitner
-<marcelo.leitner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Tue, Dec 19, 2017 at 02:39:38PM -0800, Saeed Mahameed wrote:
->> On Tue, Dec 19, 2017 at 1:54 PM, Marcelo Ricardo Leitner
->> <marcelo.leitner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> > On Tue, Dec 19, 2017 at 12:33:29PM -0800, Saeed Mahameed wrote:
->> >> Hi Dave and Doug,
->> >>
->> >> ==============
->> >> This series includes updates for mlx5 E-Switch infrastructures,
->> >> to be merged into net-next and rdma-next trees.
->> >>
->> >> Mark's patches provide E-Switch refactoring that generalize the mlx5
->> >> E-Switch vf representors interfaces and data structures. The serious is
->> >> mainly focused on moving ethernet (netdev) specific representors logic out
->> >> of E-Switch (eswitch.c) into mlx5e representor module (en_rep.c), which
->> >> provides better separation and allows future support for other types of vf
->> >> representors (e.g. RDMA).
->> >>
->> >> Gal's patches at the end of this serious, provide a simple syntax fix and
->> >> two other patches that handles vport ingress/egress ACL steering name
->> >> spaces to be aligned with the Firmware/Hardware specs.
->> >
->> > Patch 10 actually looks quite worrysome if a card would support only
->> > one ingress or egress, but if all of them support both, then it should
->> > be fine yes. Is that possible, to support only one direction?
->> >
->>
->> Hi Marcelo,
->>
->> Patch 10 is a function renaming patch that fixes a function name to
->> correspond with its behavior!
->>
->> Are you asking about all mlx5 cards or all cards in general ?
->> All patches in this series, and specifically patches 10,11 only
->> concern mlx5 eswitch specific implementation and mlx5 hardware spec,
->> they have nothing to do with other vendors cards.
->
-> I was asking only bout Mellanox cards.
->
->>
->> All mlx5 cards do support both ingress and egress ACLs per vport (VF),
->> each has its own namespaces (separate pipeline), hence patch #11.
->
-> Alright then.
->
->>
->> So i don't see why you worry so much :).
->
-> Oh but because currently they are called like:
->
->                 if (MLX5_CAP_ESW_EGRESS_ACL(dev, ft_support)) {
->                         err = init_egress_acl_root_ns(steering);
-> ....
->
->                 if (MLX5_CAP_ESW_INGRESS_ACL(dev, ft_support)) {
->                         err = init_ingress_acl_root_ns(steering);
-> ....
->
-> and it could cause bigger problems if only one kind were supported,
-> like trying to setup egress while it's not supported by the card.
-> But again, as it seems both are always supported, that's no issue.
->
+On Tue, 19 Dec 2017 16:05:23 +0200, Tomer Tayar wrote:
+> Sorry for the very long patch.
+> The firmware changes are spread all over w/o a good modularity.
 
-Ok, now i see your point, and the driver is already ok for that
-matter, even for the extreme non existing cases of when one of the
-ACLs is not supported,
-ACL users need to query for the ACL namespace before using it, e.g:
-
-root_ns = mlx5_get_flow_vport_acl_namespace(dev,
-MLX5_FLOW_NAMESPACE_ESW_EGRESS, vport->vport);
-if (!root_ns)
-           abort;
-
-so if for some reason  MLX5_CAP_ESW_EGRESS_ACL(dev, ft_support) is
-false, then any following call to mlx5_get_flow_vport_acl_namespace
-will return NULL, which means "not supported" and those cases are
-already handled by the mlx5 eswitch driver.
-
-Saeed.
-
-> Thanks,
-> Marcelo
->
->>
->> >   Marcelo
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rings false.  Significant portion of this patch is just whitespace 
+and comment changes.
