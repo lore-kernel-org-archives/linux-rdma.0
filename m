@@ -1,131 +1,203 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 11/11] IB/rdmavt: Add trace for RNRNAK timer
-Date: Mon, 18 Dec 2017 19:57:28 -0800
-Message-ID: <20171219035726.2126.88467.stgit@scvm10.sc.intel.com>
-References: <20171219034753.2126.78386.stgit@scvm10.sc.intel.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v1 for-rc 5/8] RDMA/vmw_pvrdma: Use refcount_t instead of
+ atomic_t
+Date: Tue, 19 Dec 2017 07:32:01 +0200
+Message-ID: <20171219053201.GG18894@mtr-leonro.local>
+References: <20171214001753.GA9780@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+ <20171214002402.GA16082@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="WlEyl6ow+jlIgNUh"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171219034753.2126.78386.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171214002402.GA16082-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This patch adds static trace for RNRNAK timer. Currently the output from
-hrtimer static trace only shows the addresses of hrtimers in the system
-and there is no easy way to correlate an RNRNAK timer with its entries in
-the hrtimer trace. This patch adds the correlation among a QP, its RNRNAK
-timer, and its entries in the hrtimer trace. This correlation will be
-enormously helpful when debugging RNRNAK related issues. In addition, this
-patch cleans up rvt_stop_rnr_timer() to be void while here.
+--WlEyl6ow+jlIgNUh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/sw/rdmavt/qp.c       |   11 ++++----
- drivers/infiniband/sw/rdmavt/trace_qp.h |   42 +++++++++++++++++++++++++++++++
- 2 files changed, 48 insertions(+), 5 deletions(-)
+On Wed, Dec 13, 2017 at 04:24:12PM -0800, Bryan Tan wrote:
+> refcount_t is the preferred type for refcounts. Change the
+> QP and CQ refcnt fields to use refcount_t.
+>
+> Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h      |  4 ++--
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c   |  6 +++---
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 15 ++++++---------
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c   |  6 +++---
+>  4 files changed, 14 insertions(+), 17 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> index 63bc2ef..07d287e 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> @@ -93,7 +93,7 @@ struct pvrdma_cq {
+>  	struct pvrdma_page_dir pdir;
+>  	u32 cq_handle;
+>  	bool is_kernel;
+> -	atomic_t refcnt;
+> +	refcount_t refcnt;
+>  	wait_queue_head_t wait;
+>  };
+>
+> @@ -196,7 +196,7 @@ struct pvrdma_qp {
+>  	u8 state;
+>  	bool is_kernel;
+>  	struct mutex mutex; /* QP state mutex. */
+> -	atomic_t refcnt;
+> +	refcount_t refcnt;
+>  	wait_queue_head_t wait;
+>  };
+>
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+> index ea8db5e6..9dba949 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+> @@ -177,7 +177,7 @@ struct ib_cq *pvrdma_create_cq(struct ib_device *ibdev,
+>  	else
+>  		pvrdma_page_dir_insert_umem(&cq->pdir, cq->umem, 0);
+>
+> -	atomic_set(&cq->refcnt, 1);
+> +	refcount_set(&cq->refcnt, 1);
+>  	init_waitqueue_head(&cq->wait);
+>  	spin_lock_init(&cq->cq_lock);
+>
+> @@ -229,8 +229,8 @@ struct ib_cq *pvrdma_create_cq(struct ib_device *ibdev,
+>
+>  static void pvrdma_free_cq(struct pvrdma_dev *dev, struct pvrdma_cq *cq)
+>  {
+> -	atomic_dec(&cq->refcnt);
+> -	wait_event(cq->wait, !atomic_read(&cq->refcnt));
+> +	if (!refcount_dec_and_test(&cq->refcnt))
+> +		wait_event(cq->wait, !refcount_read(&cq->refcnt));
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index f3c6d2c..ed46801 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -2075,6 +2075,7 @@ void rvt_add_rnr_timer(struct rvt_qp *qp, u32 aeth)
- 	lockdep_assert_held(&qp->s_lock);
- 	qp->s_flags |= RVT_S_WAIT_RNR;
- 	to = rvt_aeth_to_usec(aeth);
-+	trace_rvt_rnrnak_add(qp, to);
- 	hrtimer_start(&qp->s_rnr_timer,
- 		      ns_to_ktime(1000 * to), HRTIMER_MODE_REL);
- }
-@@ -2104,15 +2105,14 @@ void rvt_stop_rc_timers(struct rvt_qp *qp)
-  * stop an rnr timer and return if the timer
-  * had been pending.
-  */
--static int rvt_stop_rnr_timer(struct rvt_qp *qp)
-+static void rvt_stop_rnr_timer(struct rvt_qp *qp)
- {
--	int rval = 0;
--
- 	lockdep_assert_held(&qp->s_lock);
- 	/* Remove QP from rnr timer */
--	if (qp->s_flags & RVT_S_WAIT_RNR)
-+	if (qp->s_flags & RVT_S_WAIT_RNR) {
- 		qp->s_flags &= ~RVT_S_WAIT_RNR;
--	return rval;
-+		trace_rvt_rnrnak_stop(qp, 0);
-+	}
- }
- 
- /**
-@@ -2165,6 +2165,7 @@ enum hrtimer_restart rvt_rc_rnr_retry(struct hrtimer *t)
- 
- 	spin_lock_irqsave(&qp->s_lock, flags);
- 	rvt_stop_rnr_timer(qp);
-+	trace_rvt_rnrnak_timeout(qp, 0);
- 	rdi->driver_f.schedule_send(qp);
- 	spin_unlock_irqrestore(&qp->s_lock, flags);
- 	return HRTIMER_NORESTART;
-diff --git a/drivers/infiniband/sw/rdmavt/trace_qp.h b/drivers/infiniband/sw/rdmavt/trace_qp.h
-index 4c77a31..efc9d81 100644
---- a/drivers/infiniband/sw/rdmavt/trace_qp.h
-+++ b/drivers/infiniband/sw/rdmavt/trace_qp.h
-@@ -85,6 +85,48 @@
- 	TP_PROTO(struct rvt_qp *qp, u32 bucket),
- 	TP_ARGS(qp, bucket));
- 
-+DECLARE_EVENT_CLASS(
-+	rvt_rnrnak_template,
-+	TP_PROTO(struct rvt_qp *qp, u32 to),
-+	TP_ARGS(qp, to),
-+	TP_STRUCT__entry(
-+		RDI_DEV_ENTRY(ib_to_rvt(qp->ibqp.device))
-+		__field(u32, qpn)
-+		__field(void *, hrtimer)
-+		__field(u32, s_flags)
-+		__field(u32, to)
-+	),
-+	TP_fast_assign(
-+		RDI_DEV_ASSIGN(ib_to_rvt(qp->ibqp.device))
-+		__entry->qpn = qp->ibqp.qp_num;
-+		__entry->hrtimer = &qp->s_rnr_timer;
-+		__entry->s_flags = qp->s_flags;
-+		__entry->to = to;
-+	),
-+	TP_printk(
-+		"[%s] qpn 0x%x hrtimer 0x%p s_flags 0x%x timeout %u us",
-+		__get_str(dev),
-+		__entry->qpn,
-+		__entry->hrtimer,
-+		__entry->s_flags,
-+		__entry->to
-+	)
-+);
-+
-+DEFINE_EVENT(
-+	rvt_rnrnak_template, rvt_rnrnak_add,
-+	TP_PROTO(struct rvt_qp *qp, u32 to),
-+	TP_ARGS(qp, to));
-+
-+DEFINE_EVENT(
-+	rvt_rnrnak_template, rvt_rnrnak_timeout,
-+	TP_PROTO(struct rvt_qp *qp, u32 to),
-+	TP_ARGS(qp, to));
-+
-+DEFINE_EVENT(
-+	rvt_rnrnak_template, rvt_rnrnak_stop,
-+	TP_PROTO(struct rvt_qp *qp, u32 to),
-+	TP_ARGS(qp, to));
- 
- #endif /* __RVT_TRACE_QP_H */
- 
+Don't you suppose to call to wait_event without condition on refcnt and
+sleep till refcnt == 0??
 
+>
+>  	if (!cq->is_kernel)
+>  		ib_umem_release(cq->umem);
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> index 941e324..5cff9fa 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> @@ -333,7 +333,7 @@ static void pvrdma_qp_event(struct pvrdma_dev *dev, u32 qpn, int type)
+>  	spin_lock_irqsave(&dev->qp_tbl_lock, flags);
+>  	qp = dev->qp_tbl[qpn % dev->dsr->caps.max_qp];
+>  	if (qp)
+> -		atomic_inc(&qp->refcnt);
+> +		refcount_inc(&qp->refcnt);
+>  	spin_unlock_irqrestore(&dev->qp_tbl_lock, flags);
+>
+>  	if (qp && qp->ibqp.event_handler) {
+> @@ -346,8 +346,7 @@ static void pvrdma_qp_event(struct pvrdma_dev *dev, u32 qpn, int type)
+>  		ibqp->event_handler(&e, ibqp->qp_context);
+>  	}
+>  	if (qp) {
+> -		atomic_dec(&qp->refcnt);
+> -		if (atomic_read(&qp->refcnt) == 0)
+> +		if (refcount_dec_and_test(&qp->refcnt))
+>  			wake_up(&qp->wait);
+>  	}
+>  }
+> @@ -360,7 +359,7 @@ static void pvrdma_cq_event(struct pvrdma_dev *dev, u32 cqn, int type)
+>  	spin_lock_irqsave(&dev->cq_tbl_lock, flags);
+>  	cq = dev->cq_tbl[cqn % dev->dsr->caps.max_cq];
+>  	if (cq)
+> -		atomic_inc(&cq->refcnt);
+> +		refcount_inc(&cq->refcnt);
+>  	spin_unlock_irqrestore(&dev->cq_tbl_lock, flags);
+>
+>  	if (cq && cq->ibcq.event_handler) {
+> @@ -373,8 +372,7 @@ static void pvrdma_cq_event(struct pvrdma_dev *dev, u32 cqn, int type)
+>  		ibcq->event_handler(&e, ibcq->cq_context);
+>  	}
+>  	if (cq) {
+> -		atomic_dec(&cq->refcnt);
+> -		if (atomic_read(&cq->refcnt) == 0)
+> +		if (refcount_dec_and_test(&cq->refcnt))
+>  			wake_up(&cq->wait);
+>  	}
+>  }
+> @@ -533,14 +531,13 @@ static irqreturn_t pvrdma_intrx_handler(int irq, void *dev_id)
+>  		spin_lock_irqsave(&dev->cq_tbl_lock, flags);
+>  		cq = dev->cq_tbl[cqne->info % dev->dsr->caps.max_cq];
+>  		if (cq)
+> -			atomic_inc(&cq->refcnt);
+> +			refcount_inc(&cq->refcnt);
+>  		spin_unlock_irqrestore(&dev->cq_tbl_lock, flags);
+>
+>  		if (cq && cq->ibcq.comp_handler)
+>  			cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
+>  		if (cq) {
+> -			atomic_dec(&cq->refcnt);
+> -			if (atomic_read(&cq->refcnt))
+> +			if (refcount_dec_and_test(&cq->refcnt))
+>  				wake_up(&cq->wait);
+>  		}
+>  		pvrdma_idx_ring_inc(&ring->cons_head, ring_slots);
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+> index 77e7e57..9745cb1 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+> @@ -245,7 +245,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+>  		spin_lock_init(&qp->sq.lock);
+>  		spin_lock_init(&qp->rq.lock);
+>  		mutex_init(&qp->mutex);
+> -		atomic_set(&qp->refcnt, 1);
+> +		refcount_set(&qp->refcnt, 1);
+>  		init_waitqueue_head(&qp->wait);
+>
+>  		qp->state = IB_QPS_RESET;
+> @@ -427,8 +427,8 @@ static void pvrdma_free_qp(struct pvrdma_qp *qp)
+>
+>  	pvrdma_unlock_cqs(scq, rcq, &scq_flags, &rcq_flags);
+>
+> -	atomic_dec(&qp->refcnt);
+> -	wait_event(qp->wait, !atomic_read(&qp->refcnt));
+> +	if (!refcount_dec_and_test(&qp->refcnt))
+> +		wait_event(qp->wait, !refcount_read(&qp->refcnt));
+>
+>  	if (!qp->is_kernel) {
+>  		if (qp->rumem)
+> --
+> 1.8.5.6
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--WlEyl6ow+jlIgNUh
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo4pFEACgkQ5GN7iDZy
+WKcyuQ//ToUhCzlYJkC407kma26b+VhdsBwaUSqwQhOL5YPJIogyXCgiiKezcE2F
+OaK+CH7f8hPcTRCeumB6+XiArC3isaU5+iVvy7VxjvEQE2nKQLfinYoYtZYV2XPj
+y+BA0ZBIohESgnYol4RUt337qeMx2XlpZmOX3drTsWEKdasLsNHzzdXqLGtfgBsv
+xn6ah7+cEc9joZwwZFkG1w9pNxkxsPiEt5A8Br4MwcQHWn9qxm7bx+eolP4XeEPt
+QjgKnsouzA12fEAG7I1pV04nBqrspHfrl/kE/gutufo92lPUYWN5uXZt/6cuEWB7
+Y6bwiKLWIdCjKscYpyVE1Yf8yJv8FiSvhPwqAMUkwxh7FkFaEQbUAvNJEIGZiLl5
+v2IXojBOZWPC2uMybYutCm0yBHmROyXwe9Ps47RdF0j6iK0Jr5giwmib6pdDlsbV
+ac2qhLojrFi9sPlXARsgE6BEPuvBKbLdBzQmWnt26D2gWsHB1cltAVgaRjj9dL4v
+GJmZBR9qKQBpwzJuwFsCEmqSRLy3LGyEUkugRwXmV3PEXgzALbGiNh3CGRgRZAMF
+T5zpuCaUDxu0971D2p56Ld83QxTn3VdG1V9DBHvmeck24lUKqV4LomcTFWBXc2Ca
+cb4UFhA3XKZJl2M07RHPan+tK9zhr5NT5y6aNbUi40twf8g3Q1E=
+=oz3M
+-----END PGP SIGNATURE-----
+
+--WlEyl6ow+jlIgNUh--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
