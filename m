@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 10/11] IB/{hfi1,
- qib}: Fix a concurrency issue with device name in logging
-Date: Mon, 18 Dec 2017 19:57:21 -0800
-Message-ID: <20171219035718.2126.72986.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 11/11] IB/rdmavt: Add trace for RNRNAK timer
+Date: Mon, 18 Dec 2017 19:57:28 -0800
+Message-ID: <20171219035726.2126.88467.stgit@scvm10.sc.intel.com>
 References: <20171219034753.2126.78386.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,211 +10,121 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171219034753.2126.78386.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The get_unit_name() function crafts a string based on the device name
-and the device unit number.  It then stores this in a static variable.
-
-This has concurrency issues as can be seen with this log:
-
-hfi1 0000:02:00.0: hfi1_1: read_idle_message: read idle message 0x203
-hfi1 0000:01:00.0: hfi1_1: read_idle_message: read idle message 0x203
-
-The PCI device ID (0000:02:00.0 vs. 0000:01:00.0) is correct for the
-message, but the device string hfi1_1 is incorrect (it should be
-hfi1_0 for the second log message).
-
-Remove get_unit_name() function.
-
-Instead, use the rvt accessor rvt_get_ibdev_name() to get the IB name
-string.
-
-Clean up any hfi1_early_xx calls that can now use the new path.
-
-QIB has the same (qib_get_unit_name()) issue.  Updating as necessary.
-
-Remove qib_get_unit_name() function.
-
-Update log message that has redundant device name.
+This patch adds static trace for RNRNAK timer. Currently the output from
+hrtimer static trace only shows the addresses of hrtimers in the system
+and there is no easy way to correlate an RNRNAK timer with its entries in
+the hrtimer trace. This patch adds the correlation among a QP, its RNRNAK
+timer, and its entries in the hrtimer trace. This correlation will be
+enormously helpful when debugging RNRNAK related issues. In addition, this
+patch cleans up rvt_stop_rnr_timer() to be void while here.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c      |    5 ++---
- drivers/infiniband/hw/hfi1/driver.c    |    8 --------
- drivers/infiniband/hw/hfi1/hfi.h       |   22 ++++++++++++----------
- drivers/infiniband/hw/qib/qib.h        |    7 +++----
- drivers/infiniband/hw/qib/qib_driver.c |    8 --------
- drivers/infiniband/hw/qib/qib_eeprom.c |    3 +--
- 6 files changed, 18 insertions(+), 35 deletions(-)
+ drivers/infiniband/sw/rdmavt/qp.c       |   11 ++++----
+ drivers/infiniband/sw/rdmavt/trace_qp.h |   42 +++++++++++++++++++++++++++++++
+ 2 files changed, 48 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 99c7347..e63988c 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -14929,9 +14929,8 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
- 
- 		if (num_vls < HFI1_MIN_VLS_SUPPORTED ||
- 		    num_vls > HFI1_MAX_VLS_SUPPORTED) {
--			hfi1_early_err(&pdev->dev,
--				       "Invalid num_vls %u, using %u VLs\n",
--				    num_vls, HFI1_MAX_VLS_SUPPORTED);
-+			dd_dev_err(dd, "Invalid num_vls %u, using %u VLs\n",
-+				   num_vls, HFI1_MAX_VLS_SUPPORTED);
- 			num_vls = HFI1_MAX_VLS_SUPPORTED;
- 		}
- 		ppd->vls_supported = num_vls;
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index 4561719..067b29f 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -159,14 +159,6 @@ static int hfi1_caps_get(char *buffer, const struct kernel_param *kp)
- 	return scnprintf(buffer, PAGE_SIZE, "0x%lx", cap_mask);
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index f3c6d2c..ed46801 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -2075,6 +2075,7 @@ void rvt_add_rnr_timer(struct rvt_qp *qp, u32 aeth)
+ 	lockdep_assert_held(&qp->s_lock);
+ 	qp->s_flags |= RVT_S_WAIT_RNR;
+ 	to = rvt_aeth_to_usec(aeth);
++	trace_rvt_rnrnak_add(qp, to);
+ 	hrtimer_start(&qp->s_rnr_timer,
+ 		      ns_to_ktime(1000 * to), HRTIMER_MODE_REL);
+ }
+@@ -2104,15 +2105,14 @@ void rvt_stop_rc_timers(struct rvt_qp *qp)
+  * stop an rnr timer and return if the timer
+  * had been pending.
+  */
+-static int rvt_stop_rnr_timer(struct rvt_qp *qp)
++static void rvt_stop_rnr_timer(struct rvt_qp *qp)
+ {
+-	int rval = 0;
+-
+ 	lockdep_assert_held(&qp->s_lock);
+ 	/* Remove QP from rnr timer */
+-	if (qp->s_flags & RVT_S_WAIT_RNR)
++	if (qp->s_flags & RVT_S_WAIT_RNR) {
+ 		qp->s_flags &= ~RVT_S_WAIT_RNR;
+-	return rval;
++		trace_rvt_rnrnak_stop(qp, 0);
++	}
  }
  
--const char *get_unit_name(int unit)
--{
--	static char iname[16];
--
--	snprintf(iname, sizeof(iname), DRIVER_NAME "_%u", unit);
--	return iname;
--}
--
- struct pci_dev *get_pci_dev(struct rvt_dev_info *rdi)
- {
- 	struct hfi1_ibdev *ibdev = container_of(rdi, struct hfi1_ibdev, rdi);
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 88fa934..869c2bf 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1975,7 +1975,6 @@ int get_platform_config_field(struct hfi1_devdata *dd,
- 			      table_type, int table_index, int field_index,
- 			      u32 *data, u32 len);
+ /**
+@@ -2165,6 +2165,7 @@ enum hrtimer_restart rvt_rc_rnr_retry(struct hrtimer *t)
  
--const char *get_unit_name(int unit);
- struct pci_dev *get_pci_dev(struct rvt_dev_info *rdi);
+ 	spin_lock_irqsave(&qp->s_lock, flags);
+ 	rvt_stop_rnr_timer(qp);
++	trace_rvt_rnrnak_timeout(qp, 0);
+ 	rdi->driver_f.schedule_send(qp);
+ 	spin_unlock_irqrestore(&qp->s_lock, flags);
+ 	return HRTIMER_NORESTART;
+diff --git a/drivers/infiniband/sw/rdmavt/trace_qp.h b/drivers/infiniband/sw/rdmavt/trace_qp.h
+index 4c77a31..efc9d81 100644
+--- a/drivers/infiniband/sw/rdmavt/trace_qp.h
++++ b/drivers/infiniband/sw/rdmavt/trace_qp.h
+@@ -85,6 +85,48 @@
+ 	TP_PROTO(struct rvt_qp *qp, u32 bucket),
+ 	TP_ARGS(qp, bucket));
  
- /*
-@@ -2126,39 +2125,42 @@ static inline u64 hfi1_pkt_base_sdma_integrity(struct hfi1_devdata *dd)
++DECLARE_EVENT_CLASS(
++	rvt_rnrnak_template,
++	TP_PROTO(struct rvt_qp *qp, u32 to),
++	TP_ARGS(qp, to),
++	TP_STRUCT__entry(
++		RDI_DEV_ENTRY(ib_to_rvt(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(void *, hrtimer)
++		__field(u32, s_flags)
++		__field(u32, to)
++	),
++	TP_fast_assign(
++		RDI_DEV_ASSIGN(ib_to_rvt(qp->ibqp.device))
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->hrtimer = &qp->s_rnr_timer;
++		__entry->s_flags = qp->s_flags;
++		__entry->to = to;
++	),
++	TP_printk(
++		"[%s] qpn 0x%x hrtimer 0x%p s_flags 0x%x timeout %u us",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->hrtimer,
++		__entry->s_flags,
++		__entry->to
++	)
++);
++
++DEFINE_EVENT(
++	rvt_rnrnak_template, rvt_rnrnak_add,
++	TP_PROTO(struct rvt_qp *qp, u32 to),
++	TP_ARGS(qp, to));
++
++DEFINE_EVENT(
++	rvt_rnrnak_template, rvt_rnrnak_timeout,
++	TP_PROTO(struct rvt_qp *qp, u32 to),
++	TP_ARGS(qp, to));
++
++DEFINE_EVENT(
++	rvt_rnrnak_template, rvt_rnrnak_stop,
++	TP_PROTO(struct rvt_qp *qp, u32 to),
++	TP_ARGS(qp, to));
  
- #define dd_dev_emerg(dd, fmt, ...) \
- 	dev_emerg(&(dd)->pcidev->dev, "%s: " fmt, \
--		  get_unit_name((dd)->unit), ##__VA_ARGS__)
-+		  rvt_get_ibdev_name(&(dd)->verbs_dev.rdi), ##__VA_ARGS__)
+ #endif /* __RVT_TRACE_QP_H */
  
- #define dd_dev_err(dd, fmt, ...) \
- 	dev_err(&(dd)->pcidev->dev, "%s: " fmt, \
--			get_unit_name((dd)->unit), ##__VA_ARGS__)
-+		rvt_get_ibdev_name(&(dd)->verbs_dev.rdi), ##__VA_ARGS__)
- 
- #define dd_dev_err_ratelimited(dd, fmt, ...) \
- 	dev_err_ratelimited(&(dd)->pcidev->dev, "%s: " fmt, \
--			get_unit_name((dd)->unit), ##__VA_ARGS__)
-+			    rvt_get_ibdev_name(&(dd)->verbs_dev.rdi), \
-+			    ##__VA_ARGS__)
- 
- #define dd_dev_warn(dd, fmt, ...) \
- 	dev_warn(&(dd)->pcidev->dev, "%s: " fmt, \
--			get_unit_name((dd)->unit), ##__VA_ARGS__)
-+		 rvt_get_ibdev_name(&(dd)->verbs_dev.rdi), ##__VA_ARGS__)
- 
- #define dd_dev_warn_ratelimited(dd, fmt, ...) \
- 	dev_warn_ratelimited(&(dd)->pcidev->dev, "%s: " fmt, \
--			get_unit_name((dd)->unit), ##__VA_ARGS__)
-+			     rvt_get_ibdev_name(&(dd)->verbs_dev.rdi), \
-+			     ##__VA_ARGS__)
- 
- #define dd_dev_info(dd, fmt, ...) \
- 	dev_info(&(dd)->pcidev->dev, "%s: " fmt, \
--			get_unit_name((dd)->unit), ##__VA_ARGS__)
-+		 rvt_get_ibdev_name(&(dd)->verbs_dev.rdi), ##__VA_ARGS__)
- 
- #define dd_dev_info_ratelimited(dd, fmt, ...) \
- 	dev_info_ratelimited(&(dd)->pcidev->dev, "%s: " fmt, \
--			get_unit_name((dd)->unit), ##__VA_ARGS__)
-+			     rvt_get_ibdev_name(&(dd)->verbs_dev.rdi), \
-+			     ##__VA_ARGS__)
- 
- #define dd_dev_dbg(dd, fmt, ...) \
- 	dev_dbg(&(dd)->pcidev->dev, "%s: " fmt, \
--		get_unit_name((dd)->unit), ##__VA_ARGS__)
-+		rvt_get_ibdev_name(&(dd)->verbs_dev.rdi), ##__VA_ARGS__)
- 
- #define hfi1_dev_porterr(dd, port, fmt, ...) \
- 	dev_err(&(dd)->pcidev->dev, "%s: port %u: " fmt, \
--			get_unit_name((dd)->unit), (port), ##__VA_ARGS__)
-+		rvt_get_ibdev_name(&(dd)->verbs_dev.rdi), (port), ##__VA_ARGS__)
- 
- /*
-  * this is used for formatting hw error messages...
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 34c5254..0235f76 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -1428,7 +1428,6 @@ int qib_pcie_ddinit(struct qib_devdata *, struct pci_dev *,
-  */
- dma_addr_t qib_map_page(struct pci_dev *, struct page *, unsigned long,
- 			  size_t, int);
--const char *qib_get_unit_name(int unit);
- struct pci_dev *qib_get_pci_dev(struct rvt_dev_info *rdi);
- 
- /*
-@@ -1487,15 +1486,15 @@ static inline void qib_flush_wc(void)
- 
- #define qib_dev_err(dd, fmt, ...) \
- 	dev_err(&(dd)->pcidev->dev, "%s: " fmt, \
--		qib_get_unit_name((dd)->unit), ##__VA_ARGS__)
-+		rvt_get_ibdev_name(&(dd)->verbs_dev.rdi), ##__VA_ARGS__)
- 
- #define qib_dev_warn(dd, fmt, ...) \
- 	dev_warn(&(dd)->pcidev->dev, "%s: " fmt, \
--		qib_get_unit_name((dd)->unit), ##__VA_ARGS__)
-+		 rvt_get_ibdev_name(&(dd)->verbs_dev.rdi), ##__VA_ARGS__)
- 
- #define qib_dev_porterr(dd, port, fmt, ...) \
- 	dev_err(&(dd)->pcidev->dev, "%s: IB%u:%u " fmt, \
--		qib_get_unit_name((dd)->unit), (dd)->unit, (port), \
-+		rvt_get_ibdev_name(&(dd)->verbs_dev.rdi), (dd)->unit, (port), \
- 		##__VA_ARGS__)
- 
- #define qib_devinfo(pcidev, fmt, ...) \
-diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
-index 9b13680..3117cc5 100644
---- a/drivers/infiniband/hw/qib/qib_driver.c
-+++ b/drivers/infiniband/hw/qib/qib_driver.c
-@@ -81,14 +81,6 @@
- 
- struct qlogic_ib_stats qib_stats;
- 
--const char *qib_get_unit_name(int unit)
--{
--	static char iname[16];
--
--	snprintf(iname, sizeof(iname), "infinipath%u", unit);
--	return iname;
--}
--
- struct pci_dev *qib_get_pci_dev(struct rvt_dev_info *rdi)
- {
- 	struct qib_ibdev *ibdev = container_of(rdi, struct qib_ibdev, rdi);
-diff --git a/drivers/infiniband/hw/qib/qib_eeprom.c b/drivers/infiniband/hw/qib/qib_eeprom.c
-index 33a2e74..5838b3b 100644
---- a/drivers/infiniband/hw/qib/qib_eeprom.c
-+++ b/drivers/infiniband/hw/qib/qib_eeprom.c
-@@ -163,8 +163,7 @@ void qib_get_eeprom_info(struct qib_devdata *dd)
- 			if (bguid[6] == 0xff) {
- 				if (bguid[5] == 0xff) {
- 					qib_dev_err(dd,
--						"Can't set %s GUID from base, wraps to OUI!\n",
--						qib_get_unit_name(t));
-+						    "Can't set GUID from base, wraps to OUI!\n");
- 					dd->base_guid = 0;
- 					goto bail;
- 				}
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
