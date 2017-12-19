@@ -1,73 +1,35 @@
-From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH for-next] iw_cxgb4: Change error/warn prints to pr_debug
-Date: Tue, 19 Dec 2017 16:14:16 +0530
-Message-ID: <1513680256-8153-1-git-send-email-bharat@chelsio.com>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: RDMA/bnxt_re: Remove redundant bnxt_qplib_disable_nq() call
+Date: Tue, 19 Dec 2017 16:40:42 +0530
+Message-ID: <CANjDDBgR1vcSVvvKPvgeQPsDn3F8LLWA00nreonPyfyvBfvWnw@mail.gmail.com>
+References: <9fe13af401074304e355c6d1c5138b63e03b8da8.1510663723.git.arvind.yadav.cs@gmail.com>
+ <20171213173747.GA13512@ziepe.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171213173747.GA13512-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Arvind Yadav <arvind.yadav.cs-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-These prints not neccesarily mean error, so changing them to debug.
-Redifining pr_fmt to print the kernel module name, prints the module
-name twice when +m flag of pr_debug is enabled, hence removing the
-pr_fmt redefinition.
+However delayed ack but still..thanks for supplying this fix.
 
-Signed-off-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/cm.c       | 4 ++--
- drivers/infiniband/hw/cxgb4/ev.c       | 2 +-
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h | 6 ------
- 3 files changed, 3 insertions(+), 9 deletions(-)
+Acked-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 21db3b48a617..eecdfb0c6be6 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -3567,8 +3567,8 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
- 	case MORIBUND:
- 	case ABORTING:
- 	case DEAD:
--		pr_info("%s ignoring disconnect ep %p state %u\n",
--			__func__, ep, ep->com.state);
-+		pr_debug("ignoring disconnect ep %p state %u\n",
-+			 ep, ep->com.state);
- 		break;
- 	default:
- 		WARN_ONCE(1, "Bad endpoint state %u\n", ep->com.state);
-diff --git a/drivers/infiniband/hw/cxgb4/ev.c b/drivers/infiniband/hw/cxgb4/ev.c
-index a252d5c40ae3..3e9d8b277ab9 100644
---- a/drivers/infiniband/hw/cxgb4/ev.c
-+++ b/drivers/infiniband/hw/cxgb4/ev.c
-@@ -236,7 +236,7 @@ int c4iw_ev_handler(struct c4iw_dev *dev, u32 qid)
- 		if (atomic_dec_and_test(&chp->refcnt))
- 			wake_up(&chp->wait);
- 	} else {
--		pr_warn("%s unknown cqid 0x%x\n", __func__, qid);
-+		pr_debug("unknown cqid 0x%x\n", qid);
- 		spin_unlock_irqrestore(&dev->lock, flag);
- 	}
- 	return 0;
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index 470f97a79ebb..7d6ec29ec9d7 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -64,12 +64,6 @@
- #define DRV_NAME "iw_cxgb4"
- #define MOD DRV_NAME ":"
- 
--#ifdef pr_fmt
--#undef pr_fmt
--#endif
--
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
- #include "t4.h"
- 
- #define PBL_OFF(rdev_p, a) ((a) - (rdev_p)->lldi.vr->pbl.start)
--- 
-2.5.3
 
+On Wed, Dec 13, 2017 at 11:07 PM, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote:
+> On Tue, Nov 14, 2017 at 06:20:56PM +0530, Arvind Yadav wrote:
+>> The bnxt_qplib_disable_nq() call is redundant as it occurs
+>> after 'goto fail' and hence it called twice. Remove it.
+>>
+>> Signed-off-by: Arvind Yadav <arvind.yadav.cs-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>>  drivers/infiniband/hw/bnxt_re/qplib_fp.c | 1 -
+>>  1 file changed, 1 deletion(-)
+>
+> Applied to for-next, thanks
+>
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
