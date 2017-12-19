@@ -1,54 +1,58 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH rdma-core] srp_daemon: Remove duplicate sync_res shutdown
-Date: Tue, 19 Dec 2017 21:33:01 +0000
-Message-ID: <1513719179.2535.19.camel@wdc.com>
-References: <20171219211601.GA27412@ziepe.ca>
-         <1513718464.2535.16.camel@wdc.com> <20171219212818.GG14800@mellanox.com>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v2 rdma-core] srp_daemon: Remove duplicate sync_res shutdown
+Date: Tue, 19 Dec 2017 14:38:00 -0700
+Message-ID: <20171219213800.GA28378@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171219212818.GG14800-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <C088FC4538CBC6488502A9B81A2489AA-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE3LTEyLTE5IGF0IDE0OjI4IC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIFR1ZSwgRGVjIDE5LCAyMDE3IGF0IDA5OjIxOjA1UE0gKzAwMDAsIEJhcnQgVmFuIEFz
-c2NoZSB3cm90ZToNCj4gPiBPbiBUdWUsIDIwMTctMTItMTkgYXQgMTQ6MTYgLTA3MDAsIEphc29u
-IEd1bnRob3JwZSB3cm90ZToNCj4gPiA+IFRoZSB2ZXJ5IGZpcnN0IHRoaW5nIGZyZWVfcmVzIGRv
-ZXMgaXMgdGhlIHNhbWUgbG9jay9zaWduYWwvdW5sb2NrDQo+ID4gPiBzZXF1ZW5jZSwgc28gdGhl
-cmUgaXMgbm8gcmVhc29uIHRvIG9wZW4gY29kZSBpdCBiZWZvcmUgY2FsbGluZw0KPiA+ID4gZnJl
-ZV9yZXMuDQo+ID4gPiANCj4gPiA+IFNpZ25lZC1vZmYtYnk6IEphc29uIEd1bnRob3JwZSA8amdn
-QG1lbGxhbm94LmNvbT4NCj4gPiA+ICBzcnBfZGFlbW9uL3NycF9kYWVtb24uYyB8IDQgLS0tLQ0K
-PiA+ID4gIDEgZmlsZSBjaGFuZ2VkLCA0IGRlbGV0aW9ucygtKQ0KPiA+ID4gDQo+ID4gPiBOb3Rp
-Y2VkIHdoaWxlIGxvb2tpbmcgYXQgaG9ubGkncyBwYXRjaC4uIERpZG4ndCBtYWtlIGEgUFIuDQo+
-ID4gPiANCj4gPiA+IGRpZmYgLS1naXQgYS9zcnBfZGFlbW9uL3NycF9kYWVtb24uYyBiL3NycF9k
-YWVtb24vc3JwX2RhZW1vbi5jDQo+ID4gPiBpbmRleCBjZWMzNmRiMmUwZjEyZS4uYTE3OTg1NTgz
-NzM0OTAgMTAwNjQ0DQo+ID4gPiArKysgYi9zcnBfZGFlbW9uL3NycF9kYWVtb24uYw0KPiA+ID4g
-QEAgLTIwNzQsMTAgKzIwNzQsNiBAQCBzdGF0aWMgaW50IGlic3JwZG0oaW50IGFyZ2MsIGNoYXIg
-KmFyZ3ZbXSkNCj4gPiA+ICAJCXByX2VycigiUXVlcnlpbmcgU1JQIHRhcmdldHMgZmFpbGVkXG4i
-KTsNCj4gPiA+ICANCj4gPiA+ICAJYXNzZXJ0KHJlcy0+c3luY19yZXMpOw0KPiA+ID4gLQlwdGhy
-ZWFkX211dGV4X2xvY2soJnJlcy0+c3luY19yZXMtPnJldHJ5X211dGV4KTsNCj4gPiA+IC0JcmVz
-LT5zeW5jX3Jlcy0+c3RvcF90aHJlYWRzID0gMTsNCj4gPiA+IC0JcHRocmVhZF9jb25kX3NpZ25h
-bCgmcmVzLT5zeW5jX3Jlcy0+cmV0cnlfY29uZCk7DQo+ID4gPiAtCXB0aHJlYWRfbXV0ZXhfdW5s
-b2NrKCZyZXMtPnN5bmNfcmVzLT5yZXRyeV9tdXRleCk7DQo+ID4gDQo+ID4gSGVsbG8gSmFzb24s
-DQo+ID4gDQo+ID4gU2luY2UgdGhpcyBwYXRjaCByZW1vdmVzIGFsbCBjb2RlIHRoYXQgZGVyZWZl
-cmVuY2VzIHJlcy0+c3luY19yZXMgZnJvbQ0KPiA+IHRoZSBpYnNycGRtKCkgZnVuY3Rpb24sIGhh
-dmUgeW91IGNvbnNpZGVyZWQgdG8gcmVtb3ZlIGFzc2VydChyZXMtPnN5bmNfcmVzKQ0KPiA+IHRv
-bz8NCj4gDQo+IFdlbGwsIHRoYXQgd291bGQgYmUgYSBiZWhhdmlvciBjaGFuZ2UuLiBmcmVlX3Jl
-cyB3b3JrcyBPSyBpZiBzeW5jX3Jlcw0KPiBpcyBOVUxMLCBzbyBJJ20gZ3Vlc3NpbmcgdGhhdCB0
-aGUgYXNzZXJ0IGhhZCBzb21lIG1lYW5pbmcgdG8gc2hvdyB0aGF0DQo+IHRoZSByZWNvbm5lY3Rf
-dGhyZWFkIHdhcyBhbHdheXMgc3RhcnRlZCBmb3IgaWJzcnBkPw0KPiANCj4gT3IgbWF5YmUgd2Ug
-c2hvdWxkbid0IGNhcmUgYWJvdXQgdGhhdD8NCj4gDQo+IEhhcHB5IHRvIGRyb3AgaXQgaWYgeW91
-IHRoaW5rIGl0IG1ha2VzIHNlbnNlLg0KDQpIZWxsbyBKYXNvbiwNCg0KSWYgdGhlIGFsbG9jX3Jl
-cygpIHJldHVybiB2YWx1ZSBpcyBub3QgTlVMTCB0aGVuIHRoYXQgaW1wbGllcyB0aGF0IHJlcy0+
-c3luY19yZXMNCiE9IE5VTEwuIFRoZSBhc3NlcnQoKSBJIHJlZmVycmVkIHRvIGlzIG9ubHkgcmVh
-Y2hlZCBpZiBhbGxvY19yZXMoKSBzdWNjZWVkZWQuIFNvDQpJIHRoaW5rIGl0IGl0IGlzIHNhZmUg
-dG8gbGVhdmUgb3V0IHRoYXQgYXNzZXJ0KCkgc3RhdGVtZW50Lg0KDQpCYXJ0Lg0KDQo=
+The very first thing free_res does is the same lock/signal/unlock
+sequence, so there is no reason to open code it before calling
+free_res.
+
+res->sync_res always exists at this point so remove the assert too.
+
+Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ srp_daemon/srp_daemon.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
+
+v2:
+Remove the assert too
+
+diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
+index cec36db2e0f12e..696c58bfd0b1ec 100644
+--- a/srp_daemon/srp_daemon.c
++++ b/srp_daemon/srp_daemon.c
+@@ -1899,7 +1899,7 @@ static void free_res(struct resources *res)
+ 		pthread_join(res->trap_thread, &status);
+ 	}
+ 	if (res->sync_res)
+-		sync_resources_cleanup(res->sync_res);
++	f	sync_resources_cleanup(res->sync_res);
+ 	if (res->ud_res)
+ 		ud_resources_destroy(res->ud_res);
+ 	if (res->umad_res)
+@@ -2073,12 +2073,6 @@ static int ibsrpdm(int argc, char *argv[])
+ 	if (ret)
+ 		pr_err("Querying SRP targets failed\n");
+ 
+-	assert(res->sync_res);
+-	pthread_mutex_lock(&res->sync_res->retry_mutex);
+-	res->sync_res->stop_threads = 1;
+-	pthread_cond_signal(&res->sync_res->retry_cond);
+-	pthread_mutex_unlock(&res->sync_res->retry_mutex);
+-
+ 	free_res(res);
+ umad_done:
+ 	umad_done();
+-- 
+2.15.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
