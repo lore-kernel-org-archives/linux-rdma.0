@@ -1,195 +1,86 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: insight into a WARNING from softROCE
-Date: Tue, 19 Dec 2017 15:15:08 +0200
-Message-ID: <20171219131508.GF2942@mtr-leonro.local>
-References: <CAN-5tyFENoK6f20zjeUEbXNQh-bZAaH-iBf4Q6G8uLjz0eHnqA@mail.gmail.com>
+Subject: Re: [PATCH rdma-next 00/31] RDMA fixes and refactoring for 4.15
+Date: Tue, 19 Dec 2017 15:35:22 +0200
+Message-ID: <20171219133522.GG2942@mtr-leonro.local>
+References: <20171114125218.20477-1-leon@kernel.org>
+ <20171218231120.GH19056@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="hK8Uo4Yp55NZU70L"
+        protocol="application/pgp-signature"; boundary="hTiIB9CRvBOLTyqY"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAN-5tyFENoK6f20zjeUEbXNQh-bZAaH-iBf4Q6G8uLjz0eHnqA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20171218231120.GH19056-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---hK8Uo4Yp55NZU70L
+--hTiIB9CRvBOLTyqY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-Moni/Yonatan?
+On Mon, Dec 18, 2017 at 04:11:20PM -0700, Jason Gunthorpe wrote:
+> On Tue, Nov 14, 2017 at 02:51:47PM +0200, Leon Romanovsky wrote:
+> > Hi Doug,
+> >
+> > Please consider to take the following series to your coming pull request.
+> >
+> > The patches are available in the git repository at:
+> >   git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-next-2017-11-14
+> >
+> > 	Thanks
+>
+> I applied this series excluding:
+>
+>    IB/core: Fix do not add RoCEv2 default GID when IPv6 is disabled
+>
+> As noted in my reply to that patch.
+>
+> I revised many of the commit messages, lets try to improve these please.
+>
+> I also revised this patch:
+>    IB/ipoib: Avoid memory leak if neigh destination was changed
+>
+> To use ipoib_debug as noted in my separate message.
+>
+> Everything is in the wip/jgg-zero-day branch, it will move to for-next
+> my tomorrow. Let me know if there are any serious problems with my
+> edits.
 
-On Fri, Dec 08, 2017 at 02:50:10PM -0500, Olga Kornievskaia wrote:
-> Hi folks,
+I took a glance look on the messages and they seem ok to me.
+
+Thanks a lot.
+
 >
-> Can somebody give me an insight into to following WARNING (at the end
-> of the message)  that I see logged in var log messages while using
-> softROCE (NFSoRDMA)? This is typically associated with a hiccup in
-> communication I see happening over RDMA (long delays).
->
-> It's coming form the WARN here in rxe_comp.c:
->
->                 case COMPST_ERROR:
->                         WARN_ON_ONCE(wqe->status == IB_WC_SUCCESS);
->                         do_complete(qp, wqe);
->                         rxe_qp_error(qp);
->
->                         if (pkt) {
->                                 rxe_drop_ref(pkt->qp);
->
-> With a little bit of printks I tracked it to:
-> COMPST_ERROR is coming from "retrying counter exceeding"
-> (RXE_CNT_RETRY_EXCEEDED)  in COMPST_ERROR_RETRY. COMPST_ERROR_RETRY is
-> coming from check_psn(). I see that packet psn is greater then the wqe
-> psn. I have noticed that can happen (but not always) after
-> update_wqe_psn() has number of packets left to send some number larger
-> than 1.
->
-> Goal is to figure out why the hiccups are happening and I think this is a clue.
->
-> Thank you for any info.
->
-> Dec  5 16:42:16 localhost kernel: ------------[ cut here ]------------
-> Dec  5 16:42:16 localhost kernel: WARNING: CPU: 0 PID: 0 at
-> drivers/infiniband/sw/rxe/rxe_comp.c:741 rxe_completer+0xd84/0xe30
-> [rdma_rxe]
-> Dec  5 16:42:16 localhost kernel: Modules linked in: rpcrdma ib_ucm
-> ib_umad rdma_rxe ip6_udp_tunnel udp_tunnel rdma_ucm rdma_cm iw_cm
-> ib_cm ib_uverbs ib_core rfcomm fuse ip6t_rpfilter ipt_REJECT
-> nf_reject_ipv4 ip6t_REJECT nf_reject_ipv6 xt_conntrack ebtable_nat
-> ebtable_broute bridge stp llc ip6table_nat nf_conntrack_ipv6
-> nf_defrag_ipv6 nf_nat_ipv6 ip6table_mangle ip6table_security
-> ip6table_raw iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4
-> nf_nat nf_conntrack iptable_mangle iptable_security iptable_raw
-> ebtable_filter ebtables ip6table_filter ip6_tables iptable_filter bnep
-> snd_seq_midi snd_seq_midi_event coretemp crc32_pclmul ext4
-> ghash_clmulni_intel mbcache jbd2 aesni_intel snd_ens1371
-> snd_ac97_codec glue_helper ppdev lrw ac97_bus snd_seq gf128mul
-> uvcvideo ablk_helper cryptd vmw_balloon videobuf2_vmalloc
-> videobuf2_memops
-> Dec  5 16:42:16 localhost kernel: btusb snd_pcm videobuf2_core pcspkr
-> btrtl videodev btbcm btintel snd_timer snd_rawmidi bluetooth
-> snd_seq_device snd vmw_vmci rfkill shpchp i2c_piix4 soundcore
-> parport_pc parport nfsd auth_rpcgss nfs_acl lockd grace sunrpc
-> ip_tables xfs libcrc32c sr_mod cdrom vmwgfx sd_mod crc_t10dif
-> crct10dif_generic drm_kms_helper ata_generic syscopyarea sysfillrect
-> sysimgblt fb_sys_fops ttm drm pata_acpi crct10dif_pclmul ahci
-> crct10dif_common mptspi crc32c_intel libahci scsi_transport_spi
-> mptscsih serio_raw ata_piix libata mptbase e1000 i2c_core dm_mirror
-> dm_region_hash dm_log dm_mod
-> Dec  5 16:42:16 localhost kernel: CPU: 0 PID: 0 Comm: swapper/0 Not
-> tainted 3.10.0 #2
-> Dec  5 16:42:16 localhost kernel: Hardware name: VMware, Inc. VMware
-> Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00
-> 07/02/2015
-> Dec  5 16:42:16 localhost kernel: Call Trace:
-> Dec  5 16:42:16 localhost kernel: <IRQ>  [<ffffffff94cb9865>]
-> dump_stack+0x19/0x1b
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94686968>] __warn+0xd8/0x100
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94686aad>]
-> warn_slowpath_null+0x1d/0x20
-> Dec  5 16:42:16 localhost kernel: [<ffffffffc0a73734>]
-> rxe_completer+0xd84/0xe30 [rdma_rxe]
-> Dec  5 16:42:16 localhost kernel: [<ffffffffc0a7f24f>]
-> rxe_do_task+0x9f/0x110 [rdma_rxe]
-> Dec  5 16:42:16 localhost kernel: [<ffffffffc0a7f3b8>]
-> rxe_run_task+0x18/0x40 [rdma_rxe]
-> Dec  5 16:42:16 localhost kernel: [<ffffffffc0a729a5>]
-> rxe_comp_queue_pkt+0x45/0x50 [rdma_rxe]
-> Dec  5 16:42:16 localhost kernel: [<ffffffffc0a77bf8>]
-> rxe_rcv+0x2a8/0x920 [rdma_rxe]
-> Dec  5 16:42:16 localhost kernel: [<ffffffffc03bcc5f>] ?
-> ipt_do_table+0x31f/0x4f0 [ip_tables]
-> Dec  5 16:42:16 localhost kernel: [<ffffffffc0a7fa10>] ?
-> net_to_rxe+0x80/0x80 [rdma_rxe]
-> Dec  5 16:42:16 localhost kernel: [<ffffffffc0a7fa73>]
-> rxe_udp_encap_recv+0x63/0xa0 [rdma_rxe]
-> Dec  5 16:42:16 localhost kernel: [<ffffffffc0a7fa73>] ?
-> rxe_udp_encap_recv+0x63/0xa0 [rdma_rxe]
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94c148bb>]
-> udp_queue_rcv_skb+0x1bb/0x4a0
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94c15108>]
-> __udp4_lib_rcv+0x568/0xb90
-> Dec  5 16:42:16 localhost kernel: [<ffffffffc09281de>] ?
-> ipv4_confirm+0x4e/0x100 [nf_conntrack_ipv4]
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94c15b9a>] udp_rcv+0x1a/0x20
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94be30ce>]
-> ip_local_deliver_finish+0x8e/0x1d0
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94be33b9>]
-> ip_local_deliver+0x59/0xd0
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94be3040>] ?
-> ip_rcv_finish+0x300/0x300
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94be2db8>] ip_rcv_finish+0x78/0x300
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94be36e6>] ip_rcv+0x2b6/0x410
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94be2d40>] ?
-> inet_del_offload+0x40/0x40
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94b9f9d4>]
-> __netif_receive_skb_core+0x2e4/0x820
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94b9ff28>]
-> __netif_receive_skb+0x18/0x60
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94b9ffb0>]
-> netif_receive_skb_internal+0x40/0xc0
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94ba0b58>]
-> napi_gro_receive+0xd8/0x100
-> Dec  5 16:42:16 localhost kernel: [<ffffffffc01f33e8>]
-> e1000_clean_rx_irq+0x2b8/0x510 [e1000]
-> Dec  5 16:42:16 localhost kernel: [<ffffffffc01f4078>]
-> e1000_clean+0x278/0x8d0 [e1000]
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94ba0483>] net_rx_action+0x123/0x320
-> Dec  5 16:42:16 localhost kernel: [<ffffffff9468fb4f>] __do_softirq+0xef/0x280
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94ccc51c>] call_softirq+0x1c/0x30
-> Dec  5 16:42:16 localhost kernel: [<ffffffff9462c4c5>] do_softirq+0x65/0xa0
-> Dec  5 16:42:16 localhost kernel: [<ffffffff9468fed5>] irq_exit+0x105/0x110
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94ccd036>] do_IRQ+0x56/0xe0
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94cc1b2d>]
-> common_interrupt+0x6d/0x6d
-> Dec  5 16:42:16 localhost kernel: <EOI>  [<ffffffff94cc0dd6>] ?
-> native_safe_halt+0x6/0x10
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94cc0c6e>] ? default_idle+0x1e/0xc0
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94633f86>] ? arch_cpu_idle+0x26/0x30
-> Dec  5 16:42:16 localhost kernel: [<ffffffff946e6efa>] ?
-> cpu_startup_entry+0x14a/0x1c0
-> Dec  5 16:42:16 localhost kernel: [<ffffffff94ca8e17>] ? rest_init+0x77/0x80
-> Dec  5 16:42:16 localhost kernel: [<ffffffff9516c05a>] ?
-> start_kernel+0x433/0x454
-> Dec  5 16:42:16 localhost kernel: [<ffffffff9516ba30>] ?
-> repair_env_string+0x5c/0x5c
-> Dec  5 16:42:16 localhost kernel: [<ffffffff9516b120>] ?
-> early_idt_handler_array+0x120/0x120
-> Dec  5 16:42:16 localhost kernel: [<ffffffff9516b5ef>] ?
-> x86_64_start_reservations+0x24/0x26
-> Dec  5 16:42:16 localhost kernel: [<ffffffff9516b740>] ?
-> x86_64_start_kernel+0x14f/0x172
-> Dec  5 16:42:16 localhost kernel: [<ffffffff946001a5>] ? start_cpu+0x5/0x14
-> Dec  5 16:42:16 localhost kernel: ---[ end trace c96ed928ed9503ca ]---
+> Thanks,
+> Jason
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---hK8Uo4Yp55NZU70L
+--hTiIB9CRvBOLTyqY
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo5ENwACgkQ5GN7iDZy
-WKeLnxAArAhBMzN4JyQmwWDvc3114bmg7mOYDDOM8lPZnZEieeq5Zod9IcuY1A0/
-qLJwKUvd+cqrbLGkP3hYJasKlydKukG+Z/zvhFYywNa33Tfhwf8T4XKdA8EzW8w2
-woXZu8IK7CGH79F0zHb6x0nCFpq7r7Gf5ZgbKfdhlaVJGz9a/SrSDoR+Dh5mTLkO
-mygF+dvbR9E0rxQZGys7M2BJKBmudpNg72zud3I/VRxcs7f9JICzTpf0xsWPv2AU
-Z6erduN5YHR99+5/4RDaZQeFG35p6zNoLkUmKMwtfmgrreknrcRZ4qlFgqfoxkPV
-IeB+RrY8H+M8Hm9wsDMkbGZurjehHMS2TPxEn9txT/NLWZJk7fp2rXX1wGa9YE/U
-3HjkpJT/soFnHePEg1V2froHmsQdJkzqlsjTAScDEgFvnUmgzA7S6qkRN+e48ufE
-YtaNY6EmFft2vclOmzWj08HQsnGlu8ugPUvXkpOwNR0JreQ8EM3x4klZp8ZugnJd
-qJWc5TBoSpMgFlgJA2MLglL2moI5D+Vus83nDf5INkTDm1w8ZQFcIV9fgskBbjft
-7EAwHo90sSCgwPx+tD54JQ3J8Gmqdhyyij5OQQBcn1EbK9O8qgDImx23VCOQLC2x
-iXwH43BpU/RV1XiKzEgmoE7bnJRRPphK+NoYx50EYqg7TR77psM=
-=xn/C
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo5FZoACgkQ5GN7iDZy
+WKdXhg//dAcD+nFid3hwCelEnxJTivEGfHtNkPMGhuAY89zQ/5OnzV6tTxCk96vf
+3dJC9QEgPDCwFAiK9M+qD0FLTtr0KQwZFceO4B6Zc3NuNVO7srxnbnvqaSHxVOzj
+RDdIs2YNYL0ZMD8aLEh89SEJ+vD+fBe8hxa8Bmzaqu9tkxAN4hzAEm/U+p8yHC1Z
+QmYieVynnOtxHYx77/wmpOQNcC1mPqBsvVPWt07B9JMQmCiPckb0WPkcS8S39sbU
+U22YRHopuMckIAy3HCUeGb5D5VYt0FjnPuVgvnTkmaykrLTx2LtN+YHH0QYbHGIY
+KVd0xHwzXoQHHvNreCve3kvHR8EYRYHwDrghl1976ciFp3RoeyuKk68v5fCICoSC
+JxxS72jnjKDLGYETc0QsuyT4xmN6hi3G5UvUoiCV4JazD61zkTJodllNYm76jd8q
+gK1C7AcbXnDB5uRyN6DcOcGaeOcbMhPh6lyNMw6YWnauJbFcxoAhtKg4DMksTVgV
+bkG2CUx8jq0evx1IvcaQTNChv1mXDxXXHwli2t4p1h6vswBEbAx1jPdz/JioW6CL
+FAYSsrg4e78PjaIpVOWZl1+zrFiwurnkAspKS0dl51xDdkogRUEJQy/+oi7pUK0u
+TpArVNRK80W9u7V7wT0gu9tL/9ReY+8IzyuXBmdyfWD341DJ7Ow=
+=zbzD
 -----END PGP SIGNATURE-----
 
---hK8Uo4Yp55NZU70L--
+--hTiIB9CRvBOLTyqY--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
