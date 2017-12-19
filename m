@@ -1,32 +1,53 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH for-next 04/11] IB/{rdmavt, hfi1, qib}: Self determine
- driver name
-Date: Tue, 19 Dec 2017 13:59:40 -0700
-Message-ID: <20171219205940.GF14814@ziepe.ca>
-References: <20171219034753.2126.78386.stgit@scvm10.sc.intel.com>
- <20171219035635.2126.59763.stgit@scvm10.sc.intel.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH for-next] iw_cxgb4: Change error/warn prints to pr_debug
+Date: Tue, 19 Dec 2017 15:12:01 -0600
+Message-ID: <017901d3790e$030ddea0$09299be0$@opengridcomputing.com>
+References: <1513680256-8153-1-git-send-email-bharat@chelsio.com> <20171219201639.GA14814@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171219035635.2126.59763.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20171219201639.GA14814-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 18, 2017 at 07:56:37PM -0800, Dennis Dalessandro wrote:
-> From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> On Tue, Dec 19, 2017 at 04:14:16PM +0530, Potnuri Bharat Teja wrote:
+> > @@ -64,12 +64,6 @@
+> >  #define DRV_NAME "iw_cxgb4"
+> >  #define MOD DRV_NAME ":"
+> >
+> > -#ifdef pr_fmt
+> > -#undef pr_fmt
+> > -#endif
+> > -
+> > -#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> > -
 > 
-> Currently the HFI and QIB drivers allow the IB core to assign a unit
-> number to the driver name string.
-> 
-> If multiple devices exist in a system, there is a possibility that the
-> device unit number and the IB core number will be mismatched.
+> Lots of other places in RDMA set a prefix, can we come to some agreement
+if
+> we
+> should drop or keep this unverisally?
 
-This is much better than the last try at this. thanks
+Either way we go, pr_fmt being redefined screws up pr_debug() which
+optionally prepends the function, line, module names depending on the
+dynamic debug settings.  You end up with the module name embedded in the
+middle of the log statement, and duplicated with +m is used.  That is why
+Bharat removed it from iw_cxgb4.  
 
-Jason
+In general, I like module names in log statements, but we just need to do it
+the right way to avoid the pr_debug issue...
+
+steve
+
+
+---
+This email has been checked for viruses by AVG.
+http://www.avg.com
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
