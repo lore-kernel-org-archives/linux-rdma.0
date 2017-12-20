@@ -1,30 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next] qed*: Utilize FW 8.33.1.0
-Date: Wed, 20 Dec 2017 11:54:03 -0500 (EST)
-Message-ID: <20171220.115403.2203972051867900874.davem@davemloft.net>
-References: <1513692323-26684-1-git-send-email-Tomer.Tayar@cavium.com>
-        <20171219154651.30930d2a@cakuba.netronome.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: dumping queue state
+Date: Wed, 20 Dec 2017 10:59:25 -0600
+Message-ID: <010901d379b3$e4417bc0$acc47340$@opengridcomputing.com>
+References: <00a701d379aa$b098ee10$11caca30$@opengridcomputing.com> <1513786487.2603.4.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20171219154651.30930d2a@cakuba.netronome.com>
-Sender: netdev-owner@vger.kernel.org
-To: jakub.kicinski@netronome.com
-Cc: Tomer.Tayar@cavium.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, Ariel.Elior@cavium.com, Michal.Kalderon@cavium.com, Yuval.Bason@cavium.com, Ram.Amrani@cavium.com, Manish.Chopra@cavium.com, Chad.Dupuis@cavium.com, Manish.Rangankar@cavium.com
+Content-Type: text/plain;
+        charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1513786487.2603.4.camel-Sjgp3cTcYWE@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Bart Van Assche' <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jakub Kicinski <jakub.kicinski@netronome.com>
-Date: Tue, 19 Dec 2017 15:46:51 -0800
-
-> On Tue, 19 Dec 2017 16:05:23 +0200, Tomer Tayar wrote:
->> Sorry for the very long patch.
->> The firmware changes are spread all over w/o a good modularity.
+> Hello Steve,
 > 
-> Rings false.  Significant portion of this patch is just whitespace 
-> and comment changes.
+> I'm not sure what the best solution is for RDMA queues. But if you want you can
+> have a look at block/blk-mq-debugfs.c. That code has been added recently and
+> has
+> been very valuable for debugging block layer / SCSI queue lockups.
 
-Totally agreed.
+Thanks Bart.  
 
-This thing is beyond huge already, adding unrelated whitespace and
-comment changes make reviewing it even more impossible.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
