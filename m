@@ -1,75 +1,111 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 06/11] IB/rdmavt: Use correct numa node for SRQ
- allocation
-Date: Wed, 20 Dec 2017 10:31:23 +0200
-Message-ID: <20171220083123.GO2942@mtr-leonro.local>
-References: <20171219034753.2126.78386.stgit@scvm10.sc.intel.com>
- <20171219035649.2126.1625.stgit@scvm10.sc.intel.com>
- <20171220081720.GM2942@mtr-leonro.local>
+Subject: Re: [RFC PATCH 0/4] Sockperf: Initial multi-threaded throughput
+ client
+Date: Wed, 20 Dec 2017 10:52:39 +0200
+Message-ID: <20171220085239.GP2942@mtr-leonro.local>
+References: <cover.1513609601.git.dledford@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="YZQs1kEQY307C4ut"
+        protocol="application/pgp-signature"; boundary="kaF1vgn83Aa7CiXN"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171220081720.GM2942-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <cover.1513609601.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nirni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---YZQs1kEQY307C4ut
+--kaF1vgn83Aa7CiXN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Dec 20, 2017 at 10:17:20AM +0200, Leon Romanovsky wrote:
-> On Mon, Dec 18, 2017 at 07:56:52PM -0800, Dennis Dalessandro wrote:
-> > From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >
-> > Normal receive queue allocation ensures that kernel receive queues
-> > are allocated on the local numa node. Shared receive queues
-> > do not behave the same way.
-> >
-> > Ensure that kernel shared receive queues are allocated on the device
-> > local node.
-> >
-> > Reviewed-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > ---
-> >  drivers/infiniband/sw/rdmavt/srq.c |   16 +++++++++-------
-> >  1 files changed, 9 insertions(+), 7 deletions(-)
+On Mon, Dec 18, 2017 at 10:26:42AM -0500, Doug Ledford wrote:
+> During testing, it has become painfully clear that a single threaded UDP
+> test client can not exercise a 100Gig link due to issues related to
+> single core maximum throughput.  This patchset implements a
+> multi-threaded throughput test in sockperf.  This is just an initial
+> implementation, there is still more work to be done.  In particular:
 >
-> Are you aware of "__GFP_THISNODE" flag?
-
-It is not relevant to this patch, sorry.
-
+> 1) Although the speed improved with this change, it did not improve
+> drastically.  As soon as the client send bottleneck was removed, it
+> became clear there is another bottleneck on the server.  When sending to
+> a server from one client, all data is received on a single queue pair,
+> and due to how interrupts are spread in the RDMA stack (namely that each
+> queue pair goes to a single interrupt and we rely on multiple queue
+> pairs being in use to balance interrupts across different cores), we
+> take all interrupts from a specific host on a single core and the
+> receiving side then becomes the bottleneck with single core IPoIB
+> receive processing being the limiting factor.  On a slower machine, I
+> clocked 30GBit/s throughput.  On a faster machine as the server, I was
+> able to get up to 70GBit/s throughput.
 >
-> Thanks
+> 2) I thought I might try an experiment to get around the queue pair is
+> on one CPU issue.  We use P_Keys in our internal lab setup, and so on
+> the specific link in question, I actually have a total of three
+> different IP interfaces on different P_Keys.  I tried to open tests on
+> multiple of these interfaces to see how that would impact performance
+> (so a multithreaded server listening on ports on three different P_Key
+> interfaces all on the same physical link, which should use three
+> different queue pairs, and a multithreaded client sending to those three
+> different P_Key interfaces from three different P_Key interfaces of its
+> own).  It tanked it.  Like less than gigabit ethernet speeds.  This
+> warrants some investigation moving forward I think.
+>
+> 3) I thought I might try sending from two clients to the server at once
+> and summing their throughput.  That was fun.  With UDP the clients are
+> able to send enough data that flow control on the link kicks in, at
+> which point each client starts dropping packets on the floor (they're
+> UDP after all), and so the net result is that one client claimed
+> 200GBit/s and the other about 175GBit/s.  Meanwhile, the server thought
+> we were just kidding and didn't actually run a test at all.
+>
+> 4) I reran the test using TCP instead of UDP.  That's a non-starter.
+> Whether due to my changes, or just because it is the way it is, the TCP
+> tests all failed.  For larger message sizes, they failed instantly.  For
+> smaller message sizes the test might run for a few seconds, but would
+> eventually fail too.  Always the failure was that the server would get a
+> message it deemed too large and would forcibly close all of the TCP
+> connections, at which point the client just bails.
+>
+> I should point out that I don't program C++.  Issues with me not doing
+> these patches in a C++ typical manner are related to that.
+>
 
+Doug,
 
+I contacted the group which is responsible for the development of sockperf
+https://github.com/Mellanox/sockperf
 
---YZQs1kEQY307C4ut
+Their maintainer is on vacation till third week of January and unluckily
+there are no other people right now who can take a look onto your proposal.
+
+In meanwhile, it is better to push the code to github, because their
+development flow is based on github and not on mailing list.
+
+Thanks
+
+--kaF1vgn83Aa7CiXN
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo6H9oACgkQ5GN7iDZy
-WKd1qg//UFNHhTYKfRNt7Iqsl1X7Du4UnJRe+Xc7wHC5PHnjvPKk4AhWRQ8nvXSM
-qfC0/ppiOFgluWrtCycIG74Z3hqwcNmsRyGsZ76RkhsWER5AtnSUkTCVyYiik3pA
-doy7BbD/s2RlDsCIg05rA1bnV9kUwIawqENpaQUMA2mqc5raNzl51P+VMvS5WVvV
-JLUygoOfjik0KWNvm7X0kB2aJLt0wZH30FcaVNIxiIWGmsVTO6yfj9qXFBYY+Vx3
-x0ht525X6Iow6MANwmrPD0pTDvfwKs7DJhiogPe9mBiYprmF4N4lmoUocqq4IKES
-YyV75I0wMDzljxFIqVTgsyjERtD6duvTWQinpt7f8By1roBlmlwB7uJstqxIf5FO
-N9w2cr78SMfwjOKHZIW2m8dMCqqb5NmfLjdzjiZWA9EnqBl8Rco5NDQ5aAbnykau
-S2C2OKIDZQGG5s0/CBW4ttoqxWNUTF7eB4J2jPYys87EiNdHHASXK4XL//rGyWzL
-Nw+Fd8VCo0L5GS+uUPfgDu9Tt8nCKdbywxliu9Vd/RNYRICORsUP9DntC/v6DPLX
-JtqHvFnu6cCh4/+aPTt5RGFxE5Zbobaq7a6ZaSNP/UG/G/InoR906nW75Nyqr1pe
-aQAmNWGA0mH7byoF1QoGvbnlOAWKhxdmJkRBjmkdhvmSo3jXVdg=
-=Znwp
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo6JNcACgkQ5GN7iDZy
+WKfniw//bdeUOykm7AU3vu/REOkhq3T/vDDoIetMRV8LnSHovSX2TX+c7V7lsnOP
+QvThDqoNAOH+T0fFFxFcdzm37/IWAL1HOyi0tWf6AXMf9jqK2YySGSw3HmfmxxRR
+8Gqm+8fSq1tejxBSbRdVHxFzvS3+fMiUwpF5/qyzNfkvJ/oAPPWwx+syAZnUjdnx
+c5JrAxCaFO1vgy+PPZejkzKbQ1lmADBzxltc/goMpzg4Mey5KJtmfBIEnaKUBI+f
+CyXvB8iEcyA3TEr8Xl5RlvfQVKBdnB8/Z6tdOgFvOB7VJyJV5gJRqSWumObdz2GX
+IoHnsyp0dJ2xVIsegCqpfmr+vSrY624GpsqzofSen7NcdkcuA/EDgEbXR1FApbh7
+DEX847EzRLBVRbyQDX6YBVFqD19WkRIPpDRt4RWP/zRDhsMk5FC35QVXOL/pRsfn
+HDZl2Mwc/MVmT49mBD49+kUM7aqaYVDv+YSrX74YVE2ObGrElpMEBBYcYa7WtGYz
+Eecjyl/CYvsYDrThkPCrkc/rdhksAdnVTN9ePElguA1KdifvFVNb6P1VfiS1ckak
+ZUav1sw4IEtxYeX4I2UAyUw8G/JBqQvaUd2dMOmUTSh9Ow4C1WyebbSHj8wYp+QU
+LHvUWszMjlhRpOKjc3zScCY3wT9pvQVW7w8TsAvFf0RtNuZ+csQ=
+=D2P1
 -----END PGP SIGNATURE-----
 
---YZQs1kEQY307C4ut--
+--kaF1vgn83Aa7CiXN--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
