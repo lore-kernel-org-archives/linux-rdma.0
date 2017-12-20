@@ -1,38 +1,30 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [for-next 07/11] net/mlx5: E-Switch, Create generic header
- struct to be used by representors
-Date: Wed, 20 Dec 2017 12:58:58 -0500 (EST)
-Message-ID: <20171220.125858.1378708055295289661.davem@davemloft.net>
-References: <20171219203340.2600-1-saeedm@mellanox.com>
-        <20171219203340.2600-8-saeedm@mellanox.com>
+From: "Sanchez, Sebastian" <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH for-next 07/11] IB/hfi1: Fix infinite loop in 8051
+ command error path
+Date: Wed, 20 Dec 2017 18:02:39 +0000
+Message-ID: <5CDA63463B33C94CA80846587415F0772829387D@ORSMSX111.amr.corp.intel.com>
+References: <20171219034753.2126.78386.stgit@scvm10.sc.intel.com>
+ <20171219035657.2126.88651.stgit@scvm10.sc.intel.com>
+ <20171220080854.GL2942@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20171219203340.2600-8-saeedm@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: saeedm@mellanox.com
-Cc: dledford@redhat.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, leonro@mellanox.com, markb@mellanox.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171220080854.GL2942-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@mellanox.com>
-Date: Tue, 19 Dec 2017 12:33:36 -0800
+>What did you try to say by this change ? :)
 
-> +static int esw_offloads_load_reps(struct mlx5_eswitch *esw, int nvports)
-> +{
-> +	u8 rep_type = 0;
-> +	int err;
-> +
-> +	while (rep_type < NUM_REP_TYPES) {
-> +		err = esw_offloads_load_reps_type(esw, nvports,
-> +						  rep_type);
-> +		if (err)
-> +			goto err_reps;
-> +		rep_type++;
-> +	}
+Are you referring to the parameters for do_8051_command() or something else?
 
-Please, don't obfuscate what is a normal for() loop:
+Thank you,
 
-	for (rep_type = 0; rep_type < NUM_REP_TYPES; rep_type++)
-
-Thanks.
+Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
