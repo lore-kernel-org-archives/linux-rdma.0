@@ -1,180 +1,48 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 12/12] xprtrdma: Instrument allocation/release of
- rpcrdma_req/rep objects
-Date: Wed, 20 Dec 2017 16:31:53 -0500
-Message-ID: <20171220213153.29321.43120.stgit@manet.1015granger.net>
-References: <20171220210236.29321.59307.stgit@manet.1015granger.net>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: dumping queue state
+Date: Wed, 20 Dec 2017 15:42:56 -0600
+Message-ID: <029d01d379db$7f2c3a40$7d84aec0$@opengridcomputing.com>
+References: <00a701d379aa$b098ee10$11caca30$@opengridcomputing.com> <20171220163655.GW2942@mtr-leonro.local> <010e01d379b4$0ae59a90$20b0cfb0$@opengridcomputing.com> <20171220171146.GX2942@mtr-leonro.local> <019d01d379b9$e42cd390$ac867ab0$@opengridcomputing.com> <20171220180549.GY2942@mtr-leonro.local> <020801d379c4$eaaa0c00$bffe2400$@opengridcomputing.com> <20171220200115.GC2942@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+        charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171220210236.29321.59307.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171220200115.GC2942-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- include/trace/events/rpcrdma.h  |   67 +++++++++++++++++++++++++++++++++++++++
- net/sunrpc/xprtrdma/transport.c |   12 +++----
- net/sunrpc/xprtrdma/verbs.c     |    4 +-
- 3 files changed, 74 insertions(+), 9 deletions(-)
+> > > Check filters options too, to filters by numbers and display columns.
+> >
+> > [root@stevo1 ~]# /root/stevo/iproute2/rdma/rdma res show qp link
+> cxgb4_0/-
+> > display lqpn,type,state,pid lqpn 1000-1030
+> > DEV/PORT  LQPN       TYPE  STATE  PID
+> > cxgb4_0/- 1027       RC    RTS    0
+> > [root@stevo1 ~]# /root/stevo/iproute2/rdma/rdma res show qp link
+> cxgb4_0/-
+> > display lqpn,type,state,pid lqpn 1000-1033
+> > DEV/PORT  LQPN       TYPE  STATE  PID
+> > cxgb4_0/- 1027       RC    RTS    0
+> > cxgb4_0/- 1033       RC    RTS    0
+> > [root@stevo1 ~]#
+> >
+> > Working!
+> 
+> Thanks,
+> It supports various combinations with "," and "-", like
+> 990,1000-1030,1031-1032,1033
 
-diff --git a/include/trace/events/rpcrdma.h b/include/trace/events/rpcrdma.h
-index 5aa3ec7..27fd452 100644
---- a/include/trace/events/rpcrdma.h
-+++ b/include/trace/events/rpcrdma.h
-@@ -783,6 +783,73 @@
- );
- 
- /**
-+ ** Allocation/release of rpcrdma_reqs and rpcrdma_reps
-+ **/
-+
-+TRACE_EVENT(xprtrdma_allocate,
-+	TP_PROTO(
-+		const struct rpc_task *task,
-+		const struct rpcrdma_req *req
-+	),
-+
-+	TP_ARGS(task, req),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned int, task_id)
-+		__field(unsigned int, client_id)
-+		__field(const void *, req)
-+		__field(const void *, rep)
-+		__field(size_t, callsize)
-+		__field(size_t, rcvsize)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->task_id = task->tk_pid;
-+		__entry->client_id = task->tk_client->cl_clid;
-+		__entry->req = req;
-+		__entry->rep = req ? req->rl_reply : NULL;
-+		__entry->callsize = task->tk_rqstp->rq_callsize;
-+		__entry->rcvsize = task->tk_rqstp->rq_rcvsize;
-+	),
-+
-+	TP_printk("task:%u@%u req=%p rep=%p (%zu, %zu)",
-+		__entry->task_id, __entry->client_id,
-+		__entry->req, __entry->rep,
-+		__entry->callsize, __entry->rcvsize
-+	)
-+);
-+
-+TRACE_EVENT(xprtrdma_rpc_done,
-+	TP_PROTO(
-+		const struct rpc_task *task,
-+		const struct rpcrdma_req *req
-+	),
-+
-+	TP_ARGS(task, req),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned int, task_id)
-+		__field(unsigned int, client_id)
-+		__field(const void *, req)
-+		__field(const void *, rep)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->task_id = task->tk_pid;
-+		__entry->client_id = task->tk_client->cl_clid;
-+		__entry->req = req;
-+		__entry->rep = req->rl_reply;
-+	),
-+
-+	TP_printk("task:%u@%u req=%p rep=%p",
-+		__entry->task_id, __entry->client_id,
-+		__entry->req, __entry->rep
-+	)
-+);
-+
-+DEFINE_RXPRT_EVENT(xprtrdma_noreps);
-+
-+/**
-  ** Callback events
-  **/
- 
-diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index 25d1160..b90179a 100644
---- a/net/sunrpc/xprtrdma/transport.c
-+++ b/net/sunrpc/xprtrdma/transport.c
-@@ -640,7 +640,7 @@
- 
- 	req = rpcrdma_buffer_get(&r_xprt->rx_buf);
- 	if (req == NULL)
--		return -ENOMEM;
-+		goto out_get;
- 
- 	flags = RPCRDMA_DEF_GFP;
- 	if (RPC_IS_SWAPPER(task))
-@@ -653,19 +653,18 @@
- 	if (!rpcrdma_get_recvbuf(r_xprt, req, rqst->rq_rcvsize, flags))
- 		goto out_fail;
- 
--	dprintk("RPC: %5u %s: send size = %zd, recv size = %zd, req = %p\n",
--		task->tk_pid, __func__, rqst->rq_callsize,
--		rqst->rq_rcvsize, req);
--
- 	req->rl_cpu = smp_processor_id();
- 	req->rl_connect_cookie = 0;	/* our reserved value */
- 	rpcrdma_set_xprtdata(rqst, req);
- 	rqst->rq_buffer = req->rl_sendbuf->rg_base;
- 	rqst->rq_rbuffer = req->rl_recvbuf->rg_base;
-+	trace_xprtrdma_allocate(task, req);
- 	return 0;
- 
- out_fail:
- 	rpcrdma_buffer_put(req);
-+out_get:
-+	trace_xprtrdma_allocate(task, NULL);
- 	return -ENOMEM;
- }
- 
-@@ -682,10 +681,9 @@
- 	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(rqst->rq_xprt);
- 	struct rpcrdma_req *req = rpcr_to_rdmar(rqst);
- 
--	dprintk("RPC:       %s: called on 0x%p\n", __func__, req->rl_reply);
--
- 	if (test_bit(RPCRDMA_REQ_F_PENDING, &req->rl_flags))
- 		rpcrdma_release_rqst(r_xprt, req);
-+	trace_xprtrdma_rpc_done(task, req);
- 	rpcrdma_buffer_put(req);
- }
- 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index fb81d3a..57e1139 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -1385,11 +1385,11 @@ struct rpcrdma_req *
- 	req = rpcrdma_buffer_get_req_locked(buffers);
- 	req->rl_reply = rpcrdma_buffer_get_rep(buffers);
- 	spin_unlock(&buffers->rb_lock);
-+
- 	return req;
- 
- out_reqbuf:
- 	spin_unlock(&buffers->rb_lock);
--	pr_warn("RPC:       %s: out of request buffers\n", __func__);
- 	return NULL;
- }
- 
-@@ -1612,7 +1612,7 @@ struct rpcrdma_regbuf *
- 
- out_reqbuf:
- 	spin_unlock(&buffers->rb_lock);
--	pr_warn("%s: no extra receive buffers\n", __func__);
-+	trace_xprtrdma_noreps(r_xprt);
- 	return -ENOMEM;
- 
- out_rc:
+While the rdma tool easily allows poking around various resources, it would
+be sort of painful to do a full state dump.  Perhaps a fastpath command like
+'rdma dumpall' to just dump everything in detail? 
+
+
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
