@@ -1,91 +1,55 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH rdma-rc 3/3] iw_cxgb4: when flushing, complete all wrs in a
- chain
-Date: Tue, 19 Dec 2017 14:02:10 -0800
-Message-ID: <20171220191654.E18282BC88@smtp.opengridcomputing.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
+From: Mark Bloch <markb@mellanox.com>
+Subject: Re: [for-next 01/11] net/mlx5: E-Switch, Refactor vport representors
+ initialization
+Date: Wed, 20 Dec 2017 21:21:51 +0200
+Message-ID: <066d5ac8-e95a-f4ec-fda7-31716242cc05@mellanox.com>
+References: <20171219203340.2600-1-saeedm@mellanox.com>
+ <20171219203340.2600-2-saeedm@mellanox.com>
+ <20171220.125734.63810464667583004.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20171220.125734.63810464667583004.davem@davemloft.net>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>, saeedm@mellanox.com
+Cc: dledford@redhat.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, leonro@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-If a wr chain was posted and needed to be flushed, only the first
-wr in the chain was completed with FLUSHED status.  The rest were
-never completed.  This caused isert to hang on shutdown due to the
-missing completions which left iscsi IO commands referenced, stalling
-the shutdown.
 
-Fixes: 4fe7c2962e11 ("iw_cxgb4: refactor sq/rq drain logic")
 
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/qp.c | 28 ++++++++++++++++++++++++++--
- 1 file changed, 26 insertions(+), 2 deletions(-)
+On 20/12/2017 19:57, David Miller wrote:
+> From: Saeed Mahameed <saeedm@mellanox.com>
+> Date: Tue, 19 Dec 2017 12:33:30 -0800
+> 
+>> +int esw_offloads_init_reps(struct mlx5_eswitch *esw)
+>> +{
+>> +	struct mlx5_core_dev *dev = esw->dev;
+>> +	struct mlx5_esw_offload *offloads;
+>> +	struct mlx5_eswitch_rep *rep;
+>> +	int total_vfs = MLX5_TOTAL_VPORTS(dev);
+>> +	u8 hw_id[ETH_ALEN];
+>> +	int vport;
+> 
+> Reverse christmas-tree please.
+we need dev for  MLX5_TOTAL_VPORTS, so we can't have proper reverse christms-tree,
+I'll just remove the initialization of total_vfs and do it after the declarations,
+and switch between total_vfs and hw_id. 
 
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index 21495f9..d5c92fc 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -858,6 +858,22 @@ static int complete_sq_drain_wr(struct c4iw_qp *qhp, struct ib_send_wr *wr)
- 	return 0;
- }
- 
-+static int complete_sq_drain_wrs(struct c4iw_qp *qhp, struct ib_send_wr *wr,
-+				struct ib_send_wr **bad_wr)
-+{
-+	int ret = 0;
-+
-+	while (wr) {
-+		ret = complete_sq_drain_wr(qhp, wr);
-+		if (ret) {
-+			*bad_wr = wr;
-+			break;
-+		}
-+		wr = wr->next;
-+	}
-+	return ret;
-+}
-+
- static void complete_rq_drain_wr(struct c4iw_qp *qhp, struct ib_recv_wr *wr)
- {
- 	struct t4_cqe cqe = {};
-@@ -890,6 +906,14 @@ static void complete_rq_drain_wr(struct c4iw_qp *qhp, struct ib_recv_wr *wr)
- 	}
- }
- 
-+static void complete_rq_drain_wrs(struct c4iw_qp *qhp, struct ib_recv_wr *wr)
-+{
-+	while (wr) {
-+		complete_rq_drain_wr(qhp, wr);
-+		wr = wr->next;
-+	}
-+}
-+
- int c4iw_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 		   struct ib_send_wr **bad_wr)
- {
-@@ -913,7 +937,7 @@ int c4iw_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 	 */
- 	if (qhp->wq.flushed) {
- 		spin_unlock_irqrestore(&qhp->lock, flag);
--		err = complete_sq_drain_wr(qhp, wr);
-+		err = complete_sq_drain_wrs(qhp, wr, bad_wr);
- 		return err;
- 	}
- 	num_wrs = t4_sq_avail(&qhp->wq);
-@@ -1061,7 +1085,7 @@ int c4iw_post_receive(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 	 */
- 	if (qhp->wq.flushed) {
- 		spin_unlock_irqrestore(&qhp->lock, flag);
--		complete_rq_drain_wr(qhp, wr);
-+		complete_rq_drain_wrs(qhp, wr);
- 		return err;
- 	}
- 	num_wrs = t4_rq_avail(&qhp->wq);
--- 
-1.8.3.1
+> 
+>> +	esw->offloads.vport_reps =
+>> +		kcalloc(total_vfs, sizeof(struct mlx5_eswitch_rep),
+>> +			GFP_KERNEL);
+> 
+> That looks really unpleasant:
+> 
+> 	x = kcalloc(y,
+> 		    z, GFP_KERNEL);
+> 
+> would look so much nicer.
+> 
+No problem.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Mark.
