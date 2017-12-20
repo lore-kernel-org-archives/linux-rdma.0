@@ -1,65 +1,64 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 for-rc 2/4] RDMA/vmw_pvrdma: Use refcount_dec_and_test
- to avoid warning
-Date: Wed, 20 Dec 2017 21:55:36 +0200
-Message-ID: <20171220195536.GA2942@mtr-leonro.local>
-References: <20171220174748.GA18149@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171220174956.GA20571@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+Subject: Re: dumping queue state
+Date: Wed, 20 Dec 2017 21:58:37 +0200
+Message-ID: <20171220195837.GB2942@mtr-leonro.local>
+References: <00a701d379aa$b098ee10$11caca30$@opengridcomputing.com>
+ <20171220163655.GW2942@mtr-leonro.local>
+ <010e01d379b4$0ae59a90$20b0cfb0$@opengridcomputing.com>
+ <20171220171146.GX2942@mtr-leonro.local>
+ <019d01d379b9$e42cd390$ac867ab0$@opengridcomputing.com>
+ <20171220180549.GY2942@mtr-leonro.local>
+ <023501d379c9$2aafd470$800f7d50$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="tuFXEhzhBeitrIAu"
+        protocol="application/pgp-signature"; boundary="r7tUYVWcdYzDJoZW"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171220174956.GA20571-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
+In-Reply-To: <023501d379c9$2aafd470$800f7d50$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---tuFXEhzhBeitrIAu
+--r7tUYVWcdYzDJoZW
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Dec 20, 2017 at 09:50:01AM -0800, Bryan Tan wrote:
-> refcount_dec generates a warning when the operation
-> causes the refcount to hit zero. Avoid this by using
-> refcount_dec_and_test.
+On Wed, Dec 20, 2017 at 01:31:43PM -0600, Steve Wise wrote:
+> >
+> > I'm not using CM and take this information from ib_query_qp
 >
-> Fixes: 8b10ba783c9d ("RDMA/vmw_pvrdma: Add shared receive queue support")
-> Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> By the way, it will be very useful to dump cm_ids, or at least include the
+> ip address/port numbers for each connected qp...
 >
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Will do, we need it for RoCE too.
 
---tuFXEhzhBeitrIAu
+>
+>
+
+--r7tUYVWcdYzDJoZW
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo6wDgACgkQ5GN7iDZy
-WKcGfg/+Ol4EtGkoH3j7HGxhcWI0yZ7F+s5SAQOwfANjTkD5naAkQE7AFLy3Ncnr
-6z1ILU0LtdRDwP9cvtESv22H1m6jxbs2rsDjfnU10niTeoapsyFEveHdrodr6kzY
-tx2qAT17l0A/Q43LzfmZ4tMxxwWFMLinvRmndV5ky0Hcj71w7bH9o6PW47nm1V3D
-NGNv/3LFQxc6r+2bCa8kYyZQ+HC8hHYnmt0t6mhTp8RJ7nwlFh+Dqf6itJ8nnLuT
-3QfFHbCFF+6Qr9lR/yabBseHFwwujLAvc7qZ6allzkV0lh85kb31zK9TcBdc0ANN
-PDnmLS0bnMWurRa9md/pPVd1lUFU6I1UaBMizdXK9PwXuN3DkdkE1JZedURhwOFX
-XHB8riREgkzrJZrkw6MUuQL54li/78qWVMMf9nQ2uqMQCvm+HPor/gjUDvhDVIwD
-tv8+btFO6lmkzf5MhuXl+8OC1yvhWyspR15J1A1IALUzELwIWh0P7AD+shsdl+B9
-rsQj4hf0uupLanTWfBUMqAWGGX5nBUWzDEJb7Xy/TDpHG64tOKVv34h7MvcxQkL5
-+JfU75KfPmDb8S/aCIM+BDV+uDnwaCPKZjOTJ2GsuYlxB9jgj5WV+2l2f9hNgYji
-WlXPx+UxYj4wibayrfokMkfR4m7eSMLy4fqUAdF6Qan2K1guxtc=
-=Iblm
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo6wO0ACgkQ5GN7iDZy
+WKefyRAAgBwmF6oITyHraYBkTavJJcDrD60mZKlmA9553YBYyQyOkJ4lf7iX7sOC
+NVXFSSuDu1NWrlK4cF7PV5ZnT60Hy5AyC2CR3sUIOVw4bMhMdyS6KANUpccBklp3
+8D5MT2ZXOFzYddFPXh1NGQQ0c4VQJFe7rqlmMbK+wvoxEd3hp0G263+YHTMTZsi8
+Hj5MRAs3dLgYQXPANTUcc0BCsBUnI5WpwsTkdZUx0uyd4EHj8oHDdAITCzc+DGNO
+emS+9t77LB7pr2VPGuCdqD9lxD77Ln3UNfiZ212NRNuMaZC+mJ1fFb0mAwHFzxCF
+q2B+Ix00ZVt2P5eY4+/0muEKs0NwuohxgjZFIoweTdE0WBoSD6oNW1j3Yn5Wa1jy
+fsfaRFN9F1f1C3o7eePnsKT3/BbEijlQC5GJxJHPSTN1jBwAmqujcFfVI1Mm7MJ5
+CVwNpPQccWEkkM4JxhRHWUzfy5wI7SxjCITmFqKlt9HliIZoLK9oBNWa0C/LtY3e
+i4l1ON4R400gs43kkMjXFrYtBeqsbXblKtUKEFFgBLo+9dDKSHHNmeeFs8Cnfiv6
+EbQNu+LQ7c3YLn96SRzwghhbDEe2mpirVGzAwBiexDowgrIw2S6zEzs0qHWLys/0
+AC7H5mSgVgYW0L8NbV8Fx5ZoF3fQf6aK30TD/X3LLxnia7s47qU=
+=NQJ8
 -----END PGP SIGNATURE-----
 
---tuFXEhzhBeitrIAu--
+--r7tUYVWcdYzDJoZW--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
