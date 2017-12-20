@@ -1,229 +1,320 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 03/12] xprtrdma: Add trace points in RPC Call transmit
- paths
-Date: Wed, 20 Dec 2017 16:30:40 -0500
-Message-ID: <20171220213040.29321.939.stgit@manet.1015granger.net>
+Subject: [PATCH v1 04/12] xprtrdma: Add trace points in the RPC Reply
+ handler paths
+Date: Wed, 20 Dec 2017 16:30:48 -0500
+Message-ID: <20171220213048.29321.41633.stgit@manet.1015granger.net>
 References: <20171220210236.29321.59307.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171220210236.29321.59307.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- include/trace/events/rpcrdma.h |  124 ++++++++++++++++++++++++++++++++++++++++
- net/sunrpc/xprtrdma/rpc_rdma.c |    8 ---
- net/sunrpc/xprtrdma/verbs.c    |   12 +---
- 3 files changed, 129 insertions(+), 15 deletions(-)
+ include/trace/events/rpcrdma.h |  162 ++++++++++++++++++++++++++++++++++++++++
+ net/sunrpc/xprtrdma/rpc_rdma.c |   17 +---
+ net/sunrpc/xprtrdma/verbs.c    |   11 +--
+ 3 files changed, 171 insertions(+), 19 deletions(-)
 
 diff --git a/include/trace/events/rpcrdma.h b/include/trace/events/rpcrdma.h
-index e7ca063..8efb2c9 100644
+index 8efb2c9..e11bb32 100644
 --- a/include/trace/events/rpcrdma.h
 +++ b/include/trace/events/rpcrdma.h
-@@ -10,6 +10,130 @@
- #include <linux/tracepoint.h>
+@@ -11,6 +11,46 @@
  #include <trace/events/rdma.h>
  
-+/**
-+ ** Call events
+ /**
++ ** Event classes
 + **/
 +
-+TRACE_DEFINE_ENUM(rpcrdma_noch);
-+TRACE_DEFINE_ENUM(rpcrdma_readch);
-+TRACE_DEFINE_ENUM(rpcrdma_areadch);
-+TRACE_DEFINE_ENUM(rpcrdma_writech);
-+TRACE_DEFINE_ENUM(rpcrdma_replych);
-+
-+#define xprtrdma_show_chunktype(x)					\
-+		__print_symbolic(x,					\
-+				{ rpcrdma_noch, "inline" },		\
-+				{ rpcrdma_readch, "read list" },	\
-+				{ rpcrdma_areadch, "*read list" },	\
-+				{ rpcrdma_writech, "write list" },	\
-+				{ rpcrdma_replych, "reply chunk" })
-+
-+TRACE_EVENT(xprtrdma_marshal,
++DECLARE_EVENT_CLASS(xprtrdma_reply_event,
 +	TP_PROTO(
-+		const struct rpc_rqst *rqst,
-+		unsigned int hdrlen,
-+		unsigned int rtype,
-+		unsigned int wtype
++		const struct rpcrdma_rep *rep
 +	),
 +
-+	TP_ARGS(rqst, hdrlen, rtype, wtype),
++	TP_ARGS(rep),
 +
 +	TP_STRUCT__entry(
-+		__field(unsigned int, task_id)
-+		__field(unsigned int, client_id)
++		__field(const void *, rep)
++		__field(const void *, r_xprt)
 +		__field(u32, xid)
-+		__field(unsigned int, hdrlen)
-+		__field(unsigned int, headlen)
-+		__field(unsigned int, pagelen)
-+		__field(unsigned int, taillen)
-+		__field(unsigned int, rtype)
-+		__field(unsigned int, wtype)
++		__field(u32, version)
++		__field(u32, proc)
 +	),
 +
 +	TP_fast_assign(
-+		__entry->task_id = rqst->rq_task->tk_pid;
-+		__entry->client_id = rqst->rq_task->tk_client->cl_clid;
-+		__entry->xid = be32_to_cpu(rqst->rq_xid);
-+		__entry->hdrlen = hdrlen;
-+		__entry->headlen = rqst->rq_snd_buf.head[0].iov_len;
-+		__entry->pagelen = rqst->rq_snd_buf.page_len;
-+		__entry->taillen = rqst->rq_snd_buf.tail[0].iov_len;
-+		__entry->rtype = rtype;
-+		__entry->wtype = wtype;
++		__entry->rep = rep;
++		__entry->r_xprt = rep->rr_rxprt;
++		__entry->xid = be32_to_cpu(rep->rr_xid);
++		__entry->version = be32_to_cpu(rep->rr_vers);
++		__entry->proc = be32_to_cpu(rep->rr_proc);
 +	),
 +
-+	TP_printk("task:%u@%u xid=0x%08x: hdr=%u xdr=%u/%u/%u %s/%s",
-+		__entry->task_id, __entry->client_id, __entry->xid,
-+		__entry->hdrlen,
-+		__entry->headlen, __entry->pagelen, __entry->taillen,
-+		xprtrdma_show_chunktype(__entry->rtype),
-+		xprtrdma_show_chunktype(__entry->wtype)
++	TP_printk("rxprt %p xid=0x%08x rep=%p: version %u proc %u",
++		__entry->r_xprt, __entry->xid, __entry->rep,
++		__entry->version, __entry->proc
 +	)
 +);
 +
-+TRACE_EVENT(xprtrdma_post_send,
++#define DEFINE_REPLY_EVENT(name)					\
++		DEFINE_EVENT(xprtrdma_reply_event, name,		\
++				TP_PROTO(				\
++					const struct rpcrdma_rep *rep	\
++				),					\
++				TP_ARGS(rep))
++
++/**
+  ** Call events
+  **/
+ 
+@@ -101,6 +141,29 @@
+ 	)
+ );
+ 
++TRACE_EVENT(xprtrdma_post_recv,
 +	TP_PROTO(
-+		const struct rpcrdma_req *req,
++		const struct rpcrdma_rep *rep,
 +		int status
 +	),
 +
-+	TP_ARGS(req, status),
++	TP_ARGS(rep, status),
 +
 +	TP_STRUCT__entry(
-+		__field(const void *, req)
-+		__field(int, num_sge)
-+		__field(bool, signaled)
++		__field(const void *, rep)
 +		__field(int, status)
 +	),
 +
 +	TP_fast_assign(
-+		__entry->req = req;
-+		__entry->num_sge = req->rl_sendctx->sc_wr.num_sge;
-+		__entry->signaled = req->rl_sendctx->sc_wr.send_flags &
-+				    IB_SEND_SIGNALED;
++		__entry->rep = rep;
 +		__entry->status = status;
 +	),
 +
-+	TP_printk("req=%p, %d SGEs%s, status=%d",
-+		__entry->req, __entry->num_sge,
-+		(__entry->signaled ? ", signaled" : ""),
-+		__entry->status
++	TP_printk("rep=%p status=%d",
++		__entry->rep, __entry->status
 +	)
 +);
 +
-+/**
-+ ** Completion events
-+ **/
-+
-+TRACE_EVENT(xprtrdma_wc_send,
+ /**
+  ** Completion events
+  **/
+@@ -134,6 +197,105 @@
+ 	)
+ );
+ 
++TRACE_EVENT(xprtrdma_wc_receive,
 +	TP_PROTO(
-+		const struct rpcrdma_sendctx *sc,
++		const struct rpcrdma_rep *rep,
 +		const struct ib_wc *wc
 +	),
 +
-+	TP_ARGS(sc, wc),
++	TP_ARGS(rep, wc),
 +
 +	TP_STRUCT__entry(
-+		__field(const void *, req)
-+		__field(unsigned int, unmap_count)
++		__field(const void *, rep)
++		__field(unsigned int, byte_len)
 +		__field(unsigned int, status)
 +		__field(unsigned int, vendor_err)
 +	),
 +
 +	TP_fast_assign(
-+		__entry->req = sc->sc_req;
-+		__entry->unmap_count = sc->sc_unmap_count;
++		__entry->rep = rep;
++		__entry->byte_len = wc->byte_len;
 +		__entry->status = wc->status;
 +		__entry->vendor_err = __entry->status ? wc->vendor_err : 0;
 +	),
 +
-+	TP_printk("req=%p, unmapped %u pages: %s (%u/0x%x)",
-+		__entry->req, __entry->unmap_count,
++	TP_printk("rep=%p, %u bytes: %s (%u/0x%x)",
++		__entry->rep, __entry->byte_len,
 +		rdma_show_wc_status(__entry->status),
 +		__entry->status, __entry->vendor_err
 +	)
 +);
 +
++/**
++ ** Reply events
++ **/
++
++TRACE_EVENT(xprtrdma_reply,
++	TP_PROTO(
++		const struct rpc_task *task,
++		const struct rpcrdma_rep *rep,
++		const struct rpcrdma_req *req,
++		unsigned int credits
++	),
++
++	TP_ARGS(task, rep, req, credits),
++
++	TP_STRUCT__entry(
++		__field(unsigned int, task_id)
++		__field(unsigned int, client_id)
++		__field(const void *, rep)
++		__field(const void *, req)
++		__field(u32, xid)
++		__field(unsigned int, credits)
++	),
++
++	TP_fast_assign(
++		__entry->task_id = task->tk_pid;
++		__entry->client_id = task->tk_client->cl_clid;
++		__entry->rep = rep;
++		__entry->req = req;
++		__entry->xid = be32_to_cpu(rep->rr_xid);
++		__entry->credits = credits;
++	),
++
++	TP_printk("task:%u@%u xid=0x%08x, %u credits, rep=%p -> req=%p",
++		__entry->task_id, __entry->client_id, __entry->xid,
++		__entry->credits, __entry->rep, __entry->req
++	)
++);
++
++TRACE_EVENT(xprtrdma_defer_cmp,
++	TP_PROTO(
++		const struct rpcrdma_rep *rep
++	),
++
++	TP_ARGS(rep),
++
++	TP_STRUCT__entry(
++		__field(unsigned int, task_id)
++		__field(unsigned int, client_id)
++		__field(const void *, rep)
++		__field(u32, xid)
++	),
++
++	TP_fast_assign(
++		__entry->task_id = rep->rr_rqst->rq_task->tk_pid;
++		__entry->client_id = rep->rr_rqst->rq_task->tk_client->cl_clid;
++		__entry->rep = rep;
++		__entry->xid = be32_to_cpu(rep->rr_xid);
++	),
++
++	TP_printk("task:%u@%u xid=0x%08x rep=%p",
++		__entry->task_id, __entry->client_id, __entry->xid,
++		__entry->rep
++	)
++);
++
++DEFINE_REPLY_EVENT(xprtrdma_reply_vers);
++DEFINE_REPLY_EVENT(xprtrdma_reply_rqst);
++DEFINE_REPLY_EVENT(xprtrdma_reply_short);
++DEFINE_REPLY_EVENT(xprtrdma_reply_hdr);
++
  #endif /* _TRACE_RPCRDMA_H */
  
  #include <trace/define_trace.h>
 diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 9601af0..162c0fd 100644
+index 162c0fd..6f774f1e4 100644
 --- a/net/sunrpc/xprtrdma/rpc_rdma.c
 +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -524,9 +524,6 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
- 	struct ib_sge *sge;
- 	unsigned int count;
+@@ -1278,8 +1278,7 @@ void rpcrdma_complete_rqst(struct rpcrdma_rep *rep)
+  * being marshaled.
+  */
+ out_badheader:
+-	dprintk("RPC: %5u %s: invalid rpcrdma reply (type %u)\n",
+-		rqst->rq_task->tk_pid, __func__, be32_to_cpu(rep->rr_proc));
++	trace_xprtrdma_reply_hdr(rep);
+ 	r_xprt->rx_stats.bad_reply_count++;
+ 	status = -EIO;
+ 	goto out;
+@@ -1323,6 +1322,7 @@ void rpcrdma_deferred_completion(struct work_struct *work)
+ 	struct rpcrdma_req *req = rpcr_to_rdmar(rep->rr_rqst);
+ 	struct rpcrdma_xprt *r_xprt = rep->rr_rxprt;
  
--	dprintk("RPC:       %s: unmapping %u sges for sc=%p\n",
--		__func__, sc->sc_unmap_count, sc);
++	trace_xprtrdma_defer_cmp(rep);
+ 	if (rep->rr_wc_flags & IB_WC_WITH_INVALIDATE)
+ 		r_xprt->rx_ia.ri_ops->ro_reminv(rep, &req->rl_registered);
+ 	rpcrdma_release_rqst(r_xprt, req);
+@@ -1344,8 +1344,6 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+ 	u32 credits;
+ 	__be32 *p;
+ 
+-	dprintk("RPC:       %s: incoming rep %p\n", __func__, rep);
 -
- 	/* The first two SGEs contain the transport header and
- 	 * the inline buffer. These are always left mapped so
- 	 * they can be cheaply re-used.
-@@ -874,10 +871,7 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
- 	if (ret)
- 		goto out_err;
+ 	if (rep->rr_hdrbuf.head[0].iov_len == 0)
+ 		goto out_badstatus;
  
--	dprintk("RPC: %5u %s: %s/%s: hdrlen %u rpclen\n",
--		rqst->rq_task->tk_pid, __func__,
--		transfertypes[rtype], transfertypes[wtype],
--		xdr_stream_pos(xdr));
-+	trace_xprtrdma_marshal(rqst, xdr_stream_pos(xdr), rtype, wtype);
+@@ -1389,8 +1387,7 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+ 	rep->rr_rqst = rqst;
+ 	clear_bit(RPCRDMA_REQ_F_PENDING, &req->rl_flags);
  
- 	ret = rpcrdma_prepare_send_sges(r_xprt, req, xdr_stream_pos(xdr),
- 					&rqst->rq_snd_buf, rtype);
+-	dprintk("RPC:       %s: reply %p completes request %p (xid 0x%08x)\n",
+-		__func__, rep, req, be32_to_cpu(rep->rr_xid));
++	trace_xprtrdma_reply(rqst->rq_task, rep, req, credits);
+ 
+ 	queue_work_on(req->rl_cpu, rpcrdma_receive_wq, &rep->rr_work);
+ 	return;
+@@ -1404,8 +1401,7 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+ 	return;
+ 
+ out_badversion:
+-	dprintk("RPC:       %s: invalid version %d\n",
+-		__func__, be32_to_cpu(rep->rr_vers));
++	trace_xprtrdma_reply_vers(rep);
+ 	goto repost;
+ 
+ /* The RPC transaction has already been terminated, or the header
+@@ -1413,12 +1409,11 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+  */
+ out_norqst:
+ 	spin_unlock(&xprt->recv_lock);
+-	dprintk("RPC:       %s: no match for incoming xid 0x%08x\n",
+-		__func__, be32_to_cpu(rep->rr_xid));
++	trace_xprtrdma_reply_rqst(rep);
+ 	goto repost;
+ 
+ out_shortreply:
+-	dprintk("RPC:       %s: short/invalid reply\n", __func__);
++	trace_xprtrdma_reply_short(rep);
+ 
+ /* If no pending RPC transaction was matched, post a replacement
+  * receive buffer before returning.
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 9cc8abc..06d86b8 100644
+index 06d86b8..cfa3c03 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -133,6 +133,7 @@
- 		container_of(cqe, struct rpcrdma_sendctx, sc_cqe);
+@@ -156,13 +156,11 @@
+ 					       rr_cqe);
  
- 	/* WARNING: Only wr_cqe and status are reliable at this point */
-+	trace_xprtrdma_wc_send(sc, wc);
- 	if (wc->status != IB_WC_SUCCESS && wc->status != IB_WC_WR_FLUSH_ERR)
- 		pr_err("rpcrdma: Send: %s (%u/0x%x)\n",
- 		       ib_wc_status_msg(wc->status),
-@@ -1549,9 +1550,6 @@ struct rpcrdma_regbuf *
- 		req->rl_reply = NULL;
- 	}
+ 	/* WARNING: Only wr_id and status are reliable at this point */
++	trace_xprtrdma_wc_receive(rep, wc);
+ 	if (wc->status != IB_WC_SUCCESS)
+ 		goto out_fail;
  
--	dprintk("RPC:       %s: posting %d s/g entries\n",
--		__func__, send_wr->num_sge);
+ 	/* status == SUCCESS means all fields in wc are trustworthy */
+-	dprintk("RPC:       %s: rep %p opcode 'recv', length %u: success\n",
+-		__func__, rep, wc->byte_len);
 -
- 	if (!ep->rep_send_count ||
- 	    test_bit(RPCRDMA_REQ_F_TX_RESOURCES, &req->rl_flags)) {
- 		send_wr->send_flags |= IB_SEND_SIGNALED;
-@@ -1560,14 +1558,12 @@ struct rpcrdma_regbuf *
- 		send_wr->send_flags &= ~IB_SEND_SIGNALED;
- 		--ep->rep_send_count;
- 	}
-+
- 	rc = ib_post_send(ia->ri_id->qp, send_wr, &send_wr_fail);
-+	trace_xprtrdma_post_send(req, rc);
+ 	rpcrdma_set_xdrlen(&rep->rr_hdrbuf, wc->byte_len);
+ 	rep->rr_wc_flags = wc->wc_flags;
+ 	rep->rr_inv_rkey = wc->ex.invalidate_rkey;
+@@ -1576,17 +1574,14 @@ struct rpcrdma_regbuf *
+ 	if (!rpcrdma_dma_map_regbuf(ia, rep->rr_rdmabuf))
+ 		goto out_map;
+ 	rc = ib_post_recv(ia->ri_id->qp, &rep->rr_recv_wr, &recv_wr_fail);
++	trace_xprtrdma_post_recv(rep, rc);
  	if (rc)
--		goto out_postsend_err;
+-		goto out_postrecv;
 +		return -ENOTCONN;
  	return 0;
+ 
+ out_map:
+ 	pr_err("rpcrdma: failed to DMA map the Receive buffer\n");
+ 	return -EIO;
 -
--out_postsend_err:
--	pr_err("rpcrdma: RDMA Send ib_post_send returned %i\n", rc);
+-out_postrecv:
+-	pr_err("rpcrdma: ib_post_recv returned %i\n", rc);
 -	return -ENOTCONN;
  }
  
- int
+ /**
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
