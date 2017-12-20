@@ -1,84 +1,46 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: dumping queue state
-Date: Wed, 20 Dec 2017 11:42:22 -0600
-Message-ID: <019d01d379b9$e42cd390$ac867ab0$@opengridcomputing.com>
-References: <00a701d379aa$b098ee10$11caca30$@opengridcomputing.com> <20171220163655.GW2942@mtr-leonro.local> <010e01d379b4$0ae59a90$20b0cfb0$@opengridcomputing.com> <20171220171146.GX2942@mtr-leonro.local>
+From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 for-rc 0/4] vmw_pvrdma fixes for 4.15
+Date: Wed, 20 Dec 2017 09:47:57 -0800
+Message-ID: <20171220174748.GA18149@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171220171146.GX2942-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> WIP: no manuals, no review yet and not massively tested - but works for me
-:
-> 
-> 
-> >
-> > Is there a way to extend commands with provider-specific data?
-> >
-> 
-> In future yes, rdmatool provides "-d" option (detailed output) and IMHO
-> all vendor specific will got there.
+Add in two missed macros used by the userlevel library for SRQs,
+fix a missed ib_umem_release for QPs, fix an incorrect usage of
+the new refcount_t type for SRQs, and fix a potential use after
+free.
 
-Cool.
+v1 -> v2 changelog:
+- Remove patches that are not for-rc material
+- Clarify commit message for the SRQ macros patch
 
-Looksie:
+v0 -> v1 changelog:
+- Removed use of BIT() in UAPI header
+- Make setting/usage of is_kernel consistent between QP/CQ/SRQ
+- Use completions instead of wait queues for resource destroy
+- Cleaned up commit messages
 
-[root@stevo1 iproute2]# ./rdma/rdma res
-1: mlx4_0: curr/max: pd 4/32764 cq 17/65408 qp 3/163768
-2: cxgb4_0: curr/max: pd 2/65536 cq 16/24576 qp 2/12288
-2: cxgb4_0: curr/max: pd 2/65536 cq 16/24576 qp 2/12288
+Bryan Tan (4):
+  RDMA/vmw_pvrdma: Call ib_umem_release on destroy QP path
+  RDMA/vmw_pvrdma: Use refcount_dec_and_test to avoid warning
+  RDMA/vmw_pvrdma: Add UAR SRQ macros in ABI header file
+  RDMA/vmw_pvrdma: Avoid use after free due to QP/CQ/SRQ destroy
 
-[root@stevo1 iproute2]# ./rdma/rdma res show qp link cxgb4_0
-DEV/PORT  LQPN       TYPE  STATE  PID        COMM
-cxgb4_0/- 1028       RC    RTS    0          [rdma-cm]
-cxgb4_0/- 1026       RC    RTS    0          [rdma-cm]
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma.h      |  6 +++---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c   |  7 ++++---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 17 +++++++----------
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c   | 14 +++++++++++---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c  |  7 ++++---
+ include/uapi/rdma/vmw_pvrdma-abi.h             |  2 ++
+ 6 files changed, 31 insertions(+), 22 deletions(-)
 
-I'm not sure why the port is not specified on the above cxgb4 QPs which are
-connected.  They should have a port number.  But perhaps it isn't filled in
-correctly in the cm_id or something?  
-
-[root@stevo1 iproute2]# ./rdma/rdma res show qp link mlx4_0
-DEV/PORT  LQPN       TYPE  STATE  PID        COMM
-mlx4_0/1  537        RC    RTS    0          [rdma-cm]
-mlx4_0/1  536        RC    RTS    0          [rdma-cm]
-mlx4_0/1  1          GSI   RTS    0          [rdma-mad]
-[root@stevo1 iproute2]#
-
-rdma should probably understand enough transport-specific details to not
-display ib-specific stuff on an iwarp qp.  Here PSNs and PATH-MIG are all
-IB-specific:
-
-[root@stevo1 iproute2]# ./rdma/rdma res show qp link cxgb4_0 -d
-DEV/PORT  LQPN       RQPN       TYPE  STATE  PID        COMM
-SQ-PSN     RQ-PSN     PATH-MIG
-cxgb4_0/- 1028       0          RC    RTS    0          [rdma-cm]       0
-0          MIGRATED
-cxgb4_0/- 1026       0          RC    RTS    0          [rdma-cm]       0
-0          MIGRATED
-
-[root@stevo1 iproute2]# ./rdma/rdma res show qp link mlx4_0 -d
-DEV/PORT  LQPN       RQPN       TYPE  STATE  PID        COMM
-SQ-PSN     RQ-PSN     PATH-MIG
-mlx4_0/1  537        537        RC    RTS    0          [rdma-cm]
-13145128   12441844   MIGRATED
-mlx4_0/1  536        536        RC    RTS    0          [rdma-cm]
-14218681   1982803    MIGRATED
-mlx4_0/1  1          ---        GSI   RTS    0          [rdma-mad]      0
----        ---
-
-Looking good though!
-
-Why did you prefer netlink vs debugfs for this stuff?  (I'm sure it was
-discussed on the list but I missed it).
-
-Steve.
+-- 
+1.8.5.6
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
