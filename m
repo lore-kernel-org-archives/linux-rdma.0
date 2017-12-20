@@ -1,8 +1,8 @@
 From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 for-rc 2/4] RDMA/vmw_pvrdma: Use refcount_dec_and_test to
- avoid warning
-Date: Wed, 20 Dec 2017 09:50:01 -0800
-Message-ID: <20171220174956.GA20571@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+Subject: [PATCH v2 for-rc 3/4] RDMA/vmw_pvrdma: Add UAR SRQ macros in ABI
+ header file
+Date: Wed, 20 Dec 2017 09:50:57 -0800
+Message-ID: <20171220175051.GA22751@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 References: <20171220174748.GA18149@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -13,9 +13,11 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-refcount_dec generates a warning when the operation
-causes the refcount to hit zero. Avoid this by using
-refcount_dec_and_test.
+Support for SRQs were added in the vmw_pvrdma userlevel library
+before two necessary macros were added into the kernel ABI header
+file. Add the two UAR SRQ macros that are required by the userlevel
+library so that the library can rely on the kernel ABI header file
+for these SRQ macro definitions.
 
 Fixes: 8b10ba783c9d ("RDMA/vmw_pvrdma: Add shared receive queue support")
 Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -23,24 +25,22 @@ Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/uapi/rdma/vmw_pvrdma-abi.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
-index 826ccb8..a2b1a3c 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
-@@ -236,8 +236,8 @@ static void pvrdma_free_srq(struct pvrdma_dev *dev, struct pvrdma_srq *srq)
- 	dev->srq_tbl[srq->srq_handle] = NULL;
- 	spin_unlock_irqrestore(&dev->srq_tbl_lock, flags);
+diff --git a/include/uapi/rdma/vmw_pvrdma-abi.h b/include/uapi/rdma/vmw_pvrdma-abi.h
+index aaa352f..4007cac 100644
+--- a/include/uapi/rdma/vmw_pvrdma-abi.h
++++ b/include/uapi/rdma/vmw_pvrdma-abi.h
+@@ -58,6 +58,8 @@
+ #define PVRDMA_UAR_CQ_ARM_SOL		BIT(29)		/* Arm solicited bit. */
+ #define PVRDMA_UAR_CQ_ARM		BIT(30)		/* Arm bit. */
+ #define PVRDMA_UAR_CQ_POLL		BIT(31)		/* Poll bit. */
++#define PVRDMA_UAR_SRQ_OFFSET		8		/* SRQ doorbell. */
++#define PVRDMA_UAR_SRQ_RECV		BIT(30)		/* Recv bit. */
  
--	refcount_dec(&srq->refcnt);
--	wait_event(srq->wait, !refcount_read(&srq->refcnt));
-+	if (!refcount_dec_and_test(&srq->refcnt))
-+		wait_event(srq->wait, !refcount_read(&srq->refcnt));
- 
- 	/* There is no support for kernel clients, so this is safe. */
- 	ib_umem_release(srq->umem);
+ enum pvrdma_wr_opcode {
+ 	PVRDMA_WR_RDMA_WRITE,
 -- 
 1.8.5.6
 
