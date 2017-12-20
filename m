@@ -1,42 +1,40 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: dumping queue state
-Date: Wed, 20 Dec 2017 09:53:33 -0600
-Message-ID: <00a701d379aa$b098ee10$11caca30$@opengridcomputing.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: dumping queue state
+Date: Wed, 20 Dec 2017 16:14:48 +0000
+Message-ID: <1513786487.2603.4.camel@wdc.com>
+References: <00a701d379aa$b098ee10$11caca30$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <00a701d379aa$b098ee10$11caca30$@opengridcomputing.com>
+Content-Language: en-US
+Content-ID: <BEF15BA62626104A89D360DDD5EC23BD-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey,
-
-I have a need to provide tools for customers to gather runtime state for an
-rdma device.   Say, when an application is stuck waiting for some completion
-or other rdma event.   This includes hw/fw state of course, and equally as
-important, rdma object sw state.  Is debugfs the correct way to export this
-sw state?  The data is quite large potentially; each QP, its structures, the
-dma queue memory, etc.  Ditto for CQs.  Also MR state, etc etc.  It seems
-that would be overloading debugfs to me.  Currently the hw/fw state is being
-gathered via ethtool dump commands (--get-dump, --register-dump,
---eeprom-dump).  I am considering using the ethtool --get-dump method for
-the low level driver to also include dumping the rdma queue state for the
-device.   Is that a reasonable approach?
-
-Any thoughts/suggestions? 
-
-Thanks in advance,
-
-Steve.
-
-
----
-This email has been checked for viruses by AVG.
-http://www.avg.com
-
+T24gV2VkLCAyMDE3LTEyLTIwIGF0IDA5OjUzIC0wNjAwLCBTdGV2ZSBXaXNlIHdyb3RlOg0KPiBJ
+IGhhdmUgYSBuZWVkIHRvIHByb3ZpZGUgdG9vbHMgZm9yIGN1c3RvbWVycyB0byBnYXRoZXIgcnVu
+dGltZSBzdGF0ZSBmb3IgYW4NCj4gcmRtYSBkZXZpY2UuICAgU2F5LCB3aGVuIGFuIGFwcGxpY2F0
+aW9uIGlzIHN0dWNrIHdhaXRpbmcgZm9yIHNvbWUgY29tcGxldGlvbg0KPiBvciBvdGhlciByZG1h
+IGV2ZW50LiAgIFRoaXMgaW5jbHVkZXMgaHcvZncgc3RhdGUgb2YgY291cnNlLCBhbmQgZXF1YWxs
+eSBhcw0KPiBpbXBvcnRhbnQsIHJkbWEgb2JqZWN0IHN3IHN0YXRlLiAgSXMgZGVidWdmcyB0aGUg
+Y29ycmVjdCB3YXkgdG8gZXhwb3J0IHRoaXMNCj4gc3cgc3RhdGU/ICBUaGUgZGF0YSBpcyBxdWl0
+ZSBsYXJnZSBwb3RlbnRpYWxseTsgZWFjaCBRUCwgaXRzIHN0cnVjdHVyZXMsIHRoZQ0KPiBkbWEg
+cXVldWUgbWVtb3J5LCBldGMuICBEaXR0byBmb3IgQ1FzLiAgQWxzbyBNUiBzdGF0ZSwgZXRjIGV0
+Yy4gIEl0IHNlZW1zDQo+IHRoYXQgd291bGQgYmUgb3ZlcmxvYWRpbmcgZGVidWdmcyB0byBtZS4g
+IEN1cnJlbnRseSB0aGUgaHcvZncgc3RhdGUgaXMgYmVpbmcNCj4gZ2F0aGVyZWQgdmlhIGV0aHRv
+b2wgZHVtcCBjb21tYW5kcyAoLS1nZXQtZHVtcCwgLS1yZWdpc3Rlci1kdW1wLA0KPiAtLWVlcHJv
+bS1kdW1wKS4gIEkgYW0gY29uc2lkZXJpbmcgdXNpbmcgdGhlIGV0aHRvb2wgLS1nZXQtZHVtcCBt
+ZXRob2QgZm9yDQo+IHRoZSBsb3cgbGV2ZWwgZHJpdmVyIHRvIGFsc28gaW5jbHVkZSBkdW1waW5n
+IHRoZSByZG1hIHF1ZXVlIHN0YXRlIGZvciB0aGUNCj4gZGV2aWNlLiAgIElzIHRoYXQgYSByZWFz
+b25hYmxlIGFwcHJvYWNoPw0KPiANCj4gQW55IHRob3VnaHRzL3N1Z2dlc3Rpb25zPyANCg0KSGVs
+bG8gU3RldmUsDQoNCkknbSBub3Qgc3VyZSB3aGF0IHRoZSBiZXN0IHNvbHV0aW9uIGlzIGZvciBS
+RE1BIHF1ZXVlcy4gQnV0IGlmIHlvdSB3YW50IHlvdSBjYW4NCmhhdmUgYSBsb29rIGF0IGJsb2Nr
+L2Jsay1tcS1kZWJ1Z2ZzLmMuIFRoYXQgY29kZSBoYXMgYmVlbiBhZGRlZCByZWNlbnRseSBhbmQg
+aGFzDQpiZWVuIHZlcnkgdmFsdWFibGUgZm9yIGRlYnVnZ2luZyBibG9jayBsYXllciAvIFNDU0kg
+cXVldWUgbG9ja3Vwcy4NCg0KQmFydC4=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
