@@ -1,73 +1,85 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: dumping queue state
-Date: Wed, 20 Dec 2017 19:11:46 +0200
-Message-ID: <20171220171146.GX2942@mtr-leonro.local>
-References: <00a701d379aa$b098ee10$11caca30$@opengridcomputing.com>
- <20171220163655.GW2942@mtr-leonro.local>
- <010e01d379b4$0ae59a90$20b0cfb0$@opengridcomputing.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: dumping queue state
+Date: Wed, 20 Dec 2017 11:42:22 -0600
+Message-ID: <019d01d379b9$e42cd390$ac867ab0$@opengridcomputing.com>
+References: <00a701d379aa$b098ee10$11caca30$@opengridcomputing.com> <20171220163655.GW2942@mtr-leonro.local> <010e01d379b4$0ae59a90$20b0cfb0$@opengridcomputing.com> <20171220171146.GX2942@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Ll0BBk1HBk/f94B0"
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <010e01d379b4$0ae59a90$20b0cfb0$@opengridcomputing.com>
+In-Reply-To: <20171220171146.GX2942-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---Ll0BBk1HBk/f94B0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Dec 20, 2017 at 11:00:30AM -0600, Steve Wise wrote:
+> WIP: no manuals, no review yet and not massively tested - but works for me
+:
+> 
+> 
 > >
-> > >
-> > > Any thoughts/suggestions?
+> > Is there a way to extend commands with provider-specific data?
 > >
-> > Care to try?
-> >
->
-> Sure, I'm building the kernel now.  Where do I get the rdma command that
-> will work with this?
+> 
+> In future yes, rdmatool provides "-d" option (detailed output) and IMHO
+> all vendor specific will got there.
 
-I uploaded iproute2 part.
-https://git.kernel.org/pub/scm/linux/kernel/git/leon/iproute2.git/log/?h=topic/restrack
+Cool.
 
-WIP: no manuals, no review yet and not massively tested - but works for me :
+Looksie:
 
+[root@stevo1 iproute2]# ./rdma/rdma res
+1: mlx4_0: curr/max: pd 4/32764 cq 17/65408 qp 3/163768
+2: cxgb4_0: curr/max: pd 2/65536 cq 16/24576 qp 2/12288
+2: cxgb4_0: curr/max: pd 2/65536 cq 16/24576 qp 2/12288
 
->
-> Is there a way to extend commands with provider-specific data?
->
+[root@stevo1 iproute2]# ./rdma/rdma res show qp link cxgb4_0
+DEV/PORT  LQPN       TYPE  STATE  PID        COMM
+cxgb4_0/- 1028       RC    RTS    0          [rdma-cm]
+cxgb4_0/- 1026       RC    RTS    0          [rdma-cm]
 
-In future yes, rdmatool provides "-d" option (detailed output) and IMHO
-all vendor specific will got there.
+I'm not sure why the port is not specified on the above cxgb4 QPs which are
+connected.  They should have a port number.  But perhaps it isn't filled in
+correctly in the cm_id or something?  
 
-Thanks
+[root@stevo1 iproute2]# ./rdma/rdma res show qp link mlx4_0
+DEV/PORT  LQPN       TYPE  STATE  PID        COMM
+mlx4_0/1  537        RC    RTS    0          [rdma-cm]
+mlx4_0/1  536        RC    RTS    0          [rdma-cm]
+mlx4_0/1  1          GSI   RTS    0          [rdma-mad]
+[root@stevo1 iproute2]#
 
---Ll0BBk1HBk/f94B0
-Content-Type: application/pgp-signature; name="signature.asc"
+rdma should probably understand enough transport-specific details to not
+display ib-specific stuff on an iwarp qp.  Here PSNs and PATH-MIG are all
+IB-specific:
 
------BEGIN PGP SIGNATURE-----
+[root@stevo1 iproute2]# ./rdma/rdma res show qp link cxgb4_0 -d
+DEV/PORT  LQPN       RQPN       TYPE  STATE  PID        COMM
+SQ-PSN     RQ-PSN     PATH-MIG
+cxgb4_0/- 1028       0          RC    RTS    0          [rdma-cm]       0
+0          MIGRATED
+cxgb4_0/- 1026       0          RC    RTS    0          [rdma-cm]       0
+0          MIGRATED
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo6mdIACgkQ5GN7iDZy
-WKcP/RAAhq7qy8s5AyIEGx5VJNoQCB23wOjOt49A4D8/sZ6jxHonsgcfGw1AOPBA
-W5ddxdCNOnsVtgYm9PX8PPpHEiCtxnk4Bxftc07N3K3jLWzQXHu319gprFIeQPvI
-LcI08AXlxKZveJO5YiBPU3TG9E/l2/aAnglbN9AQ52eMO/jWaco8i6GZewEUa/7d
-0lm3SNiP9VWXgX7SZt8sV98zxeNE7A9Nlz+UPFPGSKlMw9qkJn8nIUmhUvAlzK7L
-9Hdzqj/szz/kzzWSIXForzsfNZ/H22l0eRoglIVU2SW9EZm4ILrZLquIQnhWO742
-32KS7KJljqlWQ5TKXQUjXSFmZOuYEVRcpsOVLtSGZNqMSNIV0kzFrlX7ozCnVrx1
-cFl1HP2+HuNcKcNe2RW8FVr6JZVpIFGNbOgVyPMKhJlSM0si8gT1NhKRzMmIDsFS
-LfuBrv6hNWg8o7TGuEpmN9kyTEGnpQsEi3WFJZ0WBjtehObH+0bQ4WY7MKnSGZ9t
-i1m9nUjgKfpKqQ8gBqnSms+owBYF5jh2hZBaZiM2Ibtwu0b421bzAlkovV/7vhJx
-gIrWjM2f+9q5IX760m63gci4XFs1MFniSiDZUjiWKLTlUgovZOjwmWk9f2gkb0PM
-pvxei7Pl1+aYHDIi10f9Ttb8vyp1hv2GWKlwbYIUAFAehpulI9E=
-=lmwn
------END PGP SIGNATURE-----
+[root@stevo1 iproute2]# ./rdma/rdma res show qp link mlx4_0 -d
+DEV/PORT  LQPN       RQPN       TYPE  STATE  PID        COMM
+SQ-PSN     RQ-PSN     PATH-MIG
+mlx4_0/1  537        537        RC    RTS    0          [rdma-cm]
+13145128   12441844   MIGRATED
+mlx4_0/1  536        536        RC    RTS    0          [rdma-cm]
+14218681   1982803    MIGRATED
+mlx4_0/1  1          ---        GSI   RTS    0          [rdma-mad]      0
+---        ---
 
---Ll0BBk1HBk/f94B0--
+Looking good though!
+
+Why did you prefer netlink vs debugfs for this stuff?  (I'm sure it was
+discussed on the list but I missed it).
+
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
