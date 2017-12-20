@@ -1,37 +1,35 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: dumping queue state
-Date: Wed, 20 Dec 2017 13:01:18 -0600
-Message-ID: <020801d379c4$eaaa0c00$bffe2400$@opengridcomputing.com>
-References: <00a701d379aa$b098ee10$11caca30$@opengridcomputing.com> <20171220163655.GW2942@mtr-leonro.local> <010e01d379b4$0ae59a90$20b0cfb0$@opengridcomputing.com> <20171220171146.GX2942@mtr-leonro.local> <019d01d379b9$e42cd390$ac867ab0$@opengridcomputing.com> <20171220180549.GY2942@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [PATCH rdma-core v2] Fix typos 'pontentially' and 'bandwith'
+Date: Wed, 20 Dec 2017 19:30:51 +0100
+Message-ID: <20171220183051.13906-1-benjamin.drung@profitbricks.com>
+References: <1513092243.3704.0.camel@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171220180549.GY2942-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <1513092243.3704.0.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> Check filters options too, to filters by numbers and display columns.
+Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+---
+ libibverbs/man/ibv_query_device_ex.3 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-[root@stevo1 ~]# /root/stevo/iproute2/rdma/rdma res show qp link cxgb4_0/-
-display lqpn,type,state,pid lqpn 1000-1030
-DEV/PORT  LQPN       TYPE  STATE  PID
-cxgb4_0/- 1027       RC    RTS    0
-[root@stevo1 ~]# /root/stevo/iproute2/rdma/rdma res show qp link cxgb4_0/-
-display lqpn,type,state,pid lqpn 1000-1033
-DEV/PORT  LQPN       TYPE  STATE  PID
-cxgb4_0/- 1027       RC    RTS    0
-cxgb4_0/- 1033       RC    RTS    0
-[root@stevo1 ~]#
-
-Working!
-
-
+diff --git a/libibverbs/man/ibv_query_device_ex.3 b/libibverbs/man/ibv_query_device_ex.3
+index 1172523a..cc8b896e 100644
+--- a/libibverbs/man/ibv_query_device_ex.3
++++ b/libibverbs/man/ibv_query_device_ex.3
+@@ -125,7 +125,7 @@ utilization and small packets will be harmed.
+ 
+ For instance, with a 128 byte cache line size, the transfer of any
+ packets less than 128 bytes will require a full 128 transfer on PCI,
+-pontentially doubling the required PCI-E bandwith.
++potentially doubling the required PCI-E bandwidth.
+ 
+ This feature can be enabled on a QP or WQ basis via the
+ IBV_QP_CREATE_PCI_WRITE_END_PADDING or IBV_WQ_FLAGS_PCI_WRITE_END_PADDING
+-- 
+2.14.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
