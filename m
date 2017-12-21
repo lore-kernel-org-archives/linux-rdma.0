@@ -1,35 +1,44 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: stuck iscsi/iser target with linux-4.15.0-rc1
-Date: Thu, 21 Dec 2017 09:21:41 -0600
-Message-ID: <00be01d37a6f$676a88f0$363f9ad0$@opengridcomputing.com>
-References: <000801d36ac6$9e9f5f70$dbde1e50$@opengridcomputing.com> <0ba7e891-f020-26fb-9945-9e824332593c@grimberg.me> <018901d36d17$6a703410$3f509c30$@opengridcomputing.com> <1dee9f68-a81b-b7b8-9e70-e0ef5c63c520@grimberg.me> <018001d37917$a7d85e20$f7891a60$@opengridcomputing.com> <dc2589ef-b585-09be-c5d1-dce408b99d24@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <dc2589ef-b585-09be-c5d1-dce408b99d24@grimberg.me>
-Content-Language: en-us
-Sender: target-devel-owner@vger.kernel.org
-To: 'Sagi Grimberg' <sagi@grimberg.me>, 'target-devel' <target-devel@vger.kernel.org>
-Cc: linux-rdma@vger.kernel.org
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-rc 0/2] IPoIB and mlx5 fixes
+Date: Thu, 21 Dec 2017 17:38:25 +0200
+Message-ID: <20171221153827.16793-1-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> 
-> > Hey Sagi,
-> >
-> > I found my bug: If a wr chain is posted to iw_cxgb4  and needs to be flushed,
-> only the first wr in the chain was being flushed.  The rest never completed.  This
-> completion leak was causing the failure to deref IO commands...
-> 
-> Good to know,
-> 
-> Do does any of the other discussions in the thread still apply? Anything
-> that I still need to look at?
+There are two fixes in this series,
 
-At this point, no. 
+Fix from Alex who solved lockdep real complain about ABBA locks sequence.
 
-Thanks for hanging in there with me. :)
+Patch from Majd a little bit larger than I would like, but most of the
+diffstat is simple code moves from one file to another.
 
-Steve.
+The patches are available in the git repository at:
+  git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-rc-2017-12-21
+
+	Thanks
+---------------------------------------
+
+Alex Vesker (1):
+  IB/ipoib: Fix lockdep issue found on ipoib_ib_dev_heavy_flush
+
+Majd Dibbiny (1):
+  IB/mlx5: Fix congestion counters in LAG mode
+
+ drivers/infiniband/hw/mlx5/cmd.c              | 11 ------
+ drivers/infiniband/hw/mlx5/cmd.h              |  2 -
+ drivers/infiniband/hw/mlx5/main.c             | 35 +++--------------
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c       |  7 ++--
+ drivers/net/ethernet/mellanox/mlx5/core/lag.c | 56 +++++++++++++++++++++++++++
+ include/linux/mlx5/driver.h                   |  4 ++
+ 6 files changed, 69 insertions(+), 46 deletions(-)
+
+-- 
+2.15.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
