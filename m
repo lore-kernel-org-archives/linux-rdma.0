@@ -1,41 +1,35 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [pull request][for-next 00/11] Mellanox, mlx5 E-Switch updates
- 2017-12-19
-Date: Thu, 21 Dec 2017 10:03:34 -0500 (EST)
-Message-ID: <20171221.100334.1424255317941540281.davem@davemloft.net>
-References: <20171219203340.2600-1-saeedm@mellanox.com>
-        <20171220.125631.1837619997849298593.davem@davemloft.net>
-        <1513837142.18312.27.camel@mellanox.com>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: stuck iscsi/iser target with linux-4.15.0-rc1
+Date: Thu, 21 Dec 2017 09:21:41 -0600
+Message-ID: <00be01d37a6f$676a88f0$363f9ad0$@opengridcomputing.com>
+References: <000801d36ac6$9e9f5f70$dbde1e50$@opengridcomputing.com> <0ba7e891-f020-26fb-9945-9e824332593c@grimberg.me> <018901d36d17$6a703410$3f509c30$@opengridcomputing.com> <1dee9f68-a81b-b7b8-9e70-e0ef5c63c520@grimberg.me> <018001d37917$a7d85e20$f7891a60$@opengridcomputing.com> <dc2589ef-b585-09be-c5d1-dce408b99d24@grimberg.me>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1513837142.18312.27.camel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain;
+        charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <dc2589ef-b585-09be-c5d1-dce408b99d24@grimberg.me>
+Content-Language: en-us
+Sender: target-devel-owner@vger.kernel.org
+To: 'Sagi Grimberg' <sagi@grimberg.me>, 'target-devel' <target-devel@vger.kernel.org>
+Cc: linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Thu, 21 Dec 2017 06:19:09 +0000
-
-> On Wed, 2017-12-20 at 12:56 -0500, David Miller wrote:
->> From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Date: Tue, 19 Dec 2017 12:33:29 -0800
->> 
->> > This patchset is based on rc4 and I see that net-next is still on
->> > rc3, i hope
->> > this is not a problem.
->> 
->> If it doesn't pull cleanly into net-next, then it would be a problem.
 > 
-> It does pull cleanly.
+> 
+> > Hey Sagi,
+> >
+> > I found my bug: If a wr chain is posted to iw_cxgb4  and needs to be flushed,
+> only the first wr in the chain was being flushed.  The rest never completed.  This
+> completion leak was causing the failure to deref IO commands...
+> 
+> Good to know,
+> 
+> Do does any of the other discussions in the thread still apply? Anything
+> that I still need to look at?
 
-But if it is based upon rc4 I'll get tons of crap that is non-networking
-related and you should never create a situation like that.
+At this point, no. 
 
-That's not "cleanly"
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for hanging in there with me. :)
+
+Steve.
