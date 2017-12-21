@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [RFC PATCH rdma-next 11/14] RDMA/core: Add resource tracking for create and destroy CQs
-Date: Thu, 21 Dec 2017 20:17:45 +0200
-Message-ID: <20171221181748.17126-12-leon@kernel.org>
+Subject: [RFC PATCH rdma-next 14/14] RDMA/nldev: Provide detailed QP information
+Date: Thu, 21 Dec 2017 20:17:48 +0200
+Message-ID: <20171221181748.17126-15-leon@kernel.org>
 References: <20171221181748.17126-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171221181748.17126-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,90 +12,318 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Track all creation and destroy of CQ objects.
+Implement RDMA nldev netlink interface to get detailed
+QP information.
+
+Currently only dumpit variant is implemented.
 
 Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cq.c               | 3 +++
- drivers/infiniband/core/uverbs_cmd.c       | 1 +
- drivers/infiniband/core/uverbs_std_types.c | 2 ++
- drivers/infiniband/core/verbs.c            | 2 ++
- 4 files changed, 8 insertions(+)
+ drivers/infiniband/core/nldev.c  | 207 +++++++++++++++++++++++++++++++++++++++
+ include/uapi/rdma/rdma_netlink.h |  43 ++++++++
+ 2 files changed, 250 insertions(+)
 
-diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
-index f2ae75fa3128..6344e007dbce 100644
---- a/drivers/infiniband/core/cq.c
-+++ b/drivers/infiniband/core/cq.c
-@@ -154,6 +154,8 @@ struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
- 	if (!cq->wc)
- 		goto out_destroy_cq;
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 7aca9458e946..6b22f1f2d084 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -58,6 +58,18 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+ 					     .len = 16 },
+ 	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR] = { .type = NLA_U64 },
+ 	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX]	= { .type = NLA_U64 },
++	[RDMA_NLDEV_ATTR_RES_QP]		= { .type = NLA_NESTED },
++	[RDMA_NLDEV_ATTR_RES_QP_ENTRY]		= { .type = NLA_NESTED },
++	[RDMA_NLDEV_ATTR_RES_LQPN]		= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_RES_RQPN]		= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_RES_RQ_PSN]		= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_RES_SQ_PSN]		= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE] = { .type = NLA_U8 },
++	[RDMA_NLDEV_ATTR_RES_TYPE]		= { .type = NLA_U8 },
++	[RDMA_NLDEV_ATTR_RES_STATE]		= { .type = NLA_U8 },
++	[RDMA_NLDEV_ATTR_RES_PID]		= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_RES_PID_COMM]	= { .type = NLA_NUL_STRING,
++						    .len = TASK_COMM_LEN },
+ };
 
-+	rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
-+
- 	switch (cq->poll_ctx) {
- 	case IB_POLL_DIRECT:
- 		cq->comp_handler = ib_cq_completion_direct;
-@@ -208,6 +210,7 @@ void ib_free_cq(struct ib_cq *cq)
- 		WARN_ON_ONCE(1);
- 	}
-
-+	rdma_restrack_del(&cq->res, RDMA_RESTRACK_CQ);
- 	kfree(cq->wc);
- 	ret = cq->device->destroy_cq(cq);
- 	WARN_ON_ONCE(ret);
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 24609be0c5cf..f462bde6e3b4 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1033,6 +1033,7 @@ static struct ib_ucq_object *create_cq(struct ib_uverbs_file *file,
- 		goto err_cb;
-
- 	uobj_alloc_commit(&obj->uobject);
-+	rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
-
- 	return obj;
-
-diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
-index c3ee5d9b336d..2d0d27865b09 100644
---- a/drivers/infiniband/core/uverbs_std_types.c
-+++ b/drivers/infiniband/core/uverbs_std_types.c
-@@ -35,6 +35,7 @@
- #include <rdma/ib_verbs.h>
- #include <linux/bug.h>
- #include <linux/file.h>
-+#include <rdma/restrack.h>
- #include "rdma_core.h"
- #include "uverbs.h"
-
-@@ -319,6 +320,7 @@ static int uverbs_create_cq_handler(struct ib_device *ib_dev,
- 	obj->uobject.object = cq;
- 	obj->uobject.user_handle = user_handle;
- 	atomic_set(&cq->usecnt, 0);
-+	rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
-
- 	ret = uverbs_copy_to(attrs, CREATE_CQ_RESP_CQE, &cq->cqe);
- 	if (ret)
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 6d95263a40d6..1e023e2d1dde 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1545,6 +1545,7 @@ struct ib_cq *ib_create_cq(struct ib_device *device,
- 		cq->event_handler = event_handler;
- 		cq->cq_context    = cq_context;
- 		atomic_set(&cq->usecnt, 0);
-+		rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
- 	}
-
- 	return cq;
-@@ -1563,6 +1564,7 @@ int ib_destroy_cq(struct ib_cq *cq)
- 	if (atomic_read(&cq->usecnt))
- 		return -EBUSY;
-
-+	rdma_restrack_del(&cq->res, RDMA_RESTRACK_CQ);
- 	return cq->device->destroy_cq(cq);
+ static int fill_nldev_handle(struct sk_buff *msg, struct ib_device *device)
+@@ -213,6 +225,74 @@ static int fill_res_info(struct sk_buff *msg, struct ib_device *device)
+ 	return ret;
  }
- EXPORT_SYMBOL(ib_destroy_cq);
+
++static int fill_res_qp_entry(struct sk_buff *msg,
++			     struct ib_qp *qp, uint32_t port)
++{
++	struct ib_qp_init_attr qp_init_attr;
++	struct nlattr *entry_attr;
++	struct ib_qp_attr qp_attr;
++	int ret;
++
++	ret = ib_query_qp(qp, &qp_attr, 0, &qp_init_attr);
++	if (ret)
++		return ret;
++
++	if (port && port != qp_attr.port_num)
++		return 0;
++
++	entry_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_QP_ENTRY);
++	if (!entry_attr)
++		goto out;
++
++	/* In create_qp() port is not set yet */
++	if (qp_attr.port_num &&
++	    nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, qp_attr.port_num))
++		goto err;
++
++	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_LQPN, qp->qp_num))
++		goto err;
++	if (qp->qp_type == IB_QPT_RC || qp->qp_type == IB_QPT_UC) {
++		if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_RQPN,
++				qp_attr.dest_qp_num))
++			goto err;
++		if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_RQ_PSN,
++				qp_attr.rq_psn))
++			goto err;
++	}
++
++	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_SQ_PSN, qp_attr.sq_psn))
++		goto err;
++
++	if (qp->qp_type == IB_QPT_RC || qp->qp_type == IB_QPT_UC ||
++	    qp->qp_type == IB_QPT_XRC_INI || qp->qp_type == IB_QPT_XRC_TGT) {
++		if (nla_put_u8(msg, RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE,
++			       qp_attr.path_mig_state))
++			goto err;
++	}
++	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_RES_TYPE, qp->qp_type))
++		goto err;
++	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_RES_STATE, qp_attr.qp_state))
++		goto err;
++
++	/* PID == 0 means that this QP was created by kernel */
++	if (qp->res.pid && nla_put_u32(msg,
++				       RDMA_NLDEV_ATTR_RES_PID, qp->res.pid))
++		goto err;
++
++	if (nla_put_string(msg,
++			   RDMA_NLDEV_ATTR_RES_PID_COMM, qp->res.task_comm))
++		goto err;
++
++	nla_nest_end(msg, entry_attr);
++
++	return 0;
++
++err:
++	nla_nest_cancel(msg, entry_attr);
++out:
++	return -EMSGSIZE;
++}
++
+ static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			  struct netlink_ext_ack *extack)
+ {
+@@ -486,6 +566,120 @@ static int nldev_res_get_dumpit(struct sk_buff *skb,
+ 	return ib_enum_all_devs(_nldev_res_get_dumpit, skb, cb);
+ }
+
++static int nldev_res_get_qp_dumpit(struct sk_buff *skb,
++				   struct netlink_callback *cb)
++{
++	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
++	struct rdma_restrack_entry *res;
++	struct list_head *pos, *nxt;
++	int err, ret, key, idx = 0;
++	struct nlattr *table_attr;
++	struct ib_device *device;
++	int start = cb->args[0];
++	struct nlmsghdr *nlh;
++	u32 index, port = 0;
++	struct ib_qp *qp;
++
++	err = nlmsg_parse(cb->nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
++			  nldev_policy, NULL);
++	/*
++	 * Right now, we are expecting the device index to get QP information,
++	 * but it is possible to extend this code to return all devices in
++	 * one shot by checking the existence of RDMA_NLDEV_ATTR_DEV_INDEX.
++	 * if it doesn't exist, we will iterate over all devices.
++	 *
++	 * But it is not needed for now.
++	 */
++	if (err || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
++		return -EINVAL;
++
++	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
++	device = ib_device_get_by_index(index);
++	if (!device)
++		return -EINVAL;
++
++	/*
++	 * If no PORT_INDEX is supplied, we will return QPs from whole device
++	 */
++	if (tb[RDMA_NLDEV_ATTR_PORT_INDEX]) {
++		port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
++		if (!rdma_is_port_valid(device, port)) {
++			ret = -EINVAL;
++			goto err_index;
++		}
++	}
++
++	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
++			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_QP_GET),
++			0, NLM_F_MULTI);
++
++	if (fill_nldev_handle(skb, device)) {
++		ret = -EMSGSIZE;
++		goto err;
++	}
++
++	table_attr = nla_nest_start(skb, RDMA_NLDEV_ATTR_RES_QP);
++	if (!table_attr) {
++		ret = -EMSGSIZE;
++		goto err;
++	}
++
++	rdma_restrack_lock(&device->res, RDMA_RESTRACK_QP);
++	for_each_res_safe(pos, nxt, RDMA_RESTRACK_QP, device) {
++		if (idx < start) {
++			idx++;
++			continue;
++		}
++
++		res = list_entry(pos, struct rdma_restrack_entry, list);
++		if (!res->valid)
++			/*
++			 * It can be if resource failed to initialize srcu,
++			 * in other cases internal to restrack lock will esnure
++			 * that this list has only valid entries.
++			 */
++			continue;
++
++		key = srcu_read_lock(&res->srcu);
++
++		qp = container_of(res, struct ib_qp, res);
++		rdma_restrack_unlock(&device->res, RDMA_RESTRACK_QP);
++		ret = fill_res_qp_entry(skb, qp, port);
++		rdma_restrack_lock(&device->res, RDMA_RESTRACK_QP);
++
++		srcu_read_unlock(&res->srcu, key);
++
++		if (ret == -EMSGSIZE)
++			/*
++			 * There is a chance to optimize here.
++			 * It can be done by using list_prepare_entry
++			 * and list_for_each_entry_continue afterwards.
++			 */
++			break;
++		if (ret)
++			goto res_err;
++		idx++;
++	}
++	rdma_restrack_unlock(&device->res, RDMA_RESTRACK_QP);
++
++	nla_nest_end(skb, table_attr);
++	nlmsg_end(skb, nlh);
++	cb->args[0] = idx;
++	put_device(&device->dev);
++	return 0;
++
++res_err:
++	nla_nest_cancel(skb, table_attr);
++	rdma_restrack_unlock(&device->res, RDMA_RESTRACK_QP);
++
++err:
++	nlmsg_cancel(skb, nlh);
++
++err_index:
++	put_device(&device->dev);
++	return ret;
++}
++
+ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
+ 	[RDMA_NLDEV_CMD_GET] = {
+ 		.doit = nldev_get_doit,
+@@ -499,6 +693,19 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
+ 		.doit = nldev_res_get_doit,
+ 		.dump = nldev_res_get_dumpit,
+ 	},
++	[RDMA_NLDEV_CMD_RES_QP_GET] = {
++		.dump = nldev_res_get_qp_dumpit,
++		/*
++		 * .doit is not implemented yet for two reasons:
++		 * 1. It is not needed yet.
++		 * 2. There is a need to provide identifier, while it is easy
++		 * for the QPs (device index + port index + LQPN), it is not
++		 * the case for the rest of resources (PD and CQ). Because it
++		 * is better to provide similar interface for all resources,
++		 * let's wait till we will have other resources implemented
++		 * too.
++		 */
++	},
+ };
+
+ void __init nldev_init(void)
+diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+index e041d2eca4b8..9a90cd9f614e 100644
+--- a/include/uapi/rdma/rdma_netlink.h
++++ b/include/uapi/rdma/rdma_netlink.h
+@@ -241,6 +241,11 @@ enum rdma_nldev_command {
+ 	RDMA_NLDEV_CMD_RES_NEW,
+ 	RDMA_NLDEV_CMD_RES_DEL,
+
++	RDMA_NLDEV_CMD_RES_QP_GET, /* can dump */
++	RDMA_NLDEV_CMD_RES_QP_SET,
++	RDMA_NLDEV_CMD_RES_QP_NEW,
++	RDMA_NLDEV_CMD_RES_QP_DEL,
++
+ 	RDMA_NLDEV_NUM_OPS
+ };
+
+@@ -314,6 +319,44 @@ enum rdma_nldev_attr {
+ 	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR,	/* u64 */
+ 	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX,	/* u64 */
+
++	RDMA_NLDEV_ATTR_RES_QP,			/* nested table */
++	RDMA_NLDEV_ATTR_RES_QP_ENTRY,		/* nested table */
++	/*
++	 * Local QPN
++	 */
++	RDMA_NLDEV_ATTR_RES_LQPN,		/* u32 */
++	/*
++	 * Remote QPN,
++	 * Applicable for RC and UC only IBTA 11.2.5.3 QUERY QUEUE PAIR
++	 */
++	RDMA_NLDEV_ATTR_RES_RQPN,		/* u32 */
++	/*
++	 * Receive Queue PSN,
++	 * Applicable for RC and UC only 11.2.5.3 QUERY QUEUE PAIR
++	 */
++	RDMA_NLDEV_ATTR_RES_RQ_PSN,		/* u32 */
++	/*
++	 * Send Queue PSN
++	 */
++	RDMA_NLDEV_ATTR_RES_SQ_PSN,		/* u32 */
++	RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE,	/* u8 */
++	/*
++	 * QP types as visible to RDMA/core, the reserved QPT
++	 * are not exported through this interface.
++	 */
++	RDMA_NLDEV_ATTR_RES_TYPE,		/* u8 */
++	RDMA_NLDEV_ATTR_RES_STATE,		/* u8 */
++	/*
++	 * Process ID created QP, in case of kernel PID is equal to 0
++	 * and this field won't be set, so user will distinguish user/kernel
++	 * processes without relying on PID number.
++	 */
++	RDMA_NLDEV_ATTR_RES_PID,		/* u32 */
++	/*
++	 * The name of process created following resource.
++	 */
++	RDMA_NLDEV_ATTR_RES_PID_COMM,		/* string */
++
+ 	RDMA_NLDEV_ATTR_MAX
+ };
+ #endif /* _UAPI_RDMA_NETLINK_H */
 --
 2.15.1
 
