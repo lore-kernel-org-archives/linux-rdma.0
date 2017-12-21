@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 1/2] IB/mlx5: Fix congestion counters in LAG mode
-Date: Thu, 21 Dec 2017 17:38:26 +0200
-Message-ID: <20171221153827.16793-2-leon@kernel.org>
+Subject: [PATCH rdma-rc 2/2] IB/ipoib: Fix lockdep issue found on ipoib_ib_dev_heavy_flush
+Date: Thu, 21 Dec 2017 17:38:27 +0200
+Message-ID: <20171221153827.16793-3-leon@kernel.org>
 References: <20171221153827.16793-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171221153827.16793-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -10,199 +10,99 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunth
 Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Congestion counters are counted and queried per physical function.
-When working in LAG mode, CNP packets can be sent or received on both
-of the functions, thus congestion counters should be aggregated from
-the two physical functions.
+The locking order of vlan_rwsem (LOCK A) and then rtnl (LOCK B),
+contradicts other flows such as ipoib_open possibly causing a deadlock.
+To prevent this deadlock heavy flush is called with RTNL locked and
+only then tries to acquire vlan_rwsem.
+This deadlock is possible only when there are child interfaces.
 
-Fixes: e1f24a79f424 ("IB/mlx5: Support congestion related counters")
-Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+[  140.941758] ======================================================
+[  140.946276] WARNING: possible circular locking dependency detected
+[  140.950950] 4.15.0-rc1+ #9 Tainted: G           O
+[  140.954797] ------------------------------------------------------
+[  140.959424] kworker/u32:1/146 is trying to acquire lock:
+[  140.963450]  (rtnl_mutex){+.+.}, at: [<ffffffffc083516a>] __ipoib_ib_dev_flush+0x2da/0x4e0 [ib_ipoib]
+[  140.970006]
+but task is already holding lock:
+[  140.975141]  (&priv->vlan_rwsem){++++}, at: [<ffffffffc0834ee1>] __ipoib_ib_dev_flush+0x51/0x4e0 [ib_ipoib]
+[  140.982105]
+which lock already depends on the new lock.
+[  140.990023]
+the existing dependency chain (in reverse order) is:
+[  140.998650]
+-> #1 (&priv->vlan_rwsem){++++}:
+[  141.005276]        down_read+0x4d/0xb0
+[  141.009560]        ipoib_open+0xad/0x120 [ib_ipoib]
+[  141.014400]        __dev_open+0xcb/0x140
+[  141.017919]        __dev_change_flags+0x1a4/0x1e0
+[  141.022133]        dev_change_flags+0x23/0x60
+[  141.025695]        devinet_ioctl+0x704/0x7d0
+[  141.029156]        sock_do_ioctl+0x20/0x50
+[  141.032526]        sock_ioctl+0x221/0x300
+[  141.036079]        do_vfs_ioctl+0xa6/0x6d0
+[  141.039656]        SyS_ioctl+0x74/0x80
+[  141.042811]        entry_SYSCALL_64_fastpath+0x1f/0x96
+[  141.046891]
+-> #0 (rtnl_mutex){+.+.}:
+[  141.051701]        lock_acquire+0xd4/0x220
+[  141.055212]        __mutex_lock+0x88/0x970
+[  141.058631]        __ipoib_ib_dev_flush+0x2da/0x4e0 [ib_ipoib]
+[  141.063160]        __ipoib_ib_dev_flush+0x71/0x4e0 [ib_ipoib]
+[  141.067648]        process_one_work+0x1f5/0x610
+[  141.071429]        worker_thread+0x4a/0x3f0
+[  141.074890]        kthread+0x141/0x180
+[  141.078085]        ret_from_fork+0x24/0x30
+[  141.081559]
+
+other info that might help us debug this:
+[  141.088967]  Possible unsafe locking scenario:
+[  141.094280]        CPU0                    CPU1
+[  141.097953]        ----                    ----
+[  141.101640]   lock(&priv->vlan_rwsem);
+[  141.104771]                                lock(rtnl_mutex);
+[  141.109207]                                lock(&priv->vlan_rwsem);
+[  141.114032]   lock(rtnl_mutex);
+[  141.116800]
+ *** DEADLOCK ***
+
+Fixes: b4b678b06f6e ("IB/ipoib: Grab rtnl lock on heavy flush when calling ndo_open/stop")
+Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/cmd.c              | 11 ------
- drivers/infiniband/hw/mlx5/cmd.h              |  2 -
- drivers/infiniband/hw/mlx5/main.c             | 35 +++--------------
- drivers/net/ethernet/mellanox/mlx5/core/lag.c | 56 +++++++++++++++++++++++++++
- include/linux/mlx5/driver.h                   |  4 ++
- 5 files changed, 66 insertions(+), 42 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cmd.c b/drivers/infiniband/hw/mlx5/cmd.c
-index 470995fa38d2..6f6712f87a73 100644
---- a/drivers/infiniband/hw/mlx5/cmd.c
-+++ b/drivers/infiniband/hw/mlx5/cmd.c
-@@ -47,17 +47,6 @@ int mlx5_cmd_null_mkey(struct mlx5_core_dev *dev, u32 *null_mkey)
- 	return err;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 3b96cdaf9a83..e6151a29c412 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -1236,13 +1236,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+ 		ipoib_ib_dev_down(dev);
+ 
+ 	if (level == IPOIB_FLUSH_HEAVY) {
+-		rtnl_lock();
+ 		if (test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
+ 			ipoib_ib_dev_stop(dev);
+ 
+-		result = ipoib_ib_dev_open(dev);
+-		rtnl_unlock();
+-		if (result)
++		if (ipoib_ib_dev_open(dev))
+ 			return;
+ 
+ 		if (netif_queue_stopped(dev))
+@@ -1282,7 +1279,9 @@ void ipoib_ib_dev_flush_heavy(struct work_struct *work)
+ 	struct ipoib_dev_priv *priv =
+ 		container_of(work, struct ipoib_dev_priv, flush_heavy);
+ 
++	rtnl_lock();
+ 	__ipoib_ib_dev_flush(priv, IPOIB_FLUSH_HEAVY, 0);
++	rtnl_unlock();
  }
  
--int mlx5_cmd_query_cong_counter(struct mlx5_core_dev *dev,
--				bool reset, void *out, int out_size)
--{
--	u32 in[MLX5_ST_SZ_DW(query_cong_statistics_in)] = { };
--
--	MLX5_SET(query_cong_statistics_in, in, opcode,
--		 MLX5_CMD_OP_QUERY_CONG_STATISTICS);
--	MLX5_SET(query_cong_statistics_in, in, clear, reset);
--	return mlx5_cmd_exec(dev, in, sizeof(in), out, out_size);
--}
--
- int mlx5_cmd_query_cong_params(struct mlx5_core_dev *dev, int cong_point,
- 			       void *out, int out_size)
- {
-diff --git a/drivers/infiniband/hw/mlx5/cmd.h b/drivers/infiniband/hw/mlx5/cmd.h
-index af4c24596274..78ffded7cc2c 100644
---- a/drivers/infiniband/hw/mlx5/cmd.h
-+++ b/drivers/infiniband/hw/mlx5/cmd.h
-@@ -37,8 +37,6 @@
- #include <linux/mlx5/driver.h>
- 
- int mlx5_cmd_null_mkey(struct mlx5_core_dev *dev, u32 *null_mkey);
--int mlx5_cmd_query_cong_counter(struct mlx5_core_dev *dev,
--				bool reset, void *out, int out_size);
- int mlx5_cmd_query_cong_params(struct mlx5_core_dev *dev, int cong_point,
- 			       void *out, int out_size);
- int mlx5_cmd_modify_cong_params(struct mlx5_core_dev *mdev,
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 543d0a4c8bf3..b4ef4d9b6ce5 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3737,34 +3737,6 @@ static int mlx5_ib_query_q_counters(struct mlx5_ib_dev *dev,
- 	return ret;
- }
- 
--static int mlx5_ib_query_cong_counters(struct mlx5_ib_dev *dev,
--				       struct mlx5_ib_port *port,
--				       struct rdma_hw_stats *stats)
--{
--	int outlen = MLX5_ST_SZ_BYTES(query_cong_statistics_out);
--	void *out;
--	int ret, i;
--	int offset = port->cnts.num_q_counters;
--
--	out = kvzalloc(outlen, GFP_KERNEL);
--	if (!out)
--		return -ENOMEM;
--
--	ret = mlx5_cmd_query_cong_counter(dev->mdev, false, out, outlen);
--	if (ret)
--		goto free;
--
--	for (i = 0; i < port->cnts.num_cong_counters; i++) {
--		stats->value[i + offset] =
--			be64_to_cpup((__be64 *)(out +
--				     port->cnts.offsets[i + offset]));
--	}
--
--free:
--	kvfree(out);
--	return ret;
--}
--
- static int mlx5_ib_get_hw_stats(struct ib_device *ibdev,
- 				struct rdma_hw_stats *stats,
- 				u8 port_num, int index)
-@@ -3782,7 +3754,12 @@ static int mlx5_ib_get_hw_stats(struct ib_device *ibdev,
- 	num_counters = port->cnts.num_q_counters;
- 
- 	if (MLX5_CAP_GEN(dev->mdev, cc_query_allowed)) {
--		ret = mlx5_ib_query_cong_counters(dev, port, stats);
-+		ret = mlx5_lag_query_cong_counters(dev->mdev,
-+						   stats->value +
-+						   port->cnts.num_q_counters,
-+						   port->cnts.num_cong_counters,
-+						   port->cnts.offsets +
-+						   port->cnts.num_q_counters);
- 		if (ret)
- 			return ret;
- 		num_counters += port->cnts.num_cong_counters;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag.c
-index f26f97fe4666..582b2f18010a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lag.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lag.c
-@@ -137,6 +137,17 @@ int mlx5_cmd_destroy_vport_lag(struct mlx5_core_dev *dev)
- }
- EXPORT_SYMBOL(mlx5_cmd_destroy_vport_lag);
- 
-+static int mlx5_cmd_query_cong_counter(struct mlx5_core_dev *dev,
-+				       bool reset, void *out, int out_size)
-+{
-+	u32 in[MLX5_ST_SZ_DW(query_cong_statistics_in)] = { };
-+
-+	MLX5_SET(query_cong_statistics_in, in, opcode,
-+		 MLX5_CMD_OP_QUERY_CONG_STATISTICS);
-+	MLX5_SET(query_cong_statistics_in, in, clear, reset);
-+	return mlx5_cmd_exec(dev, in, sizeof(in), out, out_size);
-+}
-+
- static struct mlx5_lag *mlx5_lag_dev_get(struct mlx5_core_dev *dev)
- {
- 	return dev->priv.lag;
-@@ -633,3 +644,48 @@ bool mlx5_lag_intf_add(struct mlx5_interface *intf, struct mlx5_priv *priv)
- 	/* If bonded, we do not add an IB device for PF1. */
- 	return false;
- }
-+
-+int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
-+				 u64 *values,
-+				 int num_counters,
-+				 size_t *offsets)
-+{
-+	int outlen = MLX5_ST_SZ_BYTES(query_cong_statistics_out);
-+	struct mlx5_core_dev *mdev[MLX5_MAX_PORTS];
-+	struct mlx5_lag *ldev;
-+	int num_ports;
-+	int ret, i, j;
-+	void *out;
-+
-+	out = kvzalloc(outlen, GFP_KERNEL);
-+	if (!out)
-+		return -ENOMEM;
-+
-+	memset(values, 0, sizeof(*values) * num_counters);
-+
-+	mutex_lock(&lag_mutex);
-+	ldev = mlx5_lag_dev_get(dev);
-+	if (ldev && mlx5_lag_is_bonded(ldev)) {
-+		num_ports = MLX5_MAX_PORTS;
-+		mdev[0] = ldev->pf[0].dev;
-+		mdev[1] = ldev->pf[1].dev;
-+	} else {
-+		num_ports = 1;
-+		mdev[0] = dev;
-+	}
-+
-+	for (i = 0; i < num_ports; ++i) {
-+		ret = mlx5_cmd_query_cong_counter(mdev[i], false, out, outlen);
-+		if (ret)
-+			goto unlock;
-+
-+		for (j = 0; j < num_counters; ++j)
-+			values[j] += be64_to_cpup((__be64 *)(out + offsets[j]));
-+	}
-+
-+unlock:
-+	mutex_unlock(&lag_mutex);
-+	kvfree(out);
-+	return ret;
-+}
-+EXPORT_SYMBOL(mlx5_lag_query_cong_counters);
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index a886b51511ab..8846919356ca 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -1164,6 +1164,10 @@ int mlx5_cmd_create_vport_lag(struct mlx5_core_dev *dev);
- int mlx5_cmd_destroy_vport_lag(struct mlx5_core_dev *dev);
- bool mlx5_lag_is_active(struct mlx5_core_dev *dev);
- struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev);
-+int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
-+				 u64 *values,
-+				 int num_counters,
-+				 size_t *offsets);
- struct mlx5_uars_page *mlx5_get_uars_page(struct mlx5_core_dev *mdev);
- void mlx5_put_uars_page(struct mlx5_core_dev *mdev, struct mlx5_uars_page *up);
- 
+ void ipoib_ib_dev_cleanup(struct net_device *dev)
 -- 
 2.15.1
 
