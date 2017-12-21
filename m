@@ -1,82 +1,75 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 4/4] RDMA/vmw_pvrdma: Remove usage of BIT() from
- UAPI header
-Date: Thu, 21 Dec 2017 19:17:24 +0200
-Message-ID: <20171221171724.GJ2942@mtr-leonro.local>
-References: <20171220192305.GA28403@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171220192721.GA32622@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171221130034.GH2942@mtr-leonro.local>
- <20171221163433.GD20015@ziepe.ca>
+Subject: Re: [PATCH rdma-core] verbs: Remove comp_mask checks from verbs.h
+Date: Thu, 21 Dec 2017 19:19:47 +0200
+Message-ID: <20171221171947.GK2942@mtr-leonro.local>
+References: <20171220231350.GA19130@ziepe.ca>
+ <20171221054216.GF2942@mtr-leonro.local>
+ <20171221162442.GC20015@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="hW3Q5Oh0pcvvyJMS"
+        protocol="application/pgp-signature"; boundary="hk/xWDG3xnLTY+FR"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171221163433.GD20015-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20171221162442.GC20015-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---hW3Q5Oh0pcvvyJMS
+--hk/xWDG3xnLTY+FR
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Dec 21, 2017 at 09:34:33AM -0700, Jason Gunthorpe wrote:
-> On Thu, Dec 21, 2017 at 03:00:34PM +0200, Leon Romanovsky wrote:
-> > On Wed, Dec 20, 2017 at 11:27:28AM -0800, Bryan Tan wrote:
-> > > BIT() should not be used in the UAPI header. Remove it.
-> > >
-> > > Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > >  include/uapi/rdma/vmw_pvrdma-abi.h | 12 ++++++------
-> > >  1 file changed, 6 insertions(+), 6 deletions(-)
+On Thu, Dec 21, 2017 at 09:24:42AM -0700, Jason Gunthorpe wrote:
+> On Thu, Dec 21, 2017 at 07:42:16AM +0200, Leon Romanovsky wrote:
+>
+> > Both these functions are performing their checks of cq_attr->comp_mask,
+> > but return different errno. I think that it is perfect timing to start
+> > organize and unite our return errors. They should return the same errno.
+>
+> Bugs bugs everywhere.. This is going to be another patch. I would drop
+> the errno set into check_comp_mask and change all comp_mask users to
+> call it, and probably drop the _RESERVED uglyness too, but another
+> patch.
+>
+> > > In the case of ibv_queryrt_values_ex, there is no check in the function
+> > > op, which is an ABI mistake. So move the check there.
 > >
-> > IMHO, it should go to -rc.
-> > Doug, Jason?
+> > ibv_queryrt_values_ex -> ibv_query_rt_values_ex
 >
-> I can't decide if any of the -abi.h changes should be for-rc material
-> or not..
->
-> The BIT() issue is being worked around in userspace today, so this
-> seems even less for-rc'y?
->
-> I'm leaning toward 'not' as we can and do cherry pick a for-next
-> uapi header into rdma-core, so there isn't really an actual reason to
-> put changes to those headers into for-rc?
->
-> Thoughts?
+> K.. Are you going to collect the loose patches on the list? Can you
+> fix the typo when you grab this one :)
 
-I think that UAPI should be fixed immediately without any relation to
-number of users (in our case one), but simple include of that -abi.h
-will cause to application breakage.
+No problem, I scheduled for myself time on Sunday to sync list,
+patchworks and rdma-core.
 
 Thanks
 
 >
 > Jason
 
---hW3Q5Oh0pcvvyJMS
+--hk/xWDG3xnLTY+FR
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo77KQACgkQ5GN7iDZy
-WKeH1g//b4KuYyuCmnVKt2QxjW6hI9nPHKmeE3MZjjmt/fCsgl4etvP2teTwJUcw
-XxTEWef2sQNzSldO5j/aJPCDGl2Q1Cvzvf9x2qXv0WblTFDxZunuX8vy+JPcOspb
-8pqgzDkXurG6hFi2wLe5amyTFbex12Ydt5fXqpk98YYUotSjMGKjmInLkqvRlQG5
-6QQYopJIF0I1K4XLfiwKtCDSmBx0NGaE1226lRuKbglxYqPvPRDtJ0RGnlPiawyJ
-rax3W3QFqF//VIuIlpUcKFsg8vdMrLmjaVFUBWdUhQ+H7mwrIljM1xxmivFK2aZS
-8sRfElT3glvAydMjMqkvyiSLNuPQsm2Cex0AIRSygbyyUu2TBaqFUMyRyVnX1E0f
-IdBeq8J1DJtZKGcOdoqNeLKwtd8pe3gVskY+Yb2oZzowTAsVeYqlhC8lzEps1+TE
-lGHQd04uVfkTd3NMdz7ZSMMVWnJ3a4bSsOUGDEmTtp0JOYDorv6dPgLjNeRf+x6j
-kdzBsVPoadQ5enA8AfWZynVAhniIoUGXtow7Epl+rCt7VtzfYqnhPHwyfxzHMvyd
-QU6Ut3hz2AKWmfG2NiAhlFEzj4oJHhL0i2UTqySSJJH1+k+sC/EtMVOWc9dYMqha
-iU67/xRi2cRTBrNUGtFnYNuEodeDWEBPB7XT0/RlMjqWHq/A2j0=
-=ojPR
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo77TIACgkQ5GN7iDZy
+WKebWA//RarJfKUz1oOCpYufkqc/FIqUVAgF2jI7J1pgQJHpz938+xNXuK0XqLpK
+exicfek4X9tRsr4elZ8zSACi44vy18KmPEBJ5Yp7kDXjcz3uWqD5R8u513w6JyWH
+yCNhtkxWfBmniu6GEXkJRT+rcPYSqsVCs4XPUDY3gLjYvqnQcjdiO7EK8zKao+aI
+sefbgvBOo6vuMCNArelXYXnGLwi1Ee8bEFYn1OeQ5m1SvvP0YCzVP33iIyNLYbtu
+cLfKqkVyRmlKIHXrwY4nzdHXVbK6npEBLBe1q70XVNj1M6oaAzJDVaHQ0y3Xt/ex
+oneLdoDh2rZU9iNdWxr3Dg8Usje4/6qc1WvmT0HtmLr/l3nXJeQdhx6lqYcUjGcu
+PNPeO4pz+1vJ+XbU9BcO5D7yNasZ6r4vJjS3tSrXI9tTImZ4uPuEALeg1ZkDqZM7
+bvNUeRC0jSIeYgrLK+Qou12zlax6XLmNaZofrdR8Gh85/iZ5Asa7eYlIMhG4JYYv
+ALuYs7ogaKhDNmEAsfA2rq05l+0BtZWCLhtJ+ifXrXfvJQY4lHUG9ZyGEYacNIdl
+408jEE323foRYFyvHoIp7uGN2uIJ3vPolqJZ11SE+oBzyCg3s+JGitMzRPF3PgDJ
+VLoS8ZnTfL2PHsjqn2rr77AXB0q6ty4IKp23rYtp3vIUulVCp1M=
+=aQlP
 -----END PGP SIGNATURE-----
 
---hW3Q5Oh0pcvvyJMS--
+--hk/xWDG3xnLTY+FR--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
