@@ -1,98 +1,89 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] hw: Fix permissions for OCRDMA_RESET_STATS
-Date: Thu, 21 Dec 2017 07:05:43 +0200
-Message-ID: <20171221050543.GD2942@mtr-leonro.local>
-References: <1502207797-25589-1-git-send-email-vasilyev@ispras.ru>
- <20170815183158.GB24282@mtr-leonro.local>
- <CA+sbYW2FHpCH+=f_v6j7J6eQhw++wQeUp1GmX=h-CwVA2OSr4w@mail.gmail.com>
- <20171219123030.GD2942@mtr-leonro.local>
- <CA+sbYW06=taq46tUxP0nto2Tj0p_Jt--AobDwP4TaEwK9mnqLQ@mail.gmail.com>
+Subject: Re: dumping queue state
+Date: Thu, 21 Dec 2017 07:15:10 +0200
+Message-ID: <20171221051510.GE2942@mtr-leonro.local>
+References: <00a701d379aa$b098ee10$11caca30$@opengridcomputing.com>
+ <20171220163655.GW2942@mtr-leonro.local>
+ <010e01d379b4$0ae59a90$20b0cfb0$@opengridcomputing.com>
+ <20171220171146.GX2942@mtr-leonro.local>
+ <019d01d379b9$e42cd390$ac867ab0$@opengridcomputing.com>
+ <20171220180549.GY2942@mtr-leonro.local>
+ <020801d379c4$eaaa0c00$bffe2400$@opengridcomputing.com>
+ <20171220200115.GC2942@mtr-leonro.local>
+ <029d01d379db$7f2c3a40$7d84aec0$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="MOeiELSuYwpLEKvX"
+        protocol="application/pgp-signature"; boundary="b9dEYEwnDXkv9lSy"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CA+sbYW06=taq46tUxP0nto2Tj0p_Jt--AobDwP4TaEwK9mnqLQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <029d01d379db$7f2c3a40$7d84aec0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: Anton Vasilyev <vasilyev-ufN2psIa012HXe+LvDLADg@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Michael Mera <dev-5Y08+B5RRAgbhb6IIWwbbQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ldv-project-tpLiQldItUH5n4uC9ZG1Ww@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---MOeiELSuYwpLEKvX
+--b9dEYEwnDXkv9lSy
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Dec 19, 2017 at 11:14:03PM +0530, Selvin Xavier wrote:
-> On Tue, Dec 19, 2017 at 6:00 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> >> status = ocrdma_nonemb_mbx_cmd(dev, mqe, dev->stats_mem.va);
+On Wed, Dec 20, 2017 at 03:42:56PM -0600, Steve Wise wrote:
+> > > > Check filters options too, to filters by numbers and display columns.
+> > >
+> > > [root@stevo1 ~]# /root/stevo/iproute2/rdma/rdma res show qp link
+> > cxgb4_0/-
+> > > display lqpn,type,state,pid lqpn 1000-1030
+> > > DEV/PORT  LQPN       TYPE  STATE  PID
+> > > cxgb4_0/- 1027       RC    RTS    0
+> > > [root@stevo1 ~]# /root/stevo/iproute2/rdma/rdma res show qp link
+> > cxgb4_0/-
+> > > display lqpn,type,state,pid lqpn 1000-1033
+> > > DEV/PORT  LQPN       TYPE  STATE  PID
+> > > cxgb4_0/- 1027       RC    RTS    0
+> > > cxgb4_0/- 1033       RC    RTS    0
+> > > [root@stevo1 ~]#
+> > >
+> > > Working!
 > >
-> > It still doesn't make a lot of sense to me:
-> >
-> > ocrdma_mbx_rdma_stats():
-> > 1315        if (reset)
-> > 1316                 req->reset_stats = reset;
-> > 1317
-> > 1318         status = ocrdma_nonemb_mbx_cmd(dev, mqe, dev->stats_mem.va);
-> >
-> >
-> > 1117 static int ocrdma_nonemb_mbx_cmd(struct ocrdma_dev *dev, struct ocrdma_mqe *mqe,
-> > 1118                                  void *payload_va)
-> > 1119 {
-> > 1120         int status;
-> > 1121         struct ocrdma_mbx_rsp *rsp = payload_va;
-> > 1122
-> > 1123         if ((mqe->hdr.spcl_sge_cnt_emb & OCRDMA_MQE_HDR_EMB_MASK)
-> > 1124                                 OCRDMA_MQE_HDR_EMB_SHIFT)
-> > 1125                 BUG();
-> > 1126
-> > 1127         status = ocrdma_mbx_cmd(dev, mqe);
-> >
-> > You are not using rsp and/or payload_va to provide data to ocrdma_mbx_cmd.
-> >
-> > How are you passing reset_stats information to FW?
-> >
-> This is a command where the response size is more than  236 bytes. So this is
-> sent as a non-embedded command where the req/resp will be available in
-> payload_va
-> and phys address of payload_va (payload_pa) will be send down to
-> firmware as MQE. FW will dma the mailbox
-> from the payload_pa and response is transferred back.
+> > Thanks,
+> > It supports various combinations with "," and "-", like
+> > 990,1000-1030,1031-1032,1033
 >
-> req->reset_stats = reset; is actually setting the corresponding bit in
-> the request structure @payload_va.
-> FW receives reset_stats once the request is DMA-ed from payload_pa.
+> While the rdma tool easily allows poking around various resources, it would
+> be sort of painful to do a full state dump.  Perhaps a fastpath command like
+> 'rdma dumpall' to just dump everything in detail?
+
+It can be an option after we add more objects, right now, I added only
+QP and this one object is "full state" for now. To dump all QPs in detailed
+format simply run "rdma res show qp -d" and add "-j" to output it in JSON format.
 
 Thanks
 
 >
-> > Thanks
-> >
 >
-> Thanks,
-> Selvin
+>
 
---MOeiELSuYwpLEKvX
+--b9dEYEwnDXkv9lSy
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo7QScACgkQ5GN7iDZy
-WKfLvRAAx+yLthlDf4QRLo6u8GeM9dJqPY8vP3h395gprS676ao1q/fPhoJuiwxa
-fNrFAqOZGV+ZMCTJTD8tvA5HTq5bgCVCNyfpnRczKoPXfGUZlM2yKXsLra6RAAIc
-wSkCTZAjlY/qvvp7x9b5nXAe4CyrV5dtmItTLx9WBHUYh3sQFwtOIwoQX84wOVxj
-1mPy2XjolkDpT689jbOC4TrKNm8SXNslfv2wJtHvyFksZX4TRn+KLHS/6lme7s9l
-AqaEtL2f2Ixp3AObMflTRJ4JFq0X+4Wlj6S4S0E0a8xsSwhb8v6X1Bsn/tEA8JD9
-he3BE2R9KaZCvBsNGAc4WVNWFh7BJNFMznihnALuhjO++C6qp2KUG3SXcqj+yf7H
-WCSinN3DAYsjpQhbjj/0T5qc9+mD2qPzk0czt/9eLFUFrnTsZqodJyGB/4uFCEDi
-XJxvUWobK+izKFvUwegM2StyRn7iHavJKZcsV7nQIxRCw47x+ls7dOEsa8eGPqNT
-uLzG05ExSG7u/Wj3XfsgwyHSxiwNl3LOVdBgvdSUris/PQ1HSpE+puAGR9rEbOvQ
-zz4ceH+IjH/r3k6OywLhrMtn560t7OLhQtBC1Uzv4iQD5DIzY7jP/4JHRTFb0PVg
-ALMa9StZM/5pHesJO3vI6KO0eBq+dMnjcRH2851ZLQoazsx3muA=
-=mOFt
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo7Q14ACgkQ5GN7iDZy
+WKew4BAAz59i9v+HXha2rfO6H5MWjKqG8jl2b5H+arjFnVpcSEX96L617AFJwakI
+aSclveMjgDbPbiVdTRWQ9UoO3+hr6Zy+HPR/i36riqsGzJMEVxBXm3nTR3vqUUop
+ajRjEeRWMLOheam6wI5dodhFx10+0rex28tmEcjDjdXAtRH7kq4cWcwI3ltkY7ou
+wWFXPYA3UdFHxrxHsk8wgyVnaIR2rFWqUFefZw2nRck84sp4pAtFgjn21uUYMopa
+KD6/1+gL/Af3kdneMr6jYvUzeYxSjGfJJo8Rtd3b8oMISNQzMo6LQuvnrlp8GGR1
++TC7qWz+Cc6DbTdPF+n1eY0V3eFYuiwUj+B7X5NXVVPRHhbRX+sZ7BZ5jEiox9g2
+STlajEEuhwu2zD43xMDA++7Md4cO4dBWs084hN0o41xWLbq0TneDPhAizzorpJUa
+cdnc+Mo48tC4nCztXzASgYxqlRL+z9cf/jJMk9uKF0qjc0d7B9XiaIFnNveTpOpV
+1Pl4VjaUMyrEoD125hcIcFV0pztGASG2pvCxWLkSw0Z3Ja7+QEariWH1hsnxsRuQ
+TTl8ys/MiJLuRG9p4hm6DhFw21dQhd2ussdW4NmhGdA+pUtZAHiH0oiqe4t8g6Is
+b7DdhMAdpdjL6b1SF9Otll/H4/dru2tSdA4pYRFroVAGEl5V+PU=
+=k+WI
 -----END PGP SIGNATURE-----
 
---MOeiELSuYwpLEKvX--
+--b9dEYEwnDXkv9lSy--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
