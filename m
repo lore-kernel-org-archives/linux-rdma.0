@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [RFC PATCH rdma-next 12/14] RDMA/core: Add resource tracking for create and destroy PDs
-Date: Thu, 21 Dec 2017 20:17:46 +0200
-Message-ID: <20171221181748.17126-13-leon@kernel.org>
+Subject: [RFC PATCH rdma-next 03/14] RDMA/core: Replace open-coded variant of put_device
+Date: Thu, 21 Dec 2017 20:17:37 +0200
+Message-ID: <20171221181748.17126-4-leon@kernel.org>
 References: <20171221181748.17126-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171221181748.17126-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,47 +12,28 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Track all creation and destroy of PD objects.
+There is an existing function to decrease reference counter
+of the device, let's use it.
 
 Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 1 +
- drivers/infiniband/core/verbs.c      | 2 ++
- 2 files changed, 3 insertions(+)
+ drivers/infiniband/core/device.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index f462bde6e3b4..ef50c919b09d 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -340,6 +340,7 @@ ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
- 	uobj->object = pd;
- 	memset(&resp, 0, sizeof resp);
- 	resp.pd_handle = uobj->id;
-+	rdma_restrack_add(&pd->res, RDMA_RESTRACK_PD, NULL);
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 7fe00a9b2318..cb69357a1909 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -277,7 +277,7 @@ void ib_dealloc_device(struct ib_device *device)
+ {
+ 	WARN_ON(device->reg_state != IB_DEV_UNREGISTERED &&
+ 		device->reg_state != IB_DEV_UNINITIALIZED);
+-	kobject_put(&device->dev.kobj);
++	put_device(&device->dev);
+ }
+ EXPORT_SYMBOL(ib_dealloc_device);
 
- 	if (copy_to_user(u64_to_user_ptr(cmd.response), &resp, sizeof resp)) {
- 		ret = -EFAULT;
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 1e023e2d1dde..8dd5ffc5de40 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -246,6 +246,7 @@ struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
- 		pr_warn("%s: enabling unsafe global rkey\n", caller);
- 		mr_access_flags |= IB_ACCESS_REMOTE_READ | IB_ACCESS_REMOTE_WRITE;
- 	}
-+	rdma_restrack_add(&pd->res, RDMA_RESTRACK_PD, NULL);
-
- 	if (mr_access_flags) {
- 		struct ib_mr *mr;
-@@ -296,6 +297,7 @@ void ib_dealloc_pd(struct ib_pd *pd)
- 	   requires the caller to guarantee we can't race here. */
- 	WARN_ON(atomic_read(&pd->usecnt));
-
-+	rdma_restrack_del(&pd->res, RDMA_RESTRACK_PD);
- 	/* Making delalloc_pd a void return is a WIP, no driver should return
- 	   an error here. */
- 	ret = pd->device->dealloc_pd(pd);
 --
 2.15.1
 
