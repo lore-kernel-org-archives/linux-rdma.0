@@ -1,111 +1,42 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 2/2] IB/ipoib: Fix lockdep issue found on ipoib_ib_dev_heavy_flush
-Date: Thu, 21 Dec 2017 17:38:27 +0200
-Message-ID: <20171221153827.16793-3-leon@kernel.org>
-References: <20171221153827.16793-1-leon@kernel.org>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: XRC Questions for Mellanox and All
+Date: Thu, 21 Dec 2017 15:52:11 +0000
+Message-ID: <BN3PR07MB25780474B9CAFAED50F2F680F80D0@BN3PR07MB2578.namprd07.prod.outlook.com>
+References: <BN3PR07MB2578462C1760953F6D4690E2F8570@BN3PR07MB2578.namprd07.prod.outlook.com>
+        <BN3PR07MB2578DE457E8E49E57CF49F17F82D0@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <20171220231157.00000e11@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171221153827.16793-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20171220231157.00000e11-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: jackm <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-The locking order of vlan_rwsem (LOCK A) and then rtnl (LOCK B),
-contradicts other flows such as ipoib_open possibly causing a deadlock.
-To prevent this deadlock heavy flush is called with RTNL locked and
-only then tries to acquire vlan_rwsem.
-This deadlock is possible only when there are child interfaces.
-
-[  140.941758] ======================================================
-[  140.946276] WARNING: possible circular locking dependency detected
-[  140.950950] 4.15.0-rc1+ #9 Tainted: G           O
-[  140.954797] ------------------------------------------------------
-[  140.959424] kworker/u32:1/146 is trying to acquire lock:
-[  140.963450]  (rtnl_mutex){+.+.}, at: [<ffffffffc083516a>] __ipoib_ib_dev_flush+0x2da/0x4e0 [ib_ipoib]
-[  140.970006]
-but task is already holding lock:
-[  140.975141]  (&priv->vlan_rwsem){++++}, at: [<ffffffffc0834ee1>] __ipoib_ib_dev_flush+0x51/0x4e0 [ib_ipoib]
-[  140.982105]
-which lock already depends on the new lock.
-[  140.990023]
-the existing dependency chain (in reverse order) is:
-[  140.998650]
--> #1 (&priv->vlan_rwsem){++++}:
-[  141.005276]        down_read+0x4d/0xb0
-[  141.009560]        ipoib_open+0xad/0x120 [ib_ipoib]
-[  141.014400]        __dev_open+0xcb/0x140
-[  141.017919]        __dev_change_flags+0x1a4/0x1e0
-[  141.022133]        dev_change_flags+0x23/0x60
-[  141.025695]        devinet_ioctl+0x704/0x7d0
-[  141.029156]        sock_do_ioctl+0x20/0x50
-[  141.032526]        sock_ioctl+0x221/0x300
-[  141.036079]        do_vfs_ioctl+0xa6/0x6d0
-[  141.039656]        SyS_ioctl+0x74/0x80
-[  141.042811]        entry_SYSCALL_64_fastpath+0x1f/0x96
-[  141.046891]
--> #0 (rtnl_mutex){+.+.}:
-[  141.051701]        lock_acquire+0xd4/0x220
-[  141.055212]        __mutex_lock+0x88/0x970
-[  141.058631]        __ipoib_ib_dev_flush+0x2da/0x4e0 [ib_ipoib]
-[  141.063160]        __ipoib_ib_dev_flush+0x71/0x4e0 [ib_ipoib]
-[  141.067648]        process_one_work+0x1f5/0x610
-[  141.071429]        worker_thread+0x4a/0x3f0
-[  141.074890]        kthread+0x141/0x180
-[  141.078085]        ret_from_fork+0x24/0x30
-[  141.081559]
-
-other info that might help us debug this:
-[  141.088967]  Possible unsafe locking scenario:
-[  141.094280]        CPU0                    CPU1
-[  141.097953]        ----                    ----
-[  141.101640]   lock(&priv->vlan_rwsem);
-[  141.104771]                                lock(rtnl_mutex);
-[  141.109207]                                lock(&priv->vlan_rwsem);
-[  141.114032]   lock(rtnl_mutex);
-[  141.116800]
- *** DEADLOCK ***
-
-Fixes: b4b678b06f6e ("IB/ipoib: Grab rtnl lock on heavy flush when calling ndo_open/stop")
-Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 3b96cdaf9a83..e6151a29c412 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -1236,13 +1236,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 		ipoib_ib_dev_down(dev);
- 
- 	if (level == IPOIB_FLUSH_HEAVY) {
--		rtnl_lock();
- 		if (test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
- 			ipoib_ib_dev_stop(dev);
- 
--		result = ipoib_ib_dev_open(dev);
--		rtnl_unlock();
--		if (result)
-+		if (ipoib_ib_dev_open(dev))
- 			return;
- 
- 		if (netif_queue_stopped(dev))
-@@ -1282,7 +1279,9 @@ void ipoib_ib_dev_flush_heavy(struct work_struct *work)
- 	struct ipoib_dev_priv *priv =
- 		container_of(work, struct ipoib_dev_priv, flush_heavy);
- 
-+	rtnl_lock();
- 	__ipoib_ib_dev_flush(priv, IPOIB_FLUSH_HEAVY, 0);
-+	rtnl_unlock();
- }
- 
- void ipoib_ib_dev_cleanup(struct net_device *dev)
--- 
-2.15.1
-
+PiBIaSBSYW0sDQo+IEkgYXBvbG9naXplIGZvciB0aGUgZGVsYXkgaW4gcmVzcG9uZGluZy4NCj4g
+DQo+IFRoZSBMaW51eCBYUkMgaW1wbGVtZW50YXRpb24gZG9lcyBub3QgcHJvdmlkZSBYUkMgc3Bl
+Y2lmaWMgZXJyb3JzLg0KPiBSYXRoZXIsIHRoZXNlIGVycm9ycyBhcmUgcGVyY2VpdmVkIGFzIGxv
+Y2FsIGFjY2VzcyB2aW9sYXRpb24gZXJyb3JzIGF0DQo+IHRoZSByZXNwb25kZXIuIENvbnNlcXVl
+bnRseSwgYXQgdGhlIHJlc3BvbmRlciBzaWRlLCBmb3IgYm90aCBYUkNFVEggYW5kDQo+IFhSQyBk
+b21haW4gdmlvbGF0aW9uIGVycm9ycywgYSBsb2NhbCBhY2Nlc3MgdmlvbGF0aW9uIGFzeW5jaHJv
+bm91cw0KPiBlcnJvciBpcyByZXBvcnRlZCAoSUJfRVZFTlRfUVBfQUNDRVNTX0VSUikuIFRoZSBy
+ZW1vdGUgUVAgdGhlbg0KPiB0cmFuc2l0aW9ucyB0byB0aGUgRVJSIHN0YXRlLg0KPiANCj4gQXQg
+dGhlIHJlcXVlc3RlciBzaWRlLCB0aGVzZSBlcnJvcnMgYXJlIHBlcmNlaXZlZCBhcyBSZW1vdGUg
+SW52YWxpZA0KPiBSZXF1ZXN0IGVycm9ycywgYW5kIGdlbmVyYXRlIElCX1dDX1JFTV9JTlZfUkVR
+X0VSUiBjb21wbGV0aW9ucy4gVGhlDQo+IGxvY2FsIFFQIHRoZW4gdHJhbnNpdGlvbnMgdG8gdGhl
+IEVSUiBzdGF0ZS4NCj4gDQo+IE9wZXJhdGlvbmFsbHksIHRoZW4sIHRoZSByZXNvdXJjZXMgYmVo
+YXZlIGFzIHRoZXkgc2hvdWxkIHVwb24gWFJDDQo+IGVycm9ycy4NCj4gDQo+IE9uIHRoZSByZXNw
+b25kZXIgc2lkZSwgWFJDIHJlY2VpdmUgY29tcGxldGlvbnMgcmVwb3J0IHRoZSBYUkNfVEdUX1FQ
+IGluDQo+IHRoZSDigJxxcOKAnSBmaWVsZCBvZiB0aGUgaWJfd2Mgc3RydWN0dXJlOyAgdGhlIFhS
+QyBTUlEgbnVtYmVyIGlzIHJldHVybmVkDQo+IGluIGZpZWxkIOKAnHNyY19xcG7igJ0uDQo+IA0K
+PiAoVGhlIHNyY19xcCBmaWVsZCB3YXMgcHJldmlvdXNseSB1c2VkIG9ubHkgZm9yIFVEIHFwczsg
+dGhlcmUgd2FzIG5vDQo+IHJlYXNvbiBub3QgdG8gdXNlIGl0IHRvIHJldHVybiB0aGUgWFJDIFNS
+USBudW1iZXIsIGVzcGVjaWFsbHkgYXMgZG9pbmcNCj4gdGhpcyBtZWFudCBubyBuZWVkIHRvIGFk
+ZCBhIG5ldyBmaWVsZCB0byBzdHJ1Y3QgaWJfd2MpLg0KPiANCj4gLUphY2sNCj4gDQoNCk9LLiBX
+ZSdsbCBpbXBsZW1lbnQgaW4gdGhlIHNhbWUgbWFubmVyLg0KDQpUaGFua3MsDQpSYW0NCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
