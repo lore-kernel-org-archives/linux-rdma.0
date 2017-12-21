@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [RFC PATCH rdma-next 09/14] RDMA/core: Add helper function to create named QPs
-Date: Thu, 21 Dec 2017 20:17:43 +0200
-Message-ID: <20171221181748.17126-10-leon@kernel.org>
+Subject: [RFC PATCH rdma-next 07/14] RDMA/nldev: Protect port query from accidental device removal
+Date: Thu, 21 Dec 2017 20:17:41 +0200
+Message-ID: <20171221181748.17126-8-leon@kernel.org>
 References: <20171221181748.17126-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171221181748.17126-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,71 +12,103 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The QPs in the RDMA stack can be created by kernel
-or users space, but the owner is not visible to users
-after that.
+There is a chance that device will be removed during port query
+operations and it will cause to kernel panic in the flows which doesn't
+hold lists_rwsem semaphore.
 
-The added helper keeps track of newly created QP together
-with the name of the owner. In case of kernel, the caller to
-create_qp is supposed to update QP's attribute with the name.
-For user space callers no change is needed and the name will
-be taken from the process name.
-
-This helper sets qp->device field for all QP types including
-XRC_TGT, which RDMA/core didn't do before.
-
+Fixes: c3f66f7b0052 ("RDMA/netlink: Implement nldev port doit callback")
+Fixes: 7d02f605f0dc ("RDMA/netlink: Add nldev port dumpit implementation")
 Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/core_priv.h | 19 +++++++++++++++++++
- include/rdma/ib_verbs.h             |  6 ++++++
- 2 files changed, 25 insertions(+)
+ drivers/infiniband/core/nldev.c | 37 +++++++++++++++++++++++--------------
+ 1 file changed, 23 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index 1fe2b92fe357..4c2ff4a02114 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -306,4 +306,23 @@ struct ib_device *ib_device_get_by_index(u32 ifindex);
- /* RDMA device netlink */
- void nldev_init(void);
- void nldev_exit(void);
-+
-+static inline struct ib_qp *_ib_create_qp(struct ib_device *dev,
-+					  struct ib_pd *pd,
-+					  struct ib_qp_init_attr *attr,
-+					  struct ib_udata *udata)
-+{
-+	struct ib_qp *qp;
-+
-+	qp = dev->create_qp(pd, attr, udata);
-+	if (!IS_ERR(qp)) {
-+		qp->device = dev;
-+		if (attr->qp_type < IB_QPT_MAX)
-+			rdma_restrack_add(&qp->res,
-+					  RDMA_RESTRACK_QP,
-+					  attr->comm);
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index e3033d7a4029..ed7e639e7dee 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -223,41 +223,48 @@ static int nldev_port_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	struct sk_buff *msg;
+ 	u32 index;
+ 	u32 port;
+-	int err;
++	int ret = -EINVAL;
+
+-	err = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
++	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
+ 			  nldev_policy, extack);
+-	if (err ||
++	if (ret ||
+ 	    !tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
+ 	    !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
+ 		return -EINVAL;
+
+ 	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
+-	device = __ib_device_get_by_index(index);
++	device = ib_device_get_by_index(index);
+ 	if (!device)
+ 		return -EINVAL;
+
+ 	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
+ 	if (!rdma_is_port_valid(device, port))
+-		return -EINVAL;
++		goto err;
+
+ 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+-	if (!msg)
+-		return -ENOMEM;
++	if (!msg) {
++		ret = -ENOMEM;
++		goto err;
 +	}
-+
-+	return qp;
-+}
- #endif /* _CORE_PRIV_H */
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index a2678e80c2a7..64032f4c8d5a 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1140,6 +1140,12 @@ struct ib_qp_init_attr {
- 	u8			port_num;
- 	struct ib_rwq_ind_table *rwq_ind_tbl;
- 	u32			source_qpn;
-+
-+	/*
-+	 * Name of entity which created this QP, empty string means that
-+	 * it will be taken automatically from task_struct.
-+	 */
-+	char comm[TASK_COMM_LEN];
- };
 
- struct ib_qp_open_attr {
+ 	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
+ 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
+ 			0, 0);
+
+-	err = fill_port_info(msg, device, port);
+-	if (err) {
+-		nlmsg_free(msg);
+-		return err;
+-	}
++	ret = fill_port_info(msg, device, port);
++	if (ret)
++		goto err_free;
+
+ 	nlmsg_end(msg, nlh);
++	put_device(&device->dev);
+
+ 	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
++
++err_free:
++	nlmsg_free(msg);
++err:
++	put_device(&device->dev);
++	return ret;
+ }
+
+ static int nldev_port_get_dumpit(struct sk_buff *skb,
+@@ -278,7 +285,7 @@ static int nldev_port_get_dumpit(struct sk_buff *skb,
+ 		return -EINVAL;
+
+ 	ifindex = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
+-	device = __ib_device_get_by_index(ifindex);
++	device = ib_device_get_by_index(ifindex);
+ 	if (!device)
+ 		return -EINVAL;
+
+@@ -312,7 +319,9 @@ static int nldev_port_get_dumpit(struct sk_buff *skb,
+ 		nlmsg_end(skb, nlh);
+ 	}
+
+-out:	cb->args[0] = idx;
++out:
++	put_device(&device->dev);
++	cb->args[0] = idx;
+ 	return skb->len;
+ }
+
 --
 2.15.1
 
