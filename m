@@ -1,57 +1,62 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 for-rc 3/4] RDMA/vmw_pvrdma: Add UAR SRQ macros in ABI
- header file
-Date: Thu, 21 Dec 2017 14:59:29 +0200
-Message-ID: <20171221125929.GG2942@mtr-leonro.local>
-References: <20171220174748.GA18149@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171220175051.GA22751@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+Subject: Re: [PATCH for-next 4/4] RDMA/vmw_pvrdma: Remove usage of BIT() from
+ UAPI header
+Date: Thu, 21 Dec 2017 15:00:34 +0200
+Message-ID: <20171221130034.GH2942@mtr-leonro.local>
+References: <20171220192305.GA28403@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+ <20171220192721.GA32622@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Y974o0GblB/Ae/yP"
+        protocol="application/pgp-signature"; boundary="z3PcgjD2qOzdkXVS"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171220175051.GA22751-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
+In-Reply-To: <20171220192721.GA32622-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---Y974o0GblB/Ae/yP
+--z3PcgjD2qOzdkXVS
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Dec 20, 2017 at 09:50:57AM -0800, Bryan Tan wrote:
-> Support for SRQs were added in the vmw_pvrdma userlevel library
-> before two necessary macros were added into the kernel ABI header
-> file. Add the two UAR SRQ macros that are required by the userlevel
-> library so that the library can rely on the kernel ABI header file
-> for these SRQ macro definitions.
+On Wed, Dec 20, 2017 at 11:27:28AM -0800, Bryan Tan wrote:
+> BIT() should not be used in the UAPI header. Remove it.
 >
-> Fixes: 8b10ba783c9d ("RDMA/vmw_pvrdma: Add shared receive queue support")
-> Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > ---
->  include/uapi/rdma/vmw_pvrdma-abi.h | 2 ++
->  1 file changed, 2 insertions(+)
+>  include/uapi/rdma/vmw_pvrdma-abi.h | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+
+IMHO, it should go to -rc.
+Doug, Jason?
+
+
 >
 > diff --git a/include/uapi/rdma/vmw_pvrdma-abi.h b/include/uapi/rdma/vmw_pvrdma-abi.h
-> index aaa352f..4007cac 100644
+> index 4007cac..02ca0d0 100644
 > --- a/include/uapi/rdma/vmw_pvrdma-abi.h
 > +++ b/include/uapi/rdma/vmw_pvrdma-abi.h
-> @@ -58,6 +58,8 @@
->  #define PVRDMA_UAR_CQ_ARM_SOL		BIT(29)		/* Arm solicited bit. */
->  #define PVRDMA_UAR_CQ_ARM		BIT(30)		/* Arm bit. */
->  #define PVRDMA_UAR_CQ_POLL		BIT(31)		/* Poll bit. */
-> +#define PVRDMA_UAR_SRQ_OFFSET		8		/* SRQ doorbell. */
-> +#define PVRDMA_UAR_SRQ_RECV		BIT(30)		/* Recv bit. */
+> @@ -52,14 +52,14 @@
+>  #define PVRDMA_UVERBS_ABI_VERSION	3		/* ABI Version. */
+>  #define PVRDMA_UAR_HANDLE_MASK		0x00FFFFFF	/* Bottom 24 bits. */
+>  #define PVRDMA_UAR_QP_OFFSET		0		/* QP doorbell. */
+> -#define PVRDMA_UAR_QP_SEND		BIT(30)		/* Send bit. */
+> -#define PVRDMA_UAR_QP_RECV		BIT(31)		/* Recv bit. */
+> +#define PVRDMA_UAR_QP_SEND		(1 << 30)	/* Send bit. */
+> +#define PVRDMA_UAR_QP_RECV		(1 << 31)	/* Recv bit. */
+>  #define PVRDMA_UAR_CQ_OFFSET		4		/* CQ doorbell. */
+> -#define PVRDMA_UAR_CQ_ARM_SOL		BIT(29)		/* Arm solicited bit. */
+> -#define PVRDMA_UAR_CQ_ARM		BIT(30)		/* Arm bit. */
+> -#define PVRDMA_UAR_CQ_POLL		BIT(31)		/* Poll bit. */
+> +#define PVRDMA_UAR_CQ_ARM_SOL		(1 << 29)	/* Arm solicited bit. */
+> +#define PVRDMA_UAR_CQ_ARM		(1 << 30)	/* Arm bit. */
+> +#define PVRDMA_UAR_CQ_POLL		(1 << 31)	/* Poll bit. */
+>  #define PVRDMA_UAR_SRQ_OFFSET		8		/* SRQ doorbell. */
+> -#define PVRDMA_UAR_SRQ_RECV		BIT(30)		/* Recv bit. */
+> +#define PVRDMA_UAR_SRQ_RECV		(1 << 30)	/* Recv bit. */
 >
-
-Didn't we see that BIT() in UAPI is a wrong thing to do? Why don't you
-add normal (1 << 30) ?
-
 >  enum pvrdma_wr_opcode {
 >  	PVRDMA_WR_RDMA_WRITE,
 > --
@@ -62,27 +67,27 @@ add normal (1 << 30) ?
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---Y974o0GblB/Ae/yP
+--z3PcgjD2qOzdkXVS
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo7sDEACgkQ5GN7iDZy
-WKe6fRAAjKC38W9InnhPH5ZsrFngINYbMO7BuPuyR4w8MwWOJTd0/OvVDTsjQMEf
-Wlz3ZW4Yp7dSG8xs86r0xB2dWPHYOab37WczslRpoD5GOZXR/Z6k0GOmKFxJy8Y7
-EfSTekqfRZ037VXU11ShTdTKUjLBE0lQwGroL79pq05LMGYJfTc5Ejrg5qvLK9a9
-5E6c1bMxQo4WzW7dOfqDDocPKmYAGWzjkqNzkH5oF4c6yvRLdGBQEtUpLmYaBMdh
-/5nApYjCNbdpP5DZGvM7OmtkimpIWY7uxA/ahgSPDLDN6HGceQdPN5yk0XT3rHHv
-PCRIAME1PB2SovW4aGo0Y1/waFE0BkdjTSJ9FWSkCQCEOOD9JZT7QcImHM9jQff3
-xrH8Rrg2K+RLmafOa2q7mgrXm+l5KRMBVUTSxB6vQ41wQdFiFTRrY1FyDiAFVGQ7
-8qLJuVyy8L/C62CPOMcfiyi7ds48F2KhnuZTabjh+umldOTI4FLb+sDa6FQe5n79
-Zfs4rHKQQWjos1U6xZhLgyuqdDIiREhuSFloqQUSTXKBy0R4GG8aItmwUN5XIqTU
-IXrOtOj8nDT/HsRGtjQXhCve4Vbz9eV00qVKLFcfjNRggZVFrEnI//Rg7ywlotKU
-4qSy55qQN8NIlwjBYW0U9Cb6uxWg+Yn2cNQusPnB5Ys8PZC7YBA=
-=OdIy
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo7sHEACgkQ5GN7iDZy
+WKflkhAAslEdq69LFoGB4OseL69U3fNCotxsxJaZzicpjIbixxV0Hzgt+2XWIzLP
+H1cStnTDeO/N9sw/l9CUTAO5ovndTXqWkXI36xtCt3VwVB0WK4stnVzlv6KTZy7C
+SiqTOQrcq7KY16MDSnRkBpcrfFOjcmUx1zU/JOPxxSxKQwF+rCrhZd0qCMNrNUMf
+UzXi0rtZnFaIoU8KZIsskYkc6pImVItqe4Ms0Na6RvKXST3C6MRI9r2Jfai6SM5Z
+H1TcHVX6G3av1e8VjZIyJ6CQaYXwk0q//8GeXIMBMuegMb7uSvdx5FMiwLL6PNZd
++nV5XCSR/S5UHfAC931cr7UeIhZi67Z4Wv57IBdIjxZT4iPUwDBh9WtFOF5f8AMs
+WbkVDf895lJH39mLtueI4Kw0kbKrhEVhuLXJEzqiVBUwbe1MakzB+fsWkFLa8JyT
+JXSPL3OMc0Th1ab9SC5g5nZAx7KuS8rWivDpQMcE3C6/pOCO+y0wsoT5S6UplPix
+SUVtE+XLZkv58hfIY9d7YRmFYD8r4zSfIj+eCt3kkIJ7rRKx/NjvciGxsZaq6BEW
++lD0Y8RE+V85mvG++BA7kyw5UR5gtSZ9klIgC29O8aBegn75wAI+NFZba7y1K3l8
+AfA3lRRJ72T1P62tXXDq4fx3Tl1YCB28CgcblKI8uBUQr1cLJuQ=
+=ncJr
 -----END PGP SIGNATURE-----
 
---Y974o0GblB/Ae/yP--
+--z3PcgjD2qOzdkXVS--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
