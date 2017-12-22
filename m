@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 2/3] IB/core: Use rdma_cap_opa_mad to check for OPA
-Date: Fri, 22 Dec 2017 08:45:52 -0800
-Message-ID: <20171222164549.29731.42998.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 3/3] IB/hfi1: Change slid arg in
+ ingress_pkey_table_fail to 32bit
+Date: Fri, 22 Dec 2017 08:46:00 -0800
+Message-ID: <20171222164557.29731.16649.stgit@scvm10.sc.intel.com>
 References: <20171222164036.29731.43475.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,28 +16,48 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Use rdma_cap_opa_mad() to check for OPA to promote code reuse.
+Change the slid arg to ingress_pkey_table_fail() to a full
+32Bits and do not convert to 16Bits in caller. This is so we
+can keep everything 32bit in the kernel and only change to
+16bit at the uapi boundary.
 
 Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/user_mad.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hfi1/hfi.h |    2 +-
+ drivers/infiniband/hw/hfi1/mad.c |    6 +-----
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index 4b64dd0..33d5e8e 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -233,8 +233,7 @@ static void recv_handler(struct ib_mad_agent *agent,
- 	 * On OPA devices it is okay to lose the upper 16 bits of LID as this
- 	 * information is obtained elsewhere. Mask off the upper 16 bits.
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index 869c2bf..dc5b133 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -1627,7 +1627,7 @@ static int ingress_pkey_table_search(struct hfi1_pportdata *ppd, u16 pkey)
+  * the 'error info' for this failure.
+  */
+ static void ingress_pkey_table_fail(struct hfi1_pportdata *ppd, u16 pkey,
+-				    u16 slid)
++				    u32 slid)
+ {
+ 	struct hfi1_devdata *dd = ppd->dd;
+ 
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index cf8dba3..34547a4 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -4348,11 +4348,7 @@ static int opa_local_smp_check(struct hfi1_ibport *ibp,
  	 */
--	if (agent->device->port_immutable[agent->port_num].core_cap_flags &
--	    RDMA_CORE_PORT_INTEL_OPA)
-+	if (rdma_cap_opa_mad(agent->device, agent->port_num))
- 		packet->mad.hdr.lid = ib_lid_be16(0xFFFF &
- 						  mad_recv_wc->wc->slid);
- 	else
+ 	if (pkey == LIM_MGMT_P_KEY || pkey == FULL_MGMT_P_KEY)
+ 		return 0;
+-	/*
+-	 * On OPA devices it is okay to lose the upper 16 bits of LID as this
+-	 * information is obtained elsewhere. Mask off the upper 16 bits.
+-	 */
+-	ingress_pkey_table_fail(ppd, pkey, ib_lid_cpu16(0xFFFF & in_wc->slid));
++	ingress_pkey_table_fail(ppd, pkey, in_wc->slid);
+ 	return 1;
+ }
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
