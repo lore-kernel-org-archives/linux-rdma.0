@@ -1,151 +1,115 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 4/9] i40iw: Add notifier for network device events
-Date: Fri, 22 Dec 2017 09:46:57 -0600
-Message-ID: <20171222154702.12632-5-shiraz.saleem@intel.com>
+Subject: [PATCH rdma-next 9/9] i40iw: Fix the connection ORD value for loopback
+Date: Fri, 22 Dec 2017 09:47:02 -0600
+Message-ID: <20171222154702.12632-10-shiraz.saleem@intel.com>
 References: <20171222154702.12632-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171222154702.12632-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Register a netdevice notifier for netdev UP/DOWN
-notification events and report the appropriate ib event.
+From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
+The accepting QP ORD value should be adjusted not to
+exceed the peer QP IRD value (RFC 6581). This is
+skipped for loopback. After the ORD is validated
+by i40iw_record_ird_ord(), adjust the ORD value of
+the loopback accepting QP to prevent overrunning the
+IRD space of the peer QP. Also move the ORD accounting
+for 0-byte RDMA read to i40iw_record_ird_ord().
+
+Fixes: f27b4746f378 ("i40iw: add connection management code")
+Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw.h       |  3 ++
- drivers/infiniband/hw/i40iw/i40iw_main.c  |  6 ++++
- drivers/infiniband/hw/i40iw/i40iw_utils.c | 50 +++++++++++++++++++++++++++++--
- 3 files changed, 56 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c | 25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
-index 4ae9131..bcddd70 100644
---- a/drivers/infiniband/hw/i40iw/i40iw.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw.h
-@@ -587,5 +587,8 @@ int i40iw_inet6addr_event(struct notifier_block *notifier,
- int i40iw_net_event(struct notifier_block *notifier,
- 		    unsigned long event,
- 		    void *ptr);
-+int i40iw_netdevice_event(struct notifier_block *notifier,
-+			  unsigned long event,
-+			  void *ptr);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index 34cc335..0695ac3 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -127,6 +127,8 @@ static void i40iw_record_ird_ord(struct i40iw_cm_node *cm_node, u32 conn_ird, u3
  
- #endif
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
-index 3aecf4c..a4a8458 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_main.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-@@ -99,6 +99,10 @@ static struct notifier_block i40iw_net_notifier = {
- 	.notifier_call = i40iw_net_event
- };
+ 	if (conn_ord > I40IW_MAX_ORD_SIZE)
+ 		conn_ord = I40IW_MAX_ORD_SIZE;
++	else if (!conn_ord && cm_node->send_rdma0_op == SEND_RDMA_READ_ZERO)
++		conn_ord = 1;
  
-+static struct notifier_block i40iw_netdevice_notifier = {
-+	.notifier_call = i40iw_netdevice_event
-+};
-+
- /**
-  * i40iw_find_i40e_handler - find a handler given a client info
-  * @ldev: pointer to a client info
-@@ -1394,6 +1398,7 @@ static void i40iw_register_notifiers(void)
- 	register_inetaddr_notifier(&i40iw_inetaddr_notifier);
- 	register_inet6addr_notifier(&i40iw_inetaddr6_notifier);
- 	register_netevent_notifier(&i40iw_net_notifier);
-+	register_netdevice_notifier(&i40iw_netdevice_notifier);
- }
+ 	cm_node->ird_size = conn_ird;
+ 	cm_node->ord_size = conn_ord;
+@@ -2873,15 +2875,13 @@ static struct i40iw_cm_listener *i40iw_make_listen_node(
+  * i40iw_create_cm_node - make a connection node with params
+  * @cm_core: cm's core
+  * @iwdev: iwarp device structure
+- * @private_data_len: len to provate data for mpa request
+- * @private_data: pointer to private data for connection
++ * @conn_param: upper layer connection parameters
+  * @cm_info: quad info for connection
+  */
+ static struct i40iw_cm_node *i40iw_create_cm_node(
+ 					struct i40iw_cm_core *cm_core,
+ 					struct i40iw_device *iwdev,
+-					u16 private_data_len,
+-					void *private_data,
++					struct iw_cm_conn_param *conn_param,
+ 					struct i40iw_cm_info *cm_info)
+ {
+ 	struct i40iw_cm_node *cm_node;
+@@ -2889,6 +2889,9 @@ static struct i40iw_cm_node *i40iw_create_cm_node(
+ 	struct i40iw_cm_node *loopback_remotenode;
+ 	struct i40iw_cm_info loopback_cm_info;
  
- /**
-@@ -1405,6 +1410,7 @@ static void i40iw_unregister_notifiers(void)
- 	unregister_netevent_notifier(&i40iw_net_notifier);
- 	unregister_inetaddr_notifier(&i40iw_inetaddr_notifier);
- 	unregister_inet6addr_notifier(&i40iw_inetaddr6_notifier);
-+	unregister_netdevice_notifier(&i40iw_netdevice_notifier);
- }
++	u16 private_data_len = conn_param->private_data_len;
++	void *private_data = (void *)conn_param->private_data;
++
+ 	/* create a CM connection node */
+ 	cm_node = i40iw_make_cm_node(cm_core, iwdev, cm_info, NULL);
+ 	if (!cm_node)
+@@ -2897,6 +2900,8 @@ static struct i40iw_cm_node *i40iw_create_cm_node(
+ 	cm_node->tcp_cntxt.client = 1;
+ 	cm_node->tcp_cntxt.rcv_wscale = I40IW_CM_DEFAULT_RCV_WND_SCALE;
  
- /**
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-index 8845dba..ddc1056 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-@@ -137,7 +137,7 @@ inline u32 i40iw_rd32(struct i40iw_hw *hw, u32 reg)
- }
++	i40iw_record_ird_ord(cm_node, conn_param->ird, conn_param->ord);
++
+ 	if (!memcmp(cm_info->loc_addr, cm_info->rem_addr, sizeof(cm_info->loc_addr))) {
+ 		loopback_remotelistener = i40iw_find_listener(
+ 						cm_core,
+@@ -2930,6 +2935,9 @@ static struct i40iw_cm_node *i40iw_create_cm_node(
+ 			       private_data_len);
+ 			loopback_remotenode->pdata.size = private_data_len;
  
- /**
-- * i40iw_inetaddr_event - system notifier for netdev events
-+ * i40iw_inetaddr_event - system notifier for ipv4 addr events
-  * @notfier: not used
-  * @event: event for notifier
-  * @ptr: if address
-@@ -200,7 +200,7 @@ int i40iw_inetaddr_event(struct notifier_block *notifier,
- }
++			if (loopback_remotenode->ord_size > cm_node->ird_size)
++				loopback_remotenode->ord_size = cm_node->ird_size;
++
+ 			cm_node->state = I40IW_CM_STATE_OFFLOADED;
+ 			cm_node->tcp_cntxt.rcv_nxt =
+ 				loopback_remotenode->tcp_cntxt.loc_seq_num;
+@@ -3808,9 +3816,7 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 		    __func__, cm_id->tos, cm_info.user_pri);
+ 	cm_id->add_ref(cm_id);
+ 	cm_node = i40iw_create_cm_node(&iwdev->cm_core, iwdev,
+-				       conn_param->private_data_len,
+-				       (void *)conn_param->private_data,
+-				       &cm_info);
++				       conn_param, &cm_info);
  
- /**
-- * i40iw_inet6addr_event - system notifier for ipv6 netdev events
-+ * i40iw_inet6addr_event - system notifier for ipv6 addr events
-  * @notfier: not used
-  * @event: event for notifier
-  * @ptr: if address
-@@ -252,7 +252,7 @@ int i40iw_inet6addr_event(struct notifier_block *notifier,
- }
+ 	if (IS_ERR(cm_node)) {
+ 		ret = PTR_ERR(cm_node);
+@@ -3842,11 +3848,6 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 	}
  
- /**
-- * i40iw_net_event - system notifier for net events
-+ * i40iw_net_event - system notifier for netevents
-  * @notfier: not used
-  * @event: event for notifier
-  * @ptr: neighbor
-@@ -297,6 +297,50 @@ int i40iw_net_event(struct notifier_block *notifier, unsigned long event, void *
- }
- 
- /**
-+ * i40iw_netdevice_event - system notifier for netdev events
-+ * @notfier: not used
-+ * @event: event for notifier
-+ * @ptr: netdev
-+ */
-+int i40iw_netdevice_event(struct notifier_block *notifier,
-+			  unsigned long event,
-+			  void *ptr)
-+{
-+	struct net_device *event_netdev;
-+	struct net_device *netdev;
-+	struct i40iw_device *iwdev;
-+	struct i40iw_handler *hdl;
-+
-+	event_netdev = netdev_notifier_info_to_dev(ptr);
-+
-+	hdl = i40iw_find_netdev(event_netdev);
-+	if (!hdl)
-+		return NOTIFY_DONE;
-+
-+	iwdev = &hdl->device;
-+	if (iwdev->init_state < RDMA_DEV_REGISTERED || iwdev->closing)
-+		return NOTIFY_DONE;
-+
-+	netdev = iwdev->ldev->netdev;
-+	if (netdev != event_netdev)
-+		return NOTIFY_DONE;
-+
-+	iwdev->iw_status = 1;
-+
-+	switch (event) {
-+	case NETDEV_DOWN:
-+		iwdev->iw_status = 0;
-+		/* Fall through */
-+	case NETDEV_UP:
-+		i40iw_port_ibevent(iwdev);
-+		break;
-+	default:
-+		break;
-+	}
-+	return NOTIFY_DONE;
-+}
-+
-+/**
-  * i40iw_get_cqp_request - get cqp struct
-  * @cqp: device cqp ptr
-  * @wait: cqp to be used in wait mode
+ 	cm_node->apbvt_set = true;
+-	i40iw_record_ird_ord(cm_node, conn_param->ird, conn_param->ord);
+-	if (cm_node->send_rdma0_op == SEND_RDMA_READ_ZERO &&
+-	    !cm_node->ord_size)
+-		cm_node->ord_size = 1;
+-
+ 	iwqp->cm_node = cm_node;
+ 	cm_node->iwqp = iwqp;
+ 	iwqp->cm_id = cm_id;
 -- 
 2.8.3
 
