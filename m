@@ -1,123 +1,90 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH] scsi: fix iscsi-related kernel-doc warnings
-Date: Fri, 22 Dec 2017 14:08:27 -0800
-Message-ID: <44a0f532-b1e9-e0cf-4a61-d592a4306f61@infradead.org>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: Linux kernel v4.15-rc4 and rdma_rxe
+Date: Fri, 22 Dec 2017 23:01:15 +0000
+Message-ID: <1513983674.2579.27.camel@wdc.com>
+References: <1513732236.2535.25.camel@wdc.com>
+         <CAG9sBKP=i9ukbkj7x11oW=yLAz8u2RYHTMbf_Z1h3=nQ3pjfLw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAG9sBKP=i9ukbkj7x11oW=yLAz8u2RYHTMbf_Z1h3=nQ3pjfLw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
-Sender: target-devel-owner@vger.kernel.org
-To: linux-scsi <linux-scsi@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>
-Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>
+Content-ID: <8423B78ED7817A41BA3BA5ECD0BE6E69-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
-
-Fix kernel-doc warnings in drivers/scsi/ that are related to iscsi
-support interfaces.
-
-Fixes these kernel-doc warnings: (tested by adding these files to a new
-target.rst documentation file: WIP)
-
-../drivers/scsi/libiscsi.c:2740: warning: No description found for parameter 'dd_size'
-../drivers/scsi/libiscsi.c:2740: warning: No description found for parameter 'id'
-../drivers/scsi/libiscsi.c:2961: warning: No description found for parameter 'cls_conn'
-../drivers/scsi/iscsi_tcp.c:313: warning: No description found for parameter 'conn'
-../drivers/scsi/iscsi_tcp.c:363: warning: No description found for parameter 'conn'
-../drivers/scsi/libiscsi_tcp.c:810: warning: No description found for parameter 'tcp_conn'
-../drivers/scsi/libiscsi_tcp.c:810: warning: No description found for parameter 'segment'
-../drivers/scsi/libiscsi_tcp.c:887: warning: No description found for parameter 'offloaded'
-../drivers/scsi/libiscsi_tcp.c:887: warning: No description found for parameter 'status'
-../drivers/scsi/libiscsi_tcp.c:887: warning: Excess function parameter 'offload' description in 'iscsi_tcp_recv_skb'
-../drivers/scsi/libiscsi_tcp.c:964: warning: Excess function parameter 'conn' description in 'iscsi_tcp_task_init'
-../drivers/scsi/libiscsi_tcp.c:964: warning: Excess function parameter 'sc' description in 'iscsi_tcp_task_init'
-
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc:	"Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc:	linux-scsi@vger.kernel.org
-Cc:	target-devel@vger.kernel.org
-Cc:	Sagi Grimberg <sagi@grimberg.me>
-Cc:	linux-rdma@vger.kernel.org
-Cc:	"James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
-Cc:	"Martin K. Petersen" <martin.petersen@oracle.com>
----
- drivers/scsi/iscsi_tcp.c    |    2 ++
- drivers/scsi/libiscsi.c     |    4 +++-
- drivers/scsi/libiscsi_tcp.c |    9 +++++----
- 3 files changed, 10 insertions(+), 5 deletions(-)
-
---- linux-next-20171221.orig/drivers/scsi/libiscsi.c
-+++ linux-next-20171221/drivers/scsi/libiscsi.c
-@@ -2722,8 +2722,10 @@ static void iscsi_host_dec_session_cnt(s
-  * @iscsit: iscsi transport template
-  * @shost: scsi host
-  * @cmds_max: session can queue
-+ * @dd_size: private driver data size, added to session allocation size
-  * @cmd_task_size: LLD task private data size
-  * @initial_cmdsn: initial CmdSN
-+ * @id: target ID to add to this session
-  *
-  * This can be used by software iscsi_transports that allocate
-  * a session per scsi host.
-@@ -2951,7 +2953,7 @@ EXPORT_SYMBOL_GPL(iscsi_conn_setup);
- 
- /**
-  * iscsi_conn_teardown - teardown iscsi connection
-- * cls_conn: iscsi class connection
-+ * @cls_conn: iscsi class connection
-  *
-  * TODO: we may need to make this into a two step process
-  * like scsi-mls remove + put host
---- linux-next-20171221.orig/drivers/scsi/iscsi_tcp.c
-+++ linux-next-20171221/drivers/scsi/iscsi_tcp.c
-@@ -307,6 +307,7 @@ static int iscsi_sw_tcp_xmit_segment(str
- 
- /**
-  * iscsi_sw_tcp_xmit - TCP transmit
-+ * @conn: iscsi connection
-  **/
- static int iscsi_sw_tcp_xmit(struct iscsi_conn *conn)
- {
-@@ -357,6 +358,7 @@ error:
- 
- /**
-  * iscsi_tcp_xmit_qlen - return the number of bytes queued for xmit
-+ * @conn: iscsi connection
-  */
- static inline int iscsi_sw_tcp_xmit_qlen(struct iscsi_conn *conn)
- {
---- linux-next-20171221.orig/drivers/scsi/libiscsi_tcp.c
-+++ linux-next-20171221/drivers/scsi/libiscsi_tcp.c
-@@ -798,6 +798,8 @@ iscsi_tcp_hdr_dissect(struct iscsi_conn
- 
- /**
-  * iscsi_tcp_hdr_recv_done - process PDU header
-+ * @tcp_conn: iSCSI TCP connection
-+ * @segment: the buffer segment being processed
-  *
-  * This is the callback invoked when the PDU header has
-  * been received. If the header is followed by additional
-@@ -876,9 +878,10 @@ EXPORT_SYMBOL_GPL(iscsi_tcp_recv_segment
-  * @conn: iscsi connection
-  * @skb: network buffer with header and/or data segment
-  * @offset: offset in skb
-- * @offload: bool indicating if transfer was offloaded
-+ * @offloaded: bool indicating if transfer was offloaded
-+ * @status: iscsi TCP status result
-  *
-- * Will return status of transfer in status. And will return
-+ * Will return status of transfer in @status. And will return
-  * number of bytes copied.
-  */
- int iscsi_tcp_recv_skb(struct iscsi_conn *conn, struct sk_buff *skb,
-@@ -955,9 +958,7 @@ EXPORT_SYMBOL_GPL(iscsi_tcp_recv_skb);
- 
- /**
-  * iscsi_tcp_task_init - Initialize iSCSI SCSI_READ or SCSI_WRITE commands
-- * @conn: iscsi connection
-  * @task: scsi command task
-- * @sc: scsi command
-  */
- int iscsi_tcp_task_init(struct iscsi_task *task)
- {
+T24gVGh1LCAyMDE3LTEyLTIxIGF0IDEwOjIzICswMjAwLCBNb25pIFNob3VhIHdyb3RlOg0KPiBP
+biBXZWQsIERlYyAyMCwgMjAxNyBhdCAzOjEwIEFNLCBCYXJ0IFZhbiBBc3NjaGUgPEJhcnQuVmFu
+QXNzY2hlQHdkYy5jb20+IHdyb3RlOg0KPiA+IENhbiBhbnlvbmUgd2hvIGlzIHJlYWRpbmcgdGhp
+cyBsaXN0IHRlbGwgbWUgd2hldGhlciBvciBub3QgdGhlIHJkbWFfcnhlDQo+ID4gZHJpdmVyIHVu
+ZGVyZ29lcyByZWd1bGFyIHRlc3Rpbmc/IEl0IHdhcyBhIGZldyBtb250aHMgYWdvIHRoYXQgSSB0
+cmllZCB0bw0KPiA+IHJ1biB0aGUgU1JQIHByb3RvY29sIG92ZXIgdGhhdCBkcml2ZXIuIFdoZW4g
+SSB0cmllZCBhZ2FpbiB0b2RheSBJIHJhbiBpbnRvDQo+ID4gdGhlIGNhbGwgdHJhY2Ugc2hvd24g
+YmVsb3cuIEkgY2FuIHNoYXJlIHRoZSBkZXRhaWxzIG9mIHRoZSB0ZXN0IEkgcmFuIGluDQo+ID4g
+Y2FzZSBhbnlvbmUgd291bGQgYmUgaW50ZXJlc3RlZC4NCj4gDQo+IFBsZWFzZSBzaGFyZSB0aGUg
+dGVzdCBkZXRhaWxzIGFuZCB3ZSdsbCBsb29rIGludG8gdGhhdC4NCg0KVGhhbmtzIE1vbmkhDQoN
+ClRoZSBjYWxsIHRyYWNlIGluIG15IHByZXZpb3VzIGUtbWFpbCB3YXMgY2F1c2VkIGJ5IGEgYnVn
+IGluIHRoZSBTUlAgaW5pdGlhdG9yDQpkcml2ZXIuIEkgd2lsbCBwb3N0IHRoZSBwYXRjaGVzIHRo
+YXQgZml4IHRoYXQgYnVnIGFmdGVyIHRoZSBob2xpZGF5cy4gQnV0IGV2ZW4NCmFmdGVyIGhhdmlu
+ZyBmaXhlZCB0aGF0IGJ1ZyBJIG5vdGljZWQgYSByZW1hcmthYmxlIGJlaGF2aW9yIGRpZmZlcmVu
+Y2UgYmV0d2Vlbg0KdGhlIG1seDRfaWIgYW5kIHJ4ZSBkcml2ZXJzLiBpYl9zcnB0IGNoYW5uZWxz
+IGdldCBjbG9zZWQgcHJvcGVybHkgd2hlbiB1c2luZw0KdGhlIG1seDQgZHJpdmVyIGJ1dCBub3Qg
+d2hlbiB1c2luZyB0aGUgcnhlIGRyaXZlci4gVGhlIHRlc3QgSSByYW4gaXMgYXMgZm9sbG93czoN
+CiogQ2xvbmUsIGJ1aWxkIGFuZCBpbnN0YWxsIHRoZSBrZXJuZWwgZnJvbSBicmFuY2ggYmxvY2st
+c2NzaS1mb3ItbmV4dCBvZg0KICByZXBvc2l0b3J5IGh0dHBzOi8vZ2l0aHViLmNvbS9idmFuYXNz
+Y2hlL2xpbnV4LiBNYWtlIHN1cmUgdGhhdCB0aGUgU1JQDQogIGluaXRpYXRvciBhbmQgdGFyZ2V0
+IGRyaXZlcnMgYXJlIGVuYWJsZWQgaW4gdGhlIGtlcm5lbCBjb25maWcuIEkgcGxhbiB0byBwb3N0
+DQogIGFsbCBwYXRjaGVzIHRoYXQgYXJlIGluIHRoYXQgcmVwb3NpdG9yeSBhbmQgdGhhdCBhcmUg
+bm90IHlldCB1cHN0cmVhbSBhZnRlcg0KICB0aGUgaG9saWRheXMuDQoqIENsb25lIGh0dHBzOi8v
+Z2l0aHViLmNvbS9idmFuYXNzY2hlL3NycC10ZXN0Lg0KKiBFZGl0IC9ldGMvbXVsdGlwYXRoLmNv
+bmYgYXMgaW5kaWNhdGVkIGluIHRoZSBSRUFETUUubWQgZG9jdW1lbnQgaW4gdGhlDQogIHNycC10
+ZXN0IHJlcG9zaXRvcnkuDQoqIFN0YXJ0IG11bHRpcGF0aGQuDQoqIElmIEkgcnVuIHRoZSBmb2xs
+b3dpbmcgY29tbWFuZCBvbiBhIHN5c3RlbSB3aXRoIGEgQ29ubmVjdFgtMyBhZGFwdGVyOg0KICAg
+IHNycC10ZXN0L3J1bl90ZXN0cyAtZCAtciAxMCAtdCAwMi1tcQ0KICB0aGVuIHRoZSB0ZXN0IGZp
+bmlzaGVzIGFmdGVyIGFib3V0IDExIHNlY29uZHMuDQogIEJ1dCBpZiBJIHJ1biB0aGUgZm9sbG93
+aW5nIGNvbW1hbmQgb24gYSBzeXN0ZW0gd2l0aG91dCBhbnkgUkRNQSBhZGFwdGVyczoNCiAgICBz
+cnAtdGVzdC9ydW5fdGVzdHMgLWMgLWQgLXIgMTAgLXQgMDItbXENCiAgdGhlbiB0aGUgZm9sbG93
+aW5nIG91dHB1dCBhcHBlYXJzOg0KDQpVbmxvYWRlZCB0aGUgaWJfc3JwdCBrZXJuZWwgbW9kdWxl
+DQpVbmxvYWRlZCB0aGUgcmRtYV9yeGUga2VybmVsIG1vZHVsZQ0KU29mdFJvQ0UgbmV0d29yayBp
+bnRlcmZhY2VzOiByeGUwDQpaZXJvLWluaXRpYWxpemluZyAvZGV2L3JhbTAgLi4uIGRvbmUNClpl
+cm8taW5pdGlhbGl6aW5nIC9kZXYvcmFtMSAuLi4gZG9uZQ0KWmVyby1pbml0aWFsaXppbmcgL2Rl
+di9zZGIgLi4uIGRvbmUNCkNvbmZpZ3VyZWQgU1JQIHRhcmdldCBkcml2ZXINClJ1bm5pbmcgdGVz
+dCAvaG9tZS9iYXJ0L3NvZnR3YXJlL2luZmluaWJhbmQvc3JwLXRlc3QvdGVzdHMvMDItbXEgLi4u
+DQpUZXN0IGZpbGUgSS9PIG9uIHRvcCBvZiBtdWx0aXBhdGggY29uY3VycmVudGx5IHdpdGggbG9n
+b3V0IGFuZCBsb2dpbiAoMCBtaW47IG1xKQ0KVXNpbmcgL2Rldi9kaXNrL2J5LWlkL2RtLXV1aWQt
+bXBhdGgtMzYwMDE0MDU3MjYxNmQ2NDY5NzM2YjMxMDAwMDAwMDAwIC0+IC4uLy4uL2RtLTINClVu
+bW91bnRpbmcgL3Jvb3QvbW50MSBmcm9tIC9kZXYvbWFwcGVyL21wYXRoYg0KU1JQIExVTiAvc3lz
+L2NsYXNzL3Njc2lfZGV2aWNlLzU6MDowOjAgLyBzZGM6IHJlbW92aW5nIC9kZXYvZG0tMjogZG9u
+ZQ0KU1JQIExVTiAvc3lzL2NsYXNzL3Njc2lfZGV2aWNlLzU6MDowOjEgLyBzZGU6IHJlbW92aW5n
+IC9kZXYvZG0tMTogZG9uZQ0KU1JQIExVTiAvc3lzL2NsYXNzL3Njc2lfZGV2aWNlLzU6MDowOjIg
+LyBzZGQ6IHJlbW92aW5nIC9kZXYvZG0tMDogZG9uZQ0KVW5sb2FkZWQgdGhlIGliX3NycCBrZXJu
+ZWwgbW9kdWxlDQpUZXN0IC9ob21lL2JhcnQvc29mdHdhcmUvaW5maW5pYmFuZC9zcnAtdGVzdC90
+ZXN0cy8wMi1tcSBzdWNjZWVkZWQNCjEgdGVzdHMgc3VjY2VlZGVkIGFuZCAwIHRlc3RzIGZhaWxl
+ZA0KDQpbIHRlc3Qgc2NyaXB0IGhhbmdzIF0NCg0KV2hpbGUgdGhlIHRlc3Qgc2NyaXB0IGhhbmdz
+IHRoZSBmb2xsb3dpbmcgYXBwZWFycyBpbiB0aGUgc3lzdGVtIGxvZyAocGxlYXNlIG5vdGUNCnRo
+YXQgdGhlIGliX3NycHQ6c3JwdF96ZXJvbGVuZ3RoX3dyaXRlX2RvbmU6IGliX3NycHQgd2MtPnN0
+YXR1cyBtZXNzYWdlIGlzIG1pc3NpbmcpOg0KDQppYl9zcnB0OnNycHRfY2xvc2VfY2g6IGliX3Ny
+cHQgMTkyLjE2OC4xMjIuNzYtMzI6IHF1ZXVlZCB6ZXJvbGVuZ3RoIHdyaXRlDQpbIC4uLiBdDQpp
+Yl9zcnB0IHNycHRfZGlzY29ubmVjdF9jaF9zeW5jKDE5Mi4xNjguMTIyLjc2LTE4IHN0YXRlIDMp
+OiBzdGlsbCB3YWl0aW5nIC4uLg0KWyAuLi4gXQ0KSU5GTzogdGFzayBybWRpcjozMjE1IGJsb2Nr
+ZWQgZm9yIG1vcmUgdGhhbiAxMjAgc2Vjb25kcy4NCiAgICAgIE5vdCB0YWludGVkIDQuMTUuMC1y
+YzQtZGJnKyAjMg0KImVjaG8gMCA+IC9wcm9jL3N5cy9rZXJuZWwvaHVuZ190YXNrX3RpbWVvdXRf
+c2VjcyIgZGlzYWJsZXMgdGhpcyBtZXNzYWdlLg0Kcm1kaXIgICAgICAgICAgIEQxMzkxMiAgMzIx
+NSAgIDMyMDggMHgwMDAwMDAwMA0KQ2FsbCBUcmFjZToNCiBfX3NjaGVkdWxlKzB4MmFkLzB4Yjkw
+DQogc2NoZWR1bGUrMHgzMS8weDkwDQogc2NoZWR1bGVfdGltZW91dCsweDFmYi8weDU5MA0KIHdh
+aXRfZm9yX2NvbXBsZXRpb25fdGltZW91dCsweDExYS8weDE4MA0KIHNycHRfY2xvc2Vfc2Vzc2lv
+bisweGJhLzB4MTgwIFtpYl9zcnB0XQ0KIHRhcmdldF9zaHV0ZG93bl9zZXNzaW9ucysweGM4LzB4
+ZDAgW3RhcmdldF9jb3JlX21vZF0NCiBjb3JlX3RwZ19kZWxfaW5pdGlhdG9yX25vZGVfYWNsKzB4
+N2MvMHgxMzAgW3RhcmdldF9jb3JlX21vZF0NCiB0YXJnZXRfZmFicmljX25hY2xfYmFzZV9yZWxl
+YXNlKzB4MjAvMHgzMCBbdGFyZ2V0X2NvcmVfbW9kXQ0KIGNvbmZpZ19pdGVtX3JlbGVhc2UrMHg1
+YS8weGMwIFtjb25maWdmc10NCiBjb25maWdfaXRlbV9wdXQrMHgyMS8weDI0IFtjb25maWdmc10N
+CiBjb25maWdmc19ybWRpcisweDFlZi8weDJmMCBbY29uZmlnZnNdDQogdmZzX3JtZGlyKzB4NmUv
+MHgxNTANCiBkb19ybWRpcisweDE2OC8weDFjMA0KIFN5U19ybWRpcisweDExLzB4MjANCg0KVGhh
+bmtzLA0KDQpCYXJ0Lg==
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
