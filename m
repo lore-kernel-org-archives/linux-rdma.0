@@ -1,32 +1,35 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 0/2] IPoIB and mlx5 fixes
-Date: Thu, 21 Dec 2017 17:44:19 -0700
-Message-ID: <20171222004419.GC20855@ziepe.ca>
-References: <20171221153827.16793-1-leon@kernel.org>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH rdma-rc 1/3] iw_cxgb4: Only validate the MSN for successful completions
+Date: Thu, 21 Dec 2017 19:23:39 -0600
+Message-ID: <000801d37ac3$7f8e4d00$7eaae700$@opengridcomputing.com>
+References: <20171220191644.CB3F62BC88@smtp.opengridcomputing.com> <20171222002341.GA20855@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171221153827.16793-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20171222002341.GA20855-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 21, 2017 at 05:38:25PM +0200, Leon Romanovsky wrote:
-> There are two fixes in this series,
 > 
-> Fix from Alex who solved lockdep real complain about ABBA locks sequence.
+> On Mon, Dec 18, 2017 at 01:10:00PM -0800, Steve Wise wrote:
+> > If the RECV CQE is in error, ignore the MSN check.  This was causing
+> > recvs that were flushed into the sw cq to be completed with the wrong
+> > status (BAD_MSN instead of FLUSHED).
+> >
+> > Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> >  drivers/infiniband/hw/cxgb4/cq.c | 6 +++---
+> >  1 file changed, 3 insertions(+), 3 deletions(-)
 > 
-> Patch from Majd a little bit larger than I would like, but most of the
-> diffstat is simple code moves from one file to another.
-> 
-> The patches are available in the git repository at:
->   git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-rc-2017-12-21
+> Applied the series to for-next, thanks
 
-Applied both to for-rc, thanks
+Thanks Jason.  I requested -rc though.  Did you not want it in -rc? 
 
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
