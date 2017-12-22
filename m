@@ -1,93 +1,49 @@
-From: Bart Van Assche <bart.vanassche@wdc.com>
-Subject: [PATCH] IB/core: Fix two kernel warnings triggered by rxe registration
-Date: Fri, 22 Dec 2017 13:38:52 -0800
-Message-ID: <20171222213852.3481-1-bart.vanassche@wdc.com>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, Leon Romanovsky <leon@kernel.org>, stable@vger.kernel.org
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: [PATCH] target: fix kernel-doc warnings in
+ drivers/target/target_core_transport.c
+Date: Fri, 22 Dec 2017 14:06:42 -0800
+Message-ID: <b2fa87ef-6c41-57a1-0e64-ac7cf73c5e91@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-scsi-owner@vger.kernel.org
+To: linux-scsi <linux-scsi@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Sagi Grimberg <sagi@grimberg.me>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid that the following two warnings are reported when registering an
-rxe device:
+From: Randy Dunlap <rdunlap@infradead.org>
 
-WARNING: CPU: 2 PID: 1005 at drivers/infiniband/core/device.c:449 ib_register_device+0x591/0x640 [ib_core]
-CPU: 2 PID: 1005 Comm: run_tests Not tainted 4.15.0-rc4-dbg+ #2
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
-RIP: 0010:ib_register_device+0x591/0x640 [ib_core]
-Call Trace:
- rxe_register_device+0x3c6/0x470 [rdma_rxe]
- rxe_add+0x543/0x5e0 [rdma_rxe]
- rxe_net_add+0x37/0xb0 [rdma_rxe]
- rxe_param_set_add+0x5a/0x120 [rdma_rxe]
- param_attr_store+0x5e/0xc0
- module_attr_store+0x19/0x30
- sysfs_kf_write+0x3d/0x50
- kernfs_fop_write+0x116/0x1a0
- __vfs_write+0x23/0x120
- vfs_write+0xbe/0x1b0
- SyS_write+0x44/0xa0
- entry_SYSCALL_64_fastpath+0x23/0x9a
+Correct a function parameter's name to eliminate kernel-doc warnings
+in drivers/target/target_core_transport.c.
 
-WARNING: CPU: 2 PID: 1005 at drivers/infiniband/core/sysfs.c:1279 ib_device_register_sysfs+0x11d/0x160 [ib_core]
-CPU: 2 PID: 1005 Comm: run_tests Tainted: G        W        4.15.0-rc4-dbg+ #2
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
-RIP: 0010:ib_device_register_sysfs+0x11d/0x160 [ib_core]
-Call Trace:
- ib_register_device+0x3f7/0x640 [ib_core]
- rxe_register_device+0x3c6/0x470 [rdma_rxe]
- rxe_add+0x543/0x5e0 [rdma_rxe]
- rxe_net_add+0x37/0xb0 [rdma_rxe]
- rxe_param_set_add+0x5a/0x120 [rdma_rxe]
- param_attr_store+0x5e/0xc0
- module_attr_store+0x19/0x30
- sysfs_kf_write+0x3d/0x50
- kernfs_fop_write+0x116/0x1a0
- __vfs_write+0x23/0x120
- vfs_write+0xbe/0x1b0
- SyS_write+0x44/0xa0
- entry_SYSCALL_64_fastpath+0x23/0x9a
+Fixes these kernel-doc warnings: (tested by adding these files to a new
+target.rst documentation file: WIP)
 
-Fixes: commit 99db9494035f ("IB/core: Remove ib_device.dma_device")
-Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: stable@vger.kernel.org # v4.11
+../drivers/target/target_core_transport.c:1671: warning: No description found for parameter 'fabric_tmr_ptr'
+../drivers/target/target_core_transport.c:1671: warning: Excess function parameter 'fabric_context' description in 'target_submit_tmr'
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc:	"Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc:	linux-scsi@vger.kernel.org
+Cc:	target-devel@vger.kernel.org
+Cc:	Sagi Grimberg <sagi@grimberg.me>
+Cc:	linux-rdma@vger.kernel.org
+Cc:	"James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
+Cc:	"Martin K. Petersen" <martin.petersen@oracle.com>
 ---
- drivers/infiniband/core/device.c | 2 +-
- drivers/infiniband/core/sysfs.c  | 1 -
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/target/target_core_transport.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 30914f3baa5f..b9d7570e9989 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -446,7 +446,6 @@ int ib_register_device(struct ib_device *device,
- 	struct ib_udata uhw = {.outlen = 0, .inlen = 0};
- 	struct device *parent = device->dev.parent;
- 
--	WARN_ON_ONCE(!parent);
- 	WARN_ON_ONCE(device->dma_device);
- 	if (device->dev.dma_ops) {
- 		/*
-@@ -465,6 +464,7 @@ int ib_register_device(struct ib_device *device,
- 		 * The caller did not provide custom DMA operations. Use the
- 		 * DMA mapping operations of the parent device.
- 		 */
-+		WARN_ON_ONCE(!parent);
- 		device->dma_device = parent;
- 	}
- 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index e30d86fa1855..8ae1308eecc7 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -1276,7 +1276,6 @@ int ib_device_register_sysfs(struct ib_device *device,
- 	int ret;
- 	int i;
- 
--	WARN_ON_ONCE(!device->dev.parent);
- 	ret = dev_set_name(class_dev, "%s", device->name);
- 	if (ret)
- 		return ret;
--- 
-2.15.1
+--- linux-next-20171221.orig/drivers/target/target_core_transport.c
++++ linux-next-20171221/drivers/target/target_core_transport.c
+@@ -1654,7 +1654,7 @@ static bool target_lookup_lun_from_tag(s
+  * @se_sess: associated se_sess for endpoint
+  * @sense: pointer to SCSI sense buffer
+  * @unpacked_lun: unpacked LUN to reference for struct se_lun
+- * @fabric_context: fabric context for TMR req
++ * @fabric_tmr_ptr: fabric context for TMR req
+  * @tm_type: Type of TM request
+  * @gfp: gfp type for caller
+  * @tag: referenced task tag for TMR_ABORT_TASK
