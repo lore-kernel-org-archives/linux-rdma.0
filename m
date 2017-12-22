@@ -1,7 +1,7 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 1/9] i40iw: Set MAX_IRD_SIZE to 64
-Date: Fri, 22 Dec 2017 09:46:54 -0600
-Message-ID: <20171222154702.12632-2-shiraz.saleem@intel.com>
+Subject: [PATCH rdma-next 3/9] i40iw: Correct Q1/XF object count equation
+Date: Fri, 22 Dec 2017 09:46:56 -0600
+Message-ID: <20171222154702.12632-4-shiraz.saleem@intel.com>
 References: <20171222154702.12632-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171222154702.12632-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,26 +10,33 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gma
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Increase I40IW_MAX_IRD_SIZE to 64 which is the device limit.
+Lower Inbound RDMA Read Queue (Q1) object count by a factor of 2
+as it is incorrectly doubled. Also, round up Q1 and Transmit FIFO (XF)
+object count to power of 2 to satisfy hardware requirement.
 
+Fixes: 86dbcd0f12e9 ("i40iw: add file to handle cqp calls")
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_user.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_user.h b/drivers/infiniband/hw/i40iw/i40iw_user.h
-index e73efc5..5467c6f 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_user.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_user.h
-@@ -72,7 +72,7 @@ enum i40iw_device_capabilities_const {
- 	I40IW_MAX_SQ_PAYLOAD_SIZE =		2145386496,
- 	I40IW_MAX_INLINE_DATA_SIZE =		48,
- 	I40IW_MAX_PUSHMODE_INLINE_DATA_SIZE =	48,
--	I40IW_MAX_IRD_SIZE =			63,
-+	I40IW_MAX_IRD_SIZE =			64,
- 	I40IW_MAX_ORD_SIZE =			127,
- 	I40IW_MAX_WQ_ENTRIES =			2048,
- 	I40IW_Q2_BUFFER_SIZE =			(248 + 100),
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+index 1f9594e..fb0bd6a 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+@@ -3910,8 +3910,10 @@ enum i40iw_status_code i40iw_config_fpm_values(struct i40iw_sc_dev *dev, u32 qp_
+ 		hmc_info->hmc_obj[I40IW_HMC_IW_APBVT_ENTRY].cnt = 1;
+ 		hmc_info->hmc_obj[I40IW_HMC_IW_MR].cnt = mrwanted;
+ 
+-		hmc_info->hmc_obj[I40IW_HMC_IW_XF].cnt = I40IW_MAX_WQ_ENTRIES * qpwanted;
+-		hmc_info->hmc_obj[I40IW_HMC_IW_Q1].cnt = 4 * I40IW_MAX_IRD_SIZE * qpwanted;
++		hmc_info->hmc_obj[I40IW_HMC_IW_XF].cnt =
++			roundup_pow_of_two(I40IW_MAX_WQ_ENTRIES * qpwanted);
++		hmc_info->hmc_obj[I40IW_HMC_IW_Q1].cnt =
++			roundup_pow_of_two(2 * I40IW_MAX_IRD_SIZE * qpwanted);
+ 		hmc_info->hmc_obj[I40IW_HMC_IW_XFFL].cnt =
+ 			hmc_info->hmc_obj[I40IW_HMC_IW_XF].cnt / hmc_fpm_misc->xf_block_size;
+ 		hmc_info->hmc_obj[I40IW_HMC_IW_Q1FL].cnt =
 -- 
 2.8.3
 
