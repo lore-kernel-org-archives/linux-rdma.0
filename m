@@ -1,115 +1,51 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 9/9] i40iw: Fix the connection ORD value for loopback
-Date: Fri, 22 Dec 2017 09:47:02 -0600
-Message-ID: <20171222154702.12632-10-shiraz.saleem@intel.com>
+Subject: [PATCH rdma-next 6/9] i40iw: Fix sequence number for the first partial FPDU
+Date: Fri, 22 Dec 2017 09:46:59 -0600
+Message-ID: <20171222154702.12632-7-shiraz.saleem@intel.com>
 References: <20171222154702.12632-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171222154702.12632-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Partial FPDU processing is broken as the sequence number
+for the first partial FPDU is wrong due to incorrect
+Q2 buffer offset. The offset should be 64 rather than 16.
 
-The accepting QP ORD value should be adjusted not to
-exceed the peer QP IRD value (RFC 6581). This is
-skipped for loopback. After the ORD is validated
-by i40iw_record_ird_ord(), adjust the ORD value of
-the loopback accepting QP to prevent overrunning the
-IRD space of the peer QP. Also move the ORD accounting
-for 0-byte RDMA read to i40iw_record_ird_ord().
-
-Fixes: f27b4746f378 ("i40iw: add connection management code")
-Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Fixes: 786c6adb3a94 ("i40iw: add puda code")
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_cm.c | 25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_d.h    | 1 +
+ drivers/infiniband/hw/i40iw/i40iw_puda.c | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index 34cc335..0695ac3 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -127,6 +127,8 @@ static void i40iw_record_ird_ord(struct i40iw_cm_node *cm_node, u32 conn_ird, u3
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_d.h b/drivers/infiniband/hw/i40iw/i40iw_d.h
+index 65ec39e..b856587 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_d.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_d.h
+@@ -97,6 +97,7 @@
+ #define RDMA_OPCODE_MASK        0x0f
+ #define RDMA_READ_REQ_OPCODE    1
+ #define Q2_BAD_FRAME_OFFSET     72
++#define Q2_FPSN_OFFSET          64
+ #define CQE_MAJOR_DRV           0x8000
  
- 	if (conn_ord > I40IW_MAX_ORD_SIZE)
- 		conn_ord = I40IW_MAX_ORD_SIZE;
-+	else if (!conn_ord && cm_node->send_rdma0_op == SEND_RDMA_READ_ZERO)
-+		conn_ord = 1;
+ #define I40IW_TERM_SENT 0x01
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.c b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+index 796a815..f64b670 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_puda.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+@@ -1378,7 +1378,7 @@ static void i40iw_ieq_handle_exception(struct i40iw_puda_rsrc *ieq,
+ 	u32 *hw_host_ctx = (u32 *)qp->hw_host_ctx;
+ 	u32 rcv_wnd = hw_host_ctx[23];
+ 	/* first partial seq # in q2 */
+-	u32 fps = qp->q2_buf[16];
++	u32 fps = *(u32 *)(qp->q2_buf + Q2_FPSN_OFFSET);
+ 	struct list_head *rxlist = &pfpdu->rxlist;
+ 	struct list_head *plist;
  
- 	cm_node->ird_size = conn_ird;
- 	cm_node->ord_size = conn_ord;
-@@ -2873,15 +2875,13 @@ static struct i40iw_cm_listener *i40iw_make_listen_node(
-  * i40iw_create_cm_node - make a connection node with params
-  * @cm_core: cm's core
-  * @iwdev: iwarp device structure
-- * @private_data_len: len to provate data for mpa request
-- * @private_data: pointer to private data for connection
-+ * @conn_param: upper layer connection parameters
-  * @cm_info: quad info for connection
-  */
- static struct i40iw_cm_node *i40iw_create_cm_node(
- 					struct i40iw_cm_core *cm_core,
- 					struct i40iw_device *iwdev,
--					u16 private_data_len,
--					void *private_data,
-+					struct iw_cm_conn_param *conn_param,
- 					struct i40iw_cm_info *cm_info)
- {
- 	struct i40iw_cm_node *cm_node;
-@@ -2889,6 +2889,9 @@ static struct i40iw_cm_node *i40iw_create_cm_node(
- 	struct i40iw_cm_node *loopback_remotenode;
- 	struct i40iw_cm_info loopback_cm_info;
- 
-+	u16 private_data_len = conn_param->private_data_len;
-+	void *private_data = (void *)conn_param->private_data;
-+
- 	/* create a CM connection node */
- 	cm_node = i40iw_make_cm_node(cm_core, iwdev, cm_info, NULL);
- 	if (!cm_node)
-@@ -2897,6 +2900,8 @@ static struct i40iw_cm_node *i40iw_create_cm_node(
- 	cm_node->tcp_cntxt.client = 1;
- 	cm_node->tcp_cntxt.rcv_wscale = I40IW_CM_DEFAULT_RCV_WND_SCALE;
- 
-+	i40iw_record_ird_ord(cm_node, conn_param->ird, conn_param->ord);
-+
- 	if (!memcmp(cm_info->loc_addr, cm_info->rem_addr, sizeof(cm_info->loc_addr))) {
- 		loopback_remotelistener = i40iw_find_listener(
- 						cm_core,
-@@ -2930,6 +2935,9 @@ static struct i40iw_cm_node *i40iw_create_cm_node(
- 			       private_data_len);
- 			loopback_remotenode->pdata.size = private_data_len;
- 
-+			if (loopback_remotenode->ord_size > cm_node->ird_size)
-+				loopback_remotenode->ord_size = cm_node->ird_size;
-+
- 			cm_node->state = I40IW_CM_STATE_OFFLOADED;
- 			cm_node->tcp_cntxt.rcv_nxt =
- 				loopback_remotenode->tcp_cntxt.loc_seq_num;
-@@ -3808,9 +3816,7 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 		    __func__, cm_id->tos, cm_info.user_pri);
- 	cm_id->add_ref(cm_id);
- 	cm_node = i40iw_create_cm_node(&iwdev->cm_core, iwdev,
--				       conn_param->private_data_len,
--				       (void *)conn_param->private_data,
--				       &cm_info);
-+				       conn_param, &cm_info);
- 
- 	if (IS_ERR(cm_node)) {
- 		ret = PTR_ERR(cm_node);
-@@ -3842,11 +3848,6 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 	}
- 
- 	cm_node->apbvt_set = true;
--	i40iw_record_ird_ord(cm_node, conn_param->ird, conn_param->ord);
--	if (cm_node->send_rdma0_op == SEND_RDMA_READ_ZERO &&
--	    !cm_node->ord_size)
--		cm_node->ord_size = 1;
--
- 	iwqp->cm_node = cm_node;
- 	cm_node->iwqp = iwqp;
- 	iwqp->cm_id = cm_id;
 -- 
 2.8.3
 
