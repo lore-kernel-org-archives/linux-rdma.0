@@ -1,43 +1,71 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH for-rc] IB/hfi: Only read capability registers if the
- capability exists
-Date: Fri, 22 Dec 2017 09:53:52 -0700
-Message-ID: <20171222165352.GD30884@ziepe.ca>
-References: <20171222164717.31842.12554.stgit@scvm10.sc.intel.com>
+Subject: Re: [PATCH for-next 3/3] IB/hfi1: Change slid arg in
+ ingress_pkey_table_fail to 32bit
+Date: Fri, 22 Dec 2017 09:56:00 -0700
+Message-ID: <20171222165600.GE30884@ziepe.ca>
+References: <20171222164036.29731.43475.stgit@scvm10.sc.intel.com>
+ <20171222164557.29731.16649.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171222164717.31842.12554.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20171222164557.29731.16649.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 22, 2017 at 08:47:20AM -0800, Dennis Dalessandro wrote:
-> From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Fri, Dec 22, 2017 at 08:46:00AM -0800, Dennis Dalessandro wrote:
+> From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> During driver init, various registers are saved to allow restoration
-> after an FLR or gen3 bump.  Some of these registers are not available
-> in some circumstances (i.e. Virtual machines).
+> Change the slid arg to ingress_pkey_table_fail() to a full
+> 32Bits and do not convert to 16Bits in caller. This is so we
+> can keep everything 32bit in the kernel and only change to
+> 16bit at the uapi boundary.
 > 
-> Delete unnecessary register read/write, and only access register if
-> the capability exists.
-> 
-> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.14.x
-> Fixes: a618b7e40af2 ("IB/hfi1: Move saving PCI values to a separate function")
-> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->  drivers/infiniband/hw/hfi1/hfi.h  |    1 -
->  drivers/infiniband/hw/hfi1/pcie.c |   30 ++++++++++++------------------
->  2 files changed, 12 insertions(+), 19 deletions(-)
+>  drivers/infiniband/hw/hfi1/hfi.h |    2 +-
+>  drivers/infiniband/hw/hfi1/mad.c |    6 +-----
+>  2 files changed, 2 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+> index 869c2bf..dc5b133 100644
+> +++ b/drivers/infiniband/hw/hfi1/hfi.h
+> @@ -1627,7 +1627,7 @@ static int ingress_pkey_table_search(struct hfi1_pportdata *ppd, u16 pkey)
+>   * the 'error info' for this failure.
+>   */
+>  static void ingress_pkey_table_fail(struct hfi1_pportdata *ppd, u16 pkey,
+> -				    u16 slid)
+> +				    u32 slid)
+>  {
+>  	struct hfi1_devdata *dd = ppd->dd;
+>  
+> diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+> index cf8dba3..34547a4 100644
+> +++ b/drivers/infiniband/hw/hfi1/mad.c
+> @@ -4348,11 +4348,7 @@ static int opa_local_smp_check(struct hfi1_ibport *ibp,
+>  	 */
+>  	if (pkey == LIM_MGMT_P_KEY || pkey == FULL_MGMT_P_KEY)
+>  		return 0;
+> -	/*
+> -	 * On OPA devices it is okay to lose the upper 16 bits of LID as this
+> -	 * information is obtained elsewhere. Mask off the upper 16 bits.
+> -	 */
+> -	ingress_pkey_table_fail(ppd, pkey, ib_lid_cpu16(0xFFFF & in_wc->slid));
+> +	ingress_pkey_table_fail(ppd, pkey, in_wc->slid);
+>  	return 1;
+>  }
 
-Since we are getting late in the RC cycle can you help me clarify the
-user visible bug here? No need to resend
+I'm confused by this patch.
 
-I'm guessing when hfi1 is used in a virtual machine with passthrough
-(SRIOV?) it fails in ?? way?
+It seems to totally revert the -stable patch
+4988be5813ff2afdc0d8bfa315ef34a577d3efbf, with the exception that
+ingress_pkey_table_fail now accepts a u32.
+
+Is this saying the correct version of
+4988be5813ff2afdc0d8bfa315ef34a577d3efbf was to just change that one
+type??
 
 Jason
 --
