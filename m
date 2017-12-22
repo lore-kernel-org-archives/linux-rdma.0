@@ -1,56 +1,52 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v1 rdma-next 7/9] i40iw: Ignore LLP_DOUBT_REACHABILITY AE
-Date: Fri, 22 Dec 2017 14:29:30 -0600
-Message-ID: <20171222202932.9324-8-shiraz.saleem@intel.com>
+Subject: [PATCH v1 rdma-next 8/9] i40iw: Validate correct IRD/ORD connection parameters
+Date: Fri, 22 Dec 2017 14:29:31 -0600
+Message-ID: <20171222202932.9324-9-shiraz.saleem@intel.com>
 References: <20171222202932.9324-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171222202932.9324-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The LLP_DOUBT_REACHABILITY Asynchronous Event (AE) is an early
-warning of a connection issue. It is followed by LLP_TOO_MANY_RETRIES
-AE, if the retransmit threshold is reached and recovery is not possible
-for the connection.
+From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Currently we terminate the connection on receiving the
-LLP_DOUBT_REACHABILITY AE. Ignore this AE and
-terminate the connection only on LLP_TOO_MANY_RETRIES AE.
+Casting to u16 before validating IRD/ORD connection
+parameters could cause recording wrong IRD/ORD values
+in the cm_node. Validate the IRD/ORD parameters as
+they are passed by the application before recording
+them.
 
-This improves the user experience on cable disconnect/reconnect
-scenario while running iWARP traffic. On cable disconnect,
-the QP traffic is paused and the user has a larger and more
-reasonable timeout within which if the cable is reconnected,
-traffic can continue.
-
+Fixes: f27b4746f378 ("i40iw: add connection management code")
+Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_hw.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_hw.c b/drivers/infiniband/hw/i40iw/i40iw_hw.c
-index e96bdaf..61540e1 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_hw.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_hw.c
-@@ -385,6 +385,8 @@ void i40iw_process_aeq(struct i40iw_device *iwdev)
- 				iwcq->ibcq.event_handler(&ibevent, iwcq->ibcq.cq_context);
- 			}
- 			break;
-+		case I40IW_AE_LLP_DOUBT_REACHABILITY:
-+			break;
- 		case I40IW_AE_PRIV_OPERATION_DENIED:
- 		case I40IW_AE_STAG_ZERO_INVALID:
- 		case I40IW_AE_IB_RREQ_AND_Q1_FULL:
-@@ -403,7 +405,6 @@ void i40iw_process_aeq(struct i40iw_device *iwdev)
- 		case I40IW_AE_LLP_SEGMENT_TOO_SMALL:
- 		case I40IW_AE_LLP_SYN_RECEIVED:
- 		case I40IW_AE_LLP_TOO_MANY_RETRIES:
--		case I40IW_AE_LLP_DOUBT_REACHABILITY:
- 		case I40IW_AE_LCE_QP_CATASTROPHIC:
- 		case I40IW_AE_LCE_FUNCTION_CATASTROPHIC:
- 		case I40IW_AE_LCE_CQ_CATASTROPHIC:
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index 7810642..34cc335 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -120,7 +120,7 @@ static u8 i40iw_derive_hw_ird_setting(u16 cm_ird)
+  * @conn_ird: connection IRD
+  * @conn_ord: connection ORD
+  */
+-static void i40iw_record_ird_ord(struct i40iw_cm_node *cm_node, u16 conn_ird, u16 conn_ord)
++static void i40iw_record_ird_ord(struct i40iw_cm_node *cm_node, u32 conn_ird, u32 conn_ord)
+ {
+ 	if (conn_ird > I40IW_MAX_IRD_SIZE)
+ 		conn_ird = I40IW_MAX_IRD_SIZE;
+@@ -3842,7 +3842,7 @@ int i40iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 	}
+ 
+ 	cm_node->apbvt_set = true;
+-	i40iw_record_ird_ord(cm_node, (u16)conn_param->ird, (u16)conn_param->ord);
++	i40iw_record_ird_ord(cm_node, conn_param->ird, conn_param->ord);
+ 	if (cm_node->send_rdma0_op == SEND_RDMA_READ_ZERO &&
+ 	    !cm_node->ord_size)
+ 		cm_node->ord_size = 1;
 -- 
 2.8.3
 
