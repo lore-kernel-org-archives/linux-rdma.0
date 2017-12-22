@@ -1,33 +1,93 @@
-From: "Saleem, Shiraz" <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH rdma-next 9/9] i40iw: Fix the connection ORD value for
- loopback
-Date: Fri, 22 Dec 2017 20:35:39 +0000
-Message-ID: <9DD61F30A802C4429A01CA4200E302A789E76DD2@fmsmsx116.amr.corp.intel.com>
-References: <20171222154702.12632-1-shiraz.saleem@intel.com>
- <20171222154702.12632-10-shiraz.saleem@intel.com>
- <20171222161049.GB30884@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171222161049.GB30884-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Bart Van Assche <bart.vanassche@wdc.com>
+Subject: [PATCH] IB/core: Fix two kernel warnings triggered by rxe registration
+Date: Fri, 22 Dec 2017 13:38:52 -0800
+Message-ID: <20171222213852.3481-1-bart.vanassche@wdc.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, Leon Romanovsky <leon@kernel.org>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: Re: [PATCH rdma-next 9/9] i40iw: Fix the connection ORD value for
-> loopback
-> 
-> > +	u16 private_data_len = conn_param->private_data_len;
-> > +	void *private_data = (void *)conn_param->private_data;
-> 
-> Why casting away const here? That doesn't seem like a good idea..
-> 
+Avoid that the following two warnings are reported when registering an
+rxe device:
 
-Agreed. Sent v1 with it fixed.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+WARNING: CPU: 2 PID: 1005 at drivers/infiniband/core/device.c:449 ib_register_device+0x591/0x640 [ib_core]
+CPU: 2 PID: 1005 Comm: run_tests Not tainted 4.15.0-rc4-dbg+ #2
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
+RIP: 0010:ib_register_device+0x591/0x640 [ib_core]
+Call Trace:
+ rxe_register_device+0x3c6/0x470 [rdma_rxe]
+ rxe_add+0x543/0x5e0 [rdma_rxe]
+ rxe_net_add+0x37/0xb0 [rdma_rxe]
+ rxe_param_set_add+0x5a/0x120 [rdma_rxe]
+ param_attr_store+0x5e/0xc0
+ module_attr_store+0x19/0x30
+ sysfs_kf_write+0x3d/0x50
+ kernfs_fop_write+0x116/0x1a0
+ __vfs_write+0x23/0x120
+ vfs_write+0xbe/0x1b0
+ SyS_write+0x44/0xa0
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+
+WARNING: CPU: 2 PID: 1005 at drivers/infiniband/core/sysfs.c:1279 ib_device_register_sysfs+0x11d/0x160 [ib_core]
+CPU: 2 PID: 1005 Comm: run_tests Tainted: G        W        4.15.0-rc4-dbg+ #2
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
+RIP: 0010:ib_device_register_sysfs+0x11d/0x160 [ib_core]
+Call Trace:
+ ib_register_device+0x3f7/0x640 [ib_core]
+ rxe_register_device+0x3c6/0x470 [rdma_rxe]
+ rxe_add+0x543/0x5e0 [rdma_rxe]
+ rxe_net_add+0x37/0xb0 [rdma_rxe]
+ rxe_param_set_add+0x5a/0x120 [rdma_rxe]
+ param_attr_store+0x5e/0xc0
+ module_attr_store+0x19/0x30
+ sysfs_kf_write+0x3d/0x50
+ kernfs_fop_write+0x116/0x1a0
+ __vfs_write+0x23/0x120
+ vfs_write+0xbe/0x1b0
+ SyS_write+0x44/0xa0
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+
+Fixes: commit 99db9494035f ("IB/core: Remove ib_device.dma_device")
+Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: stable@vger.kernel.org # v4.11
+---
+ drivers/infiniband/core/device.c | 2 +-
+ drivers/infiniband/core/sysfs.c  | 1 -
+ 2 files changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 30914f3baa5f..b9d7570e9989 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -446,7 +446,6 @@ int ib_register_device(struct ib_device *device,
+ 	struct ib_udata uhw = {.outlen = 0, .inlen = 0};
+ 	struct device *parent = device->dev.parent;
+ 
+-	WARN_ON_ONCE(!parent);
+ 	WARN_ON_ONCE(device->dma_device);
+ 	if (device->dev.dma_ops) {
+ 		/*
+@@ -465,6 +464,7 @@ int ib_register_device(struct ib_device *device,
+ 		 * The caller did not provide custom DMA operations. Use the
+ 		 * DMA mapping operations of the parent device.
+ 		 */
++		WARN_ON_ONCE(!parent);
+ 		device->dma_device = parent;
+ 	}
+ 
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index e30d86fa1855..8ae1308eecc7 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -1276,7 +1276,6 @@ int ib_device_register_sysfs(struct ib_device *device,
+ 	int ret;
+ 	int i;
+ 
+-	WARN_ON_ONCE(!device->dev.parent);
+ 	ret = dev_set_name(class_dev, "%s", device->name);
+ 	if (ret)
+ 		return ret;
+-- 
+2.15.1
