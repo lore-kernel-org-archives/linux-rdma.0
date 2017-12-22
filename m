@@ -1,49 +1,67 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH v2 for-rc 3/4] RDMA/vmw_pvrdma: Add UAR SRQ macros in ABI
- header file
-Date: Fri, 22 Dec 2017 09:17:24 -0700
-Message-ID: <20171222161724.GC30884@ziepe.ca>
-References: <20171220174748.GA18149@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
- <20171220175051.GA22751@bryantan-devbox.prom.eng.vmware.com.prom.eng.vmware.com>
+Subject: Re: [PATCH for-next 0/2] Revise eq support for hip06 & hip08
+Date: Fri, 22 Dec 2017 09:37:32 -0700
+Message-ID: <20171222163732.GA15021@ziepe.ca>
+References: <1510651577-20794-1-git-send-email-liuyixian@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171220175051.GA22751-qXbCdz4EeRo1jLI2hToXVI42T8aCTgcwy4vvyvUx+exJXi8ZT2ovy+oDBWuYMCC/JZORHMmSJCU@public.gmane.org>
+In-Reply-To: <1510651577-20794-1-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 20, 2017 at 09:50:57AM -0800, Bryan Tan wrote:
-> Support for SRQs were added in the vmw_pvrdma userlevel library
-> before two necessary macros were added into the kernel ABI header
-> file. Add the two UAR SRQ macros that are required by the userlevel
-> library so that the library can rely on the kernel ABI header file
-> for these SRQ macro definitions.
+On Tue, Nov 14, 2017 at 05:26:15PM +0800, Yixian Liu wrote:
+> This patch-set refactor eq code for hip06 and add eq
+> support for hip08.
 > 
-> Fixes: 8b10ba783c9d ("RDMA/vmw_pvrdma: Add shared receive queue support")
-> Reviewed-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
->  include/uapi/rdma/vmw_pvrdma-abi.h | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/include/uapi/rdma/vmw_pvrdma-abi.h b/include/uapi/rdma/vmw_pvrdma-abi.h
-> index aaa352f..4007cac 100644
-> +++ b/include/uapi/rdma/vmw_pvrdma-abi.h
-> @@ -58,6 +58,8 @@
->  #define PVRDMA_UAR_CQ_ARM_SOL		BIT(29)		/* Arm solicited bit. */
->  #define PVRDMA_UAR_CQ_ARM		BIT(30)		/* Arm bit. */
->  #define PVRDMA_UAR_CQ_POLL		BIT(31)		/* Poll bit. */
-> +#define PVRDMA_UAR_SRQ_OFFSET		8		/* SRQ doorbell. */
-> +#define PVRDMA_UAR_SRQ_RECV		BIT(30)		/* Recv bit. */
+> Yixian Liu (2):
+>   RDMA/hns: Refactor eq code for hip06
+>   RDMA/hns: Add eq support of hip08
 
-Thinking about this.. These constants are not used in the kernel, so
-what are they for, and why are they a 'uapi' header?
+I read this this whole giant patch and will apply it to for-next.
 
-I'm guessing this is the 'PCI BAR' ABI and the kernel does't use UAR?
+I did notice some existing bothersome things:
+
+1) Bad commenting around all memory barriers:
+
+               /* Memory barrier */
+                rmb();
+
+   Everyone knows that rmb/wmb/mb are memory barriers.
+   If you use these calls you *MUST* have a comment explaining
+   what the locking situation is. Explain where the *OTHER SIDE* of
+   the barrier is.
+
+2) This construct
+
+  static inline void hns_roce_write64_k(__be32 val[2], void __iomem *dest)
+  {
+        __raw_writeq(*(u64 *) val, dest);
+  }
+
+  static void set_eq_cons_index_v2(struct hns_roce_eq *eq)
+  {
+	u32 doorbell[2];
+        [..]
+        hns_roce_write64_k(doorbell, eq->doorbell);
+
+   Is not OK. doorbell is technically not guarenteed to be 64 bit
+   aligned, and the deref *(u64 *) requires 64 bit alignment in the
+   kernel.
+
+   I purged this stupid array thing out of the mellanox drivers in
+   userspace some time ago, you might do the same, or minimually a
+   union is needed:
+
+    union doorbell {
+        u64 doorbell64;
+	u32 doorbell[2];
+    }
+
+Plese consider sending followup patches.
 
 Jason
 --
