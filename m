@@ -1,45 +1,76 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 1/3] iw_cxgb4: Only validate the MSN for
- successful completions
-Date: Thu, 21 Dec 2017 19:48:32 -0700
-Message-ID: <20171222024832.GA23946@ziepe.ca>
-References: <20171220191644.CB3F62BC88@smtp.opengridcomputing.com>
- <20171222002341.GA20855@ziepe.ca>
- <000801d37ac3$7f8e4d00$7eaae700$@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Avinash Repaka <avinash.repaka-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH net] RDS: Check cmsg_len before dereferencing CMSG_DATA
+Date: Thu, 21 Dec 2017 20:17:04 -0800
+Message-ID: <1513916224-9445-1-git-send-email-avinash.repaka@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <000801d37ac3$7f8e4d00$7eaae700$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: avinash.repaka-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 21, 2017 at 07:23:39PM -0600, Steve Wise wrote:
-> > 
-> > On Mon, Dec 18, 2017 at 01:10:00PM -0800, Steve Wise wrote:
-> > > If the RECV CQE is in error, ignore the MSN check.  This was causing
-> > > recvs that were flushed into the sw cq to be completed with the wrong
-> > > status (BAD_MSN instead of FLUSHED).
-> > >
-> > > Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > >  drivers/infiniband/hw/cxgb4/cq.c | 6 +++---
-> > >  1 file changed, 3 insertions(+), 3 deletions(-)
-> > 
-> > Applied the series to for-next, thanks
-> 
-> Thanks Jason.  I requested -rc though.  Did you not want it in -rc? 
+RDS currently doesn't check if the length of the control message is
+large enough to hold the required data, before dereferencing the control
+message data. This results in following crash:
 
-Ah, I did put it in -rc, sorry, toddler-came-home distraction when I
-was finishing.. Same for all the last couple patches.
+BUG: KASAN: stack-out-of-bounds in rds_rdma_bytes net/rds/send.c:1013
+[inline]
+BUG: KASAN: stack-out-of-bounds in rds_sendmsg+0x1f02/0x1f90
+net/rds/send.c:1066
+Read of size 8 at addr ffff8801c928fb70 by task syzkaller455006/3157
 
-The -rc branch tip is here right now while 0-day runs on it.
+CPU: 0 PID: 3157 Comm: syzkaller455006 Not tainted 4.15.0-rc3+ #161
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
+Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ rds_rdma_bytes net/rds/send.c:1013 [inline]
+ rds_sendmsg+0x1f02/0x1f90 net/rds/send.c:1066
+ sock_sendmsg_nosec net/socket.c:628 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:638
+ ___sys_sendmsg+0x320/0x8b0 net/socket.c:2018
+ __sys_sendmmsg+0x1ee/0x620 net/socket.c:2108
+ SYSC_sendmmsg net/socket.c:2139 [inline]
+ SyS_sendmmsg+0x35/0x60 net/socket.c:2134
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x43fe49
+RSP: 002b:00007fffbe244ad8 EFLAGS: 00000217 ORIG_RAX: 0000000000000133
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fe49
+RDX: 0000000000000001 RSI: 000000002020c000 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000217 R12: 00000000004017b0
+R13: 0000000000401840 R14: 0000000000000000 R15: 0000000000000000
 
-https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=wip/jgg-zero-day
+To fix this, we verify that the cmsg_len is large enough to hold the
+data to be read, before proceeding further.
 
-Jason
+Reported-by: syzbot <syzkaller-bugs-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Signed-off-by: Avinash Repaka <avinash.repaka-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ net/rds/send.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/net/rds/send.c b/net/rds/send.c
+index b52cdc8..f72466c 100644
+--- a/net/rds/send.c
++++ b/net/rds/send.c
+@@ -1009,6 +1009,9 @@ static int rds_rdma_bytes(struct msghdr *msg, size_t *rdma_bytes)
+ 			continue;
+ 
+ 		if (cmsg->cmsg_type == RDS_CMSG_RDMA_ARGS) {
++			if (cmsg->cmsg_len <
++			    CMSG_LEN(sizeof(struct rds_rdma_args)))
++				return -EINVAL;
+ 			args = CMSG_DATA(cmsg);
+ 			*rdma_bytes += args->remote_vec.bytes;
+ 		}
+-- 
+2.4.11
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
