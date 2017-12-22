@@ -1,47 +1,38 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH for-next] iw_cxgb4: Change error/warn prints to pr_debug
-Date: Fri, 22 Dec 2017 10:32:07 -0700
-Message-ID: <20171222173207.GF30884@ziepe.ca>
-References: <1513680256-8153-1-git-send-email-bharat@chelsio.com>
- <20171219201639.GA14814@ziepe.ca>
- <017901d3790e$030ddea0$09299be0$@opengridcomputing.com>
- <20171219222300.GH14814@ziepe.ca>
- <018501d37919$4fdccc90$ef9665b0$@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v1 rdma-next 1/9] i40iw: Set MAX_IRD_SIZE to 64
+Date: Fri, 22 Dec 2017 14:29:24 -0600
+Message-ID: <20171222202932.9324-2-shiraz.saleem@intel.com>
+References: <20171222202932.9324-1-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <018501d37919$4fdccc90$ef9665b0$@opengridcomputing.com>
+In-Reply-To: <20171222202932.9324-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 19, 2017 at 04:32:54PM -0600, Steve Wise wrote:
+Increase I40IW_MAX_IRD_SIZE to 64 which is the device limit.
 
-> > > In general, I like module names in log statements, but we just
-> > > need to do it the right way to avoid the pr_debug issue...
-> > 
-> > Seems like a bigger problem than for linux-rdma?
-> > 
-> 
-> If redefining pr_fmt is actually the preferred way to add module names, then
-> I think pr_debug() might need
-> to be fixed.
-> 
-> > Shouldn't many of these prints be using dev_* stuff and be prefixed
-> > with their device name?
-> 
-> Yea, that makes sense.
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/i40iw/i40iw_user.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Okay, I've dropped this patch.
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_user.h b/drivers/infiniband/hw/i40iw/i40iw_user.h
+index e73efc5..5467c6f 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_user.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_user.h
+@@ -72,7 +72,7 @@ enum i40iw_device_capabilities_const {
+ 	I40IW_MAX_SQ_PAYLOAD_SIZE =		2145386496,
+ 	I40IW_MAX_INLINE_DATA_SIZE =		48,
+ 	I40IW_MAX_PUSHMODE_INLINE_DATA_SIZE =	48,
+-	I40IW_MAX_IRD_SIZE =			63,
++	I40IW_MAX_IRD_SIZE =			64,
+ 	I40IW_MAX_ORD_SIZE =			127,
+ 	I40IW_MAX_WQ_ENTRIES =			2048,
+ 	I40IW_Q2_BUFFER_SIZE =			(248 + 100),
+-- 
+2.8.3
 
-The two changes to pr_debug should probably become dev_dbg, and
-resend?
-
-Deal with the 'what should pr_fmt be' question someplace else :)
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
