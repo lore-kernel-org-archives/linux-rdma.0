@@ -1,34 +1,45 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 0/6] Add rq inline and bugfixes for hns
-Date: Sat, 23 Dec 2017 16:22:16 +0800
-Message-ID: <1514017342-91468-1-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 5/6] RDMA/hns: Fix QP state judgement before sending work requests
+Date: Sat, 23 Dec 2017 16:22:21 +0800
+Message-ID: <1514017342-91468-6-git-send-email-oulijun@huawei.com>
+References: <1514017342-91468-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1514017342-91468-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch series add rq inline support for hip08 kernel
-mode as well as fix some bugs for hip06 and hip08.
+From: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
-Lijun Ou (5):
-  RDMA/hns: Add rq inline data support for hip08 RoCE
-  RDMA/hns: Update the usage of sr_max and rr_max field
-  RDMA/hns: Set access flags of hip08 RoCE
-  RDMA/hns: Filter for zero length of sge in hip08 kernel mode
-  RDMA/hns: Assign dest_qp when deregistering mr
+The QP can accept send work requests only when the QP is
+in the states that allow them to be submitted.
 
-Yixian Liu (1):
-  RDMA/hns: Fix QP state judgement before sending work requests
+This patch updates the QP state judgement based on the
+specification.
 
- drivers/infiniband/hw/hns/hns_roce_device.h |  19 +++
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |   1 +
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 176 ++++++++++++++++++++++------
- drivers/infiniband/hw/hns/hns_roce_qp.c     |  52 ++++++--
- 4 files changed, 207 insertions(+), 41 deletions(-)
+Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index a1d8ca0..849c333 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -76,7 +76,8 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+-	if (unlikely(qp->state != IB_QPS_RTS && qp->state != IB_QPS_SQD)) {
++	if (unlikely(qp->state == IB_QPS_RESET || qp->state == IB_QPS_INIT ||
++		     qp->state == IB_QPS_RTR)) {
+ 		dev_err(dev, "Post WQE fail, QP state %d err!\n", qp->state);
+ 		*bad_wr = wr;
+ 		return -EINVAL;
 -- 
 1.9.1
 
