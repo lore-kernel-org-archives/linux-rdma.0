@@ -1,41 +1,38 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/9] i40iw updates for 4.16
-Date: Sat, 23 Dec 2017 10:27:08 -0600
-Message-ID: <20171223162708.GA13848@ssaleem-MOBL4.amr.corp.intel.com>
-References: <20171222154702.12632-1-shiraz.saleem@intel.com>
- <20171222233650.GA17198@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Michael Tang <mita4829-UWkI3MzZw7X2fBVCVOL8/A@public.gmane.org>
+Subject: RDMA Setup Research Assistances
+Date: Sat, 23 Dec 2017 15:28:04 -0700
+Message-ID: <88AEEA39-87AC-4344-B88D-B94223906142@colorado.edu>
+Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
+Content-Type: text/plain;
+        charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171222233650.GA17198-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 22, 2017 at 04:36:50PM -0700, Jason Gunthorpe wrote:
-> On Fri, Dec 22, 2017 at 09:46:53AM -0600, Shiraz Saleem wrote:
-> > Hi Doug/Jason,
-> >  
-> > This patch set includes bug fixes, code refactoring, a new netdev
-> > event notifier and misc. improvements. Please consider it for 4.16.
-> 
-> I took this from the v0 series and manually fixed the const myself.
-> 
-> I also fixed the checkpatch long line warnings, so please watch out
-> for things like that.
-> 
-We try to keep our line length < 100 in general. 
-Are we enforcing the 80 char line length limit? 
+Hello,=20
 
-> Let me know if there are any errors.
+I hope this message finds someone who can potentially help me. My name =
+is Michael, and I=E2=80=99m a computer science student at the University =
+of Colorado - Boulder. I=E2=80=99m researching RDMA, and I=E2=80=99m =
+trying to install and run an example program found on the rdma-core =
+repository hosted on your git. I=E2=80=99m running into some =
+difficulties with just setting up RDMA, and knowledge of how to resolve =
+these issues remain sparse online. I presume the hardware is set up =
+correctly, for I have two Microsoft Azure instances with RDMA =
+capabilities so I just need some advice with the software side. I=E2=80=99=
+m wondering if this email address is an appropriate communication =
+channel to ask for assistance or if I can be directed to some place =
+where I can get assistant.=20
 
-Patches look fine. Thanks Jason!
+Best,
+Michael
 
-
-
-
+Michael Tang, Teaching Assistant
+Department of Computer Science, Mathematics
+College of Engineering and Applied Sciences
+University of Colorado =E2=80=94 Boulder=20=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
