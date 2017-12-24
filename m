@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 7/7] RDMA/nldev: Provide detailed QP information
-Date: Sun, 24 Dec 2017 16:18:01 +0200
-Message-ID: <20171224141801.26443-8-leon@kernel.org>
+Subject: [PATCH rdma-next v1 1/7] RDMA/restrack: Add general infrastructure to track RDMA resources
+Date: Sun, 24 Dec 2017 16:17:55 +0200
+Message-ID: <20171224141801.26443-2-leon@kernel.org>
 References: <20171224141801.26443-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171224141801.26443-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,318 +12,493 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Implement RDMA nldev netlink interface to get detailed
-QP information.
+The RDMA subsystem has very strict set of objects to work on it,
+but it completely lacks tracking facilities and no visibility of
+resource utilization.
 
-Currently only dumpit variant is implemented.
+The following patch adds such infrastructure to keep track of RDMA
+resources to help with debugging of user space applications. The primary
+user of this infrastructure is RDMA nldev netlink (following patches),
+but it is not limited too.
+
+At this stage, the main three objects (PD, CQ and QP) are added,
+and more will be added later.
+
+There are four new functions in use by RDMA/core:
+ * rdma_restrack_init(...)   - initializes restrack database
+ * rdma_restrack_clean(...)  - cleans restrack database
+ * rdma_restrack_add(...)    - adds object to be tracked
+ * rdma_restrack_del(...)    - removes object from tracking
+
+3 functions and one iterator visible to kernel users:
+ * rdma_restrack_count(...) - returns number of allocated objects of
+			      specific type
+ * rdma_restrack_lock(...)  - Lock primitive to protect access to list
+			      of resources
+ * rdma_restrack_unlock(...)- Unlock primitive to protect access to list
+			      of resources
+ * for_each_res_safe(...)   - iterates over all relevant objects in
+   the restrack database.
 
 Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c  | 207 +++++++++++++++++++++++++++++++++++++++
- include/uapi/rdma/rdma_netlink.h |  43 ++++++++
- 2 files changed, 250 insertions(+)
+ drivers/infiniband/core/Makefile    |   2 +-
+ drivers/infiniband/core/core_priv.h |   1 +
+ drivers/infiniband/core/device.c    |   7 ++
+ drivers/infiniband/core/restrack.c  | 177 ++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h             |  17 +++-
+ include/rdma/restrack.h             | 149 ++++++++++++++++++++++++++++++
+ 6 files changed, 351 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/infiniband/core/restrack.c
+ create mode 100644 include/rdma/restrack.h
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 7aca9458e946..6b22f1f2d084 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -58,6 +58,18 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 					     .len = 16 },
- 	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR] = { .type = NLA_U64 },
- 	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX]	= { .type = NLA_U64 },
-+	[RDMA_NLDEV_ATTR_RES_QP]		= { .type = NLA_NESTED },
-+	[RDMA_NLDEV_ATTR_RES_QP_ENTRY]		= { .type = NLA_NESTED },
-+	[RDMA_NLDEV_ATTR_RES_LQPN]		= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_RES_RQPN]		= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_RES_RQ_PSN]		= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_RES_SQ_PSN]		= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE] = { .type = NLA_U8 },
-+	[RDMA_NLDEV_ATTR_RES_TYPE]		= { .type = NLA_U8 },
-+	[RDMA_NLDEV_ATTR_RES_STATE]		= { .type = NLA_U8 },
-+	[RDMA_NLDEV_ATTR_RES_PID]		= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_RES_PID_COMM]	= { .type = NLA_NUL_STRING,
-+						    .len = TASK_COMM_LEN },
- };
+diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+index 504b926552c6..f69833db0a32 100644
+--- a/drivers/infiniband/core/Makefile
++++ b/drivers/infiniband/core/Makefile
+@@ -12,7 +12,7 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
+ 				device.o fmr_pool.o cache.o netlink.o \
+ 				roce_gid_mgmt.o mr_pool.o addr.o sa_query.o \
+ 				multicast.o mad.o smi.o agent.o mad_rmpp.o \
+-				security.o nldev.o
++				security.o nldev.o restrack.o
  
- static int fill_nldev_handle(struct sk_buff *msg, struct ib_device *device)
-@@ -213,6 +225,74 @@ static int fill_res_info(struct sk_buff *msg, struct ib_device *device)
- 	return ret;
- }
+ ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
+ ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index e71dd1814bf0..1fe2b92fe357 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -40,6 +40,7 @@
+ #include <rdma/ib_verbs.h>
+ #include <rdma/opa_addr.h>
+ #include <rdma/ib_mad.h>
++#include <rdma/restrack.h>
+ #include "mad_priv.h"
  
-+static int fill_res_qp_entry(struct sk_buff *msg,
-+			     struct ib_qp *qp, uint32_t port)
+ struct pkey_index_qp_list {
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index adf3a4ca038b..0e8955f62e5a 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -268,6 +268,11 @@ struct ib_device *ib_alloc_device(size_t size)
+ 	if (!device)
+ 		return NULL;
+ 
++	if (rdma_restrack_init(&device->res)) {
++		kfree(device);
++		return NULL;
++	}
++
+ 	device->dev.class = &ib_class;
+ 	device_initialize(&device->dev);
+ 
+@@ -593,6 +598,8 @@ void ib_unregister_device(struct ib_device *device)
+ 	}
+ 	up_read(&lists_rwsem);
+ 
++	rdma_restrack_clean(&device->res);
++
+ 	ib_device_unregister_rdmacg(device);
+ 	ib_device_unregister_sysfs(device);
+ 
+diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
+new file mode 100644
+index 000000000000..7a25e3aa43b3
+--- /dev/null
++++ b/drivers/infiniband/core/restrack.c
+@@ -0,0 +1,177 @@
++/*
++ * Copyright (c) 2017 Mellanox Technologies. All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. Neither the names of the copyright holders nor the names of its
++ *    contributors may be used to endorse or promote products derived from
++ *    this software without specific prior written permission.
++ *
++ * Alternatively, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2 as published by the Free
++ * Software Foundation.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
++ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGE.
++ */
++
++#include <rdma/ib_verbs.h>
++#include <rdma/restrack.h>
++#include <linux/rculist.h>
++
++int rdma_restrack_init(struct rdma_restrack_root *res)
 +{
-+	struct ib_qp_init_attr qp_init_attr;
-+	struct nlattr *entry_attr;
-+	struct ib_qp_attr qp_attr;
-+	int ret;
++	int i = 0;
 +
-+	ret = ib_query_qp(qp, &qp_attr, 0, &qp_init_attr);
-+	if (ret)
-+		return ret;
++	for (; i < _RDMA_RESTRACK_MAX; i++) {
++		refcount_set(&res->cnt[i], 1);
++		INIT_LIST_HEAD_RCU(&res->list[i]);
++		mutex_init(&res->lock[i]);
++	}
 +
-+	if (port && port != qp_attr.port_num)
++	return 0;
++}
++
++void rdma_restrack_clean(struct rdma_restrack_root *res)
++{
++	int i = 0;
++
++	for (; i < _RDMA_RESTRACK_MAX; i++) {
++		WARN_ON_ONCE(!refcount_dec_and_test(&res->cnt[i]));
++		WARN_ON_ONCE(!list_empty(&res->list[i]));
++	}
++}
++
++static bool is_restrack_valid(enum rdma_restrack_obj type)
++{
++	return !(type >= _RDMA_RESTRACK_MAX);
++}
++
++int rdma_restrack_count(struct rdma_restrack_root *res,
++			enum rdma_restrack_obj type)
++{
++	if (!is_restrack_valid(type))
 +		return 0;
 +
-+	entry_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_QP_ENTRY);
-+	if (!entry_attr)
-+		goto out;
-+
-+	/* In create_qp() port is not set yet */
-+	if (qp_attr.port_num &&
-+	    nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, qp_attr.port_num))
-+		goto err;
-+
-+	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_LQPN, qp->qp_num))
-+		goto err;
-+	if (qp->qp_type == IB_QPT_RC || qp->qp_type == IB_QPT_UC) {
-+		if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_RQPN,
-+				qp_attr.dest_qp_num))
-+			goto err;
-+		if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_RQ_PSN,
-+				qp_attr.rq_psn))
-+			goto err;
-+	}
-+
-+	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_SQ_PSN, qp_attr.sq_psn))
-+		goto err;
-+
-+	if (qp->qp_type == IB_QPT_RC || qp->qp_type == IB_QPT_UC ||
-+	    qp->qp_type == IB_QPT_XRC_INI || qp->qp_type == IB_QPT_XRC_TGT) {
-+		if (nla_put_u8(msg, RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE,
-+			       qp_attr.path_mig_state))
-+			goto err;
-+	}
-+	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_RES_TYPE, qp->qp_type))
-+		goto err;
-+	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_RES_STATE, qp_attr.qp_state))
-+		goto err;
-+
-+	/* PID == 0 means that this QP was created by kernel */
-+	if (qp->res.pid && nla_put_u32(msg,
-+				       RDMA_NLDEV_ATTR_RES_PID, qp->res.pid))
-+		goto err;
-+
-+	if (nla_put_string(msg,
-+			   RDMA_NLDEV_ATTR_RES_PID_COMM, qp->res.task_comm))
-+		goto err;
-+
-+	nla_nest_end(msg, entry_attr);
-+
-+	return 0;
-+
-+err:
-+	nla_nest_cancel(msg, entry_attr);
-+out:
-+	return -EMSGSIZE;
++	/*
++	 * The counter was initialized to 1 at the beginning.
++	 */
++	return refcount_read(&res->cnt[type]) - 1;
 +}
++EXPORT_SYMBOL(rdma_restrack_count);
 +
- static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 			  struct netlink_ext_ack *extack)
- {
-@@ -486,6 +566,120 @@ static int nldev_res_get_dumpit(struct sk_buff *skb,
- 	return ib_enum_all_devs(_nldev_res_get_dumpit, skb, cb);
- }
- 
-+static int nldev_res_get_qp_dumpit(struct sk_buff *skb,
-+				   struct netlink_callback *cb)
++void rdma_restrack_add(struct rdma_restrack_entry *res,
++		       enum rdma_restrack_obj type, const char *comm)
 +{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
-+	struct rdma_restrack_entry *res;
-+	struct list_head *pos, *nxt;
-+	int err, ret, key, idx = 0;
-+	struct nlattr *table_attr;
-+	struct ib_device *device;
-+	int start = cb->args[0];
-+	struct nlmsghdr *nlh;
-+	u32 index, port = 0;
++	struct ib_device *dev;
++	struct ib_pd *pd;
++	struct ib_cq *cq;
 +	struct ib_qp *qp;
 +
-+	err = nlmsg_parse(cb->nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+			  nldev_policy, NULL);
-+	/*
-+	 * Right now, we are expecting the device index to get QP information,
-+	 * but it is possible to extend this code to return all devices in
-+	 * one shot by checking the existence of RDMA_NLDEV_ATTR_DEV_INDEX.
-+	 * if it doesn't exist, we will iterate over all devices.
-+	 *
-+	 * But it is not needed for now.
-+	 */
-+	if (err || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
-+		return -EINVAL;
++	if (!is_restrack_valid(type))
++		return;
 +
-+	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	device = ib_device_get_by_index(index);
-+	if (!device)
-+		return -EINVAL;
-+
-+	/*
-+	 * If no PORT_INDEX is supplied, we will return QPs from whole device
-+	 */
-+	if (tb[RDMA_NLDEV_ATTR_PORT_INDEX]) {
-+		port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
-+		if (!rdma_is_port_valid(device, port)) {
-+			ret = -EINVAL;
-+			goto err_index;
-+		}
-+	}
-+
-+	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
-+			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_QP_GET),
-+			0, NLM_F_MULTI);
-+
-+	if (fill_nldev_handle(skb, device)) {
-+		ret = -EMSGSIZE;
-+		goto err;
-+	}
-+
-+	table_attr = nla_nest_start(skb, RDMA_NLDEV_ATTR_RES_QP);
-+	if (!table_attr) {
-+		ret = -EMSGSIZE;
-+		goto err;
-+	}
-+
-+	rdma_restrack_lock(&device->res, RDMA_RESTRACK_QP);
-+	for_each_res_safe(pos, nxt, RDMA_RESTRACK_QP, device) {
-+		if (idx < start) {
-+			idx++;
-+			continue;
-+		}
-+
-+		res = list_entry(pos, struct rdma_restrack_entry, list);
-+		if (!res->valid)
-+			/*
-+			 * It can be if resource failed to initialize srcu,
-+			 * in other cases internal to restrack lock will esnure
-+			 * that this list has only valid entries.
-+			 */
-+			continue;
-+
-+		key = srcu_read_lock(&res->srcu);
-+
++	switch (type) {
++	case RDMA_RESTRACK_PD:
++		pd = container_of(res, struct ib_pd, res);
++		dev = pd->device;
++		break;
++	case RDMA_RESTRACK_CQ:
++		cq = container_of(res, struct ib_cq, res);
++		dev = cq->device;
++		break;
++	case RDMA_RESTRACK_QP:
 +		qp = container_of(res, struct ib_qp, res);
-+		rdma_restrack_unlock(&device->res, RDMA_RESTRACK_QP);
-+		ret = fill_res_qp_entry(skb, qp, port);
-+		rdma_restrack_lock(&device->res, RDMA_RESTRACK_QP);
-+
-+		srcu_read_unlock(&res->srcu, key);
-+
-+		if (ret == -EMSGSIZE)
-+			/*
-+			 * There is a chance to optimize here.
-+			 * It can be done by using list_prepare_entry
-+			 * and list_for_each_entry_continue afterwards.
-+			 */
-+			break;
-+		if (ret)
-+			goto res_err;
-+		idx++;
++		dev = qp->device;
++		break;
++	default:
++		/* unreachable */
++		return;
 +	}
-+	rdma_restrack_unlock(&device->res, RDMA_RESTRACK_QP);
 +
-+	nla_nest_end(skb, table_attr);
-+	nlmsg_end(skb, nlh);
-+	cb->args[0] = idx;
-+	put_device(&device->dev);
-+	return 0;
++	refcount_inc(&dev->res.cnt[type]);
 +
-+res_err:
-+	nla_nest_cancel(skb, table_attr);
-+	rdma_restrack_unlock(&device->res, RDMA_RESTRACK_QP);
++	if (!comm || !strlen(comm)) {
++		get_task_comm(res->task_comm, current);
++		/*
++		 * Return global PID
++		 */
++		res->pid = task_pid_nr(current);
++	} else {
++		/*
++		 * no need to set PID, it comes from
++		 * core kernel, so pid will be zero
++		 */
++		strncpy(res->task_comm, comm, TASK_COMM_LEN);
++	}
++	mutex_lock(&dev->res.lock[type]);
++	if (init_srcu_struct(&res->srcu))
++		/*
++		 * We are not returning error, because there is nothing
++		 * we can do it in such case, it is already too late to
++		 * crash the driver just of failure in resource tracking.
++		 *
++		 * Simply leave this resource is not valid.
++		 */
++		goto out;
 +
-+err:
-+	nlmsg_cancel(skb, nlh);
++	list_add(&res->list, &dev->res.list[type]);
++	res->valid = true;
 +
-+err_index:
-+	put_device(&device->dev);
-+	return ret;
++out:
++	mutex_unlock(&dev->res.lock[type]);
++}
++EXPORT_SYMBOL(rdma_restrack_add);
++
++void rdma_restrack_del(struct rdma_restrack_entry *res,
++		       enum rdma_restrack_obj type)
++{
++	struct ib_device *dev;
++	struct ib_pd *pd;
++	struct ib_cq *cq;
++	struct ib_qp *qp;
++
++	if (!is_restrack_valid(type) || !res->valid)
++		return;
++
++	switch (type) {
++	case RDMA_RESTRACK_PD:
++		pd = container_of(res, struct ib_pd, res);
++		dev = pd->device;
++		break;
++	case RDMA_RESTRACK_CQ:
++		cq = container_of(res, struct ib_cq, res);
++		dev = cq->device;
++		break;
++	case RDMA_RESTRACK_QP:
++		qp = container_of(res, struct ib_qp, res);
++		dev = qp->device;
++		break;
++	default:
++		/* unreachable */
++		return;
++	}
++
++	refcount_dec(&dev->res.cnt[type]);
++	mutex_lock(&dev->res.lock[type]);
++	list_del(&res->list);
++	mutex_unlock(&dev->res.lock[type]);
++	synchronize_srcu(&res->srcu);
++	cleanup_srcu_struct(&res->srcu);
++}
++EXPORT_SYMBOL(rdma_restrack_del);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index c7c8032b1ecd..a2678e80c2a7 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -63,6 +63,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/cgroup_rdma.h>
+ #include <uapi/rdma/ib_user_verbs.h>
++#include <rdma/restrack.h>
+ 
+ #define IB_FW_VERSION_NAME_MAX	ETHTOOL_FWVERS_LEN
+ 
+@@ -1526,9 +1527,10 @@ struct ib_pd {
+ 	u32			unsafe_global_rkey;
+ 
+ 	/*
+-	 * Implementation details of the RDMA core, don't use in drivers:
++	 * Implementation details of the RDMA core, don't use in the drivers
+ 	 */
+ 	struct ib_mr	       *__internal_mr;
++	struct rdma_restrack_entry res;
+ };
+ 
+ struct ib_xrcd {
+@@ -1569,6 +1571,10 @@ struct ib_cq {
+ 		struct irq_poll		iop;
+ 		struct work_struct	work;
+ 	};
++	/*
++	 * Internal to RDMA/core, don't use in the drivers
++	 */
++	struct rdma_restrack_entry res;
+ };
+ 
+ struct ib_srq {
+@@ -1745,6 +1751,11 @@ struct ib_qp {
+ 	struct ib_rwq_ind_table *rwq_ind_tbl;
+ 	struct ib_qp_security  *qp_sec;
+ 	u8			port;
++
++	/*
++	 * Internal to RDMA/core, don't use in the drivers
++	 */
++	struct rdma_restrack_entry     res;
+ };
+ 
+ struct ib_mr {
+@@ -2351,6 +2362,10 @@ struct ib_device {
+ #endif
+ 
+ 	u32                          index;
++	/*
++	 * Implementation details of the RDMA core, don't use in the drivers
++	 */
++	struct rdma_restrack_root     res;
+ 
+ 	/**
+ 	 * The following mandatory functions are used only at device
+diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
+new file mode 100644
+index 000000000000..0e12346d2c2c
+--- /dev/null
++++ b/include/rdma/restrack.h
+@@ -0,0 +1,149 @@
++/*
++ * Copyright (c) 2017 Mellanox Technologies. All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. Neither the names of the copyright holders nor the names of its
++ *    contributors may be used to endorse or promote products derived from
++ *    this software without specific prior written permission.
++ *
++ * Alternatively, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2 as published by the Free
++ * Software Foundation.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
++ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGE.
++ */
++
++#ifndef _RDMA_RESTRACK_H_
++#define _RDMA_RESTRACK_H_
++
++#include <linux/typecheck.h>
++#include <linux/srcu.h>
++#include <linux/refcount.h>
++#include <linux/sched.h>
++
++/*
++ * HW objects to track
++ */
++enum rdma_restrack_obj {
++	RDMA_RESTRACK_PD,
++	RDMA_RESTRACK_CQ,
++	RDMA_RESTRACK_QP,
++	/* Always last, counts number of elements */
++	_RDMA_RESTRACK_MAX
++};
++
++/*
++ * Resource trcking management entity per restrack object
++ */
++struct rdma_restrack_root {
++	/*
++	 * Global counter to avoid the need to count number
++	 * of elements in the object's list.
++	 *
++	 * It can be different from list_count, because we don't
++	 * grab lock for the additions of new objects and don't
++	 * synchronize the RCU.
++	 */
++	refcount_t		cnt[_RDMA_RESTRACK_MAX];
++	struct list_head	list[_RDMA_RESTRACK_MAX];
++	/*
++	 * Internal lock to protect the add/delete list operations.
++	 */
++	struct mutex		lock[_RDMA_RESTRACK_MAX];
++};
++
++struct rdma_restrack_entry {
++	struct list_head	list;
++
++	/*
++	 * The entries are filled during rdma_restrack_add,
++	 * can be attempted to be free during rdma_restrack_del.
++	 *
++	 * As an example for that, see mlx5 QPs with type MLX5_IB_QPT_HW_GSI
++	 */
++	bool			valid;
++
++	/*
++	 * Sleepabale RCU to protect object data.
++	 */
++	struct srcu_struct	srcu;
++
++	/*
++	 * Information for resource tracking,
++	 * Copied here to save locking of task_struct
++	 * while accessing this information from NLDEV
++	 */
++	pid_t                   pid;
++
++	/*
++	 * User can get this information from /proc/PID/comm file,
++	 * but it will create a lot of syscalls for reads for many QPs,
++	 * let's store it here to save work for users.
++	 */
++	char                    task_comm[TASK_COMM_LEN];
++};
++
++int rdma_restrack_init(struct rdma_restrack_root *res);
++void rdma_restrack_clean(struct rdma_restrack_root *res);
++
++/*
++ * Iterator - use rdma_restrack_lock/rdma_restrack_unlock to protect it
++ */
++#define for_each_res_safe(r, n, type, dev) \
++	list_for_each_safe(r, n, &(dev)->res.list[type])
++
++/*
++ * lock/unlock to protect reads of restrack_obj structs
++ */
++static inline void rdma_restrack_lock(struct rdma_restrack_root *res,
++				      enum rdma_restrack_obj type)
++{
++	mutex_lock(&res->lock[type]);
 +}
 +
- static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 	[RDMA_NLDEV_CMD_GET] = {
- 		.doit = nldev_get_doit,
-@@ -499,6 +693,19 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 		.doit = nldev_res_get_doit,
- 		.dump = nldev_res_get_dumpit,
- 	},
-+	[RDMA_NLDEV_CMD_RES_QP_GET] = {
-+		.dump = nldev_res_get_qp_dumpit,
-+		/*
-+		 * .doit is not implemented yet for two reasons:
-+		 * 1. It is not needed yet.
-+		 * 2. There is a need to provide identifier, while it is easy
-+		 * for the QPs (device index + port index + LQPN), it is not
-+		 * the case for the rest of resources (PD and CQ). Because it
-+		 * is better to provide similar interface for all resources,
-+		 * let's wait till we will have other resources implemented
-+		 * too.
-+		 */
-+	},
- };
- 
- void __init nldev_init(void)
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index e041d2eca4b8..9a90cd9f614e 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -241,6 +241,11 @@ enum rdma_nldev_command {
- 	RDMA_NLDEV_CMD_RES_NEW,
- 	RDMA_NLDEV_CMD_RES_DEL,
- 
-+	RDMA_NLDEV_CMD_RES_QP_GET, /* can dump */
-+	RDMA_NLDEV_CMD_RES_QP_SET,
-+	RDMA_NLDEV_CMD_RES_QP_NEW,
-+	RDMA_NLDEV_CMD_RES_QP_DEL,
++static inline void rdma_restrack_unlock(struct rdma_restrack_root *res,
++					enum rdma_restrack_obj type)
++{
++	mutex_unlock(&res->lock[type]);
++}
 +
- 	RDMA_NLDEV_NUM_OPS
- };
- 
-@@ -314,6 +319,44 @@ enum rdma_nldev_attr {
- 	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR,	/* u64 */
- 	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX,	/* u64 */
- 
-+	RDMA_NLDEV_ATTR_RES_QP,			/* nested table */
-+	RDMA_NLDEV_ATTR_RES_QP_ENTRY,		/* nested table */
-+	/*
-+	 * Local QPN
-+	 */
-+	RDMA_NLDEV_ATTR_RES_LQPN,		/* u32 */
-+	/*
-+	 * Remote QPN,
-+	 * Applicable for RC and UC only IBTA 11.2.5.3 QUERY QUEUE PAIR
-+	 */
-+	RDMA_NLDEV_ATTR_RES_RQPN,		/* u32 */
-+	/*
-+	 * Receive Queue PSN,
-+	 * Applicable for RC and UC only 11.2.5.3 QUERY QUEUE PAIR
-+	 */
-+	RDMA_NLDEV_ATTR_RES_RQ_PSN,		/* u32 */
-+	/*
-+	 * Send Queue PSN
-+	 */
-+	RDMA_NLDEV_ATTR_RES_SQ_PSN,		/* u32 */
-+	RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE,	/* u8 */
-+	/*
-+	 * QP types as visible to RDMA/core, the reserved QPT
-+	 * are not exported through this interface.
-+	 */
-+	RDMA_NLDEV_ATTR_RES_TYPE,		/* u8 */
-+	RDMA_NLDEV_ATTR_RES_STATE,		/* u8 */
-+	/*
-+	 * Process ID created QP, in case of kernel PID is equal to 0
-+	 * and this field won't be set, so user will distinguish user/kernel
-+	 * processes without relying on PID number.
-+	 */
-+	RDMA_NLDEV_ATTR_RES_PID,		/* u32 */
-+	/*
-+	 * The name of process created following resource.
-+	 */
-+	RDMA_NLDEV_ATTR_RES_PID_COMM,		/* string */
++/*
++ * Returns the current usage of specific object.
++ * Users can get device utilization by comparing with max_objname
++ * (e.g. max_qp, max_pd e.t.c),
++ */
++int rdma_restrack_count(struct rdma_restrack_root *res,
++			enum rdma_restrack_obj type);
 +
- 	RDMA_NLDEV_ATTR_MAX
- };
- #endif /* _UAPI_RDMA_NETLINK_H */
++/*
++ * Track object:
++ *  res - resource tracker to operate on, usually allocated on ib_device
++ *  type - actual type of object to operate.
++ *  comm - the owner of this resource. For kernel created resources,
++ *         there is a need to pass a name here, which will be visible to users.
++ *         For user created resources, there is a need to pass NULL here and the
++ *         owner will be taken from current struct task_struct.
++ */
++
++void rdma_restrack_add(struct rdma_restrack_entry *res,
++		       enum rdma_restrack_obj type, const char *comm);
++void rdma_restrack_del(struct rdma_restrack_entry *res,
++		       enum rdma_restrack_obj type);
++#endif /* _RDMA_RESTRACK_H_ */
 -- 
 2.15.1
 
