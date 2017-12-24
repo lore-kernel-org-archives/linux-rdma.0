@@ -1,57 +1,43 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-rc 1/4] RDMA/core: Enforce requirement to hold lists_rwsem semaphore
-Date: Sun, 24 Dec 2017 13:54:55 +0200
-Message-ID: <20171224115458.27577-2-leon@kernel.org>
+Subject: [PATCH rdma-rc 3/4] IB/uverbs: Fix command checking as part of ib_uverbs_ex_modify_qp()
+Date: Sun, 24 Dec 2017 13:54:57 +0200
+Message-ID: <20171224115458.27577-4-leon@kernel.org>
 References: <20171224115458.27577-1-leon@kernel.org>
 Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20171224115458.27577-1-leon@kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: linux-rdma@vger.kernel.org, Daniel Jurgens <danielj@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Mark Bloch <markb@mellanox.com>, Moni Shoua <monis@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, Daniel Jurgens <danielj@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Mark Bloch <markb@mellanox.com>, Moni Shoua <monis@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Moni Shoua <monis@mellanox.com>
 
-Add comment and run time check to the __ib_device_get_by_index()
-function to remind that the caller should hold lists_rwsem semaphore.
+If the input command length is larger than the kernel supports an error
+should be returned in case the unsupported bytes are not cleared.
 
-Cc: <stable@vger.kernel.org> # v4.13
-Fixes: ecc82c53f9a4 ("RDMA/core: Add and expose static device index")
-Reviewed-by: Mark Bloch <markb@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Cc: <stable@vger.kernel.org> # v4.10
+Fixes: 189aba99e700 ("IB/uverbs: Extend modify_qp and support packet pacing")
+Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
+Signed-off-by: Moni Shoua <monis@mellanox.com>
+Signed-off-by: Leon Romanovsky <leon@kernel.org>
 ---
- drivers/infiniband/core/device.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs_cmd.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 30914f3baa5f..3aeaf11d0a83 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -134,10 +134,15 @@ static int ib_device_check_mandatory(struct ib_device *device)
- 	return 0;
- }
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index d0202bb176a4..840b24096690 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2074,8 +2074,8 @@ int ib_uverbs_ex_modify_qp(struct ib_uverbs_file *file,
+ 		return -EOPNOTSUPP;
  
-+/*
-+ * Caller to this function should hold lists_rwsem
-+ */
- struct ib_device *__ib_device_get_by_index(u32 index)
- {
- 	struct ib_device *device;
+ 	if (ucore->inlen > sizeof(cmd)) {
+-		if (ib_is_udata_cleared(ucore, sizeof(cmd),
+-					ucore->inlen - sizeof(cmd)))
++		if (!ib_is_udata_cleared(ucore, sizeof(cmd),
++					 ucore->inlen - sizeof(cmd)))
+ 			return -EOPNOTSUPP;
+ 	}
  
-+	WARN_ON_ONCE(!rwsem_is_locked(&lists_rwsem));
-+
- 	list_for_each_entry(device, &device_list, core_list)
- 		if (device->index == index)
- 			return device;
-@@ -526,8 +531,8 @@ int ib_register_device(struct ib_device *device,
- 		if (!add_client_context(device, client) && client->add)
- 			client->add(device);
- 
--	device->index = __dev_new_index();
- 	down_write(&lists_rwsem);
-+	device->index = __dev_new_index();
- 	list_add_tail(&device->core_list, &device_list);
- 	up_write(&lists_rwsem);
- 	mutex_unlock(&device_mutex);
 -- 
 2.15.1
