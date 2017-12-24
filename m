@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 09/15] IB/mlx5: Change debugfs to have per port contents
-Date: Sun, 24 Dec 2017 14:57:35 +0200
-Message-ID: <20171224125741.25464-10-leon@kernel.org>
+Subject: [PATCH rdma-next 11/15] {net,IB}/mlx5: Change set_roce_gid to take a port number
+Date: Sun, 24 Dec 2017 14:57:37 +0200
+Message-ID: <20171224125741.25464-12-leon@kernel.org>
 References: <20171224125741.25464-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171224125741.25464-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -10,289 +10,103 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunth
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When there are multiple ports for single IB(RoCE) device, support
-debugfs entries to be available for each port.
+When in dual port mode setting a RoCE GID for any port flows through the
+master ports mlx5_core_dev. Provide an interface to set the port when
+sending this command.
 
-Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/cong.c    | 83 +++++++++++++++++++++++++-----------
- drivers/infiniband/hw/mlx5/main.c    | 12 +++++-
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  7 +--
- 3 files changed, 73 insertions(+), 29 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c                   | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c | 7 ++++---
+ drivers/net/ethernet/mellanox/mlx5/core/lib/gid.c   | 5 ++++-
+ include/linux/mlx5/driver.h                         | 2 +-
+ 4 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cong.c b/drivers/infiniband/hw/mlx5/cong.c
-index 2d32b519bb61..985fa2637390 100644
---- a/drivers/infiniband/hw/mlx5/cong.c
-+++ b/drivers/infiniband/hw/mlx5/cong.c
-@@ -247,21 +247,30 @@ static void mlx5_ib_set_cc_param_mask_val(void *field, int offset,
- 	}
- }
- 
--static int mlx5_ib_get_cc_params(struct mlx5_ib_dev *dev, int offset, u32 *var)
-+static int mlx5_ib_get_cc_params(struct mlx5_ib_dev *dev, u8 port_num,
-+				 int offset, u32 *var)
- {
- 	int outlen = MLX5_ST_SZ_BYTES(query_cong_params_out);
- 	void *out;
- 	void *field;
- 	int err;
- 	enum mlx5_ib_cong_node_type node;
-+	struct mlx5_core_dev *mdev;
-+
-+	/* Takes a 1-based port number */
-+	mdev = mlx5_ib_get_native_port_mdev(dev, port_num + 1, NULL);
-+	if (!mdev)
-+		return -ENODEV;
- 
- 	out = kvzalloc(outlen, GFP_KERNEL);
--	if (!out)
--		return -ENOMEM;
-+	if (!out) {
-+		err = -ENOMEM;
-+		goto alloc_err;
-+	}
- 
- 	node = mlx5_ib_param_to_node(offset);
- 
--	err = mlx5_cmd_query_cong_params(dev->mdev, node, out, outlen);
-+	err = mlx5_cmd_query_cong_params(mdev, node, out, outlen);
- 	if (err)
- 		goto free;
- 
-@@ -270,21 +279,32 @@ static int mlx5_ib_get_cc_params(struct mlx5_ib_dev *dev, int offset, u32 *var)
- 
- free:
- 	kvfree(out);
-+alloc_err:
-+	mlx5_ib_put_native_port_mdev(dev, port_num + 1);
- 	return err;
- }
- 
--static int mlx5_ib_set_cc_params(struct mlx5_ib_dev *dev, int offset, u32 var)
-+static int mlx5_ib_set_cc_params(struct mlx5_ib_dev *dev, u8 port_num,
-+				 int offset, u32 var)
- {
- 	int inlen = MLX5_ST_SZ_BYTES(modify_cong_params_in);
- 	void *in;
- 	void *field;
- 	enum mlx5_ib_cong_node_type node;
-+	struct mlx5_core_dev *mdev;
- 	u32 attr_mask = 0;
- 	int err;
- 
-+	/* Takes a 1-based port number */
-+	mdev = mlx5_ib_get_native_port_mdev(dev, port_num + 1, NULL);
-+	if (!mdev)
-+		return -ENODEV;
-+
- 	in = kvzalloc(inlen, GFP_KERNEL);
--	if (!in)
--		return -ENOMEM;
-+	if (!in) {
-+		err = -ENOMEM;
-+		goto alloc_err;
-+	}
- 
- 	MLX5_SET(modify_cong_params_in, in, opcode,
- 		 MLX5_CMD_OP_MODIFY_CONG_PARAMS);
-@@ -299,8 +319,10 @@ static int mlx5_ib_set_cc_params(struct mlx5_ib_dev *dev, int offset, u32 var)
- 	MLX5_SET(field_select_r_roce_rp, field, field_select_r_roce_rp,
- 		 attr_mask);
- 
--	err = mlx5_cmd_modify_cong_params(dev->mdev, in, inlen);
-+	err = mlx5_cmd_modify_cong_params(mdev, in, inlen);
- 	kvfree(in);
-+alloc_err:
-+	mlx5_ib_put_native_port_mdev(dev, port_num + 1);
- 	return err;
- }
- 
-@@ -324,7 +346,7 @@ static ssize_t set_param(struct file *filp, const char __user *buf,
- 	if (kstrtou32(lbuf, 0, &var))
- 		return -EINVAL;
- 
--	ret = mlx5_ib_set_cc_params(param->dev, offset, var);
-+	ret = mlx5_ib_set_cc_params(param->dev, param->port_num, offset, var);
- 	return ret ? ret : count;
- }
- 
-@@ -340,7 +362,7 @@ static ssize_t get_param(struct file *filp, char __user *buf, size_t count,
- 	if (*pos)
- 		return 0;
- 
--	ret = mlx5_ib_get_cc_params(param->dev, offset, &var);
-+	ret = mlx5_ib_get_cc_params(param->dev, param->port_num, offset, &var);
- 	if (ret)
- 		return ret;
- 
-@@ -362,44 +384,51 @@ static const struct file_operations dbg_cc_fops = {
- 	.read	= get_param,
- };
- 
--void mlx5_ib_cleanup_cong_debugfs(struct mlx5_ib_dev *dev)
-+void mlx5_ib_cleanup_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num)
- {
- 	if (!mlx5_debugfs_root ||
--	    !dev->dbg_cc_params ||
--	    !dev->dbg_cc_params->root)
-+	    !dev->port[port_num].dbg_cc_params ||
-+	    !dev->port[port_num].dbg_cc_params->root)
- 		return;
- 
--	debugfs_remove_recursive(dev->dbg_cc_params->root);
--	kfree(dev->dbg_cc_params);
--	dev->dbg_cc_params = NULL;
-+	debugfs_remove_recursive(dev->port[port_num].dbg_cc_params->root);
-+	kfree(dev->port[port_num].dbg_cc_params);
-+	dev->port[port_num].dbg_cc_params = NULL;
- }
- 
--int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev)
-+int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num)
- {
- 	struct mlx5_ib_dbg_cc_params *dbg_cc_params;
-+	struct mlx5_core_dev *mdev;
- 	int i;
- 
- 	if (!mlx5_debugfs_root)
- 		goto out;
- 
--	if (!MLX5_CAP_GEN(dev->mdev, cc_query_allowed) ||
--	    !MLX5_CAP_GEN(dev->mdev, cc_modify_allowed))
-+	/* Takes a 1-based port number */
-+	mdev = mlx5_ib_get_native_port_mdev(dev, port_num + 1, NULL);
-+	if (!mdev)
- 		goto out;
- 
-+	if (!MLX5_CAP_GEN(mdev, cc_query_allowed) ||
-+	    !MLX5_CAP_GEN(mdev, cc_modify_allowed))
-+		goto put_mdev;
-+
- 	dbg_cc_params = kzalloc(sizeof(*dbg_cc_params), GFP_KERNEL);
- 	if (!dbg_cc_params)
--		goto out;
-+		goto err;
- 
--	dev->dbg_cc_params = dbg_cc_params;
-+	dev->port[port_num].dbg_cc_params = dbg_cc_params;
- 
- 	dbg_cc_params->root = debugfs_create_dir("cc_params",
--						 dev->mdev->priv.dbg_root);
-+						 mdev->priv.dbg_root);
- 	if (!dbg_cc_params->root)
- 		goto err;
- 
- 	for (i = 0; i < MLX5_IB_DBG_CC_MAX; i++) {
- 		dbg_cc_params->params[i].offset = i;
- 		dbg_cc_params->params[i].dev = dev;
-+		dbg_cc_params->params[i].port_num = port_num;
- 		dbg_cc_params->params[i].dentry =
- 			debugfs_create_file(mlx5_ib_dbg_cc_name[i],
- 					    0600, dbg_cc_params->root,
-@@ -408,11 +437,17 @@ int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev)
- 		if (!dbg_cc_params->params[i].dentry)
- 			goto err;
- 	}
--out:	return 0;
-+
-+put_mdev:
-+	mlx5_ib_put_native_port_mdev(dev, port_num + 1);
-+out:
-+	return 0;
- 
- err:
- 	mlx5_ib_warn(dev, "cong debugfs failure\n");
--	mlx5_ib_cleanup_cong_debugfs(dev);
-+	mlx5_ib_cleanup_cong_debugfs(dev, port_num);
-+	mlx5_ib_put_native_port_mdev(dev, port_num + 1);
-+
- 	/*
- 	 * We don't want to fail driver if debugfs failed to initialize,
- 	 * so we are not forwarding error to the user.
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 969981896ae6..d2fd7695fbe0 100644
+index e61c0b2f29ba..261c2a8db6b3 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -4157,6 +4157,8 @@ static void mlx5_ib_unbind_slave_port(struct mlx5_ib_dev *ibdev,
- 	int err;
- 	int i;
+@@ -477,7 +477,7 @@ static int set_roce_addr(struct mlx5_ib_dev *dev, u8 port_num,
  
-+	mlx5_ib_cleanup_cong_debugfs(ibdev, port_num);
-+
- 	spin_lock(&port->mp.mpi_lock);
- 	if (!mpi->ibdev) {
- 		spin_unlock(&port->mp.mpi_lock);
-@@ -4234,6 +4236,10 @@ static bool mlx5_ib_bind_slave_port(struct mlx5_ib_dev *ibdev,
- 		goto unbind;
+ 	return mlx5_core_roce_gid_set(dev->mdev, index, roce_version,
+ 				      roce_l3_type, gid->raw, mac, vlan,
+-				      vlan_id);
++				      vlan_id, port_num);
+ }
+ 
+ static int mlx5_ib_add_gid(struct ib_device *device, u8 port_num,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+index c841b03c3e48..e6175f8ac0e4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+@@ -888,7 +888,8 @@ struct mlx5_fpga_conn *mlx5_fpga_conn_create(struct mlx5_fpga_device *fdev,
+ 	err = mlx5_core_roce_gid_set(fdev->mdev, conn->qp.sgid_index,
+ 				     MLX5_ROCE_VERSION_2,
+ 				     MLX5_ROCE_L3_TYPE_IPV6,
+-				     remote_ip, remote_mac, true, 0);
++				     remote_ip, remote_mac, true, 0,
++				     MLX5_FPGA_PORT_NUM);
+ 	if (err) {
+ 		mlx5_fpga_err(fdev, "Failed to set SGID: %d\n", err);
+ 		ret = ERR_PTR(err);
+@@ -954,7 +955,7 @@ struct mlx5_fpga_conn *mlx5_fpga_conn_create(struct mlx5_fpga_device *fdev,
+ 	mlx5_fpga_conn_destroy_cq(conn);
+ err_gid:
+ 	mlx5_core_roce_gid_set(fdev->mdev, conn->qp.sgid_index, 0, 0, NULL,
+-			       NULL, false, 0);
++			       NULL, false, 0, MLX5_FPGA_PORT_NUM);
+ err_rsvd_gid:
+ 	mlx5_core_reserved_gid_free(fdev->mdev, conn->qp.sgid_index);
+ err:
+@@ -982,7 +983,7 @@ void mlx5_fpga_conn_destroy(struct mlx5_fpga_conn *conn)
+ 	mlx5_fpga_conn_destroy_cq(conn);
+ 
+ 	mlx5_core_roce_gid_set(conn->fdev->mdev, conn->qp.sgid_index, 0, 0,
+-			       NULL, NULL, false, 0);
++			       NULL, NULL, false, 0, MLX5_FPGA_PORT_NUM);
+ 	mlx5_core_reserved_gid_free(conn->fdev->mdev, conn->qp.sgid_index);
+ 	kfree(conn);
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/gid.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/gid.c
+index 573f59f46d41..7722a3f9bb68 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/gid.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/gid.c
+@@ -121,7 +121,7 @@ EXPORT_SYMBOL_GPL(mlx5_core_reserved_gids_count);
+ 
+ int mlx5_core_roce_gid_set(struct mlx5_core_dev *dev, unsigned int index,
+ 			   u8 roce_version, u8 roce_l3_type, const u8 *gid,
+-			   const u8 *mac, bool vlan, u16 vlan_id)
++			   const u8 *mac, bool vlan, u16 vlan_id, u8 port_num)
+ {
+ #define MLX5_SET_RA(p, f, v) MLX5_SET(roce_addr_layout, p, f, v)
+ 	u32  in[MLX5_ST_SZ_DW(set_roce_address_in)] = {0};
+@@ -148,6 +148,9 @@ int mlx5_core_roce_gid_set(struct mlx5_core_dev *dev, unsigned int index,
+ 		memcpy(addr_l3_addr, gid, gidsz);
  	}
  
-+	err = mlx5_ib_init_cong_debugfs(ibdev, port_num);
-+	if (err)
-+		goto unbind;
++	if (MLX5_CAP_GEN(dev, num_vhca_ports) > 0)
++		MLX5_SET(set_roce_address_in, in, vhca_port_num, port_num);
 +
- 	return true;
+ 	MLX5_SET(set_roce_address_in, in, roce_address_index, index);
+ 	MLX5_SET(set_roce_address_in, in, opcode, MLX5_CMD_OP_SET_ROCE_ADDRESS);
+ 	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index c2c78bc42432..bc494ddefcf8 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1101,7 +1101,7 @@ void mlx5_free_bfreg(struct mlx5_core_dev *mdev, struct mlx5_sq_bfreg *bfreg);
+ unsigned int mlx5_core_reserved_gids_count(struct mlx5_core_dev *dev);
+ int mlx5_core_roce_gid_set(struct mlx5_core_dev *dev, unsigned int index,
+ 			   u8 roce_version, u8 roce_l3_type, const u8 *gid,
+-			   const u8 *mac, bool vlan, u16 vlan_id);
++			   const u8 *mac, bool vlan, u16 vlan_id, u8 port_num);
  
- unbind:
-@@ -4647,12 +4653,14 @@ static void mlx5_ib_stage_counters_cleanup(struct mlx5_ib_dev *dev)
- 
- static int mlx5_ib_stage_cong_debugfs_init(struct mlx5_ib_dev *dev)
+ static inline int fw_initializing(struct mlx5_core_dev *dev)
  {
--	return mlx5_ib_init_cong_debugfs(dev);
-+	return mlx5_ib_init_cong_debugfs(dev,
-+					 mlx5_core_native_port_num(dev->mdev) - 1);
- }
- 
- static void mlx5_ib_stage_cong_debugfs_cleanup(struct mlx5_ib_dev *dev)
- {
--	mlx5_ib_cleanup_cong_debugfs(dev);
-+	mlx5_ib_cleanup_cong_debugfs(dev,
-+				     mlx5_core_native_port_num(dev->mdev) - 1);
- }
- 
- static int mlx5_ib_stage_uar_init(struct mlx5_ib_dev *dev)
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 594f1a1d69c4..518bfba88b2b 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -645,6 +645,7 @@ struct mlx5_ib_multiport {
- struct mlx5_ib_port {
- 	struct mlx5_ib_counters cnts;
- 	struct mlx5_ib_multiport mp;
-+	struct mlx5_ib_dbg_cc_params	*dbg_cc_params;
- };
- 
- struct mlx5_roce {
-@@ -664,6 +665,7 @@ struct mlx5_ib_dbg_param {
- 	int			offset;
- 	struct mlx5_ib_dev	*dev;
- 	struct dentry		*dentry;
-+	u8			port_num;
- };
- 
- enum mlx5_ib_dbg_cc_types {
-@@ -798,7 +800,6 @@ struct mlx5_ib_dev {
- 	struct mlx5_sq_bfreg	bfreg;
- 	struct mlx5_sq_bfreg	fp_bfreg;
- 	struct mlx5_ib_delay_drop	delay_drop;
--	struct mlx5_ib_dbg_cc_params	*dbg_cc_params;
- 	struct mlx5_ib_profile	*profile;
- 
- 	/* protect the user_td */
-@@ -1056,8 +1057,8 @@ __be16 mlx5_get_roce_udp_sport(struct mlx5_ib_dev *dev, u8 port_num,
- int mlx5_get_roce_gid_type(struct mlx5_ib_dev *dev, u8 port_num,
- 			   int index, enum ib_gid_type *gid_type);
- 
--void mlx5_ib_cleanup_cong_debugfs(struct mlx5_ib_dev *dev);
--int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev);
-+void mlx5_ib_cleanup_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num);
-+int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num);
- 
- /* GSI QP helper functions */
- struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
 -- 
 2.15.1
 
