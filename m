@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 3/8] RDMA/core: Replace open-coded variant of put_device
-Date: Sun, 24 Dec 2017 15:43:23 +0200
-Message-ID: <20171224134328.17398-4-leon@kernel.org>
+Subject: [PATCH rdma-next 2/8] RDMA/netlink: Simplify code of autoload modules
+Date: Sun, 24 Dec 2017 15:43:22 +0200
+Message-ID: <20171224134328.17398-3-leon@kernel.org>
 References: <20171224134328.17398-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171224134328.17398-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,28 +12,40 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-There is an existing function to decrease reference counter
-of the device, let's use it.
+The request_module() call is internally wrapped by CONFIG_MODULE,
+so there is no need to check it in our RDMA code too.
+
+Refactor the code to simplify the code.
 
 Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/device.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/netlink.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 7fe00a9b2318..cb69357a1909 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -277,7 +277,7 @@ void ib_dealloc_device(struct ib_device *device)
- {
- 	WARN_ON(device->reg_state != IB_DEV_UNREGISTERED &&
- 		device->reg_state != IB_DEV_UNINITIALIZED);
--	kobject_put(&device->dev.kobj);
-+	put_device(&device->dev);
- }
- EXPORT_SYMBOL(ib_dealloc_device);
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 1fb72c356e36..fdff071c3784 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -83,15 +83,13 @@ static bool is_nl_valid(unsigned int type, unsigned int op)
+ 	if (!is_nl_msg_valid(type, op))
+ 		return false;
  
+-	cb_table = rdma_nl_types[type].cb_table;
+-#ifdef CONFIG_MODULES
+-	if (!cb_table) {
++	if (!rdma_nl_types[type].cb_table) {
+ 		mutex_unlock(&rdma_nl_mutex);
+ 		request_module("rdma-netlink-subsys-%d", type);
+ 		mutex_lock(&rdma_nl_mutex);
+-		cb_table = rdma_nl_types[type].cb_table;
+ 	}
+-#endif
++
++	cb_table = rdma_nl_types[type].cb_table;
+ 
+ 	if (!cb_table || (!cb_table[op].dump && !cb_table[op].doit))
+ 		return false;
 -- 
 2.15.1
 
