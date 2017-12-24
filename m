@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 12/15] IB/mlx5: Route MADs for dual port RoCE
-Date: Sun, 24 Dec 2017 14:57:38 +0200
-Message-ID: <20171224125741.25464-13-leon@kernel.org>
+Subject: [PATCH rdma-next 14/15] IB/mlx5: Don't advertise RAW QP support in dual port mode
+Date: Sun, 24 Dec 2017 14:57:40 +0200
+Message-ID: <20171224125741.25464-15-leon@kernel.org>
 References: <20171224125741.25464-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171224125741.25464-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,86 +12,101 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Route performance query MADs to the correct mlx5_core_dev when using
-dual port RoCE mode.
+When operating in dual port RoCE mode RAW QPs are not supposed
+to work on the slave port.
 
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mad.c | 21 ++++++++++++++-------
+ drivers/infiniband/hw/mlx5/main.c | 21 ++++++++++++++-------
  1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
-index 0559e0a9e398..32a9e9228b13 100644
---- a/drivers/infiniband/hw/mlx5/mad.c
-+++ b/drivers/infiniband/hw/mlx5/mad.c
-@@ -197,10 +197,9 @@ static void pma_cnt_assign(struct ib_pma_portcounters *pma_cnt,
- 			     vl_15_dropped);
- }
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 261c2a8db6b3..9e2d6a872e5a 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -710,6 +710,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	int max_rq_sg;
+ 	int max_sq_sg;
+ 	u64 min_page_size = 1ull << MLX5_CAP_GEN(mdev, log_pg_sz);
++	bool raw_support = !mlx5_core_mp_enabled(mdev);
+ 	struct mlx5_ib_query_device_resp resp = {};
+ 	size_t resp_len;
+ 	u64 max_tso;
+@@ -773,7 +774,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	if (MLX5_CAP_GEN(mdev, block_lb_mc))
+ 		props->device_cap_flags |= IB_DEVICE_BLOCK_MULTICAST_LOOPBACK;
  
--static int process_pma_cmd(struct ib_device *ibdev, u8 port_num,
-+static int process_pma_cmd(struct mlx5_core_dev *mdev, u8 port_num,
- 			   const struct ib_mad *in_mad, struct ib_mad *out_mad)
- {
--	struct mlx5_ib_dev *dev = to_mdev(ibdev);
- 	int err;
- 	void *out_cnt;
- 
-@@ -222,7 +221,7 @@ static int process_pma_cmd(struct ib_device *ibdev, u8 port_num,
- 		if (!out_cnt)
- 			return IB_MAD_RESULT_FAILURE;
- 
--		err = mlx5_core_query_vport_counter(dev->mdev, 0, 0,
-+		err = mlx5_core_query_vport_counter(mdev, 0, 0,
- 						    port_num, out_cnt, sz);
- 		if (!err)
- 			pma_cnt_ext_assign(pma_cnt_ext, out_cnt);
-@@ -235,7 +234,7 @@ static int process_pma_cmd(struct ib_device *ibdev, u8 port_num,
- 		if (!out_cnt)
- 			return IB_MAD_RESULT_FAILURE;
- 
--		err = mlx5_core_query_ib_ppcnt(dev->mdev, port_num,
-+		err = mlx5_core_query_ib_ppcnt(mdev, port_num,
- 					       out_cnt, sz);
- 		if (!err)
- 			pma_cnt_assign(pma_cnt, out_cnt);
-@@ -255,9 +254,11 @@ int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 			u16 *out_mad_pkey_index)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
--	struct mlx5_core_dev *mdev = dev->mdev;
- 	const struct ib_mad *in_mad = (const struct ib_mad *)in;
- 	struct ib_mad *out_mad = (struct ib_mad *)out;
-+	struct mlx5_core_dev *mdev;
-+	u8 mdev_port_num;
-+	int ret;
- 
- 	if (WARN_ON_ONCE(in_mad_size != sizeof(*in_mad) ||
- 			 *out_mad_size != sizeof(*out_mad)))
-@@ -265,14 +266,20 @@ int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 
- 	memset(out_mad->data, 0, sizeof(out_mad->data));
- 
-+	mdev = mlx5_ib_get_native_port_mdev(dev, port_num, &mdev_port_num);
-+	if (!mdev)
-+		return IB_MAD_RESULT_FAILURE;
-+
- 	if (MLX5_CAP_GEN(mdev, vport_counters) &&
- 	    in_mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_PERF_MGMT &&
- 	    in_mad->mad_hdr.method == IB_MGMT_METHOD_GET) {
--		return process_pma_cmd(ibdev, port_num, in_mad, out_mad);
-+		ret = process_pma_cmd(mdev, mdev_port_num, in_mad, out_mad);
- 	} else {
--		return process_mad(ibdev, mad_flags, port_num, in_wc, in_grh,
-+		ret =  process_mad(ibdev, mad_flags, port_num, in_wc, in_grh,
- 				   in_mad, out_mad);
+-	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads)) {
++	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) && raw_support) {
+ 		if (MLX5_CAP_ETH(mdev, csum_cap)) {
+ 			/* Legacy bit to support old userspace libraries */
+ 			props->device_cap_flags |= IB_DEVICE_RAW_IP_CSUM;
+@@ -822,7 +823,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
  	}
-+	mlx5_ib_put_native_port_mdev(dev, port_num);
-+	return ret;
- }
  
- int mlx5_query_ext_port_caps(struct mlx5_ib_dev *dev, u8 port)
+ 	if (MLX5_CAP_GEN(dev->mdev, rq_delay_drop) &&
+-	    MLX5_CAP_GEN(dev->mdev, general_notification_event))
++	    MLX5_CAP_GEN(dev->mdev, general_notification_event) &&
++	    raw_support)
+ 		props->raw_packet_caps |= IB_RAW_PACKET_CAP_DELAY_DROP;
+ 
+ 	if (MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads) &&
+@@ -830,7 +832,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 		props->device_cap_flags |= IB_DEVICE_UD_IP_CSUM;
+ 
+ 	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
+-	    MLX5_CAP_ETH(dev->mdev, scatter_fcs)) {
++	    MLX5_CAP_ETH(dev->mdev, scatter_fcs) &&
++	    raw_support) {
+ 		/* Legacy bit to support old userspace libraries */
+ 		props->device_cap_flags |= IB_DEVICE_RAW_SCATTER_FCS;
+ 		props->raw_packet_caps |= IB_RAW_PACKET_CAP_SCATTER_FCS;
+@@ -894,7 +897,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 		props->device_cap_flags |= IB_DEVICE_VIRTUAL_FUNCTION;
+ 
+ 	if (mlx5_ib_port_link_layer(ibdev, 1) ==
+-	    IB_LINK_LAYER_ETHERNET) {
++	    IB_LINK_LAYER_ETHERNET && raw_support) {
+ 		props->rss_caps.max_rwq_indirection_tables =
+ 			1 << MLX5_CAP_GEN(dev->mdev, log_max_rqt);
+ 		props->rss_caps.max_rwq_indirection_table_size =
+@@ -931,7 +934,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 		resp.response_length += sizeof(resp.cqe_comp_caps);
+ 	}
+ 
+-	if (field_avail(typeof(resp), packet_pacing_caps, uhw->outlen)) {
++	if (field_avail(typeof(resp), packet_pacing_caps, uhw->outlen) &&
++	    raw_support) {
+ 		if (MLX5_CAP_QOS(mdev, packet_pacing) &&
+ 		    MLX5_CAP_GEN(mdev, qos)) {
+ 			resp.packet_pacing_caps.qp_rate_limit_max =
+@@ -990,7 +994,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 		}
+ 	}
+ 
+-	if (field_avail(typeof(resp), striding_rq_caps, uhw->outlen)) {
++	if (field_avail(typeof(resp), striding_rq_caps, uhw->outlen) &&
++	    raw_support) {
+ 		resp.response_length += sizeof(resp.striding_rq_caps);
+ 		if (MLX5_CAP_GEN(mdev, striding_rq)) {
+ 			resp.striding_rq_caps.min_single_stride_log_num_of_bytes =
+@@ -3561,12 +3566,14 @@ static u32 get_core_cap_flags(struct ib_device *ibdev)
+ 	enum rdma_link_layer ll = mlx5_ib_port_link_layer(ibdev, 1);
+ 	u8 l3_type_cap = MLX5_CAP_ROCE(dev->mdev, l3_type);
+ 	u8 roce_version_cap = MLX5_CAP_ROCE(dev->mdev, roce_version);
++	bool raw_support = !mlx5_core_mp_enabled(dev->mdev);
+ 	u32 ret = 0;
+ 
+ 	if (ll == IB_LINK_LAYER_INFINIBAND)
+ 		return RDMA_CORE_PORT_IBA_IB;
+ 
+-	ret = RDMA_CORE_PORT_RAW_PACKET;
++	if (raw_support)
++		ret = RDMA_CORE_PORT_RAW_PACKET;
+ 
+ 	if (!(l3_type_cap & MLX5_ROCE_L3_TYPE_IPV4_CAP))
+ 		return ret;
 -- 
 2.15.1
 
