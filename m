@@ -1,43 +1,69 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 0/8] RDMA fixes and refactoring rdma-next-2017-12-24
-Date: Sun, 24 Dec 2017 15:43:20 +0200
-Message-ID: <20171224134328.17398-1-leon@kernel.org>
+Subject: [PATCH rdma-next 1/8] RDMA/rxe: Remove useless export symbol
+Date: Sun, 24 Dec 2017 15:43:21 +0200
+Message-ID: <20171224134328.17398-2-leon@kernel.org>
+References: <20171224134328.17398-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171224134328.17398-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Small series of various fixes to netlink, core and RXE found during
-resource tracking development. It is based on
-https://patchwork.kernel.org/patch/10093725/ and
-https://patchwork.kernel.org/patch/10131941/
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The patches are available in the git repository at:
-  git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-next-2017-12-24-3
+The RXE driver is standalone module and hence doesn't need to export
+symbols, move this one liner to be in header file and avoid function
+implementation in .c file and extra exported symbol.
 
-	Thanks
----------------------------------------
+Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe.c | 6 ------
+ drivers/infiniband/sw/rxe/rxe.h | 6 +++++-
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
-Leon Romanovsky (8):
-  RDMA/rxe: Remove useless export symbol
-  RDMA/netlink: Simplify code of autoload modules
-  RDMA/core: Replace open-coded variant of put_device
-  RDMA/nldev: Refactor nldev handle to be common function
-  RDMA/core: Provide locked variant of device name to index function
-  RDMA/netlink: Protect device query from device removal
-  RDMA/nldev: Protect port query from accidental device removal
-  RDMA/cma: Mark end of CMA ID messages
-
- drivers/infiniband/core/cma.c       |  1 +
- drivers/infiniband/core/core_priv.h |  1 +
- drivers/infiniband/core/device.c    | 18 +++++++-
- drivers/infiniband/core/netlink.c   |  8 ++--
- drivers/infiniband/core/nldev.c     | 82 +++++++++++++++++++++++--------------
- drivers/infiniband/sw/rxe/rxe.c     |  6 ---
- drivers/infiniband/sw/rxe/rxe.h     |  6 ++-
- 7 files changed, 79 insertions(+), 43 deletions(-)
-
+diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
+index 8c3d30b3092d..b7debb6f2eac 100644
+--- a/drivers/infiniband/sw/rxe/rxe.c
++++ b/drivers/infiniband/sw/rxe/rxe.c
+@@ -77,12 +77,6 @@ void rxe_release(struct kref *kref)
+ 	ib_dealloc_device(&rxe->ib_dev);
+ }
+ 
+-void rxe_dev_put(struct rxe_dev *rxe)
+-{
+-	kref_put(&rxe->ref_cnt, rxe_release);
+-}
+-EXPORT_SYMBOL_GPL(rxe_dev_put);
+-
+ /* initialize rxe device parameters */
+ static int rxe_init_device_param(struct rxe_dev *rxe)
+ {
+diff --git a/drivers/infiniband/sw/rxe/rxe.h b/drivers/infiniband/sw/rxe/rxe.h
+index 6447d736d5a4..7d232611303f 100644
+--- a/drivers/infiniband/sw/rxe/rxe.h
++++ b/drivers/infiniband/sw/rxe/rxe.h
+@@ -57,6 +57,7 @@
+ #include "rxe_hdr.h"
+ #include "rxe_param.h"
+ #include "rxe_verbs.h"
++#include "rxe_loc.h"
+ 
+ #define RXE_UVERBS_ABI_VERSION		(1)
+ 
+@@ -95,7 +96,10 @@ void rxe_remove_all(void);
+ 
+ int rxe_rcv(struct sk_buff *skb);
+ 
+-void rxe_dev_put(struct rxe_dev *rxe);
++static inline void rxe_dev_put(struct rxe_dev *rxe)
++{
++	kref_put(&rxe->ref_cnt, rxe_release);
++}
+ struct rxe_dev *net_to_rxe(struct net_device *ndev);
+ struct rxe_dev *get_rxe_by_name(const char *name);
+ 
 -- 
 2.15.1
 
