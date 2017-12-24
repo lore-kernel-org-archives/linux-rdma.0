@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 4/7] RDMA/core: Add resource tracking for create and destroy CQs
-Date: Sun, 24 Dec 2017 16:17:58 +0200
-Message-ID: <20171224141801.26443-5-leon@kernel.org>
+Subject: [PATCH rdma-next v1 5/7] RDMA/core: Add resource tracking for create and destroy PDs
+Date: Sun, 24 Dec 2017 16:17:59 +0200
+Message-ID: <20171224141801.26443-6-leon@kernel.org>
 References: <20171224141801.26443-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171224141801.26443-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,90 +12,47 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Track all creation and destroy of CQ objects.
+Track all creation and destroy of PD objects.
 
 Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cq.c               | 3 +++
- drivers/infiniband/core/uverbs_cmd.c       | 1 +
- drivers/infiniband/core/uverbs_std_types.c | 2 ++
- drivers/infiniband/core/verbs.c            | 2 ++
- 4 files changed, 8 insertions(+)
+ drivers/infiniband/core/uverbs_cmd.c | 1 +
+ drivers/infiniband/core/verbs.c      | 2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
-index f2ae75fa3128..6344e007dbce 100644
---- a/drivers/infiniband/core/cq.c
-+++ b/drivers/infiniband/core/cq.c
-@@ -154,6 +154,8 @@ struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
- 	if (!cq->wc)
- 		goto out_destroy_cq;
- 
-+	rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
-+
- 	switch (cq->poll_ctx) {
- 	case IB_POLL_DIRECT:
- 		cq->comp_handler = ib_cq_completion_direct;
-@@ -208,6 +210,7 @@ void ib_free_cq(struct ib_cq *cq)
- 		WARN_ON_ONCE(1);
- 	}
- 
-+	rdma_restrack_del(&cq->res, RDMA_RESTRACK_CQ);
- 	kfree(cq->wc);
- 	ret = cq->device->destroy_cq(cq);
- 	WARN_ON_ONCE(ret);
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 91a3e4f56e7e..aeaa46041fc5 100644
+index aeaa46041fc5..cf5c0fad7dc3 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1033,6 +1033,7 @@ static struct ib_ucq_object *create_cq(struct ib_uverbs_file *file,
- 		goto err_cb;
+@@ -340,6 +340,7 @@ ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
+ 	uobj->object = pd;
+ 	memset(&resp, 0, sizeof resp);
+ 	resp.pd_handle = uobj->id;
++	rdma_restrack_add(&pd->res, RDMA_RESTRACK_PD, NULL);
  
- 	uobj_alloc_commit(&obj->uobject);
-+	rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
- 
- 	return obj;
- 
-diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
-index c3ee5d9b336d..2d0d27865b09 100644
---- a/drivers/infiniband/core/uverbs_std_types.c
-+++ b/drivers/infiniband/core/uverbs_std_types.c
-@@ -35,6 +35,7 @@
- #include <rdma/ib_verbs.h>
- #include <linux/bug.h>
- #include <linux/file.h>
-+#include <rdma/restrack.h>
- #include "rdma_core.h"
- #include "uverbs.h"
- 
-@@ -319,6 +320,7 @@ static int uverbs_create_cq_handler(struct ib_device *ib_dev,
- 	obj->uobject.object = cq;
- 	obj->uobject.user_handle = user_handle;
- 	atomic_set(&cq->usecnt, 0);
-+	rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
- 
- 	ret = uverbs_copy_to(attrs, CREATE_CQ_RESP_CQE, &cq->cqe);
- 	if (ret)
+ 	if (copy_to_user(u64_to_user_ptr(cmd.response), &resp, sizeof resp)) {
+ 		ret = -EFAULT;
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index b4724a92fdcd..9c033b0c788b 100644
+index 9c033b0c788b..c9528a3d2439 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -1529,6 +1529,7 @@ struct ib_cq *ib_create_cq(struct ib_device *device,
- 		cq->event_handler = event_handler;
- 		cq->cq_context    = cq_context;
- 		atomic_set(&cq->usecnt, 0);
-+		rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
+@@ -246,6 +246,7 @@ struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
+ 		pr_warn("%s: enabling unsafe global rkey\n", caller);
+ 		mr_access_flags |= IB_ACCESS_REMOTE_READ | IB_ACCESS_REMOTE_WRITE;
  	}
++	rdma_restrack_add(&pd->res, RDMA_RESTRACK_PD, NULL);
  
- 	return cq;
-@@ -1547,6 +1548,7 @@ int ib_destroy_cq(struct ib_cq *cq)
- 	if (atomic_read(&cq->usecnt))
- 		return -EBUSY;
+ 	if (mr_access_flags) {
+ 		struct ib_mr *mr;
+@@ -296,6 +297,7 @@ void ib_dealloc_pd(struct ib_pd *pd)
+ 	   requires the caller to guarantee we can't race here. */
+ 	WARN_ON(atomic_read(&pd->usecnt));
  
-+	rdma_restrack_del(&cq->res, RDMA_RESTRACK_CQ);
- 	return cq->device->destroy_cq(cq);
- }
- EXPORT_SYMBOL(ib_destroy_cq);
++	rdma_restrack_del(&pd->res, RDMA_RESTRACK_PD);
+ 	/* Making delalloc_pd a void return is a WIP, no driver should return
+ 	   an error here. */
+ 	ret = pd->device->dealloc_pd(pd);
 -- 
 2.15.1
 
