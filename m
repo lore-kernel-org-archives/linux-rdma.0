@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 4/6] IB/mlx5: Move hardware counters initialization to the corresponding stage
-Date: Sun, 24 Dec 2017 14:40:13 +0200
-Message-ID: <20171224124015.31917-5-leon@kernel.org>
+Subject: [PATCH rdma-next 6/6] IB/mlx5: Move locks initialization to the corresponding stage
+Date: Sun, 24 Dec 2017 14:40:15 +0200
+Message-ID: <20171224124015.31917-7-leon@kernel.org>
 References: <20171224124015.31917-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171224124015.31917-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,46 +12,43 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Now that we have a stage just for hardware counters, move all relevant
-initialization logic into one place.
+Unconditional locks/list initialization should be done in the INIT stage.
+Remove those from the CAPS stage and move them to the proper stage.
 
 Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 6fbd72b6d624..c68dd1041aaa 100644
+index d7ccf8d5b2d2..6775e440e23f 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -4105,11 +4105,6 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
- 			(1ull << IB_USER_VERBS_CMD_DEALLOC_MW);
- 	}
+@@ -3988,6 +3988,11 @@ static int mlx5_ib_stage_init_init(struct mlx5_ib_dev *dev)
+ 		dev->mdev->priv.eq_table.num_comp_vectors;
+ 	dev->ib_dev.dev.parent		= &mdev->pdev->dev;
  
--	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt)) {
--		dev->ib_dev.get_hw_stats	= mlx5_ib_get_hw_stats;
--		dev->ib_dev.alloc_hw_stats	= mlx5_ib_alloc_hw_stats;
--	}
--
- 	if (MLX5_CAP_GEN(mdev, xrc)) {
- 		dev->ib_dev.alloc_xrcd = mlx5_ib_alloc_xrcd;
- 		dev->ib_dev.dealloc_xrcd = mlx5_ib_dealloc_xrcd;
-@@ -4207,8 +4202,12 @@ static void mlx5_ib_stage_odp_cleanup(struct mlx5_ib_dev *dev)
- 
- static int mlx5_ib_stage_counters_init(struct mlx5_ib_dev *dev)
- {
--	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt))
--		return  mlx5_ib_alloc_counters(dev);
-+	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt)) {
-+		dev->ib_dev.get_hw_stats	= mlx5_ib_get_hw_stats;
-+		dev->ib_dev.alloc_hw_stats	= mlx5_ib_alloc_hw_stats;
++	mutex_init(&dev->flow_db.lock);
++	mutex_init(&dev->cap_mask_mutex);
++	INIT_LIST_HEAD(&dev->qp_list);
++	spin_lock_init(&dev->reset_flow_resource_lock);
 +
-+		return mlx5_ib_alloc_counters(dev);
-+	}
- 
  	return 0;
- }
+ 
+ err_free_port:
+@@ -4123,11 +4128,6 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
+ 	if (err)
+ 		return err;
+ 
+-	mutex_init(&dev->flow_db.lock);
+-	mutex_init(&dev->cap_mask_mutex);
+-	INIT_LIST_HEAD(&dev->qp_list);
+-	spin_lock_init(&dev->reset_flow_resource_lock);
+-
+ 	if ((MLX5_CAP_GEN(dev->mdev, port_type) == MLX5_CAP_PORT_TYPE_ETH) &&
+ 	    MLX5_CAP_GEN(dev->mdev, disable_local_lb))
+ 		mutex_init(&dev->lb_mutex);
 -- 
 2.15.1
 
