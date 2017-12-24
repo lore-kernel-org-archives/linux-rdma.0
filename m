@@ -1,98 +1,71 @@
 From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [for-next V2 09/11] net/mlx5e: E-Switch, Use the name of static array instead of its address
-Date: Sun, 24 Dec 2017 15:45:45 +0200
-Message-ID: <20171224134547.600-10-saeedm@mellanox.com>
+Subject: [for-next V2 05/11] net/mlx5: E-Switch, Create a dedicated send to vport rule deletion function
+Date: Sun, 24 Dec 2017 15:45:41 +0200
+Message-ID: <20171224134547.600-6-saeedm@mellanox.com>
 References: <20171224134547.600-1-saeedm@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171224134547.600-1-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Gal Pressman <galp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Gal Pressman <galp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Using the address of a static array is the same as using its name (in
-this specific use-case), but it's confusing and makes the code less
-readable.
+In order for representors to send packets directly to VFs we use an
+E-Switch function which insert special rules into the HW. For symmetry
+create an E-Switch function that deletes these rules as well.
 
-Fixes: 1bd27b11c1df ("net/mlx5: Introduce E-switch QoS management")
-Fixes: bd77bf1cb595 ("net/mlx5: Add SRIOV VF max rate configuration support")
-Signed-off-by: Gal Pressman <galp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 26 +++++++++++------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.c           | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.h          | 1 +
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c | 5 +++++
+ 3 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index 6d4cbdb69823..cdf65ed8714c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -1290,7 +1290,7 @@ static int esw_create_tsar(struct mlx5_eswitch *esw)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+index 19edaa155062..01bf4e3c8afa 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+@@ -199,7 +199,7 @@ static void mlx5e_sqs2vport_stop(struct mlx5_eswitch *esw,
+ 		return;
  
- 	err = mlx5_create_scheduling_element_cmd(dev,
- 						 SCHEDULING_HIERARCHY_E_SWITCH,
--						 &tsar_ctx,
-+						 tsar_ctx,
- 						 &esw->qos.root_tsar_id);
- 	if (err) {
- 		esw_warn(esw->dev, "E-Switch create TSAR failed (%d)\n", err);
-@@ -1333,20 +1333,20 @@ static int esw_vport_enable_qos(struct mlx5_eswitch *esw, int vport_num,
- 	if (vport->qos.enabled)
- 		return -EEXIST;
+ 	list_for_each_entry_safe(esw_sq, tmp, &rep->vport_sqs_list, list) {
+-		mlx5_del_flow_rules(esw_sq->send_to_vport_rule);
++		mlx5_eswitch_del_send_to_vport_rule(esw_sq->send_to_vport_rule);
+ 		list_del(&esw_sq->list);
+ 		kfree(esw_sq);
+ 	}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+index 21b506fd2b67..9ed401225225 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+@@ -225,6 +225,7 @@ int mlx5_eswitch_get_vport_stats(struct mlx5_eswitch *esw,
+ struct mlx5_flow_handle *
+ mlx5_eswitch_add_send_to_vport_rule(struct mlx5_eswitch *esw, int vport,
+ 				    u32 sqn);
++void mlx5_eswitch_del_send_to_vport_rule(struct mlx5_flow_handle *rule);
  
--	MLX5_SET(scheduling_context, &sched_ctx, element_type,
-+	MLX5_SET(scheduling_context, sched_ctx, element_type,
- 		 SCHEDULING_CONTEXT_ELEMENT_TYPE_VPORT);
--	vport_elem = MLX5_ADDR_OF(scheduling_context, &sched_ctx,
-+	vport_elem = MLX5_ADDR_OF(scheduling_context, sched_ctx,
- 				  element_attributes);
- 	MLX5_SET(vport_element, vport_elem, vport_number, vport_num);
--	MLX5_SET(scheduling_context, &sched_ctx, parent_element_id,
-+	MLX5_SET(scheduling_context, sched_ctx, parent_element_id,
- 		 esw->qos.root_tsar_id);
--	MLX5_SET(scheduling_context, &sched_ctx, max_average_bw,
-+	MLX5_SET(scheduling_context, sched_ctx, max_average_bw,
- 		 initial_max_rate);
--	MLX5_SET(scheduling_context, &sched_ctx, bw_share, initial_bw_share);
-+	MLX5_SET(scheduling_context, sched_ctx, bw_share, initial_bw_share);
+ struct mlx5_flow_spec;
+ struct mlx5_esw_flow_attr;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index 90a30c51d92e..121609b823c6 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -339,6 +339,11 @@ mlx5_eswitch_add_send_to_vport_rule(struct mlx5_eswitch *esw, int vport, u32 sqn
+ 	return flow_rule;
+ }
  
- 	err = mlx5_create_scheduling_element_cmd(dev,
- 						 SCHEDULING_HIERARCHY_E_SWITCH,
--						 &sched_ctx,
-+						 sched_ctx,
- 						 &vport->qos.esw_tsar_ix);
- 	if (err) {
- 		esw_warn(esw->dev, "E-Switch create TSAR vport element failed (vport=%d,err=%d)\n",
-@@ -1392,22 +1392,22 @@ static int esw_vport_qos_config(struct mlx5_eswitch *esw, int vport_num,
- 	if (!vport->qos.enabled)
- 		return -EIO;
- 
--	MLX5_SET(scheduling_context, &sched_ctx, element_type,
-+	MLX5_SET(scheduling_context, sched_ctx, element_type,
- 		 SCHEDULING_CONTEXT_ELEMENT_TYPE_VPORT);
--	vport_elem = MLX5_ADDR_OF(scheduling_context, &sched_ctx,
-+	vport_elem = MLX5_ADDR_OF(scheduling_context, sched_ctx,
- 				  element_attributes);
- 	MLX5_SET(vport_element, vport_elem, vport_number, vport_num);
--	MLX5_SET(scheduling_context, &sched_ctx, parent_element_id,
-+	MLX5_SET(scheduling_context, sched_ctx, parent_element_id,
- 		 esw->qos.root_tsar_id);
--	MLX5_SET(scheduling_context, &sched_ctx, max_average_bw,
-+	MLX5_SET(scheduling_context, sched_ctx, max_average_bw,
- 		 max_rate);
--	MLX5_SET(scheduling_context, &sched_ctx, bw_share, bw_share);
-+	MLX5_SET(scheduling_context, sched_ctx, bw_share, bw_share);
- 	bitmask |= MODIFY_SCHEDULING_ELEMENT_IN_MODIFY_BITMASK_MAX_AVERAGE_BW;
- 	bitmask |= MODIFY_SCHEDULING_ELEMENT_IN_MODIFY_BITMASK_BW_SHARE;
- 
- 	err = mlx5_modify_scheduling_element_cmd(dev,
- 						 SCHEDULING_HIERARCHY_E_SWITCH,
--						 &sched_ctx,
-+						 sched_ctx,
- 						 vport->qos.esw_tsar_ix,
- 						 bitmask);
- 	if (err) {
++void mlx5_eswitch_del_send_to_vport_rule(struct mlx5_flow_handle *rule)
++{
++	mlx5_del_flow_rules(rule);
++}
++
+ static int esw_add_fdb_miss_rule(struct mlx5_eswitch *esw)
+ {
+ 	struct mlx5_flow_act flow_act = {0};
 -- 
 2.13.0
 
