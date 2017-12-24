@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 14/15] IB/mlx5: Don't advertise RAW QP support in dual port mode
-Date: Sun, 24 Dec 2017 14:57:40 +0200
-Message-ID: <20171224125741.25464-15-leon@kernel.org>
+Subject: [PATCH rdma-next 13/15] IB/mlx5: Use correct mdev for vport queries in ib_virt
+Date: Sun, 24 Dec 2017 14:57:39 +0200
+Message-ID: <20171224125741.25464-14-leon@kernel.org>
 References: <20171224125741.25464-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171224125741.25464-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,101 +12,201 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When operating in dual port RoCE mode RAW QPs are not supposed
-to work on the slave port.
+When using dual port RoCE mode vport queries should be routed to the
+respective port mlx5_core_dev instead of the IB devices master mdev.
 
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/mlx5/ib_virt.c | 84 +++++++++++++++++++++++++++++-------
+ 1 file changed, 69 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 261c2a8db6b3..9e2d6a872e5a 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -710,6 +710,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 	int max_rq_sg;
- 	int max_sq_sg;
- 	u64 min_page_size = 1ull << MLX5_CAP_GEN(mdev, log_pg_sz);
-+	bool raw_support = !mlx5_core_mp_enabled(mdev);
- 	struct mlx5_ib_query_device_resp resp = {};
- 	size_t resp_len;
- 	u64 max_tso;
-@@ -773,7 +774,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 	if (MLX5_CAP_GEN(mdev, block_lb_mc))
- 		props->device_cap_flags |= IB_DEVICE_BLOCK_MULTICAST_LOOPBACK;
+diff --git a/drivers/infiniband/hw/mlx5/ib_virt.c b/drivers/infiniband/hw/mlx5/ib_virt.c
+index 649a3364f838..fcdc85e89ba8 100644
+--- a/drivers/infiniband/hw/mlx5/ib_virt.c
++++ b/drivers/infiniband/hw/mlx5/ib_virt.c
+@@ -52,26 +52,36 @@ int mlx5_ib_get_vf_config(struct ib_device *device, int vf, u8 port,
+ 			  struct ifla_vf_info *info)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(device);
+-	struct mlx5_core_dev *mdev = dev->mdev;
+ 	struct mlx5_hca_vport_context *rep;
++	struct mlx5_core_dev *mdev;
++	u8 mdev_port_num;
+ 	int err;
  
--	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads)) {
-+	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) && raw_support) {
- 		if (MLX5_CAP_ETH(mdev, csum_cap)) {
- 			/* Legacy bit to support old userspace libraries */
- 			props->device_cap_flags |= IB_DEVICE_RAW_IP_CSUM;
-@@ -822,7 +823,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	rep = kzalloc(sizeof(*rep), GFP_KERNEL);
+ 	if (!rep)
+ 		return -ENOMEM;
+ 
+-	err = mlx5_query_hca_vport_context(mdev, 1, 1,  vf + 1, rep);
++	mdev = mlx5_ib_get_native_port_mdev(dev, port, &mdev_port_num);
++	if (!mdev) {
++		err = -ENODEV;
++		goto out;
++	}
++
++	err = mlx5_query_hca_vport_context(mdev, 1, mdev_port_num, vf + 1,
++					   rep);
+ 	if (err) {
+ 		mlx5_ib_warn(dev, "failed to query port policy for vf %d (%d)\n",
+ 			     vf, err);
+-		goto free;
++		goto put_mdev;
  	}
+ 	memset(info, 0, sizeof(*info));
+ 	info->linkstate = mlx_to_net_policy(rep->policy);
+ 	if (info->linkstate == __IFLA_VF_LINK_STATE_MAX)
+ 		err = -EINVAL;
  
- 	if (MLX5_CAP_GEN(dev->mdev, rq_delay_drop) &&
--	    MLX5_CAP_GEN(dev->mdev, general_notification_event))
-+	    MLX5_CAP_GEN(dev->mdev, general_notification_event) &&
-+	    raw_support)
- 		props->raw_packet_caps |= IB_RAW_PACKET_CAP_DELAY_DROP;
+-free:
++put_mdev:
++	mlx5_ib_put_native_port_mdev(dev, port);
++out:
+ 	kfree(rep);
+ 	return err;
+ }
+@@ -94,9 +104,10 @@ int mlx5_ib_set_vf_link_state(struct ib_device *device, int vf,
+ 			      u8 port, int state)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(device);
+-	struct mlx5_core_dev *mdev = dev->mdev;
+ 	struct mlx5_hca_vport_context *in;
+-	struct mlx5_vf_context *vfs_ctx = mdev->priv.sriov.vfs_ctx;
++	struct mlx5_vf_context *vfs_ctx;
++	struct mlx5_core_dev *mdev;
++	u8 mdev_port_num;
+ 	int err;
  
- 	if (MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads) &&
-@@ -830,7 +832,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		props->device_cap_flags |= IB_DEVICE_UD_IP_CSUM;
- 
- 	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
--	    MLX5_CAP_ETH(dev->mdev, scatter_fcs)) {
-+	    MLX5_CAP_ETH(dev->mdev, scatter_fcs) &&
-+	    raw_support) {
- 		/* Legacy bit to support old userspace libraries */
- 		props->device_cap_flags |= IB_DEVICE_RAW_SCATTER_FCS;
- 		props->raw_packet_caps |= IB_RAW_PACKET_CAP_SCATTER_FCS;
-@@ -894,7 +897,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		props->device_cap_flags |= IB_DEVICE_VIRTUAL_FUNCTION;
- 
- 	if (mlx5_ib_port_link_layer(ibdev, 1) ==
--	    IB_LINK_LAYER_ETHERNET) {
-+	    IB_LINK_LAYER_ETHERNET && raw_support) {
- 		props->rss_caps.max_rwq_indirection_tables =
- 			1 << MLX5_CAP_GEN(dev->mdev, log_max_rqt);
- 		props->rss_caps.max_rwq_indirection_table_size =
-@@ -931,7 +934,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		resp.response_length += sizeof(resp.cqe_comp_caps);
+ 	in = kzalloc(sizeof(*in), GFP_KERNEL);
+@@ -108,11 +119,21 @@ int mlx5_ib_set_vf_link_state(struct ib_device *device, int vf,
+ 		err = -EINVAL;
+ 		goto out;
  	}
++
++	mdev = mlx5_ib_get_native_port_mdev(dev, port, &mdev_port_num);
++	if (!mdev) {
++		err = -ENODEV;
++		goto out;
++	}
++
++	vfs_ctx = mdev->priv.sriov.vfs_ctx;
+ 	in->field_select = MLX5_HCA_VPORT_SEL_STATE_POLICY;
+-	err = mlx5_core_modify_hca_vport_context(mdev, 1, 1, vf + 1, in);
++	err = mlx5_core_modify_hca_vport_context(mdev, 1, mdev_port_num,
++						 vf + 1, in);
+ 	if (!err)
+ 		vfs_ctx[vf].policy = in->policy;
  
--	if (field_avail(typeof(resp), packet_pacing_caps, uhw->outlen)) {
-+	if (field_avail(typeof(resp), packet_pacing_caps, uhw->outlen) &&
-+	    raw_support) {
- 		if (MLX5_CAP_QOS(mdev, packet_pacing) &&
- 		    MLX5_CAP_GEN(mdev, qos)) {
- 			resp.packet_pacing_caps.qp_rate_limit_max =
-@@ -990,7 +994,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		}
- 	}
++	mlx5_ib_put_native_port_mdev(dev, port);
+ out:
+ 	kfree(in);
+ 	return err;
+@@ -124,20 +145,29 @@ int mlx5_ib_get_vf_stats(struct ib_device *device, int vf,
+ 	int out_sz = MLX5_ST_SZ_BYTES(query_vport_counter_out);
+ 	struct mlx5_core_dev *mdev;
+ 	struct mlx5_ib_dev *dev;
++	u8 mdev_port_num;
+ 	void *out;
+ 	int err;
  
--	if (field_avail(typeof(resp), striding_rq_caps, uhw->outlen)) {
-+	if (field_avail(typeof(resp), striding_rq_caps, uhw->outlen) &&
-+	    raw_support) {
- 		resp.response_length += sizeof(resp.striding_rq_caps);
- 		if (MLX5_CAP_GEN(mdev, striding_rq)) {
- 			resp.striding_rq_caps.min_single_stride_log_num_of_bytes =
-@@ -3561,12 +3566,14 @@ static u32 get_core_cap_flags(struct ib_device *ibdev)
- 	enum rdma_link_layer ll = mlx5_ib_port_link_layer(ibdev, 1);
- 	u8 l3_type_cap = MLX5_CAP_ROCE(dev->mdev, l3_type);
- 	u8 roce_version_cap = MLX5_CAP_ROCE(dev->mdev, roce_version);
-+	bool raw_support = !mlx5_core_mp_enabled(dev->mdev);
- 	u32 ret = 0;
+ 	dev = to_mdev(device);
+-	mdev = dev->mdev;
  
- 	if (ll == IB_LINK_LAYER_INFINIBAND)
- 		return RDMA_CORE_PORT_IBA_IB;
+ 	out = kzalloc(out_sz, GFP_KERNEL);
+ 	if (!out)
+ 		return -ENOMEM;
  
--	ret = RDMA_CORE_PORT_RAW_PACKET;
-+	if (raw_support)
-+		ret = RDMA_CORE_PORT_RAW_PACKET;
+-	err = mlx5_core_query_vport_counter(mdev, true, vf, port, out, out_sz);
++	mdev = mlx5_ib_get_native_port_mdev(dev, port, &mdev_port_num);
++	if (!mdev) {
++		err = -ENODEV;
++		goto ex;
++	}
++
++	err = mlx5_core_query_vport_counter(mdev, true, vf, mdev_port_num, out,
++					    out_sz);
+ 	if (err)
+ 		goto ex;
  
- 	if (!(l3_type_cap & MLX5_ROCE_L3_TYPE_IPV4_CAP))
- 		return ret;
++	mlx5_ib_put_native_port_mdev(dev, port);
++
+ 	stats->rx_packets = MLX5_GET64_PR(query_vport_counter_out, out, received_ib_unicast.packets);
+ 	stats->tx_packets = MLX5_GET64_PR(query_vport_counter_out, out, transmitted_ib_unicast.packets);
+ 	stats->rx_bytes = MLX5_GET64_PR(query_vport_counter_out, out, received_ib_unicast.octets);
+@@ -152,20 +182,32 @@ int mlx5_ib_get_vf_stats(struct ib_device *device, int vf,
+ static int set_vf_node_guid(struct ib_device *device, int vf, u8 port, u64 guid)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(device);
+-	struct mlx5_core_dev *mdev = dev->mdev;
+ 	struct mlx5_hca_vport_context *in;
+-	struct mlx5_vf_context *vfs_ctx = mdev->priv.sriov.vfs_ctx;
++	struct mlx5_vf_context *vfs_ctx;
++	struct mlx5_core_dev *mdev;
++	u8 mdev_port_num;
+ 	int err;
+ 
+ 	in = kzalloc(sizeof(*in), GFP_KERNEL);
+ 	if (!in)
+ 		return -ENOMEM;
+ 
++	mdev = mlx5_ib_get_native_port_mdev(dev, port, &mdev_port_num);
++	if (!mdev) {
++		err = -ENODEV;
++		goto out;
++	}
++
++	vfs_ctx = mdev->priv.sriov.vfs_ctx;
+ 	in->field_select = MLX5_HCA_VPORT_SEL_NODE_GUID;
+ 	in->node_guid = guid;
+-	err = mlx5_core_modify_hca_vport_context(mdev, 1, 1, vf + 1, in);
++	err = mlx5_core_modify_hca_vport_context(mdev, 1, mdev_port_num,
++						 vf + 1, in);
+ 	if (!err)
+ 		vfs_ctx[vf].node_guid = guid;
++
++	mlx5_ib_put_native_port_mdev(dev, port);
++out:
+ 	kfree(in);
+ 	return err;
+ }
+@@ -173,20 +215,32 @@ static int set_vf_node_guid(struct ib_device *device, int vf, u8 port, u64 guid)
+ static int set_vf_port_guid(struct ib_device *device, int vf, u8 port, u64 guid)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(device);
+-	struct mlx5_core_dev *mdev = dev->mdev;
+ 	struct mlx5_hca_vport_context *in;
+-	struct mlx5_vf_context *vfs_ctx = mdev->priv.sriov.vfs_ctx;
++	struct mlx5_vf_context *vfs_ctx;
++	struct mlx5_core_dev *mdev;
++	u8 mdev_port_num;
+ 	int err;
+ 
+ 	in = kzalloc(sizeof(*in), GFP_KERNEL);
+ 	if (!in)
+ 		return -ENOMEM;
+ 
++	mdev = mlx5_ib_get_native_port_mdev(dev, port, &mdev_port_num);
++	if (!mdev) {
++		err = -ENODEV;
++		goto out;
++	}
++
++	vfs_ctx = mdev->priv.sriov.vfs_ctx;
+ 	in->field_select = MLX5_HCA_VPORT_SEL_PORT_GUID;
+ 	in->port_guid = guid;
+-	err = mlx5_core_modify_hca_vport_context(mdev, 1, 1, vf + 1, in);
++	err = mlx5_core_modify_hca_vport_context(mdev, 1, mdev_port_num,
++						 vf + 1, in);
+ 	if (!err)
+ 		vfs_ctx[vf].port_guid = guid;
++
++	mlx5_ib_put_native_port_mdev(dev, port);
++out:
+ 	kfree(in);
+ 	return err;
+ }
 -- 
 2.15.1
 
