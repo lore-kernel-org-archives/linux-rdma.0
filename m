@@ -1,381 +1,97 @@
-From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [for-next V2 07/11] net/mlx5: E-Switch, Create generic header struct to be used by representors
-Date: Sun, 24 Dec 2017 15:45:43 +0200
-Message-ID: <20171224134547.600-8-saeedm@mellanox.com>
-References: <20171224134547.600-1-saeedm@mellanox.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next v1 0/7] RDMA resource tracking
+Date: Sun, 24 Dec 2017 16:17:54 +0200
+Message-ID: <20171224141801.26443-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171224134547.600-1-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Changelog:
+v0->v1:
+ * Dropped RFC
+ * Separated to thre series, one for for-rc, and two for-next.
 
-Now that we don't store type dependent data in struct mlx5_eswitch_rep
-we can create a generic interface, and representor type.
+-------
+Hi,
 
-struct mlx5_eswitch_rep will store an array of interfaces, each
-interface is used by a different representor type.
+The original goal of this series was to allow ability to view connection
+(QP) information about running processes, however I used this opportunity and
+created common infrastructure to track and report various resources. The report
+part is implemented in netlink (nldev), but smart ULPs can now create
+advanced usage models based on device utilization.
 
-Once we moved to a more generic interface, rdma driver representors can
-be added and utilize the same mechanism as the Ethernet driver
-representors use.
+The current implementation relies on one lock per-object per-device, so
+creation/destroying of various objects (CQ, PD, e.t.c) on various or the
+same devices doesn't interfere each with another.
 
-Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c   | 29 ++++-----
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.h   |  2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    |  9 +--
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.h  | 22 +++++--
- .../ethernet/mellanox/mlx5/core/eswitch_offloads.c | 69 +++++++++++++++-------
- 5 files changed, 87 insertions(+), 44 deletions(-)
+The data protection is performed with SRCU and its reader-writer model
+ensures that resource won't be destroyed till readers will finish their
+work.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-index 3c74f0599ad3..5b2b673c0b13 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-@@ -1086,7 +1086,7 @@ mlx5e_vport_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
- 
- 	rpriv->netdev = netdev;
- 	rpriv->rep = rep;
--	rep->priv = rpriv;
-+	rep->rep_if[REP_ETH].priv = rpriv;
- 	INIT_LIST_HEAD(&rpriv->vport_sqs_list);
- 
- 	err = mlx5e_attach_netdev(netdev_priv(netdev));
-@@ -1103,7 +1103,7 @@ mlx5e_vport_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
- 		goto err_detach_netdev;
- 	}
- 
--	uplink_rpriv = mlx5_eswitch_get_uplink_priv(dev->priv.eswitch);
-+	uplink_rpriv = mlx5_eswitch_get_uplink_priv(dev->priv.eswitch, REP_ETH);
- 	upriv = netdev_priv(uplink_rpriv->netdev);
- 	err = tc_setup_cb_egdev_register(netdev, mlx5e_setup_tc_block_cb,
- 					 upriv);
-@@ -1146,7 +1146,8 @@ mlx5e_vport_rep_unload(struct mlx5_eswitch_rep *rep)
- 	struct mlx5e_priv *upriv;
- 
- 	unregister_netdev(netdev);
--	uplink_rpriv = mlx5_eswitch_get_uplink_priv(priv->mdev->priv.eswitch);
-+	uplink_rpriv = mlx5_eswitch_get_uplink_priv(priv->mdev->priv.eswitch,
-+						    REP_ETH);
- 	upriv = netdev_priv(uplink_rpriv->netdev);
- 	tc_setup_cb_egdev_unregister(netdev, mlx5e_setup_tc_block_cb,
- 				     upriv);
-@@ -1164,11 +1165,11 @@ static void mlx5e_rep_register_vf_vports(struct mlx5e_priv *priv)
- 	int vport;
- 
- 	for (vport = 1; vport < total_vfs; vport++) {
--		struct mlx5_eswitch_rep rep = {};
-+		struct mlx5_eswitch_rep_if rep_if = {};
- 
--		rep.load = mlx5e_vport_rep_load;
--		rep.unload = mlx5e_vport_rep_unload;
--		mlx5_eswitch_register_vport_rep(esw, vport, &rep);
-+		rep_if.load = mlx5e_vport_rep_load;
-+		rep_if.unload = mlx5e_vport_rep_unload;
-+		mlx5_eswitch_register_vport_rep(esw, vport, &rep_if, REP_ETH);
- 	}
- }
- 
-@@ -1180,24 +1181,24 @@ static void mlx5e_rep_unregister_vf_vports(struct mlx5e_priv *priv)
- 	int vport;
- 
- 	for (vport = 1; vport < total_vfs; vport++)
--		mlx5_eswitch_unregister_vport_rep(esw, vport);
-+		mlx5_eswitch_unregister_vport_rep(esw, vport, REP_ETH);
- }
- 
- void mlx5e_register_vport_reps(struct mlx5e_priv *priv)
- {
- 	struct mlx5_core_dev *mdev = priv->mdev;
- 	struct mlx5_eswitch *esw   = mdev->priv.eswitch;
-+	struct mlx5_eswitch_rep_if rep_if;
- 	struct mlx5e_rep_priv *rpriv;
--	struct mlx5_eswitch_rep rep;
- 
- 	rpriv = priv->ppriv;
- 	rpriv->netdev = priv->netdev;
- 
--	rep.load = mlx5e_nic_rep_load;
--	rep.unload = mlx5e_nic_rep_unload;
--	rep.priv = rpriv;
-+	rep_if.load = mlx5e_nic_rep_load;
-+	rep_if.unload = mlx5e_nic_rep_unload;
-+	rep_if.priv = rpriv;
- 	INIT_LIST_HEAD(&rpriv->vport_sqs_list);
--	mlx5_eswitch_register_vport_rep(esw, 0, &rep); /* UPLINK PF vport*/
-+	mlx5_eswitch_register_vport_rep(esw, 0, &rep_if, REP_ETH); /* UPLINK PF vport*/
- 
- 	mlx5e_rep_register_vf_vports(priv); /* VFs vports */
- }
-@@ -1208,7 +1209,7 @@ void mlx5e_unregister_vport_reps(struct mlx5e_priv *priv)
- 	struct mlx5_eswitch *esw   = mdev->priv.eswitch;
- 
- 	mlx5e_rep_unregister_vf_vports(priv); /* VFs vports */
--	mlx5_eswitch_unregister_vport_rep(esw, 0); /* UPLINK PF*/
-+	mlx5_eswitch_unregister_vport_rep(esw, 0, REP_ETH); /* UPLINK PF*/
- }
- 
- void *mlx5e_alloc_nic_rep_priv(struct mlx5_core_dev *mdev)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
-index 8db68369367e..e4473a9ebd50 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
-@@ -64,7 +64,7 @@ struct mlx5e_rep_priv {
- static inline
- struct mlx5e_rep_priv *mlx5e_rep_to_rep_priv(struct mlx5_eswitch_rep *rep)
- {
--	return (struct mlx5e_rep_priv *)rep->priv;
-+	return (struct mlx5e_rep_priv *)rep->rep_if[REP_ETH].priv;
- }
- 
- struct mlx5e_neigh {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-index f462496cce7a..259e91e2d09a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-@@ -617,7 +617,7 @@ static int parse_tunnel_attr(struct mlx5e_priv *priv,
- 						  FLOW_DISSECTOR_KEY_ENC_PORTS,
- 						  f->mask);
- 		struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
--		struct mlx5e_rep_priv *uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw);
-+		struct mlx5e_rep_priv *uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw, REP_ETH);
- 		struct net_device *up_dev = uplink_rpriv->netdev;
- 		struct mlx5e_priv *up_priv = netdev_priv(up_dev);
- 
-@@ -1522,7 +1522,7 @@ static int mlx5e_route_lookup_ipv4(struct mlx5e_priv *priv,
- #else
- 	return -EOPNOTSUPP;
- #endif
--	uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw);
-+	uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw, REP_ETH);
- 	/* if the egress device isn't on the same HW e-switch, we use the uplink */
- 	if (!switchdev_port_same_parent_id(priv->netdev, rt->dst.dev))
- 		*out_dev = uplink_rpriv->netdev;
-@@ -1561,7 +1561,7 @@ static int mlx5e_route_lookup_ipv6(struct mlx5e_priv *priv,
- 
- 	*out_ttl = ip6_dst_hoplimit(dst);
- 
--	uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw);
-+	uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw, REP_ETH);
- 	/* if the egress device isn't on the same HW e-switch, we use the uplink */
- 	if (!switchdev_port_same_parent_id(priv->netdev, dst->dev))
- 		*out_dev = uplink_rpriv->netdev;
-@@ -1864,7 +1864,8 @@ static int mlx5e_attach_encap(struct mlx5e_priv *priv,
- 			      struct mlx5e_tc_flow *flow)
- {
- 	struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
--	struct mlx5e_rep_priv *uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw);
-+	struct mlx5e_rep_priv *uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw,
-+									   REP_ETH);
- 	struct net_device *up_dev = uplink_rpriv->netdev;
- 	unsigned short family = ip_tunnel_info_af(tun_info);
- 	struct mlx5e_priv *up_priv = netdev_priv(up_dev);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-index 3a21ea4e4d24..91175965df7f 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-@@ -45,6 +45,11 @@ enum {
- 	SRIOV_OFFLOADS
- };
- 
-+enum {
-+	REP_ETH,
-+	NUM_REP_TYPES,
-+};
-+
- #ifdef CONFIG_MLX5_ESWITCH
- 
- #define MLX5_MAX_UC_PER_VPORT(dev) \
-@@ -138,16 +143,21 @@ struct mlx5_esw_sq {
- 	struct list_head	 list;
- };
- 
--struct mlx5_eswitch_rep {
-+struct mlx5_eswitch_rep;
-+struct mlx5_eswitch_rep_if {
- 	int		       (*load)(struct mlx5_core_dev *dev,
- 				       struct mlx5_eswitch_rep *rep);
- 	void		       (*unload)(struct mlx5_eswitch_rep *rep);
- 	void			*priv;
-+	bool		       valid;
-+};
-+
-+struct mlx5_eswitch_rep {
-+	struct mlx5_eswitch_rep_if rep_if[NUM_REP_TYPES];
- 	u16		       vport;
- 	u8		       hw_id[ETH_ALEN];
- 	u16		       vlan;
- 	u32		       vlan_refcount;
--	bool		       valid;
- };
- 
- struct mlx5_esw_offload {
-@@ -268,10 +278,12 @@ int mlx5_devlink_eswitch_encap_mode_set(struct devlink *devlink, u8 encap);
- int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink, u8 *encap);
- void mlx5_eswitch_register_vport_rep(struct mlx5_eswitch *esw,
- 				     int vport_index,
--				     struct mlx5_eswitch_rep *rep);
-+				     struct mlx5_eswitch_rep_if *rep_if,
-+				     u8 rep_type);
- void mlx5_eswitch_unregister_vport_rep(struct mlx5_eswitch *esw,
--				       int vport_index);
--void *mlx5_eswitch_get_uplink_priv(struct mlx5_eswitch *esw);
-+				       int vport_index,
-+				       u8 rep_type);
-+void *mlx5_eswitch_get_uplink_priv(struct mlx5_eswitch *esw, u8 rep_type);
- 
- int mlx5_eswitch_add_vlan_action(struct mlx5_eswitch *esw,
- 				 struct mlx5_esw_flow_attr *attr);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index 07f26c1986fc..7ea47446e4b8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -130,7 +130,7 @@ static int esw_set_global_vlan_pop(struct mlx5_eswitch *esw, u8 val)
- 	esw_debug(esw->dev, "%s applying global %s policy\n", __func__, val ? "pop" : "none");
- 	for (vf_vport = 1; vf_vport < esw->enabled_vports; vf_vport++) {
- 		rep = &esw->offloads.vport_reps[vf_vport];
--		if (!rep->valid)
-+		if (!rep->rep_if[REP_ETH].valid)
- 			continue;
- 
- 		err = __mlx5_eswitch_set_vport_vlan(esw, rep->vport, 0, 0, val);
-@@ -719,21 +719,31 @@ int esw_offloads_init_reps(struct mlx5_eswitch *esw)
- 	return 0;
- }
- 
--static void esw_offloads_unload_reps(struct mlx5_eswitch *esw, int nvports)
-+static void esw_offloads_unload_reps_type(struct mlx5_eswitch *esw, int nvports,
-+					  u8 rep_type)
- {
- 	struct mlx5_eswitch_rep *rep;
- 	int vport;
- 
- 	for (vport = nvports - 1; vport >= 0; vport--) {
- 		rep = &esw->offloads.vport_reps[vport];
--		if (!rep->valid)
-+		if (!rep->rep_if[rep_type].valid)
- 			continue;
- 
--		rep->unload(rep);
-+		rep->rep_if[rep_type].unload(rep);
- 	}
- }
- 
--static int esw_offloads_load_reps(struct mlx5_eswitch *esw, int nvports)
-+static void esw_offloads_unload_reps(struct mlx5_eswitch *esw, int nvports)
-+{
-+	u8 rep_type = NUM_REP_TYPES;
-+
-+	while (rep_type-- > 0)
-+		esw_offloads_unload_reps_type(esw, nvports, rep_type);
-+}
-+
-+static int esw_offloads_load_reps_type(struct mlx5_eswitch *esw, int nvports,
-+				       u8 rep_type)
- {
- 	struct mlx5_eswitch_rep *rep;
- 	int vport;
-@@ -741,10 +751,10 @@ static int esw_offloads_load_reps(struct mlx5_eswitch *esw, int nvports)
- 
- 	for (vport = 0; vport < nvports; vport++) {
- 		rep = &esw->offloads.vport_reps[vport];
--		if (!rep->valid)
-+		if (!rep->rep_if[rep_type].valid)
- 			continue;
- 
--		err = rep->load(esw->dev, rep);
-+		err = rep->rep_if[rep_type].load(esw->dev, rep);
- 		if (err)
- 			goto err_reps;
- 	}
-@@ -752,7 +762,25 @@ static int esw_offloads_load_reps(struct mlx5_eswitch *esw, int nvports)
- 	return 0;
- 
- err_reps:
--	esw_offloads_unload_reps(esw, vport);
-+	esw_offloads_unload_reps_type(esw, vport, rep_type);
-+	return err;
-+}
-+
-+static int esw_offloads_load_reps(struct mlx5_eswitch *esw, int nvports)
-+{
-+	u8 rep_type = 0;
-+	int err;
-+
-+	for (rep_type = 0; rep_type < NUM_REP_TYPES; rep_type++)
-+		err = esw_offloads_load_reps_type(esw, nvports, rep_type);
-+		if (err)
-+			goto err_reps;
-+
-+	return err;
-+
-+err_reps:
-+	while (rep_type-- > 0)
-+		esw_offloads_unload_reps_type(esw, nvports, rep_type);
- 	return err;
- }
- 
-@@ -1121,22 +1149,23 @@ int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink, u8 *encap)
- 
- void mlx5_eswitch_register_vport_rep(struct mlx5_eswitch *esw,
- 				     int vport_index,
--				     struct mlx5_eswitch_rep *__rep)
-+				     struct mlx5_eswitch_rep_if *__rep_if,
-+				     u8 rep_type)
- {
- 	struct mlx5_esw_offload *offloads = &esw->offloads;
--	struct mlx5_eswitch_rep *rep;
-+	struct mlx5_eswitch_rep_if *rep_if;
- 
--	rep = &offloads->vport_reps[vport_index];
-+	rep_if = &offloads->vport_reps[vport_index].rep_if[rep_type];
- 
--	rep->load   = __rep->load;
--	rep->unload = __rep->unload;
--	rep->priv = __rep->priv;
-+	rep_if->load   = __rep_if->load;
-+	rep_if->unload = __rep_if->unload;
-+	rep_if->priv = __rep_if->priv;
- 
--	rep->valid = true;
-+	rep_if->valid = true;
- }
- 
- void mlx5_eswitch_unregister_vport_rep(struct mlx5_eswitch *esw,
--				       int vport_index)
-+				       int vport_index, u8 rep_type)
- {
- 	struct mlx5_esw_offload *offloads = &esw->offloads;
- 	struct mlx5_eswitch_rep *rep;
-@@ -1144,17 +1173,17 @@ void mlx5_eswitch_unregister_vport_rep(struct mlx5_eswitch *esw,
- 	rep = &offloads->vport_reps[vport_index];
- 
- 	if (esw->mode == SRIOV_OFFLOADS && esw->vports[vport_index].enabled)
--		rep->unload(rep);
-+		rep->rep_if[rep_type].unload(rep);
- 
--	rep->valid = false;
-+	rep->rep_if[rep_type].valid = false;
- }
- 
--void *mlx5_eswitch_get_uplink_priv(struct mlx5_eswitch *esw)
-+void *mlx5_eswitch_get_uplink_priv(struct mlx5_eswitch *esw, u8 rep_type)
- {
- #define UPLINK_REP_INDEX 0
- 	struct mlx5_esw_offload *offloads = &esw->offloads;
- 	struct mlx5_eswitch_rep *rep;
- 
- 	rep = &offloads->vport_reps[UPLINK_REP_INDEX];
--	return rep->priv;
-+	return rep->rep_if[rep_type].priv;
- }
--- 
-2.13.0
+Such scheme,
+
+Possible future work will include:
+ * Reducing number of locks in RDMA, because of SRCU.
+ * Converting CMA to be based completely on resource tracking.
+ * Addition of other objects and extending current to give full
+   and detailed state of the RDMA kernel stack.
+ * Replacing synchronize_srcu with call_srcu to make destroy flow
+   non-blocking.
+ * Provide reliable device reset flow, preserving resource creation ordering.
+
+The user space was uploaded to [1] and I'll publish it this week.
+
+[1]
+https://git.kernel.org/pub/scm/linux/kernel/git/leon/iproute2.git/log/?h=topic/restrack
+
+The patches are available in the git repository at:
+  git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-next-2017-12-24-4
+
+Or as a topic:
+git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git topic/restrack-srcu
+
+	Thanks
+---------------------------------------
+
+Leon Romanovsky (7):
+  RDMA/restrack: Add general infrastructure to track RDMA resources
+  RDMA/core: Add helper function to create named QPs
+  RDMA: Annotate create QP callers
+  RDMA/core: Add resource tracking for create and destroy CQs
+  RDMA/core: Add resource tracking for create and destroy PDs
+  RDMA/nldev: Provide global resource utilization
+  RDMA/nldev: Provide detailed QP information
+
+ drivers/infiniband/core/Makefile           |   2 +-
+ drivers/infiniband/core/cma.c              |   1 +
+ drivers/infiniband/core/core_priv.h        |  20 ++
+ drivers/infiniband/core/cq.c               |   3 +
+ drivers/infiniband/core/device.c           |   7 +
+ drivers/infiniband/core/mad.c              |   1 +
+ drivers/infiniband/core/nldev.c            | 372 +++++++++++++++++++++++++++++
+ drivers/infiniband/core/restrack.c         | 177 ++++++++++++++
+ drivers/infiniband/core/uverbs_cmd.c       |   5 +-
+ drivers/infiniband/core/uverbs_std_types.c |   2 +
+ drivers/infiniband/core/verbs.c            |   8 +-
+ drivers/infiniband/hw/mlx4/mad.c           |   1 +
+ drivers/infiniband/hw/mlx4/qp.c            |   1 +
+ drivers/infiniband/hw/mlx5/gsi.c           |   2 +
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c    |   4 +-
+ drivers/infiniband/ulp/ipoib/ipoib_verbs.c |   1 +
+ drivers/infiniband/ulp/srp/ib_srp.c        |   1 +
+ drivers/infiniband/ulp/srpt/ib_srpt.c      |   1 +
+ include/rdma/ib_verbs.h                    |  23 +-
+ include/rdma/restrack.h                    | 149 ++++++++++++
+ include/uapi/rdma/rdma_netlink.h           |  54 +++++
+ net/smc/smc_ib.c                           |   1 +
+ 22 files changed, 829 insertions(+), 7 deletions(-)
+ create mode 100644 drivers/infiniband/core/restrack.c
+ create mode 100644 include/rdma/restrack.h
+
+--
+2.15.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
