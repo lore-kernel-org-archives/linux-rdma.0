@@ -1,43 +1,57 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 0/4] RDMA fixes 2017-12-24
-Date: Sun, 24 Dec 2017 13:54:54 +0200
-Message-ID: <20171224115458.27577-1-leon@kernel.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-rc 1/4] RDMA/core: Enforce requirement to hold lists_rwsem semaphore
+Date: Sun, 24 Dec 2017 13:54:55 +0200
+Message-ID: <20171224115458.27577-2-leon@kernel.org>
+References: <20171224115458.27577-1-leon@kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20171224115458.27577-1-leon@kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: linux-rdma@vger.kernel.org, Daniel Jurgens <danielj@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Mark Bloch <markb@mellanox.com>, Moni Shoua <monis@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The four patches targeted for stable@.
+From: Leon Romanovsky <leonro@mellanox.com>
 
-The patches are available in the git repository at:
-  git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-rc-2017-12-24
+Add comment and run time check to the __ib_device_get_by_index()
+function to remind that the caller should hold lists_rwsem semaphore.
 
-	Thanks
----------------------------------------
+Cc: <stable@vger.kernel.org> # v4.13
+Fixes: ecc82c53f9a4 ("RDMA/core: Add and expose static device index")
+Reviewed-by: Mark Bloch <markb@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/core/device.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-Leon Romanovsky (1):
-  RDMA/core: Enforce requirement to hold lists_rwsem semaphore
-
-Majd Dibbiny (1):
-  IB/mlx5: Serialize access to the VMA list
-
-Moni Shoua (2):
-  IB/uverbs: Fix command checking as part of ib_uverbs_ex_modify_qp()
-  IB/core: Verify that QP is security enabled in create and destroy
-
- drivers/infiniband/core/device.c     | 7 ++++++-
- drivers/infiniband/core/security.c   | 3 +++
- drivers/infiniband/core/uverbs_cmd.c | 4 ++--
- drivers/infiniband/core/verbs.c      | 3 ++-
- drivers/infiniband/hw/mlx5/main.c    | 8 ++++++++
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 6 ++++++
- 6 files changed, 27 insertions(+), 4 deletions(-)
-
---
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 30914f3baa5f..3aeaf11d0a83 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -134,10 +134,15 @@ static int ib_device_check_mandatory(struct ib_device *device)
+ 	return 0;
+ }
+ 
++/*
++ * Caller to this function should hold lists_rwsem
++ */
+ struct ib_device *__ib_device_get_by_index(u32 index)
+ {
+ 	struct ib_device *device;
+ 
++	WARN_ON_ONCE(!rwsem_is_locked(&lists_rwsem));
++
+ 	list_for_each_entry(device, &device_list, core_list)
+ 		if (device->index == index)
+ 			return device;
+@@ -526,8 +531,8 @@ int ib_register_device(struct ib_device *device,
+ 		if (!add_client_context(device, client) && client->add)
+ 			client->add(device);
+ 
+-	device->index = __dev_new_index();
+ 	down_write(&lists_rwsem);
++	device->index = __dev_new_index();
+ 	list_add_tail(&device->core_list, &device_list);
+ 	up_write(&lists_rwsem);
+ 	mutex_unlock(&device_mutex);
+-- 
 2.15.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
