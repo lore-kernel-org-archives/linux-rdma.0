@@ -1,35 +1,39 @@
-From: Jia-Ju Bai <baijiaju1990@gmail.com>
-Subject: [PATCH] i40iw: Replace mdelay with msleep in i40iw_wait_pe_ready
-Date: Sun, 24 Dec 2017 18:39:40 +0800
-Message-ID: <1514111980-30502-1-git-send-email-baijiaju1990@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: faisal.latif@intel.com, shiraz.saleem@intel.com, dledford@redhat.com, jgg@ziepe.ca
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Jia-Ju Bai <baijiaju1990@gmail.com>
+From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Subject: Re: [pull request][for-next 00/11] Mellanox, mlx5 E-Switch updates 2017-12-19
+Date: Sun, 24 Dec 2017 13:08:08 +0200
+Message-ID: <CALzJLG9kKW25Z2mQFDx9VNzm-MmqN=J3g=z+xmzogGqNTS=7-g@mail.gmail.com>
+References: <20171219203340.2600-1-saeedm@mellanox.com> <20171220.125631.1837619997849298593.davem@davemloft.net>
+ <1513837142.18312.27.camel@mellanox.com> <20171221.100334.1424255317941540281.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20171221.100334.1424255317941540281.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: Saeed Mahameed <saeedm@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-i40iw_wait_pe_ready is not called in an interrupt handler 
-nor holding a spinlock.
-The function mdelay in it can be replaced with msleep, 
-to reduce busy wait.
+On Thu, Dec 21, 2017 at 5:03 PM, David Miller <davem@davemloft.net> wrote:
+> From: Saeed Mahameed <saeedm@mellanox.com>
+> Date: Thu, 21 Dec 2017 06:19:09 +0000
+>
+>> On Wed, 2017-12-20 at 12:56 -0500, David Miller wrote:
+>>> From: Saeed Mahameed <saeedm@mellanox.com>
+>>> Date: Tue, 19 Dec 2017 12:33:29 -0800
+>>>
+>>> > This patchset is based on rc4 and I see that net-next is still on
+>>> > rc3, i hope
+>>> > this is not a problem.
+>>>
+>>> If it doesn't pull cleanly into net-next, then it would be a problem.
+>>
+>> It does pull cleanly.
+>
+> But if it is based upon rc4 I'll get tons of crap that is non-networking
+> related and you should never create a situation like that.
+>
+> That's not "cleanly"
 
-Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
----
- drivers/infiniband/hw/i40iw/i40iw_main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I see, I will fix that.
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
-index e824296..8098bc1 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_main.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-@@ -1285,7 +1285,7 @@ static void i40iw_wait_pe_ready(struct i40iw_hw *hw)
- 			      __LINE__, statuscpu2);
- 		if ((statuscpu0 == 0x80) && (statuscpu1 == 0x80) && (statuscpu2 == 0x80))
- 			break;	/* SUCCESS */
--		mdelay(1000);
-+		msleep(1000);
- 		retrycount++;
- 	} while (retrycount < 14);
- 	i40iw_wr32(hw, 0xb4040, 0x4C104C5);
--- 
-1.7.9.5
+Thanks Dave.
