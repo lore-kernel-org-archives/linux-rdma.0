@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 2/3] IB/mlx5: Expose dynamic mmap allocation
-Date: Sun, 24 Dec 2017 16:31:35 +0200
-Message-ID: <20171224143136.12306-3-leon@kernel.org>
+Subject: [PATCH rdma-next 3/3] IB/mlx5: Enable QP creation with a given blue flame index
+Date: Sun, 24 Dec 2017 16:31:36 +0200
+Message-ID: <20171224143136.12306-4-leon@kernel.org>
 References: <20171224143136.12306-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171224143136.12306-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,277 +12,166 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch exposes the option to dynamic allocates a UAR, this
-functionality will be used in downstream patch in this series as
-part of QP creation.
-
-Specifically, the user space driver asks for a UAR allocation in a given
-page index, upon success this UAR and its bfregs can be used as part of
-QP creation by the user space driver.
-
-To enable allocating more than 256 UARs the page index is encoded in an
-extra one byte just after the command byte.
+This patch enables QP creation with a given BF index, this allows the
+user space driver to share same BF between few QPs or alternatively have
+a dedicated BF per QP.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c    | 108 +++++++++++++++++++++++++++++------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |   6 ++
- drivers/infiniband/hw/mlx5/qp.c      |   6 +-
- 3 files changed, 99 insertions(+), 21 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
+ drivers/infiniband/hw/mlx5/qp.c      | 51 ++++++++++++++++++++++++++++--------
+ include/uapi/rdma/mlx5-abi.h         |  3 ++-
+ 3 files changed, 43 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 4f2d71298937..9c737cc65503 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1478,6 +1478,10 @@ static int allocate_uars(struct mlx5_ib_dev *dev, struct mlx5_ib_ucontext *conte
- 
- 		mlx5_ib_dbg(dev, "allocated uar %d\n", bfregi->sys_pages[i]);
- 	}
-+
-+	for (i = bfregi->num_static_sys_pages; i < bfregi->num_sys_pages; i++)
-+		bfregi->sys_pages[i] = MLX5_IB_INVALID_UAR_INDEX;
-+
- 	return 0;
- 
- error:
-@@ -1495,13 +1499,17 @@ static int deallocate_uars(struct mlx5_ib_dev *dev, struct mlx5_ib_ucontext *con
- 	int i;
- 
- 	bfregi = &context->bfregi;
--	for (i = 0; i < bfregi->num_static_sys_pages; i++) {
--		err = mlx5_cmd_free_uar(dev->mdev, bfregi->sys_pages[i]);
--		if (err) {
--			mlx5_ib_warn(dev, "failed to free uar %d\n", i);
--			return err;
-+	for (i = 0; i < bfregi->num_sys_pages; i++) {
-+		if (i < bfregi->num_static_sys_pages ||
-+		    bfregi->sys_pages[i] != MLX5_IB_INVALID_UAR_INDEX) {
-+			err = mlx5_cmd_free_uar(dev->mdev, bfregi->sys_pages[i]);
-+			if (err) {
-+				mlx5_ib_warn(dev, "failed to free uar %d, err=%d\n", i, err);
-+				return err;
-+			}
- 		}
- 	}
-+
- 	return 0;
- }
- 
-@@ -1758,15 +1766,13 @@ static int mlx5_ib_dealloc_ucontext(struct ib_ucontext *ibcontext)
- }
- 
- static phys_addr_t uar_index2pfn(struct mlx5_ib_dev *dev,
--				 struct mlx5_bfreg_info *bfregi,
--				 int idx)
-+				 int uar_idx)
- {
- 	int fw_uars_per_page;
- 
- 	fw_uars_per_page = MLX5_CAP_GEN(dev->mdev, uar_4k) ? MLX5_UARS_IN_PAGE : 1;
- 
--	return (pci_resource_start(dev->mdev->pdev, 0) >> PAGE_SHIFT) +
--			bfregi->sys_pages[idx] / fw_uars_per_page;
-+	return (pci_resource_start(dev->mdev->pdev, 0) >> PAGE_SHIFT) + uar_idx / fw_uars_per_page;
- }
- 
- static int get_command(unsigned long offset)
-@@ -1784,6 +1790,12 @@ static int get_index(unsigned long offset)
- 	return get_arg(offset);
- }
- 
-+/* Index resides in an extra byte to enable larger values than 255 */
-+static int get_extended_index(unsigned long offset)
-+{
-+	return get_arg(offset) | ((offset >> 16) & 0xff) << 8;
-+}
-+
- static void  mlx5_ib_vma_open(struct vm_area_struct *area)
- {
- 	/* vma_open is called when a new VMA is created on top of our VMA.  This
-@@ -1927,21 +1939,29 @@ static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
- 	unsigned long idx;
- 	phys_addr_t pfn, pa;
- 	pgprot_t prot;
--	int uars_per_page;
-+	u32 bfreg_dyn_idx = 0;
-+	u32 uar_index;
-+	int dyn_uar = (cmd == MLX5_IB_MMAP_ALLOC_WC);
-+	int max_valid_idx = dyn_uar ? bfregi->num_sys_pages :
-+				bfregi->num_static_sys_pages;
- 
- 	if (vma->vm_end - vma->vm_start != PAGE_SIZE)
- 		return -EINVAL;
- 
--	uars_per_page = get_uars_per_sys_page(dev, bfregi->lib_uar_4k);
--	idx = get_index(vma->vm_pgoff);
--	if (idx % uars_per_page ||
--	    idx * uars_per_page >= bfregi->num_sys_pages) {
--		mlx5_ib_warn(dev, "invalid uar index %lu\n", idx);
-+	if (dyn_uar)
-+		idx = get_extended_index(vma->vm_pgoff) + bfregi->num_static_sys_pages;
-+	else
-+		idx = get_index(vma->vm_pgoff);
-+
-+	if (idx >= max_valid_idx) {
-+		mlx5_ib_warn(dev, "invalid uar index %lu, max=%d\n",
-+			     idx, max_valid_idx);
- 		return -EINVAL;
- 	}
- 
- 	switch (cmd) {
- 	case MLX5_IB_MMAP_WC_PAGE:
-+	case MLX5_IB_MMAP_ALLOC_WC:
- /* Some architectures don't support WC memory */
- #if defined(CONFIG_X86)
- 		if (!pat_enabled())
-@@ -1961,7 +1981,40 @@ static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
- 		return -EINVAL;
- 	}
- 
--	pfn = uar_index2pfn(dev, bfregi, idx);
-+	if (dyn_uar) {
-+		int uars_per_page;
-+
-+		uars_per_page = get_uars_per_sys_page(dev, bfregi->lib_uar_4k);
-+		bfreg_dyn_idx = idx * (uars_per_page * MLX5_NON_FP_BFREGS_PER_UAR);
-+		if (bfreg_dyn_idx >= bfregi->total_num_bfregs) {
-+			mlx5_ib_warn(dev, "invalid bfreg_dyn_idx %u, max=%u\n",
-+				     bfreg_dyn_idx, bfregi->total_num_bfregs);
-+			return -EINVAL;
-+		}
-+
-+		mutex_lock(&bfregi->lock);
-+		/* Fail if uar already allocated, first bfreg index of each
-+		 * page holds its count.
-+		 */
-+		if (bfregi->count[bfreg_dyn_idx]) {
-+			mlx5_ib_warn(dev, "wrong offset, idx %lu is busy, bfregn=%u\n", idx, bfreg_dyn_idx);
-+			mutex_unlock(&bfregi->lock);
-+			return -EINVAL;
-+		}
-+
-+		bfregi->count[bfreg_dyn_idx]++;
-+		mutex_unlock(&bfregi->lock);
-+
-+		err = mlx5_cmd_alloc_uar(dev->mdev, &uar_index);
-+		if (err) {
-+			mlx5_ib_warn(dev, "UAR alloc failed\n");
-+			goto free_bfreg;
-+		}
-+	} else {
-+		uar_index = bfregi->sys_pages[idx];
-+	}
-+
-+	pfn = uar_index2pfn(dev, uar_index);
- 	mlx5_ib_dbg(dev, "uar idx 0x%lx, pfn %pa\n", idx, &pfn);
- 
- 	vma->vm_page_prot = prot;
-@@ -1970,14 +2023,32 @@ static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
- 	if (err) {
- 		mlx5_ib_err(dev, "io_remap_pfn_range failed with error=%d, vm_start=0x%lx, pfn=%pa, mmap_cmd=%s\n",
- 			    err, vma->vm_start, &pfn, mmap_cmd2str(cmd));
--		return -EAGAIN;
-+		err = -EAGAIN;
-+		goto err;
- 	}
- 
- 	pa = pfn << PAGE_SHIFT;
- 	mlx5_ib_dbg(dev, "mapped %s at 0x%lx, PA %pa\n", mmap_cmd2str(cmd),
- 		    vma->vm_start, &pa);
- 
--	return mlx5_ib_set_vma_data(vma, context);
-+	err = mlx5_ib_set_vma_data(vma, context);
-+	if (err)
-+		goto err;
-+
-+	if (dyn_uar)
-+		bfregi->sys_pages[idx] = uar_index;
-+	return 0;
-+
-+err:
-+	if (!dyn_uar)
-+		return err;
-+
-+	mlx5_cmd_free_uar(dev->mdev, idx);
-+
-+free_bfreg:
-+	mlx5_ib_free_bfreg(dev, bfregi, bfreg_dyn_idx);
-+
-+	return err;
- }
- 
- static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vma)
-@@ -1992,6 +2063,7 @@ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vm
- 	case MLX5_IB_MMAP_WC_PAGE:
- 	case MLX5_IB_MMAP_NC_PAGE:
- 	case MLX5_IB_MMAP_REGULAR_PAGE:
-+	case MLX5_IB_MMAP_ALLOC_WC:
- 		return uar_mmap(dev, command, vma, context);
- 
- 	case MLX5_IB_MMAP_GET_CONTIGUOUS_PAGES:
 diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 32b317d16280..c471e11b720c 100644
+index c471e11b720c..88b89ed15d1c 100644
 --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
 +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -77,6 +77,7 @@ enum mlx5_ib_mmap_cmd {
- 	MLX5_IB_MMAP_NC_PAGE			= 3,
- 	/* 5 is chosen in order to be compatible with old versions of libmlx5 */
- 	MLX5_IB_MMAP_CORE_CLOCK			= 5,
-+	MLX5_IB_MMAP_ALLOC_WC			= 6,
- };
+@@ -115,6 +115,7 @@ enum {
  
  enum {
-@@ -112,6 +113,10 @@ enum {
- 	MLX5_TM_MAX_SGE			= 1,
+ 	MLX5_IB_INVALID_UAR_INDEX	= BIT(31),
++	MLX5_IB_INVALID_BFREG		= BIT(31),
  };
  
-+enum {
-+	MLX5_IB_INVALID_UAR_INDEX	= BIT(31),
-+};
-+
  struct mlx5_ib_vma_private_data {
- 	struct list_head list;
- 	struct vm_area_struct *vma;
-@@ -1085,6 +1090,7 @@ struct mlx5_core_dev *mlx5_ib_get_native_port_mdev(struct mlx5_ib_dev *dev,
- void mlx5_ib_put_native_port_mdev(struct mlx5_ib_dev *dev,
- 				  u8 port_num);
- 
-+void mlx5_ib_free_bfreg(struct mlx5_ib_dev *dev, struct mlx5_bfreg_info *bfregi, int bfregn);
- static inline void init_query_mad(struct ib_smp *mad)
- {
- 	mad->base_version  = 1;
 diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 166b37daa794..0f299dfd8ae0 100644
+index 0f299dfd8ae0..4b0420e67870 100644
 --- a/drivers/infiniband/hw/mlx5/qp.c
 +++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -581,7 +581,7 @@ static int alloc_bfreg(struct mlx5_ib_dev *dev,
- 	return bfregn;
+@@ -627,7 +627,8 @@ static void mlx5_ib_unlock_cqs(struct mlx5_ib_cq *send_cq,
+ 			       struct mlx5_ib_cq *recv_cq);
+ 
+ static int bfregn_to_uar_index(struct mlx5_ib_dev *dev,
+-			       struct mlx5_bfreg_info *bfregi, int bfregn)
++			       struct mlx5_bfreg_info *bfregi, int bfregn,
++			       bool dyn_bfreg)
+ {
+ 	int bfregs_per_sys_page;
+ 	int index_of_sys_page;
+@@ -637,8 +638,16 @@ static int bfregn_to_uar_index(struct mlx5_ib_dev *dev,
+ 				MLX5_NON_FP_BFREGS_PER_UAR;
+ 	index_of_sys_page = bfregn / bfregs_per_sys_page;
+ 
+-	offset = bfregn % bfregs_per_sys_page / MLX5_NON_FP_BFREGS_PER_UAR;
++	if (dyn_bfreg) {
++		index_of_sys_page += bfregi->num_static_sys_pages;
++		if (bfregn > bfregi->num_dyn_bfregs ||
++		    bfregi->sys_pages[index_of_sys_page] == MLX5_IB_INVALID_UAR_INDEX) {
++			mlx5_ib_dbg(dev, "Invalid dynamic uar index\n");
++			return -EINVAL;
++		}
++	}
+ 
++	offset = bfregn % bfregs_per_sys_page / MLX5_NON_FP_BFREGS_PER_UAR;
+ 	return bfregi->sys_pages[index_of_sys_page] + offset;
  }
  
--static void free_bfreg(struct mlx5_ib_dev *dev, struct mlx5_bfreg_info *bfregi, int bfregn)
-+void mlx5_ib_free_bfreg(struct mlx5_ib_dev *dev, struct mlx5_bfreg_info *bfregi, int bfregn)
- {
- 	mutex_lock(&bfregi->lock);
- 	bfregi->count[bfregn]--;
-@@ -874,7 +874,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+@@ -764,7 +773,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	struct mlx5_ib_create_qp ucmd;
+ 	struct mlx5_ib_ubuffer *ubuffer = &base->ubuffer;
+ 	int page_shift = 0;
+-	int uar_index;
++	int uar_index = 0;
+ 	int npages;
+ 	u32 offset = 0;
+ 	int bfregn;
+@@ -780,12 +789,20 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	}
+ 
+ 	context = to_mucontext(pd->uobject->context);
+-	/*
+-	 * TBD: should come from the verbs when we have the API
+-	 */
+-	if (qp->flags & MLX5_IB_QP_CROSS_CHANNEL)
++	if (ucmd.flags & MLX5_QP_FLAG_BFREG_INDEX) {
++		uar_index = bfregn_to_uar_index(dev, &context->bfregi,
++						ucmd.bfreg_index, true);
++		if (uar_index < 0)
++			return uar_index;
++
++		bfregn = MLX5_IB_INVALID_BFREG;
++	} else if (qp->flags & MLX5_IB_QP_CROSS_CHANNEL) {
++		/*
++		 * TBD: should come from the verbs when we have the API
++		 */
+ 		/* In CROSS_CHANNEL CQ and QP must use the same UAR */
+ 		bfregn = MLX5_CROSS_CHANNEL_BFREG;
++	}
+ 	else {
+ 		bfregn = alloc_bfreg(dev, &context->bfregi, MLX5_IB_LATENCY_CLASS_HIGH);
+ 		if (bfregn < 0) {
+@@ -804,8 +821,10 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 		}
+ 	}
+ 
+-	uar_index = bfregn_to_uar_index(dev, &context->bfregi, bfregn);
+ 	mlx5_ib_dbg(dev, "bfregn 0x%x, uar_index 0x%x\n", bfregn, uar_index);
++	if (bfregn != MLX5_IB_INVALID_BFREG)
++		uar_index = bfregn_to_uar_index(dev, &context->bfregi, bfregn,
++						false);
+ 
+ 	qp->rq.offset = 0;
+ 	qp->sq.wqe_shift = ilog2(MLX5_SEND_WQE_BB);
+@@ -845,7 +864,10 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	MLX5_SET(qpc, qpc, page_offset, offset);
+ 
+ 	MLX5_SET(qpc, qpc, uar_page, uar_index);
+-	resp->bfreg_index = adjust_bfregn(dev, &context->bfregi, bfregn);
++	if (bfregn != MLX5_IB_INVALID_BFREG)
++		resp->bfreg_index = adjust_bfregn(dev, &context->bfregi, bfregn);
++	else
++		resp->bfreg_index = MLX5_IB_INVALID_BFREG;
+ 	qp->bfregn = bfregn;
+ 
+ 	err = mlx5_ib_db_map_user(context, ucmd.db_addr, &qp->db);
+@@ -874,7 +896,8 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
  		ib_umem_release(ubuffer->umem);
  
  err_bfreg:
--	free_bfreg(dev, &context->bfregi, bfregn);
-+	mlx5_ib_free_bfreg(dev, &context->bfregi, bfregn);
+-	mlx5_ib_free_bfreg(dev, &context->bfregi, bfregn);
++	if (bfregn != MLX5_IB_INVALID_BFREG)
++		mlx5_ib_free_bfreg(dev, &context->bfregi, bfregn);
  	return err;
  }
  
-@@ -887,7 +887,7 @@ static void destroy_qp_user(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+@@ -887,7 +910,13 @@ static void destroy_qp_user(struct mlx5_ib_dev *dev, struct ib_pd *pd,
  	mlx5_ib_db_unmap_user(context, &qp->db);
  	if (base->ubuffer.umem)
  		ib_umem_release(base->ubuffer.umem);
--	free_bfreg(dev, &context->bfregi, qp->bfregn);
-+	mlx5_ib_free_bfreg(dev, &context->bfregi, qp->bfregn);
+-	mlx5_ib_free_bfreg(dev, &context->bfregi, qp->bfregn);
++
++	/*
++	 * Free only the BFREGs which are handled by the kernel.
++	 * BFREGs of UARs allocated dynamically are handled by user.
++	 */
++	if (qp->bfregn != MLX5_IB_INVALID_BFREG)
++		mlx5_ib_free_bfreg(dev, &context->bfregi, qp->bfregn);
  }
  
  static int create_kernel_qp(struct mlx5_ib_dev *dev,
+diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
+index 12c523a1dd18..0f7e45680ce5 100644
+--- a/include/uapi/rdma/mlx5-abi.h
++++ b/include/uapi/rdma/mlx5-abi.h
+@@ -41,6 +41,7 @@ enum {
+ 	MLX5_QP_FLAG_SIGNATURE		= 1 << 0,
+ 	MLX5_QP_FLAG_SCATTER_CQE	= 1 << 1,
+ 	MLX5_QP_FLAG_TUNNEL_OFFLOADS	= 1 << 2,
++	MLX5_QP_FLAG_BFREG_INDEX	= 1 << 3,
+ };
+ 
+ enum {
+@@ -282,7 +283,7 @@ struct mlx5_ib_create_qp {
+ 	__u32	rq_wqe_shift;
+ 	__u32	flags;
+ 	__u32	uidx;
+-	__u32	reserved0;
++	__u32	bfreg_index;
+ 	__u64	sq_buf_addr;
+ };
+ 
 -- 
 2.15.1
 
