@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 1/6] IB/mlx5: Create profile infrastructure to add and remove stages
-Date: Sun, 24 Dec 2017 14:40:10 +0200
-Message-ID: <20171224124015.31917-2-leon@kernel.org>
+Subject: [PATCH rdma-next 3/6] IB/mlx5: Move ODP initialization to the corresponding stage
+Date: Sun, 24 Dec 2017 14:40:12 +0200
+Message-ID: <20171224124015.31917-4-leon@kernel.org>
 References: <20171224124015.31917-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171224124015.31917-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,504 +12,265 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Today we have single function which is used when we add an IB interface,
-break this function into multiple functions.
+Now that we have a stage just for ODP, move all relevant
+initialization logic into one place.
 
-Create stages and a generic mechanism to execute each stage.
-This is in preparation for RDMA/IB representors which might not need
-all stages or will do things differently in some of the stages.
-
-This patch doesn't change any functionality.
+In addition, ODP structs might not be always initialized, the
+srcu which is used to sync between page faults and mkeys deletion
+might not be initialized, wrap the call with a callback which
+is only initialized when the ODP stage is used.
 
 Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c    | 344 +++++++++++++++++++++++++----------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  31 ++++
- 2 files changed, 282 insertions(+), 93 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    |  6 +++---
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 21 ++++++++++++--------
+ drivers/infiniband/hw/mlx5/mr.c      |  7 ++++---
+ drivers/infiniband/hw/mlx5/odp.c     | 38 +++++++++++++++++++++---------------
+ 4 files changed, 42 insertions(+), 30 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 543d0a4c8bf3..16ea7778df55 100644
+index ac72f62a9342..6fbd72b6d624 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3949,30 +3949,21 @@ mlx5_ib_get_vector_affinity(struct ib_device *ibdev, int comp_vector)
- 	return mlx5_get_vector_affinity(dev->mdev, comp_vector);
- }
+@@ -760,7 +760,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+ 	if (MLX5_CAP_GEN(mdev, pg))
+ 		props->device_cap_flags |= IB_DEVICE_ON_DEMAND_PAGING;
+-	props->odp_caps = dev->odp_caps;
++	props->odp_caps = dev->odp.caps;
+ #endif
  
--static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
-+static void mlx5_ib_stage_init_cleanup(struct mlx5_ib_dev *dev)
+ 	if (MLX5_CAP_GEN(mdev, cd))
+@@ -4095,8 +4095,6 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
+ 
+ 	dev->ib_dev.disassociate_ucontext = mlx5_ib_disassociate_ucontext;
+ 
+-	mlx5_ib_internal_fill_odp_caps(dev);
+-
+ 	dev->umr_fence = mlx5_get_umr_fence(MLX5_CAP_GEN(mdev, umr_fence));
+ 
+ 	if (MLX5_CAP_GEN(mdev, imaicl)) {
+@@ -4197,6 +4195,8 @@ static void mlx5_ib_stage_dev_res_cleanup(struct mlx5_ib_dev *dev)
+ 
+ static int mlx5_ib_stage_odp_init(struct mlx5_ib_dev *dev)
  {
--	struct mlx5_ib_dev *dev;
--	enum rdma_link_layer ll;
--	int port_type_cap;
-+	kfree(dev->port);
-+}
++	mlx5_ib_internal_fill_odp_caps(dev);
 +
-+static int mlx5_ib_stage_init_init(struct mlx5_ib_dev *dev)
-+{
-+	struct mlx5_core_dev *mdev = dev->mdev;
- 	const char *name;
- 	int err;
--	int i;
--
--	port_type_cap = MLX5_CAP_GEN(mdev, port_type);
--	ll = mlx5_port_type_cap_to_rdma_ll(port_type_cap);
--
--	printk_once(KERN_INFO "%s", mlx5_version);
--
--	dev = (struct mlx5_ib_dev *)ib_alloc_device(sizeof(*dev));
--	if (!dev)
--		return NULL;
--
--	dev->mdev = mdev;
- 
- 	dev->port = kcalloc(MLX5_CAP_GEN(mdev, num_ports), sizeof(*dev->port),
- 			    GFP_KERNEL);
- 	if (!dev->port)
--		goto err_dealloc;
-+		return -ENOMEM;
- 
- 	rwlock_init(&dev->roce.netdev_lock);
- 	err = get_port_caps(dev);
-@@ -3997,6 +3988,24 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 		dev->mdev->priv.eq_table.num_comp_vectors;
- 	dev->ib_dev.dev.parent		= &mdev->pdev->dev;
- 
-+	return 0;
-+
-+err_free_port:
-+	kfree(dev->port);
-+
-+	return -ENOMEM;
-+}
-+
-+static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
-+{
-+	struct mlx5_core_dev *mdev = dev->mdev;
-+	enum rdma_link_layer ll;
-+	int port_type_cap;
-+	int err;
-+
-+	port_type_cap = MLX5_CAP_GEN(mdev, port_type);
-+	ll = mlx5_port_type_cap_to_rdma_ll(port_type_cap);
-+
- 	dev->ib_dev.uverbs_abi_ver	= MLX5_IB_UVERBS_ABI_VERSION;
- 	dev->ib_dev.uverbs_cmd_mask	=
- 		(1ull << IB_USER_VERBS_CMD_GET_CONTEXT)		|
-@@ -4140,139 +4149,288 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 	}
- 	err = init_node_data(dev);
- 	if (err)
--		goto err_free_port;
-+		return err;
- 
- 	mutex_init(&dev->flow_db.lock);
- 	mutex_init(&dev->cap_mask_mutex);
- 	INIT_LIST_HEAD(&dev->qp_list);
- 	spin_lock_init(&dev->reset_flow_resource_lock);
- 
-+	return 0;
-+}
-+
-+static int mlx5_ib_stage_roce_init(struct mlx5_ib_dev *dev)
-+{
-+	struct mlx5_core_dev *mdev = dev->mdev;
-+	enum rdma_link_layer ll;
-+	int port_type_cap;
-+	int err;
-+
-+	port_type_cap = MLX5_CAP_GEN(mdev, port_type);
-+	ll = mlx5_port_type_cap_to_rdma_ll(port_type_cap);
-+
- 	if (ll == IB_LINK_LAYER_ETHERNET) {
- 		err = mlx5_enable_eth(dev);
- 		if (err)
--			goto err_free_port;
-+			return err;
- 		dev->roce.last_port_state = IB_PORT_DOWN;
- 	}
- 
--	err = create_dev_resources(&dev->devr);
--	if (err)
--		goto err_disable_eth;
-+	return 0;
-+}
- 
--	err = mlx5_ib_odp_init_one(dev);
--	if (err)
--		goto err_rsrc;
-+static void mlx5_ib_stage_roce_cleanup(struct mlx5_ib_dev *dev)
-+{
-+	struct mlx5_core_dev *mdev = dev->mdev;
-+	enum rdma_link_layer ll;
-+	int port_type_cap;
- 
--	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt)) {
--		err = mlx5_ib_alloc_counters(dev);
--		if (err)
--			goto err_odp;
-+	port_type_cap = MLX5_CAP_GEN(mdev, port_type);
-+	ll = mlx5_port_type_cap_to_rdma_ll(port_type_cap);
-+
-+	if (ll == IB_LINK_LAYER_ETHERNET) {
-+		mlx5_disable_eth(dev);
-+		mlx5_remove_netdev_notifier(dev);
- 	}
-+}
- 
--	err = mlx5_ib_init_cong_debugfs(dev);
--	if (err)
--		goto err_cnt;
-+static int mlx5_ib_stage_dev_res_init(struct mlx5_ib_dev *dev)
-+{
-+	return create_dev_resources(&dev->devr);
-+}
-+
-+static void mlx5_ib_stage_dev_res_cleanup(struct mlx5_ib_dev *dev)
-+{
-+	destroy_dev_resources(&dev->devr);
-+}
-+
-+static int mlx5_ib_stage_odp_init(struct mlx5_ib_dev *dev)
-+{
-+	return mlx5_ib_odp_init_one(dev);
-+}
- 
-+static void mlx5_ib_stage_odp_cleanup(struct mlx5_ib_dev *dev)
-+{
-+	mlx5_ib_odp_remove_one(dev);
-+}
-+
-+static int mlx5_ib_stage_counters_init(struct mlx5_ib_dev *dev)
-+{
-+	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt))
-+		return  mlx5_ib_alloc_counters(dev);
-+
-+	return 0;
-+}
-+
-+static void mlx5_ib_stage_counters_cleanup(struct mlx5_ib_dev *dev)
-+{
-+	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt))
-+		mlx5_ib_dealloc_counters(dev);
-+}
-+
-+static int mlx5_ib_stage_cong_debugfs_init(struct mlx5_ib_dev *dev)
-+{
-+	return mlx5_ib_init_cong_debugfs(dev);
-+}
-+
-+static void mlx5_ib_stage_cong_debugfs_cleanup(struct mlx5_ib_dev *dev)
-+{
-+	mlx5_ib_cleanup_cong_debugfs(dev);
-+}
-+
-+static int mlx5_ib_stage_uar_init(struct mlx5_ib_dev *dev)
-+{
- 	dev->mdev->priv.uar = mlx5_get_uars_page(dev->mdev);
- 	if (!dev->mdev->priv.uar)
--		goto err_cong;
-+		return -ENOMEM;
-+	return 0;
-+}
-+
-+static void mlx5_ib_stage_uar_cleanup(struct mlx5_ib_dev *dev)
-+{
-+	mlx5_put_uars_page(dev->mdev, dev->mdev->priv.uar);
-+}
-+
-+static int mlx5_ib_stage_bfrag_init(struct mlx5_ib_dev *dev)
-+{
-+	int err;
- 
- 	err = mlx5_alloc_bfreg(dev->mdev, &dev->bfreg, false, false);
- 	if (err)
--		goto err_uar_page;
-+		return err;
- 
- 	err = mlx5_alloc_bfreg(dev->mdev, &dev->fp_bfreg, false, true);
- 	if (err)
--		goto err_bfreg;
-+		mlx5_free_bfreg(dev->mdev, &dev->fp_bfreg);
- 
--	err = ib_register_device(&dev->ib_dev, NULL);
--	if (err)
--		goto err_fp_bfreg;
-+	return err;
-+}
- 
--	err = create_umr_res(dev);
--	if (err)
--		goto err_dev;
-+static void mlx5_ib_stage_bfrag_cleanup(struct mlx5_ib_dev *dev)
-+{
-+	mlx5_free_bfreg(dev->mdev, &dev->fp_bfreg);
-+	mlx5_free_bfreg(dev->mdev, &dev->bfreg);
-+}
- 
-+static int mlx5_ib_stage_ib_reg_init(struct mlx5_ib_dev *dev)
-+{
-+	return ib_register_device(&dev->ib_dev, NULL);
-+}
-+
-+static void mlx5_ib_stage_ib_reg_cleanup(struct mlx5_ib_dev *dev)
-+{
-+	ib_unregister_device(&dev->ib_dev);
-+}
-+
-+static int mlx5_ib_stage_umr_res_init(struct mlx5_ib_dev *dev)
-+{
-+	return create_umr_res(dev);
-+}
-+
-+static void mlx5_ib_stage_umr_res_cleanup(struct mlx5_ib_dev *dev)
-+{
-+	destroy_umrc_res(dev);
-+}
-+
-+static int mlx5_ib_stage_delay_drop_init(struct mlx5_ib_dev *dev)
-+{
- 	init_delay_drop(dev);
- 
-+	return 0;
-+}
-+
-+static void mlx5_ib_stage_delay_drop_cleanup(struct mlx5_ib_dev *dev)
-+{
-+	cancel_delay_drop(dev);
-+}
-+
-+static int mlx5_ib_stage_class_attr_init(struct mlx5_ib_dev *dev)
-+{
-+	int err;
-+	int i;
-+
- 	for (i = 0; i < ARRAY_SIZE(mlx5_class_attributes); i++) {
- 		err = device_create_file(&dev->ib_dev.dev,
- 					 mlx5_class_attributes[i]);
- 		if (err)
--			goto err_delay_drop;
-+			return err;
- 	}
- 
--	if ((MLX5_CAP_GEN(mdev, port_type) == MLX5_CAP_PORT_TYPE_ETH) &&
--	    MLX5_CAP_GEN(mdev, disable_local_lb))
-+	return 0;
-+}
-+
-+static int mlx5_ib_stage_loopback_init(struct mlx5_ib_dev *dev)
-+{
-+	if ((MLX5_CAP_GEN(dev->mdev, port_type) == MLX5_CAP_PORT_TYPE_ETH) &&
-+	    MLX5_CAP_GEN(dev->mdev, disable_local_lb))
- 		mutex_init(&dev->lb_mutex);
- 
--	dev->ib_active = true;
-+	return 0;
-+}
- 
--	return dev;
-+static void __mlx5_ib_remove(struct mlx5_ib_dev *dev,
-+			     struct mlx5_ib_profile *profile,
-+			     int stage)
-+{
-+	/* Number of stages to cleanup */
-+	while (stage) {
-+		stage--;
-+		if (profile->stage[stage].cleanup)
-+			profile->stage[stage].cleanup(dev);
-+	}
- 
--err_delay_drop:
--	cancel_delay_drop(dev);
--	destroy_umrc_res(dev);
-+	ib_dealloc_device((struct ib_device *)dev);
-+}
- 
--err_dev:
--	ib_unregister_device(&dev->ib_dev);
-+static void *__mlx5_ib_add(struct mlx5_core_dev *mdev,
-+			   struct mlx5_ib_profile *profile)
-+{
-+	struct mlx5_ib_dev *dev;
-+	int err;
-+	int i;
- 
--err_fp_bfreg:
--	mlx5_free_bfreg(dev->mdev, &dev->fp_bfreg);
-+	printk_once(KERN_INFO "%s", mlx5_version);
- 
--err_bfreg:
--	mlx5_free_bfreg(dev->mdev, &dev->bfreg);
-+	dev = (struct mlx5_ib_dev *)ib_alloc_device(sizeof(*dev));
-+	if (!dev)
-+		return NULL;
- 
--err_uar_page:
--	mlx5_put_uars_page(dev->mdev, dev->mdev->priv.uar);
-+	dev->mdev = mdev;
- 
--err_cong:
--	mlx5_ib_cleanup_cong_debugfs(dev);
--err_cnt:
--	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt))
--		mlx5_ib_dealloc_counters(dev);
-+	for (i = 0; i < MLX5_IB_STAGE_MAX; i++) {
-+		if (profile->stage[i].init) {
-+			err = profile->stage[i].init(dev);
-+			if (err)
-+				goto err_out;
-+		}
-+	}
- 
--err_odp:
--	mlx5_ib_odp_remove_one(dev);
-+	dev->profile = profile;
-+	dev->ib_active = true;
- 
--err_rsrc:
--	destroy_dev_resources(&dev->devr);
-+	return dev;
- 
--err_disable_eth:
--	if (ll == IB_LINK_LAYER_ETHERNET) {
--		mlx5_disable_eth(dev);
--		mlx5_remove_netdev_notifier(dev);
--	}
-+err_out:
-+	__mlx5_ib_remove(dev, profile, i);
- 
--err_free_port:
--	kfree(dev->port);
-+	return NULL;
-+}
- 
--err_dealloc:
--	ib_dealloc_device((struct ib_device *)dev);
-+static struct mlx5_ib_profile pf_profile = {
-+	STAGE_CREATE(MLX5_IB_STAGE_INIT,
-+		     mlx5_ib_stage_init_init,
-+		     mlx5_ib_stage_init_cleanup),
-+	STAGE_CREATE(MLX5_IB_STAGE_CAPS,
-+		     mlx5_ib_stage_caps_init,
-+		     NULL),
-+	STAGE_CREATE(MLX5_IB_STAGE_ROCE,
-+		     mlx5_ib_stage_roce_init,
-+		     mlx5_ib_stage_roce_cleanup),
-+	STAGE_CREATE(MLX5_IB_STAGE_DEVICE_RESOURCES,
-+		     mlx5_ib_stage_dev_res_init,
-+		     mlx5_ib_stage_dev_res_cleanup),
-+	STAGE_CREATE(MLX5_IB_STAGE_ODP,
-+		     mlx5_ib_stage_odp_init,
-+		     mlx5_ib_stage_odp_cleanup),
-+	STAGE_CREATE(MLX5_IB_STAGE_COUNTERS,
-+		     mlx5_ib_stage_counters_init,
-+		     mlx5_ib_stage_counters_cleanup),
-+	STAGE_CREATE(MLX5_IB_STAGE_CONG_DEBUGFS,
-+		     mlx5_ib_stage_cong_debugfs_init,
-+		     mlx5_ib_stage_cong_debugfs_cleanup),
-+	STAGE_CREATE(MLX5_IB_STAGE_UAR,
-+		     mlx5_ib_stage_uar_init,
-+		     mlx5_ib_stage_uar_cleanup),
-+	STAGE_CREATE(MLX5_IB_STAGE_BFREG,
-+		     mlx5_ib_stage_bfrag_init,
-+		     mlx5_ib_stage_bfrag_cleanup),
-+	STAGE_CREATE(MLX5_IB_STAGE_IB_REG,
-+		     mlx5_ib_stage_ib_reg_init,
-+		     mlx5_ib_stage_ib_reg_cleanup),
-+	STAGE_CREATE(MLX5_IB_STAGE_UMR_RESOURCES,
-+		     mlx5_ib_stage_umr_res_init,
-+		     mlx5_ib_stage_umr_res_cleanup),
-+	STAGE_CREATE(MLX5_IB_STAGE_DELAY_DROP,
-+		     mlx5_ib_stage_delay_drop_init,
-+		     mlx5_ib_stage_delay_drop_cleanup),
-+	STAGE_CREATE(MLX5_IB_STAGE_CLASS_ATTR,
-+		     mlx5_ib_stage_class_attr_init,
-+		     NULL),
-+	STAGE_CREATE(MLX5_IB_STAGE_LOOPBACK,
-+		     mlx5_ib_stage_loopback_init,
-+		     NULL),
-+};
- 
--	return NULL;
-+static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
-+{
-+	return __mlx5_ib_add(mdev, &pf_profile);
+ 	return mlx5_ib_odp_init_one(dev);
  }
  
- static void mlx5_ib_remove(struct mlx5_core_dev *mdev, void *context)
- {
- 	struct mlx5_ib_dev *dev = context;
--	enum rdma_link_layer ll = mlx5_ib_port_link_layer(&dev->ib_dev, 1);
- 
--	cancel_delay_drop(dev);
--	mlx5_remove_netdev_notifier(dev);
--	ib_unregister_device(&dev->ib_dev);
--	mlx5_free_bfreg(dev->mdev, &dev->fp_bfreg);
--	mlx5_free_bfreg(dev->mdev, &dev->bfreg);
--	mlx5_put_uars_page(dev->mdev, mdev->priv.uar);
--	mlx5_ib_cleanup_cong_debugfs(dev);
--	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt))
--		mlx5_ib_dealloc_counters(dev);
--	destroy_umrc_res(dev);
--	mlx5_ib_odp_remove_one(dev);
--	destroy_dev_resources(&dev->devr);
--	if (ll == IB_LINK_LAYER_ETHERNET)
--		mlx5_disable_eth(dev);
--	kfree(dev->port);
--	ib_dealloc_device(&dev->ib_dev);
-+	__mlx5_ib_remove(dev, dev->profile, MLX5_IB_STAGE_MAX);
- }
- 
- static struct mlx5_interface mlx5_ib_interface = {
 diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 6dd8cac78de2..8f97213e5b4c 100644
+index 8f97213e5b4c..e0d9c03f4432 100644
 --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
 +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -705,6 +705,36 @@ struct mlx5_ib_delay_drop {
- 	struct mlx5_ib_dbg_delay_drop *dbg;
+@@ -735,6 +735,18 @@ struct mlx5_ib_profile {
+ 	struct mlx5_ib_stage stage[MLX5_IB_STAGE_MAX];
  };
  
-+enum mlx5_ib_stages {
-+	MLX5_IB_STAGE_INIT,
-+	MLX5_IB_STAGE_CAPS,
-+	MLX5_IB_STAGE_ROCE,
-+	MLX5_IB_STAGE_DEVICE_RESOURCES,
-+	MLX5_IB_STAGE_ODP,
-+	MLX5_IB_STAGE_COUNTERS,
-+	MLX5_IB_STAGE_CONG_DEBUGFS,
-+	MLX5_IB_STAGE_UAR,
-+	MLX5_IB_STAGE_BFREG,
-+	MLX5_IB_STAGE_IB_REG,
-+	MLX5_IB_STAGE_UMR_RESOURCES,
-+	MLX5_IB_STAGE_DELAY_DROP,
-+	MLX5_IB_STAGE_CLASS_ATTR,
-+	MLX5_IB_STAGE_LOOPBACK,
-+	MLX5_IB_STAGE_MAX,
-+};
-+
-+struct mlx5_ib_stage {
-+	int (*init)(struct mlx5_ib_dev *dev);
-+	void (*cleanup)(struct mlx5_ib_dev *dev);
-+};
-+
-+#define STAGE_CREATE(_stage, _init, _cleanup) \
-+	.stage[_stage] = {.init = _init, .cleanup = _cleanup}
-+
-+struct mlx5_ib_profile {
-+	struct mlx5_ib_stage stage[MLX5_IB_STAGE_MAX];
++struct mlx5_ib_odp {
++	struct ib_odp_caps	caps;
++	u64			max_size;
++	/*
++	 * Sleepable RCU that prevents destruction of MRs while they are still
++	 * being used by a page fault handler.
++	 */
++	struct srcu_struct      mr_srcu;
++	u32			null_mkey;
++	void			(*sync)(struct mlx5_ib_dev *dev);
 +};
 +
  struct mlx5_ib_dev {
  	struct ib_device		ib_dev;
  	struct mlx5_core_dev		*mdev;
-@@ -743,6 +773,7 @@ struct mlx5_ib_dev {
- 	struct mlx5_sq_bfreg	fp_bfreg;
- 	struct mlx5_ib_delay_drop	delay_drop;
- 	struct mlx5_ib_dbg_cc_params	*dbg_cc_params;
-+	struct mlx5_ib_profile	*profile;
+@@ -754,14 +766,7 @@ struct mlx5_ib_dev {
+ 	struct mutex			slow_path_mutex;
+ 	int				fill_delay;
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+-	struct ib_odp_caps	odp_caps;
+-	u64			odp_max_size;
+-	/*
+-	 * Sleepable RCU that prevents destruction of MRs while they are still
+-	 * being used by a page fault handler.
+-	 */
+-	struct srcu_struct      mr_srcu;
+-	u32			null_mkey;
++	struct mlx5_ib_odp		odp;
+ #endif
+ 	struct mlx5_ib_flow_db	flow_db;
+ 	/* protect resources needed as part of reset flow */
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index ad37d8441fa2..059771bfb415 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -58,7 +58,8 @@ static int destroy_mkey(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
  
- 	/* protect the user_td */
- 	struct mutex		lb_mutex;
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+ 	/* Wait until all page fault handlers using the mr complete. */
+-	synchronize_srcu(&dev->mr_srcu);
++	if (dev->odp.sync)
++		dev->odp.sync(dev);
+ #endif
+ 
+ 	return err;
+@@ -1215,7 +1216,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+ 	if (!start && length == U64_MAX) {
+ 		if (!(access_flags & IB_ACCESS_ON_DEMAND) ||
+-		    !(dev->odp_caps.general_caps & IB_ODP_SUPPORT_IMPLICIT))
++		    !(dev->odp.caps.general_caps & IB_ODP_SUPPORT_IMPLICIT))
+ 			return ERR_PTR(-EINVAL);
+ 
+ 		mr = mlx5_ib_alloc_implicit_mr(to_mpd(pd), access_flags);
+@@ -1521,7 +1522,7 @@ static int dereg_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
+ 		/* Prevent new page faults from succeeding */
+ 		mr->live = 0;
+ 		/* Wait for all running page-fault handlers to finish. */
+-		synchronize_srcu(&dev->mr_srcu);
++		dev->odp.sync(dev);
+ 		/* Destroy all page mappings */
+ 		if (umem->odp_data->page_list)
+ 			mlx5_ib_invalidate_range(umem, ib_umem_start(umem),
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index e2197bdda89c..117f87d06919 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -125,7 +125,7 @@ void mlx5_odp_populate_klm(struct mlx5_klm *pklm, size_t offset,
+ 	if (flags & MLX5_IB_UPD_XLT_ZAP) {
+ 		for (i = 0; i < nentries; i++, pklm++) {
+ 			pklm->bcount = cpu_to_be32(MLX5_IMR_MTT_SIZE);
+-			pklm->key = cpu_to_be32(dev->null_mkey);
++			pklm->key = cpu_to_be32(dev->odp.null_mkey);
+ 			pklm->va = 0;
+ 		}
+ 		return;
+@@ -143,7 +143,7 @@ void mlx5_odp_populate_klm(struct mlx5_klm *pklm, size_t offset,
+ 			pklm->key = cpu_to_be32(mtt->ibmr.lkey);
+ 			odp = odp_next(odp);
+ 		} else {
+-			pklm->key = cpu_to_be32(dev->null_mkey);
++			pklm->key = cpu_to_be32(dev->odp.null_mkey);
+ 		}
+ 		mlx5_ib_dbg(dev, "[%d] va %lx key %x\n",
+ 			    i, va, be32_to_cpu(pklm->key));
+@@ -157,7 +157,7 @@ static void mr_leaf_free_action(struct work_struct *work)
+ 	struct mlx5_ib_mr *mr = odp->private, *imr = mr->parent;
+ 
+ 	mr->parent = NULL;
+-	synchronize_srcu(&mr->dev->mr_srcu);
++	mr->dev->odp.sync(mr->dev);
+ 
+ 	ib_umem_release(odp->umem);
+ 	if (imr->live)
+@@ -249,7 +249,7 @@ void mlx5_ib_invalidate_range(struct ib_umem *umem, unsigned long start,
+ 
+ void mlx5_ib_internal_fill_odp_caps(struct mlx5_ib_dev *dev)
+ {
+-	struct ib_odp_caps *caps = &dev->odp_caps;
++	struct ib_odp_caps *caps = &dev->odp.caps;
+ 
+ 	memset(caps, 0, sizeof(*caps));
+ 
+@@ -259,9 +259,9 @@ void mlx5_ib_internal_fill_odp_caps(struct mlx5_ib_dev *dev)
+ 	caps->general_caps = IB_ODP_SUPPORT;
+ 
+ 	if (MLX5_CAP_GEN(dev->mdev, umr_extended_translation_offset))
+-		dev->odp_max_size = U64_MAX;
++		dev->odp.max_size = U64_MAX;
+ 	else
+-		dev->odp_max_size = BIT_ULL(MLX5_MAX_UMR_SHIFT + PAGE_SHIFT);
++		dev->odp.max_size = BIT_ULL(MLX5_MAX_UMR_SHIFT + PAGE_SHIFT);
+ 
+ 	if (MLX5_CAP_ODP(dev->mdev, ud_odp_caps.send))
+ 		caps->per_transport_caps.ud_odp_caps |= IB_ODP_SUPPORT_SEND;
+@@ -641,7 +641,7 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
+ 	u32 *out = NULL;
+ 	size_t offset;
+ 
+-	srcu_key = srcu_read_lock(&dev->mr_srcu);
++	srcu_key = srcu_read_lock(&dev->odp.mr_srcu);
+ 
+ 	io_virt += *bytes_committed;
+ 	bcnt -= *bytes_committed;
+@@ -754,7 +754,7 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
+ 	}
+ 	kfree(out);
+ 
+-	srcu_read_unlock(&dev->mr_srcu, srcu_key);
++	srcu_read_unlock(&dev->odp.mr_srcu, srcu_key);
+ 	*bytes_committed = 0;
+ 	return ret ? ret : npages;
+ }
+@@ -919,10 +919,10 @@ static int mlx5_ib_mr_initiator_pfault_handler(
+ 
+ 	switch (qp->ibqp.qp_type) {
+ 	case IB_QPT_RC:
+-		transport_caps = dev->odp_caps.per_transport_caps.rc_odp_caps;
++		transport_caps = dev->odp.caps.per_transport_caps.rc_odp_caps;
+ 		break;
+ 	case IB_QPT_UD:
+-		transport_caps = dev->odp_caps.per_transport_caps.ud_odp_caps;
++		transport_caps = dev->odp.caps.per_transport_caps.ud_odp_caps;
+ 		break;
+ 	default:
+ 		mlx5_ib_err(dev, "ODP fault on QP of an unsupported transport 0x%x\n",
+@@ -989,7 +989,7 @@ static int mlx5_ib_mr_responder_pfault_handler(
+ 
+ 	switch (qp->ibqp.qp_type) {
+ 	case IB_QPT_RC:
+-		if (!(dev->odp_caps.per_transport_caps.rc_odp_caps &
++		if (!(dev->odp.caps.per_transport_caps.rc_odp_caps &
+ 		      IB_ODP_SUPPORT_RECV))
+ 			goto invalid_transport_or_opcode;
+ 		break;
+@@ -1179,7 +1179,7 @@ void mlx5_ib_pfault(struct mlx5_core_dev *mdev, void *context,
+ 
+ void mlx5_odp_init_mr_cache_entry(struct mlx5_cache_ent *ent)
+ {
+-	if (!(ent->dev->odp_caps.general_caps & IB_ODP_SUPPORT_IMPLICIT))
++	if (!(ent->dev->odp.caps.general_caps & IB_ODP_SUPPORT_IMPLICIT))
+ 		return;
+ 
+ 	switch (ent->order - 2) {
+@@ -1203,28 +1203,34 @@ void mlx5_odp_init_mr_cache_entry(struct mlx5_cache_ent *ent)
+ 	}
+ }
+ 
++static void mlx5_ib_odp_sync(struct mlx5_ib_dev *dev)
++{
++	synchronize_srcu(&dev->odp.mr_srcu);
++}
++
+ int mlx5_ib_odp_init_one(struct mlx5_ib_dev *dev)
+ {
+ 	int ret;
+ 
+-	ret = init_srcu_struct(&dev->mr_srcu);
++	ret = init_srcu_struct(&dev->odp.mr_srcu);
+ 	if (ret)
+ 		return ret;
+ 
+-	if (dev->odp_caps.general_caps & IB_ODP_SUPPORT_IMPLICIT) {
+-		ret = mlx5_cmd_null_mkey(dev->mdev, &dev->null_mkey);
++	if (dev->odp.caps.general_caps & IB_ODP_SUPPORT_IMPLICIT) {
++		ret = mlx5_cmd_null_mkey(dev->mdev, &dev->odp.null_mkey);
+ 		if (ret) {
+ 			mlx5_ib_err(dev, "Error getting null_mkey %d\n", ret);
+ 			return ret;
+ 		}
+ 	}
++	dev->odp.sync = mlx5_ib_odp_sync;
+ 
+ 	return 0;
+ }
+ 
+ void mlx5_ib_odp_remove_one(struct mlx5_ib_dev *dev)
+ {
+-	cleanup_srcu_struct(&dev->mr_srcu);
++	cleanup_srcu_struct(&dev->odp.mr_srcu);
+ }
+ 
+ int mlx5_ib_odp_init(void)
 -- 
 2.15.1
 
