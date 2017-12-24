@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 6/7] RDMA/nldev: Provide global resource utilization
-Date: Sun, 24 Dec 2017 16:18:00 +0200
-Message-ID: <20171224141801.26443-7-leon@kernel.org>
+Subject: [PATCH rdma-next v1 7/7] RDMA/nldev: Provide detailed QP information
+Date: Sun, 24 Dec 2017 16:18:01 +0200
+Message-ID: <20171224141801.26443-8-leon@kernel.org>
 References: <20171224141801.26443-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171224141801.26443-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,141 +12,145 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Export through netlink interface, the global device utilization
-for the rdmatool as the main user of RDMA nldev interface.
+Implement RDMA nldev netlink interface to get detailed
+QP information.
 
-Provide both dumpit and doit callbacks.
-
-As an example of possible output from rdmatool for system with 5
-Mellanox's card
-
-$ rdma res
-1: mlx5_0: curr/max: qp 4/262144 cq 5/16777216 pd 3/16777216
-2: mlx5_1: curr/max: qp 4/262144 cq 5/16777216 pd 3/16777216
-3: mlx5_2: curr/max: qp 4/262144 cq 5/16777216 pd 3/16777216
-4: mlx5_3: curr/max: qp 2/262144 cq 3/16777216 pd 2/16777216
-5: mlx5_4: curr/max: qp 4/262144 cq 5/16777216 pd 3/16777216
+Currently only dumpit variant is implemented.
 
 Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c  | 165 +++++++++++++++++++++++++++++++++++++++
- include/uapi/rdma/rdma_netlink.h |  11 +++
- 2 files changed, 176 insertions(+)
+ drivers/infiniband/core/nldev.c  | 207 +++++++++++++++++++++++++++++++++++++++
+ include/uapi/rdma/rdma_netlink.h |  43 ++++++++
+ 2 files changed, 250 insertions(+)
 
 diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index ed7e639e7dee..7aca9458e946 100644
+index 7aca9458e946..6b22f1f2d084 100644
 --- a/drivers/infiniband/core/nldev.c
 +++ b/drivers/infiniband/core/nldev.c
-@@ -52,6 +52,12 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_PORT_STATE]	= { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_PORT_PHYS_STATE] = { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_DEV_NODE_TYPE] = { .type = NLA_U8 },
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY]	= { .type = NLA_NESTED },
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY]	= { .type = NLA_NESTED },
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME] = { .type = NLA_NUL_STRING,
-+					     .len = 16 },
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR] = { .type = NLA_U64 },
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX]	= { .type = NLA_U64 },
+@@ -58,6 +58,18 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+ 					     .len = 16 },
+ 	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR] = { .type = NLA_U64 },
+ 	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX]	= { .type = NLA_U64 },
++	[RDMA_NLDEV_ATTR_RES_QP]		= { .type = NLA_NESTED },
++	[RDMA_NLDEV_ATTR_RES_QP_ENTRY]		= { .type = NLA_NESTED },
++	[RDMA_NLDEV_ATTR_RES_LQPN]		= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_RES_RQPN]		= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_RES_RQ_PSN]		= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_RES_SQ_PSN]		= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE] = { .type = NLA_U8 },
++	[RDMA_NLDEV_ATTR_RES_TYPE]		= { .type = NLA_U8 },
++	[RDMA_NLDEV_ATTR_RES_STATE]		= { .type = NLA_U8 },
++	[RDMA_NLDEV_ATTR_RES_PID]		= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_RES_PID_COMM]	= { .type = NLA_NUL_STRING,
++						    .len = TASK_COMM_LEN },
  };
  
  static int fill_nldev_handle(struct sk_buff *msg, struct ib_device *device)
-@@ -134,6 +140,79 @@ static int fill_port_info(struct sk_buff *msg,
- 	return 0;
+@@ -213,6 +225,74 @@ static int fill_res_info(struct sk_buff *msg, struct ib_device *device)
+ 	return ret;
  }
  
-+static int fill_res_info_entry(struct sk_buff *msg,
-+			       const char *name, u64 curr, u64 max)
++static int fill_res_qp_entry(struct sk_buff *msg,
++			     struct ib_qp *qp, uint32_t port)
 +{
++	struct ib_qp_init_attr qp_init_attr;
 +	struct nlattr *entry_attr;
++	struct ib_qp_attr qp_attr;
++	int ret;
 +
-+	entry_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY);
++	ret = ib_query_qp(qp, &qp_attr, 0, &qp_init_attr);
++	if (ret)
++		return ret;
++
++	if (port && port != qp_attr.port_num)
++		return 0;
++
++	entry_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_QP_ENTRY);
 +	if (!entry_attr)
-+		return -EMSGSIZE;
++		goto out;
 +
-+	if (nla_put_string(msg, RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME, name))
++	/* In create_qp() port is not set yet */
++	if (qp_attr.port_num &&
++	    nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, qp_attr.port_num))
 +		goto err;
-+	if (nla_put_u64_64bit(msg,
-+			      RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR, curr, 0))
++
++	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_LQPN, qp->qp_num))
 +		goto err;
-+	if (nla_put_u64_64bit(msg,
-+			      RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX, max, 0))
++	if (qp->qp_type == IB_QPT_RC || qp->qp_type == IB_QPT_UC) {
++		if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_RQPN,
++				qp_attr.dest_qp_num))
++			goto err;
++		if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_RQ_PSN,
++				qp_attr.rq_psn))
++			goto err;
++	}
++
++	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_SQ_PSN, qp_attr.sq_psn))
++		goto err;
++
++	if (qp->qp_type == IB_QPT_RC || qp->qp_type == IB_QPT_UC ||
++	    qp->qp_type == IB_QPT_XRC_INI || qp->qp_type == IB_QPT_XRC_TGT) {
++		if (nla_put_u8(msg, RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE,
++			       qp_attr.path_mig_state))
++			goto err;
++	}
++	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_RES_TYPE, qp->qp_type))
++		goto err;
++	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_RES_STATE, qp_attr.qp_state))
++		goto err;
++
++	/* PID == 0 means that this QP was created by kernel */
++	if (qp->res.pid && nla_put_u32(msg,
++				       RDMA_NLDEV_ATTR_RES_PID, qp->res.pid))
++		goto err;
++
++	if (nla_put_string(msg,
++			   RDMA_NLDEV_ATTR_RES_PID_COMM, qp->res.task_comm))
 +		goto err;
 +
 +	nla_nest_end(msg, entry_attr);
++
 +	return 0;
 +
 +err:
 +	nla_nest_cancel(msg, entry_attr);
++out:
 +	return -EMSGSIZE;
-+}
-+
-+static u32 get_res_max(struct ib_device *dev, int idx)
-+{
-+	switch (idx) {
-+	case RDMA_RESTRACK_PD: return dev->attrs.max_pd;
-+	case RDMA_RESTRACK_CQ: return dev->attrs.max_cq;
-+	case RDMA_RESTRACK_QP: return dev->attrs.max_qp;
-+	default:	       return 0; /* unreachable */
-+	}
-+}
-+
-+static int fill_res_info(struct sk_buff *msg, struct ib_device *device)
-+{
-+	static const char *names[_RDMA_RESTRACK_MAX] = {
-+		[RDMA_RESTRACK_PD] = "pd",
-+		[RDMA_RESTRACK_CQ] = "cq",
-+		[RDMA_RESTRACK_QP] = "qp",
-+	};
-+
-+	struct rdma_restrack_root *res = &device->res;
-+	struct nlattr *table_attr;
-+	int ret, i;
-+
-+	if (fill_nldev_handle(msg, device))
-+		return -EMSGSIZE;
-+
-+	table_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_SUMMARY);
-+	if (!table_attr)
-+		return -EMSGSIZE;
-+
-+	for (i = 0; i < _RDMA_RESTRACK_MAX; i++) {
-+		if (!names[i])
-+			continue;
-+		ret = fill_res_info_entry(msg, names[i],
-+					  rdma_restrack_count(res, i),
-+					  get_res_max(device, i));
-+		if (ret)
-+			goto err;
-+	}
-+
-+	nla_nest_end(msg, table_attr);
-+	return 0;
-+
-+err:
-+	nla_nest_cancel(msg, table_attr);
-+	return ret;
 +}
 +
  static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
  			  struct netlink_ext_ack *extack)
  {
-@@ -325,6 +404,88 @@ static int nldev_port_get_dumpit(struct sk_buff *skb,
- 	return skb->len;
+@@ -486,6 +566,120 @@ static int nldev_res_get_dumpit(struct sk_buff *skb,
+ 	return ib_enum_all_devs(_nldev_res_get_dumpit, skb, cb);
  }
  
-+static int nldev_res_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
-+			      struct netlink_ext_ack *extack)
++static int nldev_res_get_qp_dumpit(struct sk_buff *skb,
++				   struct netlink_callback *cb)
 +{
 +	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
++	struct rdma_restrack_entry *res;
++	struct list_head *pos, *nxt;
++	int err, ret, key, idx = 0;
++	struct nlattr *table_attr;
 +	struct ib_device *device;
-+	struct sk_buff *msg;
-+	u32 index;
-+	int ret = -ENOMEM;
++	int start = cb->args[0];
++	struct nlmsghdr *nlh;
++	u32 index, port = 0;
++	struct ib_qp *qp;
 +
-+	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+			  nldev_policy, extack);
-+	if (ret || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
++	err = nlmsg_parse(cb->nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
++			  nldev_policy, NULL);
++	/*
++	 * Right now, we are expecting the device index to get QP information,
++	 * but it is possible to extend this code to return all devices in
++	 * one shot by checking the existence of RDMA_NLDEV_ATTR_DEV_INDEX.
++	 * if it doesn't exist, we will iterate over all devices.
++	 *
++	 * But it is not needed for now.
++	 */
++	if (err || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
 +		return -EINVAL;
 +
 +	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
@@ -154,108 +158,168 @@ index ed7e639e7dee..7aca9458e946 100644
 +	if (!device)
 +		return -EINVAL;
 +
-+	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-+	if (!msg)
-+		goto err;
-+
-+	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
-+			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_GET),
-+			0, 0);
-+
-+	ret = fill_res_info(msg, device);
-+	if (ret)
-+		goto err_free;
-+
-+	nlmsg_end(msg, nlh);
-+	put_device(&device->dev);
-+
-+	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
-+
-+err_free:
-+	nlmsg_free(msg);
-+err:
-+	put_device(&device->dev);
-+	return ret;
-+}
-+
-+static int _nldev_res_get_dumpit(struct ib_device *device,
-+				 struct sk_buff *skb,
-+				 struct netlink_callback *cb,
-+				 unsigned int idx)
-+{
-+	int start = cb->args[0];
-+	struct nlmsghdr *nlh;
-+
-+	if (idx < start)
-+		return 0;
-+
-+	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
-+			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_GET),
-+			0, NLM_F_MULTI);
-+
-+	if (fill_res_info(skb, device)) {
-+		nlmsg_cancel(skb, nlh);
-+		goto out;
++	/*
++	 * If no PORT_INDEX is supplied, we will return QPs from whole device
++	 */
++	if (tb[RDMA_NLDEV_ATTR_PORT_INDEX]) {
++		port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
++		if (!rdma_is_port_valid(device, port)) {
++			ret = -EINVAL;
++			goto err_index;
++		}
 +	}
 +
++	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
++			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_QP_GET),
++			0, NLM_F_MULTI);
++
++	if (fill_nldev_handle(skb, device)) {
++		ret = -EMSGSIZE;
++		goto err;
++	}
++
++	table_attr = nla_nest_start(skb, RDMA_NLDEV_ATTR_RES_QP);
++	if (!table_attr) {
++		ret = -EMSGSIZE;
++		goto err;
++	}
++
++	rdma_restrack_lock(&device->res, RDMA_RESTRACK_QP);
++	for_each_res_safe(pos, nxt, RDMA_RESTRACK_QP, device) {
++		if (idx < start) {
++			idx++;
++			continue;
++		}
++
++		res = list_entry(pos, struct rdma_restrack_entry, list);
++		if (!res->valid)
++			/*
++			 * It can be if resource failed to initialize srcu,
++			 * in other cases internal to restrack lock will esnure
++			 * that this list has only valid entries.
++			 */
++			continue;
++
++		key = srcu_read_lock(&res->srcu);
++
++		qp = container_of(res, struct ib_qp, res);
++		rdma_restrack_unlock(&device->res, RDMA_RESTRACK_QP);
++		ret = fill_res_qp_entry(skb, qp, port);
++		rdma_restrack_lock(&device->res, RDMA_RESTRACK_QP);
++
++		srcu_read_unlock(&res->srcu, key);
++
++		if (ret == -EMSGSIZE)
++			/*
++			 * There is a chance to optimize here.
++			 * It can be done by using list_prepare_entry
++			 * and list_for_each_entry_continue afterwards.
++			 */
++			break;
++		if (ret)
++			goto res_err;
++		idx++;
++	}
++	rdma_restrack_unlock(&device->res, RDMA_RESTRACK_QP);
++
++	nla_nest_end(skb, table_attr);
 +	nlmsg_end(skb, nlh);
-+
-+	idx++;
-+
-+out:
 +	cb->args[0] = idx;
-+	return skb->len;
-+}
++	put_device(&device->dev);
++	return 0;
 +
-+static int nldev_res_get_dumpit(struct sk_buff *skb,
-+				struct netlink_callback *cb)
-+{
-+	/*
-+	 * There is no need to take lock, because
-+	 * we are relying on ib_core's lists_rwsem
-+	 */
-+	return ib_enum_all_devs(_nldev_res_get_dumpit, skb, cb);
++res_err:
++	nla_nest_cancel(skb, table_attr);
++	rdma_restrack_unlock(&device->res, RDMA_RESTRACK_QP);
++
++err:
++	nlmsg_cancel(skb, nlh);
++
++err_index:
++	put_device(&device->dev);
++	return ret;
 +}
 +
  static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
  	[RDMA_NLDEV_CMD_GET] = {
  		.doit = nldev_get_doit,
-@@ -334,6 +495,10 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 		.doit = nldev_port_get_doit,
- 		.dump = nldev_port_get_dumpit,
+@@ -499,6 +693,19 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
+ 		.doit = nldev_res_get_doit,
+ 		.dump = nldev_res_get_dumpit,
  	},
-+	[RDMA_NLDEV_CMD_RES_GET] = {
-+		.doit = nldev_res_get_doit,
-+		.dump = nldev_res_get_dumpit,
++	[RDMA_NLDEV_CMD_RES_QP_GET] = {
++		.dump = nldev_res_get_qp_dumpit,
++		/*
++		 * .doit is not implemented yet for two reasons:
++		 * 1. It is not needed yet.
++		 * 2. There is a need to provide identifier, while it is easy
++		 * for the QPs (device index + port index + LQPN), it is not
++		 * the case for the rest of resources (PD and CQ). Because it
++		 * is better to provide similar interface for all resources,
++		 * let's wait till we will have other resources implemented
++		 * too.
++		 */
 +	},
  };
  
  void __init nldev_init(void)
 diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index cc002e316d09..e041d2eca4b8 100644
+index e041d2eca4b8..9a90cd9f614e 100644
 --- a/include/uapi/rdma/rdma_netlink.h
 +++ b/include/uapi/rdma/rdma_netlink.h
-@@ -236,6 +236,11 @@ enum rdma_nldev_command {
- 	RDMA_NLDEV_CMD_PORT_NEW,
- 	RDMA_NLDEV_CMD_PORT_DEL,
+@@ -241,6 +241,11 @@ enum rdma_nldev_command {
+ 	RDMA_NLDEV_CMD_RES_NEW,
+ 	RDMA_NLDEV_CMD_RES_DEL,
  
-+	RDMA_NLDEV_CMD_RES_GET, /* can dump */
-+	RDMA_NLDEV_CMD_RES_SET,
-+	RDMA_NLDEV_CMD_RES_NEW,
-+	RDMA_NLDEV_CMD_RES_DEL,
++	RDMA_NLDEV_CMD_RES_QP_GET, /* can dump */
++	RDMA_NLDEV_CMD_RES_QP_SET,
++	RDMA_NLDEV_CMD_RES_QP_NEW,
++	RDMA_NLDEV_CMD_RES_QP_DEL,
 +
  	RDMA_NLDEV_NUM_OPS
  };
  
-@@ -303,6 +308,12 @@ enum rdma_nldev_attr {
+@@ -314,6 +319,44 @@ enum rdma_nldev_attr {
+ 	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR,	/* u64 */
+ 	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX,	/* u64 */
  
- 	RDMA_NLDEV_ATTR_DEV_NODE_TYPE,		/* u8 */
- 
-+	RDMA_NLDEV_ATTR_RES_SUMMARY,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY,	/* nested table */
-+	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME,	/* string */
-+	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR,	/* u64 */
-+	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX,	/* u64 */
++	RDMA_NLDEV_ATTR_RES_QP,			/* nested table */
++	RDMA_NLDEV_ATTR_RES_QP_ENTRY,		/* nested table */
++	/*
++	 * Local QPN
++	 */
++	RDMA_NLDEV_ATTR_RES_LQPN,		/* u32 */
++	/*
++	 * Remote QPN,
++	 * Applicable for RC and UC only IBTA 11.2.5.3 QUERY QUEUE PAIR
++	 */
++	RDMA_NLDEV_ATTR_RES_RQPN,		/* u32 */
++	/*
++	 * Receive Queue PSN,
++	 * Applicable for RC and UC only 11.2.5.3 QUERY QUEUE PAIR
++	 */
++	RDMA_NLDEV_ATTR_RES_RQ_PSN,		/* u32 */
++	/*
++	 * Send Queue PSN
++	 */
++	RDMA_NLDEV_ATTR_RES_SQ_PSN,		/* u32 */
++	RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE,	/* u8 */
++	/*
++	 * QP types as visible to RDMA/core, the reserved QPT
++	 * are not exported through this interface.
++	 */
++	RDMA_NLDEV_ATTR_RES_TYPE,		/* u8 */
++	RDMA_NLDEV_ATTR_RES_STATE,		/* u8 */
++	/*
++	 * Process ID created QP, in case of kernel PID is equal to 0
++	 * and this field won't be set, so user will distinguish user/kernel
++	 * processes without relying on PID number.
++	 */
++	RDMA_NLDEV_ATTR_RES_PID,		/* u32 */
++	/*
++	 * The name of process created following resource.
++	 */
++	RDMA_NLDEV_ATTR_RES_PID_COMM,		/* string */
 +
  	RDMA_NLDEV_ATTR_MAX
  };
