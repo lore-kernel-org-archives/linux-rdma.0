@@ -1,180 +1,65 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 3/3] IB/mlx5: Enable QP creation with a given blue flame index
-Date: Sun, 24 Dec 2017 16:31:36 +0200
-Message-ID: <20171224143136.12306-4-leon@kernel.org>
-References: <20171224143136.12306-1-leon@kernel.org>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 00/15] Dual Port mlx5 IB Device for RoCE
+Date: Sun, 24 Dec 2017 23:48:23 +0200
+Message-ID: <CAJ3xEMiqZDs6i7AF8=dCWRYRQrE7=ZbKH4fpVHoziFGMKs3qcQ@mail.gmail.com>
+References: <20171224125741.25464-1-leon@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171224143136.12306-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20171224125741.25464-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Sun, Dec 24, 2017 at 2:57 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> From Daniel:
+>
+> This feature allows RDMA resources (pd, mr, cq, qp, etc) to be used with
+> both physical ports of capable mlx5 devices. When enabled a single IB
+> device with two ports will be registered instead of two single port
+> devices.
+>
+> There are still two PCI devices underlying the two port device, the
+> capabilities indicate which device is the "master" device and which is
+> the slave.
+>
+> When the add callback function is called for a slave device a list of IB
+> devices is searched for matching master device, indicated by the capabilities
+> and the system_image_guid. If a match is found the slave is bound to the
+> master device, otherwise it's placed on a list, in case it's master becomes
+> available in the future. When a master device is added it searches the list
+> of available slaves for a matching slave device. If a match is found it binds
+> the slave as its 2nd port. If no match as found the device still appears
+> as a dual port device, with the 2nd port down. RDMA resources can still
+> created that use the yet unavailable 2nd port.
+>
+> Commands related to IB resources are all routed through the master mlx5_core
+> device. Port specific commands, like those for hardware counters are routed to
+> their respective port mlx5_core device. Since devices can appear and disappear
+> asynchronously a reference count on the underlying mlx5_core device is
+> maintained. Getting and putting this reference is only necessary for commands
+> destined to a specific port, the master core device can be used freely,
+> as it will exist while the IB device exists.
 
-This patch enables QP creation with a given BF index, this allows the
-user space driver to share same BF between few QPs or alternatively have
-a dedicated BF per QP.
+Daniel, so far you only talked on IB devices and a master/slave
+relation you introduce for the
+core devices
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
- drivers/infiniband/hw/mlx5/qp.c      | 51 ++++++++++++++++++++++++++++--------
- include/uapi/rdma/mlx5-abi.h         |  3 ++-
- 3 files changed, 43 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index c471e11b720c..88b89ed15d1c 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -115,6 +115,7 @@ enum {
- 
- enum {
- 	MLX5_IB_INVALID_UAR_INDEX	= BIT(31),
-+	MLX5_IB_INVALID_BFREG		= BIT(31),
- };
- 
- struct mlx5_ib_vma_private_data {
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 0f299dfd8ae0..4b0420e67870 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -627,7 +627,8 @@ static void mlx5_ib_unlock_cqs(struct mlx5_ib_cq *send_cq,
- 			       struct mlx5_ib_cq *recv_cq);
- 
- static int bfregn_to_uar_index(struct mlx5_ib_dev *dev,
--			       struct mlx5_bfreg_info *bfregi, int bfregn)
-+			       struct mlx5_bfreg_info *bfregi, int bfregn,
-+			       bool dyn_bfreg)
- {
- 	int bfregs_per_sys_page;
- 	int index_of_sys_page;
-@@ -637,8 +638,16 @@ static int bfregn_to_uar_index(struct mlx5_ib_dev *dev,
- 				MLX5_NON_FP_BFREGS_PER_UAR;
- 	index_of_sys_page = bfregn / bfregs_per_sys_page;
- 
--	offset = bfregn % bfregs_per_sys_page / MLX5_NON_FP_BFREGS_PER_UAR;
-+	if (dyn_bfreg) {
-+		index_of_sys_page += bfregi->num_static_sys_pages;
-+		if (bfregn > bfregi->num_dyn_bfregs ||
-+		    bfregi->sys_pages[index_of_sys_page] == MLX5_IB_INVALID_UAR_INDEX) {
-+			mlx5_ib_dbg(dev, "Invalid dynamic uar index\n");
-+			return -EINVAL;
-+		}
-+	}
- 
-+	offset = bfregn % bfregs_per_sys_page / MLX5_NON_FP_BFREGS_PER_UAR;
- 	return bfregi->sys_pages[index_of_sys_page] + offset;
- }
- 
-@@ -764,7 +773,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	struct mlx5_ib_create_qp ucmd;
- 	struct mlx5_ib_ubuffer *ubuffer = &base->ubuffer;
- 	int page_shift = 0;
--	int uar_index;
-+	int uar_index = 0;
- 	int npages;
- 	u32 offset = 0;
- 	int bfregn;
-@@ -780,12 +789,20 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	}
- 
- 	context = to_mucontext(pd->uobject->context);
--	/*
--	 * TBD: should come from the verbs when we have the API
--	 */
--	if (qp->flags & MLX5_IB_QP_CROSS_CHANNEL)
-+	if (ucmd.flags & MLX5_QP_FLAG_BFREG_INDEX) {
-+		uar_index = bfregn_to_uar_index(dev, &context->bfregi,
-+						ucmd.bfreg_index, true);
-+		if (uar_index < 0)
-+			return uar_index;
-+
-+		bfregn = MLX5_IB_INVALID_BFREG;
-+	} else if (qp->flags & MLX5_IB_QP_CROSS_CHANNEL) {
-+		/*
-+		 * TBD: should come from the verbs when we have the API
-+		 */
- 		/* In CROSS_CHANNEL CQ and QP must use the same UAR */
- 		bfregn = MLX5_CROSS_CHANNEL_BFREG;
-+	}
- 	else {
- 		bfregn = alloc_bfreg(dev, &context->bfregi, MLX5_IB_LATENCY_CLASS_HIGH);
- 		if (bfregn < 0) {
-@@ -804,8 +821,10 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		}
- 	}
- 
--	uar_index = bfregn_to_uar_index(dev, &context->bfregi, bfregn);
- 	mlx5_ib_dbg(dev, "bfregn 0x%x, uar_index 0x%x\n", bfregn, uar_index);
-+	if (bfregn != MLX5_IB_INVALID_BFREG)
-+		uar_index = bfregn_to_uar_index(dev, &context->bfregi, bfregn,
-+						false);
- 
- 	qp->rq.offset = 0;
- 	qp->sq.wqe_shift = ilog2(MLX5_SEND_WQE_BB);
-@@ -845,7 +864,10 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	MLX5_SET(qpc, qpc, page_offset, offset);
- 
- 	MLX5_SET(qpc, qpc, uar_page, uar_index);
--	resp->bfreg_index = adjust_bfregn(dev, &context->bfregi, bfregn);
-+	if (bfregn != MLX5_IB_INVALID_BFREG)
-+		resp->bfreg_index = adjust_bfregn(dev, &context->bfregi, bfregn);
-+	else
-+		resp->bfreg_index = MLX5_IB_INVALID_BFREG;
- 	qp->bfregn = bfregn;
- 
- 	err = mlx5_ib_db_map_user(context, ucmd.db_addr, &qp->db);
-@@ -874,7 +896,8 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		ib_umem_release(ubuffer->umem);
- 
- err_bfreg:
--	mlx5_ib_free_bfreg(dev, &context->bfregi, bfregn);
-+	if (bfregn != MLX5_IB_INVALID_BFREG)
-+		mlx5_ib_free_bfreg(dev, &context->bfregi, bfregn);
- 	return err;
- }
- 
-@@ -887,7 +910,13 @@ static void destroy_qp_user(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	mlx5_ib_db_unmap_user(context, &qp->db);
- 	if (base->ubuffer.umem)
- 		ib_umem_release(base->ubuffer.umem);
--	mlx5_ib_free_bfreg(dev, &context->bfregi, qp->bfregn);
-+
-+	/*
-+	 * Free only the BFREGs which are handled by the kernel.
-+	 * BFREGs of UARs allocated dynamically are handled by user.
-+	 */
-+	if (qp->bfregn != MLX5_IB_INVALID_BFREG)
-+		mlx5_ib_free_bfreg(dev, &context->bfregi, qp->bfregn);
- }
- 
- static int create_kernel_qp(struct mlx5_ib_dev *dev,
-diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-index 12c523a1dd18..0f7e45680ce5 100644
---- a/include/uapi/rdma/mlx5-abi.h
-+++ b/include/uapi/rdma/mlx5-abi.h
-@@ -41,6 +41,7 @@ enum {
- 	MLX5_QP_FLAG_SIGNATURE		= 1 << 0,
- 	MLX5_QP_FLAG_SCATTER_CQE	= 1 << 1,
- 	MLX5_QP_FLAG_TUNNEL_OFFLOADS	= 1 << 2,
-+	MLX5_QP_FLAG_BFREG_INDEX	= 1 << 3,
- };
- 
- enum {
-@@ -282,7 +283,7 @@ struct mlx5_ib_create_qp {
- 	__u32	rq_wqe_shift;
- 	__u32	flags;
- 	__u32	uidx;
--	__u32	reserved0;
-+	__u32	bfreg_index;
- 	__u64	sq_buf_addr;
- };
- 
--- 
-2.15.1
+> SR-IOV devices follow the same pattern as the physical ones. VFs of a master
+> port can bind VFs of slave ports, if available, and operate as dual port devices.
 
+Not following.
+
+We still have two mlx5 EN devices, right?! and from libvirt point of
+view business are just as usual,
+a VM will be assigned with one VF from any of the core devices (master
+only, slave only or both)
+and this will be an IB device with one port - correct?
+
+Note that most of us are ooo till early January (== early next week),
+so should be able to follow on your proposal then.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
