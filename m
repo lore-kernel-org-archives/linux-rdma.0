@@ -1,112 +1,60 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 2/4] IB/mlx5: Serialize access to the VMA list
-Date: Sun, 24 Dec 2017 13:54:56 +0200
-Message-ID: <20171224115458.27577-3-leon@kernel.org>
-References: <20171224115458.27577-1-leon@kernel.org>
+Subject: Re: [PATCH] i40iw: Replace mdelay with msleep in i40iw_wait_pe_ready
+Date: Sun, 24 Dec 2017 13:57:30 +0200
+Message-ID: <20171224115730.GQ2942@mtr-leonro.local>
+References: <1514111980-30502-1-git-send-email-baijiaju1990@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="iamKNtDj9HjMhSdE"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171224115458.27577-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1514111980-30502-1-git-send-email-baijiaju1990-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jia-Ju Bai <baijiaju1990-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-User-space applications can do mmap and munmap directly.
+--iamKNtDj9HjMhSdE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Since the VMA list is not protected with a mutex, concurrent
-accesses to the VMA list from the mmap and munmap can cause
-data corruption.
+On Sun, Dec 24, 2017 at 06:39:40PM +0800, Jia-Ju Bai wrote:
+> i40iw_wait_pe_ready is not called in an interrupt handler
+> nor holding a spinlock.
+> The function mdelay in it can be replaced with msleep,
+> to reduce busy wait.
+>
+> Signed-off-by: Jia-Ju Bai <baijiaju1990-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/i40iw/i40iw_main.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
 
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.7
-Fixes: 7c2344c3bbf9 ("IB/mlx5: Implements disassociate_ucontext API")
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c    | 8 ++++++++
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 6 ++++++
- 2 files changed, 14 insertions(+)
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index b4ef4d9b6ce5..8ac50de2b242 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1463,6 +1463,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 	}
- 
- 	INIT_LIST_HEAD(&context->vma_private_list);
-+	mutex_init(&context->vma_private_list_mutex);
- 	INIT_LIST_HEAD(&context->db_page_list);
- 	mutex_init(&context->db_page_mutex);
- 
-@@ -1624,7 +1625,9 @@ static void  mlx5_ib_vma_close(struct vm_area_struct *area)
- 	 * mlx5_ib_disassociate_ucontext().
- 	 */
- 	mlx5_ib_vma_priv_data->vma = NULL;
-+	mutex_lock(mlx5_ib_vma_priv_data->vma_private_list_mutex);
- 	list_del(&mlx5_ib_vma_priv_data->list);
-+	mutex_unlock(mlx5_ib_vma_priv_data->vma_private_list_mutex);
- 	kfree(mlx5_ib_vma_priv_data);
- }
- 
-@@ -1644,10 +1647,13 @@ static int mlx5_ib_set_vma_data(struct vm_area_struct *vma,
- 		return -ENOMEM;
- 
- 	vma_prv->vma = vma;
-+	vma_prv->vma_private_list_mutex = &ctx->vma_private_list_mutex;
- 	vma->vm_private_data = vma_prv;
- 	vma->vm_ops =  &mlx5_ib_vm_ops;
- 
-+	mutex_lock(&ctx->vma_private_list_mutex);
- 	list_add(&vma_prv->list, vma_head);
-+	mutex_unlock(&ctx->vma_private_list_mutex);
- 
- 	return 0;
- }
-@@ -1690,6 +1696,7 @@ static void mlx5_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
- 	 * mlx5_ib_vma_close.
- 	 */
- 	down_write(&owning_mm->mmap_sem);
-+	mutex_lock(&context->vma_private_list_mutex);
- 	list_for_each_entry_safe(vma_private, n, &context->vma_private_list,
- 				 list) {
- 		vma = vma_private->vma;
-@@ -1704,6 +1711,7 @@ static void mlx5_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
- 		list_del(&vma_private->list);
- 		kfree(vma_private);
- 	}
-+	mutex_unlock(&context->vma_private_list_mutex);
- 	up_write(&owning_mm->mmap_sem);
- 	mmput(owning_mm);
- 	put_task_struct(owning_process);
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 6dd8cac78de2..dcf30e18409e 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -115,6 +115,9 @@ enum {
- struct mlx5_ib_vma_private_data {
- 	struct list_head list;
- 	struct vm_area_struct *vma;
-+	/* protect vma_private_list add/del
-+	 */
-+	struct mutex *vma_private_list_mutex;
- };
- 
- struct mlx5_ib_ucontext {
-@@ -129,6 +132,9 @@ struct mlx5_ib_ucontext {
- 	/* Transport Domain number */
- 	u32			tdn;
- 	struct list_head	vma_private_list;
-+	/* protect vma_private_list add/del
-+	 */
-+	struct mutex		vma_private_list_mutex;
- 
- 	unsigned long		upd_xlt_page;
- 	/* protect ODP/KSM */
--- 
-2.15.1
+--iamKNtDj9HjMhSdE
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlo/likACgkQ5GN7iDZy
+WKfwww/9GXik8uiZEYKzMmN4NTm8OvEqcRhnqjFqH4IShsuf1HE/J6Z8l6eohd7v
+/cTAs60APnmLp69+h0A0PMNM3oJoQKF79TZ/KDZ4KGNCf98x1pvEY17MxQyP5pEK
+u4hD1GvgvZqY09Fq/ViSbHvbCBQQ6BTGHn0pOzbh/BTcddVf+hvSPvA0CL/WMiMT
+Rjt4mKSoooisG2oGawWCCTQHRdXe5j9ev0lIffDLIy8zWSNJkgjNqUkIHKLmyAyx
+oUrVBtWnOdkcmi8Lp2/cJpBaZVnH/8iInUm0hX3xHGPHmX7BK0GP6mwu6zs2htGY
+Ymbng81UaNyiBH+h1hmkHiBF5zCERXx7LmquXdoas8EUUr6Yd3fcOXT7PQ0UPVGe
+iz8GM8hI8O2q0vscAJzT5cAYbfvur/KHXGj/KF6vW2PK1EKkMqJH7ZArlsDrswF9
+YAcL3GXzaei0p9WSPoC8vSL2jRZHzg9uCVXlNYcYOE+EfvWxev/nKpJ6uvXxzxSf
+F7jyYreHFT+6+AKungSCT2JIWYlwYwV+8LMFJAZgd25VoMUooPgzF19hXnsp7mrW
+a2E2hZKeXyVmjjTqi4abbYHUwjKyH3VEa6dH28JSSkn4exY74J89h4wwbvA+xaNT
+4UEqzDi6PjQ3vPySQzx22icwPBwI/8aaQ7ehF41sIbYML4vuqOc=
+=s+RX
+-----END PGP SIGNATURE-----
+
+--iamKNtDj9HjMhSdE--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
