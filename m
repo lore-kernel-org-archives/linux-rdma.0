@@ -1,85 +1,126 @@
 From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [pull request][for-next V2 00/11] Mellanox, mlx5 E-Switch updates 2017-12-19
-Date: Sun, 24 Dec 2017 15:45:36 +0200
-Message-ID: <20171224134547.600-1-saeedm@mellanox.com>
+Subject: [for-next V2 08/11] net/mlx5e: E-Switch, Move send-to-vport rule struct to en_rep
+Date: Sun, 24 Dec 2017 15:45:44 +0200
+Message-ID: <20171224134547.600-9-saeedm@mellanox.com>
+References: <20171224134547.600-1-saeedm@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171224134547.600-1-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Dave and Doug,
+From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-==============
-This series includes updates for mlx5 E-Switch infrastructures,
-to be merged into net-next and rdma-next trees.
+Move struct mlx5_esw_sq which keeps send-to-vport rule to from the eswitch
+code to mlx5e and rename it to better reflect where it belongs
 
-Mark's patches provide E-Switch refactoring that generalize the mlx5
-E-Switch vf representors interfaces and data structures. The serious is
-mainly focused on moving ethernet (netdev) specific representors logic out
-of E-Switch (eswitch.c) into mlx5e representor module (en_rep.c), which
-provides better separation and allows future support for other types of vf
-representors (e.g. RDMA).
-
-Gal's patches at the end of this serious, provide a simple syntax fix and
-two other patches that handles vport ingress/egress ACL steering name
-spaces to be aligned with the Firmware/Hardware specs.
-===============
-
-V1->V2:
- - Addressed coding style comments in patches #1 and #7
- - The series is still based on rc4, as now I see net-next is also @rc4.
-
-Please pull and let me know if there's any problem.
-
-Thanks,
-Saeed.
-
+Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.c  | 22 +++++++++++-----------
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.h  |  5 +++++
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.h |  5 -----
+ 3 files changed, 16 insertions(+), 16 deletions(-)
 
-The following changes since commit 1291a0d5049dbc06baaaf66a9ff3f53db493b19b:
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+index 5b2b673c0b13..c6a77f8e99a4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+@@ -193,17 +193,17 @@ int mlx5e_attr_get(struct net_device *dev, struct switchdev_attr *attr)
+ static void mlx5e_sqs2vport_stop(struct mlx5_eswitch *esw,
+ 				 struct mlx5_eswitch_rep *rep)
+ {
+-	struct mlx5_esw_sq *esw_sq, *tmp;
++	struct mlx5e_rep_sq *rep_sq, *tmp;
+ 	struct mlx5e_rep_priv *rpriv;
+ 
+ 	if (esw->mode != SRIOV_OFFLOADS)
+ 		return;
+ 
+ 	rpriv = mlx5e_rep_to_rep_priv(rep);
+-	list_for_each_entry_safe(esw_sq, tmp, &rpriv->vport_sqs_list, list) {
+-		mlx5_eswitch_del_send_to_vport_rule(esw_sq->send_to_vport_rule);
+-		list_del(&esw_sq->list);
+-		kfree(esw_sq);
++	list_for_each_entry_safe(rep_sq, tmp, &rpriv->vport_sqs_list, list) {
++		mlx5_eswitch_del_send_to_vport_rule(rep_sq->send_to_vport_rule);
++		list_del(&rep_sq->list);
++		kfree(rep_sq);
+ 	}
+ }
+ 
+@@ -213,7 +213,7 @@ static int mlx5e_sqs2vport_start(struct mlx5_eswitch *esw,
+ {
+ 	struct mlx5_flow_handle *flow_rule;
+ 	struct mlx5e_rep_priv *rpriv;
+-	struct mlx5_esw_sq *esw_sq;
++	struct mlx5e_rep_sq *rep_sq;
+ 	int err;
+ 	int i;
+ 
+@@ -222,8 +222,8 @@ static int mlx5e_sqs2vport_start(struct mlx5_eswitch *esw,
+ 
+ 	rpriv = mlx5e_rep_to_rep_priv(rep);
+ 	for (i = 0; i < sqns_num; i++) {
+-		esw_sq = kzalloc(sizeof(*esw_sq), GFP_KERNEL);
+-		if (!esw_sq) {
++		rep_sq = kzalloc(sizeof(*rep_sq), GFP_KERNEL);
++		if (!rep_sq) {
+ 			err = -ENOMEM;
+ 			goto out_err;
+ 		}
+@@ -234,11 +234,11 @@ static int mlx5e_sqs2vport_start(struct mlx5_eswitch *esw,
+ 								sqns_array[i]);
+ 		if (IS_ERR(flow_rule)) {
+ 			err = PTR_ERR(flow_rule);
+-			kfree(esw_sq);
++			kfree(rep_sq);
+ 			goto out_err;
+ 		}
+-		esw_sq->send_to_vport_rule = flow_rule;
+-		list_add(&esw_sq->list, &rpriv->vport_sqs_list);
++		rep_sq->send_to_vport_rule = flow_rule;
++		list_add(&rep_sq->list, &rpriv->vport_sqs_list);
+ 	}
+ 	return 0;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
+index e4473a9ebd50..b9b481f2833a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
+@@ -133,6 +133,11 @@ struct mlx5e_encap_entry {
+ 	int encap_size;
+ };
+ 
++struct mlx5e_rep_sq {
++	struct mlx5_flow_handle	*send_to_vport_rule;
++	struct list_head	 list;
++};
++
+ void *mlx5e_alloc_nic_rep_priv(struct mlx5_core_dev *mdev);
+ void mlx5e_register_vport_reps(struct mlx5e_priv *priv);
+ void mlx5e_unregister_vport_reps(struct mlx5e_priv *priv);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+index 91175965df7f..3b481182f13a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+@@ -138,11 +138,6 @@ struct mlx5_eswitch_fdb {
+ 	};
+ };
+ 
+-struct mlx5_esw_sq {
+-	struct mlx5_flow_handle	*send_to_vport_rule;
+-	struct list_head	 list;
+-};
+-
+ struct mlx5_eswitch_rep;
+ struct mlx5_eswitch_rep_if {
+ 	int		       (*load)(struct mlx5_core_dev *dev,
+-- 
+2.13.0
 
-  Linux 4.15-rc4 (2017-12-17 18:59:59 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git tags/mlx5-shared-4.16-1
-
-for you to fetch changes up to 4401e52c90702c5500ac4ea28dc923e0f572aa95:
-
-  net/mlx5: Separate ingress/egress namespaces for each vport (2017-12-24 03:36:56 -0800)
-
-----------------------------------------------------------------
-mlx5-shared-4.16-1
-
-mlx5 shared code for both rdma-next and net-next trees.
-
-----------------------------------------------------------------
-Gal Pressman (3):
-      net/mlx5e: E-Switch, Use the name of static array instead of its address
-      net/mlx5: Fix ingress/egress naming mistake
-      net/mlx5: Separate ingress/egress namespaces for each vport
-
-Mark Bloch (8):
-      net/mlx5: E-Switch, Refactor vport representors initialization
-      net/mlx5: E-Switch, Refactor load/unload of representors
-      net/mlx5: E-Switch, Simplify representor load/unload callback API
-      net/mlx5: E-Switch, Move mlx5e only logic outside E-Switch
-      net/mlx5: E-Switch, Create a dedicated send to vport rule deletion function
-      net/mlx5e: Move ethernet representors data into separate struct
-      net/mlx5: E-Switch, Create generic header struct to be used by representors
-      net/mlx5e: E-Switch, Move send-to-vport rule struct to en_rep
-
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c   | 147 +++++++++-----
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.h   |  14 ++
- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    |  15 +-
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |  48 +++--
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.h  |  45 +++--
- .../ethernet/mellanox/mlx5/core/eswitch_offloads.c | 215 ++++++++++++---------
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c  | 145 +++++++++++---
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.h  |   4 +-
- include/linux/mlx5/fs.h                            |   4 +
- 9 files changed, 423 insertions(+), 214 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
