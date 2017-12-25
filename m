@@ -1,150 +1,84 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 3/9] mlx5: Add support for the ibv_td object and its related verbs
-Date: Mon, 25 Dec 2017 15:56:55 +0200
-Message-ID: <1514210221-10466-4-git-send-email-yishaih@mellanox.com>
-References: <1514210221-10466-1-git-send-email-yishaih@mellanox.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core] verbs: Remove comp_mask checks from verbs.h
+Date: Mon, 25 Dec 2017 16:32:41 +0200
+Message-ID: <20171225143241.GJ2942@mtr-leonro.local>
+References: <20171220231350.GA19130@ziepe.ca>
+ <20171221054216.GF2942@mtr-leonro.local>
+ <20171221162442.GC20015@ziepe.ca>
+ <20171221171947.GK2942@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="xtcA6s3naMKOsC7S"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1514210221-10466-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171221171947.GK2942-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch introduces the initial implementation of the
-ibv_alloc/dealloc_td verbs.
 
-Upon TD creation a dedicated BF (blue-flame) register should be attached
-to its object and upon destruction the BF will be detached.
+--xtcA6s3naMKOsC7S
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The motivation behind this, is to enable an application to create QP(s)
-with a given TD (by using the ibv_parent_domain) and then benefit from
-dropping the lock around the internal BF register upon post send.
+On Thu, Dec 21, 2017 at 07:19:47PM +0200, Leon Romanovsky wrote:
+> On Thu, Dec 21, 2017 at 09:24:42AM -0700, Jason Gunthorpe wrote:
+> > On Thu, Dec 21, 2017 at 07:42:16AM +0200, Leon Romanovsky wrote:
+> >
+> > > Both these functions are performing their checks of cq_attr->comp_mask,
+> > > but return different errno. I think that it is perfect timing to start
+> > > organize and unite our return errors. They should return the same errno.
+> >
+> > Bugs bugs everywhere.. This is going to be another patch. I would drop
+> > the errno set into check_comp_mask and change all comp_mask users to
+> > call it, and probably drop the _RESERVED uglyness too, but another
+> > patch.
+> >
+> > > > In the case of ibv_queryrt_values_ex, there is no check in the function
+> > > > op, which is an ABI mistake. So move the check there.
+> > >
+> > > ibv_queryrt_values_ex -> ibv_query_rt_values_ex
+> >
+> > K.. Are you going to collect the loose patches on the list? Can you
+> > fix the typo when you grab this one :)
+>
+> No problem, I scheduled for myself time on Sunday to sync list,
+> patchworks and rdma-core.
 
-Downstream patches in this series add the above functionality.
+I fixed the patch and changed it to preserve the errno in mlx4 to be EINVAL.
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- providers/mlx5/mlx5.c  |  2 ++
- providers/mlx5/mlx5.h  | 14 ++++++++++++++
- providers/mlx5/verbs.c | 50 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 66 insertions(+)
+Thanks
 
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index 3648621..d078548 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -1026,6 +1026,8 @@ static int mlx5_init_context(struct verbs_device *vdev,
- 	v_ctx->destroy_rwq_ind_table = mlx5_destroy_rwq_ind_table;
- 	v_ctx->post_srq_ops = mlx5_post_srq_ops;
- 	v_ctx->modify_cq = mlx5_modify_cq;
-+	v_ctx->alloc_td = mlx5_alloc_td;
-+	v_ctx->dealloc_td = mlx5_dealloc_td;
- 
- 	memset(&device_attr, 0, sizeof(device_attr));
- 	if (!mlx5_query_device_ex(ctx, NULL, &device_attr,
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index 5a1f7c0..4d4c583 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -320,6 +320,12 @@ struct mlx5_buf {
- 	enum mlx5_alloc_type		type;
- };
- 
-+struct mlx5_td {
-+	struct ibv_td			ibv_td;
-+	struct mlx5_bf			*bf;
-+	atomic_int			refcount;
-+};
-+
- struct mlx5_pd {
- 	struct ibv_pd			ibv_pd;
- 	uint32_t			pdn;
-@@ -568,6 +574,11 @@ static inline struct mlx5_srq *to_msrq(struct ibv_srq *ibsrq)
- 	return container_of(vsrq, struct mlx5_srq, vsrq);
- }
- 
-+static inline struct mlx5_td *to_mtd(struct ibv_td *ibtd)
-+{
-+	return to_mxxx(td, td);
-+}
-+
- static inline struct mlx5_qp *to_mqp(struct ibv_qp *ibqp)
- {
- 	struct verbs_qp *vqp = (struct verbs_qp *)ibqp;
-@@ -753,6 +764,9 @@ int mlx5_post_srq_ops(struct ibv_srq *srq,
- 		      struct ibv_ops_wr *wr,
- 		      struct ibv_ops_wr **bad_wr);
- 
-+struct ibv_td *mlx5_alloc_td(struct ibv_context *context, struct ibv_td_init_attr *init_attr);
-+int mlx5_dealloc_td(struct ibv_td *td);
-+
- static inline void *mlx5_find_uidx(struct mlx5_context *ctx, uint32_t uidx)
- {
- 	int tind = uidx >> MLX5_UIDX_TABLE_SHIFT;
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index a3323fd..43db501 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -153,6 +153,56 @@ struct ibv_pd *mlx5_alloc_pd(struct ibv_context *context)
- 	return &pd->ibv_pd;
- }
- 
-+static struct mlx5_bf *mlx5_attach_dedicated_bf(struct ibv_context *context)
-+{
-+	return NULL;
-+}
-+
-+static void mlx5_detach_dedicated_bf(struct ibv_context *context, struct mlx5_bf *bf)
-+{
-+}
-+
-+struct ibv_td *mlx5_alloc_td(struct ibv_context *context, struct ibv_td_init_attr *init_attr)
-+{
-+	struct mlx5_td	*td;
-+
-+	if (init_attr->comp_mask) {
-+		errno = EINVAL;
-+		return NULL;
-+	}
-+
-+	td = calloc(1, sizeof(*td));
-+	if (!td) {
-+		errno = ENOMEM;
-+		return NULL;
-+	}
-+
-+	td->bf = mlx5_attach_dedicated_bf(context);
-+	if (!td->bf) {
-+		free(td);
-+		return NULL;
-+	}
-+
-+	td->ibv_td.context = context;
-+	atomic_init(&td->refcount, 1);
-+
-+	return &td->ibv_td;
-+}
-+
-+int mlx5_dealloc_td(struct ibv_td *ib_td)
-+{
-+	struct mlx5_td	*td;
-+
-+	td = to_mtd(ib_td);
-+	if (atomic_load(&td->refcount) > 1)
-+		return EBUSY;
-+
-+	mlx5_detach_dedicated_bf(ib_td->context, td->bf);
-+	free(td);
-+
-+	return 0;
-+}
-+
- int mlx5_free_pd(struct ibv_pd *pd)
- {
- 	int ret;
--- 
-1.8.3.1
+>
+> Thanks
+>
+> >
+> > Jason
 
+
+
+--xtcA6s3naMKOsC7S
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpBDAkACgkQ5GN7iDZy
+WKdWaQ/+I2S2TX1vCPe80Sfw4Uwwlif9LS0vEfYN9TcG/x/z0EUkJ2nvq+jY/D7y
+FwHimMxUUNvDOYpW/3nJJsAbGyvasgoK9tVyi7genwLtgeZoMNSOSbpOU4hWJtQS
+drFByzjkLeJi6mMH3DWTpnvDjOJ4aFr5yBV1IagS3W9VE1RuG7FgI7S9n6rww7kd
+h4qkw8zIN8RUo60mxiIqzq098PovSBrHF73XKreLFcFhVuBTDGKW7pVVlimwqhSf
+1S0EjiEAYi3amEybGuAVp+oHVG+FDN6AQe9eMXMAv2GOZCBwEqygvlv2IJx/op4R
+wYjn4LhrIQc+Yi6VH9+ipJ7vhUmLTFVqhke2NqQUQ3L2Y7wzckmbqVtDue35/JMW
+7IT2KnIe7DLNUhGzWYemX12iOwRL7Q5zV71aI9s+GTr18WFCKfXPtbmhQsLKhIy6
+XmFZZTCsIRKt6ddUyQgTLhPFpkW4bMjUmlZWSEVDCDAsbDPvKBj3Y+v4TeWPVCOd
+07jSJbLv/j9pjFqvjhUfdLg4c1kVCOmd4zavN3lzUROkGG5fnLXLegQWEOQiTx/V
+JuT2Om5KI1qBC+c00o9Y8SPj6UTV2/Sk2K70tkLQAAkPhqiNdGxU7elGl1+9YRy2
+kKOA5xDjIdPeNi/0xTCO1sEMbKTIPuE5sAo31O1ipelDZu9YjIE=
+=slcg
+-----END PGP SIGNATURE-----
+
+--xtcA6s3naMKOsC7S--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
