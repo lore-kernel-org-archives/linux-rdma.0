@@ -1,64 +1,2933 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: insight into a WARNING from softROCE
-Date: Mon, 25 Dec 2017 13:09:10 +0200
-Message-ID: <CAG9sBKOQ-gn8int2TSjnEo147jR2=Pnv7xKJqgs5iV3S7qFTEQ@mail.gmail.com>
-References: <CAN-5tyFENoK6f20zjeUEbXNQh-bZAaH-iBf4Q6G8uLjz0eHnqA@mail.gmail.com>
- <CAG9sBKM2qTSrB2sZnrLsUxAhL+ADursUTyPojd8HY5PF4Nf9Zg@mail.gmail.com> <581B7086-DBD2-4121-8A71-03E10757B4A1@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-core] Remove the obsolete libibcm library
+Date: Mon, 25 Dec 2017 14:31:32 +0200
+Message-ID: <20171225123132.6063-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <581B7086-DBD2-4121-8A71-03E10757B4A1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Olga Kornievskaia <olga.kornievskaia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 22, 2017 at 5:43 PM, Olga Kornievskaia
-<olga.kornievskaia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->
-> Hi Moni,
->
->> On Dec 21, 2017, at 3:19 AM, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->>
->> Hi Olga
->> As far as I can tell the warning in
->> drivers/infiniband/sw/rxe/rxe_comp.c:741 went through check_psn() ->
->> COMPST_ERROR_RETRY -> COMPST_ERROR. In that case the wqe_status should
->> have been IB_WC_RETRY_EXC_ERR and not IB_WC_SUCCESS.
->
-> My conclusion was from trying to figure out why the warning was seen in v=
-ar log messages which then followed with error that retry limit exceeded an=
-d connection manager dropping and re establishing the connection. Sounds li=
-ke my conclusion wasnt correct.
->
-> It seems like this warning is meant to signal that something went wrong i=
-n the code and this state of wqe status success yet being in error state is=
- unexpected.
->
-> I thought the developers would be interested in investigating but maybe i=
-t=E2=80=99s not an interesting condition. Specially since it sounds like yo=
-ur assessment is that packet loss causes the hiccup.
->
-> I wish then there was a warning that notes packet loss and warns the user=
-. I understand the protocol assumes lossless communication so it shouldn=E2=
-=80=99t be dealing w packet loss.
->
->> Can you please be more specific and explain how did you get to this conc=
-lusion?
->
-> What other specifics can I provide? I added printks trying to trace the W=
-ARN message. Should I share a patch w printks w the output?
-I wonder how we get to this point when status is IB_WC_SUCCESS but
-through retry exceeded error. If you traced it maybe you can explain.
->
->> BTW, what was the test you were running?
->
-> I was running NFS testsuite (cthon). This was done on a laptop running 2V=
-Ms.
-I don't promise that we will run it immediately but it if you provide
-a HOWTO for this test I will appreciate it.
->
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+The libibcm library was marked as obsolete long time ago,
+the following patch is first step before removing ucm from
+the kernel.
+
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+PR: https://github.com/linux-rdma/rdma-core/pull/279
+---
+ CMakeLists.txt                  |    2 -
+ Documentation/CMakeLists.txt    |    1 -
+ Documentation/libibcm.md        |   16 -
+ MAINTAINERS                     |    6 -
+ README.md                       |    1 -
+ debian/control                  |   39 --
+ debian/copyright                |    6 -
+ debian/libibcm-dev.install      |    3 -
+ debian/libibcm1.install         |    2 -
+ debian/libibcm1.symbols         |   23 -
+ debian/rules                    |    1 -
+ libibcm/CMakeLists.txt          |   11 -
+ libibcm/cm.c                    | 1025 ---------------------------------------
+ libibcm/cm.h                    |  587 ----------------------
+ libibcm/cm_abi.h                |   73 ---
+ libibcm/examples/CMakeLists.txt |    2 -
+ libibcm/examples/cmpost.c       |  774 -----------------------------
+ libibcm/libibcm.map             |   26 -
+ redhat/rdma-core.spec           |   20 -
+ suse/rdma-core.spec             |   22 -
+ 20 files changed, 2640 deletions(-)
+ delete mode 100644 Documentation/libibcm.md
+ delete mode 100644 debian/libibcm-dev.install
+ delete mode 100644 debian/libibcm1.install
+ delete mode 100644 debian/libibcm1.symbols
+ delete mode 100644 libibcm/CMakeLists.txt
+ delete mode 100644 libibcm/cm.c
+ delete mode 100644 libibcm/cm.h
+ delete mode 100644 libibcm/cm_abi.h
+ delete mode 100644 libibcm/examples/CMakeLists.txt
+ delete mode 100644 libibcm/examples/cmpost.c
+ delete mode 100644 libibcm/libibcm.map
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b1467317..f11bcb73 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -429,7 +429,6 @@ add_subdirectory(libibverbs)
+ add_subdirectory(libibverbs/man)
+ add_subdirectory(librdmacm)
+ add_subdirectory(librdmacm/man)
+-add_subdirectory(libibcm)
+
+ # Providers
+ if (HAVE_COHERENT_DMA)
+@@ -459,7 +458,6 @@ add_subdirectory(ibacm) # NO SPARSE
+ if (NOT NL_KIND EQUAL 0)
+   add_subdirectory(iwpmd)
+ endif()
+-add_subdirectory(libibcm/examples)
+ add_subdirectory(libibumad/tests)
+ add_subdirectory(libibverbs/examples)
+ add_subdirectory(librdmacm/examples)
+diff --git a/Documentation/CMakeLists.txt b/Documentation/CMakeLists.txt
+index 4b9e07f2..bda16fa3 100644
+--- a/Documentation/CMakeLists.txt
++++ b/Documentation/CMakeLists.txt
+@@ -1,7 +1,6 @@
+ install(FILES
+   ibacm.md
+   ibsrpdm.md
+-  libibcm.md
+   libibverbs.md
+   librdmacm.md
+   rxe.md
+diff --git a/Documentation/libibcm.md b/Documentation/libibcm.md
+deleted file mode 100644
+index 663e7736..00000000
+--- a/Documentation/libibcm.md
++++ /dev/null
+@@ -1,16 +0,0 @@
+-# Device files
+-
+-The userspace CM uses a device file per adapter present.
+-
+-To create the appropriate character device file automatically with
+-udev, a rule like
+-
+-    KERNEL="ucm*", NAME="infiniband/%k", MODE="0666"
+-
+-can be used.  This will create the device node named
+-
+-    /dev/infiniband/ucm0
+-
+-for the first HCA in the system, or you can create it manually
+-
+-  mknod /dev/infiniband/ucm0 c 231 224
+diff --git a/MAINTAINERS b/MAINTAINERS
+index e6f13950..f64e13a0 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -99,12 +99,6 @@ H:	Robert Sharp <robert.o.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ S:	Supported
+ F:	iwpmd/
+
+-LIBIBCM USERSPACE LIBRARY FOR IB CONNECTION MANAGEMENT (/dev/infiniband/ucmX)
+-M:	Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+-H:	Libor Michalek <libor-nF87da4h5whBDgjK7y7TUQ@public.gmane.org>
+-S:	Obsolete
+-F:	libibcm/
+-
+ LIBIBUMAD USERSPACE LIBRARY FOR SMP AND GMP MAD PROCESSING (/dev/infiniband/umadX)
+ M:	Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+ H:	Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+diff --git a/README.md b/README.md
+index b7928ab5..4d7e949b 100644
+--- a/README.md
++++ b/README.md
+@@ -9,7 +9,6 @@ following device nodes:
+  - /dev/infiniband/uverbsX (libibverbs)
+  - /dev/infiniband/rdma_cm (librdmacm)
+  - /dev/infiniband/umadX (libibumad)
+- - /dev/infiniband/ucmX (libibcm, deprecated)
+
+ The userspace component of the libibverbs RDMA kernel drivers are included
+ under the providers/ directory. Support for the following Kernel RDMA drivers
+diff --git a/debian/control b/debian/control
+index 451b379f..ef7e3cc2 100644
+--- a/debian/control
++++ b/debian/control
+@@ -172,45 +172,6 @@ Description: Debug symbols for the libibverbs library
+  libibverbs1. They will automatically be used by gdb for debugging
+  libibverbs-related issues.
+
+-Package: libibcm-dev
+-Section: libdevel
+-Architecture: linux-any
+-Multi-Arch: same
+-Depends: libibcm1 (= ${binary:Version}), libibverbs-dev, ${misc:Depends}
+-Description: Development files for the libibcm library
+- libibcm provides a userspace implementation of an InfiniBand
+- Communication Manager (CM). The CM handles both connection
+- establishment as well as service ID resolution.
+- .
+- This package is needed to compile programs against libibcm1.
+- It contains the header files and static libraries (optionally)
+- needed for compiling.
+-
+-Package: libibcm1
+-Architecture: linux-any
+-Multi-Arch: same
+-Section: libs
+-Depends: ${misc:Depends}, ${shlibs:Depends}
+-Description: InfiniBand Communication Manager (CM) library
+- libibcm provides a userspace implementation of an InfiniBand
+- Communication Manager (CM). The CM handles both connection
+- establishment as well as service ID resolution.
+- .
+- This package contains the shared library.
+-
+-Package: libibcm1-dbg
+-Section: debug
+-Architecture: linux-any
+-Depends: libibcm1 (= ${binary:Version}), ${misc:Depends}
+-Description: Debug symbols for the libibcm1 library
+- libibcm provides a userspace implementation of an InfiniBand
+- Communication Manager (CM). The CM handles both connection
+- establishment as well as service ID resolution.
+- .
+- This package contains the debug symbols associated with
+- libibcm1. They will automatically be used by gdb for debugging
+- libibcm-related issues.
+-
+ Package: libibumad-dev
+ Section: libdevel
+ Architecture: linux-any
+diff --git a/debian/copyright b/debian/copyright
+index 5546882b..dccd34a0 100644
+--- a/debian/copyright
++++ b/debian/copyright
+@@ -77,12 +77,6 @@ Files: iwpmd/*
+ Copyright: 2013-2016, Intel Corporation.
+ License: BSD-MIT or GPL-2
+
+-Files: libibcm/*
+-Copyright: 2004-2006, Intel Corporation.
+-           2004-2005, Topspin Communications.
+-           2004, Voltaire Corporation.
+-License: BSD-MIT or GPL-2
+-
+ Files: libibumad/*
+ Copyright: 2004-2017, Mellanox Technologies Ltd.
+            2004, Infinicon Corporation.
+diff --git a/debian/libibcm-dev.install b/debian/libibcm-dev.install
+deleted file mode 100644
+index 36e1e5fe..00000000
+--- a/debian/libibcm-dev.install
++++ /dev/null
+@@ -1,3 +0,0 @@
+-usr/include/infiniband/cm.h
+-usr/include/infiniband/cm_abi.h
+-usr/lib/*/libibcm*.so
+diff --git a/debian/libibcm1.install b/debian/libibcm1.install
+deleted file mode 100644
+index a0ace6eb..00000000
+--- a/debian/libibcm1.install
++++ /dev/null
+@@ -1,2 +0,0 @@
+-usr/lib/*/libibcm*.so.*
+-usr/share/doc/rdma-core/libibcm.md usr/share/doc/libibcm1/
+diff --git a/debian/libibcm1.symbols b/debian/libibcm1.symbols
+deleted file mode 100644
+index a7b0ef43..00000000
+--- a/debian/libibcm1.symbols
++++ /dev/null
+@@ -1,23 +0,0 @@
+-libibcm.so.1 libibcm1 #MINVER#
+- IBCM_1.0@IBCM_1.0 12
+- ib_cm_ack_event@IBCM_1.0 12
+- ib_cm_attr_id@IBCM_1.0 12
+- ib_cm_close_device@IBCM_1.0 12
+- ib_cm_create_id@IBCM_1.0 12
+- ib_cm_destroy_id@IBCM_1.0 12
+- ib_cm_get_event@IBCM_1.0 12
+- ib_cm_init_qp_attr@IBCM_1.0 12
+- ib_cm_listen@IBCM_1.0 12
+- ib_cm_notify@IBCM_1.0 12
+- ib_cm_open_device@IBCM_1.0 12
+- ib_cm_send_apr@IBCM_1.0 12
+- ib_cm_send_drep@IBCM_1.0 12
+- ib_cm_send_dreq@IBCM_1.0 12
+- ib_cm_send_lap@IBCM_1.0 12
+- ib_cm_send_mra@IBCM_1.0 12
+- ib_cm_send_rej@IBCM_1.0 12
+- ib_cm_send_rep@IBCM_1.0 12
+- ib_cm_send_req@IBCM_1.0 12
+- ib_cm_send_rtu@IBCM_1.0 12
+- ib_cm_send_sidr_rep@IBCM_1.0 12
+- ib_cm_send_sidr_req@IBCM_1.0 12
+diff --git a/debian/rules b/debian/rules
+index be1781ad..87d02104 100755
+--- a/debian/rules
++++ b/debian/rules
+@@ -74,7 +74,6 @@ override_dh_makeshlibs:
+ 	dh_makeshlibs $(SHLIBS_EXCLUDE)
+
+ override_dh_strip:
+-	dh_strip -plibibcm1 --dbg-package=libibcm1-dbg
+ 	dh_strip -plibibumad3 --dbg-package=libibumad3-dbg
+ 	dh_strip -plibibverbs1 --dbg-package=libibverbs1-dbg
+ 	dh_strip -plibrdmacm1 --dbg-package=librdmacm1-dbg
+diff --git a/libibcm/CMakeLists.txt b/libibcm/CMakeLists.txt
+deleted file mode 100644
+index 7087859e..00000000
+--- a/libibcm/CMakeLists.txt
++++ /dev/null
+@@ -1,11 +0,0 @@
+-publish_headers(infiniband
+-  cm.h
+-  cm_abi.h
+-  )
+-
+-rdma_library(ibcm libibcm.map
+-  # See Documentation/versioning.md
+-  1 1.0.${PACKAGE_VERSION}
+-  cm.c
+-  )
+-target_link_libraries(ibcm LINK_PUBLIC ibverbs)
+diff --git a/libibcm/cm.c b/libibcm/cm.c
+deleted file mode 100644
+index 4fd3fdd6..00000000
+--- a/libibcm/cm.c
++++ /dev/null
+@@ -1,1025 +0,0 @@
+-/*
+- * Copyright (c) 2005 Topspin Communications.  All rights reserved.
+- * Copyright (c) 2005-2006 Intel Corporation.  All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- *
+- * $Id$
+- */
+-#define _GNU_SOURCE
+-#include <config.h>
+-
+-#include <stdlib.h>
+-#include <string.h>
+-#include <stdio.h>
+-#include <fcntl.h>
+-#include <errno.h>
+-#include <unistd.h>
+-#include <pthread.h>
+-#include <stddef.h>
+-
+-#include <infiniband/cm.h>
+-#include <rdma/ib_user_cm.h>
+-#include <infiniband/driver.h>
+-#include <infiniband/marshall.h>
+-
+-#include <valgrind/memcheck.h>
+-
+-#define PFX "libibcm: "
+-
+-#define IB_USER_CM_MIN_ABI_VERSION     4
+-#define IB_USER_CM_MAX_ABI_VERSION     5
+-
+-static int abi_ver;
+-static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+-
+-enum {
+-	IB_UCM_MAX_DEVICES = 32
+-};
+-
+-static inline int ERR(int err)
+-{
+-	errno = err;
+-	return -1;
+-}
+-
+-
+-#define CM_CREATE_MSG_CMD_RESP(msg, cmd, resp, type, size) \
+-do {                                        \
+-	struct ib_ucm_cmd_hdr *hdr;         \
+-                                            \
+-	size = sizeof(*hdr) + sizeof(*cmd); \
+-	msg = alloca(size);                 \
+-	if (!msg)                           \
+-		return ERR(ENOMEM);         \
+-	hdr = msg;                          \
+-	cmd = msg + sizeof(*hdr);           \
+-	hdr->cmd = type;                    \
+-	hdr->in  = sizeof(*cmd);            \
+-	hdr->out = sizeof(*resp);           \
+-	memset(cmd, 0, sizeof(*cmd));       \
+-	resp = alloca(sizeof(*resp));       \
+-	if (!resp)                          \
+-		return ERR(ENOMEM);         \
+-	cmd->response = (uintptr_t)resp;\
+-} while (0)
+-
+-#define CM_CREATE_MSG_CMD(msg, cmd, type, size) \
+-do {                                        \
+-	struct ib_ucm_cmd_hdr *hdr;         \
+-                                            \
+-	size = sizeof(*hdr) + sizeof(*cmd); \
+-	msg = alloca(size);                 \
+-	if (!msg)                           \
+-		return ERR(ENOMEM);         \
+-	hdr = msg;                          \
+-	cmd = msg + sizeof(*hdr);           \
+-	hdr->cmd = type;                    \
+-	hdr->in  = sizeof(*cmd);            \
+-	hdr->out = 0;                       \
+-	memset(cmd, 0, sizeof(*cmd));       \
+-} while (0)
+-
+-struct cm_id_private {
+-	struct ib_cm_id id;
+-	int events_completed;
+-	pthread_cond_t cond;
+-	pthread_mutex_t mut;
+-};
+-
+-static int check_abi_version(void)
+-{
+-	char value[8];
+-
+-	if (ibv_read_sysfs_file(ibv_get_sysfs_path(),
+-				"class/infiniband_cm/abi_version",
+-				value, sizeof value) < 0) {
+-		fprintf(stderr, PFX "couldn't read ABI version\n");
+-		return 0;
+-	}
+-
+-	abi_ver = strtol(value, NULL, 10);
+-	if (abi_ver < IB_USER_CM_MIN_ABI_VERSION ||
+-	    abi_ver > IB_USER_CM_MAX_ABI_VERSION) {
+-		fprintf(stderr, PFX "kernel ABI version %d "
+-				"doesn't match library version %d.\n",
+-				abi_ver, IB_USER_CM_MAX_ABI_VERSION);
+-		return -1;
+-	}
+-	return 0;
+-}
+-
+-static int ucm_init(void)
+-{
+-	int ret = 0;
+-
+-	pthread_mutex_lock(&mut);
+-	if (!abi_ver)
+-		ret = check_abi_version();
+-	pthread_mutex_unlock(&mut);
+-
+-	return ret;
+-}
+-
+-static int ucm_get_dev_index(char *dev_name)
+-{
+-	char *dev_path;
+-	char ibdev[IBV_SYSFS_NAME_MAX];
+-	int i, ret;
+-
+-	for (i = 0; i < IB_UCM_MAX_DEVICES; i++) {
+-		ret = asprintf(&dev_path, "/sys/class/infiniband_cm/ucm%d", i);
+-		if (ret < 0)
+-			return -1;
+-
+-		ret = ibv_read_sysfs_file(dev_path, "ibdev", ibdev, sizeof ibdev);
+-		if (ret < 0)
+-			continue;
+-
+-		if (!strcmp(dev_name, ibdev)) {
+-			free(dev_path);
+-			return i;
+-		}
+-
+-		free(dev_path);
+-	}
+-	return -1;
+-}
+-
+-struct ib_cm_device* ib_cm_open_device(struct ibv_context *device_context)
+-{
+-	struct ib_cm_device *dev;
+-	char *dev_path;
+-	int index, ret;
+-
+-	if (ucm_init())
+-		return NULL;
+-
+-	index = ucm_get_dev_index(device_context->device->name);
+-	if (index < 0)
+-		return NULL;
+-
+-	dev = malloc(sizeof *dev);
+-	if (!dev)
+-		return NULL;
+-
+-	dev->device_context = device_context;
+-
+-	ret = asprintf(&dev_path, "/dev/infiniband/ucm%d", index);
+-	if (ret < 0)
+-		goto err1;
+-
+-	dev->fd = open(dev_path, O_RDWR);
+-	if (dev->fd < 0)
+-		goto err2;
+-
+-	free(dev_path);
+-	return dev;
+-
+-err2:
+-	free(dev_path);
+-err1:
+-	free(dev);
+-	return NULL;
+-}
+-
+-void ib_cm_close_device(struct ib_cm_device *device)
+-{
+-	close(device->fd);
+-	free(device);
+-}
+-
+-static void ib_cm_free_id(struct cm_id_private *cm_id_priv)
+-{
+-	pthread_cond_destroy(&cm_id_priv->cond);
+-	pthread_mutex_destroy(&cm_id_priv->mut);
+-	free(cm_id_priv);
+-}
+-
+-static struct cm_id_private *ib_cm_alloc_id(struct ib_cm_device *device,
+-					    void *context)
+-{
+-	struct cm_id_private *cm_id_priv;
+-
+-	cm_id_priv = malloc(sizeof *cm_id_priv);
+-	if (!cm_id_priv)
+-		return NULL;
+-
+-	memset(cm_id_priv, 0, sizeof *cm_id_priv);
+-	cm_id_priv->id.device = device;
+-	cm_id_priv->id.context = context;
+-	pthread_mutex_init(&cm_id_priv->mut, NULL);
+-	if (pthread_cond_init(&cm_id_priv->cond, NULL))
+-		goto err;
+-
+-	return cm_id_priv;
+-
+-err:	ib_cm_free_id(cm_id_priv);
+-	return NULL;
+-}
+-
+-int ib_cm_create_id(struct ib_cm_device *device,
+-		    struct ib_cm_id **cm_id, void *context)
+-{
+-	struct ib_ucm_create_id_resp *resp;
+-	struct ib_ucm_create_id *cmd;
+-	struct cm_id_private *cm_id_priv;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	cm_id_priv = ib_cm_alloc_id(device, context);
+-	if (!cm_id_priv)
+-		return ERR(ENOMEM);
+-
+-	CM_CREATE_MSG_CMD_RESP(msg, cmd, resp, IB_USER_CM_CMD_CREATE_ID, size);
+-	cmd->uid = (uintptr_t) cm_id_priv;
+-
+-	result = write(device->fd, msg, size);
+-	if (result != size)
+-		goto err;
+-
+-	VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
+-
+-	cm_id_priv->id.handle = resp->id;
+-	*cm_id = &cm_id_priv->id;
+-	return 0;
+-
+-err:	ib_cm_free_id(cm_id_priv);
+-	return result;
+-}
+-
+-int ib_cm_destroy_id(struct ib_cm_id *cm_id)
+-{
+-	struct ib_ucm_destroy_id_resp *resp;
+-	struct ib_ucm_destroy_id *cmd;
+-	struct cm_id_private *cm_id_priv;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	CM_CREATE_MSG_CMD_RESP(msg, cmd, resp, IB_USER_CM_CMD_DESTROY_ID, size);
+-	cmd->id = cm_id->handle;
+-
+-	result = write(cm_id->device->fd, msg, size);
+-	if (result != size)
+-		return (result >= 0) ? ERR(ENODATA) : -1;
+-
+-	VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
+-
+-	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
+-
+-	pthread_mutex_lock(&cm_id_priv->mut);
+-	while (cm_id_priv->events_completed < resp->events_reported)
+-		pthread_cond_wait(&cm_id_priv->cond, &cm_id_priv->mut);
+-	pthread_mutex_unlock(&cm_id_priv->mut);
+-
+-	ib_cm_free_id(cm_id_priv);
+-	return 0;
+-}
+-
+-int ib_cm_attr_id(struct ib_cm_id *cm_id, struct ib_cm_attr_param *param)
+-{
+-	struct ib_ucm_attr_id_resp *resp;
+-	struct ib_ucm_attr_id *cmd;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	if (!param)
+-		return ERR(EINVAL);
+-
+-	CM_CREATE_MSG_CMD_RESP(msg, cmd, resp, IB_USER_CM_CMD_ATTR_ID, size);
+-	cmd->id = cm_id->handle;
+-
+-	result = write(cm_id->device->fd, msg, size);
+-	if (result != size)
+-		return (result >= 0) ? ERR(ENODATA) : -1;
+-
+-	VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
+-
+-	param->service_id   = resp->service_id;
+-	param->service_mask = resp->service_mask;
+-	param->local_id     = resp->local_id;
+-	param->remote_id    = resp->remote_id;
+-	return 0;
+-}
+-
+-int ib_cm_init_qp_attr(struct ib_cm_id *cm_id,
+-		       struct ibv_qp_attr *qp_attr,
+-		       int *qp_attr_mask)
+-{
+-	struct ibv_kern_qp_attr *resp;
+-	struct ib_ucm_init_qp_attr *cmd;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	if (!qp_attr || !qp_attr_mask)
+-		return ERR(EINVAL);
+-
+-	CM_CREATE_MSG_CMD_RESP(msg, cmd, resp, IB_USER_CM_CMD_INIT_QP_ATTR, size);
+-	cmd->id = cm_id->handle;
+-	cmd->qp_state = qp_attr->qp_state;
+-
+-	result = write(cm_id->device->fd, msg, size);
+-	if (result != size)
+-		return (result >= 0) ? ERR(ENODATA) : result;
+-
+-	VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
+-
+-	*qp_attr_mask = resp->qp_attr_mask;
+-	ibv_copy_qp_attr_from_kern(qp_attr, resp);
+-
+-	return 0;
+-}
+-
+-int ib_cm_listen(struct ib_cm_id *cm_id,
+-		 __be64 service_id,
+-		 __be64 service_mask)
+-{
+-	struct ib_ucm_listen *cmd;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_LISTEN, size);
+-	cmd->id           = cm_id->handle;
+-	cmd->service_id   = service_id;
+-	cmd->service_mask = service_mask;
+-
+-	result = write(cm_id->device->fd, msg, size);
+-	if (result != size)
+-		return (result >= 0) ? ERR(ENODATA) : -1;
+-
+-	return 0;
+-}
+-
+-int ib_cm_send_req(struct ib_cm_id *cm_id, struct ib_cm_req_param *param)
+-{
+-	struct ib_user_path_rec p_path;
+-	struct ib_user_path_rec *a_path;
+-	struct ib_ucm_req *cmd;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	if (!param || !param->primary_path)
+-		return ERR(EINVAL);
+-
+-	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_SEND_REQ, size);
+-	cmd->id				= cm_id->handle;
+-	cmd->qpn			= param->qp_num;
+-	cmd->qp_type			= param->qp_type;
+-	cmd->psn			= param->starting_psn;
+-        cmd->sid			= param->service_id;
+-        cmd->peer_to_peer               = param->peer_to_peer;
+-        cmd->responder_resources        = param->responder_resources;
+-        cmd->initiator_depth            = param->initiator_depth;
+-        cmd->remote_cm_response_timeout = param->remote_cm_response_timeout;
+-        cmd->flow_control               = param->flow_control;
+-        cmd->local_cm_response_timeout  = param->local_cm_response_timeout;
+-        cmd->retry_count                = param->retry_count;
+-        cmd->rnr_retry_count            = param->rnr_retry_count;
+-        cmd->max_cm_retries             = param->max_cm_retries;
+-        cmd->srq                        = param->srq;
+-
+-	ibv_copy_path_rec_to_kern(&p_path, param->primary_path);
+-	cmd->primary_path = (uintptr_t) &p_path;
+-
+-	if (param->alternate_path) {
+-		a_path = alloca(sizeof(*a_path));
+-		if (!a_path)
+-			return ERR(ENOMEM);
+-
+-		ibv_copy_path_rec_to_kern(a_path, param->alternate_path);
+-		cmd->alternate_path = (uintptr_t) a_path;
+-	}
+-
+-	if (param->private_data && param->private_data_len) {
+-		cmd->data = (uintptr_t) param->private_data;
+-		cmd->len  = param->private_data_len;
+-	}
+-
+-	result = write(cm_id->device->fd, msg, size);
+-	if (result != size)
+-		return (result >= 0) ? ERR(ENODATA) : -1;
+-
+-	return 0;
+-}
+-
+-int ib_cm_send_rep(struct ib_cm_id *cm_id, struct ib_cm_rep_param *param)
+-{
+-	struct ib_ucm_rep *cmd;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	if (!param)
+-		return ERR(EINVAL);
+-
+-	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_SEND_REP, size);
+-	cmd->uid = (uintptr_t) container_of(cm_id, struct cm_id_private, id);
+-	cmd->id			 = cm_id->handle;
+-	cmd->qpn		 = param->qp_num;
+-	cmd->psn		 = param->starting_psn;
+-        cmd->responder_resources = param->responder_resources;
+-        cmd->initiator_depth     = param->initiator_depth;
+-	cmd->target_ack_delay    = param->target_ack_delay;
+-	cmd->failover_accepted   = param->failover_accepted;
+-        cmd->flow_control        = param->flow_control;
+-        cmd->rnr_retry_count     = param->rnr_retry_count;
+-        cmd->srq                 = param->srq;
+-
+-	if (param->private_data && param->private_data_len) {
+-		cmd->data = (uintptr_t) param->private_data;
+-		cmd->len  = param->private_data_len;
+-	}
+-
+-	result = write(cm_id->device->fd, msg, size);
+-	if (result != size)
+-		return (result >= 0) ? ERR(ENODATA) : -1;
+-
+-	return 0;
+-}
+-
+-static inline int cm_send_private_data(struct ib_cm_id *cm_id,
+-				       uint32_t type,
+-				       void *private_data,
+-				       uint8_t private_data_len)
+-{
+-	struct ib_ucm_private_data *cmd;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	CM_CREATE_MSG_CMD(msg, cmd, type, size);
+-	cmd->id = cm_id->handle;
+-
+-	if (private_data && private_data_len) {
+-		cmd->data = (uintptr_t) private_data;
+-		cmd->len  = private_data_len;
+-	}
+-
+-	result = write(cm_id->device->fd, msg, size);
+-	if (result != size)
+-		return (result >= 0) ? ERR(ENODATA) : -1;
+-
+-	return 0;
+-}
+-
+-int ib_cm_send_rtu(struct ib_cm_id *cm_id,
+-		   void *private_data,
+-		   uint8_t private_data_len)
+-{
+-	return cm_send_private_data(cm_id, IB_USER_CM_CMD_SEND_RTU,
+-				    private_data, private_data_len);
+-}
+-
+-int ib_cm_send_dreq(struct ib_cm_id *cm_id,
+-		    void *private_data,
+-		    uint8_t private_data_len)
+-{
+-	return cm_send_private_data(cm_id, IB_USER_CM_CMD_SEND_DREQ,
+-				    private_data, private_data_len);
+-}
+-
+-int ib_cm_send_drep(struct ib_cm_id *cm_id,
+-		    void *private_data,
+-		    uint8_t private_data_len)
+-{
+-	return cm_send_private_data(cm_id, IB_USER_CM_CMD_SEND_DREP,
+-				    private_data, private_data_len);
+-}
+-
+-static int cm_establish(struct ib_cm_id *cm_id)
+-{
+-	/* In kernel ABI 4 ESTABLISH was repurposed as NOTIFY and gained an
+-	   extra field. For some reason the compat definitions were deleted
+-	   from the uapi headers :( */
+-#define IB_USER_CM_CMD_ESTABLISH IB_USER_CM_CMD_NOTIFY
+-	struct cm_abi_establish { /* ABI 4 support */
+-		__u32 id;
+-	};
+-
+-	struct cm_abi_establish *cmd;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_ESTABLISH, size);
+-	cmd->id = cm_id->handle;
+-
+-	result = write(cm_id->device->fd, msg, size);
+-	if (result != size)
+-		return (result >= 0) ? ERR(ENODATA) : -1;
+-
+-	return 0;
+-}
+-
+-int ib_cm_notify(struct ib_cm_id *cm_id, enum ibv_event_type event)
+-{
+-	struct ib_ucm_notify *cmd;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	if (abi_ver == 4) {
+-		if (event == IBV_EVENT_COMM_EST)
+-			return cm_establish(cm_id);
+-		else
+-			return ERR(EINVAL);
+-	}
+-
+-	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_NOTIFY, size);
+-	cmd->id = cm_id->handle;
+-	cmd->event = event;
+-
+-	result = write(cm_id->device->fd, msg, size);
+-	if (result != size)
+-		return (result >= 0) ? ERR(ENODATA) : -1;
+-
+-	return 0;
+-}
+-
+-static inline int cm_send_status(struct ib_cm_id *cm_id,
+-				 uint32_t type,
+-				 int status,
+-				 void *info,
+-				 uint8_t info_length,
+-				 void *private_data,
+-				 uint8_t private_data_len)
+-{
+-	struct ib_ucm_info *cmd;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	CM_CREATE_MSG_CMD(msg, cmd, type, size);
+-	cmd->id     = cm_id->handle;
+-	cmd->status = status;
+-
+-	if (private_data && private_data_len) {
+-		cmd->data     = (uintptr_t) private_data;
+-		cmd->data_len = private_data_len;
+-	}
+-
+-	if (info && info_length) {
+-		cmd->info     = (uintptr_t) info;
+-		cmd->info_len = info_length;
+-	}
+-
+-	result = write(cm_id->device->fd, msg, size);
+-	if (result != size)
+-		return (result >= 0) ? ERR(ENODATA) : -1;
+-
+-	return 0;
+-}
+-
+-int ib_cm_send_rej(struct ib_cm_id *cm_id,
+-		   enum ib_cm_rej_reason reason,
+-		   void *ari,
+-		   uint8_t ari_length,
+-		   void *private_data,
+-		   uint8_t private_data_len)
+-{
+-	return cm_send_status(cm_id, IB_USER_CM_CMD_SEND_REJ, reason,
+-			      ari, ari_length,
+-			      private_data, private_data_len);
+-}
+-
+-int ib_cm_send_apr(struct ib_cm_id *cm_id,
+-		   enum ib_cm_apr_status status,
+-		   void *info,
+-		   uint8_t info_length,
+-		   void *private_data,
+-		   uint8_t private_data_len)
+-{
+-	return cm_send_status(cm_id, IB_USER_CM_CMD_SEND_APR, status,
+-			      info, info_length,
+-			      private_data, private_data_len);
+-}
+-
+-int ib_cm_send_mra(struct ib_cm_id *cm_id,
+-		   uint8_t service_timeout,
+-		   void *private_data,
+-		   uint8_t private_data_len)
+-{
+-	struct ib_ucm_mra *cmd;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_SEND_MRA, size);
+-	cmd->id      = cm_id->handle;
+-	cmd->timeout = service_timeout;
+-
+-	if (private_data && private_data_len) {
+-		cmd->data = (uintptr_t) private_data;
+-		cmd->len  = private_data_len;
+-	}
+-
+-	result = write(cm_id->device->fd, msg, size);
+-	if (result != size)
+-		return (result >= 0) ? ERR(ENODATA) : result;
+-
+-	return 0;
+-}
+-
+-int ib_cm_send_lap(struct ib_cm_id *cm_id,
+-		   struct ibv_sa_path_rec *alternate_path,
+-		   void *private_data,
+-		   uint8_t private_data_len)
+-{
+-	struct ib_user_path_rec abi_path;
+-	struct ib_ucm_lap *cmd;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_SEND_LAP, size);
+-	cmd->id = cm_id->handle;
+-
+-	ibv_copy_path_rec_to_kern(&abi_path, alternate_path);
+-	cmd->path = (uintptr_t) &abi_path;
+-
+-	if (private_data && private_data_len) {
+-		cmd->data = (uintptr_t) private_data;
+-		cmd->len  = private_data_len;
+-	}
+-
+-	result = write(cm_id->device->fd, msg, size);
+-	if (result != size)
+-		return (result >= 0) ? ERR(ENODATA) : -1;
+-
+-	return 0;
+-}
+-
+-int ib_cm_send_sidr_req(struct ib_cm_id *cm_id,
+-			struct ib_cm_sidr_req_param *param)
+-{
+-	struct ib_user_path_rec abi_path;
+-	struct ib_ucm_sidr_req *cmd;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	if (!param || !param->path)
+-		return ERR(EINVAL);
+-
+-	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_SEND_SIDR_REQ, size);
+-	cmd->id             = cm_id->handle;
+-	cmd->sid            = param->service_id;
+-	cmd->timeout        = param->timeout_ms;
+-	cmd->max_cm_retries = param->max_cm_retries;
+-
+-	ibv_copy_path_rec_to_kern(&abi_path, param->path);
+-	cmd->path = (uintptr_t) &abi_path;
+-
+-	if (param->private_data && param->private_data_len) {
+-		cmd->data = (uintptr_t) param->private_data;
+-		cmd->len  = param->private_data_len;
+-	}
+-
+-	result = write(cm_id->device->fd, msg, size);
+-	if (result != size)
+-		return (result >= 0) ? ERR(ENODATA) : result;
+-
+-	return 0;
+-}
+-
+-int ib_cm_send_sidr_rep(struct ib_cm_id *cm_id,
+-			struct ib_cm_sidr_rep_param *param)
+-{
+-	struct ib_ucm_sidr_rep *cmd;
+-	void *msg;
+-	int result;
+-	int size;
+-
+-	if (!param)
+-		return ERR(EINVAL);
+-
+-	CM_CREATE_MSG_CMD(msg, cmd, IB_USER_CM_CMD_SEND_SIDR_REP, size);
+-	cmd->id     = cm_id->handle;
+-	cmd->qpn    = param->qp_num;
+-	cmd->qkey   = param->qkey;
+-	cmd->status = param->status;
+-
+-	if (param->private_data && param->private_data_len) {
+-		cmd->data     = (uintptr_t) param->private_data;
+-		cmd->data_len = param->private_data_len;
+-	}
+-
+-	if (param->info && param->info_length) {
+-		cmd->info     = (uintptr_t) param->info;
+-		cmd->info_len = param->info_length;
+-	}
+-
+-	result = write(cm_id->device->fd, msg, size);
+-	if (result != size)
+-		return (result >= 0) ? ERR(ENODATA) : -1;
+-
+-	return 0;
+-}
+-
+-static void cm_event_req_get(struct ib_cm_req_event_param *ureq,
+-			     struct ib_ucm_req_event_resp *kreq)
+-{
+-	ureq->remote_ca_guid             = kreq->remote_ca_guid;
+-	ureq->remote_qkey                = kreq->remote_qkey;
+-	ureq->remote_qpn                 = kreq->remote_qpn;
+-	ureq->qp_type                    = kreq->qp_type;
+-	ureq->starting_psn               = kreq->starting_psn;
+-	ureq->responder_resources        = kreq->responder_resources;
+-	ureq->initiator_depth            = kreq->initiator_depth;
+-	ureq->local_cm_response_timeout  = kreq->local_cm_response_timeout;
+-	ureq->flow_control               = kreq->flow_control;
+-	ureq->remote_cm_response_timeout = kreq->remote_cm_response_timeout;
+-	ureq->retry_count                = kreq->retry_count;
+-	ureq->rnr_retry_count            = kreq->rnr_retry_count;
+-	ureq->srq                        = kreq->srq;
+-	ureq->port			 = kreq->port;
+-
+-	ibv_copy_path_rec_from_kern(ureq->primary_path, &kreq->primary_path);
+-	if (ureq->alternate_path)
+-		ibv_copy_path_rec_from_kern(ureq->alternate_path,
+-					    &kreq->alternate_path);
+-}
+-
+-static void cm_event_rep_get(struct ib_cm_rep_event_param *urep,
+-			     struct ib_ucm_rep_event_resp *krep)
+-{
+-	urep->remote_ca_guid      = krep->remote_ca_guid;
+-	urep->remote_qkey         = krep->remote_qkey;
+-	urep->remote_qpn          = krep->remote_qpn;
+-	urep->starting_psn        = krep->starting_psn;
+-	urep->responder_resources = krep->responder_resources;
+-	urep->initiator_depth     = krep->initiator_depth;
+-	urep->target_ack_delay    = krep->target_ack_delay;
+-	urep->failover_accepted   = krep->failover_accepted;
+-	urep->flow_control        = krep->flow_control;
+-	urep->rnr_retry_count     = krep->rnr_retry_count;
+-	urep->srq                 = krep->srq;
+-}
+-
+-static void cm_event_sidr_rep_get(struct ib_cm_sidr_rep_event_param *urep,
+-				  struct ib_ucm_sidr_rep_event_resp *krep)
+-{
+-	urep->status = krep->status;
+-	urep->qkey   = krep->qkey;
+-	urep->qpn    = krep->qpn;
+-};
+-
+-int ib_cm_get_event(struct ib_cm_device *device, struct ib_cm_event **event)
+-{
+-	struct cm_id_private *cm_id_priv;
+-	struct ib_ucm_cmd_hdr *hdr;
+-	struct ib_ucm_event_get *cmd;
+-	struct ib_ucm_event_resp *resp;
+-	struct ib_cm_event *evt = NULL;
+-	struct ibv_sa_path_rec *path_a = NULL;
+-	struct ibv_sa_path_rec *path_b = NULL;
+-	void *data = NULL;
+-	void *info = NULL;
+-	void *msg;
+-	int result = 0;
+-	int size;
+-
+-	if (!event)
+-		return ERR(EINVAL);
+-
+-	size = sizeof(*hdr) + sizeof(*cmd);
+-	msg = alloca(size);
+-	if (!msg)
+-		return ERR(ENOMEM);
+-
+-	hdr = msg;
+-	cmd = msg + sizeof(*hdr);
+-
+-	hdr->cmd = IB_USER_CM_CMD_EVENT;
+-	hdr->in  = sizeof(*cmd);
+-	hdr->out = sizeof(*resp);
+-
+-	memset(cmd, 0, sizeof(*cmd));
+-
+-	resp = alloca(sizeof(*resp));
+-	if (!resp)
+-		return ERR(ENOMEM);
+-
+-	cmd->response = (uintptr_t) resp;
+-	cmd->data_len = (uint8_t)(~0U);
+-	cmd->info_len = (uint8_t)(~0U);
+-
+-	data = malloc(cmd->data_len);
+-	if (!data) {
+-		result = ERR(ENOMEM);
+-		goto done;
+-	}
+-
+-	info = malloc(cmd->info_len);
+-	if (!info) {
+-		result = ERR(ENOMEM);
+-		goto done;
+-	}
+-
+-	cmd->data = (uintptr_t) data;
+-	cmd->info = (uintptr_t) info;
+-
+-	result = write(device->fd, msg, size);
+-	if (result != size) {
+-		result = (result >= 0) ? ERR(ENODATA) : -1;
+-		goto done;
+-	}
+-
+-	VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
+-
+-	/*
+-	 * decode event.
+-	 */
+-	evt = malloc(sizeof(*evt));
+-	if (!evt) {
+-		result = ERR(ENOMEM);
+-		goto done;
+-	}
+-	memset(evt, 0, sizeof(*evt));
+-	evt->cm_id = (void *) (uintptr_t) resp->uid;
+-	evt->event = resp->event;
+-
+-	if (resp->present & IB_UCM_PRES_PRIMARY) {
+-		path_a = malloc(sizeof(*path_a));
+-		if (!path_a) {
+-			result = ERR(ENOMEM);
+-			goto done;
+-		}
+-	}
+-
+-	if (resp->present & IB_UCM_PRES_ALTERNATE) {
+-		path_b = malloc(sizeof(*path_b));
+-		if (!path_b) {
+-			result = ERR(ENOMEM);
+-			goto done;
+-		}
+-	}
+-
+-	switch (evt->event) {
+-	case IB_CM_REQ_RECEIVED:
+-		evt->param.req_rcvd.listen_id = evt->cm_id;
+-		cm_id_priv = ib_cm_alloc_id(evt->cm_id->device,
+-					    evt->cm_id->context);
+-		if (!cm_id_priv) {
+-			result = ERR(ENOMEM);
+-			goto done;
+-		}
+-		cm_id_priv->id.handle = resp->id;
+-		evt->cm_id = &cm_id_priv->id;
+-		evt->param.req_rcvd.primary_path   = path_a;
+-		evt->param.req_rcvd.alternate_path = path_b;
+-		path_a = NULL;
+-		path_b = NULL;
+-		cm_event_req_get(&evt->param.req_rcvd, &resp->u.req_resp);
+-		break;
+-	case IB_CM_REP_RECEIVED:
+-		cm_event_rep_get(&evt->param.rep_rcvd, &resp->u.rep_resp);
+-		break;
+-	case IB_CM_MRA_RECEIVED:
+-		evt->param.mra_rcvd.service_timeout = resp->u.mra_resp.timeout;
+-		break;
+-	case IB_CM_REJ_RECEIVED:
+-		evt->param.rej_rcvd.reason = resp->u.rej_resp.reason;
+-		evt->param.rej_rcvd.ari = info;
+-		info = NULL;
+-		break;
+-	case IB_CM_LAP_RECEIVED:
+-		evt->param.lap_rcvd.alternate_path = path_b;
+-		path_b = NULL;
+-		ibv_copy_path_rec_from_kern(evt->param.lap_rcvd.alternate_path,
+-					    &resp->u.lap_resp.path);
+-		break;
+-	case IB_CM_APR_RECEIVED:
+-		evt->param.apr_rcvd.ap_status = resp->u.apr_resp.status;
+-		evt->param.apr_rcvd.apr_info = info;
+-		info = NULL;
+-		break;
+-	case IB_CM_SIDR_REQ_RECEIVED:
+-		evt->param.sidr_req_rcvd.listen_id = evt->cm_id;
+-		cm_id_priv = ib_cm_alloc_id(evt->cm_id->device,
+-					    evt->cm_id->context);
+-		if (!cm_id_priv) {
+-			result = ERR(ENOMEM);
+-			goto done;
+-		}
+-		cm_id_priv->id.handle = resp->id;
+-		evt->cm_id = &cm_id_priv->id;
+-		evt->param.sidr_req_rcvd.pkey = resp->u.sidr_req_resp.pkey;
+-		evt->param.sidr_req_rcvd.port = resp->u.sidr_req_resp.port;
+-		break;
+-	case IB_CM_SIDR_REP_RECEIVED:
+-		cm_event_sidr_rep_get(&evt->param.sidr_rep_rcvd,
+-				      &resp->u.sidr_rep_resp);
+-		evt->param.sidr_rep_rcvd.info = info;
+-		info = NULL;
+-		break;
+-	default:
+-		evt->param.send_status = resp->u.send_status;
+-		break;
+-	}
+-
+-	if (resp->present & IB_UCM_PRES_DATA) {
+-		evt->private_data = data;
+-		data = NULL;
+-	}
+-
+-	*event = evt;
+-	evt    = NULL;
+-	result = 0;
+-done:
+-	if (data)
+-		free(data);
+-	if (info)
+-		free(info);
+-	if (path_a)
+-		free(path_a);
+-	if (path_b)
+-		free(path_b);
+-	if (evt)
+-		free(evt);
+-
+-	return result;
+-}
+-
+-int ib_cm_ack_event(struct ib_cm_event *event)
+-{
+-	struct cm_id_private *cm_id_priv;
+-
+-	if (!event)
+-		return ERR(EINVAL);
+-
+-	if (event->private_data)
+-		free(event->private_data);
+-
+-	cm_id_priv = container_of(event->cm_id, struct cm_id_private, id);
+-
+-	switch (event->event) {
+-	case IB_CM_REQ_RECEIVED:
+-		cm_id_priv = container_of(event->param.req_rcvd.listen_id,
+-					  struct cm_id_private, id);
+-		free(event->param.req_rcvd.primary_path);
+-		if (event->param.req_rcvd.alternate_path)
+-			free(event->param.req_rcvd.alternate_path);
+-		break;
+-	case IB_CM_REJ_RECEIVED:
+-		if (event->param.rej_rcvd.ari)
+-			free(event->param.rej_rcvd.ari);
+-		break;
+-	case IB_CM_LAP_RECEIVED:
+-		free(event->param.lap_rcvd.alternate_path);
+-		break;
+-	case IB_CM_APR_RECEIVED:
+-		if (event->param.apr_rcvd.apr_info)
+-			free(event->param.apr_rcvd.apr_info);
+-		break;
+-	case IB_CM_SIDR_REQ_RECEIVED:
+-		cm_id_priv = container_of(event->param.sidr_req_rcvd.listen_id,
+-					  struct cm_id_private, id);
+-		break;
+-	case IB_CM_SIDR_REP_RECEIVED:
+-		if (event->param.sidr_rep_rcvd.info)
+-			free(event->param.sidr_rep_rcvd.info);
+-	default:
+-		break;
+-	}
+-
+-	pthread_mutex_lock(&cm_id_priv->mut);
+-	cm_id_priv->events_completed++;
+-	pthread_cond_signal(&cm_id_priv->cond);
+-	pthread_mutex_unlock(&cm_id_priv->mut);
+-
+-	free(event);
+-	return 0;
+-}
+diff --git a/libibcm/cm.h b/libibcm/cm.h
+deleted file mode 100644
+index 6a91e37d..00000000
+--- a/libibcm/cm.h
++++ /dev/null
+@@ -1,587 +0,0 @@
+-/*
+- * Copyright (c) 2004-2006 Intel Corporation.  All rights reserved.
+- * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
+- * Copyright (c) 2004 Voltaire Corporation.  All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- *
+- * $Id$
+- */
+-#if !defined(CM_H)
+-#define CM_H
+-
+-#include <infiniband/verbs.h>
+-#include <infiniband/sa.h>
+-#include <linux/types.h>
+-#include <endian.h>
+-
+-#ifdef __cplusplus
+-extern "C" {
+-#endif
+-
+-enum ib_cm_event_type {
+-	IB_CM_REQ_ERROR,
+-	IB_CM_REQ_RECEIVED,
+-	IB_CM_REP_ERROR,
+-	IB_CM_REP_RECEIVED,
+-	IB_CM_RTU_RECEIVED,
+-	IB_CM_USER_ESTABLISHED,
+-	IB_CM_DREQ_ERROR,
+-	IB_CM_DREQ_RECEIVED,
+-	IB_CM_DREP_RECEIVED,
+-	IB_CM_TIMEWAIT_EXIT,
+-	IB_CM_MRA_RECEIVED,
+-	IB_CM_REJ_RECEIVED,
+-	IB_CM_LAP_ERROR,
+-	IB_CM_LAP_RECEIVED,
+-	IB_CM_APR_RECEIVED,
+-	IB_CM_SIDR_REQ_ERROR,
+-	IB_CM_SIDR_REQ_RECEIVED,
+-	IB_CM_SIDR_REP_RECEIVED
+-};
+-
+-enum ib_cm_data_size {
+-	IB_CM_REQ_PRIVATE_DATA_SIZE	 = 92,
+-	IB_CM_MRA_PRIVATE_DATA_SIZE	 = 222,
+-	IB_CM_REJ_PRIVATE_DATA_SIZE	 = 148,
+-	IB_CM_REP_PRIVATE_DATA_SIZE	 = 196,
+-	IB_CM_RTU_PRIVATE_DATA_SIZE	 = 224,
+-	IB_CM_DREQ_PRIVATE_DATA_SIZE	 = 220,
+-	IB_CM_DREP_PRIVATE_DATA_SIZE	 = 224,
+-	IB_CM_REJ_ARI_LENGTH		 = 72,
+-	IB_CM_LAP_PRIVATE_DATA_SIZE	 = 168,
+-	IB_CM_APR_PRIVATE_DATA_SIZE	 = 148,
+-	IB_CM_APR_INFO_LENGTH		 = 72,
+-	IB_CM_SIDR_REQ_PRIVATE_DATA_SIZE = 216,
+-	IB_CM_SIDR_REP_PRIVATE_DATA_SIZE = 136,
+-	IB_CM_SIDR_REP_INFO_LENGTH	 = 72
+-};
+-
+-struct ib_cm_device {
+-	struct ibv_context	*device_context;
+-	int			fd;
+-};
+-
+-struct ib_cm_id {
+-	void			*context;
+-	struct ib_cm_device	*device;
+-	uint32_t		handle;
+-};
+-
+-struct ib_cm_req_event_param {
+-	struct ib_cm_id		*listen_id;
+-	uint8_t			port;
+-
+-	struct ibv_sa_path_rec	*primary_path;
+-	struct ibv_sa_path_rec	*alternate_path;
+-
+-	__be64			remote_ca_guid;
+-	uint32_t		remote_qkey;
+-	uint32_t		remote_qpn;
+-	enum ibv_qp_type	qp_type;
+-
+-	uint32_t		starting_psn;
+-	uint8_t			responder_resources;
+-	uint8_t			initiator_depth;
+-	unsigned int		local_cm_response_timeout:5;
+-	unsigned int		flow_control:1;
+-	unsigned int		remote_cm_response_timeout:5;
+-	unsigned int		retry_count:3;
+-	unsigned int		rnr_retry_count:3;
+-	unsigned int		srq:1;
+-};
+-
+-struct ib_cm_rep_event_param {
+-	__be64			remote_ca_guid;
+-	uint32_t		remote_qkey;
+-	uint32_t		remote_qpn;
+-	uint32_t		starting_psn;
+-	uint8_t			responder_resources;
+-	uint8_t			initiator_depth;
+-	unsigned int		target_ack_delay:5;
+-	unsigned int		failover_accepted:2;
+-	unsigned int		flow_control:1;
+-	unsigned int		rnr_retry_count:3;
+-	unsigned int		srq:1;
+-};
+-
+-enum ib_cm_rej_reason {
+-	IB_CM_REJ_NO_QP				= 1,
+-	IB_CM_REJ_NO_EEC			= 2,
+-	IB_CM_REJ_NO_RESOURCES			= 3,
+-	IB_CM_REJ_TIMEOUT			= 4,
+-	IB_CM_REJ_UNSUPPORTED			= 5,
+-	IB_CM_REJ_INVALID_COMM_ID		= 6,
+-	IB_CM_REJ_INVALID_COMM_INSTANCE		= 7,
+-	IB_CM_REJ_INVALID_SERVICE_ID		= 8,
+-	IB_CM_REJ_INVALID_TRANSPORT_TYPE	= 9,
+-	IB_CM_REJ_STALE_CONN			= 10,
+-	IB_CM_REJ_RDC_NOT_EXIST			= 11,
+-	IB_CM_REJ_INVALID_GID			= 12,
+-	IB_CM_REJ_INVALID_LID			= 13,
+-	IB_CM_REJ_INVALID_SL			= 14,
+-	IB_CM_REJ_INVALID_TRAFFIC_CLASS		= 15,
+-	IB_CM_REJ_INVALID_HOP_LIMIT		= 16,
+-	IB_CM_REJ_INVALID_PACKET_RATE		= 17,
+-	IB_CM_REJ_INVALID_ALT_GID		= 18,
+-	IB_CM_REJ_INVALID_ALT_LID		= 19,
+-	IB_CM_REJ_INVALID_ALT_SL		= 20,
+-	IB_CM_REJ_INVALID_ALT_TRAFFIC_CLASS	= 21,
+-	IB_CM_REJ_INVALID_ALT_HOP_LIMIT		= 22,
+-	IB_CM_REJ_INVALID_ALT_PACKET_RATE	= 23,
+-	IB_CM_REJ_PORT_CM_REDIRECT		= 24,
+-	IB_CM_REJ_PORT_REDIRECT			= 25,
+-	IB_CM_REJ_INVALID_MTU			= 26,
+-	IB_CM_REJ_INSUFFICIENT_RESP_RESOURCES	= 27,
+-	IB_CM_REJ_CONSUMER_DEFINED		= 28,
+-	IB_CM_REJ_INVALID_RNR_RETRY		= 29,
+-	IB_CM_REJ_DUPLICATE_LOCAL_COMM_ID	= 30,
+-	IB_CM_REJ_INVALID_CLASS_VERSION		= 31,
+-	IB_CM_REJ_INVALID_FLOW_LABEL		= 32,
+-	IB_CM_REJ_INVALID_ALT_FLOW_LABEL	= 33
+-};
+-
+-struct ib_cm_rej_event_param {
+-	enum ib_cm_rej_reason	reason;
+-	void			*ari;
+-	uint8_t			ari_length;
+-};
+-
+-struct ib_cm_mra_event_param {
+-	uint8_t	service_timeout;
+-};
+-
+-struct ib_cm_lap_event_param {
+-	struct ibv_sa_path_rec	*alternate_path;
+-};
+-
+-enum ib_cm_apr_status {
+-	IB_CM_APR_SUCCESS,
+-	IB_CM_APR_INVALID_COMM_ID,
+-	IB_CM_APR_UNSUPPORTED,
+-	IB_CM_APR_REJECT,
+-	IB_CM_APR_REDIRECT,
+-	IB_CM_APR_IS_CURRENT,
+-	IB_CM_APR_INVALID_QPN_EECN,
+-	IB_CM_APR_INVALID_LID,
+-	IB_CM_APR_INVALID_GID,
+-	IB_CM_APR_INVALID_FLOW_LABEL,
+-	IB_CM_APR_INVALID_TCLASS,
+-	IB_CM_APR_INVALID_HOP_LIMIT,
+-	IB_CM_APR_INVALID_PACKET_RATE,
+-	IB_CM_APR_INVALID_SL
+-};
+-
+-struct ib_cm_apr_event_param {
+-	enum ib_cm_apr_status	ap_status;
+-	void			*apr_info;
+-	uint8_t			info_len;
+-};
+-
+-struct ib_cm_sidr_req_event_param {
+-	struct ib_cm_id	 *listen_id;
+-	uint8_t		  port;
+-	uint16_t          pkey;
+-};
+-
+-enum ib_cm_sidr_status {
+-	IB_SIDR_SUCCESS,
+-	IB_SIDR_UNSUPPORTED,
+-	IB_SIDR_REJECT,
+-	IB_SIDR_NO_QP,
+-	IB_SIDR_REDIRECT,
+-	IB_SIDR_UNSUPPORTED_VERSION
+-};
+-
+-struct ib_cm_sidr_rep_event_param {
+-	enum ib_cm_sidr_status	status;
+-	uint32_t		qkey;
+-	uint32_t		qpn;
+-	void			*info;
+-	uint8_t			info_len;
+-};
+-
+-struct ib_cm_event {
+-	struct ib_cm_id	      *cm_id;
+-	enum ib_cm_event_type event;
+-	union {
+-		struct ib_cm_req_event_param	req_rcvd;
+-		struct ib_cm_rep_event_param	rep_rcvd;
+-		/* No data for RTU received events. */
+-		struct ib_cm_rej_event_param	rej_rcvd;
+-		struct ib_cm_mra_event_param	mra_rcvd;
+-		struct ib_cm_lap_event_param	lap_rcvd;
+-		struct ib_cm_apr_event_param	apr_rcvd;
+-		/* No data for DREQ/DREP received events. */
+-		struct ib_cm_sidr_req_event_param sidr_req_rcvd;
+-		struct ib_cm_sidr_rep_event_param sidr_rep_rcvd;
+-		enum ibv_wc_status		send_status;
+-	} param;
+-
+-	void			*private_data;
+-};
+-
+-/**
+- * ib_cm_get_event - Retrieves the next pending communications event,
+- *   if no event is pending waits for an event.
+- * @device: CM device to retrieve the event.
+- * @event: Allocated information about the next communication event.
+- *    Event should be freed using ib_cm_ack_event()
+- *
+- * IB_CM_REQ_RECEIVED and IB_CM_SIDR_REQ_RECEIVED communication events
+- * generated as a result of listen requests result in the allocation of a
+- * new @cm_id.
+- * Clients are responsible for destroying the new @cm_id.  For peer-to-peer
+- * IB_CM_REQ_RECEIVED and all other events, the returned @cm_id corresponds
+- * to a user's existing communication identifier.
+- */
+-int ib_cm_get_event(struct ib_cm_device *device, struct ib_cm_event **event);
+-
+-/**
+- * ib_cm_ack_event - Free a communications event.
+- * @event: Event to be released.
+- *
+- * All events which are allocated by ib_cm_get_event() must be released,
+- * there should be a one-to-one correspondence between successful gets
+- * and puts.
+- */
+-int ib_cm_ack_event(struct ib_cm_event *event);
+-
+-/**
+- * ib_cm_open_device - Returns the device the CM uses to submit requests
+- *   and retrieve events, corresponding to the specified verbs device.
+- *
+- * The CM device contains the file descriptor that the CM uses to
+- * communicate with the kernel CM component.  The primary use of the
+- * file descriptor is to test for CM readiness events. When the CM
+- * becomes ready to READ there is a pending event ready, and a subsequent
+- * call to ib_cm_get_event will not block.
+- * Note: The user should not read or write directly to the CM file
+- *       descriptor, it will likely result in an error or unexpected
+- *       results.
+- */
+-struct ib_cm_device* ib_cm_open_device(struct ibv_context *device_context);
+-
+-/**
+- * ib_cm_close_device - Close a CM device.
+- * @device: Device to close.
+- */
+-void ib_cm_close_device(struct ib_cm_device *device);
+-
+-/**
+- * ib_cm_create_id - Allocate a communication identifier.
+- *
+- * Communication identifiers are used to track connection states, service
+- * ID resolution requests, and listen requests.
+- */
+-int ib_cm_create_id(struct ib_cm_device *device,
+-		    struct ib_cm_id **cm_id, void *context);
+-
+-/**
+- * ib_cm_destroy_id - Destroy a connection identifier.
+- * @cm_id: Connection identifier to destroy.
+- */
+-int ib_cm_destroy_id(struct ib_cm_id *cm_id);
+-
+-struct ib_cm_attr_param {
+-	__be64			service_id;
+-	__be64			service_mask;
+-	__be32			local_id;
+-	__be32			remote_id;
+-};
+-
+-/**
+- * ib_cm_attr_id - Get connection identifier attributes.
+- * @cm_id: Connection identifier to retrieve attributes.
+- * @param: Destination of retreived parameters.
+- *
+- * Not all parameters are valid during all connection states.
+- */
+-int ib_cm_attr_id(struct ib_cm_id *cm_id,
+-		  struct ib_cm_attr_param *param);
+-
+-#define IB_CM_ASSIGN_SERVICE_ID_MASK htobe64(0xFF00000000000000ULL)
+-#define IB_CM_ASSIGN_SERVICE_ID      htobe64(0x0200000000000000ULL)
+-
+-/**
+- * ib_cm_listen - Initiates listening on the specified service ID for
+- *   connection and service ID resolution requests.
+- * @cm_id: Connection identifier associated with the listen request.
+- * @service_id: Service identifier matched against incoming connection
+- *   and service ID resolution requests.  The service ID should be specified
+- *   network-byte order.
+- * @service_mask: Mask applied to service ID used to listen across a
+- *   range of service IDs.  If set to 0, the service ID is matched
+- *   exactly.
+- */
+-int ib_cm_listen(struct ib_cm_id *cm_id,
+-		 __be64 service_id,
+-		 __be64 service_mask);
+-
+-struct ib_cm_req_param {
+-	struct ibv_sa_path_rec	*primary_path;
+-	struct ibv_sa_path_rec	*alternate_path;
+-	__be64			service_id;
+-	uint32_t		qp_num;
+-	enum ibv_qp_type	qp_type;
+-	uint32_t		starting_psn;
+-	void			*private_data;
+-	uint8_t			private_data_len;
+-	uint8_t			peer_to_peer;
+-	uint8_t			responder_resources;
+-	uint8_t			initiator_depth;
+-	uint8_t			remote_cm_response_timeout;
+-	uint8_t			flow_control;
+-	uint8_t			local_cm_response_timeout;
+-	uint8_t			retry_count;
+-	uint8_t			rnr_retry_count;
+-	uint8_t			max_cm_retries;
+-	uint8_t			srq;
+-};
+-
+-/**
+- * ib_cm_send_req - Sends a connection request to the remote node.
+- * @cm_id: Connection identifier that will be associated with the
+- *   connection request.
+- * @param: Connection request information needed to establish the
+- *   connection.
+- */
+-int ib_cm_send_req(struct ib_cm_id *cm_id,
+-		   struct ib_cm_req_param *param);
+-
+-struct ib_cm_rep_param {
+-	uint32_t	qp_num;
+-	uint32_t	starting_psn;
+-	void		*private_data;
+-	uint8_t		private_data_len;
+-	uint8_t		responder_resources;
+-	uint8_t		initiator_depth;
+-	uint8_t		target_ack_delay;
+-	uint8_t		failover_accepted;
+-	uint8_t		flow_control;
+-	uint8_t		rnr_retry_count;
+-	uint8_t		srq;
+-};
+-
+-/**
+- * ib_cm_send_rep - Sends a connection reply in response to a connection
+- *   request.
+- * @cm_id: Connection identifier that will be associated with the
+- *   connection request.
+- * @param: Connection reply information needed to establish the
+- *   connection.
+- */
+-int ib_cm_send_rep(struct ib_cm_id *cm_id,
+-		   struct ib_cm_rep_param *param);
+-
+-/**
+- * ib_cm_send_rtu - Sends a connection ready to use message in response
+- *   to a connection reply message.
+- * @cm_id: Connection identifier associated with the connection request.
+- * @private_data: Optional user-defined private data sent with the
+- *   ready to use message.
+- * @private_data_len: Size of the private data buffer, in bytes.
+- */
+-int ib_cm_send_rtu(struct ib_cm_id *cm_id,
+-		   void *private_data,
+-		   uint8_t private_data_len);
+-
+-/**
+- * ib_cm_send_dreq - Sends a disconnection request for an existing
+- *   connection.
+- * @cm_id: Connection identifier associated with the connection being
+- *   released.
+- * @private_data: Optional user-defined private data sent with the
+- *   disconnection request message.
+- * @private_data_len: Size of the private data buffer, in bytes.
+- */
+-int ib_cm_send_dreq(struct ib_cm_id *cm_id,
+-		    void *private_data,
+-		    uint8_t private_data_len);
+-
+-/**
+- * ib_cm_send_drep - Sends a disconnection reply to a disconnection request.
+- * @cm_id: Connection identifier associated with the connection being
+- *   released.
+- * @private_data: Optional user-defined private data sent with the
+- *   disconnection reply message.
+- * @private_data_len: Size of the private data buffer, in bytes.
+- */
+-int ib_cm_send_drep(struct ib_cm_id *cm_id,
+-		    void *private_data,
+-		    uint8_t private_data_len);
+-
+-/**
+- * ib_cm_notify - Notifies the CM of an event reported to the consumer.
+- * @cm_id: Connection identifier to transition to established.
+- * @event: Type of event.
+- *
+- * This routine should be invoked by users to notify the CM of relevant
+- * communication events.  Events that should be reported to the CM and
+- * when to report them are:
+- *
+- * IBV_EVENT_COMM_EST - Used when a message is received on a connected
+- *    QP before an RTU has been received.
+- * IBV_EVENT_PATH_MIG - Notifies the CM that the connection has failed over
+- *   to the alternate path.
+- */
+-int ib_cm_notify(struct ib_cm_id *cm_id, enum ibv_event_type event);
+-
+-/**
+- * ib_cm_send_rej - Sends a connection rejection message to the
+- *   remote node.
+- * @cm_id: Connection identifier associated with the connection being
+- *   rejected.
+- * @reason: Reason for the connection request rejection.
+- * @ari: Optional additional rejection information.
+- * @ari_length: Size of the additional rejection information, in bytes.
+- * @private_data: Optional user-defined private data sent with the
+- *   rejection message.
+- * @private_data_len: Size of the private data buffer, in bytes.
+- */
+-int ib_cm_send_rej(struct ib_cm_id *cm_id,
+-		   enum ib_cm_rej_reason reason,
+-		   void *ari,
+-		   uint8_t ari_length,
+-		   void *private_data,
+-		   uint8_t private_data_len);
+-
+-/**
+- * ib_cm_send_mra - Sends a message receipt acknowledgement to a connection
+- *   message.
+- * @cm_id: Connection identifier associated with the connection message.
+- * @service_timeout: The maximum time required for the sender to reply to
+- *   to the connection message.
+- * @private_data: Optional user-defined private data sent with the
+- *   message receipt acknowledgement.
+- * @private_data_len: Size of the private data buffer, in bytes.
+- */
+-int ib_cm_send_mra(struct ib_cm_id *cm_id,
+-		   uint8_t service_timeout,
+-		   void *private_data,
+-		   uint8_t private_data_len);
+-
+-/**
+- * ib_cm_send_lap - Sends a load alternate path request.
+- * @cm_id: Connection identifier associated with the load alternate path
+- *   message.
+- * @alternate_path: A path record that identifies the alternate path to
+- *   load.
+- * @private_data: Optional user-defined private data sent with the
+- *   load alternate path message.
+- * @private_data_len: Size of the private data buffer, in bytes.
+- */
+-int ib_cm_send_lap(struct ib_cm_id *cm_id,
+-		   struct ibv_sa_path_rec *alternate_path,
+-		   void *private_data,
+-		   uint8_t private_data_len);
+-
+-/**
+- * ib_cm_init_qp_attr - Initializes the QP attributes for use in transitioning
+- *   to a specified QP state.
+- * @cm_id: Communication identifier associated with the QP attributes to
+- *   initialize.
+- * @qp_attr: On input, specifies the desired QP state.  On output, the
+- *   mandatory and desired optional attributes will be set in order to
+- *   modify the QP to the specified state.
+- * @qp_attr_mask: The QP attribute mask that may be used to transition the
+- *   QP to the specified state.
+- *
+- * Users must set the @qp_attr->qp_state to the desired QP state.  This call
+- * will set all required attributes for the given transition, along with
+- * known optional attributes.  Users may override the attributes returned from
+- * this call before calling ib_modify_qp.
+- */
+-int ib_cm_init_qp_attr(struct ib_cm_id *cm_id,
+-		       struct ibv_qp_attr *qp_attr,
+-		       int *qp_attr_mask);
+-
+-/**
+- * ib_cm_send_apr - Sends an alternate path response message in response to
+- *   a load alternate path request.
+- * @cm_id: Connection identifier associated with the alternate path response.
+- * @status: Reply status sent with the alternate path response.
+- * @info: Optional additional information sent with the alternate path
+- *   response.
+- * @info_length: Size of the additional information, in bytes.
+- * @private_data: Optional user-defined private data sent with the
+- *   alternate path response message.
+- * @private_data_len: Size of the private data buffer, in bytes.
+- */
+-int ib_cm_send_apr(struct ib_cm_id *cm_id,
+-		   enum ib_cm_apr_status status,
+-		   void *info,
+-		   uint8_t info_length,
+-		   void *private_data,
+-		   uint8_t private_data_len);
+-
+-struct ib_cm_sidr_req_param {
+-	struct ibv_sa_path_rec	*path;
+-	__be64			service_id;
+-	int			timeout_ms;
+-	void			*private_data;
+-	uint8_t			private_data_len;
+-	uint8_t			max_cm_retries;
+-};
+-
+-/**
+- * ib_cm_send_sidr_req - Sends a service ID resolution request to the
+- *   remote node.
+- * @cm_id: Communication identifier that will be associated with the
+- *   service ID resolution request.
+- * @param: Service ID resolution request information.
+- */
+-int ib_cm_send_sidr_req(struct ib_cm_id *cm_id,
+-			struct ib_cm_sidr_req_param *param);
+-
+-struct ib_cm_sidr_rep_param {
+-	uint32_t		qp_num;
+-	uint32_t		qkey;
+-	enum ib_cm_sidr_status	status;
+-	void			*info;
+-	uint8_t			info_length;
+-	void			*private_data;
+-	uint8_t			private_data_len;
+-};
+-
+-/**
+- * ib_cm_send_sidr_rep - Sends a service ID resolution reply to the
+- *   remote node.
+- * @cm_id: Communication identifier associated with the received service ID
+- *   resolution request.
+- * @param: Service ID resolution reply information.
+- */
+-int ib_cm_send_sidr_rep(struct ib_cm_id *cm_id,
+-			struct ib_cm_sidr_rep_param *param);
+-
+-#ifdef __cplusplus
+-}
+-#endif
+-
+-#endif /* CM_H */
+diff --git a/libibcm/cm_abi.h b/libibcm/cm_abi.h
+deleted file mode 100644
+index 8b76dc1f..00000000
+--- a/libibcm/cm_abi.h
++++ /dev/null
+@@ -1,73 +0,0 @@
+-/*
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- */
+-
+-#ifndef INFINIBAND_CM_ABI_H
+-#define INFINIBAND_CM_ABI_H
+-
+-#warning "This header is obsolete, use rdma/ib_user_cm.h instead"
+-
+-#include <rdma/ib_user_cm.h>
+-
+-#define cm_abi_cmd_hdr ib_ucm_cmd_hdr
+-#define cm_abi_create_id ib_ucm_create_id
+-#define cm_abi_create_id_resp ib_ucm_create_id_resp
+-#define cm_abi_destroy_id ib_ucm_destroy_id
+-#define cm_abi_destroy_id_resp ib_ucm_destroy_id_resp
+-#define cm_abi_attr_id ib_ucm_attr_id
+-#define cm_abi_attr_id_resp ib_ucm_attr_id_resp
+-#define cm_abi_init_qp_attr ib_ucm_init_qp_attr
+-#define cm_abi_listen ib_ucm_listen
+-#define cm_abi_establish ib_ucm_establish
+-#define cm_abi_notify ib_ucm_notify
+-#define cm_abi_private_data ib_ucm_private_data
+-#define cm_abi_req ib_ucm_req
+-#define cm_abi_rep ib_ucm_rep
+-#define cm_abi_info ib_ucm_info
+-#define cm_abi_mra ib_ucm_mra
+-#define cm_abi_lap ib_ucm_lap
+-#define cm_abi_sidr_req ib_ucm_sidr_req
+-#define cm_abi_sidr_rep ib_ucm_sidr_rep
+-#define cm_abi_event_get ib_ucm_event_get
+-#define cm_abi_req_event_resp ib_ucm_req_event_resp
+-#define cm_abi_rep_event_resp ib_ucm_rep_event_resp
+-#define cm_abi_rej_event_resp ib_ucm_rej_event_resp
+-#define cm_abi_mra_event_resp ib_ucm_mra_event_resp
+-#define cm_abi_lap_event_resp ib_ucm_lap_event_resp
+-#define cm_abi_apr_event_resp ib_ucm_apr_event_resp
+-#define cm_abi_sidr_req_event_resp ib_ucm_sidr_req_event_resp
+-#define cm_abi_sidr_rep_event_resp ib_ucm_sidr_rep_event_resp
+-#define cm_abi_event_resp ib_ucm_event_resp
+-
+-#define CM_ABI_PRES_DATA IB_UCM_PRES_DATA
+-#define CM_ABI_PRES_INFO IB_UCM_PRES_INFO
+-#define CM_ABI_PRES_PRIMARY IB_UCM_PRES_PRIMARY
+-#define CM_ABI_PRES_ALTERNATE IB_UCM_PRES_ALTERNATE
+-
+-#endif
+diff --git a/libibcm/examples/CMakeLists.txt b/libibcm/examples/CMakeLists.txt
+deleted file mode 100644
+index ef30a6e1..00000000
+--- a/libibcm/examples/CMakeLists.txt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-rdma_test_executable(cmpost cmpost.c)
+-target_link_libraries(cmpost LINK_PRIVATE ibcm rdmacm)
+diff --git a/libibcm/examples/cmpost.c b/libibcm/examples/cmpost.c
+deleted file mode 100644
+index b7c95513..00000000
+--- a/libibcm/examples/cmpost.c
++++ /dev/null
+@@ -1,774 +0,0 @@
+-/*
+- * Copyright (c) 2004-2006 Intel Corporation.  All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- *
+- * $Id$
+- */
+-#include <endian.h>
+-#include <stdlib.h>
+-#include <string.h>
+-#include <stdio.h>
+-#include <sys/types.h>
+-#include <sys/socket.h>
+-#include <netdb.h>
+-#include <endian.h>
+-
+-#include <netinet/in.h>
+-
+-#include <infiniband/cm.h>
+-#include <rdma/rdma_cma.h>
+-
+-struct cmtest {
+-	struct ibv_device	*device;
+-	struct ib_cm_device	*cm_dev;
+-	struct ibv_context	*verbs;
+-	struct ibv_pd		*pd;
+-	struct ibv_device_attr	dev_attr;
+-
+-	/* cm info */
+-	struct ibv_sa_path_rec	path_rec;
+-
+-	struct cmtest_node	*nodes;
+-	int			conn_index;
+-	int			connects_left;
+-	int			disconnects_left;
+-
+-	/* memory region info */
+-	struct ibv_mr		*mr;
+-	void			*mem;
+-};
+-
+-static struct cmtest test;
+-static int message_count = 10;
+-static int message_size = 100;
+-static int connections = 1;
+-static int is_server = 1;
+-
+-struct cmtest_node {
+-	int			id;
+-	struct ibv_cq		*cq;
+-	struct ibv_qp		*qp;
+-	struct ib_cm_id		*cm_id;
+-	int			connected;
+-};
+-
+-static int post_recvs(struct cmtest_node *node)
+-{
+-	struct ibv_recv_wr recv_wr, *recv_failure;
+-	struct ibv_sge sge;
+-	int i, ret = 0;
+-
+-	if (!message_count)
+-		return 0;
+-
+-	recv_wr.next = NULL;
+-	recv_wr.sg_list = &sge;
+-	recv_wr.num_sge = 1;
+-	recv_wr.wr_id = (uintptr_t) node;
+-
+-	sge.length = message_size;
+-	sge.lkey = test.mr->lkey;
+-	sge.addr = (uintptr_t) test.mem;
+-
+-	for (i = 0; i < message_count && !ret; i++ ) {
+-		ret = ibv_post_recv(node->qp, &recv_wr, &recv_failure);
+-		if (ret) {
+-			printf("failed to post receives: %d\n", ret);
+-			break;
+-		}
+-	}
+-	return ret;
+-}
+-
+-static int modify_to_rtr(struct cmtest_node *node,
+-			 struct ib_cm_rep_param *rep)
+-{
+-	struct ibv_qp_attr qp_attr;
+-	int qp_attr_mask, ret;
+-
+-	qp_attr.qp_state = IBV_QPS_INIT;
+-	ret = ib_cm_init_qp_attr(node->cm_id, &qp_attr, &qp_attr_mask);
+-	if (ret) {
+-		printf("failed to init QP attr for INIT: %d\n", ret);
+-		return ret;
+-	}
+-	ret = ibv_modify_qp(node->qp, &qp_attr, qp_attr_mask);
+-	if (ret) {
+-		printf("failed to modify QP to INIT: %d\n", ret);
+-		return ret;
+-	}
+-	qp_attr.qp_state = IBV_QPS_RTR;
+-	ret = ib_cm_init_qp_attr(node->cm_id, &qp_attr, &qp_attr_mask);
+-	if (ret) {
+-		printf("failed to init QP attr for RTR: %d\n", ret);
+-		return ret;
+-	}
+-	qp_attr.rq_psn = node->qp->qp_num;
+-	if (rep) {
+-		qp_attr.max_dest_rd_atomic = rep->responder_resources;
+-		qp_attr.max_rd_atomic = rep->initiator_depth;
+-	}
+-	ret = ibv_modify_qp(node->qp, &qp_attr, qp_attr_mask);
+-	if (ret) {
+-		printf("failed to modify QP to RTR: %d\n", ret);
+-		return ret;
+-	}
+-	return 0;
+-}
+-
+-static int modify_to_rts(struct cmtest_node *node)
+-{
+-	struct ibv_qp_attr qp_attr;
+-	int qp_attr_mask, ret;
+-
+-	qp_attr.qp_state = IBV_QPS_RTS;
+-	ret = ib_cm_init_qp_attr(node->cm_id, &qp_attr, &qp_attr_mask);
+-	if (ret) {
+-		printf("failed to init QP attr for RTS: %d\n", ret);
+-		return ret;
+-	}
+-	ret = ibv_modify_qp(node->qp, &qp_attr, qp_attr_mask);
+-	if (ret) {
+-		printf("failed to modify QP to RTS: %d\n", ret);
+-		return ret;
+-	}
+-	return 0;
+-}
+-
+-static void req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
+-{
+-	struct cmtest_node *node;
+-	struct ib_cm_req_event_param *req;
+-	struct ib_cm_rep_param rep;
+-	int ret;
+-
+-	if (test.conn_index == connections)
+-		goto error1;
+-	node = &test.nodes[test.conn_index++];
+-
+-	req = &event->param.req_rcvd;
+-	memset(&rep, 0, sizeof rep);
+-
+-	/*
+-	 * Limit the responder resources requested by the remote
+-	 * to our capabilities.  Note that the kernel swaps
+-	 * req->responder_resources and req->initiator_depth, so
+-	 * that req->responder_resources is actually the active
+-	 * side's initiator depth.
+-	 */
+-	if (req->responder_resources > test.dev_attr.max_qp_rd_atom)
+-		rep.responder_resources = test.dev_attr.max_qp_rd_atom;
+-	else
+-		rep.responder_resources = req->responder_resources;
+-
+-	/*
+-	 * Note: if this side of the connection is never going to
+-	 * use RDMA read opreations, then initiator_depth can be set
+-	 * to 0 here.
+-	 */
+-	if (req->initiator_depth > test.dev_attr.max_qp_init_rd_atom)
+-		rep.initiator_depth = test.dev_attr.max_qp_init_rd_atom;
+-	else
+-		rep.initiator_depth = req->initiator_depth;
+-
+-	node->cm_id = cm_id;
+-	cm_id->context = node;
+-
+-	ret = modify_to_rtr(node, &rep);
+-	if (ret)
+-		goto error2;
+-
+-	ret = post_recvs(node);
+-	if (ret)
+-		goto error2;
+-
+-	rep.qp_num = node->qp->qp_num;
+-	rep.srq = (node->qp->srq != NULL);
+-	rep.starting_psn = node->qp->qp_num;
+-	rep.target_ack_delay = 20;
+-	rep.flow_control = req->flow_control;
+-	rep.rnr_retry_count = req->rnr_retry_count;
+-
+-	ret = ib_cm_send_rep(cm_id, &rep);
+-	if (ret) {
+-		printf("failed to send CM REP: %d\n", ret);
+-		goto error2;
+-	}
+-	return;
+-error2:
+-	test.disconnects_left--;
+-	test.connects_left--;
+-error1:
+-	printf("failing connection request\n");
+-	ib_cm_send_rej(cm_id, IB_CM_REJ_UNSUPPORTED, NULL, 0, NULL, 0);
+-}
+-
+-static void rep_handler(struct cmtest_node *node, struct ib_cm_event *event)
+-{
+-	int ret;
+-
+-	ret = modify_to_rtr(node, NULL);
+-	if (ret)
+-		goto error;
+-
+-	ret = modify_to_rts(node);
+-	if (ret)
+-		goto error;
+-
+-	ret = post_recvs(node);
+-	if (ret)
+-		goto error;
+-
+-	ret = ib_cm_send_rtu(node->cm_id, NULL, 0);
+-	if (ret) {
+-		printf("failed to send CM RTU: %d\n", ret);
+-		goto error;
+-	}
+-	node->connected = 1;
+-	test.connects_left--;
+-	return;
+-error:
+-	printf("failing connection reply\n");
+-	ib_cm_send_rej(node->cm_id, IB_CM_REJ_UNSUPPORTED, NULL, 0, NULL, 0);
+-	test.disconnects_left--;
+-	test.connects_left--;
+-}
+-
+-static void rtu_handler(struct cmtest_node *node)
+-{
+-	int ret;
+-
+-	ret = modify_to_rts(node);
+-	if (ret)
+-		goto error;
+-
+-	node->connected = 1;
+-	test.connects_left--;
+-	return;
+-error:
+-	printf("aborting connection - disconnecting\n");
+-	ib_cm_send_dreq(node->cm_id, NULL, 0);
+-	test.disconnects_left--;
+-	test.connects_left--;
+-}
+-
+-static void cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
+-{
+-	struct cmtest_node *node = cm_id->context;
+-
+-	switch (event->event) {
+-	case IB_CM_REQ_RECEIVED:
+-		req_handler(cm_id, event);
+-		break;
+-	case IB_CM_REP_RECEIVED:
+-		rep_handler(node, event);
+-		break;
+-	case IB_CM_RTU_RECEIVED:
+-		rtu_handler(node);
+-		break;
+-	case IB_CM_DREQ_RECEIVED:
+-		node->connected = 0;
+-		ib_cm_send_drep(node->cm_id, NULL, 0);
+-		test.disconnects_left--;
+-		break;
+-	case IB_CM_DREP_RECEIVED:
+-		test.disconnects_left--;
+-		break;
+-	case IB_CM_REJ_RECEIVED:
+-		printf("Received REJ\n");
+-		/* fall through */
+-	case IB_CM_REQ_ERROR:
+-	case IB_CM_REP_ERROR:
+-		printf("Error sending REQ or REP\n");
+-		test.disconnects_left--;
+-		test.connects_left--;
+-		break;
+-	case IB_CM_DREQ_ERROR:
+-		test.disconnects_left--;
+-		printf("Error sending DREQ\n");
+-		break;
+-	default:
+-		break;
+-	}
+-}
+-
+-static int init_node(struct cmtest_node *node, struct ibv_qp_init_attr *qp_attr)
+-{
+-	int cqe, ret;
+-
+-	if (!is_server) {
+-		ret = ib_cm_create_id(test.cm_dev, &node->cm_id, node);
+-		if (ret) {
+-			printf("failed to create cm_id: %d\n", ret);
+-			return ret;
+-		}
+-	}
+-
+-	cqe = message_count ? message_count * 2 : 2;
+-	node->cq = ibv_create_cq(test.verbs, cqe, node, NULL, 0);
+-	if (!node->cq) {
+-		printf("unable to create CQ\n");
+-		goto error1;
+-	}
+-
+-	qp_attr->send_cq = node->cq;
+-	qp_attr->recv_cq = node->cq;
+-	node->qp = ibv_create_qp(test.pd, qp_attr);
+-	if (!node->qp) {
+-		printf("unable to create QP\n");
+-		goto error2;
+-	}
+-	return 0;
+-error2:
+-	ibv_destroy_cq(node->cq);
+-error1:
+-	if (!is_server)
+-		ib_cm_destroy_id(node->cm_id);
+-	return -1;
+-}
+-
+-static void destroy_node(struct cmtest_node *node)
+-{
+-	ibv_destroy_qp(node->qp);
+-	ibv_destroy_cq(node->cq);
+-	if (node->cm_id)
+-		ib_cm_destroy_id(node->cm_id);
+-}
+-
+-static int create_nodes(void)
+-{
+-	struct ibv_qp_init_attr qp_attr;
+-	int ret, i;
+-
+-	test.nodes = malloc(sizeof *test.nodes * connections);
+-	if (!test.nodes) {
+-		printf("unable to allocate memory for test nodes\n");
+-		return -1;
+-	}
+-	memset(test.nodes, 0, sizeof *test.nodes * connections);
+-
+-	memset(&qp_attr, 0, sizeof qp_attr);
+-	qp_attr.cap.max_send_wr = message_count ? message_count : 1;
+-	qp_attr.cap.max_recv_wr = message_count ? message_count : 1;
+-	qp_attr.cap.max_send_sge = 1;
+-	qp_attr.cap.max_recv_sge = 1;
+-	qp_attr.qp_type = IBV_QPT_RC;
+-
+-	for (i = 0; i < connections; i++) {
+-		test.nodes[i].id = i;
+-		ret = init_node(&test.nodes[i], &qp_attr);
+-		if (ret)
+-			goto error;
+-	}
+-	return 0;
+-error:
+-	while (--i >= 0)
+-		destroy_node(&test.nodes[i]);
+-	free(test.nodes);
+-	return ret;
+-}
+-
+-static void destroy_nodes(void)
+-{
+-	int i;
+-
+-	for (i = 0; i < connections; i++)
+-		destroy_node(&test.nodes[i]);
+-	free(test.nodes);
+-}
+-
+-static int create_messages(void)
+-{
+-	if (!message_size)
+-		message_count = 0;
+-
+-	if (!message_count)
+-		return 0;
+-
+-	test.mem = malloc(message_size);
+-	if (!test.mem) {
+-		printf("failed message allocation\n");
+-		return -1;
+-	}
+-	test.mr = ibv_reg_mr(test.pd, test.mem, message_size,
+-			     IBV_ACCESS_LOCAL_WRITE);
+-	if (!test.mr) {
+-		printf("failed to reg MR\n");
+-		goto err;
+-	}
+-	return 0;
+-err:
+-	free(test.mem);
+-	return -1;
+-}
+-
+-static void destroy_messages(void)
+-{
+-	if (!message_count)
+-		return;
+-
+-	ibv_dereg_mr(test.mr);
+-	free(test.mem);
+-}
+-
+-static int init(void)
+-{
+-	struct ibv_device **dev_list;
+-	int ret;
+-
+-	test.connects_left = connections;
+-	test.disconnects_left = connections;
+-
+-	dev_list = ibv_get_device_list(NULL);
+-	if (!dev_list)
+-		return -1;
+-	test.device = dev_list[0];
+-	if (!test.device)
+-		return -1;
+-
+-	test.verbs = ibv_open_device(test.device);
+-	if (!test.verbs)
+-		return -1;
+-
+-	if (ibv_query_device(test.verbs, &test.dev_attr))
+-		return -1;
+-
+-	test.cm_dev = ib_cm_open_device(test.verbs);
+-	if (!test.cm_dev)
+-		return -1;
+-
+-	test.pd = ibv_alloc_pd(test.verbs);
+-	if (!test.pd) {
+-		printf("failed to alloc PD\n");
+-		return -1;
+-	}
+-	ret = create_messages();
+-	if (ret) {
+-		printf("unable to create test messages\n");
+-		goto error1;
+-	}
+-	ret = create_nodes();
+-	if (ret) {
+-		printf("unable to create test nodes\n");
+-		goto error2;
+-	}
+-	return 0;
+-error2:
+-	destroy_messages();
+-error1:
+-	ibv_dealloc_pd(test.pd);
+-	return -1;
+-}
+-
+-static void cleanup(void)
+-{
+-	destroy_nodes();
+-	destroy_messages();
+-	ibv_dealloc_pd(test.pd);
+-	ib_cm_close_device(test.cm_dev);
+-	ibv_close_device(test.verbs);
+-}
+-
+-static int send_msgs(void)
+-{
+-	struct ibv_send_wr send_wr, *bad_send_wr;
+-	struct ibv_sge sge;
+-	int i, m, ret;
+-
+-	send_wr.next = NULL;
+-	send_wr.sg_list = &sge;
+-	send_wr.num_sge = 1;
+-	send_wr.opcode = IBV_WR_SEND;
+-	send_wr.send_flags = IBV_SEND_SIGNALED;
+-	send_wr.wr_id = 0;
+-
+-	sge.addr = (uintptr_t) test.mem;
+-	sge.length = message_size;
+-	sge.lkey = test.mr->lkey;
+-
+-	for (i = 0; i < connections; i++) {
+-		if (!test.nodes[i].connected)
+-			continue;
+-
+-		for (m = 0; m < message_count; m++) {
+-			ret = ibv_post_send(test.nodes[i].qp, &send_wr,
+-					    &bad_send_wr);
+-			if (ret)
+-				return ret;
+-		}
+-	}
+-	return 0;
+-}
+-
+-static int poll_cqs(void)
+-{
+-	struct ibv_wc wc[8];
+-	int done, i, ret;
+-
+-	for (i = 0; i < connections; i++) {
+-		if (!test.nodes[i].connected)
+-			continue;
+-
+-		for (done = 0; done < message_count; done += ret) {
+-			ret = ibv_poll_cq(test.nodes[i].cq, 8, wc);
+-			if (ret < 0) {
+-				printf("failed polling CQ: %d\n", ret);
+-				return ret;
+-			}
+-		}
+-	}
+-	return 0;
+-}
+-
+-static void connect_events(void)
+-{
+-	struct ib_cm_event *event;
+-	int err = 0;
+-
+-	while (test.connects_left && !err) {
+-		err = ib_cm_get_event(test.cm_dev, &event);
+-		if (!err) {
+-			cm_handler(event->cm_id, event);
+-			ib_cm_ack_event(event);
+-		}
+-	}
+-}
+-
+-static void disconnect_events(void)
+-{
+-	struct ib_cm_event *event;
+-	int err = 0;
+-
+-	while (test.disconnects_left && !err) {
+-		err = ib_cm_get_event(test.cm_dev, &event);
+-		if (!err) {
+-			cm_handler(event->cm_id, event);
+-			ib_cm_ack_event(event);
+-		}
+-	}
+-}
+-
+-static void run_server(void)
+-{
+-	struct ib_cm_id *listen_id;
+-	int i, ret;
+-
+-	printf("starting server\n");
+-	if (ib_cm_create_id(test.cm_dev, &listen_id, &test)) {
+-		printf("listen request failed\n");
+-		return;
+-	}
+-	ret = ib_cm_listen(listen_id, htobe64(0x1000), 0);
+-	if (ret) {
+-		printf("failure trying to listen: %d\n", ret);
+-		goto out;
+-	}
+-
+-	connect_events();
+-
+-	if (message_count) {
+-		printf("initiating data transfers\n");
+-		if (send_msgs())
+-			goto out;
+-		printf("receiving data transfers\n");
+-		if (poll_cqs())
+-			goto out;
+-		printf("data transfers complete\n");
+-	}
+-
+-	printf("disconnecting\n");
+-	for (i = 0; i < connections; i++) {
+-		if (!test.nodes[i].connected)
+-			continue;
+-
+-		test.nodes[i].connected = 0;
+-		ib_cm_send_dreq(test.nodes[i].cm_id, NULL, 0);
+-	}
+-	disconnect_events();
+- 	printf("disconnected\n");
+-out:
+-	ib_cm_destroy_id(listen_id);
+-}
+-
+-static int get_dst_addr(char *dst, struct sockaddr_in *addr_in)
+-{
+-	struct addrinfo *res;
+-	int ret;
+-
+-	ret = getaddrinfo(dst, NULL, NULL, &res);
+-	if (ret)
+-		return ret;
+-
+-	if (res->ai_family != PF_INET) {
+-		ret = -1;
+-		goto out;
+-	}
+-
+-	*addr_in = *(struct sockaddr_in *) res->ai_addr;
+-	addr_in->sin_port = htobe16(7471);
+-out:
+-	freeaddrinfo(res);
+-	return ret;
+-}
+-
+-static int query_for_path(char *dst)
+-{
+-	struct rdma_event_channel *channel;
+-	struct rdma_cm_id *id;
+-	struct sockaddr_in addr_in;
+-	struct rdma_cm_event *event;
+-	int ret;
+-
+-	ret = get_dst_addr(dst, &addr_in);
+-	if (ret)
+-		return ret;
+-
+-	channel = rdma_create_event_channel();
+-	if (!channel)
+-		return -1;
+-
+-	ret = rdma_create_id(channel, &id, NULL, RDMA_PS_TCP);
+-	if (ret)
+-		goto destroy_channel;
+-
+-	ret = rdma_resolve_addr(id, NULL, (struct sockaddr *) &addr_in, 2000);
+-	if (ret)
+-		goto out;
+-
+-	ret = rdma_get_cm_event(channel, &event);
+-	if (!ret && event->event != RDMA_CM_EVENT_ADDR_RESOLVED)
+-		ret = event->status;
+-	rdma_ack_cm_event(event);
+-	if (ret)
+-		goto out;
+-
+-	ret = rdma_resolve_route(id, 2000);
+-	if (ret)
+-		goto out;
+-
+-	ret = rdma_get_cm_event(channel, &event);
+-	if (!ret && event->event != RDMA_CM_EVENT_ROUTE_RESOLVED)
+-		ret = event->status;
+-	rdma_ack_cm_event(event);
+-	if (ret)
+-		goto out;
+-
+-	test.path_rec = id->route.path_rec[0];
+-out:
+-	rdma_destroy_id(id);
+-destroy_channel:
+-	rdma_destroy_event_channel(channel);
+-	return ret;
+-}
+-
+-static void run_client(char *dst)
+-{
+-	struct ib_cm_req_param req;
+-	int i, ret;
+-
+-	printf("starting client\n");
+-	ret = query_for_path(dst);
+-	if (ret) {
+-		printf("failed path record query: %d\n", ret);
+-		return;
+-	}
+-
+-	memset(&req, 0, sizeof req);
+-	req.primary_path = &test.path_rec;
+-	req.service_id = htobe64(0x1000);
+-
+-	/*
+-	 * When choosing the responder resources for a ULP, it is usually
+-	 * best to use the maximum value of the HCA.  If the other side is
+-	 * not going to use RDMA read, then it should zero out the
+-	 * initiator_depth in the REP, which will zero out the local
+-	 * responder_resources when we program the QP.  Generally, the
+-	 * initiator_depth should be either set to 0 or
+-	 * min(max_qp_rd_atom, max_send_wr).  Use 0 if RDMA read is
+-	 * never going to be sent from this side.
+-	 */
+-	req.responder_resources = test.dev_attr.max_qp_rd_atom;
+-	req.initiator_depth = test.dev_attr.max_qp_init_rd_atom;
+-
+-	req.remote_cm_response_timeout = 20;
+-	req.local_cm_response_timeout = 20;
+-	req.retry_count = 5;
+-	req.max_cm_retries = 5;
+-
+-	printf("connecting\n");
+-	for (i = 0; i < connections; i++) {
+-		req.qp_num = test.nodes[i].qp->qp_num;
+-		req.qp_type = IBV_QPT_RC;
+-		req.srq = (test.nodes[i].qp->srq != NULL);
+-		req.starting_psn = test.nodes[i].qp->qp_num;
+-		ret = ib_cm_send_req(test.nodes[i].cm_id, &req);
+-		if (ret) {
+-			printf("failure sending REQ: %d\n", ret);
+-			return;
+-		}
+-	}
+-
+-	connect_events();
+-
+-	if (message_count) {
+-		printf("receiving data transfers\n");
+-		if (poll_cqs())
+-			goto out;
+-		printf("initiating data transfers\n");
+-		if (send_msgs())
+-			goto out;
+-		printf("data transfers complete\n");
+-	}
+-out:
+-	disconnect_events();
+-}
+-
+-int main(int argc, char **argv)
+-{
+-	if (argc != 1 && argc != 2) {
+-		printf("usage: %s [server_ip_addr]\n", argv[0]);
+-		exit(1);
+-	}
+-
+-	is_server = (argc == 1);
+-	if (init()) {
+-		printf("init failed\n");
+-		exit(1);
+-	}
+-
+-	if (is_server)
+-		run_server();
+-	else
+-		run_client(argv[1]);
+-
+-	printf("test complete\n");
+-	cleanup();
+-	return 0;
+-}
+diff --git a/libibcm/libibcm.map b/libibcm/libibcm.map
+deleted file mode 100644
+index c94e420a..00000000
+--- a/libibcm/libibcm.map
++++ /dev/null
+@@ -1,26 +0,0 @@
+-/* Do not change this file without reading Documentation/versioning.md */
+-IBCM_1.0 {
+-	global:
+-		ib_cm_open_device;
+-		ib_cm_close_device;
+-		ib_cm_get_event;
+-		ib_cm_ack_event;
+-		ib_cm_create_id;
+-		ib_cm_destroy_id;
+-		ib_cm_attr_id;
+-		ib_cm_listen;
+-		ib_cm_send_req;
+-		ib_cm_send_rep;
+-		ib_cm_send_rtu;
+-		ib_cm_send_dreq;
+-		ib_cm_send_drep;
+-		ib_cm_notify;
+-		ib_cm_send_rej;
+-		ib_cm_send_mra;
+-		ib_cm_send_lap;
+-		ib_cm_send_apr;
+-		ib_cm_send_sidr_req;
+-		ib_cm_send_sidr_rep;
+-		ib_cm_init_qp_attr;
+-	local: *;
+-};
+diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
+index 4fc2e289..434d5679 100644
+--- a/redhat/rdma-core.spec
++++ b/redhat/rdma-core.spec
+@@ -56,9 +56,6 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
+ Requires: libibverbs = %{version}-%{release}
+ Provides: libibverbs-devel = %{version}-%{release}
+ Obsoletes: libibverbs-devel < %{version}-%{release}
+-Requires: libibcm = %{version}-%{release}
+-Provides: libibcm-devel = %{version}-%{release}
+-Obsoletes: libibcm-devel < %{version}-%{release}
+ Requires: libibumad = %{version}-%{release}
+ Provides: libibumad-devel = %{version}-%{release}
+ Obsoletes: libibumad-devel < %{version}-%{release}
+@@ -160,15 +157,6 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
+ iwpmd provides a userspace service for iWarp drivers to claim
+ tcp ports through the standard socket interface.
+
+-%package -n libibcm
+-Summary: Userspace InfiniBand Connection Manager
+-ExcludeArch: s390 s390x
+-Requires: %{name}%{?_isa} = %{version}-%{release}
+-
+-%description -n libibcm
+-libibcm provides a userspace library that handles the majority of the low
+-level work required to open an RDMA connection between two machines.
+-
+ %package -n libibumad
+ Summary: OpenFabrics Alliance InfiniBand umad (userspace management datagram) library
+ Requires: %{name}%{?_isa} = %{version}-%{release}
+@@ -276,10 +264,6 @@ rm -rf %{buildroot}/%{_sbindir}/srp_daemon.sh
+ %post -n libibverbs -p /sbin/ldconfig
+ %postun -n libibverbs -p /sbin/ldconfig
+
+-# libibcm
+-%post -n libibcm -p /sbin/ldconfig
+-%postun -n libibcm -p /sbin/ldconfig
+-
+ # libibumad
+ %post -n libibumad -p /sbin/ldconfig
+ %postun -n libibumad -p /sbin/ldconfig
+@@ -409,10 +393,6 @@ rm -rf %{buildroot}/%{_sbindir}/srp_daemon.sh
+ %{_mandir}/man8/iwpmd.*
+ %{_mandir}/man5/iwpmd.*
+
+-%files -n libibcm
+-%{_libdir}/libibcm*.so.*
+-%doc %{_docdir}/%{name}-%{version}/libibcm.md
+-
+ %files -n libibumad
+ %{_libdir}/libibumad*.so.*
+
+diff --git a/suse/rdma-core.spec b/suse/rdma-core.spec
+index df1c571c..cb6ffb36 100644
+--- a/suse/rdma-core.spec
++++ b/suse/rdma-core.spec
+@@ -26,14 +26,12 @@ License:        GPL-2.0 or BSD-2-Clause
+ Group:          Productivity/Networking/Other
+
+ %define verbs_so_major  1
+-%define ibcm_so_major   1
+ %define rdmacm_so_major 1
+ %define umad_so_major   3
+ %define mlx4_so_major   1
+ %define mlx5_so_major   1
+
+ %define  verbs_lname  libibverbs%{verbs_so_major}
+-%define  ibcm_lname   libibcm%{ibcm_so_major}
+ %define  rdmacm_lname librdmacm%{rdmacm_so_major}
+ %define  umad_lname   libibumad%{umad_so_major}
+ %define  mlx4_lname   libmlx4-%{mlx4_so_major}
+@@ -123,7 +121,6 @@ Summary:        RDMA core development libraries and headers
+ Group:          Development/Libraries/C and C++
+ Requires:       %{name}%{?_isa} = %{version}-%{release}
+
+-Requires:       %{ibcm_lname} = %{version}-%{release}
+ Requires:       %{rdmacm_lname} = %{version}-%{release}
+ Requires:       %{umad_lname} = %{version}-%{release}
+ Requires:       %{verbs_lname} = %{version}-%{release}
+@@ -136,9 +133,6 @@ Requires:       rsocket = %{version}-%{release}
+ Provides:       libibverbs-devel = %{version}-%{release}
+ Obsoletes:      libibverbs-devel < %{version}-%{release}
+
+-Provides:       libibcm-devel = %{version}-%{release}
+-Obsoletes:      libibcm-devel < %{version}-%{release}
+-
+ Provides:       libibumad-devel = %{version}-%{release}
+ Obsoletes:      libibumad-devel < %{version}-%{release}
+ Provides:       librdmacm-devel = %{version}-%{release}
+@@ -256,14 +250,6 @@ Requires:       %{name}%{?_isa} = %{version}
+ iwpmd provides a userspace service for iWarp drivers to claim
+ tcp ports through the standard socket interface.
+
+-%package -n %ibcm_lname
+-Summary:        Userspace InfiniBand Connection Manager
+-Group:          System/Libraries
+-
+-%description -n %ibcm_lname
+-libibcm provides a userspace library that handles the majority of the low
+-level work required to open an RDMA connection between two machines.
+-
+ %package -n %umad_lname
+ Summary:        OpenFabrics Alliance InfiniBand Userspace Management Datagram library
+ Group:          System/Libraries
+@@ -408,9 +394,6 @@ rm -rf %{buildroot}/%{_sbindir}/srp_daemon.sh
+ %postun -n %mlx5_lname -p /sbin/ldconfig
+ %endif
+
+-%post -n %ibcm_lname -p /sbin/ldconfig
+-%postun -n %ibcm_lname -p /sbin/ldconfig
+-
+ %post -n %umad_lname -p /sbin/ldconfig
+ %postun -n %umad_lname -p /sbin/ldconfig
+
+@@ -610,11 +593,6 @@ rm -rf %{buildroot}/%{_sbindir}/srp_daemon.sh
+ %{_mandir}/man8/iwpmd.*
+ %{_mandir}/man5/iwpmd.*
+
+-%files -n %ibcm_lname
+-%defattr(-,root,root)
+-%{_libdir}/libibcm*.so.*
+-%doc %{_docdir}/%{name}-%{version}/libibcm.md
+-
+ %files -n %umad_lname
+ %defattr(-,root,root)
+ %{_libdir}/libibumad*.so.*
+--
+2.15.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
