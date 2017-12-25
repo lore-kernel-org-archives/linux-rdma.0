@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 5/9] mlx5: Dynamic BF size handling
-Date: Mon, 25 Dec 2017 15:56:57 +0200
-Message-ID: <1514210221-10466-6-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 3/9] mlx5: Add support for the ibv_td object and its related verbs
+Date: Mon, 25 Dec 2017 15:56:55 +0200
+Message-ID: <1514210221-10466-4-git-send-email-yishaih@mellanox.com>
 References: <1514210221-10466-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1514210221-10466-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,105 +10,138 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch reads from the mlx5 kernel driver the max number of BF
-registers that can be allocated and initializes the context in
-preparation for downstream patches.
+This patch introduces the initial implementation of the
+ibv_alloc/dealloc_td verbs.
+
+Upon TD creation a dedicated BF (blue-flame) register should be attached
+to its object and upon destruction the BF will be detached.
+
+The motivation behind this, is to enable an application to create QP(s)
+with a given TD (by using the ibv_parent_domain) and then benefit from
+dropping the lock around the internal BF register upon post send.
+
+Downstream patches in this series add the above functionality.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/mlx5-abi.h |  2 ++
- providers/mlx5/mlx5.c     | 17 ++++++++++++++++-
- providers/mlx5/mlx5.h     |  4 ++++
- 3 files changed, 22 insertions(+), 1 deletion(-)
+ providers/mlx5/mlx5.c  |  2 ++
+ providers/mlx5/mlx5.h  | 14 ++++++++++++++
+ providers/mlx5/verbs.c | 50 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 66 insertions(+)
 
-diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
-index afc9e6f..ebe079b 100644
---- a/providers/mlx5/mlx5-abi.h
-+++ b/providers/mlx5/mlx5-abi.h
-@@ -101,6 +101,8 @@ struct mlx5_alloc_ucontext_resp {
- 	__u64				hca_core_clock_offset;
- 	__u32				log_uar_size;
- 	__u32				num_uars_per_page;
-+	__u32				num_dyn_bfregs;
-+	__u32				reserved3;
- };
- 
- struct mlx5_create_ah_resp {
 diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index d76964f..4c872c8 100644
+index 3648621..d078548 100644
 --- a/providers/mlx5/mlx5.c
 +++ b/providers/mlx5/mlx5.c
-@@ -928,6 +928,16 @@ static int mlx5_init_context(struct verbs_device *vdev,
- 	context->num_ports	= resp.num_ports;
- 	context->max_recv_wr	= resp.max_recv_wr;
- 	context->max_srq_recv_wr = resp.max_srq_recv_wr;
-+	context->num_dyn_bfregs = resp.num_dyn_bfregs;
-+
-+	if (context->num_dyn_bfregs) {
-+		context->count_dyn_bfregs = calloc(context->num_dyn_bfregs,
-+						   sizeof(*context->count_dyn_bfregs));
-+		if (!context->count_dyn_bfregs) {
-+			errno = ENOMEM;
-+			goto err_free;
-+		}
-+	}
+@@ -1026,6 +1026,8 @@ static int mlx5_init_context(struct verbs_device *vdev,
+ 	v_ctx->destroy_rwq_ind_table = mlx5_destroy_rwq_ind_table;
+ 	v_ctx->post_srq_ops = mlx5_post_srq_ops;
+ 	v_ctx->modify_cq = mlx5_modify_cq;
++	v_ctx->alloc_td = mlx5_alloc_td;
++	v_ctx->dealloc_td = mlx5_dealloc_td;
  
- 	context->cqe_version = resp.cqe_version;
- 	if (context->cqe_version) {
-@@ -940,7 +950,8 @@ static int mlx5_init_context(struct verbs_device *vdev,
- 	adjust_uar_info(mdev, context, resp);
- 
- 	gross_uuars = context->tot_uuars / MLX5_NUM_NON_FP_BFREGS_PER_UAR * NUM_BFREGS_PER_UAR;
--	context->bfs = calloc(gross_uuars, sizeof(*context->bfs));
-+	context->bfs = calloc(gross_uuars + context->num_dyn_bfregs, sizeof(*context->bfs));
-+
- 	if (!context->bfs) {
- 		errno = ENOMEM;
- 		goto err_free;
-@@ -948,10 +959,12 @@ static int mlx5_init_context(struct verbs_device *vdev,
- 
- 	context->cmds_supp_uhw = resp.cmds_supp_uhw;
- 	context->vendor_cap_flags = 0;
-+	context->start_dyn_bfregs_index = gross_uuars;
- 
- 	pthread_mutex_init(&context->qp_table_mutex, NULL);
- 	pthread_mutex_init(&context->srq_table_mutex, NULL);
- 	pthread_mutex_init(&context->uidx_table_mutex, NULL);
-+	pthread_mutex_init(&context->dyn_bfregs_mutex, NULL);
- 	for (i = 0; i < MLX5_QP_TABLE_SIZE; ++i)
- 		context->qp_table[i].refcnt = 0;
- 
-@@ -1051,6 +1064,7 @@ err_free_bf:
- 	free(context->bfs);
- 
- err_free:
-+	free(context->count_dyn_bfregs);
- 	for (i = 0; i < MLX5_MAX_UARS; ++i) {
- 		if (context->uar[i].reg)
- 			munmap(context->uar[i].reg, page_size);
-@@ -1066,6 +1080,7 @@ static void mlx5_cleanup_context(struct verbs_device *device,
- 	int page_size = to_mdev(ibctx->device)->page_size;
- 	int i;
- 
-+	free(context->count_dyn_bfregs);
- 	free(context->bfs);
- 	for (i = 0; i < MLX5_MAX_UARS; ++i) {
- 		if (context->uar[i].reg)
+ 	memset(&device_attr, 0, sizeof(device_attr));
+ 	if (!mlx5_query_device_ex(ctx, NULL, &device_attr,
 diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index ed75409..8d5d193 100644
+index 5a1f7c0..4d4c583 100644
 --- a/providers/mlx5/mlx5.h
 +++ b/providers/mlx5/mlx5.h
-@@ -294,6 +294,10 @@ struct mlx5_context {
- 	struct mlx5dv_sw_parsing_caps	sw_parsing_caps;
- 	struct mlx5dv_striding_rq_caps	striding_rq_caps;
- 	uint32_t			tunnel_offloads_caps;
-+	pthread_mutex_t			dyn_bfregs_mutex; /* protects the dynamic bfregs allocation */
-+	uint32_t			num_dyn_bfregs;
-+	uint32_t			*count_dyn_bfregs;
-+	uint32_t			start_dyn_bfregs_index;
+@@ -320,6 +320,12 @@ struct mlx5_buf {
+ 	enum mlx5_alloc_type		type;
  };
  
- struct mlx5_bitmap {
++struct mlx5_td {
++	struct ibv_td			ibv_td;
++	struct mlx5_bf			*bf;
++	atomic_int			refcount;
++};
++
+ struct mlx5_pd {
+ 	struct ibv_pd			ibv_pd;
+ 	uint32_t			pdn;
+@@ -568,6 +574,11 @@ static inline struct mlx5_srq *to_msrq(struct ibv_srq *ibsrq)
+ 	return container_of(vsrq, struct mlx5_srq, vsrq);
+ }
+ 
++static inline struct mlx5_td *to_mtd(struct ibv_td *ibtd)
++{
++	return to_mxxx(td, td);
++}
++
+ static inline struct mlx5_qp *to_mqp(struct ibv_qp *ibqp)
+ {
+ 	struct verbs_qp *vqp = (struct verbs_qp *)ibqp;
+@@ -753,6 +764,9 @@ int mlx5_post_srq_ops(struct ibv_srq *srq,
+ 		      struct ibv_ops_wr *wr,
+ 		      struct ibv_ops_wr **bad_wr);
+ 
++struct ibv_td *mlx5_alloc_td(struct ibv_context *context, struct ibv_td_init_attr *init_attr);
++int mlx5_dealloc_td(struct ibv_td *td);
++
+ static inline void *mlx5_find_uidx(struct mlx5_context *ctx, uint32_t uidx)
+ {
+ 	int tind = uidx >> MLX5_UIDX_TABLE_SHIFT;
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index a3323fd..43db501 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -153,6 +153,56 @@ struct ibv_pd *mlx5_alloc_pd(struct ibv_context *context)
+ 	return &pd->ibv_pd;
+ }
+ 
++static struct mlx5_bf *mlx5_attach_dedicated_bf(struct ibv_context *context)
++{
++	return NULL;
++}
++
++static void mlx5_detach_dedicated_bf(struct ibv_context *context, struct mlx5_bf *bf)
++{
++}
++
++struct ibv_td *mlx5_alloc_td(struct ibv_context *context, struct ibv_td_init_attr *init_attr)
++{
++	struct mlx5_td	*td;
++
++	if (init_attr->comp_mask) {
++		errno = EINVAL;
++		return NULL;
++	}
++
++	td = calloc(1, sizeof(*td));
++	if (!td) {
++		errno = ENOMEM;
++		return NULL;
++	}
++
++	td->bf = mlx5_attach_dedicated_bf(context);
++	if (!td->bf) {
++		free(td);
++		return NULL;
++	}
++
++	td->ibv_td.context = context;
++	atomic_init(&td->refcount, 1);
++
++	return &td->ibv_td;
++}
++
++int mlx5_dealloc_td(struct ibv_td *ib_td)
++{
++	struct mlx5_td	*td;
++
++	td = to_mtd(ib_td);
++	if (atomic_load(&td->refcount) > 1)
++		return EBUSY;
++
++	mlx5_detach_dedicated_bf(ib_td->context, td->bf);
++	free(td);
++
++	return 0;
++}
++
+ int mlx5_free_pd(struct ibv_pd *pd)
+ {
+ 	int ret;
 -- 
 1.8.3.1
 
