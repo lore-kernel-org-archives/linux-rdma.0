@@ -1,111 +1,99 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 2/6] RDMA/hns: Update the usage of sr_max and
- rr_max field
-Date: Mon, 25 Dec 2017 18:14:26 +0800
-Message-ID: <bfcfca0e-d8c3-034d-e973-c7fab6cd4f0f@huawei.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for-next 4/6] RDMA/hns: Filter for zero length of sge in
+ hip08 kernel mode
+Date: Mon, 25 Dec 2017 12:20:45 +0200
+Message-ID: <20171225102045.GC2942@mtr-leonro.local>
 References: <1514017342-91468-1-git-send-email-oulijun@huawei.com>
- <1514017342-91468-3-git-send-email-oulijun@huawei.com>
- <20171225094112.GA2942@mtr-leonro.local>
+ <1514017342-91468-5-git-send-email-oulijun@huawei.com>
+ <20171225090028.GY2942@mtr-leonro.local>
+ <42e22cc6-f385-b6f4-bd14-1450ae19519a@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="1xJJiECQTZ8+YlWm"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171225094112.GA2942-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <42e22cc6-f385-b6f4-bd14-1450ae19519a-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-在 2017/12/25 17:41, Leon Romanovsky 写道:
-> On Sat, Dec 23, 2017 at 04:22:18PM +0800, Lijun Ou wrote:
->> This patch fixes the usage with sr_max filed and rr_max of qp
->> context when modify qp. Its modifications include:
->> 1. Adjust location of filling sr_max filed of qpc
->> 2. Only assign the number of responder resource if
->>    IB_QP_MAX_DEST_RD_ATOMIC bit is set
->> 3. Only assign the number of outstanding resource if
->>    IB_QP_MAX_QP_RD_ATOMIC
->> 4. Fix the assgin algorithms for the field of sr_max
->>    and rr_max of qp context
->>
->> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> ---
->>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 33 ++++++++++++++++++++----------
->>  1 file changed, 22 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> index b17dcfa..092f133 100644
->> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> @@ -2531,11 +2531,17 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
->>  		roce_set_bit(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_LBI_S, 0);
->>  	}
->>
->> -	roce_set_field(context->byte_140_raq, V2_QPC_BYTE_140_RR_MAX_M,
->> -		       V2_QPC_BYTE_140_RR_MAX_S,
->> -		       ilog2((unsigned int)attr->max_dest_rd_atomic));
->> -	roce_set_field(qpc_mask->byte_140_raq, V2_QPC_BYTE_140_RR_MAX_M,
->> -		       V2_QPC_BYTE_140_RR_MAX_S, 0);
->> +	if (attr_mask & IB_QP_MAX_DEST_RD_ATOMIC) {
->> +		if (attr->max_dest_rd_atomic) {
-> 
-> if ((attr_mask & IB_QP_MAX_DEST_RD_ATOMIC) && attr->max_dest_rd_atomic) {
-> 
-Good advice, thanks. I will fix it.
-> 
-> 
->> +			roce_set_field(context->byte_140_raq,
->> +				       V2_QPC_BYTE_140_RR_MAX_M,
->> +				       V2_QPC_BYTE_140_RR_MAX_S,
->> +				       fls(attr->max_dest_rd_atomic - 1));
->> +			roce_set_field(qpc_mask->byte_140_raq,
->> +				       V2_QPC_BYTE_140_RR_MAX_M,
->> +				       V2_QPC_BYTE_140_RR_MAX_S, 0);
->> +		}
->> +	}
->>
->>  	roce_set_field(context->byte_56_dqpn_err, V2_QPC_BYTE_56_DQPN_M,
->>  		       V2_QPC_BYTE_56_DQPN_S, attr->dest_qp_num);
->> @@ -2625,12 +2631,6 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
->>  		       V2_QPC_BYTE_168_LP_SGEN_INI_M,
->>  		       V2_QPC_BYTE_168_LP_SGEN_INI_S, 0);
->>
->> -	roce_set_field(context->byte_208_irrl, V2_QPC_BYTE_208_SR_MAX_M,
->> -		       V2_QPC_BYTE_208_SR_MAX_S,
->> -		       ilog2((unsigned int)attr->max_rd_atomic));
->> -	roce_set_field(qpc_mask->byte_208_irrl, V2_QPC_BYTE_208_SR_MAX_M,
->> -		       V2_QPC_BYTE_208_SR_MAX_S, 0);
->> -
->>  	roce_set_field(context->byte_28_at_fl, V2_QPC_BYTE_28_SL_M,
->>  		       V2_QPC_BYTE_28_SL_S, rdma_ah_get_sl(&attr->ah_attr));
->>  	roce_set_field(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_SL_M,
->> @@ -2834,6 +2834,17 @@ static int modify_qp_rtr_to_rts(struct ib_qp *ibqp,
->>  	roce_set_field(qpc_mask->byte_196_sq_psn, V2_QPC_BYTE_196_SQ_MAX_PSN_M,
->>  		       V2_QPC_BYTE_196_SQ_MAX_PSN_S, 0);
->>
->> +	if (attr_mask & IB_QP_MAX_QP_RD_ATOMIC) {
->> +		if (attr->max_rd_atomic) {
->> +			roce_set_field(context->byte_208_irrl,
->> +				       V2_QPC_BYTE_208_SR_MAX_M,
->> +				       V2_QPC_BYTE_208_SR_MAX_S,
->> +				       fls(attr->max_rd_atomic - 1));
->> +			roce_set_field(qpc_mask->byte_208_irrl,
->> +				       V2_QPC_BYTE_208_SR_MAX_M,
->> +				       V2_QPC_BYTE_208_SR_MAX_S, 0);
->> +		}
->> +	}
->>  	return 0;
->>  }
->>
->> --
->> 1.9.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+--1xJJiECQTZ8+YlWm
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Mon, Dec 25, 2017 at 06:08:08PM +0800, oulijun wrote:
+> =E5=9C=A8 2017/12/25 17:00, Leon Romanovsky =E5=86=99=E9=81=93:
+> > On Sat, Dec 23, 2017 at 04:22:20PM +0800, Lijun Ou wrote:
+> >> When the length of sge is zero, the driver need to filter it
+> >>
+> >> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> >> ---
+> >>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 29 ++++++++++++++++++++-=
+--------
+> >>  1 file changed, 20 insertions(+), 9 deletions(-)
+> >>
+> >> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infi=
+niband/hw/hns/hns_roce_hw_v2.c
+> >> index 869e36f..a1d8ca0 100644
+> >> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+> >> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+> >> @@ -230,26 +230,37 @@ static int hns_roce_v2_post_send(struct ib_qp *i=
+bqp, struct ib_send_wr *wr,
+> >>  				     V2_RC_SEND_WQE_BYTE_4_INLINE_S, 1);
+> >>  		} else {
+> >>  			if (wr->num_sge <=3D 2) {
+> >> -				for (i =3D 0; i < wr->num_sge; i++)
+> >> -					set_data_seg_v2(dseg + i,
+> >> -							wr->sg_list + i);
+> >> +				for (i =3D 0; i < wr->num_sge; i++) {
+> >> +					if (likely(wr->sg_list[i].length)) {
+> >> +						set_data_seg_v2(dseg,
+> >> +							       wr->sg_list + i);
+> >> +						dseg++;
+> >
+> > Actually, you don't need to advance desg and keep your "desg + i" code =
+as before.
+> >
+> > I have a more general question, is this scenario (having length =3D=3D =
+0) real?
+> >
+> > Thanks
+> >
+> Yes, The origin plan for processing the length of sge is zero is that the=
+ hardware recognizes
+> and filter it. but the final plan is that the software filter it and have=
+ an improved performance.
+>
+
+My question was an attempt to understand if kernel can create sg_list with =
+length equal to zero.
+
+Thanks
+
+--1xJJiECQTZ8+YlWm
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpA0PwACgkQ5GN7iDZy
+WKeuIQ//b0tAGYalLMZ2R27XCX4zpobarizrxTc9T6xgD5Vv+0pjJhLLu/yVEY95
+xyLlOo3BIzjNOiIVD9YzMrCjdJvwUr+SiTF1zffysEAEMLK577AROVWRceX7DzaT
+VMVvJECo9DvNNsd4lbVjL1c84fBd4J+4YK/S825qNhIVbucrOSx26NdZGVyrBiJ4
+tmfhJhP3pQ5/U6Xb7Vn+F1XT0bXiGEDz3qmjlD4j8pGvJ2Gk+3e6tR2DsHEHYXTD
+wxqmiykGcwA4qtDdvyD8nBpsg0hUj5snoNVSpobnL3pUDw5dmFHVYe6BccUIX1iJ
+CaqJ9E7Ad7yaO3k3A227Cb9oCF/Oee8E1bEk1xIqYt27oOy0eveNuWLlc3K6Ykij
++GFHtRhl24mEipsteoiFg8WW+ILPr+WfMGfVI7hWAFYQD21+pm3JtRJEl1Q2NrMF
+GbE7pGyZoWL8niVS+hAlIslsJd5hP+Y3BSgaJoj+5XqRBYHbRI6+xdrouRy5WzSA
+jp47P7V0bA0PqYyrqnxdA/AuZWtSSh4c/g/9ueyaA1//v0jWDy/wGHocotyhEejU
+wyRigHGIXqC/3WBSLgsM/qOKIo7kwJYqXEKWGiRC7ogY/TPrwIZ41MGYYYe0jcyd
+WQCCLp1FTWvNq+bTWGam+HT3HmY6AO/zqMD7yMZPuurPJosBl0w=
+=TjTy
+-----END PGP SIGNATURE-----
+
+--1xJJiECQTZ8+YlWm--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
