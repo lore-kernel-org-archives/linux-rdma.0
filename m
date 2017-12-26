@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V2 for-next 1/6] RDMA/hns: Add rq inline data support for hip08 RoCE
-Date: Tue, 26 Dec 2017 19:25:09 +0800
-Message-ID: <1514287514-88723-2-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V2 for-next 3/6] RDMA/hns: Set access flags of hip08 RoCE
+Date: Tue, 26 Dec 2017 19:25:11 +0800
+Message-ID: <1514287514-88723-4-git-send-email-oulijun@huawei.com>
 References: <1514287514-88723-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,313 +12,108 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gma
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch mainly implement rq inline data feature for hip08
-RoCE in kernel mode.
+This patch refactors the code of setting access flags
+for RDMA operation as well as adds the scene when
+attr->max_dest_rd_atomic is zero.
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
-V1->V2
-- Fix the comments according to Leon Romanovsky's reviews
-
-V1:
-- the initial submit
----
- drivers/infiniband/hw/hns/hns_roce_device.h | 18 ++++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 68 ++++++++++++++++++++++++++++-
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 50 ++++++++++++++++++---
- 3 files changed, 128 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h |  1 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 48 +++++++++++++++++++++--------
+ 2 files changed, 37 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index dcfd209..8d123d3 100644
+index 8d123d3..4afa070 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_device.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -178,6 +178,7 @@ enum {
- enum {
- 	HNS_ROCE_CAP_FLAG_REREG_MR		= BIT(0),
- 	HNS_ROCE_CAP_FLAG_ROCE_V1_V2		= BIT(1),
-+	HNS_ROCE_CAP_FLAG_RQ_INLINE		= BIT(2)
- };
- 
- enum hns_roce_mtt_type {
-@@ -446,6 +447,21 @@ struct hns_roce_cmd_mailbox {
- 
- struct hns_roce_dev;
- 
-+struct hns_roce_rinl_sge {
-+	void			*addr;
-+	u32			len;
-+};
-+
-+struct hns_roce_rinl_wqe {
-+	struct hns_roce_rinl_sge *sg_list;
-+	u32			 sge_cnt;
-+};
-+
-+struct hns_roce_rinl_buf {
-+	struct hns_roce_rinl_wqe *wqe_list;
-+	u32			 wqe_cnt;
-+};
-+
- struct hns_roce_qp {
- 	struct ib_qp		ibqp;
- 	struct hns_roce_buf	hr_buf;
-@@ -477,6 +493,8 @@ struct hns_roce_qp {
- 
- 	struct hns_roce_sge	sge;
- 	u32			next_sge;
-+
-+	struct hns_roce_rinl_buf rq_inl_buf;
- };
- 
- struct hns_roce_sqp {
+@@ -483,6 +483,7 @@ struct hns_roce_qp {
+ 	u8			resp_depth;
+ 	u8			state;
+ 	u32			access_flags;
++	u32                     atomic_rd_en;
+ 	u32			pkey_index;
+ 	void			(*event)(struct hns_roce_qp *,
+ 					 enum hns_roce_event);
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 4d3e976..400d5e9 100644
+index 5746d8b..dfa9dcc 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -299,6 +299,7 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
- 	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
- 	struct hns_roce_v2_wqe_data_seg *dseg;
-+	struct hns_roce_rinl_sge *sge_list;
- 	struct device *dev = hr_dev->dev;
- 	struct hns_roce_v2_db rq_db;
- 	unsigned long flags;
-@@ -347,6 +348,14 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 			dseg[i].addr = 0;
- 		}
- 
-+		/* rq support inline data */
-+		sge_list = hr_qp->rq_inl_buf.wqe_list[ind].sg_list;
-+		hr_qp->rq_inl_buf.wqe_list[ind].sge_cnt = (u32)wr->num_sge;
-+		for (i = 0; i < wr->num_sge; i++) {
-+			sge_list[i].addr = (void *)(u64)wr->sg_list[i].addr;
-+			sge_list[i].len = wr->sg_list[i].length;
-+		}
-+
- 		hr_qp->rq.wrid[ind] = wr->wr_id;
- 
- 		ind = (ind + 1) & (hr_qp->rq.wqe_cnt - 1);
-@@ -961,7 +970,8 @@ static int hns_roce_v2_profile(struct hns_roce_dev *hr_dev)
- 	caps->chunk_sz		= HNS_ROCE_V2_TABLE_CHUNK_SIZE;
- 
- 	caps->flags		= HNS_ROCE_CAP_FLAG_REREG_MR |
--				  HNS_ROCE_CAP_FLAG_ROCE_V1_V2;
-+				  HNS_ROCE_CAP_FLAG_ROCE_V1_V2 |
-+				  HNS_ROCE_CAP_FLAG_RQ_INLINE;
- 	caps->pkey_table_len[0] = 1;
- 	caps->gid_table_len[0] = HNS_ROCE_V2_GID_INDEX_NUM;
- 	caps->ceqe_depth	= HNS_ROCE_V2_COMP_EQE_NUM;
-@@ -1473,6 +1483,40 @@ static int hns_roce_v2_req_notify_cq(struct ib_cq *ibcq,
- 	return 0;
- }
- 
-+static int hns_roce_handle_recv_inl_wqe(struct hns_roce_v2_cqe *cqe,
-+						    struct hns_roce_qp **cur_qp,
-+						    struct ib_wc *wc)
-+{
-+	struct hns_roce_rinl_sge *sge_list;
-+	u32 wr_num, wr_cnt, sge_num;
-+	u32 sge_cnt, data_len, size;
-+	void *wqe_buf;
-+
-+	wr_num = roce_get_field(cqe->byte_4, V2_CQE_BYTE_4_WQE_INDX_M,
-+				V2_CQE_BYTE_4_WQE_INDX_S) & 0xffff;
-+	wr_cnt = wr_num & ((*cur_qp)->rq.wqe_cnt - 1);
-+
-+	sge_list = (*cur_qp)->rq_inl_buf.wqe_list[wr_cnt].sg_list;
-+	sge_num = (*cur_qp)->rq_inl_buf.wqe_list[wr_cnt].sge_cnt;
-+	wqe_buf = get_recv_wqe(*cur_qp, wr_cnt);
-+	data_len = wc->byte_len;
-+
-+	for (sge_cnt = 0; (sge_cnt < sge_num) && (data_len); sge_cnt++) {
-+		size = min(sge_list[sge_cnt].len, data_len);
-+		memcpy((void *)sge_list[sge_cnt].addr, wqe_buf, size);
-+
-+		data_len -= size;
-+		wqe_buf += size;
-+	}
-+
-+	if (data_len) {
-+		wc->status = IB_WC_LOC_LEN_ERR;
-+		return -EAGAIN;
-+	}
-+
-+	return 0;
-+}
-+
- static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 				struct hns_roce_qp **cur_qp, struct ib_wc *wc)
- {
-@@ -1485,6 +1529,7 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 	u32 opcode;
- 	u32 status;
- 	int qpn;
-+	int ret;
- 
- 	/* Find cqe according to consumer index */
- 	cqe = next_cqe_sw_v2(hr_cq);
-@@ -1673,6 +1718,17 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 			break;
- 		}
- 
-+		if ((wc->qp->qp_type == IB_QPT_RC ||
-+		     wc->qp->qp_type == IB_QPT_UC) &&
-+		    (opcode == HNS_ROCE_V2_OPCODE_SEND ||
-+		    opcode == HNS_ROCE_V2_OPCODE_SEND_WITH_IMM ||
-+		    opcode == HNS_ROCE_V2_OPCODE_SEND_WITH_INV) &&
-+		    (roce_get_bit(cqe->byte_4, V2_CQE_BYTE_4_RQ_INLINE_S))) {
-+			ret = hns_roce_handle_recv_inl_wqe(cqe, cur_qp, wc);
-+			if (ret)
-+				return -EAGAIN;
-+		}
-+
- 		/* Update tail pointer, record wr_id */
- 		wq = &(*cur_qp)->rq;
- 		wc->wr_id = wq->wrid[wq->tail & (wq->wqe_cnt - 1)];
-@@ -1972,6 +2028,7 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
- 		     !!(attr->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC));
- 	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S, 0);
- 
-+	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S, 1);
- 	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S, 0);
- 
- 	roce_set_field(context->byte_80_rnr_rx_cqn, V2_QPC_BYTE_80_RX_CQN_M,
-@@ -3114,6 +3171,15 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
- 		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
- 	}
- 
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) {
-+		if (hr_qp->rq_inl_buf.wqe_list) {
-+			kfree(hr_qp->rq_inl_buf.wqe_list[0].sg_list);
-+			kfree(hr_qp->rq_inl_buf.wqe_list);
-+			hr_qp->rq_inl_buf.wqe_list[0].sg_list = NULL;
-+			hr_qp->rq_inl_buf.wqe_list = NULL;
-+		}
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 69e2584..22f8f2d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -494,6 +494,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 	int ret = 0;
- 	u32 page_shift;
- 	u32 npages;
-+	int i;
- 
- 	mutex_init(&hr_qp->mutex);
- 	spin_lock_init(&hr_qp->sq.lock);
-@@ -513,18 +514,44 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 		goto err_out;
- 	}
- 
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) {
-+		/* allocate recv inline buf */
-+		hr_qp->rq_inl_buf.wqe_list = kmalloc_array(hr_qp->rq.wqe_cnt,
-+					       sizeof(struct hns_roce_rinl_wqe),
-+					       GFP_KERNEL);
-+		if (!hr_qp->rq_inl_buf.wqe_list)
-+			goto err_out;
-+
-+		hr_qp->rq_inl_buf.wqe_cnt = hr_qp->rq.wqe_cnt;
-+
-+		/* Firstly, allocate a list of sge space buffer */
-+		hr_qp->rq_inl_buf.wqe_list[0].sg_list =
-+				kmalloc_array(hr_qp->rq_inl_buf.wqe_cnt *
-+					      init_attr->cap.max_recv_sge,
-+					      sizeof(struct hns_roce_rinl_sge),
-+					      GFP_KERNEL);
-+		if (!hr_qp->rq_inl_buf.wqe_list[0].sg_list)
-+			goto err_wqe_list;
-+
-+		for (i = 1; i < hr_qp->rq_inl_buf.wqe_cnt; i++)
-+			/* Secondly, reallocate the buffer */
-+			hr_qp->rq_inl_buf.wqe_list[i].sg_list =
-+				&hr_qp->rq_inl_buf.wqe_list[0].sg_list[i *
-+				init_attr->cap.max_recv_sge];
-+	}
-+
- 	if (ib_pd->uobject) {
- 		if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
- 			dev_err(dev, "ib_copy_from_udata error for create qp\n");
- 			ret = -EFAULT;
--			goto err_out;
-+			goto err_rq_sge_list;
- 		}
- 
- 		ret = hns_roce_set_user_sq_size(hr_dev, &init_attr->cap, hr_qp,
- 						&ucmd);
- 		if (ret) {
- 			dev_err(dev, "hns_roce_set_user_sq_size error for create qp\n");
--			goto err_out;
-+			goto err_rq_sge_list;
- 		}
- 
- 		hr_qp->umem = ib_umem_get(ib_pd->uobject->context,
-@@ -533,7 +560,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 		if (IS_ERR(hr_qp->umem)) {
- 			dev_err(dev, "ib_umem_get error for create qp\n");
- 			ret = PTR_ERR(hr_qp->umem);
--			goto err_out;
-+			goto err_rq_sge_list;
- 		}
- 
- 		hr_qp->mtt.mtt_type = MTT_TYPE_WQE;
-@@ -567,13 +594,13 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 		    IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK) {
- 			dev_err(dev, "init_attr->create_flags error!\n");
- 			ret = -EINVAL;
--			goto err_out;
-+			goto err_rq_sge_list;
- 		}
- 
- 		if (init_attr->create_flags & IB_QP_CREATE_IPOIB_UD_LSO) {
- 			dev_err(dev, "init_attr->create_flags error!\n");
- 			ret = -EINVAL;
--			goto err_out;
-+			goto err_rq_sge_list;
- 		}
- 
- 		/* Set SQ size */
-@@ -581,7 +608,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 						  hr_qp);
- 		if (ret) {
- 			dev_err(dev, "hns_roce_set_kernel_sq_size error!\n");
--			goto err_out;
-+			goto err_rq_sge_list;
- 		}
- 
- 		/* QP doorbell register address */
-@@ -597,7 +624,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 				       &hr_qp->hr_buf, page_shift)) {
- 			dev_err(dev, "hns_roce_buf_alloc error!\n");
- 			ret = -ENOMEM;
--			goto err_out;
-+			goto err_rq_sge_list;
- 		}
- 
- 		hr_qp->mtt.mtt_type = MTT_TYPE_WQE;
-@@ -679,6 +706,15 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 	else
- 		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
- 
-+err_rq_sge_list:
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE)
-+		if (hr_qp->rq_inl_buf.wqe_list)
-+			kfree(hr_qp->rq_inl_buf.wqe_list[0].sg_list);
-+
-+err_wqe_list:
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE)
-+		kfree(hr_qp->rq_inl_buf.wqe_list);
-+
- err_out:
+@@ -1931,6 +1931,36 @@ static int hns_roce_v2_qp_modify(struct hns_roce_dev *hr_dev,
  	return ret;
  }
+ 
++static void set_access_flags(struct hns_roce_qp *hr_qp,
++			     struct hns_roce_v2_qp_context *context,
++			     struct hns_roce_v2_qp_context *qpc_mask,
++			     const struct ib_qp_attr *attr, int attr_mask)
++{
++	u8 dest_rd_atomic;
++	u32 access_flags;
++
++	dest_rd_atomic = !!(attr_mask & IB_QP_MAX_DEST_RD_ATOMIC) ?
++			 attr->max_dest_rd_atomic : hr_qp->resp_depth;
++
++	access_flags = !!(attr_mask & IB_QP_ACCESS_FLAGS) ?
++		       attr->qp_access_flags : hr_qp->atomic_rd_en;
++
++	if (!dest_rd_atomic)
++		access_flags &= IB_ACCESS_REMOTE_WRITE;
++
++	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
++		     !!(access_flags & IB_ACCESS_REMOTE_READ));
++	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S, 0);
++
++	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
++		     !!(access_flags & IB_ACCESS_REMOTE_WRITE));
++	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S, 0);
++
++	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
++		     !!(access_flags & IB_ACCESS_REMOTE_ATOMIC));
++	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S, 0);
++}
++
+ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
+ 				    const struct ib_qp_attr *attr,
+ 				    struct hns_roce_v2_qp_context *context,
+@@ -2016,18 +2046,6 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
+ 	roce_set_bit(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_CNP_TX_FLAG_S, 0);
+ 	roce_set_bit(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_CE_FLAG_S, 0);
+ 
+-	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
+-		     !!(attr->qp_access_flags & IB_ACCESS_REMOTE_READ));
+-	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S, 0);
+-
+-	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
+-		     !!(attr->qp_access_flags & IB_ACCESS_REMOTE_WRITE));
+-	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S, 0);
+-
+-	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
+-		     !!(attr->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC));
+-	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S, 0);
+-
+ 	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S, 1);
+ 	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S, 0);
+ 
+@@ -2907,6 +2925,9 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
+ 		goto out;
+ 	}
+ 
++	if (attr_mask & (IB_QP_ACCESS_FLAGS | IB_QP_MAX_DEST_RD_ATOMIC))
++		set_access_flags(hr_qp, context, qpc_mask, attr, attr_mask);
++
+ 	/* Every status migrate must change state */
+ 	roce_set_field(context->byte_60_qpst_mapid, V2_QPC_BYTE_60_QP_ST_M,
+ 		       V2_QPC_BYTE_60_QP_ST_S, new_state);
+@@ -2923,6 +2944,9 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
+ 
+ 	hr_qp->state = new_state;
+ 
++	if (attr_mask & IB_QP_ACCESS_FLAGS)
++		hr_qp->atomic_rd_en = attr->qp_access_flags;
++
+ 	if (attr_mask & IB_QP_MAX_DEST_RD_ATOMIC)
+ 		hr_qp->resp_depth = attr->max_dest_rd_atomic;
+ 	if (attr_mask & IB_QP_PORT) {
 -- 
 1.9.1
 
