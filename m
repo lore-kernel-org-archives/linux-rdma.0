@@ -1,66 +1,46 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 4/6] RDMA/hns: Filter for zero length of sge in
- hip08 kernel mode
-Date: Tue, 26 Dec 2017 17:19:39 +0800
-Message-ID: <94dc7b6a-6327-2dcd-d2b1-359165ffca47@huawei.com>
-References: <1514017342-91468-1-git-send-email-oulijun@huawei.com>
- <1514017342-91468-5-git-send-email-oulijun@huawei.com>
- <20171225090028.GY2942@mtr-leonro.local>
- <42e22cc6-f385-b6f4-bd14-1450ae19519a@huawei.com>
- <20171225102045.GC2942@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-rc] IB/mlx5: Fix mlx5_ib_alloc_mr error flow
+Date: Tue, 26 Dec 2017 11:20:20 +0200
+Message-ID: <20171226092020.8106-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171225102045.GC2942-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Nitzan Carmi <nitzanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-在 2017/12/25 18:20, Leon Romanovsky 写道:
-> On Mon, Dec 25, 2017 at 06:08:08PM +0800, oulijun wrote:
->> 在 2017/12/25 17:00, Leon Romanovsky 写道:
->>> On Sat, Dec 23, 2017 at 04:22:20PM +0800, Lijun Ou wrote:
->>>> When the length of sge is zero, the driver need to filter it
->>>>
->>>> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->>>> ---
->>>>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 29 ++++++++++++++++++++---------
->>>>  1 file changed, 20 insertions(+), 9 deletions(-)
->>>>
->>>> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->>>> index 869e36f..a1d8ca0 100644
->>>> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->>>> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->>>> @@ -230,26 +230,37 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
->>>>  				     V2_RC_SEND_WQE_BYTE_4_INLINE_S, 1);
->>>>  		} else {
->>>>  			if (wr->num_sge <= 2) {
->>>> -				for (i = 0; i < wr->num_sge; i++)
->>>> -					set_data_seg_v2(dseg + i,
->>>> -							wr->sg_list + i);
->>>> +				for (i = 0; i < wr->num_sge; i++) {
->>>> +					if (likely(wr->sg_list[i].length)) {
->>>> +						set_data_seg_v2(dseg,
->>>> +							       wr->sg_list + i);
->>>> +						dseg++;
->>>
->>> Actually, you don't need to advance desg and keep your "desg + i" code as before.
->>>
->>> I have a more general question, is this scenario (having length == 0) real?
->>>
->>> Thanks
->>>
->> Yes, The origin plan for processing the length of sge is zero is that the hardware recognizes
->> and filter it. but the final plan is that the software filter it and have an improved performance.
->>
-> 
-> My question was an attempt to understand if kernel can create sg_list with length equal to zero.
-> Thanks
-> 
-Yes, I think that can. Also, we need to check it similar to the invalid in pararm.
+From: Nitzan Carmi <nitzanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+ibmr.device is being set only after ib_alloc_mr() is
+(successfully) complete. Therefore, in case mlx5_core_create_mkey()
+return with error, the error flow calls mlx5_free_priv_descs()
+which uses ibmr.device (which doesn't exist yet), causing
+NULL dereference and gets the system into kernel panic.
+
+To fix this, the IB device should be given to mr struct in earlier
+stage (e.g. prior to calling mlx5_core_create_mkey()).
+
+Fixes: 8a187ee52b04 ("IB/mlx5: Support the new memory registration API")
+Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Nitzan Carmi <nitzanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/mr.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index ee0ee1f9994b..d109fe8290a7 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1637,6 +1637,7 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
+ 	MLX5_SET(mkc, mkc, access_mode, mr->access_mode);
+ 	MLX5_SET(mkc, mkc, umr_en, 1);
+
++	mr->ibmr.device = pd->device;
+ 	err = mlx5_core_create_mkey(dev->mdev, &mr->mmkey, in, inlen);
+ 	if (err)
+ 		goto err_destroy_psv;
+--
+2.15.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
