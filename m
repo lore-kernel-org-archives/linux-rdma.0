@@ -1,46 +1,95 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc] IB/mlx5: Fix mlx5_ib_alloc_mr error flow
-Date: Tue, 26 Dec 2017 11:20:20 +0200
-Message-ID: <20171226092020.8106-1-leon@kernel.org>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V2 for-next 2/6] RDMA/hns: Update the usage of sr_max and rr_max field
+Date: Tue, 26 Dec 2017 19:25:10 +0800
+Message-ID: <1514287514-88723-3-git-send-email-oulijun@huawei.com>
+References: <1514287514-88723-1-git-send-email-oulijun@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1514287514-88723-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Nitzan Carmi <nitzanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Nitzan Carmi <nitzanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This patch fixes the usage with sr_max filed and rr_max of qp
+context when modify qp. Its modifications include:
+1. Adjust location of filling sr_max filed of qpc
+2. Only assign the number of responder resource if
+   IB_QP_MAX_DEST_RD_ATOMIC bit is set
+3. Only assign the number of outstanding resource if
+   IB_QP_MAX_QP_RD_ATOMIC
+4. Fix the assgin algorithms for the field of sr_max
+   and rr_max of qp context
 
-ibmr.device is being set only after ib_alloc_mr() is
-(successfully) complete. Therefore, in case mlx5_core_create_mkey()
-return with error, the error flow calls mlx5_free_priv_descs()
-which uses ibmr.device (which doesn't exist yet), causing
-NULL dereference and gets the system into kernel panic.
-
-To fix this, the IB device should be given to mr struct in earlier
-stage (e.g. prior to calling mlx5_core_create_mkey()).
-
-Fixes: 8a187ee52b04 ("IB/mlx5: Support the new memory registration API")
-Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Nitzan Carmi <nitzanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mr.c | 1 +
- 1 file changed, 1 insertion(+)
+V1->V2:
+- Adjust the write way for if branch condition from
+  Leon Romanovsky's advice.
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index ee0ee1f9994b..d109fe8290a7 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1637,6 +1637,7 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
- 	MLX5_SET(mkc, mkc, access_mode, mr->access_mode);
- 	MLX5_SET(mkc, mkc, umr_en, 1);
+V1:
+- the initial submit
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
 
-+	mr->ibmr.device = pd->device;
- 	err = mlx5_core_create_mkey(dev->mdev, &mr->mmkey, in, inlen);
- 	if (err)
- 		goto err_destroy_psv;
---
-2.15.1
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 400d5e9..5746d8b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2536,11 +2536,14 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 		roce_set_bit(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_LBI_S, 0);
+ 	}
+ 
+-	roce_set_field(context->byte_140_raq, V2_QPC_BYTE_140_RR_MAX_M,
+-		       V2_QPC_BYTE_140_RR_MAX_S,
+-		       ilog2((unsigned int)attr->max_dest_rd_atomic));
+-	roce_set_field(qpc_mask->byte_140_raq, V2_QPC_BYTE_140_RR_MAX_M,
+-		       V2_QPC_BYTE_140_RR_MAX_S, 0);
++	if ((attr_mask & IB_QP_MAX_DEST_RD_ATOMIC) &&
++	     attr->max_dest_rd_atomic) {
++		roce_set_field(context->byte_140_raq, V2_QPC_BYTE_140_RR_MAX_M,
++			       V2_QPC_BYTE_140_RR_MAX_S,
++			       fls(attr->max_dest_rd_atomic - 1));
++		roce_set_field(qpc_mask->byte_140_raq, V2_QPC_BYTE_140_RR_MAX_M,
++			       V2_QPC_BYTE_140_RR_MAX_S, 0);
++	}
+ 
+ 	roce_set_field(context->byte_56_dqpn_err, V2_QPC_BYTE_56_DQPN_M,
+ 		       V2_QPC_BYTE_56_DQPN_S, attr->dest_qp_num);
+@@ -2630,12 +2633,6 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 		       V2_QPC_BYTE_168_LP_SGEN_INI_M,
+ 		       V2_QPC_BYTE_168_LP_SGEN_INI_S, 0);
+ 
+-	roce_set_field(context->byte_208_irrl, V2_QPC_BYTE_208_SR_MAX_M,
+-		       V2_QPC_BYTE_208_SR_MAX_S,
+-		       ilog2((unsigned int)attr->max_rd_atomic));
+-	roce_set_field(qpc_mask->byte_208_irrl, V2_QPC_BYTE_208_SR_MAX_M,
+-		       V2_QPC_BYTE_208_SR_MAX_S, 0);
+-
+ 	roce_set_field(context->byte_28_at_fl, V2_QPC_BYTE_28_SL_M,
+ 		       V2_QPC_BYTE_28_SL_S, rdma_ah_get_sl(&attr->ah_attr));
+ 	roce_set_field(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_SL_M,
+@@ -2839,6 +2836,14 @@ static int modify_qp_rtr_to_rts(struct ib_qp *ibqp,
+ 	roce_set_field(qpc_mask->byte_196_sq_psn, V2_QPC_BYTE_196_SQ_MAX_PSN_M,
+ 		       V2_QPC_BYTE_196_SQ_MAX_PSN_S, 0);
+ 
++	if ((attr_mask & IB_QP_MAX_QP_RD_ATOMIC) && attr->max_rd_atomic) {
++		roce_set_field(context->byte_208_irrl, V2_QPC_BYTE_208_SR_MAX_M,
++			       V2_QPC_BYTE_208_SR_MAX_S,
++			       fls(attr->max_rd_atomic - 1));
++		roce_set_field(qpc_mask->byte_208_irrl,
++			       V2_QPC_BYTE_208_SR_MAX_M,
++			       V2_QPC_BYTE_208_SR_MAX_S, 0);
++	}
+ 	return 0;
+ }
+ 
+-- 
+1.9.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
