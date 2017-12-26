@@ -1,84 +1,64 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] verbs: Remove comp_mask checks from verbs.h
-Date: Mon, 25 Dec 2017 16:32:41 +0200
-Message-ID: <20171225143241.GJ2942@mtr-leonro.local>
-References: <20171220231350.GA19130@ziepe.ca>
- <20171221054216.GF2942@mtr-leonro.local>
- <20171221162442.GC20015@ziepe.ca>
- <20171221171947.GK2942@mtr-leonro.local>
+Subject: Re: [PATCH for-next 1/2] RDMA/hns: Add detailed comments for mb()
+ call
+Date: Tue, 26 Dec 2017 09:37:39 +0200
+Message-ID: <20171226073739.GA10734@mtr-leonro.local>
+References: <1514209039-9388-1-git-send-email-liuyixian@huawei.com>
+ <1514209039-9388-2-git-send-email-liuyixian@huawei.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="xtcA6s3naMKOsC7S"
+        protocol="application/pgp-signature"; boundary="ibTvN161/egqYuK8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171221171947.GK2942-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1514209039-9388-2-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---xtcA6s3naMKOsC7S
+--ibTvN161/egqYuK8
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Dec 21, 2017 at 07:19:47PM +0200, Leon Romanovsky wrote:
-> On Thu, Dec 21, 2017 at 09:24:42AM -0700, Jason Gunthorpe wrote:
-> > On Thu, Dec 21, 2017 at 07:42:16AM +0200, Leon Romanovsky wrote:
-> >
-> > > Both these functions are performing their checks of cq_attr->comp_mask,
-> > > but return different errno. I think that it is perfect timing to start
-> > > organize and unite our return errors. They should return the same errno.
-> >
-> > Bugs bugs everywhere.. This is going to be another patch. I would drop
-> > the errno set into check_comp_mask and change all comp_mask users to
-> > call it, and probably drop the _RESERVED uglyness too, but another
-> > patch.
-> >
-> > > > In the case of ibv_queryrt_values_ex, there is no check in the function
-> > > > op, which is an ABI mistake. So move the check there.
-> > >
-> > > ibv_queryrt_values_ex -> ibv_query_rt_values_ex
-> >
-> > K.. Are you going to collect the loose patches on the list? Can you
-> > fix the typo when you grab this one :)
+On Mon, Dec 25, 2017 at 09:37:18PM +0800, Yixian Liu wrote:
+> This patch adds more detailed comments when we call the
+> memory barrier function, such as rmb, wmb and mb. Three
+> mb() callers are deleted since they are unnecessary.
 >
-> No problem, I scheduled for myself time on Sunday to sync list,
-> patchworks and rdma-core.
-
-I fixed the patch and changed it to preserve the errno in mlx4 to be EINVAL.
-
-Thanks
-
+> Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 19 ++++++++++++++-----
+>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 22 +++++++++++-----------
+>  2 files changed, 25 insertions(+), 16 deletions(-)
 >
-> Thanks
->
-> >
-> > Jason
 
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-
---xtcA6s3naMKOsC7S
+--ibTvN161/egqYuK8
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpBDAkACgkQ5GN7iDZy
-WKdWaQ/+I2S2TX1vCPe80Sfw4Uwwlif9LS0vEfYN9TcG/x/z0EUkJ2nvq+jY/D7y
-FwHimMxUUNvDOYpW/3nJJsAbGyvasgoK9tVyi7genwLtgeZoMNSOSbpOU4hWJtQS
-drFByzjkLeJi6mMH3DWTpnvDjOJ4aFr5yBV1IagS3W9VE1RuG7FgI7S9n6rww7kd
-h4qkw8zIN8RUo60mxiIqzq098PovSBrHF73XKreLFcFhVuBTDGKW7pVVlimwqhSf
-1S0EjiEAYi3amEybGuAVp+oHVG+FDN6AQe9eMXMAv2GOZCBwEqygvlv2IJx/op4R
-wYjn4LhrIQc+Yi6VH9+ipJ7vhUmLTFVqhke2NqQUQ3L2Y7wzckmbqVtDue35/JMW
-7IT2KnIe7DLNUhGzWYemX12iOwRL7Q5zV71aI9s+GTr18WFCKfXPtbmhQsLKhIy6
-XmFZZTCsIRKt6ddUyQgTLhPFpkW4bMjUmlZWSEVDCDAsbDPvKBj3Y+v4TeWPVCOd
-07jSJbLv/j9pjFqvjhUfdLg4c1kVCOmd4zavN3lzUROkGG5fnLXLegQWEOQiTx/V
-JuT2Om5KI1qBC+c00o9Y8SPj6UTV2/Sk2K70tkLQAAkPhqiNdGxU7elGl1+9YRy2
-kKOA5xDjIdPeNi/0xTCO1sEMbKTIPuE5sAo31O1ipelDZu9YjIE=
-=slcg
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpB/EMACgkQ5GN7iDZy
+WKd6WBAApCpcqfgVPxC+c9NGQriJLyaPAoymz1ohf+SHBPjbw3sKfwcbR3Q8QgFZ
+ABwbAtOJDNzCEJWTfcVs1V6ALJUNYOvZh43RYduEnjIws4Ycy/XqzUEh3aRSFMbd
+yUg44upD9HEgSxKpBp/3vrULGlBZA+v4GcllMX7NqEI9UUqst17JwHF4nU+bp3/p
+lwuGuX0dltedGskXvPJsz5OsKqHmmhocsN0tn3Vgc3rybz5CXMyC859sgkktCPbk
+QK4wkzwihJ6OkQx7uhMDxNpKNd+XvCSm4QKC0AKMoa40DZS7saCOODuNwCR+nV4e
+Ic5thoYxJFXsp/GnlRp0L0kM/e/IijFav3pP+FstPPPY3aR0Sz/YH3PONz/R8f8W
+ZHkvFqlkneilpUPyyRiuCBlAbgQsFuWpHcoz5PmyNWFisSnss3d79EfkFx0/qLUV
+/N+9z3nmLQqOpsYCD3jVh2KHpxUpXJ3o40W56UdxQCVIf51m5my1dOvVCyJh0zi/
+zdovIGQOVjZvtWCek70ikmVFwW+lz6dCGbg0yMBlr9MCEUBVxbM7pk11ulUBuwcT
+n1aQXHfNMaFtEKW46/d9A3o3o9Mweo7LoEtCd9Dd5IKyg/PvKkmvJKyLsER8wnpA
+Y/EumMRF+vQksQlmHxEieh0ixXuKWZmkmhApsxqnvCOdcapMqKk=
+=evlT
 -----END PGP SIGNATURE-----
 
---xtcA6s3naMKOsC7S--
+--ibTvN161/egqYuK8--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
