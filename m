@@ -1,29 +1,38 @@
-From: "Sra. Angel Rania" <sra.angelrania83-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: You will definetely be interested...
-Date: Wed, 27 Dec 2017 10:16:53 +0000
-Message-ID: <CAKx+QTsL6tbExobjfKn2Kvd+VURLikaeJ+JuuxF8mixxBiriEQ__18113.5434461341$1514369707$gmane$org@mail.gmail.com>
+From: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 for-next 0/2] Bugfixes for eq support in hns
+Date: Wed, 27 Dec 2017 19:04:02 +0800
+Message-ID: <1514372644-171663-1-git-send-email-liuyixian@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Dear,
+This patch set fixes the bugs according to Jason's two comments
+on my previous patch set, which listed in the NOTE.
 
-Reading your profile has given me courage in search of a reasponsable
-and trust worthy Fellow. The past has treated me so awfully but now I
-am ready to move on despite of my health condition. I will like to
-have a sincere and important discussion with you that will be in your
-favor likewise to you and your environment especially to your close
-family. Endeavor to reply me and I have attached my picture in case
-you long to know who emailed you. I will be waiting to hear from you
-as soon as possble.
-Thanks for paying attention to my mail and will appreciate so much if
-I receive a reply from you for understable details.
+NOTE: This patch set is dependent on the following patches.
+   "RDMA/hns: Add eq support of hip08"
+   "RDMA/hns: Refactor eq code for hip06"
 
-Thanks,
+v1 -> v2:
+1. Update according to Leon's comment, see the changelog
+   of patch [2/2].
 
-Mrs. Rania Hassan
+Yixian Liu (2):
+  RDMA/hns: Add detailed comments for mb() call
+  RDMA/hns: Fix alignment problem of the doorbell
+
+ drivers/infiniband/hw/hns/hns_roce_device.h |  5 ++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 19 ++++++++++----
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 40 +++++++++++++++--------------
+ 3 files changed, 40 insertions(+), 24 deletions(-)
+
+-- 
+1.9.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
