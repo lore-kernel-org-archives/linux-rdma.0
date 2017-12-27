@@ -1,132 +1,59 @@
-From: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: [PATCH v2] target: add a target/iscsi driver-api Documentation
- chapter
-Date: Wed, 27 Dec 2017 12:48:05 -0800
-Message-ID: <0a5cd0a8-2f3e-f001-8b69-2f5e34cc7cb2@infradead.org>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next v1 4/6] IB/mlx5: Handle type IB_QPT_DRIVER when
+ creating a QP
+Date: Wed, 27 Dec 2017 23:16:09 +0200
+Message-ID: <CAJ3xEMiExjjVUOYQsdMiHLNOjB+MOkz4c1TT9AT_inkfGfMuKA@mail.gmail.com>
+References: <20171227171540.1646-1-leon@kernel.org> <20171227171540.1646-5-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20171227171540.1646-5-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+On Wed, Dec 27, 2017 at 7:15 PM, Leon wrote:
+> From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add a driver-api document for target/iSCSI interfaces.
+> +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> @@ -202,6 +202,8 @@ struct mlx5_ib_flow_db {
+>   * creates the actual hardware QP.
+>   */
+>  #define MLX5_IB_QPT_HW_GSI     IB_QPT_RESERVED2
+> +#define MLX5_IB_QPT_DCI                IB_QPT_RESERVED3
+> +#define MLX5_IB_QPT_DCT                IB_QPT_RESERVED4
 
-Signed-off-by: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
----
+When we added the reserved QPTs we made an explicit statement at the
+verbs header file that this is a "range for qp types internal to the
+low level driver"
 
-This patch depends on 4 previous patches to driver source files:
+In the down stream patches you are actually assuming user-space
+knows that for mlx5 DCI/DCT equals IB_QPT_RESERVED3/4 which
+violates this statement.
 
-[PATCH] target: fix kernel-doc warnings in drivers/target/target_core_transport.c
-  https://marc.info/?l=linux-scsi&m=151398041926906&w=2
+What you are looking for is more of vendor QPT
 
-[PATCH] scsi: fix iscsi-related kernel-doc warnings
-  https://marc.info/?l=linux-scsi&m=151398051426923&w=2
+Maybe you need
 
-[PATCH] target: add kernel-doc overview in target_core_user.[hc]
-  [PATCH] target: add kernel-doc overview in target_core_user.[hc]
+IB_QPT_VENDOR1
+IB_QPT_VENDOR2
+...
+IB_QPT_VENDOR10
 
-[PATCH] target: cleanup target_core_transport.c for kernel-doc
-  https://marc.info/?l=linux-scsi&m=151409284812033&w=2
+and use the per driver ABI header to advertize to user space the
+semantics, e.g in
+the mlx5 ABI you put
 
-v2: fix missing ':' on one line (:export:)
+IB_QPT_VENDOR1 = DCI
+IB_QPT_VENDOR2 = DCT
 
- Documentation/driver-api/index.rst  |    1 
- Documentation/driver-api/scsi.rst   |    2 
- Documentation/driver-api/target.rst |   64 ++++++++++++++++++++++++++
- 3 files changed, 66 insertions(+), 1 deletion(-)
+you added these two flags in the ABI file, but you never use them in downstream
 
---- linux-next-20171221.orig/Documentation/driver-api/index.rst
-+++ linux-next-20171221/Documentation/driver-api/index.rst
-@@ -34,6 +34,7 @@ available subsections can be seen below.
-    edac
-    scsi
-    libata
-+   target
-    mtdnand
-    miscellaneous
-    w1
---- linux-next-20171221.orig/Documentation/driver-api/scsi.rst
-+++ linux-next-20171221/Documentation/driver-api/scsi.rst
-@@ -340,5 +340,5 @@ todo
- ~~~~
- 
- Parallel (fast/wide/ultra) SCSI, USB, SATA, SAS, Fibre Channel,
--FireWire, ATAPI devices, Infiniband, I2O, iSCSI, Parallel ports,
-+FireWire, ATAPI devices, Infiniband, I2O, Parallel ports,
- netlink...
---- /dev/null
-+++ linux-next-20171221/Documentation/driver-api/target.rst
-@@ -0,0 +1,64 @@
-+=================================
-+target and iSCSI Interfaces Guide
-+=================================
-+
-+Introduction and Overview
-+=========================
-+
-+TBD
-+
-+Target core device interfaces
-+=============================
-+
-+.. kernel-doc:: drivers/target/target_core_device.c
-+    :export:
-+
-+Target core transport interfaces
-+================================
-+
-+.. kernel-doc:: drivers/target/target_core_transport.c
-+    :export:
-+
-+Target-supported userspace I/O
-+==============================
-+
-+.. kernel-doc:: drivers/target/target_core_user.c
-+    :doc: Userspace I/O
-+
-+.. kernel-doc:: include/uapi/linux/target_core_user.h
-+    :doc: Ring Design
-+
-+iSCSI helper functions
-+======================
-+
-+.. kernel-doc:: drivers/scsi/libiscsi.c
-+   :export:
-+
-+
-+iSCSI boot information
-+======================
-+
-+.. kernel-doc:: drivers/scsi/iscsi_boot_sysfs.c
-+   :export:
-+
-+
-+iSCSI transport class
-+=====================
-+
-+The file drivers/scsi/scsi_transport_iscsi.c defines transport
-+attributes for the iSCSI class, which sends SCSI packets over TCP/IP
-+connections.
-+
-+.. kernel-doc:: drivers/scsi/scsi_transport_iscsi.c
-+   :export:
-+
-+
-+iSCSI TCP interfaces
-+====================
-+
-+.. kernel-doc:: drivers/scsi/iscsi_tcp.c
-+   :internal:
-+
-+.. kernel-doc:: drivers/scsi/libiscsi_tcp.c
-+   :export:
-+
+MLX5_QP_FLAG_TYPE_DCT
+MLX5_QP_FLAG_TYPE_DCI
+
+patches, something must be wrong here even according to your design
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
