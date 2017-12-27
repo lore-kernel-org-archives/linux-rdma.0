@@ -1,63 +1,56 @@
-From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH rdma-next 0/9] i40iw updates for 4.16
-Date: Wed, 27 Dec 2017 16:11:01 +0000
-Message-ID: <748B799B6A00724488C603FD7E5E7EB977BADFAC@FMSMSX114.amr.corp.intel.com>
-References: <20171222154702.12632-1-shiraz.saleem@intel.com>
- <20171222233650.GA17198@ziepe.ca>
- <20171223162708.GA13848@ssaleem-MOBL4.amr.corp.intel.com>
- <20171227145801.GA25436@ziepe.ca>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH for-next 2/2] RDMA/hns: Fix alignment problem of the
+ doorbell
+Date: Wed, 27 Dec 2017 09:44:07 -0700
+Message-ID: <20171227164407.GB25436@ziepe.ca>
+References: <1514209039-9388-1-git-send-email-liuyixian@huawei.com>
+ <1514209039-9388-3-git-send-email-liuyixian@huawei.com>
+ <20171226081526.GB10734@mtr-leonro.local>
+ <6f657295-ab91-a940-c1d8-8d85dcedb4ea@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171227145801.GA25436-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <6f657295-ab91-a940-c1d8-8d85dcedb4ea-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "Saleem, Shiraz" <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-> Sent: Wednesday, December 27, 2017 8:58 AM
-> To: Saleem, Shiraz <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; e1000-
-> rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: Re: [PATCH rdma-next 0/9] i40iw updates for 4.16
+On Wed, Dec 27, 2017 at 06:01:25PM +0800, Liuyixian (Eason) wrote:
 > 
-> On Sat, Dec 23, 2017 at 10:27:08AM -0600, Shiraz Saleem wrote:
-> > On Fri, Dec 22, 2017 at 04:36:50PM -0700, Jason Gunthorpe wrote:
-> > > On Fri, Dec 22, 2017 at 09:46:53AM -0600, Shiraz Saleem wrote:
-> > > > Hi Doug/Jason,
-> > > >
-> > > > This patch set includes bug fixes, code refactoring, a new netdev
-> > > > event notifier and misc. improvements. Please consider it for 4.16.
-> > >
-> > > I took this from the v0 series and manually fixed the const myself.
-> > >
-> > > I also fixed the checkpatch long line warnings, so please watch out
-> > > for things like that.
-> > >
-> > We try to keep our line length < 100 in general.
-> > Are we enforcing the 80 char line length limit?
 > 
-> It is the kernel style, and the goal is to have all code follow the major tenants
-> of it.
+> On 2017/12/26 16:15, Leon Romanovsky wrote:
+> > On Mon, Dec 25, 2017 at 09:37:19PM +0800, Yixian Liu wrote:
+> >> The array defined for doorbell is not guaranteed to be 64 bit
+> >> aligned while we write it to the hardware with 64 bit
+> >> alignment required.
+> >>
+> >> This patch fixes this problem by defining a union for doorbell
+> >> to make sure it 64 bit alignment.
+> > 
+> > Are you sure that it gives you alignment?
+> > The macros ALIGN/PTR_ALIGN are usually used for that.
 > 
-> Linus has come out in the past against > 80 lines as a metric of too much
-> complexity.
+> Hi Leon,
 > 
-> Jason
+> I have considered your doubt combined with Jason's previous comment.
+> With a union defined with u64 member and assign the wanted value to it,
+> then we can deref *(u64 *)doorbell for the correct value.
+> 
+> In this patch set, the assignment is missed.
+> Thanks for your comment and I will fix it in v2.
 
-Many years ago when someone made a stink about nes driver having long lines,
-Linus got involved in that discussion.  He was not in the camp of strictly
-adhering to the 80 column rule.  May be he changed his stance since then.
-Jason, can you reference an email from Linus so I can update my mental
-notes on proper kernel development process?
+You are not supposed to assign to doorbell64, you are supposed to read
+from it inside hns_roce_write64_k instead of using a case.
 
-Thanks
+The compiler guarentees it can read from all union members without
+causing an alignment fault, which is all we want here. It does not
+guarantee that the union is aligned to anything particular.
 
-Chien
+The v2 patch is very confusing.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
