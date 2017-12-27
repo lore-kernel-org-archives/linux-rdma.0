@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 2/6] net/mlx5: Enable DC transport
-Date: Wed, 27 Dec 2017 19:15:36 +0200
-Message-ID: <20171227171540.1646-3-leon@kernel.org>
+Subject: [PATCH rdma-next v1 3/6] IB/core: Introduce driver QP type
+Date: Wed, 27 Dec 2017 19:15:37 +0200
+Message-ID: <20171227171540.1646-4-leon@kernel.org>
 References: <20171227171540.1646-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171227171540.1646-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,29 +12,35 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Enable DC transport in the firmware to enable using its functionality.
+Vendors can implement type of QPs that are not described in the
+InfiniBand specification. To still be able to use the IB/core layer
+services (e.g. user object management) without tainting this layer with
+driver proprietary logic, a new QP type is added - IB_QPT_DRIVER. This
+will be a general QP type that the core layer doesn't know about its true nature.
+When a command like create_qp() is passed to a hardware driver the extra
+data that is required is taken from the driver channel.
+Downstream patches from this series will use that QP type in the mlx5
+driver.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 3 +++
- 1 file changed, 3 insertions(+)
+ include/rdma/ib_verbs.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 77c9f7e42a99..75774f0fb579 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -560,6 +560,9 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
- 			 num_vhca_ports,
- 			 MLX5_CAP_GEN_MAX(dev, num_vhca_ports));
- 
-+	if (MLX5_CAP_GEN_MAX(dev, dct))
-+		MLX5_SET(cmd_hca_cap, set_hca_cap, dct, 1);
-+
- 	err = set_caps(dev, set_ctx, set_sz,
- 		       MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE);
- 
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 64032f4c8d5a..41d4f59cac5e 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1083,6 +1083,7 @@ enum ib_qp_type {
+ 	IB_QPT_XRC_INI = 9,
+ 	IB_QPT_XRC_TGT,
+ 	IB_QPT_MAX,
++	IB_QPT_DRIVER = 0xFF,
+ 	/* Reserve a range for qp types internal to the low level driver.
+ 	 * These qp types will not be visible at the IB core layer, so the
+ 	 * IB_QPT_MAX usages should not be affected in the core layer
 -- 
 2.15.1
 
