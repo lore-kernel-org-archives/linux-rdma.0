@@ -1,135 +1,72 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Fix two kernel warnings triggered by rxe
- registration
-Date: Wed, 27 Dec 2017 15:56:47 -0700
-Message-ID: <20171227225647.GJ25436@ziepe.ca>
-References: <20171222213852.3481-1-bart.vanassche@wdc.com>
- <20171225102839.GD2942@mtr-leonro.local>
+Subject: Re: [PATCH rdma-next 5/8] RDMA/core: Provide locked variant of
+ device name to index function
+Date: Wed, 27 Dec 2017 16:02:27 -0700
+Message-ID: <20171227230227.GK25436@ziepe.ca>
+References: <20171224134328.17398-1-leon@kernel.org>
+ <20171224134328.17398-6-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171225102839.GD2942-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20171224134328.17398-6-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 25, 2017 at 12:28:39PM +0200, Leon Romanovsky wrote:
-> On Fri, Dec 22, 2017 at 01:38:52PM -0800, Bart Van Assche wrote:
-> > Avoid that the following two warnings are reported when registering an
-> > rxe device:
-> >
-> > WARNING: CPU: 2 PID: 1005 at drivers/infiniband/core/device.c:449 ib_register_device+0x591/0x640 [ib_core]
-> > CPU: 2 PID: 1005 Comm: run_tests Not tainted 4.15.0-rc4-dbg+ #2
-> > Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
-> > RIP: 0010:ib_register_device+0x591/0x640 [ib_core]
-> > Call Trace:
-> >  rxe_register_device+0x3c6/0x470 [rdma_rxe]
-> >  rxe_add+0x543/0x5e0 [rdma_rxe]
-> >  rxe_net_add+0x37/0xb0 [rdma_rxe]
-> >  rxe_param_set_add+0x5a/0x120 [rdma_rxe]
-> >  param_attr_store+0x5e/0xc0
-> >  module_attr_store+0x19/0x30
-> >  sysfs_kf_write+0x3d/0x50
-> >  kernfs_fop_write+0x116/0x1a0
-> >  __vfs_write+0x23/0x120
-> >  vfs_write+0xbe/0x1b0
-> >  SyS_write+0x44/0xa0
-> >  entry_SYSCALL_64_fastpath+0x23/0x9a
-> >
-> > WARNING: CPU: 2 PID: 1005 at drivers/infiniband/core/sysfs.c:1279 ib_device_register_sysfs+0x11d/0x160 [ib_core]
-> > CPU: 2 PID: 1005 Comm: run_tests Tainted: G        W        4.15.0-rc4-dbg+ #2
-> > Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
-> > RIP: 0010:ib_device_register_sysfs+0x11d/0x160 [ib_core]
-> > Call Trace:
-> >  ib_register_device+0x3f7/0x640 [ib_core]
-> >  rxe_register_device+0x3c6/0x470 [rdma_rxe]
-> >  rxe_add+0x543/0x5e0 [rdma_rxe]
-> >  rxe_net_add+0x37/0xb0 [rdma_rxe]
-> >  rxe_param_set_add+0x5a/0x120 [rdma_rxe]
-> >  param_attr_store+0x5e/0xc0
-> >  module_attr_store+0x19/0x30
-> >  sysfs_kf_write+0x3d/0x50
-> >  kernfs_fop_write+0x116/0x1a0
-> >  __vfs_write+0x23/0x120
-> >  vfs_write+0xbe/0x1b0
-> >  SyS_write+0x44/0xa0
-> >  entry_SYSCALL_64_fastpath+0x23/0x9a
-> >
-> > Fixes: commit 99db9494035f ("IB/core: Remove ib_device.dma_device")
+On Sun, Dec 24, 2017 at 03:43:25PM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> 	^^^^^^ redundant
+> Add self-contained with locks device name to index function.
 > 
-> > Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-> > Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # v4.11
-> >  drivers/infiniband/core/device.c | 2 +-
-> >  drivers/infiniband/core/sysfs.c  | 1 -
-> >  2 files changed, 1 insertion(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-> > index 30914f3baa5f..b9d7570e9989 100644
-> > +++ b/drivers/infiniband/core/device.c
-> > @@ -446,7 +446,6 @@ int ib_register_device(struct ib_device *device,
-> >  	struct ib_udata uhw = {.outlen = 0, .inlen = 0};
-> >  	struct device *parent = device->dev.parent;
-> >
-> > -	WARN_ON_ONCE(!parent);
-> >  	WARN_ON_ONCE(device->dma_device);
-> >  	if (device->dev.dma_ops) {
+> Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>  drivers/infiniband/core/core_priv.h |  1 +
+>  drivers/infiniband/core/device.c    | 16 ++++++++++++++++
+>  2 files changed, 17 insertions(+)
 > 
-> I understand that it fixed warning for you, but why is it correct?
-> You are using "parent" in this "if (device->dev.dma_ops)" too.
+> diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+> index ded3850721e0..e71dd1814bf0 100644
+> +++ b/drivers/infiniband/core/core_priv.h
+> @@ -301,6 +301,7 @@ static inline int ib_mad_enforce_security(struct ib_mad_agent_private *map,
+>  #endif
+>  
+>  struct ib_device *__ib_device_get_by_index(u32 ifindex);
+> +struct ib_device *ib_device_get_by_index(u32 ifindex);
+>  /* RDMA device netlink */
+>  void nldev_init(void);
+>  void nldev_exit(void);
+> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+> index cb69357a1909..adf3a4ca038b 100644
+> +++ b/drivers/infiniband/core/device.c
+> @@ -150,6 +150,22 @@ struct ib_device *__ib_device_get_by_index(u32 index)
+>  	return NULL;
+>  }
+>  
+> +/*
+> + * Caller is responsible to return refrerence count by calling put_device()
+> + */
+> +struct ib_device *ib_device_get_by_index(u32 index)
+> +{
+> +	struct ib_device *device;
+> +
+> +	down_write(&lists_rwsem);
+> +	device = __ib_device_get_by_index(index);
+> +	if (device)
+> +		get_device(&device->dev);
+> +
+> +	up_write(&lists_rwsem);
+> +	return device;
+> +}
 
-If no parent is specified then the caller must provide a full set of
-DMA data and none should be copied from the parent.
+If you hold the write side of lists_rwsem you must also hold
+device_mutex.
 
-Presumably rxe does this, and has no parent because it is a virtual
-device.
+But the write side is only needed if the code mutates the device_list
+or client list, and this does neither, so it should be the read lock, right?
 
-I'm a little more worried about the ib_device_register_sysfs - why was
-the WARN_ON ever there?
-
-What do you think about this as a clarification Bart?
-
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index bb2686d56d3c65..c535c7803d80a7 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -446,7 +446,6 @@ int ib_register_device(struct ib_device *device,
- 	struct ib_udata uhw = {.outlen = 0, .inlen = 0};
- 	struct device *parent = device->dev.parent;
- 
--	WARN_ON_ONCE(!parent);
- 	WARN_ON_ONCE(device->dma_device);
- 	if (device->dev.dma_ops) {
- 		/*
-@@ -455,16 +454,20 @@ int ib_register_device(struct ib_device *device,
- 		 * into device->dev.
- 		 */
- 		device->dma_device = &device->dev;
--		if (!device->dev.dma_mask)
--			device->dev.dma_mask = parent->dma_mask;
--		if (!device->dev.coherent_dma_mask)
--			device->dev.coherent_dma_mask =
--				parent->coherent_dma_mask;
-+
-+		if (parent) {
-+			if (!device->dev.dma_mask)
-+				device->dev.dma_mask = parent->dma_mask;
-+			if (!device->dev.coherent_dma_mask)
-+				device->dev.coherent_dma_mask =
-+					parent->coherent_dma_mask;
-+		}
- 	} else {
- 		/*
- 		 * The caller did not provide custom DMA operations. Use the
- 		 * DMA mapping operations of the parent device.
- 		 */
-+		WARN_ON_ONCE(!parent);
- 		device->dma_device = parent;
- 	}
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
