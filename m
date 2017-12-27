@@ -1,77 +1,63 @@
-From: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 00/16] Flow counters support
-Date: Wed, 27 Dec 2017 17:59:01 +0200
-Message-ID: <CAFgAxU_bG1==iU+hLW4X17njzO_2waLVqcF8isGEU8b-40AvuA@mail.gmail.com>
-References: <20171029180019.GE4488@ziepe.ca> <CAFgAxU_CMxQ616wBd-vkvyJ905ndLHrabmWtJ-Ye_hgSwWqiag@mail.gmail.com>
- <20171101181807.GJ1030@ziepe.ca> <CAFgAxU-DsOr9T9P6gqvZ9AviE45_34vZ1WUgUehmF-kb2j8JtQ@mail.gmail.com>
- <20171101190119.GL1030@ziepe.ca> <CAFgAxU9FZQC3JC6sEjB9W3YqHyF5StJ8_=mDQsF0eCWr9010hw@mail.gmail.com>
- <20171101211629.GA18874@ziepe.ca> <CAFgAxU8GNEiyzwHqrYyxs8J7T0TUqmN7JrZukkA0JgYSgY8FoA@mail.gmail.com>
- <20171102153848.GF18874@ziepe.ca> <CAFgAxU_Ouzk1bsBpZ==gTetD3OVGVosgeJRvwqErqz5s2utHBg@mail.gmail.com>
- <20171102161928.GJ18874@ziepe.ca>
+From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 0/9] i40iw updates for 4.16
+Date: Wed, 27 Dec 2017 16:11:01 +0000
+Message-ID: <748B799B6A00724488C603FD7E5E7EB977BADFAC@FMSMSX114.amr.corp.intel.com>
+References: <20171222154702.12632-1-shiraz.saleem@intel.com>
+ <20171222233650.GA17198@ziepe.ca>
+ <20171223162708.GA13848@ssaleem-MOBL4.amr.corp.intel.com>
+ <20171227145801.GA25436@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171102161928.GJ18874-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20171227145801.GA25436-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Raed Salem <raeds-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Rosenbaum <alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "Saleem, Shiraz" <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I posted a V2 [1] which is aligned to what we discussed here
-Alex
-
-[1] https://marc.info/?l=linux-rdma&m=151438961826612&w=2
-
-
-
-On Thu, Nov 2, 2017 at 6:19 PM, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote:
-> On Thu, Nov 02, 2017 at 06:11:07PM +0200, Alex Rosenbaum wrote:
->> On Thu, Nov 2, 2017 at 5:38 PM, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote:
->> > On Thu, Nov 02, 2017 at 08:50:22AM +0200, Alex Rosenbaum wrote:
->> >
->> > So, if every path has a atomic/batch API, do you still want to include
->> > the single counter add capability? It would be fine to me to drop the
->> > object arg, but keep the single counter and differentiated API..
->>
->> I think single counter add with user space bookkeeping is good and
->> simple API for applciations.
->>
->> what do you mean by "differentiated API"?
->> do you mean keep the ibv_add_xxx_qp() but remove the ibv_qp object
->> input parameter? same for flow?
->
-> Yes
->
->> if yes, isn't it simpler to do ibv_create_counters_qp() or
->> ibv_create_counters(QP), and keep a single non differentiated add
->> sample counter point on a clearly defined ibv_counter
->
-> You want to have the counters object itself linked to only QP or only
-> flow? Why?
->
-> The counter object should be able to aggregate counting
-> anything so that a single kernel round trip will return all of the
-> desired counters on any sort of object.
->
-> The point of the per-object differentiation is to keep the counter
-> labling simpler:
->
->  ibv_add_sampling_point(counters, 0, QP, RX_BYTES)
->  ibv_add_sampling_point(counters, 1, FLOW, RX_BYTES)
->  ibv_add_sampling_point(counters, 2, QP, RX_PACKETS)
->  ibv_add_sampling_point(counters, 3, FLOW, RX_PACKETS)
->
-> vs
->
->  ibv_add_sampling_point(counters, 0, RX_BYTES_QP)
->  ibv_add_sampling_point(counters, 1, RX_BYTES_FLOW)
-> [..]
->
-> Observing that most of the things we will want to count will likely
-> apply equally to qps, flows and other things. # packets, # bytes,
-> in/out versions, etc.
->
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
+> Sent: Wednesday, December 27, 2017 8:58 AM
+> To: Saleem, Shiraz <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; e1000-
+> rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [PATCH rdma-next 0/9] i40iw updates for 4.16
+> 
+> On Sat, Dec 23, 2017 at 10:27:08AM -0600, Shiraz Saleem wrote:
+> > On Fri, Dec 22, 2017 at 04:36:50PM -0700, Jason Gunthorpe wrote:
+> > > On Fri, Dec 22, 2017 at 09:46:53AM -0600, Shiraz Saleem wrote:
+> > > > Hi Doug/Jason,
+> > > >
+> > > > This patch set includes bug fixes, code refactoring, a new netdev
+> > > > event notifier and misc. improvements. Please consider it for 4.16.
+> > >
+> > > I took this from the v0 series and manually fixed the const myself.
+> > >
+> > > I also fixed the checkpatch long line warnings, so please watch out
+> > > for things like that.
+> > >
+> > We try to keep our line length < 100 in general.
+> > Are we enforcing the 80 char line length limit?
+> 
+> It is the kernel style, and the goal is to have all code follow the major tenants
+> of it.
+> 
+> Linus has come out in the past against > 80 lines as a metric of too much
+> complexity.
+> 
 > Jason
+
+Many years ago when someone made a stink about nes driver having long lines,
+Linus got involved in that discussion.  He was not in the camp of strictly
+adhering to the 80 column rule.  May be he changed his stance since then.
+Jason, can you reference an email from Linus so I can update my mental
+notes on proper kernel development process?
+
+Thanks
+
+Chien
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
