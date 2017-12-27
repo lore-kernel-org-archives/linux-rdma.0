@@ -1,127 +1,60 @@
-From: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH for-next 2/2] RDMA/hns: Fix alignment problem of the
- doorbell
-Date: Wed, 27 Dec 2017 17:40:19 +0000
-Message-ID: <14063C7AD467DE4B82DEDB5C278E86639F0E6137@FMSMSX108.amr.corp.intel.com>
-References: <1514209039-9388-1-git-send-email-liuyixian@huawei.com>
- <1514209039-9388-3-git-send-email-liuyixian@huawei.com>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-core] Support writing man pages in MarkDown
+Date: Wed, 27 Dec 2017 10:44:44 -0700
+Message-ID: <20171227174444.GC31310@mellanox.com>
+References: <20171212225936.GA29558@ziepe.ca>
+ <455f0faf-516b-fa8d-c0d2-d2cee9194e5b@dev.mellanox.co.il>
+ <1514368433.4412.2.camel@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1514209039-9388-3-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1514368433.4412.2.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Yixian Liu
-> Sent: Monday, December 25, 2017 8:37 AM
-> To: jgg-uk2M96/98Pc@public.gmane.org; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: [PATCH for-next 2/2] RDMA/hns: Fix alignment problem of the
-> doorbell
+On Wed, Dec 27, 2017 at 10:53:53AM +0100, Benjamin Drung wrote:
+> > > Am Sonntag, den 24.12.2017, 14:03 +0200 schrieb Yishai Hadas:
+> > On 12/13/2017 12:59 AM, Jason Gunthorpe wrote:
+> > > > pandoc is fairly widely available in the distros with the notable
+> > > problem that centos 6 and 7 can only get it from EPEL.
+> > > 
+> > 
+> > There might be even a worse case scenario where pandoc may not exist
+> > as 
+> > a package to be installed, for example how about SLES OS ?
 > 
-> The array defined for doorbell is not guaranteed to be 64 bit
-> aligned while we write it to the hardware with 64 bit
-> alignment required.
-> 
-> This patch fixes this problem by defining a union for doorbell
-> to make sure it 64 bit alignment.
-> 
-> Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/hns/hns_roce_device.h |  5 +++++
->  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 16 ++++++++--------
->  2 files changed, 13 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h
-> b/drivers/infiniband/hw/hns/hns_roce_device.h
-> index dde5178..defc4ee 100644
-> --- a/drivers/infiniband/hw/hns/hns_roce_device.h
-> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-> @@ -569,6 +569,11 @@ struct hns_roce_eq_table {
->  	void __iomem		**eqc_base; /* only for hw v1 */
->  };
-> 
-> +union hns_roce_db {
-> +	u64	doorbell64;
+> The release tarball could contain pre-built man page. So in case the OS
+> does provide pandoc to regenerate the man pages, the pre-built can be
+> used.
 
-Are there any concerns with big endian/little ending for this value?
+Yes, this is my basic thinking. If pandoc is installed then the
+pre-built can be ignored, otherwise they are used so the build can
+succeed.
 
-Mike
+I was thinking of a scheme like
+ buildlib/man-cache/<sha1 of .md file>
 
-> +	u32	doorbell[2];
-> +};
-> +
->  struct hns_roce_caps {
->  	u8		num_ports;
->  	int		gid_table_len[HNS_ROCE_MAX_PORTS];
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> index 7f393f6..ee26bbd 100644
-> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> @@ -3172,33 +3172,33 @@ static int hns_roce_v2_modify_cq(struct ib_cq
-> *cq, u16 cq_count, u16 cq_period)
-> 
->  static void set_eq_cons_index_v2(struct hns_roce_eq *eq)
->  {
-> -	u32 doorbell[2];
-> +	union hns_roce_db db;
-> 
-> -	doorbell[0] = 0;
-> -	doorbell[1] = 0;
-> +	db.doorbell[0] = 0;
-> +	db.doorbell[1] = 0;
-> 
->  	if (eq->type_flag == HNS_ROCE_AEQ) {
-> -		roce_set_field(doorbell[0], HNS_ROCE_V2_EQ_DB_CMD_M,
-> +		roce_set_field(db.doorbell[0],
-> HNS_ROCE_V2_EQ_DB_CMD_M,
->  			       HNS_ROCE_V2_EQ_DB_CMD_S,
->  			       eq->arm_st ==
-> HNS_ROCE_V2_EQ_ALWAYS_ARMED ?
->  			       HNS_ROCE_EQ_DB_CMD_AEQ :
->  			       HNS_ROCE_EQ_DB_CMD_AEQ_ARMED);
->  	} else {
-> -		roce_set_field(doorbell[0], HNS_ROCE_V2_EQ_DB_TAG_M,
-> +		roce_set_field(db.doorbell[0],
-> HNS_ROCE_V2_EQ_DB_TAG_M,
->  			       HNS_ROCE_V2_EQ_DB_TAG_S, eq->eqn);
-> 
-> -		roce_set_field(doorbell[0], HNS_ROCE_V2_EQ_DB_CMD_M,
-> +		roce_set_field(db.doorbell[0],
-> HNS_ROCE_V2_EQ_DB_CMD_M,
->  			       HNS_ROCE_V2_EQ_DB_CMD_S,
->  			       eq->arm_st ==
-> HNS_ROCE_V2_EQ_ALWAYS_ARMED ?
->  			       HNS_ROCE_EQ_DB_CMD_CEQ :
->  			       HNS_ROCE_EQ_DB_CMD_CEQ_ARMED);
->  	}
-> 
-> -	roce_set_field(doorbell[1], HNS_ROCE_V2_EQ_DB_PARA_M,
-> +	roce_set_field(db.doorbell[1], HNS_ROCE_V2_EQ_DB_PARA_M,
->  		       HNS_ROCE_V2_EQ_DB_PARA_S,
->  		       (eq->cons_index & HNS_ROCE_V2_CONS_IDX_M));
-> 
-> -	hns_roce_write64_k(doorbell, eq->doorbell);
-> +	hns_roce_write64_k(db.doorbell, eq->doorbell);
-> 
->  	/* Make sure we update the consumer index of EQ before
->  	 * accessing it later
-> --
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So if the .md files are changed for any reason then the build will
+fail.
+
+> Please do not place generated files in the git repository. 
+
+Realistically, I don't know if this is possible... Too many developers
+are using quite old distros these days, and they still have to be
+able to build..
+
+I guess we just turn off man page generation in ./build.sh ?
+
+But, how will 'cubild pkg centos6' work?
+
+The release .tar.gz files are created by travis
+(buildilb/github-release) so it would not be too hard to
+have it also build the cache.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
