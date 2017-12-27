@@ -1,47 +1,78 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [pull request][for-next V2 00/11] Mellanox, mlx5 E-Switch
- updates 2017-12-19
-Date: Wed, 27 Dec 2017 17:01:22 -0500 (EST)
-Message-ID: <20171227.170122.256080933244367774.davem@davemloft.net>
-References: <20171224134547.600-1-saeedm@mellanox.com>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next v1 4/6] IB/mlx5: Handle type IB_QPT_DRIVER when
+ creating a QP
+Date: Wed, 27 Dec 2017 15:02:27 -0700
+Message-ID: <20171227220227.GL31310@mellanox.com>
+References: <20171227171540.1646-1-leon@kernel.org>
+ <20171227171540.1646-5-leon@kernel.org>
+ <CAJ3xEMiExjjVUOYQsdMiHLNOjB+MOkz4c1TT9AT_inkfGfMuKA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171224134547.600-1-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMiExjjVUOYQsdMiHLNOjB+MOkz4c1TT9AT_inkfGfMuKA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Sun, 24 Dec 2017 15:45:36 +0200
+On Wed, Dec 27, 2017 at 11:16:09PM +0200, Or Gerlitz wrote:
+> On Wed, Dec 27, 2017 at 7:15 PM, Leon wrote:
+> > From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> > +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> > @@ -202,6 +202,8 @@ struct mlx5_ib_flow_db {
+> >   * creates the actual hardware QP.
+> >   */
+> >  #define MLX5_IB_QPT_HW_GSI     IB_QPT_RESERVED2
+> > +#define MLX5_IB_QPT_DCI                IB_QPT_RESERVED3
+> > +#define MLX5_IB_QPT_DCT                IB_QPT_RESERVED4
+> 
+> When we added the reserved QPTs we made an explicit statement at the
+> verbs header file that this is a "range for qp types internal to the
+> low level driver"
+> 
+> In the down stream patches you are actually assuming user-space
+> knows that for mlx5 DCI/DCT equals IB_QPT_RESERVED3/4 which
+> violates this statement.
 
-> Hi Dave and Doug,
-> 
-> ==============
-> This series includes updates for mlx5 E-Switch infrastructures,
-> to be merged into net-next and rdma-next trees.
-> 
-> Mark's patches provide E-Switch refactoring that generalize the mlx5
-> E-Switch vf representors interfaces and data structures. The serious is
-> mainly focused on moving ethernet (netdev) specific representors logic out
-> of E-Switch (eswitch.c) into mlx5e representor module (en_rep.c), which
-> provides better separation and allows future support for other types of vf
-> representors (e.g. RDMA).
-> 
-> Gal's patches at the end of this serious, provide a simple syntax fix and
-> two other patches that handles vport ingress/egress ACL steering name
-> spaces to be aligned with the Firmware/Hardware specs.
-> ===============
-> 
-> V1->V2:
->  - Addressed coding style comments in patches #1 and #7
->  - The series is still based on rc4, as now I see net-next is also @rc4.
-> 
-> Please pull and let me know if there's any problem.
+IB_QPT_RESERVED should NOT leak to the user driver ever, for some
+reason a flag is used. I thought we agreed to an enum during the
+original RFC?
 
-Pulled, thank you.
+> Maybe you need
+> 
+> IB_QPT_VENDOR1
+> IB_QPT_VENDOR2
+> ...
+> IB_QPT_VENDOR10
+
+No, no. The driver specific QP type is carried only within the driver
+specific udata and is never part of the common API.
+
+> you added these two flags in the ABI file, but you never use them in downstream
+> 
+> MLX5_QP_FLAG_TYPE_DCT
+> MLX5_QP_FLAG_TYPE_DCI
+> 
+> patches, something must be wrong here even according to your design
+
+Hm? they are used here:
+
++       if (ucmd->flags & MLX5_QP_FLAG_TYPE_DCI)
++               init_attr->qp_type = MLX5_IB_QPT_DCI;
++       else
++               init_attr->qp_type = MLX5_IB_QPT_DCT;
+
+Which is a bad ABI design, check flags explicitly never use else.
+
+Not sure how much I like this - why try so hard to keep the udata
+unchanged? I would have added a 'u32 mlx_qp_type' and a variable
+length struct I think..
+
+Or use the new kabi :|
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
