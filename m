@@ -1,37 +1,28 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next 6/6] IB/mlx5: Move locks initialization to the
- corresponding stage
-Date: Thu, 28 Dec 2017 10:45:11 -0700
-Message-ID: <20171228174511.GC25436@ziepe.ca>
-References: <20171224124015.31917-1-leon@kernel.org>
- <20171224124015.31917-7-leon@kernel.org>
- <20171228051806.GP25436@ziepe.ca>
- <20171228053259.GP3494@mtr-leonro.local>
- <20171228053523.GR25436@ziepe.ca>
- <3ad02325-5244-31c9-eb6d-139a17b064b6@mellanox.com>
- <20171228160310.GW25436@ziepe.ca>
- <9f8a7042-7c6a-9929-fa10-0edf5c6e366e@mellanox.com>
- <20171228171428.GA25436@ziepe.ca>
- <70dcf1fa-fd00-7288-3a59-0d61e62e0043@mellanox.com>
+Subject: Re: [PATCH rdma-next 0/2] mlx4/mlx5 RSS improvements
+Date: Thu, 28 Dec 2017 13:00:36 -0700
+Message-ID: <20171228200036.GA11721@ziepe.ca>
+References: <20171224125125.15661-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <70dcf1fa-fd00-7288-3a59-0d61e62e0043-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20171224125125.15661-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 28, 2017 at 07:22:52PM +0200, Mark Bloch wrote:
+On Sun, Dec 24, 2017 at 02:51:23PM +0200, Leon Romanovsky wrote:
+> Two RSS patches, Maor's patch fixes wrongly reported inner RSS
+> capability in mlx5 and Guy provides such option for mlx4.
+> 
+> The patches are available in the git repository at:
+>   git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-next-2017-12-24-1
 
-> So I'll move the lock to INIT, but leave it under the ODP CONFIG
-> option for now.  If there isn't (It's already on my TODO list to ask
-> around) a good reason for this CONFIG I'll send a patch that
-> addresses that, sound good?
+Applied to for-next
 
-Yep
-
+Thanks,
 Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
