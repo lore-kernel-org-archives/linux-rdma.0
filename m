@@ -1,379 +1,97 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [for-next V3 07/11] net/mlx5: E-Switch, Create generic header struct to be used by representors
-Date: Fri, 29 Dec 2017 01:23:10 +0200
-Message-ID: <20171228232314.13678-8-saeedm@mellanox.com>
+Subject: [for-next V3 09/11] net/mlx5e: E-Switch, Use the name of static array instead of its address
+Date: Fri, 29 Dec 2017 01:23:12 +0200
+Message-ID: <20171228232314.13678-10-saeedm@mellanox.com>
 References: <20171228232314.13678-1-saeedm@mellanox.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20171228232314.13678-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Gal Pressman <galp@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mark Bloch <markb@mellanox.com>
+From: Gal Pressman <galp@mellanox.com>
 
-Now that we don't store type dependent data in struct mlx5_eswitch_rep
-we can create a generic interface, and representor type.
+Using the address of a static array is the same as using its name (in
+this specific use-case), but it's confusing and makes the code less
+readable.
 
-struct mlx5_eswitch_rep will store an array of interfaces, each
-interface is used by a different representor type.
-
-Once we moved to a more generic interface, rdma driver representors can
-be added and utilize the same mechanism as the Ethernet driver
-representors use.
-
-Signed-off-by: Mark Bloch <markb@mellanox.com>
-Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
+Fixes: 1bd27b11c1df ("net/mlx5: Introduce E-switch QoS management")
+Fixes: bd77bf1cb595 ("net/mlx5: Add SRIOV VF max rate configuration support")
+Signed-off-by: Gal Pressman <galp@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c   | 29 ++++-----
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.h   |  2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    |  9 +--
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.h  | 22 +++++--
- .../ethernet/mellanox/mlx5/core/eswitch_offloads.c | 70 +++++++++++++++-------
- 5 files changed, 88 insertions(+), 44 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 26 +++++++++++------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-index 3c74f0599ad3..5b2b673c0b13 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-@@ -1086,7 +1086,7 @@ mlx5e_vport_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+index 6d4cbdb69823..cdf65ed8714c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+@@ -1290,7 +1290,7 @@ static int esw_create_tsar(struct mlx5_eswitch *esw)
  
- 	rpriv->netdev = netdev;
- 	rpriv->rep = rep;
--	rep->priv = rpriv;
-+	rep->rep_if[REP_ETH].priv = rpriv;
- 	INIT_LIST_HEAD(&rpriv->vport_sqs_list);
+ 	err = mlx5_create_scheduling_element_cmd(dev,
+ 						 SCHEDULING_HIERARCHY_E_SWITCH,
+-						 &tsar_ctx,
++						 tsar_ctx,
+ 						 &esw->qos.root_tsar_id);
+ 	if (err) {
+ 		esw_warn(esw->dev, "E-Switch create TSAR failed (%d)\n", err);
+@@ -1333,20 +1333,20 @@ static int esw_vport_enable_qos(struct mlx5_eswitch *esw, int vport_num,
+ 	if (vport->qos.enabled)
+ 		return -EEXIST;
  
- 	err = mlx5e_attach_netdev(netdev_priv(netdev));
-@@ -1103,7 +1103,7 @@ mlx5e_vport_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
- 		goto err_detach_netdev;
- 	}
+-	MLX5_SET(scheduling_context, &sched_ctx, element_type,
++	MLX5_SET(scheduling_context, sched_ctx, element_type,
+ 		 SCHEDULING_CONTEXT_ELEMENT_TYPE_VPORT);
+-	vport_elem = MLX5_ADDR_OF(scheduling_context, &sched_ctx,
++	vport_elem = MLX5_ADDR_OF(scheduling_context, sched_ctx,
+ 				  element_attributes);
+ 	MLX5_SET(vport_element, vport_elem, vport_number, vport_num);
+-	MLX5_SET(scheduling_context, &sched_ctx, parent_element_id,
++	MLX5_SET(scheduling_context, sched_ctx, parent_element_id,
+ 		 esw->qos.root_tsar_id);
+-	MLX5_SET(scheduling_context, &sched_ctx, max_average_bw,
++	MLX5_SET(scheduling_context, sched_ctx, max_average_bw,
+ 		 initial_max_rate);
+-	MLX5_SET(scheduling_context, &sched_ctx, bw_share, initial_bw_share);
++	MLX5_SET(scheduling_context, sched_ctx, bw_share, initial_bw_share);
  
--	uplink_rpriv = mlx5_eswitch_get_uplink_priv(dev->priv.eswitch);
-+	uplink_rpriv = mlx5_eswitch_get_uplink_priv(dev->priv.eswitch, REP_ETH);
- 	upriv = netdev_priv(uplink_rpriv->netdev);
- 	err = tc_setup_cb_egdev_register(netdev, mlx5e_setup_tc_block_cb,
- 					 upriv);
-@@ -1146,7 +1146,8 @@ mlx5e_vport_rep_unload(struct mlx5_eswitch_rep *rep)
- 	struct mlx5e_priv *upriv;
+ 	err = mlx5_create_scheduling_element_cmd(dev,
+ 						 SCHEDULING_HIERARCHY_E_SWITCH,
+-						 &sched_ctx,
++						 sched_ctx,
+ 						 &vport->qos.esw_tsar_ix);
+ 	if (err) {
+ 		esw_warn(esw->dev, "E-Switch create TSAR vport element failed (vport=%d,err=%d)\n",
+@@ -1392,22 +1392,22 @@ static int esw_vport_qos_config(struct mlx5_eswitch *esw, int vport_num,
+ 	if (!vport->qos.enabled)
+ 		return -EIO;
  
- 	unregister_netdev(netdev);
--	uplink_rpriv = mlx5_eswitch_get_uplink_priv(priv->mdev->priv.eswitch);
-+	uplink_rpriv = mlx5_eswitch_get_uplink_priv(priv->mdev->priv.eswitch,
-+						    REP_ETH);
- 	upriv = netdev_priv(uplink_rpriv->netdev);
- 	tc_setup_cb_egdev_unregister(netdev, mlx5e_setup_tc_block_cb,
- 				     upriv);
-@@ -1164,11 +1165,11 @@ static void mlx5e_rep_register_vf_vports(struct mlx5e_priv *priv)
- 	int vport;
+-	MLX5_SET(scheduling_context, &sched_ctx, element_type,
++	MLX5_SET(scheduling_context, sched_ctx, element_type,
+ 		 SCHEDULING_CONTEXT_ELEMENT_TYPE_VPORT);
+-	vport_elem = MLX5_ADDR_OF(scheduling_context, &sched_ctx,
++	vport_elem = MLX5_ADDR_OF(scheduling_context, sched_ctx,
+ 				  element_attributes);
+ 	MLX5_SET(vport_element, vport_elem, vport_number, vport_num);
+-	MLX5_SET(scheduling_context, &sched_ctx, parent_element_id,
++	MLX5_SET(scheduling_context, sched_ctx, parent_element_id,
+ 		 esw->qos.root_tsar_id);
+-	MLX5_SET(scheduling_context, &sched_ctx, max_average_bw,
++	MLX5_SET(scheduling_context, sched_ctx, max_average_bw,
+ 		 max_rate);
+-	MLX5_SET(scheduling_context, &sched_ctx, bw_share, bw_share);
++	MLX5_SET(scheduling_context, sched_ctx, bw_share, bw_share);
+ 	bitmask |= MODIFY_SCHEDULING_ELEMENT_IN_MODIFY_BITMASK_MAX_AVERAGE_BW;
+ 	bitmask |= MODIFY_SCHEDULING_ELEMENT_IN_MODIFY_BITMASK_BW_SHARE;
  
- 	for (vport = 1; vport < total_vfs; vport++) {
--		struct mlx5_eswitch_rep rep = {};
-+		struct mlx5_eswitch_rep_if rep_if = {};
- 
--		rep.load = mlx5e_vport_rep_load;
--		rep.unload = mlx5e_vport_rep_unload;
--		mlx5_eswitch_register_vport_rep(esw, vport, &rep);
-+		rep_if.load = mlx5e_vport_rep_load;
-+		rep_if.unload = mlx5e_vport_rep_unload;
-+		mlx5_eswitch_register_vport_rep(esw, vport, &rep_if, REP_ETH);
- 	}
- }
- 
-@@ -1180,24 +1181,24 @@ static void mlx5e_rep_unregister_vf_vports(struct mlx5e_priv *priv)
- 	int vport;
- 
- 	for (vport = 1; vport < total_vfs; vport++)
--		mlx5_eswitch_unregister_vport_rep(esw, vport);
-+		mlx5_eswitch_unregister_vport_rep(esw, vport, REP_ETH);
- }
- 
- void mlx5e_register_vport_reps(struct mlx5e_priv *priv)
- {
- 	struct mlx5_core_dev *mdev = priv->mdev;
- 	struct mlx5_eswitch *esw   = mdev->priv.eswitch;
-+	struct mlx5_eswitch_rep_if rep_if;
- 	struct mlx5e_rep_priv *rpriv;
--	struct mlx5_eswitch_rep rep;
- 
- 	rpriv = priv->ppriv;
- 	rpriv->netdev = priv->netdev;
- 
--	rep.load = mlx5e_nic_rep_load;
--	rep.unload = mlx5e_nic_rep_unload;
--	rep.priv = rpriv;
-+	rep_if.load = mlx5e_nic_rep_load;
-+	rep_if.unload = mlx5e_nic_rep_unload;
-+	rep_if.priv = rpriv;
- 	INIT_LIST_HEAD(&rpriv->vport_sqs_list);
--	mlx5_eswitch_register_vport_rep(esw, 0, &rep); /* UPLINK PF vport*/
-+	mlx5_eswitch_register_vport_rep(esw, 0, &rep_if, REP_ETH); /* UPLINK PF vport*/
- 
- 	mlx5e_rep_register_vf_vports(priv); /* VFs vports */
- }
-@@ -1208,7 +1209,7 @@ void mlx5e_unregister_vport_reps(struct mlx5e_priv *priv)
- 	struct mlx5_eswitch *esw   = mdev->priv.eswitch;
- 
- 	mlx5e_rep_unregister_vf_vports(priv); /* VFs vports */
--	mlx5_eswitch_unregister_vport_rep(esw, 0); /* UPLINK PF*/
-+	mlx5_eswitch_unregister_vport_rep(esw, 0, REP_ETH); /* UPLINK PF*/
- }
- 
- void *mlx5e_alloc_nic_rep_priv(struct mlx5_core_dev *mdev)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
-index 8db68369367e..e4473a9ebd50 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.h
-@@ -64,7 +64,7 @@ struct mlx5e_rep_priv {
- static inline
- struct mlx5e_rep_priv *mlx5e_rep_to_rep_priv(struct mlx5_eswitch_rep *rep)
- {
--	return (struct mlx5e_rep_priv *)rep->priv;
-+	return (struct mlx5e_rep_priv *)rep->rep_if[REP_ETH].priv;
- }
- 
- struct mlx5e_neigh {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-index f462496cce7a..259e91e2d09a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-@@ -617,7 +617,7 @@ static int parse_tunnel_attr(struct mlx5e_priv *priv,
- 						  FLOW_DISSECTOR_KEY_ENC_PORTS,
- 						  f->mask);
- 		struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
--		struct mlx5e_rep_priv *uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw);
-+		struct mlx5e_rep_priv *uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw, REP_ETH);
- 		struct net_device *up_dev = uplink_rpriv->netdev;
- 		struct mlx5e_priv *up_priv = netdev_priv(up_dev);
- 
-@@ -1522,7 +1522,7 @@ static int mlx5e_route_lookup_ipv4(struct mlx5e_priv *priv,
- #else
- 	return -EOPNOTSUPP;
- #endif
--	uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw);
-+	uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw, REP_ETH);
- 	/* if the egress device isn't on the same HW e-switch, we use the uplink */
- 	if (!switchdev_port_same_parent_id(priv->netdev, rt->dst.dev))
- 		*out_dev = uplink_rpriv->netdev;
-@@ -1561,7 +1561,7 @@ static int mlx5e_route_lookup_ipv6(struct mlx5e_priv *priv,
- 
- 	*out_ttl = ip6_dst_hoplimit(dst);
- 
--	uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw);
-+	uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw, REP_ETH);
- 	/* if the egress device isn't on the same HW e-switch, we use the uplink */
- 	if (!switchdev_port_same_parent_id(priv->netdev, dst->dev))
- 		*out_dev = uplink_rpriv->netdev;
-@@ -1864,7 +1864,8 @@ static int mlx5e_attach_encap(struct mlx5e_priv *priv,
- 			      struct mlx5e_tc_flow *flow)
- {
- 	struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
--	struct mlx5e_rep_priv *uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw);
-+	struct mlx5e_rep_priv *uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw,
-+									   REP_ETH);
- 	struct net_device *up_dev = uplink_rpriv->netdev;
- 	unsigned short family = ip_tunnel_info_af(tun_info);
- 	struct mlx5e_priv *up_priv = netdev_priv(up_dev);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-index 3a21ea4e4d24..91175965df7f 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-@@ -45,6 +45,11 @@ enum {
- 	SRIOV_OFFLOADS
- };
- 
-+enum {
-+	REP_ETH,
-+	NUM_REP_TYPES,
-+};
-+
- #ifdef CONFIG_MLX5_ESWITCH
- 
- #define MLX5_MAX_UC_PER_VPORT(dev) \
-@@ -138,16 +143,21 @@ struct mlx5_esw_sq {
- 	struct list_head	 list;
- };
- 
--struct mlx5_eswitch_rep {
-+struct mlx5_eswitch_rep;
-+struct mlx5_eswitch_rep_if {
- 	int		       (*load)(struct mlx5_core_dev *dev,
- 				       struct mlx5_eswitch_rep *rep);
- 	void		       (*unload)(struct mlx5_eswitch_rep *rep);
- 	void			*priv;
-+	bool		       valid;
-+};
-+
-+struct mlx5_eswitch_rep {
-+	struct mlx5_eswitch_rep_if rep_if[NUM_REP_TYPES];
- 	u16		       vport;
- 	u8		       hw_id[ETH_ALEN];
- 	u16		       vlan;
- 	u32		       vlan_refcount;
--	bool		       valid;
- };
- 
- struct mlx5_esw_offload {
-@@ -268,10 +278,12 @@ int mlx5_devlink_eswitch_encap_mode_set(struct devlink *devlink, u8 encap);
- int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink, u8 *encap);
- void mlx5_eswitch_register_vport_rep(struct mlx5_eswitch *esw,
- 				     int vport_index,
--				     struct mlx5_eswitch_rep *rep);
-+				     struct mlx5_eswitch_rep_if *rep_if,
-+				     u8 rep_type);
- void mlx5_eswitch_unregister_vport_rep(struct mlx5_eswitch *esw,
--				       int vport_index);
--void *mlx5_eswitch_get_uplink_priv(struct mlx5_eswitch *esw);
-+				       int vport_index,
-+				       u8 rep_type);
-+void *mlx5_eswitch_get_uplink_priv(struct mlx5_eswitch *esw, u8 rep_type);
- 
- int mlx5_eswitch_add_vlan_action(struct mlx5_eswitch *esw,
- 				 struct mlx5_esw_flow_attr *attr);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index 07f26c1986fc..99f583a15cc3 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -130,7 +130,7 @@ static int esw_set_global_vlan_pop(struct mlx5_eswitch *esw, u8 val)
- 	esw_debug(esw->dev, "%s applying global %s policy\n", __func__, val ? "pop" : "none");
- 	for (vf_vport = 1; vf_vport < esw->enabled_vports; vf_vport++) {
- 		rep = &esw->offloads.vport_reps[vf_vport];
--		if (!rep->valid)
-+		if (!rep->rep_if[REP_ETH].valid)
- 			continue;
- 
- 		err = __mlx5_eswitch_set_vport_vlan(esw, rep->vport, 0, 0, val);
-@@ -719,21 +719,31 @@ int esw_offloads_init_reps(struct mlx5_eswitch *esw)
- 	return 0;
- }
- 
--static void esw_offloads_unload_reps(struct mlx5_eswitch *esw, int nvports)
-+static void esw_offloads_unload_reps_type(struct mlx5_eswitch *esw, int nvports,
-+					  u8 rep_type)
- {
- 	struct mlx5_eswitch_rep *rep;
- 	int vport;
- 
- 	for (vport = nvports - 1; vport >= 0; vport--) {
- 		rep = &esw->offloads.vport_reps[vport];
--		if (!rep->valid)
-+		if (!rep->rep_if[rep_type].valid)
- 			continue;
- 
--		rep->unload(rep);
-+		rep->rep_if[rep_type].unload(rep);
- 	}
- }
- 
--static int esw_offloads_load_reps(struct mlx5_eswitch *esw, int nvports)
-+static void esw_offloads_unload_reps(struct mlx5_eswitch *esw, int nvports)
-+{
-+	u8 rep_type = NUM_REP_TYPES;
-+
-+	while (rep_type-- > 0)
-+		esw_offloads_unload_reps_type(esw, nvports, rep_type);
-+}
-+
-+static int esw_offloads_load_reps_type(struct mlx5_eswitch *esw, int nvports,
-+				       u8 rep_type)
- {
- 	struct mlx5_eswitch_rep *rep;
- 	int vport;
-@@ -741,10 +751,10 @@ static int esw_offloads_load_reps(struct mlx5_eswitch *esw, int nvports)
- 
- 	for (vport = 0; vport < nvports; vport++) {
- 		rep = &esw->offloads.vport_reps[vport];
--		if (!rep->valid)
-+		if (!rep->rep_if[rep_type].valid)
- 			continue;
- 
--		err = rep->load(esw->dev, rep);
-+		err = rep->rep_if[rep_type].load(esw->dev, rep);
- 		if (err)
- 			goto err_reps;
- 	}
-@@ -752,7 +762,26 @@ static int esw_offloads_load_reps(struct mlx5_eswitch *esw, int nvports)
- 	return 0;
- 
- err_reps:
--	esw_offloads_unload_reps(esw, vport);
-+	esw_offloads_unload_reps_type(esw, vport, rep_type);
-+	return err;
-+}
-+
-+static int esw_offloads_load_reps(struct mlx5_eswitch *esw, int nvports)
-+{
-+	u8 rep_type = 0;
-+	int err;
-+
-+	for (rep_type = 0; rep_type < NUM_REP_TYPES; rep_type++) {
-+		err = esw_offloads_load_reps_type(esw, nvports, rep_type);
-+		if (err)
-+			goto err_reps;
-+	}
-+
-+	return err;
-+
-+err_reps:
-+	while (rep_type-- > 0)
-+		esw_offloads_unload_reps_type(esw, nvports, rep_type);
- 	return err;
- }
- 
-@@ -1121,22 +1150,23 @@ int mlx5_devlink_eswitch_encap_mode_get(struct devlink *devlink, u8 *encap)
- 
- void mlx5_eswitch_register_vport_rep(struct mlx5_eswitch *esw,
- 				     int vport_index,
--				     struct mlx5_eswitch_rep *__rep)
-+				     struct mlx5_eswitch_rep_if *__rep_if,
-+				     u8 rep_type)
- {
- 	struct mlx5_esw_offload *offloads = &esw->offloads;
--	struct mlx5_eswitch_rep *rep;
-+	struct mlx5_eswitch_rep_if *rep_if;
- 
--	rep = &offloads->vport_reps[vport_index];
-+	rep_if = &offloads->vport_reps[vport_index].rep_if[rep_type];
- 
--	rep->load   = __rep->load;
--	rep->unload = __rep->unload;
--	rep->priv = __rep->priv;
-+	rep_if->load   = __rep_if->load;
-+	rep_if->unload = __rep_if->unload;
-+	rep_if->priv = __rep_if->priv;
- 
--	rep->valid = true;
-+	rep_if->valid = true;
- }
- 
- void mlx5_eswitch_unregister_vport_rep(struct mlx5_eswitch *esw,
--				       int vport_index)
-+				       int vport_index, u8 rep_type)
- {
- 	struct mlx5_esw_offload *offloads = &esw->offloads;
- 	struct mlx5_eswitch_rep *rep;
-@@ -1144,17 +1174,17 @@ void mlx5_eswitch_unregister_vport_rep(struct mlx5_eswitch *esw,
- 	rep = &offloads->vport_reps[vport_index];
- 
- 	if (esw->mode == SRIOV_OFFLOADS && esw->vports[vport_index].enabled)
--		rep->unload(rep);
-+		rep->rep_if[rep_type].unload(rep);
- 
--	rep->valid = false;
-+	rep->rep_if[rep_type].valid = false;
- }
- 
--void *mlx5_eswitch_get_uplink_priv(struct mlx5_eswitch *esw)
-+void *mlx5_eswitch_get_uplink_priv(struct mlx5_eswitch *esw, u8 rep_type)
- {
- #define UPLINK_REP_INDEX 0
- 	struct mlx5_esw_offload *offloads = &esw->offloads;
- 	struct mlx5_eswitch_rep *rep;
- 
- 	rep = &offloads->vport_reps[UPLINK_REP_INDEX];
--	return rep->priv;
-+	return rep->rep_if[rep_type].priv;
- }
+ 	err = mlx5_modify_scheduling_element_cmd(dev,
+ 						 SCHEDULING_HIERARCHY_E_SWITCH,
+-						 &sched_ctx,
++						 sched_ctx,
+ 						 vport->qos.esw_tsar_ix,
+ 						 bitmask);
+ 	if (err) {
 -- 
 2.13.0
