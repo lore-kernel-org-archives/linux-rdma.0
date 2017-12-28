@@ -1,29 +1,32 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH v3 for-next 2/2] RDMA/hns: Fix alignment problem of the
+Subject: Re: [PATCH for-next 2/2] RDMA/hns: Fix alignment problem of the
  doorbell
-Date: Thu, 28 Dec 2017 08:57:12 -0700
-Message-ID: <20171228155712.GU25436@ziepe.ca>
-References: <1514470683-6972-1-git-send-email-liuyixian@huawei.com>
- <1514470683-6972-3-git-send-email-liuyixian@huawei.com>
+Date: Thu, 28 Dec 2017 09:00:54 -0700
+Message-ID: <20171228160054.GV25436@ziepe.ca>
+References: <1514209039-9388-1-git-send-email-liuyixian@huawei.com>
+ <1514209039-9388-3-git-send-email-liuyixian@huawei.com>
+ <20171226081526.GB10734@mtr-leonro.local>
+ <6f657295-ab91-a940-c1d8-8d85dcedb4ea@huawei.com>
+ <20171227164407.GB25436@ziepe.ca>
+ <2a0a56fb-1ec8-dfc9-3c29-c9bae7bd9bae@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1514470683-6972-3-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <2a0a56fb-1ec8-dfc9-3c29-c9bae7bd9bae-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Dec 28, 2017 at 02:48:10PM +0800, Liuyixian (Eason) wrote:
 
-On Thu, Dec 28, 2017 at 10:18:03PM +0800, Yixian Liu wrote:
+> And I also find a discussion on the usage of union. It also mentions that
+> we can only get the "active" member from an union.
+> https://stackoverflow.com/questions/2310483/purpose-of-unions-in-c-and-c
 
-> -	hns_roce_write64_k(doorbell, eq->doorbell);
-> +	hns_roce_write64_k(db.doorbell, eq->doorbell);
-
-You need to pass &db to hns_roce_write64_k and have it deref the 64
-bit value using the union. The point here is to eliminate the cast inside
-hns_roce_write64_k.
+linux requires a compiler that supports the C99 model of allowing type
+punning with unions.
 
 Jason
 --
