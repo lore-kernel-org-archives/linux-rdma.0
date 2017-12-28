@@ -1,32 +1,45 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH for-next 2/2] RDMA/hns: Fix alignment problem of the
- doorbell
-Date: Thu, 28 Dec 2017 09:00:54 -0700
-Message-ID: <20171228160054.GV25436@ziepe.ca>
-References: <1514209039-9388-1-git-send-email-liuyixian@huawei.com>
- <1514209039-9388-3-git-send-email-liuyixian@huawei.com>
- <20171226081526.GB10734@mtr-leonro.local>
- <6f657295-ab91-a940-c1d8-8d85dcedb4ea@huawei.com>
- <20171227164407.GB25436@ziepe.ca>
- <2a0a56fb-1ec8-dfc9-3c29-c9bae7bd9bae@huawei.com>
+Subject: Re: [PATCH rdma-next 6/6] IB/mlx5: Move locks initialization to the
+ corresponding stage
+Date: Thu, 28 Dec 2017 09:03:10 -0700
+Message-ID: <20171228160310.GW25436@ziepe.ca>
+References: <20171224124015.31917-1-leon@kernel.org>
+ <20171224124015.31917-7-leon@kernel.org>
+ <20171228051806.GP25436@ziepe.ca>
+ <20171228053259.GP3494@mtr-leonro.local>
+ <20171228053523.GR25436@ziepe.ca>
+ <3ad02325-5244-31c9-eb6d-139a17b064b6@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <2a0a56fb-1ec8-dfc9-3c29-c9bae7bd9bae-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <3ad02325-5244-31c9-eb6d-139a17b064b6-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 28, 2017 at 02:48:10PM +0800, Liuyixian (Eason) wrote:
+On Thu, Dec 28, 2017 at 09:51:24AM +0200, Mark Bloch wrote:
 
-> And I also find a discussion on the usage of union. It also mentions that
-> we can only get the "active" member from an union.
-> https://stackoverflow.com/questions/2310483/purpose-of-unions-in-c-and-c
+> Yes, let me explain.
+> This entire series aims to allow to turn on/off certain features and to
+> group the init/cleanup of those features together.
+> If you take that into account, the srcu (which is needed only for ODP)
+> needs to be done in the ODP stage, but the issue is that not only ODP code
+> uses the srcu, destroy_mkey() will sync on it.
 
-linux requires a compiler that supports the C99 model of allowing type
-punning with unions.
+Okay, right, so this series creates the united srcu possibility. The
+commit messages are not totally clear..
+
+> So I can move the srcu initialization to INIT, but this way we lose
+> context when looking at the ODP stage.
+
+If something is being used by multiple stages then it really seems
+like it should be common.
+
+Introducing a function call back just to avoid initing a srcu in
+common code for the sole reason of 'keeping like together' seems
+like bad taste to me..
 
 Jason
 --
