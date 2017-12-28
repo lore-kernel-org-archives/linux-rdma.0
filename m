@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [for-next V3 01/11] net/mlx5: E-Switch, Refactor vport representors initialization
-Date: Fri, 29 Dec 2017 01:23:04 +0200
-Message-ID: <20171228232314.13678-2-saeedm@mellanox.com>
+Subject: [for-next V3 03/11] net/mlx5: E-Switch, Simplify representor load/unload callback API
+Date: Fri, 29 Dec 2017 01:23:06 +0200
+Message-ID: <20171228232314.13678-4-saeedm@mellanox.com>
 References: <20171228232314.13678-1-saeedm@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171228232314.13678-1-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,167 +12,136 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Refactor the init stage of vport representors registration.
-vport number and hw id can be assigned by the E-Switch driver and not by
-the netdevice driver. While here, make the error path of mlx5_eswitch_init()
-a reverse order of the good path, also use kcalloc to allocate an array
-instead of kzalloc.
+In the load() callback for loading representors we don't really need
+struct mlx5_eswitch but struct mlx5_core_dev, pass it directly.
+
+In the unload() callback for unloading representors we don't need the
+struct mlx5_eswitch argument, remove it.
 
 Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c   |  7 ----
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  | 12 +++----
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.h  |  2 ++
- .../ethernet/mellanox/mlx5/core/eswitch_offloads.c | 39 +++++++++++++++++++---
- 4 files changed, 41 insertions(+), 19 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.c           | 14 +++++++-------
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.h          |  5 ++---
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c |  6 +++---
+ 3 files changed, 12 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-index 2c43606c26b5..4661ef12c18c 100644
+index 4661ef12c18c..6d2219f3acf6 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-@@ -1100,17 +1100,12 @@ static void mlx5e_rep_register_vf_vports(struct mlx5e_priv *priv)
- 	struct mlx5_eswitch *esw   = mdev->priv.eswitch;
- 	int total_vfs = MLX5_TOTAL_VPORTS(mdev);
- 	int vport;
--	u8 mac[ETH_ALEN];
--
--	mlx5_query_nic_vport_mac_address(mdev, 0, mac);
+@@ -967,7 +967,7 @@ static const struct mlx5e_profile mlx5e_rep_profile = {
+ /* e-Switch vport representors */
  
- 	for (vport = 1; vport < total_vfs; vport++) {
- 		struct mlx5_eswitch_rep rep;
+ static int
+-mlx5e_nic_rep_load(struct mlx5_eswitch *esw, struct mlx5_eswitch_rep *rep)
++mlx5e_nic_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
+ {
+ 	struct mlx5e_priv *priv = netdev_priv(rep->netdev);
+ 	struct mlx5e_rep_priv *rpriv = priv->ppriv;
+@@ -992,7 +992,7 @@ mlx5e_nic_rep_load(struct mlx5_eswitch *esw, struct mlx5_eswitch_rep *rep)
+ }
  
- 		rep.load = mlx5e_vport_rep_load;
- 		rep.unload = mlx5e_vport_rep_unload;
--		rep.vport = vport;
--		ether_addr_copy(rep.hw_id, mac);
- 		mlx5_eswitch_register_vport_rep(esw, vport, &rep);
+ static void
+-mlx5e_nic_rep_unload(struct mlx5_eswitch *esw, struct mlx5_eswitch_rep *rep)
++mlx5e_nic_rep_unload(struct mlx5_eswitch_rep *rep)
+ {
+ 	struct mlx5e_priv *priv = netdev_priv(rep->netdev);
+ 	struct mlx5e_rep_priv *rpriv = priv->ppriv;
+@@ -1008,7 +1008,7 @@ mlx5e_nic_rep_unload(struct mlx5_eswitch *esw, struct mlx5_eswitch_rep *rep)
+ }
+ 
+ static int
+-mlx5e_vport_rep_load(struct mlx5_eswitch *esw, struct mlx5_eswitch_rep *rep)
++mlx5e_vport_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
+ {
+ 	struct mlx5e_rep_priv *rpriv;
+ 	struct net_device *netdev;
+@@ -1019,7 +1019,7 @@ mlx5e_vport_rep_load(struct mlx5_eswitch *esw, struct mlx5_eswitch_rep *rep)
+ 	if (!rpriv)
+ 		return -ENOMEM;
+ 
+-	netdev = mlx5e_create_netdev(esw->dev, &mlx5e_rep_profile, rpriv);
++	netdev = mlx5e_create_netdev(dev, &mlx5e_rep_profile, rpriv);
+ 	if (!netdev) {
+ 		pr_warn("Failed to create representor netdev for vport %d\n",
+ 			rep->vport);
+@@ -1044,7 +1044,7 @@ mlx5e_vport_rep_load(struct mlx5_eswitch *esw, struct mlx5_eswitch_rep *rep)
+ 		goto err_detach_netdev;
  	}
+ 
+-	upriv = netdev_priv(mlx5_eswitch_get_uplink_netdev(esw));
++	upriv = netdev_priv(mlx5_eswitch_get_uplink_netdev(dev->priv.eswitch));
+ 	err = tc_setup_cb_egdev_register(netdev, mlx5e_setup_tc_block_cb,
+ 					 upriv);
+ 	if (err)
+@@ -1076,7 +1076,7 @@ mlx5e_vport_rep_load(struct mlx5_eswitch *esw, struct mlx5_eswitch_rep *rep)
  }
-@@ -1132,10 +1127,8 @@ void mlx5e_register_vport_reps(struct mlx5e_priv *priv)
- 	struct mlx5_eswitch *esw   = mdev->priv.eswitch;
- 	struct mlx5_eswitch_rep rep;
  
--	mlx5_query_nic_vport_mac_address(mdev, 0, rep.hw_id);
- 	rep.load = mlx5e_nic_rep_load;
- 	rep.unload = mlx5e_nic_rep_unload;
--	rep.vport = FDB_UPLINK_VPORT;
- 	rep.netdev = priv->netdev;
- 	mlx5_eswitch_register_vport_rep(esw, 0, &rep); /* UPLINK PF vport*/
+ static void
+-mlx5e_vport_rep_unload(struct mlx5_eswitch *esw, struct mlx5_eswitch_rep *rep)
++mlx5e_vport_rep_unload(struct mlx5_eswitch_rep *rep)
+ {
+ 	struct net_device *netdev = rep->netdev;
+ 	struct mlx5e_priv *priv = netdev_priv(netdev);
+@@ -1085,7 +1085,7 @@ mlx5e_vport_rep_unload(struct mlx5_eswitch *esw, struct mlx5_eswitch_rep *rep)
+ 	struct mlx5e_priv *upriv;
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index bbb140f517c4..6d4cbdb69823 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -1644,13 +1644,9 @@ int mlx5_eswitch_init(struct mlx5_core_dev *dev)
- 		goto abort;
- 	}
- 
--	esw->offloads.vport_reps =
--		kzalloc(total_vports * sizeof(struct mlx5_eswitch_rep),
--			GFP_KERNEL);
--	if (!esw->offloads.vport_reps) {
--		err = -ENOMEM;
-+	err = esw_offloads_init_reps(esw);
-+	if (err)
- 		goto abort;
--	}
- 
- 	hash_init(esw->offloads.encap_tbl);
- 	hash_init(esw->offloads.mod_hdr_tbl);
-@@ -1681,8 +1677,8 @@ int mlx5_eswitch_init(struct mlx5_core_dev *dev)
- abort:
- 	if (esw->work_queue)
- 		destroy_workqueue(esw->work_queue);
-+	esw_offloads_cleanup_reps(esw);
- 	kfree(esw->vports);
--	kfree(esw->offloads.vport_reps);
- 	kfree(esw);
- 	return err;
- }
-@@ -1696,7 +1692,7 @@ void mlx5_eswitch_cleanup(struct mlx5_eswitch *esw)
- 
- 	esw->dev->priv.eswitch = NULL;
- 	destroy_workqueue(esw->work_queue);
--	kfree(esw->offloads.vport_reps);
-+	esw_offloads_cleanup_reps(esw);
- 	kfree(esw->vports);
- 	kfree(esw);
- }
+ 	unregister_netdev(rep->netdev);
+-	upriv = netdev_priv(mlx5_eswitch_get_uplink_netdev(esw));
++	upriv = netdev_priv(mlx5_eswitch_get_uplink_netdev(priv->mdev->priv.eswitch));
+ 	tc_setup_cb_egdev_unregister(netdev, mlx5e_setup_tc_block_cb,
+ 				     upriv);
+ 	mlx5e_rep_neigh_cleanup(rpriv);
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-index 565c8b7a399a..9722c2a96090 100644
+index 9722c2a96090..23808a65889c 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-@@ -197,6 +197,8 @@ struct mlx5_eswitch {
+@@ -139,10 +139,9 @@ struct mlx5_esw_sq {
+ };
  
- void esw_offloads_cleanup(struct mlx5_eswitch *esw, int nvports);
- int esw_offloads_init(struct mlx5_eswitch *esw, int nvports);
-+void esw_offloads_cleanup_reps(struct mlx5_eswitch *esw);
-+int esw_offloads_init_reps(struct mlx5_eswitch *esw);
- 
- /* E-Switch API */
- int mlx5_eswitch_init(struct mlx5_core_dev *dev);
+ struct mlx5_eswitch_rep {
+-	int		       (*load)(struct mlx5_eswitch *esw,
++	int		       (*load)(struct mlx5_core_dev *dev,
+ 				       struct mlx5_eswitch_rep *rep);
+-	void		       (*unload)(struct mlx5_eswitch *esw,
+-					 struct mlx5_eswitch_rep *rep);
++	void		       (*unload)(struct mlx5_eswitch_rep *rep);
+ 	u16		       vport;
+ 	u8		       hw_id[ETH_ALEN];
+ 	struct net_device      *netdev;
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index 1143d80119bd..7e15854c1087 100644
+index 26fbc50ddc6d..aa20f51c0a99 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -732,6 +732,41 @@ static int esw_offloads_start(struct mlx5_eswitch *esw)
- 	return err;
+@@ -777,7 +777,7 @@ static void esw_offloads_unload_reps(struct mlx5_eswitch *esw, int nvports)
+ 		if (!rep->valid)
+ 			continue;
+ 
+-		rep->unload(esw, rep);
++		rep->unload(rep);
+ 	}
  }
  
-+void esw_offloads_cleanup_reps(struct mlx5_eswitch *esw)
-+{
-+	kfree(esw->offloads.vport_reps);
-+}
-+
-+int esw_offloads_init_reps(struct mlx5_eswitch *esw)
-+{
-+	int total_vfs = MLX5_TOTAL_VPORTS(esw->dev);
-+	struct mlx5_core_dev *dev = esw->dev;
-+	struct mlx5_esw_offload *offloads;
-+	struct mlx5_eswitch_rep *rep;
-+	u8 hw_id[ETH_ALEN];
-+	int vport;
-+
-+	esw->offloads.vport_reps = kcalloc(total_vfs,
-+					   sizeof(struct mlx5_eswitch_rep),
-+					   GFP_KERNEL);
-+	if (!esw->offloads.vport_reps)
-+		return -ENOMEM;
-+
-+	offloads = &esw->offloads;
-+	mlx5_query_nic_vport_mac_address(dev, 0, hw_id);
-+
-+	for (vport = 0; vport < total_vfs; vport++) {
-+		rep = &offloads->vport_reps[vport];
-+
-+		rep->vport = vport;
-+		ether_addr_copy(rep->hw_id, hw_id);
-+	}
-+
-+	offloads->vport_reps[0].vport = FDB_UPLINK_VPORT;
-+
-+	return 0;
-+}
-+
- int esw_offloads_init(struct mlx5_eswitch *esw, int nvports)
- {
- 	struct mlx5_eswitch_rep *rep;
-@@ -1127,13 +1162,9 @@ void mlx5_eswitch_register_vport_rep(struct mlx5_eswitch *esw,
+@@ -792,7 +792,7 @@ static int esw_offloads_load_reps(struct mlx5_eswitch *esw, int nvports)
+ 		if (!rep->valid)
+ 			continue;
  
+-		err = rep->load(esw, rep);
++		err = rep->load(esw->dev, rep);
+ 		if (err)
+ 			goto err_reps;
+ 	}
+@@ -1193,7 +1193,7 @@ void mlx5_eswitch_unregister_vport_rep(struct mlx5_eswitch *esw,
  	rep = &offloads->vport_reps[vport_index];
  
--	memset(rep, 0, sizeof(*rep));
--
- 	rep->load   = __rep->load;
- 	rep->unload = __rep->unload;
--	rep->vport  = __rep->vport;
- 	rep->netdev = __rep->netdev;
--	ether_addr_copy(rep->hw_id, __rep->hw_id);
+ 	if (esw->mode == SRIOV_OFFLOADS && esw->vports[vport_index].enabled)
+-		rep->unload(esw, rep);
++		rep->unload(rep);
  
- 	INIT_LIST_HEAD(&rep->vport_sqs_list);
- 	rep->valid = true;
+ 	rep->valid = false;
+ }
 -- 
 2.13.0
 
