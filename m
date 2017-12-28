@@ -1,75 +1,94 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: Possible bugs in MLX XRC
-Date: Thu, 28 Dec 2017 09:57:27 +0000
-Message-ID: <BN3PR07MB2578F607B5C4369BB432046AF8040@BN3PR07MB2578.namprd07.prod.outlook.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-next v1 4/6] IB/mlx5: Handle type IB_QPT_DRIVER when
+ creating a QP
+Date: Thu, 28 Dec 2017 12:02:56 +0200
+Message-ID: <30a35dd5-3046-d7bb-e61f-7d18501fd06c@dev.mellanox.co.il>
+References: <20171227171540.1646-1-leon@kernel.org>
+ <20171227171540.1646-5-leon@kernel.org>
+ <CAJ3xEMiExjjVUOYQsdMiHLNOjB+MOkz4c1TT9AT_inkfGfMuKA@mail.gmail.com>
+ <20171227220227.GL31310@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171227220227.GL31310-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jackm <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In rdma-core mlx5 there's a lock over the srq_table. See below the mlx5_sto=
-re_srq():
+On 12/28/2017 12:02 AM, Jason Gunthorpe wrote:
+> On Wed, Dec 27, 2017 at 11:16:09PM +0200, Or Gerlitz wrote:
+>> On Wed, Dec 27, 2017 at 7:15 PM, Leon wrote:
+>>> From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>>> +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+>>> @@ -202,6 +202,8 @@ struct mlx5_ib_flow_db {
+>>>    * creates the actual hardware QP.
+>>>    */
+>>>   #define MLX5_IB_QPT_HW_GSI     IB_QPT_RESERVED2
+>>> +#define MLX5_IB_QPT_DCI                IB_QPT_RESERVED3
+>>> +#define MLX5_IB_QPT_DCT                IB_QPT_RESERVED4
+>>
+>> When we added the reserved QPTs we made an explicit statement at the
+>> verbs header file that this is a "range for qp types internal to the
+>> low level driver"
+>>
+>> In the down stream patches you are actually assuming user-space
+>> knows that for mlx5 DCI/DCT equals IB_QPT_RESERVED3/4 which
+>> violates this statement.
+> 
+> IB_QPT_RESERVED should NOT leak to the user driver ever, for some
+> reason a flag is used. I thought we agreed to an enum during the
+> original RFC?
+> 
+>> Maybe you need
+>>
+>> IB_QPT_VENDOR1
+>> IB_QPT_VENDOR2
+>> ...
+>> IB_QPT_VENDOR10
+> 
+> No, no. The driver specific QP type is carried only within the driver
+> specific udata and is never part of the common API.
+> 
 
-        pthread_mutex_lock(&ctx->srq_table_mutex);
-        ret =3D ibv_cmd_create_srq(pd, ibsrq, attr, &cmd.ibv_cmd, sizeof(cm=
-d),
-                                 &resp.ibv_resp, sizeof(resp));
-        if (ret)
-                goto err_db;
+Correct, this is really what had been done, so we are fine here.
 
-        ret =3D mlx5_store_srq(ctx, resp.srqn, srq);
-        if (ret)
-                goto err_destroy;
+>> you added these two flags in the ABI file, but you never use them in downstream
+>>
+>> MLX5_QP_FLAG_TYPE_DCT
+>> MLX5_QP_FLAG_TYPE_DCI
+>>
+>> patches, something must be wrong here even according to your design
+> 
+> Hm? they are used here:
+> 
+> +       if (ucmd->flags & MLX5_QP_FLAG_TYPE_DCI)
+> +               init_attr->qp_type = MLX5_IB_QPT_DCI;
+> +       else
+> +               init_attr->qp_type = MLX5_IB_QPT_DCT;
+> 
+> Which is a bad ABI design, check flags explicitly never use else.
 
-        pthread_mutex_unlock(&ctx->srq_table_mutex);
+We can drop this 'else' as few lines above there was a check that both 
+can't be set together. However, not sure that this change worth V2.
 
-For some reason, mlx5_clear_srq() isn't invoked under a mutex lock:
-int mlx5_destroy_srq(struct ibv_srq *srq)
-{
-        int ret;
-        struct mlx5_srq *msrq =3D to_msrq(srq);
-        struct mlx5_context *ctx =3D to_mctx(srq->context);
+> Not sure how much I like this - why try so hard to keep the udata
+> unchanged? 
 
-        if (msrq->cmd_qp) {
-                ret =3D mlx5_destroy_qp(msrq->cmd_qp);
-                if (ret)
-                        return ret;
-                msrq->cmd_qp =3D NULL;
-        }
+We prefer to not increase the udata length if it's not really required. 
+Doing that might force other changes around to preserve compatibility 
+with legacy user space [1].
 
-        ret =3D ibv_cmd_destroy_srq(srq);
-        if (ret)
-                return ret;
+ From application point of view the API will be very clear to ask for a 
+specific QP type. Here we are talking on some 'user driver <-> kernel 
+driver' API to pass the request and as of the above we preferred to go 
+by that way without increasing the udata.
 
-        if (ctx->cqe_version && msrq->rsc.type =3D=3D MLX5_RSC_TYPE_XSRQ)
-                mlx5_clear_uidx(ctx, msrq->rsc.rsn);
-        else
-                mlx5_clear_srq(ctx, msrq->srqn);
-
-        mlx5_free_db(ctx, msrq->db);
-        mlx5_free_buf(&msrq->buf);
-        free(msrq->tm_list);
-        free(msrq->wrid);
-        free(msrq->op);
-        free(msrq);
-
-        return 0;
-}
-
-The mlx5_find_srq() isn't protected as well. This is fast path.
-You cannot promise that poll_cq for a relevant CQE won't be invoked during =
-or after the XRC SRQ removal.
-This calls for something like CQEs that are being removed/marked as invalid=
- following the QP is destruction.
-
-Cheers,
-Ram
-
+[1] 
+http://elixir.free-electrons.com/linux/latest/source/drivers/infiniband/hw/mlx5/qp.c#L1595.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
