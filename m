@@ -1,40 +1,103 @@
 From: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 for-next 0/2] Bugfixes for eq support in hns
-Date: Thu, 28 Dec 2017 22:18:01 +0800
-Message-ID: <1514470683-6972-1-git-send-email-liuyixian@huawei.com>
+Subject: [PATCH v3 for-next 2/2] RDMA/hns: Fix alignment problem of the doorbell
+Date: Thu, 28 Dec 2017 22:18:03 +0800
+Message-ID: <1514470683-6972-3-git-send-email-liuyixian@huawei.com>
+References: <1514470683-6972-1-git-send-email-liuyixian@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1514470683-6972-1-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-uk2M96/98Pc@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch set fixes the bugs according to Jason's two comments
-on my previous patch set, which listed in the NOTE.
+The array defined for doorbell is not guaranteed to be 64 bit
+aligned while we write it to the hardware with 64 bit
+alignment required.
 
-NOTE: This patch set is dependent on the following patches.
-   "RDMA/hns: Add eq support of hip08"
-   "RDMA/hns: Refactor eq code for hip06"
+This patch fixes this problem by defining a union for doorbell
+to make sure it 64 bit alignment.
 
 v2 -> v3:
-1. Update according to Jason's comments
-   - use dma_rmb instead of rmb in patch [1/2]
-   - delete unnecessary assignment for doorbell64
+1. delete the unnecessary assignment for doorbell64.
 
-v1 -> v2:
-1. Update according to Leon's comment, see the changelog
-   of patch [2/2].
+v2:
+1. Consider with Leon's comments, make sure it is 64 bit
+   alignment by assigning the expected value to the u64
+   member of the union type, i.e., assign doorbell array
+   to doorbell64.
 
-Yixian Liu (2):
-  RDMA/hns: Add detailed comments for mb() call
-  RDMA/hns: Fix alignment problem of the doorbell
+Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/hns/hns_roce_device.h |  5 +++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 16 ++++++++--------
+ 2 files changed, 13 insertions(+), 8 deletions(-)
 
- drivers/infiniband/hw/hns/hns_roce_device.h |  5 ++++
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 22 ++++++++++-----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 42 ++++++++++++++---------------
- 3 files changed, 42 insertions(+), 27 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index dde5178..8d49f46 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -569,6 +569,11 @@ struct hns_roce_eq_table {
+ 	void __iomem		**eqc_base; /* only for hw v1 */
+ };
+ 
++union hns_roce_eq_db {
++	__le64	doorbell64;
++	__le32	doorbell[2];
++};
++
+ struct hns_roce_caps {
+ 	u8		num_ports;
+ 	int		gid_table_len[HNS_ROCE_MAX_PORTS];
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 4b300c8..499922a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -3172,33 +3172,33 @@ static int hns_roce_v2_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
+ 
+ static void set_eq_cons_index_v2(struct hns_roce_eq *eq)
+ {
+-	u32 doorbell[2];
++	union hns_roce_eq_db db;
+ 
+-	doorbell[0] = 0;
+-	doorbell[1] = 0;
++	db.doorbell[0] = 0;
++	db.doorbell[1] = 0;
+ 
+ 	if (eq->type_flag == HNS_ROCE_AEQ) {
+-		roce_set_field(doorbell[0], HNS_ROCE_V2_EQ_DB_CMD_M,
++		roce_set_field(db.doorbell[0], HNS_ROCE_V2_EQ_DB_CMD_M,
+ 			       HNS_ROCE_V2_EQ_DB_CMD_S,
+ 			       eq->arm_st == HNS_ROCE_V2_EQ_ALWAYS_ARMED ?
+ 			       HNS_ROCE_EQ_DB_CMD_AEQ :
+ 			       HNS_ROCE_EQ_DB_CMD_AEQ_ARMED);
+ 	} else {
+-		roce_set_field(doorbell[0], HNS_ROCE_V2_EQ_DB_TAG_M,
++		roce_set_field(db.doorbell[0], HNS_ROCE_V2_EQ_DB_TAG_M,
+ 			       HNS_ROCE_V2_EQ_DB_TAG_S, eq->eqn);
+ 
+-		roce_set_field(doorbell[0], HNS_ROCE_V2_EQ_DB_CMD_M,
++		roce_set_field(db.doorbell[0], HNS_ROCE_V2_EQ_DB_CMD_M,
+ 			       HNS_ROCE_V2_EQ_DB_CMD_S,
+ 			       eq->arm_st == HNS_ROCE_V2_EQ_ALWAYS_ARMED ?
+ 			       HNS_ROCE_EQ_DB_CMD_CEQ :
+ 			       HNS_ROCE_EQ_DB_CMD_CEQ_ARMED);
+ 	}
+ 
+-	roce_set_field(doorbell[1], HNS_ROCE_V2_EQ_DB_PARA_M,
++	roce_set_field(db.doorbell[1], HNS_ROCE_V2_EQ_DB_PARA_M,
+ 		       HNS_ROCE_V2_EQ_DB_PARA_S,
+ 		       (eq->cons_index & HNS_ROCE_V2_CONS_IDX_M));
+ 
+-	hns_roce_write64_k(doorbell, eq->doorbell);
++	hns_roce_write64_k(db.doorbell, eq->doorbell);
+ 
+ 	/* Make sure we update the consumer index of EQ before
+ 	 * accessing it later
 -- 
 1.9.1
 
