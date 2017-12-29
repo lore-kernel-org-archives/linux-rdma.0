@@ -1,38 +1,43 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH for-next v2] iw_cxgb4: Change error/warn prints to
- pr_debug
-Date: Fri, 29 Dec 2017 11:11:22 -0700
-Message-ID: <20171229181122.GB12569@ziepe.ca>
-References: <1514533274-23613-1-git-send-email-bharat@chelsio.com>
+Subject: Re: [PATCH V3 for-next 1/6] RDMA/hns: Add rq inline data support for
+ hip08 RoCE
+Date: Fri, 29 Dec 2017 11:18:43 -0700
+Message-ID: <20171229181843.GF6513@ziepe.ca>
+References: <1514540341-115107-1-git-send-email-oulijun@huawei.com>
+ <1514540341-115107-2-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1514533274-23613-1-git-send-email-bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1514540341-115107-2-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bharat Potnuri <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 29, 2017 at 01:11:14PM +0530, Bharat Potnuri wrote:
-> These prints not neccesarily mean error/warning, so changing them to
-> debug.
-> 
-> changes since v1:
-> - Revert the pr_fmt changes.
-> - Few more prints changed from pr_warn() to pr_debug().
+On Fri, Dec 29, 2017 at 05:38:56PM +0800, Lijun Ou wrote:
+> +		hr_qp->rq_inl_buf.wqe_list = kcalloc(1, hr_qp->rq.wqe_cnt *
+> +					       sizeof(struct hns_roce_rinl_wqe),
+> +					       GFP_KERNEL);
 
-I applied this to for-next, please put the change log after the
-diffstat in future patches, so we don't have to manually edit your
-commit message.
+This is complete mis-use of the 2d allocator functions. It needs to
+be:
 
-> Signed-off-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
->  drivers/infiniband/hw/cxgb4/cm.c | 17 ++++++++---------
->  drivers/infiniband/hw/cxgb4/ev.c |  2 +-
->  2 files changed, 9 insertions(+), 10 deletions(-)
->
+	hr_qp->rq_inl_buf.wqe_list = kcalloc(hr_qp->rq.wqe_cnt,
+					       sizeof(struct hns_roce_rinl_wqe),
+					       GFP_KERNEL);
 
-*right here*
+It is important that the first argument be the 'untrsuted' value so
+the multiply overflow checking works properly.
+
+> +		/* Firstly, allocate a list of sge space buffer */
+> +		hr_qp->rq_inl_buf.wqe_list[0].sg_list =
+> +					kcalloc(1, hr_qp->rq_inl_buf.wqe_cnt *
+> +					       init_attr->cap.max_recv_sge *
+> +					       sizeof(struct hns_roce_rinl_sge),
+> +					       GFP_KERNEL);
+
+ditto
 
 Jason
 --
