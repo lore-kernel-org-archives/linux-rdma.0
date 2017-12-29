@@ -1,42 +1,52 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V2 for-next 1/6] RDMA/hns: Add rq inline data support for
- hip08 RoCE
-Date: Fri, 29 Dec 2017 09:45:09 +0800
-Message-ID: <df6ca4aa-bbde-cae7-a3cb-f469124f3490@huawei.com>
-References: <1514287514-88723-1-git-send-email-oulijun@huawei.com>
- <1514287514-88723-2-git-send-email-oulijun@huawei.com>
- <20171228212217.GA14490@ziepe.ca>
+From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH for-next] iw_cxgb4: Change error/warn prints to pr_debug
+Date: Fri, 29 Dec 2017 12:13:38 +0530
+Message-ID: <20171229064337.GA15043@chelsio.com>
+References: <1513680256-8153-1-git-send-email-bharat@chelsio.com>
+ <20171219201639.GA14814@ziepe.ca>
+ <017901d3790e$030ddea0$09299be0$@opengridcomputing.com>
+ <20171219222300.GH14814@ziepe.ca>
+ <018501d37919$4fdccc90$ef9665b0$@opengridcomputing.com>
+ <20171222173207.GF30884@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gbk"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171228212217.GA14490-uk2M96/98Pc@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171222173207.GF30884-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Cc: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-ÔÚ 2017/12/29 5:22, Jason Gunthorpe Ð´µÀ:
-> On Tue, Dec 26, 2017 at 07:25:09PM +0800, Lijun Ou wrote:
+On Friday, December 12/22/17, 2017 at 23:02:07 +0530, Jason Gunthorpe wrote:
+> On Tue, Dec 19, 2017 at 04:32:54PM -0600, Steve Wise wrote:
 > 
->> +	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) {
->> +		if (hr_qp->rq_inl_buf.wqe_list) {
->> +			kfree(hr_qp->rq_inl_buf.wqe_list[0].sg_list);
->> +			kfree(hr_qp->rq_inl_buf.wqe_list);
->> +			hr_qp->rq_inl_buf.wqe_list[0].sg_list = NULL;
+> > > > In general, I like module names in log statements, but we just
+> > > > need to do it the right way to avoid the pr_debug issue...
+> > > 
+> > > Seems like a bigger problem than for linux-rdma?
+> > > 
+> > 
+> > If redefining pr_fmt is actually the preferred way to add module names, then
+> > I think pr_debug() might need
+> > to be fixed.
+> > 
+> > > Shouldn't many of these prints be using dev_* stuff and be prefixed
+> > > with their device name?
+> > 
+> > Yea, that makes sense.
 > 
-> You didn't fix this use after free that Leon commented on.
+> Okay, I've dropped this patch.
 > 
-> nulling something that is contained in something you are about to
-> free is not at all useful.
+> The two changes to pr_debug should probably become dev_dbg, and
+> resend?
+For now I am resending the patch without pr_fmt change.
+dev_dbg change would be an overall change if necessary.
+> 
+> Deal with the 'what should pr_fmt be' question someplace else :)
+Agreed
 > 
 > Jason
-> 
-> 
-Thanks. it may be a odd thing that I have modified it. I will check it and
-fix it.
-
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
