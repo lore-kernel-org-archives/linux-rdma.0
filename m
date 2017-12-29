@@ -1,52 +1,70 @@
-From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH for-next] iw_cxgb4: Change error/warn prints to pr_debug
-Date: Fri, 29 Dec 2017 12:13:38 +0530
-Message-ID: <20171229064337.GA15043@chelsio.com>
-References: <1513680256-8153-1-git-send-email-bharat@chelsio.com>
- <20171219201639.GA14814@ziepe.ca>
- <017901d3790e$030ddea0$09299be0$@opengridcomputing.com>
- <20171219222300.GH14814@ziepe.ca>
- <018501d37919$4fdccc90$ef9665b0$@opengridcomputing.com>
- <20171222173207.GF30884@ziepe.ca>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 for-next 2/2] RDMA/hns: Fix alignment problem of the
+ doorbell
+Date: Fri, 29 Dec 2017 08:48:43 +0200
+Message-ID: <20171229064843.GU3494@mtr-leonro.local>
+References: <1514470683-6972-1-git-send-email-liuyixian@huawei.com>
+ <1514470683-6972-3-git-send-email-liuyixian@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="p7S+EREVcBHk3zUG"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171222173207.GF30884-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <1514470683-6972-3-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Friday, December 12/22/17, 2017 at 23:02:07 +0530, Jason Gunthorpe wrote:
-> On Tue, Dec 19, 2017 at 04:32:54PM -0600, Steve Wise wrote:
-> 
-> > > > In general, I like module names in log statements, but we just
-> > > > need to do it the right way to avoid the pr_debug issue...
-> > > 
-> > > Seems like a bigger problem than for linux-rdma?
-> > > 
-> > 
-> > If redefining pr_fmt is actually the preferred way to add module names, then
-> > I think pr_debug() might need
-> > to be fixed.
-> > 
-> > > Shouldn't many of these prints be using dev_* stuff and be prefixed
-> > > with their device name?
-> > 
-> > Yea, that makes sense.
-> 
-> Okay, I've dropped this patch.
-> 
-> The two changes to pr_debug should probably become dev_dbg, and
-> resend?
-For now I am resending the patch without pr_fmt change.
-dev_dbg change would be an overall change if necessary.
-> 
-> Deal with the 'what should pr_fmt be' question someplace else :)
-Agreed
-> 
-> Jason
+
+--p7S+EREVcBHk3zUG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, Dec 28, 2017 at 10:18:03PM +0800, Yixian Liu wrote:
+> The array defined for doorbell is not guaranteed to be 64 bit
+> aligned while we write it to the hardware with 64 bit
+> alignment required.
+>
+> This patch fixes this problem by defining a union for doorbell
+> to make sure it 64 bit alignment.
+>
+> v2 -> v3:
+> 1. delete the unnecessary assignment for doorbell64.
+>
+> v2:
+> 1. Consider with Leon's comments, make sure it is 64 bit
+>    alignment by assigning the expected value to the u64
+>    member of the union type, i.e., assign doorbell array
+>    to doorbell64.
+
+Please put changelog after "---", so it won't be visible in git log.
+See this patch as an example:
+https://lkml.org/lkml/2017/8/18/785
+
+Thanks
+
+--p7S+EREVcBHk3zUG
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpF5UsACgkQ5GN7iDZy
+WKfX7RAAufe3xCkT31yAx6hrUGdrAGDbayH0ct6jfvs/RnM2UJDorNvm5tcPukyJ
+ELLYhi7thD+2SH0m2SkbWWcnt7E1V0XuaA9jzb7gXibUnhXOBZzvkIQJTK6tw22f
+he9Vt4M1GuCnVZBNH5xOhVgsndkDtQIK+G0wa+nhz8jyc8d1SYuMpgA/SrLyJujM
+2+9N3brUNzzxmLrziXI3iy59SgZ/Dla1hCcmc8SNuQGWhU/86BKongWTh9WCoOQG
+zxRTtuO4XWczEgNfOGOY4lwS7YbEdUEjY9MpK3ex39nN1wNU0qXMMReC3G/f+ZSe
+Fot4lTAHO7qKB+Nd/4VJU97CVyWjPiIQQRLxpZSmSZ+A3zKBnLF57uK2vTXqHrC5
+svfGinsI83RdwnSA4XO/oIWo89kEaLJfNNYHDRUr4+z4iVtibwtp7doK75m3Gooe
+yDYb5kRwKWtif9PfrdDm5UGNZm4Py/g2Y6gUm+p5kn4kBNThYZPWhjV2pSKgcpK3
+/SOAgRNmAD1257XDeYR79z+OVeC3Tb3rRyGT/ITHbwgAQ97hvRioHGxOW+vxG9JE
+U99xEnQGpeKsf2pnxxf5N+SS1ij/pGr663F5mm2LorZEhoYqTKIXAzVRrbRmiWEy
+FV6yA9rfiKAMp8s1J5MOQ2Xtf38Q82Ljh6EOHXEUL9MvCnRkLS8=
+=v4C7
+-----END PGP SIGNATURE-----
+
+--p7S+EREVcBHk3zUG--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
