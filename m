@@ -1,53 +1,39 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH v3 for-next 2/2] RDMA/hns: Fix alignment problem of the
- doorbell
-Date: Fri, 29 Dec 2017 10:47:17 -0700
-Message-ID: <20171229174717.GB6513@ziepe.ca>
-References: <1514470683-6972-1-git-send-email-liuyixian@huawei.com>
- <1514470683-6972-3-git-send-email-liuyixian@huawei.com>
- <20171228155712.GU25436@ziepe.ca>
- <aa43b6d4-bb56-ed2f-33c9-c047e27a0a59@huawei.com>
+Subject: Re: [rdma-core patch] srp_daemon: srp_daemon.service should be
+ started after network.target
+Date: Fri, 29 Dec 2017 11:00:58 -0700
+Message-ID: <20171229180058.GC6513@ziepe.ca>
+References: <20171229101006.27861-1-honli@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <aa43b6d4-bb56-ed2f-33c9-c047e27a0a59-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20171229101006.27861-1-honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 29, 2017 at 06:29:35PM +0800, Liuyixian (Eason) wrote:
+On Fri, Dec 29, 2017 at 06:10:06PM +0800, Honggang LI wrote:
+> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 > 
-> 
-> On 2017/12/28 23:57, Jason Gunthorpe wrote:
-> > 
-> > On Thu, Dec 28, 2017 at 10:18:03PM +0800, Yixian Liu wrote:
-> > 
-> >> -	hns_roce_write64_k(doorbell, eq->doorbell);
-> >> +	hns_roce_write64_k(db.doorbell, eq->doorbell);
-> > 
-> > You need to pass &db to hns_roce_write64_k and have it deref the 64
-> > bit value using the union. The point here is to eliminate the cast inside
-> > hns_roce_write64_k.
-> > 
-> > Jason
-> 
-> Hi Jason,
-> 
-> I know exactly what you mean, but the interface also called by lots of
-> other places in our driver, I plan to leave this revision in future
-> work.
+> The srp_daemon service will be started at the very beginning state
+> of systemd when boot/reboot the machine, in case srp_daemon.service
+> is not after network.target. As result, the srp_daemon.service will
+> be terminated because of SERVICE_FAILURE_RESOURCES.
 
-Yes, exactly, and they all have the same problem, right?
+How is this possible?  srp_daemon.service just runs a script that
+doesn't touch the network.
 
-The point of my original note was for you to fix the systemic problem
-not just the single location I used as an example.
- 
-> With db.doorbell input, we could get the correct value (64 bit) w/o
-> *(u64 *).  Thus, this patch will not be updated in patch v4.
+I can't see any way that srp_daemon.service should have this added,
+please explain more what is going on.
 
-Let us drop it then, resend it when you fix them all.
+I could potentially understand needing it in srp_daemon_port@.service,
+but even that needs much more explaination about what exactly is
+causing this requirement.
+
+You said SERVICE_FAILURE_RESOURCES which is an internal systemd error
+code. Is this because of PrivateNetwork=yes or something similar?
 
 Jason
 --
