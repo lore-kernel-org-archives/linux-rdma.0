@@ -1,33 +1,52 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next 00/15] Dual Port mlx5 IB Device for RoCE
-Date: Fri, 29 Dec 2017 11:03:13 -0700
-Message-ID: <20171229180313.GD6513@ziepe.ca>
-References: <20171224125741.25464-1-leon@kernel.org>
- <CAJ3xEMhZgEee+VLpV4bV150siOdXwpcp64AGqeqr5Y2o--WRdw@mail.gmail.com>
- <382ba516-bf7b-0a0b-7a9f-604cbf805c80@mellanox.com>
- <CAJ3xEMi3CvATj-vpfy8E89=ZoPL1mmoiu8HWea_NEwfV2++ZpQ@mail.gmail.com>
- <a3cf271c-f66c-074a-88bd-b48b39959e6b@mellanox.com>
+Subject: Re: [PATCH for-next] iw_cxgb4: Change error/warn prints to pr_debug
+Date: Fri, 29 Dec 2017 11:09:04 -0700
+Message-ID: <20171229180904.GE6513@ziepe.ca>
+References: <1513680256-8153-1-git-send-email-bharat@chelsio.com>
+ <20171219201639.GA14814@ziepe.ca>
+ <017901d3790e$030ddea0$09299be0$@opengridcomputing.com>
+ <20171219222300.GH14814@ziepe.ca>
+ <018501d37919$4fdccc90$ef9665b0$@opengridcomputing.com>
+ <20171222173207.GF30884@ziepe.ca>
+ <20171229064337.GA15043@chelsio.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <a3cf271c-f66c-074a-88bd-b48b39959e6b-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20171229064337.GA15043-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 27, 2017 at 05:20:26PM -0600, Daniel Jurgens wrote:
-> On 12/27/2017 3:22 PM, Or Gerlitz wrote:
-> > On Wed, Dec 27, 2017 at 5:22 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> >
-> >> If the PCI device were a slave there would be no IB device for it in the VM.
-> > This creates a regression for users that update their kernel and now
-> > their VMs stop working
-> 
-> The feature is not enabled by default.
+On Fri, Dec 29, 2017 at 12:13:38PM +0530, Potnuri Bharat Teja wrote:
+> On Friday, December 12/22/17, 2017 at 23:02:07 +0530, Jason Gunthorpe wrote:
+> > On Tue, Dec 19, 2017 at 04:32:54PM -0600, Steve Wise wrote:
+> > 
+> > > > > In general, I like module names in log statements, but we just
+> > > > > need to do it the right way to avoid the pr_debug issue...
+> > > > 
+> > > > Seems like a bigger problem than for linux-rdma?
+> > > > 
+> > > 
+> > > If redefining pr_fmt is actually the preferred way to add module names, then
+> > > I think pr_debug() might need
+> > > to be fixed.
+> > > 
+> > > > Shouldn't many of these prints be using dev_* stuff and be prefixed
+> > > > with their device name?
+> > > 
+> > > Yea, that makes sense.
+> > 
+> > Okay, I've dropped this patch.
+> > 
+> > The two changes to pr_debug should probably become dev_dbg, and
+> > resend?
+> For now I am resending the patch without pr_fmt change.
+> dev_dbg change would be an overall change if necessary.
 
-You never described how it is enabled in the commit messages either..
+It is not appropriate for a driver to use pr_*, so you should consider
+fixing it.
 
 Jason
 --
