@@ -1,159 +1,60 @@
-From: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 for-next 1/2] RDMA/hns: Add detailed comments for mb() call
-Date: Fri, 29 Dec 2017 19:26:18 +0800
-Message-ID: <1514546779-206832-2-git-send-email-liuyixian@huawei.com>
-References: <1514546779-206832-1-git-send-email-liuyixian@huawei.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next v1 4/6] IB/mlx5: Handle type IB_QPT_DRIVER when
+ creating a QP
+Date: Fri, 29 Dec 2017 17:23:27 +0200
+Message-ID: <CAJ3xEMhPZfyTZ1Hr8Mwq9xeqV6UKkkVfXNDrx625qoWzAHr6qg@mail.gmail.com>
+References: <20171227171540.1646-1-leon@kernel.org> <20171227171540.1646-5-leon@kernel.org>
+ <CAJ3xEMiExjjVUOYQsdMiHLNOjB+MOkz4c1TT9AT_inkfGfMuKA@mail.gmail.com>
+ <20171227220227.GL31310@mellanox.com> <30a35dd5-3046-d7bb-e61f-7d18501fd06c@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1514546779-206832-1-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <30a35dd5-3046-d7bb-e61f-7d18501fd06c-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jgg-uk2M96/98Pc@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds more detailed comments when we call the
-memory barrier function, such as rmb, wmb and mb. Three
-mb() callers are deleted since they are unnecessary.
+On Thu, Dec 28, 2017 at 12:02 PM, Yishai Hadas
+<yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> On 12/28/2017 12:02 AM, Jason Gunthorpe wrote:
 
-Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-v3 -> v4:
-1. Delete two mb() call since they are unnecessary.
-v3:
-1. Subsitute rmb() with dma_rmb() according to Jason's comment,
-   since using dma_rmb() is enough.
----
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 19 ++++++++++++-------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 26 ++++++++++----------------
- 2 files changed, 22 insertions(+), 23 deletions(-)
+>> +       if (ucmd->flags & MLX5_QP_FLAG_TYPE_DCI)
+>> +               init_attr->qp_type = MLX5_IB_QPT_DCI;
+>> +       else
+>> +               init_attr->qp_type = MLX5_IB_QPT_DCT;
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 6100ace..73f187e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -3963,8 +3963,6 @@ static void set_eq_cons_index_v1(struct hns_roce_eq *eq, int req_not)
- {
- 	roce_raw_write((eq->cons_index & HNS_ROCE_V1_CONS_IDX_M) |
- 		      (req_not << eq->log_entries), eq->doorbell);
--	/* Memory barrier */
--	mb();
- }
- 
- static void hns_roce_v1_wq_catas_err_handle(struct hns_roce_dev *hr_dev,
-@@ -4156,13 +4154,16 @@ static int hns_roce_v1_aeq_int(struct hns_roce_dev *hr_dev,
- 	int event_type;
- 
- 	while ((aeqe = next_aeqe_sw_v1(eq))) {
-+
-+		/* Make sure we read the AEQ entry after we have checked the
-+		 * ownership bit
-+		 */
-+		dma_rmb();
-+
- 		dev_dbg(dev, "aeqe = %p, aeqe->asyn.event_type = 0x%lx\n", aeqe,
- 			roce_get_field(aeqe->asyn,
- 				       HNS_ROCE_AEQE_U32_4_EVENT_TYPE_M,
- 				       HNS_ROCE_AEQE_U32_4_EVENT_TYPE_S));
--		/* Memory barrier */
--		rmb();
--
- 		event_type = roce_get_field(aeqe->asyn,
- 					    HNS_ROCE_AEQE_U32_4_EVENT_TYPE_M,
- 					    HNS_ROCE_AEQE_U32_4_EVENT_TYPE_S);
-@@ -4260,8 +4261,12 @@ static int hns_roce_v1_ceq_int(struct hns_roce_dev *hr_dev,
- 	u32 cqn;
- 
- 	while ((ceqe = next_ceqe_sw_v1(eq))) {
--		/* Memory barrier */
--		rmb();
-+
-+		/* Make sure we read CEQ entry after we have checked the
-+		 * ownership bit
-+		 */
-+		dma_rmb();
-+
- 		cqn = roce_get_field(ceqe->comp,
- 				     HNS_ROCE_CEQE_CEQE_COMP_CQN_M,
- 				     HNS_ROCE_CEQE_CEQE_COMP_CQN_S);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 04281d0..68dc718 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -3199,10 +3199,6 @@ static void set_eq_cons_index_v2(struct hns_roce_eq *eq)
- 		       (eq->cons_index & HNS_ROCE_V2_CONS_IDX_M));
- 
- 	hns_roce_write64_k(doorbell, eq->doorbell);
--
--	/* Memory barrier */
--	mb();
--
- }
- 
- static void hns_roce_v2_wq_catas_err_handle(struct hns_roce_dev *hr_dev,
-@@ -3384,8 +3380,11 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 	int event_type;
- 
- 	while ((aeqe = next_aeqe_sw_v2(eq))) {
--		/* Memory barrier */
--		rmb();
-+
-+		/* Make sure we read AEQ entry after we have checked the
-+		 * ownership bit
-+		 */
-+		dma_rmb();
- 
- 		event_type = roce_get_field(aeqe->asyn,
- 					    HNS_ROCE_V2_AEQE_EVENT_TYPE_M,
-@@ -3500,8 +3499,11 @@ static int hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
- 
- 	while ((ceqe = next_ceqe_sw_v2(eq))) {
- 
--		/* Memory barrier */
--		rmb();
-+		/* Make sure we read CEQ entry after we have checked the
-+		 * ownership bit
-+		 */
-+		dma_rmb();
-+
- 		cqn = roce_get_field(ceqe->comp,
- 				     HNS_ROCE_V2_CEQE_COMP_CQN_M,
- 				     HNS_ROCE_V2_CEQE_COMP_CQN_S);
-@@ -3556,9 +3558,6 @@ static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
- 		roce_set_bit(int_st, HNS_ROCE_V2_VF_INT_ST_AEQ_OVERFLOW_S, 1);
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_ST_REG, int_st);
- 
--		/* Memory barrier */
--		mb();
--
- 		roce_set_bit(int_en, HNS_ROCE_V2_VF_ABN_INT_EN_S, 1);
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_EN_REG, int_en);
- 
-@@ -3569,9 +3568,6 @@ static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
- 		roce_set_bit(int_st, HNS_ROCE_V2_VF_INT_ST_BUS_ERR_S, 1);
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_ST_REG, int_st);
- 
--		/* Memory barrier */
--		mb();
--
- 		roce_set_bit(int_en, HNS_ROCE_V2_VF_ABN_INT_EN_S, 1);
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_EN_REG, int_en);
- 
-@@ -3582,8 +3578,6 @@ static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
- 		roce_set_bit(int_st, HNS_ROCE_V2_VF_INT_ST_OTHER_ERR_S, 1);
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_ST_REG, int_st);
- 
--		/* Memory barrier */
--		mb();
- 		roce_set_bit(int_en, HNS_ROCE_V2_VF_ABN_INT_EN_S, 1);
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_EN_REG, int_en);
- 
--- 
-1.9.1
+>> Which is a bad ABI design, check flags explicitly never use else.
 
+> We can drop this 'else' as few lines above there was a check that both can't
+> be set together. However, not sure that this change worth V2.
+
+Yishai,
+
+if something should be fixed lets just do that, why not?
+
+validate_driver_qp() deals @ 95% of it's contents with DC but has no
+DC in it's name, also it does assignment which goes beyond validation.
+
+There are bunch of things to consider fixing here. The patch spaghettizes
+the driver code w.r.t where the qp type is stored, in the ib qp or the mlx5 qp
+struct in a new field. Why not do a refactoring patch that uses always the
+type from the mlx5 qp or do a conversion at the code that parses the UAPI
+and step over the user space provided  DRIVER type with the RES3 (DCI)
+or RES4 (DCT)
+that you defined, or any other idea which will keep us with less
+branching across
+the place on where the qp type is stored.
+
+Also you added a "is qp ok" self function which AFAIK uses a different practice
+from the IB core copy, did you consider to refactor the core code and allow
+a re-use from the driver? did you consider to use a similar practice
+for your "is ok" function?
+
+You served as the reviewer here, I will be happy to get your op on
+these matters.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
