@@ -1,41 +1,41 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: hns compiler warnings
-Date: Fri, 29 Dec 2017 12:58:32 -0700
-Message-ID: <20171229195832.GG6513@ziepe.ca>
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 00/15] Dual Port mlx5 IB Device for RoCE
+Date: Fri, 29 Dec 2017 14:52:18 -0600
+Message-ID: <9d102fb2-122c-d7e9-2521-cf61b708d8c0@mellanox.com>
+References: <20171224125741.25464-1-leon@kernel.org>
+ <CAJ3xEMhZgEee+VLpV4bV150siOdXwpcp64AGqeqr5Y2o--WRdw@mail.gmail.com>
+ <382ba516-bf7b-0a0b-7a9f-604cbf805c80@mellanox.com>
+ <CAJ3xEMi3CvATj-vpfy8E89=ZoPL1mmoiu8HWea_NEwfV2++ZpQ@mail.gmail.com>
+ <a3cf271c-f66c-074a-88bd-b48b39959e6b@mellanox.com>
+ <20171229180313.GD6513@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20171229180313.GD6513-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yisen Zhuang <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When !CONFIG_REGMAP hns throws compiler warnings since
-dsaf_read_syscon ignores the return result from regmap_read, which
-allows val to be uninited. This looks like a bug to me.
+On 12/29/2017 12:03 PM, Jason Gunthorpe wrote:
+> On Wed, Dec 27, 2017 at 05:20:26PM -0600, Daniel Jurgens wrote:
+>> On 12/27/2017 3:22 PM, Or Gerlitz wrote:
+>>> On Wed, Dec 27, 2017 at 5:22 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>>>
+>>>> If the PCI device were a slave there would be no IB device for it in the VM.
+>>> This creates a regression for users that update their kernel and now
+>>> their VMs stop working
+>> The feature is not enabled by default.
+> You never described how it is enabled in the commit messages either..
 
-Could someone please send a patch to fix this? It probably isn't a
-good idea to wrapper regmap_read with something that throws away the
-return code.
+It's enabled vi FW ini file/PSID or mlxconfig.  Do we ever describe that?
 
-Thanks
-Jason
+>
+> Jason
 
-drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c: In function ‘cpld_set_led_id’:
-drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c:165:26: warning: ‘val’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-   mac_cb->cpld_led_value =
-   ~~~~~~~~~~~~~~~~~~~~~~~^
-    dsaf_read_syscon(mac_cb->cpld_ctrl,
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-       mac_cb->cpld_ctrl_reg);
-       ~~~~~~~~~~~~~~~~~~~~~~
-drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c: In function ‘hns_mac_get_sfp_prsnt’:
-drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c:511:15: warning: ‘val’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-  *sfp_prsnt = !dsaf_read_syscon(mac_cb->cpld_ctrl, mac_cb->cpld_ctrl_reg
-               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      + MAC_SFP_PORT_OFFSET);
-      ~~~~~~~~~~~~~~~~~~~~~~
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
