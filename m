@@ -1,156 +1,97 @@
 From: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 for-next 1/2] RDMA/hns: Add detailed comments for mb() call
-Date: Fri, 29 Dec 2017 19:17:52 +0800
-Message-ID: <1514546273-206086-2-git-send-email-liuyixian@huawei.com>
-References: <1514546273-206086-1-git-send-email-liuyixian@huawei.com>
+Subject: [PATCH v4 for-next 2/2] RDMA/hns: Fix alignment problem of the doorbell
+Date: Fri, 29 Dec 2017 19:26:19 +0800
+Message-ID: <1514546779-206832-3-git-send-email-liuyixian@huawei.com>
+References: <1514546779-206832-1-git-send-email-liuyixian@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1514546273-206086-1-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1514546779-206832-1-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-uk2M96/98Pc@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds more detailed comments when we call the
-memory barrier function, such as rmb, wmb and mb. Three
-mb() callers are deleted since they are unnecessary.
+The array defined for doorbell is not guaranteed to be 64 bit
+aligned while we write it to the hardware with 64 bit
+alignment required.
+
+This patch fixes this problem by defining a union for doorbell
+to make sure it 64 bit alignment.
 
 Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-v3 -> v4:
-1. Delete two mb() call since they are unnecessary.
-v3:
-1. Subsitute rmb() with dma_rmb() according to Jason's comment,
-   since using dma_rmb() is enough.
+v2 -> v3:
+1. delete the unnecessary assignment for doorbell64.
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 19 ++++++++++++-------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 26 ++++++++++----------------
- 2 files changed, 22 insertions(+), 23 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h |  5 +++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 16 ++++++++--------
+ 2 files changed, 13 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 6100ace..73f187e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -3963,8 +3963,6 @@ static void set_eq_cons_index_v1(struct hns_roce_eq *eq, int req_not)
- {
- 	roce_raw_write((eq->cons_index & HNS_ROCE_V1_CONS_IDX_M) |
- 		      (req_not << eq->log_entries), eq->doorbell);
--	/* Memory barrier */
--	mb();
- }
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index dde5178..4c08b00 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -569,6 +569,11 @@ struct hns_roce_eq_table {
+ 	void __iomem		**eqc_base; /* only for hw v1 */
+ };
  
- static void hns_roce_v1_wq_catas_err_handle(struct hns_roce_dev *hr_dev,
-@@ -4156,13 +4154,16 @@ static int hns_roce_v1_aeq_int(struct hns_roce_dev *hr_dev,
- 	int event_type;
- 
- 	while ((aeqe = next_aeqe_sw_v1(eq))) {
++union hns_roce_eq_db {
++	__le64 doorbell64;
++	__le32 doorbell[2];
++};
 +
-+		/* Make sure we read the AEQ entry after we have checked the
-+		 * ownership bit
-+		 */
-+		dma_rmb();
-+
- 		dev_dbg(dev, "aeqe = %p, aeqe->asyn.event_type = 0x%lx\n", aeqe,
- 			roce_get_field(aeqe->asyn,
- 				       HNS_ROCE_AEQE_U32_4_EVENT_TYPE_M,
- 				       HNS_ROCE_AEQE_U32_4_EVENT_TYPE_S));
--		/* Memory barrier */
--		rmb();
--
- 		event_type = roce_get_field(aeqe->asyn,
- 					    HNS_ROCE_AEQE_U32_4_EVENT_TYPE_M,
- 					    HNS_ROCE_AEQE_U32_4_EVENT_TYPE_S);
-@@ -4260,8 +4261,12 @@ static int hns_roce_v1_ceq_int(struct hns_roce_dev *hr_dev,
- 	u32 cqn;
- 
- 	while ((ceqe = next_ceqe_sw_v1(eq))) {
--		/* Memory barrier */
--		rmb();
-+
-+		/* Make sure we read CEQ entry after we have checked the
-+		 * ownership bit
-+		 */
-+		dma_rmb();
-+
- 		cqn = roce_get_field(ceqe->comp,
- 				     HNS_ROCE_CEQE_CEQE_COMP_CQN_M,
- 				     HNS_ROCE_CEQE_CEQE_COMP_CQN_S);
+ struct hns_roce_caps {
+ 	u8		num_ports;
+ 	int		gid_table_len[HNS_ROCE_MAX_PORTS];
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 04281d0..68dc718 100644
+index 68dc718..9c5b3ed 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -3199,10 +3199,6 @@ static void set_eq_cons_index_v2(struct hns_roce_eq *eq)
+@@ -3172,33 +3172,33 @@ static int hns_roce_v2_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
+ 
+ static void set_eq_cons_index_v2(struct hns_roce_eq *eq)
+ {
+-	u32 doorbell[2];
++	union hns_roce_eq_db db;
+ 
+-	doorbell[0] = 0;
+-	doorbell[1] = 0;
++	db.doorbell[0] = 0;
++	db.doorbell[1] = 0;
+ 
+ 	if (eq->type_flag == HNS_ROCE_AEQ) {
+-		roce_set_field(doorbell[0], HNS_ROCE_V2_EQ_DB_CMD_M,
++		roce_set_field(db.doorbell[0], HNS_ROCE_V2_EQ_DB_CMD_M,
+ 			       HNS_ROCE_V2_EQ_DB_CMD_S,
+ 			       eq->arm_st == HNS_ROCE_V2_EQ_ALWAYS_ARMED ?
+ 			       HNS_ROCE_EQ_DB_CMD_AEQ :
+ 			       HNS_ROCE_EQ_DB_CMD_AEQ_ARMED);
+ 	} else {
+-		roce_set_field(doorbell[0], HNS_ROCE_V2_EQ_DB_TAG_M,
++		roce_set_field(db.doorbell[0], HNS_ROCE_V2_EQ_DB_TAG_M,
+ 			       HNS_ROCE_V2_EQ_DB_TAG_S, eq->eqn);
+ 
+-		roce_set_field(doorbell[0], HNS_ROCE_V2_EQ_DB_CMD_M,
++		roce_set_field(db.doorbell[0], HNS_ROCE_V2_EQ_DB_CMD_M,
+ 			       HNS_ROCE_V2_EQ_DB_CMD_S,
+ 			       eq->arm_st == HNS_ROCE_V2_EQ_ALWAYS_ARMED ?
+ 			       HNS_ROCE_EQ_DB_CMD_CEQ :
+ 			       HNS_ROCE_EQ_DB_CMD_CEQ_ARMED);
+ 	}
+ 
+-	roce_set_field(doorbell[1], HNS_ROCE_V2_EQ_DB_PARA_M,
++	roce_set_field(db.doorbell[1], HNS_ROCE_V2_EQ_DB_PARA_M,
+ 		       HNS_ROCE_V2_EQ_DB_PARA_S,
  		       (eq->cons_index & HNS_ROCE_V2_CONS_IDX_M));
  
- 	hns_roce_write64_k(doorbell, eq->doorbell);
--
--	/* Memory barrier */
--	mb();
--
+-	hns_roce_write64_k(doorbell, eq->doorbell);
++	hns_roce_write64_k(db.doorbell, eq->doorbell);
  }
  
  static void hns_roce_v2_wq_catas_err_handle(struct hns_roce_dev *hr_dev,
-@@ -3384,8 +3380,11 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 	int event_type;
- 
- 	while ((aeqe = next_aeqe_sw_v2(eq))) {
--		/* Memory barrier */
--		rmb();
-+
-+		/* Make sure we read AEQ entry after we have checked the
-+		 * ownership bit
-+		 */
-+		dma_rmb();
- 
- 		event_type = roce_get_field(aeqe->asyn,
- 					    HNS_ROCE_V2_AEQE_EVENT_TYPE_M,
-@@ -3500,8 +3499,11 @@ static int hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
- 
- 	while ((ceqe = next_ceqe_sw_v2(eq))) {
- 
--		/* Memory barrier */
--		rmb();
-+		/* Make sure we read CEQ entry after we have checked the
-+		 * ownership bit
-+		 */
-+		dma_rmb();
-+
- 		cqn = roce_get_field(ceqe->comp,
- 				     HNS_ROCE_V2_CEQE_COMP_CQN_M,
- 				     HNS_ROCE_V2_CEQE_COMP_CQN_S);
-@@ -3556,9 +3558,6 @@ static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
- 		roce_set_bit(int_st, HNS_ROCE_V2_VF_INT_ST_AEQ_OVERFLOW_S, 1);
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_ST_REG, int_st);
- 
--		/* Memory barrier */
--		mb();
--
- 		roce_set_bit(int_en, HNS_ROCE_V2_VF_ABN_INT_EN_S, 1);
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_EN_REG, int_en);
- 
-@@ -3569,9 +3568,6 @@ static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
- 		roce_set_bit(int_st, HNS_ROCE_V2_VF_INT_ST_BUS_ERR_S, 1);
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_ST_REG, int_st);
- 
--		/* Memory barrier */
--		mb();
--
- 		roce_set_bit(int_en, HNS_ROCE_V2_VF_ABN_INT_EN_S, 1);
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_EN_REG, int_en);
- 
-@@ -3582,8 +3578,6 @@ static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
- 		roce_set_bit(int_st, HNS_ROCE_V2_VF_INT_ST_OTHER_ERR_S, 1);
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_ST_REG, int_st);
- 
--		/* Memory barrier */
--		mb();
- 		roce_set_bit(int_en, HNS_ROCE_V2_VF_ABN_INT_EN_S, 1);
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_EN_REG, int_en);
- 
 -- 
 1.9.1
 
