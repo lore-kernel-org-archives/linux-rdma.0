@@ -1,45 +1,41 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH V3 for-next 1/6] RDMA/hns: Add rq inline data support for
- hip08 RoCE
-Date: Fri, 29 Dec 2017 11:18:43 -0700
-Message-ID: <20171229181843.GF6513@ziepe.ca>
-References: <1514540341-115107-1-git-send-email-oulijun@huawei.com>
- <1514540341-115107-2-git-send-email-oulijun@huawei.com>
+Subject: hns compiler warnings
+Date: Fri, 29 Dec 2017 12:58:32 -0700
+Message-ID: <20171229195832.GG6513@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1514540341-115107-2-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yisen Zhuang <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 29, 2017 at 05:38:56PM +0800, Lijun Ou wrote:
-> +		hr_qp->rq_inl_buf.wqe_list = kcalloc(1, hr_qp->rq.wqe_cnt *
-> +					       sizeof(struct hns_roce_rinl_wqe),
-> +					       GFP_KERNEL);
+When !CONFIG_REGMAP hns throws compiler warnings since
+dsaf_read_syscon ignores the return result from regmap_read, which
+allows val to be uninited. This looks like a bug to me.
 
-This is complete mis-use of the 2d allocator functions. It needs to
-be:
+Could someone please send a patch to fix this? It probably isn't a
+good idea to wrapper regmap_read with something that throws away the
+return code.
 
-	hr_qp->rq_inl_buf.wqe_list = kcalloc(hr_qp->rq.wqe_cnt,
-					       sizeof(struct hns_roce_rinl_wqe),
-					       GFP_KERNEL);
-
-It is important that the first argument be the 'untrsuted' value so
-the multiply overflow checking works properly.
-
-> +		/* Firstly, allocate a list of sge space buffer */
-> +		hr_qp->rq_inl_buf.wqe_list[0].sg_list =
-> +					kcalloc(1, hr_qp->rq_inl_buf.wqe_cnt *
-> +					       init_attr->cap.max_recv_sge *
-> +					       sizeof(struct hns_roce_rinl_sge),
-> +					       GFP_KERNEL);
-
-ditto
-
+Thanks
 Jason
+
+drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c: In function ‘cpld_set_led_id’:
+drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c:165:26: warning: ‘val’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   mac_cb->cpld_led_value =
+   ~~~~~~~~~~~~~~~~~~~~~~~^
+    dsaf_read_syscon(mac_cb->cpld_ctrl,
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       mac_cb->cpld_ctrl_reg);
+       ~~~~~~~~~~~~~~~~~~~~~~
+drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c: In function ‘hns_mac_get_sfp_prsnt’:
+drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c:511:15: warning: ‘val’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+  *sfp_prsnt = !dsaf_read_syscon(mac_cb->cpld_ctrl, mac_cb->cpld_ctrl_reg
+               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      + MAC_SFP_PORT_OFFSET);
+      ~~~~~~~~~~~~~~~~~~~~~~
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
