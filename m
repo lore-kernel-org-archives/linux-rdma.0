@@ -1,39 +1,119 @@
-From: Denis Drozdov <denisd@mellanox.com>
-Subject: [PATCH net 0/2] IB/ipoib: ip link support
-Date: Sun, 31 Dec 2017 13:16:21 +0200
-Message-ID: <1514718983-466-1-git-send-email-denisd@mellanox.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: jgg@ziepe.ca, dledford@redhat.com, leonro@mellanox.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Denis Drozdov <denisd@mellanox.com>
+From: Denis Drozdov <denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH net 1/2] rtnl: device allocation/free via rtnl_link_ops
+Date: Sun, 31 Dec 2017 13:16:22 +0200
+Message-ID: <1514718983-466-2-git-send-email-denisd@mellanox.com>
+References: <1514718983-466-1-git-send-email-denisd@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1514718983-466-1-git-send-email-denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Cc: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Denis Drozdov <denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-IP link was broken due to the changes in IPoIB for the rdma_netdev 
-support after commit cd565b4b51e5
-("IB/IPoIB: Support acceleration options callbacks").
+Introduced new rtnl_link_ops callbacks: alloc_link()
+to allocate multi-queue netdev and free_link() to release
+the netdevice. free_link() appoints to free_netdev by
+default and could be reassigned.
 
-This patchset restores IPoIB pkey creation and removal using rtnetlink.
-The first patch introduces changes in the rtnetlink code in order to allow
-IPOIB allocate and free the netdevice.
+These calls should be used by IB ULP code to allocate and
+release both enhanced and non-enhanced IB drivers and aren't
+necessary by the regular drivers.
 
-The second patch establishes appropriate rtnetlink callbacks for IPoIB
-device and restores IPoIB netlink support
-
-Thank you
+Fixes: cd565b4b51e5 ("IB/IPoIB: Support acceleration options callbacks")
+Reviewed-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Denis Drozdov <denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
+ include/net/rtnetlink.h |  4 ++++
+ net/core/dev.c          |  2 ++
+ net/core/rtnetlink.c    | 23 +++++++++++++++++------
+ 3 files changed, 23 insertions(+), 6 deletions(-)
 
-Denis Drozdov (2):
-  rtnl: device allocation/free via rtnl_link_ops
-  IB/ipoib: Fix netlink support in IPoIB
-
-  drivers/infiniband/ulp/ipoib/ipoib.h         |  2 ++
-  drivers/infiniband/ulp/ipoib/ipoib_main.c    | 23 +++++++++--------
-  drivers/infiniband/ulp/ipoib/ipoib_netlink.c | 38 +++++++++++++++++++++++++---
-  drivers/infiniband/ulp/ipoib/ipoib_vlan.c    | 20 ++++-----------
-  include/net/rtnetlink.h                      |  4 +++
-  net/core/dev.c                               |  2 ++
-  net/core/rtnetlink.c                         | 23 ++++++++++++-----
-  7 files changed, 77 insertions(+), 35 deletions(-)
-
+diff --git a/include/net/rtnetlink.h b/include/net/rtnetlink.h
+index ead01874..f02975e 100644
+--- a/include/net/rtnetlink.h
++++ b/include/net/rtnetlink.h
+@@ -70,6 +70,10 @@ struct rtnl_link_ops {
+ 					    struct nlattr *data[],
+ 					    struct netlink_ext_ack *extack);
+ 
++	struct net_device      *(*alloc_link)(struct net *src_net,
++					      const char *dev_name,
++					      struct nlattr *tb[]);
++	void			(*free_link)(struct net_device *dev);
+ 	int			(*newlink)(struct net *src_net,
+ 					   struct net_device *dev,
+ 					   struct nlattr *tb[],
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 07ed21d..6a5a31f 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -7953,6 +7953,8 @@ void netdev_run_todo(void)
+ 		WARN_ON(rcu_access_pointer(dev->ip6_ptr));
+ 		WARN_ON(dev->dn_ptr);
+ 
++		if (dev->rtnl_link_ops && dev->rtnl_link_ops->free_link)
++			dev->rtnl_link_ops->free_link(dev);
+ 		if (dev->priv_destructor)
+ 			dev->priv_destructor(dev);
+ 		if (dev->needs_free_netdev)
+diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
+index dabba2a..0d57394 100644
+--- a/net/core/rtnetlink.c
++++ b/net/core/rtnetlink.c
+@@ -304,6 +304,9 @@ int __rtnl_link_register(struct rtnl_link_ops *ops)
+ 	if (ops->setup && !ops->dellink)
+ 		ops->dellink = unregister_netdevice_queue;
+ 
++	if (!ops->free_link)
++		ops->free_link = free_netdev;
++
+ 	list_add_tail(&ops->list, &link_ops);
+ 	return 0;
+ }
+@@ -2556,10 +2559,18 @@ struct net_device *rtnl_create_link(struct net *net,
+ 	else if (ops->get_num_rx_queues)
+ 		num_rx_queues = ops->get_num_rx_queues();
+ 
+-	dev = alloc_netdev_mqs(ops->priv_size, ifname, name_assign_type,
+-			       ops->setup, num_tx_queues, num_rx_queues);
+-	if (!dev)
+-		return ERR_PTR(-ENOMEM);
++	if (ops->alloc_link) {
++		dev = ops->alloc_link(net, ifname, tb);
++
++		if (IS_ERR(dev))
++			return dev;
++	} else {
++		dev = alloc_netdev_mqs(ops->priv_size, ifname,
++				       name_assign_type, ops->setup,
++				       num_tx_queues, num_rx_queues);
++		if (!dev)
++			return ERR_PTR(-ENOMEM);
++	}
+ 
+ 	dev_net_set(dev, net);
+ 	dev->rtnl_link_ops = ops;
+@@ -2821,13 +2832,13 @@ static int rtnl_newlink(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			if (err < 0) {
+ 				/* If device is not registered at all, free it now */
+ 				if (dev->reg_state == NETREG_UNINITIALIZED)
+-					free_netdev(dev);
++					ops->free_link(dev);
+ 				goto out;
+ 			}
+ 		} else {
+ 			err = register_netdevice(dev);
+ 			if (err < 0) {
+-				free_netdev(dev);
++				ops->free_link(dev);
+ 				goto out;
+ 			}
+ 		}
 -- 
 1.8.3.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
