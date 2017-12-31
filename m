@@ -1,147 +1,77 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 2/2] IB/ipoib: Fix race condition in neigh creation
-Date: Sun, 31 Dec 2017 15:33:15 +0200
-Message-ID: <20171231133315.28801-3-leon@kernel.org>
-References: <20171231133315.28801-1-leon@kernel.org>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next v1 4/6] IB/mlx5: Handle type IB_QPT_DRIVER when
+ creating a QP
+Date: Sun, 31 Dec 2017 12:50:15 -0700
+Message-ID: <20171231195015.GA10159@mellanox.com>
+References: <20171227171540.1646-1-leon@kernel.org>
+ <20171227171540.1646-5-leon@kernel.org>
+ <CAJ3xEMiExjjVUOYQsdMiHLNOjB+MOkz4c1TT9AT_inkfGfMuKA@mail.gmail.com>
+ <20171227220227.GL31310@mellanox.com>
+ <30a35dd5-3046-d7bb-e61f-7d18501fd06c@dev.mellanox.co.il>
+ <CAJ3xEMhPZfyTZ1Hr8Mwq9xeqV6UKkkVfXNDrx625qoWzAHr6qg@mail.gmail.com>
+ <1e827f07-f8a1-ffa3-7c8b-e90b1107e843@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171231133315.28801-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1e827f07-f8a1-ffa3-7c8b-e90b1107e843-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Nitzan Carmi <nitzanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Sun, Dec 31, 2017 at 01:45:41PM +0200, Yishai Hadas wrote:
+> On 12/29/2017 5:23 PM, Or Gerlitz wrote:
+> >validate_driver_qp() deals @ 95% of it's contents with DC but has no
+> >DC in it's name, also it does assignment which goes beyond validation.
+> >
+> 
+> OK, will rename it to be prepare_driver_qp().
+> 
+> The function name follows the input QP type (i.e. IB_QPT_DRIVER) and what it
+> does on. Specifically, its purpose is to prepare the input data (ucmd,
+> init_attr) to be used later on. Similar name and logic is used as part of RQ
+> creation as part of this file. (i.e. prepare_user_rq()).
 
-When using enhanced mode for IPoIB, two threads may execute xmit in
-parallel to two different TX queues while the target is the same.
-In this case, both of them will add the same neighbor to the path's
-neigh link list and we might see the following message:
+If we are going to bike shed this to death, here is my
+suggestion. Name the function after what it actually does, and tidy
+the flags checking to be less dangerous if more QP types are added.
 
-  list_add double add: new=ffff88024767a348, prev=ffff88024767a348...
-  WARNING: lib/list_debug.c:31__list_add_valid+0x4e/0x70
-  ipoib_start_xmit+0x477/0x680 [ib_ipoib]
-  dev_hard_start_xmit+0xb9/0x3e0
-  sch_direct_xmit+0xf9/0x250
-  __qdisc_run+0x176/0x5d0
-  __dev_queue_xmit+0x1f5/0xb10
-  __dev_queue_xmit+0x55/0xb10
+static int set_mlx_qp_type(struct mlx5_ib_dev *dev,
+			   struct ib_qp_init_attr *init_attr,
+			   struct mlx5_ib_create_qp *ucmd,
+			   struct ib_udata *udata)
+{
+	enum { MLX_QP_FLAGS = MLX5_QP_FLAG_TYPE_DCT | MLX5_QP_FLAG_TYPE_DCI };
+	int err;
 
-Analysis:
-Two SKB are scheduled to be transmitted from two cores.
-In ipoib_start_xmit, both gets NULL when calling ipoib_neigh_get.
-Two calls to neigh_add_path are made. One thread takes the spin-lock
-and calls ipoib_neigh_alloc which creates the neigh structure,
-then (after the __path_find) the neigh is added to the path's neigh
-link list. When the second thread enters the critical section it also
-calls ipoib_neigh_alloc but in this case it gets the already allocated
-ipoib_neigh structure, which is already linked to the path's neigh
-link list and adds it again to the list. Which beside of triggering
-the list, it creates a loop in the linked list. This loop leads to
-endless loop inside path_rec_completion.
+	if (!udata)
+		return -EINVAL;
 
-Solution:
-Check list_empty(&neigh->list) before adding to the list.
-Add a similar fix in "ipoib_multicast.c::ipoib_mcast_send"
+	if (udata->inlen < sizeof(*ucmd)) {
+		mlx5_ib_dbg(dev, "create_qp user command is smaller than expected\n");
+		return -EINVAL;
+	}
+	err = ib_copy_from_udata(ucmd, udata, sizeof(*ucmd));
+	if (err)
+		return err;
 
-Fixes: b63b70d87741 ('IPoIB: Use a private hash table for path lookup in xmit path')
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_main.c      | 25 ++++++++++++++++++-------
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  5 ++++-
- 2 files changed, 22 insertions(+), 8 deletions(-)
+	if ((ucmd->flags & MLX_QP_FLAGS) == MLX5_QP_FLAG_TYPE_DCI)
+		init_attr->qp_type = MLX5_IB_QPT_DCI;
+	else if ((ucmd->flags & MLX_QP_FLAGS) == MLX5_QP_FLAG_TYPE_DCT)
+		init_attr->qp_type = MLX5_IB_QPT_DCT;
+ 	else {
+		mlx5_ib_dbg(dev, "Invalid QP flags\n");
+		return -EINVAL;
+	}
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 12b7f911f0e5..8880351df179 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -902,8 +902,8 @@ static int path_rec_start(struct net_device *dev,
- 	return 0;
- }
+	if (!MLX5_CAP_GEN(dev->mdev, dct)) {
+		mlx5_ib_dbg(dev, "DC transport is not supported\n");
+		return -EOPNOTSUPP;
+	}
 
--static void neigh_add_path(struct sk_buff *skb, u8 *daddr,
--			   struct net_device *dev)
-+static struct ipoib_neigh *neigh_add_path(struct sk_buff *skb, u8 *daddr,
-+					  struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = ipoib_priv(dev);
- 	struct rdma_netdev *rn = netdev_priv(dev);
-@@ -917,7 +917,15 @@ static void neigh_add_path(struct sk_buff *skb, u8 *daddr,
- 		spin_unlock_irqrestore(&priv->lock, flags);
- 		++dev->stats.tx_dropped;
- 		dev_kfree_skb_any(skb);
--		return;
-+		return NULL;
-+	}
-+
-+	/* To avoid race condition, make sure that the
-+	 * neigh will be added only once.
-+	 */
-+	if (unlikely(!list_empty(&neigh->list))) {
-+		spin_unlock_irqrestore(&priv->lock, flags);
-+		return neigh;
- 	}
-
- 	path = __path_find(dev, daddr + 4);
-@@ -956,7 +964,7 @@ static void neigh_add_path(struct sk_buff *skb, u8 *daddr,
- 			path->ah->last_send = rn->send(dev, skb, path->ah->ah,
- 						       IPOIB_QPN(daddr));
- 			ipoib_neigh_put(neigh);
--			return;
-+			return NULL;
- 		}
- 	} else {
- 		neigh->ah  = NULL;
-@@ -973,7 +981,7 @@ static void neigh_add_path(struct sk_buff *skb, u8 *daddr,
-
- 	spin_unlock_irqrestore(&priv->lock, flags);
- 	ipoib_neigh_put(neigh);
--	return;
-+	return NULL;
-
- err_path:
- 	ipoib_neigh_free(neigh);
-@@ -983,6 +991,8 @@ static void neigh_add_path(struct sk_buff *skb, u8 *daddr,
-
- 	spin_unlock_irqrestore(&priv->lock, flags);
- 	ipoib_neigh_put(neigh);
-+
-+	return NULL;
- }
-
- static void unicast_arp_send(struct sk_buff *skb, struct net_device *dev,
-@@ -1091,8 +1101,9 @@ static int ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
- 	case htons(ETH_P_TIPC):
- 		neigh = ipoib_neigh_get(dev, phdr->hwaddr);
- 		if (unlikely(!neigh)) {
--			neigh_add_path(skb, phdr->hwaddr, dev);
--			return NETDEV_TX_OK;
-+			neigh = neigh_add_path(skb, phdr->hwaddr, dev);
-+			if (likely(!neigh))
-+				return NETDEV_TX_OK;
- 		}
- 		break;
- 	case htons(ETH_P_ARP):
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 93e149efc1f5..9b3f47ae2016 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -816,7 +816,10 @@ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb)
- 		spin_lock_irqsave(&priv->lock, flags);
- 		if (!neigh) {
- 			neigh = ipoib_neigh_alloc(daddr, dev);
--			if (neigh) {
-+			/* Make sure that the neigh will be added only
-+			 * once to mcast list.
-+			 */
-+			if (neigh && list_empty(&neigh->list)) {
- 				kref_get(&mcast->ah->ref);
- 				neigh->ah	= mcast->ah;
- 				list_add_tail(&neigh->list, &mcast->neigh_list);
---
-2.15.1
-
+	return 0;
+}
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
