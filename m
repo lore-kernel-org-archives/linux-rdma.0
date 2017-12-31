@@ -1,119 +1,224 @@
-From: Denis Drozdov <denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH net 1/2] rtnl: device allocation/free via rtnl_link_ops
-Date: Sun, 31 Dec 2017 13:16:22 +0200
-Message-ID: <1514718983-466-2-git-send-email-denisd@mellanox.com>
+From: Denis Drozdov <denisd@mellanox.com>
+Subject: [PATCH net 2/2] IB/ipoib: Fix netlink support in IPoIB
+Date: Sun, 31 Dec 2017 13:16:23 +0200
+Message-ID: <1514718983-466-3-git-send-email-denisd@mellanox.com>
 References: <1514718983-466-1-git-send-email-denisd@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1514718983-466-1-git-send-email-denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
-Cc: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Denis Drozdov <denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1514718983-466-1-git-send-email-denisd@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: jgg@ziepe.ca, dledford@redhat.com, leonro@mellanox.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Denis Drozdov <denisd@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Introduced new rtnl_link_ops callbacks: alloc_link()
-to allocate multi-queue netdev and free_link() to release
-the netdevice. free_link() appoints to free_netdev by
-default and could be reassigned.
-
-These calls should be used by IB ULP code to allocate and
-release both enhanced and non-enhanced IB drivers and aren't
-necessary by the regular drivers.
+IPoIB netlink support was broken by commit cd565b4b51e5
+("IB/IPoIB: Support acceleration options callbacks"),
+that added flow which allocates netdev rdma structures
+after netlink object is already created. Such situation leads
+to crash in __ipoib_device_add, once trying to reuse netlink
+device.
+This commit restores the netlink support.
 
 Fixes: cd565b4b51e5 ("IB/IPoIB: Support acceleration options callbacks")
-Reviewed-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Denis Drozdov <denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Erez Shitrit <erezsh@mellanox.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Denis Drozdov <denisd@mellanox.com>
 ---
- include/net/rtnetlink.h |  4 ++++
- net/core/dev.c          |  2 ++
- net/core/rtnetlink.c    | 23 +++++++++++++++++------
- 3 files changed, 23 insertions(+), 6 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h         |  2 ++
+ drivers/infiniband/ulp/ipoib/ipoib_main.c    | 23 +++++++++--------
+ drivers/infiniband/ulp/ipoib/ipoib_netlink.c | 38 +++++++++++++++++++++++++---
+ drivers/infiniband/ulp/ipoib/ipoib_vlan.c    | 20 ++++-----------
+ 4 files changed, 54 insertions(+), 29 deletions(-)
 
-diff --git a/include/net/rtnetlink.h b/include/net/rtnetlink.h
-index ead01874..f02975e 100644
---- a/include/net/rtnetlink.h
-+++ b/include/net/rtnetlink.h
-@@ -70,6 +70,10 @@ struct rtnl_link_ops {
- 					    struct nlattr *data[],
- 					    struct netlink_ext_ack *extack);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 8033a00..aa7a02f 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -607,6 +607,8 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
+ void ipoib_set_ethtool_ops(struct net_device *dev);
+ void ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
  
-+	struct net_device      *(*alloc_link)(struct net *src_net,
-+					      const char *dev_name,
-+					      struct nlattr *tb[]);
-+	void			(*free_link)(struct net_device *dev);
- 	int			(*newlink)(struct net *src_net,
- 					   struct net_device *dev,
- 					   struct nlattr *tb[],
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 07ed21d..6a5a31f 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -7953,6 +7953,8 @@ void netdev_run_todo(void)
- 		WARN_ON(rcu_access_pointer(dev->ip6_ptr));
- 		WARN_ON(dev->dn_ptr);
- 
-+		if (dev->rtnl_link_ops && dev->rtnl_link_ops->free_link)
-+			dev->rtnl_link_ops->free_link(dev);
- 		if (dev->priv_destructor)
- 			dev->priv_destructor(dev);
- 		if (dev->needs_free_netdev)
-diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
-index dabba2a..0d57394 100644
---- a/net/core/rtnetlink.c
-+++ b/net/core/rtnetlink.c
-@@ -304,6 +304,9 @@ int __rtnl_link_register(struct rtnl_link_ops *ops)
- 	if (ops->setup && !ops->dellink)
- 		ops->dellink = unregister_netdevice_queue;
- 
-+	if (!ops->free_link)
-+		ops->free_link = free_netdev;
++void ipoib_free_rdma_netdev(struct net_device *dev);
 +
- 	list_add_tail(&ops->list, &link_ops);
- 	return 0;
+ #define IPOIB_FLAGS_RC		0x80
+ #define IPOIB_FLAGS_UC		0x40
+ 
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 71a66a7..63c9584 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -2041,6 +2041,14 @@ struct ipoib_dev_priv *ipoib_intf_alloc(struct ib_device *hca, u8 port,
+ 	return NULL;
  }
-@@ -2556,10 +2559,18 @@ struct net_device *rtnl_create_link(struct net *net,
- 	else if (ops->get_num_rx_queues)
- 		num_rx_queues = ops->get_num_rx_queues();
  
--	dev = alloc_netdev_mqs(ops->priv_size, ifname, name_assign_type,
--			       ops->setup, num_tx_queues, num_rx_queues);
--	if (!dev)
--		return ERR_PTR(-ENOMEM);
-+	if (ops->alloc_link) {
-+		dev = ops->alloc_link(net, ifname, tb);
++void ipoib_free_rdma_netdev(struct net_device *dev)
++{
++	struct rdma_netdev *rn = netdev_priv(dev);
 +
-+		if (IS_ERR(dev))
-+			return dev;
-+	} else {
-+		dev = alloc_netdev_mqs(ops->priv_size, ifname,
-+				       name_assign_type, ops->setup,
-+				       num_tx_queues, num_rx_queues);
-+		if (!dev)
-+			return ERR_PTR(-ENOMEM);
-+	}
++	rn->free_rdma_netdev(dev);
++	kfree(ipoib_priv(dev));
++}
++
+ static ssize_t show_pkey(struct device *dev,
+ 			 struct device_attribute *attr, char *buf)
+ {
+@@ -2222,7 +2230,6 @@ static struct net_device *ipoib_add_port(const char *format,
+ {
+ 	struct ipoib_dev_priv *priv;
+ 	struct ib_port_attr attr;
+-	struct rdma_netdev *rn;
+ 	int result = -ENOMEM;
  
- 	dev_net_set(dev, net);
- 	dev->rtnl_link_ops = ops;
-@@ -2821,13 +2832,13 @@ static int rtnl_newlink(struct sk_buff *skb, struct nlmsghdr *nlh,
- 			if (err < 0) {
- 				/* If device is not registered at all, free it now */
- 				if (dev->reg_state == NETREG_UNINITIALIZED)
--					free_netdev(dev);
-+					ops->free_link(dev);
- 				goto out;
- 			}
- 		} else {
- 			err = register_netdevice(dev);
- 			if (err < 0) {
--				free_netdev(dev);
-+				ops->free_link(dev);
- 				goto out;
- 			}
+ 	priv = ipoib_intf_alloc(hca, port, format);
+@@ -2322,9 +2329,7 @@ static struct net_device *ipoib_add_port(const char *format,
+ 	ipoib_dev_cleanup(priv->dev);
+ 
+ device_init_failed:
+-	rn = netdev_priv(priv->dev);
+-	rn->free_rdma_netdev(priv->dev);
+-	kfree(priv);
++	ipoib_free_rdma_netdev(priv->dev);
+ 
+ alloc_mem_failed:
+ 	return ERR_PTR(result);
+@@ -2397,13 +2402,9 @@ static void ipoib_remove_one(struct ib_device *device, void *client_data)
+ 
+ 		parent_rn->free_rdma_netdev(priv->dev);
+ 
+-		list_for_each_entry_safe(cpriv, tcpriv, &priv->child_intfs, list) {
+-			struct rdma_netdev *child_rn;
+-
+-			child_rn = netdev_priv(cpriv->dev);
+-			child_rn->free_rdma_netdev(cpriv->dev);
+-			kfree(cpriv);
+-		}
++		list_for_each_entry_safe(cpriv, tcpriv,
++					 &priv->child_intfs, list)
++			ipoib_free_rdma_netdev(cpriv->dev);
+ 
+ 		kfree(priv);
+ 	}
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_netlink.c b/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
+index 3e44087..1fff706 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
+@@ -93,12 +93,38 @@ static int ipoib_changelink(struct net_device *dev, struct nlattr *tb[],
+ 	return ret;
+ }
+ 
++static struct net_device *ipoib_alloc_link(struct net *src_net,
++					   const char *dev_name,
++					   struct nlattr *tb[])
++{
++	struct net_device *pdev;
++	struct ipoib_dev_priv *ppriv, *priv;
++
++	if (!tb[IFLA_LINK])
++		return ERR_PTR(-EINVAL);
++
++	ASSERT_RTNL();
++	pdev = __dev_get_by_index(src_net, nla_get_u32(tb[IFLA_LINK]));
++	if (!pdev || pdev->type != ARPHRD_INFINIBAND)
++		return ERR_PTR(-ENODEV);
++
++	ppriv = ipoib_priv(pdev);
++
++	priv = ipoib_intf_alloc(ppriv->ca, ppriv->port, dev_name);
++	if (!priv) {
++		ipoib_warn(ppriv, "failed to allocate pkey device\n");
++		return ERR_PTR(-ENOMEM);
++	}
++
++	return priv->dev;
++}
++
+ static int ipoib_new_child_link(struct net *src_net, struct net_device *dev,
+ 				struct nlattr *tb[], struct nlattr *data[],
+ 				struct netlink_ext_ack *extack)
+ {
+ 	struct net_device *pdev;
+-	struct ipoib_dev_priv *ppriv;
++	struct ipoib_dev_priv *ppriv, *priv;
+ 	u16 child_pkey;
+ 	int err;
+ 
+@@ -131,11 +157,15 @@ static int ipoib_new_child_link(struct net *src_net, struct net_device *dev,
+ 	 */
+ 	child_pkey |= 0x8000;
+ 
+-	err = __ipoib_vlan_add(ppriv, ipoib_priv(dev),
+-			       child_pkey, IPOIB_RTNL_CHILD);
++	down_write(&ppriv->vlan_rwsem);
++
++	priv = ipoib_priv(dev);
++	err = __ipoib_vlan_add(ppriv, priv, child_pkey, IPOIB_RTNL_CHILD);
++	up_write(&ppriv->vlan_rwsem);
+ 
+ 	if (!err && data)
+ 		err = ipoib_changelink(dev, tb, data, extack);
++
+ 	return err;
+ }
+ 
+@@ -170,6 +200,8 @@ static size_t ipoib_get_size(const struct net_device *dev)
+ 	.dellink	= ipoib_unregister_child_dev,
+ 	.get_size	= ipoib_get_size,
+ 	.fill_info	= ipoib_fill_info,
++	.alloc_link     = ipoib_alloc_link,
++	.free_link	= ipoib_free_rdma_netdev
+ };
+ 
+ int __init ipoib_netlink_init(void)
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
+index 55a9b71..3ebf6de 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
+@@ -162,29 +162,23 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
+ 		result = -ENOTUNIQ;
+ 		goto out;
+ 	}
+-
+ 	list_for_each_entry(tpriv, &ppriv->child_intfs, list) {
+ 		if (tpriv->pkey == pkey &&
+-		    tpriv->child_type == IPOIB_LEGACY_CHILD) {
++		    (tpriv->child_type == IPOIB_LEGACY_CHILD ||
++		     tpriv->child_type == IPOIB_RTNL_CHILD)) {
+ 			result = -ENOTUNIQ;
+ 			goto out;
  		}
+ 	}
+ 
+ 	result = __ipoib_vlan_add(ppriv, priv, pkey, IPOIB_LEGACY_CHILD);
+-
+ out:
+ 	up_write(&ppriv->vlan_rwsem);
+ 	rtnl_unlock();
+ 	mutex_unlock(&ppriv->sysfs_mutex);
+ 
+-	if (result && priv) {
+-		struct rdma_netdev *rn;
+-
+-		rn = netdev_priv(priv->dev);
+-		rn->free_rdma_netdev(priv->dev);
+-		kfree(priv);
+-	}
++	if (result && priv)
++		ipoib_free_rdma_netdev(priv->dev);
+ 
+ 	return result;
+ }
+@@ -235,11 +229,7 @@ int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey)
+ 	mutex_unlock(&ppriv->sysfs_mutex);
+ 
+ 	if (dev) {
+-		struct rdma_netdev *rn;
+-
+-		rn = netdev_priv(dev);
+-		rn->free_rdma_netdev(priv->dev);
+-		kfree(priv);
++		ipoib_free_rdma_netdev(dev);
+ 		return 0;
+ 	}
+ 
 -- 
 1.8.3.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
