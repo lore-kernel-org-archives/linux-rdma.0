@@ -1,58 +1,43 @@
-From: "Amrani, Ram" <Ram.Amrani@cavium.com>
-Subject: RE: [PATCH] RDMA/qedr: Use zeroing memory allocator than
- allocator/memset
-Date: Sun, 31 Dec 2017 13:09:42 +0000
-Message-ID: <BN3PR07MB25781C0289D6C5D55B712BD3F81B0@BN3PR07MB2578.namprd07.prod.outlook.com>
-References: <1514723463-5859-1-git-send-email-himanshujha199640@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1514723463-5859-1-git-send-email-himanshujha199640@gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Himanshu Jha <himanshujha199640@gmail.com>, "dledford@redhat.com" <dledford@redhat.com>
-Cc: "Kalderon, Michal" <Michal.Kalderon@cavium.com>, "Elior, Ariel" <Ariel.Elior@cavium.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-rc 0/2] RDMA fixes 2017-12-31
+Date: Sun, 31 Dec 2017 15:33:13 +0200
+Message-ID: <20171231133315.28801-1-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Nitzan Carmi <nitzanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Use dma_zalloc_coherent for allocating zeroed
-> memory and remove unnecessary memset function.
->=20
-> Done using Coccinelle.
-> Generated-by: scripts/coccinelle/api/alloc/kzalloc-simple.cocci
-> 0-day tested with no failures.
->=20
-> Suggested-by: Luis R. Rodriguez <mcgrof@kernel.org>
-> Signed-off-by: Himanshu Jha <himanshujha199640@gmail.com>
-> ---
->  drivers/infiniband/hw/qedr/verbs.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/q=
-edr/verbs.c
-> index b26aa88..3b9c898 100644
-> --- a/drivers/infiniband/hw/qedr/verbs.c
-> +++ b/drivers/infiniband/hw/qedr/verbs.c
-> @@ -604,12 +604,11 @@ static struct qedr_pbl *qedr_alloc_pbl_tbl(struct q=
-edr_dev *dev,
->  		return ERR_PTR(-ENOMEM);
->=20
->  	for (i =3D 0; i < pbl_info->num_pbls; i++) {
-> -		va =3D dma_alloc_coherent(&pdev->dev, pbl_info->pbl_size,
-> -					&pa, flags);
-> +		va =3D dma_zalloc_coherent(&pdev->dev, pbl_info->pbl_size,
-> +					 &pa, flags);
->  		if (!va)
->  			goto err;
->=20
-> -		memset(va, 0, pbl_info->pbl_size);
->  		pbl_table[i].va =3D va;
->  		pbl_table[i].pa =3D pa;
->  	}
-> --
-> 2.7.4
+Hi,
 
-Acked-by: Ram Amrani <Ram.Amrani@cavium.com>
+There are two small fixes, one fix to mlx4_ib_alloc_mr error flow, very
+similar to commit 45e6ae7ef21b ("IB/mlx5: Fix mlx5_ib_alloc_mr error
+flow") and another fix to race condition in IPoIB revealed by Enhanced
+IPoIB tests.
 
-Thanks,
-Ram
+Thanks
+
+The patches are available in the git repository at:
+  git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-rc-2017-12-31
+
+	Thanks
+---------------------------------------
+
+Erez Shitrit (1):
+  IB/ipoib: Fix race condition in neigh creation
+
+Leon Romanovsky (1):
+  IB/mlx4: Fix mlx4_ib_alloc_mr error flow
+
+ drivers/infiniband/hw/mlx4/mr.c                |  2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      | 25 ++++++++++++++++++-------
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  5 ++++-
+ 3 files changed, 23 insertions(+), 9 deletions(-)
+
+--
+2.15.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
