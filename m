@@ -1,11 +1,11 @@
-From: Himanshu Jha <himanshujha199640@gmail.com>
-Subject: [PATCH] RDMA/qedr: Use zeroing memory allocator than allocator/memset
-Date: Sun, 31 Dec 2017 18:01:03 +0530
-Message-ID: <1514723463-5859-1-git-send-email-himanshujha199640@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: Ram.Amrani@cavium.com, Michal.Kalderon@cavium.com, Ariel.Elior@cavium.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Himanshu Jha <himanshujha199640@gmail.com>
+From: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] RDMA/bnxt_re: Use zeroing memory allocator than allocator/memset
+Date: Sun, 31 Dec 2017 18:02:38 +0530
+Message-ID: <1514723558-5923-1-git-send-email-himanshujha199640@gmail.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org
+Cc: devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Use dma_zalloc_coherent for allocating zeroed
@@ -15,30 +15,38 @@ Done using Coccinelle.
 Generated-by: scripts/coccinelle/api/alloc/kzalloc-simple.cocci
 0-day tested with no failures.
 
-Suggested-by: Luis R. Rodriguez <mcgrof@kernel.org>
-Signed-off-by: Himanshu Jha <himanshujha199640@gmail.com>
+Suggested-by: Luis R. Rodriguez <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/verbs.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/bnxt_re/qplib_res.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index b26aa88..3b9c898 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -604,12 +604,11 @@ static struct qedr_pbl *qedr_alloc_pbl_tbl(struct qedr_dev *dev,
- 		return ERR_PTR(-ENOMEM);
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.c b/drivers/infiniband/hw/bnxt_re/qplib_res.c
+index 4e10170..ad37d54 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_res.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_res.c
+@@ -104,13 +104,12 @@ static int __alloc_pbl(struct pci_dev *pdev, struct bnxt_qplib_pbl *pbl,
  
- 	for (i = 0; i < pbl_info->num_pbls; i++) {
--		va = dma_alloc_coherent(&pdev->dev, pbl_info->pbl_size,
--					&pa, flags);
-+		va = dma_zalloc_coherent(&pdev->dev, pbl_info->pbl_size,
-+					 &pa, flags);
- 		if (!va)
- 			goto err;
- 
--		memset(va, 0, pbl_info->pbl_size);
- 		pbl_table[i].va = va;
- 		pbl_table[i].pa = pa;
- 	}
+ 	if (!sghead) {
+ 		for (i = 0; i < pages; i++) {
+-			pbl->pg_arr[i] = dma_alloc_coherent(&pdev->dev,
+-							    pbl->pg_size,
+-							    &pbl->pg_map_arr[i],
+-							    GFP_KERNEL);
++			pbl->pg_arr[i] = dma_zalloc_coherent(&pdev->dev,
++							     pbl->pg_size,
++							     &pbl->pg_map_arr[i],
++							     GFP_KERNEL);
+ 			if (!pbl->pg_arr[i])
+ 				goto fail;
+-			memset(pbl->pg_arr[i], 0, pbl->pg_size);
+ 			pbl->pg_count++;
+ 		}
+ 	} else {
 -- 
 2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
