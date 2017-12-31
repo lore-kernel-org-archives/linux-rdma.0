@@ -1,36 +1,39 @@
-From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
-Subject: Re: KASAN: use-after-free Read in rds_find_bound
-Date: Sat, 30 Dec 2017 11:41:48 -0800
-Message-ID: <d91da249-5a0f-7a1f-cfd5-68f10f0a2fc1@oracle.com>
-References: <089e08231920353a4805618b365c@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <089e08231920353a4805618b365c@google.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: syzbot <syzbot+93a5839deb355537440f@syzkaller.appspotmail.com>, linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com
-Cc: davem@davemloft.net, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com
+From: Denis Drozdov <denisd@mellanox.com>
+Subject: [PATCH net 0/2] IB/ipoib: ip link support
+Date: Sun, 31 Dec 2017 13:16:21 +0200
+Message-ID: <1514718983-466-1-git-send-email-denisd@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: jgg@ziepe.ca, dledford@redhat.com, leonro@mellanox.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Denis Drozdov <denisd@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/30/17 1:17 AM, syzbot wrote:
-> Hello,
-> 
-> syzkaller hit the following crash on 
-> fba961ab29e5ffb055592442808bb0f7962e05da
-> git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git/master
-> compiler: gcc (GCC) 7.1.1 20170620
-> .config is attached
-> Raw console output is attached.
-> Unfortunately, I don't have any reproducer for this bug yet.
-> 
-> 
-> IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+93a5839deb355537440f@syzkaller.appspotmail.com
+IP link was broken due to the changes in IPoIB for the rdma_netdev 
+support after commit cd565b4b51e5
+("IB/IPoIB: Support acceleration options callbacks").
 
-Posted a fix[1] for above issue. Didn't test it but looks straight
-forward.
+This patchset restores IPoIB pkey creation and removal using rtnetlink.
+The first patch introduces changes in the rtnetlink code in order to allow
+IPOIB allocate and free the netdevice.
 
-Regards,
-Santosh
+The second patch establishes appropriate rtnetlink callbacks for IPoIB
+device and restores IPoIB netlink support
+
+Thank you
+---
+
+Denis Drozdov (2):
+  rtnl: device allocation/free via rtnl_link_ops
+  IB/ipoib: Fix netlink support in IPoIB
+
+  drivers/infiniband/ulp/ipoib/ipoib.h         |  2 ++
+  drivers/infiniband/ulp/ipoib/ipoib_main.c    | 23 +++++++++--------
+  drivers/infiniband/ulp/ipoib/ipoib_netlink.c | 38 +++++++++++++++++++++++++---
+  drivers/infiniband/ulp/ipoib/ipoib_vlan.c    | 20 ++++-----------
+  include/net/rtnetlink.h                      |  4 +++
+  net/core/dev.c                               |  2 ++
+  net/core/rtnetlink.c                         | 23 ++++++++++++-----
+  7 files changed, 77 insertions(+), 35 deletions(-)
+
+-- 
+1.8.3.1
