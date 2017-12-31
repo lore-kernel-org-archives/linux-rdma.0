@@ -1,11 +1,11 @@
 From: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] RDMA/bnxt_re: Use zeroing memory allocator than allocator/memset
-Date: Sun, 31 Dec 2017 18:02:38 +0530
-Message-ID: <1514723558-5923-1-git-send-email-himanshujha199640@gmail.com>
+Subject: [PATCH] IB/mthca: Use zeroing memory allocator than allocator/memset
+Date: Sun, 31 Dec 2017 18:04:10 +0530
+Message-ID: <1514723650-5990-1-git-send-email-himanshujha199640@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org
-Cc: devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Use dma_zalloc_coherent for allocating zeroed
@@ -18,31 +18,29 @@ Generated-by: scripts/coccinelle/api/alloc/kzalloc-simple.cocci
 Suggested-by: Luis R. Rodriguez <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Signed-off-by: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/bnxt_re/qplib_res.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_memfree.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.c b/drivers/infiniband/hw/bnxt_re/qplib_res.c
-index 4e10170..ad37d54 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_res.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_res.c
-@@ -104,13 +104,12 @@ static int __alloc_pbl(struct pci_dev *pdev, struct bnxt_qplib_pbl *pbl,
+diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
+index c6fe89d..2a41ed7 100644
+--- a/drivers/infiniband/hw/mthca/mthca_memfree.c
++++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
+@@ -623,13 +623,12 @@ int mthca_alloc_db(struct mthca_dev *dev, enum mthca_db_type type,
+ 	page = dev->db_tab->page + end;
  
- 	if (!sghead) {
- 		for (i = 0; i < pages; i++) {
--			pbl->pg_arr[i] = dma_alloc_coherent(&pdev->dev,
--							    pbl->pg_size,
--							    &pbl->pg_map_arr[i],
--							    GFP_KERNEL);
-+			pbl->pg_arr[i] = dma_zalloc_coherent(&pdev->dev,
-+							     pbl->pg_size,
-+							     &pbl->pg_map_arr[i],
-+							     GFP_KERNEL);
- 			if (!pbl->pg_arr[i])
- 				goto fail;
--			memset(pbl->pg_arr[i], 0, pbl->pg_size);
- 			pbl->pg_count++;
- 		}
- 	} else {
+ alloc:
+-	page->db_rec = dma_alloc_coherent(&dev->pdev->dev, MTHCA_ICM_PAGE_SIZE,
+-					  &page->mapping, GFP_KERNEL);
++	page->db_rec = dma_zalloc_coherent(&dev->pdev->dev, MTHCA_ICM_PAGE_SIZE,
++					   &page->mapping, GFP_KERNEL);
+ 	if (!page->db_rec) {
+ 		ret = -ENOMEM;
+ 		goto out;
+ 	}
+-	memset(page->db_rec, 0, MTHCA_ICM_PAGE_SIZE);
+ 
+ 	ret = mthca_MAP_ICM_page(dev, page->mapping,
+ 				 mthca_uarc_virt(dev, &dev->driver_uar, i));
 -- 
 2.7.4
 
