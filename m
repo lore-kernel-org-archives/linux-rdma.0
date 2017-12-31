@@ -1,66 +1,34 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/ocrdma: Use zeroing memory allocator than
- allocator/memset
-Date: Sun, 31 Dec 2017 14:12:09 +0200
-Message-ID: <20171231121209.GW3494@mtr-leonro.local>
-References: <1514648396-6964-1-git-send-email-himanshujha199640@gmail.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH net 0/2] IB/ipoib: ip link support
+Date: Sun, 31 Dec 2017 14:28:29 +0200
+Message-ID: <CAJ3xEMiVHc=E7=uKJ4cRRRDxjNDRKQ17=NxnYsEeXNe6-RUvvQ@mail.gmail.com>
+References: <1514718983-466-1-git-send-email-denisd@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="QGBKWVSgmlsIyJ+t"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1514648396-6964-1-git-send-email-himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1514718983-466-1-git-send-email-denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+To: Denis Drozdov <denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Sun, Dec 31, 2017 at 1:16 PM, Denis Drozdov <denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> IP link was broken due to the changes in IPoIB for the rdma_netdev
+> support after commit cd565b4b51e5
+> ("IB/IPoIB: Support acceleration options callbacks").
 
---QGBKWVSgmlsIyJ+t
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+you are approaching stable kernels, right? lets make sure dave is okay
+to pick the net (touching
+dev.c etc) patch to stable even if the offending patch didn't change
+anything there.
 
-On Sat, Dec 30, 2017 at 09:09:56PM +0530, Himanshu Jha wrote:
-> Use dma_zalloc_coherent for allocating zeroed
-> memory and remove unnecessary memset function.
+
+> This patchset restores IPoIB pkey creation and removal using rtnetlink.
+> The first patch introduces changes in the rtnetlink code in order to allow
+> IPOIB allocate and free the netdevice.
 >
-> Done using Coccinelle.
-> Generated-by: scripts/coccinelle/api/alloc/kzalloc-simple.cocci
-> 0-day tested with no failures.
->
-> Suggested-by: Luis R. Rodriguez <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 19 +++++++------------
->  drivers/infiniband/hw/ocrdma/ocrdma_stats.c |  6 ++----
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |  8 +++-----
->  3 files changed, 12 insertions(+), 21 deletions(-)
->
-
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
---QGBKWVSgmlsIyJ+t
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpI1BkACgkQ5GN7iDZy
-WKd1gRAAwAwrATdj/Vxiq4PvFFCGHE3xBMDHu8s3xZvwilez8G6KvnFatXyhP3Ra
-nBiIPIilRAyBmbMvVf7SNucePqNDk15ID+ziBRa8mwaCCejM0/3d4rfgilBuGxa0
-DY0RXLJ6iTQod8KJa2XOmMnJxFEPtRSCkwAgTetzHXcZWUbSHHExgMDb7SeBDKPr
-24zvFEtoIMKtTsh3p4ANa8c/QOGK7REMN4PoCApgAvD8J2tufomwXvvBLP+SW+Sf
-oirAsNTFtEFMlzuHWMSl/gK3qvjJEe683Te6jFun5V/qtCYpD/+VM/4yPf6iYRHx
-M6GV1ruhvUKoHooe/XRHnuqEzNBVrwCieGaVFz7DCfx/WUtV0aTXemmcoTtk1+uQ
-3tKMqiCNfpbXnzea9hIX1GKw68DUXFGUdqGBwEt+iWfrAl1fHkpKKjYArmYdpfUg
-+YMMRasBCzaW/Hs4iVcTdPURyvG0kSUWjQMohKjv1QMz6/5SBVlzBDqECvP7cNe2
-rcpUepCxEAP+3cjLrLJ+AQThVYxbAh5X3d4/M27OmfjWe4hYnV1OhyUJMutyUEsL
-fZoF/ojT3KJ1XZ0EW5W0URdwVWsynizK6STtAHyKRIzzvpA0FKmtMAAgvCijxw/r
-7I0tb4BaPpE96lCir0Fhiq4POs2j7sATjFRDdUcufhWfFlfUttE=
-=m9wL
------END PGP SIGNATURE-----
-
---QGBKWVSgmlsIyJ+t--
+> The second patch establishes appropriate rtnetlink callbacks for IPoIB
+> device and restores IPoIB netlink support
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
