@@ -1,46 +1,58 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-next v1 4/6] IB/mlx5: Handle type IB_QPT_DRIVER when
- creating a QP
-Date: Sun, 31 Dec 2017 15:05:03 +0200
-Message-ID: <ad933caf-4246-1bb0-2d6e-3d3795f2a9c5@dev.mellanox.co.il>
-References: <20171227171540.1646-1-leon@kernel.org>
- <20171227171540.1646-5-leon@kernel.org>
- <CAJ3xEMiExjjVUOYQsdMiHLNOjB+MOkz4c1TT9AT_inkfGfMuKA@mail.gmail.com>
- <20171227220227.GL31310@mellanox.com>
- <30a35dd5-3046-d7bb-e61f-7d18501fd06c@dev.mellanox.co.il>
- <CAJ3xEMhPZfyTZ1Hr8Mwq9xeqV6UKkkVfXNDrx625qoWzAHr6qg@mail.gmail.com>
- <1e827f07-f8a1-ffa3-7c8b-e90b1107e843@dev.mellanox.co.il>
- <CAJ3xEMhNN4Vz7zxssOhgZzj4yfrC-h7tWn71AvJun29ZHL3wDQ@mail.gmail.com>
+From: "Amrani, Ram" <Ram.Amrani@cavium.com>
+Subject: RE: [PATCH] RDMA/qedr: Use zeroing memory allocator than
+ allocator/memset
+Date: Sun, 31 Dec 2017 13:09:42 +0000
+Message-ID: <BN3PR07MB25781C0289D6C5D55B712BD3F81B0@BN3PR07MB2578.namprd07.prod.outlook.com>
+References: <1514723463-5859-1-git-send-email-himanshujha199640@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMhNN4Vz7zxssOhgZzj4yfrC-h7tWn71AvJun29ZHL3wDQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1514723463-5859-1-git-send-email-himanshujha199640@gmail.com>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Himanshu Jha <himanshujha199640@gmail.com>, "dledford@redhat.com" <dledford@redhat.com>
+Cc: "Kalderon, Michal" <Michal.Kalderon@cavium.com>, "Elior, Ariel" <Ariel.Elior@cavium.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/31/2017 2:37 PM, Or Gerlitz wrote:
->> It doesn't make sense to overwrite the input QP type (i.e. IB_QPT_DRIVER)
->> which was supplied by the core layer to some internal sub-type.
-> 
-> why?
+> Use dma_zalloc_coherent for allocating zeroed
+> memory and remove unnecessary memset function.
+>=20
+> Done using Coccinelle.
+> Generated-by: scripts/coccinelle/api/alloc/kzalloc-simple.cocci
+> 0-day tested with no failures.
+>=20
+> Suggested-by: Luis R. Rodriguez <mcgrof@kernel.org>
+> Signed-off-by: Himanshu Jha <himanshujha199640@gmail.com>
+> ---
+>  drivers/infiniband/hw/qedr/verbs.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/q=
+edr/verbs.c
+> index b26aa88..3b9c898 100644
+> --- a/drivers/infiniband/hw/qedr/verbs.c
+> +++ b/drivers/infiniband/hw/qedr/verbs.c
+> @@ -604,12 +604,11 @@ static struct qedr_pbl *qedr_alloc_pbl_tbl(struct q=
+edr_dev *dev,
+>  		return ERR_PTR(-ENOMEM);
+>=20
+>  	for (i =3D 0; i < pbl_info->num_pbls; i++) {
+> -		va =3D dma_alloc_coherent(&pdev->dev, pbl_info->pbl_size,
+> -					&pa, flags);
+> +		va =3D dma_zalloc_coherent(&pdev->dev, pbl_info->pbl_size,
+> +					 &pa, flags);
+>  		if (!va)
+>  			goto err;
+>=20
+> -		memset(va, 0, pbl_info->pbl_size);
+>  		pbl_table[i].va =3D va;
+>  		pbl_table[i].pa =3D pa;
+>  	}
+> --
+> 2.7.4
 
-A driver code doesn't expect to change an input IB core property (i.e 
-qp_type). Specifically the DC QP type does not expect to be recognized 
-out of the mlx5 driver, for that reason a sub qp type will be used as 
-part of V2 in the mlx5 driver code.
+Acked-by: Ram Amrani <Ram.Amrani@cavium.com>
 
-> So what you are saying is the core logic being good for all
-> QP types X all drivers X all transports and only mlx5/DC needs this different
-> treatment? interesting, so what is the source for this misalignment?
-> 
-
-We believe that it doesn't justify a core refactoring for that specific 
-mask checking.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Ram
