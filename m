@@ -1,224 +1,72 @@
-From: Denis Drozdov <denisd@mellanox.com>
-Subject: [PATCH net 2/2] IB/ipoib: Fix netlink support in IPoIB
-Date: Sun, 31 Dec 2017 13:16:23 +0200
-Message-ID: <1514718983-466-3-git-send-email-denisd@mellanox.com>
-References: <1514718983-466-1-git-send-email-denisd@mellanox.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1514718983-466-1-git-send-email-denisd@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: jgg@ziepe.ca, dledford@redhat.com, leonro@mellanox.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Denis Drozdov <denisd@mellanox.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-next v1 4/6] IB/mlx5: Handle type IB_QPT_DRIVER when
+ creating a QP
+Date: Sun, 31 Dec 2017 13:45:41 +0200
+Message-ID: <1e827f07-f8a1-ffa3-7c8b-e90b1107e843@dev.mellanox.co.il>
+References: <20171227171540.1646-1-leon@kernel.org>
+ <20171227171540.1646-5-leon@kernel.org>
+ <CAJ3xEMiExjjVUOYQsdMiHLNOjB+MOkz4c1TT9AT_inkfGfMuKA@mail.gmail.com>
+ <20171227220227.GL31310@mellanox.com>
+ <30a35dd5-3046-d7bb-e61f-7d18501fd06c@dev.mellanox.co.il>
+ <CAJ3xEMhPZfyTZ1Hr8Mwq9xeqV6UKkkVfXNDrx625qoWzAHr6qg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJ3xEMhPZfyTZ1Hr8Mwq9xeqV6UKkkVfXNDrx625qoWzAHr6qg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-IPoIB netlink support was broken by commit cd565b4b51e5
-("IB/IPoIB: Support acceleration options callbacks"),
-that added flow which allocates netdev rdma structures
-after netlink object is already created. Such situation leads
-to crash in __ipoib_device_add, once trying to reuse netlink
-device.
-This commit restores the netlink support.
+On 12/29/2017 5:23 PM, Or Gerlitz wrote:
+> validate_driver_qp() deals @ 95% of it's contents with DC but has no
+> DC in it's name, also it does assignment which goes beyond validation.
+> 
 
-Fixes: cd565b4b51e5 ("IB/IPoIB: Support acceleration options callbacks")
-Reviewed-by: Erez Shitrit <erezsh@mellanox.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
-Signed-off-by: Denis Drozdov <denisd@mellanox.com>
----
- drivers/infiniband/ulp/ipoib/ipoib.h         |  2 ++
- drivers/infiniband/ulp/ipoib/ipoib_main.c    | 23 +++++++++--------
- drivers/infiniband/ulp/ipoib/ipoib_netlink.c | 38 +++++++++++++++++++++++++---
- drivers/infiniband/ulp/ipoib/ipoib_vlan.c    | 20 ++++-----------
- 4 files changed, 54 insertions(+), 29 deletions(-)
+OK, will rename it to be prepare_driver_qp().
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index 8033a00..aa7a02f 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -607,6 +607,8 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
- void ipoib_set_ethtool_ops(struct net_device *dev);
- void ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
- 
-+void ipoib_free_rdma_netdev(struct net_device *dev);
-+
- #define IPOIB_FLAGS_RC		0x80
- #define IPOIB_FLAGS_UC		0x40
- 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 71a66a7..63c9584 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -2041,6 +2041,14 @@ struct ipoib_dev_priv *ipoib_intf_alloc(struct ib_device *hca, u8 port,
- 	return NULL;
- }
- 
-+void ipoib_free_rdma_netdev(struct net_device *dev)
-+{
-+	struct rdma_netdev *rn = netdev_priv(dev);
-+
-+	rn->free_rdma_netdev(dev);
-+	kfree(ipoib_priv(dev));
-+}
-+
- static ssize_t show_pkey(struct device *dev,
- 			 struct device_attribute *attr, char *buf)
- {
-@@ -2222,7 +2230,6 @@ static struct net_device *ipoib_add_port(const char *format,
- {
- 	struct ipoib_dev_priv *priv;
- 	struct ib_port_attr attr;
--	struct rdma_netdev *rn;
- 	int result = -ENOMEM;
- 
- 	priv = ipoib_intf_alloc(hca, port, format);
-@@ -2322,9 +2329,7 @@ static struct net_device *ipoib_add_port(const char *format,
- 	ipoib_dev_cleanup(priv->dev);
- 
- device_init_failed:
--	rn = netdev_priv(priv->dev);
--	rn->free_rdma_netdev(priv->dev);
--	kfree(priv);
-+	ipoib_free_rdma_netdev(priv->dev);
- 
- alloc_mem_failed:
- 	return ERR_PTR(result);
-@@ -2397,13 +2402,9 @@ static void ipoib_remove_one(struct ib_device *device, void *client_data)
- 
- 		parent_rn->free_rdma_netdev(priv->dev);
- 
--		list_for_each_entry_safe(cpriv, tcpriv, &priv->child_intfs, list) {
--			struct rdma_netdev *child_rn;
--
--			child_rn = netdev_priv(cpriv->dev);
--			child_rn->free_rdma_netdev(cpriv->dev);
--			kfree(cpriv);
--		}
-+		list_for_each_entry_safe(cpriv, tcpriv,
-+					 &priv->child_intfs, list)
-+			ipoib_free_rdma_netdev(cpriv->dev);
- 
- 		kfree(priv);
- 	}
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_netlink.c b/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-index 3e44087..1fff706 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-@@ -93,12 +93,38 @@ static int ipoib_changelink(struct net_device *dev, struct nlattr *tb[],
- 	return ret;
- }
- 
-+static struct net_device *ipoib_alloc_link(struct net *src_net,
-+					   const char *dev_name,
-+					   struct nlattr *tb[])
-+{
-+	struct net_device *pdev;
-+	struct ipoib_dev_priv *ppriv, *priv;
-+
-+	if (!tb[IFLA_LINK])
-+		return ERR_PTR(-EINVAL);
-+
-+	ASSERT_RTNL();
-+	pdev = __dev_get_by_index(src_net, nla_get_u32(tb[IFLA_LINK]));
-+	if (!pdev || pdev->type != ARPHRD_INFINIBAND)
-+		return ERR_PTR(-ENODEV);
-+
-+	ppriv = ipoib_priv(pdev);
-+
-+	priv = ipoib_intf_alloc(ppriv->ca, ppriv->port, dev_name);
-+	if (!priv) {
-+		ipoib_warn(ppriv, "failed to allocate pkey device\n");
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	return priv->dev;
-+}
-+
- static int ipoib_new_child_link(struct net *src_net, struct net_device *dev,
- 				struct nlattr *tb[], struct nlattr *data[],
- 				struct netlink_ext_ack *extack)
- {
- 	struct net_device *pdev;
--	struct ipoib_dev_priv *ppriv;
-+	struct ipoib_dev_priv *ppriv, *priv;
- 	u16 child_pkey;
- 	int err;
- 
-@@ -131,11 +157,15 @@ static int ipoib_new_child_link(struct net *src_net, struct net_device *dev,
- 	 */
- 	child_pkey |= 0x8000;
- 
--	err = __ipoib_vlan_add(ppriv, ipoib_priv(dev),
--			       child_pkey, IPOIB_RTNL_CHILD);
-+	down_write(&ppriv->vlan_rwsem);
-+
-+	priv = ipoib_priv(dev);
-+	err = __ipoib_vlan_add(ppriv, priv, child_pkey, IPOIB_RTNL_CHILD);
-+	up_write(&ppriv->vlan_rwsem);
- 
- 	if (!err && data)
- 		err = ipoib_changelink(dev, tb, data, extack);
-+
- 	return err;
- }
- 
-@@ -170,6 +200,8 @@ static size_t ipoib_get_size(const struct net_device *dev)
- 	.dellink	= ipoib_unregister_child_dev,
- 	.get_size	= ipoib_get_size,
- 	.fill_info	= ipoib_fill_info,
-+	.alloc_link     = ipoib_alloc_link,
-+	.free_link	= ipoib_free_rdma_netdev
- };
- 
- int __init ipoib_netlink_init(void)
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-index 55a9b71..3ebf6de 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-@@ -162,29 +162,23 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
- 		result = -ENOTUNIQ;
- 		goto out;
- 	}
--
- 	list_for_each_entry(tpriv, &ppriv->child_intfs, list) {
- 		if (tpriv->pkey == pkey &&
--		    tpriv->child_type == IPOIB_LEGACY_CHILD) {
-+		    (tpriv->child_type == IPOIB_LEGACY_CHILD ||
-+		     tpriv->child_type == IPOIB_RTNL_CHILD)) {
- 			result = -ENOTUNIQ;
- 			goto out;
- 		}
- 	}
- 
- 	result = __ipoib_vlan_add(ppriv, priv, pkey, IPOIB_LEGACY_CHILD);
--
- out:
- 	up_write(&ppriv->vlan_rwsem);
- 	rtnl_unlock();
- 	mutex_unlock(&ppriv->sysfs_mutex);
- 
--	if (result && priv) {
--		struct rdma_netdev *rn;
--
--		rn = netdev_priv(priv->dev);
--		rn->free_rdma_netdev(priv->dev);
--		kfree(priv);
--	}
-+	if (result && priv)
-+		ipoib_free_rdma_netdev(priv->dev);
- 
- 	return result;
- }
-@@ -235,11 +229,7 @@ int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey)
- 	mutex_unlock(&ppriv->sysfs_mutex);
- 
- 	if (dev) {
--		struct rdma_netdev *rn;
--
--		rn = netdev_priv(dev);
--		rn->free_rdma_netdev(priv->dev);
--		kfree(priv);
-+		ipoib_free_rdma_netdev(dev);
- 		return 0;
- 	}
- 
--- 
-1.8.3.1
+The function name follows the input QP type (i.e. IB_QPT_DRIVER) and 
+what it does on. Specifically, its purpose is to prepare the input data 
+(ucmd, init_attr) to be used later on. Similar name and logic is used as 
+part of RQ creation as part of this file. (i.e. prepare_user_rq()).
+
+> There are bunch of things to consider fixing here. The patch spaghettizes
+> the driver code w.r.t where the qp type is stored, in the ib qp
+
+It doesn't make sense to overwrite the input QP type (i.e. 
+IB_QPT_DRIVER) which was supplied by the core layer to some internal 
+sub-type.
+
+> or the mlx5 qp
+
+The sub type is from type enum ib_qp_type (MLX5_IB_QPT_DCI 
+<->IB_QPT_RESERVED3) and not an internal mlx5 PRM QP type.
+
+However, to make the code more clearer and accurate, we'll change as 
+part of V2 'u32 driver_qp_type' to be 'enum ib_qp_type sub_qp_type' and 
+clean some redundant checks when applicable. (e.g. in 
+mlx5_ib_query_qp()).
+
+> Also you added a "is qp ok" self function which AFAIK uses a different practice
+> from the IB core copy, did you consider to refactor the core code and allow
+> a re-use from the driver?
+
+Yes, we considered that, however, as this QP type has some specific 
+driver behavior we found it better to stay with that specific logic for 
+DCI QP in the driver code, no reason to refactor the core layer as of 
+that. As part of V2 will rename 'mlx5_ib_modify_qp_is_ok()' to be 
+'modify_dc_qp_is_ok()' to better represent the specific use case around.
+
+
+> did you consider to use a similar practice
+> for your "is ok" function?
+
+Yes, however, we found it more clearer and simple to use current code 
+for the specific DCI case instead of introducing some general mapping 
+table without any real use.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
