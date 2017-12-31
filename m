@@ -1,11 +1,11 @@
-From: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] RDMA/vmw_pvrdma: Use zeroing memory allocator than allocator/memset
-Date: Sun, 31 Dec 2017 17:59:00 +0530
-Message-ID: <1514723340-5793-1-git-send-email-himanshujha199640@gmail.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Himanshu Jha <himanshujha199640@gmail.com>
+Subject: [PATCH] RDMA/qedr: Use zeroing memory allocator than allocator/memset
+Date: Sun, 31 Dec 2017 18:01:03 +0530
+Message-ID: <1514723463-5859-1-git-send-email-himanshujha199640@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: Ram.Amrani@cavium.com, Michal.Kalderon@cavium.com, Ariel.Elior@cavium.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Himanshu Jha <himanshujha199640@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
 Use dma_zalloc_coherent for allocating zeroed
@@ -15,39 +15,30 @@ Done using Coccinelle.
 Generated-by: scripts/coccinelle/api/alloc/kzalloc-simple.cocci
 0-day tested with no failures.
 
-Suggested-by: Luis R. Rodriguez <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Signed-off-by: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Suggested-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Signed-off-by: Himanshu Jha <himanshujha199640@gmail.com>
 ---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 5 ++---
+ drivers/infiniband/hw/qedr/verbs.c | 5 ++---
  1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-index 1f4e187..1f85168 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-@@ -885,8 +885,8 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
- 	dev_info(&pdev->dev, "device version %d, driver version %d\n",
- 		 dev->dsr_version, PVRDMA_VERSION);
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index b26aa88..3b9c898 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -604,12 +604,11 @@ static struct qedr_pbl *qedr_alloc_pbl_tbl(struct qedr_dev *dev,
+ 		return ERR_PTR(-ENOMEM);
  
--	dev->dsr = dma_alloc_coherent(&pdev->dev, sizeof(*dev->dsr),
--				      &dev->dsrbase, GFP_KERNEL);
-+	dev->dsr = dma_zalloc_coherent(&pdev->dev, sizeof(*dev->dsr),
-+				       &dev->dsrbase, GFP_KERNEL);
- 	if (!dev->dsr) {
- 		dev_err(&pdev->dev, "failed to allocate shared region\n");
- 		ret = -ENOMEM;
-@@ -894,7 +894,6 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
+ 	for (i = 0; i < pbl_info->num_pbls; i++) {
+-		va = dma_alloc_coherent(&pdev->dev, pbl_info->pbl_size,
+-					&pa, flags);
++		va = dma_zalloc_coherent(&pdev->dev, pbl_info->pbl_size,
++					 &pa, flags);
+ 		if (!va)
+ 			goto err;
+ 
+-		memset(va, 0, pbl_info->pbl_size);
+ 		pbl_table[i].va = va;
+ 		pbl_table[i].pa = pa;
  	}
- 
- 	/* Setup the shared region */
--	memset(dev->dsr, 0, sizeof(*dev->dsr));
- 	dev->dsr->driver_version = PVRDMA_VERSION;
- 	dev->dsr->gos_info.gos_bits = sizeof(void *) == 4 ?
- 		PVRDMA_GOS_BITS_32 :
 -- 
 2.7.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
