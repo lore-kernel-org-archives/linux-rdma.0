@@ -1,200 +1,51 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 6/7] RDMA/netlink: Protect device and port queries from device removal
-Date: Mon,  1 Jan 2018 13:07:16 +0200
-Message-ID: <20180101110717.29686-7-leon@kernel.org>
-References: <20180101110717.29686-1-leon@kernel.org>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next v1 4/6] IB/mlx5: Handle type IB_QPT_DRIVER when
+ creating a QP
+Date: Mon, 1 Jan 2018 14:53:29 +0200
+Message-ID: <CAJ3xEMjQQhJ+ZVDDmSRKKrXbaTWzp9JJ_dYtjjRqrNP0rr+BDQ@mail.gmail.com>
+References: <20171227171540.1646-1-leon@kernel.org> <20171227171540.1646-5-leon@kernel.org>
+ <CAJ3xEMiExjjVUOYQsdMiHLNOjB+MOkz4c1TT9AT_inkfGfMuKA@mail.gmail.com>
+ <20171227220227.GL31310@mellanox.com> <30a35dd5-3046-d7bb-e61f-7d18501fd06c@dev.mellanox.co.il>
+ <CAJ3xEMhPZfyTZ1Hr8Mwq9xeqV6UKkkVfXNDrx625qoWzAHr6qg@mail.gmail.com>
+ <1e827f07-f8a1-ffa3-7c8b-e90b1107e843@dev.mellanox.co.il> <CAJ3xEMhNN4Vz7zxssOhgZzj4yfrC-h7tWn71AvJun29ZHL3wDQ@mail.gmail.com>
+ <ad933caf-4246-1bb0-2d6e-3d3795f2a9c5@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180101110717.29686-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <ad933caf-4246-1bb0-2d6e-3d3795f2a9c5-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Sun, Dec 31, 2017 at 3:05 PM, Yishai Hadas
+<yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> On 12/31/2017 2:37 PM, Or Gerlitz wrote:
 
-There is a chance that device will be removed during device query
-operations and it will cause to kernel panic in the flows which
-doesn't hold lists_rwsem semaphore.
+>>> It doesn't make sense to overwrite the input QP type (i.e. IB_QPT_DRIVER)
+>>> which was supplied by the core layer to some internal sub-type.
 
-Fixes: e5c9469efcb1 ("RDMA/netlink: Add nldev device doit implementation")
-Fixes: c3f66f7b0052 ("RDMA/netlink: Implement nldev port doit callback")
-Fixes: 7d02f605f0dc ("RDMA/netlink: Add nldev port dumpit implementation")
-Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/core_priv.h |  1 -
- drivers/infiniband/core/device.c    |  5 ++-
- drivers/infiniband/core/nldev.c     | 62 +++++++++++++++++++++++--------------
- 3 files changed, 42 insertions(+), 26 deletions(-)
+>> why?
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index a7e516d720d7..8dbfc3ab48a6 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -294,7 +294,6 @@ static inline int ib_mad_enforce_security(struct ib_mad_agent_private *map,
- }
- #endif
- 
--struct ib_device *__ib_device_get_by_index(u32 ifindex);
- struct ib_device *ib_device_get_by_index(u32 ifindex);
- /* RDMA device netlink */
- void nldev_init(void);
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 34c6cb2a0977..a0ea3dca479d 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -134,7 +134,10 @@ static int ib_device_check_mandatory(struct ib_device *device)
- 	return 0;
- }
- 
--struct ib_device *__ib_device_get_by_index(u32 index)
-+/*
-+ * Caller to this function should hold lists_rwsem
-+ */
-+static struct ib_device *__ib_device_get_by_index(u32 index)
- {
- 	struct ib_device *device;
- 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 2b631307349d..ed7e639e7dee 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -141,36 +141,41 @@ static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	struct ib_device *device;
- 	struct sk_buff *msg;
- 	u32 index;
--	int err;
-+	int ret = -ENOMEM;
- 
--	err = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
- 			  nldev_policy, extack);
--	if (err || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
-+	if (ret || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
- 		return -EINVAL;
- 
- 	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
- 
--	device = __ib_device_get_by_index(index);
-+	device = ib_device_get_by_index(index);
- 	if (!device)
- 		return -EINVAL;
- 
- 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
- 	if (!msg)
--		return -ENOMEM;
-+		goto err;
- 
- 	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
- 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
- 			0, 0);
- 
--	err = fill_dev_info(msg, device);
--	if (err) {
--		nlmsg_free(msg);
--		return err;
--	}
-+	ret = fill_dev_info(msg, device);
-+	if (ret)
-+		goto err_free;
- 
- 	nlmsg_end(msg, nlh);
- 
-+	put_device(&device->dev);
- 	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
-+
-+err_free:
-+	nlmsg_free(msg);
-+err:
-+	put_device(&device->dev);
-+	return ret;
- }
- 
- static int _nldev_get_dumpit(struct ib_device *device,
-@@ -218,41 +223,48 @@ static int nldev_port_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	struct sk_buff *msg;
- 	u32 index;
- 	u32 port;
--	int err;
-+	int ret = -EINVAL;
- 
--	err = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
- 			  nldev_policy, extack);
--	if (err ||
-+	if (ret ||
- 	    !tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
- 	    !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
- 		return -EINVAL;
- 
- 	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
--	device = __ib_device_get_by_index(index);
-+	device = ib_device_get_by_index(index);
- 	if (!device)
- 		return -EINVAL;
- 
- 	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
- 	if (!rdma_is_port_valid(device, port))
--		return -EINVAL;
-+		goto err;
- 
- 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
--	if (!msg)
--		return -ENOMEM;
-+	if (!msg) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
- 
- 	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
- 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
- 			0, 0);
- 
--	err = fill_port_info(msg, device, port);
--	if (err) {
--		nlmsg_free(msg);
--		return err;
--	}
-+	ret = fill_port_info(msg, device, port);
-+	if (ret)
-+		goto err_free;
- 
- 	nlmsg_end(msg, nlh);
-+	put_device(&device->dev);
- 
- 	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
-+
-+err_free:
-+	nlmsg_free(msg);
-+err:
-+	put_device(&device->dev);
-+	return ret;
- }
- 
- static int nldev_port_get_dumpit(struct sk_buff *skb,
-@@ -273,7 +285,7 @@ static int nldev_port_get_dumpit(struct sk_buff *skb,
- 		return -EINVAL;
- 
- 	ifindex = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
--	device = __ib_device_get_by_index(ifindex);
-+	device = ib_device_get_by_index(ifindex);
- 	if (!device)
- 		return -EINVAL;
- 
-@@ -307,7 +319,9 @@ static int nldev_port_get_dumpit(struct sk_buff *skb,
- 		nlmsg_end(skb, nlh);
- 	}
- 
--out:	cb->args[0] = idx;
-+out:
-+	put_device(&device->dev);
-+	cb->args[0] = idx;
- 	return skb->len;
- }
- 
--- 
-2.15.1
+> A driver code doesn't expect to change an input IB core property (i.e
+> qp_type). Specifically the DC QP type does not expect to be recognized out
+> of the mlx5 driver, for that reason a sub qp type will be used as part of V2
+> in the mlx5 driver code.
 
+sub qp type sound better from qp type stored in two places... I think we should
+still strongly aim to have the qp type in one place... I guess it
+would be correct
+for this to be a driver maintainer decision.
+
+>> So what you are saying is the core logic being good for all
+>> QP types X all drivers X all transports and only mlx5/DC needs this
+>> different treatment? interesting, so what is the source for this misalignment?
+
+> We believe that it doesn't justify a core refactoring for that specific mask
+> checking.
+
+ok, just remember that C&Ps have the tendency to add bugs, so look
+carefully on the code..
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
