@@ -1,51 +1,62 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next v1 4/6] IB/mlx5: Handle type IB_QPT_DRIVER when
- creating a QP
-Date: Mon, 1 Jan 2018 14:53:29 +0200
-Message-ID: <CAJ3xEMjQQhJ+ZVDDmSRKKrXbaTWzp9JJ_dYtjjRqrNP0rr+BDQ@mail.gmail.com>
-References: <20171227171540.1646-1-leon@kernel.org> <20171227171540.1646-5-leon@kernel.org>
- <CAJ3xEMiExjjVUOYQsdMiHLNOjB+MOkz4c1TT9AT_inkfGfMuKA@mail.gmail.com>
- <20171227220227.GL31310@mellanox.com> <30a35dd5-3046-d7bb-e61f-7d18501fd06c@dev.mellanox.co.il>
- <CAJ3xEMhPZfyTZ1Hr8Mwq9xeqV6UKkkVfXNDrx625qoWzAHr6qg@mail.gmail.com>
- <1e827f07-f8a1-ffa3-7c8b-e90b1107e843@dev.mellanox.co.il> <CAJ3xEMhNN4Vz7zxssOhgZzj4yfrC-h7tWn71AvJun29ZHL3wDQ@mail.gmail.com>
- <ad933caf-4246-1bb0-2d6e-3d3795f2a9c5@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [rdma-core patch] srp_daemon: srp_daemon.service should be
+ started after network.target
+Date: Mon, 1 Jan 2018 12:19:50 -0700
+Message-ID: <20180101191950.GB10145@ziepe.ca>
+References: <20171229101006.27861-1-honli@redhat.com>
+ <20171229180058.GC6513@ziepe.ca>
+ <20171230135927.GA23643@dhcp-13-42.nay.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ad933caf-4246-1bb0-2d6e-3d3795f2a9c5-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171230135927.GA23643-Y5OA6DF/u0nid9cnFhDO8BcY2uh10dtjAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 31, 2017 at 3:05 PM, Yishai Hadas
-<yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> On 12/31/2017 2:37 PM, Or Gerlitz wrote:
+On Sat, Dec 30, 2017 at 09:59:27PM +0800, Honggang LI wrote:
+> On Fri, Dec 29, 2017 at 11:00:58AM -0700, Jason Gunthorpe wrote:
+> > On Fri, Dec 29, 2017 at 06:10:06PM +0800, Honggang LI wrote:
+> > > From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > > 
+> > > The srp_daemon service will be started at the very beginning state
+> > > of systemd when boot/reboot the machine, in case srp_daemon.service
+> > > is not after network.target. As result, the srp_daemon.service will
+> > > be terminated because of SERVICE_FAILURE_RESOURCES.
+> > 
+> > How is this possible?  srp_daemon.service just runs a script that
+> > doesn't touch the network.
+> 
+> To reproduce it, you just need enable srp_daemon.serice and then reboot
+> the machine. Watch the serial console when you are waiting for machine
+> boot up. Please see attached /var/log/boot.log for details. After system
+> boot up, check the status of srp_daemon.serice.
 
->>> It doesn't make sense to overwrite the input QP type (i.e. IB_QPT_DRIVER)
->>> which was supplied by the core layer to some internal sub-type.
+Well, I did this sort of testing when I originally set stuff up with
+no problem. But I used Ubuntu Xenial with a newer systemd
 
->> why?
+So we need to find a root cause before we can evalute this as the
+right solution..
 
-> A driver code doesn't expect to change an input IB core property (i.e
-> qp_type). Specifically the DC QP type does not expect to be recognized out
-> of the mlx5 driver, for that reason a sub qp type will be used as part of V2
-> in the mlx5 driver code.
+> > but even that needs much more explaination about what exactly is
+> > causing this requirement.
+> > 
+> > You said SERVICE_FAILURE_RESOURCES which is an internal systemd error
+> > code. 
+> 
+> Yes, it is systemd-219-51.el7.x86_64 error code.
+> 
+> > Is this because of PrivateNetwork=yes or something similar?
+>
+> How to test or verify this?
 
-sub qp type sound better from qp type stored in two places... I think we should
-still strongly aim to have the qp type in one place... I guess it
-would be correct
-for this to be a driver maintainer decision.
+Remove all the sandboxing thing and see if it starts working.
 
->> So what you are saying is the core logic being good for all
->> QP types X all drivers X all transports and only mlx5/DC needs this
->> different treatment? interesting, so what is the source for this misalignment?
+Add them back in until you find the one that breaks it.
 
-> We believe that it doesn't justify a core refactoring for that specific mask
-> checking.
-
-ok, just remember that C&Ps have the tendency to add bugs, so look
-carefully on the code..
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
