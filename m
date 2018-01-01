@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 5/7] RDMA/core: Provide locked variant of device name to index function
-Date: Mon,  1 Jan 2018 13:07:15 +0200
-Message-ID: <20180101110717.29686-6-leon@kernel.org>
+Subject: [PATCH rdma-next v1 3/7] RDMA/core: Replace open-coded variant of put_device
+Date: Mon,  1 Jan 2018 13:07:13 +0200
+Message-ID: <20180101110717.29686-4-leon@kernel.org>
 References: <20180101110717.29686-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180101110717.29686-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,54 +12,28 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add self-contained with locks device name to index function.
+There is an existing function to decrease reference counter
+of the device, let's use it.
 
 Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/core_priv.h |  1 +
- drivers/infiniband/core/device.c    | 16 ++++++++++++++++
- 2 files changed, 17 insertions(+)
+ drivers/infiniband/core/device.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index 0deff4c4911b..a7e516d720d7 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -295,6 +295,7 @@ static inline int ib_mad_enforce_security(struct ib_mad_agent_private *map,
- #endif
- 
- struct ib_device *__ib_device_get_by_index(u32 ifindex);
-+struct ib_device *ib_device_get_by_index(u32 ifindex);
- /* RDMA device netlink */
- void nldev_init(void);
- void nldev_exit(void);
 diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index a8757b5552de..34c6cb2a0977 100644
+index 21302e077be1..a8757b5552de 100644
 --- a/drivers/infiniband/core/device.c
 +++ b/drivers/infiniband/core/device.c
-@@ -145,6 +145,22 @@ struct ib_device *__ib_device_get_by_index(u32 index)
- 	return NULL;
- }
- 
-+/*
-+ * Caller is responsible to return refrerence count by calling put_device()
-+ */
-+struct ib_device *ib_device_get_by_index(u32 index)
-+{
-+	struct ib_device *device;
-+
-+	down_read(&lists_rwsem);
-+	device = __ib_device_get_by_index(index);
-+	if (device)
-+		get_device(&device->dev);
-+
-+	up_read(&lists_rwsem);
-+	return device;
-+}
-+
- static struct ib_device *__ib_device_get_by_name(const char *name)
+@@ -272,7 +272,7 @@ void ib_dealloc_device(struct ib_device *device)
  {
- 	struct ib_device *device;
+ 	WARN_ON(device->reg_state != IB_DEV_UNREGISTERED &&
+ 		device->reg_state != IB_DEV_UNINITIALIZED);
+-	kobject_put(&device->dev.kobj);
++	put_device(&device->dev);
+ }
+ EXPORT_SYMBOL(ib_dealloc_device);
+ 
 -- 
 2.15.1
 
