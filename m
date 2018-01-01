@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 3/7] RDMA/core: Replace open-coded variant of put_device
-Date: Mon,  1 Jan 2018 13:07:13 +0200
-Message-ID: <20180101110717.29686-4-leon@kernel.org>
+Subject: [PATCH rdma-next v1 7/7] RDMA/cma: Mark end of CMA ID messages
+Date: Mon,  1 Jan 2018 13:07:17 +0200
+Message-ID: <20180101110717.29686-8-leon@kernel.org>
 References: <20180101110717.29686-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180101110717.29686-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,29 +12,29 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-There is an existing function to decrease reference counter
-of the device, let's use it.
+The commit 1a1c116f3dcf ("RDMA/netlink: Simplify the put_msg and put_attr")
+removes nlmsg_len calculation in ibnl_put_attr causing netlink messages and
+caused to miss source and destination addresses.
 
-Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: 1a1c116f3dcf ("RDMA/netlink: Simplify the put_msg and put_attr")
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/device.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/cma.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 21302e077be1..a8757b5552de 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -272,7 +272,7 @@ void ib_dealloc_device(struct ib_device *device)
- {
- 	WARN_ON(device->reg_state != IB_DEV_UNREGISTERED &&
- 		device->reg_state != IB_DEV_UNINITIALIZED);
--	kobject_put(&device->dev.kobj);
-+	put_device(&device->dev);
- }
- EXPORT_SYMBOL(ib_dealloc_device);
- 
--- 
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 7d38c2bff5ea..65c55f79444a 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -4440,6 +4440,7 @@ static int cma_get_id_stats(struct sk_buff *skb, struct netlink_callback *cb)
+ 			id_stats->qp_type	= id->qp_type;
+
+ 			i_id++;
++			nlmsg_end(skb, nlh);
+ 		}
+
+ 		cb->args[1] = 0;
+--
 2.15.1
 
 --
