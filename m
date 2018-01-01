@@ -1,62 +1,50 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next v1 4/6] IB/mlx5: Handle type IB_QPT_DRIVER when
- creating a QP
-Date: Mon, 1 Jan 2018 12:39:51 +0200
-Message-ID: <CAJ3xEMiOAC6si4MXdJQNwA+gKNcL5Lc1WtaYV3EYk2cTOR81cw@mail.gmail.com>
-References: <20171227171540.1646-1-leon@kernel.org> <20171227171540.1646-5-leon@kernel.org>
- <CAJ3xEMiExjjVUOYQsdMiHLNOjB+MOkz4c1TT9AT_inkfGfMuKA@mail.gmail.com>
- <20171227220227.GL31310@mellanox.com> <30a35dd5-3046-d7bb-e61f-7d18501fd06c@dev.mellanox.co.il>
- <CAJ3xEMhPZfyTZ1Hr8Mwq9xeqV6UKkkVfXNDrx625qoWzAHr6qg@mail.gmail.com>
- <1e827f07-f8a1-ffa3-7c8b-e90b1107e843@dev.mellanox.co.il> <20171231195015.GA10159@mellanox.com>
- <CAG9sBKPjhqXTKzvCGp=LXtHEAUXgQa8L4w=OaPKizJsnDQCuuA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next v1 0/6] mlx5 profile infrastructure to add and remove stages
+Date: Mon,  1 Jan 2018 13:06:57 +0200
+Message-ID: <20180101110703.28759-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG9sBKPjhqXTKzvCGp=LXtHEAUXgQa8L4w=OaPKizJsnDQCuuA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 1, 2018 at 12:14 PM, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> static int set_mlx_qp_type(struct mlx5_ib_dev *dev,
->>                            struct ib_qp_init_attr *init_attr,
->>                            struct mlx5_ib_create_qp *ucmd,
->>                            struct ib_udata *udata)
->> {
->>         enum { MLX_QP_FLAGS = MLX5_QP_FLAG_TYPE_DCT | MLX5_QP_FLAG_TYPE_DCI };
->>         int err;
->>
->>         if (!udata)
->>                 return -EINVAL;
->>
->>         if (udata->inlen < sizeof(*ucmd)) {
->>                 mlx5_ib_dbg(dev, "create_qp user command is smaller than expected\n");
->>                 return -EINVAL;
->>         }
->>         err = ib_copy_from_udata(ucmd, udata, sizeof(*ucmd));
->>         if (err)
->>                 return err;
->>
->>         if ((ucmd->flags & MLX_QP_FLAGS) == MLX5_QP_FLAG_TYPE_DCI)
->>                 init_attr->qp_type = MLX5_IB_QPT_DCI;
->>         else if ((ucmd->flags & MLX_QP_FLAGS) == MLX5_QP_FLAG_TYPE_DCT)
->>                 init_attr->qp_type = MLX5_IB_QPT_DCT;
->>         else {
->>                 mlx5_ib_dbg(dev, "Invalid QP flags\n");
->>                 return -EINVAL;
->>         }
->>
->>         if (!MLX5_CAP_GEN(dev->mdev, dct)) {
->>                 mlx5_ib_dbg(dev, "DC transport is not supported\n");
->>                 return -EOPNOTSUPP;
->>         }
->>
->>         return 0;
->> }
-> I like this :) Will take it in.
+Changelog:
+ v0->v1:
+   * Moved ODP srcu initialization to be part of init stage.
+   * Added const to mlx6_ib_profile struct declaration.
+   * Remove ODP srcu cleanup callback.
 
-LGTM (the new suit and that we are wearing it)
+---------------------------------------
+Mark's patches continues e-switch series introduced in shared pull
+request and refactors the mlx5_ib initialization and cleanup logic to work in
+the stages.
+
+Such modular separation provides an easy way to construct any initialization
+sequences and skip unneeded stages as we will have in RDMA/IB representors code.
+
+The patches are available in the git repository at:
+  git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-next-2018-01-01
+
+	Thanks
+---------------------------------------
+
+Mark Bloch (6):
+  IB/mlx5: Create profile infrastructure to add and remove stages
+  IB/mlx5: Move RoCE/ETH initialization to the corresponding stage
+  IB/mlx5: Move ODP initialization to the corresponding stage
+  IB/mlx5: Move hardware counters initialization to the corresponding
+    stage
+  IB/mlx5: Move loopback initialization to the corresponding stage
+  IB/mlx5: Move locks initialization to the corresponding stage
+
+ drivers/infiniband/hw/mlx5/main.c    | 372 ++++++++++++++++++++++++-----------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  32 ++-
+ drivers/infiniband/hw/mlx5/odp.c     |   9 -
+ 3 files changed, 288 insertions(+), 125 deletions(-)
+
+--
+2.15.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
