@@ -1,75 +1,46 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core] Remove the obsolete libibcm library
-Date: Tue, 2 Jan 2018 09:32:27 -0500
-Message-ID: <3146d449-0d75-9954-8c0b-bb122aaaa102@dev.mellanox.co.il>
-References: <20171225123132.6063-1-leon@kernel.org>
- <20171227201945.GG25436@ziepe.ca> <20171228053029.GO3494@mtr-leonro.local>
- <ea55cca5-1bf9-dd54-9be1-6450ca9002ef@dev.mellanox.co.il>
- <20180102142658.GF10145@mtr-leonro.local>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [rdma-core patch] srp_daemon: srp_daemon.service should be
+ started after network.target
+Date: Tue, 2 Jan 2018 07:58:08 -0700
+Message-ID: <20180102145808.GC29208@ziepe.ca>
+References: <20171229101006.27861-1-honli@redhat.com>
+ <20171229180058.GC6513@ziepe.ca>
+ <20171230135927.GA23643@dhcp-13-42.nay.redhat.com>
+ <20180101191950.GB10145@ziepe.ca>
+ <20180102074125.GA24071@dhcp-13-42.nay.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180102142658.GF10145-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180102074125.GA24071-Y5OA6DF/u0nid9cnFhDO8BcY2uh10dtjAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/2/2018 9:26 AM, Leon Romanovsky wrote:
-> On Tue, Jan 02, 2018 at 09:18:59AM -0500, Hal Rosenstock wrote:
->> On 12/28/2017 12:30 AM, Leon Romanovsky wrote:
->>> On Wed, Dec 27, 2017 at 01:19:45PM -0700, Jason Gunthorpe wrote:
->>>> On Mon, Dec 25, 2017 at 02:31:32PM +0200, Leon Romanovsky wrote:
->>>>> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>>>
->>>>> The libibcm library was marked as obsolete long time ago,
->>>>> the following patch is first step before removing ucm from
->>>>> the kernel.
->>>>
->>>> I understand the distros will not want to loose libibcm in their
->>>> stable releases.
->>>>
->>>> It might make more sense instead to just not build libibcm by default
->>>> with a cmake option but still keep the sources..
->>>
->>> We are not removing it from the stable branches, so if they want to keep it
->>> till last person who used this library dies, they are free to do it.
->>>
->>> The disabled build doesn't give much benefit at all. It will be dead code exactly
->>> as now, but without any alert that it is broken. Most possible, it will be broken
->>> till some distro will notice it.
->>
->> Since when has it been broken and how is it broken ? Last I knew it
->> worked but was not used by anything in tree.
+On Tue, Jan 02, 2018 at 03:41:25PM +0800, Honggang LI wrote:
+> On Mon, Jan 01, 2018 at 12:19:50PM -0700, Jason Gunthorpe wrote:
+> > > Yes, it is systemd-219-51.el7.x86_64 error code.
+> > > 
+> > > > Is this because of PrivateNetwork=yes or something similar?
+> > >
+> > > How to test or verify this?
+> > 
+> > Remove all the sandboxing thing and see if it starts working.
 > 
-> Hal,
+> "PrivateNetwork=yes/no" is not the root cause of this issue.
 > 
-> Where did you see me saying that it is broken?
+> > 
+> > Add them back in until you find the one that breaks it.
 > 
-> I said that it WILL be broken if we don't compile it by default.
-
-OK but that's not how I interpreted what you wrote:
-"It will be dead code exactly as now, but without any alert that it is
-broken."
-
-Anyhow, if distro still wants to include this, wouldn't they build and
-test it ?
-
--- Hal
-
-> Thanks
+> I had confirmed this is a systemd issue with Fedora-27 distro. F27
+> works as higher version systemd is running.
 > 
->>
->> -- Hal
->>
->>> Exactly as some distros have EOL, this libibcm library came to its EOL.
->>>
->>> Thanks
->>>
->>>>
->>>> Jason
+> Please drop this patch.
+
+Very mysterious then, any idea what is going on?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
