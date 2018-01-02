@@ -1,56 +1,19 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v4 net-next 0/4] qed*: Advance to FW 8.33.1.0
-Date: Tue, 02 Jan 2018 13:58:36 -0500 (EST)
-Message-ID: <20180102.135836.317444223426222615.davem@davemloft.net>
-References: <1514395808-16916-1-git-send-email-Tomer.Tayar@cavium.com>
+From: foundation-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Subject: =?utf-8?q?Spende_von_=E2=82=AC_3=2E400=2E000=2C00_EUR?=
+Date: Tue, 02 Jan 2018 22:29:53 +0200
+Message-ID: <20180102205046.BBD2427090E0@wsbmail01.wsb.wroclaw.pl>
+Reply-To: roycockrumpovertyfoundation-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1514395808-16916-1-git-send-email-Tomer.Tayar@cavium.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Tomer.Tayar@cavium.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Description: Mail message body
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Recipients <foundation-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tomer Tayar <Tomer.Tayar@cavium.com>
-Date: Wed, 27 Dec 2017 19:30:04 +0200
-
-> This series advances all qed* drivers to use firmware 8.33.1.0 which brings
-> new capabilities and initial support of new HW. The changes are mostly in
-> qed, and include changes in the FW interface files, as well as updating the
-> FW initialization and debug collection code. The protocol drivers have
-> minor functional changes for this firmware.
-> 
-> Patch 1 Rearranges and refactors the FW interface files in preparation of
-> the new FW (no functional change).
-> Patch 2 Prepares the code for support of new HW (no functional change).
-> Patch 3 Actual utilization of the new FW.
-> Patch 4 Advances drivers' version.
-> 
-> v3->v4:
-> Fix a compilation issue which was reported by krobot (dependency on CRC8).
-> 
-> v2->v3:
-> Resend the series with a fixed title in the cover letter.
-> 
-> v1->v2:
-> - Break the previous single patch into several patches.
-> - Fix compilation issues which were reported by krobot.
-
-I'm going to apply this, however....
-
-These firmware update changes are rediculously invasive.
-
-Backporting patches through these updates will be a giant task if not
-impossible for anyone who tries to do something like this.
-
-Who reviewed these changes outside of Cavium to look for clerical
-and typographical errors?  I be nobody did.  I personally scanned
-them for about 20 minutes.
-
-Therefore, it is my judgment that the way firmware support updates are
-done in the QED driver is detrimental to it's long term
-maintainability.
-
-Thank you.
+Hallo, ich Roy Cockrum, 58, aus Knoxville, Tennessee Vereinigte Staaten von Amerika, du hast eine Wohltätigkeitsspende von € 3.400.000,00 EUR, ich gewann die America Lotterie in Amerika im Wert von $ 259,9 Millionen, und ich gebe einen Teil davon Zu fünf glücklichen Leuten und Wohltätigkeitshäusern in Gelübde, um die Armut vor dieser Welt zu beseitigen, ich kämpfe gegen die Armut. Kontaktieren Sie mich für weitere Details: roycockrumpovertyfoundation-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
