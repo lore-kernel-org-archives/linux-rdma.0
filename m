@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next 8/9] rdma: Add QP resource tracking information
-Date: Tue,  2 Jan 2018 11:37:24 +0200
-Message-ID: <20180102093725.6172-9-leon@kernel.org>
+Subject: [PATCH iproute2-next 3/9] rdma: Add filtering infrastructure
+Date: Tue,  2 Jan 2018 11:37:19 +0200
+Message-ID: <20180102093725.6172-4-leon@kernel.org>
 References: <20180102093725.6172-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180102093725.6172-1-leon@kernel.org>
@@ -12,359 +12,312 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-This patch adds ss-similar interface to view various resource
-tracked objects. At this stage, only QP is presented.
+This patch adds general infrastructure to RDMAtool to handle various
+filtering options needed for the downstream resource tracking patches.
 
-1. Get all QPs for the specific device:
-$ rdma res show qp link mlx5_4
-DEV/PORT  LQPN       TYPE  STATE  PID        COMM
-mlx5_4/-  8          UD    RESET  0          [ipoib-verbs]
-mlx5_4/1  7          UD    RTS    0          [mlx5-gsi]
-mlx5_4/1  1          GSI   RTS    0          [rdma-mad]
-mlx5_4/1  0          SMI   RTS    0          [rdma-mad]
+The infrastructure is generic and stores filters in list of key<->value
+entries. There are three types of filters:
 
-$ rdma res show qp link mlx5_4/
-DEV/PORT  LQPN       TYPE  STATE  PID        COMM
-mlx5_4/-  8          UD    RESET  0          [ipoib-verbs]
-mlx5_4/1  7          UD    RTS    0          [mlx5-gsi]
-mlx5_4/1  1          GSI   RTS    0          [rdma-mad]
-mlx5_4/1  0          SMI   RTS    0          [rdma-mad]
+1. Numeric - the values are intended to be digits combined with '-' to
+mark range and ',' to mark multiple entries, e.g. pid 1-100,234,400-401
+is perfectly legit filter to limit process ids.
 
-2. Provide illegal port number (0 is illegal):
-$ rdma res show qp link mlx5_4/0
-Wrong device name
+2. String - the values are consist from strings and "," as a
+denominator. Currently only "display" option is opened for the users and
+it will be used to hide/unhide table columns in resource tracking
+patches.
 
-3. Get QPs of specific port:
-$ rdma res show qp link mlx5_4/1
-DEV/PORT  LQPN       TYPE  STATE  PID        COMM
-mlx5_4/1  7          UD    RTS    0          [mlx5-gsi]
-mlx5_4/1  1          GSI   RTS    0          [rdma-mad]
-mlx5_4/1  0          SMI   RTS    0          [rdma-mad]
-
-4. Get QPs which have not assigned port yet:
-$ rdma res show qp link mlx5_4/-
-DEV/PORT  LQPN       TYPE  STATE  PID        COMM
-mlx5_4/-  8          UD    RESET  0          [ipoib-verbs]
-
-5. Detailed view:
-$ rdma res show qp link mlx5_4/- -d
-DEV/PORT  LQPN       RQPN       TYPE  STATE  PID        COMM            SQ-PSN     RQ-PSN     PATH-MIG
-mlx5_4/-  8          ---        UD    RESET  0          [ipoib-verbs]   0          ---        ---
-
-6. Limit to specific columns (dev/port is always available):
-$ rdma res show qp link mlx5_4/1 display pid,lqpn,comm
-DEV/PORT  LQPN       PID        COMM
-mlx5_4/1  7          0          [mlx5-gsi]
-mlx5_4/1  1          0          [rdma-mad]
-mlx5_4/1  0          0          [rdma-mad]
-
-7. Detailed view (no change, due to "display" option):
-$ rdma res show qp link mlx5_4/1 display pid,lqpn,comm -d
-DEV/PORT  LQPN       PID        COMM
-mlx5_4/1  7          0          [mlx5-gsi]
-mlx5_4/1  1          0          [rdma-mad]
-mlx5_4/1  0          0          [rdma-mad]
-
-8. Limit to specific Local QPNs:
-$ rdma res show qp link mlx5_4/1 display pid,lqpn,comm lqpn 0-6
-DEV/PORT  LQPN       PID        COMM
-mlx5_4/1  1          0          [rdma-mad]
-mlx5_4/1  0          0          [rdma-mad]
+3. Link - special case to allow '/' in string to provide link name, e.g.
+link mlx4_1/2.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- rdma/res.c   | 243 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- rdma/utils.c |  11 +++
- 2 files changed, 254 insertions(+)
+ rdma/rdma.c  |   1 +
+ rdma/rdma.h  |  15 +++++
+ rdma/utils.c | 212 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 228 insertions(+)
 
-diff --git a/rdma/res.c b/rdma/res.c
-index a70e87dd..184a3a02 100644
---- a/rdma/res.c
-+++ b/rdma/res.c
-@@ -16,6 +16,9 @@ static int res_help(struct rd *rd)
- {
- 	pr_out("Usage: %s resource\n", rd->filename);
- 	pr_out("          resource show [DEV]\n");
-+	pr_out("          resource show [qp]\n");
-+	pr_out("          resource show qp link [DEV/PORT]\n");
-+	pr_out("          resource show qp link [DEV/PORT] [FILTER-NAME FILTER-VALUE]\n");
- 	return 0;
- }
+diff --git a/rdma/rdma.c b/rdma/rdma.c
+index 0e8fd688..a21ba440 100644
+--- a/rdma/rdma.c
++++ b/rdma/rdma.c
+@@ -47,6 +47,7 @@ static int rd_init(struct rd *rd, int argc, char **argv, char *filename)
+ 	rd->argc = argc;
+ 	rd->argv = argv;
+ 	INIT_LIST_HEAD(&rd->dev_map_list);
++	INIT_LIST_HEAD(&rd->filter_list);
  
-@@ -136,12 +139,252 @@ static int _res_send_msg(struct rd *rd, uint32_t command, mnl_cb_t callback)
- 		return rd_exec_link(rd, _##name, strict_port); \
- 	}
+ 	if (rd->json_output) {
+ 		rd->jw = jsonw_new(stdout);
+diff --git a/rdma/rdma.h b/rdma/rdma.h
+index 1b66ae04..cd415670 100644
+--- a/rdma/rdma.h
++++ b/rdma/rdma.h
+@@ -29,6 +29,12 @@
+ #define RDMA_BITMAP_ENUM(name, bit_no) RDMA_BITMAP_##name = BIT(bit_no),
+ #define RDMA_BITMAP_NAMES(name, bit_no) [bit_no] = #name,
  
-+struct column {
-+	char filter_name[32];
-+	char column_name[32];
-+	bool in_simple_view;
++struct filter_entry {
++	struct list_head list;
++	char *key;
++	char *value;
 +};
 +
-+static bool show_column(struct rd *rd, struct column *c)
-+{
-+	if (rd_check_is_key_exist(rd, "display"))
-+		return rd_check_is_string_filtered(rd, "display", c->filter_name);
-+
-+	if (!rd->show_details)
-+		return c->in_simple_view;
-+	return true;
-+}
-+
-+static const char *path_mig_to_str(uint8_t idx)
-+{
-+	static const char * const path_mig_str[] = { "MIGRATED",
-+						     "REARM", "ARMED" };
-+
-+	if (idx < ARRAY_SIZE(path_mig_str))
-+		return path_mig_str[idx];
-+	return "UNKNOWN";
-+}
-+
-+static const char *qp_states_to_str(uint8_t idx)
-+{
-+	static const char * const qp_states_str[] = { "RESET", "INIT",
-+						      "RTR", "RTS", "SQD",
-+						      "SQE", "ERR" };
-+
-+	if (idx < ARRAY_SIZE(qp_states_str))
-+		return qp_states_str[idx];
-+	return "UNKNOWN";
-+}
-+
-+static const char *qp_types_to_str(uint8_t idx)
-+{
-+	static const char * const qp_types_str[] = { "SMI", "GSI", "RC",
-+						     "UC", "UD", "RAW_IPV6",
-+						     "RAW_ETHERTYPE",
-+						     "UNKNOWN", "RAW_PACKET",
-+						     "XRC_INI", "XRC_TGT" };
-+
-+	if (idx < ARRAY_SIZE(qp_types_str))
-+		return qp_types_str[idx];
-+	return "UNKNOWN";
-+}
-+
-+static int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	static struct column c[] = { { .filter_name = "lqpn",
-+				       .column_name = "LQPN       ",
-+				       .in_simple_view = true },
-+				     { .filter_name = "rqpn",
-+				       .column_name = "RQPN       " },
-+				     { .filter_name = "type",
-+				       .column_name = "TYPE  ",
-+					.in_simple_view = true },
-+				     { .filter_name = "state",
-+				       .column_name = "STATE  ",
-+				       .in_simple_view = true },
-+				     { .filter_name = "pid",
-+				       .column_name = "PID        ",
-+				       .in_simple_view = true },
-+				     { .filter_name = "comm",
-+				       .column_name = "COMM            ",
-+				       .in_simple_view = true },
-+				     { .filter_name = "sq-psn",
-+				       .column_name = "SQ-PSN     " },
-+				     { .filter_name = "rq-psn",
-+				       .column_name = "RQ-PSN     " },
-+				     { .filter_name = "path-mig",
-+				       .column_name = "PATH-MIG        " } };
-+
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-+	struct nlattr *nla_table, *nla_entry;
-+	static bool print_header = true;
-+	struct rd *rd = data;
-+	uint32_t cidx, idx;
-+	const char *name;
-+
-+	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
-+	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
-+	    !tb[RDMA_NLDEV_ATTR_DEV_NAME] ||
-+	    !tb[RDMA_NLDEV_ATTR_RES_QP])
-+		return MNL_CB_ERROR;
-+
-+	name = mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_DEV_NAME]);
-+	idx =  mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	nla_table = tb[RDMA_NLDEV_ATTR_RES_QP];
-+	if (!rd->json_output && print_header) {
-+		pr_out("DEV/PORT  ");
-+		for (cidx = 0; cidx < ARRAY_SIZE(c); cidx++)
-+			if (show_column(rd, &c[cidx]))
-+				pr_out("%s", c[cidx].column_name);
-+		pr_out("\n");
-+		print_header = false;
-+	}
-+
-+	mnl_attr_for_each_nested(nla_entry, nla_table) {
-+		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
-+		uint32_t lqpn, rqpn = 0, rq_psn = 0, sq_psn;
-+		uint8_t type, state, path_mig_state = 0;
-+		uint32_t port = 0, pid = 0;
-+		bool ignore_value = false;
-+		char port_name[32];
-+		const char *comm;
-+		int err;
-+
-+		err = mnl_attr_parse_nested(nla_entry, rd_attr_cb, nla_line);
-+		if (err != MNL_CB_OK)
-+			return -EINVAL;
-+
-+		if (!nla_line[RDMA_NLDEV_ATTR_RES_LQPN] ||
-+		    !nla_line[RDMA_NLDEV_ATTR_RES_SQ_PSN] ||
-+		    !nla_line[RDMA_NLDEV_ATTR_RES_TYPE] ||
-+		    !nla_line[RDMA_NLDEV_ATTR_RES_STATE] ||
-+		    !nla_line[RDMA_NLDEV_ATTR_RES_PID_COMM]) {
-+			return -EINVAL;
-+		}
-+
-+		if (nla_line[RDMA_NLDEV_ATTR_PORT_INDEX])
-+			port = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_PORT_INDEX]);
-+
-+		if (port != rd->port_idx)
-+			continue;
-+
-+		if (nla_line[RDMA_NLDEV_ATTR_PORT_INDEX])
-+			snprintf(port_name, 32, "%s/%u", name, port);
-+		else
-+			snprintf(port_name, 32, "%s/-", name);
-+
-+		lqpn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_LQPN]);
-+		if (rd_check_is_filtered(rd, "lqpn", lqpn, false))
-+			continue;
-+
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_RQPN])
-+			rqpn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_RQPN]);
-+		else
-+			ignore_value = true;
-+
-+		if (rd_check_is_filtered(rd, "rqpn", rqpn, ignore_value))
-+			continue;
-+
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_RQ_PSN])
-+			rq_psn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_RQ_PSN]);
-+
-+		sq_psn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_SQ_PSN]);
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE])
-+			path_mig_state = mnl_attr_get_u8(nla_line[RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE]);
-+		type = mnl_attr_get_u8(nla_line[RDMA_NLDEV_ATTR_RES_TYPE]);
-+		state = mnl_attr_get_u8(nla_line[RDMA_NLDEV_ATTR_RES_STATE]);
-+
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
-+			pid = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_PID]);
-+
-+		if (rd_check_is_filtered(rd, "pid", pid, false))
-+			continue;
-+
-+		comm = mnl_attr_get_str(nla_line[RDMA_NLDEV_ATTR_RES_PID_COMM]);
-+
-+		if (rd->json_output) {
-+			jsonw_start_array(rd->jw);
-+			jsonw_uint_field(rd->jw, "ifindex", idx);
-+			if (nla_line[RDMA_NLDEV_ATTR_PORT_INDEX])
-+				jsonw_uint_field(rd->jw, "port", port);
-+			jsonw_string_field(rd->jw, "ifname", port_name);
-+			jsonw_uint_field(rd->jw, "lqpn", lqpn);
-+			if (nla_line[RDMA_NLDEV_ATTR_RES_RQPN])
-+				jsonw_uint_field(rd->jw, "rqpn", rqpn);
-+			if (nla_line[RDMA_NLDEV_ATTR_RES_RQ_PSN])
-+				jsonw_uint_field(rd->jw, "rq-psn", rq_psn);
-+			if (nla_line[RDMA_NLDEV_ATTR_RES_SQ_PSN])
-+				jsonw_uint_field(rd->jw, "sq-psn", sq_psn);
-+			if (nla_line[RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE])
-+				jsonw_string_field(rd->jw, "path-mig-state",
-+						   path_mig_to_str(path_mig_state));
-+
-+			jsonw_string_field(rd->jw, "type", qp_types_to_str(type));
-+			jsonw_string_field(rd->jw, "state", qp_states_to_str(state));
-+			if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
-+				jsonw_uint_field(rd->jw, "pid", pid);
-+			jsonw_string_field(rd->jw, "comm", comm);
-+			jsonw_end_array(rd->jw);
-+		} else {
-+			pr_out("%-10s", port_name);
-+			for (cidx = 0; cidx < ARRAY_SIZE(c); cidx++)
-+				if (show_column(rd, &c[cidx])) {
-+					if (!strcmpx(c[cidx].filter_name, "lqpn"))
-+						pr_out("%-11u", lqpn);
-+					if (!strcmpx(c[cidx].filter_name, "rqpn")) {
-+						if (nla_line[RDMA_NLDEV_ATTR_RES_RQPN])
-+							pr_out("%-11u", rqpn);
-+						else
-+							pr_out("%-11s", "---");
-+					}
-+					if (!strcmpx(c[cidx].filter_name, "type"))
-+						pr_out("%-6s", qp_types_to_str(type));
-+					if (!strcmpx(c[cidx].filter_name, "state"))
-+						pr_out("%-7s", qp_states_to_str(state));
-+					if (!strcmpx(c[cidx].filter_name, "rq-psn")) {
-+						if (nla_line[RDMA_NLDEV_ATTR_RES_RQ_PSN])
-+							pr_out("%-11d", rq_psn);
-+						else
-+							pr_out("%-11s", "---");
-+					}
-+					if (!strcmpx(c[cidx].filter_name, "sq-psn"))
-+						pr_out("%-11d", sq_psn);
-+					if (!strcmpx(c[cidx].filter_name, "path-mig")) {
-+						if (nla_line[RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE])
-+							pr_out("%-16s", path_mig_to_str(path_mig_state));
-+						else
-+							pr_out("%-16s", "---");
-+					}
-+					if (!strcmpx(c[cidx].filter_name, "pid"))
-+						pr_out("%-11d", pid);
-+					if (!strcmpx(c[cidx].filter_name, "comm")) {
-+						if (nla_line[RDMA_NLDEV_ATTR_RES_PID]) {
-+							pr_out("%-16s ", comm);
-+						} else {
-+							char tmp[18];
-+
-+							snprintf(tmp, sizeof(tmp), "[%s]", comm);
-+							pr_out("%-16s", tmp);
-+						}
-+					}
-+			}
-+			pr_out("\n");
-+		}
-+	}
-+	return MNL_CB_OK;
-+}
-+
- RES_FUNC(res_no_args,	RDMA_NLDEV_CMD_RES_GET,	NULL, true);
- 
-+static const char * const qp_valid_filters[] = { "link", "lqpn", "rqpn",
-+						 "pid", "display", NULL };
-+RES_FUNC(res_qp,	RDMA_NLDEV_CMD_RES_QP_GET, qp_valid_filters, false);
-+
- static int res_show(struct rd *rd)
- {
- 	const struct rd_cmd cmds[] = {
- 		{ NULL,		res_no_args	},
-+		{ "qp",		res_qp		},
- 		{ 0 }
- 	};
- 
-diff --git a/rdma/utils.c b/rdma/utils.c
-index 859ad7ab..65bb6657 100644
---- a/rdma/utils.c
-+++ b/rdma/utils.c
-@@ -344,6 +344,17 @@ static const enum mnl_attr_data_type nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME] = MNL_TYPE_NUL_STRING,
- 	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR] = MNL_TYPE_U64,
- 	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX]	= MNL_TYPE_U64,
-+	[RDMA_NLDEV_ATTR_RES_QP]		= MNL_TYPE_NESTED,
-+	[RDMA_NLDEV_ATTR_RES_QP_ENTRY]		= MNL_TYPE_NESTED,
-+	[RDMA_NLDEV_ATTR_RES_LQPN]	= MNL_TYPE_U32,
-+	[RDMA_NLDEV_ATTR_RES_RQPN]	= MNL_TYPE_U32,
-+	[RDMA_NLDEV_ATTR_RES_RQ_PSN]		= MNL_TYPE_U32,
-+	[RDMA_NLDEV_ATTR_RES_SQ_PSN]		= MNL_TYPE_U32,
-+	[RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE]	= MNL_TYPE_U8,
-+	[RDMA_NLDEV_ATTR_RES_TYPE]		= MNL_TYPE_U8,
-+	[RDMA_NLDEV_ATTR_RES_STATE]		= MNL_TYPE_U8,
-+	[RDMA_NLDEV_ATTR_RES_PID]		= MNL_TYPE_U32,
-+	[RDMA_NLDEV_ATTR_RES_PID_COMM]	= MNL_TYPE_NUL_STRING,
+ struct dev_map {
+ 	struct list_head list;
+ 	char *dev_name;
+@@ -50,6 +56,7 @@ struct rd {
+ 	json_writer_t *jw;
+ 	bool json_output;
+ 	bool pretty_output;
++	struct list_head filter_list;
  };
  
- int rd_attr_cb(const struct nlattr *attr, void *data)
+ struct rd_cmd {
+@@ -81,6 +88,14 @@ int rd_argc(struct rd *rd);
+  */
+ struct dev_map *dev_map_lookup(struct rd *rd, bool allow_port_index);
+ 
++/*
++ * Filter manipulation
++ */
++int rd_build_filter(struct rd *rd, const char * const valid_filters[]);
++bool rd_check_is_filtered(struct rd *rd, const char *key,
++			  uint32_t val, bool ignore_val);
++bool rd_check_is_string_filtered(struct rd *rd, const char *key, char *val);
++bool rd_check_is_key_exist(struct rd *rd, const char *key);
+ /*
+  * Netlink
+  */
+diff --git a/rdma/utils.c b/rdma/utils.c
+index 9184f455..dc9f4f01 100644
+--- a/rdma/utils.c
++++ b/rdma/utils.c
+@@ -114,6 +114,217 @@ static void dev_map_cleanup(struct rd *rd)
+ 	}
+ }
+ 
++static int add_filter(struct rd *rd, char *key, char *value,
++		      const char * const valid_filters[])
++{
++	char cset[] = "1234567890,-";
++	struct filter_entry *fe;
++	bool key_found = false;
++	int idx = 0;
++	int ret;
++
++	fe = calloc(1, sizeof(*fe));
++	if (!fe)
++		return -ENOMEM;
++
++	while (valid_filters[idx]) {
++		if (!strcmpx(key, valid_filters[idx])) {
++			key_found = true;
++			break;
++		}
++		idx++;
++	}
++	if (!key_found) {
++		pr_err("Unsupported filter option: %s\n", key);
++		ret = -EINVAL;
++		goto err;
++	}
++
++	/*
++	 * Check the filter validity, not optimal, but works
++	 *
++	 * Actually, there are three types of filters
++	 *  numeric - for example PID or QPN
++	 *  string  - for example states, currently only "display"
++	 *            is from this type
++	 *  link    - user requested to filter on specific link
++	 *            e.g. mlx5_1/1, mlx5_1/-, mlx5_1 ...
++	 */
++	if (strcmpx(key, "link") && strcmpx(key, "display") &&
++	    strspn(value, cset) != strlen(value)) {
++		pr_err("%s filter accepts \"%s\" characters only\n", key, cset);
++		ret = -EINVAL;
++		goto err;
++	}
++
++	fe->key = strdup(key);
++	fe->value = strdup(value);
++
++	list_add_tail(&fe->list, &rd->filter_list);
++	return 0;
++
++err:
++	free(fe);
++	return ret;
++}
++
++int rd_build_filter(struct rd *rd, const char * const valid_filters[])
++{
++	int ret = 0;
++	int idx = 0;
++
++	if (!valid_filters || !rd_argc(rd))
++		goto out;
++
++	if (rd_argc(rd) == 1) {
++		pr_err("No filter data was supplied to filter option %s\n", rd_argv(rd));
++		ret = -EINVAL;
++		goto out;
++	}
++
++	if (rd_argc(rd) % 2) {
++		pr_err("There is filter option without data\n");
++		ret = -EINVAL;
++		goto out;
++	}
++
++	while (idx != rd_argc(rd)) {
++		/*
++		 * We can do micro-optimization and skip "dev"
++		 * and "link" filters, but it is not worth of it.
++		 */
++		ret = add_filter(rd, *(rd->argv + idx),
++				 *(rd->argv + idx + 1), valid_filters);
++		if (ret)
++			goto out;
++		idx += 2;
++	}
++
++out:
++	return ret;
++}
++
++bool rd_check_is_key_exist(struct rd *rd, const char *key)
++{
++	struct filter_entry *fe;
++
++	list_for_each_entry(fe, &rd->filter_list, list) {
++		if (!strcmpx(fe->key, key))
++			return true;
++	}
++
++	return false;
++}
++
++/*
++ * Check if string entry is filtered:
++ *  * key doesn't exist -> user didn't request -> not filtered
++ */
++bool rd_check_is_string_filtered(struct rd *rd, const char *key, char *val)
++{
++	bool key_is_filtered = false;
++	struct filter_entry *fe;
++	char *p = NULL;
++	char *str;
++
++	list_for_each_entry(fe, &rd->filter_list, list) {
++		if (!strcmpx(fe->key, key)) {
++			/* We found the key */
++			p = strdup(fe->value);
++
++			/*
++			 * Need to check if value in range
++			 * It can come in the following formats
++			 * and their permutations:
++			 * str
++			 * str1,str2
++			 */
++			str = strtok(p, ",");
++			while (str) {
++				if (!strcmpx(str, val)) {
++					key_is_filtered = true;
++					goto out;
++				}
++				str = strtok(NULL, ",");
++			}
++			goto out;
++		}
++	}
++
++out:
++	free(p);
++	return key_is_filtered;
++}
++
++/*
++ * Check if key is filtered:
++ * key doesn't exist -> user didn't request -> not filtered
++ */
++bool rd_check_is_filtered(struct rd *rd, const char *key,
++			  uint32_t val, bool ignore_val)
++{
++	bool key_is_filtered = false;
++	struct filter_entry *fe;
++
++	list_for_each_entry(fe, &rd->filter_list, list) {
++		uint32_t left_val = 0, fe_value = 0;
++		bool range_check = false;
++		char *p = fe->value;
++
++		if (!strcmpx(fe->key, key)) {
++			/* We found the key */
++			key_is_filtered = true;
++			if (ignore_val)
++				goto out;
++			/*
++			 * Need to check if value in range
++			 * It can come in the following formats
++			 * (and their permutations):
++			 * numb
++			 * numb1,numb2
++			 * ,numb1,numb2
++			 * numb1-numb2
++			 * numb1,numb2-numb3,numb4-numb5
++			 */
++			while (*p) {
++				if (isdigit(*p)) {
++					fe_value = strtol(p, &p, 10);
++					if (fe_value == val ||
++					    (range_check && left_val < val &&
++					     val < fe_value)) {
++						key_is_filtered = false;
++						goto out;
++					}
++					range_check = false;
++				} else {
++					if (*p == '-') {
++						left_val = fe_value;
++						range_check = true;
++					}
++					p++;
++				}
++			}
++			goto out;
++		}
++	}
++
++out:
++	return key_is_filtered;
++}
++
++static void filters_cleanup(struct rd *rd)
++{
++	struct filter_entry *fe, *tmp;
++
++	list_for_each_entry_safe(fe, tmp,
++				 &rd->filter_list, list) {
++		list_del(&fe->list);
++		free(fe->key);
++		free(fe->value);
++		free(fe);
++	}
++}
++
+ static const enum mnl_attr_data_type nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+ 	[RDMA_NLDEV_ATTR_DEV_INDEX] = MNL_TYPE_U32,
+ 	[RDMA_NLDEV_ATTR_DEV_NAME] = MNL_TYPE_NUL_STRING,
+@@ -181,6 +392,7 @@ void rd_free(struct rd *rd)
+ 		return;
+ 	free(rd->buff);
+ 	dev_map_cleanup(rd);
++	filters_cleanup(rd);
+ }
+ 
+ int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd), bool strict_port)
 -- 
 2.15.1
