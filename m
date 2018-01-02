@@ -1,44 +1,70 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [PATCH net 0/2] IB/ipoib: ip link support
-Date: Tue, 2 Jan 2018 11:15:52 +0200
-Message-ID: <CAJ3xEMj2f-Eg4eGmuv0o5d25SytX07T5sCshYVV49whw+Wax1w@mail.gmail.com>
-References: <1514718983-466-1-git-send-email-denisd@mellanox.com>
- <CAJ3xEMiVHc=E7=uKJ4cRRRDxjNDRKQ17=NxnYsEeXNe6-RUvvQ@mail.gmail.com>
- <CAJ3xEMiRGpwp8NVdjm9ozTswer_YRP3uvjV5bUFg7cQ7Jh97vw@mail.gmail.com> <CAAk-MO-J3-9zy8vZ2pFs33Nbo22zLm1gW2qqCm2EejE=S8xxuA@mail.gmail.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 02/15] net/mlx5: Set software owner ID during
+ init HCA
+Date: Tue, 2 Jan 2018 11:34:03 +0200
+Message-ID: <CAJ3xEMixQ-Tw9gUYYPhNLvrEbntNTQBvLcVUe+x130hkEq15Bg@mail.gmail.com>
+References: <20171224125741.25464-1-leon@kernel.org> <20171224125741.25464-3-leon@kernel.org>
+ <CAJ3xEMiq-4DGFW-Z3hX3NfsSGXD6bm_uarGF_cm6K7+YuutJBQ@mail.gmail.com> <b329f348-2462-2bf4-ee06-064e798c9b86@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAAk-MO-J3-9zy8vZ2pFs33Nbo22zLm1gW2qqCm2EejE=S8xxuA@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Erez Shitrit <erezsh@dev.mellanox.co.il>
-Cc: Denis Drozdov <denisd@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, David Miller <davem@davemloft.net>, RDMA mailing list <linux-rdma@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <b329f348-2462-2bf4-ee06-064e798c9b86-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 2, 2018 at 10:44 AM, Erez Shitrit <erezsh@dev.mellanox.co.il> wrote:
-> On Tue, Jan 2, 2018 at 9:29 AM, Or Gerlitz <gerlitz.or@gmail.com> wrote:
->> On Sun, Dec 31, 2017 at 2:28 PM, Or Gerlitz <gerlitz.or@gmail.com> wrote:
->>> On Sun, Dec 31, 2017 at 1:16 PM, Denis Drozdov <denisd@mellanox.com> wrote:
->>>> IP link was broken due to the changes in IPoIB for the rdma_netdev
->>>> support after commit cd565b4b51e5
->>>> ("IB/IPoIB: Support acceleration options callbacks").
->>>
->>> you are approaching stable kernels, right? lets make sure dave is okay
->>> to pick the net (touching dev.c etc) patch to stable even if the
->>> offending patch didn't change anything there.
->>
->> Erez, Denis
->>
->> The offending commit went in 4.12-rc1, so the fix should be getting
->> a while back. RU sure you need the net/core patch to fix that up or
->> we can come up with ipoib only patch?
->
-> The preferred approach was to have 2 patches one for ipoib and one for core/net.
-> So, we can't with patch to ipoib only.
+On Wed, Dec 27, 2017 at 5:27 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> On 12/24/2017 4:00 PM, Or Gerlitz wrote:
 
-going with your approach, you must sure that the 1st patch is also
-backportable all the way back to 4.12
+>>> @@ -5531,6 +5533,7 @@ struct mlx5_ifc_init_hca_in_bits {
+>>>         u8         op_mod[0x10];
+>>>
+>>>         u8         reserved_at_40[0x40];
+>>> +       u8         sw_owner_id[4][0x20];
+>>>  };
+
+>> can we do here just a plane addition of bits? don't have the code
+>> infront of me, but seems suspicious
+
+> I don't understand what you are asking.  This is what the tool generated.
+
+Dan, the tool is serving us and not the other way around, so
+
+before your changes we had:
+
+struct mlx5_ifc_init_hca_in_bits {
+        u8         opcode[0x10];
+        u8         reserved_at_10[0x10];
+
+        u8         reserved_at_20[0x10];
+        u8         op_mod[0x10];
+
+        u8         reserved_at_40[0x40];
+};
+
+and now we have a struct which is 128b bigger
+but is used for the same FW command
+
+struct mlx5_ifc_init_hca_in_bits {
+        u8         opcode[0x10];
+        u8         reserved_at_10[0x10];
+
+        u8         reserved_at_20[0x10];
+        u8         op_mod[0x10];
+
+        u8         reserved_at_40[0x40];
+
+        u8         sw_owner_id[16][0x8];
+};
+
+my question is if/why this is legal. Maybe I am wrong, but
+I don't think we can just go and change the size of the inbox
+payload for a command. Maybe there's another (silent) reserved
+space which is not present in the original form of the struct?
 
 Or.
-
-> Denis, the author of the patches is on new-year vacation, he will
-> close all the gaps as soon as he will be back.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
