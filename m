@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v2 4/6] IB/mlx5: Handle type IB_QPT_DRIVER when creating a QP
-Date: Tue,  2 Jan 2018 16:19:31 +0200
-Message-ID: <20180102141933.24353-5-leon@kernel.org>
+Subject: [PATCH rdma-next v2 6/6] IB/mlx5: Add support for DC target QP
+Date: Tue,  2 Jan 2018 16:19:33 +0200
+Message-ID: <20180102141933.24353-7-leon@kernel.org>
 References: <20180102141933.24353-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180102141933.24353-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,234 +12,359 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The QP type IB_QPT_DRIVER doesn't describe the transport or the service
-that the QP provides but those are known only to the hardware driver.
-The actual type of the QP is stored in the hardware driver context (i.e.
-mlx5_qp) under the field qp_sub_type.
+A DC Target (DCT) QP is represented in the hardware as a unique object.
+This object is created by CREATE_DCT command and destroyed by DESTROY_DCT
+command. However, in the driver we describe it as a QP.
 
-Take the real QP type and any extra data that is required to create the QP
-from the driver channel and modify the QP initial attributes before continuing
-with create_qp().
+The hardware command that creates a DCT needs parameters that the verb
+create_qp() does not provide. Those remaining parameters are provided
+with the call to the verb modify_qp(). Therefore we delay the actual
+creation of a DCT in the hardware until the stage of modify_qp() to RTR.
 
-Downstream patches from this series will add support for both DCI and
-DCT driver QPs.
+A support for query_qp() was added as well. It uses QUERY_DCT command to
+retrieve the applicable fields.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  10 ++++
- drivers/infiniband/hw/mlx5/qp.c      | 103 ++++++++++++++++++++++++++++++++++-
- include/uapi/rdma/mlx5-abi.h         |   7 ++-
- 3 files changed, 118 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    |  27 ++++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   2 +
+ drivers/infiniband/hw/mlx5/qp.c      | 186 ++++++++++++++++++++++++++++++++++-
+ include/uapi/rdma/mlx5-abi.h         |   5 +
+ 4 files changed, 217 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index b3f2f5cae672..6286992e1d39 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -206,6 +206,8 @@ struct mlx5_ib_flow_db {
-  * creates the actual hardware QP.
-  */
- #define MLX5_IB_QPT_HW_GSI	IB_QPT_RESERVED2
-+#define MLX5_IB_QPT_DCI		IB_QPT_RESERVED3
-+#define MLX5_IB_QPT_DCT		IB_QPT_RESERVED4
- #define MLX5_IB_WR_UMR		IB_WR_RESERVED1
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index b9e195d154b1..675144a20f95 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -436,11 +436,11 @@ static int mlx5_get_vport_access_method(struct ib_device *ibdev)
+ }
  
- #define MLX5_IB_UMR_OCTOWORD	       16
-@@ -366,12 +368,18 @@ struct mlx5_bf {
- 	struct mlx5_sq_bfreg   *bfreg;
- };
+ static void get_atomic_caps(struct mlx5_ib_dev *dev,
++			    u8 atomic_size_qp,
+ 			    struct ib_device_attr *props)
+ {
+ 	u8 tmp;
+ 	u8 atomic_operations = MLX5_CAP_ATOMIC(dev->mdev, atomic_operations);
+-	u8 atomic_size_qp = MLX5_CAP_ATOMIC(dev->mdev, atomic_size_qp);
+ 	u8 atomic_req_8B_endianness_mode =
+ 		MLX5_CAP_ATOMIC(dev->mdev, atomic_req_8B_endianness_mode);
  
-+struct mlx5_ib_dct {
-+	struct mlx5_core_dct    mdct;
-+	u32                     *in;
-+};
-+
- struct mlx5_ib_qp {
- 	struct ib_qp		ibqp;
- 	union {
- 		struct mlx5_ib_qp_trans trans_qp;
- 		struct mlx5_ib_raw_packet_qp raw_packet_qp;
- 		struct mlx5_ib_rss_qp rss_qp;
-+		struct mlx5_ib_dct dct;
- 	};
- 	struct mlx5_buf		buf;
- 
-@@ -410,6 +418,8 @@ struct mlx5_ib_qp {
- 	u32			rate_limit;
- 	u32                     underlay_qpn;
- 	bool			tunnel_offload_en;
-+	/* storage for qp sub type when core qp type is IB_QPT_DRIVER */
-+	enum ib_qp_type		qp_sub_type;
- };
- 
- struct mlx5_ib_cq_buf {
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 45b9aba599c8..f7f6fe618620 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -2115,20 +2115,108 @@ static const char *ib_qp_type_str(enum ib_qp_type type)
- 		return "IB_QPT_RAW_PACKET";
- 	case MLX5_IB_QPT_REG_UMR:
- 		return "MLX5_IB_QPT_REG_UMR";
-+	case IB_QPT_DRIVER:
-+		return "IB_QPT_DRIVER";
- 	case IB_QPT_MAX:
- 	default:
- 		return "Invalid QP type";
+@@ -457,6 +457,29 @@ static void get_atomic_caps(struct mlx5_ib_dev *dev,
  	}
  }
  
-+static struct ib_qp *mlx5_ib_create_dct(struct ib_pd *pd,
-+					struct ib_qp_init_attr *attr,
-+					struct mlx5_ib_create_qp *ucmd)
++static void get_atomic_caps_qp(struct mlx5_ib_dev *dev,
++			       struct ib_device_attr *props)
 +{
-+	struct mlx5_ib_dev *dev;
-+	struct mlx5_ib_qp *qp;
-+	int err = 0;
-+	u32 uidx = MLX5_IB_DEFAULT_UIDX;
-+	void *dctc;
++	u8 atomic_size_qp = MLX5_CAP_ATOMIC(dev->mdev, atomic_size_qp);
 +
-+	if (!attr->srq || !attr->recv_cq)
-+		return ERR_PTR(-EINVAL);
-+
-+	dev = to_mdev(pd->device);
-+
-+	err = get_qp_user_index(to_mucontext(pd->uobject->context),
-+				ucmd, sizeof(*ucmd), &uidx);
-+	if (err)
-+		return ERR_PTR(err);
-+
-+	qp = kzalloc(sizeof(*qp), GFP_KERNEL);
-+	if (!qp)
-+		return ERR_PTR(-ENOMEM);
-+
-+	qp->dct.in = kzalloc(MLX5_ST_SZ_BYTES(create_dct_in), GFP_KERNEL);
-+	if (!qp->dct.in) {
-+		err = -ENOMEM;
-+		goto err_free;
-+	}
-+
-+	dctc = MLX5_ADDR_OF(create_dct_in, qp->dct.in, dct_context_entry);
-+	qp->driver_qp_type = MLX5_IB_QPT_DCT;
-+	MLX5_SET(dctc, dctc, pd, to_mpd(pd)->pdn);
-+	MLX5_SET(dctc, dctc, srqn_xrqn, to_msrq(attr->srq)->msrq.srqn);
-+	MLX5_SET(dctc, dctc, cqn, to_mcq(attr->recv_cq)->mcq.cqn);
-+	MLX5_SET64(dctc, dctc, dc_access_key, ucmd->access_key);
-+	MLX5_SET(dctc, dctc, user_index, uidx);
-+
-+	qp->state = IB_QPS_RESET;
-+
-+	return &qp->ibqp;
-+err_free:
-+	kfree(qp);
-+	return ERR_PTR(err);
++	get_atomic_caps(dev, atomic_size_qp, props);
 +}
 +
-+static int set_mlx_qp_type(struct mlx5_ib_dev *dev,
-+			   struct ib_qp_init_attr *init_attr,
-+			   struct mlx5_ib_create_qp *ucmd,
-+			   struct ib_udata *udata)
++static void get_atomic_caps_dc(struct mlx5_ib_dev *dev,
++			       struct ib_device_attr *props)
 +{
-+	enum { MLX_QP_FLAGS = MLX5_QP_FLAG_TYPE_DCT | MLX5_QP_FLAG_TYPE_DCI };
-+	int err;
++	u8 atomic_size_qp = MLX5_CAP_ATOMIC(dev->mdev, atomic_size_dc);
 +
-+	if (!udata)
-+		return -EINVAL;
-+
-+	if (udata->inlen < sizeof(*ucmd)) {
-+		mlx5_ib_dbg(dev, "create_qp user command is smaller than expected\n");
-+		return -EINVAL;
-+	}
-+	err = ib_copy_from_udata(ucmd, udata, sizeof(*ucmd));
-+	if (err)
-+		return err;
-+
-+	if ((ucmd->flags & MLX_QP_FLAGS) == MLX5_QP_FLAG_TYPE_DCI) {
-+		init_attr->qp_type = MLX5_IB_QPT_DCI;
-+	} else {
-+		if ((ucmd->flags & MLX_QP_FLAGS) == MLX5_QP_FLAG_TYPE_DCT) {
-+			init_attr->qp_type = MLX5_IB_QPT_DCT;
-+		} else {
-+			mlx5_ib_dbg(dev, "Invalid QP flags\n");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	if (!MLX5_CAP_GEN(dev->mdev, dct)) {
-+		mlx5_ib_dbg(dev, "DC transport is not supported\n");
-+		return -EOPNOTSUPP;
-+	}
-+
-+	return 0;
++	get_atomic_caps(dev, atomic_size_qp, props);
 +}
 +
- struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
--				struct ib_qp_init_attr *init_attr,
-+				struct ib_qp_init_attr *verbs_init_attr,
- 				struct ib_udata *udata)
++bool mlx5_ib_dc_atomic_is_supported(struct mlx5_ib_dev *dev)
++{
++	struct ib_device_attr props = {};
++
++	get_atomic_caps_dc(dev, &props);
++	return (props.atomic_cap == IB_ATOMIC_HCA) ? true : false;
++}
+ static int mlx5_query_system_image_guid(struct ib_device *ibdev,
+ 					__be64 *sys_image_guid)
  {
- 	struct mlx5_ib_dev *dev;
- 	struct mlx5_ib_qp *qp;
- 	u16 xrcdn = 0;
- 	int err;
-+	struct ib_qp_init_attr mlx_init_attr;
-+	struct ib_qp_init_attr *init_attr = verbs_init_attr;
+@@ -745,7 +768,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	props->max_srq_sge	   = max_rq_sg - 1;
+ 	props->max_fast_reg_page_list_len =
+ 		1 << MLX5_CAP_GEN(mdev, log_max_klm_list_size);
+-	get_atomic_caps(dev, props);
++	get_atomic_caps_qp(dev, props);
+ 	props->masked_atomic_cap   = IB_ATOMIC_NONE;
+ 	props->max_mcast_grp	   = 1 << MLX5_CAP_GEN(mdev, log_max_mcg);
+ 	props->max_mcast_qp_attach = MLX5_CAP_GEN(mdev, max_qp_mcg);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 6286992e1d39..57405cf8a5c5 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1002,6 +1002,8 @@ struct ib_rwq_ind_table *mlx5_ib_create_rwq_ind_table(struct ib_device *device,
+ 						      struct ib_rwq_ind_table_init_attr *init_attr,
+ 						      struct ib_udata *udata);
+ int mlx5_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *wq_ind_table);
++bool mlx5_ib_dc_atomic_is_supported(struct mlx5_ib_dev *dev);
++
  
- 	if (pd) {
- 		dev = to_mdev(pd->device);
-@@ -2153,6 +2241,16 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
- 		dev = to_mdev(to_mxrcd(init_attr->xrcd)->ibxrcd.device);
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+ void mlx5_ib_internal_fill_odp_caps(struct mlx5_ib_dev *dev);
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index be721f3a36c3..f59de13b657e 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2156,7 +2156,7 @@ static struct ib_qp *mlx5_ib_create_dct(struct ib_pd *pd,
  	}
  
-+	if (init_attr->qp_type == IB_QPT_DRIVER) {
-+		struct mlx5_ib_create_qp ucmd;
-+
-+		init_attr = &mlx_init_attr;
-+		memcpy(init_attr, verbs_init_attr, sizeof(*verbs_init_attr));
-+		err = set_mlx_qp_type(dev, init_attr, &ucmd, udata);
-+		if (err)
-+			return ERR_PTR(err);
-+	}
-+
- 	switch (init_attr->qp_type) {
- 	case IB_QPT_XRC_TGT:
- 	case IB_QPT_XRC_INI:
-@@ -2214,6 +2312,9 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
- 		return ERR_PTR(-EINVAL);
+ 	dctc = MLX5_ADDR_OF(create_dct_in, qp->dct.in, dct_context_entry);
+-	qp->driver_qp_type = MLX5_IB_QPT_DCT;
++	qp->qp_sub_type = MLX5_IB_QPT_DCT;
+ 	MLX5_SET(dctc, dctc, pd, to_mpd(pd)->pdn);
+ 	MLX5_SET(dctc, dctc, srqn_xrqn, to_msrq(attr->srq)->msrq.srqn);
+ 	MLX5_SET(dctc, dctc, cqn, to_mcq(attr->recv_cq)->mcq.cqn);
+@@ -2258,6 +2258,8 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
+ 				mlx5_ib_dbg(dev, "DCI QP requires zero size receive queue\n");
+ 				return ERR_PTR(-EINVAL);
+ 			}
++		} else {
++			return mlx5_ib_create_dct(pd, init_attr, &ucmd);
+ 		}
  	}
  
-+	if (verbs_init_attr->qp_type == IB_QPT_DRIVER)
-+		qp->qp_sub_type = init_attr->qp_type;
-+
+@@ -2329,6 +2331,25 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
  	return &qp->ibqp;
  }
  
++static int mlx5_ib_destroy_dct(struct mlx5_ib_qp *mqp)
++{
++	struct mlx5_ib_dev *dev = to_mdev(mqp->ibqp.device);
++
++	if (mqp->state == IB_QPS_RTR) {
++		int err;
++
++		err = mlx5_core_destroy_dct(dev->mdev, &mqp->dct.mdct);
++		if (err) {
++			mlx5_ib_warn(dev, "failed to destroy DCT %d\n", err);
++			return err;
++		}
++	}
++
++	kfree(mqp->dct.in);
++	kfree(mqp);
++	return 0;
++}
++
+ int mlx5_ib_destroy_qp(struct ib_qp *qp)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(qp->device);
+@@ -2337,6 +2358,9 @@ int mlx5_ib_destroy_qp(struct ib_qp *qp)
+ 	if (unlikely(qp->qp_type == IB_QPT_GSI))
+ 		return mlx5_ib_gsi_destroy_qp(qp);
+ 
++	if (mqp->qp_sub_type == MLX5_IB_QPT_DCT)
++		return mlx5_ib_destroy_dct(mqp);
++
+ 	destroy_qp_common(dev, mqp);
+ 
+ 	kfree(mqp);
+@@ -3181,6 +3205,95 @@ static bool modify_dci_qp_is_ok(enum ib_qp_state cur_state, enum ib_qp_state new
+ 	return false;
+ }
+ 
++/* mlx5_ib_modify_dct: modify a DCT QP
++ * valid transitions are:
++ * RESET to INIT: must set access_flags, pkey_index and port
++ * INIT  to RTR : must set min_rnr_timer, tclass, flow_label,
++ *			   mtu, gid_index and hop_limit
++ * Other transitions and attributes are illegal
++ */
++static int mlx5_ib_modify_dct(struct ib_qp *ibqp, struct ib_qp_attr *attr,
++			      int attr_mask, struct ib_udata *udata)
++{
++	struct mlx5_ib_qp *qp = to_mqp(ibqp);
++	struct mlx5_ib_dev *dev = to_mdev(ibqp->device);
++	enum ib_qp_state cur_state, new_state;
++	int err = 0;
++	int required = IB_QP_STATE;
++	void *dctc;
++
++	if (!(attr_mask & IB_QP_STATE))
++		return -EINVAL;
++
++	cur_state = qp->state;
++	new_state = attr->qp_state;
++
++	dctc = MLX5_ADDR_OF(create_dct_in, qp->dct.in, dct_context_entry);
++	if (cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT) {
++		required |= IB_QP_ACCESS_FLAGS | IB_QP_PKEY_INDEX | IB_QP_PORT;
++		if (!is_valid_mask(attr_mask, required, 0))
++			return -EINVAL;
++
++		if (attr->port_num == 0 ||
++		    attr->port_num > MLX5_CAP_GEN(dev->mdev, num_ports)) {
++			mlx5_ib_dbg(dev, "invalid port number %d. number of ports is %d\n",
++				    attr->port_num, dev->num_ports);
++			return -EINVAL;
++		}
++		if (attr->qp_access_flags & IB_ACCESS_REMOTE_READ)
++			MLX5_SET(dctc, dctc, rre, 1);
++		if (attr->qp_access_flags & IB_ACCESS_REMOTE_WRITE)
++			MLX5_SET(dctc, dctc, rwe, 1);
++		if (attr->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC) {
++			if (!mlx5_ib_dc_atomic_is_supported(dev))
++				return -EOPNOTSUPP;
++			MLX5_SET(dctc, dctc, rae, 1);
++			MLX5_SET(dctc, dctc, atomic_mode, MLX5_ATOMIC_MODE_DCT_CX);
++		}
++		MLX5_SET(dctc, dctc, pkey_index, attr->pkey_index);
++		MLX5_SET(dctc, dctc, port, attr->port_num);
++		MLX5_SET(dctc, dctc, counter_set_id, dev->port[attr->port_num - 1].cnts.set_id);
++
++	} else if (cur_state == IB_QPS_INIT && new_state == IB_QPS_RTR) {
++		struct mlx5_ib_modify_qp_resp resp = {};
++		u32 min_resp_len = offsetof(typeof(resp), dctn) +
++				   sizeof(resp.dctn);
++
++		if (udata->outlen < min_resp_len)
++			return -EINVAL;
++		resp.response_length = min_resp_len;
++
++		required |= IB_QP_MIN_RNR_TIMER | IB_QP_AV | IB_QP_PATH_MTU;
++		if (!is_valid_mask(attr_mask, required, 0))
++			return -EINVAL;
++		MLX5_SET(dctc, dctc, min_rnr_nak, attr->min_rnr_timer);
++		MLX5_SET(dctc, dctc, tclass, attr->ah_attr.grh.traffic_class);
++		MLX5_SET(dctc, dctc, flow_label, attr->ah_attr.grh.flow_label);
++		MLX5_SET(dctc, dctc, mtu, attr->path_mtu);
++		MLX5_SET(dctc, dctc, my_addr_index, attr->ah_attr.grh.sgid_index);
++		MLX5_SET(dctc, dctc, hop_limit, attr->ah_attr.grh.hop_limit);
++
++		err = mlx5_core_create_dct(dev->mdev, &qp->dct.mdct, qp->dct.in,
++					   MLX5_ST_SZ_BYTES(create_dct_in));
++		if (err)
++			return err;
++		resp.dctn = qp->dct.mdct.mqp.qpn;
++		err = ib_copy_to_udata(udata, &resp, resp.response_length);
++		if (err) {
++			mlx5_core_destroy_dct(dev->mdev, &qp->dct.mdct);
++			return err;
++		}
++	} else {
++		mlx5_ib_warn(dev, "Modify DCT: Invalid transition from %d to %d\n", cur_state, new_state);
++		return -EINVAL;
++	}
++	if (err)
++		qp->state = IB_QPS_ERR;
++	else
++		qp->state = new_state;
++	return err;
++}
++
+ int mlx5_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		      int attr_mask, struct ib_udata *udata)
+ {
+@@ -3204,6 +3317,8 @@ int mlx5_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		qp_type = (unlikely(ibqp->qp_type == MLX5_IB_QPT_HW_GSI)) ?
+ 			IB_QPT_GSI : ibqp->qp_type;
+ 
++	if (qp_type == MLX5_IB_QPT_DCT)
++		return mlx5_ib_modify_dct(ibqp, attr, attr_mask, udata);
+ 
+ 	mutex_lock(&qp->mutex);
+ 
+@@ -4775,6 +4890,71 @@ static int query_qp_attr(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	return err;
+ }
+ 
++static int mlx5_ib_dct_query_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *mqp,
++				struct ib_qp_attr *qp_attr, int qp_attr_mask,
++				struct ib_qp_init_attr *qp_init_attr)
++{
++	struct mlx5_core_dct	*dct = &mqp->dct.mdct;
++	u32 *out;
++	u32 access_flags = 0;
++	int outlen = MLX5_ST_SZ_BYTES(query_dct_out);
++	void *dctc;
++	int err;
++	int supported_mask = IB_QP_STATE |
++			     IB_QP_ACCESS_FLAGS |
++			     IB_QP_PORT |
++			     IB_QP_MIN_RNR_TIMER |
++			     IB_QP_AV |
++			     IB_QP_PATH_MTU |
++			     IB_QP_PKEY_INDEX;
++
++	if (qp_attr_mask & ~supported_mask)
++		return -EINVAL;
++	if (mqp->state != IB_QPS_RTR)
++		return -EINVAL;
++
++	out = kzalloc(outlen, GFP_KERNEL);
++	if (!out)
++		return -ENOMEM;
++
++	err = mlx5_core_dct_query(dev->mdev, dct, out, outlen);
++	if (err)
++		goto out;
++
++	dctc = MLX5_ADDR_OF(query_dct_out, out, dct_context_entry);
++
++	if (qp_attr_mask & IB_QP_STATE)
++		qp_attr->qp_state = IB_QPS_RTR;
++
++	if (qp_attr_mask & IB_QP_ACCESS_FLAGS) {
++		if (MLX5_GET(dctc, dctc, rre))
++			access_flags |= IB_ACCESS_REMOTE_READ;
++		if (MLX5_GET(dctc, dctc, rwe))
++			access_flags |= IB_ACCESS_REMOTE_WRITE;
++		if (MLX5_GET(dctc, dctc, rae))
++			access_flags |= IB_ACCESS_REMOTE_ATOMIC;
++		qp_attr->qp_access_flags = access_flags;
++	}
++
++	if (qp_attr_mask & IB_QP_PORT)
++		qp_attr->port_num = MLX5_GET(dctc, dctc, port);
++	if (qp_attr_mask & IB_QP_MIN_RNR_TIMER)
++		qp_attr->min_rnr_timer = MLX5_GET(dctc, dctc, min_rnr_nak);
++	if (qp_attr_mask & IB_QP_AV) {
++		qp_attr->ah_attr.grh.traffic_class = MLX5_GET(dctc, dctc, tclass);
++		qp_attr->ah_attr.grh.flow_label = MLX5_GET(dctc, dctc, flow_label);
++		qp_attr->ah_attr.grh.sgid_index = MLX5_GET(dctc, dctc, my_addr_index);
++		qp_attr->ah_attr.grh.hop_limit = MLX5_GET(dctc, dctc, hop_limit);
++	}
++	if (qp_attr_mask & IB_QP_PATH_MTU)
++		qp_attr->path_mtu = MLX5_GET(dctc, dctc, mtu);
++	if (qp_attr_mask & IB_QP_PKEY_INDEX)
++		qp_attr->pkey_index = MLX5_GET(dctc, dctc, pkey_index);
++out:
++	kfree(out);
++	return err;
++}
++
+ int mlx5_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+ 		     int qp_attr_mask, struct ib_qp_init_attr *qp_init_attr)
+ {
+@@ -4794,6 +4974,10 @@ int mlx5_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+ 	memset(qp_init_attr, 0, sizeof(*qp_init_attr));
+ 	memset(qp_attr, 0, sizeof(*qp_attr));
+ 
++	if (unlikely(qp->qp_sub_type == MLX5_IB_QPT_DCT))
++		return mlx5_ib_dct_query_qp(dev, qp, qp_attr,
++					    qp_attr_mask, qp_init_attr);
++
+ 	mutex_lock(&qp->mutex);
+ 
+ 	if (qp->ibqp.qp_type == IB_QPT_RAW_PACKET ||
 diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-index 0f7e45680ce5..83bde975d3f9 100644
+index 83bde975d3f9..f6d319dfc7bf 100644
 --- a/include/uapi/rdma/mlx5-abi.h
 +++ b/include/uapi/rdma/mlx5-abi.h
-@@ -42,6 +42,8 @@ enum {
- 	MLX5_QP_FLAG_SCATTER_CQE	= 1 << 1,
- 	MLX5_QP_FLAG_TUNNEL_OFFLOADS	= 1 << 2,
- 	MLX5_QP_FLAG_BFREG_INDEX	= 1 << 3,
-+	MLX5_QP_FLAG_TYPE_DCT		= 1 << 4,
-+	MLX5_QP_FLAG_TYPE_DCI		= 1 << 5,
+@@ -362,6 +362,11 @@ struct mlx5_ib_create_ah_resp {
+ 	__u8	reserved[6];
  };
  
- enum {
-@@ -284,7 +286,10 @@ struct mlx5_ib_create_qp {
- 	__u32	flags;
- 	__u32	uidx;
- 	__u32	bfreg_index;
--	__u64	sq_buf_addr;
-+	union {
-+		__u64	sq_buf_addr;
-+		__u64	access_key;
-+	};
- };
- 
- /* RX Hash function flags */
++struct mlx5_ib_modify_qp_resp {
++	__u32	response_length;
++	__u32	dctn;
++};
++
+ struct mlx5_ib_create_wq_resp {
+ 	__u32	response_length;
+ 	__u32	reserved;
 -- 
 2.15.1
 
