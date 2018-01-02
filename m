@@ -1,374 +1,105 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V4 for-next 1/6] RDMA/hns: Add rq inline data support for
- hip08 RoCE
-Date: Tue, 2 Jan 2018 15:05:05 +0200
-Message-ID: <20180102130505.GE10145@mtr-leonro.local>
-References: <1514897371-52553-1-git-send-email-oulijun@huawei.com>
- <1514897371-52553-2-git-send-email-oulijun@huawei.com>
+From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] RDMA/core: Add encode/decode FDR/EDR rates
+Date: Tue,  2 Jan 2018 14:50:40 +0100
+Message-ID: <20180102135040.5243-1-Haakon.Bugge@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="fXStkuK2IQBfcDe+"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1514897371-52553-2-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, aron.silverton-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
---fXStkuK2IQBfcDe+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The cases for FDR/EDR signalling speed, were missing in
+ib_rate_to_mult and mult_to_ib_rate giving wrong return values when
+drivers convert static rate to/from inter-packet-delay.
 
-On Tue, Jan 02, 2018 at 08:49:26PM +0800, Lijun Ou wrote:
-> This patch mainly implement rq inline data feature for hip08
-> RoCE in kernel mode.
->
-> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> ---
-> V3->V4:
-> - Fix the comment given by Jason Gunthorpe
->
-> V2->V3:
-> - Delete unnessary judgment after kfree.
-> - Use kcalloc instead of kmalloc_array
->
-> V1->V2
-> - Fix the comments according to Leon Romanovsky's reviews
-> - Add two signed-off
->
-> V1:
-> - The initial submit
-> ---
->  drivers/infiniband/hw/hns/hns_roce_device.h | 18 ++++++++
->  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 64 ++++++++++++++++++++++++++++-
->  drivers/infiniband/hw/hns/hns_roce_qp.c     | 50 ++++++++++++++++++----
->  3 files changed, 124 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-> index dcfd209..8d123d3 100644
-> --- a/drivers/infiniband/hw/hns/hns_roce_device.h
-> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-> @@ -178,6 +178,7 @@ enum {
->  enum {
->  	HNS_ROCE_CAP_FLAG_REREG_MR		= BIT(0),
->  	HNS_ROCE_CAP_FLAG_ROCE_V1_V2		= BIT(1),
-> +	HNS_ROCE_CAP_FLAG_RQ_INLINE		= BIT(2)
->  };
->
->  enum hns_roce_mtt_type {
-> @@ -446,6 +447,21 @@ struct hns_roce_cmd_mailbox {
->
->  struct hns_roce_dev;
->
-> +struct hns_roce_rinl_sge {
-> +	void			*addr;
-> +	u32			len;
-> +};
-> +
-> +struct hns_roce_rinl_wqe {
-> +	struct hns_roce_rinl_sge *sg_list;
-> +	u32			 sge_cnt;
-> +};
-> +
-> +struct hns_roce_rinl_buf {
-> +	struct hns_roce_rinl_wqe *wqe_list;
-> +	u32			 wqe_cnt;
-> +};
-> +
->  struct hns_roce_qp {
->  	struct ib_qp		ibqp;
->  	struct hns_roce_buf	hr_buf;
-> @@ -477,6 +493,8 @@ struct hns_roce_qp {
->
->  	struct hns_roce_sge	sge;
->  	u32			next_sge;
-> +
-> +	struct hns_roce_rinl_buf rq_inl_buf;
->  };
->
->  struct hns_roce_sqp {
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> index 4d3e976..5be4356 100644
-> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> @@ -299,6 +299,7 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
->  	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
->  	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
->  	struct hns_roce_v2_wqe_data_seg *dseg;
-> +	struct hns_roce_rinl_sge *sge_list;
->  	struct device *dev = hr_dev->dev;
->  	struct hns_roce_v2_db rq_db;
->  	unsigned long flags;
-> @@ -347,6 +348,14 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
->  			dseg[i].addr = 0;
->  		}
->
-> +		/* rq support inline data */
-> +		sge_list = hr_qp->rq_inl_buf.wqe_list[ind].sg_list;
-> +		hr_qp->rq_inl_buf.wqe_list[ind].sge_cnt = (u32)wr->num_sge;
-> +		for (i = 0; i < wr->num_sge; i++) {
-> +			sge_list[i].addr = (void *)(u64)wr->sg_list[i].addr;
-> +			sge_list[i].len = wr->sg_list[i].length;
-> +		}
-> +
->  		hr_qp->rq.wrid[ind] = wr->wr_id;
->
->  		ind = (ind + 1) & (hr_qp->rq.wqe_cnt - 1);
-> @@ -961,7 +970,8 @@ static int hns_roce_v2_profile(struct hns_roce_dev *hr_dev)
->  	caps->chunk_sz		= HNS_ROCE_V2_TABLE_CHUNK_SIZE;
->
->  	caps->flags		= HNS_ROCE_CAP_FLAG_REREG_MR |
-> -				  HNS_ROCE_CAP_FLAG_ROCE_V1_V2;
-> +				  HNS_ROCE_CAP_FLAG_ROCE_V1_V2 |
-> +				  HNS_ROCE_CAP_FLAG_RQ_INLINE;
->  	caps->pkey_table_len[0] = 1;
->  	caps->gid_table_len[0] = HNS_ROCE_V2_GID_INDEX_NUM;
->  	caps->ceqe_depth	= HNS_ROCE_V2_COMP_EQE_NUM;
-> @@ -1473,6 +1483,40 @@ static int hns_roce_v2_req_notify_cq(struct ib_cq *ibcq,
->  	return 0;
->  }
->
-> +static int hns_roce_handle_recv_inl_wqe(struct hns_roce_v2_cqe *cqe,
-> +						    struct hns_roce_qp **cur_qp,
-> +						    struct ib_wc *wc)
-> +{
-> +	struct hns_roce_rinl_sge *sge_list;
-> +	u32 wr_num, wr_cnt, sge_num;
-> +	u32 sge_cnt, data_len, size;
-> +	void *wqe_buf;
-> +
-> +	wr_num = roce_get_field(cqe->byte_4, V2_CQE_BYTE_4_WQE_INDX_M,
-> +				V2_CQE_BYTE_4_WQE_INDX_S) & 0xffff;
-> +	wr_cnt = wr_num & ((*cur_qp)->rq.wqe_cnt - 1);
-> +
-> +	sge_list = (*cur_qp)->rq_inl_buf.wqe_list[wr_cnt].sg_list;
-> +	sge_num = (*cur_qp)->rq_inl_buf.wqe_list[wr_cnt].sge_cnt;
-> +	wqe_buf = get_recv_wqe(*cur_qp, wr_cnt);
-> +	data_len = wc->byte_len;
-> +
-> +	for (sge_cnt = 0; (sge_cnt < sge_num) && (data_len); sge_cnt++) {
-> +		size = min(sge_list[sge_cnt].len, data_len);
-> +		memcpy((void *)sge_list[sge_cnt].addr, wqe_buf, size);
-> +
-> +		data_len -= size;
-> +		wqe_buf += size;
-> +	}
-> +
-> +	if (data_len) {
-> +		wc->status = IB_WC_LOC_LEN_ERR;
-> +		return -EAGAIN;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
->  				struct hns_roce_qp **cur_qp, struct ib_wc *wc)
->  {
-> @@ -1485,6 +1529,7 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
->  	u32 opcode;
->  	u32 status;
->  	int qpn;
-> +	int ret;
->
->  	/* Find cqe according to consumer index */
->  	cqe = next_cqe_sw_v2(hr_cq);
-> @@ -1673,6 +1718,17 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
->  			break;
->  		}
->
-> +		if ((wc->qp->qp_type == IB_QPT_RC ||
-> +		     wc->qp->qp_type == IB_QPT_UC) &&
-> +		    (opcode == HNS_ROCE_V2_OPCODE_SEND ||
-> +		    opcode == HNS_ROCE_V2_OPCODE_SEND_WITH_IMM ||
-> +		    opcode == HNS_ROCE_V2_OPCODE_SEND_WITH_INV) &&
-> +		    (roce_get_bit(cqe->byte_4, V2_CQE_BYTE_4_RQ_INLINE_S))) {
-> +			ret = hns_roce_handle_recv_inl_wqe(cqe, cur_qp, wc);
-> +			if (ret)
-> +				return -EAGAIN;
-> +		}
-> +
->  		/* Update tail pointer, record wr_id */
->  		wq = &(*cur_qp)->rq;
->  		wc->wr_id = wq->wrid[wq->tail & (wq->wqe_cnt - 1)];
-> @@ -1972,6 +2028,7 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
->  		     !!(attr->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC));
->  	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S, 0);
->
-> +	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S, 1);
->  	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S, 0);
->
->  	roce_set_field(context->byte_80_rnr_rx_cqn, V2_QPC_BYTE_80_RX_CQN_M,
-> @@ -3114,6 +3171,11 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
->  		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
->  	}
->
-> +	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) {
-> +		kfree(hr_qp->rq_inl_buf.wqe_list[0].sg_list);
-> +		kfree(hr_qp->rq_inl_buf.wqe_list);
-> +	}
-> +
->  	return 0;
->  }
->
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-> index 69e2584..a98965a 100644
-> --- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-> +++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-> @@ -494,6 +494,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
->  	int ret = 0;
->  	u32 page_shift;
->  	u32 npages;
-> +	int i;
->
->  	mutex_init(&hr_qp->mutex);
->  	spin_lock_init(&hr_qp->sq.lock);
-> @@ -513,18 +514,44 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
->  		goto err_out;
->  	}
->
-> +	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) {
-> +		/* allocate recv inline buf */
-> +		hr_qp->rq_inl_buf.wqe_list = kcalloc(hr_qp->rq.wqe_cnt,
-> +					       sizeof(struct hns_roce_rinl_wqe),
-> +					       GFP_KERNEL);
-> +		if (!hr_qp->rq_inl_buf.wqe_list)
-> +			goto err_out;
+Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/core/verbs.c | 56 ++++++++++++++++++++++++++---------------
+ 1 file changed, 36 insertions(+), 20 deletions(-)
 
-You are returning ret here, and it was initialized to 0. it means the
-caller to hns_roce_create_qp_common will think that the call is successful.
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 3fb8fb6cc824..c4152b7ff337 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -124,16 +124,24 @@ EXPORT_SYMBOL(ib_wc_status_msg);
+ __attribute_const__ int ib_rate_to_mult(enum ib_rate rate)
+ {
+ 	switch (rate) {
+-	case IB_RATE_2_5_GBPS: return  1;
+-	case IB_RATE_5_GBPS:   return  2;
+-	case IB_RATE_10_GBPS:  return  4;
+-	case IB_RATE_20_GBPS:  return  8;
+-	case IB_RATE_30_GBPS:  return 12;
+-	case IB_RATE_40_GBPS:  return 16;
+-	case IB_RATE_60_GBPS:  return 24;
+-	case IB_RATE_80_GBPS:  return 32;
+-	case IB_RATE_120_GBPS: return 48;
+-	default:	       return -1;
++	case IB_RATE_2_5_GBPS: return   1;
++	case IB_RATE_5_GBPS:   return   2;
++	case IB_RATE_10_GBPS:  return   4;
++	case IB_RATE_20_GBPS:  return   8;
++	case IB_RATE_30_GBPS:  return  12;
++	case IB_RATE_40_GBPS:  return  16;
++	case IB_RATE_60_GBPS:  return  24;
++	case IB_RATE_80_GBPS:  return  32;
++	case IB_RATE_120_GBPS: return  48;
++	case IB_RATE_14_GBPS:  return   6;
++	case IB_RATE_56_GBPS:  return  22;
++	case IB_RATE_112_GBPS: return  45;
++	case IB_RATE_168_GBPS: return  67;
++	case IB_RATE_25_GBPS:  return  10;
++	case IB_RATE_100_GBPS: return  40;
++	case IB_RATE_200_GBPS: return  80;
++	case IB_RATE_300_GBPS: return 120;
++	default:	       return  -1;
+ 	}
+ }
+ EXPORT_SYMBOL(ib_rate_to_mult);
+@@ -141,16 +149,24 @@ EXPORT_SYMBOL(ib_rate_to_mult);
+ __attribute_const__ enum ib_rate mult_to_ib_rate(int mult)
+ {
+ 	switch (mult) {
+-	case 1:  return IB_RATE_2_5_GBPS;
+-	case 2:  return IB_RATE_5_GBPS;
+-	case 4:  return IB_RATE_10_GBPS;
+-	case 8:  return IB_RATE_20_GBPS;
+-	case 12: return IB_RATE_30_GBPS;
+-	case 16: return IB_RATE_40_GBPS;
+-	case 24: return IB_RATE_60_GBPS;
+-	case 32: return IB_RATE_80_GBPS;
+-	case 48: return IB_RATE_120_GBPS;
+-	default: return IB_RATE_PORT_CURRENT;
++	case 1:   return IB_RATE_2_5_GBPS;
++	case 2:   return IB_RATE_5_GBPS;
++	case 4:   return IB_RATE_10_GBPS;
++	case 8:   return IB_RATE_20_GBPS;
++	case 12:  return IB_RATE_30_GBPS;
++	case 16:  return IB_RATE_40_GBPS;
++	case 24:  return IB_RATE_60_GBPS;
++	case 32:  return IB_RATE_80_GBPS;
++	case 48:  return IB_RATE_120_GBPS;
++	case 6:   return IB_RATE_14_GBPS;
++	case 22:  return IB_RATE_56_GBPS;
++	case 45:  return IB_RATE_112_GBPS;
++	case 67:  return IB_RATE_168_GBPS;
++	case 10:  return IB_RATE_25_GBPS;
++	case 40:  return IB_RATE_100_GBPS;
++	case 80:  return IB_RATE_200_GBPS;
++	case 120: return IB_RATE_300_GBPS;
++	default:  return IB_RATE_PORT_CURRENT;
+ 	}
+ }
+ EXPORT_SYMBOL(mult_to_ib_rate);
+-- 
+2.13.6
 
-> +
-> +		hr_qp->rq_inl_buf.wqe_cnt = hr_qp->rq.wqe_cnt;
-> +
-> +		/* Firstly, allocate a list of sge space buffer */
-> +		hr_qp->rq_inl_buf.wqe_list[0].sg_list =
-> +					kcalloc(hr_qp->rq_inl_buf.wqe_cnt,
-> +					       init_attr->cap.max_recv_sge *
-> +					       sizeof(struct hns_roce_rinl_sge),
-> +					       GFP_KERNEL);
-> +		if (!hr_qp->rq_inl_buf.wqe_list[0].sg_list)
-> +			goto err_wqe_list;
-
-ditto
-
-> +
-> +		for (i = 1; i < hr_qp->rq_inl_buf.wqe_cnt; i++)
-> +			/* Secondly, reallocate the buffer */
-> +			hr_qp->rq_inl_buf.wqe_list[i].sg_list =
-> +				&hr_qp->rq_inl_buf.wqe_list[0].sg_list[i *
-> +				init_attr->cap.max_recv_sge];
-> +	}
-> +
->  	if (ib_pd->uobject) {
->  		if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
->  			dev_err(dev, "ib_copy_from_udata error for create qp\n");
->  			ret = -EFAULT;
-> -			goto err_out;
-> +			goto err_rq_sge_list;
->  		}
->
->  		ret = hns_roce_set_user_sq_size(hr_dev, &init_attr->cap, hr_qp,
->  						&ucmd);
->  		if (ret) {
->  			dev_err(dev, "hns_roce_set_user_sq_size error for create qp\n");
-> -			goto err_out;
-> +			goto err_rq_sge_list;
->  		}
->
->  		hr_qp->umem = ib_umem_get(ib_pd->uobject->context,
-> @@ -533,7 +560,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
->  		if (IS_ERR(hr_qp->umem)) {
->  			dev_err(dev, "ib_umem_get error for create qp\n");
->  			ret = PTR_ERR(hr_qp->umem);
-> -			goto err_out;
-> +			goto err_rq_sge_list;
->  		}
->
->  		hr_qp->mtt.mtt_type = MTT_TYPE_WQE;
-> @@ -567,13 +594,13 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
->  		    IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK) {
->  			dev_err(dev, "init_attr->create_flags error!\n");
->  			ret = -EINVAL;
-> -			goto err_out;
-> +			goto err_rq_sge_list;
->  		}
->
->  		if (init_attr->create_flags & IB_QP_CREATE_IPOIB_UD_LSO) {
->  			dev_err(dev, "init_attr->create_flags error!\n");
->  			ret = -EINVAL;
-> -			goto err_out;
-> +			goto err_rq_sge_list;
->  		}
->
->  		/* Set SQ size */
-> @@ -581,7 +608,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
->  						  hr_qp);
->  		if (ret) {
->  			dev_err(dev, "hns_roce_set_kernel_sq_size error!\n");
-> -			goto err_out;
-> +			goto err_rq_sge_list;
->  		}
->
->  		/* QP doorbell register address */
-> @@ -597,7 +624,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
->  				       &hr_qp->hr_buf, page_shift)) {
->  			dev_err(dev, "hns_roce_buf_alloc error!\n");
->  			ret = -ENOMEM;
-> -			goto err_out;
-> +			goto err_rq_sge_list;
->  		}
->
->  		hr_qp->mtt.mtt_type = MTT_TYPE_WQE;
-> @@ -679,6 +706,15 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
->  	else
->  		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
->
-> +err_rq_sge_list:
-> +	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE)
-> +		if (hr_qp->rq_inl_buf.wqe_list)
-> +			kfree(hr_qp->rq_inl_buf.wqe_list[0].sg_list);
-> +
-> +err_wqe_list:
-> +	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE)
-> +		kfree(hr_qp->rq_inl_buf.wqe_list);
-> +
->  err_out:
->  	return ret;
->  }
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---fXStkuK2IQBfcDe+
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpLg4AACgkQ5GN7iDZy
-WKdKOxAAlr98c4PBKSLsYTERceUwdEYQHF8QLKZUlpg9Y7fQWQ1+LxPWZ2ZH5am2
-ZwmZbIXo3h6ZDVkuf/tCuNoqlHA3JV3Bn7II7kYS1gP6LnVF+G+9oOCBZIuHT7te
-dz72cPrq3q7RZM8//5hukNeHf8VuDUFdbgXJ8qaF4N/ScODEbqaj/ZPgPLSrJXmV
-A7bcX9+O74z2ooEZPlRMFLBU80LzEi4Z2gu+IEr1+XnZjzV616cZ5H+0neL6FGz4
-gtVsBlmIycGIGCbsCm2GZT/J0s01Lgksb6wftSJvxiOKGNz48hUtiMXVoTHltjBb
-yTjWPsTBhW+GU104TAIPPmSgONIKgyynVcSRQGo4hNXTVIfBfDcZANi1iAhEUKth
-W9bNN25V1i4vIt/w6Dr9kp3tlRTNb3ipVA+4OiI3DIGjDWiI4B0vtI9KC2Nt4NRc
-hCC+kYQj7sGpHJJy5mAkxVBAPTGzEVPIkdSrkyoaMKD5wvlSqGZyxkaxoPhDi9G8
-d0nX7bSF66RLO96vwInegbZk/7QpvBRbWlqcFS/Cg/BySSANdJZK22RN+mqePpQy
-JnpfCaY6/Y3KQmD7NXOg+t3S8K4phXOemfmQ05JFvohqeIbwOvQ40na183vX5ZYc
-m/OMwG8UVc3tFP+ZNa17SElG39aS0HuLQIhGfEH2FLen/6qsgCw=
-=Lp4D
------END PGP SIGNATURE-----
-
---fXStkuK2IQBfcDe+--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
