@@ -1,32 +1,56 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 0/2] RDMA fixes 2017-12-31
-Date: Tue, 2 Jan 2018 11:19:16 -0700
-Message-ID: <20180102181916.GA17215@ziepe.ca>
-References: <20171231133315.28801-1-leon@kernel.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v4 net-next 0/4] qed*: Advance to FW 8.33.1.0
+Date: Tue, 02 Jan 2018 13:58:36 -0500 (EST)
+Message-ID: <20180102.135836.317444223426222615.davem@davemloft.net>
+References: <1514395808-16916-1-git-send-email-Tomer.Tayar@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171231133315.28801-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Nitzan Carmi <nitzanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1514395808-16916-1-git-send-email-Tomer.Tayar@cavium.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Tomer.Tayar@cavium.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 31, 2017 at 03:33:13PM +0200, Leon Romanovsky wrote:
-> Hi,
+From: Tomer Tayar <Tomer.Tayar@cavium.com>
+Date: Wed, 27 Dec 2017 19:30:04 +0200
+
+> This series advances all qed* drivers to use firmware 8.33.1.0 which brings
+> new capabilities and initial support of new HW. The changes are mostly in
+> qed, and include changes in the FW interface files, as well as updating the
+> FW initialization and debug collection code. The protocol drivers have
+> minor functional changes for this firmware.
 > 
-> There are two small fixes, one fix to mlx4_ib_alloc_mr error flow, very
-> similar to commit 45e6ae7ef21b ("IB/mlx5: Fix mlx5_ib_alloc_mr error
-> flow") and another fix to race condition in IPoIB revealed by Enhanced
-> IPoIB tests.
+> Patch 1 Rearranges and refactors the FW interface files in preparation of
+> the new FW (no functional change).
+> Patch 2 Prepares the code for support of new HW (no functional change).
+> Patch 3 Actual utilization of the new FW.
+> Patch 4 Advances drivers' version.
+> 
+> v3->v4:
+> Fix a compilation issue which was reported by krobot (dependency on CRC8).
+> 
+> v2->v3:
+> Resend the series with a fixed title in the cover letter.
+> 
+> v1->v2:
+> - Break the previous single patch into several patches.
+> - Fix compilation issues which were reported by krobot.
 
-Applied to for-rc
+I'm going to apply this, however....
 
-Thanks
+These firmware update changes are rediculously invasive.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Backporting patches through these updates will be a giant task if not
+impossible for anyone who tries to do something like this.
+
+Who reviewed these changes outside of Cavium to look for clerical
+and typographical errors?  I be nobody did.  I personally scanned
+them for about 20 minutes.
+
+Therefore, it is my judgment that the way firmware support updates are
+done in the QED driver is detrimental to it's long term
+maintainability.
+
+Thank you.
