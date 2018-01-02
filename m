@@ -1,110 +1,90 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 02/15] net/mlx5: Set software owner ID during
- init HCA
-Date: Tue, 2 Jan 2018 12:10:51 +0200
-Message-ID: <20180102101051.GB10145@mtr-leonro.local>
-References: <20171224125741.25464-1-leon@kernel.org>
- <20171224125741.25464-3-leon@kernel.org>
- <CAJ3xEMiq-4DGFW-Z3hX3NfsSGXD6bm_uarGF_cm6K7+YuutJBQ@mail.gmail.com>
- <b329f348-2462-2bf4-ee06-064e798c9b86@mellanox.com>
- <CAJ3xEMixQ-Tw9gUYYPhNLvrEbntNTQBvLcVUe+x130hkEq15Bg@mail.gmail.com>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V4 for-next 2/6] RDMA/hns: Update the usage of sr_max and rr_max field
+Date: Tue, 2 Jan 2018 20:49:27 +0800
+Message-ID: <1514897371-52553-3-git-send-email-oulijun@huawei.com>
+References: <1514897371-52553-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="H1spWtNR+x+ondvy"
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMixQ-Tw9gUYYPhNLvrEbntNTQBvLcVUe+x130hkEq15Bg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1514897371-52553-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+This patch fixes the usage with sr_max filed and rr_max of qp
+context when modify qp. Its modifications include:
+1. Adjust location of filling sr_max filed of qpc
+2. Only assign the number of responder resource if
+   IB_QP_MAX_DEST_RD_ATOMIC bit is set
+3. Only assign the number of outstanding resource if
+   IB_QP_MAX_QP_RD_ATOMIC
+4. Fix the assgin algorithms for the field of sr_max
+   and rr_max of qp context
 
---H1spWtNR+x+ondvy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
 
-On Tue, Jan 02, 2018 at 11:34:03AM +0200, Or Gerlitz wrote:
-> On Wed, Dec 27, 2017 at 5:27 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> > On 12/24/2017 4:00 PM, Or Gerlitz wrote:
->
-> >>> @@ -5531,6 +5533,7 @@ struct mlx5_ifc_init_hca_in_bits {
-> >>>         u8         op_mod[0x10];
-> >>>
-> >>>         u8         reserved_at_40[0x40];
-> >>> +       u8         sw_owner_id[4][0x20];
-> >>>  };
->
-> >> can we do here just a plane addition of bits? don't have the code
-> >> infront of me, but seems suspicious
->
-> > I don't understand what you are asking.  This is what the tool generated.
->
-> Dan, the tool is serving us and not the other way around, so
->
-> before your changes we had:
->
-> struct mlx5_ifc_init_hca_in_bits {
->         u8         opcode[0x10];
->         u8         reserved_at_10[0x10];
->
->         u8         reserved_at_20[0x10];
->         u8         op_mod[0x10];
->
->         u8         reserved_at_40[0x40];
-> };
->
-> and now we have a struct which is 128b bigger
-> but is used for the same FW command
->
-> struct mlx5_ifc_init_hca_in_bits {
->         u8         opcode[0x10];
->         u8         reserved_at_10[0x10];
->
->         u8         reserved_at_20[0x10];
->         u8         op_mod[0x10];
->
->         u8         reserved_at_40[0x40];
->
->         u8         sw_owner_id[16][0x8];
-> };
->
-> my question is if/why this is legal. Maybe I am wrong, but
-> I don't think we can just go and change the size of the inbox
-> payload for a command.
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 5be4356..3ade767 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2536,11 +2536,14 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 		roce_set_bit(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_LBI_S, 0);
+ 	}
+ 
+-	roce_set_field(context->byte_140_raq, V2_QPC_BYTE_140_RR_MAX_M,
+-		       V2_QPC_BYTE_140_RR_MAX_S,
+-		       ilog2((unsigned int)attr->max_dest_rd_atomic));
+-	roce_set_field(qpc_mask->byte_140_raq, V2_QPC_BYTE_140_RR_MAX_M,
+-		       V2_QPC_BYTE_140_RR_MAX_S, 0);
++	if ((attr_mask & IB_QP_MAX_DEST_RD_ATOMIC) &&
++	     attr->max_dest_rd_atomic) {
++		roce_set_field(context->byte_140_raq, V2_QPC_BYTE_140_RR_MAX_M,
++			       V2_QPC_BYTE_140_RR_MAX_S,
++			       fls(attr->max_dest_rd_atomic - 1));
++		roce_set_field(qpc_mask->byte_140_raq, V2_QPC_BYTE_140_RR_MAX_M,
++			       V2_QPC_BYTE_140_RR_MAX_S, 0);
++	}
+ 
+ 	roce_set_field(context->byte_56_dqpn_err, V2_QPC_BYTE_56_DQPN_M,
+ 		       V2_QPC_BYTE_56_DQPN_S, attr->dest_qp_num);
+@@ -2630,12 +2633,6 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 		       V2_QPC_BYTE_168_LP_SGEN_INI_M,
+ 		       V2_QPC_BYTE_168_LP_SGEN_INI_S, 0);
+ 
+-	roce_set_field(context->byte_208_irrl, V2_QPC_BYTE_208_SR_MAX_M,
+-		       V2_QPC_BYTE_208_SR_MAX_S,
+-		       ilog2((unsigned int)attr->max_rd_atomic));
+-	roce_set_field(qpc_mask->byte_208_irrl, V2_QPC_BYTE_208_SR_MAX_M,
+-		       V2_QPC_BYTE_208_SR_MAX_S, 0);
+-
+ 	roce_set_field(context->byte_28_at_fl, V2_QPC_BYTE_28_SL_M,
+ 		       V2_QPC_BYTE_28_SL_S, rdma_ah_get_sl(&attr->ah_attr));
+ 	roce_set_field(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_SL_M,
+@@ -2839,6 +2836,14 @@ static int modify_qp_rtr_to_rts(struct ib_qp *ibqp,
+ 	roce_set_field(qpc_mask->byte_196_sq_psn, V2_QPC_BYTE_196_SQ_MAX_PSN_M,
+ 		       V2_QPC_BYTE_196_SQ_MAX_PSN_S, 0);
+ 
++	if ((attr_mask & IB_QP_MAX_QP_RD_ATOMIC) && attr->max_rd_atomic) {
++		roce_set_field(context->byte_208_irrl, V2_QPC_BYTE_208_SR_MAX_M,
++			       V2_QPC_BYTE_208_SR_MAX_S,
++			       fls(attr->max_rd_atomic - 1));
++		roce_set_field(qpc_mask->byte_208_irrl,
++			       V2_QPC_BYTE_208_SR_MAX_M,
++			       V2_QPC_BYTE_208_SR_MAX_S, 0);
++	}
+ 	return 0;
+ }
+ 
+-- 
+1.9.1
 
-Yes, you are wrong. It is ok to change the payload.
-
-Thanks
-
->
-> Or.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---H1spWtNR+x+ondvy
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpLWqsACgkQ5GN7iDZy
-WKelbRAAsGWNGSd3iMaOehZuMBGavtKO0Fxwc8fmA7+RAAa2GLYEpb2YajJW/ngk
-Qi0C1aURlSoCdQAkDtChUA8dDuBkyt1eBvYTb1W374kPT5RMkPGsdcoxpbtwyoK8
-LyTWNVu48lhfqduwwov9Srajd+tyfZ99T2zekbpKDYzHFxg7X756Upic2voEJoCD
-M1RKc/Axy+sYYgtbjGRb8p6DgQmPIPswZp7KGcNxuD9vTf/BV+f0gSeXOcif17Qn
-zUSCevzCUFc9ls7iL5XD9EP4Wo30r4QpwKRIn9h+wlO+OUvcCn/SWTqHIcHQD+WP
-wXrv5fpniTFZz5okUqRYr8PUtBsuYbZnoH10KDzDj3B0XTAQoek8nAg8s9bLLuEB
-7Eo4a+fZzsoOmTx1FMNAC7fQknveXaszVQLYImkMhbx90n5cYmvDKMfS0Vvo7DNr
-BmhQmHeuMOAzgB49WqVJcqOc9CFp3UgEf7tARWmyLs/dCHG8ajlBiOSe38Na8zWu
-xvqrocX2DTBcA525BCdS5FuCMJQ/dApbZUaBmmRUV2UNaLj0bMPjJIfT0v0Z1okx
-vk2rLnnN8loJzoUMvZhOielvz7NOJ7mi/pGlfyfIK18aql+Q+KamGEERiAPFJz/T
-zc1/o7YxLDSVV5dpGYu6CZkhtJ6UIFyRaZxjXeQVL/PkemwD/RA=
-=5Oml
------END PGP SIGNATURE-----
-
---H1spWtNR+x+ondvy--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
