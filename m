@@ -1,40 +1,40 @@
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Fix for notify send CQ failure messages
-Date: Tue, 2 Jan 2018 14:24:07 -0700
-Message-ID: <20180102212407.GA19027@ziepe.ca>
-References: <20180102210419.26104.32513.stgit@phlsvlogin03.ph.intel.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH v2 03/13] Attach/detach SoftiWarp to/from network and
+ RDMA subsystem
+Date: Tue, 2 Jan 2018 14:37:06 -0700
+Message-ID: <20180102213706.GB19027@ziepe.ca>
+References: <20171014064132.GT2106@mtr-leonro.local>
+ <20171008130342.GV25829@mtr-leonro.local>
+ <20171006122853.16310-1-bmt@zurich.ibm.com>
+ <20171006122853.16310-4-bmt@zurich.ibm.com>
+ <OF406E95F8.33CF80BB-ON002581B9.00073D6F-002581B9.00081F69@notes.na.collabserv.com>
+ <OF663C0801.8471532E-ON002581FE.003B73D6-002581FE.003F2369@notes.na.collabserv.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180102210419.26104.32513.stgit-u2TXY/5TJkdZ7WVY1cDZ9q2pdiUAq4bhAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <OF663C0801.8471532E-ON002581FE.003B73D6-002581FE.003F2369-8eTO7WVQ4XIsd+ienQ86orlN3bxYEBpz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 02, 2018 at 04:04:20PM -0500, Alex Estrin wrote:
-> If IB_CQ_REPORT_MISSED_EVENTS flag is passed in ib_req_notify_cq()
-> it may return positive value indicating non-empty CQ.
-> If return code not verified the log might be flooded with false
-> warning messages "request notify on send CQ failed".
-> 
-> Fixes: commit 8966e28d2e40 ("IB/ipoib: Use NAPI in UD/TX flows")
+On Fri, Dec 22, 2017 at 11:29:38AM +0000, Bernard Metzler wrote:
 
-Hurm... It was right before that commit as well..
+> One question I have - what is the recommended way of replacing
+> those module parameters, if we need to flexibly parameterize
+> things from user land? For the rxe driver, I see the usage of
+> module_param_cb, but this probably is not what we want in the
+> long run? Would a sysctl be appropriate, or a char device
+> (we may need to pass strings like interface names), or configfs?
 
-Erez, why did you change it?
+Probably something like 'rdmatool interface attach' eg cause it to
+create using the RDMA netlink protocol.
 
-+               if (ib_req_notify_cq(priv->send_cq, IB_CQ_NEXT_COMP |
-+                                    IB_CQ_REPORT_MISSED_EVENTS)) {
-+                       ipoib_warn(priv, "IPoIB/CM:request notify on send CQ failed\n");
-...
--                       rc = ib_req_notify_cq(priv->send_cq,
--                               IB_CQ_NEXT_COMP | IB_CQ_REPORT_MISSED_EVENTS);
--                       if (rc < 0)
--                               ipoib_warn(priv, "request notify on send CQ failed\n");
+Leon?
 
-Alex, that is not the right format for the Fixes: line..
+I'd like to see the same for rxe as it solves module autoloading
+problems.
 
 Jason
 --
