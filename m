@@ -1,46 +1,34 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Linux kernel v4.15-rc4 and rdma_rxe
-Date: Tue, 2 Jan 2018 19:44:51 +0200
-Message-ID: <CAG9sBKOtxoG-HLU5A=WEZqUuADzje74_AjZgtG21Ueeb2YCAEQ@mail.gmail.com>
-References: <1513732236.2535.25.camel@wdc.com> <CAG9sBKP=i9ukbkj7x11oW=yLAz8u2RYHTMbf_Z1h3=nQ3pjfLw@mail.gmail.com>
- <1513983674.2579.27.camel@wdc.com> <CAG9sBKOOvvwG6yaQfWG=c04-LQ-Yvw8QbD-jzTm-zJYOFJeEVQ@mail.gmail.com>
- <dd87887d-8641-c8fc-48f1-234e7cf67cb1@wdc.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-next v1 4/6] IB/mlx5: Handle type IB_QPT_DRIVER when
+ creating a QP
+Date: Tue, 2 Jan 2018 11:01:24 -0700
+Message-ID: <20180102180124.GE29208@ziepe.ca>
+References: <20171227171540.1646-1-leon@kernel.org>
+ <20171227171540.1646-5-leon@kernel.org>
+ <CAJ3xEMiExjjVUOYQsdMiHLNOjB+MOkz4c1TT9AT_inkfGfMuKA@mail.gmail.com>
+ <20171227220227.GL31310@mellanox.com>
+ <30a35dd5-3046-d7bb-e61f-7d18501fd06c@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <dd87887d-8641-c8fc-48f1-234e7cf67cb1-Sjgp3cTcYWE@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <30a35dd5-3046-d7bb-e61f-7d18501fd06c-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->
-> Hello Moni,
->
-> The ib_srpt driver uses zero-length writes to trigger the completion handler
-> if either an RTU event is received or an RDMA channel is being closed. In
-> the log I saw the message "queued zerolength write" appear but not
-> "srpt_zerolength_write_done: wc->status = ..." when the hang was observed.
-> That made me wonder whether the rxe driver perhaps suppresses completions
-> for zero-length writes if the queue pair state is changed into IB_QPS_ERR? I
-> think it is required by the IB spec to queue an error completion for pending
-> work requests upon the transition to IB_QPS_ERR.
->
+On Thu, Dec 28, 2017 at 12:02:56PM +0200, Yishai Hadas wrote:
 
-Hi Bart
-This is a great input for the debugger (whoever that be). From a brief
-look at the code I see that error QP is checked when during the
-validation of  RDMA_WRITE request. In this case a completion is
-generated and the size of the buffer to write remains irrelevant.
-However, to verify that I wasn't wrong you can add some printk() in
-the path that starts with rxe_responder(). When flow reaches
-check_resource() and when QP is in ERROR state the function returns
-RESPST_COMPLETE. The next step in the state machine would be to call
-the do_complete() function.
+> From application point of view the API will be very clear to ask for a
+> specific QP type. Here we are talking on some 'user driver <-> kernel
+> driver' API to pass the request and as of the above we preferred to go by
+> that way without increasing the udata.
 
-thanks
+Okay, worst that can happen is future extensions will need to use the
+new kabi.
 
-Moni
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
