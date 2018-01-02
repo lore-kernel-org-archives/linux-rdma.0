@@ -1,105 +1,53 @@
-From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] RDMA/core: Add encode/decode FDR/EDR rates
-Date: Tue,  2 Jan 2018 14:50:40 +0100
-Message-ID: <20180102135040.5243-1-Haakon.Bugge@oracle.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core] Remove the obsolete libibcm library
+Date: Tue, 2 Jan 2018 09:18:59 -0500
+Message-ID: <ea55cca5-1bf9-dd54-9be1-6450ca9002ef@dev.mellanox.co.il>
+References: <20171225123132.6063-1-leon@kernel.org>
+ <20171227201945.GG25436@ziepe.ca> <20171228053029.GO3494@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171228053029.GO3494-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, aron.silverton-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On 12/28/2017 12:30 AM, Leon Romanovsky wrote:
+> On Wed, Dec 27, 2017 at 01:19:45PM -0700, Jason Gunthorpe wrote:
+>> On Mon, Dec 25, 2017 at 02:31:32PM +0200, Leon Romanovsky wrote:
+>>> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>
+>>> The libibcm library was marked as obsolete long time ago,
+>>> the following patch is first step before removing ucm from
+>>> the kernel.
+>>
+>> I understand the distros will not want to loose libibcm in their
+>> stable releases.
+>>
+>> It might make more sense instead to just not build libibcm by default
+>> with a cmake option but still keep the sources..
+> 
+> We are not removing it from the stable branches, so if they want to keep it
+> till last person who used this library dies, they are free to do it.
+> 
+> The disabled build doesn't give much benefit at all. It will be dead code exactly
+> as now, but without any alert that it is broken. Most possible, it will be broken
+> till some distro will notice it.
 
-The cases for FDR/EDR signalling speed, were missing in
-ib_rate_to_mult and mult_to_ib_rate giving wrong return values when
-drivers convert static rate to/from inter-packet-delay.
+Since when has it been brken and how is it broken ? Last I knew it
+worked but was not used by anything in tree.
 
-Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/core/verbs.c | 56 ++++++++++++++++++++++++++---------------
- 1 file changed, 36 insertions(+), 20 deletions(-)
+-- Hal
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 3fb8fb6cc824..c4152b7ff337 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -124,16 +124,24 @@ EXPORT_SYMBOL(ib_wc_status_msg);
- __attribute_const__ int ib_rate_to_mult(enum ib_rate rate)
- {
- 	switch (rate) {
--	case IB_RATE_2_5_GBPS: return  1;
--	case IB_RATE_5_GBPS:   return  2;
--	case IB_RATE_10_GBPS:  return  4;
--	case IB_RATE_20_GBPS:  return  8;
--	case IB_RATE_30_GBPS:  return 12;
--	case IB_RATE_40_GBPS:  return 16;
--	case IB_RATE_60_GBPS:  return 24;
--	case IB_RATE_80_GBPS:  return 32;
--	case IB_RATE_120_GBPS: return 48;
--	default:	       return -1;
-+	case IB_RATE_2_5_GBPS: return   1;
-+	case IB_RATE_5_GBPS:   return   2;
-+	case IB_RATE_10_GBPS:  return   4;
-+	case IB_RATE_20_GBPS:  return   8;
-+	case IB_RATE_30_GBPS:  return  12;
-+	case IB_RATE_40_GBPS:  return  16;
-+	case IB_RATE_60_GBPS:  return  24;
-+	case IB_RATE_80_GBPS:  return  32;
-+	case IB_RATE_120_GBPS: return  48;
-+	case IB_RATE_14_GBPS:  return   6;
-+	case IB_RATE_56_GBPS:  return  22;
-+	case IB_RATE_112_GBPS: return  45;
-+	case IB_RATE_168_GBPS: return  67;
-+	case IB_RATE_25_GBPS:  return  10;
-+	case IB_RATE_100_GBPS: return  40;
-+	case IB_RATE_200_GBPS: return  80;
-+	case IB_RATE_300_GBPS: return 120;
-+	default:	       return  -1;
- 	}
- }
- EXPORT_SYMBOL(ib_rate_to_mult);
-@@ -141,16 +149,24 @@ EXPORT_SYMBOL(ib_rate_to_mult);
- __attribute_const__ enum ib_rate mult_to_ib_rate(int mult)
- {
- 	switch (mult) {
--	case 1:  return IB_RATE_2_5_GBPS;
--	case 2:  return IB_RATE_5_GBPS;
--	case 4:  return IB_RATE_10_GBPS;
--	case 8:  return IB_RATE_20_GBPS;
--	case 12: return IB_RATE_30_GBPS;
--	case 16: return IB_RATE_40_GBPS;
--	case 24: return IB_RATE_60_GBPS;
--	case 32: return IB_RATE_80_GBPS;
--	case 48: return IB_RATE_120_GBPS;
--	default: return IB_RATE_PORT_CURRENT;
-+	case 1:   return IB_RATE_2_5_GBPS;
-+	case 2:   return IB_RATE_5_GBPS;
-+	case 4:   return IB_RATE_10_GBPS;
-+	case 8:   return IB_RATE_20_GBPS;
-+	case 12:  return IB_RATE_30_GBPS;
-+	case 16:  return IB_RATE_40_GBPS;
-+	case 24:  return IB_RATE_60_GBPS;
-+	case 32:  return IB_RATE_80_GBPS;
-+	case 48:  return IB_RATE_120_GBPS;
-+	case 6:   return IB_RATE_14_GBPS;
-+	case 22:  return IB_RATE_56_GBPS;
-+	case 45:  return IB_RATE_112_GBPS;
-+	case 67:  return IB_RATE_168_GBPS;
-+	case 10:  return IB_RATE_25_GBPS;
-+	case 40:  return IB_RATE_100_GBPS;
-+	case 80:  return IB_RATE_200_GBPS;
-+	case 120: return IB_RATE_300_GBPS;
-+	default:  return IB_RATE_PORT_CURRENT;
- 	}
- }
- EXPORT_SYMBOL(mult_to_ib_rate);
--- 
-2.13.6
-
+> Exactly as some distros have EOL, this libibcm library came to its EOL.
+> 
+> Thanks
+> 
+>>
+>> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
