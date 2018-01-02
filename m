@@ -1,177 +1,112 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH iproute2-next 1/9] rdam: Add option to provide "-" sign for the port number
-Date: Tue,  2 Jan 2018 11:37:17 +0200
-Message-ID: <20180102093725.6172-2-leon@kernel.org>
-References: <20180102093725.6172-1-leon@kernel.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180102093725.6172-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Ahern <dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH iproute2-next 0/9] RDMA resource tracking
+Date: Tue,  2 Jan 2018 11:37:16 +0200
+Message-ID: <20180102093725.6172-1-leon@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, David Ahern <dsahern@gmail.com>
+Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-According to the IBTA spec [1], the physical connected port is provided
-for the QP in RTR-to-INIT stage performed by modify_qp(). It causes
-to do not have port number for newly created QPs.
+Hi,
 
-The following patch adds "-" sign to present absence of port, because
-QPs are going to be associated with rdmatool link object, which needs
-port number as an index.
+This is supplementary (user-space) part of RDMA resource tracking posted
+to the RDMA mailing list for the review [1].
 
-[1] InfiniBand Architecture Release 1.3 -
-	"Table 96 QP State Transition Properties"
+The main goal of this new functionality in RDMAtool is to provide debug visibility
+of running applications in RDMA stack.
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- rdma/link.c  |  2 +-
- rdma/rdma.h  |  3 +--
- rdma/utils.c | 49 +++++++++++++++++++++++++++++++++++++++++--------
- 3 files changed, 43 insertions(+), 11 deletions(-)
+The current series adds new command object (resource) which provides
+short summary if it is called without arguments or more detailed
+information while it is called with request to present QPs.
 
-diff --git a/rdma/link.c b/rdma/link.c
-index 676cb21d..66bcd50e 100644
---- a/rdma/link.c
-+++ b/rdma/link.c
-@@ -285,7 +285,7 @@ static int link_one_show(struct rd *rd)
- 
- static int link_show(struct rd *rd)
- {
--	return rd_exec_link(rd, link_one_show);
-+	return rd_exec_link(rd, link_one_show, true);
- }
- 
- int cmd_link(struct rd *rd)
-diff --git a/rdma/rdma.h b/rdma/rdma.h
-index 8d53d3a0..cbd9aa89 100644
---- a/rdma/rdma.h
-+++ b/rdma/rdma.h
-@@ -64,7 +64,6 @@ bool rd_no_arg(struct rd *rd);
- void rd_arg_inc(struct rd *rd);
- 
- char *rd_argv(struct rd *rd);
--uint32_t get_port_from_argv(struct rd *rd);
- 
- /*
-  * Commands interface
-@@ -73,7 +72,7 @@ int cmd_dev(struct rd *rd);
- int cmd_link(struct rd *rd);
- int rd_exec_cmd(struct rd *rd, const struct rd_cmd *c, const char *str);
- int rd_exec_dev(struct rd *rd, int (*cb)(struct rd *rd));
--int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd));
-+int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd), bool strict_port);
- void rd_free(struct rd *rd);
- 
- /*
-diff --git a/rdma/utils.c b/rdma/utils.c
-index 7b2001e2..7c920a5c 100644
---- a/rdma/utils.c
-+++ b/rdma/utils.c
-@@ -10,6 +10,7 @@
-  */
- 
- #include "rdma.h"
-+#include <ctype.h>
- 
- static int rd_argc(struct rd *rd)
- {
-@@ -50,13 +51,43 @@ bool rd_no_arg(struct rd *rd)
- 	return rd_argc(rd) == 0;
- }
- 
--uint32_t get_port_from_argv(struct rd *rd)
-+/*
-+ * Possible input:output
-+ * dev/port    | first port | is_dump_all
-+ * mlx5_1      | 0          | true
-+ * mlx5_1/     | 0          | true
-+ * mlx5_1/0    | 0          | false
-+ * mlx5_1/1    | 1          | false
-+ * mlx5_1/-    | 0          | false
-+ *
-+ * In strict mode, /- will return error.
-+ */
-+static int get_port_from_argv(struct rd *rd, uint32_t *port,
-+			      bool *is_dump_all, bool strict_port)
- {
- 	char *slash;
- 
-+	*port = 0;
-+	*is_dump_all = true;
-+
- 	slash = strchr(rd_argv(rd), '/');
- 	/* if no port found, return 0 */
--	return slash ? atoi(slash + 1) : 0;
-+	if (slash) {
-+		if (*(slash + 1) == '-') {
-+			if (strict_port)
-+				return -EINVAL;
-+			*is_dump_all = false;
-+			return 0;
-+		}
-+
-+		if (isdigit(*(slash + 1))) {
-+			*is_dump_all = false;
-+			*port = atoi(slash + 1);
-+		}
-+		if (!*port && strlen(slash + 1))
-+			return -EINVAL;
-+	}
-+	return 0;
- }
- 
- static struct dev_map *dev_map_alloc(const char *dev_name)
-@@ -152,7 +183,7 @@ void rd_free(struct rd *rd)
- 	dev_map_cleanup(rd);
- }
- 
--int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd))
-+int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd), bool strict_port)
- {
- 	struct dev_map *dev_map;
- 	uint32_t port;
-@@ -163,7 +194,8 @@ int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd))
- 	if (rd_no_arg(rd)) {
- 		list_for_each_entry(dev_map, &rd->dev_map_list, list) {
- 			rd->dev_idx = dev_map->idx;
--			for (port = 1; port < dev_map->num_ports + 1; port++) {
-+			port = (strict_port) ? 1 : 0;
-+			for (; port < dev_map->num_ports + 1; port++) {
- 				rd->port_idx = port;
- 				ret = cb(rd);
- 				if (ret)
-@@ -172,21 +204,22 @@ int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd))
- 		}
- 
- 	} else {
-+		bool is_dump_all;
- 		dev_map = dev_map_lookup(rd, true);
--		port = get_port_from_argv(rd);
--		if (!dev_map || port > dev_map->num_ports) {
-+		ret = get_port_from_argv(rd, &port, &is_dump_all, strict_port);
-+		if (!dev_map || port > dev_map->num_ports || (!port && ret)) {
- 			pr_err("Wrong device name\n");
- 			ret = -ENOENT;
- 			goto out;
- 		}
- 		rd_arg_inc(rd);
- 		rd->dev_idx = dev_map->idx;
--		rd->port_idx = port ? : 1;
-+		rd->port_idx = port;
- 		for (; rd->port_idx < dev_map->num_ports + 1; rd->port_idx++) {
- 			ret = cb(rd);
- 			if (ret)
- 				goto out;
--			if (port)
-+			if (!is_dump_all)
- 				/*
- 				 * We got request to show link for devname
- 				 * with port index.
--- 
-2.15.1
+1) Summary information:
+$ rdma res
+1: mlx5_0: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
+2: mlx5_1: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
+3: mlx5_2: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
+4: mlx5_3: curr/max: pd 2/16777216 cq 3/16777216 qp 2/262144
+5: mlx5_4: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2) Summary information of specific device:
+$ rdma res show mlx5_4
+5: mlx5_4: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
+
+3) Detailed information of specific device:
+$ rdma res show qp link mlx5_4
+DEV/PORT  LQPN       TYPE  STATE  PID        COMM
+mlx5_4/-  8          UD    RESET  0          [ipoib-verbs]
+mlx5_4/1  7          UD    RTS    0          [mlx5-gsi]
+mlx5_4/1  1          GSI   RTS    0          [rdma-mad]
+mlx5_4/1  0          SMI   RTS    0          [rdma-mad]
+
+$ rdma res show qp link mlx5_4/
+DEV/PORT  LQPN       TYPE  STATE  PID        COMM
+mlx5_4/-  8          UD    RESET  0          [ipoib-verbs]
+mlx5_4/1  7          UD    RTS    0          [mlx5-gsi]
+mlx5_4/1  1          GSI   RTS    0          [rdma-mad]
+mlx5_4/1  0          SMI   RTS    0          [rdma-mad]
+
+4) Wrong port (it can be 1 or 2):
+$ rdma res show qp link mlx5_4/0
+Wrong device name
+
+5) Detailed information of specific device and port:
+$ rdma res show qp link mlx5_4/1
+DEV/PORT  LQPN       TYPE  STATE  PID        COMM
+mlx5_4/1  7          UD    RTS    0          [mlx5-gsi]
+mlx5_4/1  1          GSI   RTS    0          [rdma-mad]
+mlx5_4/1  0          SMI   RTS    0          [rdma-mad]
+
+6) Detailed information of QPs not-connected to port yet:
+$ rdma res show qp link mlx5_4/-
+DEV/PORT  LQPN       TYPE  STATE  PID        COMM
+mlx5_4/-  8          UD    RESET  0          [ipoib-verbs]
+
+7) Very detailed view:
+$ rdma res show qp link mlx5_4/- -d
+DEV/PORT  LQPN       RQPN       TYPE  STATE  PID        COMM            SQ-PSN     RQ-PSN     PATH-MIG
+mlx5_4/-  8          ---        UD    RESET  0          [ipoib-verbs]   0          ---        ---
+
+8) Limit display to specific columns:
+$ rdma res show qp link mlx5_4/1 display pid,lqpn,comm
+DEV/PORT  LQPN       PID        COMM
+mlx5_4/1  7          0          [mlx5-gsi]
+mlx5_4/1  1          0          [rdma-mad]
+mlx5_4/1  0          0          [rdma-mad]
+
+9) Filter specific processes:
+$ rdma res show qp link mlx5_4/1 display pid,lqpn,comm pid 0-2000
+DEV/PORT  LQPN       PID        COMM
+mlx5_4/1  7          0          [mlx5-gsi]
+mlx5_4/1  1          0          [rdma-mad]
+mlx5_4/1  0          0          [rdma-mad]
+
+Thanks
+
+[1] https://marc.info/?l=linux-rdma&m=151488112032562&w=2
+
+Leon Romanovsky (9):
+  rdam: Add option to provide "-" sign for the port number
+  rdma: Make visible the number of arguments
+  rdma: Add filtering infrastructure
+  rdma: Set pointer to device name position
+  rdma: Allow external usage of compare string routine
+  rdma: Update kernel header file
+  rdma: Add resource tracking summary
+  rdma: Add QP resource tracking information
+  rdma: Document resource tracking
+
+ include/uapi/rdma/rdma_netlink.h |  58 +++++-
+ man/man8/rdma-resource.8         |  91 +++++++++
+ rdma/Makefile                    |   2 +-
+ rdma/link.c                      |   2 +-
+ rdma/rdma.c                      |   4 +-
+ rdma/rdma.h                      |  23 ++-
+ rdma/res.c                       | 411 +++++++++++++++++++++++++++++++++++++++
+ rdma/utils.c                     | 300 +++++++++++++++++++++++++++-
+ 8 files changed, 874 insertions(+), 17 deletions(-)
+ create mode 100644 man/man8/rdma-resource.8
+ create mode 100644 rdma/res.c
