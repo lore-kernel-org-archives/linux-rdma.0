@@ -1,56 +1,34 @@
-From: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RESEND][PATCH v4 for-next 0/2] Bugfixes for eq support in hns
-Date: Tue, 2 Jan 2018 11:09:36 +0800
-Message-ID: <24236028-de62-72be-b9ef-6df445b1e5db@huawei.com>
-References: <1514546779-206832-1-git-send-email-liuyixian@huawei.com>
- <20171229181029.GA12569@ziepe.ca>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH net 0/2] IB/ipoib: ip link support
+Date: Tue, 2 Jan 2018 09:29:05 +0200
+Message-ID: <CAJ3xEMiRGpwp8NVdjm9ozTswer_YRP3uvjV5bUFg7cQ7Jh97vw@mail.gmail.com>
+References: <1514718983-466-1-git-send-email-denisd@mellanox.com> <CAJ3xEMiVHc=E7=uKJ4cRRRDxjNDRKQ17=NxnYsEeXNe6-RUvvQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171229181029.GA12569-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CAJ3xEMiVHc=E7=uKJ4cRRRDxjNDRKQ17=NxnYsEeXNe6-RUvvQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Denis Drozdov <denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Sun, Dec 31, 2017 at 2:28 PM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Sun, Dec 31, 2017 at 1:16 PM, Denis Drozdov <denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> IP link was broken due to the changes in IPoIB for the rdma_netdev
+>> support after commit cd565b4b51e5
+>> ("IB/IPoIB: Support acceleration options callbacks").
+>
+> you are approaching stable kernels, right? lets make sure dave is okay
+> to pick the net (touching dev.c etc) patch to stable even if the
+> offending patch didn't change anything there.
 
+Erez, Denis
 
-On 2017/12/30 2:10, Jason Gunthorpe wrote:
-> On Fri, Dec 29, 2017 at 07:26:17PM +0800, Yixian Liu wrote:
->> This patch set fixes the bugs according to Jason's two comments
->> on my previous patch set, which listed in the NOTE.
->>
->> NOTE: This patch set is dependent on the following patches.
->>    "RDMA/hns: Add eq support of hip08"
->>    "RDMA/hns: Refactor eq code for hip06"
->> v3 -> v4:
->> 1. Delete two unnecessary mb() caller in patch [1/2].
->> v2 -> v3:
->> 1. Update according to Jason's comments
->>    - use dma_rmb instead of rmb in patch [1/2]
->>    - delete unnecessary assignment for doorbell64
->> v1 -> v2:
->> 1. Update according to Leon's comment, see the changelog
->>    of patch [2/2].
->>
->> Yixian Liu (2):
->>   RDMA/hns: Add detailed comments for mb() call
-> 
-> I applied this one to for-next, it looks great, thanks
-> 
->>   RDMA/hns: Fix alignment problem of the doorbell
-> 
-> and dropped this one, please resend with a full solution to this
-> systemic problem as discussed.
-> 
+The offending commit went in 4.12-rc1, so the fix should be getting
+a while back. RU sure you need the net/core patch to fix that up or
+we can come up with ipoib only patch?
 
-Okay, thanks!
-
-> 
-> 
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
