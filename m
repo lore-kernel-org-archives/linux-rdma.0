@@ -1,70 +1,52 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next 4/9] rdma: Set pointer to device name position
-Date: Tue,  2 Jan 2018 11:37:20 +0200
-Message-ID: <20180102093725.6172-5-leon@kernel.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH iproute2-next 2/9] rdma: Make visible the number of arguments
+Date: Tue,  2 Jan 2018 11:37:18 +0200
+Message-ID: <20180102093725.6172-3-leon@kernel.org>
 References: <20180102093725.6172-1-leon@kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180102093725.6172-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, David Ahern <dsahern@gmail.com>
-Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180102093725.6172-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Ahern <dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The dev and link execution callbacks expects that next
-command line argument is device or port name.
-
-Set pointer to device or port name position prior calls to
-rd_exec_dev()/rd_exec_link().
-
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- rdma/rdma.h  |  1 +
- rdma/utils.c | 19 +++++++++++++++++++
- 2 files changed, 20 insertions(+)
+ rdma/rdma.h  | 1 +
+ rdma/utils.c | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/rdma/rdma.h b/rdma/rdma.h
-index cd415670..e842d076 100644
+index cbd9aa89..1b66ae04 100644
 --- a/rdma/rdma.h
 +++ b/rdma/rdma.h
-@@ -81,6 +81,7 @@ int rd_exec_cmd(struct rd *rd, const struct rd_cmd *c, const char *str);
+@@ -74,6 +74,7 @@ int rd_exec_cmd(struct rd *rd, const struct rd_cmd *c, const char *str);
  int rd_exec_dev(struct rd *rd, int (*cb)(struct rd *rd));
  int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd), bool strict_port);
  void rd_free(struct rd *rd);
-+int rd_set_arg_to_devname(struct rd *rd);
- int rd_argc(struct rd *rd);
++int rd_argc(struct rd *rd);
  
  /*
+  * Device manipulation
 diff --git a/rdma/utils.c b/rdma/utils.c
-index dc9f4f01..fbeffa08 100644
+index 7c920a5c..9184f455 100644
 --- a/rdma/utils.c
 +++ b/rdma/utils.c
-@@ -395,6 +395,25 @@ void rd_free(struct rd *rd)
- 	filters_cleanup(rd);
- }
+@@ -12,7 +12,7 @@
+ #include "rdma.h"
+ #include <ctype.h>
  
-+int rd_set_arg_to_devname(struct rd *rd)
-+{
-+	int ret = 0;
-+
-+	while (!rd_no_arg(rd)) {
-+		if (rd_argv_match(rd, "dev") || rd_argv_match(rd, "link")) {
-+			rd_arg_inc(rd);
-+			if (rd_no_arg(rd)) {
-+				pr_err("No device name was supplied\n");
-+				ret = -EINVAL;
-+			}
-+			goto out;
-+		}
-+		rd_arg_inc(rd);
-+	}
-+out:
-+	return ret;
-+}
-+
- int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd), bool strict_port)
+-static int rd_argc(struct rd *rd)
++int rd_argc(struct rd *rd)
  {
- 	struct dev_map *dev_map;
+ 	return rd->argc;
+ }
 -- 
 2.15.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
