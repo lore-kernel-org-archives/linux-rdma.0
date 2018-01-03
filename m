@@ -1,31 +1,121 @@
-From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDS: null pointer dereference in rds_atomic_free_op
-Date: Wed, 3 Jan 2018 13:19:27 -0800
-Message-ID: <0a3272a7-035b-edc8-c01d-79bffefb70a3@oracle.com>
-References: <5a4d45ce.8b8a1c0a.1d072.e5e1@mx.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5a4d45ce.8b8a1c0a.1d072.e5e1-ATjtLOhZ0NVl57MIdRCFDg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: simo.ghannam-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+From: Bart Van Assche <bart.vanassche@wdc.com>
+Subject: [PATCH v2] IB/core: Fix two kernel warnings triggered by rxe registration
+Date: Wed,  3 Jan 2018 13:28:18 -0800
+Message-ID: <20180103212818.10351-1-bart.vanassche@wdc.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, Leon Romanovsky <leon@kernel.org>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/3/2018 1:06 PM, simo.ghannam-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org wrote:
-> From: Mohamed Ghannam <simo.ghannam-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> 
-> set rm->atomic.op_active to 0 when rds_pin_pages() fails
-> or the user supplied address is invalid,
-> this prevents a NULL pointer usage in rds_atomic_free_op()
-> 
-> Signed-off-by: Mohamed Ghannam <simo.ghannam-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
-Good catch !!
+Avoid that the following two warnings are reported when registering an
+rxe device:
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+WARNING: CPU: 2 PID: 1005 at drivers/infiniband/core/device.c:449 ib_register_device+0x591/0x640 [ib_core]
+CPU: 2 PID: 1005 Comm: run_tests Not tainted 4.15.0-rc4-dbg+ #2
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
+RIP: 0010:ib_register_device+0x591/0x640 [ib_core]
+Call Trace:
+ rxe_register_device+0x3c6/0x470 [rdma_rxe]
+ rxe_add+0x543/0x5e0 [rdma_rxe]
+ rxe_net_add+0x37/0xb0 [rdma_rxe]
+ rxe_param_set_add+0x5a/0x120 [rdma_rxe]
+ param_attr_store+0x5e/0xc0
+ module_attr_store+0x19/0x30
+ sysfs_kf_write+0x3d/0x50
+ kernfs_fop_write+0x116/0x1a0
+ __vfs_write+0x23/0x120
+ vfs_write+0xbe/0x1b0
+ SyS_write+0x44/0xa0
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+
+WARNING: CPU: 2 PID: 1005 at drivers/infiniband/core/sysfs.c:1279 ib_device_register_sysfs+0x11d/0x160 [ib_core]
+CPU: 2 PID: 1005 Comm: run_tests Tainted: G        W        4.15.0-rc4-dbg+ #2
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
+RIP: 0010:ib_device_register_sysfs+0x11d/0x160 [ib_core]
+Call Trace:
+ ib_register_device+0x3f7/0x640 [ib_core]
+ rxe_register_device+0x3c6/0x470 [rdma_rxe]
+ rxe_add+0x543/0x5e0 [rdma_rxe]
+ rxe_net_add+0x37/0xb0 [rdma_rxe]
+ rxe_param_set_add+0x5a/0x120 [rdma_rxe]
+ param_attr_store+0x5e/0xc0
+ module_attr_store+0x19/0x30
+ sysfs_kf_write+0x3d/0x50
+ kernfs_fop_write+0x116/0x1a0
+ __vfs_write+0x23/0x120
+ vfs_write+0xbe/0x1b0
+ SyS_write+0x44/0xa0
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+
+Fixes: 99db9494035f ("IB/core: Remove ib_device.dma_device")
+Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: stable@vger.kernel.org # v4.11
+---
+
+Changes compared to v1:
+- Check the parent pointer before dereferencing it.
+
+---
+ drivers/infiniband/core/device.c | 20 ++++++++++++++------
+ drivers/infiniband/core/sysfs.c  |  1 -
+ 2 files changed, 14 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 21302e077be1..110bf66bad19 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -446,7 +446,6 @@ int ib_register_device(struct ib_device *device,
+ 	struct ib_udata uhw = {.outlen = 0, .inlen = 0};
+ 	struct device *parent = device->dev.parent;
+ 
+-	WARN_ON_ONCE(!parent);
+ 	WARN_ON_ONCE(device->dma_device);
+ 	if (device->dev.dma_ops) {
+ 		/*
+@@ -455,16 +454,25 @@ int ib_register_device(struct ib_device *device,
+ 		 * into device->dev.
+ 		 */
+ 		device->dma_device = &device->dev;
+-		if (!device->dev.dma_mask)
+-			device->dev.dma_mask = parent->dma_mask;
+-		if (!device->dev.coherent_dma_mask)
+-			device->dev.coherent_dma_mask =
+-				parent->coherent_dma_mask;
++		if (!device->dev.dma_mask) {
++			if (parent)
++				device->dev.dma_mask = parent->dma_mask;
++			else
++				WARN_ON_ONCE(true);
++		}
++		if (!device->dev.coherent_dma_mask) {
++			if (parent)
++				device->dev.coherent_dma_mask =
++					parent->coherent_dma_mask;
++			else
++				WARN_ON_ONCE(true);
++		}
+ 	} else {
+ 		/*
+ 		 * The caller did not provide custom DMA operations. Use the
+ 		 * DMA mapping operations of the parent device.
+ 		 */
++		WARN_ON_ONCE(!parent);
+ 		device->dma_device = parent;
+ 	}
+ 
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index e30d86fa1855..8ae1308eecc7 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -1276,7 +1276,6 @@ int ib_device_register_sysfs(struct ib_device *device,
+ 	int ret;
+ 	int i;
+ 
+-	WARN_ON_ONCE(!device->dev.parent);
+ 	ret = dev_set_name(class_dev, "%s", device->name);
+ 	if (ret)
+ 		return ret;
+-- 
+2.15.1
