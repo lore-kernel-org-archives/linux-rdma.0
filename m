@@ -1,41 +1,47 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH 00/28] IB/srp and IB/srpt patches
-Date: Wed, 3 Jan 2018 22:06:56 +0000
-Message-ID: <1515017215.2582.50.camel@wdc.com>
-References: <20180103213938.11664-1-bart.vanassche@wdc.com>
-         <20180103215130.GN11348@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: [PATCH] net/mlx5e: hide an unused variable
+Date: Wed,  3 Jan 2018 23:40:11 +0100
+Message-ID: <20180103224022.3737385-1-arnd@arndb.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180103215130.GN11348-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
-Content-ID: <C7DCFDC64830564EAF350BCB0CF0B9E4-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Paul Blakey <paulb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE4LTAxLTAzIGF0IDE0OjUxIC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIFdlZCwgSmFuIDAzLCAyMDE4IGF0IDAxOjM5OjEwUE0gLTA4MDAsIEJhcnQgVmFuIEFz
-c2NoZSB3cm90ZToNCj4gPiBIZWxsbyBKYXNvbiwNCj4gPiANCj4gPiBUaGlzIHBhdGNoIHNlcmll
-cyBhZGRzIFJETUEvQ00gc3VwcG9ydCB0byB0aGUgU1JQIGluaXRpYXRvciBhbmQgdGFyZ2V0IGRy
-aXZlcnMNCj4gPiBhbmQgYWxzbyBpbmNsdWRlcyBhIHNlcmllcyBvZiBidWcgZml4ZXMgZm9yIHRo
-ZSBTUlBUIGRyaXZlci4gUGxlYXNlIGNvbnNpZGVyDQo+ID4gYXQgbGVhc3QgdGhlIFNSUFQgYnVn
-IGZpeGVzIGZvciBrZXJuZWwgdjQuMTYgc2luY2Ugb25lIG9mIHRoZXNlIGZpeGVzIGlzIGENCj4g
-PiBzZWN1cml0eSBmaXguDQo+IA0KPiBCYXJ0LCB0aGlzIGlzIHJlYWxseSBiaWcgZm9yIHRoZSBy
-YzYgdGltZWZyYW1lLi4gVGhpcyBtaWdodCBtYWtlIGl0IGlmDQo+IHRoZXJlIGlzIGEgcmM4IHRo
-aXMgY3ljbGUuDQo+IA0KPiBJJ2xsIGdyYWIgdGhlIHR3byBwYXRjaGVzIG1hcmtlZCBmb3Igc3Rh
-YmxlIHRvIGZvci1yYywgdGhleSBsb29rDQo+IHRyaXZpYWwuDQo+IA0KPiBJJ20gd2l0aCB0aGUg
-RGF2ZU0gc2Nob29sIG9mIHRob3VnaHQgaGVyZSB0aGF0IHBhdGNoIHNlcmllcyBzaG91bGQgYmUN
-Cj4gMTAtMTUgYXQgbW9zdCwgYW5kIGhhdmUgYSBjbGVhciBwdXJwb3NlLCBldmVuIGlmIHRoYXQg
-cHVycG9zZSBpcyBqdXN0DQo+ICdhc3NvcnRlZCBvbmUgcGF0Y2ggZml4ZXMnLi4gSWYgeW91IHJl
-c2VuZCBpdCBjYW4geW91IHNwbGl0IHRoZSBzZXJpZXM/DQoNCkhlbGxvIEphc29uLA0KDQpIb3cg
-YWJvdXQgc3BsaXR0aW5nIHRoaXMgc2VyaWVzIGFzIGZvbGxvd3M6DQoqIFBhdGNoZXMgMS4uNCB3
-aXRoIHRoZSBTUlAgaW5pdGlhdG9yIGNoYW5nZXMuDQoqIFBhdGNoZXMgNS4uNiB3aXRoIHRoZSBT
-UlBUIGJ1Z2ZpeGVzIHRoYXQgaGF2ZSB0aGUgIkNjOiBzdGFibGUiIHRhZy4NCiogUGF0Y2hlcyA3
-LDgsMTEuLjE5IHdpdGggdHJpdmFsIFNSUFQgY2hhbmdlcy4NCiogUGF0Y2hlcyA5LDEwLDIwLi4y
-OCB3aXRoIHRoZSBkZWVwZXIgU1JQVCBjaGFuZ2VzLg0KDQpUaGFua3MsDQoNCkJhcnQu
+The uplink_rpriv variable was added at the start of the function but
+only used inside of an #ifdef:
+
+drivers/net/ethernet/mellanox/mlx5/core/en_tc.c: In function 'mlx5e_route_lookup_ipv6':
+drivers/net/ethernet/mellanox/mlx5/core/en_tc.c:1549:25: error: unused variable 'uplink_rpriv' [-Werror=unused-variable]
+
+This moves the declaration into that #ifdef as well.
+
+Fixes: 5ed99fb421d4 ("net/mlx5e: Move ethernet representors data into separate struct")
+Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 25a8073f15d8..933275fe03b2 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -1546,11 +1546,11 @@ static int mlx5e_route_lookup_ipv6(struct mlx5e_priv *priv,
+ 				   struct neighbour **out_n,
+ 				   int *out_ttl)
+ {
+-	struct mlx5e_rep_priv *uplink_rpriv;
+ 	struct neighbour *n = NULL;
+ 	struct dst_entry *dst;
+ 
+ #if IS_ENABLED(CONFIG_INET) && IS_ENABLED(CONFIG_IPV6)
++	struct mlx5e_rep_priv *uplink_rpriv;
+ 	struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
+ 	int ret;
+ 
+-- 
+2.9.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
