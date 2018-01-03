@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 18/28] IB/srpt: Inline srpt_get_cmd_state()
-Date: Wed,  3 Jan 2018 13:39:28 -0800
-Message-ID: <20180103213938.11664-19-bart.vanassche@wdc.com>
+Subject: [PATCH 12/28] IB/srpt: Rename a local variable, a member variable and a constant
+Date: Wed,  3 Jan 2018 13:39:22 -0800
+Message-ID: <20180103213938.11664-13-bart.vanassche@wdc.com>
 References: <20180103213938.11664-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180103213938.11664-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,69 +10,145 @@ To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-It is not necessary to obtain ioctx->spinlock when reading the ioctx
-state. Since after removal of this locking only a single line remains,
-inline the srpt_get_cmd_state() function.
+Rename rsp_size into max_rsp_size and SRPT_RQ_SIZE into MAX_SRPT_RQ_SIZE.
+The new names better reflect the role of this member variable and constant.
+Since the prefix "srp_" is superfluous in the context of the function
+that creates an RDMA channel, rename srp_sq_size into sq_size.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 22 +++-------------------
- 1 file changed, 3 insertions(+), 19 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 26 +++++++++++++-------------
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  6 +++---
+ 2 files changed, 16 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index d3cafeceea11..9a1d3d1e614b 100644
+index 943fec0d0548..6cff7a9b4cbb 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -716,22 +716,6 @@ static void srpt_free_ioctx_ring(struct srpt_ioctx **ioctx_ring,
- 	kfree(ioctx_ring);
- }
- 
--/*
-- * srpt_get_cmd_state() - Get the state of a SCSI command.
-- */
--static enum srpt_command_state srpt_get_cmd_state(struct srpt_send_ioctx *ioctx)
--{
--	enum srpt_command_state state;
--	unsigned long flags;
--
--	BUG_ON(!ioctx);
--
--	spin_lock_irqsave(&ioctx->spinlock, flags);
--	state = ioctx->state;
--	spin_unlock_irqrestore(&ioctx->spinlock, flags);
--	return state;
--}
--
- /*
-  * srpt_set_cmd_state() - Set the state of a SCSI command.
-  *
-@@ -1248,7 +1232,7 @@ static void srpt_rdma_read_done(struct ib_cq *cq, struct ib_wc *wc)
- 		target_execute_cmd(&ioctx->cmd);
+@@ -314,7 +314,7 @@ static void srpt_get_ioc(struct srpt_port *sport, u32 slot,
+ 	if (sdev->use_srq)
+ 		send_queue_depth = sdev->srq_size;
  	else
- 		pr_err("%s[%d]: wrong state = %d\n", __func__,
--		       __LINE__, srpt_get_cmd_state(ioctx));
-+		       __LINE__, ioctx->state);
- }
+-		send_queue_depth = min(SRPT_RQ_SIZE,
++		send_queue_depth = min(MAX_SRPT_RQ_SIZE,
+ 				       sdev->device->attrs.max_qp_wr);
  
- /**
-@@ -2308,7 +2292,7 @@ static int srpt_write_pending_status(struct se_cmd *se_cmd)
- 	struct srpt_send_ioctx *ioctx;
+ 	memset(iocp, 0, sizeof(*iocp));
+@@ -1628,7 +1628,7 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 	struct srpt_port *sport = ch->sport;
+ 	struct srpt_device *sdev = sport->sdev;
+ 	const struct ib_device_attr *attrs = &sdev->device->attrs;
+-	u32 srp_sq_size = sport->port_attrib.srp_sq_size;
++	int sq_size = sport->port_attrib.srp_sq_size;
+ 	int i, ret;
  
- 	ioctx = container_of(se_cmd, struct srpt_send_ioctx, cmd);
--	return srpt_get_cmd_state(ioctx) == SRPT_STATE_NEED_DATA;
-+	return ioctx->state == SRPT_STATE_NEED_DATA;
- }
+ 	WARN_ON(ch->rq_size < 1);
+@@ -1639,12 +1639,12 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 		goto out;
  
- /*
-@@ -2880,7 +2864,7 @@ static int srpt_get_tcm_cmd_state(struct se_cmd *se_cmd)
- 	struct srpt_send_ioctx *ioctx;
+ retry:
+-	ch->cq = ib_alloc_cq(sdev->device, ch, ch->rq_size + srp_sq_size,
++	ch->cq = ib_alloc_cq(sdev->device, ch, ch->rq_size + sq_size,
+ 			0 /* XXX: spread CQs */, IB_POLL_WORKQUEUE);
+ 	if (IS_ERR(ch->cq)) {
+ 		ret = PTR_ERR(ch->cq);
+ 		pr_err("failed to create CQ cqe= %d ret= %d\n",
+-		       ch->rq_size + srp_sq_size, ret);
++		       ch->rq_size + sq_size, ret);
+ 		goto out;
+ 	}
  
- 	ioctx = container_of(se_cmd, struct srpt_send_ioctx, cmd);
--	return srpt_get_cmd_state(ioctx);
-+	return ioctx->state;
- }
+@@ -1662,8 +1662,8 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 	 * both both, as RDMA contexts will also post completions for the
+ 	 * RDMA READ case.
+ 	 */
+-	qp_init->cap.max_send_wr = min(srp_sq_size / 2, attrs->max_qp_wr + 0U);
+-	qp_init->cap.max_rdma_ctxs = srp_sq_size / 2;
++	qp_init->cap.max_send_wr = min(sq_size / 2, attrs->max_qp_wr);
++	qp_init->cap.max_rdma_ctxs = sq_size / 2;
+ 	qp_init->cap.max_send_sge = min(attrs->max_sge, SRPT_MAX_SG_PER_WQE);
+ 	qp_init->port_num = ch->sport->port;
+ 	if (sdev->use_srq) {
+@@ -1677,8 +1677,8 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 	if (IS_ERR(ch->qp)) {
+ 		ret = PTR_ERR(ch->qp);
+ 		if (ret == -ENOMEM) {
+-			srp_sq_size /= 2;
+-			if (srp_sq_size >= MIN_SRPT_SQ_SIZE) {
++			sq_size /= 2;
++			if (sq_size >= MIN_SRPT_SQ_SIZE) {
+ 				ib_destroy_cq(ch->cq);
+ 				goto retry;
+ 			}
+@@ -1894,7 +1894,7 @@ static void srpt_release_channel_work(struct work_struct *w)
  
- static int srpt_parse_guid(u64 *guid, const char *name)
+ 	srpt_free_ioctx_ring((struct srpt_ioctx **)ch->ioctx_ring,
+ 			     ch->sport->sdev, ch->rq_size,
+-			     ch->rsp_size, DMA_TO_DEVICE);
++			     ch->max_rsp_size, DMA_TO_DEVICE);
+ 
+ 	srpt_free_ioctx_ring((struct srpt_ioctx **)ch->ioctx_recv_ring,
+ 			     sdev, ch->rq_size,
+@@ -2038,16 +2038,16 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	 * depth to avoid that the initiator driver has to report QUEUE_FULL
+ 	 * to the SCSI mid-layer.
+ 	 */
+-	ch->rq_size = min(SRPT_RQ_SIZE, sdev->device->attrs.max_qp_wr);
++	ch->rq_size = min(MAX_SRPT_RQ_SIZE, sdev->device->attrs.max_qp_wr);
+ 	spin_lock_init(&ch->spinlock);
+ 	ch->state = CH_CONNECTING;
+ 	INIT_LIST_HEAD(&ch->cmd_wait_list);
+-	ch->rsp_size = ch->sport->port_attrib.srp_max_rsp_size;
++	ch->max_rsp_size = ch->sport->port_attrib.srp_max_rsp_size;
+ 
+ 	ch->ioctx_ring = (struct srpt_send_ioctx **)
+ 		srpt_alloc_ioctx_ring(ch->sport->sdev, ch->rq_size,
+ 				      sizeof(*ch->ioctx_ring[0]),
+-				      ch->rsp_size, DMA_TO_DEVICE);
++				      ch->max_rsp_size, DMA_TO_DEVICE);
+ 	if (!ch->ioctx_ring)
+ 		goto free_ch;
+ 
+@@ -2175,7 +2175,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ free_ring:
+ 	srpt_free_ioctx_ring((struct srpt_ioctx **)ch->ioctx_ring,
+ 			     ch->sport->sdev, ch->rq_size,
+-			     ch->rsp_size, DMA_TO_DEVICE);
++			     ch->max_rsp_size, DMA_TO_DEVICE);
+ free_ch:
+ 	kfree(ch);
+ 
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index 3cf917720b35..ac76825152f1 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -114,7 +114,7 @@ enum {
+ 
+ 	MIN_SRPT_SQ_SIZE = 16,
+ 	DEF_SRPT_SQ_SIZE = 4096,
+-	SRPT_RQ_SIZE = 128,
++	MAX_SRPT_RQ_SIZE = 128,
+ 	MIN_SRPT_SRQ_SIZE = 4,
+ 	DEFAULT_SRPT_SRQ_SIZE = 4095,
+ 	MAX_SRPT_SRQ_SIZE = 65535,
+@@ -249,7 +249,7 @@ enum rdma_ch_state {
+  * @rcu:           RCU head.
+  * @kref:	   kref for this channel.
+  * @rq_size:       IB receive queue size.
+- * @rsp_size:	   IB response message size in bytes.
++ * @max_rsp_size:  Maximum size of an RSP response message in bytes.
+  * @sq_wr_avail:   number of work requests available in the send queue.
+  * @sport:         pointer to the information of the HCA port used by this
+  *                 channel.
+@@ -281,7 +281,7 @@ struct srpt_rdma_ch {
+ 	struct rcu_head		rcu;
+ 	struct kref		kref;
+ 	int			rq_size;
+-	u32			rsp_size;
++	u32			max_rsp_size;
+ 	atomic_t		sq_wr_avail;
+ 	struct srpt_port	*sport;
+ 	u8			i_port_id[16];
 -- 
 2.15.1
 
