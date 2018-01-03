@@ -1,63 +1,30 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: Linux kernel v4.15-rc4 and rdma_rxe
-Date: Wed, 3 Jan 2018 21:25:49 +0000
-Message-ID: <1515014747.2582.46.camel@wdc.com>
-References: <1513732236.2535.25.camel@wdc.com>
-         <CAG9sBKP=i9ukbkj7x11oW=yLAz8u2RYHTMbf_Z1h3=nQ3pjfLw@mail.gmail.com>
-         <1513983674.2579.27.camel@wdc.com>
-         <CAG9sBKOOvvwG6yaQfWG=c04-LQ-Yvw8QbD-jzTm-zJYOFJeEVQ@mail.gmail.com>
-         <dd87887d-8641-c8fc-48f1-234e7cf67cb1@wdc.com>
-         <CAG9sBKOtxoG-HLU5A=WEZqUuADzje74_AjZgtG21Ueeb2YCAEQ@mail.gmail.com>
-         <1514940799.14857.20.camel@wdc.com>
-         <CAG9sBKPhnknQPYX=s-y9-tonxTRrE05gU5W75x0FhKmTdggFmQ@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] RDS: null pointer dereference in rds_atomic_free_op
+Date: Wed, 3 Jan 2018 13:19:27 -0800
+Message-ID: <0a3272a7-035b-edc8-c01d-79bffefb70a3@oracle.com>
+References: <5a4d45ce.8b8a1c0a.1d072.e5e1@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG9sBKPhnknQPYX=s-y9-tonxTRrE05gU5W75x0FhKmTdggFmQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <5a4d45ce.8b8a1c0a.1d072.e5e1-ATjtLOhZ0NVl57MIdRCFDg@public.gmane.org>
 Content-Language: en-US
-Content-ID: <373C3FB2B9D2E443B81E0E5D70174087-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: simo.ghannam-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE4LTAxLTAzIGF0IDA3OjEzICswMjAwLCBNb25pIFNob3VhIHdyb3RlOg0KPiA+
-IERvZXMgdGhpcyBwZXJoYXBzIG1lYW4gdGhhdCB0aGUgcnhlX3FwIHN0cnVjdHVyZSBjYW4gYmUg
-ZnJlZWQgd2hpbGUgcnhlX2RvX3Rhc2soKQ0KPiA+IGlzIGluIHByb2dyZXNzPyBQbGVhc2Ugbm90
-ZSB0aGF0IHRoZSBpYl9zcnB0IGRyaXZlciBvbmx5IGRlc3Ryb3lzIGEgUVANCj4gPiAoc3JwdF9k
-ZXN0cm95X2NoX2liKCkgY2FsbCBpbiBzcnB0X3JlbGVhc2VfY2hhbm5lbF93b3JrKCkpIGFmdGVy
-IGFsbCBTQ1NJIGNvbW1hbmQNCj4gPiBwcm9jZXNzaW5nIGhhcyBmaW5pc2hlZCAodHJhbnNwb3J0
-X2RlcmVnaXN0ZXJfc2Vzc2lvbigpKS4NCj4gDQo+IElmIEkgdW5kZXJzdGFuZCByaWdodCB5b3Ug
-c2F5IHRoYXQgdGhlIHN5c3RlbSBpcyBodW5nIHdoZW4gdHJ5aW5nIHRvDQo+IHRha2UgYSBsb2Nr
-IGluIHJ4ZV9kb190YWtzKCkgKGxpbmUgODkpLiBJcyB0aGF0IHJpZ2h0Pw0KPiBBbnl3YXksIEl0
-J3MgcG9zc2libGUgdGhhdCB5b3UgaGl0IGEgYnVnIHJlbGF0ZWQgdG8gZGVzdHJveWluZyBhIFFQ
-Lg0KDQpIZWxsbyBNb25pLA0KDQpUaGUgaXNzdWVzIEkgaGFkIHJlcG9ydGVkIG1heSBiZSB1bnJl
-bGF0ZWQuIEJUVywgdGhpcyBpcyB3aGF0IEkgc2F3IGFwcGVhcmluZw0KaW4gdGhlIHN5c3RlbSBs
-b2cgYSBmZXcgbWludXRlcyBhZ286DQoNCkphbiAgMyAxMzowMzo1NiB1YnVudHUtdm0ga2VybmVs
-OiBpYl9zcnB0OnNycHRfY2xvc2VfY2g6IGliX3NycHQgMTkyLjE2OC4xMjIuNzYtMTg6IHF1ZXVl
-ZCB6ZXJvbGVuZ3RoIHdyaXRlDQpKYW4gIDMgMTM6MDM6NTYgdWJ1bnR1LXZtIGtlcm5lbDogcmRt
-YV9yeGU6cnhlX2NvbXBsZXRlcjogcmRtYV9yeGU6IHJ4ZV9jb21wbGV0ZXIoKTogcXAgdmFsaWQg
-MSwgc3RhdGUgRVJST1INClsgLi4uIF0NCkphbiAgMyAxMzowNDowOSB1YnVudHUtdm0ga2VybmVs
-OiBpYl9zcnB0OnNycHRfZGlzY29ubmVjdF9jaF9zeW5jOiBpYl9zcnB0IGNoIDE5Mi4xNjguMTIy
-Ljc2LTE4IHN0YXRlIDMNClsgLi4uIF0NCkphbiAgMyAxMzowNDoxNCB1YnVudHUtdm0ga2VybmVs
-OiBpYl9zcnB0IHNycHRfZGlzY29ubmVjdF9jaF9zeW5jKDE5Mi4xNjguMTIyLjc2LTE4IHN0YXRl
-IDMpOiBzdGlsbCB3YWl0aW5nIC4uLg0KDQpJbiBvdGhlciB3b3JkcywgdGhlIGliX3NycHQgZHJp
-dmVyIGhhZCBxdWV1ZWQgYSB6ZXJvLWxlbmd0aCB3cml0ZSBhbmQgY2hhbmdlZA0KdGhlIFFQIHN0
-YXRlIGludG8gRVJST1IgYnV0IG5vIGNvbXBsZXRpb24gd2FzIHF1ZXVlZCBmb3IgdGhhdCB6ZXJv
-LWxlbmd0aCB3cml0ZS4NClRoZSByZG1hX3J4ZSBsb2cgbWVzc2FnZSB3YXMgZ2VuZXJhdGVkIGJ5
-IHRoZSBmb2xsb3dpbmcgY29kZToNCg0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9z
-dy9yeGUvcnhlX2NvbXAuYyBiL2RyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX2NvbXAuYw0K
-aW5kZXggNmNkYzQwZWQ4YTlmLi5mNmM0MGVkYmRkYzYgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL2lu
-ZmluaWJhbmQvc3cvcnhlL3J4ZV9jb21wLmMNCisrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9zdy9y
-eGUvcnhlX2NvbXAuYw0KQEAgLTU1MCw2ICs1NTAsOSBAQCBpbnQgcnhlX2NvbXBsZXRlcih2b2lk
-ICphcmcpDQogDQogCWlmICghcXAtPnZhbGlkIHx8IHFwLT5yZXEuc3RhdGUgPT0gUVBfU1RBVEVf
-RVJST1IgfHwNCiAJICAgIHFwLT5yZXEuc3RhdGUgPT0gUVBfU1RBVEVfUkVTRVQpIHsNCisJCXBy
-X2RlYnVnKCJyeGVfY29tcGxldGVyKCk6IHFwIHZhbGlkICVkLCBzdGF0ZSAlc1xuIiwNCisJCQkg
-cXAtPnZhbGlkLCBxcC0+cmVxLnN0YXRlID09IFFQX1NUQVRFX0VSUk9SID8gIkVSUk9SIiA6DQor
-CQkJIHFwLT5yZXEuc3RhdGUgPT0gUVBfU1RBVEVfUkVTRVQgPyAiUkVTRVQiIDogIig/KSIpOw0K
-IAkJcnhlX2RyYWluX3Jlc3BfcGt0cyhxcCwgcXAtPnZhbGlkICYmDQogCQkJCSAgICBxcC0+cmVx
-LnN0YXRlID09IFFQX1NUQVRFX0VSUk9SKTsNCiAJCWdvdG8gZXhpdDsNCg0KQmFydC4=
+On 1/3/2018 1:06 PM, simo.ghannam-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org wrote:
+> From: Mohamed Ghannam <simo.ghannam-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> 
+> set rm->atomic.op_active to 0 when rds_pin_pages() fails
+> or the user supplied address is invalid,
+> this prevents a NULL pointer usage in rds_atomic_free_op()
+> 
+> Signed-off-by: Mohamed Ghannam <simo.ghannam-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+Good catch !!
+
+Acked-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
