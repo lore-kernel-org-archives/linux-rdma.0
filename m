@@ -1,44 +1,41 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] ethernet: mlx4: Delete an error message for a failed
- memory allocation in five functions
-Date: Wed, 3 Jan 2018 09:03:16 -0700
-Message-ID: <20180103160316.GB11348@ziepe.ca>
-References: <30191db0-4d99-0349-b66a-c7354ef90d50@users.sourceforge.net>
- <0fea8f2f-f8fc-ce2e-3d33-44227de3637a@mellanox.com>
- <alpine.DEB.2.20.1801030904290.5305@hadrien>
- <adfc3229-d3f9-afb9-00e6-9f765af0cbe8@mellanox.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: Fix for notify send CQ failure messages
+Date: Wed, 3 Jan 2018 09:06:48 -0700
+Message-ID: <20180103160648.GD11348@ziepe.ca>
+References: <20180102210419.26104.32513.stgit@phlsvlogin03.ph.intel.com>
+ <20180102212407.GA19027@ziepe.ca>
+ <CAAk-MO_ArzS5irkN-_nt_YYL3+YgL+FpM6WLvPZfM-mKexsShg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <adfc3229-d3f9-afb9-00e6-9f765af0cbe8@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Tariq Toukan <tariqt@mellanox.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>, SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+In-Reply-To: <CAAk-MO_ArzS5irkN-_nt_YYL3+YgL+FpM6WLvPZfM-mKexsShg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 03, 2018 at 01:24:59PM +0200, Tariq Toukan wrote:
-
-> >Strings take up space.  Since there is a backtrace on an out of memory
-> >problem, if the string does not provide any more information than the
-> >position of the call, then there is not much added value.  I don't know
-> >what was the string in this case.  If it provides some additional
-> >information, then it would be reasonable to keep it.
+On Wed, Jan 03, 2018 at 11:33:05AM +0200, Erez Shitrit wrote:
+> On Tue, Jan 2, 2018 at 11:24 PM, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> > On Tue, Jan 02, 2018 at 04:04:20PM -0500, Alex Estrin wrote:
+> >> If IB_CQ_REPORT_MISSED_EVENTS flag is passed in ib_req_notify_cq()
+> >> it may return positive value indicating non-empty CQ.
+> >> If return code not verified the log might be flooded with false
+> >> warning messages "request notify on send CQ failed".
+> >>
+> >> Fixes: commit 8966e28d2e40 ("IB/ipoib: Use NAPI in UD/TX flows")
+> >
+> > Hurm... It was right before that commit as well..
+> >
+> > Erez, why did you change it?
 > 
-> I don't really accept this claim...
+> I don't think i changed it.
 
-The standard we are moving to is to rely on the backtrace print for
-debugging. It is so huge it is unlikely a single print from the driver
-will make much difference to the user's view.
-
-Most users think backtrace == oops == bug report.
-
-> In addition, some out-of-memory errors are recoverable, even though their
-> backtrace is also printed. For example, in function mlx4_en_create_cq
-> (appears in patch) we have a first allocation attempt (kzalloc_node) and a
-> fallback (kzalloc).
-
-Please send a patch fixing this as other have suggested, it is clearly
-a bug.
+Okay, then it is a typo when you reworked things for NAPI that the >0
+case started making warnings. I will apply this patch.
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
