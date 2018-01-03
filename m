@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 4/6] sunrpc: Format RPC events consistently for display
-Date: Wed, 03 Jan 2018 15:38:33 -0500
-Message-ID: <20180103203833.29209.32335.stgit@manet.1015granger.net>
+Subject: [PATCH 5/6] SUNRPC: task_run_action should display tk_callback
+Date: Wed, 03 Jan 2018 15:38:41 -0500
+Message-ID: <20180103203841.29209.13773.stgit@manet.1015granger.net>
 References: <20180103203540.29209.4620.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,36 +13,36 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: Make it easier to use text search when browsing a trace
-report. Other events use "status=%d".
+This shows up in every RPC:
+
+     kworker/4:1-19772 [004]  3467.373443: rpc_task_run_action:  task:4711@2 flags=0e81 state=0005 status=0 action=call_status
+     kworker/4:1-19772 [004]  3467.373444: rpc_task_run_action:  task:4711@2 flags=0e81 state=0005 status=0 action=call_status
+
+What's actually going on is that the first iteration of the RPC
+scheduler is invoking the function in tk_callback (in this case,
+xprt_timer), then invoking call_status on the next iteration.
+
+Feeding do_action, rather than tk_action, to the "task_run_action"
+trace point will now always display the correct FSM step.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- include/trace/events/sunrpc.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/sunrpc/sched.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/trace/events/sunrpc.h b/include/trace/events/sunrpc.h
-index 7804d85..0594e66 100644
---- a/include/trace/events/sunrpc.h
-+++ b/include/trace/events/sunrpc.h
-@@ -32,7 +32,7 @@
- 		__entry->status = task->tk_status;
- 	),
+diff --git a/net/sunrpc/sched.c b/net/sunrpc/sched.c
+index b1b49ed..c292a5e 100644
+--- a/net/sunrpc/sched.c
++++ b/net/sunrpc/sched.c
+@@ -770,7 +770,7 @@ static void __rpc_execute(struct rpc_task *task)
+ 			if (do_action == NULL)
+ 				break;
+ 		}
+-		trace_rpc_task_run_action(task->tk_client, task, task->tk_action);
++		trace_rpc_task_run_action(task->tk_client, task, do_action);
+ 		do_action(task);
  
--	TP_printk("task:%u@%u, status %d",
-+	TP_printk("task:%u@%u status=%d",
- 		__entry->task_id, __entry->client_id,
- 		__entry->status)
- );
-@@ -66,7 +66,7 @@
- 		__entry->status = status;
- 	),
- 
--	TP_printk("task:%u@%u, status %d",
-+	TP_printk("task:%u@%u status=%d",
- 		__entry->task_id, __entry->client_id,
- 		__entry->status)
- );
+ 		/*
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
