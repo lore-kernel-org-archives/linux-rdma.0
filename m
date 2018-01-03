@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V5 for-next 6/6] RDMA/hns: Assign dest_qp when deregistering mr
-Date: Wed, 3 Jan 2018 10:44:08 +0800
-Message-ID: <1514947448-40475-7-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V5 for-next 2/6] RDMA/hns: Update the usage of sr_max and rr_max field
+Date: Wed, 3 Jan 2018 10:44:04 +0800
+Message-ID: <1514947448-40475-3-git-send-email-oulijun@huawei.com>
 References: <1514947448-40475-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,40 +12,83 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gma
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-It needs to create eight reserve QPs for resolving
-a bug of hip06. When deregistering mr, it will issue
-a rdma write for every reserve QPs.
-
-When modify qp from init to rtr, it needs to set
-the value of dest_qp_num. Otherwise, it will lead
-an error of freeing mr.
+This patch fixes the usage with sr_max filed and rr_max of qp
+context when modify qp. Its modifications include:
+1. Adjust location of filling sr_max filed of qpc
+2. Only assign the number of responder resource if
+   IB_QP_MAX_DEST_RD_ATOMIC bit is set
+3. Only assign the number of outstanding resource if
+   IB_QP_MAX_QP_RD_ATOMIC
+4. Fix the assgin algorithms for the field of sr_max
+   and rr_max of qp context
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
 V1->V2:
-- Fix the assginment method for attr_mask becasue
-  it only needs to set IB_QP_DEST_QPN for attr_mask
-  when modify qp from init to rtr state.
+- Adjust the write way for if branch condition from
+  Leon Romanovsky's advice.
 
 V1:
-- The initial submit
+- the initial submit
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index abcc64e..b1007d8 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -775,7 +775,7 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
- 			goto create_lp_qp_failed;
- 		}
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 7e084c9..63acd3b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2536,11 +2536,14 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 		roce_set_bit(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_LBI_S, 0);
+ 	}
  
--		ret = hr_dev->hw->modify_qp(&hr_qp->ibqp, &attr, attr_mask,
-+		ret = hr_dev->hw->modify_qp(&hr_qp->ibqp, &attr, IB_QP_DEST_QPN,
- 					    IB_QPS_INIT, IB_QPS_RTR);
- 		if (ret) {
- 			dev_err(dev, "modify qp failed(%d)!\n", ret);
+-	roce_set_field(context->byte_140_raq, V2_QPC_BYTE_140_RR_MAX_M,
+-		       V2_QPC_BYTE_140_RR_MAX_S,
+-		       ilog2((unsigned int)attr->max_dest_rd_atomic));
+-	roce_set_field(qpc_mask->byte_140_raq, V2_QPC_BYTE_140_RR_MAX_M,
+-		       V2_QPC_BYTE_140_RR_MAX_S, 0);
++	if ((attr_mask & IB_QP_MAX_DEST_RD_ATOMIC) &&
++	     attr->max_dest_rd_atomic) {
++		roce_set_field(context->byte_140_raq, V2_QPC_BYTE_140_RR_MAX_M,
++			       V2_QPC_BYTE_140_RR_MAX_S,
++			       fls(attr->max_dest_rd_atomic - 1));
++		roce_set_field(qpc_mask->byte_140_raq, V2_QPC_BYTE_140_RR_MAX_M,
++			       V2_QPC_BYTE_140_RR_MAX_S, 0);
++	}
+ 
+ 	roce_set_field(context->byte_56_dqpn_err, V2_QPC_BYTE_56_DQPN_M,
+ 		       V2_QPC_BYTE_56_DQPN_S, attr->dest_qp_num);
+@@ -2630,12 +2633,6 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 		       V2_QPC_BYTE_168_LP_SGEN_INI_M,
+ 		       V2_QPC_BYTE_168_LP_SGEN_INI_S, 0);
+ 
+-	roce_set_field(context->byte_208_irrl, V2_QPC_BYTE_208_SR_MAX_M,
+-		       V2_QPC_BYTE_208_SR_MAX_S,
+-		       ilog2((unsigned int)attr->max_rd_atomic));
+-	roce_set_field(qpc_mask->byte_208_irrl, V2_QPC_BYTE_208_SR_MAX_M,
+-		       V2_QPC_BYTE_208_SR_MAX_S, 0);
+-
+ 	roce_set_field(context->byte_28_at_fl, V2_QPC_BYTE_28_SL_M,
+ 		       V2_QPC_BYTE_28_SL_S, rdma_ah_get_sl(&attr->ah_attr));
+ 	roce_set_field(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_SL_M,
+@@ -2839,6 +2836,14 @@ static int modify_qp_rtr_to_rts(struct ib_qp *ibqp,
+ 	roce_set_field(qpc_mask->byte_196_sq_psn, V2_QPC_BYTE_196_SQ_MAX_PSN_M,
+ 		       V2_QPC_BYTE_196_SQ_MAX_PSN_S, 0);
+ 
++	if ((attr_mask & IB_QP_MAX_QP_RD_ATOMIC) && attr->max_rd_atomic) {
++		roce_set_field(context->byte_208_irrl, V2_QPC_BYTE_208_SR_MAX_M,
++			       V2_QPC_BYTE_208_SR_MAX_S,
++			       fls(attr->max_rd_atomic - 1));
++		roce_set_field(qpc_mask->byte_208_irrl,
++			       V2_QPC_BYTE_208_SR_MAX_M,
++			       V2_QPC_BYTE_208_SR_MAX_S, 0);
++	}
+ 	return 0;
+ }
+ 
 -- 
 1.9.1
 
