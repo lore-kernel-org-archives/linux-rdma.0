@@ -1,74 +1,62 @@
-From: Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH] ethernet: mlx4: Delete an error message for a failed
- memory allocation in five functions
-Date: Wed, 3 Jan 2018 13:24:59 +0200
-Message-ID: <adfc3229-d3f9-afb9-00e6-9f765af0cbe8@mellanox.com>
-References: <30191db0-4d99-0349-b66a-c7354ef90d50@users.sourceforge.net>
- <0fea8f2f-f8fc-ce2e-3d33-44227de3637a@mellanox.com>
- <alpine.DEB.2.20.1801030904290.5305@hadrien>
+From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/ipoib: Fix for notify send CQ failure messages
+Date: Wed, 3 Jan 2018 12:03:48 +0000
+Message-ID: <F3529576D8E232409F431C309E29399336CEA9AD@CRSMSX102.amr.corp.intel.com>
+References: <20180102210419.26104.32513.stgit@phlsvlogin03.ph.intel.com>
+ <20180102212407.GA19027@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.20.1801030904290.5305@hadrien>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180102212407.GA19027-uk2M96/98Pc@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Julia Lawall <julia.lawall@lip6.fr>, Tariq Toukan <tariqt@mellanox.com>
-Cc: SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 03/01/2018 10:06 AM, Julia Lawall wrote:
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
+> Sent: Tuesday, January 2, 2018 4:24 PM
+> To: Estrin, Alex <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH] IB/ipoib: Fix for notify send CQ failure messages
 > 
+> On Tue, Jan 02, 2018 at 04:04:20PM -0500, Alex Estrin wrote:
+> > If IB_CQ_REPORT_MISSED_EVENTS flag is passed in ib_req_notify_cq()
+> > it may return positive value indicating non-empty CQ.
+> > If return code not verified the log might be flooded with false
+> > warning messages "request notify on send CQ failed".
+> >
+> > Fixes: commit 8966e28d2e40 ("IB/ipoib: Use NAPI in UD/TX flows")
 > 
-> On Wed, 3 Jan 2018, Tariq Toukan wrote:
+> Hurm... It was right before that commit as well..
 > 
->>
->>
->> On 01/01/2018 10:46 PM, SF Markus Elfring wrote:
->>> From: Markus Elfring <elfring@users.sourceforge.net>
->>> Date: Mon, 1 Jan 2018 21:42:27 +0100
->>>
->>> Omit an extra message for a memory allocation failure in these functions.
->>>
->>> This issue was detected by using the Coccinelle software.
->>>
->>> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
->>> ---
->>
->> Is this an issue? Why? What is your motivation?
->> These are error messages, very informative, appear only upon errors, and in
->> control flow.
+> Erez, why did you change it?
 > 
-> Strings take up space.  Since there is a backtrace on an out of memory
-> problem, if the string does not provide any more information than the
-> position of the call, then there is not much added value.  I don't know
-> what was the string in this case.  If it provides some additional
-> information, then it would be reasonable to keep it.
+> +               if (ib_req_notify_cq(priv->send_cq, IB_CQ_NEXT_COMP |
+> +                                    IB_CQ_REPORT_MISSED_EVENTS)) {
+> +                       ipoib_warn(priv, "IPoIB/CM:request notify on send CQ failed\n");
+> ...
+> -                       rc = ib_req_notify_cq(priv->send_cq,
+> -                               IB_CQ_NEXT_COMP | IB_CQ_REPORT_MISSED_EVENTS);
+> -                       if (rc < 0)
+> -                               ipoib_warn(priv, "request notify on send CQ failed\n");
+> 
+> Alex, that is not the right format for the Fixes: line..
 
-I don't really accept this claim...
-
-Short informative strings worth the tiny space they consume. It helps 
-the users of our driver understand what went wrong in simple words, 
-without the need to understand the role of the functions/callstack or 
-being familiar with different parts of the driver code.
-
-In addition, some out-of-memory errors are recoverable, even though 
-their backtrace is also printed. For example, in function 
-mlx4_en_create_cq (appears in patch) we have a first allocation attempt 
-(kzalloc_node) and a fallback (kzalloc). I'd prefer to state a clear 
-error message only when both have failed, because otherwise the user 
-might be confused whether the backtrace should indicate a malfunctioning 
-interface, or not.
-
-Tariq
-
-> 
-> julia
-> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+Jason, thanks for noticing. I'll resend v2
+Alex.
+ 
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
