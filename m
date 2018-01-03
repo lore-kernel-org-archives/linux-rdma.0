@@ -1,125 +1,90 @@
-From: Steve French <smfrench@gmail.com>
-Subject: Re: [Patch v8 00/16] CIFS: Implement SMB Direct protocol
-Date: Wed, 3 Jan 2018 15:39:31 -0600
-Message-ID: <CAH2r5muSmtRFdQvmb0ce9vE0nSAAm8kZGe4Kcib1X=mcxfKZdw@mail.gmail.com>
-References: <20171123003849.17093-1-longli@exchange.microsoft.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20171123003849.17093-1-longli@exchange.microsoft.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Long Li <longli@exchange.microsoft.com>
-Cc: linux-cifs@vger.kernel.org, linux-rdma@vger.kernel.org, samba-technical <samba-technical@lists.samba.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Subject: [PATCH 17/28] IB/srpt: Introduce srpt_format_guid()
+Date: Wed,  3 Jan 2018 13:39:27 -0800
+Message-ID: <20180103213938.11664-18-bart.vanassche@wdc.com>
+References: <20180103213938.11664-1-bart.vanassche@wdc.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180103213938.11664-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Merged into cifs-2.6.git for-next after cleaning up some minor typos
-and checkpatch warnings
+Introduce a function for converting a GUID into an ASCII string. This
+patch does not change any functionality.
 
-On Wed, Nov 22, 2017 at 6:38 PM, Long Li <longli@exchange.microsoft.com> wrote:
-> From: Long Li <longli@microsoft.com>
->
-> Starting with SMB2 dialect 3.0, Microsoft introduced SMB Direct transport
-> protocol for transferring upper layer (SMB2) payload over RDMA via Infiniband,
-> RoCE or iWARP. The prococol is published in [MS-SMBD]
-> (https://msdn.microsoft.com/en-us/library/hh536346.aspx).
->
-> Change log:
-> v2:
-> Implemented RDMA read/write via memory registration.
-> Re-arranged patches for review [Christoph Hellwig <hch@infradead.org>].
-> Restructured the code and fixed bugs on protocol timer and keepalive
-> [Tom Talpey <ttalpey@microsoft.com>].
->
-> v3:
-> Improved performance by introducing an additional queue for handling
-> empty packets and reducing lock contention on IRQ path.
-> Added light weight profiling by reading TSC.
-> Improved the code for checking SMB versions when mounting with rdma option
-> [Leon Romanovsky <leon@kernel.org>].
-> Moved to use pages instead of buffers for passing I/O for RDMA
-> [Christoph Hellwig <hch@infradead.org>].
-> Removed redundant code and refactored I/O code paths
-> [Christoph Hellwig <hch@infradead.org>, Tom Talpey <ttalpey@microsoft.com>].
->
-> v4:
-> Fixed connectivity issues with iWAPR devices.
-> Exported configurable protocol parameters to /proc/fs/cifs
-> [Steve French <sfrench@samba.org>]
-> Re-arranged patches for review
-> [Pavel Shilovsky <piastryyy@gmail.com>].
->
-> v5:
-> Fixed compiling errors on ia64, i386 and when INFINIBAND is not
-> configured. [kbuild test robot]
-> Profiling is removed and will be introduced in a seperate patch.
->
-> v6:
-> Report internal code error via WARN_ON(). Change description in
-> Kconfig [Pavel Shilovsky <piastryyy@gmail.com>].
->
-> v7:
-> Removed the use of #ifdef CONFIG_CIFS_SMB_DIRECT in upper layer
-> code calling transport I/O. [Matthew Wilcox <mawilcox@microsoft.com>,
-> Tom Talpey <ttalpey@microsoft.com>]
->
-> v8:
-> Fixed comment typos and removed unused code
-> [Ronnie Sahlberg <lsahlber@redhat.com>]
-> Removed the first 7 patches in v7, which have been merged.
-> Restructed the code to move relevant function definitions to later patches.
-> [Pavel Shilovsky <piastryyy@gmail.com>]
-> Added a patch to disable signing when RDMA is in use. Signing will be
-> enabled after it is properly implemented in SMB Direct code paths.
-> Fixed an issue on passing the incorrect offset to smbd_buffer_descriptor_v1
-> when RDMA read is used for SMB write. This was caused by recent CIFS
-> patches to remove packet length from SMB2 packet header.
->
-> Long Li (16):
->   CIFS: SMBD: Upper layer connects to SMBDirect session
->   CIFS: SMBD: Implement function to reconnect to a SMB Direct transport
->   CIFS: SMBD: Upper layer reconnects to SMB Direct session
->   CIFS: SMBD: Implement function to destroy a SMB Direct connection
->   CIFS: SMBD: Upper layer destroys SMB Direct session on shutdown or
->     umount
->   CIFS: SMBD: Set SMB Direct maximum read or write size for I/O
->   CIFS: SMBD: Implement function to receive data via RDMA receive
->   CIFS: SMBD: Upper layer receives data via RDMA receive
->   CIFS: SMBD: Implement function to send data via RDMA send
->   CIFS: SMBD: Upper layer sends data via RDMA send
->   CIFS: SMBD: Implement RDMA memory registration
->   CIFS: SMBD: Upper layer performs SMB write via RDMA read through
->     memory registration
->   CIFS: SMBD: Read correct returned data length for RDMA write (SMB
->     read) I/O
->   CIFS: SMBD: Upper layer performs SMB read via RDMA write through
->     memory registration
->   CIFS: SMBD: Add SMB Direct debug counters
->   CIFS: SMBD: Disable signing on SMB direct transport
->
->  fs/cifs/cifs_debug.c |  66 ++++
->  fs/cifs/cifsglob.h   |  16 +-
->  fs/cifs/cifssmb.c    |  15 +-
->  fs/cifs/connect.c    |  46 ++-
->  fs/cifs/file.c       |  17 +-
->  fs/cifs/smb1ops.c    |   4 +-
->  fs/cifs/smb2ops.c    |  24 +-
->  fs/cifs/smb2pdu.c    | 117 ++++++-
->  fs/cifs/smbdirect.c  | 947 +++++++++++++++++++++++++++++++++++++++++++++++++++
->  fs/cifs/smbdirect.h  |  72 ++++
->  fs/cifs/transport.c  |   8 +-
->  11 files changed, 1308 insertions(+), 24 deletions(-)
->
-> --
-> 2.7.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-cifs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-
-
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 99d30c35f536..d3cafeceea11 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -503,6 +503,15 @@ static void srpt_mad_recv_handler(struct ib_mad_agent *mad_agent,
+ 	ib_free_recv_mad(mad_wc);
+ }
+ 
++static int srpt_format_guid(char *buf, unsigned int size, const __be64 *guid)
++{
++	const __be16 *g = (const __be16 *)guid;
++
++	return snprintf(buf, size, "%04x:%04x:%04x:%04x",
++			be16_to_cpu(g[0]), be16_to_cpu(g[1]),
++			be16_to_cpu(g[2]), be16_to_cpu(g[3]));
++}
++
+ /*
+  * srpt_refresh_port() - Configure a HCA port.
+  *
+@@ -517,7 +526,6 @@ static int srpt_refresh_port(struct srpt_port *sport)
+ 	struct ib_mad_reg_req reg_req;
+ 	struct ib_port_modify port_modify;
+ 	struct ib_port_attr port_attr;
+-	__be16 *guid;
+ 	int ret;
+ 
+ 	memset(&port_modify, 0, sizeof(port_modify));
+@@ -541,11 +549,8 @@ static int srpt_refresh_port(struct srpt_port *sport)
+ 		goto err_query_port;
+ 
+ 	sport->port_guid_wwn.priv = sport;
+-	guid = (__be16 *)&sport->gid.global.interface_id;
+-	snprintf(sport->port_guid, sizeof(sport->port_guid),
+-		 "%04x:%04x:%04x:%04x",
+-		 be16_to_cpu(guid[0]), be16_to_cpu(guid[1]),
+-		 be16_to_cpu(guid[2]), be16_to_cpu(guid[3]));
++	srpt_format_guid(sport->port_guid, sizeof(sport->port_guid),
++			 &sport->gid.global.interface_id);
+ 	sport->port_gid_wwn.priv = sport;
+ 	snprintf(sport->port_gid, sizeof(sport->port_gid),
+ 		 "0x%016llx%016llx",
+@@ -1936,7 +1941,6 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	struct srp_login_rej *rej;
+ 	struct ib_cm_rep_param *rep_param;
+ 	struct srpt_rdma_ch *ch, *tmp_ch;
+-	__be16 *guid;
+ 	u32 it_iu_len;
+ 	int i, ret = 0;
+ 
+@@ -2089,10 +2093,8 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 		goto destroy_ib;
+ 	}
+ 
+-	guid = (__be16 *)&param->primary_path->dgid.global.interface_id;
+-	snprintf(ch->ini_guid, sizeof(ch->ini_guid), "%04x:%04x:%04x:%04x",
+-		 be16_to_cpu(guid[0]), be16_to_cpu(guid[1]),
+-		 be16_to_cpu(guid[2]), be16_to_cpu(guid[3]));
++	srpt_format_guid(ch->ini_guid, sizeof(ch->ini_guid),
++			 &param->primary_path->dgid.global.interface_id);
+ 	snprintf(ch->sess_name, sizeof(ch->sess_name), "0x%016llx%016llx",
+ 			be64_to_cpu(*(__be64 *)ch->i_port_id),
+ 			be64_to_cpu(*(__be64 *)(ch->i_port_id + 8)));
 -- 
-Thanks,
+2.15.1
 
-Steve
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
