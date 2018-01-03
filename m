@@ -1,70 +1,44 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 6/6] SUNRPC: Micro-optimize __rpc_execute
-Date: Wed, 03 Jan 2018 15:38:49 -0500
-Message-ID: <20180103203849.29209.23116.stgit@manet.1015granger.net>
-References: <20180103203540.29209.4620.stgit@manet.1015granger.net>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 14/15] IB/mlx5: Don't advertise RAW QP support
+ in dual port mode
+Date: Wed, 3 Jan 2018 22:39:15 +0200
+Message-ID: <CAJ3xEMimYj8=USqjHEF_uiwJCNoeT5qpbNMYTWUX7EgTVSeuuw@mail.gmail.com>
+References: <20171224125741.25464-1-leon@kernel.org> <20171224125741.25464-15-leon@kernel.org>
+ <CAJ3xEMgAtd1PKN2h1NFj=Mt72msuU5bpFy0jO4KFXxXxGRf7hA@mail.gmail.com>
+ <20171225071613.GW2942@mtr-leonro.local> <CAJ3xEMhtssDWuu8JAB_jhyofKbkeo4vYTLixLeta6vPzKQOp+A@mail.gmail.com>
+ <ab3fb697-7b2c-685c-2151-5f48d5d7270a@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180103203540.29209.4620.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <ab3fb697-7b2c-685c-2151-5f48d5d7270a-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The common case: There are 13 to 14 actions per RPC, and tk_callback
-is non-NULL in only one of them. There's no need to store a NULL in
-the tk_callback field during each FSM step.
+On Wed, Jan 3, 2018 at 10:35 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> On 12/25/2017 3:17 AM, Or Gerlitz wrote:
+>> On Mon, Dec 25, 2017 at 9:16 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>>> On Mon, Dec 25, 2017 at 12:16:15AM +0200, Or Gerlitz wrote:
+>>>> On Sun, Dec 24, 2017 at 2:57 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>>>>> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>>>
+>>>>> When operating in dual port RoCE mode RAW QPs are not supposed
+>>>>> to work on the slave port.
+>>>> why?
+>>> HW create flow table restriction.
+>>
+>> cryptic to me, either put a proper explanation on the V2 change log
+>> for this patch
+>> so we can review it then or explain it here if you want a review on V1
+>
+> We don't report RAW QP support on a per port basis.  It's per device.
+> The user doesn't know which port is the master/slave, so we shouldn't
+> support RAW QP at all in this mode. I'll update the commit message to state that.
 
-This slightly improves throughput results in dbench and other multi-
-threaded benchmarks on my two-socket client on 56Gb InfiniBand, but
-will probably be inconsequential on slower systems.
-
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/sched.c |   24 +++++++++++-------------
- 1 file changed, 11 insertions(+), 13 deletions(-)
-
-diff --git a/net/sunrpc/sched.c b/net/sunrpc/sched.c
-index c292a5e..896691a 100644
---- a/net/sunrpc/sched.c
-+++ b/net/sunrpc/sched.c
-@@ -755,21 +755,19 @@ static void __rpc_execute(struct rpc_task *task)
- 		void (*do_action)(struct rpc_task *);
- 
- 		/*
--		 * Execute any pending callback first.
-+		 * Perform the next FSM step or a pending callback.
-+		 *
-+		 * tk_action may be NULL if the task has been killed.
-+		 * In particular, note that rpc_killall_tasks may
-+		 * do this at any time, so beware when dereferencing.
- 		 */
--		do_action = task->tk_callback;
--		task->tk_callback = NULL;
--		if (do_action == NULL) {
--			/*
--			 * Perform the next FSM step.
--			 * tk_action may be NULL if the task has been killed.
--			 * In particular, note that rpc_killall_tasks may
--			 * do this at any time, so beware when dereferencing.
--			 */
--			do_action = task->tk_action;
--			if (do_action == NULL)
--				break;
-+		do_action = task->tk_action;
-+		if (task->tk_callback) {
-+			do_action = task->tk_callback;
-+			task->tk_callback = NULL;
- 		}
-+		if (!do_action)
-+			break;
- 		trace_rpc_task_run_action(task->tk_client, task, do_action);
- 		do_action(task);
- 
-
+in mlx4 we do have IB device with two ports and RAW QP is supported,
+what is different there?
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
