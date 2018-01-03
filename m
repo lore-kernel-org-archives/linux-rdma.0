@@ -1,124 +1,136 @@
-From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V5 for-next 3/6] RDMA/hns: Set access flags of hip08 RoCE
-Date: Wed, 3 Jan 2018 10:44:05 +0800
-Message-ID: <1514947448-40475-4-git-send-email-oulijun@huawei.com>
-References: <1514947448-40475-1-git-send-email-oulijun@huawei.com>
+From: David Ahern <dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH iproute2-next 1/9] rdam: Add option to provide "-" sign
+ for the port number
+Date: Tue, 2 Jan 2018 19:46:38 -0700
+Message-ID: <7e2cec33-0549-6dfc-c9fe-8be8a1261c7d@gmail.com>
+References: <20180102093725.6172-1-leon@kernel.org>
+ <20180102093725.6172-2-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1514947448-40475-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20180102093725.6172-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch refactors the code of setting access flags
-for RDMA operation as well as adds the scene when
-attr->max_dest_rd_atomic is zero.
+a couple of nits
 
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
----
-V1:
-- The initial submit
----
- drivers/infiniband/hw/hns/hns_roce_device.h |  1 +
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 48 +++++++++++++++++++++--------
- 2 files changed, 37 insertions(+), 12 deletions(-)
+On 1/2/18 2:37 AM, Leon Romanovsky wrote:
+> diff --git a/rdma/utils.c b/rdma/utils.c
+> index 7b2001e2..7c920a5c 100644
+> --- a/rdma/utils.c
+> +++ b/rdma/utils.c
+> @@ -10,6 +10,7 @@
+>   */
+>  
+>  #include "rdma.h"
+> +#include <ctype.h>
+>  
+>  static int rd_argc(struct rd *rd)
+>  {
+> @@ -50,13 +51,43 @@ bool rd_no_arg(struct rd *rd)
+>  	return rd_argc(rd) == 0;
+>  }
+>  
+> -uint32_t get_port_from_argv(struct rd *rd)
+> +/*
+> + * Possible input:output
+> + * dev/port    | first port | is_dump_all
+> + * mlx5_1      | 0          | true
+> + * mlx5_1/     | 0          | true
+> + * mlx5_1/0    | 0          | false
+> + * mlx5_1/1    | 1          | false
+> + * mlx5_1/-    | 0          | false
+> + *
+> + * In strict mode, /- will return error.
+> + */
+> +static int get_port_from_argv(struct rd *rd, uint32_t *port,
+> +			      bool *is_dump_all, bool strict_port)
+>  {
+>  	char *slash;
+>  
+> +	*port = 0;
+> +	*is_dump_all = true;
+> +
+>  	slash = strchr(rd_argv(rd), '/');
+>  	/* if no port found, return 0 */
+> -	return slash ? atoi(slash + 1) : 0;
+> +	if (slash) {
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 8d123d3..4afa070 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -483,6 +483,7 @@ struct hns_roce_qp {
- 	u8			resp_depth;
- 	u8			state;
- 	u32			access_flags;
-+	u32                     atomic_rd_en;
- 	u32			pkey_index;
- 	void			(*event)(struct hns_roce_qp *,
- 					 enum hns_roce_event);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 63acd3b..8026b11 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1931,6 +1931,36 @@ static int hns_roce_v2_qp_modify(struct hns_roce_dev *hr_dev,
- 	return ret;
- }
- 
-+static void set_access_flags(struct hns_roce_qp *hr_qp,
-+			     struct hns_roce_v2_qp_context *context,
-+			     struct hns_roce_v2_qp_context *qpc_mask,
-+			     const struct ib_qp_attr *attr, int attr_mask)
-+{
-+	u8 dest_rd_atomic;
-+	u32 access_flags;
-+
-+	dest_rd_atomic = !!(attr_mask & IB_QP_MAX_DEST_RD_ATOMIC) ?
-+			 attr->max_dest_rd_atomic : hr_qp->resp_depth;
-+
-+	access_flags = !!(attr_mask & IB_QP_ACCESS_FLAGS) ?
-+		       attr->qp_access_flags : hr_qp->atomic_rd_en;
-+
-+	if (!dest_rd_atomic)
-+		access_flags &= IB_ACCESS_REMOTE_WRITE;
-+
-+	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
-+		     !!(access_flags & IB_ACCESS_REMOTE_READ));
-+	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S, 0);
-+
-+	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
-+		     !!(access_flags & IB_ACCESS_REMOTE_WRITE));
-+	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S, 0);
-+
-+	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
-+		     !!(access_flags & IB_ACCESS_REMOTE_ATOMIC));
-+	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S, 0);
-+}
-+
- static void modify_qp_reset_to_init(struct ib_qp *ibqp,
- 				    const struct ib_qp_attr *attr,
- 				    struct hns_roce_v2_qp_context *context,
-@@ -2016,18 +2046,6 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
- 	roce_set_bit(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_CNP_TX_FLAG_S, 0);
- 	roce_set_bit(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_CE_FLAG_S, 0);
- 
--	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
--		     !!(attr->qp_access_flags & IB_ACCESS_REMOTE_READ));
--	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S, 0);
--
--	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
--		     !!(attr->qp_access_flags & IB_ACCESS_REMOTE_WRITE));
--	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S, 0);
--
--	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
--		     !!(attr->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC));
--	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S, 0);
--
- 	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S, 1);
- 	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S, 0);
- 
-@@ -2907,6 +2925,9 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
- 		goto out;
- 	}
- 
-+	if (attr_mask & (IB_QP_ACCESS_FLAGS | IB_QP_MAX_DEST_RD_ATOMIC))
-+		set_access_flags(hr_qp, context, qpc_mask, attr, attr_mask);
-+
- 	/* Every status migrate must change state */
- 	roce_set_field(context->byte_60_qpst_mapid, V2_QPC_BYTE_60_QP_ST_M,
- 		       V2_QPC_BYTE_60_QP_ST_S, new_state);
-@@ -2923,6 +2944,9 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
- 
- 	hr_qp->state = new_state;
- 
-+	if (attr_mask & IB_QP_ACCESS_FLAGS)
-+		hr_qp->atomic_rd_en = attr->qp_access_flags;
-+
- 	if (attr_mask & IB_QP_MAX_DEST_RD_ATOMIC)
- 		hr_qp->resp_depth = attr->max_dest_rd_atomic;
- 	if (attr_mask & IB_QP_PORT) {
--- 
-1.9.1
+++slash here would alleviate the need for all of the +1's.
+
+
+> +		if (*(slash + 1) == '-') {
+> +			if (strict_port)
+> +				return -EINVAL;
+> +			*is_dump_all = false;
+> +			return 0;
+> +		}
+> +
+> +		if (isdigit(*(slash + 1))) {
+> +			*is_dump_all = false;
+> +			*port = atoi(slash + 1);
+> +		}
+> +		if (!*port && strlen(slash + 1))
+> +			return -EINVAL;
+> +	}
+> +	return 0;
+>  }
+>  
+>  static struct dev_map *dev_map_alloc(const char *dev_name)
+> @@ -152,7 +183,7 @@ void rd_free(struct rd *rd)
+>  	dev_map_cleanup(rd);
+>  }
+>  
+> -int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd))
+> +int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd), bool strict_port)
+>  {
+>  	struct dev_map *dev_map;
+>  	uint32_t port;
+> @@ -163,7 +194,8 @@ int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd))
+>  	if (rd_no_arg(rd)) {
+>  		list_for_each_entry(dev_map, &rd->dev_map_list, list) {
+>  			rd->dev_idx = dev_map->idx;
+> -			for (port = 1; port < dev_map->num_ports + 1; port++) {
+> +			port = (strict_port) ? 1 : 0;
+> +			for (; port < dev_map->num_ports + 1; port++) {
+>  				rd->port_idx = port;
+>  				ret = cb(rd);
+>  				if (ret)
+> @@ -172,21 +204,22 @@ int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd))
+>  		}
+>  
+>  	} else {
+> +		bool is_dump_all;
+>  		dev_map = dev_map_lookup(rd, true);
+
+newline between declarations and code.
+
+> -		port = get_port_from_argv(rd);
+> -		if (!dev_map || port > dev_map->num_ports) {
+> +		ret = get_port_from_argv(rd, &port, &is_dump_all, strict_port);
+> +		if (!dev_map || port > dev_map->num_ports || (!port && ret)) {
+>  			pr_err("Wrong device name\n");
+>  			ret = -ENOENT;
+>  			goto out;
+>  		}
+>  		rd_arg_inc(rd);
+>  		rd->dev_idx = dev_map->idx;
+> -		rd->port_idx = port ? : 1;
+> +		rd->port_idx = port;
+>  		for (; rd->port_idx < dev_map->num_ports + 1; rd->port_idx++) {
+>  			ret = cb(rd);
+>  			if (ret)
+>  				goto out;
+> -			if (port)
+> +			if (!is_dump_all)
+>  				/*
+>  				 * We got request to show link for devname
+>  				 * with port index.
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
