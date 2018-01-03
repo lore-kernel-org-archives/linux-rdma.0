@@ -1,44 +1,54 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 14/15] IB/mlx5: Don't advertise RAW QP support
- in dual port mode
-Date: Wed, 3 Jan 2018 22:39:15 +0200
-Message-ID: <CAJ3xEMimYj8=USqjHEF_uiwJCNoeT5qpbNMYTWUX7EgTVSeuuw@mail.gmail.com>
-References: <20171224125741.25464-1-leon@kernel.org> <20171224125741.25464-15-leon@kernel.org>
- <CAJ3xEMgAtd1PKN2h1NFj=Mt72msuU5bpFy0jO4KFXxXxGRf7hA@mail.gmail.com>
- <20171225071613.GW2942@mtr-leonro.local> <CAJ3xEMhtssDWuu8JAB_jhyofKbkeo4vYTLixLeta6vPzKQOp+A@mail.gmail.com>
- <ab3fb697-7b2c-685c-2151-5f48d5d7270a@mellanox.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 0/3] NFS/RDMA server changes for v4.16
+Date: Wed, 03 Jan 2018 15:42:10 -0500
+Message-ID: <20180103203849.7074.9609.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ab3fb697-7b2c-685c-2151-5f48d5d7270a-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 3, 2018 at 10:35 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On 12/25/2017 3:17 AM, Or Gerlitz wrote:
->> On Mon, Dec 25, 2017 at 9:16 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->>> On Mon, Dec 25, 2017 at 12:16:15AM +0200, Or Gerlitz wrote:
->>>> On Sun, Dec 24, 2017 at 2:57 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->>>>> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>>>
->>>>> When operating in dual port RoCE mode RAW QPs are not supposed
->>>>> to work on the slave port.
->>>> why?
->>> HW create flow table restriction.
->>
->> cryptic to me, either put a proper explanation on the V2 change log
->> for this patch
->> so we can review it then or explain it here if you want a review on V1
->
-> We don't report RAW QP support on a per port basis.  It's per device.
-> The user doesn't know which port is the master/slave, so we shouldn't
-> support RAW QP at all in this mode. I'll update the commit message to state that.
+Hi Bruce-
 
-in mlx4 we do have IB device with two ports and RAW QP is supported,
-what is different there?
+Would you consider these patches for merging into v4.16?
+
+Changes since v1:
+- Rebased on v4.15-rc6
+- Address a 0day robot complaint in nfsd3_proc_symlink
+- Properly handle error return from svc_rdma_handle_bc_reply
+
+---
+
+Chuck Lever (3):
+      svcrdma: Post Receives in the Receive completion handler
+      NFSD: Clean up write argument XDR decoders
+      NFSD: Clean up symlink argument XDR decoders
+
+
+ fs/nfsd/nfs3proc.c                         |   18 ++++-
+ fs/nfsd/nfs3xdr.c                          |   67 ++++-------------
+ fs/nfsd/nfs4proc.c                         |   37 +++-------
+ fs/nfsd/nfs4xdr.c                          |   11 ++-
+ fs/nfsd/nfsproc.c                          |   23 ++++--
+ fs/nfsd/nfsxdr.c                           |   63 ++++++++--------
+ fs/nfsd/xdr.h                              |    3 +
+ fs/nfsd/xdr3.h                             |    3 +
+ fs/nfsd/xdr4.h                             |    3 +
+ include/linux/sunrpc/svc.h                 |    4 +
+ include/linux/sunrpc/svc_rdma.h            |    2 -
+ net/sunrpc/svc.c                           |  109 ++++++++++++++++++++++++++++
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |    5 -
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |    9 --
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c      |    6 --
+ net/sunrpc/xprtrdma/svc_rdma_transport.c   |   25 ++----
+ 16 files changed, 225 insertions(+), 163 deletions(-)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
