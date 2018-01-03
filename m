@@ -1,65 +1,74 @@
-From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [rdma-core PATCH] srp_daemon: Don't create async_ev_thread if
- only run once
-Date: Wed, 3 Jan 2018 11:27:27 +0100
-Message-ID: <ea3fe465-cc3b-1db3-e274-8c13f976953c@suse.de>
-References: <20171219190958.3189-1-honli@redhat.com>
+From: Tariq Toukan <tariqt@mellanox.com>
+Subject: Re: [PATCH] ethernet: mlx4: Delete an error message for a failed
+ memory allocation in five functions
+Date: Wed, 3 Jan 2018 13:24:59 +0200
+Message-ID: <adfc3229-d3f9-afb9-00e6-9f765af0cbe8@mellanox.com>
+References: <30191db0-4d99-0349-b66a-c7354ef90d50@users.sourceforge.net>
+ <0fea8f2f-f8fc-ce2e-3d33-44227de3637a@mellanox.com>
+ <alpine.DEB.2.20.1801030904290.5305@hadrien>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171219190958.3189-1-honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: fr-xx-classique+reforme1990
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, "stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org" <stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.20.1801030904290.5305@hadrien>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Julia Lawall <julia.lawall@lip6.fr>, Tariq Toukan <tariqt@mellanox.com>
+Cc: SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-Le 19/12/2017 à 20:09, Honggang LI a écrit :
-> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->
-> fd3005f0cd34 moves the signal handler setup from ibsrpdm path. So,
-> default signal handler will be used when the main pthread send signal
-> SIGINT to pthread async_ev_thread. ibsrpdm will exit with non-zero
-> exit code as default signal handler killed it. ibsrpdm should return
-> with exit code zero, if no error emerged.
->
-> We should not create async_ev_thread for ibsrpdm.
->
-> Fixes: fd3005f0cd34 ("srp_daemon: Move the setup of the wakeup_pipe after openlog")
-> Reviewed-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-> Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  srp_daemon/srp_daemon.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
->
-> diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
-> index cec36db2..4012a7db 100644
-> --- a/srp_daemon/srp_daemon.c
-> +++ b/srp_daemon/srp_daemon.c
-> @@ -1945,12 +1945,12 @@ static struct resources *alloc_res(void)
->  				     run_thread_get_trap_notices, &res->res);
->  		if (ret)
->  			goto err;
-> -	}
->  
-> -	ret = pthread_create(&res->res.async_ev_thread, NULL,
-> -			     run_thread_listen_to_events, &res->res);
-> -	if (ret)
-> -		goto err;
-> +		ret = pthread_create(&res->res.async_ev_thread, NULL,
-> +				     run_thread_listen_to_events, &res->res);
-> +		if (ret)
-> +			goto err;
-> +	}
->  
->  	if (config->retry_timeout && !config->once) {
->  		ret = pthread_create(&res->res.reconnect_thread, NULL,
-Reviewed-by: Nicolas Morey-Chaisemartin <nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org>
-Note: I will backport this to stable-v1[56] branches once its in master
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 03/01/2018 10:06 AM, Julia Lawall wrote:
+> 
+> 
+> On Wed, 3 Jan 2018, Tariq Toukan wrote:
+> 
+>>
+>>
+>> On 01/01/2018 10:46 PM, SF Markus Elfring wrote:
+>>> From: Markus Elfring <elfring@users.sourceforge.net>
+>>> Date: Mon, 1 Jan 2018 21:42:27 +0100
+>>>
+>>> Omit an extra message for a memory allocation failure in these functions.
+>>>
+>>> This issue was detected by using the Coccinelle software.
+>>>
+>>> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+>>> ---
+>>
+>> Is this an issue? Why? What is your motivation?
+>> These are error messages, very informative, appear only upon errors, and in
+>> control flow.
+> 
+> Strings take up space.  Since there is a backtrace on an out of memory
+> problem, if the string does not provide any more information than the
+> position of the call, then there is not much added value.  I don't know
+> what was the string in this case.  If it provides some additional
+> information, then it would be reasonable to keep it.
+
+I don't really accept this claim...
+
+Short informative strings worth the tiny space they consume. It helps 
+the users of our driver understand what went wrong in simple words, 
+without the need to understand the role of the functions/callstack or 
+being familiar with different parts of the driver code.
+
+In addition, some out-of-memory errors are recoverable, even though 
+their backtrace is also printed. For example, in function 
+mlx4_en_create_cq (appears in patch) we have a first allocation attempt 
+(kzalloc_node) and a fallback (kzalloc). I'd prefer to state a clear 
+error message only when both have failed, because otherwise the user 
+might be confused whether the backtrace should indicate a malfunctioning 
+interface, or not.
+
+Tariq
+
+> 
+> julia
+> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
