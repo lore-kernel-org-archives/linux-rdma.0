@@ -1,74 +1,76 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 0/3] IB/hfi1,core: Driver updates for 12/22/2017
-Date: Wed, 3 Jan 2018 17:25:29 +0200
-Message-ID: <20180103152529.GS10145@mtr-leonro.local>
-References: <20171222164036.29731.43475.stgit@scvm10.sc.intel.com>
- <20171222233738.GB17198@ziepe.ca>
- <20171225104615.GH2942@mtr-leonro.local>
- <2517cf89-211d-0f40-17e5-eae670ff429e@intel.com>
+Subject: Re: [PATCH for-next 02/11] IB/hfi1: Check return value of strchr
+ before using it
+Date: Wed, 3 Jan 2018 17:27:21 +0200
+Message-ID: <20180103152721.GT10145@mtr-leonro.local>
+References: <20171219034753.2126.78386.stgit@scvm10.sc.intel.com>
+ <20171219035621.2126.23093.stgit@scvm10.sc.intel.com>
+ <20171220082555.GN2942@mtr-leonro.local>
+ <f5849e2b-c8cd-b93b-f32f-f423bff9ae31@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="CUrluEZVXmx7ezWQ"
+        protocol="application/pgp-signature"; boundary="de1H0RjRxOSdb4we"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <2517cf89-211d-0f40-17e5-eae670ff429e-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <f5849e2b-c8cd-b93b-f32f-f423bff9ae31-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---CUrluEZVXmx7ezWQ
+--de1H0RjRxOSdb4we
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Jan 03, 2018 at 10:13:19AM -0500, Dennis Dalessandro wrote:
-> On 12/25/2017 5:46 AM, Leon Romanovsky wrote:
-> > On Fri, Dec 22, 2017 at 04:37:38PM -0700, Jason Gunthorpe wrote:
-> > > On Fri, Dec 22, 2017 at 08:45:35AM -0800, Dennis Dalessandro wrote:
-> > > > Don Hiatt (2):
-> > > >        IB/core: Use rdma_cap_opa_mad to check for OPA
-> > > >        IB/hfi1: Change slid arg in ingress_pkey_table_fail to 32bit
-> > >
-> > > For now I took these two to for-next the other should sit on the list
-> > > for a bit.
+On Wed, Jan 03, 2018 at 10:05:56AM -0500, Dennis Dalessandro wrote:
+> On 12/20/2017 3:25 AM, Leon Romanovsky wrote:
+> > On Mon, Dec 18, 2017 at 07:56:23PM -0800, Dennis Dalessandro wrote:
+> > > The call to strchr in our counter initialization does not check the return
+> > > value before attempting to use the pointer. In theory this should not
+> > > happen given the way the code is structured but do the smart thing and
+> > > check the value anyway to harden the code.
 > >
-> > Just to emphasize how easy to add new field in nldev:
+> > The smartest way is to get rid of the whole "\n"<->"\0" logic and
+> > copy/paste mlx5 implementation which does the same thing but statically
+> > and much safer than here.
+> >
+> > Thanks
+> >
 >
-> Agree. I'm going to look into that when I can. For now, the patch is minor
-> and adds something important for debugging. I've made folks aware internally
-> this is the last patch like this, so I'd like to see this go in for the
-> current cycle and then we'll get to work on the new implementation. Does
-> that sound reasonable?
+> Not sure I'd agree. Is there something unsafe about the code here? The hole
+> is plugged. Changing the entire implementation for a copy/paste job doesn't
+> seem like a good thing to me.
 
-It will be great.
+The names are static and can't be changed. IMHO, the whole
+implementation is overkill.
 
 Thanks
 
 >
 > -Denny
 
---CUrluEZVXmx7ezWQ
+--de1H0RjRxOSdb4we
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpM9ekACgkQ5GN7iDZy
-WKeUgg//c3Rka4IW1udz+4VDz+mDSZ1DGrDd5Nl0uadciKpAys3a3yLzsKuzgblb
-sJeMbMQ8DJ4TC/syzFJ5fzE8eyC4mCHFXycpHNyjbiaT0YtB6EUJllfVH9ECYHle
-CYKdniq8TlFAd6RiIK2pPXeWjmeD0qFxN4yy4lbyl9/v2O//Ia+C7gAUXKmA3vNi
-Hl0tFpnJMHt5c5ZCw4I0iyO53YWmVlki0zb4zJO5VTDPkv5FncmnCmySEbap+qwS
-x3zaWaS4t5AMJNY4vftOE1LQgpeTmlHv7B4Dy5YxcIA0Sz9fbV+1RVE0S+N7EYLD
-jvjxuAC3N6KOr7FxpGCwnId+nUVR5+tQbZdumY9Hc9rWECkRr+abN2Gwob0Ji0lP
-EkHPvN5cUIZzayA3ZizsorLPS10Rj/EuHD6Qj4weMSxBgNpPTnxJ5nmZG670MBZF
-ri6YRwIRNXR4uSq2BcAjy0BO/UbtvZj2lsF0u95bJ1YUg6EePmlBlFHQdNynOe9e
-F3foJEM0WSDbqJB2qFULK+M4mzSIc61bkrpvFfGkSobd1UbQqFNh3+GsuhNRBdrM
-6rfRZELq/VjAQwavdIDLQpqgJXdWKAYniaHg/DuWMiGfaNE9sOIZbXY0wWykiTiC
-Wjd2eJcAP4AWmM8pSoAD9/ufbcPCRjscwxBNAfqMUzHaFspxdQ0=
-=WUGa
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpM9lkACgkQ5GN7iDZy
+WKcFMg//SiZK6MlG2wIegt9SjHfuEYmaW2AGZJ+FZIQiCwNpQ4sIIeaLSc65b9IB
+UN4mUBVvMNjsrjCcS9/gGHjyYTgbjMCDrFeRvFevLKSGSm+IT9JoftfGUZ8oXXDo
++IYpte90ahwgQQVELVCpl6QsqWMOpP0k4VjoXz/0iIhvrCnfqBVO2wAfaU9GJ4dj
+nItEP0fMYBDdIcfFmBvFoFQdryme3EZzr/NwFxfsjfB8joebdEqnBBKX9XRUY7D5
+rQ+ZNs3DFvZvPaSzd6OO0qRQOn20Ams7XT2RKEMIic+K+Xf2ajHcDS2RiF7TaALk
+42EQMO+vkMUWyIib+d4A+LNvP496WVisTzD0CB+J0rQW21icxwpXDLUer0NxZS84
+X+09nHj2S5vIrrp86KaSsg/GfKL3ZAlAFYLZdUL0oBJR9i5BKeDfj1ZamerKzVLw
+lriFOOHiEqEdcQbQ1819Hrd1UGi1Ms2g10sJTRvx3vse2mjgj7Gihvg2+Xrq/9NJ
+PMvX3kCVMTZC7Y5YpnPU6lOPGkvhRn1vLasdS//XxEZTdd3GYPXBnZaaQA6EgKSa
+SCVqXcg2p77JVM7wS3QMmYR7Cj05/i4soIiSLDDdChcxc940DIoIYlU/ZpiFlTl1
+7mOBgURR3w9zEh4Qi1eDeznmbygAA9GvFqCa4LkUSbn64toRXCs=
+=ytPp
 -----END PGP SIGNATURE-----
 
---CUrluEZVXmx7ezWQ--
+--de1H0RjRxOSdb4we--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
