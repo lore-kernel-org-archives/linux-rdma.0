@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 13/28] IB/srpt: Reduce the severity level of a log message
-Date: Wed,  3 Jan 2018 13:39:23 -0800
-Message-ID: <20180103213938.11664-14-bart.vanassche@wdc.com>
+Subject: [PATCH 15/28] IB/srpt: Use the IPv6 format for GIDs in log messages
+Date: Wed,  3 Jan 2018 13:39:25 -0800
+Message-ID: <20180103213938.11664-16-bart.vanassche@wdc.com>
 References: <20180103213938.11664-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180103213938.11664-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,27 +10,39 @@ To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since the SRQ event message is only useful for debugging purposes,
-reduce its severity from "informational" to "debug".
+Make the ib_srpt driver use the IPv6 format for GIDs in log messages
+to improve consistency of this driver with other RDMA kernel drivers.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 6cff7a9b4cbb..7a36d0433706 100644
+index 44096b93d783..ad7bdbbddf45 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -173,7 +173,7 @@ static void srpt_event_handler(struct ib_event_handler *handler,
-  */
- static void srpt_srq_event(struct ib_event *event, void *ctx)
- {
--	pr_info("SRQ event %d\n", event->event);
-+	pr_debug("SRQ event %d\n", event->event);
- }
+@@ -1949,17 +1949,9 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
  
- static const char *get_ch_state_name(enum rdma_ch_state s)
+ 	it_iu_len = be32_to_cpu(req->req_it_iu_len);
+ 
+-	pr_info("Received SRP_LOGIN_REQ with i_port_id 0x%llx:0x%llx,"
+-		" t_port_id 0x%llx:0x%llx and it_iu_len %d on port %d"
+-		" (guid=0x%llx:0x%llx)\n",
+-		be64_to_cpu(*(__be64 *)&req->initiator_port_id[0]),
+-		be64_to_cpu(*(__be64 *)&req->initiator_port_id[8]),
+-		be64_to_cpu(*(__be64 *)&req->target_port_id[0]),
+-		be64_to_cpu(*(__be64 *)&req->target_port_id[8]),
+-		it_iu_len,
+-		param->port,
+-		be64_to_cpu(*(__be64 *)&sdev->port[param->port - 1].gid.raw[0]),
+-		be64_to_cpu(*(__be64 *)&sdev->port[param->port - 1].gid.raw[8]));
++	pr_info("Received SRP_LOGIN_REQ with i_port_id %pI6, t_port_id %pI6 and it_iu_len %d on port %d (guid=%pI6)\n",
++		req->initiator_port_id, req->target_port_id, it_iu_len,
++		param->port, &sport->gid);
+ 
+ 	rsp = kzalloc(sizeof(*rsp), GFP_KERNEL);
+ 	rej = kzalloc(sizeof(*rej), GFP_KERNEL);
 -- 
 2.15.1
 
