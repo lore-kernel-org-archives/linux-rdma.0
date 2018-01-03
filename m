@@ -1,59 +1,35 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH V5 for-next 0/6] Add rq inline and bugfixes for hns
-Date: Wed, 3 Jan 2018 14:19:34 -0700
-Message-ID: <20180103211934.GL11348@ziepe.ca>
-References: <1514947448-40475-1-git-send-email-oulijun@huawei.com>
+Subject: Re: [PATCH for-next 1/3] IB/hfi1: Add RQ/SRQ information to QP stats
+Date: Wed, 3 Jan 2018 14:22:20 -0700
+Message-ID: <20180103212220.GA6671@ziepe.ca>
+References: <20171222164036.29731.43475.stgit@scvm10.sc.intel.com>
+ <20171222164540.29731.68770.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1514947448-40475-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20171222164540.29731.68770.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 03, 2018 at 10:44:02AM +0800, Lijun Ou wrote:
-> This patch series add rq inline support for hip08 kernel
-> mode as well as fix some bugs for hip06 and hip08.
+On Fri, Dec 22, 2017 at 08:45:44AM -0800, Dennis Dalessandro wrote:
+> From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> Change from V4:
-> 1. Fix the comment given by Leon Romanovsky
-> 2. Delete unnecessary judgment when kfreeing wqe_list in
->    exception branch
+> When debugging issues with RC QPs, it is useful to know if a QP
+> has an associated RQ or SRQ, the size of the RQ, and any RNR timeout
+> values.
 > 
-> Change from V3:
-> 1. Fix the usage of kcalloc
+> Add the necessary information to the QP stats output.
 > 
-> Change from V2:
-> 1. Delete unnessary judgement for kfree
-> 2. Use kcalloc instead of kmalloc_array
-> 3. Adjust the method of setting attr_mask
-> 
-> Change from V1:
-> 1. Optimize some lines according to Leon Romanovsky's reviews
-> 2. Delete unnecessary operation for setting NULL
-> 3. encapsulated the process for handle rq inline wqe with a 
->    seperated function.
-> 4. Add signed-off-by.
-> 
-> Lijun Ou (5):
->   RDMA/hns: Add rq inline data support for hip08 RoCE
->   RDMA/hns: Update the usage of sr_max and rr_max field
->   RDMA/hns: Set access flags of hip08 RoCE
->   RDMA/hns: Filter for zero length of sge in hip08 kernel mode
->   RDMA/hns: Assign dest_qp when deregistering mr
-> 
-> Yixian Liu (1):
->   RDMA/hns: Fix QP state judgement before sending work requests
-> 
->  drivers/infiniband/hw/hns/hns_roce_device.h |  19 ++++
->  drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |   2 +-
->  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 171 ++++++++++++++++++++++------
->  drivers/infiniband/hw/hns/hns_roce_qp.c     |  53 +++++++--
->  4 files changed, 203 insertions(+), 42 deletions(-)
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>  drivers/infiniband/hw/hfi1/qp.c |   10 ++++++++--
+>  1 files changed, 8 insertions(+), 2 deletions(-)
 
-Applied to for-next, thanks
+Okay, applied to for-next, lets use netlink in future.
 
 Jason
 --
