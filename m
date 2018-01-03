@@ -1,50 +1,52 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 02/11] IB/hfi1: Check return value of strchr
- before using it
-Date: Wed, 3 Jan 2018 10:42:24 -0500
-Message-ID: <4555c08f-a568-48ea-e183-2d49ebd36c7c@intel.com>
-References: <20171219034753.2126.78386.stgit@scvm10.sc.intel.com>
- <20171219035621.2126.23093.stgit@scvm10.sc.intel.com>
- <20171220082555.GN2942@mtr-leonro.local>
- <f5849e2b-c8cd-b93b-f32f-f423bff9ae31@intel.com>
- <20180103152721.GT10145@mtr-leonro.local>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH v2 03/13] Attach/detach SoftiWarp to/from network and
+ RDMA subsystem
+Date: Wed, 3 Jan 2018 08:52:25 -0700
+Message-ID: <20180103155225.GA11348@ziepe.ca>
+References: <20171014064132.GT2106@mtr-leonro.local>
+ <20171008130342.GV25829@mtr-leonro.local>
+ <20171006122853.16310-1-bmt@zurich.ibm.com>
+ <20171006122853.16310-4-bmt@zurich.ibm.com>
+ <OF406E95F8.33CF80BB-ON002581B9.00073D6F-002581B9.00081F69@notes.na.collabserv.com>
+ <OF663C0801.8471532E-ON002581FE.003B73D6-002581FE.003F2369@notes.na.collabserv.com>
+ <20180102213706.GB19027@ziepe.ca>
+ <20180103052529.GI10145@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180103152721.GT10145-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180103052529.GI10145-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/3/2018 10:27 AM, Leon Romanovsky wrote:
-> On Wed, Jan 03, 2018 at 10:05:56AM -0500, Dennis Dalessandro wrote:
->> On 12/20/2017 3:25 AM, Leon Romanovsky wrote:
->>> On Mon, Dec 18, 2017 at 07:56:23PM -0800, Dennis Dalessandro wrote:
->>>> The call to strchr in our counter initialization does not check the return
->>>> value before attempting to use the pointer. In theory this should not
->>>> happen given the way the code is structured but do the smart thing and
->>>> check the value anyway to harden the code.
->>>
->>> The smartest way is to get rid of the whole "\n"<->"\0" logic and
->>> copy/paste mlx5 implementation which does the same thing but statically
->>> and much safer than here.
->>>
->>> Thanks
->>>
->>
->> Not sure I'd agree. Is there something unsafe about the code here? The hole
->> is plugged. Changing the entire implementation for a copy/paste job doesn't
->> seem like a good thing to me.
+On Wed, Jan 03, 2018 at 07:25:29AM +0200, Leon Romanovsky wrote:
+> On Tue, Jan 02, 2018 at 02:37:06PM -0700, Jason Gunthorpe wrote:
+> > On Fri, Dec 22, 2017 at 11:29:38AM +0000, Bernard Metzler wrote:
+> >
+> > > One question I have - what is the recommended way of replacing
+> > > those module parameters, if we need to flexibly parameterize
+> > > things from user land? For the rxe driver, I see the usage of
+> > > module_param_cb, but this probably is not what we want in the
+> > > long run? Would a sysctl be appropriate, or a char device
+> > > (we may need to pass strings like interface names), or configfs?
+> >
+> > Probably something like 'rdmatool interface attach' eg cause it to
+> > create using the RDMA netlink protocol.
+> >
+> > Leon?
 > 
-> The names are static and can't be changed. IMHO, the whole
-> implementation is overkill.
+> https://www.spinics.net/lists/linux-rdma/msg58498.html
+> "It looks like "ip" tool can be good fit ..."
+> 
+> ip link add ...
+> ip link set ...
 
-Now that I do agree with. It is certainly an area that needs improved upon.
+ip link adds netdevs, so that doesn't quite feel right for adding rdma
+devices???
 
--Denny
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
