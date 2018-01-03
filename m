@@ -1,67 +1,83 @@
-From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2] IB/ipoib: Fix for notify send CQ failure messages
-Date: Wed, 03 Jan 2018 07:39:50 -0500
-Message-ID: <20180103123950.8556.47883.stgit@phlsvlogin03.ph.intel.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V5 for-next 1/6] RDMA/hns: Add rq inline data support for
+ hip08 RoCE
+Date: Wed, 3 Jan 2018 11:02:40 +0200
+Message-ID: <20180103090240.GP10145@mtr-leonro.local>
+References: <1514947448-40475-1-git-send-email-oulijun@huawei.com>
+ <1514947448-40475-2-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="j3zO+32zXj6UcJCE"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1514947448-40475-2-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If IB_CQ_REPORT_MISSED_EVENTS flag is passed in ib_req_notify_cq()
-it may return positive value indicating non-empty CQ.
-If return code not verified the log might be flooded with false
-warning messages "request notify on send CQ failed".
 
-Fixes: 8966e28d2e40 ("IB/ipoib: Use NAPI in UD/TX flows")
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-v2: adjusted Fixes: line format
----
- drivers/infiniband/ulp/ipoib/ipoib_cm.c |   10 ++++++----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |    2 +-
- 2 files changed, 7 insertions(+), 5 deletions(-)
+--j3zO+32zXj6UcJCE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 2c13123..8152724 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -766,12 +766,14 @@ void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_
- 	skb_orphan(skb);
- 	skb_dst_drop(skb);
- 
--	if (netif_queue_stopped(dev))
--		if (ib_req_notify_cq(priv->send_cq, IB_CQ_NEXT_COMP |
--				     IB_CQ_REPORT_MISSED_EVENTS)) {
-+	if (netif_queue_stopped(dev)) {
-+		rc = ib_req_notify_cq(priv->send_cq, IB_CQ_NEXT_COMP |
-+				      IB_CQ_REPORT_MISSED_EVENTS);
-+		if (unlikely(rc < 0))
- 			ipoib_warn(priv, "IPoIB/CM:request notify on send CQ failed\n");
-+		else if (rc)
- 			napi_schedule(&priv->send_napi);
--		}
-+	}
- 
- 	rc = post_send(priv, tx, tx->tx_head & (ipoib_sendq_size - 1), tx_req);
- 	if (unlikely(rc)) {
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index e6151a2..2865808 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -644,7 +644,7 @@ int ipoib_send(struct net_device *dev, struct sk_buff *skb,
- 
- 	if (netif_queue_stopped(dev))
- 		if (ib_req_notify_cq(priv->send_cq, IB_CQ_NEXT_COMP |
--				     IB_CQ_REPORT_MISSED_EVENTS))
-+				     IB_CQ_REPORT_MISSED_EVENTS) < 0)
- 			ipoib_warn(priv, "request notify on send CQ failed\n");
- 
- 	rc = post_send(priv, priv->tx_head & (ipoib_sendq_size - 1),
+On Wed, Jan 03, 2018 at 10:44:03AM +0800, Lijun Ou wrote:
+> This patch mainly implement rq inline data feature for hip08
+> RoCE in kernel mode.
+>
+> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> ---
+> V4->V5:
+> - Return the error code when allocate wqe_list and
+>   sg_list
+> - Delete unnecessary judgement when kfreeing wqe_list
+>
+> V3->V4:
+> - Fix the comment given by Jason Gunthorpe
+>
+> V2->V3:
+> - Delete unnessary judgment after kfree.
+> - Use kcalloc instead of kmalloc_array
+>
+> V1->V2
+> - Fix the comments according to Leon Romanovsky's reviews
+> - Add two signed-off
+>
+> V1:
+> - The initial submit
+> ---
+>  drivers/infiniband/hw/hns/hns_roce_device.h | 18 ++++++++
+>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 64 ++++++++++++++++++++++++++++-
+>  drivers/infiniband/hw/hns/hns_roce_qp.c     | 53 ++++++++++++++++++++----
+>  3 files changed, 127 insertions(+), 8 deletions(-)
+>
 
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+--j3zO+32zXj6UcJCE
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpMnDAACgkQ5GN7iDZy
+WKdUTxAAl1eVqLYY2YRsOUg9MQvR0HT1JQTOg4Ku4zFIPjZ2BQuKUCKiXIuLiQqj
+koE1mbcDpwxyq7viqGqoNaQbVPPUwwPSJj2gPgVkj1Rujx/3ROcwm2MisVvn91Fd
+NoMghZiDg/vlsdiCBp68sjd43yPeYDNO4AWkPJVCDtHMEkDoAq/K+1xYdHMM0KUt
+ZAj9xBP3m9X2exli2ru6Ze5cELzhEPmcqiVjpyat4Yw7lmiqHQ6A9et1KtHVg8k/
+yD3M6TH8Am0l7e3TW/xrUwaiRbLm8Z1F/HkhbiLFv9Daz0gyuTEoB6rN4QvmXyHp
+Rx/cdzKhu5U5+2r8q2HyrAcmRRWTpbUv4wGO1b8kPnFXp3Hb+dHeQT2WAI2lHKXU
+KxUtxUuuvUtMlBaX9dEQAU1BtG+UvXhAZXwmIbyOhPINDxP1Z2Ieq7ERJOBkLA+C
+Xvv3F/iQV1BAYctLWqapjORMjVJu5VIRHg7/bUtyKIvk4ZdprxTPv+SngE7f84H9
+ogYE8xdJC6Xge/r7uicN2HL7OL8qb0/quoSP41fe1kVuzSLEZQHpjGC0T0Txuxgn
+nv29kKBCFpivet0h92HM9sE9Xs7JCbkNd5t9ZRVD0qdZ1p3zrz4kc6BoeKaOSI9T
+K6WzTUgHDdeVRcWiTcdzGbSdZor63tCzYNE130V0bwTRwF0lNnE=
+=vBOS
+-----END PGP SIGNATURE-----
+
+--j3zO+32zXj6UcJCE--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
