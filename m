@@ -1,92 +1,54 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: Linux kernel v4.15-rc4 and rdma_rxe
-Date: Wed, 3 Jan 2018 00:53:21 +0000
-Message-ID: <1514940799.14857.20.camel@wdc.com>
-References: <1513732236.2535.25.camel@wdc.com>
-         <CAG9sBKP=i9ukbkj7x11oW=yLAz8u2RYHTMbf_Z1h3=nQ3pjfLw@mail.gmail.com>
-         <1513983674.2579.27.camel@wdc.com>
-         <CAG9sBKOOvvwG6yaQfWG=c04-LQ-Yvw8QbD-jzTm-zJYOFJeEVQ@mail.gmail.com>
-         <dd87887d-8641-c8fc-48f1-234e7cf67cb1@wdc.com>
-         <CAG9sBKOtxoG-HLU5A=WEZqUuADzje74_AjZgtG21Ueeb2YCAEQ@mail.gmail.com>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V5 for-next 6/6] RDMA/hns: Assign dest_qp when deregistering mr
+Date: Wed, 3 Jan 2018 10:44:08 +0800
+Message-ID: <1514947448-40475-7-git-send-email-oulijun@huawei.com>
+References: <1514947448-40475-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG9sBKOtxoG-HLU5A=WEZqUuADzje74_AjZgtG21Ueeb2YCAEQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Content-ID: <23EC701599A4E44088E5B061A8C4E51F-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <1514947448-40475-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE4LTAxLTAyIGF0IDE5OjQ0ICswMjAwLCBNb25pIFNob3VhIHdyb3RlOg0KPiBU
-aGlzIGlzIGEgZ3JlYXQgaW5wdXQgZm9yIHRoZSBkZWJ1Z2dlciAod2hvZXZlciB0aGF0IGJlKS4g
-RnJvbSBhIGJyaWVmDQo+IGxvb2sgYXQgdGhlIGNvZGUgSSBzZWUgdGhhdCBlcnJvciBRUCBpcyBj
-aGVja2VkIHdoZW4gZHVyaW5nIHRoZQ0KPiB2YWxpZGF0aW9uIG9mICBSRE1BX1dSSVRFIHJlcXVl
-c3QuIEluIHRoaXMgY2FzZSBhIGNvbXBsZXRpb24gaXMNCj4gZ2VuZXJhdGVkIGFuZCB0aGUgc2l6
-ZSBvZiB0aGUgYnVmZmVyIHRvIHdyaXRlIHJlbWFpbnMgaXJyZWxldmFudC4NCj4gSG93ZXZlciwg
-dG8gdmVyaWZ5IHRoYXQgSSB3YXNuJ3Qgd3JvbmcgeW91IGNhbiBhZGQgc29tZSBwcmludGsoKSBp
-bg0KPiB0aGUgcGF0aCB0aGF0IHN0YXJ0cyB3aXRoIHJ4ZV9yZXNwb25kZXIoKS4gV2hlbiBmbG93
-IHJlYWNoZXMNCj4gY2hlY2tfcmVzb3VyY2UoKSBhbmQgd2hlbiBRUCBpcyBpbiBFUlJPUiBzdGF0
-ZSB0aGUgZnVuY3Rpb24gcmV0dXJucw0KPiBSRVNQU1RfQ09NUExFVEUuIFRoZSBuZXh0IHN0ZXAg
-aW4gdGhlIHN0YXRlIG1hY2hpbmUgd291bGQgYmUgdG8gY2FsbA0KPiB0aGUgZG9fY29tcGxldGUo
-KSBmdW5jdGlvbi4NCg0KSGVsbG8gTW9uaSwNCg0KVGhhbmtzIGZvciB0aGUgZmVlZGJhY2sgYW5k
-IHRoZSBzdWdnZXN0aW9uLiBJIHdpbGwgY2hlY2sgdGhlIGliX3NycHQgY29kZQ0KZnVydGhlciBm
-b3IgcG9zc2libGUgcmFjZSBjb25kaXRpb25zLiBCdXQgYWZ0ZXIgSSBoYWQgZW5hYmxlZCB0aGUg
-ZHluYW1pYw0KZGVidWdnaW5nIHN0YXRlbWVudHMgaW4gdGhlIHJkbWFfcnhlIGRyaXZlciBJIHJh
-biBpbnRvIHNvbWV0aGluZyBvZiB3aGljaA0KSSBkb24ndCB0aGluayB0aGF0IGl0IGlzIGNhdXNl
-ZCBieSB0aGUgaWJfc3JwdCBkcml2ZXIgKHdpdGggbWVtb3J5IHBvaXNvbmluZw0KZW5hYmxlZCk6
-DQoNCnJkbWFfcnhlOnJ4ZV9yZXNwb25kZXI6IHJkbWFfcnhlOiBxcCMxOSBzdGF0ZSA9IENMRUFO
-VVANCnJkbWFfcnhlOnJ4ZV9yZXNwb25kZXI6IHJkbWFfcnhlOiBxcCMxOSBzdGF0ZSA9IERPTkUN
-CmdlbmVyYWwgcHJvdGVjdGlvbiBmYXVsdDogMDAwMCBbIzFdIFBSRUVNUFQgU01QDQpDUFU6IDEg
-UElEOiAxMzg1IENvbW06IGt3b3JrZXIvMToyNiBOb3QgdGFpbnRlZCA0LjE1LjAtcmM0LWRiZysg
-IzINCkhhcmR3YXJlIG5hbWU6IFFFTVUgU3RhbmRhcmQgUEMgKGk0NDBGWCArIFBJSVgsIDE5OTYp
-LCBCSU9TIDEuMC4wLXByZWJ1aWx0LnFlbXUtcHJvamVjdC5vcmcgMDQvMDEvMjAxNA0KV29ya3F1
-ZXVlOiB0YXJnZXRfY29tcGxldGlvbiB0YXJnZXRfY29tcGxldGVfb2tfd29yayBbdGFyZ2V0X2Nv
-cmVfbW9kXQ0KUklQOiAwMDEwOl9fbG9ja19hY3F1aXJlKzB4ZTQvMHgxM2IwDQpSU1A6IDAwMTg6
-ZmZmZjk0NGVjNDBkZjliMCBFRkxBR1M6IDAwMDEwMDAyDQpSQVg6IDZiNmI2YjZiNmI2YjZiNmIg
-UkJYOiAwMDAwMDAwMDAwMDAwMDAwIFJDWDogMDAwMDAwMDAwMDAwMDAwMA0KUkRYOiAwMDAwMDAw
-MDAwMDAwMDAwIFJTSTogMDAwMDAwMDAwMDAwMDAwMCBSREk6IGZmZmY4YWNmNGIwNzY3NDgNClJC
-UDogZmZmZjk0NGVjNDBkZmE4MCBSMDg6IDAwMDAwMDAwMDAwMDAwMDEgUjA5OiBmZmZmZmZmZmMw
-NjFkMWI3DQpSMTA6IDAwMDAwMDAwMDAwMDAwMDAgUjExOiAwMDAwMDAwMDAwMDAwMDAwIFIxMjog
-MDAwMDAwMDAwMDAwMDAwMA0KUjEzOiBmZmZmOGFjZjVlOGYyODgwIFIxNDogMDAwMDAwMDAwMDAw
-MDAwMSBSMTU6IGZmZmY4YWNmNGIwNzY3NDgNCkZTOiAgMDAwMDAwMDAwMDAwMDAwMCgwMDAwKSBH
-UzpmZmZmOGFjZjdmYzgwMDANCkNTOiAgMDAxMCBEUzogMDAwMCBFUzogMDAwMCBDUjA6IDAwMDAw
-MDAwODAwNTAwMzMNCkNSMjogMDAwMDdmZmZhYjgwZDAwMCBDUjM6IDAwMDAwMDAwNWZhMGYwMDUg
-Q1I0OiAwMDAwMDAwMDAwMzYwNmUwDQpEUjA6IDAwMDAwMDAwMDAwMDAwMDAgRFIxOiAwMDAwMDAw
-MDAwMDAwMDAwIERSMjogMDAwMDAwMDAwMDAwMDAwMA0KRFIzOiAwMDAwMDAwMDAwMDAwMDAwIERS
-NjogMDAwMDAwMDBmZmZlMGZmMCBEUjc6IDAwMDAwMDAwMDAwMDA0MDANCkNhbGwgVHJhY2U6DQps
-b2NrX2FjcXVpcmUrMHhhYy8weDIzMA0KX3Jhd19zcGluX2xvY2tfaXJxc2F2ZSsweDQ1LzB4NjAN
-CnJ4ZV9kb190YXNrKzB4ODcvMHgxMDAgW3JkbWFfcnhlXQ0KcnhlX3J1bl90YXNrKzB4MTYvMHgz
-MCBbcmRtYV9yeGVdDQpyeGVfcmVzcF9xdWV1ZV9wa3QrMHg0Mi8weDUwIFtyZG1hX3J4ZV0NCnJ4
-ZV9yY3YrMHgzNjMvMHg4YjAgW3JkbWFfcnhlXQ0KcnhlX2xvb3BiYWNrKzB4OS8weDEwIFtyZG1h
-X3J4ZV0NCnJ4ZV9yZXF1ZXN0ZXIrMHg2ZWEvMHgxMTYwIFtyZG1hX3J4ZV0NCnJ4ZV9kb190YXNr
-KzB4N2MvMHgxMDAgW3JkbWFfcnhlXQ0KcnhlX3J1bl90YXNrKzB4MTYvMHgzMCBbcmRtYV9yeGVd
-DQpyeGVfcG9zdF9zZW5kKzB4MmYwLzB4NTUwIFtyZG1hX3J4ZV0NCnNycHRfcXVldWVfcmVzcG9u
-c2UrMHgyMGMvMHg0MDAgW2liX3NycHRdDQpzcnB0X3F1ZXVlX3N0YXR1cysweDI4LzB4NDAgW2li
-X3NycHRdDQp0YXJnZXRfY29tcGxldGVfb2tfd29yaysweDFlYS8weDUyMCBbdGFyZ2V0X2NvcmVf
-bW9kXQ0KcHJvY2Vzc19vbmVfd29yaysweDIxMS8weDZhMA0Kd29ya2VyX3RocmVhZCsweDM4LzB4
-M2IwDQprdGhyZWFkKzB4MTI0LzB4MTQwDQoNCihnZGIpIGxpc3QgKihyeGVfZG9fdGFzaysweDg3
-KQ0KMHhjMWU3IGlzIGluIHJ4ZV9kb190YXNrIChkcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4
-ZV90YXNrLmM6OTApLg0KODUgICAgICAgICAgICAgIGRvIHsNCjg2ICAgICAgICAgICAgICAgICAg
-ICAgIGNvbnQgPSAwOw0KODcgICAgICAgICAgICAgICAgICAgICAgcmV0ID0gdGFzay0+ZnVuYyh0
-YXNrLT5hcmcpOw0KODgNCjg5ICAgICAgICAgICAgICAgICAgICAgIHNwaW5fbG9ja19pcnFzYXZl
-KCZ0YXNrLT5zdGF0ZV9sb2NrLCBmbGFncyk7DQo5MCAgICAgICAgICAgICAgICAgICAgICBzd2l0
-Y2ggKHRhc2stPnN0YXRlKSB7DQo5MSAgICAgICAgICAgICAgICAgICAgICBjYXNlIFRBU0tfU1RB
-VEVfQlVTWToNCjkyICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaWYgKHJldCkNCjkzICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB0YXNrLT5zdGF0ZSA9IFRBU0tfU1RB
-VEVfU1RBUlQ7DQo5NCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGVsc2UNCg0KRnJvbSB0
-aGUgZGlzYXMgcnhlX2RvX3Rhc2sgb3V0cHV0Og0KICAgMHgwMDAwMDAwMDAwMDBjMWQ5IDwrMTIx
-PjogICBjYWxscSAgKjB4NzgoJXJieCkNCiAgIDB4MDAwMDAwMDAwMDAwYzFkYyA8KzEyND46ICAg
-bW92ICAgICVyMTIsJXJkaQ0KICAgMHgwMDAwMDAwMDAwMDBjMWRmIDwrMTI3PjogICBtb3YgICAg
-JWVheCwlcjE0ZA0KICAgMHgwMDAwMDAwMDAwMDBjMWUyIDwrMTMwPjogICBjYWxscSAgMHhjMWU3
-IDxyeGVfZG9fdGFzaysxMzU+DQoNCkRvZXMgdGhpcyBwZXJoYXBzIG1lYW4gdGhhdCB0aGUgcnhl
-X3FwIHN0cnVjdHVyZSBjYW4gYmUgZnJlZWQgd2hpbGUgcnhlX2RvX3Rhc2soKQ0KaXMgaW4gcHJv
-Z3Jlc3M/IFBsZWFzZSBub3RlIHRoYXQgdGhlIGliX3NycHQgZHJpdmVyIG9ubHkgZGVzdHJveXMg
-YSBRUA0KKHNycHRfZGVzdHJveV9jaF9pYigpIGNhbGwgaW4gc3JwdF9yZWxlYXNlX2NoYW5uZWxf
-d29yaygpKSBhZnRlciBhbGwgU0NTSSBjb21tYW5kDQpwcm9jZXNzaW5nIGhhcyBmaW5pc2hlZCAo
-dHJhbnNwb3J0X2RlcmVnaXN0ZXJfc2Vzc2lvbigpKS4NCg0KVGhhbmtzLA0KDQpCYXJ0Lg==
+It needs to create eight reserve QPs for resolving
+a bug of hip06. When deregistering mr, it will issue
+a rdma write for every reserve QPs.
+
+When modify qp from init to rtr, it needs to set
+the value of dest_qp_num. Otherwise, it will lead
+an error of freeing mr.
+
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+V1->V2:
+- Fix the assginment method for attr_mask becasue
+  it only needs to set IB_QP_DEST_QPN for attr_mask
+  when modify qp from init to rtr state.
+
+V1:
+- The initial submit
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index abcc64e..b1007d8 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -775,7 +775,7 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
+ 			goto create_lp_qp_failed;
+ 		}
+ 
+-		ret = hr_dev->hw->modify_qp(&hr_qp->ibqp, &attr, attr_mask,
++		ret = hr_dev->hw->modify_qp(&hr_qp->ibqp, &attr, IB_QP_DEST_QPN,
+ 					    IB_QPS_INIT, IB_QPS_RTR);
+ 		if (ret) {
+ 			dev_err(dev, "modify qp failed(%d)!\n", ret);
+-- 
+1.9.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
