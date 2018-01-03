@@ -1,43 +1,42 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: Re: ethernet: mlx4: Delete an error message for a failed memory
- allocation in five functions
-Date: Wed, 3 Jan 2018 15:22:03 +0100
-Message-ID: <d693dbdb-f3a2-5194-07e9-7c56e9ccbb2b@users.sourceforge.net>
-References: <30191db0-4d99-0349-b66a-c7354ef90d50@users.sourceforge.net>
- <0fea8f2f-f8fc-ce2e-3d33-44227de3637a@mellanox.com>
- <alpine.DEB.2.20.1801030904290.5305@hadrien>
- <adfc3229-d3f9-afb9-00e6-9f765af0cbe8@mellanox.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 02/11] IB/hfi1: Check return value of strchr
+ before using it
+Date: Wed, 3 Jan 2018 10:05:56 -0500
+Message-ID: <f5849e2b-c8cd-b93b-f32f-f423bff9ae31@intel.com>
+References: <20171219034753.2126.78386.stgit@scvm10.sc.intel.com>
+ <20171219035621.2126.23093.stgit@scvm10.sc.intel.com>
+ <20171220082555.GN2942@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <adfc3229-d3f9-afb9-00e6-9f765af0cbe8@mellanox.com>
-Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tariq Toukan <tariqt@mellanox.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171220082555.GN2942-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I don't really accept this claim...
-> Short informative strings worth the tiny space they consume.
+On 12/20/2017 3:25 AM, Leon Romanovsky wrote:
+> On Mon, Dec 18, 2017 at 07:56:23PM -0800, Dennis Dalessandro wrote:
+>> The call to strchr in our counter initialization does not check the return
+>> value before attempting to use the pointer. In theory this should not
+>> happen given the way the code is structured but do the smart thing and
+>> check the value anyway to harden the code.
+> 
+> The smartest way is to get rid of the whole "\n"<->"\0" logic and
+> copy/paste mlx5 implementation which does the same thing but statically
+> and much safer than here.
+> 
+> Thanks
+> 
 
-There can be different opinions for their usefulness.
+Not sure I'd agree. Is there something unsafe about the code here? The 
+hole is plugged. Changing the entire implementation for a copy/paste job 
+doesn't seem like a good thing to me.
 
-
-> In addition, some out-of-memory errors are recoverable, even though their backtrace is also printed.
-
-How do you think about to suppress the backtrace generation for them?
-
-
-> For example, in function mlx4_en_create_cq (appears in patch) we have a first allocation attempt (kzalloc_node)
-
-Would it be helpful to pass the option “__GFP_NOWARN” there?
-
-
-> and a fallback (kzalloc). I'd prefer to state a clear error message only when both have failed,
-> because otherwise the user might be confused whether the backtrace should indicate a malfunctioning interface, or not.
-
-Can the distinction become easier by any other means?
-
-Regards,
-Markus
+-Denny
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
