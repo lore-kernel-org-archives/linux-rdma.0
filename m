@@ -1,65 +1,40 @@
-From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 00/28] IB/srp and IB/srpt patches
-Date: Wed,  3 Jan 2018 13:39:10 -0800
-Message-ID: <20180103213938.11664-1-bart.vanassche@wdc.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+From: Bart Van Assche <bart.vanassche@wdc.com>
+Subject: [PATCH 06/28] IB/srpt: Fix ACL lookup during login
+Date: Wed,  3 Jan 2018 13:39:16 -0800
+Message-ID: <20180103213938.11664-7-bart.vanassche@wdc.com>
+References: <20180103213938.11664-1-bart.vanassche@wdc.com>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180103213938.11664-1-bart.vanassche@wdc.com>
+Sender: stable-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Jason,
+Make sure that the initiator port GUID is stored in ch->ini_guid.
+Note: when initiating a connection sgid and dgid members in struct
+sa_path_rec represent the source and destination GIDs. When accepting
+a connection however sgid represents the destination GID and dgid the
+source GID.
 
-This patch series adds RDMA/CM support to the SRP initiator and target drivers
-and also includes a series of bug fixes for the SRPT driver. Please consider
-at least the SRPT bug fixes for kernel v4.16 since one of these fixes is a
-security fix.
+Fixes: commit 2bce1a6d2209 ("IB/srpt: Accept GUIDs as port names")
+Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+Cc: <stable@vger.kernel.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-
-Bart.
-
-Bart Van Assche (28):
-  IB/srp: Use kstrtoull() instead of simple_strtoull()
-  IB/srp: Make the path record query error message more informative
-  IB/srp: Refactor srp_send_req()
-  IB/srp: Add RDMA/CM support
-  IB/srpt: Disable RDMA access by the initiator
-  IB/srpt: Fix ACL lookup during login
-  IB/srpt: Remove an unused structure member
-  IB/srpt: Fix kernel-doc warnings in ib_srpt.c
-  IB/srpt: Make it safe to use RCU for srpt_device.rch_list
-  IB/srpt: Rework srpt_disconnect_ch_sync()
-  IB/srpt: Document all structure members in ib_srpt.h
-  IB/srpt: Rename a local variable, a member variable and a constant
-  IB/srpt: Reduce the severity level of a log message
-  IB/srpt: Verify port numbers in srpt_event_handler()
-  IB/srpt: Use the IPv6 format for GIDs in log messages
-  IB/srpt: Reduce frequency of receive failure messages
-  IB/srpt: Introduce srpt_format_guid()
-  IB/srpt: Inline srpt_get_cmd_state()
-  IB/srpt: Micro-optimize I/O context state manipulation
-  IB/srpt: Add P_Key support
-  IB/srpt: One target per port
-  IB/srpt: Rework multi-channel support
-  IB/srpt: Fix login-related race conditions
-  IB/srpt: Prepare RDMA/CM support
-  IB/srpt: Move the code for parsing struct ib_cm_req_event_param
-  IB/srpt: Fix a race condition related to wait list processing
-  IB/srpt: Avoid that wait list processing triggers command reordering
-  IB/srpt: Add RDMA/CM support
-
- drivers/infiniband/ulp/srp/ib_srp.c   |  744 ++++++++++++++++-----
- drivers/infiniband/ulp/srp/ib_srp.h   |   41 +-
- drivers/infiniband/ulp/srpt/ib_srpt.c | 1136 +++++++++++++++++++++------------
- drivers/infiniband/ulp/srpt/ib_srpt.h |   88 ++-
- include/scsi/srp.h                    |   17 +
- 5 files changed, 1433 insertions(+), 593 deletions(-)
-
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 7c4249038004..bfa576aa9f03 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -2077,7 +2077,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 		goto destroy_ib;
+ 	}
+ 
+-	guid = (__be16 *)&param->primary_path->sgid.global.interface_id;
++	guid = (__be16 *)&param->primary_path->dgid.global.interface_id;
+ 	snprintf(ch->ini_guid, sizeof(ch->ini_guid), "%04x:%04x:%04x:%04x",
+ 		 be16_to_cpu(guid[0]), be16_to_cpu(guid[1]),
+ 		 be16_to_cpu(guid[2]), be16_to_cpu(guid[3]));
 -- 
 2.15.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
