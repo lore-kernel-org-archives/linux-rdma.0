@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 19/28] IB/srpt: Micro-optimize I/O context state manipulation
-Date: Wed,  3 Jan 2018 13:39:29 -0800
-Message-ID: <20180103213938.11664-20-bart.vanassche@wdc.com>
+Subject: [PATCH 23/28] IB/srpt: Fix login-related race conditions
+Date: Wed,  3 Jan 2018 13:39:33 -0800
+Message-ID: <20180103213938.11664-24-bart.vanassche@wdc.com>
 References: <20180103213938.11664-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180103213938.11664-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,129 +10,318 @@ To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since all I/O context state changes are already serialized, it is
-not necessary to protect I/O context state changes with the I/O
-context spinlock. Hence remove that spinlock.
+Make sure that sport->mutex is not released between the duplicate
+channel check, adding a channel to the channel list and performing
+the sport enabled check. Avoid that srpt_disconnect_ch() can be
+invoked concurrently with the ib_send_cm_rep() call by
+srpt_cm_req_recv().
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 16 +---------------
- drivers/infiniband/ulp/srpt/ib_srpt.h |  2 --
- 2 files changed, 1 insertion(+), 17 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 195 +++++++++++++++++++---------------
+ 1 file changed, 111 insertions(+), 84 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 9a1d3d1e614b..323d55e6daf1 100644
+index 3a25eca81871..b6544112a321 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -726,15 +726,10 @@ static enum srpt_command_state srpt_set_cmd_state(struct srpt_send_ioctx *ioctx,
- 						  enum srpt_command_state new)
- {
- 	enum srpt_command_state previous;
--	unsigned long flags;
+@@ -1975,7 +1975,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	struct srpt_rdma_ch *ch;
+ 	char *ini_guid, i_port_id[36];
+ 	u32 it_iu_len;
+-	int i, ret = 0;
++	int i, ret;
+ 
+ 	WARN_ON_ONCE(irqs_disabled());
+ 
+@@ -1998,69 +1998,43 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 		goto out;
+ 	}
+ 
++	ret = -ENOMEM;
+ 	rsp = kzalloc(sizeof(*rsp), GFP_KERNEL);
+ 	rej = kzalloc(sizeof(*rej), GFP_KERNEL);
+ 	rep_param = kzalloc(sizeof(*rep_param), GFP_KERNEL);
 -
--	BUG_ON(!ioctx);
+-	if (!rsp || !rej || !rep_param) {
+-		ret = -ENOMEM;
++	if (!rsp || !rej || !rep_param)
+ 		goto out;
+-	}
  
--	spin_lock_irqsave(&ioctx->spinlock, flags);
- 	previous = ioctx->state;
- 	if (previous != SRPT_STATE_DONE)
- 		ioctx->state = new;
--	spin_unlock_irqrestore(&ioctx->spinlock, flags);
++	ret = -EINVAL;
+ 	if (it_iu_len > srp_max_req_size || it_iu_len < 64) {
+ 		rej->reason = cpu_to_be32(
+-			      SRP_LOGIN_REJ_REQ_IT_IU_LENGTH_TOO_LARGE);
+-		ret = -EINVAL;
+-		pr_err("rejected SRP_LOGIN_REQ because its"
+-		       " length (%d bytes) is out of range (%d .. %d)\n",
++				SRP_LOGIN_REJ_REQ_IT_IU_LENGTH_TOO_LARGE);
++		pr_err("rejected SRP_LOGIN_REQ because its length (%d bytes) is out of range (%d .. %d)\n",
+ 		       it_iu_len, 64, srp_max_req_size);
+ 		goto reject;
+ 	}
  
- 	return previous;
- }
-@@ -749,17 +744,15 @@ static bool srpt_test_and_set_cmd_state(struct srpt_send_ioctx *ioctx,
- 					enum srpt_command_state new)
- {
- 	enum srpt_command_state previous;
--	unsigned long flags;
+ 	if (!sport->enabled) {
+-		rej->reason = cpu_to_be32(
+-			      SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
+-		ret = -EINVAL;
+-		pr_err("rejected SRP_LOGIN_REQ because the target port"
+-		       " has not yet been enabled\n");
++		rej->reason = cpu_to_be32(SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
++		pr_info("rejected SRP_LOGIN_REQ because target port %s_%d has not yet been enabled\n",
++			sport->sdev->device->name, param->port);
+ 		goto reject;
+ 	}
  
- 	WARN_ON(!ioctx);
- 	WARN_ON(old == SRPT_STATE_DONE);
- 	WARN_ON(new == SRPT_STATE_NEW);
+-	if ((req->req_flags & SRP_MTCH_ACTION) == SRP_MULTICHAN_SINGLE) {
+-		struct srpt_rdma_ch *ch2;
+-
+-		rsp->rsp_flags = SRP_LOGIN_RSP_MULTICHAN_NO_CHAN;
+-
+-		mutex_lock(&sport->mutex);
+-		list_for_each_entry(ch2, &nexus->ch_list, list) {
+-			if (srpt_disconnect_ch(ch2) < 0)
+-				continue;
+-			pr_info("Relogin - closed existing channel %s\n",
+-				ch2->sess_name);
+-			rsp->rsp_flags = SRP_LOGIN_RSP_MULTICHAN_TERMINATED;
+-		}
+-		mutex_unlock(&sport->mutex);
+-	} else {
+-		rsp->rsp_flags = SRP_LOGIN_RSP_MULTICHAN_MAINTAINED;
+-	}
+-
+ 	if (*(__be64 *)req->target_port_id != cpu_to_be64(srpt_service_guid)
+ 	    || *(__be64 *)(req->target_port_id + 8) !=
+ 	       cpu_to_be64(srpt_service_guid)) {
+ 		rej->reason = cpu_to_be32(
+-			      SRP_LOGIN_REJ_UNABLE_ASSOCIATE_CHANNEL);
+-		ret = -ENOMEM;
+-		pr_err("rejected SRP_LOGIN_REQ because it"
+-		       " has an invalid target port identifier.\n");
++				SRP_LOGIN_REJ_UNABLE_ASSOCIATE_CHANNEL);
++		pr_err("rejected SRP_LOGIN_REQ because it has an invalid target port identifier.\n");
+ 		goto reject;
+ 	}
  
--	spin_lock_irqsave(&ioctx->spinlock, flags);
- 	previous = ioctx->state;
- 	if (previous == old)
- 		ioctx->state = new;
--	spin_unlock_irqrestore(&ioctx->spinlock, flags);
++	ret = -ENOMEM;
+ 	ch = kzalloc(sizeof(*ch), GFP_KERNEL);
+ 	if (!ch) {
+-		rej->reason = cpu_to_be32(
+-			      SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
+-		pr_err("rejected SRP_LOGIN_REQ because no memory.\n");
+-		ret = -ENOMEM;
++		rej->reason = cpu_to_be32(SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
++		pr_err("rejected SRP_LOGIN_REQ because out of memory.\n");
+ 		goto reject;
+ 	}
+ 
+@@ -2088,8 +2062,11 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 		srpt_alloc_ioctx_ring(ch->sport->sdev, ch->rq_size,
+ 				      sizeof(*ch->ioctx_ring[0]),
+ 				      ch->max_rsp_size, DMA_TO_DEVICE);
+-	if (!ch->ioctx_ring)
++	if (!ch->ioctx_ring) {
++		pr_err("rejected SRP_LOGIN_REQ because creating a new QP SQ ring failed.\n");
++		rej->reason = cpu_to_be32(SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
+ 		goto free_ch;
++	}
+ 
+ 	INIT_LIST_HEAD(&ch->free_list);
+ 	for (i = 0; i < ch->rq_size; i++) {
+@@ -2111,20 +2088,10 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	}
+ 
+ 	ret = srpt_create_ch_ib(ch);
+-	if (ret) {
+-		rej->reason = cpu_to_be32(
+-			      SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
+-		pr_err("rejected SRP_LOGIN_REQ because creating"
+-		       " a new RDMA channel failed.\n");
+-		goto free_recv_ring;
+-	}
+-
+-	ret = srpt_ch_qp_rtr(ch, ch->qp);
+ 	if (ret) {
+ 		rej->reason = cpu_to_be32(SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
+-		pr_err("rejected SRP_LOGIN_REQ because enabling"
+-		       " RTR failed (error code = %d)\n", ret);
+-		goto destroy_ib;
++		pr_err("rejected SRP_LOGIN_REQ because creating a new RDMA channel failed.\n");
++		goto free_recv_ring;
+ 	}
+ 
+ 	srpt_format_guid(ch->sess_name, sizeof(ch->sess_name),
+@@ -2150,11 +2117,51 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 						TARGET_PROT_NORMAL,
+ 						i_port_id + 2, ch, NULL);
+ 	if (IS_ERR_OR_NULL(ch->sess)) {
+-		pr_info("Rejected login because no ACL has been configured yet for initiator %s.\n",
+-			ch->sess_name);
+-		rej->reason = cpu_to_be32((PTR_ERR(ch->sess) == -ENOMEM) ?
++		ret = PTR_ERR(ch->sess);
++		pr_info("Rejected login for initiator %s: ret = %d.\n",
++			ch->sess_name, ret);
++		rej->reason = cpu_to_be32(ret == -ENOMEM ?
+ 				SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES :
+ 				SRP_LOGIN_REJ_CHANNEL_LIMIT_REACHED);
++		goto reject;
++	}
 +
- 	return previous == old;
++	mutex_lock(&sport->mutex);
++
++	if ((req->req_flags & SRP_MTCH_ACTION) == SRP_MULTICHAN_SINGLE) {
++		struct srpt_rdma_ch *ch2;
++
++		rsp->rsp_flags = SRP_LOGIN_RSP_MULTICHAN_NO_CHAN;
++
++		list_for_each_entry(ch2, &nexus->ch_list, list) {
++			if (srpt_disconnect_ch(ch2) < 0)
++				continue;
++			pr_info("Relogin - closed existing channel %s\n",
++				ch2->sess_name);
++			rsp->rsp_flags = SRP_LOGIN_RSP_MULTICHAN_TERMINATED;
++		}
++	} else {
++		rsp->rsp_flags = SRP_LOGIN_RSP_MULTICHAN_MAINTAINED;
++	}
++
++	list_add_tail_rcu(&ch->list, &nexus->ch_list);
++
++	if (!sport->enabled) {
++		rej->reason = cpu_to_be32(
++				SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
++		pr_info("rejected SRP_LOGIN_REQ because target %s_%d is not enabled\n",
++			sdev->device->name, param->port);
++		mutex_unlock(&sport->mutex);
++		goto reject;
++	}
++
++	mutex_unlock(&sport->mutex);
++
++	ret = srpt_ch_qp_rtr(ch, ch->qp);
++	if (ret) {
++		rej->reason = cpu_to_be32(SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
++		pr_err("rejected SRP_LOGIN_REQ because enabling RTR failed (error code = %d)\n",
++		       ret);
+ 		goto destroy_ib;
+ 	}
+ 
+@@ -2167,8 +2174,8 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	rsp->max_it_iu_len = req->req_it_iu_len;
+ 	rsp->max_ti_iu_len = req->req_it_iu_len;
+ 	ch->max_ti_iu_len = it_iu_len;
+-	rsp->buf_fmt = cpu_to_be16(SRP_BUF_FORMAT_DIRECT
+-				   | SRP_BUF_FORMAT_INDIRECT);
++	rsp->buf_fmt = cpu_to_be16(SRP_BUF_FORMAT_DIRECT |
++				   SRP_BUF_FORMAT_INDIRECT);
+ 	rsp->req_lim_delta = cpu_to_be32(ch->rq_size);
+ 	atomic_set(&ch->req_lim, ch->rq_size);
+ 	atomic_set(&ch->req_lim_delta, 0);
+@@ -2184,24 +2191,30 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	rep_param->responder_resources = 4;
+ 	rep_param->initiator_depth = 4;
+ 
+-	ret = ib_send_cm_rep(cm_id, rep_param);
+-	if (ret) {
+-		pr_err("sending SRP_LOGIN_REQ response failed"
+-		       " (error code = %d)\n", ret);
+-		goto release_channel;
+-	}
+-
++	/*
++	 * Hold the sport mutex while accepting a connection to avoid that
++	 * srpt_disconnect_ch() is invoked concurrently with this code.
++	 */
+ 	mutex_lock(&sport->mutex);
+-	list_add_tail_rcu(&ch->list, &nexus->ch_list);
++	if (sport->enabled && ch->state == CH_CONNECTING) {
++		ret = ib_send_cm_rep(cm_id, rep_param);
++	} else {
++		ret = -EINVAL;
++	}
+ 	mutex_unlock(&sport->mutex);
+ 
+-	goto out;
++	switch (ret) {
++	case 0:
++		break;
++	case -EINVAL:
++		goto reject;
++	default:
++		rej->reason = cpu_to_be32(SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
++		pr_err("sending SRP_LOGIN_REQ response failed (error code = %d)\n", ret);
++		goto reject;
++	}
+ 
+-release_channel:
+-	srpt_disconnect_ch(ch);
+-	transport_deregister_session_configfs(ch->sess);
+-	transport_deregister_session(ch->sess);
+-	ch->sess = NULL;
++	goto out;
+ 
+ destroy_ib:
+ 	srpt_destroy_ch_ib(ch);
+@@ -2216,13 +2229,18 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 			     ch->sport->sdev, ch->rq_size,
+ 			     ch->max_rsp_size, DMA_TO_DEVICE);
+ free_ch:
++	cm_id->context = NULL;
+ 	kfree(ch);
++	ch = NULL;
++
++	WARN_ON_ONCE(ret == 0);
+ 
+ reject:
++	pr_info("Rejecting login with reason %#x\n", be32_to_cpu(rej->reason));
+ 	rej->opcode = SRP_LOGIN_REJ;
+ 	rej->tag = req->tag;
+-	rej->buf_fmt = cpu_to_be16(SRP_BUF_FORMAT_DIRECT
+-				   | SRP_BUF_FORMAT_INDIRECT);
++	rej->buf_fmt = cpu_to_be16(SRP_BUF_FORMAT_DIRECT |
++				   SRP_BUF_FORMAT_INDIRECT);
+ 
+ 	ib_send_cm_rej(cm_id, IB_CM_REJ_CONSUMER_DEFINED, NULL, 0,
+ 			     (void *)rej, sizeof(*rej));
+@@ -2264,17 +2282,26 @@ static void srpt_cm_rtu_recv(struct srpt_rdma_ch *ch)
+ {
+ 	int ret;
+ 
+-	if (srpt_set_ch_state(ch, CH_LIVE)) {
+-		ret = srpt_ch_qp_rts(ch, ch->qp);
+-
+-		if (ret == 0) {
+-			/* Trigger wait list processing. */
+-			ret = srpt_zerolength_write(ch);
+-			WARN_ONCE(ret < 0, "%d\n", ret);
+-		} else {
+-			srpt_close_ch(ch);
+-		}
++	ret = srpt_ch_qp_rts(ch, ch->qp);
++	if (ret < 0) {
++		pr_err("%s-%d: QP transition to RTS failed\n", ch->sess_name,
++		       ch->qp->qp_num);
++		srpt_close_ch(ch);
++		return;
+ 	}
++
++	/* Trigger wait list processing. */
++	ret = srpt_zerolength_write(ch);
++	WARN_ONCE(ret < 0, "%d\n", ret);
++
++	/*
++	 * Note: calling srpt_close_ch() if the transition to the LIVE state
++	 * fails is not necessary since that means that that function has
++	 * already been invoked from another thread.
++	 */
++	if (!srpt_set_ch_state(ch, CH_LIVE))
++		pr_err("%s-%d: channel transition to LIVE state failed\n",
++		       ch->sess_name, ch->qp->qp_num);
  }
  
-@@ -1120,7 +1113,6 @@ static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
- 		return ioctx;
- 
- 	BUG_ON(ioctx->ch != ch);
--	spin_lock_init(&ioctx->spinlock);
- 	ioctx->state = SRPT_STATE_NEW;
- 	ioctx->n_rdma = 0;
- 	ioctx->n_rw_ctx = 0;
-@@ -1142,7 +1134,6 @@ static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
- static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
- {
- 	enum srpt_command_state state;
--	unsigned long flags;
- 
- 	BUG_ON(!ioctx);
- 
-@@ -1151,7 +1142,6 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
- 	 * the ib_srpt driver, change the state to the next state.
- 	 */
- 
--	spin_lock_irqsave(&ioctx->spinlock, flags);
- 	state = ioctx->state;
- 	switch (state) {
- 	case SRPT_STATE_NEED_DATA:
-@@ -1166,7 +1156,6 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
- 			  __func__, state);
- 		break;
- 	}
--	spin_unlock_irqrestore(&ioctx->spinlock, flags);
- 
- 	pr_debug("Aborting cmd with state %d -> %d and tag %lld\n", state,
- 		 ioctx->state, ioctx->cmd.tag);
-@@ -2367,13 +2356,11 @@ static void srpt_queue_response(struct se_cmd *cmd)
- 	struct ib_send_wr send_wr, *first_wr = &send_wr, *bad_wr;
- 	struct ib_sge sge;
- 	enum srpt_command_state state;
--	unsigned long flags;
- 	int resp_len, ret, i;
- 	u8 srp_tm_status;
- 
- 	BUG_ON(!ch);
- 
--	spin_lock_irqsave(&ioctx->spinlock, flags);
- 	state = ioctx->state;
- 	switch (state) {
- 	case SRPT_STATE_NEW:
-@@ -2388,7 +2375,6 @@ static void srpt_queue_response(struct se_cmd *cmd)
- 			ch, ioctx->ioctx.index, ioctx->state);
- 		break;
- 	}
--	spin_unlock_irqrestore(&ioctx->spinlock, flags);
- 
- 	if (unlikely(WARN_ON_ONCE(state == SRPT_STATE_CMD_RSP_SENT)))
- 		return;
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index ac76825152f1..0c68bee6ba1b 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -195,7 +195,6 @@ struct srpt_rw_ctx {
-  * @rw_ctxs:     RDMA read/write contexts.
-  * @rdma_cqe:    RDMA completion queue element.
-  * @free_list:   Node in srpt_rdma_ch.free_list.
-- * @spinlock:    Protects 'state'.
-  * @state:       I/O context state.
-  * @cmd:         Target core command data structure.
-  * @sense_data:  SCSI sense data.
-@@ -213,7 +212,6 @@ struct srpt_send_ioctx {
- 
- 	struct ib_cqe		rdma_cqe;
- 	struct list_head	free_list;
--	spinlock_t		spinlock;
- 	enum srpt_command_state	state;
- 	struct se_cmd		cmd;
- 	u8			n_rdma;
+ /*
 -- 
 2.15.1
 
