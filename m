@@ -1,38 +1,81 @@
-From: Bart Van Assche <bart.vanassche@wdc.com>
-Subject: [PATCH 05/28] IB/srpt: Disable RDMA access by the initiator
-Date: Wed,  3 Jan 2018 13:39:15 -0800
-Message-ID: <20180103213938.11664-6-bart.vanassche@wdc.com>
+From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Subject: [PATCH 14/28] IB/srpt: Verify port numbers in srpt_event_handler()
+Date: Wed,  3 Jan 2018 13:39:24 -0800
+Message-ID: <20180103213938.11664-15-bart.vanassche@wdc.com>
 References: <20180103213938.11664-1-bart.vanassche@wdc.com>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180103213938.11664-1-bart.vanassche@wdc.com>
-Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, stable@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180103213938.11664-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-With the SRP protocol all RDMA operations are initiated by the target.
-Since no RDMA operations are initiated by the initiator, do not grant
-the initiator permission to submit RDMA reads or writes to the target.
+Verify whether port numbers are in the expected range before using
+these as an array index. Complain if a port number is out of range.
 
-Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 8a1bd354b1cc..7c4249038004 100644
+index 7a36d0433706..44096b93d783 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1013,8 +1013,7 @@ static int srpt_init_ch_qp(struct srpt_rdma_ch *ch, struct ib_qp *qp)
- 		return -ENOMEM;
+@@ -132,6 +132,7 @@ static void srpt_event_handler(struct ib_event_handler *handler,
+ {
+ 	struct srpt_device *sdev;
+ 	struct srpt_port *sport;
++	u8 port_num;
  
- 	attr->qp_state = IB_QPS_INIT;
--	attr->qp_access_flags = IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_READ |
--	    IB_ACCESS_REMOTE_WRITE;
-+	attr->qp_access_flags = IB_ACCESS_LOCAL_WRITE;
- 	attr->port_num = ch->sport->port;
- 	attr->pkey_index = 0;
+ 	sdev = ib_get_client_data(event->device, &srpt_client);
+ 	if (!sdev || sdev->device != event->device)
+@@ -142,10 +143,15 @@ static void srpt_event_handler(struct ib_event_handler *handler,
  
+ 	switch (event->event) {
+ 	case IB_EVENT_PORT_ERR:
+-		if (event->element.port_num <= sdev->device->phys_port_cnt) {
+-			sport = &sdev->port[event->element.port_num - 1];
++		port_num = event->element.port_num - 1;
++		if (port_num < sdev->device->phys_port_cnt) {
++			sport = &sdev->port[port_num];
+ 			sport->lid = 0;
+ 			sport->sm_lid = 0;
++		} else {
++			WARN(true, "event %d: port_num %d out of range 1..%d\n",
++			     event->event, port_num + 1,
++			     sdev->device->phys_port_cnt);
+ 		}
+ 		break;
+ 	case IB_EVENT_PORT_ACTIVE:
+@@ -155,15 +161,19 @@ static void srpt_event_handler(struct ib_event_handler *handler,
+ 	case IB_EVENT_CLIENT_REREGISTER:
+ 	case IB_EVENT_GID_CHANGE:
+ 		/* Refresh port data asynchronously. */
+-		if (event->element.port_num <= sdev->device->phys_port_cnt) {
+-			sport = &sdev->port[event->element.port_num - 1];
++		port_num = event->element.port_num - 1;
++		if (port_num < sdev->device->phys_port_cnt) {
++			sport = &sdev->port[port_num];
+ 			if (!sport->lid && !sport->sm_lid)
+ 				schedule_work(&sport->work);
++		} else {
++			WARN(true, "event %d: port_num %d out of range 1..%d\n",
++			     event->event, port_num + 1,
++			     sdev->device->phys_port_cnt);
+ 		}
+ 		break;
+ 	default:
+-		pr_err("received unrecognized IB event %d\n",
+-		       event->event);
++		pr_err("received unrecognized IB event %d\n", event->event);
+ 		break;
+ 	}
+ }
 -- 
 2.15.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
