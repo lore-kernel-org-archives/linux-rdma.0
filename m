@@ -1,41 +1,274 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Fix for notify send CQ failure messages
-Date: Wed, 3 Jan 2018 09:06:48 -0700
-Message-ID: <20180103160648.GD11348@ziepe.ca>
-References: <20180102210419.26104.32513.stgit@phlsvlogin03.ph.intel.com>
- <20180102212407.GA19027@ziepe.ca>
- <CAAk-MO_ArzS5irkN-_nt_YYL3+YgL+FpM6WLvPZfM-mKexsShg@mail.gmail.com>
+From: "tip-bot for Paul E. McKenney" <tipbot@zytor.com>
+Subject: [tip:core/rcu] drivers/infiniband: Remove now-redundant
+ smp_read_barrier_depends()
+Date: Wed, 3 Jan 2018 08:06:10 -0800
+Message-ID: <tip-adf90eb49055636fc35aede54174456ac3520f27@git.kernel.org>
+Reply-To: mingo@kernel.org, linux-rdma@vger.kernel.org,
+          ink@jurassic.park.msu.ru, rth@twiddle.net,
+          linux-kernel@vger.kernel.org, jgg@mellanox.com,
+          paulmck@linux.vnet.ibm.com, parri.andrea@gmail.com,
+          linux-alpha@vger.kernel.org, tglx@linutronix.de,
+          mattst88@gmail.com, hpa@zytor.com, dledford@redhat.com,
+          mcree@orcon.net.nz
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-alpha-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAAk-MO_ArzS5irkN-_nt_YYL3+YgL+FpM6WLvPZfM-mKexsShg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-alpha-owner@vger.kernel.org
+To: linux-tip-commits@vger.kernel.org
+Cc: tglx@linutronix.de, linux-alpha@vger.kernel.org, mattst88@gmail.com, hpa@zytor.com, mcree@orcon.net.nz, dledford@redhat.com, linux-rdma@vger.kernel.org, mingo@kernel.org, rth@twiddle.net, ink@jurassic.park.msu.ru, parri.andrea@gmail.com, paulmck@linux.vnet.ibm.com, jgg@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 03, 2018 at 11:33:05AM +0200, Erez Shitrit wrote:
-> On Tue, Jan 2, 2018 at 11:24 PM, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> > On Tue, Jan 02, 2018 at 04:04:20PM -0500, Alex Estrin wrote:
-> >> If IB_CQ_REPORT_MISSED_EVENTS flag is passed in ib_req_notify_cq()
-> >> it may return positive value indicating non-empty CQ.
-> >> If return code not verified the log might be flooded with false
-> >> warning messages "request notify on send CQ failed".
-> >>
-> >> Fixes: commit 8966e28d2e40 ("IB/ipoib: Use NAPI in UD/TX flows")
-> >
-> > Hurm... It was right before that commit as well..
-> >
-> > Erez, why did you change it?
-> 
-> I don't think i changed it.
+Commit-ID:  adf90eb49055636fc35aede54174456ac3520f27
+Gitweb:     https://git.kernel.org/tip/adf90eb49055636fc35aede54174456ac3520f27
+Author:     Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+AuthorDate: Mon, 27 Nov 2017 09:04:22 -0800
+Committer:  Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+CommitDate: Tue, 5 Dec 2017 11:56:54 -0800
 
-Okay, then it is a typo when you reworked things for NAPI that the >0
-case started making warnings. I will apply this patch.
+drivers/infiniband: Remove now-redundant smp_read_barrier_depends()
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The smp_read_barrier_depends() does nothing at all except on DEC Alpha,
+and no current DEC Alpha systems use Infiniband:
+
+	lkml.kernel.org/r/20171023085921.jwbntptn6ictbnvj@tower
+
+This commit therefore makes Infiniband depend on !ALPHA and removes
+the now-ineffective invocations of smp_read_barrier_depends() from
+the InfiniBand driver.
+
+Please note that this patch should not be construed as my saying that
+InfiniBand's memory ordering is correct, but rather that this patch does
+not in any way affect InfiniBand's correctness.  In other words, the
+result of applying this patch is bug-for-bug compatible with the original.
+
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Michael Cree <mcree@orcon.net.nz>
+Cc: Andrea Parri <parri.andrea@gmail.com>
+Cc: <linux-rdma@vger.kernel.org>
+Cc: <linux-alpha@vger.kernel.org>
+[ paulmck: Removed drivers/dma/ioat/dma.c per Jason Gunthorpe's feedback. ]
+Acked-by: Jason Gunthorpe <jgg@mellanox.com>
+---
+ drivers/infiniband/Kconfig          | 1 +
+ drivers/infiniband/hw/hfi1/rc.c     | 4 ----
+ drivers/infiniband/hw/hfi1/ruc.c    | 1 -
+ drivers/infiniband/hw/hfi1/sdma.c   | 1 -
+ drivers/infiniband/hw/hfi1/uc.c     | 2 --
+ drivers/infiniband/hw/hfi1/ud.c     | 2 --
+ drivers/infiniband/hw/qib/qib_rc.c  | 3 ---
+ drivers/infiniband/hw/qib/qib_ruc.c | 1 -
+ drivers/infiniband/hw/qib/qib_uc.c  | 2 --
+ drivers/infiniband/hw/qib/qib_ud.c  | 2 --
+ drivers/infiniband/sw/rdmavt/qp.c   | 1 -
+ 11 files changed, 1 insertion(+), 19 deletions(-)
+
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index 98ac46e..3bb6e35 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -4,6 +4,7 @@ menuconfig INFINIBAND
+ 	depends on NET
+ 	depends on INET
+ 	depends on m || IPV6 != m
++	depends on !ALPHA
+ 	select IRQ_POLL
+ 	---help---
+ 	  Core support for InfiniBand (IB).  Make sure to also select
+diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
+index fd01a76..f527bcd 100644
+--- a/drivers/infiniband/hw/hfi1/rc.c
++++ b/drivers/infiniband/hw/hfi1/rc.c
+@@ -302,7 +302,6 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 		if (!(ib_rvt_state_ops[qp->state] & RVT_FLUSH_SEND))
+ 			goto bail;
+ 		/* We are in the error state, flush the work request. */
+-		smp_read_barrier_depends(); /* see post_one_send() */
+ 		if (qp->s_last == READ_ONCE(qp->s_head))
+ 			goto bail;
+ 		/* If DMAs are in progress, we can't flush immediately. */
+@@ -346,7 +345,6 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 		newreq = 0;
+ 		if (qp->s_cur == qp->s_tail) {
+ 			/* Check if send work queue is empty. */
+-			smp_read_barrier_depends(); /* see post_one_send() */
+ 			if (qp->s_tail == READ_ONCE(qp->s_head)) {
+ 				clear_ahg(qp);
+ 				goto bail;
+@@ -900,7 +898,6 @@ void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd,
+ 	}
+ 
+ 	/* Ensure s_rdma_ack_cnt changes are committed */
+-	smp_read_barrier_depends();
+ 	if (qp->s_rdma_ack_cnt) {
+ 		hfi1_queue_rc_ack(qp, is_fecn);
+ 		return;
+@@ -1562,7 +1559,6 @@ static void rc_rcv_resp(struct hfi1_packet *packet)
+ 	trace_hfi1_ack(qp, psn);
+ 
+ 	/* Ignore invalid responses. */
+-	smp_read_barrier_depends(); /* see post_one_send */
+ 	if (cmp_psn(psn, READ_ONCE(qp->s_next_psn)) >= 0)
+ 		goto ack_done;
+ 
+diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
+index 2c7fc6e..13b9947 100644
+--- a/drivers/infiniband/hw/hfi1/ruc.c
++++ b/drivers/infiniband/hw/hfi1/ruc.c
+@@ -362,7 +362,6 @@ static void ruc_loopback(struct rvt_qp *sqp)
+ 	sqp->s_flags |= RVT_S_BUSY;
+ 
+ again:
+-	smp_read_barrier_depends(); /* see post_one_send() */
+ 	if (sqp->s_last == READ_ONCE(sqp->s_head))
+ 		goto clr_busy;
+ 	wqe = rvt_get_swqe_ptr(sqp, sqp->s_last);
+diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
+index 31c8f89..61c130d 100644
+--- a/drivers/infiniband/hw/hfi1/sdma.c
++++ b/drivers/infiniband/hw/hfi1/sdma.c
+@@ -553,7 +553,6 @@ static void sdma_hw_clean_up_task(unsigned long opaque)
+ 
+ static inline struct sdma_txreq *get_txhead(struct sdma_engine *sde)
+ {
+-	smp_read_barrier_depends(); /* see sdma_update_tail() */
+ 	return sde->tx_ring[sde->tx_head & sde->sdma_mask];
+ }
+ 
+diff --git a/drivers/infiniband/hw/hfi1/uc.c b/drivers/infiniband/hw/hfi1/uc.c
+index 991bbee..132b63e 100644
+--- a/drivers/infiniband/hw/hfi1/uc.c
++++ b/drivers/infiniband/hw/hfi1/uc.c
+@@ -79,7 +79,6 @@ int hfi1_make_uc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 		if (!(ib_rvt_state_ops[qp->state] & RVT_FLUSH_SEND))
+ 			goto bail;
+ 		/* We are in the error state, flush the work request. */
+-		smp_read_barrier_depends(); /* see post_one_send() */
+ 		if (qp->s_last == READ_ONCE(qp->s_head))
+ 			goto bail;
+ 		/* If DMAs are in progress, we can't flush immediately. */
+@@ -119,7 +118,6 @@ int hfi1_make_uc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 		    RVT_PROCESS_NEXT_SEND_OK))
+ 			goto bail;
+ 		/* Check if send work queue is empty. */
+-		smp_read_barrier_depends(); /* see post_one_send() */
+ 		if (qp->s_cur == READ_ONCE(qp->s_head)) {
+ 			clear_ahg(qp);
+ 			goto bail;
+diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
+index beb5091..deb1845 100644
+--- a/drivers/infiniband/hw/hfi1/ud.c
++++ b/drivers/infiniband/hw/hfi1/ud.c
+@@ -486,7 +486,6 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 		if (!(ib_rvt_state_ops[qp->state] & RVT_FLUSH_SEND))
+ 			goto bail;
+ 		/* We are in the error state, flush the work request. */
+-		smp_read_barrier_depends(); /* see post_one_send */
+ 		if (qp->s_last == READ_ONCE(qp->s_head))
+ 			goto bail;
+ 		/* If DMAs are in progress, we can't flush immediately. */
+@@ -500,7 +499,6 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	}
+ 
+ 	/* see post_one_send() */
+-	smp_read_barrier_depends();
+ 	if (qp->s_cur == READ_ONCE(qp->s_head))
+ 		goto bail;
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
+index 8f5754f..1a785c3 100644
+--- a/drivers/infiniband/hw/qib/qib_rc.c
++++ b/drivers/infiniband/hw/qib/qib_rc.c
+@@ -246,7 +246,6 @@ int qib_make_rc_req(struct rvt_qp *qp, unsigned long *flags)
+ 		if (!(ib_rvt_state_ops[qp->state] & RVT_FLUSH_SEND))
+ 			goto bail;
+ 		/* We are in the error state, flush the work request. */
+-		smp_read_barrier_depends(); /* see post_one_send() */
+ 		if (qp->s_last == READ_ONCE(qp->s_head))
+ 			goto bail;
+ 		/* If DMAs are in progress, we can't flush immediately. */
+@@ -293,7 +292,6 @@ int qib_make_rc_req(struct rvt_qp *qp, unsigned long *flags)
+ 		newreq = 0;
+ 		if (qp->s_cur == qp->s_tail) {
+ 			/* Check if send work queue is empty. */
+-			smp_read_barrier_depends(); /* see post_one_send() */
+ 			if (qp->s_tail == READ_ONCE(qp->s_head))
+ 				goto bail;
+ 			/*
+@@ -1340,7 +1338,6 @@ static void qib_rc_rcv_resp(struct qib_ibport *ibp,
+ 		goto ack_done;
+ 
+ 	/* Ignore invalid responses. */
+-	smp_read_barrier_depends(); /* see post_one_send */
+ 	if (qib_cmp24(psn, READ_ONCE(qp->s_next_psn)) >= 0)
+ 		goto ack_done;
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
+index 9a37e84..4662cc7 100644
+--- a/drivers/infiniband/hw/qib/qib_ruc.c
++++ b/drivers/infiniband/hw/qib/qib_ruc.c
+@@ -367,7 +367,6 @@ static void qib_ruc_loopback(struct rvt_qp *sqp)
+ 	sqp->s_flags |= RVT_S_BUSY;
+ 
+ again:
+-	smp_read_barrier_depends(); /* see post_one_send() */
+ 	if (sqp->s_last == READ_ONCE(sqp->s_head))
+ 		goto clr_busy;
+ 	wqe = rvt_get_swqe_ptr(sqp, sqp->s_last);
+diff --git a/drivers/infiniband/hw/qib/qib_uc.c b/drivers/infiniband/hw/qib/qib_uc.c
+index bddcc37..70c58b8 100644
+--- a/drivers/infiniband/hw/qib/qib_uc.c
++++ b/drivers/infiniband/hw/qib/qib_uc.c
+@@ -60,7 +60,6 @@ int qib_make_uc_req(struct rvt_qp *qp, unsigned long *flags)
+ 		if (!(ib_rvt_state_ops[qp->state] & RVT_FLUSH_SEND))
+ 			goto bail;
+ 		/* We are in the error state, flush the work request. */
+-		smp_read_barrier_depends(); /* see post_one_send() */
+ 		if (qp->s_last == READ_ONCE(qp->s_head))
+ 			goto bail;
+ 		/* If DMAs are in progress, we can't flush immediately. */
+@@ -90,7 +89,6 @@ int qib_make_uc_req(struct rvt_qp *qp, unsigned long *flags)
+ 		    RVT_PROCESS_NEXT_SEND_OK))
+ 			goto bail;
+ 		/* Check if send work queue is empty. */
+-		smp_read_barrier_depends(); /* see post_one_send() */
+ 		if (qp->s_cur == READ_ONCE(qp->s_head))
+ 			goto bail;
+ 		/*
+diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
+index 15962ed..386c3c4 100644
+--- a/drivers/infiniband/hw/qib/qib_ud.c
++++ b/drivers/infiniband/hw/qib/qib_ud.c
+@@ -252,7 +252,6 @@ int qib_make_ud_req(struct rvt_qp *qp, unsigned long *flags)
+ 		if (!(ib_rvt_state_ops[qp->state] & RVT_FLUSH_SEND))
+ 			goto bail;
+ 		/* We are in the error state, flush the work request. */
+-		smp_read_barrier_depends(); /* see post_one_send */
+ 		if (qp->s_last == READ_ONCE(qp->s_head))
+ 			goto bail;
+ 		/* If DMAs are in progress, we can't flush immediately. */
+@@ -266,7 +265,6 @@ int qib_make_ud_req(struct rvt_qp *qp, unsigned long *flags)
+ 	}
+ 
+ 	/* see post_one_send() */
+-	smp_read_barrier_depends();
+ 	if (qp->s_cur == READ_ONCE(qp->s_head))
+ 		goto bail;
+ 
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 9177df6..eae84c2 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -1684,7 +1684,6 @@ static inline int rvt_qp_is_avail(
+ 	/* non-reserved operations */
+ 	if (likely(qp->s_avail))
+ 		return 0;
+-	smp_read_barrier_depends(); /* see rc.c */
+ 	slast = READ_ONCE(qp->s_last);
+ 	if (qp->s_head >= slast)
+ 		avail = qp->s_size - (qp->s_head - slast);
