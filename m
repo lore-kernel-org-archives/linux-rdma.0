@@ -1,53 +1,44 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH v2 03/13] Attach/detach SoftiWarp to/from network and
- RDMA subsystem
-Date: Wed, 3 Jan 2018 08:52:25 -0700
-Message-ID: <20180103155225.GA11348@ziepe.ca>
-References: <20171014064132.GT2106@mtr-leonro.local>
- <20171008130342.GV25829@mtr-leonro.local>
- <20171006122853.16310-1-bmt@zurich.ibm.com>
- <20171006122853.16310-4-bmt@zurich.ibm.com>
- <OF406E95F8.33CF80BB-ON002581B9.00073D6F-002581B9.00081F69@notes.na.collabserv.com>
- <OF663C0801.8471532E-ON002581FE.003B73D6-002581FE.003F2369@notes.na.collabserv.com>
- <20180102213706.GB19027@ziepe.ca>
- <20180103052529.GI10145@mtr-leonro.local>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] ethernet: mlx4: Delete an error message for a failed
+ memory allocation in five functions
+Date: Wed, 3 Jan 2018 09:03:16 -0700
+Message-ID: <20180103160316.GB11348@ziepe.ca>
+References: <30191db0-4d99-0349-b66a-c7354ef90d50@users.sourceforge.net>
+ <0fea8f2f-f8fc-ce2e-3d33-44227de3637a@mellanox.com>
+ <alpine.DEB.2.20.1801030904290.5305@hadrien>
+ <adfc3229-d3f9-afb9-00e6-9f765af0cbe8@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180103052529.GI10145-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <adfc3229-d3f9-afb9-00e6-9f765af0cbe8@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Tariq Toukan <tariqt@mellanox.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>, SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 03, 2018 at 07:25:29AM +0200, Leon Romanovsky wrote:
-> On Tue, Jan 02, 2018 at 02:37:06PM -0700, Jason Gunthorpe wrote:
-> > On Fri, Dec 22, 2017 at 11:29:38AM +0000, Bernard Metzler wrote:
-> >
-> > > One question I have - what is the recommended way of replacing
-> > > those module parameters, if we need to flexibly parameterize
-> > > things from user land? For the rxe driver, I see the usage of
-> > > module_param_cb, but this probably is not what we want in the
-> > > long run? Would a sysctl be appropriate, or a char device
-> > > (we may need to pass strings like interface names), or configfs?
-> >
-> > Probably something like 'rdmatool interface attach' eg cause it to
-> > create using the RDMA netlink protocol.
-> >
-> > Leon?
-> 
-> https://www.spinics.net/lists/linux-rdma/msg58498.html
-> "It looks like "ip" tool can be good fit ..."
-> 
-> ip link add ...
-> ip link set ...
+On Wed, Jan 03, 2018 at 01:24:59PM +0200, Tariq Toukan wrote:
 
-ip link adds netdevs, so that doesn't quite feel right for adding rdma
-devices???
+> >Strings take up space.  Since there is a backtrace on an out of memory
+> >problem, if the string does not provide any more information than the
+> >position of the call, then there is not much added value.  I don't know
+> >what was the string in this case.  If it provides some additional
+> >information, then it would be reasonable to keep it.
+> 
+> I don't really accept this claim...
+
+The standard we are moving to is to rely on the backtrace print for
+debugging. It is so huge it is unlikely a single print from the driver
+will make much difference to the user's view.
+
+Most users think backtrace == oops == bug report.
+
+> In addition, some out-of-memory errors are recoverable, even though their
+> backtrace is also printed. For example, in function mlx4_en_create_cq
+> (appears in patch) we have a first allocation attempt (kzalloc_node) and a
+> fallback (kzalloc).
+
+Please send a patch fixing this as other have suggested, it is clearly
+a bug.
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
