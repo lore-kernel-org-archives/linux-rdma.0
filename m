@@ -1,52 +1,38 @@
-From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 15/28] IB/srpt: Use the IPv6 format for GIDs in log messages
-Date: Wed,  3 Jan 2018 13:39:25 -0800
-Message-ID: <20180103213938.11664-16-bart.vanassche@wdc.com>
+From: Bart Van Assche <bart.vanassche@wdc.com>
+Subject: [PATCH 05/28] IB/srpt: Disable RDMA access by the initiator
+Date: Wed,  3 Jan 2018 13:39:15 -0800
+Message-ID: <20180103213938.11664-6-bart.vanassche@wdc.com>
 References: <20180103213938.11664-1-bart.vanassche@wdc.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180103213938.11664-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180103213938.11664-1-bart.vanassche@wdc.com>
+Sender: stable-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Make the ib_srpt driver use the IPv6 format for GIDs in log messages
-to improve consistency of this driver with other RDMA kernel drivers.
+With the SRP protocol all RDMA operations are initiated by the target.
+Since no RDMA operations are initiated by the initiator, do not grant
+the initiator permission to submit RDMA reads or writes to the target.
 
-Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+Cc: <stable@vger.kernel.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 44096b93d783..ad7bdbbddf45 100644
+index 8a1bd354b1cc..7c4249038004 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1949,17 +1949,9 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+@@ -1013,8 +1013,7 @@ static int srpt_init_ch_qp(struct srpt_rdma_ch *ch, struct ib_qp *qp)
+ 		return -ENOMEM;
  
- 	it_iu_len = be32_to_cpu(req->req_it_iu_len);
+ 	attr->qp_state = IB_QPS_INIT;
+-	attr->qp_access_flags = IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_READ |
+-	    IB_ACCESS_REMOTE_WRITE;
++	attr->qp_access_flags = IB_ACCESS_LOCAL_WRITE;
+ 	attr->port_num = ch->sport->port;
+ 	attr->pkey_index = 0;
  
--	pr_info("Received SRP_LOGIN_REQ with i_port_id 0x%llx:0x%llx,"
--		" t_port_id 0x%llx:0x%llx and it_iu_len %d on port %d"
--		" (guid=0x%llx:0x%llx)\n",
--		be64_to_cpu(*(__be64 *)&req->initiator_port_id[0]),
--		be64_to_cpu(*(__be64 *)&req->initiator_port_id[8]),
--		be64_to_cpu(*(__be64 *)&req->target_port_id[0]),
--		be64_to_cpu(*(__be64 *)&req->target_port_id[8]),
--		it_iu_len,
--		param->port,
--		be64_to_cpu(*(__be64 *)&sdev->port[param->port - 1].gid.raw[0]),
--		be64_to_cpu(*(__be64 *)&sdev->port[param->port - 1].gid.raw[8]));
-+	pr_info("Received SRP_LOGIN_REQ with i_port_id %pI6, t_port_id %pI6 and it_iu_len %d on port %d (guid=%pI6)\n",
-+		req->initiator_port_id, req->target_port_id, it_iu_len,
-+		param->port, &sport->gid);
- 
- 	rsp = kzalloc(sizeof(*rsp), GFP_KERNEL);
- 	rej = kzalloc(sizeof(*rej), GFP_KERNEL);
 -- 
 2.15.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
