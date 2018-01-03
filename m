@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 01/28] IB/srp: Use kstrtoull() instead of simple_strtoull()
-Date: Wed,  3 Jan 2018 13:39:11 -0800
-Message-ID: <20180103213938.11664-2-bart.vanassche@wdc.com>
+Subject: [PATCH 19/28] IB/srpt: Micro-optimize I/O context state manipulation
+Date: Wed,  3 Jan 2018 13:39:29 -0800
+Message-ID: <20180103213938.11664-20-bart.vanassche@wdc.com>
 References: <20180103213938.11664-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180103213938.11664-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,86 +10,129 @@ To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use kstrtoull() since simple_strtoull() is deprecated. This patch
-improves error checking but otherwise does not change any functionality.
+Since all I/O context state changes are already serialized, it is
+not necessary to protect I/O context state changes with the I/O
+context spinlock. Hence remove that spinlock.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 33 +++++++++++++++++++++++++++++----
- 1 file changed, 29 insertions(+), 4 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 16 +---------------
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  2 --
+ 2 files changed, 1 insertion(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 62d88212c1b0..39b3e43efbbe 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -3111,6 +3111,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 	char *options, *sep_opt;
- 	char *p;
- 	substring_t args[MAX_OPT_ARGS];
-+	unsigned long long ull;
- 	int opt_mask = 0;
- 	int token;
- 	int ret = -EINVAL;
-@@ -3135,7 +3136,13 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				ret = -ENOMEM;
- 				goto out;
- 			}
--			target->id_ext = cpu_to_be64(simple_strtoull(p, NULL, 16));
-+			ret = kstrtoull(p, 16, &ull);
-+			if (ret) {
-+				pr_warn("invalid id_ext parameter '%s'\n", p);
-+				kfree(p);
-+				goto out;
-+			}
-+			target->id_ext = cpu_to_be64(ull);
- 			kfree(p);
- 			break;
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 9a1d3d1e614b..323d55e6daf1 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -726,15 +726,10 @@ static enum srpt_command_state srpt_set_cmd_state(struct srpt_send_ioctx *ioctx,
+ 						  enum srpt_command_state new)
+ {
+ 	enum srpt_command_state previous;
+-	unsigned long flags;
+-
+-	BUG_ON(!ioctx);
  
-@@ -3145,7 +3152,13 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				ret = -ENOMEM;
- 				goto out;
- 			}
--			target->ioc_guid = cpu_to_be64(simple_strtoull(p, NULL, 16));
-+			ret = kstrtoull(p, 16, &ull);
-+			if (ret) {
-+				pr_warn("invalid ioc_guid parameter '%s'\n", p);
-+				kfree(p);
-+				goto out;
-+			}
-+			target->ioc_guid = cpu_to_be64(ull);
- 			kfree(p);
- 			break;
+-	spin_lock_irqsave(&ioctx->spinlock, flags);
+ 	previous = ioctx->state;
+ 	if (previous != SRPT_STATE_DONE)
+ 		ioctx->state = new;
+-	spin_unlock_irqrestore(&ioctx->spinlock, flags);
  
-@@ -3181,7 +3194,13 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				ret = -ENOMEM;
- 				goto out;
- 			}
--			target->service_id = cpu_to_be64(simple_strtoull(p, NULL, 16));
-+			ret = kstrtoull(p, 16, &ull);
-+			if (ret) {
-+				pr_warn("bad service_id parameter '%s'\n", p);
-+				kfree(p);
-+				goto out;
-+			}
-+			target->service_id = cpu_to_be64(ull);
- 			kfree(p);
- 			break;
+ 	return previous;
+ }
+@@ -749,17 +744,15 @@ static bool srpt_test_and_set_cmd_state(struct srpt_send_ioctx *ioctx,
+ 					enum srpt_command_state new)
+ {
+ 	enum srpt_command_state previous;
+-	unsigned long flags;
  
-@@ -3235,7 +3254,13 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				ret = -ENOMEM;
- 				goto out;
- 			}
--			target->initiator_ext = cpu_to_be64(simple_strtoull(p, NULL, 16));
-+			ret = kstrtoull(p, 16, &ull);
-+			if (ret) {
-+				pr_warn("bad initiator_ext value '%s'\n", p);
-+				kfree(p);
-+				goto out;
-+			}
-+			target->initiator_ext = cpu_to_be64(ull);
- 			kfree(p);
- 			break;
+ 	WARN_ON(!ioctx);
+ 	WARN_ON(old == SRPT_STATE_DONE);
+ 	WARN_ON(new == SRPT_STATE_NEW);
  
+-	spin_lock_irqsave(&ioctx->spinlock, flags);
+ 	previous = ioctx->state;
+ 	if (previous == old)
+ 		ioctx->state = new;
+-	spin_unlock_irqrestore(&ioctx->spinlock, flags);
++
+ 	return previous == old;
+ }
+ 
+@@ -1120,7 +1113,6 @@ static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
+ 		return ioctx;
+ 
+ 	BUG_ON(ioctx->ch != ch);
+-	spin_lock_init(&ioctx->spinlock);
+ 	ioctx->state = SRPT_STATE_NEW;
+ 	ioctx->n_rdma = 0;
+ 	ioctx->n_rw_ctx = 0;
+@@ -1142,7 +1134,6 @@ static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
+ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
+ {
+ 	enum srpt_command_state state;
+-	unsigned long flags;
+ 
+ 	BUG_ON(!ioctx);
+ 
+@@ -1151,7 +1142,6 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
+ 	 * the ib_srpt driver, change the state to the next state.
+ 	 */
+ 
+-	spin_lock_irqsave(&ioctx->spinlock, flags);
+ 	state = ioctx->state;
+ 	switch (state) {
+ 	case SRPT_STATE_NEED_DATA:
+@@ -1166,7 +1156,6 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
+ 			  __func__, state);
+ 		break;
+ 	}
+-	spin_unlock_irqrestore(&ioctx->spinlock, flags);
+ 
+ 	pr_debug("Aborting cmd with state %d -> %d and tag %lld\n", state,
+ 		 ioctx->state, ioctx->cmd.tag);
+@@ -2367,13 +2356,11 @@ static void srpt_queue_response(struct se_cmd *cmd)
+ 	struct ib_send_wr send_wr, *first_wr = &send_wr, *bad_wr;
+ 	struct ib_sge sge;
+ 	enum srpt_command_state state;
+-	unsigned long flags;
+ 	int resp_len, ret, i;
+ 	u8 srp_tm_status;
+ 
+ 	BUG_ON(!ch);
+ 
+-	spin_lock_irqsave(&ioctx->spinlock, flags);
+ 	state = ioctx->state;
+ 	switch (state) {
+ 	case SRPT_STATE_NEW:
+@@ -2388,7 +2375,6 @@ static void srpt_queue_response(struct se_cmd *cmd)
+ 			ch, ioctx->ioctx.index, ioctx->state);
+ 		break;
+ 	}
+-	spin_unlock_irqrestore(&ioctx->spinlock, flags);
+ 
+ 	if (unlikely(WARN_ON_ONCE(state == SRPT_STATE_CMD_RSP_SENT)))
+ 		return;
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index ac76825152f1..0c68bee6ba1b 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -195,7 +195,6 @@ struct srpt_rw_ctx {
+  * @rw_ctxs:     RDMA read/write contexts.
+  * @rdma_cqe:    RDMA completion queue element.
+  * @free_list:   Node in srpt_rdma_ch.free_list.
+- * @spinlock:    Protects 'state'.
+  * @state:       I/O context state.
+  * @cmd:         Target core command data structure.
+  * @sense_data:  SCSI sense data.
+@@ -213,7 +212,6 @@ struct srpt_send_ioctx {
+ 
+ 	struct ib_cqe		rdma_cqe;
+ 	struct list_head	free_list;
+-	spinlock_t		spinlock;
+ 	enum srpt_command_state	state;
+ 	struct se_cmd		cmd;
+ 	u8			n_rdma;
 -- 
 2.15.1
 
