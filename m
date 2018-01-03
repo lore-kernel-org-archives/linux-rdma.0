@@ -1,61 +1,34 @@
-From: David Ahern <dsahern@gmail.com>
-Subject: Re: [PATCH iproute2-next 3/9] rdma: Add filtering infrastructure
-Date: Tue, 2 Jan 2018 19:47:34 -0700
-Message-ID: <8380b3a6-54f3-851c-f059-5f37d377d3f0@gmail.com>
+From: David Ahern <dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH iproute2-next 6/9] rdma: Update kernel header file
+Date: Tue, 2 Jan 2018 19:50:43 -0700
+Message-ID: <8dc793ba-abf7-900b-02b9-0f9f468fd49f@gmail.com>
 References: <20180102093725.6172-1-leon@kernel.org>
- <20180102093725.6172-4-leon@kernel.org>
+ <20180102093725.6172-7-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180102093725.6172-4-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180102093725.6172-7-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 On 1/2/18 2:37 AM, Leon Romanovsky wrote:
-> +/*
-> + * Check if string entry is filtered:
-> + *  * key doesn't exist -> user didn't request -> not filtered
-> + */
-> +bool rd_check_is_string_filtered(struct rd *rd, const char *key, char *val)
-> +{
-> +	bool key_is_filtered = false;
-> +	struct filter_entry *fe;
-> +	char *p = NULL;
-> +	char *str;
-> +
-> +	list_for_each_entry(fe, &rd->filter_list, list) {
-> +		if (!strcmpx(fe->key, key)) {
-> +			/* We found the key */
-> +			p = strdup(fe->value);
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Synchronize iporute2 package with latest kernel
+> RDMA netlink header file.
+> 
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  include/uapi/rdma/rdma_netlink.h | 58 ++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 56 insertions(+), 2 deletions(-)
 
-if (p == NULL) ...
-
-> +
-> +			/*
-> +			 * Need to check if value in range
-> +			 * It can come in the following formats
-> +			 * and their permutations:
-> +			 * str
-> +			 * str1,str2
-> +			 */
-> +			str = strtok(p, ",");
-> +			while (str) {
-> +				if (!strcmpx(str, val)) {
-> +					key_is_filtered = true;
-> +					goto out;
-> +				}
-> +				str = strtok(NULL, ",");
-> +			}
-> +			goto out;
-> +		}
-> +	}
-> +
-> +out:
-> +	free(p);
-> +	return key_is_filtered;
-> +}
-> +
+FYI: uapi headers are updated separately. Once the patches hit net-next,
+I will update the headers and drop this patch.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
