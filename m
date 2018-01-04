@@ -1,115 +1,75 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next v1 0/9] RDMA resource tracking
-Date: Thu,  4 Jan 2018 09:01:41 +0200
-Message-ID: <20180104070150.15625-1-leon@kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, David Ahern <dsahern@gmail.com>
-Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Leon Romanovsky <leon@kernel.org>, netdev <netdev@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH iproute2-next v1 4/9] rdma: Set pointer to device name position
+Date: Thu,  4 Jan 2018 09:01:45 +0200
+Message-ID: <20180104070150.15625-5-leon@kernel.org>
+References: <20180104070150.15625-1-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180104070150.15625-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Ahern <dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Changelog:
- v0 -> v1:
-   * Fixed subject title in patch #1: rdam -> rdma.
-   * Added newline between variable declaration and the code.
-   * Add check to failure in strdup() call in rd_check_is_string_filtered().
-   * Rewrote res_qp_parse_cb() to avoid long lines and extra indentation.
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-------------------------------------------------------------------------
-Hi,
+The dev and link execution callbacks expects that next
+command line argument is device or port name.
 
-This is supplementary (user-space) part of RDMA resource tracking posted
-to the RDMA mailing list for the review [1].
+Set pointer to device or port name position prior calls to
+rd_exec_dev()/rd_exec_link().
 
-The main goal of this new functionality in RDMAtool is to provide debug visibility
-of running applications in RDMA stack.
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ rdma/rdma.h  |  1 +
+ rdma/utils.c | 19 +++++++++++++++++++
+ 2 files changed, 20 insertions(+)
 
-The current series adds new command object (resource) which provides
-short summary if it is called without arguments or more detailed
-information while it is called with request to present QPs.
+diff --git a/rdma/rdma.h b/rdma/rdma.h
+index cd415670..e842d076 100644
+--- a/rdma/rdma.h
++++ b/rdma/rdma.h
+@@ -81,6 +81,7 @@ int rd_exec_cmd(struct rd *rd, const struct rd_cmd *c, const char *str);
+ int rd_exec_dev(struct rd *rd, int (*cb)(struct rd *rd));
+ int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd), bool strict_port);
+ void rd_free(struct rd *rd);
++int rd_set_arg_to_devname(struct rd *rd);
+ int rd_argc(struct rd *rd);
+ 
+ /*
+diff --git a/rdma/utils.c b/rdma/utils.c
+index 446c23da..73f0d04e 100644
+--- a/rdma/utils.c
++++ b/rdma/utils.c
+@@ -403,6 +403,25 @@ void rd_free(struct rd *rd)
+ 	filters_cleanup(rd);
+ }
+ 
++int rd_set_arg_to_devname(struct rd *rd)
++{
++	int ret = 0;
++
++	while (!rd_no_arg(rd)) {
++		if (rd_argv_match(rd, "dev") || rd_argv_match(rd, "link")) {
++			rd_arg_inc(rd);
++			if (rd_no_arg(rd)) {
++				pr_err("No device name was supplied\n");
++				ret = -EINVAL;
++			}
++			goto out;
++		}
++		rd_arg_inc(rd);
++	}
++out:
++	return ret;
++}
++
+ int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd), bool strict_port)
+ {
+ 	struct dev_map *dev_map;
+-- 
+2.15.1
 
-1) Summary information:
-$ rdma res
-1: mlx5_0: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
-2: mlx5_1: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
-3: mlx5_2: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
-4: mlx5_3: curr/max: pd 2/16777216 cq 3/16777216 qp 2/262144
-5: mlx5_4: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
-
-2) Summary information of specific device:
-$ rdma res show mlx5_4
-5: mlx5_4: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
-
-3) Detailed information of specific device:
-$ rdma res show qp link mlx5_4
-DEV/PORT  LQPN       TYPE  STATE  PID        COMM
-mlx5_4/-  8          UD    RESET  0          [ipoib-verbs]
-mlx5_4/1  7          UD    RTS    0          [mlx5-gsi]
-mlx5_4/1  1          GSI   RTS    0          [rdma-mad]
-mlx5_4/1  0          SMI   RTS    0          [rdma-mad]
-
-$ rdma res show qp link mlx5_4/
-DEV/PORT  LQPN       TYPE  STATE  PID        COMM
-mlx5_4/-  8          UD    RESET  0          [ipoib-verbs]
-mlx5_4/1  7          UD    RTS    0          [mlx5-gsi]
-mlx5_4/1  1          GSI   RTS    0          [rdma-mad]
-mlx5_4/1  0          SMI   RTS    0          [rdma-mad]
-
-4) Wrong port (it can be 1 or 2):
-$ rdma res show qp link mlx5_4/0
-Wrong device name
-
-5) Detailed information of specific device and port:
-$ rdma res show qp link mlx5_4/1
-DEV/PORT  LQPN       TYPE  STATE  PID        COMM
-mlx5_4/1  7          UD    RTS    0          [mlx5-gsi]
-mlx5_4/1  1          GSI   RTS    0          [rdma-mad]
-mlx5_4/1  0          SMI   RTS    0          [rdma-mad]
-
-6) Detailed information of QPs not-connected to port yet:
-$ rdma res show qp link mlx5_4/-
-DEV/PORT  LQPN       TYPE  STATE  PID        COMM
-mlx5_4/-  8          UD    RESET  0          [ipoib-verbs]
-
-7) Very detailed view:
-$ rdma res show qp link mlx5_4/- -d
-DEV/PORT  LQPN       RQPN       TYPE  STATE  PID        COMM            SQ-PSN     RQ-PSN     PATH-MIG
-mlx5_4/-  8          ---        UD    RESET  0          [ipoib-verbs]   0          ---        ---
-
-8) Limit display to specific columns:
-$ rdma res show qp link mlx5_4/1 display pid,lqpn,comm
-DEV/PORT  LQPN       PID        COMM
-mlx5_4/1  7          0          [mlx5-gsi]
-mlx5_4/1  1          0          [rdma-mad]
-mlx5_4/1  0          0          [rdma-mad]
-
-9) Filter specific LQPNs:
-$ rdma res show qp link mlx5_4/1 display pid,lqpn,comm lqpn 0,4-7
-DEV/PORT  LQPN       PID        COMM
-mlx5_4/1  7          0          [mlx5-gsi]
-mlx5_4/1  0          0          [rdma-mad]
-
-Thanks
-
-Leon Romanovsky (9):
-  rdma: Add option to provide "-" sign for the port number
-  rdma: Make visible the number of arguments
-  rdma: Add filtering infrastructure
-  rdma: Set pointer to device name position
-  rdma: Allow external usage of compare string routine
-  rdma: Update kernel header file
-  rdma: Add resource tracking summary
-  rdma: Add QP resource tracking information
-  rdma: Document resource tracking
-
- include/uapi/rdma/rdma_netlink.h |  58 ++++-
- man/man8/rdma-resource.8         |  91 +++++++
- rdma/Makefile                    |   2 +-
- rdma/link.c                      |   2 +-
- rdma/rdma.c                      |   4 +-
- rdma/rdma.h                      |  23 +-
- rdma/res.c                       | 535 +++++++++++++++++++++++++++++++++++++++
- rdma/utils.c                     | 309 +++++++++++++++++++++-
- 8 files changed, 1007 insertions(+), 17 deletions(-)
- create mode 100644 man/man8/rdma-resource.8
- create mode 100644 rdma/res.c
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
