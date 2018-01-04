@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 02/15] net/mlx5: Set software owner ID during init HCA
-Date: Thu,  4 Jan 2018 11:06:32 +0200
-Message-ID: <20180104090645.4901-3-leon@kernel.org>
+Subject: [PATCH rdma-next v1 04/15] IB/mlx5: Reduce the use of num_port capability
+Date: Thu,  4 Jan 2018 11:06:34 +0200
+Message-ID: <20180104090645.4901-5-leon@kernel.org>
 References: <20180104090645.4901-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180104090645.4901-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,140 +12,136 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Generate a unique 128bit identifier for each host and pass that value to
-firmware in the INIT_HCA command if it reports the sw_owner_id
-capability. Each device bound to the mlx5_core driver will have the same
-software owner ID.
-
-In subsequent patches mlx5_core devices will be bound via a new VPort
-command so that they can operate together under a single InfiniBand
-device. Only devices that have the same software owner ID can be bound,
-to prevent traffic intended for one host arriving at another.
-
-The INIT_HCA command length was expanded by 128 bytes. The command
-length is provided as an input FW commands. Older FW does not have a
-problem receiving this command in the new longer form.
+Remove use of the num_ports general capability throughout. The number of
+ports will be variable in the future, and reported in a different way.
 
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fw.c        | 10 +++++++++-
- drivers/net/ethernet/mellanox/mlx5/core/main.c      |  6 +++++-
- drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h |  2 +-
- include/linux/mlx5/device.h                         |  5 +++++
- include/linux/mlx5/mlx5_ifc.h                       |  5 ++++-
- 5 files changed, 24 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx5/mad.c  |  2 +-
+ drivers/infiniband/hw/mlx5/main.c | 16 ++++++++--------
+ drivers/infiniband/hw/mlx5/qp.c   |  5 ++---
+ 3 files changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-index 5ef1b56b6a96..9d11e92fb541 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-@@ -195,12 +195,20 @@ int mlx5_query_hca_caps(struct mlx5_core_dev *dev)
- 	return 0;
- }
+diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
+index 1003b0133a49..0559e0a9e398 100644
+--- a/drivers/infiniband/hw/mlx5/mad.c
++++ b/drivers/infiniband/hw/mlx5/mad.c
+@@ -519,7 +519,7 @@ int mlx5_query_mad_ifc_port(struct ib_device *ibdev, u8 port,
+ 	int ext_active_speed;
+ 	int err = -ENOMEM;
  
--int mlx5_cmd_init_hca(struct mlx5_core_dev *dev)
-+int mlx5_cmd_init_hca(struct mlx5_core_dev *dev, uint32_t *sw_owner_id)
+-	if (port < 1 || port > MLX5_CAP_GEN(mdev, num_ports)) {
++	if (port < 1 || port > dev->num_ports) {
+ 		mlx5_ib_warn(dev, "invalid port number %d\n", port);
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 675144a20f95..0c24cd42b411 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1512,7 +1512,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 	mutex_init(&context->db_page_mutex);
+ 
+ 	resp.tot_bfregs = req.total_num_bfregs;
+-	resp.num_ports = MLX5_CAP_GEN(dev->mdev, num_ports);
++	resp.num_ports = dev->num_ports;
+ 
+ 	if (field_avail(typeof(resp), cqe_version, udata->outlen))
+ 		resp.response_length += sizeof(resp.cqe_version);
+@@ -2774,7 +2774,7 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	if (domain != IB_FLOW_DOMAIN_USER ||
+-	    flow_attr->port > MLX5_CAP_GEN(dev->mdev, num_ports) ||
++	    flow_attr->port > dev->num_ports ||
+ 	    (flow_attr->flags & ~IB_FLOW_ATTR_FLAGS_DONT_TRAP))
+ 		return ERR_PTR(-EINVAL);
+ 
+@@ -3122,7 +3122,7 @@ static int set_has_smi_cap(struct mlx5_ib_dev *dev)
+ 	int err;
+ 	int port;
+ 
+-	for (port = 1; port <= MLX5_CAP_GEN(dev->mdev, num_ports); port++) {
++	for (port = 1; port <= dev->num_ports; port++) {
+ 		dev->mdev->port_caps[port - 1].has_smi = false;
+ 		if (MLX5_CAP_GEN(dev->mdev, port_type) ==
+ 		    MLX5_CAP_PORT_TYPE_IB) {
+@@ -3149,7 +3149,7 @@ static void get_ext_port_caps(struct mlx5_ib_dev *dev)
  {
- 	u32 out[MLX5_ST_SZ_DW(init_hca_out)] = {0};
- 	u32 in[MLX5_ST_SZ_DW(init_hca_in)]   = {0};
-+	int i;
+ 	int port;
  
- 	MLX5_SET(init_hca_in, in, opcode, MLX5_CMD_OP_INIT_HCA);
-+
-+	if (MLX5_CAP_GEN(dev, sw_owner_id)) {
-+		for (i = 0; i < 4; i++)
-+			MLX5_ARRAY_SET(init_hca_in, in, sw_owner_id, i,
-+				       sw_owner_id[i]);
-+	}
-+
- 	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+-	for (port = 1; port <= MLX5_CAP_GEN(dev->mdev, num_ports); port++)
++	for (port = 1; port <= dev->num_ports; port++)
+ 		mlx5_query_ext_port_caps(dev, port);
  }
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 1292aecb09f2..e382a3ca759e 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -75,6 +75,8 @@ static unsigned int prof_sel = MLX5_DEFAULT_PROF;
- module_param_named(prof_sel, prof_sel, uint, 0444);
- MODULE_PARM_DESC(prof_sel, "profile selector. Valid range 0 - 2");
- 
-+static u32 sw_owner_id[4];
-+
- enum {
- 	MLX5_ATOMIC_REQ_MODE_BE = 0x0,
- 	MLX5_ATOMIC_REQ_MODE_HOST_ENDIANNESS = 0x1,
-@@ -1055,7 +1057,7 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
- 		goto reclaim_boot_pages;
+@@ -3179,7 +3179,7 @@ static int get_port_caps(struct mlx5_ib_dev *dev)
+ 		goto out;
  	}
  
--	err = mlx5_cmd_init_hca(dev);
-+	err = mlx5_cmd_init_hca(dev, sw_owner_id);
- 	if (err) {
- 		dev_err(&pdev->dev, "init hca failed\n");
- 		goto err_pagealloc_stop;
-@@ -1577,6 +1579,8 @@ static int __init init(void)
- {
+-	for (port = 1; port <= MLX5_CAP_GEN(dev->mdev, num_ports); port++) {
++	for (port = 1; port <= dev->num_ports; port++) {
+ 		memset(pprops, 0, sizeof(*pprops));
+ 		err = mlx5_ib_query_port(&dev->ib_dev, port, pprops);
+ 		if (err) {
+@@ -4061,7 +4061,7 @@ static int mlx5_ib_stage_init_init(struct mlx5_ib_dev *dev)
+ 	const char *name;
  	int err;
  
-+	get_random_bytes(&sw_owner_id, sizeof(sw_owner_id));
-+
- 	mlx5_core_verify_params();
- 	mlx5_register_debugfs();
+-	dev->port = kcalloc(MLX5_CAP_GEN(mdev, num_ports), sizeof(*dev->port),
++	dev->port = kcalloc(dev->num_ports, sizeof(*dev->port),
+ 			    GFP_KERNEL);
+ 	if (!dev->port)
+ 		return -ENOMEM;
+@@ -4083,8 +4083,7 @@ static int mlx5_ib_stage_init_init(struct mlx5_ib_dev *dev)
+ 	dev->ib_dev.owner		= THIS_MODULE;
+ 	dev->ib_dev.node_type		= RDMA_NODE_IB_CA;
+ 	dev->ib_dev.local_dma_lkey	= 0 /* not supported for now */;
+-	dev->num_ports		= MLX5_CAP_GEN(mdev, num_ports);
+-	dev->ib_dev.phys_port_cnt     = dev->num_ports;
++	dev->ib_dev.phys_port_cnt	= dev->num_ports;
+ 	dev->ib_dev.num_comp_vectors    =
+ 		dev->mdev->priv.eq_table.num_comp_vectors;
+ 	dev->ib_dev.dev.parent		= &mdev->pdev->dev;
+@@ -4443,6 +4442,7 @@ static void *__mlx5_ib_add(struct mlx5_core_dev *mdev,
+ 		return NULL;
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-index ff4a0b889a6f..b05868728da7 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-@@ -86,7 +86,7 @@ enum {
+ 	dev->mdev = mdev;
++	dev->num_ports = MLX5_CAP_GEN(mdev, num_ports);
  
- int mlx5_query_hca_caps(struct mlx5_core_dev *dev);
- int mlx5_query_board_id(struct mlx5_core_dev *dev);
--int mlx5_cmd_init_hca(struct mlx5_core_dev *dev);
-+int mlx5_cmd_init_hca(struct mlx5_core_dev *dev, uint32_t *sw_owner_id);
- int mlx5_cmd_teardown_hca(struct mlx5_core_dev *dev);
- int mlx5_cmd_force_teardown_hca(struct mlx5_core_dev *dev);
- void mlx5_core_event(struct mlx5_core_dev *dev, enum mlx5_dev_event event,
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 9aee835b7393..e5258ee4e38b 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -79,6 +79,11 @@
- 		     << __mlx5_dw_bit_off(typ, fld))); \
- } while (0)
+ 	for (i = 0; i < MLX5_IB_STAGE_MAX; i++) {
+ 		if (profile->stage[i].init) {
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index f59de13b657e..4b08472cf0ba 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -3351,7 +3351,7 @@ int mlx5_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
  
-+#define MLX5_ARRAY_SET(typ, p, fld, idx, v) do { \
-+	BUILD_BUG_ON(__mlx5_bit_off(typ, fld) % 32); \
-+	MLX5_SET(typ, p, fld[idx], v); \
-+} while (0)
-+
- #define MLX5_SET_TO_ONES(typ, p, fld) do { \
- 	BUILD_BUG_ON(__mlx5_st_sz_bits(typ) % 32);             \
- 	*((__be32 *)(p) + __mlx5_dw_off(typ, fld)) = \
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 38a7577a9ce7..b1c81d7a86cb 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1066,7 +1066,9 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         reserved_at_5f8[0x3];
- 	u8         log_max_xrq[0x5];
+ 	if ((attr_mask & IB_QP_PORT) &&
+ 	    (attr->port_num == 0 ||
+-	     attr->port_num > MLX5_CAP_GEN(dev->mdev, num_ports))) {
++	     attr->port_num > dev->num_ports)) {
+ 		mlx5_ib_dbg(dev, "invalid port number %d. number of ports is %d\n",
+ 			    attr->port_num, dev->num_ports);
+ 		goto out;
+@@ -4670,14 +4670,13 @@ static void to_rdma_ah_attr(struct mlx5_ib_dev *ibdev,
+ 			    struct rdma_ah_attr *ah_attr,
+ 			    struct mlx5_qp_path *path)
+ {
+-	struct mlx5_core_dev *dev = ibdev->mdev;
  
--	u8         reserved_at_600[0x200];
-+	u8         reserved_at_600[0x1e];
-+	u8	   sw_owner_id;
-+	u8	   reserved_at_61f[0x1e1];
- };
+ 	memset(ah_attr, 0, sizeof(*ah_attr));
  
- enum mlx5_flow_destination_type {
-@@ -5531,6 +5533,7 @@ struct mlx5_ifc_init_hca_in_bits {
- 	u8         op_mod[0x10];
+ 	ah_attr->type = rdma_ah_find_type(&ibdev->ib_dev, path->port);
+ 	rdma_ah_set_port_num(ah_attr, path->port);
+ 	if (rdma_ah_get_port_num(ah_attr) == 0 ||
+-	    rdma_ah_get_port_num(ah_attr) > MLX5_CAP_GEN(dev, num_ports))
++	    rdma_ah_get_port_num(ah_attr) > ibdev->num_ports)
+ 		return;
  
- 	u8         reserved_at_40[0x40];
-+	u8	   sw_owner_id[4][0x20];
- };
- 
- struct mlx5_ifc_init2rtr_qp_out_bits {
+ 	rdma_ah_set_port_num(ah_attr, path->port);
 -- 
 2.15.1
 
