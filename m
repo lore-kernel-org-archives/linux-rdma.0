@@ -1,38 +1,27 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 08/12] nvme-pci: clean up SMBSZ bit definitions
-Date: Thu, 4 Jan 2018 12:08:29 -0700
-Message-ID: <4432ed79-e463-e868-64af-0f130dafb261@deltatee.com>
-References: <20180104190137.7654-1-logang@deltatee.com>
- <20180104190137.7654-9-logang@deltatee.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] RDS: null pointer dereference in rds_atomic_free_op
+Date: Thu, 04 Jan 2018 14:20:10 -0500 (EST)
+Message-ID: <20180104.142010.1390953877615339581.davem@davemloft.net>
+References: <5a4d45ce.8b8a1c0a.1d072.e5e1@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180104190137.7654-9-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <5a4d45ce.8b8a1c0a.1d072.e5e1@mx.google.com>
+Sender: netdev-owner@vger.kernel.org
+To: simo.ghannam@gmail.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, santosh.shilimkar@oracle.com, rds-devel@oss.oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
+From: simo.ghannam@gmail.com
+Date: Wed,  3 Jan 2018 21:06:06 +0000
 
-
-On 04/01/18 12:01 PM, Logan Gunthorpe wrote:
-> From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> From: Mohamed Ghannam <simo.ghannam@gmail.com>
 > 
-> Define the bit positions instead of macros using the magic values,
-> and move the expanded helpers to calculate the size and size unit into
-> the implementation C file.
+> set rm->atomic.op_active to 0 when rds_pin_pages() fails
+> or the user supplied address is invalid,
+> this prevents a NULL pointer usage in rds_atomic_free_op()
 > 
-> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> Signed-off-by: Mohamed Ghannam <simo.ghannam@gmail.com>
 
-Oops, I forgot:
-
-Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Applied and queued up for -stable, thanks.
