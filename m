@@ -1,54 +1,80 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 2/4] mlx5: Add interface to create DC transport QPs
-Date: Thu,  4 Jan 2018 18:49:19 +0200
-Message-ID: <1515084561-11374-3-git-send-email-yishaih@mellanox.com>
-References: <1515084561-11374-1-git-send-email-yishaih@mellanox.com>
+From: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [RFC rdma-core 1/2] Registering non-contiguous memory
+Date: Thu,  4 Jan 2018 19:47:25 +0200
+Message-ID: <1515088046-26605-1-git-send-email-alexma@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1515084561-11374-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Numerous applications communicate buffers with a non-contiguous memory layout.
+For example, HPC applications often work on a matrix, and require sending a row or a column: 
 
-Extend mlx5dv_create_qp() function to add attributes that are used to
-create DC transport QPs, DCT (target) and DCI (initiator).
+```
+               M
+          -----------
+         | |X| | | | |
+          -----------
+         | |X| | | | |
+          -----------   N
+         | |X| | | | |
+          -----------
+         | |X| | | | |
+          -----------
+```
 
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- providers/mlx5/mlx5dv.h | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+There are two alternatives to send the cells marked with an 'X' using contiguous buffers:
 
-diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
-index 0e78c41..1f9bd0a 100644
---- a/providers/mlx5/mlx5dv.h
-+++ b/providers/mlx5/mlx5dv.h
-@@ -141,11 +141,23 @@ enum mlx5dv_qp_create_flags {
- 
- enum mlx5dv_qp_init_attr_mask {
- 	MLX5DV_QP_INIT_ATTR_MASK_QP_CREATE_FLAGS	= 1 << 0,
-+	MLX5DV_QP_INIT_ATTR_MASK_DC			= 1 << 1,
-+};
-+
-+enum mlx5dv_dc_type {
-+	MLX5DV_DCTYPE_DCT     = 1,
-+	MLX5DV_DCTYPE_DCI,
-+};
-+
-+struct mlx5dv_dc_init_attr {
-+	enum mlx5dv_dc_type	dc_type;
-+	uint64_t dct_access_key;
- };
- 
- struct mlx5dv_qp_init_attr {
- 	uint64_t comp_mask;	/* Use enum mlx5dv_qp_init_attr_mask */
- 	uint32_t create_flags;	/* Use enum mlx5dv_qp_create_flags */
-+	struct mlx5dv_dc_init_attr  dc_init_attr;
- };
- 
- struct ibv_qp *mlx5dv_create_qp(struct ibv_context *context,
+1. Create a list of N scatter-gather entries, each with the length of a single cell, and pass those inside an ibv_send_wr to ibv_post_send().
+2. Create a temporary contiguous buffer to hold all N marked cells, copy each cell to it's respective location in this buffer and pass this buffer to ibv_post_send().
+
+Both alternatives requires additional memory resources, linear with respect to N, in order to send the desired memory layout. Non-contiguous memory registration addresses this issue - to allow passing a compact description of a memory layout for send/recv operations. In this example, the registered memory description would include the base pointer to the first cell, the matrix dimensions (M and N) and the size of a single cell.
+Another use-case for non-contiguous memory access is when more than one memory region holds the data and the request may span across multiple MRs:
+
+```
+                     ----------
+                    |          |
+                    |          |
+                    | Memory   |
+                   /| region #1|
+     "Composite   / |          |
+       region"   /  |          |
+     ---------- /  -|          |
+    |          |  / |          |
+    |          | /   ----------
+     ---------- <
+    |          | \   ---------- 
+    |          |  --|          |
+    |          |    | Memory   |
+    |          | ___| region #2|
+     ---------- <   |          |
+    |          | \   ----------
+     ----------\  \_ ----------
+                \   |          |
+                 \  | Memory   |
+                  \-| region #N|
+                    |          |
+                    |          |
+                     ----------
+```
+
+Similarly, sending such a layout would require specifying all N memory keys in every ibv_post_send() invocation, while the alternative could be listing those once in advance, and each operation only includes a base pointer and length.
+
+The key for dealing with non-contiguous memory layouts at a low latency is the ability to describe it in the data path. This means the API has to allow user-level registration of such layouts. For this end, this API is an extension to the Memory Regions API, where the user can dynamically assign non-contiguous layout description to an MR.
+
+
+Alex Margolin (1):
+  verbs: Introduce non-contiguous memory registration
+
+ libibverbs/man/ibv_rereg_mr.3             |   2 +
+ libibverbs/man/ibv_rereg_mr_interleaved.3 | 260 ++++++++++++++++++++++++++++++
+ libibverbs/man/ibv_rereg_mr_sg.3          | 181 +++++++++++++++++++++
+ libibverbs/verbs.h                        |  75 ++++++++-
+ 4 files changed, 517 insertions(+), 1 deletion(-)
+ create mode 100644 libibverbs/man/ibv_rereg_mr_interleaved.3
+ create mode 100644 libibverbs/man/ibv_rereg_mr_sg.3
+
 -- 
 1.8.3.1
 
