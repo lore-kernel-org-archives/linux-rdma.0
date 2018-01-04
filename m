@@ -1,237 +1,336 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: Filesystem crashes due to pages without buffers
-Date: Thu, 4 Jan 2018 08:10:53 +0200
-Message-ID: <20180104061053.GA10145@mtr-leonro.local>
-References: <20180103100430.GE4911@quack2.suse.cz>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="8+OS07CeIgZ706fH"
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180103100430.GE4911@quack2.suse.cz>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH iproute2-next v1 3/9] rdma: Add filtering infrastructure
+Date: Thu,  4 Jan 2018 09:01:44 +0200
+Message-ID: <20180104070150.15625-4-leon@kernel.org>
+References: <20180104070150.15625-1-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180104070150.15625-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Ahern <dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---8+OS07CeIgZ706fH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This patch adds general infrastructure to RDMAtool to handle various
+filtering options needed for the downstream resource tracking patches.
 
-On Wed, Jan 03, 2018 at 11:04:30AM +0100, Jan Kara wrote:
-> Hello,
->
-> Over the years I have seen so far unexplained crashed in filesystem's
-> (ext4, xfs) writeback path due to dirty pages without buffers attached to
-> them (see [1] and [2] for relatively recent reports). This was confusing as
-> reclaim takes care not to strip buffers from a dirty page and both
-> filesystems do add buffers to a page when it is first written to - in
-> ->page_mkwrite() and ->write_begin callbacks.
->
-> Recently I have come across a code path that is probably leading to this
-> inconsistent state and I'd like to discuss how to best fix the problem
-> because it's not obvious to me. Consider the following race:
->
-> CPU1					CPU2
->
-> addr = mmap(file1, MAP_SHARED, ...);
-> fd2 = open(file2, O_DIRECT | O_RDONLY);
-> read(fd2, addr, len)
->   do_direct_IO()
->     page = dio_get_page()
->       dio_refill_pages()
->         iov_iter_get_pages()
-> 	  get_user_pages_fast()
->             - page fault
->               ->page_mkwrite()
->                 block_page_mkwrite()
->                   lock_page(page);
->                   - attaches buffers to page
->                   - makes sure blocks are allocated
->                   set_page_dirty(page)
->               - install writeable PTE
->               unlock_page(page);
->     submit_page_section(page)
->       - submits bio with 'page' as a buffer
-> 					kswapd reclaims pages:
-> 					...
-> 					shrink_page_list()
-> 					  trylock_page(page) - this is the
-> 					    page CPU1 has just faulted in
-> 					  try_to_unmap(page)
-> 					  pageout(page);
-> 					    clear_page_dirty_for_io(page);
-> 					    ->writepage()
-> 					  - let's assume page got written
-> 					    out fast enough, alternatively
-> 					    we could get to the same path as
-> 					    soon as the page IO completes
-> 					  if (page_has_private(page)) {
-> 					    try_to_release_page(page)
-> 					      - reclaims buffers from the
-> 					        page
-> 					   __remove_mapping(page)
-> 					     - fails as DIO code still
-> 					       holds page reference
-> ...
->
-> eventually read completes
->   dio_bio_complete(bio)
->     set_page_dirty_lock(page)
->       Bummer, we've just marked the page as dirty without having buffers.
->       Eventually writeback will find it and filesystem will complain...
->
-> Am I missing something?
->
-> The problem here is that filesystems fundamentally assume that a page can
-> be written to only between ->write_begin - ->write_end (in this interval
-> the page is locked), or between ->page_mkwrite - ->writepage and above is
-> an example where this does not hold because when a page reference is
-> acquired through get_user_pages(), page can get written to by the holder of
-> the reference and dirtied even after it has been unmapped from page tables
-> and ->writepage has been called. This is not only a cosmetic issue leading
-> to assertion failure but it can also lead to data loss, data corruption, or
-> other unpleasant surprises as filesystems assume page contents cannot be
-> modified until either ->write_begin() or ->page_mkwrite gets called and
-> those calls are serialized by proper locking with problematic operations
-> such as hole punching etc.
->
-> I'm not sure how to fix this problem. We could 'simulate' a writeable page
-> fault in set_page_dirty_lock(). It is a bit ugly since we don't have a
-> virtual address of the fault, don't hold mmap_sem, etc., possibly
-> expensive, but it would make filesystems happy. Data stored by GUP user
-> (e.g. read by DIO in the above case) could still get lost if someone e.g.
-> punched hole under the buffer or otherwise messed with the underlying
-> storage of the page while DIO was running but arguably users could expect
-> such outcome.
->
-> Another possible solution would be to make sure page is writeably mapped
-> until GUP user drops its reference. That would be arguably cleaner but
-> probably that would mean we have to track number of writeable GUP page
-> references separately (no space space in struct page is a problem here) and
-> block page_mkclean() until they are dropped. Also for long term GUP users
-> like Infiniband or V4L we'd have to come up with some solution as we should
-> not block page_mkclean() for so long.
->
-> As a side note DAX needs some solution for GUP users as well. The problems
-> are similar there in nature, just much easier to hit. So at least a
-> solution for long-term GUP users can (and I strongly believe should) be
-> shared between standard and DAX paths.
->
-> Anybody has other ideas how to fix the problem or opinions on which
-> solution would be better to use or some complications I have missed?
->
+The infrastructure is generic and stores filters in list of key<->value
+entries. There are three types of filters:
 
-+RDMA
+1. Numeric - the values are intended to be digits combined with '-' to
+mark range and ',' to mark multiple entries, e.g. pid 1-100,234,400-401
+is perfectly legit filter to limit process ids.
 
-Hi Jan,
+2. String - the values are consist from strings and "," as a
+denominator. Currently only "display" option is opened for the users and
+it will be used to hide/unhide table columns in resource tracking
+patches.
 
-I don't have actual proposals how to fix, but wanted to mention that
-we have a customer who experiences those failures in his setup.
-In his case, it is reproducible in 100% of cases in approximately 2
-minutes of run.
+3. Link - special case to allow '/' in string to provide link name, e.g.
+link mlx4_1/2.
 
-His application creates two memory regions with ib_umem_get(), one is
-backed by ext4 and another is anonymous. Approximately after two minutes
-of data traffic, he stops the system and calls to release those memory
-regions with ib_umem_release()->__ib_umem_release()->set_page_dirty_lock().
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ rdma/rdma.c  |   1 +
+ rdma/rdma.h  |  15 ++++
+ rdma/utils.c | 220 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 236 insertions(+)
 
-A couple of seconds later, he hits the following BUG_ON.
+diff --git a/rdma/rdma.c b/rdma/rdma.c
+index 0e8fd688..a21ba440 100644
+--- a/rdma/rdma.c
++++ b/rdma/rdma.c
+@@ -47,6 +47,7 @@ static int rd_init(struct rd *rd, int argc, char **argv, char *filename)
+ 	rd->argc = argc;
+ 	rd->argv = argv;
+ 	INIT_LIST_HEAD(&rd->dev_map_list);
++	INIT_LIST_HEAD(&rd->filter_list);
+ 
+ 	if (rd->json_output) {
+ 		rd->jw = jsonw_new(stdout);
+diff --git a/rdma/rdma.h b/rdma/rdma.h
+index 1b66ae04..cd415670 100644
+--- a/rdma/rdma.h
++++ b/rdma/rdma.h
+@@ -29,6 +29,12 @@
+ #define RDMA_BITMAP_ENUM(name, bit_no) RDMA_BITMAP_##name = BIT(bit_no),
+ #define RDMA_BITMAP_NAMES(name, bit_no) [bit_no] = #name,
+ 
++struct filter_entry {
++	struct list_head list;
++	char *key;
++	char *value;
++};
++
+ struct dev_map {
+ 	struct list_head list;
+ 	char *dev_name;
+@@ -50,6 +56,7 @@ struct rd {
+ 	json_writer_t *jw;
+ 	bool json_output;
+ 	bool pretty_output;
++	struct list_head filter_list;
+ };
+ 
+ struct rd_cmd {
+@@ -81,6 +88,14 @@ int rd_argc(struct rd *rd);
+  */
+ struct dev_map *dev_map_lookup(struct rd *rd, bool allow_port_index);
+ 
++/*
++ * Filter manipulation
++ */
++int rd_build_filter(struct rd *rd, const char * const valid_filters[]);
++bool rd_check_is_filtered(struct rd *rd, const char *key,
++			  uint32_t val, bool ignore_val);
++bool rd_check_is_string_filtered(struct rd *rd, const char *key, char *val);
++bool rd_check_is_key_exist(struct rd *rd, const char *key);
+ /*
+  * Netlink
+  */
+diff --git a/rdma/utils.c b/rdma/utils.c
+index af2b374d..446c23da 100644
+--- a/rdma/utils.c
++++ b/rdma/utils.c
+@@ -114,6 +114,225 @@ static void dev_map_cleanup(struct rd *rd)
+ 	}
+ }
+ 
++static int add_filter(struct rd *rd, char *key, char *value,
++		      const char * const valid_filters[])
++{
++	char cset[] = "1234567890,-";
++	struct filter_entry *fe;
++	bool key_found = false;
++	int idx = 0;
++	int ret;
++
++	fe = calloc(1, sizeof(*fe));
++	if (!fe)
++		return -ENOMEM;
++
++	while (valid_filters[idx]) {
++		if (!strcmpx(key, valid_filters[idx])) {
++			key_found = true;
++			break;
++		}
++		idx++;
++	}
++	if (!key_found) {
++		pr_err("Unsupported filter option: %s\n", key);
++		ret = -EINVAL;
++		goto err;
++	}
++
++	/*
++	 * Check the filter validity, not optimal, but works
++	 *
++	 * Actually, there are three types of filters
++	 *  numeric - for example PID or QPN
++	 *  string  - for example states, currently only "display"
++	 *            is from this type
++	 *  link    - user requested to filter on specific link
++	 *            e.g. mlx5_1/1, mlx5_1/-, mlx5_1 ...
++	 */
++	if (strcmpx(key, "link") && strcmpx(key, "display") &&
++	    strspn(value, cset) != strlen(value)) {
++		pr_err("%s filter accepts \"%s\" characters only\n", key, cset);
++		ret = -EINVAL;
++		goto err;
++	}
++
++	fe->key = strdup(key);
++	fe->value = strdup(value);
++
++	list_add_tail(&fe->list, &rd->filter_list);
++	return 0;
++
++err:
++	free(fe);
++	return ret;
++}
++
++int rd_build_filter(struct rd *rd, const char * const valid_filters[])
++{
++	int ret = 0;
++	int idx = 0;
++
++	if (!valid_filters || !rd_argc(rd))
++		goto out;
++
++	if (rd_argc(rd) == 1) {
++		pr_err("No filter data was supplied to filter option %s\n", rd_argv(rd));
++		ret = -EINVAL;
++		goto out;
++	}
++
++	if (rd_argc(rd) % 2) {
++		pr_err("There is filter option without data\n");
++		ret = -EINVAL;
++		goto out;
++	}
++
++	while (idx != rd_argc(rd)) {
++		/*
++		 * We can do micro-optimization and skip "dev"
++		 * and "link" filters, but it is not worth of it.
++		 */
++		ret = add_filter(rd, *(rd->argv + idx),
++				 *(rd->argv + idx + 1), valid_filters);
++		if (ret)
++			goto out;
++		idx += 2;
++	}
++
++out:
++	return ret;
++}
++
++bool rd_check_is_key_exist(struct rd *rd, const char *key)
++{
++	struct filter_entry *fe;
++
++	list_for_each_entry(fe, &rd->filter_list, list) {
++		if (!strcmpx(fe->key, key))
++			return true;
++	}
++
++	return false;
++}
++
++/*
++ * Check if string entry is filtered:
++ *  * key doesn't exist -> user didn't request -> not filtered
++ */
++bool rd_check_is_string_filtered(struct rd *rd, const char *key, char *val)
++{
++	bool key_is_filtered = false;
++	struct filter_entry *fe;
++	char *p = NULL;
++	char *str;
++
++	list_for_each_entry(fe, &rd->filter_list, list) {
++		if (!strcmpx(fe->key, key)) {
++			/* We found the key */
++			p = strdup(fe->value);
++			if (!p) {
++				/*
++				 * Something extremely wrong if we fail
++				 * to allocate small amount of bytes.
++				 */
++				pr_err("Found key, but failed to allocate memory to store value\n");
++				return key_is_filtered;
++			}
++
++			/*
++			 * Need to check if value in range
++			 * It can come in the following formats
++			 * and their permutations:
++			 * str
++			 * str1,str2
++			 */
++			str = strtok(p, ",");
++			while (str) {
++				if (!strcmpx(str, val)) {
++					key_is_filtered = true;
++					goto out;
++				}
++				str = strtok(NULL, ",");
++			}
++			goto out;
++		}
++	}
++
++out:
++	free(p);
++	return key_is_filtered;
++}
++
++/*
++ * Check if key is filtered:
++ * key doesn't exist -> user didn't request -> not filtered
++ */
++bool rd_check_is_filtered(struct rd *rd, const char *key,
++			  uint32_t val, bool ignore_val)
++{
++	bool key_is_filtered = false;
++	struct filter_entry *fe;
++
++	list_for_each_entry(fe, &rd->filter_list, list) {
++		uint32_t left_val = 0, fe_value = 0;
++		bool range_check = false;
++		char *p = fe->value;
++
++		if (!strcmpx(fe->key, key)) {
++			/* We found the key */
++			key_is_filtered = true;
++			if (ignore_val)
++				goto out;
++			/*
++			 * Need to check if value in range
++			 * It can come in the following formats
++			 * (and their permutations):
++			 * numb
++			 * numb1,numb2
++			 * ,numb1,numb2
++			 * numb1-numb2
++			 * numb1,numb2-numb3,numb4-numb5
++			 */
++			while (*p) {
++				if (isdigit(*p)) {
++					fe_value = strtol(p, &p, 10);
++					if (fe_value == val ||
++					    (range_check && left_val < val &&
++					     val < fe_value)) {
++						key_is_filtered = false;
++						goto out;
++					}
++					range_check = false;
++				} else {
++					if (*p == '-') {
++						left_val = fe_value;
++						range_check = true;
++					}
++					p++;
++				}
++			}
++			goto out;
++		}
++	}
++
++out:
++	return key_is_filtered;
++}
++
++static void filters_cleanup(struct rd *rd)
++{
++	struct filter_entry *fe, *tmp;
++
++	list_for_each_entry_safe(fe, tmp,
++				 &rd->filter_list, list) {
++		list_del(&fe->list);
++		free(fe->key);
++		free(fe->value);
++		free(fe);
++	}
++}
++
+ static const enum mnl_attr_data_type nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+ 	[RDMA_NLDEV_ATTR_DEV_INDEX] = MNL_TYPE_U32,
+ 	[RDMA_NLDEV_ATTR_DEV_NAME] = MNL_TYPE_NUL_STRING,
+@@ -181,6 +400,7 @@ void rd_free(struct rd *rd)
+ 		return;
+ 	free(rd->buff);
+ 	dev_map_cleanup(rd);
++	filters_cleanup(rd);
+ }
+ 
+ int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd), bool strict_port)
+-- 
+2.15.1
 
-[ 1411.545311] ------------[ cut here ]------------
-[ 1411.545340] kernel BUG at fs/ext4/inode.c:2297!
-[ 1411.545360] invalid opcode: 0000 [#1] SMP
-[ 1411.545381] Modules linked in: xt_nat veth ipt_MASQUERADE
-nf_nat_masquerade_ipv4 iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4
-nf_nat_ipv4 xt_addrtype iptable_filter xt_conntrack nf_nat nf_conntrack
-br_netfilter bridge stp llc overlay(T) rdma_ucm(OE) ib_ucm(OE)
-rdma_cm(OE) iw_cm(OE) ib_ipoib(OE) ib_cm(OE) ib_uverbs(OE) ib_umad(OE)
-mlx5_ib(OE) mlx5_core(OE) mlx4_en(OE) mlx4_ib(OE) ib_core(OE)
-mlx4_core(OE) devlink mlx_compat(OE) intel_powerclamp coretemp
-intel_rapl iosf_mbi kvm_intel vfat fat kvm irqbypass crc32_pclmul
-ghash_clmulni_intel aesni_intel lrw gf128mul ext4 glue_helper
-ablk_helper cryptd mbcache jbd2 iTCO_wdt iTCO_vendor_support mxm_wmi
-pcspkr sb_edac edac_core i2c_i801 sg mei_me mei shpchp lpc_ich
-ipmi_devintf ipmi_si ipmi_msghandler acpi_pad wmi acpi_power_meter
-knem(OE) nfsd auth_rpcgss
-[ 1411.545744] nfs_acl lockd grace sunrpc ip_tables xfs libcrc32c sd_mod
-crc_t10dif crct10dif_generic ast drm_kms_helper crct10dif_pclmul
-crct10dif_common syscopyarea sysfillrect crc32c_intel mpt3sas sysimgblt
-fb_sys_fops ttm ahci raid_class libahci scsi_transport_sas igb drm
-libata dca i2c_algo_bit ptp nvme i2c_core pps_core fjes dm_mirror
-dm_region_hash dm_log dm_mod [last unloaded: devlink]
-[ 1411.545926] CPU: 6 PID: 13195 Comm: node_runner_w8 Tainted: G W OE
------------- T 3.10.0-514.21.1.el7.debug_bz1368895.x86_64 #1
-[ 1411.545975] Hardware name: Quanta Computer Inc D51BP-1U (dual 1G LoM)/S2BP-MB (dual 1G LoM), BIOS S2BP3B04 03/03/2016
-[ 1411.546017] task: ffff881e4b323ec0 ti: ffff881e49bbc000 task.ti: ffff881e49bbc000
-[ 1411.546047] RIP: 0010:[<ffffffffa07083e5>] [<ffffffffa07083e5>] mpage_prepare_extent_to_map+0x2d5/0x2e0 [ext4]
-[ 1411.546103] RSP: 0018:ffff881e49bbfc10 EFLAGS: 00010246
-[ 1411.546125] RAX: 001fffff0000003d RBX: ffff881e49bbfc68 RCX: 0000000000000170
-[ 1411.546154] RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff88207ff8dde8
-[ 1411.546183] RBP: ffff881e49bbfce8 R08: 0000000000000000 R09: 0000000000000001
-[ 1411.546212] R10: 57fe04c2df4f6680 R11: 0000000000000008 R12: 7ffffffffffffe9e
-[ 1411.546240] R13: 000000000003ffff R14: ffffea0001449a00 R15: ffff881e49bbfd90
-[ 1411.546270] FS: 00007f5dd5de7d40(0000) GS:ffff881fffb80000(0000) knlGS:0000000000000000
-[ 1411.546302] CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 1411.546325] CR2: 00007f5b0c5969c0 CR3: 0000001e5e6ae000 CR4: 00000000003407e0
-[ 1411.546354] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[ 1411.546383] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[ 1411.546412] Stack:
-[ 1411.546421] ffff881e49bbfc50 0000000000000002 ffff881f07b00628 ffff881e49bbfcb8
-[ 1411.546456] 000000000000017b 000000000000000e 0000000000000000 ffffea00794f6600
-[ 1411.546490] ffffea00794f6640 ffffea00794f6680 ffffea0001449a00 ffffea00014499c0
-[ 1411.546524] Call Trace:
-[ 1411.546545] [<ffffffffa070c9ab>] ext4_writepages+0x45b/0xd60 [ext4]
-[ 1411.546576] [<ffffffff8118d93e>] do_writepages+0x1e/0x40
-[ 1411.546601] [<ffffffff811824f5>] __filemap_fdatawrite_range+0x65/0x80
-[ 1411.546629] [<ffffffff81182641>] filemap_write_and_wait_range+0x41/0x90
-[ 1411.546664] [<ffffffffa0703bba>] ext4_sync_file+0xba/0x320 [ext4]
-[ 1411.546692] [<ffffffff8123028d>] vfs_fsync_range+0x1d/0x30
-[ 1411.546717] [<ffffffff811ba89e>] SyS_msync+0x1fe/0x250
-[ 1411.546741] [<ffffffff816974c9>] system_call_fastpath+0x16/0x1b
-[ 1411.546765] Code: ff ff ff e8 2e 7e a8 e0 8b 85 40 ff ff ff eb c2 48
-8d bd 50 ff ff ff e8 1a 7e a8 e0 eb 8c 4c 89 f7 e8 a0 81 a7 e0 e9 d5 fe
-ff ff <0f> 0b 0f 0b e8 62 d6 97 e0 66 90 0f 1f 44 00 00 55 48 89 e5 41
-[ 1411.548075] RIP [<ffffffffa07083e5>] mpage_prepare_extent_to_map+0x2d5/0x2e0 [ext4]
-[ 1411.549292] RSP <ffff881e49bbfc10>
----here vmcore-dmesg got cut off----
-
-Thanks
-
-> 								Honza
->
-> [1] https://www.spinics.net/lists/linux-xfs/msg10090.html
-> [2] https://www.spinics.net/lists/linux-ext4/msg54377.html
->
-> --
-> Jan Kara <jack@suse.com>
-> SUSE Labs, CR
->
-> --
-> To unsubscribe, send a message with 'unsubscribe linux-mm' in
-> the body to majordomo@kvack.org.  For more info on Linux MM,
-> see: http://www.linux-mm.org/ .
-> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
-
---8+OS07CeIgZ706fH
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpNxW0ACgkQ5GN7iDZy
-WKcwCQ/9FXq6iFv39IY5JdJ8VRWGbZVSmShwsUGp5K6ZZ554rMhigVV7w+5ieFVv
-i2ipgYkHXW6RyfTTRQ/JNIkQGO9gAnn2OF0yHxtPgnJnR5GgqdT1JsTZG/vffEmt
-VoVjD56XawF3pD6K3+Ma2/+aoAn9Mz9yDwtwwmFmTYaPTU1CBOf3FvFWbnlQ5Koe
-U2NFWQRHly5kR8n0jmkWMnD7hyYgNEWDRk4xm0Ua6UJeiijvpDvKeHuaMKMlhBns
-E8QXj/1uNwntqgvx46jEWw6qntkygOnMB8lPW7HXmEekDKR4lkkOBS3BkrQEQ0uk
-afcjAj8G3duDCTmGkYxJcsTb9jhlBt2KjjzkC+CZ9sVfdIpUvRiTk5fFIZVTqBk1
-Uhy/mpqlHlPlPJ9PuwWKf+3Rp3R2aucGh04jh9XmTavIg6rYc8tz782j2I1mMFG2
-vJMBwZViTsFBoYU+efornSbQdB0qSKjCpOcw0DiRqXvnEPkhOTf3HsPJRkhiANIT
-mnWXj8uKBJtVZywGOlwxNHCyeZTtlfGXqssFVDlRocqKdjhFGoHXpgKqIZQseMtY
-EAr6iVehIUEvQHEIXGcMRUbLKUt6JKHoIaLZdBBEWu8zpUbWohtGMoLoTrdBEtaw
-YoYW4Fo2I1XgZtCX/SKbhN99K/adHSFF7kiM0tuHooG+y1l45uY=
-=nwWq
------END PGP SIGNATURE-----
-
---8+OS07CeIgZ706fH--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
