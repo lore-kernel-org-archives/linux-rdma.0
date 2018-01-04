@@ -1,94 +1,104 @@
-From: "Bernard Metzler" <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: [PATCH v2 03/13] Attach/detach SoftiWarp to/from network and RDMA
- subsystem
-Date: Thu, 4 Jan 2018 15:05:52 +0000
-Message-ID: <OF156C6886.C5A736C2-ON0025820B.005235C2-0025820B.0052EF8F@notes.na.collabserv.com>
-References: <20180103173658.GE11348@ziepe.ca>,<20171014064132.GT2106@mtr-leonro.local>
- <20171008130342.GV25829@mtr-leonro.local>
- <20171006122853.16310-1-bmt@zurich.ibm.com>
- <20171006122853.16310-4-bmt@zurich.ibm.com>
- <OF406E95F8.33CF80BB-ON002581B9.00073D6F-002581B9.00081F69@notes.na.collabserv.com>
- <OF663C0801.8471532E-ON002581FE.003B73D6-002581FE.003F2369@notes.na.collabserv.com>
- <20180102213706.GB19027@ziepe.ca> <20180103052529.GI10145@mtr-leonro.local>
- <20180103155225.GA11348@ziepe.ca> <20180103173105.GX10145@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next v2 01/14] net/mlx5: Fix race for multiple RoCE enable
+Date: Thu,  4 Jan 2018 17:25:31 +0200
+Message-ID: <20180104152544.28919-2-leon@kernel.org>
+References: <20180104152544.28919-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180103173658.GE11348-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20180104152544.28919-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+There are two potential problems with the existing implementation.
 
+1. Enable and disable can race after the atomic operations.
+2. If a command fails the refcount is left in an inconsistent state.
+
+Introduce a lock and perform error checking.
+
+Fixes: a6f7d2aff623 ("net/mlx5: Add support for multiple RoCE enable")
+Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
-Bernard Metzler, PhD
-Tech. Leader High Performance I/O, Principal Research Staff
-IBM Zurich Research Laboratory
-Saeumerstrasse 4
-CH-8803 Rueschlikon, Switzerland
-+41 44 724 8605
+ drivers/net/ethernet/mellanox/mlx5/core/vport.c | 33 ++++++++++++++++++++-----
+ include/linux/mlx5/driver.h                     |  2 +-
+ 2 files changed, 28 insertions(+), 7 deletions(-)
 
------Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote: -----
-
->To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
->Date: 01/03/2018 06:37PM
->Cc: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->Subject: Re: [PATCH v2 03/13] Attach/detach SoftiWarp to/from network
->and RDMA subsystem
->
->On Wed, Jan 03, 2018 at 07:31:05PM +0200, Leon Romanovsky wrote:
->> On Wed, Jan 03, 2018 at 08:52:25AM -0700, Jason Gunthorpe wrote:
->> > On Wed, Jan 03, 2018 at 07:25:29AM +0200, Leon Romanovsky wrote:
->> > > On Tue, Jan 02, 2018 at 02:37:06PM -0700, Jason Gunthorpe wrote:
->> > > > On Fri, Dec 22, 2017 at 11:29:38AM +0000, Bernard Metzler wrote:
->> > > >
->> > > > > One question I have - what is the recommended way of replacing
->> > > > > those module parameters, if we need to flexibly parameterize
->> > > > > things from user land? For the rxe driver, I see the usage of
->> > > > > module_param_cb, but this probably is not what we want in the
->> > > > > long run? Would a sysctl be appropriate, or a char device
->> > > > > (we may need to pass strings like interface names), or configfs?
->> > > >
->> > > > Probably something like 'rdmatool interface attach' eg cause it to
->> > > > create using the RDMA netlink protocol.
->> > > >
->> > > > Leon?
->> > >
->> > >
->https://urldefense.proofpoint.com/v2/url?u=https-3A__www.spinics.net_
->lists_linux-2Drdma_msg58498.html&d=DwIBAg&c=jf_iaSHvJObTbx-siA1ZOg&r=
->2TaYXQ0T-r8ZO1PP1alNwU_QJcRRLfmYTAgd3QCvqSc&m=j_ugxX4CwKK5qXMrL9qUL22
->vuEuR-QuZGL2SYI0U6zA&s=CutkYdjJcUPYU6HSJPpcszcnDWodIOZOUIjpochezeU&e=
->> > > "It looks like "ip" tool can be good fit ..."
->> > >
->> > > ip link add ...
->> > > ip link set ...
->> >
->> > ip link adds netdevs, so that doesn't quite feel right for adding rdma
->> > devices???
->> 
->> It depends on the add/delete order, currently we are adding
->> RDMA (RXE/SoftiWARP) device to existing netdev.
->
->> Will it make sense to reverse order and add/delete netdev device for
->> the existing RDMA (RXE/SoftiWARP) device?
->
-> No.
->
-> Jason
->
-
-What about potentially enabling it on all interfaces which are used
-by TCP? iWarp is an ULP to TCP... Exceptions might be interfaces which
-implement their own RDMA protocol - like iWARP adapters, or IPoIB
-devices, or interfaces which already have a use from SoftRoCE.
-
-Thanks,
-Bernard.
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+index d653b0025b13..916523103f16 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+@@ -36,6 +36,9 @@
+ #include <linux/mlx5/vport.h>
+ #include "mlx5_core.h"
+ 
++/* Mutex to hold while enabling or disabling RoCE */
++static DEFINE_MUTEX(mlx5_roce_en_lock);
++
+ static int _mlx5_query_vport_state(struct mlx5_core_dev *mdev, u8 opmod,
+ 				   u16 vport, u32 *out, int outlen)
+ {
+@@ -988,17 +991,35 @@ static int mlx5_nic_vport_update_roce_state(struct mlx5_core_dev *mdev,
+ 
+ int mlx5_nic_vport_enable_roce(struct mlx5_core_dev *mdev)
+ {
+-	if (atomic_inc_return(&mdev->roce.roce_en) != 1)
+-		return 0;
+-	return mlx5_nic_vport_update_roce_state(mdev, MLX5_VPORT_ROCE_ENABLED);
++	int err = 0;
++
++	mutex_lock(&mlx5_roce_en_lock);
++	if (!mdev->roce.roce_en)
++		err = mlx5_nic_vport_update_roce_state(mdev, MLX5_VPORT_ROCE_ENABLED);
++
++	if (!err)
++		mdev->roce.roce_en++;
++	mutex_unlock(&mlx5_roce_en_lock);
++
++	return err;
+ }
+ EXPORT_SYMBOL_GPL(mlx5_nic_vport_enable_roce);
+ 
+ int mlx5_nic_vport_disable_roce(struct mlx5_core_dev *mdev)
+ {
+-	if (atomic_dec_return(&mdev->roce.roce_en) != 0)
+-		return 0;
+-	return mlx5_nic_vport_update_roce_state(mdev, MLX5_VPORT_ROCE_DISABLED);
++	int err = 0;
++
++	mutex_lock(&mlx5_roce_en_lock);
++	if (mdev->roce.roce_en) {
++		mdev->roce.roce_en--;
++		if (mdev->roce.roce_en == 0)
++			err = mlx5_nic_vport_update_roce_state(mdev, MLX5_VPORT_ROCE_DISABLED);
++
++		if (err)
++			mdev->roce.roce_en++;
++	}
++	mutex_unlock(&mlx5_roce_en_lock);
++	return err;
+ }
+ EXPORT_SYMBOL_GPL(mlx5_nic_vport_disable_roce);
+ 
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 0776554f18dc..5b0443c9d337 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -835,7 +835,7 @@ struct mlx5_core_dev {
+ 	struct mlx5e_resources  mlx5e_res;
+ 	struct {
+ 		struct mlx5_rsvd_gids	reserved_gids;
+-		atomic_t                roce_en;
++		u32			roce_en;
+ 	} roce;
+ #ifdef CONFIG_MLX5_FPGA
+ 	struct mlx5_fpga_device *fpga;
+-- 
+2.15.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
