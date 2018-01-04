@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 11/15] {net,IB}/mlx5: Change set_roce_gid to take a port number
-Date: Thu,  4 Jan 2018 11:06:41 +0200
-Message-ID: <20180104090645.4901-12-leon@kernel.org>
+Subject: [PATCH rdma-next v1 14/15] IB/mlx5: Don't advertise RAW QP support in dual port mode
+Date: Thu,  4 Jan 2018 11:06:44 +0200
+Message-ID: <20180104090645.4901-15-leon@kernel.org>
 References: <20180104090645.4901-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180104090645.4901-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,101 +12,103 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When in dual port mode setting a RoCE GID for any port flows through the
-master ports mlx5_core_dev. Provide an interface to set the port when
-sending this command.
+When operating in dual port RoCE mode FW doesn't support steering for
+raw QPs on the slave port. They still work on the master port, but
+the user has no way of knowing which port is the master. The
+capability is reported per device, not per port.
 
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c                   | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c | 7 ++++---
- drivers/net/ethernet/mellanox/mlx5/core/lib/gid.c   | 5 ++++-
- include/linux/mlx5/driver.h                         | 2 +-
- 4 files changed, 10 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 4791d747cc57..653b56377e69 100644
+index 653b56377e69..5d6fba986fa5 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -475,7 +475,7 @@ static int set_roce_addr(struct mlx5_ib_dev *dev, u8 port_num,
+@@ -731,6 +731,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	int max_rq_sg;
+ 	int max_sq_sg;
+ 	u64 min_page_size = 1ull << MLX5_CAP_GEN(mdev, log_pg_sz);
++	bool raw_support = !mlx5_core_mp_enabled(mdev);
+ 	struct mlx5_ib_query_device_resp resp = {};
+ 	size_t resp_len;
+ 	u64 max_tso;
+@@ -794,7 +795,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	if (MLX5_CAP_GEN(mdev, block_lb_mc))
+ 		props->device_cap_flags |= IB_DEVICE_BLOCK_MULTICAST_LOOPBACK;
  
- 	return mlx5_core_roce_gid_set(dev->mdev, index, roce_version,
- 				      roce_l3_type, gid->raw, mac, vlan,
--				      vlan_id);
-+				      vlan_id, port_num);
- }
- 
- static int mlx5_ib_add_gid(struct ib_device *device, u8 port_num,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-index c841b03c3e48..e6175f8ac0e4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-@@ -888,7 +888,8 @@ struct mlx5_fpga_conn *mlx5_fpga_conn_create(struct mlx5_fpga_device *fdev,
- 	err = mlx5_core_roce_gid_set(fdev->mdev, conn->qp.sgid_index,
- 				     MLX5_ROCE_VERSION_2,
- 				     MLX5_ROCE_L3_TYPE_IPV6,
--				     remote_ip, remote_mac, true, 0);
-+				     remote_ip, remote_mac, true, 0,
-+				     MLX5_FPGA_PORT_NUM);
- 	if (err) {
- 		mlx5_fpga_err(fdev, "Failed to set SGID: %d\n", err);
- 		ret = ERR_PTR(err);
-@@ -954,7 +955,7 @@ struct mlx5_fpga_conn *mlx5_fpga_conn_create(struct mlx5_fpga_device *fdev,
- 	mlx5_fpga_conn_destroy_cq(conn);
- err_gid:
- 	mlx5_core_roce_gid_set(fdev->mdev, conn->qp.sgid_index, 0, 0, NULL,
--			       NULL, false, 0);
-+			       NULL, false, 0, MLX5_FPGA_PORT_NUM);
- err_rsvd_gid:
- 	mlx5_core_reserved_gid_free(fdev->mdev, conn->qp.sgid_index);
- err:
-@@ -982,7 +983,7 @@ void mlx5_fpga_conn_destroy(struct mlx5_fpga_conn *conn)
- 	mlx5_fpga_conn_destroy_cq(conn);
- 
- 	mlx5_core_roce_gid_set(conn->fdev->mdev, conn->qp.sgid_index, 0, 0,
--			       NULL, NULL, false, 0);
-+			       NULL, NULL, false, 0, MLX5_FPGA_PORT_NUM);
- 	mlx5_core_reserved_gid_free(conn->fdev->mdev, conn->qp.sgid_index);
- 	kfree(conn);
- }
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/gid.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/gid.c
-index 573f59f46d41..7722a3f9bb68 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/gid.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/gid.c
-@@ -121,7 +121,7 @@ EXPORT_SYMBOL_GPL(mlx5_core_reserved_gids_count);
- 
- int mlx5_core_roce_gid_set(struct mlx5_core_dev *dev, unsigned int index,
- 			   u8 roce_version, u8 roce_l3_type, const u8 *gid,
--			   const u8 *mac, bool vlan, u16 vlan_id)
-+			   const u8 *mac, bool vlan, u16 vlan_id, u8 port_num)
- {
- #define MLX5_SET_RA(p, f, v) MLX5_SET(roce_addr_layout, p, f, v)
- 	u32  in[MLX5_ST_SZ_DW(set_roce_address_in)] = {0};
-@@ -148,6 +148,9 @@ int mlx5_core_roce_gid_set(struct mlx5_core_dev *dev, unsigned int index,
- 		memcpy(addr_l3_addr, gid, gidsz);
+-	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads)) {
++	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) && raw_support) {
+ 		if (MLX5_CAP_ETH(mdev, csum_cap)) {
+ 			/* Legacy bit to support old userspace libraries */
+ 			props->device_cap_flags |= IB_DEVICE_RAW_IP_CSUM;
+@@ -843,7 +844,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
  	}
  
-+	if (MLX5_CAP_GEN(dev, num_vhca_ports) > 0)
-+		MLX5_SET(set_roce_address_in, in, vhca_port_num, port_num);
-+
- 	MLX5_SET(set_roce_address_in, in, roce_address_index, index);
- 	MLX5_SET(set_roce_address_in, in, opcode, MLX5_CMD_OP_SET_ROCE_ADDRESS);
- 	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index d5c787519e06..9136e35f2f7e 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -1112,7 +1112,7 @@ void mlx5_free_bfreg(struct mlx5_core_dev *mdev, struct mlx5_sq_bfreg *bfreg);
- unsigned int mlx5_core_reserved_gids_count(struct mlx5_core_dev *dev);
- int mlx5_core_roce_gid_set(struct mlx5_core_dev *dev, unsigned int index,
- 			   u8 roce_version, u8 roce_l3_type, const u8 *gid,
--			   const u8 *mac, bool vlan, u16 vlan_id);
-+			   const u8 *mac, bool vlan, u16 vlan_id, u8 port_num);
+ 	if (MLX5_CAP_GEN(dev->mdev, rq_delay_drop) &&
+-	    MLX5_CAP_GEN(dev->mdev, general_notification_event))
++	    MLX5_CAP_GEN(dev->mdev, general_notification_event) &&
++	    raw_support)
+ 		props->raw_packet_caps |= IB_RAW_PACKET_CAP_DELAY_DROP;
  
- static inline int fw_initializing(struct mlx5_core_dev *dev)
- {
+ 	if (MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads) &&
+@@ -851,7 +853,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 		props->device_cap_flags |= IB_DEVICE_UD_IP_CSUM;
+ 
+ 	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
+-	    MLX5_CAP_ETH(dev->mdev, scatter_fcs)) {
++	    MLX5_CAP_ETH(dev->mdev, scatter_fcs) &&
++	    raw_support) {
+ 		/* Legacy bit to support old userspace libraries */
+ 		props->device_cap_flags |= IB_DEVICE_RAW_SCATTER_FCS;
+ 		props->raw_packet_caps |= IB_RAW_PACKET_CAP_SCATTER_FCS;
+@@ -915,7 +918,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 		props->device_cap_flags |= IB_DEVICE_VIRTUAL_FUNCTION;
+ 
+ 	if (mlx5_ib_port_link_layer(ibdev, 1) ==
+-	    IB_LINK_LAYER_ETHERNET) {
++	    IB_LINK_LAYER_ETHERNET && raw_support) {
+ 		props->rss_caps.max_rwq_indirection_tables =
+ 			1 << MLX5_CAP_GEN(dev->mdev, log_max_rqt);
+ 		props->rss_caps.max_rwq_indirection_table_size =
+@@ -952,7 +955,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 		resp.response_length += sizeof(resp.cqe_comp_caps);
+ 	}
+ 
+-	if (field_avail(typeof(resp), packet_pacing_caps, uhw->outlen)) {
++	if (field_avail(typeof(resp), packet_pacing_caps, uhw->outlen) &&
++	    raw_support) {
+ 		if (MLX5_CAP_QOS(mdev, packet_pacing) &&
+ 		    MLX5_CAP_GEN(mdev, qos)) {
+ 			resp.packet_pacing_caps.qp_rate_limit_max =
+@@ -1011,7 +1015,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 		}
+ 	}
+ 
+-	if (field_avail(typeof(resp), striding_rq_caps, uhw->outlen)) {
++	if (field_avail(typeof(resp), striding_rq_caps, uhw->outlen) &&
++	    raw_support) {
+ 		resp.response_length += sizeof(resp.striding_rq_caps);
+ 		if (MLX5_CAP_GEN(mdev, striding_rq)) {
+ 			resp.striding_rq_caps.min_single_stride_log_num_of_bytes =
+@@ -3681,12 +3686,14 @@ static u32 get_core_cap_flags(struct ib_device *ibdev)
+ 	enum rdma_link_layer ll = mlx5_ib_port_link_layer(ibdev, 1);
+ 	u8 l3_type_cap = MLX5_CAP_ROCE(dev->mdev, l3_type);
+ 	u8 roce_version_cap = MLX5_CAP_ROCE(dev->mdev, roce_version);
++	bool raw_support = !mlx5_core_mp_enabled(dev->mdev);
+ 	u32 ret = 0;
+ 
+ 	if (ll == IB_LINK_LAYER_INFINIBAND)
+ 		return RDMA_CORE_PORT_IBA_IB;
+ 
+-	ret = RDMA_CORE_PORT_RAW_PACKET;
++	if (raw_support)
++		ret = RDMA_CORE_PORT_RAW_PACKET;
+ 
+ 	if (!(l3_type_cap & MLX5_ROCE_L3_TYPE_IPV4_CAP))
+ 		return ret;
 -- 
 2.15.1
 
