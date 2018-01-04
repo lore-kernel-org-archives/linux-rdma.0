@@ -1,7 +1,7 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 07/12] nvme-pci: clean up CMB initialization
-Date: Thu,  4 Jan 2018 12:01:32 -0700
-Message-ID: <20180104190137.7654-8-logang@deltatee.com>
+Subject: [PATCH 10/12] nvme-pci: Add support for P2P memory in requests
+Date: Thu,  4 Jan 2018 12:01:35 -0700
+Message-ID: <20180104190137.7654-11-logang@deltatee.com>
 References: <20180104190137.7654-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,103 +21,97 @@ To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY7
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+For P2P requests we must use the pci_p2pmem_[un]map_sg() functions
+instead of the dma_map_sg functions.
 
-Refactor the call to nvme_map_cmb, and change the conditions for probing
-for the CMB.  First remove the version check as NVMe TPs always apply
-to earlier versions of the spec as well.  Second check for the whole CMBSZ
-register for support of the CMB feature instead of just the size field
-inside of it to simplify the code a bit.
+With that, we can then indicate PCI_P2P support in the request queue.
+For this, we create an NVME_F_PCI_P2P flag which tells the core to
+set QUEUE_FLAG_PCI_P2P in the request queue.
 
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 ---
- drivers/nvme/host/pci.c | 41 ++++++++++++++---------------------------
- 1 file changed, 14 insertions(+), 27 deletions(-)
+ drivers/nvme/host/core.c |  4 ++++
+ drivers/nvme/host/nvme.h |  1 +
+ drivers/nvme/host/pci.c  | 18 ++++++++++++++----
+ 3 files changed, 19 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+index 1e46e60b8f10..8a7caaa5ee49 100644
+--- a/drivers/nvme/host/core.c
++++ b/drivers/nvme/host/core.c
+@@ -2861,7 +2861,11 @@ static void nvme_alloc_ns(struct nvme_ctrl *ctrl, unsigned nsid)
+ 	ns->queue = blk_mq_init_queue(ctrl->tagset);
+ 	if (IS_ERR(ns->queue))
+ 		goto out_free_ns;
++
+ 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, ns->queue);
++	if (ctrl->ops->flags & NVME_F_PCI_P2P)
++		queue_flag_set_unlocked(QUEUE_FLAG_PCI_P2P, ns->queue);
++
+ 	ns->queue->queuedata = ns;
+ 	ns->ctrl = ctrl;
+ 
+diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+index ea1aa5283e8e..ae1453238250 100644
+--- a/drivers/nvme/host/nvme.h
++++ b/drivers/nvme/host/nvme.h
+@@ -286,6 +286,7 @@ struct nvme_ctrl_ops {
+ 	unsigned int flags;
+ #define NVME_F_FABRICS			(1 << 0)
+ #define NVME_F_METADATA_SUPPORTED	(1 << 1)
++#define NVME_F_PCI_P2P			(1 << 2)
+ 	int (*reg_read32)(struct nvme_ctrl *ctrl, u32 off, u32 *val);
+ 	int (*reg_write32)(struct nvme_ctrl *ctrl, u32 off, u32 val);
+ 	int (*reg_read64)(struct nvme_ctrl *ctrl, u32 off, u64 *val);
 diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index f5800c3c9082..58c379af6fb4 100644
+index 71893babb982..29ef3fd24938 100644
 --- a/drivers/nvme/host/pci.c
 +++ b/drivers/nvme/host/pci.c
-@@ -1663,21 +1663,20 @@ static ssize_t nvme_cmb_show(struct device *dev,
- }
- static DEVICE_ATTR(cmb, S_IRUGO, nvme_cmb_show, NULL);
+@@ -792,6 +792,7 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
+ 	enum dma_data_direction dma_dir = rq_data_dir(req) ?
+ 			DMA_TO_DEVICE : DMA_FROM_DEVICE;
+ 	blk_status_t ret = BLK_STS_IOERR;
++	int nents;
  
--static void __iomem *nvme_map_cmb(struct nvme_dev *dev)
-+static void nvme_map_cmb(struct nvme_dev *dev)
- {
- 	u64 szu, size, offset;
- 	resource_size_t bar_size;
- 	struct pci_dev *pdev = to_pci_dev(dev->dev);
--	void __iomem *cmb;
- 	int bar;
+ 	sg_init_table(iod->sg, blk_rq_nr_phys_segments(req));
+ 	iod->nents = blk_rq_map_sg(q, req, iod->sg);
+@@ -799,8 +800,13 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
+ 		goto out;
  
- 	dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
--	if (!(NVME_CMB_SZ(dev->cmbsz)))
--		return NULL;
-+	if (!dev->cmbsz)
-+		return;
- 	dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
- 
- 	if (!use_cmb_sqes)
--		return NULL;
-+		return;
- 
- 	szu = (u64)1 << (12 + 4 * NVME_CMB_SZU(dev->cmbsz));
- 	size = szu * NVME_CMB_SZ(dev->cmbsz);
-@@ -1686,7 +1685,7 @@ static void __iomem *nvme_map_cmb(struct nvme_dev *dev)
- 	bar_size = pci_resource_len(pdev, bar);
- 
- 	if (offset > bar_size)
--		return NULL;
-+		return;
- 
- 	/*
- 	 * Controllers may support a CMB size larger than their BAR,
-@@ -1696,13 +1695,16 @@ static void __iomem *nvme_map_cmb(struct nvme_dev *dev)
- 	if (size > bar_size - offset)
- 		size = bar_size - offset;
- 
--	cmb = ioremap_wc(pci_resource_start(pdev, bar) + offset, size);
--	if (!cmb)
--		return NULL;
--
-+	dev->cmb = ioremap_wc(pci_resource_start(pdev, bar) + offset, size);
-+	if (!dev->cmb)
-+		return;
- 	dev->cmb_bus_addr = pci_bus_address(pdev, bar) + offset;
- 	dev->cmb_size = size;
--	return cmb;
+ 	ret = BLK_STS_RESOURCE;
+-	if (!dma_map_sg_attrs(dev->dev, iod->sg, iod->nents, dma_dir,
+-				DMA_ATTR_NO_WARN))
 +
-+	if (sysfs_add_file_to_group(&dev->ctrl.device->kobj,
-+				    &dev_attr_cmb.attr, NULL))
-+		dev_warn(dev->ctrl.device,
-+			 "failed to add sysfs attribute for CMB\n");
- }
++	if (REQ_IS_PCI_P2P(req))
++		nents = pci_p2pmem_map_sg(iod->sg, iod->nents);
++	else
++		nents = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents,
++					 dma_dir, DMA_ATTR_NO_WARN);
++	if (!nents)
+ 		goto out;
  
- static inline void nvme_release_cmb(struct nvme_dev *dev)
-@@ -2124,22 +2126,7 @@ static int nvme_pci_enable(struct nvme_dev *dev)
-                         "set queue depth=%u\n", dev->q_depth);
- 	}
+ 	if (nvme_pci_use_sgls(dev, req))
+@@ -844,7 +850,11 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
+ 			DMA_TO_DEVICE : DMA_FROM_DEVICE;
  
--	/*
--	 * CMBs can currently only exist on >=1.2 PCIe devices. We only
--	 * populate sysfs if a CMB is implemented. Since nvme_dev_attrs_group
--	 * has no name we can pass NULL as final argument to
--	 * sysfs_add_file_to_group.
--	 */
--
--	if (readl(dev->bar + NVME_REG_VS) >= NVME_VS(1, 2, 0)) {
--		dev->cmb = nvme_map_cmb(dev);
--		if (dev->cmb) {
--			if (sysfs_add_file_to_group(&dev->ctrl.device->kobj,
--						    &dev_attr_cmb.attr, NULL))
--				dev_warn(dev->ctrl.device,
--					 "failed to add sysfs attribute for CMB\n");
--		}
--	}
-+	nvme_map_cmb(dev);
- 
- 	pci_enable_pcie_error_reporting(pdev);
- 	pci_save_state(pdev);
+ 	if (iod->nents) {
+-		dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
++		if (REQ_IS_PCI_P2P(req))
++			pci_p2pmem_unmap_sg(iod->sg, iod->nents);
++		else
++			dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
++
+ 		if (blk_integrity_rq(req)) {
+ 			if (req_op(req) == REQ_OP_READ)
+ 				nvme_dif_remap(req, nvme_dif_complete);
+@@ -2417,7 +2427,7 @@ static int nvme_pci_reg_read64(struct nvme_ctrl *ctrl, u32 off, u64 *val)
+ static const struct nvme_ctrl_ops nvme_pci_ctrl_ops = {
+ 	.name			= "pcie",
+ 	.module			= THIS_MODULE,
+-	.flags			= NVME_F_METADATA_SUPPORTED,
++	.flags			= NVME_F_METADATA_SUPPORTED | NVME_F_PCI_P2P,
+ 	.reg_read32		= nvme_pci_reg_read32,
+ 	.reg_write32		= nvme_pci_reg_write32,
+ 	.reg_read64		= nvme_pci_reg_read64,
 -- 
 2.11.0
