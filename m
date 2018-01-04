@@ -1,38 +1,33 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH, resend 2/4] IB/srp: Make the path record query error message more informative
-Date: Thu,  4 Jan 2018 14:28:40 -0800
-Message-ID: <20180104222842.26756-3-bart.vanassche@wdc.com>
-References: <20180104222842.26756-1-bart.vanassche@wdc.com>
+Subject: [PATCH, resend 0/4] IB/srp: Add RDMA/CM support
+Date: Thu,  4 Jan 2018 14:28:38 -0800
+Message-ID: <20180104222842.26756-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180104222842.26756-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Show all path record query parameters if a path record query fails.
+Hello Jason,
 
-Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+The four patches in this series add RDMA/CM support to the SRP
+initiator. Please consider these patches for kernel v4.16.
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 39b3e43efbbe..fec6e800adf4 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -702,7 +702,10 @@ static int srp_lookup_path(struct srp_rdma_ch *ch)
- 	ret = ch->status;
- 	if (ret < 0)
- 		shost_printk(KERN_WARNING, target->scsi_host,
--			     PFX "Path record query failed\n");
-+			     PFX "Path record query failed: sgid %pI6, dgid %pI6, pkey %#04x, service_id %#16llx\n",
-+			     ch->path.sgid.raw, ch->path.dgid.raw,
-+			     be16_to_cpu(target->pkey),
-+			     be64_to_cpu(target->service_id));
- 
- put:
- 	scsi_host_put(target->scsi_host);
+Thanks,
+
+Bart.
+
+Bart Van Assche (4):
+  IB/srp: Use kstrtoull() instead of simple_strtoull()
+  IB/srp: Make the path record query error message more informative
+  IB/srp: Refactor srp_send_req()
+  IB/srp: Add RDMA/CM support
+
+ drivers/infiniband/ulp/srp/ib_srp.c | 744 ++++++++++++++++++++++++++++--------
+ drivers/infiniband/ulp/srp/ib_srp.h |  41 +-
+ include/scsi/srp.h                  |  17 +
+ 3 files changed, 636 insertions(+), 166 deletions(-)
+
 -- 
 2.15.1
 
