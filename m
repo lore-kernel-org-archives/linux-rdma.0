@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v2 07/14] IB/mlx5: Move IB event processing onto a workqueue
-Date: Thu,  4 Jan 2018 17:25:37 +0200
-Message-ID: <20180104152544.28919-8-leon@kernel.org>
+Subject: [PATCH rdma-next v2 14/14] net/mlx5: Set num_vhca_ports capability
+Date: Thu,  4 Jan 2018 17:25:44 +0200
+Message-ID: <20180104152544.28919-15-leon@kernel.org>
 References: <20180104152544.28919-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180104152544.28919-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,171 +12,33 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Because mlx5_ib_event can be called from atomic context move event
-handling onto a workqueue. A mutex lock is required to get the IB device
-for slave ports, so move event processing onto a work queue. When an IB
-event is received, check if the mlx5_core_dev  is a slave port, if so
-attempt to get the IB device it's affiliated with. If found process the
-event for that device, otherwise return.
+Set the current capability to the max capability. Doing so enables dual
+port RoCE functionality if supported by the firmware.
 
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 69 +++++++++++++++++++++++++++++++--------
- 1 file changed, 56 insertions(+), 13 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/main.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 4fbbe4c7a99b..0ff6da1b885f 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -70,10 +70,19 @@ static char mlx5_version[] =
- 	DRIVER_NAME ": Mellanox Connect-IB Infiniband driver v"
- 	DRIVER_VERSION "\n";
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index e382a3ca759e..d4a471a76d82 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -557,6 +557,12 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
+ 	if (MLX5_CAP_GEN_MAX(dev, dct))
+ 		MLX5_SET(cmd_hca_cap, set_hca_cap, dct, 1);
  
-+struct mlx5_ib_event_work {
-+	struct work_struct	work;
-+	struct mlx5_core_dev	*dev;
-+	void			*context;
-+	enum mlx5_dev_event	event;
-+	unsigned long		param;
-+};
++	if (MLX5_CAP_GEN_MAX(dev, num_vhca_ports))
++		MLX5_SET(cmd_hca_cap,
++			 set_hca_cap,
++			 num_vhca_ports,
++			 MLX5_CAP_GEN_MAX(dev, num_vhca_ports));
 +
- enum {
- 	MLX5_ATOMIC_SIZE_QP_8BYTES = 1 << 3,
- };
+ 	err = set_caps(dev, set_ctx, set_sz,
+ 		       MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE);
  
-+static struct workqueue_struct *mlx5_ib_event_wq;
- static LIST_HEAD(mlx5_ib_unaffiliated_port_list);
- static LIST_HEAD(mlx5_ib_dev_list);
- /*
-@@ -3132,15 +3141,24 @@ static void delay_drop_handler(struct work_struct *work)
- 	mutex_unlock(&delay_drop->lock);
- }
- 
--static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
--			  enum mlx5_dev_event event, unsigned long param)
-+static void mlx5_ib_handle_event(struct work_struct *_work)
- {
--	struct mlx5_ib_dev *ibdev = (struct mlx5_ib_dev *)context;
-+	struct mlx5_ib_event_work *work =
-+		container_of(_work, struct mlx5_ib_event_work, work);
-+	struct mlx5_ib_dev *ibdev;
- 	struct ib_event ibev;
- 	bool fatal = false;
- 	u8 port = 0;
- 
--	switch (event) {
-+	if (mlx5_core_is_mp_slave(work->dev)) {
-+		ibdev = mlx5_ib_get_ibdev_from_mpi(work->context);
-+		if (!ibdev)
-+			goto out;
-+	} else {
-+		ibdev = work->context;
-+	}
-+
-+	switch (work->event) {
- 	case MLX5_DEV_EVENT_SYS_ERROR:
- 		ibev.event = IB_EVENT_DEVICE_FATAL;
- 		mlx5_ib_handle_internal_error(ibdev);
-@@ -3150,39 +3168,39 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
- 	case MLX5_DEV_EVENT_PORT_UP:
- 	case MLX5_DEV_EVENT_PORT_DOWN:
- 	case MLX5_DEV_EVENT_PORT_INITIALIZED:
--		port = (u8)param;
-+		port = (u8)work->param;
- 
- 		/* In RoCE, port up/down events are handled in
- 		 * mlx5_netdev_event().
- 		 */
- 		if (mlx5_ib_port_link_layer(&ibdev->ib_dev, port) ==
- 			IB_LINK_LAYER_ETHERNET)
--			return;
-+			goto out;
- 
--		ibev.event = (event == MLX5_DEV_EVENT_PORT_UP) ?
-+		ibev.event = (work->event == MLX5_DEV_EVENT_PORT_UP) ?
- 			     IB_EVENT_PORT_ACTIVE : IB_EVENT_PORT_ERR;
- 		break;
- 
- 	case MLX5_DEV_EVENT_LID_CHANGE:
- 		ibev.event = IB_EVENT_LID_CHANGE;
--		port = (u8)param;
-+		port = (u8)work->param;
- 		break;
- 
- 	case MLX5_DEV_EVENT_PKEY_CHANGE:
- 		ibev.event = IB_EVENT_PKEY_CHANGE;
--		port = (u8)param;
-+		port = (u8)work->param;
- 
- 		schedule_work(&ibdev->devr.ports[port - 1].pkey_change_work);
- 		break;
- 
- 	case MLX5_DEV_EVENT_GUID_CHANGE:
- 		ibev.event = IB_EVENT_GID_CHANGE;
--		port = (u8)param;
-+		port = (u8)work->param;
- 		break;
- 
- 	case MLX5_DEV_EVENT_CLIENT_REREG:
- 		ibev.event = IB_EVENT_CLIENT_REREGISTER;
--		port = (u8)param;
-+		port = (u8)work->param;
- 		break;
- 	case MLX5_DEV_EVENT_DELAY_DROP_TIMEOUT:
- 		schedule_work(&ibdev->delay_drop.delay_drop_work);
-@@ -3204,9 +3222,29 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
- 
- 	if (fatal)
- 		ibdev->ib_active = false;
--
- out:
--	return;
-+	kfree(work);
-+}
-+
-+static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
-+			  enum mlx5_dev_event event, unsigned long param)
-+{
-+	struct mlx5_ib_event_work *work;
-+
-+	work = kmalloc(sizeof(*work), GFP_ATOMIC);
-+	if (work) {
-+		INIT_WORK(&work->work, mlx5_ib_handle_event);
-+		work->dev = dev;
-+		work->param = param;
-+		work->context = context;
-+		work->event = event;
-+
-+		queue_work(mlx5_ib_event_wq, &work->work);
-+		return;
-+	}
-+
-+	dev_warn(&dev->pdev->dev, "%s: mlx5_dev_event: %d, with param: %lu dropped, couldn't allocate memory.\n",
-+		 __func__, event, param);
- }
- 
- static int set_has_smi_cap(struct mlx5_ib_dev *dev)
-@@ -4917,6 +4955,10 @@ static int __init mlx5_ib_init(void)
- {
- 	int err;
- 
-+	mlx5_ib_event_wq = alloc_ordered_workqueue("mlx5_ib_event_wq", 0);
-+	if (!mlx5_ib_event_wq)
-+		return -ENOMEM;
-+
- 	mlx5_ib_odp_init();
- 
- 	err = mlx5_register_interface(&mlx5_ib_interface);
-@@ -4927,6 +4969,7 @@ static int __init mlx5_ib_init(void)
- static void __exit mlx5_ib_cleanup(void)
- {
- 	mlx5_unregister_interface(&mlx5_ib_interface);
-+	destroy_workqueue(mlx5_ib_event_wq);
- }
- 
- module_init(mlx5_ib_init);
 -- 
 2.15.1
 
