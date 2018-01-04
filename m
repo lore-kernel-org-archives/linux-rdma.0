@@ -1,51 +1,74 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH 00/28] IB/srp and IB/srpt patches
-Date: Wed, 3 Jan 2018 20:15:05 -0700
-Message-ID: <20180104031505.GP11348@ziepe.ca>
-References: <20180103213938.11664-1-bart.vanassche@wdc.com>
- <20180103215130.GN11348@ziepe.ca>
- <1515017215.2582.50.camel@wdc.com>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH for-next 1/6] RDMA/hns: Create gsi qp in hip08
+Date: Thu, 4 Jan 2018 12:19:18 +0800
+Message-ID: <1515039563-73084-2-git-send-email-oulijun@huawei.com>
+References: <1515039563-73084-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1515017215.2582.50.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <1515039563-73084-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 03, 2018 at 10:06:56PM +0000, Bart Van Assche wrote:
-> On Wed, 2018-01-03 at 14:51 -0700, Jason Gunthorpe wrote:
-> > On Wed, Jan 03, 2018 at 01:39:10PM -0800, Bart Van Assche wrote:
-> > > Hello Jason,
-> > > 
-> > > This patch series adds RDMA/CM support to the SRP initiator and target drivers
-> > > and also includes a series of bug fixes for the SRPT driver. Please consider
-> > > at least the SRPT bug fixes for kernel v4.16 since one of these fixes is a
-> > > security fix.
-> > 
-> > Bart, this is really big for the rc6 timeframe.. This might make it if
-> > there is a rc8 this cycle.
-> > 
-> > I'll grab the two patches marked for stable to for-rc, they look
-> > trivial.
-> > 
-> > I'm with the DaveM school of thought here that patch series should be
-> > 10-15 at most, and have a clear purpose, even if that purpose is just
-> > 'assorted one patch fixes'.. If you resend it can you split the series?
-> 
-> Hello Jason,
-> 
-> How about splitting this series as follows:
-> * Patches 1..4 with the SRP initiator changes.
-> * Patches 5..6 with the SRPT bugfixes that have the "Cc: stable" tag.
-> * Patches 7,8,11..19 with trival SRPT changes.
-> * Patches 9,10,20..28 with the deeper SRPT changes.
+The gsi qp and rc qp use the same qp context
+structure and the created flow, only
+differentiate them by qpn and qp type.
 
-Sounds fine to me. Can they rebase like that without conflicts?
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/hns/hns_roce_qp.c | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-Jason
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 351fa31..4414cea 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -455,6 +455,13 @@ static int hns_roce_set_kernel_sq_size(struct hns_roce_dev *hr_dev,
+ 		hr_qp->sge.sge_shift = 4;
+ 	}
+ 
++	/* ud sqwqe's sge use extend sge */
++	if (hr_dev->caps.max_sq_sg > 2 && hr_qp->ibqp.qp_type == IB_QPT_GSI) {
++		hr_qp->sge.sge_cnt = roundup_pow_of_two(hr_qp->sq.wqe_cnt *
++				     hr_qp->sq.max_gs);
++		hr_qp->sge.sge_shift = 4;
++	}
++
+ 	/* Get buf size, SQ and RQ are aligned to PAGE_SIZE */
+ 	page_size = 1 << (hr_dev->caps.mtt_buf_pg_sz + PAGE_SHIFT);
+ 	hr_qp->sq.offset = 0;
+@@ -502,6 +509,8 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 
+ 	hr_qp->state = IB_QPS_RESET;
+ 
++	hr_qp->ibqp.qp_type = init_attr->qp_type;
++
+ 	if (init_attr->sq_sig_type == IB_SIGNAL_ALL_WR)
+ 		hr_qp->sq_signal_bits = IB_SIGNAL_ALL_WR;
+ 	else
+@@ -764,8 +773,13 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ 		hr_qp = &hr_sqp->hr_qp;
+ 		hr_qp->port = init_attr->port_num - 1;
+ 		hr_qp->phy_port = hr_dev->iboe.phy_port[hr_qp->port];
+-		hr_qp->ibqp.qp_num = HNS_ROCE_MAX_PORTS +
+-				     hr_dev->iboe.phy_port[hr_qp->port];
++
++		/* when hw version is v1, the sqpn is allocated */
++		if (hr_dev->caps.max_sq_sg <= 2)
++			hr_qp->ibqp.qp_num = HNS_ROCE_MAX_PORTS +
++					     hr_dev->iboe.phy_port[hr_qp->port];
++		else
++			hr_qp->ibqp.qp_num = 1;
+ 
+ 		ret = hns_roce_create_qp_common(hr_dev, pd, init_attr, udata,
+ 						hr_qp->ibqp.qp_num, hr_qp);
+-- 
+1.9.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
