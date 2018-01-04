@@ -1,8 +1,7 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 03/12] pci-p2p: Add PCI p2pmem dma mappings to adjust the bus
- offset
-Date: Thu,  4 Jan 2018 12:01:28 -0700
-Message-ID: <20180104190137.7654-4-logang@deltatee.com>
+Subject: [PATCH 11/12] nvme-pci: Add a quirk for a pseudo CMB
+Date: Thu,  4 Jan 2018 12:01:36 -0700
+Message-ID: <20180104190137.7654-12-logang@deltatee.com>
 References: <20180104190137.7654-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,115 +21,84 @@ To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY7
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The DMA address used when mapping PCI P2P memory must be the PCI bus
-address. Thus, introduce pci_p2pmem_[un]map_sg() to map the correct
-addresses when using P2P memory.
+Introduce a quirk to use CMB-like memory on older devices that have
+an exposed BAR but do not advertise support for using CMBLOC and
+CMBSIZE.
 
-For this, we assume that an SGL passed to these functions contain all
-p2p memory or no p2p memory.
+We'd like to use some of these older cards to test P2P memory.
 
 Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 ---
- drivers/pci/p2p.c        | 43 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/memremap.h |  1 +
- include/linux/pci-p2p.h  |  9 +++++++++
- 3 files changed, 53 insertions(+)
+ drivers/nvme/host/nvme.h |  7 +++++++
+ drivers/nvme/host/pci.c  | 24 ++++++++++++++++++++----
+ 2 files changed, 27 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/pci/p2p.c b/drivers/pci/p2p.c
-index 03330c7b5e6d..87cec87b02e3 100644
---- a/drivers/pci/p2p.c
-+++ b/drivers/pci/p2p.c
-@@ -184,6 +184,8 @@ int pci_p2pmem_add_resource(struct pci_dev *pdev, int bar, size_t size,
- 	pgmap->res.end = pgmap->res.start + size - 1;
- 	pgmap->ref = &pdev->p2p->devmap_ref;
- 	pgmap->type = MEMORY_DEVICE_PCI_P2P;
-+	pgmap->pci_p2p_bus_offset = pci_bus_address(pdev, bar) -
-+		pci_resource_start(pdev, bar);
- 
- 	addr = devm_memremap_pages(&pdev->dev, pgmap);
- 	if (IS_ERR(addr))
-@@ -598,3 +600,44 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
- 	pdev->p2p->published = publish;
- }
- EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
+diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+index ae1453238250..abaf18ff2e09 100644
+--- a/drivers/nvme/host/nvme.h
++++ b/drivers/nvme/host/nvme.h
+@@ -81,6 +81,13 @@ enum nvme_quirks {
+ 	 * Supports the LighNVM command set if indicated in vs[1].
+ 	 */
+ 	NVME_QUIRK_LIGHTNVM			= (1 << 6),
 +
-+/*
-+ * pci_p2pmem_map_sg - map a pci p2p sg for dma
-+ * @sg:scatter list to map
-+ * @nents:elements in the scatter list
-+ *
-+ * Returns the number of sgls mapped
-+ */
-+int pci_p2pmem_map_sg(struct scatterlist *sg, int nents)
-+{
-+	struct dev_pagemap *pgmap;
-+	struct scatterlist *s;
-+	phys_addr_t paddr;
-+	int i;
-+
-+	for_each_sg(sg, s, nents, i) {
-+		pgmap = sg_page(s)->pgmap;
-+		paddr = sg_phys(s);
-+
-+		s->dma_address = paddr - pgmap->pci_p2p_bus_offset;
-+		sg_dma_len(s) = s->length;
-+	}
-+
-+	return nents;
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pmem_map_sg);
-+
-+/**
-+ * pci_p2pmem_unmap_sg - unmap a pci p2p sg for dma
-+ * @sg:scatter list to map
-+ * @nents:elements in the scatter list
-+ */
-+void pci_p2pmem_unmap_sg(struct scatterlist *sg, int nents)
-+{
-+	struct scatterlist *s;
-+	int i;
-+
-+	for_each_sg(sg, s, nents, i)
-+		dma_mark_clean(phys_to_virt(sg_phys(s)), sg_dma_len(s));
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pmem_unmap_sg);
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index c17a6d167d48..a792f87b9dc3 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -125,6 +125,7 @@ struct dev_pagemap {
- 	struct device *dev;
- 	void *data;
- 	enum memory_type type;
-+	u64 pci_p2p_bus_offset;
++	/*
++	 * Pseudo CMB Support on BAR 4. For adapters like the Microsemi
++	 * NVRAM that have CMB-like memory on a BAR but does not set
++	 * CMBLOC or CMBSZ.
++	 */
++	NVME_QUIRK_PSEUDO_CMB_BAR4		= (1 << 7),
  };
  
- #ifdef CONFIG_ZONE_DEVICE
-diff --git a/include/linux/pci-p2p.h b/include/linux/pci-p2p.h
-index f811c97a5886..154c39905fc9 100644
---- a/include/linux/pci-p2p.h
-+++ b/include/linux/pci-p2p.h
-@@ -34,6 +34,8 @@ int pci_p2pmem_alloc_sgl(struct pci_dev *pdev, struct scatterlist **sgl,
- void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl,
- 		unsigned int nents);
- void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
-+int pci_p2pmem_map_sg(struct scatterlist *sg, int nents);
-+void pci_p2pmem_unmap_sg(struct scatterlist *sg, int nents);
- #else /* CONFIG_PCI_P2P */
- static inline int pci_p2pmem_add_resource(struct pci_dev *pdev, int bar,
- 		size_t size, u64 offset)
-@@ -81,5 +83,12 @@ static inline void pci_p2pmem_free_sgl(struct pci_dev *pdev,
- static inline void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
- {
+ /*
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index 29ef3fd24938..0b6ad30b64a6 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -1688,6 +1688,13 @@ static ssize_t nvme_cmb_show(struct device *dev,
  }
-+static inline int pci_p2pmem_map_sg(struct scatterlist *sg, int nents)
+ static DEVICE_ATTR(cmb, S_IRUGO, nvme_cmb_show, NULL);
+ 
++static u32 nvme_pseudo_cmbsz(struct pci_dev *pdev, int bar)
 +{
-+	return -ENODEV;
++	return NVME_CMBSZ_WDS | NVME_CMBSZ_RDS |
++		(((ilog2(SZ_16M) - 12) / 4) << NVME_CMBSZ_SZU_SHIFT) |
++		((pci_resource_len(pdev, bar) / SZ_16M) << NVME_CMBSZ_SZ_SHIFT);
 +}
-+static inline void pci_p2pmem_unmap_sg(struct scatterlist *sg, int nents)
-+{
-+}
- #endif /* CONFIG_PCI_P2P */
- #endif /* _LINUX_PCI_P2P_H */
++
+ static u64 nvme_cmb_size_unit(struct nvme_dev *dev)
+ {
+ 	u8 szu = (dev->cmbsz >> NVME_CMBSZ_SZU_SHIFT) & NVME_CMBSZ_SZU_MASK;
+@@ -1707,10 +1714,15 @@ static void nvme_map_cmb(struct nvme_dev *dev)
+ 	struct pci_dev *pdev = to_pci_dev(dev->dev);
+ 	int bar;
+ 
+-	dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
+-	if (!dev->cmbsz)
+-		return;
+-	dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	if (dev->ctrl.quirks & NVME_QUIRK_PSEUDO_CMB_BAR4) {
++		dev->cmbsz = nvme_pseudo_cmbsz(pdev, 4);
++		dev->cmbloc = 4;
++	} else {
++		dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
++		if (!dev->cmbsz)
++			return;
++		dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	}
+ 
+ 	size = nvme_cmb_size_unit(dev) * nvme_cmb_size(dev);
+ 	offset = nvme_cmb_size_unit(dev) * NVME_CMB_OFST(dev->cmbloc);
+@@ -2708,6 +2720,10 @@ static const struct pci_device_id nvme_id_table[] = {
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
+ 	{ PCI_DEVICE(0x1d1d, 0x2807),	/* CNEX WL */
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
++	{ PCI_DEVICE(0x11f8, 0xf117),	/* Microsemi NVRAM adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4, },
++	{ PCI_DEVICE(0x1db1, 0x0002),	/* Everspin nvNitro adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4,  },
+ 	{ PCI_DEVICE_CLASS(PCI_CLASS_STORAGE_EXPRESS, 0xffffff) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2001) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2003) },
 -- 
 2.11.0
