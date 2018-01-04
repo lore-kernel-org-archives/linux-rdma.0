@@ -1,38 +1,33 @@
-From: "Martin K. Petersen" <martin.petersen@oracle.com>
-Subject: Re: [PATCH] scsi: fix iscsi-related kernel-doc warnings
-Date: Wed, 03 Jan 2018 23:11:48 -0500
-Message-ID: <yq1373mxny3.fsf@oracle.com>
-References: <44a0f532-b1e9-e0cf-4a61-d592a4306f61@infradead.org>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH 00/28] IB/srp and IB/srpt patches
+Date: Thu, 4 Jan 2018 04:29:03 +0000
+Message-ID: <1515040141.3129.2.camel@wdc.com>
+References: <20180103213938.11664-1-bart.vanassche@wdc.com>
+         <20180103215130.GN11348@ziepe.ca> <1515017215.2582.50.camel@wdc.com>
+         <20180104031505.GP11348@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <44a0f532-b1e9-e0cf-4a61-d592a4306f61@infradead.org> (Randy
-        Dunlap's message of "Fri, 22 Dec 2017 14:08:27 -0800")
-Sender: target-devel-owner@vger.kernel.org
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: linux-scsi <linux-scsi@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180104031505.GP11348-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
+Content-ID: <32B173E7AD7997448B9AE5720BBC9135-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-Randy,
-
-> Fix kernel-doc warnings in drivers/scsi/ that are related to iscsi
-> support interfaces.
->
-> Fixes these kernel-doc warnings: (tested by adding these files to a new
-> target.rst documentation file: WIP)
-
-Applied to 4.16/scsi-queue, thanks!
-
-> Cc:	"Nicholas A. Bellinger" <nab@linux-iscsi.org>
-> Cc:	linux-scsi@vger.kernel.org
-> Cc:	target-devel@vger.kernel.org
-> Cc:	Sagi Grimberg <sagi@grimberg.me>
-> Cc:	linux-rdma@vger.kernel.org
-> Cc:	"James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
-> Cc:	"Martin K. Petersen" <martin.petersen@oracle.com>
-
-     ^^^ checkpatch complains about these spaces.
-
--- 
-Martin K. Petersen	Oracle Linux Engineering
+T24gV2VkLCAyMDE4LTAxLTAzIGF0IDIwOjE1IC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIFdlZCwgSmFuIDAzLCAyMDE4IGF0IDEwOjA2OjU2UE0gKzAwMDAsIEJhcnQgVmFuIEFz
+c2NoZSB3cm90ZToNCj4gPiBIb3cgYWJvdXQgc3BsaXR0aW5nIHRoaXMgc2VyaWVzIGFzIGZvbGxv
+d3M6DQo+ID4gKiBQYXRjaGVzIDEuLjQgd2l0aCB0aGUgU1JQIGluaXRpYXRvciBjaGFuZ2VzLg0K
+PiA+ICogUGF0Y2hlcyA1Li42IHdpdGggdGhlIFNSUFQgYnVnZml4ZXMgdGhhdCBoYXZlIHRoZSAi
+Q2M6IHN0YWJsZSIgdGFnLg0KPiA+ICogUGF0Y2hlcyA3LDgsMTEuLjE5IHdpdGggdHJpdmFsIFNS
+UFQgY2hhbmdlcy4NCj4gPiAqIFBhdGNoZXMgOSwxMCwyMC4uMjggd2l0aCB0aGUgZGVlcGVyIFNS
+UFQgY2hhbmdlcy4NCj4gDQo+IFNvdW5kcyBmaW5lIHRvIG1lLiBDYW4gdGhleSByZWJhc2UgbGlr
+ZSB0aGF0IHdpdGhvdXQgY29uZmxpY3RzPw0KDQpQcm9iYWJseSBub3QuIEl0IHdpbGwgdGFrZSBz
+b21lIHJld29yayBhbmQgcmV0ZXN0aW5nLg0KDQpCYXJ0Lg==
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
