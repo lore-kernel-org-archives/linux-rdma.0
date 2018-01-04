@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v2 04/14] IB/mlx5: Reduce the use of num_port capability
-Date: Thu,  4 Jan 2018 17:25:34 +0200
-Message-ID: <20180104152544.28919-5-leon@kernel.org>
+Subject: [PATCH rdma-next v2 05/14] IB/mlx5: Make netdev notifications multiport capable
+Date: Thu,  4 Jan 2018 17:25:35 +0200
+Message-ID: <20180104152544.28919-6-leon@kernel.org>
 References: <20180104152544.28919-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180104152544.28919-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,136 +12,288 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Remove use of the num_ports general capability throughout. The number of
-ports will be variable in the future, and reported in a different way.
+When multiple RoCE ports are supported registration for events on
+multiple netdevs is required. Refactor the event registration and
+handling to support multiple ports.
 
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mad.c  |  2 +-
- drivers/infiniband/hw/mlx5/main.c | 16 ++++++++--------
- drivers/infiniband/hw/mlx5/qp.c   |  5 ++---
- 3 files changed, 11 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    | 85 +++++++++++++++++++++---------------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  4 +-
+ drivers/infiniband/hw/mlx5/qp.c      |  3 +-
+ include/linux/mlx5/driver.h          |  5 +++
+ 4 files changed, 60 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
-index 1003b0133a49..0559e0a9e398 100644
---- a/drivers/infiniband/hw/mlx5/mad.c
-+++ b/drivers/infiniband/hw/mlx5/mad.c
-@@ -519,7 +519,7 @@ int mlx5_query_mad_ifc_port(struct ib_device *ibdev, u8 port,
- 	int ext_active_speed;
- 	int err = -ENOMEM;
- 
--	if (port < 1 || port > MLX5_CAP_GEN(mdev, num_ports)) {
-+	if (port < 1 || port > dev->num_ports) {
- 		mlx5_ib_warn(dev, "invalid port number %d\n", port);
- 		return -EINVAL;
- 	}
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 675144a20f95..0c24cd42b411 100644
+index 0c24cd42b411..5fcb2ed94c11 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1512,7 +1512,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 	mutex_init(&context->db_page_mutex);
- 
- 	resp.tot_bfregs = req.total_num_bfregs;
--	resp.num_ports = MLX5_CAP_GEN(dev->mdev, num_ports);
-+	resp.num_ports = dev->num_ports;
- 
- 	if (field_avail(typeof(resp), cqe_version, udata->outlen))
- 		resp.response_length += sizeof(resp.cqe_version);
-@@ -2774,7 +2774,7 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
- 		return ERR_PTR(-ENOMEM);
- 
- 	if (domain != IB_FLOW_DOMAIN_USER ||
--	    flow_attr->port > MLX5_CAP_GEN(dev->mdev, num_ports) ||
-+	    flow_attr->port > dev->num_ports ||
- 	    (flow_attr->flags & ~IB_FLOW_ATTR_FLAGS_DONT_TRAP))
- 		return ERR_PTR(-EINVAL);
- 
-@@ -3122,7 +3122,7 @@ static int set_has_smi_cap(struct mlx5_ib_dev *dev)
- 	int err;
- 	int port;
- 
--	for (port = 1; port <= MLX5_CAP_GEN(dev->mdev, num_ports); port++) {
-+	for (port = 1; port <= dev->num_ports; port++) {
- 		dev->mdev->port_caps[port - 1].has_smi = false;
- 		if (MLX5_CAP_GEN(dev->mdev, port_type) ==
- 		    MLX5_CAP_PORT_TYPE_IB) {
-@@ -3149,7 +3149,7 @@ static void get_ext_port_caps(struct mlx5_ib_dev *dev)
+@@ -113,24 +113,30 @@ static int get_port_state(struct ib_device *ibdev,
+ static int mlx5_netdev_event(struct notifier_block *this,
+ 			     unsigned long event, void *ptr)
  {
- 	int port;
++	struct mlx5_roce *roce = container_of(this, struct mlx5_roce, nb);
+ 	struct net_device *ndev = netdev_notifier_info_to_dev(ptr);
+-	struct mlx5_ib_dev *ibdev = container_of(this, struct mlx5_ib_dev,
+-						 roce.nb);
++	u8 port_num = roce->native_port_num;
++	struct mlx5_core_dev *mdev;
++	struct mlx5_ib_dev *ibdev;
++
++	ibdev = roce->dev;
++	mdev = ibdev->mdev;
  
--	for (port = 1; port <= MLX5_CAP_GEN(dev->mdev, num_ports); port++)
-+	for (port = 1; port <= dev->num_ports; port++)
- 		mlx5_query_ext_port_caps(dev, port);
+ 	switch (event) {
+ 	case NETDEV_REGISTER:
+ 	case NETDEV_UNREGISTER:
+-		write_lock(&ibdev->roce.netdev_lock);
+-		if (ndev->dev.parent == &ibdev->mdev->pdev->dev)
+-			ibdev->roce.netdev = (event == NETDEV_UNREGISTER) ?
+-					     NULL : ndev;
+-		write_unlock(&ibdev->roce.netdev_lock);
++		write_lock(&roce->netdev_lock);
++
++		if (ndev->dev.parent == &mdev->pdev->dev)
++			roce->netdev = (event == NETDEV_UNREGISTER) ?
++					NULL : ndev;
++		write_unlock(&roce->netdev_lock);
+ 		break;
+ 
+ 	case NETDEV_CHANGE:
+ 	case NETDEV_UP:
+ 	case NETDEV_DOWN: {
+-		struct net_device *lag_ndev = mlx5_lag_get_roce_netdev(ibdev->mdev);
++		struct net_device *lag_ndev = mlx5_lag_get_roce_netdev(mdev);
+ 		struct net_device *upper = NULL;
+ 
+ 		if (lag_ndev) {
+@@ -138,27 +144,28 @@ static int mlx5_netdev_event(struct notifier_block *this,
+ 			dev_put(lag_ndev);
+ 		}
+ 
+-		if ((upper == ndev || (!upper && ndev == ibdev->roce.netdev))
++		if ((upper == ndev || (!upper && ndev == roce->netdev))
+ 		    && ibdev->ib_active) {
+ 			struct ib_event ibev = { };
+ 			enum ib_port_state port_state;
+ 
+-			if (get_port_state(&ibdev->ib_dev, 1, &port_state))
+-				return NOTIFY_DONE;
++			if (get_port_state(&ibdev->ib_dev, port_num,
++					   &port_state))
++				goto done;
+ 
+-			if (ibdev->roce.last_port_state == port_state)
+-				return NOTIFY_DONE;
++			if (roce->last_port_state == port_state)
++				goto done;
+ 
+-			ibdev->roce.last_port_state = port_state;
++			roce->last_port_state = port_state;
+ 			ibev.device = &ibdev->ib_dev;
+ 			if (port_state == IB_PORT_DOWN)
+ 				ibev.event = IB_EVENT_PORT_ERR;
+ 			else if (port_state == IB_PORT_ACTIVE)
+ 				ibev.event = IB_EVENT_PORT_ACTIVE;
+ 			else
+-				return NOTIFY_DONE;
++				goto done;
+ 
+-			ibev.element.port_num = 1;
++			ibev.element.port_num = port_num;
+ 			ib_dispatch_event(&ibev);
+ 		}
+ 		break;
+@@ -167,7 +174,7 @@ static int mlx5_netdev_event(struct notifier_block *this,
+ 	default:
+ 		break;
+ 	}
+-
++done:
+ 	return NOTIFY_DONE;
  }
  
-@@ -3179,7 +3179,7 @@ static int get_port_caps(struct mlx5_ib_dev *dev)
- 		goto out;
- 	}
+@@ -183,11 +190,11 @@ static struct net_device *mlx5_ib_get_netdev(struct ib_device *device,
  
--	for (port = 1; port <= MLX5_CAP_GEN(dev->mdev, num_ports); port++) {
-+	for (port = 1; port <= dev->num_ports; port++) {
- 		memset(pprops, 0, sizeof(*pprops));
- 		err = mlx5_ib_query_port(&dev->ib_dev, port, pprops);
- 		if (err) {
-@@ -4061,7 +4061,7 @@ static int mlx5_ib_stage_init_init(struct mlx5_ib_dev *dev)
- 	const char *name;
+ 	/* Ensure ndev does not disappear before we invoke dev_hold()
+ 	 */
+-	read_lock(&ibdev->roce.netdev_lock);
+-	ndev = ibdev->roce.netdev;
++	read_lock(&ibdev->roce[port_num - 1].netdev_lock);
++	ndev = ibdev->roce[port_num - 1].netdev;
+ 	if (ndev)
+ 		dev_hold(ndev);
+-	read_unlock(&ibdev->roce.netdev_lock);
++	read_unlock(&ibdev->roce[port_num - 1].netdev_lock);
+ 
+ 	return ndev;
+ }
+@@ -3579,33 +3586,33 @@ static void mlx5_eth_lag_cleanup(struct mlx5_ib_dev *dev)
+ 	}
+ }
+ 
+-static int mlx5_add_netdev_notifier(struct mlx5_ib_dev *dev)
++static int mlx5_add_netdev_notifier(struct mlx5_ib_dev *dev, u8 port_num)
+ {
  	int err;
  
--	dev->port = kcalloc(MLX5_CAP_GEN(mdev, num_ports), sizeof(*dev->port),
-+	dev->port = kcalloc(dev->num_ports, sizeof(*dev->port),
- 			    GFP_KERNEL);
+-	dev->roce.nb.notifier_call = mlx5_netdev_event;
+-	err = register_netdevice_notifier(&dev->roce.nb);
++	dev->roce[port_num].nb.notifier_call = mlx5_netdev_event;
++	err = register_netdevice_notifier(&dev->roce[port_num].nb);
+ 	if (err) {
+-		dev->roce.nb.notifier_call = NULL;
++		dev->roce[port_num].nb.notifier_call = NULL;
+ 		return err;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-static void mlx5_remove_netdev_notifier(struct mlx5_ib_dev *dev)
++static void mlx5_remove_netdev_notifier(struct mlx5_ib_dev *dev, u8 port_num)
+ {
+-	if (dev->roce.nb.notifier_call) {
+-		unregister_netdevice_notifier(&dev->roce.nb);
+-		dev->roce.nb.notifier_call = NULL;
++	if (dev->roce[port_num].nb.notifier_call) {
++		unregister_netdevice_notifier(&dev->roce[port_num].nb);
++		dev->roce[port_num].nb.notifier_call = NULL;
+ 	}
+ }
+ 
+-static int mlx5_enable_eth(struct mlx5_ib_dev *dev)
++static int mlx5_enable_eth(struct mlx5_ib_dev *dev, u8 port_num)
+ {
+ 	int err;
+ 
+-	err = mlx5_add_netdev_notifier(dev);
++	err = mlx5_add_netdev_notifier(dev, port_num);
+ 	if (err)
+ 		return err;
+ 
+@@ -3626,7 +3633,7 @@ static int mlx5_enable_eth(struct mlx5_ib_dev *dev)
+ 		mlx5_nic_vport_disable_roce(dev->mdev);
+ 
+ err_unregister_netdevice_notifier:
+-	mlx5_remove_netdev_notifier(dev);
++	mlx5_remove_netdev_notifier(dev, port_num);
+ 	return err;
+ }
+ 
+@@ -4066,7 +4073,6 @@ static int mlx5_ib_stage_init_init(struct mlx5_ib_dev *dev)
  	if (!dev->port)
  		return -ENOMEM;
-@@ -4083,8 +4083,7 @@ static int mlx5_ib_stage_init_init(struct mlx5_ib_dev *dev)
- 	dev->ib_dev.owner		= THIS_MODULE;
- 	dev->ib_dev.node_type		= RDMA_NODE_IB_CA;
- 	dev->ib_dev.local_dma_lkey	= 0 /* not supported for now */;
--	dev->num_ports		= MLX5_CAP_GEN(mdev, num_ports);
--	dev->ib_dev.phys_port_cnt     = dev->num_ports;
-+	dev->ib_dev.phys_port_cnt	= dev->num_ports;
- 	dev->ib_dev.num_comp_vectors    =
- 		dev->mdev->priv.eq_table.num_comp_vectors;
- 	dev->ib_dev.dev.parent		= &mdev->pdev->dev;
-@@ -4443,6 +4442,7 @@ static void *__mlx5_ib_add(struct mlx5_core_dev *mdev,
- 		return NULL;
  
- 	dev->mdev = mdev;
-+	dev->num_ports = MLX5_CAP_GEN(mdev, num_ports);
+-	rwlock_init(&dev->roce.netdev_lock);
+ 	err = get_port_caps(dev);
+ 	if (err)
+ 		goto err_free_port;
+@@ -4246,12 +4252,21 @@ static int mlx5_ib_stage_roce_init(struct mlx5_ib_dev *dev)
+ 	struct mlx5_core_dev *mdev = dev->mdev;
+ 	enum rdma_link_layer ll;
+ 	int port_type_cap;
++	u8 port_num = 0;
+ 	int err;
++	int i;
  
- 	for (i = 0; i < MLX5_IB_STAGE_MAX; i++) {
- 		if (profile->stage[i].init) {
+ 	port_type_cap = MLX5_CAP_GEN(mdev, port_type);
+ 	ll = mlx5_port_type_cap_to_rdma_ll(port_type_cap);
+ 
+ 	if (ll == IB_LINK_LAYER_ETHERNET) {
++		for (i = 0; i < dev->num_ports; i++) {
++			rwlock_init(&dev->roce[i].netdev_lock);
++			dev->roce[i].dev = dev;
++			dev->roce[i].native_port_num = i + 1;
++			dev->roce[i].last_port_state = IB_PORT_DOWN;
++		}
++
+ 		dev->ib_dev.get_netdev	= mlx5_ib_get_netdev;
+ 		dev->ib_dev.create_wq	 = mlx5_ib_create_wq;
+ 		dev->ib_dev.modify_wq	 = mlx5_ib_modify_wq;
+@@ -4264,10 +4279,9 @@ static int mlx5_ib_stage_roce_init(struct mlx5_ib_dev *dev)
+ 			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_WQ) |
+ 			(1ull << IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL) |
+ 			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL);
+-		err = mlx5_enable_eth(dev);
++		err = mlx5_enable_eth(dev, port_num);
+ 		if (err)
+ 			return err;
+-		dev->roce.last_port_state = IB_PORT_DOWN;
+ 	}
+ 
+ 	return 0;
+@@ -4278,13 +4292,14 @@ static void mlx5_ib_stage_roce_cleanup(struct mlx5_ib_dev *dev)
+ 	struct mlx5_core_dev *mdev = dev->mdev;
+ 	enum rdma_link_layer ll;
+ 	int port_type_cap;
++	u8 port_num = 0;
+ 
+ 	port_type_cap = MLX5_CAP_GEN(mdev, port_type);
+ 	ll = mlx5_port_type_cap_to_rdma_ll(port_type_cap);
+ 
+ 	if (ll == IB_LINK_LAYER_ETHERNET) {
+ 		mlx5_disable_eth(dev);
+-		mlx5_remove_netdev_notifier(dev);
++		mlx5_remove_netdev_notifier(dev, port_num);
+ 	}
+ }
+ 
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 57405cf8a5c5..6106dde35144 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -667,6 +667,8 @@ struct mlx5_roce {
+ 	struct notifier_block	nb;
+ 	atomic_t		next_port;
+ 	enum ib_port_state last_port_state;
++	struct mlx5_ib_dev	*dev;
++	u8			native_port_num;
+ };
+ 
+ struct mlx5_ib_dbg_param {
+@@ -757,7 +759,7 @@ struct mlx5_ib_profile {
+ struct mlx5_ib_dev {
+ 	struct ib_device		ib_dev;
+ 	struct mlx5_core_dev		*mdev;
+-	struct mlx5_roce		roce;
++	struct mlx5_roce		roce[MLX5_MAX_PORTS];
+ 	int				num_ports;
+ 	/* serialize update of capability mask
+ 	 */
 diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index f59de13b657e..4b08472cf0ba 100644
+index 4b08472cf0ba..ae36db3d0deb 100644
 --- a/drivers/infiniband/hw/mlx5/qp.c
 +++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3351,7 +3351,7 @@ int mlx5_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+@@ -2962,8 +2962,9 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 		    (ibqp->qp_type == IB_QPT_XRC_INI) ||
+ 		    (ibqp->qp_type == IB_QPT_XRC_TGT)) {
+ 			if (mlx5_lag_is_active(dev->mdev)) {
++				u8 p = mlx5_core_native_port_num(dev->mdev);
+ 				tx_affinity = (unsigned int)atomic_add_return(1,
+-						&dev->roce.next_port) %
++						&dev->roce[p].next_port) %
+ 						MLX5_MAX_PORTS + 1;
+ 				context->flags |= cpu_to_be32(tx_affinity << 24);
+ 			}
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 5b0443c9d337..28733529f6ff 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1234,6 +1234,11 @@ static inline bool mlx5_rl_is_supported(struct mlx5_core_dev *dev)
+ 	return !!(dev->priv.rl_table.max_size);
+ }
  
- 	if ((attr_mask & IB_QP_PORT) &&
- 	    (attr->port_num == 0 ||
--	     attr->port_num > MLX5_CAP_GEN(dev->mdev, num_ports))) {
-+	     attr->port_num > dev->num_ports)) {
- 		mlx5_ib_dbg(dev, "invalid port number %d. number of ports is %d\n",
- 			    attr->port_num, dev->num_ports);
- 		goto out;
-@@ -4670,14 +4670,13 @@ static void to_rdma_ah_attr(struct mlx5_ib_dev *ibdev,
- 			    struct rdma_ah_attr *ah_attr,
- 			    struct mlx5_qp_path *path)
- {
--	struct mlx5_core_dev *dev = ibdev->mdev;
- 
- 	memset(ah_attr, 0, sizeof(*ah_attr));
- 
- 	ah_attr->type = rdma_ah_find_type(&ibdev->ib_dev, path->port);
- 	rdma_ah_set_port_num(ah_attr, path->port);
- 	if (rdma_ah_get_port_num(ah_attr) == 0 ||
--	    rdma_ah_get_port_num(ah_attr) > MLX5_CAP_GEN(dev, num_ports))
-+	    rdma_ah_get_port_num(ah_attr) > ibdev->num_ports)
- 		return;
- 
- 	rdma_ah_set_port_num(ah_attr, path->port);
++static inline int mlx5_core_native_port_num(struct mlx5_core_dev *dev)
++{
++	return 1;
++}
++
+ enum {
+ 	MLX5_TRIGGERED_CMD_COMP = (u64)1 << 32,
+ };
 -- 
 2.15.1
 
