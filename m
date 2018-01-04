@@ -1,14 +1,14 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 07/12] nvme-pci: clean up CMB initialization
-Date: Thu, 4 Jan 2018 12:08:18 -0700
-Message-ID: <078f4435-22ac-1ff7-0b91-5022e22d126e@deltatee.com>
+Subject: Re: [PATCH 08/12] nvme-pci: clean up SMBSZ bit definitions
+Date: Thu, 4 Jan 2018 12:08:29 -0700
+Message-ID: <4432ed79-e463-e868-64af-0f130dafb261@deltatee.com>
 References: <20180104190137.7654-1-logang@deltatee.com>
- <20180104190137.7654-8-logang@deltatee.com>
+ <20180104190137.7654-9-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180104190137.7654-8-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20180104190137.7654-9-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -27,11 +27,9 @@ List-Id: linux-rdma@vger.kernel.org
 On 04/01/18 12:01 PM, Logan Gunthorpe wrote:
 > From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 > 
-> Refactor the call to nvme_map_cmb, and change the conditions for probing
-> for the CMB.  First remove the version check as NVMe TPs always apply
-> to earlier versions of the spec as well.  Second check for the whole CMBSZ
-> register for support of the CMB feature instead of just the size field
-> inside of it to simplify the code a bit.
+> Define the bit positions instead of macros using the magic values,
+> and move the expanded helpers to calculate the size and size unit into
+> the implementation C file.
 > 
 > Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 
