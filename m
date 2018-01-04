@@ -1,47 +1,25 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v2 14/14] net/mlx5: Set num_vhca_ports capability
-Date: Thu,  4 Jan 2018 17:25:44 +0200
-Message-ID: <20180104152544.28919-15-leon@kernel.org>
-References: <20180104152544.28919-1-leon@kernel.org>
+From: "Peter Deng" <peterddeng2000-AXjwWUhUPh07XeCNloRzPA@public.gmane.org>
+Subject: Business Possibility
+Date: Thu, 4 Jan 2018 16:14:00 +0000
+Message-ID: <25324064617521543325110@nadneaa2>
+Reply-To: peterddeng2000-6qQyMdV5D7wES/B23V1ueQC/G2K4zDHf@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180104152544.28919-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hello there, My name is Peter Deng a South African citizen and a friend to Mrs Mugabe sister . I got your contact through Korean business online directory. I represent the interest of Mrs Mugabe who wishes to move a total amount of $19 million  into a safe account owns by a trusted business man who is capable of accommodating such volume of funds with absolute trust & confidentiality.
 
-Set the current capability to the max capability. Doing so enables dual
-port RoCE functionality if supported by the firmware.
+We are willing to give 5-10 percent of the total money for this efforts . A non disclosure non circumvent agreement will be signed before the eventual transfer of funds. It is important for to know that the fund owner is going through a period of political turmoil and she is in a precarious position, so this transaction has to be highly secretive & very confidential.
 
-Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+Kindly respond back to me if this is what you can handle .
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index e382a3ca759e..d4a471a76d82 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -557,6 +557,12 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
- 	if (MLX5_CAP_GEN_MAX(dev, dct))
- 		MLX5_SET(cmd_hca_cap, set_hca_cap, dct, 1);
- 
-+	if (MLX5_CAP_GEN_MAX(dev, num_vhca_ports))
-+		MLX5_SET(cmd_hca_cap,
-+			 set_hca_cap,
-+			 num_vhca_ports,
-+			 MLX5_CAP_GEN_MAX(dev, num_vhca_ports));
-+
- 	err = set_caps(dev, set_ctx, set_sz,
- 		       MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE);
- 
--- 
-2.15.1
+Regards,
 
+Peter.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
