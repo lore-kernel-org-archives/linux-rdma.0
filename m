@@ -1,38 +1,26 @@
-From: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [rdma for-next] bnxt_re: report RoCE device support at info level
-Date: Thu,  4 Jan 2018 16:04:13 -0500
-Message-ID: <ac1582130cbb59814d113ec5a3d1f3805c7e3d7e.1515099853.git.jtoppins@redhat.com>
+From: Kabore Zongo <victoryarancha-sh/6fXdz2Rs@public.gmane.org>
+Subject: Compliment of the day
+Date: Thu, 4 Jan 2018 22:24:49 +0100 (CET)
+Message-ID: <24626194.386781515101089717.JavaMail.defaultUser@defaultHost>
+Reply-To: zongokab2017-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain;charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Reporting that a device doesn't support RoCE seems like a valuable piece
-of information to have when trying to determine why a driver is not binding
-to a device. Better to report this at info log level instead of requiring
-a user to enable all debug messages in the driver.
 
-Signed-off-by: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/bnxt_re/main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index aafc19aa5de1..bf268bf1f496 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -417,7 +417,7 @@ static struct bnxt_en_dev *bnxt_re_dev_probe(struct net_device *netdev)
- 		return ERR_PTR(-EINVAL);
- 
- 	if (!(en_dev->flags & BNXT_EN_FLAG_ROCE_CAP)) {
--		dev_dbg(&pdev->dev,
-+		dev_info(&pdev->dev,
- 			"%s: probe error: RoCE is not supported on this device",
- 			ROCE_DRV_MODULE_NAME);
- 		return ERR_PTR(-ENODEV);
--- 
-2.13.6
+
+--
+Compliment of the day , I am a professional banker with International 
+and Qualified Experience. Please i seek your Urgent Attention and 
+Cooperation to transfer the sum of $8.5M into your account. Risk free 
+and Beneficial. Waiting response so that we can proceed to the next 
+level(zongokab2017-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+
+--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
