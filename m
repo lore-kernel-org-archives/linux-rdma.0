@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v2 08/14] IB/mlx5: Implement dual port functionality in query routines
-Date: Thu,  4 Jan 2018 17:25:38 +0200
-Message-ID: <20180104152544.28919-9-leon@kernel.org>
+Subject: [PATCH rdma-next v2 09/14] IB/mlx5: Change debugfs to have per port contents
+Date: Thu,  4 Jan 2018 17:25:39 +0200
+Message-ID: <20180104152544.28919-10-leon@kernel.org>
 References: <20180104152544.28919-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180104152544.28919-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -10,200 +10,289 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunth
 Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Port operations must be routed to their native mlx5_core_dev. A
-multiport RoCE device registers itself as having 2 ports even before a
-2nd port is affiliated. If an unaffilated port is queried use capability
-information from the master port, these values are the same.
+When there are multiple ports for single IB(RoCE) device, support
+debugfs entries to be available for each port.
 
+Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 102 +++++++++++++++++++++++++++++++-------
- 1 file changed, 85 insertions(+), 17 deletions(-)
+ drivers/infiniband/hw/mlx5/cong.c    | 83 +++++++++++++++++++++++++-----------
+ drivers/infiniband/hw/mlx5/main.c    | 12 +++++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  7 +--
+ 3 files changed, 73 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 0ff6da1b885f..59e26901d935 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -359,16 +359,30 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
- 	struct mlx5_core_dev *mdev = dev->mdev;
- 	struct net_device *ndev, *upper;
- 	enum ib_mtu ndev_ib_mtu;
-+	bool put_mdev = true;
- 	u16 qkey_viol_cntr;
- 	u32 eth_prot_oper;
-+	u8 mdev_port_num;
- 	int err;
+diff --git a/drivers/infiniband/hw/mlx5/cong.c b/drivers/infiniband/hw/mlx5/cong.c
+index 2d32b519bb61..985fa2637390 100644
+--- a/drivers/infiniband/hw/mlx5/cong.c
++++ b/drivers/infiniband/hw/mlx5/cong.c
+@@ -247,21 +247,30 @@ static void mlx5_ib_set_cc_param_mask_val(void *field, int offset,
+ 	}
+ }
  
-+	mdev = mlx5_ib_get_native_port_mdev(dev, port_num, &mdev_port_num);
-+	if (!mdev) {
-+		/* This means the port isn't affiliated yet. Get the
-+		 * info for the master port instead.
-+		 */
-+		put_mdev = false;
-+		mdev = dev->mdev;
-+		mdev_port_num = 1;
-+		port_num = 1;
-+	}
+-static int mlx5_ib_get_cc_params(struct mlx5_ib_dev *dev, int offset, u32 *var)
++static int mlx5_ib_get_cc_params(struct mlx5_ib_dev *dev, u8 port_num,
++				 int offset, u32 *var)
+ {
+ 	int outlen = MLX5_ST_SZ_BYTES(query_cong_params_out);
+ 	void *out;
+ 	void *field;
+ 	int err;
+ 	enum mlx5_ib_cong_node_type node;
++	struct mlx5_core_dev *mdev;
 +
- 	/* Possible bad flows are checked before filling out props so in case
- 	 * of an error it will still be zeroed out.
- 	 */
--	err = mlx5_query_port_eth_proto_oper(mdev, &eth_prot_oper, port_num);
-+	err = mlx5_query_port_eth_proto_oper(mdev, &eth_prot_oper,
-+					     mdev_port_num);
++	/* Takes a 1-based port number */
++	mdev = mlx5_ib_get_native_port_mdev(dev, port_num + 1, NULL);
++	if (!mdev)
++		return -ENODEV;
+ 
+ 	out = kvzalloc(outlen, GFP_KERNEL);
+-	if (!out)
+-		return -ENOMEM;
++	if (!out) {
++		err = -ENOMEM;
++		goto alloc_err;
++	}
+ 
+ 	node = mlx5_ib_param_to_node(offset);
+ 
+-	err = mlx5_cmd_query_cong_params(dev->mdev, node, out, outlen);
++	err = mlx5_cmd_query_cong_params(mdev, node, out, outlen);
  	if (err)
--		return err;
-+		goto out;
+ 		goto free;
  
- 	translate_eth_proto_oper(eth_prot_oper, &props->active_speed,
- 				 &props->active_width);
-@@ -384,12 +398,16 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
- 	props->state            = IB_PORT_DOWN;
- 	props->phys_state       = 3;
+@@ -270,21 +279,32 @@ static int mlx5_ib_get_cc_params(struct mlx5_ib_dev *dev, int offset, u32 *var)
  
--	mlx5_query_nic_vport_qkey_viol_cntr(dev->mdev, &qkey_viol_cntr);
-+	mlx5_query_nic_vport_qkey_viol_cntr(mdev, &qkey_viol_cntr);
- 	props->qkey_viol_cntr = qkey_viol_cntr;
- 
-+	/* If this is a stub query for an unaffiliated port stop here */
-+	if (!put_mdev)
-+		goto out;
-+
- 	ndev = mlx5_ib_get_netdev(device, port_num);
- 	if (!ndev)
--		return 0;
-+		goto out;
- 
- 	if (mlx5_lag_is_active(dev->mdev)) {
- 		rcu_read_lock();
-@@ -412,7 +430,10 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
- 	dev_put(ndev);
- 
- 	props->active_mtu	= min(props->max_mtu, ndev_ib_mtu);
--	return 0;
-+out:
-+	if (put_mdev)
-+		mlx5_ib_put_native_port_mdev(dev, port_num);
-+	return err;
+ free:
+ 	kvfree(out);
++alloc_err:
++	mlx5_ib_put_native_port_mdev(dev, port_num + 1);
+ 	return err;
  }
  
- static int set_roce_addr(struct mlx5_ib_dev *dev, u8 port_num,
-@@ -1221,7 +1242,22 @@ int mlx5_ib_query_port(struct ib_device *ibdev, u8 port,
- 	}
- 
- 	if (!ret && props) {
--		count = mlx5_core_reserved_gids_count(to_mdev(ibdev)->mdev);
-+		struct mlx5_ib_dev *dev = to_mdev(ibdev);
-+		struct mlx5_core_dev *mdev;
-+		bool put_mdev = true;
-+
-+		mdev = mlx5_ib_get_native_port_mdev(dev, port, NULL);
-+		if (!mdev) {
-+			/* If the port isn't affiliated yet query the master.
-+			 * The master and slave will have the same values.
-+			 */
-+			mdev = dev->mdev;
-+			port = 1;
-+			put_mdev = false;
-+		}
-+		count = mlx5_core_reserved_gids_count(mdev);
-+		if (put_mdev)
-+			mlx5_ib_put_native_port_mdev(dev, port);
- 		props->gid_tbl_len -= count;
- 	}
- 	return ret;
-@@ -1246,20 +1282,43 @@ static int mlx5_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
- 
- }
- 
--static int mlx5_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
--			      u16 *pkey)
-+static int mlx5_query_hca_nic_pkey(struct ib_device *ibdev, u8 port,
-+				   u16 index, u16 *pkey)
+-static int mlx5_ib_set_cc_params(struct mlx5_ib_dev *dev, int offset, u32 var)
++static int mlx5_ib_set_cc_params(struct mlx5_ib_dev *dev, u8 port_num,
++				 int offset, u32 var)
  {
- 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
--	struct mlx5_core_dev *mdev = dev->mdev;
+ 	int inlen = MLX5_ST_SZ_BYTES(modify_cong_params_in);
+ 	void *in;
+ 	void *field;
+ 	enum mlx5_ib_cong_node_type node;
 +	struct mlx5_core_dev *mdev;
-+	bool put_mdev = true;
-+	u8 mdev_port_num;
-+	int err;
- 
-+	mdev = mlx5_ib_get_native_port_mdev(dev, port, &mdev_port_num);
-+	if (!mdev) {
-+		/* The port isn't affiliated yet, get the PKey from the master
-+		 * port. For RoCE the PKey tables will be the same.
-+		 */
-+		put_mdev = false;
-+		mdev = dev->mdev;
-+		mdev_port_num = 1;
-+	}
-+
-+	err = mlx5_query_hca_vport_pkey(mdev, 0, mdev_port_num, 0,
-+					index, pkey);
-+	if (put_mdev)
-+		mlx5_ib_put_native_port_mdev(dev, port);
-+
-+	return err;
-+}
-+
-+static int mlx5_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
-+			      u16 *pkey)
-+{
- 	switch (mlx5_get_vport_access_method(ibdev)) {
- 	case MLX5_VPORT_ACCESS_METHOD_MAD:
- 		return mlx5_query_mad_ifc_pkey(ibdev, port, index, pkey);
- 
- 	case MLX5_VPORT_ACCESS_METHOD_HCA:
- 	case MLX5_VPORT_ACCESS_METHOD_NIC:
--		return mlx5_query_hca_vport_pkey(mdev, 0, port,  0, index,
--						 pkey);
-+		return mlx5_query_hca_nic_pkey(ibdev, port, index, pkey);
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1298,23 +1357,32 @@ static int set_port_caps_atomic(struct mlx5_ib_dev *dev, u8 port_num, u32 mask,
- 				u32 value)
- {
- 	struct mlx5_hca_vport_context ctx = {};
-+	struct mlx5_core_dev *mdev;
-+	u8 mdev_port_num;
+ 	u32 attr_mask = 0;
  	int err;
  
--	err = mlx5_query_hca_vport_context(dev->mdev, 0,
--					   port_num, 0, &ctx);
-+	mdev = mlx5_ib_get_native_port_mdev(dev, port_num, &mdev_port_num);
++	/* Takes a 1-based port number */
++	mdev = mlx5_ib_get_native_port_mdev(dev, port_num + 1, NULL);
 +	if (!mdev)
 +		return -ENODEV;
 +
-+	err = mlx5_query_hca_vport_context(mdev, 0, mdev_port_num, 0, &ctx);
- 	if (err)
--		return err;
-+		goto out;
+ 	in = kvzalloc(inlen, GFP_KERNEL);
+-	if (!in)
+-		return -ENOMEM;
++	if (!in) {
++		err = -ENOMEM;
++		goto alloc_err;
++	}
  
- 	if (~ctx.cap_mask1_perm & mask) {
- 		mlx5_ib_warn(dev, "trying to change bitmask 0x%X but change supported 0x%X\n",
- 			     mask, ctx.cap_mask1_perm);
--		return -EINVAL;
-+		err = -EINVAL;
-+		goto out;
- 	}
+ 	MLX5_SET(modify_cong_params_in, in, opcode,
+ 		 MLX5_CMD_OP_MODIFY_CONG_PARAMS);
+@@ -299,8 +319,10 @@ static int mlx5_ib_set_cc_params(struct mlx5_ib_dev *dev, int offset, u32 var)
+ 	MLX5_SET(field_select_r_roce_rp, field, field_select_r_roce_rp,
+ 		 attr_mask);
  
- 	ctx.cap_mask1 = value;
- 	ctx.cap_mask1_perm = mask;
--	err = mlx5_core_modify_hca_vport_context(dev->mdev, 0,
--						 port_num, 0, &ctx);
-+	err = mlx5_core_modify_hca_vport_context(mdev, 0, mdev_port_num,
-+						 0, &ctx);
-+
-+out:
-+	mlx5_ib_put_native_port_mdev(dev, port_num);
- 
+-	err = mlx5_cmd_modify_cong_params(dev->mdev, in, inlen);
++	err = mlx5_cmd_modify_cong_params(mdev, in, inlen);
+ 	kvfree(in);
++alloc_err:
++	mlx5_ib_put_native_port_mdev(dev, port_num + 1);
  	return err;
  }
+ 
+@@ -324,7 +346,7 @@ static ssize_t set_param(struct file *filp, const char __user *buf,
+ 	if (kstrtou32(lbuf, 0, &var))
+ 		return -EINVAL;
+ 
+-	ret = mlx5_ib_set_cc_params(param->dev, offset, var);
++	ret = mlx5_ib_set_cc_params(param->dev, param->port_num, offset, var);
+ 	return ret ? ret : count;
+ }
+ 
+@@ -340,7 +362,7 @@ static ssize_t get_param(struct file *filp, char __user *buf, size_t count,
+ 	if (*pos)
+ 		return 0;
+ 
+-	ret = mlx5_ib_get_cc_params(param->dev, offset, &var);
++	ret = mlx5_ib_get_cc_params(param->dev, param->port_num, offset, &var);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -362,44 +384,51 @@ static const struct file_operations dbg_cc_fops = {
+ 	.read	= get_param,
+ };
+ 
+-void mlx5_ib_cleanup_cong_debugfs(struct mlx5_ib_dev *dev)
++void mlx5_ib_cleanup_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num)
+ {
+ 	if (!mlx5_debugfs_root ||
+-	    !dev->dbg_cc_params ||
+-	    !dev->dbg_cc_params->root)
++	    !dev->port[port_num].dbg_cc_params ||
++	    !dev->port[port_num].dbg_cc_params->root)
+ 		return;
+ 
+-	debugfs_remove_recursive(dev->dbg_cc_params->root);
+-	kfree(dev->dbg_cc_params);
+-	dev->dbg_cc_params = NULL;
++	debugfs_remove_recursive(dev->port[port_num].dbg_cc_params->root);
++	kfree(dev->port[port_num].dbg_cc_params);
++	dev->port[port_num].dbg_cc_params = NULL;
+ }
+ 
+-int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev)
++int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num)
+ {
+ 	struct mlx5_ib_dbg_cc_params *dbg_cc_params;
++	struct mlx5_core_dev *mdev;
+ 	int i;
+ 
+ 	if (!mlx5_debugfs_root)
+ 		goto out;
+ 
+-	if (!MLX5_CAP_GEN(dev->mdev, cc_query_allowed) ||
+-	    !MLX5_CAP_GEN(dev->mdev, cc_modify_allowed))
++	/* Takes a 1-based port number */
++	mdev = mlx5_ib_get_native_port_mdev(dev, port_num + 1, NULL);
++	if (!mdev)
+ 		goto out;
+ 
++	if (!MLX5_CAP_GEN(mdev, cc_query_allowed) ||
++	    !MLX5_CAP_GEN(mdev, cc_modify_allowed))
++		goto put_mdev;
++
+ 	dbg_cc_params = kzalloc(sizeof(*dbg_cc_params), GFP_KERNEL);
+ 	if (!dbg_cc_params)
+-		goto out;
++		goto err;
+ 
+-	dev->dbg_cc_params = dbg_cc_params;
++	dev->port[port_num].dbg_cc_params = dbg_cc_params;
+ 
+ 	dbg_cc_params->root = debugfs_create_dir("cc_params",
+-						 dev->mdev->priv.dbg_root);
++						 mdev->priv.dbg_root);
+ 	if (!dbg_cc_params->root)
+ 		goto err;
+ 
+ 	for (i = 0; i < MLX5_IB_DBG_CC_MAX; i++) {
+ 		dbg_cc_params->params[i].offset = i;
+ 		dbg_cc_params->params[i].dev = dev;
++		dbg_cc_params->params[i].port_num = port_num;
+ 		dbg_cc_params->params[i].dentry =
+ 			debugfs_create_file(mlx5_ib_dbg_cc_name[i],
+ 					    0600, dbg_cc_params->root,
+@@ -408,11 +437,17 @@ int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev)
+ 		if (!dbg_cc_params->params[i].dentry)
+ 			goto err;
+ 	}
+-out:	return 0;
++
++put_mdev:
++	mlx5_ib_put_native_port_mdev(dev, port_num + 1);
++out:
++	return 0;
+ 
+ err:
+ 	mlx5_ib_warn(dev, "cong debugfs failure\n");
+-	mlx5_ib_cleanup_cong_debugfs(dev);
++	mlx5_ib_cleanup_cong_debugfs(dev, port_num);
++	mlx5_ib_put_native_port_mdev(dev, port_num + 1);
++
+ 	/*
+ 	 * We don't want to fail driver if debugfs failed to initialize,
+ 	 * so we are not forwarding error to the user.
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 59e26901d935..2ced365e8247 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -4254,6 +4254,8 @@ static void mlx5_ib_unbind_slave_port(struct mlx5_ib_dev *ibdev,
+ 	int err;
+ 	int i;
+ 
++	mlx5_ib_cleanup_cong_debugfs(ibdev, port_num);
++
+ 	spin_lock(&port->mp.mpi_lock);
+ 	if (!mpi->ibdev) {
+ 		spin_unlock(&port->mp.mpi_lock);
+@@ -4331,6 +4333,10 @@ static bool mlx5_ib_bind_slave_port(struct mlx5_ib_dev *ibdev,
+ 		goto unbind;
+ 	}
+ 
++	err = mlx5_ib_init_cong_debugfs(ibdev, port_num);
++	if (err)
++		goto unbind;
++
+ 	return true;
+ 
+ unbind:
+@@ -4748,12 +4754,14 @@ static void mlx5_ib_stage_counters_cleanup(struct mlx5_ib_dev *dev)
+ 
+ static int mlx5_ib_stage_cong_debugfs_init(struct mlx5_ib_dev *dev)
+ {
+-	return mlx5_ib_init_cong_debugfs(dev);
++	return mlx5_ib_init_cong_debugfs(dev,
++					 mlx5_core_native_port_num(dev->mdev) - 1);
+ }
+ 
+ static void mlx5_ib_stage_cong_debugfs_cleanup(struct mlx5_ib_dev *dev)
+ {
+-	mlx5_ib_cleanup_cong_debugfs(dev);
++	mlx5_ib_cleanup_cong_debugfs(dev,
++				     mlx5_core_native_port_num(dev->mdev) - 1);
+ }
+ 
+ static int mlx5_ib_stage_uar_init(struct mlx5_ib_dev *dev)
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index e1667e72ad49..637fdc95f1ee 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -665,6 +665,7 @@ struct mlx5_ib_multiport {
+ struct mlx5_ib_port {
+ 	struct mlx5_ib_counters cnts;
+ 	struct mlx5_ib_multiport mp;
++	struct mlx5_ib_dbg_cc_params	*dbg_cc_params;
+ };
+ 
+ struct mlx5_roce {
+@@ -684,6 +685,7 @@ struct mlx5_ib_dbg_param {
+ 	int			offset;
+ 	struct mlx5_ib_dev	*dev;
+ 	struct dentry		*dentry;
++	u8			port_num;
+ };
+ 
+ enum mlx5_ib_dbg_cc_types {
+@@ -825,7 +827,6 @@ struct mlx5_ib_dev {
+ 	struct mlx5_sq_bfreg	bfreg;
+ 	struct mlx5_sq_bfreg	fp_bfreg;
+ 	struct mlx5_ib_delay_drop	delay_drop;
+-	struct mlx5_ib_dbg_cc_params	*dbg_cc_params;
+ 	const struct mlx5_ib_profile	*profile;
+ 
+ 	/* protect the user_td */
+@@ -1083,8 +1084,8 @@ __be16 mlx5_get_roce_udp_sport(struct mlx5_ib_dev *dev, u8 port_num,
+ int mlx5_get_roce_gid_type(struct mlx5_ib_dev *dev, u8 port_num,
+ 			   int index, enum ib_gid_type *gid_type);
+ 
+-void mlx5_ib_cleanup_cong_debugfs(struct mlx5_ib_dev *dev);
+-int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev);
++void mlx5_ib_cleanup_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num);
++int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num);
+ 
+ /* GSI QP helper functions */
+ struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
 -- 
 2.15.1
 
