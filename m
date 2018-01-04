@@ -1,100 +1,66 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 14/15] IB/mlx5: Don't advertise RAW QP support
- in dual port mode
-Date: Thu, 4 Jan 2018 07:21:11 +0200
-Message-ID: <20180104052111.GY10145@mtr-leonro.local>
-References: <20171224125741.25464-1-leon@kernel.org>
- <20171224125741.25464-15-leon@kernel.org>
- <CAJ3xEMgAtd1PKN2h1NFj=Mt72msuU5bpFy0jO4KFXxXxGRf7hA@mail.gmail.com>
- <20171225071613.GW2942@mtr-leonro.local>
- <CAJ3xEMhtssDWuu8JAB_jhyofKbkeo4vYTLixLeta6vPzKQOp+A@mail.gmail.com>
- <ab3fb697-7b2c-685c-2151-5f48d5d7270a@mellanox.com>
- <CAJ3xEMimYj8=USqjHEF_uiwJCNoeT5qpbNMYTWUX7EgTVSeuuw@mail.gmail.com>
- <6f114e3c-2e16-f7ce-2e60-d06113afc9b8@mellanox.com>
- <CAJ3xEMjZfTJP1fi=VosXL_v=AUueWZc54iOsXz1ynikYm-jcjA@mail.gmail.com>
+From: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH] scsi: fix iscsi-related kernel-doc warnings
+Date: Wed, 3 Jan 2018 21:58:58 -0800
+Message-ID: <617cf496-3fe0-6834-1a6c-57d5adc2f027@infradead.org>
+References: <44a0f532-b1e9-e0cf-4a61-d592a4306f61@infradead.org>
+ <yq1373mxny3.fsf@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="jesV4P1FjH8FXPjZ"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMjZfTJP1fi=VosXL_v=AUueWZc54iOsXz1ynikYm-jcjA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <yq1373mxny3.fsf-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 01/03/2018 08:11 PM, Martin K. Petersen wrote:
+> 
+> Randy,
+> 
+>> Fix kernel-doc warnings in drivers/scsi/ that are related to iscsi
+>> support interfaces.
+>>
+>> Fixes these kernel-doc warnings: (tested by adding these files to a new
+>> target.rst documentation file: WIP)
+> 
+> Applied to 4.16/scsi-queue, thanks!
+> 
+>> Cc:	"Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+>> Cc:	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Cc:	target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Cc:	Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+>> Cc:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Cc:	"James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+>> Cc:	"Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> 
+>      ^^^ checkpatch complains about these spaces.
 
---jesV4P1FjH8FXPjZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hah, those are tabs, not spaces.
 
-On Wed, Jan 03, 2018 at 10:47:14PM +0200, Or Gerlitz wrote:
-> On Wed, Jan 3, 2018 at 10:43 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> > On 1/3/2018 2:39 PM, Or Gerlitz wrote:
-> >> On Wed, Jan 3, 2018 at 10:35 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> >>> On 12/25/2017 3:17 AM, Or Gerlitz wrote:
-> >>>> On Mon, Dec 25, 2017 at 9:16 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> >>>>> On Mon, Dec 25, 2017 at 12:16:15AM +0200, Or Gerlitz wrote:
-> >>>>>> On Sun, Dec 24, 2017 at 2:57 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> >>>>>>> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >>>>>>>
-> >>>>>>> When operating in dual port RoCE mode RAW QPs are not supposed
-> >>>>>>> to work on the slave port.
-> >>>>>> why?
-> >>>>> HW create flow table restriction.
-> >>>> cryptic to me, either put a proper explanation on the V2 change log
-> >>>> for this patch
-> >>>> so we can review it then or explain it here if you want a review on V1
-> >>> We don't report RAW QP support on a per port basis.  It's per device.
-> >>> The user doesn't know which port is the master/slave, so we shouldn't
-> >>> support RAW QP at all in this mode. I'll update the commit message to state that.
-> >> in mlx4 we do have IB device with two ports and RAW QP is supported,
-> >> what is different there?
-> >
-> > mlx4 has a completely different HW architecture.  It's 2 ports on 1 PCI function.  This feature doesn't do that for mlx5, there are still 2 PCI functions.  It uses steering rules to route RDMA traffic arriving at the 2nd port to resources in the domain of the 1st port. RDMA traffic is easy to identify and steer accordingly, generic traffic over a Raw QP is not.
->
-> ok, so this is basically uneasy but not undoable. Aren't we creating
-> possible regressions for people that used RAW QP on mlx5 devices?
-> these
-> are open-systems and the code is out there for people to use it. Now
-> the systems that move to the new mode has inferior functionality.
+scripts/checkpatch.pl (comment) says something about this being a style thing:
+# Check signature styles
 
-No, we are not creating regression mainly because of two reasons:
-1. This dual-port functionality is enabled by special FW and not
-available by default.
-2. Programmers were supposed to query device capabilities and ensure
-that RAW QP is supported prior to use it, like any other feature
-advertised by those capabilities. This is the whole idea of device
-capabilities.
+WARNING: Use a single space after Cc:
+#29: 
+Cc:	"Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Thanks
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---jesV4P1FjH8FXPjZ
-Content-Type: application/pgp-signature; name="signature.asc"
+Email standards (RFCs) sure don't require a single space.
 
------BEGIN PGP SIGNATURE-----
+and I would like to be able to copy N lines from MAINTAINERS file and then
+replace either the M: and/or L: (actually just the 'M' or 'L') with
+"To" or "Cc" and be done with it, instead of having to replace TAB on each
+line with a space also.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpNuccACgkQ5GN7iDZy
-WKet8Q/8DzqbZ76+orLGeYWyZ2ZwRcA1e/z6oHbTn4+PYEZUEr/cfPKwJGTmRzls
-QQZU+ZGLV3xqNSbFDqRp8y/d/2LedNqvloRXlpw2tAk8PYSG6t2LZI0xyOslQ9jy
-6+Xg9q9pQUJoGOyUEure7Yh0ce2vDLf9chA3xbAsPO2ncTFE3wBdO7H4LZDviRGC
-iiFtFSdscIf+cch0mMbajXRif+n1bCQcQ3a8tHMIrGbu7ZjKGj9ybcsWHu/V08rr
-G6k3SaHuXjjiOSCgfIb9x9vu47gTIQwacIftu+BpTxkHersUYyHC8f6nyqOtNsef
-SN4vEmpRJ0u/zNJJUfNQmDJmMoFoFrltWSOTtgpJrtH1Z5FUTKQML5KCKaSgIUZS
-kgrc1fURiZ5WfA7btd3kH61ZD+keZRQzmASqKYDSA3/c9GOVnwmEyQ6I1MJbt5yi
-iZawq4+c4H9ISgteYLDmRKHdlY+UjHg/rK6iNIPuQAv4CU3nBZF55E7HqloFSu+3
-R2X4Yy3LzK7HX6FtCCN5fFhg0kDrAhLfPYUNb+uW/xq5HeMM3wMOI1yiMJumqNcS
-7GBFCJOFRhyoIxqsQYn14AU99oGgIVQnzCq2ljAC7Zp57HROWlkaujAYLwTclcep
-ff8rWOumo/8SkUThY53QekMr1YtBEQRKoWOhgXdpB8BSxT1HxRU=
-=UF5w
------END PGP SIGNATURE-----
+Does anyone know where this "signature style" check came from?
+I don't see it in any style guide.
 
---jesV4P1FjH8FXPjZ--
+thanks,
+-- 
+~Randy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
