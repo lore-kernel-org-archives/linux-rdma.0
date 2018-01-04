@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next v1 7/9] rdma: Add resource tracking summary
-Date: Thu,  4 Jan 2018 09:01:48 +0200
-Message-ID: <20180104070150.15625-8-leon@kernel.org>
+Subject: [PATCH iproute2-next v1 9/9] rdma: Document resource tracking
+Date: Thu,  4 Jan 2018 09:01:50 +0200
+Message-ID: <20180104070150.15625-10-leon@kernel.org>
 References: <20180104070150.15625-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180104070150.15625-1-leon@kernel.org>
@@ -12,264 +12,110 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-The global resource summary information. The object names, current utilization
-and maximum numbers are received as is from the kernel.
-
-$ rdma res
-1: mlx5_0: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
-2: mlx5_1: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
-3: mlx5_2: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
-4: mlx5_3: curr/max: pd 2/16777216 cq 3/16777216 qp 2/262144
-5: mlx5_4: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
-
-$ rdma res show mlx5_4
-5: mlx5_4: curr/max: pd 3/16777216 cq 5/16777216 qp 4/262144
+Spartan version of resource tracking documentation.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- rdma/Makefile |   2 +-
- rdma/rdma.c   |   3 +-
- rdma/rdma.h   |   1 +
- rdma/res.c    | 168 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- rdma/utils.c  |   5 ++
- 5 files changed, 177 insertions(+), 2 deletions(-)
- create mode 100644 rdma/res.c
+ man/man8/rdma-resource.8 | 91 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 91 insertions(+)
+ create mode 100644 man/man8/rdma-resource.8
 
-diff --git a/rdma/Makefile b/rdma/Makefile
-index c8966bfd..875fe53c 100644
---- a/rdma/Makefile
-+++ b/rdma/Makefile
-@@ -3,7 +3,7 @@ include ../config.mk
- 
- ifeq ($(HAVE_MNL),y)
- 
--RDMA_OBJ = rdma.o utils.o dev.o link.o
-+RDMA_OBJ = rdma.o utils.o dev.o link.o res.o
- 
- TARGETS=rdma
- endif
-diff --git a/rdma/rdma.c b/rdma/rdma.c
-index a21ba440..19608f41 100644
---- a/rdma/rdma.c
-+++ b/rdma/rdma.c
-@@ -15,7 +15,7 @@
- static void help(char *name)
- {
- 	pr_out("Usage: %s [ OPTIONS ] OBJECT { COMMAND | help }\n"
--	       "where  OBJECT := { dev | link | help }\n"
-+	       "where  OBJECT := { dev | link | resource | help }\n"
- 	       "       OPTIONS := { -V[ersion] | -d[etails] | -j[son] | -p[retty]}\n", name);
- }
- 
-@@ -32,6 +32,7 @@ static int rd_cmd(struct rd *rd)
- 		{ "help",	cmd_help },
- 		{ "dev",	cmd_dev },
- 		{ "link",	cmd_link },
-+		{ "resource",	cmd_res },
- 		{ 0 }
- 	};
- 
-diff --git a/rdma/rdma.h b/rdma/rdma.h
-index 816c8ddd..f1ddedd2 100644
---- a/rdma/rdma.h
-+++ b/rdma/rdma.h
-@@ -77,6 +77,7 @@ char *rd_argv(struct rd *rd);
-  */
- int cmd_dev(struct rd *rd);
- int cmd_link(struct rd *rd);
-+int cmd_res(struct rd *rd);
- int rd_exec_cmd(struct rd *rd, const struct rd_cmd *c, const char *str);
- int rd_exec_dev(struct rd *rd, int (*cb)(struct rd *rd));
- int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd), bool strict_port);
-diff --git a/rdma/res.c b/rdma/res.c
+diff --git a/man/man8/rdma-resource.8 b/man/man8/rdma-resource.8
 new file mode 100644
-index 00000000..a70e87dd
+index 00000000..e3c83b94
 --- /dev/null
-+++ b/rdma/res.c
-@@ -0,0 +1,168 @@
-+/*
-+ * res.c	RDMA tool
-+ *
-+ *              This program is free software; you can redistribute it and/or
-+ *              modify it under the terms of the GNU General Public License
-+ *              as published by the Free Software Foundation; either version
-+ *              2 of the License, or (at your option) any later version.
-+ *
-+ * Authors:     Leon Romanovsky <leonro@mellanox.com>
-+ */
++++ b/man/man8/rdma-resource.8
+@@ -0,0 +1,91 @@
++.TH RDMA\-RESOURCE 8 "26 Dec 2017" "iproute2" "Linux"
++.SH NAME
++rdma-resource \- rdma resource configuration
++.SH SYNOPSIS
++.sp
++.ad l
++.in +8
++.ti -8
++.B rdma
++.RI "[ " OPTIONS " ]"
++.B resource
++.RI  " { " COMMAND " | "
++.BR help " }"
++.sp
 +
-+#include "rdma.h"
-+#include <inttypes.h>
++.ti -8
++.IR OPTIONS " := { "
++\fB\-j\fR[\fIson\fR] |
++\fB\-d\fR[\fIetails\fR] }
 +
-+static int res_help(struct rd *rd)
-+{
-+	pr_out("Usage: %s resource\n", rd->filename);
-+	pr_out("          resource show [DEV]\n");
-+	return 0;
-+}
++.ti -8
++.B rdma resource show
++.RI "[ " DEV/PORT_INDEX " ]"
 +
-+static int res_print_summary(struct rd *rd, struct nlattr **tb)
-+{
-+	struct nlattr *nla_table = tb[RDMA_NLDEV_ATTR_RES_SUMMARY];
-+	struct nlattr *nla_entry;
-+	uint64_t max, curr;
-+	const char *name;
-+	int err;
++.ti -8
++.B rdma resource help
 +
-+	if (!rd->json_output)
-+		pr_out("curr/max: ");
++.SH "DESCRIPTION"
++.SS rdma resource show - display rdma resource tracking information
 +
-+	mnl_attr_for_each_nested(nla_entry, nla_table) {
-+		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
-+		char json_name[32];
++.PP
++.I "DEV/PORT_INDEX"
++- specifies the RDMA link to show.
++If this argument is omitted all links are listed.
 +
-+		err = mnl_attr_parse_nested(nla_entry, rd_attr_cb, nla_line);
-+		if (err != MNL_CB_OK)
-+			return -EINVAL;
++.SH "EXAMPLES"
++.PP
++rdma resource show
++.RS 4
++Shows summary for all devices on the system.
++.RE
++.PP
++rdma resource show mlx5_2
++.RS 4
++Shows the state of specified rdma device.
++.RE
++.PP
++rdma res show qp link mlx5_4
++.RS 4
++Get all QPs for the specific device.
++.RE
++.PP
++rdma res show qp link mlx5_4/1
++.RS 4
++Get QPs of specific port.
++.RE
++.PP
++rdma res show qp link mlx5_4/0
++.RS 4
++Provide illegal port number (0 is illegal).
++.RE
++.PP
++rdma res show qp link mlx5_4/-
++.RS 4
++Get QPs which have not assigned port yet.
++.RE
++.PP
++rdma res show qp link mlx5_4/- -d
++.RS 4
++Detailed view.
++.RE
++.PP
++rdma res show qp link mlx5_4/1 display pid,lqpn,comm
++.RS 4
++Limit to specific columns (dev/port is always available)
++.RE
++.PP
++rdma res show qp link mlx5_4/1 display pid,lqpn,comm lqpn 0-6
++.RS 4
++Limit to specific Local QPNs.
++.RE
++.PP
 +
-+		if (!nla_line[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME] ||
-+		    !nla_line[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR] ||
-+		    !nla_line[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX]) {
-+			return -EINVAL;
-+		}
++.SH SEE ALSO
++.BR rdma (8),
++.BR rdma-dev (8),
++.BR rdma-link (8),
++.br
 +
-+		name = mnl_attr_get_str(nla_line[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME]);
-+		curr = mnl_attr_get_u64(nla_line[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR]);
-+		if (rd->json_output) {
-+			snprintf(json_name, 32, "curr_%s", name);
-+			jsonw_lluint_field(rd->jw, json_name, curr);
-+		}
-+
-+		max = mnl_attr_get_u64(nla_line[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX]);
-+		if (rd->json_output) {
-+			snprintf(json_name, 32, "max_%s", name);
-+			jsonw_lluint_field(rd->jw, json_name, max);
-+		} else {
-+			pr_out("%s %"PRId64 "/%"PRId64 " ", name, curr, max);
-+		}
-+	}
-+	return 0;
-+}
-+
-+static int res_no_args_parse_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-+	struct rd *rd = data;
-+	const char *name;
-+	uint32_t idx;
-+
-+	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
-+	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
-+	    !tb[RDMA_NLDEV_ATTR_DEV_NAME] ||
-+	    !tb[RDMA_NLDEV_ATTR_RES_SUMMARY])
-+		return MNL_CB_ERROR;
-+
-+	idx =  mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	name = mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_DEV_NAME]);
-+	if (rd->json_output) {
-+		jsonw_uint_field(rd->jw, "ifindex", idx);
-+		jsonw_string_field(rd->jw, "ifname", name);
-+	} else {
-+		pr_out("%u: %s: ", idx, name);
-+	}
-+
-+	res_print_summary(rd, tb);
-+
-+	if (!rd->json_output)
-+		pr_out("\n");
-+	return MNL_CB_OK;
-+}
-+
-+static int _res_send_msg(struct rd *rd, uint32_t command, mnl_cb_t callback)
-+{
-+	uint32_t flags = NLM_F_REQUEST | NLM_F_ACK;
-+	uint32_t seq;
-+	int ret;
-+
-+	if (command != RDMA_NLDEV_CMD_RES_GET)
-+		flags |= NLM_F_DUMP;
-+
-+	rd_prepare_msg(rd, command, &seq, flags);
-+	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
-+	if (rd->port_idx)
-+		mnl_attr_put_u32(rd->nlh,
-+				 RDMA_NLDEV_ATTR_PORT_INDEX, rd->port_idx);
-+
-+	ret = rd_send_msg(rd);
-+	if (ret)
-+		return ret;
-+
-+	if (rd->json_output)
-+		jsonw_start_object(rd->jw);
-+	ret = rd_recv_msg(rd, callback, rd, seq);
-+	if (rd->json_output)
-+		jsonw_end_object(rd->jw);
-+	return ret;
-+}
-+
-+#define RES_FUNC(name, command, valid_filters, strict_port) \
-+	static int _##name(struct rd *rd)\
-+	{ \
-+		return _res_send_msg(rd, command, name##_parse_cb); \
-+	} \
-+	static int name(struct rd *rd) \
-+	{\
-+		int ret = rd_build_filter(rd, valid_filters); \
-+		if (ret) \
-+			return ret; \
-+		if ((uintptr_t)valid_filters != (uintptr_t)NULL) { \
-+			ret = rd_set_arg_to_devname(rd); \
-+			if (ret) \
-+				return ret;\
-+		} \
-+		return rd_exec_link(rd, _##name, strict_port); \
-+	}
-+
-+RES_FUNC(res_no_args,	RDMA_NLDEV_CMD_RES_GET,	NULL, true);
-+
-+static int res_show(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,		res_no_args	},
-+		{ 0 }
-+	};
-+
-+	/*
-+	 * Special case to support "rdma res show DEV_NAME"
-+	 */
-+	if (rd_argc(rd) == 1 && dev_map_lookup(rd, false))
-+		return rd_exec_dev(rd, _res_no_args);
-+
-+	return rd_exec_cmd(rd, cmds, "parameter");
-+}
-+
-+int cmd_res(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,		res_show },
-+		{ "show",	res_show },
-+		{ "list",	res_show },
-+		{ "help",	res_help },
-+		{ 0 }
-+	};
-+
-+	return rd_exec_cmd(rd, cmds, "resource command");
-+}
-diff --git a/rdma/utils.c b/rdma/utils.c
-index e6a727e0..d39e926e 100644
---- a/rdma/utils.c
-+++ b/rdma/utils.c
-@@ -347,6 +347,11 @@ static const enum mnl_attr_data_type nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_PORT_STATE] = MNL_TYPE_U8,
- 	[RDMA_NLDEV_ATTR_PORT_PHYS_STATE] = MNL_TYPE_U8,
- 	[RDMA_NLDEV_ATTR_DEV_NODE_TYPE] = MNL_TYPE_U8,
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY]	= MNL_TYPE_NESTED,
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY]	= MNL_TYPE_NESTED,
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME] = MNL_TYPE_NUL_STRING,
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR] = MNL_TYPE_U64,
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX]	= MNL_TYPE_U64,
- };
- 
- int rd_attr_cb(const struct nlattr *attr, void *data)
++.SH AUTHOR
++Leon Romanovsky <leonro@mellanox.com>
 -- 
 2.15.1
