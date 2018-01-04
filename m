@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v2 13/14] IB/mlx5: Don't advertise RAW QP support in dual port mode
-Date: Thu,  4 Jan 2018 17:25:43 +0200
-Message-ID: <20180104152544.28919-14-leon@kernel.org>
+Subject: [PATCH rdma-next v2 07/14] IB/mlx5: Move IB event processing onto a workqueue
+Date: Thu,  4 Jan 2018 17:25:37 +0200
+Message-ID: <20180104152544.28919-8-leon@kernel.org>
 References: <20180104152544.28919-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180104152544.28919-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,103 +12,171 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When operating in dual port RoCE mode FW doesn't support steering for
-raw QPs on the slave port. They still work on the master port, but
-the user has no way of knowing which port is the master. The
-capability is reported per device, not per port.
+Because mlx5_ib_event can be called from atomic context move event
+handling onto a workqueue. A mutex lock is required to get the IB device
+for slave ports, so move event processing onto a work queue. When an IB
+event is received, check if the mlx5_core_dev  is a slave port, if so
+attempt to get the IB device it's affiliated with. If found process the
+event for that device, otherwise return.
 
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 69 +++++++++++++++++++++++++++++++--------
+ 1 file changed, 56 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 653b56377e69..5d6fba986fa5 100644
+index 4fbbe4c7a99b..0ff6da1b885f 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -731,6 +731,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 	int max_rq_sg;
- 	int max_sq_sg;
- 	u64 min_page_size = 1ull << MLX5_CAP_GEN(mdev, log_pg_sz);
-+	bool raw_support = !mlx5_core_mp_enabled(mdev);
- 	struct mlx5_ib_query_device_resp resp = {};
- 	size_t resp_len;
- 	u64 max_tso;
-@@ -794,7 +795,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 	if (MLX5_CAP_GEN(mdev, block_lb_mc))
- 		props->device_cap_flags |= IB_DEVICE_BLOCK_MULTICAST_LOOPBACK;
+@@ -70,10 +70,19 @@ static char mlx5_version[] =
+ 	DRIVER_NAME ": Mellanox Connect-IB Infiniband driver v"
+ 	DRIVER_VERSION "\n";
  
--	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads)) {
-+	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) && raw_support) {
- 		if (MLX5_CAP_ETH(mdev, csum_cap)) {
- 			/* Legacy bit to support old userspace libraries */
- 			props->device_cap_flags |= IB_DEVICE_RAW_IP_CSUM;
-@@ -843,7 +844,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 	}
++struct mlx5_ib_event_work {
++	struct work_struct	work;
++	struct mlx5_core_dev	*dev;
++	void			*context;
++	enum mlx5_dev_event	event;
++	unsigned long		param;
++};
++
+ enum {
+ 	MLX5_ATOMIC_SIZE_QP_8BYTES = 1 << 3,
+ };
  
- 	if (MLX5_CAP_GEN(dev->mdev, rq_delay_drop) &&
--	    MLX5_CAP_GEN(dev->mdev, general_notification_event))
-+	    MLX5_CAP_GEN(dev->mdev, general_notification_event) &&
-+	    raw_support)
- 		props->raw_packet_caps |= IB_RAW_PACKET_CAP_DELAY_DROP;
++static struct workqueue_struct *mlx5_ib_event_wq;
+ static LIST_HEAD(mlx5_ib_unaffiliated_port_list);
+ static LIST_HEAD(mlx5_ib_dev_list);
+ /*
+@@ -3132,15 +3141,24 @@ static void delay_drop_handler(struct work_struct *work)
+ 	mutex_unlock(&delay_drop->lock);
+ }
  
- 	if (MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads) &&
-@@ -851,7 +853,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		props->device_cap_flags |= IB_DEVICE_UD_IP_CSUM;
+-static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
+-			  enum mlx5_dev_event event, unsigned long param)
++static void mlx5_ib_handle_event(struct work_struct *_work)
+ {
+-	struct mlx5_ib_dev *ibdev = (struct mlx5_ib_dev *)context;
++	struct mlx5_ib_event_work *work =
++		container_of(_work, struct mlx5_ib_event_work, work);
++	struct mlx5_ib_dev *ibdev;
+ 	struct ib_event ibev;
+ 	bool fatal = false;
+ 	u8 port = 0;
  
- 	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
--	    MLX5_CAP_ETH(dev->mdev, scatter_fcs)) {
-+	    MLX5_CAP_ETH(dev->mdev, scatter_fcs) &&
-+	    raw_support) {
- 		/* Legacy bit to support old userspace libraries */
- 		props->device_cap_flags |= IB_DEVICE_RAW_SCATTER_FCS;
- 		props->raw_packet_caps |= IB_RAW_PACKET_CAP_SCATTER_FCS;
-@@ -915,7 +918,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		props->device_cap_flags |= IB_DEVICE_VIRTUAL_FUNCTION;
+-	switch (event) {
++	if (mlx5_core_is_mp_slave(work->dev)) {
++		ibdev = mlx5_ib_get_ibdev_from_mpi(work->context);
++		if (!ibdev)
++			goto out;
++	} else {
++		ibdev = work->context;
++	}
++
++	switch (work->event) {
+ 	case MLX5_DEV_EVENT_SYS_ERROR:
+ 		ibev.event = IB_EVENT_DEVICE_FATAL;
+ 		mlx5_ib_handle_internal_error(ibdev);
+@@ -3150,39 +3168,39 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
+ 	case MLX5_DEV_EVENT_PORT_UP:
+ 	case MLX5_DEV_EVENT_PORT_DOWN:
+ 	case MLX5_DEV_EVENT_PORT_INITIALIZED:
+-		port = (u8)param;
++		port = (u8)work->param;
  
- 	if (mlx5_ib_port_link_layer(ibdev, 1) ==
--	    IB_LINK_LAYER_ETHERNET) {
-+	    IB_LINK_LAYER_ETHERNET && raw_support) {
- 		props->rss_caps.max_rwq_indirection_tables =
- 			1 << MLX5_CAP_GEN(dev->mdev, log_max_rqt);
- 		props->rss_caps.max_rwq_indirection_table_size =
-@@ -952,7 +955,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		resp.response_length += sizeof(resp.cqe_comp_caps);
- 	}
+ 		/* In RoCE, port up/down events are handled in
+ 		 * mlx5_netdev_event().
+ 		 */
+ 		if (mlx5_ib_port_link_layer(&ibdev->ib_dev, port) ==
+ 			IB_LINK_LAYER_ETHERNET)
+-			return;
++			goto out;
  
--	if (field_avail(typeof(resp), packet_pacing_caps, uhw->outlen)) {
-+	if (field_avail(typeof(resp), packet_pacing_caps, uhw->outlen) &&
-+	    raw_support) {
- 		if (MLX5_CAP_QOS(mdev, packet_pacing) &&
- 		    MLX5_CAP_GEN(mdev, qos)) {
- 			resp.packet_pacing_caps.qp_rate_limit_max =
-@@ -1011,7 +1015,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		}
- 	}
+-		ibev.event = (event == MLX5_DEV_EVENT_PORT_UP) ?
++		ibev.event = (work->event == MLX5_DEV_EVENT_PORT_UP) ?
+ 			     IB_EVENT_PORT_ACTIVE : IB_EVENT_PORT_ERR;
+ 		break;
  
--	if (field_avail(typeof(resp), striding_rq_caps, uhw->outlen)) {
-+	if (field_avail(typeof(resp), striding_rq_caps, uhw->outlen) &&
-+	    raw_support) {
- 		resp.response_length += sizeof(resp.striding_rq_caps);
- 		if (MLX5_CAP_GEN(mdev, striding_rq)) {
- 			resp.striding_rq_caps.min_single_stride_log_num_of_bytes =
-@@ -3681,12 +3686,14 @@ static u32 get_core_cap_flags(struct ib_device *ibdev)
- 	enum rdma_link_layer ll = mlx5_ib_port_link_layer(ibdev, 1);
- 	u8 l3_type_cap = MLX5_CAP_ROCE(dev->mdev, l3_type);
- 	u8 roce_version_cap = MLX5_CAP_ROCE(dev->mdev, roce_version);
-+	bool raw_support = !mlx5_core_mp_enabled(dev->mdev);
- 	u32 ret = 0;
+ 	case MLX5_DEV_EVENT_LID_CHANGE:
+ 		ibev.event = IB_EVENT_LID_CHANGE;
+-		port = (u8)param;
++		port = (u8)work->param;
+ 		break;
  
- 	if (ll == IB_LINK_LAYER_INFINIBAND)
- 		return RDMA_CORE_PORT_IBA_IB;
+ 	case MLX5_DEV_EVENT_PKEY_CHANGE:
+ 		ibev.event = IB_EVENT_PKEY_CHANGE;
+-		port = (u8)param;
++		port = (u8)work->param;
  
--	ret = RDMA_CORE_PORT_RAW_PACKET;
-+	if (raw_support)
-+		ret = RDMA_CORE_PORT_RAW_PACKET;
+ 		schedule_work(&ibdev->devr.ports[port - 1].pkey_change_work);
+ 		break;
  
- 	if (!(l3_type_cap & MLX5_ROCE_L3_TYPE_IPV4_CAP))
- 		return ret;
+ 	case MLX5_DEV_EVENT_GUID_CHANGE:
+ 		ibev.event = IB_EVENT_GID_CHANGE;
+-		port = (u8)param;
++		port = (u8)work->param;
+ 		break;
+ 
+ 	case MLX5_DEV_EVENT_CLIENT_REREG:
+ 		ibev.event = IB_EVENT_CLIENT_REREGISTER;
+-		port = (u8)param;
++		port = (u8)work->param;
+ 		break;
+ 	case MLX5_DEV_EVENT_DELAY_DROP_TIMEOUT:
+ 		schedule_work(&ibdev->delay_drop.delay_drop_work);
+@@ -3204,9 +3222,29 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
+ 
+ 	if (fatal)
+ 		ibdev->ib_active = false;
+-
+ out:
+-	return;
++	kfree(work);
++}
++
++static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
++			  enum mlx5_dev_event event, unsigned long param)
++{
++	struct mlx5_ib_event_work *work;
++
++	work = kmalloc(sizeof(*work), GFP_ATOMIC);
++	if (work) {
++		INIT_WORK(&work->work, mlx5_ib_handle_event);
++		work->dev = dev;
++		work->param = param;
++		work->context = context;
++		work->event = event;
++
++		queue_work(mlx5_ib_event_wq, &work->work);
++		return;
++	}
++
++	dev_warn(&dev->pdev->dev, "%s: mlx5_dev_event: %d, with param: %lu dropped, couldn't allocate memory.\n",
++		 __func__, event, param);
+ }
+ 
+ static int set_has_smi_cap(struct mlx5_ib_dev *dev)
+@@ -4917,6 +4955,10 @@ static int __init mlx5_ib_init(void)
+ {
+ 	int err;
+ 
++	mlx5_ib_event_wq = alloc_ordered_workqueue("mlx5_ib_event_wq", 0);
++	if (!mlx5_ib_event_wq)
++		return -ENOMEM;
++
+ 	mlx5_ib_odp_init();
+ 
+ 	err = mlx5_register_interface(&mlx5_ib_interface);
+@@ -4927,6 +4969,7 @@ static int __init mlx5_ib_init(void)
+ static void __exit mlx5_ib_cleanup(void)
+ {
+ 	mlx5_unregister_interface(&mlx5_ib_interface);
++	destroy_workqueue(mlx5_ib_event_wq);
+ }
+ 
+ module_init(mlx5_ib_init);
 -- 
 2.15.1
 
