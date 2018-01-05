@@ -1,7 +1,7 @@
 From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [for-next 1/5] RDMA/bnxt_re: Enable RoCE on virtual functions
-Date: Fri,  5 Jan 2018 06:40:30 -0500
-Message-ID: <1515152434-13105-2-git-send-email-devesh.sharma@broadcom.com>
+Subject: [for-next 2/5] RDMA/bnxt_re: Add support for query firmware version
+Date: Fri,  5 Jan 2018 06:40:31 -0500
+Message-ID: <1515152434-13105-3-git-send-email-devesh.sharma@broadcom.com>
 References: <1515152434-13105-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1515152434-13105-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
@@ -12,413 +12,178 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
-RoCE can be used by virtual functions (VFs) as well. Adding
-code changes to allow resource reservation, initialization
-and avail the resources to the RDMA applications running on
-those VFs.
-
-Currently, fifty percent of the total available resources
-are reserved for PF and remaining are equally divided among
-active VFs.
+The device now reports firmware version thus, removing
+the hard coded values of the FW version string and
+redundant fw_rev hook from sysfs. Adding code to query
+firmware version from underlying device and report it
+through the kernel verb to get firmware version string.
 
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/bnxt_re/bnxt_re.h  |  15 ++++
- drivers/infiniband/hw/bnxt_re/ib_verbs.c |  17 ++--
- drivers/infiniband/hw/bnxt_re/main.c     | 135 ++++++++++++++++++++++++-------
- drivers/infiniband/hw/bnxt_re/qplib_sp.c |  37 ++++++++-
- drivers/infiniband/hw/bnxt_re/qplib_sp.h |   5 +-
- drivers/infiniband/hw/bnxt_re/roce_hsi.h |  10 +++
- 6 files changed, 182 insertions(+), 37 deletions(-)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c   | 14 ++++++++++++--
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h   |  1 +
+ drivers/infiniband/hw/bnxt_re/main.c       | 11 +----------
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c |  3 ++-
+ drivers/infiniband/hw/bnxt_re/qplib_sp.c   | 25 ++++++++++++++++++++++++-
+ drivers/infiniband/hw/bnxt_re/qplib_sp.h   |  3 ++-
+ 6 files changed, 42 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-index ecbac91..b604277 100644
---- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-+++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-@@ -57,6 +57,19 @@
- #define BNXT_RE_MAX_MRW_COUNT		(64 * 1024)
- #define BNXT_RE_MAX_SRQC_COUNT		(64 * 1024)
- #define BNXT_RE_MAX_CQ_COUNT		(64 * 1024)
-+#define BNXT_RE_MAX_MRW_COUNT_64K	(64 * 1024)
-+#define BNXT_RE_MAX_MRW_COUNT_256K	(256 * 1024)
-+
-+/* Number of MRs to reserve for PF, leaving remainder for VFs */
-+#define BNXT_RE_RESVD_MR_FOR_PF         (32 * 1024)
-+#define BNXT_RE_MAX_GID_PER_VF          128
-+
-+/*
-+ * Percentage of resources of each type reserved for PF.
-+ * Remaining resources are divided equally among VFs.
-+ * [0, 100]
-+ */
-+#define BNXT_RE_PCT_RSVD_FOR_PF         50
- 
- #define BNXT_RE_UD_QP_HW_STALL		0x400000
- 
-@@ -145,6 +158,8 @@ struct bnxt_re_dev {
- 	struct bnxt_re_ah		*sqp_ah;
- 	struct bnxt_re_sqp_entries sqp_tbl[1024];
- 	atomic_t nq_alloc_cnt;
-+	u32 is_virtfn;
-+	u32 num_vfs;
- };
- 
- #define to_bnxt_re_dev(ptr, member)	\
 diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 2032db7..6dd2fe1 100644
+index 6dd2fe1..8a80e95 100644
 --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
 +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -2295,10 +2295,14 @@ int bnxt_re_post_recv(struct ib_qp *ib_qp, struct ib_recv_wr *wr,
- /* Completion Queues */
- int bnxt_re_destroy_cq(struct ib_cq *ib_cq)
- {
--	struct bnxt_re_cq *cq = container_of(ib_cq, struct bnxt_re_cq, ib_cq);
--	struct bnxt_re_dev *rdev = cq->rdev;
- 	int rc;
--	struct bnxt_qplib_nq *nq = cq->qplib_cq.nq;
-+	struct bnxt_re_cq *cq;
-+	struct bnxt_qplib_nq *nq;
-+	struct bnxt_re_dev *rdev;
-+
-+	cq = container_of(ib_cq, struct bnxt_re_cq, ib_cq);
-+	rdev = cq->rdev;
-+	nq = cq->qplib_cq.nq;
+@@ -141,8 +141,9 @@ int bnxt_re_query_device(struct ib_device *ibdev,
+ 	struct bnxt_qplib_dev_attr *dev_attr = &rdev->dev_attr;
  
- 	rc = bnxt_qplib_destroy_cq(&rdev->qplib_res, &cq->qplib_cq);
- 	if (rc) {
-@@ -2308,12 +2312,11 @@ int bnxt_re_destroy_cq(struct ib_cq *ib_cq)
- 	if (!IS_ERR_OR_NULL(cq->umem))
- 		ib_umem_release(cq->umem);
- 
--	if (cq) {
--		kfree(cq->cql);
--		kfree(cq);
--	}
- 	atomic_dec(&rdev->cq_count);
- 	nq->budget--;
-+	kfree(cq->cql);
-+	kfree(cq);
-+
+ 	memset(ib_attr, 0, sizeof(*ib_attr));
+-
+-	ib_attr->fw_ver = (u64)(unsigned long)(dev_attr->fw_ver);
++	memcpy(&ib_attr->fw_ver, dev_attr->fw_ver,
++	       min(sizeof(dev_attr->fw_ver),
++		   sizeof(ib_attr->fw_ver)));
+ 	bnxt_qplib_get_guid(rdev->netdev->dev_addr,
+ 			    (u8 *)&ib_attr->sys_image_guid);
+ 	ib_attr->max_mr_size = BNXT_RE_MAX_MR_SIZE;
+@@ -281,6 +282,15 @@ int bnxt_re_get_port_immutable(struct ib_device *ibdev, u8 port_num,
  	return 0;
  }
  
++void bnxt_re_query_fw_str(struct ib_device *ibdev, char *str)
++{
++	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibdev, ibdev);
++
++	snprintf(str, IB_FW_VERSION_NAME_MAX, "%d.%d.%d.%d",
++		 rdev->dev_attr.fw_ver[0], rdev->dev_attr.fw_ver[1],
++		 rdev->dev_attr.fw_ver[2], rdev->dev_attr.fw_ver[3]);
++}
++
+ int bnxt_re_query_pkey(struct ib_device *ibdev, u8 port_num,
+ 		       u16 index, u16 *pkey)
+ {
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+index 1df11ed2..66dd8d2 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+@@ -143,6 +143,7 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
+ 		       struct ib_port_attr *port_attr);
+ int bnxt_re_get_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 			       struct ib_port_immutable *immutable);
++void bnxt_re_query_fw_str(struct ib_device *ibdev, char *str);
+ int bnxt_re_query_pkey(struct ib_device *ibdev, u8 port_num,
+ 		       u16 index, u16 *pkey);
+ int bnxt_re_del_gid(struct ib_device *ibdev, u8 port_num,
 diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index aafc19a..d825df0 100644
+index d825df0..38a5d4b 100644
 --- a/drivers/infiniband/hw/bnxt_re/main.c
 +++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -80,6 +80,79 @@
- static struct workqueue_struct *bnxt_re_wq;
- static void bnxt_re_ib_unreg(struct bnxt_re_dev *rdev, bool lock_wait);
+@@ -572,6 +572,7 @@ static int bnxt_re_register_ib(struct bnxt_re_dev *rdev)
  
-+/* SR-IOV helper functions */
-+
-+static void bnxt_re_get_sriov_func_type(struct bnxt_re_dev *rdev)
-+{
-+	struct bnxt *bp;
-+
-+	bp = netdev_priv(rdev->en_dev->net);
-+	if (BNXT_VF(bp))
-+		rdev->is_virtfn = 1;
-+}
-+
-+/* Set the maximum number of each resource that the driver actually wants
-+ * to allocate. This may be up to the maximum number the firmware has
-+ * reserved for the function. The driver may choose to allocate fewer
-+ * resources than the firmware maximum.
-+ */
-+static void bnxt_re_set_resource_limits(struct bnxt_re_dev *rdev)
-+{
-+	u32 vf_qps = 0, vf_srqs = 0, vf_cqs = 0, vf_mrws = 0, vf_gids = 0;
-+	u32 i;
-+	u32 vf_pct;
-+	u32 num_vfs;
-+	struct bnxt_qplib_dev_attr *dev_attr = &rdev->dev_attr;
-+
-+	rdev->qplib_ctx.qpc_count = min_t(u32, BNXT_RE_MAX_QPC_COUNT,
-+					  dev_attr->max_qp);
-+
-+	rdev->qplib_ctx.mrw_count = BNXT_RE_MAX_MRW_COUNT_256K;
-+	/* Use max_mr from fw since max_mrw does not get set */
-+	rdev->qplib_ctx.mrw_count = min_t(u32, rdev->qplib_ctx.mrw_count,
-+					  dev_attr->max_mr);
-+	rdev->qplib_ctx.srqc_count = min_t(u32, BNXT_RE_MAX_SRQC_COUNT,
-+					   dev_attr->max_srq);
-+	rdev->qplib_ctx.cq_count = min_t(u32, BNXT_RE_MAX_CQ_COUNT,
-+					 dev_attr->max_cq);
-+
-+	for (i = 0; i < MAX_TQM_ALLOC_REQ; i++)
-+		rdev->qplib_ctx.tqm_count[i] =
-+		rdev->dev_attr.tqm_alloc_reqs[i];
-+
-+	if (rdev->num_vfs) {
-+		/*
-+		 * Reserve a set of resources for the PF. Divide the remaining
-+		 * resources among the VFs
-+		 */
-+		vf_pct = 100 - BNXT_RE_PCT_RSVD_FOR_PF;
-+		num_vfs = 100 * rdev->num_vfs;
-+		vf_qps = (rdev->qplib_ctx.qpc_count * vf_pct) / num_vfs;
-+		vf_srqs = (rdev->qplib_ctx.srqc_count * vf_pct) / num_vfs;
-+		vf_cqs = (rdev->qplib_ctx.cq_count * vf_pct) / num_vfs;
-+		/*
-+		 * The driver allows many more MRs than other resources. If the
-+		 * firmware does also, then reserve a fixed amount for the PF
-+		 * and divide the rest among VFs. VFs may use many MRs for NFS
-+		 * mounts, ISER, NVME applications, etc. If the firmware
-+		 * severely restricts the number of MRs, then let PF have
-+		 * half and divide the rest among VFs, as for the other
-+		 * resource types.
-+		 */
-+		if (rdev->qplib_ctx.mrw_count < BNXT_RE_MAX_MRW_COUNT_64K)
-+			vf_mrws = rdev->qplib_ctx.mrw_count * vf_pct / num_vfs;
-+		else
-+			vf_mrws = (rdev->qplib_ctx.mrw_count -
-+				   BNXT_RE_RESVD_MR_FOR_PF) / rdev->num_vfs;
-+		vf_gids = BNXT_RE_MAX_GID_PER_VF;
-+	}
-+	rdev->qplib_ctx.vf_res.max_mrw_per_vf = vf_mrws;
-+	rdev->qplib_ctx.vf_res.max_gid_per_vf = vf_gids;
-+	rdev->qplib_ctx.vf_res.max_qp_per_vf = vf_qps;
-+	rdev->qplib_ctx.vf_res.max_srq_per_vf = vf_srqs;
-+	rdev->qplib_ctx.vf_res.max_cq_per_vf = vf_cqs;
-+}
-+
- /* for handling bnxt_en callbacks later */
- static void bnxt_re_stop(void *p)
- {
-@@ -91,6 +164,15 @@ static void bnxt_re_start(void *p)
- 
- static void bnxt_re_sriov_config(void *p, int num_vfs)
- {
-+	struct bnxt_re_dev *rdev = p;
-+
-+	if (!rdev)
-+		return;
-+
-+	rdev->num_vfs = num_vfs;
-+	bnxt_re_set_resource_limits(rdev);
-+	bnxt_qplib_set_func_resources(&rdev->qplib_res, &rdev->rcfw,
-+				      &rdev->qplib_ctx);
+ 	ibdev->query_port		= bnxt_re_query_port;
+ 	ibdev->get_port_immutable	= bnxt_re_get_port_immutable;
++	ibdev->get_dev_fw_str           = bnxt_re_query_fw_str;
+ 	ibdev->query_pkey		= bnxt_re_query_pkey;
+ 	ibdev->query_gid		= bnxt_re_query_gid;
+ 	ibdev->get_netdev		= bnxt_re_get_netdev;
+@@ -623,14 +624,6 @@ static ssize_t show_rev(struct device *device, struct device_attribute *attr,
+ 	return scnprintf(buf, PAGE_SIZE, "0x%x\n", rdev->en_dev->pdev->vendor);
  }
  
- static void bnxt_re_shutdown(void *p)
-@@ -734,7 +816,8 @@ static int bnxt_re_alloc_res(struct bnxt_re_dev *rdev)
- 
- 	/* Configure and allocate resources for qplib */
- 	rdev->qplib_res.rcfw = &rdev->rcfw;
--	rc = bnxt_qplib_get_dev_attr(&rdev->rcfw, &rdev->dev_attr);
-+	rc = bnxt_qplib_get_dev_attr(&rdev->rcfw, &rdev->dev_attr,
-+				     rdev->is_virtfn);
- 	if (rc)
- 		goto fail;
- 
-@@ -1035,19 +1118,6 @@ static void bnxt_re_ib_unreg(struct bnxt_re_dev *rdev, bool lock_wait)
- 	}
- }
- 
--static void bnxt_re_set_resource_limits(struct bnxt_re_dev *rdev)
+-static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
+-			   char *buf)
 -{
--	u32 i;
+-	struct bnxt_re_dev *rdev = to_bnxt_re_dev(device, ibdev.dev);
 -
--	rdev->qplib_ctx.qpc_count = BNXT_RE_MAX_QPC_COUNT;
--	rdev->qplib_ctx.mrw_count = BNXT_RE_MAX_MRW_COUNT;
--	rdev->qplib_ctx.srqc_count = BNXT_RE_MAX_SRQC_COUNT;
--	rdev->qplib_ctx.cq_count = BNXT_RE_MAX_CQ_COUNT;
--	for (i = 0; i < MAX_TQM_ALLOC_REQ; i++)
--		rdev->qplib_ctx.tqm_count[i] =
--		rdev->dev_attr.tqm_alloc_reqs[i];
+-	return scnprintf(buf, PAGE_SIZE, "%s\n", rdev->dev_attr.fw_ver);
 -}
 -
- /* worker thread for polling periodic events. Now used for QoS programming*/
- static void bnxt_re_worker(struct work_struct *work)
+ static ssize_t show_hca(struct device *device, struct device_attribute *attr,
+ 			char *buf)
  {
-@@ -1070,6 +1140,9 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
- 	}
- 	set_bit(BNXT_RE_FLAG_NETDEV_REGISTERED, &rdev->flags);
+@@ -640,12 +633,10 @@ static ssize_t show_hca(struct device *device, struct device_attribute *attr,
+ }
  
-+	/* Check whether VF or PF */
-+	bnxt_re_get_sriov_func_type(rdev);
-+
- 	rc = bnxt_re_request_msix(rdev);
- 	if (rc) {
- 		pr_err("Failed to get MSI-X vectors: %#x\n", rc);
-@@ -1101,16 +1174,18 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
- 				(rdev->en_dev->pdev, &rdev->rcfw,
- 				 rdev->msix_entries[BNXT_RE_AEQ_IDX].vector,
- 				 rdev->msix_entries[BNXT_RE_AEQ_IDX].db_offset,
--				 0, &bnxt_re_aeq_handler);
-+				 rdev->is_virtfn, &bnxt_re_aeq_handler);
- 	if (rc) {
- 		pr_err("Failed to enable RCFW channel: %#x\n", rc);
- 		goto free_ring;
- 	}
+ static DEVICE_ATTR(hw_rev, 0444, show_rev, NULL);
+-static DEVICE_ATTR(fw_rev, 0444, show_fw_ver, NULL);
+ static DEVICE_ATTR(hca_type, 0444, show_hca, NULL);
  
--	rc = bnxt_qplib_get_dev_attr(&rdev->rcfw, &rdev->dev_attr);
-+	rc = bnxt_qplib_get_dev_attr(&rdev->rcfw, &rdev->dev_attr,
-+				     rdev->is_virtfn);
- 	if (rc)
- 		goto disable_rcfw;
--	bnxt_re_set_resource_limits(rdev);
-+	if (!rdev->is_virtfn)
-+		bnxt_re_set_resource_limits(rdev);
+ static struct device_attribute *bnxt_re_attributes[] = {
+ 	&dev_attr_hw_rev,
+-	&dev_attr_fw_rev,
+ 	&dev_attr_hca_type
+ };
  
- 	rc = bnxt_qplib_alloc_ctx(rdev->en_dev->pdev, &rdev->qplib_ctx, 0);
- 	if (rc) {
-@@ -1125,7 +1200,8 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
- 		goto free_ctx;
- 	}
- 
--	rc = bnxt_qplib_init_rcfw(&rdev->rcfw, &rdev->qplib_ctx, 0);
-+	rc = bnxt_qplib_init_rcfw(&rdev->rcfw, &rdev->qplib_ctx,
-+				  rdev->is_virtfn);
- 	if (rc) {
- 		pr_err("Failed to initialize RCFW: %#x\n", rc);
- 		goto free_sctx;
-@@ -1144,13 +1220,15 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
- 		goto fail;
- 	}
- 
--	rc = bnxt_re_setup_qos(rdev);
--	if (rc)
--		pr_info("RoCE priority not yet configured\n");
-+	if (!rdev->is_virtfn) {
-+		rc = bnxt_re_setup_qos(rdev);
-+		if (rc)
-+			pr_info("RoCE priority not yet configured\n");
- 
--	INIT_DELAYED_WORK(&rdev->worker, bnxt_re_worker);
--	set_bit(BNXT_RE_FLAG_QOS_WORK_REG, &rdev->flags);
--	schedule_delayed_work(&rdev->worker, msecs_to_jiffies(30000));
-+		INIT_DELAYED_WORK(&rdev->worker, bnxt_re_worker);
-+		set_bit(BNXT_RE_FLAG_QOS_WORK_REG, &rdev->flags);
-+		schedule_delayed_work(&rdev->worker, msecs_to_jiffies(30000));
-+	}
- 
- 	/* Register ib dev */
- 	rc = bnxt_re_register_ib(rdev);
-@@ -1400,7 +1478,7 @@ static int __init bnxt_re_mod_init(void)
- 
- static void __exit bnxt_re_mod_exit(void)
- {
--	struct bnxt_re_dev *rdev;
-+	struct bnxt_re_dev *rdev, *next;
- 	LIST_HEAD(to_be_deleted);
- 
- 	mutex_lock(&bnxt_re_dev_lock);
-@@ -1408,8 +1486,11 @@ static void __exit bnxt_re_mod_exit(void)
- 	if (!list_empty(&bnxt_re_dev_list))
- 		list_splice_init(&bnxt_re_dev_list, &to_be_deleted);
- 	mutex_unlock(&bnxt_re_dev_lock);
--
--	list_for_each_entry(rdev, &to_be_deleted, list) {
-+       /*
-+	* Cleanup the devices in reverse order so that the VF device
-+	* cleanup is done before PF cleanup
-+	*/
-+	list_for_each_entry_safe_reverse(rdev, next, &to_be_deleted, list) {
- 		dev_info(rdev_to_dev(rdev), "Unregistering Device");
- 		bnxt_re_dev_stop(rdev);
- 		bnxt_re_ib_unreg(rdev, true);
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+index bb5574a..6a3633a 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+@@ -93,7 +93,8 @@ static int __send_message(struct bnxt_qplib_rcfw *rcfw, struct cmdq_base *req,
+ 	opcode = req->opcode;
+ 	if (!test_bit(FIRMWARE_INITIALIZED_FLAG, &rcfw->flags) &&
+ 	    (opcode != CMDQ_BASE_OPCODE_QUERY_FUNC &&
+-	     opcode != CMDQ_BASE_OPCODE_INITIALIZE_FW)) {
++	     opcode != CMDQ_BASE_OPCODE_INITIALIZE_FW &&
++	     opcode != CMDQ_BASE_OPCODE_QUERY_VERSION)) {
+ 		dev_err(&rcfw->pdev->dev,
+ 			"QPLIB: RCFW not initialized, reject opcode 0x%x",
+ 			opcode);
 diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-index 9543ce5..f5450b7 100644
+index f5450b7..60377a3 100644
 --- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
 +++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-@@ -65,7 +65,7 @@ static bool bnxt_qplib_is_atomic_cap(struct bnxt_qplib_rcfw *rcfw)
+@@ -64,6 +64,29 @@ static bool bnxt_qplib_is_atomic_cap(struct bnxt_qplib_rcfw *rcfw)
+ 	return !!(pcie_ctl2 & PCI_EXP_DEVCTL2_ATOMIC_REQ);
  }
  
- int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
--			    struct bnxt_qplib_dev_attr *attr)
-+			    struct bnxt_qplib_dev_attr *attr, bool vf)
- {
- 	struct cmdq_query_func req;
- 	struct creq_query_func_resp resp;
-@@ -95,7 +95,8 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
- 	/* Extract the context from the side buffer */
- 	attr->max_qp = le32_to_cpu(sb->max_qp);
- 	/* max_qp value reported by FW for PF doesn't include the QP1 for PF */
--	attr->max_qp += 1;
-+	if (!vf)
-+		attr->max_qp += 1;
- 	attr->max_qp_rd_atom =
- 		sb->max_qp_rd_atom > BNXT_QPLIB_MAX_OUT_RD_ATOM ?
- 		BNXT_QPLIB_MAX_OUT_RD_ATOM : sb->max_qp_rd_atom;
-@@ -150,6 +151,38 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
- 	return rc;
- }
- 
-+int bnxt_qplib_set_func_resources(struct bnxt_qplib_res *res,
-+				  struct bnxt_qplib_rcfw *rcfw,
-+				  struct bnxt_qplib_ctx *ctx)
++static void bnxt_qplib_query_version(struct bnxt_qplib_rcfw *rcfw,
++				     char *fw_ver)
 +{
-+	struct cmdq_set_func_resources req;
-+	struct creq_set_func_resources_resp resp;
++	struct cmdq_query_version req;
++	struct creq_query_version_resp resp;
 +	u16 cmd_flags = 0;
 +	int rc = 0;
 +
-+	RCFW_CMD_PREP(req, SET_FUNC_RESOURCES, cmd_flags);
-+
-+	req.number_of_qp = cpu_to_le32(ctx->qpc_count);
-+	req.number_of_mrw = cpu_to_le32(ctx->mrw_count);
-+	req.number_of_srq =  cpu_to_le32(ctx->srqc_count);
-+	req.number_of_cq = cpu_to_le32(ctx->cq_count);
-+
-+	req.max_qp_per_vf = cpu_to_le32(ctx->vf_res.max_qp_per_vf);
-+	req.max_mrw_per_vf = cpu_to_le32(ctx->vf_res.max_mrw_per_vf);
-+	req.max_srq_per_vf = cpu_to_le32(ctx->vf_res.max_srq_per_vf);
-+	req.max_cq_per_vf = cpu_to_le32(ctx->vf_res.max_cq_per_vf);
-+	req.max_gid_per_vf = cpu_to_le32(ctx->vf_res.max_gid_per_vf);
++	RCFW_CMD_PREP(req, QUERY_VERSION, cmd_flags);
 +
 +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
-+					  (void *)&resp,
-+					  NULL, 0);
++					  (void *)&resp, NULL, 0);
 +	if (rc) {
-+		dev_err(&res->pdev->dev,
-+			"QPLIB: Failed to set function resources");
++		dev_err(&rcfw->pdev->dev, "QPLIB: Failed to query version");
++		return;
 +	}
-+	return rc;
++
++	fw_ver[0] = resp.fw_maj;
++	fw_ver[1] = resp.fw_minor;
++	fw_ver[2] = resp.fw_bld;
++	fw_ver[3] = resp.fw_rsvd;
 +}
 +
- /* SGID */
- int bnxt_qplib_get_sgid(struct bnxt_qplib_res *res,
- 			struct bnxt_qplib_sgid_tbl *sgid_tbl, int index,
+ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
+ 			    struct bnxt_qplib_dev_attr *attr, bool vf)
+ {
+@@ -134,7 +157,7 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
+ 	attr->l2_db_size = (sb->l2_db_space_size + 1) * PAGE_SIZE;
+ 	attr->max_sgid = le32_to_cpu(sb->max_gid);
+ 
+-	strlcpy(attr->fw_ver, "20.6.28.0", sizeof(attr->fw_ver));
++	bnxt_qplib_query_version(rcfw, attr->fw_ver);
+ 
+ 	for (i = 0; i < MAX_TQM_ALLOC_REQ / 4; i++) {
+ 		temp = le32_to_cpu(sb->tqm_alloc_reqs[i]);
 diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.h b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-index 1132258..51bb784 100644
+index 51bb784..0828bb1 100644
 --- a/drivers/infiniband/hw/bnxt_re/qplib_sp.h
 +++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-@@ -147,7 +147,10 @@ int bnxt_qplib_add_pkey(struct bnxt_qplib_res *res,
- 			struct bnxt_qplib_pkey_tbl *pkey_tbl, u16 *pkey,
- 			bool update);
- int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
--			    struct bnxt_qplib_dev_attr *attr);
-+			    struct bnxt_qplib_dev_attr *attr, bool vf);
-+int bnxt_qplib_set_func_resources(struct bnxt_qplib_res *res,
-+				  struct bnxt_qplib_rcfw *rcfw,
-+				  struct bnxt_qplib_ctx *ctx);
- int bnxt_qplib_create_ah(struct bnxt_qplib_res *res, struct bnxt_qplib_ah *ah);
- int bnxt_qplib_destroy_ah(struct bnxt_qplib_res *res, struct bnxt_qplib_ah *ah);
- int bnxt_qplib_alloc_mrw(struct bnxt_qplib_res *res,
-diff --git a/drivers/infiniband/hw/bnxt_re/roce_hsi.h b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-index c3cba606..f429fdb 100644
---- a/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-+++ b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-@@ -1799,6 +1799,16 @@ struct cmdq_set_func_resources {
- 	u8 resp_size;
- 	u8 reserved8;
- 	__le64 resp_addr;
-+	__le32 number_of_qp;
-+	__le32 number_of_mrw;
-+	__le32 number_of_srq;
-+	__le32 number_of_cq;
-+	__le32 max_qp_per_vf;
-+	__le32 max_mrw_per_vf;
-+	__le32 max_srq_per_vf;
-+	__le32 max_cq_per_vf;
-+	__le32 max_gid_per_vf;
-+	__le32 stat_ctx_id;
- };
+@@ -45,7 +45,8 @@
+ #define PCI_EXP_DEVCTL2_ATOMIC_REQ      0x0040
  
- /* Read hardware resource context command (24 bytes) */
+ struct bnxt_qplib_dev_attr {
+-	char				fw_ver[32];
++#define FW_VER_ARR_LEN			4
++	u8				fw_ver[FW_VER_ARR_LEN];
+ 	u16				max_sgid;
+ 	u16				max_mrw;
+ 	u32				max_qp;
 -- 
 1.8.3.1
 
