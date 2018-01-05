@@ -1,68 +1,44 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] i40iw: Replace mdelay with msleep in i40iw_wait_pe_ready
-Date: Fri, 05 Jan 2018 13:47:10 -0500
-Message-ID: <1515178030.3403.31.camel@redhat.com>
-References: <1514111980-30502-1-git-send-email-baijiaju1990@gmail.com>
-         <20180105174441.GA13368@ssaleem-MOBL4.amr.corp.intel.com>
+From: Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 09/12] nvme-pci: Use PCI p2pmem subsystem to manage the CMB
+Date: Fri, 5 Jan 2018 12:01:35 -0700
+Message-ID: <20180105190135.GB10657@localhost.localdomain>
+References: <20180104190137.7654-1-logang@deltatee.com>
+ <20180104190137.7654-10-logang@deltatee.com>
+ <20180105181152.GA10657@localhost.localdomain>
+ <6c89e4b4-1854-c251-a5ec-7e54bc8085fc@deltatee.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-EMuaHHgQo8ZPC4ovKLze"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180105174441.GA13368@ssaleem-MOBL4.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Shiraz Saleem <shiraz.saleem@intel.com>, Jia-Ju Bai <baijiaju1990@gmail.com>
-Cc: "Latif, Faisal" <faisal.latif@intel.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <6c89e4b4-1854-c251-a5ec-7e54bc8085fc-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Jan 05, 2018 at 11:19:28AM -0700, Logan Gunthorpe wrote:
+> Although it is not explicitly stated anywhere, pci_alloc_p2pmem() should
+> always be at least 4k aligned. This is because the gen_pool that implements
+> it is created with PAGE_SHIFT for its min_alloc_order.
 
---=-EMuaHHgQo8ZPC4ovKLze
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Ah, I see that now. Thanks for the explanation.
 
-On Fri, 2018-01-05 at 11:44 -0600, Shiraz Saleem wrote:
-> On Sun, Dec 24, 2017 at 03:39:40AM -0700, Jia-Ju Bai wrote:
-> > i40iw_wait_pe_ready is not called in an interrupt handler=20
-> > nor holding a spinlock.
-> > The function mdelay in it can be replaced with msleep,=20
-> > to reduce busy wait.
-> >=20
-> > Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
-> > ---
-> >  drivers/infiniband/hw/i40iw/i40iw_main.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >=20
->=20
-> Thanks!
-> Acked-by: Shiraz Saleem <shiraz.saleem@intel.com>
->=20
-> =20
+Does it need to be created with page sized minimum alloc order? That
+granularity makes it difficult to fit SQs in CMB on archs with larger
+pages when we only needed 4k alignment.
 
-Thanks, applied.
+I was also hoping to extend this for PRP/SGL in CMB where even 4k is
+too high a granularity to make it really useful.
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-EMuaHHgQo8ZPC4ovKLze
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpPyC4ACgkQuCajMw5X
-L92DRQ/9EKRg3u/0Mq4/m5i5I9Yy4arwohKTmYy6QgB38l1HWtoDzhyx0O4bwdea
-ymT7h4MXSa7yMwu7vixuhfODLzECwOdMEpLACWSKEz7UW53tiZC7iI4QXso3dle+
-occoa3GpeRmJHYW8jufxNSIZTIKxBXgaS+rFB6cuiKCFPlrU6vYHQAZkxSpBjPjj
-gKEV1wp4VE4tirqN6i3RVbMPcZhj0yHLTRuHMTydpCWniXPcu0D/R0T+Ipm8nH82
-DSIihplO0gcj9UL1Ay98Se1KpCk734SM8aUOM66O4BqpjZ9vl08heQJZZJTqC4sw
-mML1+YnvTt4H7WYVBXjeiIhVRya95YJHwG2YYxvOEzr5t6sRo+y949BydRlRKh4D
-KRaYA5o/R68U108p8vdl5xYlciCUG6nC7zq/bqoyn2sEGC0225ucH+fkAFnnAdXS
-+eL+wfeoNIZDL2OXolefau01yJqnmPfVi/eTQpPiZ6A2qClFgzqoDiThLbmQvRVx
-vs8IBp2nTfl6Je4VJyTaLN78qXhxfZ89UBN5rnU8TNYnBY60pSyGCKHp9iqDiWvg
-nekhGX9yVL4Wh1og16daEq30lmA8OT863YajcSFsPPmFy8QmuKZQ55yNQ8+7y+lY
-kzcStxME5BaW4wr5srHq7SW3o82KEfXdgYS8Dv3p4rS/uTdSfS4=
-=EeMK
------END PGP SIGNATURE-----
-
---=-EMuaHHgQo8ZPC4ovKLze--
+It looks like creating the gen pool with a smaller minimum and
+gen_pool_first_fit_order_align algo would satisfy my use cases, but I'm
+not sure if there's another reason you've set it to page alignment.
