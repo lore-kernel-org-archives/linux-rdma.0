@@ -1,96 +1,96 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: Re: [PATCH 04/12] pci-p2p: Clear ACS P2P flags for all client devices
-Date: Fri, 5 Jan 2018 01:47:01 -0500
-Message-ID: <20180105064547.GA3212@redhat.com>
-References: <20180104190137.7654-1-logang@deltatee.com>
- <20180104190137.7654-5-logang@deltatee.com>
- <20180104215721.GF189897@bhelgaas-glaptop.roam.corp.google.com>
- <20180104153551.3118f71b@t450s.home>
- <20fdb5bb-0236-c093-ed53-e12664022f53@deltatee.com>
- <20180104203300.79487c98@w520.home>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180104203300.79487c98@w520.home>
-Sender: linux-pci-owner@vger.kernel.org
-To: Alex Williamson <alex.williamson@redhat.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>, Bjorn Helgaas <helgaas@kernel.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 1/1] IB/rxe: remove unnecessary skb_clone in xmit
+Date: Fri,  5 Jan 2018 03:19:51 -0500
+Message-ID: <1515140391-24752-1-git-send-email-yanjun.zhu@oracle.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 04, 2018 at 08:33:00PM -0700, Alex Williamson wrote:
-> On Thu, 4 Jan 2018 17:00:47 -0700
-> Logan Gunthorpe <logang@deltatee.com> wrote:
-> 
-> > On 04/01/18 03:35 PM, Alex Williamson wrote:
-> > > Yep, flipping these ACS bits invalidates any IOMMU groups that depend
-> > > on the isolation of that downstream port and I suspect also any peers
-> > > within the same PCI slot of that port and their downstream devices.  The
-> > > entire sub-hierarchy grouping needs to be re-evaluated.  This
-> > > potentially affects running devices that depend on that isolation, so
-> > > I'm not sure how that happens dynamically.  A boot option might be
-> > > easier.  Thanks,  
-> > 
-> > I don't see how this is the case in current kernel code. It appears to 
-> > only enable ACS globally if the IOMMU requests it.
-> 
-> IOMMU groups don't exist unless the IOMMU is enabled and x86 and ARM
-> both request ACS be enabled if an IOMMU is present, so I'm not sure
-> what you're getting at here.  Also, in reply to your other email, if
-> the IOMMU is enabled, every device handled by the IOMMU is a member of
-> an IOMMU group, see struct device.iommu_group.  There's an
-> iommu_group_get() accessor to get a reference to it.
->  
-> > I also don't see how turning off ACS isolation for a specific device is 
-> > going to hurt anything. The IOMMU should still be able to keep going on 
-> > unaware that anything has changed. The only worry is that a security 
-> > hole may now be created if a user was relying on the isolation between 
-> > two devices that are in different VMs or something. However, if a user 
-> > was relying on this, they probably shouldn't have turned on P2P in the 
-> > first place.
-> 
-> That's exactly what IOMMU groups represent, the smallest set of devices
-> which have DMA isolation from other devices.  By poking this hole, the
-> IOMMU group is invalid.  We cannot turn off ACS only for a specific
-> device, in order to enable p2p it needs to be disabled at every
-> downstream port between the devices where we want to enable p2p.
-> Depending on the topology, that could mean we're also enabling p2p for
-> unrelated devices.  Those unrelated devices might be in active use and
-> the p2p IOVAs now have a different destination which is no longer IOMMU
-> translated.
->  
-> > We started with a fairly unintelligent choice to simply disable ACS on 
-> > any kernel that had CONFIG_PCI_P2P set. However, this did not seem like 
-> > a good idea going forward. Instead, we now selectively disable the ACS 
-> > bit only on the downstream ports that are involved in P2P transactions. 
-> > This seems like the safest choice and still allows people to (carefully) 
-> > use P2P adjacent to other devices that need to be isolated.
-> 
-> I don't see that the code is doing much checking that adjacent devices
-> are also affected by the p2p change and of course the IOMMU group is
-> entirely invalid once the p2p holes start getting poked.
-> 
-> > I don't think anyone wants another boot option that must be set in order 
-> > to use this functionality (and only some hardware would require this). 
-> > That's just a huge pain for users.
-> 
-> No, but nor do we need IOMMU groups that no longer represent what
-> they're intended to describe or runtime, unchecked routing changes
-> through the topology for devices that might already be using
-> conflicting IOVA ranges.  Maybe soft hotplugs are another possibility,
-> designate a sub-hierarchy to be removed and re-scanned with ACS
-> disabled.  Otherwise it seems like disabling and re-enabling ACS needs
-> to also handle merging and splitting groups dynamically.  Thanks,
-> 
+In xmit, there is a skb_clone. This function copies the struct sk_buff.
+And some parameters are changed to the new skb. Then the new skb is sent
+while the old skb is freed.
 
-Dumb question, can we use a PCI bar address of one device into the
-IOMMU page table of another address ie like we would DMA map a
-regular system page ?
+While the function skb_clone is removed, the parameter changes are made on
+the old skb, then the old skb is sent. It can also work well.
 
-It would be much better in my view to follow down such path if that
-is at all possible from hardware point of view (i am not sure where
-to dig in the specification to answer my above question).
+The following tests are made.
 
-Cheers,
-Jérôme
+ server                       client
+---------                    ---------
+|1.1.1.1|<----rxe-channel--->|1.1.1.2|
+---------                    ---------
+
+On server: rping -s -a 1.1.1.1 -v -C 1000 -S 512
+On client: rping -c -a 1.1.1.1 -v -C 1000 -S 512
+
+The kernel config CONFIG_DEBUG_KMEMLEAK is enabled on both server
+and client.
+
+This test runs for several hours. There is no memory leak and the whole
+system can work well.
+
+CC: Srinivas Eeda <srinivas.eeda-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+CC: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+CC: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe_net.c | 16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index 59dee10..5fc6bb5 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -452,31 +452,26 @@ static void rxe_skb_tx_dtor(struct sk_buff *skb)
+ 
+ int rxe_send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt, struct sk_buff *skb)
+ {
+-	struct sk_buff *nskb;
+ 	struct rxe_av *av;
+ 	int err;
+ 
+ 	av = rxe_get_av(pkt);
+ 
+-	nskb = skb_clone(skb, GFP_ATOMIC);
+-	if (!nskb)
+-		return -ENOMEM;
+-
+-	nskb->destructor = rxe_skb_tx_dtor;
+-	nskb->sk = pkt->qp->sk->sk;
++	skb->destructor = rxe_skb_tx_dtor;
++	skb->sk = pkt->qp->sk->sk;
+ 
+ 	rxe_add_ref(pkt->qp);
+ 	atomic_inc(&pkt->qp->skb_out);
+ 
+ 	if (av->network_type == RDMA_NETWORK_IPV4) {
+-		err = ip_local_out(dev_net(skb_dst(skb)->dev), nskb->sk, nskb);
++		err = ip_local_out(dev_net(skb_dst(skb)->dev), skb->sk, skb);
+ 	} else if (av->network_type == RDMA_NETWORK_IPV6) {
+-		err = ip6_local_out(dev_net(skb_dst(skb)->dev), nskb->sk, nskb);
++		err = ip6_local_out(dev_net(skb_dst(skb)->dev), skb->sk, skb);
+ 	} else {
+ 		pr_err("Unknown layer 3 protocol: %d\n", av->network_type);
+ 		atomic_dec(&pkt->qp->skb_out);
+ 		rxe_drop_ref(pkt->qp);
+-		kfree_skb(nskb);
++		kfree_skb(skb);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -485,7 +480,6 @@ int rxe_send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt, struct sk_buff *skb)
+ 		return -EAGAIN;
+ 	}
+ 
+-	kfree_skb(skb);
+ 	return 0;
+ }
+ 
+-- 
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
