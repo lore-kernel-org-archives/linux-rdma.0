@@ -1,31 +1,45 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next v2 00/14] index e382a3ca759e..d4a471a76d82 100644
-Date: Fri, 5 Jan 2018 22:44:06 +0200
-Message-ID: <CAJ3xEMjGwGbikOnhv9wtsKe_Cq42R_aF8p=LiWuxhppzKcXvbQ@mail.gmail.com>
-References: <20180104152544.28919-1-leon@kernel.org> <CAJ3xEMjptQf99ZdGxkB6kTh9LkQ7-pjiObMh+knDWXFStPOg7Q@mail.gmail.com>
- <2618f285-6fa4-06ac-4b4a-51d0b2660b61@mellanox.com> <CAJ3xEMhVxBqJUwdRn3BXJPnf9J-_gXtrWrQgun3bCEW7W7Oq1w@mail.gmail.com>
- <792bac90-b1eb-110f-399c-08d5309d92dd@mellanox.com> <CAJ3xEMjOGEQQf+y4wEEPiS_F9fhYmDwBmd=ucUDQX_9416gzKQ@mail.gmail.com>
- <d15d980b-1d67-277e-60f8-0b7e92035a06@mellanox.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH, resend 4/4] IB/srp: Add RDMA/CM support
+Date: Fri, 5 Jan 2018 20:53:33 +0000
+Message-ID: <1515185611.3254.21.camel@wdc.com>
+References: <20180104222842.26756-1-bart.vanassche@wdc.com>
+         <20180104222842.26756-5-bart.vanassche@wdc.com>
+         <1515172870.3403.11.camel@redhat.com> <20180105173448.GY11348@ziepe.ca>
+         <1515175618.3403.26.camel@redhat.com> <20180105192549.GA11348@ziepe.ca>
+         <1515183835.3403.62.camel@redhat.com> <20180105203506.GD11348@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <d15d980b-1d67-277e-60f8-0b7e92035a06-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20180105203506.GD11348-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
+Content-ID: <B57C648CC8F1E543AE87C029BFCF84CB-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 5, 2018 at 5:57 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote=
-:
-> Unmodified driver on one side fo the multihost or even a non-multihost co=
-nfiguration with unmodified drivers with a card with this feature enabled w=
-ould be the same as the VM scenario.  Single one port IB device per functio=
-n, with the unbalanced allocation of schedule queues in FW.
-
-got it. I guess if we want we can try and improve later things on the FW
-side using the proposed driver/FW API, since the FW does know if a driver
-instance is unaware (they use host id of 0s).
+T24gRnJpLCAyMDE4LTAxLTA1IGF0IDEzOjM1IC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IEFueWhvdy4gQmFydCBzaG91bGQgbG9vayBhdCB3aGF0IGlzY3NpIGRvZXMgZm9yIG5hbWVz
+cGFjZXMgYW5kIGNvcHkNCj4gdGhhdC4uIE5vIHNlbnNlIGluIGludmVudGluZyBzb21ldGhpbmcg
+dW5pcXVlIGZvciBSRE1BLg0KDQpVbmxlc3MgaWYgSSBtaXNzZWQgc29tZXRoaW5nLCBuZXR3b3Jr
+IG5hbWVzcGFjZSBzdXBwb3J0IHNlZW1zIHRvIGJlIG1pc3NpbmcNCmZyb20gdGhlIGlTQ1NJIGFu
+ZCBGQ29FIGluaXRpYXRvciBkcml2ZXJzOg0KDQokIGdpdCBncmVwIC1uSCAnc3RydWN0IG5ldFte
+WzphbG51bTpdX10nICovc2NzaQ0KJCBnaXQgZ3JlcCAtbkggJ2luaXRfbmV0JyAqL3Njc2kNCmRy
+aXZlcnMvc2NzaS9jeGdiaS9saWJjeGdiaS5jOjU5MzoJcnQgPSBpcF9yb3V0ZV9vdXRwdXRfcG9y
+dHMoJmluaXRfbmV0LCBmbDQsIE5VTEwsIGRhZGRyLCBzYWRkciwNCmRyaXZlcnMvc2NzaS9jeGdi
+aS9saWJjeGdiaS5jOjY0MjoJCW5kZXYgPSBpcF9kZXZfZmluZCgmaW5pdF9uZXQsIGRhZGRyLT5z
+aW5fYWRkci5zX2FkZHIpOw0KZHJpdmVycy9zY3NpL2N4Z2JpL2xpYmN4Z2JpLmM6NzA4OglyZXR1
+cm4gKHN0cnVjdCBydDZfaW5mbyAqKWlwNl9yb3V0ZV9vdXRwdXQoJmluaXRfbmV0LCBOVUxMLCAm
+ZmwpOw0KZHJpdmVycy9zY3NpL2N4Z2JpL2xpYmN4Z2JpLmM6NzkwOgkJZXJyID0gaXB2Nl9kZXZf
+Z2V0X3NhZGRyKCZpbml0X25ldCwgaWRldiA/IGlkZXYtPmRldiA6IE5VTEwsDQpkcml2ZXJzL3Nj
+c2kvZmNvZS9mY29lLmM6MTgxNToJbmV0ZGV2ID0gZGV2X2dldF9ieV9pbmRleCgmaW5pdF9uZXQs
+IGVudHJ5LT5pZmluZGV4KTsNCmRyaXZlcnMvc2NzaS9mY29lL2Zjb2VfdHJhbnNwb3J0LmM6NzI3
+OgkJcmV0dXJuIGRldl9nZXRfYnlfbmFtZSgmaW5pdF9uZXQsIGlmbmFtZSk7DQpkcml2ZXJzL3Nj
+c2kvc2NzaV9uZXRsaW5rLmM6MTMzOglzY3NpX25sX3NvY2sgPSBuZXRsaW5rX2tlcm5lbF9jcmVh
+dGUoJmluaXRfbmV0LCBORVRMSU5LX1NDU0lUUkFOU1BPUlQsDQpkcml2ZXJzL3Njc2kvc2NzaV90
+cmFuc3BvcnRfaXNjc2kuYzo0NTMzOglubHMgPSBuZXRsaW5rX2tlcm5lbF9jcmVhdGUoJmluaXRf
+bmV0LCBORVRMSU5LX0lTQ1NJLCAmY2ZnKTsNCg0KQmFydC4=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
