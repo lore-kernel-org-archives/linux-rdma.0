@@ -1,34 +1,28 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] i40iw: Replace mdelay with msleep in i40iw_wait_pe_ready
-Date: Fri, 5 Jan 2018 11:44:41 -0600
-Message-ID: <20180105174441.GA13368@ssaleem-MOBL4.amr.corp.intel.com>
-References: <1514111980-30502-1-git-send-email-baijiaju1990@gmail.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH, resend 4/4] IB/srp: Add RDMA/CM support
+Date: Fri, 5 Jan 2018 17:45:26 +0000
+Message-ID: <1515174325.3254.5.camel@wdc.com>
+References: <20180104222842.26756-1-bart.vanassche@wdc.com>
+         <20180104222842.26756-5-bart.vanassche@wdc.com>
+         <1515172870.3403.11.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1514111980-30502-1-git-send-email-baijiaju1990-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1515172870.3403.11.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <A3EFDECA81DA744290C512B44E73806C-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jia-Ju Bai <baijiaju1990-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 24, 2017 at 03:39:40AM -0700, Jia-Ju Bai wrote:
-> i40iw_wait_pe_ready is not called in an interrupt handler 
-> nor holding a spinlock.
-> The function mdelay in it can be replaced with msleep, 
-> to reduce busy wait.
-> 
-> Signed-off-by: Jia-Ju Bai <baijiaju1990-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/i40iw/i40iw_main.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-
-Thanks!
-Acked-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
- 
+T24gRnJpLCAyMDE4LTAxLTA1IGF0IDEyOjIxIC0wNTAwLCBEb3VnIExlZGZvcmQgd3JvdGU6DQo+
+IE9uIFRodSwgMjAxOC0wMS0wNCBhdCAxNDoyOCAtMDgwMCwgQmFydCBWYW4gQXNzY2hlIHdyb3Rl
+Og0KPiA+IEFkZCBhIGtlcm5lbCBtb2R1bGUgcGFyYW1ldGVyIHRvIHRoZSBpYl9zcnAga2VybmVs
+IGRyaXZlcg0KPiANCj4gVW5sZXNzIEkgbWlzc2VkIGl0LCB0aGVyZSBpcyBubyBuZXcgaWJfc3Jw
+IGtlcm5lbCBtb2R1bGUgcGFyYW1ldGVyIGhlcmUuDQoNClRoYXQncyByaWdodC4gSSB3aWxsIHJl
+bW92ZSB0aGF0IHBhcnQgZnJvbSB0aGUgcGF0Y2ggZGVzY3JpcHRpb24uDQoNCkJhcnQu
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
