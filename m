@@ -1,85 +1,61 @@
-From: Logan Gunthorpe <logang@deltatee.com>
-Subject: Re: [PATCH 06/12] IB/core: Add optional PCI P2P flag to
- rdma_rw_ctx_[init|destroy]()
-Date: Thu, 4 Jan 2018 16:44:00 -0700
-Message-ID: <3e8391a9-8924-be6d-8c43-162a360d75b6@deltatee.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 04/12] pci-p2p: Clear ACS P2P flags for all client devices
+Date: Thu, 4 Jan 2018 17:00:47 -0700
+Message-ID: <20fdb5bb-0236-c093-ed53-e12664022f53@deltatee.com>
 References: <20180104190137.7654-1-logang@deltatee.com>
- <20180104190137.7654-7-logang@deltatee.com> <20180104192225.GS11348@ziepe.ca>
- <1f8fb3fb-e3dc-94d3-e837-0cd942cf5b87@deltatee.com>
- <20180104221337.GV11348@ziepe.ca>
+ <20180104190137.7654-5-logang@deltatee.com>
+ <20180104215721.GF189897@bhelgaas-glaptop.roam.corp.google.com>
+ <20180104153551.3118f71b@t450s.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20180104221337.GV11348@ziepe.ca>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20180104153551.3118f71b-1yVPhWWZRC1BDLzU/O5InQ@public.gmane.org>
 Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 04/01/18 03:13 PM, Jason Gunthorpe wrote:
-> On Thu, Jan 04, 2018 at 12:52:24PM -0700, Logan Gunthorpe wrote:
->> We tried things like this in an earlier iteration[1] which assumed the SG
->> was homogenous (all P2P or all regular memory). This required serious
->> ugliness to try and ensure SGs were in fact homogenous[2].
-> 
-> I'm confused, these patches already assume the sg is homogenous,
-> right? Sure looks that way. So [2] is just debugging??
+On 04/01/18 03:35 PM, Alex Williamson wrote:
+> Yep, flipping these ACS bits invalidates any IOMMU groups that depend
+> on the isolation of that downstream port and I suspect also any peers
+> within the same PCI slot of that port and their downstream devices.  The
+> entire sub-hierarchy grouping needs to be re-evaluated.  This
+> potentially affects running devices that depend on that isolation, so
+> I'm not sure how that happens dynamically.  A boot option might be
+> easier.  Thanks,
 
-Yes, but it's a bit different to expect that someone calling 
-pci_p2pmem_map_sg() will know what they're doing and provide a 
-homogenous SG. It is relatively clear by convention that the entire SG 
-must be homogenous given they're calling a pci_p2pmem function. Where 
-as, allowing P2P SGs into the core DMA code means all we can do is hope 
-that future developers don't screw it up and allow P2P pages to mix in 
-with regular pages.
+I don't see how this is the case in current kernel code. It appears to 
+only enable ACS globally if the IOMMU requests it.
 
-It's also very difficult to add similar functionality to dma_map_page 
-seeing dma_unmap_page won't have any way to know what it's dealing with. 
-It just seems confusing to support P2P in the SG version and not the 
-page version.
+I also don't see how turning off ACS isolation for a specific device is 
+going to hurt anything. The IOMMU should still be able to keep going on 
+unaware that anything has changed. The only worry is that a security 
+hole may now be created if a user was relying on the isolation between 
+two devices that are in different VMs or something. However, if a user 
+was relying on this, they probably shouldn't have turned on P2P in the 
+first place.
 
-> What I meant is to rely on the fact it is already homogenous and
-> create a function like this:
-> 
-> static inline bool sg_is_table_p2p(struct scatterlist *sg)
-> {
->      return is_pci_p2p_page(sg_page(sg));
-> }
-> 
-> And then insert
-> 
->    if (sg_is_table_p2p(sg))
->         return pci_p2pmem_map_sg(...);
+We started with a fairly unintelligent choice to simply disable ACS on 
+any kernel that had CONFIG_PCI_P2P set. However, this did not seem like 
+a good idea going forward. Instead, we now selectively disable the ACS 
+bit only on the downstream ports that are involved in P2P transactions. 
+This seems like the safest choice and still allows people to (carefully) 
+use P2P adjacent to other devices that need to be isolated.
 
-Yes, this is almost identical to the earlier patch I referenced...
-
-> Then we don't need to patch RDMA because RDMA is not special when it
-> comes to P2P. P2P should work with everything.
-
-Yes, I agree this would be very nice. But it's challenging at this time 
-to do it safely. And something like this can still be done in future 
-work after this patch set gets merged. The changes in this set to the 
-RDMA and block layers are fairly small and the majority of the block 
-layer changes would still be required anyway to ensure a given 
-queue/driver supports P2P requests.
->>> The signature of pci_p2pmem_map_sg also doesn't look very good, it
->>> should mirror the usual dma_map_sg, otherwise it needs more revision
->>> to extend this to do P2P through a root complex.
->>
->> Generally, the feedback that I get is to not make changes that try to
->> anticipate the future. It would be easy enough to add those arguments when
->> the code for going through the RC is made (which I expect will be very
->> involved anyway).
-> 
-> Yes, but DMA mapping fundamentally requires the arguments to
-> dma_map_sg, so it is hard to accept an API called dma_map without
-> them.. Maybe just a naming issue.
-
-I don't agree that this is a fundamental requirement. But if no one else 
-objects to adding unused arguments I'd be fine with adding them.
+I don't think anyone wants another boot option that must be set in order 
+to use this functionality (and only some hardware would require this). 
+That's just a huge pain for users.
 
 Logan
