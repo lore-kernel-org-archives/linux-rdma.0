@@ -1,51 +1,76 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 09/12] nvme-pci: Use PCI p2pmem subsystem to manage the CMB
-Date: Fri, 5 Jan 2018 11:14:38 -0700
-Message-ID: <a284e33f-c10d-0540-cd24-ad1993a042b6@deltatee.com>
-References: <20180104190137.7654-1-logang@deltatee.com>
- <20180104190137.7654-10-logang@deltatee.com>
- <281272464.115248600.1515166226009.JavaMail.zimbra@kalray.eu>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH, resend 4/4] IB/srp: Add RDMA/CM support
+Date: Fri, 05 Jan 2018 13:15:43 -0500
+Message-ID: <1515176143.3403.28.camel@redhat.com>
+References: <20180104222842.26756-1-bart.vanassche@wdc.com>
+         <20180104222842.26756-5-bart.vanassche@wdc.com>
+         <1515172870.3403.11.camel@redhat.com> <20180105173448.GY11348@ziepe.ca>
+         <1515175618.3403.26.camel@redhat.com> <1515175964.3254.15.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <281272464.115248600.1515166226009.JavaMail.zimbra-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-efIxeEPL6u7h5clJ4O4F"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1515175964.3254.15.camel-Sjgp3cTcYWE@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+--=-efIxeEPL6u7h5clJ4O4F
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 05/01/18 08:30 AM, Marta Rybczynska wrote:
->> @@ -429,10 +429,7 @@ static void __nvme_submit_cmd(struct nvme_queue *nvmeq,
->> {
->> 	u16 tail = nvmeq->sq_tail;
->>
->> -	if (nvmeq->sq_cmds_io)
->> -		memcpy_toio(&nvmeq->sq_cmds_io[tail], cmd, sizeof(*cmd));
->> -	else
->> -		memcpy(&nvmeq->sq_cmds[tail], cmd, sizeof(*cmd));
->> +	memcpy(&nvmeq->sq_cmds[tail], cmd, sizeof(*cmd));
->>
-> 
-> Why is it always memcpy() and not memcpy_toio()? I'd expect something like
-> if (nvmeq->sq_cmds_is_io)
-> 	memcpy_toio(&nvmeq->sq_cmds_io[tail], cmd, sizeof(*cmd));
-> else
-> 	memcpy(&nvmeq->sq_cmds[tail], cmd, sizeof(*cmd));
+On Fri, 2018-01-05 at 18:12 +0000, Bart Van Assche wrote:
+> On Fri, 2018-01-05 at 13:06 -0500, Doug Ledford wrote:
+> > No, the target code is likewise clueless about namespaces.  I suspect
+> > (although I haven't looked) that the target code's Add RDMACM support
+> > patch will have the same problem.
+>=20
+> Hello Doug,
+>=20
+> The target code already allows to configure ACL (access control lists) th=
+at
+> control which initiator systems are allowed to log in and which ones not.=
+ Are
+> you sure that it will be valuable to add network namespace support to the
+> RDMA/CM code in the SRP target driver?
 
-We're going on the assumption that memory mapped with 
-devm_memremap_pages() can be treated as regular memory. So memcpy_toio 
-is not necessary for P2P memory.
+I haven't really thought about it much.  My comment wasn't that I
+thought it should be implemented, just that my quick grep of init_net in
+the drivers/infiniband directory showed me that the srpt driver doesn't
+distinguish any namespaces (while the isert driver does), so I suspect
+adding rdmacm support will add a new init_net usage.
 
-Logan
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-efIxeEPL6u7h5clJ4O4F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpPwM8ACgkQuCajMw5X
+L912YxAAmstBZBJhoTEbvBCNE+5nUMbavpr1fw9oebC3WM8ukj/G0Btnt4ipA3SH
+9NGXX5VozB3tMDILwYRzKMiF1lucDM7lYrXirj8WfIP3ppiyiLsIMrtKe7xidEl2
+hGPTnMkJLfPuhgAn48/zp1SAG4mUE3I0YrImQ76Y7U1f6PJc3bjnPCOYkVltUBs5
+4XKQKQejs06C4iViqALrZXZYEfgpXX0mDqGHCc8IjL3jm2KMHfGPsp8cdJ2Du6zb
+w/8d0gv3xp2wdCrc6QiN8U3TiaCeu6Bm9oRJRtHh6mUt6aJVodsVlHHb3XYW2H9S
+y0c0j8i9a/Vr+oCgWtTphBTy0WC3tUQ/0goqvnEI71ixJq+fImOEjYZb4A4kmhdp
+2VNdtNVo3dxR/f1ojYKCnpDWcVvPG3xVQMYffbIhCdTCuMlLJORbA5Dvelnf7Nt0
+UTiFUI0ZHYI3pjEPC6cS1Sax5PCqJ/mB+eJkDcRu7YtdtxeAprS09ON0rOaZ3Fyy
+KLT/rJFS9hlCNxKBlITeHUQbYufCB4gZZpdCa79D6Pqj81QFKSPNzDmpKWnwLBhS
+Ig2TqG7XfxkdV9ZVQazPevsGax0HhhKIp0d5bQO+IeUoC3MrDysjoF5NBI2elDUm
+soitBBye4VwxVcQrrx80AWdEYqdc4s5sj68aib2/gWxyWgBvAVI=
+=nQ48
+-----END PGP SIGNATURE-----
+
+--=-efIxeEPL6u7h5clJ4O4F--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
