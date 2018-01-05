@@ -1,63 +1,34 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
 Subject: Re: [PATCH, resend 4/4] IB/srp: Add RDMA/CM support
-Date: Fri, 5 Jan 2018 17:51:18 +0000
-Message-ID: <1515174677.3254.11.camel@wdc.com>
+Date: Fri, 5 Jan 2018 10:55:51 -0700
+Message-ID: <20180105175551.GZ11348@ziepe.ca>
 References: <20180104222842.26756-1-bart.vanassche@wdc.com>
-         <20180104222842.26756-5-bart.vanassche@wdc.com>
-         <1515172870.3403.11.camel@redhat.com> <20180105173448.GY11348@ziepe.ca>
+ <20180104222842.26756-5-bart.vanassche@wdc.com>
+ <1515172870.3403.11.camel@redhat.com>
+ <20180105173448.GY11348@ziepe.ca>
+ <1515174677.3254.11.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180105173448.GY11348-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
-Content-ID: <49FC7D47AEA9D340ADDAC8A561B70E8A-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1515174677.3254.11.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCAyMDE4LTAxLTA1IGF0IDEwOjM0IC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIEZyaSwgSmFuIDA1LCAyMDE4IGF0IDEyOjIxOjEwUE0gLTA1MDAsIERvdWcgTGVkZm9y
-ZCB3cm90ZToNCj4gDQo+ID4gPiArc3RhdGljIGludCBzcnBfcGFyc2VfaW4oc3RydWN0IHNvY2th
-ZGRyX3N0b3JhZ2UgKnNhLCBjb25zdCBjaGFyICphZGRyX3BvcnRfc3RyKQ0KPiA+ID4gK3sNCj4g
-PiA+ICsJY2hhciAqYWRkciA9IGtzdHJkdXAoYWRkcl9wb3J0X3N0ciwgR0ZQX0tFUk5FTCk7DQo+
-ID4gPiArCWNoYXIgKnBvcnRfc3RyID0gYWRkcjsNCj4gPiA+ICsJaW50IHJldDsNCj4gPiA+ICsN
-Cj4gPiA+ICsJaWYgKCFhZGRyKQ0KPiA+ID4gKwkJcmV0dXJuIC1FTk9NRU07DQo+ID4gPiArCXN0
-cnNlcCgmcG9ydF9zdHIsICI6Iik7DQo+ID4gPiArCXJldCA9IGluZXRfcHRvbl93aXRoX3Njb3Bl
-KCZpbml0X25ldCwgQUZfVU5TUEVDLCBhZGRyLCBwb3J0X3N0ciwgc2EpOw0KPiA+ID4gKwlrZnJl
-ZShhZGRyKTsNCj4gPiA+ICsJcmV0dXJuIHJldDsNCj4gPiA+ICt9DQo+ID4gPiArDQo+ID4gDQo+
-ID4gVGhpcyBwYXJ0aWN1bGFyIGZ1bmN0aW9uIGlzIHByb2JsZW1hdGljIGluIHRoYXQgaXQgYWRk
-cyBuZXcgbmFtZXNwYWNlDQo+ID4gdW5hd2FyZSBjb2RlLiAgVGhlIG5hbWVzcGFjZSBjb2RlIGlu
-IHRoZSBSRE1BIHN0YWNrIGlzIGluIGEgbGltYm8gc3RhdGUNCj4gPiBvZiBwYXJ0aWFsbHkgaW1w
-bGVtZW50ZWQsIHBhcnRpYWxseSBub3QuICBJJ20gbG9hdGhlIHRvIGFkZCBhbnkgbW9yZQ0KPiA+
-IGNvZGUgdGhhdCBpcyBub3QgZnVsbHkgbmFtZXNwYWNlIGF3YXJlIGFzIHRoYXQganVzdCB3b3Jz
-ZW5zIHRoZQ0KPiA+IGh5c3RlcmVzaXMgaW4gdGhlIHN0YWNrLiAgU28gd2UgbmVlZCB0byBmaWd1
-cmUgb3V0IGhvdyB0byBkbyB0aGlzIGluIGENCj4gPiBuYW1lc3BhY2UgYXdhcmUgbWFubmVyLiAg
-SSBoYXZlbid0IHByZXZpb3VzbHkgYmVlbiB0aGlua2luZyBhYm91dCB0aGlzDQo+ID4gc3BlY2lm
-aWMgbmFtZXNwYWNlIGlzc3VlLCBzbyBJJ20gbm90IHByZXBhcmVkIHRvIGV2ZW4gbWFrZSBzdWdn
-ZXN0aW9ucw0KPiA+IGZvciBhIGZpeCBmb3IgdGhpcyB5ZXQuLi4NCj4gDQo+IERvIHRoZSB1c2Vy
-c3BhY2UgZGFlbW9uJ3Mgc3RpbGwgbWFuYWdlIHRoZSBjb25uZWN0aW9uIHRvIFNSUD8NCg0Kc3Jw
-X2RhZW1vbiB1c2VzIG1hbmFnZW1lbnQgZGF0YWdyYW1zIHRvIGRpc2NvdmVyIFNSUCB0YXJnZXRz
-IGFuZCB0aGVzZSBNQURzDQpkaXNjb3ZlciB0aGUgR0lEIG9mIHRoZSB0YXJnZXQgcG9ydCBpbnN0
-ZWFkIG9mIHRoZSBJUCBhZGRyZXNzLiBTbyBJIGhhdmUgbm90DQpldmVuIHRyaWVkIHRvIGFkZCBS
-RE1BL0NNIHN1cHBvcnQgdG8gc3JwX2RhZW1vbi4gSWYgYXV0b21hdGljIGxvZ2luIHdvdWxkIGJl
-DQppbXBsZW1lbnRlZCBmb3IgU1JQIGFuZCBSRE1BL0NNIEkgdGhpbmsgd2Ugc2hvdWxkIGRlZmlu
-ZSBhIG5ldyBkaXNjb3ZlcnkNCm1lY2hhbmlzbSBiYXNlZCBvbiB0aGUgSW50ZXJuZXQgUHJvdG9j
-b2wuDQoNCj4gSWYgeWVzLCB0aGVuIHRoZSBuZXR3b3JraW5nIGluZm9ybWF0aW9uIHNob3VsZCBi
-ZSByZWxhdGl2ZSB0byB0aGUNCj4gbmFtZXNwYWNlIG9mIHRoZSB0aGluZyB0aGF0IHdyb3RlIHRv
-IHRoZSBzeXNmcyBmaWxlLi4NCg0KTG9naW4gb2NjdXJzIGJ5IHdyaXRpbmcgaW50byBhIHN5c2Zz
-IGZpbGUgY3JlYXRlZCBieSB0aGUgU1JQIGluaXRpYXRvci4gSG93DQphYm91dCB1c2luZyB0aGUg
-bmV0d29ya2luZyBuYW1lc3BhY2Ugb2YgdGhlIHByb2Nlc3MgdGhhdCB3cml0ZXMgaW50byB0aGF0
-DQpzeXNmcyBmaWxlPw0KDQo+IEFsc28sIGFyZSB0aGVyZSBzcnBfZGFlbW9uIHBhdGNoZXMgZm9y
-IHRoaXMgdG9vPyBJJ3ZlIGJlZW4gYXNraW5nIHRvDQo+IHNlZSB0aGUgdXNlcnNwYWNlIHNpZGUg
-Zm9yIG5ldyB1QVBJIGZlYXR1cmVzIGJlZm9yZSBhY2NlcHRpbmcgdGhlDQo+IGtlcm5lbCBwYXJ0
-IHNvIHRoYXQgZXZlcnl0aGluZyBjYW4gYmUgd2VsbCB1bmRlcnN0b29kLiBJZiB5ZXMsIHBsZWFz
-ZQ0KPiBzZW5kLCBldmVuIGlmIGl0IGlzIFJGQ2lzaC4uDQoNCkFzIGV4cGxhaW5lZCBhYm92ZSB0
-aGVyZSBhcmUgbm8gY29ycmVzcG9uZGluZyBzcnBfZGFlbW9uIHBhdGNoZXMuIEJ1dCBpdCBtYXkN
-CmJlIGludGVyZXN0aW5nIHRvIGhhdmUgYSBsb29rIGF0IHRoZSBzcnAtdGVzdCBzb3VyY2UgY29k
-ZSBzaW5jZSBJIHVzZWQgdGhhdA0Kc29mdHdhcmUgdG8gdGVzdCBSRE1BL0NNIHN1cHBvcnQuIFNl
-ZSBhbHNvIGh0dHBzOi8vZ2l0aHViLmNvbS9idmFuYXNzY2hlL3NycC10ZXN0Lg0KDQpCYXJ0Lg==
+On Fri, Jan 05, 2018 at 05:51:18PM +0000, Bart Van Assche wrote:
+
+> > If yes, then the networking information should be relative to the
+> > namespace of the thing that wrote to the sysfs file..
+> 
+> Login occurs by writing into a sysfs file created by the SRP initiator. How
+> about using the networking namespace of the process that writes into that
+> sysfs file?
+
+Sounds right to me.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
