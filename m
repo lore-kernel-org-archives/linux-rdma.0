@@ -1,75 +1,96 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next v2 06/14] {net,IB}/mlx5: Manage port
- association for multiport RoCE
-Date: Fri, 5 Jan 2018 08:36:41 +0200
-Message-ID: <20180105063641.GC10145@mtr-leonro.local>
-References: <20180104152544.28919-1-leon@kernel.org>
- <20180104152544.28919-7-leon@kernel.org>
- <20180104233334.GA18993@ziepe.ca>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [PATCH 04/12] pci-p2p: Clear ACS P2P flags for all client devices
+Date: Fri, 5 Jan 2018 01:47:01 -0500
+Message-ID: <20180105064547.GA3212@redhat.com>
+References: <20180104190137.7654-1-logang@deltatee.com>
+ <20180104190137.7654-5-logang@deltatee.com>
+ <20180104215721.GF189897@bhelgaas-glaptop.roam.corp.google.com>
+ <20180104153551.3118f71b@t450s.home>
+ <20fdb5bb-0236-c093-ed53-e12664022f53@deltatee.com>
+ <20180104203300.79487c98@w520.home>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="YwTTlJgQ7QoYB9ta"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180104233334.GA18993-uk2M96/98Pc@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20180104203300.79487c98@w520.home>
+Sender: linux-pci-owner@vger.kernel.org
+To: Alex Williamson <alex.williamson@redhat.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>, Bjorn Helgaas <helgaas@kernel.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jan 04, 2018 at 08:33:00PM -0700, Alex Williamson wrote:
+> On Thu, 4 Jan 2018 17:00:47 -0700
+> Logan Gunthorpe <logang@deltatee.com> wrote:
+> 
+> > On 04/01/18 03:35 PM, Alex Williamson wrote:
+> > > Yep, flipping these ACS bits invalidates any IOMMU groups that depend
+> > > on the isolation of that downstream port and I suspect also any peers
+> > > within the same PCI slot of that port and their downstream devices.  The
+> > > entire sub-hierarchy grouping needs to be re-evaluated.  This
+> > > potentially affects running devices that depend on that isolation, so
+> > > I'm not sure how that happens dynamically.  A boot option might be
+> > > easier.  Thanks,  
+> > 
+> > I don't see how this is the case in current kernel code. It appears to 
+> > only enable ACS globally if the IOMMU requests it.
+> 
+> IOMMU groups don't exist unless the IOMMU is enabled and x86 and ARM
+> both request ACS be enabled if an IOMMU is present, so I'm not sure
+> what you're getting at here.  Also, in reply to your other email, if
+> the IOMMU is enabled, every device handled by the IOMMU is a member of
+> an IOMMU group, see struct device.iommu_group.  There's an
+> iommu_group_get() accessor to get a reference to it.
+>  
+> > I also don't see how turning off ACS isolation for a specific device is 
+> > going to hurt anything. The IOMMU should still be able to keep going on 
+> > unaware that anything has changed. The only worry is that a security 
+> > hole may now be created if a user was relying on the isolation between 
+> > two devices that are in different VMs or something. However, if a user 
+> > was relying on this, they probably shouldn't have turned on P2P in the 
+> > first place.
+> 
+> That's exactly what IOMMU groups represent, the smallest set of devices
+> which have DMA isolation from other devices.  By poking this hole, the
+> IOMMU group is invalid.  We cannot turn off ACS only for a specific
+> device, in order to enable p2p it needs to be disabled at every
+> downstream port between the devices where we want to enable p2p.
+> Depending on the topology, that could mean we're also enabling p2p for
+> unrelated devices.  Those unrelated devices might be in active use and
+> the p2p IOVAs now have a different destination which is no longer IOMMU
+> translated.
+>  
+> > We started with a fairly unintelligent choice to simply disable ACS on 
+> > any kernel that had CONFIG_PCI_P2P set. However, this did not seem like 
+> > a good idea going forward. Instead, we now selectively disable the ACS 
+> > bit only on the downstream ports that are involved in P2P transactions. 
+> > This seems like the safest choice and still allows people to (carefully) 
+> > use P2P adjacent to other devices that need to be isolated.
+> 
+> I don't see that the code is doing much checking that adjacent devices
+> are also affected by the p2p change and of course the IOMMU group is
+> entirely invalid once the p2p holes start getting poked.
+> 
+> > I don't think anyone wants another boot option that must be set in order 
+> > to use this functionality (and only some hardware would require this). 
+> > That's just a huge pain for users.
+> 
+> No, but nor do we need IOMMU groups that no longer represent what
+> they're intended to describe or runtime, unchecked routing changes
+> through the topology for devices that might already be using
+> conflicting IOVA ranges.  Maybe soft hotplugs are another possibility,
+> designate a sub-hierarchy to be removed and re-scanned with ACS
+> disabled.  Otherwise it seems like disabling and re-enabling ACS needs
+> to also handle merging and splitting groups dynamically.  Thanks,
+> 
 
---YwTTlJgQ7QoYB9ta
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Dumb question, can we use a PCI bar address of one device into the
+IOMMU page table of another address ie like we would DMA map a
+regular system page ?
 
-On Thu, Jan 04, 2018 at 04:33:34PM -0700, Jason Gunthorpe wrote:
-> > +struct mlx5_ib_odp {
-> > +	struct ib_odp_caps	caps;
-> > +	u64			max_size;
-> > +	/*
-> > +	 * Sleepable RCU that prevents destruction of MRs while they are still
-> > +	 * being used by a page fault handler.
-> > +	 */
-> > +	struct srcu_struct      mr_srcu;
-> > +	u32			null_mkey;
-> > +	void			(*sync)(struct mlx5_ib_dev *dev);
-> > +};
->
-> Well this doesn't belong in here. rebase error or something?
+It would be much better in my view to follow down such path if that
+is at all possible from hardware point of view (i am not sure where
+to dig in the specification to answer my above question).
 
-Very strange, this chunk indeed doesn't belong to this series and Daniel
-didn't add it too, but I see this mlx5_ib_odp struct above of newly added
-mlx5_ib_multiport_info struct in our review system.
-
-In this series, it comes from my rr-cache, but I don't know why it is in
-the review system.
-
-We can safely remove it. Do you want me to respin it?
-
-Thanks
-
---YwTTlJgQ7QoYB9ta
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpPHPkACgkQ5GN7iDZy
-WKdUQQ/+IVzKbEeS/3OvzESv5wRNTrk8KJW9GKlKaN8JPqwG5Dv3lyMYcPdtvTm/
-tXsP1BhSQe+cvi8zbNtwXY5bWwMJuIABsMU72MhGT2K4vvX2/to3ZQC52D2NQHow
-WpVHQ4PymvSdTZ+RiJ+e1pHKcdUAhSvB2WN9k+Bugt268Kvq0OvKUkJQIyCfJvGA
-eDqQdp4+UJ6XnEU38fYVhKW1eRRGfOhCHLeLE7b97SGM1wY0CdHGxoGNJIDX0Fln
-xfSmJJ7REn9p6Y+n0K7zKNYcMka/rP4PfLi88NY1JS3B++6p33CUxoUCEdzt9/TW
-EkJYIgHl4trc2VFXFrH4EKJpiM/WCbhHydYvK5WN5T4NPWNnH3ThK2wLz/5yeg94
-+1vT0GZe+yg5DArY+oC0SncuwbS/JMxCYD1s2Q7wToTC6QCyWwmgxAhdWIFQzsYI
-reqK2L2suH5YqWXU6cpg4b61j07N3ToFv2pVvzHh+kfnu1ymgK+pHyqyCdZm+sgl
-YGoOUbsz3stBWP4Rm+IRXG3ocOEpzzplJFRhmFs+RVZI7T6rnuDjiU3rsu3N9uYY
-oEDlHzf1ump4e5U9OwjCvI/OmLEfPvL63azLRnLtKpdsjsHtoUbK5NwCx275axkw
-PfFOg6CIMSX8HJXr1Fs29H57l3l1bXva8HYamNrmY0Gp9yVCGmc=
-=bDKl
------END PGP SIGNATURE-----
-
---YwTTlJgQ7QoYB9ta--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers,
+Jérôme
