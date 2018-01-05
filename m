@@ -1,41 +1,74 @@
-From: Logan Gunthorpe <logang@deltatee.com>
-Subject: Re: [PATCH 04/12] pci-p2p: Clear ACS P2P flags for all client devices
-Date: Thu, 4 Jan 2018 18:09:43 -0700
-Message-ID: <99420cc9-48fd-5692-8426-bd5c2ec0dcf7@deltatee.com>
-References: <20180104190137.7654-1-logang@deltatee.com>
- <20180104190137.7654-5-logang@deltatee.com>
- <20180104215721.GF189897@bhelgaas-glaptop.roam.corp.google.com>
- <20180104153551.3118f71b@t450s.home>
- <20fdb5bb-0236-c093-ed53-e12664022f53@deltatee.com>
+From: David Ahern <dsahern@gmail.com>
+Subject: Re: [PATCH iproute2-next v1 3/9] rdma: Add filtering infrastructure
+Date: Thu, 4 Jan 2018 20:29:31 -0700
+Message-ID: <b7ad60c5-a1c5-ff79-113d-d6c57baf1c40@gmail.com>
+References: <20180104070150.15625-1-leon@kernel.org>
+ <20180104070150.15625-4-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <20fdb5bb-0236-c093-ed53-e12664022f53@deltatee.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180104070150.15625-4-leon@kernel.org>
 Content-Language: en-US
-Sender: linux-block-owner@vger.kernel.org
-To: Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, netdev <netdev@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>, Leon Romanovsky <leonro@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On 1/4/18 12:01 AM, Leon Romanovsky wrote:
+> diff --git a/rdma/utils.c b/rdma/utils.c
+> index af2b374d..446c23da 100644
+> --- a/rdma/utils.c
+> +++ b/rdma/utils.c
+> @@ -114,6 +114,225 @@ static void dev_map_cleanup(struct rd *rd)
+>  	}
+>  }
+>  
+> +static int add_filter(struct rd *rd, char *key, char *value,
+> +		      const char * const valid_filters[])
+> +{
+> +	char cset[] = "1234567890,-";
+> +	struct filter_entry *fe;
+> +	bool key_found = false;
+> +	int idx = 0;
+> +	int ret;
+> +
+> +	fe = calloc(1, sizeof(*fe));
+> +	if (!fe)
+> +		return -ENOMEM;
+> +
+> +	while (valid_filters[idx]) {
+> +		if (!strcmpx(key, valid_filters[idx])) {
+> +			key_found = true;
+> +			break;
+> +		}
+> +		idx++;
+> +	}
+> +	if (!key_found) {
+> +		pr_err("Unsupported filter option: %s\n", key);
+> +		ret = -EINVAL;
+> +		goto err;
+> +	}
+> +
+> +	/*
+> +	 * Check the filter validity, not optimal, but works
+> +	 *
+> +	 * Actually, there are three types of filters
+> +	 *  numeric - for example PID or QPN
+> +	 *  string  - for example states, currently only "display"
+> +	 *            is from this type
+> +	 *  link    - user requested to filter on specific link
+> +	 *            e.g. mlx5_1/1, mlx5_1/-, mlx5_1 ...
+> +	 */
+> +	if (strcmpx(key, "link") && strcmpx(key, "display") &&
+> +	    strspn(value, cset) != strlen(value)) {
+> +		pr_err("%s filter accepts \"%s\" characters only\n", key, cset);
+> +		ret = -EINVAL;
+> +		goto err;
+> +	}
+> +
+> +	fe->key = strdup(key);
+> +	fe->value = strdup(value);
+> +
 
-
-On 04/01/18 05:00 PM, Logan Gunthorpe wrote:
-> 
-> 
-> On 04/01/18 03:35 PM, Alex Williamson wrote:
->> Yep, flipping these ACS bits invalidates any IOMMU groups that depend
->> on the isolation of that downstream port and I suspect also any peers
->> within the same PCI slot of that port and their downstream devices.  The
->> entire sub-hierarchy grouping needs to be re-evaluated.  This
->> potentially affects running devices that depend on that isolation, so
->> I'm not sure how that happens dynamically.  A boot option might be
->> easier.  Thanks,
-> 
-
-Also, considering this further: if you can point me to a way to tell if
-a device is in an IOMMU group it should be pretty easy to disallow a
-device that has been assigned to a group from being used in P2P
-transactions.
-
-Logan
+Missed this the other day. 2 more strdup's that should be checked.
