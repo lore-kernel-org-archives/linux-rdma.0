@@ -1,74 +1,84 @@
-From: David Ahern <dsahern@gmail.com>
-Subject: Re: [PATCH iproute2-next v1 3/9] rdma: Add filtering infrastructure
-Date: Thu, 4 Jan 2018 20:29:31 -0700
-Message-ID: <b7ad60c5-a1c5-ff79-113d-d6c57baf1c40@gmail.com>
-References: <20180104070150.15625-1-leon@kernel.org>
- <20180104070150.15625-4-leon@kernel.org>
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH 04/12] pci-p2p: Clear ACS P2P flags for all client
+ devices
+Date: Thu, 4 Jan 2018 20:33:00 -0700
+Message-ID: <20180104203300.79487c98@w520.home>
+References: <20180104190137.7654-1-logang@deltatee.com>
+        <20180104190137.7654-5-logang@deltatee.com>
+        <20180104215721.GF189897@bhelgaas-glaptop.roam.corp.google.com>
+        <20180104153551.3118f71b@t450s.home>
+        <20fdb5bb-0236-c093-ed53-e12664022f53@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180104070150.15625-4-leon@kernel.org>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, netdev <netdev@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>, Leon Romanovsky <leonro@mellanox.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20fdb5bb-0236-c093-ed53-e12664022f53@deltatee.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?UTF-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/4/18 12:01 AM, Leon Romanovsky wrote:
-> diff --git a/rdma/utils.c b/rdma/utils.c
-> index af2b374d..446c23da 100644
-> --- a/rdma/utils.c
-> +++ b/rdma/utils.c
-> @@ -114,6 +114,225 @@ static void dev_map_cleanup(struct rd *rd)
->  	}
->  }
->  
-> +static int add_filter(struct rd *rd, char *key, char *value,
-> +		      const char * const valid_filters[])
-> +{
-> +	char cset[] = "1234567890,-";
-> +	struct filter_entry *fe;
-> +	bool key_found = false;
-> +	int idx = 0;
-> +	int ret;
-> +
-> +	fe = calloc(1, sizeof(*fe));
-> +	if (!fe)
-> +		return -ENOMEM;
-> +
-> +	while (valid_filters[idx]) {
-> +		if (!strcmpx(key, valid_filters[idx])) {
-> +			key_found = true;
-> +			break;
-> +		}
-> +		idx++;
-> +	}
-> +	if (!key_found) {
-> +		pr_err("Unsupported filter option: %s\n", key);
-> +		ret = -EINVAL;
-> +		goto err;
-> +	}
-> +
-> +	/*
-> +	 * Check the filter validity, not optimal, but works
-> +	 *
-> +	 * Actually, there are three types of filters
-> +	 *  numeric - for example PID or QPN
-> +	 *  string  - for example states, currently only "display"
-> +	 *            is from this type
-> +	 *  link    - user requested to filter on specific link
-> +	 *            e.g. mlx5_1/1, mlx5_1/-, mlx5_1 ...
-> +	 */
-> +	if (strcmpx(key, "link") && strcmpx(key, "display") &&
-> +	    strspn(value, cset) != strlen(value)) {
-> +		pr_err("%s filter accepts \"%s\" characters only\n", key, cset);
-> +		ret = -EINVAL;
-> +		goto err;
-> +	}
-> +
-> +	fe->key = strdup(key);
-> +	fe->value = strdup(value);
-> +
+On Thu, 4 Jan 2018 17:00:47 -0700
+Logan Gunthorpe <logang@deltatee.com> wrote:
 
-Missed this the other day. 2 more strdup's that should be checked.
+> On 04/01/18 03:35 PM, Alex Williamson wrote:
+> > Yep, flipping these ACS bits invalidates any IOMMU groups that depend
+> > on the isolation of that downstream port and I suspect also any peers
+> > within the same PCI slot of that port and their downstream devices.  The
+> > entire sub-hierarchy grouping needs to be re-evaluated.  This
+> > potentially affects running devices that depend on that isolation, so
+> > I'm not sure how that happens dynamically.  A boot option might be
+> > easier.  Thanks,  
+> 
+> I don't see how this is the case in current kernel code. It appears to 
+> only enable ACS globally if the IOMMU requests it.
+
+IOMMU groups don't exist unless the IOMMU is enabled and x86 and ARM
+both request ACS be enabled if an IOMMU is present, so I'm not sure
+what you're getting at here.  Also, in reply to your other email, if
+the IOMMU is enabled, every device handled by the IOMMU is a member of
+an IOMMU group, see struct device.iommu_group.  There's an
+iommu_group_get() accessor to get a reference to it.
+ 
+> I also don't see how turning off ACS isolation for a specific device is 
+> going to hurt anything. The IOMMU should still be able to keep going on 
+> unaware that anything has changed. The only worry is that a security 
+> hole may now be created if a user was relying on the isolation between 
+> two devices that are in different VMs or something. However, if a user 
+> was relying on this, they probably shouldn't have turned on P2P in the 
+> first place.
+
+That's exactly what IOMMU groups represent, the smallest set of devices
+which have DMA isolation from other devices.  By poking this hole, the
+IOMMU group is invalid.  We cannot turn off ACS only for a specific
+device, in order to enable p2p it needs to be disabled at every
+downstream port between the devices where we want to enable p2p.
+Depending on the topology, that could mean we're also enabling p2p for
+unrelated devices.  Those unrelated devices might be in active use and
+the p2p IOVAs now have a different destination which is no longer IOMMU
+translated.
+ 
+> We started with a fairly unintelligent choice to simply disable ACS on 
+> any kernel that had CONFIG_PCI_P2P set. However, this did not seem like 
+> a good idea going forward. Instead, we now selectively disable the ACS 
+> bit only on the downstream ports that are involved in P2P transactions. 
+> This seems like the safest choice and still allows people to (carefully) 
+> use P2P adjacent to other devices that need to be isolated.
+
+I don't see that the code is doing much checking that adjacent devices
+are also affected by the p2p change and of course the IOMMU group is
+entirely invalid once the p2p holes start getting poked.
+
+> I don't think anyone wants another boot option that must be set in order 
+> to use this functionality (and only some hardware would require this). 
+> That's just a huge pain for users.
+
+No, but nor do we need IOMMU groups that no longer represent what
+they're intended to describe or runtime, unchecked routing changes
+through the topology for devices that might already be using
+conflicting IOVA ranges.  Maybe soft hotplugs are another possibility,
+designate a sub-hierarchy to be removed and re-scanned with ACS
+disabled.  Otherwise it seems like disabling and re-enabling ACS needs
+to also handle merging and splitting groups dynamically.  Thanks,
+
+Alex
