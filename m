@@ -1,43 +1,125 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: Linux kernel v4.15-rc4 and rdma_rxe
-Date: Fri, 5 Jan 2018 21:18:29 +0000
-Message-ID: <1515187108.3254.23.camel@wdc.com>
-References: <1513732236.2535.25.camel@wdc.com>
-         <CAG9sBKP=i9ukbkj7x11oW=yLAz8u2RYHTMbf_Z1h3=nQ3pjfLw@mail.gmail.com>
-         <1513983674.2579.27.camel@wdc.com>
-         <CAG9sBKOOvvwG6yaQfWG=c04-LQ-Yvw8QbD-jzTm-zJYOFJeEVQ@mail.gmail.com>
-         <dd87887d-8641-c8fc-48f1-234e7cf67cb1@wdc.com>
-         <CAG9sBKOtxoG-HLU5A=WEZqUuADzje74_AjZgtG21Ueeb2YCAEQ@mail.gmail.com>
-         <1514940799.14857.20.camel@wdc.com>
-         <CAG9sBKPhnknQPYX=s-y9-tonxTRrE05gU5W75x0FhKmTdggFmQ@mail.gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH, resend 4/4] IB/srp: Add RDMA/CM support
+Date: Fri, 05 Jan 2018 18:13:08 -0500
+Message-ID: <1515193988.3403.69.camel@redhat.com>
+References: <20180104222842.26756-1-bart.vanassche@wdc.com>
+         <20180104222842.26756-5-bart.vanassche@wdc.com>
+         <1515172870.3403.11.camel@redhat.com> <20180105173448.GY11348@ziepe.ca>
+         <1515175618.3403.26.camel@redhat.com> <20180105192549.GA11348@ziepe.ca>
+         <1515183835.3403.62.camel@redhat.com> <20180105203506.GD11348@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-vprY/9sDO2nvbFnw+xed"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG9sBKPhnknQPYX=s-y9-tonxTRrE05gU5W75x0FhKmTdggFmQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Content-ID: <D9A005F089DA7F4BB78BCA6C6F5A7357-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <20180105203506.GD11348-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE4LTAxLTAzIGF0IDA3OjEzICswMjAwLCBNb25pIFNob3VhIHdyb3RlOg0KPiBB
-bnl3YXksIEl0J3MgcG9zc2libGUgdGhhdCB5b3UgaGl0IGEgYnVnIHJlbGF0ZWQgdG8gZGVzdHJv
-eWluZyBhIFFQLg0KDQpUaGUgcGF0Y2ggYmVsb3cgaXMgbm90IGEgZnVsbCBzb2x1dGlvbiBidXQg
-c2VlbXMgdG8gaGVscC4gSXQgd291bGQgYmUNCmFwcHJlY2lhdGVkIGlmIHlvdSBjb3VsZCBoYXZl
-IGEgbG9vayBhdCB0aGlzIHBhdGNoLg0KDQpUaGFua3MsDQoNCkJhcnQuDQoNCmRpZmYgLS1naXQg
-YS9kcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9yZXEuYyBiL2RyaXZlcnMvaW5maW5pYmFu
-ZC9zdy9yeGUvcnhlX3JlcS5jDQppbmRleCA2YTY5OTUxNTllYzYuLmI2YWE1YzY3ZTBlYiAxMDA2
-NDQNCi0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX3JlcS5jDQorKysgYi9kcml2
-ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9yZXEuYw0KQEAgLTYwMSwxMiArNjAxLDggQEAgaW50
-IHJ4ZV9yZXF1ZXN0ZXIodm9pZCAqYXJnKQ0KIAlyeGVfYWRkX3JlZihxcCk7DQogDQogbmV4dF93
-cWU6DQotCWlmICh1bmxpa2VseSghcXAtPnZhbGlkKSkgew0KLQkJcnhlX2RyYWluX3JlcV9wa3Rz
-KHFwLCB0cnVlKTsNCi0JCWdvdG8gZXhpdDsNCi0JfQ0KLQ0KLQlpZiAodW5saWtlbHkocXAtPnJl
-cS5zdGF0ZSA9PSBRUF9TVEFURV9FUlJPUikpIHsNCisJaWYgKHVubGlrZWx5KCFxcC0+dmFsaWQg
-fHwgcXAtPnJlcS5zdGF0ZSA9PSBRUF9TVEFURV9FUlJPUikpIHsNCisJCXJ4ZV9ydW5fdGFzaygm
-cXAtPnJlc3AudGFzaywgMSk7DQogCQlyeGVfZHJhaW5fcmVxX3BrdHMocXAsIHRydWUpOw0KIAkJ
-Z290byBleGl0Ow0KIAl9
+
+--=-vprY/9sDO2nvbFnw+xed
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, 2018-01-05 at 13:35 -0700, Jason Gunthorpe wrote:
+> On Fri, Jan 05, 2018 at 03:23:55PM -0500, Doug Ledford wrote:
+> > On Fri, 2018-01-05 at 12:25 -0700, Jason Gunthorpe wrote:
+> > > On Fri, Jan 05, 2018 at 01:06:58PM -0500, Doug Ledford wrote:
+> > > > > Do the userspace daemon's still manage the connection to SRP?
+> > > > >=20
+> > > > > If yes, then the networking information should be relative to the
+> > > > > namespace of the thing that wrote to the sysfs file..
+> > > >=20
+> > > > Maybe, maybe not.  It depends on the implementation.  IIRC you get =
+one
+> > > > daemon per port, not one daemon per mount.
+> > >=20
+> > > I don't think it depends - if we expose this sysfs file to a containe=
+r
+> >=20
+> > Who says we have to do that?  We could make the sysfs file only visible
+> > in the init namespace and let the init namespace daemon control what
+> > namespaces have what views.
+>=20
+> What 'views'? It is a sysfs file controlled by the kernel - srp_daemon
+> has no control ove rit.
+
+Ok, allow me to clarify: restrict the sysfs file to create mappings to
+only the init_net namespace, and by views I meant allow the host
+srp_daemon to create a mapping with a specific namespace and that would
+then create a device file in that namespace, not a sysfs file.
+
+> > views anyway.  We could just make that mandatory by refusing to create
+> > devices from anything other than init_net namespace.  Then even if
+> > someone does mount sysfs rw in a container, we're still good.
+>=20
+> Usually we don't put that kind if policy in the kernel.
+
+No, we normally don't.  However....
+
+> Someone could run a priviledged container with full device access and
+> expect this stuff to work right. In that case it is certainly correct
+> for the srp_daemon and kernel to be in the namespace of the calling
+> process.
+>=20
+> > > So from a security perspective containers shouldn't even have access
+> > > to this thing at all without more work to ensure that the created
+> > > block device is also restriced inside the container.
+> >=20
+> > This isn't sufficient.  The block device created must be constrained
+> > within the container, but if we allow direct device access to the
+> > underlying LUN on the target, then that target LUN must be exclusively
+> > owned by the container.
+>=20
+> Yes. That is done on the storage controller via ACLs of that LUN.
+
+But we broke that already...
+
+>  The
+> container's net namespace would be restricted in some way that the ACL
+> can uniquely identify it - and the srp_daemon could run inside the
+> container.
+
+When we arguing over namespaces, especially as they related to IPoIB
+devices, we decided to allow the tuple to be p_key/qp/gid so that you
+can have to separate containers on the same p_key and gid with the
+differentiating factor being only the qp.  If we then use that to target
+our SRP RDMACM connection, we've gone into an area where the target
+can't differentiate our container.
+
+So, yes, I think the storage target should control the ACLs too, but I'm
+concerned that we've gone down a path where that can't currently be done
+ and changes will be required on the target for things to work.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-vprY/9sDO2nvbFnw+xed
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpQBoQACgkQuCajMw5X
+L90btQ//ewdB86VfB0Gs2/ZUWlURHU2phWjNwmSVmDAlG2qq4HMExgQY7+g2Pc1T
+26VkX3IgC/XGNsjO60m+yfwf/qjQzdpZl7LIL5zf2j0XPWx/5TO1zaE71gq1u4iu
+LoiGS8LPoH5E3rpRDWtWDytEaz3V6E8Z86GIOBpOeiQnS1EM/51UFMEpcDjWxFQX
+X3d6OIkIb0pY3VJqeChTsoUnKC18nVfbih7s6oCebBOCC1nRkZ7ZGgVsI0/V+XU/
+6EWGK0QIuO/UA2nGcQDIjlZ36WIPzzYezBAG5ZOG6bglHJQ7uqzcCqyMBMNyD+m1
+RrKu4a1whEF8F87k+G8oL21VsGGnCnVwODES1OnxtvFXzIfA7nnGf8Dck/OwGLwK
+DIuUsEEJQXacDtZGc7d4zjtPBSB/Hk5ni7T13fdPyBDu382Nmkb3i1ALfbaa2Ovd
+es8GINO7NYRKS7Mku4tGqrz82XTJFD1tVnz49JSW6f8ux2FJRehhRyDD4NjhWceV
+XTnyd/V79YTE02Vbag/TS0ZdanajXbjaN/49NKstcOAOKCoFqOc6MsOhP7VBaIt9
+JlW9eqF9+mSLML1NiFfhx81X0zAOmAdJy1V1i0Gc/Vt6pAw5hxFj6OpPseMPP5UR
+QufGaGT0yl9irwAgGygvHicv8Zsy/NU+SlcSeLs5nCxJWNfaPb8=
+=P0Ry
+-----END PGP SIGNATURE-----
+
+--=-vprY/9sDO2nvbFnw+xed--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
