@@ -1,54 +1,88 @@
-From: Yisen Zhuang <Yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: hns compiler warnings
-Date: Sat, 6 Jan 2018 09:59:48 +0800
-Message-ID: <253c30aa-508f-6308-41a6-243050aadc1b@huawei.com>
-References: <20171229195832.GG6513@ziepe.ca>
+From: "Brown, Aaron F" <aaron.f.brown@intel.com>
+Subject: RE: [Intel-wired-lan] [PATCH 1/1] timecounter: Make cyclecounter
+ struct part of timecounter struct
+Date: Sat, 6 Jan 2018 04:29:23 +0000
+Message-ID: <309B89C4C689E141A5FF6A0C5FB2118B8C731E65@ORSMSX101.amr.corp.intel.com>
+References: <1512189095-28654-1-git-send-email-sagar.a.kamble@intel.com>
+ <1512577496.8693.0.camel@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171229195832.GG6513-uk2M96/98Pc@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lipeng <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1512577496.8693.0.camel@intel.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>, "Kamble, Sagar A" <sagar.a.kamble@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Richard Cochran <richardcochran@gmail.com>, Stephen Boyd <sboyd@codeaurora.org>, Chris Wilson <chris@chris-wilson.co.uk>, John Stultz <john.stultz@linaro.org>, "intel-wired-lan@lists.osuosl.org" <intel-wired-lan@lists.osuosl.org>, Thomas Gleixner <tglx@linutronix.de>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jason,
-
-Thanks for this. We will fix it as soon as possible.
-
-Yisen
-
-在 2017/12/30 3:58, Jason Gunthorpe 写道:
-> When !CONFIG_REGMAP hns throws compiler warnings since
-> dsaf_read_syscon ignores the return result from regmap_read, which
-> allows val to be uninited. This looks like a bug to me.
-> 
-> Could someone please send a patch to fix this? It probably isn't a
-> good idea to wrapper regmap_read with something that throws away the
-> return code.
-> 
-> Thanks
-> Jason
-> 
-> drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c: In function ‘cpld_set_led_id’:
-> drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c:165:26: warning: ‘val’ may be used uninitialized in this function [-Wmaybe-uninitialized]
->    mac_cb->cpld_led_value =
->    ~~~~~~~~~~~~~~~~~~~~~~~^
->     dsaf_read_syscon(mac_cb->cpld_ctrl,
->     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->        mac_cb->cpld_ctrl_reg);
->        ~~~~~~~~~~~~~~~~~~~~~~
-> drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c: In function ‘hns_mac_get_sfp_prsnt’:
-> drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c:511:15: warning: ‘val’ may be used uninitialized in this function [-Wmaybe-uninitialized]
->   *sfp_prsnt = !dsaf_read_syscon(mac_cb->cpld_ctrl, mac_cb->cpld_ctrl_reg
->                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->       + MAC_SFP_PORT_OFFSET);
->       ~~~~~~~~~~~~~~~~~~~~~~
-> 
-> 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiBGcm9tOiBJbnRlbC13aXJlZC1sYW4gW21haWx0bzppbnRlbC13aXJlZC1sYW4tYm91bmNlc0Bv
+c3Vvc2wub3JnXSBPbg0KPiBCZWhhbGYgT2YgSmVmZiBLaXJzaGVyDQo+IFNlbnQ6IFdlZG5lc2Rh
+eSwgRGVjZW1iZXIgNiwgMjAxNyA4OjI1IEFNDQo+IFRvOiBLYW1ibGUsIFNhZ2FyIEEgPHNhZ2Fy
+LmEua2FtYmxlQGludGVsLmNvbT47IGxpbnV4LQ0KPiBrZXJuZWxAdmdlci5rZXJuZWwub3JnDQo+
+IENjOiBhbHNhLWRldmVsQGFsc2EtcHJvamVjdC5vcmc7IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwu
+b3JnOw0KPiBuZXRkZXZAdmdlci5rZXJuZWwub3JnOyBSaWNoYXJkIENvY2hyYW4gPHJpY2hhcmRj
+b2NocmFuQGdtYWlsLmNvbT47DQo+IFN0ZXBoZW4gQm95ZCA8c2JveWRAY29kZWF1cm9yYS5vcmc+
+OyBDaHJpcyBXaWxzb24gPGNocmlzQGNocmlzLQ0KPiB3aWxzb24uY28udWs+OyBKb2huIFN0dWx0
+eiA8am9obi5zdHVsdHpAbGluYXJvLm9yZz47IGludGVsLXdpcmVkLQ0KPiBsYW5AbGlzdHMub3N1
+b3NsLm9yZzsgVGhvbWFzIEdsZWl4bmVyIDx0Z2x4QGxpbnV0cm9uaXguZGU+Ow0KPiBrdm1hcm1A
+bGlzdHMuY3MuY29sdW1iaWEuZWR1OyBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5v
+cmcNCj4gU3ViamVjdDogUmU6IFtJbnRlbC13aXJlZC1sYW5dIFtQQVRDSCAxLzFdIHRpbWVjb3Vu
+dGVyOiBNYWtlIGN5Y2xlY291bnRlcg0KPiBzdHJ1Y3QgcGFydCBvZiB0aW1lY291bnRlciBzdHJ1
+Y3QNCj4gDQo+IE9uIFNhdCwgMjAxNy0xMi0wMiBhdCAxMDowMSArMDUzMCwgU2FnYXIgQXJ1biBL
+YW1ibGUgd3JvdGU6DQo+ID4gVGhlcmUgaXMgbm8gcmVhbCBuZWVkIGZvciB0aGUgdXNlcnMgb2Yg
+dGltZWNvdW50ZXJzIHRvIGRlZmluZQ0KPiA+IGN5Y2xlY291bnRlcg0KPiA+IGFuZCB0aW1lY291
+bnRlciB2YXJpYWJsZXMgc2VwYXJhdGVseS4gU2luY2UgdGltZWNvdW50ZXIgd2lsbCBhbHdheXMN
+Cj4gPiBiZQ0KPiA+IGJhc2VkIG9uIGN5Y2xlY291bnRlciwgaGF2ZSBjeWNsZWNvdW50ZXIgc3Ry
+dWN0IGFzIG1lbWJlciBvZg0KPiA+IHRpbWVjb3VudGVyDQo+ID4gc3RydWN0Lg0KPiA+DQo+ID4g
+U3VnZ2VzdGVkLWJ5OiBDaHJpcyBXaWxzb24gPGNocmlzQGNocmlzLXdpbHNvbi5jby51az4NCj4g
+PiBTaWduZWQtb2ZmLWJ5OiBTYWdhciBBcnVuIEthbWJsZSA8c2FnYXIuYS5rYW1ibGVAaW50ZWwu
+Y29tPg0KPiA+IENjOiBDaHJpcyBXaWxzb24gPGNocmlzQGNocmlzLXdpbHNvbi5jby51az4NCj4g
+PiBDYzogUmljaGFyZCBDb2NocmFuIDxyaWNoYXJkY29jaHJhbkBnbWFpbC5jb20+DQo+ID4gQ2M6
+IEpvaG4gU3R1bHR6IDxqb2huLnN0dWx0ekBsaW5hcm8ub3JnPg0KPiA+IENjOiBUaG9tYXMgR2xl
+aXhuZXIgPHRnbHhAbGludXRyb25peC5kZT4NCj4gPiBDYzogU3RlcGhlbiBCb3lkIDxzYm95ZEBj
+b2RlYXVyb3JhLm9yZz4NCj4gPiBDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZw0KPiA+
+IENjOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcNCj4gPiBDYzogbmV0ZGV2
+QHZnZXIua2VybmVsLm9yZw0KPiA+IENjOiBpbnRlbC13aXJlZC1sYW5AbGlzdHMub3N1b3NsLm9y
+Zw0KPiA+IENjOiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KPiA+IENjOiBhbHNhLWRldmVs
+QGFsc2EtcHJvamVjdC5vcmcNCj4gPiBDYzoga3ZtYXJtQGxpc3RzLmNzLmNvbHVtYmlhLmVkdQ0K
+PiANCj4gQWNrZWQtYnk6IEplZmYgS2lyc2hlciA8amVmZnJleS50LmtpcnNoZXJAaW50ZWwuY29t
+Pg0KPiANCg0KVGVzdGVkLWJ5OiBBYXJvbiBCcm93biA8YWFyb24uZi5icm93bkBpbnRlbC5jb20+
+DQoNCj4gRm9yIHRoZSBjaGFuZ2VzIHRvIHRoZSBJbnRlbCBkcml2ZXJzLg0KPiANCj4gPiAtLS0N
+Cj4gPiAgYXJjaC9taWNyb2JsYXplL2tlcm5lbC90aW1lci5jICAgICAgICAgICAgICAgICAgICAg
+fCAyMCArKysrKystLS0tLS0NCj4gPiAgZHJpdmVycy9jbG9ja3NvdXJjZS9hcm1fYXJjaF90aW1l
+ci5jICAgICAgICAgICAgICAgfCAxOSArKysrKystLS0tLS0NCj4gPiAgZHJpdmVycy9uZXQvZXRo
+ZXJuZXQvYW1kL3hnYmUveGdiZS1kZXYuYyAgICAgICAgICAgfCAgMyArLQ0KPiA+ICBkcml2ZXJz
+L25ldC9ldGhlcm5ldC9hbWQveGdiZS94Z2JlLXB0cC5jICAgICAgICAgICB8ICA5ICsrKy0tLQ0K
+PiA+ICBkcml2ZXJzL25ldC9ldGhlcm5ldC9hbWQveGdiZS94Z2JlLmggICAgICAgICAgICAgICB8
+ICAxIC0NCj4gPiAgZHJpdmVycy9uZXQvZXRoZXJuZXQvYnJvYWRjb20vYm54MngvYm54MnguaCAg
+ICAgICAgfCAgMSAtDQo+ID4gIGRyaXZlcnMvbmV0L2V0aGVybmV0L2Jyb2FkY29tL2JueDJ4L2Ju
+eDJ4X21haW4uYyAgIHwgMjAgKysrKysrLS0tLS0tDQo+ID4gIGRyaXZlcnMvbmV0L2V0aGVybmV0
+L2ZyZWVzY2FsZS9mZWMuaCAgICAgICAgICAgICAgIHwgIDEgLQ0KPiA+ICBkcml2ZXJzL25ldC9l
+dGhlcm5ldC9mcmVlc2NhbGUvZmVjX3B0cC5jICAgICAgICAgICB8IDMwICsrKysrKysrKy0tLQ0K
+PiA+IC0tLS0tLQ0KPiA+ICBkcml2ZXJzL25ldC9ldGhlcm5ldC9pbnRlbC9lMTAwMGUvZTEwMDAu
+aCAgICAgICAgICB8ICAxIC0NCj4gPiAgZHJpdmVycy9uZXQvZXRoZXJuZXQvaW50ZWwvZTEwMDBl
+L25ldGRldi5jICAgICAgICAgfCAyNyArKysrKysrKy0tDQo+ID4gLS0tLS0tDQo+ID4gIGRyaXZl
+cnMvbmV0L2V0aGVybmV0L2ludGVsL2UxMDAwZS9wdHAuYyAgICAgICAgICAgIHwgIDIgKy0NCj4g
+PiAgZHJpdmVycy9uZXQvZXRoZXJuZXQvaW50ZWwvaWdiL2lnYi5oICAgICAgICAgICAgICAgfCAg
+MSAtDQo+ID4gIGRyaXZlcnMvbmV0L2V0aGVybmV0L2ludGVsL2lnYi9pZ2JfcHRwLmMgICAgICAg
+ICAgIHwgMjUgKysrKysrKystLQ0KPiA+IC0tLS0tDQo+ID4gIGRyaXZlcnMvbmV0L2V0aGVybmV0
+L2ludGVsL2l4Z2JlL2l4Z2JlLmggICAgICAgICAgIHwgIDEgLQ0KPiA+ICBkcml2ZXJzL25ldC9l
+dGhlcm5ldC9pbnRlbC9peGdiZS9peGdiZV9wdHAuYyAgICAgICB8IDE3ICsrKysrLS0tLS0NCj4g
+PiAgZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9lbl9jbG9jay5jICAgICAgfCAy
+OCArKysrKysrKy0tDQo+ID4gLS0tLS0tLQ0KPiA+ICBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxs
+YW5veC9tbHg0L21seDRfZW4uaCAgICAgICB8ICAxIC0NCj4gPiAgLi4uL25ldC9ldGhlcm5ldC9t
+ZWxsYW5veC9tbHg1L2NvcmUvbGliL2Nsb2NrLmMgICAgfCAzNCArKysrKysrKysrDQo+ID4gLS0t
+LS0tLS0tLQ0KPiA+ICBkcml2ZXJzL25ldC9ldGhlcm5ldC9xbG9naWMvcWVkZS9xZWRlX3B0cC5j
+ICAgICAgICB8IDIwICsrKysrKy0tLS0tLQ0KPiA+ICBkcml2ZXJzL25ldC9ldGhlcm5ldC90aS9j
+cHRzLmMgICAgICAgICAgICAgICAgICAgICB8IDM2DQo+ID4gKysrKysrKysrKysrLS0tLS0tLS0t
+LQ0KPiA+ICBkcml2ZXJzL25ldC9ldGhlcm5ldC90aS9jcHRzLmggICAgICAgICAgICAgICAgICAg
+ICB8ICAxIC0NCj4gPiAgaW5jbHVkZS9saW51eC9tbHg1L2RyaXZlci5oICAgICAgICAgICAgICAg
+ICAgICAgICAgfCAgMSAtDQo+ID4gIGluY2x1ZGUvbGludXgvdGltZWNvdW50ZXIuaCAgICAgICAg
+ICAgICAgICAgICAgICAgIHwgIDQgKy0tDQo+ID4gIGluY2x1ZGUvc291bmQvaGRhdWRpby5oICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDEgLQ0KPiA+ICBrZXJuZWwvdGltZS90aW1lY291
+bnRlci5jICAgICAgICAgICAgICAgICAgICAgICAgICB8IDI4ICsrKysrKysrLS0NCj4gPiAtLS0t
+LS0tDQo+ID4gIHNvdW5kL2hkYS9oZGFjX3N0cmVhbS5jICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIHwgIDcgKysrLS0NCj4gPiAgdmlydC9rdm0vYXJtL2FyY2hfdGltZXIuYyAgICAgICAgICAg
+ICAgICAgICAgICAgICAgfCAgNiArKy0tDQo+ID4gIDI4IGZpbGVzIGNoYW5nZWQsIDE2MyBpbnNl
+cnRpb25zKCspLCAxODIgZGVsZXRpb25zKC0pDQo=
