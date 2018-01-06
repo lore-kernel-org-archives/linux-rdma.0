@@ -1,56 +1,48 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH 5/8] infiniband: fix ulp/srpt/ib_srpt.c kernel-doc
- notation
-Date: Fri, 5 Jan 2018 16:36:30 -0800
-Message-ID: <fcc3f226-848d-abc4-2a81-f4fd821761c9@wdc.com>
-References: <5a5016c0.4c0a620a.ed2b3.60da@mx.google.com>
+Subject: Re: [PATCH 1/8] infiniband: fix ulp/opa_vnic/opa_vnic_encap.h
+ kernel-doc for Sphinx
+Date: Fri, 5 Jan 2018 16:38:03 -0800
+Message-ID: <c7e46f04-ac60-448f-3e5d-e23fe7221c9a@wdc.com>
+References: <5a50168d.4a9b620a.2c596.4dfd@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5a5016c0.4c0a620a.ed2b3.60da-ATjtLOhZ0NVl57MIdRCFDg@public.gmane.org>
+In-Reply-To: <5a50168d.4a9b620a.2c596.4dfd-ATjtLOhZ0NVl57MIdRCFDg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Randy Dunlap <rd.dunlab-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/05/18 16:22, Randy Dunlap wrote:
-> Use correct parameter names in kernel-doc notation to eliminate
-> warnings from scripts/kernel-doc.
+On 01/05/18 16:21, Randy Dunlap wrote:
+> Use '\' escape characters in kernel-doc notation to eliminate a warning
+> from Sphinx.
 > 
-> ../drivers/infiniband/ulp/srpt/ib_srpt.c:1146: warning: Excess function parameter 'context' description in 'srpt_abort_cmd'
-> ../drivers/infiniband/ulp/srpt/ib_srpt.c:1482: warning: Excess function parameter 'ioctx' description in 'srpt_handle_new_iu'
+> ../drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h:243: WARNING: Inline strong start-string without end-string.
 > 
 > Signed-off-by: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 > Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 > Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > ---
->   drivers/infiniband/ulp/srpt/ib_srpt.c |    4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
+>   drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> --- linux-next-20171222.orig/drivers/infiniband/ulp/srpt/ib_srpt.c
-> +++ linux-next-20171222/drivers/infiniband/ulp/srpt/ib_srpt.c
-> @@ -1139,7 +1139,6 @@ static struct srpt_send_ioctx *srpt_get_
->   /**
->    * srpt_abort_cmd() - Abort a SCSI command.
->    * @ioctx:   I/O context associated with the SCSI command.
-> - * @context: Preferred execution context.
->    */
->   static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
->   {
-> @@ -1473,7 +1472,8 @@ fail:
->   /**
->    * srpt_handle_new_iu() - Process a newly received information unit.
->    * @ch:    RDMA channel through which the information unit has been received.
-> - * @ioctx: SRPT I/O context associated with the information unit.
-> + * @recv_ioctx: SRPT I/O context associated with the receive information unit.
-> + * @send_ioctx: SRPT I/O context associated with the send information unit.
->    */
->   static void srpt_handle_new_iu(struct srpt_rdma_ch *ch,
->   			       struct srpt_recv_ioctx *recv_ioctx,
+> --- linux-next-20171222.orig/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
+> +++ linux-next-20171222/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
+> @@ -239,7 +239,7 @@ struct opa_veswport_mactable_entry {
+>    * @offset: mac table starting offset
+>    * @num_entries: Number of entries to get or set
+>    * @mac_tbl_digest: mac table digest
+> - * @tbl_entries[]: Array of table entries
+> + * @tbl_entries\[\]: Array of table entries
+>    *
+>    * The EM sends down this structure in a MAD indicating
+>    * the starting offset in the forwarding table that this
 
-Please drop this patch. It conflicts with a patch series I'm working on.
+Wouldn't it be better to fix the toolchain such that it escapes Sphinx 
+metacharacters in kernel-doc headers instead of modifying the source 
+code with patches like the above one?
 
 Thanks,
 
