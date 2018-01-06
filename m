@@ -1,41 +1,12 @@
-From: Randy Dunlap <rd.dunlab-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/8] infiniband: fix ulp/opa_vnic/opa_vnic_encap.h kernel-doc for Sphinx
-Date: Fri, 05 Jan 2018 16:21:28 -0800
-Message-ID: <5a50168d.4a9b620a.2c596.4dfd@mx.google.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+From: Randy Dunlap <rd.dunlab@gmail.com>
+Subject: [PATCH 2/8] infiniband: fix core/verbs.c kernel-doc notation
+Date: Fri, 05 Jan 2018 16:20:02 -0800
+Message-ID: <1515198002420@infradead.org>
+References: <15151980023293@infradead.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <15151980023293@infradead.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Randy Dunlap <rdunlap@infradead.org>, linux-rdma@vger.kernel.org
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, linux-doc@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Use '\' escape characters in kernel-doc notation to eliminate a warning
-from Sphinx.
-
-../drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h:243: WARNING: Inline strong start-string without end-string.
-
-Signed-off-by: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
----
- drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- linux-next-20171222.orig/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
-+++ linux-next-20171222/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
-@@ -239,7 +239,7 @@ struct opa_veswport_mactable_entry {
-  * @offset: mac table starting offset
-  * @num_entries: Number of entries to get or set
-  * @mac_tbl_digest: mac table digest
-- * @tbl_entries[]: Array of table entries
-+ * @tbl_entries\[\]: Array of table entries
-  *
-  * The EM sends down this structure in a MAD indicating
-  * the starting offset in the forwarding table that this
-
-
--- 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
