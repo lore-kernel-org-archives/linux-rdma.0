@@ -1,19 +1,16 @@
-From: Randy Dunlap <rd.dunlab@gmail.com>
-Subject: [PATCH 0/8] Infiniband: clean up kernel-doc and add driver-api chapter
+From: Randy Dunlap <rd.dunlab-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/8] infiniband: fix ulp/opa_vnic/opa_vnic_encap.h kernel-doc for Sphinx
 Date: Fri, 05 Jan 2018 16:20:02 -0800
-Message-ID: <15151980023293@infradead.org>
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: 
-Sender: linux-doc-owner@vger.kernel.org
-To: Randy Dunlap <rdunlap@infradead.org>, linux-rdma@vger.kernel.org
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, linux-doc@vger.kernel.org
+Message-ID: <1515198002161@infradead.org>
+References: <15151980023293@infradead.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <15151980023293-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-This patch series cleans up lots of kernel-doc notation in
-drivers/infiniband/ and then adds a driver-api chapter for
-Infiniband.
-
-
--- 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
