@@ -1,30 +1,109 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH 5/8] infiniband: fix ulp/srpt/ib_srpt.c kernel-doc
- notation
-Date: Sat, 6 Jan 2018 16:50:02 +0000
-Message-ID: <1515257401.2792.0.camel@wdc.com>
-References: <5a5016c0.4c0a620a.ed2b3.60da@mx.google.com>
-         <fcc3f226-848d-abc4-2a81-f4fd821761c9@wdc.com>
-         <31f69352-b8b1-9ed1-635b-2c654b49c775@infradead.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH iproute2-next v1 3/9] rdma: Add filtering infrastructure
+Date: Sun, 7 Jan 2018 09:44:56 +0200
+Message-ID: <20180107074455.GA6823@mtr-leonro.local>
+References: <20180104070150.15625-1-leon@kernel.org>
+ <20180104070150.15625-4-leon@kernel.org>
+ <b7ad60c5-a1c5-ff79-113d-d6c57baf1c40@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <31f69352-b8b1-9ed1-635b-2c654b49c775-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <D130F1A05B752D47877794C64FC141BB-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "rd.dunlab-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <rd.dunlab-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <b7ad60c5-a1c5-ff79-113d-d6c57baf1c40@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: David Ahern <dsahern@gmail.com>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, netdev <netdev@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCAyMDE4LTAxLTA1IGF0IDIxOjU1IC0wODAwLCBSYW5keSBEdW5sYXAgd3JvdGU6DQo+
-IE9uIDAxLzA1LzE4IDE2OjM2LCBCYXJ0IFZhbiBBc3NjaGUgd3JvdGU6DQo+ID4gUGxlYXNlIGRy
-b3AgdGhpcyBwYXRjaC4gSXQgY29uZmxpY3RzIHdpdGggYSBwYXRjaCBzZXJpZXMgSSdtIHdvcmtp
-bmcgb24uDQo+IA0KPiBTdXJlLCBubyBwcm9ibGVtLiAgRG8geW91IGhhdmUgdGhpcyBrZXJuZWwt
-ZG9jIG5vdGF0aW9uIGZpeGVkLCB0aGVuPw0KDQpZZXMuIFBsZWFzZSBoYXZlIGEgbG9vayBhdCB0
-aGUgc2VyaWVzIEkgcG9zdGVkIHRocmVlIGRheXMgYWdvOg0KaHR0cHM6Ly93d3cuc3Bpbmljcy5u
-ZXQvbGlzdHMvbGludXgtcmRtYS9tc2c1ODg5Ni5odG1sLg0KDQpUaGFua3MsDQoNCkJhcnQu
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--gKMricLos+KVdGMg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, Jan 04, 2018 at 08:29:31PM -0700, David Ahern wrote:
+> On 1/4/18 12:01 AM, Leon Romanovsky wrote:
+> > diff --git a/rdma/utils.c b/rdma/utils.c
+> > index af2b374d..446c23da 100644
+> > --- a/rdma/utils.c
+> > +++ b/rdma/utils.c
+> > @@ -114,6 +114,225 @@ static void dev_map_cleanup(struct rd *rd)
+> >  	}
+> >  }
+> >
+> > +static int add_filter(struct rd *rd, char *key, char *value,
+> > +		      const char * const valid_filters[])
+> > +{
+> > +	char cset[] = "1234567890,-";
+> > +	struct filter_entry *fe;
+> > +	bool key_found = false;
+> > +	int idx = 0;
+> > +	int ret;
+> > +
+> > +	fe = calloc(1, sizeof(*fe));
+> > +	if (!fe)
+> > +		return -ENOMEM;
+> > +
+> > +	while (valid_filters[idx]) {
+> > +		if (!strcmpx(key, valid_filters[idx])) {
+> > +			key_found = true;
+> > +			break;
+> > +		}
+> > +		idx++;
+> > +	}
+> > +	if (!key_found) {
+> > +		pr_err("Unsupported filter option: %s\n", key);
+> > +		ret = -EINVAL;
+> > +		goto err;
+> > +	}
+> > +
+> > +	/*
+> > +	 * Check the filter validity, not optimal, but works
+> > +	 *
+> > +	 * Actually, there are three types of filters
+> > +	 *  numeric - for example PID or QPN
+> > +	 *  string  - for example states, currently only "display"
+> > +	 *            is from this type
+> > +	 *  link    - user requested to filter on specific link
+> > +	 *            e.g. mlx5_1/1, mlx5_1/-, mlx5_1 ...
+> > +	 */
+> > +	if (strcmpx(key, "link") && strcmpx(key, "display") &&
+> > +	    strspn(value, cset) != strlen(value)) {
+> > +		pr_err("%s filter accepts \"%s\" characters only\n", key, cset);
+> > +		ret = -EINVAL;
+> > +		goto err;
+> > +	}
+> > +
+> > +	fe->key = strdup(key);
+> > +	fe->value = strdup(value);
+> > +
+>
+> Missed this the other day. 2 more strdup's that should be checked.
+
+Thanks, David,
+
+I'll fix and send new version once the RDMA kernel part will be accepted.
+
+Thanks
+
+--gKMricLos+KVdGMg
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpRz/cACgkQ5GN7iDZy
+WKfzzhAArcF6nwXvHUb6s0ACa/AEyTDUZ2xP8H+2m11kMG8dB72/0niGfeY6QnhE
+h1GtM0HhvvQRRAXmcblHKydkK6biDKnemxAkQ6vcawqhdT+QMKwxgOdsejBCjh4x
+zNbaqxenADimmiS3kEo7ypnYJJcYQhUox+7QIPVMFrDbtzuE9Gk7Wwpl2kgFzWEJ
+y95VQnPbHtDyItdVUfPSoDl/6tpeiXRy+IzAxBnC9JQMhdeMgOLDBNsSDpyczoiU
+fwKVxaUzRRmFf84pekwvfeIO2Fyq9TEHw25+LmPwocsJmubR2BzUYU/bC1njT8eJ
+x1R3ewZH0pxA2xViF3Bm7hi4aMZqg+JmXeZcgQAArzlfP/VNWkW2r+5sJsybGqu0
+LvD6PJdfKvEu30eGzhri3TBkjxIRiezuLMqUwoBJQHRkex2zHq4E2rj/Kch5IP/i
+visnz0OEyN9UiOq8VTvvkocnjgNm72r87OBYnw836zoT5w+j+09ou/pKqyzHazeU
+1qlykwXRj3CH9agr+7zGqpweAuO0VsWVyHI5ErUrPB7Q+M0HxfMzonN9qkxlaUvf
+j/fN6FtL4QNBy57ht7K1rbM2HJZkjNFcOX7k3xcHNkgryqoHQmwKhrIsRH+9xZfc
+2qs83w/28KzsL8gUsrpXEz+mo+GTb3YSnsSOOiOCPLdeIYK8Dzg=
+=f7Ok
+-----END PGP SIGNATURE-----
+
+--gKMricLos+KVdGMg--
