@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v3 2/5] IB/srp: Use kstrtoull() instead of simple_strtoull()
-Date: Mon,  8 Jan 2018 15:14:33 -0800
-Message-ID: <20180108231436.19750-3-bart.vanassche@wdc.com>
+Subject: [PATCH v3 4/5] IB/srp: Refactor srp_send_req()
+Date: Mon,  8 Jan 2018 15:14:35 -0800
+Message-ID: <20180108231436.19750-5-bart.vanassche@wdc.com>
 References: <20180108231436.19750-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180108231436.19750-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,86 +10,125 @@ To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use kstrtoull() since simple_strtoull() is deprecated. This patch
-improves error checking but otherwise does not change any functionality.
+This patch does not change any functionality but makes the next
+patch in this series easier to read.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 33 +++++++++++++++++++++++++++++----
- 1 file changed, 29 insertions(+), 4 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 65 +++++++++++++++++++------------------
+ 1 file changed, 34 insertions(+), 31 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 62d88212c1b0..39b3e43efbbe 100644
+index fec6e800adf4..9472f5989d27 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -3111,6 +3111,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 	char *options, *sep_opt;
- 	char *p;
- 	substring_t args[MAX_OPT_ARGS];
-+	unsigned long long ull;
- 	int opt_mask = 0;
- 	int token;
- 	int ret = -EINVAL;
-@@ -3135,7 +3136,13 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				ret = -ENOMEM;
- 				goto out;
- 			}
--			target->id_ext = cpu_to_be64(simple_strtoull(p, NULL, 16));
-+			ret = kstrtoull(p, 16, &ull);
-+			if (ret) {
-+				pr_warn("invalid id_ext parameter '%s'\n", p);
-+				kfree(p);
-+				goto out;
-+			}
-+			target->id_ext = cpu_to_be64(ull);
- 			kfree(p);
- 			break;
+@@ -738,35 +738,21 @@ static int srp_send_req(struct srp_rdma_ch *ch, bool multich)
+ 		struct ib_cm_req_param param;
+ 		struct srp_login_req   priv;
+ 	} *req = NULL;
++	char *ipi, *tpi;
+ 	int status;
+-	u8 subnet_timeout;
+-
+-	subnet_timeout = srp_get_subnet_timeout(target->srp_host);
  
-@@ -3145,7 +3152,13 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				ret = -ENOMEM;
- 				goto out;
- 			}
--			target->ioc_guid = cpu_to_be64(simple_strtoull(p, NULL, 16));
-+			ret = kstrtoull(p, 16, &ull);
-+			if (ret) {
-+				pr_warn("invalid ioc_guid parameter '%s'\n", p);
-+				kfree(p);
-+				goto out;
-+			}
-+			target->ioc_guid = cpu_to_be64(ull);
- 			kfree(p);
- 			break;
+ 	req = kzalloc(sizeof *req, GFP_KERNEL);
+ 	if (!req)
+ 		return -ENOMEM;
  
-@@ -3181,7 +3194,13 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				ret = -ENOMEM;
- 				goto out;
- 			}
--			target->service_id = cpu_to_be64(simple_strtoull(p, NULL, 16));
-+			ret = kstrtoull(p, 16, &ull);
-+			if (ret) {
-+				pr_warn("bad service_id parameter '%s'\n", p);
-+				kfree(p);
-+				goto out;
-+			}
-+			target->service_id = cpu_to_be64(ull);
- 			kfree(p);
- 			break;
+-	req->param.primary_path		      = &ch->path;
+-	req->param.alternate_path 	      = NULL;
+-	req->param.service_id 		      = target->service_id;
+-	req->param.qp_num		      = ch->qp->qp_num;
+-	req->param.qp_type		      = ch->qp->qp_type;
+-	req->param.private_data 	      = &req->priv;
+-	req->param.private_data_len 	      = sizeof req->priv;
+ 	req->param.flow_control 	      = 1;
+-
+-	get_random_bytes(&req->param.starting_psn, 4);
+-	req->param.starting_psn 	     &= 0xffffff;
++	req->param.retry_count                = target->tl_retry_count;
  
-@@ -3235,7 +3254,13 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				ret = -ENOMEM;
- 				goto out;
- 			}
--			target->initiator_ext = cpu_to_be64(simple_strtoull(p, NULL, 16));
-+			ret = kstrtoull(p, 16, &ull);
-+			if (ret) {
-+				pr_warn("bad initiator_ext value '%s'\n", p);
-+				kfree(p);
-+				goto out;
-+			}
-+			target->initiator_ext = cpu_to_be64(ull);
- 			kfree(p);
- 			break;
+ 	/*
+ 	 * Pick some arbitrary defaults here; we could make these
+ 	 * module parameters if anyone cared about setting them.
+ 	 */
+ 	req->param.responder_resources	      = 4;
+-	req->param.remote_cm_response_timeout = subnet_timeout + 2;
+-	req->param.local_cm_response_timeout  = subnet_timeout + 2;
+-	req->param.retry_count                = target->tl_retry_count;
+ 	req->param.rnr_retry_count 	      = 7;
+ 	req->param.max_cm_retries 	      = 15;
  
+@@ -777,6 +763,28 @@ static int srp_send_req(struct srp_rdma_ch *ch, bool multich)
+ 					      SRP_BUF_FORMAT_INDIRECT);
+ 	req->priv.req_flags	= (multich ? SRP_MULTICHAN_MULTI :
+ 				   SRP_MULTICHAN_SINGLE);
++
++	{
++		u8 subnet_timeout;
++
++		subnet_timeout = srp_get_subnet_timeout(target->srp_host);
++
++		req->param.primary_path = &ch->path;
++		req->param.alternate_path = NULL;
++		req->param.service_id = target->service_id;
++		get_random_bytes(&req->param.starting_psn, 4);
++		req->param.starting_psn &= 0xffffff;
++		req->param.qp_num = ch->qp->qp_num;
++		req->param.qp_type = ch->qp->qp_type;
++		req->param.local_cm_response_timeout = subnet_timeout + 2;
++		req->param.remote_cm_response_timeout = subnet_timeout + 2;
++		req->param.private_data = &req->priv;
++		req->param.private_data_len = sizeof(req->priv);
++
++		ipi = req->priv.initiator_port_id;
++		tpi = req->priv.target_port_id;
++	}
++
+ 	/*
+ 	 * In the published SRP specification (draft rev. 16a), the
+ 	 * port identifier format is 8 bytes of ID extension followed
+@@ -787,19 +795,15 @@ static int srp_send_req(struct srp_rdma_ch *ch, bool multich)
+ 	 * recognized by the I/O Class they report.
+ 	 */
+ 	if (target->io_class == SRP_REV10_IB_IO_CLASS) {
+-		memcpy(req->priv.initiator_port_id,
+-		       &target->sgid.global.interface_id, 8);
+-		memcpy(req->priv.initiator_port_id + 8,
+-		       &target->initiator_ext, 8);
+-		memcpy(req->priv.target_port_id,     &target->ioc_guid, 8);
+-		memcpy(req->priv.target_port_id + 8, &target->id_ext, 8);
++		memcpy(ipi,     &target->sgid.global.interface_id, 8);
++		memcpy(ipi + 8, &target->initiator_ext, 8);
++		memcpy(tpi,     &target->ioc_guid, 8);
++		memcpy(tpi + 8, &target->id_ext, 8);
+ 	} else {
+-		memcpy(req->priv.initiator_port_id,
+-		       &target->initiator_ext, 8);
+-		memcpy(req->priv.initiator_port_id + 8,
+-		       &target->sgid.global.interface_id, 8);
+-		memcpy(req->priv.target_port_id,     &target->id_ext, 8);
+-		memcpy(req->priv.target_port_id + 8, &target->ioc_guid, 8);
++		memcpy(ipi,     &target->initiator_ext, 8);
++		memcpy(ipi + 8, &target->sgid.global.interface_id, 8);
++		memcpy(tpi,     &target->id_ext, 8);
++		memcpy(tpi + 8, &target->ioc_guid, 8);
+ 	}
+ 
+ 	/*
+@@ -812,9 +816,8 @@ static int srp_send_req(struct srp_rdma_ch *ch, bool multich)
+ 			     PFX "Topspin/Cisco initiator port ID workaround "
+ 			     "activated for target GUID %016llx\n",
+ 			     be64_to_cpu(target->ioc_guid));
+-		memset(req->priv.initiator_port_id, 0, 8);
+-		memcpy(req->priv.initiator_port_id + 8,
+-		       &target->srp_host->srp_dev->dev->node_guid, 8);
++		memset(ipi, 0, 8);
++		memcpy(ipi + 8, &target->srp_host->srp_dev->dev->node_guid, 8);
+ 	}
+ 
+ 	status = ib_send_cm_req(ch->cm_id, &req->param);
 -- 
 2.15.1
 
