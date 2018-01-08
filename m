@@ -1,88 +1,91 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [for-next 1/5] RDMA/bnxt_re: Enable RoCE on virtual functions
-Date: Mon, 08 Jan 2018 17:12:29 -0500
-Message-ID: <1515449549.3403.112.camel@redhat.com>
-References: <1515152434-13105-1-git-send-email-devesh.sharma@broadcom.com>
-         <1515152434-13105-2-git-send-email-devesh.sharma@broadcom.com>
+From: "Brown, Aaron F" <aaron.f.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [Intel-wired-lan] [PATCH 01/27] timecounter: Make cyclecounter
+ struct part of timecounter struct
+Date: Mon, 8 Jan 2018 22:20:35 +0000
+Message-ID: <309B89C4C689E141A5FF6A0C5FB2118B8C734DF8@ORSMSX101.amr.corp.intel.com>
+References: <1513323522-15021-1-git-send-email-sagar.a.kamble@intel.com>
+ <1513323522-15021-2-git-send-email-sagar.a.kamble@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-+2s2IN00ucOaeTVFhOfs"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1515152434-13105-2-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1513323522-15021-2-git-send-email-sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org" <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org" <intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "Kamble, Sagar A" <sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org" <kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> From: Intel-wired-lan [mailto:intel-wired-lan-bounces-CJG/fkoVOTIdnm+yROfE0A@public.gmane.org] On
+> Behalf Of Sagar Arun Kamble
+> Sent: Thursday, December 14, 2017 11:38 PM
+> To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>;
+> Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>; Chris Wilson <chris@chris-
+> wilson.co.uk>; John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>; intel-wired-
+> lan-qjLDD68F18P21nG7glBr7A@public.gmane.org; Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>; Kamble, Sagar A
+> <sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org; linux-arm-
+> kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> Subject: [Intel-wired-lan] [PATCH 01/27] timecounter: Make cyclecounter
+> struct part of timecounter struct
+> 
+> There is no real need for the users of timecounters to define cyclecounter
+> and timecounter variables separately. Since timecounter will always be
+> based on cyclecounter, have cyclecounter struct as member of timecounter
+> struct.
+> 
+> v2: Rebase.
+> 
+> Suggested-by: Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>
+> Signed-off-by: Sagar Arun Kamble <sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>
+> Cc: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+> Cc: Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+> Cc: kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org
+> Acked-by: Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (Intel drivers)
+> ---
+>  arch/microblaze/kernel/timer.c                     | 20 ++++++------
+>  drivers/clocksource/arm_arch_timer.c               | 19 ++++++------
+>  drivers/net/ethernet/amd/xgbe/xgbe-dev.c           |  3 +-
+>  drivers/net/ethernet/amd/xgbe/xgbe-ptp.c           |  9 +++---
+>  drivers/net/ethernet/amd/xgbe/xgbe.h               |  1 -
+>  drivers/net/ethernet/broadcom/bnx2x/bnx2x.h        |  1 -
+>  drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c   | 20 ++++++------
+>  drivers/net/ethernet/freescale/fec.h               |  1 -
+>  drivers/net/ethernet/freescale/fec_ptp.c           | 30 +++++++++---------
+>  drivers/net/ethernet/intel/e1000e/e1000.h          |  1 -
+>  drivers/net/ethernet/intel/e1000e/netdev.c         | 27 ++++++++--------
+>  drivers/net/ethernet/intel/e1000e/ptp.c            |  2 +-
+>  drivers/net/ethernet/intel/igb/igb.h               |  1 -
+>  drivers/net/ethernet/intel/igb/igb_ptp.c           | 25 ++++++++-------
+>  drivers/net/ethernet/intel/ixgbe/ixgbe.h           |  1 -
+>  drivers/net/ethernet/intel/ixgbe/ixgbe_ptp.c       | 17 +++++-----
+>  drivers/net/ethernet/mellanox/mlx4/en_clock.c      | 28 ++++++++---------
+>  drivers/net/ethernet/mellanox/mlx4/mlx4_en.h       |  1 -
+>  .../net/ethernet/mellanox/mlx5/core/lib/clock.c    | 34 ++++++++++----------
+>  drivers/net/ethernet/qlogic/qede/qede_ptp.c        | 20 ++++++------
+>  drivers/net/ethernet/ti/cpts.c                     | 36 ++++++++++++----------
+>  drivers/net/ethernet/ti/cpts.h                     |  1 -
+>  include/linux/mlx5/driver.h                        |  1 -
+>  include/linux/timecounter.h                        |  4 +--
+>  include/sound/hdaudio.h                            |  1 -
+>  kernel/time/timecounter.c                          | 28 ++++++++---------
+>  sound/hda/hdac_stream.c                            |  7 +++--
+>  virt/kvm/arm/arch_timer.c                          |  6 ++--
+>  28 files changed, 163 insertions(+), 182 deletions(-)
+> 
 
---=-+2s2IN00ucOaeTVFhOfs
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 2018-01-05 at 06:40 -0500, Devesh Sharma wrote:
-> From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
->=20
-> Currently, fifty percent of the total available resources
-> are reserved for PF and remaining are equally divided among
-> active VFs.
->=20
-> +/*
-> + * Percentage of resources of each type reserved for PF.
-> + * Remaining resources are divided equally among VFs.
-> + * [0, 100]
-> + */
-> +#define BNXT_RE_PCT_RSVD_FOR_PF         50
-
-This is a separate comment from the patch review itself.  But, are you
-sure this is a good idea?  And especially are you sure that it should be
-a compile time constant and not a runtime parameter?
-
-I ask because it seems to me that usage of this stuff falls into one of
-two categories:
-
-1) All bare metal usage
-2) SRIOV usage (in which case the bare metal OS does relatively little,
-the SRIOV using clients do most of the work)
-
-I guess I'm finding it hard to imagine a scenario where, when you do
-have SRIOV VFs, that you don't want the majority of all resources being
-used there.
-
-I might suggest that you simply don't split resources at all.  Maybe do
-something like filesystems do.  Let anyone at all take a resource until
-you hit 95% utilization then only root can write to the filesystem.  In
-this case it would be let both PFs and VFs use resources at will up
-until you hit the 95% utilization threshold and then restrict resource
-use to the PF.  That would make much more sense to me.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-+2s2IN00ucOaeTVFhOfs
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpT7M0ACgkQuCajMw5X
-L907jw/9F6ZyRVZl+g12KewQbl4u7gm3BnX1Bo8vdGkkbDgK6MhJOtm08X7AscsT
-lA4vjVFYW0PNZCkwikh4fOa2q7DnsBi/FL89QeNI8LsKdEAszY4XfkknP/8nh7f9
-ebx+ZPT7mLVVeSLy81NBZ5WH9SxPPgi9kSPLGcFfe4oUsdFSlShC9TzEUSUzCX+g
-qa/HRyH6nt6QVAv4N72N/VE8OyMoT0kPn25a5T5qLtbHi8tYtp18OJZ+jHfBJUCl
-Ahzf8F0tDrqct2EnS44xxi2T/Rj4qjSDj/B41S2wMUiJ81r24G5j4iG1VBa9ZOPe
-Hvtk5SVuaKQ+zFKgjx7aRBGXbMW4/5wk5/zdZgJg69254r/9Z+O4Q1jW4pWBYlva
-o94rhpEroEOm1luKUutuGtiRJJ+g4/hEgEDR4lMue2T/n4UKb1PwHWCOXB45+Q4H
-ma7JEpiWO6Lj05nQrsQwuPXIygrRscJjUOyMWLA2G88QNiw/zX+J+GkpU7mMOdLV
-fwlHG0IEmx5ImmwicuWDohONSRqeabgEUhws1F6R5LyMI41FT5ToNAZ3tEHMO10B
-/Juw947hRCqqgbfRfeCTeugqv/dXHKersihrgegpBJbyYwVeg9sGcpbZUkbO+bMY
-lk2kDNFKmGODgZd5H2yGt3J1j9GAlUarrXji+FiKBJatTriKfS0=
-=3ne8
------END PGP SIGNATURE-----
-
---=-+2s2IN00ucOaeTVFhOfs--
-
+For Intel e1000e and igb drivers:
+Tested-by: Aaron Brown <aaron.f.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
