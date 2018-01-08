@@ -1,89 +1,88 @@
-From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 10/12] IB/srpt: Introduce srpt_format_guid()
-Date: Mon,  8 Jan 2018 11:00:49 -0800
-Message-ID: <20180108190051.32008-11-bart.vanassche@wdc.com>
-References: <20180108190051.32008-1-bart.vanassche@wdc.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH 06/12] IB/core: Add optional PCI P2P flag to
+ rdma_rw_ctx_[init|destroy]()
+Date: Mon, 8 Jan 2018 12:01:16 -0700
+Message-ID: <20180108190116.GI11348@ziepe.ca>
+References: <20180104190137.7654-1-logang@deltatee.com>
+ <20180104190137.7654-7-logang@deltatee.com>
+ <20180104192225.GS11348@ziepe.ca>
+ <1f8fb3fb-e3dc-94d3-e837-0cd942cf5b87@deltatee.com>
+ <20180104221337.GV11348@ziepe.ca>
+ <3e8391a9-8924-be6d-8c43-162a360d75b6@deltatee.com>
+ <20180105045031.GX11348@ziepe.ca>
+ <20180108145901.GA10743@lst.de>
+ <20180108180917.GF11348@ziepe.ca>
+ <20180108183434.GA15549@lst.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180108190051.32008-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180108183434.GA15549-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce a function for converting a GUID into an ASCII string. This
-patch does not change any functionality.
+On Mon, Jan 08, 2018 at 07:34:34PM +0100, Christoph Hellwig wrote:
+> > > > And on that topic, does this scheme work with HFI?
+> > > 
+> > > No, and I guess we need an opt-out.  HFI generally seems to be
+> > > extremely weird.
+> > 
+> > This series needs some kind of fix so HFI, QIB, rxe, etc don't get
+> > broken, and it shouldn't be 'fixed' at the RDMA level.
+> 
+> I don't think rxe is a problem as it won't show up a pci device.
 
-Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c | 24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+Right today's restrictions save us..
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 6f5a4d66eacc..e4c1446699a9 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -524,6 +524,15 @@ static void srpt_mad_recv_handler(struct ib_mad_agent *mad_agent,
- 	ib_free_recv_mad(mad_wc);
- }
- 
-+static int srpt_format_guid(char *buf, unsigned int size, const __be64 *guid)
-+{
-+	const __be16 *g = (const __be16 *)guid;
-+
-+	return snprintf(buf, size, "%04x:%04x:%04x:%04x",
-+			be16_to_cpu(g[0]), be16_to_cpu(g[1]),
-+			be16_to_cpu(g[2]), be16_to_cpu(g[3]));
-+}
-+
- /**
-  * srpt_refresh_port - configure a HCA port
-  * @sport: SRPT HCA port.
-@@ -539,7 +548,6 @@ static int srpt_refresh_port(struct srpt_port *sport)
- 	struct ib_mad_reg_req reg_req;
- 	struct ib_port_modify port_modify;
- 	struct ib_port_attr port_attr;
--	__be16 *guid;
- 	int ret;
- 
- 	memset(&port_modify, 0, sizeof(port_modify));
-@@ -563,11 +571,8 @@ static int srpt_refresh_port(struct srpt_port *sport)
- 		goto err_query_port;
- 
- 	sport->port_guid_wwn.priv = sport;
--	guid = (__be16 *)&sport->gid.global.interface_id;
--	snprintf(sport->port_guid, sizeof(sport->port_guid),
--		 "%04x:%04x:%04x:%04x",
--		 be16_to_cpu(guid[0]), be16_to_cpu(guid[1]),
--		 be16_to_cpu(guid[2]), be16_to_cpu(guid[3]));
-+	srpt_format_guid(sport->port_guid, sizeof(sport->port_guid),
-+			 &sport->gid.global.interface_id);
- 	sport->port_gid_wwn.priv = sport;
- 	snprintf(sport->port_gid, sizeof(sport->port_gid),
- 		 "0x%016llx%016llx",
-@@ -1998,7 +2003,6 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
- 	struct srp_login_rej *rej;
- 	struct ib_cm_rep_param *rep_param;
- 	struct srpt_rdma_ch *ch, *tmp_ch;
--	__be16 *guid;
- 	u32 it_iu_len;
- 	int i, ret = 0;
- 
-@@ -2150,10 +2154,8 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
- 		goto destroy_ib;
- 	}
- 
--	guid = (__be16 *)&param->primary_path->dgid.global.interface_id;
--	snprintf(ch->ini_guid, sizeof(ch->ini_guid), "%04x:%04x:%04x:%04x",
--		 be16_to_cpu(guid[0]), be16_to_cpu(guid[1]),
--		 be16_to_cpu(guid[2]), be16_to_cpu(guid[3]));
-+	srpt_format_guid(ch->ini_guid, sizeof(ch->ini_guid),
-+			 &param->primary_path->dgid.global.interface_id);
- 	snprintf(ch->sess_name, sizeof(ch->sess_name), "0x%016llx%016llx",
- 			be64_to_cpu(*(__be64 *)ch->i_port_id),
- 			be64_to_cpu(*(__be64 *)(ch->i_port_id + 8)));
--- 
-2.15.1
+> HFI and QIB do show as PCI devices, and could be used for P2P transfers
+> from the PCI point of view.  It's just that they have a layer of
+> software indirection between their hardware and what is exposed at
+> the RDMA layer.
+> 
+> So I very much disagree about where to place that workaround - the
+> RDMA code is exactly the right place.
 
+But why? RDMA is using core code to do this. It uses dma_ops in struct
+device and it uses normal dma_map SG. How is it RDMA's problem that
+some PCI drivers provide strange DMA ops?
+
+Admittedly they are RDMA drivers, but it is a core mechanism they
+(ab)use these days..
+
+> > It could, if we had a DMA op for p2p then the drivers that provide
+> > their own ops can implement it appropriately or not at all.
+> > 
+> > Eg the correct implementation for rxe to support p2p memory is
+> > probably somewhat straightfoward.
+> 
+> But P2P is _not_ a factor of the dma_ops implementation at all,
+> it is something that happens behind the dma_map implementation.
+
+Only as long as the !ACS and switch limitations are present.
+
+Those limitations are fine to get things started, but there is going
+to a be a push improve the system to remove them.
+
+> > Very long term the IOMMUs under the ops will need to care about this,
+> > so the wrapper is not an optimal place to put it - but I wouldn't
+> > object if it gets it out of RDMA :)
+> 
+> Unless you have an IOMMU on your PCIe switch and not before/inside
+> the root complex that is not correct.
+
+I understand the proposed patches restrict things to require a switch
+and not transit the IOMMU.
+
+But *very long term* P2P will need to work with paths that transit the
+system IOMMU and root complex.
+
+This already exists as out-of-tree funtionality that has been deployed
+in production for years and years that does P2P through the root
+complex with the IOMMU turned off.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
