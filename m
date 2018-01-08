@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 07/12] IB/srpt: Use the IPv6 format for GIDs in log messages
-Date: Mon,  8 Jan 2018 11:00:46 -0800
-Message-ID: <20180108190051.32008-8-bart.vanassche@wdc.com>
+Subject: [PATCH 03/12] IB/srpt: Document all structure members in ib_srpt.h
+Date: Mon,  8 Jan 2018 11:00:42 -0800
+Message-ID: <20180108190051.32008-4-bart.vanassche@wdc.com>
 References: <20180108190051.32008-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180108190051.32008-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,39 +10,132 @@ To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Make the ib_srpt driver use the IPv6 format for GIDs in log messages
-to improve consistency of this driver with other RDMA kernel drivers.
+This patch avoids that the following command reports any warnings:
+
+scripts/kernel-doc -none drivers/infiniband/ulp/srpt/ib_srpt.h
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.h | 33 ++++++++++++++++++++++-----------
+ 1 file changed, 22 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index c5efe0afa2c8..25c5e188c740 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2010,17 +2010,9 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index 7fff73a5d1e6..0c94cd6a7e9d 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -134,7 +134,7 @@ enum {
+ };
  
- 	it_iu_len = be32_to_cpu(req->req_it_iu_len);
+ /**
+- * enum srpt_command_state - SCSI command state managed by SRPT.
++ * enum srpt_command_state - SCSI command state managed by SRPT
+  * @SRPT_STATE_NEW:           New command arrived and is being processed.
+  * @SRPT_STATE_NEED_DATA:     Processing a write or bidir command and waiting
+  *                            for data arrival.
+@@ -158,7 +158,8 @@ enum srpt_command_state {
+ };
  
--	pr_info("Received SRP_LOGIN_REQ with i_port_id 0x%llx:0x%llx,"
--		" t_port_id 0x%llx:0x%llx and it_iu_len %d on port %d"
--		" (guid=0x%llx:0x%llx)\n",
--		be64_to_cpu(*(__be64 *)&req->initiator_port_id[0]),
--		be64_to_cpu(*(__be64 *)&req->initiator_port_id[8]),
--		be64_to_cpu(*(__be64 *)&req->target_port_id[0]),
--		be64_to_cpu(*(__be64 *)&req->target_port_id[8]),
--		it_iu_len,
--		param->port,
--		be64_to_cpu(*(__be64 *)&sdev->port[param->port - 1].gid.raw[0]),
--		be64_to_cpu(*(__be64 *)&sdev->port[param->port - 1].gid.raw[8]));
-+	pr_info("Received SRP_LOGIN_REQ with i_port_id %pI6, t_port_id %pI6 and it_iu_len %d on port %d (guid=%pI6)\n",
-+		req->initiator_port_id, req->target_port_id, it_iu_len,
-+		param->port, &sport->gid);
+ /**
+- * struct srpt_ioctx - Shared SRPT I/O context information.
++ * struct srpt_ioctx - shared SRPT I/O context information
++ * @cqe:   Completion queue element.
+  * @buf:   Pointer to the buffer.
+  * @dma:   DMA address of the buffer.
+  * @index: Index of the I/O context in its ioctx_ring array.
+@@ -171,7 +172,7 @@ struct srpt_ioctx {
+ };
  
- 	rsp = kzalloc(sizeof(*rsp), GFP_KERNEL);
- 	rej = kzalloc(sizeof(*rej), GFP_KERNEL);
+ /**
+- * struct srpt_recv_ioctx - SRPT receive I/O context.
++ * struct srpt_recv_ioctx - SRPT receive I/O context
+  * @ioctx:     See above.
+  * @wait_list: Node for insertion in srpt_rdma_ch.cmd_wait_list.
+  */
+@@ -187,13 +188,21 @@ struct srpt_rw_ctx {
+ };
+ 
+ /**
+- * struct srpt_send_ioctx - SRPT send I/O context.
++ * struct srpt_send_ioctx - SRPT send I/O context
+  * @ioctx:       See above.
+  * @ch:          Channel pointer.
++ * @s_rw_ctx:    @rw_ctxs points here if only a single rw_ctx is needed.
++ * @rw_ctxs:     RDMA read/write contexts.
++ * @rdma_cqe:    RDMA completion queue element.
++ * @free_list:   Node in srpt_rdma_ch.free_list.
+  * @spinlock:    Protects 'state'.
+  * @state:       I/O context state.
+  * @cmd:         Target core command data structure.
+  * @sense_data:  SCSI sense data.
++ * @n_rdma:      Number of work requests needed to transfer this ioctx.
++ * @n_rw_ctx:    Size of rw_ctxs array.
++ * @queue_status_only: Send a SCSI status back to the initiator but no data.
++ * @sense_data:  Sense data to be sent to the initiator.
+  */
+ struct srpt_send_ioctx {
+ 	struct srpt_ioctx	ioctx;
+@@ -214,7 +223,7 @@ struct srpt_send_ioctx {
+ };
+ 
+ /**
+- * enum rdma_ch_state - SRP channel state.
++ * enum rdma_ch_state - SRP channel state
+  * @CH_CONNECTING:    QP is in RTR state; waiting for RTU.
+  * @CH_LIVE:	      QP is in RTS state.
+  * @CH_DISCONNECTING: DREQ has been sent and waiting for DREP or DREQ has
+@@ -232,12 +241,14 @@ enum rdma_ch_state {
+ };
+ 
+ /**
+- * struct srpt_rdma_ch - RDMA channel.
++ * struct srpt_rdma_ch - RDMA channel
+  * @cm_id:         IB CM ID associated with the channel.
+  * @qp:            IB queue pair used for communicating over this channel.
+  * @cq:            IB completion queue for this channel.
++ * @zw_cqe:	   Zero-length write CQE.
++ * @kref:	   kref for this channel.
+  * @rq_size:       IB receive queue size.
+- * @rsp_size	   IB response message size in bytes.
++ * @rsp_size:	   IB response message size in bytes.
+  * @sq_wr_avail:   number of work requests available in the send queue.
+  * @sport:         pointer to the information of the HCA port used by this
+  *                 channel.
+@@ -292,7 +303,7 @@ struct srpt_rdma_ch {
+ };
+ 
+ /**
+- * struct srpt_port_attib - Attributes for SRPT port
++ * struct srpt_port_attib - attributes for SRPT port
+  * @srp_max_rdma_size: Maximum size of SRP RDMA transfers for new connections.
+  * @srp_max_rsp_size: Maximum size of SRP response messages in bytes.
+  * @srp_sq_size: Shared receive queue (SRQ) size.
+@@ -306,7 +317,7 @@ struct srpt_port_attrib {
+ };
+ 
+ /**
+- * struct srpt_port - Information associated by SRPT with a single IB port.
++ * struct srpt_port - information associated by SRPT with a single IB port
+  * @sdev:      backpointer to the HCA information.
+  * @mad_agent: per-port management datagram processing information.
+  * @enabled:   Whether or not this target port is enabled.
+@@ -322,7 +333,7 @@ struct srpt_port_attrib {
+  * @port_guid_wwn: WWN associated with target port GUID.
+  * @port_gid_tpg:  TPG associated with target port GID.
+  * @port_gid_wwn:  WWN associated with target port GID.
+- * @port_acl_list: Head of the list with all node ACLs for this port.
++ * @port_attrib:   Port attributes that can be accessed through configfs.
+  */
+ struct srpt_port {
+ 	struct srpt_device	*sdev;
+@@ -343,7 +354,7 @@ struct srpt_port {
+ };
+ 
+ /**
+- * struct srpt_device - Information associated by SRPT with a single HCA.
++ * struct srpt_device - information associated by SRPT with a single HCA
+  * @device:        Backpointer to the struct ib_device managed by the IB core.
+  * @pd:            IB protection domain.
+  * @lkey:          L_Key (local key) with write access to all local memory.
 -- 
 2.15.1
 
