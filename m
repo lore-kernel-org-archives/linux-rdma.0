@@ -1,40 +1,42 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 06/12] IB/core: Add optional PCI P2P flag to
- rdma_rw_ctx_[init|destroy]()
-Date: Mon, 8 Jan 2018 12:49:50 -0700
-Message-ID: <20180108194950.GK11348@ziepe.ca>
-References: <20180104192225.GS11348@ziepe.ca>
- <1f8fb3fb-e3dc-94d3-e837-0cd942cf5b87@deltatee.com>
- <20180104221337.GV11348@ziepe.ca>
- <3e8391a9-8924-be6d-8c43-162a360d75b6@deltatee.com>
- <20180105045031.GX11348@ziepe.ca>
- <20180108145901.GA10743@lst.de>
- <20180108180917.GF11348@ziepe.ca>
- <20180108183434.GA15549@lst.de>
- <cffacbee-477a-fbe9-19cc-373cd2ec6fef@deltatee.com>
- <20180108185743.GA15936@lst.de>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH rdma-next v2 0/7] RDMA resource tracking
+Date: Mon, 8 Jan 2018 14:53:38 -0600
+Message-ID: <0bdd01d388c2$c1d79380$4586ba80$@opengridcomputing.com>
+References: <20180102081832.5264-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-block-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180108185743.GA15936@lst.de>
-Sender: linux-block-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Logan Gunthorpe <logang@deltatee.com>, open list <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma <linux-rdma@vger.kernel.org>, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180102081832.5264-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Jason Gunthorpe' <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: 'RDMA mailing list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Mark Bloch' <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 8, 2018 at 11:57 AM, Christoph Hellwig <hch@lst.de> wrote:
+> 
+> Changelog:
+> v1->v2:
+>  * Rebased on latest rdma/for-next
+>  * Replaced mutex lock which protect linked lists to be RW semaphore.
+>    It has no impact on current implementation, because there is only one
+>    reader (nldev) and it is serialized. However better to be prepared
+>    for multiple readers from the beginning.
+>  * Added reinitialization next QP entry logic to ensure that it exists
+>    and didn't vanish during fill_req_qp() work.
+> v0->v1:
+>  * Dropped RFC
+>  * Separated to thre series, one for for-rc, and two for-next.
 
->> (c) setup/manage any security permissions on mappings
->> Which P2P may at some point be concerned with.
->
-> Maybe once root complexes with iommus actually support P2P.  But until
-> then we have a lot more more important problems to solve.
+Hey Leon,
 
-Pretty sure P2P capable IOMMU hardware exists.
+This series looks good to me.
 
-With SOC's we also have the scenario that an DMA originated from an
-on-die device wishes to target an off-die PCI BAR (through the IOMMU),
-that definitely exists today, and people care about it :)
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-Jason
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
