@@ -1,66 +1,99 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 2/6] RDMA/hns: Add gsi qp support for modifying
- qp in hip08
-Date: Mon, 08 Jan 2018 16:20:59 -0500
-Message-ID: <1515446459.3403.94.camel@redhat.com>
-References: <1515039563-73084-1-git-send-email-oulijun@huawei.com>
-         <1515039563-73084-3-git-send-email-oulijun@huawei.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-g4Q6VVu827OSLW1pYdXt"
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: [PATCH rdma-core 0/8] Revise provider initialization
+Date: Mon,  8 Jan 2018 14:26:24 -0700
+Message-ID: <20180108212632.5183-1-jgg@ziepe.ca>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1515039563-73084-3-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, jgg-uk2M96/98Pc@public.gmane.org
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---=-g4Q6VVu827OSLW1pYdXt
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+This make all the context creation uniform by having every driver create a
+struct verbs_context using the same startup flow.
 
-On Thu, 2018-01-04 at 12:19 +0800, Lijun Ou wrote:
-> @@ -2342,7 +2366,7 @@ static void modify_qp_init_to_init(struct ib_qp *ib=
-qp,
->                        V2_QPC_BYTE_80_RX_CQN_S, 0);
-> =20
->         roce_set_field(context->byte_252_err_txcqn, V2_QPC_BYTE_252_TX_CQ=
-N_M,
-> -                      V2_QPC_BYTE_252_TX_CQN_S, to_hr_cq(ibqp->recv_cq)-=
->cqn);
-> +                      V2_QPC_BYTE_252_TX_CQN_S, to_hr_cq(ibqp->send_cq)-=
->cqn);
+Long ago we had a new and old flow, where the new flow was intended to support
+a stable provider ABI, but now that the ABI is private we do not need that.
 
-This looks like a bugfix unrelated to the rest of the patch.
+By having every single provider having a verbs_context we can now rely on
+things like the priv existing and a sane init ordering where the priv can
+exist even before the first command runs.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-g4Q6VVu827OSLW1pYdXt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Having priv always available is a necessary component to introduce support for
+the new ioctl kabi.
 
------BEGIN PGP SIGNATURE-----
+Finally, the last three patches rework the ops setup to use a struct of
+function pointers scheme and provides defaults for every function. The
+defaults return ENOSYS which fixes a bunch of cases where the user could have
+called a function without driver support and got a crash.
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpT4LsACgkQuCajMw5X
-L91A8A/+Ok6hblAXig7IJaMA11+hyrTcD4653gZRHvsxVhVcMfbMq0d/A1stLrK8
-FZzE/sAUO47kNh/NzpS8mEe3czh5aNSU0oVV09QL+Yr4DR4triTC44b+QSR07F+K
-S82a5tYl8VmQ8h4saie5LoESNrGpoyxdhhF4fSBT5Rb0zrNzwFE23857TWnk8A9d
-//UMqL+1iq6Veays/ClXIAxJPq8w7WP5HtqCHkd9uACym+vXMpandmroqNLDn1Wx
-5+Ck+fCbnqmX0JI8ufzt5EGXSNqJVtTx2lKjimmvTWxQZWkxxLL0joM5xL+8fier
-e8uzkYgi7qcgnDYlvPB72LowRfMMHOsCriCc2ei7bsangl076GbbjHAly9tpD1QY
-xIrSTzEd8k0yGSPQFookx9mTQqAJt2FbizmVHV+5vJgM1olLHVf9nryc7NLHYuTK
-+xh1CGgqzqWgpWioZRJiB4xOe3lBfdD3MVH9OD0f7t2c3dqlB+KAVj8qVJclg9Zo
-StozgoMuC4k3WNSRHXmeArqkr6pUuPxauMjYLWvULCd3wofV1nsmrmF52+4t5L5s
-w2tym9QpeSz4nnoCABfcYt3IPwmvKDigNzUGYI6ahoP3xodQ/CWVHYm2tDs4cFJZ
-WVXFXJxv1PeH95jMqptPN+g9u1lBtqYS87rstnLKZP8gYD+Lz4o=
-=gKbW
------END PGP SIGNATURE-----
+This is github PR:
 
---=-g4Q6VVu827OSLW1pYdXt--
+https://github.com/linux-rdma/rdma-core/pull/281
+
+Jason Gunthorpe (8):
+  verbs: Always allocate a verbs_context
+  bnxt_re: Convert from init_context to alloc_context
+  mlx4: Convert from init_context to alloc_context
+  mlx5: Convert from init_context to alloc_context
+  verbs: Remove init_context/uninit_context
+  verbs: Provide a default implementation for every verbs op
+  verbs: Convert all providers to use verbs_set_ops
+  verbs: Remove tests for NULL ops
+
+ CMakeLists.txt                     |   2 +-
+ debian/libibverbs1.symbols         |   2 +-
+ libibverbs/CMakeLists.txt          |   1 +
+ libibverbs/cmd.c                   |  12 +-
+ libibverbs/device.c                | 186 ++++++++-------
+ libibverbs/driver.h                | 130 ++++++++--
+ libibverbs/dummy_ops.c             | 469 +++++++++++++++++++++++++++++++++++++
+ libibverbs/ibverbs.h               |   1 +
+ libibverbs/libibverbs.map.in       |   3 +
+ libibverbs/verbs.c                 |  14 +-
+ providers/bnxt_re/main.c           |  48 ++--
+ providers/bnxt_re/main.h           |   4 +-
+ providers/bnxt_re/verbs.c          |   4 +-
+ providers/cxgb3/iwch.c             |  39 +--
+ providers/cxgb3/iwch.h             |   4 +-
+ providers/cxgb4/dev.c              |  35 +--
+ providers/cxgb4/libcxgb4.h         |   4 +-
+ providers/hfi1verbs/hfiverbs.c     |  47 ++--
+ providers/hfi1verbs/hfiverbs.h     |   4 +-
+ providers/hns/hns_roce_u.c         |  53 +++--
+ providers/hns/hns_roce_u.h         |   4 +-
+ providers/hns/hns_roce_u_verbs.c   |   6 +-
+ providers/i40iw/i40iw_umain.c      |  23 +-
+ providers/i40iw/i40iw_umain.h      |   4 +-
+ providers/ipathverbs/ipathverbs.c  |  45 ++--
+ providers/ipathverbs/ipathverbs.h  |   4 +-
+ providers/mlx4/dbrec.c             |   4 +-
+ providers/mlx4/mlx4.c              | 105 +++++----
+ providers/mlx4/mlx4.h              |   4 +-
+ providers/mlx5/buf.c               |   2 +-
+ providers/mlx5/cq.c                |   2 +-
+ providers/mlx5/dbrec.c             |   4 +-
+ providers/mlx5/mlx5.c              | 111 +++++----
+ providers/mlx5/mlx5.h              |   4 +-
+ providers/mthca/mthca.c            |  59 ++---
+ providers/mthca/mthca.h            |   4 +-
+ providers/nes/nes_umain.c          |  32 ++-
+ providers/nes/nes_umain.h          |   4 +-
+ providers/ocrdma/ocrdma_main.c     |  17 +-
+ providers/ocrdma/ocrdma_main.h     |   4 +-
+ providers/qedr/qelr.h              |   4 +-
+ providers/qedr/qelr_main.c         |  17 +-
+ providers/qedr/qelr_verbs.c        |   2 +-
+ providers/rxe/rxe.c                |  16 +-
+ providers/rxe/rxe.h                |   4 +-
+ providers/vmw_pvrdma/pvrdma.h      |   4 +-
+ providers/vmw_pvrdma/pvrdma_main.c |  17 +-
+ 47 files changed, 1087 insertions(+), 481 deletions(-)
+ create mode 100644 libibverbs/dummy_ops.c
+
+-- 
+2.15.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
