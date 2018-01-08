@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v3 1/5] kobject: Export kobj_ns_grab_current() and kobj_ns_drop()
-Date: Mon,  8 Jan 2018 15:14:32 -0800
-Message-ID: <20180108231436.19750-2-bart.vanassche@wdc.com>
+Subject: [PATCH v3 3/5] IB/srp: Make the path record query error message more informative
+Date: Mon,  8 Jan 2018 15:14:34 -0800
+Message-ID: <20180108231436.19750-4-bart.vanassche@wdc.com>
 References: <20180108231436.19750-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180108231436.19750-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,37 +10,29 @@ To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Make it possible to call these two functions from a kernel module.
-Note: despite their name, these two functions can be used meaningfully
-independent of kobjects. A later patch will add calls to these
-functions from the SRP driver because this patch series modifies the
-SRP driver such that it can hold a reference to a namespace that can
-last longer than the lifetime of the process through which the
-namespace reference was obtained.
+Show all path record query parameters if a path record query fails.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 ---
- lib/kobject.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/ulp/srp/ib_srp.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/lib/kobject.c b/lib/kobject.c
-index 763d70a18941..06b849eee0ca 100644
---- a/lib/kobject.c
-+++ b/lib/kobject.c
-@@ -1039,6 +1039,7 @@ void *kobj_ns_grab_current(enum kobj_ns_type type)
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 39b3e43efbbe..fec6e800adf4 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -702,7 +702,10 @@ static int srp_lookup_path(struct srp_rdma_ch *ch)
+ 	ret = ch->status;
+ 	if (ret < 0)
+ 		shost_printk(KERN_WARNING, target->scsi_host,
+-			     PFX "Path record query failed\n");
++			     PFX "Path record query failed: sgid %pI6, dgid %pI6, pkey %#04x, service_id %#16llx\n",
++			     ch->path.sgid.raw, ch->path.dgid.raw,
++			     be16_to_cpu(target->pkey),
++			     be64_to_cpu(target->service_id));
  
- 	return ns;
- }
-+EXPORT_SYMBOL_GPL(kobj_ns_grab_current);
- 
- const void *kobj_ns_netlink(enum kobj_ns_type type, struct sock *sk)
- {
-@@ -1074,3 +1075,4 @@ void kobj_ns_drop(enum kobj_ns_type type, void *ns)
- 		kobj_ns_ops_tbl[type]->drop_ns(ns);
- 	spin_unlock(&kobj_ns_type_lock);
- }
-+EXPORT_SYMBOL_GPL(kobj_ns_drop);
+ put:
+ 	scsi_host_put(target->scsi_host);
 -- 
 2.15.1
 
