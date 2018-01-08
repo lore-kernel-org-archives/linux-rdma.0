@@ -1,173 +1,231 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH 5/8] verbs: Remove init_context/uninit_context
-Date: Mon,  8 Jan 2018 14:26:29 -0700
-Message-ID: <20180108212632.5183-6-jgg@ziepe.ca>
+Subject: [PATCH 4/8] mlx5: Convert from init_context to alloc_context
+Date: Mon,  8 Jan 2018 14:26:28 -0700
+Message-ID: <20180108212632.5183-5-jgg@ziepe.ca>
 References: <20180108212632.5183-1-jgg@ziepe.ca>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180108212632.5183-1-jgg-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-All providers now use the alloc_context interface and support
-verbs_context. Remove the dead code.
+Now that alloc_context can create a verbs_context directly we do
+not need two init APIs.
 
 Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/device.c      | 39 ++-------------------------------------
- libibverbs/driver.h      |  9 ---------
- providers/bnxt_re/main.c |  4 ----
- providers/mlx4/mlx4.c    |  4 ----
- providers/mlx5/mlx5.c    |  4 ----
- 5 files changed, 2 insertions(+), 58 deletions(-)
+ providers/mlx5/buf.c   |  2 +-
+ providers/mlx5/cq.c    |  2 +-
+ providers/mlx5/dbrec.c |  4 ++--
+ providers/mlx5/mlx5.c  | 45 +++++++++++++++++++++++++--------------------
+ providers/mlx5/mlx5.h  |  4 ++--
+ 5 files changed, 31 insertions(+), 26 deletions(-)
 
-diff --git a/libibverbs/device.c b/libibverbs/device.c
-index e42e37bd0a1f8d..db6dae5b25af59 100644
---- a/libibverbs/device.c
-+++ b/libibverbs/device.c
-@@ -259,29 +259,6 @@ err_free:
- 	return NULL;
- }
+diff --git a/providers/mlx5/buf.c b/providers/mlx5/buf.c
+index 72de5b0e55e462..89573caa73628b 100644
+--- a/providers/mlx5/buf.c
++++ b/providers/mlx5/buf.c
+@@ -538,7 +538,7 @@ int mlx5_alloc_buf_contig(struct mlx5_context *mctx,
+ 	int block_size_exp;
+ 	int max_block_log;
+ 	int min_block_log;
+-	struct ibv_context *context = &mctx->ibv_ctx;
++	struct ibv_context *context = &mctx->ibv_ctx.context;
+ 	off_t offset;
  
--/* Use the init_context flow to create a verbs_context */
--static struct verbs_context *alloc_context(struct verbs_device *device,
--					   int cmd_fd)
--{
--	struct verbs_context *context;
--
--	context = _verbs_init_and_alloc_context(
--		&device->device, cmd_fd,
--		sizeof(*context) + device->size_of_context, NULL);
--	if (!context)
--		return NULL;
--
--	if (device->ops->init_context(device, &context->context, cmd_fd))
--		goto err_uninit;
--
--	return context;
--
--err_uninit:
--	verbs_uninit_context(context);
--	free(context);
--	return NULL;
--}
--
- LATEST_SYMVER_FUNC(ibv_open_device, 1_1, "IBVERBS_1.1",
- 		   struct ibv_context *,
- 		   struct ibv_device *device)
-@@ -304,15 +281,11 @@ LATEST_SYMVER_FUNC(ibv_open_device, 1_1, "IBVERBS_1.1",
- 	if (cmd_fd < 0)
- 		return NULL;
- 
--	if (!verbs_device->ops->init_context)
--		context_ex = verbs_device->ops->alloc_context(device, cmd_fd);
--	else
--		context_ex = alloc_context(verbs_device, cmd_fd);
--
- 	/*
- 	 * cmd_fd ownership is transferred into alloc_context, if it fails
- 	 * then it closes cmd_fd and returns NULL
- 	 */
-+	context_ex = verbs_device->ops->alloc_context(device, cmd_fd);
- 	if (context_ex == NULL)
- 		return NULL;
- 
-@@ -338,15 +311,7 @@ LATEST_SYMVER_FUNC(ibv_close_device, 1_1, "IBVERBS_1.1",
+ 	mlx5_alloc_get_env_info(&max_block_log,
+diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
+index e96418f6c66ad5..e62b2eb6ec1ea8 100644
+--- a/providers/mlx5/cq.c
++++ b/providers/mlx5/cq.c
+@@ -1717,7 +1717,7 @@ int mlx5_alloc_cq_buf(struct mlx5_context *mctx, struct mlx5_cq *cq,
  {
- 	struct verbs_device *verbs_device = verbs_get_device(context->device);
+ 	struct mlx5_cqe64 *cqe;
+ 	int i;
+-	struct mlx5_device *dev = to_mdev(mctx->ibv_ctx.device);
++	struct mlx5_device *dev = to_mdev(mctx->ibv_ctx.context.device);
+ 	int ret;
+ 	enum mlx5_alloc_type type;
+ 	enum mlx5_alloc_type default_type = MLX5_ALLOC_TYPE_ANON;
+diff --git a/providers/mlx5/dbrec.c b/providers/mlx5/dbrec.c
+index 17aee0ba20eea6..d6a69a50b26901 100644
+--- a/providers/mlx5/dbrec.c
++++ b/providers/mlx5/dbrec.c
+@@ -49,7 +49,7 @@ struct mlx5_db_page {
+ static struct mlx5_db_page *__add_page(struct mlx5_context *context)
+ {
+ 	struct mlx5_db_page *page;
+-	int ps = to_mdev(context->ibv_ctx.device)->page_size;
++	int ps = to_mdev(context->ibv_ctx.context.device)->page_size;
+ 	int pp;
+ 	int i;
+ 	int nlong;
+@@ -121,7 +121,7 @@ out:
+ void mlx5_free_db(struct mlx5_context *context, __be32 *db)
+ {
+ 	struct mlx5_db_page *page;
+-	uintptr_t ps = to_mdev(context->ibv_ctx.device)->page_size;
++	uintptr_t ps = to_mdev(context->ibv_ctx.context.device)->page_size;
+ 	int i;
  
--	if (verbs_device->ops->uninit_context) {
--		struct verbs_context *context_ex =
--			container_of(context, struct verbs_context, context);
--
--		verbs_device->ops->uninit_context(verbs_device, context);
--		verbs_uninit_context(context_ex);
--	} else {
--		verbs_device->ops->free_context(context);
--	}
-+	verbs_device->ops->free_context(context);
- 
- 	return 0;
- }
-diff --git a/libibverbs/driver.h b/libibverbs/driver.h
-index 809c4f5c8cdf39..00847a41bc468e 100644
---- a/libibverbs/driver.h
-+++ b/libibverbs/driver.h
-@@ -152,17 +152,10 @@ struct verbs_device_ops {
- 
- 	bool (*match_device)(struct verbs_sysfs_dev *sysfs_dev);
- 
--	/* Old interface, do not use in new code. */
- 	struct verbs_context *(*alloc_context)(struct ibv_device *device,
- 					       int cmd_fd);
- 	void (*free_context)(struct ibv_context *context);
- 
--	/* New interface */
--	int (*init_context)(struct verbs_device *device,
--			    struct ibv_context *ctx, int cmd_fd);
--	void (*uninit_context)(struct verbs_device *device,
--			       struct ibv_context *ctx);
--
- 	struct verbs_device *(*alloc_device)(struct verbs_sysfs_dev *sysfs_dev);
- 	void (*uninit_device)(struct verbs_device *device);
- };
-@@ -171,8 +164,6 @@ struct verbs_device_ops {
- struct verbs_device {
- 	struct ibv_device device; /* Must be first */
- 	const struct verbs_device_ops *ops;
--	size_t	sz;
--	size_t	size_of_context;
- 	atomic_int refcount;
- 	struct list_node entry;
- 	struct verbs_sysfs_dev *sysfs;
-diff --git a/providers/bnxt_re/main.c b/providers/bnxt_re/main.c
-index c225f09eaa58f7..d689b392d05b5d 100644
---- a/providers/bnxt_re/main.c
-+++ b/providers/bnxt_re/main.c
-@@ -179,10 +179,6 @@ bnxt_re_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
- 	if (!dev)
- 		return NULL;
- 
--	dev->vdev.sz = sizeof(*dev);
--	dev->vdev.size_of_context =
--		sizeof(struct bnxt_re_context) - sizeof(struct ibv_context);
--
- 	return &dev->vdev;
- }
- 
-diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
-index 3d64b8c8ebae65..f0d63b57792602 100644
---- a/providers/mlx4/mlx4.c
-+++ b/providers/mlx4/mlx4.c
-@@ -298,10 +298,6 @@ static struct verbs_device *mlx4_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
- 	dev->page_size   = sysconf(_SC_PAGESIZE);
- 	dev->abi_version = sysfs_dev->abi_ver;
- 
--	dev->verbs_dev.sz = sizeof(*dev);
--	dev->verbs_dev.size_of_context =
--		sizeof(struct mlx4_context) - sizeof(struct ibv_context);
--
- 	return &dev->verbs_dev;
- }
- 
+ 	pthread_mutex_lock(&context->db_list_mutex);
 diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index 7e8dc9b1951192..41b484fce29683 100644
+index a829cd5eb26473..7e8dc9b1951192 100644
 --- a/providers/mlx5/mlx5.c
 +++ b/providers/mlx5/mlx5.c
-@@ -1099,10 +1099,6 @@ static struct verbs_device *mlx5_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
- 	dev->page_size   = sysconf(_SC_PAGESIZE);
- 	dev->driver_abi_ver = sysfs_dev->abi_ver;
+@@ -549,7 +549,7 @@ static int mlx5_cmd_get_context(struct mlx5_context *context,
+ 				struct mlx5_alloc_ucontext_resp *resp,
+ 				size_t resp_len)
+ {
+-	struct verbs_context *verbs_ctx = verbs_get_ctx(&context->ibv_ctx);
++	struct verbs_context *verbs_ctx = &context->ibv_ctx;
  
--	dev->verbs_dev.sz = sizeof(*dev);
--	dev->verbs_dev.size_of_context = sizeof(struct mlx5_context) -
--		sizeof(struct ibv_context);
--
- 	return &dev->verbs_dev;
+ 	if (!ibv_cmd_get_context(verbs_ctx, &req->ibv_req,
+ 				 req_len, &resp->ibv_resp, resp_len))
+@@ -856,8 +856,8 @@ static void adjust_uar_info(struct mlx5_device *mdev,
+ 	context->num_uars_per_page = resp.num_uars_per_page;
  }
  
+-static int mlx5_init_context(struct verbs_device *vdev,
+-			     struct ibv_context *ctx, int cmd_fd)
++static struct verbs_context *mlx5_alloc_context(struct ibv_device *ibdev,
++						int cmd_fd)
+ {
+ 	struct mlx5_context	       *context;
+ 	struct mlx5_alloc_ucontext	req;
+@@ -868,7 +868,7 @@ static int mlx5_init_context(struct verbs_device *vdev,
+ 	int				low_lat_uuars;
+ 	int				gross_uuars;
+ 	int				j;
+-	struct mlx5_device	       *mdev;
++	struct mlx5_device	       *mdev = to_mdev(ibdev);
+ 	struct verbs_context	       *v_ctx;
+ 	struct ibv_port_attr		port_attr;
+ 	struct ibv_device_attr_ex	device_attr;
+@@ -876,14 +876,14 @@ static int mlx5_init_context(struct verbs_device *vdev,
+ 	int				bfi;
+ 	int				num_sys_page_map;
+ 
+-	mdev = to_mdev(&vdev->device);
+-	v_ctx = verbs_get_ctx(ctx);
++	context = verbs_init_and_alloc_context(ibdev, cmd_fd, context, ibv_ctx);
++	if (!context)
++		return NULL;
++
++	v_ctx = &context->ibv_ctx;
+ 	page_size = mdev->page_size;
+ 	mlx5_single_threaded = single_threaded_app();
+ 
+-	context = to_mctx(ctx);
+-	context->ibv_ctx.cmd_fd = cmd_fd;
+-
+ 	open_debug_file(context);
+ 	set_debug_mask();
+ 	set_freeze_on_error();
+@@ -1001,15 +1001,15 @@ static int mlx5_init_context(struct verbs_device *vdev,
+ 	    sizeof(resp.hca_core_clock_offset) &&
+ 	    resp.comp_mask & MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET) {
+ 		context->core_clock.offset = resp.hca_core_clock_offset;
+-		mlx5_map_internal_clock(mdev, ctx);
++		mlx5_map_internal_clock(mdev, &v_ctx->context);
+ 	}
+ 
+-	mlx5_read_env(&vdev->device, context);
++	mlx5_read_env(ibdev, context);
+ 
+ 	mlx5_spinlock_init(&context->hugetlb_lock);
+ 	list_head_init(&context->hugetlb_list);
+ 
+-	context->ibv_ctx.ops = mlx5_ctx_ops;
++	v_ctx->context.ops = mlx5_ctx_ops;
+ 
+ 	v_ctx->create_qp_ex = mlx5_create_qp_ex;
+ 	v_ctx->open_xrcd = mlx5_open_xrcd;
+@@ -1030,7 +1030,7 @@ static int mlx5_init_context(struct verbs_device *vdev,
+ 	v_ctx->modify_cq = mlx5_modify_cq;
+ 
+ 	memset(&device_attr, 0, sizeof(device_attr));
+-	if (!mlx5_query_device_ex(ctx, NULL, &device_attr,
++	if (!mlx5_query_device_ex(&v_ctx->context, NULL, &device_attr,
+ 				  sizeof(struct ibv_device_attr_ex))) {
+ 		context->cached_device_cap_flags =
+ 			device_attr.orig_attr.device_cap_flags;
+@@ -1040,11 +1040,11 @@ static int mlx5_init_context(struct verbs_device *vdev,
+ 
+ 	for (j = 0; j < min(MLX5_MAX_PORTS_NUM, context->num_ports); ++j) {
+ 		memset(&port_attr, 0, sizeof(port_attr));
+-		if (!mlx5_query_port(ctx, j + 1, &port_attr))
++		if (!mlx5_query_port(&v_ctx->context, j + 1, &port_attr))
+ 			context->cached_link_layer[j] = port_attr.link_layer;
+ 	}
+ 
+-	return 0;
++	return v_ctx;
+ 
+ err_free_bf:
+ 	free(context->bfs);
+@@ -1055,11 +1055,13 @@ err_free:
+ 			munmap(context->uar[i].reg, page_size);
+ 	}
+ 	close_debug_file(context);
+-	return errno;
++
++	verbs_uninit_context(&context->ibv_ctx);
++	free(context);
++	return NULL;
+ }
+ 
+-static void mlx5_cleanup_context(struct verbs_device *device,
+-				 struct ibv_context *ibctx)
++static void mlx5_free_context(struct ibv_context *ibctx)
+ {
+ 	struct mlx5_context *context = to_mctx(ibctx);
+ 	int page_size = to_mdev(ibctx->device)->page_size;
+@@ -1074,6 +1076,9 @@ static void mlx5_cleanup_context(struct verbs_device *device,
+ 		munmap(context->hca_core_clock - context->core_clock.offset,
+ 		       page_size);
+ 	close_debug_file(context);
++
++	verbs_uninit_context(&context->ibv_ctx);
++	free(context);
+ }
+ 
+ static void mlx5_uninit_device(struct verbs_device *verbs_device)
+@@ -1108,7 +1113,7 @@ static const struct verbs_device_ops mlx5_dev_ops = {
+ 	.match_table = hca_table,
+ 	.alloc_device = mlx5_device_alloc,
+ 	.uninit_device = mlx5_uninit_device,
+-	.init_context = mlx5_init_context,
+-	.uninit_context = mlx5_cleanup_context,
++	.alloc_context = mlx5_alloc_context,
++	.free_context = mlx5_free_context,
+ };
+ PROVIDER_DRIVER(mlx5_dev_ops);
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index 5a1f7c0a2bbafc..45778460610beb 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -230,7 +230,7 @@ struct mlx5_uar_info {
+ };
+ 
+ struct mlx5_context {
+-	struct ibv_context		ibv_ctx;
++	struct verbs_context		ibv_ctx;
+ 	int				max_num_qps;
+ 	int				bf_reg_size;
+ 	int				tot_uuars;
+@@ -548,7 +548,7 @@ static inline struct mlx5_device *to_mdev(struct ibv_device *ibdev)
+ 
+ static inline struct mlx5_context *to_mctx(struct ibv_context *ibctx)
+ {
+-	return to_mxxx(ctx, context);
++	return container_of(ibctx, struct mlx5_context, ibv_ctx.context);
+ }
+ 
+ static inline struct mlx5_pd *to_mpd(struct ibv_pd *ibpd)
 -- 
 2.15.1
 
