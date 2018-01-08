@@ -1,62 +1,113 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/1] IB/rxe: add the static type to the variable
-Date: Sun, 7 Jan 2018 15:38:33 +0200
-Message-ID: <20180107133833.GB6823@mtr-leonro.local>
-References: <1515326928-22282-1-git-send-email-yanjun.zhu@oracle.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="1LKvkjL3sHcu1TtY"
+From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCHv2 1/1] IB/rxe: remove unnecessary skb_clone in xmit
+Date: Mon,  8 Jan 2018 00:14:25 -0500
+Message-ID: <1515388465-9307-1-git-send-email-yanjun.zhu@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1515326928-22282-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+In xmit, there is a skb_clone. This function copies the struct sk_buff.
+And some parameters are changed to the new skb. Then the new skb is sent
+while the old skb is freed.
 
---1LKvkjL3sHcu1TtY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+While the function skb_clone is removed, the parameter changes are made on
+the old skb, then the old skb is sent. It can also work well.
 
-On Sun, Jan 07, 2018 at 07:08:48AM -0500, Zhu Yanjun wrote:
-> The variable recv_sockets is only used in the file rxe_net.c. So
-> it is better to add static type to it.
->
-> CC: Srinivas Eeda <srinivas.eeda-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> CC: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> CC: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/sw/rxe/rxe_net.c | 2 +-
->  drivers/infiniband/sw/rxe/rxe_net.h | 1 -
->  2 files changed, 1 insertion(+), 2 deletions(-)
->
+The following tests are made.
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+ server                       client
+---------                    ---------
+|1.1.1.1|<----rxe-channel--->|1.1.1.2|
+---------                    ---------
 
---1LKvkjL3sHcu1TtY
-Content-Type: application/pgp-signature; name="signature.asc"
+On server: rping -s -a 1.1.1.1 -v -C 1000 -S 512
+On client: rping -c -a 1.1.1.1 -v -C 1000 -S 512
 
------BEGIN PGP SIGNATURE-----
+The kernel config CONFIG_DEBUG_KMEMLEAK is enabled on both server
+and client.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpSItkACgkQ5GN7iDZy
-WKdD3hAAkDAlYe6kNNazwjrtxN7X6ttXem5U7N1i7ix1Uj0pcYZ09klJ6sSkA3YG
-ERZRgaakHR6KaeemSNvBWayc3lbW22UAbh5lHKqKGosp5dFR7eVPNIpsADY1J6q1
-t1HABxb8AmvC+0xiQ2/XrXpz3SVTCeKat23Pswn6dd+29gPoX7ZeoVaa0SfTclNg
-fNweUWZkoyPt1Ge0yv+zzzqTenGN97gOb4cQZNVQL51UD9MhGpIJXaZ12Ha9gxVL
-p8yhwU0bpfI6PXnpoTPzAEtUw7tg+KM/xROikvOEFTX/9ifradoTO47o+RFxe8Nz
-bm9Sdy4JUiUjZgp4xRT8nrN1G2TSWNQJD4zlPQwWg2CtbWWHLSQjCW+wExbEaC8A
-46i57eAVE+s4qjm+Pft//HlNG7ARZq05TGHDA/14Pi5g+HgO/xyzykRn9EYDh/ip
-b2uw45NkvsBZPf1dHk2kU9T6D2Tsju53pbTUt/rCAqajWY1CCKWt5fnTRiw2XK6M
-BWo6XrVLV6hM59sLxmKkRMgkROiMIM2EX9cw+s3SqdyzQtMiUn5YvcTII89jt6FY
-yhl6bZ5i0s9y6nWOj/3u+CwcR0432FdOtz4XeHlPhX2QKA/STJlaGnYTrIO+gJRr
-8B5nfFzbiIZ95y2jEhTJT6+FfkOB190XELnkcOAbhpuPnRVRQLQ=
-=9VmQ
------END PGP SIGNATURE-----
+This test runs for several hours. There is no memory leak and the whole
+system can work well.
 
---1LKvkjL3sHcu1TtY--
+As the above network, the following tests are made.
+
+Server: ibv_rc_pingpong -d rxe0 -g 1
+Client: ibv_rc_pingpong -d rxe0 -g 1 1.1.1.1
+
+The result on Server.
+Before:
+8192000 bytes in 0.88 seconds = 74.36 Mbit/sec
+1000 iters in 0.88 seconds = 881.30 usec/iter
+
+After:
+8192000 bytes in 0.81 seconds = 81.15 Mbit/sec
+1000 iters in 0.81 seconds = 807.62 usec/iter
+
+The throughput is enhanced and the latency is reduced.
+
+CC: Srinivas Eeda <srinivas.eeda-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+CC: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+CC: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe_net.c | 16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
+---
+V1->V2: Add the test results.
+---
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index 59dee10..5fc6bb5 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -452,31 +452,26 @@ static void rxe_skb_tx_dtor(struct sk_buff *skb)
+ 
+ int rxe_send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt, struct sk_buff *skb)
+ {
+-	struct sk_buff *nskb;
+ 	struct rxe_av *av;
+ 	int err;
+ 
+ 	av = rxe_get_av(pkt);
+ 
+-	nskb = skb_clone(skb, GFP_ATOMIC);
+-	if (!nskb)
+-		return -ENOMEM;
+-
+-	nskb->destructor = rxe_skb_tx_dtor;
+-	nskb->sk = pkt->qp->sk->sk;
++	skb->destructor = rxe_skb_tx_dtor;
++	skb->sk = pkt->qp->sk->sk;
+ 
+ 	rxe_add_ref(pkt->qp);
+ 	atomic_inc(&pkt->qp->skb_out);
+ 
+ 	if (av->network_type == RDMA_NETWORK_IPV4) {
+-		err = ip_local_out(dev_net(skb_dst(skb)->dev), nskb->sk, nskb);
++		err = ip_local_out(dev_net(skb_dst(skb)->dev), skb->sk, skb);
+ 	} else if (av->network_type == RDMA_NETWORK_IPV6) {
+-		err = ip6_local_out(dev_net(skb_dst(skb)->dev), nskb->sk, nskb);
++		err = ip6_local_out(dev_net(skb_dst(skb)->dev), skb->sk, skb);
+ 	} else {
+ 		pr_err("Unknown layer 3 protocol: %d\n", av->network_type);
+ 		atomic_dec(&pkt->qp->skb_out);
+ 		rxe_drop_ref(pkt->qp);
+-		kfree_skb(nskb);
++		kfree_skb(skb);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -485,7 +480,6 @@ int rxe_send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt, struct sk_buff *skb)
+ 		return -EAGAIN;
+ 	}
+ 
+-	kfree_skb(skb);
+ 	return 0;
+ }
+ 
+-- 
+2.7.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
