@@ -1,71 +1,157 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 06/12] IB/core: Add optional PCI P2P flag to
-        rdma_rw_ctx_[init|destroy]()
-Date: Mon, 8 Jan 2018 15:59:01 +0100
-Message-ID: <20180108145901.GA10743@lst.de>
-References: <20180104190137.7654-1-logang@deltatee.com> <20180104190137.7654-7-logang@deltatee.com> <20180104192225.GS11348@ziepe.ca> <1f8fb3fb-e3dc-94d3-e837-0cd942cf5b87@deltatee.com> <20180104221337.GV11348@ziepe.ca> <3e8391a9-8924-be6d-8c43-162a360d75b6@deltatee.com> <20180105045031.GX11348@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180105045031.GX11348@ziepe.ca>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Logan Gunthorpe <logang@deltatee.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next 2/6] RDMA/cma: Provide function to set RoCE path record L2 parameters
+Date: Mon,  8 Jan 2018 17:04:44 +0200
+Message-ID: <20180108150448.29069-3-leon@kernel.org>
+References: <20180108150448.29069-1-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180108150448.29069-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 04, 2018 at 09:50:31PM -0700, Jason Gunthorpe wrote:
-> Well that argument applies equally to the RDMA RW API wrappers around
-> the DMA API. I think it is fine if sgl are defined to only have P2P or
-> not, and that debugging support seemed reasonable to me..
-> 
-> > It's also very difficult to add similar functionality to dma_map_page seeing
-> > dma_unmap_page won't have any way to know what it's dealing with. It just
-> > seems confusing to support P2P in the SG version and not the page version.
-> 
-> Well, this proposal is to support P2P in only some RDMA APIs and not
-> others, so it seems about as confusing to me..
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-As usual we implement what actually has a consumer.  On top of that the
-R/W API is the only core RDMA API that actually does DMA mapping for the
-ULP at the moment.  For SENDs and everything else dma maps are done by
-the ULP (I'd like to eventually change that, though - e.g. sends through
-that are inline to the workqueue don't need a dma map to start with).
+Introduce helper function to set path record L2 fields for RoCE.
+This includes setting GID type, destination mac address and netdev
+ifindex.
 
-> Well, it is more than very nice. We have to keep RDMA working after
-> all, and if you make it even more special things become harder for us.
-> 
-> It is already the case that DMA in RDMA is very strange. We have
-> drivers that provide their own DMA ops, for instance.
+Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/core/cma.c | 88 ++++++++++++++++++++++++++-----------------
+ 1 file changed, 53 insertions(+), 35 deletions(-)
 
-That's because the initial design was to let the ULPs do the DMA
-mappings, which fundamentally is wrong.  I've fixed it for the R/W
-API when adding it, but no one has started work on SENDs and atomics.
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 282269f88f89..f1321baf12d8 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2466,6 +2466,58 @@ static int cma_resolve_ib_route(struct rdma_id_private *id_priv, int timeout_ms)
+ 	return ret;
+ }
+ 
++static enum ib_gid_type cma_route_gid_type(enum rdma_network_type network_type,
++					   unsigned long supported_gids,
++					   enum ib_gid_type default_gid)
++{
++	if ((network_type == RDMA_NETWORK_IPV4 ||
++	     network_type == RDMA_NETWORK_IPV6) &&
++	    test_bit(IB_GID_TYPE_ROCE_UDP_ENCAP, &supported_gids))
++		return IB_GID_TYPE_ROCE_UDP_ENCAP;
++
++	return default_gid;
++}
++
++/*
++ * cma_iboe_set_path_rec_l2_fields() is helper function which sets
++ * path record type based on GID type.
++ * It also sets up other L2 fields which includes destination mac address
++ * netdev ifindex, of the path record.
++ * It returns the netdev of the bound interface for this path record entry.
++ */
++static struct net_device *
++cma_iboe_set_path_rec_l2_fields(struct rdma_id_private *id_priv)
++{
++	struct rdma_route *route = &id_priv->id.route;
++	enum ib_gid_type gid_type = IB_GID_TYPE_ROCE;
++	struct rdma_addr *addr = &route->addr;
++	unsigned long supported_gids;
++	struct net_device *ndev;
++
++	if (!addr->dev_addr.bound_dev_if)
++		return NULL;
++
++	ndev = dev_get_by_index(addr->dev_addr.net,
++				addr->dev_addr.bound_dev_if);
++	if (!ndev)
++		return NULL;
++
++	supported_gids = roce_gid_type_mask_support(id_priv->id.device,
++						    id_priv->id.port_num);
++	gid_type = cma_route_gid_type(addr->dev_addr.network,
++				      supported_gids,
++				      id_priv->gid_type);
++	/* Use the hint from IP Stack to select GID Type */
++	if (gid_type < ib_network_to_gid_type(addr->dev_addr.network))
++		gid_type = ib_network_to_gid_type(addr->dev_addr.network);
++	route->path_rec->rec_type = sa_conv_gid_to_pathrec_type(gid_type);
++
++	sa_path_set_ndev(route->path_rec, addr->dev_addr.net);
++	sa_path_set_ifindex(route->path_rec, ndev->ifindex);
++	sa_path_set_dmac(route->path_rec, addr->dev_addr.dst_dev_addr);
++	return ndev;
++}
++
+ int rdma_set_ib_paths(struct rdma_cm_id *id,
+ 		      struct sa_path_rec *path_rec, int num_paths)
+ {
+@@ -2523,18 +2575,6 @@ static int iboe_tos_to_sl(struct net_device *ndev, int tos)
+ 	return 0;
+ }
+ 
+-static enum ib_gid_type cma_route_gid_type(enum rdma_network_type network_type,
+-					   unsigned long supported_gids,
+-					   enum ib_gid_type default_gid)
+-{
+-	if ((network_type == RDMA_NETWORK_IPV4 ||
+-	     network_type == RDMA_NETWORK_IPV6) &&
+-	    test_bit(IB_GID_TYPE_ROCE_UDP_ENCAP, &supported_gids))
+-		return IB_GID_TYPE_ROCE_UDP_ENCAP;
+-
+-	return default_gid;
+-}
+-
+ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ {
+ 	struct rdma_route *route = &id_priv->id.route;
+@@ -2542,8 +2582,6 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 	struct cma_work *work;
+ 	int ret;
+ 	struct net_device *ndev;
+-	enum ib_gid_type gid_type = IB_GID_TYPE_ROCE;
+-	unsigned long supported_gids;
+ 
+ 	u8 default_roce_tos = id_priv->cma_dev->default_roce_tos[id_priv->id.port_num -
+ 					rdma_start_port(id_priv->cma_dev->device)];
+@@ -2562,32 +2600,12 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 
+ 	route->num_paths = 1;
+ 
+-	if (!addr->dev_addr.bound_dev_if) {
+-		ret = -ENODEV;
+-		goto err2;
+-	}
+-
+-	ndev = dev_get_by_index(addr->dev_addr.net,
+-				addr->dev_addr.bound_dev_if);
++	ndev = cma_iboe_set_path_rec_l2_fields(id_priv);
+ 	if (!ndev) {
+ 		ret = -ENODEV;
+ 		goto err2;
+ 	}
+ 
+-	supported_gids = roce_gid_type_mask_support(id_priv->id.device,
+-						    id_priv->id.port_num);
+-	gid_type = cma_route_gid_type(addr->dev_addr.network,
+-				      supported_gids,
+-				      id_priv->gid_type);
+-	/* Use the hint from IP Stack to select GID Type */
+-	if (gid_type < ib_network_to_gid_type(addr->dev_addr.network))
+-		gid_type = ib_network_to_gid_type(addr->dev_addr.network);
+-	route->path_rec->rec_type = sa_conv_gid_to_pathrec_type(gid_type);
+-
+-	sa_path_set_ndev(route->path_rec, addr->dev_addr.net);
+-	sa_path_set_ifindex(route->path_rec, ndev->ifindex);
+-	sa_path_set_dmac(route->path_rec, addr->dev_addr.dst_dev_addr);
+-
+ 	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
+ 		    &route->path_rec->sgid);
+ 	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.dst_addr,
+-- 
+2.15.1
 
-> And on that topic, does this scheme work with HFI?
-
-No, and I guess we need an opt-out.  HFI generally seems to be
-extremely weird.
-
-> This is why P2P must fit in to the common DMA framework somehow, we
-> rely on these abstractions to work properly and fully in RDMA.
-
-Moving P2P up to common RDMA code isn't going to fix this.  For that
-we need to stop preting that something that isn't DMA can abuse the
-dma mapping framework, and until then opt them out of behavior that
-assumes actual DMA like P2P.
-
-> I think you should consider pushing this directly into the dma_ops
-> implementations. Add a p2p_supported flag to struct dma_map_ops, and
-> only if it is true can a caller pass a homogeneous SGL to ops->map_sg.
-> Only map_sg would be supported for P2P. Upgraded implementations can
-> call the helper function.
-
-If at all it should be in the dma_map* wrappers, but for that we'd need
-a good identifier.  And it still would not solve the whole fake dma
-ops issue.
-
-So for now I'd much prefer to let the drivers handle it, and once usage
-grows and we know usage patterns better (and I make progress refactoring
-both the dma-mapping subsystem itself and the RDMA dma map code to not
-be a complete mess) we can move it to the core.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
