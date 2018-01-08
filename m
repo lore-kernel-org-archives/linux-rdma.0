@@ -1,46 +1,40 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 01/12] IB/srpt: Remove an unused structure member
-Date: Mon,  8 Jan 2018 11:00:40 -0800
-Message-ID: <20180108190051.32008-2-bart.vanassche@wdc.com>
-References: <20180108190051.32008-1-bart.vanassche@wdc.com>
+Subject: [PATCH 00/12] IB/srpt patches for kernel v4.16
+Date: Mon,  8 Jan 2018 11:00:39 -0800
+Message-ID: <20180108190051.32008-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180108190051.32008-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fixes: commit a42d985bd5b2 ("ib_srpt: Initial SRP Target merge for v3.3-rc1")
-Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c | 1 -
- drivers/infiniband/ulp/srpt/ib_srpt.h | 1 -
- 2 files changed, 2 deletions(-)
+Hello Jason,
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index bfa576aa9f03..81e8085bc5bb 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1123,7 +1123,6 @@ static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
- 	ioctx->state = SRPT_STATE_NEW;
- 	ioctx->n_rdma = 0;
- 	ioctx->n_rw_ctx = 0;
--	init_completion(&ioctx->tx_done);
- 	ioctx->queue_status_only = false;
- 	/*
- 	 * transport_init_se_cmd() does not initialize all fields, so do it
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index 673387d365a3..7fff73a5d1e6 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -207,7 +207,6 @@ struct srpt_send_ioctx {
- 	spinlock_t		spinlock;
- 	enum srpt_command_state	state;
- 	struct se_cmd		cmd;
--	struct completion	tx_done;
- 	u8			n_rdma;
- 	u8			n_rw_ctx;
- 	bool			queue_status_only;
+This series includes multiple small changes for the SRP target driver. Please
+consider these changes for kernel v4.16.
+
+Thanks,
+
+Bart.
+
+Bart Van Assche (12):
+  IB/srpt: Remove an unused structure member
+  IB/srpt: Fix kernel-doc warnings in ib_srpt.c
+  IB/srpt: Document all structure members in ib_srpt.h
+  IB/srpt: Rename a local variable, a member variable and a constant
+  IB/srpt: Reduce the severity level of a log message
+  IB/srpt: Verify port numbers in srpt_event_handler()
+  IB/srpt: Use the IPv6 format for GIDs in log messages
+  IB/srpt: Convert a warning into a debug message
+  IB/srpt: Reduce frequency of receive failure messages
+  IB/srpt: Introduce srpt_format_guid()
+  IB/srpt: Inline srpt_get_cmd_state()
+  IB/srpt: Micro-optimize I/O context state manipulation
+
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 336 ++++++++++++++++++++--------------
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  40 ++--
+ 2 files changed, 221 insertions(+), 155 deletions(-)
+
 -- 
 2.15.1
 
