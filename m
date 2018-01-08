@@ -1,41 +1,68 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] IB/rxe: add the static type to the variable
-Date: Mon, 08 Jan 2018 17:45:45 -0500
-Message-ID: <1515451545.3403.122.camel@redhat.com>
-References: <1515326928-22282-1-git-send-email-yanjun.zhu@oracle.com>
-         <20180107133833.GB6823@mtr-leonro.local>
+Subject: Re: [PATCHv2 1/1] IB/rxe: remove unnecessary skb_clone in xmit
+Date: Mon, 08 Jan 2018 17:46:13 -0500
+Message-ID: <1515451573.3403.123.camel@redhat.com>
+References: <1515388465-9307-1-git-send-email-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-6X+N0VUzNHsfCDGcQMpW"
+        protocol="application/pgp-signature"; boundary="=-CQxcfBvR/BXLOR/rWwq9"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180107133833.GB6823-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1515388465-9307-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-6X+N0VUzNHsfCDGcQMpW
+--=-CQxcfBvR/BXLOR/rWwq9
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, 2018-01-07 at 15:38 +0200, Leon Romanovsky wrote:
-> On Sun, Jan 07, 2018 at 07:08:48AM -0500, Zhu Yanjun wrote:
-> > The variable recv_sockets is only used in the file rxe_net.c. So
-> > it is better to add static type to it.
-> >=20
-> > CC: Srinivas Eeda <srinivas.eeda-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > CC: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > CC: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/infiniband/sw/rxe/rxe_net.c | 2 +-
-> >  drivers/infiniband/sw/rxe/rxe_net.h | 1 -
-> >  2 files changed, 1 insertion(+), 2 deletions(-)
-> >=20
+On Mon, 2018-01-08 at 00:14 -0500, Zhu Yanjun wrote:
+> In xmit, there is a skb_clone. This function copies the struct sk_buff.
+> And some parameters are changed to the new skb. Then the new skb is sent
+> while the old skb is freed.
 >=20
-> Thanks,
-> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> While the function skb_clone is removed, the parameter changes are made o=
+n
+> the old skb, then the old skb is sent. It can also work well.
+>=20
+> The following tests are made.
+>=20
+>  server                       client
+> ---------                    ---------
+> > 1.1.1.1|<----rxe-channel--->|1.1.1.2|
+>=20
+> ---------                    ---------
+>=20
+> On server: rping -s -a 1.1.1.1 -v -C 1000 -S 512
+> On client: rping -c -a 1.1.1.1 -v -C 1000 -S 512
+>=20
+> The kernel config CONFIG_DEBUG_KMEMLEAK is enabled on both server
+> and client.
+>=20
+> This test runs for several hours. There is no memory leak and the whole
+> system can work well.
+>=20
+> As the above network, the following tests are made.
+>=20
+> Server: ibv_rc_pingpong -d rxe0 -g 1
+> Client: ibv_rc_pingpong -d rxe0 -g 1 1.1.1.1
+>=20
+> The result on Server.
+> Before:
+> 8192000 bytes in 0.88 seconds =3D 74.36 Mbit/sec
+> 1000 iters in 0.88 seconds =3D 881.30 usec/iter
+>=20
+> After:
+> 8192000 bytes in 0.81 seconds =3D 81.15 Mbit/sec
+> 1000 iters in 0.81 seconds =3D 807.62 usec/iter
+>=20
+> The throughput is enhanced and the latency is reduced.
+>=20
+> CC: Srinivas Eeda <srinivas.eeda-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> CC: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> CC: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
 Thanks, applied.
 
@@ -43,29 +70,29 @@ Thanks, applied.
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-6X+N0VUzNHsfCDGcQMpW
+--=-CQxcfBvR/BXLOR/rWwq9
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpT9JkACgkQuCajMw5X
-L93uVQ//fUL1fQ3hiwdf0cev7Dxt42E2hcv0uwhf13PONSOZVhLQH8QFesmRfiJs
-YRU7U8IWWjJw1I7yV7ByCGhXjzfbzz5hhcuVoqOdB08BeXm/+CcQefudWhYPuNZp
-FDgd4pBJxVdixnWAwQMq+xXWMby0UPLPpLO+VtJ/BOfDur2XOUqy/5l2SUGg7I90
-wabzvPddsb+fCh0sfur6TuD2iOSeBDtDLDAZEq76Km4i006AF6kb7z2az6m1GnyP
-ccuu4tXPHbg1Gkebn/kSV+tykh6B4oRHR9DMdjcGP5jwCC4PhpFS484DKXnCGyMK
-lOhZ6md2pXzsStkuuprTIgOdYa+VzwsCSZJO0z0DA8Z1uhXaT85PXgkLpCH8eeNa
-0BSeX7dcnsltSfI/yyoeJHNB2uYokKlPgwoWoSLGbuIisqYuewZ4Iu5K3Rym94aa
-d31mKoXtCBlXG4Z7nydQuZAYRBH7Ee0lFTzbeZJ2iDszajhfqvfmPoxClkMERuMK
-SE4/02X06TAL3yJSVt/6OE4bmEURlXeysrIeL5jBvM8xrAdJ1R1hOyiqae4dsk+r
-jU2AOpmJvMgrn92hw+n0WcZT043u4phUzdlxq1GJTQR1793CvQFUrxmlF77nFsDn
-FqGjqAmZWJmuMRqNVIy7iB4nN1AbA1ah1yxB9DWIBzOiBsyIJfY=
-=EJ53
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpT9LYACgkQuCajMw5X
+L924eA//ckummDbY12cdD0M+wyGARaXkNqH34Jp7Q5xHhEi6+LzsrEcP1SmJjhIp
+yxSb+P3VSMk/W1nR5Vp/+UrdBKIPiEMfENOZdFGPQynpOC8/3oVHyoTZTy0talZ9
+7w14xFhMyT1Yfvsgv0GCawgoXmYLP9Zarrka0odFnN80v/HvPegjVi7O2u+bCvoJ
+ZtvY3V80vgWd7NJNnRTunueTaPTi+0+Ove6nk7flKxP04prZS9sFWdOPeaMT6YBV
+82ValMRMpKc8sfxLtkJGMINRzuvnJSQVQcKIVYD3npckPnzUO8UznAmIWvijmJPL
+XiHeDS4ycQzIiXA2tqU0vQbhjQIU4dmYHzvrzfogCbx6CfCeGU2z/VW1+hz8Wq7H
+K2q4ytqzisDksulUtMvdl+rdRAoEMx1QaWxL+G0TBIwTrOHIfycg68Uy6waKbhSj
+cj5uRsPTFDiPYa+PnO47FjAuZKO4VaJ1e3OvN0C42P9qm1TlZ0RBMVjgl1146eh4
+MyIR1nqjsD1ym3IWhLPiGP4zYmI3QO6K8O+ARuPVS6uAbddKLfERoHcEg9w6mthL
+xfNQWcRkjVvHaScZ7xAAxXAdPZFsAiSpG9JYKf6vMBhd04XpZXKJu7MipX8I5EGZ
+qcX+ijAmZn9ViKSHrGJyda2YAmcJ9lUBAxJ97A7hKX9ux0o9FVY=
+=yzEz
 -----END PGP SIGNATURE-----
 
---=-6X+N0VUzNHsfCDGcQMpW--
+--=-CQxcfBvR/BXLOR/rWwq9--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
