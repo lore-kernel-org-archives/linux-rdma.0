@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 1/2] IB/core: Remove the locking for character device bitmap
-Date: Mon,  8 Jan 2018 12:15:37 +0200
-Message-ID: <20180108101538.16451-2-leon@kernel.org>
+Subject: [PATCH rdma-next 2/2] IB/core: Refactor allocation code to increase number of char device
+Date: Mon,  8 Jan 2018 12:15:38 +0200
+Message-ID: <20180108101538.16451-3-leon@kernel.org>
 References: <20180108101538.16451-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180108101538.16451-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,93 +12,555 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Huy Nguyen <huyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Remove the locks that protect character device bitmap of
-uverbs, umad and issm.
+There is a need to increase number of possible char devices to support
+large number of SR-IOV instances. The current limit is in range of
+64-128 devices/ports and this refactoring patch increases it to support
+upto 1024.
 
-The character device bit maps are accessed in "client->add" and
-"client->remove" calls from ib_register_device and ib_unregister_device
-respectively. These calls are already protected by the "device_mutex"
-mutex. Thus, the spinlocks are not needed.
+The patch performs the following steps to refactor the code:
+1. Removes the split bitmap for fixed and overflow dev numbers.
+2. Pre-allocates the non-legacy major number range during driver
+initialization for the simplicity.
+3. Add new define (RDMA_MAX_PORTS) that is shared between all drivers
+for the future expansion of non-legacy minor number range. This is the
+maximum total number of ports on all struct ib_devices.
+4. Set RDMA_MAX_PORTS to 1024.
 
 Signed-off-by: Huy Nguyen <huyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/user_mad.c    | 5 -----
- drivers/infiniband/core/uverbs_main.c | 5 -----
- 2 files changed, 10 deletions(-)
+ drivers/infiniband/core/core_priv.h   |   3 +
+ drivers/infiniband/core/ucm.c         |  73 +++++++++---------------
+ drivers/infiniband/core/user_mad.c    | 103 ++++++++++++++++------------------
+ drivers/infiniband/core/uverbs_main.c |  90 +++++++++++------------------
+ 4 files changed, 113 insertions(+), 156 deletions(-)
 
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 833ea36e823b..3f1442bd5fdc 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -43,6 +43,9 @@
+ #include <rdma/restrack.h>
+ #include "mad_priv.h"
+ 
++/* Total number of ports combined across all struct ib_devices's */
++#define RDMA_MAX_PORTS 1024
++
+ struct pkey_index_qp_list {
+ 	struct list_head    pkey_index_list;
+ 	u16                 pkey_index;
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index f2a7f62c2834..f3eb1c3b617d 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -53,6 +53,8 @@
+ #include <rdma/ib_user_cm.h>
+ #include <rdma/ib_marshall.h>
+ 
++#include "core_priv.h"
++
+ MODULE_AUTHOR("Libor Michalek");
+ MODULE_DESCRIPTION("InfiniBand userspace Connection Manager access");
+ MODULE_LICENSE("Dual BSD/GPL");
+@@ -104,10 +106,13 @@ struct ib_ucm_event {
+ enum {
+ 	IB_UCM_MAJOR = 231,
+ 	IB_UCM_BASE_MINOR = 224,
+-	IB_UCM_MAX_DEVICES = 32
++	IB_UCM_MAX_DEVICES = RDMA_MAX_PORTS,
++	IB_UCM_NUM_FIXED_MINOR = 32,
++	IB_UCM_NUM_DYNAMIC_MINOR = IB_UCM_MAX_DEVICES - IB_UCM_NUM_FIXED_MINOR,
+ };
+ 
+ #define IB_UCM_BASE_DEV MKDEV(IB_UCM_MAJOR, IB_UCM_BASE_MINOR)
++static dev_t dynamic_ucm_dev;
+ 
+ static void ib_ucm_add_one(struct ib_device *device);
+ static void ib_ucm_remove_one(struct ib_device *device, void *client_data);
+@@ -1199,7 +1204,6 @@ static int ib_ucm_close(struct inode *inode, struct file *filp)
+ 	return 0;
+ }
+ 
+-static DECLARE_BITMAP(overflow_map, IB_UCM_MAX_DEVICES);
+ static void ib_ucm_release_dev(struct device *dev)
+ {
+ 	struct ib_ucm_device *ucm_dev;
+@@ -1210,10 +1214,7 @@ static void ib_ucm_release_dev(struct device *dev)
+ 
+ static void ib_ucm_free_dev(struct ib_ucm_device *ucm_dev)
+ {
+-	if (ucm_dev->devnum < IB_UCM_MAX_DEVICES)
+-		clear_bit(ucm_dev->devnum, dev_map);
+-	else
+-		clear_bit(ucm_dev->devnum - IB_UCM_MAX_DEVICES, overflow_map);
++	clear_bit(ucm_dev->devnum, dev_map);
+ }
+ 
+ static const struct file_operations ucm_fops = {
+@@ -1235,27 +1236,6 @@ static ssize_t show_ibdev(struct device *dev, struct device_attribute *attr,
+ }
+ static DEVICE_ATTR(ibdev, S_IRUGO, show_ibdev, NULL);
+ 
+-static dev_t overflow_maj;
+-static int find_overflow_devnum(void)
+-{
+-	int ret;
+-
+-	if (!overflow_maj) {
+-		ret = alloc_chrdev_region(&overflow_maj, 0, IB_UCM_MAX_DEVICES,
+-					  "infiniband_cm");
+-		if (ret) {
+-			pr_err("ucm: couldn't register dynamic device number\n");
+-			return ret;
+-		}
+-	}
+-
+-	ret = find_first_zero_bit(overflow_map, IB_UCM_MAX_DEVICES);
+-	if (ret >= IB_UCM_MAX_DEVICES)
+-		return -1;
+-
+-	return ret;
+-}
+-
+ static void ib_ucm_add_one(struct ib_device *device)
+ {
+ 	int devnum;
+@@ -1274,19 +1254,14 @@ static void ib_ucm_add_one(struct ib_device *device)
+ 	ucm_dev->dev.release = ib_ucm_release_dev;
+ 
+ 	devnum = find_first_zero_bit(dev_map, IB_UCM_MAX_DEVICES);
+-	if (devnum >= IB_UCM_MAX_DEVICES) {
+-		devnum = find_overflow_devnum();
+-		if (devnum < 0)
+-			goto err;
+-
+-		ucm_dev->devnum = devnum + IB_UCM_MAX_DEVICES;
+-		base = devnum + overflow_maj;
+-		set_bit(devnum, overflow_map);
+-	} else {
+-		ucm_dev->devnum = devnum;
+-		base = devnum + IB_UCM_BASE_DEV;
+-		set_bit(devnum, dev_map);
+-	}
++	if (devnum >= IB_UCM_MAX_DEVICES)
++		goto err;
++	ucm_dev->devnum = devnum;
++	set_bit(devnum, dev_map);
++	if (devnum >= IB_UCM_NUM_FIXED_MINOR)
++		base = dynamic_ucm_dev + devnum - IB_UCM_NUM_FIXED_MINOR;
++	else
++		base = IB_UCM_BASE_DEV + devnum;
+ 
+ 	cdev_init(&ucm_dev->cdev, &ucm_fops);
+ 	ucm_dev->cdev.owner = THIS_MODULE;
+@@ -1334,13 +1309,20 @@ static int __init ib_ucm_init(void)
+ {
+ 	int ret;
+ 
+-	ret = register_chrdev_region(IB_UCM_BASE_DEV, IB_UCM_MAX_DEVICES,
++	ret = register_chrdev_region(IB_UCM_BASE_DEV, IB_UCM_NUM_FIXED_MINOR,
+ 				     "infiniband_cm");
+ 	if (ret) {
+ 		pr_err("ucm: couldn't register device number\n");
+ 		goto error1;
+ 	}
+ 
++	ret = alloc_chrdev_region(&dynamic_ucm_dev, 0, IB_UCM_NUM_DYNAMIC_MINOR,
++				  "infiniband_cm");
++	if (ret) {
++		pr_err("ucm: couldn't register dynamic device number\n");
++		goto err_alloc;
++	}
++
+ 	ret = class_create_file(&cm_class, &class_attr_abi_version.attr);
+ 	if (ret) {
+ 		pr_err("ucm: couldn't create abi_version attribute\n");
+@@ -1357,7 +1339,9 @@ static int __init ib_ucm_init(void)
+ error3:
+ 	class_remove_file(&cm_class, &class_attr_abi_version.attr);
+ error2:
+-	unregister_chrdev_region(IB_UCM_BASE_DEV, IB_UCM_MAX_DEVICES);
++	unregister_chrdev_region(dynamic_ucm_dev, IB_UCM_NUM_DYNAMIC_MINOR);
++err_alloc:
++	unregister_chrdev_region(IB_UCM_BASE_DEV, IB_UCM_NUM_FIXED_MINOR);
+ error1:
+ 	return ret;
+ }
+@@ -1366,9 +1350,8 @@ static void __exit ib_ucm_cleanup(void)
+ {
+ 	ib_unregister_client(&ucm_client);
+ 	class_remove_file(&cm_class, &class_attr_abi_version.attr);
+-	unregister_chrdev_region(IB_UCM_BASE_DEV, IB_UCM_MAX_DEVICES);
+-	if (overflow_maj)
+-		unregister_chrdev_region(overflow_maj, IB_UCM_MAX_DEVICES);
++	unregister_chrdev_region(IB_UCM_BASE_DEV, IB_UCM_NUM_FIXED_MINOR);
++	unregister_chrdev_region(dynamic_ucm_dev, IB_UCM_NUM_DYNAMIC_MINOR);
+ 	idr_destroy(&ctx_id_table);
+ }
+ 
 diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index d4de187b1064..608176e9cd5d 100644
+index 608176e9cd5d..f0ed883492ec 100644
 --- a/drivers/infiniband/core/user_mad.c
 +++ b/drivers/infiniband/core/user_mad.c
-@@ -129,7 +129,6 @@ static struct class *umad_class;
+@@ -55,16 +55,21 @@
+ #include <rdma/ib_mad.h>
+ #include <rdma/ib_user_mad.h>
  
- static const dev_t base_dev = MKDEV(IB_UMAD_MAJOR, IB_UMAD_MINOR_BASE);
++#include "core_priv.h"
++
+ MODULE_AUTHOR("Roland Dreier");
+ MODULE_DESCRIPTION("InfiniBand userspace MAD packet access");
+ MODULE_LICENSE("Dual BSD/GPL");
  
--static DEFINE_SPINLOCK(port_lock);
+ enum {
+-	IB_UMAD_MAX_PORTS  = 64,
++	IB_UMAD_MAX_PORTS  = RDMA_MAX_PORTS,
+ 	IB_UMAD_MAX_AGENTS = 32,
+ 
+ 	IB_UMAD_MAJOR      = 231,
+-	IB_UMAD_MINOR_BASE = 0
++	IB_UMAD_MINOR_BASE = 0,
++	IB_UMAD_NUM_FIXED_MINOR = 64,
++	IB_UMAD_NUM_DYNAMIC_MINOR = IB_UMAD_MAX_PORTS - IB_UMAD_NUM_FIXED_MINOR,
++	IB_ISSM_MINOR_BASE        = IB_UMAD_NUM_FIXED_MINOR,
+ };
+ 
+ /*
+@@ -127,7 +132,11 @@ struct ib_umad_packet {
+ 
+ static struct class *umad_class;
+ 
+-static const dev_t base_dev = MKDEV(IB_UMAD_MAJOR, IB_UMAD_MINOR_BASE);
++static const dev_t base_umad_dev = MKDEV(IB_UMAD_MAJOR, IB_UMAD_MINOR_BASE);
++static const dev_t base_issm_dev = MKDEV(IB_UMAD_MAJOR, IB_UMAD_MINOR_BASE) +
++				   IB_UMAD_NUM_FIXED_MINOR;
++static dev_t dynamic_umad_dev;
++static dev_t dynamic_issm_dev;
+ 
  static DECLARE_BITMAP(dev_map, IB_UMAD_MAX_PORTS);
  
- static void ib_umad_add_one(struct ib_device *device);
-@@ -1172,15 +1171,12 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+@@ -1141,49 +1150,25 @@ static DEVICE_ATTR(port, S_IRUGO, show_port, NULL);
+ static CLASS_ATTR_STRING(abi_version, S_IRUGO,
+ 			 __stringify(IB_USER_MAD_ABI_VERSION));
+ 
+-static dev_t overflow_maj;
+-static DECLARE_BITMAP(overflow_map, IB_UMAD_MAX_PORTS);
+-static int find_overflow_devnum(struct ib_device *device)
+-{
+-	int ret;
+-
+-	if (!overflow_maj) {
+-		ret = alloc_chrdev_region(&overflow_maj, 0, IB_UMAD_MAX_PORTS * 2,
+-					  "infiniband_mad");
+-		if (ret) {
+-			dev_err(&device->dev,
+-				"couldn't register dynamic device number\n");
+-			return ret;
+-		}
+-	}
+-
+-	ret = find_first_zero_bit(overflow_map, IB_UMAD_MAX_PORTS);
+-	if (ret >= IB_UMAD_MAX_PORTS)
+-		return -1;
+-
+-	return ret;
+-}
+-
+ static int ib_umad_init_port(struct ib_device *device, int port_num,
+ 			     struct ib_umad_device *umad_dev,
+ 			     struct ib_umad_port *port)
+ {
  	int devnum;
- 	dev_t base;
+-	dev_t base;
++	dev_t base_umad;
++	dev_t base_issm;
  
--	spin_lock(&port_lock);
  	devnum = find_first_zero_bit(dev_map, IB_UMAD_MAX_PORTS);
- 	if (devnum >= IB_UMAD_MAX_PORTS) {
--		spin_unlock(&port_lock);
- 		devnum = find_overflow_devnum(device);
- 		if (devnum < 0)
- 			return -1;
- 
--		spin_lock(&port_lock);
- 		port->dev_num = devnum + IB_UMAD_MAX_PORTS;
- 		base = devnum + overflow_maj;
- 		set_bit(devnum, overflow_map);
-@@ -1189,7 +1185,6 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
- 		base = devnum + base_dev;
- 		set_bit(devnum, dev_map);
+-	if (devnum >= IB_UMAD_MAX_PORTS) {
+-		devnum = find_overflow_devnum(device);
+-		if (devnum < 0)
+-			return -1;
+-
+-		port->dev_num = devnum + IB_UMAD_MAX_PORTS;
+-		base = devnum + overflow_maj;
+-		set_bit(devnum, overflow_map);
++	if (devnum >= IB_UMAD_MAX_PORTS)
++		return -1;
++	port->dev_num = devnum;
++	set_bit(devnum, dev_map);
++	if (devnum >= IB_UMAD_NUM_FIXED_MINOR) {
++		base_umad = dynamic_umad_dev + devnum - IB_UMAD_NUM_FIXED_MINOR;
++		base_issm = dynamic_issm_dev + devnum - IB_UMAD_NUM_FIXED_MINOR;
+ 	} else {
+-		port->dev_num = devnum;
+-		base = devnum + base_dev;
+-		set_bit(devnum, dev_map);
++		base_umad = devnum + base_umad_dev;
++		base_issm = devnum + base_issm_dev;
  	}
--	spin_unlock(&port_lock);
  
  	port->ib_dev   = device;
- 	port->port_num = port_num;
+@@ -1196,7 +1181,7 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+ 	port->cdev.owner = THIS_MODULE;
+ 	cdev_set_parent(&port->cdev, &umad_dev->kobj);
+ 	kobject_set_name(&port->cdev.kobj, "umad%d", port->dev_num);
+-	if (cdev_add(&port->cdev, base, 1))
++	if (cdev_add(&port->cdev, base_umad, 1))
+ 		goto err_cdev;
+ 
+ 	port->dev = device_create(umad_class, device->dev.parent,
+@@ -1210,12 +1195,11 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+ 	if (device_create_file(port->dev, &dev_attr_port))
+ 		goto err_dev;
+ 
+-	base += IB_UMAD_MAX_PORTS;
+ 	cdev_init(&port->sm_cdev, &umad_sm_fops);
+ 	port->sm_cdev.owner = THIS_MODULE;
+ 	cdev_set_parent(&port->sm_cdev, &umad_dev->kobj);
+ 	kobject_set_name(&port->sm_cdev.kobj, "issm%d", port->dev_num);
+-	if (cdev_add(&port->sm_cdev, base, 1))
++	if (cdev_add(&port->sm_cdev, base_issm, 1))
+ 		goto err_sm_cdev;
+ 
+ 	port->sm_dev = device_create(umad_class, device->dev.parent,
+@@ -1242,10 +1226,7 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+ 
+ err_cdev:
+ 	cdev_del(&port->cdev);
+-	if (port->dev_num < IB_UMAD_MAX_PORTS)
+-		clear_bit(devnum, dev_map);
+-	else
+-		clear_bit(devnum, overflow_map);
++	clear_bit(devnum, dev_map);
+ 
+ 	return -1;
+ }
+@@ -1279,11 +1260,7 @@ static void ib_umad_kill_port(struct ib_umad_port *port)
+ 	}
+ 
+ 	mutex_unlock(&port->file_mutex);
+-
+-	if (port->dev_num < IB_UMAD_MAX_PORTS)
+-		clear_bit(port->dev_num, dev_map);
+-	else
+-		clear_bit(port->dev_num - IB_UMAD_MAX_PORTS, overflow_map);
++	clear_bit(port->dev_num, dev_map);
+ }
+ 
+ static void ib_umad_add_one(struct ib_device *device)
+@@ -1359,13 +1336,23 @@ static int __init ib_umad_init(void)
+ {
+ 	int ret;
+ 
+-	ret = register_chrdev_region(base_dev, IB_UMAD_MAX_PORTS * 2,
++	ret = register_chrdev_region(base_umad_dev,
++				     IB_UMAD_NUM_FIXED_MINOR * 2,
+ 				     "infiniband_mad");
+ 	if (ret) {
+ 		pr_err("couldn't register device number\n");
+ 		goto out;
+ 	}
+ 
++	ret = alloc_chrdev_region(&dynamic_umad_dev, 0,
++				  IB_UMAD_NUM_DYNAMIC_MINOR * 2,
++				  "infiniband_mad");
++	if (ret) {
++		pr_err("couldn't register dynamic device number\n");
++		goto out_alloc;
++	}
++	dynamic_issm_dev = dynamic_umad_dev + IB_UMAD_NUM_DYNAMIC_MINOR;
++
+ 	umad_class = class_create(THIS_MODULE, "infiniband_mad");
+ 	if (IS_ERR(umad_class)) {
+ 		ret = PTR_ERR(umad_class);
+@@ -1393,7 +1380,12 @@ static int __init ib_umad_init(void)
+ 	class_destroy(umad_class);
+ 
+ out_chrdev:
+-	unregister_chrdev_region(base_dev, IB_UMAD_MAX_PORTS * 2);
++	unregister_chrdev_region(dynamic_umad_dev,
++				 IB_UMAD_NUM_DYNAMIC_MINOR * 2);
++
++out_alloc:
++	unregister_chrdev_region(base_umad_dev,
++				 IB_UMAD_NUM_FIXED_MINOR * 2);
+ 
+ out:
+ 	return ret;
+@@ -1403,9 +1395,10 @@ static void __exit ib_umad_cleanup(void)
+ {
+ 	ib_unregister_client(&umad_client);
+ 	class_destroy(umad_class);
+-	unregister_chrdev_region(base_dev, IB_UMAD_MAX_PORTS * 2);
+-	if (overflow_maj)
+-		unregister_chrdev_region(overflow_maj, IB_UMAD_MAX_PORTS * 2);
++	unregister_chrdev_region(base_umad_dev,
++				 IB_UMAD_NUM_FIXED_MINOR * 2);
++	unregister_chrdev_region(dynamic_umad_dev,
++				 IB_UMAD_NUM_DYNAMIC_MINOR * 2);
+ }
+ 
+ module_init(ib_umad_init);
 diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 381fd9c096ae..9e06f810bbeb 100644
+index 9e06f810bbeb..899102ad6bb6 100644
 --- a/drivers/infiniband/core/uverbs_main.c
 +++ b/drivers/infiniband/core/uverbs_main.c
-@@ -69,7 +69,6 @@ enum {
+@@ -62,11 +62,14 @@ MODULE_LICENSE("Dual BSD/GPL");
+ enum {
+ 	IB_UVERBS_MAJOR       = 231,
+ 	IB_UVERBS_BASE_MINOR  = 192,
+-	IB_UVERBS_MAX_DEVICES = 32
++	IB_UVERBS_MAX_DEVICES = RDMA_MAX_PORTS,
++	IB_UVERBS_NUM_FIXED_MINOR = 32,
++	IB_UVERBS_NUM_DYNAMIC_MINOR = IB_UVERBS_MAX_DEVICES - IB_UVERBS_NUM_FIXED_MINOR,
+ };
  
+ #define IB_UVERBS_BASE_DEV	MKDEV(IB_UVERBS_MAJOR, IB_UVERBS_BASE_MINOR)
+ 
++static dev_t dynamic_uverbs_dev;
  static struct class *uverbs_class;
  
--static DEFINE_SPINLOCK(map_lock);
  static DECLARE_BITMAP(dev_map, IB_UVERBS_MAX_DEVICES);
+@@ -1004,34 +1007,6 @@ static DEVICE_ATTR(abi_version, S_IRUGO, show_dev_abi_version, NULL);
+ static CLASS_ATTR_STRING(abi_version, S_IRUGO,
+ 			 __stringify(IB_USER_VERBS_ABI_VERSION));
  
- static ssize_t (*uverbs_cmd_table[])(struct ib_uverbs_file *file,
-@@ -1062,15 +1061,12 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 	INIT_LIST_HEAD(&uverbs_dev->uverbs_file_list);
+-static dev_t overflow_maj;
+-static DECLARE_BITMAP(overflow_map, IB_UVERBS_MAX_DEVICES);
+-
+-/*
+- * If we have more than IB_UVERBS_MAX_DEVICES, dynamically overflow by
+- * requesting a new major number and doubling the number of max devices we
+- * support. It's stupid, but simple.
+- */
+-static int find_overflow_devnum(void)
+-{
+-	int ret;
+-
+-	if (!overflow_maj) {
+-		ret = alloc_chrdev_region(&overflow_maj, 0, IB_UVERBS_MAX_DEVICES,
+-					  "infiniband_verbs");
+-		if (ret) {
+-			pr_err("user_verbs: couldn't register dynamic device number\n");
+-			return ret;
+-		}
+-	}
+-
+-	ret = find_first_zero_bit(overflow_map, IB_UVERBS_MAX_DEVICES);
+-	if (ret >= IB_UVERBS_MAX_DEVICES)
+-		return -1;
+-
+-	return ret;
+-}
+-
+ static void ib_uverbs_add_one(struct ib_device *device)
+ {
+ 	int devnum;
+@@ -1062,19 +1037,14 @@ static void ib_uverbs_add_one(struct ib_device *device)
  	INIT_LIST_HEAD(&uverbs_dev->uverbs_events_file_list);
  
--	spin_lock(&map_lock);
  	devnum = find_first_zero_bit(dev_map, IB_UVERBS_MAX_DEVICES);
- 	if (devnum >= IB_UVERBS_MAX_DEVICES) {
--		spin_unlock(&map_lock);
- 		devnum = find_overflow_devnum();
- 		if (devnum < 0)
- 			goto err;
- 
--		spin_lock(&map_lock);
- 		uverbs_dev->devnum = devnum + IB_UVERBS_MAX_DEVICES;
- 		base = devnum + overflow_maj;
- 		set_bit(devnum, overflow_map);
-@@ -1079,7 +1075,6 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 		base = devnum + IB_UVERBS_BASE_DEV;
- 		set_bit(devnum, dev_map);
- 	}
--	spin_unlock(&map_lock);
+-	if (devnum >= IB_UVERBS_MAX_DEVICES) {
+-		devnum = find_overflow_devnum();
+-		if (devnum < 0)
+-			goto err;
+-
+-		uverbs_dev->devnum = devnum + IB_UVERBS_MAX_DEVICES;
+-		base = devnum + overflow_maj;
+-		set_bit(devnum, overflow_map);
+-	} else {
+-		uverbs_dev->devnum = devnum;
+-		base = devnum + IB_UVERBS_BASE_DEV;
+-		set_bit(devnum, dev_map);
+-	}
++	if (devnum >= IB_UVERBS_MAX_DEVICES)
++		goto err;
++	uverbs_dev->devnum = devnum;
++	set_bit(devnum, dev_map);
++	if (devnum >= IB_UVERBS_NUM_FIXED_MINOR)
++		base = dynamic_uverbs_dev + devnum - IB_UVERBS_NUM_FIXED_MINOR;
++	else
++		base = IB_UVERBS_BASE_DEV + devnum;
  
  	rcu_assign_pointer(uverbs_dev->ib_dev, device);
  	uverbs_dev->num_comp_vectors = device->num_comp_vectors;
+@@ -1119,10 +1089,7 @@ static void ib_uverbs_add_one(struct ib_device *device)
+ 
+ err_cdev:
+ 	cdev_del(&uverbs_dev->cdev);
+-	if (uverbs_dev->devnum < IB_UVERBS_MAX_DEVICES)
+-		clear_bit(devnum, dev_map);
+-	else
+-		clear_bit(devnum, overflow_map);
++	clear_bit(devnum, dev_map);
+ 
+ err:
+ 	if (atomic_dec_and_test(&uverbs_dev->refcount))
+@@ -1214,11 +1181,7 @@ static void ib_uverbs_remove_one(struct ib_device *device, void *client_data)
+ 	dev_set_drvdata(uverbs_dev->dev, NULL);
+ 	device_destroy(uverbs_class, uverbs_dev->cdev.dev);
+ 	cdev_del(&uverbs_dev->cdev);
+-
+-	if (uverbs_dev->devnum < IB_UVERBS_MAX_DEVICES)
+-		clear_bit(uverbs_dev->devnum, dev_map);
+-	else
+-		clear_bit(uverbs_dev->devnum - IB_UVERBS_MAX_DEVICES, overflow_map);
++	clear_bit(uverbs_dev->devnum, dev_map);
+ 
+ 	if (device->disassociate_ucontext) {
+ 		/* We disassociate HW resources and immediately return.
+@@ -1260,13 +1223,22 @@ static int __init ib_uverbs_init(void)
+ {
+ 	int ret;
+ 
+-	ret = register_chrdev_region(IB_UVERBS_BASE_DEV, IB_UVERBS_MAX_DEVICES,
++	ret = register_chrdev_region(IB_UVERBS_BASE_DEV,
++				     IB_UVERBS_NUM_FIXED_MINOR,
+ 				     "infiniband_verbs");
+ 	if (ret) {
+ 		pr_err("user_verbs: couldn't register device number\n");
+ 		goto out;
+ 	}
+ 
++	ret = alloc_chrdev_region(&dynamic_uverbs_dev, 0,
++				  IB_UVERBS_NUM_DYNAMIC_MINOR,
++				  "infiniband_verbs");
++	if (ret) {
++		pr_err("couldn't register dynamic device number\n");
++		goto out_alloc;
++	}
++
+ 	uverbs_class = class_create(THIS_MODULE, "infiniband_verbs");
+ 	if (IS_ERR(uverbs_class)) {
+ 		ret = PTR_ERR(uverbs_class);
+@@ -1294,7 +1266,12 @@ static int __init ib_uverbs_init(void)
+ 	class_destroy(uverbs_class);
+ 
+ out_chrdev:
+-	unregister_chrdev_region(IB_UVERBS_BASE_DEV, IB_UVERBS_MAX_DEVICES);
++	unregister_chrdev_region(dynamic_uverbs_dev,
++				 IB_UVERBS_NUM_DYNAMIC_MINOR);
++
++out_alloc:
++	unregister_chrdev_region(IB_UVERBS_BASE_DEV,
++				 IB_UVERBS_NUM_FIXED_MINOR);
+ 
+ out:
+ 	return ret;
+@@ -1304,9 +1281,10 @@ static void __exit ib_uverbs_cleanup(void)
+ {
+ 	ib_unregister_client(&uverbs_client);
+ 	class_destroy(uverbs_class);
+-	unregister_chrdev_region(IB_UVERBS_BASE_DEV, IB_UVERBS_MAX_DEVICES);
+-	if (overflow_maj)
+-		unregister_chrdev_region(overflow_maj, IB_UVERBS_MAX_DEVICES);
++	unregister_chrdev_region(IB_UVERBS_BASE_DEV,
++				 IB_UVERBS_NUM_FIXED_MINOR);
++	unregister_chrdev_region(dynamic_uverbs_dev,
++				 IB_UVERBS_NUM_DYNAMIC_MINOR);
+ }
+ 
+ module_init(ib_uverbs_init);
 -- 
 2.15.1
 
