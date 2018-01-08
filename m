@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH 08/12] IB/srpt: Convert a warning into a debug message
-Date: Mon,  8 Jan 2018 11:00:47 -0800
-Message-ID: <20180108190051.32008-9-bart.vanassche@wdc.com>
+Subject: [PATCH 05/12] IB/srpt: Reduce the severity level of a log message
+Date: Mon,  8 Jan 2018 11:00:44 -0800
+Message-ID: <20180108190051.32008-6-bart.vanassche@wdc.com>
 References: <20180108190051.32008-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180108190051.32008-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,30 +10,27 @@ To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-At least when running the ib_srpt driver on top of the rdma_rxe
-driver it is easy to trigger a zero-length write completion in
-the CH_DISCONNECTED state. Hence make the message that reports
-this less noisy.
+Since the SRQ event message is only useful for debugging purposes,
+reduce its severity from "informational" to "debug".
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 25c5e188c740..31b6f108dffb 100644
+index 4fb884c070af..a71664fe939b 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -875,7 +875,8 @@ static void srpt_zerolength_write_done(struct ib_cq *cq, struct ib_wc *wc)
- 		if (srpt_set_ch_state(ch, CH_DISCONNECTED))
- 			schedule_work(&ch->release_work);
- 		else
--			WARN_ONCE(1, "%s-%d\n", ch->sess_name, ch->qp->qp_num);
-+			pr_debug("%s-%d: already disconnected.\n",
-+				 ch->sess_name, ch->qp->qp_num);
- 	}
+@@ -177,7 +177,7 @@ static void srpt_event_handler(struct ib_event_handler *handler,
+  */
+ static void srpt_srq_event(struct ib_event *event, void *ctx)
+ {
+-	pr_info("SRQ event %d\n", event->event);
++	pr_debug("SRQ event %d\n", event->event);
  }
  
+ static const char *get_ch_state_name(enum rdma_ch_state s)
 -- 
 2.15.1
 
