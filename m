@@ -1,91 +1,72 @@
-From: "Brown, Aaron F" <aaron.f.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [Intel-wired-lan] [PATCH 01/27] timecounter: Make cyclecounter
- struct part of timecounter struct
-Date: Mon, 8 Jan 2018 22:20:35 +0000
-Message-ID: <309B89C4C689E141A5FF6A0C5FB2118B8C734DF8@ORSMSX101.amr.corp.intel.com>
-References: <1513323522-15021-1-git-send-email-sagar.a.kamble@intel.com>
- <1513323522-15021-2-git-send-email-sagar.a.kamble@intel.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/1] IB/rxe: add the static type to the variable
+Date: Mon, 08 Jan 2018 17:45:45 -0500
+Message-ID: <1515451545.3403.122.camel@redhat.com>
+References: <1515326928-22282-1-git-send-email-yanjun.zhu@oracle.com>
+         <20180107133833.GB6823@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-6X+N0VUzNHsfCDGcQMpW"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1513323522-15021-2-git-send-email-sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20180107133833.GB6823-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org" <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org" <intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "Kamble, Sagar A" <sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org" <kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Intel-wired-lan [mailto:intel-wired-lan-bounces-CJG/fkoVOTIdnm+yROfE0A@public.gmane.org] On
-> Behalf Of Sagar Arun Kamble
-> Sent: Thursday, December 14, 2017 11:38 PM
-> To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>;
-> Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>; Chris Wilson <chris@chris-
-> wilson.co.uk>; John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>; intel-wired-
-> lan-qjLDD68F18P21nG7glBr7A@public.gmane.org; Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>; Kamble, Sagar A
-> <sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org; linux-arm-
-> kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> Subject: [Intel-wired-lan] [PATCH 01/27] timecounter: Make cyclecounter
-> struct part of timecounter struct
-> 
-> There is no real need for the users of timecounters to define cyclecounter
-> and timecounter variables separately. Since timecounter will always be
-> based on cyclecounter, have cyclecounter struct as member of timecounter
-> struct.
-> 
-> v2: Rebase.
-> 
-> Suggested-by: Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>
-> Signed-off-by: Sagar Arun Kamble <sagar.a.kamble-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>
-> Cc: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-> Cc: Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
-> Cc: kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org
-> Acked-by: Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (Intel drivers)
-> ---
->  arch/microblaze/kernel/timer.c                     | 20 ++++++------
->  drivers/clocksource/arm_arch_timer.c               | 19 ++++++------
->  drivers/net/ethernet/amd/xgbe/xgbe-dev.c           |  3 +-
->  drivers/net/ethernet/amd/xgbe/xgbe-ptp.c           |  9 +++---
->  drivers/net/ethernet/amd/xgbe/xgbe.h               |  1 -
->  drivers/net/ethernet/broadcom/bnx2x/bnx2x.h        |  1 -
->  drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c   | 20 ++++++------
->  drivers/net/ethernet/freescale/fec.h               |  1 -
->  drivers/net/ethernet/freescale/fec_ptp.c           | 30 +++++++++---------
->  drivers/net/ethernet/intel/e1000e/e1000.h          |  1 -
->  drivers/net/ethernet/intel/e1000e/netdev.c         | 27 ++++++++--------
->  drivers/net/ethernet/intel/e1000e/ptp.c            |  2 +-
->  drivers/net/ethernet/intel/igb/igb.h               |  1 -
->  drivers/net/ethernet/intel/igb/igb_ptp.c           | 25 ++++++++-------
->  drivers/net/ethernet/intel/ixgbe/ixgbe.h           |  1 -
->  drivers/net/ethernet/intel/ixgbe/ixgbe_ptp.c       | 17 +++++-----
->  drivers/net/ethernet/mellanox/mlx4/en_clock.c      | 28 ++++++++---------
->  drivers/net/ethernet/mellanox/mlx4/mlx4_en.h       |  1 -
->  .../net/ethernet/mellanox/mlx5/core/lib/clock.c    | 34 ++++++++++----------
->  drivers/net/ethernet/qlogic/qede/qede_ptp.c        | 20 ++++++------
->  drivers/net/ethernet/ti/cpts.c                     | 36 ++++++++++++----------
->  drivers/net/ethernet/ti/cpts.h                     |  1 -
->  include/linux/mlx5/driver.h                        |  1 -
->  include/linux/timecounter.h                        |  4 +--
->  include/sound/hdaudio.h                            |  1 -
->  kernel/time/timecounter.c                          | 28 ++++++++---------
->  sound/hda/hdac_stream.c                            |  7 +++--
->  virt/kvm/arm/arch_timer.c                          |  6 ++--
->  28 files changed, 163 insertions(+), 182 deletions(-)
-> 
 
-For Intel e1000e and igb drivers:
-Tested-by: Aaron Brown <aaron.f.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+--=-6X+N0VUzNHsfCDGcQMpW
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, 2018-01-07 at 15:38 +0200, Leon Romanovsky wrote:
+> On Sun, Jan 07, 2018 at 07:08:48AM -0500, Zhu Yanjun wrote:
+> > The variable recv_sockets is only used in the file rxe_net.c. So
+> > it is better to add static type to it.
+> >=20
+> > CC: Srinivas Eeda <srinivas.eeda-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > CC: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > CC: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  drivers/infiniband/sw/rxe/rxe_net.c | 2 +-
+> >  drivers/infiniband/sw/rxe/rxe_net.h | 1 -
+> >  2 files changed, 1 insertion(+), 2 deletions(-)
+> >=20
+>=20
+> Thanks,
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Thanks, applied.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-6X+N0VUzNHsfCDGcQMpW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpT9JkACgkQuCajMw5X
+L93uVQ//fUL1fQ3hiwdf0cev7Dxt42E2hcv0uwhf13PONSOZVhLQH8QFesmRfiJs
+YRU7U8IWWjJw1I7yV7ByCGhXjzfbzz5hhcuVoqOdB08BeXm/+CcQefudWhYPuNZp
+FDgd4pBJxVdixnWAwQMq+xXWMby0UPLPpLO+VtJ/BOfDur2XOUqy/5l2SUGg7I90
+wabzvPddsb+fCh0sfur6TuD2iOSeBDtDLDAZEq76Km4i006AF6kb7z2az6m1GnyP
+ccuu4tXPHbg1Gkebn/kSV+tykh6B4oRHR9DMdjcGP5jwCC4PhpFS484DKXnCGyMK
+lOhZ6md2pXzsStkuuprTIgOdYa+VzwsCSZJO0z0DA8Z1uhXaT85PXgkLpCH8eeNa
+0BSeX7dcnsltSfI/yyoeJHNB2uYokKlPgwoWoSLGbuIisqYuewZ4Iu5K3Rym94aa
+d31mKoXtCBlXG4Z7nydQuZAYRBH7Ee0lFTzbeZJ2iDszajhfqvfmPoxClkMERuMK
+SE4/02X06TAL3yJSVt/6OE4bmEURlXeysrIeL5jBvM8xrAdJ1R1hOyiqae4dsk+r
+jU2AOpmJvMgrn92hw+n0WcZT043u4phUzdlxq1GJTQR1793CvQFUrxmlF77nFsDn
+FqGjqAmZWJmuMRqNVIy7iB4nN1AbA1ah1yxB9DWIBzOiBsyIJfY=
+=EJ53
+-----END PGP SIGNATURE-----
+
+--=-6X+N0VUzNHsfCDGcQMpW--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
