@@ -1,123 +1,34 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [for-next 1/5] RDMA/bnxt_re: Enable RoCE on virtual functions
-Date: Tue, 9 Jan 2018 22:18:52 +0530
-Message-ID: <CANjDDBiSRt50fN1m5aAywODa9uMvKRXtFOsYtrqBoU+iErDzzg@mail.gmail.com>
-References: <1515152434-13105-1-git-send-email-devesh.sharma@broadcom.com>
- <1515152434-13105-2-git-send-email-devesh.sharma@broadcom.com>
- <1515449549.3403.112.camel@redhat.com> <CANjDDBgG0zHqBRky=UzekBnNKrJyjgc06m4UivRTn5xu1gqE0w@mail.gmail.com>
- <1515510400.3403.138.camel@redhat.com>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH 06/12] IB/core: Add optional PCI P2P flag to
+        rdma_rw_ctx_[init|destroy]()
+Date: Tue, 9 Jan 2018 17:55:49 +0100
+Message-ID: <20180109165549.GC12159@lst.de>
+References: <20180104190137.7654-7-logang@deltatee.com> <20180104192225.GS11348@ziepe.ca> <1f8fb3fb-e3dc-94d3-e837-0cd942cf5b87@deltatee.com> <20180104221337.GV11348@ziepe.ca> <3e8391a9-8924-be6d-8c43-162a360d75b6@deltatee.com> <20180105045031.GX11348@ziepe.ca> <20180108145901.GA10743@lst.de> <20180108180917.GF11348@ziepe.ca> <20180108183434.GA15549@lst.de> <20180108190116.GI11348@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1515510400.3403.138.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180108190116.GI11348-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 9, 2018 at 8:36 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Tue, 2018-01-09 at 19:37 +0530, Devesh Sharma wrote:
->> On Tue, Jan 9, 2018 at 3:42 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->> > On Fri, 2018-01-05 at 06:40 -0500, Devesh Sharma wrote:
->> > > From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
->> > >
->> > > Currently, fifty percent of the total available resources
->> > > are reserved for PF and remaining are equally divided among
->> > > active VFs.
->> > >
->> > > +/*
->> > > + * Percentage of resources of each type reserved for PF.
->> > > + * Remaining resources are divided equally among VFs.
->> > > + * [0, 100]
->> > > + */
->> > > +#define BNXT_RE_PCT_RSVD_FOR_PF         50
->> >
->> > This is a separate comment from the patch review itself.  But, are you
->> > sure this is a good idea?  And especially are you sure that it should be
->> > a compile time constant and not a runtime parameter?
->> >
->>
->> Keeping a compile time constant is indeed not a good idea and I completely
->> understand that if we have had a knob there it would had been much much
->> better and flexible.
->> For this submission we wanted to avoid the use of module-parameter or configfs
->> interface. Thus, as a workaround this is hard-coded compile time
->> constant is used.
->> Eventually, more flexible scheme would be supplied to change this.
->
-> Ok.
->
->> > I ask because it seems to me that usage of this stuff falls into one of
->> > two categories:
->> >
->> > 1) All bare metal usage
->> > 2) SRIOV usage (in which case the bare metal OS does relatively little,
->> > the SRIOV using clients do most of the work)
->> >
->> > I guess I'm finding it hard to imagine a scenario where, when you do
->> > have SRIOV VFs, that you don't want the majority of all resources being
->> > used there.
->> >
->> > I might suggest that you simply don't split resources at all.  Maybe do
->> > something like filesystems do.  Let anyone at all take a resource until
->> > you hit 95% utilization then only root can write to the filesystem.  In
->> > this case it would be let both PFs and VFs use resources at will up
->> > until you hit the 95% utilization threshold and then restrict resource
->> > use to the PF.  That would make much more sense to me.
->>
->> This is indeed an excellent suggestion to optimize the resource
->> utilization between
->> PFs and VFs, however, I have couple of facts to put forward
->>
->> - If I have understood it correctly then this would require an
->> independent entity which
->>   would keep track of what percentage of resources has been utilized
->> at any given
->>   point in time by all the functions (PF and its VFs). Currently, we
->> do not have such
->>   implementation in firmware and PF driver cannot track or resource
->> utilization across
->>   functions.
->
-> Fair enough.
->
->> - In the current implementation hard-coding 50% does not hard-limit PFs with 50%
->>   it can still over-subscribe upto max limit even though max VFs are active.
->
-> OK, but that means a PF can starve VFs rather easily I take it?
-Yeah it could, however for now this 50% means 64K are resources are there PF,
-so kind of less worried. For some deployments 64K may not be
-sufficient, VFs could
-starve in such deployments.
+On Mon, Jan 08, 2018 at 12:01:16PM -0700, Jason Gunthorpe wrote:
+> > So I very much disagree about where to place that workaround - the
+> > RDMA code is exactly the right place.
+> 
+> But why? RDMA is using core code to do this. It uses dma_ops in struct
+> device and it uses normal dma_map SG. How is it RDMA's problem that
+> some PCI drivers provide strange DMA ops?
 
->
->> - With the equal distribution of remaining resources among VFs we are
->> trying to avail
->>   minimum guaranteed resources to max possible VFs on a given PF. We
->> want to avoid
->>   the case where number of usable VFs depend on the current usage of
->> resources consumed
->>   by already active VFs.
->
-> And this then is the opposite of the PF in that VFs aren't *really*
-> guaranteed this minimum amount, since the PF can starve the VFs out, but
-> it at least guarantees other VFs don't starve any specific VF out.
+Because RDMA uses the dma_virt_ops to pretend a device does DMA when
+in fact it doesn't - at least not for the exact data mapped, or
+as far as I can tell often not all - e.g. the QIB/HFI devices
+might do mmio access for data mapped.
 
-Yes, true, I should rather re-phrase the previous bullet. It prevents
-VF starvation.
-
->
-> That's fine if that's how you want things setup for now.  I think I
-> would work on a firmware update to implement the resource tracker as the
-> long term solution ;-).
-
-I would take this feedback to the concerned people in our f/w team and see
-if this is possible to implement such an entity.
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG KeyID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+This whole problem only exist because a few RDMA HCA drivers lie
+with the help of the RDMA core.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
