@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 5/6] RDMA/cma: Protect ifindex access during IPv6 route lookup
-Date: Tue,  9 Jan 2018 15:58:58 +0200
-Message-ID: <20180109135859.7676-6-leon@kernel.org>
+Subject: [PATCH rdma-next 4/6] RDMA/cma: Update RoCE multicast routines to use net namespace
+Date: Tue,  9 Jan 2018 15:58:57 +0200
+Message-ID: <20180109135859.7676-5-leon@kernel.org>
 References: <20180109135859.7676-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180109135859.7676-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,41 +12,48 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Netdev ifindex can change while performing IPv6 rt6_lookup().
-Therefore access ifindex under rcu lock.
-This ensures that ifindex won't change while lookup is in progress.
+rdma_dev_addr contains the net namespace pointer, while referring
+bound_dev_if of the rdma_dev_addr, refer to the net namespace of
+rdma_cm_id stored in rdma_dev_addr.
 
-Fixes: f887f2ac87c2 ("IB/cma: Validate routing of incoming requests")
-Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/cma.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 90dead30de4c..690ed4238d72 100644
+index 09bde1b13a64..90dead30de4c 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -1333,11 +1333,15 @@ static bool validate_ipv6_net_dev(struct net_device *net_dev,
- #if IS_ENABLED(CONFIG_IPV6)
- 	const int strict = ipv6_addr_type(&dst_addr->sin6_addr) &
- 			   IPV6_ADDR_LINKLOCAL;
--	struct rt6_info *rt = rt6_lookup(dev_net(net_dev), &dst_addr->sin6_addr,
--					 &src_addr->sin6_addr, net_dev->ifindex,
--					 strict);
-+	struct rt6_info *rt;
- 	bool ret;
+@@ -3930,7 +3930,7 @@ static int cma_ib_mc_handler(int status, struct ib_sa_multicast *multicast)
+ 		struct rdma_dev_addr *dev_addr =
+ 			&id_priv->id.route.addr.dev_addr;
+ 		struct net_device *ndev =
+-			dev_get_by_index(&init_net, dev_addr->bound_dev_if);
++			dev_get_by_index(dev_addr->net, dev_addr->bound_dev_if);
+ 		enum ib_gid_type gid_type =
+ 			id_priv->cma_dev->default_gid_type[id_priv->id.port_num -
+ 			rdma_start_port(id_priv->cma_dev->device)];
+@@ -4120,7 +4120,7 @@ static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
+ 		mc->multicast.ib->rec.qkey = cpu_to_be32(RDMA_UDP_QKEY);
  
-+	rcu_read_lock();
-+	rt = rt6_lookup(dev_net(net_dev), &dst_addr->sin6_addr,
-+			&src_addr->sin6_addr, net_dev->ifindex,
-+			strict);
-+	rcu_read_unlock();
-+
- 	if (!rt)
- 		return false;
+ 	if (dev_addr->bound_dev_if)
+-		ndev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
++		ndev = dev_get_by_index(dev_addr->net, dev_addr->bound_dev_if);
+ 	if (!ndev) {
+ 		err = -ENODEV;
+ 		goto out2;
+@@ -4238,7 +4238,7 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
+ 					struct net_device *ndev = NULL;
  
+ 					if (dev_addr->bound_dev_if)
+-						ndev = dev_get_by_index(&init_net,
++						ndev = dev_get_by_index(dev_addr->net,
+ 									dev_addr->bound_dev_if);
+ 					if (ndev) {
+ 						cma_igmp_send(ndev,
 -- 
 2.15.1
 
