@@ -1,159 +1,224 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
-Date: Tue, 9 Jan 2018 20:51:20 +0000
-Message-ID: <1515531079.2721.26.camel@wdc.com>
+Date: Tue, 09 Jan 2018 16:00:52 -0500
+Message-ID: <1515531652.26021.1.camel@redhat.com>
 References: <5a5016c0.4c0a620a.ed2b3.60da@mx.google.com>
          <fcc3f226-848d-abc4-2a81-f4fd821761c9@wdc.com>
          <1515528956.3919.3.camel@redhat.com> <1515529869.3919.4.camel@redhat.com>
+         <1515531079.2721.26.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1515529869.3919.4.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <8E7449EBCF313C498A5BA59F8640455D-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <1515531079.2721.26.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE4LTAxLTA5IGF0IDE1OjMxIC0wNTAwLCBMYXVyZW5jZSBPYmVybWFuIHdyb3Rl
-Og0KPiBPbiBUdWUsIDIwMTgtMDEtMDkgYXQgMTU6MTUgLTA1MDAsIExhdXJlbmNlIE9iZXJtYW4g
-d3JvdGU6DQo+ID4gWyAgMjIwLjg0MzM0NF0gLS0tLS0tLS0tLS0tWyBjdXQgaGVyZSBdLS0tLS0t
-LS0tLS0tDQo+ID4gWyAgMjIwLjg2OTMwOV0gbGlzdF9hZGQgY29ycnVwdGlvbi4gcHJldi0+bmV4
-dCBzaG91bGQgYmUgbmV4dA0KPiA+ICgwMDAwMDAwMDJhMDdkMjU1KSwgYnV0IHdhcyAgICAgICAg
-ICAgKG51bGwpLg0KPiA+IChwcmV2PTAwMDAwMDAwMGVkZjVlOGMpLg0KPiA+IFsgIDIyMC45MzUz
-OTJdIFdBUk5JTkc6IENQVTogMSBQSUQ6IDY5NCBhdCBsaWIvbGlzdF9kZWJ1Zy5jOjI4DQo+ID4g
-X19saXN0X2FkZF92YWxpZCsweDZhLzB4NzANCj4gPiBbICAyMjAuOTc5NDYyXSBNb2R1bGVzIGxp
-bmtlZCBpbjogeHRfQ0hFQ0tTVU0gaXB0YWJsZV9tYW5nbGUNCj4gPiBpcHRfTUFTUVVFUkFERSBu
-Zl9uYXRfbWFzcXVlcmFkZV9pcHY0IGlwdGFibGVfbmF0IG5mX25hdF9pcHY0IG5mX25hdA0KPiA+
-IG5mX2Nvbm50cmFja19pcHY0IG5mX2RlZnJhZ19pcHY0IHh0X2Nvbm50cmFjayBuZl9jb25udHJh
-Y2sgaXB0X1JFSkVDVA0KPiA+IG5mX3JlamVjdF9pcHY0IHR1biBicmlkZ2Ugc3RwIGxsYyBlYnRh
-YmxlX2ZpbHRlciBlYnRhYmxlcw0KPiA+IGlwNnRhYmxlX2ZpbHRlciBpcDZfdGFibGVzIGlwdGFi
-bGVfZmlsdGVyIHJwY3JkbWEgaWJfaXNlcnQNCj4gPiBpc2NzaV90YXJnZXRfbW9kIHRhcmdldF9j
-b3JlX21vZCBpYl9pc2VyIGxpYmlzY3NpDQo+ID4gc2NzaV90cmFuc3BvcnRfaXNjc2kNCj4gPiBp
-Yl9zcnAgc2NzaV90cmFuc3BvcnRfc3JwIGliX2lwb2liIHJkbWFfdWNtIGliX3VjbSBpYl91dmVy
-YnMgaWJfdW1hZA0KPiA+IHJkbWFfY20gaWJfY20gaXdfY20gbWx4NV9pYiBpYl9jb3JlIGludGVs
-X3Bvd2VyY2xhbXAgY29yZXRlbXANCj4gPiBrdm1faW50ZWwNCj4gPiBrdm0gaXJxYnlwYXNzIGNy
-Y3QxMGRpZl9wY2xtdWwgY3JjMzJfcGNsbXVsIGlwbWlfc3NpZg0KPiA+IGdoYXNoX2NsbXVsbmlf
-aW50ZWwgcGNiYyBhZXNuaV9pbnRlbCBqb3lkZXYgaXBtaV9zaSBjcnlwdG9fc2ltZA0KPiA+IGRt
-X3NlcnZpY2VfdGltZSBpVENPX3dkdCBocHdkdCBpVENPX3ZlbmRvcl9zdXBwb3J0IGdsdWVfaGVs
-cGVyIGNyeXB0ZA0KPiA+IGlwbWlfZGV2aW50ZiBzZyBncGlvX2ljaCBwY3Nwa3IgaHBpbG8gaXBt
-aV9tc2doYW5kbGVyIGxwY19pY2gNCj4gPiBhY3BpX3Bvd2VyX21ldGVyIGk3Y29yZV9lZGFjIHNo
-cGNocA0KPiA+IFsgIDIyMS4zODUyNzBdICBwY2NfY3B1ZnJlcSBuZnNkIGF1dGhfcnBjZ3NzIG5m
-c19hY2wgbG9ja2QgZ3JhY2UNCj4gPiBzdW5ycGMNCj4gPiBkbV9tdWx0aXBhdGggaXBfdGFibGVz
-IHhmcyBsaWJjcmMzMmMgcmFkZW9uIGkyY19hbGdvX2JpdA0KPiA+IGRybV9rbXNfaGVscGVyDQo+
-ID4gc3lzY29weWFyZWEgc3lzZmlsbHJlY3Qgc3lzaW1nYmx0IGZiX3N5c19mb3BzIHR0bSBtbHg1
-X2NvcmUgbWx4ZncNCj4gPiBzZF9tb2QgZHJtIHB0cCBocHNhIHBwc19jb3JlIGNyYzMyY19pbnRl
-bCBpMmNfY29yZSBzZXJpb19yYXcgYm54Mg0KPiA+IGRldmxpbmsgc2NzaV90cmFuc3BvcnRfc2Fz
-IGRtX21pcnJvciBkbV9yZWdpb25faGFzaCBkbV9sb2cgZG1fbW9kDQo+ID4gWyAgMjIxLjU1NDQ5
-Nl0gQ1BVOiAxIFBJRDogNjk0IENvbW06IGt3b3JrZXIvMToxSCBUYWludGVkOg0KPiA+IEcgICAg
-ICAgICAgSSAgICAgIDQuMTUuMC1yYzcrICMxDQo+ID4gWyAgMjIxLjYwNjkwN10gSGFyZHdhcmUg
-bmFtZTogSFAgUHJvTGlhbnQgREwzODAgRzcsIEJJT1MgUDY3DQo+ID4gMDgvMTYvMjAxNQ0KPiA+
-IFsgIDIyMS42NDI5ODBdIFdvcmtxdWV1ZTogaWItY29tcC13cSBpYl9jcV9wb2xsX3dvcmsgW2li
-X2NvcmVdDQo+ID4gWyAgMjIxLjY3NDYxNl0gUklQOiAwMDEwOl9fbGlzdF9hZGRfdmFsaWQrMHg2
-YS8weDcwDQo+ID4gWyAgMjIxLjcwMDU2MV0gUlNQOiAwMDE4OmZmZmZiMmJkYzc1YzdjZjAgRUZM
-QUdTOiAwMDAxMDA4Ng0KPiA+IFsgIDIyMS43MzA2MDhdIFJBWDogMDAwMDAwMDAwMDAwMDAwMCBS
-Qlg6IGZmZmY5NDM0MmQ2MTA4ODAgUkNYOg0KPiA+IGZmZmZmZmZmOGJhNjI5MjgNCj4gPiBbICAy
-MjEuNzcxNDkwXSBSRFg6IDAwMDAwMDAwMDAwMDAwMDEgUlNJOiAwMDAwMDAwMDAwMDAwMDgyIFJE
-SToNCj4gPiAwMDAwMDAwMDAwMDAwMDQ2DQo+ID4gWyAgMjIxLjgxMjcyMV0gUkJQOiBmZmZmOTQz
-NDJkNjEwOGI4IFIwODogMDAwMDAwMDAwMDAwMDAwMCBSMDk6DQo+ID4gMDAwMDAwMDAwMDAwMDcy
-Mg0KPiA+IFsgIDIyMS44NTMwNzNdIFIxMDogMDAwMDAwMDAwMDAwMDAwMCBSMTE6IGZmZmZiMmJk
-Yzc1YzdhNTggUjEyOg0KPiA+IDAwMDAwMDAwMDAwMDAyMDANCj4gPiBbICAyMjEuODk0MTU2XSBS
-MTM6IDAwMDAwMDAwMDAwMDAyNDYgUjE0OiBmZmZmOTQzZmI3ZmQ1MDAwIFIxNToNCj4gPiBmZmZm
-OTQzZmI3ZmQ1MDAwDQo+ID4gWyAgMjIxLjkzNTIzM10gRlM6ICAwMDAwMDAwMDAwMDAwMDAwKDAw
-MDApIEdTOmZmZmY5NDQwMzMyMDAwMDAoMDAwMCkNCj4gPiBrbmxHUzowMDAwMDAwMDAwMDAwMDAw
-DQo+ID4gWyAgMjIxLjk4MDUyMV0gQ1M6ICAwMDEwIERTOiAwMDAwIEVTOiAwMDAwIENSMDogMDAw
-MDAwMDA4MDA1MDAzMw0KPiA+IFsgIDIyMi4wMTMwNjJdIENSMjogMDAwMDdmMWJkYzBlZTkxMCBD
-UjM6IDAwMDAwMDE3ZTdlMGEwMDIgQ1I0Og0KPiA+IDAwMDAwMDAwMDAwMjA2ZTANCj4gPiBbICAy
-MjIuMDUyMzAyXSBDYWxsIFRyYWNlOg0KPiA+IFsgIDIyMi4wNjU5NzFdICBpYl9tYWRfcG9zdF9y
-ZWNlaXZlX21hZHMrMHgxNzcvMHgzMTAgW2liX2NvcmVdDQo+ID4gWyAgMjIyLjA5NzM0OV0gIGli
-X21hZF9yZWN2X2RvbmUrMHg0NzEvMHg5YzAgW2liX2NvcmVdDQo+ID4gWyAgMjIyLjEyNDM4N10g
-IF9faWJfcHJvY2Vzc19jcSsweDU1LzB4YTAgW2liX2NvcmVdDQo+ID4gWyAgMjIyLjE1MDgyN10g
-IGliX2NxX3BvbGxfd29yaysweDFiLzB4NjAgW2liX2NvcmVdDQo+ID4gWyAgMjIyLjE3Nzc1MV0g
-IHByb2Nlc3Nfb25lX3dvcmsrMHgxNDEvMHgzNDANCj4gPiBbICAyMjIuMjAwMzgzXSAgd29ya2Vy
-X3RocmVhZCsweDQ3LzB4M2UwDQo+ID4gWyAgMjIyLjIyMDY0MV0gIGt0aHJlYWQrMHhmNS8weDEz
-MA0KPiA+IFsgIDIyMi4yMzg5NTFdICA/IHJlc2N1ZXJfdGhyZWFkKzB4MzgwLzB4MzgwDQo+ID4g
-WyAgMjIyLjI2MjAzNF0gID8ga3RocmVhZF9hc3NvY2lhdGVfYmxrY2crMHg5MC8weDkwDQo+ID4g
-WyAgMjIyLjI4ODUxNF0gID8gZG9fZ3JvdXBfZXhpdCsweDM5LzB4YTANCj4gPiBbICAyMjIuMzA5
-NDkyXSAgcmV0X2Zyb21fZm9yaysweDFmLzB4MzANCj4gPiBbICAyMjIuMzMwMDczXSBDb2RlOiBm
-ZSAzMSBjMCA0OCBjNyBjNyA5OCAzNiA4OSA4YiBlOCAwMiA5YyBjZiBmZiAwZg0KPiA+IGZmDQo+
-ID4gMzEgYzAgYzMgNDggODkgZDEgNDggYzcgYzcgNDggMzYgODkgOGIgNDggODkgZjIgNDggODkg
-YzYgMzEgYzAgZTggZTYNCj4gPiA5Yg0KPiA+IGNmIGZmIDwwZj4gZmYgMzEgYzAgYzMgOTAgNDgg
-OGIgMDcgNDggYjkgMDAgMDEgMDAgMDAgMDAgMDAgYWQgZGUgNDgNCj4gPiA4YiANCj4gPiBbICAy
-MjIuNDM4MDU4XSAtLS1bIGVuZCB0cmFjZSA1ZDQxNTQ0YmYxN2FiNzNiIF0tLS0NCj4gPiBbICAy
-MjIuNDY1OTkzXSBCVUc6IHVuYWJsZSB0byBoYW5kbGUga2VybmVsIE5VTEwgcG9pbnRlciBkZXJl
-ZmVyZW5jZQ0KPiA+IGF0DQo+ID4gMDAwMDAwMDAwMDAwMDAyOA0KPiA+IFsgIDIyMi41MTAzMTZd
-IElQOiBpYl9tYWRfcG9zdF9yZWNlaXZlX21hZHMrMHgzYy8weDMxMCBbaWJfY29yZV0NCj4gPiBb
-ICAyMjIuNTQzMTg4XSBQR0QgMCBQNEQgMCANCj4gPiBbICAyMjIuNTU3NjI1XSBPb3BzOiAwMDAw
-IFsjMV0gU01QIFBUSQ0KPiA+IFsgIDIyMi41NzY2NzRdIE1vZHVsZXMgbGlua2VkIGluOiB4dF9D
-SEVDS1NVTSBpcHRhYmxlX21hbmdsZQ0KPiA+IGlwdF9NQVNRVUVSQURFIG5mX25hdF9tYXNxdWVy
-YWRlX2lwdjQgaXB0YWJsZV9uYXQgbmZfbmF0X2lwdjQgbmZfbmF0DQo+ID4gbmZfY29ubnRyYWNr
-X2lwdjQgbmZfZGVmcmFnX2lwdjQgeHRfY29ubnRyYWNrIG5mX2Nvbm50cmFjayBpcHRfUkVKRUNU
-DQo+ID4gbmZfcmVqZWN0X2lwdjQgdHVuIGJyaWRnZSBzdHAgbGxjIGVidGFibGVfZmlsdGVyIGVi
-dGFibGVzDQo+ID4gaXA2dGFibGVfZmlsdGVyIGlwNl90YWJsZXMgaXB0YWJsZV9maWx0ZXIgcnBj
-cmRtYSBpYl9pc2VydA0KPiA+IGlzY3NpX3RhcmdldF9tb2QgdGFyZ2V0X2NvcmVfbW9kIGliX2lz
-ZXIgbGliaXNjc2kNCj4gPiBzY3NpX3RyYW5zcG9ydF9pc2NzaQ0KPiA+IGliX3NycCBzY3NpX3Ry
-YW5zcG9ydF9zcnAgaWJfaXBvaWIgcmRtYV91Y20gaWJfdWNtIGliX3V2ZXJicyBpYl91bWFkDQo+
-ID4gcmRtYV9jbSBpYl9jbSBpd19jbSBtbHg1X2liIGliX2NvcmUgaW50ZWxfcG93ZXJjbGFtcCBj
-b3JldGVtcA0KPiA+IGt2bV9pbnRlbA0KPiA+IGt2bSBpcnFieXBhc3MgY3JjdDEwZGlmX3BjbG11
-bCBjcmMzMl9wY2xtdWwgaXBtaV9zc2lmDQo+ID4gZ2hhc2hfY2xtdWxuaV9pbnRlbCBwY2JjIGFl
-c25pX2ludGVsIGpveWRldiBpcG1pX3NpIGNyeXB0b19zaW1kDQo+ID4gZG1fc2VydmljZV90aW1l
-IGlUQ09fd2R0IGhwd2R0IGlUQ09fdmVuZG9yX3N1cHBvcnQgZ2x1ZV9oZWxwZXIgY3J5cHRkDQo+
-ID4gaXBtaV9kZXZpbnRmIHNnIGdwaW9faWNoIHBjc3BrciBocGlsbyBpcG1pX21zZ2hhbmRsZXIg
-bHBjX2ljaA0KPiA+IGFjcGlfcG93ZXJfbWV0ZXIgaTdjb3JlX2VkYWMgc2hwY2hwDQo+ID4gWyAg
-MjIyLjk4MTQ0M10gIHBjY19jcHVmcmVxIG5mc2QgYXV0aF9ycGNnc3MgbmZzX2FjbCBsb2NrZCBn
-cmFjZQ0KPiA+IHN1bnJwYw0KPiA+IGRtX211bHRpcGF0aCBpcF90YWJsZXMgeGZzIGxpYmNyYzMy
-YyByYWRlb24gaTJjX2FsZ29fYml0DQo+ID4gZHJtX2ttc19oZWxwZXINCj4gPiBzeXNjb3B5YXJl
-YSBzeXNmaWxscmVjdCBzeXNpbWdibHQgZmJfc3lzX2ZvcHMgdHRtIG1seDVfY29yZSBtbHhmdw0K
-PiA+IHNkX21vZCBkcm0gcHRwIGhwc2EgcHBzX2NvcmUgY3JjMzJjX2ludGVsIGkyY19jb3JlIHNl
-cmlvX3JhdyBibngyDQo+ID4gZGV2bGluayBzY3NpX3RyYW5zcG9ydF9zYXMgZG1fbWlycm9yIGRt
-X3JlZ2lvbl9oYXNoIGRtX2xvZyBkbV9tb2QNCj4gPiBbICAyMjMuMTUyMzU5XSBDUFU6IDEgUElE
-OiA2OTQgQ29tbToga3dvcmtlci8xOjFIIFRhaW50ZWQ6IEcgICAgICAgIFcNCj4gPiBJICAgICAg
-NC4xNS4wLXJjNysgIzENCj4gPiBbICAyMjMuMTk4NTc3XSBIYXJkd2FyZSBuYW1lOiBIUCBQcm9M
-aWFudCBETDM4MCBHNywgQklPUyBQNjcNCj4gPiAwOC8xNi8yMDE1DQo+ID4gWyAgMjIzLjIzNTEw
-MV0gV29ya3F1ZXVlOiBpYi1jb21wLXdxIGliX2NxX3BvbGxfd29yayBbaWJfY29yZV0NCj4gPiBb
-ICAyMjMuMjY2NzUwXSBSSVA6IDAwMTA6aWJfbWFkX3Bvc3RfcmVjZWl2ZV9tYWRzKzB4M2MvMHgz
-MTANCj4gPiBbaWJfY29yZV0NCj4gPiBbICAyMjMuMzAzMDEyXSBSU1A6IDAwMTg6ZmZmZmIyYmRj
-NzVjN2NmOCBFRkxBR1M6IDAwMDEwMjg2DQo+ID4gWyAgMjIzLjMzMzAyMl0gUkFYOiAwMDAwMDAw
-MDAwMDAwMDAwIFJCWDogZmZmZjk0MzQyZDYxMDkwOCBSQ1g6DQo+ID4gZmZmZjk0MzQyZDYxMDk0
-OA0KPiA+IFsgIDIyMy4zNzMzMDddIFJEWDogMDAwMDAwMDAwMDAwMDAwMSBSU0k6IGZmZmY5NDM0
-MmQ2MTA4YzAgUkRJOg0KPiA+IGZmZmY5NDM0MmQ2MTA5MDgNCj4gPiBbICAyMjMuNDE0NDUxXSBS
-QlA6IGZmZmY5NDM0MmQ2MTA5NDAgUjA4OiBmZmZmOTQzNDJhOGU2NGMwIFIwOToNCj4gPiBmZmZm
-OTQzNDJhOGU2NGU4DQo+ID4gWyAgMjIzLjQ1NDc4OV0gUjEwOiBmZmZmOTQzNDJhOGU2NGU4IFIx
-MTogZmZmZjk0MzQyZDYxMDlhOCBSMTI6DQo+ID4gZmZmZjk0NDAyOWMyZTA0OA0KPiA+IFsgIDIy
-My40OTY1NTRdIFIxMzogMDAwMDAwMDAwMDAwMDAwMCBSMTQ6IGZmZmY5NDM0MmE4ZTY0YzAgUjE1
-Og0KPiA+IGZmZmY5NDM0MmQ2MTA4YzANCj4gPiBbICAyMjMuNTM3NDg5XSBGUzogIDAwMDAwMDAw
-MDAwMDAwMDAoMDAwMCkgR1M6ZmZmZjk0NDAzMzIwMDAwMCgwMDAwKQ0KPiA+IGtubEdTOjAwMDAw
-MDAwMDAwMDAwMDANCj4gPiBbICAyMjMuNTgzNTM4XSBDUzogIDAwMTAgRFM6IDAwMDAgRVM6IDAw
-MDAgQ1IwOiAwMDAwMDAwMDgwMDUwMDMzDQo+ID4gWyAgMjIzLjYxNjU0NV0gQ1IyOiAwMDAwMDAw
-MDAwMDAwMDI4IENSMzogMDAwMDAwMTdlN2UwYTAwMiBDUjQ6DQo+ID4gMDAwMDAwMDAwMDAyMDZl
-MA0KPiA+IFsgIDIyMy42NTczMzddIENhbGwgVHJhY2U6DQo+ID4gWyAgMjIzLjY3MTAyMl0gID8g
-ZmluZF9tYWRfYWdlbnQrMHg3Ny8weDFiMCBbaWJfY29yZV0NCj4gPiBbICAyMjMuNjk4NTgxXSAg
-PyBfX2ttYWxsb2MrMHgxYmUvMHgxZjANCj4gPiBbICAyMjMuNzE5MDc0XSAgaWJfbWFkX3JlY3Zf
-ZG9uZSsweDQ3MS8weDljMCBbaWJfY29yZV0NCj4gPiBbICAyMjMuNzQ3MTkwXSAgX19pYl9wcm9j
-ZXNzX2NxKzB4NTUvMHhhMCBbaWJfY29yZV0NCj4gPiBbICAyMjMuNzc0MTQwXSAgaWJfY3FfcG9s
-bF93b3JrKzB4MWIvMHg2MCBbaWJfY29yZV0NCj4gPiBbICAyMjMuODAwNzE5XSAgcHJvY2Vzc19v
-bmVfd29yaysweDE0MS8weDM0MA0KPiA+IFsgIDIyMy44MjQxMjBdICB3b3JrZXJfdGhyZWFkKzB4
-NDcvMHgzZTANCj4gPiBbICAyMjMuODQ1MTMzXSAga3RocmVhZCsweGY1LzB4MTMwDQo+ID4gWyAg
-MjIzLjg2MzExNl0gID8gcmVzY3Vlcl90aHJlYWQrMHgzODAvMHgzODANCj4gPiBbICAyMjMuODg2
-MTczXSAgPyBrdGhyZWFkX2Fzc29jaWF0ZV9ibGtjZysweDkwLzB4OTANCj4gPiBbICAyMjMuOTEy
-MjA3XSAgPyBkb19ncm91cF9leGl0KzB4MzkvMHhhMA0KPiA+IFsgIDIyMy45MzMxOThdICByZXRf
-ZnJvbV9mb3JrKzB4MWYvMHgzMA0KPiA+IFsgIDIyMy45NTMyMThdIENvZGU6IDU1IDQxIDU0IDU1
-IDQ4IDhkIDZmIDM4IDUzIDQ4IDg5IGZiIDQ4IDgzIGVjIDUwDQo+ID4gNjUNCj4gPiA0OCA4YiAw
-NCAyNSAyOCAwMCAwMCAwMCA0OCA4OSA0NCAyNCA0OCAzMSBjMCA0OCA4YiAwNyA0OCA4NSBmNiA0
-OCA4OQ0KPiA+IDRjDQo+ID4gMjQgMDggPDQ4PiA4YiA1MCAyOCA4YiAxMiA0OCBjNyA0NCAyNCAy
-OCAwMCAwMCAwMCAwMCBjNyA0NCAyNCA0MCAwMQ0KPiA+IDAwIA0KPiA+IFsgIDIyNC4wNTk5ODVd
-IFJJUDogaWJfbWFkX3Bvc3RfcmVjZWl2ZV9tYWRzKzB4M2MvMHgzMTAgW2liX2NvcmVdDQo+ID4g
-UlNQOg0KPiA+IGZmZmZiMmJkYzc1YzdjZjgNCj4gPiBbICAyMjQuMTAzOTk0XSBDUjI6IDAwMDAw
-MDAwMDAwMDAwMjgNCj4gDQo+IEp1c3Qgd2FudGVkIHRvIGFkZCB0aGF0IHRoZSBwYW5pYyBpcyBj
-b25zaXN0ZW50LCByZWJvb3RlZCBpbnRvIG9ubHkgYQ0KPiBzaW5nbGUgcGF0aCB0byBteSBTUlAg
-TFVOUyBhbmQgb24gcmVib290IGhhZCB0aGUgc2FtZSBwYW5pYy4NCg0KSGVsbG8gTGF1cmVuY2Us
-DQoNCkNhbiB5b3UgcmVwZWF0IHlvdXIgdGVzdCB3aXRoIHRoZSBmb2xsb3dpbmcgdHdvIGtlcm5l
-bHM6DQoqIHY0LjE1LXJjNyAoTGludXMnIGxhdGVzdCkuDQoqIFRoZSBmb3ItbmV4dCBicmFuY2gg
-b2YgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L3JkbWEvcmRt
-YS5naXQuDQoNCkknbSBhc2tpbmcgdGhpcyBiZWNhdXNlIHRoZSBjcmFzaCBvY2N1cnJlZCBpbiBh
-IGNvZGUgcGF0aCB0aGF0IGlzIG5vdCBtb2RpZmllZCBieQ0KYW55IG9mIG15IHBhdGNoZXMuDQoN
-ClRoYW5rcywNCg0KQmFydC4=
+On Tue, 2018-01-09 at 20:51 +0000, Bart Van Assche wrote:
+> On Tue, 2018-01-09 at 15:31 -0500, Laurence Oberman wrote:
+> > On Tue, 2018-01-09 at 15:15 -0500, Laurence Oberman wrote:
+> > > [  220.843344] ------------[ cut here ]------------
+> > > [  220.869309] list_add corruption. prev->next should be next
+> > > (000000002a07d255), but was           (null).
+> > > (prev=000000000edf5e8c).
+> > > [  220.935392] WARNING: CPU: 1 PID: 694 at lib/list_debug.c:28
+> > > __list_add_valid+0x6a/0x70
+> > > [  220.979462] Modules linked in: xt_CHECKSUM iptable_mangle
+> > > ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4
+> > > nf_nat
+> > > nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack
+> > > ipt_REJECT
+> > > nf_reject_ipv4 tun bridge stp llc ebtable_filter ebtables
+> > > ip6table_filter ip6_tables iptable_filter rpcrdma ib_isert
+> > > iscsi_target_mod target_core_mod ib_iser libiscsi
+> > > scsi_transport_iscsi
+> > > ib_srp scsi_transport_srp ib_ipoib rdma_ucm ib_ucm ib_uverbs
+> > > ib_umad
+> > > rdma_cm ib_cm iw_cm mlx5_ib ib_core intel_powerclamp coretemp
+> > > kvm_intel
+> > > kvm irqbypass crct10dif_pclmul crc32_pclmul ipmi_ssif
+> > > ghash_clmulni_intel pcbc aesni_intel joydev ipmi_si crypto_simd
+> > > dm_service_time iTCO_wdt hpwdt iTCO_vendor_support glue_helper
+> > > cryptd
+> > > ipmi_devintf sg gpio_ich pcspkr hpilo ipmi_msghandler lpc_ich
+> > > acpi_power_meter i7core_edac shpchp
+> > > [  221.385270]  pcc_cpufreq nfsd auth_rpcgss nfs_acl lockd grace
+> > > sunrpc
+> > > dm_multipath ip_tables xfs libcrc32c radeon i2c_algo_bit
+> > > drm_kms_helper
+> > > syscopyarea sysfillrect sysimgblt fb_sys_fops ttm mlx5_core mlxfw
+> > > sd_mod drm ptp hpsa pps_core crc32c_intel i2c_core serio_raw bnx2
+> > > devlink scsi_transport_sas dm_mirror dm_region_hash dm_log dm_mod
+> > > [  221.554496] CPU: 1 PID: 694 Comm: kworker/1:1H Tainted:
+> > > G          I      4.15.0-rc7+ #1
+> > > [  221.606907] Hardware name: HP ProLiant DL380 G7, BIOS P67
+> > > 08/16/2015
+> > > [  221.642980] Workqueue: ib-comp-wq ib_cq_poll_work [ib_core]
+> > > [  221.674616] RIP: 0010:__list_add_valid+0x6a/0x70
+> > > [  221.700561] RSP: 0018:ffffb2bdc75c7cf0 EFLAGS: 00010086
+> > > [  221.730608] RAX: 0000000000000000 RBX: ffff94342d610880 RCX:
+> > > ffffffff8ba62928
+> > > [  221.771490] RDX: 0000000000000001 RSI: 0000000000000082 RDI:
+> > > 0000000000000046
+> > > [  221.812721] RBP: ffff94342d6108b8 R08: 0000000000000000 R09:
+> > > 0000000000000722
+> > > [  221.853073] R10: 0000000000000000 R11: ffffb2bdc75c7a58 R12:
+> > > 0000000000000200
+> > > [  221.894156] R13: 0000000000000246 R14: ffff943fb7fd5000 R15:
+> > > ffff943fb7fd5000
+> > > [  221.935233] FS:  0000000000000000(0000)
+> > > GS:ffff944033200000(0000)
+> > > knlGS:0000000000000000
+> > > [  221.980521] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> > > [  222.013062] CR2: 00007f1bdc0ee910 CR3: 00000017e7e0a002 CR4:
+> > > 00000000000206e0
+> > > [  222.052302] Call Trace:
+> > > [  222.065971]  ib_mad_post_receive_mads+0x177/0x310 [ib_core]
+> > > [  222.097349]  ib_mad_recv_done+0x471/0x9c0 [ib_core]
+> > > [  222.124387]  __ib_process_cq+0x55/0xa0 [ib_core]
+> > > [  222.150827]  ib_cq_poll_work+0x1b/0x60 [ib_core]
+> > > [  222.177751]  process_one_work+0x141/0x340
+> > > [  222.200383]  worker_thread+0x47/0x3e0
+> > > [  222.220641]  kthread+0xf5/0x130
+> > > [  222.238951]  ? rescuer_thread+0x380/0x380
+> > > [  222.262034]  ? kthread_associate_blkcg+0x90/0x90
+> > > [  222.288514]  ? do_group_exit+0x39/0xa0
+> > > [  222.309492]  ret_from_fork+0x1f/0x30
+> > > [  222.330073] Code: fe 31 c0 48 c7 c7 98 36 89 8b e8 02 9c cf ff
+> > > 0f
+> > > ff
+> > > 31 c0 c3 48 89 d1 48 c7 c7 48 36 89 8b 48 89 f2 48 89 c6 31 c0 e8
+> > > e6
+> > > 9b
+> > > cf ff <0f> ff 31 c0 c3 90 48 8b 07 48 b9 00 01 00 00 00 00 ad de
+> > > 48
+> > > 8b 
+> > > [  222.438058] ---[ end trace 5d41544bf17ab73b ]---
+> > > [  222.465993] BUG: unable to handle kernel NULL pointer
+> > > dereference
+> > > at
+> > > 0000000000000028
+> > > [  222.510316] IP: ib_mad_post_receive_mads+0x3c/0x310 [ib_core]
+> > > [  222.543188] PGD 0 P4D 0 
+> > > [  222.557625] Oops: 0000 [#1] SMP PTI
+> > > [  222.576674] Modules linked in: xt_CHECKSUM iptable_mangle
+> > > ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4
+> > > nf_nat
+> > > nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack
+> > > ipt_REJECT
+> > > nf_reject_ipv4 tun bridge stp llc ebtable_filter ebtables
+> > > ip6table_filter ip6_tables iptable_filter rpcrdma ib_isert
+> > > iscsi_target_mod target_core_mod ib_iser libiscsi
+> > > scsi_transport_iscsi
+> > > ib_srp scsi_transport_srp ib_ipoib rdma_ucm ib_ucm ib_uverbs
+> > > ib_umad
+> > > rdma_cm ib_cm iw_cm mlx5_ib ib_core intel_powerclamp coretemp
+> > > kvm_intel
+> > > kvm irqbypass crct10dif_pclmul crc32_pclmul ipmi_ssif
+> > > ghash_clmulni_intel pcbc aesni_intel joydev ipmi_si crypto_simd
+> > > dm_service_time iTCO_wdt hpwdt iTCO_vendor_support glue_helper
+> > > cryptd
+> > > ipmi_devintf sg gpio_ich pcspkr hpilo ipmi_msghandler lpc_ich
+> > > acpi_power_meter i7core_edac shpchp
+> > > [  222.981443]  pcc_cpufreq nfsd auth_rpcgss nfs_acl lockd grace
+> > > sunrpc
+> > > dm_multipath ip_tables xfs libcrc32c radeon i2c_algo_bit
+> > > drm_kms_helper
+> > > syscopyarea sysfillrect sysimgblt fb_sys_fops ttm mlx5_core mlxfw
+> > > sd_mod drm ptp hpsa pps_core crc32c_intel i2c_core serio_raw bnx2
+> > > devlink scsi_transport_sas dm_mirror dm_region_hash dm_log dm_mod
+> > > [  223.152359] CPU: 1 PID: 694 Comm: kworker/1:1H Tainted:
+> > > G        W
+> > > I      4.15.0-rc7+ #1
+> > > [  223.198577] Hardware name: HP ProLiant DL380 G7, BIOS P67
+> > > 08/16/2015
+> > > [  223.235101] Workqueue: ib-comp-wq ib_cq_poll_work [ib_core]
+> > > [  223.266750] RIP: 0010:ib_mad_post_receive_mads+0x3c/0x310
+> > > [ib_core]
+> > > [  223.303012] RSP: 0018:ffffb2bdc75c7cf8 EFLAGS: 00010286
+> > > [  223.333022] RAX: 0000000000000000 RBX: ffff94342d610908 RCX:
+> > > ffff94342d610948
+> > > [  223.373307] RDX: 0000000000000001 RSI: ffff94342d6108c0 RDI:
+> > > ffff94342d610908
+> > > [  223.414451] RBP: ffff94342d610940 R08: ffff94342a8e64c0 R09:
+> > > ffff94342a8e64e8
+> > > [  223.454789] R10: ffff94342a8e64e8 R11: ffff94342d6109a8 R12:
+> > > ffff944029c2e048
+> > > [  223.496554] R13: 0000000000000000 R14: ffff94342a8e64c0 R15:
+> > > ffff94342d6108c0
+> > > [  223.537489] FS:  0000000000000000(0000)
+> > > GS:ffff944033200000(0000)
+> > > knlGS:0000000000000000
+> > > [  223.583538] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> > > [  223.616545] CR2: 0000000000000028 CR3: 00000017e7e0a002 CR4:
+> > > 00000000000206e0
+> > > [  223.657337] Call Trace:
+> > > [  223.671022]  ? find_mad_agent+0x77/0x1b0 [ib_core]
+> > > [  223.698581]  ? __kmalloc+0x1be/0x1f0
+> > > [  223.719074]  ib_mad_recv_done+0x471/0x9c0 [ib_core]
+> > > [  223.747190]  __ib_process_cq+0x55/0xa0 [ib_core]
+> > > [  223.774140]  ib_cq_poll_work+0x1b/0x60 [ib_core]
+> > > [  223.800719]  process_one_work+0x141/0x340
+> > > [  223.824120]  worker_thread+0x47/0x3e0
+> > > [  223.845133]  kthread+0xf5/0x130
+> > > [  223.863116]  ? rescuer_thread+0x380/0x380
+> > > [  223.886173]  ? kthread_associate_blkcg+0x90/0x90
+> > > [  223.912207]  ? do_group_exit+0x39/0xa0
+> > > [  223.933198]  ret_from_fork+0x1f/0x30
+> > > [  223.953218] Code: 55 41 54 55 48 8d 6f 38 53 48 89 fb 48 83 ec
+> > > 50
+> > > 65
+> > > 48 8b 04 25 28 00 00 00 48 89 44 24 48 31 c0 48 8b 07 48 85 f6 48
+> > > 89
+> > > 4c
+> > > 24 08 <48> 8b 50 28 8b 12 48 c7 44 24 28 00 00 00 00 c7 44 24 40
+> > > 01
+> > > 00 
+> > > [  224.059985] RIP: ib_mad_post_receive_mads+0x3c/0x310 [ib_core]
+> > > RSP:
+> > > ffffb2bdc75c7cf8
+> > > [  224.103994] CR2: 0000000000000028
+> > 
+> > Just wanted to add that the panic is consistent, rebooted into only
+> > a
+> > single path to my SRP LUNS and on reboot had the same panic.
+> 
+> Hello Laurence,
+> kernsl
+> Can you repeat your test with the following two kernels:
+> * v4.15-rc7 (Linus' latest).
+> * The for-next branch of
+> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git.
+> 
+> I'm asking this because the crash occurred in a code path that is not
+> modified by
+> any of my patches.
+> 
+> Thanks,
+> 
+> Bart.NrybXǧv^)޺{.n+{ٚ{ay
+ʇڙ,jfhz
+w
+j:+vwjmzZ+ݢj"!
+
+Bart, Yep, I saw it was not in code you touched specific to your
+patches.
+
+Doing that now, although I had already tested 4.15.0-rc4 from Mike
+Snitzers tree that only had NVME changes in it and did not see it.
+So maybe it crept in in the kernels you mentioned.
+
+Its clearly in the ib_mad_xxxx code.
+
+I will baseline again on the ones you asked me to test with
+v4.15-rc7 (Linus' latest).
+The for-next branch of
+> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
+
+Back later
+Regards
+Laurence
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
