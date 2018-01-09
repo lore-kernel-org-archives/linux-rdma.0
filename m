@@ -1,78 +1,71 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 3/3] RDMA: Use rdma_cm API to query GID
-Date: Tue,  9 Jan 2018 13:10:58 +0200
-Message-ID: <20180109111058.29534-4-leon@kernel.org>
-References: <20180109111058.29534-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-core v2] debian: Add udev dependency to rdma-core
+ and srptools
+Date: Tue, 9 Jan 2018 13:20:45 +0200
+Message-ID: <20180109112045.GE6823@mtr-leonro.local>
+References: <20171228210124.GI25436@ziepe.ca>
+ <20180103102211.28307-1-benjamin.drung@profitbricks.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="84ND8YJRMFlzkrP4"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180109111058.29534-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180103102211.28307-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Make use of rdma_read_gids() function to read SGID and DGID which
-returns correct GIDs for all transports.
+--84ND8YJRMFlzkrP4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Cc: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/core/ucma.c | 8 ++++----
- net/rds/ib.c                   | 6 ++----
- 2 files changed, 6 insertions(+), 8 deletions(-)
+On Wed, Jan 03, 2018 at 11:22:11AM +0100, Benjamin Drung wrote:
+> When udevadm is not available (e.g. in a minimal chroot environment),
+> the rdma-core package installation will print these warnings:
+>
+> /var/lib/dpkg/info/rdma-core.postinst: 33:
+> /var/lib/dpkg/info/rdma-core.postinst: udevadm: not found
+> /var/lib/dpkg/info/rdma-core.postinst: 34:
+> /var/lib/dpkg/info/rdma-core.postinst: udevadm: not found
+> /var/lib/dpkg/info/rdma-core.postinst: 35:
+> /var/lib/dpkg/info/rdma-core.postinst: udevadm: not found
+>
+> Add udev dependency to rdma-core and srptools (which provides udevadm),
+> because these packages rely on udev to load the kernel modules.
+>
+> Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> ---
+>  debian/control            | 2 ++
+>  debian/rdma-core.postinst | 6 +++---
+>  debian/srptools.postinst  | 2 +-
+>  3 files changed, 6 insertions(+), 4 deletions(-)
+>
 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 29a81e6cfc96..8699b3a1d464 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -944,8 +944,8 @@ static ssize_t ucma_query_gid(struct ucma_context *ctx,
- 	} else {
- 		addr->sib_family = AF_IB;
- 		addr->sib_pkey = (__force __be16) resp.pkey;
--		rdma_addr_get_sgid(&ctx->cm_id->route.addr.dev_addr,
--				   (union ib_gid *) &addr->sib_addr);
-+		rdma_read_gids(ctx->cm_id, (union ib_gid *)&addr->sib_addr,
-+			       NULL);
- 		addr->sib_sid = rdma_get_service_id(ctx->cm_id, (struct sockaddr *)
- 						    &ctx->cm_id->route.addr.src_addr);
- 	}
-@@ -957,8 +957,8 @@ static ssize_t ucma_query_gid(struct ucma_context *ctx,
- 	} else {
- 		addr->sib_family = AF_IB;
- 		addr->sib_pkey = (__force __be16) resp.pkey;
--		rdma_addr_get_dgid(&ctx->cm_id->route.addr.dev_addr,
--				   (union ib_gid *) &addr->sib_addr);
-+		rdma_read_gids(ctx->cm_id, NULL,
-+			       (union ib_gid *)&addr->sib_addr);
- 		addr->sib_sid = rdma_get_service_id(ctx->cm_id, (struct sockaddr *)
- 						    &ctx->cm_id->route.addr.dst_addr);
- 	}
-diff --git a/net/rds/ib.c b/net/rds/ib.c
-index 36dd2099048a..b2a5067b4afe 100644
---- a/net/rds/ib.c
-+++ b/net/rds/ib.c
-@@ -301,13 +301,11 @@ static int rds_ib_conn_info_visitor(struct rds_connection *conn,
- 	memset(&iinfo->dst_gid, 0, sizeof(iinfo->dst_gid));
- 	if (rds_conn_state(conn) == RDS_CONN_UP) {
- 		struct rds_ib_device *rds_ibdev;
--		struct rdma_dev_addr *dev_addr;
- 
- 		ic = conn->c_transport_data;
--		dev_addr = &ic->i_cm_id->route.addr.dev_addr;
- 
--		rdma_addr_get_sgid(dev_addr, (union ib_gid *) &iinfo->src_gid);
--		rdma_addr_get_dgid(dev_addr, (union ib_gid *) &iinfo->dst_gid);
-+		rdma_read_gids(ic->i_cm_id, (union ib_gid *)&iinfo->src_gid,
-+			       (union ib_gid *)&iinfo->dst_gid);
- 
- 		rds_ibdev = ic->rds_ibdev;
- 		iinfo->max_send_wr = ic->i_send_ring.w_nr;
--- 
-2.15.1
+Thanks, applied.
 
+--84ND8YJRMFlzkrP4
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpUpY0ACgkQ5GN7iDZy
+WKcCyg//faZs9LKsTCOfShf3nUTrOVkXhxD8/FIyuNQwi/YIvysq8YcoV0yZ6jyG
+WihKQOJ6f8g/GiERGbwVAVBBLdu8co/LCcoTAlZopk4eyctmUru8EJECoi4j1iq6
+BYAcKO4DEeQyy9jc1Qch+DhzkZkgzn4eRr+K8qWypIgXRgUgwBrmfCyZOynSI4je
+RscZ8XXROwAUqZsDjPnGEdrcr8iFODDUOjOC/0G74MPS0fb6v2nYz/bQDhCFnnlB
+uo0hUDEHFyhdfPwUfN3sdGE3VffK+FQY34BN5mgxJYhXPpJkLIOjSKWyBEqqoo/+
+KJiSrvuLXgmlw4JRiY2lhEq5TcDUPJppcrm3ZDRCFjIqADjJbrqQw02h+att1o4l
+OZyaSiObLtzdkLJA1XNjutXDiAFVEwIdL5JPVxYEZqcD3afvGePHRADZQRTuOMJD
+viqe2G8OoOis7JM8Z14j8U5lUoMYi476Ca6UzU0xZ3QezIJI2KLb9CET7DC4bhNA
+pTMkqS218oqX0OGL8xK3+bQ4gYvbNawVFHpbZECWlcOkEGQqqkeDzjOhMLrLXgtB
+hxxWEFfEOkz0MeM/HWucv3o8w6sSjggPyYg6x+ZBILDtdq25G4ry9yhJKn/aJidS
+62t1R6tp4GHlKV/9x6V8XmA24sc8sFY3jeh6veduDxy1vdH7yTs=
+=nSXU
+-----END PGP SIGNATURE-----
+
+--84ND8YJRMFlzkrP4--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
