@@ -1,35 +1,39 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH v2 03/13] Attach/detach SoftiWarp to/from network and
- RDMA subsystem
-Date: Tue, 9 Jan 2018 10:08:44 -0700
-Message-ID: <20180109170844.GA4518@ziepe.ca>
-References: <20171006122853.16310-1-bmt@zurich.ibm.com>
- <20171006122853.16310-4-bmt@zurich.ibm.com>
- <OF406E95F8.33CF80BB-ON002581B9.00073D6F-002581B9.00081F69@notes.na.collabserv.com>
- <OF663C0801.8471532E-ON002581FE.003B73D6-002581FE.003F2369@notes.na.collabserv.com>
- <20180102213706.GB19027@ziepe.ca>
- <20180103052529.GI10145@mtr-leonro.local>
- <20180103155225.GA11348@ziepe.ca>
- <20180103173105.GX10145@mtr-leonro.local>
- <OF156C6886.C5A736C2-ON0025820B.005235C2-0025820B.0052EF8F@notes.na.collabserv.com>
- <OF38355950.8A86F33F-ON00258210.005B3539-00258210.005D4AA4@notes.na.collabserv.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH 06/12] IB/core: Add optional PCI P2P flag to
+ rdma_rw_ctx_[init|destroy]()
+Date: Tue, 9 Jan 2018 10:10:08 -0700
+Message-ID: <20180109171008.GB4518@ziepe.ca>
+References: <20180104221337.GV11348@ziepe.ca>
+ <3e8391a9-8924-be6d-8c43-162a360d75b6@deltatee.com>
+ <20180105045031.GX11348@ziepe.ca>
+ <20180108145901.GA10743@lst.de>
+ <20180108180917.GF11348@ziepe.ca>
+ <20180108183434.GA15549@lst.de>
+ <cffacbee-477a-fbe9-19cc-373cd2ec6fef@deltatee.com>
+ <20180108185743.GA15936@lst.de>
+ <20180108194950.GK11348@ziepe.ca>
+ <20180109164640.GA12159@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <OF38355950.8A86F33F-ON00258210.005B3539-00258210.005D4AA4-8eTO7WVQ4XIsd+ienQ86orlN3bxYEBpz@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20180109164640.GA12159@lst.de>
+Sender: linux-pci-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Logan Gunthorpe <logang@deltatee.com>, open list <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma <linux-rdma@vger.kernel.org>, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Can't parse that above - are you suggesting only explicitly enabling softiwarp
-> on a per interface basis?
+On Tue, Jan 09, 2018 at 05:46:40PM +0100, Christoph Hellwig wrote:
+> On Mon, Jan 08, 2018 at 12:49:50PM -0700, Jason Gunthorpe wrote:
+> > Pretty sure P2P capable IOMMU hardware exists.
+> > 
+> > With SOC's we also have the scenario that an DMA originated from an
+> > on-die device wishes to target an off-die PCI BAR (through the IOMMU),
+> > that definitely exists today, and people care about it :)
+> 
+> Then people will have to help and contribute support for it.
 
-Right.
+Sure. But my point was all this will have to migrate under the dma_ops
+for that to work, so why the resistance to using dma_ops right away?
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
