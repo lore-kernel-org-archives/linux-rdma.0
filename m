@@ -1,43 +1,24 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH][next] IB/mlx5: remove redundant assignment of mdev
-Date: Tue,  9 Jan 2018 15:55:43 +0000
-Message-ID: <20180109155543.15027-1-colin.king@canonical.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 06/12] IB/core: Add optional PCI P2P flag to
+        rdma_rw_ctx_[init|destroy]()
+Date: Tue, 9 Jan 2018 17:46:40 +0100
+Message-ID: <20180109164640.GA12159@lst.de>
+References: <1f8fb3fb-e3dc-94d3-e837-0cd942cf5b87@deltatee.com> <20180104221337.GV11348@ziepe.ca> <3e8391a9-8924-be6d-8c43-162a360d75b6@deltatee.com> <20180105045031.GX11348@ziepe.ca> <20180108145901.GA10743@lst.de> <20180108180917.GF11348@ziepe.ca> <20180108183434.GA15549@lst.de> <cffacbee-477a-fbe9-19cc-373cd2ec6fef@deltatee.com> <20180108185743.GA15936@lst.de> <20180108194950.GK11348@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-block-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180108194950.GK11348@ziepe.ca>
+Sender: linux-block-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Christoph Hellwig <hch@lst.de>, Logan Gunthorpe <logang@deltatee.com>, open list <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma <linux-rdma@vger.kernel.org>, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+On Mon, Jan 08, 2018 at 12:49:50PM -0700, Jason Gunthorpe wrote:
+> Pretty sure P2P capable IOMMU hardware exists.
+> 
+> With SOC's we also have the scenario that an DMA originated from an
+> on-die device wishes to target an off-die PCI BAR (through the IOMMU),
+> that definitely exists today, and people care about it :)
 
-The initial assignment to mdev is redundant as mdev is re-assigned
-later and the first assigned value is never read. Remove this
-redundant assignment.
-
-Cleans up clang warning:
-drivers/infiniband/hw/mlx5/main.c:359:24: warning: Value stored
-to 'mdev' during its initialization is never read
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/infiniband/hw/mlx5/main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 5d6fba986fa5..91e6b42798e5 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -356,7 +356,7 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
- 				struct ib_port_attr *props)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(device);
--	struct mlx5_core_dev *mdev = dev->mdev;
-+	struct mlx5_core_dev *mdev;
- 	struct net_device *ndev, *upper;
- 	enum ib_mtu ndev_ib_mtu;
- 	bool put_mdev = true;
--- 
-2.15.1
+Then people will have to help and contribute support for it.
