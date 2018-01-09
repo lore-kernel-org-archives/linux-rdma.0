@@ -1,40 +1,56 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 2/6] RDMA/hns: Add gsi qp support for modifying
- qp in hip08
-Date: Tue, 9 Jan 2018 09:04:11 +0800
-Message-ID: <66c69e6b-8f74-be2e-1404-3e0c8c4a4024@huawei.com>
-References: <1515039563-73084-1-git-send-email-oulijun@huawei.com>
- <1515039563-73084-3-git-send-email-oulijun@huawei.com>
- <1515446459.3403.94.camel@redhat.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-next v2 0/6] Add DC transport support to mlx5
+Date: Mon, 8 Jan 2018 19:49:52 -0700
+Message-ID: <20180109024952.GA6305@ziepe.ca>
+References: <20180102141933.24353-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1515446459.3403.94.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180102141933.24353-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, jgg-uk2M96/98Pc@public.gmane.org
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-在 2018/1/9 5:20, Doug Ledford 写道:
-> On Thu, 2018-01-04 at 12:19 +0800, Lijun Ou wrote:
->> @@ -2342,7 +2366,7 @@ static void modify_qp_init_to_init(struct ib_qp *ibqp,
->>                        V2_QPC_BYTE_80_RX_CQN_S, 0);
->>  
->>         roce_set_field(context->byte_252_err_txcqn, V2_QPC_BYTE_252_TX_CQN_M,
->> -                      V2_QPC_BYTE_252_TX_CQN_S, to_hr_cq(ibqp->recv_cq)->cqn);
->> +                      V2_QPC_BYTE_252_TX_CQN_S, to_hr_cq(ibqp->send_cq)->cqn);
+On Tue, Jan 02, 2018 at 04:19:27PM +0200, Leon Romanovsky wrote:
+> Changelog:
+>  v1 -> v2:
+>   * Renamed functions to better describe functionality.
+>   * Improve set_mlx5_qp function implementation.
+>  v0 -> v1:
+>   * Updated "net/mlx5: Add DCT command interface" patch to
+>     declare variables in reversed Christmas tree order.
 > 
-> This looks like a bugfix unrelated to the rest of the patch.
+> >From Moni,
 > 
-Sure, This is found for debugging CM and The other modification of qp context in
-this patch is unified for CM. As a result, I put it into the patch-set of CM.
+> Following the discussion [1] on the mailing list regarding
+> "Custom/proprietary QP type support", the following patchset
+> implements the direct connected QP types functionality over posted RFC.
+> 
+> The dynamically connected (DC) transport service provides a datagram-like
+> model that allows a DC QP to target multiple remote processes in multiple
+> remote nodes.
+> 
+> As far as reachability is concerned, the DC model is somewhat similar to
+> the unreliable datagram (UD) model in the sense that each WR submitted to
+> the DC SQ carries the information that identifies the remote destination.
+> 
+> The new QP type - IB_QPT_DRIVER is introduced to represent all type of QPs
+> that are driver specific, like the proposed DC QP. Such minimal change
+> to the IB/core allows reuse of existing verbs functions to control those
+> new QPs with already existing functions.
+> 
+> [1] https://www.spinics.net/lists/linux-rdma/msg57598.html
+> 
+> The patches are available in the git repository at:
+>   git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+>   tags/rdma-next-2018-01-02-1
 
-Do I need to send PATCHv2?
+Applied to for-next
 
-thanks
-Lijun Ou
-
+Thanks,
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
