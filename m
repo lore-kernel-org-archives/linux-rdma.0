@@ -1,72 +1,58 @@
-From: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2] IB/hfi1: Prevent a NULL dereference
-Date: Tue, 9 Jan 2018 20:39:17 +0000
-Message-ID: <14063C7AD467DE4B82DEDB5C278E8663A9F7FC30@fmsmsx107.amr.corp.intel.com>
-References: <14063C7AD467DE4B82DEDB5C278E8663A9F7F391@fmsmsx107.amr.corp.intel.com>
- <20180109200346.rlsrxa24xmltpz2r@mwanda>
+From: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH 1/8] infiniband: fix ulp/opa_vnic/opa_vnic_encap.h
+ kernel-doc for Sphinx
+Date: Tue, 9 Jan 2018 12:40:03 -0800
+Message-ID: <6f9b6b70-39ae-ce8d-c628-1613d170230b@infradead.org>
+References: <5a50168d.4a9b620a.2c596.4dfd@mx.google.com>
+ <c7e46f04-ac60-448f-3e5d-e23fe7221c9a@wdc.com>
+ <719e4232-3802-b2ab-99d5-2c4ba45bfd40@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180109200346.rlsrxa24xmltpz2r@mwanda>
+In-Reply-To: <719e4232-3802-b2ab-99d5-2c4ba45bfd40-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Randy Dunlap <rd.dunlab-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Dan Carpenter
-> Sent: Tuesday, January 9, 2018 3:04 PM
-> To: Marciniszyn, Mike <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Dalessandro, Dennis <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; Doug Ledford
-> <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>; Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: [PATCH v2] IB/hfi1: Prevent a NULL dereference
+On 01/09/18 05:46, Dennis Dalessandro wrote:
+> On 1/5/2018 7:38 PM, Bart Van Assche wrote:
+>> On 01/05/18 16:21, Randy Dunlap wrote:
+>>> Use '\' escape characters in kernel-doc notation to eliminate a warning
+>>> from Sphinx.
+>>>
+>>> ../drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h:243: WARNING: Inline strong start-string without end-string.
+>>>
+>>> Signed-off-by: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+>>> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>>> Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> ---
+>>>   drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h |    2 +-
+>>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> --- linux-next-20171222.orig/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
+>>> +++ linux-next-20171222/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
+>>> @@ -239,7 +239,7 @@ struct opa_veswport_mactable_entry {
+>>>    * @offset: mac table starting offset
+>>>    * @num_entries: Number of entries to get or set
+>>>    * @mac_tbl_digest: mac table digest
+>>> - * @tbl_entries[]: Array of table entries
+>>> + * @tbl_entries\[\]: Array of table entries
+>>>    *
+>>>    * The EM sends down this structure in a MAD indicating
+>>>    * the starting offset in the forwarding table that this
+>>
+>> Wouldn't it be better to fix the toolchain such that it escapes Sphinx metacharacters in kernel-doc headers instead of modifying the source code with patches like the above one?
 > 
-> In the original code, we set "fd->uctxt" to NULL and then dereference it
-> which will cause an Oops.
-> 
-> Fixes: f2a3bc00a03c ("IB/hfi1: Protect context array set/clear with spinlock")
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
-> v2: In v1, I accidentally moved the __clear_bit() out from under the
->     spin_lock().  Thanks for the review, Michael!
-> 
-> diff --git a/drivers/infiniband/hw/hfi1/file_ops.c
-> b/drivers/infiniband/hw/hfi1/file_ops.c
-> index 82086241aac3..bd6f03cc5ee0 100644
-> --- a/drivers/infiniband/hw/hfi1/file_ops.c
-> +++ b/drivers/infiniband/hw/hfi1/file_ops.c
-> @@ -763,11 +763,11 @@ static int complete_subctxt(struct hfi1_filedata *fd)
->  	}
-> 
->  	if (ret) {
-> -		hfi1_rcd_put(fd->uctxt);
-> -		fd->uctxt = NULL;
->  		spin_lock_irqsave(&fd->dd->uctxt_lock, flags);
->  		__clear_bit(fd->subctxt, fd->uctxt->in_use_ctxts);
->  		spin_unlock_irqrestore(&fd->dd->uctxt_lock, flags);
-> +		hfi1_rcd_put(fd->uctxt);
-> +		fd->uctxt = NULL;
->  	}
-> 
->  	return ret;
-> --
+> I tend to agree with Bart here.
 
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.14.x
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+OK, I'll drop this patch also.
 
-Looks good.  Adding tag for stable too.
-
-Thanks,
-
-Mike
-
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks,
+-- 
+~Randy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
