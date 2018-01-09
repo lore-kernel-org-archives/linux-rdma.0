@@ -1,42 +1,50 @@
-From: Aishwarya Pant <aishpant@gmail.com>
-Subject: Re: Documentation: infiniband: move sysfs interface to ABI
-Date: Tue, 9 Jan 2018 23:17:07 +0530
-Message-ID: <20180109174707.GA19233@mordor.localdomain>
-References: <20180108085342.GB8353@mordor.localdomain>
- <20180109172820.GD4518@ziepe.ca>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH v3 1/5] kobject: Export kobj_ns_grab_current() and
+ kobj_ns_drop()
+Date: Tue, 9 Jan 2018 17:59:45 +0000
+Message-ID: <1515520784.2721.11.camel@wdc.com>
+References: <20180108231436.19750-1-bart.vanassche@wdc.com>
+         <20180108231436.19750-2-bart.vanassche@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180109172820.GD4518@ziepe.ca>
-Sender: linux-doc-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, Jonathan Corbet <corbet@lwn.net>, linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Julia Lawall <Julia.Lawall@lip6.fr>, Greg KH <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180108231436.19750-2-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Content-Language: en-US
+Content-ID: <D99405C38522004BBCDF28C0A0C9B8FA-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 09, 2018 at 10:28:20AM -0700, Jason Gunthorpe wrote:
-> On Mon, Jan 08, 2018 at 02:23:42PM +0530, Aishwarya Pant wrote:
-> > Hi
-> > 
-> > In Documentation/infiniband/sysfs.txt, there is a description of the infiniband
-> > sysfs interface and there also exists
-> > Documentation/ABI/testing/sysfs-class-infiniband which is out of date.
-> > 
-> > Would it be useful to move out the interface completely from
-> > Documentation/infiniband/sysfs.txt to the ABI?
-> 
-> It would be good, but I fear all the documentation files are variously
-> out of date, so it would be harder to do this task reliably without
-> having various rdma devices to inspect?
-> 
-> But if you want to take it on, I could probably get you some sysfs
-> dumps from some systems to help?
-
-Yes, I think that would be useful. I might not be able to fill in the
-descriptions completely for all attributes but I can create a documentation
-skeleton for them.
-
-Aishwarya
-
-> 
-> Jason
+T24gTW9uLCAyMDE4LTAxLTA4IGF0IDE1OjE0IC0wODAwLCBCYXJ0IFZhbiBBc3NjaGUgd3JvdGU6
+DQo+IE1ha2UgaXQgcG9zc2libGUgdG8gY2FsbCB0aGVzZSB0d28gZnVuY3Rpb25zIGZyb20gYSBr
+ZXJuZWwgbW9kdWxlLg0KPiBOb3RlOiBkZXNwaXRlIHRoZWlyIG5hbWUsIHRoZXNlIHR3byBmdW5j
+dGlvbnMgY2FuIGJlIHVzZWQgbWVhbmluZ2Z1bGx5DQo+IGluZGVwZW5kZW50IG9mIGtvYmplY3Rz
+LiBBIGxhdGVyIHBhdGNoIHdpbGwgYWRkIGNhbGxzIHRvIHRoZXNlDQo+IGZ1bmN0aW9ucyBmcm9t
+IHRoZSBTUlAgZHJpdmVyIGJlY2F1c2UgdGhpcyBwYXRjaCBzZXJpZXMgbW9kaWZpZXMgdGhlDQo+
+IFNSUCBkcml2ZXIgc3VjaCB0aGF0IGl0IGNhbiBob2xkIGEgcmVmZXJlbmNlIHRvIGEgbmFtZXNw
+YWNlIHRoYXQgY2FuDQo+IGxhc3QgbG9uZ2VyIHRoYW4gdGhlIGxpZmV0aW1lIG9mIHRoZSBwcm9j
+ZXNzIHRocm91Z2ggd2hpY2ggdGhlDQo+IG5hbWVzcGFjZSByZWZlcmVuY2Ugd2FzIG9idGFpbmVk
+Lg0KPiANCj4gU2lnbmVkLW9mZi1ieTogQmFydCBWYW4gQXNzY2hlIDxiYXJ0LnZhbmFzc2NoZUB3
+ZGMuY29tPg0KPiBDYzogR3JlZyBLcm9haC1IYXJ0bWFuIDxncmVna2hAbGludXhmb3VuZGF0aW9u
+Lm9yZz4NCj4gLS0tDQo+ICBsaWIva29iamVjdC5jIHwgMiArKw0KPiAgMSBmaWxlIGNoYW5nZWQs
+IDIgaW5zZXJ0aW9ucygrKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2xpYi9rb2JqZWN0LmMgYi9saWIv
+a29iamVjdC5jDQo+IGluZGV4IDc2M2Q3MGExODk0MS4uMDZiODQ5ZWVlMGNhIDEwMDY0NA0KPiAt
+LS0gYS9saWIva29iamVjdC5jDQo+ICsrKyBiL2xpYi9rb2JqZWN0LmMNCj4gQEAgLTEwMzksNiAr
+MTAzOSw3IEBAIHZvaWQgKmtvYmpfbnNfZ3JhYl9jdXJyZW50KGVudW0ga29ial9uc190eXBlIHR5
+cGUpDQo+ICANCj4gIAlyZXR1cm4gbnM7DQo+ICB9DQo+ICtFWFBPUlRfU1lNQk9MX0dQTChrb2Jq
+X25zX2dyYWJfY3VycmVudCk7DQo+ICANCj4gIGNvbnN0IHZvaWQgKmtvYmpfbnNfbmV0bGluayhl
+bnVtIGtvYmpfbnNfdHlwZSB0eXBlLCBzdHJ1Y3Qgc29jayAqc2spDQo+ICB7DQo+IEBAIC0xMDc0
+LDMgKzEwNzUsNCBAQCB2b2lkIGtvYmpfbnNfZHJvcChlbnVtIGtvYmpfbnNfdHlwZSB0eXBlLCB2
+b2lkICpucykNCj4gIAkJa29ial9uc19vcHNfdGJsW3R5cGVdLT5kcm9wX25zKG5zKTsNCj4gIAlz
+cGluX3VubG9jaygma29ial9uc190eXBlX2xvY2spOw0KPiAgfQ0KPiArRVhQT1JUX1NZTUJPTF9H
+UEwoa29ial9uc19kcm9wKTsNCg0KSGkgR3JlZywNCg0KSSdkIGxpa2UgdG8gcmVwb3N0IHRoaXMg
+c2VyaWVzIHRvIGFkZHJlc3MgYSBidWcgaW4gcGF0Y2ggNS81IG9mIHRoaXMgc2VyaWVzLg0KQnV0
+IGJlZm9yZSBJIGRvIHRoYXQsIGNhbiB5b3UgdGVsbCBtZSB3aGV0aGVyIEkgcGVyaGFwcyBzaG91
+bGQgd2lkZW4gdGhlDQpDYy1saXN0IGZvciBwYXRjaCAxLzUgb2YgdGhpcyBzZXJpZXM/DQoNClRo
+YW5rcywNCg0KQmFydC4=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
