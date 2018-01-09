@@ -1,66 +1,102 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/9] Add thread domain support
-Date: Tue, 9 Jan 2018 10:27:22 +0200
-Message-ID: <430f2c21-6fe5-cc92-d191-0fc71a0a4a45@dev.mellanox.co.il>
-References: <1514210221-10466-1-git-send-email-yishaih@mellanox.com>
+From: Sagar Arun Kamble <sagar.a.kamble@intel.com>
+Subject: Re: [Intel-wired-lan] [PATCH 01/27] timecounter: Make
+ cyclecounter struct part of timecounter struct
+Date: Tue, 9 Jan 2018 14:31:33 +0530
+Message-ID: <af2474d2-edf7-7db3-b14d-3587222daf79@intel.com>
+References: <1513323522-15021-1-git-send-email-sagar.a.kamble@intel.com>
+ <1513323522-15021-2-git-send-email-sagar.a.kamble@intel.com>
+ <309B89C4C689E141A5FF6A0C5FB2118B8C734DF8@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1514210221-10466-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <309B89C4C689E141A5FF6A0C5FB2118B8C734DF8@ORSMSX101.amr.corp.intel.com>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: "Brown, Aaron F" <aaron.f.brown@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Richard Cochran <richardcochran@gmail.com>, Stephen Boyd <sboyd@codeaurora.org>, Chris Wilson <chris@chris-wilson.co.uk>, John Stultz <john.stultz@linaro.org>, "intel-wired-lan@lists.osuosl.org" <intel-wired-lan@lists.osuosl.org>, Thomas Gleixner <tglx@linutronix.de>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/25/2017 3:56 PM, Yishai Hadas wrote:
-> This series enables grouping verbs objects together for the purpose of
-> optimizing the behavior of the driver in a multi-threaded environment.
-> 
-> The first use of this will be for mlx5 to group UAR registers in a way that
-> avoids needing locking on the post send path.
-> 
-> The series follows an RFC and a detailed discussion over it in the ML, the
-> matching kernel side was sent to rdma-next for 4.16.
-> 
-> A detailed description of the API and its usage appears as part of the man
-> pages and the commit logs which are part of the series.
-> 
-> PR was sent:
-> https://github.com/linux-rdma/rdma-core/pull/280
-> 
-> Yishai
-> 
-> Yishai Hadas (9):
->    verbs: Introduce ibv_thread_domain and its related verbs
->    verbs: Introduce ibv_parent_domain and its related verbs
->    mlx5: Add support for the ibv_td object and its related verbs
->    mlx5: Add support for ibv_parent_domain
->    mlx5: Dynamic BF size handling
->    mlx5: Add support for dynamic UAR allocation
->    mlx5: Add support for using a dedicated BF register
->    mlx5: Add support for thread domain as part of QP creation
->    mlx5: Expose max dynamic blue flame registers capability
-> 
->   libibverbs/driver.h                      |  25 ++++
->   libibverbs/man/CMakeLists.txt            |   5 +-
->   libibverbs/man/ibv_alloc_parent_domain.3 |  74 ++++++++++
->   libibverbs/man/ibv_alloc_td.3            |  61 +++++++++
->   libibverbs/verbs.h                       |  67 +++++++++
->   providers/mlx5/man/mlx5dv_query_device.3 |   4 +-
->   providers/mlx5/mlx5-abi.h                |   5 +-
->   providers/mlx5/mlx5.c                    |  44 +++++-
->   providers/mlx5/mlx5.h                    |  64 ++++++++-
->   providers/mlx5/mlx5dv.h                  |   4 +-
->   providers/mlx5/verbs.c                   | 227 ++++++++++++++++++++++++++++++-
->   11 files changed, 566 insertions(+), 14 deletions(-)
->   create mode 100644 libibverbs/man/ibv_alloc_parent_domain.3
->   create mode 100644 libibverbs/man/ibv_alloc_td.3
-> 
+Thanks Aaron.
 
-The matching kernel part was accepted into for-next, series was merged.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Sagar
+
+On 1/9/2018 3:50 AM, Brown, Aaron F wrote:
+>> From: Intel-wired-lan [mailto:intel-wired-lan-bounces@osuosl.org] On
+>> Behalf Of Sagar Arun Kamble
+>> Sent: Thursday, December 14, 2017 11:38 PM
+>> To: linux-kernel@vger.kernel.org
+>> Cc: alsa-devel@alsa-project.org; linux-rdma@vger.kernel.org;
+>> netdev@vger.kernel.org; Richard Cochran <richardcochran@gmail.com>;
+>> Stephen Boyd <sboyd@codeaurora.org>; Chris Wilson <chris@chris-
+>> wilson.co.uk>; John Stultz <john.stultz@linaro.org>; intel-wired-
+>> lan@lists.osuosl.org; Thomas Gleixner <tglx@linutronix.de>; Kamble, Sagar A
+>> <sagar.a.kamble@intel.com>; kvmarm@lists.cs.columbia.edu; linux-arm-
+>> kernel@lists.infradead.org
+>> Subject: [Intel-wired-lan] [PATCH 01/27] timecounter: Make cyclecounter
+>> struct part of timecounter struct
+>>
+>> There is no real need for the users of timecounters to define cyclecounter
+>> and timecounter variables separately. Since timecounter will always be
+>> based on cyclecounter, have cyclecounter struct as member of timecounter
+>> struct.
+>>
+>> v2: Rebase.
+>>
+>> Suggested-by: Chris Wilson <chris@chris-wilson.co.uk>
+>> Signed-off-by: Sagar Arun Kamble <sagar.a.kamble@intel.com>
+>> Cc: Chris Wilson <chris@chris-wilson.co.uk>
+>> Cc: Richard Cochran <richardcochran@gmail.com>
+>> Cc: John Stultz <john.stultz@linaro.org>
+>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>> Cc: Stephen Boyd <sboyd@codeaurora.org>
+>> Cc: linux-kernel@vger.kernel.org
+>> Cc: linux-arm-kernel@lists.infradead.org
+>> Cc: netdev@vger.kernel.org
+>> Cc: intel-wired-lan@lists.osuosl.org
+>> Cc: linux-rdma@vger.kernel.org
+>> Cc: alsa-devel@alsa-project.org
+>> Cc: kvmarm@lists.cs.columbia.edu
+>> Acked-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com> (Intel drivers)
+>> ---
+>>   arch/microblaze/kernel/timer.c                     | 20 ++++++------
+>>   drivers/clocksource/arm_arch_timer.c               | 19 ++++++------
+>>   drivers/net/ethernet/amd/xgbe/xgbe-dev.c           |  3 +-
+>>   drivers/net/ethernet/amd/xgbe/xgbe-ptp.c           |  9 +++---
+>>   drivers/net/ethernet/amd/xgbe/xgbe.h               |  1 -
+>>   drivers/net/ethernet/broadcom/bnx2x/bnx2x.h        |  1 -
+>>   drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c   | 20 ++++++------
+>>   drivers/net/ethernet/freescale/fec.h               |  1 -
+>>   drivers/net/ethernet/freescale/fec_ptp.c           | 30 +++++++++---------
+>>   drivers/net/ethernet/intel/e1000e/e1000.h          |  1 -
+>>   drivers/net/ethernet/intel/e1000e/netdev.c         | 27 ++++++++--------
+>>   drivers/net/ethernet/intel/e1000e/ptp.c            |  2 +-
+>>   drivers/net/ethernet/intel/igb/igb.h               |  1 -
+>>   drivers/net/ethernet/intel/igb/igb_ptp.c           | 25 ++++++++-------
+>>   drivers/net/ethernet/intel/ixgbe/ixgbe.h           |  1 -
+>>   drivers/net/ethernet/intel/ixgbe/ixgbe_ptp.c       | 17 +++++-----
+>>   drivers/net/ethernet/mellanox/mlx4/en_clock.c      | 28 ++++++++---------
+>>   drivers/net/ethernet/mellanox/mlx4/mlx4_en.h       |  1 -
+>>   .../net/ethernet/mellanox/mlx5/core/lib/clock.c    | 34 ++++++++++----------
+>>   drivers/net/ethernet/qlogic/qede/qede_ptp.c        | 20 ++++++------
+>>   drivers/net/ethernet/ti/cpts.c                     | 36 ++++++++++++----------
+>>   drivers/net/ethernet/ti/cpts.h                     |  1 -
+>>   include/linux/mlx5/driver.h                        |  1 -
+>>   include/linux/timecounter.h                        |  4 +--
+>>   include/sound/hdaudio.h                            |  1 -
+>>   kernel/time/timecounter.c                          | 28 ++++++++---------
+>>   sound/hda/hdac_stream.c                            |  7 +++--
+>>   virt/kvm/arm/arch_timer.c                          |  6 ++--
+>>   28 files changed, 163 insertions(+), 182 deletions(-)
+>>
+> For Intel e1000e and igb drivers:
+> Tested-by: Aaron Brown <aaron.f.brown@intel.com>
