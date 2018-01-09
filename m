@@ -1,39 +1,29 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 06/12] IB/core: Add optional PCI P2P flag to
- rdma_rw_ctx_[init|destroy]()
-Date: Tue, 9 Jan 2018 10:10:08 -0700
-Message-ID: <20180109171008.GB4518@ziepe.ca>
-References: <20180104221337.GV11348@ziepe.ca>
- <3e8391a9-8924-be6d-8c43-162a360d75b6@deltatee.com>
- <20180105045031.GX11348@ziepe.ca>
- <20180108145901.GA10743@lst.de>
- <20180108180917.GF11348@ziepe.ca>
- <20180108183434.GA15549@lst.de>
- <cffacbee-477a-fbe9-19cc-373cd2ec6fef@deltatee.com>
- <20180108185743.GA15936@lst.de>
- <20180108194950.GK11348@ziepe.ca>
- <20180109164640.GA12159@lst.de>
+Subject: Re: [PATCH] iser-target: Fix possible use-after-free in connection
+ establishment error
+Date: Tue, 9 Jan 2018 10:17:18 -0700
+Message-ID: <20180109171718.GC4518@ziepe.ca>
+References: <20171126133104.22710-1-sagi@grimberg.me>
+ <3676820c-544e-8ced-859a-ade8e6a0ef53@grimberg.me>
+ <BN3PR07MB25782C93E50A7A0C55A110B4F83B0@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <eda02d71-cf33-2333-223a-0d6eeabb8185@grimberg.me>
+ <e11259b7-5add-bf87-73d4-49483c90bf73@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <target-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180109164640.GA12159@lst.de>
-Sender: linux-pci-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Logan Gunthorpe <logang@deltatee.com>, open list <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma <linux-rdma@vger.kernel.org>, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+In-Reply-To: <e11259b7-5add-bf87-73d4-49483c90bf73@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Max Gurtovoy <maxg@mellanox.com>
+Cc: Sagi Grimberg <sagi@grimberg.me>, "Amrani, Ram" <Ram.Amrani@cavium.com>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 09, 2018 at 05:46:40PM +0100, Christoph Hellwig wrote:
-> On Mon, Jan 08, 2018 at 12:49:50PM -0700, Jason Gunthorpe wrote:
-> > Pretty sure P2P capable IOMMU hardware exists.
-> > 
-> > With SOC's we also have the scenario that an DMA originated from an
-> > on-die device wishes to target an off-die PCI BAR (through the IOMMU),
-> > that definitely exists today, and people care about it :)
-> 
-> Then people will have to help and contribute support for it.
+On Tue, Jan 09, 2018 at 07:04:16PM +0200, Max Gurtovoy wrote:
+> hi Guys,
+> did we forget taking this fix to mainline/stable or we found another
+> solution ?
 
-Sure. But my point was all this will have to migrate under the dma_ops
-for that to work, so why the resistance to using dma_ops right away?
+I thought it was going to NAB's tree.. My mistake, I put it back into
+patchworks and it will get into for-next
 
 Jason
