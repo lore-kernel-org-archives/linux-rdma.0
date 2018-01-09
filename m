@@ -1,24 +1,42 @@
-From: Christoph Hellwig <hch@lst.de>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Subject: Re: [PATCH 06/12] IB/core: Add optional PCI P2P flag to
-        rdma_rw_ctx_[init|destroy]()
-Date: Tue, 9 Jan 2018 17:46:40 +0100
-Message-ID: <20180109164640.GA12159@lst.de>
-References: <1f8fb3fb-e3dc-94d3-e837-0cd942cf5b87@deltatee.com> <20180104221337.GV11348@ziepe.ca> <3e8391a9-8924-be6d-8c43-162a360d75b6@deltatee.com> <20180105045031.GX11348@ziepe.ca> <20180108145901.GA10743@lst.de> <20180108180917.GF11348@ziepe.ca> <20180108183434.GA15549@lst.de> <cffacbee-477a-fbe9-19cc-373cd2ec6fef@deltatee.com> <20180108185743.GA15936@lst.de> <20180108194950.GK11348@ziepe.ca>
+ rdma_rw_ctx_[init|destroy]()
+Date: Tue, 9 Jan 2018 17:47:47 +0100
+Message-ID: <20180109164747.GB12159@lst.de>
+References: <1f8fb3fb-e3dc-94d3-e837-0cd942cf5b87@deltatee.com>
+ <20180104221337.GV11348@ziepe.ca>
+ <3e8391a9-8924-be6d-8c43-162a360d75b6@deltatee.com>
+ <20180105045031.GX11348@ziepe.ca> <20180108145901.GA10743@lst.de>
+ <20180108180917.GF11348@ziepe.ca> <20180108183434.GA15549@lst.de>
+ <cffacbee-477a-fbe9-19cc-373cd2ec6fef@deltatee.com>
+ <20180108185743.GA15936@lst.de>
+ <7d276107-d2ae-530b-3d56-e104e22b4eea@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-block-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180108194950.GK11348@ziepe.ca>
-Sender: linux-block-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Christoph Hellwig <hch@lst.de>, Logan Gunthorpe <logang@deltatee.com>, open list <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma <linux-rdma@vger.kernel.org>, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+In-Reply-To: <7d276107-d2ae-530b-3d56-e104e22b4eea-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 08, 2018 at 12:49:50PM -0700, Jason Gunthorpe wrote:
-> Pretty sure P2P capable IOMMU hardware exists.
-> 
-> With SOC's we also have the scenario that an DMA originated from an
-> on-die device wishes to target an off-die PCI BAR (through the IOMMU),
-> that definitely exists today, and people care about it :)
+On Mon, Jan 08, 2018 at 12:05:57PM -0700, Logan Gunthorpe wrote:
+> Ok, so if we shouldn't touch the dma_map infrastructure how should the 
+> workaround to opt-out HFI and QIB look? I'm not that familiar with the RDMA 
+> code.
 
-Then people will have to help and contribute support for it.
+We can add a no_p2p quirk, I'm just not sure what the right place
+for it is.  As said they device don't really mind P2P at the PCIe
+level, it's just that their RDMA implementation is really strange.
+
+So I'd be tempted to do it in RDMA.
