@@ -1,34 +1,58 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 06/12] IB/core: Add optional PCI P2P flag to
-        rdma_rw_ctx_[init|destroy]()
-Date: Tue, 9 Jan 2018 17:55:49 +0100
-Message-ID: <20180109165549.GC12159@lst.de>
-References: <20180104190137.7654-7-logang@deltatee.com> <20180104192225.GS11348@ziepe.ca> <1f8fb3fb-e3dc-94d3-e837-0cd942cf5b87@deltatee.com> <20180104221337.GV11348@ziepe.ca> <3e8391a9-8924-be6d-8c43-162a360d75b6@deltatee.com> <20180105045031.GX11348@ziepe.ca> <20180108145901.GA10743@lst.de> <20180108180917.GF11348@ziepe.ca> <20180108183434.GA15549@lst.de> <20180108190116.GI11348@ziepe.ca>
+From: "Bernard Metzler" <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: Re: [PATCH v2 03/13] Attach/detach SoftiWarp to/from network and RDMA
+ subsystem
+Date: Tue, 9 Jan 2018 16:58:59 +0000
+Message-ID: <OF38355950.8A86F33F-ON00258210.005B3539-00258210.005D4AA4@notes.na.collabserv.com>
+References: <20180104182108.GR11348@ziepe.ca>,<20171008130342.GV25829@mtr-leonro.local>
+ <20171006122853.16310-1-bmt@zurich.ibm.com>
+ <20171006122853.16310-4-bmt@zurich.ibm.com>
+ <OF406E95F8.33CF80BB-ON002581B9.00073D6F-002581B9.00081F69@notes.na.collabserv.com>
+ <OF663C0801.8471532E-ON002581FE.003B73D6-002581FE.003F2369@notes.na.collabserv.com>
+ <20180102213706.GB19027@ziepe.ca> <20180103052529.GI10145@mtr-leonro.local>
+ <20180103155225.GA11348@ziepe.ca> <20180103173105.GX10145@mtr-leonro.local>
+ <OF156C6886.C5A736C2-ON0025820B.005235C2-0025820B.0052EF8F@notes.na.collabserv.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180108190116.GI11348-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20180104182108.GR11348-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 08, 2018 at 12:01:16PM -0700, Jason Gunthorpe wrote:
-> > So I very much disagree about where to place that workaround - the
-> > RDMA code is exactly the right place.
-> 
-> But why? RDMA is using core code to do this. It uses dma_ops in struct
-> device and it uses normal dma_map SG. How is it RDMA's problem that
-> some PCI drivers provide strange DMA ops?
 
-Because RDMA uses the dma_virt_ops to pretend a device does DMA when
-in fact it doesn't - at least not for the exact data mapped, or
-as far as I can tell often not all - e.g. the QIB/HFI devices
-might do mmio access for data mapped.
+-----Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote: -----
 
-This whole problem only exist because a few RDMA HCA drivers lie
-with the help of the RDMA core.
+>To: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+>From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+>Date: 01/04/2018 07:21PM
+>Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>Subject: Re: [PATCH v2 03/13] Attach/detach SoftiWarp to/from network
+>and RDMA subsystem
+>
+>On Thu, Jan 04, 2018 at 03:05:52PM +0000, Bernard Metzler wrote:
+>
+>> What about potentially enabling it on all interfaces which are used
+>> by TCP? iWarp is an ULP to TCP... Exceptions might be interfaces
+>which
+>> implement their own RDMA protocol - like iWARP adapters, or IPoIB
+>> devices, or interfaces which already have a use from SoftRoCE.
+>
+>Since soft iwarp is likely to start out as a huge security risk, it
+>should be opted into.
+>
+>Jason
+>
+>
+Right, security will likely be one of the debates..!
+
+Can't parse that above - are you suggesting only explicitly enabling softiwarp
+on a per interface basis?
+
+Thanks!
+Bernard.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
