@@ -1,64 +1,63 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
-Date: Wed, 10 Jan 2018 12:17:58 -0700
-Message-ID: <20180110191758.GL4518@ziepe.ca>
-References: <5a5016c0.4c0a620a.ed2b3.60da@mx.google.com>
- <fcc3f226-848d-abc4-2a81-f4fd821761c9@wdc.com>
- <1515528956.3919.3.camel@redhat.com>
- <1515529869.3919.4.camel@redhat.com>
- <1515531079.2721.26.camel@wdc.com>
- <1515531652.26021.1.camel@redhat.com>
- <1515537614.26021.3.camel@redhat.com>
- <1515591723.26021.6.camel@redhat.com>
- <20180110182648.GI4518@ziepe.ca>
- <1515609623.2745.20.camel@wdc.com>
+From: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH RFC] Verbs requirement for GRH when working in GID based addressing
+Date: Wed, 10 Jan 2018 21:28:34 +0200
+Message-ID: <CAFgAxU_p4OR7qUe+HjK_rYP+LxUUOxYs+Qp6g4_e64WvOXMWDg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1515609623.2745.20.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Alex @ Mellanox" <alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yossi Itigin <yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 10, 2018 at 06:40:25PM +0000, Bart Van Assche wrote:
-> On Wed, 2018-01-10 at 11:26 -0700, Jason Gunthorpe wrote:
-> > On Wed, Jan 10, 2018 at 08:42:03AM -0500, Laurence Oberman wrote:
-> > 
-> > > [  946.647514] kernel tried to execute NX-protected page - exploit
-> > > attempt? (uid: 0)
-> > > [  946.691954] BUG: unable to handle kernel paging request at
-> > > 00000000a2129b93
-> > > [  947.889552] Call Trace:
-> > > [  947.903724]  ? __ib_process_cq+0x55/0xa0 [ib_core]
-> > > [  947.931179]  ? ib_cq_poll_work+0x1b/0x60 [ib_core]
-> > > [  947.958153]  ? process_one_work+0x141/0x340
-> > > [  947.981362]  ? worker_thread+0x47/0x3e0
-> > > [  948.002102]  ? kthread+0xf5/0x130
-> > > [  948.020538]  ? rescuer_thread+0x380/0x380
-> > > [  948.043180]  ? kthread_associate_blkcg+0x90/0x90
-> > > [  948.070184]  ? ret_from_fork+0x1f/0x30
-> > 
-> > These oops's you have are very suggestive that ib_wc->wr_cqe
-> > is garbage..
-> > 
-> > Did SRP free its wr_cqe data before completion somehow?
-> > 
-> > Turn on slab poisoning to confirm?
-> 
-> It's easy to see in drivers/infiniband/core/cq.c that polling is
-> stopped before a completion queue is destroyed (see also the
-> cancel_work_sync(&cq->work) and the cq->device->destroy_cq(cq) calls
-> in ib_free_cq()).
+RDMA applications require an indication they are operating in an
+environment which is based on GID addressing, such as SR-IOV IB
+Virtualization. In this mode, all sent traffic must include a GRH.
 
-But that has nothing directly to do with the lifetime of, say, struct
-srp_request which contains ib_wc->wr_cqe?
+This RFC exposes a new verbs port capability flag: GRH_REQUIRED.
+When GRH_REQUIRED port capability flag is set, the applications must
+create all AH with GRH configured. Meaning calling ibv_create_ah() with
+'struct ibv_ah_attr { is_global = 1 }'
 
-eg freeing struct srp_request before the wrid has passed through the
-CQ poll would produce these sorts of symptoms...
+Signed-off-by: Alex Rosenbaum <alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ libibverbs/man/ibv_create_ah.3 | 4 ++++
+ libibverbs/verbs.h             | 3 ++-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-Jason
+diff --git a/libibverbs/man/ibv_create_ah.3 b/libibverbs/man/ibv_create_ah.3
+index 0ca2198..b645ea3 100644
+--- a/libibverbs/man/ibv_create_ah.3
++++ b/libibverbs/man/ibv_create_ah.3
+@@ -53,6 +53,10 @@ destroys the AH
+ .SH "RETURN VALUE"
+ .B ibv_create_ah()
+ returns a pointer to the created AH, or NULL if the request fails.
++.SH "NOTES"
++If port cap flag IBV_PORT_GRH_REQUIRED is set then
++.B ibv_create_ah()
++must be created with definition of 'struct ibv_ah_attr { .is_global =
+1; .grh = {...}; }'.
+ .PP
+ .B ibv_destroy_ah()
+ returns 0 on success, or the value of errno on failure (which
+indicates the failure reason).
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 997597a..12e80b3 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -338,7 +338,8 @@ enum ibv_port_cap_flags {
+        IBV_PORT_BOOT_MGMT_SUP                  = 1 << 23,
+        IBV_PORT_LINK_LATENCY_SUP               = 1 << 24,
+        IBV_PORT_CLIENT_REG_SUP                 = 1 << 25,
+-       IBV_PORT_IP_BASED_GIDS                  = 1 << 26
++       IBV_PORT_IP_BASED_GIDS                  = 1 << 26,
++       IBV_PORT_GRH_REQUIRED                   = 1 << 27
+ };
+
+ struct ibv_port_attr {
+-- 
+1.8.3.1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
