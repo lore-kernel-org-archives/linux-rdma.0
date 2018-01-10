@@ -1,70 +1,44 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V2 for-next 6/7] RDMA/hns: Update the verbs of polling for completion
-Date: Wed, 10 Jan 2018 14:39:52 +0800
-Message-ID: <1515566393-63888-7-git-send-email-oulijun@huawei.com>
-References: <1515566393-63888-1-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V2 for-next 0/7] Add CM and a bugfix to hip08
+Date: Wed, 10 Jan 2018 14:39:46 +0800
+Message-ID: <1515566393-63888-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1515566393-63888-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If the port is a RoCEv2 port, the remote port address and QP
-information which returned for UD will be modified.
+This patch series adds the CM(Connection Mangement) support
+to hip08 RoCE driver. Changes done are primarily to add
+support of APIs in IB device and some fixes over the
+origin driver to support RDMA CM. This patch series
+also adjust some codes style in order to fill the
+sq wqe of ud type and fix a bug for tx_cqn field.
 
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
----
-V1->V2:
-- No fixed
-
-V1:
-- The initial submit
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 12 ++++++++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  2 +-
- 2 files changed, 13 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 38fb4c7..a1839a3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1913,6 +1913,18 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 		wc->port_num = roce_get_field(cqe->byte_32,
- 				V2_CQE_BYTE_32_PORTN_M, V2_CQE_BYTE_32_PORTN_S);
- 		wc->pkey_index = 0;
-+		memcpy(wc->smac, cqe->smac, 4);
-+		wc->smac[4] = roce_get_field(cqe->byte_28,
-+					     V2_CQE_BYTE_28_SMAC_4_M,
-+					     V2_CQE_BYTE_28_SMAC_4_S);
-+		wc->smac[5] = roce_get_field(cqe->byte_28,
-+					     V2_CQE_BYTE_28_SMAC_5_M,
-+					     V2_CQE_BYTE_28_SMAC_5_S);
-+		wc->vlan_id = 0xffff;
-+		wc->wc_flags |= (IB_WC_WITH_VLAN | IB_WC_WITH_SMAC);
-+		wc->network_hdr_type = roce_get_field(cqe->byte_28,
-+						    V2_CQE_BYTE_28_PORT_TYPE_M,
-+						    V2_CQE_BYTE_28_PORT_TYPE_S);
- 	}
+Change from V1:
+- Add a new patch named assign the correct value for
+  tx_cqn splited from the first patchset
+- Fix the comments given by Leon Romanovsky
+- Add the options for free sq lock when qp is illegal
+  qp type
  
- 	return 0;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index c11b253..ce52c73 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -766,7 +766,7 @@ struct hns_roce_v2_cqe {
- 	u32	byte_12;
- 	u32	byte_16;
- 	u32	byte_cnt;
--	u32	smac;
-+	u8	smac[4];
- 	u32	byte_28;
- 	u32	byte_32;
- };
+Lijun Ou (7):
+  RDMA/hns: Assign the correct value for tx_cqn
+  RDMA/hns: Create gsi qp in hip08
+  RDMA/hns: Add gsi qp support for modifying qp in hip08
+  RDMA/hns: Fill sq wqe context of ud type in hip08
+  RDMA/hns: Assign zero for pkey_index of wc in hip08
+  RDMA/hns: Update the verbs of polling for completion
+  RDMA/hns: Set the guid for hip08 RoCE device
+
+ drivers/infiniband/hw/hns/hns_roce_device.h |   1 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 531 +++++++++++++++++++---------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  86 ++++-
+ drivers/infiniband/hw/hns/hns_roce_qp.c     |  18 +-
+ 4 files changed, 471 insertions(+), 165 deletions(-)
+
 -- 
 1.9.1
 
