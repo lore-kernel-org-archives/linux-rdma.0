@@ -1,62 +1,36 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH][next] IB/mlx5: remove redundant assignment of mdev
-Date: Wed, 10 Jan 2018 09:40:03 +0200
-Message-ID: <20180110074003.GG7368@mtr-leonro.local>
-References: <20180109155543.15027-1-colin.king@canonical.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH] iser-target: Fix possible use-after-free in connection
+ establishment error
+Date: Wed, 10 Jan 2018 07:42:06 +0000
+Message-ID: <BN3PR07MB257841FF7779C136B59E2D2FF8110@BN3PR07MB2578.namprd07.prod.outlook.com>
+References: <20171126133104.22710-1-sagi@grimberg.me>
+ <3676820c-544e-8ced-859a-ade8e6a0ef53@grimberg.me>
+ <BN3PR07MB25782C93E50A7A0C55A110B4F83B0@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <eda02d71-cf33-2333-223a-0d6eeabb8185@grimberg.me>
+ <e11259b7-5add-bf87-73d4-49483c90bf73@mellanox.com>
+ <20180109171718.GC4518@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="vKFfOv5t3oGVpiF+"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180109155543.15027-1-colin.king@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Matan Barak <matanb@mellanox.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180109171718.GC4518-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> I thought it was going to NAB's tree.. My mistake, I put it back into
+> patchworks and it will get into for-next
+>=20
+> Jason
 
---vKFfOv5t3oGVpiF+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Thanks.
+BTW, you can use for-rc, as it is a bug fix.
 
-On Tue, Jan 09, 2018 at 03:55:43PM +0000, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
->
-> The initial assignment to mdev is redundant as mdev is re-assigned
-> later and the first assigned value is never read. Remove this
-> redundant assignment.
->
-> Cleans up clang warning:
-> drivers/infiniband/hw/mlx5/main.c:359:24: warning: Value stored
-> to 'mdev' during its initialization is never read
->
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  drivers/infiniband/hw/mlx5/main.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
+Ram
 
-Thanks,
-Acked-by: Leon Romanovsky <leonro@mellanox.com>
-
---vKFfOv5t3oGVpiF+
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpVw1MACgkQ5GN7iDZy
-WKfS8w/+NxORkbTeJkscltbJSDP4eqyxti8nZcylzbPW2xkZpHW3siJzyiOJY692
-kYccLEsTGXy3CqvUg/s4IqySQlepJSXhN+OBIC7OOcEQ67ovnF3iLbD6+R+cCczu
-lf/wg9xczz73H1LrWhWuIBHuch99NRf9JbrBz3I96hwXnZPQ9TaiJJvjHRFKcsVa
-z66/VT3wShL0xPpwpyz1BOEpGXBcsQiJhbISfm7/kbnZ4sgUJQEli58GCcvhHCEi
-14MJetyGAg7fCI3vPs2y1rN7cY2LVZ+Mtt3IR9EPlJG0rDyrIgQdJlh7SMOxw8R4
-en4TwTl3h5qk3B1X1AjH2iqeMY6zWoYnJKRa89EZFt7eNN7G28D3oO8nqKBBSL5T
-1Hv3Zf0NfCIQi9YbIXu6BFCnCaIXwmIpYaoFy+bIgLb3+1KN3CeSjzJkzxunUNWf
-p5scM2oiPjC9vDnTKw34dZOje45ugiq8llPNzFLhVOk3Mr0ijNqK1T4Tn188jhCl
-OHmwhwR9lTnBNLxdhtjIwl7vBTXZQYCXBlbZXvp6Ce1DXjYdMkqvx8pQcWssT24S
-MDmwxL+CtKjIp3RE+9TeMqQKBFBfPyid8RjCkFsS/WiYC5fUXdisaxbVOfBJ98hi
-co55jnPQgaGAoFRiE7E5tWeEMGhkbUMTNP+VA4uvyoTq5yVFLoU=
-=YBBx
------END PGP SIGNATURE-----
-
---vKFfOv5t3oGVpiF+--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
