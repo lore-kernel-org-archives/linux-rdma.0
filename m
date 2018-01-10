@@ -1,113 +1,69 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH v2] IB/hfi1: Prevent a NULL dereference
-Date: Wed, 10 Jan 2018 17:03:29 -0500
-Message-ID: <1515621809.3403.175.camel@redhat.com>
-References: <14063C7AD467DE4B82DEDB5C278E8663A9F7F391@fmsmsx107.amr.corp.intel.com>
-         <20180109200346.rlsrxa24xmltpz2r@mwanda>
-         <14063C7AD467DE4B82DEDB5C278E8663A9F7FC30@fmsmsx107.amr.corp.intel.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH rdma-core 0/8] Revise provider initialization
+Date: Wed, 10 Jan 2018 16:05:50 -0600
+Message-ID: <013401d38a5f$2d352460$879f6d20$@opengridcomputing.com>
+References: <20180108212632.5183-1-jgg@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-8ikicQG7I5V6RyPAKsw9"
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <14063C7AD467DE4B82DEDB5C278E8663A9F7FC30@fmsmsx107.amr.corp.intel.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: "Ruhl, Michael J" <michael.j.ruhl@intel.com>, Dan Carpenter <dan.carpenter@oracle.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Cc: "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180108212632.5183-1-jgg-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: 'Jason Gunthorpe' <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> 
+> From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> This make all the context creation uniform by having every driver create a
+> struct verbs_context using the same startup flow.
+> 
+> Long ago we had a new and old flow, where the new flow was intended to
+> support
+> a stable provider ABI, but now that the ABI is private we do not need
+that.
+> 
+> By having every single provider having a verbs_context we can now rely on
+> things like the priv existing and a sane init ordering where the priv can
+> exist even before the first command runs.
+> 
+> Having priv always available is a necessary component to introduce support
+for
+> the new ioctl kabi.
+> 
+> Finally, the last three patches rework the ops setup to use a struct of
+> function pointers scheme and provides defaults for every function. The
+> defaults return ENOSYS which fixes a bunch of cases where the user could
+have
+> called a function without driver support and got a crash.
+> 
+> This is github PR:
+> 
+> https://github.com/linux-rdma/rdma-core/pull/281
+> 
+> Jason Gunthorpe (8):
+>   verbs: Always allocate a verbs_context
+>   bnxt_re: Convert from init_context to alloc_context
+>   mlx4: Convert from init_context to alloc_context
+>   mlx5: Convert from init_context to alloc_context
+>   verbs: Remove init_context/uninit_context
+>   verbs: Provide a default implementation for every verbs op
+>   verbs: Convert all providers to use verbs_set_ops
+>   verbs: Remove tests for NULL ops
 
---=-8ikicQG7I5V6RyPAKsw9
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Hey Jason,
 
-On Tue, 2018-01-09 at 20:39 +0000, Ruhl, Michael J wrote:
-> > -----Original Message-----
-> > From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
-> > owner@vger.kernel.org] On Behalf Of Dan Carpenter
-> > Sent: Tuesday, January 9, 2018 3:04 PM
-> > To: Marciniszyn, Mike <mike.marciniszyn@intel.com>
-> > Cc: Dalessandro, Dennis <dennis.dalessandro@intel.com>; Doug Ledford
-> > <dledford@redhat.com>; Jason Gunthorpe <jgg@ziepe.ca>; linux-
-> > rdma@vger.kernel.org; kernel-janitors@vger.kernel.org
-> > Subject: [PATCH v2] IB/hfi1: Prevent a NULL dereference
-> >=20
-> > In the original code, we set "fd->uctxt" to NULL and then dereference i=
-t
-> > which will cause an Oops.
-> >=20
-> > Fixes: f2a3bc00a03c ("IB/hfi1: Protect context array set/clear with spi=
-nlock")
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > ---
-> > v2: In v1, I accidentally moved the __clear_bit() out from under the
-> >     spin_lock().  Thanks for the review, Michael!
-> >=20
-> > diff --git a/drivers/infiniband/hw/hfi1/file_ops.c
-> > b/drivers/infiniband/hw/hfi1/file_ops.c
-> > index 82086241aac3..bd6f03cc5ee0 100644
-> > --- a/drivers/infiniband/hw/hfi1/file_ops.c
-> > +++ b/drivers/infiniband/hw/hfi1/file_ops.c
-> > @@ -763,11 +763,11 @@ static int complete_subctxt(struct hfi1_filedata =
-*fd)
-> >  	}
-> >=20
-> >  	if (ret) {
-> > -		hfi1_rcd_put(fd->uctxt);
-> > -		fd->uctxt =3D NULL;
-> >  		spin_lock_irqsave(&fd->dd->uctxt_lock, flags);
-> >  		__clear_bit(fd->subctxt, fd->uctxt->in_use_ctxts);
-> >  		spin_unlock_irqrestore(&fd->dd->uctxt_lock, flags);
-> > +		hfi1_rcd_put(fd->uctxt);
-> > +		fd->uctxt =3D NULL;
-> >  	}
-> >=20
-> >  	return ret;
-> > --
->=20
-> Cc: <stable@vger.kernel.org> # 4.14.x
+For what it's worth, I built your ops_fix branch and tested over cxgb4.
+Working worked, no problems.
 
-Unfortunately, patchworks doesn't pick up additional Cc: tags, only
-reviewed-bys and acks.  In any case, I hand added it.  Thanks, applied
-to for-rc.
+Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-> Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
->=20
-> Looks good.  Adding tag for stable too.
->=20
-> Thanks,
->=20
-> Mike
->=20
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Steve.
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-8ikicQG7I5V6RyPAKsw9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpWjbEACgkQuCajMw5X
-L90LNA/+LaT/dchBLJ32A2LG0hCehHZubf6IC/UwnRaBA1QMuNa599HNWXwB35vv
-wSil4bQxV7g526yPj0zK7Pg0a4yiyWKaH79VYJvmHER1yNXtO7Cst6GqWAeIbPLS
-jmRWM4KyBfvHMWwIYtbmqaXUNq+Mr7dm+SlbyoW0gUjov6nYrQzIG218knhaMkQ8
-86tFay804HVnrOeoGGobINQQL1G4av3Vh8s6zLb7Shz0SHWIu30XFBp9REslQRSx
-23gEbVGLbBoF+JIaTmpC8TO/V9tKL2yn2Fa5S7FeTNINAKVlwTjYetusEbaYcDp8
-1wOGVLoe8cL9Y3VnJIVc2iHYx866sXsWU4uAp6Adqcr/oMQRZ8fz/KjnRFUb7kvW
-B6UgmVvC0LhU/1dYzM3+dNHmLSxC51OTOoqvQDKYumNCZc8iwo2Ds8O0YIcEYvZK
-lpxO1o7r3fKpcQKbCcNUQoZyDW9/b87IY9YrxEavS8mYBThczVhuqX4Hmj1vx1Hd
-9ELKbhcByE/3EahePRvEJnG6ZJYr0qakPHagGynzeCqe0OXsidFpyNJZRDAYMkxY
-NoHNWLMAqRX0ISQjZrCjLPKUnXMG/vzQikPMNwfT7uWNRTI7OCbovcnwuY/aoWA2
-DOT/SmfaGDYHQiBUZcCf8ymCKMXH2DdDGzaxjP4izTqNZ0hq8uI=
-=hAYV
------END PGP SIGNATURE-----
-
---=-8ikicQG7I5V6RyPAKsw9--
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
