@@ -1,74 +1,57 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: krping problem on 4.15-rc4
-Date: Wed, 10 Jan 2018 14:10:47 -0600
-Message-ID: <00ff01d38a4f$1a979eb0$4fc6dc10$@opengridcomputing.com>
-References: <CAN-5tyH1HO7yzzQLyb5z5Pq=OrHnKzmCrR2MffLguqsEA-mwWg@mail.gmail.com>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
+Date: Wed, 10 Jan 2018 13:52:43 -0700
+Message-ID: <20180110205243.GP4776@mellanox.com>
+References: <1515529869.3919.4.camel@redhat.com>
+ <1515531079.2721.26.camel@wdc.com>
+ <1515531652.26021.1.camel@redhat.com>
+ <1515537614.26021.3.camel@redhat.com>
+ <1515591723.26021.6.camel@redhat.com>
+ <20180110182648.GI4518@ziepe.ca>
+ <1515609623.2745.20.camel@wdc.com>
+ <1515610750.10153.1.camel@redhat.com>
+ <20180110191510.GK4518@ziepe.ca>
+ <1515612639.10153.3.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAN-5tyH1HO7yzzQLyb5z5Pq=OrHnKzmCrR2MffLguqsEA-mwWg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <1515612639.10153.3.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Olga Kornievskaia' <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Hi folks,
-> 
-> I have 2 linux machines with CX-5 cards (Mellanox MCX515A-CCAT (one
-> port)) and krping doesn't work in one direction but works in another.
-> rping works in both direction. ib_send_bw works in both directions and
-> display 39Gb one way and 36Gb other way on a 40Gb setup.
-> 
-> krping is upstream commit 4df520c888d80e5370d0f58b2eeac8355e3f2286.
-> 
-> Server is started with: [kolga@localhost krping]$ sudo echo
-> "server,port=9999,addr=172.20.35.191,count=10,verbose" > /proc/krping
-> And it displays in /var/log/messages:
-> Jan 4 14:23:29 localhost kernel: mlx5_0:dump_cqe:277:(pid 0): dump error cqe
-> Jan 4 14:23:29 localhost kernel: 00000000 00000000 00000000 00000000
-> Jan 4 14:23:29 localhost kernel: 00000000 00000000 00000000 00000000
-> Jan 4 14:23:29 localhost kernel: 00000000 00000000 00000000 00000000
-> Jan 4 14:23:29 localhost kernel: 00000000 93003204 10000122 0005bfd2
-> Jan 4 14:23:29 localhost kernel: krping: cq completion failed with
-> wr_id 0 status 4 opcode 128 vender_err 32
-> Jan 4 14:23:29 localhost kernel: krping: cq completion in ERROR state
-> Jan 4 14:23:29 localhost kernel: krping: wait for RDMA_READ_COMPLETE state
-> 10
-> 
-> Client is run with: [kolga@sti-rx200-231-d1 ~]$ sudo echo
-> "client,addr=172.20.35.191,port=9999,verbose,count=10" > /proc/krping
-> And in var log messages:
-> Jan 4 14:19:27 localhost kernel: krping: DISCONNECT EVENT...
-> Jan 4 14:19:27 localhost kernel: krping: wait for RDMA_WRITE_ADV state 10
-> Jan 4 14:19:28 localhost kernel: krping: cq completion in ERROR state
-> 
-> On the network trace is see (over RRoCE):
-> CM: ConnectRequest
-> CM: ConnectReply
-> CM: ReadyToUse
-> RC Send Only QP
-> RC Ack
-> RC RDMA Read Request
-> RC RDMA Read Response Only
-> CM: DisconnectRequest
-> CM: DisconnectReply
-> 
-> I have previously submitted it to Mellanox but they told me to
-> resubmit to linux-rdma list: They also said the engineering did look
-> at the CQE error and the meaning of it was:
-> PD (protection domain) violation - error in fetch data in rxs in pd
-> (send opcodes/ read respond / atomic ack).
+On Wed, Jan 10, 2018 at 02:30:39PM -0500, Laurence Oberman wrote:
 
-Hey Olga, 
+> Just to be clear, I have posted two types of stack traces, one where I
+> panic the other here above where I am not panicking.
 
-Are the machines the same kernel version / distro sw / and hw - cpu/motherboard/memory/etc?  If not, what is different about them?  Is it the krping server that sees the CQ error?  Do other rdma devices work on these systems?
+Guessing it is just luck which you hit.. Random corrupted memory and
+all..
 
-Thanks,
+> This is not any special type of test. I booted the kernel, mapped
+> the SRP devices from the target server and proceeded to shutdown the
+> client with shutdown -r now.  This is part of my holistic test I
+> always do against new patches in Bart's tree.  I start with reboots,
+> them rmmod's etc. before I go on to perform I/O against the LUNS
+> from the target.
 
-Steve.
+Well, your shtudown is triggering the mlx driver shutdown code,
+then it looks like the SRP stuff gets cleaned up? That certainly is
+getting a bit exciting code wise
 
+I see there have been some changes in the mlx5 shutdown handling
+recently..
+
+As an experiment comment out the '.shutdown = shutdown' in
+drivers/net/ethernet/mellanox/mlx5/core/main.c?
+
+And it would be interesting to know if your past success kernels were
+printing the mlx5 shutdown message too? Perhaps something core kernel
+changed to enable this path for your test?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
