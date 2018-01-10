@@ -1,106 +1,110 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH V2 for-next 7/7] RDMA/hns: Set the guid for hip08 RoCE
- device
-Date: Wed, 10 Jan 2018 14:01:26 -0700
-Message-ID: <20180110210126.GM4518@ziepe.ca>
-References: <1515566393-63888-1-git-send-email-oulijun@huawei.com>
- <1515566393-63888-8-git-send-email-oulijun@huawei.com>
- <20180110064937.GE7368@mtr-leonro.local>
- <f2c33ef8-2457-bccc-e6ac-80711ccec25f@huawei.com>
- <20180110102902.GI7368@mtr-leonro.local>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
+Date: Wed, 10 Jan 2018 16:11:14 -0500
+Message-ID: <1515618674.10153.6.camel@redhat.com>
+References: <1515529869.3919.4.camel@redhat.com>
+         <1515531079.2721.26.camel@wdc.com> <1515531652.26021.1.camel@redhat.com>
+         <1515537614.26021.3.camel@redhat.com> <1515591723.26021.6.camel@redhat.com>
+         <20180110182648.GI4518@ziepe.ca> <1515609623.2745.20.camel@wdc.com>
+         <1515610750.10153.1.camel@redhat.com> <20180110191510.GK4518@ziepe.ca>
+         <1515612639.10153.3.camel@redhat.com> <20180110205243.GP4776@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180110102902.GI7368-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20180110205243.GP4776-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 10, 2018 at 12:29:02PM +0200, Leon Romanovsky wrote:
-> On Wed, Jan 10, 2018 at 05:23:41PM +0800, oulijun wrote:
-> > 在 2018/1/10 14:49, Leon Romanovsky 写道:
-> > > On Wed, Jan 10, 2018 at 02:39:53PM +0800, Lijun Ou wrote:
-> > >> This patch assgin a guid(Global Unique identifer)
-> > >> value to the hip08 device.
-> > >>
-> > >> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > >> Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > >> Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > >> V2:
-> > >> - Use the correct way to update guid from Leon
-> > >>   Romanovsky's review.
-> > >>
-> > >> V1:
-> > >> - The initial submit
-> > >>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 4 ++++
-> > >>  1 file changed, 4 insertions(+)
-> > >>
-> > >> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> > >> index a1839a3..2af4948 100644
-> > >> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> > >> @@ -34,6 +34,7 @@
-> > >>  #include <linux/etherdevice.h>
-> > >>  #include <linux/interrupt.h>
-> > >>  #include <linux/kernel.h>
-> > >> +#include <net/addrconf.h>
-> > >>  #include <rdma/ib_umem.h>
-> > >>
-> > >>  #include "hnae3.h"
-> > >> @@ -4679,6 +4680,9 @@ static int hns_roce_hw_v2_get_cfg(struct hns_roce_dev *hr_dev,
-> > >>  	hr_dev->iboe.netdevs[0] = handle->rinfo.netdev;
-> > >>  	hr_dev->iboe.phy_port[0] = 0;
-> > >>
-> > >> +	addrconf_addr_eui48((u8 *)&hr_dev->ib_dev.node_guid,
-> > >> +			    hr_dev->iboe.netdevs[0]->dev_addr);
-> > >> +
-> > >
-> > > Are you sure that it is right thing to do?
-> > >
-> > > ib_dev.node_guid is __be64 and you cast it for u8.
-> > >
-> > > Maybe, it is right, but I don't have ability to test it now.
-> > >
-> > > Thanks
-> > Yes, it can be get rightly. I have test it again
-> > The test result as follows:
-> >
-> > root@(none)# cat /sys/class/infiniband/hns_0/node_guid
-> > 5816:89ff:fe28:a34b
-> >
-> > Besides, I confirm the orign definition for addrconf_addr_eui48, it defined as follows:
-> > static inline void addrconf_addr_eui48(u8 *eui, const char *const addr)
-> > {
-> > 	addrconf_addr_eui48_base(eui, addr);
-> > 	eui[0] ^= 2;
-> > }
-> >
-> > The first input parameter type is u8 * and the patch [v4] {net,IB}/{rxe,usnic}: Utilize generic mac to eui32 function
-> > have the same usage.
+On Wed, 2018-01-10 at 13:52 -0700, Jason Gunthorpe wrote:
+> On Wed, Jan 10, 2018 at 02:30:39PM -0500, Laurence Oberman wrote:
 > 
-> Indeed the first parameter is u8, but you are converting from __be64 to be u8.
+> > Just to be clear, I have posted two types of stack traces, one
+> > where I
+> > panic the other here above where I am not panicking.
+> 
+> Guessing it is just luck which you hit.. Random corrupted memory and
+> all..
+> 
+> > This is not any special type of test. I booted the kernel, mapped
+> > the SRP devices from the target server and proceeded to shutdown
+> > the
+> > client with shutdown -r now.  This is part of my holistic test I
+> > always do against new patches in Bart's tree.  I start with
+> > reboots,
+> > them rmmod's etc. before I go on to perform I/O against the LUNS
+> > from the target.
+> 
+> Well, your shtudown is triggering the mlx driver shutdown code,
+> then it looks like the SRP stuff gets cleaned up? That certainly is
+> getting a bit exciting code wise
+> 
+> I see there have been some changes in the mlx5 shutdown handling
+> recently..
+> 
+> As an experiment comment out the '.shutdown = shutdown' in
+> drivers/net/ethernet/mellanox/mlx5/core/main.c?
+> 
+> And it would be interesting to know if your past success kernels were
+> printing the mlx5 shutdown message too? Perhaps something core kernel
+> changed to enable this path for your test?
+> 
+> Jason
 
-addrconf_addr_eui48 accepts an array of 6 u8's in big endian byte
-order representing the MAC.
+Its a solid issue each time, the shutdown.
 
-If you use a be64 to hold the MAC then it must be unnaturally shifted
-<< 16, eg
+Here is rc6, I am building rc1 now and will then go to 4.14 to peel
+this onion
 
-htobe64(0x1234 << 16);
+4.15.0-rc6
 
-Will work to set the mac to 00:00:00:00:12:34
+[  150.600416] ---[ end trace fc9e16dc996e3246 ]---
+[  150.626405] mlx5_1:mlx5_ib_event:2992:(pid 14203): warning: event on
+port 0
+[  150.666308] scsi host1: ib_srp: failed RECV status WR flushed (5)
+for CQE 00000000ecb7c551
+[  150.712873] mlx5_core 0000:08:00.1: mlx5_enter_error_state:128:(pid
+14203): end
+[  150.753463] mlx5_core 0000:08:00.0: Shutdown was called
+[  150.793126] mlx5_core 0000:08:00.0: mlx5_enter_error_state:121:(pid
+14203): start
+[  150.835047] mlx5_0:mlx5_ib_event:2992:(pid 14203): warning: event on
+port 0
+[  150.874155] scsi host2: ib_srp: failed RECV status WR flushed (5)
+for CQE 00000000f7f26a7b
+[  150.919317] mlx5_core 0000:08:00.0: mlx5_enter_error_state:128:(pid
+14203): end
+[  151.449010] reboot: Restarting system
+[  151.467644] reboot: machine restart
 
-So, it is really weird to store a mac in a __be64, but it can be done
-correctly...
 
-The *really* sketchy thing is pssing something called the node_guid to
-something accepting a eui48. The node_guid is an eui64, and needs
-translation before it can become an eui48, so *something* is wrong and
-broken here.
+Almost looks like changes made may require new Firmware maybe for my
+CX4 card because its coming from here and I dont like to see pci_err**
+called.
 
-Jason
+static pci_ers_result_t mlx5_pci_err_detected(struct pci_dev *pdev,
+                                              pci_channel_state_t
+state)
+{
+        struct mlx5_core_dev *dev = pci_get_drvdata(pdev);
+        struct mlx5_priv *priv = &dev->priv;
+
+        dev_info(&pdev->dev, "%s was called\n", __func__);
+
+        mlx5_enter_error_state(dev, false);
+        mlx5_unload_one(dev, priv, false);
+        /* In case of kernel call drain the health wq */
+        if (state) {
+                mlx5_drain_health_wq(dev);
+                mlx5_pci_disable_device(dev);
+        }
+
+        return state == pci_channel_io_perm_failure ?
+                PCI_ERS_RESULT_DISCONNECT : PCI_ERS_RESULT_NEED_RESET;
+}
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
