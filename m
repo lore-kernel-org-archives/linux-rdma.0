@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V2 for-next 1/7] RDMA/hns: Assign the correct value for tx_cqn
-Date: Wed, 10 Jan 2018 14:39:47 +0800
-Message-ID: <1515566393-63888-2-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V2 for-next 5/7] RDMA/hns: Assign zero for pkey_index of wc in hip08
+Date: Wed, 10 Jan 2018 14:39:51 +0800
+Message-ID: <1515566393-63888-6-git-send-email-oulijun@huawei.com>
 References: <1515566393-63888-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,30 +12,37 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gma
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When modifying qp from init to init, it need to
-assign the cqn of send cq for tx cqn field of
-qp context. Otherwise, it will cause a mistake
-when the send and recv cq sizes is the difference.
-This patch mainly fixes it.
+Because pkey is fixed for hip08 RoCE, it needs to assign zero
+for pkey_index of wc. otherwise, it will happen an error when
+establishing connection by communication management mechanism.
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+V2:
+- No fixed
+
+V1:
+- The initial submit
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 2ca35e3..dd50336 100644
+index cb3ac54..38fb4c7 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2342,7 +2342,7 @@ static void modify_qp_init_to_init(struct ib_qp *ibqp,
- 		       V2_QPC_BYTE_80_RX_CQN_S, 0);
+@@ -1910,6 +1910,9 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
+ 		wc->wc_flags |= (roce_get_bit(cqe->byte_32,
+ 					      V2_CQE_BYTE_32_GRH_S) ?
+ 					      IB_WC_GRH : 0);
++		wc->port_num = roce_get_field(cqe->byte_32,
++				V2_CQE_BYTE_32_PORTN_M, V2_CQE_BYTE_32_PORTN_S);
++		wc->pkey_index = 0;
+ 	}
  
- 	roce_set_field(context->byte_252_err_txcqn, V2_QPC_BYTE_252_TX_CQN_M,
--		       V2_QPC_BYTE_252_TX_CQN_S, to_hr_cq(ibqp->recv_cq)->cqn);
-+		       V2_QPC_BYTE_252_TX_CQN_S, to_hr_cq(ibqp->send_cq)->cqn);
- 	roce_set_field(qpc_mask->byte_252_err_txcqn, V2_QPC_BYTE_252_TX_CQN_M,
- 		       V2_QPC_BYTE_252_TX_CQN_S, 0);
- 
+ 	return 0;
 -- 
 1.9.1
 
