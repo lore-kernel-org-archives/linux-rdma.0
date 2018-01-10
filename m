@@ -1,140 +1,51 @@
-From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v2 2/4] block: Introduce blk_start_wait_if_quiesced() and blk_finish_wait_if_quiesced()
-Date: Wed, 10 Jan 2018 10:18:15 -0800
-Message-ID: <20180110181817.25166-3-bart.vanassche@wdc.com>
-References: <20180110181817.25166-1-bart.vanassche@wdc.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
+Date: Wed, 10 Jan 2018 11:26:48 -0700
+Message-ID: <20180110182648.GI4518@ziepe.ca>
+References: <5a5016c0.4c0a620a.ed2b3.60da@mx.google.com>
+ <fcc3f226-848d-abc4-2a81-f4fd821761c9@wdc.com>
+ <1515528956.3919.3.camel@redhat.com>
+ <1515529869.3919.4.camel@redhat.com>
+ <1515531079.2721.26.camel@wdc.com>
+ <1515531652.26021.1.camel@redhat.com>
+ <1515537614.26021.3.camel@redhat.com>
+ <1515591723.26021.6.camel@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180110181817.25166-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1515591723.26021.6.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
-Cc: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Martin K . Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Hannes Reinecke <hare-IBi9RG/b67k@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Ming Lei <ming.lei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Dutile, Don" <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce functions that allow block drivers to wait while a request
-queue is in the quiesced state (blk-mq) or in the stopped state (legacy
-block layer). The next patch will add calls to these functions in the
-SCSI core.
+On Wed, Jan 10, 2018 at 08:42:03AM -0500, Laurence Oberman wrote:
 
-Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Martin K. Petersen <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>
-Cc: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
-Cc: Ming Lei <ming.lei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- block/blk-core.c       |  1 +
- block/blk-mq.c         | 64 ++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/blk-mq.h |  2 ++
- 3 files changed, 67 insertions(+)
+> [  946.647514] kernel tried to execute NX-protected page - exploit
+> attempt? (uid: 0)
+> [  946.691954] BUG: unable to handle kernel paging request at
+> 00000000a2129b93
 
-diff --git a/block/blk-core.c b/block/blk-core.c
-index c10b4ce95248..06eaea15bae9 100644
---- a/block/blk-core.c
-+++ b/block/blk-core.c
-@@ -287,6 +287,7 @@ void blk_start_queue(struct request_queue *q)
- 	WARN_ON_ONCE(q->mq_ops);
- 
- 	queue_flag_clear(QUEUE_FLAG_STOPPED, q);
-+	wake_up_all(&q->mq_wq);
- 	__blk_run_queue(q);
- }
- EXPORT_SYMBOL(blk_start_queue);
-diff --git a/block/blk-mq.c b/block/blk-mq.c
-index a05ea7e9b415..87455977ad34 100644
---- a/block/blk-mq.c
-+++ b/block/blk-mq.c
-@@ -247,11 +247,75 @@ void blk_mq_unquiesce_queue(struct request_queue *q)
- 	queue_flag_clear(QUEUE_FLAG_QUIESCED, q);
- 	spin_unlock_irqrestore(q->queue_lock, flags);
- 
-+	wake_up_all(&q->mq_wq);
-+
- 	/* dispatch requests which are inserted during quiescing */
- 	blk_mq_run_hw_queues(q, true);
- }
- EXPORT_SYMBOL_GPL(blk_mq_unquiesce_queue);
- 
-+/**
-+ * blk_start_wait_if_quiesced() - wait if a queue is quiesced (blk-mq) or stopped (legacy block layer)
-+ * @q: Request queue pointer.
-+ *
-+ * Some block drivers, e.g. the SCSI core, can bypass the block layer core
-+ * request submission mechanism. Surround such code with
-+ * blk_start_wait_if_quiesced() / blk_finish_wait_if_quiesced() to avoid that
-+ * request submission can happen while a queue is quiesced or stopped.
-+ *
-+ * Returns with the RCU read lock held (blk-mq) or with q->queue_lock held
-+ * (legacy block layer).
-+ *
-+ * Notes:
-+ * - Every call of this function must be followed by a call of
-+ *   blk_finish_wait_if_quiesced().
-+ * - This function does not support block drivers whose .queue_rq()
-+ *   implementation can sleep (BLK_MQ_F_BLOCKING).
-+ */
-+int blk_start_wait_if_quiesced(struct request_queue *q)
-+{
-+	struct blk_mq_hw_ctx *hctx;
-+	unsigned int i;
-+
-+	might_sleep();
-+
-+	if (q->mq_ops) {
-+		queue_for_each_hw_ctx(q, hctx, i)
-+			WARN_ON(hctx->flags & BLK_MQ_F_BLOCKING);
-+
-+		rcu_read_lock();
-+		while (!blk_queue_dying(q) && blk_queue_quiesced(q)) {
-+			rcu_read_unlock();
-+			wait_event(q->mq_wq, blk_queue_dying(q) ||
-+				   !blk_queue_quiesced(q));
-+			rcu_read_lock();
-+		}
-+	} else {
-+		spin_lock_irq(q->queue_lock);
-+		wait_event_lock_irq(q->mq_wq,
-+				    blk_queue_dying(q) || !blk_queue_stopped(q),
-+				    *q->queue_lock);
-+		q->request_fn_active++;
-+	}
-+	return blk_queue_dying(q) ? -ENODEV : 0;
-+}
-+EXPORT_SYMBOL(blk_start_wait_if_quiesced);
-+
-+/**
-+ * blk_finish_wait_if_quiesced() - counterpart of blk_start_wait_if_quiesced()
-+ * @q: Request queue pointer.
-+ */
-+void blk_finish_wait_if_quiesced(struct request_queue *q)
-+{
-+	if (q->mq_ops) {
-+		rcu_read_unlock();
-+	} else {
-+		q->request_fn_active--;
-+		spin_unlock_irq(q->queue_lock);
-+	}
-+}
-+EXPORT_SYMBOL(blk_finish_wait_if_quiesced);
-+
- void blk_mq_wake_waiters(struct request_queue *q)
- {
- 	struct blk_mq_hw_ctx *hctx;
-diff --git a/include/linux/blk-mq.h b/include/linux/blk-mq.h
-index 8efcf49796a3..15912cd348b5 100644
---- a/include/linux/blk-mq.h
-+++ b/include/linux/blk-mq.h
-@@ -267,6 +267,8 @@ void blk_mq_start_stopped_hw_queue(struct blk_mq_hw_ctx *hctx, bool async);
- void blk_mq_start_stopped_hw_queues(struct request_queue *q, bool async);
- void blk_mq_quiesce_queue(struct request_queue *q);
- void blk_mq_unquiesce_queue(struct request_queue *q);
-+int blk_start_wait_if_quiesced(struct request_queue *q);
-+void blk_finish_wait_if_quiesced(struct request_queue *q);
- void blk_mq_delay_run_hw_queue(struct blk_mq_hw_ctx *hctx, unsigned long msecs);
- bool blk_mq_run_hw_queue(struct blk_mq_hw_ctx *hctx, bool async);
- void blk_mq_run_hw_queues(struct request_queue *q, bool async);
--- 
-2.15.1
+> [  947.889552] Call Trace:
+> [  947.903724]  ? __ib_process_cq+0x55/0xa0 [ib_core]
+> [  947.931179]  ? ib_cq_poll_work+0x1b/0x60 [ib_core]
+> [  947.958153]  ? process_one_work+0x141/0x340
+> [  947.981362]  ? worker_thread+0x47/0x3e0
+> [  948.002102]  ? kthread+0xf5/0x130
+> [  948.020538]  ? rescuer_thread+0x380/0x380
+> [  948.043180]  ? kthread_associate_blkcg+0x90/0x90
+> [  948.070184]  ? ret_from_fork+0x1f/0x30
 
+These oops's you have are very suggestive that ib_wc->wr_cqe
+is garbage..
+
+Did SRP free its wr_cqe data before completion somehow?
+
+Turn on slab poisoning to confirm?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
