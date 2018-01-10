@@ -1,39 +1,38 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: rdma_rxe: Kernel bug during QP cleanup
-Date: Wed, 10 Jan 2018 21:13:50 +0000
-Message-ID: <1515618829.2745.34.camel@wdc.com>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
+Date: Wed, 10 Jan 2018 14:15:01 -0700
+Message-ID: <20180110211501.GS4776@mellanox.com>
+References: <1515531652.26021.1.camel@redhat.com>
+ <1515537614.26021.3.camel@redhat.com>
+ <1515591723.26021.6.camel@redhat.com>
+ <20180110182648.GI4518@ziepe.ca>
+ <1515609623.2745.20.camel@wdc.com>
+ <1515610750.10153.1.camel@redhat.com>
+ <20180110191510.GK4518@ziepe.ca>
+ <1515612639.10153.3.camel@redhat.com>
+ <20180110205243.GP4776@mellanox.com>
+ <1515618674.10153.6.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <4B804D8A76DCD64984ED174A3771DDB5-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1515618674.10153.6.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGVsbG8sDQoNClRoZSBiZWxvdyBvdXRwdXQgYXBwZWFyZWQgb24gdGhlIHNlcmlhbCBjb25zb2xl
-IHdoaWxlIEkgd2FzIHVzaW5nIHRoZSByZG1hX3J4ZQ0KZHJpdmVyLiBJIGRvbid0IHRoaW5rIHRo
-aXMgaXMgY2F1c2VkIGJ5IHRoZSBjaGFuZ2UgSSBtYWRlIHRvIHRoaXMgZHJpdmVyICh0aGUNCnBh
-dGNoIEkgcG9zdGVkIGVhcmxpZXIgb24gdGhlIGxpbnV4LXJkbWEgbWFpbGluZyBsaXN0KS4gQ2Fu
-IHNvbWVvbmUgaGF2ZSBhIGxvb2sNCmF0IHRoaXM/DQoNClRoYW5rcywNCg0KQmFydC4NCg0KS2Vy
-bmVsIEJVRyBhdCAwMDAwMDAwMDU2MDAzM2YzIFt2ZXJib3NlIGRlYnVnIGluZm8gdW5hdmFpbGFi
-bGVdDQpCVUc6IHNsZWVwaW5nIGZ1bmN0aW9uIGNhbGxlZCBmcm9tIGludmFsaWQgY29udGV4dCBh
-dCBuZXQvY29yZS9zb2NrLmM6Mjc2MQ0KaW5fYXRvbWljKCk6IDEsIGlycXNfZGlzYWJsZWQoKTog
-MCwgcGlkOiA3LCBuYW1lOiBrc29mdGlycWQvMA0KSU5GTzogbG9ja2RlcCBpcyB0dXJuZWQgb2Zm
-Lg0KUHJlZW1wdGlvbiBkaXNhYmxlZCBhdDoNCls8MDAwMDAwMDBiNmU2OTYyOD5dIF9fZG9fc29m
-dGlycSsweDRlLzB4NTQwDQpDUFU6IDAgUElEOiA3IENvbW06IGtzb2Z0aXJxZC8wIE5vdCB0YWlu
-dGVkIDQuMTUuMC1yYzctZGJnKyAjNA0KSGFyZHdhcmUgbmFtZTogUUVNVSBTdGFuZGFyZCBQQyAo
-aTQ0MEZYICsgUElJWCwgMTk5NiksIEJJT1MgMS4wLjAtcHJlYnVpbHQucWVtdS1wcm9qZWN0Lm9y
-ZyAwNC8wMS8yMDE0DQpDYWxsIFRyYWNlOg0KIGR1bXBfc3RhY2srMHg4NS8weGJmDQogX19fbWln
-aHRfc2xlZXArMHgxNzcvMHgyNjANCiBsb2NrX3NvY2tfbmVzdGVkKzB4MWQvMHg5MA0KIGluZXRf
-c2h1dGRvd24rMHgyZS8weGQwDQogcnhlX3FwX2NsZWFudXArMHgxMDcvMHgxNDAgW3JkbWFfcnhl
-XQ0KIHJ4ZV9lbGVtX3JlbGVhc2UrMHgxOC8weDgwIFtyZG1hX3J4ZV0NCiByeGVfcmVxdWVzdGVy
-KzB4MWNmLzB4MTFiMCBbcmRtYV9yeGVdDQogcnhlX2RvX3Rhc2srMHg3OC8weGYwIFtyZG1hX3J4
-ZV0NCiB0YXNrbGV0X2FjdGlvbisweDk5LzB4MjcwDQogX19kb19zb2Z0aXJxKzB4YzAvMHg1NDAN
-CiBydW5fa3NvZnRpcnFkKzB4MWMvMHg3MA0KIHNtcGJvb3RfdGhyZWFkX2ZuKzB4MWJlLzB4Mjcw
-DQoga3RocmVhZCsweDExNy8weDEzMA0KIHJldF9mcm9tX2ZvcmsrMHgyNC8weDMw
+On Wed, Jan 10, 2018 at 04:11:14PM -0500, Laurence Oberman wrote:
+
+> Almost looks like changes made may require new Firmware maybe for my
+> CX4 card because its coming from here and I dont like to see pci_err**
+> called.
+
+git tells me the shutdown error feature is newish, and surely
+interacts with CQ shutdown, so guessing it is broken is a pretty good
+starting point.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
