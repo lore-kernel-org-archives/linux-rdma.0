@@ -1,67 +1,98 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-next v2 7/7] RDMA/nldev: Provide detailed QP information
-Date: Wed, 10 Jan 2018 17:28:58 -0600
-Message-ID: <016201d38a6a$ca49d880$5edd8980$@opengridcomputing.com>
-References: <20180102081832.5264-1-leon@kernel.org> <20180102081832.5264-8-leon@kernel.org> <20180109200917.GF4518@ziepe.ca> <20180110071722.GF7368@mtr-leonro.local> <20180110225622.GQ4518@ziepe.ca>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-next 4/6] RDMA/{cma, ucma}: Refactor to have
+ transport specific checks
+Date: Wed, 10 Jan 2018 16:37:48 -0700
+Message-ID: <20180110233748.GS4518@ziepe.ca>
+References: <20180108150448.29069-1-leon@kernel.org>
+ <20180108150448.29069-5-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180110225622.GQ4518-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <20180108150448.29069-5-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'RDMA mailing list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Mark Bloch' <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Jan 08, 2018 at 05:04:46PM +0200, Leon Romanovsky wrote:
+> From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> On Wed, Jan 10, 2018 at 09:17:22AM +0200, Leon Romanovsky wrote:
-> > On Tue, Jan 09, 2018 at 01:09:17PM -0700, Jason Gunthorpe wrote:
-> > > On Tue, Jan 02, 2018 at 10:18:32AM +0200, Leon Romanovsky wrote:
-> > >
-> > > > +	/* PID == 0 means that this QP was created by kernel */
-> > > > +	if (qp->res.pid && nla_put_u32(msg,
-> > > > +				       RDMA_NLDEV_ATTR_RES_PID, qp-
-> >res.pid))
-> > >
-> > > This is returning a pid in the init name space, obtained here:
-> > >
-> > > +		res->pid = task_pid_nr(current);
-> > >
-> > > And since the netlink user is not running in the init name space this
-> > > will return the wrong pid #, and worse potentially pids the current
-> > > name space should not see.
-> > >
-> > > This API also needs to filter the results and only return pids
-> > > visible, and translate the pids as well..
-> >
-> > Correct, PID namespace wasn't taken into account, exactly as it wasn't
-> > taken in CMA. So, right now, CMA netlink statistics is returning wrong
-> > and unfiltered PIDs. How do you want to progress with that part of the
-code?
+> Code is refactored to perform transport specific checks for OPA, IB,
+> RoCE to be done in core routine. Wherever possible, it is better to avoid
+> spreading transport specific code in multiple kernel modules.
 > 
-> It should be fixed or deleted.
+> Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>  drivers/infiniband/core/cma.c  | 11 ++++++++++-
+>  drivers/infiniband/core/ucma.c |  9 +--------
+>  2 files changed, 11 insertions(+), 9 deletions(-)
 > 
-> > I personally have no plans to fix CMA netlink code and for my opinion it
-> > should be removed, instead of beating that dead horse.
-> 
-> What is so wrong with it you can't use it anyhow?
-> 
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index f1e425da926d..68223bd56b53 100644
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -2522,14 +2522,23 @@ int rdma_set_ib_path(struct rdma_cm_id *id,
+>  		     struct sa_path_rec *path_rec)
+>  {
+>  	struct rdma_id_private *id_priv;
+> +	struct sa_path_rec *in_path_rec;
+> +	struct sa_path_rec opa;
+>  	int ret;
+>  
+> +	if (rdma_cap_opa_ah(id->device, id->port_num)) {
+> +		sa_convert_path_ib_to_opa(&opa, path_rec);
+> +		in_path_rec = &opa;
+> +	} else {
+> +		in_path_rec = path_rec;
+> +	}
+> +
+>  	id_priv = container_of(id, struct rdma_id_private, id);
+>  	if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_RESOLVED,
+>  			   RDMA_CM_ROUTE_RESOLVED))
+>  		return -EINVAL;
+>  
+> -	id->route.path_rec = kmemdup(path_rec, sizeof(*path_rec),
+> +	id->route.path_rec = kmemdup(in_path_rec, sizeof(*in_path_rec),
+>  				     GFP_KERNEL);
+>  	if (!id->route.path_rec) {
+>  		ret = -ENOMEM;
+> diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+> index 6d32af27bac6..7b25226b608e 100644
+> +++ b/drivers/infiniband/core/ucma.c
+> @@ -1227,14 +1227,7 @@ static int ucma_set_ib_path(struct ucma_context *ctx,
+>  	sa_path.rec_type = SA_PATH_REC_TYPE_IB;
+>  	ib_sa_unpack_path(path_data->path_rec, &sa_path);
+>  
+> -	if (rdma_cap_opa_ah(ctx->cm_id->device, ctx->cm_id->port_num)) {
+> -		struct sa_path_rec opa;
+> -
+> -		sa_convert_path_ib_to_opa(&opa, &sa_path);
+> -		ret = rdma_set_ib_path(ctx->cm_id, &opa);
+> -	} else {
+> -		ret = rdma_set_ib_path(ctx->cm_id, &sa_path);
+> -	}
+> +	ret = rdma_set_ib_path(ctx->cm_id, &sa_path);
 
-We certainly need to be able to get detailed cm_id information.  At least
-cm_id bound device, cm_id state, port num, qp-id associated with this cm_id,
-and src/dst ipaddrs/ports.  However, it could be fetched and added to qp
-attributes.  Ala iw_cxgb4's debugfs "qps" file:
 
-[root@stevo3 stevo]# cat /sys/kernel/debug/iw_cxgb4/0000\:04\:00.4/qps
-rc qp sq id 1136 rq id 1137 state 1 onchip 0 ep tid 12028 state 7
-172.16.4.3:58725/58725->172.16.4.4:7174/7174
- 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+No, this is not right
 
-Steve.
+sa_convert_path_ib_to_opa is misnamed and the usage here is arguably
+misplaced.
 
+It is converting the internal OPA path record into a compability path
+record. The ONLY place a compatability path record should be used is
+at the uapi boundary when copying to userspace.
+
+It is certainly not the right direction to have the core APIs
+degrade the path record.
+
+If anything should be fixed here, it is to move the degradation closer
+to the actual copy_to_user.
+
+Why was it put here anyhow? I don't see a uapi boundary?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
