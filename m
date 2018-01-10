@@ -1,43 +1,51 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
-Date: Wed, 10 Jan 2018 15:43:08 -0700
-Message-ID: <CALEgSQu0nRU2pTDcf3Ke0x-cjgZtvAAMbqbEuN=W5YnOmX+W8A@mail.gmail.com>
-References: <5a5016c0.4c0a620a.ed2b3.60da@mx.google.com> <fcc3f226-848d-abc4-2a81-f4fd821761c9@wdc.com>
- <1515528956.3919.3.camel@redhat.com> <1515529869.3919.4.camel@redhat.com>
- <1515531079.2721.26.camel@wdc.com> <1515531652.26021.1.camel@redhat.com>
- <1515537614.26021.3.camel@redhat.com> <1515591723.26021.6.camel@redhat.com>
- <20180110182648.GI4518@ziepe.ca> <1515609623.2745.20.camel@wdc.com>
- <20180110191758.GL4518@ziepe.ca> <1515612733.2745.27.camel@wdc.com>
+Subject: Re: [PATCH rdma-next v2 7/7] RDMA/nldev: Provide detailed QP
+ information
+Date: Wed, 10 Jan 2018 15:56:22 -0700
+Message-ID: <20180110225622.GQ4518@ziepe.ca>
+References: <20180102081832.5264-1-leon@kernel.org>
+ <20180102081832.5264-8-leon@kernel.org>
+ <20180109200917.GF4518@ziepe.ca>
+ <20180110071722.GF7368@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1515612733.2745.27.camel-Sjgp3cTcYWE@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180110071722.GF7368-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 10, 2018 at 12:32 PM, Bart Van Assche
-<Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org> wrote:
-> On Wed, 2018-01-10 at 12:17 -0700, Jason Gunthorpe wrote:
->> But that has nothing directly to do with the lifetime of, say, struct
->> srp_request which contains ib_wc->wr_cqe?
->>
->> eg freeing struct srp_request before the wrid has passed through the
->> CQ poll would produce these sorts of symptoms...
->
-> Hello Jason,
->
-> The SRP initiator driver RDMA channel shutdown sequence is as follows:
-> * srp_remove_target() calls srp_free_ch_ib(). That last function calls
->   srp_destroy_qp() which in turn calls ib_drain_qp(). ib_drain_qp() waits until
->   all CQEs have been dequeued by changing the QP state into IB_QPS_ERR and by
->   waiting until the completion for a newly posted request has been received.
-> * srp_remove_target() calls srp_free_req_data(). That last function
->   calls kfree(ch->req_ring), that is the data structure that contains the
->   SRP request structures.
+On Wed, Jan 10, 2018 at 09:17:22AM +0200, Leon Romanovsky wrote:
+> On Tue, Jan 09, 2018 at 01:09:17PM -0700, Jason Gunthorpe wrote:
+> > On Tue, Jan 02, 2018 at 10:18:32AM +0200, Leon Romanovsky wrote:
+> >
+> > > +	/* PID == 0 means that this QP was created by kernel */
+> > > +	if (qp->res.pid && nla_put_u32(msg,
+> > > +				       RDMA_NLDEV_ATTR_RES_PID, qp->res.pid))
+> >
+> > This is returning a pid in the init name space, obtained here:
+> >
+> > +		res->pid = task_pid_nr(current);
+> >
+> > And since the netlink user is not running in the init name space this
+> > will return the wrong pid #, and worse potentially pids the current
+> > name space should not see.
+> >
+> > This API also needs to filter the results and only return pids
+> > visible, and translate the pids as well..
+> 
+> Correct, PID namespace wasn't taken into account, exactly as it wasn't
+> taken in CMA. So, right now, CMA netlink statistics is returning wrong
+> and unfiltered PIDs. How do you want to progress with that part of the code?
 
-Thanks Bart, informative..
+It should be fixed or deleted.
+
+> I personally have no plans to fix CMA netlink code and for my opinion it
+> should be removed, instead of beating that dead horse.
+
+What is so wrong with it you can't use it anyhow?
 
 Jason
 --
