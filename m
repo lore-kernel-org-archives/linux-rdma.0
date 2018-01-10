@@ -1,67 +1,27 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] iser-target: Fix possible use-after-free in connection
- establishment error
-Date: Wed, 10 Jan 2018 16:54:46 -0500
-Message-ID: <1515621286.3403.172.camel@redhat.com>
-References: <20171126133104.22710-1-sagi@grimberg.me>
-         <3676820c-544e-8ced-859a-ade8e6a0ef53@grimberg.me>
-         <BN3PR07MB25782C93E50A7A0C55A110B4F83B0@BN3PR07MB2578.namprd07.prod.outlook.com>
-         <eda02d71-cf33-2333-223a-0d6eeabb8185@grimberg.me>
-         <e11259b7-5add-bf87-73d4-49483c90bf73@mellanox.com>
-         <20180109171718.GC4518@ziepe.ca>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC] Verbs requirement for GRH when working in GID based addressing
+Date: Wed, 10 Jan 2018 23:59:18 +0200
+Message-ID: <CAJ3xEMgtcv0dgyY59i4+t9tOt8QOfGD9onPcc=QdZBe2ZmKA9w@mail.gmail.com>
+References: <CAFgAxU_p4OR7qUe+HjK_rYP+LxUUOxYs+Qp6g4_e64WvOXMWDg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-tg98VyR7LdXDpawgcXMj"
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20180109171718.GC4518@ziepe.ca>
-Sender: target-devel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>, Max Gurtovoy <maxg@mellanox.com>
-Cc: Sagi Grimberg <sagi@grimberg.me>, "Amrani, Ram" <Ram.Amrani@cavium.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAFgAxU_p4OR7qUe+HjK_rYP+LxUUOxYs+Qp6g4_e64WvOXMWDg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Jan 10, 2018 at 9:28 PM, Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> RDMA applications require an indication they are operating in an
+> environment which is based on GID addressing, such as SR-IOV IB
+> Virtualization. In this mode, all sent traffic must include a GRH.
 
---=-tg98VyR7LdXDpawgcXMj
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Hi Alex,
 
-On Tue, 2018-01-09 at 10:17 -0700, Jason Gunthorpe wrote:
-> On Tue, Jan 09, 2018 at 07:04:16PM +0200, Max Gurtovoy wrote:
-> > hi Guys,
-> > did we forget taking this fix to mainline/stable or we found another
-> > solution ?
->=20
-> I thought it was going to NAB's tree.. My mistake, I put it back into
-> patchworks and it will get into for-next
-
-In fairness, the email thread said exactly that.  But, it never got
-picked up by NAB.  And being that it's in our tree and calling an rdma-
-core function, it can easily enough go through our tree, so I applied it
-to for-rc.
-
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-tg98VyR7LdXDpawgcXMj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpWi6YACgkQuCajMw5X
-L93cSQ//Y3y6fa/asbr2MY0A5JiFEkPuUXuYYnFUUqKRA4UiYsUbyD/7l/Nwtk4H
-l/SLi/oRGQUKtw3o1VTTNfCrXLOb1jQb8Z0iGnqiSayk26xpqoXGws1i+O1z4JYY
-NksB/ODA1tsANcOxySsBmTLTtmV4lqJFEnGjxVE95CsbXo6zOr9kUEDuBTk4br4e
-A5UtYvwEswWJgRAzlC266+6IKs4fi54zR3NpYpaHS7XX2cb5PiSx/sjY9wuLXD03
-EgHy9yFwQNjWW/otGxh+EDzxaPA/OgojUQKEbyhEr1YKBDEqCJaqGJE9F8AbltjH
-wp+B9ZmmzNwd+FA+HzzHXter8syfET37bPUeD2peXdf8qTq7ZGNIPoMpwkJGUUsl
-PaYUh0i6R7j0kwJIxM3Q6p3Z++GvgxqVe2MgS9NkVSwJOMRokKM+95lAaJiwydPA
-MYsiYcaZU5OUMSLkcwnuBiBJf+omobCUtDtfCXf37lC+qkYU/beR4+e1VIUIwQy+
-ZChEwcuFtv229XeqpefE6xzEM6NBDce94EQ3CNwGiyMYci5oY3nOaXBhy9ruVLCr
-13qtm7XMghT8ZzxTQDQ+TQs6x9WkX6RAJtVRGYrZbe1fpxKkiLq2eZqqoaStp1lZ
-8PrbZA8w6AqqzQDMZAwI7lG5YtRuD1+9rUnyOR/aRT2HhUq3W2Q=
-=Rdwh
------END PGP SIGNATURE-----
-
---=-tg98VyR7LdXDpawgcXMj--
+Isn't this the case for RoCE since it's day one? how does it work there? maybe
+a hop limit > 1 is used and the kernel rdma stack tweaks it over RoCE ports?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
