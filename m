@@ -1,169 +1,183 @@
 From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/8] bnxt_re: Convert from init_context to alloc_context
-Date: Wed, 10 Jan 2018 11:23:16 +0530
-Message-ID: <CANjDDBjwmtO2aOtY5NCObrU_VJVmHjw=fdJOk_VvfZx+8+4Ejw@mail.gmail.com>
-References: <20180108212632.5183-1-jgg@ziepe.ca> <20180108212632.5183-3-jgg@ziepe.ca>
+Subject: Re: [PATCH 5/8] verbs: Remove init_context/uninit_context
+Date: Wed, 10 Jan 2018 11:29:13 +0530
+Message-ID: <CANjDDBjN8+nLWKuTjvRg6xEDbtwjExqkeJMHk=K_gBgNQFxUgQ@mail.gmail.com>
+References: <20180108212632.5183-1-jgg@ziepe.ca> <20180108212632.5183-6-jgg@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180108212632.5183-3-jgg-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20180108212632.5183-6-jgg-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 On Tue, Jan 9, 2018 at 2:56 AM, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote:
 > From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >
-> Now that alloc_context can create a verbs_context directly we do
-> not need two init APIs.
+> All providers now use the alloc_context interface and support
+> verbs_context. Remove the dead code.
 >
 > Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->  providers/bnxt_re/main.c  | 45 +++++++++++++++++++++++----------------------
->  providers/bnxt_re/main.h  |  4 ++--
->  providers/bnxt_re/verbs.c |  4 ++--
->  3 files changed, 27 insertions(+), 26 deletions(-)
+>  libibverbs/device.c      | 39 ++-------------------------------------
+>  libibverbs/driver.h      |  9 ---------
+>  providers/bnxt_re/main.c |  4 ----
+>  providers/mlx4/mlx4.c    |  4 ----
+>  providers/mlx5/mlx5.c    |  4 ----
+>  5 files changed, 2 insertions(+), 58 deletions(-)
 >
+> diff --git a/libibverbs/device.c b/libibverbs/device.c
+> index e42e37bd0a1f8d..db6dae5b25af59 100644
+> --- a/libibverbs/device.c
+> +++ b/libibverbs/device.c
+> @@ -259,29 +259,6 @@ err_free:
+>         return NULL;
+>  }
+>
+> -/* Use the init_context flow to create a verbs_context */
+> -static struct verbs_context *alloc_context(struct verbs_device *device,
+> -                                          int cmd_fd)
+> -{
+> -       struct verbs_context *context;
+> -
+> -       context = _verbs_init_and_alloc_context(
+> -               &device->device, cmd_fd,
+> -               sizeof(*context) + device->size_of_context, NULL);
+> -       if (!context)
+> -               return NULL;
+> -
+> -       if (device->ops->init_context(device, &context->context, cmd_fd))
+> -               goto err_uninit;
+> -
+> -       return context;
+> -
+> -err_uninit:
+> -       verbs_uninit_context(context);
+> -       free(context);
+> -       return NULL;
+> -}
+> -
+>  LATEST_SYMVER_FUNC(ibv_open_device, 1_1, "IBVERBS_1.1",
+>                    struct ibv_context *,
+>                    struct ibv_device *device)
+> @@ -304,15 +281,11 @@ LATEST_SYMVER_FUNC(ibv_open_device, 1_1, "IBVERBS_1.1",
+>         if (cmd_fd < 0)
+>                 return NULL;
+>
+> -       if (!verbs_device->ops->init_context)
+> -               context_ex = verbs_device->ops->alloc_context(device, cmd_fd);
+> -       else
+> -               context_ex = alloc_context(verbs_device, cmd_fd);
+> -
+>         /*
+>          * cmd_fd ownership is transferred into alloc_context, if it fails
+>          * then it closes cmd_fd and returns NULL
+>          */
+> +       context_ex = verbs_device->ops->alloc_context(device, cmd_fd);
+>         if (context_ex == NULL)
+>                 return NULL;
+>
+> @@ -338,15 +311,7 @@ LATEST_SYMVER_FUNC(ibv_close_device, 1_1, "IBVERBS_1.1",
+>  {
+>         struct verbs_device *verbs_device = verbs_get_device(context->device);
+>
+> -       if (verbs_device->ops->uninit_context) {
+> -               struct verbs_context *context_ex =
+> -                       container_of(context, struct verbs_context, context);
+> -
+> -               verbs_device->ops->uninit_context(verbs_device, context);
+> -               verbs_uninit_context(context_ex);
+> -       } else {
+> -               verbs_device->ops->free_context(context);
+> -       }
+> +       verbs_device->ops->free_context(context);
+>
+>         return 0;
+>  }
+> diff --git a/libibverbs/driver.h b/libibverbs/driver.h
+> index 809c4f5c8cdf39..00847a41bc468e 100644
+> --- a/libibverbs/driver.h
+> +++ b/libibverbs/driver.h
+> @@ -152,17 +152,10 @@ struct verbs_device_ops {
+>
+>         bool (*match_device)(struct verbs_sysfs_dev *sysfs_dev);
+>
+> -       /* Old interface, do not use in new code. */
+>         struct verbs_context *(*alloc_context)(struct ibv_device *device,
+>                                                int cmd_fd);
+>         void (*free_context)(struct ibv_context *context);
+>
+> -       /* New interface */
+> -       int (*init_context)(struct verbs_device *device,
+> -                           struct ibv_context *ctx, int cmd_fd);
+> -       void (*uninit_context)(struct verbs_device *device,
+> -                              struct ibv_context *ctx);
+> -
+>         struct verbs_device *(*alloc_device)(struct verbs_sysfs_dev *sysfs_dev);
+>         void (*uninit_device)(struct verbs_device *device);
+>  };
+> @@ -171,8 +164,6 @@ struct verbs_device_ops {
+>  struct verbs_device {
+>         struct ibv_device device; /* Must be first */
+>         const struct verbs_device_ops *ops;
+> -       size_t  sz;
+> -       size_t  size_of_context;
+>         atomic_int refcount;
+>         struct list_node entry;
+>         struct verbs_sysfs_dev *sysfs;
 > diff --git a/providers/bnxt_re/main.c b/providers/bnxt_re/main.c
-> index 5e83f9d1c12f35..c225f09eaa58f7 100644
+> index c225f09eaa58f7..d689b392d05b5d 100644
 > --- a/providers/bnxt_re/main.c
 > +++ b/providers/bnxt_re/main.c
-> @@ -104,23 +104,22 @@ static struct ibv_context_ops bnxt_re_cntx_ops = {
->  };
->
->  /* Context Init functions */
-> -static int bnxt_re_init_context(struct verbs_device *vdev,
-> -                               struct ibv_context *ibvctx, int cmd_fd)
-> +static struct verbs_context *bnxt_re_alloc_context(struct ibv_device *vdev,
-> +                                                  int cmd_fd)
->  {
->         struct ibv_get_context cmd;
->         struct bnxt_re_cntx_resp resp;
-> -       struct bnxt_re_dev *dev;
-> +       struct bnxt_re_dev *dev = to_bnxt_re_dev(vdev);
->         struct bnxt_re_context *cntx;
-> -       struct verbs_context *verbs_ctx = verbs_get_ctx(ibvctx);
->
-> -       dev = to_bnxt_re_dev(&vdev->device);
-> -       cntx = to_bnxt_re_context(ibvctx);
-> +       cntx = verbs_init_and_alloc_context(vdev, cmd_fd, cntx, ibvctx);
-> +       if (!cntx)
-> +               return NULL;
->
->         memset(&resp, 0, sizeof(resp));
-> -       ibvctx->cmd_fd = cmd_fd;
-> -       if (ibv_cmd_get_context(verbs_ctx, &cmd, sizeof(cmd), &resp.resp,
-> -                               sizeof(resp)))
-> -               return errno;
-> +       if (ibv_cmd_get_context(&cntx->ibvctx, &cmd, sizeof(cmd),
-> +                               &resp.resp, sizeof(resp)))
-> +               goto failed;
->
->         cntx->dev_id = resp.dev_id;
->         cntx->max_qp = resp.max_qp;
-> @@ -137,22 +136,21 @@ static int bnxt_re_init_context(struct verbs_device *vdev,
->         }
->         pthread_mutex_init(&cntx->shlock, NULL);
->
-> -       ibvctx->ops = bnxt_re_cntx_ops;
-> +       cntx->ibvctx.context.ops = bnxt_re_cntx_ops;
-> +
-> +       return &cntx->ibvctx;
->
-> -       return 0;
->  failed:
-> -       fprintf(stderr, DEV "Failed to allocate context for device\n");
-> -       return errno;
-> +       verbs_uninit_context(&cntx->ibvctx);
-> +       free(cntx);
-> +       return NULL;
->  }
->
-> -static void bnxt_re_uninit_context(struct verbs_device *vdev,
-> -                                  struct ibv_context *ibvctx)
-> +static void bnxt_re_free_context(struct ibv_context *ibvctx)
->  {
-> -       struct bnxt_re_dev *dev;
-> -       struct bnxt_re_context *cntx;
-> +       struct bnxt_re_context *cntx = to_bnxt_re_context(ibvctx);
-> +       struct bnxt_re_dev *dev = to_bnxt_re_dev(ibvctx->device);
->
-> -       dev = to_bnxt_re_dev(&vdev->device);
-> -       cntx = to_bnxt_re_context(ibvctx);
->         /* Unmap if anything device specific was mapped in init_context. */
->         pthread_mutex_destroy(&cntx->shlock);
->         if (cntx->shpg)
-> @@ -167,6 +165,9 @@ static void bnxt_re_uninit_context(struct verbs_device *vdev,
->                 munmap(cntx->udpi.dbpage, dev->pg_size);
->                 cntx->udpi.dbpage = NULL;
->         }
-> +
-> +       verbs_uninit_context(&cntx->ibvctx);
-> +       free(cntx);
->  }
->
->  static struct verbs_device *
-> @@ -191,7 +192,7 @@ static const struct verbs_device_ops bnxt_re_dev_ops = {
->         .match_max_abi_version = BNXT_RE_ABI_VERSION,
->         .match_table = cna_table,
->         .alloc_device = bnxt_re_device_alloc,
-> -       .init_context = bnxt_re_init_context,
-> -       .uninit_context = bnxt_re_uninit_context,
-> +       .alloc_context = bnxt_re_alloc_context,
-> +       .free_context = bnxt_re_free_context,
->  };
->  PROVIDER_DRIVER(bnxt_re_dev_ops);
-> diff --git a/providers/bnxt_re/main.h b/providers/bnxt_re/main.h
-> index 33f531ba6d4b1d..affe24f01141ed 100644
-> --- a/providers/bnxt_re/main.h
-> +++ b/providers/bnxt_re/main.h
-> @@ -141,7 +141,7 @@ struct bnxt_re_dev {
->  };
->
->  struct bnxt_re_context {
-> -       struct ibv_context ibvctx;
-> +       struct verbs_context ibvctx;
->         uint32_t dev_id;
->         uint32_t max_qp;
->         uint32_t max_srq;
-> @@ -167,7 +167,7 @@ static inline struct bnxt_re_dev *to_bnxt_re_dev(struct ibv_device *ibvdev)
->  static inline struct bnxt_re_context *to_bnxt_re_context(
->                 struct ibv_context *ibvctx)
->  {
-> -       return container_of(ibvctx, struct bnxt_re_context, ibvctx);
-> +       return container_of(ibvctx, struct bnxt_re_context, ibvctx.context);
->  }
->
->  static inline struct bnxt_re_pd *to_bnxt_re_pd(struct ibv_pd *ibvpd)
-> diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
-> index 9d4e02bb328fae..bab2d732d71fa3 100644
-> --- a/providers/bnxt_re/verbs.c
-> +++ b/providers/bnxt_re/verbs.c
-> @@ -730,7 +730,7 @@ static int bnxt_re_check_qp_limits(struct bnxt_re_context *cntx,
->         struct ibv_device_attr devattr;
->         int ret;
->
-> -       ret = bnxt_re_query_device(&cntx->ibvctx, &devattr);
-> +       ret = bnxt_re_query_device(&cntx->ibvctx.context, &devattr);
->         if (ret)
->                 return ret;
->         if (attr->cap.max_send_sge > devattr.max_sge)
-> @@ -865,7 +865,7 @@ struct ibv_qp *bnxt_re_create_qp(struct ibv_pd *ibvpd,
->         struct bnxt_re_qpcap *cap;
->
->         struct bnxt_re_context *cntx = to_bnxt_re_context(ibvpd->context);
-> -       struct bnxt_re_dev *dev = to_bnxt_re_dev(cntx->ibvctx.device);
-> +       struct bnxt_re_dev *dev = to_bnxt_re_dev(cntx->ibvctx.context.device);
->
->         if (bnxt_re_check_qp_limits(cntx, attr))
+> @@ -179,10 +179,6 @@ bnxt_re_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
+>         if (!dev)
 >                 return NULL;
+>
+> -       dev->vdev.sz = sizeof(*dev);
+> -       dev->vdev.size_of_context =
+> -               sizeof(struct bnxt_re_context) - sizeof(struct ibv_context);
+> -
+
+Looks good, for bnxt_re provider:
+Reviewed-By: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+
+>         return &dev->vdev;
+>  }
+>
+> diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
+> index 3d64b8c8ebae65..f0d63b57792602 100644
+> --- a/providers/mlx4/mlx4.c
+> +++ b/providers/mlx4/mlx4.c
+> @@ -298,10 +298,6 @@ static struct verbs_device *mlx4_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
+>         dev->page_size   = sysconf(_SC_PAGESIZE);
+>         dev->abi_version = sysfs_dev->abi_ver;
+>
+> -       dev->verbs_dev.sz = sizeof(*dev);
+> -       dev->verbs_dev.size_of_context =
+> -               sizeof(struct mlx4_context) - sizeof(struct ibv_context);
+> -
+>         return &dev->verbs_dev;
+>  }
+>
+> diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
+> index 7e8dc9b1951192..41b484fce29683 100644
+> --- a/providers/mlx5/mlx5.c
+> +++ b/providers/mlx5/mlx5.c
+> @@ -1099,10 +1099,6 @@ static struct verbs_device *mlx5_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
+>         dev->page_size   = sysconf(_SC_PAGESIZE);
+>         dev->driver_abi_ver = sysfs_dev->abi_ver;
+>
+> -       dev->verbs_dev.sz = sizeof(*dev);
+> -       dev->verbs_dev.size_of_context = sizeof(struct mlx5_context) -
+> -               sizeof(struct ibv_context);
+> -
+>         return &dev->verbs_dev;
+>  }
+>
 > --
 > 2.15.1
 >
-
-Looks good, will test and comeback if there are any failures seen.
-Reveiwed-By: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
