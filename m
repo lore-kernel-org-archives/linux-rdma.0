@@ -1,76 +1,67 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH][next] IB/mlx5: remove redundant assignment of mdev
-Date: Wed, 10 Jan 2018 16:53:41 -0500
-Message-ID: <1515621221.3403.171.camel@redhat.com>
-References: <20180109155543.15027-1-colin.king@canonical.com>
-         <20180110074003.GG7368@mtr-leonro.local>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] iser-target: Fix possible use-after-free in connection
+ establishment error
+Date: Wed, 10 Jan 2018 16:54:46 -0500
+Message-ID: <1515621286.3403.172.camel@redhat.com>
+References: <20171126133104.22710-1-sagi@grimberg.me>
+         <3676820c-544e-8ced-859a-ade8e6a0ef53@grimberg.me>
+         <BN3PR07MB25782C93E50A7A0C55A110B4F83B0@BN3PR07MB2578.namprd07.prod.outlook.com>
+         <eda02d71-cf33-2333-223a-0d6eeabb8185@grimberg.me>
+         <e11259b7-5add-bf87-73d4-49483c90bf73@mellanox.com>
+         <20180109171718.GC4518@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-wtA3h/kQyuZdtfr0FAXN"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180110074003.GG7368-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+        protocol="application/pgp-signature"; boundary="=-tg98VyR7LdXDpawgcXMj"
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20180109171718.GC4518@ziepe.ca>
+Sender: target-devel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>, Max Gurtovoy <maxg@mellanox.com>
+Cc: Sagi Grimberg <sagi@grimberg.me>, "Amrani, Ram" <Ram.Amrani@cavium.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-wtA3h/kQyuZdtfr0FAXN
+--=-tg98VyR7LdXDpawgcXMj
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2018-01-10 at 09:40 +0200, Leon Romanovsky wrote:
-> On Tue, Jan 09, 2018 at 03:55:43PM +0000, Colin King wrote:
-> > From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> >=20
-> > The initial assignment to mdev is redundant as mdev is re-assigned
-> > later and the first assigned value is never read. Remove this
-> > redundant assignment.
-> >=20
-> > Cleans up clang warning:
-> > drivers/infiniband/hw/mlx5/main.c:359:24: warning: Value stored
-> > to 'mdev' during its initialization is never read
-> >=20
-> > Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> > ---
-> >  drivers/infiniband/hw/mlx5/main.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >=20
+On Tue, 2018-01-09 at 10:17 -0700, Jason Gunthorpe wrote:
+> On Tue, Jan 09, 2018 at 07:04:16PM +0200, Max Gurtovoy wrote:
+> > hi Guys,
+> > did we forget taking this fix to mainline/stable or we found another
+> > solution ?
 >=20
-> Thanks,
-> Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> I thought it was going to NAB's tree.. My mistake, I put it back into
+> patchworks and it will get into for-next
 
-Thanks, applied to for-next.
+In fairness, the email thread said exactly that.  But, it never got
+picked up by NAB.  And being that it's in our tree and calling an rdma-
+core function, it can easily enough go through our tree, so I applied it
+to for-rc.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-wtA3h/kQyuZdtfr0FAXN
+--=-tg98VyR7LdXDpawgcXMj
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpWi2UACgkQuCajMw5X
-L92+OQ/+MfK9s+NsUdSb+NVAf/DkFuXmkWPmPFHIjwVqHHTovJweqZgQORm/uBah
-HkcflMAw4fLghmGkEKsMK0JciO2mMBfSLPngsWvgsNckHlRNDL1rzllHrYdeE2bb
-xXZ3KhVKZWLIYRadEOcLVId79YncBng1z1grjtScCcmQ8cBhnxrKZ92P4zODlUpa
-gCFg7xLQZQxP7r8zURvnuqf6X+16H2LXAl7V/FquqzBWSps/1OWN+hrqiQXmJF+R
-nmGjtSkwgnS468iK0d2aycTqfcIj+JeUXGqX9VKJt/iOsmwRkFdDXS6An56GK+8t
-/CaXUmp5JhiU2T+Rvzc3CsNIJ0UFG2YqLH2NCCmw8wu/z+/VHz8/IyG+9A4t1nsd
-zuUU/gcjo9POZeI75xGKzIpSbtdFtiOJ2AW1bZ7i3mtPXiGkeyIbRvxNvtpqIOMp
-058VPLSsnS4tJ+6XSo8iuAEL/e3jtSav7orzMnS5VFE0WNlv7zkz9NpxF2n8RvOF
-YC6b9apqTpf/XiRNwmxwX0FR9Q7uF9yd80u5t2JUXdkbmEaAKDRbkd0TavPxNFxA
-VsJmgQTLEVQILSrFnIFjdtNYJRfJbWbwzoUQeh2ZC4YzM9tFxl9decZ/x0A9uE8z
-ydrOSp9lbT2gr0P1uCGbcBo9tr6o9WWcEuSv40xYyvTcN0TwDRU=
-=g9Hh
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpWi6YACgkQuCajMw5X
+L93cSQ//Y3y6fa/asbr2MY0A5JiFEkPuUXuYYnFUUqKRA4UiYsUbyD/7l/Nwtk4H
+l/SLi/oRGQUKtw3o1VTTNfCrXLOb1jQb8Z0iGnqiSayk26xpqoXGws1i+O1z4JYY
+NksB/ODA1tsANcOxySsBmTLTtmV4lqJFEnGjxVE95CsbXo6zOr9kUEDuBTk4br4e
+A5UtYvwEswWJgRAzlC266+6IKs4fi54zR3NpYpaHS7XX2cb5PiSx/sjY9wuLXD03
+EgHy9yFwQNjWW/otGxh+EDzxaPA/OgojUQKEbyhEr1YKBDEqCJaqGJE9F8AbltjH
+wp+B9ZmmzNwd+FA+HzzHXter8syfET37bPUeD2peXdf8qTq7ZGNIPoMpwkJGUUsl
+PaYUh0i6R7j0kwJIxM3Q6p3Z++GvgxqVe2MgS9NkVSwJOMRokKM+95lAaJiwydPA
+MYsiYcaZU5OUMSLkcwnuBiBJf+omobCUtDtfCXf37lC+qkYU/beR4+e1VIUIwQy+
+ZChEwcuFtv229XeqpefE6xzEM6NBDce94EQ3CNwGiyMYci5oY3nOaXBhy9ruVLCr
+13qtm7XMghT8ZzxTQDQ+TQs6x9WkX6RAJtVRGYrZbe1fpxKkiLq2eZqqoaStp1lZ
+8PrbZA8w6AqqzQDMZAwI7lG5YtRuD1+9rUnyOR/aRT2HhUq3W2Q=
+=Rdwh
 -----END PGP SIGNATURE-----
 
---=-wtA3h/kQyuZdtfr0FAXN--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-tg98VyR7LdXDpawgcXMj--
