@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V2 for-next 7/7] RDMA/hns: Set the guid for hip08 RoCE device
-Date: Wed, 10 Jan 2018 14:39:53 +0800
-Message-ID: <1515566393-63888-8-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V2 for-next 3/7] RDMA/hns: Add gsi qp support for modifying qp in hip08
+Date: Wed, 10 Jan 2018 14:39:49 +0800
+Message-ID: <1515566393-63888-4-git-send-email-oulijun@huawei.com>
 References: <1515566393-63888-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,45 +12,172 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gma
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch assgin a guid(Global Unique identifer)
-value to the hip08 device.
+It needs to Assign the values for some fields in qp context
+when qp type is gsi qp type in hip08.
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
 V2:
-- Use the correct way to update guid from Leon
-  Romanovsky's review.
+- Remove the options of assigning the correct value for
+  tx cqn field of qp context and generate a separate patch
 
 V1:
 - The initial submit
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_device.h |  1 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 64 +++++++++++++++++++++--------
+ 2 files changed, 49 insertions(+), 16 deletions(-)
 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 4afa070..42c3b5a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -485,6 +485,7 @@ struct hns_roce_qp {
+ 	u32			access_flags;
+ 	u32                     atomic_rd_en;
+ 	u32			pkey_index;
++	u32			qkey;
+ 	void			(*event)(struct hns_roce_qp *,
+ 					 enum hns_roce_event);
+ 	unsigned long		qpn;
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index a1839a3..2af4948 100644
+index dd50336..e53cd7d 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -34,6 +34,7 @@
- #include <linux/etherdevice.h>
- #include <linux/interrupt.h>
- #include <linux/kernel.h>
-+#include <net/addrconf.h>
- #include <rdma/ib_umem.h>
+@@ -1975,6 +1975,7 @@ static void set_access_flags(struct hns_roce_qp *hr_qp,
  
- #include "hnae3.h"
-@@ -4679,6 +4680,9 @@ static int hns_roce_hw_v2_get_cfg(struct hns_roce_dev *hr_dev,
- 	hr_dev->iboe.netdevs[0] = handle->rinfo.netdev;
- 	hr_dev->iboe.phy_port[0] = 0;
+ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
+ 				    const struct ib_qp_attr *attr,
++				    int attr_mask,
+ 				    struct hns_roce_v2_qp_context *context,
+ 				    struct hns_roce_v2_qp_context *qpc_mask)
+ {
+@@ -1991,9 +1992,18 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
+ 	roce_set_field(qpc_mask->byte_4_sqpn_tst, V2_QPC_BYTE_4_TST_M,
+ 		       V2_QPC_BYTE_4_TST_S, 0);
  
-+	addrconf_addr_eui48((u8 *)&hr_dev->ib_dev.node_guid,
-+			    hr_dev->iboe.netdevs[0]->dev_addr);
+-	roce_set_field(context->byte_4_sqpn_tst, V2_QPC_BYTE_4_SGE_SHIFT_M,
+-		       V2_QPC_BYTE_4_SGE_SHIFT_S, hr_qp->sq.max_gs > 2 ?
+-		       ilog2((unsigned int)hr_qp->sge.sge_cnt) : 0);
++	if (ibqp->qp_type == IB_QPT_GSI)
++		roce_set_field(context->byte_4_sqpn_tst,
++			       V2_QPC_BYTE_4_SGE_SHIFT_M,
++			       V2_QPC_BYTE_4_SGE_SHIFT_S,
++			       ilog2((unsigned int)hr_qp->sge.sge_cnt));
++	else
++		roce_set_field(context->byte_4_sqpn_tst,
++			       V2_QPC_BYTE_4_SGE_SHIFT_M,
++			       V2_QPC_BYTE_4_SGE_SHIFT_S,
++			       hr_qp->sq.max_gs > 2 ?
++			       ilog2((unsigned int)hr_qp->sge.sge_cnt) : 0);
 +
- 	for (i = 0; i < HNS_ROCE_V2_MAX_IRQ_NUM; i++)
- 		hr_dev->irq[i] = pci_irq_vector(handle->pdev,
- 						i + handle->rinfo.base_vector);
+ 	roce_set_field(qpc_mask->byte_4_sqpn_tst, V2_QPC_BYTE_4_SGE_SHIFT_M,
+ 		       V2_QPC_BYTE_4_SGE_SHIFT_S, 0);
+ 
+@@ -2058,6 +2068,12 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
+ 	roce_set_bit(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_CNP_TX_FLAG_S, 0);
+ 	roce_set_bit(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_CE_FLAG_S, 0);
+ 
++	if (attr_mask & IB_QP_QKEY) {
++		context->qkey_xrcd = attr->qkey;
++		qpc_mask->qkey_xrcd = 0;
++		hr_qp->qkey = attr->qkey;
++	}
++
+ 	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S, 1);
+ 	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S, 0);
+ 
+@@ -2279,9 +2295,17 @@ static void modify_qp_init_to_init(struct ib_qp *ibqp,
+ 	roce_set_field(qpc_mask->byte_4_sqpn_tst, V2_QPC_BYTE_4_TST_M,
+ 		       V2_QPC_BYTE_4_TST_S, 0);
+ 
+-	roce_set_field(context->byte_4_sqpn_tst, V2_QPC_BYTE_4_SGE_SHIFT_M,
+-		       V2_QPC_BYTE_4_SGE_SHIFT_S, hr_qp->sq.max_gs > 2 ?
+-		       ilog2((unsigned int)hr_qp->sge.sge_cnt) : 0);
++	if (ibqp->qp_type == IB_QPT_GSI)
++		roce_set_field(context->byte_4_sqpn_tst,
++			       V2_QPC_BYTE_4_SGE_SHIFT_M,
++			       V2_QPC_BYTE_4_SGE_SHIFT_S,
++			       ilog2((unsigned int)hr_qp->sge.sge_cnt));
++	else
++		roce_set_field(context->byte_4_sqpn_tst,
++			       V2_QPC_BYTE_4_SGE_SHIFT_M,
++			       V2_QPC_BYTE_4_SGE_SHIFT_S, hr_qp->sq.max_gs > 2 ?
++			       ilog2((unsigned int)hr_qp->sge.sge_cnt) : 0);
++
+ 	roce_set_field(qpc_mask->byte_4_sqpn_tst, V2_QPC_BYTE_4_SGE_SHIFT_M,
+ 		       V2_QPC_BYTE_4_SGE_SHIFT_S, 0);
+ 
+@@ -2358,10 +2382,10 @@ static void modify_qp_init_to_init(struct ib_qp *ibqp,
+ 			       V2_QPC_BYTE_76_SRQN_M, V2_QPC_BYTE_76_SRQN_S, 0);
+ 	}
+ 
+-	if (attr_mask & IB_QP_PKEY_INDEX)
+-		context->qkey_xrcd = attr->pkey_index;
+-	else
+-		context->qkey_xrcd = hr_qp->pkey_index;
++	if (attr_mask & IB_QP_QKEY) {
++		context->qkey_xrcd = attr->qkey;
++		qpc_mask->qkey_xrcd = 0;
++	}
+ 
+ 	roce_set_field(context->byte_4_sqpn_tst, V2_QPC_BYTE_4_SQPN_M,
+ 		       V2_QPC_BYTE_4_SQPN_S, hr_qp->qpn);
+@@ -2457,7 +2481,8 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 	roce_set_field(context->byte_20_smac_sgid_idx,
+ 		       V2_QPC_BYTE_20_SGE_HOP_NUM_M,
+ 		       V2_QPC_BYTE_20_SGE_HOP_NUM_S,
+-		       hr_qp->sq.max_gs > 2 ? hr_dev->caps.mtt_hop_num : 0);
++		       ((ibqp->qp_type == IB_QPT_GSI) || hr_qp->sq.max_gs > 2) ?
++		       hr_dev->caps.mtt_hop_num : 0);
+ 	roce_set_field(qpc_mask->byte_20_smac_sgid_idx,
+ 		       V2_QPC_BYTE_20_SGE_HOP_NUM_M,
+ 		       V2_QPC_BYTE_20_SGE_HOP_NUM_S, 0);
+@@ -2617,8 +2642,13 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 	roce_set_field(qpc_mask->byte_24_mtu_tc, V2_QPC_BYTE_24_TC_M,
+ 		       V2_QPC_BYTE_24_TC_S, 0);
+ 
+-	roce_set_field(context->byte_24_mtu_tc, V2_QPC_BYTE_24_MTU_M,
+-		       V2_QPC_BYTE_24_MTU_S, attr->path_mtu);
++	if (ibqp->qp_type == IB_QPT_GSI || ibqp->qp_type == IB_QPT_UD)
++		roce_set_field(context->byte_24_mtu_tc, V2_QPC_BYTE_24_MTU_M,
++			       V2_QPC_BYTE_24_MTU_S, IB_MTU_4096);
++	else
++		roce_set_field(context->byte_24_mtu_tc, V2_QPC_BYTE_24_MTU_M,
++			       V2_QPC_BYTE_24_MTU_S, attr->path_mtu);
++
+ 	roce_set_field(qpc_mask->byte_24_mtu_tc, V2_QPC_BYTE_24_MTU_M,
+ 		       V2_QPC_BYTE_24_MTU_S, 0);
+ 
+@@ -2725,13 +2755,14 @@ static int modify_qp_rtr_to_rts(struct ib_qp *ibqp,
+ 		       V2_QPC_BYTE_168_SQ_CUR_BLK_ADDR_S, 0);
+ 
+ 	page_size = 1 << (hr_dev->caps.mtt_buf_pg_sz + PAGE_SHIFT);
+-	context->sq_cur_sge_blk_addr = hr_qp->sq.max_gs > 2 ?
++	context->sq_cur_sge_blk_addr =
++		       ((ibqp->qp_type == IB_QPT_GSI) || hr_qp->sq.max_gs > 2) ?
+ 				      ((u32)(mtts[hr_qp->sge.offset / page_size]
+ 				      >> PAGE_ADDR_SHIFT)) : 0;
+ 	roce_set_field(context->byte_184_irrl_idx,
+ 		       V2_QPC_BYTE_184_SQ_CUR_SGE_BLK_ADDR_M,
+ 		       V2_QPC_BYTE_184_SQ_CUR_SGE_BLK_ADDR_S,
+-		       hr_qp->sq.max_gs > 2 ?
++		       ((ibqp->qp_type == IB_QPT_GSI) || hr_qp->sq.max_gs > 2) ?
+ 		       (mtts[hr_qp->sge.offset / page_size] >>
+ 		       (32 + PAGE_ADDR_SHIFT)) : 0);
+ 	qpc_mask->sq_cur_sge_blk_addr = 0;
+@@ -2902,7 +2933,8 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
+ 	 */
+ 	memset(qpc_mask, 0xff, sizeof(*qpc_mask));
+ 	if (cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT) {
+-		modify_qp_reset_to_init(ibqp, attr, context, qpc_mask);
++		modify_qp_reset_to_init(ibqp, attr, attr_mask, context,
++					qpc_mask);
+ 	} else if (cur_state == IB_QPS_INIT && new_state == IB_QPS_INIT) {
+ 		modify_qp_init_to_init(ibqp, attr, attr_mask, context,
+ 				       qpc_mask);
 -- 
 1.9.1
 
