@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH rdma-core 05/17] verbs: Remove kernel ABI v2 compat cruft
-Date: Thu, 11 Jan 2018 15:13:28 -0700
-Message-ID: <20180111221340.965-6-jgg@ziepe.ca>
+Subject: [PATCH rdma-core 12/17] verbs: Use kernel uapi header for ibv_kern_send_wr
+Date: Thu, 11 Jan 2018 15:13:35 -0700
+Message-ID: <20180111221340.965-13-jgg@ziepe.ca>
 References: <20180111221340.965-1-jgg@ziepe.ca>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180111221340.965-1-jgg-uk2M96/98Pc@public.gmane.org>
@@ -12,219 +12,115 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When verbs extensions were introduced the minimum ABI version was
-changed to v3 and abi_ver <= 2 was no longer possible.
+The kern_wc is slightly different, and the kernel API version is
+missing a be32 (patch going to Linux separately)
 
-Remove everything to do with this support since it hasn't even
-been runnable for 5 years.
+The unused and curious qp_type.xrc.remote_srqn is deleted.
 
-Fixes: 6be16586e081 ("Infrastructure to support verbs extensions")
 Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/cmd.c      |  3 ---
- libibverbs/ibverbs.h  | 18 +++-----------
- libibverbs/kern-abi.h | 67 ---------------------------------------------------
- libibverbs/verbs.c    | 33 -------------------------
- 4 files changed, 4 insertions(+), 117 deletions(-)
+ buildlib/fixup-include/rdma-ib_user_verbs.h |  2 +-
+ libibverbs/cmd.c                            |  6 ++---
+ libibverbs/kern-abi.h                       | 35 +----------------------------
+ 3 files changed, 5 insertions(+), 38 deletions(-)
 
+diff --git a/buildlib/fixup-include/rdma-ib_user_verbs.h b/buildlib/fixup-include/rdma-ib_user_verbs.h
+index 0573c0bb9fd059..fd035641cf41ce 100644
+--- a/buildlib/fixup-include/rdma-ib_user_verbs.h
++++ b/buildlib/fixup-include/rdma-ib_user_verbs.h
+@@ -765,7 +765,7 @@ struct ib_uverbs_send_wr {
+ 	__u32 opcode;
+ 	__u32 send_flags;
+ 	union {
+-		__u32 imm_data;
++		__be32 imm_data;
+ 		__u32 invalidate_rkey;
+ 	} ex;
+ 	union {
 diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-index fc58de768d0011..fbd87d475a2751 100644
+index 51366f05cfc9c5..99e94233f320d1 100644
 --- a/libibverbs/cmd.c
 +++ b/libibverbs/cmd.c
-@@ -48,9 +48,6 @@ int ibv_cmd_get_context(struct verbs_context *context_ex,
- 			struct ibv_get_context *cmd, size_t cmd_size,
- 			struct ibv_get_context_resp *resp, size_t resp_size)
- {
--	if (abi_ver < IB_USER_VERBS_MIN_ABI_VERSION)
--		return ENOSYS;
--
- 	IBV_INIT_CMD_RESP(cmd, cmd_size, GET_CONTEXT, resp, resp_size);
+@@ -1413,7 +1413,7 @@ int ibv_cmd_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 	struct ibv_post_send     *cmd;
+ 	struct ib_uverbs_post_send_resp resp;
+ 	struct ibv_send_wr       *i;
+-	struct ibv_kern_send_wr  *n, *tmp;
++	struct ib_uverbs_send_wr  *n, *tmp;
+ 	struct ibv_sge           *s;
+ 	unsigned                  wr_count = 0;
+ 	unsigned                  sge_count = 0;
+@@ -1434,7 +1434,7 @@ int ibv_cmd_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 	cmd->sge_count = sge_count;
+ 	cmd->wqe_size  = sizeof *n;
  
- 	if (write(context_ex->context.cmd_fd, cmd, cmd_size) != cmd_size)
-diff --git a/libibverbs/ibverbs.h b/libibverbs/ibverbs.h
-index 97d3a4b8dbab91..7755393fe4f3ce 100644
---- a/libibverbs/ibverbs.h
-+++ b/libibverbs/ibverbs.h
-@@ -64,20 +64,14 @@ struct verbs_ex_private {
+-	n = (struct ibv_kern_send_wr *) ((void *) cmd + sizeof *cmd);
++	n = (struct ib_uverbs_send_wr *) ((void *) cmd + sizeof *cmd);
+ 	s = (struct ibv_sge *) (n + wr_count);
  
- #define IBV_INIT_CMD(cmd, size, opcode)					\
- 	do {								\
--		if (abi_ver > 2)					\
--			(cmd)->command = IB_USER_VERBS_CMD_##opcode;	\
--		else							\
--			(cmd)->command = IB_USER_VERBS_CMD_##opcode##_V2; \
-+		(cmd)->command = IB_USER_VERBS_CMD_##opcode;		\
- 		(cmd)->in_words  = (size) / 4;				\
- 		(cmd)->out_words = 0;					\
- 	} while (0)
- 
- #define IBV_INIT_CMD_RESP(cmd, size, opcode, out, outsize)		\
- 	do {								\
--		if (abi_ver > 2)					\
--			(cmd)->command = IB_USER_VERBS_CMD_##opcode;	\
--		else							\
--			(cmd)->command = IB_USER_VERBS_CMD_##opcode##_V2; \
-+		(cmd)->command = IB_USER_VERBS_CMD_##opcode;		\
- 		(cmd)->in_words  = (size) / 4;				\
- 		(cmd)->out_words = (outsize) / 4;			\
- 		(cmd)->response  = (uintptr_t) (out);			\
-@@ -94,12 +88,8 @@ static inline uint32_t _cmd_ex(uint32_t cmd)
- 		outsize)						   \
- 	do {                                                               \
- 		size_t c_size = cmd_size - sizeof(struct ex_hdr);	   \
--		if (abi_ver > 2)					   \
--			(cmd)->hdr.command =				   \
--				_cmd_ex(IB_USER_VERBS_EX_CMD_##opcode);    \
--		else							   \
--			(cmd)->hdr.command =				   \
--				IB_USER_VERBS_CMD_##opcode##_V2;	   \
-+		(cmd)->hdr.command =					   \
-+			_cmd_ex(IB_USER_VERBS_EX_CMD_##opcode);		   \
- 		(cmd)->hdr.in_words  = ((c_size) / 8);                     \
- 		(cmd)->hdr.out_words = ((resp_size) / 8);                  \
- 		(cmd)->hdr.provider_in_words   = (((size) - (cmd_size))/8);\
+ 	tmp = n;
+@@ -1443,7 +1443,7 @@ int ibv_cmd_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 		tmp->num_sge 	= i->num_sge;
+ 		tmp->opcode 	= i->opcode;
+ 		tmp->send_flags = i->send_flags;
+-		tmp->imm_data 	= i->imm_data;
++		tmp->ex.imm_data = i->imm_data;
+ 		if (ibqp->qp_type == IBV_QPT_UD) {
+ 			tmp->wr.ud.ah 	       = i->wr.ud.ah->handle;
+ 			tmp->wr.ud.remote_qpn  = i->wr.ud.remote_qpn;
 diff --git a/libibverbs/kern-abi.h b/libibverbs/kern-abi.h
-index 92d750e1d26b09..52b6c8f5b3d621 100644
+index 5d332f7b22c3f7..6284d0e45e9784 100644
 --- a/libibverbs/kern-abi.h
 +++ b/libibverbs/kern-abi.h
-@@ -1093,73 +1093,6 @@ struct ibv_destroy_srq_resp {
- 	__u32 events_reported;
+@@ -395,39 +395,6 @@ struct ibv_destroy_qp {
+ 	__u32 reserved;
  };
  
--/*
-- * Compatibility with older ABI versions
-- */
--
--enum {
--	IB_USER_VERBS_CMD_QUERY_PARAMS_V2,
--	IB_USER_VERBS_CMD_GET_CONTEXT_V2,
--	IB_USER_VERBS_CMD_QUERY_DEVICE_V2,
--	IB_USER_VERBS_CMD_QUERY_PORT_V2,
--	IB_USER_VERBS_CMD_QUERY_GID_V2,
--	IB_USER_VERBS_CMD_QUERY_PKEY_V2,
--	IB_USER_VERBS_CMD_ALLOC_PD_V2,
--	IB_USER_VERBS_CMD_DEALLOC_PD_V2,
--	IB_USER_VERBS_CMD_CREATE_AH_V2,
--	IB_USER_VERBS_CMD_MODIFY_AH_V2,
--	IB_USER_VERBS_CMD_QUERY_AH_V2,
--	IB_USER_VERBS_CMD_DESTROY_AH_V2,
--	IB_USER_VERBS_CMD_REG_MR_V2,
--	IB_USER_VERBS_CMD_REG_SMR_V2,
--	IB_USER_VERBS_CMD_REREG_MR_V2,
--	IB_USER_VERBS_CMD_QUERY_MR_V2,
--	IB_USER_VERBS_CMD_DEREG_MR_V2,
--	IB_USER_VERBS_CMD_ALLOC_MW_V2,
--	IB_USER_VERBS_CMD_BIND_MW_V2,
--	IB_USER_VERBS_CMD_DEALLOC_MW_V2,
--	IB_USER_VERBS_CMD_CREATE_CQ_V2,
--	IB_USER_VERBS_CMD_RESIZE_CQ_V2,
--	IB_USER_VERBS_CMD_DESTROY_CQ_V2,
--	IB_USER_VERBS_CMD_POLL_CQ_V2,
--	IB_USER_VERBS_CMD_PEEK_CQ_V2,
--	IB_USER_VERBS_CMD_REQ_NOTIFY_CQ_V2,
--	IB_USER_VERBS_CMD_CREATE_QP_V2,
--	IB_USER_VERBS_CMD_QUERY_QP_V2,
--	IB_USER_VERBS_CMD_MODIFY_QP_V2,
--	IB_USER_VERBS_CMD_DESTROY_QP_V2,
--	IB_USER_VERBS_CMD_POST_SEND_V2,
--	IB_USER_VERBS_CMD_POST_RECV_V2,
--	IB_USER_VERBS_CMD_ATTACH_MCAST_V2,
--	IB_USER_VERBS_CMD_DETACH_MCAST_V2,
--	IB_USER_VERBS_CMD_CREATE_SRQ_V2,
--	IB_USER_VERBS_CMD_MODIFY_SRQ_V2,
--	IB_USER_VERBS_CMD_QUERY_SRQ_V2,
--	IB_USER_VERBS_CMD_DESTROY_SRQ_V2,
--	IB_USER_VERBS_CMD_POST_SRQ_RECV_V2,
--	/*
--	 * Set commands that didn't exist to -1 so our compile-time
--	 * trick opcodes in IBV_INIT_CMD() doesn't break.
--	 */
--	IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL_V2 = -1,
--	IB_USER_VERBS_CMD_OPEN_XRCD_V2 = -1,
--	IB_USER_VERBS_CMD_CLOSE_XRCD_V2 = -1,
--	IB_USER_VERBS_CMD_CREATE_XSRQ_V2 = -1,
--	IB_USER_VERBS_CMD_OPEN_QP_V2 = -1,
--	IB_USER_VERBS_CMD_CREATE_FLOW_V2 = -1,
--	IB_USER_VERBS_CMD_DESTROY_FLOW_V2 = -1,
--	IB_USER_VERBS_CMD_QUERY_DEVICE_EX_V2 = -1,
--	IB_USER_VERBS_CMD_CREATE_QP_EX_V2 = -1,
--	IB_USER_VERBS_CMD_CREATE_CQ_EX_V2 = -1,
--	IB_USER_VERBS_CMD_CREATE_WQ_V2 = -1,
--	IB_USER_VERBS_CMD_MODIFY_WQ_V2 = -1,
--	IB_USER_VERBS_CMD_DESTROY_WQ_V2 = -1,
--	IB_USER_VERBS_CMD_CREATE_RWQ_IND_TBL_V2 = -1,
--	IB_USER_VERBS_CMD_DESTROY_RWQ_IND_TBL_V2 = -1,
--	IB_USER_VERBS_CMD_MODIFY_QP_EX_V2 = -1,
--	IB_USER_VERBS_CMD_MODIFY_CQ_V2 = -1,
+-struct ibv_kern_send_wr {
+-	__u64 wr_id;
+-	__u32 num_sge;
+-	__u32 opcode;
+-	__u32 send_flags;
+-	__be32 imm_data;
+-	union {
+-		struct {
+-			__u64 remote_addr;
+-			__u32 rkey;
+-			__u32 reserved;
+-		} rdma;
+-		struct {
+-			__u64 remote_addr;
+-			__u64 compare_add;
+-			__u64 swap;
+-			__u32 rkey;
+-			__u32 reserved;
+-		} atomic;
+-		struct {
+-			__u32 ah;
+-			__u32 remote_qpn;
+-			__u32 remote_qkey;
+-			__u32 reserved;
+-		} ud;
+-	} wr;
+-	union {
+-		struct {
+-			__u32 remote_srqn;
+-		} xrc;
+-	} qp_type;
 -};
 -
- struct ibv_modify_srq_v3 {
- 	__u32 command;
- 	__u16 in_words;
-diff --git a/libibverbs/verbs.c b/libibverbs/verbs.c
-index c772335e06d71a..4b2696e2aac020 100644
---- a/libibverbs/verbs.c
-+++ b/libibverbs/verbs.c
-@@ -315,33 +315,12 @@ LATEST_SYMVER_FUNC(ibv_dereg_mr, 1_1, "IBVERBS_1.1",
- 	return ret;
- }
+ struct ibv_kern_spec_eth {
+ 	__u32 type;
+ 	__u16  size;
+@@ -522,7 +489,7 @@ struct ibv_post_send {
+ 	__u32 wr_count;
+ 	__u32 sge_count;
+ 	__u32 wqe_size;
+-	struct ibv_kern_send_wr send_wr[0];
++	struct ib_uverbs_send_wr send_wr[0];
+ };
  
--static struct ibv_comp_channel *ibv_create_comp_channel_v2(struct ibv_context *context)
--{
--	struct ibv_abi_compat_v2 *t = context->abi_compat;
--	static int warned;
--
--	if (!pthread_mutex_trylock(&t->in_use))
--		return &t->channel;
--
--	if (!warned) {
--		fprintf(stderr, PFX "Warning: kernel's ABI version %d limits capacity.\n"
--			"    Only one completion channel can be created per context.\n",
--			abi_ver);
--		++warned;
--	}
--
--	return NULL;
--}
--
- struct ibv_comp_channel *ibv_create_comp_channel(struct ibv_context *context)
- {
- 	struct ibv_comp_channel            *channel;
- 	struct ibv_create_comp_channel      cmd;
- 	struct ibv_create_comp_channel_resp resp;
- 
--	if (abi_ver <= 2)
--		return ibv_create_comp_channel_v2(context);
--
- 	channel = malloc(sizeof *channel);
- 	if (!channel)
- 		return NULL;
-@@ -361,13 +340,6 @@ struct ibv_comp_channel *ibv_create_comp_channel(struct ibv_context *context)
- 	return channel;
- }
- 
--static int ibv_destroy_comp_channel_v2(struct ibv_comp_channel *channel)
--{
--	struct ibv_abi_compat_v2 *t = (struct ibv_abi_compat_v2 *) channel;
--	pthread_mutex_unlock(&t->in_use);
--	return 0;
--}
--
- int ibv_destroy_comp_channel(struct ibv_comp_channel *channel)
- {
- 	struct ibv_context *context;
-@@ -381,11 +353,6 @@ int ibv_destroy_comp_channel(struct ibv_comp_channel *channel)
- 		goto out;
- 	}
- 
--	if (abi_ver <= 2) {
--		ret = ibv_destroy_comp_channel_v2(channel);
--		goto out;
--	}
--
- 	close(channel->fd);
- 	free(channel);
- 	ret = 0;
+ struct ibv_post_recv {
 -- 
 2.15.1
 
