@@ -1,579 +1,404 @@
 From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [for-next V2 4/5] RDMA/bnxt_re: expose detailed stats retrieved from HW
-Date: Thu, 11 Jan 2018 11:52:10 -0500
-Message-ID: <1515689531-25770-5-git-send-email-devesh.sharma@broadcom.com>
+Subject: [for-next V2 3/5] RDMA/bnxt_re: Add support for MRs with Huge pages
+Date: Thu, 11 Jan 2018 11:52:09 -0500
+Message-ID: <1515689531-25770-4-git-send-email-devesh.sharma@broadcom.com>
 References: <1515689531-25770-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1515689531-25770-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
-Broadcom's adapter supports more granular statistics
-to allow better understanding about the state of the
-chip when data traffic is flowing.
+Depending on the OS page-table configurations, applications
+may request MRs which has page size alignment other than 4K
 
-Exposing the detailed stats to the consumer through
-the standard hook available in the kverbs interface.
-In order to retrieve all the information, driver
-implements a firmware command.
+Underlying provider driver needs to adjust its PBL boundaries
+according to the incoming page boundaries in the PA list.
 
+Adding a capability to register MRs having pages-sizes other
+than 4K (Hugepages).
+
+Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/bnxt_re/bnxt_re.h     |   2 +
- drivers/infiniband/hw/bnxt_re/hw_counters.c | 145 ++++++++++++++++++++++++++--
- drivers/infiniband/hw/bnxt_re/hw_counters.h |  39 ++++++++
- drivers/infiniband/hw/bnxt_re/main.c        |   1 +
- drivers/infiniband/hw/bnxt_re/qplib_sp.c    |  70 ++++++++++++++
- drivers/infiniband/hw/bnxt_re/qplib_sp.h    |  81 ++++++++++++++++
- drivers/infiniband/hw/bnxt_re/roce_hsi.h    |  89 +++++++++++++++++
- 7 files changed, 417 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h  |  26 ++++---
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 120 +++++++++++++++++++++----------
+ drivers/infiniband/hw/bnxt_re/qplib_sp.c |  12 +++-
+ drivers/infiniband/hw/bnxt_re/qplib_sp.h |   2 +-
+ drivers/infiniband/hw/bnxt_re/roce_hsi.h |  28 +++++++-
+ 5 files changed, 137 insertions(+), 51 deletions(-)
 
 diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-index 085ca00..ca32057 100644
+index b604277..085ca00 100644
 --- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
 +++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-@@ -121,6 +121,7 @@ struct bnxt_re_dev {
- #define BNXT_RE_FLAG_RCFW_CHANNEL_EN		4
- #define BNXT_RE_FLAG_QOS_WORK_REG		5
- #define BNXT_RE_FLAG_TASK_IN_PROG		6
-+#define BNXT_RE_FLAG_ISSUE_ROCE_STATS          29
- 	struct net_device		*netdev;
- 	unsigned int			version, major, minor;
- 	struct bnxt_en_dev		*en_dev;
-@@ -168,6 +169,7 @@ struct bnxt_re_dev {
- 	atomic_t nq_alloc_cnt;
- 	u32 is_virtfn;
- 	u32 num_vfs;
-+	struct bnxt_qplib_roce_stats	stats;
- };
+@@ -43,15 +43,23 @@
+ #define ROCE_DRV_MODULE_VERSION		"1.0.0"
  
- #define to_bnxt_re_dev(ptr, member)	\
-diff --git a/drivers/infiniband/hw/bnxt_re/hw_counters.c b/drivers/infiniband/hw/bnxt_re/hw_counters.c
-index 7b28219..77416bc 100644
---- a/drivers/infiniband/hw/bnxt_re/hw_counters.c
-+++ b/drivers/infiniband/hw/bnxt_re/hw_counters.c
-@@ -58,16 +58,55 @@
- #include "hw_counters.h"
- 
- static const char * const bnxt_re_stat_name[] = {
--	[BNXT_RE_ACTIVE_QP]           =  "active_qps",
--	[BNXT_RE_ACTIVE_SRQ]          =  "active_srqs",
--	[BNXT_RE_ACTIVE_CQ]           =  "active_cqs",
--	[BNXT_RE_ACTIVE_MR]           =  "active_mrs",
--	[BNXT_RE_ACTIVE_MW]           =  "active_mws",
--	[BNXT_RE_RX_PKTS]             =  "rx_pkts",
--	[BNXT_RE_RX_BYTES]            =  "rx_bytes",
--	[BNXT_RE_TX_PKTS]             =  "tx_pkts",
--	[BNXT_RE_TX_BYTES]            =  "tx_bytes",
--	[BNXT_RE_RECOVERABLE_ERRORS]  =  "recoverable_errors"
-+	[BNXT_RE_ACTIVE_QP]		=  "active_qps",
-+	[BNXT_RE_ACTIVE_SRQ]		=  "active_srqs",
-+	[BNXT_RE_ACTIVE_CQ]		=  "active_cqs",
-+	[BNXT_RE_ACTIVE_MR]		=  "active_mrs",
-+	[BNXT_RE_ACTIVE_MW]		=  "active_mws",
-+	[BNXT_RE_RX_PKTS]		=  "rx_pkts",
-+	[BNXT_RE_RX_BYTES]		=  "rx_bytes",
-+	[BNXT_RE_TX_PKTS]		=  "tx_pkts",
-+	[BNXT_RE_TX_BYTES]		=  "tx_bytes",
-+	[BNXT_RE_RECOVERABLE_ERRORS]	=  "recoverable_errors",
-+	[BNXT_RE_TO_RETRANSMITS]        = "to_retransmits",
-+	[BNXT_RE_SEQ_ERR_NAKS_RCVD]     = "seq_err_naks_rcvd",
-+	[BNXT_RE_MAX_RETRY_EXCEEDED]    = "max_retry_exceeded",
-+	[BNXT_RE_RNR_NAKS_RCVD]         = "rnr_naks_rcvd",
-+	[BNXT_RE_MISSING_RESP]          = "missin_resp",
-+	[BNXT_RE_UNRECOVERABLE_ERR]     = "unrecoverable_err",
-+	[BNXT_RE_BAD_RESP_ERR]          = "bad_resp_err",
-+	[BNXT_RE_LOCAL_QP_OP_ERR]       = "local_qp_op_err",
-+	[BNXT_RE_LOCAL_PROTECTION_ERR]  = "local_protection_err",
-+	[BNXT_RE_MEM_MGMT_OP_ERR]       = "mem_mgmt_op_err",
-+	[BNXT_RE_REMOTE_INVALID_REQ_ERR] = "remote_invalid_req_err",
-+	[BNXT_RE_REMOTE_ACCESS_ERR]     = "remote_access_err",
-+	[BNXT_RE_REMOTE_OP_ERR]         = "remote_op_err",
-+	[BNXT_RE_DUP_REQ]               = "dup_req",
-+	[BNXT_RE_RES_EXCEED_MAX]        = "res_exceed_max",
-+	[BNXT_RE_RES_LENGTH_MISMATCH]   = "res_length_mismatch",
-+	[BNXT_RE_RES_EXCEEDS_WQE]       = "res_exceeds_wqe",
-+	[BNXT_RE_RES_OPCODE_ERR]        = "res_opcode_err",
-+	[BNXT_RE_RES_RX_INVALID_RKEY]   = "res_rx_invalid_rkey",
-+	[BNXT_RE_RES_RX_DOMAIN_ERR]     = "res_rx_domain_err",
-+	[BNXT_RE_RES_RX_NO_PERM]        = "res_rx_no_perm",
-+	[BNXT_RE_RES_RX_RANGE_ERR]      = "res_rx_range_err",
-+	[BNXT_RE_RES_TX_INVALID_RKEY]   = "res_tx_invalid_rkey",
-+	[BNXT_RE_RES_TX_DOMAIN_ERR]     = "res_tx_domain_err",
-+	[BNXT_RE_RES_TX_NO_PERM]        = "res_tx_no_perm",
-+	[BNXT_RE_RES_TX_RANGE_ERR]      = "res_tx_range_err",
-+	[BNXT_RE_RES_IRRQ_OFLOW]        = "res_irrq_oflow",
-+	[BNXT_RE_RES_UNSUP_OPCODE]      = "res_unsup_opcode",
-+	[BNXT_RE_RES_UNALIGNED_ATOMIC]  = "res_unaligned_atomic",
-+	[BNXT_RE_RES_REM_INV_ERR]       = "res_rem_inv_err",
-+	[BNXT_RE_RES_MEM_ERROR]         = "res_mem_err",
-+	[BNXT_RE_RES_SRQ_ERR]           = "res_srq_err",
-+	[BNXT_RE_RES_CMP_ERR]           = "res_cmp_err",
-+	[BNXT_RE_RES_INVALID_DUP_RKEY]  = "res_invalid_dup_rkey",
-+	[BNXT_RE_RES_WQE_FORMAT_ERR]    = "res_wqe_format_err",
-+	[BNXT_RE_RES_CQ_LOAD_ERR]       = "res_cq_load_err",
-+	[BNXT_RE_RES_SRQ_LOAD_ERR]      = "res_srq_load_err",
-+	[BNXT_RE_RES_TX_PCI_ERR]        = "res_tx_pci_err",
-+	[BNXT_RE_RES_RX_PCI_ERR]        = "res_rx_pci_err"
- };
- 
- int bnxt_re_ib_get_hw_stats(struct ib_device *ibdev,
-@@ -76,6 +115,7 @@ int bnxt_re_ib_get_hw_stats(struct ib_device *ibdev,
- {
- 	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibdev, ibdev);
- 	struct ctx_hw_stats *bnxt_re_stats = rdev->qplib_ctx.stats.dma;
-+	int rc  = 0;
- 
- 	if (!port || !stats)
- 		return -EINVAL;
-@@ -97,6 +137,91 @@ int bnxt_re_ib_get_hw_stats(struct ib_device *ibdev,
- 		stats->value[BNXT_RE_TX_BYTES] =
- 			le64_to_cpu(bnxt_re_stats->tx_ucast_bytes);
- 	}
-+	if (test_bit(BNXT_RE_FLAG_ISSUE_ROCE_STATS, &rdev->flags)) {
-+		rc = bnxt_qplib_get_roce_stats(&rdev->rcfw, &rdev->stats);
-+		if (rc)
-+			clear_bit(BNXT_RE_FLAG_ISSUE_ROCE_STATS,
-+				  &rdev->flags);
-+		stats->value[BNXT_RE_TO_RETRANSMITS] =
-+					rdev->stats.to_retransmits;
-+		stats->value[BNXT_RE_SEQ_ERR_NAKS_RCVD] =
-+					rdev->stats.seq_err_naks_rcvd;
-+		stats->value[BNXT_RE_MAX_RETRY_EXCEEDED] =
-+					rdev->stats.max_retry_exceeded;
-+		stats->value[BNXT_RE_RNR_NAKS_RCVD] =
-+					rdev->stats.rnr_naks_rcvd;
-+		stats->value[BNXT_RE_MISSING_RESP] =
-+					rdev->stats.missing_resp;
-+		stats->value[BNXT_RE_UNRECOVERABLE_ERR] =
-+					rdev->stats.unrecoverable_err;
-+		stats->value[BNXT_RE_BAD_RESP_ERR] =
-+					rdev->stats.bad_resp_err;
-+		stats->value[BNXT_RE_LOCAL_QP_OP_ERR]	=
-+				rdev->stats.local_qp_op_err;
-+		stats->value[BNXT_RE_LOCAL_PROTECTION_ERR] =
-+				rdev->stats.local_protection_err;
-+		stats->value[BNXT_RE_MEM_MGMT_OP_ERR] =
-+				rdev->stats.mem_mgmt_op_err;
-+		stats->value[BNXT_RE_REMOTE_INVALID_REQ_ERR] =
-+				rdev->stats.remote_invalid_req_err;
-+		stats->value[BNXT_RE_REMOTE_ACCESS_ERR] =
-+				rdev->stats.remote_access_err;
-+		stats->value[BNXT_RE_REMOTE_OP_ERR] =
-+				rdev->stats.remote_op_err;
-+		stats->value[BNXT_RE_DUP_REQ] =
-+				rdev->stats.dup_req;
-+		stats->value[BNXT_RE_RES_EXCEED_MAX] =
-+				rdev->stats.res_exceed_max;
-+		stats->value[BNXT_RE_RES_LENGTH_MISMATCH] =
-+				rdev->stats.res_length_mismatch;
-+		stats->value[BNXT_RE_RES_EXCEEDS_WQE] =
-+				rdev->stats.res_exceeds_wqe;
-+		stats->value[BNXT_RE_RES_OPCODE_ERR] =
-+				rdev->stats.res_opcode_err;
-+		stats->value[BNXT_RE_RES_RX_INVALID_RKEY] =
-+				rdev->stats.res_rx_invalid_rkey;
-+		stats->value[BNXT_RE_RES_RX_DOMAIN_ERR] =
-+				rdev->stats.res_rx_domain_err;
-+		stats->value[BNXT_RE_RES_RX_NO_PERM] =
-+				rdev->stats.res_rx_no_perm;
-+		stats->value[BNXT_RE_RES_RX_RANGE_ERR]  =
-+				rdev->stats.res_rx_range_err;
-+		stats->value[BNXT_RE_RES_TX_INVALID_RKEY] =
-+				rdev->stats.res_tx_invalid_rkey;
-+		stats->value[BNXT_RE_RES_TX_DOMAIN_ERR] =
-+				rdev->stats.res_tx_domain_err;
-+		stats->value[BNXT_RE_RES_TX_NO_PERM] =
-+				rdev->stats.res_tx_no_perm;
-+		stats->value[BNXT_RE_RES_TX_RANGE_ERR]  =
-+				rdev->stats.res_tx_range_err;
-+		stats->value[BNXT_RE_RES_IRRQ_OFLOW] =
-+				rdev->stats.res_irrq_oflow;
-+		stats->value[BNXT_RE_RES_UNSUP_OPCODE]  =
-+				rdev->stats.res_unsup_opcode;
-+		stats->value[BNXT_RE_RES_UNALIGNED_ATOMIC] =
-+				rdev->stats.res_unaligned_atomic;
-+		stats->value[BNXT_RE_RES_REM_INV_ERR]   =
-+				rdev->stats.res_rem_inv_err;
-+		stats->value[BNXT_RE_RES_MEM_ERROR] =
-+				rdev->stats.res_mem_error;
-+		stats->value[BNXT_RE_RES_SRQ_ERR] =
-+				rdev->stats.res_srq_err;
-+		stats->value[BNXT_RE_RES_CMP_ERR] =
-+				rdev->stats.res_cmp_err;
-+		stats->value[BNXT_RE_RES_INVALID_DUP_RKEY] =
-+				rdev->stats.res_invalid_dup_rkey;
-+		stats->value[BNXT_RE_RES_WQE_FORMAT_ERR] =
-+				rdev->stats.res_wqe_format_err;
-+		stats->value[BNXT_RE_RES_CQ_LOAD_ERR]   =
-+				rdev->stats.res_cq_load_err;
-+		stats->value[BNXT_RE_RES_SRQ_LOAD_ERR]  =
-+				rdev->stats.res_srq_load_err;
-+		stats->value[BNXT_RE_RES_TX_PCI_ERR]    =
-+				rdev->stats.res_tx_pci_err;
-+		stats->value[BNXT_RE_RES_RX_PCI_ERR]    =
-+				rdev->stats.res_rx_pci_err;
-+	}
+ #define BNXT_RE_DESC	"Broadcom NetXtreme-C/E RoCE Driver"
+-
+-#define BNXT_RE_PAGE_SIZE_4K		BIT(12)
+-#define BNXT_RE_PAGE_SIZE_8K		BIT(13)
+-#define BNXT_RE_PAGE_SIZE_64K		BIT(16)
+-#define BNXT_RE_PAGE_SIZE_2M		BIT(21)
+-#define BNXT_RE_PAGE_SIZE_8M		BIT(23)
+-#define BNXT_RE_PAGE_SIZE_1G		BIT(30)
+-
+-#define BNXT_RE_MAX_MR_SIZE		BIT(30)
++#define BNXT_RE_PAGE_SHIFT_4K		(12)
++#define BNXT_RE_PAGE_SHIFT_8K		(13)
++#define BNXT_RE_PAGE_SHIFT_64K		(16)
++#define BNXT_RE_PAGE_SHIFT_2M		(21)
++#define BNXT_RE_PAGE_SHIFT_8M		(23)
++#define BNXT_RE_PAGE_SHIFT_1G		(30)
 +
- 	return ARRAY_SIZE(bnxt_re_stat_name);
++#define BNXT_RE_PAGE_SIZE_4K		BIT(BNXT_RE_PAGE_SHIFT_4K)
++#define BNXT_RE_PAGE_SIZE_8K		BIT(BNXT_RE_PAGE_SHIFT_8K)
++#define BNXT_RE_PAGE_SIZE_64K		BIT(BNXT_RE_PAGE_SHIFT_64K)
++#define BNXT_RE_PAGE_SIZE_2M		BIT(BNXT_RE_PAGE_SHIFT_2M)
++#define BNXT_RE_PAGE_SIZE_8M		BIT(BNXT_RE_PAGE_SHIFT_8M)
++#define BNXT_RE_PAGE_SIZE_1G		BIT(BNXT_RE_PAGE_SHIFT_1G)
++
++#define BNXT_RE_MAX_MR_SIZE_LOW		BIT(BNXT_RE_PAGE_SHIFT_1G)
++#define BNXT_RE_MAX_MR_SIZE_HIGH	BIT(39)
++#define BNXT_RE_MAX_MR_SIZE		BNXT_RE_MAX_MR_SIZE_HIGH
+ 
+ #define BNXT_RE_MAX_QPC_COUNT		(64 * 1024)
+ #define BNXT_RE_MAX_MRW_COUNT		(64 * 1024)
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 8a80e95..c3135f6 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -147,7 +147,7 @@ int bnxt_re_query_device(struct ib_device *ibdev,
+ 	bnxt_qplib_get_guid(rdev->netdev->dev_addr,
+ 			    (u8 *)&ib_attr->sys_image_guid);
+ 	ib_attr->max_mr_size = BNXT_RE_MAX_MR_SIZE;
+-	ib_attr->page_size_cap = BNXT_RE_PAGE_SIZE_4K;
++	ib_attr->page_size_cap = BNXT_RE_PAGE_SIZE_4K | BNXT_RE_PAGE_SIZE_2M;
+ 
+ 	ib_attr->vendor_id = rdev->en_dev->pdev->vendor;
+ 	ib_attr->vendor_part_id = rdev->en_dev->pdev->device;
+@@ -248,8 +248,7 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
+ 				    IB_PORT_VENDOR_CLASS_SUP |
+ 				    IB_PORT_IP_BASED_GIDS;
+ 
+-	/* Max MSG size set to 2G for now */
+-	port_attr->max_msg_sz = 0x80000000;
++	port_attr->max_msg_sz = (u32)BNXT_RE_MAX_MR_SIZE_LOW;
+ 	port_attr->bad_pkey_cntr = 0;
+ 	port_attr->qkey_viol_cntr = 0;
+ 	port_attr->pkey_tbl_len = dev_attr->max_pkey;
+@@ -542,7 +541,7 @@ static int bnxt_re_create_fence_mr(struct bnxt_re_pd *pd)
+ 	mr->qplib_mr.total_size = BNXT_RE_FENCE_BYTES;
+ 	pbl_tbl = dma_addr;
+ 	rc = bnxt_qplib_reg_mr(&rdev->qplib_res, &mr->qplib_mr, &pbl_tbl,
+-			       BNXT_RE_FENCE_PBL_SIZE, false);
++			       BNXT_RE_FENCE_PBL_SIZE, false, PAGE_SIZE);
+ 	if (rc) {
+ 		dev_err(rdev_to_dev(rdev), "Failed to register fence-MR\n");
+ 		goto fail;
+@@ -3091,7 +3090,8 @@ struct ib_mr *bnxt_re_get_dma_mr(struct ib_pd *ib_pd, int mr_access_flags)
+ 
+ 	mr->qplib_mr.hwq.level = PBL_LVL_MAX;
+ 	mr->qplib_mr.total_size = -1; /* Infinte length */
+-	rc = bnxt_qplib_reg_mr(&rdev->qplib_res, &mr->qplib_mr, &pbl, 0, false);
++	rc = bnxt_qplib_reg_mr(&rdev->qplib_res, &mr->qplib_mr, &pbl, 0, false,
++			       PAGE_SIZE);
+ 	if (rc)
+ 		goto fail_mr;
+ 
+@@ -3261,6 +3261,46 @@ int bnxt_re_dealloc_mw(struct ib_mw *ib_mw)
+ 	return rc;
  }
  
-diff --git a/drivers/infiniband/hw/bnxt_re/hw_counters.h b/drivers/infiniband/hw/bnxt_re/hw_counters.h
-index be0dc00..a01a922 100644
---- a/drivers/infiniband/hw/bnxt_re/hw_counters.h
-+++ b/drivers/infiniband/hw/bnxt_re/hw_counters.h
-@@ -51,6 +51,45 @@ enum bnxt_re_hw_stats {
- 	BNXT_RE_TX_PKTS,
- 	BNXT_RE_TX_BYTES,
- 	BNXT_RE_RECOVERABLE_ERRORS,
-+	BNXT_RE_TO_RETRANSMITS,
-+	BNXT_RE_SEQ_ERR_NAKS_RCVD,
-+	BNXT_RE_MAX_RETRY_EXCEEDED,
-+	BNXT_RE_RNR_NAKS_RCVD,
-+	BNXT_RE_MISSING_RESP,
-+	BNXT_RE_UNRECOVERABLE_ERR,
-+	BNXT_RE_BAD_RESP_ERR,
-+	BNXT_RE_LOCAL_QP_OP_ERR,
-+	BNXT_RE_LOCAL_PROTECTION_ERR,
-+	BNXT_RE_MEM_MGMT_OP_ERR,
-+	BNXT_RE_REMOTE_INVALID_REQ_ERR,
-+	BNXT_RE_REMOTE_ACCESS_ERR,
-+	BNXT_RE_REMOTE_OP_ERR,
-+	BNXT_RE_DUP_REQ,
-+	BNXT_RE_RES_EXCEED_MAX,
-+	BNXT_RE_RES_LENGTH_MISMATCH,
-+	BNXT_RE_RES_EXCEEDS_WQE,
-+	BNXT_RE_RES_OPCODE_ERR,
-+	BNXT_RE_RES_RX_INVALID_RKEY,
-+	BNXT_RE_RES_RX_DOMAIN_ERR,
-+	BNXT_RE_RES_RX_NO_PERM,
-+	BNXT_RE_RES_RX_RANGE_ERR,
-+	BNXT_RE_RES_TX_INVALID_RKEY,
-+	BNXT_RE_RES_TX_DOMAIN_ERR,
-+	BNXT_RE_RES_TX_NO_PERM,
-+	BNXT_RE_RES_TX_RANGE_ERR,
-+	BNXT_RE_RES_IRRQ_OFLOW,
-+	BNXT_RE_RES_UNSUP_OPCODE,
-+	BNXT_RE_RES_UNALIGNED_ATOMIC,
-+	BNXT_RE_RES_REM_INV_ERR,
-+	BNXT_RE_RES_MEM_ERROR,
-+	BNXT_RE_RES_SRQ_ERR,
-+	BNXT_RE_RES_CMP_ERR,
-+	BNXT_RE_RES_INVALID_DUP_RKEY,
-+	BNXT_RE_RES_WQE_FORMAT_ERR,
-+	BNXT_RE_RES_CQ_LOAD_ERR,
-+	BNXT_RE_RES_SRQ_LOAD_ERR,
-+	BNXT_RE_RES_TX_PCI_ERR,
-+	BNXT_RE_RES_RX_PCI_ERR,
- 	BNXT_RE_NUM_COUNTERS
- };
++static int bnxt_re_page_size_ok(int page_shift)
++{
++	switch (page_shift) {
++	case CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_4K:
++	case CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_8K:
++	case CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_64K:
++	case CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_2M:
++	case CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_256K:
++	case CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_1M:
++	case CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_4M:
++	case CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_1G:
++		return 1;
++	default:
++		return 0;
++	}
++}
++
++static int fill_umem_pbl_tbl(struct ib_umem *umem, u64 *pbl_tbl_orig,
++			     int page_shift)
++{
++	u64 *pbl_tbl = pbl_tbl_orig;
++	u64 paddr;
++	u64 page_mask = (1ULL << page_shift) - 1;
++	int i, pages;
++	struct scatterlist *sg;
++	int entry;
++
++	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
++		pages = sg_dma_len(sg) >> PAGE_SHIFT;
++		for (i = 0; i < pages; i++) {
++			paddr = sg_dma_address(sg) + (i << PAGE_SHIFT);
++			if (pbl_tbl == pbl_tbl_orig)
++				*pbl_tbl++ = paddr & ~page_mask;
++			else if ((paddr & page_mask) == 0)
++				*pbl_tbl++ = paddr;
++		}
++	}
++	return pbl_tbl - pbl_tbl_orig;
++}
++
+ /* uverbs */
+ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
+ 				  u64 virt_addr, int mr_access_flags,
+@@ -3270,10 +3310,8 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
+ 	struct bnxt_re_dev *rdev = pd->rdev;
+ 	struct bnxt_re_mr *mr;
+ 	struct ib_umem *umem;
+-	u64 *pbl_tbl, *pbl_tbl_orig;
+-	int i, umem_pgs, pages, rc;
+-	struct scatterlist *sg;
+-	int entry;
++	u64 *pbl_tbl = NULL;
++	int umem_pgs, page_shift, rc;
  
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index 38a5d4b..f637ebe 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -1245,6 +1245,7 @@ static int bnxt_re_ib_reg(struct bnxt_re_dev *rdev)
- 	set_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags);
- 	ib_get_eth_speed(&rdev->ibdev, 1, &rdev->active_speed,
- 			 &rdev->active_width);
-+	set_bit(BNXT_RE_FLAG_ISSUE_ROCE_STATS, &rdev->flags);
- 	bnxt_re_dispatch_event(&rdev->ibdev, NULL, 1, IB_EVENT_PORT_ACTIVE);
- 	bnxt_re_dispatch_event(&rdev->ibdev, NULL, 1, IB_EVENT_GID_CHANGE);
+ 	if (length > BNXT_RE_MAX_MR_SIZE) {
+ 		dev_err(rdev_to_dev(rdev), "MR Size: %lld > Max supported:%ld\n",
+@@ -3290,64 +3328,70 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
+ 	mr->qplib_mr.flags = __from_ib_access_flags(mr_access_flags);
+ 	mr->qplib_mr.type = CMDQ_ALLOCATE_MRW_MRW_FLAGS_MR;
  
++	rc = bnxt_qplib_alloc_mrw(&rdev->qplib_res, &mr->qplib_mr);
++	if (rc) {
++		dev_err(rdev_to_dev(rdev), "Failed to allocate MR");
++		goto free_mr;
++	}
++	/* The fixed portion of the rkey is the same as the lkey */
++	mr->ib_mr.rkey = mr->qplib_mr.rkey;
++
+ 	umem = ib_umem_get(ib_pd->uobject->context, start, length,
+ 			   mr_access_flags, 0);
+ 	if (IS_ERR(umem)) {
+ 		dev_err(rdev_to_dev(rdev), "Failed to get umem");
+ 		rc = -EFAULT;
+-		goto free_mr;
++		goto free_mrw;
+ 	}
+ 	mr->ib_umem = umem;
+ 
+-	rc = bnxt_qplib_alloc_mrw(&rdev->qplib_res, &mr->qplib_mr);
+-	if (rc) {
+-		dev_err(rdev_to_dev(rdev), "Failed to allocate MR");
+-		goto release_umem;
+-	}
+-	/* The fixed portion of the rkey is the same as the lkey */
+-	mr->ib_mr.rkey = mr->qplib_mr.rkey;
+-
+ 	mr->qplib_mr.va = virt_addr;
+ 	umem_pgs = ib_umem_page_count(umem);
+ 	if (!umem_pgs) {
+ 		dev_err(rdev_to_dev(rdev), "umem is invalid!");
+ 		rc = -EINVAL;
+-		goto free_mrw;
++		goto free_umem;
+ 	}
+ 	mr->qplib_mr.total_size = length;
+ 
+ 	pbl_tbl = kcalloc(umem_pgs, sizeof(u64 *), GFP_KERNEL);
+ 	if (!pbl_tbl) {
+-		rc = -EINVAL;
++		rc = -ENOMEM;
+ 		goto free_mrw;
+ 	}
+-	pbl_tbl_orig = pbl_tbl;
+ 
+-	if (umem->hugetlb) {
+-		dev_err(rdev_to_dev(rdev), "umem hugetlb not supported!");
++	page_shift = umem->page_shift;
++
++	if (!bnxt_re_page_size_ok(page_shift)) {
++		dev_err(rdev_to_dev(rdev), "umem page size unsupported!");
++		kfree(pbl_tbl);
+ 		rc = -EFAULT;
+-		goto fail;
++		goto free_umem;
+ 	}
+ 
+-	if (umem->page_shift != PAGE_SHIFT) {
+-		dev_err(rdev_to_dev(rdev), "umem page shift unsupported!");
+-		rc = -EFAULT;
++	if (!umem->hugetlb && length > BNXT_RE_MAX_MR_SIZE_LOW) {
++		dev_err(rdev_to_dev(rdev), "Requested MR Sz:%llu Max sup:%llu",
++			length,	(u64)BNXT_RE_MAX_MR_SIZE_LOW);
++		kfree(pbl_tbl);
++		rc = -EINVAL;
+ 		goto fail;
+ 	}
+-	/* Map umem buf ptrs to the PBL */
+-	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
+-		pages = sg_dma_len(sg) >> umem->page_shift;
+-		for (i = 0; i < pages; i++, pbl_tbl++)
+-			*pbl_tbl = sg_dma_address(sg) + (i << umem->page_shift);
++	if (umem->hugetlb && length > BNXT_RE_PAGE_SIZE_2M) {
++		page_shift = BNXT_RE_PAGE_SHIFT_2M;
++		dev_warn(rdev_to_dev(rdev), "umem hugetlb set page_size %x",
++			 1 << page_shift);
+ 	}
+-	rc = bnxt_qplib_reg_mr(&rdev->qplib_res, &mr->qplib_mr, pbl_tbl_orig,
+-			       umem_pgs, false);
++
++	/* Map umem buf ptrs to the PBL */
++	umem_pgs = fill_umem_pbl_tbl(umem, pbl_tbl, page_shift);
++	rc = bnxt_qplib_reg_mr(&rdev->qplib_res, &mr->qplib_mr, pbl_tbl,
++			       umem_pgs, false, 1 << page_shift);
+ 	if (rc) {
+ 		dev_err(rdev_to_dev(rdev), "Failed to register user MR");
+ 		goto fail;
+ 	}
+ 
+-	kfree(pbl_tbl_orig);
++	kfree(pbl_tbl);
+ 
+ 	mr->ib_mr.lkey = mr->qplib_mr.lkey;
+ 	mr->ib_mr.rkey = mr->qplib_mr.lkey;
+@@ -3355,11 +3399,11 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
+ 
+ 	return &mr->ib_mr;
+ fail:
+-	kfree(pbl_tbl_orig);
++	kfree(pbl_tbl);
++free_umem:
++	ib_umem_release(umem);
+ free_mrw:
+ 	bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
+-release_umem:
+-	ib_umem_release(umem);
+ free_mr:
+ 	kfree(mr);
+ 	return ERR_PTR(rc);
 diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-index e71bc57..c015c18 100644
+index 08df34a..e71bc57 100644
 --- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
 +++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-@@ -790,3 +790,73 @@ int bnxt_qplib_map_tc2cos(struct bnxt_qplib_res *res, u16 *cids)
- 				     0);
- 	return 0;
+@@ -657,7 +657,7 @@ int bnxt_qplib_dereg_mrw(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mrw,
  }
-+
-+int bnxt_qplib_get_roce_stats(struct bnxt_qplib_rcfw *rcfw,
-+			      struct bnxt_qplib_roce_stats *stats)
-+{
-+	struct cmdq_query_roce_stats req;
-+	struct creq_query_roce_stats_resp resp;
-+	struct bnxt_qplib_rcfw_sbuf *sbuf;
-+	struct creq_query_roce_stats_resp_sb *sb;
-+	u16 cmd_flags = 0;
-+	int rc = 0;
-+
-+	RCFW_CMD_PREP(req, QUERY_ROCE_STATS, cmd_flags);
-+
-+	sbuf = bnxt_qplib_rcfw_alloc_sbuf(rcfw, sizeof(*sb));
-+	if (!sbuf) {
-+		dev_err(&rcfw->pdev->dev,
-+			"QPLIB: SP: QUERY_ROCE_STATS alloc side buffer failed");
-+		return -ENOMEM;
-+	}
-+
-+	sb = sbuf->sb;
-+	req.resp_size = sizeof(*sb) / BNXT_QPLIB_CMDQE_UNITS;
-+	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, (void *)&resp,
-+					  (void *)sbuf, 0);
-+	if (rc)
-+		goto bail;
-+	/* Extract the context from the side buffer */
-+	stats->to_retransmits = le64_to_cpu(sb->to_retransmits);
-+	stats->seq_err_naks_rcvd = le64_to_cpu(sb->seq_err_naks_rcvd);
-+	stats->max_retry_exceeded = le64_to_cpu(sb->max_retry_exceeded);
-+	stats->rnr_naks_rcvd = le64_to_cpu(sb->rnr_naks_rcvd);
-+	stats->missing_resp = le64_to_cpu(sb->missing_resp);
-+	stats->unrecoverable_err = le64_to_cpu(sb->unrecoverable_err);
-+	stats->bad_resp_err = le64_to_cpu(sb->bad_resp_err);
-+	stats->local_qp_op_err = le64_to_cpu(sb->local_qp_op_err);
-+	stats->local_protection_err = le64_to_cpu(sb->local_protection_err);
-+	stats->mem_mgmt_op_err = le64_to_cpu(sb->mem_mgmt_op_err);
-+	stats->remote_invalid_req_err = le64_to_cpu(sb->remote_invalid_req_err);
-+	stats->remote_access_err = le64_to_cpu(sb->remote_access_err);
-+	stats->remote_op_err = le64_to_cpu(sb->remote_op_err);
-+	stats->dup_req = le64_to_cpu(sb->dup_req);
-+	stats->res_exceed_max = le64_to_cpu(sb->res_exceed_max);
-+	stats->res_length_mismatch = le64_to_cpu(sb->res_length_mismatch);
-+	stats->res_exceeds_wqe = le64_to_cpu(sb->res_exceeds_wqe);
-+	stats->res_opcode_err = le64_to_cpu(sb->res_opcode_err);
-+	stats->res_rx_invalid_rkey = le64_to_cpu(sb->res_rx_invalid_rkey);
-+	stats->res_rx_domain_err = le64_to_cpu(sb->res_rx_domain_err);
-+	stats->res_rx_no_perm = le64_to_cpu(sb->res_rx_no_perm);
-+	stats->res_rx_range_err = le64_to_cpu(sb->res_rx_range_err);
-+	stats->res_tx_invalid_rkey = le64_to_cpu(sb->res_tx_invalid_rkey);
-+	stats->res_tx_domain_err = le64_to_cpu(sb->res_tx_domain_err);
-+	stats->res_tx_no_perm = le64_to_cpu(sb->res_tx_no_perm);
-+	stats->res_tx_range_err = le64_to_cpu(sb->res_tx_range_err);
-+	stats->res_irrq_oflow = le64_to_cpu(sb->res_irrq_oflow);
-+	stats->res_unsup_opcode = le64_to_cpu(sb->res_unsup_opcode);
-+	stats->res_unaligned_atomic = le64_to_cpu(sb->res_unaligned_atomic);
-+	stats->res_rem_inv_err = le64_to_cpu(sb->res_rem_inv_err);
-+	stats->res_mem_error = le64_to_cpu(sb->res_mem_error);
-+	stats->res_srq_err = le64_to_cpu(sb->res_srq_err);
-+	stats->res_cmp_err = le64_to_cpu(sb->res_cmp_err);
-+	stats->res_invalid_dup_rkey = le64_to_cpu(sb->res_invalid_dup_rkey);
-+	stats->res_wqe_format_err = le64_to_cpu(sb->res_wqe_format_err);
-+	stats->res_cq_load_err = le64_to_cpu(sb->res_cq_load_err);
-+	stats->res_srq_load_err = le64_to_cpu(sb->res_srq_load_err);
-+	stats->res_tx_pci_err = le64_to_cpu(sb->res_tx_pci_err);
-+	stats->res_rx_pci_err = le64_to_cpu(sb->res_rx_pci_err);
-+bail:
-+	bnxt_qplib_rcfw_free_sbuf(rcfw, sbuf);
-+	return rc;
-+}
+ 
+ int bnxt_qplib_reg_mr(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr,
+-		      u64 *pbl_tbl, int num_pbls, bool block)
++		      u64 *pbl_tbl, int num_pbls, bool block, u32 buf_pg_size)
+ {
+ 	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+ 	struct cmdq_register_mr req;
+@@ -668,6 +668,9 @@ int bnxt_qplib_reg_mr(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr,
+ 	u32 pg_size;
+ 
+ 	if (num_pbls) {
++		/* Allocate memory for the non-leaf pages to store buf ptrs.
++		 * Non-leaf pages always uses system PAGE_SIZE
++		 */
+ 		pg_ptrs = roundup_pow_of_two(num_pbls);
+ 		pages = pg_ptrs >> MAX_PBL_LVL_1_PGS_SHIFT;
+ 		if (!pages)
+@@ -685,6 +688,7 @@ int bnxt_qplib_reg_mr(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr,
+ 			bnxt_qplib_free_hwq(res->pdev, &mr->hwq);
+ 
+ 		mr->hwq.max_elements = pages;
++		/* Use system PAGE_SIZE */
+ 		rc = bnxt_qplib_alloc_init_hwq(res->pdev, &mr->hwq, NULL, 0,
+ 					       &mr->hwq.max_elements,
+ 					       PAGE_SIZE, 0, PAGE_SIZE,
+@@ -705,18 +709,22 @@ int bnxt_qplib_reg_mr(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr,
+ 
+ 	/* Configure the request */
+ 	if (mr->hwq.level == PBL_LVL_MAX) {
++		/* No PBL provided, just use system PAGE_SIZE */
+ 		level = 0;
+ 		req.pbl = 0;
+ 		pg_size = PAGE_SIZE;
+ 	} else {
+ 		level = mr->hwq.level + 1;
+ 		req.pbl = cpu_to_le64(mr->hwq.pbl[PBL_LVL_0].pg_map_arr[0]);
+-		pg_size = mr->hwq.pbl[PBL_LVL_0].pg_size;
+ 	}
++	pg_size = buf_pg_size ? buf_pg_size : PAGE_SIZE;
+ 	req.log2_pg_size_lvl = (level << CMDQ_REGISTER_MR_LVL_SFT) |
+ 			       ((ilog2(pg_size) <<
+ 				 CMDQ_REGISTER_MR_LOG2_PG_SIZE_SFT) &
+ 				CMDQ_REGISTER_MR_LOG2_PG_SIZE_MASK);
++	req.log2_pbl_pg_size = cpu_to_le16(((ilog2(PAGE_SIZE) <<
++				 CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_SFT) &
++				CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_MASK));
+ 	req.access = (mr->flags & 0xFFFF);
+ 	req.va = cpu_to_le64(mr->va);
+ 	req.key = cpu_to_le32(mr->lkey);
 diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.h b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-index 074e5e3..9d3e8b9 100644
+index 0828bb1..074e5e3 100644
 --- a/drivers/infiniband/hw/bnxt_re/qplib_sp.h
 +++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-@@ -128,6 +128,85 @@ struct bnxt_qplib_frpl {
- #define BNXT_QPLIB_ACCESS_ZERO_BASED	BIT(5)
- #define BNXT_QPLIB_ACCESS_ON_DEMAND	BIT(6)
- 
-+struct bnxt_qplib_roce_stats {
-+	u64 to_retransmits;
-+	u64 seq_err_naks_rcvd;
-+	/* seq_err_naks_rcvd is 64 b */
-+	u64 max_retry_exceeded;
-+	/* max_retry_exceeded is 64 b */
-+	u64 rnr_naks_rcvd;
-+	/* rnr_naks_rcvd is 64 b */
-+	u64 missing_resp;
-+	u64 unrecoverable_err;
-+	/* unrecoverable_err is 64 b */
-+	u64 bad_resp_err;
-+	/* bad_resp_err is 64 b */
-+	u64 local_qp_op_err;
-+	/* local_qp_op_err is 64 b */
-+	u64 local_protection_err;
-+	/* local_protection_err is 64 b */
-+	u64 mem_mgmt_op_err;
-+	/* mem_mgmt_op_err is 64 b */
-+	u64 remote_invalid_req_err;
-+	/* remote_invalid_req_err is 64 b */
-+	u64 remote_access_err;
-+	/* remote_access_err is 64 b */
-+	u64 remote_op_err;
-+	/* remote_op_err is 64 b */
-+	u64 dup_req;
-+	/* dup_req is 64 b */
-+	u64 res_exceed_max;
-+	/* res_exceed_max is 64 b */
-+	u64 res_length_mismatch;
-+	/* res_length_mismatch is 64 b */
-+	u64 res_exceeds_wqe;
-+	/* res_exceeds_wqe is 64 b */
-+	u64 res_opcode_err;
-+	/* res_opcode_err is 64 b */
-+	u64 res_rx_invalid_rkey;
-+	/* res_rx_invalid_rkey is 64 b */
-+	u64 res_rx_domain_err;
-+	/* res_rx_domain_err is 64 b */
-+	u64 res_rx_no_perm;
-+	/* res_rx_no_perm is 64 b */
-+	u64 res_rx_range_err;
-+	/* res_rx_range_err is 64 b */
-+	u64 res_tx_invalid_rkey;
-+	/* res_tx_invalid_rkey is 64 b */
-+	u64 res_tx_domain_err;
-+	/* res_tx_domain_err is 64 b */
-+	u64 res_tx_no_perm;
-+	/* res_tx_no_perm is 64 b */
-+	u64 res_tx_range_err;
-+	/* res_tx_range_err is 64 b */
-+	u64 res_irrq_oflow;
-+	/* res_irrq_oflow is 64 b */
-+	u64 res_unsup_opcode;
-+	/* res_unsup_opcode is 64 b */
-+	u64 res_unaligned_atomic;
-+	/* res_unaligned_atomic is 64 b */
-+	u64 res_rem_inv_err;
-+	/* res_rem_inv_err is 64 b */
-+	u64 res_mem_error;
-+	/* res_mem_error is 64 b */
-+	u64 res_srq_err;
-+	/* res_srq_err is 64 b */
-+	u64 res_cmp_err;
-+	/* res_cmp_err is 64 b */
-+	u64 res_invalid_dup_rkey;
-+	/* res_invalid_dup_rkey is 64 b */
-+	u64 res_wqe_format_err;
-+	/* res_wqe_format_err is 64 b */
-+	u64 res_cq_load_err;
-+	/* res_cq_load_err is 64 b */
-+	u64 res_srq_load_err;
-+	/* res_srq_load_err is 64 b */
-+	u64 res_tx_pci_err;
-+	/* res_tx_pci_err is 64 b */
-+	u64 res_rx_pci_err;
-+	/* res_rx_pci_err is 64 b */
-+};
-+
- int bnxt_qplib_get_sgid(struct bnxt_qplib_res *res,
- 			struct bnxt_qplib_sgid_tbl *sgid_tbl, int index,
- 			struct bnxt_qplib_gid *gid);
-@@ -168,4 +247,6 @@ int bnxt_qplib_alloc_fast_reg_page_list(struct bnxt_qplib_res *res,
- int bnxt_qplib_free_fast_reg_page_list(struct bnxt_qplib_res *res,
- 				       struct bnxt_qplib_frpl *frpl);
- int bnxt_qplib_map_tc2cos(struct bnxt_qplib_res *res, u16 *cids);
-+int bnxt_qplib_get_roce_stats(struct bnxt_qplib_rcfw *rcfw,
-+			      struct bnxt_qplib_roce_stats *stats);
- #endif /* __BNXT_QPLIB_SP_H__*/
+@@ -159,7 +159,7 @@ int bnxt_qplib_alloc_mrw(struct bnxt_qplib_res *res,
+ int bnxt_qplib_dereg_mrw(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mrw,
+ 			 bool block);
+ int bnxt_qplib_reg_mr(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr,
+-		      u64 *pbl_tbl, int num_pbls, bool block);
++		      u64 *pbl_tbl, int num_pbls, bool block, u32 buf_pg_size);
+ int bnxt_qplib_free_mrw(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr);
+ int bnxt_qplib_alloc_fast_reg_mr(struct bnxt_qplib_res *res,
+ 				 struct bnxt_qplib_mrw *mr, int max);
 diff --git a/drivers/infiniband/hw/bnxt_re/roce_hsi.h b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-index 5cd31de..2d7ea09 100644
+index f429fdb..5cd31de 100644
 --- a/drivers/infiniband/hw/bnxt_re/roce_hsi.h
 +++ b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-@@ -954,6 +954,7 @@ struct cmdq_base {
- 	#define CMDQ_BASE_OPCODE_QUERY_VERSION			   0x8bUL
- 	#define CMDQ_BASE_OPCODE_MODIFY_CC			   0x8cUL
- 	#define CMDQ_BASE_OPCODE_QUERY_CC			   0x8dUL
-+	#define CMDQ_BASE_OPCODE_QUERY_ROCE_STATS	   0x8eUL
- 	u8 cmd_size;
- 	__le16 flags;
- 	__le16 cookie;
-@@ -2049,6 +2050,20 @@ struct creq_modify_qp_resp {
- 	__le16 reserved48[3];
- };
- 
-+/* cmdq_query_roce_stats (size:128b/16B) */
-+struct cmdq_query_roce_stats {
-+	u8	opcode;
-+	#define CMDQ_QUERY_ROCE_STATS_OPCODE_QUERY_ROCE_STATS 0x8eUL
-+	#define CMDQ_QUERY_ROCE_STATS_OPCODE_LAST	\
-+				CMDQ_QUERY_ROCE_STATS_OPCODE_QUERY_ROCE_STATS
-+	u8	cmd_size;
-+	__le16	flags;
-+	__le16	cookie;
-+	u8	resp_size;
-+	u8	reserved8;
-+	__le64	resp_addr;
-+};
-+
- /* Query QP command response (16 bytes) */
- struct creq_query_qp_resp {
- 	u8 type;
-@@ -2819,6 +2834,80 @@ struct creq_query_cc_resp_sb {
- 	__le64 reserved64_1;
- };
- 
-+/* creq_query_roce_stats_resp (size:128b/16B) */
-+struct creq_query_roce_stats_resp {
-+	u8	type;
-+	#define CREQ_QUERY_ROCE_STATS_RESP_TYPE_MASK    0x3fUL
-+	#define CREQ_QUERY_ROCE_STATS_RESP_TYPE_SFT     0
-+	#define CREQ_QUERY_ROCE_STATS_RESP_TYPE_QP_EVENT  0x38UL
-+	#define CREQ_QUERY_ROCE_STATS_RESP_TYPE_LAST	\
-+				CREQ_QUERY_ROCE_STATS_RESP_TYPE_QP_EVENT
-+	u8	status;
-+	__le16	cookie;
-+	__le32	size;
-+	u8	v;
-+	#define CREQ_QUERY_ROCE_STATS_RESP_V     0x1UL
-+	u8	event;
-+	#define CREQ_QUERY_ROCE_STATS_RESP_EVENT_QUERY_ROCE_STATS 0x8eUL
-+	#define CREQ_QUERY_ROCE_STATS_RESP_EVENT_LAST	\
-+			CREQ_QUERY_ROCE_STATS_RESP_EVENT_QUERY_ROCE_STATS
-+	u8	reserved48[6];
-+};
-+
-+/* creq_query_roce_stats_resp_sb (size:2624b/328B) */
-+struct creq_query_roce_stats_resp_sb {
-+	u8	opcode;
-+	#define CREQ_QUERY_ROCE_STATS_RESP_SB_OPCODE_QUERY_ROCE_STATS 0x8eUL
-+	#define CREQ_QUERY_ROCE_STATS_RESP_SB_OPCODE_LAST \
-+			CREQ_QUERY_ROCE_STATS_RESP_SB_OPCODE_QUERY_ROCE_STATS
-+	u8	status;
-+	__le16	cookie;
-+	__le16	flags;
-+	u8	resp_size;
-+	u8	rsvd;
-+	__le32	num_counters;
-+	__le32	rsvd1;
-+	__le64	to_retransmits;
-+	__le64	seq_err_naks_rcvd;
-+	__le64	max_retry_exceeded;
-+	__le64	rnr_naks_rcvd;
-+	__le64	missing_resp;
-+	__le64	unrecoverable_err;
-+	__le64	bad_resp_err;
-+	__le64	local_qp_op_err;
-+	__le64	local_protection_err;
-+	__le64	mem_mgmt_op_err;
-+	__le64	remote_invalid_req_err;
-+	__le64	remote_access_err;
-+	__le64	remote_op_err;
-+	__le64	dup_req;
-+	__le64	res_exceed_max;
-+	__le64	res_length_mismatch;
-+	__le64	res_exceeds_wqe;
-+	__le64	res_opcode_err;
-+	__le64	res_rx_invalid_rkey;
-+	__le64	res_rx_domain_err;
-+	__le64	res_rx_no_perm;
-+	__le64	res_rx_range_err;
-+	__le64	res_tx_invalid_rkey;
-+	__le64	res_tx_domain_err;
-+	__le64	res_tx_no_perm;
-+	__le64	res_tx_range_err;
-+	__le64	res_irrq_oflow;
-+	__le64	res_unsup_opcode;
-+	__le64	res_unaligned_atomic;
-+	__le64	res_rem_inv_err;
-+	__le64	res_mem_error;
-+	__le64	res_srq_err;
-+	__le64	res_cmp_err;
-+	__le64	res_invalid_dup_rkey;
-+	__le64	res_wqe_format_err;
-+	__le64	res_cq_load_err;
-+	__le64	res_srq_load_err;
-+	__le64	res_tx_pci_err;
-+	__le64	res_rx_pci_err;
-+};
-+
- /* QP error notification event (16 bytes) */
- struct creq_qp_error_notification {
- 	u8 type;
+@@ -1383,8 +1383,20 @@ struct cmdq_register_mr {
+ 	#define CMDQ_REGISTER_MR_LVL_LVL_0			   0x0UL
+ 	#define CMDQ_REGISTER_MR_LVL_LVL_1			   0x1UL
+ 	#define CMDQ_REGISTER_MR_LVL_LVL_2			   0x2UL
++	#define CMDQ_REGISTER_MR_LVL_LAST             CMDQ_REGISTER_MR_LVL_LVL_2
+ 	#define CMDQ_REGISTER_MR_LOG2_PG_SIZE_MASK		    0x7cUL
+ 	#define CMDQ_REGISTER_MR_LOG2_PG_SIZE_SFT		    2
++	#define CMDQ_REGISTER_MR_LOG2_PG_SIZE_PG_4K    (0xcUL << 2)
++	#define CMDQ_REGISTER_MR_LOG2_PG_SIZE_PG_8K    (0xdUL << 2)
++	#define CMDQ_REGISTER_MR_LOG2_PG_SIZE_PG_64K   (0x10UL << 2)
++	#define CMDQ_REGISTER_MR_LOG2_PG_SIZE_PG_256K  (0x12UL << 2)
++	#define CMDQ_REGISTER_MR_LOG2_PG_SIZE_PG_1M    (0x14UL << 2)
++	#define CMDQ_REGISTER_MR_LOG2_PG_SIZE_PG_2M    (0x15UL << 2)
++	#define CMDQ_REGISTER_MR_LOG2_PG_SIZE_PG_4M    (0x16UL << 2)
++	#define CMDQ_REGISTER_MR_LOG2_PG_SIZE_PG_1G    (0x1eUL << 2)
++	#define CMDQ_REGISTER_MR_LOG2_PG_SIZE_LAST	\
++					CMDQ_REGISTER_MR_LOG2_PG_SIZE_PG_1G
++	#define CMDQ_REGISTER_MR_UNUSED1             0x80UL
+ 	u8 access;
+ 	#define CMDQ_REGISTER_MR_ACCESS_LOCAL_WRITE		    0x1UL
+ 	#define CMDQ_REGISTER_MR_ACCESS_REMOTE_READ		    0x2UL
+@@ -1392,7 +1404,21 @@ struct cmdq_register_mr {
+ 	#define CMDQ_REGISTER_MR_ACCESS_REMOTE_ATOMIC		    0x8UL
+ 	#define CMDQ_REGISTER_MR_ACCESS_MW_BIND		    0x10UL
+ 	#define CMDQ_REGISTER_MR_ACCESS_ZERO_BASED		    0x20UL
+-	__le16 unused_1;
++	__le16	log2_pbl_pg_size;
++	#define CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_MASK   0x1fUL
++	#define CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_SFT    0
++	#define CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_4K    0xcUL
++	#define CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_8K    0xdUL
++	#define CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_64K   0x10UL
++	#define CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_256K  0x12UL
++	#define CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_1M    0x14UL
++	#define CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_2M    0x15UL
++	#define CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_4M    0x16UL
++	#define CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_1G    0x1eUL
++	#define CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_LAST    \
++				CMDQ_REGISTER_MR_LOG2_PBL_PG_SIZE_PG_1G
++	#define CMDQ_REGISTER_MR_UNUSED11_MASK           0xffe0UL
++	#define CMDQ_REGISTER_MR_UNUSED11_SFT            5
+ 	__le32 key;
+ 	__le64 pbl;
+ 	__le64 va;
 -- 
 1.8.3.1
 
