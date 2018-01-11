@@ -1,51 +1,54 @@
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-next v3 1/7] RDMA/restrack: Add general
- infrastructure to track RDMA resources
-Date: Thu, 11 Jan 2018 12:55:35 -0700
-Message-ID: <20180111195535.GI30208@mellanox.com>
-References: <20180111153132.11143-1-leon@kernel.org>
- <20180111153132.11143-2-leon@kernel.org>
- <1515700046.2752.52.camel@wdc.com>
+From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+Subject: Re: Please update the linux-next location for the RDMA subsystem
+Date: Fri, 12 Jan 2018 07:16:21 +1100
+Message-ID: <20180112071607.4dcfce82@canb.auug.org.au>
+References: <1510948060.3973.29.camel@redhat.com>
+        <20171119145633.07a3a715@canb.auug.org.au>
+        <20180105180548.GD11972@mellanox.com>
+        <20180107020124.37a7eff1@canb.auug.org.au>
+        <1515617614.3403.163.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1515700046.2752.52.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <1515617614.3403.163.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 11, 2018 at 07:47:27PM +0000, Bart Van Assche wrote:
-> On Thu, 2018-01-11 at 17:31 +0200, Leon Romanovsky wrote:
-> > +struct rdma_restrack_entry {
-> > +       struct list_head        list;
-> > +
-> > +       /*
-> > +        * The entries are filled during rdma_restrack_add,
-> > +        * can be attempted to be free during rdma_restrack_del.
-> > +        *
-> > +        * As an example for that, see mlx5 QPs with type MLX5_IB_QPT_HW_GSI
-> > +        */
-> > +       bool                    valid;
-> > +
-> > +       /*
-> > +        * Sleepabale RCU to protect object data.
-> > +        */
-> > +       struct srcu_struct      srcu;
-> > +
-> > +       struct task_struct      *task;
-> > +       char                    *task_comm;
-> > +};
+Hi Doug,
+
+On Wed, 10 Jan 2018 15:53:34 -0500 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>
+> Jason and I would like you to make another change if you could.  Well,
+> two actually.  First, we've found that now that we are both pushing to
+> the same tree, the use of a tag instead of a branch for your for-next
+> testing is dangerous.  In particular, kernel git repos have a fast-
+> forward requirement on all branches, so an attempted push to a branch
+> that has stale data from the pusher (say I just managed to push to the
+> branch a few minutes before Jason and Jason hasn't pulled my changes
+> into his branch before he decides to push his) is denied by the post
+> hooks.  But no such check is in place for tags, and indeed we are
+> allowed to wipe out tags at will.  This has already been an accident
+> once, and there is no sense letting it be one again, so we've changed
+> our workflows to compensate for this fact, and with that change, the
+> for-next tag will no longer be kept up to date, it will only be pushed
+> when we are sending a pull request, and that's too late for testing. 
+> From now on, the for-next branch is the canonical source going forward
+> for testing purposes prior to a pull request.
 > 
-> Please use the kernel-doc syntax to document the meaning of the names of the
-> fields in this structure. It is e.g. nontrivial to guess what "task_comm" stands
-> for. The presense of a task_struct pointer is also nontrivial.
+> The second thing is we would like you to also add our for-rc branch. 
+> Most of the time this will be a no-op, but we think there is some value
+> in making sure that -rc patches aren't going to cause future merge
+> problems with the for-next branch.  
+> 
+> Let me know if we can do those two things.  Thanks!
 
-And task_comm doesn't seem like a great name anymore, and should be
-const char *, right ?
-
-Jason
+Both done.  The new branch in linux-next is called rdma-fixes.
+-- 
+Cheers,
+Stephen Rothwell
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
