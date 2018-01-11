@@ -1,101 +1,92 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH 2/3] RDMA/hns: Fix endian problems around imm_data and rkey
-Date: Thu, 11 Jan 2018 14:43:06 -0700
-Message-ID: <20180111214307.501-3-jgg@ziepe.ca>
+Subject: [PATCH 1/3] RDMA: Mark imm_data as be32 in the verbs uapi header
+Date: Thu, 11 Jan 2018 14:43:05 -0700
+Message-ID: <20180111214307.501-2-jgg@ziepe.ca>
 References: <20180111214307.501-1-jgg@ziepe.ca>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180111214307.501-1-jgg-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This matches the changes made recently to the userspace hns
-driver when it was made sparse clean.
-
-See rdma-core commit bffd380cfe56 ("libhns: Make the provider sparse
-clean")
-
-wc->imm_data is not used in the kernel so this change has no practical
-impact.
+This matches what the userspace copy of this header has been doing
+for a while. imm_data is an opaque 4 byte array carried over the network,
+and invalidate_rkey is in CPU byte order.
 
 Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 7 ++++---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 +++---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 5 ++++-
- 3 files changed, 11 insertions(+), 7 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 2 +-
+ drivers/infiniband/sw/rdmavt/cq.c    | 3 +--
+ drivers/infiniband/sw/rxe/rxe_resp.c | 3 +--
+ include/uapi/rdma/ib_user_verbs.h    | 4 ++--
+ 4 files changed, 5 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 939355ede14ab7..833a305085efe1 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -2311,15 +2311,16 @@ static int hns_roce_v1_poll_one(struct hns_roce_cq *hr_cq,
- 		case HNS_ROCE_OPCODE_RDMA_WITH_IMM_RECEIVE:
- 			wc->opcode = IB_WC_RECV_RDMA_WITH_IMM;
- 			wc->wc_flags = IB_WC_WITH_IMM;
--			wc->ex.imm_data = le32_to_cpu(cqe->immediate_data);
-+			wc->ex.imm_data =
-+				cpu_to_be32(le32_to_cpu(cqe->immediate_data));
- 			break;
- 		case HNS_ROCE_OPCODE_SEND_DATA_RECEIVE:
- 			if (roce_get_bit(cqe->cqe_byte_4,
- 					 CQE_BYTE_4_IMM_INDICATOR_S)) {
- 				wc->opcode = IB_WC_RECV;
- 				wc->wc_flags = IB_WC_WITH_IMM;
--				wc->ex.imm_data = le32_to_cpu(
--						  cqe->immediate_data);
-+				wc->ex.imm_data = cpu_to_be32(
-+					le32_to_cpu(cqe->immediate_data));
- 			} else {
- 				wc->opcode = IB_WC_RECV;
- 				wc->wc_flags = 0;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 2ca35e341d0912..34f13c3cb088c7 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1709,7 +1709,7 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 		case HNS_ROCE_V2_OPCODE_RDMA_WRITE_IMM:
- 			wc->opcode = IB_WC_RECV_RDMA_WITH_IMM;
- 			wc->wc_flags = IB_WC_WITH_IMM;
--			wc->ex.imm_data = le32_to_cpu(cqe->rkey_immtdata);
-+			wc->ex.imm_data = cqe->immtdata;
- 			break;
- 		case HNS_ROCE_V2_OPCODE_SEND:
- 			wc->opcode = IB_WC_RECV;
-@@ -1718,12 +1718,12 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 		case HNS_ROCE_V2_OPCODE_SEND_WITH_IMM:
- 			wc->opcode = IB_WC_RECV;
- 			wc->wc_flags = IB_WC_WITH_IMM;
--			wc->ex.imm_data = le32_to_cpu(cqe->rkey_immtdata);
-+			wc->ex.imm_data = cqe->immtdata;
- 			break;
- 		case HNS_ROCE_V2_OPCODE_SEND_WITH_INV:
- 			wc->opcode = IB_WC_RECV;
- 			wc->wc_flags = IB_WC_WITH_INVALIDATE;
--			wc->ex.invalidate_rkey = cqe->rkey_immtdata;
-+			wc->ex.invalidate_rkey = le32_to_cpu(cqe->rkey);
- 			break;
- 		default:
- 			wc->status = IB_WC_GENERAL_ERR;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 463edab9b7193f..cbf61ad2539c78 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -762,7 +762,10 @@ struct hns_roce_v2_qp_context {
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index c216d98bb816a0..4ddd61d905075c 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1196,7 +1196,7 @@ static int copy_wc_to_user(struct ib_device *ib_dev, void __user *dest,
+ 	tmp.opcode		= wc->opcode;
+ 	tmp.vendor_err		= wc->vendor_err;
+ 	tmp.byte_len		= wc->byte_len;
+-	tmp.ex.imm_data		= (__u32 __force) wc->ex.imm_data;
++	tmp.ex.imm_data		= wc->ex.imm_data;
+ 	tmp.qp_num		= wc->qp->qp_num;
+ 	tmp.src_qp		= wc->src_qp;
+ 	tmp.wc_flags		= wc->wc_flags;
+diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
+index 61fca14c2598be..fb52b669bfce5c 100644
+--- a/drivers/infiniband/sw/rdmavt/cq.c
++++ b/drivers/infiniband/sw/rdmavt/cq.c
+@@ -101,8 +101,7 @@ void rvt_cq_enter(struct rvt_cq *cq, struct ib_wc *entry, bool solicited)
+ 		wc->uqueue[head].opcode = entry->opcode;
+ 		wc->uqueue[head].vendor_err = entry->vendor_err;
+ 		wc->uqueue[head].byte_len = entry->byte_len;
+-		wc->uqueue[head].ex.imm_data =
+-			(__u32 __force)entry->ex.imm_data;
++		wc->uqueue[head].ex.imm_data = entry->ex.imm_data;
+ 		wc->uqueue[head].qp_num = entry->qp->qp_num;
+ 		wc->uqueue[head].src_qp = entry->src_qp;
+ 		wc->uqueue[head].wc_flags = entry->wc_flags;
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index 4240866a533192..f07324f2cde207 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -863,8 +863,7 @@ static enum resp_states do_complete(struct rxe_qp *qp,
  
- struct hns_roce_v2_cqe {
- 	u32	byte_4;
--	u32	rkey_immtdata;
-+	union {
-+		__le32 rkey;
-+		__be32 immtdata;
-+	};
- 	u32	byte_12;
- 	u32	byte_16;
- 	u32	byte_cnt;
+ 			if (pkt->mask & RXE_IMMDT_MASK) {
+ 				uwc->wc_flags |= IB_WC_WITH_IMM;
+-				uwc->ex.imm_data =
+-					(__u32 __force)immdt_imm(pkt);
++				uwc->ex.imm_data = immdt_imm(pkt);
+ 			}
+ 
+ 			if (pkt->mask & RXE_IETH_MASK) {
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 7e11bb8651b641..fd035641cf41ce 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -449,7 +449,7 @@ struct ib_uverbs_wc {
+ 	__u32 vendor_err;
+ 	__u32 byte_len;
+ 	union {
+-		__u32 imm_data;
++		__be32 imm_data;
+ 		__u32 invalidate_rkey;
+ 	} ex;
+ 	__u32 qp_num;
+@@ -765,7 +765,7 @@ struct ib_uverbs_send_wr {
+ 	__u32 opcode;
+ 	__u32 send_flags;
+ 	union {
+-		__u32 imm_data;
++		__be32 imm_data;
+ 		__u32 invalidate_rkey;
+ 	} ex;
+ 	union {
 -- 
 2.15.1
 
