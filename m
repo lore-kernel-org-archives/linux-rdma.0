@@ -1,39 +1,39 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: krping problem on 4.15-rc4
-Date: Thu, 11 Jan 2018 13:45:55 -0600
-Message-ID: <017d01d38b14$cbe95670$63bc0350$@opengridcomputing.com>
-References: <CAN-5tyH1HO7yzzQLyb5z5Pq=OrHnKzmCrR2MffLguqsEA-mwWg@mail.gmail.com> <00ff01d38a4f$1a979eb0$4fc6dc10$@opengridcomputing.com> <CAN-5tyEwdSOiAk04xjfazxBqwkkTiCjr2dVcCoYLQJw8f37U=w@mail.gmail.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH rdma-next v3 1/7] RDMA/restrack: Add general
+ infrastructure to track RDMA resources
+Date: Thu, 11 Jan 2018 19:47:27 +0000
+Message-ID: <1515700046.2752.52.camel@wdc.com>
+References: <20180111153132.11143-1-leon@kernel.org>
+         <20180111153132.11143-2-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAN-5tyEwdSOiAk04xjfazxBqwkkTiCjr2dVcCoYLQJw8f37U=w@mail.gmail.com>
-Content-Language: en-us
+In-Reply-To: <20180111153132.11143-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Language: en-US
+Content-ID: <7E92F3C678E4034484C4211CC6AC1D8D-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Olga Kornievskaia' <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
-Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > Hey Olga,
-> >
-> > Are the machines the same kernel version / distro sw / and hw -
-> cpu/motherboard/memory/etc?  If not, what is different about them?  Is it the
-> krping server that sees the CQ error?  Do other rdma devices work on these
-> systems?
-> 
-> Hi Steve,
-> 
-> Machines software is the same kernel version (4.15-rc4) / distro sw
-> (RHEL7.4). Hardware of those machines the same (PRIMERGY RX200 S7) but
-> one machine has 8G less memory than the other (64G vs 56G). kpring
-> error was on the server. These machines only have 1 CX-5 no other RDMA
-> devices.
-> 
-
-Ok.  The memory probably doesn't matter.  Maybe run krping client and server on the same host (to use hw-loopback), and see if it works on both, one, or neither systems when they are both the client and server.
-
-
+T24gVGh1LCAyMDE4LTAxLTExIGF0IDE3OjMxICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+ICtzdHJ1Y3QgcmRtYV9yZXN0cmFja19lbnRyeSB7DQo+ICsgICAgICAgc3RydWN0IGxpc3Rf
+aGVhZCAgICAgICAgbGlzdDsNCj4gKw0KPiArICAgICAgIC8qDQo+ICsgICAgICAgICogVGhlIGVu
+dHJpZXMgYXJlIGZpbGxlZCBkdXJpbmcgcmRtYV9yZXN0cmFja19hZGQsDQo+ICsgICAgICAgICog
+Y2FuIGJlIGF0dGVtcHRlZCB0byBiZSBmcmVlIGR1cmluZyByZG1hX3Jlc3RyYWNrX2RlbC4NCj4g
+KyAgICAgICAgKg0KPiArICAgICAgICAqIEFzIGFuIGV4YW1wbGUgZm9yIHRoYXQsIHNlZSBtbHg1
+IFFQcyB3aXRoIHR5cGUgTUxYNV9JQl9RUFRfSFdfR1NJDQo+ICsgICAgICAgICovDQo+ICsgICAg
+ICAgYm9vbCAgICAgICAgICAgICAgICAgICAgdmFsaWQ7DQo+ICsNCj4gKyAgICAgICAvKg0KPiAr
+ICAgICAgICAqIFNsZWVwYWJhbGUgUkNVIHRvIHByb3RlY3Qgb2JqZWN0IGRhdGEuDQo+ICsgICAg
+ICAgICovDQo+ICsgICAgICAgc3RydWN0IHNyY3Vfc3RydWN0ICAgICAgc3JjdTsNCj4gKw0KPiAr
+ICAgICAgIHN0cnVjdCB0YXNrX3N0cnVjdCAgICAgICp0YXNrOw0KPiArICAgICAgIGNoYXIgICAg
+ICAgICAgICAgICAgICAgICp0YXNrX2NvbW07DQo+ICt9Ow0KDQpQbGVhc2UgdXNlIHRoZSBrZXJu
+ZWwtZG9jIHN5bnRheCB0byBkb2N1bWVudCB0aGUgbWVhbmluZyBvZiB0aGUgbmFtZXMgb2YgdGhl
+DQpmaWVsZHMgaW4gdGhpcyBzdHJ1Y3R1cmUuIEl0IGlzIGUuZy4gbm9udHJpdmlhbCB0byBndWVz
+cyB3aGF0ICJ0YXNrX2NvbW0iIHN0YW5kcw0KZm9yLiBUaGUgcHJlc2Vuc2Ugb2YgYSB0YXNrX3N0
+cnVjdCBwb2ludGVyIGlzIGFsc28gbm9udHJpdmlhbC4NCg0KUFM6IEkgdGhpbmsgdGhlIHNwZWxs
+aW5nIG9mICJTbGVlcGFiYWxlIiBzaG91bGQgYmUgZml4ZWQuDQoNClRoYW5rcywNCg0KQmFydC4=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
