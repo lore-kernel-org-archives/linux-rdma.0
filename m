@@ -1,44 +1,57 @@
-From: Bart Van Assche <Bart.VanAssche@wdc.com>
-Subject: Re: [PATCH] RDMA/rxe: Fix a race condition related to the QP error
- state
-Date: Thu, 11 Jan 2018 19:07:06 +0000
-Message-ID: <1515697625.2752.46.camel@wdc.com>
-References: <20180109192340.25702-1-bart.vanassche@wdc.com>
-         <1515620434.3403.169.camel@redhat.com>
-         <1515621700.3403.174.camel@redhat.com>
-         <20180111062252.GP7368@mtr-leonro.local> <1515686552.2752.2.camel@wdc.com>
-         <20180111190045.GE15760@mtr-leonro.local>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH rdma-next v3 1/7] RDMA/restrack: Add general infrastructure to track RDMA resources
+Date: Thu, 11 Jan 2018 13:39:08 -0600
+Message-ID: <016f01d38b13$d8d6c670$8a845350$@opengridcomputing.com>
+References: <20180111153132.11143-1-leon@kernel.org> <20180111153132.11143-2-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180111190045.GE15760@mtr-leonro.local>
-Content-Language: en-US
-Content-ID: <21027316AF6ED747B15F899D64765227@namprd04.prod.outlook.com>
-Sender: stable-owner@vger.kernel.org
-To: "leon@kernel.org" <leon@kernel.org>
-Cc: "jgg@mellanox.com" <jgg@mellanox.com>, "monis@mellanox.com" <monis@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180111153132.11143-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Jason Gunthorpe' <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: 'RDMA mailing list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Mark Bloch' <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Leon Romanovsky' <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE4LTAxLTExIGF0IDIxOjAwICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IE9uIFRodSwgSmFuIDExLCAyMDE4IGF0IDA0OjAyOjMzUE0gKzAwMDAsIEJhcnQgVmFuIEFz
-c2NoZSB3cm90ZToNCj4gPiBPbiBUaHUsIDIwMTgtMDEtMTEgYXQgMDg6MjIgKzAyMDAsIExlb24g
-Um9tYW5vdnNreSB3cm90ZToNCj4gPiA+IFRoZSBwcm9wb3NlZCBwYXRjaCBkZWZpbml0ZWx5IGRl
-Y3JlYXNlcyB0aGUgY2hhbmNlIG9mIHJhY2VzLCBidXQgaXQgaXMgbm90IGZpeGluZyB0aGVtLg0K
-PiA+ID4gVGhlcmUgaXMgYSBjaGFuY2UgdG8gaGF2ZSBjaGFuZ2UgaW4gcXAgc3RhdGUgaW1tZWRp
-YXRlbHkgYWZ0ZXIgeW91ciAiaWYgLi4uIiBjaGVjay4NCj4gPiANCj4gPiBIZWxsbyBMZW9uLA0K
-PiA+IA0KPiA+IFBsZWFzZSBoYXZlIGEgbG9vayBhdCByeGVfcXBfZXJyb3IoKSBhbmQgeW91IHdp
-bGwgc2VlIHRoYXQgdGhlIHBhdGNoIEkgcG9zdGVkDQo+ID4gaXMgYSBwcm9wZXIgZml4LiBJbiB0
-aGUgc2NlbmFyaW8geW91IGRlc2NyaWJlZCByeGVfcXBfZXJyb3IoKSB3aWxsIHRyaWdnZXIgYQ0K
-PiA+IHJ1biBvZiByeGVfY29tcGxldGVyKCkuDQo+IA0KPiBCYXJ0LA0KPiANCj4gV2hhdCBhbSBJ
-IG1pc3Npbmc/DQo+IA0KPiBDUFUxCQkJCQkJCUNQVTINCj4gCQkJCQkJCWlmICh1bmxpa2VseS4u
-Li4NCj4gCQkJCQkJPC0tLQ0KPiAvKiBtb3ZlIHRoZSBxcCB0byB0aGUgZXJyb3Igc3RhdGUgKi8N
-Cj4gdm9pZCByeGVfcXBfZXJyb3Ioc3RydWN0IHJ4ZV9xcCAqcXApDQo+IHsNCj4gICAgICAgICBx
-cC0+cmVxLnN0YXRlID0gUVBfU1RBVEVfRVJST1I7DQo+ICAgICAgICAgcXAtPnJlc3Auc3RhdGUg
-PSBRUF9TVEFURV9FUlJPUjsNCj4gICAgICAgICBxcC0+YXR0ci5xcF9zdGF0ZSA9IElCX1FQU19F
-UlI7DQo+IAkJCQkJCS0tLT4NCj4gCQkJCQkJCXJ4ZV9ydW5fdGFzaygmcXAtPnJlcS50YXNrLCBt
-dXN0X3NjaGVkKTsNCj4gDQo+IA0KPiANCj4gSXQgaXMgbW9yZSBvciBsZXNzIHRoZSBzYW1lIGFz
-IHdpdGhvdXQgImlmICh1bmxpa2VseS4uLiINCg0KSGVsbG8gTGVvbiwNCg0KSW4gdGhlIGFib3Zl
-IHRoZSBwYXJ0IG9mIHJ4ZV9xcF9lcnJvcigpIHRoYXQgSSB3YXMgcmVmZXJyaW5nIHRvIGluIG15
-IGUtbWFpbA0KaXMgbWlzc2luZzoNCg0KCWlmIChxcF90eXBlKHFwKSA9PSBJQl9RUFRfUkMpDQoJ
-CXJ4ZV9ydW5fdGFzaygmcXAtPmNvbXAudGFzaywgMSk7DQoNCkJhcnQu
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> The RDMA subsystem has very strict set of objects to work on it,
+> but it completely lacks tracking facilities and no visibility of
+> resource utilization.
+> 
+> The following patch adds such infrastructure to keep track of RDMA
+> resources to help with debugging of user space applications. The primary
+> user of this infrastructure is RDMA nldev netlink (following patches),
+> but it is not limited too.
+> 
+> At this stage, the main three objects (PD, CQ and QP) are added,
+> and more will be added later.
+> 
+> There are four new functions in use by RDMA/core:
+>  * rdma_restrack_init(...)   - initializes restrack database
+>  * rdma_restrack_clean(...)  - cleans restrack database
+>  * rdma_restrack_add(...)    - adds object to be tracked
+>  * rdma_restrack_del(...)    - removes object from tracking
+> 
+> 3 functions and one iterator visible to kernel users:
+>  * rdma_restrack_count(...) - returns number of allocated objects of
+> 			      specific type
+>  * rdma_restrack_lock(...)  - Lock primitive to protect access to list
+> 			      of resources
+>  * rdma_restrack_unlock(...)- Unlock primitive to protect access to list
+> 			      of resources
+>  * for_each_res_safe(...)   - iterates over all relevant objects in
+>    the restrack database.
+> 
+> Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
