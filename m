@@ -1,51 +1,66 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
-Date: Thu, 11 Jan 2018 08:02:21 -0500
-Message-ID: <1515675741.21421.1.camel@redhat.com>
-References: <1515531652.26021.1.camel@redhat.com>
-         <1515537614.26021.3.camel@redhat.com> <1515591723.26021.6.camel@redhat.com>
-         <20180110182648.GI4518@ziepe.ca> <1515609623.2745.20.camel@wdc.com>
-         <1515610750.10153.1.camel@redhat.com> <20180110191510.GK4518@ziepe.ca>
-         <1515612639.10153.3.camel@redhat.com> <20180110205243.GP4776@mellanox.com>
-         <1515618674.10153.6.camel@redhat.com> <20180110211501.GS4776@mellanox.com>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: rdma_rxe: Kernel bug during QP cleanup
+Date: Thu, 11 Jan 2018 15:37:25 +0200
+Message-ID: <CAG9sBKPLZTVqXT2AJjdsgzA237oEQ5aAtmVWhp=9oKx5ghnEoQ@mail.gmail.com>
+References: <1515618829.2745.34.camel@wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180110211501.GS4776-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1515618829.2745.34.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2018-01-10 at 14:15 -0700, Jason Gunthorpe wrote:
-> On Wed, Jan 10, 2018 at 04:11:14PM -0500, Laurence Oberman wrote:
-> 
-> > Almost looks like changes made may require new Firmware maybe for
-> > my
-> > CX4 card because its coming from here and I dont like to see
-> > pci_err**
-> > called.
-> 
-> git tells me the shutdown error feature is newish, and surely
-> interacts with CQ shutdown, so guessing it is broken is a pretty good
-> starting point.
-> 
-> Jason
+On Wed, Jan 10, 2018 at 11:13 PM, Bart Van Assche
+<Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org> wrote:
+> Hello,
+>
+> The below output appeared on the serial console while I was using the rdma_rxe
+> driver. I don't think this is caused by the change I made to this driver (the
+> patch I posted earlier on the linux-rdma mailing list). Can someone have a look
+> at this?
+>
+> Thanks,
+>
+> Bart.
+>
+> Kernel BUG at 00000000560033f3 [verbose debug info unavailable]
+> BUG: sleeping function called from invalid context at net/core/sock.c:2761
+> in_atomic(): 1, irqs_disabled(): 0, pid: 7, name: ksoftirqd/0
+> INFO: lockdep is turned off.
+> Preemption disabled at:
+> [<00000000b6e69628>] __do_softirq+0x4e/0x540
+> CPU: 0 PID: 7 Comm: ksoftirqd/0 Not tainted 4.15.0-rc7-dbg+ #4
+> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
+> Call Trace:
+>  dump_stack+0x85/0xbf
+>  ___might_sleep+0x177/0x260
+>  lock_sock_nested+0x1d/0x90
+>  inet_shutdown+0x2e/0xd0
+>  rxe_qp_cleanup+0x107/0x140 [rdma_rxe]
+>  rxe_elem_release+0x18/0x80 [rdma_rxe]
+>  rxe_requester+0x1cf/0x11b0 [rdma_rxe]
+>  rxe_do_task+0x78/0xf0 [rdma_rxe]
+>  tasklet_action+0x99/0x270
+>  __do_softirq+0xc0/0x540
+>  run_ksoftirqd+0x1c/0x70
+>  smpboot_thread_fn+0x1be/0x270
+>  kthread+0x117/0x130
+>  ret_from_fork+0x24/0x30
 
-So as expected removing the shutdown call stops this happening.
+Thanks Bart
+If you refer to the patch in "RDMA/rxe: Fix a race condition related
+to the QP error state" then yes, it doesn't look like that it adds a
+bug, at least not a bug like in the above trace.
+If I had to guess it looks like a race between rxe_destroy_qp() and
+rxe_requester(). If the first was starts to run while the second is
+already running then the reference drop in rxe_requeser() is the one
+that leads to rxe_qp_cleanup().
+I'll add this to the bug list and try to investigate it sometime soon
+(if no one else takes it of course :))
 
-"
-As an experiment comment out the '.shutdown = shutdown' in
-drivers/net/ethernet/mellanox/mlx5/core/main.c?
-"
-
-Leon, can you look into this please becaus ethe issue is already in
-Linus' tree and with the changes in the RDMA tree its not just
-messaging, we panic on shutdown.
-
-Thanks
-Laurence
+Moni
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
