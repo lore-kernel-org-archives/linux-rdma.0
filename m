@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v3 1/7] RDMA/restrack: Add general infrastructure to track RDMA resources
-Date: Thu, 11 Jan 2018 17:31:26 +0200
-Message-ID: <20180111153132.11143-2-leon@kernel.org>
+Subject: [PATCH rdma-next v3 3/7] RDMA: Annotate create QP callers
+Date: Thu, 11 Jan 2018 17:31:28 +0200
+Message-ID: <20180111153132.11143-4-leon@kernel.org>
 References: <20180111153132.11143-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180111153132.11143-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,487 +12,215 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The RDMA subsystem has very strict set of objects to work on it,
-but it completely lacks tracking facilities and no visibility of
-resource utilization.
-
-The following patch adds such infrastructure to keep track of RDMA
-resources to help with debugging of user space applications. The primary
-user of this infrastructure is RDMA nldev netlink (following patches),
-but it is not limited too.
-
-At this stage, the main three objects (PD, CQ and QP) are added,
-and more will be added later.
-
-There are four new functions in use by RDMA/core:
- * rdma_restrack_init(...)   - initializes restrack database
- * rdma_restrack_clean(...)  - cleans restrack database
- * rdma_restrack_add(...)    - adds object to be tracked
- * rdma_restrack_del(...)    - removes object from tracking
-
-3 functions and one iterator visible to kernel users:
- * rdma_restrack_count(...) - returns number of allocated objects of
-			      specific type
- * rdma_restrack_lock(...)  - Lock primitive to protect access to list
-			      of resources
- * rdma_restrack_unlock(...)- Unlock primitive to protect access to list
-			      of resources
- * for_each_res_safe(...)   - iterates over all relevant objects in
-   the restrack database.
+Update all callers to provide owner name through QP attribute
+structure and connect create_qp with helper which supports
+resource tracking.
 
 Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/Makefile    |   2 +-
- drivers/infiniband/core/core_priv.h |   1 +
- drivers/infiniband/core/device.c    |   7 ++
- drivers/infiniband/core/restrack.c  | 182 ++++++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h             |  17 +++-
- include/rdma/restrack.h             | 138 +++++++++++++++++++++++++++
- 6 files changed, 345 insertions(+), 2 deletions(-)
- create mode 100644 drivers/infiniband/core/restrack.c
- create mode 100644 include/rdma/restrack.h
+ drivers/infiniband/core/cma.c              | 1 +
+ drivers/infiniband/core/mad.c              | 1 +
+ drivers/infiniband/core/uverbs_cmd.c       | 3 +--
+ drivers/infiniband/core/verbs.c            | 4 ++--
+ drivers/infiniband/hw/mlx4/mad.c           | 1 +
+ drivers/infiniband/hw/mlx4/qp.c            | 1 +
+ drivers/infiniband/hw/mlx5/gsi.c           | 2 ++
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c    | 4 +++-
+ drivers/infiniband/ulp/ipoib/ipoib_verbs.c | 1 +
+ drivers/infiniband/ulp/srp/ib_srp.c        | 1 +
+ drivers/infiniband/ulp/srpt/ib_srpt.c      | 1 +
+ net/smc/smc_ib.c                           | 1 +
+ 12 files changed, 16 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index 504b926552c6..f69833db0a32 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -12,7 +12,7 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
- 				device.o fmr_pool.o cache.o netlink.o \
- 				roce_gid_mgmt.o mr_pool.o addr.o sa_query.o \
- 				multicast.o mad.o smi.o agent.o mad_rmpp.o \
--				security.o nldev.o
-+				security.o nldev.o restrack.o
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index a4dc89338fae..1d5dc0d13105 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -861,6 +861,7 @@ int rdma_create_qp(struct rdma_cm_id *id, struct ib_pd *pd,
+ 		return -EINVAL;
  
- ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
- ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index aef9aa0ac0e6..2b1372da708a 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -40,6 +40,7 @@
- #include <rdma/ib_verbs.h>
- #include <rdma/opa_addr.h>
- #include <rdma/ib_mad.h>
-+#include <rdma/restrack.h>
- #include "mad_priv.h"
+ 	qp_init_attr->port_num = id->port_num;
++	strncpy(qp_init_attr->comm, "rdma-cm", TASK_COMM_LEN);
+ 	qp = ib_create_qp(pd, qp_init_attr);
+ 	if (IS_ERR(qp))
+ 		return PTR_ERR(qp);
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index c50596f7f98a..f73551fc5a02 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -3103,6 +3103,7 @@ static int create_mad_qp(struct ib_mad_qp_info *qp_info,
+ 	qp_init_attr.port_num = qp_info->port_priv->port_num;
+ 	qp_init_attr.qp_context = qp_info;
+ 	qp_init_attr.event_handler = qp_event_handler;
++	strncpy(qp_init_attr.comm, "rdma-mad", TASK_COMM_LEN);
+ 	qp_info->qp = ib_create_qp(qp_info->port_priv->pd, &qp_init_attr);
+ 	if (IS_ERR(qp_info->qp)) {
+ 		dev_err(&qp_info->port_priv->device->dev,
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index c216d98bb816..62b3c5d71cce 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1514,7 +1514,7 @@ static int create_qp(struct ib_uverbs_file *file,
+ 	if (cmd->qp_type == IB_QPT_XRC_TGT)
+ 		qp = ib_create_qp(pd, &attr);
+ 	else
+-		qp = device->create_qp(pd, &attr, uhw);
++		qp = _ib_create_qp(device, pd, &attr, uhw);
  
- /* Total number of ports combined across all struct ib_devices's */
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 2826e06311a5..c3e389f8c99a 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -263,6 +263,11 @@ struct ib_device *ib_alloc_device(size_t size)
- 	if (!device)
- 		return NULL;
+ 	if (IS_ERR(qp)) {
+ 		ret = PTR_ERR(qp);
+@@ -1527,7 +1527,6 @@ static int create_qp(struct ib_uverbs_file *file,
+ 			goto err_cb;
  
-+	if (rdma_restrack_init(&device->res)) {
-+		kfree(device);
-+		return NULL;
-+	}
-+
- 	device->dev.class = &ib_class;
- 	device_initialize(&device->dev);
+ 		qp->real_qp	  = qp;
+-		qp->device	  = device;
+ 		qp->pd		  = pd;
+ 		qp->send_cq	  = attr.send_cq;
+ 		qp->recv_cq	  = attr.recv_cq;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index f3e446b48e3a..0c8743ec594a 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -882,7 +882,7 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 	if (qp_init_attr->cap.max_rdma_ctxs)
+ 		rdma_rw_init_qp(device, qp_init_attr);
  
-@@ -596,6 +601,8 @@ void ib_unregister_device(struct ib_device *device)
+-	qp = device->create_qp(pd, qp_init_attr, NULL);
++	qp = _ib_create_qp(device, pd, qp_init_attr, NULL);
+ 	if (IS_ERR(qp))
+ 		return qp;
+ 
+@@ -892,7 +892,6 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 		return ERR_PTR(ret);
  	}
- 	up_read(&lists_rwsem);
  
-+	rdma_restrack_clean(&device->res);
-+
- 	ib_device_unregister_rdmacg(device);
- 	ib_device_unregister_sysfs(device);
+-	qp->device     = device;
+ 	qp->real_qp    = qp;
+ 	qp->uobject    = NULL;
+ 	qp->qp_type    = qp_init_attr->qp_type;
+@@ -1538,6 +1537,7 @@ int ib_destroy_qp(struct ib_qp *qp)
+ 	if (!qp->uobject)
+ 		rdma_rw_cleanup_mrs(qp);
  
-diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
-new file mode 100644
-index 000000000000..bf19b93fd51f
---- /dev/null
-+++ b/drivers/infiniband/core/restrack.c
-@@ -0,0 +1,182 @@
-+/*
-+ * Copyright (c) 2017 Mellanox Technologies. All rights reserved.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are met:
-+ *
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ * 2. Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in the
-+ *    documentation and/or other materials provided with the distribution.
-+ * 3. Neither the names of the copyright holders nor the names of its
-+ *    contributors may be used to endorse or promote products derived from
-+ *    this software without specific prior written permission.
-+ *
-+ * Alternatively, this software may be distributed under the terms of the
-+ * GNU General Public License ("GPL") version 2 as published by the Free
-+ * Software Foundation.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-+ * POSSIBILITY OF SUCH DAMAGE.
-+ */
-+
-+#include <rdma/ib_verbs.h>
-+#include <rdma/restrack.h>
-+#include <linux/rculist.h>
-+#include <linux/sched/task.h>
-+
-+int rdma_restrack_init(struct rdma_restrack_root *res)
-+{
-+	int i = 0;
-+
-+	for (; i < _RDMA_RESTRACK_MAX; i++) {
-+		refcount_set(&res->cnt[i], 1);
-+		INIT_LIST_HEAD_RCU(&res->list[i]);
-+		init_rwsem(&res->rwsem[i]);
-+	}
-+
-+	return 0;
-+}
-+
-+void rdma_restrack_clean(struct rdma_restrack_root *res)
-+{
-+	int i = 0;
-+
-+	for (; i < _RDMA_RESTRACK_MAX; i++) {
-+		WARN_ON_ONCE(!refcount_dec_and_test(&res->cnt[i]));
-+		WARN_ON_ONCE(!list_empty(&res->list[i]));
-+	}
-+}
-+
-+static bool is_restrack_valid(enum rdma_restrack_obj type)
-+{
-+	return !(type >= _RDMA_RESTRACK_MAX);
-+}
-+
-+int rdma_restrack_count(struct rdma_restrack_root *res,
-+			enum rdma_restrack_obj type)
-+{
-+	if (!is_restrack_valid(type))
-+		return 0;
-+
-+	/*
-+	 * The counter was initialized to 1 at the beginning.
-+	 */
-+	return refcount_read(&res->cnt[type]) - 1;
-+}
-+EXPORT_SYMBOL(rdma_restrack_count);
-+
-+void rdma_restrack_add(struct rdma_restrack_entry *res,
-+		       enum rdma_restrack_obj type, const char *comm)
-+{
-+	struct ib_device *dev;
-+	struct ib_pd *pd;
-+	struct ib_cq *cq;
-+	struct ib_qp *qp;
-+
-+	if (!is_restrack_valid(type))
-+		return;
-+
-+	switch (type) {
-+	case RDMA_RESTRACK_PD:
-+		pd = container_of(res, struct ib_pd, res);
-+		dev = pd->device;
-+		break;
-+	case RDMA_RESTRACK_CQ:
-+		cq = container_of(res, struct ib_cq, res);
-+		dev = cq->device;
-+		break;
-+	case RDMA_RESTRACK_QP:
-+		qp = container_of(res, struct ib_qp, res);
-+		dev = qp->device;
-+		break;
-+	default:
-+		/* unreachable */
-+		return;
-+	}
-+
-+	if (init_srcu_struct(&res->srcu))
-+		/*
-+		 * We are not returning error, because there is nothing
-+		 * we can do it in such case, it is already too late to
-+		 * crash the driver just of failure in resource tracking.
-+		 *
-+		 * Simply leave this resource as not valid.
-+		 */
-+		return;
-+
-+	if (!comm || !strlen(comm)) {
-+		res->task_comm = NULL;
-+		get_task_struct(current);
-+		res->task = current;
-+	} else {
-+		res->task = NULL;
-+		res->task_comm = kstrdup(comm, GFP_KERNEL);
-+		if (!res->task_comm)
-+			goto out;
-+	}
-+
-+	refcount_inc(&dev->res.cnt[type]);
-+
-+	down_write(&dev->res.rwsem[type]);
-+	list_add(&res->list, &dev->res.list[type]);
-+	res->valid = true;
-+	up_write(&dev->res.rwsem[type]);
-+	return;
-+
-+out:
-+	res->valid = false;
-+	cleanup_srcu_struct(&res->srcu);
-+}
-+EXPORT_SYMBOL(rdma_restrack_add);
-+
-+void rdma_restrack_del(struct rdma_restrack_entry *res,
-+		       enum rdma_restrack_obj type)
-+{
-+	struct ib_device *dev;
-+	struct ib_pd *pd;
-+	struct ib_cq *cq;
-+	struct ib_qp *qp;
-+
-+	if (!is_restrack_valid(type) || !res->valid)
-+		return;
-+
-+	switch (type) {
-+	case RDMA_RESTRACK_PD:
-+		pd = container_of(res, struct ib_pd, res);
-+		dev = pd->device;
-+		break;
-+	case RDMA_RESTRACK_CQ:
-+		cq = container_of(res, struct ib_cq, res);
-+		dev = cq->device;
-+		break;
-+	case RDMA_RESTRACK_QP:
-+		qp = container_of(res, struct ib_qp, res);
-+		dev = qp->device;
-+		break;
-+	default:
-+		/* unreachable */
-+		return;
-+	}
-+
-+	refcount_dec(&dev->res.cnt[type]);
-+	down_write(&dev->res.rwsem[type]);
-+	list_del(&res->list);
-+	res->valid = false;
-+	kfree(res->task_comm);
-+	put_task_struct(res->task);
-+	up_write(&dev->res.rwsem[type]);
-+	synchronize_srcu(&res->srcu);
-+	cleanup_srcu_struct(&res->srcu);
-+}
-+EXPORT_SYMBOL(rdma_restrack_del);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index f25c03687ee9..271265cd7c1a 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -63,6 +63,7 @@
- #include <linux/uaccess.h>
- #include <linux/cgroup_rdma.h>
- #include <uapi/rdma/ib_user_verbs.h>
-+#include <rdma/restrack.h>
++	rdma_restrack_del(&qp->res, RDMA_RESTRACK_QP);
+ 	ret = qp->device->destroy_qp(qp);
+ 	if (!ret) {
+ 		if (pd)
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 0793a21d76f4..f816df420fb9 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -1834,6 +1834,7 @@ static int create_pv_sqp(struct mlx4_ib_demux_pv_ctx *ctx,
+ 	qp_init_attr.init_attr.port_num = ctx->port;
+ 	qp_init_attr.init_attr.qp_context = ctx;
+ 	qp_init_attr.init_attr.event_handler = pv_qp_event_handler;
++	strncpy(qp_init_attr.init_attr.comm, "mlx4-sriov", TASK_COMM_LEN);
+ 	tun_qp->qp = ib_create_qp(ctx->pd, &qp_init_attr.init_attr);
+ 	if (IS_ERR(tun_qp->qp)) {
+ 		ret = PTR_ERR(tun_qp->qp);
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index f045491f2c14..ebdfac3eb673 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1689,6 +1689,7 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
+ 		if (is_eth &&
+ 		    dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
+ 			init_attr->create_flags |= MLX4_IB_QP_CREATE_ROCE_V2_GSI;
++			strncpy(init_attr->comm, "mlx4-gsi", TASK_COMM_LEN);
+ 			sqp->roce_v2_gsi = ib_create_qp(pd, init_attr);
  
- #define IB_FW_VERSION_NAME_MAX	ETHTOOL_FWVERS_LEN
- 
-@@ -1527,9 +1528,10 @@ struct ib_pd {
- 	u32			unsafe_global_rkey;
- 
- 	/*
--	 * Implementation details of the RDMA core, don't use in drivers:
-+	 * Implementation details of the RDMA core, don't use in the drivers
- 	 */
- 	struct ib_mr	       *__internal_mr;
-+	struct rdma_restrack_entry res;
- };
- 
- struct ib_xrcd {
-@@ -1570,6 +1572,10 @@ struct ib_cq {
- 		struct irq_poll		iop;
- 		struct work_struct	work;
+ 			if (IS_ERR(sqp->roce_v2_gsi)) {
+diff --git a/drivers/infiniband/hw/mlx5/gsi.c b/drivers/infiniband/hw/mlx5/gsi.c
+index 79e6309460dc..b1b177d1a0dd 100644
+--- a/drivers/infiniband/hw/mlx5/gsi.c
++++ b/drivers/infiniband/hw/mlx5/gsi.c
+@@ -184,6 +184,7 @@ struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
+ 		hw_init_attr.cap.max_send_sge = 0;
+ 		hw_init_attr.cap.max_inline_data = 0;
+ 	}
++	strncpy(hw_init_attr.comm, "mlx5-gsi", TASK_COMM_LEN);
+ 	gsi->rx_qp = ib_create_qp(pd, &hw_init_attr);
+ 	if (IS_ERR(gsi->rx_qp)) {
+ 		mlx5_ib_warn(dev, "unable to create hardware GSI QP. error %ld\n",
+@@ -264,6 +265,7 @@ static struct ib_qp *create_gsi_ud_qp(struct mlx5_ib_gsi_qp *gsi)
+ 		.sq_sig_type = gsi->sq_sig_type,
+ 		.qp_type = IB_QPT_UD,
+ 		.create_flags = mlx5_ib_create_qp_sqpn_qp1(),
++		.comm = "mlx5-gsi",
  	};
-+	/*
-+	 * Internal to RDMA/core, don't use in the drivers
-+	 */
-+	struct rdma_restrack_entry res;
- };
  
- struct ib_srq {
-@@ -1746,6 +1752,11 @@ struct ib_qp {
- 	struct ib_rwq_ind_table *rwq_ind_tbl;
- 	struct ib_qp_security  *qp_sec;
- 	u8			port;
-+
-+	/*
-+	 * Internal to RDMA/core, don't use in the drivers
-+	 */
-+	struct rdma_restrack_entry     res;
- };
+ 	return ib_create_qp(pd, &init_attr);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index dfbb8fdda5f6..d165b3a25340 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -263,6 +263,7 @@ static struct ib_qp *ipoib_cm_create_rx_qp(struct net_device *dev,
+ 		.sq_sig_type = IB_SIGNAL_ALL_WR,
+ 		.qp_type = IB_QPT_RC,
+ 		.qp_context = p,
++		.comm = "ipoib-cm",
+ 	};
  
- struct ib_mr {
-@@ -2352,6 +2363,10 @@ struct ib_device {
- #endif
+ 	if (!ipoib_cm_has_srq(dev)) {
+@@ -1062,7 +1063,8 @@ static struct ib_qp *ipoib_cm_create_tx_qp(struct net_device *dev, struct ipoib_
+ 		.sq_sig_type		= IB_SIGNAL_ALL_WR,
+ 		.qp_type		= IB_QPT_RC,
+ 		.qp_context		= tx,
+-		.create_flags		= 0
++		.create_flags		= 0,
++		.comm			= "ipoib-cm",
+ 	};
+ 	struct ib_qp *tx_qp;
  
- 	u32                          index;
-+	/*
-+	 * Implementation details of the RDMA core, don't use in the drivers
-+	 */
-+	struct rdma_restrack_root     res;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+index 984a88096f39..d41d85f8ac7e 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+@@ -206,6 +206,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
+ 	if (priv->hca_caps & IB_DEVICE_MANAGED_FLOW_STEERING)
+ 		init_attr.create_flags |= IB_QP_CREATE_NETIF_QP;
  
- 	/**
- 	 * The following mandatory functions are used only at device
-diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
-new file mode 100644
-index 000000000000..201a080e0de9
---- /dev/null
-+++ b/include/rdma/restrack.h
-@@ -0,0 +1,138 @@
-+/*
-+ * Copyright (c) 2017 Mellanox Technologies. All rights reserved.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are met:
-+ *
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ * 2. Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in the
-+ *    documentation and/or other materials provided with the distribution.
-+ * 3. Neither the names of the copyright holders nor the names of its
-+ *    contributors may be used to endorse or promote products derived from
-+ *    this software without specific prior written permission.
-+ *
-+ * Alternatively, this software may be distributed under the terms of the
-+ * GNU General Public License ("GPL") version 2 as published by the Free
-+ * Software Foundation.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-+ * POSSIBILITY OF SUCH DAMAGE.
-+ */
-+
-+#ifndef _RDMA_RESTRACK_H_
-+#define _RDMA_RESTRACK_H_
-+
-+#include <linux/typecheck.h>
-+#include <linux/srcu.h>
-+#include <linux/refcount.h>
-+#include <linux/sched.h>
-+
-+/*
-+ * HW objects to track
-+ */
-+enum rdma_restrack_obj {
-+	RDMA_RESTRACK_PD,
-+	RDMA_RESTRACK_CQ,
-+	RDMA_RESTRACK_QP,
-+	/* Always last, counts number of elements */
-+	_RDMA_RESTRACK_MAX
-+};
-+
-+/*
-+ * Resource trcking management entity per restrack object
-+ */
-+struct rdma_restrack_root {
-+	/*
-+	 * Global counter to avoid the need to count number
-+	 * of elements in the object's list.
-+	 *
-+	 * It can be different from list_count, because we don't
-+	 * grab lock for the additions of new objects and don't
-+	 * synchronize the RCU.
-+	 */
-+	refcount_t		cnt[_RDMA_RESTRACK_MAX];
-+	struct list_head	list[_RDMA_RESTRACK_MAX];
-+	/*
-+	 * Internal read/write lock to protect the add/delete list operations.
-+	 */
-+	struct rw_semaphore	rwsem[_RDMA_RESTRACK_MAX];
-+};
-+
-+struct rdma_restrack_entry {
-+	struct list_head	list;
-+
-+	/*
-+	 * The entries are filled during rdma_restrack_add,
-+	 * can be attempted to be free during rdma_restrack_del.
-+	 *
-+	 * As an example for that, see mlx5 QPs with type MLX5_IB_QPT_HW_GSI
-+	 */
-+	bool			valid;
-+
-+	/*
-+	 * Sleepabale RCU to protect object data.
-+	 */
-+	struct srcu_struct	srcu;
-+
-+	struct task_struct	*task;
-+	char			*task_comm;
-+};
-+
-+int rdma_restrack_init(struct rdma_restrack_root *res);
-+void rdma_restrack_clean(struct rdma_restrack_root *res);
-+
-+/*
-+ * Iterator - use rdma_restrack_lock/rdma_restrack_unlock to protect it
-+ */
-+#define for_each_res_safe(r, n, type, dev) \
-+	list_for_each_entry_safe(r, n, &(dev)->res.list[type], list)
-+
-+/*
-+ * lock/unlock to protect reads of restrack_obj structs
-+ */
-+static inline void rdma_restrack_lock(struct rdma_restrack_root *res,
-+				      enum rdma_restrack_obj type)
-+{
-+	down_read(&res->rwsem[type]);
-+}
-+
-+static inline void rdma_restrack_unlock(struct rdma_restrack_root *res,
-+					enum rdma_restrack_obj type)
-+{
-+	up_read(&res->rwsem[type]);
-+}
-+
-+/*
-+ * Returns the current usage of specific object.
-+ * Users can get device utilization by comparing with max_objname
-+ * (e.g. max_qp, max_pd e.t.c),
-+ */
-+int rdma_restrack_count(struct rdma_restrack_root *res,
-+			enum rdma_restrack_obj type);
-+
-+/*
-+ * Track object:
-+ *  res - resource tracker to operate on, usually allocated on ib_device
-+ *  type - actual type of object to operate.
-+ *  comm - the owner of this resource. For kernel created resources,
-+ *         there is a need to pass a name here, which will be visible to users.
-+ *         For user created resources, there is a need to pass NULL here and the
-+ *         owner will be taken from current struct task_struct.
-+ */
-+
-+void rdma_restrack_add(struct rdma_restrack_entry *res,
-+		       enum rdma_restrack_obj type, const char *comm);
-+void rdma_restrack_del(struct rdma_restrack_entry *res,
-+		       enum rdma_restrack_obj type);
-+#endif /* _RDMA_RESTRACK_H_ */
++	strncpy(init_attr.comm, "ipoib-verbs", TASK_COMM_LEN);
+ 	priv->qp = ib_create_qp(priv->pd, &init_attr);
+ 	if (IS_ERR(priv->qp)) {
+ 		pr_warn("%s: failed to create QP\n", ca->name);
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 62d88212c1b0..fb8be6b2ddfb 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -521,6 +521,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+ 	init_attr->send_cq             = send_cq;
+ 	init_attr->recv_cq             = recv_cq;
+ 
++	strncpy(init_attr->comm, "srp", TASK_COMM_LEN);
+ 	qp = ib_create_qp(dev->pd, init_attr);
+ 	if (IS_ERR(qp)) {
+ 		ret = PTR_ERR(qp);
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index d78f60dcc2ba..3724132a266e 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -1726,6 +1726,7 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 		qp_init->cap.max_recv_sge = qp_init->cap.max_send_sge;
+ 	}
+ 
++	strncpy(qp_init->comm, "srpt", TASK_COMM_LEN);
+ 	ch->qp = ib_create_qp(sdev->pd, qp_init);
+ 	if (IS_ERR(ch->qp)) {
+ 		ret = PTR_ERR(ch->qp);
+diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
+index 90f1a7f9085c..9f5bca333cce 100644
+--- a/net/smc/smc_ib.c
++++ b/net/smc/smc_ib.c
+@@ -243,6 +243,7 @@ int smc_ib_create_queue_pair(struct smc_link *lnk)
+ 		},
+ 		.sq_sig_type = IB_SIGNAL_REQ_WR,
+ 		.qp_type = IB_QPT_RC,
++		.comm = "sec-ib",
+ 	};
+ 	int rc;
+ 
 -- 
 2.15.1
 
