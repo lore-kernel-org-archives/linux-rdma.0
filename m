@@ -1,38 +1,97 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
-Date: Thu, 11 Jan 2018 21:43:30 +0000
-Message-ID: <1515707008.2752.62.camel@wdc.com>
-References: <1515531652.26021.1.camel@redhat.com>
-         <1515537614.26021.3.camel@redhat.com> <1515591723.26021.6.camel@redhat.com>
-         <20180110182648.GI4518@ziepe.ca> <1515609623.2745.20.camel@wdc.com>
-         <1515610750.10153.1.camel@redhat.com> <20180110191510.GK4518@ziepe.ca>
-         <1515612639.10153.3.camel@redhat.com> <20180110205243.GP4776@mellanox.com>
-         <1515618674.10153.6.camel@redhat.com> <20180110211501.GS4776@mellanox.com>
-         <1515675741.21421.1.camel@redhat.com> <1515703435.21421.9.camel@redhat.com>
-         <1515705340.2752.60.camel@wdc.com> <1515706433.21421.11.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: [PATCH rdma-core 00/17] Use the kernel ABI header instead of kern-abi.h
+Date: Thu, 11 Jan 2018 15:13:23 -0700
+Message-ID: <20180111221340.965-1-jgg@ziepe.ca>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1515706433.21421.11.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <6C265C512C411546A9D826891E5D0FF2-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE4LTAxLTExIGF0IDE2OjMzIC0wNTAwLCBMYXVyZW5jZSBPYmVybWFuIHdyb3Rl
-Og0KPiBJIGhhdmUgbm90IGNoYW5nZWQgdGhlIGNvbmZpZ3VyYXRpb24gaW4gTElPIHRhcmdldCB0
-aG91Z2guDQoNClllcywgSSB0cnVzdCB0aGF0IHlvdSBoYXZlbid0IGNoYW5nZWQgdGhlIGNvbmZp
-Z3VyYXRpb24gYnV0IEkgZGlkbid0IHRydXN0DQp3aGV0aGVyIG15IG93biBpYl9zcnB0IGNoYW5n
-ZXMgaGFkIHByZXNlcnZlZCBiYWNrd2FyZHMgY29tcGF0aWJpbGl0eSA6LSkNCg0KPiAgIHwgfCB8
-IG8tIGliLjRlNmU3MjAwMDM5MGZlN2M3Y2ZlOTAwMzAwNzI2ZWQyDQo+IC4uLi4uLi4uLi4uLi4u
-Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4NCj4g
-DQo+IFsgLi4uIF0NCj4gW01hcHBlZCBMVU5zOiAzMF0NCj4gICB8IHwgfCBvLSBpYi40ZjZlNzIw
-MDAzOTBmZTdjN2NmZTkwMDMwMDcyNmVkMg0KDQpUaGFua3MsIHRoaXMgY29uZmlybXMgbXkgc3Vz
-cGljaW9uLiBJIHdpbGwgc2VlIHdoYXQgbmVlZHMgdG8gYmUgY2hhbmdlZCBpbg0KdGhlIGliX3Ny
-cHQgZHJpdmVyIHRvIHJlc3RvcmUgYmFja3dhcmRzIGNvbXBhdGliaWxpdHkuDQoNCkJhcnQu
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+This substantially eliminates most of kern-abi.h. All that remains are the
+structs that have been modified by appending the header.
+
+Much of the hard work was done via an automatic script.
+
+I've been threatening to do this for some time, but forthcoming work on the
+kabi has now made it timely.
+
+This is a github pull request:
+
+https://github.com/linux-rdma/rdma-core/pull/282
+
+Jason Gunthorpe (17):
+  Update rdma/ib_user_verbs.h
+  verbs: Include rdma/ib_user_verbs.h in kern-abi.h
+  verbs: Delete extended command definitions from kern-abi.h
+  verbs: Remove unused structs
+  verbs: Remove kernel ABI v2 compat cruft
+  verbs: Add missing endian annotations to kern-abi.h
+  verbs: Use kernel uapi names for identical structs
+  verbs: Use kernel uapi header for ibv_cq_moderation_caps_resp
+  verbs: Use kernel uapi header for ibv_query_device_resp_ex
+  verbs: Use kernel uapi header for ibv_kern_wc and ibv_poll_cq_resp
+  verbs: Use kernel uapi header for ibv_create_ah_resp
+  verbs: Use kernel uapi header for ibv_kern_send_wr
+  verbs: Use kernel uapi header for
+    IBV_CREATE_QP_EX_KERNEL_MASK_IND_TABLE
+  verbs: Use kernel uapi header for flow steering types
+  verbs: Use kernel uapi header for ibv_modify_qp_common
+  verb: Use kernel uapi header in struct ex_hdr
+  verbs: Tidy up the remaining structs in kern-abi.h
+
+ buildlib/RDMA_LinuxHeaders.cmake            |    2 +-
+ buildlib/fixup-include/rdma-ib_user_verbs.h | 1176 +++++++++++++++++++++++++++
+ libibcm/cm.c                                |    2 +-
+ libibverbs/cmd.c                            |  157 ++--
+ libibverbs/device.c                         |    2 +-
+ libibverbs/driver.h                         |   40 +-
+ libibverbs/ibverbs.h                        |   44 +-
+ libibverbs/kern-abi.h                       |  971 ++--------------------
+ libibverbs/marshall.c                       |    4 +-
+ libibverbs/marshall.h                       |    4 +-
+ libibverbs/verbs.c                          |   37 +-
+ librdmacm/cma.c                             |    2 +-
+ librdmacm/rdma_cma_abi.h                    |    2 +-
+ providers/bnxt_re/bnxt_re-abi.h             |   10 +-
+ providers/bnxt_re/verbs.c                   |    2 +-
+ providers/cxgb3/iwch-abi.h                  |   12 +-
+ providers/cxgb4/cxgb4-abi.h                 |   10 +-
+ providers/cxgb4/verbs.c                     |    4 +-
+ providers/hfi1verbs/hfi-abi.h               |   10 +-
+ providers/hfi1verbs/hfiverbs.c              |    2 +-
+ providers/hfi1verbs/verbs.c                 |   14 +-
+ providers/hns/hns_roce_u_abi.h              |    6 +-
+ providers/hns/hns_roce_u_verbs.c            |    6 +-
+ providers/i40iw/i40iw-abi.h                 |    8 +-
+ providers/i40iw/i40iw_uverbs.c              |    6 +-
+ providers/ipathverbs/ipath-abi.h            |   10 +-
+ providers/ipathverbs/ipathverbs.c           |    2 +-
+ providers/ipathverbs/verbs.c                |   14 +-
+ providers/mlx4/mlx4-abi.h                   |   16 +-
+ providers/mlx4/verbs.c                      |   18 +-
+ providers/mlx5/mlx5-abi.h                   |   22 +-
+ providers/mlx5/verbs.c                      |   10 +-
+ providers/mthca/mthca-abi.h                 |    8 +-
+ providers/mthca/verbs.c                     |    6 +-
+ providers/nes/nes-abi.h                     |    8 +-
+ providers/nes/nes_uverbs.c                  |    6 +-
+ providers/ocrdma/ocrdma_abi.h               |   12 +-
+ providers/ocrdma/ocrdma_verbs.c             |    4 +-
+ providers/qedr/qelr_abi.h                   |   10 +-
+ providers/rxe/rxe-abi.h                     |   10 +-
+ providers/rxe/rxe.c                         |   16 +-
+ providers/vmw_pvrdma/pvrdma-abi-fix.h       |    8 +-
+ providers/vmw_pvrdma/qp.c                   |    4 +-
+ providers/vmw_pvrdma/verbs.c                |    2 +-
+ 44 files changed, 1504 insertions(+), 1215 deletions(-)
+ create mode 100644 buildlib/fixup-include/rdma-ib_user_verbs.h
+
+-- 
+2.15.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
