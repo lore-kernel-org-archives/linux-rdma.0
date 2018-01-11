@@ -1,56 +1,86 @@
-From: Moni Shoua <monis@mellanox.com>
-Subject: Re: [PATCH] RDMA/rxe: Fix a race condition related to the QP error state
-Date: Thu, 11 Jan 2018 13:27:57 +0200
-Message-ID: <CAG9sBKM=Pfvis95=d9s=jObwVZR98Fj1HSqaOWYgnD-XQ1bYaQ@mail.gmail.com>
-References: <20180109192340.25702-1-bart.vanassche@wdc.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC rdma-core 2/2] verbs: Introduce non-contiguous memory
+ registration
+Date: Thu, 11 Jan 2018 14:22:07 +0200
+Message-ID: <20180111122206.GB2800@yuvallap>
+References: <1515088046-26605-1-git-send-email-alexma@mellanox.com>
+ <1515088046-26605-2-git-send-email-alexma@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180109192340.25702-1-bart.vanassche@wdc.com>
-Sender: stable-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@wdc.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, stable@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1515088046-26605-2-git-send-email-alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 9, 2018 at 9:23 PM, Bart Van Assche <bart.vanassche@wdc.com> wrote:
-> The following sequence:
-> * Change queue pair state into IB_QPS_ERR.
-> * Post a work request on the queue pair.
-> Triggers the following race condition in the rdma_rxe driver:
-> * rxe_qp_error() triggers an asynchronous call of rxe_completer(), the function
->   that examines the QP send queue.
-> * rxe_post_send() posts a work request on the QP send queue.
-> Avoid that this race causes a work request to be ignored by scheduling
-> an rxe_completer() call from rxe_post_send() for queues that are in the
-> error state.
->
-> Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
-> Cc: Moni Shoua <monis@mellanox.com>
-> Cc: <stable@vger.kernel.org> # v4.8
-> ---
->  drivers/infiniband/sw/rxe/rxe_verbs.c | 2 ++
->  1 file changed, 2 insertions(+)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> index a6fbed48db8a..8f631d64c192 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> @@ -814,6 +814,8 @@ static int rxe_post_send_kernel(struct rxe_qp *qp, struct ib_send_wr *wr,
->                         (queue_count(qp->sq.queue) > 1);
->
->         rxe_run_task(&qp->req.task, must_sched);
-> +       if (unlikely(qp->req.state == QP_STATE_ERROR))
-> +               rxe_run_task(&qp->comp.task, 1);
->
->         return err;
->  }
-> --
-> 2.15.1
->
+> +The following code example demonstrates non-contiguous memory registration,
+> +by combining two contiguous regions, along with the WR-based completion semantic:
+> +.PP
+> +.nf
+> +mr1 = ibv_reg_mr(pd, addr1, len1, 0);
+> +if (!mr1) {
+> +        fprintf(stderr, "Failed to create MR #1\en");
+> +        return 1;
+> +}
+> +
+> +mr2 = ibv_reg_mr(pd, addr2, len2, 0);
+> +if (!mr2) {
+> +        fprintf(stderr, "Failed to create MR #2\en");
+> +        return 1;
+> +}
 
-Maybe I am missing something but I think that the race is when qp is
-in ERROR state and the following functions run in parallel
-* rxe_drain_req_pkts (called from rxe_requester after post_send)
-* rxe_drain_resp_pkts (called from rxe_completer after modify to ERROR)
+So, to register non-contiguous 512 random buffers i would have to create
+512 MRs?
 
-Am I right?
+> +
+> +mr3 = ibv_reg_mr(pd, NULL, 0, IBV_ACCESS_ZERO_BASED);
+> +if (!mr3) {
+> +        fprintf(stderr, "Failed to create result MR\en");
+> +        return 1;
+> +}
+> +
+> +struct ibv_sge composite[] =
+> +{
+> +        {
+> +                .addr = addr1,
+> +                .length = len1,
+> +                .lkey = mr1->lkey
+> +        },
+> +        {
+> +                .addr = addr2,
+> +                .length = len2,
+> +                .lkey = mr2->lkey
+> +        }
+> +};
+> +
+> +ret = ibv_mr_set_layout_sg(mr3, 0, 2, composite);
+> +if (ret) {
+> +        fprintf(stderr, "Non-contiguous registration failed\en");
+> +        return 1;
+> +}
+> +
+> +struct ibv_sge non_contig =
+> +{
+> +        .addr = 0,
+> +        .length = len1 + len2,
+> +        .lkey = mr3->lkey
+> +};
+> +
+> +struct ibv_send_wr send_wr = {
+> +        .opcode = IBV_WR_SEND,
+> +        .num_sge = 1,
+> +        .sg_list = non_contig,
+> +        .flags = 0
+> +};
+> +
+> +ret = ibv_post_send(qp, send_wr, &bad_wr);
+> +if (ret) {
+> +        fprintf(stderr, "Non-contiguous send failed\en");
+> +        return 1;
+> +}
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
