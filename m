@@ -1,87 +1,60 @@
-From: Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
-Subject: Re: krping problem on 4.15-rc4
-Date: Thu, 11 Jan 2018 13:18:49 -0500
-Message-ID: <CAN-5tyEwdSOiAk04xjfazxBqwkkTiCjr2dVcCoYLQJw8f37U=w@mail.gmail.com>
-References: <CAN-5tyH1HO7yzzQLyb5z5Pq=OrHnKzmCrR2MffLguqsEA-mwWg@mail.gmail.com>
- <00ff01d38a4f$1a979eb0$4fc6dc10$@opengridcomputing.com>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
+Date: Thu, 11 Jan 2018 13:20:55 -0500
+Message-ID: <1515694855.21421.3.camel@redhat.com>
+References: <1515531652.26021.1.camel@redhat.com>
+         <1515537614.26021.3.camel@redhat.com> <1515591723.26021.6.camel@redhat.com>
+         <20180110182648.GI4518@ziepe.ca> <1515609623.2745.20.camel@wdc.com>
+         <1515610750.10153.1.camel@redhat.com> <20180110191510.GK4518@ziepe.ca>
+         <1515612639.10153.3.camel@redhat.com> <20180110205243.GP4776@mellanox.com>
+         <1515618674.10153.6.camel@redhat.com> <20180110211501.GS4776@mellanox.com>
+         <1515675741.21421.1.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <00ff01d38a4f$1a979eb0$4fc6dc10$@opengridcomputing.com>
+In-Reply-To: <1515675741.21421.1.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 10, 2018 at 3:10 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
->> Hi folks,
->>
->> I have 2 linux machines with CX-5 cards (Mellanox MCX515A-CCAT (one
->> port)) and krping doesn't work in one direction but works in another.
->> rping works in both direction. ib_send_bw works in both directions and
->> display 39Gb one way and 36Gb other way on a 40Gb setup.
->>
->> krping is upstream commit 4df520c888d80e5370d0f58b2eeac8355e3f2286.
->>
->> Server is started with: [kolga@localhost krping]$ sudo echo
->> "server,port=9999,addr=172.20.35.191,count=10,verbose" > /proc/krping
->> And it displays in /var/log/messages:
->> Jan 4 14:23:29 localhost kernel: mlx5_0:dump_cqe:277:(pid 0): dump error cqe
->> Jan 4 14:23:29 localhost kernel: 00000000 00000000 00000000 00000000
->> Jan 4 14:23:29 localhost kernel: 00000000 00000000 00000000 00000000
->> Jan 4 14:23:29 localhost kernel: 00000000 00000000 00000000 00000000
->> Jan 4 14:23:29 localhost kernel: 00000000 93003204 10000122 0005bfd2
->> Jan 4 14:23:29 localhost kernel: krping: cq completion failed with
->> wr_id 0 status 4 opcode 128 vender_err 32
->> Jan 4 14:23:29 localhost kernel: krping: cq completion in ERROR state
->> Jan 4 14:23:29 localhost kernel: krping: wait for RDMA_READ_COMPLETE state
->> 10
->>
->> Client is run with: [kolga@sti-rx200-231-d1 ~]$ sudo echo
->> "client,addr=172.20.35.191,port=9999,verbose,count=10" > /proc/krping
->> And in var log messages:
->> Jan 4 14:19:27 localhost kernel: krping: DISCONNECT EVENT...
->> Jan 4 14:19:27 localhost kernel: krping: wait for RDMA_WRITE_ADV state 10
->> Jan 4 14:19:28 localhost kernel: krping: cq completion in ERROR state
->>
->> On the network trace is see (over RRoCE):
->> CM: ConnectRequest
->> CM: ConnectReply
->> CM: ReadyToUse
->> RC Send Only QP
->> RC Ack
->> RC RDMA Read Request
->> RC RDMA Read Response Only
->> CM: DisconnectRequest
->> CM: DisconnectReply
->>
->> I have previously submitted it to Mellanox but they told me to
->> resubmit to linux-rdma list: They also said the engineering did look
->> at the CQE error and the meaning of it was:
->> PD (protection domain) violation - error in fetch data in rxs in pd
->> (send opcodes/ read respond / atomic ack).
->
-> Hey Olga,
->
-> Are the machines the same kernel version / distro sw / and hw - cpu/motherboard/memory/etc?  If not, what is different about them?  Is it the krping server that sees the CQ error?  Do other rdma devices work on these systems?
+On Thu, 2018-01-11 at 08:02 -0500, Laurence Oberman wrote:
+> On Wed, 2018-01-10 at 14:15 -0700, Jason Gunthorpe wrote:
+> > On Wed, Jan 10, 2018 at 04:11:14PM -0500, Laurence Oberman wrote:
+> > 
+> > > Almost looks like changes made may require new Firmware maybe for
+> > > my
+> > > CX4 card because its coming from here and I dont like to see
+> > > pci_err**
+> > > called.
+> > 
+> > git tells me the shutdown error feature is newish, and surely
+> > interacts with CQ shutdown, so guessing it is broken is a pretty
+> > good
+> > starting point.
+> > 
+> > Jason
+> 
+> So as expected removing the shutdown call stops this happening.
+> 
+> "
+> As an experiment comment out the '.shutdown = shutdown' in
+> drivers/net/ethernet/mellanox/mlx5/core/main.c?
+> "
+> 
+> Leon, can you look into this please becaus ethe issue is already in
+> Linus' tree and with the changes in the RDMA tree its not just
+> messaging, we panic on shutdown.
+> 
+> Thanks
+> Laurence
 
-Hi Steve,
+Moving this to a new thread as I have a patch I am submitting for it.
+I will then continue with all the rest of the tests on Bart's Latest
+SRP/SRPT patches
 
-Machines software is the same kernel version (4.15-rc4) / distro sw
-(RHEL7.4). Hardware of those machines the same (PRIMERGY RX200 S7) but
-one machine has 8G less memory than the other (64G vs 56G). kpring
-error was on the server. These machines only have 1 CX-5 no other RDMA
-devices.
 
->
-> Thanks,
->
-> Steve.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
