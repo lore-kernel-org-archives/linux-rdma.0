@@ -1,51 +1,99 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-next v2 7/7] RDMA/nldev: Provide detailed QP information
-Date: Thu, 11 Jan 2018 09:17:56 -0600
-Message-ID: <00d901d38aef$5b993360$12cb9a20$@opengridcomputing.com>
-References: <20180102081832.5264-1-leon@kernel.org> <20180102081832.5264-8-leon@kernel.org> <20180109200917.GF4518@ziepe.ca> <20180110071722.GF7368@mtr-leonro.local> <20180110225622.GQ4518@ziepe.ca> <016201d38a6a$ca49d880$5edd8980$@opengridcomputing.com> <20180111054141.GM7368@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next v3 0/7] RDMA resource tracking
+Date: Thu, 11 Jan 2018 17:31:25 +0200
+Message-ID: <20180111153132.11143-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180111054141.GM7368-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'RDMA mailing list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Mark Bloch' <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > >
-> > > > I personally have no plans to fix CMA netlink code and for my
-opinion it
-> > > > should be removed, instead of beating that dead horse.
-> > >
-> > > What is so wrong with it you can't use it anyhow?
-> > >
-> >
-> > We certainly need to be able to get detailed cm_id information.  At
-least
-> > cm_id bound device, cm_id state, port num, qp-id associated with this
-cm_id,
-> > and src/dst ipaddrs/ports.  However, it could be fetched and added to qp
-> > attributes.  Ala iw_cxgb4's debugfs "qps" file:
-> >
-> > [root@stevo3 stevo]# cat /sys/kernel/debug/iw_cxgb4/0000\:04\:00.4/qps
-> > rc qp sq id 1136 rq id 1137 state 1 onchip 0 ep tid 12028 state 7
-> > 172.16.4.3:58725/58725->172.16.4.4:7174/7174
-> >
-> > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 
-> It can be one option, another is to add new RDMA_RESTRACK_CMA object and
-> expose all relevant information with rdmatool, e.g. "rdma resoruce cma
-link
-> cxgb4/1".
-> 
+Changelog:
+v2->v3:
+  * Added support of PID namespaces.
+  * Rewrote rdma_restraack_add function to ensure that it won't
+    appear in lists before it is valid.
+  * Replace pid/task name caching logic to use task_struct instead.
+  * Removed report of name of task's for user space objects. Users
+    are expected to read it through /proc/PID/comm.
+v1->v2:
+ * Rebased on latest rdma/for-next
+ * Replaced mutex lock which protect linked lists to be RW semaphore.
+   It has no impact on current implementation, because there is only one
+   reader (nldev) and it is serialized. However better to be prepared
+   for multiple readers from the beginning.
+ * Added reinitialization next QP entry logic to ensure that it exists
+   and didn't vanish during fill_req_qp() work.
+v0->v1:
+ * Dropped RFC
+ * Separated to thre series, one for for-rc, and two for-next.
 
-I like the idea of RDMA_RESTRACK_CMA.  I think cm_id's are important objects
-like qps, cqs, pds, and mrs.
+-------
+The original goal of this series was to allow ability to view connection
+(QP) information about running processes, however I used this opportunity and
+created common infrastructure to track and report various resources. The report
+part is implemented in netlink (nldev), but smart ULPs can now create
+advanced usage models based on device utilization.
 
-Steve.
+The current implementation relies on one lock per-object per-device, so
+creation/destroying of various objects (CQ, PD, e.t.c) on various or the
+same devices doesn't interfere each with another.
+
+The data protection is performed with SRCU and its reader-writer model
+ensures that resource won't be destroyed till readers will finish their
+work.
+
+Possible future work will include:
+ * Reducing number of locks in RDMA, because of SRCU.
+ * Converting CMA to be based completely on resource tracking.
+ * Addition of other objects and extending current to give full
+   and detailed state of the RDMA kernel stack.
+ * Replacing synchronize_srcu with call_srcu to make destroy flow
+   non-blocking.
+ * Provide reliable device reset flow, preserving resource creation ordering.
+
+	Thanks
+---------------------------------------
+
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+
+Leon Romanovsky (7):
+  RDMA/restrack: Add general infrastructure to track RDMA resources
+  RDMA/core: Add helper function to create named QPs
+  RDMA: Annotate create QP callers
+  RDMA/core: Add resource tracking for create and destroy CQs
+  RDMA/core: Add resource tracking for create and destroy PDs
+  RDMA/nldev: Provide global resource utilization
+  RDMA/nldev: Provide detailed QP information
+
+ drivers/infiniband/core/Makefile           |   2 +-
+ drivers/infiniband/core/cma.c              |   1 +
+ drivers/infiniband/core/core_priv.h        |  20 ++
+ drivers/infiniband/core/cq.c               |   3 +
+ drivers/infiniband/core/device.c           |   7 +
+ drivers/infiniband/core/mad.c              |   1 +
+ drivers/infiniband/core/nldev.c            | 405 +++++++++++++++++++++++++++++
+ drivers/infiniband/core/restrack.c         | 182 +++++++++++++
+ drivers/infiniband/core/uverbs_cmd.c       |   5 +-
+ drivers/infiniband/core/uverbs_std_types.c |   2 +
+ drivers/infiniband/core/verbs.c            |   8 +-
+ drivers/infiniband/hw/mlx4/mad.c           |   1 +
+ drivers/infiniband/hw/mlx4/qp.c            |   1 +
+ drivers/infiniband/hw/mlx5/gsi.c           |   2 +
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c    |   4 +-
+ drivers/infiniband/ulp/ipoib/ipoib_verbs.c |   1 +
+ drivers/infiniband/ulp/srp/ib_srp.c        |   1 +
+ drivers/infiniband/ulp/srpt/ib_srpt.c      |   1 +
+ include/rdma/ib_verbs.h                    |  23 +-
+ include/rdma/restrack.h                    | 138 ++++++++++
+ include/uapi/rdma/rdma_netlink.h           |  56 ++++
+ net/smc/smc_ib.c                           |   1 +
+ 22 files changed, 858 insertions(+), 7 deletions(-)
+ create mode 100644 drivers/infiniband/core/restrack.c
+ create mode 100644 include/rdma/restrack.h
+
+--
+2.15.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
