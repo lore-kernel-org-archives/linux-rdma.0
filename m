@@ -1,36 +1,51 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH rdma-next v3 2/7] RDMA/core: Add helper function to create
- named QPs
-Date: Thu, 11 Jan 2018 19:50:21 +0000
-Message-ID: <1515700219.2752.55.camel@wdc.com>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next v3 1/7] RDMA/restrack: Add general
+ infrastructure to track RDMA resources
+Date: Thu, 11 Jan 2018 12:55:35 -0700
+Message-ID: <20180111195535.GI30208@mellanox.com>
 References: <20180111153132.11143-1-leon@kernel.org>
-         <20180111153132.11143-3-leon@kernel.org>
+ <20180111153132.11143-2-leon@kernel.org>
+ <1515700046.2752.52.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180111153132.11143-3-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Content-Language: en-US
-Content-ID: <F6F6801D4D83294DAD212B9E3BA009AC-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1515700046.2752.52.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE4LTAxLTExIGF0IDE3OjMxICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IC0tLSBhL2luY2x1ZGUvcmRtYS9pYl92ZXJicy5oDQo+ICsrKyBiL2luY2x1ZGUvcmRtYS9p
-Yl92ZXJicy5oDQo+IEBAIC0xMTQxLDYgKzExNDEsMTIgQEAgc3RydWN0IGliX3FwX2luaXRfYXR0
-ciB7DQo+ICAgICAgICAgdTggICAgICAgICAgICAgICAgICAgICAgcG9ydF9udW07DQo+ICAgICAg
-ICAgc3RydWN0IGliX3J3cV9pbmRfdGFibGUgKnJ3cV9pbmRfdGJsOw0KPiAgICAgICAgIHUzMiAg
-ICAgICAgICAgICAgICAgICAgIHNvdXJjZV9xcG47DQo+ICsNCj4gKyAgICAgICAvKg0KPiArICAg
-ICAgICAqIE5hbWUgb2YgZW50aXR5IHdoaWNoIGNyZWF0ZWQgdGhpcyBRUCwgZW1wdHkgc3RyaW5n
-IG1lYW5zIHRoYXQNCj4gKyAgICAgICAgKiBpdCB3aWxsIGJlIHRha2VuIGF1dG9tYXRpY2FsbHkg
-ZnJvbSB0YXNrX3N0cnVjdC4NCj4gKyAgICAgICAgKi8NCj4gKyAgICAgICBjaGFyIGNvbW1bVEFT
-S19DT01NX0xFTl07DQo+ICB9Ow0KDQpXaHkgaXMgImNvbW0iIGEgY2hhciBhcnJheSBpbnN0ZWFk
-IG9mIGEgY29uc3QgY2hhciBwb2ludGVyIG9yIGR5bmFtaWNhbGx5DQphbGxvY2F0ZWQgbWVtb3J5
-IChrc3RyZHVwKCkpPyBDYW4gd2UgZ2V0IHJpZCBvZiB0aGUgc3RybmNweSgpIGNhbGxzIGluIGNv
-ZGUNCnRoYXQgZmlsbHMgaW4gdGhpcyBkYXRhIHN0cnVjdHVyZT8NCg0KVGhhbmtzLA0KDQpCYXJ0
-Lg0KDQo=
+On Thu, Jan 11, 2018 at 07:47:27PM +0000, Bart Van Assche wrote:
+> On Thu, 2018-01-11 at 17:31 +0200, Leon Romanovsky wrote:
+> > +struct rdma_restrack_entry {
+> > +       struct list_head        list;
+> > +
+> > +       /*
+> > +        * The entries are filled during rdma_restrack_add,
+> > +        * can be attempted to be free during rdma_restrack_del.
+> > +        *
+> > +        * As an example for that, see mlx5 QPs with type MLX5_IB_QPT_HW_GSI
+> > +        */
+> > +       bool                    valid;
+> > +
+> > +       /*
+> > +        * Sleepabale RCU to protect object data.
+> > +        */
+> > +       struct srcu_struct      srcu;
+> > +
+> > +       struct task_struct      *task;
+> > +       char                    *task_comm;
+> > +};
+> 
+> Please use the kernel-doc syntax to document the meaning of the names of the
+> fields in this structure. It is e.g. nontrivial to guess what "task_comm" stands
+> for. The presense of a task_struct pointer is also nontrivial.
+
+And task_comm doesn't seem like a great name anymore, and should be
+const char *, right ?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
