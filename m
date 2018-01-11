@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v3 4/7] RDMA/core: Add resource tracking for create and destroy CQs
-Date: Thu, 11 Jan 2018 17:31:29 +0200
-Message-ID: <20180111153132.11143-5-leon@kernel.org>
+Subject: [PATCH rdma-next v3 6/7] RDMA/nldev: Provide global resource utilization
+Date: Thu, 11 Jan 2018 17:31:31 +0200
+Message-ID: <20180111153132.11143-7-leon@kernel.org>
 References: <20180111153132.11143-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180111153132.11143-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,90 +12,273 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Track all creation and destroy of CQ objects.
+Export through netlink interface, the global device utilization
+for the rdmatool as the main user of RDMA nldev interface.
+
+Provide both dumpit and doit callbacks.
+
+As an example of possible output from rdmatool for system with 5
+Mellanox's card
+
+$ rdma res
+1: mlx5_0: curr/max: qp 4/262144 cq 5/16777216 pd 3/16777216
+2: mlx5_1: curr/max: qp 4/262144 cq 5/16777216 pd 3/16777216
+3: mlx5_2: curr/max: qp 4/262144 cq 5/16777216 pd 3/16777216
+4: mlx5_3: curr/max: qp 2/262144 cq 3/16777216 pd 2/16777216
+5: mlx5_4: curr/max: qp 4/262144 cq 5/16777216 pd 3/16777216
 
 Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cq.c               | 3 +++
- drivers/infiniband/core/uverbs_cmd.c       | 1 +
- drivers/infiniband/core/uverbs_std_types.c | 2 ++
- drivers/infiniband/core/verbs.c            | 2 ++
- 4 files changed, 8 insertions(+)
+ drivers/infiniband/core/nldev.c  | 177 +++++++++++++++++++++++++++++++++++++++
+ include/uapi/rdma/rdma_netlink.h |  11 +++
+ 2 files changed, 188 insertions(+)
 
-diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
-index f2ae75fa3128..6344e007dbce 100644
---- a/drivers/infiniband/core/cq.c
-+++ b/drivers/infiniband/core/cq.c
-@@ -154,6 +154,8 @@ struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
- 	if (!cq->wc)
- 		goto out_destroy_cq;
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 5d790c507c7e..952c95b776c9 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -31,6 +31,8 @@
+  */
  
-+	rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
-+
- 	switch (cq->poll_ctx) {
- 	case IB_POLL_DIRECT:
- 		cq->comp_handler = ib_cq_completion_direct;
-@@ -208,6 +210,7 @@ void ib_free_cq(struct ib_cq *cq)
- 		WARN_ON_ONCE(1);
- 	}
+ #include <linux/module.h>
++#include <linux/pid.h>
++#include <linux/pid_namespace.h>
+ #include <net/netlink.h>
+ #include <rdma/rdma_netlink.h>
  
-+	rdma_restrack_del(&cq->res, RDMA_RESTRACK_CQ);
- 	kfree(cq->wc);
- 	ret = cq->device->destroy_cq(cq);
- 	WARN_ON_ONCE(ret);
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 62b3c5d71cce..c6ac0ee57f7c 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1033,6 +1033,7 @@ static struct ib_ucq_object *create_cq(struct ib_uverbs_file *file,
- 		goto err_cb;
+@@ -52,6 +54,12 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+ 	[RDMA_NLDEV_ATTR_PORT_STATE]	= { .type = NLA_U8 },
+ 	[RDMA_NLDEV_ATTR_PORT_PHYS_STATE] = { .type = NLA_U8 },
+ 	[RDMA_NLDEV_ATTR_DEV_NODE_TYPE] = { .type = NLA_U8 },
++	[RDMA_NLDEV_ATTR_RES_SUMMARY]	= { .type = NLA_NESTED },
++	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY]	= { .type = NLA_NESTED },
++	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME] = { .type = NLA_NUL_STRING,
++					     .len = 16 },
++	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR] = { .type = NLA_U64 },
++	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX]	= { .type = NLA_U64 },
+ };
  
- 	uobj_alloc_commit(&obj->uobject);
-+	rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
- 
- 	return obj;
- 
-diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
-index c3ee5d9b336d..2d0d27865b09 100644
---- a/drivers/infiniband/core/uverbs_std_types.c
-+++ b/drivers/infiniband/core/uverbs_std_types.c
-@@ -35,6 +35,7 @@
- #include <rdma/ib_verbs.h>
- #include <linux/bug.h>
- #include <linux/file.h>
-+#include <rdma/restrack.h>
- #include "rdma_core.h"
- #include "uverbs.h"
- 
-@@ -319,6 +320,7 @@ static int uverbs_create_cq_handler(struct ib_device *ib_dev,
- 	obj->uobject.object = cq;
- 	obj->uobject.user_handle = user_handle;
- 	atomic_set(&cq->usecnt, 0);
-+	rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
- 
- 	ret = uverbs_copy_to(attrs, CREATE_CQ_RESP_CQE, &cq->cqe);
- 	if (ret)
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 0c8743ec594a..ae592be45809 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1580,6 +1580,7 @@ struct ib_cq *ib_create_cq(struct ib_device *device,
- 		cq->event_handler = event_handler;
- 		cq->cq_context    = cq_context;
- 		atomic_set(&cq->usecnt, 0);
-+		rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
- 	}
- 
- 	return cq;
-@@ -1598,6 +1599,7 @@ int ib_destroy_cq(struct ib_cq *cq)
- 	if (atomic_read(&cq->usecnt))
- 		return -EBUSY;
- 
-+	rdma_restrack_del(&cq->res, RDMA_RESTRACK_CQ);
- 	return cq->device->destroy_cq(cq);
+ static int fill_nldev_handle(struct sk_buff *msg, struct ib_device *device)
+@@ -134,6 +142,90 @@ static int fill_port_info(struct sk_buff *msg,
+ 	return 0;
  }
- EXPORT_SYMBOL(ib_destroy_cq);
+ 
++static int fill_res_info_entry(struct sk_buff *msg,
++			       const char *name, u64 curr, u64 max)
++{
++	struct nlattr *entry_attr;
++
++	entry_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY);
++	if (!entry_attr)
++		return -EMSGSIZE;
++
++	if (nla_put_string(msg, RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME, name))
++		goto err;
++	if (nla_put_u64_64bit(msg,
++			      RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR, curr, 0))
++		goto err;
++	if (nla_put_u64_64bit(msg,
++			      RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX, max, 0))
++		goto err;
++
++	nla_nest_end(msg, entry_attr);
++	return 0;
++
++err:
++	nla_nest_cancel(msg, entry_attr);
++	return -EMSGSIZE;
++}
++
++static u32 get_res_max(struct ib_device *dev, int idx)
++{
++	switch (idx) {
++	case RDMA_RESTRACK_PD: return dev->attrs.max_pd;
++	case RDMA_RESTRACK_CQ: return dev->attrs.max_cq;
++	case RDMA_RESTRACK_QP: return dev->attrs.max_qp;
++	default:	       return 0; /* unreachable */
++	}
++}
++
++static int fill_res_info(struct sk_buff *msg, struct ib_device *device)
++{
++	static const char *names[_RDMA_RESTRACK_MAX] = {
++		[RDMA_RESTRACK_PD] = "pd",
++		[RDMA_RESTRACK_CQ] = "cq",
++		[RDMA_RESTRACK_QP] = "qp",
++	};
++
++	struct rdma_restrack_root *res = &device->res;
++	struct nlattr *table_attr;
++	int ret, i;
++
++	if (fill_nldev_handle(msg, device))
++		return -EMSGSIZE;
++
++	/*
++	 * get_res_max() is per-device and it doesn't know anything about
++	 * PID namespace, so limit output to init namespace only.
++	 *
++	 * The netlink user will see the message returns with NLDEV
++	 * handles only.
++	 */
++
++	if (task_active_pid_ns(current) != &init_pid_ns)
++		return 0;
++
++	table_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_SUMMARY);
++	if (!table_attr)
++		return -EMSGSIZE;
++
++	for (i = 0; i < _RDMA_RESTRACK_MAX; i++) {
++		if (!names[i])
++			continue;
++		ret = fill_res_info_entry(msg, names[i],
++					  rdma_restrack_count(res, i),
++					  get_res_max(device, i));
++		if (ret)
++			goto err;
++	}
++
++	nla_nest_end(msg, table_attr);
++	return 0;
++
++err:
++	nla_nest_cancel(msg, table_attr);
++	return ret;
++}
++
+ static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			  struct netlink_ext_ack *extack)
+ {
+@@ -329,6 +421,87 @@ static int nldev_port_get_dumpit(struct sk_buff *skb,
+ 	return skb->len;
+ }
+ 
++static int nldev_res_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
++			      struct netlink_ext_ack *extack)
++{
++	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
++	struct ib_device *device;
++	struct sk_buff *msg;
++	u32 index;
++	int ret;
++
++	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
++			  nldev_policy, extack);
++	if (ret || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
++		return -EINVAL;
++
++	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
++	device = ib_device_get_by_index(index);
++	if (!device)
++		return -EINVAL;
++
++	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
++	if (!msg)
++		goto err;
++
++	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
++			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_GET),
++			0, 0);
++
++	ret = fill_res_info(msg, device);
++	if (ret)
++		goto err_free;
++
++	nlmsg_end(msg, nlh);
++	put_device(&device->dev);
++	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
++
++err_free:
++	nlmsg_free(msg);
++err:
++	put_device(&device->dev);
++	return ret;
++}
++
++static int _nldev_res_get_dumpit(struct ib_device *device,
++				 struct sk_buff *skb,
++				 struct netlink_callback *cb,
++				 unsigned int idx)
++{
++	int start = cb->args[0];
++	struct nlmsghdr *nlh;
++
++	if (idx < start)
++		return 0;
++
++	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
++			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_GET),
++			0, NLM_F_MULTI);
++
++	if (fill_res_info(skb, device)) {
++		nlmsg_cancel(skb, nlh);
++		goto out;
++	}
++
++	nlmsg_end(skb, nlh);
++
++	idx++;
++
++out:
++	cb->args[0] = idx;
++	return skb->len;
++}
++
++static int nldev_res_get_dumpit(struct sk_buff *skb,
++				struct netlink_callback *cb)
++{
++	/*
++	 * There is no need to take lock, because
++	 * we are relying on ib_core's lists_rwsem
++	 */
++	return ib_enum_all_devs(_nldev_res_get_dumpit, skb, cb);
++}
++
+ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
+ 	[RDMA_NLDEV_CMD_GET] = {
+ 		.doit = nldev_get_doit,
+@@ -338,6 +511,10 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
+ 		.doit = nldev_port_get_doit,
+ 		.dump = nldev_port_get_dumpit,
+ 	},
++	[RDMA_NLDEV_CMD_RES_GET] = {
++		.doit = nldev_res_get_doit,
++		.dump = nldev_res_get_dumpit,
++	},
+ };
+ 
+ void __init nldev_init(void)
+diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+index cc002e316d09..e041d2eca4b8 100644
+--- a/include/uapi/rdma/rdma_netlink.h
++++ b/include/uapi/rdma/rdma_netlink.h
+@@ -236,6 +236,11 @@ enum rdma_nldev_command {
+ 	RDMA_NLDEV_CMD_PORT_NEW,
+ 	RDMA_NLDEV_CMD_PORT_DEL,
+ 
++	RDMA_NLDEV_CMD_RES_GET, /* can dump */
++	RDMA_NLDEV_CMD_RES_SET,
++	RDMA_NLDEV_CMD_RES_NEW,
++	RDMA_NLDEV_CMD_RES_DEL,
++
+ 	RDMA_NLDEV_NUM_OPS
+ };
+ 
+@@ -303,6 +308,12 @@ enum rdma_nldev_attr {
+ 
+ 	RDMA_NLDEV_ATTR_DEV_NODE_TYPE,		/* u8 */
+ 
++	RDMA_NLDEV_ATTR_RES_SUMMARY,		/* nested table */
++	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY,	/* nested table */
++	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME,	/* string */
++	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR,	/* u64 */
++	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_MAX,	/* u64 */
++
+ 	RDMA_NLDEV_ATTR_MAX
+ };
+ #endif /* _UAPI_RDMA_NETLINK_H */
 -- 
 2.15.1
 
