@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH rdma-core 16/17] verb: Use kernel uapi header in struct ex_hdr
-Date: Thu, 11 Jan 2018 15:13:39 -0700
-Message-ID: <20180111221340.965-17-jgg@ziepe.ca>
+Subject: [PATCH rdma-core 15/17] verbs: Use kernel uapi header for ibv_modify_qp_common
+Date: Thu, 11 Jan 2018 15:13:38 -0700
+Message-ID: <20180111221340.965-16-jgg@ziepe.ca>
 References: <20180111221340.965-1-jgg@ziepe.ca>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180111221340.965-1-jgg-uk2M96/98Pc@public.gmane.org>
@@ -12,68 +12,80 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-All the components are defined by the uapi header. Revise
-the macro to use the new names.
+The kernel header has a redundant driver_data.
 
 Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/ibverbs.h  | 14 +++++++-------
- libibverbs/kern-abi.h | 15 ++-------------
- 2 files changed, 9 insertions(+), 20 deletions(-)
+ libibverbs/cmd.c      |  2 +-
+ libibverbs/kern-abi.h | 33 ++-------------------------------
+ 2 files changed, 3 insertions(+), 32 deletions(-)
 
-diff --git a/libibverbs/ibverbs.h b/libibverbs/ibverbs.h
-index 7755393fe4f3ce..ceb6c5bfd4e3f9 100644
---- a/libibverbs/ibverbs.h
-+++ b/libibverbs/ibverbs.h
-@@ -88,15 +88,15 @@ static inline uint32_t _cmd_ex(uint32_t cmd)
- 		outsize)						   \
- 	do {                                                               \
- 		size_t c_size = cmd_size - sizeof(struct ex_hdr);	   \
--		(cmd)->hdr.command =					   \
-+		(cmd)->hdr.hdr.command =				   \
- 			_cmd_ex(IB_USER_VERBS_EX_CMD_##opcode);		   \
--		(cmd)->hdr.in_words  = ((c_size) / 8);                     \
--		(cmd)->hdr.out_words = ((resp_size) / 8);                  \
--		(cmd)->hdr.provider_in_words   = (((size) - (cmd_size))/8);\
--		(cmd)->hdr.provider_out_words  =			   \
-+		(cmd)->hdr.hdr.in_words  = ((c_size) / 8);                 \
-+		(cmd)->hdr.hdr.out_words = ((resp_size) / 8);              \
-+		(cmd)->hdr.ex_hdr.provider_in_words   = (((size) - (cmd_size))/8);\
-+		(cmd)->hdr.ex_hdr.provider_out_words  =			   \
- 			     (((outsize) - (resp_size)) / 8);              \
--		(cmd)->hdr.response  = (uintptr_t) (out);                  \
--		(cmd)->hdr.reserved = 0;				   \
-+		(cmd)->hdr.ex_hdr.response  = (uintptr_t) (out);           \
-+		(cmd)->hdr.ex_hdr.cmd_hdr_reserved = 0;			   \
- 	} while (0)
+diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
+index f73af7b7a92d80..0e1589e1c8963e 100644
+--- a/libibverbs/cmd.c
++++ b/libibverbs/cmd.c
+@@ -1273,7 +1273,7 @@ int ibv_cmd_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
  
- #define IBV_INIT_CMD_RESP_EX_VCMD(cmd, cmd_size, size, opcode, out, outsize) \
+ static void copy_modify_qp_fields(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 				  int attr_mask,
+-				  struct ibv_modify_qp_common *cmd)
++				  struct ib_uverbs_modify_qp *cmd)
+ {
+ 	cmd->qp_handle = qp->handle;
+ 	cmd->attr_mask = attr_mask;
 diff --git a/libibverbs/kern-abi.h b/libibverbs/kern-abi.h
-index 8400ce1c47e92d..ca7ba14dfdb580 100644
+index 57ef1dd6ff6beb..8400ce1c47e92d 100644
 --- a/libibverbs/kern-abi.h
 +++ b/libibverbs/kern-abi.h
-@@ -65,19 +65,8 @@
-  */
- 
- struct ex_hdr {
--	struct {
--		__u32 command;
--		__u16 in_words;
--		__u16 out_words;
--	};
--	struct {
--		__u64 response;
--	};
--	struct {
--		__u16 provider_in_words;
--		__u16 provider_out_words;
--		__u32 reserved;
--	};
-+	struct ib_uverbs_cmd_hdr hdr;
-+	struct ib_uverbs_ex_cmd_hdr ex_hdr;
+@@ -337,46 +337,17 @@ struct ibv_query_qp {
+ 	__u64 driver_data[0];
  };
  
- /*
+-struct ibv_modify_qp_common {
+-	struct ib_uverbs_qp_dest dest;
+-	struct ib_uverbs_qp_dest alt_dest;
+-	__u32 qp_handle;
+-	__u32 attr_mask;
+-	__u32 qkey;
+-	__u32 rq_psn;
+-	__u32 sq_psn;
+-	__u32 dest_qp_num;
+-	__u32 qp_access_flags;
+-	__u16 pkey_index;
+-	__u16 alt_pkey_index;
+-	__u8  qp_state;
+-	__u8  cur_qp_state;
+-	__u8  path_mtu;
+-	__u8  path_mig_state;
+-	__u8  en_sqd_async_notify;
+-	__u8  max_rd_atomic;
+-	__u8  max_dest_rd_atomic;
+-	__u8  min_rnr_timer;
+-	__u8  port_num;
+-	__u8  timeout;
+-	__u8  retry_cnt;
+-	__u8  rnr_retry;
+-	__u8  alt_port_num;
+-	__u8  alt_timeout;
+-	__u8  reserved[2];
+-};
+-
+ struct ibv_modify_qp {
+ 	__u32 command;
+ 	__u16 in_words;
+ 	__u16 out_words;
+-	struct ibv_modify_qp_common base;
++	struct ib_uverbs_modify_qp base;
+ 	__u64 driver_data[0];
+ };
+ 
+ struct ibv_modify_qp_ex {
+ 	struct ex_hdr		    hdr;
+-	struct ibv_modify_qp_common base;
++	struct ib_uverbs_modify_qp base;
+ 	__u32  rate_limit;
+ 	__u32  reserved;
+ };
 -- 
 2.15.1
 
