@@ -1,31 +1,37 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-next v3 7/7] RDMA/nldev: Provide detailed QP information
-Date: Thu, 11 Jan 2018 13:42:07 -0600
-Message-ID: <017b01d38b14$43bb46f0$cb31d4d0$@opengridcomputing.com>
-References: <20180111153132.11143-1-leon@kernel.org> <20180111153132.11143-8-leon@kernel.org>
+Subject: RE: krping problem on 4.15-rc4
+Date: Thu, 11 Jan 2018 13:45:55 -0600
+Message-ID: <017d01d38b14$cbe95670$63bc0350$@opengridcomputing.com>
+References: <CAN-5tyH1HO7yzzQLyb5z5Pq=OrHnKzmCrR2MffLguqsEA-mwWg@mail.gmail.com> <00ff01d38a4f$1a979eb0$4fc6dc10$@opengridcomputing.com> <CAN-5tyEwdSOiAk04xjfazxBqwkkTiCjr2dVcCoYLQJw8f37U=w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+        charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180111153132.11143-8-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <CAN-5tyEwdSOiAk04xjfazxBqwkkTiCjr2dVcCoYLQJw8f37U=w@mail.gmail.com>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Jason Gunthorpe' <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: 'RDMA mailing list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Mark Bloch' <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Leon Romanovsky' <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: 'Olga Kornievskaia' <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
+Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Hey Olga,
+> >
+> > Are the machines the same kernel version / distro sw / and hw -
+> cpu/motherboard/memory/etc?  If not, what is different about them?  Is it the
+> krping server that sees the CQ error?  Do other rdma devices work on these
+> systems?
 > 
-> Implement RDMA nldev netlink interface to get detailed
-> QP information.
+> Hi Steve,
 > 
-> Currently only dumpit variant is implemented.
+> Machines software is the same kernel version (4.15-rc4) / distro sw
+> (RHEL7.4). Hardware of those machines the same (PRIMERGY RX200 S7) but
+> one machine has 8G less memory than the other (64G vs 56G). kpring
+> error was on the server. These machines only have 1 CX-5 no other RDMA
+> devices.
 > 
-> Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Ok.  The memory probably doesn't matter.  Maybe run krping client and server on the same host (to use hw-loopback), and see if it works on both, one, or neither systems when they are both the client and server.
 
 
 --
