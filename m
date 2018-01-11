@@ -1,45 +1,86 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next 4/6] RDMA/{cma, ucma}: Refactor to have
- transport specific checks
-Date: Thu, 11 Jan 2018 11:53:04 -0700
-Message-ID: <20180111185304.GD1309@ziepe.ca>
-References: <20180108150448.29069-1-leon@kernel.org>
- <20180108150448.29069-5-leon@kernel.org>
- <20180110233748.GS4518@ziepe.ca>
- <20180111060537.GO7368@mtr-leonro.local>
- <20180111165622.GB1309@ziepe.ca>
- <20180111185004.GD15760@mtr-leonro.local>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] RDMA/rxe: Fix a race condition related to the QP error
+ state
+Date: Thu, 11 Jan 2018 21:00:45 +0200
+Message-ID: <20180111190045.GE15760@mtr-leonro.local>
+References: <20180109192340.25702-1-bart.vanassche@wdc.com>
+ <1515620434.3403.169.camel@redhat.com>
+ <1515621700.3403.174.camel@redhat.com>
+ <20180111062252.GP7368@mtr-leonro.local>
+ <1515686552.2752.2.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="Clx92ZfkiYIKRjnr"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180111185004.GD15760-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1515686552.2752.2.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 11, 2018 at 08:50:04PM +0200, Leon Romanovsky wrote:
-> On Thu, Jan 11, 2018 at 09:56:22AM -0700, Jason Gunthorpe wrote:
-> > On Thu, Jan 11, 2018 at 08:05:37AM +0200, Leon Romanovsky wrote:
-> >
-> > > > If anything should be fixed here, it is to move the degradation closer
-> > > > to the actual copy_to_user.
-> > > >
-> > > > Why was it put here anyhow? I don't see a uapi boundary?
-> >
-> > Actually, looking again, in the morning, it seems placed OK. This is
-> > about as close to the copy_to_user as possible in this flow..
-> 
-> So, are you going to pick up?
 
-I ment the current code is OK as is and the sa_covert_path is as close
-to the copy_to/from_user as it can be.
+--Clx92ZfkiYIKRjnr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-What is wrong about this patch is moving the uapi translation further from
-the uapi boundary. So still dropped.
+On Thu, Jan 11, 2018 at 04:02:33PM +0000, Bart Van Assche wrote:
+> On Thu, 2018-01-11 at 08:22 +0200, Leon Romanovsky wrote:
+> > The proposed patch definitely decreases the chance of races, but it is not fixing them.
+> > There is a chance to have change in qp state immediately after your "if ..." check.
+>
+> Hello Leon,
+>
+> Please have a look at rxe_qp_error() and you will see that the patch I posted
+> is a proper fix. In the scenario you described rxe_qp_error() will trigger a
+> run of rxe_completer().
 
-Jason
+Bart,
+
+What am I missing?
+
+CPU1							CPU2
+							if (unlikely....
+						<---
+/* move the qp to the error state */
+void rxe_qp_error(struct rxe_qp *qp)
+{
+        qp->req.state = QP_STATE_ERROR;
+        qp->resp.state = QP_STATE_ERROR;
+        qp->attr.qp_state = IB_QPS_ERR;
+						--->
+							rxe_run_task(&qp->req.task, must_sched);
+
+
+
+It is more or less the same as without "if (unlikely..."
+
+Thanks
+
+>
+> Bart.
+
+--Clx92ZfkiYIKRjnr
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpXtF0ACgkQ5GN7iDZy
+WKc0ww//YtwC996gfre5P5Dlaeefo382CVhCtjaqQKjGx8AfccxmT8xKIgV0L4Sj
+nO2RtohuGSxZii9qEmpZg96rJBl7PxMkmwiZDPFXYuoeuBZLFqQTYG73z5VW9TiZ
+3NzE7Y2FLQyYO07g09OvitMm8gaJ9+/RsmmEbMqhFbCoqYfswyF9gvQBfJWwZlzX
+W7HnBjC7ga56h9ewEqv4FwcGWriXNVsquAdBBCqf7U+xvstBcnRjfluXBf3Iaxl4
+aOKPfmIwvPAVjOAlqjCDas9+0Nx4CPlqePXDmLxRie7vfbtArkUAZJHJLVNAtIBb
+5Nv8llxzNjSPGiaXlhn0lzFpPxpfgVrQf2vCIkBOT0SoFvv0xHW0qdWk/73shcez
++VeXnPc+glIemRJUsUWyycvX7TTzJNzdvcianRBU5ovg1pikYgT/XvH6KOR5ZrKZ
+Ek4UQzdqdU/XicvpQoGh0+UO7DJH5FM2L1oKdMtFzRmov8aqikbYkju+7ypd37cG
+mXA5ElEVPvt8pPsX+jed1cOsRuDZbS9MabPmS0d1wQvVO3ZDSEWhCIw8zHpf0gbP
+t2EaFL5fXzymX3WOfM288L1LokS8K2bnBkrJ2zlYbVPIQGR3gg5cMHR+NcgQA2Ui
+2f3ksftZBghMNpZLi2NCUCTROwshaLuJOvUCAXo34Ycv7spKWIY=
+=XAwO
+-----END PGP SIGNATURE-----
+
+--Clx92ZfkiYIKRjnr--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
