@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH rdma-core 13/17] verbs: Use kernel uapi header for IBV_CREATE_QP_EX_KERNEL_MASK_IND_TABLE
-Date: Thu, 11 Jan 2018 15:13:36 -0700
-Message-ID: <20180111221340.965-14-jgg@ziepe.ca>
+Subject: [PATCH rdma-core 02/17] verbs: Include rdma/ib_user_verbs.h in kern-abi.h
+Date: Thu, 11 Jan 2018 15:13:25 -0700
+Message-ID: <20180111221340.965-3-jgg@ziepe.ca>
 References: <20180111221340.965-1-jgg@ziepe.ca>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180111221340.965-1-jgg-uk2M96/98Pc@public.gmane.org>
@@ -12,43 +12,95 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Kernel calls it IB_UVERBS_CREATE_QP_MASK_IND_TABLE
+There are a few overlapping definitions that are identical in both
+headers, delete them from kern-abi.h to make them includable.
 
 Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/cmd.c      | 2 +-
- libibverbs/kern-abi.h | 5 -----
- 2 files changed, 1 insertion(+), 6 deletions(-)
+ libibverbs/kern-abi.h | 62 ++++++---------------------------------------------
+ 1 file changed, 7 insertions(+), 55 deletions(-)
 
-diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-index 99e94233f320d1..dfa3fe6e113e98 100644
---- a/libibverbs/cmd.c
-+++ b/libibverbs/cmd.c
-@@ -1014,7 +1014,7 @@ int ibv_cmd_create_qp_ex2(struct ibv_context *context,
- 				    sizeof(cmd->ind_tbl_handle))
- 			return EINVAL;
- 		cmd->ind_tbl_handle = qp_attr->rwq_ind_tbl->ind_tbl_handle;
--		cmd->comp_mask = IBV_CREATE_QP_EX_KERNEL_MASK_IND_TABLE;
-+		cmd->comp_mask = IB_UVERBS_CREATE_QP_MASK_IND_TABLE;
- 	}
- 
- 	err = write(context->cmd_fd, cmd, cmd_size);
 diff --git a/libibverbs/kern-abi.h b/libibverbs/kern-abi.h
-index 6284d0e45e9784..277d968f0bcc2c 100644
+index f53e22fce5303b..d7acdaa9a4bca9 100644
 --- a/libibverbs/kern-abi.h
 +++ b/libibverbs/kern-abi.h
-@@ -318,11 +318,6 @@ struct ibv_open_qp {
- 	__u64 driver_data[0];
- };
+@@ -37,9 +37,14 @@
  
+ #include <linux/types.h>
+ 
++#include <rdma/ib_user_verbs.h>
++
+ /*
+- * This file must be kept in sync with the kernel's version of
+- * drivers/infiniband/include/ib_user_verbs.h
++ * This file contains copied data from the kernel's include/uapi/rdma/ib_user_verbs.h,
++ * now included above.
++ *
++ * Whenever possible use the definition from the kernel header and avoid
++ * copying from that header into this file.
+  */
+ 
+ /*
+@@ -48,59 +53,6 @@
+ #define IB_USER_VERBS_MIN_ABI_VERSION	3
+ #define IB_USER_VERBS_MAX_ABI_VERSION	6
+ 
+-#define IB_USER_VERBS_CMD_THRESHOLD    50
 -
--enum ibv_create_qp_ex_kernel_mask {
--	IBV_CREATE_QP_EX_KERNEL_MASK_IND_TABLE = 1 << 0,
+-enum {
+-	IB_USER_VERBS_CMD_GET_CONTEXT,
+-	IB_USER_VERBS_CMD_QUERY_DEVICE,
+-	IB_USER_VERBS_CMD_QUERY_PORT,
+-	IB_USER_VERBS_CMD_ALLOC_PD,
+-	IB_USER_VERBS_CMD_DEALLOC_PD,
+-	IB_USER_VERBS_CMD_CREATE_AH,
+-	IB_USER_VERBS_CMD_MODIFY_AH,
+-	IB_USER_VERBS_CMD_QUERY_AH,
+-	IB_USER_VERBS_CMD_DESTROY_AH,
+-	IB_USER_VERBS_CMD_REG_MR,
+-	IB_USER_VERBS_CMD_REG_SMR,
+-	IB_USER_VERBS_CMD_REREG_MR,
+-	IB_USER_VERBS_CMD_QUERY_MR,
+-	IB_USER_VERBS_CMD_DEREG_MR,
+-	IB_USER_VERBS_CMD_ALLOC_MW,
+-	IB_USER_VERBS_CMD_BIND_MW,
+-	IB_USER_VERBS_CMD_DEALLOC_MW,
+-	IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL,
+-	IB_USER_VERBS_CMD_CREATE_CQ,
+-	IB_USER_VERBS_CMD_RESIZE_CQ,
+-	IB_USER_VERBS_CMD_DESTROY_CQ,
+-	IB_USER_VERBS_CMD_POLL_CQ,
+-	IB_USER_VERBS_CMD_PEEK_CQ,
+-	IB_USER_VERBS_CMD_REQ_NOTIFY_CQ,
+-	IB_USER_VERBS_CMD_CREATE_QP,
+-	IB_USER_VERBS_CMD_QUERY_QP,
+-	IB_USER_VERBS_CMD_MODIFY_QP,
+-	IB_USER_VERBS_CMD_DESTROY_QP,
+-	IB_USER_VERBS_CMD_POST_SEND,
+-	IB_USER_VERBS_CMD_POST_RECV,
+-	IB_USER_VERBS_CMD_ATTACH_MCAST,
+-	IB_USER_VERBS_CMD_DETACH_MCAST,
+-	IB_USER_VERBS_CMD_CREATE_SRQ,
+-	IB_USER_VERBS_CMD_MODIFY_SRQ,
+-	IB_USER_VERBS_CMD_QUERY_SRQ,
+-	IB_USER_VERBS_CMD_DESTROY_SRQ,
+-	IB_USER_VERBS_CMD_POST_SRQ_RECV,
+-	IB_USER_VERBS_CMD_OPEN_XRCD,
+-	IB_USER_VERBS_CMD_CLOSE_XRCD,
+-	IB_USER_VERBS_CMD_CREATE_XSRQ,
+-	IB_USER_VERBS_CMD_OPEN_QP
 -};
 -
- struct ibv_create_qp_ex {
- 	struct ex_hdr	hdr;
- 	struct ibv_create_qp_common base;
+-#define IB_USER_VERBS_CMD_COMMAND_MASK		0xff
+-#define IB_USER_VERBS_CMD_FLAGS_MASK		0xff000000u
+-#define IB_USER_VERBS_CMD_FLAGS_SHIFT		24
+-
+-
+-#define IB_USER_VERBS_CMD_FLAG_EXTENDED		0x80ul
+-
+ /* use this mask for creating extended commands */
+ #define IB_USER_VERBS_CMD_EXTENDED_MASK \
+ 	(IB_USER_VERBS_CMD_FLAG_EXTENDED << \
 -- 
 2.15.1
 
