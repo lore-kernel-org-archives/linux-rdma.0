@@ -1,52 +1,38 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH 3/3] RDMA/qedr: Fix endian problems around imm_data
-Date: Thu, 11 Jan 2018 14:43:07 -0700
-Message-ID: <20180111214307.501-4-jgg@ziepe.ca>
-References: <20180111214307.501-1-jgg@ziepe.ca>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
+Date: Thu, 11 Jan 2018 21:43:30 +0000
+Message-ID: <1515707008.2752.62.camel@wdc.com>
+References: <1515531652.26021.1.camel@redhat.com>
+         <1515537614.26021.3.camel@redhat.com> <1515591723.26021.6.camel@redhat.com>
+         <20180110182648.GI4518@ziepe.ca> <1515609623.2745.20.camel@wdc.com>
+         <1515610750.10153.1.camel@redhat.com> <20180110191510.GK4518@ziepe.ca>
+         <1515612639.10153.3.camel@redhat.com> <20180110205243.GP4776@mellanox.com>
+         <1515618674.10153.6.camel@redhat.com> <20180110211501.GS4776@mellanox.com>
+         <1515675741.21421.1.camel@redhat.com> <1515703435.21421.9.camel@redhat.com>
+         <1515705340.2752.60.camel@wdc.com> <1515706433.21421.11.camel@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180111214307.501-1-jgg-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <1515706433.21421.11.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <6C265C512C411546A9D826891E5D0FF2-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-The double swap matches what user space rdma-core does to imm_data.
-
-wc->imm_data is not used in the kernel so this change has no practical
-impact.
-
-Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/qedr/verbs.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 3b9c89848d6698..5551120ac6ea52 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -3039,7 +3039,7 @@ static int __qedr_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 		swqe->wqe_size = 2;
- 		swqe2 = qed_chain_produce(&qp->sq.pbl);
- 
--		swqe->inv_key_or_imm_data = cpu_to_le32(wr->ex.imm_data);
-+		swqe->inv_key_or_imm_data = cpu_to_le32(be32_to_cpu(wr->ex.imm_data));
- 		length = qedr_prepare_sq_send_data(dev, qp, swqe, swqe2,
- 						   wr, bad_wr);
- 		swqe->length = cpu_to_le32(length);
-@@ -3590,7 +3590,7 @@ static inline int qedr_set_ok_cqe_resp_wc(struct rdma_cqe_responder *resp,
- 	wc->byte_len = le32_to_cpu(resp->length);
- 
- 	if (resp->flags & QEDR_RESP_IMM) {
--		wc->ex.imm_data = le32_to_cpu(resp->imm_data_or_inv_r_Key);
-+		wc->ex.imm_data = cpu_to_be32(le32_to_cpu(resp->imm_data_or_inv_r_Key));
- 		wc->wc_flags |= IB_WC_WITH_IMM;
- 
- 		if (resp->flags & QEDR_RESP_RDMA)
--- 
-2.15.1
-
+T24gVGh1LCAyMDE4LTAxLTExIGF0IDE2OjMzIC0wNTAwLCBMYXVyZW5jZSBPYmVybWFuIHdyb3Rl
+Og0KPiBJIGhhdmUgbm90IGNoYW5nZWQgdGhlIGNvbmZpZ3VyYXRpb24gaW4gTElPIHRhcmdldCB0
+aG91Z2guDQoNClllcywgSSB0cnVzdCB0aGF0IHlvdSBoYXZlbid0IGNoYW5nZWQgdGhlIGNvbmZp
+Z3VyYXRpb24gYnV0IEkgZGlkbid0IHRydXN0DQp3aGV0aGVyIG15IG93biBpYl9zcnB0IGNoYW5n
+ZXMgaGFkIHByZXNlcnZlZCBiYWNrd2FyZHMgY29tcGF0aWJpbGl0eSA6LSkNCg0KPiAgIHwgfCB8
+IG8tIGliLjRlNmU3MjAwMDM5MGZlN2M3Y2ZlOTAwMzAwNzI2ZWQyDQo+IC4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4NCj4g
+DQo+IFsgLi4uIF0NCj4gW01hcHBlZCBMVU5zOiAzMF0NCj4gICB8IHwgfCBvLSBpYi40ZjZlNzIw
+MDAzOTBmZTdjN2NmZTkwMDMwMDcyNmVkMg0KDQpUaGFua3MsIHRoaXMgY29uZmlybXMgbXkgc3Vz
+cGljaW9uLiBJIHdpbGwgc2VlIHdoYXQgbmVlZHMgdG8gYmUgY2hhbmdlZCBpbg0KdGhlIGliX3Ny
+cHQgZHJpdmVyIHRvIHJlc3RvcmUgYmFja3dhcmRzIGNvbXBhdGliaWxpdHkuDQoNCkJhcnQu
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
