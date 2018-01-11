@@ -1,80 +1,94 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH V2 for-next 7/7] RDMA/hns: Set the guid for hip08 RoCE
- device
-Date: Wed, 10 Jan 2018 22:31:02 -0700
-Message-ID: <20180111053102.GC16668@ziepe.ca>
-References: <1515566393-63888-1-git-send-email-oulijun@huawei.com>
- <1515566393-63888-8-git-send-email-oulijun@huawei.com>
- <20180110064937.GE7368@mtr-leonro.local>
- <f2c33ef8-2457-bccc-e6ac-80711ccec25f@huawei.com>
- <20180110102902.GI7368@mtr-leonro.local>
- <71771a6a-ef08-1750-69c3-f2fca8294751@huawei.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next v2 7/7] RDMA/nldev: Provide detailed QP
+ information
+Date: Thu, 11 Jan 2018 07:37:34 +0200
+Message-ID: <20180111053734.GL7368@mtr-leonro.local>
+References: <20180102081832.5264-1-leon@kernel.org>
+ <20180102081832.5264-8-leon@kernel.org>
+ <20180109200917.GF4518@ziepe.ca>
+ <20180110071722.GF7368@mtr-leonro.local>
+ <20180110225622.GQ4518@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="2fjX3cMESU3XgGmZ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <71771a6a-ef08-1750-69c3-f2fca8294751-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20180110225622.GQ4518-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 11, 2018 at 10:49:57AM +0800, oulijun wrote:
-> >>>> @@ -4679,6 +4680,9 @@ static int hns_roce_hw_v2_get_cfg(struct hns_roce_dev *hr_dev,
-> >>>>  	hr_dev->iboe.netdevs[0] = handle->rinfo.netdev;
-> >>>>  	hr_dev->iboe.phy_port[0] = 0;
-> >>>>
-> >>>> +	addrconf_addr_eui48((u8 *)&hr_dev->ib_dev.node_guid,
-> >>>> +			    hr_dev->iboe.netdevs[0]->dev_addr);
-> >>>> +
-> >>>
-> >>> Are you sure that it is right thing to do?
-> >>>
-> >>> ib_dev.node_guid is __be64 and you cast it for u8.
-> >>>
-> >>> Maybe, it is right, but I don't have ability to test it now.
-> >>>
-> >>> Thanks
-> >> Yes, it can be get rightly. I have test it again
-> >> The test result as follows:
-> >>
-> >> root@(none)# cat /sys/class/infiniband/hns_0/node_guid
-> >> 5816:89ff:fe28:a34b
-> >>
-> >> Besides, I confirm the orign definition for addrconf_addr_eui48, it defined as follows:
-> >> static inline void addrconf_addr_eui48(u8 *eui, const char *const addr)
-> >> {
-> >> 	addrconf_addr_eui48_base(eui, addr);
-> >> 	eui[0] ^= 2;
-> >> }
-> >>
-> >> The first input parameter type is u8 * and the patch [v4] {net,IB}/{rxe,usnic}: Utilize generic mac to eui32 function
-> >> have the same usage.
-> > 
-> > Indeed the first parameter is u8, but you are converting from __be64 to be u8.
-> > 
-> > Thanks
-> > 
-> Yes, the type of node_guid is defined by ib core. the function of addrconf_addr_eui48 is also
-> defined by ib core. I could not modify them. Did I need to change u8 to unsigned char?
 
-Actually, now that I look more closely, what you have is right.
+--2fjX3cMESU3XgGmZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-It is just a very strange and misleading name of a function
-'addrconf_addr_eui48' which takes in an eui48 and writes out a IB
-GUID. Would have expected 'addrconf_ib_guid_eui48' or something..
+On Wed, Jan 10, 2018 at 03:56:22PM -0700, Jason Gunthorpe wrote:
+> On Wed, Jan 10, 2018 at 09:17:22AM +0200, Leon Romanovsky wrote:
+> > On Tue, Jan 09, 2018 at 01:09:17PM -0700, Jason Gunthorpe wrote:
+> > > On Tue, Jan 02, 2018 at 10:18:32AM +0200, Leon Romanovsky wrote:
+> > >
+> > > > +	/* PID == 0 means that this QP was created by kernel */
+> > > > +	if (qp->res.pid && nla_put_u32(msg,
+> > > > +				       RDMA_NLDEV_ATTR_RES_PID, qp->res.pid))
+> > >
+> > > This is returning a pid in the init name space, obtained here:
+> > >
+> > > +		res->pid = task_pid_nr(current);
+> > >
+> > > And since the netlink user is not running in the init name space this
+> > > will return the wrong pid #, and worse potentially pids the current
+> > > name space should not see.
+> > >
+> > > This API also needs to filter the results and only return pids
+> > > visible, and translate the pids as well..
+> >
+> > Correct, PID namespace wasn't taken into account, exactly as it wasn't
+> > taken in CMA. So, right now, CMA netlink statistics is returning wrong
+> > and unfiltered PIDs. How do you want to progress with that part of the code?
+>
+> It should be fixed or deleted.
 
-Even more confusing because the commit message talks about eui32 and
-misses a signed-off-by? Baffling.
+So, should I proceed with this patch? Remove CMA statistics?
+https://patchwork.kernel.org/patch/10056129/
 
-.. and there are dragons here, because the IPv6 interface id (eg what
-the similar addrconf_ifid_eui48 is handling) uses an inverted U/L bit
-to the IEEE EUI-64.
+>
+> > I personally have no plans to fix CMA netlink code and for my opinion it
+> > should be removed, instead of beating that dead horse.
+>
+> What is so wrong with it you can't use it anyhow?
 
-.. and I can't quite recall what the IBTA eventually settled on as the
-standard for IB - if it was EUI-64 or modified IPv6 EUI-64 ..
+In addition to posted in the CMA statistics removal RFC thread, it is
+now very clearly seen that CMA statistics returns wrong PID in not
+initial PID namespace.
 
-Jason
+Thanks
+
+>
+> Jason
+
+--2fjX3cMESU3XgGmZ
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpW+B4ACgkQ5GN7iDZy
+WKcZjA//biwu3Yjv7HxeTrEjx/MUN4XDZSPw/4pWZ5LCzyLLsJY5aLbADZXENIdp
+wZAFOa3GsyH9OZDDcHVXUN09piHh9hkDPVXvceRc4qd9iLJ3wrg6Mg2go7NuBI21
+1feuhFOV2HqyNeIvLw9h2j29EMiN/AEMm0cY8XeA+UPD8G3r9blJNOSuJeO2IquP
+tNLkubF5BdChochlhL70XrHYLYnm18wMxkXMldjCqcf9G+/jy+/GTgPVaYjHvnKE
+J1VC5C+MmaC4IhczFiK4CunWZ2UQRTM3h7yufSuxS1vIi/Ftyho+1Sou1ipnlbRn
+LfYUDZmSzHU7mgeRZcM5MmrqjiAzocQqKlgSMBxQuqWzO/QdTNK+PzYysADBtwSK
+OGUxl4vi8ths36iRyVMh8MuJYoM8VWDf837PDNl8NnJKCtUJxSnz2vkt76S9uucD
+ih+gAXtwrWqUWaotboWo49Gs899SJeG7XhuFXVVuaJocNWY60E5b6lIdRoHcRsot
+IeYwSXEB23BrpjtQlMVM53/VT37y33ztF4AUQB5MClzlryNRi3RcmMO41S52EiD0
+n5aauV41g4d7UbHowBTPWGJF+QDb27JpXLJgaFYrTSnr2TH9jb9mu4K2+4TASn+I
+7gekqy8n2v1dgjiZ53axUoMuEOA+QfLBS2Rw907ZWPT5Q5kh3TQ=
+=bQwO
+-----END PGP SIGNATURE-----
+
+--2fjX3cMESU3XgGmZ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
