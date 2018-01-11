@@ -1,33 +1,29 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+From: Bart Van Assche <Bart.VanAssche@wdc.com>
 Subject: Re: [PATCH] RDMA/rxe: Fix a race condition related to the QP error
  state
-Date: Thu, 11 Jan 2018 16:02:33 +0000
-Message-ID: <1515686552.2752.2.camel@wdc.com>
+Date: Thu, 11 Jan 2018 16:16:57 +0000
+Message-ID: <1515687415.2752.6.camel@wdc.com>
 References: <20180109192340.25702-1-bart.vanassche@wdc.com>
-         <1515620434.3403.169.camel@redhat.com>
-         <1515621700.3403.174.camel@redhat.com>
-         <20180111062252.GP7368@mtr-leonro.local>
+         <CAG9sBKM=Pfvis95=d9s=jObwVZR98Fj1HSqaOWYgnD-XQ1bYaQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180111062252.GP7368-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <CAG9sBKM=Pfvis95=d9s=jObwVZR98Fj1HSqaOWYgnD-XQ1bYaQ@mail.gmail.com>
 Content-Language: en-US
-Content-ID: <714CAA657664B24B98AE652264A120FC-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-ID: <52981C1906993849A390737FC8C63278@namprd04.prod.outlook.com>
+Sender: stable-owner@vger.kernel.org
+To: "monis@mellanox.com" <monis@mellanox.com>
+Cc: "jgg@mellanox.com" <jgg@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE4LTAxLTExIGF0IDA4OjIyICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IFRoZSBwcm9wb3NlZCBwYXRjaCBkZWZpbml0ZWx5IGRlY3JlYXNlcyB0aGUgY2hhbmNlIG9m
-IHJhY2VzLCBidXQgaXQgaXMgbm90IGZpeGluZyB0aGVtLg0KPiBUaGVyZSBpcyBhIGNoYW5jZSB0
-byBoYXZlIGNoYW5nZSBpbiBxcCBzdGF0ZSBpbW1lZGlhdGVseSBhZnRlciB5b3VyICJpZiAuLi4i
-IGNoZWNrLg0KDQpIZWxsbyBMZW9uLA0KDQpQbGVhc2UgaGF2ZSBhIGxvb2sgYXQgcnhlX3FwX2Vy
-cm9yKCkgYW5kIHlvdSB3aWxsIHNlZSB0aGF0IHRoZSBwYXRjaCBJIHBvc3RlZA0KaXMgYSBwcm9w
-ZXIgZml4LiBJbiB0aGUgc2NlbmFyaW8geW91IGRlc2NyaWJlZCByeGVfcXBfZXJyb3IoKSB3aWxs
-IHRyaWdnZXIgYQ0KcnVuIG9mIHJ4ZV9jb21wbGV0ZXIoKS4NCg0KQmFydC4=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVGh1LCAyMDE4LTAxLTExIGF0IDEzOjI3ICswMjAwLCBNb25pIFNob3VhIHdyb3RlOg0KPiBN
+YXliZSBJIGFtIG1pc3Npbmcgc29tZXRoaW5nIGJ1dCBJIHRoaW5rIHRoYXQgdGhlIHJhY2UgaXMg
+d2hlbiBxcCBpcw0KPiBpbiBFUlJPUiBzdGF0ZSBhbmQgdGhlIGZvbGxvd2luZyBmdW5jdGlvbnMg
+cnVuIGluIHBhcmFsbGVsDQo+ICogcnhlX2RyYWluX3JlcV9wa3RzIChjYWxsZWQgZnJvbSByeGVf
+cmVxdWVzdGVyIGFmdGVyIHBvc3Rfc2VuZCkNCj4gKiByeGVfZHJhaW5fcmVzcF9wa3RzIChjYWxs
+ZWQgZnJvbSByeGVfY29tcGxldGVyIGFmdGVyIG1vZGlmeSB0byBFUlJPUikNCj4gDQo+IEFtIEkg
+cmlnaHQ/DQoNCkhlbGxvIE1vbmksDQoNCkkgdGhpbmsgdGhhdCdzIGEgcmVhbCByYWNlIGFuZCBh
+IHJhY2UgdGhhdCBoYXMgdG8gYmUgZml4ZWQgYnV0IG5vdCB0aGUgcmFjZQ0KdGhhdCBjYXVzZWQg
+dGhlIG1pc3NpbmcgY29tcGxldGlvbnMgaW4gdGhlIHRlc3RzIEkgcmFuIG15c2VsZi4NCg0KQmVz
+dCByZWdhcmRzLA0KDQpCYXJ0Lg==
