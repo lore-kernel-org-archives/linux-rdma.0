@@ -1,68 +1,63 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 1/8] verbs: Always allocate a verbs_context
-Date: Fri, 12 Jan 2018 16:38:29 +0530
-Message-ID: <CANjDDBg5RWL9xcYz=_WzUnb05=TPG08jMciZoy1RG-kqZcEbgA@mail.gmail.com>
-References: <20180108212632.5183-1-jgg@ziepe.ca> <20180108212632.5183-2-jgg@ziepe.ca>
- <CANjDDBjCUtdVcQBze0PVjC5EaXj5BGTQ5tcn6VcuG0P7auuxoA@mail.gmail.com>
- <20180110173427.GE4776@mellanox.com> <CANjDDBgmueZ3fiRJsHEb+p5+H5gX8-7z0NbJShc2bk8yXrh+pg@mail.gmail.com>
- <20180111175422.GG30208@mellanox.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] IB/cma: use strlcpy() instead of strncpy()
+Date: Fri, 12 Jan 2018 13:43:17 +0200
+Message-ID: <20180112114317.GL15760@mtr-leonro.local>
+References: <1515743765-116090-1-git-send-email-wangxiongfeng2@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180111175422.GG30208-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>, Alexey Brodkin <abrodkin-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Bar
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="7AwgMNpd3VkAVXjS"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1515743765-116090-1-git-send-email-wangxiongfeng2@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, arnd@arndb.de
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 11, 2018 at 11:24 PM, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On Thu, Jan 11, 2018 at 11:14:33PM +0530, Devesh Sharma wrote:
->> On Wed, Jan 10, 2018 at 11:04 PM, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> > On Wed, Jan 10, 2018 at 11:16:20AM +0530, Devesh Sharma wrote:
->> >
->> >> > +/*
->> >> > + * Allocate and initialize a context structure. This is called to create the
->> >> > + * driver wrapper, and context_offset is the number of bytes into the wrapper
->> >> > + * structure where the verbs_context starts.
->> >> > + */
->> >> > +void *_verbs_init_and_alloc_context(struct ibv_device *device, int cmd_fd,
->> >> > +                                   size_t alloc_size,
->> >> > +                                   struct verbs_context *context_offset)
->> >> > +{
->> >> > +       void *drv_context;
->> >> > +       struct verbs_context *context;
->> >> > +
->> >> > +       drv_context = calloc(1, alloc_size);
->> >> > +       if (!drv_context) {
->> >> > +               errno = ENOMEM;
->> >> > +               close(cmd_fd);
->> >> > +               return NULL;
->> >> > +       }
->> >> > +
->> >> > +       context = (struct verbs_context *)((uint8_t *)drv_context +
->> >> > +                                          (uintptr_t)context_offset);
->> >>
->> >> A wrapper macro would do better here?
+
+--7AwgMNpd3VkAVXjS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Jan 12, 2018 at 03:56:05PM +0800, Xiongfeng Wang wrote:
+> From: Xiongfeng Wang <xiongfeng.wang@linaro.org>
 >
->> > Thing is, this is the only place that does this calculation and it is
->> > intimately tied to the definition of the
->> > verbs_init_and_alloc_context() macro, so it really is unique and
->> > special to this function.
->>
->> If that is the case I don't mind leaving this as it is, may be it
->> would look better from code readability point of view if we wrap it.
+> gcc-8 reports
 >
-> Maybe I should just embrace the Pointer-Arith gcc extension:
+> drivers/infiniband/core/cma_configfs.c: In function 'make_cma_dev':
+> ./include/linux/string.h:245:9: warning: '__builtin_strncpy' specified
+> bound 64 equals destination size [-Wstringop-truncation]
 >
->   context = drv_context + (uintptr_t)context_offset;
+> We need to use strlcpy() to make sure the string is nul-terminated.
 >
-> Have to check first how prevalent it is already in the code.
+> Signed-off-by: Xiongfeng Wang <xiongfeng.wang@linaro.org>
+> ---
+>  drivers/infiniband/core/cma_configfs.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
 
-Okay..
 
-> Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+
+--7AwgMNpd3VkAVXjS
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpYn1UACgkQ5GN7iDZy
+WKfDuQ/7BFrfC3FVM53JVGsNt+qZ0/sABxoZvGuxQSpT99k0j6coDasL+EErNzZw
+69+6whGbFhtgygH2aFR5Ouc9+JXwiF9NrxqaHrQScgGjUOGvuBp3BNNkAVqRA3Oe
+7wru3ZqxjkHhpQSKH+XuedVFv0v0Mg0xkgB/mlbEor2NY5ZeR/FF805p+jT9nrjR
+ApbJu7idny+ptZFKPovO0MUojjvtGG9DUr7SlWjg5b/06DGx8jTbzVzIL6dLjqs4
+Imo50ASOvz9U3tCR911s/WYMfBCligeo6kWG76uCAoesYfkXCGf16PYvb1W3KPoC
+oY3yhsfyn9u51QazCMbTL5mxHFCxxHhjziEchDqPpXaLwLhA9I6YCc7hlI8Hb382
+be57FjC5UQWPGO0YbCgey6be5/N+YR0SMPUh3kIfQrKqE8F2x+RBATwnxV6tMAEV
+uM8MG2nruBpW7qQNRXwg3IwnWT67gbjYwsUWXNs/Irimde9/gF/nj/1uXUyqK8hl
+SNsL20YIx/3ogSoYSHtjQCQi8GjKGDj983TRpI3LsRjFouNwLpbN5FtaG6PB4fVS
+dZb3jgMoliZUmYTJeCyQLY2uN2xA/Qk1L7lZOpYg65QM3CqGlsppaYG86u7OH9bo
+Za+l/ltqU3PpysHETJQ3qbhLLDi7lK1Q3CjetgBRsneUSZi4P2o=
+=o5lE
+-----END PGP SIGNATURE-----
+
+--7AwgMNpd3VkAVXjS--
