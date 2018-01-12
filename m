@@ -1,55 +1,60 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: Building rdma-core from github gave an error "Unknown arguments
- specified"
-Date: Fri, 12 Jan 2018 11:08:24 -0700
-Message-ID: <20180112180824.GE15974@ziepe.ca>
-References: <CAGXs5wUoLZLtmHhyRm3poALO5ZGSdS5u4+saKhigMgHivw-9Eg@mail.gmail.com>
+Subject: Re: [PATCH rdma-core] cbuild: Add Fedora 27 container
+Date: Fri, 12 Jan 2018 11:08:55 -0700
+Message-ID: <20180112180855.GF15974@ziepe.ca>
+References: <20180112115209.17437-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAGXs5wUoLZLtmHhyRm3poALO5ZGSdS5u4+saKhigMgHivw-9Eg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20180112115209.17437-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Wilson <wkevils-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 12, 2018 at 11:35:04AM +0200, Kevin Wilson wrote:
-> Hi,
-> I had cloned the latest rdma-core:
-> https://github.com/linux-rdma/rdma-core.git
+On Fri, Jan 12, 2018 at 01:52:09PM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> I am trying to build it on Fedora 27 x86_64 machine.
-> When I ran:
-> bash build.sh
-> I got the following:
+> Add Fedora 27 to the list of cbuild targets.
 > 
-> CMake Error at buildlib/RDMA_BuildType.cmake:32 (if):
->   if given arguments:
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>  buildlib/cbuild | 15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
 > 
->     "STREQUAL" "-O2 -g -DNDEBUG"
+> diff --git a/buildlib/cbuild b/buildlib/cbuild
+> index 3f659bf8..0ef80b60 100755
+> +++ b/buildlib/cbuild
+> @@ -141,6 +141,20 @@ class fc26(Environment):
+>              " ".join(sorted(self.pkgs))));
+>          return res;
 > 
->   Unknown arguments specified
-> Call Stack (most recent call first):
->   CMakeLists.txt:145 (RDMA_BuildType)
+> +class fc27(Environment):
+> +    docker_parent = "fedora:27";
+> +    pkgs = (centos7.pkgs - {"make"}) | {"ninja-build"};
+> +    name = "fc27";
+> +    specfile = "redhat/rdma-core.spec";
+> +    ninja_cmd = "ninja-build";
+> +    is_rpm = True;
+> +
+> +    def get_docker_file(self):
+> +        res = DockerFile(self.docker_parent);
+> +        res.lines.append("RUN dnf install -y %s && dnf clean all"%(
+> +            " ".join(sorted(self.pkgs))));
+> +        return res;
+> +
+>  # -------------------------------------------------------------------------
+> 
+>  class APTEnvironment(Environment):
+> @@ -337,6 +351,7 @@ environments = [centos6(),
+>                  jessie(),
+>                  stretch(),
+>                  fc26(),
+> +                fc27(),
 
-No idea.. Can't reproduce.
+I've been keeping only 1 fc container, no need to test old fedora.
 
-I wonder if some quotes are missing:
-
-diff --git a/buildlib/RDMA_BuildType.cmake b/buildlib/RDMA_BuildType.cmake
-index 0951edadeebf61..ea2bbf8e639c2f 100644
---- a/buildlib/RDMA_BuildType.cmake
-+++ b/buildlib/RDMA_BuildType.cmake
-@@ -29,7 +29,7 @@ function(RDMA_BuildType)
-   # with the -DNDEBUG removed
-   foreach (language CXX C)
-     set(VAR_TO_MODIFY "CMAKE_${language}_FLAGS_RELWITHDEBINFO")
--    if (${${VAR_TO_MODIFY}} STREQUAL ${${VAR_TO_MODIFY}_INIT})
-+    if ("${${VAR_TO_MODIFY}}" STREQUAL ${${VAR_TO_MODIFY}_INIT})
- 	string(REGEX REPLACE "(^| )[/-]D *NDEBUG($| )"
- 	  " "
- 	  replacement
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
