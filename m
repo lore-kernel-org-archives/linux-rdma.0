@@ -1,43 +1,52 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-core 02/17] verbs: Include rdma/ib_user_verbs.h in
- kern-abi.h
-Date: Fri, 12 Jan 2018 09:28:49 -0700
-Message-ID: <20180112162849.GA15974@ziepe.ca>
-References: <20180111221340.965-1-jgg@ziepe.ca>
- <20180111221340.965-3-jgg@ziepe.ca>
- <20180112063433.GH15760@mtr-leonro.local>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] net/mlx4_en: ensure rx_desc updating reaches HW before
+ prod db updating
+Date: Fri, 12 Jan 2018 09:32:47 -0700
+Message-ID: <20180112163247.GB15974@ziepe.ca>
+References: <1515728542-3060-1-git-send-email-jianchao.w.wang@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180112063433.GH15760-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1515728542-3060-1-git-send-email-jianchao.w.wang@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jianchao Wang <jianchao.w.wang@oracle.com>
+Cc: tariqt@mellanox.com, junxiao.bi@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 12, 2018 at 08:34:33AM +0200, Leon Romanovsky wrote:
-
-> > -#define IB_USER_VERBS_CMD_FLAG_EXTENDED		0x80ul
+On Fri, Jan 12, 2018 at 11:42:22AM +0800, Jianchao Wang wrote:
+> Customer reported memory corruption issue on previous mlx4_en driver
+> version where the order-3 pages and multiple page reference counting
+> were still used.
 > 
-> This define was added to kernel api (rdma/ib_user_verbs.h) in commit
-> f21519b23c1b ("IB/core: extended command: an improved infrastructure for uverbs commands")
+> Finally, find out one of the root causes is that the HW may see stale
+> rx_descs due to prod db updating reaches HW before rx_desc. Especially
+> when cross order-3 pages boundary and update a new one, HW may write
+> on the pages which may has been freed and allocated again by others.
 > 
-> It means that this proposed commit won't compile on the systems with
-> kernel dated before 2013. I don't think that it is real issue, but worth
-> to mention it in commit message/comment.
+> To fix it, add a wmb between rx_desc and prod db updating to ensure
+> the order. Even thougth order-0 and page recycling has been introduced,
+> the disorder between rx_desc and prod db still could lead to corruption
+> on different inbound packages.
+> 
+> Signed-off-by: Jianchao Wang <jianchao.w.wang@oracle.com>
+>  drivers/net/ethernet/mellanox/mlx4/en_rx.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+> index 85e28ef..eefa82c 100644
+> +++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+> @@ -555,7 +555,7 @@ static void mlx4_en_refill_rx_buffers(struct mlx4_en_priv *priv,
+>  			break;
+>  		ring->prod++;
+>  	} while (likely(--missing));
+> -
+> +	wmb(); /* ensure rx_desc updating reaches HW before prod db updating */
+>  	mlx4_en_update_rx_prod_db(ring);
+>  }
+>  
 
-The very first patch in the series updates the internal copy of the
-kernel header to 4.15-rc7 and ensures that systems with old distro
-copies use the internal header instead.
-
-Just as we have been doing for other kernel headers for a long time.
-
-So it should build on everything. There are far newer needed symbols
-than the one above as well..
+Does this need to be dma_wmb(), and should it be in
+mlx4_en_update_rx_prod_db ?
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
