@@ -1,40 +1,47 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 0/5] i40iw: more updates for 4.16
-Date: Thu, 11 Jan 2018 18:10:49 -0600
-Message-ID: <20180112001054.15572-1-shiraz.saleem@intel.com>
+From: Jianchao Wang <jianchao.w.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] net/mlx4_en: ensure rx_desc updating reaches HW before prod db updating
+Date: Fri, 12 Jan 2018 11:42:22 +0800
+Message-ID: <1515728542-3060-1-git-send-email-jianchao.w.wang@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug & Jason,
+Customer reported memory corruption issue on previous mlx4_en driver
+version where the order-3 pages and multiple page reference counting
+were still used.
 
-This patch set includes a few bug fixes and clean-up for i40iw.
-Please consider it for 4.16.
+Finally, find out one of the root causes is that the HW may see stale
+rx_descs due to prod db updating reaches HW before rx_desc. Especially
+when cross order-3 pages boundary and update a new one, HW may write
+on the pages which may has been freed and allocated again by others.
 
-Shiraz
+To fix it, add a wmb between rx_desc and prod db updating to ensure
+the order. Even thougth order-0 and page recycling has been introduced,
+the disorder between rx_desc and prod db still could lead to corruption
+on different inbound packages.
 
-Mustafa Ismail (2):
-  i40iw: Remove setting of rem_addr.len
-  i40iw: Free IEQ resources
+Signed-off-by: Jianchao Wang <jianchao.w.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Shiraz Saleem (2):
-  i40iw: Remove extra call to i40iw_est_sd()
-  i40iw: Zero-out consumer key on allocate stag for FMR
-
-Sindhu Devale (1):
-  i40iw: Remove limit on re-posting AEQ entries to HW
-
- drivers/infiniband/hw/i40iw/i40iw_ctrl.c  | 4 ----
- drivers/infiniband/hw/i40iw/i40iw_puda.c  | 3 +--
- drivers/infiniband/hw/i40iw/i40iw_puda.h  | 1 +
- drivers/infiniband/hw/i40iw/i40iw_user.h  | 1 -
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 5 ++---
- 5 files changed, 4 insertions(+), 10 deletions(-)
-
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+index 85e28ef..eefa82c 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+@@ -555,7 +555,7 @@ static void mlx4_en_refill_rx_buffers(struct mlx4_en_priv *priv,
+ 			break;
+ 		ring->prod++;
+ 	} while (likely(--missing));
+-
++	wmb(); /* ensure rx_desc updating reaches HW before prod db updating */
+ 	mlx4_en_update_rx_prod_db(ring);
+ }
+ 
 -- 
-2.8.3
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
