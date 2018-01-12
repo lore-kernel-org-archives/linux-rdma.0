@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche@wdc.com>
-Subject: [PATCH 1/2] RDMA/rxe: Fix a race condition in rxe_requester()
-Date: Fri, 12 Jan 2018 15:11:58 -0800
-Message-ID: <20180112231159.26569-2-bart.vanassche@wdc.com>
+Subject: [PATCH 2/2] RDMA/rxe: Fix rxe_qp_cleanup()
+Date: Fri, 12 Jan 2018 15:11:59 -0800
+Message-ID: <20180112231159.26569-3-bart.vanassche@wdc.com>
 References: <20180112231159.26569-1-bart.vanassche@wdc.com>
 Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20180112231159.26569-1-bart.vanassche@wdc.com>
@@ -10,75 +10,90 @@ To: Jason Gunthorpe <jgg@mellanox.com>
 Cc: Doug Ledford <dledford@redhat.com>, Moni Shoua <monis@mellanox.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The rxe driver works as follows:
-* The send queue, receive queue and completion queues are implemented as
-  circular buffers.
-* ib_post_send() and ib_post_recv() calls are serialized through a spinlock.
-* Removing elements from various queues happens from tasklet
-  context. Tasklets are guaranteed to run on at most one CPU. This serializes
-  access to these queues. See also rxe_completer(), rxe_requester() and
-  rxe_responder().
-* rxe_completer() processes the skbs queued onto qp->resp_pkts.
-* rxe_requester() handles the send queue (qp->sq.queue).
-* rxe_responder() processes the skbs queued onto qp->req_pkts.
+rxe_qp_cleanup() can sleep so it must be run in thread context and
+not in atomic context. This patch avoids that the following bug is
+triggered:
 
-Since rxe_drain_req_pkts() processes qp->req_pkts, calling
-rxe_drain_req_pkts() from rxe_requester() is racy. Hence this patch.
+Kernel BUG at 00000000560033f3 [verbose debug info unavailable]
+BUG: sleeping function called from invalid context at net/core/sock.c:2761
+in_atomic(): 1, irqs_disabled(): 0, pid: 7, name: ksoftirqd/0
+INFO: lockdep is turned off.
+Preemption disabled at:
+[<00000000b6e69628>] __do_softirq+0x4e/0x540
+CPU: 0 PID: 7 Comm: ksoftirqd/0 Not tainted 4.15.0-rc7-dbg+ #4
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
+Call Trace:
+ dump_stack+0x85/0xbf
+ ___might_sleep+0x177/0x260
+ lock_sock_nested+0x1d/0x90
+ inet_shutdown+0x2e/0xd0
+ rxe_qp_cleanup+0x107/0x140 [rdma_rxe]
+ rxe_elem_release+0x18/0x80 [rdma_rxe]
+ rxe_requester+0x1cf/0x11b0 [rdma_rxe]
+ rxe_do_task+0x78/0xf0 [rdma_rxe]
+ tasklet_action+0x99/0x270
+ __do_softirq+0xc0/0x540
+ run_ksoftirqd+0x1c/0x70
+ smpboot_thread_fn+0x1be/0x270
+ kthread+0x117/0x130
+ ret_from_fork+0x24/0x30
 
-Reported-by: Moni Shoua <monis@mellanox.com>
 Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+Cc: Moni Shoua <monis@mellanox.com>
 Cc: stable@vger.kernel.org
 ---
- drivers/infiniband/sw/rxe/rxe_loc.h  | 1 -
- drivers/infiniband/sw/rxe/rxe_req.c  | 9 +--------
- drivers/infiniband/sw/rxe/rxe_resp.c | 2 +-
- 3 files changed, 2 insertions(+), 10 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_qp.c    | 12 ++++++++++--
+ drivers/infiniband/sw/rxe/rxe_verbs.h |  3 +++
+ 2 files changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index d7472a442a2c..96c3a6c5c4b5 100644
---- a/drivers/infiniband/sw/rxe/rxe_loc.h
-+++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -237,7 +237,6 @@ int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
- 
- void rxe_release(struct kref *kref);
- 
--void rxe_drain_req_pkts(struct rxe_qp *qp, bool notify);
- int rxe_completer(void *arg);
- int rxe_requester(void *arg);
- int rxe_responder(void *arg);
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index 26a7f923045b..7bdaf71b8221 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -594,15 +594,8 @@ int rxe_requester(void *arg)
- 	rxe_add_ref(qp);
- 
- next_wqe:
--	if (unlikely(!qp->valid)) {
--		rxe_drain_req_pkts(qp, true);
-+	if (unlikely(!qp->valid || qp->req.state == QP_STATE_ERROR))
- 		goto exit;
--	}
--
--	if (unlikely(qp->req.state == QP_STATE_ERROR)) {
--		rxe_drain_req_pkts(qp, true);
--		goto exit;
--	}
- 
- 	if (unlikely(qp->req.state == QP_STATE_RESET)) {
- 		qp->req.wqe_index = consumer_index(qp->sq.queue);
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index 4240866a5331..01f926fd9029 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -1210,7 +1210,7 @@ static enum resp_states do_class_d1e_error(struct rxe_qp *qp)
- 	}
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index 4469592b839d..137d6c0c49d4 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -824,9 +824,9 @@ void rxe_qp_destroy(struct rxe_qp *qp)
  }
  
--void rxe_drain_req_pkts(struct rxe_qp *qp, bool notify)
-+static void rxe_drain_req_pkts(struct rxe_qp *qp, bool notify)
+ /* called when the last reference to the qp is dropped */
+-void rxe_qp_cleanup(struct rxe_pool_entry *arg)
++static void rxe_qp_do_cleanup(struct work_struct *work)
  {
- 	struct sk_buff *skb;
+-	struct rxe_qp *qp = container_of(arg, typeof(*qp), pelem);
++	struct rxe_qp *qp = container_of(work, typeof(*qp), cleanup_work.work);
  
+ 	rxe_drop_all_mcast_groups(qp);
+ 
+@@ -859,3 +859,11 @@ void rxe_qp_cleanup(struct rxe_pool_entry *arg)
+ 	kernel_sock_shutdown(qp->sk, SHUT_RDWR);
+ 	sock_release(qp->sk);
+ }
++
++/* called when the last reference to the qp is dropped */
++void rxe_qp_cleanup(struct rxe_pool_entry *arg)
++{
++	struct rxe_qp *qp = container_of(arg, typeof(*qp), pelem);
++
++	execute_in_process_context(rxe_qp_do_cleanup, &qp->cleanup_work);
++}
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index 0c2dbe45c729..1019f5e7dbdd 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -35,6 +35,7 @@
+ #define RXE_VERBS_H
+ 
+ #include <linux/interrupt.h>
++#include <linux/workqueue.h>
+ #include <rdma/rdma_user_rxe.h>
+ #include "rxe_pool.h"
+ #include "rxe_task.h"
+@@ -281,6 +282,8 @@ struct rxe_qp {
+ 	struct timer_list rnr_nak_timer;
+ 
+ 	spinlock_t		state_lock; /* guard requester and completer */
++
++	struct execute_work	cleanup_work;
+ };
+ 
+ enum rxe_mem_state {
 -- 
 2.15.1
