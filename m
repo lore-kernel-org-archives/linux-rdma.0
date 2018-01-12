@@ -1,118 +1,84 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] RDMA/rxe: Fix a race condition related to the QP error
- state
-Date: Fri, 12 Jan 2018 08:38:28 +0200
-Message-ID: <20180112063828.GI15760@mtr-leonro.local>
-References: <20180109192340.25702-1-bart.vanassche@wdc.com>
- <1515620434.3403.169.camel@redhat.com>
- <1515621700.3403.174.camel@redhat.com>
- <20180111062252.GP7368@mtr-leonro.local>
- <1515686552.2752.2.camel@wdc.com>
- <20180111190045.GE15760@mtr-leonro.local>
- <1515697625.2752.46.camel@wdc.com>
- <20180112062359.GG15760@mtr-leonro.local>
- <1515738766.10329.3.camel@wdc.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next v3 1/7] RDMA/restrack: Add general
+ infrastructure to track RDMA resources
+Date: Fri, 12 Jan 2018 08:39:06 +0200
+Message-ID: <20180112063906.GJ15760@mtr-leonro.local>
+References: <20180111153132.11143-1-leon@kernel.org>
+ <20180111153132.11143-2-leon@kernel.org>
+ <1515700046.2752.52.camel@wdc.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="UTZ8bGhNySVQ9LYl"
-Return-path: <stable-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="2xzXx3ruJf7hsAzo"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1515738766.10329.3.camel@wdc.com>
-Sender: stable-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@wdc.com>
-Cc: "jgg@mellanox.com" <jgg@mellanox.com>, "monis@mellanox.com" <monis@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+In-Reply-To: <1515700046.2752.52.camel-Sjgp3cTcYWE@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---UTZ8bGhNySVQ9LYl
+--2xzXx3ruJf7hsAzo
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Jan 12, 2018 at 06:32:47AM +0000, Bart Van Assche wrote:
-> On Fri, 2018-01-12 at 08:23 +0200, Leon Romanovsky wrote:
-> > On Thu, Jan 11, 2018 at 07:07:06PM +0000, Bart Van Assche wrote:
-> > > On Thu, 2018-01-11 at 21:00 +0200, Leon Romanovsky wrote:
-> > > > On Thu, Jan 11, 2018 at 04:02:33PM +0000, Bart Van Assche wrote:
-> > > > > On Thu, 2018-01-11 at 08:22 +0200, Leon Romanovsky wrote:
-> > > > > > The proposed patch definitely decreases the chance of races, but it is not fixing them.
-> > > > > > There is a chance to have change in qp state immediately after your "if ..." check.
-> > > > >
-> > > > > Hello Leon,
-> > > > >
-> > > > > Please have a look at rxe_qp_error() and you will see that the patch I posted
-> > > > > is a proper fix. In the scenario you described rxe_qp_error() will trigger a
-> > > > > run of rxe_completer().
-> > > >
-> > > > Bart,
-> > > >
-> > > > What am I missing?
-> > > >
-> > > > CPU1							CPU2
-> > > > 							if (unlikely....
-> > > > 						<---
-> > > > /* move the qp to the error state */
-> > > > void rxe_qp_error(struct rxe_qp *qp)
-> > > > {
-> > > >         qp->req.state = QP_STATE_ERROR;
-> > > >         qp->resp.state = QP_STATE_ERROR;
-> > > >         qp->attr.qp_state = IB_QPS_ERR;
-> > > > 						--->
-> > > > 							rxe_run_task(&qp->req.task, must_sched);
-> > > >
-> > > >
-> > > >
-> > > > It is more or less the same as without "if (unlikely..."
-> > >
-> > > Hello Leon,
-> > >
-> > > In the above the part of rxe_qp_error() that I was referring to in my e-mail
-> > > is missing:
-> > >
-> > > 	if (qp_type(qp) == IB_QPT_RC)
-> > > 		rxe_run_task(&qp->comp.task, 1);
-> >
-> >
-> > But it is exactly where race exists, as long QP isn't protected, it can
-> > switch CPUs and create race.
+On Thu, Jan 11, 2018 at 07:47:27PM +0000, Bart Van Assche wrote:
+> On Thu, 2018-01-11 at 17:31 +0200, Leon Romanovsky wrote:
+> > +struct rdma_restrack_entry {
+> > +       struct list_head        list;
+> > +
+> > +       /*
+> > +        * The entries are filled during rdma_restrack_add,
+> > +        * can be attempted to be free during rdma_restrack_del.
+> > +        *
+> > +        * As an example for that, see mlx5 QPs with type MLX5_IB_QPT_HW_GSI
+> > +        */
+> > +       bool                    valid;
+> > +
+> > +       /*
+> > +        * Sleepabale RCU to protect object data.
+> > +        */
+> > +       struct srcu_struct      srcu;
+> > +
+> > +       struct task_struct      *task;
+> > +       char                    *task_comm;
+> > +};
 >
-> Hello Leon,
+> Please use the kernel-doc syntax to document the meaning of the names of the
+> fields in this structure. It is e.g. nontrivial to guess what "task_comm" stands
+> for. The presense of a task_struct pointer is also nontrivial.
 >
-> Can you clarify which race you are referring to? rxe_run_task() uses the
-> tasklet mechanism and tasklets are guaranteed to run on at most one CPU at a
-> time. See also the "Top and Bottom Halves" chapter in Linux Device Drivers,
-> 3rd edition. See also the tasklet_schedule() implementation in
-> <linux/interrupt.h> and in kernel/softirq.c.
+> PS: I think the spelling of "Sleepabale" should be fixed.
 
-Ahh, Bart, Sorry.
-
-I found the cause of my misunderstanding, it is "comp" in the rxe_run_task
-call and not "req".
-
-Thanks
+I'll fix and resend.
 
 >
 > Thanks,
 >
 > Bart.
 
---UTZ8bGhNySVQ9LYl
+--2xzXx3ruJf7hsAzo
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpYV+MACgkQ5GN7iDZy
-WKcfVg//X6bF9IBbCpOLqxbF06XqXtGEqcid0tY2GCG+6gMXUYpyHg4Mhez3HUZq
-o/zp+Ax15cRKYKyspEMSbCwub3mSRrHs0Eicuk1P510TYYGyTS3W3ipt3B+CUMx4
-Ali4hZcfFN+eg3aGf2dbPsdRYvrnMfSd6zobjscMNWsCz7RscArk1e3BcLPRp2mr
-CyEvlawACxLY1ky4mQuUfGVEFd1QH8SjCd7T8/5IKySoEMTipj0phrr+5mGBDCF5
-q/N4IXM5feYeYVW6KF5ENpdp9qnrMUc0bcUtLc3rVhqjUxKjqROm0cg88rz31slW
-oJSWomwP+xvwmQEPFkTskfY6qIMjvutCvFVOe5NxrvWNVooWlf4mUdyAbnrnY7Yn
-YFOSoz73WayyBBFzKsmpNuMCAb/T0G+So520yqEvR4Bc4UyFFlwsBwbBlqykw3iP
-WGDp/805HJEHQSacXPefMlBSFJ+J4yNwlVcW3FMOCHNft1+EybOVpW9gyxqukhqA
-TBvAlg5MMQv85ofuAtJxMHk57ccJdD8dXiWZ6sJaYCXb8o2fjBFZTsZnv/L8XMyj
-FkiNRcO1h3H474djbtuDSFipf6/5KsC5CS8sDP7l9cjnuKvZtyJaTSVPDJOScFU1
-49LKCmpQ291wjTsrlwtRwj0lEqYQ1puCWNZLi/Ou556XuvKdYRQ=
-=S2xp
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpYWAoACgkQ5GN7iDZy
+WKdgnRAAw6rgphr6LF0iDaQZ91wUROlPPgH9AS5wBDSiQu6esFE2wh4iDEW9GNBG
+7ELlYZFLOl3roNmP6wzUZnZJbjykQa/MX+yet0uS8C51reAofyK9M9GoTt81zVQN
+vy0TM/XcxPQ3MDVQ8W56fzwC+GzvSbRqpnn2AA2TSFfCLeD2PL2fge2uzLFPH99+
+8bVVUlBlMw3rha78qcDkwkAtvVdsYboyHTbuLZ6JC9905N2xKUumisgrykW0x/88
+dAENG45xskb7EHf1Zf5v/AVCFJngowO+j34jipSC2hA2lzrS9/UYW9Zodt5Wn/Z3
+FgF/uHtVPcBRlaWrdyk74nRcI7kivgz5yhQTA5D2pkElYqJmnY+PFxH0wtP0vmpD
+WH3P+2yT8pvBZukor9Ejx62OMOE1jtQJy9p2oBd81PfA8ryMR85iVt3SuMmp2YD8
+ssyJJvmHFLt39fDfBkt4aMcGc027zlI9CBfh0aeuI7dkJPPSkGaRxVQOH5XAChog
+sOnRcFU1bjT1HF2wSzS4J5z1fuUHpeqpGlMbdZs0JmwTMUtH30MVLGZyvhAaGv1g
+k6lqZzaM+gRXFSf5XVKnz1QuKYURsQ1kRzn6Pd1HPEBt+8FO2vkwXFKCFGk7PpY6
+Z/35in5JeUvLr5HHx72re/hy+e7pBycaiSB6Tt/tgfvtOoWOFeA=
+=WvIa
 -----END PGP SIGNATURE-----
 
---UTZ8bGhNySVQ9LYl--
+--2xzXx3ruJf7hsAzo--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
