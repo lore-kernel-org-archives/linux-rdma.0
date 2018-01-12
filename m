@@ -1,130 +1,67 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH] net/mlx4_en: ensure rx_desc updating reaches HW before
- prod db updating
-Date: Fri, 12 Jan 2018 13:01:56 -0800
-Message-ID: <e902138a-3508-3504-51e5-46152cc2fb31@mellanox.com>
-References: <1515728542-3060-1-git-send-email-jianchao.w.wang@oracle.com>
- <20180112163247.GB15974@ziepe.ca> <1515775567.131759.42.camel@gmail.com>
- <85116e56-52b1-944d-6ee2-916ccfc3a7a6@mellanox.com>
- <1515788191.131759.48.camel@gmail.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
+Date: Fri, 12 Jan 2018 21:11:13 +0000
+Message-ID: <1515791472.2396.57.camel@wdc.com>
+References: <1515531652.26021.1.camel@redhat.com>
+         <1515537614.26021.3.camel@redhat.com> <1515591723.26021.6.camel@redhat.com>
+         <20180110182648.GI4518@ziepe.ca> <1515609623.2745.20.camel@wdc.com>
+         <1515610750.10153.1.camel@redhat.com> <20180110191510.GK4518@ziepe.ca>
+         <1515612639.10153.3.camel@redhat.com> <20180110205243.GP4776@mellanox.com>
+         <1515618674.10153.6.camel@redhat.com> <20180110211501.GS4776@mellanox.com>
+         <1515675741.21421.1.camel@redhat.com> <1515703435.21421.9.camel@redhat.com>
+         <1515705340.2752.60.camel@wdc.com> <1515706433.21421.11.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1515788191.131759.48.camel@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1515706433.21421.11.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>, Jianchao Wang <jianchao.w.wang@oracle.com>
-Cc: tariqt@mellanox.com, junxiao.bi@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-ID: <D5B761FC2DD01E4C8C991B5FF5AB3EC5-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 01/12/2018 12:16 PM, Eric Dumazet wrote:
-> On Fri, 2018-01-12 at 11:53 -0800, Saeed Mahameed wrote:
->>
->> On 01/12/2018 08:46 AM, Eric Dumazet wrote:
->>> On Fri, 2018-01-12 at 09:32 -0700, Jason Gunthorpe wrote:
->>>> On Fri, Jan 12, 2018 at 11:42:22AM +0800, Jianchao Wang wrote:
->>>>> Customer reported memory corruption issue on previous mlx4_en driver
->>>>> version where the order-3 pages and multiple page reference counting
->>>>> were still used.
->>>>>
->>>>> Finally, find out one of the root causes is that the HW may see stale
->>>>> rx_descs due to prod db updating reaches HW before rx_desc. Especially
->>>>> when cross order-3 pages boundary and update a new one, HW may write
->>>>> on the pages which may has been freed and allocated again by others.
->>>>>
->>>>> To fix it, add a wmb between rx_desc and prod db updating to ensure
->>>>> the order. Even thougth order-0 and page recycling has been introduced,
->>>>> the disorder between rx_desc and prod db still could lead to corruption
->>>>> on different inbound packages.
->>>>>
->>>>> Signed-off-by: Jianchao Wang <jianchao.w.wang@oracle.com>
->>>>>   drivers/net/ethernet/mellanox/mlx4/en_rx.c | 2 +-
->>>>>   1 file changed, 1 insertion(+), 1 deletion(-)
->>>>>
->>>>> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
->>>>> index 85e28ef..eefa82c 100644
->>>>> +++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
->>>>> @@ -555,7 +555,7 @@ static void mlx4_en_refill_rx_buffers(struct mlx4_en_priv *priv,
->>>>>   			break;
->>>>>   		ring->prod++;
->>>>>   	} while (likely(--missing));
->>>>> -
->>>>> +	wmb(); /* ensure rx_desc updating reaches HW before prod db updating */
->>>>>   	mlx4_en_update_rx_prod_db(ring);
->>>>>   }
->>>>>   
->>>>
->>>> Does this need to be dma_wmb(), and should it be in
->>>> mlx4_en_update_rx_prod_db ?
->>>>
->>>
->>> +1 on dma_wmb()
->>>
->>> On what architecture bug was observed ?
->>>
->>> In any case, the barrier should be moved in mlx4_en_update_rx_prod_db()
->>> I think.
->>>
->>
->> +1 on dma_wmb(), thanks Eric for reviewing this.
->>
->> The barrier is also needed elsewhere in the code as well, but I wouldn't 
->> put it in mlx4_en_update_rx_prod_db(), just to allow batch filling of 
->> all rx rings and then hit the barrier only once. As a rule of thumb, mem 
->> barriers are the ring API caller responsibility.
->>
->> e.g. in mlx4_en_activate_rx_rings():
->> between mlx4_en_fill_rx_buffers(priv); and the loop that updates rx prod 
->> for all rings ring, the dma_wmb is needed, see below.
->>
->> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c 
->> b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
->> index b4d144e67514..65541721a240 100644
->> --- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
->> +++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
->> @@ -370,6 +370,8 @@ int mlx4_en_activate_rx_rings(struct mlx4_en_priv *priv)
->>          if (err)
->>                  goto err_buffers;
->>
->> +       dma_wmb();
->> +
->>          for (ring_ind = 0; ring_ind < priv->rx_ring_num; ring_ind++) {
->>                  ring = priv->rx_ring[ring_ind];
-> 
-> 
-> Why bother, considering dma_wmb() is a nop on x86,
-> simply a compiler barrier.
-> 
-> Putting it in mlx4_en_update_rx_prod_db() and have no obscure bugs...
-> 
-
-Simply putting a memory barrier on the top or the bottom of a functions,
-means nothing unless you are looking at the whole picture, of all the
-callers of that function to understand why is it there.
-
-which is better to grasp ?:
-
-update_doorbell() {
-    dma_wmb();
-    ring->db = prod;
-}
-
-or
-
-fill buffers();
-dma_wmb();
-update_doorbell();
-
-I simply like the 2nd one since with one look you can understand what this dma_wmb is protecting.
-
-Anyway this is truly a nit, Tariq can decide what is better for him :).
-
-> Also we might change the existing wmb() in mlx4_en_process_rx_cq() by
-> dma_wmb(), that would help performance a bit.
-> 
-> 
-
-+1, Tariq will you handle ? 
+T24gVGh1LCAyMDE4LTAxLTExIGF0IDE2OjMzIC0wNTAwLCBMYXVyZW5jZSBPYmVybWFuIHdyb3Rl
+Og0KPiBJIGp1c3QgcmVib290ZWQgdGhlIHNlcnZlciBpbnRvIDQuMTMgYW5kIGl0cyBmaW5lIGFn
+YWluIGFuZCBmb3VuZCBhbGwNCj4gdGhlIHRhcmdldHMgd2l0aCB0aGUgc2FtZSBrZXJuZWwgb24g
+dGhlIGNsaWVudC4NCj4gDQo+IFNvIGl0cyBzcGVjaWZpYyB0byB5b3VyIG5ldyB0cmVlIHdpdGgg
+c3JwdA0KPiANCj4gSSB3aWxsIHJlYm9vdCBhZ2FpbiBhbmQgcmUtbG9hZCBMSU8gYW5kIHNob3cg
+eW91IGJ1dCBoZXJlIGlzIG15IEFDTA0KPiBsaXN0IHRoYXQgaGFzIGJlZW4gdGhpcyB3YXkgZm9y
+IHNvbWUgdGltZS4NCj4gDQo+IA0KPiBvLSBzcnB0DQo+IC4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uDQo+IC4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uIFtUYXJnZXRzOiAyXQ0KPiAgIHwgby0g
+aWIuZmU4MDAwMDAwMDAwMDAwMDdjZmU5MDAzMDA3MjZlNGUNCj4gLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4NCj4g
+Li4uLiBbbm8tZ2VuLWFjbHNdDQo+ICAgfCB8IG8tIGFjbHMNCj4gLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4NCj4g
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLiBbQUNMczogOF0NCj4gICB8IHwg
+fCBvLSBpYi40ZTZlNzIwMDAzOTBmZTdjN2NmZTkwMDMwMDcyNmVkMg0KPiANCj4gWyAuLi4gXQ0K
+DQpIZWxsbyBMYXVyZW5jZSwNCg0KQWx0aG91Z2ggSSdtIG5vdCBzdXJlIEkgdGhpbmsgSSBmb3Vu
+ZCB0aGUgcm9vdCBjYXVzZSBvZiB0aGlzIGZhaWx1cmUuIFRoZQ0KZm9sbG93aW5nIHBhdGNoIHNo
+b3VsZCBmaXggdGhlIGZhaWx1cmU6DQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQv
+dWxwL3NycHQvaWJfc3JwdC5jIGIvZHJpdmVycy9pbmZpbmliYW5kL3VscC9zcnB0L2liX3NycHQu
+Yw0KaW5kZXggOTYxNDIxMTBhMTU1Li41Mjk3OTYzYzgzNGQgMTAwNjQ0DQotLS0gYS9kcml2ZXJz
+L2luZmluaWJhbmQvdWxwL3NycHQvaWJfc3JwdC5jDQorKysgYi9kcml2ZXJzL2luZmluaWJhbmQv
+dWxwL3NycHQvaWJfc3JwdC5jDQpAQCAtMjA4Myw3ICsyMDgzLDcgQEAgc3RhdGljIGludCBzcnB0
+X2NtX3JlcV9yZWN2KHN0cnVjdCBzcnB0X2RldmljZSAqY29uc3Qgc2RldiwNCiAJCXN0cnVjdCBp
+Yl9jbV9yZXBfcGFyYW0gaWJfY207DQogCX0gKnJlcF9wYXJhbSA9IE5VTEw7DQogCXN0cnVjdCBz
+cnB0X3JkbWFfY2ggKmNoOw0KLQljaGFyIGlfcG9ydF9pZFsyNF07DQorCWNoYXIgaV9wb3J0X2lk
+WzM2XTsNCiAJdTMyIGl0X2l1X2xlbjsNCiAJaW50IGksIHJldDsNCiANCmRpZmYgLS1naXQgYS9k
+cml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQvaWJfc3JwdC5oIGIvZHJpdmVycy9pbmZpbmliYW5k
+L3VscC9zcnB0L2liX3NycHQuaA0KaW5kZXggYmY0NTI1YjI0ZDk4Li4wMjg4M2Y4ZTljNzEgMTAw
+NjQ0DQotLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQvaWJfc3JwdC5oDQorKysgYi9k
+cml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQvaWJfc3JwdC5oDQpAQCAtMzA4LDcgKzMwOCw3IEBA
+IHN0cnVjdCBzcnB0X3JkbWFfY2ggew0KIAlib29sCQkJdXNpbmdfcmRtYV9jbTsNCiAJYm9vbAkJ
+CXByb2Nlc3Npbmdfd2FpdF9saXN0Ow0KIAlzdHJ1Y3Qgc2Vfc2Vzc2lvbgkqc2VzczsNCi0JdTgJ
+CQlzZXNzX25hbWVbMzZdOw0KKwl1OAkJCXNlc3NfbmFtZVsyNF07DQogCXN0cnVjdCB3b3JrX3N0
+cnVjdAlyZWxlYXNlX3dvcms7DQogfTsNCiANCg0KSSB3cm90ZSAic2hvdWxkIiBiZWNhdXNlIHRh
+cmdldGNsaSBpcyBub3QgaW5zdGFsbGVkIG9uIG15IHRlc3Qgc2V0dXAgYW5kDQpiZWNhdXNlIEkg
+aGF2ZSBub3QgeWV0IHZlcmlmaWVkIHRoaXMgY2hhbmdlIHdpdGggdGFyZ2V0Y2xpLiBJZiB5b3Ug
+aGF2ZSB0aGUNCnRpbWUgdG8gdmVyaWZ5IHRoaXMgY2hhbmdlIHRoYXQgd291bGQgYmUgZ3JlYXQu
+IElmIG5vdCB0aGVuIEkgd2lsbCBpbnN0YWxsDQp0YXJnZXRjbGkgbXlzZWxmIGFuZCB2ZXJpZnkg
+dGhpcyBjaGFuZ2UuDQoNClRoYW5rcywNCg0KQmFydC4=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
