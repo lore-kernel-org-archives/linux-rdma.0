@@ -1,99 +1,64 @@
-From: Leon Romanovsky <leon@kernel.org>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
 Subject: Re: [PATCH] RDMA/rxe: Fix a race condition related to the QP error
  state
-Date: Fri, 12 Jan 2018 08:23:59 +0200
-Message-ID: <20180112062359.GG15760@mtr-leonro.local>
+Date: Fri, 12 Jan 2018 06:32:47 +0000
+Message-ID: <1515738766.10329.3.camel@wdc.com>
 References: <20180109192340.25702-1-bart.vanassche@wdc.com>
- <1515620434.3403.169.camel@redhat.com>
- <1515621700.3403.174.camel@redhat.com>
- <20180111062252.GP7368@mtr-leonro.local>
- <1515686552.2752.2.camel@wdc.com>
- <20180111190045.GE15760@mtr-leonro.local>
- <1515697625.2752.46.camel@wdc.com>
+         <1515620434.3403.169.camel@redhat.com>
+         <1515621700.3403.174.camel@redhat.com>
+         <20180111062252.GP7368@mtr-leonro.local> <1515686552.2752.2.camel@wdc.com>
+         <20180111190045.GE15760@mtr-leonro.local>
+         <1515697625.2752.46.camel@wdc.com>
+         <20180112062359.GG15760@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Qz2CZ664xQdCRdPu"
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1515697625.2752.46.camel@wdc.com>
-Sender: stable-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@wdc.com>
-Cc: "jgg@mellanox.com" <jgg@mellanox.com>, "monis@mellanox.com" <monis@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180112062359.GG15760-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
+Content-ID: <37501D70220DD7499824062E57AAE580-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---Qz2CZ664xQdCRdPu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Jan 11, 2018 at 07:07:06PM +0000, Bart Van Assche wrote:
-> On Thu, 2018-01-11 at 21:00 +0200, Leon Romanovsky wrote:
-> > On Thu, Jan 11, 2018 at 04:02:33PM +0000, Bart Van Assche wrote:
-> > > On Thu, 2018-01-11 at 08:22 +0200, Leon Romanovsky wrote:
-> > > > The proposed patch definitely decreases the chance of races, but it is not fixing them.
-> > > > There is a chance to have change in qp state immediately after your "if ..." check.
-> > >
-> > > Hello Leon,
-> > >
-> > > Please have a look at rxe_qp_error() and you will see that the patch I posted
-> > > is a proper fix. In the scenario you described rxe_qp_error() will trigger a
-> > > run of rxe_completer().
-> >
-> > Bart,
-> >
-> > What am I missing?
-> >
-> > CPU1							CPU2
-> > 							if (unlikely....
-> > 						<---
-> > /* move the qp to the error state */
-> > void rxe_qp_error(struct rxe_qp *qp)
-> > {
-> >         qp->req.state = QP_STATE_ERROR;
-> >         qp->resp.state = QP_STATE_ERROR;
-> >         qp->attr.qp_state = IB_QPS_ERR;
-> > 						--->
-> > 							rxe_run_task(&qp->req.task, must_sched);
-> >
-> >
-> >
-> > It is more or less the same as without "if (unlikely..."
->
-> Hello Leon,
->
-> In the above the part of rxe_qp_error() that I was referring to in my e-mail
-> is missing:
->
-> 	if (qp_type(qp) == IB_QPT_RC)
-> 		rxe_run_task(&qp->comp.task, 1);
-
-
-But it is exactly where race exists, as long QP isn't protected, it can
-switch CPUs and create race.
-
-Thanks
-
->
-> Bart.
-
---Qz2CZ664xQdCRdPu
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpYVH8ACgkQ5GN7iDZy
-WKfbog//emjas2DjVczG/gVuMJ726d87/prN2B5fyY1Z0Mei4hQxH75C6Tey3nkU
-QcGONEa8czCYqZyTlqmUR3TrTKNGioeW+E8ovBV4j9+81liV9dnPWMe0tUE94S3B
-x05D5Fz+beaU51hRjgmoztej5fKY6Bp9KCE6PReN1tDsqmN6lbuSTpLZX7CrKxB6
-iRlJQkSdM9LrsJWQQC3ErtSLzohzb4FpJP+VusXzMvAFwGqD1Z4CafVOlnDZLmwV
-vftroEJHhA/TarluBTulijJ9qNKUiookCNGWRWvy1FbSlt5wEIYSqWx+cHcywowX
-BYSAeBc86UITcg7ykIaik8Pur8SeMZg4IEvyVBUsgwOhwXp12v/w64kOkuiKoNKa
-+3/Gd2uPvsdIXOwJ/A+vX2xALxiuw2Vd+4L3RAKO2XKFEhxRz74ytQ2GZ/+3L3Rq
-2yhLqxQJbpU9ry1JfNUV0cVVI0DgGCIZBMb2fi7c3Kf6Pm3gdnd7BfvgNk9RkW6x
-nhSmbrINxvx0ZndimYVz1/5fvKkg7Uxw9ObpVXwO2Ch0THs0vFR5QkNBNwS+ZPxD
-07RvHAIEiYvaR65SyXv1foDe5dlPe2bKUpXWTsTXakesqgbDNiq2sQXFKml1sT5n
-cP5J10gX6ROqx5AK8BIYMXvsa7ehf01IbvjqQVcjV+3Wbg5Apuo=
-=sxVe
------END PGP SIGNATURE-----
-
---Qz2CZ664xQdCRdPu--
+T24gRnJpLCAyMDE4LTAxLTEyIGF0IDA4OjIzICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IE9uIFRodSwgSmFuIDExLCAyMDE4IGF0IDA3OjA3OjA2UE0gKzAwMDAsIEJhcnQgVmFuIEFz
+c2NoZSB3cm90ZToNCj4gPiBPbiBUaHUsIDIwMTgtMDEtMTEgYXQgMjE6MDAgKzAyMDAsIExlb24g
+Um9tYW5vdnNreSB3cm90ZToNCj4gPiA+IE9uIFRodSwgSmFuIDExLCAyMDE4IGF0IDA0OjAyOjMz
+UE0gKzAwMDAsIEJhcnQgVmFuIEFzc2NoZSB3cm90ZToNCj4gPiA+ID4gT24gVGh1LCAyMDE4LTAx
+LTExIGF0IDA4OjIyICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6DQo+ID4gPiA+ID4gVGhl
+IHByb3Bvc2VkIHBhdGNoIGRlZmluaXRlbHkgZGVjcmVhc2VzIHRoZSBjaGFuY2Ugb2YgcmFjZXMs
+IGJ1dCBpdCBpcyBub3QgZml4aW5nIHRoZW0uDQo+ID4gPiA+ID4gVGhlcmUgaXMgYSBjaGFuY2Ug
+dG8gaGF2ZSBjaGFuZ2UgaW4gcXAgc3RhdGUgaW1tZWRpYXRlbHkgYWZ0ZXIgeW91ciAiaWYgLi4u
+IiBjaGVjay4NCj4gPiA+ID4gDQo+ID4gPiA+IEhlbGxvIExlb24sDQo+ID4gPiA+IA0KPiA+ID4g
+PiBQbGVhc2UgaGF2ZSBhIGxvb2sgYXQgcnhlX3FwX2Vycm9yKCkgYW5kIHlvdSB3aWxsIHNlZSB0
+aGF0IHRoZSBwYXRjaCBJIHBvc3RlZA0KPiA+ID4gPiBpcyBhIHByb3BlciBmaXguIEluIHRoZSBz
+Y2VuYXJpbyB5b3UgZGVzY3JpYmVkIHJ4ZV9xcF9lcnJvcigpIHdpbGwgdHJpZ2dlciBhDQo+ID4g
+PiA+IHJ1biBvZiByeGVfY29tcGxldGVyKCkuDQo+ID4gPiANCj4gPiA+IEJhcnQsDQo+ID4gPiAN
+Cj4gPiA+IFdoYXQgYW0gSSBtaXNzaW5nPw0KPiA+ID4gDQo+ID4gPiBDUFUxCQkJCQkJCUNQVTIN
+Cj4gPiA+IAkJCQkJCQlpZiAodW5saWtlbHkuLi4uDQo+ID4gPiAJCQkJCQk8LS0tDQo+ID4gPiAv
+KiBtb3ZlIHRoZSBxcCB0byB0aGUgZXJyb3Igc3RhdGUgKi8NCj4gPiA+IHZvaWQgcnhlX3FwX2Vy
+cm9yKHN0cnVjdCByeGVfcXAgKnFwKQ0KPiA+ID4gew0KPiA+ID4gICAgICAgICBxcC0+cmVxLnN0
+YXRlID0gUVBfU1RBVEVfRVJST1I7DQo+ID4gPiAgICAgICAgIHFwLT5yZXNwLnN0YXRlID0gUVBf
+U1RBVEVfRVJST1I7DQo+ID4gPiAgICAgICAgIHFwLT5hdHRyLnFwX3N0YXRlID0gSUJfUVBTX0VS
+UjsNCj4gPiA+IAkJCQkJCS0tLT4NCj4gPiA+IAkJCQkJCQlyeGVfcnVuX3Rhc2soJnFwLT5yZXEu
+dGFzaywgbXVzdF9zY2hlZCk7DQo+ID4gPiANCj4gPiA+IA0KPiA+ID4gDQo+ID4gPiBJdCBpcyBt
+b3JlIG9yIGxlc3MgdGhlIHNhbWUgYXMgd2l0aG91dCAiaWYgKHVubGlrZWx5Li4uIg0KPiA+IA0K
+PiA+IEhlbGxvIExlb24sDQo+ID4gDQo+ID4gSW4gdGhlIGFib3ZlIHRoZSBwYXJ0IG9mIHJ4ZV9x
+cF9lcnJvcigpIHRoYXQgSSB3YXMgcmVmZXJyaW5nIHRvIGluIG15IGUtbWFpbA0KPiA+IGlzIG1p
+c3Npbmc6DQo+ID4gDQo+ID4gCWlmIChxcF90eXBlKHFwKSA9PSBJQl9RUFRfUkMpDQo+ID4gCQly
+eGVfcnVuX3Rhc2soJnFwLT5jb21wLnRhc2ssIDEpOw0KPiANCj4gDQo+IEJ1dCBpdCBpcyBleGFj
+dGx5IHdoZXJlIHJhY2UgZXhpc3RzLCBhcyBsb25nIFFQIGlzbid0IHByb3RlY3RlZCwgaXQgY2Fu
+DQo+IHN3aXRjaCBDUFVzIGFuZCBjcmVhdGUgcmFjZS4NCg0KSGVsbG8gTGVvbiwNCg0KQ2FuIHlv
+dSBjbGFyaWZ5IHdoaWNoIHJhY2UgeW91IGFyZSByZWZlcnJpbmcgdG8/IHJ4ZV9ydW5fdGFzaygp
+IHVzZXMgdGhlDQp0YXNrbGV0IG1lY2hhbmlzbSBhbmQgdGFza2xldHMgYXJlIGd1YXJhbnRlZWQg
+dG8gcnVuIG9uIGF0IG1vc3Qgb25lIENQVSBhdCBhDQp0aW1lLiBTZWUgYWxzbyB0aGUgIlRvcCBh
+bmQgQm90dG9tIEhhbHZlcyIgY2hhcHRlciBpbiBMaW51eCBEZXZpY2UgRHJpdmVycywNCjNyZCBl
+ZGl0aW9uLiBTZWUgYWxzbyB0aGUgdGFza2xldF9zY2hlZHVsZSgpIGltcGxlbWVudGF0aW9uIGlu
+DQo8bGludXgvaW50ZXJydXB0Lmg+IGFuZCBpbiBrZXJuZWwvc29mdGlycS5jLg0KDQpUaGFua3Ms
+DQoNCkJhcnQu
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
