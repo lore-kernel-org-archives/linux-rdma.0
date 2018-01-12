@@ -1,42 +1,51 @@
-From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Subject: [PATCH] IB/cma: use strlcpy() instead of strncpy()
-Date: Fri, 12 Jan 2018 15:56:05 +0800
-Message-ID: <1515743765-116090-1-git-send-email-wangxiongfeng2@huawei.com>
+From: Kevin Wilson <wkevils-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Building rdma-core from github gave an error "Unknown arguments specified"
+Date: Fri, 12 Jan 2018 11:35:04 +0200
+Message-ID: <CAGXs5wUoLZLtmHhyRm3poALO5ZGSdS5u4+saKhigMgHivw-9Eg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: jgg@ziepe.ca, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, wangxiongfeng2@huawei.com
-Cc: arnd@arndb.de
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Xiongfeng Wang <xiongfeng.wang@linaro.org>
+Hi,
+I had cloned the latest rdma-core:
+https://github.com/linux-rdma/rdma-core.git
 
-gcc-8 reports
+I am trying to build it on Fedora 27 x86_64 machine.
+When I ran:
+bash build.sh
+I got the following:
 
-drivers/infiniband/core/cma_configfs.c: In function 'make_cma_dev':
-./include/linux/string.h:245:9: warning: '__builtin_strncpy' specified
-bound 64 equals destination size [-Wstringop-truncation]
+CMake Error at buildlib/RDMA_BuildType.cmake:32 (if):
+  if given arguments:
 
-We need to use strlcpy() to make sure the string is nul-terminated.
+    "STREQUAL" "-O2 -g -DNDEBUG"
 
-Signed-off-by: Xiongfeng Wang <xiongfeng.wang@linaro.org>
----
- drivers/infiniband/core/cma_configfs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+  Unknown arguments specified
+Call Stack (most recent call first):
+  CMakeLists.txt:145 (RDMA_BuildType)
 
-diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
-index 31dfee0..eee38b4 100644
---- a/drivers/infiniband/core/cma_configfs.c
-+++ b/drivers/infiniband/core/cma_configfs.c
-@@ -295,7 +295,7 @@ static struct config_group *make_cma_dev(struct config_group *group,
- 		goto fail;
- 	}
- 
--	strncpy(cma_dev_group->name, name, sizeof(cma_dev_group->name));
-+	strlcpy(cma_dev_group->name, name, sizeof(cma_dev_group->name));
- 
- 	config_group_init_type_name(&cma_dev_group->ports_group, "ports",
- 				    &cma_ports_group_type);
--- 
-1.8.3.1
+
+-- Configuring incomplete, errors occurred!
+See also "/work/down/temp/rdma-core/build/CMakeFiles/CMakeOutput.log".
+See also "/work/down/temp/rdma-core/build/CMakeFiles/CMakeError.log".
+
+Any ideas what can it be ?
+
+More details:
+As said, I am on the latest git commit, on the master branch:
+git log | more
+commit c4345781db3d4d24578873b612357124c6b3d1e3
+Author: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Date:   Thu Jan 4 15:27:51 2018 +0100
+
+    debian: Update changelog to include Debian uploads 16.x
+
+Regards,
+KW
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
