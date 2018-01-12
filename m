@@ -1,83 +1,78 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next v3 1/7] RDMA/restrack: Add general
- infrastructure to track RDMA resources
-Date: Fri, 12 Jan 2018 08:39:06 +0200
-Message-ID: <20180112063906.GJ15760@mtr-leonro.local>
+Subject: Re: [PATCH rdma-next v3 2/7] RDMA/core: Add helper function to
+ create named QPs
+Date: Fri, 12 Jan 2018 08:42:43 +0200
+Message-ID: <20180112064243.GK15760@mtr-leonro.local>
 References: <20180111153132.11143-1-leon@kernel.org>
- <20180111153132.11143-2-leon@kernel.org>
- <1515700046.2752.52.camel@wdc.com>
+ <20180111153132.11143-3-leon@kernel.org>
+ <1515700219.2752.55.camel@wdc.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="2xzXx3ruJf7hsAzo"
+        protocol="application/pgp-signature"; boundary="AptwxgnoZDC4KQWS"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1515700046.2752.52.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <1515700219.2752.55.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
 Cc: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---2xzXx3ruJf7hsAzo
+--AptwxgnoZDC4KQWS
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Jan 11, 2018 at 07:47:27PM +0000, Bart Van Assche wrote:
+On Thu, Jan 11, 2018 at 07:50:21PM +0000, Bart Van Assche wrote:
 > On Thu, 2018-01-11 at 17:31 +0200, Leon Romanovsky wrote:
-> > +struct rdma_restrack_entry {
-> > +       struct list_head        list;
+> > --- a/include/rdma/ib_verbs.h
+> > +++ b/include/rdma/ib_verbs.h
+> > @@ -1141,6 +1141,12 @@ struct ib_qp_init_attr {
+> >         u8                      port_num;
+> >         struct ib_rwq_ind_table *rwq_ind_tbl;
+> >         u32                     source_qpn;
 > > +
 > > +       /*
-> > +        * The entries are filled during rdma_restrack_add,
-> > +        * can be attempted to be free during rdma_restrack_del.
-> > +        *
-> > +        * As an example for that, see mlx5 QPs with type MLX5_IB_QPT_HW_GSI
+> > +        * Name of entity which created this QP, empty string means that
+> > +        * it will be taken automatically from task_struct.
 > > +        */
-> > +       bool                    valid;
-> > +
-> > +       /*
-> > +        * Sleepabale RCU to protect object data.
-> > +        */
-> > +       struct srcu_struct      srcu;
-> > +
-> > +       struct task_struct      *task;
-> > +       char                    *task_comm;
-> > +};
+> > +       char comm[TASK_COMM_LEN];
+> >  };
 >
-> Please use the kernel-doc syntax to document the meaning of the names of the
-> fields in this structure. It is e.g. nontrivial to guess what "task_comm" stands
-> for. The presense of a task_struct pointer is also nontrivial.
->
-> PS: I think the spelling of "Sleepabale" should be fixed.
+> Why is "comm" a char array instead of a const char pointer or dynamically
+> allocated memory (kstrdup())? Can we get rid of the strncpy() calls in code
+> that fills in this data structure?
 
-I'll fix and resend.
+Yes, we can, initially, I didn't want to bother with corner cases of
+failure in allocations, but in last version of code it is already easy
+to deal, so I'll replace.
 
 >
 > Thanks,
 >
 > Bart.
+>
 
---2xzXx3ruJf7hsAzo
+--AptwxgnoZDC4KQWS
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpYWAoACgkQ5GN7iDZy
-WKdgnRAAw6rgphr6LF0iDaQZ91wUROlPPgH9AS5wBDSiQu6esFE2wh4iDEW9GNBG
-7ELlYZFLOl3roNmP6wzUZnZJbjykQa/MX+yet0uS8C51reAofyK9M9GoTt81zVQN
-vy0TM/XcxPQ3MDVQ8W56fzwC+GzvSbRqpnn2AA2TSFfCLeD2PL2fge2uzLFPH99+
-8bVVUlBlMw3rha78qcDkwkAtvVdsYboyHTbuLZ6JC9905N2xKUumisgrykW0x/88
-dAENG45xskb7EHf1Zf5v/AVCFJngowO+j34jipSC2hA2lzrS9/UYW9Zodt5Wn/Z3
-FgF/uHtVPcBRlaWrdyk74nRcI7kivgz5yhQTA5D2pkElYqJmnY+PFxH0wtP0vmpD
-WH3P+2yT8pvBZukor9Ejx62OMOE1jtQJy9p2oBd81PfA8ryMR85iVt3SuMmp2YD8
-ssyJJvmHFLt39fDfBkt4aMcGc027zlI9CBfh0aeuI7dkJPPSkGaRxVQOH5XAChog
-sOnRcFU1bjT1HF2wSzS4J5z1fuUHpeqpGlMbdZs0JmwTMUtH30MVLGZyvhAaGv1g
-k6lqZzaM+gRXFSf5XVKnz1QuKYURsQ1kRzn6Pd1HPEBt+8FO2vkwXFKCFGk7PpY6
-Z/35in5JeUvLr5HHx72re/hy+e7pBycaiSB6Tt/tgfvtOoWOFeA=
-=WvIa
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpYWOMACgkQ5GN7iDZy
+WKduxg//U4WLvyf2mKezYjmv/OSUeDnaKfqCmGpRBHcNBgqNGZ+ZNYV/sH9u3tgY
+HXXorP18zk4xKJW2dE3OVoBzN4H11KWrkLlbAEQTeDwCgc2NlIYJKlUcpKaziqy2
+5VrhG2Uwq+7UZ7n9EbJaGvcJXbNP/P6hvJ1T48mJ12lPMwVr19CAfKoRoMw22k6U
+NpX9ntyiV1IIPqTCIVsiM3HkuF7kTuoe+g0+WGX0+D7CnoBLpQ4rfv2C1bO5ck6L
+P523gLGCQR4P10zggmDPabIdng1mPJTNFuMeB7ExyC4UTK9MsAACeV/ZxWw0E9Yw
+3+WagZCf+tl5HeWf5XzmzZfe7dH16J3ybnMXa0Id0hdYpD5zaHyP/5FsSHuRtfGa
+xipHhi16imsgmZS6tjGk4O4m5U6nbbO303bxalBocb07YDGyBRNmnooS8rw/S0Z+
+n7GYfIb3LmQMlhaXITnqOniu/zhhJ0WANHUD4uNhQjDHzTHkSgbcl0QWf/ENucu9
+Qyio0JvTwUi9zTkZm4l4oD7sW1RjYJ8k6/6A2dQ63VZTuOpSvnuCrDwuC3YGZwst
+fBccVoai8eyKHTeU19P6v8qBMoMe6Pb0dmkV6t6CAn9nvwQOiP9F+jFpz/soLJEL
+LIWO1dj/VjHcKHyowCXX/+RGdT3OKijKxm4FJGnrCzwFE9azqKQ=
+=yywR
 -----END PGP SIGNATURE-----
 
---2xzXx3ruJf7hsAzo--
+--AptwxgnoZDC4KQWS--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
