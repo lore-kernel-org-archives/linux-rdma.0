@@ -1,99 +1,51 @@
-From: Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
-Subject: Re: krping problem on 4.15-rc4
-Date: Fri, 12 Jan 2018 17:06:07 -0500
-Message-ID: <CAN-5tyGq=hmXY9HZYXpfaytOUV=gb0fri69gj69WKbbYtW3nTQ@mail.gmail.com>
-References: <CAN-5tyH1HO7yzzQLyb5z5Pq=OrHnKzmCrR2MffLguqsEA-mwWg@mail.gmail.com>
- <00ff01d38a4f$1a979eb0$4fc6dc10$@opengridcomputing.com> <CAN-5tyEwdSOiAk04xjfazxBqwkkTiCjr2dVcCoYLQJw8f37U=w@mail.gmail.com>
- <017d01d38b14$cbe95670$63bc0350$@opengridcomputing.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH v2 3/4] scsi: Avoid that .queuecommand() gets called for a
+ quiesced SCSI device
+Date: Fri, 12 Jan 2018 22:45:57 +0000
+Message-ID: <1515797155.2396.86.camel@wdc.com>
+References: <20180110181817.25166-1-bart.vanassche@wdc.com>
+         <20180110181817.25166-4-bart.vanassche@wdc.com>
+         <20180111022341.GA7290@ming.t460p>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <017d01d38b14$cbe95670$63bc0350$@opengridcomputing.com>
+In-Reply-To: <20180111022341.GA7290-1Cy0MwPVgsaKEAUSAb389g@public.gmane.org>
+Content-Language: en-US
+Content-ID: <1962A62B8D409E409D88F3ACC224BF07-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "ming.lei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <ming.lei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jthumshirn-l3A5Bk7waGM@public.gmane.org" <jthumshirn-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hare-IBi9RG/b67k@public.gmane.org" <hare-IBi9RG/b67k@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 11, 2018 at 2:45 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
->> > Hey Olga,
->> >
->> > Are the machines the same kernel version / distro sw / and hw -
->> cpu/motherboard/memory/etc?  If not, what is different about them?  Is it the
->> krping server that sees the CQ error?  Do other rdma devices work on these
->> systems?
->>
->> Hi Steve,
->>
->> Machines software is the same kernel version (4.15-rc4) / distro sw
->> (RHEL7.4). Hardware of those machines the same (PRIMERGY RX200 S7) but
->> one machine has 8G less memory than the other (64G vs 56G). kpring
->> error was on the server. These machines only have 1 CX-5 no other RDMA
->> devices.
->>
->
-> Ok.  The memory probably doesn't matter.  Maybe run krping client and server on the same host (to use hw-loopback), and see if it works on both, one, or neither systems when they are both the client and server.
-
-Loopback on the original "server" machine produces the same failure.
-Jan 12 17:05:40 localhost kernel: mlx5_0:dump_cqe:277:(pid 0): dump error cqe
-Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
-Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
-Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
-Jan 12 17:05:40 localhost kernel: 00000000 93003204 1000017c 0005e1d2
-Jan 12 17:05:40 localhost kernel: krping: cq completion failed with
-wr_id 0 status 4 opcode 0 vender_err 32
-Jan 12 17:05:40 localhost kernel: krping: cq completion in ERROR state
-Jan 12 17:05:40 localhost kernel: krping: wait for RDMA_READ_COMPLETE state 10
-Jan 12 17:05:40 localhost kernel: krping: DISCONNECT EVENT...
-Jan 12 17:05:40 localhost kernel: krping: wait for RDMA_WRITE_ADV state 10
-Jan 12 17:05:40 localhost kernel: krping: cq completion in ERROR state
-
-
-Loopback on the original "client" machine runs successfully.
-Jan 12 17:04:26 localhost kernel: krping: server ping data (64B max):
-|rdma-ping-0: ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqr|
-Jan 12 17:04:26 localhost kernel: krping: ping data (64B max):
-|rdma-ping-0: ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqr|
-Jan 12 17:04:26 localhost kernel: krping: server ping data (64B max):
-|rdma-ping-1: BCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrs|
-Jan 12 17:04:26 localhost kernel: krping: ping data (64B max):
-|rdma-ping-1: BCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrs|
-Jan 12 17:04:26 localhost kernel: krping: server ping data (64B max):
-|rdma-ping-2: CDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrst|
-Jan 12 17:04:26 localhost kernel: krping: ping data (64B max):
-|rdma-ping-2: CDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrst|
-Jan 12 17:04:26 localhost kernel: krping: server ping data (64B max):
-|rdma-ping-3: DEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstu|
-Jan 12 17:04:26 localhost kernel: krping: ping data (64B max):
-|rdma-ping-3: DEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstu|
-Jan 12 17:04:26 localhost kernel: krping: server ping data (64B max):
-|rdma-ping-4: EFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuv|
-Jan 12 17:04:26 localhost kernel: krping: ping data (64B max):
-|rdma-ping-4: EFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuv|
-Jan 12 17:04:27 localhost kernel: krping: server ping data (64B max):
-|rdma-ping-5: FGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvw|
-Jan 12 17:04:27 localhost kernel: krping: ping data (64B max):
-|rdma-ping-5: FGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvw|
-Jan 12 17:04:27 localhost kernel: krping: server ping data (64B max):
-|rdma-ping-6: GHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwx|
-Jan 12 17:04:27 localhost kernel: krping: ping data (64B max):
-|rdma-ping-6: GHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwx|
-Jan 12 17:04:27 localhost kernel: krping: server ping data (64B max):
-|rdma-ping-7: HIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxy|
-Jan 12 17:04:27 localhost kernel: krping: ping data (64B max):
-|rdma-ping-7: HIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxy|
-Jan 12 17:04:27 localhost kernel: krping: server ping data (64B max):
-|rdma-ping-8: IJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz|
-Jan 12 17:04:27 localhost kernel: krping: ping data (64B max):
-|rdma-ping-8: IJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz|
-Jan 12 17:04:28 localhost kernel: krping: server ping data (64B max):
-|rdma-ping-9: JKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyzA|
-Jan 12 17:04:28 localhost kernel: krping: ping data (64B max):
-|rdma-ping-9: JKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyzA|
-Jan 12 17:04:28 localhost kernel: krping: DISCONNECT EVENT...
-Jan 12 17:04:28 localhost kernel: krping: wait for RDMA_READ_ADV state 10
-Jan 12 17:04:28 localhost kernel: krping: cq completion in ERROR state
-
-What does this means?
+T24gVGh1LCAyMDE4LTAxLTExIGF0IDEwOjIzICswODAwLCBNaW5nIExlaSB3cm90ZToNCj4gPiBu
+b3Qgc3VmZmljaWVudCB0byBwcmV2ZW50IC5xdWV1ZWNvbW1hbmQoKSBjYWxscyBmcm9tIHNjc2lf
+c2VuZF9laF9jbW5kKCkuDQo+IA0KPiBHaXZlbiBpdCBpcyBlcnJvciBoYW5kbGluZywgZG8gd2Ug
+bmVlZCB0byBwcmV2ZW50IHRoZSAucXVldWVjb21tYW5kKCkgY2FsbA0KPiBpbiBzY3NpX3NlbmRf
+ZWhfY21uZCgpPyBDb3VsZCB5b3Ugc2hhcmUgdXMgd2hhdCB0aGUgYWN0dWFsIGlzc3VlDQo+IG9i
+c2VydmVkIGlzIGZyb20gdXNlciB2aWV3Pw0KDQpQbGVhc2UgaGF2ZSBhIGxvb2sgYXQgdGhlIGtl
+cm5lbCBidWcgcmVwb3J0IGluIHRoZSBkZXNjcmlwdGlvbiBvZiBwYXRjaCA0LzQgb2YNCnRoaXMg
+c2VyaWVzLg0KDQo+ID4gSGVuY2Ugc3Vycm91bmQgdGhlIC5xdWV1ZWNvbW1hbmQoKSBjYWxsIGZy
+b20gdGhlIFNDU0kgZXJyb3IgaGFuZGxlciB3aXRoDQo+ID4gYmxrX3N0YXJ0X3dhaXRfaWZfcXVp
+ZXNjZWQoKSAvIGJsa19maW5pc2hfd2FpdF9pZl9xdWllc2NlZCgpLg0KPiA+IA0KPiA+IE5vdGU6
+IGNvbnZlcnRpbmcgdGhlIC5xdWV1ZWNvbW1hbmQoKSBjYWxsIGluIHNjc2lfc2VuZF9laF9jbW5k
+KCkgaW50bw0KPiA+IGNvZGUgdGhhdCBjYWxscyBibGtfZ2V0X3JlcXVlc3QoKSwgZS5nLiBzY3Np
+X2V4ZWN1dGVfcmVxKCksIGlzIG5vdCBhbg0KPiA+IG9wdGlvbiBzaW5jZSBzY3NpX3NlbmRfZWhf
+Y21uZCgpIGNhbiBiZSBjYWxsZWQgaWYgYWxsIHJlcXVlc3RzIGFyZQ0KPiA+IGFsbG9jYXRlZCBh
+bmQgaWYgbm8gcmVxdWVzdHMgd2lsbCBtYWtlIHByb2dyZXNzIHdpdGhvdXQgYWJvcnRpbmcgYW55
+DQo+ID4gb2YgdGhlc2UgcmVxdWVzdHMuDQo+IA0KPiBJZiB3ZSBuZWVkIHRvIHByZXZlbnQgdGhl
+IC5xdWV1ZWNvbW1hbmQoKSBpbiBzY3NpX3NlbmRfZWhfY21uZCgpLCB3aGF0DQo+IGRvIHlvdSB0
+aGluayBvZiB0aGUgYXBwcm9hY2ggYnkgcmVxdWV1aW5nIHRoZSBFSCBjb21tYW5kIHZpYQ0KPiBz
+Y3NpX21xX3JlcXVldWVfY21kKCkvc2NzaV9yZXF1ZXVlX2NtZCgpPyBBbmQgdGhlIEVIIHJlcXVl
+c3Qgd2lsbCBiZQ0KPiBkaXNwYXRjaGVkIGZpbmFsbHkgd2hlbiB0aGUgcXVldWUgYmVjb21lcyB1
+bnF1aWVzY2VkIG9yIHRoZSBTVE9QUEVEDQo+IGlzIGNsZWFyZWQuDQoNCkNhbGxpbmcgc2NzaV9t
+cV9yZXF1ZXVlX2NtZCgpIHdvdWxkIHRyaWdnZXIgc2NzaV9tcV91bmluaXRfY21kKCksDQpibGtf
+bXFfcHV0X2RyaXZlcl90YWcoKSwgYmxrX21xX2dldF9kcml2ZXJfdGFnKCkgYW5kIHNjc2lfbXFf
+cHJlcF9mbigpLg0KVGhhdCBjb3VsZCBjYXVzZSBzY3NpX2VoX3NjbWRfYWRkKCkgdG8gYmUgY2Fs
+bGVkIG11bHRpcGxlIHRpbWVzIGZvciB0aGUNCnNhbWUgU0NTSSBjb21tYW5kLiBIb3dldmVyLCB0
+aGF0IHdvdWxkIGJyZWFrIG9uZSBvZiB0aGUgYXNzdW1wdGlvbnMNCnNjc2lfZWhfc2NtZF9hZGQo
+KSBpcyBiYXNlZCBvbiwgbmFtZWx5IHRoYXQgdGhhdCBmdW5jdGlvbiBnZXRzIGNhbGxlZA0Kb25s
+eSBvbmNlIHBlciBTQ1NJIGNvbW1hbmQgdGhhdCBpcyBpbiBwcm9ncmVzcy4NCg0KQmFydC4g
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
