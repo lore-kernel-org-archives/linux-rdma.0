@@ -1,187 +1,105 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
-Date: Sat, 13 Jan 2018 09:53:46 -0500
-Message-ID: <1515855226.32050.1.camel@redhat.com>
-References: <1515531652.26021.1.camel@redhat.com>
-         <1515537614.26021.3.camel@redhat.com> <1515591723.26021.6.camel@redhat.com>
-         <20180110182648.GI4518@ziepe.ca> <1515609623.2745.20.camel@wdc.com>
-         <1515610750.10153.1.camel@redhat.com> <20180110191510.GK4518@ziepe.ca>
-         <1515612639.10153.3.camel@redhat.com> <20180110205243.GP4776@mellanox.com>
-         <1515618674.10153.6.camel@redhat.com> <20180110211501.GS4776@mellanox.com>
-         <1515675741.21421.1.camel@redhat.com> <1515703435.21421.9.camel@redhat.com>
-         <1515705340.2752.60.camel@wdc.com> <1515706433.21421.11.camel@redhat.com>
-         <1515791472.2396.57.camel@wdc.com> <1515802177.1566.1.camel@redhat.com>
-         <1515808673.11354.1.camel@redhat.com>
+From: Ming Lei <ming.lei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 4/4] IB/srp: Fix a sleep-in-invalid-context bug
+Date: Sat, 13 Jan 2018 23:42:07 +0800
+Message-ID: <20180113154206.GE8013@ming.t460p>
+References: <20180110181817.25166-1-bart.vanassche@wdc.com>
+ <20180110181817.25166-5-bart.vanassche@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1515808673.11354.1.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180110181817.25166-5-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Martin K . Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Hannes Reinecke <hare-IBi9RG/b67k@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2018-01-12 at 20:57 -0500, Laurence Oberman wrote:
-> On Fri, 2018-01-12 at 19:09 -0500, Laurence Oberman wrote:
-> > On Fri, 2018-01-12 at 21:11 +0000, Bart Van Assche wrote:
-> > > On Thu, 2018-01-11 at 16:33 -0500, Laurence Oberman wrote:
-> > > > I just rebooted the server into 4.13 and its fine again and
-> > > > found
-> > > > all
-> > > > the targets with the same kernel on the client.
-> > > > 
-> > > > So its specific to your new tree with srpt
-> > > > 
-> > > > I will reboot again and re-load LIO and show you but here is my
-> > > > ACL
-> > > > list that has been this way for some time.
-> > > > 
-> > > > 
-> > > > o- srpt
-> > > > ...............................................................
-> > > > ..
-> > > > ..
-> > > > ....
-> > > > ...................................... [Targets: 2]
-> > > >   | o- ib.fe800000000000007cfe900300726e4e
-> > > > ...............................................................
-> > > > ..
-> > > > ..
-> > > > ....
-> > > > .... [no-gen-acls]
-> > > >   | | o- acls
-> > > > ...............................................................
-> > > > ..
-> > > > ..
-> > > > ....
-> > > > ..................................... [ACLs: 8]
-> > > >   | | | o- ib.4e6e72000390fe7c7cfe900300726ed2
-> > > > 
-> > > > [ ... ]
-> > > 
-> > > Hello Laurence,
-> > > 
-> > > Although I'm not sure I think I found the root cause of this
-> > > failure.
-> > > The
-> > > following patch should fix the failure:
-> > > 
-> > > diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> > > b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> > > index 96142110a155..5297963c834d 100644
-> > > --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> > > +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> > > @@ -2083,7 +2083,7 @@ static int srpt_cm_req_recv(struct
-> > > srpt_device
-> > > *const sdev,
-> > >  		struct ib_cm_rep_param ib_cm;
-> > >  	} *rep_param = NULL;
-> > >  	struct srpt_rdma_ch *ch;
-> > > -	char i_port_id[24];
-> > > +	char i_port_id[36];
-> > >  	u32 it_iu_len;
-> > >  	int i, ret;
-> > >  
-> > > diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h
-> > > b/drivers/infiniband/ulp/srpt/ib_srpt.h
-> > > index bf4525b24d98..02883f8e9c71 100644
-> > > --- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-> > > +++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-> > > @@ -308,7 +308,7 @@ struct srpt_rdma_ch {
-> > >  	bool			using_rdma_cm;
-> > >  	bool			processing_wait_list;
-> > >  	struct se_session	*sess;
-> > > -	u8			sess_name[36];
-> > > +	u8			sess_name[24];
-> > >  	struct work_struct	release_work;
-> > >  };
-> > >  
-> > > 
-> > > I wrote "should" because targetcli is not installed on my test
-> > > setup
-> > > and
-> > > because I have not yet verified this change with targetcli. If
-> > > you
-> > > have the
-> > > time to verify this change that would be great. If not then I
-> > > will
-> > > install
-> > > targetcli myself and verify this change.
-> > > 
-> > > Thanks,
-> > > 
-> > > Bart.NrybXǧv^)޺{.n+{ٚ{ay
-ʇڙ,jfhz
-w
-j:+vwjmzZ+ݢj"!
-> > 
-> > 
-> > Hi Bart
-> > 
-> > I will get this tested tonight and report back.
-> > 
-> > Fix makes sesne.
-> > 
-> > Regards
-> > Laurence
+On Wed, Jan 10, 2018 at 10:18:17AM -0800, Bart Van Assche wrote:
+> The previous two patches guarantee that srp_queuecommand() does not get
+> invoked while reconnecting occurs. Hence remove the code from
+> srp_queuecommand() that prevents command queueing while reconnecting.
+> This patch avoids that the following can appear in the kernel log:
 > 
-> Hello Bart
-> For the patch above:
+> BUG: sleeping function called from invalid context at kernel/locking/mutex.c:747
+> in_atomic(): 1, irqs_disabled(): 0, pid: 5600, name: scsi_eh_9
+> 1 lock held by scsi_eh_9/5600:
+>  #0:  (rcu_read_lock){....}, at: [<00000000cbb798c7>] __blk_mq_run_hw_queue+0xf1/0x1e0
+> Preemption disabled at:
+> [<00000000139badf2>] __blk_mq_delay_run_hw_queue+0x78/0xf0
+> CPU: 9 PID: 5600 Comm: scsi_eh_9 Tainted: G        W        4.15.0-rc4-dbg+ #1
+> Hardware name: Dell Inc. PowerEdge R720/0VWT90, BIOS 2.5.4 01/22/2016
+> Call Trace:
+>  dump_stack+0x67/0x99
+>  ___might_sleep+0x16a/0x250 [ib_srp]
+>  __mutex_lock+0x46/0x9d0
+>  srp_queuecommand+0x356/0x420 [ib_srp]
+>  scsi_dispatch_cmd+0xf6/0x3f0
+>  scsi_queue_rq+0x4a8/0x5f0
+>  blk_mq_dispatch_rq_list+0x73/0x440
+>  blk_mq_sched_dispatch_requests+0x109/0x1a0
+>  __blk_mq_run_hw_queue+0x131/0x1e0
+>  __blk_mq_delay_run_hw_queue+0x9a/0xf0
+>  blk_mq_run_hw_queue+0xc0/0x1e0
+>  blk_mq_start_hw_queues+0x2c/0x40
+>  scsi_run_queue+0x18e/0x2d0
+>  scsi_run_host_queues+0x22/0x40
+>  scsi_error_handler+0x18d/0x5f0
+>  kthread+0x11c/0x140
+>  ret_from_fork+0x24/0x30
 > 
-> This corrects the connectivity issue with LIO targets and I will
-> continue now testing your patches from your tree.
+> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+> Reviewed-by: Hannes Reinecke <hare-IBi9RG/b67k@public.gmane.org>
+> Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/ulp/srp/ib_srp.c | 21 ++-------------------
+>  1 file changed, 2 insertions(+), 19 deletions(-)
 > 
-> Reviewed-by: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Tested-by:   Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> 
-> Thank you for your quick response Sir.
-> 
-> Laurence
-> 
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+> index 972d4b3c5223..670f187ecb91 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -2149,7 +2149,6 @@ static void srp_handle_qp_err(struct ib_cq *cq, struct ib_wc *wc,
+>  static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
+>  {
+>  	struct srp_target_port *target = host_to_target(shost);
+> -	struct srp_rport *rport = target->rport;
+>  	struct srp_rdma_ch *ch;
+>  	struct srp_request *req;
+>  	struct srp_iu *iu;
+> @@ -2159,16 +2158,6 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
+>  	u32 tag;
+>  	u16 idx;
+>  	int len, ret;
+> -	const bool in_scsi_eh = !in_interrupt() && current == shost->ehandler;
+> -
+> -	/*
+> -	 * The SCSI EH thread is the only context from which srp_queuecommand()
+> -	 * can get invoked for blocked devices (SDEV_BLOCK /
+> -	 * SDEV_CREATED_BLOCK). Avoid racing with srp_reconnect_rport() by
+> -	 * locking the rport mutex if invoked from inside the SCSI EH.
+> -	 */
+> -	if (in_scsi_eh)
+> -		mutex_lock(&rport->mutex);
 
-Hello Bart
+This issue is triggered because that the above EH handler context detection is
+wrong since scsi_run_host_queues() from scsi_error_handler() is for
+handling normal requests, see the comment below:
 
-I missed some logs when I tested last night.
-Its working fine as mentioned with the the above patch and I see all
-the targets (That's what I checked for).
+        /*
+         * finally we need to re-initiate requests that may be pending.  we will
+         * have had everything blocked while error handling is taking place, and
+         * now that error recovery is done, we will need to ensure that these
+         * requests are started.
+         */
+        scsi_run_host_queues(shost);
 
-However I still see these in the srpt server, but I get access to all
-the targets now on the client.
+This issue should have been fixed by the following one line change simply:
 
-[  239.502025] ib_srpt Received SRP_LOGIN_REQ with i_port_id
-7cfe:9003:0072:6e4f:7cfe:9003:0072:6ed3, t_port_id
-7cfe:9003:0072:6e4e:7cfe:9003:0072:6e4e and it_iu_len 2116 on port 1
-(guid=fe80:0000:0000:0000:7cfe:9003:0072:6e4f); pkey 0xffff
-[  239.623881] ib_srpt failed to create queue pair with sq_size = 16384
-(-12) - retrying
-[  239.669381] ib_srpt failed to create queue pair with sq_size = 8192
-(-12) - retrying
-[  239.715366] ib_srpt Received SRP_LOGIN_REQ with i_port_id
-7cfe:9003:0072:6e4e:7cfe:9003:0072:6ed2, t_port_id
-7cfe:9003:0072:6e4e:7cfe:9003:0072:6e4e and it_iu_len 2116 on port 1
-(guid=fe80:0000:0000:0000:7cfe:9003:0072:6e4e); pkey 0xffff
-[  239.831661] ib_srpt failed to create queue pair with sq_size = 16384
-(-12) - retrying
-[  239.877193] ib_srpt failed to create queue pair with sq_size = 8192
-(-12) - retrying
-[  239.967259] ib_srpt Received SRP_LOGIN_REQ with i_port_id
-7cfe:9003:0072:6e4f:7cfe:9003:0072:6ed3, t_port_id
-7cfe:9003:0072:6e4e:7cfe:9003:0072:6e4e and it_iu_len 2116 on port 1
-(guid=fe80:0000:0000:0000:7cfe:9003:0072:6e4f); pkey 0xffff
-[  240.087362] ib_srpt failed to create queue pair with sq_size = 16384
-(-12) - retrying
-[  240.130981] ib_srpt failed to create queue pair with sq_size = 8192
-(-12) - retrying
-..
-..
+	in_scsi_eh = !!scmd->eh_action;
 
-So the functional report was valid but we need to see why we are still
-getting the messages above.
-
-Apologies, should have checked all the logs last night before my first
-reply.
-
+-- 
+Ming
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
