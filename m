@@ -1,60 +1,55 @@
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] net/mlx4_en: ensure rx_desc updating reaches HW before
- prod db updating
-Date: Sat, 13 Jan 2018 12:15:58 -0700
-Message-ID: <20180113191558.GC32353@ziepe.ca>
-References: <1515728542-3060-1-git-send-email-jianchao.w.wang@oracle.com>
- <20180112163247.GB15974@ziepe.ca>
- <1515775567.131759.42.camel@gmail.com>
- <85116e56-52b1-944d-6ee2-916ccfc3a7a6@mellanox.com>
- <1515788191.131759.48.camel@gmail.com>
- <e902138a-3508-3504-51e5-46152cc2fb31@mellanox.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 0/4] RDMA mlx4/mlx5 fixes
+Date: Sat, 13 Jan 2018 12:18:06 -0700
+Message-ID: <20180113191806.GD32353@ziepe.ca>
+References: <20180112055842.23125-1-leon@kernel.org>
+ <20180112170228.GD15974@ziepe.ca>
+ <20180112183958.GP15760@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <e902138a-3508-3504-51e5-46152cc2fb31-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20180112183958.GP15760-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jianchao Wang <jianchao.w.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 12, 2018 at 01:01:56PM -0800, Saeed Mahameed wrote:
+On Fri, Jan 12, 2018 at 08:39:58PM +0200, Leon Romanovsky wrote:
+> On Fri, Jan 12, 2018 at 10:02:28AM -0700, Jason Gunthorpe wrote:
+> > On Fri, Jan 12, 2018 at 07:58:38AM +0200, Leon Romanovsky wrote:
+> >
+> > So, my take on the for-rc8-ness, based on the commit messages alone:
+> >
+> > > Bodong Wang (1):
+> > >   IB/core: Fix ib_wc structure size to remain in 64 bytes boundary
+> >
+> > No, performance optimization only, and not a regression in this cycle
+> >
+> 
+> Sorry, but it is fix to performance regression, and not optimization.
 
+regression across multiple kernel cycles and not a regression in this
+cycle. So the performance optimization needs to be justified to raise
+to 'important'. There is no performance data in the commit message, so
+I can't judge it as OK for for-rc
 
-> Simply putting a memory barrier on the top or the bottom of a functions,
-> means nothing unless you are looking at the whole picture, of all the
-> callers of that function to understand why is it there.
+> > > Parav Pandit (1):
+> > >   RDMA/core: Fix avoid decoding iWarp port as RoCE
+> >
+> > Unknown, commit message is too short. Parav, please explain more why this
+> > this is worthy of 'CC: stable' ?
+> 
+> Parav has nothing to do with "CC: stable@", I'm the person who added it.
+> 
+> The rationale behind it that it so basic change so it worth to have in
+> stable. Also, it goes as all our countless fixes to those two series:
+> Fixes: 44c58487d51a ("IB/core: Define 'ib' and 'roce' rdma_ah_attr types")
+> Fixes: 7db20ecd1d97 ("IB/core: Change wc.slid from 16 to 32 bits")
 
-When I review code I want to see the memory barrier placed *directly*
-before the write which allows the DMA.
-
-So yes, this is my preference:
-
-> update_doorbell() {
->     dma_wmb();
->     ring->db = prod;
-> }
-
-Conceptually what is happening here is very similar to what
-smp_store_release() does for SMP cases. In most cases wmb should
-always be strongly connected with a following write.
-
-smp_store_release() is called 'release' because the write it
-incorporates allows the other CPU to 'see' what is being
-protected. Similarly here, the write to the db allows the device to
-'see' the new ring data.
-
-And this is bad idea:
-
-> fill buffers();
-> dma_wmb();
-> update_doorbell();
- 
-> I simply like the 2nd one since with one look you can understand
-> what this dma_wmb is protecting.
-
-What do you think the wmb is protecting in the above? It isn't the fill.
+Nevertheless, the commit message does not explain to me or Linus why
+this is *important* - it does not talk about what user visible
+consequnce there is to this bug.
 
 Jason
 --
