@@ -1,59 +1,63 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] iser-target: Fix possible use-after-free in connection
- establishment error
-Date: Sat, 13 Jan 2018 11:08:41 -0700
-Message-ID: <20180113180841.GB32353@ziepe.ca>
-References: <20171126133104.22710-1-sagi@grimberg.me>
- <3676820c-544e-8ced-859a-ade8e6a0ef53@grimberg.me>
- <BN3PR07MB25782C93E50A7A0C55A110B4F83B0@BN3PR07MB2578.namprd07.prod.outlook.com>
- <eda02d71-cf33-2333-223a-0d6eeabb8185@grimberg.me>
- <e11259b7-5add-bf87-73d4-49483c90bf73@mellanox.com>
- <20180109171718.GC4518@ziepe.ca>
- <1515621286.3403.172.camel@redhat.com>
- <1515822365.24576.100.camel@haakon3.daterainc.com>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] net/mlx4_en: ensure rx_desc updating reaches HW before
+ prod db updating
+Date: Sat, 13 Jan 2018 12:15:58 -0700
+Message-ID: <20180113191558.GC32353@ziepe.ca>
+References: <1515728542-3060-1-git-send-email-jianchao.w.wang@oracle.com>
+ <20180112163247.GB15974@ziepe.ca>
+ <1515775567.131759.42.camel@gmail.com>
+ <85116e56-52b1-944d-6ee2-916ccfc3a7a6@mellanox.com>
+ <1515788191.131759.48.camel@gmail.com>
+ <e902138a-3508-3504-51e5-46152cc2fb31@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1515822365.24576.100.camel@haakon3.daterainc.com>
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: Doug Ledford <dledford@redhat.com>, Max Gurtovoy <maxg@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>, "Amrani, Ram" <Ram.Amrani@cavium.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>
+In-Reply-To: <e902138a-3508-3504-51e5-46152cc2fb31-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jianchao Wang <jianchao.w.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 12, 2018 at 09:46:05PM -0800, Nicholas A. Bellinger wrote:
-> On Wed, 2018-01-10 at 16:54 -0500, Doug Ledford wrote:
-> > On Tue, 2018-01-09 at 10:17 -0700, Jason Gunthorpe wrote:
-> > > On Tue, Jan 09, 2018 at 07:04:16PM +0200, Max Gurtovoy wrote:
-> > > > hi Guys,
-> > > > did we forget taking this fix to mainline/stable or we found another
-> > > > solution ?
-> > > 
-> > > I thought it was going to NAB's tree.. My mistake, I put it back into
-> > > patchworks and it will get into for-next
-> > 
-> > In fairness, the email thread said exactly that.  But, it never got
-> > picked up by NAB.  And being that it's in our tree and calling an rdma-
-> > core function, it can easily enough go through our tree, so I applied it
-> > to for-rc.
-> 
-> Thanks Sagi + Ram, and Doug for picking this up.
-> 
-> Per the earlier discussion, it looks like this needs a stable CC,
-> right..?  As Sagi mentioned, it's not clear if this is a regression vs.
-> generic RDMA READ/WRITE API logic, or a day one issue.
-> 
-> So how about adding a 4.7+ stable tag, to match commit a060b5629..?
+On Fri, Jan 12, 2018 at 01:01:56PM -0800, Saeed Mahameed wrote:
 
-That can be done:
 
-Fixes: a060b5629ab0 ("IB/core: generic RDMA READ/WRITE API")
-Cc: <stable@vger.kernel.org> # 4.7+
-Reported-by: Amrani, Ram <Ram.Amrani@cavium.com>
-Signed-off-by: Sagi Grimberg <sagi@grimberg.me>
-Signed-off-by: Doug Ledford <dledford@redhat.com>
+> Simply putting a memory barrier on the top or the bottom of a functions,
+> means nothing unless you are looking at the whole picture, of all the
+> callers of that function to understand why is it there.
 
-Doug: I took your wip/dl-for-rc branch, revised the commit message and
-pushed it to for-rc.
+When I review code I want to see the memory barrier placed *directly*
+before the write which allows the DMA.
+
+So yes, this is my preference:
+
+> update_doorbell() {
+>     dma_wmb();
+>     ring->db = prod;
+> }
+
+Conceptually what is happening here is very similar to what
+smp_store_release() does for SMP cases. In most cases wmb should
+always be strongly connected with a following write.
+
+smp_store_release() is called 'release' because the write it
+incorporates allows the other CPU to 'see' what is being
+protected. Similarly here, the write to the db allows the device to
+'see' the new ring data.
+
+And this is bad idea:
+
+> fill buffers();
+> dma_wmb();
+> update_doorbell();
+ 
+> I simply like the 2nd one since with one look you can understand
+> what this dma_wmb is protecting.
+
+What do you think the wmb is protecting in the above? It isn't the fill.
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
