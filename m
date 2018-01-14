@@ -1,573 +1,180 @@
 From: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: [PATCH v3 04/13] SoftiWarp object management
-Date: Sun, 14 Jan 2018 17:35:54 -0500
-Message-ID: <20180114223603.19961-5-bmt@zurich.ibm.com>
-References: <20180114223603.19961-1-bmt@zurich.ibm.com>
+Subject: [PATCH v3 00/13] Request for Comments on SoftiWarp
+Date: Sun, 14 Jan 2018 17:35:50 -0500
+Message-ID: <20180114223603.19961-1-bmt@zurich.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180114223603.19961-1-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
----
- drivers/infiniband/sw/siw/siw_obj.c | 338 ++++++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/siw/siw_obj.h | 200 +++++++++++++++++++++
- 2 files changed, 538 insertions(+)
+This patch set contributes a new version of the SoftiWarp
+driver, as originally introduced Oct 6th, 2017.
+
+Thank you all for the commments on my last submissiom. It
+was vey helpful and encouraging. I hereby re-send a SoftiWarp
+patch after taking all comments into account, I hope. Without
+introducing SoftiWarp (siw) again, let me fast forward
+to the changes made to the last submission:
+
+
+1. Removed all kernel module parameters, as requested.
+   I am not completely happy yet with what came out of
+   that, since parameters like the name of interfaces
+   siw shall attach to, or if we want to use TCP_NODELAY
+   for low ping-pong delay, or disable it for higher
+   message rates for multiple outstanding operations,
+   were quite handy. I understand I have to find a better
+   solution for that. Ideally, we would be able to
+   distinguish between global siw driver control (like
+   interfaces it attaches to), and per-QP parameters
+   (somehow similar to socket options) which allow for
+   example to tune delay, setting CRC on/off, or control
+   GSO usage.
+
+   For now, the former module parameters became global
+   const values, as defined in siw_main.c. So, I gave
+   up on flexibility for now, but hope to re-gain it
+   with a proper interface.
+
+2. Changed all debug printouts to device debug printouts,
+   or removed them.
+
+3. Implemented sending and handling of TERMINATE 
+   messages. Determining the information to be carried
+   in those messages, as scattered over several RFC's,
+   was unexpectedly complex.
+
+   It turned out, that some iwarp hardware only
+   rudimentarily implements that iwarp termination
+   protocol, lacking sending back useful information
+   in case of application failure.
+
+   I anyway think, it is rather helpful to understand why
+   a certain RDMA operation failed at peer side, since it
+   carries that information back to the initiator.
+
+4. Used Sparse to fix the various style and consistency
+   issues of the last version.
+
+5. Removed siw private implementation of DMA mapping ops
+   in favour of using in-kernel available dma_virt_ops.
+
+6. Fixed local SQ processing starvation due to high
+   inbound rate of READ.requests to same QP.
+   
+7. Introduced some level of NUMA awareness at transmit
+   side. The code tries to serve SQ processing with a
+   core from the same NUMA node as the current Ethernet
+   adapter.
+
+
+The current code comes with the following known
+limitations:
+
+1. To get rid of module parameters, siw now attaches
+   to all interfaces of type ETHER (or additionally
+   LOOPBACK, if enabled).
+
+   Please take it as an ad-hoc solution. I understand
+   it will likely not be acceptable, but I wanted to
+   come out with a reasonable and working update of siw.
+   So far, I did not came across any good solution
+   for dynamic interface management for siw. I would
+   highly appreciate suggestions, and look forward
+   for discussion.
+
+2. Performance needs some additional investigation.
+   The dynamics of the interaction with kernel TCP
+   still needs some better understanding, especially
+   regarding clever setting of message flags, socket
+   parameters, etc. On a 100Gb/s link, one QP can get
+   around 60Gb/s for large messages, and 6.5us WRITE
+   delay for small messages, but there is still
+   fluctuation, and therefor probably some headroom.
+
+3. I kept the siw_tx_hdt() function, which
+   tries to push to TCP all pieces of an iWarp message
+   as one message vector. This makes that function
+   probably rather complex, but performance seem
+   to benefit from that approach.
+
+4. zero copy transmission is currently switched off
+   (bool zcopy_tx is false in siw_main.c). Switching
+   it on lowers CPU load at sending side, but introduces
+   a high rate of mid-frame fragmentation at TCP
+   layer (RDMAP frame gets broken into two
+   wire transmissions), which hurts receiver 
+   performance. It will get re-enabled if those effects
+   are better understood, and controlled.
+
+
+As always, I am very thankful for reviewing the code,
+much appreciating the time and effort it takes. I am
+very open for discussion and suggestions.
+
+Thanks very much,
+Bernard.
+
+Bernard Metzler (13):
+  iWARP wire packet format definition
+  Main SoftiWarp include file
+  Attach/detach SoftiWarp to/from network and RDMA subsystem
+  SoftiWarp object management
+  SoftiWarp application interface
+  SoftiWarp connection management
+  SoftiWarp application buffer management
+  SoftiWarp Queue Pair methods
+  SoftiWarp transmit path
+  SoftiWarp receive path
+  SoftiWarp Completion Queue methods
+  SoftiWarp debugging code
+  Add SoftiWarp to kernel build environment
+
+ drivers/infiniband/Kconfig            |    1 +
+ drivers/infiniband/sw/Makefile        |    1 +
+ drivers/infiniband/sw/siw/Kconfig     |   18 +
+ drivers/infiniband/sw/siw/Makefile    |   15 +
+ drivers/infiniband/sw/siw/iwarp.h     |  415 +++++++
+ drivers/infiniband/sw/siw/siw.h       |  823 +++++++++++++
+ drivers/infiniband/sw/siw/siw_ae.c    |  120 ++
+ drivers/infiniband/sw/siw/siw_cm.c    | 2184 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/siw/siw_cm.h    |  156 +++
+ drivers/infiniband/sw/siw/siw_cq.c    |  150 +++
+ drivers/infiniband/sw/siw/siw_debug.c |  463 +++++++
+ drivers/infiniband/sw/siw/siw_debug.h |   87 ++
+ drivers/infiniband/sw/siw/siw_main.c  |  816 ++++++++++++
+ drivers/infiniband/sw/siw/siw_mem.c   |  243 ++++
+ drivers/infiniband/sw/siw/siw_obj.c   |  338 +++++
+ drivers/infiniband/sw/siw/siw_obj.h   |  200 +++
+ drivers/infiniband/sw/siw/siw_qp.c    | 1445 ++++++++++++++++++++++
+ drivers/infiniband/sw/siw/siw_qp_rx.c | 1531 +++++++++++++++++++++++
+ drivers/infiniband/sw/siw/siw_qp_tx.c | 1346 ++++++++++++++++++++
+ drivers/infiniband/sw/siw/siw_verbs.c | 1876 ++++++++++++++++++++++++++++
+ drivers/infiniband/sw/siw/siw_verbs.h |  119 ++
+ include/uapi/rdma/siw_user.h          |  216 ++++
+ 22 files changed, 12563 insertions(+)
+ create mode 100644 drivers/infiniband/sw/siw/Kconfig
+ create mode 100644 drivers/infiniband/sw/siw/Makefile
+ create mode 100644 drivers/infiniband/sw/siw/iwarp.h
+ create mode 100644 drivers/infiniband/sw/siw/siw.h
+ create mode 100644 drivers/infiniband/sw/siw/siw_ae.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_cm.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_cm.h
+ create mode 100644 drivers/infiniband/sw/siw/siw_cq.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_debug.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_debug.h
+ create mode 100644 drivers/infiniband/sw/siw/siw_main.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_mem.c
  create mode 100644 drivers/infiniband/sw/siw/siw_obj.c
  create mode 100644 drivers/infiniband/sw/siw/siw_obj.h
+ create mode 100644 drivers/infiniband/sw/siw/siw_qp.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_qp_rx.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_qp_tx.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_verbs.c
+ create mode 100644 drivers/infiniband/sw/siw/siw_verbs.h
+ create mode 100644 include/uapi/rdma/siw_user.h
 
-diff --git a/drivers/infiniband/sw/siw/siw_obj.c b/drivers/infiniband/sw/siw/siw_obj.c
-new file mode 100644
-index 000000000000..9ae05345dd64
---- /dev/null
-+++ b/drivers/infiniband/sw/siw/siw_obj.c
-@@ -0,0 +1,338 @@
-+/*
-+ * Software iWARP device driver
-+ *
-+ * Authors: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-+ *
-+ * Copyright (c) 2008-2017, IBM Corporation
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses. You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * BSD license below:
-+ *
-+ *   Redistribution and use in source and binary forms, with or
-+ *   without modification, are permitted provided that the following
-+ *   conditions are met:
-+ *
-+ *   - Redistributions of source code must retain the above copyright notice,
-+ *     this list of conditions and the following disclaimer.
-+ *
-+ *   - Redistributions in binary form must reproduce the above copyright
-+ *     notice, this list of conditions and the following disclaimer in the
-+ *     documentation and/or other materials provided with the distribution.
-+ *
-+ *   - Neither the name of IBM nor the names of its contributors may be
-+ *     used to endorse or promote products derived from this software without
-+ *     specific prior written permission.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/spinlock.h>
-+#include <linux/kref.h>
-+#include <linux/vmalloc.h>
-+
-+#include "siw.h"
-+#include "siw_obj.h"
-+#include "siw_cm.h"
-+
-+void siw_objhdr_init(struct siw_objhdr *hdr)
-+{
-+	kref_init(&hdr->ref);
-+}
-+
-+void siw_idr_init(struct siw_device *sdev)
-+{
-+	spin_lock_init(&sdev->idr_lock);
-+
-+	idr_init(&sdev->qp_idr);
-+	idr_init(&sdev->cq_idr);
-+	idr_init(&sdev->pd_idr);
-+	idr_init(&sdev->mem_idr);
-+}
-+
-+void siw_idr_release(struct siw_device *sdev)
-+{
-+	idr_destroy(&sdev->qp_idr);
-+	idr_destroy(&sdev->cq_idr);
-+	idr_destroy(&sdev->pd_idr);
-+	idr_destroy(&sdev->mem_idr);
-+}
-+
-+static int siw_add_obj(spinlock_t *lock, struct idr *idr,
-+		       struct siw_objhdr *obj)
-+{
-+	unsigned long flags;
-+	int id, pre_id;
-+
-+	do {
-+		get_random_bytes(&pre_id, sizeof(pre_id));
-+		pre_id &= 0xffffff;
-+	} while (pre_id == 0);
-+again:
-+	spin_lock_irqsave(lock, flags);
-+	id = idr_alloc(idr, obj, pre_id, 0xffffff - 1, GFP_KERNEL);
-+	spin_unlock_irqrestore(lock, flags);
-+
-+	if (id > 0) {
-+		siw_objhdr_init(obj);
-+		obj->id = id;
-+	} else if (id == -ENOSPC && pre_id != 1) {
-+		pre_id = 1;
-+		goto again;
-+	} else {
-+		pr_warn("SIW: idr new object failed!\n");
-+	}
-+	return id > 0 ? 0 : id;
-+}
-+
-+int siw_qp_add(struct siw_device *sdev, struct siw_qp *qp)
-+{
-+	int rv = siw_add_obj(&sdev->idr_lock, &sdev->qp_idr, &qp->hdr);
-+
-+	if (!rv) {
-+		qp->hdr.sdev = sdev;
-+		siw_dbg_obj(qp, "new qp\n");
-+	}
-+	return rv;
-+}
-+
-+int siw_cq_add(struct siw_device *sdev, struct siw_cq *cq)
-+{
-+	int rv = siw_add_obj(&sdev->idr_lock, &sdev->cq_idr, &cq->hdr);
-+
-+	if (!rv) {
-+		cq->hdr.sdev = sdev;
-+		siw_dbg_obj(cq, "new cq\n");
-+	}
-+	return rv;
-+}
-+
-+int siw_pd_add(struct siw_device *sdev, struct siw_pd *pd)
-+{
-+	int rv = siw_add_obj(&sdev->idr_lock, &sdev->pd_idr, &pd->hdr);
-+
-+	if (!rv) {
-+		pd->hdr.sdev = sdev;
-+		siw_dbg_obj(pd, "new pd\n");
-+	}
-+	return rv;
-+}
-+
-+/*
-+ * Stag lookup is based on its index part only (24 bits).
-+ * The code avoids special Stag of zero and tries to randomize
-+ * STag values between 1 and SIW_STAG_MAX.
-+ */
-+int siw_mem_add(struct siw_device *sdev, struct siw_mem *m)
-+{
-+	unsigned long flags;
-+	int id, pre_id;
-+
-+	do {
-+		get_random_bytes(&pre_id, sizeof(pre_id));
-+		pre_id &= 0xffffff;
-+	} while (pre_id == 0);
-+again:
-+	spin_lock_irqsave(&sdev->idr_lock, flags);
-+	id = idr_alloc(&sdev->mem_idr, m, pre_id, SIW_STAG_MAX, GFP_KERNEL);
-+	spin_unlock_irqrestore(&sdev->idr_lock, flags);
-+
-+	if (id == -ENOSPC || id > SIW_STAG_MAX) {
-+		if (pre_id == 1) {
-+			pr_warn("SIW: idr new memory object failed!\n");
-+			return -ENOSPC;
-+		}
-+		pre_id = 1;
-+		goto again;
-+	}
-+	siw_objhdr_init(&m->hdr);
-+	m->hdr.id = id;
-+	m->hdr.sdev = sdev;
-+
-+	siw_dbg_obj(m, "new mem\n");
-+
-+	return 0;
-+}
-+
-+void siw_remove_obj(spinlock_t *lock, struct idr *idr,
-+		      struct siw_objhdr *hdr)
-+{
-+	unsigned long	flags;
-+
-+	spin_lock_irqsave(lock, flags);
-+	idr_remove(idr, hdr->id);
-+	spin_unlock_irqrestore(lock, flags);
-+}
-+
-+/********** routines to put objs back and free if no ref left *****/
-+
-+void siw_free_cq(struct kref *ref)
-+{
-+	struct siw_cq *cq =
-+		(container_of(container_of(ref, struct siw_objhdr, ref),
-+			      struct siw_cq, hdr));
-+
-+	siw_dbg_obj(cq, "free cq\n");
-+
-+	atomic_dec(&cq->hdr.sdev->num_cq);
-+	if (cq->queue)
-+		vfree(cq->queue);
-+	kfree(cq);
-+}
-+
-+void siw_free_qp(struct kref *ref)
-+{
-+	struct siw_qp *qp =
-+		container_of(container_of(ref, struct siw_objhdr, ref),
-+			     struct siw_qp, hdr);
-+	struct siw_device *sdev = qp->hdr.sdev;
-+	unsigned long flags;
-+
-+	siw_dbg_obj(qp, "free qp\n");
-+
-+	if (qp->cep)
-+		siw_cep_put(qp->cep);
-+
-+	siw_remove_obj(&sdev->idr_lock, &sdev->qp_idr, &qp->hdr);
-+
-+	spin_lock_irqsave(&sdev->idr_lock, flags);
-+	list_del(&qp->devq);
-+	spin_unlock_irqrestore(&sdev->idr_lock, flags);
-+
-+	if (qp->sendq)
-+		vfree(qp->sendq);
-+	if (qp->recvq)
-+		vfree(qp->recvq);
-+	if (qp->irq)
-+		vfree(qp->irq);
-+	if (qp->orq)
-+		vfree(qp->orq);
-+
-+	siw_put_tx_cpu(qp->tx_cpu);
-+
-+	atomic_dec(&sdev->num_qp);
-+	kfree(qp);
-+}
-+
-+void siw_free_pd(struct kref *ref)
-+{
-+	struct siw_pd	*pd =
-+		container_of(container_of(ref, struct siw_objhdr, ref),
-+			     struct siw_pd, hdr);
-+
-+	siw_dbg_obj(pd, "free pd\n");
-+
-+	atomic_dec(&pd->hdr.sdev->num_pd);
-+	kfree(pd);
-+}
-+
-+void siw_free_mem(struct kref *ref)
-+{
-+	struct siw_mem *m;
-+	struct siw_device *sdev;
-+
-+	m = container_of(container_of(ref, struct siw_objhdr, ref),
-+			 struct siw_mem, hdr);
-+	sdev = m->hdr.sdev;
-+
-+	siw_dbg_obj(m, "free mem\n");
-+
-+	atomic_dec(&sdev->num_mr);
-+
-+	if (SIW_MEM_IS_MW(m)) {
-+		struct siw_mw *mw = container_of(m, struct siw_mw, mem);
-+
-+		kfree_rcu(mw, rcu);
-+	} else {
-+		struct siw_mr *mr = container_of(m, struct siw_mr, mem);
-+		unsigned long flags;
-+
-+		siw_dbg(m->hdr.sdev, "[MEM %d]: has pbl: %s\n",
-+			OBJ_ID(m), mr->mem.is_pbl ? "y" : "n");
-+
-+		if (mr->pd)
-+			siw_pd_put(mr->pd);
-+
-+		if (mr->mem_obj) {
-+			if (mr->mem.is_pbl == 0)
-+				siw_umem_release(mr->umem);
-+			else
-+				siw_pbl_free(mr->pbl);
-+
-+		}
-+		spin_lock_irqsave(&sdev->idr_lock, flags);
-+		list_del(&mr->devq);
-+		spin_unlock_irqrestore(&sdev->idr_lock, flags);
-+
-+		kfree_rcu(mr, rcu);
-+	}
-+}
-+
-+/***** routines for WQE handling ***/
-+
-+void siw_wqe_put_mem(struct siw_wqe *wqe, enum siw_opcode op)
-+{
-+	switch (op) {
-+
-+	case SIW_OP_SEND:
-+	case SIW_OP_WRITE:
-+	case SIW_OP_SEND_WITH_IMM:
-+	case SIW_OP_SEND_REMOTE_INV:
-+	case SIW_OP_READ:
-+	case SIW_OP_READ_LOCAL_INV:
-+		if (!(wqe->sqe.flags & SIW_WQE_INLINE))
-+			siw_unref_mem_sgl(wqe->mem, wqe->sqe.num_sge);
-+		break;
-+
-+	case SIW_OP_RECEIVE:
-+		siw_unref_mem_sgl(wqe->mem, wqe->rqe.num_sge);
-+		break;
-+
-+	case SIW_OP_READ_RESPONSE:
-+		siw_unref_mem_sgl(wqe->mem, 1);
-+		break;
-+
-+	default:
-+		/*
-+		 * SIW_OP_INVAL_STAG and SIW_OP_REG_MR
-+		 * do not hold memory references
-+		 */
-+		break;
-+	}
-+}
-+
-+int siw_invalidate_stag(struct siw_pd *pd, u32 stag)
-+{
-+	u32 stag_idx = stag >> 8;
-+	struct siw_mem *mem = siw_mem_id2obj(pd->hdr.sdev, stag_idx);
-+	int rv = 0;
-+
-+	if (unlikely(!mem)) {
-+		siw_dbg(pd->hdr.sdev, "stag %u unknown\n", stag_idx);
-+		return -EINVAL;
-+	}
-+	if (unlikely(siw_mem2mr(mem)->pd != pd)) {
-+		siw_dbg(pd->hdr.sdev, "pd mismatch for stag %u\n", stag_idx);
-+		rv = -EACCES;
-+		goto out;
-+	}
-+	/*
-+	 * Per RDMA verbs definition, an STag may already be in invalid
-+	 * state if invalidation is requested. So no state check here.
-+	 */
-+	mem->stag_valid = 0;
-+
-+	siw_dbg(pd->hdr.sdev, "stag %u now valid\n", stag_idx);
-+out:
-+	siw_mem_put(mem);
-+	return rv;
-+}
-diff --git a/drivers/infiniband/sw/siw/siw_obj.h b/drivers/infiniband/sw/siw/siw_obj.h
-new file mode 100644
-index 000000000000..c76f0f4d4b91
---- /dev/null
-+++ b/drivers/infiniband/sw/siw/siw_obj.h
-@@ -0,0 +1,200 @@
-+/*
-+ * Software iWARP device driver
-+ *
-+ * Authors: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-+ *
-+ * Copyright (c) 2008-2017, IBM Corporation
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses. You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * BSD license below:
-+ *
-+ *   Redistribution and use in source and binary forms, with or
-+ *   without modification, are permitted provided that the following
-+ *   conditions are met:
-+ *
-+ *   - Redistributions of source code must retain the above copyright notice,
-+ *     this list of conditions and the following disclaimer.
-+ *
-+ *   - Redistributions in binary form must reproduce the above copyright
-+ *     notice, this list of conditions and the following disclaimer in the
-+ *     documentation and/or other materials provided with the distribution.
-+ *
-+ *   - Neither the name of IBM nor the names of its contributors may be
-+ *     used to endorse or promote products derived from this software without
-+ *     specific prior written permission.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef _SIW_OBJ_H
-+#define _SIW_OBJ_H
-+
-+#include <linux/idr.h>
-+#include <linux/rwsem.h>
-+#include <linux/version.h>
-+#include <linux/sched.h>
-+#include <linux/semaphore.h>
-+
-+#include <rdma/ib_verbs.h>
-+
-+#include "siw_debug.h"
-+
-+extern void siw_free_qp(struct kref *ref);
-+extern void siw_free_pd(struct kref *ref);
-+extern void siw_free_cq(struct kref *ref);
-+extern void siw_free_mem(struct kref *ref);
-+
-+static inline struct siw_device *siw_dev_base2siw(struct ib_device *base_dev)
-+{
-+	return container_of(base_dev, struct siw_device, base_dev);
-+}
-+
-+static inline struct siw_mr *siw_mr_base2siw(struct ib_mr *base_mr)
-+{
-+	return container_of(base_mr, struct siw_mr, base_mr);
-+}
-+
-+static inline void siw_cq_get(struct siw_cq *cq)
-+{
-+	kref_get(&cq->hdr.ref);
-+	siw_dbg_obj(cq, "new refcount: %d\n", refcount_read(&cq->hdr.ref));
-+}
-+static inline void siw_qp_get(struct siw_qp *qp)
-+{
-+	kref_get(&qp->hdr.ref);
-+	siw_dbg_obj(qp, "new refcount: %d\n", refcount_read(&qp->hdr.ref));
-+}
-+
-+static inline void siw_pd_get(struct siw_pd *pd)
-+{
-+	kref_get(&pd->hdr.ref);
-+	siw_dbg_obj(pd, "new refcount: %d\n", refcount_read(&pd->hdr.ref));
-+}
-+
-+static inline void siw_mem_get(struct siw_mem *mem)
-+{
-+	kref_get(&mem->hdr.ref);
-+	siw_dbg_obj(mem, "new refcount: %d\n", refcount_read(&mem->hdr.ref));
-+}
-+
-+static inline void siw_mem_put(struct siw_mem *mem)
-+{
-+	siw_dbg_obj(mem, "old refcount: %d\n", refcount_read(&mem->hdr.ref));
-+	kref_put(&mem->hdr.ref, siw_free_mem);
-+}
-+
-+static inline void siw_unref_mem_sgl(struct siw_mem **mem,
-+				     unsigned int num_sge)
-+{
-+	while (num_sge) {
-+		if (*mem == NULL)
-+			break;
-+
-+		siw_mem_put(*mem);
-+		*mem = NULL;
-+		mem++; num_sge--;
-+	}
-+}
-+
-+static inline struct siw_objhdr *siw_get_obj(struct idr *idr, int id)
-+{
-+	struct siw_objhdr *obj = idr_find(idr, id);
-+
-+	if (obj)
-+		kref_get(&obj->ref);
-+
-+	return obj;
-+}
-+
-+static inline struct siw_cq *siw_cq_id2obj(struct siw_device *sdev, int id)
-+{
-+	struct siw_objhdr *obj = siw_get_obj(&sdev->cq_idr, id);
-+
-+	if (obj)
-+		return container_of(obj, struct siw_cq, hdr);
-+
-+	return NULL;
-+}
-+
-+static inline struct siw_qp *siw_qp_id2obj(struct siw_device *sdev, int id)
-+{
-+	struct siw_objhdr *obj = siw_get_obj(&sdev->qp_idr, id);
-+
-+	if (obj)
-+		return container_of(obj, struct siw_qp, hdr);
-+
-+	return NULL;
-+}
-+
-+static inline void siw_cq_put(struct siw_cq *cq)
-+{
-+	siw_dbg_obj(cq, "old refcount: %d\n", refcount_read(&cq->hdr.ref));
-+	kref_put(&cq->hdr.ref, siw_free_cq);
-+}
-+
-+static inline void siw_qp_put(struct siw_qp *qp)
-+{
-+	siw_dbg_obj(qp, "old refcount: %d\n", refcount_read(&qp->hdr.ref));
-+	kref_put(&qp->hdr.ref, siw_free_qp);
-+}
-+
-+static inline void siw_pd_put(struct siw_pd *pd)
-+{
-+	siw_dbg_obj(pd, "old refcount: %d\n", refcount_read(&pd->hdr.ref));
-+	kref_put(&pd->hdr.ref, siw_free_pd);
-+}
-+
-+/*
-+ * siw_mem_id2obj()
-+ *
-+ * resolves memory from stag given by id. might be called from:
-+ * o process context before sending out of sgl, or
-+ * o in softirq when resolving target memory
-+ */
-+static inline struct siw_mem *siw_mem_id2obj(struct siw_device *sdev, int id)
-+{
-+	struct siw_objhdr *obj;
-+	struct siw_mem *mem = NULL;
-+
-+	rcu_read_lock();
-+	obj = siw_get_obj(&sdev->mem_idr, id);
-+	rcu_read_unlock();
-+
-+	if (likely(obj)) {
-+		mem = container_of(obj, struct siw_mem, hdr);
-+		siw_dbg_obj(mem, "new refcount: %d\n",
-+			    refcount_read(&obj->ref));
-+	}
-+	return mem;
-+}
-+
-+extern void siw_remove_obj(spinlock_t *lock, struct idr *idr,
-+				struct siw_objhdr *hdr);
-+
-+extern void siw_objhdr_init(struct siw_objhdr *hdr);
-+extern void siw_idr_init(struct siw_device *dev);
-+extern void siw_idr_release(struct siw_device *dev);
-+
-+extern struct siw_cq *siw_cq_id2obj(struct siw_device *dev, int id);
-+extern struct siw_qp *siw_qp_id2obj(struct siw_device *dev, int id);
-+extern struct siw_mem *siw_mem_id2obj(struct siw_device *dev, int id);
-+
-+extern int siw_qp_add(struct siw_device *dev, struct siw_qp *qp);
-+extern int siw_cq_add(struct siw_device *dev, struct siw_cq *cq);
-+extern int siw_pd_add(struct siw_device *dev, struct siw_pd *pd);
-+extern int siw_mem_add(struct siw_device *dev, struct siw_mem *mem);
-+
-+extern struct siw_wqe *siw_freeq_wqe_get(struct siw_qp *qp);
-+
-+extern int siw_invalidate_stag(struct siw_pd *pd, u32 stag);
-+#endif
 -- 
 2.13.6
 
