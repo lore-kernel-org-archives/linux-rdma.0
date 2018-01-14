@@ -1,30 +1,33 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next v3 3/7] RDMA: Annotate create QP callers
-Date: Sun, 14 Jan 2018 14:27:04 -0700
-Message-ID: <20180114212704.GE9088@ziepe.ca>
-References: <20180111153132.11143-1-leon@kernel.org>
- <20180111153132.11143-4-leon@kernel.org>
+Subject: Re: Conflict installing rdma-core PPA on Ubuntu Bionic
+Date: Sun, 14 Jan 2018 14:34:48 -0700
+Message-ID: <20180114213448.GF9088@ziepe.ca>
+References: <bc5c6316-58b5-a57d-2cae-b022e4ce2b00@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180111153132.11143-4-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <bc5c6316-58b5-a57d-2cae-b022e4ce2b00-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Benjamin Drung <bdrung-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 11, 2018 at 05:31:28PM +0200, Leon Romanovsky wrote:
-> @@ -1538,6 +1537,7 @@ int ib_destroy_qp(struct ib_qp *qp)
->  	if (!qp->uobject)
->  		rdma_rw_cleanup_mrs(qp);
->  
-> +	rdma_restrack_del(&qp->res, RDMA_RESTRACK_QP);
->  	ret = qp->device->destroy_qp(qp);
->  	if (!ret) {
->  		if (pd)
+On Sun, Jan 14, 2018 at 04:02:13PM +0200, Haggai Eran wrote:
+> Hi,
+> 
+> I tried using the linux-rdma PPA package for Ubuntu Bionic (18.04), and it
+> turns out both the rdma-core package (version
+> 17.0~201801091117+gitc434578~ubuntu18.04.1) and the kmod package (version
+> 24-1ubuntu2) provide the file /etc/modprobe.d/mlx4.conf.
+> 
+> I'm not sure whether or not it is an issue with the Ubuntu kmod package or
+> with the PPA package.
 
-This hunk belongs in a different patch right?
+The intent was to remove it from the kmod package in the interests of
+cross distro consistency
+
+https://bugs.launchpad.net/ubuntu/+source/kmod/+bug/1693503
 
 Jason
 --
