@@ -1,195 +1,116 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 07/17] verbs: Use kernel uapi names for
- identical structs
-Date: Mon, 15 Jan 2018 18:48:06 +0200
-Message-ID: <2f04c4d8-bc14-9293-2e03-b29074e08637@dev.mellanox.co.il>
-References: <20180111221340.965-1-jgg@ziepe.ca>
- <20180111221340.965-8-jgg@ziepe.ca>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
+Date: Mon, 15 Jan 2018 11:52:37 -0500
+Message-ID: <1516035157.3900.4.camel@redhat.com>
+References: <1515531652.26021.1.camel@redhat.com>
+         <1515537614.26021.3.camel@redhat.com> <1515591723.26021.6.camel@redhat.com>
+         <20180110182648.GI4518@ziepe.ca> <1515609623.2745.20.camel@wdc.com>
+         <1515610750.10153.1.camel@redhat.com> <20180110191510.GK4518@ziepe.ca>
+         <1515612639.10153.3.camel@redhat.com> <20180110205243.GP4776@mellanox.com>
+         <1515618674.10153.6.camel@redhat.com> <20180110211501.GS4776@mellanox.com>
+         <1515675741.21421.1.camel@redhat.com> <1515703435.21421.9.camel@redhat.com>
+         <1515705340.2752.60.camel@wdc.com> <1515706433.21421.11.camel@redhat.com>
+         <1515791472.2396.57.camel@wdc.com> <1515802177.1566.1.camel@redhat.com>
+         <1515808673.11354.1.camel@redhat.com> <1515855226.32050.1.camel@redhat.com>
+         <1516032762.3951.5.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180111221340.965-8-jgg-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1516032762.3951.5.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/12/2018 12:13 AM, Jason Gunthorpe wrote:
-> From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Mon, 2018-01-15 at 16:12 +0000, Bart Van Assche wrote:
+> On Sat, 2018-01-13 at 09:53 -0500, Laurence Oberman wrote:
+> > [  239.502025] ib_srpt Received SRP_LOGIN_REQ with i_port_id
+> > 7cfe:9003:0072:6e4f:7cfe:9003:0072:6ed3, t_port_id
+> > 7cfe:9003:0072:6e4e:7cfe:9003:0072:6e4e and it_iu_len 2116 on port
+> > 1
+> > (guid=fe80:0000:0000:0000:7cfe:9003:0072:6e4f); pkey 0xffff
+> > [  239.623881] ib_srpt failed to create queue pair with sq_size =
+> > 16384
+> > (-12) - retrying
+> > [  239.669381] ib_srpt failed to create queue pair with sq_size =
+> > 8192
+> > (-12) - retrying
+> > [  239.715366] ib_srpt Received SRP_LOGIN_REQ with i_port_id
+> > 7cfe:9003:0072:6e4e:7cfe:9003:0072:6ed2, t_port_id
+> > 7cfe:9003:0072:6e4e:7cfe:9003:0072:6e4e and it_iu_len 2116 on port
+> > 1
+> > (guid=fe80:0000:0000:0000:7cfe:9003:0072:6e4e); pkey 0xffff
+> > [  239.831661] ib_srpt failed to create queue pair with sq_size =
+> > 16384
+> > (-12) - retrying
+> > [  239.877193] ib_srpt failed to create queue pair with sq_size =
+> > 8192
+> > (-12) - retrying
 > 
-> And delete the duplicates from kern-abi.h
+> Hello Laurence,
 > 
-> A script was made to find the trivially duplicate structs, which
-> produced this sed script:
+> These messages are expected and do not indicate a failure. The retry
+> loop
+> the above messages refer to got introduced a long time ago:
 > 
-> $ sed -i \
->   -e 's/struct[ \t]ibv_alloc_mw_resp\([ \t,]\)/struct ib_uverbs_alloc_mw_resp\1/g' \
->   -e 's/struct[ \t]ibv_alloc_pd_resp\([ \t,]\)/struct ib_uverbs_alloc_pd_resp\1/g' \
->   -e 's/struct[ \t]ibv_comp_event\([ \t,]\)/struct ib_uverbs_comp_event_desc\1/g' \
->   -e 's/struct[ \t]ibv_create_comp_channel_resp\([ \t,]\)/struct ib_uverbs_create_comp_channel_resp\1/g' \
->   -e 's/struct[ \t]ibv_create_cq_resp\([ \t,]\)/struct ib_uverbs_create_cq_resp\1/g' \
->   -e 's/struct[ \t]ibv_create_cq_resp_ex\([ \t,]\)/struct ib_uverbs_ex_create_cq_resp\1/g' \
->   -e 's/struct[ \t]ibv_create_flow_resp\([ \t,]\)/struct ib_uverbs_destroy_flow \1/g' \
->   -e 's/struct[ \t]ibv_create_qp_resp\([ \t,]\)/struct ib_uverbs_create_qp_resp\1/g' \
->   -e 's/struct[ \t]ibv_create_qp_resp_ex\([ \t,]\)/struct ib_uverbs_ex_create_qp_resp\1/g' \
->   -e 's/struct[ \t]ibv_create_rwq_ind_table_resp\([ \t,]\)/struct ib_uverbs_ex_create_rwq_ind_table_resp\1/g' \
->   -e 's/struct[ \t]ibv_create_srq_resp\([ \t,]\)/struct ib_uverbs_create_srq_resp\1/g' \
->   -e 's/struct[ \t]ibv_create_wq_resp\([ \t,]\)/struct ib_uverbs_ex_create_wq_resp\1/g' \
->   -e 's/struct[ \t]ibv_destroy_cq_resp\([ \t,]\)/struct ib_uverbs_destroy_cq_resp\1/g' \
->   -e 's/struct[ \t]ibv_destroy_qp_resp\([ \t,]\)/struct ib_uverbs_destroy_qp_resp\1/g' \
->   -e 's/struct[ \t]ibv_destroy_srq_resp\([ \t,]\)/struct ib_uverbs_destroy_qp_resp\1/g' \
->   -e 's/struct[ \t]ibv_destroy_wq_resp\([ \t,]\)/struct ib_uverbs_ex_destroy_wq_resp\1/g' \
->   -e 's/struct[ \t]ibv_get_context_resp\([ \t,]\)/struct ib_uverbs_get_context_resp\1/g' \
->   -e 's/struct[ \t]ibv_kern_ah_attr\([ \t,]\)/struct ib_uverbs_ah_attr\1/g' \
->   -e 's/struct[ \t]ibv_kern_async_event\([ \t,]\)/struct ib_uverbs_async_event_desc\1/g' \
->   -e 's/struct[ \t]ibv_kern_eth_filter\([ \t,]\)/struct ib_uverbs_flow_eth_filter\1/g' \
->   -e 's/struct[ \t]ibv_kern_flow_attr\([ \t,]\)/struct ib_uverbs_flow_attr\1/g' \
->   -e 's/struct[ \t]ibv_kern_global_route\([ \t,]\)/struct ib_uverbs_global_route\1/g' \
->   -e 's/struct[ \t]ibv_kern_ipv4_ext_filter\([ \t,]\)/struct ib_uverbs_flow_ipv4_filter\1/g' \
->   -e 's/struct[ \t]ibv_kern_ipv6_filter\([ \t,]\)/struct ib_uverbs_flow_ipv6_filter\1/g' \
->   -e 's/struct[ \t]ibv_kern_modify_cq_attr\([ \t,]\)/struct ib_uverbs_cq_moderation\1/g' \
->   -e 's/struct[ \t]ibv_kern_qp_attr\([ \t,]\)/struct ib_uverbs_qp_attr\1/g' \
->   -e 's/struct[ \t]ibv_kern_recv_wr\([ \t,]\)/struct ib_uverbs_recv_wr\1/g' \
->   -e 's/struct[ \t]ibv_kern_tcp_udp_filter\([ \t,]\)/struct ib_uverbs_flow_tcp_udp_filter\1/g' \
->   -e 's/struct[ \t]ibv_kern_tunnel_filter\([ \t,]\)/struct ib_uverbs_flow_tunnel_filter\1/g' \
->   -e 's/struct[ \t]ibv_modify_qp_resp_ex\([ \t,]\)/struct ib_uverbs_ex_modify_qp_resp\1/g' \
->   -e 's/struct[ \t]ibv_odp_caps_resp\([ \t,]\)/struct ib_uverbs_odp_caps\1/g' \
->   -e 's/struct[ \t]ibv_open_xrcd_resp\([ \t,]\)/struct ib_uverbs_close_xrcd\1/g' \
->   -e 's/struct[ \t]ibv_post_recv_resp\([ \t,]\)/struct ib_uverbs_post_send_resp\1/g' \
->   -e 's/struct[ \t]ibv_post_send_resp\([ \t,]\)/struct ib_uverbs_post_send_resp\1/g' \
->   -e 's/struct[ \t]ibv_post_srq_recv_resp\([ \t,]\)/struct ib_uverbs_post_recv_resp\1/g' \
->   -e 's/struct[ \t]ibv_qp_dest\([ \t,]\)/struct ib_uverbs_qp_dest\1/g' \
->   -e 's/struct[ \t]ibv_query_device_resp\([ \t,]\)/struct ib_uverbs_query_device_resp\1/g' \
->   -e 's/struct[ \t]ibv_query_port_resp\([ \t,]\)/struct ib_uverbs_query_port_resp\1/g' \
->   -e 's/struct[ \t]ibv_query_qp_resp\([ \t,]\)/struct ib_uverbs_query_qp_resp\1/g' \
->   -e 's/struct[ \t]ibv_query_srq_resp\([ \t,]\)/struct ib_uverbs_query_srq_resp\1/g' \
->   -e 's/struct[ \t]ibv_reg_mr_resp\([ \t,]\)/struct ib_uverbs_reg_mr_resp\1/g' \
->   -e 's/struct[ \t]ibv_rereg_mr_resp\([ \t,]\)/struct ib_uverbs_rereg_mr_resp\1/g' \
->   -e 's/struct[ \t]ibv_resize_cq_resp\([ \t,]\)/struct ib_uverbs_resize_cq_resp\1/g' \
->   -e 's/struct[ \t]ibv_rss_caps_resp\([ \t,]\)/struct ib_uverbs_rss_caps\1/g' \
->   -e 's/struct[ \t]ibv_tm_caps_resp\([ \t,]\)/struct ib_uverbs_tm_caps\1/g' \
->   `git ls-files`
+> commit ab477c1ff5e0a744c072404bf7db51bfe1f05b6e
+> Author: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+> Date:   Sun Oct 19 18:05:33 2014 +0300
 > 
-> Followed by hand checking and removing the changed structs from
-> kern-abi.h and fixing the trivial residual compiler errors.
+>     srp-target: Retry when QP creation fails with ENOMEM
+>     
+>     It is not guaranteed to that srp_sq_size is supported
+>     by the HCA. So if we failed to create the QP with ENOMEM,
+>     try with a smaller srp_sq_size. Keep it up until we hit
+>     MIN_SRPT_SQ_SIZE, then fail the connection.
+>     
+> [ ... ]
 > 
-> Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->   libibcm/cm.c                          |   2 +-
->   libibverbs/cmd.c                      |  82 +++---
->   libibverbs/device.c                   |   2 +-
->   libibverbs/driver.h                   |  36 +--
->   libibverbs/kern-abi.h                 | 453 ++--------------------------------
->   libibverbs/marshall.c                 |   4 +-
->   libibverbs/marshall.h                 |   4 +-
->   libibverbs/verbs.c                    |   4 +-
->   librdmacm/cma.c                       |   2 +-
->   librdmacm/rdma_cma_abi.h              |   2 +-
->   providers/bnxt_re/bnxt_re-abi.h       |  10 +-
->   providers/cxgb3/iwch-abi.h            |  12 +-
->   providers/cxgb4/cxgb4-abi.h           |  10 +-
->   providers/cxgb4/verbs.c               |   4 +-
->   providers/hfi1verbs/hfi-abi.h         |  10 +-
->   providers/hfi1verbs/hfiverbs.c        |   2 +-
->   providers/hfi1verbs/verbs.c           |  12 +-
->   providers/hns/hns_roce_u_abi.h        |   6 +-
->   providers/hns/hns_roce_u_verbs.c      |   6 +-
->   providers/i40iw/i40iw-abi.h           |   8 +-
->   providers/i40iw/i40iw_uverbs.c        |   6 +-
->   providers/ipathverbs/ipath-abi.h      |  10 +-
->   providers/ipathverbs/ipathverbs.c     |   2 +-
->   providers/ipathverbs/verbs.c          |  12 +-
->   providers/mlx4/mlx4-abi.h             |  14 +-
->   providers/mlx4/verbs.c                |  18 +-
->   providers/mlx5/mlx5-abi.h             |  18 +-
->   providers/mlx5/verbs.c                |  10 +-
->   providers/mthca/mthca-abi.h           |   8 +-
->   providers/mthca/verbs.c               |   6 +-
->   providers/nes/nes-abi.h               |   8 +-
->   providers/nes/nes_uverbs.c            |   6 +-
->   providers/ocrdma/ocrdma_abi.h         |  12 +-
->   providers/ocrdma/ocrdma_verbs.c       |   2 +-
->   providers/qedr/qelr_abi.h             |  10 +-
->   providers/rxe/rxe-abi.h               |  10 +-
->   providers/rxe/rxe.c                   |   8 +-
->   providers/vmw_pvrdma/pvrdma-abi-fix.h |   8 +-
->   providers/vmw_pvrdma/qp.c             |   4 +-
->   providers/vmw_pvrdma/verbs.c          |   2 +-
->   40 files changed, 217 insertions(+), 628 deletions(-)
+> The only recent change in that code is that retry attempts are now
+> logged.
+> From commit 0e9949f1db6c "IB/srpt: Add RDMA/CM support":
 > 
-> diff --git a/libibcm/cm.c b/libibcm/cm.c
-> index 4fd3fdd6510a2f..ec9252673bdb5b 100644
-> --- a/libibcm/cm.c
-> +++ b/libibcm/cm.c
-> @@ -335,7 +335,7 @@ int ib_cm_init_qp_attr(struct ib_cm_id *cm_id,
->   		       struct ibv_qp_attr *qp_attr,
->   		       int *qp_attr_mask)
->   {
-> -	struct ibv_kern_qp_attr *resp;
-> +	struct ib_uverbs_qp_attr *resp;
->   	struct ib_ucm_init_qp_attr *cmd;
->   	void *msg;
->   	int result;
-> diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-> index fbd87d475a2751..a675bfb7d02fd3 100644
-> --- a/libibverbs/cmd.c
-> +++ b/libibverbs/cmd.c
-> @@ -46,7 +46,7 @@
->   
->   int ibv_cmd_get_context(struct verbs_context *context_ex,
->   			struct ibv_get_context *cmd, size_t cmd_size,
-> -			struct ibv_get_context_resp *resp, size_t resp_size)
-> +			struct ib_uverbs_get_context_resp *resp, size_t resp_size)
->   {
->   	IBV_INIT_CMD_RESP(cmd, cmd_size, GET_CONTEXT, resp, resp_size);
->   
-> @@ -62,7 +62,7 @@ int ibv_cmd_get_context(struct verbs_context *context_ex,
->   }
->   
->   static void copy_query_dev_fields(struct ibv_device_attr *device_attr,
-> -				  struct ibv_query_device_resp *resp,
-> +				  struct ib_uverbs_query_device_resp *resp,
->   				  uint64_t *raw_fw_ver)
->   {
->   	*raw_fw_ver				= resp->fw_ver;
-> @@ -112,7 +112,7 @@ int ibv_cmd_query_device(struct ibv_context *context,
->   			 uint64_t *raw_fw_ver,
->   			 struct ibv_query_device *cmd, size_t cmd_size)
->   {
-> -	struct ibv_query_device_resp resp;
-> +	struct ib_uverbs_query_device_resp resp;
->   
->   	IBV_INIT_CMD_RESP(cmd, cmd_size, QUERY_DEVICE, &resp, sizeof resp);
->   
-> @@ -269,7 +269,7 @@ int ibv_cmd_query_port(struct ibv_context *context, uint8_t port_num,
->   		       struct ibv_port_attr *port_attr,
->   		       struct ibv_query_port *cmd, size_t cmd_size)
->   {
-> -	struct ibv_query_port_resp resp;
-> +	struct ib_uverbs_query_port_resp resp;
->   
->   	IBV_INIT_CMD_RESP(cmd, cmd_size, QUERY_PORT, &resp, sizeof resp);
->   	cmd->port_num = port_num;
-> @@ -306,7 +306,7 @@ int ibv_cmd_query_port(struct ibv_context *context, uint8_t port_num,
->   
->   int ibv_cmd_alloc_pd(struct ibv_context *context, struct ibv_pd *pd,
->   		     struct ibv_alloc_pd *cmd, size_t cmd_size,
-> -		     struct ibv_alloc_pd_resp *resp, size_t resp_size)
-> +		     struct ib_uverbs_alloc_pd_resp *resp, size_t resp_size)
->   {
->   	IBV_INIT_CMD_RESP(cmd, cmd_size, ALLOC_PD, resp, resp_size);
->   
-> @@ -338,7 +338,7 @@ int ibv_cmd_open_xrcd(struct ibv_context *context, struct verbs_xrcd *xrcd,
->   		      int vxrcd_size,
->   		      struct ibv_xrcd_init_attr *attr,
->   		      struct ibv_open_xrcd *cmd, size_t cmd_size,
-> -		      struct ibv_open_xrcd_resp *resp, size_t resp_size)
-> +		      struct ib_uverbs_close_xrcd *resp, size_t resp_size)
+> +       if (ret) {
+> +               bool retry = sq_size > MIN_SRPT_SQ_SIZE;
+> +
+> +               pr_err("failed to create queue pair with sq_size = %d
+> (%d)%s\n",
+> +                      sq_size, ret, retry ? " - retrying" : "");
+> +               if (retry) {
+> +                       ib_free_cq(ch->cq);
+> +                       sq_size = max(sq_size / 2, MIN_SRPT_SQ_SIZE);
+> +                       goto retry;
+> +               } else {
+> +                       goto err_destroy_cq;
+>                 }
+> -               pr_err("failed to create_qp ret= %d\n", ret);
+> -               goto err_destroy_cq;
+>         }
+> 
+> Do you perhaps want that pr_err() to be changed into a pr_debug() for
+> retry
+> attempts?
+> 
+> Thanks,
+> 
+> Bart.
 
-This had to be ib_uverbs_open_xrcd_resp, correct ? need to fix in the 
-drivers' code that uses this as well.
+Hi Bart, 
+
+I recognized those as maybe just reporting messages so I thought we
+were were good with the recent patch to fix the connection issue.
+However when I attempted to actually use the targets with your latest
+SRPT I had failures on the client.
+
+It was a tough weekend for me, and maybe I made mistakes.
+Let me complete the irq/cpu test Ming is waiting for and I will revisit
+this fully with a clean build and your most recent patch.
+
+I will answer off list while we figure it out
+
+Many Thanks
+Laurence
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
