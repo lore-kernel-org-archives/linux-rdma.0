@@ -1,68 +1,105 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next v3 3/7] RDMA: Annotate create QP callers
-Date: Mon, 15 Jan 2018 16:31:25 +0200
-Message-ID: <20180115143125.GB15760@mtr-leonro.local>
-References: <20180111153132.11143-1-leon@kernel.org>
- <20180111153132.11143-4-leon@kernel.org>
- <20180114212704.GE9088@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="z3Nkz3fRLNVT9Ca+"
+Subject: [PATCH rdma-next v4 4/7] RDMA/core: Add resource tracking for create and destroy CQs
+Date: Mon, 15 Jan 2018 17:12:52 +0200
+Message-ID: <20180115151255.30167-5-leon@kernel.org>
+References: <20180115151255.30167-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180114212704.GE9088-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20180115151255.30167-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---z3Nkz3fRLNVT9Ca+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Track all creation and destroy of CQ objects.
 
-On Sun, Jan 14, 2018 at 02:27:04PM -0700, Jason Gunthorpe wrote:
-> On Thu, Jan 11, 2018 at 05:31:28PM +0200, Leon Romanovsky wrote:
-> > @@ -1538,6 +1537,7 @@ int ib_destroy_qp(struct ib_qp *qp)
-> >  	if (!qp->uobject)
-> >  		rdma_rw_cleanup_mrs(qp);
-> >
-> > +	rdma_restrack_del(&qp->res, RDMA_RESTRACK_QP);
-> >  	ret = qp->device->destroy_qp(qp);
-> >  	if (!ret) {
-> >  		if (pd)
->
-> This hunk belongs in a different patch right?
+Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/core/cq.c               | 3 +++
+ drivers/infiniband/core/uverbs_cmd.c       | 1 +
+ drivers/infiniband/core/uverbs_std_types.c | 2 ++
+ drivers/infiniband/core/verbs.c            | 2 ++
+ 4 files changed, 8 insertions(+)
 
-In this patch, I changed call from device->create_qp() to
-the _ib_create_qp() and it is under the hood called to
-the rdma_restrack_add(). There was a need to add
-rdma_restrack_del() to balance refounts.
+diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
+index f2ae75fa3128..6344e007dbce 100644
+--- a/drivers/infiniband/core/cq.c
++++ b/drivers/infiniband/core/cq.c
+@@ -154,6 +154,8 @@ struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
+ 	if (!cq->wc)
+ 		goto out_destroy_cq;
+ 
++	rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
++
+ 	switch (cq->poll_ctx) {
+ 	case IB_POLL_DIRECT:
+ 		cq->comp_handler = ib_cq_completion_direct;
+@@ -208,6 +210,7 @@ void ib_free_cq(struct ib_cq *cq)
+ 		WARN_ON_ONCE(1);
+ 	}
+ 
++	rdma_restrack_del(&cq->res, RDMA_RESTRACK_CQ);
+ 	kfree(cq->wc);
+ 	ret = cq->device->destroy_cq(cq);
+ 	WARN_ON_ONCE(ret);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 62b3c5d71cce..c6ac0ee57f7c 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1033,6 +1033,7 @@ static struct ib_ucq_object *create_cq(struct ib_uverbs_file *file,
+ 		goto err_cb;
+ 
+ 	uobj_alloc_commit(&obj->uobject);
++	rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
+ 
+ 	return obj;
+ 
+diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+index c3ee5d9b336d..2d0d27865b09 100644
+--- a/drivers/infiniband/core/uverbs_std_types.c
++++ b/drivers/infiniband/core/uverbs_std_types.c
+@@ -35,6 +35,7 @@
+ #include <rdma/ib_verbs.h>
+ #include <linux/bug.h>
+ #include <linux/file.h>
++#include <rdma/restrack.h>
+ #include "rdma_core.h"
+ #include "uverbs.h"
+ 
+@@ -319,6 +320,7 @@ static int uverbs_create_cq_handler(struct ib_device *ib_dev,
+ 	obj->uobject.object = cq;
+ 	obj->uobject.user_handle = user_handle;
+ 	atomic_set(&cq->usecnt, 0);
++	rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
+ 
+ 	ret = uverbs_copy_to(attrs, CREATE_CQ_RESP_CQE, &cq->cqe);
+ 	if (ret)
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 8522639cd315..b0c4080eaf6e 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1562,6 +1562,7 @@ struct ib_cq *ib_create_cq(struct ib_device *device,
+ 		cq->event_handler = event_handler;
+ 		cq->cq_context    = cq_context;
+ 		atomic_set(&cq->usecnt, 0);
++		rdma_restrack_add(&cq->res, RDMA_RESTRACK_CQ, NULL);
+ 	}
+ 
+ 	return cq;
+@@ -1580,6 +1581,7 @@ int ib_destroy_cq(struct ib_cq *cq)
+ 	if (atomic_read(&cq->usecnt))
+ 		return -EBUSY;
+ 
++	rdma_restrack_del(&cq->res, RDMA_RESTRACK_CQ);
+ 	return cq->device->destroy_cq(cq);
+ }
+ EXPORT_SYMBOL(ib_destroy_cq);
+-- 
+2.15.1
 
->
-> Jason
-
---z3Nkz3fRLNVT9Ca+
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpcuz0ACgkQ5GN7iDZy
-WKfNVQ/+I/BvEPUQC5BWfrRVPrWuM7Hgu0PtaFlXvwkHZkYCJqpYrWmcM+snegJ9
-HaOajPDpxxwyW/LD1Icu2dQW3H0A92Edq/BqLNitTZoU5m4piZOMqWn04HeiLX/d
-MTsk6XqbIqYpgI37iuUBPgt7I1m2uMcJhqKNVrHw6fhSEr9ZDVkvZbvrUy9BsThj
-7y9M7BecYaQCWRjL62Ph39L2x0/6bKHrU5zoXooixn7oc28DKSZa2Qhs+on+ySKB
-gYMjVDu/fIw+6h/XMcIUn888DB7QlVk3yRVsPuOHcm19HBFSvGvyw+hU5ZS2F82Y
-0TB6SGZPvt40ib3irlGyrXlV7eHb5Agz9eLNkrkvxpsrmwRtzt7sCCsoDugh6Hc2
-WIpmwj+xmkByRKZM1+VRRfM2i53EwxMhzbHCzpTNtI9obwEIlT3hNmu31vPfIYju
-4I+72hPt7v3juOuJMvxPq4TG3I/hsZFb9eNh+i9rPbw1xEd3t7gfGiAC89DK9xVU
-8TbhluwAvQuIww9yrvx76hUAQASA/X12a3DZRhhV2Mi7Bfp3WLpmAIsD+cYgBz4A
-nMGM4ALxqyAfVFcZz3yPde4CI+Em5qzcFEAnIBG+EcUTUA8d5t3G2vJTwIj+aL5z
-B5+ar1FyX/zqjcVbpYPXB1RpmKxeMADgGji94wfsDKwP0/0gijw=
-=Ly11
------END PGP SIGNATURE-----
-
---z3Nkz3fRLNVT9Ca+--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
