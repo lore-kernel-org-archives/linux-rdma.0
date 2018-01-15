@@ -1,561 +1,228 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v4 1/7] RDMA/restrack: Add general infrastructure to track RDMA resources
-Date: Mon, 15 Jan 2018 17:12:49 +0200
-Message-ID: <20180115151255.30167-2-leon@kernel.org>
-References: <20180115151255.30167-1-leon@kernel.org>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: SQ overflow seen running isert traffic with high block sizes
+Date: Mon, 15 Jan 2018 09:22:36 -0600
+Message-ID: <20180115152236.GA15484@ssaleem-MOBL4.amr.corp.intel.com>
+References: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <210f538f-8c98-f480-64fc-f2124ed6d01b@grimberg.me>
+ <BN3PR07MB25786338EADC77A369A6D493F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <1499970579.7987.8.camel@haakon3.daterainc.com>
+ <BN3PR07MB2578E6561CC669922A322245F8A00@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <20171006224025.GA23364@ssaleem-MOBL4.amr.corp.intel.com>
+ <1515992195.24576.156.camel@haakon3.daterainc.com>
+ <CY1PR0701MB2012E53C69D1CE3E16BA320B88EB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180115151255.30167-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CY1PR0701MB2012E53C69D1CE3E16BA320B88EB0-UpKza+2NMNLHMJvQ0dyT705OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Mon, Jan 15, 2018 at 03:12:36AM -0700, Kalderon, Michal wrote:
+> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Nicholas A. Bellinger
+> > Sent: Monday, January 15, 2018 6:57 AM
+> > To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Cc: Amrani, Ram <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; Sagi Grimberg
+> > <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Elior, Ariel
+> > <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>;
+> > Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> > Subject: Re: SQ overflow seen running isert traffic with high block sizes
+> > 
+> > Hi Shiraz, Ram, Ariel, & Potnuri,
+> > 
+> > Following up on this old thread, as it relates to Potnuri's recent fix for a iser-
+> > target queue-full memory leak:
+> > 
+> > https://www.spinics.net/lists/target-devel/msg16282.html
+> > 
+> > Just curious how frequent this happens in practice with sustained large block
+> > workloads, as it appears to effect at least three different iwarp RNICS (i40iw,
+> > qedr and iw_cxgb4)..?
+> > 
+> > Is there anything else from an iser-target consumer level that should be
+> > changed for iwarp to avoid repeated ib_post_send() failures..?
+> > 
+> Would like to mention, that although we are an iWARP RNIC as well, we've hit this
+> Issue when running RoCE. It's not iWARP related. 
+> This is easily reproduced within seconds with IO size of 5121K
+> Using 5 Targets with 2 Ram Disk each and 5 targets with FileIO Disks each.
+> 
+> IO Command used:
+> maim -b512k -T32 -t2 -Q8 -M0 -o -u -n -m17 -ftargets.dat -d1
+> 
+> thanks,
+> Michal
 
-The RDMA subsystem has very strict set of objects to work on it,
-but it completely lacks tracking facilities and no visibility of
-resource utilization.
+Its seen with block size >= 2M on a single target 1 RAM disk config. And similar to Michals report;
+rather quickly, in a matter of seconds.
 
-The following patch adds such infrastructure to keep track of RDMA
-resources to help with debugging of user space applications. The primary
-user of this infrastructure is RDMA nldev netlink (following patches),
-but it is not limited too.
+fio --rw=read --bs=2048k --numjobs=1 --iodepth=128 --runtime=30 --size=20g --loops=1 --ioengine=libaio 
+--direct=1 --invalidate=1 --fsync_on_close=1 --norandommap --exitall --filename=/dev/sdb --name=sdb 
 
-At this stage, the main three objects (PD, CQ and QP) are added,
-and more will be added later.
+Shiraz
 
-There are four new functions in use by RDMA/core:
- * rdma_restrack_init(...)   - initializes restrack database
- * rdma_restrack_clean(...)  - cleans restrack database
- * rdma_restrack_add(...)    - adds object to be tracked
- * rdma_restrack_del(...)    - removes object from tracking
-
-3 functions and one iterator visible to kernel users:
- * rdma_restrack_count(...) - returns number of allocated objects of
-			      specific type
- * rdma_restrack_lock(...)  - Lock primitive to protect access to list
-			      of resources
- * rdma_restrack_unlock(...)- Unlock primitive to protect access to list
-			      of resources
- * for_each_res_safe(...)   - iterates over all relevant objects in
-   the restrack database.
-
-Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/infiniband/core/Makefile    |   2 +-
- drivers/infiniband/core/core_priv.h |   1 +
- drivers/infiniband/core/device.c    |   7 ++
- drivers/infiniband/core/restrack.c  | 182 +++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h             |  17 +++-
- include/rdma/restrack.h             | 197 ++++++++++++++++++++++++++++++++++++
- 6 files changed, 404 insertions(+), 2 deletions(-)
- create mode 100644 drivers/infiniband/core/restrack.c
- create mode 100644 include/rdma/restrack.h
-
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index 504b926552c6..f69833db0a32 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -12,7 +12,7 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
- 				device.o fmr_pool.o cache.o netlink.o \
- 				roce_gid_mgmt.o mr_pool.o addr.o sa_query.o \
- 				multicast.o mad.o smi.o agent.o mad_rmpp.o \
--				security.o nldev.o
-+				security.o nldev.o restrack.o
- 
- ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
- ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index aef9aa0ac0e6..2b1372da708a 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -40,6 +40,7 @@
- #include <rdma/ib_verbs.h>
- #include <rdma/opa_addr.h>
- #include <rdma/ib_mad.h>
-+#include <rdma/restrack.h>
- #include "mad_priv.h"
- 
- /* Total number of ports combined across all struct ib_devices's */
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 2826e06311a5..c3e389f8c99a 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -263,6 +263,11 @@ struct ib_device *ib_alloc_device(size_t size)
- 	if (!device)
- 		return NULL;
- 
-+	if (rdma_restrack_init(&device->res)) {
-+		kfree(device);
-+		return NULL;
-+	}
-+
- 	device->dev.class = &ib_class;
- 	device_initialize(&device->dev);
- 
-@@ -596,6 +601,8 @@ void ib_unregister_device(struct ib_device *device)
- 	}
- 	up_read(&lists_rwsem);
- 
-+	rdma_restrack_clean(&device->res);
-+
- 	ib_device_unregister_rdmacg(device);
- 	ib_device_unregister_sysfs(device);
- 
-diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
-new file mode 100644
-index 000000000000..879b79ea31da
---- /dev/null
-+++ b/drivers/infiniband/core/restrack.c
-@@ -0,0 +1,182 @@
-+/*
-+ * Copyright (c) 2017 Mellanox Technologies. All rights reserved.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are met:
-+ *
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ * 2. Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in the
-+ *    documentation and/or other materials provided with the distribution.
-+ * 3. Neither the names of the copyright holders nor the names of its
-+ *    contributors may be used to endorse or promote products derived from
-+ *    this software without specific prior written permission.
-+ *
-+ * Alternatively, this software may be distributed under the terms of the
-+ * GNU General Public License ("GPL") version 2 as published by the Free
-+ * Software Foundation.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-+ * POSSIBILITY OF SUCH DAMAGE.
-+ */
-+
-+#include <rdma/ib_verbs.h>
-+#include <rdma/restrack.h>
-+#include <linux/rculist.h>
-+#include <linux/sched/task.h>
-+
-+int rdma_restrack_init(struct rdma_restrack_root *res)
-+{
-+	int i = 0;
-+
-+	for (; i < _RDMA_RESTRACK_MAX; i++) {
-+		refcount_set(&res->cnt[i], 1);
-+		INIT_LIST_HEAD_RCU(&res->list[i]);
-+		init_rwsem(&res->rwsem[i]);
-+	}
-+
-+	return 0;
-+}
-+
-+void rdma_restrack_clean(struct rdma_restrack_root *res)
-+{
-+	int i = 0;
-+
-+	for (; i < _RDMA_RESTRACK_MAX; i++) {
-+		WARN_ON_ONCE(!refcount_dec_and_test(&res->cnt[i]));
-+		WARN_ON_ONCE(!list_empty(&res->list[i]));
-+	}
-+}
-+
-+static bool is_restrack_valid(enum rdma_restrack_obj type)
-+{
-+	return !(type >= _RDMA_RESTRACK_MAX);
-+}
-+
-+int rdma_restrack_count(struct rdma_restrack_root *res,
-+			enum rdma_restrack_obj type)
-+{
-+	if (!is_restrack_valid(type))
-+		return 0;
-+
-+	/*
-+	 * The counter was initialized to 1 at the beginning.
-+	 */
-+	return refcount_read(&res->cnt[type]) - 1;
-+}
-+EXPORT_SYMBOL(rdma_restrack_count);
-+
-+void rdma_restrack_add(struct rdma_restrack_entry *res,
-+		       enum rdma_restrack_obj type, const char *comm)
-+{
-+	struct ib_device *dev;
-+	struct ib_pd *pd;
-+	struct ib_cq *cq;
-+	struct ib_qp *qp;
-+
-+	if (!is_restrack_valid(type))
-+		return;
-+
-+	switch (type) {
-+	case RDMA_RESTRACK_PD:
-+		pd = container_of(res, struct ib_pd, res);
-+		dev = pd->device;
-+		break;
-+	case RDMA_RESTRACK_CQ:
-+		cq = container_of(res, struct ib_cq, res);
-+		dev = cq->device;
-+		break;
-+	case RDMA_RESTRACK_QP:
-+		qp = container_of(res, struct ib_qp, res);
-+		dev = qp->device;
-+		break;
-+	default:
-+		/* unreachable */
-+		return;
-+	}
-+
-+	if (init_srcu_struct(&res->srcu))
-+		/*
-+		 * We are not returning error, because there is nothing
-+		 * we can do it in such case, it is already too late to
-+		 * crash the driver just of failure in resource tracking.
-+		 *
-+		 * Simply leave this resource as not valid.
-+		 */
-+		return;
-+
-+	if (!comm || !strlen(comm)) {
-+		res->kern_name = NULL;
-+		get_task_struct(current);
-+		res->task = current;
-+	} else {
-+		res->task = NULL;
-+		res->kern_name = kstrdup_const(comm, GFP_KERNEL);
-+		if (!res->kern_name)
-+			goto out;
-+	}
-+
-+	refcount_inc(&dev->res.cnt[type]);
-+
-+	down_write(&dev->res.rwsem[type]);
-+	list_add(&res->list, &dev->res.list[type]);
-+	res->valid = true;
-+	up_write(&dev->res.rwsem[type]);
-+	return;
-+
-+out:
-+	res->valid = false;
-+	cleanup_srcu_struct(&res->srcu);
-+}
-+EXPORT_SYMBOL(rdma_restrack_add);
-+
-+void rdma_restrack_del(struct rdma_restrack_entry *res,
-+		       enum rdma_restrack_obj type)
-+{
-+	struct ib_device *dev;
-+	struct ib_pd *pd;
-+	struct ib_cq *cq;
-+	struct ib_qp *qp;
-+
-+	if (!is_restrack_valid(type) || !res->valid)
-+		return;
-+
-+	switch (type) {
-+	case RDMA_RESTRACK_PD:
-+		pd = container_of(res, struct ib_pd, res);
-+		dev = pd->device;
-+		break;
-+	case RDMA_RESTRACK_CQ:
-+		cq = container_of(res, struct ib_cq, res);
-+		dev = cq->device;
-+		break;
-+	case RDMA_RESTRACK_QP:
-+		qp = container_of(res, struct ib_qp, res);
-+		dev = qp->device;
-+		break;
-+	default:
-+		/* unreachable */
-+		return;
-+	}
-+
-+	refcount_dec(&dev->res.cnt[type]);
-+	down_write(&dev->res.rwsem[type]);
-+	list_del(&res->list);
-+	res->valid = false;
-+	kfree_const(res->kern_name);
-+	put_task_struct(res->task);
-+	up_write(&dev->res.rwsem[type]);
-+	synchronize_srcu(&res->srcu);
-+	cleanup_srcu_struct(&res->srcu);
-+}
-+EXPORT_SYMBOL(rdma_restrack_del);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index f25c03687ee9..271265cd7c1a 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -63,6 +63,7 @@
- #include <linux/uaccess.h>
- #include <linux/cgroup_rdma.h>
- #include <uapi/rdma/ib_user_verbs.h>
-+#include <rdma/restrack.h>
- 
- #define IB_FW_VERSION_NAME_MAX	ETHTOOL_FWVERS_LEN
- 
-@@ -1527,9 +1528,10 @@ struct ib_pd {
- 	u32			unsafe_global_rkey;
- 
- 	/*
--	 * Implementation details of the RDMA core, don't use in drivers:
-+	 * Implementation details of the RDMA core, don't use in the drivers
- 	 */
- 	struct ib_mr	       *__internal_mr;
-+	struct rdma_restrack_entry res;
- };
- 
- struct ib_xrcd {
-@@ -1570,6 +1572,10 @@ struct ib_cq {
- 		struct irq_poll		iop;
- 		struct work_struct	work;
- 	};
-+	/*
-+	 * Internal to RDMA/core, don't use in the drivers
-+	 */
-+	struct rdma_restrack_entry res;
- };
- 
- struct ib_srq {
-@@ -1746,6 +1752,11 @@ struct ib_qp {
- 	struct ib_rwq_ind_table *rwq_ind_tbl;
- 	struct ib_qp_security  *qp_sec;
- 	u8			port;
-+
-+	/*
-+	 * Internal to RDMA/core, don't use in the drivers
-+	 */
-+	struct rdma_restrack_entry     res;
- };
- 
- struct ib_mr {
-@@ -2352,6 +2363,10 @@ struct ib_device {
- #endif
- 
- 	u32                          index;
-+	/*
-+	 * Implementation details of the RDMA core, don't use in the drivers
-+	 */
-+	struct rdma_restrack_root     res;
- 
- 	/**
- 	 * The following mandatory functions are used only at device
-diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
-new file mode 100644
-index 000000000000..fa9a2f792897
---- /dev/null
-+++ b/include/rdma/restrack.h
-@@ -0,0 +1,197 @@
-+/*
-+ * Copyright (c) 2017 Mellanox Technologies. All rights reserved.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions are met:
-+ *
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ * 2. Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in the
-+ *    documentation and/or other materials provided with the distribution.
-+ * 3. Neither the names of the copyright holders nor the names of its
-+ *    contributors may be used to endorse or promote products derived from
-+ *    this software without specific prior written permission.
-+ *
-+ * Alternatively, this software may be distributed under the terms of the
-+ * GNU General Public License ("GPL") version 2 as published by the Free
-+ * Software Foundation.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-+ * POSSIBILITY OF SUCH DAMAGE.
-+ */
-+
-+#ifndef _RDMA_RESTRACK_H_
-+#define _RDMA_RESTRACK_H_
-+
-+#include <linux/typecheck.h>
-+#include <linux/srcu.h>
-+#include <linux/refcount.h>
-+#include <linux/sched.h>
-+
-+/**
-+ * enum rdma_restrack_obj - HW objects to track
-+ */
-+enum rdma_restrack_obj {
-+	/**
-+	 * @RDMA_RESTRACK_PD: Protection domain (PD)
-+	 */
-+	RDMA_RESTRACK_PD,
-+	/**
-+	 * @RDMA_RESTRACK_CQ: Completion queue (CQ)
-+	 */
-+	RDMA_RESTRACK_CQ,
-+	/**
-+	 * @RDMA_RESTRACK_QP: Queue pair (QP)
-+	 */
-+	RDMA_RESTRACK_QP,
-+	/* private: counts number of elements, always last */
-+	_RDMA_RESTRACK_MAX
-+};
-+
-+/**
-+ * struct rdma_restrack_root - main resource tracking management
-+ * entity, per-device
-+ */
-+struct rdma_restrack_root {
-+	/**
-+	 * @cnt: global counter to avoid the need to count number
-+	 * of elements in the object's list.
-+	 *
-+	 * It can be different from the list_count, because we are
-+	 * not taking lock during counter increment and don't
-+	 * synchronize the RCU.
-+	 */
-+	refcount_t		cnt[_RDMA_RESTRACK_MAX];
-+	/**
-+	 * @list: linked list of all entries per-object
-+	 */
-+	struct list_head	list[_RDMA_RESTRACK_MAX];
-+	/* private: Internal read/write lock.
-+	 * It is needed to protect the add/delete list operations.
-+	 */
-+	struct rw_semaphore	rwsem[_RDMA_RESTRACK_MAX];
-+};
-+
-+/**
-+ * struct rdma_restrack_entry - metadata per-entry
-+ */
-+struct rdma_restrack_entry {
-+	/**
-+	 * @list: linked list between entries
-+	 */
-+	struct list_head	list;
-+	/**
-+	 * @valid: validity indicator
-+	 *
-+	 * The entries are filled during rdma_restrack_add,
-+	 * can be attempted to be free during rdma_restrack_del.
-+	 *
-+	 * As an example for that, see mlx5 QPs with type MLX5_IB_QPT_HW_GSI
-+	 */
-+	bool			valid;
-+	/**
-+	 * @srcu: sleepable RCU to protect object data.
-+	 */
-+	struct srcu_struct	srcu;
-+	/**
-+	 * @task: owner of resource tracking entity
-+	 *
-+	 * There are two types of entities: created by user and created
-+	 * by kernel.
-+	 *
-+	 * This is relevant for the entities created by users.
-+	 * For the entieies created by kernel, this pointer will be NULL.
-+	 */
-+	struct task_struct	*task;
-+	/**
-+	 * @kern_name: name of owner for the kernel created entities.
-+	 */
-+	const char		*kern_name;
-+};
-+
-+/**
-+ * rdma_restrack_init() - initialize resource tracking
-+ * @res:  resource tracking root
-+ */
-+int rdma_restrack_init(struct rdma_restrack_root *res);
-+
-+/**
-+ * rdma_restrack_clean() - clean resource tracking
-+ * @res:  resource tracking root
-+ */
-+void rdma_restrack_clean(struct rdma_restrack_root *res);
-+
-+/**
-+ * for_each_res_safe() - resource iterator
-+ * @r:    resource entity
-+ * @n:    next resrouce entity
-+ * @type: actual type of object to operate
-+ * @dev:  IB device to operate on
-+ * Use rdma_restrack_lock/rdma_restrack_unlock to protect it
-+ */
-+#define for_each_res_safe(r, n, type, dev) \
-+	list_for_each_entry_safe(r, n, &(dev)->res.list[type], list)
-+
-+/**
-+ * rdma_restrack_lock() - lock to protect reads of restrack_obj structs
-+ * @res:  resource entry
-+ * @type: actual type of object to operate
-+ */
-+static inline void rdma_restrack_lock(struct rdma_restrack_root *res,
-+				      enum rdma_restrack_obj type)
-+{
-+	down_read(&res->rwsem[type]);
-+}
-+
-+/**
-+ * rdma_restrack_unlock() - unlock to protect reads of restrack_obj structs
-+ * @res:  resource entry
-+ * @type: actual type of object to operate
-+ */
-+static inline void rdma_restrack_unlock(struct rdma_restrack_root *res,
-+					enum rdma_restrack_obj type)
-+{
-+	up_read(&res->rwsem[type]);
-+}
-+
-+/**
-+ * rdma_restrack_count() - the current usage of specific object
-+ * @res:  resource entry
-+ * @type: actual type of object to operate
-+ *
-+ * Users can get device utilization by comparing with max_objname
-+ * (e.g. max_qp, max_pd e.t.c),
-+ */
-+int rdma_restrack_count(struct rdma_restrack_root *res,
-+			enum rdma_restrack_obj type);
-+
-+/**
-+ * rdma_restrack_add() - add object to the reource tracking database
-+ * @res:  resource entry
-+ * @type: actual type of object to operate
-+ * @comm: the owner of this resource. For kernel created resources,
-+ *        there is a need to pass a name here, which will be visible to users.
-+ *        For user created resources, there is a need to pass NULL here and the
-+ *        owner will be taken from current struct task_struct.
-+ */
-+void rdma_restrack_add(struct rdma_restrack_entry *res,
-+		       enum rdma_restrack_obj type, const char *comm);
-+
-+/**
-+ * rdma_restrack_add() - delete object from the reource tracking database
-+ * @res:  resource entry
-+ * @type: actual type of object to operate
-+ */
-+void rdma_restrack_del(struct rdma_restrack_entry *res,
-+		       enum rdma_restrack_obj type);
-+#endif /* _RDMA_RESTRACK_H_ */
--- 
-2.15.1
-
+> 
+> > On Fri, 2017-10-06 at 17:40 -0500, Shiraz Saleem wrote:
+> > > On Mon, Jul 17, 2017 at 03:26:04AM -0600, Amrani, Ram wrote:
+> > > > Hi Nicholas,
+> > > >
+> > > > > Just to confirm, the following four patches where required to get
+> > > > > Potnuri up and running on iser-target + iw_cxgb4 with a similarly
+> > > > > small number of hw SGEs:
+> > > > >
+> > > > > 7a56dc8 iser-target: avoid posting a recv buffer twice 555a65f
+> > > > > iser-target: Fix queue-full response handling
+> > > > > a446701 iscsi-target: Propigate queue_data_in + queue_status
+> > > > > errors fa7e25c target: Fix unknown fabric callback queue-full
+> > > > > errors
+> > > > >
+> > > > > So Did you test with Q-Logic/Cavium with RoCE using these four
+> > > > > patches, or just with commit a4467018..?
+> > > > >
+> > > > > Note these have not been CC'ed to stable yet, as I was reluctant
+> > > > > since they didn't have much mileage on them at the time..
+> > > > >
+> > > > > Now however, they should be OK to consider for stable, especially
+> > > > > if they get you unblocked as well.
+> > > >
+> > > > The issue is still seen with these four patches.
+> > > >
+> > > > Thanks,
+> > > > Ram
+> > >
+> > > Hi,
+> > >
+> > > On X722 Iwarp NICs (i40iw) too, we are seeing a similar issue of SQ
+> > > overflow being hit on isert for larger block sizes. 4.14-rc2 kernel.
+> > >
+> > > Eventually there is a timeout/conn-error on iser initiator and the
+> > connection is torn down.
+> > >
+> > > The aforementioned patches dont seem to be alleviating the SQ overflow
+> > issue?
+> > >
+> > > Initiator
+> > > ------------
+> > >
+> > > [17007.465524] scsi host11: iSCSI Initiator over iSER [17007.466295]
+> > > iscsi: invalid can_queue of 55. can_queue must be a power of 2.
+> > > [17007.466924] iscsi: Rounding can_queue to 32.
+> > > [17007.471535] scsi 11:0:0:0: Direct-Access     LIO-ORG  ramdisk1_40G     4.0
+> > PQ: 0 ANSI: 5
+> > > [17007.471652] scsi 11:0:0:0: alua: supports implicit and explicit
+> > > TPGS [17007.471656] scsi 11:0:0:0: alua: device
+> > > naa.6001405ab790db5e8e94b0998ab4bf0b port group 0 rel port 1
+> > > [17007.471782] sd 11:0:0:0: Attached scsi generic sg2 type 0
+> > > [17007.472373] sd 11:0:0:0: [sdb] 83886080 512-byte logical blocks:
+> > > (42.9 GB/40.0 GiB) [17007.472405] sd 11:0:0:0: [sdb] Write Protect is
+> > > off [17007.472406] sd 11:0:0:0: [sdb] Mode Sense: 43 00 00 08
+> > > [17007.472462] sd 11:0:0:0: [sdb] Write cache: disabled, read cache:
+> > > enabled, doesn't support DPO or FUA [17007.473412] sd 11:0:0:0: [sdb]
+> > > Attached SCSI disk [17007.478184] sd 11:0:0:0: alua: transition
+> > > timeout set to 60 seconds [17007.478186] sd 11:0:0:0: alua: port group 00
+> > state A non-preferred supports TOlUSNA [17031.269821]  sdb:
+> > > [17033.359789] EXT4-fs (sdb1): mounted filesystem with ordered data
+> > > mode. Opts: (null) [17049.056155]  connection2:0: ping timeout of 5
+> > > secs expired, recv timeout 5, last rx 4311705998, last ping
+> > > 4311711232, now 4311716352 [17049.057499]  connection2:0: detected
+> > > conn error (1022) [17049.057558] modifyQP to CLOSING qp 3
+> > > next_iw_state 3 [..]
+> > >
+> > >
+> > > Target
+> > > ----------
+> > > [....]
+> > > [17066.397179] i40iw_post_send: qp 3 wr_opcode 0 ret_err -12
+> > > [17066.397180] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ec020
+> > > failed to post RDMA res [17066.397183] i40iw_post_send: qp 3 wr_opcode
+> > > 0 ret_err -12 [17066.397183] isert: isert_rdma_rw_ctx_post: Cmd:
+> > > ffff8817fb8ea1f8 failed to post RDMA res [17066.397184]
+> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -12 [17066.397184] isert:
+> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8e9bf0 failed to post RDMA res
+> > > [17066.397187] i40iw_post_send: qp 3 wr_opcode 0 ret_err -12
+> > > [17066.397188] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ecc30
+> > > failed to post RDMA res [17066.397192] i40iw_post_send: qp 3 wr_opcode
+> > > 0 ret_err -12 [17066.397192] isert: isert_rdma_rw_ctx_post: Cmd:
+> > > ffff8817fb8f20a0 failed to post RDMA res [17066.397195]
+> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -12 [17066.397196] isert:
+> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ea800 failed to post RDMA res
+> > > [17066.397196] i40iw_post_send: qp 3 wr_opcode 0 ret_err -12
+> > > [17066.397197] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ede48
+> > > failed to post RDMA res [17066.397200] i40iw_post_send: qp 3 wr_opcode
+> > > 0 ret_err -12 [17066.397200] isert: isert_rdma_rw_ctx_post: Cmd:
+> > > ffff8817fb8ec020 failed to post RDMA res [17066.397204]
+> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -12 [17066.397204] isert:
+> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ea1f8 failed to post RDMA res
+> > > [17066.397206] i40iw i40iw_process_aeq ae_id = 0x503 bool qp=1 qp_id =
+> > > 3 [17066.397207] i40iw_post_send: qp 3 wr_opcode 0 ret_err -12
+> > > [17066.397207] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8e9bf0
+> > > failed to post RDMA res [17066.397211] i40iw_post_send: qp 3 wr_opcode
+> > > 0 ret_err -12 [17066.397211] isert: isert_rdma_rw_ctx_post: Cmd:
+> > > ffff8817fb8ecc30 failed to post RDMA res [17066.397215]
+> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -12 [17066.397215] isert:
+> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8f20a0 failed to post RDMA res
+> > > [17066.397218] i40iw_post_send: qp 3 wr_opcode 0 ret_err -12
+> > > [17066.397219] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ea800
+> > > failed to post RDMA res [17066.397219] i40iw_post_send: qp 3 wr_opcode
+> > > 0 ret_err -12 [17066.397220] isert: isert_rdma_rw_ctx_post: Cmd:
+> > > ffff8817fb8ede48 failed to post RDMA res [17066.397232]
+> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -12 [17066.397233] isert:
+> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ec020 failed to post RDMA res
+> > > [17066.397237] i40iw_post_send: qp 3 wr_opcode 0 ret_err -12
+> > > [17066.397237] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ea1f8
+> > > failed to post RDMA res [17066.397238] i40iw_post_send: qp 3 wr_opcode
+> > > 0 ret_err -12 [17066.397238] isert: isert_rdma_rw_ctx_post: Cmd:
+> > > ffff8817fb8e9bf0 failed to post RDMA res [17066.397242]
+> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -12 [17066.397242] isert:
+> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ecc30 failed to post RDMA res
+> > > [17066.397245] i40iw_post_send: qp 3 wr_opcode 0 ret_err -12
+> > > [17066.397247] i40iw i40iw_process_aeq ae_id = 0x501 bool qp=1 qp_id =
+> > > 3 [17066.397247] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8f20a0
+> > > failed to post RDMA res [17066.397251] QP 3 flush_issued
+> > > [17066.397252] i40iw_post_send: qp 3 wr_opcode 0 ret_err -22
+> > > [17066.397252] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ea800
+> > > failed to post RDMA res [17066.397253] Got unknown fabric queue
+> > > status: -22 [17066.397254] QP 3 flush_issued [17066.397254]
+> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -22 [17066.397254] isert:
+> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ede48 failed to post RDMA res
+> > > [17066.397255] Got unknown fabric queue status: -22 [17066.397258] QP
+> > > 3 flush_issued [17066.397258] i40iw_post_send: qp 3 wr_opcode 0
+> > > ret_err -22 [17066.397259] isert: isert_rdma_rw_ctx_post: Cmd:
+> > > ffff8817fb8ec020 failed to post RDMA res [17066.397259] Got unknown
+> > > fabric queue status: -22 [17066.397267] QP 3 flush_issued
+> > > [17066.397267] i40iw_post_send: qp 3 wr_opcode 0 ret_err -22
+> > > [17066.397268] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ea1f8
+> > > failed to post RDMA res [17066.397268] Got unknown fabric queue
+> > > status: -22 [17066.397287] QP 3 flush_issued [17066.397287]
+> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -22 [17066.397288] isert:
+> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8e9bf0 failed to post RDMA res
+> > > [17066.397288] Got unknown fabric queue status: -22 [17066.397291] QP
+> > > 3 flush_issued [17066.397292] i40iw_post_send: qp 3 wr_opcode 0
+> > > ret_err -22 [17066.397292] isert: isert_rdma_rw_ctx_post: Cmd:
+> > > ffff8817fb8ecc30 failed to post RDMA res [17066.397292] Got unknown
+> > > fabric queue status: -22 [17066.397295] QP 3 flush_issued
+> > > [17066.397296] i40iw_post_send: qp 3 wr_opcode 0 ret_err -22
+> > > [17066.397296] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8f20a0
+> > > failed to post RDMA res [17066.397297] Got unknown fabric queue
+> > > status: -22 [17066.397307] QP 3 flush_issued [17066.397307]
+> > > i40iw_post_send: qp 3 wr_opcode 8 ret_err -22 [17066.397308] isert:
+> > > isert_post_response: ib_post_send failed with -22 [17066.397309] i40iw
+> > > i40iw_qp_disconnect Call close API [....]
+> > >
+> > > Shiraz
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe
+> > > target-devel" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
+> > body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> > http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
