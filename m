@@ -1,228 +1,72 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: SQ overflow seen running isert traffic with high block sizes
-Date: Mon, 15 Jan 2018 09:22:36 -0600
-Message-ID: <20180115152236.GA15484@ssaleem-MOBL4.amr.corp.intel.com>
-References: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
- <210f538f-8c98-f480-64fc-f2124ed6d01b@grimberg.me>
- <BN3PR07MB25786338EADC77A369A6D493F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
- <1499970579.7987.8.camel@haakon3.daterainc.com>
- <BN3PR07MB2578E6561CC669922A322245F8A00@BN3PR07MB2578.namprd07.prod.outlook.com>
- <20171006224025.GA23364@ssaleem-MOBL4.amr.corp.intel.com>
- <1515992195.24576.156.camel@haakon3.daterainc.com>
- <CY1PR0701MB2012E53C69D1CE3E16BA320B88EB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: Kernel v4.16 / v4.17 SRP and SRPT patches
+Date: Mon, 15 Jan 2018 16:12:44 +0000
+Message-ID: <1516032762.3951.5.camel@wdc.com>
+References: <1515531652.26021.1.camel@redhat.com>
+         <1515537614.26021.3.camel@redhat.com> <1515591723.26021.6.camel@redhat.com>
+         <20180110182648.GI4518@ziepe.ca> <1515609623.2745.20.camel@wdc.com>
+         <1515610750.10153.1.camel@redhat.com> <20180110191510.GK4518@ziepe.ca>
+         <1515612639.10153.3.camel@redhat.com> <20180110205243.GP4776@mellanox.com>
+         <1515618674.10153.6.camel@redhat.com> <20180110211501.GS4776@mellanox.com>
+         <1515675741.21421.1.camel@redhat.com> <1515703435.21421.9.camel@redhat.com>
+         <1515705340.2752.60.camel@wdc.com> <1515706433.21421.11.camel@redhat.com>
+         <1515791472.2396.57.camel@wdc.com> <1515802177.1566.1.camel@redhat.com>
+         <1515808673.11354.1.camel@redhat.com> <1515855226.32050.1.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CY1PR0701MB2012E53C69D1CE3E16BA320B88EB0-UpKza+2NMNLHMJvQ0dyT705OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <1515855226.32050.1.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <96CE980F1407FC4FBBA15CBF0AD9E5BC-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 15, 2018 at 03:12:36AM -0700, Kalderon, Michal wrote:
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Nicholas A. Bellinger
-> > Sent: Monday, January 15, 2018 6:57 AM
-> > To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Cc: Amrani, Ram <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; Sagi Grimberg
-> > <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Elior, Ariel
-> > <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>;
-> > Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> > Subject: Re: SQ overflow seen running isert traffic with high block sizes
-> > 
-> > Hi Shiraz, Ram, Ariel, & Potnuri,
-> > 
-> > Following up on this old thread, as it relates to Potnuri's recent fix for a iser-
-> > target queue-full memory leak:
-> > 
-> > https://www.spinics.net/lists/target-devel/msg16282.html
-> > 
-> > Just curious how frequent this happens in practice with sustained large block
-> > workloads, as it appears to effect at least three different iwarp RNICS (i40iw,
-> > qedr and iw_cxgb4)..?
-> > 
-> > Is there anything else from an iser-target consumer level that should be
-> > changed for iwarp to avoid repeated ib_post_send() failures..?
-> > 
-> Would like to mention, that although we are an iWARP RNIC as well, we've hit this
-> Issue when running RoCE. It's not iWARP related. 
-> This is easily reproduced within seconds with IO size of 5121K
-> Using 5 Targets with 2 Ram Disk each and 5 targets with FileIO Disks each.
-> 
-> IO Command used:
-> maim -b512k -T32 -t2 -Q8 -M0 -o -u -n -m17 -ftargets.dat -d1
-> 
-> thanks,
-> Michal
-
-Its seen with block size >= 2M on a single target 1 RAM disk config. And similar to Michals report;
-rather quickly, in a matter of seconds.
-
-fio --rw=read --bs=2048k --numjobs=1 --iodepth=128 --runtime=30 --size=20g --loops=1 --ioengine=libaio 
---direct=1 --invalidate=1 --fsync_on_close=1 --norandommap --exitall --filename=/dev/sdb --name=sdb 
-
-Shiraz
-
-> 
-> > On Fri, 2017-10-06 at 17:40 -0500, Shiraz Saleem wrote:
-> > > On Mon, Jul 17, 2017 at 03:26:04AM -0600, Amrani, Ram wrote:
-> > > > Hi Nicholas,
-> > > >
-> > > > > Just to confirm, the following four patches where required to get
-> > > > > Potnuri up and running on iser-target + iw_cxgb4 with a similarly
-> > > > > small number of hw SGEs:
-> > > > >
-> > > > > 7a56dc8 iser-target: avoid posting a recv buffer twice 555a65f
-> > > > > iser-target: Fix queue-full response handling
-> > > > > a446701 iscsi-target: Propigate queue_data_in + queue_status
-> > > > > errors fa7e25c target: Fix unknown fabric callback queue-full
-> > > > > errors
-> > > > >
-> > > > > So Did you test with Q-Logic/Cavium with RoCE using these four
-> > > > > patches, or just with commit a4467018..?
-> > > > >
-> > > > > Note these have not been CC'ed to stable yet, as I was reluctant
-> > > > > since they didn't have much mileage on them at the time..
-> > > > >
-> > > > > Now however, they should be OK to consider for stable, especially
-> > > > > if they get you unblocked as well.
-> > > >
-> > > > The issue is still seen with these four patches.
-> > > >
-> > > > Thanks,
-> > > > Ram
-> > >
-> > > Hi,
-> > >
-> > > On X722 Iwarp NICs (i40iw) too, we are seeing a similar issue of SQ
-> > > overflow being hit on isert for larger block sizes. 4.14-rc2 kernel.
-> > >
-> > > Eventually there is a timeout/conn-error on iser initiator and the
-> > connection is torn down.
-> > >
-> > > The aforementioned patches dont seem to be alleviating the SQ overflow
-> > issue?
-> > >
-> > > Initiator
-> > > ------------
-> > >
-> > > [17007.465524] scsi host11: iSCSI Initiator over iSER [17007.466295]
-> > > iscsi: invalid can_queue of 55. can_queue must be a power of 2.
-> > > [17007.466924] iscsi: Rounding can_queue to 32.
-> > > [17007.471535] scsi 11:0:0:0: Direct-Access     LIO-ORG  ramdisk1_40G     4.0
-> > PQ: 0 ANSI: 5
-> > > [17007.471652] scsi 11:0:0:0: alua: supports implicit and explicit
-> > > TPGS [17007.471656] scsi 11:0:0:0: alua: device
-> > > naa.6001405ab790db5e8e94b0998ab4bf0b port group 0 rel port 1
-> > > [17007.471782] sd 11:0:0:0: Attached scsi generic sg2 type 0
-> > > [17007.472373] sd 11:0:0:0: [sdb] 83886080 512-byte logical blocks:
-> > > (42.9 GB/40.0 GiB) [17007.472405] sd 11:0:0:0: [sdb] Write Protect is
-> > > off [17007.472406] sd 11:0:0:0: [sdb] Mode Sense: 43 00 00 08
-> > > [17007.472462] sd 11:0:0:0: [sdb] Write cache: disabled, read cache:
-> > > enabled, doesn't support DPO or FUA [17007.473412] sd 11:0:0:0: [sdb]
-> > > Attached SCSI disk [17007.478184] sd 11:0:0:0: alua: transition
-> > > timeout set to 60 seconds [17007.478186] sd 11:0:0:0: alua: port group 00
-> > state A non-preferred supports TOlUSNA [17031.269821]  sdb:
-> > > [17033.359789] EXT4-fs (sdb1): mounted filesystem with ordered data
-> > > mode. Opts: (null) [17049.056155]  connection2:0: ping timeout of 5
-> > > secs expired, recv timeout 5, last rx 4311705998, last ping
-> > > 4311711232, now 4311716352 [17049.057499]  connection2:0: detected
-> > > conn error (1022) [17049.057558] modifyQP to CLOSING qp 3
-> > > next_iw_state 3 [..]
-> > >
-> > >
-> > > Target
-> > > ----------
-> > > [....]
-> > > [17066.397179] i40iw_post_send: qp 3 wr_opcode 0 ret_err -12
-> > > [17066.397180] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ec020
-> > > failed to post RDMA res [17066.397183] i40iw_post_send: qp 3 wr_opcode
-> > > 0 ret_err -12 [17066.397183] isert: isert_rdma_rw_ctx_post: Cmd:
-> > > ffff8817fb8ea1f8 failed to post RDMA res [17066.397184]
-> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -12 [17066.397184] isert:
-> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8e9bf0 failed to post RDMA res
-> > > [17066.397187] i40iw_post_send: qp 3 wr_opcode 0 ret_err -12
-> > > [17066.397188] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ecc30
-> > > failed to post RDMA res [17066.397192] i40iw_post_send: qp 3 wr_opcode
-> > > 0 ret_err -12 [17066.397192] isert: isert_rdma_rw_ctx_post: Cmd:
-> > > ffff8817fb8f20a0 failed to post RDMA res [17066.397195]
-> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -12 [17066.397196] isert:
-> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ea800 failed to post RDMA res
-> > > [17066.397196] i40iw_post_send: qp 3 wr_opcode 0 ret_err -12
-> > > [17066.397197] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ede48
-> > > failed to post RDMA res [17066.397200] i40iw_post_send: qp 3 wr_opcode
-> > > 0 ret_err -12 [17066.397200] isert: isert_rdma_rw_ctx_post: Cmd:
-> > > ffff8817fb8ec020 failed to post RDMA res [17066.397204]
-> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -12 [17066.397204] isert:
-> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ea1f8 failed to post RDMA res
-> > > [17066.397206] i40iw i40iw_process_aeq ae_id = 0x503 bool qp=1 qp_id =
-> > > 3 [17066.397207] i40iw_post_send: qp 3 wr_opcode 0 ret_err -12
-> > > [17066.397207] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8e9bf0
-> > > failed to post RDMA res [17066.397211] i40iw_post_send: qp 3 wr_opcode
-> > > 0 ret_err -12 [17066.397211] isert: isert_rdma_rw_ctx_post: Cmd:
-> > > ffff8817fb8ecc30 failed to post RDMA res [17066.397215]
-> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -12 [17066.397215] isert:
-> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8f20a0 failed to post RDMA res
-> > > [17066.397218] i40iw_post_send: qp 3 wr_opcode 0 ret_err -12
-> > > [17066.397219] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ea800
-> > > failed to post RDMA res [17066.397219] i40iw_post_send: qp 3 wr_opcode
-> > > 0 ret_err -12 [17066.397220] isert: isert_rdma_rw_ctx_post: Cmd:
-> > > ffff8817fb8ede48 failed to post RDMA res [17066.397232]
-> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -12 [17066.397233] isert:
-> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ec020 failed to post RDMA res
-> > > [17066.397237] i40iw_post_send: qp 3 wr_opcode 0 ret_err -12
-> > > [17066.397237] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ea1f8
-> > > failed to post RDMA res [17066.397238] i40iw_post_send: qp 3 wr_opcode
-> > > 0 ret_err -12 [17066.397238] isert: isert_rdma_rw_ctx_post: Cmd:
-> > > ffff8817fb8e9bf0 failed to post RDMA res [17066.397242]
-> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -12 [17066.397242] isert:
-> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ecc30 failed to post RDMA res
-> > > [17066.397245] i40iw_post_send: qp 3 wr_opcode 0 ret_err -12
-> > > [17066.397247] i40iw i40iw_process_aeq ae_id = 0x501 bool qp=1 qp_id =
-> > > 3 [17066.397247] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8f20a0
-> > > failed to post RDMA res [17066.397251] QP 3 flush_issued
-> > > [17066.397252] i40iw_post_send: qp 3 wr_opcode 0 ret_err -22
-> > > [17066.397252] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ea800
-> > > failed to post RDMA res [17066.397253] Got unknown fabric queue
-> > > status: -22 [17066.397254] QP 3 flush_issued [17066.397254]
-> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -22 [17066.397254] isert:
-> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ede48 failed to post RDMA res
-> > > [17066.397255] Got unknown fabric queue status: -22 [17066.397258] QP
-> > > 3 flush_issued [17066.397258] i40iw_post_send: qp 3 wr_opcode 0
-> > > ret_err -22 [17066.397259] isert: isert_rdma_rw_ctx_post: Cmd:
-> > > ffff8817fb8ec020 failed to post RDMA res [17066.397259] Got unknown
-> > > fabric queue status: -22 [17066.397267] QP 3 flush_issued
-> > > [17066.397267] i40iw_post_send: qp 3 wr_opcode 0 ret_err -22
-> > > [17066.397268] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8ea1f8
-> > > failed to post RDMA res [17066.397268] Got unknown fabric queue
-> > > status: -22 [17066.397287] QP 3 flush_issued [17066.397287]
-> > > i40iw_post_send: qp 3 wr_opcode 0 ret_err -22 [17066.397288] isert:
-> > > isert_rdma_rw_ctx_post: Cmd: ffff8817fb8e9bf0 failed to post RDMA res
-> > > [17066.397288] Got unknown fabric queue status: -22 [17066.397291] QP
-> > > 3 flush_issued [17066.397292] i40iw_post_send: qp 3 wr_opcode 0
-> > > ret_err -22 [17066.397292] isert: isert_rdma_rw_ctx_post: Cmd:
-> > > ffff8817fb8ecc30 failed to post RDMA res [17066.397292] Got unknown
-> > > fabric queue status: -22 [17066.397295] QP 3 flush_issued
-> > > [17066.397296] i40iw_post_send: qp 3 wr_opcode 0 ret_err -22
-> > > [17066.397296] isert: isert_rdma_rw_ctx_post: Cmd: ffff8817fb8f20a0
-> > > failed to post RDMA res [17066.397297] Got unknown fabric queue
-> > > status: -22 [17066.397307] QP 3 flush_issued [17066.397307]
-> > > i40iw_post_send: qp 3 wr_opcode 8 ret_err -22 [17066.397308] isert:
-> > > isert_post_response: ib_post_send failed with -22 [17066.397309] i40iw
-> > > i40iw_qp_disconnect Call close API [....]
-> > >
-> > > Shiraz
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe
-> > > target-devel" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> > body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> > http://vger.kernel.org/majordomo-info.html
+T24gU2F0LCAyMDE4LTAxLTEzIGF0IDA5OjUzIC0wNTAwLCBMYXVyZW5jZSBPYmVybWFuIHdyb3Rl
+Og0KPiBbICAyMzkuNTAyMDI1XSBpYl9zcnB0IFJlY2VpdmVkIFNSUF9MT0dJTl9SRVEgd2l0aCBp
+X3BvcnRfaWQNCj4gN2NmZTo5MDAzOjAwNzI6NmU0Zjo3Y2ZlOjkwMDM6MDA3Mjo2ZWQzLCB0X3Bv
+cnRfaWQNCj4gN2NmZTo5MDAzOjAwNzI6NmU0ZTo3Y2ZlOjkwMDM6MDA3Mjo2ZTRlIGFuZCBpdF9p
+dV9sZW4gMjExNiBvbiBwb3J0IDENCj4gKGd1aWQ9ZmU4MDowMDAwOjAwMDA6MDAwMDo3Y2ZlOjkw
+MDM6MDA3Mjo2ZTRmKTsgcGtleSAweGZmZmYNCj4gWyAgMjM5LjYyMzg4MV0gaWJfc3JwdCBmYWls
+ZWQgdG8gY3JlYXRlIHF1ZXVlIHBhaXIgd2l0aCBzcV9zaXplID0gMTYzODQNCj4gKC0xMikgLSBy
+ZXRyeWluZw0KPiBbICAyMzkuNjY5MzgxXSBpYl9zcnB0IGZhaWxlZCB0byBjcmVhdGUgcXVldWUg
+cGFpciB3aXRoIHNxX3NpemUgPSA4MTkyDQo+ICgtMTIpIC0gcmV0cnlpbmcNCj4gWyAgMjM5Ljcx
+NTM2Nl0gaWJfc3JwdCBSZWNlaXZlZCBTUlBfTE9HSU5fUkVRIHdpdGggaV9wb3J0X2lkDQo+IDdj
+ZmU6OTAwMzowMDcyOjZlNGU6N2NmZTo5MDAzOjAwNzI6NmVkMiwgdF9wb3J0X2lkDQo+IDdjZmU6
+OTAwMzowMDcyOjZlNGU6N2NmZTo5MDAzOjAwNzI6NmU0ZSBhbmQgaXRfaXVfbGVuIDIxMTYgb24g
+cG9ydCAxDQo+IChndWlkPWZlODA6MDAwMDowMDAwOjAwMDA6N2NmZTo5MDAzOjAwNzI6NmU0ZSk7
+IHBrZXkgMHhmZmZmDQo+IFsgIDIzOS44MzE2NjFdIGliX3NycHQgZmFpbGVkIHRvIGNyZWF0ZSBx
+dWV1ZSBwYWlyIHdpdGggc3Ffc2l6ZSA9IDE2Mzg0DQo+ICgtMTIpIC0gcmV0cnlpbmcNCj4gWyAg
+MjM5Ljg3NzE5M10gaWJfc3JwdCBmYWlsZWQgdG8gY3JlYXRlIHF1ZXVlIHBhaXIgd2l0aCBzcV9z
+aXplID0gODE5Mg0KPiAoLTEyKSAtIHJldHJ5aW5nDQoNCkhlbGxvIExhdXJlbmNlLA0KDQpUaGVz
+ZSBtZXNzYWdlcyBhcmUgZXhwZWN0ZWQgYW5kIGRvIG5vdCBpbmRpY2F0ZSBhIGZhaWx1cmUuIFRo
+ZSByZXRyeSBsb29wDQp0aGUgYWJvdmUgbWVzc2FnZXMgcmVmZXIgdG8gZ290IGludHJvZHVjZWQg
+YSBsb25nIHRpbWUgYWdvOg0KDQpjb21taXQgYWI0NzdjMWZmNWUwYTc0NGMwNzI0MDRiZjdkYjUx
+YmZlMWYwNWI2ZQ0KQXV0aG9yOiBCYXJ0IFZhbiBBc3NjaGUgPGJ2YW5hc3NjaGVAYWNtLm9yZz4N
+CkRhdGU6ICAgU3VuIE9jdCAxOSAxODowNTozMyAyMDE0ICswMzAwDQoNCiAgICBzcnAtdGFyZ2V0
+OiBSZXRyeSB3aGVuIFFQIGNyZWF0aW9uIGZhaWxzIHdpdGggRU5PTUVNDQogICAgDQogICAgSXQg
+aXMgbm90IGd1YXJhbnRlZWQgdG8gdGhhdCBzcnBfc3Ffc2l6ZSBpcyBzdXBwb3J0ZWQNCiAgICBi
+eSB0aGUgSENBLiBTbyBpZiB3ZSBmYWlsZWQgdG8gY3JlYXRlIHRoZSBRUCB3aXRoIEVOT01FTSwN
+CiAgICB0cnkgd2l0aCBhIHNtYWxsZXIgc3JwX3NxX3NpemUuIEtlZXAgaXQgdXAgdW50aWwgd2Ug
+aGl0DQogICAgTUlOX1NSUFRfU1FfU0laRSwgdGhlbiBmYWlsIHRoZSBjb25uZWN0aW9uLg0KICAg
+IA0KWyAuLi4gXQ0KDQpUaGUgb25seSByZWNlbnQgY2hhbmdlIGluIHRoYXQgY29kZSBpcyB0aGF0
+IHJldHJ5IGF0dGVtcHRzIGFyZSBub3cgbG9nZ2VkLg0KRnJvbSBjb21taXQgMGU5OTQ5ZjFkYjZj
+ICJJQi9zcnB0OiBBZGQgUkRNQS9DTSBzdXBwb3J0IjoNCg0KKyAgICAgICBpZiAocmV0KSB7DQor
+ICAgICAgICAgICAgICAgYm9vbCByZXRyeSA9IHNxX3NpemUgPiBNSU5fU1JQVF9TUV9TSVpFOw0K
+Kw0KKyAgICAgICAgICAgICAgIHByX2VycigiZmFpbGVkIHRvIGNyZWF0ZSBxdWV1ZSBwYWlyIHdp
+dGggc3Ffc2l6ZSA9ICVkICglZCklc1xuIiwNCisgICAgICAgICAgICAgICAgICAgICAgc3Ffc2l6
+ZSwgcmV0LCByZXRyeSA/ICIgLSByZXRyeWluZyIgOiAiIik7DQorICAgICAgICAgICAgICAgaWYg
+KHJldHJ5KSB7DQorICAgICAgICAgICAgICAgICAgICAgICBpYl9mcmVlX2NxKGNoLT5jcSk7DQor
+ICAgICAgICAgICAgICAgICAgICAgICBzcV9zaXplID0gbWF4KHNxX3NpemUgLyAyLCBNSU5fU1JQ
+VF9TUV9TSVpFKTsNCisgICAgICAgICAgICAgICAgICAgICAgIGdvdG8gcmV0cnk7DQorICAgICAg
+ICAgICAgICAgfSBlbHNlIHsNCisgICAgICAgICAgICAgICAgICAgICAgIGdvdG8gZXJyX2Rlc3Ry
+b3lfY3E7DQogICAgICAgICAgICAgICAgfQ0KLSAgICAgICAgICAgICAgIHByX2VycigiZmFpbGVk
+IHRvIGNyZWF0ZV9xcCByZXQ9ICVkXG4iLCByZXQpOw0KLSAgICAgICAgICAgICAgIGdvdG8gZXJy
+X2Rlc3Ryb3lfY3E7DQogICAgICAgIH0NCg0KRG8geW91IHBlcmhhcHMgd2FudCB0aGF0IHByX2Vy
+cigpIHRvIGJlIGNoYW5nZWQgaW50byBhIHByX2RlYnVnKCkgZm9yIHJldHJ5DQphdHRlbXB0cz8N
+Cg0KVGhhbmtzLA0KDQpCYXJ0Lg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
