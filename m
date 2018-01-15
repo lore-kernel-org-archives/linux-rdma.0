@@ -1,34 +1,42 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] IB/cma: use strlcpy() instead of strncpy()
-Date: Mon, 15 Jan 2018 16:04:51 -0700
-Message-ID: <20180115230451.GA1867@ziepe.ca>
-References: <1515743765-116090-1-git-send-email-wangxiongfeng2@huawei.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 0/4] RDMA mlx4/mlx5 fixes
+Date: Mon, 15 Jan 2018 16:06:16 -0700
+Message-ID: <20180115230616.GB1867@ziepe.ca>
+References: <20180112055842.23125-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1515743765-116090-1-git-send-email-wangxiongfeng2@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, arnd@arndb.de
+In-Reply-To: <20180112055842.23125-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 12, 2018 at 03:56:05PM +0800, Xiongfeng Wang wrote:
-> From: Xiongfeng Wang <xiongfeng.wang@linaro.org>
-> 
-> gcc-8 reports
-> 
-> drivers/infiniband/core/cma_configfs.c: In function 'make_cma_dev':
-> ./include/linux/string.h:245:9: warning: '__builtin_strncpy' specified
-> bound 64 equals destination size [-Wstringop-truncation]
-> 
-> We need to use strlcpy() to make sure the string is nul-terminated.
-> 
-> Signed-off-by: Xiongfeng Wang <xiongfeng.wang@linaro.org>
-> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
->  drivers/infiniband/core/cma_configfs.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+On Fri, Jan 12, 2018 at 07:58:38AM +0200, Leon Romanovsky wrote:
 
-Applied to rdma for-next, thanks
+> Leon Romanovsky (1):
+>   RDMA/mlx5: Fix out-of-bound access while querying AH
 
+This one when to for-rc and it causes a merge conflict with for-next
+we will have to handle
+
+> Bodong Wang (1):
+>   IB/core: Fix ib_wc structure size to remain in 64 bytes boundary
+
+> Jack Morgenstein (1):
+>   IB/mlx4: Fix incorrectly releasing steerable UD QPs when have only ETH
+>     ports
+> 
+> Parav Pandit (1):
+>   RDMA/core: Fix avoid decoding iWarp port as RoCE
+
+These three went to for-next, I rewrote the commit message for the
+last one
+
+Thanks,
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
