@@ -1,69 +1,68 @@
-From: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 3/3] RDMA/qedr: Fix endian problems around imm_data
-Date: Mon, 15 Jan 2018 13:01:40 +0000
-Message-ID: <CY1PR0701MB2012F77D6946E0E9E90B7A2388EB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
-References: <20180111214307.501-1-jgg@ziepe.ca>
- <20180111214307.501-4-jgg@ziepe.ca>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next v3 3/7] RDMA: Annotate create QP callers
+Date: Mon, 15 Jan 2018 16:31:25 +0200
+Message-ID: <20180115143125.GB15760@mtr-leonro.local>
+References: <20180111153132.11143-1-leon@kernel.org>
+ <20180111153132.11143-4-leon@kernel.org>
+ <20180114212704.GE9088@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="z3Nkz3fRLNVT9Ca+"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180111214307.501-4-jgg-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180114212704.GE9088-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Jason Gunthorpe [mailto:jgg-uk2M96/98Pc@public.gmane.org]
-> Sent: Thursday, January 11, 2018 11:43 PM
->=20
-> From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> The double swap matches what user space rdma-core does to imm_data.
->=20
-> wc->imm_data is not used in the kernel so this change has no practical
-> impact.
->=20
-> Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/qedr/verbs.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/infiniband/hw/qedr/verbs.c
-> b/drivers/infiniband/hw/qedr/verbs.c
-> index 3b9c89848d6698..5551120ac6ea52 100644
-> --- a/drivers/infiniband/hw/qedr/verbs.c
-> +++ b/drivers/infiniband/hw/qedr/verbs.c
-> @@ -3039,7 +3039,7 @@ static int __qedr_post_send(struct ib_qp *ibqp,
-> struct ib_send_wr *wr,
->  		swqe->wqe_size =3D 2;
->  		swqe2 =3D qed_chain_produce(&qp->sq.pbl);
->=20
-> -		swqe->inv_key_or_imm_data =3D cpu_to_le32(wr-
-> >ex.imm_data);
-> +		swqe->inv_key_or_imm_data =3D
-> cpu_to_le32(be32_to_cpu(wr->ex.imm_data));
->  		length =3D qedr_prepare_sq_send_data(dev, qp, swqe,
-> swqe2,
->  						   wr, bad_wr);
->  		swqe->length =3D cpu_to_le32(length);
-> @@ -3590,7 +3590,7 @@ static inline int qedr_set_ok_cqe_resp_wc(struct
-> rdma_cqe_responder *resp,
->  	wc->byte_len =3D le32_to_cpu(resp->length);
->=20
->  	if (resp->flags & QEDR_RESP_IMM) {
-> -		wc->ex.imm_data =3D le32_to_cpu(resp-
-> >imm_data_or_inv_r_Key);
-> +		wc->ex.imm_data =3D cpu_to_be32(le32_to_cpu(resp-
-> >imm_data_or_inv_r_Key));
->  		wc->wc_flags |=3D IB_WC_WITH_IMM;
->=20
->  		if (resp->flags & QEDR_RESP_RDMA)
-> --
-> 2.15.1
-Acked-by: Michal Kalderon <michal.kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Thanks Jason!=20
+
+--z3Nkz3fRLNVT9Ca+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Sun, Jan 14, 2018 at 02:27:04PM -0700, Jason Gunthorpe wrote:
+> On Thu, Jan 11, 2018 at 05:31:28PM +0200, Leon Romanovsky wrote:
+> > @@ -1538,6 +1537,7 @@ int ib_destroy_qp(struct ib_qp *qp)
+> >  	if (!qp->uobject)
+> >  		rdma_rw_cleanup_mrs(qp);
+> >
+> > +	rdma_restrack_del(&qp->res, RDMA_RESTRACK_QP);
+> >  	ret = qp->device->destroy_qp(qp);
+> >  	if (!ret) {
+> >  		if (pd)
+>
+> This hunk belongs in a different patch right?
+
+In this patch, I changed call from device->create_qp() to
+the _ib_create_qp() and it is under the hood called to
+the rdma_restrack_add(). There was a need to add
+rdma_restrack_del() to balance refounts.
+
+>
+> Jason
+
+--z3Nkz3fRLNVT9Ca+
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpcuz0ACgkQ5GN7iDZy
+WKfNVQ/+I/BvEPUQC5BWfrRVPrWuM7Hgu0PtaFlXvwkHZkYCJqpYrWmcM+snegJ9
+HaOajPDpxxwyW/LD1Icu2dQW3H0A92Edq/BqLNitTZoU5m4piZOMqWn04HeiLX/d
+MTsk6XqbIqYpgI37iuUBPgt7I1m2uMcJhqKNVrHw6fhSEr9ZDVkvZbvrUy9BsThj
+7y9M7BecYaQCWRjL62Ph39L2x0/6bKHrU5zoXooixn7oc28DKSZa2Qhs+on+ySKB
+gYMjVDu/fIw+6h/XMcIUn888DB7QlVk3yRVsPuOHcm19HBFSvGvyw+hU5ZS2F82Y
+0TB6SGZPvt40ib3irlGyrXlV7eHb5Agz9eLNkrkvxpsrmwRtzt7sCCsoDugh6Hc2
+WIpmwj+xmkByRKZM1+VRRfM2i53EwxMhzbHCzpTNtI9obwEIlT3hNmu31vPfIYju
+4I+72hPt7v3juOuJMvxPq4TG3I/hsZFb9eNh+i9rPbw1xEd3t7gfGiAC89DK9xVU
+8TbhluwAvQuIww9yrvx76hUAQASA/X12a3DZRhhV2Mi7Bfp3WLpmAIsD+cYgBz4A
+nMGM4ALxqyAfVFcZz3yPde4CI+Em5qzcFEAnIBG+EcUTUA8d5t3G2vJTwIj+aL5z
+B5+ar1FyX/zqjcVbpYPXB1RpmKxeMADgGji94wfsDKwP0/0gijw=
+=Ly11
+-----END PGP SIGNATURE-----
+
+--z3Nkz3fRLNVT9Ca+--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
