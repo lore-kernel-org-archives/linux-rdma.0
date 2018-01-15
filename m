@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v4 6/7] RDMA/nldev: Provide global resource utilization
-Date: Mon, 15 Jan 2018 17:12:54 +0200
-Message-ID: <20180115151255.30167-7-leon@kernel.org>
+Subject: [PATCH rdma-next v4 3/7] RDMA: Annotate create QP callers
+Date: Mon, 15 Jan 2018 17:12:51 +0200
+Message-ID: <20180115151255.30167-4-leon@kernel.org>
 References: <20180115151255.30167-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180115151255.30167-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,250 +12,216 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Export through netlink interface, the global device utilization
-for the rdmatool as the main user of RDMA nldev interface.
-
-Provide both dumpit and doit callbacks.
-
-As an example of possible output from rdmatool for system with 5
-Mellanox's card
-
-$ rdma res
-1: mlx5_0: qp 4 cq 5 pd 3
-2: mlx5_1: qp 4 cq 5 pd 3
-3: mlx5_2: qp 4 cq 5 pd 3
-4: mlx5_3: qp 2 cq 3 pd 2
-5: mlx5_4: qp 4 cq 5 pd 3
+Update all callers to provide owner name through QP attribute
+structure and connect create_qp with helper which supports
+resource tracking.
 
 Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c  | 154 +++++++++++++++++++++++++++++++++++++++
- include/uapi/rdma/rdma_netlink.h |  10 +++
- 2 files changed, 164 insertions(+)
+ drivers/infiniband/core/cma.c              | 1 +
+ drivers/infiniband/core/mad.c              | 1 +
+ drivers/infiniband/core/uverbs_cmd.c       | 3 +--
+ drivers/infiniband/core/verbs.c            | 4 ++--
+ drivers/infiniband/hw/mlx4/mad.c           | 1 +
+ drivers/infiniband/hw/mlx4/qp.c            | 1 +
+ drivers/infiniband/hw/mlx5/gsi.c           | 2 ++
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c    | 4 +++-
+ drivers/infiniband/ulp/ipoib/ipoib_verbs.c | 1 +
+ drivers/infiniband/ulp/srp/ib_srp.c        | 1 +
+ drivers/infiniband/ulp/srpt/ib_srpt.c      | 1 +
+ net/smc/smc_ib.c                           | 1 +
+ 12 files changed, 16 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 5d790c507c7e..1a607e940c85 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -31,6 +31,8 @@
-  */
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 30d1c32a816f..3810716ea65e 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -858,6 +858,7 @@ int rdma_create_qp(struct rdma_cm_id *id, struct ib_pd *pd,
+ 		return -EINVAL;
  
- #include <linux/module.h>
-+#include <linux/pid.h>
-+#include <linux/pid_namespace.h>
- #include <net/netlink.h>
- #include <rdma/rdma_netlink.h>
+ 	qp_init_attr->port_num = id->port_num;
++	strncpy(qp_init_attr->comm, "rdma-cm", TASK_COMM_LEN);
+ 	qp = ib_create_qp(pd, qp_init_attr);
+ 	if (IS_ERR(qp))
+ 		return PTR_ERR(qp);
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index c50596f7f98a..f73551fc5a02 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -3103,6 +3103,7 @@ static int create_mad_qp(struct ib_mad_qp_info *qp_info,
+ 	qp_init_attr.port_num = qp_info->port_priv->port_num;
+ 	qp_init_attr.qp_context = qp_info;
+ 	qp_init_attr.event_handler = qp_event_handler;
++	strncpy(qp_init_attr.comm, "rdma-mad", TASK_COMM_LEN);
+ 	qp_info->qp = ib_create_qp(qp_info->port_priv->pd, &qp_init_attr);
+ 	if (IS_ERR(qp_info->qp)) {
+ 		dev_err(&qp_info->port_priv->device->dev,
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index c216d98bb816..62b3c5d71cce 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1514,7 +1514,7 @@ static int create_qp(struct ib_uverbs_file *file,
+ 	if (cmd->qp_type == IB_QPT_XRC_TGT)
+ 		qp = ib_create_qp(pd, &attr);
+ 	else
+-		qp = device->create_qp(pd, &attr, uhw);
++		qp = _ib_create_qp(device, pd, &attr, uhw);
  
-@@ -52,6 +54,11 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_PORT_STATE]	= { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_PORT_PHYS_STATE] = { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_DEV_NODE_TYPE] = { .type = NLA_U8 },
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY]	= { .type = NLA_NESTED },
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY]	= { .type = NLA_NESTED },
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME] = { .type = NLA_NUL_STRING,
-+					     .len = 16 },
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR] = { .type = NLA_U64 },
- };
+ 	if (IS_ERR(qp)) {
+ 		ret = PTR_ERR(qp);
+@@ -1527,7 +1527,6 @@ static int create_qp(struct ib_uverbs_file *file,
+ 			goto err_cb;
  
- static int fill_nldev_handle(struct sk_buff *msg, struct ib_device *device)
-@@ -134,6 +141,68 @@ static int fill_port_info(struct sk_buff *msg,
- 	return 0;
- }
+ 		qp->real_qp	  = qp;
+-		qp->device	  = device;
+ 		qp->pd		  = pd;
+ 		qp->send_cq	  = attr.send_cq;
+ 		qp->recv_cq	  = attr.recv_cq;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 15dd26cab5d8..8522639cd315 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -882,7 +882,7 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 	if (qp_init_attr->cap.max_rdma_ctxs)
+ 		rdma_rw_init_qp(device, qp_init_attr);
  
-+static int fill_res_info_entry(struct sk_buff *msg,
-+			       const char *name, u64 curr)
-+{
-+	struct nlattr *entry_attr;
-+
-+	entry_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY);
-+	if (!entry_attr)
-+		return -EMSGSIZE;
-+
-+	if (nla_put_string(msg, RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME, name))
-+		goto err;
-+	if (nla_put_u64_64bit(msg,
-+			      RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR, curr, 0))
-+		goto err;
-+
-+	nla_nest_end(msg, entry_attr);
-+	return 0;
-+
-+err:
-+	nla_nest_cancel(msg, entry_attr);
-+	return -EMSGSIZE;
-+}
-+
-+static int fill_res_info(struct sk_buff *msg, struct ib_device *device)
-+{
-+	static const char *names[_RDMA_RESTRACK_MAX] = {
-+		[RDMA_RESTRACK_PD] = "pd",
-+		[RDMA_RESTRACK_CQ] = "cq",
-+		[RDMA_RESTRACK_QP] = "qp",
-+	};
-+
-+	struct rdma_restrack_root *res = &device->res;
-+	struct nlattr *table_attr;
-+	int ret, i;
-+
-+	if (fill_nldev_handle(msg, device))
-+		return -EMSGSIZE;
-+
-+	if (task_active_pid_ns(current) != &init_pid_ns)
-+		return 0;
-+
-+	table_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_SUMMARY);
-+	if (!table_attr)
-+		return -EMSGSIZE;
-+
-+	for (i = 0; i < _RDMA_RESTRACK_MAX; i++) {
-+		if (!names[i])
-+			continue;
-+		ret = fill_res_info_entry(msg, names[i],
-+					  rdma_restrack_count(res, i));
-+		if (ret)
-+			goto err;
-+	}
-+
-+	nla_nest_end(msg, table_attr);
-+	return 0;
-+
-+err:
-+	nla_nest_cancel(msg, table_attr);
-+	return ret;
-+}
-+
- static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 			  struct netlink_ext_ack *extack)
- {
-@@ -329,6 +398,87 @@ static int nldev_port_get_dumpit(struct sk_buff *skb,
- 	return skb->len;
- }
+-	qp = device->create_qp(pd, qp_init_attr, NULL);
++	qp = _ib_create_qp(device, pd, qp_init_attr, NULL);
+ 	if (IS_ERR(qp))
+ 		return qp;
  
-+static int nldev_res_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
-+			      struct netlink_ext_ack *extack)
-+{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
-+	struct ib_device *device;
-+	struct sk_buff *msg;
-+	u32 index;
-+	int ret;
-+
-+	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+			  nldev_policy, extack);
-+	if (ret || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
-+		return -EINVAL;
-+
-+	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	device = ib_device_get_by_index(index);
-+	if (!device)
-+		return -EINVAL;
-+
-+	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-+	if (!msg)
-+		goto err;
-+
-+	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
-+			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_GET),
-+			0, 0);
-+
-+	ret = fill_res_info(msg, device);
-+	if (ret)
-+		goto err_free;
-+
-+	nlmsg_end(msg, nlh);
-+	put_device(&device->dev);
-+	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
-+
-+err_free:
-+	nlmsg_free(msg);
-+err:
-+	put_device(&device->dev);
-+	return ret;
-+}
-+
-+static int _nldev_res_get_dumpit(struct ib_device *device,
-+				 struct sk_buff *skb,
-+				 struct netlink_callback *cb,
-+				 unsigned int idx)
-+{
-+	int start = cb->args[0];
-+	struct nlmsghdr *nlh;
-+
-+	if (idx < start)
-+		return 0;
-+
-+	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
-+			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_GET),
-+			0, NLM_F_MULTI);
-+
-+	if (fill_res_info(skb, device)) {
-+		nlmsg_cancel(skb, nlh);
-+		goto out;
-+	}
-+
-+	nlmsg_end(skb, nlh);
-+
-+	idx++;
-+
-+out:
-+	cb->args[0] = idx;
-+	return skb->len;
-+}
-+
-+static int nldev_res_get_dumpit(struct sk_buff *skb,
-+				struct netlink_callback *cb)
-+{
-+	/*
-+	 * There is no need to take lock, because
-+	 * we are relying on ib_core's lists_rwsem
-+	 */
-+	return ib_enum_all_devs(_nldev_res_get_dumpit, skb, cb);
-+}
-+
- static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 	[RDMA_NLDEV_CMD_GET] = {
- 		.doit = nldev_get_doit,
-@@ -338,6 +488,10 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 		.doit = nldev_port_get_doit,
- 		.dump = nldev_port_get_dumpit,
- 	},
-+	[RDMA_NLDEV_CMD_RES_GET] = {
-+		.doit = nldev_res_get_doit,
-+		.dump = nldev_res_get_dumpit,
-+	},
- };
+@@ -892,7 +892,6 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 		return ERR_PTR(ret);
+ 	}
  
- void __init nldev_init(void)
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index cc002e316d09..e0f5cdc81541 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -236,6 +236,11 @@ enum rdma_nldev_command {
- 	RDMA_NLDEV_CMD_PORT_NEW,
- 	RDMA_NLDEV_CMD_PORT_DEL,
+-	qp->device     = device;
+ 	qp->real_qp    = qp;
+ 	qp->uobject    = NULL;
+ 	qp->qp_type    = qp_init_attr->qp_type;
+@@ -1520,6 +1519,7 @@ int ib_destroy_qp(struct ib_qp *qp)
+ 	if (!qp->uobject)
+ 		rdma_rw_cleanup_mrs(qp);
  
-+	RDMA_NLDEV_CMD_RES_GET, /* can dump */
-+	RDMA_NLDEV_CMD_RES_SET,
-+	RDMA_NLDEV_CMD_RES_NEW,
-+	RDMA_NLDEV_CMD_RES_DEL,
-+
- 	RDMA_NLDEV_NUM_OPS
- };
++	rdma_restrack_del(&qp->res, RDMA_RESTRACK_QP);
+ 	ret = qp->device->destroy_qp(qp);
+ 	if (!ret) {
+ 		if (pd)
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 0793a21d76f4..f816df420fb9 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -1834,6 +1834,7 @@ static int create_pv_sqp(struct mlx4_ib_demux_pv_ctx *ctx,
+ 	qp_init_attr.init_attr.port_num = ctx->port;
+ 	qp_init_attr.init_attr.qp_context = ctx;
+ 	qp_init_attr.init_attr.event_handler = pv_qp_event_handler;
++	strncpy(qp_init_attr.init_attr.comm, "mlx4-sriov", TASK_COMM_LEN);
+ 	tun_qp->qp = ib_create_qp(ctx->pd, &qp_init_attr.init_attr);
+ 	if (IS_ERR(tun_qp->qp)) {
+ 		ret = PTR_ERR(tun_qp->qp);
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index f045491f2c14..ebdfac3eb673 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1689,6 +1689,7 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
+ 		if (is_eth &&
+ 		    dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
+ 			init_attr->create_flags |= MLX4_IB_QP_CREATE_ROCE_V2_GSI;
++			strncpy(init_attr->comm, "mlx4-gsi", TASK_COMM_LEN);
+ 			sqp->roce_v2_gsi = ib_create_qp(pd, init_attr);
  
-@@ -303,6 +308,11 @@ enum rdma_nldev_attr {
+ 			if (IS_ERR(sqp->roce_v2_gsi)) {
+diff --git a/drivers/infiniband/hw/mlx5/gsi.c b/drivers/infiniband/hw/mlx5/gsi.c
+index 79e6309460dc..b1b177d1a0dd 100644
+--- a/drivers/infiniband/hw/mlx5/gsi.c
++++ b/drivers/infiniband/hw/mlx5/gsi.c
+@@ -184,6 +184,7 @@ struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
+ 		hw_init_attr.cap.max_send_sge = 0;
+ 		hw_init_attr.cap.max_inline_data = 0;
+ 	}
++	strncpy(hw_init_attr.comm, "mlx5-gsi", TASK_COMM_LEN);
+ 	gsi->rx_qp = ib_create_qp(pd, &hw_init_attr);
+ 	if (IS_ERR(gsi->rx_qp)) {
+ 		mlx5_ib_warn(dev, "unable to create hardware GSI QP. error %ld\n",
+@@ -264,6 +265,7 @@ static struct ib_qp *create_gsi_ud_qp(struct mlx5_ib_gsi_qp *gsi)
+ 		.sq_sig_type = gsi->sq_sig_type,
+ 		.qp_type = IB_QPT_UD,
+ 		.create_flags = mlx5_ib_create_qp_sqpn_qp1(),
++		.comm = "mlx5-gsi",
+ 	};
  
- 	RDMA_NLDEV_ATTR_DEV_NODE_TYPE,		/* u8 */
+ 	return ib_create_qp(pd, &init_attr);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index dfbb8fdda5f6..d165b3a25340 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -263,6 +263,7 @@ static struct ib_qp *ipoib_cm_create_rx_qp(struct net_device *dev,
+ 		.sq_sig_type = IB_SIGNAL_ALL_WR,
+ 		.qp_type = IB_QPT_RC,
+ 		.qp_context = p,
++		.comm = "ipoib-cm",
+ 	};
  
-+	RDMA_NLDEV_ATTR_RES_SUMMARY,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY,	/* nested table */
-+	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME,	/* string */
-+	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR,	/* u64 */
-+
- 	RDMA_NLDEV_ATTR_MAX
- };
- #endif /* _UAPI_RDMA_NETLINK_H */
+ 	if (!ipoib_cm_has_srq(dev)) {
+@@ -1062,7 +1063,8 @@ static struct ib_qp *ipoib_cm_create_tx_qp(struct net_device *dev, struct ipoib_
+ 		.sq_sig_type		= IB_SIGNAL_ALL_WR,
+ 		.qp_type		= IB_QPT_RC,
+ 		.qp_context		= tx,
+-		.create_flags		= 0
++		.create_flags		= 0,
++		.comm			= "ipoib-cm",
+ 	};
+ 	struct ib_qp *tx_qp;
+ 
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+index 984a88096f39..d41d85f8ac7e 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+@@ -206,6 +206,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
+ 	if (priv->hca_caps & IB_DEVICE_MANAGED_FLOW_STEERING)
+ 		init_attr.create_flags |= IB_QP_CREATE_NETIF_QP;
+ 
++	strncpy(init_attr.comm, "ipoib-verbs", TASK_COMM_LEN);
+ 	priv->qp = ib_create_qp(priv->pd, &init_attr);
+ 	if (IS_ERR(priv->qp)) {
+ 		pr_warn("%s: failed to create QP\n", ca->name);
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 62d88212c1b0..fb8be6b2ddfb 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -521,6 +521,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+ 	init_attr->send_cq             = send_cq;
+ 	init_attr->recv_cq             = recv_cq;
+ 
++	strncpy(init_attr->comm, "srp", TASK_COMM_LEN);
+ 	qp = ib_create_qp(dev->pd, init_attr);
+ 	if (IS_ERR(qp)) {
+ 		ret = PTR_ERR(qp);
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index d78f60dcc2ba..3724132a266e 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -1726,6 +1726,7 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 		qp_init->cap.max_recv_sge = qp_init->cap.max_send_sge;
+ 	}
+ 
++	strncpy(qp_init->comm, "srpt", TASK_COMM_LEN);
+ 	ch->qp = ib_create_qp(sdev->pd, qp_init);
+ 	if (IS_ERR(ch->qp)) {
+ 		ret = PTR_ERR(ch->qp);
+diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
+index 90f1a7f9085c..9f5bca333cce 100644
+--- a/net/smc/smc_ib.c
++++ b/net/smc/smc_ib.c
+@@ -243,6 +243,7 @@ int smc_ib_create_queue_pair(struct smc_link *lnk)
+ 		},
+ 		.sq_sig_type = IB_SIGNAL_REQ_WR,
+ 		.qp_type = IB_QPT_RC,
++		.comm = "sec-ib",
+ 	};
+ 	int rc;
+ 
 -- 
 2.15.1
 
