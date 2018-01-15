@@ -1,112 +1,60 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v4 0/7] RDMA resource tracking
-Date: Mon, 15 Jan 2018 17:12:48 +0200
-Message-ID: <20180115151255.30167-1-leon@kernel.org>
+Subject: [PATCH rdma-next v4 5/7] RDMA/core: Add resource tracking for create and destroy PDs
+Date: Mon, 15 Jan 2018 17:12:53 +0200
+Message-ID: <20180115151255.30167-6-leon@kernel.org>
+References: <20180115151255.30167-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180115151255.30167-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Changelog:
-v3->4:
-  * Added Steve ROB tags.
-  * Updated restrack.h to be compatible with kernel-doc format
-  * Fixed bug when not all QPs (more than one netlink page) were
-    returned by netlink interface
-  * Removed "MAX" values from object summary. In followup patches,
-    I will eturn object summary per-namespace and not for init PID
-    namespace only. Max values can be seen with ibv_devinfo tool.
-  * Renamed "comm" to be kern_name.
-  * Fix spelling errors.
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I didn't change implementation of setting names in objects, because I
-want to do it after Steve's implementation of RESTRACK_OBJ_CMA, to be
-sure that it works for both of us. Steve's implementation is almost
-ready and he is waiting for this code to be accepted.
+Track all creation and destroy of PD objects.
 
-v2->v3:
-  * Added support of PID namespaces.
-  * Rewrote rdma_restraack_add function to ensure that it won't
-    appear in lists before it is valid.
-  * Replace pid/task name caching logic to use task_struct instead.
-  * Removed report of name of task's for user space objects. Users
-    are expected to read it through /proc/PID/comm.
-v1->v2:
- * Rebased on latest rdma/for-next
- * Replaced mutex lock which protect linked lists to be RW semaphore.
-   It has no impact on current implementation, because there is only one
-   reader (nldev) and it is serialized. However better to be prepared
-   for multiple readers from the beginning.
- * Added reinitialization next QP entry logic to ensure that it exists
-   and didn't vanish during fill_req_qp() work.
-v0->v1:
- * Dropped RFC
- * Separated to thre series, one for for-rc, and two for-next.
+Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_cmd.c | 1 +
+ drivers/infiniband/core/verbs.c      | 2 ++
+ 2 files changed, 3 insertions(+)
 
--------
-The original goal of this series was to allow ability to view connection
-(QP) information about running processes, however I used this opportunity and
-created common infrastructure to track and report various resources. The report
-part is implemented in netlink (nldev), but smart ULPs can now create
-advanced usage models based on device utilization.
-
-The current implementation relies on one lock per-object per-device, so
-creation/destroying of various objects (CQ, PD, e.t.c) on various or the
-same devices doesn't interfere each with another.
-
-The data protection is performed with SRCU and its reader-writer model
-ensures that resource won't be destroyed till readers will finish their
-work.
-
-Possible future work will include:
- * Reducing number of locks in RDMA, because of SRCU.
- * Converting CMA to be based completely on resource tracking.
- * Addition of other objects and extending current to give full
-   and detailed state of the RDMA kernel stack.
- * Replacing synchronize_srcu with call_srcu to make destroy flow
-   non-blocking.
- * Provide reliable device reset flow, preserving resource creation ordering.
-
-	Thanks
----------------------------------------
-
-Leon Romanovsky (7):
-  RDMA/restrack: Add general infrastructure to track RDMA resources
-  RDMA/core: Add helper function to create named QPs
-  RDMA: Annotate create QP callers
-  RDMA/core: Add resource tracking for create and destroy CQs
-  RDMA/core: Add resource tracking for create and destroy PDs
-  RDMA/nldev: Provide global resource utilization
-  RDMA/nldev: Provide detailed QP information
-
- drivers/infiniband/core/Makefile           |   2 +-
- drivers/infiniband/core/cma.c              |   1 +
- drivers/infiniband/core/core_priv.h        |  20 ++
- drivers/infiniband/core/cq.c               |   3 +
- drivers/infiniband/core/device.c           |   7 +
- drivers/infiniband/core/mad.c              |   1 +
- drivers/infiniband/core/nldev.c            | 391 +++++++++++++++++++++++++++++
- drivers/infiniband/core/restrack.c         | 182 ++++++++++++++
- drivers/infiniband/core/uverbs_cmd.c       |   5 +-
- drivers/infiniband/core/uverbs_std_types.c |   2 +
- drivers/infiniband/core/verbs.c            |   8 +-
- drivers/infiniband/hw/mlx4/mad.c           |   1 +
- drivers/infiniband/hw/mlx4/qp.c            |   1 +
- drivers/infiniband/hw/mlx5/gsi.c           |   2 +
- drivers/infiniband/ulp/ipoib/ipoib_cm.c    |   4 +-
- drivers/infiniband/ulp/ipoib/ipoib_verbs.c |   1 +
- drivers/infiniband/ulp/srp/ib_srp.c        |   1 +
- drivers/infiniband/ulp/srpt/ib_srpt.c      |   1 +
- include/rdma/ib_verbs.h                    |  23 +-
- include/rdma/restrack.h                    | 197 +++++++++++++++
- include/uapi/rdma/rdma_netlink.h           |  55 ++++
- net/smc/smc_ib.c                           |   1 +
- 22 files changed, 902 insertions(+), 7 deletions(-)
- create mode 100644 drivers/infiniband/core/restrack.c
- create mode 100644 include/rdma/restrack.h
-
---
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index c6ac0ee57f7c..2cf3e20e5152 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -340,6 +340,7 @@ ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
+ 	uobj->object = pd;
+ 	memset(&resp, 0, sizeof resp);
+ 	resp.pd_handle = uobj->id;
++	rdma_restrack_add(&pd->res, RDMA_RESTRACK_PD, NULL);
+ 
+ 	if (copy_to_user(u64_to_user_ptr(cmd.response), &resp, sizeof resp)) {
+ 		ret = -EFAULT;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index b0c4080eaf6e..e032b14c4201 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -262,6 +262,7 @@ struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
+ 		pr_warn("%s: enabling unsafe global rkey\n", caller);
+ 		mr_access_flags |= IB_ACCESS_REMOTE_READ | IB_ACCESS_REMOTE_WRITE;
+ 	}
++	rdma_restrack_add(&pd->res, RDMA_RESTRACK_PD, NULL);
+ 
+ 	if (mr_access_flags) {
+ 		struct ib_mr *mr;
+@@ -312,6 +313,7 @@ void ib_dealloc_pd(struct ib_pd *pd)
+ 	   requires the caller to guarantee we can't race here. */
+ 	WARN_ON(atomic_read(&pd->usecnt));
+ 
++	rdma_restrack_del(&pd->res, RDMA_RESTRACK_PD);
+ 	/* Making delalloc_pd a void return is a WIP, no driver should return
+ 	   an error here. */
+ 	ret = pd->device->dealloc_pd(pd);
+-- 
 2.15.1
 
 --
