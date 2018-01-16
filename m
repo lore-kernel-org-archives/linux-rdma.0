@@ -1,36 +1,19 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/4] DMAC RoCE refacting code
-Date: Mon, 15 Jan 2018 16:07:10 -0700
-Message-ID: <20180115230710.GD1867@ziepe.ca>
-References: <20180109132453.29038-1-leon@kernel.org>
+From: Tom Crist <tomaskova-h1jlQU1N2AFRqbWPac/tCA@public.gmane.org>
+Subject: =?utf-8?Q?Neujahrsspende_von_4.800.000_=E2=82=AC?=
+Date: Tue, 16 Jan 2018 01:32:31 +0100 (CET)
+Message-ID: <2109180419.41014.1516062751081.JavaMail.zimbra@novybydzov.cz>
+Reply-To: Tom Crist <tomcrist2009-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180109132453.29038-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 09, 2018 at 03:24:49PM +0200, Leon Romanovsky wrote:
-> Hi,
-> 
-> The following series is refactoring code for DMAC RoCE code and one fix
-> to perform modify QP on real QP.
-> 
-> Thanks
-> 
-> Parav Pandit (4):
->   IB/core: Perform modify QP on real one
->   IB/core: Limit DMAC resolution to userspace QPs
->   IB/core: Attempt DMAC resolution for only RoCE
->   IB/core: Limit DMAC resolution to RoCE Connected QPs
 
-I applied all of these to for-next
 
-Thanks,
-Jason
+-- 
+ Hallo, Sie haben eine Spende von 4.800.000,00 Euro, ich habe die America Lottery in Amerika im Wert von 40 Millionen Dollar gewonnen und ich gebe einen Teil davon an fünf glückliche Menschen und Wohltätigkeits-Häuser in Erinnerung an meine verstorbene Frau, die an Krebs gestorben ist. Kontaktieren Sie mich für weitere Details:(tomcrist2009-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
