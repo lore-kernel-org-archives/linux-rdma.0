@@ -1,49 +1,334 @@
-From: Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
-Subject: Re: krping problem on 4.15-rc4
-Date: Tue, 16 Jan 2018 16:14:26 -0500
-Message-ID: <CAN-5tyFSYWaTPVdq=99Yr9XwnULyf4tw06roZys=rtR0F3x03g@mail.gmail.com>
-References: <CAN-5tyH1HO7yzzQLyb5z5Pq=OrHnKzmCrR2MffLguqsEA-mwWg@mail.gmail.com>
- <00ff01d38a4f$1a979eb0$4fc6dc10$@opengridcomputing.com> <CAN-5tyEwdSOiAk04xjfazxBqwkkTiCjr2dVcCoYLQJw8f37U=w@mail.gmail.com>
- <017d01d38b14$cbe95670$63bc0350$@opengridcomputing.com> <CAN-5tyGq=hmXY9HZYXpfaytOUV=gb0fri69gj69WKbbYtW3nTQ@mail.gmail.com>
- <006d01d38c02$793de8c0$6bb9ba40$@opengridcomputing.com> <CAN-5tyG9ZsaKZs3ayfFfuy7o25DrXR2yWmwUvLdNutJ1SbEg1w@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next v4 1/7] RDMA/restrack: Add general
+ infrastructure to track RDMA resources
+Date: Tue, 16 Jan 2018 23:19:07 +0200
+Message-ID: <20180116211907.GD13639@mtr-leonro.local>
+References: <20180115151255.30167-1-leon@kernel.org>
+ <20180115151255.30167-2-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="fOHHtNG4YXGJ0yqR"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAN-5tyG9ZsaKZs3ayfFfuy7o25DrXR2yWmwUvLdNutJ1SbEg1w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180115151255.30167-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 16, 2018 at 2:50 PM, Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org> wrote:
-> On Fri, Jan 12, 2018 at 7:07 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
->>> > Ok.  The memory probably doesn't matter.  Maybe run krping client and
->>> server on the same host (to use hw-loopback), and see if it works on both,
->>> one, or neither systems when they are both the client and server.
->>>
->>> Loopback on the original "server" machine produces the same failure.
->>> Jan 12 17:05:40 localhost kernel: mlx5_0:dump_cqe:277:(pid 0): dump error
->>> cqe
->>> Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
->>> Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
->>> Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
->>> Jan 12 17:05:40 localhost kernel: 00000000 93003204 1000017c 0005e1d2
->>> Jan 12 17:05:40 localhost kernel: krping: cq completion failed with
->>> wr_id 0 status 4 opcode 0 vender_err 32
->>
->> Can someone from Mellanox comment more on the above CQE error?  What exactly is it tell us?
->>
->>>
->>> What does this means?
->>
->> Not sure.  But it does seem to be tied to that specific machine.  Question:  Is an IOMMU enabled on that system?
->
-> IOMMU (Inter's VT-d) is enabled in BIOS (on both machines).
->
->>  Perhaps that is exposing a dma mapping problem with krping?
 
-I have replaces the CX-5 card with another one and I no longer see the
-krping problem.  I think it speaks that it's a card issue...
+--fOHHtNG4YXGJ0yqR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Jan 15, 2018 at 05:12:49PM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> The RDMA subsystem has very strict set of objects to work on it,
+> but it completely lacks tracking facilities and no visibility of
+> resource utilization.
+>
+> The following patch adds such infrastructure to keep track of RDMA
+> resources to help with debugging of user space applications. The primary
+> user of this infrastructure is RDMA nldev netlink (following patches),
+> but it is not limited too.
+>
+> At this stage, the main three objects (PD, CQ and QP) are added,
+> and more will be added later.
+>
+> There are four new functions in use by RDMA/core:
+>  * rdma_restrack_init(...)   - initializes restrack database
+>  * rdma_restrack_clean(...)  - cleans restrack database
+>  * rdma_restrack_add(...)    - adds object to be tracked
+>  * rdma_restrack_del(...)    - removes object from tracking
+>
+> 3 functions and one iterator visible to kernel users:
+>  * rdma_restrack_count(...) - returns number of allocated objects of
+> 			      specific type
+>  * rdma_restrack_lock(...)  - Lock primitive to protect access to list
+> 			      of resources
+>  * rdma_restrack_unlock(...)- Unlock primitive to protect access to list
+> 			      of resources
+>  * for_each_res_safe(...)   - iterates over all relevant objects in
+>    the restrack database.
+>
+> Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> ---
+>  drivers/infiniband/core/Makefile    |   2 +-
+>  drivers/infiniband/core/core_priv.h |   1 +
+>  drivers/infiniband/core/device.c    |   7 ++
+>  drivers/infiniband/core/restrack.c  | 182 +++++++++++++++++++++++++++++++++
+>  include/rdma/ib_verbs.h             |  17 +++-
+>  include/rdma/restrack.h             | 197 ++++++++++++++++++++++++++++++++++++
+>  6 files changed, 404 insertions(+), 2 deletions(-)
+>  create mode 100644 drivers/infiniband/core/restrack.c
+>  create mode 100644 include/rdma/restrack.h
+>
+> diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+> index 504b926552c6..f69833db0a32 100644
+> --- a/drivers/infiniband/core/Makefile
+> +++ b/drivers/infiniband/core/Makefile
+> @@ -12,7 +12,7 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
+>  				device.o fmr_pool.o cache.o netlink.o \
+>  				roce_gid_mgmt.o mr_pool.o addr.o sa_query.o \
+>  				multicast.o mad.o smi.o agent.o mad_rmpp.o \
+> -				security.o nldev.o
+> +				security.o nldev.o restrack.o
+>
+>  ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
+>  ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o
+> diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+> index aef9aa0ac0e6..2b1372da708a 100644
+> --- a/drivers/infiniband/core/core_priv.h
+> +++ b/drivers/infiniband/core/core_priv.h
+> @@ -40,6 +40,7 @@
+>  #include <rdma/ib_verbs.h>
+>  #include <rdma/opa_addr.h>
+>  #include <rdma/ib_mad.h>
+> +#include <rdma/restrack.h>
+>  #include "mad_priv.h"
+>
+>  /* Total number of ports combined across all struct ib_devices's */
+> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+> index 2826e06311a5..c3e389f8c99a 100644
+> --- a/drivers/infiniband/core/device.c
+> +++ b/drivers/infiniband/core/device.c
+> @@ -263,6 +263,11 @@ struct ib_device *ib_alloc_device(size_t size)
+>  	if (!device)
+>  		return NULL;
+>
+> +	if (rdma_restrack_init(&device->res)) {
+> +		kfree(device);
+> +		return NULL;
+> +	}
+> +
+>  	device->dev.class = &ib_class;
+>  	device_initialize(&device->dev);
+>
+> @@ -596,6 +601,8 @@ void ib_unregister_device(struct ib_device *device)
+>  	}
+>  	up_read(&lists_rwsem);
+>
+> +	rdma_restrack_clean(&device->res);
+> +
+>  	ib_device_unregister_rdmacg(device);
+>  	ib_device_unregister_sysfs(device);
+>
+> diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
+> new file mode 100644
+> index 000000000000..879b79ea31da
+> --- /dev/null
+> +++ b/drivers/infiniband/core/restrack.c
+> @@ -0,0 +1,182 @@
+> +/*
+> + * Copyright (c) 2017 Mellanox Technologies. All rights reserved.
+> + *
+> + * Redistribution and use in source and binary forms, with or without
+> + * modification, are permitted provided that the following conditions are met:
+> + *
+> + * 1. Redistributions of source code must retain the above copyright
+> + *    notice, this list of conditions and the following disclaimer.
+> + * 2. Redistributions in binary form must reproduce the above copyright
+> + *    notice, this list of conditions and the following disclaimer in the
+> + *    documentation and/or other materials provided with the distribution.
+> + * 3. Neither the names of the copyright holders nor the names of its
+> + *    contributors may be used to endorse or promote products derived from
+> + *    this software without specific prior written permission.
+> + *
+> + * Alternatively, this software may be distributed under the terms of the
+> + * GNU General Public License ("GPL") version 2 as published by the Free
+> + * Software Foundation.
+> + *
+> + * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+> + * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+> + * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+> + * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+> + * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+> + * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+> + * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+> + * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+> + * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+> + * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+> + * POSSIBILITY OF SUCH DAMAGE.
+> + */
+> +
+> +#include <rdma/ib_verbs.h>
+> +#include <rdma/restrack.h>
+> +#include <linux/rculist.h>
+> +#include <linux/sched/task.h>
+> +
+> +int rdma_restrack_init(struct rdma_restrack_root *res)
+> +{
+> +	int i = 0;
+> +
+> +	for (; i < _RDMA_RESTRACK_MAX; i++) {
+> +		refcount_set(&res->cnt[i], 1);
+> +		INIT_LIST_HEAD_RCU(&res->list[i]);
+> +		init_rwsem(&res->rwsem[i]);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +void rdma_restrack_clean(struct rdma_restrack_root *res)
+> +{
+> +	int i = 0;
+> +
+> +	for (; i < _RDMA_RESTRACK_MAX; i++) {
+> +		WARN_ON_ONCE(!refcount_dec_and_test(&res->cnt[i]));
+> +		WARN_ON_ONCE(!list_empty(&res->list[i]));
+> +	}
+> +}
+> +
+> +static bool is_restrack_valid(enum rdma_restrack_obj type)
+> +{
+> +	return !(type >= _RDMA_RESTRACK_MAX);
+> +}
+> +
+> +int rdma_restrack_count(struct rdma_restrack_root *res,
+> +			enum rdma_restrack_obj type)
+> +{
+> +	if (!is_restrack_valid(type))
+> +		return 0;
+> +
+> +	/*
+> +	 * The counter was initialized to 1 at the beginning.
+> +	 */
+> +	return refcount_read(&res->cnt[type]) - 1;
+> +}
+> +EXPORT_SYMBOL(rdma_restrack_count);
+> +
+> +void rdma_restrack_add(struct rdma_restrack_entry *res,
+> +		       enum rdma_restrack_obj type, const char *comm)
+> +{
+> +	struct ib_device *dev;
+> +	struct ib_pd *pd;
+> +	struct ib_cq *cq;
+> +	struct ib_qp *qp;
+> +
+> +	if (!is_restrack_valid(type))
+> +		return;
+> +
+> +	switch (type) {
+> +	case RDMA_RESTRACK_PD:
+> +		pd = container_of(res, struct ib_pd, res);
+> +		dev = pd->device;
+> +		break;
+> +	case RDMA_RESTRACK_CQ:
+> +		cq = container_of(res, struct ib_cq, res);
+> +		dev = cq->device;
+> +		break;
+> +	case RDMA_RESTRACK_QP:
+> +		qp = container_of(res, struct ib_qp, res);
+> +		dev = qp->device;
+> +		break;
+> +	default:
+> +		/* unreachable */
+> +		return;
+> +	}
+> +
+> +	if (init_srcu_struct(&res->srcu))
+> +		/*
+> +		 * We are not returning error, because there is nothing
+> +		 * we can do it in such case, it is already too late to
+> +		 * crash the driver just of failure in resource tracking.
+> +		 *
+> +		 * Simply leave this resource as not valid.
+> +		 */
+> +		return;
+> +
+> +	if (!comm || !strlen(comm)) {
+> +		res->kern_name = NULL;
+> +		get_task_struct(current);
+> +		res->task = current;
+> +	} else {
+> +		res->task = NULL;
+> +		res->kern_name = kstrdup_const(comm, GFP_KERNEL);
+> +		if (!res->kern_name)
+> +			goto out;
+> +	}
+> +
+> +	refcount_inc(&dev->res.cnt[type]);
+> +
+> +	down_write(&dev->res.rwsem[type]);
+> +	list_add(&res->list, &dev->res.list[type]);
+> +	res->valid = true;
+> +	up_write(&dev->res.rwsem[type]);
+> +	return;
+> +
+> +out:
+> +	res->valid = false;
+> +	cleanup_srcu_struct(&res->srcu);
+> +}
+> +EXPORT_SYMBOL(rdma_restrack_add);
+> +
+> +void rdma_restrack_del(struct rdma_restrack_entry *res,
+> +		       enum rdma_restrack_obj type)
+> +{
+> +	struct ib_device *dev;
+> +	struct ib_pd *pd;
+> +	struct ib_cq *cq;
+> +	struct ib_qp *qp;
+> +
+> +	if (!is_restrack_valid(type) || !res->valid)
+> +		return;
+> +
+> +	switch (type) {
+> +	case RDMA_RESTRACK_PD:
+> +		pd = container_of(res, struct ib_pd, res);
+> +		dev = pd->device;
+> +		break;
+> +	case RDMA_RESTRACK_CQ:
+> +		cq = container_of(res, struct ib_cq, res);
+> +		dev = cq->device;
+> +		break;
+> +	case RDMA_RESTRACK_QP:
+> +		qp = container_of(res, struct ib_qp, res);
+> +		dev = qp->device;
+> +		break;
+> +	default:
+> +		/* unreachable */
+> +		return;
+> +	}
+> +
+> +	refcount_dec(&dev->res.cnt[type]);
+> +	down_write(&dev->res.rwsem[type]);
+> +	list_del(&res->list);
+> +	res->valid = false;
+> +	kfree_const(res->kern_name);
+> +	put_task_struct(res->task);
+
+There is an error here, it should be
+ if(res->task)
+ 	put_task_struct(res->task);
+
+Resend?
+
+Thanks
+
+--fOHHtNG4YXGJ0yqR
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpebEoACgkQ5GN7iDZy
+WKfpxA/+JhGPS4S6Og6pZT2mpF5VjnCQEP0eeFUCF55jB0zH5Z/UsnPjr57efx4v
+Ylniv63ujbgyRqUs0d0WFYUN6/CeWBExeGG3QVUoMuFvA5YyQMqrp0YT3PgsbQXw
+Fa4hO8lYvezP0XylBXXS7S+6QKK2fu8ZIfXZfdOM4w67Uzx4kzlChA7JJGFiwAtq
+4V47jPbIIaGIr+mOSo+OyvaZDbe8WPRYUL05/z4xQF583Oz4rnOKzkRSKilEt7qg
+txtMj3No6B8FDsyorIlT1+tOjfQqB0EKVO+a/LbPnssHaNViwv1FBPUl1L/Uw1HU
+c0k1uawSo3fSxtGd26ClegqH7ecLzdNnGSjNycaXKazxNRDpERrIFDd7wLuK73tA
+1ch8m4PdTf2uton31MT3UnQek7FMHJ5jfaCZ2CXG2b+mzy6i2PiyDaTMXqCTsoFg
+d8s+IWAsSuzZxh38pj0kLJ3vKhOTbZuiWOxVw0OKBwOrDdMNEenlJ4N+gh479aw2
+91FFFofI6tgMp4fv8GE6xwCXYqFYmAG5vm8L5Vt2K97UFfEGgXrrW5Mw3fa2QMrr
+SgcBO/XHokdAr1e3HV9xmJmTdGzo3WPHwAWPv0w9pcPyqToOEEmtJEbzCVRfw6Jm
+SEBsXDwyuTeD5b+eGJBv5YisyP7ZN15ex6TErcn2kRa47PWyj5w=
+=QL0G
+-----END PGP SIGNATURE-----
+
+--fOHHtNG4YXGJ0yqR--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
