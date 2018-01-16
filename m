@@ -1,98 +1,49 @@
-From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v4 2/5] IB/srp: Use kstrtoull() instead of simple_strtoull()
-Date: Tue, 16 Jan 2018 10:39:42 -0800
-Message-ID: <20180116183945.30629-3-bart.vanassche@wdc.com>
-References: <20180116183945.30629-1-bart.vanassche@wdc.com>
+From: Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
+Subject: Re: krping problem on 4.15-rc4
+Date: Tue, 16 Jan 2018 14:50:57 -0500
+Message-ID: <CAN-5tyG9ZsaKZs3ayfFfuy7o25DrXR2yWmwUvLdNutJ1SbEg1w@mail.gmail.com>
+References: <CAN-5tyH1HO7yzzQLyb5z5Pq=OrHnKzmCrR2MffLguqsEA-mwWg@mail.gmail.com>
+ <00ff01d38a4f$1a979eb0$4fc6dc10$@opengridcomputing.com> <CAN-5tyEwdSOiAk04xjfazxBqwkkTiCjr2dVcCoYLQJw8f37U=w@mail.gmail.com>
+ <017d01d38b14$cbe95670$63bc0350$@opengridcomputing.com> <CAN-5tyGq=hmXY9HZYXpfaytOUV=gb0fri69gj69WKbbYtW3nTQ@mail.gmail.com>
+ <006d01d38c02$793de8c0$6bb9ba40$@opengridcomputing.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180116183945.30629-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <006d01d38c02$793de8c0$6bb9ba40$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use kstrtoull() since simple_strtoull() is deprecated. This patch
-improves error checking but otherwise does not change any functionality.
+On Fri, Jan 12, 2018 at 7:07 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+>> > Ok.  The memory probably doesn't matter.  Maybe run krping client and
+>> server on the same host (to use hw-loopback), and see if it works on both,
+>> one, or neither systems when they are both the client and server.
+>>
+>> Loopback on the original "server" machine produces the same failure.
+>> Jan 12 17:05:40 localhost kernel: mlx5_0:dump_cqe:277:(pid 0): dump error
+>> cqe
+>> Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
+>> Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
+>> Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
+>> Jan 12 17:05:40 localhost kernel: 00000000 93003204 1000017c 0005e1d2
+>> Jan 12 17:05:40 localhost kernel: krping: cq completion failed with
+>> wr_id 0 status 4 opcode 0 vender_err 32
+>
+> Can someone from Mellanox comment more on the above CQE error?  What exactly is it tell us?
+>
+>>
+>> What does this means?
+>
+> Not sure.  But it does seem to be tied to that specific machine.  Question:  Is an IOMMU enabled on that system?
 
-Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 33 +++++++++++++++++++++++++++++----
- 1 file changed, 29 insertions(+), 4 deletions(-)
+IOMMU (Inter's VT-d) is enabled in BIOS (on both machines).
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 62d88212c1b0..39b3e43efbbe 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -3111,6 +3111,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 	char *options, *sep_opt;
- 	char *p;
- 	substring_t args[MAX_OPT_ARGS];
-+	unsigned long long ull;
- 	int opt_mask = 0;
- 	int token;
- 	int ret = -EINVAL;
-@@ -3135,7 +3136,13 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				ret = -ENOMEM;
- 				goto out;
- 			}
--			target->id_ext = cpu_to_be64(simple_strtoull(p, NULL, 16));
-+			ret = kstrtoull(p, 16, &ull);
-+			if (ret) {
-+				pr_warn("invalid id_ext parameter '%s'\n", p);
-+				kfree(p);
-+				goto out;
-+			}
-+			target->id_ext = cpu_to_be64(ull);
- 			kfree(p);
- 			break;
- 
-@@ -3145,7 +3152,13 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				ret = -ENOMEM;
- 				goto out;
- 			}
--			target->ioc_guid = cpu_to_be64(simple_strtoull(p, NULL, 16));
-+			ret = kstrtoull(p, 16, &ull);
-+			if (ret) {
-+				pr_warn("invalid ioc_guid parameter '%s'\n", p);
-+				kfree(p);
-+				goto out;
-+			}
-+			target->ioc_guid = cpu_to_be64(ull);
- 			kfree(p);
- 			break;
- 
-@@ -3181,7 +3194,13 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				ret = -ENOMEM;
- 				goto out;
- 			}
--			target->service_id = cpu_to_be64(simple_strtoull(p, NULL, 16));
-+			ret = kstrtoull(p, 16, &ull);
-+			if (ret) {
-+				pr_warn("bad service_id parameter '%s'\n", p);
-+				kfree(p);
-+				goto out;
-+			}
-+			target->service_id = cpu_to_be64(ull);
- 			kfree(p);
- 			break;
- 
-@@ -3235,7 +3254,13 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				ret = -ENOMEM;
- 				goto out;
- 			}
--			target->initiator_ext = cpu_to_be64(simple_strtoull(p, NULL, 16));
-+			ret = kstrtoull(p, 16, &ull);
-+			if (ret) {
-+				pr_warn("bad initiator_ext value '%s'\n", p);
-+				kfree(p);
-+				goto out;
-+			}
-+			target->initiator_ext = cpu_to_be64(ull);
- 			kfree(p);
- 			break;
- 
--- 
-2.15.1
-
+>  Perhaps that is exposing a dma mapping problem with krping?
+>
+> Steve.
+>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
