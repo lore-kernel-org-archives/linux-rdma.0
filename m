@@ -1,124 +1,82 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH rdma-next v4 1/7] RDMA/restrack: Add general
- infrastructure to track RDMA resources
-Date: Tue, 16 Jan 2018 21:33:18 +0000
-Message-ID: <1516138397.2844.34.camel@wdc.com>
-References: <20180115151255.30167-1-leon@kernel.org>
-         <20180115151255.30167-2-leon@kernel.org>
+From: Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH v2 0/3] NFS/RDMA server changes for v4.16
+Date: Tue, 16 Jan 2018 16:33:43 -0500
+Message-ID: <20180116213343.GD21173@fieldses.org>
+References: <20180103203849.7074.9609.stgit@klimt.1015granger.net>
+ <BD4AB89D-D4A5-4576-A9EE-4D0A485F13E1@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180115151255.30167-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Content-Language: en-US
-Content-ID: <AE782C9BC420B14682B1267DC0AC6E0A-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <BD4AB89D-D4A5-4576-A9EE-4D0A485F13E1-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE4LTAxLTE1IGF0IDE3OjEyICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+ICtpbnQgcmRtYV9yZXN0cmFja19pbml0KHN0cnVjdCByZG1hX3Jlc3RyYWNrX3Jvb3QgKnJl
-cykNCj4gK3sNCj4gKwlpbnQgaSA9IDA7DQo+ICsNCj4gKwlmb3IgKDsgaSA8IF9SRE1BX1JFU1RS
-QUNLX01BWDsgaSsrKSB7DQo+ICsJCXJlZmNvdW50X3NldCgmcmVzLT5jbnRbaV0sIDEpOw0KPiAr
-CQlJTklUX0xJU1RfSEVBRF9SQ1UoJnJlcy0+bGlzdFtpXSk7DQo+ICsJCWluaXRfcndzZW0oJnJl
-cy0+cndzZW1baV0pOw0KPiArCX0NCj4gKw0KPiArCXJldHVybiAwOw0KPiArfQ0KPiArDQo+ICt2
-b2lkIHJkbWFfcmVzdHJhY2tfY2xlYW4oc3RydWN0IHJkbWFfcmVzdHJhY2tfcm9vdCAqcmVzKQ0K
-PiArew0KPiArCWludCBpID0gMDsNCj4gKw0KPiArCWZvciAoOyBpIDwgX1JETUFfUkVTVFJBQ0tf
-TUFYOyBpKyspIHsNCj4gKwkJV0FSTl9PTl9PTkNFKCFyZWZjb3VudF9kZWNfYW5kX3Rlc3QoJnJl
-cy0+Y250W2ldKSk7DQo+ICsJCVdBUk5fT05fT05DRSghbGlzdF9lbXB0eSgmcmVzLT5saXN0W2ld
-KSk7DQo+ICsJfQ0KPiArfQ0KDQpJcyBpdCByZWFsbHkgdXNlZnVsIHRvIHNldCByZXMtPmNudCB0
-byAxIGluIHJkbWFfcmVzdHJhY2tfaW5pdCgpIGFuZCB0byBkZWNyZW1lbnQNCml0IGluIHJkbWFf
-cmVzdHJhY2tfY2xlYW4oKT8gV2h5IG5vdCB0byBzZXQgcmVzLT5jbnQgdG8gMCBpbiB0aGUgaW5p
-dGlhbGl6YXRpb24NCmZ1bmN0aW9uPw0KDQo+ICsNCj4gK3N0YXRpYyBib29sIGlzX3Jlc3RyYWNr
-X3ZhbGlkKGVudW0gcmRtYV9yZXN0cmFja19vYmogdHlwZSkNCj4gK3sNCj4gKwlyZXR1cm4gISh0
-eXBlID49IF9SRE1BX1JFU1RSQUNLX01BWCk7DQo+ICt9DQoNCldoZXRoZXIgb3Igbm90IGFuIGVu
-dW0gaXMgc2lnbmVkIGRlcGVuZHMgb24gdGhlIGNvbXBpbGVyLiBTbyAndHlwZScgc2hvdWxkIGJl
-IGNhc3QNCnRvIGFuIHVuc2lnbmVkIHR5cGUgYmVmb3JlIGJlaW5nIGNvbXBhcmVkIGFnYWluc3Qg
-X1JETUFfUkVTVFJBQ0tfTUFYLiBBZGRpdGlvbmFsbHksDQp3aHkgZG9lcyB0aGUgbmFtZSBfUkRN
-QV9SRVNUUkFDS19NQVggc3RhcnQgd2l0aCBhIHNpbmdsZSB1bmRlcnNjb3JlPyBJJ20gbm90IGF3
-YXJlDQpvZiBhbnkgb3RoZXIgY29uc3RhbnQgaW4gdGhlIElCIHN0YWNrIG9mIHdoaWNoIHRoZSBu
-YW1lIHN0YXJ0cyB3aXRoIGFuIHVuZGVyc2NvcmUuDQoNCj4gKw0KPiAraW50IHJkbWFfcmVzdHJh
-Y2tfY291bnQoc3RydWN0IHJkbWFfcmVzdHJhY2tfcm9vdCAqcmVzLA0KPiArCQkJZW51bSByZG1h
-X3Jlc3RyYWNrX29iaiB0eXBlKQ0KPiArew0KPiArCWlmICghaXNfcmVzdHJhY2tfdmFsaWQodHlw
-ZSkpDQo+ICsJCXJldHVybiAwOw0KPiArDQo+ICsJLyoNCj4gKwkgKiBUaGUgY291bnRlciB3YXMg
-aW5pdGlhbGl6ZWQgdG8gMSBhdCB0aGUgYmVnaW5uaW5nLg0KPiArCSAqLw0KPiArCXJldHVybiBy
-ZWZjb3VudF9yZWFkKCZyZXMtPmNudFt0eXBlXSkgLSAxOw0KPiArfQ0KPiArRVhQT1JUX1NZTUJP
-TChyZG1hX3Jlc3RyYWNrX2NvdW50KTsNCg0KV2h5IGFyZSBpbnZhbGlkIHJlc291cmNlIHRyYWNr
-aW5nIElEcyBpZ25vcmVkIHNpbGVudGx5IGluc3RlYWQgb2YgZS5nLiB0cmlnZ2VyaW5nDQphIGtl
-cm5lbCB3YXJuaW5nPw0KDQo+ICt2b2lkIHJkbWFfcmVzdHJhY2tfYWRkKHN0cnVjdCByZG1hX3Jl
-c3RyYWNrX2VudHJ5ICpyZXMsDQo+ICsJCSAgICAgICBlbnVtIHJkbWFfcmVzdHJhY2tfb2JqIHR5
-cGUsIGNvbnN0IGNoYXIgKmNvbW0pDQo+ICt7DQo+ICsJc3RydWN0IGliX2RldmljZSAqZGV2Ow0K
-PiArCXN0cnVjdCBpYl9wZCAqcGQ7DQo+ICsJc3RydWN0IGliX2NxICpjcTsNCj4gKwlzdHJ1Y3Qg
-aWJfcXAgKnFwOw0KPiArDQo+ICsJaWYgKCFpc19yZXN0cmFja192YWxpZCh0eXBlKSkNCj4gKwkJ
-cmV0dXJuOw0KPiArDQo+ICsJc3dpdGNoICh0eXBlKSB7DQo+ICsJY2FzZSBSRE1BX1JFU1RSQUNL
-X1BEOg0KPiArCQlwZCA9IGNvbnRhaW5lcl9vZihyZXMsIHN0cnVjdCBpYl9wZCwgcmVzKTsNCj4g
-KwkJZGV2ID0gcGQtPmRldmljZTsNCj4gKwkJYnJlYWs7DQo+ICsJY2FzZSBSRE1BX1JFU1RSQUNL
-X0NROg0KPiArCQljcSA9IGNvbnRhaW5lcl9vZihyZXMsIHN0cnVjdCBpYl9jcSwgcmVzKTsNCj4g
-KwkJZGV2ID0gY3EtPmRldmljZTsNCj4gKwkJYnJlYWs7DQo+ICsJY2FzZSBSRE1BX1JFU1RSQUNL
-X1FQOg0KPiArCQlxcCA9IGNvbnRhaW5lcl9vZihyZXMsIHN0cnVjdCBpYl9xcCwgcmVzKTsNCj4g
-KwkJZGV2ID0gcXAtPmRldmljZTsNCj4gKwkJYnJlYWs7DQo+ICsJZGVmYXVsdDoNCj4gKwkJLyog
-dW5yZWFjaGFibGUgKi8NCj4gKwkJcmV0dXJuOw0KPiArCX0NCg0KUGxlYXNlIGRvIG5vdCBhZGQg
-dW5yZWFjaGFibGUgZGVmYXVsdCBjbGF1c2VzIGJ1dCBpbnN0ZWFkIGxlYXZlIHRoZSBkZWZhdWx0
-IGNsYXVzZQ0Kb3V0IHN1Y2ggdGhhdCB0aGUgY29tcGlsZXIgY2FuIGRldGVjdCBtaXNzaW5nIGNh
-c2UgbGFiZWxzLg0KDQo+IEBAIC0xNTI3LDkgKzE1MjgsMTAgQEAgc3RydWN0IGliX3BkIHsNCj4g
-IAl1MzIJCQl1bnNhZmVfZ2xvYmFsX3JrZXk7DQo+ICANCj4gIAkvKg0KPiAtCSAqIEltcGxlbWVu
-dGF0aW9uIGRldGFpbHMgb2YgdGhlIFJETUEgY29yZSwgZG9uJ3QgdXNlIGluIGRyaXZlcnM6DQo+
-ICsJICogSW1wbGVtZW50YXRpb24gZGV0YWlscyBvZiB0aGUgUkRNQSBjb3JlLCBkb24ndCB1c2Ug
-aW4gdGhlIGRyaXZlcnMNCg0KVGhlIGFib3ZlIGNoYW5nZSBjaGFuZ2VzIGEgZ3JhbW1hdGljYWxs
-eSBjb3JyZWN0IHNlbnRlbmNlIGludG8gYSBncmFtbWF0aWNhbGx5DQppbmNvcnJlY3Qgb25lLg0K
-DQo+ICsJLyoNCj4gKwkgKiBJbnRlcm5hbCB0byBSRE1BL2NvcmUsIGRvbid0IHVzZSBpbiB0aGUg
-ZHJpdmVycw0KPiArCSAqLw0KPiArCXN0cnVjdCByZG1hX3Jlc3RyYWNrX2VudHJ5IHJlczsNCg0K
-RG9lcyBhIHNpbmdsZS1saW5lIGNvbW1lbnQgaGF2ZSB0byBiZSBmb3JtYXR0ZWQgYXMgYSBibG9j
-ayBjb21tZW50PyBBZGRpdGlvbmFsbHksDQpwbGVhc2UgbGVhdmUgb3V0ICJ0aGUiLg0KDQo+ICsv
-KioNCj4gKyAqIGVudW0gcmRtYV9yZXN0cmFja19vYmogLSBIVyBvYmplY3RzIHRvIHRyYWNrDQo+
-ICsgKi8NCj4gK2VudW0gcmRtYV9yZXN0cmFja19vYmogew0KPiArCS8qKg0KPiArCSAqIEBSRE1B
-X1JFU1RSQUNLX1BEOiBQcm90ZWN0aW9uIGRvbWFpbiAoUEQpDQo+ICsJICovDQo+ICsJUkRNQV9S
-RVNUUkFDS19QRCwNCj4gKwkvKioNCj4gKwkgKiBAUkRNQV9SRVNUUkFDS19DUTogQ29tcGxldGlv
-biBxdWV1ZSAoQ1EpDQo+ICsJICovDQo+ICsJUkRNQV9SRVNUUkFDS19DUSwNCj4gKwkvKioNCj4g
-KwkgKiBAUkRNQV9SRVNUUkFDS19RUDogUXVldWUgcGFpciAoUVApDQo+ICsJICovDQo+ICsJUkRN
-QV9SRVNUUkFDS19RUCwNCj4gKwkvKiBwcml2YXRlOiBjb3VudHMgbnVtYmVyIG9mIGVsZW1lbnRz
-LCBhbHdheXMgbGFzdCAqLw0KPiArCV9SRE1BX1JFU1RSQUNLX01BWA0KPiArfTsNCg0KVGhpcyBs
-b29rcyByZWFsbHkgdWdseSB0byBtZS4gUGxlYXNlIHVzZSBrZXJuZWwtZG9jIHN5bnRheCB0byBk
-b2N1bWVudCB0aGUgUkRNQQ0KcmVzb3VyY2UgdHlwZXMuDQoNCj4gKy8qKg0KPiArICogc3RydWN0
-IHJkbWFfcmVzdHJhY2tfcm9vdCAtIG1haW4gcmVzb3VyY2UgdHJhY2tpbmcgbWFuYWdlbWVudA0K
-PiArICogZW50aXR5LCBwZXItZGV2aWNlDQo+ICsgKi8NCj4gK3N0cnVjdCByZG1hX3Jlc3RyYWNr
-X3Jvb3Qgew0KPiArCS8qKg0KPiArCSAqIEBjbnQ6IGdsb2JhbCBjb3VudGVyIHRvIGF2b2lkIHRo
-ZSBuZWVkIHRvIGNvdW50IG51bWJlcg0KPiArCSAqIG9mIGVsZW1lbnRzIGluIHRoZSBvYmplY3Qn
-cyBsaXN0Lg0KPiArCSAqDQo+ICsJICogSXQgY2FuIGJlIGRpZmZlcmVudCBmcm9tIHRoZSBsaXN0
-X2NvdW50LCBiZWNhdXNlIHdlIGFyZQ0KPiArCSAqIG5vdCB0YWtpbmcgbG9jayBkdXJpbmcgY291
-bnRlciBpbmNyZW1lbnQgYW5kIGRvbid0DQo+ICsJICogc3luY2hyb25pemUgdGhlIFJDVS4NCj4g
-KwkgKi8NCj4gKwlyZWZjb3VudF90CQljbnRbX1JETUFfUkVTVFJBQ0tfTUFYXTsNCj4gKwkvKioN
-Cj4gKwkgKiBAbGlzdDogbGlua2VkIGxpc3Qgb2YgYWxsIGVudHJpZXMgcGVyLW9iamVjdA0KPiAr
-CSAqLw0KPiArCXN0cnVjdCBsaXN0X2hlYWQJbGlzdFtfUkRNQV9SRVNUUkFDS19NQVhdOw0KPiAr
-CS8qIHByaXZhdGU6IEludGVybmFsIHJlYWQvd3JpdGUgbG9jay4NCj4gKwkgKiBJdCBpcyBuZWVk
-ZWQgdG8gcHJvdGVjdCB0aGUgYWRkL2RlbGV0ZSBsaXN0IG9wZXJhdGlvbnMuDQo+ICsJICovDQo+
-ICsJc3RydWN0IHJ3X3NlbWFwaG9yZQlyd3NlbVtfUkRNQV9SRVNUUkFDS19NQVhdOw0KPiArfTsN
-Cg0KVGhlIGFib3ZlIGxvb2tzIHdyb25nIHRvIG1lLiBQbGVhc2UgY2hhbmdlIHRoZSBhYm92ZSBp
-bnRvIGFuIGFycmF5IG9mIGRhdGEgc3RydWN0dXJlcw0KaW5zdGVhZCBvZiBhIGRhdGEgc3RydWN0
-dXJlIHRoYXQgaXMgZnVsbCBvZiBhcnJheXMgb2YgaWRlbnRpY2FsIHNpemUuDQoNCj4gKy8qKg0K
-PiArICogc3RydWN0IHJkbWFfcmVzdHJhY2tfZW50cnkgLSBtZXRhZGF0YSBwZXItZW50cnkNCj4g
-KyAqLw0KPiArc3RydWN0IHJkbWFfcmVzdHJhY2tfZW50cnkgew0KPiArCS8qKg0KPiArCSAqIEBs
-aXN0OiBsaW5rZWQgbGlzdCBiZXR3ZWVuIGVudHJpZXMNCj4gKwkgKi8NCj4gKwlzdHJ1Y3QgbGlz
-dF9oZWFkCWxpc3Q7DQo+ICsJLyoqDQo+ICsJICogQHZhbGlkOiB2YWxpZGl0eSBpbmRpY2F0b3IN
-Cj4gKwkgKg0KPiArCSAqIFRoZSBlbnRyaWVzIGFyZSBmaWxsZWQgZHVyaW5nIHJkbWFfcmVzdHJh
-Y2tfYWRkLA0KPiArCSAqIGNhbiBiZSBhdHRlbXB0ZWQgdG8gYmUgZnJlZSBkdXJpbmcgcmRtYV9y
-ZXN0cmFja19kZWwuDQo+ICsJICoNCj4gKwkgKiBBcyBhbiBleGFtcGxlIGZvciB0aGF0LCBzZWUg
-bWx4NSBRUHMgd2l0aCB0eXBlIE1MWDVfSUJfUVBUX0hXX0dTSQ0KPiArCSAqLw0KPiArCWJvb2wJ
-CQl2YWxpZDsNCj4gKwkvKioNCj4gKwkgKiBAc3JjdTogc2xlZXBhYmxlIFJDVSB0byBwcm90ZWN0
-IG9iamVjdCBkYXRhLg0KPiArCSAqLw0KPiArCXN0cnVjdCBzcmN1X3N0cnVjdAlzcmN1Ow0KPiAr
-CS8qKg0KPiArCSAqIEB0YXNrOiBvd25lciBvZiByZXNvdXJjZSB0cmFja2luZyBlbnRpdHkNCj4g
-KwkgKg0KPiArCSAqIFRoZXJlIGFyZSB0d28gdHlwZXMgb2YgZW50aXRpZXM6IGNyZWF0ZWQgYnkg
-dXNlciBhbmQgY3JlYXRlZA0KPiArCSAqIGJ5IGtlcm5lbC4NCj4gKwkgKg0KPiArCSAqIFRoaXMg
-aXMgcmVsZXZhbnQgZm9yIHRoZSBlbnRpdGllcyBjcmVhdGVkIGJ5IHVzZXJzLg0KPiArCSAqIEZv
-ciB0aGUgZW50aWVpZXMgY3JlYXRlZCBieSBrZXJuZWwsIHRoaXMgcG9pbnRlciB3aWxsIGJlIE5V
-TEwuDQo+ICsJICovDQo+ICsJc3RydWN0IHRhc2tfc3RydWN0CSp0YXNrOw0KPiArCS8qKg0KPiAr
-CSAqIEBrZXJuX25hbWU6IG5hbWUgb2Ygb3duZXIgZm9yIHRoZSBrZXJuZWwgY3JlYXRlZCBlbnRp
-dGllcy4NCj4gKwkgKi8NCj4gKwljb25zdCBjaGFyCQkqa2Vybl9uYW1lOw0KPiArfTsNCg0KQWdh
-aW4sIHBsZWFzZSB1c2UgdGhlIGtlcm5lbC1kb2Mgc3ludGF4IHRvIGRvY3VtZW50IHN0cnVjdHVy
-ZSBtZW1iZXJzLiBBZGRpdGlvbmFsbHksDQpwbGVhc2UgZml4IHRoZSBzcGVsbGluZyBvZiAiZW50
-aWVpZXMiLg0KDQpUaGFua3MsDQoNCkJhcnQu
+On Tue, Jan 16, 2018 at 04:31:07PM -0500, Chuck Lever wrote:
+> 
+> 
+> > On Jan 3, 2018, at 3:42 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> > 
+> > Hi Bruce-
+> > 
+> > Would you consider these patches for merging into v4.16?
+> 
+> Hi Bruce, since you haven't responded, I assume these will
+> not appear in v4.16. Let's drop these for now, and I will
+> resubmit them for v4.17.
+
+Sorry for the lack of response, I started reviewing but didn't finish,
+and still expect to get them in for 4.16.
+
+--b.
+
+> 
+> 
+> > Changes since v1:
+> > - Rebased on v4.15-rc6
+> > - Address a 0day robot complaint in nfsd3_proc_symlink
+> > - Properly handle error return from svc_rdma_handle_bc_reply
+> > 
+> > ---
+> > 
+> > Chuck Lever (3):
+> >      svcrdma: Post Receives in the Receive completion handler
+> >      NFSD: Clean up write argument XDR decoders
+> >      NFSD: Clean up symlink argument XDR decoders
+> > 
+> > 
+> > fs/nfsd/nfs3proc.c                         |   18 ++++-
+> > fs/nfsd/nfs3xdr.c                          |   67 ++++-------------
+> > fs/nfsd/nfs4proc.c                         |   37 +++-------
+> > fs/nfsd/nfs4xdr.c                          |   11 ++-
+> > fs/nfsd/nfsproc.c                          |   23 ++++--
+> > fs/nfsd/nfsxdr.c                           |   63 ++++++++--------
+> > fs/nfsd/xdr.h                              |    3 +
+> > fs/nfsd/xdr3.h                             |    3 +
+> > fs/nfsd/xdr4.h                             |    3 +
+> > include/linux/sunrpc/svc.h                 |    4 +
+> > include/linux/sunrpc/svc_rdma.h            |    2 -
+> > net/sunrpc/svc.c                           |  109 ++++++++++++++++++++++++++++
+> > net/sunrpc/xprtrdma/svc_rdma_backchannel.c |    5 -
+> > net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |    9 --
+> > net/sunrpc/xprtrdma/svc_rdma_sendto.c      |    6 --
+> > net/sunrpc/xprtrdma/svc_rdma_transport.c   |   25 ++----
+> > 16 files changed, 225 insertions(+), 163 deletions(-)
+> > 
+> > --
+> > Chuck Lever
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> Chuck Lever
+> 
+> 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
