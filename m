@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 2/2] IB/mlx5: Mmap the HCA's clock info to user-space
-Date: Tue, 16 Jan 2018 20:08:41 +0200
-Message-ID: <20180116180841.18976-3-leon@kernel.org>
+Subject: [PATCH rdma-next 1/2] net/mlx5e: Add clock info page to mlx5 core devices
+Date: Tue, 16 Jan 2018 20:08:40 +0200
+Message-ID: <20180116180841.18976-2-leon@kernel.org>
 References: <20180116180841.18976-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180116180841.18976-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,164 +12,201 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch maps the new page to user space applications to
-allow converting a user space completion timestamp to system wall
-time at the lowest possible latency cost.
-By using a versioning scheme we allow compatibility between current
-and future userspace libraries.
-The change moves mlx5_ib_mmap_cmd enum from mlx5_ib.h to the
-abi header file mlx5-abi.h.
+Adds a new page to mlx5 core containing clock info data that allows
+user level applications to translate between cqe timestamp to
+nanoseconds. The information stored into this page is represented
+through mlx5_ib_clock_info.
 
-Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In order to synchronize between kernel and user space a sequence
+number is incremented at the beginning and end of each update.
+An odd number means the data is being updated while an even means
+the access was already done. To guarantee that the data structure
+was accessed atomically user will:
+
+repeat:
+        seq1 = <read sequence>
+        goto <repeate> while odd
+        <read data structure>
+        seq2 = <read sequence>
+        if seq1 != seq2 goto repeat
+
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Eitan Rabin <rabin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c    | 44 ++++++++++++++++++++++++++++++++++--
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 10 --------
- include/uapi/rdma/mlx5-abi.h         | 18 ++++++++++++++-
- 3 files changed, 59 insertions(+), 13 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/lib/clock.c    | 55 ++++++++++++++++++++++
+ include/linux/mlx5/driver.h                        |  3 ++
+ include/uapi/rdma/mlx5-abi.h                       | 16 +++++++
+ 3 files changed, 74 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 5d6fba986fa5..f83ae1a7844b 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1579,6 +1579,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
- 	struct mlx5_ib_alloc_ucontext_req_v2 req = {};
- 	struct mlx5_ib_alloc_ucontext_resp resp = {};
-+	struct mlx5_core_dev *mdev = dev->mdev;
- 	struct mlx5_ib_ucontext *context;
- 	struct mlx5_bfreg_info *bfregi;
- 	int ver;
-@@ -1706,6 +1707,12 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 		resp.response_length += sizeof(resp.eth_min_inline);
- 	}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c
+index fa8aed62b231..4b6cb9b38686 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c
+@@ -31,6 +31,8 @@
+  */
  
-+	if (field_avail(typeof(resp), clock_info_versions, udata->outlen)) {
-+		if (mdev->clock_info)
-+			resp.clock_info_versions = BIT(MLX5_IB_CLOCK_INFO_V1);
-+		resp.response_length += sizeof(resp.clock_info_versions);
-+	}
-+
- 	/*
- 	 * We don't want to expose information from the PCI bar that is located
- 	 * after 4096 bytes, so if the arch only supports larger pages, let's
-@@ -1719,8 +1726,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 			resp.hca_core_clock_offset =
- 				offsetof(struct mlx5_init_seg, internal_timer_h) % PAGE_SIZE;
- 		}
--		resp.response_length += sizeof(resp.hca_core_clock_offset) +
--					sizeof(resp.reserved2);
-+		resp.response_length += sizeof(resp.hca_core_clock_offset);
- 	}
+ #include <linux/clocksource.h>
++#include <linux/highmem.h>
++#include <rdma/mlx5-abi.h>
+ #include "en.h"
  
- 	if (field_avail(typeof(resp), log_uar_size, udata->outlen))
-@@ -1959,6 +1965,38 @@ static inline char *mmap_cmd2str(enum mlx5_ib_mmap_cmd cmd)
- 	}
+ enum {
+@@ -71,6 +73,28 @@ static u64 read_internal_timer(const struct cyclecounter *cc)
+ 	return mlx5_read_internal_timer(mdev) & cc->mask;
  }
  
-+static int mlx5_ib_mmap_clock_info_page(struct mlx5_ib_dev *dev,
-+					struct vm_area_struct *vma,
-+					struct mlx5_ib_ucontext *context)
++static void mlx5_update_clock_info_page(struct mlx5_core_dev *mdev)
 +{
-+	phys_addr_t pfn;
-+	int err;
++	struct mlx5_ib_clock_info *clock_info = mdev->clock_info;
++	struct mlx5_clock *clock = &mdev->clock;
++	u32 sign;
 +
-+	if (vma->vm_end - vma->vm_start != PAGE_SIZE)
-+		return -EINVAL;
++	if (!clock_info)
++		return;
 +
-+	if (get_index(vma->vm_pgoff) != MLX5_IB_CLOCK_INFO_V1)
-+		return -EOPNOTSUPP;
++	sign = smp_load_acquire(&clock_info->sign);
++	smp_store_mb(clock_info->sign,
++		     sign | MLX5_IB_CLOCK_INFO_KERNEL_UPDATING);
 +
-+	if (vma->vm_flags & VM_WRITE)
-+		return -EPERM;
++	clock_info->cycles = clock->tc.cycle_last;
++	clock_info->mult   = clock->cycles.mult;
++	clock_info->nsec   = clock->tc.nsec;
++	clock_info->frac   = clock->tc.frac;
 +
-+	if (!dev->mdev->clock_info_page)
-+		return -EOPNOTSUPP;
-+
-+	pfn = page_to_pfn(dev->mdev->clock_info_page);
-+	err = remap_pfn_range(vma, vma->vm_start, pfn, PAGE_SIZE,
-+			      vma->vm_page_prot);
-+	if (err)
-+		return err;
-+
-+	mlx5_ib_dbg(dev, "mapped clock info at 0x%lx, PA 0x%llx\n",
-+		    vma->vm_start,
-+		    (unsigned long long)pfn << PAGE_SHIFT);
-+
-+	return mlx5_ib_set_vma_data(vma, context);
++	smp_store_release(&clock_info->sign,
++			  sign + MLX5_IB_CLOCK_INFO_KERNEL_UPDATING * 2);
 +}
 +
- static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
- 		    struct vm_area_struct *vma,
- 		    struct mlx5_ib_ucontext *context)
-@@ -2121,6 +2159,8 @@ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vm
- 			    vma->vm_start,
- 			    (unsigned long long)pfn << PAGE_SHIFT);
- 		break;
-+	case MLX5_IB_MMAP_CLOCK_INFO:
-+		return mlx5_ib_mmap_clock_info_page(dev, vma, context);
+ static void mlx5_pps_out(struct work_struct *work)
+ {
+ 	struct mlx5_pps *pps_info = container_of(work, struct mlx5_pps,
+@@ -109,6 +133,7 @@ static void mlx5_timestamp_overflow(struct work_struct *work)
  
- 	default:
- 		return -EINVAL;
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 51228dfcfbe7..69a80f7512f0 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -70,16 +70,6 @@ enum {
- 	MLX5_IB_MMAP_CMD_MASK	= 0xff,
+ 	write_lock_irqsave(&clock->lock, flags);
+ 	timecounter_read(&clock->tc);
++	mlx5_update_clock_info_page(clock->mdev);
+ 	write_unlock_irqrestore(&clock->lock, flags);
+ 	schedule_delayed_work(&clock->overflow_work, clock->overflow_period);
+ }
+@@ -123,6 +148,7 @@ static int mlx5_ptp_settime(struct ptp_clock_info *ptp,
+ 
+ 	write_lock_irqsave(&clock->lock, flags);
+ 	timecounter_init(&clock->tc, &clock->cycles, ns);
++	mlx5_update_clock_info_page(clock->mdev);
+ 	write_unlock_irqrestore(&clock->lock, flags);
+ 
+ 	return 0;
+@@ -152,6 +178,7 @@ static int mlx5_ptp_adjtime(struct ptp_clock_info *ptp, s64 delta)
+ 
+ 	write_lock_irqsave(&clock->lock, flags);
+ 	timecounter_adjtime(&clock->tc, delta);
++	mlx5_update_clock_info_page(clock->mdev);
+ 	write_unlock_irqrestore(&clock->lock, flags);
+ 
+ 	return 0;
+@@ -179,6 +206,7 @@ static int mlx5_ptp_adjfreq(struct ptp_clock_info *ptp, s32 delta)
+ 	timecounter_read(&clock->tc);
+ 	clock->cycles.mult = neg_adj ? clock->nominal_c_mult - diff :
+ 				       clock->nominal_c_mult + diff;
++	mlx5_update_clock_info_page(clock->mdev);
+ 	write_unlock_irqrestore(&clock->lock, flags);
+ 
+ 	return 0;
+@@ -470,6 +498,7 @@ void mlx5_init_clock(struct mlx5_core_dev *mdev)
+ 						  clock->cycles.shift);
+ 	clock->nominal_c_mult = clock->cycles.mult;
+ 	clock->cycles.mask = CLOCKSOURCE_MASK(41);
++	clock->mdev = mdev;
+ 
+ 	timecounter_init(&clock->tc, &clock->cycles,
+ 			 ktime_to_ns(ktime_get_real()));
+@@ -482,6 +511,25 @@ void mlx5_init_clock(struct mlx5_core_dev *mdev)
+ 	do_div(ns, NSEC_PER_SEC / 2 / HZ);
+ 	clock->overflow_period = ns;
+ 
++	mdev->clock_info_page = alloc_page(GFP_KERNEL);
++	if (mdev->clock_info_page) {
++		mdev->clock_info = kmap(mdev->clock_info_page);
++		if (!mdev->clock_info) {
++			__free_page(mdev->clock_info_page);
++			mlx5_core_warn(mdev, "failed to map clock page\n");
++		} else {
++			mdev->clock_info->sign   = 0;
++			mdev->clock_info->nsec   = clock->tc.nsec;
++			mdev->clock_info->cycles = clock->tc.cycle_last;
++			mdev->clock_info->mask   = clock->cycles.mask;
++			mdev->clock_info->mult   = clock->nominal_c_mult;
++			mdev->clock_info->shift  = clock->cycles.shift;
++			mdev->clock_info->frac   = clock->tc.frac;
++			mdev->clock_info->overflow_period =
++						clock->overflow_period;
++		}
++	}
++
+ 	INIT_WORK(&clock->pps_info.out_work, mlx5_pps_out);
+ 	INIT_DELAYED_WORK(&clock->overflow_work, mlx5_timestamp_overflow);
+ 	if (clock->overflow_period)
+@@ -521,5 +569,12 @@ void mlx5_cleanup_clock(struct mlx5_core_dev *mdev)
+ 
+ 	cancel_work_sync(&clock->pps_info.out_work);
+ 	cancel_delayed_work_sync(&clock->overflow_work);
++
++	if (mdev->clock_info) {
++		kunmap(mdev->clock_info_page);
++		__free_page(mdev->clock_info_page);
++		mdev->clock_info = NULL;
++	}
++
+ 	kfree(clock->ptp_info.pin_config);
+ }
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 9136e35f2f7e..c403151133e9 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -797,6 +797,7 @@ struct mlx5_clock {
+ 	u32                        nominal_c_mult;
+ 	unsigned long              overflow_period;
+ 	struct delayed_work        overflow_work;
++	struct mlx5_core_dev      *mdev;
+ 	struct ptp_clock          *ptp;
+ 	struct ptp_clock_info      ptp_info;
+ 	struct mlx5_pps            pps_info;
+@@ -844,6 +845,8 @@ struct mlx5_core_dev {
+ 	struct cpu_rmap         *rmap;
+ #endif
+ 	struct mlx5_clock        clock;
++	struct mlx5_ib_clock_info  *clock_info;
++	struct page             *clock_info_page;
  };
  
--enum mlx5_ib_mmap_cmd {
--	MLX5_IB_MMAP_REGULAR_PAGE		= 0,
--	MLX5_IB_MMAP_GET_CONTIGUOUS_PAGES	= 1,
--	MLX5_IB_MMAP_WC_PAGE			= 2,
--	MLX5_IB_MMAP_NC_PAGE			= 3,
--	/* 5 is chosen in order to be compatible with old versions of libmlx5 */
--	MLX5_IB_MMAP_CORE_CLOCK			= 5,
--	MLX5_IB_MMAP_ALLOC_WC			= 6,
--};
--
- enum {
- 	MLX5_RES_SCAT_DATA32_CQE	= 0x1,
- 	MLX5_RES_SCAT_DATA64_CQE	= 0x2,
+ struct mlx5_db {
 diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-index 0299deed71a2..1111aa4e7c1e 100644
+index f6d319dfc7bf..0299deed71a2 100644
 --- a/include/uapi/rdma/mlx5-abi.h
 +++ b/include/uapi/rdma/mlx5-abi.h
-@@ -124,7 +124,7 @@ struct mlx5_ib_alloc_ucontext_resp {
- 	__u8	cqe_version;
- 	__u8	cmds_supp_uhw;
- 	__u8	eth_min_inline;
--	__u8	reserved2;
-+	__u8	clock_info_versions;
- 	__u64	hca_core_clock_offset;
- 	__u32	log_uar_size;
- 	__u32	num_uars_per_page;
-@@ -394,7 +394,23 @@ struct mlx5_ib_clock_info {
- 	__u64 overflow_period;
+@@ -381,4 +381,20 @@ struct mlx5_ib_modify_wq {
+ 	__u32	comp_mask;
+ 	__u32	reserved;
  };
- 
-+enum mlx5_ib_mmap_cmd {
-+	MLX5_IB_MMAP_REGULAR_PAGE               = 0,
-+	MLX5_IB_MMAP_GET_CONTIGUOUS_PAGES       = 1,
-+	MLX5_IB_MMAP_WC_PAGE                    = 2,
-+	MLX5_IB_MMAP_NC_PAGE                    = 3,
-+	/* 5 is chosen in order to be compatible with old versions of libmlx5 */
-+	MLX5_IB_MMAP_CORE_CLOCK                 = 5,
-+	MLX5_IB_MMAP_ALLOC_WC                   = 6,
-+	MLX5_IB_MMAP_CLOCK_INFO                 = 7,
++
++struct mlx5_ib_clock_info {
++	__u32 sign;
++	__u32 resv;
++	__u64 nsec;
++	__u64 cycles;
++	__u64 frac;
++	__u32 mult;
++	__u32 shift;
++	__u64 mask;
++	__u64 overflow_period;
 +};
 +
- enum {
- 	MLX5_IB_CLOCK_INFO_KERNEL_UPDATING = 1,
- };
-+
-+/* Bit indexes for the mlx5_alloc_ucontext_resp.clock_info_versions bitmap */
 +enum {
-+	MLX5_IB_CLOCK_INFO_V1              = 0,
++	MLX5_IB_CLOCK_INFO_KERNEL_UPDATING = 1,
 +};
  #endif /* MLX5_ABI_USER_H */
 -- 
