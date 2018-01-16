@@ -1,51 +1,46 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v4 0/5] IB/srp: Add RDMA/CM support
-Date: Tue, 16 Jan 2018 10:39:40 -0800
-Message-ID: <20180116183945.30629-1-bart.vanassche@wdc.com>
+Subject: [PATCH v4 1/5] kobject: Export kobj_ns_grab_current() and kobj_ns_drop()
+Date: Tue, 16 Jan 2018 10:39:41 -0800
+Message-ID: <20180116183945.30629-2-bart.vanassche@wdc.com>
+References: <20180116183945.30629-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180116183945.30629-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Jason and Doug,
+Make it possible to call these two functions from a kernel module.
+Note: despite their name, these two functions can be used meaningfully
+independent of kobjects. A later patch will add calls to these
+functions from the SRP driver because this patch series modifies the
+SRP driver such that it can hold a reference to a namespace that can
+last longer than the lifetime of the process through which the
+namespace reference was obtained.
 
-The five patches in this series add RDMA/CM support to the SRP
-initiator. Please consider these patches for kernel v4.16.
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+---
+ lib/kobject.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Thanks,
-
-Bart.
-
-Changes compared to v3:
-- Moved a kobj_ns_drop() call inside an if-statement to keep the grab and put
-  ns calls balanced.
-
-Changes compared to v2:
-- Added a patch that exports kobj_ns_grab_current() and kobj_ns_drop().
-- Made the rdma_create_id() call also use the namespace of the process that
-  triggered SRP login. Added kobj_ns_grab_current() and kobj_ns_drop() calls
-  to the SRP initiator to ensure that that network namespace exists at least
-  as long as the SRP channel that is using it.
-
-Changes compared to v1:
-- Use the network namespace of the process that writes into the SRP sysfs login
-  attribute in rdma_create_id() and inet_pton_with_scope() calls.
-- Removed an irrelevant part from the RDMA/CM patch description.
-
-Bart Van Assche (5):
-  kobject: Export kobj_ns_grab_current() and kobj_ns_drop()
-  IB/srp: Use kstrtoull() instead of simple_strtoull()
-  IB/srp: Make the path record query error message more informative
-  IB/srp: Refactor srp_send_req()
-  IB/srp: Add RDMA/CM support
-
- drivers/infiniband/ulp/srp/ib_srp.c | 762 ++++++++++++++++++++++++++++--------
- drivers/infiniband/ulp/srp/ib_srp.h |  42 +-
- include/scsi/srp.h                  |  17 +
- lib/kobject.c                       |   2 +
- 4 files changed, 654 insertions(+), 169 deletions(-)
-
+diff --git a/lib/kobject.c b/lib/kobject.c
+index 763d70a18941..06b849eee0ca 100644
+--- a/lib/kobject.c
++++ b/lib/kobject.c
+@@ -1039,6 +1039,7 @@ void *kobj_ns_grab_current(enum kobj_ns_type type)
+ 
+ 	return ns;
+ }
++EXPORT_SYMBOL_GPL(kobj_ns_grab_current);
+ 
+ const void *kobj_ns_netlink(enum kobj_ns_type type, struct sock *sk)
+ {
+@@ -1074,3 +1075,4 @@ void kobj_ns_drop(enum kobj_ns_type type, void *ns)
+ 		kobj_ns_ops_tbl[type]->drop_ns(ns);
+ 	spin_unlock(&kobj_ns_type_lock);
+ }
++EXPORT_SYMBOL_GPL(kobj_ns_drop);
 -- 
 2.15.1
 
