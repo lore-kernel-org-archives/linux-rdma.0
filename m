@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v2 04/14] IB/srpt: One target per port
-Date: Tue, 16 Jan 2018 16:14:08 -0800
-Message-ID: <20180117001418.7852-5-bart.vanassche@wdc.com>
+Subject: [PATCH v2 06/14] IB/srpt: Rework multi-channel support
+Date: Tue, 16 Jan 2018 16:14:10 -0800
+Message-ID: <20180117001418.7852-7-bart.vanassche@wdc.com>
 References: <20180117001418.7852-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180117001418.7852-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,337 +10,414 @@ To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In multipathing setups where a target system is equipped with
-dual-port HCAs it is useful to have one connection per target port
-instead of one connection per target HCA. Hence move the connection
-list (rch_list) from struct srpt_device into struct srpt_port.
+Store initiator and target port ID's once per nexus instead of in each
+channel data structure. This change simplifies the duplicate connection
+check in srpt_cm_req_recv().
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 98 +++++++++++++++++++----------------
- drivers/infiniband/ulp/srpt/ib_srpt.h | 16 +++---
- 2 files changed, 61 insertions(+), 53 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 186 ++++++++++++++++++++++++----------
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  34 +++++--
+ 2 files changed, 160 insertions(+), 60 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index cafa73083ee8..7893fc420794 100644
+index 597fc0bc0734..de3e77df146e 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1847,13 +1847,13 @@ static int srpt_disconnect_ch(struct srpt_rdma_ch *ch)
- 	return ret;
- }
+@@ -1849,16 +1849,20 @@ static int srpt_disconnect_ch(struct srpt_rdma_ch *ch)
  
--static bool srpt_ch_closed(struct srpt_device *sdev, struct srpt_rdma_ch *ch)
-+static bool srpt_ch_closed(struct srpt_port *sport, struct srpt_rdma_ch *ch)
+ static bool srpt_ch_closed(struct srpt_port *sport, struct srpt_rdma_ch *ch)
  {
++	struct srpt_nexus *nexus;
  	struct srpt_rdma_ch *ch2;
  	bool res = true;
  
  	rcu_read_lock();
--	list_for_each_entry(ch2, &sdev->rch_list, list) {
-+	list_for_each_entry(ch2, &sport->rch_list, list) {
- 		if (ch2 == ch) {
- 			res = false;
- 			break;
-@@ -1871,33 +1871,32 @@ static bool srpt_ch_closed(struct srpt_device *sdev, struct srpt_rdma_ch *ch)
- static bool srpt_disconnect_ch_sync(struct srpt_rdma_ch *ch)
- 	__must_hold(&sdev->mutex)
- {
--	struct srpt_device *sdev = ch->sport->sdev;
-+	struct srpt_port *sport = ch->sport;
- 	int ret;
+-	list_for_each_entry(ch2, &sport->rch_list, list) {
+-		if (ch2 == ch) {
+-			res = false;
+-			break;
++	list_for_each_entry(nexus, &sport->nexus_list, entry) {
++		list_for_each_entry(ch2, &nexus->ch_list, list) {
++			if (ch2 == ch) {
++				res = false;
++				goto done;
++			}
+ 		}
+ 	}
++done:
+ 	rcu_read_unlock();
  
--	lockdep_assert_held(&sdev->mutex);
-+	lockdep_assert_held(&sport->mutex);
- 
- 	pr_debug("ch %s-%d state %d\n", ch->sess_name, ch->qp->qp_num,
- 		 ch->state);
- 
- 	ret = srpt_disconnect_ch(ch);
--	mutex_unlock(&sdev->mutex);
-+	mutex_unlock(&sport->mutex);
- 
--	while (wait_event_timeout(sdev->ch_releaseQ, srpt_ch_closed(sdev, ch),
-+	while (wait_event_timeout(sport->ch_releaseQ, srpt_ch_closed(sport, ch),
- 				  5 * HZ) == 0)
- 		pr_info("%s(%s-%d state %d): still waiting ...\n", __func__,
- 			ch->sess_name, ch->qp->qp_num, ch->state);
- 
--	mutex_lock(&sdev->mutex);
-+	mutex_lock(&sport->mutex);
+ 	return res;
+@@ -1891,30 +1895,78 @@ static bool srpt_disconnect_ch_sync(struct srpt_rdma_ch *ch)
  	return ret == 0;
  }
  
- static void srpt_set_enabled(struct srpt_port *sport, bool enabled)
--	__must_hold(&sdev->mutex)
-+	__must_hold(&sport->mutex)
+-static void srpt_set_enabled(struct srpt_port *sport, bool enabled)
+-	__must_hold(&sport->mutex)
++static void __srpt_close_all_ch(struct srpt_port *sport)
  {
--	struct srpt_device *sdev = sport->sdev;
++	struct srpt_nexus *nexus;
  	struct srpt_rdma_ch *ch;
  
--	lockdep_assert_held(&sdev->mutex);
-+	lockdep_assert_held(&sport->mutex);
+ 	lockdep_assert_held(&sport->mutex);
  
- 	if (sport->enabled == enabled)
- 		return;
-@@ -1906,10 +1905,10 @@ static void srpt_set_enabled(struct srpt_port *sport, bool enabled)
- 		return;
+-	if (sport->enabled == enabled)
+-		return;
+-	sport->enabled = enabled;
+-	if (sport->enabled)
+-		return;
++	list_for_each_entry(nexus, &sport->nexus_list, entry) {
++		list_for_each_entry(ch, &nexus->ch_list, list) {
++			if (srpt_disconnect_ch(ch) >= 0)
++				pr_info("Closing channel %s-%d because target %s_%d has been disabled\n",
++					ch->sess_name, ch->qp->qp_num,
++					sport->sdev->device->name, sport->port);
++			srpt_close_ch(ch);
++		}
++	}
++}
++
++/*
++ * Look up (i_port_id, t_port_id) in sport->nexus_list. Create an entry if
++ * it does not yet exist.
++ */
++static struct srpt_nexus *srpt_get_nexus(struct srpt_port *sport,
++					 const u8 i_port_id[16],
++					 const u8 t_port_id[16])
++{
++	struct srpt_nexus *nexus = NULL, *tmp_nexus = NULL, *n;
  
- again:
--	list_for_each_entry(ch, &sdev->rch_list, list) {
-+	list_for_each_entry(ch, &sport->rch_list, list) {
- 		if (ch->sport == sport) {
- 			pr_info("%s: closing channel %s-%d\n",
--				sdev->device->name, ch->sess_name,
-+				sport->sdev->device->name, ch->sess_name,
- 				ch->qp->qp_num);
- 			if (srpt_disconnect_ch_sync(ch))
- 				goto again;
-@@ -1929,6 +1928,7 @@ static void srpt_release_channel_work(struct work_struct *w)
- {
- 	struct srpt_rdma_ch *ch;
- 	struct srpt_device *sdev;
-+	struct srpt_port *sport;
- 	struct se_session *se_sess;
- 
- 	ch = container_of(w, struct srpt_rdma_ch, release_work);
-@@ -1959,11 +1959,12 @@ static void srpt_release_channel_work(struct work_struct *w)
- 			     sdev, ch->rq_size,
- 			     srp_max_req_size, DMA_FROM_DEVICE);
- 
--	mutex_lock(&sdev->mutex);
-+	sport = ch->sport;
-+	mutex_lock(&sport->mutex);
- 	list_del_rcu(&ch->list);
--	mutex_unlock(&sdev->mutex);
-+	mutex_unlock(&sport->mutex);
- 
--	wake_up(&sdev->ch_releaseQ);
-+	wake_up(&sport->ch_releaseQ);
- 
- 	kref_put(&ch->kref, srpt_free_ch);
- }
-@@ -2036,9 +2037,9 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
- 	if ((req->req_flags & SRP_MTCH_ACTION) == SRP_MULTICHAN_SINGLE) {
- 		rsp->rsp_flags = SRP_LOGIN_RSP_MULTICHAN_NO_CHAN;
- 
--		mutex_lock(&sdev->mutex);
+-again:
+-	list_for_each_entry(ch, &sport->rch_list, list) {
+-		if (ch->sport == sport) {
+-			pr_info("%s: closing channel %s-%d\n",
+-				sport->sdev->device->name, ch->sess_name,
+-				ch->qp->qp_num);
+-			if (srpt_disconnect_ch_sync(ch))
+-				goto again;
++	for (;;) {
 +		mutex_lock(&sport->mutex);
- 
--		list_for_each_entry_safe(ch, tmp_ch, &sdev->rch_list, list) {
-+		list_for_each_entry_safe(ch, tmp_ch, &sport->rch_list, list) {
- 			if (!memcmp(ch->i_port_id, req->initiator_port_id, 16)
- 			    && !memcmp(ch->t_port_id, req->target_port_id, 16)
- 			    && param->port == ch->sport->port
-@@ -2053,7 +2054,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
- 			}
++		list_for_each_entry(n, &sport->nexus_list, entry) {
++			if (memcmp(n->i_port_id, i_port_id, 16) == 0 &&
++			    memcmp(n->t_port_id, t_port_id, 16) == 0) {
++				nexus = n;
++				break;
++			}
++		}
++		if (!nexus && tmp_nexus) {
++			list_add_tail_rcu(&tmp_nexus->entry,
++					  &sport->nexus_list);
++			swap(nexus, tmp_nexus);
  		}
- 
--		mutex_unlock(&sdev->mutex);
 +		mutex_unlock(&sport->mutex);
- 
- 	} else
- 		rsp->rsp_flags = SRP_LOGIN_RSP_MULTICHAN_MAINTAINED;
-@@ -2205,9 +2206,9 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
- 		goto release_channel;
++
++		if (nexus)
++			break;
++		tmp_nexus = kzalloc(sizeof(*nexus), GFP_KERNEL);
++		if (!tmp_nexus) {
++			nexus = ERR_PTR(-ENOMEM);
++			break;
++		}
++		init_rcu_head(&tmp_nexus->rcu);
++		INIT_LIST_HEAD(&tmp_nexus->ch_list);
++		memcpy(tmp_nexus->i_port_id, i_port_id, 16);
++		memcpy(tmp_nexus->t_port_id, t_port_id, 16);
  	}
  
--	mutex_lock(&sdev->mutex);
--	list_add_tail_rcu(&ch->list, &sdev->rch_list);
--	mutex_unlock(&sdev->mutex);
-+	mutex_lock(&sport->mutex);
-+	list_add_tail_rcu(&ch->list, &sport->rch_list);
-+	mutex_unlock(&sport->mutex);
- 
- 	goto out;
- 
-@@ -2559,24 +2560,21 @@ static void srpt_refresh_port_work(struct work_struct *work)
++	kfree(tmp_nexus);
++
++	return nexus;
++}
++
++static void srpt_set_enabled(struct srpt_port *sport, bool enabled)
++	__must_hold(&sport->mutex)
++{
++	lockdep_assert_held(&sport->mutex);
++
++	if (sport->enabled == enabled)
++		return;
++	sport->enabled = enabled;
++	if (!enabled)
++		__srpt_close_all_ch(sport);
  }
  
- /**
-- * srpt_release_sdev - disable login and wait for associated channels
-- * @sdev: SRPT HCA pointer.
-+ * srpt_release_sport - disable login and wait for associated channels
-+ * @sport: SRPT HCA port.
-  */
--static int srpt_release_sdev(struct srpt_device *sdev)
-+static int srpt_release_sport(struct srpt_port *sport)
+ static void srpt_free_ch(struct kref *kref)
+@@ -1984,11 +2036,12 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
  {
--	int i, res;
-+	int res;
+ 	struct srpt_device *sdev = cm_id->context;
+ 	struct srpt_port *sport = &sdev->port[param->port - 1];
++	struct srpt_nexus *nexus;
+ 	struct srp_login_req *req;
+-	struct srp_login_rsp *rsp;
+-	struct srp_login_rej *rej;
+-	struct ib_cm_rep_param *rep_param;
+-	struct srpt_rdma_ch *ch, *tmp_ch;
++	struct srp_login_rsp *rsp = NULL;
++	struct srp_login_rej *rej = NULL;
++	struct ib_cm_rep_param *rep_param = NULL;
++	struct srpt_rdma_ch *ch;
+ 	char i_port_id[36];
+ 	u32 it_iu_len;
+ 	int i, ret = 0;
+@@ -2007,6 +2060,13 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 		param->port, &sport->gid,
+ 		be16_to_cpu(param->primary_path->pkey));
+ 
++	nexus = srpt_get_nexus(sport, req->initiator_port_id,
++			       req->target_port_id);
++	if (IS_ERR(nexus)) {
++		ret = PTR_ERR(nexus);
++		goto out;
++	}
++
+ 	rsp = kzalloc(sizeof(*rsp), GFP_KERNEL);
+ 	rej = kzalloc(sizeof(*rej), GFP_KERNEL);
+ 	rep_param = kzalloc(sizeof(*rep_param), GFP_KERNEL);
+@@ -2036,29 +2096,22 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	}
+ 
+ 	if ((req->req_flags & SRP_MTCH_ACTION) == SRP_MULTICHAN_SINGLE) {
++		struct srpt_rdma_ch *ch2;
++
+ 		rsp->rsp_flags = SRP_LOGIN_RSP_MULTICHAN_NO_CHAN;
+ 
+ 		mutex_lock(&sport->mutex);
+-
+-		list_for_each_entry_safe(ch, tmp_ch, &sport->rch_list, list) {
+-			if (!memcmp(ch->i_port_id, req->initiator_port_id, 16)
+-			    && !memcmp(ch->t_port_id, req->target_port_id, 16)
+-			    && param->port == ch->sport->port
+-			    && param->listen_id == ch->sport->sdev->cm_id
+-			    && ch->cm_id) {
+-				if (srpt_disconnect_ch(ch) < 0)
+-					continue;
+-				pr_info("Relogin - closed existing channel %s\n",
+-					ch->sess_name);
+-				rsp->rsp_flags =
+-					SRP_LOGIN_RSP_MULTICHAN_TERMINATED;
+-			}
++		list_for_each_entry(ch2, &nexus->ch_list, list) {
++			if (srpt_disconnect_ch(ch2) < 0)
++				continue;
++			pr_info("Relogin - closed existing channel %s\n",
++				ch2->sess_name);
++			rsp->rsp_flags = SRP_LOGIN_RSP_MULTICHAN_TERMINATED;
+ 		}
+-
+ 		mutex_unlock(&sport->mutex);
+-
+-	} else
++	} else {
+ 		rsp->rsp_flags = SRP_LOGIN_RSP_MULTICHAN_MAINTAINED;
++	}
+ 
+ 	if (*(__be64 *)req->target_port_id != cpu_to_be64(srpt_service_guid)
+ 	    || *(__be64 *)(req->target_port_id + 8) !=
+@@ -2083,10 +2136,9 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	init_rcu_head(&ch->rcu);
+ 	kref_init(&ch->kref);
+ 	ch->pkey = be16_to_cpu(param->primary_path->pkey);
++	ch->nexus = nexus;
+ 	ch->zw_cqe.done = srpt_zerolength_write_done;
+ 	INIT_WORK(&ch->release_work, srpt_release_channel_work);
+-	memcpy(ch->i_port_id, req->initiator_port_id, 16);
+-	memcpy(ch->t_port_id, req->target_port_id, 16);
+ 	ch->sport = &sdev->port[param->port - 1];
+ 	ch->cm_id = cm_id;
+ 	cm_id->context = ch;
+@@ -2147,8 +2199,8 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	srpt_format_guid(ch->sess_name, sizeof(ch->sess_name),
+ 			 &param->primary_path->dgid.global.interface_id);
+ 	snprintf(i_port_id, sizeof(i_port_id), "0x%016llx%016llx",
+-			be64_to_cpu(*(__be64 *)ch->i_port_id),
+-			be64_to_cpu(*(__be64 *)(ch->i_port_id + 8)));
++			be64_to_cpu(*(__be64 *)nexus->i_port_id),
++			be64_to_cpu(*(__be64 *)(nexus->i_port_id + 8)));
+ 
+ 	pr_debug("registering session %s\n", ch->sess_name);
+ 
+@@ -2208,7 +2260,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	}
+ 
+ 	mutex_lock(&sport->mutex);
+-	list_add_tail_rcu(&ch->list, &sport->rch_list);
++	list_add_tail_rcu(&ch->list, &nexus->ch_list);
+ 	mutex_unlock(&sport->mutex);
+ 
+ 	goto out;
+@@ -2560,13 +2612,28 @@ static void srpt_refresh_port_work(struct work_struct *work)
+ 	srpt_refresh_port(sport);
+ }
+ 
++static bool srpt_ch_list_empty(struct srpt_port *sport)
++{
++	struct srpt_nexus *nexus;
++	bool res = true;
++
++	rcu_read_lock();
++	list_for_each_entry(nexus, &sport->nexus_list, entry)
++		if (!list_empty(&nexus->ch_list))
++			res = false;
++	rcu_read_unlock();
++
++	return res;
++}
++
+ /**
+  * srpt_release_sport - disable login and wait for associated channels
+  * @sport: SRPT HCA port.
+  */
+ static int srpt_release_sport(struct srpt_port *sport)
+ {
+-	int res;
++	struct srpt_nexus *nexus, *next_n;
++	struct srpt_rdma_ch *ch;
  
  	WARN_ON_ONCE(irqs_disabled());
  
--	BUG_ON(!sdev);
--
--	mutex_lock(&sdev->mutex);
--	for (i = 0; i < ARRAY_SIZE(sdev->port); i++)
--		srpt_set_enabled(&sdev->port[i], false);
--	mutex_unlock(&sdev->mutex);
+@@ -2574,10 +2641,27 @@ static int srpt_release_sport(struct srpt_port *sport)
+ 	srpt_set_enabled(sport, false);
+ 	mutex_unlock(&sport->mutex);
+ 
+-	res = wait_event_interruptible(sport->ch_releaseQ,
+-				       list_empty_careful(&sport->rch_list));
+-	if (res)
+-		pr_err("%s: interrupted.\n", __func__);
++	while (wait_event_timeout(sport->ch_releaseQ,
++				  srpt_ch_list_empty(sport), 5 * HZ) <= 0) {
++		pr_info("%s_%d: waiting for session unregistration ...\n",
++			sport->sdev->device->name, sport->port);
++		rcu_read_lock();
++		list_for_each_entry(nexus, &sport->nexus_list, entry) {
++			list_for_each_entry(ch, &nexus->ch_list, list) {
++				pr_info("%s-%d: state %s\n",
++					ch->sess_name, ch->qp->qp_num,
++					get_ch_state_name(ch->state));
++			}
++		}
++		rcu_read_unlock();
++	}
++
 +	mutex_lock(&sport->mutex);
-+	srpt_set_enabled(sport, false);
++	list_for_each_entry_safe(nexus, next_n, &sport->nexus_list, entry) {
++		list_del(&nexus->entry);
++		kfree_rcu(nexus, rcu);
++	}
 +	mutex_unlock(&sport->mutex);
  
--	res = wait_event_interruptible(sdev->ch_releaseQ,
--				       list_empty_careful(&sdev->rch_list));
-+	res = wait_event_interruptible(sport->ch_releaseQ,
-+				       list_empty_careful(&sport->rch_list));
- 	if (res)
- 		pr_err("%s: interrupted.\n", __func__);
- 
-@@ -2704,9 +2702,7 @@ static void srpt_add_one(struct ib_device *device)
- 		goto err;
- 
- 	sdev->device = device;
--	INIT_LIST_HEAD(&sdev->rch_list);
--	init_waitqueue_head(&sdev->ch_releaseQ);
--	mutex_init(&sdev->mutex);
-+	mutex_init(&sdev->sdev_mutex);
- 
- 	sdev->pd = ib_alloc_pd(device, 0);
- 	if (IS_ERR(sdev->pd))
-@@ -2747,6 +2743,9 @@ static void srpt_add_one(struct ib_device *device)
+ 	return 0;
+ }
+@@ -2744,7 +2828,7 @@ static void srpt_add_one(struct ib_device *device)
  
  	for (i = 1; i <= sdev->device->phys_port_cnt; i++) {
  		sport = &sdev->port[i - 1];
-+		INIT_LIST_HEAD(&sport->rch_list);
-+		init_waitqueue_head(&sport->ch_releaseQ);
-+		mutex_init(&sport->mutex);
+-		INIT_LIST_HEAD(&sport->rch_list);
++		INIT_LIST_HEAD(&sport->nexus_list);
+ 		init_waitqueue_head(&sport->ch_releaseQ);
+ 		mutex_init(&sport->mutex);
  		sport->sdev = sdev;
- 		sport->port = i;
- 		sport->port_attrib.srp_max_rdma_size = DEFAULT_MAX_RDMA_SIZE;
-@@ -2819,7 +2818,9 @@ static void srpt_remove_one(struct ib_device *device, void *client_data)
- 	spin_lock(&srpt_dev_lock);
- 	list_del(&sdev->list);
- 	spin_unlock(&srpt_dev_lock);
--	srpt_release_sdev(sdev);
-+
-+	for (i = 0; i < sdev->device->phys_port_cnt; i++)
-+		srpt_release_sport(&sdev->port[i]);
- 
- 	srpt_free_srq(sdev);
- 
-@@ -2905,11 +2906,11 @@ static void srpt_release_cmd(struct se_cmd *se_cmd)
- static void srpt_close_session(struct se_session *se_sess)
- {
- 	struct srpt_rdma_ch *ch = se_sess->fabric_sess_ptr;
--	struct srpt_device *sdev = ch->sport->sdev;
-+	struct srpt_port *sport = ch->sport;
- 
--	mutex_lock(&sdev->mutex);
-+	mutex_lock(&sport->mutex);
- 	srpt_disconnect_ch_sync(ch);
--	mutex_unlock(&sdev->mutex);
-+	mutex_unlock(&sport->mutex);
- }
- 
- /**
-@@ -3134,18 +3135,24 @@ static ssize_t srpt_tpg_attrib_use_srq_store(struct config_item *item,
- 	if (val != !!val)
- 		return -EINVAL;
- 
--	ret = mutex_lock_interruptible(&sdev->mutex);
-+	ret = mutex_lock_interruptible(&sdev->sdev_mutex);
- 	if (ret < 0)
- 		return ret;
-+	ret = mutex_lock_interruptible(&sport->mutex);
-+	if (ret < 0)
-+		goto unlock_sdev;
- 	enabled = sport->enabled;
- 	/* Log out all initiator systems before changing 'use_srq'. */
- 	srpt_set_enabled(sport, false);
- 	sport->port_attrib.use_srq = val;
- 	srpt_use_srq(sdev, sport->port_attrib.use_srq);
- 	srpt_set_enabled(sport, enabled);
--	mutex_unlock(&sdev->mutex);
-+	ret = count;
-+	mutex_unlock(&sport->mutex);
-+unlock_sdev:
-+	mutex_unlock(&sdev->sdev_mutex);
- 
--	return count;
-+	return ret;
- }
- 
- CONFIGFS_ATTR(srpt_tpg_attrib_,  srp_max_rdma_size);
-@@ -3174,7 +3181,6 @@ static ssize_t srpt_tpg_enable_store(struct config_item *item,
- {
- 	struct se_portal_group *se_tpg = to_tpg(item);
- 	struct srpt_port *sport = srpt_tpg_to_sport(se_tpg);
--	struct srpt_device *sdev = sport->sdev;
- 	unsigned long tmp;
-         int ret;
- 
-@@ -3189,9 +3195,9 @@ static ssize_t srpt_tpg_enable_store(struct config_item *item,
- 		return -EINVAL;
- 	}
- 
--	mutex_lock(&sdev->mutex);
-+	mutex_lock(&sport->mutex);
- 	srpt_set_enabled(sport, tmp);
--	mutex_unlock(&sdev->mutex);
-+	mutex_unlock(&sport->mutex);
- 
- 	return count;
- }
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index f830968e7fd4..1434f0cd45f7 100644
+index 6c5a14ac7742..59261d5de292 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.h
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -262,7 +262,7 @@ enum rdma_ch_state {
+@@ -54,6 +54,8 @@
+  */
+ #define SRP_SERVICE_NAME_PREFIX		"SRP.T10:"
+ 
++struct srpt_nexus;
++
+ enum {
+ 	/*
+ 	 * SRP IOControllerProfile attributes for SRP target ports that have
+@@ -240,6 +242,7 @@ enum rdma_ch_state {
+ 
+ /**
+  * struct srpt_rdma_ch - RDMA channel
++ * @nexus:         I_T nexus this channel is associated with.
+  * @cm_id:         IB CM ID associated with the channel.
+  * @qp:            IB queue pair used for communicating over this channel.
+  * @cq:            IB completion queue for this channel.
+@@ -251,8 +254,6 @@ enum rdma_ch_state {
+  * @sq_wr_avail:   number of work requests available in the send queue.
+  * @sport:         pointer to the information of the HCA port used by this
+  *                 channel.
+- * @i_port_id:     128-bit initiator port identifier copied from SRP_LOGIN_REQ.
+- * @t_port_id:     128-bit target port identifier copied from SRP_LOGIN_REQ.
+  * @max_ti_iu_len: maximum target-to-initiator information unit length.
+  * @req_lim:       request limit: maximum number of requests that may be sent
+  *                 by the initiator without having received a response.
+@@ -262,7 +263,7 @@ enum rdma_ch_state {
   * @state:         channel state. See also enum rdma_ch_state.
   * @ioctx_ring:    Send ring.
   * @ioctx_recv_ring: Receive I/O context ring.
-- * @list:          Node for insertion in the srpt_device.rch_list list.
-+ * @list:          Node in srpt_port.rch_list.
+- * @list:          Node in srpt_port.rch_list.
++ * @list:          Node in srpt_nexus.ch_list.
   * @cmd_wait_list: List of SCSI commands that arrived before the RTU event. This
   *                 list contains struct srpt_ioctx elements and is protected
   *                 against concurrent modification by the cm_id spinlock.
-@@ -334,6 +334,9 @@ struct srpt_port_attrib {
+@@ -272,6 +273,7 @@ enum rdma_ch_state {
+  * @release_work:  Allows scheduling of srpt_release_channel().
+  */
+ struct srpt_rdma_ch {
++	struct srpt_nexus	*nexus;
+ 	struct ib_cm_id		*cm_id;
+ 	struct ib_qp		*qp;
+ 	struct ib_cq		*cq;
+@@ -282,8 +284,6 @@ struct srpt_rdma_ch {
+ 	u32			max_rsp_size;
+ 	atomic_t		sq_wr_avail;
+ 	struct srpt_port	*sport;
+-	u8			i_port_id[16];
+-	u8			t_port_id[16];
+ 	int			max_ti_iu_len;
+ 	atomic_t		req_lim;
+ 	atomic_t		req_lim_delta;
+@@ -300,6 +300,22 @@ struct srpt_rdma_ch {
+ 	struct work_struct	release_work;
+ };
+ 
++/**
++ * struct srpt_nexus - I_T nexus
++ * @rcu:       RCU head for this data structure.
++ * @entry:     srpt_port.nexus_list list node.
++ * @ch_list:   struct srpt_rdma_ch list. Protected by srpt_port.mutex.
++ * @i_port_id: 128-bit initiator port identifier copied from SRP_LOGIN_REQ.
++ * @t_port_id: 128-bit target port identifier copied from SRP_LOGIN_REQ.
++ */
++struct srpt_nexus {
++	struct rcu_head		rcu;
++	struct list_head	entry;
++	struct list_head	ch_list;
++	u8			i_port_id[16];
++	u8			t_port_id[16];
++};
++
+ /**
+  * struct srpt_port_attib - attributes for SRPT port
+  * @srp_max_rdma_size: Maximum size of SRP RDMA transfers for new connections.
+@@ -332,9 +348,9 @@ struct srpt_port_attrib {
   * @port_gid_tpg:  TPG associated with target port GID.
   * @port_gid_wwn:  WWN associated with target port GID.
   * @port_attrib:   Port attributes that can be accessed through configfs.
-+ * @ch_releaseQ:   Enables waiting for removal from rch_list.
-+ * @mutex:	   Protects rch_list.
-+ * @rch_list:	   Channel list. See also srpt_rdma_ch.list.
+- * @ch_releaseQ:   Enables waiting for removal from rch_list.
+- * @mutex:	   Protects rch_list.
+- * @rch_list:	   Channel list. See also srpt_rdma_ch.list.
++ * @ch_releaseQ:   Enables waiting for removal from nexus_list.
++ * @mutex:	   Protects nexus_list.
++ * @nexus_list:	   Nexus list. See also srpt_nexus.entry.
   */
  struct srpt_port {
  	struct srpt_device	*sdev;
-@@ -351,6 +354,9 @@ struct srpt_port {
- 	struct se_portal_group	port_gid_tpg;
- 	struct se_wwn		port_gid_wwn;
+@@ -354,7 +370,7 @@ struct srpt_port {
  	struct srpt_port_attrib port_attrib;
-+	wait_queue_head_t	ch_releaseQ;
-+	struct mutex		mutex;
-+	struct list_head	rch_list;
+ 	wait_queue_head_t	ch_releaseQ;
+ 	struct mutex		mutex;
+-	struct list_head	rch_list;
++	struct list_head	nexus_list;
  };
  
  /**
-@@ -361,11 +367,9 @@ struct srpt_port {
-  * @srq:           Per-HCA SRQ (shared receive queue).
-  * @cm_id:         Connection identifier.
-  * @srq_size:      SRQ size.
-+ * @sdev_mutex:	   Serializes use_srq changes.
-  * @use_srq:       Whether or not to use SRQ.
-  * @ioctx_ring:    Per-HCA SRQ.
-- * @rch_list:      Per-device channel list -- see also srpt_rdma_ch.list.
-- * @ch_releaseQ:   Enables waiting for removal from rch_list.
-- * @mutex:         Protects rch_list.
-  * @port:          Information about the ports owned by this HCA.
-  * @event_handler: Per-HCA asynchronous IB event handler.
-  * @list:          Node in srpt_dev_list.
-@@ -377,11 +381,9 @@ struct srpt_device {
- 	struct ib_srq		*srq;
- 	struct ib_cm_id		*cm_id;
- 	int			srq_size;
-+	struct mutex		sdev_mutex;
- 	bool			use_srq;
- 	struct srpt_recv_ioctx	**ioctx_ring;
--	struct list_head	rch_list;
--	wait_queue_head_t	ch_releaseQ;
--	struct mutex		mutex;
- 	struct srpt_port	port[2];
- 	struct ib_event_handler	event_handler;
- 	struct list_head	list;
 -- 
 2.15.1
 
