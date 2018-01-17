@@ -1,43 +1,59 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v3 00/13] Request for Comments on SoftiWarp
-Date: Wed, 17 Jan 2018 10:07:22 -0600
-Message-ID: <031f01d38fad$422520c0$c66f6240$@opengridcomputing.com>
-References: <20180114223603.19961-1-bmt@zurich.ibm.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH 1/4] IB/core: add support for draining Shared receive
+ queues
+Date: Wed, 17 Jan 2018 16:11:15 +0000
+Message-ID: <1516205474.2820.5.camel@wdc.com>
+References: <1516197178-26493-1-git-send-email-maxg@mellanox.com>
+         <1516197178-26493-2-git-send-email-maxg@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180114223603.19961-1-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <1516197178-26493-2-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <62B4A5AB335C0046A75D0280F96A9900-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Bernard Metzler' <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: "danielm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <danielm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Bernard,
-
-> 
-> This patch set contributes a new version of the SoftiWarp
-> driver, as originally introduced Oct 6th, 2017.
-> 
-
-
-Two things I think will help with review:
-
-1) provide a github linux kernel repo with this series added.  That allows
-reviewers to easily use both patches and a full kernel tree for reviewing.
-
-2) provide the userlib patches (and a github repo) that works with the
-latest upstream rdma-core.  That will allow folks to test use-side rdma as
-part of their review.
-
-I'll review the individual patches in detail asap.
-
-Thanks!
-
-Steve.
-
-
+T24gV2VkLCAyMDE4LTAxLTE3IGF0IDE1OjUyICswMjAwLCBNYXggR3VydG92b3kgd3JvdGU6DQo+
+ICsvKg0KPiArICogX19pYl9kcmFpbl9zcnEoKSAtIEJsb2NrIHVudGlsIGFsbCBMYXN0IFdRRSBS
+ZWFjaGVkIGV2ZW50IGFycml2ZXMsIG9yDQo+ICsgKiAgICAgICAgICAgICAgICAgICAgdGltZW91
+dCBleHBpcmVzIChiZXN0IGVmZm9ydCkuDQo+ICsgKiBAcXA6ICAgICAgICAgICAgICAgcXVldWUg
+cGFpciBhc3NvY2lhdGVkIHdpdGggU1JRIHRvIGRyYWluDQo+ICsgKg0KPiArICogSW4gb3JkZXIg
+dG8gYXZvaWQgV1FFIGFuZCBkYXRhIHNlZ21lbnQgbGVha2FnZSwgb25lIHNob3VsZCBkZXN0cm95
+DQo+ICsgKiBRUCBhc3NvY2lhdGVkIGFmdGVyIHBlcmZvcm1pbmcgdGhlIGZvbGxvd2luZzoNCj4g
+KyAqICAtIG1vdmluZyBRUCB0byBlcnIgc3RhdGUNCj4gKyAqICAtIHdhaXQgZm9yIHRoZSBBZmZp
+bGlhdGVkIEFzeW5jaHJvbm91cyBMYXN0IFdRRSBSZWFjaGVkIEV2ZW50DQo+ICsgKiAgLSBkcmFp
+biB0aGUgQ1ENCj4gKyAqLw0KPiArc3RhdGljIHZvaWQgX19pYl9kcmFpbl9zcnEoc3RydWN0IGli
+X3FwICpxcCkNCj4gK3sNCj4gKwlzdHJ1Y3QgaWJfcXBfYXR0ciBhdHRyID0geyAucXBfc3RhdGUg
+PSBJQl9RUFNfRVJSIH07DQo+ICsJc3RydWN0IGliX2NxICpjcTsNCj4gKwlpbnQgcmV0Ow0KPiAr
+DQo+ICsJaWYgKCFxcC0+c3JxKSB7DQo+ICsJCVdBUk5fT05DRSgxLCAiUVAgMHglcCBpcyBub3Qg
+YXNzb2NpYXRlZCB3aXRoIFNSUVxuIiwgcXApOw0KPiArCQlyZXR1cm47DQo+ICsJfQ0KPiArDQo+
+ICsJcmV0ID0gaWJfbW9kaWZ5X3FwKHFwLCAmYXR0ciwgSUJfUVBfU1RBVEUpOw0KPiArCWlmIChy
+ZXQpIHsNCj4gKwkJV0FSTl9PTkNFKHJldCwgImZhaWxlZCB0byBkcmFpbiBzaGFyZWQgcmVjdiBx
+dWV1ZTogJWRcbiIsIHJldCk7DQo+ICsJCXJldHVybjsNCj4gKwl9DQo+ICsNCj4gKwlpZiAoaWJf
+c3JxX2hhc19jcShxcC0+c3JxLT5zcnFfdHlwZSkpIHsNCj4gKwkJY3EgPSBxcC0+c3JxLT5leHQu
+Y3E7DQo+ICsJfSBlbHNlIGlmIChxcC0+cmVjdl9jcSkgew0KPiArCQljcSA9IHFwLT5yZWN2X2Nx
+Ow0KPiArCX0gZWxzZSB7DQo+ICsJCVdBUk5fT05DRSgxLCAiUVAgMHglcCBoYXMgbm8gQ1EgYXNz
+b2NpYXRlZCB3aXRoIFNSUVxuIiwgcXApOw0KPiArCQlyZXR1cm47DQo+ICsJfQ0KPiArDQo+ICsJ
+LyoNCj4gKyAgICAgICAgICogVUxQIHNob3VsZCBpbnZva2UgaWJfbm90aWZ5X3FwIG9uIElCX0VW
+RU5UX1FQX0xBU1RfV1FFX1JFQUNIRUQNCj4gKyAgICAgICAgICogYXJyaXZhbCwgb3RoZXJ3aXNl
+IHRpbWVvdXQgd2lsbCBleHBpcmUgYW5kIGxlYWthZ2UgbWF5IG9jY3VyLg0KPiArICAgICAgICAg
+KiBVc2UgbG9uZyB0aW1lb3V0LCBmb3IgdGhlIGJ1Z2d5IFVMUHMvSENBcyB0aGF0IGRvbid0IG5v
+dGlmeSB0aGUNCj4gKyAgICAgICAgICogUVAgbm9yIHJhaXNpbmcgSUJfRVZFTlRfUVBfTEFTVF9X
+UUVfUkVBQ0hFRCBldmVudC4NCj4gKyAgICAgICAgICovDQo+ICsJaWYgKHdhaXRfZm9yX2NvbXBs
+ZXRpb25fdGltZW91dCgmcXAtPnNycV9jb21wbGV0aW9uLCAxMCAqIEhaKSA+IDApDQo+ICsJCWli
+X3Byb2Nlc3NfY3FfZGlyZWN0KGNxLCAtMSk7DQo+ICt9DQoNCkhlbGxvIE1heCwNCg0KSXQgc2Vl
+bXMgd2VpcmQgdG8gbWUgdGhhdCBfX2liX2RyYWluX3NycSgpIGRvZXMgbm90IGZvbGxvdyB0aGUg
+c2FtZSBhcHByb2FjaCBhcw0KX19pYl9kcmFpbl9ycSgpLiBIYXZlIHlvdSBjb25zaWRlcmVkIHRv
+IHBvc3QgYW4gYWRkaXRpb25hbCByZWNlaXZlIHdvcmsgZW50cnkNCm9uIHRoZSBTUlEgYW5kIHRv
+IHdhaXQgdW50aWwgdGhlIGNvbXBsZXRpb24gZm9yIHRoYXQgd29yayBlbnRyeSBpcyBzaWduYWxl
+ZD8NClRoYXQgd291bGQgYXZvaWQgdGhhdCBhIGNvbXBsZXRpb24gaGFzIHRvIGJlIGFkZGVkIGlu
+IHRoZSBpYl9xcCBkYXRhIHN0cnVjdHVyZQ0KYW5kIHdvdWxkIGFsc28gYXZvaWQgdGhhdCBhbGwg
+VUxQcyB0aGF0IHVzZSBTUlFzIGhhdmUgdG8gYmUgbW9kaWZpZWQuDQoNClRoYW5rcywNCg0KQmFy
+dC4=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
