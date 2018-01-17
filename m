@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v2 11/14] IB/srpt: Avoid that wait list processing triggers command reordering
-Date: Tue, 16 Jan 2018 16:14:15 -0800
-Message-ID: <20180117001418.7852-12-bart.vanassche@wdc.com>
+Subject: [PATCH v2 03/14] IB/srpt: Add P_Key support
+Date: Tue, 16 Jan 2018 16:14:07 -0800
+Message-ID: <20180117001418.7852-4-bart.vanassche@wdc.com>
 References: <20180117001418.7852-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180117001418.7852-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,190 +10,82 @@ To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If a receive I/O context is removed from the wait list and
-srpt_handle_new_iu() fails to allocate a send I/O context then
-re-adding the receive I/O context to the wait list can cause
-reordering. Avoid this by only removing a receive I/O context
-from the wait list after allocating a send I/O context succeeded.
+Process connection requests that use another P_Key than the default
+correctly.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 82 ++++++++++++++++++++---------------
- drivers/infiniband/ulp/srpt/ib_srpt.h |  2 +
- 2 files changed, 49 insertions(+), 35 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 14 +++++++++++---
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  2 ++
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 372f1eb2fa49..5b2e74b1d808 100644
+index 5386b993daf9..cafa73083ee8 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1533,39 +1533,39 @@ static void srpt_handle_tsk_mgmt(struct srpt_rdma_ch *ch,
-  * srpt_handle_new_iu - process a newly received information unit
-  * @ch:    RDMA channel through which the information unit has been received.
-  * @recv_ioctx: Receive I/O context associated with the information unit.
-- * @send_ioctx: Send I/O context.
-  */
--static void srpt_handle_new_iu(struct srpt_rdma_ch *ch,
--			       struct srpt_recv_ioctx *recv_ioctx,
--			       struct srpt_send_ioctx *send_ioctx)
-+static bool
-+srpt_handle_new_iu(struct srpt_rdma_ch *ch, struct srpt_recv_ioctx *recv_ioctx)
- {
-+	struct srpt_send_ioctx *send_ioctx = NULL;
- 	struct srp_cmd *srp_cmd;
-+	bool res = false;
-+	u8 opcode;
- 
- 	BUG_ON(!ch);
- 	BUG_ON(!recv_ioctx);
- 
-+	if (unlikely(ch->state == CH_CONNECTING))
-+		goto push;
+@@ -41,6 +41,7 @@
+ #include <linux/string.h>
+ #include <linux/delay.h>
+ #include <linux/atomic.h>
++#include <rdma/ib_cache.h>
+ #include <scsi/scsi_proto.h>
+ #include <scsi/scsi_tcq.h>
+ #include <target/target_core_base.h>
+@@ -1057,7 +1058,12 @@ static int srpt_init_ch_qp(struct srpt_rdma_ch *ch, struct ib_qp *qp)
+ 	attr->qp_state = IB_QPS_INIT;
+ 	attr->qp_access_flags = IB_ACCESS_LOCAL_WRITE;
+ 	attr->port_num = ch->sport->port;
+-	attr->pkey_index = 0;
 +
- 	ib_dma_sync_single_for_cpu(ch->sport->sdev->device,
- 				   recv_ioctx->ioctx.dma, srp_max_req_size,
- 				   DMA_FROM_DEVICE);
++	ret = ib_find_cached_pkey(ch->sport->sdev->device, ch->sport->port,
++				  ch->pkey, &attr->pkey_index);
++	if (ret < 0)
++		pr_err("Translating pkey %#x failed (%d) - using index 0\n",
++		       ch->pkey, ret);
  
--	if (unlikely(ch->state == CH_CONNECTING))
--		goto out_wait;
--
--	if (unlikely(ch->state != CH_LIVE))
--		return;
--
- 	srp_cmd = recv_ioctx->ioctx.buf;
--	if (srp_cmd->opcode == SRP_CMD || srp_cmd->opcode == SRP_TSK_MGMT) {
--		if (!send_ioctx) {
--			if (!list_empty(&ch->cmd_wait_list))
--				goto out_wait;
--			send_ioctx = srpt_get_send_ioctx(ch);
--		}
-+	opcode = srp_cmd->opcode;
-+	if (opcode == SRP_CMD || opcode == SRP_TSK_MGMT) {
-+		send_ioctx = srpt_get_send_ioctx(ch);
- 		if (unlikely(!send_ioctx))
--			goto out_wait;
-+			goto push;
- 	}
+ 	ret = ib_modify_qp(qp, attr,
+ 			   IB_QP_STATE | IB_QP_ACCESS_FLAGS | IB_QP_PORT |
+@@ -1994,9 +2000,10 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
  
--	switch (srp_cmd->opcode) {
-+	if (!list_empty(&recv_ioctx->wait_list)) {
-+		WARN_ON_ONCE(!ch->processing_wait_list);
-+		list_del_init(&recv_ioctx->wait_list);
-+	}
-+
-+	switch (opcode) {
- 	case SRP_CMD:
- 		srpt_handle_cmd(ch, recv_ioctx, send_ioctx);
- 		break;
-@@ -1585,16 +1585,22 @@ static void srpt_handle_new_iu(struct srpt_rdma_ch *ch,
- 		pr_err("Received SRP_RSP\n");
- 		break;
- 	default:
--		pr_err("received IU with unknown opcode 0x%x\n",
--		       srp_cmd->opcode);
-+		pr_err("received IU with unknown opcode 0x%x\n", opcode);
- 		break;
- 	}
+ 	it_iu_len = be32_to_cpu(req->req_it_iu_len);
  
- 	srpt_post_recv(ch->sport->sdev, ch, recv_ioctx);
--	return;
-+	res = true;
+-	pr_info("Received SRP_LOGIN_REQ with i_port_id %pI6, t_port_id %pI6 and it_iu_len %d on port %d (guid=%pI6)\n",
++	pr_info("Received SRP_LOGIN_REQ with i_port_id %pI6, t_port_id %pI6 and it_iu_len %d on port %d (guid=%pI6); pkey %#04x\n",
+ 		req->initiator_port_id, req->target_port_id, it_iu_len,
+-		param->port, &sport->gid);
++		param->port, &sport->gid,
++		be16_to_cpu(param->primary_path->pkey));
  
--out_wait:
--	list_add_tail(&recv_ioctx->wait_list, &ch->cmd_wait_list);
-+out:
-+	return res;
-+
-+push:
-+	if (list_empty(&recv_ioctx->wait_list)) {
-+		WARN_ON_ONCE(ch->processing_wait_list);
-+		list_add_tail(&recv_ioctx->wait_list, &ch->cmd_wait_list);
-+	}
-+	goto out;
- }
+ 	rsp = kzalloc(sizeof(*rsp), GFP_KERNEL);
+ 	rej = kzalloc(sizeof(*rej), GFP_KERNEL);
+@@ -2073,6 +2080,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
  
- static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc)
-@@ -1609,7 +1615,7 @@ static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc)
- 		req_lim = atomic_dec_return(&ch->req_lim);
- 		if (unlikely(req_lim < 0))
- 			pr_err("req_lim = %d < 0\n", req_lim);
--		srpt_handle_new_iu(ch, ioctx, NULL);
-+		srpt_handle_new_iu(ch, ioctx);
- 	} else {
- 		pr_info_ratelimited("receiving failed for ioctx %p with status %d\n",
- 				    ioctx, wc->status);
-@@ -1623,19 +1629,21 @@ static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc)
-  */
- static void srpt_process_wait_list(struct srpt_rdma_ch *ch)
- {
--	struct srpt_send_ioctx *ioctx;
-+	struct srpt_recv_ioctx *recv_ioctx, *tmp;
- 
--	while (!list_empty(&ch->cmd_wait_list) &&
--	       ch->state >= CH_LIVE &&
--	       (ioctx = srpt_get_send_ioctx(ch)) != NULL) {
--		struct srpt_recv_ioctx *recv_ioctx;
-+	WARN_ON_ONCE(ch->state == CH_CONNECTING);
- 
--		recv_ioctx = list_first_entry(&ch->cmd_wait_list,
--					      struct srpt_recv_ioctx,
--					      wait_list);
--		list_del(&recv_ioctx->wait_list);
--		srpt_handle_new_iu(ch, recv_ioctx, ioctx);
-+	if (list_empty(&ch->cmd_wait_list))
-+		return;
-+
-+	WARN_ON_ONCE(ch->processing_wait_list);
-+	ch->processing_wait_list = true;
-+	list_for_each_entry_safe(recv_ioctx, tmp, &ch->cmd_wait_list,
-+				 wait_list) {
-+		if (!srpt_handle_new_iu(ch, recv_ioctx))
-+			break;
- 	}
-+	ch->processing_wait_list = false;
- }
- 
- /**
-@@ -2150,6 +2158,8 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
- 			    cpu_to_be32(SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
- 			goto free_ring;
- 		}
-+		for (i = 0; i < ch->rq_size; i++)
-+			INIT_LIST_HEAD(&ch->ioctx_recv_ring[i]->wait_list);
- 	}
- 
- 	ret = srpt_create_ch_ib(ch);
-@@ -2773,8 +2783,10 @@ static int srpt_alloc_srq(struct srpt_device *sdev)
- 	sdev->use_srq = true;
- 	sdev->srq = srq;
- 
--	for (i = 0; i < sdev->srq_size; ++i)
-+	for (i = 0; i < sdev->srq_size; ++i) {
-+		INIT_LIST_HEAD(&sdev->ioctx_ring[i]->wait_list);
- 		srpt_post_recv(sdev, NULL, sdev->ioctx_ring[i]);
-+	}
- 
- 	return 0;
- }
+ 	init_rcu_head(&ch->rcu);
+ 	kref_init(&ch->kref);
++	ch->pkey = be16_to_cpu(param->primary_path->pkey);
+ 	ch->zw_cqe.done = srpt_zerolength_write_done;
+ 	INIT_WORK(&ch->release_work, srpt_release_channel_work);
+ 	memcpy(ch->i_port_id, req->initiator_port_id, 16);
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index 59261d5de292..10f9b2667ef2 100644
+index 67248338b4c9..f830968e7fd4 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.h
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -261,6 +261,7 @@ enum rdma_ch_state {
-  * @spinlock:      Protects free_list and state.
-  * @free_list:     Head of list with free send I/O contexts.
-  * @state:         channel state. See also enum rdma_ch_state.
-+ * @processing_wait_list: Whether or not cmd_wait_list is being processed.
-  * @ioctx_ring:    Send ring.
-  * @ioctx_recv_ring: Receive I/O context ring.
-  * @list:          Node in srpt_nexus.ch_list.
-@@ -295,6 +296,7 @@ struct srpt_rdma_ch {
+@@ -266,6 +266,7 @@ enum rdma_ch_state {
+  * @cmd_wait_list: List of SCSI commands that arrived before the RTU event. This
+  *                 list contains struct srpt_ioctx elements and is protected
+  *                 against concurrent modification by the cm_id spinlock.
++ * @pkey:          P_Key of the IB partition for this SRP channel.
+  * @sess:          Session information associated with this SRP channel.
+  * @sess_name:     Session name.
+  * @ini_guid:      Initiator port GUID.
+@@ -294,6 +295,7 @@ struct srpt_rdma_ch {
+ 	struct srpt_recv_ioctx	**ioctx_recv_ring;
  	struct list_head	list;
  	struct list_head	cmd_wait_list;
- 	uint16_t		pkey;
-+	bool			processing_wait_list;
++	uint16_t		pkey;
  	struct se_session	*sess;
- 	u8			sess_name[24];
- 	struct work_struct	release_work;
+ 	u8			sess_name[36];
+ 	u8			ini_guid[24];
 -- 
 2.15.1
 
