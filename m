@@ -1,45 +1,59 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH V2 for-next 0/7] Add CM and a bugfix to hip08
-Date: Tue, 16 Jan 2018 20:50:37 -0700
-Message-ID: <20180117035037.GB30206@ziepe.ca>
-References: <1515566393-63888-1-git-send-email-oulijun@huawei.com>
+From: "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] iscsi_iser: Re-enable 'iser_pi_guard' module parameter
+Date: Wed, 17 Jan 2018 00:09:38 -0500
+Message-ID: <yq1d129ul4d.fsf@oracle.com>
+References: <1515575256-9949-1-git-send-email-hare@suse.de>
+        <20180110230240.GR4518@ziepe.ca>
+        <CY4PR0601MB35860D768905FF165DB99A048C160@CY4PR0601MB3586.namprd06.prod.outlook.com>
+        <a3d8060a-3926-0ba1-8963-b66d37172027@grimberg.me>
+        <yq1r2qqy0ho.fsf@oracle.com>
+        <22838a0f-29d5-7351-12d3-05a0948fd0ba@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1515566393-63888-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <22838a0f-29d5-7351-12d3-05a0948fd0ba-IBi9RG/b67k@public.gmane.org> (Hannes
+        Reinecke's message of "Tue, 16 Jan 2018 12:20:10 +0100")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hannes Reinecke <hare-IBi9RG/b67k@public.gmane.org>
+Cc: "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "Schremmer, Steven" <Steve.Schremmer-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 10, 2018 at 02:39:46PM +0800, Lijun Ou wrote:
-> This patch series adds the CM(Connection Mangement) support
-> to hip08 RoCE driver. Changes done are primarily to add
-> support of APIs in IB device and some fixes over the
-> origin driver to support RDMA CM. This patch series
-> also adjust some codes style in order to fill the
-> sq wqe of ud type and fix a bug for tx_cqn field.
-> 
-> Change from V1:
-> - Add a new patch named assign the correct value for
->   tx_cqn splited from the first patchset
-> - Fix the comments given by Leon Romanovsky
-> - Add the options for free sq lock when qp is illegal
->   qp type
->  
-> Lijun Ou (7):
->   RDMA/hns: Assign the correct value for tx_cqn
->   RDMA/hns: Create gsi qp in hip08
->   RDMA/hns: Add gsi qp support for modifying qp in hip08
->   RDMA/hns: Fill sq wqe context of ud type in hip08
->   RDMA/hns: Assign zero for pkey_index of wc in hip08
->   RDMA/hns: Update the verbs of polling for completion
->   RDMA/hns: Set the guid for hip08 RoCE device
 
-Applied to for-next, thanks
+Hannes,
 
-Jason
+> Do we need to keep the parameter?
+> If so we really should be re-enable it; ATM it's just a no-op leading
+> the user to believe something has actually happened.
+
+The driver module parameters existed mainly for the purpose of hw
+testing. One could disable IP checksum and revert to CRC to ensure both
+code paths were working properly. But it wasn't really meant to be
+something ordinary users would ever muck with. Why would anybody use the
+much slower CRC when IP checksum was supported by the hardware? (*)
+
+The reason the kernel interface changed from a per-driver to a per-I/O
+flag for checksum selection was that there are a few things you can't
+express when checksum conversion is taking place. For instance, say
+you're writing a RAID parity disk. The 8 additional bytes on the parity
+disk are not valid T10 PI but rather the XOR of the PI across the
+stripe. So you need to be able to disable checking and conversion on a
+per-I/O basis when accessing the parity disk. Deliberately writing "bad"
+PI for test purposes is another example where conversion must be
+disabled.
+
+Anyway. I think Sagi's iser_pi_guard patch was a result of that
+transition from driver global checksum setting to per-I/O ditto.
+
+I don't have a problem with having a block-level preference knob
+(slightly convoluted to implement since they are different integrity
+profiles). But I do question whether it is worth the hassle. What
+exactly is your use case that requires twiddling this?
+
+(*) The modern PCLMULQDQ-optimized CRC calculation blurs that picture
+slightly.
+
+-- 
+Martin K. Petersen	Oracle Linux Engineering
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
