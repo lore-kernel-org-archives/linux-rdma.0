@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 3/5] mlx5: Add direct verb to translate device timestamp to nanoseconds
-Date: Wed, 17 Jan 2018 15:51:31 +0200
-Message-ID: <1516197093-20699-4-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 5/5] mlx5: Implement read_completion_wallclock_ns
+Date: Wed, 17 Jan 2018 15:51:33 +0200
+Message-ID: <1516197093-20699-6-git-send-email-yishaih@mellanox.com>
 References: <1516197093-20699-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1516197093-20699-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,120 +12,397 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add a direct verb that translates device timestamps from HCA
-core clock units to nanoseconds using the device clock info.
+Implement the read_completion_wallclock_ns CQ reader.
+This internally fetches the clock page and converts the
+device timestamp using the existing DV api.
+
+The commit also revises mlx5_cq_fill_pfns return value.
 
 Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Eitan Rabin <rabin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/man/CMakeLists.txt    |  1 +
- providers/mlx5/man/mlx5dv_ts_to_ns.3 | 35 +++++++++++++++++++++++++++++++
- providers/mlx5/mlx5dv.h              | 40 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 76 insertions(+)
- create mode 100644 providers/mlx5/man/mlx5dv_ts_to_ns.3
+ providers/mlx5/cq.c    | 181 +++++++++++++++++++++++++++++++++++++++----------
+ providers/mlx5/mlx5.h  |   5 +-
+ providers/mlx5/verbs.c |  15 ++--
+ 3 files changed, 162 insertions(+), 39 deletions(-)
 
-diff --git a/providers/mlx5/man/CMakeLists.txt b/providers/mlx5/man/CMakeLists.txt
-index 6ce94a9..876b6fc 100644
---- a/providers/mlx5/man/CMakeLists.txt
-+++ b/providers/mlx5/man/CMakeLists.txt
-@@ -2,5 +2,6 @@ rdma_man_pages(
-   mlx5dv_get_clock_info.3
-   mlx5dv_init_obj.3
-   mlx5dv_query_device.3
-+  mlx5dv_ts_to_ns.3
-   mlx5dv.7
- )
-diff --git a/providers/mlx5/man/mlx5dv_ts_to_ns.3 b/providers/mlx5/man/mlx5dv_ts_to_ns.3
-new file mode 100644
-index 0000000..197b195
---- /dev/null
-+++ b/providers/mlx5/man/mlx5dv_ts_to_ns.3
-@@ -0,0 +1,35 @@
-+.\" -*- nroff -*-
-+.\" Licensed under the OpenIB.org (MIT) - See COPYING.md
-+.\"
-+.TH MLX5DV_TS_TO_NS 3 2017-11-08 1.0.0
-+.SH "NAME"
-+mlx5dv_ts_to_ns \- Convert device timestamp from HCA core clock units to
-+the corresponding nanosecond counts
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/mlx5dv.h>
-+.sp
-+.BI "uint64_t mlx5dv_ts_to_ns(struct mlx5dv_clock_info *clock_info,
-+.BI "			      uint64_t device_timestamp);
-+.fi
-+.SH "DESCRIPTION"
-+.B mlx5dv_ts_to_ns(3)
-+Converts a host byte order
-+.I device_timestamp
-+from HCA core clock units into the corresponding nanosecond wallclock time.
-+.PP
-+\fBstruct mlx5dv_clock_info\fR can be retrieved using \fBmlx5dv_get_clock_info(3)\fR.
-+.PP
-+The greater the difference between the device reporting a timestamp and the last
-+mlx5dv_clock_info update, the greater the inaccuracy of the clock time conversion.
-+
-+.fi
-+.SH "RETURN VALUE"
-+Timestamp in nanoseconds
-+.SH "SEE ALSO"
-+.BR mlx5dv (7),
-+.BR mlx5dv_get_clock_info (3),
-+.BR mlx5dv_query_device (3)
-+.SH "AUTHORS"
-+.TP
-+Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
-index 2447517..2a4a823 100644
---- a/providers/mlx5/mlx5dv.h
-+++ b/providers/mlx5/mlx5dv.h
-@@ -811,4 +811,44 @@ struct mlx5dv_clock_info {
- int mlx5dv_get_clock_info(struct ibv_context *context,
- 			  struct mlx5dv_clock_info *clock_info);
+diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
+index e96418f..25446d0 100644
+--- a/providers/mlx5/cq.c
++++ b/providers/mlx5/cq.c
+@@ -1004,10 +1004,12 @@ static inline void _mlx5_end_poll(struct ibv_cq_ex *ibcq,
+ }
  
-+/*
-+ * Translate device timestamp to nano-sec
-+ *
-+ * Input:
-+ *      clock_info  - clock info to be filled
-+ *      device_timestamp   - timestamp to translate
-+ *
-+ * Return: nano-sec
-+ */
-+static inline uint64_t mlx5dv_ts_to_ns(struct mlx5dv_clock_info *clock_info,
-+				       uint64_t device_timestamp)
-+{
-+	uint64_t delta, nsec;
+ static inline int mlx5_start_poll(struct ibv_cq_ex *ibcq, struct ibv_poll_cq_attr *attr,
+-				  int lock, enum polling_mode stall, int cqe_version)
++				  int lock, enum polling_mode stall,
++				  int cqe_version, int clock_update)
+ 				  ALWAYS_INLINE;
+ static inline int mlx5_start_poll(struct ibv_cq_ex *ibcq, struct ibv_poll_cq_attr *attr,
+-				  int lock, enum polling_mode stall, int cqe_version)
++				  int lock, enum polling_mode stall,
++				  int cqe_version, int clock_update)
+ {
+ 	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
+ 	struct mlx5_cqe64 *cqe64;
+@@ -1066,8 +1068,14 @@ static inline int mlx5_start_poll(struct ibv_cq_ex *ibcq, struct ibv_poll_cq_att
+ 		}
+ 
+ 		cq->flags &= ~(MLX5_CQ_FLAGS_FOUND_CQES);
 +
-+	/*
-+	 * device_timestamp & cycles are the free running 'mask' bit counters
-+	 * from the hardware hca_core_clock clock.
-+	 */
-+	delta = (device_timestamp - clock_info->last_cycles) & clock_info->mask;
-+	nsec  = clock_info->nsec;
++		goto out;
+ 	}
+ 
++	if (clock_update && !err)
++		err = mlx5dv_get_clock_info(ibcq->context, &cq->last_clock_info);
 +
-+	/*
-+	 * Guess if the device_timestamp is more recent than
-+	 * clock_info->last_cycles, if not (too far in the future) treat
-+	 * it as old time stamp. This will break every max_clock_info_update_nsec.
-+	 */
-+
-+	if (delta > clock_info->mask / 2) {
-+		delta = (clock_info->last_cycles - device_timestamp) &
-+				clock_info->mask;
-+		nsec -= ((delta * clock_info->mult) - clock_info->frac) >>
-+				clock_info->shift;
-+	} else {
-+		nsec += ((delta * clock_info->mult) + clock_info->frac) >>
-+				clock_info->shift;
-+	}
-+
-+	return nsec;
++out:
+ 	return err;
+ }
+ 
+@@ -1117,73 +1125,145 @@ static inline int mlx5_next_poll_v1(struct ibv_cq_ex *ibcq)
+ static inline int mlx5_start_poll_v0(struct ibv_cq_ex *ibcq,
+ 				     struct ibv_poll_cq_attr *attr)
+ {
+-	return mlx5_start_poll(ibcq, attr, 0, 0, 0);
++	return mlx5_start_poll(ibcq, attr, 0, 0, 0, 0);
+ }
+ 
+ static inline int mlx5_start_poll_v1(struct ibv_cq_ex *ibcq,
+ 				     struct ibv_poll_cq_attr *attr)
+ {
+-	return mlx5_start_poll(ibcq, attr, 0, 0, 1);
++	return mlx5_start_poll(ibcq, attr, 0, 0, 1, 0);
+ }
+ 
+ static inline int mlx5_start_poll_v0_lock(struct ibv_cq_ex *ibcq,
+ 					  struct ibv_poll_cq_attr *attr)
+ {
+-	return mlx5_start_poll(ibcq, attr, 1, 0, 0);
++	return mlx5_start_poll(ibcq, attr, 1, 0, 0, 0);
+ }
+ 
+ static inline int mlx5_start_poll_v1_lock(struct ibv_cq_ex *ibcq,
+ 					  struct ibv_poll_cq_attr *attr)
+ {
+-	return mlx5_start_poll(ibcq, attr, 1, 0, 1);
++	return mlx5_start_poll(ibcq, attr, 1, 0, 1, 0);
+ }
+ 
+ static inline int mlx5_start_poll_adaptive_stall_v0_lock(struct ibv_cq_ex *ibcq,
+ 							 struct ibv_poll_cq_attr *attr)
+ {
+-	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL_ADAPTIVE, 0);
++	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL_ADAPTIVE, 0, 0);
+ }
+ 
+ static inline int mlx5_start_poll_stall_v0_lock(struct ibv_cq_ex *ibcq,
+ 						struct ibv_poll_cq_attr *attr)
+ {
+-	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL, 0);
++	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL, 0, 0);
+ }
+ 
+ static inline int mlx5_start_poll_adaptive_stall_v1_lock(struct ibv_cq_ex *ibcq,
+ 							 struct ibv_poll_cq_attr *attr)
+ {
+-	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL_ADAPTIVE, 1);
++	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL_ADAPTIVE, 1, 0);
+ }
+ 
+ static inline int mlx5_start_poll_stall_v1_lock(struct ibv_cq_ex *ibcq,
+ 						struct ibv_poll_cq_attr *attr)
+ {
+-	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL, 1);
++	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL, 1, 0);
+ }
+ 
+ static inline int mlx5_start_poll_stall_v0(struct ibv_cq_ex *ibcq,
+ 					   struct ibv_poll_cq_attr *attr)
+ {
+-	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL, 0);
++	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL, 0, 0);
+ }
+ 
+ static inline int mlx5_start_poll_adaptive_stall_v0(struct ibv_cq_ex *ibcq,
+ 						    struct ibv_poll_cq_attr *attr)
+ {
+-	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL_ADAPTIVE, 0);
++	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL_ADAPTIVE, 0, 0);
+ }
+ 
+ static inline int mlx5_start_poll_adaptive_stall_v1(struct ibv_cq_ex *ibcq,
+ 						    struct ibv_poll_cq_attr *attr)
+ {
+-	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL_ADAPTIVE, 1);
++	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL_ADAPTIVE, 1, 0);
+ }
+ 
+ static inline int mlx5_start_poll_stall_v1(struct ibv_cq_ex *ibcq,
+ 					   struct ibv_poll_cq_attr *attr)
+ {
+-	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL, 1);
++	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL, 1, 0);
 +}
 +
- #endif /* _MLX5DV_H_ */
++static inline int mlx5_start_poll_v0_lock_clock_update(struct ibv_cq_ex *ibcq,
++						       struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 1, 0, 0, 1);
++}
++
++static inline int mlx5_start_poll_v1_lock_clock_update(struct ibv_cq_ex *ibcq,
++						       struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 1, 0, 1, 1);
++}
++
++static inline int mlx5_start_poll_v1_clock_update(struct ibv_cq_ex *ibcq,
++						  struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 0, 0, 1, 1);
++}
++
++static inline int mlx5_start_poll_v0_clock_update(struct ibv_cq_ex *ibcq,
++						  struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 0, 0, 0, 1);
++}
++
++static inline int mlx5_start_poll_stall_v1_lock_clock_update(struct ibv_cq_ex *ibcq,
++							     struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL, 1, 1);
++}
++
++static inline int mlx5_start_poll_stall_v0_lock_clock_update(struct ibv_cq_ex *ibcq,
++							     struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL, 0, 1);
++}
++
++static inline int mlx5_start_poll_stall_v1_clock_update(struct ibv_cq_ex *ibcq,
++							struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL, 1, 1);
++}
++
++static inline int mlx5_start_poll_stall_v0_clock_update(struct ibv_cq_ex *ibcq,
++							struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL, 0, 1);
++}
++
++static inline int mlx5_start_poll_adaptive_stall_v0_lock_clock_update(struct ibv_cq_ex *ibcq,
++								      struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL_ADAPTIVE, 0, 1);
++}
++
++static inline int mlx5_start_poll_adaptive_stall_v1_lock_clock_update(struct ibv_cq_ex *ibcq,
++								      struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL_ADAPTIVE, 1, 1);
++}
++
++static inline int mlx5_start_poll_adaptive_stall_v0_clock_update(struct ibv_cq_ex *ibcq,
++								 struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL_ADAPTIVE, 0, 1);
++}
++
++static inline int mlx5_start_poll_adaptive_stall_v1_clock_update(struct ibv_cq_ex *ibcq,
++								 struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL_ADAPTIVE, 1, 1);
+ }
+ 
+ static inline void mlx5_end_poll_adaptive_stall_lock(struct ibv_cq_ex *ibcq)
+@@ -1408,6 +1488,15 @@ static inline uint64_t mlx5_cq_read_wc_completion_ts(struct ibv_cq_ex *ibcq)
+ 	return be64toh(cq->cqe64->timestamp);
+ }
+ 
++static inline uint64_t
++mlx5_cq_read_wc_completion_wallclock_ns(struct ibv_cq_ex *ibcq)
++{
++	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
++
++	return mlx5dv_ts_to_ns(&cq->last_clock_info,
++			       mlx5_cq_read_wc_completion_ts(ibcq));
++}
++
+ static inline uint16_t mlx5_cq_read_wc_cvlan(struct ibv_cq_ex *ibcq)
+ {
+ 	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
+@@ -1437,16 +1526,17 @@ static inline void mlx5_cq_read_wc_tm_info(struct ibv_cq_ex *ibcq,
+ #define STALL BIT(1)
+ #define V1 BIT(2)
+ #define ADAPTIVE BIT(3)
++#define CLOCK_UPDATE BIT(4)
+ 
+-#define mlx5_start_poll_name(cqe_ver, lock, stall, adaptive) \
+-	mlx5_start_poll##adaptive##stall##cqe_ver##lock
++#define mlx5_start_poll_name(cqe_ver, lock, stall, adaptive, clock_update) \
++	mlx5_start_poll##adaptive##stall##cqe_ver##lock##clock_update
+ #define mlx5_next_poll_name(cqe_ver, adaptive) \
+ 	mlx5_next_poll##adaptive##cqe_ver
+ #define mlx5_end_poll_name(lock, stall, adaptive) \
+ 	mlx5_end_poll##adaptive##stall##lock
+ 
+-#define POLL_FN_ENTRY(cqe_ver, lock, stall, adaptive) { \
+-		.start_poll = &mlx5_start_poll_name(cqe_ver, lock, stall, adaptive), \
++#define POLL_FN_ENTRY(cqe_ver, lock, stall, adaptive, clock_update) { \
++		.start_poll = &mlx5_start_poll_name(cqe_ver, lock, stall, adaptive, clock_update), \
+ 		.next_poll = &mlx5_next_poll_name(cqe_ver, adaptive), \
+ 		.end_poll = &mlx5_end_poll_name(lock, stall, adaptive), \
+ 	}
+@@ -1456,29 +1546,44 @@ static const struct op
+ 	int (*start_poll)(struct ibv_cq_ex *ibcq, struct ibv_poll_cq_attr *attr);
+ 	int (*next_poll)(struct ibv_cq_ex *ibcq);
+ 	void (*end_poll)(struct ibv_cq_ex *ibcq);
+-} ops[ADAPTIVE + V1 + STALL + SINGLE_THREADED + 1] = {
+-	[V1] =  POLL_FN_ENTRY(_v1, _lock, , ),
+-	[0] =  POLL_FN_ENTRY(_v0, _lock, , ),
+-	[V1 | SINGLE_THREADED] =  POLL_FN_ENTRY(_v1, , , ),
+-	[SINGLE_THREADED] =  POLL_FN_ENTRY(_v0, , , ),
+-	[V1 | STALL] =  POLL_FN_ENTRY(_v1, _lock, _stall, ),
+-	[STALL] =  POLL_FN_ENTRY(_v0, _lock, _stall, ),
+-	[V1 | SINGLE_THREADED | STALL] =  POLL_FN_ENTRY(_v1, , _stall, ),
+-	[SINGLE_THREADED | STALL] =  POLL_FN_ENTRY(_v0, , _stall, ),
+-	[V1 | STALL | ADAPTIVE] =  POLL_FN_ENTRY(_v1, _lock, _stall, _adaptive),
+-	[STALL | ADAPTIVE] =  POLL_FN_ENTRY(_v0, _lock, _stall, _adaptive),
+-	[V1 | SINGLE_THREADED | STALL | ADAPTIVE] =  POLL_FN_ENTRY(_v1, , _stall, _adaptive),
+-	[SINGLE_THREADED | STALL | ADAPTIVE] =  POLL_FN_ENTRY(_v0, , _stall, _adaptive),
++} ops[ADAPTIVE + V1 + STALL + SINGLE_THREADED + CLOCK_UPDATE + 1] = {
++	[V1] =  POLL_FN_ENTRY(_v1, _lock, , ,),
++	[0] =  POLL_FN_ENTRY(_v0, _lock, , ,),
++	[V1 | SINGLE_THREADED] =  POLL_FN_ENTRY(_v1, , , , ),
++	[SINGLE_THREADED] =  POLL_FN_ENTRY(_v0, , , , ),
++	[V1 | STALL] =  POLL_FN_ENTRY(_v1, _lock, _stall, , ),
++	[STALL] =  POLL_FN_ENTRY(_v0, _lock, _stall, , ),
++	[V1 | SINGLE_THREADED | STALL] =  POLL_FN_ENTRY(_v1, , _stall, , ),
++	[SINGLE_THREADED | STALL] =  POLL_FN_ENTRY(_v0, , _stall, , ),
++	[V1 | STALL | ADAPTIVE] = POLL_FN_ENTRY(_v1, _lock, _stall, _adaptive, ),
++	[STALL | ADAPTIVE] =  POLL_FN_ENTRY(_v0, _lock, _stall, _adaptive, ),
++	[V1 | SINGLE_THREADED | STALL | ADAPTIVE] = POLL_FN_ENTRY(_v1, , _stall, _adaptive, ),
++	[SINGLE_THREADED | STALL | ADAPTIVE] = POLL_FN_ENTRY(_v0, , _stall, _adaptive, ),
++	[V1 | CLOCK_UPDATE] = POLL_FN_ENTRY(_v1, _lock, , , _clock_update),
++	[0 | CLOCK_UPDATE] = POLL_FN_ENTRY(_v0, _lock, , , _clock_update),
++	[V1 | SINGLE_THREADED | CLOCK_UPDATE] = POLL_FN_ENTRY(_v1, , , , _clock_update),
++	[SINGLE_THREADED | CLOCK_UPDATE] = POLL_FN_ENTRY(_v0, , , , _clock_update),
++	[V1 | STALL | CLOCK_UPDATE] = POLL_FN_ENTRY(_v1, _lock, _stall, , _clock_update),
++	[STALL | CLOCK_UPDATE] = POLL_FN_ENTRY(_v0, _lock, _stall, , _clock_update),
++	[V1 | SINGLE_THREADED | STALL | CLOCK_UPDATE] = POLL_FN_ENTRY(_v1, , _stall, , _clock_update),
++	[SINGLE_THREADED | STALL | CLOCK_UPDATE] = POLL_FN_ENTRY(_v0, , _stall, , _clock_update),
++	[V1 | STALL | ADAPTIVE | CLOCK_UPDATE] = POLL_FN_ENTRY(_v1, _lock, _stall, _adaptive, _clock_update),
++	[STALL | ADAPTIVE | CLOCK_UPDATE] = POLL_FN_ENTRY(_v0, _lock, _stall, _adaptive, _clock_update),
++	[V1 | SINGLE_THREADED | STALL | ADAPTIVE | CLOCK_UPDATE] = POLL_FN_ENTRY(_v1, , _stall, _adaptive, _clock_update),
++	[SINGLE_THREADED | STALL | ADAPTIVE | CLOCK_UPDATE] = POLL_FN_ENTRY(_v0, , _stall, _adaptive, _clock_update),
+ };
+ 
+-void mlx5_cq_fill_pfns(struct mlx5_cq *cq, const struct ibv_cq_init_attr_ex *cq_attr)
++int mlx5_cq_fill_pfns(struct mlx5_cq *cq,
++		      const struct ibv_cq_init_attr_ex *cq_attr,
++		      struct mlx5_context *mctx)
+ {
+-	struct mlx5_context *mctx = to_mctx(ibv_cq_ex_to_cq(&cq->ibv_cq)->context);
+ 	const struct op *poll_ops = &ops[((cq->stall_enable && cq->stall_adaptive_enable) ? ADAPTIVE : 0) |
+ 					 (mctx->cqe_version ? V1 : 0) |
+ 					 (cq->flags & MLX5_CQ_FLAGS_SINGLE_THREADED ?
+ 						      SINGLE_THREADED : 0) |
+-					 (cq->stall_enable ? STALL : 0)];
++					 (cq->stall_enable ? STALL : 0) |
++					 ((cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP_WALLCLOCK) ?
++							CLOCK_UPDATE : 0)];
+ 
+ 	cq->ibv_cq.start_poll = poll_ops->start_poll;
+ 	cq->ibv_cq.next_poll = poll_ops->next_poll;
+@@ -1509,6 +1614,14 @@ void mlx5_cq_fill_pfns(struct mlx5_cq *cq, const struct ibv_cq_init_attr_ex *cq_
+ 		cq->ibv_cq.read_flow_tag = mlx5_cq_read_flow_tag;
+ 	if (cq_attr->wc_flags & IBV_WC_EX_WITH_TM_INFO)
+ 		cq->ibv_cq.read_tm_info = mlx5_cq_read_wc_tm_info;
++	if (cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP_WALLCLOCK) {
++		if (!mctx->clock_info_page)
++			return EOPNOTSUPP;
++		cq->ibv_cq.read_completion_wallclock_ns =
++		    mlx5_cq_read_wc_completion_wallclock_ns;
++	}
++
++	return 0;
+ }
+ 
+ int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index c0f342d..db80846 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -387,6 +387,7 @@ struct mlx5_cq {
+ 	struct mlx5_cqe64		*cqe64;
+ 	uint32_t			flags;
+ 	int			umr_opcode;
++	struct mlx5dv_clock_info	last_clock_info;
+ };
+ 
+ struct mlx5_tag_entry {
+@@ -713,7 +714,9 @@ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
+ 			       int comp_vector);
+ struct ibv_cq_ex *mlx5_create_cq_ex(struct ibv_context *context,
+ 				    struct ibv_cq_init_attr_ex *cq_attr);
+-void mlx5_cq_fill_pfns(struct mlx5_cq *cq, const struct ibv_cq_init_attr_ex *cq_attr);
++int mlx5_cq_fill_pfns(struct mlx5_cq *cq,
++		      const struct ibv_cq_init_attr_ex *cq_attr,
++		      struct mlx5_context *mctx);
+ int mlx5_alloc_cq_buf(struct mlx5_context *mctx, struct mlx5_cq *cq,
+ 		      struct mlx5_buf *buf, int nent, int cqe_sz);
+ int mlx5_free_cq_buf(struct mlx5_context *ctx, struct mlx5_buf *buf);
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index dafed18..1557e4f 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -532,7 +532,8 @@ enum {
+ 				       IBV_WC_EX_WITH_COMPLETION_TIMESTAMP |
+ 				       IBV_WC_EX_WITH_CVLAN |
+ 				       IBV_WC_EX_WITH_FLOW_TAG |
+-				       IBV_WC_EX_WITH_TM_INFO
++				       IBV_WC_EX_WITH_TM_INFO |
++				       IBV_WC_EX_WITH_COMPLETION_TIMESTAMP_WALLCLOCK
+ };
+ 
+ enum {
+@@ -554,6 +555,7 @@ static struct ibv_cq_ex *create_cq(struct ibv_context *context,
+ 	int				cqe_sz;
+ 	int				ret;
+ 	int				ncqe;
++	int				rc;
+ 	struct mlx5_context *mctx = to_mctx(context);
+ 	FILE *fp = to_mctx(context)->dbg_fp;
+ 
+@@ -590,6 +592,14 @@ static struct ibv_cq_ex *create_cq(struct ibv_context *context,
+ 		return NULL;
+ 	}
+ 
++	if (cq_alloc_flags & MLX5_CQ_FLAGS_EXTENDED) {
++		rc = mlx5_cq_fill_pfns(cq, cq_attr, mctx);
++		if (rc) {
++			errno = rc;
++			goto err;
++		}
++	}
++
+ 	memset(&cmd, 0, sizeof cmd);
+ 	cq->cons_index = 0;
+ 
+@@ -696,9 +706,6 @@ static struct ibv_cq_ex *create_cq(struct ibv_context *context,
+ 	cq->stall_adaptive_enable = to_mctx(context)->stall_adaptive_enable;
+ 	cq->stall_cycles = to_mctx(context)->stall_cycles;
+ 
+-	if (cq_alloc_flags & MLX5_CQ_FLAGS_EXTENDED)
+-		mlx5_cq_fill_pfns(cq, cq_attr);
+-
+ 	return &cq->ibv_cq;
+ 
+ err_db:
 -- 
 1.8.3.1
 
