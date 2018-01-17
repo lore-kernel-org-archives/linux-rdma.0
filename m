@@ -1,60 +1,46 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH -next] RDMA/hns: Remove unnecessary
- platform_get_resource() error check
-Date: Wed, 17 Jan 2018 13:45:20 +0200
-Message-ID: <20180117114520.GK13639@mtr-leonro.local>
-References: <1516188518-147200-1-git-send-email-weiyongjun1@huawei.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ogUXNSQj4OI1q3LQ"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1516188518-147200-1-git-send-email-weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Luis de Bethencourt <luisbg@kernel.org>
+Subject: [PATCH] net/mlx5e: Fix trailing semicolon
+Date: Wed, 17 Jan 2018 12:09:15 +0000
+Message-ID: <20180117120915.18837-1-luisbg@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Joe Perches <joe@perches.com>, Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, "David S . Miller" <davem@davemloft.net>, Alex Vesker <valex@mellanox.com>, Feras Daoud <ferasda@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Luis de Bethencourt <luisbg@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The trailing semicolon is an empty statement that does no operation.
+Removing it since it doesn't do anything.
 
---ogUXNSQj4OI1q3LQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Luis de Bethencourt <luisbg@kernel.org>
+---
 
-On Wed, Jan 17, 2018 at 11:28:38AM +0000, Wei Yongjun wrote:
-> devm_ioremap_resource() already checks if the resource is NULL, so
-> remove the unnecessary platform_get_resource() error check.
->
-> Signed-off-by: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 4 ----
->  1 file changed, 4 deletions(-)
->
+Hi,
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+After fixing the same thing in drivers/staging/rtl8723bs/, Joe Perches
+suggested I fix it treewide [0].
 
---ogUXNSQj4OI1q3LQ
-Content-Type: application/pgp-signature; name="signature.asc"
+Best regards,
+Luis
 
------BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpfN1AACgkQ5GN7iDZy
-WKc30BAAhcQBR/FVRrILhYTdy1oILKsOmOZcSB5/FEGaw6Y/Ono8Tz4Up6WPxN+h
-KuyqcfkSwUKwbUm+8QjmXA+Tzs7ZYFHkfggXS4O3rNUqnYzdT2fBwrj05KRryCUm
-qxUwF68RQhS+iJwkDrn6Px299fIi/mrT7yCs1TLVAvxlPVSP//SdFftfW/CZ6yaB
-cLWH0VsqgCwleRykMqG3sHIJGxGE2Bub7AtnZs2O5VlMboKXhbzfj2tiEd5nIHd+
-Gi+Z9eH70ydmh8o4pyq+RThckP46IOL6ptDHkw65tBzy4zUnrqMP/26lmhfNDcCG
-M3LXENFqH4DVQEeqgkj7Kv3L6pepggMdXduhWWVByt1P9mI97IJb6XDUp9M8FrUi
-vmElx2ZJInJ+zfWyVFlVGE0pCUb/5dnvoWabhGYcSoHQ+z6wxp4l9YLATth9ljAE
-1K4yCUcYEarzeWvwLVqwKSi1sRoPYicM1CKHfb7zLp4Ui97JhdI20FNTFMY8QwKP
-staxIAFzVkAbE4QZYmyZevEqATRcQ2Y/YSQMP3JdU1zDU2dvsaOFwYOJ5QT3p5Mq
-lNumUvzhQlvjVJl0+JqG13+9XbZD4OvQgIK4NmIKsw+G3w427gAbaZnKlQZTzI8h
-IR7FhNfMPBqdGrKRXymvKBk7KafGpMZWbl9vQQ+dWoGmjLSPRpI=
-=62nm
------END PGP SIGNATURE-----
+[0] http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/2018-January/115410.html
+[1] http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/2018-January/115390.html
 
---ogUXNSQj4OI1q3LQ--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
+index bf9dc4516d2c..3ff81411ae93 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
+@@ -485,7 +485,7 @@ static int mlx5i_close(struct net_device *netdev)
+ 	mlx5_fs_remove_rx_underlay_qpn(mdev, ipriv->qp.qpn);
+ 	mlx5i_uninit_underlay_qp(epriv);
+ 	mlx5e_deactivate_priv_channels(epriv);
+-	mlx5e_close_channels(&epriv->channels);;
++	mlx5e_close_channels(&epriv->channels);
+ unlock:
+ 	mutex_unlock(&epriv->state_lock);
+ 	return 0;
+-- 
+2.15.1
