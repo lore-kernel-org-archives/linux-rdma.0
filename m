@@ -1,99 +1,66 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4 0/5] IB/srp: Add RDMA/CM support
-Date: Wed, 17 Jan 2018 18:11:24 -0500
-Message-ID: <1516230684.3403.290.camel@redhat.com>
-References: <20180116183945.30629-1-bart.vanassche@wdc.com>
+Subject: Re: [PATCH v2 00/14] IB/srpt: Add RDMA/CM support
+Date: Wed, 17 Jan 2018 18:14:30 -0500
+Message-ID: <1516230870.3403.292.camel@redhat.com>
+References: <20180117001418.7852-1-bart.vanassche@wdc.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-L+UUZs5fdkXVNqPRoVZ/"
+        protocol="application/pgp-signature"; boundary="=-ChsVSKvIQn9/ZX7wdJu4"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180116183945.30629-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <20180117001418.7852-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-L+UUZs5fdkXVNqPRoVZ/
+--=-ChsVSKvIQn9/ZX7wdJu4
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2018-01-16 at 10:39 -0800, Bart Van Assche wrote:
+On Tue, 2018-01-16 at 16:14 -0800, Bart Van Assche wrote:
 > Hello Jason and Doug,
 >=20
-> The five patches in this series add RDMA/CM support to the SRP
-> initiator. Please consider these patches for kernel v4.16.
+> This patch series not only adds RDMA/CM support to the SRP target driver =
+but
+> also fixes a number of race conditions in that driver.
 >=20
-> Thanks,
->=20
-> Bart.
->=20
-> Changes compared to v3:
-> - Moved a kobj_ns_drop() call inside an if-statement to keep the grab and=
- put
->   ns calls balanced.
->=20
-> Changes compared to v2:
-> - Added a patch that exports kobj_ns_grab_current() and kobj_ns_drop().
-> - Made the rdma_create_id() call also use the namespace of the process th=
-at
->   triggered SRP login. Added kobj_ns_grab_current() and kobj_ns_drop() ca=
-lls
->   to the SRP initiator to ensure that that network namespace exists at le=
-ast
->   as long as the SRP channel that is using it.
->=20
-> Changes compared to v1:
-> - Use the network namespace of the process that writes into the SRP sysfs=
- login
->   attribute in rdma_create_id() and inet_pton_with_scope() calls.
-> - Removed an irrelevant part from the RDMA/CM patch description.
->=20
-> Bart Van Assche (5):
->   kobject: Export kobj_ns_grab_current() and kobj_ns_drop()
->   IB/srp: Use kstrtoull() instead of simple_strtoull()
->   IB/srp: Make the path record query error message more informative
->   IB/srp: Refactor srp_send_req()
->   IB/srp: Add RDMA/CM support
->=20
->  drivers/infiniband/ulp/srp/ib_srp.c | 762 ++++++++++++++++++++++++++++--=
-------
->  drivers/infiniband/ulp/srp/ib_srp.h |  42 +-
->  include/scsi/srp.h                  |  17 +
->  lib/kobject.c                       |   2 +
->  4 files changed, 654 insertions(+), 169 deletions(-)
->=20
+> The RDMA/CM listener port number has to be specified as an ib_srpt kernel
+> module parameter. The default value for that parameter is zero which mean=
+s
+> that RDMA/CM support is disabled.
 
-The patchset looks pretty good now, but obviously we need an ack from
-Greg before patch 1 can be applied.
+Since srpt is already configured via the lIO framework, wouldn't that be
+a better place for the listen port?  In fact, shouldn't it be part of a
+portal like you have for iSERt?
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-L+UUZs5fdkXVNqPRoVZ/
+--=-ChsVSKvIQn9/ZX7wdJu4
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpf2B0ACgkQuCajMw5X
-L903AQ//YMUGjoUhuBOWmIFwV7Iz6/jJX0oFROn8sJUuS+UXecMOI5Esw1vWCUEB
-7HpDo1yIRpeBccFcG9cjsrDRhc3xvOV3jQdWjRlpiehV+oPnEPcUr44m2B+D9TQV
-YFBvSPV/KxSs7u1FeWl/L2spX0xEMoyJQekzy355zN392eYmw8bb3hpY/2PLiKOc
-AF9rQU6nUCJbkDIZHcqeGW5kf5ogc793oLXsCabo33/LzqRWdCW27okqx4sx9Cl8
-He1N0uQaKj1/UeOtx1lw05zi9b9wp+W4hCYOGoJlDUuHF8zGPw7AkuSR7UJSWN1K
-OhWZk3z6tmXL9jos9df2Lhy1MKypXvaDQo5ivOqRYLjl3hD0SOyj94OjDyCbG9tT
-mnNLiThAlqIOGXuYeTbLqpuO/dowV/oq/IxtZRxbKAGEIAkGpAuslxZ1fzrS5/Kn
-tkPUYvTQJcI7Yu+HEdv+wDM1NKpR50fLNbQiCezzvE1X23nLI1xAmNdX0Aiz8R9g
-pMrEnWj2tn8t90Tzk+hK2lxcNKS78AOa9JVz1pOT5oKl7WOxVDQDLfj1I3ArR5bN
-2HiopYyquPdWXVMo+PfE52/Wh6ARoWqSVpp0YtPsVHnAEOSKjRAYOtLAjlB1cXeY
-jarGQ9oT810l3GAJA2elUxkGg3j8OZV9Z1dERxlJP9UR0QA9av8=
-=OJAR
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpf2NcACgkQuCajMw5X
+L92PTA//e3YlCdFB3l98fPIYXg2wmW4unyIO3kjx+zqtv6BzShwLAO6fYusNmkWz
+pr9nTo96RpJRloH7wF0/+FBRhkX6pi69OjMoPnT5mI3GAfozU9KxoIw5NjM+PKye
+Z3/wYva8vhlgzx6AUi3dFwbBFmTsU/XKMQ2eFzF/0/lbyX2P7TrfEgr2AGrjTw20
+D8oSqdE5Ty5/N4EYxORZ+wsmEyMkn5eChxr4oozeqQSGXuIB5QgjnJghF9yH5oGW
++6sKg8JRlSeH2tFQ//MAciVOhPnsd0OF8ocH4k+16m6wotMzoW5/ATxmoAMNBDpT
+b6plRjIjxgQsJPVmfyXAHf+G6nw+JhZzneRBwgqpKQLKuwJE6/5BUeHtv4rSBK/R
+YAbiZUi6aVYQbJitkui8k4qkMrk5f9Onezfn7XpPUSbFjJ/vcfMqxQqjYWSnRuit
+j2rvtBzKWdxlRVHCU8taDEw+PuK9dDULomVvYJJm9slZr4Izr/mIm+9wMVPlEqhn
+md0JgqWtJzGa2YdWRvMqw55A013LPAdc9EAodD+94DLxZNw9m1R24zj2QUgTDhh1
+3gzouejgEZZGAmOCcQU9YsBmnhHkSNFPRcO6InjW9DWJFJ7OrFRvtZycxoVTWwaI
+K4zey4iah5WtlDF2QoCXBSbD1dk4HIaT/JAIkTJEeLwtC7KsOw4=
+=kfSp
 -----END PGP SIGNATURE-----
 
---=-L+UUZs5fdkXVNqPRoVZ/--
+--=-ChsVSKvIQn9/ZX7wdJu4--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
