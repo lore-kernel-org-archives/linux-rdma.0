@@ -1,104 +1,59 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: krping problem on 4.15-rc4
-Date: Wed, 17 Jan 2018 16:03:33 -0500
-Message-ID: <1516223013.3403.285.camel@redhat.com>
-References: <CAN-5tyH1HO7yzzQLyb5z5Pq=OrHnKzmCrR2MffLguqsEA-mwWg@mail.gmail.com>
-         <00ff01d38a4f$1a979eb0$4fc6dc10$@opengridcomputing.com>
-         <CAN-5tyEwdSOiAk04xjfazxBqwkkTiCjr2dVcCoYLQJw8f37U=w@mail.gmail.com>
-         <017d01d38b14$cbe95670$63bc0350$@opengridcomputing.com>
-         <CAN-5tyGq=hmXY9HZYXpfaytOUV=gb0fri69gj69WKbbYtW3nTQ@mail.gmail.com>
-         <006d01d38c02$793de8c0$6bb9ba40$@opengridcomputing.com>
-         <CAN-5tyG9ZsaKZs3ayfFfuy7o25DrXR2yWmwUvLdNutJ1SbEg1w@mail.gmail.com>
-         <CAN-5tyFSYWaTPVdq=99Yr9XwnULyf4tw06roZys=rtR0F3x03g@mail.gmail.com>
+Subject: Re: [PATCH 1/3] IB/core: postpone WR initialization during queue
+ drain
+Date: Wed, 17 Jan 2018 16:10:51 -0500
+Message-ID: <1516223451.3403.286.camel@redhat.com>
+References: <1515942470-11461-1-git-send-email-maxg@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-1VqenFrSFmSzOIG4yzl3"
+        protocol="application/pgp-signature"; boundary="=-h2P88af0KHsrwZ2ugFgo"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAN-5tyFSYWaTPVdq=99Yr9XwnULyf4tw06roZys=rtR0F3x03g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1515942470-11461-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-1VqenFrSFmSzOIG4yzl3
+--=-h2P88af0KHsrwZ2ugFgo
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2018-01-16 at 16:14 -0500, Olga Kornievskaia wrote:
-> On Tue, Jan 16, 2018 at 2:50 PM, Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org> wrote=
-:
-> > On Fri, Jan 12, 2018 at 7:07 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+v7I7tHvgBF7@public.gmane.org=
-m> wrote:
-> > > > > Ok.  The memory probably doesn't matter.  Maybe run krping client=
- and
-> > > >=20
-> > > > server on the same host (to use hw-loopback), and see if it works o=
-n both,
-> > > > one, or neither systems when they are both the client and server.
-> > > >=20
-> > > > Loopback on the original "server" machine produces the same failure=
-.
-> > > > Jan 12 17:05:40 localhost kernel: mlx5_0:dump_cqe:277:(pid 0): dump=
- error
-> > > > cqe
-> > > > Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 000000=
-00
-> > > > Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 000000=
-00
-> > > > Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 000000=
-00
-> > > > Jan 12 17:05:40 localhost kernel: 00000000 93003204 1000017c 0005e1=
-d2
-> > > > Jan 12 17:05:40 localhost kernel: krping: cq completion failed with
-> > > > wr_id 0 status 4 opcode 0 vender_err 32
-> > >=20
-> > > Can someone from Mellanox comment more on the above CQE error?  What =
-exactly is it tell us?
-> > >=20
-> > > >=20
-> > > > What does this means?
-> > >=20
-> > > Not sure.  But it does seem to be tied to that specific machine.  Que=
-stion:  Is an IOMMU enabled on that system?
-> >=20
-> > IOMMU (Inter's VT-d) is enabled in BIOS (on both machines).
-> >=20
-> > >  Perhaps that is exposing a dma mapping problem with krping?
+On Sun, 2018-01-14 at 17:07 +0200, Max Gurtovoy wrote:
+> No need to initialize completion and WR in case we fail
+> during QP modification.
 >=20
-> I have replaces the CX-5 card with another one and I no longer see the
-> krping problem.  I think it speaks that it's a card issue...
+> Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
 
-Check the firmware on the bad card.  Lots of issues disappear if you
-have older firmware and update to the latest.
+Patch 1 and 3 applied, 2 dropped.  Thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-1VqenFrSFmSzOIG4yzl3
+--=-h2P88af0KHsrwZ2ugFgo
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpfuiUACgkQuCajMw5X
-L90oUw/+PAE6rOwj5xHd54h96By/dvP275tmwb5QgsiKZhZURlYKYrf3dJlBgbER
-bAD1RQyMuc2AOCbsVnkRpqXXVEGymzQIQYA6zlH+s7BVHKA/DhOPEil6MJD9hIut
-V9q6CELm4vP+mV8fSvCMt7TGfMEDIkOgEIlPHmtl8qnKn71vDb8l29tP/DWMilSZ
-CCdKXVIToDgEiZEQxxFRxtakjGhoSMtUHBHXfuiZFRen+G/fpXS3QWdoeb1fBXls
-Rfri1ggksOW/gkw4HPZntxcZ00L6xH+UfhQcbwxnD6csO9dHRkFJ8X3QD37qZMla
-GMEbYBD31JVEmpig+iafdTJIuCQ6QbaDO5Kr1ywds9RX5S9kZ4zGY4N/pimF0q2F
-SLkapUHGTBIaZsoDfdP1KmbAs0UieIy8/SVrbb8+IdAzS9Lxwss7nOH7jtL/UUJ1
-UOenZnMXLbET0CAysKSpzkSLP1eJBSQLmgrapJWiSvIpVX1HCXTPDHt/5WBHRdbn
-64mnNqfcBbFsEQ0wMnBfiK7y2V+MnPaVVWnGE1C54DWVNJ6JiPAitb/wE65Ae4Fg
-3mHPeaydBwp62sKktgm9qF1FnziMXTS+kduPXXOP3m+Z58k2x1m96q7VpoxDuTBc
-Efa2m6QQG9ZHWQjpEZXJgb9Rl9pe5nz97wW+ekkHJKmAvvCNWJA=
-=8W6l
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpfu9sACgkQuCajMw5X
+L913HA//T/SiXsZXKRVlN6Z/30OrRk77FJSUZ1ITenpJlCfIya7oC+I8lMwriiCc
+Jul2wMIpLcAz1ISzr2RN+gvZatsKRKgyFGcAUVzqDdeG3H9T40QowbYRuLUWxa3V
+gKGsNhyOhTHnLIDYnR8CqCt18OUNEIC1ZzIHCETMviOs4XW9gKa/XOOTsm+Ow7P8
+lt14b823Aq8oWh0OPa67BH17T/mHVpZmLZdpvZsFBr6qdOwac0GRGf+3d8YuqR+g
+Mvx0vHlF3uvI63POWlgy9In6rG9kOjpbCcj7EUfrxI+N/zN75SD4IFdCV368RtLR
+WlOkIwpFzBl+DxVdSF86VlfZdmZ/gsLtBJna8VJ9Weuq+62mvR9w7SsOEn23gFC1
+KEBFOHGdaHpgf/+L9LFftC4xb95sM6LnvW90sMezfxZlxOWHpWfClOeVYWonUc0U
+61vhEJ+uyDtFzsSfDqdz3bZ0Iwu2MKLK28bTKCesaus1AhuTn7VIWliepUVhE/3u
+mD2eWk9RZazF1GnuwUV3UNHYH0GmVVdydRCVcY6md5STBRaiprwWf1a2U+HAekbb
+dfVmgiSL9o4mqCRvx63FdWjoNt4oinAZjKXSGf9vQ811A706c5DGtx+mrc4EGZcN
+Xke0c4nvsEFbYu/JesXoV9c6FDweMRMy2HXFjqb5EZpeRd/JeRw=
+=VkN+
 -----END PGP SIGNATURE-----
 
---=-1VqenFrSFmSzOIG4yzl3--
+--=-h2P88af0KHsrwZ2ugFgo--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
