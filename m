@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 4/5] verbs: Add support to read completion's timestamp in wall clock nanoseconds
-Date: Wed, 17 Jan 2018 15:51:32 +0200
-Message-ID: <1516197093-20699-5-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 3/5] mlx5: Add direct verb to translate device timestamp to nanoseconds
+Date: Wed, 17 Jan 2018 15:51:31 +0200
+Message-ID: <1516197093-20699-4-git-send-email-yishaih@mellanox.com>
 References: <1516197093-20699-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1516197093-20699-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,91 +12,120 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add support to read completion timestamp and convert it from
-HCA clock units to wallclock nanoseconds.
-
-This commit revises the documentation for ibv_wc_read_completion_ts
-to clarify the return value time units.
+Add a direct verb that translates device timestamps from HCA
+core clock units to nanoseconds using the device clock info.
 
 Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Eitan Rabin <rabin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/man/ibv_create_cq_ex.3 |  9 +++++++--
- libibverbs/verbs.h                | 10 +++++++++-
- 2 files changed, 16 insertions(+), 3 deletions(-)
+ providers/mlx5/man/CMakeLists.txt    |  1 +
+ providers/mlx5/man/mlx5dv_ts_to_ns.3 | 35 +++++++++++++++++++++++++++++++
+ providers/mlx5/mlx5dv.h              | 40 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 76 insertions(+)
+ create mode 100644 providers/mlx5/man/mlx5dv_ts_to_ns.3
 
-diff --git a/libibverbs/man/ibv_create_cq_ex.3 b/libibverbs/man/ibv_create_cq_ex.3
-index 23f867c..51a6eb5 100644
---- a/libibverbs/man/ibv_create_cq_ex.3
-+++ b/libibverbs/man/ibv_create_cq_ex.3
-@@ -40,9 +40,10 @@ enum ibv_wc_flags_ex {
-         IBV_WC_EX_WITH_SLID                  = 1 << 4,  /* Require slid in WC */
-         IBV_WC_EX_WITH_SL                    = 1 << 5,  /* Require sl in WC */
-         IBV_WC_EX_WITH_DLID_PATH_BITS        = 1 << 6,  /* Require dlid path bits in WC */
--        IBV_WC_EX_WITH_COMPLETION_TIMESTAMP  = 1 << 7,  /* Require completion timestamp in WC /*
-+        IBV_WC_EX_WITH_COMPLETION_TIMESTAMP  = 1 << 7,  /* Require completion device timestamp in WC /*
-         IBV_WC_EX_WITH_CVLAN                 = 1 << 8,  /* Require VLAN info in WC */
-         IBV_WC_EX_WITH_FLOW_TAG		     = 1 << 9,  /* Require flow tag in WC */
-+        IBV_WC_EX_WITH_COMPLETION_TIMESTAMP_WALLCLOCK  = 1 << 11, /* Require completion wallclock timestamp in WC */
- };
- 
- enum ibv_cq_init_attr_mask {
-@@ -132,7 +133,11 @@ Below members and functions are used in order to poll the current completion. Th
-  Get the dlid_path_bits field from the current completion.
- 
- .BI "uint64_t ibv_wc_read_completion_ts(struct ibv_cq_ex " "*cq"); \c
-- Get the completion timestamp from the current completion.
-+ Get the completion timestamp from the current completion in HCA clock units.
+diff --git a/providers/mlx5/man/CMakeLists.txt b/providers/mlx5/man/CMakeLists.txt
+index 6ce94a9..876b6fc 100644
+--- a/providers/mlx5/man/CMakeLists.txt
++++ b/providers/mlx5/man/CMakeLists.txt
+@@ -2,5 +2,6 @@ rdma_man_pages(
+   mlx5dv_get_clock_info.3
+   mlx5dv_init_obj.3
+   mlx5dv_query_device.3
++  mlx5dv_ts_to_ns.3
+   mlx5dv.7
+ )
+diff --git a/providers/mlx5/man/mlx5dv_ts_to_ns.3 b/providers/mlx5/man/mlx5dv_ts_to_ns.3
+new file mode 100644
+index 0000000..197b195
+--- /dev/null
++++ b/providers/mlx5/man/mlx5dv_ts_to_ns.3
+@@ -0,0 +1,35 @@
++.\" -*- nroff -*-
++.\" Licensed under the OpenIB.org (MIT) - See COPYING.md
++.\"
++.TH MLX5DV_TS_TO_NS 3 2017-11-08 1.0.0
++.SH "NAME"
++mlx5dv_ts_to_ns \- Convert device timestamp from HCA core clock units to
++the corresponding nanosecond counts
++.SH "SYNOPSIS"
++.nf
++.B #include <infiniband/mlx5dv.h>
++.sp
++.BI "uint64_t mlx5dv_ts_to_ns(struct mlx5dv_clock_info *clock_info,
++.BI "			      uint64_t device_timestamp);
++.fi
++.SH "DESCRIPTION"
++.B mlx5dv_ts_to_ns(3)
++Converts a host byte order
++.I device_timestamp
++from HCA core clock units into the corresponding nanosecond wallclock time.
++.PP
++\fBstruct mlx5dv_clock_info\fR can be retrieved using \fBmlx5dv_get_clock_info(3)\fR.
++.PP
++The greater the difference between the device reporting a timestamp and the last
++mlx5dv_clock_info update, the greater the inaccuracy of the clock time conversion.
 +
-+.BI "uint64_t ibv_wc_read_completion_wallclock_ns(struct ibv_cq_ex " *cq ");
-+Get the completion timestamp from the current completion and convert it
-+from HCA clock units to wall clock nanoseconds.
++.fi
++.SH "RETURN VALUE"
++Timestamp in nanoseconds
++.SH "SEE ALSO"
++.BR mlx5dv (7),
++.BR mlx5dv_get_clock_info (3),
++.BR mlx5dv_query_device (3)
++.SH "AUTHORS"
++.TP
++Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
+index 2447517..2a4a823 100644
+--- a/providers/mlx5/mlx5dv.h
++++ b/providers/mlx5/mlx5dv.h
+@@ -811,4 +811,44 @@ struct mlx5dv_clock_info {
+ int mlx5dv_get_clock_info(struct ibv_context *context,
+ 			  struct mlx5dv_clock_info *clock_info);
  
- .BI "uint16_t ibv_wc_read_cvlan(struct ibv_cq_ex " "*cq"); \c
-  Get the CVLAN field from the current completion.
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 997597a..ddda03b 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -466,6 +466,7 @@ enum ibv_create_cq_wc_flags {
- 	IBV_WC_EX_WITH_CVLAN		= 1 << 8,
- 	IBV_WC_EX_WITH_FLOW_TAG		= 1 << 9,
- 	IBV_WC_EX_WITH_TM_INFO		= 1 << 10,
-+	IBV_WC_EX_WITH_COMPLETION_TIMESTAMP_WALLCLOCK	= 1 << 11,
- };
- 
- enum {
-@@ -483,7 +484,8 @@ enum {
- 				IBV_WC_EX_WITH_COMPLETION_TIMESTAMP |
- 				IBV_WC_EX_WITH_CVLAN |
- 				IBV_WC_EX_WITH_FLOW_TAG |
--				IBV_WC_EX_WITH_TM_INFO
-+				IBV_WC_EX_WITH_TM_INFO |
-+				IBV_WC_EX_WITH_COMPLETION_TIMESTAMP_WALLCLOCK
- };
- 
- enum ibv_wc_flags {
-@@ -1205,6 +1207,7 @@ struct ibv_cq_ex {
- 	uint32_t (*read_flow_tag)(struct ibv_cq_ex *current);
- 	void (*read_tm_info)(struct ibv_cq_ex *current,
- 			     struct ibv_wc_tm_info *tm_info);
-+	uint64_t (*read_completion_wallclock_ns)(struct ibv_cq_ex *current);
- };
- 
- static inline struct ibv_cq *ibv_cq_ex_to_cq(struct ibv_cq_ex *cq)
-@@ -1307,6 +1310,11 @@ static inline uint64_t ibv_wc_read_completion_ts(struct ibv_cq_ex *cq)
- 	return cq->read_completion_ts(cq);
- }
- 
-+static inline uint64_t ibv_wc_read_completion_wallclock_ns(struct ibv_cq_ex *cq)
++/*
++ * Translate device timestamp to nano-sec
++ *
++ * Input:
++ *      clock_info  - clock info to be filled
++ *      device_timestamp   - timestamp to translate
++ *
++ * Return: nano-sec
++ */
++static inline uint64_t mlx5dv_ts_to_ns(struct mlx5dv_clock_info *clock_info,
++				       uint64_t device_timestamp)
 +{
-+	return cq->read_completion_wallclock_ns(cq);
++	uint64_t delta, nsec;
++
++	/*
++	 * device_timestamp & cycles are the free running 'mask' bit counters
++	 * from the hardware hca_core_clock clock.
++	 */
++	delta = (device_timestamp - clock_info->last_cycles) & clock_info->mask;
++	nsec  = clock_info->nsec;
++
++	/*
++	 * Guess if the device_timestamp is more recent than
++	 * clock_info->last_cycles, if not (too far in the future) treat
++	 * it as old time stamp. This will break every max_clock_info_update_nsec.
++	 */
++
++	if (delta > clock_info->mask / 2) {
++		delta = (clock_info->last_cycles - device_timestamp) &
++				clock_info->mask;
++		nsec -= ((delta * clock_info->mult) - clock_info->frac) >>
++				clock_info->shift;
++	} else {
++		nsec += ((delta * clock_info->mult) + clock_info->frac) >>
++				clock_info->shift;
++	}
++
++	return nsec;
 +}
 +
- static inline uint16_t ibv_wc_read_cvlan(struct ibv_cq_ex *cq)
- {
- 	return cq->read_cvlan(cq);
+ #endif /* _MLX5DV_H_ */
 -- 
 1.8.3.1
 
