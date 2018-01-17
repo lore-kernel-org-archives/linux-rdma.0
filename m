@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v2 03/14] IB/srpt: Add P_Key support
-Date: Tue, 16 Jan 2018 16:14:07 -0800
-Message-ID: <20180117001418.7852-4-bart.vanassche@wdc.com>
+Subject: [PATCH v2 02/14] IB/srpt: Rework srpt_disconnect_ch_sync()
+Date: Tue, 16 Jan 2018 16:14:06 -0800
+Message-ID: <20180117001418.7852-3-bart.vanassche@wdc.com>
 References: <20180117001418.7852-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180117001418.7852-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,82 +10,125 @@ To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Process connection requests that use another P_Key than the default
-correctly.
+This patch fixes a use-after-free issue for ch->release_done when
+running the SRP protocol on top of the rdma_rxe driver.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 14 +++++++++++---
- drivers/infiniband/ulp/srpt/ib_srpt.h |  2 ++
- 2 files changed, 13 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 45 ++++++++++++++++++-----------------
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  2 --
+ 2 files changed, 23 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 5386b993daf9..cafa73083ee8 100644
+index 4dd15378bc7c..5386b993daf9 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -41,6 +41,7 @@
- #include <linux/string.h>
- #include <linux/delay.h>
- #include <linux/atomic.h>
-+#include <rdma/ib_cache.h>
- #include <scsi/scsi_proto.h>
- #include <scsi/scsi_tcq.h>
- #include <target/target_core_base.h>
-@@ -1057,7 +1058,12 @@ static int srpt_init_ch_qp(struct srpt_rdma_ch *ch, struct ib_qp *qp)
- 	attr->qp_state = IB_QPS_INIT;
- 	attr->qp_access_flags = IB_ACCESS_LOCAL_WRITE;
- 	attr->port_num = ch->sport->port;
--	attr->pkey_index = 0;
+@@ -1841,6 +1841,23 @@ static int srpt_disconnect_ch(struct srpt_rdma_ch *ch)
+ 	return ret;
+ }
+ 
++static bool srpt_ch_closed(struct srpt_device *sdev, struct srpt_rdma_ch *ch)
++{
++	struct srpt_rdma_ch *ch2;
++	bool res = true;
 +
-+	ret = ib_find_cached_pkey(ch->sport->sdev->device, ch->sport->port,
-+				  ch->pkey, &attr->pkey_index);
-+	if (ret < 0)
-+		pr_err("Translating pkey %#x failed (%d) - using index 0\n",
-+		       ch->pkey, ret);
++	rcu_read_lock();
++	list_for_each_entry(ch2, &sdev->rch_list, list) {
++		if (ch2 == ch) {
++			res = false;
++			break;
++		}
++	}
++	rcu_read_unlock();
++
++	return res;
++}
++
+ /*
+  * Send DREQ and wait for DREP. Return true if and only if this function
+  * changed the state of @ch.
+@@ -1848,31 +1865,24 @@ static int srpt_disconnect_ch(struct srpt_rdma_ch *ch)
+ static bool srpt_disconnect_ch_sync(struct srpt_rdma_ch *ch)
+ 	__must_hold(&sdev->mutex)
+ {
+-	DECLARE_COMPLETION_ONSTACK(release_done);
+ 	struct srpt_device *sdev = ch->sport->sdev;
+-	bool wait;
++	int ret;
  
- 	ret = ib_modify_qp(qp, attr,
- 			   IB_QP_STATE | IB_QP_ACCESS_FLAGS | IB_QP_PORT |
-@@ -1994,9 +2000,10 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	lockdep_assert_held(&sdev->mutex);
  
- 	it_iu_len = be32_to_cpu(req->req_it_iu_len);
+ 	pr_debug("ch %s-%d state %d\n", ch->sess_name, ch->qp->qp_num,
+ 		 ch->state);
  
--	pr_info("Received SRP_LOGIN_REQ with i_port_id %pI6, t_port_id %pI6 and it_iu_len %d on port %d (guid=%pI6)\n",
-+	pr_info("Received SRP_LOGIN_REQ with i_port_id %pI6, t_port_id %pI6 and it_iu_len %d on port %d (guid=%pI6); pkey %#04x\n",
- 		req->initiator_port_id, req->target_port_id, it_iu_len,
--		param->port, &sport->gid);
-+		param->port, &sport->gid,
-+		be16_to_cpu(param->primary_path->pkey));
+-	WARN_ON(ch->release_done);
+-	ch->release_done = &release_done;
+-	wait = !list_empty(&ch->list);
+-	srpt_disconnect_ch(ch);
++	ret = srpt_disconnect_ch(ch);
+ 	mutex_unlock(&sdev->mutex);
  
- 	rsp = kzalloc(sizeof(*rsp), GFP_KERNEL);
- 	rej = kzalloc(sizeof(*rej), GFP_KERNEL);
-@@ -2073,6 +2080,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+-	if (!wait)
+-		goto out;
+-
+-	while (wait_for_completion_timeout(&release_done, 180 * HZ) == 0)
++	while (wait_event_timeout(sdev->ch_releaseQ, srpt_ch_closed(sdev, ch),
++				  5 * HZ) == 0)
+ 		pr_info("%s(%s-%d state %d): still waiting ...\n", __func__,
+ 			ch->sess_name, ch->qp->qp_num, ch->state);
  
- 	init_rcu_head(&ch->rcu);
- 	kref_init(&ch->kref);
-+	ch->pkey = be16_to_cpu(param->primary_path->pkey);
- 	ch->zw_cqe.done = srpt_zerolength_write_done;
- 	INIT_WORK(&ch->release_work, srpt_release_channel_work);
- 	memcpy(ch->i_port_id, req->initiator_port_id, 16);
+-out:
+ 	mutex_lock(&sdev->mutex);
+-	return wait;
++	return ret == 0;
+ }
+ 
+ static void srpt_set_enabled(struct srpt_port *sport, bool enabled)
+@@ -1916,8 +1926,7 @@ static void srpt_release_channel_work(struct work_struct *w)
+ 	struct se_session *se_sess;
+ 
+ 	ch = container_of(w, struct srpt_rdma_ch, release_work);
+-	pr_debug("%s: %s-%d; release_done = %p\n", __func__, ch->sess_name,
+-		 ch->qp->qp_num, ch->release_done);
++	pr_debug("%s-%d\n", ch->sess_name, ch->qp->qp_num);
+ 
+ 	sdev = ch->sport->sdev;
+ 	BUG_ON(!sdev);
+@@ -1946,14 +1955,6 @@ static void srpt_release_channel_work(struct work_struct *w)
+ 
+ 	mutex_lock(&sdev->mutex);
+ 	list_del_rcu(&ch->list);
+-	if (ch->release_done)
+-		complete(ch->release_done);
+-	mutex_unlock(&sdev->mutex);
+-
+-	synchronize_rcu();
+-
+-	mutex_lock(&sdev->mutex);
+-	INIT_LIST_HEAD(&ch->list);
+ 	mutex_unlock(&sdev->mutex);
+ 
+ 	wake_up(&sdev->ch_releaseQ);
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index 67248338b4c9..f830968e7fd4 100644
+index 0ab59c60f2ef..67248338b4c9 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.h
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -266,6 +266,7 @@ enum rdma_ch_state {
-  * @cmd_wait_list: List of SCSI commands that arrived before the RTU event. This
-  *                 list contains struct srpt_ioctx elements and is protected
-  *                 against concurrent modification by the cm_id spinlock.
-+ * @pkey:          P_Key of the IB partition for this SRP channel.
-  * @sess:          Session information associated with this SRP channel.
+@@ -270,7 +270,6 @@ enum rdma_ch_state {
   * @sess_name:     Session name.
   * @ini_guid:      Initiator port GUID.
-@@ -294,6 +295,7 @@ struct srpt_rdma_ch {
- 	struct srpt_recv_ioctx	**ioctx_recv_ring;
- 	struct list_head	list;
- 	struct list_head	cmd_wait_list;
-+	uint16_t		pkey;
- 	struct se_session	*sess;
+  * @release_work:  Allows scheduling of srpt_release_channel().
+- * @release_done:  Enables waiting for srpt_release_channel() completion.
+  */
+ struct srpt_rdma_ch {
+ 	struct ib_cm_id		*cm_id;
+@@ -299,7 +298,6 @@ struct srpt_rdma_ch {
  	u8			sess_name[36];
  	u8			ini_guid[24];
+ 	struct work_struct	release_work;
+-	struct completion	*release_done;
+ };
+ 
+ /**
 -- 
 2.15.1
 
