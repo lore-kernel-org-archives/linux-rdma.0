@@ -1,51 +1,129 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH] iscsi_iser: Re-enable 'iser_pi_guard' module parameter
-Date: Wed, 17 Jan 2018 11:59:06 +0200
-Message-ID: <651bc1dd-f019-637c-1f76-07938b3041ce@grimberg.me>
-References: <1515575256-9949-1-git-send-email-hare@suse.de>
- <20180110230240.GR4518@ziepe.ca>
- <CY4PR0601MB35860D768905FF165DB99A048C160@CY4PR0601MB3586.namprd06.prod.outlook.com>
- <a3d8060a-3926-0ba1-8963-b66d37172027@grimberg.me>
- <yq1r2qqy0ho.fsf@oracle.com> <22838a0f-29d5-7351-12d3-05a0948fd0ba@suse.com>
- <yq1d129ul4d.fsf@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <yq1d129ul4d.fsf-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Hannes Reinecke <hare-IBi9RG/b67k@public.gmane.org>
-Cc: "Schremmer, Steven" <Steve.Schremmer-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH iproute2-next v2 00/10] RDMA resource tracking
+Date: Wed, 17 Jan 2018 12:02:22 +0200
+Message-ID: <20180117100232.3155-1-leon@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: David Ahern <dsahern@gmail.com>
+Cc: netdev <netdev@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Steve Wise <swise@opengridcomputing.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> Hannes,
-> 
->> Do we need to keep the parameter?
->> If so we really should be re-enable it; ATM it's just a no-op leading
->> the user to believe something has actually happened.
-> 
-> The driver module parameters existed mainly for the purpose of hw
-> testing. One could disable IP checksum and revert to CRC to ensure both
-> code paths were working properly. But it wasn't really meant to be
-> something ordinary users would ever muck with. Why would anybody use the
-> much slower CRC when IP checksum was supported by the hardware? (*)
+Changelog:
+ v1 -> v2;
+   * Added checks for all occurrences of strdup failures and added patch
+     with fix of already merged code.
+   * Sync with latest kernel code.
+   * Rewrote table representation to be similar to "ip route" output.
+   * Implemented string filters.
+   * Removed curr/max representation from the summary output.
+ v0 -> v1:
+   * Fixed subject title in patch #1: rdam -> rdma.
+   * Added newline between variable declaration and the code.
+   * Add check to failure in strdup() call in rd_check_is_string_filtered().
+   * Rewrote res_qp_parse_cb() to avoid long lines and extra indentation.
 
-Agree, but I definitely might not see the full picture here.
+------------------------------------------------------------------------
 
-> Anyway. I think Sagi's iser_pi_guard patch was a result of that
-> transition from driver global checksum setting to per-I/O ditto.
+David, Stephen,
 
-Correct, and due to your comment above.
+The kernel code is not accepted yet, but the interface and functionality
+of iproute2 stable enough and ready for review.
 
-> I don't have a problem with having a block-level preference knob
-> (slightly convoluted to implement since they are different integrity
-> profiles). But I do question whether it is worth the hassle. What
-> exactly is your use case that requires twiddling this?
+iproute2 part:
+https://git.kernel.org/pub/scm/linux/kernel/git/leon/iproute2.git/log/?h=topic/resource-tracking-3
 
-I'm not sure its worth it either, I can easily ack this one if that's
-the case.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+kernel part:
+https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/log/?h=rn/restrack-v5
+
+Thanks
+
+------------------------------------------------------------------------
+Hi,
+
+This is supplementary (user-space) part of RDMA resource tracking posted
+to the RDMA mailing list for the review [1].
+
+The main goal of this new functionality in RDMAtool is to provide debug visibility
+of running applications in RDMA stack.
+
+The current series adds new command object (resource) which provides
+short summary if it is called without arguments or more detailed
+information while it is called with request to present QPs.
+
+1) Summary information:
+$ rdma res
+1: mlx5_0: pd 3 cq 5 qp 4
+2: mlx5_1: pd 3 cq 5 qp 4
+3: mlx5_2: pd 3 cq 5 qp 4
+4: mlx5_3: pd 2 cq 3 qp 2
+5: mlx5_4: pd 3 cq 5 qp 4
+
+2) Summary information of specific device:
+$ rdma res show mlx5_4
+5: mlx5_4: pd 3 cq 5 qp 44
+
+3) Get all QPs for the specific device:
+$ rdma res show qp link mlx5_4
+link mlx5_4/1 lqpn 7 type UD state RTS sq-psn 0 pid 0 comm [mlx5-gsi]
+link mlx5_4/1 lqpn 1 type GSI state RTS sq-psn 0 pid 0 comm [rdma-mad]
+link mlx5_4/1 lqpn 0 type SMI state RTS sq-psn 0 pid 0 comm [rdma-mad]
+
+$ rdma res show qp link mlx5_4/
+link mlx5_4/1 lqpn 7 type UD state RTS sq-psn 0 pid 0 comm [mlx5-gsi]
+link mlx5_4/1 lqpn 1 type GSI state RTS sq-psn 0 pid 0 comm [rdma-mad]
+link mlx5_4/1 lqpn 0 type SMI state RTS sq-psn 0 pid 0 comm [rdma-mad]
+
+4) Provide illegal port number (0 is illegal):
+$ rdma res show qp link mlx5_4/0
+Wrong device name
+
+5) Get QPs of specific port:
+$ rdma res show qp link mlx5_4/1
+link mlx5_4/1 lqpn 7 type UD state RTS sq-psn 0 pid 0 comm [mlx5-gsi]
+link mlx5_4/1 lqpn 1 type GSI state RTS sq-psn 0 pid 0 comm [rdma-mad]
+link mlx5_4/1 lqpn 0 type SMI state RTS sq-psn 0 pid 0 comm [rdma-mad]
+
+6) Get QPs which have not assigned port yet:
+$ rdma res show qp link mlx5_3/-
+link mlx5_3/- lqpn 8 type UD state RTS sq-psn 0 pid 0 comm [ipoib-verbs]
+
+7) Limit to specific Local QPNs:
+$ rdma res show qp link mlx5_4/1 lqpn 1-3,7
+link mlx5_4/1 lqpn 7 type UD state RTS sq-psn 0 pid 0 comm [mlx5-gsi]
+link mlx5_4/1 lqpn 1 type GSI state RTS sq-psn 0 pid 0 comm [rdma-mad]
+
+8) Filter types (strings):
+$ rdma res show qp link mlx5_4/1 type UD,gSi
+link mlx5_4/1 lqpn 7 type UD state RTS sq-psn 0 pid 0 comm [mlx5-gsi]
+link mlx5_4/1 lqpn 1 type GSI state RTS sq-psn 0 pid 0 comm [rdma-mad]
+
+Thanks
+
+Cc: RDMA mailing list <linux-rdma@vger.kernel.org>
+Cc: Steve Wise <swise@opengridcomputing.com>
+
+[1] https://www.spinics.net/lists/linux-rdma/msg59535.html
+
+Leon Romanovsky (10):
+  rdma: Add option to provide "-" sign for the port number
+  rdma: Make visible the number of arguments
+  rdma: Add filtering infrastructure
+  rdma: Set pointer to device name position
+  rdma: Allow external usage of compare string routine
+  rdma: Update kernel header file
+  rdma: Add resource tracking summary
+  rdma: Add QP resource tracking information
+  rdma: Document resource tracking
+  rdma: Check return value of strdup call
+
+ include/uapi/rdma/rdma_netlink.h |  61 ++++-
+ man/man8/rdma-resource.8         |  86 +++++++
+ rdma/Makefile                    |   2 +-
+ rdma/link.c                      |   2 +-
+ rdma/rdma.c                      |   4 +-
+ rdma/rdma.h                      |  28 ++-
+ rdma/res.c                       | 483 +++++++++++++++++++++++++++++++++++++++
+ rdma/utils.c                     | 321 +++++++++++++++++++++++++-
+ 8 files changed, 969 insertions(+), 18 deletions(-)
+ create mode 100644 man/man8/rdma-resource.8
+ create mode 100644 rdma/res.c
