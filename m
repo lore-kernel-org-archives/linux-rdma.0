@@ -1,7 +1,7 @@
 From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 3/4] iser-target: remove dead code
-Date: Wed, 17 Jan 2018 15:52:57 +0200
-Message-ID: <1516197178-26493-4-git-send-email-maxg@mellanox.com>
+Subject: [PATCH 4/4] IB/srpt: notify QP on Last WQE Reached event arrival
+Date: Wed, 17 Jan 2018 15:52:58 +0200
+Message-ID: <1516197178-26493-5-git-send-email-maxg@mellanox.com>
 References: <1516197178-26493-1-git-send-email-maxg@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1516197178-26493-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,29 +10,27 @@ To: jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA
 Cc: danielm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-IB_EVENT_QP_LAST_WQE_REACHED event can arrive only for
-QP associated with Shared Receive Queue (SRQ). There is
-no SRQ usage in iser target.
+In order to avoid resource leakage for QP associated with
+a Shared Receive Queue (SRQ), notify it on Last WQE Reached
+event arrival.
 
 Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 720dfb3..bde22e1 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -81,9 +81,6 @@
- 	case IB_EVENT_COMM_EST:
- 		rdma_notify(isert_conn->cm_id, IB_EVENT_COMM_EST);
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index bfa576a..241c8eb 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -209,6 +209,7 @@ static void srpt_qp_event(struct ib_event *event, struct srpt_rdma_ch *ch)
+ 		pr_debug("%s-%d, state %s: received Last WQE event.\n",
+ 			 ch->sess_name, ch->qp->qp_num,
+ 			 get_ch_state_name(ch->state));
++		ib_notify_qp(ch->qp, event->event);
  		break;
--	case IB_EVENT_QP_LAST_WQE_REACHED:
--		isert_warn("Reached TX IB_EVENT_QP_LAST_WQE_REACHED\n");
--		break;
  	default:
- 		break;
- 	}
+ 		pr_err("received unrecognized IB QP event %d\n", event->event);
 -- 
 1.8.3.1
 
