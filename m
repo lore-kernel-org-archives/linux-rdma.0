@@ -1,42 +1,107 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 2/4] nvmet-rdma: notify QP on Last WQE Reached event arrival
-Date: Wed, 17 Jan 2018 15:52:56 +0200
-Message-ID: <1516197178-26493-3-git-send-email-maxg@mellanox.com>
-References: <1516197178-26493-1-git-send-email-maxg@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1516197178-26493-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, bart.vanassche-Sjgp3cTcYWE@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
-Cc: danielm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 0/3] NFS/RDMA server changes for v4.16
+Date: Wed, 17 Jan 2018 09:44:04 -0500
+Message-ID: <A3C524E8-4253-464F-BFFA-A080C8455CEF@oracle.com>
+References: <20180103203849.7074.9609.stgit@klimt.1015granger.net>
+ <BD4AB89D-D4A5-4576-A9EE-4D0A485F13E1@oracle.com>
+ <20180116213343.GD21173@fieldses.org>
+Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180116213343.GD21173-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In order to avoid resource leakage for QP associated with
-a Shared Receive Queue (SRQ), notify it on Last WQE Reached
-event arrival.
 
-Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/nvme/target/rdma.c | 3 +++
- 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index 4991290..99a14a7 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -1151,6 +1151,9 @@ static void nvmet_rdma_qp_event(struct ib_event *event, void *priv)
- 	case IB_EVENT_COMM_EST:
- 		rdma_notify(queue->cm_id, event->event);
- 		break;
-+	case IB_EVENT_QP_LAST_WQE_REACHED:
-+		ib_notify_qp(queue->cm_id->qp, event->event);
-+		break;
- 	default:
- 		pr_err("received IB QP event: %s (%d)\n",
- 		       ib_event_msg(event->event), event->event);
--- 
-1.8.3.1
+> On Jan 16, 2018, at 4:33 PM, Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> =
+wrote:
+>=20
+> On Tue, Jan 16, 2018 at 04:31:07PM -0500, Chuck Lever wrote:
+>>=20
+>>=20
+>>> On Jan 3, 2018, at 3:42 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> =
+wrote:
+>>>=20
+>>> Hi Bruce-
+>>>=20
+>>> Would you consider these patches for merging into v4.16?
+>>=20
+>> Hi Bruce, since you haven't responded, I assume these will
+>> not appear in v4.16. Let's drop these for now, and I will
+>> resubmit them for v4.17.
+>=20
+> Sorry for the lack of response, I started reviewing but didn't finish,
+> and still expect to get them in for 4.16.
+
+No rush. I have more work in this area, so it would be OK
+to postpone them.
+
+
+> --b.
+>=20
+>>=20
+>>=20
+>>> Changes since v1:
+>>> - Rebased on v4.15-rc6
+>>> - Address a 0day robot complaint in nfsd3_proc_symlink
+>>> - Properly handle error return from svc_rdma_handle_bc_reply
+>>>=20
+>>> ---
+>>>=20
+>>> Chuck Lever (3):
+>>>     svcrdma: Post Receives in the Receive completion handler
+>>>     NFSD: Clean up write argument XDR decoders
+>>>     NFSD: Clean up symlink argument XDR decoders
+>>>=20
+>>>=20
+>>> fs/nfsd/nfs3proc.c                         |   18 ++++-
+>>> fs/nfsd/nfs3xdr.c                          |   67 ++++-------------
+>>> fs/nfsd/nfs4proc.c                         |   37 +++-------
+>>> fs/nfsd/nfs4xdr.c                          |   11 ++-
+>>> fs/nfsd/nfsproc.c                          |   23 ++++--
+>>> fs/nfsd/nfsxdr.c                           |   63 ++++++++--------
+>>> fs/nfsd/xdr.h                              |    3 +
+>>> fs/nfsd/xdr3.h                             |    3 +
+>>> fs/nfsd/xdr4.h                             |    3 +
+>>> include/linux/sunrpc/svc.h                 |    4 +
+>>> include/linux/sunrpc/svc_rdma.h            |    2 -
+>>> net/sunrpc/svc.c                           |  109 =
+++++++++++++++++++++++++++++
+>>> net/sunrpc/xprtrdma/svc_rdma_backchannel.c |    5 -
+>>> net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |    9 --
+>>> net/sunrpc/xprtrdma/svc_rdma_sendto.c      |    6 --
+>>> net/sunrpc/xprtrdma/svc_rdma_transport.c   |   25 ++----
+>>> 16 files changed, 225 insertions(+), 163 deletions(-)
+>>>=20
+>>> --
+>>> Chuck Lever
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-nfs" =
+in
+>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>=20
+>> --
+>> Chuck Lever
+>>=20
+>>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" =
+in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
