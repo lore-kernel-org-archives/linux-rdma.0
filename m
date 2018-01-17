@@ -1,62 +1,78 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next v3 3/7] RDMA: Annotate create QP callers
-Date: Wed, 17 Jan 2018 10:44:17 -0500
-Message-ID: <1516203857.3403.255.camel@redhat.com>
-References: <20180111153132.11143-1-leon@kernel.org>
-         <20180111153132.11143-4-leon@kernel.org>
+Subject: Re: [PATCH rdma-core 0/3] Fixes for cbuild and travis
+Date: Wed, 17 Jan 2018 10:49:49 -0500
+Message-ID: <1516204189.3403.256.camel@redhat.com>
+References: <20180115211347.5651-1-jgg@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-U4B7aLCgOzNaPS1qHi7R"
+        protocol="application/pgp-signature"; boundary="=-2qkGDYHDDXTJ2Zabo1PJ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180111153132.11143-4-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20180115211347.5651-1-jgg-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-U4B7aLCgOzNaPS1qHi7R
+--=-2qkGDYHDDXTJ2Zabo1PJ
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2018-01-11 at 17:31 +0200, Leon Romanovsky wrote:
-> --- a/net/smc/smc_ib.c
-> +++ b/net/smc/smc_ib.c
-> @@ -243,6 +243,7 @@ int smc_ib_create_queue_pair(struct smc_link *lnk)
->                 },
->                 .sq_sig_type =3D IB_SIGNAL_REQ_WR,
->                 .qp_type =3D IB_QPT_RC,
-> +               .comm =3D "sec-ib",
-                           ^^^
-                           Typo?  Should it be smc-ib?
+On Mon, 2018-01-15 at 14:13 -0700, Jason Gunthorpe wrote:
+> From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>=20
+> Fix the unconditional travis failures with the latest suse tumbleweed doc=
+ker
+> images
+>=20
+> Fix perplexing travis failures with no output from sparse.
+>=20
+> Use clang 5.0
+>=20
+> This is a PR:
+>=20
+> https://github.com/linux-rdma/rdma-core/pull/283
+>=20
+> Jason Gunthorpe (3):
+>   cbuild: Support distros that only ship python3
+>   travis: Do not loose ninja output if ninja fails during sparse
+>   travis: Use clang-5.0
+>=20
+>  .travis.yml           |  6 +++---
+>  buildlib/cbuild       | 16 ++++++++++------
+>  buildlib/travis-build | 10 +++++-----
+>  3 files changed, 18 insertions(+), 14 deletions(-)
+>=20
+
+This was merged yesterday.  I forgot to email the list, sorry.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-U4B7aLCgOzNaPS1qHi7R
+--=-2qkGDYHDDXTJ2Zabo1PJ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpfb1EACgkQuCajMw5X
-L92hchAAqMVAdchfHdFR55W/Aaqopb18mp6GOJ3+L7H1CWHl7KHcHqbwyihMITLD
-47mVqjuYJvM7eHLucnFAikC8TOdyMnXj3G2Hq+U/+TlyVueCE4uCf+6McGpvmrdm
-44xyPfphRg7ujcIk2gtYTPmOexiwWpdh679n2BN7bB6VMiFwYX6JP9WXHGMJyfyJ
-wsxjhL6iBwsd51BsNR/Xt5RbO+z80K6qm8wm6qU4Q9d5qj1SBDUO9X/Dxyih7O+k
-AHB/ln2PcLDipyp4aCVmpeIV7RJ8TzMPpEYP4BsPuxOdI/Q5+/aASuaiOnHg5CKt
-P4vSJ8qQgqxzswZrrrj16LsmWtU+HsIUEk6Shm2SJmyxaAEALph9Af0CaEP67M1q
-3eoQAbJubkluOAGuQoGYU6qUo1tEQq6zhP80FtD2WTEFoDEFlz5dQbmjfof2b3BY
-gFeq9yYGZt3QkD3c7RCJqx86Jr4LxxdYVabo5wyUCKs2vQAYT5ddlvE2amrC4hgr
-bpFh4GvpJD7gretNN1utJ+Hc5mGboPVpZSRxpMXUZ1og/WGSsnkf4tA/f0BJKulI
-HKviQoljdKsvI+Z0BdhU32DBxkuXAQUim1Vy1O9lmkKuyOVCusbffPRSLpSaCIwx
-rpEh50Biqhv62ShCo6dhzPYFptaueAhwKZtb4y1mikAFhq+8G7k=
-=o3me
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpfcJ0ACgkQuCajMw5X
+L93dmA//QoIidiFhlLaPhzmoItAa/W6qFSfIFUvcmy/3IRy+qCWA/RcxNfRqsY6t
+7rQHHIZOdoHbZFGhodU9jGFwA3LkGs91L+MrAVl4CSvpp2O/8VyiDWNiSAeKntX4
+4P6fC13GB8wBb6EPelurdKs7S4fKk4/3CgfG51JO7vLad7UTVIIhy/xqQed0n8Mr
+jIlK/dnKDE/y97uEjEY94IAOq8ljd/0awio2wyxlPaELXx5wYi7bqubJjCj5nYiF
+Qe4wqJpGYHs2LazhMpOPKtdE4fSyPvDJR1UmtnP3mZfu0noXimOYX8uK05sDYJTz
+h093VZ0+8B/e+VJQkL/tb2L1MmUsPj25PEkhA/+W2qMvNKqH5nzByARiItOVs2Kn
+//0N6f0TmH7fXVIP2yE5IRU9tm+UsOr0h0aX21AZOc1Ce70OdkWNhjho8P08qTsa
+7lRznfsAk6VUi9fOUUTw3hzbCSyEArd+AFck3fG2BDH7FRQM3MPKrfnLpsWhZavV
+jzYmZdTrTX01DG92AdUIOIIqqB2Y+H9cG4DGnEwIOUnu3bMYBLUFO9HjWCHedbPd
+OiIGtsImE6gi7qWKcyzdVd5ijFXrerZOs8InGnXrakxg9veOkZ/fCySPYRXGTjFP
+XpC4kwsI+LVVJRwobXJdA6UVZt+pmsBzE2MWoWUy5Y2Y2MShHOc=
+=94dT
 -----END PGP SIGNATURE-----
 
---=-U4B7aLCgOzNaPS1qHi7R--
+--=-2qkGDYHDDXTJ2Zabo1PJ--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
