@@ -1,31 +1,45 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH v3 1/5] kobject: Export kobj_ns_grab_current() and
- kobj_ns_drop()
-Date: Wed, 17 Jan 2018 16:13:26 +0000
-Message-ID: <1516205605.2820.7.camel@wdc.com>
-References: <20180108231436.19750-1-bart.vanassche@wdc.com>
-         <20180108231436.19750-2-bart.vanassche@wdc.com>
-         <1515520784.2721.11.camel@wdc.com> <20180109183047.GA3236@kroah.com>
-         <1515523648.2721.21.camel@wdc.com> <20180109185745.GA13061@kroah.com>
+From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/3] cbuild: Support distros that only ship
+ python3
+Date: Wed, 17 Jan 2018 17:25:12 +0100
+Message-ID: <f75a3cd5-9763-0b4c-5e99-0565023967e4@suse.de>
+References: <20180115211347.5651-1-jgg@ziepe.ca>
+ <20180115211347.5651-2-jgg@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180109185745.GA13061-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <34681DCAC9A32D46AF5E80CC93D19349-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <20180115211347.5651-2-jgg-uk2M96/98Pc@public.gmane.org>
+Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE4LTAxLTA5IGF0IDE5OjU3ICswMTAwLCBncmVna2hAbGludXhmb3VuZGF0aW9u
-Lm9yZyB3cm90ZToNCj4gWW91IGRvIHJlYWxpemUgSSd2ZSBiZWVuIGEgX2JpdF8gYnVzeSwgYW5k
-IGZvciBhIHBhdGNoIHlvdSBzZW50DQo+IF9ZRVNURVJEQVlfLCBpdCBtaWdodCB0YWtlIG1lIGEg
-d2hpbGUgdG8gZ2V0IHRvLi4uDQo+IA0KPiBQbGVhc2UgYmUgcGF0aWVudC4NCg0KSGVsbG8gR3Jl
-ZywNCg0KRG8geW91IHRoaW5rIHlvdSB3aWxsIGhhdmUgdGhlIHRpbWUgdG8gcmV2aWV3IHBhdGNo
-IDEvNSBvZiB0aGlzIHNlcmllcyBiZWZvcmUNCnRoZSBtZXJnZSB3aW5kb3cgb3BlbnMgKGVuZCBv
-ZiB0aGlzIHdlZWspPw0KDQpUaGFua3MsDQoNCkJhcnQu
+
+
+Le 15/01/2018 à 22:13, Jason Gunthorpe a écrit :
+> From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> SuSE tumbleweed is no longer shipping python2 by default, at least
+> in the minimal docker image. This breaks cbuild and travis.
+>
+> Revise this little scriptlet we run in the container to support
+> both versions of python and use python3 in tumbleweed.
+>
+> Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  buildlib/cbuild | 16 ++++++++++------
+>  1 file changed, 10 insertions(+), 6 deletions(-)
+>
+> diff --git a/buildlib/cbuild b/buildlib/cbuild
+
+I'm guessing this one should probably be backported to the stable branches so they keep working in travis ?
+I don't think we need the others.
+
+Can you confirm ?
+
+Nicolas
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
