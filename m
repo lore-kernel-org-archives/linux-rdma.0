@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v2 02/14] IB/srpt: Rework srpt_disconnect_ch_sync()
-Date: Tue, 16 Jan 2018 16:14:06 -0800
-Message-ID: <20180117001418.7852-3-bart.vanassche@wdc.com>
+Subject: [PATCH v2 01/14] IB/srpt: Make it safe to use RCU for srpt_device.rch_list
+Date: Tue, 16 Jan 2018 16:14:05 -0800
+Message-ID: <20180117001418.7852-2-bart.vanassche@wdc.com>
 References: <20180117001418.7852-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180117001418.7852-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
@@ -10,125 +10,84 @@ To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch fixes a use-after-free issue for ch->release_done when
-running the SRP protocol on top of the rdma_rxe driver.
+The next patch will iterate over rch_list from a context from which
+it is not allowed to block. Hence make rch_list RCU-safe.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 45 ++++++++++++++++++-----------------
- drivers/infiniband/ulp/srpt/ib_srpt.h |  2 --
- 2 files changed, 23 insertions(+), 24 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 13 ++++++++++---
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  2 ++
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 4dd15378bc7c..5386b993daf9 100644
+index d78f60dcc2ba..4dd15378bc7c 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1841,6 +1841,23 @@ static int srpt_disconnect_ch(struct srpt_rdma_ch *ch)
- 	return ret;
- }
- 
-+static bool srpt_ch_closed(struct srpt_device *sdev, struct srpt_rdma_ch *ch)
-+{
-+	struct srpt_rdma_ch *ch2;
-+	bool res = true;
-+
-+	rcu_read_lock();
-+	list_for_each_entry(ch2, &sdev->rch_list, list) {
-+		if (ch2 == ch) {
-+			res = false;
-+			break;
-+		}
-+	}
-+	rcu_read_unlock();
-+
-+	return res;
-+}
-+
- /*
-  * Send DREQ and wait for DREP. Return true if and only if this function
-  * changed the state of @ch.
-@@ -1848,31 +1865,24 @@ static int srpt_disconnect_ch(struct srpt_rdma_ch *ch)
- static bool srpt_disconnect_ch_sync(struct srpt_rdma_ch *ch)
- 	__must_hold(&sdev->mutex)
+@@ -1906,7 +1906,7 @@ static void srpt_free_ch(struct kref *kref)
  {
--	DECLARE_COMPLETION_ONSTACK(release_done);
- 	struct srpt_device *sdev = ch->sport->sdev;
--	bool wait;
-+	int ret;
+ 	struct srpt_rdma_ch *ch = container_of(kref, struct srpt_rdma_ch, kref);
  
- 	lockdep_assert_held(&sdev->mutex);
- 
- 	pr_debug("ch %s-%d state %d\n", ch->sess_name, ch->qp->qp_num,
- 		 ch->state);
- 
--	WARN_ON(ch->release_done);
--	ch->release_done = &release_done;
--	wait = !list_empty(&ch->list);
--	srpt_disconnect_ch(ch);
-+	ret = srpt_disconnect_ch(ch);
- 	mutex_unlock(&sdev->mutex);
- 
--	if (!wait)
--		goto out;
--
--	while (wait_for_completion_timeout(&release_done, 180 * HZ) == 0)
-+	while (wait_event_timeout(sdev->ch_releaseQ, srpt_ch_closed(sdev, ch),
-+				  5 * HZ) == 0)
- 		pr_info("%s(%s-%d state %d): still waiting ...\n", __func__,
- 			ch->sess_name, ch->qp->qp_num, ch->state);
- 
--out:
- 	mutex_lock(&sdev->mutex);
--	return wait;
-+	return ret == 0;
+-	kfree(ch);
++	kfree_rcu(ch, rcu);
  }
  
- static void srpt_set_enabled(struct srpt_port *sport, bool enabled)
-@@ -1916,8 +1926,7 @@ static void srpt_release_channel_work(struct work_struct *w)
- 	struct se_session *se_sess;
- 
- 	ch = container_of(w, struct srpt_rdma_ch, release_work);
--	pr_debug("%s: %s-%d; release_done = %p\n", __func__, ch->sess_name,
--		 ch->qp->qp_num, ch->release_done);
-+	pr_debug("%s-%d\n", ch->sess_name, ch->qp->qp_num);
- 
- 	sdev = ch->sport->sdev;
- 	BUG_ON(!sdev);
-@@ -1946,14 +1955,6 @@ static void srpt_release_channel_work(struct work_struct *w)
+ static void srpt_release_channel_work(struct work_struct *w)
+@@ -1945,11 +1945,17 @@ static void srpt_release_channel_work(struct work_struct *w)
+ 			     srp_max_req_size, DMA_FROM_DEVICE);
  
  	mutex_lock(&sdev->mutex);
- 	list_del_rcu(&ch->list);
--	if (ch->release_done)
--		complete(ch->release_done);
--	mutex_unlock(&sdev->mutex);
--
--	synchronize_rcu();
--
--	mutex_lock(&sdev->mutex);
--	INIT_LIST_HEAD(&ch->list);
+-	list_del_init(&ch->list);
++	list_del_rcu(&ch->list);
+ 	if (ch->release_done)
+ 		complete(ch->release_done);
  	mutex_unlock(&sdev->mutex);
  
++	synchronize_rcu();
++
++	mutex_lock(&sdev->mutex);
++	INIT_LIST_HEAD(&ch->list);
++	mutex_unlock(&sdev->mutex);
++
  	wake_up(&sdev->ch_releaseQ);
+ 
+ 	kref_put(&ch->kref, srpt_free_ch);
+@@ -2064,6 +2070,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 		goto reject;
+ 	}
+ 
++	init_rcu_head(&ch->rcu);
+ 	kref_init(&ch->kref);
+ 	ch->zw_cqe.done = srpt_zerolength_write_done;
+ 	INIT_WORK(&ch->release_work, srpt_release_channel_work);
+@@ -2190,7 +2197,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	}
+ 
+ 	mutex_lock(&sdev->mutex);
+-	list_add_tail(&ch->list, &sdev->rch_list);
++	list_add_tail_rcu(&ch->list, &sdev->rch_list);
+ 	mutex_unlock(&sdev->mutex);
+ 
+ 	goto out;
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index 0ab59c60f2ef..67248338b4c9 100644
+index 11ce8c94a051..0ab59c60f2ef 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.h
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -270,7 +270,6 @@ enum rdma_ch_state {
-  * @sess_name:     Session name.
-  * @ini_guid:      Initiator port GUID.
-  * @release_work:  Allows scheduling of srpt_release_channel().
-- * @release_done:  Enables waiting for srpt_release_channel() completion.
-  */
- struct srpt_rdma_ch {
- 	struct ib_cm_id		*cm_id;
-@@ -299,7 +298,6 @@ struct srpt_rdma_ch {
- 	u8			sess_name[36];
- 	u8			ini_guid[24];
- 	struct work_struct	release_work;
--	struct completion	*release_done;
- };
- 
- /**
+@@ -244,6 +244,7 @@ enum rdma_ch_state {
+  * @qp:            IB queue pair used for communicating over this channel.
+  * @cq:            IB completion queue for this channel.
+  * @zw_cqe:	   Zero-length write CQE.
++ * @rcu:           RCU head.
+  * @kref:	   kref for this channel.
+  * @rq_size:       IB receive queue size.
+  * @max_rsp_size:  Maximum size of an RSP response message in bytes.
+@@ -276,6 +277,7 @@ struct srpt_rdma_ch {
+ 	struct ib_qp		*qp;
+ 	struct ib_cq		*cq;
+ 	struct ib_cqe		zw_cqe;
++	struct rcu_head		rcu;
+ 	struct kref		kref;
+ 	int			rq_size;
+ 	u32			max_rsp_size;
 -- 
 2.15.1
 
