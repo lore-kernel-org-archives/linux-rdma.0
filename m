@@ -1,84 +1,114 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3 00/13] Request for Comments on SoftiWarp
-Date: Thu, 18 Jan 2018 09:29:58 +0200
-Message-ID: <20180118072958.GW13639@mtr-leonro.local>
-References: <20180114223603.19961-1-bmt@zurich.ibm.com>
- <031f01d38fad$422520c0$c66f6240$@opengridcomputing.com>
+Subject: Re: [PATCH rdma-next 2/3] RDMA/cma: Introduce API to read GIDs for
+ multiple transports
+Date: Thu, 18 Jan 2018 10:10:59 +0200
+Message-ID: <20180118081059.GX13639@mtr-leonro.local>
+References: <20180109111058.29534-1-leon@kernel.org>
+ <20180109111058.29534-3-leon@kernel.org>
+ <20180115222215.GA18795@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="sDhuxz86kt5qlkuV"
+        protocol="application/pgp-signature"; boundary="YnIutncTLXsDZs5t"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <031f01d38fad$422520c0$c66f6240$@opengridcomputing.com>
+In-Reply-To: <20180115222215.GA18795-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Bernard Metzler' <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---sDhuxz86kt5qlkuV
+--YnIutncTLXsDZs5t
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Jan 17, 2018 at 10:07:22AM -0600, Steve Wise wrote:
-> Hey Bernard,
->
+On Mon, Jan 15, 2018 at 03:22:15PM -0700, Jason Gunthorpe wrote:
+> On Tue, Jan 09, 2018 at 01:10:57PM +0200, Leon Romanovsky wrote:
+> > From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > >
-> > This patch set contributes a new version of the SoftiWarp
-> > driver, as originally introduced Oct 6th, 2017.
+> > This patch introduces an API that allows legacy applications to query
+> > GIDs for a rdma_cm_id which is used during connection establishment.
 > >
+> > GIDs are stored and created differently for IB, RoCE and iWARP transports.
+> > Therefore rdma_read_gids() returns GID for all the transports hiding
+> > such internal details to caller. It is usable for client side and server
+> > side connections.
+> >
+> > The rdma_read_gids() should not be used by any new ULPs.
 >
+> This is weird statement. Why can't we change the few callers to do
+> whatever is correct now?
 >
-> Two things I think will help with review:
+> > +void rdma_read_gids(struct rdma_cm_id *cm_id, union ib_gid *sgid,
+> > +		    union ib_gid *dgid)
+> > +{
+> > +	struct rdma_addr *addr = &cm_id->route.addr;
+> > +
+> > +	if (!cm_id->device)
+> > +		return;
 >
-> 1) provide a github linux kernel repo with this series added.  That allows
-> reviewers to easily use both patches and a full kernel tree for reviewing.
+> Nope. I looked at only one caller and saw this return leaks uninited
+> kernel stack memory to userspace. Probably best to zero the sgid/dgid
+> in the error case??
 >
-> 2) provide the userlib patches (and a github repo) that works with the
-> latest upstream rdma-core.  That will allow folks to test use-side rdma as
-> part of their review.
+> > diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
+> > index fa809a7b48e7..edb1cdf2a892 100644
+> > +++ b/include/rdma/ib_addr.h
+> > @@ -165,6 +165,9 @@ static inline u16 rdma_vlan_dev_vlan_id(const struct net_device *dev)
+> >
+> >  static inline int rdma_ip2gid(struct sockaddr *addr, union ib_gid *gid)
+> >  {
+> > +	if (!gid)
+> > +		return 0;
+> > +
+> >  	switch (addr->sa_family) {
+> >  	case AF_INET:
+> >  		ipv6_addr_set_v4mapped(((struct sockaddr_in *)
+> > @@ -205,6 +208,9 @@ static inline void rdma_gid2ip(struct sockaddr *out, const union ib_gid *gid)
+> >  static inline void rdma_addr_get_sgid(struct rdma_dev_addr *dev_addr,
+> >  				      union ib_gid *gid)
+> >  {
+> > +	if (!gid)
+> > +		return;
+>
+> I think it would be clearer to put this test in the rdma_read_gids.
+> It makes no sense to have a function with one output where the output
+> is optional. Particularly when it is inlined..
 
-And please don't call it "PATCH" in subject, but "RFC".
-The "PATCH" is misleading.
+Actually, I changed Parav's original code in this patch to be the construction
+as you commented now. For me, rdma_read_gids() looked so ugly with sgid, dgid
+checks so i didn't want to show it to anybody, you will see it in v1.
 
 >
-> I'll review the individual patches in detail asap.
+> And the prior patch makes a bit more sense after looking here, but the
+> series seems in the wrong order -> the patch to break
+> rdma_addr_get_sgid should go after the only rocee code path in ucma is
+> switched to use rdma_read_gids which hopefully does something similar
+> to what it did before?
+>
+> Jason
 
-I would like to review too to learn iWARP a little bit closer, but most
-probably won't have time to do it till -rc1.
-
->
-> Thanks!
->
-> Steve.
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---sDhuxz86kt5qlkuV
+--YnIutncTLXsDZs5t
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpgTPYACgkQ5GN7iDZy
-WKcWXQ/6ApB1ZVT+6RAHrTWS2kjH4AIqBO7pjaYGJm78heygd8pcZ13HoyLQaZoL
-qvN1pM3GOPPrSMNnezr6DOXm4j38oZWNn/gkSWnVPmrYEF0+ekwL159W/J5AEizC
-ClzU9vkKiRMBIKyGT9ZPdBBMxKuhMi4Up5m4VLiZVg+uReEJKt/+pLKzqCI4cavh
-ycxi6mtju4RcicDIyWwbTv4X2JSshWwpk63EfLxZiRBURsA2LWLUhnqr72s5qPmD
-blucq62ZIDZezVt+Us3lvJ1q8cM6VE++3sHsMbSWnJyBybNKmyj4qy9Avr7RkBl5
-gtF6q0uFL552hSHoI+9LPCe3p2D2+ulZA8wzVLhy1obTjIe7os42z7NMyh8zV4ME
-mz+xa0+3s0Y6WUXQQAESTziTj2MNWuwsfKwQSgUy2zW2eRkLeFcrsYSboXx2Pxxp
-VszCNe+wRbyJ7VhRHe8dd0zHGBqb+GmTvQFeOd8GJ3FgyirjmiTrdbU8UYlsGKrx
-XIEk6HhFylAqlMWJYC1VLg2x3GlxZU1yoxYYoWlOUUA2Rcuwz43DpmjuT6bcoldx
-arzbJJ5xCwWYPW4rnJbTxU54r168vHnCpMg89eow8ieaPLtUCF+L7zdkYO4DMJ1G
-YlCVQfFwIEsByag4HSz97Utr/oV+D/xlMv0DihiMC2J0hg4/IO0=
-=OTYo
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpgVpMACgkQ5GN7iDZy
+WKfcxA/8Di9TR4RFZa4LA2XVV4XbuLw1oEPkiKrIIOMhc2PJQsx/qqc7ykaz57Cx
+ua8ZbTz+1RuJRQZYKgLZZrRK/sswMXVKVebeJTaFXX2IF06H6WkS9BW7XGAk/wSG
+4imojPIMInuLjvE89yyHrNJiAuUgXKdl0pxjHqQA0SRIG6Cc6cRSzMsVEhQSHehZ
+VMnvtnCpTceU7BvgnicCHesp7w3gQ19BGCpdvD6SFzeiWRkZhfb/yiHr9iI6/AzM
+FVXzJONViKPVt4jYl651qNtNttSLdBzkny9skWZcBIf36U8cGDo5fsfvqj27EXke
+cTFQ3GfM+tpHl+98KF2qdQ07tcgeMjjI8n5G0ysUv8U2CKvynPC5KGDvA9KpH6Lx
+riodMQJD5rrjFcNMFG31GSEf7S8T98xx6tUJExiRsnw+rGVsiIxIW20wLgdk2UCQ
+5Un2C32wzp9hYJ+Gi6TGP3XS/NEnAazB9o7VT50dlYnj5DtMOFDAOvMGscksyjcP
+joFpAaNk8fZdO2C6jkgQ/bAbT7Q85YyAsO5Q0013FXhObdujtVFBNUW6v7bnup+F
+Y253VrmGPWGZoIXxjz6Akm9lwPSEHAvjQEmMcGCCdPAnhiyQ39QiOLhccUGs3Rjo
+02oAidDvGHmVzzoxxPSclhATEwf2vYpE8gmWlPQld1QATwxRupo=
+=v7FH
 -----END PGP SIGNATURE-----
 
---sDhuxz86kt5qlkuV--
+--YnIutncTLXsDZs5t--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
