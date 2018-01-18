@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v1 4/4] RDMA/core: Simplify rdma_addr_get_sgid() to not support RoCE
-Date: Thu, 18 Jan 2018 10:11:19 +0200
-Message-ID: <20180118081119.30024-5-leon@kernel.org>
+Subject: [PATCH rdma-next v1 2/4] RDMA/ucma: Use rdma cm API to query GID
+Date: Thu, 18 Jan 2018 10:11:17 +0200
+Message-ID: <20180118081119.30024-3-leon@kernel.org>
 References: <20180118081119.30024-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180118081119.30024-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,81 +12,50 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-rdma_addr_get_sgid() for RoCE has few issues as below.
-1. With IP based GIDs, SGID derived using iboe_addr_get_sgid() was
-not used in connection establishment process.
-SGID was always derived using ip2gid() in various routines such as
-cma_resolve_iboe_route(), cma_iboe_join_multicast(), cma_acquire_dev().
+Make use of rdma_read_gids() API to read SGID and DGID which returns
+correct GIDs for RoCE and other transports.
 
-2. It returns the first IP address of the netdevice, while netdevice
-can have multiple IP addresses. Connection could have been established
-using non first IP address, resulting into returning wrong SGID.
+rdma_addr_get_dgid() for RoCE for client side connections returns MAC
+address, instead of DGID.
+rdma_addr_get_sgid() for RoCE doesn't return correct SGID for IPv6 and
+when more than one IP address is assigned to the netdevice.
 
-3. It returns SGID based on IPv4 address. It doesn't cover IPv6
-addresses, which means it returns wrong SGID for IPv6 based connections.
-
-4. As the comment of rdma_dev_addr src_dev_addr and dst_dev_addr suggest,
-such members of rdma_dev_addr stores the mac address. Therefore it is not
-the best place to store the RoCE GIDs. RoCE GIDs are derived from the IP
-addresses and they are already available in cm_id->route->addr.***_addr.
-
-It was only used to return SGID to rds/ib.c and ucma.c modules, where it
-returned incorrect SGID in above matching conditions.
-Therefore code is simplified to not support RoCE.
+Therefore use transport agnostic rdma_read_gids() API provided by rdma_cm
+module.
 
 Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- include/rdma/ib_addr.h | 33 +++++++--------------------------
- 1 file changed, 7 insertions(+), 26 deletions(-)
+ drivers/infiniband/core/ucma.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-index dc0b642e0175..d656809f1217 100644
---- a/include/rdma/ib_addr.h
-+++ b/include/rdma/ib_addr.h
-@@ -197,34 +197,15 @@ static inline void rdma_gid2ip(struct sockaddr *out, const union ib_gid *gid)
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 2ec0f89035fb..d67219db99be 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -944,8 +944,8 @@ static ssize_t ucma_query_gid(struct ucma_context *ctx,
+ 	} else {
+ 		addr->sib_family = AF_IB;
+ 		addr->sib_pkey = (__force __be16) resp.pkey;
+-		rdma_addr_get_sgid(&ctx->cm_id->route.addr.dev_addr,
+-				   (union ib_gid *) &addr->sib_addr);
++		rdma_read_gids(ctx->cm_id, (union ib_gid *)&addr->sib_addr,
++			       NULL);
+ 		addr->sib_sid = rdma_get_service_id(ctx->cm_id, (struct sockaddr *)
+ 						    &ctx->cm_id->route.addr.src_addr);
  	}
- }
- 
--static inline void iboe_addr_get_sgid(struct rdma_dev_addr *dev_addr,
--				      union ib_gid *gid)
--{
--	struct net_device *dev;
--	struct in_device *ip4;
--
--	dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
--	if (dev) {
--		ip4 = in_dev_get(dev);
--		if (ip4 && ip4->ifa_list && ip4->ifa_list->ifa_address)
--			ipv6_addr_set_v4mapped(ip4->ifa_list->ifa_address,
--					       (struct in6_addr *)gid);
--
--		if (ip4)
--			in_dev_put(ip4);
--
--		dev_put(dev);
--	}
--}
--
-+/*
-+ * rdma_get/set_sgid/dgid() APIs are applicable to IB, and iWarp.
-+ * They are not applicable to RoCE.
-+ * RoCE GIDs are derived from the IP addresses.
-+ */
- static inline void rdma_addr_get_sgid(struct rdma_dev_addr *dev_addr, union ib_gid *gid)
- {
--	if (dev_addr->transport == RDMA_TRANSPORT_IB &&
--	    dev_addr->dev_type != ARPHRD_INFINIBAND)
--		iboe_addr_get_sgid(dev_addr, gid);
--	else
--		memcpy(gid, dev_addr->src_dev_addr +
--		       rdma_addr_gid_offset(dev_addr), sizeof *gid);
-+	memcpy(gid, dev_addr->src_dev_addr + rdma_addr_gid_offset(dev_addr),
-+	       sizeof(*gid));
- }
- 
- static inline void rdma_addr_set_sgid(struct rdma_dev_addr *dev_addr, union ib_gid *gid)
+@@ -957,8 +957,8 @@ static ssize_t ucma_query_gid(struct ucma_context *ctx,
+ 	} else {
+ 		addr->sib_family = AF_IB;
+ 		addr->sib_pkey = (__force __be16) resp.pkey;
+-		rdma_addr_get_dgid(&ctx->cm_id->route.addr.dev_addr,
+-				   (union ib_gid *) &addr->sib_addr);
++		rdma_read_gids(ctx->cm_id, NULL,
++			       (union ib_gid *)&addr->sib_addr);
+ 		addr->sib_sid = rdma_get_service_id(ctx->cm_id, (struct sockaddr *)
+ 						    &ctx->cm_id->route.addr.dst_addr);
+ 	}
 -- 
 2.15.1
 
