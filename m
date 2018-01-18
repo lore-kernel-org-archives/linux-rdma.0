@@ -1,115 +1,69 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH wip/dl-for-next] RDMA/bnxt_re: Fix kbuild error
-Date: Thu, 18 Jan 2018 21:15:32 +0200
-Message-ID: <20180118191531.GA16234@yuvallap>
+Date: Thu, 18 Jan 2018 14:54:06 -0500
+Message-ID: <1516305246.3403.301.camel@redhat.com>
 References: <1516288665-11055-1-git-send-email-devesh.sharma@broadcom.com>
+         <CANjDDBgnhRuroVEfGJ=gF9=dS47w7pcQh5hZsF=p5iF6mxmX9g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-sVIK7VhLdEY6oPICknDU"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1516288665-11055-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CANjDDBgnhRuroVEfGJ=gF9=dS47w7pcQh5hZsF=p5iF6mxmX9g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 18, 2018 at 10:17:45AM -0500, Devesh Sharma wrote:
-> Fix for following build failure
-> 
-> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3402:7-14: ERROR: reference
-> preceded by free on line 3375
-> 
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/dl-for-next
-> head:   d47f6fe6736ed3ecb39cd69fe26e3518f199eecd
-> commit: cb8a852e09c1dc8e47af741714063acf9c4d115c [3/28] RDMA/bnxt_re: Add support for MRs with Huge pages
-> :::::: branch date: 4 hours ago
-> :::::: commit date: 15 hours ago
-> 
-> >> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3402:7-14: ERROR: reference preceded by free on line 3375
-> 
-> git remote add rdma-rdma https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
-> git remote update rdma-rdma
-> git checkout cb8a852e09c1dc8e47af741714063acf9c4d115c
-> vim +3402 drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> 
-> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+--=-sVIK7VhLdEY6oPICknDU
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> ---
->  drivers/infiniband/hw/bnxt_re/ib_verbs.c | 17 +++++++----------
->  1 file changed, 7 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> index 7220322..9b8fa77 100644
-> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> @@ -3355,10 +3355,8 @@ int bnxt_re_dereg_mr(struct ib_mr *ib_mr)
->  	int rc;
->  
->  	rc = bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
-> -	if (rc) {
-> +	if (rc)
->  		dev_err(rdev_to_dev(rdev), "Dereg MR failed: %#x\n", rc);
-> -		return rc;
-> -	}
->  
->  	if (mr->pages) {
->  		rc = bnxt_qplib_free_fast_reg_page_list(&rdev->qplib_res,
-> @@ -3421,7 +3419,7 @@ struct ib_mr *bnxt_re_alloc_mr(struct ib_pd *ib_pd, enum ib_mr_type type,
->  
->  	rc = bnxt_qplib_alloc_mrw(&rdev->qplib_res, &mr->qplib_mr);
->  	if (rc)
-> -		goto fail;
-> +		goto bail;
->  
->  	mr->ib_mr.lkey = mr->qplib_mr.lkey;
->  	mr->ib_mr.rkey = mr->ib_mr.lkey;
-> @@ -3443,9 +3441,10 @@ struct ib_mr *bnxt_re_alloc_mr(struct ib_pd *ib_pd, enum ib_mr_type type,
->  	return &mr->ib_mr;
->  
->  fail_mr:
-> -	bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
-> -fail:
->  	kfree(mr->pages);
-> +fail:
-> +	bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
-> +bail:
->  	kfree(mr);
->  	return ERR_PTR(rc);
->  }
-> @@ -3595,22 +3594,20 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
->  	pbl_tbl = kcalloc(umem_pgs, sizeof(u64 *), GFP_KERNEL);
->  	if (!pbl_tbl) {
->  		rc = -ENOMEM;
-> -		goto free_mrw;
-> +		goto free_umem;
->  	}
->  
->  	page_shift = umem->page_shift;
->  
->  	if (!bnxt_re_page_size_ok(page_shift)) {
->  		dev_err(rdev_to_dev(rdev), "umem page size unsupported!");
-> -		kfree(pbl_tbl);
->  		rc = -EFAULT;
-> -		goto free_umem;
-> +		goto fail;
->  	}
->  
->  	if (!umem->hugetlb && length > BNXT_RE_MAX_MR_SIZE_LOW) {
->  		dev_err(rdev_to_dev(rdev), "Requested MR Sz:%llu Max sup:%llu",
->  			length,	(u64)BNXT_RE_MAX_MR_SIZE_LOW);
-> -		kfree(pbl_tbl);
->  		rc = -EINVAL;
->  		goto fail;
->  	}
-> -- 
-> 1.8.3.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, 2018-01-18 at 20:49 +0530, Devesh Sharma wrote:
+> Hello Doug,
+>=20
+> Please pull this in, hopefully this will fix the latest build failure
+> on your sub tree.
+>=20
+> -Regards
+> Devesh
+
+Hi Devesh,
+
+Given that the code had only landed in my wip/ area, I took your patch
+and squashed into the broken patch (which required a rebase) and then
+pushed a new branch (wip/dl-for-next-rebased).  We'll see if it passes
+the tests there (it passed build tests on my local system the first
+time, so just have to wait for the 0day results).
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-sVIK7VhLdEY6oPICknDU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpg+14ACgkQuCajMw5X
+L92k3w//VRBwurl9rVrrlKiumcZRnNRL1C9pMY08YHFVohMgmmYNwUXtG3sIeZRH
+gjxI8wZE0/nbKOgFiGMjUZBcCy/zW3qP4VF64ImHuZif/8K/o+Kp3bGLgL/91c9O
+BSqXbnPxSTXYiAiqQvLuW5IXnjVDVkx4l50C7w+SBSwo80dMfGo6yg5MsqQDlXv6
+dkWzx9O5MjzySJ7jzgsQRkm/aXpjVtFMf35BB8CwO/eDI4xexXVqUvfWRR9BxoT9
+yjvk57TL4L/7iyT5IQzWamzpPeqVkElFRQO7saMAwc2a1cUVfVmZeu3MkU9CnA1q
+tYvlmG+akhJQgYdc/EKEu1Jh7LgoKY/4l8PtFs2l74Qx/HdQj6cBX4UDBZoq1kD5
+7L8s7FaUEiwRYSisC3lNc7kVcLLI5eqgB0UXcc53IN5Olz7rqKMIMoyk9Jq2NSiV
+3BKvPeFjAu98g3JtLGziOfgsR5pzHYbXkoHMgk2uG1c3YGNfk7liDN49ex0ozgjq
+vHXDbZbS/2fVtJ78CmdLXdmgw3L107vv5mzP+vtel6U8/KrXRPROjLhSvCkLfVp6
+Bwm5yUawDNjrqcmbgmPgAk0F7tBondUxTEA6006p46QeVPA7qcs+EHCwa2f9amVb
+qdDVRvo02Inch7BBgw35Pa53mCYb5XrQ5/Xuo5hzgp81VHQO2+Q=
+=eXR6
+-----END PGP SIGNATURE-----
+
+--=-sVIK7VhLdEY6oPICknDU--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
