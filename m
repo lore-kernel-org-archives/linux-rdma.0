@@ -1,66 +1,84 @@
-From: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/2] libhns: Support cq record doorbell
-Date: Thu, 18 Jan 2018 15:25:04 +0800
-Message-ID: <9e577314-4fcb-45de-6909-d5b3be570196@huawei.com>
-References: <1516242961-154453-1-git-send-email-liuyixian@huawei.com>
- <1516242961-154453-3-git-send-email-liuyixian@huawei.com>
- <20180118043717.GC8414@ziepe.ca>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 00/13] Request for Comments on SoftiWarp
+Date: Thu, 18 Jan 2018 09:29:58 +0200
+Message-ID: <20180118072958.GW13639@mtr-leonro.local>
+References: <20180114223603.19961-1-bmt@zurich.ibm.com>
+ <031f01d38fad$422520c0$c66f6240$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="sDhuxz86kt5qlkuV"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180118043717.GC8414-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <031f01d38fad$422520c0$c66f6240$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Bernard Metzler' <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+--sDhuxz86kt5qlkuV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 2018/1/18 12:37, Jason Gunthorpe wrote:
-> On Thu, Jan 18, 2018 at 10:36:01AM +0800, Yixian Liu wrote:
-> 
->> diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
->> index cde8568..7037a1c 100644
->> +++ b/providers/hns/hns_roce_u_verbs.c
->> @@ -276,6 +276,16 @@ struct ibv_cq *hns_roce_u_create_cq(struct ibv_context *context, int cqe,
->>  
->>  	cmd.buf_addr = (uintptr_t) cq->buf.buf;
->>  
->> +	if (to_hr_dev(context->device)->hw_version != HNS_ROCE_HW_VER1) {
->> +		cq->set_ci_db = hns_roce_alloc_db(to_hr_ctx(context),
->> +						  HNS_ROCE_CQ_TYPE_DB);
->> +		if (!cq->set_ci_db) {
->> +			fprintf(stderr, "alloc cq db buffer failed!\n");
->> +			goto err_buf;
->> +		}
->> +		cmd.db_addr  = (uintptr_t) cq->set_ci_db;
-> 
-> Uhh.. why does the userspace already have the 'db_addr' member of
-> hns_roce_create_cq when the kernel doesn't?
-> 
-> What is going on here? How does forward and backwards compatibility of
-> the kABI work?
-> 
-> Jason
+On Wed, Jan 17, 2018 at 10:07:22AM -0600, Steve Wise wrote:
+> Hey Bernard,
 >
-I have checked the history log, it seems that we have missed to add 'db_addr'
-for the kernel when adding it for the userspace.
-Up to now, we haven't referred this field in current driver both in kernel
-and userspace, that's why we haven't found this bug.
+> >
+> > This patch set contributes a new version of the SoftiWarp
+> > driver, as originally introduced Oct 6th, 2017.
+> >
+>
+>
+> Two things I think will help with review:
+>
+> 1) provide a github linux kernel repo with this series added.  That allows
+> reviewers to easily use both patches and a full kernel tree for reviewing.
+>
+> 2) provide the userlib patches (and a github repo) that works with the
+> latest upstream rdma-core.  That will allow folks to test use-side rdma as
+> part of their review.
 
-Thanks for your doubt!
+And please don't call it "PATCH" in subject, but "RFC".
+The "PATCH" is misleading.
 
-Eason
+>
+> I'll review the individual patches in detail asap.
 
+I would like to review too to learn iWARP a little bit closer, but most
+probably won't have time to do it till -rc1.
 
+>
+> Thanks!
+>
+> Steve.
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+--sDhuxz86kt5qlkuV
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
 
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpgTPYACgkQ5GN7iDZy
+WKcWXQ/6ApB1ZVT+6RAHrTWS2kjH4AIqBO7pjaYGJm78heygd8pcZ13HoyLQaZoL
+qvN1pM3GOPPrSMNnezr6DOXm4j38oZWNn/gkSWnVPmrYEF0+ekwL159W/J5AEizC
+ClzU9vkKiRMBIKyGT9ZPdBBMxKuhMi4Up5m4VLiZVg+uReEJKt/+pLKzqCI4cavh
+ycxi6mtju4RcicDIyWwbTv4X2JSshWwpk63EfLxZiRBURsA2LWLUhnqr72s5qPmD
+blucq62ZIDZezVt+Us3lvJ1q8cM6VE++3sHsMbSWnJyBybNKmyj4qy9Avr7RkBl5
+gtF6q0uFL552hSHoI+9LPCe3p2D2+ulZA8wzVLhy1obTjIe7os42z7NMyh8zV4ME
+mz+xa0+3s0Y6WUXQQAESTziTj2MNWuwsfKwQSgUy2zW2eRkLeFcrsYSboXx2Pxxp
+VszCNe+wRbyJ7VhRHe8dd0zHGBqb+GmTvQFeOd8GJ3FgyirjmiTrdbU8UYlsGKrx
+XIEk6HhFylAqlMWJYC1VLg2x3GlxZU1yoxYYoWlOUUA2Rcuwz43DpmjuT6bcoldx
+arzbJJ5xCwWYPW4rnJbTxU54r168vHnCpMg89eow8ieaPLtUCF+L7zdkYO4DMJ1G
+YlCVQfFwIEsByag4HSz97Utr/oV+D/xlMv0DihiMC2J0hg4/IO0=
+=OTYo
+-----END PGP SIGNATURE-----
 
-
-
+--sDhuxz86kt5qlkuV--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
