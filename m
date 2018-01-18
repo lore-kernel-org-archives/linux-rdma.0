@@ -1,179 +1,36 @@
-From: Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 01/12] rdma/ib: Add trace point macros to display
- human-readable values
-Date: Thu, 18 Jan 2018 16:49:20 -0500
-Message-ID: <1245d090-99ee-c517-5f8f-afdb7ffc0456@Netapp.com>
-References: <20171220210236.29321.59307.stgit@manet.1015granger.net>
- <20171220213023.29321.97527.stgit@manet.1015granger.net>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v3 00/13] Request for Comments on SoftiWarp
+Date: Thu, 18 Jan 2018 15:52:02 -0600
+Message-ID: <018c01d390a6$928d21d0$b7a76570$@opengridcomputing.com>
+References: <20180118072958.GW13639@mtr-leonro.local>,<20180114223603.19961-1-bmt@zurich.ibm.com> <031f01d38fad$422520c0$c66f6240$@opengridcomputing.com> <OFC86A1EC5.60F00E9A-ON00258219.005DA6A4-00258219.005DBBB9@notes.na.collabserv.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171220213023.29321.97527.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Content-Language: en-US
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain;
+        charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <OFC86A1EC5.60F00E9A-ON00258219.005DA6A4-00258219.005DBBB9-8eTO7WVQ4XIsd+ienQ86orlN3bxYEBpz@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Bernard Metzler' <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Folks,
+> >I would like to review too to learn iWARP a little bit closer, but
+> >most
+> >probably won't have time to do it till -rc1.
+> >
+> 
+> Sure!
+> 
+> Let me set up a github thing which mirrors the most recent
+> kernel sources + the siw RFC ;) attached. Shall I just take
+> https://github.com/torvalds/linux ?
 
-On 12/20/2017 04:30 PM, Chuck Lever wrote:
-> These can be shared with all kernel ULPs, and more can easily be
-> added as needed.
-> 
-> Note: checkpatch.pl has some heartburn with the TRACE_DEFINE_ENUM
-> macros and the LIST macros. These follow the same style as other
-> header files under include/tracing/events , thus should be
-> considered acceptable exceptions.
-> 
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  include/trace/events/rdma.h |  128 +++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 128 insertions(+)
->  create mode 100644 include/trace/events/rdma.h
+I think you could use this.  It seems to be up to date with his kernel.org git repo.  And it will be easier to fork from the github.com repo...
 
-Just checking that it's okay to send this through the NFS tree, since it goes along with the rest of Chuck's patches?
 
-Thanks,
-Anna
-> 
-> diff --git a/include/trace/events/rdma.h b/include/trace/events/rdma.h
-> new file mode 100644
-> index 0000000..9d02fbe
-> --- /dev/null
-> +++ b/include/trace/events/rdma.h
-> @@ -0,0 +1,128 @@
-> +/*
-> + * Copyright (c) 2017 Oracle.  All rights reserved.
-> + */
-> +
-> +/*
-> + * enum ib_event_type, from include/rdma/ib_verbs.h
-> + */
-> +
-> +#define IB_EVENT_LIST				\
-> +	ib_event(CQ_ERR)			\
-> +	ib_event(QP_FATAL)			\
-> +	ib_event(QP_REQ_ERR)			\
-> +	ib_event(QP_ACCESS_ERR)			\
-> +	ib_event(COMM_EST)			\
-> +	ib_event(SQ_DRAINED)			\
-> +	ib_event(PATH_MIG)			\
-> +	ib_event(PATH_MIG_ERR)			\
-> +	ib_event(DEVICE_FATAL)			\
-> +	ib_event(PORT_ACTIVE)			\
-> +	ib_event(PORT_ERR)			\
-> +	ib_event(LID_CHANGE)			\
-> +	ib_event(PKEY_CHANGE)			\
-> +	ib_event(SM_CHANGE)			\
-> +	ib_event(SRQ_ERR)			\
-> +	ib_event(SRQ_LIMIT_REACHED)		\
-> +	ib_event(QP_LAST_WQE_REACHED)		\
-> +	ib_event(CLIENT_REREGISTER)		\
-> +	ib_event(GID_CHANGE)			\
-> +	ib_event_end(WQ_FATAL)
-> +
-> +#undef ib_event
-> +#undef ib_event_end
-> +
-> +#define ib_event(x)		TRACE_DEFINE_ENUM(IB_EVENT_##x);
-> +#define ib_event_end(x)		TRACE_DEFINE_ENUM(IB_EVENT_##x);
-> +
-> +IB_EVENT_LIST
-> +
-> +#undef ib_event
-> +#undef ib_event_end
-> +
-> +#define ib_event(x)		{ IB_EVENT_##x, #x },
-> +#define ib_event_end(x)		{ IB_EVENT_##x, #x }
-> +
-> +#define rdma_show_ib_event(x) \
-> +		__print_symbolic(x, IB_EVENT_LIST)
-> +
-> +/*
-> + * enum ib_wc_status type, from include/rdma/ib_verbs.h
-> + */
-> +#define IB_WC_STATUS_LIST			\
-> +	ib_wc_status(SUCCESS)			\
-> +	ib_wc_status(LOC_LEN_ERR)		\
-> +	ib_wc_status(LOC_QP_OP_ERR)		\
-> +	ib_wc_status(LOC_EEC_OP_ERR)		\
-> +	ib_wc_status(LOC_PROT_ERR)		\
-> +	ib_wc_status(WR_FLUSH_ERR)		\
-> +	ib_wc_status(MW_BIND_ERR)		\
-> +	ib_wc_status(BAD_RESP_ERR)		\
-> +	ib_wc_status(LOC_ACCESS_ERR)		\
-> +	ib_wc_status(REM_INV_REQ_ERR)		\
-> +	ib_wc_status(REM_ACCESS_ERR)		\
-> +	ib_wc_status(REM_OP_ERR)		\
-> +	ib_wc_status(RETRY_EXC_ERR)		\
-> +	ib_wc_status(RNR_RETRY_EXC_ERR)		\
-> +	ib_wc_status(LOC_RDD_VIOL_ERR)		\
-> +	ib_wc_status(REM_INV_RD_REQ_ERR)	\
-> +	ib_wc_status(REM_ABORT_ERR)		\
-> +	ib_wc_status(INV_EECN_ERR)		\
-> +	ib_wc_status(INV_EEC_STATE_ERR)		\
-> +	ib_wc_status(FATAL_ERR)			\
-> +	ib_wc_status(RESP_TIMEOUT_ERR)		\
-> +	ib_wc_status_end(GENERAL_ERR)
-> +
-> +#undef ib_wc_status
-> +#undef ib_wc_status_end
-> +
-> +#define ib_wc_status(x)		TRACE_DEFINE_ENUM(IB_WC_##x);
-> +#define ib_wc_status_end(x)	TRACE_DEFINE_ENUM(IB_WC_##x);
-> +
-> +IB_WC_STATUS_LIST
-> +
-> +#undef ib_wc_status
-> +#undef ib_wc_status_end
-> +
-> +#define ib_wc_status(x)		{ IB_WC_##x, #x },
-> +#define ib_wc_status_end(x)	{ IB_WC_##x, #x }
-> +
-> +#define rdma_show_wc_status(x) \
-> +		__print_symbolic(x, IB_WC_STATUS_LIST)
-> +
-> +/*
-> + * enum rdma_cm_event_type, from include/rdma/rdma_cm.h
-> + */
-> +#define RDMA_CM_EVENT_LIST			\
-> +	rdma_cm_event(ADDR_RESOLVED)		\
-> +	rdma_cm_event(ADDR_ERROR)		\
-> +	rdma_cm_event(ROUTE_RESOLVED)		\
-> +	rdma_cm_event(ROUTE_ERROR)		\
-> +	rdma_cm_event(CONNECT_REQUEST)		\
-> +	rdma_cm_event(CONNECT_RESPONSE)		\
-> +	rdma_cm_event(CONNECT_ERROR)		\
-> +	rdma_cm_event(UNREACHABLE)		\
-> +	rdma_cm_event(REJECTED)			\
-> +	rdma_cm_event(ESTABLISHED)		\
-> +	rdma_cm_event(DISCONNECTED)		\
-> +	rdma_cm_event(DEVICE_REMOVAL)		\
-> +	rdma_cm_event(MULTICAST_JOIN)		\
-> +	rdma_cm_event(MULTICAST_ERROR)		\
-> +	rdma_cm_event(ADDR_CHANGE)		\
-> +	rdma_cm_event_end(TIMEWAIT_EXIT)
-> +
-> +#undef rdma_cm_event
-> +#undef rdma_cm_event_end
-> +
-> +#define rdma_cm_event(x)	TRACE_DEFINE_ENUM(RDMA_CM_EVENT_##x);
-> +#define rdma_cm_event_end(x)	TRACE_DEFINE_ENUM(RDMA_CM_EVENT_##x);
-> +
-> +RDMA_CM_EVENT_LIST
-> +
-> +#undef rdma_cm_event
-> +#undef rdma_cm_event_end
-> +
-> +#define rdma_cm_event(x)	{ RDMA_CM_EVENT_##x, #x },
-> +#define rdma_cm_event_end(x)	{ RDMA_CM_EVENT_##x, #x }
-> +
-> +#define rdma_show_cm_event(x) \
-> +		__print_symbolic(x, RDMA_CM_EVENT_LIST)
-> 
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
