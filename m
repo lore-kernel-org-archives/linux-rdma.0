@@ -1,102 +1,102 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH rdma-next v4 1/7] RDMA/restrack: Add general
- infrastructure to track RDMA resources
-Date: Thu, 18 Jan 2018 03:32:03 +0000
-Message-ID: <1516246321.3665.7.camel@wdc.com>
-References: <20180115151255.30167-1-leon@kernel.org>
-         <20180115151255.30167-2-leon@kernel.org> <1516138397.2844.34.camel@wdc.com>
-         <20180117054721.GE13639@mtr-leonro.local>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 net 0/2] IB/ipoib: ip link support
+Date: Wed, 17 Jan 2018 21:25:49 -0700
+Message-ID: <20180118042549.GA11171@ziepe.ca>
+References: <20180101224347.xdxguvvr4g7jrxq4@inn>
+ <1515534167-13062-1-git-send-email-denisd@mellanox.com>
+ <20180115.131309.1163036253579166139.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180117054721.GE13639-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <E50E272705345C4399A3CC5F19B3577B-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180115.131309.1163036253579166139.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE4LTAxLTE3IGF0IDA3OjQ3ICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IE9uIFR1ZSwgSmFuIDE2LCAyMDE4IGF0IDA5OjMzOjE4UE0gKzAwMDAsIEJhcnQgVmFuIEFz
-c2NoZSB3cm90ZToNCj4gPiA+ICsvKioNCj4gPiA+ICsgKiBlbnVtIHJkbWFfcmVzdHJhY2tfb2Jq
-IC0gSFcgb2JqZWN0cyB0byB0cmFjaw0KPiA+ID4gKyAqLw0KPiA+ID4gK2VudW0gcmRtYV9yZXN0
-cmFja19vYmogew0KPiA+ID4gKwkvKioNCj4gPiA+ICsJICogQFJETUFfUkVTVFJBQ0tfUEQ6IFBy
-b3RlY3Rpb24gZG9tYWluIChQRCkNCj4gPiA+ICsJICovDQo+ID4gPiArCVJETUFfUkVTVFJBQ0tf
-UEQsDQo+ID4gPiArCS8qKg0KPiA+ID4gKwkgKiBAUkRNQV9SRVNUUkFDS19DUTogQ29tcGxldGlv
-biBxdWV1ZSAoQ1EpDQo+ID4gPiArCSAqLw0KPiA+ID4gKwlSRE1BX1JFU1RSQUNLX0NRLA0KPiA+
-ID4gKwkvKioNCj4gPiA+ICsJICogQFJETUFfUkVTVFJBQ0tfUVA6IFF1ZXVlIHBhaXIgKFFQKQ0K
-PiA+ID4gKwkgKi8NCj4gPiA+ICsJUkRNQV9SRVNUUkFDS19RUCwNCj4gPiA+ICsJLyogcHJpdmF0
-ZTogY291bnRzIG51bWJlciBvZiBlbGVtZW50cywgYWx3YXlzIGxhc3QgKi8NCj4gPiA+ICsJX1JE
-TUFfUkVTVFJBQ0tfTUFYDQo+ID4gPiArfTsNCj4gPiANCj4gPiBUaGlzIGxvb2tzIHJlYWxseSB1
-Z2x5IHRvIG1lLiBQbGVhc2UgdXNlIGtlcm5lbC1kb2Mgc3ludGF4IHRvIGRvY3VtZW50IHRoZSBS
-RE1BDQo+ID4gcmVzb3VyY2UgdHlwZXMuDQo+IA0KPiBJIHVzZWQga2VybmUtZG9jIGFuZCBfUkRN
-QV9SRVNUUkFDS19NQVggd2FzIGFuIGV4Y2VwdGlvbiwgaXQgaXMgbm90IHN1cHBvc2VkIHRvIGJl
-DQo+IHVzZWQgb3V0c2lkZSBvZiByZXN0cmFjayBjb2RlLg0KDQpIZWxsbyBMZW9uLA0KDQpQbGVh
-c2UgaGF2ZSBhIGxvb2sgYXQgdGhlIGZvbGxvd2luZyBleGFtcGxlIGZyb20gRG9jdW1lbnRhdGlv
-bi9rZXJuZWwtZG9jLW5hbm8tSE9XVE8udHh0Og0KDQprZXJuZWwtZG9jIGZvciBzdHJ1Y3RzLCB1
-bmlvbnMsIGVudW1zLCBhbmQgdHlwZWRlZnMNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KDQpbIC4uLiBdDQoNCi8qKg0KICogc3RydWN0IG15X3N0
-cnVjdCAtIHNob3J0IGRlc2NyaXB0aW9uDQogKiBAYTogZmlyc3QgbWVtYmVyDQogKiBAYjogc2Vj
-b25kIG1lbWJlcg0KICoNCiAqIExvbmdlciBkZXNjcmlwdGlvbg0KICovDQpzdHJ1Y3QgbXlfc3Ry
-dWN0IHsNCiAgICBpbnQgYTsNCiAgICBpbnQgYjsNCi8qIHByaXZhdGU6IGludGVybmFsIHVzZSBv
-bmx5ICovDQogICAgaW50IGM7DQp9Ow0KDQo+ID4gPiArLyoqDQo+ID4gPiArICogc3RydWN0IHJk
-bWFfcmVzdHJhY2tfcm9vdCAtIG1haW4gcmVzb3VyY2UgdHJhY2tpbmcgbWFuYWdlbWVudA0KPiA+
-ID4gKyAqIGVudGl0eSwgcGVyLWRldmljZQ0KPiA+ID4gKyAqLw0KPiA+ID4gK3N0cnVjdCByZG1h
-X3Jlc3RyYWNrX3Jvb3Qgew0KPiA+ID4gKwkvKioNCj4gPiA+ICsJICogQGNudDogZ2xvYmFsIGNv
-dW50ZXIgdG8gYXZvaWQgdGhlIG5lZWQgdG8gY291bnQgbnVtYmVyDQo+ID4gPiArCSAqIG9mIGVs
-ZW1lbnRzIGluIHRoZSBvYmplY3QncyBsaXN0Lg0KPiA+ID4gKwkgKg0KPiA+ID4gKwkgKiBJdCBj
-YW4gYmUgZGlmZmVyZW50IGZyb20gdGhlIGxpc3RfY291bnQsIGJlY2F1c2Ugd2UgYXJlDQo+ID4g
-PiArCSAqIG5vdCB0YWtpbmcgbG9jayBkdXJpbmcgY291bnRlciBpbmNyZW1lbnQgYW5kIGRvbid0
-DQo+ID4gPiArCSAqIHN5bmNocm9uaXplIHRoZSBSQ1UuDQo+ID4gPiArCSAqLw0KPiA+ID4gKwly
-ZWZjb3VudF90CQljbnRbX1JETUFfUkVTVFJBQ0tfTUFYXTsNCj4gPiA+ICsJLyoqDQo+ID4gPiAr
-CSAqIEBsaXN0OiBsaW5rZWQgbGlzdCBvZiBhbGwgZW50cmllcyBwZXItb2JqZWN0DQo+ID4gPiAr
-CSAqLw0KPiA+ID4gKwlzdHJ1Y3QgbGlzdF9oZWFkCWxpc3RbX1JETUFfUkVTVFJBQ0tfTUFYXTsN
-Cj4gPiA+ICsJLyogcHJpdmF0ZTogSW50ZXJuYWwgcmVhZC93cml0ZSBsb2NrLg0KPiA+ID4gKwkg
-KiBJdCBpcyBuZWVkZWQgdG8gcHJvdGVjdCB0aGUgYWRkL2RlbGV0ZSBsaXN0IG9wZXJhdGlvbnMu
-DQo+ID4gPiArCSAqLw0KPiA+ID4gKwlzdHJ1Y3Qgcndfc2VtYXBob3JlCXJ3c2VtW19SRE1BX1JF
-U1RSQUNLX01BWF07DQo+ID4gPiArfTsNCj4gPiANCj4gPiBUaGUgYWJvdmUgbG9va3Mgd3Jvbmcg
-dG8gbWUuIFBsZWFzZSBjaGFuZ2UgdGhlIGFib3ZlIGludG8gYW4gYXJyYXkgb2YgZGF0YSBzdHJ1
-Y3R1cmVzDQo+ID4gaW5zdGVhZCBvZiBhIGRhdGEgc3RydWN0dXJlIHRoYXQgaXMgZnVsbCBvZiBh
-cnJheXMgb2YgaWRlbnRpY2FsIHNpemUuDQo+IA0KPiBJdCBpcyBhIG1hdHRlciBmb3IgdGFzdGUu
-DQoNCk5vLCBpdCBpcyBub3QuIFRoZSBhYm92ZSBsYXlvdXQgbWFrZXMgaXQgaW1wb3NzaWJsZSBm
-b3IgdGhlIENQVSBwcmVmZXRjaGVyIHRvDQpiZSBlZmZlY3RpdmUgaWYgX1JETUFfUkVTVFJBQ0tf
-TUFYIHdvdWxkIGJlIGxhcmdlLiBBZGRpdGlvbmFsbHksIHRoZSBhYm92ZQ0KbGF5b3V0IG1ha2Vz
-IGl0IGltcG9zc2libGUgdG8gcGFzcyBhIHBvaW50ZXIgdG8gdGhlIChjbnQsIGxpc3QsIHJ3c2Vt
-KSB0cmlwbGV0DQpmcm9tIG9uZSBmdW5jdGlvbiB0byBhbm90aGVyLg0KDQo+ID4gPiArLyoqDQo+
-ID4gPiArICogc3RydWN0IHJkbWFfcmVzdHJhY2tfZW50cnkgLSBtZXRhZGF0YSBwZXItZW50cnkN
-Cj4gPiA+ICsgKi8NCj4gPiA+ICtzdHJ1Y3QgcmRtYV9yZXN0cmFja19lbnRyeSB7DQo+ID4gPiAr
-CS8qKg0KPiA+ID4gKwkgKiBAbGlzdDogbGlua2VkIGxpc3QgYmV0d2VlbiBlbnRyaWVzDQo+ID4g
-PiArCSAqLw0KPiA+ID4gKwlzdHJ1Y3QgbGlzdF9oZWFkCWxpc3Q7DQo+ID4gPiArCS8qKg0KPiA+
-ID4gKwkgKiBAdmFsaWQ6IHZhbGlkaXR5IGluZGljYXRvcg0KPiA+ID4gKwkgKg0KPiA+ID4gKwkg
-KiBUaGUgZW50cmllcyBhcmUgZmlsbGVkIGR1cmluZyByZG1hX3Jlc3RyYWNrX2FkZCwNCj4gPiA+
-ICsJICogY2FuIGJlIGF0dGVtcHRlZCB0byBiZSBmcmVlIGR1cmluZyByZG1hX3Jlc3RyYWNrX2Rl
-bC4NCj4gPiA+ICsJICoNCj4gPiA+ICsJICogQXMgYW4gZXhhbXBsZSBmb3IgdGhhdCwgc2VlIG1s
-eDUgUVBzIHdpdGggdHlwZSBNTFg1X0lCX1FQVF9IV19HU0kNCj4gPiA+ICsJICovDQo+ID4gPiAr
-CWJvb2wJCQl2YWxpZDsNCj4gPiA+ICsJLyoqDQo+ID4gPiArCSAqIEBzcmN1OiBzbGVlcGFibGUg
-UkNVIHRvIHByb3RlY3Qgb2JqZWN0IGRhdGEuDQo+ID4gPiArCSAqLw0KPiA+ID4gKwlzdHJ1Y3Qg
-c3JjdV9zdHJ1Y3QJc3JjdTsNCj4gPiA+ICsJLyoqDQo+ID4gPiArCSAqIEB0YXNrOiBvd25lciBv
-ZiByZXNvdXJjZSB0cmFja2luZyBlbnRpdHkNCj4gPiA+ICsJICoNCj4gPiA+ICsJICogVGhlcmUg
-YXJlIHR3byB0eXBlcyBvZiBlbnRpdGllczogY3JlYXRlZCBieSB1c2VyIGFuZCBjcmVhdGVkDQo+
-ID4gPiArCSAqIGJ5IGtlcm5lbC4NCj4gPiA+ICsJICoNCj4gPiA+ICsJICogVGhpcyBpcyByZWxl
-dmFudCBmb3IgdGhlIGVudGl0aWVzIGNyZWF0ZWQgYnkgdXNlcnMuDQo+ID4gPiArCSAqIEZvciB0
-aGUgZW50aWVpZXMgY3JlYXRlZCBieSBrZXJuZWwsIHRoaXMgcG9pbnRlciB3aWxsIGJlIE5VTEwu
-DQo+ID4gPiArCSAqLw0KPiA+ID4gKwlzdHJ1Y3QgdGFza19zdHJ1Y3QJKnRhc2s7DQo+ID4gPiAr
-CS8qKg0KPiA+ID4gKwkgKiBAa2Vybl9uYW1lOiBuYW1lIG9mIG93bmVyIGZvciB0aGUga2VybmVs
-IGNyZWF0ZWQgZW50aXRpZXMuDQo+ID4gPiArCSAqLw0KPiA+ID4gKwljb25zdCBjaGFyCQkqa2Vy
-bl9uYW1lOw0KPiA+ID4gK307DQo+ID4gDQo+ID4gQWdhaW4sIHBsZWFzZSB1c2UgdGhlIGtlcm5l
-bC1kb2Mgc3ludGF4IHRvIGRvY3VtZW50IHN0cnVjdHVyZSBtZW1iZXJzLiBBZGRpdGlvbmFsbHks
-DQo+ID4gcGxlYXNlIGZpeCB0aGUgc3BlbGxpbmcgb2YgImVudGllaWVzIi4NCj4gDQo+IEl0IHdh
-cyBmb3JtYXR0ZWQgYWNjb3JkaW5nIHRvIGtlcm5lbC1kb2MgY2hlY2tlcjoNCj4g4p6cICBsaW51
-eC1yZG1hIGdpdDoocm4vcmVzdHJhY2stdjUpIC4vc2NyaXB0cy9rZXJuZWwtZG9jIGluY2x1ZGUv
-cmRtYS9yZXN0cmFjay5oIHxncmVwIHdhcm5pbg0KPiBpbmNsdWRlL3JkbWEvcmVzdHJhY2suaDo1
-OTogd2FybmluZzogRW51bSB2YWx1ZSAnX1JETUFfUkVTVFJBQ0tfTUFYJyBub3QgZGVzY3JpYmVk
-IGluIGVudW0gJ3JkbWFfcmVzdHJhY2tfb2JqJw0KDQpBZ2FpbiwgcGxlYXNlIGhhdmUgYSBsb29r
-IGF0IERvY3VtZW50YXRpb24va2VybmVsLWRvYy1uYW5vLUhPV1RPLnR4dC4gVGhhdA0KZG9jdW1l
-bnQgc2hvd3MgdGhhdCBtZW1iZXJzIG9mIGRhdGEgc3RydWN0dXJlcyBzaG91bGQgYmUgZG9jdW1l
-bnRlZCBhYm92ZSB0aGUNCiJzdHJ1Y3QiIGtleXdvcmQgaW5zdGVhZCBvZiBpbnNpZGUgdGhlIHN0
-cnVjdHVyZSBkZWZpbml0aW9uLg0KDQpUaGFua3MsDQoNCkJhcnQu
+On Mon, Jan 15, 2018 at 01:13:09PM -0500, David Miller wrote:
+> From: Denis Drozdov <denisd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date: Tue,  9 Jan 2018 23:42:45 +0200
+> 
+> > IP link was broken due to the changes in IPoIB for the rdma_netdev
+> > support after commit cd565b4b51e5
+> > ("IB/IPoIB: Support acceleration options callbacks").
+> > 
+> > This patchset restores IPoIB pkey creation and removal using rtnetlink.
+> > The first patch introduces changes in the rtnetlink code in order to allow
+> > IPOIB allocate and free the netdevice.
+> > 
+> > The second patch establishes appropriate rtnetlink callbacks for IPoIB
+> > device and restores IPoIB netlink support
+> > 
+> > Changes since v1:
+> > - Fixed double free_netdev calls in ops->free_link in netdev_run_todo 
+> > - Removed priv_size from ipoib_link_ops as not required anymore.
+> 
+> Please fix your control flow so that the existing netlink op can do
+> the right thing.
+
+Okay. Since this bug has been outstanding in RDMA for so long, I've
+looked pretty carefully at this..
+
+This patch does go too far, but ipoib does appear to legitimately need
+something special here and no amount of 'control flow fixing' in ipoib
+will solve it.
+
+The fundamental issue is that ipoib no longer has a generic software
+netdev for the child interface. Instead the child interface is bound
+directly to one of several *full* hardware drivers. ie the child and
+the master are basically exactly the same HW dependent code.
+
+Since the child is a full hardware netdev, it has its own HW driven
+needs for priv_size, txqs, rxqs, etc. There is no 'one size fits all'
+value like for all the other software based newlink users. It depends
+on the HW device installed in the system (eg mlx4, mlx5, hfi1)
+
+The only problem with rtnl newlink is that it wants to use priv_size,
+txqs, and rxqs values from a singleton static global structure (eg
+ipoib_link_ops) which cannot know in advance which ipoib HW driver is
+in use by the specific parent the child is being created for.
+
+This is what needs to be fixed. ipoib simply needs to have
+parent-dependent inputs to the alloc_netdev_mqs in rtnl_create_link.
+
+The patch proposes
+
+  struct net_device *(*alloc_link)(struct net *src_net,
+		 	           const char *dev_name,
+				   struct nlattr *tb[]);
+
+To let ipoib allocate the netdev, and then obviosly figure out the
+right parameters internally.
+
+This patch also adds some free related stuff, but that seems to be
+going too far. ipoib can use the normal free paths. The above is all
+that is necessary.
+
+An alternative would be something like:
+
+  struct rtnl_alloc_params {
+       size_t priv_size;
+       int txqs;
+       int rxqs;
+  };
+  void (*get_alloc_parameters)(struct net_device *net,
+                               struct rtnl_alloc_params *parms);
+
+To let ipoib tell rtnl_create_link what parameters to use based on
+'net' instead of taking them from the global singleton.
+
+Do you see another choice?
+
+Can you accept one of these options?
+
+Thanks,
+Jason
+(BTW, Doug & I are now co-maintaining RDMA, so I say the above with my
+ maintainer hat on. This is a serious userspace visible regression bug
+ on our side, and I really want to see it fixed.)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
