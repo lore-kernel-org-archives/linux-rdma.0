@@ -1,59 +1,101 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next] RDMA/mlx5; Remove redundant allocation warning print
-Date: Thu, 18 Jan 2018 14:34:24 +0200
-Message-ID: <20180118123424.21062-1-leon@kernel.org>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH wip/dl-for-next] RDMA/bnxt_re: Fix kbuild error
+Date: Thu, 18 Jan 2018 10:17:45 -0500
+Message-ID: <1516288665-11055-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fix for following build failure
 
-The kmalloc() failure to allocate memory generates enough information
-and doesn't need to be accompanied by another driver print.
+drivers/infiniband/hw/bnxt_re/ib_verbs.c:3402:7-14: ERROR: reference
+preceded by free on line 3375
 
-Fixes: d69a24e03659 ("IB/mlx5: Move IB event processing onto a workqueue")
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/dl-for-next
+head:   d47f6fe6736ed3ecb39cd69fe26e3518f199eecd
+commit: cb8a852e09c1dc8e47af741714063acf9c4d115c [3/28] RDMA/bnxt_re: Add support for MRs with Huge pages
+:::::: branch date: 4 hours ago
+:::::: commit date: 15 hours ago
+
+>> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3402:7-14: ERROR: reference preceded by free on line 3375
+
+git remote add rdma-rdma https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
+git remote update rdma-rdma
+git checkout cb8a852e09c1dc8e47af741714063acf9c4d115c
+vim +3402 drivers/infiniband/hw/bnxt_re/ib_verbs.c
+
+Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index f282e281eff2..91688352b5d7 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3345,19 +3345,17 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
- 	struct mlx5_ib_event_work *work;
-
- 	work = kmalloc(sizeof(*work), GFP_ATOMIC);
--	if (work) {
--		INIT_WORK(&work->work, mlx5_ib_handle_event);
--		work->dev = dev;
--		work->param = param;
--		work->context = context;
--		work->event = event;
--
--		queue_work(mlx5_ib_event_wq, &work->work);
-+	if (!work)
- 		return;
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 7220322..9b8fa77 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -3355,10 +3355,8 @@ int bnxt_re_dereg_mr(struct ib_mr *ib_mr)
+ 	int rc;
+ 
+ 	rc = bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
+-	if (rc) {
++	if (rc)
+ 		dev_err(rdev_to_dev(rdev), "Dereg MR failed: %#x\n", rc);
+-		return rc;
 -	}
-
--	dev_warn(&dev->pdev->dev, "%s: mlx5_dev_event: %d, with param: %lu dropped, couldn't allocate memory.\n",
--		 __func__, event, param);
-+	INIT_WORK(&work->work, mlx5_ib_handle_event);
-+	work->dev = dev;
-+	work->param = param;
-+	work->context = context;
-+	work->event = event;
-+
-+	queue_work(mlx5_ib_event_wq, &work->work);
-+	return;
+ 
+ 	if (mr->pages) {
+ 		rc = bnxt_qplib_free_fast_reg_page_list(&rdev->qplib_res,
+@@ -3421,7 +3419,7 @@ struct ib_mr *bnxt_re_alloc_mr(struct ib_pd *ib_pd, enum ib_mr_type type,
+ 
+ 	rc = bnxt_qplib_alloc_mrw(&rdev->qplib_res, &mr->qplib_mr);
+ 	if (rc)
+-		goto fail;
++		goto bail;
+ 
+ 	mr->ib_mr.lkey = mr->qplib_mr.lkey;
+ 	mr->ib_mr.rkey = mr->ib_mr.lkey;
+@@ -3443,9 +3441,10 @@ struct ib_mr *bnxt_re_alloc_mr(struct ib_pd *ib_pd, enum ib_mr_type type,
+ 	return &mr->ib_mr;
+ 
+ fail_mr:
+-	bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
+-fail:
+ 	kfree(mr->pages);
++fail:
++	bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
++bail:
+ 	kfree(mr);
+ 	return ERR_PTR(rc);
  }
-
- static int set_has_smi_cap(struct mlx5_ib_dev *dev)
---
-2.15.1
+@@ -3595,22 +3594,20 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
+ 	pbl_tbl = kcalloc(umem_pgs, sizeof(u64 *), GFP_KERNEL);
+ 	if (!pbl_tbl) {
+ 		rc = -ENOMEM;
+-		goto free_mrw;
++		goto free_umem;
+ 	}
+ 
+ 	page_shift = umem->page_shift;
+ 
+ 	if (!bnxt_re_page_size_ok(page_shift)) {
+ 		dev_err(rdev_to_dev(rdev), "umem page size unsupported!");
+-		kfree(pbl_tbl);
+ 		rc = -EFAULT;
+-		goto free_umem;
++		goto fail;
+ 	}
+ 
+ 	if (!umem->hugetlb && length > BNXT_RE_MAX_MR_SIZE_LOW) {
+ 		dev_err(rdev_to_dev(rdev), "Requested MR Sz:%llu Max sup:%llu",
+ 			length,	(u64)BNXT_RE_MAX_MR_SIZE_LOW);
+-		kfree(pbl_tbl);
+ 		rc = -EINVAL;
+ 		goto fail;
+ 	}
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
