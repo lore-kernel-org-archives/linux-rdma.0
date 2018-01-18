@@ -1,66 +1,74 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/2] libhns: Support cq record doorbell
-Date: Thu, 18 Jan 2018 09:19:49 -0700
-Message-ID: <20180118161949.GA18973@ziepe.ca>
-References: <1516242961-154453-1-git-send-email-liuyixian@huawei.com>
- <1516242961-154453-3-git-send-email-liuyixian@huawei.com>
- <20180118043717.GC8414@ziepe.ca>
- <9e577314-4fcb-45de-6909-d5b3be570196@huawei.com>
+From: "Bernard Metzler" <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: Re: [PATCH v3 00/13] Request for Comments on SoftiWarp
+Date: Thu, 18 Jan 2018 17:03:49 +0000
+Message-ID: <OFC86A1EC5.60F00E9A-ON00258219.005DA6A4-00258219.005DBBB9@notes.na.collabserv.com>
+References: <20180118072958.GW13639@mtr-leonro.local>,<20180114223603.19961-1-bmt@zurich.ibm.com>
+ <031f01d38fad$422520c0$c66f6240$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <9e577314-4fcb-45de-6909-d5b3be570196-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20180118072958.GW13639-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 18, 2018 at 03:25:04PM +0800, Liuyixian (Eason) wrote:
-> 
-> 
-> On 2018/1/18 12:37, Jason Gunthorpe wrote:
-> > On Thu, Jan 18, 2018 at 10:36:01AM +0800, Yixian Liu wrote:
-> > 
-> >> diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
-> >> index cde8568..7037a1c 100644
-> >> +++ b/providers/hns/hns_roce_u_verbs.c
-> >> @@ -276,6 +276,16 @@ struct ibv_cq *hns_roce_u_create_cq(struct ibv_context *context, int cqe,
-> >>  
-> >>  	cmd.buf_addr = (uintptr_t) cq->buf.buf;
-> >>  
-> >> +	if (to_hr_dev(context->device)->hw_version != HNS_ROCE_HW_VER1) {
-> >> +		cq->set_ci_db = hns_roce_alloc_db(to_hr_ctx(context),
-> >> +						  HNS_ROCE_CQ_TYPE_DB);
-> >> +		if (!cq->set_ci_db) {
-> >> +			fprintf(stderr, "alloc cq db buffer failed!\n");
-> >> +			goto err_buf;
-> >> +		}
-> >> +		cmd.db_addr  = (uintptr_t) cq->set_ci_db;
-> > 
-> > Uhh.. why does the userspace already have the 'db_addr' member of
-> > hns_roce_create_cq when the kernel doesn't?
-> > 
-> > What is going on here? How does forward and backwards compatibility of
-> > the kABI work?
-> > 
-> > Jason
-> >
-> I have checked the history log, it seems that we have missed to add 'db_addr'
-> for the kernel when adding it for the userspace.
-> Up to now, we haven't referred this field in current driver both in kernel
-> and userspace, that's why we haven't found this bug.
-> 
-> Thanks for your doubt!
 
-Please explain how forward and backwards compatibility of
-the kABI will work with this new db_addr capability.
+-----Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote: -----
 
-Normally we'd rely on the kernel seeing that the udata is longer to
-signal that userspace supports an optional feature, but that is broken
-in this case.
+>To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+>From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>Date: 01/18/2018 08:30AM
+>Cc: "'Bernard Metzler'" <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>,
+>linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>Subject: Re: [PATCH v3 00/13] Request for Comments on SoftiWarp
+>
+>On Wed, Jan 17, 2018 at 10:07:22AM -0600, Steve Wise wrote:
+>> Hey Bernard,
+>>
+>> >
+>> > This patch set contributes a new version of the SoftiWarp
+>> > driver, as originally introduced Oct 6th, 2017.
+>> >
+>>
+>>
+>> Two things I think will help with review:
+>>
+>> 1) provide a github linux kernel repo with this series added.  That
+>allows
+>> reviewers to easily use both patches and a full kernel tree for
+>reviewing.
+>>
+>> 2) provide the userlib patches (and a github repo) that works with
+>the
+>> latest upstream rdma-core.  That will allow folks to test use-side
+>rdma as
+>> part of their review.
+>
+>And please don't call it "PATCH" in subject, but "RFC".
+>The "PATCH" is misleading.
+>
 
-Jason
+Makes sense. I will make sure I remember.
+
+>>
+>> I'll review the individual patches in detail asap.
+>
+>I would like to review too to learn iWARP a little bit closer, but
+>most
+>probably won't have time to do it till -rc1.
+>
+
+Sure!
+
+Let me set up a github thing which mirrors the most recent
+kernel sources + the siw RFC ;) attached. Shall I just take
+https://github.com/torvalds/linux ?
+
+Thank you!
+Bernard.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
