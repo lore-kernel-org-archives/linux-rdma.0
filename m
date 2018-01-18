@@ -1,116 +1,83 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH wip/dl-for-next] RDMA/bnxt_re: Fix kbuild error
-Date: Thu, 18 Jan 2018 20:49:24 +0530
-Message-ID: <CANjDDBgnhRuroVEfGJ=gF9=dS47w7pcQh5hZsF=p5iF6mxmX9g@mail.gmail.com>
-References: <1516288665-11055-1-git-send-email-devesh.sharma@broadcom.com>
+From: Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
+Subject: Re: krping problem on 4.15-rc4
+Date: Thu, 18 Jan 2018 11:13:08 -0500
+Message-ID: <CAN-5tyGxnd0WnvgxEpNpZ5fG6u2JZs=Wg0fEvt8EaNLHckvx0A@mail.gmail.com>
+References: <CAN-5tyH1HO7yzzQLyb5z5Pq=OrHnKzmCrR2MffLguqsEA-mwWg@mail.gmail.com>
+ <00ff01d38a4f$1a979eb0$4fc6dc10$@opengridcomputing.com> <CAN-5tyEwdSOiAk04xjfazxBqwkkTiCjr2dVcCoYLQJw8f37U=w@mail.gmail.com>
+ <017d01d38b14$cbe95670$63bc0350$@opengridcomputing.com> <CAN-5tyGq=hmXY9HZYXpfaytOUV=gb0fri69gj69WKbbYtW3nTQ@mail.gmail.com>
+ <006d01d38c02$793de8c0$6bb9ba40$@opengridcomputing.com> <CAN-5tyG9ZsaKZs3ayfFfuy7o25DrXR2yWmwUvLdNutJ1SbEg1w@mail.gmail.com>
+ <CAN-5tyFSYWaTPVdq=99Yr9XwnULyf4tw06roZys=rtR0F3x03g@mail.gmail.com>
+ <1516223013.3403.285.camel@redhat.com> <CAN-5tyFM_Noj5n-BW+BMa-0VXBWnUVWU2JkiP2f5JBpZoA6YcQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1516288665-11055-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAN-5tyFM_Noj5n-BW+BMa-0VXBWnUVWU2JkiP2f5JBpZoA6YcQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Doug,
+On Wed, Jan 17, 2018 at 5:03 PM, Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org> wrote:
+> On Wed, Jan 17, 2018 at 4:03 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>> On Tue, 2018-01-16 at 16:14 -0500, Olga Kornievskaia wrote:
+>>> On Tue, Jan 16, 2018 at 2:50 PM, Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org> wrote:
+>>> > On Fri, Jan 12, 2018 at 7:07 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+>>> > > > > Ok.  The memory probably doesn't matter.  Maybe run krping client and
+>>> > > >
+>>> > > > server on the same host (to use hw-loopback), and see if it works on both,
+>>> > > > one, or neither systems when they are both the client and server.
+>>> > > >
+>>> > > > Loopback on the original "server" machine produces the same failure.
+>>> > > > Jan 12 17:05:40 localhost kernel: mlx5_0:dump_cqe:277:(pid 0): dump error
+>>> > > > cqe
+>>> > > > Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
+>>> > > > Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
+>>> > > > Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
+>>> > > > Jan 12 17:05:40 localhost kernel: 00000000 93003204 1000017c 0005e1d2
+>>> > > > Jan 12 17:05:40 localhost kernel: krping: cq completion failed with
+>>> > > > wr_id 0 status 4 opcode 0 vender_err 32
+>>> > >
+>>> > > Can someone from Mellanox comment more on the above CQE error?  What exactly is it tell us?
+>>> > >
+>>> > > >
+>>> > > > What does this means?
+>>> > >
+>>> > > Not sure.  But it does seem to be tied to that specific machine.  Question:  Is an IOMMU enabled on that system?
+>>> >
+>>> > IOMMU (Inter's VT-d) is enabled in BIOS (on both machines).
+>>> >
+>>> > >  Perhaps that is exposing a dma mapping problem with krping?
+>>>
+>>> I have replaces the CX-5 card with another one and I no longer see the
+>>> krping problem.  I think it speaks that it's a card issue...
+>>
+>> Check the firmware on the bad card.  Lots of issues disappear if you
+>> have older firmware and update to the latest.
+>
+> That's a valid point. A check of firmware versions is needed. At the
+> time of the problem, I believe I had two machines that each had same
+> firmware versions. After card replacement, the replacement card
+> displays newer firmware.
 
-Please pull this in, hopefully this will fix the latest build failure
-on your sub tree.
+I have upgraded the firmware on both machines involved to the latest
+available firmware for the card and now I'm in the situation where
+krping does not work on either machine --- when either of them is a
+server it fails with the same information in the var log messages:
 
--Regards
-Devesh
+Jan 18 11:05:54 localhost kernel: mlx5_0:dump_cqe:277:(pid 0): dump error cqe
+Jan 18 11:05:54 localhost kernel: 00000000 00000000 00000000 00000000
+Jan 18 11:05:54 localhost kernel: 00000000 00000000 00000000 00000000
+Jan 18 11:05:54 localhost kernel: 00000000 00000000 00000000 00000000
+Jan 18 11:05:54 localhost kernel: 00000000 93003204 10000122 0005bfd2
+Jan 18 11:05:54 localhost kernel: krping: cq completion failed with
+wr_id 0 status 4 opcode 128 vender_err 32
+Jan 18 11:05:54 localhost kernel: krping: cq completion in ERROR state
+Jan 18 11:05:54 localhost kernel: krping: wait for RDMA_READ_COMPLETE state 10
 
-On Thu, Jan 18, 2018 at 8:47 PM, Devesh Sharma
-<devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
-> Fix for following build failure
->
-> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3402:7-14: ERROR: reference
-> preceded by free on line 3375
->
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/dl-for-next
-> head:   d47f6fe6736ed3ecb39cd69fe26e3518f199eecd
-> commit: cb8a852e09c1dc8e47af741714063acf9c4d115c [3/28] RDMA/bnxt_re: Add support for MRs with Huge pages
-> :::::: branch date: 4 hours ago
-> :::::: commit date: 15 hours ago
->
->>> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3402:7-14: ERROR: reference preceded by free on line 3375
->
-> git remote add rdma-rdma https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
-> git remote update rdma-rdma
-> git checkout cb8a852e09c1dc8e47af741714063acf9c4d115c
-> vim +3402 drivers/infiniband/hw/bnxt_re/ib_verbs.c
->
-> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/bnxt_re/ib_verbs.c | 17 +++++++----------
->  1 file changed, 7 insertions(+), 10 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> index 7220322..9b8fa77 100644
-> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> @@ -3355,10 +3355,8 @@ int bnxt_re_dereg_mr(struct ib_mr *ib_mr)
->         int rc;
->
->         rc = bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
-> -       if (rc) {
-> +       if (rc)
->                 dev_err(rdev_to_dev(rdev), "Dereg MR failed: %#x\n", rc);
-> -               return rc;
-> -       }
->
->         if (mr->pages) {
->                 rc = bnxt_qplib_free_fast_reg_page_list(&rdev->qplib_res,
-> @@ -3421,7 +3419,7 @@ struct ib_mr *bnxt_re_alloc_mr(struct ib_pd *ib_pd, enum ib_mr_type type,
->
->         rc = bnxt_qplib_alloc_mrw(&rdev->qplib_res, &mr->qplib_mr);
->         if (rc)
-> -               goto fail;
-> +               goto bail;
->
->         mr->ib_mr.lkey = mr->qplib_mr.lkey;
->         mr->ib_mr.rkey = mr->ib_mr.lkey;
-> @@ -3443,9 +3441,10 @@ struct ib_mr *bnxt_re_alloc_mr(struct ib_pd *ib_pd, enum ib_mr_type type,
->         return &mr->ib_mr;
->
->  fail_mr:
-> -       bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
-> -fail:
->         kfree(mr->pages);
-> +fail:
-> +       bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
-> +bail:
->         kfree(mr);
->         return ERR_PTR(rc);
->  }
-> @@ -3595,22 +3594,20 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
->         pbl_tbl = kcalloc(umem_pgs, sizeof(u64 *), GFP_KERNEL);
->         if (!pbl_tbl) {
->                 rc = -ENOMEM;
-> -               goto free_mrw;
-> +               goto free_umem;
->         }
->
->         page_shift = umem->page_shift;
->
->         if (!bnxt_re_page_size_ok(page_shift)) {
->                 dev_err(rdev_to_dev(rdev), "umem page size unsupported!");
-> -               kfree(pbl_tbl);
->                 rc = -EFAULT;
-> -               goto free_umem;
-> +               goto fail;
->         }
->
->         if (!umem->hugetlb && length > BNXT_RE_MAX_MR_SIZE_LOW) {
->                 dev_err(rdev_to_dev(rdev), "Requested MR Sz:%llu Max sup:%llu",
->                         length, (u64)BNXT_RE_MAX_MR_SIZE_LOW);
-> -               kfree(pbl_tbl);
->                 rc = -EINVAL;
->                 goto fail;
->         }
-> --
-> 1.8.3.1
->
+client side logs:
+Jan 18 11:14:30 localhost kernel: krping: DISCONNECT EVENT...
+Jan 18 11:14:30 localhost kernel: krping: wait for RDMA_WRITE_ADV state 10
+Jan 18 11:14:30 localhost kernel: krping: cq completion in ERROR state
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
