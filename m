@@ -1,124 +1,99 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: SQ overflow seen running isert traffic with high block sizes
-Date: Thu, 18 Jan 2018 01:58:42 -0800
-Message-ID: <1516269522.24576.274.camel@haakon3.daterainc.com>
-References: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
-         <210f538f-8c98-f480-64fc-f2124ed6d01b@grimberg.me>
-         <BN3PR07MB25786338EADC77A369A6D493F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
-         <1499970579.7987.8.camel@haakon3.daterainc.com>
-         <BN3PR07MB2578E6561CC669922A322245F8A00@BN3PR07MB2578.namprd07.prod.outlook.com>
-         <20171006224025.GA23364@ssaleem-MOBL4.amr.corp.intel.com>
-         <1515992195.24576.156.camel@haakon3.daterainc.com>
-         <CY1PR0701MB2012E53C69D1CE3E16BA320B88EB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
-         <20180115152236.GA15484@ssaleem-MOBL4.amr.corp.intel.com>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/4] IB/core: add support for draining Shared receive
+ queues
+Date: Thu, 18 Jan 2018 12:31:21 +0200
+Message-ID: <a7a9ee47-3133-df04-ccce-a4a30dd50c97@mellanox.com>
+References: <1516197178-26493-1-git-send-email-maxg@mellanox.com>
+ <1516197178-26493-2-git-send-email-maxg@mellanox.com>
+ <1516205474.2820.5.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20180115152236.GA15484@ssaleem-MOBL4.amr.corp.intel.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Shiraz Saleem <shiraz.saleem@intel.com>
-Cc: "Kalderon, Michal" <Michal.Kalderon@cavium.com>, "Amrani, Ram" <Ram.Amrani@cavium.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, target-devel <target-devel@vger.kernel.org>, Potnuri Bharat Teja <bharat@chelsio.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1516205474.2820.5.camel-Sjgp3cTcYWE@public.gmane.org>
+Content-Language: he
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: "danielm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <danielm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Shiraz, Michal & Co,
 
-Thanks for the feedback.  Comments below.
 
-On Mon, 2018-01-15 at 09:22 -0600, Shiraz Saleem wrote:
-> On Mon, Jan 15, 2018 at 03:12:36AM -0700, Kalderon, Michal wrote:
-> > > From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
-> > > owner@vger.kernel.org] On Behalf Of Nicholas A. Bellinger
-> > > Sent: Monday, January 15, 2018 6:57 AM
-> > > To: Shiraz Saleem <shiraz.saleem@intel.com>
-> > > Cc: Amrani, Ram <Ram.Amrani@cavium.com>; Sagi Grimberg
-> > > <sagi@grimberg.me>; linux-rdma@vger.kernel.org; Elior, Ariel
-> > > <Ariel.Elior@cavium.com>; target-devel <target-devel@vger.kernel.org>;
-> > > Potnuri Bharat Teja <bharat@chelsio.com>
-> > > Subject: Re: SQ overflow seen running isert traffic with high block sizes
-> > > 
-> > > Hi Shiraz, Ram, Ariel, & Potnuri,
-> > > 
-> > > Following up on this old thread, as it relates to Potnuri's recent fix for a iser-
-> > > target queue-full memory leak:
-> > > 
-> > > https://www.spinics.net/lists/target-devel/msg16282.html
-> > > 
-> > > Just curious how frequent this happens in practice with sustained large block
-> > > workloads, as it appears to effect at least three different iwarp RNICS (i40iw,
-> > > qedr and iw_cxgb4)..?
-> > > 
-> > > Is there anything else from an iser-target consumer level that should be
-> > > changed for iwarp to avoid repeated ib_post_send() failures..?
-> > > 
-> > Would like to mention, that although we are an iWARP RNIC as well, we've hit this
-> > Issue when running RoCE. It's not iWARP related. 
-> > This is easily reproduced within seconds with IO size of 5121K
-> > Using 5 Targets with 2 Ram Disk each and 5 targets with FileIO Disks each.
-> > 
-> > IO Command used:
-> > maim -b512k -T32 -t2 -Q8 -M0 -o -u -n -m17 -ftargets.dat -d1
-> > 
-> > thanks,
-> > Michal
+On 1/17/2018 6:11 PM, Bart Van Assche wrote:
+> On Wed, 2018-01-17 at 15:52 +0200, Max Gurtovoy wrote:
+>> +/*
+>> + * __ib_drain_srq() - Block until all Last WQE Reached event arrives, or
+>> + *                    timeout expires (best effort).
+>> + * @qp:               queue pair associated with SRQ to drain
+>> + *
+>> + * In order to avoid WQE and data segment leakage, one should destroy
+>> + * QP associated after performing the following:
+>> + *  - moving QP to err state
+>> + *  - wait for the Affiliated Asynchronous Last WQE Reached Event
+>> + *  - drain the CQ
+>> + */
+>> +static void __ib_drain_srq(struct ib_qp *qp)
+>> +{
+>> +	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
+>> +	struct ib_cq *cq;
+>> +	int ret;
+>> +
+>> +	if (!qp->srq) {
+>> +		WARN_ONCE(1, "QP 0x%p is not associated with SRQ\n", qp);
+>> +		return;
+>> +	}
+>> +
+>> +	ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
+>> +	if (ret) {
+>> +		WARN_ONCE(ret, "failed to drain shared recv queue: %d\n", ret);
+>> +		return;
+>> +	}
+>> +
+>> +	if (ib_srq_has_cq(qp->srq->srq_type)) {
+>> +		cq = qp->srq->ext.cq;
+>> +	} else if (qp->recv_cq) {
+>> +		cq = qp->recv_cq;
+>> +	} else {
+>> +		WARN_ONCE(1, "QP 0x%p has no CQ associated with SRQ\n", qp);
+>> +		return;
+>> +	}
+>> +
+>> +	/*
+>> +         * ULP should invoke ib_notify_qp on IB_EVENT_QP_LAST_WQE_REACHED
+>> +         * arrival, otherwise timeout will expire and leakage may occur.
+>> +         * Use long timeout, for the buggy ULPs/HCAs that don't notify the
+>> +         * QP nor raising IB_EVENT_QP_LAST_WQE_REACHED event.
+>> +         */
+>> +	if (wait_for_completion_timeout(&qp->srq_completion, 10 * HZ) > 0)
+>> +		ib_process_cq_direct(cq, -1);
+>> +}
 > 
-> Its seen with block size >= 2M on a single target 1 RAM disk config. And similar to Michals report;
-> rather quickly, in a matter of seconds.
+> Hello Max,
+
+Hello Bart,
+
 > 
-> fio --rw=read --bs=2048k --numjobs=1 --iodepth=128 --runtime=30 --size=20g --loops=1 --ioengine=libaio 
-> --direct=1 --invalidate=1 --fsync_on_close=1 --norandommap --exitall --filename=/dev/sdb --name=sdb 
+> It seems weird to me that __ib_drain_srq() does not follow the same approach as
+> __ib_drain_rq(). Have you considered to post an additional receive work entry
+> on the SRQ and to wait until the completion for that work entry is signaled?
+
+This approach will never generate a completion. No flushes for SRQ. we 
+get completion (SRQ recv completion) only if consumed from the wire (and 
+this will not happen in our case).
+
+> That would avoid that a completion has to be added in the ib_qp data structure
+> and would also avoid that all ULPs that use SRQs have to be modified.
+
+I'm always open for new suggestions for implementation :)
+
+> 
+> Thanks,
+> 
+> Bart.
 > 
 
-A couple of thoughts.
-
-First, would it be helpful to limit maximum payload size per I/O for
-consumers based on number of iser-target sq hw sges..?
-
-That is, if rdma_rw_ctx_post() -> ib_post_send() failures are related to
-maximum payload size per I/O being too large there is an existing
-target_core_fabric_ops mechanism for limiting using SCSI residuals,
-originally utilized by qla2xxx here:
-
-target/qla2xxx: Honor max_data_sg_nents I/O transfer limit
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=8f9b565482c537821588444e09ff732c7d65ed6e
-
-Note this patch also will return a smaller Block Limits VPD (0x86)
-MAXIMUM TRANSFER LENGTH based on max_data_sg_nents * PAGE_SIZE, which
-means for modern SCSI initiators honoring MAXIMUM TRANSFER LENGTH will
-automatically limit maximum outgoing payload transfer length, and avoid
-SCSI residual logic.
-
-As-is, iser-target doesn't a propagate max_data_sg_ents limit into
-iscsi-target, but you can try testing with a smaller value to see if
-it's useful.  Eg:
-
-diff --git a/drivers/target/iscsi/iscsi_target_configfs.c b/drivers/target/iscsi/iscsi_target_configf
-index 0ebc481..d8a4cc5 100644
---- a/drivers/target/iscsi/iscsi_target_configfs.c
-+++ b/drivers/target/iscsi/iscsi_target_configfs.c
-@@ -1553,6 +1553,7 @@ static void lio_release_cmd(struct se_cmd *se_cmd)
-        .module                         = THIS_MODULE,
-        .name                           = "iscsi",
-        .node_acl_size                  = sizeof(struct iscsi_node_acl),
-+       .max_data_sg_nents              = 32, /* 32 * PAGE_SIZE = MAXIMUM TRANSFER LENGTH */
-        .get_fabric_name                = iscsi_get_fabric_name,
-        .tpg_get_wwn                    = lio_tpg_get_endpoint_wwn,
-        .tpg_get_tag                    = lio_tpg_get_tag,
-
-Second, if the failures are not SCSI transfer length specific, another
-option would be to limit the total command sequence number depth (CmdSN)
-per session.
-
-This is controlled at runtime by default_cmdsn_depth TPG attribute:
-
-/sys/kernel/config/target/iscsi/$TARGET_IQN/$TPG/attrib/default_cmdsn_depth
-
-and on per initiator context with cmdsn_depth NodeACL attribute:
-
-/sys/kernel/config/target/iscsi/$TARGET_IQN/$TPG/acls/$ACL_IQN/cmdsn_depth
-
-Note these default to 64, and can be changed at build time via
-include/target/iscsi/iscsi_target_core.h:TA_DEFAULT_CMDSN_DEPTH.
-
-That said, Sagi, any further comments as what else iser-target should be
-doing to avoid repeated queue-fulls with limited hw sges..?
+-Max.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
