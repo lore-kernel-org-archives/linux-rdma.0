@@ -1,102 +1,116 @@
 From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH wip/dl-for-next] RDMA/bnxt_re: Fix kbuild error
-Date: Thu, 18 Jan 2018 10:17:45 -0500
-Message-ID: <1516288665-11055-1-git-send-email-devesh.sharma@broadcom.com>
+Subject: Re: [PATCH wip/dl-for-next] RDMA/bnxt_re: Fix kbuild error
+Date: Thu, 18 Jan 2018 20:49:24 +0530
+Message-ID: <CANjDDBgnhRuroVEfGJ=gF9=dS47w7pcQh5hZsF=p5iF6mxmX9g@mail.gmail.com>
+References: <1516288665-11055-1-git-send-email-devesh.sharma@broadcom.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1516288665-11055-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fix for following build failure
+Hello Doug,
 
-drivers/infiniband/hw/bnxt_re/ib_verbs.c:3402:7-14: ERROR: reference
-preceded by free on line 3375
+Please pull this in, hopefully this will fix the latest build failure
+on your sub tree.
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/dl-for-next
-head:   d47f6fe6736ed3ecb39cd69fe26e3518f199eecd
-commit: cb8a852e09c1dc8e47af741714063acf9c4d115c [3/28] RDMA/bnxt_re: Add support for MRs with Huge pages
-:::::: branch date: 4 hours ago
-:::::: commit date: 15 hours ago
+-Regards
+Devesh
 
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3402:7-14: ERROR: reference preceded by free on line 3375
-
-git remote add rdma-rdma https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
-git remote update rdma-rdma
-git checkout cb8a852e09c1dc8e47af741714063acf9c4d115c
-vim +3402 drivers/infiniband/hw/bnxt_re/ib_verbs.c
-
-Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 7220322..9b8fa77 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -3355,10 +3355,8 @@ int bnxt_re_dereg_mr(struct ib_mr *ib_mr)
- 	int rc;
- 
- 	rc = bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
--	if (rc) {
-+	if (rc)
- 		dev_err(rdev_to_dev(rdev), "Dereg MR failed: %#x\n", rc);
--		return rc;
--	}
- 
- 	if (mr->pages) {
- 		rc = bnxt_qplib_free_fast_reg_page_list(&rdev->qplib_res,
-@@ -3421,7 +3419,7 @@ struct ib_mr *bnxt_re_alloc_mr(struct ib_pd *ib_pd, enum ib_mr_type type,
- 
- 	rc = bnxt_qplib_alloc_mrw(&rdev->qplib_res, &mr->qplib_mr);
- 	if (rc)
--		goto fail;
-+		goto bail;
- 
- 	mr->ib_mr.lkey = mr->qplib_mr.lkey;
- 	mr->ib_mr.rkey = mr->ib_mr.lkey;
-@@ -3443,9 +3441,10 @@ struct ib_mr *bnxt_re_alloc_mr(struct ib_pd *ib_pd, enum ib_mr_type type,
- 	return &mr->ib_mr;
- 
- fail_mr:
--	bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
--fail:
- 	kfree(mr->pages);
-+fail:
-+	bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
-+bail:
- 	kfree(mr);
- 	return ERR_PTR(rc);
- }
-@@ -3595,22 +3594,20 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
- 	pbl_tbl = kcalloc(umem_pgs, sizeof(u64 *), GFP_KERNEL);
- 	if (!pbl_tbl) {
- 		rc = -ENOMEM;
--		goto free_mrw;
-+		goto free_umem;
- 	}
- 
- 	page_shift = umem->page_shift;
- 
- 	if (!bnxt_re_page_size_ok(page_shift)) {
- 		dev_err(rdev_to_dev(rdev), "umem page size unsupported!");
--		kfree(pbl_tbl);
- 		rc = -EFAULT;
--		goto free_umem;
-+		goto fail;
- 	}
- 
- 	if (!umem->hugetlb && length > BNXT_RE_MAX_MR_SIZE_LOW) {
- 		dev_err(rdev_to_dev(rdev), "Requested MR Sz:%llu Max sup:%llu",
- 			length,	(u64)BNXT_RE_MAX_MR_SIZE_LOW);
--		kfree(pbl_tbl);
- 		rc = -EINVAL;
- 		goto fail;
- 	}
--- 
-1.8.3.1
-
+On Thu, Jan 18, 2018 at 8:47 PM, Devesh Sharma
+<devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+> Fix for following build failure
+>
+> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3402:7-14: ERROR: reference
+> preceded by free on line 3375
+>
+> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/dl-for-next
+> head:   d47f6fe6736ed3ecb39cd69fe26e3518f199eecd
+> commit: cb8a852e09c1dc8e47af741714063acf9c4d115c [3/28] RDMA/bnxt_re: Add support for MRs with Huge pages
+> :::::: branch date: 4 hours ago
+> :::::: commit date: 15 hours ago
+>
+>>> drivers/infiniband/hw/bnxt_re/ib_verbs.c:3402:7-14: ERROR: reference preceded by free on line 3375
+>
+> git remote add rdma-rdma https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
+> git remote update rdma-rdma
+> git checkout cb8a852e09c1dc8e47af741714063acf9c4d115c
+> vim +3402 drivers/infiniband/hw/bnxt_re/ib_verbs.c
+>
+> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/bnxt_re/ib_verbs.c | 17 +++++++----------
+>  1 file changed, 7 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> index 7220322..9b8fa77 100644
+> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> @@ -3355,10 +3355,8 @@ int bnxt_re_dereg_mr(struct ib_mr *ib_mr)
+>         int rc;
+>
+>         rc = bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
+> -       if (rc) {
+> +       if (rc)
+>                 dev_err(rdev_to_dev(rdev), "Dereg MR failed: %#x\n", rc);
+> -               return rc;
+> -       }
+>
+>         if (mr->pages) {
+>                 rc = bnxt_qplib_free_fast_reg_page_list(&rdev->qplib_res,
+> @@ -3421,7 +3419,7 @@ struct ib_mr *bnxt_re_alloc_mr(struct ib_pd *ib_pd, enum ib_mr_type type,
+>
+>         rc = bnxt_qplib_alloc_mrw(&rdev->qplib_res, &mr->qplib_mr);
+>         if (rc)
+> -               goto fail;
+> +               goto bail;
+>
+>         mr->ib_mr.lkey = mr->qplib_mr.lkey;
+>         mr->ib_mr.rkey = mr->ib_mr.lkey;
+> @@ -3443,9 +3441,10 @@ struct ib_mr *bnxt_re_alloc_mr(struct ib_pd *ib_pd, enum ib_mr_type type,
+>         return &mr->ib_mr;
+>
+>  fail_mr:
+> -       bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
+> -fail:
+>         kfree(mr->pages);
+> +fail:
+> +       bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
+> +bail:
+>         kfree(mr);
+>         return ERR_PTR(rc);
+>  }
+> @@ -3595,22 +3594,20 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
+>         pbl_tbl = kcalloc(umem_pgs, sizeof(u64 *), GFP_KERNEL);
+>         if (!pbl_tbl) {
+>                 rc = -ENOMEM;
+> -               goto free_mrw;
+> +               goto free_umem;
+>         }
+>
+>         page_shift = umem->page_shift;
+>
+>         if (!bnxt_re_page_size_ok(page_shift)) {
+>                 dev_err(rdev_to_dev(rdev), "umem page size unsupported!");
+> -               kfree(pbl_tbl);
+>                 rc = -EFAULT;
+> -               goto free_umem;
+> +               goto fail;
+>         }
+>
+>         if (!umem->hugetlb && length > BNXT_RE_MAX_MR_SIZE_LOW) {
+>                 dev_err(rdev_to_dev(rdev), "Requested MR Sz:%llu Max sup:%llu",
+>                         length, (u64)BNXT_RE_MAX_MR_SIZE_LOW);
+> -               kfree(pbl_tbl);
+>                 rc = -EINVAL;
+>                 goto fail;
+>         }
+> --
+> 1.8.3.1
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
