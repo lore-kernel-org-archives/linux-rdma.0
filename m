@@ -1,100 +1,79 @@
-From: Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
-Subject: Re: krping problem on 4.15-rc4
-Date: Fri, 19 Jan 2018 08:57:07 -0500
-Message-ID: <CAN-5tyGiuuvzxru+aeeCahukrbm_aivN+HfLx=X1d8txxL4A9w@mail.gmail.com>
-References: <00ff01d38a4f$1a979eb0$4fc6dc10$@opengridcomputing.com>
- <CAN-5tyEwdSOiAk04xjfazxBqwkkTiCjr2dVcCoYLQJw8f37U=w@mail.gmail.com>
- <017d01d38b14$cbe95670$63bc0350$@opengridcomputing.com> <CAN-5tyGq=hmXY9HZYXpfaytOUV=gb0fri69gj69WKbbYtW3nTQ@mail.gmail.com>
- <006d01d38c02$793de8c0$6bb9ba40$@opengridcomputing.com> <CAN-5tyG9ZsaKZs3ayfFfuy7o25DrXR2yWmwUvLdNutJ1SbEg1w@mail.gmail.com>
- <CAN-5tyFSYWaTPVdq=99Yr9XwnULyf4tw06roZys=rtR0F3x03g@mail.gmail.com>
- <1516223013.3403.285.camel@redhat.com> <CAN-5tyFM_Noj5n-BW+BMa-0VXBWnUVWU2JkiP2f5JBpZoA6YcQ@mail.gmail.com>
- <CAN-5tyGxnd0WnvgxEpNpZ5fG6u2JZs=Wg0fEvt8EaNLHckvx0A@mail.gmail.com>
- <20180119110852.GB1393@mtr-leonro.local> <14B966CB-B883-4431-A2A3-9DDE6B88B9AB@mellanox.com>
+From: "jianchao.wang" <jianchao.w.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] net/mlx4_en: ensure rx_desc updating reaches HW before
+ prod db updating
+Date: Fri, 19 Jan 2018 23:16:09 +0800
+Message-ID: <53b1ac4d-a294-eb98-149e-65d7954243da@oracle.com>
+References: <1515728542-3060-1-git-send-email-jianchao.w.wang@oracle.com>
+ <20180112163247.GB15974@ziepe.ca> <1515775567.131759.42.camel@gmail.com>
+ <a40e44f4-106b-1075-8f92-f7741508372c@oracle.com>
+ <af562737-4a3e-0429-1fd6-fc25c3e3f867@mellanox.com>
+ <fea0aa1c-b68e-9485-3826-2dfad7824911@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <14B966CB-B883-4431-A2A3-9DDE6B88B9AB-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <fea0aa1c-b68e-9485-3826-2dfad7824911-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 19, 2018 at 7:21 AM, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->
->> On Jan 19, 2018, at 1:09 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+Hi Tariq
+
+Very sad that the crash was reproduced again after applied the patch.
+
+--- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+@@ -252,6 +252,7 @@ static inline bool mlx4_en_is_ring_empty(struct mlx4_en_rx_ring *ring)
+ 
+ static inline void mlx4_en_update_rx_prod_db(struct mlx4_en_rx_ring *ring)
+ {
++	dma_wmb();
+ 	*ring->wqres.db.db = cpu_to_be32(ring->prod & 0xffff);
+ }
+
+I analyzed the kdump, it should be a memory corruption.
+
+Thanks
+Jianchao
+On 01/15/2018 01:50 PM, jianchao.wang wrote:
+> Hi Tariq
+> 
+> Thanks for your kindly response.
+> 
+> On 01/14/2018 05:47 PM, Tariq Toukan wrote:
+>> Thanks Jianchao for your patch.
 >>
->>> On Thu, Jan 18, 2018 at 11:13:08AM -0500, Olga Kornievskaia wrote:
->>>> On Wed, Jan 17, 2018 at 5:03 PM, Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org> wrote:
->>>>> On Wed, Jan 17, 2018 at 4:03 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->>>>>> On Tue, 2018-01-16 at 16:14 -0500, Olga Kornievskaia wrote:
->>>>>>> On Tue, Jan 16, 2018 at 2:50 PM, Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org> wrote:
->>>>>>> On Fri, Jan 12, 2018 at 7:07 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
->>>>>>>>>> Ok.  The memory probably doesn't matter.  Maybe run krping client and
->>>>>>>>>
->>>>>>>>> server on the same host (to use hw-loopback), and see if it works on both,
->>>>>>>>> one, or neither systems when they are both the client and server.
->>>>>>>>>
->>>>>>>>> Loopback on the original "server" machine produces the same failure.
->>>>>>>>> Jan 12 17:05:40 localhost kernel: mlx5_0:dump_cqe:277:(pid 0): dump error
->>>>>>>>> cqe
->>>>>>>>> Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
->>>>>>>>> Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
->>>>>>>>> Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
->>>>>>>>> Jan 12 17:05:40 localhost kernel: 00000000 93003204 1000017c 0005e1d2
->>>>>>>>> Jan 12 17:05:40 localhost kernel: krping: cq completion failed with
->>>>>>>>> wr_id 0 status 4 opcode 0 vender_err 32
->>>>>>>>
->>>>>>>> Can someone from Mellanox comment more on the above CQE error?  What exactly is it tell us?
->>>>>>>>
->>>>>>>>>
->>>>>>>>> What does this means?
->>>>>>>>
->>>>>>>> Not sure.  But it does seem to be tied to that specific machine.  Question:  Is an IOMMU enabled on that system?
->>>>>>>
->>>>>>> IOMMU (Inter's VT-d) is enabled in BIOS (on both machines).
->>>>>>>
->>>>>>>> Perhaps that is exposing a dma mapping problem with krping?
->>>>>>
->>>>>> I have replaces the CX-5 card with another one and I no longer see the
->>>>>> krping problem.  I think it speaks that it's a card issue...
+>> And Thank you guys for your reviews, much appreciated.
+>> I was off-work on Friday and Saturday.
+>>
+>> On 14/01/2018 4:40 AM, jianchao.wang wrote:
+>>> Dear all
+>>>
+>>> Thanks for the kindly response and reviewing. That's really appreciated.
+>>>
+>>> On 01/13/2018 12:46 AM, Eric Dumazet wrote:
+>>>>> Does this need to be dma_wmb(), and should it be in
+>>>>> mlx4_en_update_rx_prod_db ?
 >>>>>
->>>>> Check the firmware on the bad card.  Lots of issues disappear if you
->>>>> have older firmware and update to the latest.
+>>>> +1 on dma_wmb()
 >>>>
->>>> That's a valid point. A check of firmware versions is needed. At the
->>>> time of the problem, I believe I had two machines that each had same
->>>> firmware versions. After card replacement, the replacement card
->>>> displays newer firmware.
->>>
->>> I have upgraded the firmware on both machines involved to the latest
->>> available firmware for the card and now I'm in the situation where
->>> krping does not work on either machine --- when either of them is a
->>> server it fails with the same information in the var log messages:
+>>>> On what architecture bug was observed ?
+>>> This issue was observed on x86-64.
+>>> And I will send a new patch, in which replace wmb() with dma_wmb(), to customer
+>>> to confirm.
 >>
->> Doesn't it mean that the issue in FW?
-> Did you do cold reboot after FW upgrade?
-
-No I have done so. Firmware update instruction were to either
-mlxfwreset or reboot (which i assumed would be warm). I will try a
-cold reboot.
-
-
+>> +1 on dma_wmb, let us know once customer confirms.
+>> Please place it within mlx4_en_update_rx_prod_db as suggested.
+> Yes, I have recommended it to customer.
+> Once I get the result, I will share it here.
+>> All other calls to mlx4_en_update_rx_prod_db are in control/slow path so I prefer being on the safe side, and care less about bulking the barrier.
 >>
->>>
->>> Jan 18 11:05:54 localhost kernel: mlx5_0:dump_cqe:277:(pid 0): dump error cqe
->>> Jan 18 11:05:54 localhost kernel: 00000000 00000000 00000000 00000000
->>> Jan 18 11:05:54 localhost kernel: 00000000 00000000 00000000 00000000
->>> Jan 18 11:05:54 localhost kernel: 00000000 00000000 00000000 00000000
->>> Jan 18 11:05:54 localhost kernel: 00000000 93003204 10000122 0005bfd2
->>> Jan 18 11:05:54 localhost kernel: krping: cq completion failed with
->>> wr_id 0 status 4 opcode 128 vender_err 32
->>> Jan 18 11:05:54 localhost kernel: krping: cq completion in ERROR state
->>> Jan 18 11:05:54 localhost kernel: krping: wait for RDMA_READ_COMPLETE state 10
->>>
->>> client side logs:
->>> Jan 18 11:14:30 localhost kernel: krping: DISCONNECT EVENT...
->>> Jan 18 11:14:30 localhost kernel: krping: wait for RDMA_WRITE_ADV state 10
->>> Jan 18 11:14:30 localhost kernel: krping: cq completion in ERROR state
+>> Thanks,
+>> Tariq
+>>
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
