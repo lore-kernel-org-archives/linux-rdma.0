@@ -1,35 +1,39 @@
-From: "Sanchez, Sebastian" <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Sending and Receiving QPs with IPoIB
-Date: Fri, 19 Jan 2018 18:28:15 +0000
-Message-ID: <5CDA63463B33C94CA80846587415F0773A70EE41@ORSMSX111.amr.corp.intel.com>
-References: <5CDA63463B33C94CA80846587415F07728293A70@ORSMSX111.amr.corp.intel.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next] RDMA/mlx5; Remove redundant allocation warning
+ print
+Date: Fri, 19 Jan 2018 20:54:28 +0200
+Message-ID: <20180119185427.GB2624@yuvallap>
+References: <20180118123424.21062-1-leon@kernel.org>
+ <20180118200211.GA17561@yuvallap>
+ <20180119105840.GA1393@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5CDA63463B33C94CA80846587415F07728293A70-8oqHQFITsIGkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180119105840.GA1393-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Wright, James C" <james.c.wright-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Having a sending QP and a receiving QP per node in IPoIB connected mode is affecting HFI1 performance because of the resulting lopsidedness of QPn to hardware resource mappings. Therefore, we are investigating changing this behavior to be compliant to the RFC (https://tools.ietf.org/html/rfc4755#section-3.3).
+> > >
+> > > Fixes: d69a24e03659 ("IB/mlx5: Move IB event processing onto a workqueue")
+> >
+> > Didn't found it in:
+> > https://kernel.googlesource.com/pub/scm/linux/kernel/git/leon/linux-rdma/
+> > branch rdma-next and didn't find it.
+> > Where should i look?
+> 
+> In official place:
+> https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/commit/?h=for-next&id=d69a24e036596877ce08c25ab8e63a202412fd9e
 
-On a separate email, Roland Dreier mentioned that IPoIB connected mode has 2 QPs for historical reasons. We *really* need to know if there is some technical reason the implementation is this way before cracking open IPoIB to change this.
+I see,
+I thought that "rdma-next" in subject stands for branch name, apparently
+not. So saying rdma-next you actually refer to for-next, right?
 
-Roland Dreier email:
+> 
+> >
 
-I assume you're talking about IPoIB connected mode?
-
-I think the reason is just historical - the code to use one QP in each direction was never written, and no one has cared enough to do it.
-
-- R.
-
-
-Thank you,
-
-Sebastian
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
