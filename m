@@ -1,75 +1,54 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next v1] RDMA/mlx5: Remove redundant allocation
- warning print
-Date: Fri, 19 Jan 2018 20:49:48 +0200
-Message-ID: <20180119184948.GA2624@yuvallap>
-References: <20180119110711.8758-1-leon@kernel.org>
+From: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
+Subject: Re: SQ overflow seen running isert traffic with high block sizes
+Date: Fri, 19 Jan 2018 19:33:22 +0000
+Message-ID: <CY1PR0701MB2012C8513D9048FC1CC7011088EF0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+References: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+         <210f538f-8c98-f480-64fc-f2124ed6d01b@grimberg.me>
+         <BN3PR07MB25786338EADC77A369A6D493F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+         <1499970579.7987.8.camel@haakon3.daterainc.com>
+         <BN3PR07MB2578E6561CC669922A322245F8A00@BN3PR07MB2578.namprd07.prod.outlook.com>
+         <20171006224025.GA23364@ssaleem-MOBL4.amr.corp.intel.com>
+         <1515992195.24576.156.camel@haakon3.daterainc.com>
+         <CY1PR0701MB2012E53C69D1CE3E16BA320B88EB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+         <20180115152236.GA15484@ssaleem-MOBL4.amr.corp.intel.com>,<1516269522.24576.274.camel@haakon3.daterainc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180119110711.8758-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1516269522.24576.274.camel@haakon3.daterainc.com>
+Content-Language: en-US
+Sender: target-devel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Shiraz Saleem <shiraz.saleem@intel.com>
+Cc: "Amrani, Ram" <Ram.Amrani@cavium.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, target-devel <target-devel@vger.kernel.org>, Potnuri Bharat Teja <bharat@chelsio.com>, "Radzi, Amit" <Amit.Radzi@cavium.com>, "Galon, Yoav" <Yoav.Galon@cavium.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 19, 2018 at 01:07:11PM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> The kmalloc() failure to allocate memory generates enough information
-> and doesn't need to be accompanied by another driver print.
-> 
-> Fixes: d69a24e03659 ("IB/mlx5: Move IB event processing onto a workqueue")
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+________________________________________
+From: Nicholas A. Bellinger <nab@linux-iscsi.org>
+Sent: Thursday, January 18, 2018 11:58 AM
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Hi Shiraz, Michal & Co,
+Hi Nicholas,=20
 
-> ---
-> Changelog:
->  v0 -> v1:
->   * Fixed type in subject
->   * Removed "return" from end of void function
-> ---
->  drivers/infiniband/hw/mlx5/main.c | 19 ++++++++-----------
->  1 file changed, 8 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index f282e281eff2..5007280321b6 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -3345,19 +3345,16 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
->  	struct mlx5_ib_event_work *work;
-> 
->  	work = kmalloc(sizeof(*work), GFP_ATOMIC);
-> -	if (work) {
-> -		INIT_WORK(&work->work, mlx5_ib_handle_event);
-> -		work->dev = dev;
-> -		work->param = param;
-> -		work->context = context;
-> -		work->event = event;
-> -
-> -		queue_work(mlx5_ib_event_wq, &work->work);
-> +	if (!work)
->  		return;
-> -	}
-> 
-> -	dev_warn(&dev->pdev->dev, "%s: mlx5_dev_event: %d, with param: %lu dropped, couldn't allocate memory.\n",
-> -		 __func__, event, param);
-> +	INIT_WORK(&work->work, mlx5_ib_handle_event);
-> +	work->dev = dev;
-> +	work->param = param;
-> +	work->context = context;
-> +	work->event = event;
-> +
-> +	queue_work(mlx5_ib_event_wq, &work->work);
->  }
-> 
->  static int set_has_smi_cap(struct mlx5_ib_dev *dev)
-> --
-> 2.15.1
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Thanks for the feedback.  Comments below.
+
+> A couple of thoughts.
+
+> First, would it be helpful to limit maximum payload size per I/O for
+> consumers based on number of iser-target sq hw sges..?
+
+I don't think you need to limit the maximum payload, but instead=20
+initialize the max_wr to be based on the number of supported SGEs
+Instead of what is there today:
+#define ISERT_QP_MAX_REQ_DTOS   (ISCSI_DEF_XMIT_CMDS_MAX +    \
+                                ISERT_MAX_TX_MISC_PDUS  + \
+                                ISERT_MAX_RX_MISC_PDUS)
+Add the maximum number of WQEs per command,=20
+The calculation of number of WQEs per command needs to be something like
+"MAX_TRANSFER_SIZE/(numSges*PAGE_SIZE)".
+
+For some devices like ours, breaking the IO into multiple WRs according to =
+supported
+number of SGEs doesn't necessarily means performance penalty.
+
+thanks,
+Michal
