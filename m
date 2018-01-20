@@ -1,102 +1,71 @@
-From: Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
-Subject: Re: krping problem on 4.15-rc4
-Date: Fri, 19 Jan 2018 16:07:20 -0500
-Message-ID: <CAN-5tyFWNrE-r-s7D=-N-Nx6KXoW078nQP3kbuOksSgezD-4xQ@mail.gmail.com>
-References: <00ff01d38a4f$1a979eb0$4fc6dc10$@opengridcomputing.com>
- <CAN-5tyEwdSOiAk04xjfazxBqwkkTiCjr2dVcCoYLQJw8f37U=w@mail.gmail.com>
- <017d01d38b14$cbe95670$63bc0350$@opengridcomputing.com> <CAN-5tyGq=hmXY9HZYXpfaytOUV=gb0fri69gj69WKbbYtW3nTQ@mail.gmail.com>
- <006d01d38c02$793de8c0$6bb9ba40$@opengridcomputing.com> <CAN-5tyG9ZsaKZs3ayfFfuy7o25DrXR2yWmwUvLdNutJ1SbEg1w@mail.gmail.com>
- <CAN-5tyFSYWaTPVdq=99Yr9XwnULyf4tw06roZys=rtR0F3x03g@mail.gmail.com>
- <1516223013.3403.285.camel@redhat.com> <CAN-5tyFM_Noj5n-BW+BMa-0VXBWnUVWU2JkiP2f5JBpZoA6YcQ@mail.gmail.com>
- <CAN-5tyGxnd0WnvgxEpNpZ5fG6u2JZs=Wg0fEvt8EaNLHckvx0A@mail.gmail.com>
- <20180119110852.GB1393@mtr-leonro.local> <14B966CB-B883-4431-A2A3-9DDE6B88B9AB@mellanox.com>
- <CAN-5tyGiuuvzxru+aeeCahukrbm_aivN+HfLx=X1d8txxL4A9w@mail.gmail.com>
+From: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 2/2] libhns: Support cq record doorbell
+Date: Sat, 20 Jan 2018 19:41:03 +0800
+Message-ID: <68e02f2a-0474-bc73-a784-fd52dbbde552@huawei.com>
+References: <1516242961-154453-1-git-send-email-liuyixian@huawei.com>
+ <1516242961-154453-3-git-send-email-liuyixian@huawei.com>
+ <20180118043717.GC8414@ziepe.ca>
+ <9e577314-4fcb-45de-6909-d5b3be570196@huawei.com>
+ <20180118161949.GA18973@ziepe.ca>
+ <a33a1337-665f-4cd4-5b39-b12d9f03af72@huawei.com>
+ <20180119200029.GD3437@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAN-5tyGiuuvzxru+aeeCahukrbm_aivN+HfLx=X1d8txxL4A9w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20180119200029.GD3437-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 19, 2018 at 8:57 AM, Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org> wrote:
-> On Fri, Jan 19, 2018 at 7:21 AM, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->>
->>> On Jan 19, 2018, at 1:09 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->>>
->>>> On Thu, Jan 18, 2018 at 11:13:08AM -0500, Olga Kornievskaia wrote:
->>>>> On Wed, Jan 17, 2018 at 5:03 PM, Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org> wrote:
->>>>>> On Wed, Jan 17, 2018 at 4:03 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->>>>>>> On Tue, 2018-01-16 at 16:14 -0500, Olga Kornievskaia wrote:
->>>>>>>> On Tue, Jan 16, 2018 at 2:50 PM, Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org> wrote:
->>>>>>>> On Fri, Jan 12, 2018 at 7:07 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
->>>>>>>>>>> Ok.  The memory probably doesn't matter.  Maybe run krping client and
->>>>>>>>>>
->>>>>>>>>> server on the same host (to use hw-loopback), and see if it works on both,
->>>>>>>>>> one, or neither systems when they are both the client and server.
->>>>>>>>>>
->>>>>>>>>> Loopback on the original "server" machine produces the same failure.
->>>>>>>>>> Jan 12 17:05:40 localhost kernel: mlx5_0:dump_cqe:277:(pid 0): dump error
->>>>>>>>>> cqe
->>>>>>>>>> Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
->>>>>>>>>> Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
->>>>>>>>>> Jan 12 17:05:40 localhost kernel: 00000000 00000000 00000000 00000000
->>>>>>>>>> Jan 12 17:05:40 localhost kernel: 00000000 93003204 1000017c 0005e1d2
->>>>>>>>>> Jan 12 17:05:40 localhost kernel: krping: cq completion failed with
->>>>>>>>>> wr_id 0 status 4 opcode 0 vender_err 32
->>>>>>>>>
->>>>>>>>> Can someone from Mellanox comment more on the above CQE error?  What exactly is it tell us?
->>>>>>>>>
->>>>>>>>>>
->>>>>>>>>> What does this means?
->>>>>>>>>
->>>>>>>>> Not sure.  But it does seem to be tied to that specific machine.  Question:  Is an IOMMU enabled on that system?
->>>>>>>>
->>>>>>>> IOMMU (Inter's VT-d) is enabled in BIOS (on both machines).
->>>>>>>>
->>>>>>>>> Perhaps that is exposing a dma mapping problem with krping?
->>>>>>>
->>>>>>> I have replaces the CX-5 card with another one and I no longer see the
->>>>>>> krping problem.  I think it speaks that it's a card issue...
->>>>>>
->>>>>> Check the firmware on the bad card.  Lots of issues disappear if you
->>>>>> have older firmware and update to the latest.
->>>>>
->>>>> That's a valid point. A check of firmware versions is needed. At the
->>>>> time of the problem, I believe I had two machines that each had same
->>>>> firmware versions. After card replacement, the replacement card
->>>>> displays newer firmware.
->>>>
->>>> I have upgraded the firmware on both machines involved to the latest
->>>> available firmware for the card and now I'm in the situation where
->>>> krping does not work on either machine --- when either of them is a
->>>> server it fails with the same information in the var log messages:
->>>
->>> Doesn't it mean that the issue in FW?
->> Did you do cold reboot after FW upgrade?
->
-> No I have done so. Firmware update instruction were to either
-> mlxfwreset or reboot (which i assumed would be warm). I will try a
-> cold reboot.
->
 
-I have cold rebooted the machines and still have the same problem with krping.
 
->>>> Jan 18 11:05:54 localhost kernel: mlx5_0:dump_cqe:277:(pid 0): dump error cqe
->>>> Jan 18 11:05:54 localhost kernel: 00000000 00000000 00000000 00000000
->>>> Jan 18 11:05:54 localhost kernel: 00000000 00000000 00000000 00000000
->>>> Jan 18 11:05:54 localhost kernel: 00000000 00000000 00000000 00000000
->>>> Jan 18 11:05:54 localhost kernel: 00000000 93003204 10000122 0005bfd2
->>>> Jan 18 11:05:54 localhost kernel: krping: cq completion failed with
->>>> wr_id 0 status 4 opcode 128 vender_err 32
->>>> Jan 18 11:05:54 localhost kernel: krping: cq completion in ERROR state
->>>> Jan 18 11:05:54 localhost kernel: krping: wait for RDMA_READ_COMPLETE state 10
->>>>
->>>> client side logs:
->>>> Jan 18 11:14:30 localhost kernel: krping: DISCONNECT EVENT...
->>>> Jan 18 11:14:30 localhost kernel: krping: wait for RDMA_WRITE_ADV state 10
->>>> Jan 18 11:14:30 localhost kernel: krping: cq completion in ERROR state
+On 2018/1/20 4:00, Jason Gunthorpe wrote:
+> On Fri, Jan 19, 2018 at 07:04:42PM +0800, Liuyixian (Eason) wrote:
+> 
+>> For case 1, the new kernel driver can't support old user application or old userspace driver.
+>> Because we use the record db solution (what this patchset does and why add new db_addr in kernel)
+>> to substitute with operating register, which used by the old userspace driver.
+>> Therefore, users need to update the userspace driver to the version which support record db.
+> 
+> This is not acceptable for the kernel. You must maintain compatability
+> with old userspace.
+> 
+> Also, new userspace must work with older kernels.
+> 
+> Jason
+
+Hi Jason,
+
+Maybe my previous email caused some confusions to people.
+Let me illustrate the compatibility more clear.
+
+For hip06, which not support record db, even while it creates cq in userspace
+with hns_roce_create_cq (db_addr already there), it will do nothing with db_addr.
+The kernel also will not access db_addr, both for old kernel and new kernel(adding db_addr).
+Because hip06 pushes db by operating register, this manner keeps unchanged.
+Thus, the old/new kernel support both old/new userspace for hip06,
+
+For hip08, which is still under development to support record db, considering
+forward compatibility that new kernel with old userspace, as old userspace operates
+register and new kernel still provide those registers, there is no forward compatibility
+problem. The reverse (backward compatibility) is not true. It is not possible to take
+new userspace will still run correctly if the kernel is old. As new userspace use
+db_addr substitute operating register, it can run correctly only on new kernel
+(the patchset goes with this patchset submitted to for-next) and later kernel versions.
+I think it is reasonable for this case.
+
+With carefully release-management, there would be no compatibility problem
+both for hip06 and hip08.
+
+Eason
+
+> 
+> 
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
