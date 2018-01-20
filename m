@@ -1,170 +1,36 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 1/2] rdma/ib: Add trace point macros to display
- human-readable values
-Date: Sat, 20 Jan 2018 11:16:25 -0500
-Message-ID: <20180120161625.6488.7416.stgit@manet.1015granger.net>
-References: <20180120161440.6488.4311.stgit@manet.1015granger.net>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-core 2/2] libhns: Support cq record doorbell
+Date: Sat, 20 Jan 2018 09:46:25 -0700
+Message-ID: <20180120164625.GA14372@ziepe.ca>
+References: <1516242961-154453-1-git-send-email-liuyixian@huawei.com>
+ <1516242961-154453-3-git-send-email-liuyixian@huawei.com>
+ <20180118043717.GC8414@ziepe.ca>
+ <9e577314-4fcb-45de-6909-d5b3be570196@huawei.com>
+ <20180118161949.GA18973@ziepe.ca>
+ <a33a1337-665f-4cd4-5b39-b12d9f03af72@huawei.com>
+ <20180119200029.GD3437@ziepe.ca>
+ <68e02f2a-0474-bc73-a784-fd52dbbde552@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180120161440.6488.4311.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <68e02f2a-0474-bc73-a784-fd52dbbde552-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-These can be shared with all kernel ULPs, and more can easily be
-added as needed.
+On Sat, Jan 20, 2018 at 07:41:03PM +0800, Liuyixian (Eason) wrote:
 
-Note: checkpatch.pl has some heartburn with the TRACE_DEFINE_ENUM
-macros and the LIST macros. These follow the same style as other
-header files under include/tracing/events , thus should be
-considered acceptable exceptions.
+> new userspace will still run correctly if the kernel is old. As new userspace use
+> db_addr substitute operating register, it can run correctly only on new kernel
+> (the patchset goes with this patchset submitted to for-next) and later kernel versions.
+> I think it is reasonable for this case.
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- include/trace/events/rdma.h |  129 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 129 insertions(+)
- create mode 100644 include/trace/events/rdma.h
+Still not OK, we expect the user space to work with old kernels too.
 
-diff --git a/include/trace/events/rdma.h b/include/trace/events/rdma.h
-new file mode 100644
-index 0000000..aa19afc
---- /dev/null
-+++ b/include/trace/events/rdma.h
-@@ -0,0 +1,129 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Copyright (c) 2017 Oracle.  All rights reserved.
-+ */
-+
-+/*
-+ * enum ib_event_type, from include/rdma/ib_verbs.h
-+ */
-+
-+#define IB_EVENT_LIST				\
-+	ib_event(CQ_ERR)			\
-+	ib_event(QP_FATAL)			\
-+	ib_event(QP_REQ_ERR)			\
-+	ib_event(QP_ACCESS_ERR)			\
-+	ib_event(COMM_EST)			\
-+	ib_event(SQ_DRAINED)			\
-+	ib_event(PATH_MIG)			\
-+	ib_event(PATH_MIG_ERR)			\
-+	ib_event(DEVICE_FATAL)			\
-+	ib_event(PORT_ACTIVE)			\
-+	ib_event(PORT_ERR)			\
-+	ib_event(LID_CHANGE)			\
-+	ib_event(PKEY_CHANGE)			\
-+	ib_event(SM_CHANGE)			\
-+	ib_event(SRQ_ERR)			\
-+	ib_event(SRQ_LIMIT_REACHED)		\
-+	ib_event(QP_LAST_WQE_REACHED)		\
-+	ib_event(CLIENT_REREGISTER)		\
-+	ib_event(GID_CHANGE)			\
-+	ib_event_end(WQ_FATAL)
-+
-+#undef ib_event
-+#undef ib_event_end
-+
-+#define ib_event(x)		TRACE_DEFINE_ENUM(IB_EVENT_##x);
-+#define ib_event_end(x)		TRACE_DEFINE_ENUM(IB_EVENT_##x);
-+
-+IB_EVENT_LIST
-+
-+#undef ib_event
-+#undef ib_event_end
-+
-+#define ib_event(x)		{ IB_EVENT_##x, #x },
-+#define ib_event_end(x)		{ IB_EVENT_##x, #x }
-+
-+#define rdma_show_ib_event(x) \
-+		__print_symbolic(x, IB_EVENT_LIST)
-+
-+/*
-+ * enum ib_wc_status type, from include/rdma/ib_verbs.h
-+ */
-+#define IB_WC_STATUS_LIST			\
-+	ib_wc_status(SUCCESS)			\
-+	ib_wc_status(LOC_LEN_ERR)		\
-+	ib_wc_status(LOC_QP_OP_ERR)		\
-+	ib_wc_status(LOC_EEC_OP_ERR)		\
-+	ib_wc_status(LOC_PROT_ERR)		\
-+	ib_wc_status(WR_FLUSH_ERR)		\
-+	ib_wc_status(MW_BIND_ERR)		\
-+	ib_wc_status(BAD_RESP_ERR)		\
-+	ib_wc_status(LOC_ACCESS_ERR)		\
-+	ib_wc_status(REM_INV_REQ_ERR)		\
-+	ib_wc_status(REM_ACCESS_ERR)		\
-+	ib_wc_status(REM_OP_ERR)		\
-+	ib_wc_status(RETRY_EXC_ERR)		\
-+	ib_wc_status(RNR_RETRY_EXC_ERR)		\
-+	ib_wc_status(LOC_RDD_VIOL_ERR)		\
-+	ib_wc_status(REM_INV_RD_REQ_ERR)	\
-+	ib_wc_status(REM_ABORT_ERR)		\
-+	ib_wc_status(INV_EECN_ERR)		\
-+	ib_wc_status(INV_EEC_STATE_ERR)		\
-+	ib_wc_status(FATAL_ERR)			\
-+	ib_wc_status(RESP_TIMEOUT_ERR)		\
-+	ib_wc_status_end(GENERAL_ERR)
-+
-+#undef ib_wc_status
-+#undef ib_wc_status_end
-+
-+#define ib_wc_status(x)		TRACE_DEFINE_ENUM(IB_WC_##x);
-+#define ib_wc_status_end(x)	TRACE_DEFINE_ENUM(IB_WC_##x);
-+
-+IB_WC_STATUS_LIST
-+
-+#undef ib_wc_status
-+#undef ib_wc_status_end
-+
-+#define ib_wc_status(x)		{ IB_WC_##x, #x },
-+#define ib_wc_status_end(x)	{ IB_WC_##x, #x }
-+
-+#define rdma_show_wc_status(x) \
-+		__print_symbolic(x, IB_WC_STATUS_LIST)
-+
-+/*
-+ * enum rdma_cm_event_type, from include/rdma/rdma_cm.h
-+ */
-+#define RDMA_CM_EVENT_LIST			\
-+	rdma_cm_event(ADDR_RESOLVED)		\
-+	rdma_cm_event(ADDR_ERROR)		\
-+	rdma_cm_event(ROUTE_RESOLVED)		\
-+	rdma_cm_event(ROUTE_ERROR)		\
-+	rdma_cm_event(CONNECT_REQUEST)		\
-+	rdma_cm_event(CONNECT_RESPONSE)		\
-+	rdma_cm_event(CONNECT_ERROR)		\
-+	rdma_cm_event(UNREACHABLE)		\
-+	rdma_cm_event(REJECTED)			\
-+	rdma_cm_event(ESTABLISHED)		\
-+	rdma_cm_event(DISCONNECTED)		\
-+	rdma_cm_event(DEVICE_REMOVAL)		\
-+	rdma_cm_event(MULTICAST_JOIN)		\
-+	rdma_cm_event(MULTICAST_ERROR)		\
-+	rdma_cm_event(ADDR_CHANGE)		\
-+	rdma_cm_event_end(TIMEWAIT_EXIT)
-+
-+#undef rdma_cm_event
-+#undef rdma_cm_event_end
-+
-+#define rdma_cm_event(x)	TRACE_DEFINE_ENUM(RDMA_CM_EVENT_##x);
-+#define rdma_cm_event_end(x)	TRACE_DEFINE_ENUM(RDMA_CM_EVENT_##x);
-+
-+RDMA_CM_EVENT_LIST
-+
-+#undef rdma_cm_event
-+#undef rdma_cm_event_end
-+
-+#define rdma_cm_event(x)	{ RDMA_CM_EVENT_##x, #x },
-+#define rdma_cm_event_end(x)	{ RDMA_CM_EVENT_##x, #x }
-+
-+#define rdma_show_cm_event(x) \
-+		__print_symbolic(x, RDMA_CM_EVENT_LIST)
-
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
