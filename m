@@ -1,55 +1,33 @@
-From: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/2] libhns: Support cq record doorbell
-Date: Mon, 22 Jan 2018 22:01:32 +0800
-Message-ID: <1d95b4da-1cb8-e1ef-9c0e-4ac70a848d38@huawei.com>
-References: <1516242961-154453-1-git-send-email-liuyixian@huawei.com>
- <1516242961-154453-3-git-send-email-liuyixian@huawei.com>
- <20180118043717.GC8414@ziepe.ca>
- <9e577314-4fcb-45de-6909-d5b3be570196@huawei.com>
- <20180118161949.GA18973@ziepe.ca>
- <a33a1337-665f-4cd4-5b39-b12d9f03af72@huawei.com>
- <20180119200029.GD3437@ziepe.ca>
- <68e02f2a-0474-bc73-a784-fd52dbbde552@huawei.com>
- <20180121065727.GF1393@mtr-leonro.local>
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH v4 1/5] kobject: Export kobj_ns_grab_current() and
+ kobj_ns_drop()
+Date: Mon, 22 Jan 2018 16:02:26 +0100
+Message-ID: <20180122150226.GA23652@kroah.com>
+References: <20180116183945.30629-1-bart.vanassche@wdc.com>
+ <20180116183945.30629-2-bart.vanassche@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180121065727.GF1393-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180116183945.30629-2-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 2018/1/21 14:57, Leon Romanovsky wrote:
-> On Sat, Jan 20, 2018 at 07:41:03PM +0800, Liuyixian (Eason) wrote:
->>
+On Tue, Jan 16, 2018 at 10:39:41AM -0800, Bart Van Assche wrote:
+> Make it possible to call these two functions from a kernel module.
+> Note: despite their name, these two functions can be used meaningfully
+> independent of kobjects. A later patch will add calls to these
+> functions from the SRP driver because this patch series modifies the
+> SRP driver such that it can hold a reference to a namespace that can
+> last longer than the lifetime of the process through which the
+> namespace reference was obtained.
 > 
-> <...>
->>
->> With carefully release-management, there would be no compatibility problem
->> both for hip06 and hip08.
-> 
-> Sorry, for interrupting your discussion, but what does it mean "carefully
-> release-management"?
-> 
-> Thanks
-> 
+> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+> Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 
-Hi Leon,
-
-Here release-management mainly means that our driver (kernel and userspace)
-for hisilicon SoC is released progressively with linux kernel versions. Take
-hip08 for example, our first version Roce driver for hip08 appear in linux
-kernel 4.14, as more and more features are added in, some features may be
-supported only in 4.16. I call this process as a release-management for
-hisilicon SoC.
-
-Eason
-
+Acked-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
