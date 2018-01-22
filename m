@@ -1,57 +1,57 @@
-From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDS: Fix rds-ping inducing kernel panic
-Date: Mon, 22 Jan 2018 14:25:47 -0800
-Message-ID: <8cec0803-701a-be79-802d-bac2e84acbbd@oracle.com>
-References: <20180122112415.GA41074@beast>
- <2768ae2b-b7de-cf00-c599-4c164a6228be@oracle.com>
- <CAGXu5jKhPk2MPCvYCOTbcNs7vdej5iuzJbJ9tM92QqXc7MczUA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Subject: [PATCH v5 0/3] IB/srp patches for kernel v4.16
+Date: Mon, 22 Jan 2018 14:27:10 -0800
+Message-ID: <20180122222713.13197-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAGXu5jKhPk2MPCvYCOTbcNs7vdej5iuzJbJ9tM92QqXc7MczUA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-Cc: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sowmini Varadhan <sowmini.varadhan-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Steve Beattie <sbeattie-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>, Andy Whitcroft <apw-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Jay Fenlason <fenlason-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/22/2018 2:17 PM, Kees Cook wrote:
-> On Tue, Jan 23, 2018 at 4:01 AM, Santosh Shilimkar
-> <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->> On 1/22/2018 3:24 AM, Kees Cook wrote:
->>>
->>> As described in: https://bugzilla.redhat.com/show_bug.cgi?id=822754
->>>
->>> Attempting an RDS connection from the IP address of an IPoIB interface
->>> to itself causes a kernel panic due to a BUG_ON() being triggered.
->>> Making the test less strict allows rds-ping to work without crashing
->>> the machine.
->>>
->>> A local unprivileged user could use this flaw to crash the sytem.
->>>
->> Are you able to reproduce this issue on mainline kernel ?
->> IIRC, this sjouldn't happen anymore but if you see it, please
->> let me know. Will try it as well. rds-ping on self
->> loopback device is often tested and used as well for
->> monitoring services in production.
-> 
-> I don't have an RDS test setup, no. But it sounds like kernels without
-> this patch aren't seeing the problem.
->
-Yep. Thats what I thought and hence asked.
+Hello Jason and Doug,
 
->> Am not sure if its applicable anymore. Infact the issue with
->> loopback device was due to congestion update and thats been
->> already addressed with commit '18fc25c94: {rds: prevent BUG_ON
->> triggered on congestion update to loopback}'
-> 
-> That looks very much like it was fixed there. Thanks!
-> 
-Yeah. Thanks Kees !!
+The patches in this series add RDMA/CM support to the SRP initiator and also
+add a debug option. Please consider these patches for kernel v4.16.
 
-Regards,
-Santosh
+Thanks,
+
+Bart.
+
+Changes compared to v4:
+- Left out the patches that have already been queued for kernel v4.16.
+- Added Greg's ack to patch 1/3.
+- Added a third patch that adds the starget_can_queue login option.
+
+Changes compared to v3:
+- Moved a kobj_ns_drop() call inside an if-statement to keep the grab and put
+  ns calls balanced.
+
+Changes compared to v2:
+- Added a patch that exports kobj_ns_grab_current() and kobj_ns_drop().
+- Made the rdma_create_id() call also use the namespace of the process that
+  triggered SRP login. Added kobj_ns_grab_current() and kobj_ns_drop() calls
+  to the SRP initiator to ensure that that network namespace exists at least
+  as long as the SRP channel that is using it.
+
+Changes compared to v1:
+- Use the network namespace of the process that writes into the SRP sysfs login
+  attribute in rdma_create_id() and inet_pton_with_scope() calls.
+- Removed an irrelevant part from the RDMA/CM patch description.
+
+Bart Van Assche (3):
+  kobject: Export kobj_ns_grab_current() and kobj_ns_drop()
+  IB/srp: Add RDMA/CM support
+  IB/srp: Add target_can_queue login parameter
+
+ drivers/infiniband/ulp/srp/ib_srp.c | 723 ++++++++++++++++++++++++++++--------
+ drivers/infiniband/ulp/srp/ib_srp.h |  43 ++-
+ include/scsi/srp.h                  |  17 +
+ lib/kobject.c                       |   2 +
+ 4 files changed, 631 insertions(+), 154 deletions(-)
+
+-- 
+2.15.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
