@@ -1,57 +1,51 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH] RDS: Fix rds-ping inducing kernel panic
-Date: Mon, 22 Jan 2018 09:01:43 -0800
-Message-ID: <2768ae2b-b7de-cf00-c599-4c164a6228be@oracle.com>
+Date: Mon, 22 Jan 2018 09:04:28 -0800
+Message-ID: <2cf712c8-3c1f-17de-743f-0fe26331da2e@oracle.com>
 References: <20180122112415.GA41074@beast>
+ <20180122151054.GJ1393@mtr-leonro.local>
+ <20180122.104730.362327971778717733.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180122112415.GA41074@beast>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180122.104730.362327971778717733.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>
-Cc: Honggang Li <honli@redhat.com>, linux-kernel@vger.kernel.org, Sowmini Varadhan <sowmini.varadhan@oracle.com>, Steve Beattie <sbeattie@ubuntu.com>, Andy Whitcroft <apw@canonical.com>, "David S. Miller" <davem@davemloft.net>, Jay Fenlason <fenlason@redhat.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sowmini.varadhan-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, sbeattie-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org, apw-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, fenlason-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/22/2018 3:24 AM, Kees Cook wrote:
-> As described in: https://bugzilla.redhat.com/show_bug.cgi?id=822754
+On 1/22/2018 7:47 AM, David Miller wrote:
+> From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Date: Mon, 22 Jan 2018 17:10:54 +0200
 > 
-> Attempting an RDS connection from the IP address of an IPoIB interface
-> to itself causes a kernel panic due to a BUG_ON() being triggered.
-> Making the test less strict allows rds-ping to work without crashing
-> the machine.
+>> On Mon, Jan 22, 2018 at 03:24:15AM -0800, Kees Cook wrote:
+>>> diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
+>>> index 8557a1cae041..5fbf635d17cb 100644
+>>> --- a/net/rds/ib_send.c
+>>> +++ b/net/rds/ib_send.c
+>>> @@ -506,7 +506,7 @@ int rds_ib_xmit(struct rds_connection *conn, struct rds_message *rm,
+>>>   	int flow_controlled = 0;
+>>>   	int nr_sig = 0;
+>>>
+>>> -	BUG_ON(off % RDS_FRAG_SIZE);
+>>> +	BUG_ON(!conn->c_loopback && off % RDS_FRAG_SIZE);
+>>>   	BUG_ON(hdr_off != 0 && hdr_off != sizeof(struct rds_header));
+>>
+>> To be honest this function full of BUG_ONs and it looks fishy to have them there.
+>> Why don't we return EINVAL instead of crashing system?
 > 
-> A local unprivileged user could use this flaw to crash the sytem.
->
-Are you able to reproduce this issue on mainline kernel ?
-IIRC, this sjouldn't happen anymore but if you see it, please
-let me know. Will try it as well. rds-ping on self
-loopback device is often tested and used as well for
-monitoring services in production.
+> I completely agree that these assertions should just cause an error-out
+> rather than trigger a BUG().
 
-> I think this fix was written by Jay Fenlason <fenlason@redhat.com>,
-> and extracted from the RedHat kernel patches here:
-> 
-> https://oss.oracle.com/git/gitweb.cgi?p=redpatch.git;a=commitdiff;h=c7b6a0a1d8d636852be130fa15fa8be10d4704e8
->
-It was part of redhat patched kernel but not carried in shipping
-Oracle UEK kernels at least afaik.
-
-> This fix appears to have been carried by at least RedHat, Oracle, and
-> Ubuntu for several years.
->
-> CVE-2012-2372
-> 
-> Reported-by: Honggang Li <honli@redhat.com>
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-> ---
-> This is what I get for researching CVE lifetimes...
-Am not sure if its applicable anymore. Infact the issue with
-loopback device was due to congestion update and thats been
-already addressed with commit '18fc25c94: {rds: prevent BUG_ON
-triggered on congestion update to loopback}'
+Andy did remove bunch of them but there are still few more left overs.
+Will have a look at remainder set since most of them were added during
+early development and remained there. Thanks Dave/Leon.
 
 Regards,
 Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
