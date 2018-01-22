@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v5 2/8] RDMA/core: Save kernel caller name in PD and CQ objects
-Date: Mon, 22 Jan 2018 14:51:13 +0200
-Message-ID: <20180122125119.26419-3-leon@kernel.org>
+Subject: [PATCH rdma-next v5 7/8] RDMA/nldev: Provide global resource utilization
+Date: Mon, 22 Jan 2018 14:51:18 +0200
+Message-ID: <20180122125119.26419-8-leon@kernel.org>
 References: <20180122125119.26419-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180122125119.26419-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,114 +12,247 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The KBUILD_MODNAME variable contains the module name
-and it is known for kernel users during compilation,
-so let's reuse it to track the owners.
+Export through netlink interface, the global device utilization
+for the rdmatool as the main user of RDMA nldev interface.
 
+Provide both dumpit and doit callbacks.
+
+As an example of possible output from rdmatool for system with 5
+Mellanox's card
+
+$ rdma res
+1: mlx5_0: qp 4 cq 5 pd 3
+2: mlx5_1: qp 4 cq 5 pd 3
+3: mlx5_2: qp 4 cq 5 pd 3
+4: mlx5_3: qp 2 cq 3 pd 2
+5: mlx5_4: qp 4 cq 5 pd 3
+
+Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/cq.c    | 11 +++++++----
- drivers/infiniband/core/verbs.c |  1 +
- include/rdma/ib_verbs.h         | 13 +++++++++++--
- 3 files changed, 19 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/nldev.c  | 151 +++++++++++++++++++++++++++++++++++++++
+ include/uapi/rdma/rdma_netlink.h |  10 +++
+ 2 files changed, 161 insertions(+)
 
-diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
-index c8c5a5a7f433..f2bf51885094 100644
---- a/drivers/infiniband/core/cq.c
-+++ b/drivers/infiniband/core/cq.c
-@@ -120,20 +120,22 @@ static void ib_cq_completion_workqueue(struct ib_cq *cq, void *private)
- }
- 
- /**
-- * ib_alloc_cq - allocate a completion queue
-+ * __ib_alloc_cq - allocate a completion queue
-  * @dev:		device to allocate the CQ for
-  * @private:		driver private data, accessible from cq->cq_context
-  * @nr_cqe:		number of CQEs to allocate
-  * @comp_vector:	HCA completion vectors for this CQ
-  * @poll_ctx:		context to poll the CQ from.
-+ * @caller:		module owner name.
-  *
-  * This is the proper interface to allocate a CQ for in-kernel users. A
-  * CQ allocated with this interface will automatically be polled from the
-  * specified context. The ULP must use wr->wr_cqe instead of wr->wr_id
-  * to use this CQ abstraction.
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 5d790c507c7e..7bbd88a6b6a0 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -31,6 +31,8 @@
   */
--struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
--		int nr_cqe, int comp_vector, enum ib_poll_context poll_ctx)
-+struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private,
-+			    int nr_cqe, int comp_vector,
-+			    enum ib_poll_context poll_ctx, const char *caller)
- {
- 	struct ib_cq_init_attr cq_attr = {
- 		.cqe		= nr_cqe,
-@@ -151,6 +153,7 @@ struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
- 	cq->event_handler = NULL;
- 	cq->cq_context = private;
- 	cq->poll_ctx = poll_ctx;
-+	cq->caller = caller;
- 	atomic_set(&cq->usecnt, 0);
  
- 	cq->wc = kmalloc_array(IB_POLL_BATCH, sizeof(*cq->wc), GFP_KERNEL);
-@@ -185,7 +188,7 @@ struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
- 	cq->device->destroy_cq(cq);
- 	return ERR_PTR(ret);
- }
--EXPORT_SYMBOL(ib_alloc_cq);
-+EXPORT_SYMBOL(__ib_alloc_cq);
+ #include <linux/module.h>
++#include <linux/pid.h>
++#include <linux/pid_namespace.h>
+ #include <net/netlink.h>
+ #include <rdma/rdma_netlink.h>
  
- /**
-  * ib_free_cq - free a completion queue
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index e9c3991a93ff..098bde906dfd 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -252,6 +252,7 @@ struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
- 	pd->__internal_mr = NULL;
- 	atomic_set(&pd->usecnt, 0);
- 	pd->flags = flags;
-+	pd->caller = caller;
- 
- 	if (device->attrs.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
- 		pd->local_dma_lkey = device->local_dma_lkey;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 1c6e9f52f127..4cb18bcc2f34 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1530,6 +1530,7 @@ struct ib_pd {
- 	 * Implementation details of the RDMA core, don't use in drivers:
- 	 */
- 	struct ib_mr	       *__internal_mr;
-+	const char		*caller;
+@@ -52,6 +54,11 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+ 	[RDMA_NLDEV_ATTR_PORT_STATE]	= { .type = NLA_U8 },
+ 	[RDMA_NLDEV_ATTR_PORT_PHYS_STATE] = { .type = NLA_U8 },
+ 	[RDMA_NLDEV_ATTR_DEV_NODE_TYPE] = { .type = NLA_U8 },
++	[RDMA_NLDEV_ATTR_RES_SUMMARY]	= { .type = NLA_NESTED },
++	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY]	= { .type = NLA_NESTED },
++	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME] = { .type = NLA_NUL_STRING,
++					     .len = 16 },
++	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR] = { .type = NLA_U64 },
  };
  
- struct ib_xrcd {
-@@ -1570,6 +1571,10 @@ struct ib_cq {
- 		struct irq_poll		iop;
- 		struct work_struct	work;
- 	};
-+	/*
-+	 * Implementation details of the RDMA core, don't use in drivers:
-+	 */
-+	const char		*caller;
- };
- 
- struct ib_srq {
-@@ -3135,8 +3140,12 @@ static inline int ib_post_recv(struct ib_qp *qp,
- 	return qp->device->post_recv(qp, recv_wr, bad_recv_wr);
+ static int fill_nldev_handle(struct sk_buff *msg, struct ib_device *device)
+@@ -134,6 +141,65 @@ static int fill_port_info(struct sk_buff *msg,
+ 	return 0;
  }
  
--struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
--		int nr_cqe, int comp_vector, enum ib_poll_context poll_ctx);
-+struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private,
-+			    int nr_cqe, int comp_vector,
-+			    enum ib_poll_context poll_ctx, const char *caller);
-+#define ib_alloc_cq(device, priv, nr_cqe, comp_vect, poll_ctx) \
-+	__ib_alloc_cq((device), (priv), (nr_cqe), (comp_vect), (poll_ctx), KBUILD_MODNAME)
++static int fill_res_info_entry(struct sk_buff *msg,
++			       const char *name, u64 curr)
++{
++	struct nlattr *entry_attr;
 +
- void ib_free_cq(struct ib_cq *cq);
- int ib_process_cq_direct(struct ib_cq *cq, int budget);
++	entry_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY);
++	if (!entry_attr)
++		return -EMSGSIZE;
++
++	if (nla_put_string(msg, RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME, name))
++		goto err;
++	if (nla_put_u64_64bit(msg,
++			      RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR, curr, 0))
++		goto err;
++
++	nla_nest_end(msg, entry_attr);
++	return 0;
++
++err:
++	nla_nest_cancel(msg, entry_attr);
++	return -EMSGSIZE;
++}
++
++static int fill_res_info(struct sk_buff *msg, struct ib_device *device)
++{
++	static const char *names[RDMA_RESTRACK_MAX] = {
++		[RDMA_RESTRACK_PD] = "pd",
++		[RDMA_RESTRACK_CQ] = "cq",
++		[RDMA_RESTRACK_QP] = "qp",
++	};
++
++	struct rdma_restrack_root *res = &device->res;
++	struct nlattr *table_attr;
++	int ret, i, curr;
++
++	if (fill_nldev_handle(msg, device))
++		return -EMSGSIZE;
++
++	table_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_SUMMARY);
++	if (!table_attr)
++		return -EMSGSIZE;
++
++	for (i = 0; i < RDMA_RESTRACK_MAX; i++) {
++		if (!names[i])
++			continue;
++		curr = rdma_restrack_count(res, i, task_active_pid_ns(current));
++		ret = fill_res_info_entry(msg, names[i], curr);
++		if (ret)
++			goto err;
++	}
++
++	nla_nest_end(msg, table_attr);
++	return 0;
++
++err:
++	nla_nest_cancel(msg, table_attr);
++	return ret;
++}
++
+ static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			  struct netlink_ext_ack *extack)
+ {
+@@ -329,6 +395,87 @@ static int nldev_port_get_dumpit(struct sk_buff *skb,
+ 	return skb->len;
+ }
  
++static int nldev_res_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
++			      struct netlink_ext_ack *extack)
++{
++	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
++	struct ib_device *device;
++	struct sk_buff *msg;
++	u32 index;
++	int ret;
++
++	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
++			  nldev_policy, extack);
++	if (ret || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
++		return -EINVAL;
++
++	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
++	device = ib_device_get_by_index(index);
++	if (!device)
++		return -EINVAL;
++
++	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
++	if (!msg)
++		goto err;
++
++	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
++			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_GET),
++			0, 0);
++
++	ret = fill_res_info(msg, device);
++	if (ret)
++		goto err_free;
++
++	nlmsg_end(msg, nlh);
++	put_device(&device->dev);
++	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
++
++err_free:
++	nlmsg_free(msg);
++err:
++	put_device(&device->dev);
++	return ret;
++}
++
++static int _nldev_res_get_dumpit(struct ib_device *device,
++				 struct sk_buff *skb,
++				 struct netlink_callback *cb,
++				 unsigned int idx)
++{
++	int start = cb->args[0];
++	struct nlmsghdr *nlh;
++
++	if (idx < start)
++		return 0;
++
++	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
++			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_GET),
++			0, NLM_F_MULTI);
++
++	if (fill_res_info(skb, device)) {
++		nlmsg_cancel(skb, nlh);
++		goto out;
++	}
++
++	nlmsg_end(skb, nlh);
++
++	idx++;
++
++out:
++	cb->args[0] = idx;
++	return skb->len;
++}
++
++static int nldev_res_get_dumpit(struct sk_buff *skb,
++				struct netlink_callback *cb)
++{
++	/*
++	 * There is no need to take lock, because
++	 * we are relying on ib_core's lists_rwsem
++	 */
++	return ib_enum_all_devs(_nldev_res_get_dumpit, skb, cb);
++}
++
+ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
+ 	[RDMA_NLDEV_CMD_GET] = {
+ 		.doit = nldev_get_doit,
+@@ -338,6 +485,10 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
+ 		.doit = nldev_port_get_doit,
+ 		.dump = nldev_port_get_dumpit,
+ 	},
++	[RDMA_NLDEV_CMD_RES_GET] = {
++		.doit = nldev_res_get_doit,
++		.dump = nldev_res_get_dumpit,
++	},
+ };
+ 
+ void __init nldev_init(void)
+diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+index cc002e316d09..e0f5cdc81541 100644
+--- a/include/uapi/rdma/rdma_netlink.h
++++ b/include/uapi/rdma/rdma_netlink.h
+@@ -236,6 +236,11 @@ enum rdma_nldev_command {
+ 	RDMA_NLDEV_CMD_PORT_NEW,
+ 	RDMA_NLDEV_CMD_PORT_DEL,
+ 
++	RDMA_NLDEV_CMD_RES_GET, /* can dump */
++	RDMA_NLDEV_CMD_RES_SET,
++	RDMA_NLDEV_CMD_RES_NEW,
++	RDMA_NLDEV_CMD_RES_DEL,
++
+ 	RDMA_NLDEV_NUM_OPS
+ };
+ 
+@@ -303,6 +308,11 @@ enum rdma_nldev_attr {
+ 
+ 	RDMA_NLDEV_ATTR_DEV_NODE_TYPE,		/* u8 */
+ 
++	RDMA_NLDEV_ATTR_RES_SUMMARY,		/* nested table */
++	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY,	/* nested table */
++	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME,	/* string */
++	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR,	/* u64 */
++
+ 	RDMA_NLDEV_ATTR_MAX
+ };
+ #endif /* _UAPI_RDMA_NETLINK_H */
 -- 
 2.15.1
 
