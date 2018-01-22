@@ -1,74 +1,57 @@
-From: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [RFC rdma-core 2/2] verbs: Introduce non-contiguous memory
- registration
-Date: Mon, 22 Jan 2018 15:59:51 +0000
-Message-ID: <VI1PR05MB1278C4C4FF78B4B1A551252EB9EC0@VI1PR05MB1278.eurprd05.prod.outlook.com>
-References: <1515088046-26605-1-git-send-email-alexma@mellanox.com>
- <1515088046-26605-2-git-send-email-alexma@mellanox.com>
- <20180111122206.GB2800@yuvallap> <20180111164455.GA1309@ziepe.ca>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH] RDS: Fix rds-ping inducing kernel panic
+Date: Mon, 22 Jan 2018 09:01:43 -0800
+Message-ID: <2768ae2b-b7de-cf00-c599-4c164a6228be@oracle.com>
+References: <20180122112415.GA41074@beast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180111164455.GA1309-uk2M96/98Pc@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180122112415.GA41074@beast>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: netdev-owner@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>
+Cc: Honggang Li <honli@redhat.com>, linux-kernel@vger.kernel.org, Sowmini Varadhan <sowmini.varadhan@oracle.com>, Steve Beattie <sbeattie@ubuntu.com>, Andy Whitcroft <apw@canonical.com>, "David S. Miller" <davem@davemloft.net>, Jay Fenlason <fenlason@redhat.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Jason Gunthorpe
-> Sent: Thursday, January 11, 2018 6:45 PM
-> To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Cc: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [RFC rdma-core 2/2] verbs: Introduce non-contiguous memory
-> registration
->=20
-> On Thu, Jan 11, 2018 at 02:22:07PM +0200, Yuval Shaia wrote:
-> > > +The following code example demonstrates non-contiguous memory
-> > > +registration, by combining two contiguous regions, along with the
-> WR-based completion semantic:
-> > > +.PP
-> > > +.nf
-> > > +mr1 =3D ibv_reg_mr(pd, addr1, len1, 0); if (!mr1) {
-> > > +        fprintf(stderr, "Failed to create MR #1\en");
-> > > +        return 1;
-> > > +}
-> > > +
-> > > +mr2 =3D ibv_reg_mr(pd, addr2, len2, 0); if (!mr2) {
-> > > +        fprintf(stderr, "Failed to create MR #2\en");
-> > > +        return 1;
-> > > +}
-> >
-> > So, to register non-contiguous 512 random buffers i would have to
-> > create
-> > 512 MRs?
+On 1/22/2018 3:24 AM, Kees Cook wrote:
+> As described in: https://bugzilla.redhat.com/show_bug.cgi?id=822754
+> 
+> Attempting an RDS connection from the IP address of an IPoIB interface
+> to itself causes a kernel panic due to a BUG_ON() being triggered.
+> Making the test less strict allows rds-ping to work without crashing
+> the machine.
+> 
+> A local unprivileged user could use this flaw to crash the sytem.
+>
+Are you able to reproduce this issue on mainline kernel ?
+IIRC, this sjouldn't happen anymore but if you see it, please
+let me know. Will try it as well. rds-ping on self
+loopback device is often tested and used as well for
+monitoring services in production.
 
+> I think this fix was written by Jay Fenlason <fenlason@redhat.com>,
+> and extracted from the RedHat kernel patches here:
+> 
+> https://oss.oracle.com/git/gitweb.cgi?p=redpatch.git;a=commitdiff;h=c7b6a0a1d8d636852be130fa15fa8be10d4704e8
+>
+It was part of redhat patched kernel but not carried in shipping
+Oracle UEK kernels at least afaik.
 
-I think typically if you have a large amount of buffers - it would be locat=
-ed in fairly close proximity, so you'd prefer one MR to cover all of them a=
-nd the SGEs will only differ in base address.
+> This fix appears to have been carried by at least RedHat, Oracle, and
+> Ubuntu for several years.
+>
+> CVE-2012-2372
+> 
+> Reported-by: Honggang Li <honli@redhat.com>
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Kees Cook <keescook@chromium.org>
+> ---
+> This is what I get for researching CVE lifetimes...
+Am not sure if its applicable anymore. Infact the issue with
+loopback device was due to congestion update and thats been
+already addressed with commit '18fc25c94: {rds: prevent BUG_ON
+triggered on congestion update to loopback}'
 
-Are you proposing the function also replaces ibv_reg_mr() if the user passe=
-s multiple unregistered regions?
-I could see the benefit, but then we'd require additional parameters (i.e. =
-send_flags) and those MRs couldn't be reused (otherwise need to add output =
-pointers for resulting MRs).
-The benefit will probably not be latency, though, since IIRC the MR creatio=
-n can't really be parallelized.
-Yuval - are you aware of a scenario implementing a high amount of ibv_reg_m=
-r() calls?
-
->=20
-> That is a fair point - I wonder if some of these API should have an
-> option to accept a pointer directly? Maybe the driver requires a MR but
-> we don't need that as an the API?
->=20
-> Particularly the _sg one..
->=20
-> Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Santosh
