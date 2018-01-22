@@ -1,58 +1,47 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] net/mlx4_en: ensure rx_desc updating reaches HW before
- prod db updating
-Date: Mon, 22 Jan 2018 08:47:34 -0700
-Message-ID: <20180122154734.GD14372@ziepe.ca>
-References: <1515728542-3060-1-git-send-email-jianchao.w.wang@oracle.com>
- <339a7156-9ef1-1f3c-30b8-3cc3558d124e@mellanox.com>
- <1516552998.3478.5.camel@gmail.com>
- <460fca68-f8a8-e3c4-2e60-e90dc0e2f843@oracle.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 01/17] Update rdma/ib_user_verbs.h
+Date: Mon, 22 Jan 2018 17:56:52 +0200
+Message-ID: <8d1dbd62-f532-853c-cf57-418865e22b14@dev.mellanox.co.il>
+References: <20180111221340.965-1-jgg@ziepe.ca>
+ <20180111221340.965-2-jgg@ziepe.ca>
+ <fe2337a1-b02d-cc01-c55d-e6e493ec30ef@dev.mellanox.co.il>
+ <20180115171033.GA2206@ziepe.ca>
+ <c4ee82a7-f235-4370-cf64-d5c73a79bd1b@dev.mellanox.co.il>
+ <20180122154206.GC14372@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <460fca68-f8a8-e3c4-2e60-e90dc0e2f843@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "jianchao.wang" <jianchao.w.wang@oracle.com>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>, Tariq Toukan <tariqt@mellanox.com>, junxiao.bi@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180122154206.GC14372-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 22, 2018 at 10:40:53AM +0800, jianchao.wang wrote:
-> Hi Eric
+On 1/22/2018 5:42 PM, Jason Gunthorpe wrote:
+> On Mon, Jan 22, 2018 at 12:48:48PM +0200, Yishai Hadas wrote:
 > 
-> On 01/22/2018 12:43 AM, Eric Dumazet wrote:
-> > On Sun, 2018-01-21 at 18:24 +0200, Tariq Toukan wrote:
-> >>
-> >> On 21/01/2018 11:31 AM, Tariq Toukan wrote:
-> >>>
-> >>>
-> >>> On 19/01/2018 5:49 PM, Eric Dumazet wrote:
-> >>>> On Fri, 2018-01-19 at 23:16 +0800, jianchao.wang wrote:
-> >>>>> Hi Tariq
-> >>>>>
-> >>>>> Very sad that the crash was reproduced again after applied the patch.
-> >>
-> >> Memory barriers vary for different Archs, can you please share more 
-> >> details regarding arch and repro steps?
-> > 
-> > Yeah, mlx4 NICs in Google fleet receive trillions of packets per
-> > second, and we never noticed an issue.
-> > 
-> > Although we are using a slightly different driver, using order-0 pages
-> > and fast pages recycling.
-> > 
-> > 
-> The driver we use will will set the page reference count to (size of pages)/stride, the
-> pages will be freed by networking stack when the reference become zero, and the order-3
-> pages maybe allocated soon, this give NIC device a chance to corrupt the pages which have
->  been allocated by others, such as slab.
+>>> We could also switch to a more iproute like model where we just
+>>> unconditionally use our copies of the kernel headers..
+>>
+>> Are you referring to drop the cmake linux header check and always use a
+>> private copy of the latest kernel UAPI file in rdma-core ? it can make more
+>> sense comparing to current candidate code.
+> 
+> Yes
+> 
+>> It can reside in a folder named 'rdma' and not installed by rdma-core as
+>> applications don't use this file. If so we can drop the fixup file and its
+>> matching check.
+>>
+>> What do you think ?
+> 
+> It seems worth doing now, but not as part of this series
 
-But it looks like the wmb() is placed when stuffing new rx descriptors
-into the device - how can it prevent corruption of pages where
-ownership was transfered from device to the host? That sounds more like a
-rmb() is missing someplace to me...
-
-(Granted the missing wmb() is a bug, but it may not be fully solving this
- issue??)
-
-Jason
+OK, so let's go ahead, merge the series and do that just later with some 
+refactoring series to have the solution as part of this rdma-core release.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
