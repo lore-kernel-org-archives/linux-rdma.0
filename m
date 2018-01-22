@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v5 1/8] RDMA/core: Print caller name instead of function name
-Date: Mon, 22 Jan 2018 14:51:12 +0200
-Message-ID: <20180122125119.26419-2-leon@kernel.org>
+Subject: [PATCH rdma-next v5 6/8] RDMA/core: Add resource tracking for create and destroy PDs
+Date: Mon, 22 Jan 2018 14:51:17 +0200
+Message-ID: <20180122125119.26419-7-leon@kernel.org>
 References: <20180122125119.26419-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180122125119.26419-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,26 +12,51 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Reuse the name from the Kconfig to mark the caller.
+Track create and destroy operations of PD objects.
 
+Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- include/rdma/ib_verbs.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs_cmd.c | 2 ++
+ drivers/infiniband/core/verbs.c      | 4 ++++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5e32fe781ca3..1c6e9f52f127 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2858,7 +2858,7 @@ enum ib_pd_flags {
- struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
- 		const char *caller);
- #define ib_alloc_pd(device, flags) \
--	__ib_alloc_pd((device), (flags), __func__)
-+	__ib_alloc_pd((device), (flags), KBUILD_MODNAME)
- void ib_dealloc_pd(struct ib_pd *pd);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 3e95acd29de7..256934d1f64f 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -340,6 +340,8 @@ ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
+ 	uobj->object = pd;
+ 	memset(&resp, 0, sizeof resp);
+ 	resp.pd_handle = uobj->id;
++	pd->res.type = RDMA_RESTRACK_PD;
++	rdma_restrack_add(&pd->res);
  
- /**
+ 	if (copy_to_user(u64_to_user_ptr(cmd.response), &resp, sizeof resp)) {
+ 		ret = -EFAULT;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 91dd7ae7ea97..46c0ca991ba6 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -264,6 +264,9 @@ struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
+ 		mr_access_flags |= IB_ACCESS_REMOTE_READ | IB_ACCESS_REMOTE_WRITE;
+ 	}
+ 
++	pd->res.type = RDMA_RESTRACK_PD;
++	rdma_restrack_add(&pd->res);
++
+ 	if (mr_access_flags) {
+ 		struct ib_mr *mr;
+ 
+@@ -313,6 +316,7 @@ void ib_dealloc_pd(struct ib_pd *pd)
+ 	   requires the caller to guarantee we can't race here. */
+ 	WARN_ON(atomic_read(&pd->usecnt));
+ 
++	rdma_restrack_del(&pd->res);
+ 	/* Making delalloc_pd a void return is a WIP, no driver should return
+ 	   an error here. */
+ 	ret = pd->device->dealloc_pd(pd);
 -- 
 2.15.1
 
