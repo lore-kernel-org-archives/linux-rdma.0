@@ -1,61 +1,111 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: [PATCH] RDS: Fix rds-ping inducing kernel panic
-Date: Mon, 22 Jan 2018 03:24:15 -0800
-Message-ID: <20180122112415.GA41074@beast>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: Honggang Li <honli@redhat.com>, linux-kernel@vger.kernel.org, Sowmini Varadhan <sowmini.varadhan@oracle.com>, Steve Beattie <sbeattie@ubuntu.com>, Andy Whitcroft <apw@canonical.com>, "David S. Miller" <davem@davemloft.net>, Jay Fenlason <fenlason@redhat.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next v5 0/8] RDMA resource tracking
+Date: Mon, 22 Jan 2018 14:51:11 +0200
+Message-ID: <20180122125119.26419-1-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As described in: https://bugzilla.redhat.com/show_bug.cgi?id=822754
+Changelog:
+v4->v5:
+  * Rewrote logic to acquire kernel owners of PD and CQ objects
+  * Simplified interface.
+  * Added logic to return summary for all PID namespaces and not only
+    init PID namespace.
+  * Changed DB implementation from struct with arrays to be struct with
+    hash table.
+  * Moved to use SRCU per-hash table.
+  * Dropped RW semaphores in favor of mutex to protect linked lists.
+  * Dropped QP named annotation patch.
+  * Used SPDX licenses.
+v3->v4:
+  * Added Steve ROB tags.
+  * Updated restrack.h to be compatible with kernel-doc format
+  * Fixed bug when not all QPs (more than one netlink page) were
+    returned by netlink interface
+  * Removed "MAX" values from object summary. In followup patches,
+    I will eturn object summary per-namespace and not for init PID
+    namespace only. Max values can be seen with ibv_devinfo tool.
+  * Renamed "comm" to be kern_name.
+  * Fix spelling errors.
+v2->v3:
+  * Added support of PID namespaces.
+  * Rewrote rdma_restraack_add function to ensure that it won't
+    appear in lists before it is valid.
+  * Replace pid/task name caching logic to use task_struct instead.
+  * Removed report of name of task's for user space objects. Users
+    are expected to read it through /proc/PID/comm.
+v1->v2:
+ * Rebased on latest rdma/for-next
+ * Replaced mutex lock which protect linked lists to be RW semaphore.
+   It has no impact on current implementation, because there is only one
+   reader (nldev) and it is serialized. However better to be prepared
+   for multiple readers from the beginning.
+ * Added reinitialization next QP entry logic to ensure that it exists
+   and didn't vanish during fill_req_qp() work.
+v0->v1:
+ * Dropped RFC
+ * Separated to thre series, one for for-rc, and two for-next.
 
-Attempting an RDS connection from the IP address of an IPoIB interface
-to itself causes a kernel panic due to a BUG_ON() being triggered.
-Making the test less strict allows rds-ping to work without crashing
-the machine.
+-------
+The original goal of this series was to allow ability to view connection
+(QP) information about running processes, however I used this opportunity and
+created common infrastructure to track and report various resources. The report
+part is implemented in netlink (nldev), but smart ULPs can now create
+advanced usage models based on device utilization.
 
-A local unprivileged user could use this flaw to crash the sytem.
+The current implementation relies on one lock per-object per-device, so
+creation/destroying of various objects (CQ, PD, e.t.c) on various or the
+same devices doesn't interfere each with another.
 
-I think this fix was written by Jay Fenlason <fenlason@redhat.com>,
-and extracted from the RedHat kernel patches here:
+The data protection is performed with SRCU and its reader-writer model
+ensures that resource won't be destroyed till readers will finish their
+work.
 
-https://oss.oracle.com/git/gitweb.cgi?p=redpatch.git;a=commitdiff;h=c7b6a0a1d8d636852be130fa15fa8be10d4704e8
+Possible future work will include:
+ * Reducing number of locks in RDMA, because of SRCU.
+ * Converting CMA to be based completely on resource tracking.
+ * Addition of other objects and extending current to give full
+   and detailed state of the RDMA kernel stack.
+ * Replacing synchronize_srcu with call_srcu to make destroy flow
+   non-blocking.
+ * Provide reliable device reset flow, preserving resource creation ordering.
 
-This fix appears to have been carried by at least RedHat, Oracle, and
-Ubuntu for several years.
+	Thanks
+---------------------------------------
 
-CVE-2012-2372
+Leon Romanovsky (8):
+  RDMA/core: Print caller name instead of function name
+  RDMA/core: Save kernel caller name in PD and CQ objects
+  RDMA/restrack: Add general infrastructure to track RDMA resources
+  RDMA/core: Add resource tracking for create and destroy QPs
+  RDMA/core: Add resource tracking for create and destroy CQs
+  RDMA/core: Add resource tracking for create and destroy PDs
+  RDMA/nldev: Provide global resource utilization
+  RDMA/nldev: Provide detailed QP information
 
-Reported-by: Honggang Li <honli@redhat.com>
-Cc: stable@vger.kernel.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
-This is what I get for researching CVE lifetimes...
----
- net/rds/ib_send.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/Makefile           |   2 +-
+ drivers/infiniband/core/core_priv.h        |  21 ++
+ drivers/infiniband/core/cq.c               |  16 +-
+ drivers/infiniband/core/device.c           |   7 +
+ drivers/infiniband/core/nldev.c            | 364 +++++++++++++++++++++++++++++
+ drivers/infiniband/core/restrack.c         | 135 +++++++++++
+ drivers/infiniband/core/uverbs_cmd.c       |   7 +-
+ drivers/infiniband/core/uverbs_std_types.c |   3 +
+ drivers/infiniband/core/verbs.c            |  13 +-
+ include/rdma/ib_verbs.h                    |  27 ++-
+ include/rdma/restrack.h                    | 136 +++++++++++
+ include/uapi/rdma/rdma_netlink.h           |  55 +++++
+ 12 files changed, 773 insertions(+), 13 deletions(-)
+ create mode 100644 drivers/infiniband/core/restrack.c
+ create mode 100644 include/rdma/restrack.h
 
-diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
-index 8557a1cae041..5fbf635d17cb 100644
---- a/net/rds/ib_send.c
-+++ b/net/rds/ib_send.c
-@@ -506,7 +506,7 @@ int rds_ib_xmit(struct rds_connection *conn, struct rds_message *rm,
- 	int flow_controlled = 0;
- 	int nr_sig = 0;
- 
--	BUG_ON(off % RDS_FRAG_SIZE);
-+	BUG_ON(!conn->c_loopback && off % RDS_FRAG_SIZE);
- 	BUG_ON(hdr_off != 0 && hdr_off != sizeof(struct rds_header));
- 
- 	/* Do not send cong updates to IB loopback */
--- 
-2.7.4
+--
+2.15.1
 
-
--- 
-Kees Cook
-Pixel Security
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
