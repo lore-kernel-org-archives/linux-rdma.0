@@ -1,43 +1,37 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-core 01/17] Update rdma/ib_user_verbs.h
-Date: Mon, 22 Jan 2018 08:42:06 -0700
-Message-ID: <20180122154206.GC14372@ziepe.ca>
-References: <20180111221340.965-1-jgg@ziepe.ca>
- <20180111221340.965-2-jgg@ziepe.ca>
- <fe2337a1-b02d-cc01-c55d-e6e493ec30ef@dev.mellanox.co.il>
- <20180115171033.GA2206@ziepe.ca>
- <c4ee82a7-f235-4370-cf64-d5c73a79bd1b@dev.mellanox.co.il>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] RDS: Fix rds-ping inducing kernel panic
+Date: Mon, 22 Jan 2018 10:47:30 -0500 (EST)
+Message-ID: <20180122.104730.362327971778717733.davem@davemloft.net>
+References: <20180122112415.GA41074@beast>
+        <20180122151054.GJ1393@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <c4ee82a7-f235-4370-cf64-d5c73a79bd1b-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180122151054.GJ1393@mtr-leonro.local>
+Sender: linux-kernel-owner@vger.kernel.org
+To: leon@kernel.org
+Cc: keescook@chromium.org, santosh.shilimkar@oracle.com, honli@redhat.com, linux-kernel@vger.kernel.org, sowmini.varadhan@oracle.com, sbeattie@ubuntu.com, apw@canonical.com, fenlason@redhat.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 22, 2018 at 12:48:48PM +0200, Yishai Hadas wrote:
+From: Leon Romanovsky <leon@kernel.org>
+Date: Mon, 22 Jan 2018 17:10:54 +0200
 
-> >We could also switch to a more iproute like model where we just
-> >unconditionally use our copies of the kernel headers..
+> On Mon, Jan 22, 2018 at 03:24:15AM -0800, Kees Cook wrote:
+>> diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
+>> index 8557a1cae041..5fbf635d17cb 100644
+>> --- a/net/rds/ib_send.c
+>> +++ b/net/rds/ib_send.c
+>> @@ -506,7 +506,7 @@ int rds_ib_xmit(struct rds_connection *conn, struct rds_message *rm,
+>>  	int flow_controlled = 0;
+>>  	int nr_sig = 0;
+>>
+>> -	BUG_ON(off % RDS_FRAG_SIZE);
+>> +	BUG_ON(!conn->c_loopback && off % RDS_FRAG_SIZE);
+>>  	BUG_ON(hdr_off != 0 && hdr_off != sizeof(struct rds_header));
 > 
-> Are you referring to drop the cmake linux header check and always use a
-> private copy of the latest kernel UAPI file in rdma-core ? it can make more
-> sense comparing to current candidate code.
+> To be honest this function full of BUG_ONs and it looks fishy to have them there.
+> Why don't we return EINVAL instead of crashing system?
 
-Yes
-
-> It can reside in a folder named 'rdma' and not installed by rdma-core as
-> applications don't use this file. If so we can drop the fixup file and its
-> matching check.
->
-> What do you think ?
-
-It seems worth doing now, but not as part of this series
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I completely agree that these assertions should just cause an error-out
+rather than trigger a BUG().
