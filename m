@@ -1,37 +1,58 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] RDS: Fix rds-ping inducing kernel panic
-Date: Mon, 22 Jan 2018 10:47:30 -0500 (EST)
-Message-ID: <20180122.104730.362327971778717733.davem@davemloft.net>
-References: <20180122112415.GA41074@beast>
-        <20180122151054.GJ1393@mtr-leonro.local>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] net/mlx4_en: ensure rx_desc updating reaches HW before
+ prod db updating
+Date: Mon, 22 Jan 2018 08:47:34 -0700
+Message-ID: <20180122154734.GD14372@ziepe.ca>
+References: <1515728542-3060-1-git-send-email-jianchao.w.wang@oracle.com>
+ <339a7156-9ef1-1f3c-30b8-3cc3558d124e@mellanox.com>
+ <1516552998.3478.5.camel@gmail.com>
+ <460fca68-f8a8-e3c4-2e60-e90dc0e2f843@oracle.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180122151054.GJ1393@mtr-leonro.local>
+Content-Disposition: inline
+In-Reply-To: <460fca68-f8a8-e3c4-2e60-e90dc0e2f843@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: leon@kernel.org
-Cc: keescook@chromium.org, santosh.shilimkar@oracle.com, honli@redhat.com, linux-kernel@vger.kernel.org, sowmini.varadhan@oracle.com, sbeattie@ubuntu.com, apw@canonical.com, fenlason@redhat.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+To: "jianchao.wang" <jianchao.w.wang@oracle.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>, Tariq Toukan <tariqt@mellanox.com>, junxiao.bi@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leon@kernel.org>
-Date: Mon, 22 Jan 2018 17:10:54 +0200
-
-> On Mon, Jan 22, 2018 at 03:24:15AM -0800, Kees Cook wrote:
->> diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
->> index 8557a1cae041..5fbf635d17cb 100644
->> --- a/net/rds/ib_send.c
->> +++ b/net/rds/ib_send.c
->> @@ -506,7 +506,7 @@ int rds_ib_xmit(struct rds_connection *conn, struct rds_message *rm,
->>  	int flow_controlled = 0;
->>  	int nr_sig = 0;
->>
->> -	BUG_ON(off % RDS_FRAG_SIZE);
->> +	BUG_ON(!conn->c_loopback && off % RDS_FRAG_SIZE);
->>  	BUG_ON(hdr_off != 0 && hdr_off != sizeof(struct rds_header));
+On Mon, Jan 22, 2018 at 10:40:53AM +0800, jianchao.wang wrote:
+> Hi Eric
 > 
-> To be honest this function full of BUG_ONs and it looks fishy to have them there.
-> Why don't we return EINVAL instead of crashing system?
+> On 01/22/2018 12:43 AM, Eric Dumazet wrote:
+> > On Sun, 2018-01-21 at 18:24 +0200, Tariq Toukan wrote:
+> >>
+> >> On 21/01/2018 11:31 AM, Tariq Toukan wrote:
+> >>>
+> >>>
+> >>> On 19/01/2018 5:49 PM, Eric Dumazet wrote:
+> >>>> On Fri, 2018-01-19 at 23:16 +0800, jianchao.wang wrote:
+> >>>>> Hi Tariq
+> >>>>>
+> >>>>> Very sad that the crash was reproduced again after applied the patch.
+> >>
+> >> Memory barriers vary for different Archs, can you please share more 
+> >> details regarding arch and repro steps?
+> > 
+> > Yeah, mlx4 NICs in Google fleet receive trillions of packets per
+> > second, and we never noticed an issue.
+> > 
+> > Although we are using a slightly different driver, using order-0 pages
+> > and fast pages recycling.
+> > 
+> > 
+> The driver we use will will set the page reference count to (size of pages)/stride, the
+> pages will be freed by networking stack when the reference become zero, and the order-3
+> pages maybe allocated soon, this give NIC device a chance to corrupt the pages which have
+>  been allocated by others, such as slab.
 
-I completely agree that these assertions should just cause an error-out
-rather than trigger a BUG().
+But it looks like the wmb() is placed when stuffing new rx descriptors
+into the device - how can it prevent corruption of pages where
+ownership was transfered from device to the host? That sounds more like a
+rmb() is missing someplace to me...
+
+(Granted the missing wmb() is a bug, but it may not be fully solving this
+ issue??)
+
+Jason
