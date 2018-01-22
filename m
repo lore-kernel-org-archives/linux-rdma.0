@@ -1,54 +1,98 @@
 From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: [PATCH v5 0/3] IB/srp patches for kernel v4.16
-Date: Mon, 22 Jan 2018 14:27:10 -0800
-Message-ID: <20180122222713.13197-1-bart.vanassche@wdc.com>
+Subject: [PATCH v5 3/3] IB/srp: Add target_can_queue login parameter
+Date: Mon, 22 Jan 2018 14:27:13 -0800
+Message-ID: <20180122222713.13197-4-bart.vanassche@wdc.com>
+References: <20180122222713.13197-1-bart.vanassche@wdc.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180122222713.13197-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Jason and Doug,
+Although I'm not sure this parameter is useful for regular SRP users,
+setting this parameter to 1 has shown to be invaluable for testing the
+block layer core, SCSI core and device mapper queue running mechanisms.
 
-The patches in this series add RDMA/CM support to the SRP initiator and also
-add a debug option. Please consider these patches for kernel v4.16.
+Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 22 ++++++++++++++++++++++
+ drivers/infiniband/ulp/srp/ib_srp.h |  1 +
+ 2 files changed, 23 insertions(+)
 
-Thanks,
-
-Bart.
-
-Changes compared to v4:
-- Left out the patches that have already been queued for kernel v4.16.
-- Added Greg's ack to patch 1/3.
-- Added a third patch that adds the starget_can_queue login option.
-
-Changes compared to v3:
-- Moved a kobj_ns_drop() call inside an if-statement to keep the grab and put
-  ns calls balanced.
-
-Changes compared to v2:
-- Added a patch that exports kobj_ns_grab_current() and kobj_ns_drop().
-- Made the rdma_create_id() call also use the namespace of the process that
-  triggered SRP login. Added kobj_ns_grab_current() and kobj_ns_drop() calls
-  to the SRP initiator to ensure that that network namespace exists at least
-  as long as the SRP channel that is using it.
-
-Changes compared to v1:
-- Use the network namespace of the process that writes into the SRP sysfs login
-  attribute in rdma_create_id() and inet_pton_with_scope() calls.
-- Removed an irrelevant part from the RDMA/CM patch description.
-
-Bart Van Assche (3):
-  kobject: Export kobj_ns_grab_current() and kobj_ns_drop()
-  IB/srp: Add RDMA/CM support
-  IB/srp: Add target_can_queue login parameter
-
- drivers/infiniband/ulp/srp/ib_srp.c | 723 ++++++++++++++++++++++++++++--------
- drivers/infiniband/ulp/srp/ib_srp.h |  43 ++-
- include/scsi/srp.h                  |  17 +
- lib/kobject.c                       |   2 +
- 4 files changed, 631 insertions(+), 154 deletions(-)
-
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 6109f2e8f0f8..b48843833d69 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -3018,6 +3018,16 @@ static int srp_reset_host(struct scsi_cmnd *scmnd)
+ 	return srp_reconnect_rport(target->rport) == 0 ? SUCCESS : FAILED;
+ }
+ 
++static int srp_target_alloc(struct scsi_target *starget)
++{
++	struct Scsi_Host *shost = dev_to_shost(starget->dev.parent);
++	struct srp_target_port *target = host_to_target(shost);
++
++	if (target->target_can_queue)
++		starget->can_queue = target->target_can_queue;
++	return 0;
++}
++
+ static int srp_slave_alloc(struct scsi_device *sdev)
+ {
+ 	struct Scsi_Host *shost = sdev->host;
+@@ -3231,6 +3241,7 @@ static struct scsi_host_template srp_template = {
+ 	.module				= THIS_MODULE,
+ 	.name				= "InfiniBand SRP initiator",
+ 	.proc_name			= DRV_NAME,
++	.target_alloc			= srp_target_alloc,
+ 	.slave_alloc			= srp_slave_alloc,
+ 	.slave_configure		= srp_slave_configure,
+ 	.info				= srp_target_info,
+@@ -3398,6 +3409,7 @@ enum {
+ 	SRP_OPT_QUEUE_SIZE	= 1 << 14,
+ 	SRP_OPT_IP_SRC		= 1 << 15,
+ 	SRP_OPT_IP_DEST		= 1 << 16,
++	SRP_OPT_TARGET_CAN_QUEUE= 1 << 17,
+ };
+ 
+ static unsigned int srp_opt_mandatory[] = {
+@@ -3419,6 +3431,7 @@ static const match_table_t srp_opt_tokens = {
+ 	{ SRP_OPT_SERVICE_ID,		"service_id=%s"		},
+ 	{ SRP_OPT_MAX_SECT,		"max_sect=%d" 		},
+ 	{ SRP_OPT_MAX_CMD_PER_LUN,	"max_cmd_per_lun=%d" 	},
++	{ SRP_OPT_TARGET_CAN_QUEUE,	"target_can_queue=%d"	},
+ 	{ SRP_OPT_IO_CLASS,		"io_class=%x"		},
+ 	{ SRP_OPT_INITIATOR_EXT,	"initiator_ext=%s"	},
+ 	{ SRP_OPT_CMD_SG_ENTRIES,	"cmd_sg_entries=%u"	},
+@@ -3607,6 +3620,15 @@ static int srp_parse_options(struct net *net, const char *buf,
+ 			target->scsi_host->cmd_per_lun = token;
+ 			break;
+ 
++		case SRP_OPT_TARGET_CAN_QUEUE:
++			if (match_int(args, &token) || token < 1) {
++				pr_warn("bad max target_can_queue parameter '%s'\n",
++					p);
++				goto out;
++			}
++			target->target_can_queue = token;
++			break;
++
+ 		case SRP_OPT_IO_CLASS:
+ 			if (match_hex(args, &token)) {
+ 				pr_warn("bad IO class parameter '%s'\n", p);
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+index 911fc1582f61..a2706086b9c7 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.h
++++ b/drivers/infiniband/ulp/srp/ib_srp.h
+@@ -211,6 +211,7 @@ struct srp_target_port {
+ 	char			target_name[32];
+ 	unsigned int		scsi_id;
+ 	unsigned int		sg_tablesize;
++	unsigned int		target_can_queue;
+ 	int			mr_pool_size;
+ 	int			mr_per_cmd;
+ 	int			queue_size;
 -- 
 2.15.1
 
