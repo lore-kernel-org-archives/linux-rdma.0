@@ -1,47 +1,64 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH v3 00/13] Request for Comments on SoftiWarp
-Date: Tue, 23 Jan 2018 09:44:45 -0700
-Message-ID: <20180123164445.GD30670@ziepe.ca>
-References: <20180114223603.19961-1-bmt@zurich.ibm.com>
- <00fd01d39467$9bdde7f0$d399b7d0$@opengridcomputing.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v3 03/13] Attach/detach SoftiWarp to/from network and RDMA subsystem
+Date: Tue, 23 Jan 2018 10:58:01 -0600
+Message-ID: <011801d3946b$53ef0060$fbcd0120$@opengridcomputing.com>
+References: <20180114223603.19961-1-bmt@zurich.ibm.com> <20180114223603.19961-4-bmt@zurich.ibm.com> <00ff01d39467$f1f31b60$d5d95220$@opengridcomputing.com> <20180123164316.GC30670@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <00fd01d39467$9bdde7f0$d399b7d0$@opengridcomputing.com>
+In-Reply-To: <20180123164316.GC30670-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>
 Cc: 'Bernard Metzler' <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 23, 2018 at 10:31:24AM -0600, Steve Wise wrote:
-> > 
-> > This patch set contributes a new version of the SoftiWarp
-> > driver, as originally introduced Oct 6th, 2017.
-> > 
-> > Thank you all for the commments on my last submissiom. It
-> > was vey helpful and encouraging. I hereby re-send a SoftiWarp
-> > patch after taking all comments into account, I hope. Without
-> > introducing SoftiWarp (siw) again, let me fast forward
-> > to the changes made to the last submission:
-> > 
-> > 
-> > 1. Removed all kernel module parameters, as requested.
-> >    I am not completely happy yet with what came out of
-> >    that, since parameters like the name of interfaces
-> >    siw shall attach to,
 > 
-> Can configfs be used for this? I don't remember if that was discussed during
-> v2 review?  OR, the new rdma command that is part of iproute2 can be
-> extended.  It would use netlink messages to do the configuration.  Perhaps
-> Leon can comment on that when he gets time.  It could be extended to support
-> both rxe and siw.
+> On Tue, Jan 23, 2018 at 10:33:48AM -0600, Steve Wise wrote:
+> 
+> > > +/* Restrict usage of GSO, if hardware peer iwarp is unable to process
+> > > + * large packets. gso_seg_limit = 1 lets siw send only packets up to
+> > > + * one real MTU in size, but severly limits maximum bandwidth.
+> > > + * gso_seg_limit = 0 makes use of GSO (and more than doubles
+throughput
+> > > + * for large transfers).
+> > > + */
+> > > +const int gso_seg_limit;
+> > > +
+> >
+> > The GSO configuration needs to default to enable interoperation with all
+> > vendors (and comply with the RFCs).  So make it 1 please.
+> 
+> The thing we call GSO in the netstack should be totally transparent on
+> the wire, so at the very least this needs some additional elaboration.
+> 
 
-rdmatool command over rnetlink, supporting both rxe and siw.
+From: https://tools.ietf.org/html/rfc5041#section-5.2
 
-The child interface provided by iproute is not really suitable..
+"At the Data Source, the DDP layer MUST segment the data contained in
+   a ULP message into a series of DDP Segments, where each DDP Segment
+   contains a DDP Header and ULP Payload, and MUST be no larger than the
+   MULPDU value Advertised by the LLP."
 
-Jason
+Where MULDPDU is the maximum ULP PDU that will fit in the TCP MSS...
+
+> > Jason, would configfs be a reasonable way to allow tweaking these
+globals?
+> 
+> Why would we ever even bother to support a mode that is non-conformant
+> on the wire? Just remove it..
+
+For soft iwarp, the throughput is greatly increased with allowing these
+iWARP protocol PDUs to span many TCP segments.  So there could be an
+argument for leaving it as a knob for soft iwarp <-> soft iwarp
+configurations.  But IMO it needs to default to RFC compliance and
+interoperability with hw implementations.
+
+Steve.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
