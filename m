@@ -1,70 +1,92 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH iproute2-next v2 00/10] RDMA resource tracking
-Date: Tue, 23 Jan 2018 20:47:30 +0200
-Message-ID: <20180123184730.GX1393@mtr-leonro.local>
-References: <20180117100232.3155-1-leon@kernel.org>
- <f0ac1406-6ef4-cdcb-5a81-82c52e9d450d@gmail.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next] RDMA/srpt: Fix RCU debug build error
+Date: Tue, 23 Jan 2018 20:57:32 +0200
+Message-ID: <20180123185732.GA1393@mtr-leonro.local>
+References: <20180123115013.12213-1-leonro@mellanox.com>
+ <20180123152142.GB30619@mellanox.com>
+ <1516723456.3339.3.camel@wdc.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="/Rh48Y0bnrojh5Wm"
+        protocol="application/pgp-signature"; boundary="XLTQE3HqOi3RIrZG"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <f0ac1406-6ef4-cdcb-5a81-82c52e9d450d-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1516723456.3339.3.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Ahern <dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---/Rh48Y0bnrojh5Wm
-Content-Type: text/plain; charset=us-ascii
+--XLTQE3HqOi3RIrZG
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 23, 2018 at 11:33:55AM -0700, David Ahern wrote:
-> On 1/17/18 3:02 AM, Leon Romanovsky wrote:
+On Tue, Jan 23, 2018 at 04:04:17PM +0000, Bart Van Assche wrote:
+> On Tue, 2018-01-23 at 08:21 -0700, Jason Gunthorpe wrote:
+> > /*
+> >  * init_rcu_head_on_stack()/destroy_rcu_head_on_stack() are needed for =
+dynamic
+> >  * initialization and destruction of rcu_head on the stack. rcu_head st=
+ructures
+> >  * allocated dynamically in the heap or defined statically don't need a=
+ny
+> >  * initialization.
+> >  */
 > >
-> > David, Stephen,
+> > The commit that introduced init_rcu_head is
+> > 546a9d8519ed137b2804a3f5a3659003039dd49c which suggests it exists only
+> > to help the slab allocators, although curiously the allocators never
+> > call it these days..
 > >
-> > The kernel code is not accepted yet, but the interface and functionality
-> > of iproute2 stable enough and ready for review.
-> >
-> > iproute2 part:
-> > https://git.kernel.org/pub/scm/linux/kernel/git/leon/iproute2.git/log/?h=topic/resource-tracking-3
-> >
-> > kernel part:
-> > https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/log/?h=rn/restrack-v5
+> > Maybe Paul can confirm?
 >
-> BTW, I just remembered rdma tool is using libmnl and it has the same
-> problem devlink had -- old commands may not work as expected on newer
-> kernels as more RDMA_NLDEV_ATTR_ are added.
+> It would be great if Paul could provide feedback. The comment in
+> include/linux/rcupdate.h seems to contradict the following paragraph from
+> Documentation/RCU/Design/Requirements/Requirements.html for statically
+> allocated objects:
 >
-> Specifically, this check in rd_attr_cb:
-> 	if (mnl_attr_type_valid(attr, RDMA_NLDEV_ATTR_MAX) < 0)
-> 		return MNL_CB_ERROR;
+> 	The corresponding <tt>rcu_head</tt> structures that are
+> 	dynamically allocated are automatically tracked, but
+> 	<tt>rcu_head</tt> structures allocated on the stack
+> 	must be initialized with <tt>init_rcu_head_on_stack()</tt>
+> 	and cleaned up with <tt>destroy_rcu_head_on_stack()</tt>.
+> 	Similarly, statically allocated non-stack <tt>rcu_head</tt>
+> 	structures must be initialized with <tt>init_rcu_head()</tt>
+> 	and cleaned up with <tt>destroy_rcu_head()</tt>.
 
-Thanks, I'll take a look on the devlink implementation.
+Right, I missed it.
 
---/Rh48Y0bnrojh5Wm
+So how are we going to solve that rdma/for-next doesn't compile?
+
+Thanks
+
+>
+> Bart.N?????r??y????b?X??=C7=A7v?^?)=DE=BA{.n?+????{??=D9=9A?{ay?=1D=CA=87=
+=DA=99?,j=07??f???h???z?=1E?w???=0C???j:+v???w?j?m????=07????zZ+?????=DD=A2=
+j"??!
+
+--XLTQE3HqOi3RIrZG
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpng0IACgkQ5GN7iDZy
-WKe1IQ//a+Mdp5HO8xNDxCGxlnSRjr6QWvn61BXIAPr8Caf5RjbnfDa/Gk4yvHKx
-z83pGrpMGP0awUqB8RAa9KfgkfkIzzu6gLeJk5gD2JNA0rQnS3hpuYNvpsJuuxLM
-EvEXuPuR2cl+SMgQVZP+2KBqd1Nm4BFA1n1DCeavl7b7cIKg9zypwkr8VqHZUsJm
-QnlB91B/Hs2OHQXz63h5jIkKzjMXpDL4apFwRMxQ0BtcJ8GuWskZ69VgKFO4rBv/
-i+zSsgb8/44s5br3+CE7H0K1K+5BhNo9x/ZXSUpLM1FKhIonh3SgufY3uVjIL4TY
-6NdW0S3dKR1CPoXPJ6ASa0gK/MH+hj9IB26DWj2WFXdfWuuEr/TK9NLslI7P3TSF
-fUROCfIjv/xqCLnvwcT2T0SZTZlYbPG8R0OdlnaJTZJ0W1e4UP5UqzTz+CfkF+Ao
-m4F7uqbdAen946zdOkYagwAqcUnW/IDDPj4VUiOXnBa38Q/H0h5CATWs3pt67lRT
-Q+f2YQObjsk3B+12z1oTV+V0WFQekFeen+cy/qctQUoSaOTW6JzJQ8Yk1pPNjI6z
-y7qfI6TDMUnOWCaFg80TPJgLj+kOIoGEJ18rowgVwq4hym1dMLRECbjXxPEnEX8s
-yyaqiZYZmkv/qRvZt9tvf0C9jnFShPVtG99XneDpjaierjv2oBs=
-=tS4P
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpnhZwACgkQ5GN7iDZy
+WKdILxAArs4N0JJmCqNIgvSbUvQH6aa2yLPQzjNeROVfeXNfQDR58mqJlPvRLdIf
+DV2xrim53yP5B8vMMK+kPr7NEFRLVl+AfShXzwttCUUkSQcVAEM6U1+dfJnr5grU
+cogsBYUWajCao8cdPnnFD0Z06ng3EQlzQoWwm/F5gtkY+95HiH2DbtjZoND8OgkT
+Y/rOGcbKjPQ0PRJXuF56/lBsV8LbCvd9iLI111EpZLoIR2Gv0odwgPjiCo5IFiFn
+Cg5+vw1idNozrFwqJOYGYSgomf4tRmZsfZ4zJnqBs9TfNLHrpH/thmLQ85r/hUMu
+tmv1XNi9Nu/kRFV0dqiQzCAPAQLVcDyrpSXgNnABmZwp4UWdeD8v23/wbGUacGnC
+nAi+Rw9n06LVAyNtNPxkbPN9Wn145cpeYz1b5pWjgf3GA7C368F5VkgmnGEFR7l5
+ntewtLmV316PtXnWnvzo4+5KwXPwhqJsVwY8Byc5NXF1qnx2ho//NAdHbvX8PdxP
+C4L9m8gq02lCsXyuG9R+9qS/7qzzeGFVz6PiyPp5ni8K1/TIHqduSj/Kpm3/Le9q
+JF5WHgOebvDCbDexZDLIK05OVyGOt/C+M/cHfn9LKX7SHlhHPcKMO3ginn5Rc2Q0
+bpJOBUI4nQQNb7IFt9pT/7dGeNUHqZ6oZNyhVUhYWszKxa8a4eg=
+=r0mR
 -----END PGP SIGNATURE-----
 
---/Rh48Y0bnrojh5Wm--
+--XLTQE3HqOi3RIrZG--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
