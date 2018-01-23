@@ -1,90 +1,82 @@
 From: "Bernard Metzler" <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: [PATCH v3 03/13] Attach/detach SoftiWarp to/from network and RDMA
+Subject: RE: [PATCH v3 03/13] Attach/detach SoftiWarp to/from network and RDMA
  subsystem
-Date: Tue, 23 Jan 2018 17:21:54 +0000
-Message-ID: <OF19AC575F.7C7F1B2D-ON0025821E.005EB9EC-0025821E.005F63D2@notes.na.collabserv.com>
-References: <20180123164316.GC30670@ziepe.ca>,<20180114223603.19961-1-bmt@zurich.ibm.com>
+Date: Tue, 23 Jan 2018 17:23:31 +0000
+Message-ID: <OF34749881.4216E578-ON0025821E.005F897C-0025821E.005F8983@notes.na.collabserv.com>
+References: <011801d3946b$53ef0060$fbcd0120$@opengridcomputing.com>,<20180114223603.19961-1-bmt@zurich.ibm.com>
  <20180114223603.19961-4-bmt@zurich.ibm.com>
  <00ff01d39467$f1f31b60$d5d95220$@opengridcomputing.com>
+ <20180123164316.GC30670@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180123164316.GC30670-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <011801d3946b$53ef0060$fbcd0120$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
------Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote: -----
 
->To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
->Date: 01/23/2018 05:43PM
+---
+Bernard Metzler, PhD
+Tech. Leader High Performance I/O, Principal Research Staff
+IBM Zurich Research Laboratory
+Saeumerstrasse 4
+CH-8803 Rueschlikon, Switzerland
++41 44 724 8605
+
+-----"Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote: -----
+
+>To: "'Jason Gunthorpe'" <jgg-uk2M96/98Pc@public.gmane.org>
+>From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+>Date: 01/23/2018 05:58PM
 >Cc: "'Bernard Metzler'" <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>,
->linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->Subject: Re: [PATCH v3 03/13] Attach/detach SoftiWarp to/from network
+><linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+>Subject: RE: [PATCH v3 03/13] Attach/detach SoftiWarp to/from network
 >and RDMA subsystem
 >
->On Tue, Jan 23, 2018 at 10:33:48AM -0600, Steve Wise wrote:
->
->> > +/* Restrict usage of GSO, if hardware peer iwarp is unable to
->process
->> > + * large packets. gso_seg_limit = 1 lets siw send only packets
->up to
->> > + * one real MTU in size, but severly limits maximum bandwidth.
->> > + * gso_seg_limit = 0 makes use of GSO (and more than doubles
->throughput
->> > + * for large transfers).
->> > + */
->> > +const int gso_seg_limit;
->> > +
 >> 
->> The GSO configuration needs to default to enable interoperation
+>> On Tue, Jan 23, 2018 at 10:33:48AM -0600, Steve Wise wrote:
+>> 
+>> > > +/* Restrict usage of GSO, if hardware peer iwarp is unable to
+>process
+>> > > + * large packets. gso_seg_limit = 1 lets siw send only packets
+>up to
+>> > > + * one real MTU in size, but severly limits maximum bandwidth.
+>> > > + * gso_seg_limit = 0 makes use of GSO (and more than doubles
+>throughput
+>> > > + * for large transfers).
+>> > > + */
+>> > > +const int gso_seg_limit;
+>> > > +
+>> >
+>> > The GSO configuration needs to default to enable interoperation
 >with all
->> vendors (and comply with the RFCs).  So make it 1 please.
->
->The thing we call GSO in the netstack should be totally transparent
+>> > vendors (and comply with the RFCs).  So make it 1 please.
+>> 
+>> The thing we call GSO in the netstack should be totally transparent
 >on
->the wire, so at the very least this needs some additional
+>> the wire, so at the very least this needs some additional
 >elaboration.
+>> 
 >
->> Jason, would configfs be a reasonable way to allow tweaking these
->globals?
+>From:
+>https://urldefense.proofpoint.com/v2/url?u=https-3A__tools.ietf.org_h
+>tml_rfc5041-23section-2D5.2&d=DwICAg&c=jf_iaSHvJObTbx-siA1ZOg&r=2TaYX
+>Q0T-r8ZO1PP1alNwU_QJcRRLfmYTAgd3QCvqSc&m=maNYrMpuQjDoXG0NADT5M-LhIwmL
+>KrmFzWtWh4J3sAc&s=ZDYAQqhyaTuRtFqQpA95k0oT6ildygWkkmJ3fqIWNzU&e=
 >
->Why would we ever even bother to support a mode that is
->non-conformant
->on the wire? Just remove it..
->
+>"At the Data Source, the DDP layer MUST segment the data contained in
+>   a ULP message into a series of DDP Segments, where each DDP
+>Segment
+>   contains a DDP Header and ULP Payload, and MUST be no larger than
+>the
+>   MULPDU value Advertised by the LLP."
 
-siw as a software RDMA provider benefits from GSO alot.
-Building 8 frames with 8 headers and trailers brings max
-throughput down to some 3.5GB/s. Using GSO, and shipping
-64K we see 7.8GB/s or so. That's what TCP on the socket API
-has to offer.
+TCP advertises 64k on the kernel socket ;)
 
-Strictly speaking, siw reads the current segment size
-as it gets it from TCP. Older Chelsio adapters were able
-to process large packets, the latest HW is not it seems.
-
-I was thinking of leaving frame size as one MTU, but check
-if the peer (siw?) can handle more. There are sufficient
-spare bits in the MPA req/rep header to negotiate that,
-which shall be ignored by hardware ;)
-
-siw can never fully comply with what a hardware iwarp
-wants to get - it sits on top of a TCP stream. Under
-load, we see lots of frame fragmentation somewhere in
-the middle - sometimes just the header makes it glued
-after the trailer of the previous frame in one TCP
-segment, sometimes the wire-frame breaks in the middle
-of the data part, sometimes all data of a DDP frame are
-there, but the trailer checksum is still missing...the
-TCP send window is something siw cannot influence.
-
-Thanks,
-Bernard.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
