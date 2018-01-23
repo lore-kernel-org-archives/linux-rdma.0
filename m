@@ -1,66 +1,44 @@
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
 Subject: Re: [PATCH rdma-next] RDMA/srpt: Fix RCU debug build error
-Date: Tue, 23 Jan 2018 08:21:42 -0700
-Message-ID: <20180123152142.GB30619@mellanox.com>
+Date: Tue, 23 Jan 2018 16:04:17 +0000
+Message-ID: <1516723456.3339.3.camel@wdc.com>
 References: <20180123115013.12213-1-leonro@mellanox.com>
+         <20180123152142.GB30619@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180123115013.12213-1-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20180123152142.GB30619-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <7022C8ABFB27CB478C1CEAB249820F2F-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 23, 2018 at 01:50:13PM +0200, Leon Romanovsky wrote:
-> Combination of CONFIG_DEBUG_OBJECTS_RCU_HEAD=y and
-> CONFIG_INFINIBAND_SRPT=m produces the following build error.
-> 
-> ERROR: "init_rcu_head" [drivers/infiniband/ulp/srpt/ib_srpt.ko] undefined!
-> make[1]: *** [scripts/Makefile.modpost:92: __modpost] Error 1
-> make: *** [Makefile:1216: modules] Error 2
-> 
-> The reason to it that init_rcu_head() is not exported and not supposed
-> to be used in modules. The correct function to use is init_rcu_head_on_stack().
-> 
-> Fixes: 795bc112cd5a ("IB/srpt: Make it safe to use RCU for srpt_device.rch_list")
-> Fixes: a11253142e6d ("IB/srpt: Rework multi-channel support")
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->  drivers/infiniband/ulp/srpt/ib_srpt.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> index bf37816a1b12..65bbc3dbf0fd 100644
-> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> @@ -1950,7 +1950,7 @@ static struct srpt_nexus *srpt_get_nexus(struct srpt_port *sport,
->  			nexus = ERR_PTR(-ENOMEM);
->  			break;
->  		}
-> -		init_rcu_head(&tmp_nexus->rcu);
-> +		init_rcu_head_on_stack(&tmp_nexus->rcu);
-
-The comments for init_rcu_head_on_stack say it should only be used for
-stack allocations and tmp_nexus is not a stack allocation.
-
-Removing the init_rcu_head entirely seems like the right thing to do,
-and maybe that function is poorly named?
-
-/*
- * init_rcu_head_on_stack()/destroy_rcu_head_on_stack() are needed for dynamic
- * initialization and destruction of rcu_head on the stack. rcu_head structures
- * allocated dynamically in the heap or defined statically don't need any
- * initialization.
- */
-
-The commit that introduced init_rcu_head is
-546a9d8519ed137b2804a3f5a3659003039dd49c which suggests it exists only
-to help the slab allocators, although curiously the allocators never
-call it these days..
-
-Maybe Paul can confirm?
-
-Jason
+T24gVHVlLCAyMDE4LTAxLTIzIGF0IDA4OjIxIC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IC8qDQo+ICAqIGluaXRfcmN1X2hlYWRfb25fc3RhY2soKS9kZXN0cm95X3JjdV9oZWFkX29u
+X3N0YWNrKCkgYXJlIG5lZWRlZCBmb3IgZHluYW1pYw0KPiAgKiBpbml0aWFsaXphdGlvbiBhbmQg
+ZGVzdHJ1Y3Rpb24gb2YgcmN1X2hlYWQgb24gdGhlIHN0YWNrLiByY3VfaGVhZCBzdHJ1Y3R1cmVz
+DQo+ICAqIGFsbG9jYXRlZCBkeW5hbWljYWxseSBpbiB0aGUgaGVhcCBvciBkZWZpbmVkIHN0YXRp
+Y2FsbHkgZG9uJ3QgbmVlZCBhbnkNCj4gICogaW5pdGlhbGl6YXRpb24uDQo+ICAqLw0KPiANCj4g
+VGhlIGNvbW1pdCB0aGF0IGludHJvZHVjZWQgaW5pdF9yY3VfaGVhZCBpcw0KPiA1NDZhOWQ4NTE5
+ZWQxMzdiMjgwNGEzZjVhMzY1OTAwMzAzOWRkNDljIHdoaWNoIHN1Z2dlc3RzIGl0IGV4aXN0cyBv
+bmx5DQo+IHRvIGhlbHAgdGhlIHNsYWIgYWxsb2NhdG9ycywgYWx0aG91Z2ggY3VyaW91c2x5IHRo
+ZSBhbGxvY2F0b3JzIG5ldmVyDQo+IGNhbGwgaXQgdGhlc2UgZGF5cy4uDQo+IA0KPiBNYXliZSBQ
+YXVsIGNhbiBjb25maXJtPw0KDQpJdCB3b3VsZCBiZSBncmVhdCBpZiBQYXVsIGNvdWxkIHByb3Zp
+ZGUgZmVlZGJhY2suIFRoZSBjb21tZW50IGluDQppbmNsdWRlL2xpbnV4L3JjdXBkYXRlLmggc2Vl
+bXMgdG8gY29udHJhZGljdCB0aGUgZm9sbG93aW5nIHBhcmFncmFwaCBmcm9tDQpEb2N1bWVudGF0
+aW9uL1JDVS9EZXNpZ24vUmVxdWlyZW1lbnRzL1JlcXVpcmVtZW50cy5odG1sIGZvciBzdGF0aWNh
+bGx5DQphbGxvY2F0ZWQgb2JqZWN0czoNCg0KCVRoZSBjb3JyZXNwb25kaW5nIDx0dD5yY3VfaGVh
+ZDwvdHQ+IHN0cnVjdHVyZXMgdGhhdCBhcmUNCglkeW5hbWljYWxseSBhbGxvY2F0ZWQgYXJlIGF1
+dG9tYXRpY2FsbHkgdHJhY2tlZCwgYnV0DQoJPHR0PnJjdV9oZWFkPC90dD4gc3RydWN0dXJlcyBh
+bGxvY2F0ZWQgb24gdGhlIHN0YWNrDQoJbXVzdCBiZSBpbml0aWFsaXplZCB3aXRoIDx0dD5pbml0
+X3JjdV9oZWFkX29uX3N0YWNrKCk8L3R0Pg0KCWFuZCBjbGVhbmVkIHVwIHdpdGggPHR0PmRlc3Ry
+b3lfcmN1X2hlYWRfb25fc3RhY2soKTwvdHQ+Lg0KCVNpbWlsYXJseSwgc3RhdGljYWxseSBhbGxv
+Y2F0ZWQgbm9uLXN0YWNrIDx0dD5yY3VfaGVhZDwvdHQ+DQoJc3RydWN0dXJlcyBtdXN0IGJlIGlu
+aXRpYWxpemVkIHdpdGggPHR0PmluaXRfcmN1X2hlYWQoKTwvdHQ+DQoJYW5kIGNsZWFuZWQgdXAg
+d2l0aCA8dHQ+ZGVzdHJveV9yY3VfaGVhZCgpPC90dD4uDQoNCkJhcnQu
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
