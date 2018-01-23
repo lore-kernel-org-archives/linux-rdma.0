@@ -1,64 +1,87 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v3 05/13] SoftiWarp application interface
-Date: Tue, 23 Jan 2018 12:12:51 -0600
-Message-ID: <015901d39475$c8407bb0$58c17310$@opengridcomputing.com>
-References: <012901d3946e$41044a70$c30cdf50$@opengridcomputing.com>,<20180114223603.19961-1-bmt@zurich.ibm.com> <20180114223603.19961-6-bmt@zurich.ibm.com> <OF7390EC15.6C2741F2-ON0025821E.0062D222-0025821E.00639402@notes.na.collabserv.com>
+From: "Bernard Metzler" <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: RE: [PATCH v3 03/13] Attach/detach SoftiWarp to/from network and RDMA
+ subsystem
+Date: Tue, 23 Jan 2018 18:21:49 +0000
+Message-ID: <OF0FDD802E.65305979-ON0025821E.0064995D-0025821E.0064E031@notes.na.collabserv.com>
+References: <014c01d39473$536ba5f0$fa42f1d0$@opengridcomputing.com>,<20180114223603.19961-1-bmt@zurich.ibm.com>
+ <20180114223603.19961-4-bmt@zurich.ibm.com>
+ <00ff01d39467$f1f31b60$d5d95220$@opengridcomputing.com>
+ <20180123164316.GC30670@ziepe.ca>
+ <011801d3946b$53ef0060$fbcd0120$@opengridcomputing.com>
+ <20180123170517.GE30670@ziepe.ca>
+ <013a01d3946f$034683f0$09d38bd0$@opengridcomputing.com>
+ <20180123172830.GF30670@ziepe.ca>
+ <014501d39471$84cdee20$8e69ca60$@opengridcomputing.com>
+ <20180123174758.GH30670@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <OF7390EC15.6C2741F2-ON0025821E.0062D222-0025821E.00639402-8eTO7WVQ4XIsd+ienQ86orlN3bxYEBpz@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <014c01d39473$536ba5f0$fa42f1d0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Bernard Metzler' <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> >The rdma provider must ensure that event upcalls are serialized per
-> >object.
-> >Is this being done somewhere?  See "Callbacks" in
-> >Documentation/infiniband/core_locking.txt.
-> >
-> 
-> That says, if multiple QP's etc. contribute to a CQ, only one
-> CQ event handler is allowed to run? That's not there, I would have
-> to make a lock around...
 
-Correct.  Basically, for a given CQ object, the driver can only have a single outstanding call to the ULP's event handler for that CQ at any point in time.  
+-----"Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote: -----
 
-...
+>To: "'Jason Gunthorpe'" <jgg-uk2M96/98Pc@public.gmane.org>
+>From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+>Date: 01/23/2018 06:55PM
+>Cc: "'Bernard Metzler'" <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>,
+><linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+>Subject: RE: [PATCH v3 03/13] Attach/detach SoftiWarp to/from network
+>and RDMA subsystem
+>
+>> 
+>> On Tue, Jan 23, 2018 at 11:42:20AM -0600, Steve Wise wrote:
+>> 
+>> > Since the iwarp protocols run on top of TCP/IP, there is always
+>the case
+>> > that some middle box resegments tcp segments differently, so a
+>good
+>iwarp
+>> HW
+>> > implementation should deal with funny alignments, partial iWARP
+>PDUs
+>> > arriving, etc.   But the RFCs, as I read them, want
+>implementations to
+>try
+>> > "really hard" to avoid spanning an iWARP PDU across many TCP
+>segments.
+>> And
+>> > I think siw should do the same, by default.
+>> 
+>> But Bernard just said siw doesn't interoperate in certain cases
+>> because of this - so that sounds like more than 'try really hard'
+>??
+>> 
+>> Or is that an overstatement and it just makes the rx side slower if
+>> segmentation is not optimal?
+>
+>Creating 64K iWARP PDUs causes interoperability problems.  If siw
+>builds
+>iWARP PDUs that fit within the TCP wire MSS, then these problems are
+>avoided, and siw becomes more spec compliant.  If the iWARP PDUs are
+>built
+>this way, then nothing the tcp stack does will cause problems other
+>than
+>slow down things.
+>
+Right. It's just the slowdown what hurts me. But it may improve the
+need to buy real iWarp HW for good performance ;)
 
-> >> +	/*
-> >> +	 * Try to acquire QP state lock. Must be non-blocking
-> >> +	 * to accommodate kernel clients needs.
-> >> +	 */
-> >> +	if (!down_read_trylock(&qp->state_lock)) {
-> >> +		*bad_wr = wr;
-> >> +		return -ENOTCONN;
-> >> +	}
-> >> +
-> >
-> >Under what conditions does down_read_trylock() return 0?  This seems
-> >like a
-> >kernel ULP that has multiple threads posting to the sq might get an
-> >error
-> >due to lock contention?
-> 
-> This lock is only taken if the QP is to be transitioned into
-> another state. If we are here, we assume to be in RTS state.
-> If the lock is not available, someone else just moves the QP out
-> of RTS and we should not do much here.
-> 
+See, I came for the other side looking at that - how to make best
+use of kernel services, if I anyway cannot completely control the wire
+shape of the frames I push. But I understand that some HW cannot 
+deal with it.
 
-Ah, I see.
-
-> We do trylock() since we cannot sleep in some of our contexts...
-> 
-
-Right.
-
-
+Same is true for small messages. if siw puts one 8 byte payload packet
+in one TCP frame, we end up with 350k IOPs. If we allow to pull
+multiple of it into one frame, if the send queue has more work to do,
+it goes much higher, and we avoid much extra delay.
+I recently removed that optimization, just to avoid discussion on it.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
