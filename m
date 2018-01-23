@@ -1,96 +1,53 @@
-From: "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
 Subject: Re: [PATCH rdma-next] RDMA/srpt: Fix RCU debug build error
-Date: Tue, 23 Jan 2018 14:50:54 -0800
-Message-ID: <20180123225054.GK3741@linux.vnet.ibm.com>
+Date: Tue, 23 Jan 2018 22:59:30 +0000
+Message-ID: <1516748369.3339.59.camel@wdc.com>
 References: <20180123115013.12213-1-leonro@mellanox.com>
- <20180123152142.GB30619@mellanox.com>
- <1516723456.3339.3.camel@wdc.com>
- <20180123220337.GE3741@linux.vnet.ibm.com>
- <1516746545.3339.46.camel@wdc.com>
-Reply-To: paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+         <20180123152142.GB30619@mellanox.com> <1516723456.3339.3.camel@wdc.com>
+         <20180123220337.GE3741@linux.vnet.ibm.com>
+         <1516746545.3339.46.camel@wdc.com>
+         <20180123225054.GK3741@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1516746545.3339.46.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <20180123225054.GK3741-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
+Content-ID: <7985620F31662C4EB61E978133C709B9-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+To: "paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Cc: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 23, 2018 at 10:29:06PM +0000, Bart Van Assche wrote:
-> On Tue, 2018-01-23 at 14:03 -0800, Paul E. McKenney wrote:
-> > On Tue, Jan 23, 2018 at 04:04:17PM +0000, Bart Van Assche wrote:
-> > > It would be great if Paul could provide feedback. The comment in
-> > > include/linux/rcupdate.h seems to contradict the following paragraph from
-> > > Documentation/RCU/Design/Requirements/Requirements.html for statically
-> > > allocated objects:
-> > > 
-> > > 	The corresponding <tt>rcu_head</tt> structures that are
-> > > 	dynamically allocated are automatically tracked, but
-> > > 	<tt>rcu_head</tt> structures allocated on the stack
-> > > 	must be initialized with <tt>init_rcu_head_on_stack()</tt>
-> > > 	and cleaned up with <tt>destroy_rcu_head_on_stack()</tt>.
-> > > 	Similarly, statically allocated non-stack <tt>rcu_head</tt>
-> > > 	structures must be initialized with <tt>init_rcu_head()</tt>
-> > > 	and cleaned up with <tt>destroy_rcu_head()</tt>.
-> > 
-> > And this is the intent.  What breaks when you do that?
-> 
-> Hello Paul,
-> 
-> I inserted a init_rcu_head() call in the ib_srpt driver for a dynamically
-> allocated object and that triggers a linker error with
-> CONFIG_DEBUG_OBJECTS_RCU_HEAD=y. I just verified that the ib_srpt driver still
-> works fine if the init_rcu_head() calls are removed from that driver. However,
-> the following part of the comment in include/linux/rcupdate.h above
-> init_rcu_head() seems confusing to me: "rcu_head structures allocated
-> dynamically in the heap or defined statically don't need any initialization."
-> Should that comment perhaps be updated such that it matches
-> Documentation/RCU/Design/Requirements/Requirements.html?
-
-Good catch!!!  How about the patch below?
-
-							Thanx, Paul
-
-------------------------------------------------------------------------
-
-commit 2ccdd2a8f0ba33b71dab24da408fda79ed2ee063
-Author: Paul E. McKenney <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Date:   Tue Jan 23 14:48:33 2018 -0800
-
-    rcu: Fix init_rcu_head() comment.
-    
-    The current (and implicit) comment header for init_rcu_head() and
-    destroy_rcu_head() incorrectly says that they are not needed for
-    statically allocated rcu_head structures.  This commit therefore
-    fixes this comment.
-    
-    Reported-by: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-    Signed-off-by: Paul E. McKenney <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-
-diff --git a/include/linux/rcupdate.h b/include/linux/rcupdate.h
-index 043d04784675..36360d07f25b 100644
---- a/include/linux/rcupdate.h
-+++ b/include/linux/rcupdate.h
-@@ -214,10 +214,12 @@ do { \
- #endif
- 
- /*
-- * init_rcu_head_on_stack()/destroy_rcu_head_on_stack() are needed for dynamic
-- * initialization and destruction of rcu_head on the stack. rcu_head structures
-- * allocated dynamically in the heap or defined statically don't need any
-- * initialization.
-+ * The init_rcu_head_on_stack() and destroy_rcu_head_on_stack() calls
-+ * are needed for dynamic initialization and destruction of rcu_head
-+ * on the stack, and init_rcu_head()/destroy_rcu_head() are needed for
-+ * dynamic initialization and destruction of statically allocated rcu_head
-+ * structures.  However, rcu_head structures allocated dynamically in the
-+ * heap don't need any initialization.
-  */
- #ifdef CONFIG_DEBUG_OBJECTS_RCU_HEAD
- void init_rcu_head(struct rcu_head *head);
-
+T24gVHVlLCAyMDE4LTAxLTIzIGF0IDE0OjUwIC0wODAwLCBQYXVsIEUuIE1jS2VubmV5IHdyb3Rl
+Og0KPiANCj4gICAgIHJjdTogRml4IGluaXRfcmN1X2hlYWQoKSBjb21tZW50Lg0KPiAgICAgDQo+
+ICAgICBUaGUgY3VycmVudCAoYW5kIGltcGxpY2l0KSBjb21tZW50IGhlYWRlciBmb3IgaW5pdF9y
+Y3VfaGVhZCgpIGFuZA0KPiAgICAgZGVzdHJveV9yY3VfaGVhZCgpIGluY29ycmVjdGx5IHNheXMg
+dGhhdCB0aGV5IGFyZSBub3QgbmVlZGVkIGZvcg0KPiAgICAgc3RhdGljYWxseSBhbGxvY2F0ZWQg
+cmN1X2hlYWQgc3RydWN0dXJlcy4gIFRoaXMgY29tbWl0IHRoZXJlZm9yZQ0KPiAgICAgZml4ZXMg
+dGhpcyBjb21tZW50Lg0KPiAgICAgDQo+ICAgICBSZXBvcnRlZC1ieTogQmFydCBWYW4gQXNzY2hl
+IDxCYXJ0LlZhbkFzc2NoZUB3ZGMuY29tPg0KPiAgICAgU2lnbmVkLW9mZi1ieTogUGF1bCBFLiBN
+Y0tlbm5leSA8cGF1bG1ja0BsaW51eC52bmV0LmlibS5jb20+DQo+IA0KPiBkaWZmIC0tZ2l0IGEv
+aW5jbHVkZS9saW51eC9yY3VwZGF0ZS5oIGIvaW5jbHVkZS9saW51eC9yY3VwZGF0ZS5oDQo+IGlu
+ZGV4IDA0M2QwNDc4NDY3NS4uMzYzNjBkMDdmMjViIDEwMDY0NA0KPiAtLS0gYS9pbmNsdWRlL2xp
+bnV4L3JjdXBkYXRlLmgNCj4gKysrIGIvaW5jbHVkZS9saW51eC9yY3VwZGF0ZS5oDQo+IEBAIC0y
+MTQsMTAgKzIxNCwxMiBAQCBkbyB7IFwNCj4gICNlbmRpZg0KPiAgDQo+ICAvKg0KPiAtICogaW5p
+dF9yY3VfaGVhZF9vbl9zdGFjaygpL2Rlc3Ryb3lfcmN1X2hlYWRfb25fc3RhY2soKSBhcmUgbmVl
+ZGVkIGZvciBkeW5hbWljDQo+IC0gKiBpbml0aWFsaXphdGlvbiBhbmQgZGVzdHJ1Y3Rpb24gb2Yg
+cmN1X2hlYWQgb24gdGhlIHN0YWNrLiByY3VfaGVhZCBzdHJ1Y3R1cmVzDQo+IC0gKiBhbGxvY2F0
+ZWQgZHluYW1pY2FsbHkgaW4gdGhlIGhlYXAgb3IgZGVmaW5lZCBzdGF0aWNhbGx5IGRvbid0IG5l
+ZWQgYW55DQo+IC0gKiBpbml0aWFsaXphdGlvbi4NCj4gKyAqIFRoZSBpbml0X3JjdV9oZWFkX29u
+X3N0YWNrKCkgYW5kIGRlc3Ryb3lfcmN1X2hlYWRfb25fc3RhY2soKSBjYWxscw0KPiArICogYXJl
+IG5lZWRlZCBmb3IgZHluYW1pYyBpbml0aWFsaXphdGlvbiBhbmQgZGVzdHJ1Y3Rpb24gb2YgcmN1
+X2hlYWQNCj4gKyAqIG9uIHRoZSBzdGFjaywgYW5kIGluaXRfcmN1X2hlYWQoKS9kZXN0cm95X3Jj
+dV9oZWFkKCkgYXJlIG5lZWRlZCBmb3INCj4gKyAqIGR5bmFtaWMgaW5pdGlhbGl6YXRpb24gYW5k
+IGRlc3RydWN0aW9uIG9mIHN0YXRpY2FsbHkgYWxsb2NhdGVkIHJjdV9oZWFkDQo+ICsgKiBzdHJ1
+Y3R1cmVzLiAgSG93ZXZlciwgcmN1X2hlYWQgc3RydWN0dXJlcyBhbGxvY2F0ZWQgZHluYW1pY2Fs
+bHkgaW4gdGhlDQo+ICsgKiBoZWFwIGRvbid0IG5lZWQgYW55IGluaXRpYWxpemF0aW9uLg0KPiAg
+ICovDQo+ICAjaWZkZWYgQ09ORklHX0RFQlVHX09CSkVDVFNfUkNVX0hFQUQNCj4gIHZvaWQgaW5p
+dF9yY3VfaGVhZChzdHJ1Y3QgcmN1X2hlYWQgKmhlYWQpOw0KDQpUaGFua3MhDQoNCkZlZWwgZnJl
+ZSB0byBhZGQ6DQoNClJldmlld2VkLWJ5OiBCYXJ0IFZhbiBBc3NjaGUgPGJhcnQudmFuYXNzY2hl
+QHdkYy5jb20+DQoNCg0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
