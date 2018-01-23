@@ -1,75 +1,66 @@
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: [PATCH] IB/mthca: Fix how mthca_map_user_db() calls gup
-Date: Tue, 23 Jan 2018 12:54:59 -0800
-Message-ID: <20180123205459.432-1-dave@stgolabs.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com, roland@purestorage.com, linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, dave@stgolabs.net, Davidlohr Bueso <dbueso@suse.de>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH v5 0/3] IB/srp patches for kernel v4.16
+Date: Tue, 23 Jan 2018 21:35:05 +0000
+Message-ID: <1516743303.3339.36.camel@wdc.com>
+References: <20180122222713.13197-1-bart.vanassche@wdc.com>
+         <1516727351.27592.46.camel@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1516727351.27592.46.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <65DEA1DF1CE3F24990C65A4C505FD662-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-mthca_map_user_db() has two problems regarding the call to
-get_user_pages():
-
-(i) It is not done under mmap_sem.
-
-(ii) It is done under the db_table mutex, which protects all
-database related operations. Should any of these be called
-under mmap_sem, we get an ABBA deadlock. In addition, gup can
-be performance intensive, which could contend other mapping/
-unmapping ops.
-
-To fix this, we can drop the mutex while doing a gup_fast(),
-once done, recheck to see the page was mapped while we didn't
-hold the mutex, and exit out with the corresponding housekeeping.
-
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
----
-
-- Compile tested only.
-
-- Should I be wrong about no callers already holding mmap_sem,
-  I still think calling gup without the mutex makes sense for
-  improved paralellism. Now, if callers can hold the mmap_sem,
-  it's wrong to do copy_from_user right before calling mthca_map_user_db.
-
-
- drivers/infiniband/hw/mthca/mthca_memfree.c | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
-index c6fe89d79248..046871878a02 100644
---- a/drivers/infiniband/hw/mthca/mthca_memfree.c
-+++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
-@@ -472,9 +472,27 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
- 		goto out;
- 	}
- 
--	ret = get_user_pages(uaddr & PAGE_MASK, 1, FOLL_WRITE, pages, NULL);
-+	mutex_unlock(&db_tab->mutex);
-+
-+	ret = get_user_pages_fast(uaddr & PAGE_MASK, 1, FOLL_WRITE, pages);
- 	if (ret < 0)
-+		return ret;
-+
-+	mutex_lock(&db_tab->mutex);
-+
-+	if (db_tab->page[i].refcount >= MTHCA_DB_REC_PER_PAGE ||
-+	    (db_tab->page[i].uvirt && db_tab->page[i].uvirt != uaddr)) {
-+		put_page(pages[0]);
-+		ret = -EINVAL;
- 		goto out;
-+	}
-+
-+	/* page was already mapped by another task while we were doing gup */
-+	if (db_tab->page[i].refcount) {
-+		put_page(pages[0]);
-+		++db_tab->page[i].refcount;
-+		goto out;
-+	}
- 
- 	sg_set_page(&db_tab->page[i].mem, pages[0], MTHCA_ICM_PAGE_SIZE,
- 			uaddr & ~PAGE_MASK);
--- 
-2.13.6
+T24gVHVlLCAyMDE4LTAxLTIzIGF0IDEyOjA5IC0wNTAwLCBEb3VnIExlZGZvcmQgd3JvdGU6DQo+
+IEkgdG9vayB0aGUgc2VyaWVzIGFzIGlzLiAgQnV0LCBJIGRvbid0IGtub3cgdGhlIHRhcmdldCBj
+b3JlIHdlbGwgZW5vdWdoDQo+IHRvIGtub3cgd2hhdCB0aGUgdGhpcmQgcGF0Y2ggYWN0dWFsbHkg
+ZG9lcyAodGhhdCBkb2Vzbid0IGltcGFjdCBteQ0KPiBkZWNpc2lvbiB0byB0YWtlIGl0LCBpdCdz
+IGEga25vYiBpbnRvIHRoZSB0YXJnZXQgY29yZSB0byBhbGxvdyB5b3UgdG8NCj4gdHdlYWsgdGhp
+bmdzLCB0aGF0J3Mgb2J2aW91cyBlbm91Z2ggYW5kIHNpbmNlIHlvdSBmaW5kIGl0IHVzZWZ1bCwg
+SSBoYXZlDQo+IG5vIHByb2JsZW0gd2l0aCBpdCkuICBJIGtub3cgdGhlIGNtZF9wZXJfbHVuIHNl
+dHRpbmcgc2V0cyB0aGUgcXVldWUNCj4gZGVwdGggb2YgdGhlIHNjc2kgZGV2aWNlIG9uIHRoZSBp
+bml0aWF0b3Igc2lkZSwgSSB3b3VsZCBoYXZlIGFzc3VtZWQNCj4gdGhhdCBub3JtYWxseSBtaXJy
+b3JzIHRoZSBhZHZlcnRpc2VkIGFiaWxpdHkgb2YgdGhlIHRhcmdldCwgYnV0IHRoaXMNCj4gcGF0
+Y2ggbm93IG1ha2VzIG1lIHRoaW5rIG90aGVyd2lzZS4gIFNvIHdoYXQgZG9lcyB0aGlzIHRoaXJk
+IHBhdGNoDQo+IGFjdHVhbGx5IGRvIHRvIHRoZSB0YXJnZXQgY29kZT8NCg0KSGVsbG8gRG91ZywN
+Cg0KVGhhbmtzISBSZWdhcmRpbmcgdGhlIHRoaXJkIHBhdGNoOiB0aGUgd29yZCAidGFyZ2V0IiBp
+biB0aGUgInRhcmdldF9jYW5fcXVldWUiDQptZW1iZXIgcmVmZXJzIHRvIGEgcGFyYW1ldGVyIGF0
+IHRoZSBTQ1NJIGluaXRpYXRvciBzaWRlLiBUaGUgb2JqZWN0IGhpZXJhcmNoeQ0KaW4gdGhlIExp
+bnV4IFNDU0kgaW5pdGlhdG9yIHN0YWNrIGlzIGFzIGZvbGxvd3M6DQoqIFRoZSB0b3AgbGV2ZWwg
+b2JqZWN0cyBhcmUgY2FsbGVkIFNDU0kgaG9zdHMgKHN0cnVjdCBTY3NpX0hvc3QpLiBUaGVzZSBv
+YmplY3RzDQogIGhhdmUgYSByZXByZXNlbnRhdGlvbiBpbiBzeXNmcyB1bmRlciAvc3lzL2NsYXNz
+L3Njc2lfaG9zdC8gYW5kIGFsc28gdW5kZXINCiAgL3N5cy9jbGFzcy9zY3NpX2hvc3QuDQoqIFRo
+ZSBuZXh0IGxldmVsIG9iamVjdHMgYXJlIGNhbGxlZCBTQ1NJIHRhcmdldHMgKHN0cnVjdCBzY3Np
+X3RhcmdldCkuIFRoZXJlIGlzDQogIG9uZSBkaXJlY3RvcnkgcGVyIFNDU0kgdGFyZ2V0IGluIHN5
+c2ZzLCBlLmcuIC9zeXMvYnVzL3Njc2kvZGV2aWNlcy90YXJnZXQxOjA6MC4NCiogVGhlIGxvd2Vz
+dCBsZXZlbCBvYmplY3RzIGFyZSBjYWxsZWQgU0NTSSBkZXZpY2VzIChzdHJ1Y3Qgc2NzaV9kZXZp
+Y2UpLiBUaGVyZQ0KICBpcyBvbmUgZGlyZWN0b3J5IHBlciBTQ1NJIGRldmljZSBpbnN0YW5jZSBp
+biAvc3lzL2NsYXNzL3Njc2lfZGV2aWNlLyBhbmQgYWxzbw0KICBpbiAvc3lzL2J1cy9zY3NpL2Rl
+dmljZXMvLg0KDQpFYWNoIFNDU0kgZGV2aWNlIGlzIGlkZW50aWZpZWQgYnkgZm91ciBudW1iZXJz
+LCBjYWxsZWQgdGhlIGhvc3QsIGNoYW5uZWwsIElEDQphbmQgTFVOIGluZGV4ZXMuIFVzdWFsbHkg
+dGhlc2UgZm91ciBudW1iZXJzIGFyZSBtZW50aW9uZWQgaW4gdGhlIG9yZGVyIEg6QzpJOkwuDQpU
+aGUgaG9zdCBwYXJ0IChIKSBpZGVudGlmaWVzIHRoZSBTQ1NJIGhvc3QuIFRoZSBIOkM6SSBwYXJ0
+IGlkZW50aWZpZXMgdGhlIFNDU0kNCnRhcmdldC4gRnJvbSBkcml2ZXJzL3Njc2kvc2NzaV9zY2Fu
+LmM6DQoNCglkZXZfc2V0X25hbWUoZGV2LCAidGFyZ2V0JWQ6JWQ6JWQiLCBzaG9zdC0+aG9zdF9u
+bywgY2hhbm5lbCwgaWQpOw0KDQpBbmQgZnJvbSBkcml2ZXJzL3Njc2kvc2NzaV9zeXNmcy5jOg0K
+DQoJZGV2X3NldF9uYW1lKCZzZGV2LT5zZGV2X2dlbmRldiwgIiVkOiVkOiVkOiVsbHUiLA0KCQkg
+ICAgIHNkZXYtPmhvc3QtPmhvc3Rfbm8sIHNkZXYtPmNoYW5uZWwsIHNkZXYtPmlkLCBzZGV2LT5s
+dW4pOw0KDQpVbmxpa2Ugb3RoZXIgYmxvY2sgZHJpdmVycywgdGhlIFNDU0kgY29yZSBpbXBvc2Vz
+IG1vcmUgcmVzdHJpY3Rpb25zIG9uIHRoZQ0KbnVtYmVyIG9mIGNvbW1hbmRzIHRoYXQgY2FuIGJl
+IHF1ZXVlZCB0aGFuIGp1c3QgdGhlIHF1ZXVlIGRlcHRoIG9mIHRoZSBibG9jaw0KbGF5ZXIgZGV2
+aWNlLiBUaGUgbWF4aW11bSBudW1iZXIgb2YgY29tbWFuZHMgdGhhdCB0aGUgYmxvY2sgbGF5ZXIg
+aXMgYWxsb3dlZCB0bw0KcXVldWUgcGVyIFNDU0kgaG9zdCBpcyBTY3NpX0hvc3QuY2FuX3F1ZXVl
+LiBUaGUgbWF4aW11bSBudW1iZXIgb2YgY29tbWFuZHMNCnRoYXQgY2FuIGJlIHF1ZXVlZCBwZXIg
+U0NTSSB0YXJnZXQgaXMgc2NzaV90YXJnZXQuY2FuX3F1ZXVlLiBBbmQgdGhlIGxpbWl0IGZvcg0K
+YSBzaW5nbGUgU0NTSSBkZXZpY2UgaXMgU2NzaV9Ib3N0LmNtZF9wZXJfbHVuLiBTZWUgYWxzbyBz
+Y3NpX2hvc3RfaXNfYnVzeSgpLA0Kc2NzaV90YXJnZXRfaXNfYnVzeSgpIGFuZCBzY3NpX2Rldmlj
+ZV9pc19idXN5KCkgaW4gdGhlIFNDU0kgY29yZS4NCg0KQmFydC4=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
