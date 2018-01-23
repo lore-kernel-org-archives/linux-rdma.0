@@ -1,65 +1,68 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH v5 0/3] IB/srp patches for kernel v4.16
-Date: Tue, 23 Jan 2018 21:35:05 +0000
-Message-ID: <1516743303.3339.36.camel@wdc.com>
-References: <20180122222713.13197-1-bart.vanassche@wdc.com>
-         <1516727351.27592.46.camel@redhat.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-next v5 3/8] RDMA/restrack: Add general
+ infrastructure to track RDMA resources
+Date: Tue, 23 Jan 2018 15:00:07 -0700
+Message-ID: <20180123220007.GA16845@ziepe.ca>
+References: <20180122125119.26419-1-leon@kernel.org>
+ <20180122125119.26419-4-leon@kernel.org>
+ <20180123175433.GI30670@ziepe.ca>
+ <20180123175848.GK30670@ziepe.ca>
+ <20180123183552.GW1393@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1516727351.27592.46.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <65DEA1DF1CE3F24990C65A4C505FD662-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180123183552.GW1393-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE4LTAxLTIzIGF0IDEyOjA5IC0wNTAwLCBEb3VnIExlZGZvcmQgd3JvdGU6DQo+
-IEkgdG9vayB0aGUgc2VyaWVzIGFzIGlzLiAgQnV0LCBJIGRvbid0IGtub3cgdGhlIHRhcmdldCBj
-b3JlIHdlbGwgZW5vdWdoDQo+IHRvIGtub3cgd2hhdCB0aGUgdGhpcmQgcGF0Y2ggYWN0dWFsbHkg
-ZG9lcyAodGhhdCBkb2Vzbid0IGltcGFjdCBteQ0KPiBkZWNpc2lvbiB0byB0YWtlIGl0LCBpdCdz
-IGEga25vYiBpbnRvIHRoZSB0YXJnZXQgY29yZSB0byBhbGxvdyB5b3UgdG8NCj4gdHdlYWsgdGhp
-bmdzLCB0aGF0J3Mgb2J2aW91cyBlbm91Z2ggYW5kIHNpbmNlIHlvdSBmaW5kIGl0IHVzZWZ1bCwg
-SSBoYXZlDQo+IG5vIHByb2JsZW0gd2l0aCBpdCkuICBJIGtub3cgdGhlIGNtZF9wZXJfbHVuIHNl
-dHRpbmcgc2V0cyB0aGUgcXVldWUNCj4gZGVwdGggb2YgdGhlIHNjc2kgZGV2aWNlIG9uIHRoZSBp
-bml0aWF0b3Igc2lkZSwgSSB3b3VsZCBoYXZlIGFzc3VtZWQNCj4gdGhhdCBub3JtYWxseSBtaXJy
-b3JzIHRoZSBhZHZlcnRpc2VkIGFiaWxpdHkgb2YgdGhlIHRhcmdldCwgYnV0IHRoaXMNCj4gcGF0
-Y2ggbm93IG1ha2VzIG1lIHRoaW5rIG90aGVyd2lzZS4gIFNvIHdoYXQgZG9lcyB0aGlzIHRoaXJk
-IHBhdGNoDQo+IGFjdHVhbGx5IGRvIHRvIHRoZSB0YXJnZXQgY29kZT8NCg0KSGVsbG8gRG91ZywN
-Cg0KVGhhbmtzISBSZWdhcmRpbmcgdGhlIHRoaXJkIHBhdGNoOiB0aGUgd29yZCAidGFyZ2V0IiBp
-biB0aGUgInRhcmdldF9jYW5fcXVldWUiDQptZW1iZXIgcmVmZXJzIHRvIGEgcGFyYW1ldGVyIGF0
-IHRoZSBTQ1NJIGluaXRpYXRvciBzaWRlLiBUaGUgb2JqZWN0IGhpZXJhcmNoeQ0KaW4gdGhlIExp
-bnV4IFNDU0kgaW5pdGlhdG9yIHN0YWNrIGlzIGFzIGZvbGxvd3M6DQoqIFRoZSB0b3AgbGV2ZWwg
-b2JqZWN0cyBhcmUgY2FsbGVkIFNDU0kgaG9zdHMgKHN0cnVjdCBTY3NpX0hvc3QpLiBUaGVzZSBv
-YmplY3RzDQogIGhhdmUgYSByZXByZXNlbnRhdGlvbiBpbiBzeXNmcyB1bmRlciAvc3lzL2NsYXNz
-L3Njc2lfaG9zdC8gYW5kIGFsc28gdW5kZXINCiAgL3N5cy9jbGFzcy9zY3NpX2hvc3QuDQoqIFRo
-ZSBuZXh0IGxldmVsIG9iamVjdHMgYXJlIGNhbGxlZCBTQ1NJIHRhcmdldHMgKHN0cnVjdCBzY3Np
-X3RhcmdldCkuIFRoZXJlIGlzDQogIG9uZSBkaXJlY3RvcnkgcGVyIFNDU0kgdGFyZ2V0IGluIHN5
-c2ZzLCBlLmcuIC9zeXMvYnVzL3Njc2kvZGV2aWNlcy90YXJnZXQxOjA6MC4NCiogVGhlIGxvd2Vz
-dCBsZXZlbCBvYmplY3RzIGFyZSBjYWxsZWQgU0NTSSBkZXZpY2VzIChzdHJ1Y3Qgc2NzaV9kZXZp
-Y2UpLiBUaGVyZQ0KICBpcyBvbmUgZGlyZWN0b3J5IHBlciBTQ1NJIGRldmljZSBpbnN0YW5jZSBp
-biAvc3lzL2NsYXNzL3Njc2lfZGV2aWNlLyBhbmQgYWxzbw0KICBpbiAvc3lzL2J1cy9zY3NpL2Rl
-dmljZXMvLg0KDQpFYWNoIFNDU0kgZGV2aWNlIGlzIGlkZW50aWZpZWQgYnkgZm91ciBudW1iZXJz
-LCBjYWxsZWQgdGhlIGhvc3QsIGNoYW5uZWwsIElEDQphbmQgTFVOIGluZGV4ZXMuIFVzdWFsbHkg
-dGhlc2UgZm91ciBudW1iZXJzIGFyZSBtZW50aW9uZWQgaW4gdGhlIG9yZGVyIEg6QzpJOkwuDQpU
-aGUgaG9zdCBwYXJ0IChIKSBpZGVudGlmaWVzIHRoZSBTQ1NJIGhvc3QuIFRoZSBIOkM6SSBwYXJ0
-IGlkZW50aWZpZXMgdGhlIFNDU0kNCnRhcmdldC4gRnJvbSBkcml2ZXJzL3Njc2kvc2NzaV9zY2Fu
-LmM6DQoNCglkZXZfc2V0X25hbWUoZGV2LCAidGFyZ2V0JWQ6JWQ6JWQiLCBzaG9zdC0+aG9zdF9u
-bywgY2hhbm5lbCwgaWQpOw0KDQpBbmQgZnJvbSBkcml2ZXJzL3Njc2kvc2NzaV9zeXNmcy5jOg0K
-DQoJZGV2X3NldF9uYW1lKCZzZGV2LT5zZGV2X2dlbmRldiwgIiVkOiVkOiVkOiVsbHUiLA0KCQkg
-ICAgIHNkZXYtPmhvc3QtPmhvc3Rfbm8sIHNkZXYtPmNoYW5uZWwsIHNkZXYtPmlkLCBzZGV2LT5s
-dW4pOw0KDQpVbmxpa2Ugb3RoZXIgYmxvY2sgZHJpdmVycywgdGhlIFNDU0kgY29yZSBpbXBvc2Vz
-IG1vcmUgcmVzdHJpY3Rpb25zIG9uIHRoZQ0KbnVtYmVyIG9mIGNvbW1hbmRzIHRoYXQgY2FuIGJl
-IHF1ZXVlZCB0aGFuIGp1c3QgdGhlIHF1ZXVlIGRlcHRoIG9mIHRoZSBibG9jaw0KbGF5ZXIgZGV2
-aWNlLiBUaGUgbWF4aW11bSBudW1iZXIgb2YgY29tbWFuZHMgdGhhdCB0aGUgYmxvY2sgbGF5ZXIg
-aXMgYWxsb3dlZCB0bw0KcXVldWUgcGVyIFNDU0kgaG9zdCBpcyBTY3NpX0hvc3QuY2FuX3F1ZXVl
-LiBUaGUgbWF4aW11bSBudW1iZXIgb2YgY29tbWFuZHMNCnRoYXQgY2FuIGJlIHF1ZXVlZCBwZXIg
-U0NTSSB0YXJnZXQgaXMgc2NzaV90YXJnZXQuY2FuX3F1ZXVlLiBBbmQgdGhlIGxpbWl0IGZvcg0K
-YSBzaW5nbGUgU0NTSSBkZXZpY2UgaXMgU2NzaV9Ib3N0LmNtZF9wZXJfbHVuLiBTZWUgYWxzbyBz
-Y3NpX2hvc3RfaXNfYnVzeSgpLA0Kc2NzaV90YXJnZXRfaXNfYnVzeSgpIGFuZCBzY3NpX2Rldmlj
-ZV9pc19idXN5KCkgaW4gdGhlIFNDU0kgY29yZS4NCg0KQmFydC4=
+On Tue, Jan 23, 2018 at 08:35:52PM +0200, Leon Romanovsky wrote:
+
+> > Replace the rcu and the mutex with a simple rwlock.
+> 
+> My initial proposal was SRCU per-res to protect data with rwlock
+> per-type to protect lists.
+
+I don't think SRCU per-res helps here. (and the memory overhead would
+be shocking, IMHO).
+
+And if the goal is to avoid starvation of destroy from the reader side
+I don't think it helps, as you can seriously delay synchronize_srcu()
+by hitting the read side regions to force grace period waits.
+
+I think you need a bit more adventure:
+
+// Read side - could be a rwlock
+mutex_lock(ibdev->resource_lock)
+cur = list_head;
+cur->readers++;
+mutex_unlock();
+
+[.. do slow stuff, push into the netlink skb ...]
+
+mutex_lock();
+cur->readers--;
+if (cur->readers == 0)
+   wakeup(ibdev->wq);
+cur = cur->next
+mutex_unlock();
+
+// Destroy side
+mutex_lock(ibdev->resource_lock)
+wait_event_cmd(ibdev->wq, obj->readers == 0, mutex_unlock(), mutex_lock());
+list_del(..);
+mutex_unlock();
+
+Which would lock each resource only while being used, and the destroy
+will wait only if it conflicts with the ongoing read.
+
+Getting the linked list processing to work properly with this kind of
+locking is hard.. The manual wq linked to the lock seems like a
+reasonable compromise.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
