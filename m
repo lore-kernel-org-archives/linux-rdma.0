@@ -1,52 +1,64 @@
 From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 5/6] RDMA/cma: Protect ifindex access during
- IPv6 route lookup
-Date: Tue, 23 Jan 2018 08:07:48 -0700
-Message-ID: <20180123150748.GA30619@mellanox.com>
-References: <20180109135859.7676-1-leon@kernel.org>
- <20180109135859.7676-6-leon@kernel.org>
- <20180122183820.GM14358@mellanox.com>
- <20180123085014.GO1393@mtr-leonro.local>
+Subject: Re: [PATCH rdma-next] RDMA/srpt: Fix RCU debug build error
+Date: Tue, 23 Jan 2018 08:21:42 -0700
+Message-ID: <20180123152142.GB30619@mellanox.com>
+References: <20180123115013.12213-1-leonro@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180123085014.GO1393-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20180123115013.12213-1-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 23, 2018 at 10:50:14AM +0200, Leon Romanovsky wrote:
-
-> > For instance if the ifindex is changed due to dev_change_net_namespace()
-> > then you have this:
-> >
-> > 	dev_net_set(dev, net);
-> > 	if (__dev_get_by_index(net, dev->ifindex))
-> > 		dev->ifindex = dev_new_index(net);
-> >
-> > Racing with this:
-> >
-> > 	rt = rt6_lookup(dev_net(net_dev), &dst_addr->sin6_addr,
-> > 			&src_addr->sin6_addr, net_dev->ifindex,
-> > 			strict);
-> >
-> > And we will get a racy incoherent result for dev_net(net_dev) and
-> > net_dev->ifindex.
+On Tue, Jan 23, 2018 at 01:50:13PM +0200, Leon Romanovsky wrote:
+> Combination of CONFIG_DEBUG_OBJECTS_RCU_HEAD=y and
+> CONFIG_INFINIBAND_SRPT=m produces the following build error.
 > 
-> I think that rcu_derefence over net_dev will solve the race.
-
-Nope, net_dev is a stack pointer, it is not RCU protected.
-
-> > It kind of looks to me like the locking scheme in the netdev side
-> > shuts down the netdev while moving it. So the RCU protected test
-> > should be if the netdev is DOWN ?
+> ERROR: "init_rcu_head" [drivers/infiniband/ulp/srpt/ib_srpt.ko] undefined!
+> make[1]: *** [scripts/Makefile.modpost:92: __modpost] Error 1
+> make: *** [Makefile:1216: modules] Error 2
 > 
-> It is not the case for ipv6 tunnel interface, they use RCU protection
-> for live netdevs too.
+> The reason to it that init_rcu_head() is not exported and not supposed
+> to be used in modules. The correct function to use is init_rcu_head_on_stack().
+> 
+> Fixes: 795bc112cd5a ("IB/srpt: Make it safe to use RCU for srpt_device.rch_list")
+> Fixes: a11253142e6d ("IB/srpt: Rework multi-channel support")
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>  drivers/infiniband/ulp/srpt/ib_srpt.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> index bf37816a1b12..65bbc3dbf0fd 100644
+> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> @@ -1950,7 +1950,7 @@ static struct srpt_nexus *srpt_get_nexus(struct srpt_port *sport,
+>  			nexus = ERR_PTR(-ENOMEM);
+>  			break;
+>  		}
+> -		init_rcu_head(&tmp_nexus->rcu);
+> +		init_rcu_head_on_stack(&tmp_nexus->rcu);
 
-Pointer? Doesn't mean it is right :(
+The comments for init_rcu_head_on_stack say it should only be used for
+stack allocations and tmp_nexus is not a stack allocation.
+
+Removing the init_rcu_head entirely seems like the right thing to do,
+and maybe that function is poorly named?
+
+/*
+ * init_rcu_head_on_stack()/destroy_rcu_head_on_stack() are needed for dynamic
+ * initialization and destruction of rcu_head on the stack. rcu_head structures
+ * allocated dynamically in the heap or defined statically don't need any
+ * initialization.
+ */
+
+The commit that introduced init_rcu_head is
+546a9d8519ed137b2804a3f5a3659003039dd49c which suggests it exists only
+to help the slab allocators, although curiously the allocators never
+call it these days..
+
+Maybe Paul can confirm?
 
 Jason
 --
