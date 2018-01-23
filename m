@@ -1,68 +1,55 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next v5 3/8] RDMA/restrack: Add general
- infrastructure to track RDMA resources
-Date: Tue, 23 Jan 2018 15:00:07 -0700
-Message-ID: <20180123220007.GA16845@ziepe.ca>
-References: <20180122125119.26419-1-leon@kernel.org>
- <20180122125119.26419-4-leon@kernel.org>
- <20180123175433.GI30670@ziepe.ca>
- <20180123175848.GK30670@ziepe.ca>
- <20180123183552.GW1393@mtr-leonro.local>
+From: "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH rdma-next] RDMA/srpt: Fix RCU debug build error
+Date: Tue, 23 Jan 2018 14:03:37 -0800
+Message-ID: <20180123220337.GE3741@linux.vnet.ibm.com>
+References: <20180123115013.12213-1-leonro@mellanox.com>
+ <20180123152142.GB30619@mellanox.com>
+ <1516723456.3339.3.camel@wdc.com>
+Reply-To: paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180123183552.GW1393-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1516723456.3339.3.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 23, 2018 at 08:35:52PM +0200, Leon Romanovsky wrote:
-
-> > Replace the rcu and the mutex with a simple rwlock.
+On Tue, Jan 23, 2018 at 04:04:17PM +0000, Bart Van Assche wrote:
+> On Tue, 2018-01-23 at 08:21 -0700, Jason Gunthorpe wrote:
+> > /*
+> >  * init_rcu_head_on_stack()/destroy_rcu_head_on_stack() are needed for dynamic
+> >  * initialization and destruction of rcu_head on the stack. rcu_head structures
+> >  * allocated dynamically in the heap or defined statically don't need any
+> >  * initialization.
+> >  */
+> > 
+> > The commit that introduced init_rcu_head is
+> > 546a9d8519ed137b2804a3f5a3659003039dd49c which suggests it exists only
+> > to help the slab allocators, although curiously the allocators never
+> > call it these days..
+> > 
+> > Maybe Paul can confirm?
 > 
-> My initial proposal was SRCU per-res to protect data with rwlock
-> per-type to protect lists.
+> It would be great if Paul could provide feedback. The comment in
+> include/linux/rcupdate.h seems to contradict the following paragraph from
+> Documentation/RCU/Design/Requirements/Requirements.html for statically
+> allocated objects:
+> 
+> 	The corresponding <tt>rcu_head</tt> structures that are
+> 	dynamically allocated are automatically tracked, but
+> 	<tt>rcu_head</tt> structures allocated on the stack
+> 	must be initialized with <tt>init_rcu_head_on_stack()</tt>
+> 	and cleaned up with <tt>destroy_rcu_head_on_stack()</tt>.
+> 	Similarly, statically allocated non-stack <tt>rcu_head</tt>
+> 	structures must be initialized with <tt>init_rcu_head()</tt>
+> 	and cleaned up with <tt>destroy_rcu_head()</tt>.
 
-I don't think SRCU per-res helps here. (and the memory overhead would
-be shocking, IMHO).
+And this is the intent.  What breaks when you do that?
 
-And if the goal is to avoid starvation of destroy from the reader side
-I don't think it helps, as you can seriously delay synchronize_srcu()
-by hitting the read side regions to force grace period waits.
+							Thanx, Paul
 
-I think you need a bit more adventure:
-
-// Read side - could be a rwlock
-mutex_lock(ibdev->resource_lock)
-cur = list_head;
-cur->readers++;
-mutex_unlock();
-
-[.. do slow stuff, push into the netlink skb ...]
-
-mutex_lock();
-cur->readers--;
-if (cur->readers == 0)
-   wakeup(ibdev->wq);
-cur = cur->next
-mutex_unlock();
-
-// Destroy side
-mutex_lock(ibdev->resource_lock)
-wait_event_cmd(ibdev->wq, obj->readers == 0, mutex_unlock(), mutex_lock());
-list_del(..);
-mutex_unlock();
-
-Which would lock each resource only while being used, and the destroy
-will wait only if it conflicts with the ongoing read.
-
-Getting the linked list processing to work properly with this kind of
-locking is hard.. The manual wq linked to the lock seems like a
-reasonable compromise.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
