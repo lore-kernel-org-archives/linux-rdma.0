@@ -1,52 +1,64 @@
-From: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/2] libhns: Support cq record doorbell
-Date: Tue, 23 Jan 2018 20:51:09 +0800
-Message-ID: <124fa0b2-ac35-a103-205b-252fddea2665@huawei.com>
-References: <1516242961-154453-1-git-send-email-liuyixian@huawei.com>
- <1516242961-154453-3-git-send-email-liuyixian@huawei.com>
- <20180118043717.GC8414@ziepe.ca>
- <9e577314-4fcb-45de-6909-d5b3be570196@huawei.com>
- <20180118161949.GA18973@ziepe.ca>
- <a33a1337-665f-4cd4-5b39-b12d9f03af72@huawei.com>
- <20180119200029.GD3437@ziepe.ca>
- <68e02f2a-0474-bc73-a784-fd52dbbde552@huawei.com>
- <20180120164625.GA14372@ziepe.ca>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/5] Clock information
+Date: Tue, 23 Jan 2018 16:22:17 +0200
+Message-ID: <f1213c63-392d-e48b-53bf-0b31b415fa33@dev.mellanox.co.il>
+References: <1516197093-20699-1-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180120164625.GA14372-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <1516197093-20699-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 2018/1/21 0:46, Jason Gunthorpe wrote:
-> On Sat, Jan 20, 2018 at 07:41:03PM +0800, Liuyixian (Eason) wrote:
+On 1/17/2018 3:51 PM, Yishai Hadas wrote:
+> This series from Feras is the supplementary part of the kernel series that was
+> sent upstream for 4.16.
 > 
->> new userspace will still run correctly if the kernel is old. As new userspace use
->> db_addr substitute operating register, it can run correctly only on new kernel
->> (the patchset goes with this patchset submitted to for-next) and later kernel versions.
->> I think it is reasonable for this case.
+> The series enables user space applications to query the mlx5 core clock and use
+> it to translate timestamps from HCA core clock units to nanoseconds.
 > 
-> Still not OK, we expect the user space to work with old kernels too.
+> PR was sent:
+> https://github.com/linux-rdma/rdma-core/pull/284
+> 
+> Note:
+> The Travis error in GITHUB is some checkpatch false alarm that relates
+> to some macro usage.
+> 
+> Yishai
+> 
+> Feras Daoud (5):
+>    mlx5: Support for user space clock info
+>    mlx5: Add direct verbs support for query clock info
+>    mlx5: Add direct verb to translate device timestamp to nanoseconds
+>    verbs: Add support to read completion's timestamp in wall clock
+>      nanoseconds
+>    mlx5: Implement read_completion_wallclock_ns
+> 
+>   debian/ibverbs-providers.symbols           |   2 +
+>   libibverbs/man/ibv_create_cq_ex.3          |   9 +-
+>   libibverbs/verbs.h                         |  10 +-
+>   providers/mlx5/CMakeLists.txt              |   2 +-
+>   providers/mlx5/cq.c                        | 181 +++++++++++++++++++++++------
+>   providers/mlx5/libmlx5.map                 |   5 +
+>   providers/mlx5/man/CMakeLists.txt          |   2 +
+>   providers/mlx5/man/mlx5dv_get_clock_info.3 |  37 ++++++
+>   providers/mlx5/man/mlx5dv_query_device.3   |   2 +-
+>   providers/mlx5/man/mlx5dv_ts_to_ns.3       |  35 ++++++
+>   providers/mlx5/mlx5-abi.h                  |  24 +++-
+>   providers/mlx5/mlx5.c                      |  71 +++++++++++
+>   providers/mlx5/mlx5.h                      |   7 +-
+>   providers/mlx5/mlx5dv.h                    |  65 ++++++++++-
+>   providers/mlx5/verbs.c                     |  15 ++-
+>   15 files changed, 421 insertions(+), 46 deletions(-)
+>   create mode 100644 providers/mlx5/man/mlx5dv_get_clock_info.3
+>   create mode 100644 providers/mlx5/man/mlx5dv_ts_to_ns.3
 > 
 
-Hi Jason,
-
-I just send an email to Leon for further illustrating my consideration
-on the compatibility problem.
-
-Could you please give me further comments on that email?  If you don't
-agree with what I said in that email, can you give some suggestions
-to resolve compatibility issue?
-
-Thanks
-Eason
-
+The PR was re-based over the latest code, series was merged.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
