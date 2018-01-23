@@ -1,44 +1,61 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH rdma-next] RDMA/srpt: Fix RCU debug build error
-Date: Tue, 23 Jan 2018 16:04:17 +0000
-Message-ID: <1516723456.3339.3.camel@wdc.com>
-References: <20180123115013.12213-1-leonro@mellanox.com>
-         <20180123152142.GB30619@mellanox.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v3 00/13] Request for Comments on SoftiWarp
+Date: Tue, 23 Jan 2018 10:31:24 -0600
+Message-ID: <00fd01d39467$9bdde7f0$d399b7d0$@opengridcomputing.com>
+References: <20180114223603.19961-1-bmt@zurich.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180123152142.GB30619-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <7022C8ABFB27CB478C1CEAB249820F2F-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <20180114223603.19961-1-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: 'Bernard Metzler' <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE4LTAxLTIzIGF0IDA4OjIxIC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IC8qDQo+ICAqIGluaXRfcmN1X2hlYWRfb25fc3RhY2soKS9kZXN0cm95X3JjdV9oZWFkX29u
-X3N0YWNrKCkgYXJlIG5lZWRlZCBmb3IgZHluYW1pYw0KPiAgKiBpbml0aWFsaXphdGlvbiBhbmQg
-ZGVzdHJ1Y3Rpb24gb2YgcmN1X2hlYWQgb24gdGhlIHN0YWNrLiByY3VfaGVhZCBzdHJ1Y3R1cmVz
-DQo+ICAqIGFsbG9jYXRlZCBkeW5hbWljYWxseSBpbiB0aGUgaGVhcCBvciBkZWZpbmVkIHN0YXRp
-Y2FsbHkgZG9uJ3QgbmVlZCBhbnkNCj4gICogaW5pdGlhbGl6YXRpb24uDQo+ICAqLw0KPiANCj4g
-VGhlIGNvbW1pdCB0aGF0IGludHJvZHVjZWQgaW5pdF9yY3VfaGVhZCBpcw0KPiA1NDZhOWQ4NTE5
-ZWQxMzdiMjgwNGEzZjVhMzY1OTAwMzAzOWRkNDljIHdoaWNoIHN1Z2dlc3RzIGl0IGV4aXN0cyBv
-bmx5DQo+IHRvIGhlbHAgdGhlIHNsYWIgYWxsb2NhdG9ycywgYWx0aG91Z2ggY3VyaW91c2x5IHRo
-ZSBhbGxvY2F0b3JzIG5ldmVyDQo+IGNhbGwgaXQgdGhlc2UgZGF5cy4uDQo+IA0KPiBNYXliZSBQ
-YXVsIGNhbiBjb25maXJtPw0KDQpJdCB3b3VsZCBiZSBncmVhdCBpZiBQYXVsIGNvdWxkIHByb3Zp
-ZGUgZmVlZGJhY2suIFRoZSBjb21tZW50IGluDQppbmNsdWRlL2xpbnV4L3JjdXBkYXRlLmggc2Vl
-bXMgdG8gY29udHJhZGljdCB0aGUgZm9sbG93aW5nIHBhcmFncmFwaCBmcm9tDQpEb2N1bWVudGF0
-aW9uL1JDVS9EZXNpZ24vUmVxdWlyZW1lbnRzL1JlcXVpcmVtZW50cy5odG1sIGZvciBzdGF0aWNh
-bGx5DQphbGxvY2F0ZWQgb2JqZWN0czoNCg0KCVRoZSBjb3JyZXNwb25kaW5nIDx0dD5yY3VfaGVh
-ZDwvdHQ+IHN0cnVjdHVyZXMgdGhhdCBhcmUNCglkeW5hbWljYWxseSBhbGxvY2F0ZWQgYXJlIGF1
-dG9tYXRpY2FsbHkgdHJhY2tlZCwgYnV0DQoJPHR0PnJjdV9oZWFkPC90dD4gc3RydWN0dXJlcyBh
-bGxvY2F0ZWQgb24gdGhlIHN0YWNrDQoJbXVzdCBiZSBpbml0aWFsaXplZCB3aXRoIDx0dD5pbml0
-X3JjdV9oZWFkX29uX3N0YWNrKCk8L3R0Pg0KCWFuZCBjbGVhbmVkIHVwIHdpdGggPHR0PmRlc3Ry
-b3lfcmN1X2hlYWRfb25fc3RhY2soKTwvdHQ+Lg0KCVNpbWlsYXJseSwgc3RhdGljYWxseSBhbGxv
-Y2F0ZWQgbm9uLXN0YWNrIDx0dD5yY3VfaGVhZDwvdHQ+DQoJc3RydWN0dXJlcyBtdXN0IGJlIGlu
-aXRpYWxpemVkIHdpdGggPHR0PmluaXRfcmN1X2hlYWQoKTwvdHQ+DQoJYW5kIGNsZWFuZWQgdXAg
-d2l0aCA8dHQ+ZGVzdHJveV9yY3VfaGVhZCgpPC90dD4uDQoNCkJhcnQu
+> 
+> This patch set contributes a new version of the SoftiWarp
+> driver, as originally introduced Oct 6th, 2017.
+> 
+> Thank you all for the commments on my last submissiom. It
+> was vey helpful and encouraging. I hereby re-send a SoftiWarp
+> patch after taking all comments into account, I hope. Without
+> introducing SoftiWarp (siw) again, let me fast forward
+> to the changes made to the last submission:
+> 
+> 
+> 1. Removed all kernel module parameters, as requested.
+>    I am not completely happy yet with what came out of
+>    that, since parameters like the name of interfaces
+>    siw shall attach to,
+
+Can configfs be used for this? I don't remember if that was discussed during
+v2 review?  OR, the new rdma command that is part of iproute2 can be
+extended.  It would use netlink messages to do the configuration.  Perhaps
+Leon can comment on that when he gets time.  It could be extended to support
+both rxe and siw.
+
+> or if we want to use TCP_NODELAY
+>    for low ping-pong delay, or disable it for higher
+>    message rates for multiple outstanding operations,
+>    were quite handy. I understand I have to find a better
+>    solution for that. Ideally, we would be able to
+>    distinguish between global siw driver control (like
+>    interfaces it attaches to), and per-QP parameters
+>    (somehow similar to socket options) which allow for
+>    example to tune delay, setting CRC on/off, or control
+>    GSO usage.
+> 
+
+Per connection settings could be done by extending the rdma_cm API.  See
+rdma_set_option() in librdmacm from rdma-core, and kernel rdmacm API
+functions like rdma_set_service_type() and rdma_set_reuseaddr().  We really
+need the TCP options to be tweakable for iwarp cm_ids...
+
+
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
