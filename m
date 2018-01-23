@@ -1,88 +1,95 @@
-From: "Bernard Metzler" <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: RE: [PATCH v3 03/13] Attach/detach SoftiWarp to/from network and RDMA
- subsystem
-Date: Tue, 23 Jan 2018 18:21:49 +0000
-Message-ID: <OF0FDD802E.65305979-ON0025821E.0064995D-0025821E.0064E031@notes.na.collabserv.com>
-References: <014c01d39473$536ba5f0$fa42f1d0$@opengridcomputing.com>,<20180114223603.19961-1-bmt@zurich.ibm.com>
- <20180114223603.19961-4-bmt@zurich.ibm.com>
- <00ff01d39467$f1f31b60$d5d95220$@opengridcomputing.com>
- <20180123164316.GC30670@ziepe.ca>
- <011801d3946b$53ef0060$fbcd0120$@opengridcomputing.com>
- <20180123170517.GE30670@ziepe.ca>
- <013a01d3946f$034683f0$09d38bd0$@opengridcomputing.com>
- <20180123172830.GF30670@ziepe.ca>
- <014501d39471$84cdee20$8e69ca60$@opengridcomputing.com>
- <20180123174758.GH30670@ziepe.ca>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next v5 3/8] RDMA/restrack: Add general
+ infrastructure to track RDMA resources
+Date: Tue, 23 Jan 2018 20:31:30 +0200
+Message-ID: <20180123183130.GV1393@mtr-leonro.local>
+References: <20180122125119.26419-1-leon@kernel.org>
+ <20180122125119.26419-4-leon@kernel.org>
+ <20180123175433.GI30670@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="XCAZszJJXrQJLz3d"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <014c01d39473$536ba5f0$fa42f1d0$@opengridcomputing.com>
+Content-Disposition: inline
+In-Reply-To: <20180123175433.GI30670-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
------"Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote: -----
+--XCAZszJJXrQJLz3d
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
->To: "'Jason Gunthorpe'" <jgg-uk2M96/98Pc@public.gmane.org>
->From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->Date: 01/23/2018 06:55PM
->Cc: "'Bernard Metzler'" <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>,
-><linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
->Subject: RE: [PATCH v3 03/13] Attach/detach SoftiWarp to/from network
->and RDMA subsystem
+On Tue, Jan 23, 2018 at 10:54:33AM -0700, Jason Gunthorpe wrote:
+> On Mon, Jan 22, 2018 at 02:51:14PM +0200, Leon Romanovsky wrote:
+> > +	mutex_lock(&dev->res.mutex);
+> > +	hash_del_rcu(&res->node);
+> > +	mutex_unlock(&dev->res.mutex);
+> > +
+> > +	res->valid = false;
+> > +
+> > +	if (res->task)
+> > +		put_task_struct(res->task);
+> > +	synchronize_srcu(&dev->res.srcu);
+> > +}
 >
->> 
->> On Tue, Jan 23, 2018 at 11:42:20AM -0600, Steve Wise wrote:
->> 
->> > Since the iwarp protocols run on top of TCP/IP, there is always
->the case
->> > that some middle box resegments tcp segments differently, so a
->good
->iwarp
->> HW
->> > implementation should deal with funny alignments, partial iWARP
->PDUs
->> > arriving, etc.   But the RFCs, as I read them, want
->implementations to
->try
->> > "really hard" to avoid spanning an iWARP PDU across many TCP
->segments.
->> And
->> > I think siw should do the same, by default.
->> 
->> But Bernard just said siw doesn't interoperate in certain cases
->> because of this - so that sounds like more than 'try really hard'
->??
->> 
->> Or is that an overstatement and it just makes the rx side slower if
->> segmentation is not optimal?
+> This locking is wrong..
 >
->Creating 64K iWARP PDUs causes interoperability problems.  If siw
->builds
->iWARP PDUs that fit within the TCP wire MSS, then these problems are
->avoided, and siw becomes more spec compliant.  If the iWARP PDUs are
->built
->this way, then nothing the tcp stack does will cause problems other
->than
->slow down things.
+> Nothing can invalidate internal elements of 'res' until
+> synchronize_srcu() returns, otherwise it creates races.
 >
-Right. It's just the slowdown what hurts me. But it may improve the
-need to buy real iWarp HW for good performance ;)
+> Eg here:
+>
+> +	key = srcu_read_lock(&device->res.srcu);
+> +	hash_for_each_possible_rcu(device->res.hash, res, node, RDMA_RESTRACK_QP) {
+> +		if (idx < start) {
+> +			idx++;
+> +			continue;
+> +		}
+> +
+> +		if ((rdma_is_kernel_res(res) &&
+> +		     task_active_pid_ns(current) != &init_pid_ns) ||
+> +		    (!rdma_is_kernel_res(res) &&
+> +		     task_active_pid_ns(current) != task_active_pid_ns(res->task)))
+>
+> Will use-after-put res->task
+>
+> Didn't audit closely enough to tell if valid is OK or not. Why isn't
+> the hash_del sufficient? Why does valid exist?
 
-See, I came for the other side looking at that - how to make best
-use of kernel services, if I anyway cannot completely control the wire
-shape of the frames I push. But I understand that some HW cannot 
-deal with it.
+Because, there are mlx5 QPs which partially flows through core code to register
+and deregister. Such QPs were created "manually" but destroyed with ib_destroy_qp.
 
-Same is true for small messages. if siw puts one 8 byte payload packet
-in one TCP frame, we end up with 350k IOPs. If we allow to pull
-multiple of it into one frame, if the send queue has more work to do,
-it goes much higher, and we avoid much extra delay.
-I recently removed that optimization, just to avoid discussion on it.
+>
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+--XCAZszJJXrQJLz3d
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpnf4IACgkQ5GN7iDZy
+WKfLsA//adh7N/bdu2FjPmv3VQQ79XMO4ExflOXnilA9Uw74r/PEt/suOez/rxwy
+0HYOCI5pOD2v/RoGy/iWdaQ4/GSB8VeqIUfCoLikqHvXpY8k+7W5BPscRiDpN/3c
++RFX9VAkJyw6gxoLEixfowDpTzvK4WIhVY/5pLx0DURp8Adg6dH1cBrs8Vi888kd
+3XqNxadYSlxc5eQr5pl7q8RR2rwAmsHSGxy1mR9O4/W7U4zfmou1AcroPQne7YoO
+bPUCa5TiyZafJDAxqJnnm0NSDLluS/43BU5n257mO3QIpU41zF3kEh0CF0jgvGB1
+qoxs20V1YCMwb0mjUdZeScDlpZcjZDQwqvzoNBIbJR7Shz6MJqgWAecGphwkT3lE
+e55WlZTVTpMh0TDNOS56X1xDyrxikDKm83EcIMOW8zCMQQg4ExnQP6Yp0CRYoIfz
+g7+XiLKiR4W4f+AIxUAdicr0plu4pSnLhHO2IxvqAlDxT9TyNIJyrahDiree9WjV
+mlJ4dytbFRjrC9CrKYacCst6vPHDL7jOBR1886ItjYgqouSvUSEE1JAbdfJVw3Be
+x6tOkT2w7udbsnNeIMbj7kggkxCu4zDRnPxnTqTHz886UyDeoaEtpOa4KIcnGYvQ
+10q/83HGl9l1ogqPJ5GgRR8rrKcaJeWys3yUNWAh6H41/D76LEk=
+=DAD7
+-----END PGP SIGNATURE-----
+
+--XCAZszJJXrQJLz3d--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
