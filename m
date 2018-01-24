@@ -1,53 +1,44 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH rdma-next] RDMA/srpt: Fix RCU debug build error
-Date: Tue, 23 Jan 2018 22:59:30 +0000
-Message-ID: <1516748369.3339.59.camel@wdc.com>
-References: <20180123115013.12213-1-leonro@mellanox.com>
-         <20180123152142.GB30619@mellanox.com> <1516723456.3339.3.camel@wdc.com>
-         <20180123220337.GE3741@linux.vnet.ibm.com>
-         <1516746545.3339.46.camel@wdc.com>
-         <20180123225054.GK3741@linux.vnet.ibm.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH 1/4] IB/core: add support for draining Shared receive
+ queues
+Date: Wed, 24 Jan 2018 08:39:20 +0200
+Message-ID: <11f8c447-065f-ee0c-f88e-ee3a006f8571@grimberg.me>
+References: <1516197178-26493-1-git-send-email-maxg@mellanox.com>
+ <1516197178-26493-2-git-send-email-maxg@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180123225054.GK3741-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <1516197178-26493-2-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
-Content-ID: <7985620F31662C4EB61E978133C709B9-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, bart.vanassche-Sjgp3cTcYWE@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
+Cc: danielm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE4LTAxLTIzIGF0IDE0OjUwIC0wODAwLCBQYXVsIEUuIE1jS2VubmV5IHdyb3Rl
-Og0KPiANCj4gICAgIHJjdTogRml4IGluaXRfcmN1X2hlYWQoKSBjb21tZW50Lg0KPiAgICAgDQo+
-ICAgICBUaGUgY3VycmVudCAoYW5kIGltcGxpY2l0KSBjb21tZW50IGhlYWRlciBmb3IgaW5pdF9y
-Y3VfaGVhZCgpIGFuZA0KPiAgICAgZGVzdHJveV9yY3VfaGVhZCgpIGluY29ycmVjdGx5IHNheXMg
-dGhhdCB0aGV5IGFyZSBub3QgbmVlZGVkIGZvcg0KPiAgICAgc3RhdGljYWxseSBhbGxvY2F0ZWQg
-cmN1X2hlYWQgc3RydWN0dXJlcy4gIFRoaXMgY29tbWl0IHRoZXJlZm9yZQ0KPiAgICAgZml4ZXMg
-dGhpcyBjb21tZW50Lg0KPiAgICAgDQo+ICAgICBSZXBvcnRlZC1ieTogQmFydCBWYW4gQXNzY2hl
-IDxCYXJ0LlZhbkFzc2NoZUB3ZGMuY29tPg0KPiAgICAgU2lnbmVkLW9mZi1ieTogUGF1bCBFLiBN
-Y0tlbm5leSA8cGF1bG1ja0BsaW51eC52bmV0LmlibS5jb20+DQo+IA0KPiBkaWZmIC0tZ2l0IGEv
-aW5jbHVkZS9saW51eC9yY3VwZGF0ZS5oIGIvaW5jbHVkZS9saW51eC9yY3VwZGF0ZS5oDQo+IGlu
-ZGV4IDA0M2QwNDc4NDY3NS4uMzYzNjBkMDdmMjViIDEwMDY0NA0KPiAtLS0gYS9pbmNsdWRlL2xp
-bnV4L3JjdXBkYXRlLmgNCj4gKysrIGIvaW5jbHVkZS9saW51eC9yY3VwZGF0ZS5oDQo+IEBAIC0y
-MTQsMTAgKzIxNCwxMiBAQCBkbyB7IFwNCj4gICNlbmRpZg0KPiAgDQo+ICAvKg0KPiAtICogaW5p
-dF9yY3VfaGVhZF9vbl9zdGFjaygpL2Rlc3Ryb3lfcmN1X2hlYWRfb25fc3RhY2soKSBhcmUgbmVl
-ZGVkIGZvciBkeW5hbWljDQo+IC0gKiBpbml0aWFsaXphdGlvbiBhbmQgZGVzdHJ1Y3Rpb24gb2Yg
-cmN1X2hlYWQgb24gdGhlIHN0YWNrLiByY3VfaGVhZCBzdHJ1Y3R1cmVzDQo+IC0gKiBhbGxvY2F0
-ZWQgZHluYW1pY2FsbHkgaW4gdGhlIGhlYXAgb3IgZGVmaW5lZCBzdGF0aWNhbGx5IGRvbid0IG5l
-ZWQgYW55DQo+IC0gKiBpbml0aWFsaXphdGlvbi4NCj4gKyAqIFRoZSBpbml0X3JjdV9oZWFkX29u
-X3N0YWNrKCkgYW5kIGRlc3Ryb3lfcmN1X2hlYWRfb25fc3RhY2soKSBjYWxscw0KPiArICogYXJl
-IG5lZWRlZCBmb3IgZHluYW1pYyBpbml0aWFsaXphdGlvbiBhbmQgZGVzdHJ1Y3Rpb24gb2YgcmN1
-X2hlYWQNCj4gKyAqIG9uIHRoZSBzdGFjaywgYW5kIGluaXRfcmN1X2hlYWQoKS9kZXN0cm95X3Jj
-dV9oZWFkKCkgYXJlIG5lZWRlZCBmb3INCj4gKyAqIGR5bmFtaWMgaW5pdGlhbGl6YXRpb24gYW5k
-IGRlc3RydWN0aW9uIG9mIHN0YXRpY2FsbHkgYWxsb2NhdGVkIHJjdV9oZWFkDQo+ICsgKiBzdHJ1
-Y3R1cmVzLiAgSG93ZXZlciwgcmN1X2hlYWQgc3RydWN0dXJlcyBhbGxvY2F0ZWQgZHluYW1pY2Fs
-bHkgaW4gdGhlDQo+ICsgKiBoZWFwIGRvbid0IG5lZWQgYW55IGluaXRpYWxpemF0aW9uLg0KPiAg
-ICovDQo+ICAjaWZkZWYgQ09ORklHX0RFQlVHX09CSkVDVFNfUkNVX0hFQUQNCj4gIHZvaWQgaW5p
-dF9yY3VfaGVhZChzdHJ1Y3QgcmN1X2hlYWQgKmhlYWQpOw0KDQpUaGFua3MhDQoNCkZlZWwgZnJl
-ZSB0byBhZGQ6DQoNClJldmlld2VkLWJ5OiBCYXJ0IFZhbiBBc3NjaGUgPGJhcnQudmFuYXNzY2hl
-QHdkYy5jb20+DQoNCg0KDQo=
+Hi Max,
+
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index 7868727..7604450 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -886,8 +886,10 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+>   		if (qp_init_attr->recv_cq)
+>   			atomic_inc(&qp_init_attr->recv_cq->usecnt);
+>   		qp->srq = qp_init_attr->srq;
+> -		if (qp->srq)
+> +		if (qp->srq) {
+>   			atomic_inc(&qp_init_attr->srq->usecnt);
+> +			init_completion(&qp->srq_completion);
+> +		}
+>   	}
+
+How about initializing the completion at ib_drain_srq and complete it
+always in last wqe reached event in the core instead of relying on ULPs
+to call ib_notify_qp?
+
+The simplest way I can think of is to have the core register its own
+event handler for that..
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
