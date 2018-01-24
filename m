@@ -1,72 +1,70 @@
-From: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: get_maintainer.pl bug?
-Date: Wed, 24 Jan 2018 07:33:37 -0500
-Message-ID: <d59f884f-e15f-fb9c-3d0d-303eb20c24b4@redhat.com>
-References: <20180124112323.GA8265@yuvallap>
- <20180124115445.GH1393@mtr-leonro.local>
-Reply-To: jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V1 rdma-core 0/4] Introduce IBV_QPT_DRIVER for mlx5 DC
+Date: Wed, 24 Jan 2018 14:33:53 +0200
+Message-ID: <18fb144e-5de1-d49d-4fae-3febf309e8fb@dev.mellanox.co.il>
+References: <1516551419-12829-1-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180124115445.GH1393-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1516551419-12829-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/24/2018 06:54 AM, Leon Romanovsky wrote:
-> On Wed, Jan 24, 2018 at 01:23:24PM +0200, Yuval Shaia wrote:
->> Hi,
->> This is what i get when running scripts/get_maintainer.pl drivers/infiniband/:
->>
->> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> (supporter:INFINIBAND SUBSYSTEM)
->> Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> (supporter:INFINIBAND SUBSYSTEM)
->> linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:INFINIBAND SUBSYSTEM)
->> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list)
->>
->> However section "INFINIBAND SUBSYSTEM" pointed out a different address for
->> Jason:
->>
->> INFINIBAND SUBSYSTEM
->> M:      Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> M:      Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> L:      linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> W:      http://www.openfabrics.org/
->> Q:      http://patchwork.kernel.org/project/linux-rdma/list/
->> T:      git git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
->> S:      Supported
->> F:      Documentation/devicetree/bindings/infiniband/
->> F:      Documentation/infiniband/
->> F:      drivers/infiniband/
->> F:      include/uapi/linux/if_infiniband.h
->> F:      include/uapi/rdma/
->> F:      include/rdma/
->>
->> So
->> - Which one is the correct one?
->> - What am i doing wrong when using scripts/get_maintainer.pl?
->>
+On 1/21/2018 6:16 PM, Yishai Hadas wrote:
+> This series from Moni is the supplementary part of the kernel series that was
+> accepted for 4.16.
 > 
-> Both are correct, and the jgg-uk2M96/98Pc@public.gmane.org email is taken from .mailmap
-> file.
+> In General:
+> Vendors can implement types of QPs that are not described in the InfiniBand
+> specification. The verbs layer doesn't know which services this QP provides but
+> it assumes that the hardware driver does. The new QP type IBV_QPT_DRIVER
+> should be used for this kind of QP. Any extra data that describes this QP
+> should be stored in a context in the hardware driver that is associated with
+> this QP.
+> 
+> The Dynamically Connected (DC) Transport Service provides a datagram-like
+> model that allows a DC QP to target multiple remote processes in multiple
+> remote nodes. As far as reachability is concerned, the DC model is somewhat
+> similar to the Unreliable Datagram (UD) model in the sense that each WR
+> submitted to the DC SQ carries the information that identifies the remote
+> destination.
+> 
+> The patches in this series add the DC support to the mlx5 driver by using the
+> IBV_QPT_DRIVER and some extensions in the mlx5 DV path to create a QP.
+> 
+> PR was sent:
+> https://github.com/linux-rdma/rdma-core/pull/285
+> 
+> Note:
+> The error in GITHUB looks as some environment issue in Travis.
+> 
+> Changes from V0:
+> - Refactor the mlx5 code around the DCT usage.
+> 
+> Yishai
+> 
+> 
+> Moni Shoua (4):
+>    verbs: Introduce driver QP type
+>    mlx5: Add interface to create DC transport QPs
+>    mlx5: Create DC transport QPs
+>    mlx5: Destroy and modify a DC target QP
+> 
+>   libibverbs/man/ibv_create_qp.3    |   5 +-
+>   libibverbs/man/ibv_create_qp_ex.3 |   5 +-
+>   libibverbs/verbs.h                |   3 +-
+>   providers/mlx5/mlx5-abi.h         |  24 +++++-
+>   providers/mlx5/mlx5.h             |   1 +
+>   providers/mlx5/mlx5dv.h           |  12 +++
+>   providers/mlx5/verbs.c            | 171 ++++++++++++++++++++++++++++++++++++--
+>   7 files changed, 209 insertions(+), 12 deletions(-)
+> 
 
-Hello Yuval Shaia,
-
-Also providing --nomailmap to get_maintainer.pl will get what is
-displayed in the MAINTAINERS file. From a linus tree, hash
-1f07476ec143bbed7bf0b641749783b1094b4c4f:
-
-$ ./scripts/get_maintainer.pl --nomailmap drivers/infiniband/
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> (supporter:INFINIBAND SUBSYSTEM)
-Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> (supporter:INFINIBAND SUBSYSTEM)
-linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:INFINIBAND SUBSYSTEM)
-linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list)
-
-
-Hope this helps,
--Jon
+The series was merged, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
