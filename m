@@ -1,204 +1,60 @@
-From: Rohit Zambre <rzambre-sXc7qaQca9o@public.gmane.org>
-Subject: 2x difference between multi-thread and multi-process for same number
- of CTXs
-Date: Wed, 24 Jan 2018 10:22:53 -0600
-Message-ID: <CAJ84Q-aFfcXxaJS5rApcoow6SBjfZAvt71_OKo1ORorXAOZKbw@mail.gmail.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: get_maintainer.pl bug?
+Date: Wed, 24 Jan 2018 09:28:02 -0700
+Message-ID: <20180124162802.GB16845@ziepe.ca>
+References: <20180124112323.GA8265@yuvallap>
+ <20180124115445.GH1393@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0000000000004cac9f05638813a3"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180124115445.GH1393-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---0000000000004cac9f05638813a3
-Content-Type: text/plain; charset="UTF-8"
+On Wed, Jan 24, 2018 at 01:54:45PM +0200, Leon Romanovsky wrote:
+> On Wed, Jan 24, 2018 at 01:23:24PM +0200, Yuval Shaia wrote:
+> > Hi,
+> > This is what i get when running scripts/get_maintainer.pl drivers/infiniband/:
+> >
+> > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> (supporter:INFINIBAND SUBSYSTEM)
+> > Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> (supporter:INFINIBAND SUBSYSTEM)
+> > linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:INFINIBAND SUBSYSTEM)
+> > linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list)
+> >
+> > However section "INFINIBAND SUBSYSTEM" pointed out a different address for
+> > Jason:
+> >
+> > INFINIBAND SUBSYSTEM
+> > M:      Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > M:      Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > L:      linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > W:      http://www.openfabrics.org/
+> > Q:      http://patchwork.kernel.org/project/linux-rdma/list/
+> > T:      git git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+> > S:      Supported
+> > F:      Documentation/devicetree/bindings/infiniband/
+> > F:      Documentation/infiniband/
+> > F:      drivers/infiniband/
+> > F:      include/uapi/linux/if_infiniband.h
+> > F:      include/uapi/rdma/
+> > F:      include/rdma/
+> >
+> > So
+> > - Which one is the correct one?
+> > - What am i doing wrong when using scripts/get_maintainer.pl?
+> 
+> Both are correct, and the jgg-uk2M96/98Pc@public.gmane.org email is taken from .mailmap
+> file.
 
-Hi,
+Yes, I prefer the ziepe one for bulk/automatic sorts of email, that is
+why it is in the mailamp.
 
-I have been trying to pinpoint the cause for a mlx5 behavior/problem
-but haven't been able to yet. It would be great if you could share
-your thoughts or point me towards what I should be looking at.
+Thanks,
+Jason
 
-I am running a simple, sender-receiver micro-benchmark (like
-ib_write_bw) to calculate the message rate for RDMA writes with
-increasing number of endpoints. Each endpoint has its own independent
-resources: Context, PD, QP, CQ, MR, buffer. None of the resources are
-shared between the endpoints. I am running this benchmark for N
-endpoints in two ways: using multiple threads and using multiple
-processes.
-
-In the multi-threaded case, I have 1 process that creates the N
-endpoints with all of its resources but uses N threads to drive the
-endpoints; each thread will post only on its QP and poll only its CQ.
-In the multi process case, I have N processes; each process creates
-and drives only 1 endpoint and its resources. In both cases,
-ibv_open_device, ibv_alloc_pd, ibv_reg_mr, ibv_create_cq and
-ibv_create_qp each have been called N times. My understanding (from
-reading the user-space driver code) is that a new struct ibv_context
-is allocated every time ibv_open_device is called regardless of
-whether all the ibv_open_device calls have been called by the same
-process or different processes. So, in both cases, there are N
-endpoints on the sender-node system. Theoretically, the message rates
-should then be the same for both cases when using multiple endpoints.
-
-However, in the graph attached, you will see that while both the
-multi-thread and multi-process cases scale with increase in endpoints,
-there is a >2x difference between the two cases when we have 8 CTXs.
-The graph shows RDMA-write message rates for 2-byte messages. I
-collected these numbers on the Thor cluster of the HPC Advisory
-Council. A thor node's specs are: 16 cores on a socket, 1 ConnectX-4
-card (with 1 active port: mlx5_0), RHEL 7.2 and kernel
-3.10.0-327.el7.x86_64. Using the binding options of MPI and OpenMP, I
-have made sure that each process/thread is bound to its own core. I am
-using MPI to only launch the processes and exchange connection
-information; all of the communication is through the libibverbs API.
-
-Since I wasn't able to find any distinctions in the user-space code, I
-have been going through the kernel code to find the cause of this
-behavior. While I haven't been able to pinpoint on something specific,
-I have noted that the current struct is used in ib_umem_get, which is
-called by mmap, ibv_reg_mr and ibv_poll_cq. I'm currently studying
-these to find the cause but again I am not sure if I am in the right
-direction. Here are some questions for you:
-
-(1) First, is this a surprising result or is the 2x difference
-actually expected behavior?
-(2) Could you point me to places in the kernel code that I should be
-studying to understand the cause of this behavior? OR do you have any
-suggestions for experiments I should try to possibly eliminate
-potential causes?
-
-If you would like me to share my micro-benchmark code so you can
-reproduce the results, let me know.
-
-Thank you,
-Rohit Zambre
-Ph.D. Student, Computer Engineering
-University of California, Irvine
-
---0000000000004cac9f05638813a3
-Content-Type: application/pdf;
-	name="write_mr_small_multiProcVSmultiThread_mlx5.pdf"
-Content-Disposition: attachment;
-	filename="write_mr_small_multiProcVSmultiThread_mlx5.pdf"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_jcta2ro30
-
-JVBERi0xLjQKJYHigeOBz4HTXHIKMSAwIG9iago8PAovQ3JlYXRpb25EYXRlIChEOjIwMTgwMTIz
-MTYxNTA5KQovTW9kRGF0ZSAoRDoyMDE4MDEyMzE2MTUwOSkKL1RpdGxlIChSIEdyYXBoaWNzIE91
-dHB1dCkKL1Byb2R1Y2VyIChSIDMuNC4xKQovQ3JlYXRvciAoUikKPj4KZW5kb2JqCjIgMCBvYmoK
-PDwgL1R5cGUgL0NhdGFsb2cgL1BhZ2VzIDMgMCBSID4+CmVuZG9iago3IDAgb2JqCjw8IC9UeXBl
-IC9QYWdlIC9QYXJlbnQgMyAwIFIgL0NvbnRlbnRzIDggMCBSIC9SZXNvdXJjZXMgNCAwIFIgPj4K
-ZW5kb2JqCjggMCBvYmoKPDwKL0xlbmd0aCAyMDIxIC9GaWx0ZXIgL0ZsYXRlRGVjb2RlCj4+CnN0
-cmVhbQp4nK1ZW29UNxB+31/hx/KA8d0+fQS1SEitBInaSr1IYQkUlIU2G9T233dutueEJdlEechh
-P8/FY3s8Mx68eWG8+WD+3ry8359x1jn+5Obxn1gT/nN5bn42HzdP9q+ePzXb/QZpzujvftvJz04O
-kE+e/Yij1fyz+fV348ybjTcv4O/DxtN0P2xumPrpsC8u1iUTFlu8ST7Y5E10zZZ0pIU3yr+dC3B2
-CcHoLy7A2RznAty1BbDuCrqr2W1S9jZ1eLE5EbKPxRY36YIVwxJxlsnAeDKE7Gwqk0HwZIiu2qSm
-EIwM6xNgdmAKipuhsge2x2t7GCuGkq1T9ghWBoeAGzQNZqwYarOLmkKwWlHMtqkpBCNDg+0LcqA7
-QTE2GzIvGIwBVZ0uUDGElG1Ig0GgYogh2ZwHg0DFkFxEYzqDQMUA/lOjwUOib6hyGeDY52VgF2L7
-U7E+TWu9K7gJF8NWwIsH3G1x2Vak96nhH9k+R47vgLzgtyw09ZillDnLApPkOYkPcMxlTuJhPbXO
-SXxMNvIkT56fhFzNu/2B6SgqPD/xh6l8p6q/FhTkPhnTErpaN3TgZl00LeP+psX6bGRB9HuLfNUu
-S6fB13cZ/k36iI9xttF1GZihdX30m/h4LqaxDSyj7NtungKnLxEdlDdzpwbgCgYAsJfFLM1mvie4
-7wS2xFpRaac2lOhyDEgrs/JAsqUNuYi6u1YCzMpzCpWtETllK5sfUrA198Pf6ZEFo1BIcPgVDt/Z
-AndCXIXRlrgL3oJBrxY8f8gKIt3MLSPF1mXIhowRc7ghIebmuTtd7BJZbTevJWKYKd1xd2okObxf
-MUQ8T58g4MGlETdntCVu2Mkw6ZWCXZdlxLqZW0Yo1nZZCO6hDd2MmJvn7nSxVGS13byW5LyNtV+6
-nR6Bu+8AQSpbSF8Dx+1XlNCWuGE346QXG/OUFUS6mVtGgl3KlPW2pambEHPL3EIXu0RW241r0cHi
-elhcB4tDQVOFBIqQA1ebfb+mkM5jv8L0W4UEpvG1Z5keEnzSISHh3otMxOst+uIIHTwX09gGllH2
-rUKCRPGdHqlYf8gFxbwKt2TEfEIqLAw63fwhK4h0q8jgXcJbMmQjOWDXTUgFh0EXu0RW272KD5KB
-dnqkoSfLHQ1uQU8e+YqQig+DTvd/yAoi3So+BHBAiIhDNuECh25CKj4MutglstruVXyQ7LnTIxV9
-QO4olofg/iPXElLxYdBrr71IVhDpVvEhgnVwIYZsRC8augmp+DDoYpfIartX8UEy/06PUKKSOxph
-/WnEB0EqPgw63f8hK4h0q/gQQWkuU5ZKs6GbkIoPgy52iay2u8eHrxcL6/qVCnApnAJexETJYLdZ
-oFBfBM0isVMHyompXTYnLStUXzyEIrMsduGaDH44garCnHSGgaunKR84o3b5QQ+YX+C2ofcmqkAX
-G3zHqkRVHIzx+dJWOnhk6pgcMcCyIOHkgrNjGdsw+glWda7iYAyCJa108MjUoThgF9pCqatQPQ+3
-oYWOVbGsOAQ7rM9WOmhE6Rgc00UOpQg5zYYFyDhNQsoThDqD+soTIq9PZAdVTtJDfUoPIjlKwcoX
-FIcEXBDMKx08MnVMDjnLAIUNPcvkLAXrJ8vkYH+AdAWr0f7AI9MfJoecJR5yCPMsBSt/UBz8DgId
-oWgdMjJ0aA4+Swwrzc+zFKz8QXGM8OHyWofnknroGBzgD5H9IVDImN+vNB1W7/Wv9AJO7ttCGX9P
-T7nYaWjbaEs4CKnYUphfqnq+h3tlTt+C64wuCH0Yw0aDk4DXQmo53ZlvvHtkTj9svjulSY6R9RCk
-YbEoHO4uzE6LwvHOwsE3zLkonO4uXDPGPBTOdxaOUINWNrsM4X463WlUx+d27/mi41MwQfYGim6n
-kOeWXrdRMFi1UxS9t09W3ZRJH92TVTNF0XvzZNVLmfTRO1m1UpB+rCM/yFZJn6ZgibZbdW10m0bI
-q66NDnlCXzVtdJNG6Kueje7RCH3VstFb8YB3tkUbIW01rH3ozh7vvr4EzI5TNtzB9SH0L0nJpuNl
-Y/BYbk7ZdgfZhaK+Wm+5fuWODZBONPcvb3aV2eO12Qn7hWqQjL0knPzHz7vX55fm01vz7PSX/XVD
-7jWxmu2xMgLyBhSVHkagFsGpfzjf78/ene+f7M1v3/zr3R/lt0e37YS6adetOtzGTuAhtYkDY5kH
-L4HiMC9SG/t+C2037XDCd2U2tWD0wnU++/Tx7ft3ny/Prt5/+ngguh67EFKb6TXgK74D+btax4EI
-dHtL9XoEStXhm6pwtIZsSv+7wPBC5fvZoVA7dlOr4harDjQ4lVXwPqoJ7Ra71AC/kCAD1mDgLV4a
-AHhELgLobQXRPpVBXbAe63IMSCuz0kCGaip2udzQNtHKgFlpzk4la7qcshWfa3rTjjqhm3LEnU7o
-Dt4FKW/41XHedfjteYR3wWsB3vXDdoa3etdNXfNbrDrSu8QuNUB7IicNr93kuh8wUN7VqeQ/XY4B
-aVXelQLm3S4HD/44tBJQ3tWpbI3IKVtv8a4juwP3OKH7paWDSTHBU6jRzfKOk8Pni6v3j/+6/LR9
-kJx046yJ8sGc9erPy/OzN19LRQ84vxSa4Cky/8nu7OLC7CQxQloM5vV/V+f7LxPjAyYssQKjB9cE
-P1++vzo3kp7Nq7Or82/NPA/z04k5Zp9ebv4HbABPoWVuZHN0cmVhbQplbmRvYmoKMyAwIG9iago8
-PCAvVHlwZSAvUGFnZXMgL0tpZHMgWyA3IDAgUiBdIC9Db3VudCAxIC9NZWRpYUJveCBbMCAwIDU4
-MCAzNzNdID4+CmVuZG9iago0IDAgb2JqCjw8Ci9Qcm9jU2V0IFsvUERGIC9UZXh0XQovRm9udCA8
-PC9GNyAxMCAwIFIgL0Y4IDExIDAgUiA+PgovRXh0R1N0YXRlIDw8IC9HUzEgMTIgMCBSIC9HUzIg
-MTMgMCBSIC9HUzMgMTQgMCBSIC9HUzI1NyAxNSAwIFIgL0dTMjU4IDE2IDAgUiA+PgovQ29sb3JT
-cGFjZSA8PCAvc1JHQiA1IDAgUiA+Pgo+PgplbmRvYmoKNSAwIG9iagpbL0lDQ0Jhc2VkIDYgMCBS
-XQplbmRvYmoKNiAwIG9iago8PCAvQWx0ZXJuYXRlIC9EZXZpY2VSR0IgL04gMyAvTGVuZ3RoIDI1
-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
-itOIE8R1x2Pjo+Ob4qcX+izcuXA8wT6hOOH6IuNFeYsuLNZYnL74+BLFJZwlRxLRiTGJLYnvOaGc
-Bs700oCltUunuGzuLu4TngdvB2+S78ov508kuSaVJz1Kdk3enjyZ4p5SkfJUwBZUC56n+qfWpb5O
-C03bn/YpPSa9PQOXkZhxVEgRpgn7MrUz8zKHs8yzirOky5yX7Vw2JQoSNWVD2Yuyu8U02c/UgMRE
-sl4ymuOWU5PzJjc690iecp4wb2C52fJNyyfyffO/XoFawV3RW6BbsLZgdKXnyvpV0Kqlq3pX668u
-Wj2+xm/NgbWEtWlrfyi0LiwvfLkuZl1PkVbRmqKx9X7rW4sVikXFNza4bKjbiNoo2Di4ae6mqk0f
-S3glF0utSytK32/mbr74lc1XlV992pK0ZbDMoWzPVsxW4dbr29y3HShXLs8vH9sesr1zB2NHyY6X
-O5fsvFBhV1G3i7BLsktaGVzZXWVQtbXqfXVK9UiNV017rWbtptrXu3m7r+zx2NNWp1VXWvdur2Dv
-zXq/+s4Go4aKfZh9OfseNkY39n/N+rq5SaOptOnDfuF+6YGIA33Njs3NLZotZa1wq6R18mDCwcvf
-eH/T3cZsq2+nt5ceAockhx5/m/jt9cNBh3uPsI60fWf4XW0HtaOkE+pc3jnVldIl7Y7rHj4aeLS3
-x6Wn43vL7/cf0z1Wc1zleNkJwomiE59O5p+cPpV16unp5NNjvUt675yJPXOtL7xv8GzQ2fPnfM+d
-6ffsP3ne9fyxC84Xjl5kXey65HCpc8B+oOMH+x86Bh0GO4cch7ovO13uGZ43fOKK+5XTV72vnrsW
-cO3SyPyR4etR12/eSLghvcm7+ehW+q3nt3Nuz9xZcxd9t+Se0r2K+5r3G340/bFd6iA9Puo9OvBg
-wYM7Y9yxJz9l//R+vOgh+WHFhM5E8yPbR8cmfScvP174ePxJ1pOZp8U/K/9c+8zk2Xe/ePwyMBU7
-Nf5c9PzTr5tfqL/Y/9LuZe902PT9VxmvZl6XvFF/c+At623/u5h3EzO577HvKz+Yfuj5GPTx7qeM
-T59+A/eE8/tlbmRzdHJlYW0KZW5kb2JqCjkgMCBvYmoKPDwKL1R5cGUgL0VuY29kaW5nIC9CYXNl
-RW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwovRGlmZmVyZW5jZXMgWyA0NS9taW51cyA5Ni9xdW90
-ZWxlZnQKMTQ0L2RvdGxlc3NpIC9ncmF2ZSAvYWN1dGUgL2NpcmN1bWZsZXggL3RpbGRlIC9tYWNy
-b24gL2JyZXZlIC9kb3RhY2NlbnQKL2RpZXJlc2lzIC8ubm90ZGVmIC9yaW5nIC9jZWRpbGxhIC8u
-bm90ZGVmIC9odW5nYXJ1bWxhdXQgL29nb25layAvY2Fyb24gL3NwYWNlXQo+PgplbmRvYmoKMTAg
-MCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9OYW1lIC9GNyAvQmFzZUZvbnQg
-L0NvdXJpZXIKL0VuY29kaW5nIDkgMCBSID4+CmVuZG9iagoxMSAwIG9iago8PCAvVHlwZSAvRm9u
-dCAvU3VidHlwZSAvVHlwZTEgL05hbWUgL0Y4IC9CYXNlRm9udCAvQ291cmllci1Cb2xkCi9FbmNv
-ZGluZyA5IDAgUiA+PgplbmRvYmoKMTIgMCBvYmoKPDwKL1R5cGUgL0V4dEdTdGF0ZQovQ0EgMC41
-MDIgPj4KZW5kb2JqCjEzIDAgb2JqCjw8Ci9UeXBlIC9FeHRHU3RhdGUKL0NBIDAuNzAyID4+CmVu
-ZG9iagoxNCAwIG9iago8PAovVHlwZSAvRXh0R1N0YXRlCi9DQSAxLjAwMCA+PgplbmRvYmoKMTUg
-MCBvYmoKPDwKL1R5cGUgL0V4dEdTdGF0ZQovY2EgMC41MDIKPj4KZW5kb2JqCjE2IDAgb2JqCjw8
-Ci9UeXBlIC9FeHRHU3RhdGUKL2NhIDEuMDAwCj4+CmVuZG9iagp4cmVmCjAgMTcKMDAwMDAwMDAw
-MCA2NTUzNSBmIAowMDAwMDAwMDIxIDAwMDAwIG4gCjAwMDAwMDAxNjMgMDAwMDAgbiAKMDAwMDAw
-MjM4NSAwMDAwMCBuIAowMDAwMDAyNDY4IDAwMDAwIG4gCjAwMDAwMDI2NTUgMDAwMDAgbiAKMDAw
-MDAwMjY4OCAwMDAwMCBuIAowMDAwMDAwMjEyIDAwMDAwIG4gCjAwMDAwMDAyOTIgMDAwMDAgbiAK
-MDAwMDAwNTM4MyAwMDAwMCBuIAowMDAwMDA1NjQwIDAwMDAwIG4gCjAwMDAwMDU3MzUgMDAwMDAg
-biAKMDAwMDAwNTgzNSAwMDAwMCBuIAowMDAwMDA1ODg0IDAwMDAwIG4gCjAwMDAwMDU5MzMgMDAw
-MDAgbiAKMDAwMDAwNTk4MiAwMDAwMCBuIAowMDAwMDA2MDMxIDAwMDAwIG4gCnRyYWlsZXIKPDwg
-L1NpemUgMTcgL0luZm8gMSAwIFIgL1Jvb3QgMiAwIFIgPj4Kc3RhcnR4cmVmCjYwODAKJSVFT0YK
---0000000000004cac9f05638813a3--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
