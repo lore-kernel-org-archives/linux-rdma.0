@@ -1,157 +1,74 @@
-From: Oren Duer <oren.duer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Reconnect on RDMA device reset
-Date: Wed, 24 Jan 2018 09:41:05 +0200
-Message-ID: <CADZhsQqvK0LMd9sfxzz+x_5qVnoi4FP0FCFMsTPjpeXyqfXKew@mail.gmail.com>
-References: <CADZhsQqDFc1NWmsihOwki8_2Zj0HuYKC_N_x0jMnCtU9Rww1UA@mail.gmail.com>
- <f0a14240-1566-1bae-1b9f-21880bc3f3a0@grimberg.me>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: SQ overflow seen running isert traffic with high block sizes
+Date: Tue, 23 Jan 2018 23:55:34 -0800
+Message-ID: <1516780534.24576.335.camel@haakon3.daterainc.com>
+References: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+         <210f538f-8c98-f480-64fc-f2124ed6d01b@grimberg.me>
+         <BN3PR07MB25786338EADC77A369A6D493F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+         <1499970579.7987.8.camel@haakon3.daterainc.com>
+         <BN3PR07MB2578E6561CC669922A322245F8A00@BN3PR07MB2578.namprd07.prod.outlook.com>
+         <20171006224025.GA23364@ssaleem-MOBL4.amr.corp.intel.com>
+         <1515992195.24576.156.camel@haakon3.daterainc.com>
+         <CY1PR0701MB2012E53C69D1CE3E16BA320B88EB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+         <20180115152236.GA15484@ssaleem-MOBL4.amr.corp.intel.com>
+         ,<1516269522.24576.274.camel@haakon3.daterainc.com>
+         <CY1PR0701MB2012C8513D9048FC1CC7011088EF0@CY1PR0701MB2012.namprd07.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f0a14240-1566-1bae-1b9f-21880bc3f3a0-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <CY1PR0701MB2012C8513D9048FC1CC7011088EF0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+Sender: target-devel-owner@vger.kernel.org
+To: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
+Cc: Shiraz Saleem <shiraz.saleem@intel.com>, "Amrani, Ram" <Ram.Amrani@cavium.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, target-devel <target-devel@vger.kernel.org>, Potnuri Bharat Teja <bharat@chelsio.com>, "Radzi, Amit" <Amit.Radzi@cavium.com>, "Galon, Yoav" <Yoav.Galon@cavium.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 23, 2018 at 2:42 PM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
->
->> Hi,
->
->
-> Hey Oren,
->
->> Today host and target stacks will respond to RDMA device reset (or plug
->> out
->> and plug in) by cleaning all resources related to that device, and sitting
->> idle waiting for administrator intervention to reconnect (host stack) or
->> rebind subsystem to a port (target stack).
->>
->> I'm thinking that maybe the right behaviour should be to try and restore
->> everything as soon as the device becomes available again. I don't think a
->> device reset should look different to the users than ports going down and
->> up
->> again.
->
->
-> Hmm, not sure I fully agree here. In my mind device removal means the
-> device is going away which means there is no point in keeping the controller
-> around...
+Hi Michal & Co,
 
-The same could have been said on a port going down. You don't know if it will
-come back up connected to the same network...
+On Fri, 2018-01-19 at 19:33 +0000, Kalderon, Michal wrote:
+> ________________________________________
+> From: Nicholas A. Bellinger <nab@linux-iscsi.org>
+> Sent: Thursday, January 18, 2018 11:58 AM
+> 
+> > Hi Shiraz, Michal & Co,
+> Hi Nicholas, 
+> 
+> > Thanks for the feedback.  Comments below.
+> 
+> > A couple of thoughts.
+> 
+> > First, would it be helpful to limit maximum payload size per I/O for
+> > consumers based on number of iser-target sq hw sges..?
+> 
+> I don't think you need to limit the maximum payload, but instead 
+> initialize the max_wr to be based on the number of supported SGEs
+> Instead of what is there today:
+> #define ISERT_QP_MAX_REQ_DTOS   (ISCSI_DEF_XMIT_CMDS_MAX +    \
+>                                 ISERT_MAX_TX_MISC_PDUS  + \
+>                                 ISERT_MAX_RX_MISC_PDUS)
+> Add the maximum number of WQEs per command, 
+> The calculation of number of WQEs per command needs to be something like
+> "MAX_TRANSFER_SIZE/(numSges*PAGE_SIZE)".
+> 
 
->
-> AFAIK device resets usually are expected to quiesce inflight I/O,
-> cleanup resources and restore when the reset sequence completes (which is
-> what we do in nvme controller resets). I'm not sure I understand why
-> RDMA device resets manifest as DEVICE_REMOVAL events to ULPs (via
-> rdma_cm or .remove_one via ib_client API). I think the correct interface
-> would be suspend/resume semantics for RDMA device resets (similar to pm
-> interface).
->
-> I think that it would make a much cleaner semantics and ULPs should be
-> able to understand exactly what to do (which is what you suggested
-> above).
->
-> CCing linux-rdma.
+Makes sense, MAX_TRANSFER_SIZE would be defined globally by iser-target,
+right..?
 
-Maybe so. I don't know what's the "standard" here for Linux in general and
-networking devices in particular. Let's see if linux-rdma agree here.
+Btw, I'm not sure how this effects usage of ISER_MAX_TX_CQ_LEN +
+ISER_MAX_CQ_LEN, which currently depend on ISERT_QP_MAX_REQ_DTOS..
 
-> Regardless of ib_client vs. rdma_cm, we can't simply perform normal
-> reconnects because we have dma mappings we need to unmap for each
-> request in the tagset which we don't teardown in every reconnect (as
-> we may have inflight I/O). We could have theoretically use reinit_tagset
-> to do that though.
+Sagi, what are your thoughts wrt changing attr.cap.max_send_wr at
+runtime vs. exposing a smaller max_data_sg_nents=32 for ib_devices with
+limited attr.cap.max_send_sge..?
 
-Obviously it isn't that simple... Just trying to agree on the right direction
-to go.
+> For some devices like ours, breaking the IO into multiple WRs according to supported
+> number of SGEs doesn't necessarily means performance penalty.
+> 
 
->>
->> In the reconnect flow the stack already repeats creating the cm_id and
->> resolving address and route, so when the RDMA device comes back up, and
->> assuming it will be configured with the same address and connected to the
->> same
->> network (as is the case in device reset), connections will be restored
->> automatically.
->
->
-> As I said, I think that the problem is the interface of RDMA device
-> resets. IMO, device removal means we need to delete all the nvme
-> controllers associated with the device.
+AFAICT ading max_data_sg_nents for iser-target is safe enough
+work-around to include for stable, assuming we agree on what the
+max_send_sg cut-off is for setting max_data_sg_nents=32 usage from a
+larger default.  I don't have a string preference either way, as long as
+it can be picked up for 4.x stable.
 
-Do you think all associated controllers should be deleted when a TCP socket
-gets disconnected in NVMe-over-TCP? Do they?
-
->
-> If we were to handle hotplug events where devices come into the system,
-> the correct way would be to send a udev event to userspace and not keep
-> stale controllers around with hope they will come back. userspace is a
-> much better place to keep a state with respect to these scenarios IMO.
-
-That's the important part I'm trying to understand the direction we should go.
-First, let's agree that the user (admin) expects a simple behaviour: if a
-configuration was made to connect with a remote storage, the stack (driver,
-daemons, scripts) should make an effort to keep those connections whenever
-possible.
-
-Yes, it could be a userspace script/daemon job. But I was under the impression
-that this group tries to consolidate most (all?) of the functionality into the
-driver, and not rely on userspace daemons. Maybe a lesson learnt from iSCSI?
-If all are in agreement that this should be done in userspace, that's fine.
-
->> At the target stack things are even worse. When the RDMA device resets or
->> disappears the softlink between the port and the subsystem stays
->> "hanging". It
->> does not represent an active bind, and when the device will come back with
->> the
->> same address and network it will not start working (even though the
->> softlink
->> is there). This is quite confusing to the user.
->
->
-> Right, I think we would need to reflect port state (active/inactive) via
-> configfs and nvmetcli could reflect it in its UI.
-
-You mean the softlink should disappear in this case?
-It can't stay as it means nothing (the bond between the port and the subsystem
-is gone forever the way it is now).
-But removing the softlink in configfs sounds against nature of things: the
-admin put it there, it reflects the admin wish to expose a subsystem via a
-port. This wish did not change... Are there examples of configfs items being
-changed by the stack against the admin's wish?
-
->> What I suggest here is to implement something similar to the reconnect
->> flow at
->> the host, and repeat the flow that is doing the rdma_bind_addr. This way,
->> again, when the device will come back with the same address and network
->> the
->> bind will succeed and the subsystem will become functional again. In this
->> case
->> it makes sense to keep the softlink during all this time, as the stack
->> really
->> tries to re-bind to the port.
->
->
-> I'm sorry but I don't think that is the correct approach. If the device
-> is removed than we break the association and do nothing else. As for
-> RDMA device resets, this goes back to the interface problem I pointed
-> out.
-
-Are we in agreement that the user (admin) expects the software stack to keep
-this bound when possible (like keeping the connections in the initiator case)?
-After all, the admin has specifically put the softlink there - it expresses
-the admin's wish.
-
-We could agree here too that it is the task of a userspace daemon/script. But
-then we'll need to keep the entire configuration in another place (meaning
-configfs alone is not enough anymore), constantly compare it to the current
-configuration in configfs, and make the adjustments.
-And we'll need the stack to remove the symlink, which I still think is an odd
-behaviour.
-
-Oren
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sagi, WDYT..?
