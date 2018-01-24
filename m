@@ -1,157 +1,135 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v1] {RDMA,IB}/{vmw_pvrdma,srp,iser,srpt}: Use standard
- way to check return value
-Date: Wed, 24 Jan 2018 13:57:11 +0200
-Message-ID: <20180124115711.GI1393@mtr-leonro.local>
-References: <20180124114439.9933-1-yuval.shaia@oracle.com>
+From: Potnuri Bharat Teja <bharat@chelsio.com>
+Subject: Re: SQ overflow seen running isert traffic with high block sizes
+Date: Wed, 24 Jan 2018 17:51:41 +0530
+Message-ID: <20180124122140.GA23744@chelsio.com>
+References: <BN3PR07MB25786338EADC77A369A6D493F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <1499970579.7987.8.camel@haakon3.daterainc.com>
+ <BN3PR07MB2578E6561CC669922A322245F8A00@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <20171006224025.GA23364@ssaleem-MOBL4.amr.corp.intel.com>
+ <1515992195.24576.156.camel@haakon3.daterainc.com>
+ <CY1PR0701MB2012E53C69D1CE3E16BA320B88EB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+ <20180115152236.GA15484@ssaleem-MOBL4.amr.corp.intel.com>
+ <1516269522.24576.274.camel@haakon3.daterainc.com>
+ <20180118175316.GA11338@chelsio.com>
+ <1516778717.24576.319.camel@haakon3.daterainc.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="bwMunqOr7B7rzQrh"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180124114439.9933-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, hare-IBi9RG/b67k@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1516778717.24576.319.camel@haakon3.daterainc.com>
+Sender: target-devel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: Shiraz Saleem <shiraz.saleem@intel.com>, "Kalderon, Michal" <Michal.Kalderon@cavium.com>, "Amrani, Ram" <Ram.Amrani@cavium.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, target-devel <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---bwMunqOr7B7rzQrh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Jan 24, 2018 at 01:44:39PM +0200, Yuval Shaia wrote:
-> To be compatible with other modules/drivers, change return code checks
-> from "if (rc != 0)" to "if (rc)".
->
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
-> v0 -> v1:
-> 	* Add some other fixes (srp,iser and srpt)
-
-Can you please simply write "RDMA: Use standard way to check return value" in the title?
-It is shorter than yours.
-
-Thanks
-
-> ---
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 8 ++++----
->  drivers/infiniband/ulp/iser/iser_initiator.c   | 2 +-
->  drivers/infiniband/ulp/srp/ib_srp.c            | 2 +-
->  drivers/infiniband/ulp/srpt/ib_srpt.c          | 4 ++--
->  4 files changed, 8 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> index d650a9fcde24..ce289a55a9dc 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> @@ -837,16 +837,16 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
->  	}
->
->  	/* Enable 64-Bit DMA */
-> -	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(64)) == 0) {
-> +	if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(64))) {
->  		ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
-> -		if (ret != 0) {
-> +		if (ret) {
->  			dev_err(&pdev->dev,
->  				"pci_set_consistent_dma_mask failed\n");
->  			goto err_free_resource;
->  		}
->  	} else {
->  		ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
-> -		if (ret != 0) {
-> +		if (ret) {
->  			dev_err(&pdev->dev,
->  				"pci_set_dma_mask failed\n");
->  			goto err_free_resource;
-> @@ -1018,7 +1018,7 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
->
->  	/* Check if device was successfully activated */
->  	ret = pvrdma_read_reg(dev, PVRDMA_REG_ERR);
-> -	if (ret != 0) {
-> +	if (ret) {
->  		dev_err(&pdev->dev, "failed to activate device\n");
->  		ret = -EFAULT;
->  		goto err_disable_intr;
-> diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-> index 2a07692007bd..09045a432f89 100644
-> --- a/drivers/infiniband/ulp/iser/iser_initiator.c
-> +++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-> @@ -128,7 +128,7 @@ iser_prepare_write_cmd(struct iscsi_task *task,
->
->  	err = iser_reg_rdma_mem(iser_task, ISER_DIR_OUT,
->  				buf_out->data_len == imm_sz);
-> -	if (err != 0) {
-> +	if (err) {
->  		iser_err("Failed to register write cmd RDMA mem\n");
->  		return err;
->  	}
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 62d88212c1b0..8d9676b9fbc9 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -2109,7 +2109,7 @@ static void srp_recv_done(struct ib_cq *cq, struct ib_wc *wc)
->  				      DMA_FROM_DEVICE);
->
->  	res = srp_post_recv(ch, iu);
-> -	if (res != 0)
-> +	if (res)
->  		shost_printk(KERN_ERR, target->scsi_host,
->  			     PFX "Recv failed with error code %d\n", res);
->  }
-> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> index d78f60dcc2ba..659e6d62fb97 100644
-> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> @@ -1441,7 +1441,7 @@ static void srpt_handle_cmd(struct srpt_rdma_ch *ch,
->  			       scsilun_to_int(&srp_cmd->lun), data_len,
->  			       TCM_SIMPLE_TAG, dir, TARGET_SCF_ACK_KREF,
->  			       sg, sg_cnt, NULL, 0, NULL, 0);
-> -	if (rc != 0) {
-> +	if (rc) {
->  		pr_debug("target_submit_cmd() returned %d for tag %#llx\n", rc,
->  			 srp_cmd->tag);
->  		goto release_ioctx;
-> @@ -1508,7 +1508,7 @@ static void srpt_handle_tsk_mgmt(struct srpt_rdma_ch *ch,
->  			       scsilun_to_int(&srp_tsk->lun), srp_tsk, tcm_tmr,
->  			       GFP_KERNEL, srp_tsk->task_tag,
->  			       TARGET_SCF_ACK_KREF);
-> -	if (rc != 0) {
-> +	if (rc) {
->  		send_ioctx->cmd.se_tmr_req->response = TMR_FUNCTION_REJECTED;
->  		goto fail;
->  	}
+On Wednesday, January 01/24/18, 2018 at 12:55:17 +0530, Nicholas A. Bellinger wrote:
+> Hi Potnuri & Co,
+> 
+> On Thu, 2018-01-18 at 23:23 +0530, Potnuri Bharat Teja wrote:
+> > Hi Nicholas, 
+> > thanks for the suggestions. Comments below.
+> > 
+> > On Thursday, January 01/18/18, 2018 at 15:28:42 +0530, Nicholas A. Bellinger wrote:
+> > > Hi Shiraz, Michal & Co,
+> > > 
+> > > Thanks for the feedback.  Comments below.
+> > > 
+> > > On Mon, 2018-01-15 at 09:22 -0600, Shiraz Saleem wrote:
+> > > > On Mon, Jan 15, 2018 at 03:12:36AM -0700, Kalderon, Michal wrote:
+> > > > > > From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
+> > > > > > owner@vger.kernel.org] On Behalf Of Nicholas A. Bellinger
+> > > > > > Sent: Monday, January 15, 2018 6:57 AM
+> > > > > > To: Shiraz Saleem <shiraz.saleem@intel.com>
+> > > > > > Cc: Amrani, Ram <Ram.Amrani@cavium.com>; Sagi Grimberg
+> > > > > > <sagi@grimberg.me>; linux-rdma@vger.kernel.org; Elior, Ariel
+> > > > > > <Ariel.Elior@cavium.com>; target-devel <target-devel@vger.kernel.org>;
+> > > > > > Potnuri Bharat Teja <bharat@chelsio.com>
+> > > > > > Subject: Re: SQ overflow seen running isert traffic with high block sizes
+> > > > > > 
+> > > > > > Hi Shiraz, Ram, Ariel, & Potnuri,
+> > > > > > 
+> > > > > > Following up on this old thread, as it relates to Potnuri's recent fix for a iser-
+> > > > > > target queue-full memory leak:
+> > > > > > 
+> > > > > > https://www.spinics.net/lists/target-devel/msg16282.html
+> > > > > > 
+> > > > > > Just curious how frequent this happens in practice with sustained large block
+> > > > > > workloads, as it appears to effect at least three different iwarp RNICS (i40iw,
+> > > > > > qedr and iw_cxgb4)..?
+> > > > > > 
+> > > > > > Is there anything else from an iser-target consumer level that should be
+> > > > > > changed for iwarp to avoid repeated ib_post_send() failures..?
+> > > > > > 
+> > > > > Would like to mention, that although we are an iWARP RNIC as well, we've hit this
+> > > > > Issue when running RoCE. It's not iWARP related. 
+> > > > > This is easily reproduced within seconds with IO size of 5121K
+> > > > > Using 5 Targets with 2 Ram Disk each and 5 targets with FileIO Disks each.
+> > > > > 
+> > > > > IO Command used:
+> > > > > maim -b512k -T32 -t2 -Q8 -M0 -o -u -n -m17 -ftargets.dat -d1
+> > > > > 
+> > > > > thanks,
+> > > > > Michal
+> > > > 
+> > > > Its seen with block size >= 2M on a single target 1 RAM disk config. And similar to Michals report;
+> > > > rather quickly, in a matter of seconds.
+> > > > 
+> > > > fio --rw=read --bs=2048k --numjobs=1 --iodepth=128 --runtime=30 --size=20g --loops=1 --ioengine=libaio 
+> > > > --direct=1 --invalidate=1 --fsync_on_close=1 --norandommap --exitall --filename=/dev/sdb --name=sdb 
+> > > > 
+> > > 
+> > > A couple of thoughts.
+> > > 
+> > > First, would it be helpful to limit maximum payload size per I/O for
+> > > consumers based on number of iser-target sq hw sges..?
+> > yes, I think HW num sge needs to be propagated to iscsi target.
+> > > 
+> > > That is, if rdma_rw_ctx_post() -> ib_post_send() failures are related to
+> > > maximum payload size per I/O being too large there is an existing
+> > 
+> > Yes they are IO size specific, I observed SQ overflow with fio for IO sizes above
+> > 256k and for READ tests only with chelsio(iw_cxgb4) adapters.
+> 
+> Thanks for confirming.
+> 
+> > > target_core_fabric_ops mechanism for limiting using SCSI residuals,
+> > > originally utilized by qla2xxx here:
+> > > 
+> > > target/qla2xxx: Honor max_data_sg_nents I/O transfer limit
+> > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=8f9b565482c537821588444e09ff732c7d65ed6e
+> > > 
+> > > Note this patch also will return a smaller Block Limits VPD (0x86)
+> > > MAXIMUM TRANSFER LENGTH based on max_data_sg_nents * PAGE_SIZE, which
+> > > means for modern SCSI initiators honoring MAXIMUM TRANSFER LENGTH will
+> > > automatically limit maximum outgoing payload transfer length, and avoid
+> > > SCSI residual logic.
+> > > 
+> > > As-is, iser-target doesn't a propagate max_data_sg_ents limit into
+> > > iscsi-target, but you can try testing with a smaller value to see if
+> > > it's useful.  Eg:
+> > > 
+> > > diff --git a/drivers/target/iscsi/iscsi_target_configfs.c b/drivers/target/iscsi/iscsi_target_configf
+> > > index 0ebc481..d8a4cc5 100644
+> > > --- a/drivers/target/iscsi/iscsi_target_configfs.c
+> > > +++ b/drivers/target/iscsi/iscsi_target_configfs.c
+> > > @@ -1553,6 +1553,7 @@ static void lio_release_cmd(struct se_cmd *se_cmd)
+> > >         .module                         = THIS_MODULE,
+> > >         .name                           = "iscsi",
+> > >         .node_acl_size                  = sizeof(struct iscsi_node_acl),
+> > > +       .max_data_sg_nents              = 32, /* 32 * PAGE_SIZE = MAXIMUM TRANSFER LENGTH */
+> > >         .get_fabric_name                = iscsi_get_fabric_name,
+> > >         .tpg_get_wwn                    = lio_tpg_get_endpoint_wwn,
+> > >         .tpg_get_tag                    = lio_tpg_get_tag,
+> > > 
+> > With above change, SQ overflow isn't observed. I started of with max_data_sg_nents = 16.
+> 
+> OK, so max_data_sg_nents=32 (MAXIMUM TRANSFER SIZE=128K with 4k pages)
+> avoids SQ overflow with iw_cxgb4.
+> 
+> What is iw_cxgb4 reporting to isert_create_cq():attr.cap.max_send_sge..?
+max_send_sge is 4 for iw_cxgb4
+ 
 > --
-> 2.14.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> To unsubscribe from this list: send the line "unsubscribe target-devel" in
+> the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---bwMunqOr7B7rzQrh
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpodJcACgkQ5GN7iDZy
-WKefaQ//ZV/xWwZHBrOj8nMGqPlM/AKDX2oZHlfy9eHduEqU/3qK+Uhd2UVJQqPb
-al3pHMl1L3U59FNBuClCbHQZZxa4xOcqd3n8npJKxRNkDAF7f936Oghg4cSgFeGe
-EWrXuk3HKGsZUVBpd665UmGKsCzanFrTp68Ao+6jkkYtYGtWUniGW4KJskybup2O
-OHnL7/fj2J4PUkPJbzPbkzXQmgIW2j0yIFE2pLpBkzhzBwCbItdYyQ8JDCYd4G4O
-DKV2VMCjgXMArCLtj18WHIRi2ULM6qYYB600fa4NL8Bv1EF/V0Myeu4drIhA9ucH
-3NJkUo7EX9gSG84Wrsk4aAE59IPLSTzczF0ByGUaYfcdGV8GGxuFIEtO4t8azLtJ
-HcYS09T2VBXk/dFyjOkUlot32/SBGahMJFyI+u3MXCr17gNfkQh2VYYADoxgu4TR
-0/6TCRjX8XDa5NUgigwAQz1MkE8Hh5OsZ10LcCNfKsEOA8ABfJPRkXruY4F1wK4w
-/wNn+Vpx698oe/rog/YiYwbY61+ssyi2fupr93No0lb18CHEAkQiSHBTw/u0+72m
-pMvMEn7pbCXnHscxNr78EONSQufYZYyW+hM2dsquJRbt0JZto1esbZdXzS/nEYCp
-xosA3xwZrfSIwV8JEftzzMSXDdIyn/NlHkKU6yoXu5DH5UIX3Jg=
-=UbCT
------END PGP SIGNATURE-----
-
---bwMunqOr7B7rzQrh--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
