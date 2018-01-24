@@ -1,7 +1,7 @@
 From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
 Subject: Re: SQ overflow seen running isert traffic with high block sizes
-Date: Tue, 23 Jan 2018 23:55:34 -0800
-Message-ID: <1516780534.24576.335.camel@haakon3.daterainc.com>
+Date: Wed, 24 Jan 2018 00:01:58 -0800
+Message-ID: <1516780918.24576.341.camel@haakon3.daterainc.com>
 References: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
          <210f538f-8c98-f480-64fc-f2124ed6d01b@grimberg.me>
          <BN3PR07MB25786338EADC77A369A6D493F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
@@ -11,64 +11,59 @@ References: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.
          <1515992195.24576.156.camel@haakon3.daterainc.com>
          <CY1PR0701MB2012E53C69D1CE3E16BA320B88EB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
          <20180115152236.GA15484@ssaleem-MOBL4.amr.corp.intel.com>
-         ,<1516269522.24576.274.camel@haakon3.daterainc.com>
-         <CY1PR0701MB2012C8513D9048FC1CC7011088EF0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+         <1516269522.24576.274.camel@haakon3.daterainc.com>
+         <9DD61F30A802C4429A01CA4200E302A789EB485A@fmsmsx116.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <CY1PR0701MB2012C8513D9048FC1CC7011088EF0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+In-Reply-To: <9DD61F30A802C4429A01CA4200E302A789EB485A@fmsmsx116.amr.corp.intel.com>
 Sender: target-devel-owner@vger.kernel.org
-To: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
-Cc: Shiraz Saleem <shiraz.saleem@intel.com>, "Amrani, Ram" <Ram.Amrani@cavium.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, target-devel <target-devel@vger.kernel.org>, Potnuri Bharat Teja <bharat@chelsio.com>, "Radzi, Amit" <Amit.Radzi@cavium.com>, "Galon, Yoav" <Yoav.Galon@cavium.com>
+To: "Saleem, Shiraz" <shiraz.saleem@intel.com>
+Cc: "Kalderon, Michal" <Michal.Kalderon@cavium.com>, "Amrani, Ram" <Ram.Amrani@cavium.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, target-devel <target-devel@vger.kernel.org>, Potnuri Bharat Teja <bharat@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Michal & Co,
+Hi Shiraz & Co,
 
-On Fri, 2018-01-19 at 19:33 +0000, Kalderon, Michal wrote:
-> ________________________________________
-> From: Nicholas A. Bellinger <nab@linux-iscsi.org>
-> Sent: Thursday, January 18, 2018 11:58 AM
+Thanks for the feedback.
+
+On Mon, 2018-01-22 at 17:49 +0000, Saleem, Shiraz wrote:
+> > Subject: Re: SQ overflow seen running isert traffic with high block sizes
+> > 
+> > 
+> > First, would it be helpful to limit maximum payload size per I/O for consumers
+> > based on number of iser-target sq hw sges..?
+> > 
+> Assuming data is not able to be fast registered as if virtually contiguous;
+> artificially limiting the data size might not be the best solution.
 > 
-> > Hi Shiraz, Michal & Co,
-> Hi Nicholas, 
-> 
-> > Thanks for the feedback.  Comments below.
-> 
-> > A couple of thoughts.
-> 
-> > First, would it be helpful to limit maximum payload size per I/O for
-> > consumers based on number of iser-target sq hw sges..?
-> 
-> I don't think you need to limit the maximum payload, but instead 
-> initialize the max_wr to be based on the number of supported SGEs
-> Instead of what is there today:
-> #define ISERT_QP_MAX_REQ_DTOS   (ISCSI_DEF_XMIT_CMDS_MAX +    \
->                                 ISERT_MAX_TX_MISC_PDUS  + \
->                                 ISERT_MAX_RX_MISC_PDUS)
-> Add the maximum number of WQEs per command, 
-> The calculation of number of WQEs per command needs to be something like
-> "MAX_TRANSFER_SIZE/(numSges*PAGE_SIZE)".
+> But max SGEs does need to be exposed higher. Somewhere in the stack,
+> there might need to be multiple WRs submitted or data copied.
 > 
 
-Makes sense, MAX_TRANSFER_SIZE would be defined globally by iser-target,
-right..?
+Sagi..?
 
-Btw, I'm not sure how this effects usage of ISER_MAX_TX_CQ_LEN +
-ISER_MAX_CQ_LEN, which currently depend on ISERT_QP_MAX_REQ_DTOS..
-
-Sagi, what are your thoughts wrt changing attr.cap.max_send_wr at
-runtime vs. exposing a smaller max_data_sg_nents=32 for ib_devices with
-limited attr.cap.max_send_sge..?
-
-> For some devices like ours, breaking the IO into multiple WRs according to supported
-> number of SGEs doesn't necessarily means performance penalty.
+> > diff --git a/drivers/target/iscsi/iscsi_target_configfs.c
+> > b/drivers/target/iscsi/iscsi_target_configf
+> > index 0ebc481..d8a4cc5 100644
+> > --- a/drivers/target/iscsi/iscsi_target_configfs.c
+> > +++ b/drivers/target/iscsi/iscsi_target_configfs.c
+> > @@ -1553,6 +1553,7 @@ static void lio_release_cmd(struct se_cmd *se_cmd)
+> >         .module                         = THIS_MODULE,
+> >         .name                           = "iscsi",
+> >         .node_acl_size                  = sizeof(struct iscsi_node_acl),
+> > +       .max_data_sg_nents              = 32, /* 32 * PAGE_SIZE = MAXIMUM
+> > TRANSFER LENGTH */
+> >         .get_fabric_name                = iscsi_get_fabric_name,
+> >         .tpg_get_wwn                    = lio_tpg_get_endpoint_wwn,
+> >         .tpg_get_tag                    = lio_tpg_get_tag,
+> > 
 > 
+> BTW, this is helping the SQ overflow issue.
 
-AFAICT ading max_data_sg_nents for iser-target is safe enough
-work-around to include for stable, assuming we agree on what the
-max_send_sg cut-off is for setting max_data_sg_nents=32 usage from a
-larger default.  I don't have a string preference either way, as long as
-it can be picked up for 4.x stable.
+Thanks for confirming as a possible work-around.
 
-Sagi, WDYT..?
+For reference, what is i40iw's max_send_sg reporting..?
+
+Is max_data_sg_nents=32 + 4k pages = 128K the largest MAX TRANSFER
+LENGTH to avoid consistent SQ overflow as-is with i40iw..?
