@@ -1,7 +1,7 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: SQ overflow seen running isert traffic with high block sizes
-Date: Wed, 24 Jan 2018 00:01:58 -0800
-Message-ID: <1516780918.24576.341.camel@haakon3.daterainc.com>
+From: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
+Subject: RE: SQ overflow seen running isert traffic with high block sizes
+Date: Wed, 24 Jan 2018 08:09:00 +0000
+Message-ID: <CY1PR0701MB2012090CB423505B207D2C3888E20@CY1PR0701MB2012.namprd07.prod.outlook.com>
 References: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
          <210f538f-8c98-f480-64fc-f2124ed6d01b@grimberg.me>
          <BN3PR07MB25786338EADC77A369A6D493F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
@@ -11,59 +11,60 @@ References: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.
          <1515992195.24576.156.camel@haakon3.daterainc.com>
          <CY1PR0701MB2012E53C69D1CE3E16BA320B88EB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
          <20180115152236.GA15484@ssaleem-MOBL4.amr.corp.intel.com>
-         <1516269522.24576.274.camel@haakon3.daterainc.com>
-         <9DD61F30A802C4429A01CA4200E302A789EB485A@fmsmsx116.amr.corp.intel.com>
+         ,<1516269522.24576.274.camel@haakon3.daterainc.com>
+         <CY1PR0701MB2012C8513D9048FC1CC7011088EF0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+ <1516780534.24576.335.camel@haakon3.daterainc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <9DD61F30A802C4429A01CA4200E302A789EB485A@fmsmsx116.amr.corp.intel.com>
+In-Reply-To: <1516780534.24576.335.camel@haakon3.daterainc.com>
+Content-Language: en-US
 Sender: target-devel-owner@vger.kernel.org
-To: "Saleem, Shiraz" <shiraz.saleem@intel.com>
-Cc: "Kalderon, Michal" <Michal.Kalderon@cavium.com>, "Amrani, Ram" <Ram.Amrani@cavium.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, target-devel <target-devel@vger.kernel.org>, Potnuri Bharat Teja <bharat@chelsio.com>
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: Shiraz Saleem <shiraz.saleem@intel.com>, "Amrani, Ram" <Ram.Amrani@cavium.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, target-devel <target-devel@vger.kernel.org>, Potnuri Bharat Teja <bharat@chelsio.com>, "Radzi, Amit" <Amit.Radzi@cavium.com>, "Galon, Yoav" <Yoav.Galon@cavium.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Shiraz & Co,
-
-Thanks for the feedback.
-
-On Mon, 2018-01-22 at 17:49 +0000, Saleem, Shiraz wrote:
-> > Subject: Re: SQ overflow seen running isert traffic with high block sizes
-> > 
-> > 
-> > First, would it be helpful to limit maximum payload size per I/O for consumers
-> > based on number of iser-target sq hw sges..?
-> > 
-> Assuming data is not able to be fast registered as if virtually contiguous;
-> artificially limiting the data size might not be the best solution.
-> 
-> But max SGEs does need to be exposed higher. Somewhere in the stack,
-> there might need to be multiple WRs submitted or data copied.
-> 
-
-Sagi..?
-
-> > diff --git a/drivers/target/iscsi/iscsi_target_configfs.c
-> > b/drivers/target/iscsi/iscsi_target_configf
-> > index 0ebc481..d8a4cc5 100644
-> > --- a/drivers/target/iscsi/iscsi_target_configfs.c
-> > +++ b/drivers/target/iscsi/iscsi_target_configfs.c
-> > @@ -1553,6 +1553,7 @@ static void lio_release_cmd(struct se_cmd *se_cmd)
-> >         .module                         = THIS_MODULE,
-> >         .name                           = "iscsi",
-> >         .node_acl_size                  = sizeof(struct iscsi_node_acl),
-> > +       .max_data_sg_nents              = 32, /* 32 * PAGE_SIZE = MAXIMUM
-> > TRANSFER LENGTH */
-> >         .get_fabric_name                = iscsi_get_fabric_name,
-> >         .tpg_get_wwn                    = lio_tpg_get_endpoint_wwn,
-> >         .tpg_get_tag                    = lio_tpg_get_tag,
-> > 
-> 
-> BTW, this is helping the SQ overflow issue.
-
-Thanks for confirming as a possible work-around.
-
-For reference, what is i40iw's max_send_sg reporting..?
-
-Is max_data_sg_nents=32 + 4k pages = 128K the largest MAX TRANSFER
-LENGTH to avoid consistent SQ overflow as-is with i40iw..?
+PiBGcm9tOiBOaWNob2xhcyBBLiBCZWxsaW5nZXIgW21haWx0bzpuYWJAbGludXgtaXNjc2kub3Jn
+XQ0KPiBTZW50OiBXZWRuZXNkYXksIEphbnVhcnkgMjQsIDIwMTggOTo1NiBBTQ0KPiANCj4gSGkg
+TWljaGFsICYgQ28sDQo+IA0KPiBPbiBGcmksIDIwMTgtMDEtMTkgYXQgMTk6MzMgKzAwMDAsIEth
+bGRlcm9uLCBNaWNoYWwgd3JvdGU6DQo+ID4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXw0KPiA+IEZyb206IE5pY2hvbGFzIEEuIEJlbGxpbmdlciA8bmFiQGxpbnV4LWlz
+Y3NpLm9yZz4NCj4gPiBTZW50OiBUaHVyc2RheSwgSmFudWFyeSAxOCwgMjAxOCAxMTo1OCBBTQ0K
+PiA+DQo+ID4gPiBIaSBTaGlyYXosIE1pY2hhbCAmIENvLA0KPiA+IEhpIE5pY2hvbGFzLA0KPiA+
+DQo+ID4gPiBUaGFua3MgZm9yIHRoZSBmZWVkYmFjay4gIENvbW1lbnRzIGJlbG93Lg0KPiA+DQo+
+ID4gPiBBIGNvdXBsZSBvZiB0aG91Z2h0cy4NCj4gPg0KPiA+ID4gRmlyc3QsIHdvdWxkIGl0IGJl
+IGhlbHBmdWwgdG8gbGltaXQgbWF4aW11bSBwYXlsb2FkIHNpemUgcGVyIEkvTyBmb3INCj4gPiA+
+IGNvbnN1bWVycyBiYXNlZCBvbiBudW1iZXIgb2YgaXNlci10YXJnZXQgc3EgaHcgc2dlcy4uPw0K
+PiA+DQo+ID4gSSBkb24ndCB0aGluayB5b3UgbmVlZCB0byBsaW1pdCB0aGUgbWF4aW11bSBwYXls
+b2FkLCBidXQgaW5zdGVhZA0KPiA+IGluaXRpYWxpemUgdGhlIG1heF93ciB0byBiZSBiYXNlZCBv
+biB0aGUgbnVtYmVyIG9mIHN1cHBvcnRlZCBTR0VzDQo+ID4gSW5zdGVhZCBvZiB3aGF0IGlzIHRo
+ZXJlIHRvZGF5Og0KPiA+ICNkZWZpbmUgSVNFUlRfUVBfTUFYX1JFUV9EVE9TICAgKElTQ1NJX0RF
+Rl9YTUlUX0NNRFNfTUFYICsgICAgXA0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgSVNFUlRfTUFYX1RYX01JU0NfUERVUyAgKyBcDQo+ID4gICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICBJU0VSVF9NQVhfUlhfTUlTQ19QRFVTKSBBZGQgdGhlDQo+ID4gbWF4aW11bSBu
+dW1iZXIgb2YgV1FFcyBwZXIgY29tbWFuZCwgVGhlIGNhbGN1bGF0aW9uIG9mIG51bWJlciBvZg0K
+PiBXUUVzDQo+ID4gcGVyIGNvbW1hbmQgbmVlZHMgdG8gYmUgc29tZXRoaW5nIGxpa2UNCj4gPiAi
+TUFYX1RSQU5TRkVSX1NJWkUvKG51bVNnZXMqUEFHRV9TSVpFKSIuDQo+ID4NCj4gDQo+IE1ha2Vz
+IHNlbnNlLCBNQVhfVFJBTlNGRVJfU0laRSB3b3VsZCBiZSBkZWZpbmVkIGdsb2JhbGx5IGJ5IGlz
+ZXItdGFyZ2V0LA0KPiByaWdodC4uPw0KR2xvYmFsbHkgb3IgcGVyaGFwcyBjb25maWd1cmFibGUg
+Ynkgc3lzZnMgY29uZmlndXJhdGlvbj8NCj4gDQo+IEJ0dywgSSdtIG5vdCBzdXJlIGhvdyB0aGlz
+IGVmZmVjdHMgdXNhZ2Ugb2YgSVNFUl9NQVhfVFhfQ1FfTEVOICsNCj4gSVNFUl9NQVhfQ1FfTEVO
+LCB3aGljaCBjdXJyZW50bHkgZGVwZW5kIG9uDQo+IElTRVJUX1FQX01BWF9SRVFfRFRPUy4uDQpJ
+IHRoaW5rIGl0IGNhbiByZW1haW4gZGVwZW5kZW50IG9uIE1BWF9SRVFfRFRPUy4gDQo+IA0KPiBT
+YWdpLCB3aGF0IGFyZSB5b3VyIHRob3VnaHRzIHdydCBjaGFuZ2luZyBhdHRyLmNhcC5tYXhfc2Vu
+ZF93ciBhdCBydW50aW1lDQo+IHZzLiBleHBvc2luZyBhIHNtYWxsZXIgbWF4X2RhdGFfc2dfbmVu
+dHM9MzIgZm9yIGliX2RldmljZXMgd2l0aCBsaW1pdGVkDQo+IGF0dHIuY2FwLm1heF9zZW5kX3Nn
+ZS4uPw0KRm9yIG91ciBkZXZpY2UgZGVmaW5pbmcgbWF4X2RhdGFfc2dfbmVudHMgZGlkbid0IGhl
+bHAgb24gc29tZSBzY2VuYXJpb3MsDQpJdCBzZWVtcyB0aGF0IEZyZXF1ZW5jeSBvZiB0aGUgaXNz
+dWUgb2NjdXJyaW5nIGluY3JlYXNlcyB3aXRoIG51bWJlciBvZiBsdW5zIHdlDQpUcnkgdG8gcnVu
+IG92ZXIuIA0KDQo+IA0KPiA+IEZvciBzb21lIGRldmljZXMgbGlrZSBvdXJzLCBicmVha2luZyB0
+aGUgSU8gaW50byBtdWx0aXBsZSBXUnMNCj4gPiBhY2NvcmRpbmcgdG8gc3VwcG9ydGVkIG51bWJl
+ciBvZiBTR0VzIGRvZXNuJ3QgbmVjZXNzYXJpbHkgbWVhbnMNCj4gcGVyZm9ybWFuY2UgcGVuYWx0
+eS4NCj4gPg0KPiANCj4gQUZBSUNUIGFkaW5nIG1heF9kYXRhX3NnX25lbnRzIGZvciBpc2VyLXRh
+cmdldCBpcyBzYWZlIGVub3VnaCB3b3JrLWFyb3VuZA0KPiB0byBpbmNsdWRlIGZvciBzdGFibGUs
+IGFzc3VtaW5nIHdlIGFncmVlIG9uIHdoYXQgdGhlIG1heF9zZW5kX3NnIGN1dC1vZmYgaXMNCj4g
+Zm9yIHNldHRpbmcgbWF4X2RhdGFfc2dfbmVudHM9MzIgdXNhZ2UgZnJvbSBhIGxhcmdlciBkZWZh
+dWx0LiAgSSBkb24ndCBoYXZlDQo+IGEgc3RyaW5nIHByZWZlcmVuY2UgZWl0aGVyIHdheSwgYXMg
+bG9uZyBhcyBpdCBjYW4gYmUgcGlja2VkIHVwIGZvciA0Lnggc3RhYmxlLg0KPiANCj4gU2FnaSwg
+V0RZVC4uPw0KDQo=
