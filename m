@@ -1,70 +1,59 @@
-From: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
-Subject: RE: SQ overflow seen running isert traffic with high block sizes
-Date: Wed, 24 Jan 2018 08:09:00 +0000
-Message-ID: <CY1PR0701MB2012090CB423505B207D2C3888E20@CY1PR0701MB2012.namprd07.prod.outlook.com>
-References: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
-         <210f538f-8c98-f480-64fc-f2124ed6d01b@grimberg.me>
-         <BN3PR07MB25786338EADC77A369A6D493F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
-         <1499970579.7987.8.camel@haakon3.daterainc.com>
-         <BN3PR07MB2578E6561CC669922A322245F8A00@BN3PR07MB2578.namprd07.prod.outlook.com>
-         <20171006224025.GA23364@ssaleem-MOBL4.amr.corp.intel.com>
-         <1515992195.24576.156.camel@haakon3.daterainc.com>
-         <CY1PR0701MB2012E53C69D1CE3E16BA320B88EB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
-         <20180115152236.GA15484@ssaleem-MOBL4.amr.corp.intel.com>
-         ,<1516269522.24576.274.camel@haakon3.daterainc.com>
-         <CY1PR0701MB2012C8513D9048FC1CC7011088EF0@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <1516780534.24576.335.camel@haakon3.daterainc.com>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/4] IB/core: add support for draining Shared receive
+ queues
+Date: Wed, 24 Jan 2018 12:20:33 +0200
+Message-ID: <bc8a714b-6241-0363-c830-3d245d2b6c92@mellanox.com>
+References: <1516197178-26493-1-git-send-email-maxg@mellanox.com>
+ <1516197178-26493-2-git-send-email-maxg@mellanox.com>
+ <11f8c447-065f-ee0c-f88e-ee3a006f8571@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1516780534.24576.335.camel@haakon3.daterainc.com>
-Content-Language: en-US
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: Shiraz Saleem <shiraz.saleem@intel.com>, "Amrani, Ram" <Ram.Amrani@cavium.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, target-devel <target-devel@vger.kernel.org>, Potnuri Bharat Teja <bharat@chelsio.com>, "Radzi, Amit" <Amit.Radzi@cavium.com>, "Galon, Yoav" <Yoav.Galon@cavium.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <11f8c447-065f-ee0c-f88e-ee3a006f8571-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: he
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, bart.vanassche-Sjgp3cTcYWE@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
+Cc: danielm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGcm9tOiBOaWNob2xhcyBBLiBCZWxsaW5nZXIgW21haWx0bzpuYWJAbGludXgtaXNjc2kub3Jn
-XQ0KPiBTZW50OiBXZWRuZXNkYXksIEphbnVhcnkgMjQsIDIwMTggOTo1NiBBTQ0KPiANCj4gSGkg
-TWljaGFsICYgQ28sDQo+IA0KPiBPbiBGcmksIDIwMTgtMDEtMTkgYXQgMTk6MzMgKzAwMDAsIEth
-bGRlcm9uLCBNaWNoYWwgd3JvdGU6DQo+ID4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXw0KPiA+IEZyb206IE5pY2hvbGFzIEEuIEJlbGxpbmdlciA8bmFiQGxpbnV4LWlz
-Y3NpLm9yZz4NCj4gPiBTZW50OiBUaHVyc2RheSwgSmFudWFyeSAxOCwgMjAxOCAxMTo1OCBBTQ0K
-PiA+DQo+ID4gPiBIaSBTaGlyYXosIE1pY2hhbCAmIENvLA0KPiA+IEhpIE5pY2hvbGFzLA0KPiA+
-DQo+ID4gPiBUaGFua3MgZm9yIHRoZSBmZWVkYmFjay4gIENvbW1lbnRzIGJlbG93Lg0KPiA+DQo+
-ID4gPiBBIGNvdXBsZSBvZiB0aG91Z2h0cy4NCj4gPg0KPiA+ID4gRmlyc3QsIHdvdWxkIGl0IGJl
-IGhlbHBmdWwgdG8gbGltaXQgbWF4aW11bSBwYXlsb2FkIHNpemUgcGVyIEkvTyBmb3INCj4gPiA+
-IGNvbnN1bWVycyBiYXNlZCBvbiBudW1iZXIgb2YgaXNlci10YXJnZXQgc3EgaHcgc2dlcy4uPw0K
-PiA+DQo+ID4gSSBkb24ndCB0aGluayB5b3UgbmVlZCB0byBsaW1pdCB0aGUgbWF4aW11bSBwYXls
-b2FkLCBidXQgaW5zdGVhZA0KPiA+IGluaXRpYWxpemUgdGhlIG1heF93ciB0byBiZSBiYXNlZCBv
-biB0aGUgbnVtYmVyIG9mIHN1cHBvcnRlZCBTR0VzDQo+ID4gSW5zdGVhZCBvZiB3aGF0IGlzIHRo
-ZXJlIHRvZGF5Og0KPiA+ICNkZWZpbmUgSVNFUlRfUVBfTUFYX1JFUV9EVE9TICAgKElTQ1NJX0RF
-Rl9YTUlUX0NNRFNfTUFYICsgICAgXA0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgSVNFUlRfTUFYX1RYX01JU0NfUERVUyAgKyBcDQo+ID4gICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBJU0VSVF9NQVhfUlhfTUlTQ19QRFVTKSBBZGQgdGhlDQo+ID4gbWF4aW11bSBu
-dW1iZXIgb2YgV1FFcyBwZXIgY29tbWFuZCwgVGhlIGNhbGN1bGF0aW9uIG9mIG51bWJlciBvZg0K
-PiBXUUVzDQo+ID4gcGVyIGNvbW1hbmQgbmVlZHMgdG8gYmUgc29tZXRoaW5nIGxpa2UNCj4gPiAi
-TUFYX1RSQU5TRkVSX1NJWkUvKG51bVNnZXMqUEFHRV9TSVpFKSIuDQo+ID4NCj4gDQo+IE1ha2Vz
-IHNlbnNlLCBNQVhfVFJBTlNGRVJfU0laRSB3b3VsZCBiZSBkZWZpbmVkIGdsb2JhbGx5IGJ5IGlz
-ZXItdGFyZ2V0LA0KPiByaWdodC4uPw0KR2xvYmFsbHkgb3IgcGVyaGFwcyBjb25maWd1cmFibGUg
-Ynkgc3lzZnMgY29uZmlndXJhdGlvbj8NCj4gDQo+IEJ0dywgSSdtIG5vdCBzdXJlIGhvdyB0aGlz
-IGVmZmVjdHMgdXNhZ2Ugb2YgSVNFUl9NQVhfVFhfQ1FfTEVOICsNCj4gSVNFUl9NQVhfQ1FfTEVO
-LCB3aGljaCBjdXJyZW50bHkgZGVwZW5kIG9uDQo+IElTRVJUX1FQX01BWF9SRVFfRFRPUy4uDQpJ
-IHRoaW5rIGl0IGNhbiByZW1haW4gZGVwZW5kZW50IG9uIE1BWF9SRVFfRFRPUy4gDQo+IA0KPiBT
-YWdpLCB3aGF0IGFyZSB5b3VyIHRob3VnaHRzIHdydCBjaGFuZ2luZyBhdHRyLmNhcC5tYXhfc2Vu
-ZF93ciBhdCBydW50aW1lDQo+IHZzLiBleHBvc2luZyBhIHNtYWxsZXIgbWF4X2RhdGFfc2dfbmVu
-dHM9MzIgZm9yIGliX2RldmljZXMgd2l0aCBsaW1pdGVkDQo+IGF0dHIuY2FwLm1heF9zZW5kX3Nn
-ZS4uPw0KRm9yIG91ciBkZXZpY2UgZGVmaW5pbmcgbWF4X2RhdGFfc2dfbmVudHMgZGlkbid0IGhl
-bHAgb24gc29tZSBzY2VuYXJpb3MsDQpJdCBzZWVtcyB0aGF0IEZyZXF1ZW5jeSBvZiB0aGUgaXNz
-dWUgb2NjdXJyaW5nIGluY3JlYXNlcyB3aXRoIG51bWJlciBvZiBsdW5zIHdlDQpUcnkgdG8gcnVu
-IG92ZXIuIA0KDQo+IA0KPiA+IEZvciBzb21lIGRldmljZXMgbGlrZSBvdXJzLCBicmVha2luZyB0
-aGUgSU8gaW50byBtdWx0aXBsZSBXUnMNCj4gPiBhY2NvcmRpbmcgdG8gc3VwcG9ydGVkIG51bWJl
-ciBvZiBTR0VzIGRvZXNuJ3QgbmVjZXNzYXJpbHkgbWVhbnMNCj4gcGVyZm9ybWFuY2UgcGVuYWx0
-eS4NCj4gPg0KPiANCj4gQUZBSUNUIGFkaW5nIG1heF9kYXRhX3NnX25lbnRzIGZvciBpc2VyLXRh
-cmdldCBpcyBzYWZlIGVub3VnaCB3b3JrLWFyb3VuZA0KPiB0byBpbmNsdWRlIGZvciBzdGFibGUs
-IGFzc3VtaW5nIHdlIGFncmVlIG9uIHdoYXQgdGhlIG1heF9zZW5kX3NnIGN1dC1vZmYgaXMNCj4g
-Zm9yIHNldHRpbmcgbWF4X2RhdGFfc2dfbmVudHM9MzIgdXNhZ2UgZnJvbSBhIGxhcmdlciBkZWZh
-dWx0LiAgSSBkb24ndCBoYXZlDQo+IGEgc3RyaW5nIHByZWZlcmVuY2UgZWl0aGVyIHdheSwgYXMg
-bG9uZyBhcyBpdCBjYW4gYmUgcGlja2VkIHVwIGZvciA0Lnggc3RhYmxlLg0KPiANCj4gU2FnaSwg
-V0RZVC4uPw0KDQo=
+
+
+On 1/24/2018 8:39 AM, Sagi Grimberg wrote:
+> Hi Max,
+
+Hi Sagi,
+
+> 
+>> diff --git a/drivers/infiniband/core/verbs.c 
+>> b/drivers/infiniband/core/verbs.c
+>> index 7868727..7604450 100644
+>> --- a/drivers/infiniband/core/verbs.c
+>> +++ b/drivers/infiniband/core/verbs.c
+>> @@ -886,8 +886,10 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+>>           if (qp_init_attr->recv_cq)
+>>               atomic_inc(&qp_init_attr->recv_cq->usecnt);
+>>           qp->srq = qp_init_attr->srq;
+>> -        if (qp->srq)
+>> +        if (qp->srq) {
+>>               atomic_inc(&qp_init_attr->srq->usecnt);
+>> +            init_completion(&qp->srq_completion);
+>> +        }
+>>       }
+> 
+> How about initializing the completion at ib_drain_srq and complete it
+> always in last wqe reached event in the core instead of relying on ULPs
+> to call ib_notify_qp?
+
+I don't think I can. The event can arrive *before* the call to ib_drain_srq.
+
+> 
+> The simplest way I can think of is to have the core register its own
+> event handler for that..
+
+Do you mean not raising this event to ULP at all ? I can check this (I 
+don't think we do it for other events we get...).
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
