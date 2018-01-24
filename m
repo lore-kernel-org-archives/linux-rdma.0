@@ -1,47 +1,47 @@
-From: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/2] libhns: Support cq record doorbell
-Date: Wed, 24 Jan 2018 18:35:20 +0800
-Message-ID: <91b5f324-cfaf-e778-2d6c-46000267f2cb@huawei.com>
-References: <1516242961-154453-1-git-send-email-liuyixian@huawei.com>
- <1516242961-154453-3-git-send-email-liuyixian@huawei.com>
- <20180118043717.GC8414@ziepe.ca>
- <9e577314-4fcb-45de-6909-d5b3be570196@huawei.com>
- <20180118161949.GA18973@ziepe.ca>
- <a33a1337-665f-4cd4-5b39-b12d9f03af72@huawei.com>
- <20180119200029.GD3437@ziepe.ca>
- <68e02f2a-0474-bc73-a784-fd52dbbde552@huawei.com>
- <20180120164625.GA14372@ziepe.ca>
- <124fa0b2-ac35-a103-205b-252fddea2665@huawei.com>
- <20180123150421.GA30670@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] RDMA/vmw_pvrdma: Use standard way to check return value
+Date: Wed, 24 Jan 2018 13:17:21 +0200
+Message-ID: <20180124111721.8170-1-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180123150421.GA30670-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+To be compatible with other modules/drivers, change return code checks
+from "if (rc != 0)" to "if (rc)".
 
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-On 2018/1/23 23:04, Jason Gunthorpe wrote:
-> On Tue, Jan 23, 2018 at 08:51:09PM +0800, Liuyixian (Eason) wrote:
->> Could you please give me further comments on that email?  If you don't
->> agree with what I said in that email, can you give some suggestions
->> to resolve compatibility issue?
-> 
-> You can't have a not compatible in your table.
-> 
-> You need to add some kind of mechanism for userspace to enable the new
-> features conditionally.
-> 
-> Jason
-> 
-Thanks, I will consider your suggestion in next version patch set.
-
-Eason
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+index d650a9fcde24..6f50220295c8 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+@@ -837,16 +837,16 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
+ 	}
+ 
+ 	/* Enable 64-Bit DMA */
+-	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(64)) == 0) {
++	if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(64))) {
+ 		ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
+-		if (ret != 0) {
++		if (ret) {
+ 			dev_err(&pdev->dev,
+ 				"pci_set_consistent_dma_mask failed\n");
+ 			goto err_free_resource;
+ 		}
+ 	} else {
+ 		ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+-		if (ret != 0) {
++		if (ret) {
+ 			dev_err(&pdev->dev,
+ 				"pci_set_dma_mask failed\n");
+ 			goto err_free_resource;
+-- 
+2.14.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
