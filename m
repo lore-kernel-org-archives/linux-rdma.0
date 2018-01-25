@@ -1,260 +1,76 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v6 7/8] RDMA/nldev: Provide global resource utilization
-Date: Thu, 25 Jan 2018 17:12:26 +0200
-Message-ID: <20180125151227.28202-8-leon@kernel.org>
-References: <20180125151227.28202-1-leon@kernel.org>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1] MAINTAINERS: Remove Ram Amrani from Q-Logic RDMA
+ driver
+Date: Thu, 25 Jan 2018 10:21:47 -0500
+Message-ID: <1516893707.27592.111.camel@redhat.com>
+References: <20180124072953.2013-1-Ram.Amrani@cavium.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-Qk1vJOELbgzamYgIa1Y3"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180125151227.28202-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20180124072953.2013-1-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ariel.elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Export through netlink interface, the global device utilization
-for the rdmatool as the main user of RDMA nldev interface.
+--=-Qk1vJOELbgzamYgIa1Y3
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Provide both dumpit and doit callbacks.
+On Wed, 2018-01-24 at 09:29 +0200, Ram Amrani wrote:
+> Remove myself from maintaining the qedr module as my period
+> of working with Cavium/Q-Logic has come to an end. I've had
+> a pleasure working with the community, cheers!
 
-As an example of possible output from rdmatool for system with 5
-Mellanox's card
+Best of wishes Ram.  Applied.
 
-$ rdma res
-1: mlx5_0: qp 4 cq 5 pd 3
-2: mlx5_1: qp 4 cq 5 pd 3
-3: mlx5_2: qp 4 cq 5 pd 3
-4: mlx5_3: qp 2 cq 3 pd 2
-5: mlx5_4: qp 4 cq 5 pd 3
+> Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> ---
+>  MAINTAINERS | 1 -
+>  1 file changed, 1 deletion(-)
+>=20
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index aa71ab52f..987eb6c 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -11212,7 +11212,6 @@ F:	include/linux/qed/
+>  F:	drivers/net/ethernet/qlogic/qede/
+> =20
+>  QLOGIC QL4xxx RDMA DRIVER
+> -M:	Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>  M:	Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>  M:	Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>  L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/infiniband/core/nldev.c  | 151 +++++++++++++++++++++++++++++++++++++++
- include/uapi/rdma/rdma_netlink.h |  10 +++
- 2 files changed, 161 insertions(+)
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-Qk1vJOELbgzamYgIa1Y3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 5d790c507c7e..7bbd88a6b6a0 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -31,6 +31,8 @@
-  */
- 
- #include <linux/module.h>
-+#include <linux/pid.h>
-+#include <linux/pid_namespace.h>
- #include <net/netlink.h>
- #include <rdma/rdma_netlink.h>
- 
-@@ -52,6 +54,11 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_PORT_STATE]	= { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_PORT_PHYS_STATE] = { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_DEV_NODE_TYPE] = { .type = NLA_U8 },
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY]	= { .type = NLA_NESTED },
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY]	= { .type = NLA_NESTED },
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME] = { .type = NLA_NUL_STRING,
-+					     .len = 16 },
-+	[RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR] = { .type = NLA_U64 },
- };
- 
- static int fill_nldev_handle(struct sk_buff *msg, struct ib_device *device)
-@@ -134,6 +141,65 @@ static int fill_port_info(struct sk_buff *msg,
- 	return 0;
- }
- 
-+static int fill_res_info_entry(struct sk_buff *msg,
-+			       const char *name, u64 curr)
-+{
-+	struct nlattr *entry_attr;
-+
-+	entry_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY);
-+	if (!entry_attr)
-+		return -EMSGSIZE;
-+
-+	if (nla_put_string(msg, RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME, name))
-+		goto err;
-+	if (nla_put_u64_64bit(msg,
-+			      RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR, curr, 0))
-+		goto err;
-+
-+	nla_nest_end(msg, entry_attr);
-+	return 0;
-+
-+err:
-+	nla_nest_cancel(msg, entry_attr);
-+	return -EMSGSIZE;
-+}
-+
-+static int fill_res_info(struct sk_buff *msg, struct ib_device *device)
-+{
-+	static const char *names[RDMA_RESTRACK_MAX] = {
-+		[RDMA_RESTRACK_PD] = "pd",
-+		[RDMA_RESTRACK_CQ] = "cq",
-+		[RDMA_RESTRACK_QP] = "qp",
-+	};
-+
-+	struct rdma_restrack_root *res = &device->res;
-+	struct nlattr *table_attr;
-+	int ret, i, curr;
-+
-+	if (fill_nldev_handle(msg, device))
-+		return -EMSGSIZE;
-+
-+	table_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_SUMMARY);
-+	if (!table_attr)
-+		return -EMSGSIZE;
-+
-+	for (i = 0; i < RDMA_RESTRACK_MAX; i++) {
-+		if (!names[i])
-+			continue;
-+		curr = rdma_restrack_count(res, i, task_active_pid_ns(current));
-+		ret = fill_res_info_entry(msg, names[i], curr);
-+		if (ret)
-+			goto err;
-+	}
-+
-+	nla_nest_end(msg, table_attr);
-+	return 0;
-+
-+err:
-+	nla_nest_cancel(msg, table_attr);
-+	return ret;
-+}
-+
- static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 			  struct netlink_ext_ack *extack)
- {
-@@ -329,6 +395,87 @@ static int nldev_port_get_dumpit(struct sk_buff *skb,
- 	return skb->len;
- }
- 
-+static int nldev_res_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
-+			      struct netlink_ext_ack *extack)
-+{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
-+	struct ib_device *device;
-+	struct sk_buff *msg;
-+	u32 index;
-+	int ret;
-+
-+	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+			  nldev_policy, extack);
-+	if (ret || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
-+		return -EINVAL;
-+
-+	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	device = ib_device_get_by_index(index);
-+	if (!device)
-+		return -EINVAL;
-+
-+	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-+	if (!msg)
-+		goto err;
-+
-+	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
-+			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_GET),
-+			0, 0);
-+
-+	ret = fill_res_info(msg, device);
-+	if (ret)
-+		goto err_free;
-+
-+	nlmsg_end(msg, nlh);
-+	put_device(&device->dev);
-+	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
-+
-+err_free:
-+	nlmsg_free(msg);
-+err:
-+	put_device(&device->dev);
-+	return ret;
-+}
-+
-+static int _nldev_res_get_dumpit(struct ib_device *device,
-+				 struct sk_buff *skb,
-+				 struct netlink_callback *cb,
-+				 unsigned int idx)
-+{
-+	int start = cb->args[0];
-+	struct nlmsghdr *nlh;
-+
-+	if (idx < start)
-+		return 0;
-+
-+	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
-+			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_GET),
-+			0, NLM_F_MULTI);
-+
-+	if (fill_res_info(skb, device)) {
-+		nlmsg_cancel(skb, nlh);
-+		goto out;
-+	}
-+
-+	nlmsg_end(skb, nlh);
-+
-+	idx++;
-+
-+out:
-+	cb->args[0] = idx;
-+	return skb->len;
-+}
-+
-+static int nldev_res_get_dumpit(struct sk_buff *skb,
-+				struct netlink_callback *cb)
-+{
-+	/*
-+	 * There is no need to take lock, because
-+	 * we are relying on ib_core's lists_rwsem
-+	 */
-+	return ib_enum_all_devs(_nldev_res_get_dumpit, skb, cb);
-+}
-+
- static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 	[RDMA_NLDEV_CMD_GET] = {
- 		.doit = nldev_get_doit,
-@@ -338,6 +485,10 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 		.doit = nldev_port_get_doit,
- 		.dump = nldev_port_get_dumpit,
- 	},
-+	[RDMA_NLDEV_CMD_RES_GET] = {
-+		.doit = nldev_res_get_doit,
-+		.dump = nldev_res_get_dumpit,
-+	},
- };
- 
- void __init nldev_init(void)
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index cc002e316d09..e0f5cdc81541 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -236,6 +236,11 @@ enum rdma_nldev_command {
- 	RDMA_NLDEV_CMD_PORT_NEW,
- 	RDMA_NLDEV_CMD_PORT_DEL,
- 
-+	RDMA_NLDEV_CMD_RES_GET, /* can dump */
-+	RDMA_NLDEV_CMD_RES_SET,
-+	RDMA_NLDEV_CMD_RES_NEW,
-+	RDMA_NLDEV_CMD_RES_DEL,
-+
- 	RDMA_NLDEV_NUM_OPS
- };
- 
-@@ -303,6 +308,11 @@ enum rdma_nldev_attr {
- 
- 	RDMA_NLDEV_ATTR_DEV_NODE_TYPE,		/* u8 */
- 
-+	RDMA_NLDEV_ATTR_RES_SUMMARY,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY,	/* nested table */
-+	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME,	/* string */
-+	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR,	/* u64 */
-+
- 	RDMA_NLDEV_ATTR_MAX
- };
- #endif /* _UAPI_RDMA_NETLINK_H */
--- 
-2.15.1
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpp9gsACgkQuCajMw5X
+L93txw//WcEvH8vhxB0RQ8DieYgr/cKzaUphStw9CXgmLUhJG8gUaX4vTT5t098J
+6hTYScRhpJ100GaxZuHpbcHgsU48hAwZzN35cs6/Y4cpgrmqKWzdG38uz/dSVGGS
+j27/+0We3axGN12d2fz8hfivLlFwb9PqD+YFZ7CPw7e52v2UqUu1pQjwupJ6ZIti
+nrM2pNIM0QMoz/hIr72dhyyaE/iZfABBi6Wp9DjDCs3ZglU/WbgfBu/gkqRTIqvw
+D3O1eC0FHaMi8+ysUMpvGk2Oqs0TvcH//hjf8mBqK4CAxyt0u9Mi9iZ3oiuHeO0R
+IV6zwd09zn904M+nlnQreAtG9TGAkcOUChJjcrGO0QtazvKrIMzBF286pzomPit0
+obAWYKtFYNcoplAue7SvaqlfA1xE4dWAifg4qXBmCF0BovZM9hov2XBETPmEU+E2
+Gn+ogq8anJkvsFO9fono8npH+P70rSqHobPjEaCV0LkOkOtnW6HCJLYOBEFDTs+a
+UXAbJwXEbXLXlX6p8PZwemJ89BzLbk6Tj7GZVSpJgX9MXyntXG8BZCuMs/NPJKQN
+DRS59TK1PYw5aRB610AtL00Kqbo3Tcdb27gdgBZ/K9ayH/xSgS+Y/XUZkAawsrNv
+R3H03lJfl+d9akZzMXn7iFf6ADJI+NZ+HD5B6P8b5qXSPvCn8Ak=
+=hGs3
+-----END PGP SIGNATURE-----
+
+--=-Qk1vJOELbgzamYgIa1Y3--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
