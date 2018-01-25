@@ -1,72 +1,89 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] RDMA/srpt: Fix RCU debug build error
-Date: Wed, 24 Jan 2018 20:19:41 -0500
-Message-ID: <1516843181.27592.110.camel@redhat.com>
-References: <20180123115013.12213-1-leonro@mellanox.com>
-         <20180123152142.GB30619@mellanox.com> <1516723456.3339.3.camel@wdc.com>
-         <20180123185732.GA1393@mtr-leonro.local> <1516746607.3339.47.camel@wdc.com>
-         <1516833393.27592.108.camel@redhat.com> <1516833624.3987.19.camel@wdc.com>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] RDMA/uverbs: Use an unambiguous errno for method not
+ supported
+Date: Wed, 24 Jan 2018 19:58:34 -0700
+Message-ID: <20180125025834.GA25674@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-gWWz5qUJoX6as/8V6MYN"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1516833624.3987.19.camel-Sjgp3cTcYWE@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Returning EOPNOTSUPP is problematic because it can also be
+returned by the method function, and we use it in quite a few
+places in drivers these days.
 
---=-gWWz5qUJoX6as/8V6MYN
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Instead, dedicate EPROTONOSUPPORT to indicate that the ioctl framework
+is enabled but the requested object and method are not supported by
+the kernel. No other case will return this code, and it lets userspace
+know to fall back to write().
 
-On Wed, 2018-01-24 at 22:40 +0000, Bart Van Assche wrote:
-> On Wed, 2018-01-24 at 17:36 -0500, Doug Ledford wrote:
-> > Can you please resend this as an official patch with SOB so we can pull
-> > this in?  Thanks.
->=20
-> Hello Doug,
->=20
-> Can you have a look at this patch and see whether this needs any further
-> adjustments: https://marc.info/?l=3Dlinux-rdma&m=3D151677697120770.
->=20
-> Thanks,
->=20
-> Bart.
+grep says we do not use it today in drivers/infiniband subsystem.
 
-That's good.  I just missed it in my email client because the time/date
-sorting of the threads had this thread later in my list and that lone
-patch sitting by itself out of sight-out of mind.  Thanks for the
-pointer ;-)
+Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_ioctl.c | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-gWWz5qUJoX6as/8V6MYN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+This goes along with the series I am cooking to enable the new ioctl
+interface in rdma-core:
 
------BEGIN PGP SIGNATURE-----
+https://github.com/jgunthorpe/rdma-plumbing/tree/ioctl
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlppMK0ACgkQuCajMw5X
-L92H7A/+JMF405wlrsN+qQ4gIF7YZC8s1uqexAXmGNcWcz/QeqBq0NJt0pFZkWlx
-yxmcyBs3hTftCGdWJLAW+RFlO0XtlsO48QeAZh4mUoSd1g/gNfjjGm1cEXVE8mXp
-QXrhaq+SgEqi95AMTpitfdGCtDxQSfdtKEyApSKcBqmAZ5eLVfa5gnh1B1/QCWRC
-j0JmUw077G63siWpbI/q6Vbw/dlsgccq9ZYk0GYVqCWBoX59Y+Zgtt2HUcpwr1+Q
-gIkjHXJ60KxemM24MHIwi3uQwc78NMG9j6fXOxeLOnTYOruJzzoDJrWELALmxzRP
-cirsFtncpV6fYsR9M8/kzUEzwUlYpipL7xvNt7pMp/PWe3rw6mIFw5PIaVhbM1gu
-c83KQY1SaVqwOguOjOsEu9gC2G1LeYC4wYdJhPGQlq1E7v2Ukt+IxsZa3GTM8vOr
-DtvxWt3C03fwY72nalcLd+R/F8XomrUV190uE2VRr8azrldfvuNekufJodI1o6a6
-AN9aXanTE05b/BCTJ51++VCcTQj1P3bQ9TpL1F3ZUa7ZPRsydTcrtTOX3beKNlf0
-/aOnhROsXHxjviyA5YMRcZckUe7xB5FOlhzFq5ZZyx1EwS54RtGgfETGtWZBsR2j
-GUi82XbjdMM+44uX1f+qgIHAIOAxCF4kd0prUdLEbUVOZwoWJks=
-=1Pot
------END PGP SIGNATURE-----
-
---=-gWWz5qUJoX6as/8V6MYN--
+diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
+index 71ff2644e053b8..d96dc1d17be189 100644
+--- a/drivers/infiniband/core/uverbs_ioctl.c
++++ b/drivers/infiniband/core/uverbs_ioctl.c
+@@ -243,16 +243,13 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+ 	size_t ctx_size;
+ 	uintptr_t data[UVERBS_OPTIMIZE_USING_STACK_SZ / sizeof(uintptr_t)];
+ 
+-	if (hdr->reserved)
+-		return -EINVAL;
+-
+ 	object_spec = uverbs_get_object(ib_dev, hdr->object_id);
+ 	if (!object_spec)
+-		return -EOPNOTSUPP;
++		return -EPROTONOSUPPORT;
+ 
+ 	method_spec = uverbs_get_method(object_spec, hdr->method_id);
+ 	if (!method_spec)
+-		return -EOPNOTSUPP;
++		return -EPROTONOSUPPORT;
+ 
+ 	if ((method_spec->flags & UVERBS_ACTION_FLAG_CREATE_ROOT) ^ !file->ucontext)
+ 		return -EINVAL;
+@@ -305,6 +302,16 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
+ 
+ 	err = uverbs_handle_method(buf, ctx->uattrs, hdr->num_attrs, ib_dev,
+ 				   file, method_spec, ctx->uverbs_attr_bundle);
++
++	/*
++	 * EPROTONOSUPPORT is ONLY to be returned if the ioctl framework can
++	 * not invoke the method because the request is not supported.  No
++	 * other cases should return this code.
++	*/
++	if (unlikely(err == -EPROTONOSUPPORT)) {
++		WARN_ON_ONCE(err == -EPROTONOSUPPORT);
++		err = -EINVAL;
++	}
+ out:
+ 	if (ctx != (void *)data)
+ 		kfree(ctx);
+@@ -341,7 +348,7 @@ long ib_uverbs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		}
+ 
+ 		if (hdr.reserved) {
+-			err = -EOPNOTSUPP;
++			err = -EPROTONOSUPPORT;
+ 			goto out;
+ 		}
+ 
+-- 
+2.15.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
