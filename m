@@ -1,38 +1,40 @@
-From: "hch@infradead.org" <hch@infradead.org>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Subject: Re: [LSF/MM TOPIC] Filesystem-DAX, page-pinning, and RDMA
-Date: Thu, 25 Jan 2018 08:47:23 -0800
-Message-ID: <20180125164723.GA31752@infradead.org>
+Date: Thu, 25 Jan 2018 08:47:50 -0800
+Message-ID: <20180125164750.GB31752@infradead.org>
 References: <CAPcyv4gQNM9RbTbRWKnG6Vby_CW9CJ9EZTARsVNi=9cas7ZR2A@mail.gmail.com>
- <1516852902.3724.4.camel@wdc.com>
- <CAPcyv4iERedTChineSd-9fYR-xOc6E4L-okj7OnCMmoUkMf0tA@mail.gmail.com>
- <20180125160848.GE10706@ziepe.ca>
+ <20180125072351.GA11093@infradead.org>
+ <20180125160802.GD10706@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180125160848.GE10706@ziepe.ca>
-Sender: owner-linux-mm@kvack.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Dan Williams <dan.j.williams@intel.com>, Bart Van Assche <Bart.VanAssche@wdc.com>, "lsf-pc@lists.linux-foundation.org" <lsf-pc@lists.linux-foundation.org>, "hch@infradead.org" <hch@infradead.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "mhocko@kernel.org" <mhocko@kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+In-Reply-To: <20180125160802.GD10706-uk2M96/98Pc@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 25, 2018 at 09:08:48AM -0700, Jason Gunthorpe wrote:
-> On Wed, Jan 24, 2018 at 11:02:16PM -0800, Dan Williams wrote:
+On Thu, Jan 25, 2018 at 09:08:02AM -0700, Jason Gunthorpe wrote:
+> On Wed, Jan 24, 2018 at 11:23:51PM -0800, Christoph Hellwig wrote:
+> > On Wed, Jan 24, 2018 at 07:56:02PM -0800, Dan Williams wrote:
+> > > Particular people that would be useful to have in attendance are
+> > > Michal Hocko, Christoph Hellwig, and Jason Gunthorpe (cc'd).
+> > 
+> > I won't be able to make it - I'll have to do election work and
+> > count the ballots for our city council and mayor election.
 > 
-> > No, in 3 dimensions since there is a need to support non-ODP RDMA
-> > hardware, hypervisors want to coordinate DMA for guests, and non-RDMA
-> > hardware also pins memory indefinitely like V4L2. So it's bigger than
-> > RDMA, but that will likely be the first consumer of this 'longterm
-> > pin' mechanism.
-> 
-> BTW, did you look at VFIO? I think it should also have this problem
-> right?
+> I also have a travel conflict for that week in April and cannot make
+> it.
 
-VFIO seems to have the same issue.  In practice I don't think people
-use file system backed pages for vfio, so it's not as urgent.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Are any of you going to be in the Bay Area in February for Usenix
+FAST / LinuxFAST?
