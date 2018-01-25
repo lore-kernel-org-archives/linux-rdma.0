@@ -1,125 +1,122 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v6 0/8] RDMA resource tracking
-Date: Thu, 25 Jan 2018 17:12:19 +0200
-Message-ID: <20180125151227.28202-1-leon@kernel.org>
+Subject: [PATCH rdma-next v6 2/8] RDMA/core: Save kernel caller name in PD and CQ objects
+Date: Thu, 25 Jan 2018 17:12:21 +0200
+Message-ID: <20180125151227.28202-3-leon@kernel.org>
+References: <20180125151227.28202-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180125151227.28202-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug and Jason,
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-For this specific version, results from our verification will be on Sunday.
+The KBUILD_MODNAME variable contains the module name
+and it is known for kernel users during compilation,
+so let's reuse it to track the owners.
 
-However their absence doesn't mean that it is not stable enough for inclusion.
-I tested it on various mlx5 devices with RC/UD/XRCD pingpongs, boot, shutdowns
-with and without traffic during shutdowns. It also survives syzkaller.
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/cq.c    | 10 ++++++----
+ drivers/infiniband/core/verbs.c |  4 ++--
+ include/rdma/ib_verbs.h         | 13 ++++++++++---
+ 3 files changed, 18 insertions(+), 9 deletions(-)
 
-Steve tests it with krping and nvmeof on mlx4 and cxgb3/4.
-
-Thanks
-
--------
-Changelog:
-v5->v6:
-  * Removed SRCU
-  * Added kref logic to protect resources
-  * Dropped support of XRC QPs for now
-v4->v5:
-  * Rewrote logic to acquire kernel owners of PD and CQ objects
-  * Simplified interface.
-  * Added logic to return summary for all PID namespaces and not only
-    init PID namespace.
-  * Changed DB implementation from struct with arrays to be struct with
-    hash table.
-  * Moved to use SRCU per-hash table.
-  * Dropped RW semaphores in favor of mutex to protect linked lists.
-  * Dropped QP named annotation patch.
-  * Used SPDX licenses.
-v3->v4:
-  * Added Steve ROB tags.
-  * Updated restrack.h to be compatible with kernel-doc format
-  * Fixed bug when not all QPs (more than one netlink page) were
-    returned by netlink interface
-  * Removed "MAX" values from object summary. In followup patches,
-    I will eturn object summary per-namespace and not for init PID
-    namespace only. Max values can be seen with ibv_devinfo tool.
-  * Renamed "comm" to be kern_name.
-  * Fix spelling errors.
-v2->v3:
-  * Added support of PID namespaces.
-  * Rewrote rdma_restraack_add function to ensure that it won't
-    appear in lists before it is valid.
-  * Replace pid/task name caching logic to use task_struct instead.
-  * Removed report of name of task's for user space objects. Users
-    are expected to read it through /proc/PID/comm.
-v1->v2:
- * Rebased on latest rdma/for-next
- * Replaced mutex lock which protect linked lists to be RW semaphore.
-   It has no impact on current implementation, because there is only one
-   reader (nldev) and it is serialized. However better to be prepared
-   for multiple readers from the beginning.
- * Added reinitialization next QP entry logic to ensure that it exists
-   and didn't vanish during fill_req_qp() work.
-v0->v1:
- * Dropped RFC
- * Separated to thre series, one for for-rc, and two for-next.
-
--------
-The original goal of this series was to allow ability to view connection
-(QP) information about running processes, however I used this opportunity and
-created common infrastructure to track and report various resources. The report
-part is implemented in netlink (nldev), but smart ULPs can now create
-advanced usage models based on device utilization.
-
-The current implementation relies on one lock per-object per-device, so
-creation/destroying of various objects (CQ, PD, e.t.c) on various or the
-same devices doesn't interfere each with another.
-
-The data protection is performed with SRCU and its reader-writer model
-ensures that resource won't be destroyed till readers will finish their
-work.
-
-Possible future work will include:
- * Reducing number of locks in RDMA, because of SRCU.
- * Converting CMA to be based completely on resource tracking.
- * Addition of other objects and extending current to give full
-   and detailed state of the RDMA kernel stack.
- * Replacing synchronize_srcu with call_srcu to make destroy flow
-   non-blocking.
- * Provide reliable device reset flow, preserving resource creation ordering.
-
-	Thanks
----------------------------------------
-
-Leon Romanovsky (8):
-  RDMA/core: Print caller name instead of function name
-  RDMA/core: Save kernel caller name in PD and CQ objects
-  RDMA/restrack: Add general infrastructure to track RDMA resources
-  RDMA/core: Add resource tracking for create and destroy QPs
-  RDMA/core: Add resource tracking for create and destroy CQs
-  RDMA/core: Add resource tracking for create and destroy PDs
-  RDMA/nldev: Provide global resource utilization
-  RDMA/nldev: Provide detailed QP information
-
- drivers/infiniband/core/Makefile           |   2 +-
- drivers/infiniband/core/core_priv.h        |  26 ++
- drivers/infiniband/core/cq.c               |  16 +-
- drivers/infiniband/core/device.c           |   7 +
- drivers/infiniband/core/nldev.c            | 373 +++++++++++++++++++++++++++++
- drivers/infiniband/core/restrack.c         | 159 ++++++++++++
- drivers/infiniband/core/uverbs_cmd.c       |   7 +-
- drivers/infiniband/core/uverbs_std_types.c |   3 +
- drivers/infiniband/core/verbs.c            |  18 +-
- include/rdma/ib_verbs.h                    |  34 ++-
- include/rdma/restrack.h                    | 152 ++++++++++++
- include/uapi/rdma/rdma_netlink.h           |  55 +++++
- 12 files changed, 835 insertions(+), 17 deletions(-)
- create mode 100644 drivers/infiniband/core/restrack.c
- create mode 100644 include/rdma/restrack.h
-
---
+diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
+index c8c5a5a7f433..d99565dbd12f 100644
+--- a/drivers/infiniband/core/cq.c
++++ b/drivers/infiniband/core/cq.c
+@@ -120,20 +120,22 @@ static void ib_cq_completion_workqueue(struct ib_cq *cq, void *private)
+ }
+ 
+ /**
+- * ib_alloc_cq - allocate a completion queue
++ * __ib_alloc_cq - allocate a completion queue
+  * @dev:		device to allocate the CQ for
+  * @private:		driver private data, accessible from cq->cq_context
+  * @nr_cqe:		number of CQEs to allocate
+  * @comp_vector:	HCA completion vectors for this CQ
+  * @poll_ctx:		context to poll the CQ from.
++ * @caller:		module owner name.
+  *
+  * This is the proper interface to allocate a CQ for in-kernel users. A
+  * CQ allocated with this interface will automatically be polled from the
+  * specified context. The ULP must use wr->wr_cqe instead of wr->wr_id
+  * to use this CQ abstraction.
+  */
+-struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
+-		int nr_cqe, int comp_vector, enum ib_poll_context poll_ctx)
++struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private,
++			    int nr_cqe, int comp_vector,
++			    enum ib_poll_context poll_ctx, const char *caller)
+ {
+ 	struct ib_cq_init_attr cq_attr = {
+ 		.cqe		= nr_cqe,
+@@ -185,7 +187,7 @@ struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
+ 	cq->device->destroy_cq(cq);
+ 	return ERR_PTR(ret);
+ }
+-EXPORT_SYMBOL(ib_alloc_cq);
++EXPORT_SYMBOL(__ib_alloc_cq);
+ 
+ /**
+  * ib_free_cq - free a completion queue
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index e9c3991a93ff..c2b347f6e8a2 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1782,7 +1782,7 @@ int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid)
+ }
+ EXPORT_SYMBOL(ib_detach_mcast);
+ 
+-struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device)
++struct ib_xrcd *__ib_alloc_xrcd(struct ib_device *device, const char *caller)
+ {
+ 	struct ib_xrcd *xrcd;
+ 
+@@ -1800,7 +1800,7 @@ struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device)
+ 
+ 	return xrcd;
+ }
+-EXPORT_SYMBOL(ib_alloc_xrcd);
++EXPORT_SYMBOL(__ib_alloc_xrcd);
+ 
+ int ib_dealloc_xrcd(struct ib_xrcd *xrcd)
+ {
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 1c6e9f52f127..f9cabb1b670e 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -3135,8 +3135,12 @@ static inline int ib_post_recv(struct ib_qp *qp,
+ 	return qp->device->post_recv(qp, recv_wr, bad_recv_wr);
+ }
+ 
+-struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
+-		int nr_cqe, int comp_vector, enum ib_poll_context poll_ctx);
++struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private,
++			    int nr_cqe, int comp_vector,
++			    enum ib_poll_context poll_ctx, const char *caller);
++#define ib_alloc_cq(device, priv, nr_cqe, comp_vect, poll_ctx) \
++	__ib_alloc_cq((device), (priv), (nr_cqe), (comp_vect), (poll_ctx), KBUILD_MODNAME)
++
+ void ib_free_cq(struct ib_cq *cq);
+ int ib_process_cq_direct(struct ib_cq *cq, int budget);
+ 
+@@ -3560,8 +3564,11 @@ int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid);
+ /**
+  * ib_alloc_xrcd - Allocates an XRC domain.
+  * @device: The device on which to allocate the XRC domain.
++ * @caller: Module name for kernel consumers
+  */
+-struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device);
++struct ib_xrcd *__ib_alloc_xrcd(struct ib_device *device, const char *caller);
++#define ib_alloc_xrcd(device) \
++	__ib_alloc_xrcd((device), KBUILD_MODNAME)
+ 
+ /**
+  * ib_dealloc_xrcd - Deallocates an XRC domain.
+-- 
 2.15.1
 
 --
