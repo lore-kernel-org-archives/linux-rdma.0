@@ -1,55 +1,54 @@
-From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] net/mlx4_en: ensure rx_desc updating reaches HW before
- prod db updating
-Date: Wed, 24 Jan 2018 19:55:43 -0800
-Message-ID: <1516852543.3715.43.camel@gmail.com>
-References: <1515728542-3060-1-git-send-email-jianchao.w.wang@oracle.com>
-         <20180112163247.GB15974@ziepe.ca> <1515775567.131759.42.camel@gmail.com>
-         <a40e44f4-106b-1075-8f92-f7741508372c@oracle.com>
-         <af562737-4a3e-0429-1fd6-fc25c3e3f867@mellanox.com>
-         <fea0aa1c-b68e-9485-3826-2dfad7824911@oracle.com>
-         <53b1ac4d-a294-eb98-149e-65d7954243da@oracle.com>
-         <1516376999.3606.39.camel@gmail.com>
-         <dfc02a48-7d2a-56da-dc4e-d90a9fcc559c@mellanox.com>
-         <339a7156-9ef1-1f3c-30b8-3cc3558d124e@mellanox.com>
-         <c8b0955b-a3fc-afe2-2c67-e655ca2ee6f6@oracle.com>
-         <532b4d71-e2eb-35f3-894e-1c3288e7bc3f@oracle.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [LSF/MM TOPIC] Filesystem-DAX, page-pinning, and RDMA
+Date: Thu, 25 Jan 2018 04:01:43 +0000
+Message-ID: <1516852902.3724.4.camel@wdc.com>
+References: <CAPcyv4gQNM9RbTbRWKnG6Vby_CW9CJ9EZTARsVNi=9cas7ZR2A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <532b4d71-e2eb-35f3-894e-1c3288e7bc3f-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jianchao.wang" <jianchao.w.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAPcyv4gQNM9RbTbRWKnG6Vby_CW9CJ9EZTARsVNi=9cas7ZR2A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Content-ID: <421B4EAE84F4C14BB9A74F1146530B6F-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2018-01-25 at 11:27 +0800, jianchao.wang wrote:
-> Hi Tariq
+On Wed, 2018-01-24 at 19:56 -0800, Dan Williams wrote:
+> The get_user_pages_longterm() api was recently added as a stop-gap
+> measure to prevent applications from growing dependencies on the
+> ability to to pin DAX-mapped filesystem blocks for RDMA indefinitely
+> with no ongoing coordination with the filesystem. This 'longterm'
+> pinning is also problematic for the non-DAX VMA case where the core-mm
+> needs a time bounded way to revoke a pin and manipulate the physical
+> pages. While existing RDMA applications have already grown the
+> assumption that they can pin page-cache pages indefinitely, the fact
+> that we are breaking this assumption for filesystem-dax presents an
+> opportunity to deprecate the 'indefinite pin' mechanisms and move to a
+> general interface that supports pin revocation.
 > 
-> On 01/22/2018 10:12 AM, jianchao.wang wrote:
-> > > > On 19/01/2018 5:49 PM, Eric Dumazet wrote:
-> > > > > On Fri, 2018-01-19 at 23:16 +0800, jianchao.wang wrote:
-> > > > > > Hi Tariq
-> > > > > > 
-> > > > > > Very sad that the crash was reproduced again after applied the patch.
-> > > 
-> > > Memory barriers vary for different Archs, can you please share more details regarding arch and repro steps?
-> > The hardware is HP ProLiant DL380 Gen9/ProLiant DL380 Gen9, BIOS P89 12/27/2015
-> > The xen is installed. The crash occurred in DOM0.
-> > Regarding to the repro steps, it is a customer's test which does heavy disk I/O over NFS storage without any guest.
-> > 
+> While RDMA may grow an explicit Infiniband-verb for this 'memory
+> registration with lease' semantic, it seems that this problem is
+> bigger than just RDMA. At LSF/MM it would be useful to have a
+> discussion between fs, mm, dax, and RDMA folks about addressing this
+> problem at the core level.
 > 
-> What is the finial suggestion on this ?
-> If use wmb there, is the performance pulled down ?
+> Particular people that would be useful to have in attendance are
+> Michal Hocko, Christoph Hellwig, and Jason Gunthorpe (cc'd).
 
-Since https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git/commit/?id=dad42c3038a59d27fced28ee4ec1d4a891b28155
+Is on demand paging sufficient as a solution for your use case or do
+you perhaps need something different? See also
+https://www.openfabrics.org/images/eventpresos/workshops2013/2013_Workshop_Tues_0930_liss_odp.pdf
 
-we batch allocations, so mlx4_en_refill_rx_buffers() is not called that often.
+Thanks,
 
-I doubt the additional wmb() will have serious impact there.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bart.
