@@ -1,102 +1,43 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: get_maintainer.pl bug?
-Date: Thu, 25 Jan 2018 10:53:29 -0500
-Message-ID: <1516895609.27592.126.camel@redhat.com>
-References: <20180124112323.GA8265@yuvallap>
-         <20180124115445.GH1393@mtr-leonro.local> <20180124162802.GB16845@ziepe.ca>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [RFC rdma-core 2/2] verbs: Introduce non-contiguous memory
+ registration
+Date: Thu, 25 Jan 2018 09:07:25 -0700
+Message-ID: <20180125160725.GC10706@ziepe.ca>
+References: <1515088046-26605-1-git-send-email-alexma@mellanox.com>
+ <1515088046-26605-2-git-send-email-alexma@mellanox.com>
+ <20180111122206.GB2800@yuvallap>
+ <20180111164455.GA1309@ziepe.ca>
+ <VI1PR05MB1278C4C4FF78B4B1A551252EB9EC0@VI1PR05MB1278.eurprd05.prod.outlook.com>
+ <20180123202954.GA14007@yuvallap>
+ <VI1PR05MB12787572593F02F05AA20DE1B9E10@VI1PR05MB1278.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-UjGpFCFufqPT4OUXVUW5"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180124162802.GB16845-uk2M96/98Pc@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <VI1PR05MB12787572593F02F05AA20DE1B9E10-79XLn2atqDMOK6E67s+DINqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jan 25, 2018 at 12:43:05PM +0000, Alex Margolin wrote:
 
---=-UjGpFCFufqPT4OUXVUW5
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> Actually, I realized it can be implemented with the proposed API.
+> All that is missing is a capability bit and a flag for set_layout_*,
+> and the implementation could work as follows (changes relative to SG example):
 
-On Wed, 2018-01-24 at 09:28 -0700, Jason Gunthorpe wrote:
-> On Wed, Jan 24, 2018 at 01:54:45PM +0200, Leon Romanovsky wrote:
-> > On Wed, Jan 24, 2018 at 01:23:24PM +0200, Yuval Shaia wrote:
-> > > Hi,
-> > > This is what i get when running scripts/get_maintainer.pl drivers/inf=
-iniband/:
-> > >=20
-> > > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> (supporter:INFINIBAND SUBSYSTEM)
-> > > Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> (supporter:INFINIBAND SUBSYSTEM)
-> > > linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:INFINIBAND SUBSYSTEM)
-> > > linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list)
-> > >=20
-> > > However section "INFINIBAND SUBSYSTEM" pointed out a different addres=
-s for
-> > > Jason:
-> > >=20
-> > > INFINIBAND SUBSYSTEM
-> > > M:      Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > > M:      Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > L:      linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > W:      http://www.openfabrics.org/
-> > > Q:      http://patchwork.kernel.org/project/linux-rdma/list/
-> > > T:      git git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rd=
-ma.git
-                                                                ^^^^^^^^
-This is wrong though.  We need to update that.   I'll fix that right
-now.
+This can work..
 
-> > > S:      Supported
-> > > F:      Documentation/devicetree/bindings/infiniband/
-> > > F:      Documentation/infiniband/
-> > > F:      drivers/infiniband/
-> > > F:      include/uapi/linux/if_infiniband.h
-> > > F:      include/uapi/rdma/
-> > > F:      include/rdma/
-> > >=20
-> > > So
-> > > - Which one is the correct one?
-> > > - What am i doing wrong when using scripts/get_maintainer.pl?
-> >=20
-> > Both are correct, and the jgg-uk2M96/98Pc@public.gmane.org email is taken from .mailmap
-> > file.
->=20
-> Yes, I prefer the ziepe one for bulk/automatic sorts of email, that is
-> why it is in the mailamp.
->=20
-> Thanks,
-> Jason
->=20
+> In this case calling ibv_mr_set_layout_sg() will cause an internal registration
+> replacing the ibv_reg_mr calls for mr1 and mr2, and the registration will be stored
+> in mr3.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-UjGpFCFufqPT4OUXVUW5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Yuval is right though, in cases where the buffers are page aligned we
+can ask the kernel to create a single normal MR supported by all HW.
 
------BEGIN PGP SIGNATURE-----
+Could be a useful feature.
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpp/XkACgkQuCajMw5X
-L92iaxAAv+xz+8L+Biog4fZRUb7+nw7/YJSFJnHCY2/FF2fvehVI94FwfDCVKQAV
-4hSKSX6QcyB+cZvbffgQBZHXppKyK69JvtZRC73XPNsd1L5qQMoElMIka0rAIFNo
-dSfYQsFdlH4GVph2+NKE77VK8o29zsqi29Enkpdb6N6VBbwXBF/M+r5N1IT4FFVC
-DaEmaAZAXFx3ncJMqXm96XtTfhBHDLzPccj8y+mjKzVELJyzg7cpJDaEy30DHpP5
-cq6WYyQztpfDzOEzVI1xfFCPtESkdbKn8LW9cfasbifK+imZpZLz56c2eRk+KIkp
-+MWp0Ofaoa2w9+4bYJ38Ae4UuW6GMUe8qR7G3sxuw+OUQBXRcsX5JwZJhfY6OT0U
-GDRuYz11tJRZ75FKAbpPneaDxS95nuo67DZYl4Bn29y2pMeNYPdKLK2AiLRYYiIq
-Z+RPMepfw2gR4kEZfu6PbvVUieMHSAFS2prHm68RDloJsrbjXnxU9JGwWyutzxeu
-muQuuSCajmoxKqEaMowtD48fZojh8pqfw9ZjN7WClCK04W8vM6TfFYxmZV1KD6c6
-JGX9LkRCBdctGqHT0HIrbcyEGgv3plcjAeysmrpPtm7rw02OWcIJc6tS2S1rhiCr
-CPMEK5TmnxM6fg1qiOMm8Dqn0BzJM3LdZuh/lFmcU6W1mCGqfTg=
-=fsyX
------END PGP SIGNATURE-----
-
---=-UjGpFCFufqPT4OUXVUW5--
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
