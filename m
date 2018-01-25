@@ -1,296 +1,78 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Reconnect on RDMA device reset
-Date: Thu, 25 Jan 2018 11:06:17 -0800
-Message-ID: <679C11A4-744C-4574-9F50-2D2C3B0F08B0@oracle.com>
-References: <CADZhsQqDFc1NWmsihOwki8_2Zj0HuYKC_N_x0jMnCtU9Rww1UA@mail.gmail.com>
- <f0a14240-1566-1bae-1b9f-21880bc3f3a0@grimberg.me>
- <CADZhsQqvK0LMd9sfxzz+x_5qVnoi4FP0FCFMsTPjpeXyqfXKew@mail.gmail.com>
- <77cef33e-a563-97fc-7ba6-69f220f1be84@grimberg.me>
- <1516904022.27592.187.camel@redhat.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
-Content-Type: text/plain;
-        charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
+From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH v5 0/3] IB/srp patches for kernel v4.16
+Date: Thu, 25 Jan 2018 11:06:59 -0800
+Message-ID: <a136f97d-cc29-3fb1-6692-770eb11eba13@wdc.com>
+References: <20180122222713.13197-1-bart.vanassche@wdc.com>
+ <1516727351.27592.46.camel@redhat.com> <1516743303.3339.36.camel@wdc.com>
+ <1516895274.27592.125.camel@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1516904022.27592.187.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1516895274.27592.125.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Oren Duer <oren.duer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 01/25/18 07:47, Doug Ledford wrote:
+> Sure, I know most of the stuff above, as I used to maintain the aic7xxx
+> driver back when SCSI was actually popular.  But the target layer in the
+> scsi core didn't exist back in the day.  Our structure was block layer->
+> scsi disk/scsi cd-rom drivers->scsi core->scsi low level driver.  The
+> setup back then was that block layer had its own request queue depth,
+> then it would pass block layer requests to the scsi disk driver that
+> turned them into scsi command blocks and would issue up to host->
+> cmd_per_lun scbs at a time (assuming the device allowed tagged
+> commands, without that you only got one at a time).  Being out of the
+> loop, but knowing how things used to work, I figured the SRP driver
+> already controlled how many commands would be presented to the target at
+> the other side by hooking into the scsi core as a low level device
+> driver and setting cmd_per_lun.  I think what's happened in the
+> intervening years is that they seem to have taken the scsi disk driver
+> and scsi cd-rom drivers and replaced them with a generic target driver
+> that handles all block targets and then uses the old scsi disk and scsi
+> cd-rom drivers as personalities for the given target, yes?
 
+Hello Doug,
 
-> On Jan 25, 2018, at 10:13 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> =
-wrote:
->=20
-> On Wed, 2018-01-24 at 22:52 +0200, Sagi Grimberg wrote:
->>>>> Today host and target stacks will respond to RDMA device reset (or =
-plug
->>>>> out
->>>>> and plug in) by cleaning all resources related to that device, and =
-sitting
->>>>> idle waiting for administrator intervention to reconnect (host =
-stack) or
->>>>> rebind subsystem to a port (target stack).
->>>>>=20
->>>>> I'm thinking that maybe the right behaviour should be to try and =
-restore
->>>>> everything as soon as the device becomes available again. I don't =
-think a
->>>>> device reset should look different to the users than ports going =
-down and
->>>>> up
->>>>> again.
->>>>=20
->>>>=20
->>>> Hmm, not sure I fully agree here. In my mind device removal means =
-the
->>>> device is going away which means there is no point in keeping the =
-controller
->>>> around...
->>>=20
->>> The same could have been said on a port going down. You don't know =
-if it will
->>> come back up connected to the same network...
->>=20
->> That's true. However in my mind port events are considered transient,
->> and we do give up at some point. I'm simply arguing that device =
-removal
->> has different semantics. I don't argue that we need to support it.
->=20
-> I think it depends on how you view yourself (meaning the target or
-> initiator stacks).  It's my understanding that if device eth0
-> disappeared completely, and then device eth1 was plugged in, and eth1
-> got the same ip address as eth0, then as long as any TCP sockets =
-hadn't
-> gone into reset state, the iSCSI devices across the existing =
-connection
-> would simply keep working.  This is correct, yes?
+Sorry but I don't know the entire history of the Linux kernel SCSI 
+stack. All I know is how it works today:
+- A filesystem or other subsystem submits a request to the block layer
+   core.
+- The block layer core passes the request to the SCSI core.
+- The SCSI core invokes the upper layer driver (e.g. sd or sr) to
+   translate the block request into a SCSI command.
+- The SCSI command is submitted by the SCSI core to the SCSI low-level
+   driver (LLD).
+- When the command is completed, the SCSI LLD reports this to the SCSI
+   core. The SCSI core asks the upper layer driver to post-process the
+   result and next reports the completion to the block layer.
 
-For NFS/RDMA, I think of the "failover" case where a device is
-removed, then a new one is plugged in (or an existing cold
-replacement is made available) with the same IP configuration.
+To keep the above description brief I have left out the SCSI error 
+handling strategy.
 
-On a "hard" NFS mount, we want the upper layers to wait for
-a new suitable device to be made available, and then to use
-it to resend any pending RPCs. The workload should continue
-after a new device is available.
+> And they now
+> allow per-target command depth setting where as in the old days the
+> queue depth for all tagged allowed targets was the device driver's
+> cmd_per_lun, yes? (Back when I worked on this, multi-lun devices were
+> not well supported, and cmd_per_lun, which should have really been
+> cmd_per_device, was truly applied per lun and could easily cause a
+> tagged device to have many more outstanding commands than intended if it
+> was a multi-lun tagged capable device, at least on the old aic7xxx
+> driver it could)  So that the queue depth on devices now a days is
+> essentially min(target->can_queue, shost->cmd_per_lun), yes?
 
-Feel free to tell me I'm full of turtles.
+My understanding is that the queue depth per LUN is the minimum of the 
+following three parameters:
+* shost->can_queue
+* target->can_queue
+* shost->cmd_per_lun
 
+Best regards,
 
-> If so, then maybe you
-> want iSER at least to operate the same way.  The problem, of course, =
-is
-> that iSER may use the IP address and ports for connection, but then it
-> transitions to queue pairs for data transfer.  Because iSER does that,
-> it is sitting at the same level as, say, the net core that *did* know
-> about the eth change in the above example and transitioned the TCP
-> socket from the old device to the new, meaning that iSER now has to =
-take
-> that same responsibility on itself if it wishes the user visible
-> behavior of iSER devices to be the same as iSCSI devices.  And that
-> would even be true if the old RDMA device went away and a new RDMA
-> device came up with the old IP address, so the less drastic form of
-> bouncing the existing device should certainly fall under the same
-> umbrella.
->=20
-> I *think* for SRP this is already the case.  The SRP target uses the
-> kernel LIO framework, so if you bounce the device under the SRPt =
-layer,
-> doesn't the config get preserved?  So that when the device came back =
-up,
-> the LIO configuration would still be there and the SRPt driver would =
-see
-> that? Bart?
->=20
-> For the SRP client, I'm almost certain it will try to reconnect since =
-it
-> uses a user space daemon with a shell script that restarts the daemon =
-on
-> various events.  That might have changed...didn't we just take a patch
-> to rdma-core to drop the shell script?  It might not reconnect
-> automatically with the latest rdma-core, I'd have to check.  Bart =
-should
-> know though...
->=20
-> I haven't the faintest clue on NVMe over fabrics though.  But, again, =
-I
-> think that's up to you guys to decide what semantics you want.  With
-> iSER it's a little easier since you can use the TCP semantics as a
-> guideline and you have an IP/port discovery so it doesn't even have to
-> be the same controller that comes back.  With SRP it must be the same
-> controller that comes back or else your login information will be all
-> wrong (well, we did just take RDMA_CM support patches for SRP that =
-will
-> allow IP/port addressing instead, so theoretically it could now do the
-> same thing if you are using RDMA_CM mode logins).  I don't know the
-> details of the NVMe addressing though.
->=20
->>>> AFAIK device resets usually are expected to quiesce inflight I/O,
->>>> cleanup resources and restore when the reset sequence completes =
-(which is
->>>> what we do in nvme controller resets).
->=20
-> I think your perspective here might be a bit skewed by the way the =
-NVMe
-> stack is implemented (which was intentional for speed as I understand
-> it).  As a differing example, in the SCSI stack when the LLD does a =
-SCSI
-> host reset, it resets the host but does not restore or restart any
-> commands that were aborted.  It is up to the upper layer SCSI drivers =
-to
-> do so (if they chose, they might send it back to the block layer).  =
-From
-> the way you wrote the above, it sounds like the NVMe layer is almost
-> monolithic in nature with no separation between upper level consumer
-> layer and lower level driver layer, and so you can reset/restart all
-> internally.  I would argue that's rare in the linux kernel and most
-> places the low level driver resets, and some other upper layer has to
-> restart things if it wants or error out if it doesn't.
->=20
->>>> I'm not sure I understand why
->>>> RDMA device resets manifest as DEVICE_REMOVAL events to ULPs (via
->>>> rdma_cm or .remove_one via ib_client API). I think the correct =
-interface
->>>> would be suspend/resume semantics for RDMA device resets (similar =
-to pm
->>>> interface).
->=20
-> No, we can't do this.  Suspend/Resume is not the right model for an =
-RDMA
-> device reset.  An RDMA device reset is a hard action that stops all
-> ongoing DMA regardless of its source.  Those sources include kernel
-> layer consumers, user space consumers acting without the kernel's =
-direct
-> intervention, and ongoing DMA with remote RDMA peers (which will throw
-> the remote queue pairs into an error state almost immediately).  In =
-the
-> future it very likely could include RDMA between things like GPU =
-offload
-> processors too.  We can't restart that stuff even if we wanted to.  So
-> suspend/resume semantics for an RDMA device level reset is a non-
-> starter.
->=20
->>>> I think that it would make a much cleaner semantics and ULPs should =
-be
->>>> able to understand exactly what to do (which is what you suggested
->>>> above).
->>>>=20
->>>> CCing linux-rdma.
->>>=20
->>> Maybe so. I don't know what's the "standard" here for Linux in =
-general and
->>> networking devices in particular. Let's see if linux-rdma agree =
-here.
->>=20
->> I would like to hear more opinions on the current interface.
->=20
-> There is a difference between RDMA device and other network devices.=20=
-
-> The net stack is much more like the SCSI stack in that you have an =
-upper
-> layer connection (socket or otherwise) and a lower layer transport and
-> the net core code which is free to move your upper layer abstraction
-> from one lower layer transport to another.  With the RDMA subsystem,
-> your upper layer is connecting directly into the low level hardware.  =
-If
-> you want a semantic that includes reconnection on an event, then it =
-has
-> to be handled in your upper layer as there is no intervening middle
-> layer to abstract out the task of moving your connection from one low
-> level device to another (that's not to say we couldn't create one, and
-> several actually already exist, like SMC-R and RDS, but direct hooks
-> into the core ib stack are not abstracted out and you are talking
-> directly to the hardware).  And if you want to support moving your
-> connection from an old removed device to a new replacement device that
-> is not simply the same physical device being plugged back in, then you
-> need an addressing scheme that doesn't rely on the link layer hardware
-> address of the device.
->=20
->>>> Regardless of ib_client vs. rdma_cm, we can't simply perform normal
->>>> reconnects because we have dma mappings we need to unmap for each
->>>> request in the tagset which we don't teardown in every reconnect =
-(as
->>>> we may have inflight I/O). We could have theoretically use =
-reinit_tagset
->>>> to do that though.
->>>=20
->>> Obviously it isn't that simple... Just trying to agree on the right =
-direction
->>> to go.
->>=20
->> Yea, I agree. It shouldn't be too hard also.
->>=20
->>>>> In the reconnect flow the stack already repeats creating the cm_id =
-and
->>>>> resolving address and route, so when the RDMA device comes back =
-up, and
->>>>> assuming it will be configured with the same address and connected =
-to the
->>>>> same
->>>>> network (as is the case in device reset), connections will be =
-restored
->>>>> automatically.
->>>>=20
->>>>=20
->>>> As I said, I think that the problem is the interface of RDMA device
->>>> resets. IMO, device removal means we need to delete all the nvme
->>>> controllers associated with the device.
->>>=20
->>> Do you think all associated controllers should be deleted when a TCP =
-socket
->>> gets disconnected in NVMe-over-TCP? Do they?
->>=20
->> Nope, but that is equivalent to QP going into error state IMO, and we
->> don't do that in nvme-rdma as well.
->=20
-> There is no equivalent in the TCP realm of an RDMA controller reset or
-> an RDMA controller permanent removal event.  When dealing with TCP, if
-> the underlying ethernet device is reset, you *might* get a TCP socket
-> reset, you might not.  If the underlying ethernet is removed, you =
-might
-> get a socket reset, you might not, depending on how the route to the
-> remote host is re-established.  If all IP capable devices in the =
-entire
-> system are removed, your TCP socket will get a reset, and attempts to
-> reconnect will get an error.
->=20
-> None of those sound semantically comparable to RDMA device
-> unplug/replug.  Again, that's just because the net core never =
-percolates
-> that up to the TCP layer.
->=20
-> When you have a driver that has both TCP and RDMA transports, the =
-truth
-> is you are plugging into two very different levels of the kernel and =
-the
-> work you have to do to support one is very different from the other.  =
-I
-> don't think it's worthwhile to even talk about trying to treat them
-> equivalently unless you want to take on an address scheme and
-> reset/restart capability in the RDMA side of things that you don't =
-have
-> to have in the TCP side of things.
->=20
-> As a user of things like iSER/SRP/NVMe, I would personally like
-> connections to persist across non-fatal events.  But the RDMA stack, =
-as
-> it stands, can't reconnect things for you, you would have to do that =
-in
-> your own code.
->=20
-> --=20
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->    GPG KeyID: B826A3330E572FDD
->    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 =
-2FDD
-
---
-Chuck Lever
-
-
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
