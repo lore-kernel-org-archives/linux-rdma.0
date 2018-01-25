@@ -1,78 +1,71 @@
-From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH v5 0/3] IB/srp patches for kernel v4.16
-Date: Thu, 25 Jan 2018 11:06:59 -0800
-Message-ID: <a136f97d-cc29-3fb1-6692-770eb11eba13@wdc.com>
-References: <20180122222713.13197-1-bart.vanassche@wdc.com>
- <1516727351.27592.46.camel@redhat.com> <1516743303.3339.36.camel@wdc.com>
- <1516895274.27592.125.camel@redhat.com>
+From: Davidlohr Bueso <dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: [PATCH] IB/mthca: Fix how mthca_map_user_db() calls gup
+Date: Thu, 25 Jan 2018 11:27:27 -0800
+Message-ID: <20180125192727.dkwuqel3xfut66wj@linux-n805>
+References: <20180123205459.432-1-dave@stgolabs.net>
+ <1516898063.27592.136.camel@redhat.com>
+ <20180125175048.GG10706@ziepe.ca>
+ <1516903584.27592.183.camel@redhat.com>
+ <20180125185330.GH10706@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1516895274.27592.125.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180125185330.GH10706-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Davidlohr Bueso <dbueso-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/25/18 07:47, Doug Ledford wrote:
-> Sure, I know most of the stuff above, as I used to maintain the aic7xxx
-> driver back when SCSI was actually popular.  But the target layer in the
-> scsi core didn't exist back in the day.  Our structure was block layer->
-> scsi disk/scsi cd-rom drivers->scsi core->scsi low level driver.  The
-> setup back then was that block layer had its own request queue depth,
-> then it would pass block layer requests to the scsi disk driver that
-> turned them into scsi command blocks and would issue up to host->
-> cmd_per_lun scbs at a time (assuming the device allowed tagged
-> commands, without that you only got one at a time).  Being out of the
-> loop, but knowing how things used to work, I figured the SRP driver
-> already controlled how many commands would be presented to the target at
-> the other side by hooking into the scsi core as a low level device
-> driver and setting cmd_per_lun.  I think what's happened in the
-> intervening years is that they seem to have taken the scsi disk driver
-> and scsi cd-rom drivers and replaced them with a generic target driver
-> that handles all block targets and then uses the old scsi disk and scsi
-> cd-rom drivers as personalities for the given target, yes?
+On Thu, 25 Jan 2018, Jason Gunthorpe wrote:
 
-Hello Doug,
+>>
+>> Since the original post was referred to an ABBA deadlock, wouldn't we
+>> have to drop db_tab->mutex, then grab both in the proper order?
+>
+>I had understood that was only a concern because Davidlohr was having
+>trouble proving the callchain didn't include mmap_sem already..
+>
+>I can see the call chain all ends on verbs ops, and I know verbs ops
+>with ucontext's are never called under mmap_sem by the core code..
 
-Sorry but I don't know the entire history of the Linux kernel SCSI 
-stack. All I know is how it works today:
-- A filesystem or other subsystem submits a request to the block layer
-   core.
-- The block layer core passes the request to the SCSI core.
-- The SCSI core invokes the upper layer driver (e.g. sd or sr) to
-   translate the block request into a SCSI command.
-- The SCSI command is submitted by the SCSI core to the SCSI low-level
-   driver (LLD).
-- When the command is completed, the SCSI LLD reports this to the SCSI
-   core. The SCSI core asks the upper layer driver to post-process the
-   result and next reports the completion to the block layer.
+Right. Ok so this simplifies things and we can just use gup_fast().
 
-To keep the above description brief I have left out the SCSI error 
-handling strategy.
+Thanks,
+Davidlohr
 
-> And they now
-> allow per-target command depth setting where as in the old days the
-> queue depth for all tagged allowed targets was the device driver's
-> cmd_per_lun, yes? (Back when I worked on this, multi-lun devices were
-> not well supported, and cmd_per_lun, which should have really been
-> cmd_per_device, was truly applied per lun and could easily cause a
-> tagged device to have many more outstanding commands than intended if it
-> was a multi-lun tagged capable device, at least on the old aic7xxx
-> driver it could)  So that the queue depth on devices now a days is
-> essentially min(target->can_queue, shost->cmd_per_lun), yes?
+---8<---------------------------------------------------
+[PATCH v2] IB/mthca: Fix gup usage in mthca_map_user_db()
 
-My understanding is that the queue depth per LUN is the minimum of the 
-following three parameters:
-* shost->can_queue
-* target->can_queue
-* shost->cmd_per_lun
+get_user_pages() must be called with mmap_sem held, currently
+it is not. In fact it is called under the user db_table->mutex.
+To fix this we can convert gup to use the fast alternative,
+and safely avoid taking mmap_sem, if possible. Furthermore
+this is safe wrt to the mutex as other callers that take the
+lock (unmap and alloc_db) are not called under mmap_sem
+(hence possible deadlock).
 
-Best regards,
+Signed-off-by: Davidlohr Bueso <dbueso-l3A5Bk7waGM@public.gmane.org>
+---
+ drivers/infiniband/hw/mthca/mthca_memfree.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Bart.
+diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
+index c6fe89d79248..9a412738d5c3 100644
+--- a/drivers/infiniband/hw/mthca/mthca_memfree.c
++++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
+@@ -472,7 +472,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
+ 		goto out;
+ 	}
+ 
+-	ret = get_user_pages(uaddr & PAGE_MASK, 1, FOLL_WRITE, pages, NULL);
++	ret = get_user_pages_fast(uaddr & PAGE_MASK, 1, FOLL_WRITE, pages);
+ 	if (ret < 0)
+ 		goto out;
+ 
+-- 
+2.13.6
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
