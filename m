@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v6 3/8] RDMA/restrack: Add general infrastructure to track RDMA resources
-Date: Thu, 25 Jan 2018 17:12:22 +0200
-Message-ID: <20180125151227.28202-4-leon@kernel.org>
+Subject: [PATCH rdma-next v6 5/8] RDMA/core: Add resource tracking for create and destroy CQs
+Date: Thu, 25 Jan 2018 17:12:24 +0200
+Message-ID: <20180125151227.28202-6-leon@kernel.org>
 References: <20180125151227.28202-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180125151227.28202-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,470 +12,104 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The RDMA subsystem has very strict set of objects to work on it,
-but it completely lacks tracking facilities and no visibility of
-resource utilization.
-
-The following patch adds such infrastructure to keep track of RDMA
-resources to help with debugging of user space applications. The primary
-user of this infrastructure is RDMA nldev netlink (following patches),
-but it is not limited too.
-
-At this stage, the main three objects (PD, CQ and QP) are added,
-and more will be added later.
+Track create and destroy operations of CQ objects.
 
 Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/Makefile    |   2 +-
- drivers/infiniband/core/core_priv.h |   1 +
- drivers/infiniband/core/device.c    |   7 ++
- drivers/infiniband/core/restrack.c  | 159 ++++++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h             |  19 +++++
- include/rdma/restrack.h             | 152 ++++++++++++++++++++++++++++++++++
- 6 files changed, 339 insertions(+), 1 deletion(-)
- create mode 100644 drivers/infiniband/core/restrack.c
- create mode 100644 include/rdma/restrack.h
+ drivers/infiniband/core/cq.c               | 6 ++++++
+ drivers/infiniband/core/uverbs_cmd.c       | 2 ++
+ drivers/infiniband/core/uverbs_std_types.c | 3 +++
+ drivers/infiniband/core/verbs.c            | 3 +++
+ 4 files changed, 14 insertions(+)
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index 504b926552c6..f69833db0a32 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -12,7 +12,7 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
- 				device.o fmr_pool.o cache.o netlink.o \
- 				roce_gid_mgmt.o mr_pool.o addr.o sa_query.o \
- 				multicast.o mad.o smi.o agent.o mad_rmpp.o \
--				security.o nldev.o
-+				security.o nldev.o restrack.o
+diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
+index d99565dbd12f..bc79ca8215d7 100644
+--- a/drivers/infiniband/core/cq.c
++++ b/drivers/infiniband/core/cq.c
+@@ -159,6 +159,10 @@ struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private,
+ 	if (!cq->wc)
+ 		goto out_destroy_cq;
  
- ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
- ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index aef9aa0ac0e6..2b1372da708a 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -40,6 +40,7 @@
- #include <rdma/ib_verbs.h>
- #include <rdma/opa_addr.h>
- #include <rdma/ib_mad.h>
-+#include <rdma/restrack.h>
- #include "mad_priv.h"
- 
- /* Total number of ports combined across all struct ib_devices's */
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 2826e06311a5..c3e389f8c99a 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -263,6 +263,11 @@ struct ib_device *ib_alloc_device(size_t size)
- 	if (!device)
- 		return NULL;
- 
-+	if (rdma_restrack_init(&device->res)) {
-+		kfree(device);
-+		return NULL;
-+	}
++	cq->res.type = RDMA_RESTRACK_CQ;
++	cq->res.kern_name = caller;
++	rdma_restrack_add(&cq->res);
 +
- 	device->dev.class = &ib_class;
- 	device_initialize(&device->dev);
+ 	switch (cq->poll_ctx) {
+ 	case IB_POLL_DIRECT:
+ 		cq->comp_handler = ib_cq_completion_direct;
+@@ -183,6 +187,7 @@ struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private,
  
-@@ -596,6 +601,8 @@ void ib_unregister_device(struct ib_device *device)
+ out_free_wc:
+ 	kfree(cq->wc);
++	rdma_restrack_del(&cq->res);
+ out_destroy_cq:
+ 	cq->device->destroy_cq(cq);
+ 	return ERR_PTR(ret);
+@@ -214,6 +219,7 @@ void ib_free_cq(struct ib_cq *cq)
  	}
- 	up_read(&lists_rwsem);
  
-+	rdma_restrack_clean(&device->res);
-+
- 	ib_device_unregister_rdmacg(device);
- 	ib_device_unregister_sysfs(device);
+ 	kfree(cq->wc);
++	rdma_restrack_del(&cq->res);
+ 	ret = cq->device->destroy_cq(cq);
+ 	WARN_ON_ONCE(ret);
+ }
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 825325c764a1..3e95acd29de7 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1033,6 +1033,8 @@ static struct ib_ucq_object *create_cq(struct ib_uverbs_file *file,
+ 		goto err_cb;
  
-diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
-new file mode 100644
-index 000000000000..ab1fca2d98e3
---- /dev/null
-+++ b/drivers/infiniband/core/restrack.c
-@@ -0,0 +1,159 @@
-+/* SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause) */
-+/*
-+ * Copyright (c) 2017-2018 Mellanox Technologies. All rights reserved.
-+ */
-+
-+#include <rdma/ib_verbs.h>
+ 	uobj_alloc_commit(&obj->uobject);
++	cq->res.type = RDMA_RESTRACK_CQ;
++	rdma_restrack_add(&cq->res);
+ 
+ 	return obj;
+ 
+diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+index c3ee5d9b336d..b571176babbe 100644
+--- a/drivers/infiniband/core/uverbs_std_types.c
++++ b/drivers/infiniband/core/uverbs_std_types.c
+@@ -35,6 +35,7 @@
+ #include <rdma/ib_verbs.h>
+ #include <linux/bug.h>
+ #include <linux/file.h>
 +#include <rdma/restrack.h>
-+#include <linux/mutex.h>
-+#include <linux/sched/task.h>
-+#include <linux/uaccess.h>
-+#include <linux/pid_namespace.h>
-+
-+int rdma_restrack_init(struct rdma_restrack_root *res)
-+{
-+	init_rwsem(&res->rwsem);
-+	return 0;
-+}
-+
-+void rdma_restrack_clean(struct rdma_restrack_root *res)
-+{
-+	WARN_ON_ONCE(!hash_empty(res->hash));
-+}
-+
-+int rdma_restrack_count(struct rdma_restrack_root *res,
-+			enum rdma_restrack_type type,
-+			struct pid_namespace *ns)
-+{
-+	struct rdma_restrack_entry *e;
-+	u32 cnt = 0;
-+
-+	down_read(&res->rwsem);
-+	hash_for_each_possible(res->hash, e, node, type) {
-+		if (ns == &init_pid_ns ||
-+		    (!rdma_is_kernel_res(e) &&
-+		     ns == task_active_pid_ns(e->task)))
-+			cnt++;
-+	}
-+	up_read(&res->rwsem);
-+	return cnt;
-+}
-+EXPORT_SYMBOL(rdma_restrack_count);
-+
-+static void set_kern_name(struct rdma_restrack_entry *res)
-+{
-+	enum rdma_restrack_type type = res->type;
-+	struct ib_qp *qp;
-+
-+	if (type != RDMA_RESTRACK_QP)
-+		/* PD and CQ types already have this name embedded in */
-+		return;
-+
-+	qp = container_of(res, struct ib_qp, res);
-+	if (!qp->pd) {
-+		WARN_ONCE(true, "XRC QPs are not supported\n");
-+		/* Survive, despite the programmer's error */
-+		res->kern_name = " ";
-+		return;
-+	}
-+
-+	res->kern_name = qp->pd->res.kern_name;
-+}
-+
-+static struct ib_device *res_to_dev(struct rdma_restrack_entry *res)
-+{
-+	enum rdma_restrack_type type = res->type;
-+	struct ib_device *dev;
-+	struct ib_xrcd *xrcd;
-+	struct ib_pd *pd;
-+	struct ib_cq *cq;
-+	struct ib_qp *qp;
-+
-+	switch (type) {
-+	case RDMA_RESTRACK_PD:
-+		pd = container_of(res, struct ib_pd, res);
-+		dev = pd->device;
-+		break;
-+	case RDMA_RESTRACK_CQ:
-+		cq = container_of(res, struct ib_cq, res);
-+		dev = cq->device;
-+		break;
-+	case RDMA_RESTRACK_QP:
-+		qp = container_of(res, struct ib_qp, res);
-+		dev = qp->device;
-+		break;
-+	case RDMA_RESTRACK_XRCD:
-+		xrcd = container_of(res, struct ib_xrcd, res);
-+		dev = xrcd->device;
-+		break;
-+	default:
-+		WARN_ONCE(true, "Wrong resource tracking type %u\n", type);
-+		return NULL;
-+	}
-+
-+	return dev;
-+}
-+
-+void rdma_restrack_add(struct rdma_restrack_entry *res)
-+{
-+	struct ib_device *dev = res_to_dev(res);
-+
-+	if (!dev)
-+		return;
-+
-+	down_write(&dev->res.rwsem);
-+	if (!uaccess_kernel()) {
-+		get_task_struct(current);
-+		res->task = current;
-+		res->kern_name = NULL;
-+	} else {
-+		set_kern_name(res);
-+		res->task = NULL;
-+	}
-+
-+	kref_init(&res->kref);
-+	res->valid = true;
-+	hash_add(dev->res.hash, &res->node, res->type);
-+	up_write(&dev->res.rwsem);
-+}
-+EXPORT_SYMBOL(rdma_restrack_add);
-+
-+void rdma_restrack_get(struct rdma_restrack_entry *res)
-+{
-+	kref_get(&res->kref);
-+}
-+EXPORT_SYMBOL(rdma_restrack_get);
-+
-+static void restrack_release(struct kref *kref)
-+{
-+	struct rdma_restrack_entry *res;
-+	struct ib_device *dev;
-+
-+	res = container_of(kref, struct rdma_restrack_entry, kref);
-+	dev = res_to_dev(res);
-+	if (!dev)
-+		return;
-+
-+	down_write(&dev->res.rwsem);
-+	hash_del(&res->node);
-+	res->valid = false;
-+	if (res->task)
-+		put_task_struct(res->task);
-+	up_write(&dev->res.rwsem);
-+
-+}
-+
-+int rdma_restrack_put(struct rdma_restrack_entry *res)
-+{
-+	if (!res->valid)
-+		return 1;
-+
-+	return kref_put(&res->kref, restrack_release);
-+}
-+EXPORT_SYMBOL(rdma_restrack_put);
-+
-+void rdma_restrack_del(struct rdma_restrack_entry *res)
-+{
-+	rdma_restrack_put(res);
-+}
-+EXPORT_SYMBOL(rdma_restrack_del);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index f9cabb1b670e..65af66b477cb 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -63,6 +63,7 @@
- #include <linux/uaccess.h>
- #include <linux/cgroup_rdma.h>
- #include <uapi/rdma/ib_user_verbs.h>
-+#include <rdma/restrack.h>
+ #include "rdma_core.h"
+ #include "uverbs.h"
  
- #define IB_FW_VERSION_NAME_MAX	ETHTOOL_FWVERS_LEN
+@@ -319,6 +320,8 @@ static int uverbs_create_cq_handler(struct ib_device *ib_dev,
+ 	obj->uobject.object = cq;
+ 	obj->uobject.user_handle = user_handle;
+ 	atomic_set(&cq->usecnt, 0);
++	cq->res.type = RDMA_RESTRACK_CQ;
++	rdma_restrack_add(&cq->res);
  
-@@ -1530,6 +1531,7 @@ struct ib_pd {
- 	 * Implementation details of the RDMA core, don't use in drivers:
- 	 */
- 	struct ib_mr	       *__internal_mr;
-+	struct rdma_restrack_entry res;
- };
+ 	ret = uverbs_copy_to(attrs, CREATE_CQ_RESP_CQE, &cq->cqe);
+ 	if (ret)
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index c3628a437403..983b49ffb8d5 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1578,6 +1578,8 @@ struct ib_cq *ib_create_cq(struct ib_device *device,
+ 		cq->event_handler = event_handler;
+ 		cq->cq_context    = cq_context;
+ 		atomic_set(&cq->usecnt, 0);
++		cq->res.type = RDMA_RESTRACK_CQ;
++		rdma_restrack_add(&cq->res);
+ 	}
  
- struct ib_xrcd {
-@@ -1539,6 +1541,10 @@ struct ib_xrcd {
+ 	return cq;
+@@ -1596,6 +1598,7 @@ int ib_destroy_cq(struct ib_cq *cq)
+ 	if (atomic_read(&cq->usecnt))
+ 		return -EBUSY;
  
- 	struct mutex		tgt_qp_mutex;
- 	struct list_head	tgt_qp_list;
-+	/*
-+	 * Implementation details of the RDMA core, don't use in drivers:
-+	 */
-+	struct rdma_restrack_entry res;
- };
- 
- struct ib_ah {
-@@ -1570,6 +1576,10 @@ struct ib_cq {
- 		struct irq_poll		iop;
- 		struct work_struct	work;
- 	};
-+	/*
-+	 * Implementation details of the RDMA core, don't use in drivers:
-+	 */
-+	struct rdma_restrack_entry res;
- };
- 
- struct ib_srq {
-@@ -1746,6 +1756,11 @@ struct ib_qp {
- 	struct ib_rwq_ind_table *rwq_ind_tbl;
- 	struct ib_qp_security  *qp_sec;
- 	u8			port;
-+
-+	/*
-+	 * Implementation details of the RDMA core, don't use in drivers:
-+	 */
-+	struct rdma_restrack_entry     res;
- };
- 
- struct ib_mr {
-@@ -2352,6 +2367,10 @@ struct ib_device {
- #endif
- 
- 	u32                          index;
-+	/*
-+	 * Implementation details of the RDMA core, don't use in drivers
-+	 */
-+	struct rdma_restrack_root     res;
- 
- 	/**
- 	 * The following mandatory functions are used only at device
-diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
-new file mode 100644
-index 000000000000..255d92c43f6a
---- /dev/null
-+++ b/include/rdma/restrack.h
-@@ -0,0 +1,152 @@
-+/* SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause) */
-+/*
-+ * Copyright (c) 2017-2018 Mellanox Technologies. All rights reserved.
-+ */
-+
-+#ifndef _RDMA_RESTRACK_H_
-+#define _RDMA_RESTRACK_H_
-+
-+#include <linux/typecheck.h>
-+#include <linux/rwsem.h>
-+#include <linux/sched.h>
-+#include <linux/kref.h>
-+
-+/**
-+ * enum rdma_restrack_type - HW objects to track
-+ */
-+enum rdma_restrack_type {
-+	/**
-+	 * @RDMA_RESTRACK_PD: Protection domain (PD)
-+	 */
-+	RDMA_RESTRACK_PD,
-+	/**
-+	 * @RDMA_RESTRACK_CQ: Completion queue (CQ)
-+	 */
-+	RDMA_RESTRACK_CQ,
-+	/**
-+	 * @RDMA_RESTRACK_QP: Queue pair (QP)
-+	 */
-+	RDMA_RESTRACK_QP,
-+	/**
-+	 * @RDMA_RESTRACK_XRCD: XRC domain (XRCD)
-+	 */
-+	RDMA_RESTRACK_XRCD,
-+	/**
-+	 * @RDMA_RESTRACK_MAX: Last entry, used for array dclarations
-+	 */
-+	RDMA_RESTRACK_MAX
-+};
-+
-+#define RDMA_RESTRACK_HASH_BITS	8
-+/**
-+ * struct rdma_restrack_root - main resource tracking management
-+ * entity, per-device
-+ */
-+struct rdma_restrack_root {
-+	/*
-+	 * @rwsem: Read/write lock to protect lists
-+	 */
-+	struct rw_semaphore	rwsem;
-+	/**
-+	 * @hash: global database for all resources per-device
-+	 */
-+	DECLARE_HASHTABLE(hash, RDMA_RESTRACK_HASH_BITS);
-+};
-+
-+/**
-+ * struct rdma_restrack_entry - metadata per-entry
-+ */
-+struct rdma_restrack_entry {
-+	/**
-+	 * @valid: validity indicator
-+	 *
-+	 * The entries are filled during rdma_restrack_add,
-+	 * can be attempted to be free during rdma_restrack_del.
-+	 *
-+	 * As an example for that, see mlx5 QPs with type MLX5_IB_QPT_HW_GSI
-+	 */
-+	bool			valid;
-+	/*
-+	 * @kref: Protect destroy of the resource
-+	 */
-+	struct kref		kref;
-+	/**
-+	 * @task: owner of resource tracking entity
-+	 *
-+	 * There are two types of entities: created by user and created
-+	 * by kernel.
-+	 *
-+	 * This is relevant for the entities created by users.
-+	 * For the entities created by kernel, this pointer will be NULL.
-+	 */
-+	struct task_struct	*task;
-+	/**
-+	 * @kern_name: name of owner for the kernel created entities.
-+	 */
-+	const char		*kern_name;
-+	/**
-+	 * @node: hash table entry
-+	 */
-+	struct hlist_node	node;
-+	/**
-+	 * @type: various objects in restrack database
-+	 */
-+	enum rdma_restrack_type	type;
-+};
-+
-+/**
-+ * rdma_restrack_init() - initialize resource tracking
-+ * @res:  resource tracking root
-+ */
-+int rdma_restrack_init(struct rdma_restrack_root *res);
-+
-+/**
-+ * rdma_restrack_clean() - clean resource tracking
-+ * @res:  resource tracking root
-+ */
-+void rdma_restrack_clean(struct rdma_restrack_root *res);
-+
-+/**
-+ * rdma_restrack_count() - the current usage of specific object
-+ * @res:  resource entry
-+ * @type: actual type of object to operate
-+ * @ns:   PID namespace
-+ */
-+int rdma_restrack_count(struct rdma_restrack_root *res,
-+			enum rdma_restrack_type type,
-+			struct pid_namespace *ns);
-+
-+/**
-+ * rdma_restrack_add() - add object to the reource tracking database
-+ * @res:  resource entry
-+ */
-+void rdma_restrack_add(struct rdma_restrack_entry *res);
-+
-+/**
-+ * rdma_restrack_del() - delete object from the reource tracking database
-+ * @res:  resource entry
-+ * @type: actual type of object to operate
-+ */
-+void rdma_restrack_del(struct rdma_restrack_entry *res);
-+
-+/**
-+ * rdma_is_kernel_res() - check the owner of resource
-+ * @res:  resource entry
-+ */
-+static inline bool rdma_is_kernel_res(struct rdma_restrack_entry *res)
-+{
-+	return !res->task;
-+}
-+
-+/**
-+ * rdma_restrack_get() - grab to protect resource from release
-+ * @res:  resource entry
-+ */
-+void rdma_restrack_get(struct rdma_restrack_entry *res);
-+
-+/**
-+ * rdma_restrack_put() - relase resource
-+ * @res:  resource entry
-+ */
-+int rdma_restrack_put(struct rdma_restrack_entry *res);
-+#endif /* _RDMA_RESTRACK_H_ */
++	rdma_restrack_del(&cq->res);
+ 	return cq->device->destroy_cq(cq);
+ }
+ EXPORT_SYMBOL(ib_destroy_cq);
 -- 
 2.15.1
 
