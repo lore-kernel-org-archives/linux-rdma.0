@@ -1,38 +1,127 @@
-From: Oren Duer <oren.duer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Reconnect on RDMA device reset
-Date: Thu, 25 Jan 2018 16:10:44 +0200
-Message-ID: <CADZhsQpM8=MXRU=_015f3bo_EisM8N4vL=8XkO1a4c4yHwbC3w@mail.gmail.com>
-References: <CADZhsQqDFc1NWmsihOwki8_2Zj0HuYKC_N_x0jMnCtU9Rww1UA@mail.gmail.com>
- <f0a14240-1566-1bae-1b9f-21880bc3f3a0@grimberg.me> <CADZhsQqvK0LMd9sfxzz+x_5qVnoi4FP0FCFMsTPjpeXyqfXKew@mail.gmail.com>
- <77cef33e-a563-97fc-7ba6-69f220f1be84@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next v6 0/8] RDMA resource tracking
+Date: Thu, 25 Jan 2018 17:12:19 +0200
+Message-ID: <20180125151227.28202-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <77cef33e-a563-97fc-7ba6-69f220f1be84-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->> Yes, it could be a userspace script/daemon job. But I was under the
->> impression
->> that this group tries to consolidate most (all?) of the functionality into
->> the
->> driver, and not rely on userspace daemons. Maybe a lesson learnt from
->> iSCSI?
->
->
-> Indeed that is a guideline that was taken early on. But
-> auto-connect/auto-discovery is not something I think we'd like to
-> implement in the kernel...
+Hi Doug and Jason,
 
-So to summarize your view on this topic:
-* Agreed that user experience should be such that after an RDMA device reset
-  everything should continue as before without admin intervention.
-* Both for host and target stacks.
-* This should not be handled by the driver itself.
-* A userspace daemon that listens on udev events should retry the reconnects
-  or re-binds using configfs.
+For this specific version, results from our verification will be on Sunday.
+
+However their absence doesn't mean that it is not stable enough for inclusion.
+I tested it on various mlx5 devices with RC/UD/XRCD pingpongs, boot, shutdowns
+with and without traffic during shutdowns. It also survives syzkaller.
+
+Steve tests it with krping and nvmeof on mlx4 and cxgb3/4.
+
+Thanks
+
+-------
+Changelog:
+v5->v6:
+  * Removed SRCU
+  * Added kref logic to protect resources
+  * Dropped support of XRC QPs for now
+v4->v5:
+  * Rewrote logic to acquire kernel owners of PD and CQ objects
+  * Simplified interface.
+  * Added logic to return summary for all PID namespaces and not only
+    init PID namespace.
+  * Changed DB implementation from struct with arrays to be struct with
+    hash table.
+  * Moved to use SRCU per-hash table.
+  * Dropped RW semaphores in favor of mutex to protect linked lists.
+  * Dropped QP named annotation patch.
+  * Used SPDX licenses.
+v3->v4:
+  * Added Steve ROB tags.
+  * Updated restrack.h to be compatible with kernel-doc format
+  * Fixed bug when not all QPs (more than one netlink page) were
+    returned by netlink interface
+  * Removed "MAX" values from object summary. In followup patches,
+    I will eturn object summary per-namespace and not for init PID
+    namespace only. Max values can be seen with ibv_devinfo tool.
+  * Renamed "comm" to be kern_name.
+  * Fix spelling errors.
+v2->v3:
+  * Added support of PID namespaces.
+  * Rewrote rdma_restraack_add function to ensure that it won't
+    appear in lists before it is valid.
+  * Replace pid/task name caching logic to use task_struct instead.
+  * Removed report of name of task's for user space objects. Users
+    are expected to read it through /proc/PID/comm.
+v1->v2:
+ * Rebased on latest rdma/for-next
+ * Replaced mutex lock which protect linked lists to be RW semaphore.
+   It has no impact on current implementation, because there is only one
+   reader (nldev) and it is serialized. However better to be prepared
+   for multiple readers from the beginning.
+ * Added reinitialization next QP entry logic to ensure that it exists
+   and didn't vanish during fill_req_qp() work.
+v0->v1:
+ * Dropped RFC
+ * Separated to thre series, one for for-rc, and two for-next.
+
+-------
+The original goal of this series was to allow ability to view connection
+(QP) information about running processes, however I used this opportunity and
+created common infrastructure to track and report various resources. The report
+part is implemented in netlink (nldev), but smart ULPs can now create
+advanced usage models based on device utilization.
+
+The current implementation relies on one lock per-object per-device, so
+creation/destroying of various objects (CQ, PD, e.t.c) on various or the
+same devices doesn't interfere each with another.
+
+The data protection is performed with SRCU and its reader-writer model
+ensures that resource won't be destroyed till readers will finish their
+work.
+
+Possible future work will include:
+ * Reducing number of locks in RDMA, because of SRCU.
+ * Converting CMA to be based completely on resource tracking.
+ * Addition of other objects and extending current to give full
+   and detailed state of the RDMA kernel stack.
+ * Replacing synchronize_srcu with call_srcu to make destroy flow
+   non-blocking.
+ * Provide reliable device reset flow, preserving resource creation ordering.
+
+	Thanks
+---------------------------------------
+
+Leon Romanovsky (8):
+  RDMA/core: Print caller name instead of function name
+  RDMA/core: Save kernel caller name in PD and CQ objects
+  RDMA/restrack: Add general infrastructure to track RDMA resources
+  RDMA/core: Add resource tracking for create and destroy QPs
+  RDMA/core: Add resource tracking for create and destroy CQs
+  RDMA/core: Add resource tracking for create and destroy PDs
+  RDMA/nldev: Provide global resource utilization
+  RDMA/nldev: Provide detailed QP information
+
+ drivers/infiniband/core/Makefile           |   2 +-
+ drivers/infiniband/core/core_priv.h        |  26 ++
+ drivers/infiniband/core/cq.c               |  16 +-
+ drivers/infiniband/core/device.c           |   7 +
+ drivers/infiniband/core/nldev.c            | 373 +++++++++++++++++++++++++++++
+ drivers/infiniband/core/restrack.c         | 159 ++++++++++++
+ drivers/infiniband/core/uverbs_cmd.c       |   7 +-
+ drivers/infiniband/core/uverbs_std_types.c |   3 +
+ drivers/infiniband/core/verbs.c            |  18 +-
+ include/rdma/ib_verbs.h                    |  34 ++-
+ include/rdma/restrack.h                    | 152 ++++++++++++
+ include/uapi/rdma/rdma_netlink.h           |  55 +++++
+ 12 files changed, 835 insertions(+), 17 deletions(-)
+ create mode 100644 drivers/infiniband/core/restrack.c
+ create mode 100644 include/rdma/restrack.h
+
+--
+2.15.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
