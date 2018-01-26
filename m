@@ -1,103 +1,34 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH for-next v2 15/16] IB/core: Map iWarp AH type to
- undefined in rdma_ah_find_type
-Date: Fri, 26 Jan 2018 15:32:52 -0700
-Message-ID: <20180126223252.GE23869@ziepe.ca>
+Subject: Re: [PATCH for-next v2 06/16] IB/hfi1: Fix for potential refcount
+ leak in hfi1_open_file()
+Date: Fri, 26 Jan 2018 15:33:48 -0700
+Message-ID: <20180126223348.GF23869@ziepe.ca>
 References: <20180126211126.12097.47410.stgit@scvm10.sc.intel.com>
- <20180126213043.12097.88707.stgit@scvm10.sc.intel.com>
+ <20180126212933.12097.3989.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180126213043.12097.88707.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20180126212933.12097.3989.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michael J Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 26, 2018 at 01:30:46PM -0800, Dennis Dalessandro wrote:
-> From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Fri, Jan 26, 2018 at 01:29:36PM -0800, Dennis Dalessandro wrote:
+> From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> iWarp devices do not support the creation of address handles
-> so return AH_ATTR_TYPE_UNDEFINED for all iWarp devices.
+> The dd refcount is speculatively incremented prior to allocating
+> the fd memory with kzalloc(). If that kzalloc() failed the dd
+> refcount leaks.
+> Increment refcount on kzalloc success.
 > 
-> While we are here reduce the size of port_num to u8 and add
-> a comment.
-> 
-> Fixes: 44c58487d51a ("IB/core: Define 'ib' and 'roce' rdma_ah_attr types")
-> Reported-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> CC: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> Changes since v1: Add Shiraz RB tag, move undefined to be 0 not 3
->  include/rdma/ib_verbs.h |   12 ++++++++++--
->  1 files changed, 10 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 5e32fe7..0eb3074 100644
-> +++ b/include/rdma/ib_verbs.h
-> @@ -878,6 +878,7 @@ struct ib_mr_status {
->  __attribute_const__ enum ib_rate mult_to_ib_rate(int mult);
->  
->  enum rdma_ah_attr_type {
-> +	RDMA_AH_ATTR_TYPE_UNDEFINED,
->  	RDMA_AH_ATTR_TYPE_IB,
->  	RDMA_AH_ATTR_TYPE_ROCE,
->  	RDMA_AH_ATTR_TYPE_OPA,
-> @@ -3789,12 +3790,19 @@ static inline void rdma_ah_set_grh(struct rdma_ah_attr *attr,
->  	grh->traffic_class = traffic_class;
->  }
->  
-> -/*Get AH type */
-> +/**
-> + * rdma_ah_find_type - Return address handle type.
-> + *
-> + * @dev: Device to be checked
-> + * @port_num: Port number
-> + */
->  static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device *dev,
-> -						       u32 port_num)
-> +						       u8 port_num)
->  {
->  	if (rdma_protocol_roce(dev, port_num))
->  		return RDMA_AH_ATTR_TYPE_ROCE;
-> +	else if (rdma_protocol_iwarp(dev, port_num))
-> +		return RDMA_AH_ATTR_TYPE_UNDEFINED;
->  	else if ((rdma_protocol_ib(dev, port_num)) &&
->  		 (rdma_cap_opa_ah(dev, port_num)))
-> 		return RDMA_AH_ATTR_TYPE_OPA;
+> Fixes: e11ffbd57520 ("IB/hfi1: Do not free hfi1 cdev parent structure early")
+> Reviewed-by: Michael J Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Change-Id: I660296d5860205722b3db3d0c8b0746fd8f655ab
 
-Let's not add an UNDEFINED type in the middle of an if casecade with an all
-other cases fall through please:
-
-static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device *dev,
-						       u32 port_num)
-{
-	if (rdma_protocol_roce(dev, port_num))
-		return RDMA_AH_ATTR_TYPE_ROCE;
-
-	if (rdma_protocol_ib(dev, port_num)) {
-		if (rdma_cap_opa_ah(dev, port_num))
-			return RDMA_AH_ATTR_TYPE_OPA;
-		return RDMA_AH_ATTR_TYPE_IB;
-	}
-
-	return RDMA_AH_ATTR_TYPE_UNDEFINED;
-}
-
-I'm not sure sending all these unrelated patches in one series is such
-a helpful idea. Lot of trouble for everyone just to respond to one
-minor comment.
-
-This series looks like 4-5 topics to me:
- - Optimize HFI
- - 2 patches realted to the interrupt race
- - Random driver fixes
- - IPoIB fix
- - This patch
+*blark* Change-Id *blark*
 
 Jason
 --
