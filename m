@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 05/16] IB/hfi1: Convert PortXmitWait/PortVLXmitWait
- counters to flit times
-Date: Fri, 26 Jan 2018 06:31:58 -0800
-Message-ID: <20180126143156.6868.36367.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 04/16] IB/hfi1: Remove blind constants from 16B
+ update
+Date: Fri, 26 Jan 2018 06:31:51 -0800
+Message-ID: <20180126143148.6868.7572.stgit@scvm10.sc.intel.com>
 References: <20180126142640.6868.12402.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,492 +11,152 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180126142640.6868.12402.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-HFI's counters SendWaitCnt and SendWaitVlCnt are in units
-of TXE cycle time (at 805MHz). OPA counters PortXmitWait and
-PortVLXmtWait are in units of flit times.
-Convert the counter values to flit units using following
-conversion formula:
+These values were introduced as part of the 16B code to
+account for the varying size of the LRH between the differing
+packet formats.
 
-PortXmitWait =
-	SendWaitCnt * 2 * (4 /link_width) * (25 Gbps /link_speed)
-PortVLXmitWait =
-	SendWaitVLCnt * 2 * (4 /link_width) * (25 Gbps /link_speed)
+Replace the blind constants with defines based on FIELD_SIZEOF()
+calls.
 
-At link up or downgrade events, the link width can change. To ensure
-accurate counter calculations, sample the counters after the events,
-during counter requests, and then aggregate the OPA counters.
-
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Fixes: 5b6cabb0db77 ("IB/hfi1: Add 16B RC/UC support")
+Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c |   64 +++++++++++++++++--
- drivers/infiniband/hw/hfi1/chip.h |    4 +
- drivers/infiniband/hw/hfi1/hfi.h  |    7 ++
- drivers/infiniband/hw/hfi1/init.c |    9 +++
- drivers/infiniband/hw/hfi1/mad.c  |  127 ++++++++++++++++++++++++++++++++++---
- drivers/infiniband/hw/hfi1/mad.h  |   47 +++++++++++++-
- 6 files changed, 239 insertions(+), 19 deletions(-)
+ drivers/infiniband/hw/hfi1/driver.c |    6 ++++--
+ drivers/infiniband/hw/hfi1/ruc.c    |   13 ++++++-------
+ drivers/infiniband/hw/hfi1/ud.c     |   15 ++++++++++-----
+ drivers/infiniband/hw/hfi1/verbs.h  |    5 +++++
+ 4 files changed, 25 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 6660f92..a986afe 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -1083,6 +1083,7 @@ static int qos_rmt_entries(struct hfi1_devdata *dd, unsigned int *mp,
- static void clear_full_mgmt_pkey(struct hfi1_pportdata *ppd);
- static int wait_link_transfer_active(struct hfi1_devdata *dd, int wait_ms);
- static void clear_rsm_rule(struct hfi1_devdata *dd, u8 rule_index);
-+static void update_xmit_counters(struct hfi1_pportdata *ppd, u16 link_width);
+diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
+index 067b29f..e6a318c 100644
+--- a/drivers/infiniband/hw/hfi1/driver.c
++++ b/drivers/infiniband/hw/hfi1/driver.c
+@@ -1492,8 +1492,10 @@ static int hfi1_setup_bypass_packet(struct hfi1_packet *packet)
  
- /*
-  * Error interrupt table entry.  This is used as input to the interrupt
-@@ -6905,6 +6906,32 @@ void handle_freeze(struct work_struct *work)
- 	/* no longer frozen */
- }
+ 	/* Query commonly used fields from packet header */
+ 	packet->opcode = ib_bth_get_opcode(packet->ohdr);
+-	packet->hlen = hdr_len_by_opcode[packet->opcode] + 8 + grh_len;
+-	packet->payload = packet->ebuf + packet->hlen - (4 * sizeof(u32));
++	/* hdr_len_by_opcode already has an IB LRH factored in */
++	packet->hlen = hdr_len_by_opcode[packet->opcode] +
++		(LRH_16B_BYTES - LRH_9B_BYTES) + grh_len;
++	packet->payload = packet->ebuf + packet->hlen - LRH_16B_BYTES;
+ 	packet->slid = hfi1_16B_get_slid(packet->hdr);
+ 	packet->dlid = hfi1_16B_get_dlid(packet->hdr);
+ 	if (unlikely(hfi1_is_16B_mcast(packet->dlid)))
+diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
+index 0cced9a..1033068 100644
+--- a/drivers/infiniband/hw/hfi1/ruc.c
++++ b/drivers/infiniband/hw/hfi1/ruc.c
+@@ -769,8 +769,6 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
+ 		struct ib_grh *grh;
+ 		struct ib_global_route *grd =
+ 			rdma_ah_retrieve_grh(&qp->remote_ah_attr);
+-		int hdrwords;
+-
+ 		/*
+ 		 * Ensure OPA GIDs are transformed to IB gids
+ 		 * before creating the GRH.
+@@ -779,9 +777,10 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
+ 			grd->sgid_index = 0;
+ 		grh = &ps->s_txreq->phdr.hdr.opah.u.l.grh;
+ 		l4 = OPA_16B_L4_IB_GLOBAL;
+-		hdrwords = ps->s_txreq->hdr_dwords - 4;
+-		ps->s_txreq->hdr_dwords += hfi1_make_grh(ibp, grh, grd,
+-							 hdrwords, nwords);
++		ps->s_txreq->hdr_dwords +=
++			hfi1_make_grh(ibp, grh, grd,
++				      ps->s_txreq->hdr_dwords - LRH_16B_DWORDS,
++				      nwords);
+ 		middle = 0;
+ 	}
  
-+/**
-+ * update_xmit_counters - update PortXmitWait/PortVlXmitWait
-+ * counters.
-+ * @ppd: info of physical Hfi port
-+ * @link_width: new link width after link up or downgrade
-+ *
-+ * Update the PortXmitWait and PortVlXmitWait counters after
-+ * a link up or downgrade event to reflect a link width change.
-+ */
-+static void update_xmit_counters(struct hfi1_pportdata *ppd, u16 link_width)
-+{
-+	int i;
-+	u16 tx_width;
-+	u16 link_speed;
-+
-+	tx_width = tx_link_width(link_width);
-+	link_speed = get_link_speed(ppd->link_speed_active);
-+
-+	/*
-+	 * There are C_VL_COUNT number of PortVLXmitWait counters.
-+	 * Adding 1 to C_VL_COUNT to include the PortXmitWait counter.
-+	 */
-+	for (i = 0; i < C_VL_COUNT + 1; i++)
-+		get_xmit_wait_counters(ppd, tx_width, link_speed, i);
-+}
-+
- /*
-  * Handle a link up interrupt from the 8051.
-  *
-@@ -7526,18 +7553,29 @@ void handle_verify_cap(struct work_struct *work)
- 	set_link_state(ppd, HLS_GOING_UP);
- }
+@@ -835,13 +834,13 @@ static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
  
--/*
-- * Apply the link width downgrade enabled policy against the current active
-- * link widths.
-+/**
-+ * apply_link_downgrade_policy - Apply the link width downgrade enabled
-+ * policy against the current active link widths.
-+ * @ppd: info of physical Hfi port
-+ * @refresh_widths: True indicates link downgrade event
-+ * @return: True indicates a successful link downgrade. False indicates
-+ *	    link downgrade event failed and the link will bounce back to
-+ *	    default link width.
-  *
-- * Called when the enabled policy changes or the active link widths change.
-+ * Called when the enabled policy changes or the active link widths
-+ * change.
-+ * Refresh_widths indicates that a link downgrade occurred. The
-+ * link_downgraded variable is set by refresh_widths and
-+ * determines the success/failure of the policy application.
-  */
--void apply_link_downgrade_policy(struct hfi1_pportdata *ppd, int refresh_widths)
-+bool apply_link_downgrade_policy(struct hfi1_pportdata *ppd,
-+				 bool refresh_widths)
- {
- 	int do_bounce = 0;
- 	int tries;
- 	u16 lwde;
- 	u16 tx, rx;
-+	bool link_downgraded = refresh_widths;
+ 	if (unlikely(rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)) {
+ 		struct ib_grh *grh = &ps->s_txreq->phdr.hdr.ibh.u.l.grh;
+-		int hdrwords = ps->s_txreq->hdr_dwords - 2;
  
- 	/* use the hls lock to avoid a race with actual link up */
- 	tries = 0;
-@@ -7571,6 +7609,7 @@ void apply_link_downgrade_policy(struct hfi1_pportdata *ppd, int refresh_widths)
- 	    ppd->link_width_downgrade_rx_active == 0) {
- 		/* the 8051 reported a dead link as a downgrade */
- 		dd_dev_err(ppd->dd, "Link downgrade is really a link down, ignoring\n");
-+		link_downgraded = false;
- 	} else if (lwde == 0) {
- 		/* downgrade is disabled */
- 
-@@ -7587,6 +7626,7 @@ void apply_link_downgrade_policy(struct hfi1_pportdata *ppd, int refresh_widths)
- 				   ppd->link_width_downgrade_tx_active,
- 				   ppd->link_width_downgrade_rx_active);
- 			do_bounce = 1;
-+			link_downgraded = false;
+ 		lrh0 = HFI1_LRH_GRH;
+ 		ps->s_txreq->hdr_dwords +=
+ 			hfi1_make_grh(ibp, grh,
+ 				      rdma_ah_read_grh(&qp->remote_ah_attr),
+-				      hdrwords, nwords);
++				      ps->s_txreq->hdr_dwords - LRH_9B_DWORDS,
++				      nwords);
+ 		middle = 0;
+ 	}
+ 	lrh0 |= (priv->s_sc & 0xf) << 12 |
+diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
+index 6b5cd3a..f1ba510 100644
+--- a/drivers/infiniband/hw/hfi1/ud.c
++++ b/drivers/infiniband/hw/hfi1/ud.c
+@@ -348,7 +348,8 @@ void hfi1_make_ud_req_9B(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 		grh = &ps->s_txreq->phdr.hdr.ibh.u.l.grh;
+ 		ps->s_txreq->hdr_dwords +=
+ 			hfi1_make_grh(ibp, grh, rdma_ah_read_grh(ah_attr),
+-				      ps->s_txreq->hdr_dwords - 2, nwords);
++				      ps->s_txreq->hdr_dwords - LRH_9B_DWORDS,
++				      nwords);
+ 		lrh0 = HFI1_LRH_GRH;
+ 		ohdr = &ps->s_txreq->phdr.hdr.ibh.u.l.oth;
+ 	} else {
+@@ -428,8 +429,10 @@ void hfi1_make_ud_req_16B(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 			grd->sgid_index = 0;
  		}
- 	} else if ((lwde & ppd->link_width_downgrade_tx_active) == 0 ||
- 		   (lwde & ppd->link_width_downgrade_rx_active) == 0) {
-@@ -7598,6 +7638,7 @@ void apply_link_downgrade_policy(struct hfi1_pportdata *ppd, int refresh_widths)
- 			   lwde, ppd->link_width_downgrade_tx_active,
- 			   ppd->link_width_downgrade_rx_active);
- 		do_bounce = 1;
-+		link_downgraded = false;
- 	}
+ 		grh = &ps->s_txreq->phdr.hdr.opah.u.l.grh;
+-		ps->s_txreq->hdr_dwords += hfi1_make_grh(ibp, grh, grd,
+-					ps->s_txreq->hdr_dwords - 4, nwords);
++		ps->s_txreq->hdr_dwords += hfi1_make_grh(
++			ibp, grh, grd,
++			ps->s_txreq->hdr_dwords - LRH_16B_DWORDS,
++			nwords);
+ 		ohdr = &ps->s_txreq->phdr.hdr.opah.u.l.oth;
+ 		l4 = OPA_16B_L4_IB_GLOBAL;
+ 	} else {
+@@ -648,7 +651,8 @@ void return_cnp_16B(struct hfi1_ibport *ibp, struct rvt_qp *qp,
+ 		struct ib_grh *grh = &hdr.u.l.grh;
  
- done:
-@@ -7609,6 +7650,8 @@ void apply_link_downgrade_policy(struct hfi1_pportdata *ppd, int refresh_widths)
- 		set_link_state(ppd, HLS_DN_OFFLINE);
- 		start_link(ppd);
- 	}
-+
-+	return link_downgraded;
- }
+ 		grh->version_tclass_flow = old_grh->version_tclass_flow;
+-		grh->paylen = cpu_to_be16((hwords - 4 + nwords) << 2);
++		grh->paylen = cpu_to_be16(
++			(hwords - LRH_16B_DWORDS + nwords) << 2);
+ 		grh->hop_limit = 0xff;
+ 		grh->sgid = old_grh->dgid;
+ 		grh->dgid = old_grh->sgid;
+@@ -702,7 +706,8 @@ void return_cnp(struct hfi1_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
+ 		struct ib_grh *grh = &hdr.u.l.grh;
  
- /*
-@@ -7622,7 +7665,8 @@ void handle_link_downgrade(struct work_struct *work)
- 							link_downgrade_work);
- 
- 	dd_dev_info(ppd->dd, "8051: Link width downgrade\n");
--	apply_link_downgrade_policy(ppd, 1);
-+	if (apply_link_downgrade_policy(ppd, true))
-+		update_xmit_counters(ppd, ppd->link_width_downgrade_tx_active);
- }
- 
- static char *dcc_err_string(char *buf, int buf_len, u64 flags)
-@@ -10597,6 +10641,14 @@ int set_link_state(struct hfi1_pportdata *ppd, u32 state)
- 		add_rcvctrl(dd, RCV_CTRL_RCV_PORT_ENABLE_SMASK);
- 
- 		handle_linkup_change(dd, 1);
-+
-+		/*
-+		 * After link up, a new link width will have been set.
-+		 * Update the xmit counters with regards to the new
-+		 * link width.
-+		 */
-+		update_xmit_counters(ppd, ppd->link_width_active);
-+
- 		ppd->host_link_state = HLS_UP_INIT;
- 		update_statusp(ppd, IB_PORT_INIT);
- 		break;
-diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
-index 21fca8e..c0d70f2 100644
---- a/drivers/infiniband/hw/hfi1/chip.h
-+++ b/drivers/infiniband/hw/hfi1/chip.h
-@@ -736,8 +736,8 @@ void set_link_down_reason(struct hfi1_pportdata *ppd, u8 lcl_reason,
- int start_link(struct hfi1_pportdata *ppd);
- int bringup_serdes(struct hfi1_pportdata *ppd);
- void set_intr_state(struct hfi1_devdata *dd, u32 enable);
--void apply_link_downgrade_policy(struct hfi1_pportdata *ppd,
--				 int refresh_widths);
-+bool apply_link_downgrade_policy(struct hfi1_pportdata *ppd,
-+				 bool refresh_widths);
- void update_usrhead(struct hfi1_ctxtdata *rcd, u32 hd, u32 updegr, u32 egrhd,
- 		    u32 intr_adjust, u32 npkts);
- int stop_drain_data_vls(struct hfi1_devdata *dd);
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index b42c222..8aea811 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -858,6 +858,13 @@ struct hfi1_pportdata {
- 	struct work_struct linkstate_active_work;
- 	/* Does this port need to prescan for FECNs */
- 	bool cc_prescan;
-+	/*
-+	 * Sample sendWaitCnt & sendWaitVlCnt during link transition
-+	 * and counter request.
-+	 */
-+	u64 port_vl_xmit_wait_last[C_VL_COUNT + 1];
-+	u16 prev_link_width;
-+	u64 vl_xmit_flit_cnt[C_VL_COUNT + 1];
+ 		grh->version_tclass_flow = old_grh->version_tclass_flow;
+-		grh->paylen = cpu_to_be16((hwords - 2 + SIZE_OF_CRC) << 2);
++		grh->paylen = cpu_to_be16(
++			(hwords - LRH_9B_DWORDS + SIZE_OF_CRC) << 2);
+ 		grh->hop_limit = 0xff;
+ 		grh->sgid = old_grh->dgid;
+ 		grh->dgid = old_grh->sgid;
+diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
+index c2aeb32..26c1ed6 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.h
++++ b/drivers/infiniband/hw/hfi1/verbs.h
+@@ -105,6 +105,11 @@ enum {
+ 	HFI1_HAS_GRH = (1 << 0),
  };
  
- typedef int (*rhf_rcv_function_ptr)(struct hfi1_packet *packet);
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index a618eef..d89cd86 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -637,6 +637,15 @@ void hfi1_init_pportdata(struct pci_dev *pdev, struct hfi1_pportdata *ppd,
- 	ppd->dd = dd;
- 	ppd->hw_pidx = hw_pidx;
- 	ppd->port = port; /* IB port number, not index */
-+	ppd->prev_link_width = LINK_WIDTH_DEFAULT;
-+	/*
-+	 * There are C_VL_COUNT number of PortVLXmitWait counters.
-+	 * Adding 1 to C_VL_COUNT to include the PortXmitWait counter.
-+	 */
-+	for (i = 0; i < C_VL_COUNT + 1; i++) {
-+		ppd->port_vl_xmit_wait_last[i] = 0;
-+		ppd->vl_xmit_flit_cnt[i] = 0;
-+	}
- 
- 	default_pkey_idx = 1;
- 
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index 34547a4..e9962c6 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -2649,6 +2649,79 @@ static void a0_portstatus(struct hfi1_pportdata *ppd,
- 	}
- }
- 
-+/**
-+ * tx_link_width - convert link width bitmask to integer
-+ * value representing actual link width.
-+ * @link_width: width of active link
-+ * @return: return index of the bit set in link_width var
-+ *
-+ * The function convert and return the index of bit set
-+ * that indicate the current link width.
-+ */
-+u16 tx_link_width(u16 link_width)
-+{
-+	int n = LINK_WIDTH_DEFAULT;
-+	u16 tx_width = n;
++#define LRH_16B_BYTES (FIELD_SIZEOF(struct hfi1_16b_header, lrh))
++#define LRH_16B_DWORDS (LRH_16B_BYTES / sizeof(u32))
++#define LRH_9B_BYTES (FIELD_SIZEOF(struct ib_header, lrh))
++#define LRH_9B_DWORDS (LRH_9B_BYTES / sizeof(u32))
 +
-+	while (link_width && n) {
-+		if (link_width & (1 << (n - 1))) {
-+			tx_width = n;
-+			break;
-+		}
-+		n--;
-+	}
-+
-+	return tx_width;
-+}
-+
-+/**
-+ * get_xmit_wait_counters - Convert HFI 's SendWaitCnt/SendWaitVlCnt
-+ * counter in unit of TXE cycle times to flit times.
-+ * @ppd: info of physical Hfi port
-+ * @link_width: width of active link
-+ * @link_speed: speed of active link
-+ * @vl: represent VL0-VL7, VL15 for PortVLXmitWait counters request
-+ * and if vl value is C_VL_COUNT, it represent SendWaitCnt
-+ * counter request
-+ * @return: return SendWaitCnt/SendWaitVlCnt counter value per vl.
-+ *
-+ * Convert SendWaitCnt/SendWaitVlCnt counter from TXE cycle times to
-+ * flit times. Call this function to samples these counters. This
-+ * function will calculate for previous state transition and update
-+ * current state at end of function using ppd->prev_link_width and
-+ * ppd->port_vl_xmit_wait_last to port_vl_xmit_wait_curr and link_width.
-+ */
-+u64 get_xmit_wait_counters(struct hfi1_pportdata *ppd,
-+			   u16 link_width, u16 link_speed, int vl)
-+{
-+	u64 port_vl_xmit_wait_curr;
-+	u64 delta_vl_xmit_wait;
-+	u64 xmit_wait_val;
-+
-+	if (vl > C_VL_COUNT)
-+		return  0;
-+	if (vl < C_VL_COUNT)
-+		port_vl_xmit_wait_curr =
-+			read_port_cntr(ppd, C_TX_WAIT_VL, vl);
-+	else
-+		port_vl_xmit_wait_curr =
-+			read_port_cntr(ppd, C_TX_WAIT, CNTR_INVALID_VL);
-+
-+	xmit_wait_val =
-+		port_vl_xmit_wait_curr -
-+		ppd->port_vl_xmit_wait_last[vl];
-+	delta_vl_xmit_wait =
-+		convert_xmit_counter(xmit_wait_val,
-+				     ppd->prev_link_width,
-+				     link_speed);
-+
-+	ppd->vl_xmit_flit_cnt[vl] += delta_vl_xmit_wait;
-+	ppd->port_vl_xmit_wait_last[vl] = port_vl_xmit_wait_curr;
-+	ppd->prev_link_width = link_width;
-+
-+	return ppd->vl_xmit_flit_cnt[vl];
-+}
-+
- static int pma_get_opa_portstatus(struct opa_pma_mad *pmp,
- 				  struct ib_device *ibdev,
- 				  u8 port, u32 *resp_len)
-@@ -2668,6 +2741,8 @@ static int pma_get_opa_portstatus(struct opa_pma_mad *pmp,
- 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
- 	int vfi;
- 	u64 tmp, tmp2;
-+	u16 link_width;
-+	u16 link_speed;
- 
- 	response_data_size = sizeof(struct opa_port_status_rsp) +
- 				num_vls * sizeof(struct _vls_pctrs);
-@@ -2711,8 +2786,16 @@ static int pma_get_opa_portstatus(struct opa_pma_mad *pmp,
- 	rsp->port_multicast_rcv_pkts =
- 		cpu_to_be64(read_dev_cntr(dd, C_DC_MC_RCV_PKTS,
- 					  CNTR_INVALID_VL));
-+	/*
-+	 * Convert PortXmitWait counter from TXE cycle times
-+	 * to flit times.
-+	 */
-+	link_width =
-+		tx_link_width(ppd->link_width_downgrade_tx_active);
-+	link_speed = get_link_speed(ppd->link_speed_active);
- 	rsp->port_xmit_wait =
--		cpu_to_be64(read_port_cntr(ppd, C_TX_WAIT, CNTR_INVALID_VL));
-+		cpu_to_be64(get_xmit_wait_counters(ppd, link_width,
-+						   link_speed, C_VL_COUNT));
- 	rsp->port_rcv_fecn =
- 		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FCN, CNTR_INVALID_VL));
- 	rsp->port_rcv_becn =
-@@ -2777,10 +2860,14 @@ static int pma_get_opa_portstatus(struct opa_pma_mad *pmp,
- 		rsp->vls[vfi].port_vl_xmit_pkts =
- 			cpu_to_be64(read_port_cntr(ppd, C_TX_PKT_VL,
- 						   idx_from_vl(vl)));
--
-+		/*
-+		 * Convert PortVlXmitWait counter from TXE cycle
-+		 * times to flit times.
-+		 */
- 		rsp->vls[vfi].port_vl_xmit_wait =
--			cpu_to_be64(read_port_cntr(ppd, C_TX_WAIT_VL,
--						   idx_from_vl(vl)));
-+			cpu_to_be64(get_xmit_wait_counters(ppd, link_width,
-+							   link_speed,
-+							   idx_from_vl(vl)));
- 
- 		rsp->vls[vfi].port_vl_rcv_fecn =
- 			cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FCN_VL,
-@@ -2910,6 +2997,8 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
- 	unsigned long vl;
- 	u32 vl_select_mask;
- 	int vfi;
-+	u16 link_width;
-+	u16 link_speed;
- 
- 	num_ports = be32_to_cpu(pmp->mad_hdr.attr_mod) >> 24;
- 	num_vls = hweight32(be32_to_cpu(req->vl_select_mask));
-@@ -2959,8 +3048,16 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
- 	rsp->link_quality_indicator = cpu_to_be32((u32)lq);
- 	pma_get_opa_port_dctrs(ibdev, rsp);
- 
-+	/*
-+	 * Convert PortXmitWait counter from TXE
-+	 * cycle times to flit times.
-+	 */
-+	link_width =
-+		tx_link_width(ppd->link_width_downgrade_tx_active);
-+	link_speed = get_link_speed(ppd->link_speed_active);
- 	rsp->port_xmit_wait =
--		cpu_to_be64(read_port_cntr(ppd, C_TX_WAIT, CNTR_INVALID_VL));
-+		cpu_to_be64(get_xmit_wait_counters(ppd, link_width,
-+						   link_speed, C_VL_COUNT));
- 	rsp->port_rcv_fecn =
- 		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FCN, CNTR_INVALID_VL));
- 	rsp->port_rcv_becn =
-@@ -2996,9 +3093,14 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
- 			cpu_to_be64(read_dev_cntr(dd, C_DC_RX_PKT_VL,
- 						  idx_from_vl(vl)));
- 
-+		/*
-+		 * Convert PortVlXmitWait counter from TXE
-+		 * cycle times to flit times.
-+		 */
- 		rsp->vls[vfi].port_vl_xmit_wait =
--			cpu_to_be64(read_port_cntr(ppd, C_TX_WAIT_VL,
--						   idx_from_vl(vl)));
-+			cpu_to_be64(get_xmit_wait_counters(ppd, link_width,
-+							   link_speed,
-+							   idx_from_vl(vl)));
- 
- 		rsp->vls[vfi].port_vl_rcv_fecn =
- 			cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FCN_VL,
-@@ -3416,9 +3518,11 @@ static int pma_set_opa_portstatus(struct opa_pma_mad *pmp,
- 	if (counter_select & CS_PORT_MCAST_RCV_PKTS)
- 		write_dev_cntr(dd, C_DC_MC_RCV_PKTS, CNTR_INVALID_VL, 0);
- 
--	if (counter_select & CS_PORT_XMIT_WAIT)
-+	if (counter_select & CS_PORT_XMIT_WAIT) {
- 		write_port_cntr(ppd, C_TX_WAIT, CNTR_INVALID_VL, 0);
--
-+		ppd->port_vl_xmit_wait_last[C_VL_COUNT] = 0;
-+		ppd->vl_xmit_flit_cnt[C_VL_COUNT] = 0;
-+	}
- 	/* ignore cs_sw_portCongestion for HFIs */
- 
- 	if (counter_select & CS_PORT_RCV_FECN)
-@@ -3491,8 +3595,11 @@ static int pma_set_opa_portstatus(struct opa_pma_mad *pmp,
- 		if (counter_select & CS_PORT_RCV_PKTS)
- 			write_dev_cntr(dd, C_DC_RX_PKT_VL, idx_from_vl(vl), 0);
- 
--		if (counter_select & CS_PORT_XMIT_WAIT)
-+		if (counter_select & CS_PORT_XMIT_WAIT) {
- 			write_port_cntr(ppd, C_TX_WAIT_VL, idx_from_vl(vl), 0);
-+			ppd->port_vl_xmit_wait_last[idx_from_vl(vl)] = 0;
-+			ppd->vl_xmit_flit_cnt[idx_from_vl(vl)] = 0;
-+		}
- 
- 		/* sw_port_vl_congestion is 0 for HFIs */
- 		if (counter_select & CS_PORT_RCV_FECN)
-diff --git a/drivers/infiniband/hw/hfi1/mad.h b/drivers/infiniband/hw/hfi1/mad.h
-index c4938f3..2f48e69 100644
---- a/drivers/infiniband/hw/hfi1/mad.h
-+++ b/drivers/infiniband/hw/hfi1/mad.h
-@@ -180,6 +180,15 @@ struct opa_mad_notice_attr {
- #define OPA_VLARB_PREEMPT_MATRIX     3
- 
- #define IB_PMA_PORT_COUNTERS_CONG       cpu_to_be16(0xFF00)
-+#define LINK_SPEED_25G		1
-+#define LINK_SPEED_12_5G	2
-+#define LINK_WIDTH_DEFAULT	4
-+#define DECIMAL_FACTORING	1000
-+/*
-+ * The default link width is multiplied by 1000
-+ * to get accurate value after division.
-+ */
-+#define FACTOR_LINK_WIDTH	(LINK_WIDTH_DEFAULT * DECIMAL_FACTORING)
- 
- struct ib_pma_portcounters_cong {
- 	u8 reserved;
-@@ -429,5 +438,41 @@ struct sc2vlnt {
- 
- void hfi1_event_pkey_change(struct hfi1_devdata *dd, u8 port);
- void hfi1_handle_trap_timer(struct timer_list *t);
--
-+u16 tx_link_width(u16 link_width);
-+u64 get_xmit_wait_counters(struct hfi1_pportdata *ppd, u16 link_width,
-+			   u16 link_speed, int vl);
-+/**
-+ * get_link_speed - determine whether 12.5G or 25G speed
-+ * @link_speed: the speed of active link
-+ * @return: Return 2 if link speed identified as 12.5G
-+ * or return 1 if link speed is 25G.
-+ *
-+ * The function indirectly calculate required link speed
-+ * value for convert_xmit_counter function. If the link
-+ * speed is 25G, the function return as 1 as it is required
-+ * by xmit counter conversion formula :-( 25G / link_speed).
-+ * This conversion will provide value 1 if current
-+ * link speed is 25G or 2 if 12.5G.This is done to avoid
-+ * 12.5 float number conversion.
-+ */
-+static inline u16 get_link_speed(u16 link_speed)
-+{
-+	return (link_speed == 1) ?
-+		 LINK_SPEED_12_5G : LINK_SPEED_25G;
-+}
-+
-+/**
-+ * convert_xmit_counter - calculate flit times for given xmit counter
-+ * value
-+ * @xmit_wait_val: current xmit counter value
-+ * @link_width: width of active link
-+ * @link_speed: speed of active link
-+ * @return: return xmit counter value in flit times.
-+ */
-+static inline u64 convert_xmit_counter(u64 xmit_wait_val, u16 link_width,
-+				       u16 link_speed)
-+{
-+	return (xmit_wait_val * 2 * (FACTOR_LINK_WIDTH / link_width)
-+		 * link_speed) / DECIMAL_FACTORING;
-+}
- #endif				/* _HFI1_MAD_H */
+ struct hfi1_16b_header {
+ 	u32 lrh[4];
+ 	union {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
