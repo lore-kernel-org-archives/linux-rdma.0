@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 03/16] IB/hfi1: Remove dependence on qp->s_hdrwords
-Date: Fri, 26 Jan 2018 06:31:43 -0800
-Message-ID: <20180126143140.6868.83575.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 05/16] IB/hfi1: Convert PortXmitWait/PortVLXmitWait
+ counters to flit times
+Date: Fri, 26 Jan 2018 06:31:58 -0800
+Message-ID: <20180126143156.6868.36367.stgit@scvm10.sc.intel.com>
 References: <20180126142640.6868.12402.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,467 +11,492 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180126142640.6868.12402.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The s_hdrwords variable was used to indicate whether a
-packet was already built on a previous iteration of the
-send engine. This variable assumed the protection of the
-QP's RVT_S_BUSY flag, which was required since the the
-QP's s_lock was dropped just prior to the packet being
-queued on the one of the egress mechanisms.
+HFI's counters SendWaitCnt and SendWaitVlCnt are in units
+of TXE cycle time (at 805MHz). OPA counters PortXmitWait and
+PortVLXmtWait are in units of flit times.
+Convert the counter values to flit units using following
+conversion formula:
 
-Support for multiple send engine instantiations require
-that the field not be used due to concurency issues.
-The ps.txreq signals the "already built" without the
-potential concurency issues.
+PortXmitWait =
+	SendWaitCnt * 2 * (4 /link_width) * (25 Gbps /link_speed)
+PortVLXmitWait =
+	SendWaitVLCnt * 2 * (4 /link_width) * (25 Gbps /link_speed)
 
-Fix by getting rid of all s_hdrword usage.   A wrapper
-is added to test for the already built case that used to
-use s_hdrwords.
+At link up or downgrade events, the link width can change. To ensure
+accurate counter calculations, sample the counters after the events,
+during counter requests, and then aggregate the OPA counters.
 
-What used to be stored in s_hdrwords is now in the txreq.
-The PBC is not counted, but is added in the pio/sdma code
-paths prior to posting the packet.
-
-Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/iowait.h      |    9 +++++++++
- drivers/infiniband/hw/hfi1/qp.c          |    4 +---
- drivers/infiniband/hw/hfi1/qp.h          |   13 +++++++++++++
- drivers/infiniband/hw/hfi1/rc.c          |   10 ++--------
- drivers/infiniband/hw/hfi1/ruc.c         |   23 +++++++++++------------
- drivers/infiniband/hw/hfi1/uc.c          |    6 +-----
- drivers/infiniband/hw/hfi1/ud.c          |   27 ++++++++++++---------------
- drivers/infiniband/hw/hfi1/verbs.c       |   10 +++++-----
- drivers/infiniband/hw/hfi1/verbs.h       |   11 -----------
- drivers/infiniband/hw/hfi1/verbs_txreq.h |    7 +++++++
- 10 files changed, 61 insertions(+), 59 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c |   64 +++++++++++++++++--
+ drivers/infiniband/hw/hfi1/chip.h |    4 +
+ drivers/infiniband/hw/hfi1/hfi.h  |    7 ++
+ drivers/infiniband/hw/hfi1/init.c |    9 +++
+ drivers/infiniband/hw/hfi1/mad.c  |  127 ++++++++++++++++++++++++++++++++++---
+ drivers/infiniband/hw/hfi1/mad.h  |   47 +++++++++++++-
+ 6 files changed, 239 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/iowait.h b/drivers/infiniband/hw/hfi1/iowait.h
-index 591697d..3d9c32c 100644
---- a/drivers/infiniband/hw/hfi1/iowait.h
-+++ b/drivers/infiniband/hw/hfi1/iowait.h
-@@ -371,4 +371,13 @@ static inline void iowait_starve_find_max(struct iowait *w, u8 *max,
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 6660f92..a986afe 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -1083,6 +1083,7 @@ static int qos_rmt_entries(struct hfi1_devdata *dd, unsigned int *mp,
+ static void clear_full_mgmt_pkey(struct hfi1_pportdata *ppd);
+ static int wait_link_transfer_active(struct hfi1_devdata *dd, int wait_ms);
+ static void clear_rsm_rule(struct hfi1_devdata *dd, u8 rule_index);
++static void update_xmit_counters(struct hfi1_pportdata *ppd, u16 link_width);
+ 
+ /*
+  * Error interrupt table entry.  This is used as input to the interrupt
+@@ -6905,6 +6906,32 @@ void handle_freeze(struct work_struct *work)
+ 	/* no longer frozen */
+ }
+ 
++/**
++ * update_xmit_counters - update PortXmitWait/PortVlXmitWait
++ * counters.
++ * @ppd: info of physical Hfi port
++ * @link_width: new link width after link up or downgrade
++ *
++ * Update the PortXmitWait and PortVlXmitWait counters after
++ * a link up or downgrade event to reflect a link width change.
++ */
++static void update_xmit_counters(struct hfi1_pportdata *ppd, u16 link_width)
++{
++	int i;
++	u16 tx_width;
++	u16 link_speed;
++
++	tx_width = tx_link_width(link_width);
++	link_speed = get_link_speed(ppd->link_speed_active);
++
++	/*
++	 * There are C_VL_COUNT number of PortVLXmitWait counters.
++	 * Adding 1 to C_VL_COUNT to include the PortXmitWait counter.
++	 */
++	for (i = 0; i < C_VL_COUNT + 1; i++)
++		get_xmit_wait_counters(ppd, tx_width, link_speed, i);
++}
++
+ /*
+  * Handle a link up interrupt from the 8051.
+  *
+@@ -7526,18 +7553,29 @@ void handle_verify_cap(struct work_struct *work)
+ 	set_link_state(ppd, HLS_GOING_UP);
+ }
+ 
+-/*
+- * Apply the link width downgrade enabled policy against the current active
+- * link widths.
++/**
++ * apply_link_downgrade_policy - Apply the link width downgrade enabled
++ * policy against the current active link widths.
++ * @ppd: info of physical Hfi port
++ * @refresh_widths: True indicates link downgrade event
++ * @return: True indicates a successful link downgrade. False indicates
++ *	    link downgrade event failed and the link will bounce back to
++ *	    default link width.
+  *
+- * Called when the enabled policy changes or the active link widths change.
++ * Called when the enabled policy changes or the active link widths
++ * change.
++ * Refresh_widths indicates that a link downgrade occurred. The
++ * link_downgraded variable is set by refresh_widths and
++ * determines the success/failure of the policy application.
+  */
+-void apply_link_downgrade_policy(struct hfi1_pportdata *ppd, int refresh_widths)
++bool apply_link_downgrade_policy(struct hfi1_pportdata *ppd,
++				 bool refresh_widths)
+ {
+ 	int do_bounce = 0;
+ 	int tries;
+ 	u16 lwde;
+ 	u16 tx, rx;
++	bool link_downgraded = refresh_widths;
+ 
+ 	/* use the hls lock to avoid a race with actual link up */
+ 	tries = 0;
+@@ -7571,6 +7609,7 @@ void apply_link_downgrade_policy(struct hfi1_pportdata *ppd, int refresh_widths)
+ 	    ppd->link_width_downgrade_rx_active == 0) {
+ 		/* the 8051 reported a dead link as a downgrade */
+ 		dd_dev_err(ppd->dd, "Link downgrade is really a link down, ignoring\n");
++		link_downgraded = false;
+ 	} else if (lwde == 0) {
+ 		/* downgrade is disabled */
+ 
+@@ -7587,6 +7626,7 @@ void apply_link_downgrade_policy(struct hfi1_pportdata *ppd, int refresh_widths)
+ 				   ppd->link_width_downgrade_tx_active,
+ 				   ppd->link_width_downgrade_rx_active);
+ 			do_bounce = 1;
++			link_downgraded = false;
+ 		}
+ 	} else if ((lwde & ppd->link_width_downgrade_tx_active) == 0 ||
+ 		   (lwde & ppd->link_width_downgrade_rx_active) == 0) {
+@@ -7598,6 +7638,7 @@ void apply_link_downgrade_policy(struct hfi1_pportdata *ppd, int refresh_widths)
+ 			   lwde, ppd->link_width_downgrade_tx_active,
+ 			   ppd->link_width_downgrade_rx_active);
+ 		do_bounce = 1;
++		link_downgraded = false;
+ 	}
+ 
+ done:
+@@ -7609,6 +7650,8 @@ void apply_link_downgrade_policy(struct hfi1_pportdata *ppd, int refresh_widths)
+ 		set_link_state(ppd, HLS_DN_OFFLINE);
+ 		start_link(ppd);
+ 	}
++
++	return link_downgraded;
+ }
+ 
+ /*
+@@ -7622,7 +7665,8 @@ void handle_link_downgrade(struct work_struct *work)
+ 							link_downgrade_work);
+ 
+ 	dd_dev_info(ppd->dd, "8051: Link width downgrade\n");
+-	apply_link_downgrade_policy(ppd, 1);
++	if (apply_link_downgrade_policy(ppd, true))
++		update_xmit_counters(ppd, ppd->link_width_downgrade_tx_active);
+ }
+ 
+ static char *dcc_err_string(char *buf, int buf_len, u64 flags)
+@@ -10597,6 +10641,14 @@ int set_link_state(struct hfi1_pportdata *ppd, u32 state)
+ 		add_rcvctrl(dd, RCV_CTRL_RCV_PORT_ENABLE_SMASK);
+ 
+ 		handle_linkup_change(dd, 1);
++
++		/*
++		 * After link up, a new link width will have been set.
++		 * Update the xmit counters with regards to the new
++		 * link width.
++		 */
++		update_xmit_counters(ppd, ppd->link_width_active);
++
+ 		ppd->host_link_state = HLS_UP_INIT;
+ 		update_statusp(ppd, IB_PORT_INIT);
+ 		break;
+diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
+index 21fca8e..c0d70f2 100644
+--- a/drivers/infiniband/hw/hfi1/chip.h
++++ b/drivers/infiniband/hw/hfi1/chip.h
+@@ -736,8 +736,8 @@ void set_link_down_reason(struct hfi1_pportdata *ppd, u8 lcl_reason,
+ int start_link(struct hfi1_pportdata *ppd);
+ int bringup_serdes(struct hfi1_pportdata *ppd);
+ void set_intr_state(struct hfi1_devdata *dd, u32 enable);
+-void apply_link_downgrade_policy(struct hfi1_pportdata *ppd,
+-				 int refresh_widths);
++bool apply_link_downgrade_policy(struct hfi1_pportdata *ppd,
++				 bool refresh_widths);
+ void update_usrhead(struct hfi1_ctxtdata *rcd, u32 hd, u32 updegr, u32 egrhd,
+ 		    u32 intr_adjust, u32 npkts);
+ int stop_drain_data_vls(struct hfi1_devdata *dd);
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index b42c222..8aea811 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -858,6 +858,13 @@ struct hfi1_pportdata {
+ 	struct work_struct linkstate_active_work;
+ 	/* Does this port need to prescan for FECNs */
+ 	bool cc_prescan;
++	/*
++	 * Sample sendWaitCnt & sendWaitVlCnt during link transition
++	 * and counter request.
++	 */
++	u64 port_vl_xmit_wait_last[C_VL_COUNT + 1];
++	u16 prev_link_width;
++	u64 vl_xmit_flit_cnt[C_VL_COUNT + 1];
+ };
+ 
+ typedef int (*rhf_rcv_function_ptr)(struct hfi1_packet *packet);
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index a618eef..d89cd86 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -637,6 +637,15 @@ void hfi1_init_pportdata(struct pci_dev *pdev, struct hfi1_pportdata *ppd,
+ 	ppd->dd = dd;
+ 	ppd->hw_pidx = hw_pidx;
+ 	ppd->port = port; /* IB port number, not index */
++	ppd->prev_link_width = LINK_WIDTH_DEFAULT;
++	/*
++	 * There are C_VL_COUNT number of PortVLXmitWait counters.
++	 * Adding 1 to C_VL_COUNT to include the PortXmitWait counter.
++	 */
++	for (i = 0; i < C_VL_COUNT + 1; i++) {
++		ppd->port_vl_xmit_wait_last[i] = 0;
++		ppd->vl_xmit_flit_cnt[i] = 0;
++	}
+ 
+ 	default_pkey_idx = 1;
+ 
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index 34547a4..e9962c6 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -2649,6 +2649,79 @@ static void a0_portstatus(struct hfi1_pportdata *ppd,
  	}
  }
  
 +/**
-+ * iowait_packet_queued() - determine if a packet is already built
-+ * @wait: the wait structure
++ * tx_link_width - convert link width bitmask to integer
++ * value representing actual link width.
++ * @link_width: width of active link
++ * @return: return index of the bit set in link_width var
++ *
++ * The function convert and return the index of bit set
++ * that indicate the current link width.
 + */
-+static inline bool iowait_packet_queued(struct iowait *wait)
++u16 tx_link_width(u16 link_width)
 +{
-+	return !list_empty(&wait->tx_head);
++	int n = LINK_WIDTH_DEFAULT;
++	u16 tx_width = n;
++
++	while (link_width && n) {
++		if (link_width & (1 << (n - 1))) {
++			tx_width = n;
++			break;
++		}
++		n--;
++	}
++
++	return tx_width;
 +}
 +
- #endif
-diff --git a/drivers/infiniband/hw/hfi1/qp.c b/drivers/infiniband/hw/hfi1/qp.c
-index 5507910..d30dd1a 100644
---- a/drivers/infiniband/hw/hfi1/qp.c
-+++ b/drivers/infiniband/hw/hfi1/qp.c
-@@ -565,7 +565,7 @@ void qp_iter_print(struct seq_file *s, struct rvt_qp_iter *iter)
- 	if (qp->s_ack_queue)
- 		e = &qp->s_ack_queue[qp->s_tail_ack_queue];
- 	seq_printf(s,
--		   "N %d %s QP %x R %u %s %u %u %u f=%x %u %u %u %u %u %u SPSN %x %x %x %x %x RPSN %x S(%u %u %u %u %u %u %u) R(%u %u %u) RQP %x LID %x SL %u MTU %u %u %u %u %u SDE %p,%u SC %p,%u SCQ %u %u PID %d OS %x %x E %x %x %x RNR %d %s %d\n",
-+		   "N %d %s QP %x R %u %s %u %u f=%x %u %u %u %u %u %u SPSN %x %x %x %x %x RPSN %x S(%u %u %u %u %u %u %u) R(%u %u %u) RQP %x LID %x SL %u MTU %u %u %u %u %u SDE %p,%u SC %p,%u SCQ %u %u PID %d OS %x %x E %x %x %x RNR %d %s %d\n",
- 		   iter->n,
- 		   qp_idle(qp) ? "I" : "B",
- 		   qp->ibqp.qp_num,
-@@ -573,7 +573,6 @@ void qp_iter_print(struct seq_file *s, struct rvt_qp_iter *iter)
- 		   qp_type_str[qp->ibqp.qp_type],
- 		   qp->state,
- 		   wqe ? wqe->wr.opcode : 0,
--		   qp->s_hdrwords,
- 		   qp->s_flags,
- 		   iowait_sdma_pending(&priv->s_iowait),
- 		   iowait_pio_pending(&priv->s_iowait),
-@@ -795,7 +794,6 @@ void notify_error_qp(struct rvt_qp *qp)
- 	}
- 
- 	if (!(qp->s_flags & RVT_S_BUSY)) {
--		qp->s_hdrwords = 0;
- 		if (qp->s_rdma_mr) {
- 			rvt_put_mr(qp->s_rdma_mr);
- 			qp->s_rdma_mr = NULL;
-diff --git a/drivers/infiniband/hw/hfi1/qp.h b/drivers/infiniband/hw/hfi1/qp.h
-index c06d2f8..b2d4cba 100644
---- a/drivers/infiniband/hw/hfi1/qp.h
-+++ b/drivers/infiniband/hw/hfi1/qp.h
-@@ -51,12 +51,25 @@
- #include <rdma/rdmavt_qp.h>
- #include "verbs.h"
- #include "sdma.h"
-+#include "verbs_txreq.h"
- 
- extern unsigned int hfi1_qp_table_size;
- 
- extern const struct rvt_operation_params hfi1_post_parms[];
- 
- /*
-+ * Send if not busy or waiting for I/O and either
-+ * a RC response is pending or we can process send work requests.
++/**
++ * get_xmit_wait_counters - Convert HFI 's SendWaitCnt/SendWaitVlCnt
++ * counter in unit of TXE cycle times to flit times.
++ * @ppd: info of physical Hfi port
++ * @link_width: width of active link
++ * @link_speed: speed of active link
++ * @vl: represent VL0-VL7, VL15 for PortVLXmitWait counters request
++ * and if vl value is C_VL_COUNT, it represent SendWaitCnt
++ * counter request
++ * @return: return SendWaitCnt/SendWaitVlCnt counter value per vl.
++ *
++ * Convert SendWaitCnt/SendWaitVlCnt counter from TXE cycle times to
++ * flit times. Call this function to samples these counters. This
++ * function will calculate for previous state transition and update
++ * current state at end of function using ppd->prev_link_width and
++ * ppd->port_vl_xmit_wait_last to port_vl_xmit_wait_curr and link_width.
 + */
-+static inline int hfi1_send_ok(struct rvt_qp *qp)
++u64 get_xmit_wait_counters(struct hfi1_pportdata *ppd,
++			   u16 link_width, u16 link_speed, int vl)
 +{
-+	return !(qp->s_flags & (RVT_S_BUSY | RVT_S_ANY_WAIT_IO)) &&
-+		(verbs_txreq_queued(qp) ||
-+		(qp->s_flags & RVT_S_RESP_PENDING) ||
-+		 !(qp->s_flags & RVT_S_ANY_WAIT_SEND));
++	u64 port_vl_xmit_wait_curr;
++	u64 delta_vl_xmit_wait;
++	u64 xmit_wait_val;
++
++	if (vl > C_VL_COUNT)
++		return  0;
++	if (vl < C_VL_COUNT)
++		port_vl_xmit_wait_curr =
++			read_port_cntr(ppd, C_TX_WAIT_VL, vl);
++	else
++		port_vl_xmit_wait_curr =
++			read_port_cntr(ppd, C_TX_WAIT, CNTR_INVALID_VL);
++
++	xmit_wait_val =
++		port_vl_xmit_wait_curr -
++		ppd->port_vl_xmit_wait_last[vl];
++	delta_vl_xmit_wait =
++		convert_xmit_counter(xmit_wait_val,
++				     ppd->prev_link_width,
++				     link_speed);
++
++	ppd->vl_xmit_flit_cnt[vl] += delta_vl_xmit_wait;
++	ppd->port_vl_xmit_wait_last[vl] = port_vl_xmit_wait_curr;
++	ppd->prev_link_width = link_width;
++
++	return ppd->vl_xmit_flit_cnt[vl];
 +}
 +
-+/*
-  * free_ahg - clear ahg from QP
-  */
- static inline void clear_ahg(struct rvt_qp *qp)
-diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index 68d5c3c..524c12f 100644
---- a/drivers/infiniband/hw/hfi1/rc.c
-+++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -226,12 +226,10 @@ static int make_rc_ack(struct hfi1_ibdev *dev, struct rvt_qp *qp,
- 		bth2 = mask_psn(qp->s_ack_psn);
- 	}
- 	qp->s_rdma_ack_cnt++;
--	qp->s_hdrwords = hwords;
- 	ps->s_txreq->sde = priv->s_sde;
- 	ps->s_txreq->s_cur_size = len;
-+	ps->s_txreq->hdr_dwords = hwords;
- 	hfi1_make_ruc_header(qp, ohdr, bth0, bth2, middle, ps);
--	/* pbc */
--	ps->s_txreq->hdr_dwords = qp->s_hdrwords + 2;
- 	return 1;
+ static int pma_get_opa_portstatus(struct opa_pma_mad *pmp,
+ 				  struct ib_device *ibdev,
+ 				  u8 port, u32 *resp_len)
+@@ -2668,6 +2741,8 @@ static int pma_get_opa_portstatus(struct opa_pma_mad *pmp,
+ 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 	int vfi;
+ 	u64 tmp, tmp2;
++	u16 link_width;
++	u16 link_speed;
  
- bail:
-@@ -387,7 +385,6 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 						       : IB_WC_SUCCESS);
- 				if (local_ops)
- 					atomic_dec(&qp->local_ops_pending);
--				qp->s_hdrwords = 0;
- 				goto done_free_tx;
- 			}
- 
-@@ -690,7 +687,7 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 		bth2 |= IB_BTH_REQ_ACK;
- 	}
- 	qp->s_len -= len;
--	qp->s_hdrwords = hwords;
-+	ps->s_txreq->hdr_dwords = hwords;
- 	ps->s_txreq->sde = priv->s_sde;
- 	ps->s_txreq->ss = ss;
- 	ps->s_txreq->s_cur_size = len;
-@@ -701,8 +698,6 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 		bth2,
- 		middle,
- 		ps);
--	/* pbc */
--	ps->s_txreq->hdr_dwords = qp->s_hdrwords + 2;
- 	return 1;
- 
- done_free_tx:
-@@ -716,7 +711,6 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- bail_no_tx:
- 	ps->s_txreq = NULL;
- 	qp->s_flags &= ~RVT_S_BUSY;
--	qp->s_hdrwords = 0;
- 	return 0;
- }
- 
-diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
-index 2c7fc6e..0cced9a 100644
---- a/drivers/infiniband/hw/hfi1/ruc.c
-+++ b/drivers/infiniband/hw/hfi1/ruc.c
-@@ -757,8 +757,9 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
- 	u32 slid;
- 	u16 pkey = hfi1_get_pkey(ibp, qp->s_pkey_index);
- 	u8 l4 = OPA_16B_L4_IB_LOCAL;
--	u8 extra_bytes = hfi1_get_16b_padding((qp->s_hdrwords << 2),
--				   ps->s_txreq->s_cur_size);
-+	u8 extra_bytes = hfi1_get_16b_padding(
-+				(ps->s_txreq->hdr_dwords << 2),
-+				ps->s_txreq->s_cur_size);
- 	u32 nwords = SIZE_OF_CRC + ((ps->s_txreq->s_cur_size +
- 				 extra_bytes + SIZE_OF_LT) >> 2);
- 	u8 becn = 0;
-@@ -778,9 +779,9 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
- 			grd->sgid_index = 0;
- 		grh = &ps->s_txreq->phdr.hdr.opah.u.l.grh;
- 		l4 = OPA_16B_L4_IB_GLOBAL;
--		hdrwords = qp->s_hdrwords - 4;
--		qp->s_hdrwords += hfi1_make_grh(ibp, grh, grd,
--						hdrwords, nwords);
-+		hdrwords = ps->s_txreq->hdr_dwords - 4;
-+		ps->s_txreq->hdr_dwords += hfi1_make_grh(ibp, grh, grd,
-+							 hdrwords, nwords);
- 		middle = 0;
- 	}
- 
-@@ -814,7 +815,7 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
- 			  slid,
- 			  opa_get_lid(rdma_ah_get_dlid(&qp->remote_ah_attr),
- 				      16B),
--			  (qp->s_hdrwords + nwords) >> 1,
-+			  (ps->s_txreq->hdr_dwords + nwords) >> 1,
- 			  pkey, becn, 0, l4, priv->s_sc);
- }
- 
-@@ -834,10 +835,10 @@ static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
- 
- 	if (unlikely(rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)) {
- 		struct ib_grh *grh = &ps->s_txreq->phdr.hdr.ibh.u.l.grh;
--		int hdrwords = qp->s_hdrwords - 2;
-+		int hdrwords = ps->s_txreq->hdr_dwords - 2;
- 
- 		lrh0 = HFI1_LRH_GRH;
--		qp->s_hdrwords +=
-+		ps->s_txreq->hdr_dwords +=
- 			hfi1_make_grh(ibp, grh,
- 				      rdma_ah_read_grh(&qp->remote_ah_attr),
- 				      hdrwords, nwords);
-@@ -866,7 +867,7 @@ static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
- 	hfi1_make_ruc_bth(qp, ohdr, bth0, bth1, bth2);
- 	hfi1_make_ib_hdr(&ps->s_txreq->phdr.hdr.ibh,
- 			 lrh0,
--			 qp->s_hdrwords + nwords,
-+			 ps->s_txreq->hdr_dwords + nwords,
- 			 opa_get_lid(rdma_ah_get_dlid(&qp->remote_ah_attr), 9B),
- 			 ppd_from_ibp(ibp)->lid |
- 				rdma_ah_get_path_bits(&qp->remote_ah_attr));
-@@ -1031,7 +1032,7 @@ void hfi1_do_send(struct rvt_qp *qp, bool in_thread)
- 	ps.s_txreq = get_waiting_verbs_txreq(qp);
- 	do {
- 		/* Check for a constructed packet to be sent. */
--		if (qp->s_hdrwords != 0) {
-+		if (ps.s_txreq) {
- 			spin_unlock_irqrestore(&qp->s_lock, ps.flags);
- 			/*
- 			 * If the packet cannot be sent now, return and
-@@ -1039,8 +1040,6 @@ void hfi1_do_send(struct rvt_qp *qp, bool in_thread)
- 			 */
- 			if (hfi1_verbs_send(qp, &ps))
- 				return;
--			/* Record that s_ahg is empty. */
--			qp->s_hdrwords = 0;
- 			/* allow other tasks to run */
- 			if (schedule_send_yield(qp, &ps))
- 				return;
-diff --git a/drivers/infiniband/hw/hfi1/uc.c b/drivers/infiniband/hw/hfi1/uc.c
-index 991bbee..fef69d9 100644
---- a/drivers/infiniband/hw/hfi1/uc.c
-+++ b/drivers/infiniband/hw/hfi1/uc.c
-@@ -146,7 +146,6 @@ int hfi1_make_uc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 							: IB_WC_SUCCESS);
- 			if (local_ops)
- 				atomic_dec(&qp->local_ops_pending);
--			qp->s_hdrwords = 0;
- 			goto done_free_tx;
- 		}
- 		/*
-@@ -269,14 +268,12 @@ int hfi1_make_uc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 		break;
- 	}
- 	qp->s_len -= len;
--	qp->s_hdrwords = hwords;
-+	ps->s_txreq->hdr_dwords = hwords;
- 	ps->s_txreq->sde = priv->s_sde;
- 	ps->s_txreq->ss = &qp->s_sge;
- 	ps->s_txreq->s_cur_size = len;
- 	hfi1_make_ruc_header(qp, ohdr, bth0 | (qp->s_state << 24),
- 			     mask_psn(qp->s_psn++), middle, ps);
--	/* pbc */
--	ps->s_txreq->hdr_dwords = qp->s_hdrwords + 2;
- 	return 1;
- 
- done_free_tx:
-@@ -290,7 +287,6 @@ int hfi1_make_uc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- bail_no_tx:
- 	ps->s_txreq = NULL;
- 	qp->s_flags &= ~RVT_S_BUSY;
--	qp->s_hdrwords = 0;
- 	return 0;
- }
- 
-diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
-index beb5091..6b5cd3a 100644
---- a/drivers/infiniband/hw/hfi1/ud.c
-+++ b/drivers/infiniband/hw/hfi1/ud.c
-@@ -340,15 +340,15 @@ void hfi1_make_ud_req_9B(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 	extra_bytes = -wqe->length & 3;
- 	nwords = ((wqe->length + extra_bytes) >> 2) + SIZE_OF_CRC;
- 	/* header size in dwords LRH+BTH+DETH = (8+12+8)/4. */
--	qp->s_hdrwords = 7;
-+	ps->s_txreq->hdr_dwords = 7;
- 	if (wqe->wr.opcode == IB_WR_SEND_WITH_IMM)
--		qp->s_hdrwords++;
-+		ps->s_txreq->hdr_dwords++;
- 
- 	if (rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH) {
- 		grh = &ps->s_txreq->phdr.hdr.ibh.u.l.grh;
--		qp->s_hdrwords += hfi1_make_grh(ibp, grh,
--						rdma_ah_read_grh(ah_attr),
--						qp->s_hdrwords - 2, nwords);
-+		ps->s_txreq->hdr_dwords +=
-+			hfi1_make_grh(ibp, grh, rdma_ah_read_grh(ah_attr),
-+				      ps->s_txreq->hdr_dwords - 2, nwords);
- 		lrh0 = HFI1_LRH_GRH;
- 		ohdr = &ps->s_txreq->phdr.hdr.ibh.u.l.oth;
- 	} else {
-@@ -381,7 +381,7 @@ void hfi1_make_ud_req_9B(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 		}
- 	}
- 	hfi1_make_bth_deth(qp, wqe, ohdr, &pkey, extra_bytes, false);
--	len = qp->s_hdrwords + nwords;
-+	len = ps->s_txreq->hdr_dwords + nwords;
- 
- 	/* Setup the packet */
- 	ps->s_txreq->phdr.hdr.hdr_type = HFI1_PKT_TYPE_9B;
-@@ -405,12 +405,12 @@ void hfi1_make_ud_req_16B(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 	ppd = ppd_from_ibp(ibp);
- 	ah_attr = &ibah_to_rvtah(wqe->ud_wr.ah)->attr;
- 	/* header size in dwords 16B LRH+BTH+DETH = (16+12+8)/4. */
--	qp->s_hdrwords = 9;
-+	ps->s_txreq->hdr_dwords = 9;
- 	if (wqe->wr.opcode == IB_WR_SEND_WITH_IMM)
--		qp->s_hdrwords++;
-+		ps->s_txreq->hdr_dwords++;
- 
- 	/* SW provides space for CRC and LT for bypass packets. */
--	extra_bytes = hfi1_get_16b_padding((qp->s_hdrwords << 2),
-+	extra_bytes = hfi1_get_16b_padding((ps->s_txreq->hdr_dwords << 2),
- 					   wqe->length);
- 	nwords = ((wqe->length + extra_bytes + SIZE_OF_LT) >> 2) + SIZE_OF_CRC;
- 
-@@ -428,8 +428,8 @@ void hfi1_make_ud_req_16B(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 			grd->sgid_index = 0;
- 		}
- 		grh = &ps->s_txreq->phdr.hdr.opah.u.l.grh;
--		qp->s_hdrwords += hfi1_make_grh(ibp, grh, grd,
--					qp->s_hdrwords - 4, nwords);
-+		ps->s_txreq->hdr_dwords += hfi1_make_grh(ibp, grh, grd,
-+					ps->s_txreq->hdr_dwords - 4, nwords);
- 		ohdr = &ps->s_txreq->phdr.hdr.opah.u.l.oth;
- 		l4 = OPA_16B_L4_IB_GLOBAL;
- 	} else {
-@@ -452,7 +452,7 @@ void hfi1_make_ud_req_16B(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 
- 	hfi1_make_bth_deth(qp, wqe, ohdr, &pkey, extra_bytes, true);
- 	/* Convert dwords to flits */
--	len = (qp->s_hdrwords + nwords) >> 1;
-+	len = (ps->s_txreq->hdr_dwords + nwords) >> 1;
- 
- 	/* Setup the packet */
- 	ps->s_txreq->phdr.hdr.hdr_type = HFI1_PKT_TYPE_16B;
-@@ -564,8 +564,6 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 	priv->s_ahg->ahgcount = 0;
- 	priv->s_ahg->ahgidx = 0;
- 	priv->s_ahg->tx_flags = 0;
--	/* pbc */
--	ps->s_txreq->hdr_dwords = qp->s_hdrwords + 2;
- 
- 	return 1;
- 
-@@ -580,7 +578,6 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- bail_no_tx:
- 	ps->s_txreq = NULL;
- 	qp->s_flags &= ~RVT_S_BUSY;
--	qp->s_hdrwords = 0;
- 	return 0;
- }
- 
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index b8776a3..471d55c 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -835,7 +835,7 @@ static int build_verbs_tx_desc(
- {
- 	int ret = 0;
- 	struct hfi1_sdma_header *phdr = &tx->phdr;
--	u16 hdrbytes = tx->hdr_dwords << 2;
-+	u16 hdrbytes = (tx->hdr_dwords + sizeof(pbc) / 4) << 2;
- 	u8 extra_bytes = 0;
- 
- 	if (tx->phdr.hdr.hdr_type) {
-@@ -901,7 +901,7 @@ int hfi1_verbs_send_dma(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- {
- 	struct hfi1_qp_priv *priv = qp->priv;
- 	struct hfi1_ahg_info *ahg_info = priv->s_ahg;
--	u32 hdrwords = qp->s_hdrwords;
-+	u32 hdrwords = ps->s_txreq->hdr_dwords;
- 	u32 len = ps->s_txreq->s_cur_size;
- 	u32 plen;
- 	struct hfi1_ibdev *dev = ps->dev;
-@@ -919,7 +919,7 @@ int hfi1_verbs_send_dma(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 	} else {
- 		dwords = (len + 3) >> 2;
- 	}
--	plen = hdrwords + dwords + 2;
-+	plen = hdrwords + dwords + sizeof(pbc) / 4;
- 
- 	tx = ps->s_txreq;
- 	if (!sdma_txreq_built(&tx->txreq)) {
-@@ -1038,7 +1038,7 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 			u64 pbc)
- {
- 	struct hfi1_qp_priv *priv = qp->priv;
--	u32 hdrwords = qp->s_hdrwords;
-+	u32 hdrwords = ps->s_txreq->hdr_dwords;
- 	struct rvt_sge_state *ss = ps->s_txreq->ss;
- 	u32 len = ps->s_txreq->s_cur_size;
- 	u32 dwords;
-@@ -1064,7 +1064,7 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 		dwords = (len + 3) >> 2;
- 		hdr = (u32 *)&ps->s_txreq->phdr.hdr.ibh;
- 	}
--	plen = hdrwords + dwords + 2;
-+	plen = hdrwords + dwords + sizeof(pbc) / 4;
- 
- 	/* only RC/UC use complete */
- 	switch (qp->ibqp.qp_type) {
-diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
-index 87d1285..c2aeb32 100644
---- a/drivers/infiniband/hw/hfi1/verbs.h
-+++ b/drivers/infiniband/hw/hfi1/verbs.h
-@@ -246,17 +246,6 @@ struct hfi1_ibdev {
- }
- 
- /*
-- * Send if not busy or waiting for I/O and either
-- * a RC response is pending or we can process send work requests.
-- */
--static inline int hfi1_send_ok(struct rvt_qp *qp)
--{
--	return !(qp->s_flags & (RVT_S_BUSY | RVT_S_ANY_WAIT_IO)) &&
--		(qp->s_hdrwords || (qp->s_flags & RVT_S_RESP_PENDING) ||
--		 !(qp->s_flags & RVT_S_ANY_WAIT_SEND));
--}
+ 	response_data_size = sizeof(struct opa_port_status_rsp) +
+ 				num_vls * sizeof(struct _vls_pctrs);
+@@ -2711,8 +2786,16 @@ static int pma_get_opa_portstatus(struct opa_pma_mad *pmp,
+ 	rsp->port_multicast_rcv_pkts =
+ 		cpu_to_be64(read_dev_cntr(dd, C_DC_MC_RCV_PKTS,
+ 					  CNTR_INVALID_VL));
++	/*
++	 * Convert PortXmitWait counter from TXE cycle times
++	 * to flit times.
++	 */
++	link_width =
++		tx_link_width(ppd->link_width_downgrade_tx_active);
++	link_speed = get_link_speed(ppd->link_speed_active);
+ 	rsp->port_xmit_wait =
+-		cpu_to_be64(read_port_cntr(ppd, C_TX_WAIT, CNTR_INVALID_VL));
++		cpu_to_be64(get_xmit_wait_counters(ppd, link_width,
++						   link_speed, C_VL_COUNT));
+ 	rsp->port_rcv_fecn =
+ 		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FCN, CNTR_INVALID_VL));
+ 	rsp->port_rcv_becn =
+@@ -2777,10 +2860,14 @@ static int pma_get_opa_portstatus(struct opa_pma_mad *pmp,
+ 		rsp->vls[vfi].port_vl_xmit_pkts =
+ 			cpu_to_be64(read_port_cntr(ppd, C_TX_PKT_VL,
+ 						   idx_from_vl(vl)));
 -
--/*
-  * This must be called with s_lock held.
-  */
- void hfi1_bad_pkey(struct hfi1_ibport *ibp, u32 key, u32 sl,
-diff --git a/drivers/infiniband/hw/hfi1/verbs_txreq.h b/drivers/infiniband/hw/hfi1/verbs_txreq.h
-index cec7a4b..729244c 100644
---- a/drivers/infiniband/hw/hfi1/verbs_txreq.h
-+++ b/drivers/infiniband/hw/hfi1/verbs_txreq.h
-@@ -113,6 +113,13 @@ struct verbs_txreq *__get_txreq(struct hfi1_ibdev *dev,
- 	return NULL;
- }
++		/*
++		 * Convert PortVlXmitWait counter from TXE cycle
++		 * times to flit times.
++		 */
+ 		rsp->vls[vfi].port_vl_xmit_wait =
+-			cpu_to_be64(read_port_cntr(ppd, C_TX_WAIT_VL,
+-						   idx_from_vl(vl)));
++			cpu_to_be64(get_xmit_wait_counters(ppd, link_width,
++							   link_speed,
++							   idx_from_vl(vl)));
  
-+static inline bool verbs_txreq_queued(struct rvt_qp *qp)
+ 		rsp->vls[vfi].port_vl_rcv_fecn =
+ 			cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FCN_VL,
+@@ -2910,6 +2997,8 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
+ 	unsigned long vl;
+ 	u32 vl_select_mask;
+ 	int vfi;
++	u16 link_width;
++	u16 link_speed;
+ 
+ 	num_ports = be32_to_cpu(pmp->mad_hdr.attr_mod) >> 24;
+ 	num_vls = hweight32(be32_to_cpu(req->vl_select_mask));
+@@ -2959,8 +3048,16 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
+ 	rsp->link_quality_indicator = cpu_to_be32((u32)lq);
+ 	pma_get_opa_port_dctrs(ibdev, rsp);
+ 
++	/*
++	 * Convert PortXmitWait counter from TXE
++	 * cycle times to flit times.
++	 */
++	link_width =
++		tx_link_width(ppd->link_width_downgrade_tx_active);
++	link_speed = get_link_speed(ppd->link_speed_active);
+ 	rsp->port_xmit_wait =
+-		cpu_to_be64(read_port_cntr(ppd, C_TX_WAIT, CNTR_INVALID_VL));
++		cpu_to_be64(get_xmit_wait_counters(ppd, link_width,
++						   link_speed, C_VL_COUNT));
+ 	rsp->port_rcv_fecn =
+ 		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FCN, CNTR_INVALID_VL));
+ 	rsp->port_rcv_becn =
+@@ -2996,9 +3093,14 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
+ 			cpu_to_be64(read_dev_cntr(dd, C_DC_RX_PKT_VL,
+ 						  idx_from_vl(vl)));
+ 
++		/*
++		 * Convert PortVlXmitWait counter from TXE
++		 * cycle times to flit times.
++		 */
+ 		rsp->vls[vfi].port_vl_xmit_wait =
+-			cpu_to_be64(read_port_cntr(ppd, C_TX_WAIT_VL,
+-						   idx_from_vl(vl)));
++			cpu_to_be64(get_xmit_wait_counters(ppd, link_width,
++							   link_speed,
++							   idx_from_vl(vl)));
+ 
+ 		rsp->vls[vfi].port_vl_rcv_fecn =
+ 			cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_FCN_VL,
+@@ -3416,9 +3518,11 @@ static int pma_set_opa_portstatus(struct opa_pma_mad *pmp,
+ 	if (counter_select & CS_PORT_MCAST_RCV_PKTS)
+ 		write_dev_cntr(dd, C_DC_MC_RCV_PKTS, CNTR_INVALID_VL, 0);
+ 
+-	if (counter_select & CS_PORT_XMIT_WAIT)
++	if (counter_select & CS_PORT_XMIT_WAIT) {
+ 		write_port_cntr(ppd, C_TX_WAIT, CNTR_INVALID_VL, 0);
+-
++		ppd->port_vl_xmit_wait_last[C_VL_COUNT] = 0;
++		ppd->vl_xmit_flit_cnt[C_VL_COUNT] = 0;
++	}
+ 	/* ignore cs_sw_portCongestion for HFIs */
+ 
+ 	if (counter_select & CS_PORT_RCV_FECN)
+@@ -3491,8 +3595,11 @@ static int pma_set_opa_portstatus(struct opa_pma_mad *pmp,
+ 		if (counter_select & CS_PORT_RCV_PKTS)
+ 			write_dev_cntr(dd, C_DC_RX_PKT_VL, idx_from_vl(vl), 0);
+ 
+-		if (counter_select & CS_PORT_XMIT_WAIT)
++		if (counter_select & CS_PORT_XMIT_WAIT) {
+ 			write_port_cntr(ppd, C_TX_WAIT_VL, idx_from_vl(vl), 0);
++			ppd->port_vl_xmit_wait_last[idx_from_vl(vl)] = 0;
++			ppd->vl_xmit_flit_cnt[idx_from_vl(vl)] = 0;
++		}
+ 
+ 		/* sw_port_vl_congestion is 0 for HFIs */
+ 		if (counter_select & CS_PORT_RCV_FECN)
+diff --git a/drivers/infiniband/hw/hfi1/mad.h b/drivers/infiniband/hw/hfi1/mad.h
+index c4938f3..2f48e69 100644
+--- a/drivers/infiniband/hw/hfi1/mad.h
++++ b/drivers/infiniband/hw/hfi1/mad.h
+@@ -180,6 +180,15 @@ struct opa_mad_notice_attr {
+ #define OPA_VLARB_PREEMPT_MATRIX     3
+ 
+ #define IB_PMA_PORT_COUNTERS_CONG       cpu_to_be16(0xFF00)
++#define LINK_SPEED_25G		1
++#define LINK_SPEED_12_5G	2
++#define LINK_WIDTH_DEFAULT	4
++#define DECIMAL_FACTORING	1000
++/*
++ * The default link width is multiplied by 1000
++ * to get accurate value after division.
++ */
++#define FACTOR_LINK_WIDTH	(LINK_WIDTH_DEFAULT * DECIMAL_FACTORING)
+ 
+ struct ib_pma_portcounters_cong {
+ 	u8 reserved;
+@@ -429,5 +438,41 @@ struct sc2vlnt {
+ 
+ void hfi1_event_pkey_change(struct hfi1_devdata *dd, u8 port);
+ void hfi1_handle_trap_timer(struct timer_list *t);
+-
++u16 tx_link_width(u16 link_width);
++u64 get_xmit_wait_counters(struct hfi1_pportdata *ppd, u16 link_width,
++			   u16 link_speed, int vl);
++/**
++ * get_link_speed - determine whether 12.5G or 25G speed
++ * @link_speed: the speed of active link
++ * @return: Return 2 if link speed identified as 12.5G
++ * or return 1 if link speed is 25G.
++ *
++ * The function indirectly calculate required link speed
++ * value for convert_xmit_counter function. If the link
++ * speed is 25G, the function return as 1 as it is required
++ * by xmit counter conversion formula :-( 25G / link_speed).
++ * This conversion will provide value 1 if current
++ * link speed is 25G or 2 if 12.5G.This is done to avoid
++ * 12.5 float number conversion.
++ */
++static inline u16 get_link_speed(u16 link_speed)
 +{
-+	struct hfi1_qp_priv *priv = qp->priv;
-+
-+	return iowait_packet_queued(&priv->s_iowait);
++	return (link_speed == 1) ?
++		 LINK_SPEED_12_5G : LINK_SPEED_25G;
 +}
 +
- void hfi1_put_txreq(struct verbs_txreq *tx);
- int verbs_txreq_init(struct hfi1_ibdev *dev);
- void verbs_txreq_exit(struct hfi1_ibdev *dev);
++/**
++ * convert_xmit_counter - calculate flit times for given xmit counter
++ * value
++ * @xmit_wait_val: current xmit counter value
++ * @link_width: width of active link
++ * @link_speed: speed of active link
++ * @return: return xmit counter value in flit times.
++ */
++static inline u64 convert_xmit_counter(u64 xmit_wait_val, u16 link_width,
++				       u16 link_speed)
++{
++	return (xmit_wait_val * 2 * (FACTOR_LINK_WIDTH / link_width)
++		 * link_speed) / DECIMAL_FACTORING;
++}
+ #endif				/* _HFI1_MAD_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
