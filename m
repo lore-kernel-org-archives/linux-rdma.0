@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 09/16] IB/hfi1: Compute BTH only for
- RDMA_WRITE_LAST/SEND_LAST packet
-Date: Fri, 26 Jan 2018 06:32:30 -0800
-Message-ID: <20180126143227.6868.25414.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 10/16] IB/hfi1: Optimize packet type comparison
+ using 9B and bypass code paths
+Date: Fri, 26 Jan 2018 06:32:38 -0800
+Message-ID: <20180126143235.6868.32732.stgit@scvm10.sc.intel.com>
 References: <20180126142640.6868.12402.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,134 +11,125 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180126142640.6868.12402.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-In hfi1_rc_rcv(), BTH is computed for all packets received.
-However, it's only used for packets received with opcodes
-RDMA_WRITE_LAST and SEND_LAST, and it is a costly operation.
+The packet type comparison used to find out if a packet is a bypass
+packet in the hot path is an expensive operation as seen in a profile.
 
-Compute BTH only in the RDMA_WRITE_LAST/SEND_LAST code path
-and let the compiler handle endianness conversion for bitwise
-operations.
+Determine packet's pkey and migration bit through the bypass and 9B
+code paths instead.
 
+Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/rc.c    |    3 +--
- drivers/infiniband/hw/hfi1/uc.c    |    3 +--
- drivers/infiniband/hw/hfi1/ud.c    |    3 +--
- drivers/infiniband/hw/qib/qib_rc.c |    3 +--
- drivers/infiniband/hw/qib/qib_uc.c |    3 +--
- drivers/infiniband/hw/qib/qib_ud.c |    3 +--
- include/rdma/ib_hdrs.h             |    4 ++++
- 7 files changed, 10 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/hfi1/driver.c |    4 ++++
+ drivers/infiniband/hw/hfi1/hfi.h    |    2 ++
+ drivers/infiniband/hw/hfi1/ruc.c    |   15 ++-------------
+ drivers/infiniband/hw/hfi1/verbs.h  |    5 +++++
+ include/rdma/ib_hdrs.h              |    5 +++++
+ 5 files changed, 18 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index 524c12f..70aa82b 100644
---- a/drivers/infiniband/hw/hfi1/rc.c
-+++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -2035,7 +2035,6 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- 	struct rvt_qp *qp = packet->qp;
- 	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
- 	struct ib_other_headers *ohdr = packet->ohdr;
--	u32 bth0 = be32_to_cpu(ohdr->bth[0]);
- 	u32 opcode = packet->opcode;
- 	u32 hdrsize = packet->hlen;
- 	u32 psn = ib_bth_get_psn(packet->ohdr);
-@@ -2233,7 +2232,7 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- 		wc.port_num = 0;
- 		/* Signal completion event if the solicited bit is set. */
- 		rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
--			     (bth0 & IB_BTH_SOLICITED) != 0);
-+			     ib_bth_is_solicited(ohdr));
- 		break;
+diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
+index e6a318c..7ef8634 100644
+--- a/drivers/infiniband/hw/hfi1/driver.c
++++ b/drivers/infiniband/hw/hfi1/driver.c
+@@ -1440,6 +1440,8 @@ static int hfi1_setup_9B_packet(struct hfi1_packet *packet)
+ 	packet->extra_byte = 0;
+ 	packet->fecn = ib_bth_get_fecn(packet->ohdr);
+ 	packet->becn = ib_bth_get_becn(packet->ohdr);
++	packet->pkey = ib_bth_get_pkey(packet->ohdr);
++	packet->migrated = ib_bth_is_migration(packet->ohdr);
  
- 	case OP(RDMA_WRITE_ONLY):
-diff --git a/drivers/infiniband/hw/hfi1/uc.c b/drivers/infiniband/hw/hfi1/uc.c
-index fef69d9..8030c38 100644
---- a/drivers/infiniband/hw/hfi1/uc.c
-+++ b/drivers/infiniband/hw/hfi1/uc.c
-@@ -478,8 +478,7 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
- 		wc.port_num = 0;
- 		/* Signal completion event if the solicited bit is set. */
- 		rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
--			     (ohdr->bth[0] &
--			      cpu_to_be32(IB_BTH_SOLICITED)) != 0);
-+			     ib_bth_is_solicited(ohdr));
- 		break;
- 
- 	case OP(RDMA_WRITE_FIRST):
-diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
-index f1ba510..066afbc 100644
---- a/drivers/infiniband/hw/hfi1/ud.c
-+++ b/drivers/infiniband/hw/hfi1/ud.c
-@@ -1050,8 +1050,7 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 	wc.port_num = qp->port_num;
- 	/* Signal completion event if the solicited bit is set. */
- 	rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
--		     (ohdr->bth[0] &
--		      cpu_to_be32(IB_BTH_SOLICITED)) != 0);
-+		     ib_bth_is_solicited(ohdr));
- 	return;
- 
+ 	return 0;
  drop:
-diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
-index e4a9ba1..61d3bc6 100644
---- a/drivers/infiniband/hw/qib/qib_rc.c
-+++ b/drivers/infiniband/hw/qib/qib_rc.c
-@@ -1916,8 +1916,7 @@ void qib_rc_rcv(struct qib_ctxtdata *rcd, struct ib_header *hdr,
- 		wc.port_num = 0;
- 		/* Signal completion event if the solicited bit is set. */
- 		rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
--			     (ohdr->bth[0] &
--			      cpu_to_be32(IB_BTH_SOLICITED)) != 0);
-+			     ib_bth_is_solicited(ohdr));
- 		break;
+@@ -1508,6 +1510,8 @@ static int hfi1_setup_bypass_packet(struct hfi1_packet *packet)
+ 	packet->extra_byte = SIZE_OF_LT;
+ 	packet->fecn = hfi1_16B_get_fecn(packet->hdr);
+ 	packet->becn = hfi1_16B_get_becn(packet->hdr);
++	packet->pkey = hfi1_16B_get_pkey(packet->hdr);
++	packet->migrated = opa_bth_is_migration(packet->ohdr);
  
- 	case OP(RDMA_WRITE_FIRST):
-diff --git a/drivers/infiniband/hw/qib/qib_uc.c b/drivers/infiniband/hw/qib/qib_uc.c
-index bddcc37..d311db6 100644
---- a/drivers/infiniband/hw/qib/qib_uc.c
-+++ b/drivers/infiniband/hw/qib/qib_uc.c
-@@ -403,8 +403,7 @@ void qib_uc_rcv(struct qib_ibport *ibp, struct ib_header *hdr,
- 		wc.port_num = 0;
- 		/* Signal completion event if the solicited bit is set. */
- 		rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
--			     (ohdr->bth[0] &
--				cpu_to_be32(IB_BTH_SOLICITED)) != 0);
-+			     ib_bth_is_solicited(ohdr));
- 		break;
+ 	if (hfi1_bypass_ingress_pkt_check(packet))
+ 		goto drop;
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index 8aea811..e0ed2b4 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -341,6 +341,7 @@ struct hfi1_packet {
+ 	u32 slid;
+ 	u16 tlen;
+ 	s16 etail;
++	u16 pkey;
+ 	u8 hlen;
+ 	u8 numpkt;
+ 	u8 rsize;
+@@ -353,6 +354,7 @@ struct hfi1_packet {
+ 	u8 opcode;
+ 	bool becn;
+ 	bool fecn;
++	bool migrated;
+ };
  
- 	case OP(RDMA_WRITE_FIRST):
-diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
-index 15962ed..59a4f03 100644
---- a/drivers/infiniband/hw/qib/qib_ud.c
-+++ b/drivers/infiniband/hw/qib/qib_ud.c
-@@ -581,8 +581,7 @@ void qib_ud_rcv(struct qib_ibport *ibp, struct ib_header *hdr,
- 	wc.port_num = qp->port_num;
- 	/* Signal completion event if the solicited bit is set. */
- 	rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
--		     (ohdr->bth[0] &
--			cpu_to_be32(IB_BTH_SOLICITED)) != 0);
-+		     ib_bth_is_solicited(ohdr));
- 	return;
+ /* Packet types */
+diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
+index 1033068..e7d4e04 100644
+--- a/drivers/infiniband/hw/hfi1/ruc.c
++++ b/drivers/infiniband/hw/hfi1/ruc.c
+@@ -225,19 +225,8 @@ int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct hfi1_packet *packet)
+ 	u32 dlid = packet->dlid;
+ 	u32 slid = packet->slid;
+ 	u32 sl = packet->sl;
+-	int migrated;
+-	u32 bth0, bth1;
+-	u16 pkey;
+-
+-	bth0 = be32_to_cpu(packet->ohdr->bth[0]);
+-	bth1 = be32_to_cpu(packet->ohdr->bth[1]);
+-	if (packet->etype == RHF_RCV_TYPE_BYPASS) {
+-		pkey = hfi1_16B_get_pkey(packet->hdr);
+-		migrated = bth1 & OPA_BTH_MIG_REQ;
+-	} else {
+-		pkey = ib_bth_get_pkey(packet->ohdr);
+-		migrated = bth0 & IB_BTH_MIG_REQ;
+-	}
++	bool migrated = packet->migrated;
++	u16 pkey = packet->pkey;
  
- drop:
-diff --git a/include/rdma/ib_hdrs.h b/include/rdma/ib_hdrs.h
-index c124d51..6a86d14 100644
---- a/include/rdma/ib_hdrs.h
-+++ b/include/rdma/ib_hdrs.h
-@@ -331,4 +331,8 @@ static inline u8 ib_bth_get_tver(struct ib_other_headers *ohdr)
- 		    IB_BTH_TVER_MASK);
+ 	if (qp->s_mig_state == IB_MIG_ARMED && migrated) {
+ 		if (!packet->grh) {
+diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
+index 26c1ed6..90a170e 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.h
++++ b/drivers/infiniband/hw/hfi1/verbs.h
+@@ -410,6 +410,11 @@ static inline void cacheless_memcpy(void *dst, void *src, size_t n)
+ 	__copy_user_nocache(dst, (void __user *)src, n, 0);
  }
  
-+static inline bool ib_bth_is_solicited(struct ib_other_headers *ohdr)
++static inline bool opa_bth_is_migration(struct ib_other_headers *ohdr)
 +{
-+	return !!(ohdr->bth[0] & cpu_to_be32(IB_BTH_SOLICITED));
++	return !!(ohdr->bth[1] & cpu_to_be32(OPA_BTH_MIG_REQ));
++}
++
+ extern const enum ib_wc_opcode ib_hfi1_wc_opcode[];
+ 
+ extern const u8 hdr_len_by_opcode[];
+diff --git a/include/rdma/ib_hdrs.h b/include/rdma/ib_hdrs.h
+index 6a86d14..2aa19ec 100644
+--- a/include/rdma/ib_hdrs.h
++++ b/include/rdma/ib_hdrs.h
+@@ -335,4 +335,9 @@ static inline bool ib_bth_is_solicited(struct ib_other_headers *ohdr)
+ {
+ 	return !!(ohdr->bth[0] & cpu_to_be32(IB_BTH_SOLICITED));
+ }
++
++static inline bool ib_bth_is_migration(struct ib_other_headers *ohdr)
++{
++	return !!(ohdr->bth[0] & cpu_to_be32(IB_BTH_MIG_REQ));
 +}
  #endif                          /* IB_HDRS_H */
 
