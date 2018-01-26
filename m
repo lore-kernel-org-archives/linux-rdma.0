@@ -1,83 +1,123 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH for-next v2 15/16] IB/core: Map iWarp AH type to undefined
- in rdma_ah_find_type
-Date: Fri, 26 Jan 2018 21:41:47 +0000
-Message-ID: <VI1PR0502MB30083F4D15673B4EAAB59280D1E00@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20180126211126.12097.47410.stgit@scvm10.sc.intel.com>
- <20180126213043.12097.88707.stgit@scvm10.sc.intel.com>
- <VI1PR0502MB300863FABEA9D4B962E4D826D1E00@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] RDMA: Move enum ib_cq_creation_flags to uapi headers
+Date: Fri, 26 Jan 2018 15:16:46 -0700
+Message-ID: <20180126221646.GA5251@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB300863FABEA9D4B962E4D826D1E00-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1vd25l
-ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2Z2VyLmtlcm5l
-bC5vcmddIE9uIEJlaGFsZiBPZiBQYXJhdiBQYW5kaXQNCj4gU2VudDogRnJpZGF5LCBKYW51YXJ5
-IDI2LCAyMDE4IDM6NDAgUE0NCj4gVG86IERlbm5pcyBEYWxlc3NhbmRybyA8ZGVubmlzLmRhbGVz
-c2FuZHJvQGludGVsLmNvbT47IGpnZ0B6aWVwZS5jYTsNCj4gZGxlZGZvcmRAcmVkaGF0LmNvbQ0K
-PiBDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IFNoaXJheiBTYWxlZW0gPHNoaXJhei5z
-YWxlZW1AaW50ZWwuY29tPjsgRG9uDQo+IEhpYXR0IDxkb24uaGlhdHRAaW50ZWwuY29tPjsgU2Vh
-biBIZWZ0eSA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+OyBJcmEgV2VpbnkNCj4gPGlyYS53ZWlueUBp
-bnRlbC5jb20+DQo+IFN1YmplY3Q6IFJFOiBbUEFUQ0ggZm9yLW5leHQgdjIgMTUvMTZdIElCL2Nv
-cmU6IE1hcCBpV2FycCBBSCB0eXBlIHRvDQo+IHVuZGVmaW5lZCBpbiByZG1hX2FoX2ZpbmRfdHlw
-ZQ0KPiANCj4gDQo+IA0KPiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gRnJvbTog
-RGVubmlzIERhbGVzc2FuZHJvIFttYWlsdG86ZGVubmlzLmRhbGVzc2FuZHJvQGludGVsLmNvbV0N
-Cj4gPiBTZW50OiBGcmlkYXksIEphbnVhcnkgMjYsIDIwMTggMzozMSBQTQ0KPiA+IFRvOiBqZ2dA
-emllcGUuY2E7IGRsZWRmb3JkQHJlZGhhdC5jb20NCj4gPiBDYzogUGFyYXYgUGFuZGl0IDxwYXJh
-dkBtZWxsYW5veC5jb20+OyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsNCj4gPiBTaGlyYXog
-U2FsZWVtIDxzaGlyYXouc2FsZWVtQGludGVsLmNvbT47IERvbiBIaWF0dA0KPiA+IDxkb24uaGlh
-dHRAaW50ZWwuY29tPjsgU2VhbiBIZWZ0eSA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+OyBJcmEgV2Vp
-bnkNCj4gPiA8aXJhLndlaW55QGludGVsLmNvbT4NCj4gPiBTdWJqZWN0OiBbUEFUQ0ggZm9yLW5l
-eHQgdjIgMTUvMTZdIElCL2NvcmU6IE1hcCBpV2FycCBBSCB0eXBlIHRvDQo+ID4gdW5kZWZpbmVk
-IGluIHJkbWFfYWhfZmluZF90eXBlDQo+ID4NCj4gPiBGcm9tOiBEb24gSGlhdHQgPGRvbi5oaWF0
-dEBpbnRlbC5jb20+DQo+ID4NCj4gPiBpV2FycCBkZXZpY2VzIGRvIG5vdCBzdXBwb3J0IHRoZSBj
-cmVhdGlvbiBvZiBhZGRyZXNzIGhhbmRsZXMgc28gcmV0dXJuDQo+ID4gQUhfQVRUUl9UWVBFX1VO
-REVGSU5FRCBmb3IgYWxsIGlXYXJwIGRldmljZXMuDQo+ID4NCj4gPiBXaGlsZSB3ZSBhcmUgaGVy
-ZSByZWR1Y2UgdGhlIHNpemUgb2YgcG9ydF9udW0gdG8gdTggYW5kIGFkZCBhIGNvbW1lbnQuDQo+
-ID4NCj4gPiBGaXhlczogNDRjNTg0ODdkNTFhICgiSUIvY29yZTogRGVmaW5lICdpYicgYW5kICdy
-b2NlJyByZG1hX2FoX2F0dHINCj4gPiB0eXBlcyIpDQo+ID4gUmVwb3J0ZWQtYnk6IFBhcmF2IFBh
-bmRpdCA8cGFyYXZAbWVsbGFub3guY29tPg0KPiA+IENDOiBTZWFuIEhlZnR5IDxzZWFuLmhlZnR5
-QGludGVsLmNvbT4NCj4gPiBSZXZpZXdlZC1ieTogSXJhIFdlaW55IDxpcmEud2VpbnlAaW50ZWwu
-Y29tPg0KPiA+IFJldmlld2VkLWJ5OiBTaGlyYXogU2FsZWVtIDxzaGlyYXouc2FsZWVtQGludGVs
-LmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBEb24gSGlhdHQgPGRvbi5oaWF0dEBpbnRlbC5jb20+
-DQo+ID4gU2lnbmVkLW9mZi1ieTogRGVubmlzIERhbGVzc2FuZHJvIDxkZW5uaXMuZGFsZXNzYW5k
-cm9AaW50ZWwuY29tPg0KPiA+DQo+ID4gLS0tDQo+ID4gQ2hhbmdlcyBzaW5jZSB2MTogQWRkIFNo
-aXJheiBSQiB0YWcsIG1vdmUgdW5kZWZpbmVkIHRvIGJlIDAgbm90IDMNCj4gPiAtLS0NCj4gPiAg
-aW5jbHVkZS9yZG1hL2liX3ZlcmJzLmggfCAgIDEyICsrKysrKysrKystLQ0KPiA+ICAxIGZpbGVz
-IGNoYW5nZWQsIDEwIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+ID4NCj4gPiBkaWZm
-IC0tZ2l0IGEvaW5jbHVkZS9yZG1hL2liX3ZlcmJzLmggYi9pbmNsdWRlL3JkbWEvaWJfdmVyYnMu
-aCBpbmRleA0KPiA+IDVlMzJmZTcuLjBlYjMwNzQgMTAwNjQ0DQo+ID4gLS0tIGEvaW5jbHVkZS9y
-ZG1hL2liX3ZlcmJzLmgNCj4gPiArKysgYi9pbmNsdWRlL3JkbWEvaWJfdmVyYnMuaA0KPiA+IEBA
-IC04NzgsNiArODc4LDcgQEAgc3RydWN0IGliX21yX3N0YXR1cyB7ICBfX2F0dHJpYnV0ZV9jb25z
-dF9fIGVudW0NCj4gPiBpYl9yYXRlIG11bHRfdG9faWJfcmF0ZShpbnQgbXVsdCk7DQo+ID4NCj4g
-PiAgZW51bSByZG1hX2FoX2F0dHJfdHlwZSB7DQo+ID4gKwlSRE1BX0FIX0FUVFJfVFlQRV9VTkRF
-RklORUQsDQo+ID4gIAlSRE1BX0FIX0FUVFJfVFlQRV9JQiwNCj4gPiAgCVJETUFfQUhfQVRUUl9U
-WVBFX1JPQ0UsDQo+ID4gIAlSRE1BX0FIX0FUVFJfVFlQRV9PUEEsDQo+ID4gQEAgLTM3ODksMTIg
-KzM3OTAsMTkgQEAgc3RhdGljIGlubGluZSB2b2lkIHJkbWFfYWhfc2V0X2dyaChzdHJ1Y3QNCj4g
-PiByZG1hX2FoX2F0dHIgKmF0dHIsDQo+ID4gIAlncmgtPnRyYWZmaWNfY2xhc3MgPSB0cmFmZmlj
-X2NsYXNzOw0KPiA+ICB9DQo+ID4NCj4gPiAtLypHZXQgQUggdHlwZSAqLw0KPiA+ICsvKioNCj4g
-PiArICogcmRtYV9haF9maW5kX3R5cGUgLSBSZXR1cm4gYWRkcmVzcyBoYW5kbGUgdHlwZS4NCj4g
-PiArICoNCj4gPiArICogQGRldjogRGV2aWNlIHRvIGJlIGNoZWNrZWQNCj4gPiArICogQHBvcnRf
-bnVtOiBQb3J0IG51bWJlcg0KPiA+ICsgKi8NCj4gPiAgc3RhdGljIGlubGluZSBlbnVtIHJkbWFf
-YWhfYXR0cl90eXBlIHJkbWFfYWhfZmluZF90eXBlKHN0cnVjdA0KPiA+IGliX2RldmljZSAqZGV2
-LA0KPiA+IC0JCQkJCQkgICAgICAgdTMyIHBvcnRfbnVtKQ0KPiA+ICsJCQkJCQkgICAgICAgdTgg
-cG9ydF9udW0pDQo+ID4gIHsNCj4gPiAgCWlmIChyZG1hX3Byb3RvY29sX3JvY2UoZGV2LCBwb3J0
-X251bSkpDQo+ID4gIAkJcmV0dXJuIFJETUFfQUhfQVRUUl9UWVBFX1JPQ0U7DQo+ID4gKwllbHNl
-IGlmIChyZG1hX3Byb3RvY29sX2l3YXJwKGRldiwgcG9ydF9udW0pKQ0KPiA+ICsJCXJldHVybiBS
-RE1BX0FIX0FUVFJfVFlQRV9VTkRFRklORUQ7DQo+ID4gIAllbHNlIGlmICgocmRtYV9wcm90b2Nv
-bF9pYihkZXYsIHBvcnRfbnVtKSkgJiYNCj4gPiAgCQkgKHJkbWFfY2FwX29wYV9haChkZXYsIHBv
-cnRfbnVtKSkpDQo+ID4gIAkJcmV0dXJuIFJETUFfQUhfQVRUUl9UWVBFX09QQTsNCj4gWW91IG5l
-ZWQgYSBjYXNlIHRvIHJldHVybiBBSF9UWVBFX0lCLg0KPiANCkkgYW0gc29ycnksIGRpZG4ndCBu
-b3RpY2UgdGhlIGVsc2UgcGFydCB0aGF0IHJldHVybnMgQUhfVFlQRV9JQi4NCg0KPiANCj4gEyAg
-7Lm7HCAmIH4gJiAYICArLSAg3bYXICB3ICDLmyAgIG0gYiAga3ZmICAgXm4gciAgIHogGiAgaCAg
-ICAmICAeIEcgICBoIAMoIOmajiDdomoiICAaIBttICAgICB6IN6WICAgZg0KPiBoICAgfiBtDQo=
+The flags field the enum is used with comes directly from the uapi
+so it belongs in the uapi headers for clarity and so userspace can
+use it.
+
+Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/cq.c      | 4 ++--
+ drivers/infiniband/hw/mlx5/cq.c      | 2 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 4 ++--
+ include/rdma/ib_verbs.h              | 5 -----
+ include/uapi/rdma/ib_user_verbs.h    | 7 ++++++-
+ 5 files changed, 11 insertions(+), 11 deletions(-)
+
+This is the last copied enum in libibverbs's kern-abi.h
+
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index bf4f14a1b4fcbe..9a566ee3ceffef 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -170,7 +170,7 @@ static int mlx4_ib_get_cq_umem(struct mlx4_ib_dev *dev, struct ib_ucontext *cont
+ 	return err;
+ }
+ 
+-#define CQ_CREATE_FLAGS_SUPPORTED IB_CQ_FLAGS_TIMESTAMP_COMPLETION
++#define CQ_CREATE_FLAGS_SUPPORTED IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION
+ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
+ 				const struct ib_cq_init_attr *attr,
+ 				struct ib_ucontext *context,
+@@ -246,7 +246,7 @@ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
+ 
+ 	err = mlx4_cq_alloc(dev->dev, entries, &cq->buf.mtt, uar,
+ 			    cq->db.dma, &cq->mcq, vector, 0,
+-			    !!(cq->create_flags & IB_CQ_FLAGS_TIMESTAMP_COMPLETION));
++			    !!(cq->create_flags & IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION));
+ 	if (err)
+ 		goto err_dbmap;
+ 
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index 18705cbcdc8c17..5b974fb97611bc 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -1010,7 +1010,7 @@ struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
+ 	MLX5_SET(cqc, cqc, uar_page, index);
+ 	MLX5_SET(cqc, cqc, c_eqn, eqn);
+ 	MLX5_SET64(cqc, cqc, dbr_addr, cq->db.dma);
+-	if (cq->create_flags & IB_CQ_FLAGS_IGNORE_OVERRUN)
++	if (cq->create_flags & IB_UVERBS_CQ_FLAGS_IGNORE_OVERRUN)
+ 		MLX5_SET(cqc, cqc, oi, 1);
+ 
+ 	err = mlx5_core_create_cq(dev->mdev, &cq->mcq, cqb, inlen);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 69a80f7512f094..1393851299738d 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1123,8 +1123,8 @@ static inline u32 check_cq_create_flags(u32 flags)
+ 	 * It returns non-zero value for unsupported CQ
+ 	 * create flags, otherwise it returns zero.
+ 	 */
+-	return (flags & ~(IB_CQ_FLAGS_IGNORE_OVERRUN |
+-			  IB_CQ_FLAGS_TIMESTAMP_COMPLETION));
++	return (flags & ~(IB_UVERBS_CQ_FLAGS_IGNORE_OVERRUN |
++			  IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION));
+ }
+ 
+ static inline int verify_assign_uidx(u8 cqe_version, u32 cmd_uidx,
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 5e32fe781ca30d..0b29425868403b 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -300,11 +300,6 @@ struct ib_tm_caps {
+ 	u32 max_sge;
+ };
+ 
+-enum ib_cq_creation_flags {
+-	IB_CQ_FLAGS_TIMESTAMP_COMPLETION   = 1 << 0,
+-	IB_CQ_FLAGS_IGNORE_OVERRUN	   = 1 << 1,
+-};
+-
+ struct ib_cq_init_attr {
+ 	unsigned int	cqe;
+ 	int		comp_vector;
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index fd035641cf41ce..04d0e67b13120c 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -402,13 +402,18 @@ struct ib_uverbs_create_cq {
+ 	__u64 driver_data[0];
+ };
+ 
++enum ib_uverbs_ex_create_cq_flags {
++	IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION = 1 << 0,
++	IB_UVERBS_CQ_FLAGS_IGNORE_OVERRUN = 1 << 1,
++};
++
+ struct ib_uverbs_ex_create_cq {
+ 	__u64 user_handle;
+ 	__u32 cqe;
+ 	__u32 comp_vector;
+ 	__s32 comp_channel;
+ 	__u32 comp_mask;
+-	__u32 flags;
++	__u32 flags;  /* bitmask of ib_uverbs_ex_create_cq_flags */
+ 	__u32 reserved;
+ };
+ 
+-- 
+2.15.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
