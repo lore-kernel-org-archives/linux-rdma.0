@@ -1,38 +1,122 @@
 From: Ursula Braun <ubraun@linux.vnet.ibm.com>
-Subject: [PATCH net-next 0/5] net/smc: fixes 2018-01-26
-Date: Fri, 26 Jan 2018 09:28:45 +0100
-Message-ID: <20180126082850.20655-1-ubraun@linux.vnet.ibm.com>
+Subject: [PATCH net-next 1/5] net/smc: handle device, port, and QP error events
+Date: Fri, 26 Jan 2018 09:28:46 +0100
+Message-ID: <20180126082850.20655-2-ubraun@linux.vnet.ibm.com>
+References: <20180126082850.20655-1-ubraun@linux.vnet.ibm.com>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180126082850.20655-1-ubraun@linux.vnet.ibm.com>
 Sender: netdev-owner@vger.kernel.org
 To: davem@davemloft.net
 Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, jwi@linux.vnet.ibm.com, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.vnet.ibm.com, ubraun@linux.vnet.ibm.com
 List-Id: linux-rdma@vger.kernel.org
 
-Dave,
+RoCE device changes cause an IB event, processed in the global event
+handler for the ROCE device. Problems for a certain Queue Pair cause a QP
+event, processed in the QP event handler for this QP.
+Among those events are port errors and other fatal device errors. All
+link groups using such a port or device must be terminated in those cases.
 
-here are some more smc patches. The first 4 patches take care about
-different aspects of smc socket closing, the 5th patch improves
-coding style.
+Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
+---
+ net/smc/smc_ib.c | 38 +++++++++++++++++++++++++-------------
+ 1 file changed, 25 insertions(+), 13 deletions(-)
 
-Thanks, Ursula
-
-Gustavo A. R. Silva (1):
-  smc: return booleans instead of integers
-
-Ursula Braun (4):
-  net/smc: handle device, port, and QP error events
-  net/smc: smc_poll improvements
-  net/smc: replace sock_put worker by socket refcounting
-  net/smc: release clcsock from tcp_listen_worker
-
- net/smc/af_smc.c    | 152 ++++++++++++++++++++++++++++++----------------------
- net/smc/smc.h       |   5 +-
- net/smc/smc_cdc.c   |  20 +++----
- net/smc/smc_close.c |  96 +++++++++++++++++++++------------
- net/smc/smc_close.h |   1 -
- net/smc/smc_core.c  |   6 +--
- net/smc/smc_ib.c    |  38 ++++++++-----
- 7 files changed, 191 insertions(+), 127 deletions(-)
-
+diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
+index 90f1a7f9085c..2a8957bd6d38 100644
+--- a/net/smc/smc_ib.c
++++ b/net/smc/smc_ib.c
+@@ -141,6 +141,17 @@ int smc_ib_ready_link(struct smc_link *lnk)
+ 	return rc;
+ }
+ 
++static void smc_ib_port_terminate(struct smc_ib_device *smcibdev, u8 ibport)
++{
++	struct smc_link_group *lgr, *l;
++
++	list_for_each_entry_safe(lgr, l, &smc_lgr_list.list, list) {
++		if (lgr->lnk[SMC_SINGLE_LINK].smcibdev == smcibdev &&
++		    lgr->lnk[SMC_SINGLE_LINK].ibport == ibport)
++			smc_lgr_terminate(lgr);
++	}
++}
++
+ /* process context wrapper for might_sleep smc_ib_remember_port_attr */
+ static void smc_ib_port_event_work(struct work_struct *work)
+ {
+@@ -151,6 +162,8 @@ static void smc_ib_port_event_work(struct work_struct *work)
+ 	for_each_set_bit(port_idx, &smcibdev->port_event_mask, SMC_MAX_PORTS) {
+ 		smc_ib_remember_port_attr(smcibdev, port_idx + 1);
+ 		clear_bit(port_idx, &smcibdev->port_event_mask);
++		if (!smc_ib_port_active(smcibdev, port_idx + 1))
++			smc_ib_port_terminate(smcibdev, port_idx + 1);
+ 	}
+ }
+ 
+@@ -165,15 +178,7 @@ static void smc_ib_global_event_handler(struct ib_event_handler *handler,
+ 
+ 	switch (ibevent->event) {
+ 	case IB_EVENT_PORT_ERR:
+-		port_idx = ibevent->element.port_num - 1;
+-		set_bit(port_idx, &smcibdev->port_event_mask);
+-		schedule_work(&smcibdev->port_event_work);
+-		/* fall through */
+ 	case IB_EVENT_DEVICE_FATAL:
+-		/* tbd in follow-on patch:
+-		 * abnormal close of corresponding connections
+-		 */
+-		break;
+ 	case IB_EVENT_PORT_ACTIVE:
+ 		port_idx = ibevent->element.port_num - 1;
+ 		set_bit(port_idx, &smcibdev->port_event_mask);
+@@ -186,7 +191,8 @@ static void smc_ib_global_event_handler(struct ib_event_handler *handler,
+ 
+ void smc_ib_dealloc_protection_domain(struct smc_link *lnk)
+ {
+-	ib_dealloc_pd(lnk->roce_pd);
++	if (lnk->roce_pd)
++		ib_dealloc_pd(lnk->roce_pd);
+ 	lnk->roce_pd = NULL;
+ }
+ 
+@@ -203,14 +209,18 @@ int smc_ib_create_protection_domain(struct smc_link *lnk)
+ 
+ static void smc_ib_qp_event_handler(struct ib_event *ibevent, void *priv)
+ {
++	struct smc_ib_device *smcibdev =
++		(struct smc_ib_device *)ibevent->device;
++	u8 port_idx;
++
+ 	switch (ibevent->event) {
+ 	case IB_EVENT_DEVICE_FATAL:
+ 	case IB_EVENT_GID_CHANGE:
+ 	case IB_EVENT_PORT_ERR:
+ 	case IB_EVENT_QP_ACCESS_ERR:
+-		/* tbd in follow-on patch:
+-		 * abnormal close of corresponding connections
+-		 */
++		port_idx = ibevent->element.port_num - 1;
++		set_bit(port_idx, &smcibdev->port_event_mask);
++		schedule_work(&smcibdev->port_event_work);
+ 		break;
+ 	default:
+ 		break;
+@@ -219,7 +229,8 @@ static void smc_ib_qp_event_handler(struct ib_event *ibevent, void *priv)
+ 
+ void smc_ib_destroy_queue_pair(struct smc_link *lnk)
+ {
+-	ib_destroy_qp(lnk->roce_qp);
++	if (lnk->roce_qp)
++		ib_destroy_qp(lnk->roce_qp);
+ 	lnk->roce_qp = NULL;
+ }
+ 
+@@ -462,6 +473,7 @@ static void smc_ib_cleanup_per_ibdev(struct smc_ib_device *smcibdev)
+ {
+ 	if (!smcibdev->initialized)
+ 		return;
++	smcibdev->initialized = 0;
+ 	smc_wr_remove_dev(smcibdev);
+ 	ib_unregister_event_handler(&smcibdev->event_handler);
+ 	ib_destroy_cq(smcibdev->roce_cq_recv);
 -- 
 2.13.5
