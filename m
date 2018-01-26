@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next v2 04/16] IB/hfi1: Remove blind constants from 16B
- update
-Date: Fri, 26 Jan 2018 13:29:20 -0800
-Message-ID: <20180126212918.12097.91568.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next v2 01/16] IB/hfi1: Do not override given pcie_pset
+ value
+Date: Fri, 26 Jan 2018 13:28:57 -0800
+Message-ID: <20180126212853.12097.71709.stgit@scvm10.sc.intel.com>
 References: <20180126211126.12097.47410.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,152 +11,78 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180126211126.12097.47410.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bartlomiej Dudek <bartlomiej.dudek-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Patel Jay P <jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Bartlomiej Dudek <bartlomiej.dudek-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-These values were introduced as part of the 16B code to
-account for the varying size of the LRH between the differing
-packet formats.
+During PCIe Gen 3 transistion, pcie_pset is read and might be overridden
+to a default value(i.e. 255) in do_pcie_gen3_transition() routine.
 
-Replace the blind constants with defines based on FIELD_SIZEOF()
-calls.
+If the pcie_pset value is overridden then this new value will be used
+during initialization of next adapter on a different card.
 
-Fixes: 5b6cabb0db77 ("IB/hfi1: Add 16B RC/UC support")
-Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Introducing a new local variable to avoid modification of pcie_pset
+
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Bartlomiej Dudek <bartlomiej.dudek-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Patel Jay P <jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/driver.c |    6 ++++--
- drivers/infiniband/hw/hfi1/ruc.c    |   13 ++++++-------
- drivers/infiniband/hw/hfi1/ud.c     |   15 ++++++++++-----
- drivers/infiniband/hw/hfi1/verbs.h  |    5 +++++
- 4 files changed, 25 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/hfi1/pcie.c |   23 ++++++++++++-----------
+ 1 files changed, 12 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index 067b29f..e6a318c 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -1492,8 +1492,10 @@ static int hfi1_setup_bypass_packet(struct hfi1_packet *packet)
- 
- 	/* Query commonly used fields from packet header */
- 	packet->opcode = ib_bth_get_opcode(packet->ohdr);
--	packet->hlen = hdr_len_by_opcode[packet->opcode] + 8 + grh_len;
--	packet->payload = packet->ebuf + packet->hlen - (4 * sizeof(u32));
-+	/* hdr_len_by_opcode already has an IB LRH factored in */
-+	packet->hlen = hdr_len_by_opcode[packet->opcode] +
-+		(LRH_16B_BYTES - LRH_9B_BYTES) + grh_len;
-+	packet->payload = packet->ebuf + packet->hlen - LRH_16B_BYTES;
- 	packet->slid = hfi1_16B_get_slid(packet->hdr);
- 	packet->dlid = hfi1_16B_get_dlid(packet->hdr);
- 	if (unlikely(hfi1_is_16B_mcast(packet->dlid)))
-diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
-index 0cced9a..1033068 100644
---- a/drivers/infiniband/hw/hfi1/ruc.c
-+++ b/drivers/infiniband/hw/hfi1/ruc.c
-@@ -769,8 +769,6 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
- 		struct ib_grh *grh;
- 		struct ib_global_route *grd =
- 			rdma_ah_retrieve_grh(&qp->remote_ah_attr);
--		int hdrwords;
--
- 		/*
- 		 * Ensure OPA GIDs are transformed to IB gids
- 		 * before creating the GRH.
-@@ -779,9 +777,10 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
- 			grd->sgid_index = 0;
- 		grh = &ps->s_txreq->phdr.hdr.opah.u.l.grh;
- 		l4 = OPA_16B_L4_IB_GLOBAL;
--		hdrwords = ps->s_txreq->hdr_dwords - 4;
--		ps->s_txreq->hdr_dwords += hfi1_make_grh(ibp, grh, grd,
--							 hdrwords, nwords);
-+		ps->s_txreq->hdr_dwords +=
-+			hfi1_make_grh(ibp, grh, grd,
-+				      ps->s_txreq->hdr_dwords - LRH_16B_DWORDS,
-+				      nwords);
- 		middle = 0;
+diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
+index 8c7e7a6..83d66e8 100644
+--- a/drivers/infiniband/hw/hfi1/pcie.c
++++ b/drivers/infiniband/hw/hfi1/pcie.c
+@@ -1034,6 +1034,7 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+ 	int do_retry, retry_count = 0;
+ 	int intnum = 0;
+ 	uint default_pset;
++	uint pset = pcie_pset;
+ 	u16 target_vector, target_speed;
+ 	u16 lnkctl2, vendor;
+ 	u8 div;
+@@ -1201,16 +1202,16 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+ 	 *
+ 	 * Set Gen3EqPsetReqVec, leave other fields 0.
+ 	 */
+-	if (pcie_pset == UNSET_PSET)
+-		pcie_pset = default_pset;
+-	if (pcie_pset > 10) {	/* valid range is 0-10, inclusive */
++	if (pset == UNSET_PSET)
++		pset = default_pset;
++	if (pset > 10) {	/* valid range is 0-10, inclusive */
+ 		dd_dev_err(dd, "%s: Invalid Eq Pset %u, setting to %d\n",
+-			   __func__, pcie_pset, default_pset);
+-		pcie_pset = default_pset;
++			   __func__, pset, default_pset);
++		pset = default_pset;
  	}
+-	dd_dev_info(dd, "%s: using EQ Pset %u\n", __func__, pcie_pset);
++	dd_dev_info(dd, "%s: using EQ Pset %u\n", __func__, pset);
+ 	pci_write_config_dword(dd->pcidev, PCIE_CFG_REG_PL106,
+-			       ((1 << pcie_pset) <<
++			       ((1 << pset) <<
+ 			PCIE_CFG_REG_PL106_GEN3_EQ_PSET_REQ_VEC_SHIFT) |
+ 			PCIE_CFG_REG_PL106_GEN3_EQ_EVAL2MS_DISABLE_SMASK |
+ 			PCIE_CFG_REG_PL106_GEN3_EQ_PHASE23_EXIT_MODE_SMASK);
+@@ -1240,10 +1241,10 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+ 		/* apply static CTLE tunings */
+ 		u8 pcie_dc, pcie_lf, pcie_hf, pcie_bw;
  
-@@ -835,13 +834,13 @@ static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
- 
- 	if (unlikely(rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)) {
- 		struct ib_grh *grh = &ps->s_txreq->phdr.hdr.ibh.u.l.grh;
--		int hdrwords = ps->s_txreq->hdr_dwords - 2;
- 
- 		lrh0 = HFI1_LRH_GRH;
- 		ps->s_txreq->hdr_dwords +=
- 			hfi1_make_grh(ibp, grh,
- 				      rdma_ah_read_grh(&qp->remote_ah_attr),
--				      hdrwords, nwords);
-+				      ps->s_txreq->hdr_dwords - LRH_9B_DWORDS,
-+				      nwords);
- 		middle = 0;
- 	}
- 	lrh0 |= (priv->s_sc & 0xf) << 12 |
-diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
-index 6b5cd3a..f1ba510 100644
---- a/drivers/infiniband/hw/hfi1/ud.c
-+++ b/drivers/infiniband/hw/hfi1/ud.c
-@@ -348,7 +348,8 @@ void hfi1_make_ud_req_9B(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 		grh = &ps->s_txreq->phdr.hdr.ibh.u.l.grh;
- 		ps->s_txreq->hdr_dwords +=
- 			hfi1_make_grh(ibp, grh, rdma_ah_read_grh(ah_attr),
--				      ps->s_txreq->hdr_dwords - 2, nwords);
-+				      ps->s_txreq->hdr_dwords - LRH_9B_DWORDS,
-+				      nwords);
- 		lrh0 = HFI1_LRH_GRH;
- 		ohdr = &ps->s_txreq->phdr.hdr.ibh.u.l.oth;
- 	} else {
-@@ -428,8 +429,10 @@ void hfi1_make_ud_req_16B(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 			grd->sgid_index = 0;
- 		}
- 		grh = &ps->s_txreq->phdr.hdr.opah.u.l.grh;
--		ps->s_txreq->hdr_dwords += hfi1_make_grh(ibp, grh, grd,
--					ps->s_txreq->hdr_dwords - 4, nwords);
-+		ps->s_txreq->hdr_dwords += hfi1_make_grh(
-+			ibp, grh, grd,
-+			ps->s_txreq->hdr_dwords - LRH_16B_DWORDS,
-+			nwords);
- 		ohdr = &ps->s_txreq->phdr.hdr.opah.u.l.oth;
- 		l4 = OPA_16B_L4_IB_GLOBAL;
- 	} else {
-@@ -648,7 +651,8 @@ void return_cnp_16B(struct hfi1_ibport *ibp, struct rvt_qp *qp,
- 		struct ib_grh *grh = &hdr.u.l.grh;
- 
- 		grh->version_tclass_flow = old_grh->version_tclass_flow;
--		grh->paylen = cpu_to_be16((hwords - 4 + nwords) << 2);
-+		grh->paylen = cpu_to_be16(
-+			(hwords - LRH_16B_DWORDS + nwords) << 2);
- 		grh->hop_limit = 0xff;
- 		grh->sgid = old_grh->dgid;
- 		grh->dgid = old_grh->sgid;
-@@ -702,7 +706,8 @@ void return_cnp(struct hfi1_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
- 		struct ib_grh *grh = &hdr.u.l.grh;
- 
- 		grh->version_tclass_flow = old_grh->version_tclass_flow;
--		grh->paylen = cpu_to_be16((hwords - 2 + SIZE_OF_CRC) << 2);
-+		grh->paylen = cpu_to_be16(
-+			(hwords - LRH_9B_DWORDS + SIZE_OF_CRC) << 2);
- 		grh->hop_limit = 0xff;
- 		grh->sgid = old_grh->dgid;
- 		grh->dgid = old_grh->sgid;
-diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
-index c2aeb32..26c1ed6 100644
---- a/drivers/infiniband/hw/hfi1/verbs.h
-+++ b/drivers/infiniband/hw/hfi1/verbs.h
-@@ -105,6 +105,11 @@ enum {
- 	HFI1_HAS_GRH = (1 << 0),
- };
- 
-+#define LRH_16B_BYTES (FIELD_SIZEOF(struct hfi1_16b_header, lrh))
-+#define LRH_16B_DWORDS (LRH_16B_BYTES / sizeof(u32))
-+#define LRH_9B_BYTES (FIELD_SIZEOF(struct ib_header, lrh))
-+#define LRH_9B_DWORDS (LRH_9B_BYTES / sizeof(u32))
-+
- struct hfi1_16b_header {
- 	u32 lrh[4];
- 	union {
+-		pcie_dc = ctle_tunings[pcie_pset][0];
+-		pcie_lf = ctle_tunings[pcie_pset][1];
+-		pcie_hf = ctle_tunings[pcie_pset][2];
+-		pcie_bw = ctle_tunings[pcie_pset][3];
++		pcie_dc = ctle_tunings[pset][0];
++		pcie_lf = ctle_tunings[pset][1];
++		pcie_hf = ctle_tunings[pset][2];
++		pcie_bw = ctle_tunings[pset][3];
+ 		write_gasket_interrupt(dd, intnum++, 0x0026, 0x0200 | pcie_dc);
+ 		write_gasket_interrupt(dd, intnum++, 0x0026, 0x0100 | pcie_lf);
+ 		write_gasket_interrupt(dd, intnum++, 0x0026, 0x0000 | pcie_hf);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
