@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next v2 13/16] IB/hfi1: Optimize process_receive_ib()
-Date: Fri, 26 Jan 2018 13:30:30 -0800
-Message-ID: <20180126213027.12097.25452.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next v2 14/16] IB/hfi1: Re-order IRQ cleanup to address
+ driver cleanup race
+Date: Fri, 26 Jan 2018 13:30:38 -0800
+Message-ID: <20180126213035.12097.94555.stgit@scvm10.sc.intel.com>
 References: <20180126211126.12097.47410.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,118 +11,149 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180126211126.12097.47410.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Patel Jay P <jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The arguments for trace_hfi1_rcvhdr() get computed every
-time in the hot path regardless of the whether the trace
-is on or off. This is seen to be costly with a profile.
-The handling of fault inject isolates the verbs device for
-all packets regardless of the presence of a RHF_DC_ERR error.
+The pci_request_irq() interfaces always adds the IRQF_SHARED bit to
+all IRQ requests.
 
-Fix the first by computing trace_hfi1_rcvhdr() arguments within
-the trace itself, so that when the trace is off, the argument
-data isn't computed. Fix the second by moving the error check to
-handle_eflags() when an RHF error occurs and by testing for
-RHF_DC_ERR before executing the reset of handle_eflags().
+When the kernel is built with CONFIG_DEBUG_SHIRQ config flag, if the
+IRQF_SHARED bit is set, a call to the IRQ handler is made from the
+__free_irq() function. This is testing a race condition between the
+IRQ cleanup and an IRQ racing the cleanup.  The HFI driver should be
+able to handle this race, but does not.
 
-Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This race can cause traces that start with this footprint:
+
+BUG: unable to handle kernel NULL pointer dereference at   (null)
+Call Trace:
+ <hfi1 irq handler>
+ ...
+ __free_irq+0x1b3/0x2d0
+ free_irq+0x35/0x70
+ pci_free_irq+0x1c/0x30
+ clean_up_interrupts+0x53/0xf0 [hfi1]
+ hfi1_start_cleanup+0x122/0x190 [hfi1]
+ postinit_cleanup+0x1d/0x280 [hfi1]
+ remove_one+0x233/0x250 [hfi1]
+ pci_device_remove+0x39/0xc0
+
+Export IRQ cleanup function so it can be called from other modules.
+
+Using the exported cleanup function:
+
+  Re-order the driver cleanup code to clean up IRQ resources before
+  other resources, eliminating the race.
+
+  Re-order error path for init so that the race does not occur.
+
+Reduce severity on spurious error message for SDMA IRQs to info.
+
+Reviewed-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Patel Jay P <jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/driver.c   |   21 +++++++--------------
- drivers/infiniband/hw/hfi1/trace_rx.h |   28 ++++++++++------------------
- 2 files changed, 17 insertions(+), 32 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c |   18 ++++++++++++------
+ drivers/infiniband/hw/hfi1/hfi.h  |    1 +
+ drivers/infiniband/hw/hfi1/init.c |    4 +++-
+ 3 files changed, 16 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index ea09c56..c7e6b67 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -256,7 +256,12 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
- 	u32 mlid_base;
- 	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
- 	struct hfi1_devdata *dd = ppd->dd;
--	struct rvt_dev_info *rdi = &dd->verbs_dev.rdi;
-+	struct hfi1_ibdev *verbs_dev = &dd->verbs_dev;
-+	struct rvt_dev_info *rdi = &verbs_dev->rdi;
-+
-+	if ((packet->rhf & RHF_DC_ERR) &&
-+	    hfi1_dbg_fault_suppress_err(verbs_dev))
-+		return;
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 793e8b7..cb9095d 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -8319,8 +8319,8 @@ static irqreturn_t sdma_interrupt(int irq, void *data)
+ 		/* handle the interrupt(s) */
+ 		sdma_engine_interrupt(sde, status);
+ 	} else {
+-		dd_dev_err_ratelimited(dd, "SDMA engine %u interrupt, but no status bits set\n",
+-				       sde->this_idx);
++		dd_dev_info_ratelimited(dd, "SDMA engine %u interrupt, but no status bits set\n",
++					sde->this_idx);
+ 	}
+ 	return IRQ_HANDLED;
+ }
+@@ -13031,7 +13031,14 @@ static void disable_intx(struct pci_dev *pdev)
+ 	pci_intx(pdev, 0);
+ }
  
- 	if (packet->rhf & (RHF_VCRC_ERR | RHF_ICRC_ERR))
- 		return;
-@@ -1554,19 +1559,7 @@ int process_receive_ib(struct hfi1_packet *packet)
- 	if (hfi1_setup_9B_packet(packet))
- 		return RHF_RCV_CONTINUE;
+-static void clean_up_interrupts(struct hfi1_devdata *dd)
++/**
++ * hfi1_clean_up_interrupts() - Free all IRQ resources
++ * @dd: valid device data data structure
++ *
++ * Free the MSI or INTx IRQs and assoicated PCI resources,
++ * if they have been allocated.
++ */
++void hfi1_clean_up_interrupts(struct hfi1_devdata *dd)
+ {
+ 	int i;
  
--	trace_hfi1_rcvhdr(packet->rcd->ppd->dd,
--			  packet->rcd->ctxt,
--			  rhf_err_flags(packet->rhf),
--			  RHF_RCV_TYPE_IB,
--			  packet->hlen,
--			  packet->tlen,
--			  packet->updegr,
--			  rhf_egr_index(packet->rhf));
--
--	if (unlikely(
--		 (hfi1_dbg_fault_suppress_err(&packet->rcd->dd->verbs_dev) &&
--		 (packet->rhf & RHF_DC_ERR))))
--		return RHF_RCV_CONTINUE;
-+	trace_hfi1_rcvhdr(packet, RHF_RCV_TYPE_IB);
+@@ -13392,7 +13399,7 @@ static int set_up_interrupts(struct hfi1_devdata *dd)
+ 	return 0;
  
- 	if (unlikely(rhf_err_flags(packet->rhf))) {
- 		handle_eflags(packet);
-diff --git a/drivers/infiniband/hw/hfi1/trace_rx.h b/drivers/infiniband/hw/hfi1/trace_rx.h
-index 4d487fe..f768415 100644
---- a/drivers/infiniband/hw/hfi1/trace_rx.h
-+++ b/drivers/infiniband/hw/hfi1/trace_rx.h
-@@ -63,17 +63,9 @@
- #define TRACE_SYSTEM hfi1_rx
+ fail:
+-	clean_up_interrupts(dd);
++	hfi1_clean_up_interrupts(dd);
+ 	return ret;
+ }
  
- TRACE_EVENT(hfi1_rcvhdr,
--	    TP_PROTO(struct hfi1_devdata *dd,
--		     u32 ctxt,
--		     u64 eflags,
--		     u32 etype,
--		     u32 hlen,
--		     u32 tlen,
--		     u32 updegr,
--		     u32 etail
--		    ),
--	    TP_ARGS(dd, ctxt, eflags, etype, hlen, tlen, updegr, etail),
--	    TP_STRUCT__entry(DD_DEV_ENTRY(dd)
-+	    TP_PROTO(struct hfi1_packet *packet, u32 etype),
-+	    TP_ARGS(packet, etype),
-+	    TP_STRUCT__entry(DD_DEV_ENTRY(packet->rcd->dd)
- 			     __field(u64, eflags)
- 			     __field(u32, ctxt)
- 			     __field(u32, etype)
-@@ -82,14 +74,14 @@
- 			     __field(u32, updegr)
- 			     __field(u32, etail)
- 			     ),
--	     TP_fast_assign(DD_DEV_ASSIGN(dd);
--			    __entry->eflags = eflags;
--			    __entry->ctxt = ctxt;
-+	     TP_fast_assign(DD_DEV_ASSIGN(packet->rcd->dd);
-+			    __entry->eflags = rhf_err_flags(packet->rhf);
-+			    __entry->ctxt = packet->rcd->ctxt;
- 			    __entry->etype = etype;
--			    __entry->hlen = hlen;
--			    __entry->tlen = tlen;
--			    __entry->updegr = updegr;
--			    __entry->etail = etail;
-+			    __entry->hlen = packet->hlen;
-+			    __entry->tlen = packet->tlen;
-+			    __entry->updegr = packet->updegr;
-+			    __entry->etail = rhf_egr_index(packet->rhf);
- 			    ),
- 	     TP_printk(
- 		"[%s] ctxt %d eflags 0x%llx etype %d,%s hlen %d tlen %d updegr %d etail %d",
+@@ -14819,7 +14826,6 @@ void hfi1_start_cleanup(struct hfi1_devdata *dd)
+ 	aspm_exit(dd);
+ 	free_cntrs(dd);
+ 	free_rcverr(dd);
+-	clean_up_interrupts(dd);
+ 	finish_chip_resources(dd);
+ }
+ 
+@@ -15275,7 +15281,7 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
+ bail_free_cntrs:
+ 	free_cntrs(dd);
+ bail_clear_intr:
+-	clean_up_interrupts(dd);
++	hfi1_clean_up_interrupts(dd);
+ bail_cleanup:
+ 	hfi1_pcie_ddcleanup(dd);
+ bail_free:
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index d451299..90bc8c7 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -1960,6 +1960,7 @@ int hfi1_create_port_files(struct ib_device *ibdev, u8 port_num,
+ int qsfp_dump(struct hfi1_pportdata *ppd, char *buf, int len);
+ 
+ int hfi1_pcie_init(struct pci_dev *pdev, const struct pci_device_id *ent);
++void hfi1_clean_up_interrupts(struct hfi1_devdata *dd);
+ void hfi1_pcie_cleanup(struct pci_dev *pdev);
+ int hfi1_pcie_ddinit(struct hfi1_devdata *dd, struct pci_dev *pdev);
+ void hfi1_pcie_ddcleanup(struct hfi1_devdata *);
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index d89cd86..8c4f040 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -1067,8 +1067,9 @@ static void shutdown_device(struct hfi1_devdata *dd)
+ 	}
+ 	dd->flags &= ~HFI1_INITTED;
+ 
+-	/* mask interrupts, but not errors */
++	/* mask and clean up interrupts, but not errors */
+ 	set_intr_state(dd, 0);
++	hfi1_clean_up_interrupts(dd);
+ 
+ 	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
+ 		ppd = dd->pport + pidx;
+@@ -1714,6 +1715,7 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 		dd_dev_err(dd, "Failed to create /dev devices: %d\n", -j);
+ 
+ 	if (initfail || ret) {
++		hfi1_clean_up_interrupts(dd);
+ 		stop_timers(dd);
+ 		flush_workqueue(ib_wq);
+ 		for (pidx = 0; pidx < dd->num_pports; ++pidx) {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
