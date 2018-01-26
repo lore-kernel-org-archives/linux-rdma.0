@@ -1,57 +1,41 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH for-next 06/16] IB/hfi1: hfi1_open_file() missing
- kobject_put in err path
-Date: Fri, 26 Jan 2018 08:51:52 -0700
-Message-ID: <20180126155152.GB23869@ziepe.ca>
-References: <20180126142640.6868.12402.stgit@scvm10.sc.intel.com>
- <20180126143203.6868.85360.stgit@scvm10.sc.intel.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH net-next 5/5] net/smc: return booleans instead of integers
+Date: Fri, 26 Jan 2018 15:57:15 +0000
+Message-ID: <1516982235.2651.3.camel@wdc.com>
+References: <20180126082850.20655-1-ubraun@linux.vnet.ibm.com>
+         <20180126082850.20655-6-ubraun@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180126143203.6868.85360.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20180126082850.20655-6-ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
+Content-ID: <6BBAFADDF0416D47B6B10F9187A0461D-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michael J Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: "raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jwi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <jwi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 26, 2018 at 06:32:06AM -0800, Dennis Dalessandro wrote:
-> From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> The dd refcount is speculatively incremented prior to allocating
-> the fd memory with kzalloc(). If that kzalloc() failed the dd
-> refcount leaks.
-> 
-> Fixes: e11ffbd57520 ("IB/hfi1: Do not free hfi1 cdev parent structure early")
-> Reviewed-by: Michael J Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->  drivers/infiniband/hw/hfi1/file_ops.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
-> index 7750a9c..d7bdf3d 100644
-> +++ b/drivers/infiniband/hw/hfi1/file_ops.c
-> @@ -210,6 +210,7 @@ static int hfi1_file_open(struct inode *inode, struct file *fp)
->  		fd->dd = dd;
->  		fp->private_data = fd;
->  	} else {
-> +		kobject_put(&dd->kobj);
->  		fp->private_data = NULL;
->  
->  		if (atomic_dec_and_test(&dd->user_refcount))
-
-Ugh that reads horribly.
-
-Put the kobject_get when you copy the pointer:
-
-                fd->dd = dd;
-                kobject_get(&fd->dd->kobj);
-
-Then it actually makes sense what is happening.
-
-Jsaon
-
+T24gRnJpLCAyMDE4LTAxLTI2IGF0IDA5OjI4ICswMTAwLCBVcnN1bGEgQnJhdW4gd3JvdGU6DQo+
+IEZyb206IEd1c3Rhdm8gQS4gUi4gU2lsdmEgPGd1c3Rhdm9AZW1iZWRkZWRvci5jb20+DQo+IA0K
+PiBSZXR1cm4gc3RhdGVtZW50cyBpbiBmdW5jdGlvbnMgcmV0dXJuaW5nIGJvb2wgc2hvdWxkIHVz
+ZQ0KPiB0cnVlL2ZhbHNlIGluc3RlYWQgb2YgMS8wLg0KPiANCj4gVGhpcyBpc3N1ZSB3YXMgZGV0
+ZWN0ZWQgd2l0aCB0aGUgaGVscCBvZiBDb2NjaW5lbGxlLg0KPiANCj4gU2lnbmVkLW9mZi1ieTog
+R3VzdGF2byBBLiBSLiBTaWx2YSA8Z3VzdGF2b0BlbWJlZGRlZG9yLmNvbT4NCj4gU2lnbmVkLW9m
+Zi1ieTogVXJzdWxhIEJyYXVuIDx1YnJhdW5AbGludXgudm5ldC5pYm0uY29tPg0KPiAtLS0NCj4g
+IG5ldC9zbWMvc21jLmggfCA0ICsrLS0NCj4gIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMo
+KyksIDIgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvbmV0L3NtYy9zbWMuaCBiL25l
+dC9zbWMvc21jLmgNCj4gaW5kZXggYmZiZTIwMjM0MTA1Li45NTE4OTg2Yzk3YjEgMTAwNjQ0DQo+
+IC0tLSBhL25ldC9zbWMvc21jLmgNCj4gKysrIGIvbmV0L3NtYy9zbWMuaA0KPiBAQCAtMjUyLDEy
+ICsyNTIsMTIgQEAgc3RhdGljIGlubGluZSBpbnQgc21jX3VuY29tcHJlc3NfYnVmc2l6ZSh1OCBj
+b21wcmVzc2VkKQ0KPiAgc3RhdGljIGlubGluZSBib29sIHVzaW5nX2lwc2VjKHN0cnVjdCBzbWNf
+c29jayAqc21jKQ0KPiAgew0KPiAgCXJldHVybiAoc21jLT5jbGNzb2NrLT5zay0+c2tfcG9saWN5
+WzBdIHx8DQo+IC0JCXNtYy0+Y2xjc29jay0+c2stPnNrX3BvbGljeVsxXSkgPyAxIDogMDsNCj4g
+KwkJc21jLT5jbGNzb2NrLT5zay0+c2tfcG9saWN5WzFdKSA/IHRydWUgOiBmYWxzZTsNCj4gIH0N
+Cg0KSGVsbG8gVXJzdWxhLA0KDQpJZiB5b3UgZXZlciBoYXZlIHRvIHRvdWNoIHRoaXMgY29kZSBh
+Z2FpbiwgcGxlYXNlIGZvbGxvdyB0aGUgc3R5bGUgb2Ygb3RoZXIga2VybmVsDQpjb2RlIGFuZCBs
+ZWF2ZSBvdXQgdGhlICI/IHRydWUgOiBmYWxzZSIgcGFydCBhbmQgYWxzbyB0aGUgcGFyZW50aGVz
+ZXMuIEJvdGggYXJlDQpzdXBlcmZsdW91cy4NCg0KVGhhbmtzLA0KDQpCYXJ0Lg0KDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
