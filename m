@@ -1,7 +1,7 @@
 From: Ursula Braun <ubraun@linux.vnet.ibm.com>
-Subject: [PATCH net-next 1/5] net/smc: handle device, port, and QP error events
-Date: Fri, 26 Jan 2018 09:28:46 +0100
-Message-ID: <20180126082850.20655-2-ubraun@linux.vnet.ibm.com>
+Subject: [PATCH net-next 4/5] net/smc: release clcsock from tcp_listen_worker
+Date: Fri, 26 Jan 2018 09:28:49 +0100
+Message-ID: <20180126082850.20655-5-ubraun@linux.vnet.ibm.com>
 References: <20180126082850.20655-1-ubraun@linux.vnet.ibm.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180126082850.20655-1-ubraun@linux.vnet.ibm.com>
@@ -10,113 +10,138 @@ To: davem@davemloft.net
 Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, jwi@linux.vnet.ibm.com, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.vnet.ibm.com, ubraun@linux.vnet.ibm.com
 List-Id: linux-rdma@vger.kernel.org
 
-RoCE device changes cause an IB event, processed in the global event
-handler for the ROCE device. Problems for a certain Queue Pair cause a QP
-event, processed in the QP event handler for this QP.
-Among those events are port errors and other fatal device errors. All
-link groups using such a port or device must be terminated in those cases.
+Closing a listen socket may hit the warning
+WARN_ON(sock_owned_by_user(sk)) of tcp_close(), if the wake up of
+the smc_tcp_listen_worker has not yet finished.
+This patch introduces smc_close_wait_listen_clcsock() making sure
+the listening internal clcsock has been closed in smc_tcp_listen_work(),
+before the listening external SMC socket finishes closing.
 
 Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
 ---
- net/smc/smc_ib.c | 38 +++++++++++++++++++++++++-------------
- 1 file changed, 25 insertions(+), 13 deletions(-)
+ net/smc/af_smc.c    | 13 ++++++++++++-
+ net/smc/smc_close.c | 33 ++++++++++++++++++++++++---------
+ 2 files changed, 36 insertions(+), 10 deletions(-)
 
-diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
-index 90f1a7f9085c..2a8957bd6d38 100644
---- a/net/smc/smc_ib.c
-+++ b/net/smc/smc_ib.c
-@@ -141,6 +141,17 @@ int smc_ib_ready_link(struct smc_link *lnk)
- 	return rc;
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index 732a37ddbc21..267e68379110 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -670,6 +670,10 @@ struct sock *smc_accept_dequeue(struct sock *parent,
+ 
+ 		smc_accept_unlink(new_sk);
+ 		if (new_sk->sk_state == SMC_CLOSED) {
++			if (isk->clcsock) {
++				sock_release(isk->clcsock);
++				isk->clcsock = NULL;
++			}
+ 			new_sk->sk_prot->unhash(new_sk);
+ 			sock_put(new_sk); /* final */
+ 			continue;
+@@ -969,8 +973,15 @@ static void smc_tcp_listen_work(struct work_struct *work)
+ 	}
+ 
+ out:
++	if (lsmc->clcsock) {
++		sock_release(lsmc->clcsock);
++		lsmc->clcsock = NULL;
++	}
+ 	release_sock(lsk);
+-	lsk->sk_data_ready(lsk); /* no more listening, wake accept */
++	/* no more listening, wake up smc_close_wait_listen_clcsock and
++	 * accept
++	 */
++	lsk->sk_state_change(lsk);
+ 	sock_put(&lsmc->sk); /* sock_hold in smc_listen */
  }
  
-+static void smc_ib_port_terminate(struct smc_ib_device *smcibdev, u8 ibport)
-+{
-+	struct smc_link_group *lgr, *l;
+diff --git a/net/smc/smc_close.c b/net/smc/smc_close.c
+index 4339852a8910..e339c0186dcf 100644
+--- a/net/smc/smc_close.c
++++ b/net/smc/smc_close.c
+@@ -19,6 +19,8 @@
+ #include "smc_cdc.h"
+ #include "smc_close.h"
+ 
++#define SMC_CLOSE_WAIT_LISTEN_CLCSOCK_TIME	(5 * HZ)
 +
-+	list_for_each_entry_safe(lgr, l, &smc_lgr_list.list, list) {
-+		if (lgr->lnk[SMC_SINGLE_LINK].smcibdev == smcibdev &&
-+		    lgr->lnk[SMC_SINGLE_LINK].ibport == ibport)
-+			smc_lgr_terminate(lgr);
-+	}
+ static void smc_close_cleanup_listen(struct sock *parent)
+ {
+ 	struct sock *sk;
+@@ -28,6 +30,27 @@ static void smc_close_cleanup_listen(struct sock *parent)
+ 		smc_close_non_accepted(sk);
+ }
+ 
++static void smc_close_wait_listen_clcsock(struct smc_sock *smc)
++{
++	DEFINE_WAIT_FUNC(wait, woken_wake_function);
++	struct sock *sk = &smc->sk;
++	signed long timeout;
++
++	timeout = SMC_CLOSE_WAIT_LISTEN_CLCSOCK_TIME;
++	add_wait_queue(sk_sleep(sk), &wait);
++	do {
++		release_sock(sk);
++		if (smc->clcsock)
++			timeout = wait_woken(&wait, TASK_UNINTERRUPTIBLE,
++					     timeout);
++		sched_annotate_sleep();
++		lock_sock(sk);
++		if (!smc->clcsock)
++			break;
++	} while (timeout);
++	remove_wait_queue(sk_sleep(sk), &wait);
 +}
 +
- /* process context wrapper for might_sleep smc_ib_remember_port_attr */
- static void smc_ib_port_event_work(struct work_struct *work)
+ /* wait for sndbuf data being transmitted */
+ static void smc_close_stream_wait(struct smc_sock *smc, long timeout)
  {
-@@ -151,6 +162,8 @@ static void smc_ib_port_event_work(struct work_struct *work)
- 	for_each_set_bit(port_idx, &smcibdev->port_event_mask, SMC_MAX_PORTS) {
- 		smc_ib_remember_port_attr(smcibdev, port_idx + 1);
- 		clear_bit(port_idx, &smcibdev->port_event_mask);
-+		if (!smc_ib_port_active(smcibdev, port_idx + 1))
-+			smc_ib_port_terminate(smcibdev, port_idx + 1);
- 	}
- }
- 
-@@ -165,15 +178,7 @@ static void smc_ib_global_event_handler(struct ib_event_handler *handler,
- 
- 	switch (ibevent->event) {
- 	case IB_EVENT_PORT_ERR:
--		port_idx = ibevent->element.port_num - 1;
--		set_bit(port_idx, &smcibdev->port_event_mask);
--		schedule_work(&smcibdev->port_event_work);
--		/* fall through */
- 	case IB_EVENT_DEVICE_FATAL:
--		/* tbd in follow-on patch:
--		 * abnormal close of corresponding connections
--		 */
--		break;
- 	case IB_EVENT_PORT_ACTIVE:
- 		port_idx = ibevent->element.port_num - 1;
- 		set_bit(port_idx, &smcibdev->port_event_mask);
-@@ -186,7 +191,8 @@ static void smc_ib_global_event_handler(struct ib_event_handler *handler,
- 
- void smc_ib_dealloc_protection_domain(struct smc_link *lnk)
- {
--	ib_dealloc_pd(lnk->roce_pd);
-+	if (lnk->roce_pd)
-+		ib_dealloc_pd(lnk->roce_pd);
- 	lnk->roce_pd = NULL;
- }
- 
-@@ -203,14 +209,18 @@ int smc_ib_create_protection_domain(struct smc_link *lnk)
- 
- static void smc_ib_qp_event_handler(struct ib_event *ibevent, void *priv)
- {
-+	struct smc_ib_device *smcibdev =
-+		(struct smc_ib_device *)ibevent->device;
-+	u8 port_idx;
-+
- 	switch (ibevent->event) {
- 	case IB_EVENT_DEVICE_FATAL:
- 	case IB_EVENT_GID_CHANGE:
- 	case IB_EVENT_PORT_ERR:
- 	case IB_EVENT_QP_ACCESS_ERR:
--		/* tbd in follow-on patch:
--		 * abnormal close of corresponding connections
--		 */
-+		port_idx = ibevent->element.port_num - 1;
-+		set_bit(port_idx, &smcibdev->port_event_mask);
-+		schedule_work(&smcibdev->port_event_work);
+@@ -114,7 +137,6 @@ static void smc_close_active_abort(struct smc_sock *smc)
  		break;
- 	default:
+ 	case SMC_APPCLOSEWAIT1:
+ 	case SMC_APPCLOSEWAIT2:
+-		sock_release(smc->clcsock);
+ 		if (!smc_cdc_rxed_any_close(&smc->conn))
+ 			sk->sk_state = SMC_PEERABORTWAIT;
+ 		else
+@@ -128,7 +150,6 @@ static void smc_close_active_abort(struct smc_sock *smc)
+ 		if (!txflags->peer_conn_closed) {
+ 			/* just SHUTDOWN_SEND done */
+ 			sk->sk_state = SMC_PEERABORTWAIT;
+-			sock_release(smc->clcsock);
+ 		} else {
+ 			sk->sk_state = SMC_CLOSED;
+ 		}
+@@ -136,8 +157,6 @@ static void smc_close_active_abort(struct smc_sock *smc)
  		break;
-@@ -219,7 +229,8 @@ static void smc_ib_qp_event_handler(struct ib_event *ibevent, void *priv)
- 
- void smc_ib_destroy_queue_pair(struct smc_link *lnk)
- {
--	ib_destroy_qp(lnk->roce_qp);
-+	if (lnk->roce_qp)
-+		ib_destroy_qp(lnk->roce_qp);
- 	lnk->roce_qp = NULL;
- }
- 
-@@ -462,6 +473,7 @@ static void smc_ib_cleanup_per_ibdev(struct smc_ib_device *smcibdev)
- {
- 	if (!smcibdev->initialized)
- 		return;
-+	smcibdev->initialized = 0;
- 	smc_wr_remove_dev(smcibdev);
- 	ib_unregister_event_handler(&smcibdev->event_handler);
- 	ib_destroy_cq(smcibdev->roce_cq_recv);
+ 	case SMC_PROCESSABORT:
+ 	case SMC_APPFINCLOSEWAIT:
+-		if (!txflags->peer_conn_closed)
+-			sock_release(smc->clcsock);
+ 		sk->sk_state = SMC_CLOSED;
+ 		break;
+ 	case SMC_PEERFINCLOSEWAIT:
+@@ -177,8 +196,6 @@ int smc_close_active(struct smc_sock *smc)
+ 	switch (sk->sk_state) {
+ 	case SMC_INIT:
+ 		sk->sk_state = SMC_CLOSED;
+-		if (smc->smc_listen_work.func)
+-			cancel_work_sync(&smc->smc_listen_work);
+ 		break;
+ 	case SMC_LISTEN:
+ 		sk->sk_state = SMC_CLOSED;
+@@ -187,11 +204,9 @@ int smc_close_active(struct smc_sock *smc)
+ 			rc = kernel_sock_shutdown(smc->clcsock, SHUT_RDWR);
+ 			/* wake up kernel_accept of smc_tcp_listen_worker */
+ 			smc->clcsock->sk->sk_data_ready(smc->clcsock->sk);
++			smc_close_wait_listen_clcsock(smc);
+ 		}
+-		release_sock(sk);
+ 		smc_close_cleanup_listen(sk);
+-		cancel_work_sync(&smc->smc_listen_work);
+-		lock_sock(sk);
+ 		break;
+ 	case SMC_ACTIVE:
+ 		smc_close_stream_wait(smc, timeout);
 -- 
 2.13.5
