@@ -1,57 +1,57 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH for-next 15/16] IB/core: Map iWarp AH type to undefined in
- rdma_ah_find_type
-Date: Fri, 26 Jan 2018 17:47:46 +0000
-Message-ID: <VI1PR0502MB3008822A35979FD0A987C0C6D1E00@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20180126142640.6868.12402.stgit@scvm10.sc.intel.com>
- <20180126143315.6868.67354.stgit@scvm10.sc.intel.com>
- <20180126154540.GA23869@ziepe.ca>
- <ce815670-cf1b-5199-9a52-2779cb8f8c75@intel.com>
+From: Shiraz Saleem <shiraz.saleem@intel.com>
+Subject: Re: SQ overflow seen running isert traffic with high block sizes
+Date: Fri, 26 Jan 2018 12:52:54 -0600
+Message-ID: <20180126185254.GA13768@ssaleem-MOBL4.amr.corp.intel.com>
+References: <BN3PR07MB25786338EADC77A369A6D493F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <1499970579.7987.8.camel@haakon3.daterainc.com>
+ <BN3PR07MB2578E6561CC669922A322245F8A00@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <20171006224025.GA23364@ssaleem-MOBL4.amr.corp.intel.com>
+ <1515992195.24576.156.camel@haakon3.daterainc.com>
+ <CY1PR0701MB2012E53C69D1CE3E16BA320B88EB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+ <20180115152236.GA15484@ssaleem-MOBL4.amr.corp.intel.com>
+ <1516269522.24576.274.camel@haakon3.daterainc.com>
+ <9DD61F30A802C4429A01CA4200E302A789EB485A@fmsmsx116.amr.corp.intel.com>
+ <1516780918.24576.341.camel@haakon3.daterainc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ce815670-cf1b-5199-9a52-2779cb8f8c75-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1516780918.24576.341.camel@haakon3.daterainc.com>
+Sender: target-devel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: "Kalderon, Michal" <Michal.Kalderon@cavium.com>, "Amrani, Ram" <Ram.Amrani@cavium.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, target-devel <target-devel@vger.kernel.org>, Potnuri Bharat Teja <bharat@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogRGVubmlzIERhbGVzc2Fu
-ZHJvIFttYWlsdG86ZGVubmlzLmRhbGVzc2FuZHJvQGludGVsLmNvbV0NCj4gU2VudDogRnJpZGF5
-LCBKYW51YXJ5IDI2LCAyMDE4IDk6NTkgQU0NCj4gVG86IEphc29uIEd1bnRob3JwZSA8amdnQHpp
-ZXBlLmNhPg0KPiBDYzogZGxlZGZvcmRAcmVkaGF0LmNvbTsgbGludXgtcmRtYUB2Z2VyLmtlcm5l
-bC5vcmc7IERvbiBIaWF0dA0KPiA8ZG9uLmhpYXR0QGludGVsLmNvbT47IFNlYW4gSGVmdHkgPHNl
-YW4uaGVmdHlAaW50ZWwuY29tPjsgSXJhIFdlaW55DQo+IDxpcmEud2VpbnlAaW50ZWwuY29tPjsg
-UGFyYXYgUGFuZGl0IDxwYXJhdkBtZWxsYW5veC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0gg
-Zm9yLW5leHQgMTUvMTZdIElCL2NvcmU6IE1hcCBpV2FycCBBSCB0eXBlIHRvIHVuZGVmaW5lZCBp
-bg0KPiByZG1hX2FoX2ZpbmRfdHlwZQ0KPiANCj4gT24gMS8yNi8yMDE4IDEwOjQ1IEFNLCBKYXNv
-biBHdW50aG9ycGUgd3JvdGU6DQo+ID4gT24gRnJpLCBKYW4gMjYsIDIwMTggYXQgMDY6MzM6MThB
-TSAtMDgwMCwgRGVubmlzIERhbGVzc2FuZHJvIHdyb3RlOg0KPiA+PiBGcm9tOiBEb24gSGlhdHQg
-PGRvbi5oaWF0dEBpbnRlbC5jb20+DQo+ID4+DQo+ID4+IGlXYXJwIGRldmljZXMgZG8gbm90IHN1
-cHBvcnQgdGhlIGNyZWF0aW9uIG9mIGFkZHJlc3MgaGFuZGxlcyBzbw0KPiA+PiByZXR1cm4gQUhf
-QVRUUl9UWVBFX1VOREVGSU5FRCBmb3IgYWxsIGlXYXJwIGRldmljZXMuDQo+ID4+DQo+ID4+IFdo
-aWxlIHdlIGFyZSBoZXJlIHJlZHVjZSB0aGUgc2l6ZSBvZiBwb3J0X251bSB0byB1OCBhbmQgYWRk
-IGENCj4gPj4gY29tbWVudC4NCj4gPj4NCj4gPj4gRml4ZXM6IDQ0YzU4NDg3ZDUxYSAoIklCL2Nv
-cmU6IERlZmluZSAnaWInIGFuZCAncm9jZScgcmRtYV9haF9hdHRyDQo+ID4+IHR5cGVzIikNCj4g
-Pj4gUmVwb3J0ZWQtYnk6IFBhcmF2IFBhbmRpdCA8cGFyYXZAbWVsbGFub3guY29tPg0KPiA+PiBD
-QzogU2VhbiBIZWZ0eSA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+DQo+ID4+IFJldmlld2VkLWJ5OiBJ
-cmEgV2VpbnkgPGlyYS53ZWlueUBpbnRlbC5jb20+DQo+ID4+IFNpZ25lZC1vZmYtYnk6IERvbiBI
-aWF0dCA8ZG9uLmhpYXR0QGludGVsLmNvbT4NCj4gPj4gU2lnbmVkLW9mZi1ieTogRGVubmlzIERh
-bGVzc2FuZHJvIDxkZW5uaXMuZGFsZXNzYW5kcm9AaW50ZWwuY29tPg0KPiA+PiAgIGluY2x1ZGUv
-cmRtYS9pYl92ZXJicy5oIHwgICAxNSArKysrKysrKysrKy0tLS0NCj4gPj4gICAxIGZpbGVzIGNo
-YW5nZWQsIDExIGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0pDQo+ID4NCj4gPiBXaGF0IHRy
-ZWUgYXJlIHlvdSBzZW5kaW5nIHRoZXNlIHBhdGNoZXMgYWdhaW4/IFRoaXMgd29uJ3QgYXBwbHku
-DQo+IA0KPiBVZ2gsIEkgdGhvdWdodCBJIHdhcyB1cCB0byBkYXRlLiBHdWVzcyBub3QuIExldCBt
-ZSByZWJhc2UgYW5kIHJlc3Bpbi4NCj4gTG9va3MgbGlrZSB5b3UgaGFkIGEgY29tbWVudCBvbiBv
-bmUgb2YgdGhlIG90aGVyIHBhdGNoZXMgc28gSSdsbCB3YWl0IGZvciBBbGV4IHRvDQo+IGFkZHJl
-c3MgdGhhdCBhbmQgcmUtc2VuZC4NCj4gDQpBbHNvIGNhbiB3ZSBoYXZlIFVOREVGSU5FRCBBSCBl
-bnVtIGFzIDAgcmF0aGVyIHRoYW4gMz8NClRoaXMgd2lsbCBhbGxvdyB0byBjYXRjaCBlcnJvcnMg
-aW4gdGhlIGNvZGUgdGhhdCB3aWxsIGRlY29kZSAwIGluaXRpYWxpemVkIGZpZWxkIGFzIElCPw0K
-VGhpcyBhbHNvIGVuc3VyZXMgdGhhdCByaWdodCBBSCB0eXBlIGlzIGluaXRpYWxpemVkIHdoZXJl
-dmVyIG5lZWRlZC4NCg0KPiAtRGVubnkNCg==
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, Jan 24, 2018 at 01:01:58AM -0700, Nicholas A. Bellinger wrote:
+> Hi Shiraz & Co,
+> 
+> Thanks for the feedback.
+> 
+> On Mon, 2018-01-22 at 17:49 +0000, Saleem, Shiraz wrote:
+> > > Subject: Re: SQ overflow seen running isert traffic with high block sizes
+> > > 
+> > > 
+> > > First, would it be helpful to limit maximum payload size per I/O for consumers
+> > > based on number of iser-target sq hw sges..?
+> > > 
+> > Assuming data is not able to be fast registered as if virtually contiguous;
+> > artificially limiting the data size might not be the best solution.
+> > 
+> > But max SGEs does need to be exposed higher. Somewhere in the stack,
+> > there might need to be multiple WRs submitted or data copied.
+> > 
+> 
+> Sagi..?
+> 
+
+> 
+> For reference, what is i40iw's max_send_sg reporting..?
+
+3
+
+> 
+> Is max_data_sg_nents=32 + 4k pages = 128K the largest MAX TRANSFER
+> LENGTH to avoid consistent SQ overflow as-is with i40iw..?
+
+For the configuration I am testing, max_data_sg_nents=32 & 64 worked,
+and the SQ overflow issue reproduced at 128.
