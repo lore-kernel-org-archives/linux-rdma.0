@@ -1,123 +1,105 @@
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] RDMA: Move enum ib_cq_creation_flags to uapi headers
-Date: Fri, 26 Jan 2018 15:16:46 -0700
-Message-ID: <20180126221646.GA5251@ziepe.ca>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH for-next v2 15/16] IB/core: Map iWarp AH type to
+ undefined in rdma_ah_find_type
+Date: Fri, 26 Jan 2018 15:32:52 -0700
+Message-ID: <20180126223252.GE23869@ziepe.ca>
+References: <20180126211126.12097.47410.stgit@scvm10.sc.intel.com>
+ <20180126213043.12097.88707.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20180126213043.12097.88707.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The flags field the enum is used with comes directly from the uapi
-so it belongs in the uapi headers for clarity and so userspace can
-use it.
+On Fri, Jan 26, 2018 at 01:30:46PM -0800, Dennis Dalessandro wrote:
+> From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> iWarp devices do not support the creation of address handles
+> so return AH_ATTR_TYPE_UNDEFINED for all iWarp devices.
+> 
+> While we are here reduce the size of port_num to u8 and add
+> a comment.
+> 
+> Fixes: 44c58487d51a ("IB/core: Define 'ib' and 'roce' rdma_ah_attr types")
+> Reported-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> CC: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> Changes since v1: Add Shiraz RB tag, move undefined to be 0 not 3
+>  include/rdma/ib_verbs.h |   12 ++++++++++--
+>  1 files changed, 10 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 5e32fe7..0eb3074 100644
+> +++ b/include/rdma/ib_verbs.h
+> @@ -878,6 +878,7 @@ struct ib_mr_status {
+>  __attribute_const__ enum ib_rate mult_to_ib_rate(int mult);
+>  
+>  enum rdma_ah_attr_type {
+> +	RDMA_AH_ATTR_TYPE_UNDEFINED,
+>  	RDMA_AH_ATTR_TYPE_IB,
+>  	RDMA_AH_ATTR_TYPE_ROCE,
+>  	RDMA_AH_ATTR_TYPE_OPA,
+> @@ -3789,12 +3790,19 @@ static inline void rdma_ah_set_grh(struct rdma_ah_attr *attr,
+>  	grh->traffic_class = traffic_class;
+>  }
+>  
+> -/*Get AH type */
+> +/**
+> + * rdma_ah_find_type - Return address handle type.
+> + *
+> + * @dev: Device to be checked
+> + * @port_num: Port number
+> + */
+>  static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device *dev,
+> -						       u32 port_num)
+> +						       u8 port_num)
+>  {
+>  	if (rdma_protocol_roce(dev, port_num))
+>  		return RDMA_AH_ATTR_TYPE_ROCE;
+> +	else if (rdma_protocol_iwarp(dev, port_num))
+> +		return RDMA_AH_ATTR_TYPE_UNDEFINED;
+>  	else if ((rdma_protocol_ib(dev, port_num)) &&
+>  		 (rdma_cap_opa_ah(dev, port_num)))
+> 		return RDMA_AH_ATTR_TYPE_OPA;
 
-Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/cq.c      | 4 ++--
- drivers/infiniband/hw/mlx5/cq.c      | 2 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 4 ++--
- include/rdma/ib_verbs.h              | 5 -----
- include/uapi/rdma/ib_user_verbs.h    | 7 ++++++-
- 5 files changed, 11 insertions(+), 11 deletions(-)
+Let's not add an UNDEFINED type in the middle of an if casecade with an all
+other cases fall through please:
 
-This is the last copied enum in libibverbs's kern-abi.h
+static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device *dev,
+						       u32 port_num)
+{
+	if (rdma_protocol_roce(dev, port_num))
+		return RDMA_AH_ATTR_TYPE_ROCE;
 
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index bf4f14a1b4fcbe..9a566ee3ceffef 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -170,7 +170,7 @@ static int mlx4_ib_get_cq_umem(struct mlx4_ib_dev *dev, struct ib_ucontext *cont
- 	return err;
- }
- 
--#define CQ_CREATE_FLAGS_SUPPORTED IB_CQ_FLAGS_TIMESTAMP_COMPLETION
-+#define CQ_CREATE_FLAGS_SUPPORTED IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION
- struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
- 				const struct ib_cq_init_attr *attr,
- 				struct ib_ucontext *context,
-@@ -246,7 +246,7 @@ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
- 
- 	err = mlx4_cq_alloc(dev->dev, entries, &cq->buf.mtt, uar,
- 			    cq->db.dma, &cq->mcq, vector, 0,
--			    !!(cq->create_flags & IB_CQ_FLAGS_TIMESTAMP_COMPLETION));
-+			    !!(cq->create_flags & IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION));
- 	if (err)
- 		goto err_dbmap;
- 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 18705cbcdc8c17..5b974fb97611bc 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -1010,7 +1010,7 @@ struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
- 	MLX5_SET(cqc, cqc, uar_page, index);
- 	MLX5_SET(cqc, cqc, c_eqn, eqn);
- 	MLX5_SET64(cqc, cqc, dbr_addr, cq->db.dma);
--	if (cq->create_flags & IB_CQ_FLAGS_IGNORE_OVERRUN)
-+	if (cq->create_flags & IB_UVERBS_CQ_FLAGS_IGNORE_OVERRUN)
- 		MLX5_SET(cqc, cqc, oi, 1);
- 
- 	err = mlx5_core_create_cq(dev->mdev, &cq->mcq, cqb, inlen);
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 69a80f7512f094..1393851299738d 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1123,8 +1123,8 @@ static inline u32 check_cq_create_flags(u32 flags)
- 	 * It returns non-zero value for unsupported CQ
- 	 * create flags, otherwise it returns zero.
- 	 */
--	return (flags & ~(IB_CQ_FLAGS_IGNORE_OVERRUN |
--			  IB_CQ_FLAGS_TIMESTAMP_COMPLETION));
-+	return (flags & ~(IB_UVERBS_CQ_FLAGS_IGNORE_OVERRUN |
-+			  IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION));
- }
- 
- static inline int verify_assign_uidx(u8 cqe_version, u32 cmd_uidx,
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5e32fe781ca30d..0b29425868403b 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -300,11 +300,6 @@ struct ib_tm_caps {
- 	u32 max_sge;
- };
- 
--enum ib_cq_creation_flags {
--	IB_CQ_FLAGS_TIMESTAMP_COMPLETION   = 1 << 0,
--	IB_CQ_FLAGS_IGNORE_OVERRUN	   = 1 << 1,
--};
--
- struct ib_cq_init_attr {
- 	unsigned int	cqe;
- 	int		comp_vector;
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index fd035641cf41ce..04d0e67b13120c 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -402,13 +402,18 @@ struct ib_uverbs_create_cq {
- 	__u64 driver_data[0];
- };
- 
-+enum ib_uverbs_ex_create_cq_flags {
-+	IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION = 1 << 0,
-+	IB_UVERBS_CQ_FLAGS_IGNORE_OVERRUN = 1 << 1,
-+};
-+
- struct ib_uverbs_ex_create_cq {
- 	__u64 user_handle;
- 	__u32 cqe;
- 	__u32 comp_vector;
- 	__s32 comp_channel;
- 	__u32 comp_mask;
--	__u32 flags;
-+	__u32 flags;  /* bitmask of ib_uverbs_ex_create_cq_flags */
- 	__u32 reserved;
- };
- 
--- 
-2.15.1
+	if (rdma_protocol_ib(dev, port_num)) {
+		if (rdma_cap_opa_ah(dev, port_num))
+			return RDMA_AH_ATTR_TYPE_OPA;
+		return RDMA_AH_ATTR_TYPE_IB;
+	}
 
+	return RDMA_AH_ATTR_TYPE_UNDEFINED;
+}
+
+I'm not sure sending all these unrelated patches in one series is such
+a helpful idea. Lot of trouble for everyone just to respond to one
+minor comment.
+
+This series looks like 4-5 topics to me:
+ - Optimize HFI
+ - 2 patches realted to the interrupt race
+ - Random driver fixes
+ - IPoIB fix
+ - This patch
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
