@@ -1,7 +1,7 @@
 From: Ursula Braun <ubraun@linux.vnet.ibm.com>
-Subject: [PATCH net-next 4/5] net/smc: release clcsock from tcp_listen_worker
-Date: Fri, 26 Jan 2018 09:28:49 +0100
-Message-ID: <20180126082850.20655-5-ubraun@linux.vnet.ibm.com>
+Subject: [PATCH net-next 5/5] net/smc: return booleans instead of integers
+Date: Fri, 26 Jan 2018 09:28:50 +0100
+Message-ID: <20180126082850.20655-6-ubraun@linux.vnet.ibm.com>
 References: <20180126082850.20655-1-ubraun@linux.vnet.ibm.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180126082850.20655-1-ubraun@linux.vnet.ibm.com>
@@ -10,138 +10,37 @@ To: davem@davemloft.net
 Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, jwi@linux.vnet.ibm.com, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.vnet.ibm.com, ubraun@linux.vnet.ibm.com
 List-Id: linux-rdma@vger.kernel.org
 
-Closing a listen socket may hit the warning
-WARN_ON(sock_owned_by_user(sk)) of tcp_close(), if the wake up of
-the smc_tcp_listen_worker has not yet finished.
-This patch introduces smc_close_wait_listen_clcsock() making sure
-the listening internal clcsock has been closed in smc_tcp_listen_work(),
-before the listening external SMC socket finishes closing.
+From: Gustavo A. R. Silva <gustavo@embeddedor.com>
 
+Return statements in functions returning bool should use
+true/false instead of 1/0.
+
+This issue was detected with the help of Coccinelle.
+
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
 ---
- net/smc/af_smc.c    | 13 ++++++++++++-
- net/smc/smc_close.c | 33 ++++++++++++++++++++++++---------
- 2 files changed, 36 insertions(+), 10 deletions(-)
+ net/smc/smc.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index 732a37ddbc21..267e68379110 100644
---- a/net/smc/af_smc.c
-+++ b/net/smc/af_smc.c
-@@ -670,6 +670,10 @@ struct sock *smc_accept_dequeue(struct sock *parent,
- 
- 		smc_accept_unlink(new_sk);
- 		if (new_sk->sk_state == SMC_CLOSED) {
-+			if (isk->clcsock) {
-+				sock_release(isk->clcsock);
-+				isk->clcsock = NULL;
-+			}
- 			new_sk->sk_prot->unhash(new_sk);
- 			sock_put(new_sk); /* final */
- 			continue;
-@@ -969,8 +973,15 @@ static void smc_tcp_listen_work(struct work_struct *work)
- 	}
- 
- out:
-+	if (lsmc->clcsock) {
-+		sock_release(lsmc->clcsock);
-+		lsmc->clcsock = NULL;
-+	}
- 	release_sock(lsk);
--	lsk->sk_data_ready(lsk); /* no more listening, wake accept */
-+	/* no more listening, wake up smc_close_wait_listen_clcsock and
-+	 * accept
-+	 */
-+	lsk->sk_state_change(lsk);
- 	sock_put(&lsmc->sk); /* sock_hold in smc_listen */
- }
- 
-diff --git a/net/smc/smc_close.c b/net/smc/smc_close.c
-index 4339852a8910..e339c0186dcf 100644
---- a/net/smc/smc_close.c
-+++ b/net/smc/smc_close.c
-@@ -19,6 +19,8 @@
- #include "smc_cdc.h"
- #include "smc_close.h"
- 
-+#define SMC_CLOSE_WAIT_LISTEN_CLCSOCK_TIME	(5 * HZ)
-+
- static void smc_close_cleanup_listen(struct sock *parent)
+diff --git a/net/smc/smc.h b/net/smc/smc.h
+index bfbe20234105..9518986c97b1 100644
+--- a/net/smc/smc.h
++++ b/net/smc/smc.h
+@@ -252,12 +252,12 @@ static inline int smc_uncompress_bufsize(u8 compressed)
+ static inline bool using_ipsec(struct smc_sock *smc)
  {
- 	struct sock *sk;
-@@ -28,6 +30,27 @@ static void smc_close_cleanup_listen(struct sock *parent)
- 		smc_close_non_accepted(sk);
+ 	return (smc->clcsock->sk->sk_policy[0] ||
+-		smc->clcsock->sk->sk_policy[1]) ? 1 : 0;
++		smc->clcsock->sk->sk_policy[1]) ? true : false;
  }
- 
-+static void smc_close_wait_listen_clcsock(struct smc_sock *smc)
-+{
-+	DEFINE_WAIT_FUNC(wait, woken_wake_function);
-+	struct sock *sk = &smc->sk;
-+	signed long timeout;
-+
-+	timeout = SMC_CLOSE_WAIT_LISTEN_CLCSOCK_TIME;
-+	add_wait_queue(sk_sleep(sk), &wait);
-+	do {
-+		release_sock(sk);
-+		if (smc->clcsock)
-+			timeout = wait_woken(&wait, TASK_UNINTERRUPTIBLE,
-+					     timeout);
-+		sched_annotate_sleep();
-+		lock_sock(sk);
-+		if (!smc->clcsock)
-+			break;
-+	} while (timeout);
-+	remove_wait_queue(sk_sleep(sk), &wait);
-+}
-+
- /* wait for sndbuf data being transmitted */
- static void smc_close_stream_wait(struct smc_sock *smc, long timeout)
+ #else
+ static inline bool using_ipsec(struct smc_sock *smc)
  {
-@@ -114,7 +137,6 @@ static void smc_close_active_abort(struct smc_sock *smc)
- 		break;
- 	case SMC_APPCLOSEWAIT1:
- 	case SMC_APPCLOSEWAIT2:
--		sock_release(smc->clcsock);
- 		if (!smc_cdc_rxed_any_close(&smc->conn))
- 			sk->sk_state = SMC_PEERABORTWAIT;
- 		else
-@@ -128,7 +150,6 @@ static void smc_close_active_abort(struct smc_sock *smc)
- 		if (!txflags->peer_conn_closed) {
- 			/* just SHUTDOWN_SEND done */
- 			sk->sk_state = SMC_PEERABORTWAIT;
--			sock_release(smc->clcsock);
- 		} else {
- 			sk->sk_state = SMC_CLOSED;
- 		}
-@@ -136,8 +157,6 @@ static void smc_close_active_abort(struct smc_sock *smc)
- 		break;
- 	case SMC_PROCESSABORT:
- 	case SMC_APPFINCLOSEWAIT:
--		if (!txflags->peer_conn_closed)
--			sock_release(smc->clcsock);
- 		sk->sk_state = SMC_CLOSED;
- 		break;
- 	case SMC_PEERFINCLOSEWAIT:
-@@ -177,8 +196,6 @@ int smc_close_active(struct smc_sock *smc)
- 	switch (sk->sk_state) {
- 	case SMC_INIT:
- 		sk->sk_state = SMC_CLOSED;
--		if (smc->smc_listen_work.func)
--			cancel_work_sync(&smc->smc_listen_work);
- 		break;
- 	case SMC_LISTEN:
- 		sk->sk_state = SMC_CLOSED;
-@@ -187,11 +204,9 @@ int smc_close_active(struct smc_sock *smc)
- 			rc = kernel_sock_shutdown(smc->clcsock, SHUT_RDWR);
- 			/* wake up kernel_accept of smc_tcp_listen_worker */
- 			smc->clcsock->sk->sk_data_ready(smc->clcsock->sk);
-+			smc_close_wait_listen_clcsock(smc);
- 		}
--		release_sock(sk);
- 		smc_close_cleanup_listen(sk);
--		cancel_work_sync(&smc->smc_listen_work);
--		lock_sock(sk);
- 		break;
- 	case SMC_ACTIVE:
- 		smc_close_stream_wait(smc, timeout);
+-	return 0;
++	return false;
+ }
+ #endif
+ 
 -- 
 2.13.5
