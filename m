@@ -1,69 +1,87 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 16/16] IB/ipoib: Fix for potential no-carrier
+From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH for-next 16/16] IB/ipoib: Fix for potential no-carrier
  state
-Date: Fri, 26 Jan 2018 12:09:56 -0500
-Message-ID: <1516986596.27592.209.camel@redhat.com>
+Date: Fri, 26 Jan 2018 17:18:58 +0000
+Message-ID: <F3529576D8E232409F431C309E29399336CFBE19@CRSMSX102.amr.corp.intel.com>
 References: <20180126142640.6868.12402.stgit@scvm10.sc.intel.com>
          <20180126143323.6868.89162.stgit@scvm10.sc.intel.com>
-         <1516986011.27592.207.camel@redhat.com> <20180126170610.GD23869@ziepe.ca>
+ <1516986011.27592.207.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-qujy6zZe3Jjn+ybLyouj"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180126170610.GD23869-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <1516986011.27592.207.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-qujy6zZe3Jjn+ybLyouj
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 2018-01-26 at 10:06 -0700, Jason Gunthorpe wrote:
-> On Fri, Jan 26, 2018 at 12:00:11PM -0500, Doug Ledford wrote:
->=20
-> > device, there is that window from our first ib_query_pkey call until we
-> > complete the ib_register_event_handler() call for the pkey to change.=
-=20
-> > Instead of throwing the flush regardless, it might be nicer to do:
->=20
-> Can we move the ib_register_event_handler sooner?
-
-I didn't do a full audit, but I'm not sure it's safe to, simply because
-we haven't fully completed our device setup and if our event handler is
-live, we can get event triggered activities that might expect everything
-to be done.  It would take a complete audit to know for sure.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-qujy6zZe3Jjn+ybLyouj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlprYOQACgkQuCajMw5X
-L910zQ//dDFjy16T35G01Ca0+F6YLWKZE8kIDX/IV602bDkdP/RdNseKfZGI5bT8
-1zpoG9X1xBROIYnVIEwh/NoQCGh8XNtv4dnQJD+B203NrtY6K+Aob0+86MdZZFjF
-lDZX6xlXf3JFSI6OYtKYqpYBwj5L1nQMBBxOW/zXsRNX3H2R9RvD8d/Jg2q4m1Iu
-PaExS8LtquAgGJ5g2eqkfQo0HYPN8pA5BwRjQ+dfiKmcfzSzbSbgrqXS0AGRvYvL
-BegkV0bSwnQMrnfoXyRXHUlDxV42Kby6hy8y5Ayu+IcU+AMg+N0NEQWkfwgW6C6W
-y/+U4Yj4M9CULoWweeGK0rFmdXYBXZ7/0b/ttWdjU6appKyz2ANje5z+25Ak1UPy
-uBtsNXu5qQtaGvU0f2WfaeMLz9DNmeuMNwjXkeXsWHX+VN/qV4rVVrJyEZCCbkft
-Sa2BauWFgAGqbNMW4E4KptRRFyZHUeU1POr4iEDmHtQK0zQ44y/jL+MeDBJBLfXy
-jhq/8s4xOgKtl8ntgnrNd0A+PLou2c4GnnODCNC33LG1bKHSe+B7xkhuvuKX0lVS
-wqE9m+4nBZRgqLL3+N2MWkBnNXpZgkNUhfqSJCdgbz17rzB+3TWptikP3i5NdtiJ
-oHJZj+tKmp5pOleDSBTs0fia7vyGl4aiy/8HPXJtEbEJUpFVyvE=
-=Z01n
------END PGP SIGNATURE-----
-
---=-qujy6zZe3Jjn+ybLyouj--
-
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEb3VnIExlZGZvcmQgW21haWx0
+bzpkbGVkZm9yZEByZWRoYXQuY29tXQ0KPiBTZW50OiBGcmlkYXksIEphbnVhcnkgMjYsIDIwMTgg
+MTI6MDAgUE0NCj4gVG86IERhbGVzc2FuZHJvLCBEZW5uaXMgPGRlbm5pcy5kYWxlc3NhbmRyb0Bp
+bnRlbC5jb20+OyBqZ2dAemllcGUuY2ENCj4gQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3Jn
+OyBNYXJjaW5pc3p5biwgTWlrZSA8bWlrZS5tYXJjaW5pc3p5bkBpbnRlbC5jb20+Ow0KPiBXZWlu
+eSwgSXJhIDxpcmEud2VpbnlAaW50ZWwuY29tPjsgRXN0cmluLCBBbGV4IDxhbGV4LmVzdHJpbkBp
+bnRlbC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggZm9yLW5leHQgMTYvMTZdIElCL2lwb2li
+OiBGaXggZm9yIHBvdGVudGlhbCBuby1jYXJyaWVyIHN0YXRlDQo+IA0KPiBPbiBGcmksIDIwMTgt
+MDEtMjYgYXQgMDY6MzMgLTA4MDAsIERlbm5pcyBEYWxlc3NhbmRybyB3cm90ZToNCj4gPiBGcm9t
+OiBBbGV4IEVzdHJpbiA8YWxleC5lc3RyaW5AaW50ZWwuY29tPg0KPiA+DQo+ID4gT24gcmVib290
+IFNNIGNhbiBwcm9ncmFtIHBvcnQgcGtleSB0YWJsZSBiZWZvcmUgaXBvaWIgcmVnaXN0ZXJlZCBp
+dHMNCj4gPiBldmVudCBoYW5kbGVyLCB3aGljaCBjb3VsZCByZXN1bHQgaW4gbWlzc2luZyBwa2V5
+IGV2ZW50IGFuZCBsZWF2ZSByb290DQo+ID4gaW50ZXJmYWNlIHdpdGggaW5pdGlhbCBwa2V5IHZh
+bHVlIGZyb20gaW5kZXggMC4NCj4gPg0KPiA+IFNpbmNlIE9QQSBwb3J0IHN0YXJ0cyB3aXRoIGlu
+dmFsaWQgcGtleSBpbiBpbmRleCAwLCByb290IGludGVyZmFjZSB3aWxsDQo+ID4gZmFpbCB0byBp
+bml0aWFsaXplIGFuZCBzdGF5IGRvd24gd2l0aCBuby1jYXJyaWVyIGZsYWcuDQo+ID4NCj4gPiBG
+b3IgSUIgaXBvaWIgaW50ZXJmYWNlIG1heSBlbmQgdXAgd2l0aCBwa2V5IGRpZmZlcmVudCBmcm9t
+IHZhbHVlDQo+ID4gb3BlbnNtIHB1dCBpbiBwa2V5IHRhYmxlIGlkeCAwLCByZXN1bHRpbmcgaW4g
+Y29ubmVjdGl2aXR5IGlzc3Vlcw0KPiA+IChkaWZmZXJlbnQgbWNhc3QgZ3JvdXBzLCBmb3IgZXhh
+bXBsZSkuDQo+ID4NCj4gPiBDbG9zZSB0aGUgd2luZG93IGJ5IGNhbGxpbmcgZXZlbnQgaGFuZGxl
+ciBhZnRlciByZWdpc3RyYXRpb24NCj4gPiB0byBtYWtlIHN1cmUgaXBvaWIgcGtleSBpcyBpbiBz
+eW5jIHdpdGggcG9ydCBwa2V5IHRhYmxlLg0KPiA+DQo+ID4gUmV2aWV3ZWQtYnk6IE1pa2UgTWFy
+Y2luaXN6eW4gPG1pa2UubWFyY2luaXN6eW5AaW50ZWwuY29tPg0KPiA+IFJldmlld2VkLWJ5OiBJ
+cmEgV2VpbnkgPGlyYS53ZWlueUBpbnRlbC5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogQWxleCBF
+c3RyaW4gPGFsZXguZXN0cmluQGludGVsLmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBEZW5uaXMg
+RGFsZXNzYW5kcm8gPGRlbm5pcy5kYWxlc3NhbmRyb0BpbnRlbC5jb20+DQo+ID4gLS0tDQo+ID4g
+IGRyaXZlcnMvaW5maW5pYmFuZC91bHAvaXBvaWIvaXBvaWJfbWFpbi5jIHwgICAgMyArKysNCj4g
+PiAgMSBmaWxlcyBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pDQo+ID4N
+Cj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL3VscC9pcG9pYi9pcG9pYl9tYWlu
+LmMNCj4gYi9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lwb2liL2lwb2liX21haW4uYw0KPiA+IGlu
+ZGV4IDU5MzBjN2QuLjE2MWJhOGMgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5k
+L3VscC9pcG9pYi9pcG9pYl9tYWluLmMNCj4gPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvdWxw
+L2lwb2liL2lwb2liX21haW4uYw0KPiA+IEBAIC0yMzA2LDYgKzIzMDYsOSBAQCB2b2lkIGlwb2li
+X3NldF9kZXZfZmVhdHVyZXMoc3RydWN0IGlwb2liX2Rldl9wcml2DQo+ICpwcml2LCBzdHJ1Y3Qg
+aWJfZGV2aWNlICpoY2EpDQo+ID4gIAkJCSAgICAgIHByaXYtPmNhLCBpcG9pYl9ldmVudCk7DQo+
+ID4gIAlpYl9yZWdpc3Rlcl9ldmVudF9oYW5kbGVyKCZwcml2LT5ldmVudF9oYW5kbGVyKTsNCj4g
+Pg0KPiA+ICsJLyogY2FsbCBldmVudCBoYW5kbGVyIHRvIGVuc3VyZSBwa2V5IGluIHN5bmMgKi8N
+Cj4gPiArCXF1ZXVlX3dvcmsoaXBvaWJfd29ya3F1ZXVlLCAmcHJpdi0+Zmx1c2hfaGVhdnkpOw0K
+PiA+ICsNCj4gDQo+IFRoaXMgc2VlbXMgbGlrZSBhIGJpdCBvZiBhIHNsZWRnZWhhbW1lciB0byB0
+aGUgaXNzdWUuICBMb29raW5nIHRocm91Z2gNCj4gaXBvaWJfYWRkX3BvcnQoKSwgdGhlIHJlYWwg
+cmFjZSBpcyB0aGF0IHdlIGhhdmUgdG8gY2FsbCBpYl9xdWVyeV9wa2V5KCkNCj4gZWFybHkgaW4g
+dGhlIGluaXQgc2VxdWVuY2UgYXMgc29tZSBvZiB0aGUgbGF0ZXIgc3RlcHMgbmVlZCBpdCB0byBi
+ZSBzZXQNCj4gKGlwb2liX2Rldl9pbml0KCkgbXVzdCBoYXZlIGl0IGFscmVhZHkgc2V0IGZvciBv
+bmUpLCBidXQgc2luY2Ugd2UgZG9uJ3QNCj4gc2V0dXAgb3VyIGV2ZW50IGhhbmRsZXIgdW50aWwg
+YWZ0ZXIgd2UndmUgZmluaXNoZWQgc2V0dGluZyB1cCB0aGUNCj4gZGV2aWNlLCB0aGVyZSBpcyB0
+aGF0IHdpbmRvdyBmcm9tIG91ciBmaXJzdCBpYl9xdWVyeV9wa2V5IGNhbGwgdW50aWwgd2UNCj4g
+Y29tcGxldGUgdGhlIGliX3JlZ2lzdGVyX2V2ZW50X2hhbmRsZXIoKSBjYWxsIGZvciB0aGUgcGtl
+eSB0byBjaGFuZ2UuDQo+IEluc3RlYWQgb2YgdGhyb3dpbmcgdGhlIGZsdXNoIHJlZ2FyZGxlc3Ms
+IGl0IG1pZ2h0IGJlIG5pY2VyIHRvIGRvOg0KPiANCj4gCXsNCj4gCQl1MTYgbmV3X3BrZXk7DQo+
+IA0KPiAJCWliX3F1ZXJ5X3BrZXkoaGNhLCBwb3J0LCAwLCAmbmV3X3BrZXkpOw0KPiAJCWlmIChw
+cml2LT5wa2V5ICE9IChuZXdfcGtleSB8IDB4ODAwMCkpDQo+IAkJCS8qIFRoZSBwa2V5IGNoYW5n
+ZWQgYmV0d2VlbiB3aGVuIHdlDQo+IAkJCSAqIHJlYWQgaXQgYW5kIG5vdywgZmx1c2ggdGhlIGRl
+dmljZQ0KPiAJCQkgKi8NCj4gCQkJcXVldWVfd29yayhpcG9pYl93b3JrcXVldWUsICZwcml2LT5m
+bHVzaF9oZWF2eSk7DQo+IAl9DQoNCkhpIERvdWcsDQpUaGUgcmVhc29uIEkgZGlkIG5vdCBnbyB0
+aGlzIHdheSBpcyB0aGF0IGF0IHRoaXMgZWFybHkgcG9pbnQgb2YgaW5pdGlhbGl6YXRpb24gDQpw
+a2V5IGhhbmRsZXIgd2lsbCBub3Qgb3BlcmF0ZSBhcyBhICJzbGVkZ2VoYW1tZXIiIHRvIGZsdXNo
+IGFsbCBjYWNoZWQgcmVjb3JkcywgDQppdCB3aWxsICBxdWVyeSBwa2V5LCB1cGRhdGUgaWYgY2hh
+bmdlZCwgdGhlbiBleGl0IGVhcmx5Lg0KSW4gYW55IGNhc2Ugd2Ugd2lsbCBxdWVyeSBwa2V5IG9u
+bHkgb25jZSwgbm90IHR3aWNlIGFzIG1pZ2h0IGJlIGluIHlvdXIgY2FzZS4NCg0KVGhhbmtzLA0K
+QWxleC4NCiANCj4gDQo+ID4gIAlyZXN1bHQgPSByZWdpc3Rlcl9uZXRkZXYocHJpdi0+ZGV2KTsN
+Cj4gPiAgCWlmIChyZXN1bHQpIHsNCj4gPiAgCQlwcl93YXJuKCIlczogY291bGRuJ3QgcmVnaXN0
+ZXIgaXBvaWIgcG9ydCAlZDsgZXJyb3IgJWRcbiIsDQo+ID4NCj4gDQo+IC0tDQo+IERvdWcgTGVk
+Zm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT4NCj4gICAgIEdQRyBLZXlJRDogQjgyNkEzMzMwRTU3
+MkZERA0KPiAgICAgS2V5IGZpbmdlcnByaW50ID0gQUU2QiAxQkRBIDEyMkIgMjNCNCAyNjVCICAx
+Mjc0IEI4MjYgQTMzMyAwRTU3IDJGREQNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
