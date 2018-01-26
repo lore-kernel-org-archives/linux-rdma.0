@@ -1,76 +1,67 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next v2 15/16] IB/core: Map iWarp AH type to undefined
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH for-next v2 15/16] IB/core: Map iWarp AH type to undefined
  in rdma_ah_find_type
-Date: Fri, 26 Jan 2018 13:30:46 -0800
-Message-ID: <20180126213043.12097.88707.stgit@scvm10.sc.intel.com>
+Date: Fri, 26 Jan 2018 21:39:59 +0000
+Message-ID: <VI1PR0502MB300863FABEA9D4B962E4D826D1E00@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 References: <20180126211126.12097.47410.stgit@scvm10.sc.intel.com>
+ <20180126213043.12097.88707.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180126211126.12097.47410.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20180126213043.12097.88707.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-iWarp devices do not support the creation of address handles
-so return AH_ATTR_TYPE_UNDEFINED for all iWarp devices.
-
-While we are here reduce the size of port_num to u8 and add
-a comment.
-
-Fixes: 44c58487d51a ("IB/core: Define 'ib' and 'roce' rdma_ah_attr types")
-Reported-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-CC: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
----
-Changes since v1: Add Shiraz RB tag, move undefined to be 0 not 3
----
- include/rdma/ib_verbs.h |   12 ++++++++++--
- 1 files changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5e32fe7..0eb3074 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -878,6 +878,7 @@ struct ib_mr_status {
- __attribute_const__ enum ib_rate mult_to_ib_rate(int mult);
- 
- enum rdma_ah_attr_type {
-+	RDMA_AH_ATTR_TYPE_UNDEFINED,
- 	RDMA_AH_ATTR_TYPE_IB,
- 	RDMA_AH_ATTR_TYPE_ROCE,
- 	RDMA_AH_ATTR_TYPE_OPA,
-@@ -3789,12 +3790,19 @@ static inline void rdma_ah_set_grh(struct rdma_ah_attr *attr,
- 	grh->traffic_class = traffic_class;
- }
- 
--/*Get AH type */
-+/**
-+ * rdma_ah_find_type - Return address handle type.
-+ *
-+ * @dev: Device to be checked
-+ * @port_num: Port number
-+ */
- static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device *dev,
--						       u32 port_num)
-+						       u8 port_num)
- {
- 	if (rdma_protocol_roce(dev, port_num))
- 		return RDMA_AH_ATTR_TYPE_ROCE;
-+	else if (rdma_protocol_iwarp(dev, port_num))
-+		return RDMA_AH_ATTR_TYPE_UNDEFINED;
- 	else if ((rdma_protocol_ib(dev, port_num)) &&
- 		 (rdma_cap_opa_ah(dev, port_num)))
- 		return RDMA_AH_ATTR_TYPE_OPA;
-
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogRGVubmlzIERhbGVzc2Fu
+ZHJvIFttYWlsdG86ZGVubmlzLmRhbGVzc2FuZHJvQGludGVsLmNvbV0NCj4gU2VudDogRnJpZGF5
+LCBKYW51YXJ5IDI2LCAyMDE4IDM6MzEgUE0NCj4gVG86IGpnZ0B6aWVwZS5jYTsgZGxlZGZvcmRA
+cmVkaGF0LmNvbQ0KPiBDYzogUGFyYXYgUGFuZGl0IDxwYXJhdkBtZWxsYW5veC5jb20+OyBsaW51
+eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgU2hpcmF6DQo+IFNhbGVlbSA8c2hpcmF6LnNhbGVlbUBp
+bnRlbC5jb20+OyBEb24gSGlhdHQgPGRvbi5oaWF0dEBpbnRlbC5jb20+OyBTZWFuDQo+IEhlZnR5
+IDxzZWFuLmhlZnR5QGludGVsLmNvbT47IElyYSBXZWlueSA8aXJhLndlaW55QGludGVsLmNvbT4N
+Cj4gU3ViamVjdDogW1BBVENIIGZvci1uZXh0IHYyIDE1LzE2XSBJQi9jb3JlOiBNYXAgaVdhcnAg
+QUggdHlwZSB0byB1bmRlZmluZWQgaW4NCj4gcmRtYV9haF9maW5kX3R5cGUNCj4gDQo+IEZyb206
+IERvbiBIaWF0dCA8ZG9uLmhpYXR0QGludGVsLmNvbT4NCj4gDQo+IGlXYXJwIGRldmljZXMgZG8g
+bm90IHN1cHBvcnQgdGhlIGNyZWF0aW9uIG9mIGFkZHJlc3MgaGFuZGxlcyBzbyByZXR1cm4NCj4g
+QUhfQVRUUl9UWVBFX1VOREVGSU5FRCBmb3IgYWxsIGlXYXJwIGRldmljZXMuDQo+IA0KPiBXaGls
+ZSB3ZSBhcmUgaGVyZSByZWR1Y2UgdGhlIHNpemUgb2YgcG9ydF9udW0gdG8gdTggYW5kIGFkZCBh
+IGNvbW1lbnQuDQo+IA0KPiBGaXhlczogNDRjNTg0ODdkNTFhICgiSUIvY29yZTogRGVmaW5lICdp
+YicgYW5kICdyb2NlJyByZG1hX2FoX2F0dHIgdHlwZXMiKQ0KPiBSZXBvcnRlZC1ieTogUGFyYXYg
+UGFuZGl0IDxwYXJhdkBtZWxsYW5veC5jb20+DQo+IENDOiBTZWFuIEhlZnR5IDxzZWFuLmhlZnR5
+QGludGVsLmNvbT4NCj4gUmV2aWV3ZWQtYnk6IElyYSBXZWlueSA8aXJhLndlaW55QGludGVsLmNv
+bT4NCj4gUmV2aWV3ZWQtYnk6IFNoaXJheiBTYWxlZW0gPHNoaXJhei5zYWxlZW1AaW50ZWwuY29t
+Pg0KPiBTaWduZWQtb2ZmLWJ5OiBEb24gSGlhdHQgPGRvbi5oaWF0dEBpbnRlbC5jb20+DQo+IFNp
+Z25lZC1vZmYtYnk6IERlbm5pcyBEYWxlc3NhbmRybyA8ZGVubmlzLmRhbGVzc2FuZHJvQGludGVs
+LmNvbT4NCj4gDQo+IC0tLQ0KPiBDaGFuZ2VzIHNpbmNlIHYxOiBBZGQgU2hpcmF6IFJCIHRhZywg
+bW92ZSB1bmRlZmluZWQgdG8gYmUgMCBub3QgMw0KPiAtLS0NCj4gIGluY2x1ZGUvcmRtYS9pYl92
+ZXJicy5oIHwgICAxMiArKysrKysrKysrLS0NCj4gIDEgZmlsZXMgY2hhbmdlZCwgMTAgaW5zZXJ0
+aW9ucygrKSwgMiBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQgYS9pbmNsdWRlL3JkbWEv
+aWJfdmVyYnMuaCBiL2luY2x1ZGUvcmRtYS9pYl92ZXJicy5oIGluZGV4DQo+IDVlMzJmZTcuLjBl
+YjMwNzQgMTAwNjQ0DQo+IC0tLSBhL2luY2x1ZGUvcmRtYS9pYl92ZXJicy5oDQo+ICsrKyBiL2lu
+Y2x1ZGUvcmRtYS9pYl92ZXJicy5oDQo+IEBAIC04NzgsNiArODc4LDcgQEAgc3RydWN0IGliX21y
+X3N0YXR1cyB7ICBfX2F0dHJpYnV0ZV9jb25zdF9fIGVudW0gaWJfcmF0ZQ0KPiBtdWx0X3RvX2li
+X3JhdGUoaW50IG11bHQpOw0KPiANCj4gIGVudW0gcmRtYV9haF9hdHRyX3R5cGUgew0KPiArCVJE
+TUFfQUhfQVRUUl9UWVBFX1VOREVGSU5FRCwNCj4gIAlSRE1BX0FIX0FUVFJfVFlQRV9JQiwNCj4g
+IAlSRE1BX0FIX0FUVFJfVFlQRV9ST0NFLA0KPiAgCVJETUFfQUhfQVRUUl9UWVBFX09QQSwNCj4g
+QEAgLTM3ODksMTIgKzM3OTAsMTkgQEAgc3RhdGljIGlubGluZSB2b2lkIHJkbWFfYWhfc2V0X2dy
+aChzdHJ1Y3QNCj4gcmRtYV9haF9hdHRyICphdHRyLA0KPiAgCWdyaC0+dHJhZmZpY19jbGFzcyA9
+IHRyYWZmaWNfY2xhc3M7DQo+ICB9DQo+IA0KPiAtLypHZXQgQUggdHlwZSAqLw0KPiArLyoqDQo+
+ICsgKiByZG1hX2FoX2ZpbmRfdHlwZSAtIFJldHVybiBhZGRyZXNzIGhhbmRsZSB0eXBlLg0KPiAr
+ICoNCj4gKyAqIEBkZXY6IERldmljZSB0byBiZSBjaGVja2VkDQo+ICsgKiBAcG9ydF9udW06IFBv
+cnQgbnVtYmVyDQo+ICsgKi8NCj4gIHN0YXRpYyBpbmxpbmUgZW51bSByZG1hX2FoX2F0dHJfdHlw
+ZSByZG1hX2FoX2ZpbmRfdHlwZShzdHJ1Y3QgaWJfZGV2aWNlDQo+ICpkZXYsDQo+IC0JCQkJCQkg
+ICAgICAgdTMyIHBvcnRfbnVtKQ0KPiArCQkJCQkJICAgICAgIHU4IHBvcnRfbnVtKQ0KPiAgew0K
+PiAgCWlmIChyZG1hX3Byb3RvY29sX3JvY2UoZGV2LCBwb3J0X251bSkpDQo+ICAJCXJldHVybiBS
+RE1BX0FIX0FUVFJfVFlQRV9ST0NFOw0KPiArCWVsc2UgaWYgKHJkbWFfcHJvdG9jb2xfaXdhcnAo
+ZGV2LCBwb3J0X251bSkpDQo+ICsJCXJldHVybiBSRE1BX0FIX0FUVFJfVFlQRV9VTkRFRklORUQ7
+DQo+ICAJZWxzZSBpZiAoKHJkbWFfcHJvdG9jb2xfaWIoZGV2LCBwb3J0X251bSkpICYmDQo+ICAJ
+CSAocmRtYV9jYXBfb3BhX2FoKGRldiwgcG9ydF9udW0pKSkNCj4gIAkJcmV0dXJuIFJETUFfQUhf
+QVRUUl9UWVBFX09QQTsNCllvdSBuZWVkIGEgY2FzZSB0byByZXR1cm4gQUhfVFlQRV9JQi4NCg0K
+DQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
