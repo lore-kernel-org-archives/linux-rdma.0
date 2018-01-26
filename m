@@ -1,42 +1,38 @@
-From: Peter Schuster <femi.ageuh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: =?UTF-8?Q?Darlehen_Geld_f=C3=BCr_Einzelpersonen_und_Fachleute_in_w?=
-        =?UTF-8?Q?eniger_als_72_Stunden?=
-Date: Fri, 26 Jan 2018 08:22:47 +0100
-Message-ID: <CACKcKZ-YTVoO8xO=VcRR-F_91T=fQ=MZa2wBTk_EaRT7GRz52Q__16112.1605000973$1516951281$gmane$org@mail.gmail.com>
-Reply-To: klaus.peterschuster-1ViLX0X+lBKELgA04lAiVw@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Ursula Braun <ubraun@linux.vnet.ibm.com>
+Subject: [PATCH net-next 0/5] net/smc: fixes 2018-01-26
+Date: Fri, 26 Jan 2018 09:28:45 +0100
+Message-ID: <20180126082850.20655-1-ubraun@linux.vnet.ibm.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, jwi@linux.vnet.ibm.com, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.vnet.ibm.com, ubraun@linux.vnet.ibm.com
 List-Id: linux-rdma@vger.kernel.org
 
-Hallo,
+Dave,
 
-Sind Sie in einer schwierigen Situation, f=C3=BCr die Sie sich f=C3=BCr ein
-Darlehen suchen? Ben=C3=B6tigen Sie eine Finanzierung, um eine Schuld zu
-begleichen oder eine Aktivit=C3=A4t zu finanzieren? Haben Sie einen
-Verbraucherkredit, eine Hypothek, einen pers=C3=B6nlichen Kredit, eine
-Hypothek, Investition Darlehen, Schuldenkonsolidierung Darlehen oder
-andere braucht?
+here are some more smc patches. The first 4 patches take care about
+different aspects of smc socket closing, the 5th patch improves
+coding style.
 
-Ich bin ein einzelner Investor. I zur Verf=C3=BCgung stellen die Kredit
-kurz-, mittel- und langfristige. Ihr Finanzierungsbedingungen sind
-sehr einfach und meine Zinssatz betr=C3=A4gt 3% pro Jahr.
+Thanks, Ursula
 
-F=C3=BCr alle Anfragen, bleibe ich zur Verf=C3=BCgung, um Ihre Fragen zu be=
-antworten.
+Gustavo A. R. Silva (1):
+  smc: return booleans instead of integers
 
-Danke, dass Sie mir per E-Mail an Sie von  :   klaus.peterschuster@outlook.=
-de
+Ursula Braun (4):
+  net/smc: handle device, port, and QP error events
+  net/smc: smc_poll improvements
+  net/smc: replace sock_put worker by socket refcounting
+  net/smc: release clcsock from tcp_listen_worker
 
-Mit freundlichen Gr=C3=BC=C3=9Fen.
+ net/smc/af_smc.c    | 152 ++++++++++++++++++++++++++++++----------------------
+ net/smc/smc.h       |   5 +-
+ net/smc/smc_cdc.c   |  20 +++----
+ net/smc/smc_close.c |  96 +++++++++++++++++++++------------
+ net/smc/smc_close.h |   1 -
+ net/smc/smc_core.c  |   6 +--
+ net/smc/smc_ib.c    |  38 ++++++++-----
+ 7 files changed, 191 insertions(+), 127 deletions(-)
 
-Peter Schuster
-
-Financial Bank
-https://firstfinancialsa.com/de
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+2.13.5
