@@ -1,481 +1,139 @@
-From: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH net-next 3/5] net/smc: replace sock_put worker by socket refcounting
-Date: Fri, 26 Jan 2018 09:28:48 +0100
-Message-ID: <20180126082850.20655-4-ubraun@linux.vnet.ibm.com>
+From: Ursula Braun <ubraun@linux.vnet.ibm.com>
+Subject: [PATCH net-next 2/5] net/smc: smc_poll improvements
+Date: Fri, 26 Jan 2018 09:28:47 +0100
+Message-ID: <20180126082850.20655-3-ubraun@linux.vnet.ibm.com>
 References: <20180126082850.20655-1-ubraun@linux.vnet.ibm.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180126082850.20655-1-ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jwi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180126082850.20655-1-ubraun@linux.vnet.ibm.com>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, jwi@linux.vnet.ibm.com, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.vnet.ibm.com, ubraun@linux.vnet.ibm.com
 List-Id: linux-rdma@vger.kernel.org
 
-Proper socket refcounting makes the sock_put worker obsolete.
+Increase the socket refcount during poll wait.
+Take the socket lock before checking socket state.
+For a listening socket return a mask independent of state SMC_ACTIVE and
+cover errors or closed state as well.
+Get rid of the accept_q loop in smc_accept_poll().
 
-Signed-off-by: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
 ---
- net/smc/af_smc.c    | 65 +++++++++++++++++++++++++++++------------------------
- net/smc/smc.h       |  1 -
- net/smc/smc_cdc.c   | 20 +++++++++--------
- net/smc/smc_close.c | 63 ++++++++++++++++++++++++++++++---------------------
- net/smc/smc_close.h |  1 -
- net/smc/smc_core.c  |  6 ++---
- 6 files changed, 88 insertions(+), 68 deletions(-)
+ net/smc/af_smc.c | 74 ++++++++++++++++++++++++++++++--------------------------
+ 1 file changed, 40 insertions(+), 34 deletions(-)
 
 diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index 90c22a854f28..732a37ddbc21 100644
+index cf0e11978b66..90c22a854f28 100644
 --- a/net/smc/af_smc.c
 +++ b/net/smc/af_smc.c
-@@ -115,7 +115,6 @@ static int smc_release(struct socket *sock)
- 		goto out;
+@@ -1122,21 +1122,15 @@ static int smc_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
  
- 	smc = smc_sk(sk);
--	sock_hold(sk);
- 	if (sk->sk_state == SMC_LISTEN)
- 		/* smc_close_non_accepted() is called and acquires
- 		 * sock lock for child sockets again
-@@ -124,10 +123,7 @@ static int smc_release(struct socket *sock)
- 	else
- 		lock_sock(sk);
- 
--	if (smc->use_fallback) {
--		sk->sk_state = SMC_CLOSED;
--		sk->sk_state_change(sk);
--	} else {
-+	if (!smc->use_fallback) {
- 		rc = smc_close_active(smc);
- 		sock_set_flag(sk, SOCK_DEAD);
- 		sk->sk_shutdown |= SHUTDOWN_MASK;
-@@ -136,20 +132,21 @@ static int smc_release(struct socket *sock)
- 		sock_release(smc->clcsock);
- 		smc->clcsock = NULL;
- 	}
-+	if (smc->use_fallback) {
-+		sock_put(sk); /* passive closing */
-+		sk->sk_state = SMC_CLOSED;
-+		sk->sk_state_change(sk);
-+	}
- 
- 	/* detach socket */
- 	sock_orphan(sk);
- 	sock->sk = NULL;
--	if (smc->use_fallback) {
--		schedule_delayed_work(&smc->sock_put_work, TCP_TIMEWAIT_LEN);
--	} else if (sk->sk_state == SMC_CLOSED) {
-+	if (!smc->use_fallback && sk->sk_state == SMC_CLOSED)
- 		smc_conn_free(&smc->conn);
--		schedule_delayed_work(&smc->sock_put_work,
--				      SMC_CLOSE_SOCK_PUT_DELAY);
--	}
- 	release_sock(sk);
- 
--	sock_put(sk);
-+	sk->sk_prot->unhash(sk);
-+	sock_put(sk); /* final sock_put */
- out:
- 	return rc;
- }
-@@ -181,7 +178,6 @@ static struct sock *smc_sock_alloc(struct net *net, struct socket *sock)
- 	INIT_WORK(&smc->tcp_listen_work, smc_tcp_listen_work);
- 	INIT_LIST_HEAD(&smc->accept_q);
- 	spin_lock_init(&smc->accept_q_lock);
--	INIT_DELAYED_WORK(&smc->sock_put_work, smc_close_sock_put_work);
- 	sk->sk_prot->hash(sk);
- 	sk_refcnt_debug_inc(sk);
- 
-@@ -399,6 +395,8 @@ static int smc_connect_rdma(struct smc_sock *smc)
- 	int rc = 0;
- 	u8 ibport;
- 
-+	sock_hold(&smc->sk); /* sock put in passive closing */
-+
- 	if (!tcp_sk(smc->clcsock->sk)->syn_smc) {
- 		/* peer has not signalled SMC-capability */
- 		smc->use_fallback = true;
-@@ -542,6 +540,8 @@ static int smc_connect_rdma(struct smc_sock *smc)
- 	mutex_unlock(&smc_create_lgr_pending);
- 	smc_conn_free(&smc->conn);
- out_err:
-+	if (smc->sk.sk_state == SMC_INIT)
-+		sock_put(&smc->sk); /* passive closing */
- 	return rc;
- }
- 
-@@ -620,7 +620,7 @@ static int smc_clcsock_accept(struct smc_sock *lsmc, struct smc_sock **new_smc)
- 		new_sk->sk_state = SMC_CLOSED;
- 		sock_set_flag(new_sk, SOCK_DEAD);
- 		new_sk->sk_prot->unhash(new_sk);
--		sock_put(new_sk);
-+		sock_put(new_sk); /* final */
- 		*new_smc = NULL;
- 		goto out;
- 	}
-@@ -637,7 +637,7 @@ static void smc_accept_enqueue(struct sock *parent, struct sock *sk)
+ static unsigned int smc_accept_poll(struct sock *parent)
  {
- 	struct smc_sock *par = smc_sk(parent);
- 
--	sock_hold(sk);
-+	sock_hold(sk); /* sock_put in smc_accept_unlink () */
- 	spin_lock(&par->accept_q_lock);
- 	list_add_tail(&smc_sk(sk)->accept_q, &par->accept_q);
- 	spin_unlock(&par->accept_q_lock);
-@@ -653,7 +653,7 @@ static void smc_accept_unlink(struct sock *sk)
- 	list_del_init(&smc_sk(sk)->accept_q);
- 	spin_unlock(&par->accept_q_lock);
- 	sk_acceptq_removed(&smc_sk(sk)->listen_smc->sk);
--	sock_put(sk);
-+	sock_put(sk); /* sock_hold in smc_accept_enqueue */
- }
- 
- /* remove a sock from the accept queue to bind it to a new socket created
-@@ -671,7 +671,7 @@ struct sock *smc_accept_dequeue(struct sock *parent,
- 		smc_accept_unlink(new_sk);
- 		if (new_sk->sk_state == SMC_CLOSED) {
- 			new_sk->sk_prot->unhash(new_sk);
--			sock_put(new_sk);
-+			sock_put(new_sk); /* final */
- 			continue;
- 		}
- 		if (new_sock)
-@@ -686,14 +686,11 @@ void smc_close_non_accepted(struct sock *sk)
- {
- 	struct smc_sock *smc = smc_sk(sk);
- 
--	sock_hold(sk);
- 	lock_sock(sk);
- 	if (!sk->sk_lingertime)
- 		/* wait for peer closing */
- 		sk->sk_lingertime = SMC_MAX_STREAM_WAIT_TIMEOUT;
--	if (smc->use_fallback) {
--		sk->sk_state = SMC_CLOSED;
--	} else {
-+	if (!smc->use_fallback) {
- 		smc_close_active(smc);
- 		sock_set_flag(sk, SOCK_DEAD);
- 		sk->sk_shutdown |= SHUTDOWN_MASK;
-@@ -706,14 +703,15 @@ void smc_close_non_accepted(struct sock *sk)
- 		sock_release(tcp);
- 	}
- 	if (smc->use_fallback) {
--		schedule_delayed_work(&smc->sock_put_work, TCP_TIMEWAIT_LEN);
--	} else if (sk->sk_state == SMC_CLOSED) {
--		smc_conn_free(&smc->conn);
--		schedule_delayed_work(&smc->sock_put_work,
--				      SMC_CLOSE_SOCK_PUT_DELAY);
-+		sock_put(sk); /* passive closing */
-+		sk->sk_state = SMC_CLOSED;
-+	} else {
-+		if (sk->sk_state == SMC_CLOSED)
-+			smc_conn_free(&smc->conn);
- 	}
- 	release_sock(sk);
--	sock_put(sk);
-+	sk->sk_prot->unhash(sk);
-+	sock_put(sk); /* final sock_put */
- }
- 
- static int smc_serv_conf_first_link(struct smc_sock *smc)
-@@ -937,6 +935,8 @@ static void smc_listen_work(struct work_struct *work)
- 		smc_lgr_forget(new_smc->conn.lgr);
- 	mutex_unlock(&smc_create_lgr_pending);
- out_err:
-+	if (newsmcsk->sk_state == SMC_INIT)
-+		sock_put(&new_smc->sk); /* passive closing */
- 	newsmcsk->sk_state = SMC_CLOSED;
- 	smc_conn_free(&new_smc->conn);
- 	goto enqueue; /* queue new sock with sk_err set */
-@@ -963,12 +963,15 @@ static void smc_tcp_listen_work(struct work_struct *work)
- 		sock_hold(lsk); /* sock_put in smc_listen_work */
- 		INIT_WORK(&new_smc->smc_listen_work, smc_listen_work);
- 		smc_copy_sock_settings_to_smc(new_smc);
--		schedule_work(&new_smc->smc_listen_work);
-+		sock_hold(&new_smc->sk); /* sock_put in passive closing */
-+		if (!schedule_work(&new_smc->smc_listen_work))
-+			sock_put(&new_smc->sk);
- 	}
- 
- out:
- 	release_sock(lsk);
- 	lsk->sk_data_ready(lsk); /* no more listening, wake accept */
-+	sock_put(&lsmc->sk); /* sock_hold in smc_listen */
- }
- 
- static int smc_listen(struct socket *sock, int backlog)
-@@ -1002,7 +1005,9 @@ static int smc_listen(struct socket *sock, int backlog)
- 	sk->sk_ack_backlog = 0;
- 	sk->sk_state = SMC_LISTEN;
- 	INIT_WORK(&smc->tcp_listen_work, smc_tcp_listen_work);
--	schedule_work(&smc->tcp_listen_work);
-+	sock_hold(sk); /* sock_hold in tcp_listen_worker */
-+	if (!schedule_work(&smc->tcp_listen_work))
-+		sock_put(sk);
- 
- out:
- 	release_sock(sk);
-@@ -1019,6 +1024,7 @@ static int smc_accept(struct socket *sock, struct socket *new_sock,
- 	int rc = 0;
- 
- 	lsmc = smc_sk(sk);
-+	sock_hold(sk); /* sock_put below */
- 	lock_sock(sk);
- 
- 	if (lsmc->sk.sk_state != SMC_LISTEN) {
-@@ -1053,6 +1059,7 @@ static int smc_accept(struct socket *sock, struct socket *new_sock,
- 
- out:
- 	release_sock(sk);
-+	sock_put(sk); /* sock_hold above */
- 	return rc;
- }
- 
-diff --git a/net/smc/smc.h b/net/smc/smc.h
-index 0bee9d16cf29..bfbe20234105 100644
---- a/net/smc/smc.h
-+++ b/net/smc/smc.h
-@@ -178,7 +178,6 @@ struct smc_sock {				/* smc sock container */
- 	struct work_struct	smc_listen_work;/* prepare new accept socket */
- 	struct list_head	accept_q;	/* sockets to be accepted */
- 	spinlock_t		accept_q_lock;	/* protects accept_q */
--	struct delayed_work	sock_put_work;	/* final socket freeing */
- 	bool			use_fallback;	/* fallback to tcp */
- 	u8			wait_close_tx_prepared : 1;
- 						/* shutdown wr or close
-diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
-index 6e8f5fbe0f09..3cd086e5bd28 100644
---- a/net/smc/smc_cdc.c
-+++ b/net/smc/smc_cdc.c
-@@ -212,6 +212,14 @@ static void smc_cdc_msg_recv_action(struct smc_sock *smc,
- 		smc->sk.sk_data_ready(&smc->sk);
- 	}
- 
-+	/* piggy backed tx info */
-+	/* trigger sndbuf consumer: RDMA write into peer RMBE and CDC */
-+	if (diff_cons && smc_tx_prepared_sends(conn)) {
-+		smc_tx_sndbuf_nonempty(conn);
-+		/* trigger socket release if connection closed */
-+		smc_close_wake_tx_prepared(smc);
-+	}
-+
- 	if (conn->local_rx_ctrl.conn_state_flags.peer_conn_abort) {
- 		smc->sk.sk_err = ECONNRESET;
- 		conn->local_tx_ctrl.conn_state_flags.peer_conn_abort = 1;
-@@ -221,15 +229,9 @@ static void smc_cdc_msg_recv_action(struct smc_sock *smc,
- 		if (smc->clcsock && smc->clcsock->sk)
- 			smc->clcsock->sk->sk_shutdown |= RCV_SHUTDOWN;
- 		sock_set_flag(&smc->sk, SOCK_DONE);
--		schedule_work(&conn->close_work);
--	}
+-	struct smc_sock *isk;
+-	struct sock *sk;
 -
--	/* piggy backed tx info */
--	/* trigger sndbuf consumer: RDMA write into peer RMBE and CDC */
--	if (diff_cons && smc_tx_prepared_sends(conn)) {
--		smc_tx_sndbuf_nonempty(conn);
--		/* trigger socket release if connection closed */
--		smc_close_wake_tx_prepared(smc);
-+		sock_hold(&smc->sk); /* sock_put in close_work */
-+		if (!schedule_work(&conn->close_work))
-+			sock_put(&smc->sk);
- 	}
+-	lock_sock(parent);
+-	list_for_each_entry(isk, &smc_sk(parent)->accept_q, accept_q) {
+-		sk = (struct sock *)isk;
++	struct smc_sock *isk = smc_sk(parent);
++	int mask = 0;
+ 
+-		if (sk->sk_state == SMC_ACTIVE) {
+-			release_sock(parent);
+-			return POLLIN | POLLRDNORM;
+-		}
+-	}
+-	release_sock(parent);
++	spin_lock(&isk->accept_q_lock);
++	if (!list_empty(&isk->accept_q))
++		mask = POLLIN | POLLRDNORM;
++	spin_unlock(&isk->accept_q_lock);
+ 
+-	return 0;
++	return mask;
  }
  
-diff --git a/net/smc/smc_close.c b/net/smc/smc_close.c
-index babe05d385e7..4339852a8910 100644
---- a/net/smc/smc_close.c
-+++ b/net/smc/smc_close.c
-@@ -110,6 +110,7 @@ static void smc_close_active_abort(struct smc_sock *smc)
- 		release_sock(sk);
- 		cancel_delayed_work_sync(&smc->conn.tx_work);
- 		lock_sock(sk);
-+		sock_put(sk); /* passive closing */
- 		break;
- 	case SMC_APPCLOSEWAIT1:
- 	case SMC_APPCLOSEWAIT2:
-@@ -125,11 +126,13 @@ static void smc_close_active_abort(struct smc_sock *smc)
- 	case SMC_PEERCLOSEWAIT1:
- 	case SMC_PEERCLOSEWAIT2:
- 		if (!txflags->peer_conn_closed) {
-+			/* just SHUTDOWN_SEND done */
- 			sk->sk_state = SMC_PEERABORTWAIT;
- 			sock_release(smc->clcsock);
- 		} else {
- 			sk->sk_state = SMC_CLOSED;
- 		}
-+		sock_put(sk); /* passive closing */
- 		break;
- 	case SMC_PROCESSABORT:
- 	case SMC_APPFINCLOSEWAIT:
-@@ -138,6 +141,8 @@ static void smc_close_active_abort(struct smc_sock *smc)
- 		sk->sk_state = SMC_CLOSED;
- 		break;
- 	case SMC_PEERFINCLOSEWAIT:
-+		sock_put(sk); /* passive closing */
-+		break;
- 	case SMC_PEERABORTWAIT:
- 	case SMC_CLOSED:
- 		break;
-@@ -229,12 +234,14 @@ int smc_close_active(struct smc_sock *smc)
- 		rc = smc_close_final(conn);
- 		if (rc)
- 			break;
--		if (smc_cdc_rxed_any_close(conn))
-+		if (smc_cdc_rxed_any_close(conn)) {
- 			/* peer has closed the socket already */
- 			sk->sk_state = SMC_CLOSED;
--		else
-+			sock_put(sk); /* postponed passive closing */
-+		} else {
- 			/* peer has just issued a shutdown write */
- 			sk->sk_state = SMC_PEERFINCLOSEWAIT;
-+		}
- 		break;
- 	case SMC_PEERCLOSEWAIT1:
- 	case SMC_PEERCLOSEWAIT2:
-@@ -272,27 +279,33 @@ static void smc_close_passive_abort_received(struct smc_sock *smc)
- 	struct sock *sk = &smc->sk;
+ static unsigned int smc_poll(struct file *file, struct socket *sock,
+@@ -1147,9 +1141,15 @@ static unsigned int smc_poll(struct file *file, struct socket *sock,
+ 	struct smc_sock *smc;
+ 	int rc;
  
- 	switch (sk->sk_state) {
-+	case SMC_INIT:
- 	case SMC_ACTIVE:
--	case SMC_APPFINCLOSEWAIT:
- 	case SMC_APPCLOSEWAIT1:
--	case SMC_APPCLOSEWAIT2:
-+		sk->sk_state = SMC_PROCESSABORT;
-+		sock_put(sk); /* passive closing */
-+		break;
-+	case SMC_APPFINCLOSEWAIT:
- 		sk->sk_state = SMC_PROCESSABORT;
- 		break;
- 	case SMC_PEERCLOSEWAIT1:
- 	case SMC_PEERCLOSEWAIT2:
- 		if (txflags->peer_done_writing &&
--		    !smc_close_sent_any_close(&smc->conn)) {
-+		    !smc_close_sent_any_close(&smc->conn))
- 			/* just shutdown, but not yet closed locally */
- 			sk->sk_state = SMC_PROCESSABORT;
++	if (!sk)
++		return POLLNVAL;
++
+ 	smc = smc_sk(sock->sk);
++	sock_hold(sk);
++	lock_sock(sk);
+ 	if ((sk->sk_state == SMC_INIT) || smc->use_fallback) {
+ 		/* delegate to CLC child sock */
++		release_sock(sk);
+ 		mask = smc->clcsock->ops->poll(file, smc->clcsock, wait);
+ 		/* if non-blocking connect finished ... */
+ 		lock_sock(sk);
+@@ -1161,37 +1161,43 @@ static unsigned int smc_poll(struct file *file, struct socket *sock,
+ 				rc = smc_connect_rdma(smc);
+ 				if (rc < 0)
+ 					mask |= POLLERR;
+-				else
+-					/* success cases including fallback */
+-					mask |= POLLOUT | POLLWRNORM;
++				/* success cases including fallback */
++				mask |= POLLOUT | POLLWRNORM;
+ 			}
+ 		}
+-		release_sock(sk);
+ 	} else {
+-		sock_poll_wait(file, sk_sleep(sk), wait);
+-		if (sk->sk_state == SMC_LISTEN)
+-			/* woken up by sk_data_ready in smc_listen_work() */
+-			mask |= smc_accept_poll(sk);
++		if (sk->sk_state != SMC_CLOSED) {
++			release_sock(sk);
++			sock_poll_wait(file, sk_sleep(sk), wait);
++			lock_sock(sk);
++		}
+ 		if (sk->sk_err)
+ 			mask |= POLLERR;
+-		if (atomic_read(&smc->conn.sndbuf_space) ||
+-		    (sk->sk_shutdown & SEND_SHUTDOWN)) {
+-			mask |= POLLOUT | POLLWRNORM;
 -		} else {
-+		else
- 			sk->sk_state = SMC_CLOSED;
+-			sk_set_bit(SOCKWQ_ASYNC_NOSPACE, sk);
+-			set_bit(SOCK_NOSPACE, &sk->sk_socket->flags);
 -		}
-+		sock_put(sk); /* passive closing */
- 		break;
-+	case SMC_APPCLOSEWAIT2:
- 	case SMC_PEERFINCLOSEWAIT:
-+		sk->sk_state = SMC_CLOSED;
-+		sock_put(sk); /* passive closing */
-+		break;
- 	case SMC_PEERABORTWAIT:
- 		sk->sk_state = SMC_CLOSED;
- 		break;
--	case SMC_INIT:
- 	case SMC_PROCESSABORT:
- 	/* nothing to do, add tracing in future patch */
- 		break;
-@@ -336,13 +349,18 @@ static void smc_close_passive_work(struct work_struct *work)
- 	case SMC_INIT:
- 		if (atomic_read(&conn->bytes_to_rcv) ||
- 		    (rxflags->peer_done_writing &&
--		     !smc_cdc_rxed_any_close(conn)))
-+		     !smc_cdc_rxed_any_close(conn))) {
- 			sk->sk_state = SMC_APPCLOSEWAIT1;
--		else
+-		if (atomic_read(&smc->conn.bytes_to_rcv))
+-			mask |= POLLIN | POLLRDNORM;
+ 		if ((sk->sk_shutdown == SHUTDOWN_MASK) ||
+ 		    (sk->sk_state == SMC_CLOSED))
+ 			mask |= POLLHUP;
+-		if (sk->sk_shutdown & RCV_SHUTDOWN)
+-			mask |= POLLIN | POLLRDNORM | POLLRDHUP;
+-		if (sk->sk_state == SMC_APPCLOSEWAIT1)
+-			mask |= POLLIN;
++		if (sk->sk_state == SMC_LISTEN) {
++			/* woken up by sk_data_ready in smc_listen_work() */
++			mask = smc_accept_poll(sk);
 +		} else {
- 			sk->sk_state = SMC_CLOSED;
-+			sock_put(sk); /* passive closing */
++			if (atomic_read(&smc->conn.sndbuf_space) ||
++			    sk->sk_shutdown & SEND_SHUTDOWN) {
++				mask |= POLLOUT | POLLWRNORM;
++			} else {
++				sk_set_bit(SOCKWQ_ASYNC_NOSPACE, sk);
++				set_bit(SOCK_NOSPACE, &sk->sk_socket->flags);
++			}
++			if (atomic_read(&smc->conn.bytes_to_rcv))
++				mask |= POLLIN | POLLRDNORM;
++			if (sk->sk_shutdown & RCV_SHUTDOWN)
++				mask |= POLLIN | POLLRDNORM | POLLRDHUP;
++			if (sk->sk_state == SMC_APPCLOSEWAIT1)
++				mask |= POLLIN;
 +		}
- 		break;
- 	case SMC_ACTIVE:
- 		sk->sk_state = SMC_APPCLOSEWAIT1;
-+		/* postpone sock_put() for passive closing to cover
-+		 * received SEND_SHUTDOWN as well
-+		 */
- 		break;
- 	case SMC_PEERCLOSEWAIT1:
- 		if (rxflags->peer_done_writing)
-@@ -360,13 +378,20 @@ static void smc_close_passive_work(struct work_struct *work)
- 			/* just shutdown, but not yet closed locally */
- 			sk->sk_state = SMC_APPFINCLOSEWAIT;
- 		}
-+		sock_put(sk); /* passive closing */
- 		break;
- 	case SMC_PEERFINCLOSEWAIT:
--		if (smc_cdc_rxed_any_close(conn))
-+		if (smc_cdc_rxed_any_close(conn)) {
- 			sk->sk_state = SMC_CLOSED;
-+			sock_put(sk); /* passive closing */
-+		}
- 		break;
- 	case SMC_APPCLOSEWAIT1:
- 	case SMC_APPCLOSEWAIT2:
-+		/* postpone sock_put() for passive closing to cover
-+		 * received SEND_SHUTDOWN as well
-+		 */
-+		break;
- 	case SMC_APPFINCLOSEWAIT:
- 	case SMC_PEERABORTWAIT:
- 	case SMC_PROCESSABORT:
-@@ -382,23 +407,11 @@ static void smc_close_passive_work(struct work_struct *work)
- 	if (old_state != sk->sk_state) {
- 		sk->sk_state_change(sk);
- 		if ((sk->sk_state == SMC_CLOSED) &&
--		    (sock_flag(sk, SOCK_DEAD) || !sk->sk_socket)) {
-+		    (sock_flag(sk, SOCK_DEAD) || !sk->sk_socket))
- 			smc_conn_free(conn);
--			schedule_delayed_work(&smc->sock_put_work,
--					      SMC_CLOSE_SOCK_PUT_DELAY);
--		}
+ 
  	}
- 	release_sock(sk);
--}
--
--void smc_close_sock_put_work(struct work_struct *work)
--{
--	struct smc_sock *smc = container_of(to_delayed_work(work),
--					    struct smc_sock,
--					    sock_put_work);
--
--	smc->sk.sk_prot->unhash(&smc->sk);
--	sock_put(&smc->sk);
-+	sock_put(sk); /* sock_hold done by schedulers of close_work */
++	release_sock(sk);
++	sock_put(sk);
+ 
+ 	return mask;
  }
- 
- int smc_close_shutdown_write(struct smc_sock *smc)
-diff --git a/net/smc/smc_close.h b/net/smc/smc_close.h
-index 8c498885d758..19eb6a211c23 100644
---- a/net/smc/smc_close.h
-+++ b/net/smc/smc_close.h
-@@ -21,7 +21,6 @@
- 
- void smc_close_wake_tx_prepared(struct smc_sock *smc);
- int smc_close_active(struct smc_sock *smc);
--void smc_close_sock_put_work(struct work_struct *work);
- int smc_close_shutdown_write(struct smc_sock *smc);
- void smc_close_init(struct smc_sock *smc);
- 
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index ed5b46d1fe41..2424c7100aaf 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -328,13 +328,13 @@ void smc_lgr_terminate(struct smc_link_group *lgr)
- 	while (node) {
- 		conn = rb_entry(node, struct smc_connection, alert_node);
- 		smc = container_of(conn, struct smc_sock, conn);
--		sock_hold(&smc->sk);
-+		sock_hold(&smc->sk); /* sock_put in close work */
- 		conn->local_tx_ctrl.conn_state_flags.peer_conn_abort = 1;
- 		__smc_lgr_unregister_conn(conn);
- 		write_unlock_bh(&lgr->conns_lock);
--		schedule_work(&conn->close_work);
-+		if (!schedule_work(&conn->close_work))
-+			sock_put(&smc->sk);
- 		write_lock_bh(&lgr->conns_lock);
--		sock_put(&smc->sk);
- 		node = rb_first(&lgr->conns_all);
- 	}
- 	write_unlock_bh(&lgr->conns_lock);
 -- 
 2.13.5
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
