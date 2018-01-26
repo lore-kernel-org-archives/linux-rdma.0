@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next v2 09/16] IB/hfi1: Compute BTH only for
- RDMA_WRITE_LAST/SEND_LAST packet
-Date: Fri, 26 Jan 2018 13:29:59 -0800
-Message-ID: <20180126212956.12097.70065.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next v2 11/16] IB/hfi1: Look up ibport using a pointer
+ in receive path
+Date: Fri, 26 Jan 2018 13:30:14 -0800
+Message-ID: <20180126213012.12097.52282.stgit@scvm10.sc.intel.com>
 References: <20180126211126.12097.47410.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,131 +16,235 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-In hfi1_rc_rcv(), BTH is computed for all packets received.
-However, it's only used for packets received with opcodes
-RDMA_WRITE_LAST and SEND_LAST, and it is a costly operation.
-
-Compute BTH only in the RDMA_WRITE_LAST/SEND_LAST code path
-and let the compiler handle endianness conversion for bitwise
-operations.
+In the receive path, hfi1_ibport is looked up by indexing into an
+array. A profile shows this to be expensive. The receive context
+data has a pointer to the ibport data, use that pointer instead.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/rc.c    |    3 +--
- drivers/infiniband/hw/hfi1/uc.c    |    3 +--
- drivers/infiniband/hw/hfi1/ud.c    |    3 +--
- drivers/infiniband/hw/qib/qib_rc.c |    3 +--
- drivers/infiniband/hw/qib/qib_uc.c |    3 +--
- drivers/infiniband/hw/qib/qib_ud.c |    3 +--
- include/rdma/ib_hdrs.h             |    4 ++++
- 7 files changed, 10 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/hfi1/driver.c |   14 ++++++++------
+ drivers/infiniband/hw/hfi1/rc.c     |   36 ++++++++++++++++++++---------------
+ drivers/infiniband/hw/hfi1/verbs.h  |    3 +--
+ 3 files changed, 30 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index 524c12f..70aa82b 100644
---- a/drivers/infiniband/hw/hfi1/rc.c
-+++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -2035,7 +2035,6 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- 	struct rvt_qp *qp = packet->qp;
- 	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
- 	struct ib_other_headers *ohdr = packet->ohdr;
--	u32 bth0 = be32_to_cpu(ohdr->bth[0]);
- 	u32 opcode = packet->opcode;
- 	u32 hdrsize = packet->hlen;
- 	u32 psn = ib_bth_get_psn(packet->ohdr);
-@@ -2233,7 +2232,7 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- 		wc.port_num = 0;
- 		/* Signal completion event if the solicited bit is set. */
- 		rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
--			     (bth0 & IB_BTH_SOLICITED) != 0);
-+			     ib_bth_is_solicited(ohdr));
- 		break;
- 
- 	case OP(RDMA_WRITE_ONLY):
-diff --git a/drivers/infiniband/hw/hfi1/uc.c b/drivers/infiniband/hw/hfi1/uc.c
-index fef69d9..8030c38 100644
---- a/drivers/infiniband/hw/hfi1/uc.c
-+++ b/drivers/infiniband/hw/hfi1/uc.c
-@@ -478,8 +478,7 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
- 		wc.port_num = 0;
- 		/* Signal completion event if the solicited bit is set. */
- 		rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
--			     (ohdr->bth[0] &
--			      cpu_to_be32(IB_BTH_SOLICITED)) != 0);
-+			     ib_bth_is_solicited(ohdr));
- 		break;
- 
- 	case OP(RDMA_WRITE_FIRST):
-diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
-index f1ba510..066afbc 100644
---- a/drivers/infiniband/hw/hfi1/ud.c
-+++ b/drivers/infiniband/hw/hfi1/ud.c
-@@ -1050,8 +1050,7 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 	wc.port_num = qp->port_num;
- 	/* Signal completion event if the solicited bit is set. */
- 	rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
--		     (ohdr->bth[0] &
--		      cpu_to_be32(IB_BTH_SOLICITED)) != 0);
-+		     ib_bth_is_solicited(ohdr));
- 	return;
- 
- drop:
-diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
-index e4a9ba1..61d3bc6 100644
---- a/drivers/infiniband/hw/qib/qib_rc.c
-+++ b/drivers/infiniband/hw/qib/qib_rc.c
-@@ -1916,8 +1916,7 @@ void qib_rc_rcv(struct qib_ctxtdata *rcd, struct ib_header *hdr,
- 		wc.port_num = 0;
- 		/* Signal completion event if the solicited bit is set. */
- 		rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
--			     (ohdr->bth[0] &
--			      cpu_to_be32(IB_BTH_SOLICITED)) != 0);
-+			     ib_bth_is_solicited(ohdr));
- 		break;
- 
- 	case OP(RDMA_WRITE_FIRST):
-diff --git a/drivers/infiniband/hw/qib/qib_uc.c b/drivers/infiniband/hw/qib/qib_uc.c
-index bddcc37..d311db6 100644
---- a/drivers/infiniband/hw/qib/qib_uc.c
-+++ b/drivers/infiniband/hw/qib/qib_uc.c
-@@ -403,8 +403,7 @@ void qib_uc_rcv(struct qib_ibport *ibp, struct ib_header *hdr,
- 		wc.port_num = 0;
- 		/* Signal completion event if the solicited bit is set. */
- 		rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
--			     (ohdr->bth[0] &
--				cpu_to_be32(IB_BTH_SOLICITED)) != 0);
-+			     ib_bth_is_solicited(ohdr));
- 		break;
- 
- 	case OP(RDMA_WRITE_FIRST):
-diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
-index 15962ed..59a4f03 100644
---- a/drivers/infiniband/hw/qib/qib_ud.c
-+++ b/drivers/infiniband/hw/qib/qib_ud.c
-@@ -581,8 +581,7 @@ void qib_ud_rcv(struct qib_ibport *ibp, struct ib_header *hdr,
- 	wc.port_num = qp->port_num;
- 	/* Signal completion event if the solicited bit is set. */
- 	rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
--		     (ohdr->bth[0] &
--			cpu_to_be32(IB_BTH_SOLICITED)) != 0);
-+		     ib_bth_is_solicited(ohdr));
- 	return;
- 
- drop:
-diff --git a/include/rdma/ib_hdrs.h b/include/rdma/ib_hdrs.h
-index c124d51..6a86d14 100644
---- a/include/rdma/ib_hdrs.h
-+++ b/include/rdma/ib_hdrs.h
-@@ -331,4 +331,8 @@ static inline u8 ib_bth_get_tver(struct ib_other_headers *ohdr)
- 		    IB_BTH_TVER_MASK);
+diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
+index 7ef8634..bdae9fb 100644
+--- a/drivers/infiniband/hw/hfi1/driver.c
++++ b/drivers/infiniband/hw/hfi1/driver.c
+@@ -634,9 +634,10 @@ static void __prescan_rxq(struct hfi1_packet *packet)
+ 	}
  }
  
-+static inline bool ib_bth_is_solicited(struct ib_other_headers *ohdr)
-+{
-+	return !!(ohdr->bth[0] & cpu_to_be32(IB_BTH_SOLICITED));
-+}
- #endif                          /* IB_HDRS_H */
+-static void process_rcv_qp_work(struct hfi1_ctxtdata *rcd)
++static void process_rcv_qp_work(struct hfi1_packet *packet)
+ {
+ 	struct rvt_qp *qp, *nqp;
++	struct hfi1_ctxtdata *rcd = packet->rcd;
+ 
+ 	/*
+ 	 * Iterate over all QPs waiting to respond.
+@@ -646,7 +647,8 @@ static void process_rcv_qp_work(struct hfi1_ctxtdata *rcd)
+ 		list_del_init(&qp->rspwait);
+ 		if (qp->r_flags & RVT_R_RSP_NAK) {
+ 			qp->r_flags &= ~RVT_R_RSP_NAK;
+-			hfi1_send_rc_ack(rcd, qp, 0);
++			packet->qp = qp;
++			hfi1_send_rc_ack(packet, 0);
+ 		}
+ 		if (qp->r_flags & RVT_R_RSP_SEND) {
+ 			unsigned long flags;
+@@ -667,7 +669,7 @@ static noinline int max_packet_exceeded(struct hfi1_packet *packet, int thread)
+ 	if (thread) {
+ 		if ((packet->numpkt & (MAX_PKT_RECV_THREAD - 1)) == 0)
+ 			/* allow defered processing */
+-			process_rcv_qp_work(packet->rcd);
++			process_rcv_qp_work(packet);
+ 		cond_resched();
+ 		return RCV_PKT_OK;
+ 	} else {
+@@ -809,7 +811,7 @@ int handle_receive_interrupt_nodma_rtail(struct hfi1_ctxtdata *rcd, int thread)
+ 			last = RCV_PKT_DONE;
+ 		process_rcv_update(last, &packet);
+ 	}
+-	process_rcv_qp_work(rcd);
++	process_rcv_qp_work(&packet);
+ 	rcd->head = packet.rhqoff;
+ bail:
+ 	finish_packet(&packet);
+@@ -838,7 +840,7 @@ int handle_receive_interrupt_dma_rtail(struct hfi1_ctxtdata *rcd, int thread)
+ 			last = RCV_PKT_DONE;
+ 		process_rcv_update(last, &packet);
+ 	}
+-	process_rcv_qp_work(rcd);
++	process_rcv_qp_work(&packet);
+ 	rcd->head = packet.rhqoff;
+ bail:
+ 	finish_packet(&packet);
+@@ -1068,7 +1070,7 @@ int handle_receive_interrupt(struct hfi1_ctxtdata *rcd, int thread)
+ 		process_rcv_update(last, &packet);
+ 	}
+ 
+-	process_rcv_qp_work(rcd);
++	process_rcv_qp_work(&packet);
+ 	rcd->head = packet.rhqoff;
+ 
+ bail:
+diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
+index 70aa82b..daf50cc 100644
+--- a/drivers/infiniband/hw/hfi1/rc.c
++++ b/drivers/infiniband/hw/hfi1/rc.c
+@@ -730,14 +730,16 @@ static inline void hfi1_make_bth_aeth(struct rvt_qp *qp,
+ 	ohdr->bth[2] = cpu_to_be32(mask_psn(qp->r_ack_psn));
+ }
+ 
+-static inline void hfi1_queue_rc_ack(struct rvt_qp *qp, bool is_fecn)
++static inline void hfi1_queue_rc_ack(struct hfi1_packet *packet, bool is_fecn)
+ {
+-	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	struct rvt_qp *qp = packet->qp;
++	struct hfi1_ibport *ibp;
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&qp->s_lock, flags);
+ 	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK))
+ 		goto unlock;
++	ibp = rcd_to_iport(packet->rcd);
+ 	this_cpu_inc(*ibp->rvp.rc_qacks);
+ 	qp->s_flags |= RVT_S_ACK_PENDING | RVT_S_RESP_PENDING;
+ 	qp->s_nak_state = qp->r_nak_state;
+@@ -751,13 +753,14 @@ static inline void hfi1_queue_rc_ack(struct rvt_qp *qp, bool is_fecn)
+ 	spin_unlock_irqrestore(&qp->s_lock, flags);
+ }
+ 
+-static inline void hfi1_make_rc_ack_9B(struct rvt_qp *qp,
++static inline void hfi1_make_rc_ack_9B(struct hfi1_packet *packet,
+ 				       struct hfi1_opa_header *opa_hdr,
+ 				       u8 sc5, bool is_fecn,
+ 				       u64 *pbc_flags, u32 *hwords,
+ 				       u32 *nwords)
+ {
+-	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	struct rvt_qp *qp = packet->qp;
++	struct hfi1_ibport *ibp = rcd_to_iport(packet->rcd);
+ 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 	struct ib_header *hdr = &opa_hdr->ibh;
+ 	struct ib_other_headers *ohdr;
+@@ -798,13 +801,14 @@ static inline void hfi1_make_rc_ack_9B(struct rvt_qp *qp,
+ 	hfi1_make_bth_aeth(qp, ohdr, bth0, bth1);
+ }
+ 
+-static inline void hfi1_make_rc_ack_16B(struct rvt_qp *qp,
++static inline void hfi1_make_rc_ack_16B(struct hfi1_packet *packet,
+ 					struct hfi1_opa_header *opa_hdr,
+ 					u8 sc5, bool is_fecn,
+ 					u64 *pbc_flags, u32 *hwords,
+ 					u32 *nwords)
+ {
+-	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	struct rvt_qp *qp = packet->qp;
++	struct hfi1_ibport *ibp = rcd_to_iport(packet->rcd);
+ 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 	struct hfi1_16b_header *hdr = &opa_hdr->opah;
+ 	struct ib_other_headers *ohdr;
+@@ -850,7 +854,7 @@ static inline void hfi1_make_rc_ack_16B(struct rvt_qp *qp,
+ 	hfi1_make_bth_aeth(qp, ohdr, bth0, bth1);
+ }
+ 
+-typedef void (*hfi1_make_rc_ack)(struct rvt_qp *qp,
++typedef void (*hfi1_make_rc_ack)(struct hfi1_packet *packet,
+ 				 struct hfi1_opa_header *opa_hdr,
+ 				 u8 sc5, bool is_fecn,
+ 				 u64 *pbc_flags, u32 *hwords,
+@@ -870,9 +874,10 @@ typedef void (*hfi1_make_rc_ack)(struct rvt_qp *qp,
+  * Note that RDMA reads and atomics are handled in the
+  * send side QP state and send engine.
+  */
+-void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd,
+-		      struct rvt_qp *qp, bool is_fecn)
++void hfi1_send_rc_ack(struct hfi1_packet *packet, bool is_fecn)
+ {
++	struct hfi1_ctxtdata *rcd = packet->rcd;
++	struct rvt_qp *qp = packet->qp;
+ 	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
+ 	struct hfi1_qp_priv *priv = qp->priv;
+ 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+@@ -889,14 +894,14 @@ void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd,
+ 
+ 	/* Don't send ACK or NAK if a RDMA read or atomic is pending. */
+ 	if (qp->s_flags & RVT_S_RESP_PENDING) {
+-		hfi1_queue_rc_ack(qp, is_fecn);
++		hfi1_queue_rc_ack(packet, is_fecn);
+ 		return;
+ 	}
+ 
+ 	/* Ensure s_rdma_ack_cnt changes are committed */
+ 	smp_read_barrier_depends();
+ 	if (qp->s_rdma_ack_cnt) {
+-		hfi1_queue_rc_ack(qp, is_fecn);
++		hfi1_queue_rc_ack(packet, is_fecn);
+ 		return;
+ 	}
+ 
+@@ -905,7 +910,7 @@ void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd,
+ 		return;
+ 
+ 	/* Make the appropriate header */
+-	hfi1_make_rc_ack_tbl[priv->hdr_type](qp, &opa_hdr, sc5, is_fecn,
++	hfi1_make_rc_ack_tbl[priv->hdr_type](packet, &opa_hdr, sc5, is_fecn,
+ 					     &pbc_flags, &hwords, &nwords);
+ 
+ 	plen = 2 /* PBC */ + hwords + nwords;
+@@ -919,7 +924,7 @@ void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd,
+ 		 * so that when enough buffer space becomes available,
+ 		 * the ACK is sent ahead of other outgoing packets.
+ 		 */
+-		hfi1_queue_rc_ack(qp, is_fecn);
++		hfi1_queue_rc_ack(packet, is_fecn);
+ 		return;
+ 	}
+ 	trace_ack_output_ibhdr(dd_from_ibdev(qp->ibqp.device),
+@@ -1537,7 +1542,7 @@ static void rc_rcv_resp(struct hfi1_packet *packet)
+ 	void *data = packet->payload;
+ 	u32 tlen = packet->tlen;
+ 	struct rvt_qp *qp = packet->qp;
+-	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	struct hfi1_ibport *ibp;
+ 	struct ib_other_headers *ohdr = packet->ohdr;
+ 	struct rvt_swqe *wqe;
+ 	enum ib_wc_status status;
+@@ -1695,6 +1700,7 @@ static void rc_rcv_resp(struct hfi1_packet *packet)
+ 	goto ack_err;
+ 
+ ack_seq_err:
++	ibp = rcd_to_iport(rcd);
+ 	rdma_seq_err(qp, ibp, psn, rcd);
+ 	goto ack_done;
+ 
+@@ -2476,7 +2482,7 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
+ 	qp->r_nak_state = IB_NAK_REMOTE_ACCESS_ERROR;
+ 	qp->r_ack_psn = qp->r_psn;
+ send_ack:
+-	hfi1_send_rc_ack(rcd, qp, is_fecn);
++	hfi1_send_rc_ack(packet, is_fecn);
+ }
+ 
+ void hfi1_rc_hdrerr(
+diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
+index 90a170e..ec26ed2 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.h
++++ b/drivers/infiniband/hw/hfi1/verbs.h
+@@ -363,8 +363,7 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
+ void hfi1_send_complete(struct rvt_qp *qp, struct rvt_swqe *wqe,
+ 			enum ib_wc_status status);
+ 
+-void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd, struct rvt_qp *qp,
+-		      bool is_fecn);
++void hfi1_send_rc_ack(struct hfi1_packet *packet, bool is_fecn);
+ 
+ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps);
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
