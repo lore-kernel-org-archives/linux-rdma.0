@@ -1,139 +1,102 @@
-From: Ursula Braun <ubraun@linux.vnet.ibm.com>
-Subject: [PATCH net-next 2/5] net/smc: smc_poll improvements
-Date: Fri, 26 Jan 2018 09:28:47 +0100
-Message-ID: <20180126082850.20655-3-ubraun@linux.vnet.ibm.com>
-References: <20180126082850.20655-1-ubraun@linux.vnet.ibm.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180126082850.20655-1-ubraun@linux.vnet.ibm.com>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, jwi@linux.vnet.ibm.com, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.vnet.ibm.com, ubraun@linux.vnet.ibm.com
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH for-next 00/16] IB/hfi1,core: Driver updates for 1/26/2018
+Date: Fri, 26 Jan 2018 06:31:17 -0800
+Message-ID: <20180126142640.6868.12402.stgit@scvm10.sc.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bartlomiej Dudek <bartlomiej.dudek-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Patel Jay P <jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Increase the socket refcount during poll wait.
-Take the socket lock before checking socket state.
-For a listening socket return a mask independent of state SMC_ACTIVE and
-cover errors or closed state as well.
-Get rid of the accept_q loop in smc_accept_poll().
+Hi Jason and Doug,
 
-Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
+For the most part this is the usual sort of fixes and clean ups with some things
+that help optmize performance thrown in. There are three patches that may be of
+a broader interest. There is a change to core header files for iWARP AH as well
+as a fix to ipoib for a scenario where we can wind up in no-carrier state.
+
+The other patch by Mike R comes out of the discussion [1] from a previous
+submission.
+
+As always my GitHub had these in-tree for context:
+https://github.com/ddalessa/kernel/tree/for-4.16
+
+[1] https://marc.info/?l=linux-rdma&m=151394843919393&w=2
 ---
- net/smc/af_smc.c | 74 ++++++++++++++++++++++++++++++--------------------------
- 1 file changed, 40 insertions(+), 34 deletions(-)
 
-diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index cf0e11978b66..90c22a854f28 100644
---- a/net/smc/af_smc.c
-+++ b/net/smc/af_smc.c
-@@ -1122,21 +1122,15 @@ static int smc_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
- 
- static unsigned int smc_accept_poll(struct sock *parent)
- {
--	struct smc_sock *isk;
--	struct sock *sk;
--
--	lock_sock(parent);
--	list_for_each_entry(isk, &smc_sk(parent)->accept_q, accept_q) {
--		sk = (struct sock *)isk;
-+	struct smc_sock *isk = smc_sk(parent);
-+	int mask = 0;
- 
--		if (sk->sk_state == SMC_ACTIVE) {
--			release_sock(parent);
--			return POLLIN | POLLRDNORM;
--		}
--	}
--	release_sock(parent);
-+	spin_lock(&isk->accept_q_lock);
-+	if (!list_empty(&isk->accept_q))
-+		mask = POLLIN | POLLRDNORM;
-+	spin_unlock(&isk->accept_q_lock);
- 
--	return 0;
-+	return mask;
- }
- 
- static unsigned int smc_poll(struct file *file, struct socket *sock,
-@@ -1147,9 +1141,15 @@ static unsigned int smc_poll(struct file *file, struct socket *sock,
- 	struct smc_sock *smc;
- 	int rc;
- 
-+	if (!sk)
-+		return POLLNVAL;
-+
- 	smc = smc_sk(sock->sk);
-+	sock_hold(sk);
-+	lock_sock(sk);
- 	if ((sk->sk_state == SMC_INIT) || smc->use_fallback) {
- 		/* delegate to CLC child sock */
-+		release_sock(sk);
- 		mask = smc->clcsock->ops->poll(file, smc->clcsock, wait);
- 		/* if non-blocking connect finished ... */
- 		lock_sock(sk);
-@@ -1161,37 +1161,43 @@ static unsigned int smc_poll(struct file *file, struct socket *sock,
- 				rc = smc_connect_rdma(smc);
- 				if (rc < 0)
- 					mask |= POLLERR;
--				else
--					/* success cases including fallback */
--					mask |= POLLOUT | POLLWRNORM;
-+				/* success cases including fallback */
-+				mask |= POLLOUT | POLLWRNORM;
- 			}
- 		}
--		release_sock(sk);
- 	} else {
--		sock_poll_wait(file, sk_sleep(sk), wait);
--		if (sk->sk_state == SMC_LISTEN)
--			/* woken up by sk_data_ready in smc_listen_work() */
--			mask |= smc_accept_poll(sk);
-+		if (sk->sk_state != SMC_CLOSED) {
-+			release_sock(sk);
-+			sock_poll_wait(file, sk_sleep(sk), wait);
-+			lock_sock(sk);
-+		}
- 		if (sk->sk_err)
- 			mask |= POLLERR;
--		if (atomic_read(&smc->conn.sndbuf_space) ||
--		    (sk->sk_shutdown & SEND_SHUTDOWN)) {
--			mask |= POLLOUT | POLLWRNORM;
--		} else {
--			sk_set_bit(SOCKWQ_ASYNC_NOSPACE, sk);
--			set_bit(SOCK_NOSPACE, &sk->sk_socket->flags);
--		}
--		if (atomic_read(&smc->conn.bytes_to_rcv))
--			mask |= POLLIN | POLLRDNORM;
- 		if ((sk->sk_shutdown == SHUTDOWN_MASK) ||
- 		    (sk->sk_state == SMC_CLOSED))
- 			mask |= POLLHUP;
--		if (sk->sk_shutdown & RCV_SHUTDOWN)
--			mask |= POLLIN | POLLRDNORM | POLLRDHUP;
--		if (sk->sk_state == SMC_APPCLOSEWAIT1)
--			mask |= POLLIN;
-+		if (sk->sk_state == SMC_LISTEN) {
-+			/* woken up by sk_data_ready in smc_listen_work() */
-+			mask = smc_accept_poll(sk);
-+		} else {
-+			if (atomic_read(&smc->conn.sndbuf_space) ||
-+			    sk->sk_shutdown & SEND_SHUTDOWN) {
-+				mask |= POLLOUT | POLLWRNORM;
-+			} else {
-+				sk_set_bit(SOCKWQ_ASYNC_NOSPACE, sk);
-+				set_bit(SOCK_NOSPACE, &sk->sk_socket->flags);
-+			}
-+			if (atomic_read(&smc->conn.bytes_to_rcv))
-+				mask |= POLLIN | POLLRDNORM;
-+			if (sk->sk_shutdown & RCV_SHUTDOWN)
-+				mask |= POLLIN | POLLRDNORM | POLLRDHUP;
-+			if (sk->sk_state == SMC_APPCLOSEWAIT1)
-+				mask |= POLLIN;
-+		}
- 
- 	}
-+	release_sock(sk);
-+	sock_put(sk);
- 
- 	return mask;
- }
--- 
-2.13.5
+Alex Estrin (3):
+      IB/hfi1: Fix for early release of sdma context
+      IB/hfi1: hfi1_open_file() missing kobject_put in err path
+      IB/ipoib: Fix for potential no-carrier state
+
+Bartlomiej Dudek (1):
+      IB/hfi1: Do not override given pcie_pset value
+
+Don Hiatt (1):
+      IB/core: Map iWarp AH type to undefined in rdma_ah_find_type
+
+Kamenee Arumugam (1):
+      IB/hfi1: Convert PortXmitWait/PortVLXmitWait counters to flit times
+
+Michael J. Ruhl (1):
+      IB/hfi1: Re-order IRQ cleanup to address driver cleanup race
+
+Mike Marciniszyn (1):
+      IB/hfi1: Remove blind constants from 16B update
+
+Mitko Haralanov (2):
+      IB/hfi1: Remove dependence on qp->s_hdrwords
+      IB/hfi1: Show fault stats in both TX and RX directions
+
+Sebastian Sanchez (6):
+      IB/hfi1: Prevent LNI hang when LCB can't obtain lanes
+      IB/hfi1: Compute BTH only for RDMA_WRITE_LAST/SEND_LAST packet
+      IB/hfi1: Optimize packet type comparison using 9B and bypass code paths
+      IB/hfi1: Look up ibport using a pointer in receive path
+      IB/hfi1: Remove unnecessary fecn and becn fields
+      IB/hfi1: Optimize process_receive_ib()
+
+
+ drivers/infiniband/hw/hfi1/chip.c           |  133 +++++++++++++++++++++------
+ drivers/infiniband/hw/hfi1/chip.h           |   19 +++-
+ drivers/infiniband/hw/hfi1/chip_registers.h |    7 +
+ drivers/infiniband/hw/hfi1/debugfs.c        |    9 ++
+ drivers/infiniband/hw/hfi1/driver.c         |   49 +++++-----
+ drivers/infiniband/hw/hfi1/file_ops.c       |    1 
+ drivers/infiniband/hw/hfi1/hfi.h            |   26 +++--
+ drivers/infiniband/hw/hfi1/init.c           |   14 +++
+ drivers/infiniband/hw/hfi1/iowait.h         |    9 ++
+ drivers/infiniband/hw/hfi1/mad.c            |  127 ++++++++++++++++++++++++--
+ drivers/infiniband/hw/hfi1/mad.h            |   47 +++++++++-
+ drivers/infiniband/hw/hfi1/pcie.c           |   23 ++---
+ drivers/infiniband/hw/hfi1/qp.c             |    4 -
+ drivers/infiniband/hw/hfi1/qp.h             |   13 +++
+ drivers/infiniband/hw/hfi1/rc.c             |   51 +++++-----
+ drivers/infiniband/hw/hfi1/ruc.c            |   47 +++-------
+ drivers/infiniband/hw/hfi1/sdma.c           |   13 +--
+ drivers/infiniband/hw/hfi1/sdma.h           |    1 
+ drivers/infiniband/hw/hfi1/trace.c          |    8 +-
+ drivers/infiniband/hw/hfi1/trace_ibhdrs.h   |   16 ++-
+ drivers/infiniband/hw/hfi1/trace_rx.h       |   28 ++----
+ drivers/infiniband/hw/hfi1/uc.c             |    9 --
+ drivers/infiniband/hw/hfi1/ud.c             |   39 ++++----
+ drivers/infiniband/hw/hfi1/verbs.c          |   10 +-
+ drivers/infiniband/hw/hfi1/verbs.h          |   24 ++---
+ drivers/infiniband/hw/hfi1/verbs_txreq.h    |    7 +
+ drivers/infiniband/hw/qib/qib_rc.c          |    3 -
+ drivers/infiniband/hw/qib/qib_uc.c          |    3 -
+ drivers/infiniband/hw/qib/qib_ud.c          |    3 -
+ drivers/infiniband/ulp/ipoib/ipoib_main.c   |    3 +
+ include/rdma/ib_hdrs.h                      |   19 +++-
+ include/rdma/ib_verbs.h                     |   15 ++-
+ 32 files changed, 530 insertions(+), 250 deletions(-)
+
+--
+-Denny
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
