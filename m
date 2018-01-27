@@ -1,43 +1,72 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 2/3] IB/iser: Delete an unnecessary variable initialisation in
- iser_send_data_out()
-Date: Sat, 27 Jan 2018 19:20:05 +0100
-Message-ID: <f9277c5a-50f3-2f7e-ee6f-e4dee15e4eea@users.sourceforge.net>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH 3/3] IB/iser: Combine substrings for three messages
+Date: Sat, 27 Jan 2018 19:21:51 +0100
+Message-ID: <66f716b8-f01a-6cde-ede9-f36c20b33f76@users.sourceforge.net>
 References: <00e8b16f-c856-8999-fe93-2724a2f6a56e@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <00e8b16f-c856-8999-fe93-2724a2f6a56e@users.sourceforge.net>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <00e8b16f-c856-8999-fe93-2724a2f6a56e-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Or Gerlitz <ogerlitz@mellanox.com>, Roi Dayan <roid@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 27 Jan 2018 17:55:13 +0100
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Sat, 27 Jan 2018 18:25:37 +0100
 
-The variable "tx_desc" will be set to an appropriate pointer a bit later.
-Thus omit the explicit initialisation at the beginning.
+The script "checkpatch.pl" pointed information out like the following.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+WARNING: quoted string split across lines
+
+Thus fix the affected source code places.
+
+Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_initiator.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/iser/iser_initiator.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-index 3ae2571ba5b4..1425c4957a04 100644
+index 1425c4957a04..df49c4eb67f7 100644
 --- a/drivers/infiniband/ulp/iser/iser_initiator.c
 +++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -436,7 +436,7 @@ int iser_send_data_out(struct iscsi_conn *conn,
- {
- 	struct iser_conn *iser_conn = conn->dd_data;
- 	struct iscsi_iser_task *iser_task = task->dd_data;
--	struct iser_tx_desc *tx_desc = NULL;
-+	struct iser_tx_desc *tx_desc;
- 	struct iser_mem_reg *mem_reg;
- 	unsigned long buf_offset;
- 	unsigned long data_seg_len;
+@@ -142,8 +142,7 @@ iser_prepare_write_cmd(struct iscsi_task *task,
+ 			hdr->write_va = cpu_to_be64(mem_reg->sge.addr + unsol_sz);
+ 		}
+ 
+-		iser_dbg("Cmd itt:%d, WRITE tags, RKEY:%#.4X "
+-			 "VA:%#llX + unsol:%d\n",
++		iser_dbg("Cmd itt:%d, WRITE tags, RKEY:%#.4X VA:%#llX + unsol:%d\n",
+ 			 task->itt, mem_reg->rkey,
+ 			 (unsigned long long)mem_reg->sge.addr, unsol_sz);
+ 	}
+@@ -473,8 +472,7 @@ int iser_send_data_out(struct iscsi_conn *conn,
+ 	tx_desc->num_sge = 2;
+ 
+ 	if (buf_offset + data_seg_len > iser_task->data[ISER_DIR_OUT].data_len) {
+-		iser_err("Offset:%ld & DSL:%ld in Data-Out "
+-			 "inconsistent with total len:%ld, itt:%d\n",
++		iser_err("Offset:%ld & DSL:%ld in Data-Out inconsistent with total len:%ld, itt:%d\n",
+ 			 buf_offset, data_seg_len,
+ 			 iser_task->data[ISER_DIR_OUT].data_len, itt);
+ 		err = -EINVAL;
+@@ -612,8 +610,8 @@ iser_check_remote_inv(struct iser_conn *iser_conn,
+ 			 iser_conn, rkey);
+ 
+ 		if (unlikely(!iser_conn->snd_w_inv)) {
+-			iser_err("conn %p: unexpected remote invalidation, "
+-				 "terminating connection\n", iser_conn);
++			iser_err("conn %p: unexpected remote invalidation, terminating connection\n",
++				 iser_conn);
+ 			return -EPROTO;
+ 		}
+ 
 -- 
 2.16.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
