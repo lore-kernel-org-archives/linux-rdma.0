@@ -1,72 +1,46 @@
-From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 3/3] IB/iser: Combine substrings for three messages
-Date: Sat, 27 Jan 2018 19:21:51 +0100
-Message-ID: <66f716b8-f01a-6cde-ede9-f36c20b33f76@users.sourceforge.net>
-References: <00e8b16f-c856-8999-fe93-2724a2f6a56e@users.sourceforge.net>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] IB/usnic: Delete an error message for a failed memory
+ allocation in usnic_transport_init()
+Date: Sat, 27 Jan 2018 20:15:17 +0100
+Message-ID: <d9b22086-13d0-b519-3126-937a531d93d2@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <00e8b16f-c856-8999-fe93-2724a2f6a56e-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
 Content-Language: en-GB
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: kernel-janitors-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Roland Dreier <roland@purestorage.com>, Upinder Malhi <umalhi@cisco.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Sat, 27 Jan 2018 18:25:37 +0100
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 27 Jan 2018 20:06:59 +0100
 
-The script "checkpatch.pl" pointed information out like the following.
+Omit an extra message for a memory allocation failure in this function.
 
-WARNING: quoted string split across lines
+This issue was detected by using the Coccinelle software.
 
-Thus fix the affected source code places.
-
-Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/infiniband/ulp/iser/iser_initiator.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_transport.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-index 1425c4957a04..df49c4eb67f7 100644
---- a/drivers/infiniband/ulp/iser/iser_initiator.c
-+++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -142,8 +142,7 @@ iser_prepare_write_cmd(struct iscsi_task *task,
- 			hdr->write_va = cpu_to_be64(mem_reg->sge.addr + unsol_sz);
- 		}
+diff --git a/drivers/infiniband/hw/usnic/usnic_transport.c b/drivers/infiniband/hw/usnic/usnic_transport.c
+index de318389a301..2e9bba52a686 100644
+--- a/drivers/infiniband/hw/usnic/usnic_transport.c
++++ b/drivers/infiniband/hw/usnic/usnic_transport.c
+@@ -201,10 +201,8 @@ int usnic_transport_sock_get_addr(struct socket *sock, int *proto,
+ int usnic_transport_init(void)
+ {
+ 	roce_bitmap = kzalloc(ROCE_BITMAP_SZ, GFP_KERNEL);
+-	if (!roce_bitmap) {
+-		usnic_err("Failed to allocate bit map");
++	if (!roce_bitmap)
+ 		return -ENOMEM;
+-	}
  
--		iser_dbg("Cmd itt:%d, WRITE tags, RKEY:%#.4X "
--			 "VA:%#llX + unsol:%d\n",
-+		iser_dbg("Cmd itt:%d, WRITE tags, RKEY:%#.4X VA:%#llX + unsol:%d\n",
- 			 task->itt, mem_reg->rkey,
- 			 (unsigned long long)mem_reg->sge.addr, unsol_sz);
- 	}
-@@ -473,8 +472,7 @@ int iser_send_data_out(struct iscsi_conn *conn,
- 	tx_desc->num_sge = 2;
- 
- 	if (buf_offset + data_seg_len > iser_task->data[ISER_DIR_OUT].data_len) {
--		iser_err("Offset:%ld & DSL:%ld in Data-Out "
--			 "inconsistent with total len:%ld, itt:%d\n",
-+		iser_err("Offset:%ld & DSL:%ld in Data-Out inconsistent with total len:%ld, itt:%d\n",
- 			 buf_offset, data_seg_len,
- 			 iser_task->data[ISER_DIR_OUT].data_len, itt);
- 		err = -EINVAL;
-@@ -612,8 +610,8 @@ iser_check_remote_inv(struct iser_conn *iser_conn,
- 			 iser_conn, rkey);
- 
- 		if (unlikely(!iser_conn->snd_w_inv)) {
--			iser_err("conn %p: unexpected remote invalidation, "
--				 "terminating connection\n", iser_conn);
-+			iser_err("conn %p: unexpected remote invalidation, terminating connection\n",
-+				 iser_conn);
- 			return -EPROTO;
- 		}
- 
+ 	/* Do not ever allocate bit 0, hence set it here */
+ 	bitmap_set(roce_bitmap, 0, 1);
 -- 
 2.16.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
