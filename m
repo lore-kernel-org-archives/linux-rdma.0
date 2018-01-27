@@ -1,46 +1,34 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] IB/usnic: Delete an error message for a failed memory
- allocation in usnic_transport_init()
-Date: Sat, 27 Jan 2018 20:15:17 +0100
-Message-ID: <d9b22086-13d0-b519-3126-937a531d93d2@users.sourceforge.net>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH 0/2] RDMA/bnxt_re: Adjustments for bnxt_qplib_alloc_dpi_tbl()
+Date: Sat, 27 Jan 2018 21:15:09 +0100
+Message-ID: <19c755a6-8c52-bbd5-a425-48fc08cecd4f@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Language: en-GB
-Sender: kernel-janitors-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Roland Dreier <roland@purestorage.com>, Upinder Malhi <umalhi@cisco.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 27 Jan 2018 20:06:59 +0100
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Sat, 27 Jan 2018 21:10:12 +0100
 
-Omit an extra message for a memory allocation failure in this function.
+Two update suggestions were taken into account
+from static source code analysis.
 
-This issue was detected by using the Coccinelle software.
+Markus Elfring (2):
+  Delete two error messages for a failed memory allocation
+  Use common error handling code
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/infiniband/hw/usnic/usnic_transport.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/infiniband/hw/bnxt_re/qplib_res.c | 18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_transport.c b/drivers/infiniband/hw/usnic/usnic_transport.c
-index de318389a301..2e9bba52a686 100644
---- a/drivers/infiniband/hw/usnic/usnic_transport.c
-+++ b/drivers/infiniband/hw/usnic/usnic_transport.c
-@@ -201,10 +201,8 @@ int usnic_transport_sock_get_addr(struct socket *sock, int *proto,
- int usnic_transport_init(void)
- {
- 	roce_bitmap = kzalloc(ROCE_BITMAP_SZ, GFP_KERNEL);
--	if (!roce_bitmap) {
--		usnic_err("Failed to allocate bit map");
-+	if (!roce_bitmap)
- 		return -ENOMEM;
--	}
- 
- 	/* Do not ever allocate bit 0, hence set it here */
- 	bitmap_set(roce_bitmap, 0, 1);
 -- 
 2.16.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
