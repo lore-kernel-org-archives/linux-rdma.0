@@ -1,31 +1,30 @@
 From: Corentin Labbe <clabbe@baylibre.com>
-Subject: [PATCH] IB/qib: remove qib_keys.c
-Date: Sun, 28 Jan 2018 15:08:55 +0000
-Message-ID: <1517152135-24942-1-git-send-email-clabbe@baylibre.com>
+Subject: [PATCH] IB/cxgb3: remove cxio_dbg.c
+Date: Sun, 28 Jan 2018 15:11:29 +0000
+Message-ID: <1517152289-25052-1-git-send-email-clabbe@baylibre.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com, hal.rosenstock@gmail.com, infinipath@intel.com, sean.hefty@intel.com
+To: dledford@redhat.com, hal.rosenstock@gmail.com, sean.hefty@intel.com, swise@chelsio.com
 Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Corentin Labbe <clabbe@baylibre.com>
 List-Id: linux-rdma@vger.kernel.org
 
-qib_keys.c was left uncompilable in commit 7c2e11fe2dbe ("IB/qib: Remove qp and mr functionality from qib")
-Since nothing need it, remove it from tree.
+cxio_dbg.c is uncompiled since commit 2b540355cd2f ("RDMA/cxgb3: cleanups")
+10 years after, we could remove it.
 
 Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
 ---
- drivers/infiniband/hw/qib/qib_keys.c | 235 -----------------------------------
- 1 file changed, 235 deletions(-)
- delete mode 100644 drivers/infiniband/hw/qib/qib_keys.c
+ drivers/infiniband/hw/cxgb3/cxio_dbg.c | 206 ---------------------------------
+ 1 file changed, 206 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/cxgb3/cxio_dbg.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
+diff --git a/drivers/infiniband/hw/cxgb3/cxio_dbg.c b/drivers/infiniband/hw/cxgb3/cxio_dbg.c
 deleted file mode 100644
-index 8fdf79f8d4e4..000000000000
---- a/drivers/infiniband/hw/qib/qib_keys.c
+index 97dbe728520a..000000000000
+--- a/drivers/infiniband/hw/cxgb3/cxio_dbg.c
 +++ /dev/null
-@@ -1,235 +0,0 @@
+@@ -1,206 +0,0 @@
 -/*
-- * Copyright (c) 2006, 2007, 2009 QLogic Corporation. All rights reserved.
-- * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
+- * Copyright (c) 2006 Chelsio, Inc. All rights reserved.
 - *
 - * This software is available to you under a choice of one of two
 - * licenses.  You may choose to be licensed under the terms of the GNU
@@ -55,208 +54,180 @@ index 8fdf79f8d4e4..000000000000
 - * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 - * SOFTWARE.
 - */
+-#ifdef DEBUG
+-#include <linux/types.h>
+-#include <linux/slab.h>
+-#include "common.h"
+-#include "cxgb3_ioctl.h"
+-#include "cxio_hal.h"
+-#include "cxio_wr.h"
 -
--#include "qib.h"
--
--/**
-- * qib_alloc_lkey - allocate an lkey
-- * @mr: memory region that this lkey protects
-- * @dma_region: 0->normal key, 1->restricted DMA key
-- *
-- * Returns 0 if successful, otherwise returns -errno.
-- *
-- * Increments mr reference count as required.
-- *
-- * Sets the lkey field mr for non-dma regions.
-- *
-- */
--
--int qib_alloc_lkey(struct rvt_mregion *mr, int dma_region)
+-void cxio_dump_tpt(struct cxio_rdev *rdev, u32 stag)
 -{
--	unsigned long flags;
--	u32 r;
--	u32 n;
--	int ret = 0;
--	struct qib_ibdev *dev = to_idev(mr->pd->device);
--	struct rvt_lkey_table *rkt = &dev->lk_table;
+-	struct ch_mem_range *m;
+-	u64 *data;
+-	int rc;
+-	int size = 32;
 -
--	spin_lock_irqsave(&rkt->lock, flags);
+-	m = kmalloc(sizeof(*m) + size, GFP_ATOMIC);
+-	if (!m)
+-		return;
 -
--	/* special case for dma_mr lkey == 0 */
--	if (dma_region) {
--		struct rvt_mregion *tmr;
--
--		tmr = rcu_access_pointer(dev->dma_mr);
--		if (!tmr) {
--			qib_get_mr(mr);
--			rcu_assign_pointer(dev->dma_mr, mr);
--			mr->lkey_published = 1;
--		}
--		goto success;
+-	m->mem_id = MEM_PMRX;
+-	m->addr = (stag>>8) * 32 + rdev->rnic_info.tpt_base;
+-	m->len = size;
+-	pr_debug("%s TPT addr 0x%x len %d\n", __func__, m->addr, m->len);
+-	rc = rdev->t3cdev_p->ctl(rdev->t3cdev_p, RDMA_GET_MEM, m);
+-	if (rc) {
+-		pr_debug("%s toectl returned error %d\n", __func__, rc);
+-		kfree(m);
+-		return;
 -	}
 -
--	/* Find the next available LKEY */
--	r = rkt->next;
--	n = r;
--	for (;;) {
--		if (rkt->table[r] == NULL)
--			break;
--		r = (r + 1) & (rkt->max - 1);
--		if (r == n)
--			goto bail;
+-	data = (u64 *)m->buf;
+-	while (size > 0) {
+-		pr_debug("TPT %08x: %016llx\n",
+-			 m->addr, (unsigned long long)*data);
+-		size -= 8;
+-		data++;
+-		m->addr += 8;
 -	}
--	rkt->next = (r + 1) & (rkt->max - 1);
--	/*
--	 * Make sure lkey is never zero which is reserved to indicate an
--	 * unrestricted LKEY.
--	 */
--	rkt->gen++;
--	/*
--	 * bits are capped in qib_verbs.c to insure enough bits
--	 * for generation number
--	 */
--	mr->lkey = (r << (32 - ib_rvt_lkey_table_size)) |
--		((((1 << (24 - ib_rvt_lkey_table_size)) - 1) & rkt->gen)
--		 << 8);
--	if (mr->lkey == 0) {
--		mr->lkey |= 1 << 8;
--		rkt->gen++;
--	}
--	qib_get_mr(mr);
--	rcu_assign_pointer(rkt->table[r], mr);
--	mr->lkey_published = 1;
--success:
--	spin_unlock_irqrestore(&rkt->lock, flags);
--out:
--	return ret;
--bail:
--	spin_unlock_irqrestore(&rkt->lock, flags);
--	ret = -ENOMEM;
--	goto out;
+-	kfree(m);
 -}
 -
--/**
-- * qib_free_lkey - free an lkey
-- * @mr: mr to free from tables
-- */
--void qib_free_lkey(struct rvt_mregion *mr)
+-void cxio_dump_pbl(struct cxio_rdev *rdev, u32 pbl_addr, uint len, u8 shift)
 -{
--	unsigned long flags;
--	u32 lkey = mr->lkey;
--	u32 r;
--	struct qib_ibdev *dev = to_idev(mr->pd->device);
--	struct rvt_lkey_table *rkt = &dev->lk_table;
+-	struct ch_mem_range *m;
+-	u64 *data;
+-	int rc;
+-	int size, npages;
 -
--	spin_lock_irqsave(&rkt->lock, flags);
--	if (!mr->lkey_published)
--		goto out;
--	if (lkey == 0)
--		RCU_INIT_POINTER(dev->dma_mr, NULL);
--	else {
--		r = lkey >> (32 - ib_rvt_lkey_table_size);
--		RCU_INIT_POINTER(rkt->table[r], NULL);
+-	shift += 12;
+-	npages = (len + (1ULL << shift) - 1) >> shift;
+-	size = npages * sizeof(u64);
+-
+-	m = kmalloc(sizeof(*m) + size, GFP_ATOMIC);
+-	if (!m)
+-		return;
+-
+-	m->mem_id = MEM_PMRX;
+-	m->addr = pbl_addr;
+-	m->len = size;
+-	pr_debug("%s PBL addr 0x%x len %d depth %d\n",
+-		 __func__, m->addr, m->len, npages);
+-	rc = rdev->t3cdev_p->ctl(rdev->t3cdev_p, RDMA_GET_MEM, m);
+-	if (rc) {
+-		pr_debug("%s toectl returned error %d\n", __func__, rc);
+-		kfree(m);
+-		return;
 -	}
--	qib_put_mr(mr);
--	mr->lkey_published = 0;
--out:
--	spin_unlock_irqrestore(&rkt->lock, flags);
+-
+-	data = (u64 *)m->buf;
+-	while (size > 0) {
+-		pr_debug("PBL %08x: %016llx\n",
+-			 m->addr, (unsigned long long)*data);
+-		size -= 8;
+-		data++;
+-		m->addr += 8;
+-	}
+-	kfree(m);
 -}
 -
--/**
-- * qib_rkey_ok - check the IB virtual address, length, and RKEY
-- * @qp: qp for validation
-- * @sge: SGE state
-- * @len: length of data
-- * @vaddr: virtual address to place data
-- * @rkey: rkey to check
-- * @acc: access flags
-- *
-- * Return 1 if successful, otherwise 0.
-- *
-- * increments the reference count upon success
-- */
--int qib_rkey_ok(struct rvt_qp *qp, struct rvt_sge *sge,
--		u32 len, u64 vaddr, u32 rkey, int acc)
+-void cxio_dump_wqe(union t3_wr *wqe)
 -{
--	struct rvt_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
--	struct rvt_mregion *mr;
--	unsigned n, m;
--	size_t off;
+-	__be64 *data = (__be64 *)wqe;
+-	uint size = (uint)(be64_to_cpu(*data) & 0xff);
 -
--	/* We use RKEY == zero for kernel virtual addresses */
--	rcu_read_lock();
--	if (rkey == 0) {
--		struct rvt_pd *pd = ibpd_to_rvtpd(qp->ibqp.pd);
--		struct qib_ibdev *dev = to_idev(pd->ibpd.device);
--
--		if (pd->user)
--			goto bail;
--		mr = rcu_dereference(dev->dma_mr);
--		if (!mr)
--			goto bail;
--		if (unlikely(!atomic_inc_not_zero(&mr->refcount)))
--			goto bail;
--		rcu_read_unlock();
--
--		sge->mr = mr;
--		sge->vaddr = (void *) vaddr;
--		sge->length = len;
--		sge->sge_length = len;
--		sge->m = 0;
--		sge->n = 0;
--		goto ok;
+-	if (size == 0)
+-		size = 8;
+-	while (size > 0) {
+-		pr_debug("WQE %p: %016llx\n",
+-			 data, (unsigned long long)be64_to_cpu(*data));
+-		size--;
+-		data++;
 -	}
--
--	mr = rcu_dereference(
--		rkt->table[(rkey >> (32 - ib_rvt_lkey_table_size))]);
--	if (unlikely(!mr || mr->lkey != rkey || qp->ibqp.pd != mr->pd))
--		goto bail;
--
--	off = vaddr - mr->iova;
--	if (unlikely(vaddr < mr->iova || off + len > mr->length ||
--		     (mr->access_flags & acc) == 0))
--		goto bail;
--	if (unlikely(!atomic_inc_not_zero(&mr->refcount)))
--		goto bail;
--	rcu_read_unlock();
--
--	off += mr->offset;
--	if (mr->page_shift) {
--		/*
--		page sizes are uniform power of 2 so no loop is necessary
--		entries_spanned_by_off is the number of times the loop below
--		would have executed.
--		*/
--		size_t entries_spanned_by_off;
--
--		entries_spanned_by_off = off >> mr->page_shift;
--		off -= (entries_spanned_by_off << mr->page_shift);
--		m = entries_spanned_by_off / RVT_SEGSZ;
--		n = entries_spanned_by_off % RVT_SEGSZ;
--	} else {
--		m = 0;
--		n = 0;
--		while (off >= mr->map[m]->segs[n].length) {
--			off -= mr->map[m]->segs[n].length;
--			n++;
--			if (n >= RVT_SEGSZ) {
--				m++;
--				n = 0;
--			}
--		}
--	}
--	sge->mr = mr;
--	sge->vaddr = mr->map[m]->segs[n].vaddr + off;
--	sge->length = mr->map[m]->segs[n].length - off;
--	sge->sge_length = len;
--	sge->m = m;
--	sge->n = n;
--ok:
--	return 1;
--bail:
--	rcu_read_unlock();
--	return 0;
 -}
 -
+-void cxio_dump_wce(struct t3_cqe *wce)
+-{
+-	__be64 *data = (__be64 *)wce;
+-	int size = sizeof(*wce);
+-
+-	while (size > 0) {
+-		pr_debug("WCE %p: %016llx\n",
+-			 data, (unsigned long long)be64_to_cpu(*data));
+-		size -= 8;
+-		data++;
+-	}
+-}
+-
+-void cxio_dump_rqt(struct cxio_rdev *rdev, u32 hwtid, int nents)
+-{
+-	struct ch_mem_range *m;
+-	int size = nents * 64;
+-	u64 *data;
+-	int rc;
+-
+-	m = kmalloc(sizeof(*m) + size, GFP_ATOMIC);
+-	if (!m)
+-		return;
+-
+-	m->mem_id = MEM_PMRX;
+-	m->addr = ((hwtid)<<10) + rdev->rnic_info.rqt_base;
+-	m->len = size;
+-	pr_debug("%s RQT addr 0x%x len %d\n", __func__, m->addr, m->len);
+-	rc = rdev->t3cdev_p->ctl(rdev->t3cdev_p, RDMA_GET_MEM, m);
+-	if (rc) {
+-		pr_debug("%s toectl returned error %d\n", __func__, rc);
+-		kfree(m);
+-		return;
+-	}
+-
+-	data = (u64 *)m->buf;
+-	while (size > 0) {
+-		pr_debug("RQT %08x: %016llx\n",
+-			 m->addr, (unsigned long long)*data);
+-		size -= 8;
+-		data++;
+-		m->addr += 8;
+-	}
+-	kfree(m);
+-}
+-
+-void cxio_dump_tcb(struct cxio_rdev *rdev, u32 hwtid)
+-{
+-	struct ch_mem_range *m;
+-	int size = TCB_SIZE;
+-	u32 *data;
+-	int rc;
+-
+-	m = kmalloc(sizeof(*m) + size, GFP_ATOMIC);
+-	if (!m)
+-		return;
+-
+-	m->mem_id = MEM_CM;
+-	m->addr = hwtid * size;
+-	m->len = size;
+-	pr_debug("%s TCB %d len %d\n", __func__, m->addr, m->len);
+-	rc = rdev->t3cdev_p->ctl(rdev->t3cdev_p, RDMA_GET_MEM, m);
+-	if (rc) {
+-		pr_debug("%s toectl returned error %d\n", __func__, rc);
+-		kfree(m);
+-		return;
+-	}
+-
+-	data = (u32 *)m->buf;
+-	while (size > 0) {
+-		printk("%2u: %08x %08x %08x %08x %08x %08x %08x %08x\n",
+-			m->addr,
+-			*(data+2), *(data+3), *(data),*(data+1),
+-			*(data+6), *(data+7), *(data+4), *(data+5));
+-		size -= 32;
+-		data += 8;
+-		m->addr += 32;
+-	}
+-	kfree(m);
+-}
+-#endif
 -- 
 2.13.6
