@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 4/5] RDMA/cma: Use existing netif_is_bond_master function
-Date: Sun, 28 Jan 2018 11:25:32 +0200
-Message-ID: <20180128092533.4156-5-leon@kernel.org>
+Subject: [PATCH rdma-next 3/5] IB/core: Avoid SGID attributes query while converting GID from OPA to IB
+Date: Sun, 28 Jan 2018 11:25:31 +0200
+Message-ID: <20180128092533.4156-4-leon@kernel.org>
 References: <20180128092533.4156-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180128092533.4156-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,30 +12,36 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When checking whatever the current netdev is the bond master interface,
-use kernel API netif_is_bond_master() instead of hardcoding the check.
-No functionality is changed.
+SGID attributes are not used during OPA to IB GID conversion.
+Therefore don't query it.
 
-Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/cm.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 84812b9dea9b..e66963ca58bd 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -4294,7 +4294,7 @@ static int cma_netdev_callback(struct notifier_block *self, unsigned long event,
- 	if (event != NETDEV_BONDING_FAILOVER)
- 		return NOTIFY_DONE;
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index b8f8d3128a53..68df93558d80 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -1577,15 +1577,13 @@ static void cm_opa_to_ib_sgid(struct cm_work *work,
+ 			      struct sa_path_rec *path)
+ {
+ 	struct ib_device *dev = work->port->cm_dev->ib_device;
+-	struct ib_gid_attr gid_attr;
+ 	u8 port_num = work->port->port_num;
  
--	if (!(ndev->flags & IFF_MASTER) || !(ndev->priv_flags & IFF_BONDING))
-+	if (!netif_is_bond_master(ndev))
- 		return NOTIFY_DONE;
+ 	if (rdma_cap_opa_ah(dev, port_num) &&
+ 	    (ib_is_opa_gid(&path->sgid))) {
+ 		union ib_gid sgid;
  
- 	mutex_lock(&lock);
+-		if (ib_get_cached_gid(dev, port_num, 0,
+-				      &sgid, &gid_attr)) {
++		if (ib_get_cached_gid(dev, port_num, 0, &sgid, NULL)) {
+ 			dev_warn(&dev->dev,
+ 				 "Error updating sgid in CM request\n");
+ 			return;
 -- 
 2.16.1
 
