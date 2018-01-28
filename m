@@ -1,47 +1,28 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/5] RDMA fixes for 4.16
-Date: Sun, 28 Jan 2018 14:12:42 -0700
-Message-ID: <20180128211242.GA26025@ziepe.ca>
-References: <20180128092533.4156-1-leon@kernel.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] IB/mthca: remove mthca_user.h
+Date: Sun, 28 Jan 2018 14:12:58 -0700
+Message-ID: <20180128211257.GB26025@ziepe.ca>
+References: <1517143183-24393-1-git-send-email-clabbe@baylibre.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180128092533.4156-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1517143183-24393-1-git-send-email-clabbe@baylibre.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Corentin Labbe <clabbe@baylibre.com>
+Cc: dledford@redhat.com, hal.rosenstock@gmail.com, sean.hefty@intel.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jan 28, 2018 at 11:25:28AM +0200, Leon Romanovsky wrote:
-> Hi,
+On Sun, Jan 28, 2018 at 12:39:43PM +0000, Corentin Labbe wrote:
+> mthca_user.h is unused since commit 486f60954c71 ("IB/mthca: Move user vendor structures")
+> Remove it from tree.
 > 
-> This is batch of unrelated fixes and two cleanup patches from Parav.
-> 
-> The fix from Jack is to well-known series 44c58487d51a ("IB/core:
-> Define 'ib' and 'roce' rdma_ah_attr types") and it is targeted for
-> stable@.
-> 
-> Thanks
-> 
-> Jack Morgenstein (1):
->   IB/umad: Fix use of unprotected device pointer
-
-FWIW, that would be a -rc patch if another -rc was still expected.
-
-> Leon Romanovsky (2):
->   RDMA/mlx5: Avoid memory leak in case of XRCD dealloc failure
->   RDMA/cm: Fix access to uninitialized variable
-> 
-> Parav Pandit (2):
->   IB/core: Avoid SGID attributes query while converting GID from OPA to
->     IB
->   RDMA/cma: Use existing netif_is_bond_master function
+> Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+>  drivers/infiniband/hw/mthca/mthca_user.h | 112 -------------------------------
+>  1 file changed, 112 deletions(-)
+>  delete mode 100644 drivers/infiniband/hw/mthca/mthca_user.h
 
 Applied to for-next thanks
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
