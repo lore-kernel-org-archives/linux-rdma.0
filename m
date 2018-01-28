@@ -1,56 +1,37 @@
-From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 3/3] RDMA/iwpm: Improve a size determination in two functions
-Date: Sat, 27 Jan 2018 22:21:31 +0100
-Message-ID: <c3791ed7-b453-a76d-2f52-3e9d7f50d05e@users.sourceforge.net>
-References: <b1df0889-b967-97ae-3a3d-0dde0d7258cd@users.sourceforge.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next v7 1/8] RDMA/core: Print caller name instead of function name
+Date: Sun, 28 Jan 2018 11:17:18 +0200
+Message-ID: <20180128091725.13103-2-leon@kernel.org>
+References: <20180128091725.13103-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <b1df0889-b967-97ae-3a3d-0dde0d7258cd-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Language: en-GB
+In-Reply-To: <20180128091725.13103-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Johannes Berg <johannes.berg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Sat, 27 Jan 2018 22:05:54 +0100
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Replace the specification of data structures by pointer dereferences
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+Reuse the name from the Kconfig to mark the caller.
 
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/iwpm_util.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/rdma/ib_verbs.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
-index 9eb527074c32..902a2677df31 100644
---- a/drivers/infiniband/core/iwpm_util.c
-+++ b/drivers/infiniband/core/iwpm_util.c
-@@ -121,7 +121,8 @@ int iwpm_create_mapinfo(struct sockaddr_storage *local_sockaddr,
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 5e32fe781ca3..1c6e9f52f127 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2858,7 +2858,7 @@ enum ib_pd_flags {
+ struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
+ 		const char *caller);
+ #define ib_alloc_pd(device, flags) \
+-	__ib_alloc_pd((device), (flags), __func__)
++	__ib_alloc_pd((device), (flags), KBUILD_MODNAME)
+ void ib_dealloc_pd(struct ib_pd *pd);
  
- 	if (!iwpm_valid_client(nl_client))
- 		return ret;
--	map_info = kzalloc(sizeof(struct iwpm_mapping_info), GFP_KERNEL);
-+
-+	map_info = kzalloc(sizeof(*map_info), GFP_KERNEL);
- 	if (!map_info)
- 		return -ENOMEM;
- 
-@@ -298,7 +299,7 @@ struct iwpm_nlmsg_request *iwpm_get_nlmsg_request(__u32 nlmsg_seq,
- 	struct iwpm_nlmsg_request *nlmsg_request = NULL;
- 	unsigned long flags;
- 
--	nlmsg_request = kzalloc(sizeof(struct iwpm_nlmsg_request), gfp);
-+	nlmsg_request = kzalloc(sizeof(*nlmsg_request), gfp);
- 	if (!nlmsg_request)
- 		return NULL;
- 
+ /**
 -- 
 2.16.1
 
