@@ -1,73 +1,42 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 1/5] IB/umad: Fix use of unprotected device pointer
-Date: Sun, 28 Jan 2018 11:25:29 +0200
-Message-ID: <20180128092533.4156-2-leon@kernel.org>
-References: <20180128092533.4156-1-leon@kernel.org>
+Subject: [PATCH rdma-next 0/5] RDMA fixes for 4.16
+Date: Sun, 28 Jan 2018 11:25:28 +0200
+Message-ID: <20180128092533.4156-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180128092533.4156-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Hi,
 
-The ib_write_umad() is protected by taking the umad file mutex.
-However, it accesses file->port->ib_dev -- which is protected only by the
-port's mutex (field file_mutex).
+This is batch of unrelated fixes and two cleanup patches from Parav.
 
-The ib_umad_remove_one() calls ib_umad_kill_port() which sets
-port->ib_dev to NULL under the port mutex (NOT the file mutex).
-It then sets the mad agent to "dead" under the umad file mutex.
+The fix from Jack is to well-known series 44c58487d51a ("IB/core:
+Define 'ib' and 'roce' rdma_ah_attr types") and it is targeted for
+stable@.
 
-This is a race condition -- because there is a window where
-port->ib_dev is NULL, while the agent is not "dead".
+Thanks
 
-As a result, we saw stack traces like:
+Jack Morgenstein (1):
+  IB/umad: Fix use of unprotected device pointer
 
-[16490.678059] BUG: unable to handle kernel NULL pointer dereference at 00000000000000b0
-[16490.678246] IP: ib_umad_write+0x29c/0xa3a [ib_umad]
-[16490.678333] PGD 0 P4D 0
-[16490.678404] Oops: 0000 [#1] SMP PTI
-[16490.678466] Modules linked in: rdma_ucm(OE) ib_ucm(OE) rdma_cm(OE) iw_cm(OE) ib_ipoib(OE) ib_cm(OE) ib_uverbs(OE) ib_umad(OE) mlx4_en(OE) ptp pps_core mlx4_ib(OE-) ib_core(OE) mlx4_core(OE) mlx_compat
-(OE) memtrack(OE) devlink mst_pciconf(OE) mst_pci(OE) netconsole nfsv3 nfs_acl nfs lockd grace fscache cfg80211 rfkill esp6_offload esp6 esp4_offload esp4 sunrpc kvm_intel kvm ppdev parport_pc irqbypass
-parport joydev i2c_piix4 virtio_balloon cirrus drm_kms_helper ttm drm e1000 serio_raw virtio_pci virtio_ring virtio ata_generic pata_acpi qemu_fw_cfg [last unloaded: mlxfw]
-[16490.679202] CPU: 4 PID: 3115 Comm: sminfo Tainted: G           OE   4.14.13-300.fc27.x86_64 #1
-[16490.679339] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu2 04/01/2014
-[16490.679477] task: ffff9cf753890000 task.stack: ffffaf70c26b0000
-[16490.679571] RIP: 0010:ib_umad_write+0x29c/0xa3a [ib_umad]
-[16490.679664] RSP: 0018:ffffaf70c26b3d90 EFLAGS: 00010202
-[16490.679747] RAX: 0000000000000010 RBX: ffff9cf75610fd80 RCX: 0000000000000000
-[16490.679856] RDX: 0000000000000001 RSI: 00007ffdf2bfd714 RDI: ffff9cf6bb2a9c00
+Leon Romanovsky (2):
+  RDMA/mlx5: Avoid memory leak in case of XRCD dealloc failure
+  RDMA/cm: Fix access to uninitialized variable
 
-In the above trace, ib_umad_write is trying to dereference the NULL
-file->port->ib_dev pointer.
+Parav Pandit (2):
+  IB/core: Avoid SGID attributes query while converting GID from OPA to
+    IB
+  RDMA/cma: Use existing netif_is_bond_master function
 
-Fix this by using the agent's device pointer (the device field
-in struct ib_mad_agent) -- which IS protected by the umad file mutex.
-
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.11
-Fixes: 44c58487d51a ("IB/core: Define 'ib' and 'roce' rdma_ah_attr types")
-Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
+ drivers/infiniband/core/cm.c       | 6 +-----
+ drivers/infiniband/core/cma.c      | 2 +-
  drivers/infiniband/core/user_mad.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/qp.c    | 5 +----
+ 4 files changed, 4 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index f0ed883492ec..5e8ffd12c04e 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -511,7 +511,7 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
- 	}
- 
- 	memset(&ah_attr, 0, sizeof ah_attr);
--	ah_attr.type = rdma_ah_find_type(file->port->ib_dev,
-+	ah_attr.type = rdma_ah_find_type(agent->device,
- 					 file->port->port_num);
- 	rdma_ah_set_dlid(&ah_attr, be16_to_cpu(packet->mad.hdr.lid));
- 	rdma_ah_set_sl(&ah_attr, packet->mad.hdr.sl);
--- 
+--
 2.16.1
 
 --
