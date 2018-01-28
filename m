@@ -1,61 +1,139 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 5/5] RDMA/cm: Fix access to uninitialized
- variable
-Date: Sun, 28 Jan 2018 13:38:00 +0200
-Message-ID: <20180128113759.GD7001@yuvallap>
-References: <20180128092533.4156-1-leon@kernel.org>
- <20180128092533.4156-6-leon@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180128092533.4156-6-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Corentin Labbe <clabbe@baylibre.com>
+Subject: [PATCH] IB/mthca: remove mthca_user.h
+Date: Sun, 28 Jan 2018 12:39:43 +0000
+Message-ID: <1517143183-24393-1-git-send-email-clabbe@baylibre.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com, hal.rosenstock@gmail.com, sean.hefty@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Corentin Labbe <clabbe@baylibre.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jan 28, 2018 at 11:25:33AM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> The ndev will be held only for successful ib_get_cached_gid()
-> and hence no need to use dev_put() in failure path.
+mthca_user.h is unused since commit 486f60954c71 ("IB/mthca: Move user vendor structures")
+Remove it from tree.
 
-More than that - in case of an error from ib_get_cached_gid, gid_attr.ndev
-is still not initialized.
+Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+---
+ drivers/infiniband/hw/mthca/mthca_user.h | 112 -------------------------------
+ 1 file changed, 112 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/mthca/mthca_user.h
 
-> 
-> Fixes: 16c72e402867 ("IB/cm: Refactor to avoid setting path record software only fields")
-> Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/core/cm.c | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-> index 68df93558d80..e6749157fd86 100644
-> --- a/drivers/infiniband/core/cm.c
-> +++ b/drivers/infiniband/core/cm.c
-> @@ -1901,8 +1901,6 @@ static int cm_req_handler(struct cm_work *work)
->  				grh->sgid_index,
->  				&gid, &gid_attr);
->  	if (ret) {
-> -		if (gid_attr.ndev)
-> -			dev_put(gid_attr.ndev);
->  		ib_send_cm_rej(cm_id, IB_CM_REJ_UNSUPPORTED, NULL, 0, NULL, 0);
->  		goto rejected;
->  	}
-
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-> -- 
-> 2.16.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/mthca/mthca_user.h b/drivers/infiniband/hw/mthca/mthca_user.h
+deleted file mode 100644
+index 5fe56e810739..000000000000
+--- a/drivers/infiniband/hw/mthca/mthca_user.h
++++ /dev/null
+@@ -1,112 +0,0 @@
+-/*
+- * Copyright (c) 2005 Topspin Communications.  All rights reserved.
+- * Copyright (c) 2005, 2006 Cisco Systems.  All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- */
+-
+-#ifndef MTHCA_USER_H
+-#define MTHCA_USER_H
+-
+-#include <linux/types.h>
+-
+-/*
+- * Increment this value if any changes that break userspace ABI
+- * compatibility are made.
+- */
+-#define MTHCA_UVERBS_ABI_VERSION	1
+-
+-/*
+- * Make sure that all structs defined in this file remain laid out so
+- * that they pack the same way on 32-bit and 64-bit architectures (to
+- * avoid incompatibility between 32-bit userspace and 64-bit kernels).
+- * In particular do not use pointer types -- pass pointers in __u64
+- * instead.
+- */
+-
+-struct mthca_alloc_ucontext_resp {
+-	__u32 qp_tab_size;
+-	__u32 uarc_size;
+-};
+-
+-struct mthca_alloc_pd_resp {
+-	__u32 pdn;
+-	__u32 reserved;
+-};
+-
+-struct mthca_reg_mr {
+-/*
+- * Mark the memory region with a DMA attribute that causes
+- * in-flight DMA to be flushed when the region is written to:
+- */
+-#define MTHCA_MR_DMASYNC	0x1
+-	__u32 mr_attrs;
+-	__u32 reserved;
+-};
+-
+-struct mthca_create_cq {
+-	__u32 lkey;
+-	__u32 pdn;
+-	__u64 arm_db_page;
+-	__u64 set_db_page;
+-	__u32 arm_db_index;
+-	__u32 set_db_index;
+-};
+-
+-struct mthca_create_cq_resp {
+-	__u32 cqn;
+-	__u32 reserved;
+-};
+-
+-struct mthca_resize_cq {
+-	__u32 lkey;
+-	__u32 reserved;
+-};
+-
+-struct mthca_create_srq {
+-	__u32 lkey;
+-	__u32 db_index;
+-	__u64 db_page;
+-};
+-
+-struct mthca_create_srq_resp {
+-	__u32 srqn;
+-	__u32 reserved;
+-};
+-
+-struct mthca_create_qp {
+-	__u32 lkey;
+-	__u32 reserved;
+-	__u64 sq_db_page;
+-	__u64 rq_db_page;
+-	__u32 sq_db_index;
+-	__u32 rq_db_index;
+-};
+-
+-#endif /* MTHCA_USER_H */
+-- 
+2.13.6
