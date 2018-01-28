@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 5/5] RDMA/cm: Fix access to uninitialized variable
-Date: Sun, 28 Jan 2018 11:25:33 +0200
-Message-ID: <20180128092533.4156-6-leon@kernel.org>
+Subject: [PATCH rdma-next 2/5] RDMA/mlx5: Avoid memory leak in case of XRCD dealloc failure
+Date: Sun, 28 Jan 2018 11:25:30 +0200
+Message-ID: <20180128092533.4156-3-leon@kernel.org>
 References: <20180128092533.4156-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180128092533.4156-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,30 +12,39 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The ndev will be held only for successful ib_get_cached_gid()
-and hence no need to use dev_put() in failure path.
+Failure in XRCD FW deallocation command leaves memory leaked and
+returns error to the user which he can't do anything about it.
 
-Fixes: 16c72e402867 ("IB/cm: Refactor to avoid setting path record software only fields")
-Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This patch changes behavior to always free memory and always return
+success to the user.
+
+Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
+Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cm.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 68df93558d80..e6749157fd86 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -1901,8 +1901,6 @@ static int cm_req_handler(struct cm_work *work)
- 				grh->sgid_index,
- 				&gid, &gid_attr);
- 	if (ret) {
--		if (gid_attr.ndev)
--			dev_put(gid_attr.ndev);
- 		ib_send_cm_rej(cm_id, IB_CM_REJ_UNSUPPORTED, NULL, 0, NULL, 0);
- 		goto rejected;
- 	}
--- 
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index b06a2f9a8df4..39d24bf694a8 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -5066,13 +5066,10 @@ int mlx5_ib_dealloc_xrcd(struct ib_xrcd *xrcd)
+ 	int err;
+
+ 	err = mlx5_core_xrcd_dealloc(dev->mdev, xrcdn);
+-	if (err) {
++	if (err)
+ 		mlx5_ib_warn(dev, "failed to dealloc xrcdn 0x%x\n", xrcdn);
+-		return err;
+-	}
+
+ 	kfree(xrcd);
+-
+ 	return 0;
+ }
+
+--
 2.16.1
 
 --
