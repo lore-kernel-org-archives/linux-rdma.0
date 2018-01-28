@@ -1,139 +1,100 @@
-From: Corentin Labbe <clabbe@baylibre.com>
-Subject: [PATCH] IB/mthca: remove mthca_user.h
-Date: Sun, 28 Jan 2018 12:39:43 +0000
-Message-ID: <1517143183-24393-1-git-send-email-clabbe@baylibre.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com, hal.rosenstock@gmail.com, sean.hefty@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Corentin Labbe <clabbe@baylibre.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next 2/5] RDMA/mlx5: Avoid memory leak in case of
+ XRCD dealloc failure
+Date: Sun, 28 Jan 2018 14:52:08 +0200
+Message-ID: <20180128125208.GX1393@mtr-leonro.local>
+References: <20180128092533.4156-1-leon@kernel.org>
+ <20180128092533.4156-3-leon@kernel.org>
+ <20180128110717.GA7001@yuvallap>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ZFN9GYGE3tAy85aa"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180128110717.GA7001@yuvallap>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-mthca_user.h is unused since commit 486f60954c71 ("IB/mthca: Move user vendor structures")
-Remove it from tree.
 
-Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
----
- drivers/infiniband/hw/mthca/mthca_user.h | 112 -------------------------------
- 1 file changed, 112 deletions(-)
- delete mode 100644 drivers/infiniband/hw/mthca/mthca_user.h
+--ZFN9GYGE3tAy85aa
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_user.h b/drivers/infiniband/hw/mthca/mthca_user.h
-deleted file mode 100644
-index 5fe56e810739..000000000000
---- a/drivers/infiniband/hw/mthca/mthca_user.h
-+++ /dev/null
-@@ -1,112 +0,0 @@
--/*
-- * Copyright (c) 2005 Topspin Communications.  All rights reserved.
-- * Copyright (c) 2005, 2006 Cisco Systems.  All rights reserved.
-- *
-- * This software is available to you under a choice of one of two
-- * licenses.  You may choose to be licensed under the terms of the GNU
-- * General Public License (GPL) Version 2, available from the file
-- * COPYING in the main directory of this source tree, or the
-- * OpenIB.org BSD license below:
-- *
-- *     Redistribution and use in source and binary forms, with or
-- *     without modification, are permitted provided that the following
-- *     conditions are met:
-- *
-- *      - Redistributions of source code must retain the above
-- *        copyright notice, this list of conditions and the following
-- *        disclaimer.
-- *
-- *      - Redistributions in binary form must reproduce the above
-- *        copyright notice, this list of conditions and the following
-- *        disclaimer in the documentation and/or other materials
-- *        provided with the distribution.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
-- */
--
--#ifndef MTHCA_USER_H
--#define MTHCA_USER_H
--
--#include <linux/types.h>
--
--/*
-- * Increment this value if any changes that break userspace ABI
-- * compatibility are made.
-- */
--#define MTHCA_UVERBS_ABI_VERSION	1
--
--/*
-- * Make sure that all structs defined in this file remain laid out so
-- * that they pack the same way on 32-bit and 64-bit architectures (to
-- * avoid incompatibility between 32-bit userspace and 64-bit kernels).
-- * In particular do not use pointer types -- pass pointers in __u64
-- * instead.
-- */
--
--struct mthca_alloc_ucontext_resp {
--	__u32 qp_tab_size;
--	__u32 uarc_size;
--};
--
--struct mthca_alloc_pd_resp {
--	__u32 pdn;
--	__u32 reserved;
--};
--
--struct mthca_reg_mr {
--/*
-- * Mark the memory region with a DMA attribute that causes
-- * in-flight DMA to be flushed when the region is written to:
-- */
--#define MTHCA_MR_DMASYNC	0x1
--	__u32 mr_attrs;
--	__u32 reserved;
--};
--
--struct mthca_create_cq {
--	__u32 lkey;
--	__u32 pdn;
--	__u64 arm_db_page;
--	__u64 set_db_page;
--	__u32 arm_db_index;
--	__u32 set_db_index;
--};
--
--struct mthca_create_cq_resp {
--	__u32 cqn;
--	__u32 reserved;
--};
--
--struct mthca_resize_cq {
--	__u32 lkey;
--	__u32 reserved;
--};
--
--struct mthca_create_srq {
--	__u32 lkey;
--	__u32 db_index;
--	__u64 db_page;
--};
--
--struct mthca_create_srq_resp {
--	__u32 srqn;
--	__u32 reserved;
--};
--
--struct mthca_create_qp {
--	__u32 lkey;
--	__u32 reserved;
--	__u64 sq_db_page;
--	__u64 rq_db_page;
--	__u32 sq_db_index;
--	__u32 rq_db_index;
--};
--
--#endif /* MTHCA_USER_H */
--- 
-2.13.6
+On Sun, Jan 28, 2018 at 01:07:18PM +0200, Yuval Shaia wrote:
+> On Sun, Jan 28, 2018 at 11:25:30AM +0200, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >
+> > Failure in XRCD FW deallocation command leaves memory leaked and
+> > returns error to the user which he can't do anything about it.
+> >
+> > This patch changes behavior to always free memory and always return
+> > success to the user.
+> >
+> > Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
+> > Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > ---
+> >  drivers/infiniband/hw/mlx5/qp.c | 5 +----
+> >  1 file changed, 1 insertion(+), 4 deletions(-)
+> >
+> > diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+> > index b06a2f9a8df4..39d24bf694a8 100644
+> > --- a/drivers/infiniband/hw/mlx5/qp.c
+> > +++ b/drivers/infiniband/hw/mlx5/qp.c
+> > @@ -5066,13 +5066,10 @@ int mlx5_ib_dealloc_xrcd(struct ib_xrcd *xrcd)
+> >  	int err;
+> >
+> >  	err = mlx5_core_xrcd_dealloc(dev->mdev, xrcdn);
+> > -	if (err) {
+> > +	if (err)
+> >  		mlx5_ib_warn(dev, "failed to dealloc xrcdn 0x%x\n", xrcdn);
+> > -		return err;
+> > -	}
+> >
+> >  	kfree(xrcd);
+> > -
+> >  	return 0;
+>
+> In this case suggesting to make the function return void.
+
+It is part of global flow:
+ib_uverbs_dealloc_xrcd -> ib_dealloc_xrcd -> xrcd->device->dealloc_xrcd
+
+>
+> >  }
+> >
+> > --
+> > 2.16.1
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--ZFN9GYGE3tAy85aa
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlptx3gACgkQ5GN7iDZy
+WKdNCg//eqBaRJ44iPGEKSE4w8X+v4XH4n3O0p0v92exrikyKs4ukNWP5EK9+7Wc
+wXvAFrSC5K5GR5H3WW+/lkLiyBkXvwUIg4lLvvKiVPsG9bjrkxe8vulSkFVA3eZ5
+dQbuTHQsfnE1vjFeaf3Lb8ji7AgUEPFUzNb0QUBh+cZa9y/Ux9W6LwZ4Ry9+Mbe1
++Wy8F7JNg+adk+KHjUDWKNVFYO2WdtMIpsv6kKB7S7KVvIR3x0ZNIhZJpjBq6fko
+v7nxPmnVJiVw2m1TXkqFZUJh6gG4qm3rQuROiUDmEpezUSAhyZyt3M/x68TVkOZ0
+4t7r0Xp7z1QZV/Yf0mWu3s0p9CYnSatInJBeM7NFKB8YWFpyQktyuk9r+KQPt2EV
+llzUZZ6NH0teFBgxQFbQfCbfevJCBlfaaPXvIq5h+n8h70daNdGbrnZ76MrMSsZn
+Rd8Tzx5/0WCR5fncFWihL2Yo8mpbOCVZqKMTetmxUR0hCiWBGYnlN3nlOSvD1Jdj
+WU0aKP45kKatmK/6jaIiqX+PTMdp+/uFF8vs3G1VjrTt0c6LzKiCRdpf99aL87+0
+rqMeMD0MHBzb1vyGec2u8BBIxiLMNBaJWBFUmewqjWfRjBQ4y6YcNDfFx0Gx5aNM
+7Bk4RG3WnqBXnNJDb/hACfNro/zsFtPFbXNbyWGGbRy/OxBENC4=
+=dA9R
+-----END PGP SIGNATURE-----
+
+--ZFN9GYGE3tAy85aa--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
