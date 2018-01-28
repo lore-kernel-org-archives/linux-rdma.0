@@ -1,118 +1,116 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v7 0/8] RDMA resource tracking
-Date: Sun, 28 Jan 2018 11:17:17 +0200
-Message-ID: <20180128091725.13103-1-leon@kernel.org>
+Subject: [PATCH rdma-next v7 5/8] RDMA/core: Add resource tracking for create and destroy CQs
+Date: Sun, 28 Jan 2018 11:17:22 +0200
+Message-ID: <20180128091725.13103-6-leon@kernel.org>
+References: <20180128091725.13103-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180128091725.13103-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Changelog:
-v6->v7:
-  * Added completion mechanism for rdam_restrack_put()
-  * Converted init funciton to be void
-  * Changed to use kref_get_unless_zero()
-  * Forced valid to be false for not-added QPs.
-  * Added centralized place to update index for skipped QPs.
-v5->v6:
-  * Removed SRCU
-  * Added kref logic to protect resources
-  * Dropped support of XRC QPs for now
-v4->v5:
-  * Rewrote logic to acquire kernel owners of PD and CQ objects
-  * Simplified interface.
-  * Added logic to return summary for all PID namespaces and not only
-    init PID namespace.
-  * Changed DB implementation from struct with arrays to be struct with
-    hash table.
-  * Moved to use SRCU per-hash table.
-  * Dropped RW semaphores in favor of mutex to protect linked lists.
-  * Dropped QP named annotation patch.
-  * Used SPDX licenses.
-v3->v4:
-  * Added Steve ROB tags.
-  * Updated restrack.h to be compatible with kernel-doc format
-  * Fixed bug when not all QPs (more than one netlink page) were
-    returned by netlink interface
-  * Removed "MAX" values from object summary. In followup patches,
-    I will eturn object summary per-namespace and not for init PID
-    namespace only. Max values can be seen with ibv_devinfo tool.
-  * Renamed "comm" to be kern_name.
-  * Fix spelling errors.
-v2->v3:
-  * Added support of PID namespaces.
-  * Rewrote rdma_restraack_add function to ensure that it won't
-    appear in lists before it is valid.
-  * Replace pid/task name caching logic to use task_struct instead.
-  * Removed report of name of task's for user space objects. Users
-    are expected to read it through /proc/PID/comm.
-v1->v2:
- * Rebased on latest rdma/for-next
- * Replaced mutex lock which protect linked lists to be RW semaphore.
-   It has no impact on current implementation, because there is only one
-   reader (nldev) and it is serialized. However better to be prepared
-   for multiple readers from the beginning.
- * Added reinitialization next QP entry logic to ensure that it exists
-   and didn't vanish during fill_req_qp() work.
-v0->v1:
- * Dropped RFC
- * Separated to thre series, one for for-rc, and two for-next.
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
--------
-The original goal of this series was to allow ability to view connection
-(QP) information about running processes, however I used this opportunity and
-created common infrastructure to track and report various resources. The report
-part is implemented in netlink (nldev), but smart ULPs can now create
-advanced usage models based on device utilization.
+Track create and destroy operations of CQ objects.
 
-The current implementation relies on one lock per-object per-device, so
-creation/destroying of various objects (CQ, PD, e.t.c) on various or the
-same devices doesn't interfere each with another.
+Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/core/cq.c               | 6 ++++++
+ drivers/infiniband/core/uverbs_cmd.c       | 2 ++
+ drivers/infiniband/core/uverbs_std_types.c | 3 +++
+ drivers/infiniband/core/verbs.c            | 3 +++
+ 4 files changed, 14 insertions(+)
 
-The data protection is performed with SRCU and its reader-writer model
-ensures that resource won't be destroyed till readers will finish their
-work.
-
-Possible future work will include:
- * Reducing number of locks in RDMA, because of SRCU.
- * Converting CMA to be based completely on resource tracking.
- * Addition of other objects and extending current to give full
-   and detailed state of the RDMA kernel stack.
- * Replacing synchronize_srcu with call_srcu to make destroy flow
-   non-blocking.
- * Provide reliable device reset flow, preserving resource creation ordering.
-
-	Thanks
----------------------------------------
-
-Leon Romanovsky (8):
-  RDMA/core: Print caller name instead of function name
-  RDMA/core: Save kernel caller name in PD and CQ objects
-  RDMA/restrack: Add general infrastructure to track RDMA resources
-  RDMA/core: Add resource tracking for create and destroy QPs
-  RDMA/core: Add resource tracking for create and destroy CQs
-  RDMA/core: Add resource tracking for create and destroy PDs
-  RDMA/nldev: Provide global resource utilization
-  RDMA/nldev: Provide detailed QP information
-
- drivers/infiniband/core/Makefile           |   2 +-
- drivers/infiniband/core/core_priv.h        |  28 +++
- drivers/infiniband/core/cq.c               |  16 +-
- drivers/infiniband/core/device.c           |   4 +
- drivers/infiniband/core/nldev.c            | 378 +++++++++++++++++++++++++++++
- drivers/infiniband/core/restrack.c         | 166 +++++++++++++
- drivers/infiniband/core/uverbs_cmd.c       |   7 +-
- drivers/infiniband/core/uverbs_std_types.c |   3 +
- drivers/infiniband/core/verbs.c            |  18 +-
- include/rdma/ib_verbs.h                    |  34 ++-
- include/rdma/restrack.h                    | 157 ++++++++++++
- include/uapi/rdma/rdma_netlink.h           |  55 +++++
- 12 files changed, 851 insertions(+), 17 deletions(-)
- create mode 100644 drivers/infiniband/core/restrack.c
- create mode 100644 include/rdma/restrack.h
-
---
+diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
+index d99565dbd12f..bc79ca8215d7 100644
+--- a/drivers/infiniband/core/cq.c
++++ b/drivers/infiniband/core/cq.c
+@@ -159,6 +159,10 @@ struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private,
+ 	if (!cq->wc)
+ 		goto out_destroy_cq;
+ 
++	cq->res.type = RDMA_RESTRACK_CQ;
++	cq->res.kern_name = caller;
++	rdma_restrack_add(&cq->res);
++
+ 	switch (cq->poll_ctx) {
+ 	case IB_POLL_DIRECT:
+ 		cq->comp_handler = ib_cq_completion_direct;
+@@ -183,6 +187,7 @@ struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private,
+ 
+ out_free_wc:
+ 	kfree(cq->wc);
++	rdma_restrack_del(&cq->res);
+ out_destroy_cq:
+ 	cq->device->destroy_cq(cq);
+ 	return ERR_PTR(ret);
+@@ -214,6 +219,7 @@ void ib_free_cq(struct ib_cq *cq)
+ 	}
+ 
+ 	kfree(cq->wc);
++	rdma_restrack_del(&cq->res);
+ 	ret = cq->device->destroy_cq(cq);
+ 	WARN_ON_ONCE(ret);
+ }
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 825325c764a1..3e95acd29de7 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1033,6 +1033,8 @@ static struct ib_ucq_object *create_cq(struct ib_uverbs_file *file,
+ 		goto err_cb;
+ 
+ 	uobj_alloc_commit(&obj->uobject);
++	cq->res.type = RDMA_RESTRACK_CQ;
++	rdma_restrack_add(&cq->res);
+ 
+ 	return obj;
+ 
+diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+index c3ee5d9b336d..b571176babbe 100644
+--- a/drivers/infiniband/core/uverbs_std_types.c
++++ b/drivers/infiniband/core/uverbs_std_types.c
+@@ -35,6 +35,7 @@
+ #include <rdma/ib_verbs.h>
+ #include <linux/bug.h>
+ #include <linux/file.h>
++#include <rdma/restrack.h>
+ #include "rdma_core.h"
+ #include "uverbs.h"
+ 
+@@ -319,6 +320,8 @@ static int uverbs_create_cq_handler(struct ib_device *ib_dev,
+ 	obj->uobject.object = cq;
+ 	obj->uobject.user_handle = user_handle;
+ 	atomic_set(&cq->usecnt, 0);
++	cq->res.type = RDMA_RESTRACK_CQ;
++	rdma_restrack_add(&cq->res);
+ 
+ 	ret = uverbs_copy_to(attrs, CREATE_CQ_RESP_CQE, &cq->cqe);
+ 	if (ret)
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index c3628a437403..983b49ffb8d5 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1578,6 +1578,8 @@ struct ib_cq *ib_create_cq(struct ib_device *device,
+ 		cq->event_handler = event_handler;
+ 		cq->cq_context    = cq_context;
+ 		atomic_set(&cq->usecnt, 0);
++		cq->res.type = RDMA_RESTRACK_CQ;
++		rdma_restrack_add(&cq->res);
+ 	}
+ 
+ 	return cq;
+@@ -1596,6 +1598,7 @@ int ib_destroy_cq(struct ib_cq *cq)
+ 	if (atomic_read(&cq->usecnt))
+ 		return -EBUSY;
+ 
++	rdma_restrack_del(&cq->res);
+ 	return cq->device->destroy_cq(cq);
+ }
+ EXPORT_SYMBOL(ib_destroy_cq);
+-- 
 2.16.1
 
 --
