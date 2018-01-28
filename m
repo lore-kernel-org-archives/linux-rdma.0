@@ -1,38 +1,44 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next v7 0/8] RDMA resource tracking
-Date: Sun, 28 Jan 2018 14:05:20 -0700
-Message-ID: <20180128210520.GK23869@ziepe.ca>
-References: <20180128091725.13103-1-leon@kernel.org>
+Subject: Re: [PATCH] IB/cxgb3: remove cxio_dbg.c
+Date: Sun, 28 Jan 2018 14:09:03 -0700
+Message-ID: <20180128210903.GL23869@ziepe.ca>
+References: <1517152289-25052-1-git-send-email-clabbe@baylibre.com>
+ <1517156662.765.10.camel@perches.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180128091725.13103-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1517156662.765.10.camel-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Cc: Corentin Labbe <clabbe-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jan 28, 2018 at 11:17:17AM +0200, Leon Romanovsky wrote:
-
-> The original goal of this series was to allow ability to view connection
-> (QP) information about running processes, however I used this opportunity and
-> created common infrastructure to track and report various resources. The report
-> part is implemented in netlink (nldev), but smart ULPs can now create
-> advanced usage models based on device utilization.
+On Sun, Jan 28, 2018 at 08:24:22AM -0800, Joe Perches wrote:
+> On Sun, 2018-01-28 at 15:11 +0000, Corentin Labbe wrote:
+> > cxio_dbg.c is uncompiled since commit 2b540355cd2f ("RDMA/cxgb3: cleanups")
+> > 10 years after, we could remove it.
 > 
-> The current implementation relies on one lock per-object per-device, so
-> creation/destroying of various objects (CQ, PD, e.t.c) on various or the
-> same devices doesn't interfere each with another.
+> OK, now you could remove the prototypes and probably
+> CONFIG_INFINIBAND_CXGB3_DEBUG too.
 > 
-> The data protection is performed with SRCU and its reader-writer model
-> ensures that resource won't be destroyed till readers will finish their
-> work.
+> There is a DEBUG test and many uses of pr_debug
+> that would have modified behavior.
+> 
+> The pr_debug uses would only be emitted via a
+> dynamic_debug enable and the #ifdef DEBUG is
+> probably not necessary or useful as it guards
+> a BUG_ON.
+> 
+>  drivers/infiniband/hw/cxgb3/Kconfig    | 9 ---------
+>  drivers/infiniband/hw/cxgb3/Makefile   | 2 --
+>  drivers/infiniband/hw/cxgb3/cxio_hal.h | 9 ---------
+>  drivers/infiniband/hw/cxgb3/iwch_cq.c  | 7 -------
+>  4 files changed, 27 deletions(-)
 
-Well, this cover letter isn't quite right anymore.. but no matter.
+Yes, can you resend the patch with Joe's hunks as well?
 
-My small comments aside it looks OK to me.
-
+Thanks,
 Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
