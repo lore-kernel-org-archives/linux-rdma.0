@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v7 2/8] RDMA/core: Save kernel caller name in PD and CQ objects
-Date: Sun, 28 Jan 2018 11:17:19 +0200
-Message-ID: <20180128091725.13103-3-leon@kernel.org>
+Subject: [PATCH rdma-next v7 6/8] RDMA/core: Add resource tracking for create and destroy PDs
+Date: Sun, 28 Jan 2018 11:17:23 +0200
+Message-ID: <20180128091725.13103-7-leon@kernel.org>
 References: <20180128091725.13103-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180128091725.13103-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,110 +12,52 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The KBUILD_MODNAME variable contains the module name
-and it is known for kernel users during compilation,
-so let's reuse it to track the owners.
+Track create and destroy operations of PD objects.
 
+Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/cq.c    | 10 ++++++----
- drivers/infiniband/core/verbs.c |  4 ++--
- include/rdma/ib_verbs.h         | 13 ++++++++++---
- 3 files changed, 18 insertions(+), 9 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 2 ++
+ drivers/infiniband/core/verbs.c      | 5 +++++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
-index c8c5a5a7f433..d99565dbd12f 100644
---- a/drivers/infiniband/core/cq.c
-+++ b/drivers/infiniband/core/cq.c
-@@ -120,20 +120,22 @@ static void ib_cq_completion_workqueue(struct ib_cq *cq, void *private)
- }
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 3e95acd29de7..256934d1f64f 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -340,6 +340,8 @@ ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
+ 	uobj->object = pd;
+ 	memset(&resp, 0, sizeof resp);
+ 	resp.pd_handle = uobj->id;
++	pd->res.type = RDMA_RESTRACK_PD;
++	rdma_restrack_add(&pd->res);
  
- /**
-- * ib_alloc_cq - allocate a completion queue
-+ * __ib_alloc_cq - allocate a completion queue
-  * @dev:		device to allocate the CQ for
-  * @private:		driver private data, accessible from cq->cq_context
-  * @nr_cqe:		number of CQEs to allocate
-  * @comp_vector:	HCA completion vectors for this CQ
-  * @poll_ctx:		context to poll the CQ from.
-+ * @caller:		module owner name.
-  *
-  * This is the proper interface to allocate a CQ for in-kernel users. A
-  * CQ allocated with this interface will automatically be polled from the
-  * specified context. The ULP must use wr->wr_cqe instead of wr->wr_id
-  * to use this CQ abstraction.
-  */
--struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
--		int nr_cqe, int comp_vector, enum ib_poll_context poll_ctx)
-+struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private,
-+			    int nr_cqe, int comp_vector,
-+			    enum ib_poll_context poll_ctx, const char *caller)
- {
- 	struct ib_cq_init_attr cq_attr = {
- 		.cqe		= nr_cqe,
-@@ -185,7 +187,7 @@ struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
- 	cq->device->destroy_cq(cq);
- 	return ERR_PTR(ret);
- }
--EXPORT_SYMBOL(ib_alloc_cq);
-+EXPORT_SYMBOL(__ib_alloc_cq);
- 
- /**
-  * ib_free_cq - free a completion queue
+ 	if (copy_to_user(u64_to_user_ptr(cmd.response), &resp, sizeof resp)) {
+ 		ret = -EFAULT;
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index e9c3991a93ff..c2b347f6e8a2 100644
+index 983b49ffb8d5..a98a3e8412f8 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -1782,7 +1782,7 @@ int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid)
- }
- EXPORT_SYMBOL(ib_detach_mcast);
+@@ -263,6 +263,10 @@ struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
+ 		mr_access_flags |= IB_ACCESS_REMOTE_READ | IB_ACCESS_REMOTE_WRITE;
+ 	}
  
--struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device)
-+struct ib_xrcd *__ib_alloc_xrcd(struct ib_device *device, const char *caller)
- {
- 	struct ib_xrcd *xrcd;
- 
-@@ -1800,7 +1800,7 @@ struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device)
- 
- 	return xrcd;
- }
--EXPORT_SYMBOL(ib_alloc_xrcd);
-+EXPORT_SYMBOL(__ib_alloc_xrcd);
- 
- int ib_dealloc_xrcd(struct ib_xrcd *xrcd)
- {
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 1c6e9f52f127..f9cabb1b670e 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -3135,8 +3135,12 @@ static inline int ib_post_recv(struct ib_qp *qp,
- 	return qp->device->post_recv(qp, recv_wr, bad_recv_wr);
- }
- 
--struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
--		int nr_cqe, int comp_vector, enum ib_poll_context poll_ctx);
-+struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private,
-+			    int nr_cqe, int comp_vector,
-+			    enum ib_poll_context poll_ctx, const char *caller);
-+#define ib_alloc_cq(device, priv, nr_cqe, comp_vect, poll_ctx) \
-+	__ib_alloc_cq((device), (priv), (nr_cqe), (comp_vect), (poll_ctx), KBUILD_MODNAME)
++	pd->res.type = RDMA_RESTRACK_PD;
++	pd->res.kern_name = caller;
++	rdma_restrack_add(&pd->res);
 +
- void ib_free_cq(struct ib_cq *cq);
- int ib_process_cq_direct(struct ib_cq *cq, int budget);
+ 	if (mr_access_flags) {
+ 		struct ib_mr *mr;
  
-@@ -3560,8 +3564,11 @@ int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid);
- /**
-  * ib_alloc_xrcd - Allocates an XRC domain.
-  * @device: The device on which to allocate the XRC domain.
-+ * @caller: Module name for kernel consumers
-  */
--struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device);
-+struct ib_xrcd *__ib_alloc_xrcd(struct ib_device *device, const char *caller);
-+#define ib_alloc_xrcd(device) \
-+	__ib_alloc_xrcd((device), KBUILD_MODNAME)
+@@ -312,6 +316,7 @@ void ib_dealloc_pd(struct ib_pd *pd)
+ 	   requires the caller to guarantee we can't race here. */
+ 	WARN_ON(atomic_read(&pd->usecnt));
  
- /**
-  * ib_dealloc_xrcd - Deallocates an XRC domain.
++	rdma_restrack_del(&pd->res);
+ 	/* Making delalloc_pd a void return is a WIP, no driver should return
+ 	   an error here. */
+ 	ret = pd->device->dealloc_pd(pd);
 -- 
 2.16.1
 
