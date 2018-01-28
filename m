@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v7 5/8] RDMA/core: Add resource tracking for create and destroy CQs
-Date: Sun, 28 Jan 2018 11:17:22 +0200
-Message-ID: <20180128091725.13103-6-leon@kernel.org>
+Subject: [PATCH rdma-next v7 2/8] RDMA/core: Save kernel caller name in PD and CQ objects
+Date: Sun, 28 Jan 2018 11:17:19 +0200
+Message-ID: <20180128091725.13103-3-leon@kernel.org>
 References: <20180128091725.13103-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180128091725.13103-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,104 +12,110 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Track create and destroy operations of CQ objects.
+The KBUILD_MODNAME variable contains the module name
+and it is known for kernel users during compilation,
+so let's reuse it to track the owners.
 
-Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/cq.c               | 6 ++++++
- drivers/infiniband/core/uverbs_cmd.c       | 2 ++
- drivers/infiniband/core/uverbs_std_types.c | 3 +++
- drivers/infiniband/core/verbs.c            | 3 +++
- 4 files changed, 14 insertions(+)
+ drivers/infiniband/core/cq.c    | 10 ++++++----
+ drivers/infiniband/core/verbs.c |  4 ++--
+ include/rdma/ib_verbs.h         | 13 ++++++++++---
+ 3 files changed, 18 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
-index d99565dbd12f..bc79ca8215d7 100644
+index c8c5a5a7f433..d99565dbd12f 100644
 --- a/drivers/infiniband/core/cq.c
 +++ b/drivers/infiniband/core/cq.c
-@@ -159,6 +159,10 @@ struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private,
- 	if (!cq->wc)
- 		goto out_destroy_cq;
+@@ -120,20 +120,22 @@ static void ib_cq_completion_workqueue(struct ib_cq *cq, void *private)
+ }
  
-+	cq->res.type = RDMA_RESTRACK_CQ;
-+	cq->res.kern_name = caller;
-+	rdma_restrack_add(&cq->res);
-+
- 	switch (cq->poll_ctx) {
- 	case IB_POLL_DIRECT:
- 		cq->comp_handler = ib_cq_completion_direct;
-@@ -183,6 +187,7 @@ struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private,
- 
- out_free_wc:
- 	kfree(cq->wc);
-+	rdma_restrack_del(&cq->res);
- out_destroy_cq:
+ /**
+- * ib_alloc_cq - allocate a completion queue
++ * __ib_alloc_cq - allocate a completion queue
+  * @dev:		device to allocate the CQ for
+  * @private:		driver private data, accessible from cq->cq_context
+  * @nr_cqe:		number of CQEs to allocate
+  * @comp_vector:	HCA completion vectors for this CQ
+  * @poll_ctx:		context to poll the CQ from.
++ * @caller:		module owner name.
+  *
+  * This is the proper interface to allocate a CQ for in-kernel users. A
+  * CQ allocated with this interface will automatically be polled from the
+  * specified context. The ULP must use wr->wr_cqe instead of wr->wr_id
+  * to use this CQ abstraction.
+  */
+-struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
+-		int nr_cqe, int comp_vector, enum ib_poll_context poll_ctx)
++struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private,
++			    int nr_cqe, int comp_vector,
++			    enum ib_poll_context poll_ctx, const char *caller)
+ {
+ 	struct ib_cq_init_attr cq_attr = {
+ 		.cqe		= nr_cqe,
+@@ -185,7 +187,7 @@ struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
  	cq->device->destroy_cq(cq);
  	return ERR_PTR(ret);
-@@ -214,6 +219,7 @@ void ib_free_cq(struct ib_cq *cq)
- 	}
- 
- 	kfree(cq->wc);
-+	rdma_restrack_del(&cq->res);
- 	ret = cq->device->destroy_cq(cq);
- 	WARN_ON_ONCE(ret);
  }
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 825325c764a1..3e95acd29de7 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1033,6 +1033,8 @@ static struct ib_ucq_object *create_cq(struct ib_uverbs_file *file,
- 		goto err_cb;
+-EXPORT_SYMBOL(ib_alloc_cq);
++EXPORT_SYMBOL(__ib_alloc_cq);
  
- 	uobj_alloc_commit(&obj->uobject);
-+	cq->res.type = RDMA_RESTRACK_CQ;
-+	rdma_restrack_add(&cq->res);
- 
- 	return obj;
- 
-diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
-index c3ee5d9b336d..b571176babbe 100644
---- a/drivers/infiniband/core/uverbs_std_types.c
-+++ b/drivers/infiniband/core/uverbs_std_types.c
-@@ -35,6 +35,7 @@
- #include <rdma/ib_verbs.h>
- #include <linux/bug.h>
- #include <linux/file.h>
-+#include <rdma/restrack.h>
- #include "rdma_core.h"
- #include "uverbs.h"
- 
-@@ -319,6 +320,8 @@ static int uverbs_create_cq_handler(struct ib_device *ib_dev,
- 	obj->uobject.object = cq;
- 	obj->uobject.user_handle = user_handle;
- 	atomic_set(&cq->usecnt, 0);
-+	cq->res.type = RDMA_RESTRACK_CQ;
-+	rdma_restrack_add(&cq->res);
- 
- 	ret = uverbs_copy_to(attrs, CREATE_CQ_RESP_CQE, &cq->cqe);
- 	if (ret)
+ /**
+  * ib_free_cq - free a completion queue
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index c3628a437403..983b49ffb8d5 100644
+index e9c3991a93ff..c2b347f6e8a2 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -1578,6 +1578,8 @@ struct ib_cq *ib_create_cq(struct ib_device *device,
- 		cq->event_handler = event_handler;
- 		cq->cq_context    = cq_context;
- 		atomic_set(&cq->usecnt, 0);
-+		cq->res.type = RDMA_RESTRACK_CQ;
-+		rdma_restrack_add(&cq->res);
- 	}
- 
- 	return cq;
-@@ -1596,6 +1598,7 @@ int ib_destroy_cq(struct ib_cq *cq)
- 	if (atomic_read(&cq->usecnt))
- 		return -EBUSY;
- 
-+	rdma_restrack_del(&cq->res);
- 	return cq->device->destroy_cq(cq);
+@@ -1782,7 +1782,7 @@ int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid)
  }
- EXPORT_SYMBOL(ib_destroy_cq);
+ EXPORT_SYMBOL(ib_detach_mcast);
+ 
+-struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device)
++struct ib_xrcd *__ib_alloc_xrcd(struct ib_device *device, const char *caller)
+ {
+ 	struct ib_xrcd *xrcd;
+ 
+@@ -1800,7 +1800,7 @@ struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device)
+ 
+ 	return xrcd;
+ }
+-EXPORT_SYMBOL(ib_alloc_xrcd);
++EXPORT_SYMBOL(__ib_alloc_xrcd);
+ 
+ int ib_dealloc_xrcd(struct ib_xrcd *xrcd)
+ {
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 1c6e9f52f127..f9cabb1b670e 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -3135,8 +3135,12 @@ static inline int ib_post_recv(struct ib_qp *qp,
+ 	return qp->device->post_recv(qp, recv_wr, bad_recv_wr);
+ }
+ 
+-struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
+-		int nr_cqe, int comp_vector, enum ib_poll_context poll_ctx);
++struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private,
++			    int nr_cqe, int comp_vector,
++			    enum ib_poll_context poll_ctx, const char *caller);
++#define ib_alloc_cq(device, priv, nr_cqe, comp_vect, poll_ctx) \
++	__ib_alloc_cq((device), (priv), (nr_cqe), (comp_vect), (poll_ctx), KBUILD_MODNAME)
++
+ void ib_free_cq(struct ib_cq *cq);
+ int ib_process_cq_direct(struct ib_cq *cq, int budget);
+ 
+@@ -3560,8 +3564,11 @@ int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid);
+ /**
+  * ib_alloc_xrcd - Allocates an XRC domain.
+  * @device: The device on which to allocate the XRC domain.
++ * @caller: Module name for kernel consumers
+  */
+-struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device);
++struct ib_xrcd *__ib_alloc_xrcd(struct ib_device *device, const char *caller);
++#define ib_alloc_xrcd(device) \
++	__ib_alloc_xrcd((device), KBUILD_MODNAME)
+ 
+ /**
+  * ib_dealloc_xrcd - Deallocates an XRC domain.
 -- 
 2.16.1
 
