@@ -1,34 +1,51 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: Re: [0/2] RDMA/bnxt_re: Adjustments for bnxt_qplib_alloc_dpi_tbl()
-Date: Mon, 29 Jan 2018 10:31:04 +0100
-Message-ID: <fe3d92c5-8e51-ea72-7637-6545c1654dd3@users.sourceforge.net>
-References: <19c755a6-8c52-bbd5-a425-48fc08cecd4f@users.sourceforge.net>
- <CANjDDBgyX0d7=5YvgYLew04ODn4hZhfLbvUbvP1BviiEOGWkJQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CANjDDBgyX0d7=5YvgYLew04ODn4hZhfLbvUbvP1BviiEOGWkJQ@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Devesh Sharma <devesh.sharma@broadcom.com>, linux-rdma <linux-rdma@vger.kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Selvin Xavier <selvin.xavier@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Himanshu Jha <himanshujha199640@gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-core] cbuild: Replace Fedora 26 with Fedora 27
+Date: Mon, 29 Jan 2018 12:07:45 +0200
+Message-ID: <20180129100745.31727-1-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> You don't need 2 patches when changing same lines of code.
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Are these really the same?
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ buildlib/cbuild | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
+diff --git a/buildlib/cbuild b/buildlib/cbuild
+index 3f659bf8..16743a51 100755
+--- a/buildlib/cbuild
++++ b/buildlib/cbuild
+@@ -127,10 +127,10 @@ class centos7_epel(centos7):
+         res.lines.append("RUN ln -s /usr/bin/cmake3 /usr/local/bin/cmake");
+         return res;
 
-> Could you squash both and send your changes in a single patch.
+-class fc26(Environment):
+-    docker_parent = "fedora:26";
++class fc27(Environment):
++    docker_parent = "fedora:27";
+     pkgs = (centos7.pkgs - {"make"}) | {"ninja-build"};
+-    name = "fc26";
++    name = "fc27";
+     specfile = "redhat/rdma-core.spec";
+     ninja_cmd = "ninja-build";
+     is_rpm = True;
+@@ -336,7 +336,7 @@ environments = [centos6(),
+                 artful(),
+                 jessie(),
+                 stretch(),
+-                fc26(),
++                fc27(),
+                 leap(),
+                 tumbleweed(),
+                 debian_experimental(),
+--
+2.16.1
 
-I prefer to keep the deletion of questionable error messages separate
-from the refactoring for a bit of exception handling.
-
-
-> The patches look good to me otherwise.
-
-Thanks for your constructive feedback.
-
-Regards,
-Markus
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
