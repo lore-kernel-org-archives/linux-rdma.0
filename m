@@ -1,60 +1,67 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: Re: Reconnect on RDMA device reset
-Date: Mon, 29 Jan 2018 21:34:39 +0000
-Message-ID: <1517261678.2687.49.camel@wdc.com>
+Date: Mon, 29 Jan 2018 16:46:28 -0500
+Message-ID: <80104DB5-2E4D-4226-AF3A-93FE1CD87CB4@oracle.com>
 References: <CADZhsQqDFc1NWmsihOwki8_2Zj0HuYKC_N_x0jMnCtU9Rww1UA@mail.gmail.com>
-         <f0a14240-1566-1bae-1b9f-21880bc3f3a0@grimberg.me>
-         <CADZhsQqvK0LMd9sfxzz+x_5qVnoi4FP0FCFMsTPjpeXyqfXKew@mail.gmail.com>
-         <77cef33e-a563-97fc-7ba6-69f220f1be84@grimberg.me>
-         <1516904022.27592.187.camel@redhat.com>
-         <26056a83-2f81-6b56-7bbf-fcecfc4518d6@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+ <f0a14240-1566-1bae-1b9f-21880bc3f3a0@grimberg.me>
+ <CADZhsQqvK0LMd9sfxzz+x_5qVnoi4FP0FCFMsTPjpeXyqfXKew@mail.gmail.com>
+ <77cef33e-a563-97fc-7ba6-69f220f1be84@grimberg.me>
+ <1516904022.27592.187.camel@redhat.com>
+ <679C11A4-744C-4574-9F50-2D2C3B0F08B0@oracle.com>
+ <92367a43-4c2e-887f-35ff-38fa05d47c49@grimberg.me>
+ <EFFF4091-3CBA-474B-B9D7-FF7EDA3B1613@oracle.com>
+ <1517261240.27592.245.camel@redhat.com>
+Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <26056a83-2f81-6b56-7bbf-fcecfc4518d6-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-US
-Content-ID: <049B565067BC44459DE61DD06BE67D4D-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <1517261240.27592.245.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "oren.duer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <oren.duer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: "oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Oren Duer <oren.duer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE4LTAxLTI5IGF0IDIyOjM2ICswMjAwLCBTYWdpIEdyaW1iZXJnIHdyb3RlOg0K
-PiA+IEkgKnRoaW5rKiBmb3IgU1JQIHRoaXMgaXMgYWxyZWFkeSB0aGUgY2FzZS4gIFRoZSBTUlAg
-dGFyZ2V0IHVzZXMgdGhlDQo+ID4ga2VybmVsIExJTyBmcmFtZXdvcmssIHNvIGlmIHlvdSBib3Vu
-Y2UgdGhlIGRldmljZSB1bmRlciB0aGUgU1JQdCBsYXllciwNCj4gPiBkb2Vzbid0IHRoZSBjb25m
-aWcgZ2V0IHByZXNlcnZlZD8gIFNvIHRoYXQgd2hlbiB0aGUgZGV2aWNlIGNhbWUgYmFjayB1cCwN
-Cj4gPiB0aGUgTElPIGNvbmZpZ3VyYXRpb24gd291bGQgc3RpbGwgYmUgdGhlcmUgYW5kIHRoZSBT
-UlB0IGRyaXZlciB3b3VsZCBzZWUNCj4gPiB0aGF0PyBCYXJ0Pw0KPiANCj4gSSB0aGluayB5b3Un
-cmUgcmlnaHQuIEkgdGhpbmsgd2UgY2FuIGRvIHRoYXQgaWYgd2Uga2VlcCB0aGUgbGlzdGVuZXIN
-Cj4gY21faWQgZGV2aWNlIG5vZGVfZ3VpZCBhbmQgd2hlbiBhIG5ldyBkZXZpY2UgY29tZXMgaW4g
-d2UgY2FuIHNlZSBpZiB3ZSANCj4gaGF2ZSBhIGNtIGxpc3RlbmVyIG9uIHRoYXQgZGV2aWNlIGFu
-ZCByZS1saXN0ZW4uIFRoYXQgaXMgYSBnb29kIGlkZWENCj4gRG91Zy4NCg0KU29ycnkgdGhhdCBJ
-IGhhZG4ndCBub3RpY2VkIHRoaXMgZS1tYWlsIHRocmVhZCBlYXJsaWVyIGFuZCB0aGF0IEkgaGFk
-IG5vdCB5ZXQNCnJlcGxpZWQuIFRoZSBTUlBUIGNvbmZpZyBzaG91bGQgZ2V0IHByZXNlcnZlZCBh
-cyBsb25nIGFzIHRoZSBkZXZpY2UgcmVtb3ZhbA0KZnVuY3Rpb24gKHNycHRfcmVtb3ZlX29uZSgp
-KSBkb2VzIG5vdCBnZXQgY2FsbGVkLg0KDQo+ID4gRm9yIHRoZSBTUlAgY2xpZW50LCBJJ20gYWxt
-b3N0IGNlcnRhaW4gaXQgd2lsbCB0cnkgdG8gcmVjb25uZWN0IHNpbmNlIGl0DQo+ID4gdXNlcyBh
-IHVzZXIgc3BhY2UgZGFlbW9uIHdpdGggYSBzaGVsbCBzY3JpcHQgdGhhdCByZXN0YXJ0cyB0aGUg
-ZGFlbW9uIG9uDQo+ID4gdmFyaW91cyBldmVudHMuICBUaGF0IG1pZ2h0IGhhdmUgY2hhbmdlZC4u
-LmRpZG4ndCB3ZSBqdXN0IHRha2UgYSBwYXRjaA0KPiA+IHRvIHJkbWEtY29yZSB0byBkcm9wIHRo
-ZSBzaGVsbCBzY3JpcHQ/ICBJdCBtaWdodCBub3QgcmVjb25uZWN0DQo+ID4gYXV0b21hdGljYWxs
-eSB3aXRoIHRoZSBsYXRlc3QgcmRtYS1jb3JlLCBJJ2QgaGF2ZSB0byBjaGVjay4gIEJhcnQgc2hv
-dWxkDQo+ID4ga25vdyB0aG91Z2guLi4NCj4gDQo+IHNycCBkcml2ZXIgcmVsaWVzIG9uIHNycF9k
-YWVtb24gdG8gZGlzY292ZXIgYW5kIGNvbm5lY3QgYWdhaW4gb3ZlciB0aGUNCj4gbmV3IGRldmlj
-ZS4gaVNFUiByZWxpZXMgb24gaXNjc2lhZG0gdG8gcmVjb25uZWN0LiBJIGd1ZXNzIGl0IHNob3Vs
-ZCBiZQ0KPiB0aGUgY29ycmVjdCBhcHByb2FjaCBmb3IgbnZtZSBhcyB3ZWxsICh3aGljaCB3ZSBk
-b24ndCBoYXZlIGF0IHRoZQ0KPiBtb21lbnQpLi4uDQoNClRoZXJlIGFyZSB0d28gbWVjaGFuaXNt
-cyBmb3IgdGhlIFNSUCBpbml0aWF0b3IgdG8gbWFrZSBpdCByZWNvbm5lY3QgdG8gYW4gU1JQDQp0
-YXJnZXQ6DQoxLiBzcnBfZGFlbW9uLiBFdmVuIHdpdGggdGhlIGxhdGVzdCByZG1hLWNvcmUgY2hh
-bmdlcyBzcnBfZGFlbW9uIHNob3VsZCBzdGlsbA0KICAgZGlzY292ZXIgU1JQIHRhcmdldHMgYW5k
-IHJlY29ubmVjdCB0byB0aGUgdGFyZ2V0IHN5c3RlbXMgaXQgaXMgYWxsb3dlZCB0bw0KICAgcmVj
-b25uZWN0IHRvIGJ5IGl0cyBjb25maWd1cmF0aW9uIGZpbGUuDQoyLiBUaGUgcmVjb25uZWN0aW9u
-IG1lY2hhbmlzbSBpbiB0aGUgU0NTSSBTUlAgdHJhbnNwb3J0IGxheWVyLiBTZWUgYWxzbyB0aGUN
-CiAgIGRvY3VtZW50YXRpb24gb2YgdGhlIHJlY29ubmVjdF9kZWxheSBpbg0KICAgaHR0cHM6Ly93
-d3cua2VybmVsLm9yZy9kb2MvRG9jdW1lbnRhdGlvbi9BQkkvc3RhYmxlL3N5c2ZzLXRyYW5zcG9y
-dC1zcnANCg0KQmFydC4=
+
+
+> On Jan 29, 2018, at 4:27 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+> On Mon, 2018-01-29 at 15:11 -0500, Chuck Lever wrote:
+>>> On Jan 29, 2018, at 3:01 PM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+>>> 
+>>> Hi Chuck,
+>>> 
+>>>> For NFS/RDMA, I think of the "failover" case where a device is
+>>>> removed, then a new one is plugged in (or an existing cold
+>>>> replacement is made available) with the same IP configuration.
+>>>> On a "hard" NFS mount, we want the upper layers to wait for
+>>>> a new suitable device to be made available, and then to use
+>>>> it to resend any pending RPCs. The workload should continue
+>>>> after a new device is available.
+>>> 
+>>> Really? so the context is held forever (in case the device never
+>>> comes back)?
+>> 
+>> I didn't say this was the best approach :-) And it certainly can
+>> change if we have something better.
+> 
+> Whether it's the best or not, it's the defined behavior of the "hard"
+> mount option.  So if someone doesn't want that, you don't use a hard
+> mount ;-)
+> 
+> Hard mounts are great for situations where you have a high degree of
+> faith that even if they server disappears, it will reappear soon.  They
+> suck when the server totally dies though, because now all the hard mount
+> clients are stuck :-/.
+
+We're working on fixing that.
+
+
+--
+Chuck Lever
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
