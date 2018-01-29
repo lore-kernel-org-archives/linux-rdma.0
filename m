@@ -1,56 +1,39 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next v2 15/16] IB/core: Map iWarp AH type to undefined
- in rdma_ah_find_type
-Date: Mon, 29 Jan 2018 08:24:52 -0500
-Message-ID: <368266b8-ae79-3804-38d0-e7730126b532@intel.com>
-References: <20180126211126.12097.47410.stgit@scvm10.sc.intel.com>
- <20180126213043.12097.88707.stgit@scvm10.sc.intel.com>
- <20180126223252.GE23869@ziepe.ca>
+From: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/2] RDMA/bnxt_re: Adjustments for
+ bnxt_qplib_alloc_dpi_tbl()
+Date: Mon, 29 Jan 2018 09:19:15 -0500
+Message-ID: <efe2cc42-f0dc-4102-b8c8-e7edb79f9c81@redhat.com>
+References: <19c755a6-8c52-bbd5-a425-48fc08cecd4f@users.sourceforge.net>
+Reply-To: jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180126223252.GE23869-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <19c755a6-8c52-bbd5-a425-48fc08cecd4f-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/26/2018 5:32 PM, Jason Gunthorpe wrote:
->>   	if (rdma_protocol_roce(dev, port_num))
->>   		return RDMA_AH_ATTR_TYPE_ROCE;
->> +	else if (rdma_protocol_iwarp(dev, port_num))
->> +		return RDMA_AH_ATTR_TYPE_UNDEFINED;
->>   	else if ((rdma_protocol_ib(dev, port_num)) &&
->>   		 (rdma_cap_opa_ah(dev, port_num)))
->> 		return RDMA_AH_ATTR_TYPE_OPA;
+On 01/27/2018 03:15 PM, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> Date: Sat, 27 Jan 2018 21:10:12 +0100
 > 
-> Let's not add an UNDEFINED type in the middle of an if casecade with an all
-> other cases fall through please:
-
-Sounds reasonable to me, we will fix that up.
-
-> I'm not sure sending all these unrelated patches in one series is such
-> a helpful idea. Lot of trouble for everyone just to respond to one
-> minor comment.
+> Two update suggestions were taken into account
+> from static source code analysis.
 > 
-> This series looks like 4-5 topics to me:
->   - Optimize HFI
->   - 2 patches realted to the interrupt race
->   - Random driver fixes
->   - IPoIB fix
->   - This patch
+> Markus Elfring (2):
+>   Delete two error messages for a failed memory allocation
+>   Use common error handling code
+> 
+>  drivers/infiniband/hw/bnxt_re/qplib_res.c | 18 +++++++-----------
+>  1 file changed, 7 insertions(+), 11 deletions(-)
+> 
 
-Totally agree. I have been just batching up all our patches at once and 
-sending as that is what Doug preferred at one time. Driver is a 
-different animal though at this point I guess. So I can start breaking 
-them into logical series again.
+I like it.
 
-How about just drop this series from patchworks and I'll resubmit with 
-it broken out into multiple patch sets?
-
--Denny
+Acked-by: Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
