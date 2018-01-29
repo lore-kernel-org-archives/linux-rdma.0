@@ -1,41 +1,40 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: Merge status of IB/IPoIB: Add multi-queue TSS and RSS support
-Date: Mon, 29 Jan 2018 11:10:28 -0700
-Message-ID: <20180129181028.GD23714@ziepe.ca>
-References: <1517225860.4291.2.camel@profitbricks.com>
+From: Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: ib_create_qp failing
+Date: Mon, 29 Jan 2018 19:04:57 +0000
+Message-ID: <AM4PR0501MB27239EF18E2C07A64B045674D4E50@AM4PR0501MB2723.eurprd05.prod.outlook.com>
+References: <OF089AD255.99D19AC9-ONC2258224.002F8CF2-C2258224.00309558@notes.na.collabserv.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1517225860.4291.2.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <OF089AD255.99D19AC9-ONC2258224.002F8CF2-C2258224.00309558-8eTO7WVQ4XIsd+ienQ86orlN3bxYEBpz@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Joel Nider <JOELN-7z/5BgaJwgfQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 29, 2018 at 12:37:40PM +0100, Benjamin Drung wrote:
-> Hello,
-> 
-> can someone tell me why MQ TSS/RSS is present in MLNX OFED, but not in
-> mainlined yet? I've found some nearly four years old patch sets
-> regarding that topic, but no real reason for not merging them:
-> https://www.spinics.net/lists/linux-rdma/msg14940.html
-> 
-> I'd like to push this forward in order to align features of mainline
-> with MLNX OFED.
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Joel Nider
+> Sent: Monday, January 29, 2018 10:51 AM
+> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: ib_create_qp failing
+>=20
+...
+>=20
+> I have used the net/smc module extensively as a reference, but there seem=
+s
+> to be something fundamental that I'm missing.  How can I find out what's
+> going wrong here?
 
-Kernel features like this have been superseded by rdma_netdev for
-ipoib - eg mlx5 implements all offloads through this API.
+Hi Joel,
+What ROCE device are you using?
+There are many debug prints in the Mellanox drivers.
+You should try enabling  dynamic debug for mlx4_ib or mlx5_ib, it might giv=
+e you more information.
 
-RSS was merged to userspace with a different API, see
- ibv_create_rwq_ind_table.3
- ibv_create_wq.3
- ibv_modify_wq.3
-
-And TSS was merged to userspace with a different API, see
-IBV_QP_CREATE_SOURCE_QPN.
-
-Jason
+Good luck,
+Ilya
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
