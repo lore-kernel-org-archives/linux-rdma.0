@@ -1,63 +1,73 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next v7 0/8] RDMA resource tracking
-Date: Tue, 30 Jan 2018 08:56:43 -0700
-Message-ID: <20180130155643.GC17053@ziepe.ca>
-References: <20180128091725.13103-1-leon@kernel.org>
- <20180128210520.GK23869@ziepe.ca>
- <1517256713.27592.241.camel@redhat.com>
- <20180130033436.GA17053@ziepe.ca>
- <20180130091654.GD2055@mtr-leonro.local>
- <034101d399de$01183730$0348a590$@opengridcomputing.com>
+From: Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
+Subject: Re: [PATCH rdma/wip/jgg-for-next] RDMA/netlink: Hide unimplemented
+ NLDEV commands
+Date: Tue, 30 Jan 2018 16:57:06 +0100
+Message-ID: <20180130155706.GC14797@nanopsycho>
+References: <20180130150716.16372-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <034101d399de$01183730$0348a590$@opengridcomputing.com>
+In-Reply-To: <20180130150716.16372-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'RDMA mailing list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Mark Bloch' <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 30, 2018 at 09:21:30AM -0600, Steve Wise wrote:
-> > > Branch is here:
-> > >
-> > >
-> >
-> https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=wip/jgg
-> -
-> > for-next
-> > >
-> > > Still unhappy with the kref-as-not-a-kref.
-> > 
-> > Thanks Doug and Jason for accepting it.
-> > 
-> > The "qp->pd = NULL" assignment is not needed. PD is NULL
-> > for the XRCD and you are setting "qp->pd = pd" before returning
-> > from _ib_create_qp() call, so it is actually the same.
-> > 
-> > Everything works as expected, it passed my tests with ud/rc/xsrq
-> > pingpongs and shutdowns during traffic.
-> > 
-> > Steve, I created the stable tag for you: rdma-next-2018-01-30
-> > 
-> > Thanks
-> 
-> Thanks guys,  Q: 4.15-rc2 kills my machine, I've been rebasing to a later rc
-> to continue my development work, but the rebase fails horribly on mlx5.  I
-> skip these failures and don't compile mlx5 because I don't need it.  
-> 
-> Anyway, will rdma-next be rebased on 4.15.0 soon?  Or does that wait until
-> -rc2...
+Tue, Jan 30, 2018 at 04:07:16PM CET, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org wrote:
+>From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+>The nldev was implemented by following devlink implementation,
+>including SET/DEL/NEW commands. However these commands were not
+>implemented and hence don't need to be exposed.
+>
+>Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>---
+> include/uapi/rdma/rdma_netlink.h | 14 ++++++--------
+> 1 file changed, 6 insertions(+), 8 deletions(-)
+>
+>diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+>index 17e59bec169e..4c77e2a7b07e 100644
+>--- a/include/uapi/rdma/rdma_netlink.h
+>+++ b/include/uapi/rdma/rdma_netlink.h
+>@@ -227,16 +227,14 @@ enum rdma_nldev_command {
+> 	RDMA_NLDEV_CMD_UNSPEC,
+>
+> 	RDMA_NLDEV_CMD_GET, /* can dump */
+>-	RDMA_NLDEV_CMD_SET,
+>-	RDMA_NLDEV_CMD_NEW,
+>-	RDMA_NLDEV_CMD_DEL,
+>
+>-	RDMA_NLDEV_CMD_PORT_GET, /* can dump */
+>-	RDMA_NLDEV_CMD_PORT_SET,
+>-	RDMA_NLDEV_CMD_PORT_NEW,
+>-	RDMA_NLDEV_CMD_PORT_DEL,
+>+	/* 2 - 4 are free to use */
+>
+>-	RDMA_NLDEV_CMD_RES_GET, /* can dump */
+>+	RDMA_NLDEV_CMD_PORT_GET = 5, /* can dump */
+>+
+>+	/* 6 - 8 are free to use */
 
-It is annoying for all concerned but Linus has asked us not to have
-needless merges. Hopefully we can build enough trust to relax on that
-down the road as other trees do.
+I don't see reason for the wholes. Also, Don't you use *_NEW for replies
+to *_GET, as it is common for Netlink?
 
-I have made a merge to v4.15 here:
+But anyway, I would rather have them in, or don't have them in but don't
+leave holes for them.
 
-https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=wip/for-linus-merged
 
-Jason
+>+
+>+	RDMA_NLDEV_CMD_RES_GET = 9, /* can dump */
+>
+> 	RDMA_NLDEV_CMD_RES_QP_GET, /* can dump */
+>
+>--
+>2.16.1
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
