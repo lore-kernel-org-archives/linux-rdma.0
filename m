@@ -1,104 +1,25 @@
-From: "Joel Nider" <JOELN-7z/5BgaJwgfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: ib_create_qp failing
-Date: Tue, 30 Jan 2018 10:30:13 +0200
-Message-ID: <OF85410752.DF2BA5BF-ONC2258225.002CFF83-C2258225.002EB65B@notes.na.collabserv.com>
-References: <OF089AD255.99D19AC9-ONC2258224.002F8CF2-C2258224.00309558@notes.na.collabserv.com>
- <AM4PR0501MB27239EF18E2C07A64B045674D4E50@AM4PR0501MB2723.eurprd05.prod.outlook.com>
- <OF09394B7D.58CD59F8-ONC2258224.006BDAF8-C2258224.006F854D@notes.na.collabserv.com>
- <fd693fbd-1387-0298-49d0-035e224f07d8@mellanox.com>
+From: Marta Rybczynska <mrybczyn@kalray.eu>
+Subject: Backport Mellanox mlx5 patches to stable 4.9.y
+Date: Tue, 30 Jan 2018 10:12:51 +0100 (CET)
+Message-ID: <622645763.11304810.1517303571694.JavaMail.zimbra@kalray.eu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <fd693fbd-1387-0298-49d0-035e224f07d8-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: matanb@mellanox.com, leonro@mellanox.com, saeedm@mellanox.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Mark,
+Hello Mellanox maintainers,
+I'd like to ask you to OK backporting two patches in mlx5 driver to 4.9 stable
+tree (they're in master for some time already).
 
-Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote on 29/01/2018 22:47:04:
+We have multiple deployment in 4.9 that are running into the bug fixed by those
+patches. We're deploying patched kernels and the issue disappears.
 
-> > I am using ConnectX5 EN with special firmware (I just mention it so 
-you 
-> > know, but I'm pretty sure that's not the problem).  I have used 
-dynamic 
-> > debug - it shows me that the call is failing like this:
-> > 
-> > mlx5_core 0000:01:00.0: mlx5_cmd_check:714:(pid 120772): 
-CREATE_QP(0x500) 
-> > op_mod(0x0) failed, status bad parameter(0x3), syndrome (0x48b5c0)
-> 
-> The syndrome means: "create_qp: invalid service type for RoCE"
-> what QP type are you trying to create and with what parameters?
-
-I'm trying to create an RC connection - here is an outline of my code:
-In module_init(): ib_register_client() -> registers callback 
-on_device_add()
-On_device_add(): I only have one device (mlx5_0) and I save the ib_device* 
-to a linked list
->From sysfs, a user writes the name (string) of the device to use - this 
-starts the setup procedure
-ib_register_event_handler(rpf_ib_qp_event_handler)
-ib_query_port(dev, 1) -> state=4 max_mtu=4096 active_mtu=1024 gid_len=256 
-caps=0x4010000
-ib_create_cq() -> rx completion queue
-ib_create_cq() -> tx completion queue
-ib_alloc_pd() -> the protection domain
-ib_create_qp() with: 
-
-        struct ib_qp_init_attr qp_attr = {
-                .event_handler = rpf_ib_qp_event_handler,
-                .qp_context = res,
-                .send_cq = res->tx_cq,
-                .recv_cq = res->rx_cq,
-                .srq = NULL,
-                .cap = {
-                        .max_send_wr = 16,
-                        .max_recv_wr = 48,
-                        .max_send_sge = 2,
-                        .max_recv_sge = 1,
-                },
-                .sq_sig_type = IB_SIGNAL_REQ_WR,
-                .qp_type = IB_QPT_RC,
-        };
-
-Fails with the code I mentioned earlier.  This used to fail even earlier 
-until I discovered that ib_query_port() has some interesting side effects, 
-and is mandatory. Maybe there is some other function that I need to call 
-to set up some state first?
-
-> 
-> > 
-> > Is there any way for me to look up the syndrome?
-> > 
-> > Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote on 29/01/2018 21:04:57:
-> >>>
-> >>> I have used the net/smc module extensively as a reference, but there 
-
-> > seems
-> >>> to be something fundamental that I'm missing.  How can I find out 
-> > what's
-> >>> going wrong here?
-> >>
-> >> Hi Joel,
-> >> What ROCE device are you using?
-> >> There are many debug prints in the Mellanox drivers.
-> >> You should try enabling  dynamic debug for mlx4_ib or mlx5_ib, it 
-might 
-> > give 
-> >> you more information.
-> >>
-> >> Good luck,
-> >> Ilya
-> >>
-> > 
-> Mark
-> 
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The patches are:
+1410a90ae449061b7e1ae19d275148f36948801b net/mlx5: Define interface bits for fencing UMR wqe
+6e8484c5cf07c7ee632587e98c1a12d319dacb7c RDMA/mlx5: set UMR wqe fence according to HCA cap
+ 
+Regards,
+Marta
