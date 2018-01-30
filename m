@@ -1,55 +1,39 @@
-From: Eric Biggers <ebiggers3@gmail.com>
-Subject: Re: BUG: spinlock bad magic (2)
-Date: Tue, 30 Jan 2018 14:28:11 -0800
-Message-ID: <20180130222811.yxfiqnlx3la3vyyw@gmail.com>
-References: <001a113fae28c2fd6605609c97a2@google.com>
- <6dbd4f85-f3f2-97f3-5b82-451276fbf877@oracle.com>
- <CACT4Y+Zoat=3j7B--D=pLK=SU0zhNA2yw0O0cEwj_p6vSBfM7g@mail.gmail.com>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Subject: Re: [rds-devel] BUG: unable to handle kernel NULL pointer
+ dereference in rds_send_xmit
+Date: Tue, 30 Jan 2018 17:28:16 -0500
+Message-ID: <20180130222816.GU22848@oracle.com>
+References: <001a1145ac5480242305609956b3@google.com>
+ <5ba83a68-0103-d514-1b22-900f755f5aa4@oracle.com>
+ <20171218.121213.289437104214632276.davem@davemloft.net>
+ <20171218172251.GD26203@oracle.com>
+ <20180130222228.q23csjr5l666v3o5@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CACT4Y+Zoat=3j7B--D=pLK=SU0zhNA2yw0O0cEwj_p6vSBfM7g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Vyukov <dvyukov@google.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>, syzbot <bot+d3f5d339869eb8cd834d2c9f0a88bf4f05c29781@syzkaller.appspotmail.com>, David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, netdev <netdev@vger.kernel.org>, rds-devel@oss.oracle.com, syzkaller-bugs@googlegroups.com
+In-Reply-To: <20180130222228.q23csjr5l666v3o5@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Eric Biggers <ebiggers3@gmail.com>
+Cc: David Miller <davem@davemloft.net>, santosh.shilimkar@oracle.com, rds-devel@oss.oracle.com, bot+aaf54a8c644d559d34dedcf3126aac68a20c9e63@syzkaller.appspotmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 18, 2017 at 06:01:30PM +0100, 'Dmitry Vyukov' via syzkaller-bugs wrote:
-> On Mon, Dec 18, 2017 at 5:46 PM, Santosh Shilimkar
-> <santosh.shilimkar@oracle.com> wrote:
-> > On 12/18/2017 4:36 AM, syzbot wrote:
-> >>
-> >> Hello,
-> >>
-> >> syzkaller hit the following crash on
-> >> 6084b576dca2e898f5c101baef151f7bfdbb606d
-> >> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/master
-> >> compiler: gcc (GCC) 7.1.1 20170620
-> >> .config is attached
-> >> Raw console output is attached.
-> >>
-> >> Unfortunately, I don't have any reproducer for this bug yet.
-> >>
-> > [...]
-> >
-> >> BUG: unable to handle kernel NULL pointer dereference at 0000000000000028
-> >> IP: rds_send_xmit+0x80/0x930 net/rds/send.c:186
-> >
-> >
-> > This one seems to be same bug as reported as below.
-> >
-> > BUG: unable to handle kernel NULL pointer dereference in rds_send_xmit
-> 
-> Hi Santosh,
-> 
-> The proper syntax to tell syzbot about dups is this (from email footer):
-> 
-> > See https://goo.gl/tpsmEJ for details.
-> > Please credit me with: Reported-by: syzbot <syzkaller@googlegroups.com>
-> > syzbot will keep track of this bug report.
-> > To mark this as a duplicate of another syzbot report, please reply with:
-> > #syz dup: exact-subject-of-another-report
-> > Note: all commands must start from beginning of the line in the email body.
+On (01/30/18 14:22), Eric Biggers wrote:
+>
+> I assume you weren't able to reproduce this?  This crash hasn't been
+> seen again,
+   :
+> I am invalidating the bug for syzbot so it will report the same crash
+> signature
+> again if it occurs, but if you think there is a real bug feel free to keep
+> looking into it.
 
-#syz dup: BUG: unable to handle kernel NULL pointer dereference in rds_send_xmit
+correct I was not able to reproduce this.  However based on code
+inspecion, I came up with
+
+    commit 3db6e0d172c94bd9953a1347c55ffb64b1d2e74f
+    rds: use RCU to synchronize work-enqueue with connection teardown
+
+Marking  it invalid sounds good to me.
+
+--Sowmini
