@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 2/4] RDMA/hns: Remove unnecessary operator
-Date: Tue, 30 Jan 2018 20:20:43 +0800
-Message-ID: <1517314845-126094-3-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 4/4] RDMA/hns: Remove repeated option for free mtt table
+Date: Tue, 30 Jan 2018 20:20:45 +0800
+Message-ID: <1517314845-126094-5-git-send-email-oulijun@huawei.com>
 References: <1517314845-126094-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,31 +12,26 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The double Non-operator is unncessary when used
-in a boolean context. This patch remove them.
+if inits mtpt table fail and  goto the err_unmap_mtt label,
+it is not clean the mtt table. This patch fixs it.
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_main.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 605202d..036262a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2148,10 +2148,10 @@ static void set_access_flags(struct hns_roce_qp *hr_qp,
- 	u8 dest_rd_atomic;
- 	u32 access_flags;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 830243e..eb9a69f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -636,7 +636,6 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ 	hns_roce_cleanup_hem_table(hr_dev, &hr_dev->mr_table.mtpt_table);
  
--	dest_rd_atomic = !!(attr_mask & IB_QP_MAX_DEST_RD_ATOMIC) ?
-+	dest_rd_atomic = (attr_mask & IB_QP_MAX_DEST_RD_ATOMIC) ?
- 			 attr->max_dest_rd_atomic : hr_qp->resp_depth;
- 
--	access_flags = !!(attr_mask & IB_QP_ACCESS_FLAGS) ?
-+	access_flags = (attr_mask & IB_QP_ACCESS_FLAGS) ?
- 		       attr->qp_access_flags : hr_qp->atomic_rd_en;
- 
- 	if (!dest_rd_atomic)
+ err_unmap_mtt:
+-	hns_roce_cleanup_hem_table(hr_dev, &hr_dev->mr_table.mtt_table);
+ 	if (hns_roce_check_whether_mhop(hr_dev, HEM_TYPE_CQE))
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->mr_table.mtt_cqe_table);
 -- 
 1.9.1
 
