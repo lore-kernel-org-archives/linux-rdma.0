@@ -1,63 +1,41 @@
-From: Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Merge status of IB/IPoIB: Add multi-queue TSS and RSS support
-Date: Tue, 30 Jan 2018 12:47:02 +0100
-Message-ID: <CAD+HZHW2RA7r+JFSFHzntPGFzcoRgy5nwtO+tf5XGCJmdC_5qg@mail.gmail.com>
-References: <1517225860.4291.2.camel@profitbricks.com> <20180129181028.GD23714@ziepe.ca>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH for-next 0/4] Fixes for hns
+Date: Tue, 30 Jan 2018 20:20:41 +0800
+Message-ID: <1517314845-126094-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180129181028.GD23714-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Jason,
+This patch series is small set of fixes for hns.
+The first patch and the second patch mainly fix
+the flowup reviews from Jason Gunthorpe and the
+third patch mainly remove the checkpatch.pl warning
+in order to the new checkpatch requirements and
+the last patch fix the bug for cleaning mtt table.
 
-2018-01-29 19:10 GMT+01:00 Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>:
-> On Mon, Jan 29, 2018 at 12:37:40PM +0100, Benjamin Drung wrote:
->> Hello,
->>
->> can someone tell me why MQ TSS/RSS is present in MLNX OFED, but not in
->> mainlined yet? I've found some nearly four years old patch sets
->> regarding that topic, but no real reason for not merging them:
->> https://www.spinics.net/lists/linux-rdma/msg14940.html
->>
->> I'd like to push this forward in order to align features of mainline
->> with MLNX OFED.
->
-> Kernel features like this have been superseded by rdma_netdev for
-> ipoib - eg mlx5 implements all offloads through this API.
->
-> RSS was merged to userspace with a different API, see
->  ibv_create_rwq_ind_table.3
->  ibv_create_wq.3
->  ibv_modify_wq.3
->
-> And TSS was merged to userspace with a different API, see
-> IBV_QP_CREATE_SOURCE_QPN.
+Lijun Ou (4):
+  RDMA/hns: Fix the endian problem for hns
+  RDMA/hns: Remove unnecessary operator
+  RDMA/hns: Fix the checkpatch.pl warning
+  RDMA/hns: Remove repeated option for free mtt table
 
-Thanks for reply.
+ drivers/infiniband/hw/hns/hns_roce_common.h |   6 +-
+ drivers/infiniband/hw/hns/hns_roce_device.h |  10 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  57 ++++--
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.h  | 258 ++++++++++++-------------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  55 ++++--
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  | 283 ++++++++++++++--------------
+ drivers/infiniband/hw/hns/hns_roce_main.c   |   3 +-
+ drivers/infiniband/hw/hns/hns_roce_qp.c     |  18 +-
+ 8 files changed, 363 insertions(+), 327 deletions(-)
 
-To be more specific, our kernel module depends on the TSS/TSS QP
-groups, which is in the patch below:
-https://www.spinics.net/lists/linux-rdma/msg14935.html
+-- 
+1.9.1
 
-It's no really about IPOIB and user space.
-
-Does upstream support or plan to have that feature?
-Do you have any suggestion if we want to switch to upstream OFED?
-
-Thanks,
-
-Jack Wang
-
->
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
