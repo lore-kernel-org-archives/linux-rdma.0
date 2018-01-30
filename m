@@ -1,109 +1,49 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] IB/rxe: remove redudant parameter in function
-Date: Tue, 30 Jan 2018 09:30:08 +0200
-Message-ID: <20180130073006.GA3244@yuvallap>
-References: <1517296074-14459-1-git-send-email-yanjun.zhu@oracle.com>
+From: LABBE Corentin <clabbe-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/cxgb3: remove cxio_dbg.c
+Date: Tue, 30 Jan 2018 09:23:14 +0100
+Message-ID: <20180130082314.GA12047@Red>
+References: <1517152289-25052-1-git-send-email-clabbe@baylibre.com>
+ <1517156662.765.10.camel@perches.com>
+ <20180128210903.GL23869@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1517296074-14459-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20180128210903.GL23869-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 30, 2018 at 02:07:54AM -0500, Zhu Yanjun wrote:
-> In the function rxe_av_from_attr, the parameter rxe
-> is not used. So it is removed.
+On Sun, Jan 28, 2018 at 02:09:03PM -0700, Jason Gunthorpe wrote:
+> On Sun, Jan 28, 2018 at 08:24:22AM -0800, Joe Perches wrote:
+> > On Sun, 2018-01-28 at 15:11 +0000, Corentin Labbe wrote:
+> > > cxio_dbg.c is uncompiled since commit 2b540355cd2f ("RDMA/cxgb3: cleanups")
+> > > 10 years after, we could remove it.
+> > 
+> > OK, now you could remove the prototypes and probably
+> > CONFIG_INFINIBAND_CXGB3_DEBUG too.
+> > 
+> > There is a DEBUG test and many uses of pr_debug
+> > that would have modified behavior.
+> > 
+> > The pr_debug uses would only be emitted via a
+> > dynamic_debug enable and the #ifdef DEBUG is
+> > probably not necessary or useful as it guards
+> > a BUG_ON.
+> > 
+> >  drivers/infiniband/hw/cxgb3/Kconfig    | 9 ---------
+> >  drivers/infiniband/hw/cxgb3/Makefile   | 2 --
+> >  drivers/infiniband/hw/cxgb3/cxio_hal.h | 9 ---------
+> >  drivers/infiniband/hw/cxgb3/iwch_cq.c  | 7 -------
+> >  4 files changed, 27 deletions(-)
+> 
+> Yes, can you resend the patch with Joe's hunks as well?
+> 
 
-Looks like it is also not used in rxe_av_to_attr and rxe_av_fill_ip_info.
-Can you fix them as well?
+Yes I will do
 
-> 
-> CC: Srinivas Eeda <srinivas.eeda-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> CC: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/sw/rxe/rxe_av.c    | 4 ++--
->  drivers/infiniband/sw/rxe/rxe_loc.h   | 4 ++--
->  drivers/infiniband/sw/rxe/rxe_qp.c    | 5 ++---
->  drivers/infiniband/sw/rxe/rxe_verbs.c | 2 +-
->  4 files changed, 7 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_av.c b/drivers/infiniband/sw/rxe/rxe_av.c
-> index 1cc9e2e..8accd5d 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_av.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_av.c
-> @@ -52,8 +52,8 @@ int rxe_av_chk_attr(struct rxe_dev *rxe, struct rdma_ah_attr *attr)
->  	return 0;
->  }
->  
-> -int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
-> -		     struct rxe_av *av, struct rdma_ah_attr *attr)
-> +int rxe_av_from_attr(u8 port_num, struct rxe_av *av,
-> +		     struct rdma_ah_attr *attr)
->  {
->  	memset(av, 0, sizeof(*av));
->  	memcpy(&av->grh, rdma_ah_read_grh(attr),
-> diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-> index d7472a4..4eb0ff1 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_loc.h
-> +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-> @@ -38,8 +38,8 @@
->  
->  int rxe_av_chk_attr(struct rxe_dev *rxe, struct rdma_ah_attr *attr);
->  
-> -int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
-> -		     struct rxe_av *av, struct rdma_ah_attr *attr);
-> +int rxe_av_from_attr(u8 port_num, struct rxe_av *av,
-> +		     struct rdma_ah_attr *attr);
->  
->  int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
->  		   struct rdma_ah_attr *attr);
-> diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
-> index 4469592..11655a0 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_qp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_qp.c
-> @@ -633,8 +633,7 @@ int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask,
->  		ib_get_cached_gid(&rxe->ib_dev, 1,
->  				  rdma_ah_read_grh(&attr->ah_attr)->sgid_index,
->  				  &sgid, &sgid_attr);
-> -		rxe_av_from_attr(rxe, attr->port_num, &qp->pri_av,
-> -				 &attr->ah_attr);
-> +		rxe_av_from_attr(attr->port_num, &qp->pri_av, &attr->ah_attr);
->  		rxe_av_fill_ip_info(rxe, &qp->pri_av, &attr->ah_attr,
->  				    &sgid_attr, &sgid);
->  		if (sgid_attr.ndev)
-> @@ -648,7 +647,7 @@ int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask,
->  		ib_get_cached_gid(&rxe->ib_dev, 1, sgid_index,
->  				  &sgid, &sgid_attr);
->  
-> -		rxe_av_from_attr(rxe, attr->alt_port_num, &qp->alt_av,
-> +		rxe_av_from_attr(attr->alt_port_num, &qp->alt_av,
->  				 &attr->alt_ah_attr);
->  		rxe_av_fill_ip_info(rxe, &qp->alt_av, &attr->alt_ah_attr,
->  				    &sgid_attr, &sgid);
-> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> index d03002b..abbc983 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> @@ -271,7 +271,7 @@ static int rxe_init_av(struct rxe_dev *rxe, struct rdma_ah_attr *attr,
->  		return err;
->  	}
->  
-> -	err = rxe_av_from_attr(rxe, rdma_ah_get_port_num(attr), av, attr);
-> +	err = rxe_av_from_attr(rdma_ah_get_port_num(attr), av, attr);
->  	if (!err)
->  		err = rxe_av_fill_ip_info(rxe, av, attr, &sgid_attr, &sgid);
->  
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
