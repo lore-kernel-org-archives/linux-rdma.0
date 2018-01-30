@@ -1,65 +1,55 @@
 From: Eric Biggers <ebiggers3@gmail.com>
-Subject: Re: [rds-devel] BUG: unable to handle kernel NULL pointer
- dereference in rds_send_xmit
-Date: Tue, 30 Jan 2018 14:22:28 -0800
-Message-ID: <20180130222228.q23csjr5l666v3o5@gmail.com>
-References: <001a1145ac5480242305609956b3@google.com>
- <5ba83a68-0103-d514-1b22-900f755f5aa4@oracle.com>
- <20171218.121213.289437104214632276.davem@davemloft.net>
- <20171218172251.GD26203@oracle.com>
+Subject: Re: BUG: spinlock bad magic (2)
+Date: Tue, 30 Jan 2018 14:28:11 -0800
+Message-ID: <20180130222811.yxfiqnlx3la3vyyw@gmail.com>
+References: <001a113fae28c2fd6605609c97a2@google.com>
+ <6dbd4f85-f3f2-97f3-5b82-451276fbf877@oracle.com>
+ <CACT4Y+Zoat=3j7B--D=pLK=SU0zhNA2yw0O0cEwj_p6vSBfM7g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171218172251.GD26203@oracle.com>
+In-Reply-To: <CACT4Y+Zoat=3j7B--D=pLK=SU0zhNA2yw0O0cEwj_p6vSBfM7g@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Cc: David Miller <davem@davemloft.net>, santosh.shilimkar@oracle.com, rds-devel@oss.oracle.com, bot+aaf54a8c644d559d34dedcf3126aac68a20c9e63@syzkaller.appspotmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com, linux-kernel@vger.kernel.org
+To: Dmitry Vyukov <dvyukov@google.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>, syzbot <bot+d3f5d339869eb8cd834d2c9f0a88bf4f05c29781@syzkaller.appspotmail.com>, David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, netdev <netdev@vger.kernel.org>, rds-devel@oss.oracle.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 18, 2017 at 12:22:51PM -0500, Sowmini Varadhan wrote:
-> > From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-> > Date: Mon, 18 Dec 2017 08:28:05 -0800
->   :
-> > > Looks like another one tripping on empty transport. Mostly below
-> > > should
-> > > address it but we will test it if it does.
+On Mon, Dec 18, 2017 at 06:01:30PM +0100, 'Dmitry Vyukov' via syzkaller-bugs wrote:
+> On Mon, Dec 18, 2017 at 5:46 PM, Santosh Shilimkar
+> <santosh.shilimkar@oracle.com> wrote:
+> > On 12/18/2017 4:36 AM, syzbot wrote:
+> >>
+> >> Hello,
+> >>
+> >> syzkaller hit the following crash on
+> >> 6084b576dca2e898f5c101baef151f7bfdbb606d
+> >> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/master
+> >> compiler: gcc (GCC) 7.1.1 20170620
+> >> .config is attached
+> >> Raw console output is attached.
+> >>
+> >> Unfortunately, I don't have any reproducer for this bug yet.
+> >>
+> > [...]
+> >
+> >> BUG: unable to handle kernel NULL pointer dereference at 0000000000000028
+> >> IP: rds_send_xmit+0x80/0x930 net/rds/send.c:186
+> >
+> >
+> > This one seems to be same bug as reported as below.
+> >
+> > BUG: unable to handle kernel NULL pointer dereference in rds_send_xmit
 > 
-> that was my first thought, but it cannot be the case here: rds_sendmsg
-> etc itself would have bombed if that were the case, and the packet
-> would never have gotten queued.
+> Hi Santosh,
 > 
-> This is unlike f3069c6d33, where an applications skips the transport
-> binding (either misses the explicit bind, or gets the wrong transport
-> due to an implicit bind) before it triggers the setsockopt.
+> The proper syntax to tell syzbot about dups is this (from email footer):
 > 
-> I suspect that the problems is that the conn (and thus c_trans)
-> have gotten destroyed, but the cp_send_w work got incorrectly 
-> re-queued. For example, rds_cong_queue_updates() (because the
-> peer sent a congestion update) can happen in softirq context, 
-> and would end up requeing work in the middle of rds_conn_destroy, 
-> after we have assumed that everything is quisced.
-> 
-> On (12/18/17 12:12), David Miller wrote:
-> > 
-> > We're seeming to accumulate a lot of checks like this, maybe there
-> > is a more general way to deal with this problem?
-> 
-> Yeah, I was thinking about this..  let me try to reprodcue this in-house
-> and get back with a patchset.  
-> 
+> > See https://goo.gl/tpsmEJ for details.
+> > Please credit me with: Reported-by: syzbot <syzkaller@googlegroups.com>
+> > syzbot will keep track of this bug report.
+> > To mark this as a duplicate of another syzbot report, please reply with:
+> > #syz dup: exact-subject-of-another-report
+> > Note: all commands must start from beginning of the line in the email body.
 
-I assume you weren't able to reproduce this?  This crash hasn't been seen again,
-and it was reported while KASAN was accidentally disabled in the syzbot kconfig
-due to a change to the kconfig menus in linux-next.  So this crash was possibly
-caused by slab corruption elsewhere.
-
-I am invalidating the bug for syzbot so it will report the same crash signature
-again if it occurs, but if you think there is a real bug feel free to keep
-looking into it.
-
-#syz invalid
-
-Thanks,
-
-Eric
+#syz dup: BUG: unable to handle kernel NULL pointer dereference in rds_send_xmit
