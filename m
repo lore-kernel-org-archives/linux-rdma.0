@@ -1,92 +1,84 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next v7 0/8] RDMA resource tracking
-Date: Tue, 30 Jan 2018 13:48:40 -0700
-Message-ID: <20180130204840.GK17053@ziepe.ca>
-References: <1517256713.27592.241.camel@redhat.com>
- <20180130033436.GA17053@ziepe.ca>
- <20180130091654.GD2055@mtr-leonro.local>
- <034101d399de$01183730$0348a590$@opengridcomputing.com>
- <20180130155643.GC17053@ziepe.ca>
- <035a01d399e5$9ed499d0$dc7dcd70$@opengridcomputing.com>
- <20180130163330.GE17053@ziepe.ca>
- <1517339252.2589.34.camel@wdc.com>
- <20180130194639.GJ17053@ziepe.ca>
- <1517344962.2589.39.camel@wdc.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1] xprtrdma: Fix calculation of ri_max_send_sges
+Date: Tue, 30 Jan 2018 15:53:44 -0500
+Message-ID: <20180130205344.13588.11646.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1517344962.2589.39.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 30, 2018 at 08:42:44PM +0000, Bart Van Assche wrote:
-> On Tue, 2018-01-30 at 12:46 -0700, Jason Gunthorpe wrote:
-> > On Tue, Jan 30, 2018 at 07:07:35PM +0000, Bart Van Assche wrote:
-> > > On Tue, 2018-01-30 at 09:33 -0700, Jason Gunthorpe wrote:
-> > > > On Tue, Jan 30, 2018 at 10:16:01AM -0600, Steve Wise wrote:
-> > > > 
-> > > > > What is this a merge of exactly? I don't see the restrack stuff, for
-> > > > > instance.
-> > > > 
-> > > > Yesterday's for-next. You could merge it with the latest for-next..
-> > > > 
-> > > > I updated it.
-> > > > 
-> > > > I think we are done now, so for-next is what will be sent as the
-> > > > pull-request and for-next-merged is the conflict resolution.
-> > > 
-> > > Hello Jason,
-> > > 
-> > > Although I have not yet tried to root-cause this, I want to let you know
-> > > that with your for-linus-merged branch the following error message is
-> > > reported if I try to run the srp-test software against the rdma_rxe driver:
-> > > 
-> > > id_ext=0x505400fffe4a0b7b,ioc_guid=0x505400fffe4a0b7b,dest=192.168.122.76:5555,t
-> > > arget_can_queue=1,queue_size=32,max_cmd_per_lun=32,max_sect=131072 >/sys/class/i
-> > > nfiniband_srp/srp-rxe0-1/add_target failed: Cannot allocate memory
-> > > 
-> > > In the kernel log I found the following:
-> > > 
-> > > Jan 30 10:55:50 ubuntu-vm kernel: scsi host4: ib_srp: FR pool allocation failed (-12)
-> > > 
-> > > With your for-next branch from a few days ago the same test ran fine.
-> > 
-> > I don't have a guess for you..
-> > 
-> > The difference between for-next and merged is only the inclusion of
-> > v4.15? Could some v4.15 non-rdma code be causing issue here?
-> 
-> Hello Jason,
-> 
-> I should have mentioned that in the previous tests I ran I merged kernel
-> v4.15-rc9 myself into the RDMA for-next branch. So this behavior was probably
-> introduced by a patch that was queued recently on the RDMA for-next branch,
-> e.g. RDMA resource tracking.
+Commit 16f906d66cd7 ("xprtrdma: Reduce required number of send
+SGEs") introduced the rpcrdma_ia::ri_max_send_sges field. This fixes
+a problem where xprtrdma would not work if the device's max_sge
+capability was small (low single digits).
 
-Ok, I think that is the only likely thing recently..
+At least RPCRDMA_MIN_SEND_SGES are needed for the inline parts of
+each RPC. ri_max_send_sges is set to this value:
 
-But your print above must be caused by this line, right:
+  ia->ri_max_send_sges = max_sge - RPCRDMA_MIN_SEND_SGES;
 
-static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
-                                              struct ib_pd *pd, int pool_size,
-                                              int max_page_list_len)
-{
-        ret = -ENOMEM;
-        pool = kzalloc(sizeof(struct srp_fr_pool) +
-                       pool_size * sizeof(struct srp_fr_desc), GFP_KERNEL);
-        if (!pool)
-                goto err;
+Then when marshaling each RPC, rpcrdma_args_inline uses that value
+to determine whether the device has enough Send SGEs to convey an
+NFS WRITE payload inline, or whether instead a Read chunk is
+required.
 
-Since you didn't report the ib_alloc_mr() print it can't be the other
-ENOMEM case?
+More recently, commit ae72950abf99 ("xprtrdma: Add data structure to
+manage RDMA Send arguments") used the ri_max_send_sges value to
+calculate the size of an array, but that commit erroneously assumed
+ri_max_send_sges contains a value similar to the device's max_sge,
+and not one that was reduced by the minimum SGE count.
 
-Hard to see how that interesects with resource tracking.. Are you
-thinking memory corruption?
+This assumption results in the calculated size of the sendctx's
+Send SGE array to be too small. When the array is used to marshal
+an RPC, the code can write Send SGEs into the following sendctx
+element in that array, corrupting it. When the device's max_sge is
+large, this issue is entirely harmless; but it results in an oops
+in the provider's post_send method, if dev.attrs.max_sge is small.
 
-Jason
+So let's straighten this out: ri_max_send_sges will now contain a
+value with the same meaning as dev.attrs.max_sge, which makes
+the code easier to understand, and enables rpcrdma_sendctx_create
+to calculate the size of the SGE array correctly.
+
+Reported-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Fixes: 16f906d66cd7 ("xprtrdma: Reduce required number of send SGEs")
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ net/sunrpc/xprtrdma/rpc_rdma.c |    2 +-
+ net/sunrpc/xprtrdma/verbs.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index 162e5dd..f0855a9 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -143,7 +143,7 @@ static bool rpcrdma_args_inline(struct rpcrdma_xprt *r_xprt,
+ 	if (xdr->page_len) {
+ 		remaining = xdr->page_len;
+ 		offset = offset_in_page(xdr->page_base);
+-		count = 0;
++		count = RPCRDMA_MIN_SEND_SGES;
+ 		while (remaining) {
+ 			remaining -= min_t(unsigned int,
+ 					   PAGE_SIZE - offset, remaining);
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index f4eb63e..bb56b9d 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -505,7 +505,7 @@
+ 		pr_warn("rpcrdma: HCA provides only %d send SGEs\n", max_sge);
+ 		return -ENOMEM;
+ 	}
+-	ia->ri_max_send_sges = max_sge - RPCRDMA_MIN_SEND_SGES;
++	ia->ri_max_send_sges = max_sge;
+ 
+ 	if (ia->ri_device->attrs.max_qp_wr <= RPCRDMA_BACKWARD_WRS) {
+ 		dprintk("RPC:       %s: insufficient wqe's available\n",
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
