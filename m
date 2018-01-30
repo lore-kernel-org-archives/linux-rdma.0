@@ -1,58 +1,41 @@
-From: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [LSF/MM TOPIC] Filesystem-DAX, page-pinning, and RDMA
-Date: Mon, 29 Jan 2018 18:33:25 -0500
-Message-ID: <20180129233324.GC4526@redhat.com>
-References: <CAPcyv4gQNM9RbTbRWKnG6Vby_CW9CJ9EZTARsVNi=9cas7ZR2A@mail.gmail.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH v2 00/14] IB/srpt: Add RDMA/CM support
+Date: Tue, 30 Jan 2018 00:23:28 +0000
+Message-ID: <1517271807.2687.65.camel@wdc.com>
+References: <20180117001418.7852-1-bart.vanassche@wdc.com>
+         <1516230870.3403.292.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4gQNM9RbTbRWKnG6Vby_CW9CJ9EZTARsVNi=9cas7ZR2A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1516230870.3403.292.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <E21C78B4CB4D504BBC961780A32E5D0B-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 24, 2018 at 07:56:02PM -0800, Dan Williams wrote:
-> The get_user_pages_longterm() api was recently added as a stop-gap
-> measure to prevent applications from growing dependencies on the
-> ability to to pin DAX-mapped filesystem blocks for RDMA indefinitely
-> with no ongoing coordination with the filesystem. This 'longterm'
-> pinning is also problematic for the non-DAX VMA case where the core-mm
-> needs a time bounded way to revoke a pin and manipulate the physical
-> pages. While existing RDMA applications have already grown the
-> assumption that they can pin page-cache pages indefinitely, the fact
-> that we are breaking this assumption for filesystem-dax presents an
-> opportunity to deprecate the 'indefinite pin' mechanisms and move to a
-> general interface that supports pin revocation.
-> =
-
-> While RDMA may grow an explicit Infiniband-verb for this 'memory
-> registration with lease' semantic, it seems that this problem is
-> bigger than just RDMA. At LSF/MM it would be useful to have a
-> discussion between fs, mm, dax, and RDMA folks about addressing this
-> problem at the core level.
-> =
-
-> Particular people that would be useful to have in attendance are
-> Michal Hocko, Christoph Hellwig, and Jason Gunthorpe (cc'd).
-> =
-
-
-Between i would also like to participate, in my view the burden should
-be on GUP users, so if hardware is not ODP capable then you should at
-least be able to kill the mapping/GUP and force the hardware to redo a
-GUP if it get any more transaction on affect umem. Can non ODP hardware
-do that ? Or is it out of the question ?
-
-Cheers,
-J=E9r=F4me
+T24gV2VkLCAyMDE4LTAxLTE3IGF0IDE4OjE0IC0wNTAwLCBEb3VnIExlZGZvcmQgd3JvdGU6DQo+
+IE9uIFR1ZSwgMjAxOC0wMS0xNiBhdCAxNjoxNCAtMDgwMCwgQmFydCBWYW4gQXNzY2hlIHdyb3Rl
+Og0KPiA+IEhlbGxvIEphc29uIGFuZCBEb3VnLA0KPiA+IA0KPiA+IFRoaXMgcGF0Y2ggc2VyaWVz
+IG5vdCBvbmx5IGFkZHMgUkRNQS9DTSBzdXBwb3J0IHRvIHRoZSBTUlAgdGFyZ2V0IGRyaXZlciBi
+dXQNCj4gPiBhbHNvIGZpeGVzIGEgbnVtYmVyIG9mIHJhY2UgY29uZGl0aW9ucyBpbiB0aGF0IGRy
+aXZlci4NCj4gPiANCj4gPiBUaGUgUkRNQS9DTSBsaXN0ZW5lciBwb3J0IG51bWJlciBoYXMgdG8g
+YmUgc3BlY2lmaWVkIGFzIGFuIGliX3NycHQga2VybmVsDQo+ID4gbW9kdWxlIHBhcmFtZXRlci4g
+VGhlIGRlZmF1bHQgdmFsdWUgZm9yIHRoYXQgcGFyYW1ldGVyIGlzIHplcm8gd2hpY2ggbWVhbnMN
+Cj4gPiB0aGF0IFJETUEvQ00gc3VwcG9ydCBpcyBkaXNhYmxlZC4NCj4gDQo+IFNpbmNlIHNycHQg
+aXMgYWxyZWFkeSBjb25maWd1cmVkIHZpYSB0aGUgbElPIGZyYW1ld29yaywgd291bGRuJ3QgdGhh
+dCBiZQ0KPiBhIGJldHRlciBwbGFjZSBmb3IgdGhlIGxpc3RlbiBwb3J0PyAgSW4gZmFjdCwgc2hv
+dWxkbid0IGl0IGJlIHBhcnQgb2YgYQ0KPiBwb3J0YWwgbGlrZSB5b3UgaGF2ZSBmb3IgaVNFUnQ/
+DQoNCldvdWxkbid0IHRoYXQgYmUgb3ZlcmtpbGwgdG8gaGF2ZSBvbmUgbGlzdGVuIHBvcnQgcGVy
+IFJETUEgcG9ydD8gSSB0aGluaw0KaXQgd2lsbCBiZSBlYXNpZXIgZm9yIHVzZXJzIGlmIHRoZXkg
+aGF2ZSB0byBjb25maWd1cmUgdGhlIFJETUEvQ00gcG9ydCBvbmNlDQppbnN0ZWFkIG9mIG9uZSB0
+aW1lIHBlciBSRE1BIHBvcnQuIEhvdyBhYm91dCB1c2luZyB0aGUgZm9sbG93aW5nIGxvY2F0aW9u
+IGluDQpjb25maWdmcyBmb3IgdGhlIFJETUEvQ00gcG9ydDoNCg0KL3N5cy9rZXJuZWwvY29uZmln
+L3RhcmdldC9zcnB0L2Rpc2NvdmVyeV9hdXRoL3JkbWFfY21fcG9ydA0KDQpUaGFua3MsDQoNCkJh
+cnQu
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
