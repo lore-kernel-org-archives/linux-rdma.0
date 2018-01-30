@@ -1,33 +1,75 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: Reconnect on RDMA device reset
-Date: Tue, 30 Jan 2018 11:51:12 -0600
-Message-ID: <038501d399f2$eb2740f0$c175c2d0$@opengridcomputing.com>
-References: <CADZhsQqDFc1NWmsihOwki8_2Zj0HuYKC_N_x0jMnCtU9Rww1UA@mail.gmail.com>         <f0a14240-1566-1bae-1b9f-21880bc3f3a0@grimberg.me>         <CADZhsQqvK0LMd9sfxzz+x_5qVnoi4FP0FCFMsTPjpeXyqfXKew@mail.gmail.com>         <77cef33e-a563-97fc-7ba6-69f220f1be84@grimberg.me>         <1516904022.27592.187.camel@redhat.com>         <26056a83-2f81-6b56-7bbf-fcecfc4518d6@grimberg.me>         <1517264899.27592.277.camel@redhat.com>         <CADZhsQpWXQQ2dKxAorGMhk7HFvqoQ2Y5LxVKt66XjkcUbEuXpA@mail.gmail.com> <1517333096.27592.281.camel@redhat.com>
+From: Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
+Subject: Re: [PATCH rdma/wip/jgg-for-next] RDMA/netlink: Hide unimplemented
+ NLDEV commands
+Date: Tue, 30 Jan 2018 19:18:14 +0100
+Message-ID: <20180130181814.GD14797@nanopsycho>
+References: <20180130150716.16372-1-leon@kernel.org>
+ <20180130155706.GC14797@nanopsycho>
+ <20180130160337.GD17053@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1517333096.27592.281.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <20180130160337.GD17053-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Oren Duer' <oren.duer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Oren Duer' <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> In my original email, I pointed out that I didn't know how the NVMe over
-> Fabrics was doing addressing.  If it were like SRP, then it wouldn't
-> work because the device GUID is part of the addressing scheme, so a new
-> device wouldn't automatically show as matching that address.  If,
-> however, you use IP like iSER, then yes, I agree fully you can just test
-> the ability to route over the new device using the IP address and
-> restore if it works.
+Tue, Jan 30, 2018 at 05:03:37PM CET, jgg-uk2M96/98Pc@public.gmane.org wrote:
+>On Tue, Jan 30, 2018 at 04:57:06PM +0100, Jiri Pirko wrote:
+>> Tue, Jan 30, 2018 at 04:07:16PM CET, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org wrote:
+>> >From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> >
+>> >The nldev was implemented by following devlink implementation,
+>> >including SET/DEL/NEW commands. However these commands were not
+>> >implemented and hence don't need to be exposed.
+>> >
+>> >Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> > include/uapi/rdma/rdma_netlink.h | 14 ++++++--------
+>> > 1 file changed, 6 insertions(+), 8 deletions(-)
+>> >
+>> >diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+>> >index 17e59bec169e..4c77e2a7b07e 100644
+>> >+++ b/include/uapi/rdma/rdma_netlink.h
+>> >@@ -227,16 +227,14 @@ enum rdma_nldev_command {
+>> > 	RDMA_NLDEV_CMD_UNSPEC,
+>> >
+>> > 	RDMA_NLDEV_CMD_GET, /* can dump */
+>> >-	RDMA_NLDEV_CMD_SET,
+>> >-	RDMA_NLDEV_CMD_NEW,
+>> >-	RDMA_NLDEV_CMD_DEL,
+>> >
+>> >-	RDMA_NLDEV_CMD_PORT_GET, /* can dump */
+>> >-	RDMA_NLDEV_CMD_PORT_SET,
+>> >-	RDMA_NLDEV_CMD_PORT_NEW,
+>> >-	RDMA_NLDEV_CMD_PORT_DEL,
+>> >+	/* 2 - 4 are free to use */
+>> >
+>> >-	RDMA_NLDEV_CMD_RES_GET, /* can dump */
+>> >+	RDMA_NLDEV_CMD_PORT_GET = 5, /* can dump */
+>> >+
+>> >+	/* 6 - 8 are free to use */
+>> 
+>> I don't see reason for the wholes.
+>
+>We are stuck with the holes, it is fixed uABI at this point, can't
+>change the constants we actually implemented.
 
-NVME-oF/rdma uses the rdma_cm with ip addresses, ip ports, etc...
+If it is realeased already, we can't remove the defines either.
 
 
-
+>
+>> Also, Don't you use *_NEW for replies to *_GET, as it is common for
+>> Netlink?
+>
+>It appears not..
+>
+>IMHO that convention makes the most sense when there is a GET/NEW pair
+>with the idea the NEW is formed to be echoed back to the kernel -
+>these case are all GET only..
+>
+>Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
