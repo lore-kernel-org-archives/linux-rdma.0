@@ -1,75 +1,52 @@
-From: Oren Duer <oren.duer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Reconnect on RDMA device reset
-Date: Tue, 30 Jan 2018 17:03:48 +0200
-Message-ID: <CADZhsQpWXQQ2dKxAorGMhk7HFvqoQ2Y5LxVKt66XjkcUbEuXpA@mail.gmail.com>
-References: <CADZhsQqDFc1NWmsihOwki8_2Zj0HuYKC_N_x0jMnCtU9Rww1UA@mail.gmail.com>
- <f0a14240-1566-1bae-1b9f-21880bc3f3a0@grimberg.me> <CADZhsQqvK0LMd9sfxzz+x_5qVnoi4FP0FCFMsTPjpeXyqfXKew@mail.gmail.com>
- <77cef33e-a563-97fc-7ba6-69f220f1be84@grimberg.me> <1516904022.27592.187.camel@redhat.com>
- <26056a83-2f81-6b56-7bbf-fcecfc4518d6@grimberg.me> <1517264899.27592.277.camel@redhat.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH rdma-next v7 0/8] RDMA resource tracking
+Date: Tue, 30 Jan 2018 09:21:30 -0600
+Message-ID: <034101d399de$01183730$0348a590$@opengridcomputing.com>
+References: <20180128091725.13103-1-leon@kernel.org> <20180128210520.GK23869@ziepe.ca> <1517256713.27592.241.camel@redhat.com> <20180130033436.GA17053@ziepe.ca> <20180130091654.GD2055@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1517264899.27592.277.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20180130091654.GD2055-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'RDMA mailing list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Mark Bloch' <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 30, 2018 at 12:28 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Mon, 2018-01-29 at 22:36 +0200, Sagi Grimberg wrote:
->> >
->> That is the case for nvme as well, but I was merely saying that device
->> reset is not really a device removal. And this makes it hard for the ULP
->> to understand what to do (or for me at least...)
+> > Branch is here:
+> >
+> >
 >
-> OK, I get that the difference between the two is making it hard to
-> understand what to do.  But, the truth of the issue is that whether you
-> are doing a reset or a remove/add cycle, what *your* code needs to do
-> doesn't change.  For both cases, your code must A) drop everything on
-> the floor like a hot potato and B) restart from scratch.
+https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=wip/jgg
+-
+> for-next
+> >
+> > Still unhappy with the kref-as-not-a-kref.
+> 
+> Thanks Doug and Jason for accepting it.
+> 
+> The "qp->pd = NULL" assignment is not needed. PD is NULL
+> for the XRCD and you are setting "qp->pd = pd" before returning
+> from _ib_create_qp() call, so it is actually the same.
+> 
+> Everything works as expected, it passed my tests with ud/rc/xsrq
+> pingpongs and shutdowns during traffic.
+> 
+> Steve, I created the stable tag for you: rdma-next-2018-01-30
+> 
+> Thanks
 
-Fully agree here. You don't want different code flow for reset. You already
-have remove/add flows, which require to to act the right way as Doug
-described. A reset is exactly remove and add of the same device.
+Thanks guys,  Q: 4.15-rc2 kills my machine, I've been rebasing to a later rc
+to continue my development work, but the rebase fails horribly on mlx5.  I
+skip these failures and don't compile mlx5 because I don't need it.  
 
-> The only thing
-> that's confusing you is that it's more or less assumed on a reset that
-> you would auto-restart, where as it isn't so clear that you would want
-> to do the same on a remove/add cycle.  I think the answer to your
-> question is: if the same device comes back that went away, then yes,
-> auto-restart would seem appropriate.  If you make that policy decision,
-> then the *only* difference between device reset and device hot-replug is
-> that you actually have to verify that the same device came back as went
-> away.
->
-> As an optional item, you could start a timer when the device disappears,
-> and if it takes more than, say, 10 minutes to reappear, you could cancel
-> the auto-restart on the basis that someone probably physically unplugged
-> and replugged the card and they might not want that.  But really, aside
-> from the fact that the hot plug flow needs you to check the same device
-> comes back, reset and hot plug have the exact same requirements/needs
-> and can be serviced by a single code path.
+Anyway, will rdma-next be rebased on 4.15.0 soon?  Or does that wait until
+-rc2...
 
-Not sure why we need to keep track whether it is the same device or not.
-I fail to understand why we trust the system admin to create the connections
-at the beginning, but we should not trust him anymore if the device was
-removed, a new device was added in place of it, and it was configured with the
-same network IP/subnet. To me it looks like the admin wanted exactly that:
-for the connections to be restored over the new device.
 
-If the admin does not want the reconnections to happen, he has the option
-to explicitly request to disconnect. Same if the device was removed forever.
 
-And to help us with all that, we have rdma_cm. As long as we repeat the
-rdma_connect() on the initiator side and rdma_bind/resolve_addr()... on
-the target side, we'll get exactly this behaviour.
-
-If we want this using userspace daemons - that's fine. We'll need one for the
-initiator stack and one for the target stack. And we'll probably need some
-missing udev events and configfs entry?
-
--- 
-Oren
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
