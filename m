@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 4/4] RDMA/hns: Remove repeated option for free mtt table
-Date: Tue, 30 Jan 2018 20:20:45 +0800
-Message-ID: <1517314845-126094-5-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 3/4] RDMA/hns: Fix the checkpatch.pl warning
+Date: Tue, 30 Jan 2018 20:20:44 +0800
+Message-ID: <1517314845-126094-4-git-send-email-oulijun@huawei.com>
 References: <1517314845-126094-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,26 +12,43 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-if inits mtpt table fail and  goto the err_unmap_mtt label,
-it is not clean the mtt table. This patch fixs it.
+This patch mainly fix some style warings matched with
+the new checkpatch requirement. The warning as follows:
+
+WARNING: function definition argument 'struct hns_roce_cq *'
+should also have an identifier name
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_main.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 830243e..eb9a69f 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -636,7 +636,6 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
- 	hns_roce_cleanup_hem_table(hr_dev, &hr_dev->mr_table.mtpt_table);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 2503d7f..165a09b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -345,8 +345,8 @@ struct hns_roce_cq {
+ 	struct hns_roce_cq_buf		hr_buf;
+ 	spinlock_t			lock;
+ 	struct ib_umem			*umem;
+-	void (*comp)(struct hns_roce_cq *);
+-	void (*event)(struct hns_roce_cq *, enum hns_roce_event);
++	void (*comp)(struct hns_roce_cq *cq);
++	void (*event)(struct hns_roce_cq *cq, enum hns_roce_event event_type);
  
- err_unmap_mtt:
--	hns_roce_cleanup_hem_table(hr_dev, &hr_dev->mr_table.mtt_table);
- 	if (hns_roce_check_whether_mhop(hr_dev, HEM_TYPE_CQE))
- 		hns_roce_cleanup_hem_table(hr_dev,
- 					   &hr_dev->mr_table.mtt_cqe_table);
+ 	struct hns_roce_uar		*uar;
+ 	u32				cq_depth;
+@@ -486,8 +486,8 @@ struct hns_roce_qp {
+ 	u32                     atomic_rd_en;
+ 	u32			pkey_index;
+ 	u32			qkey;
+-	void			(*event)(struct hns_roce_qp *,
+-					 enum hns_roce_event);
++	void			(*event)(struct hns_roce_qp *qp,
++					 enum hns_roce_event event_type);
+ 	unsigned long		qpn;
+ 
+ 	atomic_t		refcount;
 -- 
 1.9.1
 
