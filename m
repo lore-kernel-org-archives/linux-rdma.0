@@ -1,97 +1,106 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH v2 00/14] IB/srpt: Add RDMA/CM support
-Date: Tue, 30 Jan 2018 18:19:50 +0000
-Message-ID: <1517336389.2589.22.camel@wdc.com>
-References: <20180117001418.7852-1-bart.vanassche@wdc.com>
-         <1516230870.3403.292.camel@redhat.com> <1517271807.2687.65.camel@wdc.com>
-         <1517334206.27592.291.camel@redhat.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma/wip/jgg-for-next] RDMA/netlink: Hide unimplemented
+ NLDEV commands
+Date: Tue, 30 Jan 2018 20:38:30 +0200
+Message-ID: <20180130183830.GG2055@mtr-leonro.local>
+References: <20180130150716.16372-1-leon@kernel.org>
+ <20180130155706.GC14797@nanopsycho>
+ <20180130160337.GD17053@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="2JFBq9zoW8cOFH7v"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1517334206.27592.291.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <C970E7E04351E449A024D1C95B3BFB1D-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180130160337.GD17053-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE4LTAxLTMwIGF0IDEyOjQzIC0wNTAwLCBEb3VnIExlZGZvcmQgd3JvdGU6DQo+
-IE9uIFR1ZSwgMjAxOC0wMS0zMCBhdCAwMDoyMyArMDAwMCwgQmFydCBWYW4gQXNzY2hlIHdyb3Rl
-Og0KPiA+IE9uIFdlZCwgMjAxOC0wMS0xNyBhdCAxODoxNCAtMDUwMCwgRG91ZyBMZWRmb3JkIHdy
-b3RlOg0KPiA+ID4gT24gVHVlLCAyMDE4LTAxLTE2IGF0IDE2OjE0IC0wODAwLCBCYXJ0IFZhbiBB
-c3NjaGUgd3JvdGU6DQo+ID4gPiA+IEhlbGxvIEphc29uIGFuZCBEb3VnLA0KPiA+ID4gPiANCj4g
-PiA+ID4gVGhpcyBwYXRjaCBzZXJpZXMgbm90IG9ubHkgYWRkcyBSRE1BL0NNIHN1cHBvcnQgdG8g
-dGhlIFNSUCB0YXJnZXQgZHJpdmVyIGJ1dA0KPiA+ID4gPiBhbHNvIGZpeGVzIGEgbnVtYmVyIG9m
-IHJhY2UgY29uZGl0aW9ucyBpbiB0aGF0IGRyaXZlci4NCj4gPiA+ID4gDQo+ID4gPiA+IFRoZSBS
-RE1BL0NNIGxpc3RlbmVyIHBvcnQgbnVtYmVyIGhhcyB0byBiZSBzcGVjaWZpZWQgYXMgYW4gaWJf
-c3JwdCBrZXJuZWwNCj4gPiA+ID4gbW9kdWxlIHBhcmFtZXRlci4gVGhlIGRlZmF1bHQgdmFsdWUg
-Zm9yIHRoYXQgcGFyYW1ldGVyIGlzIHplcm8gd2hpY2ggbWVhbnMNCj4gPiA+ID4gdGhhdCBSRE1B
-L0NNIHN1cHBvcnQgaXMgZGlzYWJsZWQuDQo+ID4gPiANCj4gPiA+IFNpbmNlIHNycHQgaXMgYWxy
-ZWFkeSBjb25maWd1cmVkIHZpYSB0aGUgbElPIGZyYW1ld29yaywgd291bGRuJ3QgdGhhdCBiZQ0K
-PiA+ID4gYSBiZXR0ZXIgcGxhY2UgZm9yIHRoZSBsaXN0ZW4gcG9ydD8gIEluIGZhY3QsIHNob3Vs
-ZG4ndCBpdCBiZSBwYXJ0IG9mIGENCj4gPiA+IHBvcnRhbCBsaWtlIHlvdSBoYXZlIGZvciBpU0VS
-dD8NCj4gPiANCj4gPiBXb3VsZG4ndCB0aGF0IGJlIG92ZXJraWxsIHRvIGhhdmUgb25lIGxpc3Rl
-biBwb3J0IHBlciBSRE1BIHBvcnQ/IEkgdGhpbmsNCj4gPiBpdCB3aWxsIGJlIGVhc2llciBmb3Ig
-dXNlcnMgaWYgdGhleSBoYXZlIHRvIGNvbmZpZ3VyZSB0aGUgUkRNQS9DTSBwb3J0IG9uY2UNCj4g
-PiBpbnN0ZWFkIG9mIG9uZSB0aW1lIHBlciBSRE1BIHBvcnQuIEhvdyBhYm91dCB1c2luZyB0aGUg
-Zm9sbG93aW5nIGxvY2F0aW9uIGluDQo+ID4gY29uZmlnZnMgZm9yIHRoZSBSRE1BL0NNIHBvcnQ6
-DQo+ID4gDQo+ID4gL3N5cy9rZXJuZWwvY29uZmlnL3RhcmdldC9zcnB0L2Rpc2NvdmVyeV9hdXRo
-L3JkbWFfY21fcG9ydA0KPiANCj4gSG1tbS4uLm1heWJlIHRoZSByZWFsIGFuc3dlciBoZXJlIGlz
-IHRvIHN0YXJ0IGNvbnNpZGVyaW5nIGhvdyBzZXJpb3VzIHdlDQo+IGFyZSBhYm91dCB0aGUgUkRN
-QV9DTSBzdXBwb3J0IGluIFNSUC4gIElmIHdlJ3JlIHNlcmlvdXMsIHNob3VsZCBzb21lb25lDQo+
-IGNvbnRhY3QgSUFOTkEgYWJvdXQgYSByZXNlcnZpbmcgcG9ydCBudW1iZXIgYW5kIGp1c3QgdXNl
-IHdoYXRldmVyIHRoZXkNCj4gZ2l2ZSB1cz8gIElmIHdlIHdhbnQgdG8gZG8gdGhlIHNpbXBsZSB0
-aGluZywgYSBtb2R1bGUgb3B0aW9uIGlzIGZpbmUsDQo+IHdoaWxlIHdlIGRlY2lkZSBvbiB0aGlz
-IGlzc3VlLCB0aGVuIEkgY2FuIHNlZSB0aGF0IGJlaW5nIE9LLiAgSSdtIG1vcmUNCj4gT0sgd2l0
-aCB1c2luZyBjb25maWdmcyBpZiB0aGVyZSdzIGEgY2hhbmNlIHdlIHdvbid0IGdldCBhIHdlbGwg
-a25vd24NCj4gcmVzZXJ2ZWQgcG9ydCBhbmQgdGhlIGNvbmZpZyBvcHRpb24gd2lsbCBzdGljayBh
-cm91bmQgbG9uZyB0ZXJtLiAgQW5kIEkNCj4gdGVuZCB0byBhZ3JlZSwgcGVyIGludGVyZmFjZSBw
-b3J0IGNvbmZpZ3VyYXRpb24gaXMgcHJvYmFibHkgbm90IHRoYXQNCj4gaW50ZXJlc3RpbmcuICBC
-dXQgdGhlIGFiaWxpdHkgdG8gc3BlY2lmeSBzb21ldGhpbmcgb3RoZXIgdGhhbiB0aGUNCj4gd2ls
-ZGNhcmQgSVAgYWRkcmVzcyB0byBsaXN0ZW4gb24sIGFuZCB0aGUgYWJpbGl0eSB0byBzcGVjaWZ5
-IG1vcmUgdGhhbg0KPiBvbmUgSVAgYWRkcmVzcyB0byBsaXN0ZW4gb24sIGFyZS4NCg0KSGVsbG8g
-RG91ZywNCg0KTXkgbW90aXZhdGlvbiBmb3IgcG9zdGluZyB0aGUgUkRNQS9DTSBwYXRjaGVzIG9u
-IHRoZSBsaW51eC1yZG1hIG1haWxpbmcgbGlzdA0KZm9yIHRoZSBTUlAgaW5pdGlhdG9yIGFuZCB0
-YXJnZXQgZHJpdmVycyB3YXMgdG8gYWxsb3cgb3RoZXJzIHRvIHJ1biB0aGUNCnNycC10ZXN0IHNv
-ZnR3YXJlIG9uIGEgc2V0dXAgdGhhdCBkb2VzIG5vdCBoYXZlIGFueSBSRE1BIGFkYXB0ZXJzLCBu
-YW1lbHkgYnkNCnVzaW5nIHRoZSBTb2Z0Um9DRSBkcml2ZXIuIFNpbmNlIElBTkEgaGFzIG5vdCB5
-ZXQgYXNzaWduZWQgYSBwb3J0IG51bWJlciB0bw0KU1JQIG92ZXIgUm9DRSBJIGNob29zZSB0byBt
-YWtlIHRoZSBwb3J0IG51bWJlciBjb25maWd1cmFibGUuDQoNClBlcnNvbmFsbHkgSSBkb24ndCB0
-aGluayB3ZSBoYXZlIHRvIHBvc3Rwb25lIHRoZSBpYl9zcnB0IFJETUEvQ00gcGF0Y2ggdW50aWwN
-CklBTkEgaGFzIGFzc2lnbmVkIGEgcG9ydCBudW1iZXIuIE9uY2UgSUFOQSBoYXMgYXNzaWduZWQg
-YSBwb3J0IG51bWJlciB3ZQ0KY291bGQgZS5nLiBtb2RpZnkgdGhlIGliX3NycHQgZHJpdmVyIHRv
-IGVuYWJsZSBSRE1BL0NNIHN1cHBvcnQgYnkgZGVmYXVsdA0Kd2l0aCB0aGUgYXNzaWduZWQgcG9y
-dCBudW1iZXIgKHRoZSBwYXRjaCBJIHBvc3RlZCBsZWF2ZXMgUkRNQS9DTSBzdXBwb3J0DQpkaXNh
-YmxlZCBieSBkZWZhdWx0KS4NCg0KUmVnYXJkaW5nIGNvbmZpZ3VyaW5nIG9uIHdoaWNoIElQIGFk
-ZHJlc3MgdG8gbGlzdGVuLCBvbmUgcG9zc2liaWxlIGFwcHJvYWNoDQppcyB0byBtb3ZlIHRoZSBy
-ZG1hX2NtX3BvcnQgcG9ydCBudW1iZXIgY29uZmlnZnMgYXR0cmlidXRlIGZyb20NCi9zeXMva2Vy
-bmVsL2NvbmZpZy90YXJnZXQvc3JwdC9kaXNjb3ZlcnlfYXV0aC9yZG1hX2NtX3BvcnQgdG8NCi9z
-eXMva2VybmVsL2NvbmZpZy90YXJnZXQvc3JwdC8kcG9ydC8kcG9ydC9hdHRyaWIvcmRtYV9jbV9w
-b3J0IHdoZXJlICRwb3J0DQppcyBhbiBSRE1BIHBvcnQgR1VJRCBvciBHSUQgKGJvdGggYXJlIGFj
-Y2VwdGVkKS4gVGhhdCB3b3VsZCBhbGxvdyB0bw0KZW5hYmxlL2Rpc2FibGUgUkRNQS9DTSBzdXBw
-b3J0IHBlciBSRE1BIGFkYXB0ZXIgcG9ydC4gVGhlIGliX3NycHQgZHJpdmVyDQpjb3VsZCBlLmcu
-IGNyZWF0ZSBvbmUgbGlzdGVuaW5nIHJkbWFfY21faWQgcGVyIElQIGFkZHJlc3MgdGhhdCBpcyBh
-c3NvY2lhdGVkDQp3aXRoIGFuIFJETUEgcG9ydC4NCg0KT25lIGFwcHJvYWNoIEkgaGF2ZSBjb25z
-aWRlcmVkIGZvciBhbGxvd2luZyB0byBjb25maWd1cmUgcGVyIElQIGFkZHJlc3MNCndoZXRoZXIg
-b3Igbm90IHRvIGFjY2VwdCBpbmNvbWluZyBjb25uZWN0aW9ucyBpcyB0byBhY2NlcHQgSVAgYWRk
-cmVzc2VzIGFzDQpSRE1BIHBvcnQgaWRlbnRpZmllciAoJHBvcnQpLiBIb3dldmVyLCB0aGF0IHdv
-dWxkIGNvbXBsaWNhdGUgdGhlIGliX3NycHQNCmRyaXZlciBiZWNhdXNlIHRoZXJlIGlzIGNvZGUg
-aW4gdGhhdCBkcml2ZXIgdGhhdCBhc3N1bWVzIHRoYXQgdGhlcmUgaXMgYSAxOjENCnJlbGF0aW9u
-c2hpcCBiZXR3ZWVuIFJETUEgcG9ydHMgYW5kIHN0cnVjdCBzcnB0X3BvcnQgaW5zdGFuY2VzLiBB
-cyBhbg0KZXhhbXBsZSwgdGhlIHBvcnRbXSBhcnJheSBpbiBzdHJ1Y3Qgc3JwdF9kZXZpY2UgaXMg
-YW4gYXJyYXkgd2l0aCB0d28gZWxlbWVudHMuDQpDb2RlIGxpa2Ugc3JwdF9ldmVudF9oYW5kbGVy
-KCkgYW5kIHNycHRfY21fcmVxX3JlY3YoKSB1c2VzIHRoYXQgYXJyYXkgdG8NCnRyYW5zbGF0ZSBh
-IHBvcnQgbnVtYmVyIGludG8gYSBzdHJ1Y3Qgc3JwdF9wb3J0IHBvaW50ZXIuDQoNCllldCBhbm90
-aGVyIGFwcHJvYWNoIHdvdWxkIGJlIHRvIGludHJvZHVjZSBhIG5ldyBkaXJlY3RvcnkgaGllcmFy
-Y2h5IGluDQpjb25maWdmcyBmb3IgY29uZmlndXJpbmcgSVAgYWNjZXNzIGNvbnRyb2wuIEhvd2V2
-ZXIsIEkgZG9uJ3QgdGhpbmsgdGhhdCB3b3VsZA0KYmUgcG9zc2libGUgd2l0aG91dCBtb2RpZnlp
-bmcgdGhlIExJTyB0YXJnZXQgY29yZS4gQW5kIGFzIHlvdSBwcm9iYWJseSBrbm93DQpzaW5jZSBz
-ZXZlcmFsIG1vbnRocyB0aGUgTElPIHRhcmdldCBjb3JlIG1haW50YWluZXIgaXMgbW9zdGx5IGlu
-dGVyZXN0ZWQgaW4NCmJ1ZyBmaXhlcyBhbmQgbm90IGluIG5ldyBmZWF0dXJlcyBvciBhbnkgb3Ro
-ZXIga2luZCBvZiBwYXRjaCB0aGF0IGNoYW5nZXMgdGhlDQp0YXJnZXQgY29yZSBzaWduaWZpY2Fu
-dGx5Lg0KDQpUaGFua3MsDQoNCkJhcnQuDQo=
+
+--2JFBq9zoW8cOFH7v
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Jan 30, 2018 at 09:03:37AM -0700, Jason Gunthorpe wrote:
+> On Tue, Jan 30, 2018 at 04:57:06PM +0100, Jiri Pirko wrote:
+> > Tue, Jan 30, 2018 at 04:07:16PM CET, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org wrote:
+> > >From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > >
+> > >The nldev was implemented by following devlink implementation,
+> > >including SET/DEL/NEW commands. However these commands were not
+> > >implemented and hence don't need to be exposed.
+> > >
+> > >Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > include/uapi/rdma/rdma_netlink.h | 14 ++++++--------
+> > > 1 file changed, 6 insertions(+), 8 deletions(-)
+> > >
+> > >diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+> > >index 17e59bec169e..4c77e2a7b07e 100644
+> > >+++ b/include/uapi/rdma/rdma_netlink.h
+> > >@@ -227,16 +227,14 @@ enum rdma_nldev_command {
+> > > 	RDMA_NLDEV_CMD_UNSPEC,
+> > >
+> > > 	RDMA_NLDEV_CMD_GET, /* can dump */
+> > >-	RDMA_NLDEV_CMD_SET,
+> > >-	RDMA_NLDEV_CMD_NEW,
+> > >-	RDMA_NLDEV_CMD_DEL,
+> > >
+> > >-	RDMA_NLDEV_CMD_PORT_GET, /* can dump */
+> > >-	RDMA_NLDEV_CMD_PORT_SET,
+> > >-	RDMA_NLDEV_CMD_PORT_NEW,
+> > >-	RDMA_NLDEV_CMD_PORT_DEL,
+> > >+	/* 2 - 4 are free to use */
+> > >
+> > >-	RDMA_NLDEV_CMD_RES_GET, /* can dump */
+> > >+	RDMA_NLDEV_CMD_PORT_GET = 5, /* can dump */
+> > >+
+> > >+	/* 6 - 8 are free to use */
+> >
+> > I don't see reason for the wholes.
+>
+> We are stuck with the holes, it is fixed uABI at this point, can't
+> change the constants we actually implemented.
+>
+> > Also, Don't you use *_NEW for replies to *_GET, as it is common for
+> > Netlink?
+>
+> It appears not..
+>
+> IMHO that convention makes the most sense when there is a GET/NEW pair
+> with the idea the NEW is formed to be echoed back to the kernel -
+> these case are all GET only..
+
+Back then, I didn't find any reason to return _NEW, and I don't see it
+now either.
+
+There is NLM_F_ECHO flag for echo and sequence number to distinguish
+between messages.
+
+>
+> Jason
+
+--2JFBq9zoW8cOFH7v
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpwu6YACgkQ5GN7iDZy
+WKc0Zw//VHQxQrq5lzTmCIEx3x2aPQc7XmupJmq7gwaSEKR7G+0fkncAahNQXpYy
+uizVYhEsNl7M3BDZYAzPab6ScQmNtD4deTtacYQbAo5esqjO9nNVhphyAzuPtqmZ
+pDMQ4nIu62b6dXzs0n7kXeGQT6W2sepxCzqLG1mvRlUUUovUPfzY/YlQI8epQeiu
+qXwdaReKvrUl4WCM5PFquTrRJruTtGemYkYUn+5dXLqoqA1qQupoXNRNHTthsoF6
+IlHTDi33oIyY5BhgC+yrpiOMRY2qNQ7Zk/eLFJyZHKnbul/Q9146bcwapPIcWpkf
+h3x7o9u6jBh+pS0/u0RmCPGNhLsSi7vomkSoc5kKx1FPMYtWM4n4Nj3YJC9mhahL
+weGMj33qtgHj0K4inEfvvNeHY/2my2Vqtv8nKSS0CsjFUqjEJT+Y7K8YUNmvBEoW
+6Xyv1ZBjL+Dc716zX9I9pCm1Z9NS/ocTTlB8CZydylTKr8YLl1eFgCljkIo2DyMy
+VD9KId93q5Xvi1r6m03lLbfm1NOPVaOtSxNFex2BzqwiECN9PYIUA8OzzpzRwgfZ
+aEQYBisJHws0UdT5tar1oHYFdtI+LeD9vSUA+bNIpOgjtbgZajpIlIg29+6WXbFH
+Z4oDW5jthRKkYivfQAwqaq7nWbGheaRBI690AoxMrPV4wwagmhQ=
+=8rJz
+-----END PGP SIGNATURE-----
+
+--2JFBq9zoW8cOFH7v--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
