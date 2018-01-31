@@ -1,42 +1,38 @@
 From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] verbs: Use correct type for printf from struct rlimit
-Date: Tue, 30 Jan 2018 15:49:04 -0700
-Message-ID: <20180130224904.GA11309@ziepe.ca>
+Subject: [PATCH rdma-core] rc_pingpong: Fix getopt processing of -t
+Date: Tue, 30 Jan 2018 17:04:15 -0700
+Message-ID: <20180131000415.GA29879@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The actual type of the members is rlim_t which only happens to be
-unsigned long on the platforms we have tested so far. x32 uses something
-else.
+The -t option never had an argument, a : was erroneously added when
+the -c option was added
 
-Casting to unsigned long long for printing is the safe solution.
-
+Fixes: 099c5aa50bc8 ("libibverb/examples: Add command line option to enable buffer validation")
 Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/init.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ libibverbs/examples/rc_pingpong.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/libibverbs/init.c b/libibverbs/init.c
-index ff2c60ffcbc963..cda628b9e0544d 100644
---- a/libibverbs/init.c
-+++ b/libibverbs/init.c
-@@ -552,9 +552,9 @@ static void check_memlock_limit(void)
- 	}
+diff --git a/libibverbs/examples/rc_pingpong.c b/libibverbs/examples/rc_pingpong.c
+index b5153bceb8254b..cf5c045741b7be 100644
+--- a/libibverbs/examples/rc_pingpong.c
++++ b/libibverbs/examples/rc_pingpong.c
+@@ -730,7 +730,7 @@ int main(int argc, char *argv[])
+ 			{}
+ 		};
  
- 	if (rlim.rlim_cur <= 32768)
--		fprintf(stderr, PFX "Warning: RLIMIT_MEMLOCK is %lu bytes.\n"
-+		fprintf(stderr, PFX "Warning: RLIMIT_MEMLOCK is %llu bytes.\n"
- 			"    This will severely limit memory registrations.\n",
--			rlim.rlim_cur);
-+			(unsigned long long)rlim.rlim_cur);
- }
+-		c = getopt_long(argc, argv, "p:d:i:s:m:r:n:l:eg:ot:c",
++		c = getopt_long(argc, argv, "p:d:i:s:m:r:n:l:eg:otc",
+ 				long_options, NULL);
  
- static int same_sysfs_dev(struct verbs_sysfs_dev *sysfs1,
+ 		if (c == -1)
 -- 
 2.15.1
 
