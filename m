@@ -1,55 +1,66 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: KASAN: stack-out-of-bounds Read in rds_sendmsg
-Date: Tue, 30 Jan 2018 18:55:32 -0800
-Message-ID: <5db55967-3608-d9cc-768a-e75dc61ed311@oracle.com>
-References: <089e08263e589121d90560d610a5@google.com>
- <9deaf3c4-227f-f6f0-9ccb-3ad05fc32a0c@oracle.com>
- <20180131021638.6h5fukvzzakzu5g2@gmail.com>
+From: "santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: BUG: spinlock bad magic (2)
+Date: Tue, 30 Jan 2018 19:49:51 -0800
+Message-ID: <24ea899d-d541-0274-c5bf-8a6e35473ca5@oracle.com>
+References: <001a113fae28c2fd6605609c97a2@google.com>
+ <6dbd4f85-f3f2-97f3-5b82-451276fbf877@oracle.com>
+ <CACT4Y+Zoat=3j7B--D=pLK=SU0zhNA2yw0O0cEwj_p6vSBfM7g@mail.gmail.com>
+ <20180130222811.yxfiqnlx3la3vyyw@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180131021638.6h5fukvzzakzu5g2@gmail.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180130222811.yxfiqnlx3la3vyyw-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Eric Biggers <ebiggers3@gmail.com>
-Cc: syzkaller-bugs@googlegroups.com, Avinash Repaka <avinash.repaka@oracle.com>, syzbot <bot+9461c9b9d340854a404b46c42cbfc91ded1232d8@syzkaller.appspotmail.com>, davem@davemloft.net, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eric Biggers <ebiggers3-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: syzbot <bot+d3f5d339869eb8cd834d2c9f0a88bf4f05c29781-Pl5Pbv+GP7P466ipTTIvnc23WoclnBCfAL8bYrjMMd8@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, syzkaller-bugs-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/30/2018 6:16 PM, Eric Biggers wrote:
-> On Thu, Dec 21, 2017 at 08:44:32AM -0800, Santosh Shilimkar wrote:
->> +Avinash
->>
->> On 12/21/2017 1:10 AM, syzbot wrote:
->>> syzkaller has found reproducer for the following crash on
->>
->> [..]
->>
+
+
+On 1/30/18 2:28 PM, Eric Biggers wrote:
+> On Mon, Dec 18, 2017 at 06:01:30PM +0100, 'Dmitry Vyukov' via syzkaller-bugs wrote:
+>> On Mon, Dec 18, 2017 at 5:46 PM, Santosh Shilimkar
+>> <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+>>> On 12/18/2017 4:36 AM, syzbot wrote:
+>>>>
+>>>> Hello,
+>>>>
+>>>> syzkaller hit the following crash on
+>>>> 6084b576dca2e898f5c101baef151f7bfdbb606d
+>>>> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/master
+>>>> compiler: gcc (GCC) 7.1.1 20170620
+>>>> .config is attached
+>>>> Raw console output is attached.
+>>>>
+>>>> Unfortunately, I don't have any reproducer for this bug yet.
+>>>>
+>>> [...]
 >>>
->>> audit: type=1400 audit(1513847224.110:7): avc:  denied  { map } for
->>> pid=3157 comm="syzkaller455006" path="/root/syzkaller455006870"
->>> dev="sda1" ino=16481
->>> scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023
->>> tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
->>> ==================================================================
->>> BUG: KASAN: stack-out-of-bounds in rds_rdma_bytes net/rds/send.c:1013
->>> [inline]
+>>>> BUG: unable to handle kernel NULL pointer dereference at 0000000000000028
+>>>> IP: rds_send_xmit+0x80/0x930 net/rds/send.c:186
+>>>
+>>>
+>>> This one seems to be same bug as reported as below.
+>>>
+>>> BUG: unable to handle kernel NULL pointer dereference in rds_send_xmit
 >>
->> Could you please post the discussed fix if you are ready with it ?
->> This new report is same as last one and cmesg length check should
->> address it.
+>> Hi Santosh,
 >>
-
-[...]
-
+>> The proper syntax to tell syzbot about dups is this (from email footer):
+>>
+>>> See https://goo.gl/tpsmEJ for details.
+>>> Please credit me with: Reported-by: syzbot <syzkaller-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+>>> syzbot will keep track of this bug report.
+>>> To mark this as a duplicate of another syzbot report, please reply with:
+>>> #syz dup: exact-subject-of-another-report
+>>> Note: all commands must start from beginning of the line in the email body.
 > 
-> This crash seems to have stopped occurring.  I assume it was fixed by commit
-> 14e138a86f63 (thanks Avinash!), so let's tell syzbot so that it can start
-> reporting crashes in the same place again:
-> 
-> #syz fix: RDS: Check cmsg_len before dereferencing CMSG_DATA
-> 
-Thanks Eric for confirmation !!
+> #syz dup: BUG: unable to handle kernel NULL pointer dereference in rds_send_xmit
 
-Regards,
-Santosh
+Ok. Noted.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
