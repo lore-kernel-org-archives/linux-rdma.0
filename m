@@ -1,82 +1,62 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] RDMA/bnxt_re: Fix an error code in
- bnxt_qplib_create_srq()
-Date: Wed, 31 Jan 2018 11:19:54 -0500
-Message-ID: <1517415594.19117.17.camel@redhat.com>
-References: <20180130150434.GA13690@mwanda>
-         <CANjDDBjO7ZWE+OAzBRUZh_233YrRf++aeB3BitFAZNGf2RS-5w@mail.gmail.com>
+From: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v1] xprtrdma: Fix BUG after a device removal
+Date: Wed, 31 Jan 2018 17:29:40 +0000
+Message-ID: <CY1PR0701MB2012B2D48A30308AF6DFA77C88FB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+References: <20180131160345.10828.7644.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-yTOH6P/zmBnZELqUhOWs"
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <CANjDDBjO7ZWE+OAzBRUZh_233YrRf++aeB3BitFAZNGf2RS-5w@mail.gmail.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Devesh Sharma <devesh.sharma@broadcom.com>, Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma <linux-rdma@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180131160345.10828.7644.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-yTOH6P/zmBnZELqUhOWs
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, 2018-01-31 at 11:06 +0530, Devesh Sharma wrote:
-> On Wed, Jan 31, 2018 at 2:10 AM, Dan Carpenter <dan.carpenter@oracle.com>=
- wrote:
-> > We should return -ENOMEM if the allocation fails.  (The current code
-> > returns succees).
-> >=20
-> > Fixes: 37cb11acf1f7 ("RDMA/bnxt_re: Add SRQ support for Broadcom adapte=
-rs")
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> >=20
-> > diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infinib=
-and/hw/bnxt_re/qplib_fp.c
-> > index 8b5f11ac0e42..1b0e94697fe3 100644
-> > --- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-> > +++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-> > @@ -557,8 +557,10 @@ int bnxt_qplib_create_srq(struct bnxt_qplib_res *r=
-es,
-> >=20
-> >         srq->swq =3D kcalloc(srq->hwq.max_elements, sizeof(*srq->swq),
-> >                            GFP_KERNEL);
-> > -       if (!srq->swq)
-> > +       if (!srq->swq) {
-> > +               rc =3D -ENOMEM;
-> >                 goto fail;
-> > +       }
->=20
-> Opps!! my bad. Thanks for fixing.
->=20
-> Acked-By: Devesh Sharma <devesh.sharma@broadcom.com>
-
-Thanks, applied.
-
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-yTOH6P/zmBnZELqUhOWs
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpx7KoACgkQuCajMw5X
-L924eA/+M7LWzYb/FB1QLR3EOp/KvHMH4HHdhOFeB1dbCCSgx32Kl1t+YfGToYXd
-FQOSeJagVPN7s1vtaBeWI2ZwkAsznrfzgOkBVFXNucVxzpAfk6nSOkuk1LAASX0E
-9k2Of28aSlZJPOugDxvkHUHXSMMuD0Z+ATH4HkMHCocubXcHEI81spvWWmFy1+t9
-VjdA4PGdRd/9d3Xl7itvnPD/C4BgTwl9wMrfKKDCq7Xphg5cVHWqrna9dHoMgBmn
-p2t+T+ZgLZWPczlr7dvsEeqc0Kaz72PXe9FNdL31rzCrC6t1SHIYX5FcZra/Ryhx
-4QTh/n+1u4hZRuw4SKNtSgfQOwRuUgSxAwfqZVb4oZKi22eKMoowceA0YxL1rz7k
-pA11ZL4QAUcGqdcEQffPfOBRXvy3zoDgUx8EGg+c44Y8TcQWz13WmQlqKR3YFJ5+
-5Ozdopri5zEf3zUWByBe/fyNoMp2DdgZ9SdvyokH/eJnoX6HAvoYc+u5/nsJowz7
-Dy6lS1LJYeZG5yfrn3pm+9D/RqlxOVvObzFR/GTW968y7gOnD9m4Vkd/RzpUmvRv
-7RMB/mf38AUUjels0vAJihTZEHGDm3BBwiQ/mb4C8jySteNnzAdsk3TCF3hTK9je
-n7jNJMZCdm5EH+TjBvw3F64vpvze/7W9M3IDzd4uuS6zyGoe4Rc=
-=al6f
------END PGP SIGNATURE-----
-
---=-yTOH6P/zmBnZELqUhOWs--
-
+PiBGcm9tOiBDaHVjayBMZXZlciBbbWFpbHRvOmNodWNrbGV2ZXJAZ21haWwuY29tXSBPbiBCZWhh
+bGYgT2YgQ2h1Y2sgTGV2ZXINCj4gU2VudDogV2VkbmVzZGF5LCBKYW51YXJ5IDMxLCAyMDE4IDY6
+MDQgUE0NCj4gVG86IEthbGRlcm9uLCBNaWNoYWwgPE1pY2hhbC5LYWxkZXJvbkBjYXZpdW0uY29t
+Pg0KPiBDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogW1BBVENIIHYx
+XSB4cHJ0cmRtYTogRml4IEJVRyBhZnRlciBhIGRldmljZSByZW1vdmFsDQo+IA0KPiBNaWNoYWwg
+S2FsZGVyb24gcmVwb3J0cyBhIEJVRyB0aGF0IG9jY3VycyBqdXN0IGFmdGVyIGRldmljZSByZW1v
+dmFsOg0KPiANCj4gWyAgMTY5LjExMjQ5MF0gcnBjcmRtYTogcmVtb3ZpbmcgZGV2aWNlIHFlZHIw
+IGZvciAxOTIuMTY4LjExMC4xNDY6MjAwNDkgWw0KPiAxNjkuMTQzOTA5XSBCVUc6IHVuYWJsZSB0
+byBoYW5kbGUga2VybmVsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBhdA0KPiAwMDAwMDAwMDAw
+MDAwMDEwIFsgIDE2OS4xODE4MzddIElQOiBycGNyZG1hX2RtYV91bm1hcF9yZWdidWYrMHhhLzB4
+NjANCj4gW3JwY3JkbWFdDQo+IA0KPiBUaGUgUlBDL1JETUEgY2xpZW50IHRyYW5zcG9ydCBhdHRl
+bXB0cyB0byBhbGxvY2F0ZSBzb21lIHJlc291cmNlcyBvbg0KPiBkZW1hbmQuIFJlZ2lzdGVyZWQg
+YnVmZmVycyBhcmUgb25lIHN1Y2ggcmVzb3VyY2UuIFRoZXNlIGFyZSBhbGxvY2F0ZWQgKG9yDQo+
+IHJlLWFsbG9jYXRlZCkgYnkgeHBydF9yZG1hX2FsbG9jYXRlIHRvIGhvbGQgUlBDIENhbGwgYW5k
+IFJlcGx5IG1lc3NhZ2VzLiBBDQo+IGhhcmR3YXJlIHJlc291cmNlIGlzIGFzc29jaWF0ZWQgd2l0
+aCBlYWNoIG9mIHRoZXNlIGJ1ZmZlcnMsIGFzIHRoZXkgY2FuIGJlDQo+IHVzZWQgZm9yIGEgU2Vu
+ZCBvciBSZWNlaXZlIFdvcmsgUmVxdWVzdC4NCj4gDQo+IElmIGEgZGV2aWNlIGlzIHJlbW92ZWQg
+ZnJvbSB1bmRlciBhbiBORlMvUkRNQSBtb3VudCwgdGhlIHRyYW5zcG9ydCBsYXllcg0KPiBpcyBy
+ZXNwb25zaWJsZSBmb3IgcmVsZWFzaW5nIGFsbCBoYXJkd2FyZSByZXNvdXJjZXMgYmVmb3JlIHRo
+ZSBkZXZpY2UgY2FuIGJlDQo+IGZpbmFsbHkgdW5wbHVnZ2VkLiBBIEJVRyByZXN1bHRzIHdoZW4g
+dGhlIE5GUyBtb3VudCBoYXNuJ3QgeWV0IHNlZW4gbXVjaA0KPiBhY3Rpdml0eTogdGhlIHRyYW5z
+cG9ydCB0cmllcyB0byByZWxlYXNlIHJlc291cmNlcyB0aGF0IGhhdmVuJ3QgeWV0IGJlZW4NCj4g
+YWxsb2NhdGVkLg0KPiANCj4gcnBjcmRtYV9mcmVlX3JlZ2J1ZigpIGFscmVhZHkgY2hlY2tzIGZv
+ciB0aGlzIGNhc2UsIHNvIGp1c3QgbW92ZSB0aGF0IGNoZWNrDQo+IHRvIGNvdmVyIHRoZSBERVZJ
+Q0VfUkVNT1ZBTCBjYXNlIGFzIHdlbGwuDQo+IA0KPiBSZXBvcnRlZC1ieTogTWljaGFsIEthbGRl
+cm9uIDxNaWNoYWwuS2FsZGVyb25AY2F2aXVtLmNvbT4NCj4gRml4ZXM6IGJlYmQwMzE4NjZjYSAo
+InhwcnRyZG1hOiBTdXBwb3J0IHVucGx1Z2dpbmcgYW4gSENBIC4uLiIpDQo+IFNpZ25lZC1vZmYt
+Ynk6IENodWNrIExldmVyIDxjaHVjay5sZXZlckBvcmFjbGUuY29tPg0KPiAtLS0NCj4gIG5ldC9z
+dW5ycGMveHBydHJkbWEvdmVyYnMuYyB8ICAgIDYgKysrLS0tDQo+ICAxIGZpbGUgY2hhbmdlZCwg
+MyBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL25ldC9z
+dW5ycGMveHBydHJkbWEvdmVyYnMuYyBiL25ldC9zdW5ycGMveHBydHJkbWEvdmVyYnMuYw0KPiBp
+bmRleCBiYjU2YjlkLi5lNmY4NGE2IDEwMDY0NA0KPiAtLS0gYS9uZXQvc3VucnBjL3hwcnRyZG1h
+L3ZlcmJzLmMNCj4gKysrIGIvbmV0L3N1bnJwYy94cHJ0cmRtYS92ZXJicy5jDQo+IEBAIC0xNTAy
+LDYgKzE1MDIsOSBAQCBzdHJ1Y3QgcnBjcmRtYV9yZWdidWYgKiAgc3RhdGljIHZvaWQNCj4gcnBj
+cmRtYV9kbWFfdW5tYXBfcmVnYnVmKHN0cnVjdCBycGNyZG1hX3JlZ2J1ZiAqcmIpICB7DQo+ICsJ
+aWYgKCFyYikNCj4gKwkJcmV0dXJuOw0KPiArDQo+ICAJaWYgKCFycGNyZG1hX3JlZ2J1Zl9pc19t
+YXBwZWQocmIpKQ0KPiAgCQlyZXR1cm47DQo+IA0KPiBAQCAtMTUxNyw5ICsxNTIwLDYgQEAgc3Ry
+dWN0IHJwY3JkbWFfcmVnYnVmICogIHZvaWQNCj4gcnBjcmRtYV9mcmVlX3JlZ2J1ZihzdHJ1Y3Qg
+cnBjcmRtYV9yZWdidWYgKnJiKSAgew0KPiAtCWlmICghcmIpDQo+IC0JCXJldHVybjsNCj4gLQ0K
+PiAgCXJwY3JkbWFfZG1hX3VubWFwX3JlZ2J1ZihyYik7DQo+ICAJa2ZyZWUocmIpOw0KPiAgfQ0K
+VGhhbmtzLA0KVGVzdGVkLWJ5OiBNaWNoYWwgS2FsZGVyb24gPE1pY2hhbC5LYWxkZXJvbkBjYXZp
+dW0uY29tPg0KDQo=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
