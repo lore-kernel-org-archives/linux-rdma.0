@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next 06/10] rdma: Update kernel header file
-Date: Wed, 31 Jan 2018 10:11:52 +0200
-Message-ID: <20180131081156.19607-7-leon@kernel.org>
+Subject: [PATCH iproute2-next 09/10] rdma: Document resource tracking
+Date: Wed, 31 Jan 2018 10:11:55 +0200
+Message-ID: <20180131081156.19607-10-leon@kernel.org>
 References: <20180131081156.19607-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180131081156.19607-1-leon@kernel.org>
@@ -12,103 +12,105 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Synchronize iporute2 package with latest kernel
-RDMA netlink header file.
+Spartan version of resource tracking documentation.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/uapi/rdma/rdma_netlink.h | 67 ++++++++++++++++++++++++++++++++++------
- 1 file changed, 57 insertions(+), 10 deletions(-)
+ man/man8/rdma-resource.8 | 86 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 86 insertions(+)
+ create mode 100644 man/man8/rdma-resource.8
 
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 48fbf3c3..4c77e2a7 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
--#ifndef _RDMA_NETLINK_H
--#define _RDMA_NETLINK_H
-+#ifndef _UAPI_RDMA_NETLINK_H
-+#define _UAPI_RDMA_NETLINK_H
- 
- #include <linux/types.h>
- 
-@@ -227,14 +227,16 @@ enum rdma_nldev_command {
- 	RDMA_NLDEV_CMD_UNSPEC,
- 
- 	RDMA_NLDEV_CMD_GET, /* can dump */
--	RDMA_NLDEV_CMD_SET,
--	RDMA_NLDEV_CMD_NEW,
--	RDMA_NLDEV_CMD_DEL,
- 
--	RDMA_NLDEV_CMD_PORT_GET, /* can dump */
--	RDMA_NLDEV_CMD_PORT_SET,
--	RDMA_NLDEV_CMD_PORT_NEW,
--	RDMA_NLDEV_CMD_PORT_DEL,
-+	/* 2 - 4 are free to use */
+diff --git a/man/man8/rdma-resource.8 b/man/man8/rdma-resource.8
+new file mode 100644
+index 00000000..ff5d25d7
+--- /dev/null
++++ b/man/man8/rdma-resource.8
+@@ -0,0 +1,86 @@
++.TH RDMA\-RESOURCE 8 "26 Dec 2017" "iproute2" "Linux"
++.SH NAME
++rdma-resource \- rdma resource configuration
++.SH SYNOPSIS
++.sp
++.ad l
++.in +8
++.ti -8
++.B rdma
++.RI "[ " OPTIONS " ]"
++.B resource
++.RI  " { " COMMAND " | "
++.BR help " }"
++.sp
 +
-+	RDMA_NLDEV_CMD_PORT_GET = 5, /* can dump */
++.ti -8
++.IR OPTIONS " := { "
++\fB\-j\fR[\fIson\fR] |
++\fB\-d\fR[\fIetails\fR] }
 +
-+	/* 6 - 8 are free to use */
++.ti -8
++.B rdma resource show
++.RI "[ " DEV/PORT_INDEX " ]"
 +
-+	RDMA_NLDEV_CMD_RES_GET = 9, /* can dump */
++.ti -8
++.B rdma resource help
 +
-+	RDMA_NLDEV_CMD_RES_QP_GET, /* can dump */
- 
- 	RDMA_NLDEV_NUM_OPS
- };
-@@ -303,6 +305,51 @@ enum rdma_nldev_attr {
- 
- 	RDMA_NLDEV_ATTR_DEV_NODE_TYPE,		/* u8 */
- 
-+	RDMA_NLDEV_ATTR_RES_SUMMARY,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY,	/* nested table */
-+	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME,	/* string */
-+	RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR,	/* u64 */
++.SH "DESCRIPTION"
++.SS rdma resource show - display rdma resource tracking information
 +
-+	RDMA_NLDEV_ATTR_RES_QP,			/* nested table */
-+	RDMA_NLDEV_ATTR_RES_QP_ENTRY,		/* nested table */
-+	/*
-+	 * Local QPN
-+	 */
-+	RDMA_NLDEV_ATTR_RES_LQPN,		/* u32 */
-+	/*
-+	 * Remote QPN,
-+	 * Applicable for RC and UC only IBTA 11.2.5.3 QUERY QUEUE PAIR
-+	 */
-+	RDMA_NLDEV_ATTR_RES_RQPN,		/* u32 */
-+	/*
-+	 * Receive Queue PSN,
-+	 * Applicable for RC and UC only 11.2.5.3 QUERY QUEUE PAIR
-+	 */
-+	RDMA_NLDEV_ATTR_RES_RQ_PSN,		/* u32 */
-+	/*
-+	 * Send Queue PSN
-+	 */
-+	RDMA_NLDEV_ATTR_RES_SQ_PSN,		/* u32 */
-+	RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE,	/* u8 */
-+	/*
-+	 * QP types as visible to RDMA/core, the reserved QPT
-+	 * are not exported through this interface.
-+	 */
-+	RDMA_NLDEV_ATTR_RES_TYPE,		/* u8 */
-+	RDMA_NLDEV_ATTR_RES_STATE,		/* u8 */
-+	/*
-+	 * Process ID which created object,
-+	 * in case of kernel origin, PID won't exist.
-+	 */
-+	RDMA_NLDEV_ATTR_RES_PID,		/* u32 */
-+	/*
-+	 * The name of process created following resource.
-+	 * It will exist only for kernel objects.
-+	 * For user created objects, the user is supposed
-+	 * to read /proc/PID/comm file.
-+	 */
-+	RDMA_NLDEV_ATTR_RES_KERN_NAME,		/* string */
++.PP
++.I "DEV/PORT_INDEX"
++- specifies the RDMA link to show.
++If this argument is omitted all links are listed.
 +
- 	RDMA_NLDEV_ATTR_MAX
- };
--#endif /* _RDMA_NETLINK_H */
-+#endif /* _UAPI_RDMA_NETLINK_H */
++.SH "EXAMPLES"
++.PP
++rdma resource show
++.RS 4
++Shows summary for all devices on the system.
++.RE
++.PP
++rdma resource show mlx5_2
++.RS 4
++Shows the state of specified rdma device.
++.RE
++.PP
++rdma res show qp link mlx5_4
++.RS 4
++Get all QPs for the specific device.
++.RE
++.PP
++rdma res show qp link mlx5_4/1
++.RS 4
++Get QPs of specific port.
++.RE
++.PP
++rdma res show qp link mlx5_4/0
++.RS 4
++Provide illegal port number (0 is illegal).
++.RE
++.PP
++rdma res show qp link mlx5_4/-
++.RS 4
++Get QPs which have not assigned port yet.
++.RE
++.PP
++rdma res show qp link mlx5_4/- -d
++.RS 4
++Detailed view.
++.RE
++.PP
++rdma res show qp link mlx5_4/1 lqpn 0-6
++.RS 4
++Limit to specific Local QPNs.
++.RE
++.PP
++
++.SH SEE ALSO
++.BR rdma (8),
++.BR rdma-dev (8),
++.BR rdma-link (8),
++.br
++
++.SH AUTHOR
++Leon Romanovsky <leonro@mellanox.com>
 -- 
 2.16.1
