@@ -1,60 +1,65 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH RFC 2/2] RDMA/nldev: provide detailed CM_ID information
-Date: Wed, 31 Jan 2018 21:18:39 +0000
-Message-ID: <VI1PR0502MB30088B50BEA14B4C05EA2BC7D1FB0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <cover.1517418595.git.swise@opengridcomputing.com>
- <531889e6a24f7919dec71734c91298d266aa9721.1517418595.git.swise@opengridcomputing.com>
- <VI1PR0502MB3008805F1A6056F50A12DEDBD1FB0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <01ea01d39ad5$ec30f7a0$c492e6e0$@opengridcomputing.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core] iwpmd: fix double mutex unlock
+Date: Wed, 31 Jan 2018 16:28:42 -0500
+Message-ID: <1517434122.19117.45.camel@redhat.com>
+References: <1517413071-20438-1-git-send-email-bharat@chelsio.com>
+                 <010901d39aa9$d4d66fd0$7e834f70$@opengridcomputing.com>
+                 <012d01d39aad$228c34f0$67a49ed0$@opengridcomputing.com>
+         <1517432802.19117.41.camel@redhat.com>
+         <021201d39ad8$349bb730$9dd32590$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-7RHmuK67FIRyAaJYwIOW"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <01ea01d39ad5$ec30f7a0$c492e6e0$@opengridcomputing.com>
-Content-Language: en-US
+In-Reply-To: <021201d39ad8$349bb730$9dd32590$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, jgg-uk2M96/98Pc@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+--=-7RHmuK67FIRyAaJYwIOW
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Steve Wise
-> Sent: Wednesday, January 31, 2018 2:56 PM
-> To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Jason
-> Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-> Subject: RE: [PATCH RFC 2/2] RDMA/nldev: provide detailed CM_ID informati=
-on
+On Wed, 2018-01-31 at 15:12 -0600, Steve Wise wrote:
+> > Applied to master branch, thanks.
+> >=20
 >=20
-> > > 182,6 +199,7 @@ static int fill_res_info(struct sk_buff *msg, struct
-> ib_device
-> > > *device)
-> > >  		[RDMA_RESTRACK_PD] =3D "pd",
-> > >  		[RDMA_RESTRACK_CQ] =3D "cq",
-> > >  		[RDMA_RESTRACK_QP] =3D "qp",
-> > > +		[RDMA_RESTRACK_CM_ID] =3D "cm_id",
-> >
-> > May be rdmacm_id a better name to avoid confusion with ib_cm/iw_cm ids?
->=20
-> Eventually, I could see the ib_cm and/or iw_cm info also getting dumped a=
-s part
-Yes. But it is still coming through id of rdmacm_id as transport id informa=
-tion.
-> of this.  So perhaps the name "cm_id" is ok?=20
-It's just that longer name removes the ambiguity.
-I am not too particular about this particular naming.
+> Thanks Doug.  Do I need to do some process magic to get it into stable an=
+d spin a 16.x.y point release for the EWG to pull into OFED-4.8-2? =20
 
-> I prefer it also because its shorter (lazy typer! :) )
-Sure, shorter names are useful to end user.
-But I think this is handled well at iproute2 tool level.
-For example below two commands achieves the same task.
-#ip address show
-#ip a s
-So may be shorter naming at command level is better left at user space tool=
- level.
+I added a comment to the commit on github and tagged you and Nicolas.=20
+He should pull it back for you.
+=20
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-7RHmuK67FIRyAaJYwIOW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlpyNQoACgkQuCajMw5X
+L90t4BAAjYepJFRNpDZDZDlgjAb6Q/YyvuhGMbikCQSPXcAtTabOpmlPcMz8whWk
+cOnHoc77gPoZw6U+O+aHyVoCuvwX4Ns0NkQe/0K+u7kkTlGpyZNpGRiF2NS0EAfN
+8sHydtdKdYHL2fDxPcG5A+wZKoEl3jzDzVMjC4durc91gIYYtM7DyrAyWod80wJ3
+ssNxHpCqTsdGOBlgne9uybKkFv2ODNOYZS85Av+O1+Qk8Ef326qNArI33of881re
+GLHmzuSki1fqObqBdyYPq9OFqb2NSNTmEV7/GcaKZ8kVTRTiRfVT5oO3ukLrimTe
+ouLuW/qcwXj3PPglSKWBSNQ5ljuKNV246IMdG6z8kOJoeQzhcyvQTK96ZsNrPsAf
+DKucH1dLgsYHAzv3QLzsGX4tbOCRECqAg01rP+ZzB6dD7JnflAiBZC65BssGOevX
+Sx92Ybs6EyvIsgmwJDsUcqzweF4DfNQjvL5IENsi6wnKJ+ApkZ4WVi6bGHOLa5K6
+oRhDZ29lmXCkzCY2D9lXXmPHD4wAQGsI7E9DYyPRB5nv8Efg/2vV3j1SogGKP86P
+ir/bt+wQByk8Qv7GtXhE7nYkKI84siGX4TT1WQplkwMwtG4/BuwZqfLK6dXdNBLi
+CLWR0ihHqmN2ruXIahJ5enk2aVa2KkO2KT6xQzWpx/gqIFAbHEI=
+=Vfxz
+-----END PGP SIGNATURE-----
+
+--=-7RHmuK67FIRyAaJYwIOW--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
