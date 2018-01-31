@@ -1,47 +1,63 @@
 From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [rdma-core v2 2/3] libbnxt_re: Display FW version using ibv_devinfo
-Date: Wed, 31 Jan 2018 10:28:50 -0500
-Message-ID: <1517412531-25195-3-git-send-email-devesh.sharma@broadcom.com>
+Subject: [rdma-core v2 3/3] libbnxt_re: Update and sort device pci-id table
+Date: Wed, 31 Jan 2018 10:28:51 -0500
+Message-ID: <1517412531-25195-4-git-send-email-devesh.sharma@broadcom.com>
 References: <1517412531-25195-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1517412531-25195-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Sort the pci-id table in increasing order of the
+device IDs. Add new PCI-ID for BCM880xx series of
+devices.
 
-Need to expose the 64bit fw version received as an o/p
-of ibv_cmd_query_device as a string. Fixing this in the query_device
-verb.
-
-Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- providers/bnxt_re/verbs.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ providers/bnxt_re/main.c | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
-index 2e88304..6c07646 100644
---- a/providers/bnxt_re/verbs.c
-+++ b/providers/bnxt_re/verbs.c
-@@ -58,12 +58,14 @@ int bnxt_re_query_device(struct ibv_context *ibvctx,
- 			 struct ibv_device_attr *dev_attr)
- {
- 	struct ibv_query_device cmd;
--	uint64_t fw_ver;
-+	uint8_t fw_ver[8];
- 	int status;
+diff --git a/providers/bnxt_re/main.c b/providers/bnxt_re/main.c
+index 520bf57..eae50b0 100644
+--- a/providers/bnxt_re/main.c
++++ b/providers/bnxt_re/main.c
+@@ -54,24 +54,29 @@
  
- 	memset(dev_attr, 0, sizeof(struct ibv_device_attr));
--	status = ibv_cmd_query_device(ibvctx, dev_attr, &fw_ver,
-+	status = ibv_cmd_query_device(ibvctx, dev_attr, (uint64_t *)&fw_ver,
- 				      &cmd, sizeof(cmd));
-+	snprintf(dev_attr->fw_ver, 64, "%d.%d.%d.%d",
-+		 fw_ver[0], fw_ver[1], fw_ver[2], fw_ver[3]);
- 	return status;
- }
+ #define CNA(v, d) VERBS_PCI_MATCH(PCI_VENDOR_ID_##v, d, NULL)
+ static const struct verbs_match_ent cna_table[] = {
++	CNA(BROADCOM, 0x1605),  /* BCM57454 NPAR */
++	CNA(BROADCOM, 0x1606),  /* BCM57454 VF */
++	CNA(BROADCOM, 0x1614),  /* BCM57454 */
+ 	CNA(BROADCOM, 0x16C0),  /* BCM57417 NPAR */
++	CNA(BROADCOM, 0x16C1),  /* BMC57414 VF */
+ 	CNA(BROADCOM, 0x16CE),  /* BMC57311 */
+ 	CNA(BROADCOM, 0x16CF),  /* BMC57312 */
+-	CNA(BROADCOM, 0x16DF),  /* BMC57314 */
+-	CNA(BROADCOM, 0x16E5),  /* BMC57314 VF */
+-	CNA(BROADCOM, 0x16E2),  /* BMC57417 */
+-	CNA(BROADCOM, 0x16E3),  /* BMC57416 */
+ 	CNA(BROADCOM, 0x16D6),  /* BMC57412*/
+ 	CNA(BROADCOM, 0x16D7),  /* BMC57414 */
+ 	CNA(BROADCOM, 0x16D8),  /* BMC57416 Cu */
+ 	CNA(BROADCOM, 0x16D9),  /* BMC57417 Cu */
+-	CNA(BROADCOM, 0x16C1),  /* BMC57414 VF */
+-	CNA(BROADCOM, 0x16EF),  /* BCM57416 NPAR */
++	CNA(BROADCOM, 0x16DF),  /* BMC57314 */
++	CNA(BROADCOM, 0x16E2),  /* BMC57417 */
++	CNA(BROADCOM, 0x16E3),  /* BMC57416 */
++	CNA(BROADCOM, 0x16E5),  /* BMC57314 VF */
+ 	CNA(BROADCOM, 0x16ED),  /* BCM57414 NPAR */
+ 	CNA(BROADCOM, 0x16EB),  /* BCM57412 NPAR */
++	CNA(BROADCOM, 0x16EF),  /* BCM57416 NPAR */
+ 	CNA(BROADCOM, 0x16F0),  /* BCM58730 */
+ 	CNA(BROADCOM, 0x16F1),  /* BCM57452 */
++	CNA(BROADCOM, 0xD800),  /* BCM880xx VF */
+ 	CNA(BROADCOM, 0xD802),  /* BCM58802 */
++	CNA(BROADCOM, 0xD804),   /* BCM8804 SR */
+ 	{}
+ };
  
 -- 
 1.8.3.1
