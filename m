@@ -1,108 +1,80 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: ib_create_qp failing
-Date: Wed, 31 Jan 2018 15:58:15 +0200
-Message-ID: <20180131135815.GA2055@mtr-leonro.local>
-References: <OF089AD255.99D19AC9-ONC2258224.002F8CF2-C2258224.00309558@notes.na.collabserv.com>
- <AM4PR0501MB27239EF18E2C07A64B045674D4E50@AM4PR0501MB2723.eurprd05.prod.outlook.com>
- <OF09394B7D.58CD59F8-ONC2258224.006BDAF8-C2258224.006F854D@notes.na.collabserv.com>
- <fd693fbd-1387-0298-49d0-035e224f07d8@mellanox.com>
- <OF85410752.DF2BA5BF-ONC2258225.002CFF83-C2258225.002EB65B@notes.na.collabserv.com>
+From: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v1] xprtrdma: Fix calculation of ri_max_send_sges
+Date: Wed, 31 Jan 2018 14:04:05 +0000
+Message-ID: <CY1PR0701MB201216E6A13D1BC0E4A74FDB88FB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+References: <20180130205344.13588.11646.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="uFO8jlCBh1yRPqfb"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <OF85410752.DF2BA5BF-ONC2258225.002CFF83-C2258225.002EB65B-8eTO7WVQ4XIsd+ienQ86orlN3bxYEBpz@public.gmane.org>
+In-Reply-To: <20180130205344.13588.11646.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joel Nider <JOELN-7z/5BgaJwgfQT0dZR+AlfA@public.gmane.org>
-Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---uFO8jlCBh1yRPqfb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Jan 30, 2018 at 10:30:13AM +0200, Joel Nider wrote:
-> Hi Mark,
->
-> Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote on 29/01/2018 22:47:04:
->
-> > > I am using ConnectX5 EN with special firmware (I just mention it so
-> you
-> > > know, but I'm pretty sure that's not the problem).  I have used
-> dynamic
-> > > debug - it shows me that the call is failing like this:
-> > >
-> > > mlx5_core 0000:01:00.0: mlx5_cmd_check:714:(pid 120772):
-> CREATE_QP(0x500)
-> > > op_mod(0x0) failed, status bad parameter(0x3), syndrome (0x48b5c0)
-> >
-> > The syndrome means: "create_qp: invalid service type for RoCE"
-> > what QP type are you trying to create and with what parameters?
->
-> I'm trying to create an RC connection - here is an outline of my code:
-> In module_init(): ib_register_client() -> registers callback
-> on_device_add()
-> On_device_add(): I only have one device (mlx5_0) and I save the ib_device*
-> to a linked list
-> From sysfs, a user writes the name (string) of the device to use - this
-> starts the setup procedure
-> ib_register_event_handler(rpf_ib_qp_event_handler)
-> ib_query_port(dev, 1) -> state=4 max_mtu=4096 active_mtu=1024 gid_len=256
-> caps=0x4010000
-> ib_create_cq() -> rx completion queue
-> ib_create_cq() -> tx completion queue
-> ib_alloc_pd() -> the protection domain
-> ib_create_qp() with:
->
->         struct ib_qp_init_attr qp_attr = {
->                 .event_handler = rpf_ib_qp_event_handler,
->                 .qp_context = res,
->                 .send_cq = res->tx_cq,
->                 .recv_cq = res->rx_cq,
->                 .srq = NULL,
->                 .cap = {
->                         .max_send_wr = 16,
->                         .max_recv_wr = 48,
->                         .max_send_sge = 2,
->                         .max_recv_sge = 1,
->                 },
->                 .sq_sig_type = IB_SIGNAL_REQ_WR,
->                 .qp_type = IB_QPT_RC,
->         };
->
-> Fails with the code I mentioned earlier.  This used to fail even earlier
-> until I discovered that ib_query_port() has some interesting side effects,
-> and is mandatory. Maybe there is some other function that I need to call
-> to set up some state first?
-
-We strongly recommend you to contact the customer support
-representative, because you are getting FW error from custom FW.
-
-Thanks
-
---uFO8jlCBh1yRPqfb
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpxy3cACgkQ5GN7iDZy
-WKdVpxAAt434dRKhj4PymwSDegh1kzpE95pdaM5iMjWdCDW3znDWRmVhf3McFyW7
-kK5jPJ3OL/WfqDzfB4ZCtJDp3Auk+c9hkqc6SqSRtyR4f1dcRMqoYUSbIPvBFjrA
-lKGcQAxaM3iY0PQsX0OuVIBrgT0NR2cCuFx7cVbqJWa3vWf7TLrDBUTxRC2dFmaB
-7pbZCzZ4qo7SQqEJIenAO1GgQ7odOwLXvrsisuP4KoDy0z6f6NhHtqz5FJzlVf71
-4kN+u7TYYs8hZKziFo8t2cP0qw5arYv5W2Z60vtC5MDj+P104GONrgFZu0/oVfOJ
-6XNFF3JR3IxWnrkRlmdoFlxmcnRgzoTB6RayezdeaRtav/AAxNG/6znoKdlhO56y
-MQXJJ30HQxgQxeCc+JWhqG1ADjy3WVwRo1ovOy6CCUU5JkbBzaecKc1/tdFnbY/y
-pRK0YhngX/+TmrhSSW9cNjXajGIB+RMtFf/pIFkimeqOsXVJZ3j5VBer5w9fOn5M
-vYKp0s1i9+aIag7H3Ad2qpiP5+pcCR6ZZdbJYBxFRno+WanlyPvPwbcXI36LseHc
-//6p9Ic1l2QcJ06UCzUOPJu0FN53a6E3J6QGAp2+AnVTcC5Wv+AIBOfdxBqr02u3
-Q+izTHJnUvi+mjH5/cr47xB8sdFPPYUORRV4937aPD4W9LW9BXY=
-=s/ge
------END PGP SIGNATURE-----
-
---uFO8jlCBh1yRPqfb--
+PiBGcm9tOiBDaHVjayBMZXZlciBbbWFpbHRvOmNodWNrbGV2ZXJAZ21haWwuY29tXSBPbiBCZWhh
+bGYgT2YgQ2h1Y2sgTGV2ZXINCj4gU2VudDogVHVlc2RheSwgSmFudWFyeSAzMCwgMjAxOCAxMDo1
+NCBQTQ0KPiBUbzogS2FsZGVyb24sIE1pY2hhbCA8TWljaGFsLkthbGRlcm9uQGNhdml1bS5jb20+
+DQo+IENjOiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgbGludXgtbmZzQHZnZXIua2VybmVs
+Lm9yZw0KPiBTdWJqZWN0OiBbUEFUQ0ggdjFdIHhwcnRyZG1hOiBGaXggY2FsY3VsYXRpb24gb2Yg
+cmlfbWF4X3NlbmRfc2dlcw0KPiANCj4gQ29tbWl0IDE2ZjkwNmQ2NmNkNyAoInhwcnRyZG1hOiBS
+ZWR1Y2UgcmVxdWlyZWQgbnVtYmVyIG9mIHNlbmQNCj4gU0dFcyIpIGludHJvZHVjZWQgdGhlIHJw
+Y3JkbWFfaWE6OnJpX21heF9zZW5kX3NnZXMgZmllbGQuIFRoaXMgZml4ZXMgYQ0KPiBwcm9ibGVt
+IHdoZXJlIHhwcnRyZG1hIHdvdWxkIG5vdCB3b3JrIGlmIHRoZSBkZXZpY2UncyBtYXhfc2dlIGNh
+cGFiaWxpdHkNCj4gd2FzIHNtYWxsIChsb3cgc2luZ2xlIGRpZ2l0cykuDQo+IA0KPiBBdCBsZWFz
+dCBSUENSRE1BX01JTl9TRU5EX1NHRVMgYXJlIG5lZWRlZCBmb3IgdGhlIGlubGluZSBwYXJ0cyBv
+ZiBlYWNoDQo+IFJQQy4gcmlfbWF4X3NlbmRfc2dlcyBpcyBzZXQgdG8gdGhpcyB2YWx1ZToNCj4g
+DQo+ICAgaWEtPnJpX21heF9zZW5kX3NnZXMgPSBtYXhfc2dlIC0gUlBDUkRNQV9NSU5fU0VORF9T
+R0VTOw0KPiANCj4gVGhlbiB3aGVuIG1hcnNoYWxpbmcgZWFjaCBSUEMsIHJwY3JkbWFfYXJnc19p
+bmxpbmUgdXNlcyB0aGF0IHZhbHVlIHRvDQo+IGRldGVybWluZSB3aGV0aGVyIHRoZSBkZXZpY2Ug
+aGFzIGVub3VnaCBTZW5kIFNHRXMgdG8gY29udmV5IGFuIE5GUw0KPiBXUklURSBwYXlsb2FkIGlu
+bGluZSwgb3Igd2hldGhlciBpbnN0ZWFkIGEgUmVhZCBjaHVuayBpcyByZXF1aXJlZC4NCj4gDQo+
+IE1vcmUgcmVjZW50bHksIGNvbW1pdCBhZTcyOTUwYWJmOTkgKCJ4cHJ0cmRtYTogQWRkIGRhdGEg
+c3RydWN0dXJlIHRvDQo+IG1hbmFnZSBSRE1BIFNlbmQgYXJndW1lbnRzIikgdXNlZCB0aGUgcmlf
+bWF4X3NlbmRfc2dlcyB2YWx1ZSB0bw0KPiBjYWxjdWxhdGUgdGhlIHNpemUgb2YgYW4gYXJyYXks
+IGJ1dCB0aGF0IGNvbW1pdCBlcnJvbmVvdXNseSBhc3N1bWVkDQo+IHJpX21heF9zZW5kX3NnZXMg
+Y29udGFpbnMgYSB2YWx1ZSBzaW1pbGFyIHRvIHRoZSBkZXZpY2UncyBtYXhfc2dlLCBhbmQgbm90
+DQo+IG9uZSB0aGF0IHdhcyByZWR1Y2VkIGJ5IHRoZSBtaW5pbXVtIFNHRSBjb3VudC4NCj4gDQo+
+IFRoaXMgYXNzdW1wdGlvbiByZXN1bHRzIGluIHRoZSBjYWxjdWxhdGVkIHNpemUgb2YgdGhlIHNl
+bmRjdHgncyBTZW5kIFNHRSBhcnJheQ0KPiB0byBiZSB0b28gc21hbGwuIFdoZW4gdGhlIGFycmF5
+IGlzIHVzZWQgdG8gbWFyc2hhbCBhbiBSUEMsIHRoZSBjb2RlIGNhbiB3cml0ZQ0KPiBTZW5kIFNH
+RXMgaW50byB0aGUgZm9sbG93aW5nIHNlbmRjdHggZWxlbWVudCBpbiB0aGF0IGFycmF5LCBjb3Jy
+dXB0aW5nIGl0Lg0KPiBXaGVuIHRoZSBkZXZpY2UncyBtYXhfc2dlIGlzIGxhcmdlLCB0aGlzIGlz
+c3VlIGlzIGVudGlyZWx5IGhhcm1sZXNzOyBidXQgaXQNCj4gcmVzdWx0cyBpbiBhbiBvb3BzIGlu
+IHRoZSBwcm92aWRlcidzIHBvc3Rfc2VuZCBtZXRob2QsIGlmIGRldi5hdHRycy5tYXhfc2dlDQo+
+IGlzIHNtYWxsLg0KPiANCj4gU28gbGV0J3Mgc3RyYWlnaHRlbiB0aGlzIG91dDogcmlfbWF4X3Nl
+bmRfc2dlcyB3aWxsIG5vdyBjb250YWluIGEgdmFsdWUgd2l0aA0KPiB0aGUgc2FtZSBtZWFuaW5n
+IGFzIGRldi5hdHRycy5tYXhfc2dlLCB3aGljaCBtYWtlcyB0aGUgY29kZSBlYXNpZXIgdG8NCj4g
+dW5kZXJzdGFuZCwgYW5kIGVuYWJsZXMgcnBjcmRtYV9zZW5kY3R4X2NyZWF0ZSB0byBjYWxjdWxh
+dGUgdGhlIHNpemUgb2YNCj4gdGhlIFNHRSBhcnJheSBjb3JyZWN0bHkuDQo+IA0KPiBSZXBvcnRl
+ZC1ieTogTWljaGFsIEthbGRlcm9uIDxNaWNoYWwuS2FsZGVyb25AY2F2aXVtLmNvbT4NCj4gRml4
+ZXM6IDE2ZjkwNmQ2NmNkNyAoInhwcnRyZG1hOiBSZWR1Y2UgcmVxdWlyZWQgbnVtYmVyIG9mIHNl
+bmQgU0dFcyIpDQo+IFNpZ25lZC1vZmYtYnk6IENodWNrIExldmVyIDxjaHVjay5sZXZlckBvcmFj
+bGUuY29tPg0KPiAtLS0NCj4gIG5ldC9zdW5ycGMveHBydHJkbWEvcnBjX3JkbWEuYyB8ICAgIDIg
+Ky0NCj4gIG5ldC9zdW5ycGMveHBydHJkbWEvdmVyYnMuYyAgICB8ICAgIDIgKy0NCj4gIDIgZmls
+ZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAt
+LWdpdCBhL25ldC9zdW5ycGMveHBydHJkbWEvcnBjX3JkbWEuYw0KPiBiL25ldC9zdW5ycGMveHBy
+dHJkbWEvcnBjX3JkbWEuYyBpbmRleCAxNjJlNWRkLi5mMDg1NWE5IDEwMDY0NA0KPiAtLS0gYS9u
+ZXQvc3VucnBjL3hwcnRyZG1hL3JwY19yZG1hLmMNCj4gKysrIGIvbmV0L3N1bnJwYy94cHJ0cmRt
+YS9ycGNfcmRtYS5jDQo+IEBAIC0xNDMsNyArMTQzLDcgQEAgc3RhdGljIGJvb2wgcnBjcmRtYV9h
+cmdzX2lubGluZShzdHJ1Y3QgcnBjcmRtYV94cHJ0DQo+ICpyX3hwcnQsDQo+ICAJaWYgKHhkci0+
+cGFnZV9sZW4pIHsNCj4gIAkJcmVtYWluaW5nID0geGRyLT5wYWdlX2xlbjsNCj4gIAkJb2Zmc2V0
+ID0gb2Zmc2V0X2luX3BhZ2UoeGRyLT5wYWdlX2Jhc2UpOw0KPiAtCQljb3VudCA9IDA7DQo+ICsJ
+CWNvdW50ID0gUlBDUkRNQV9NSU5fU0VORF9TR0VTOw0KPiAgCQl3aGlsZSAocmVtYWluaW5nKSB7
+DQo+ICAJCQlyZW1haW5pbmcgLT0gbWluX3QodW5zaWduZWQgaW50LA0KPiAgCQkJCQkgICBQQUdF
+X1NJWkUgLSBvZmZzZXQsIHJlbWFpbmluZyk7IGRpZmYNCj4gLS1naXQgYS9uZXQvc3VucnBjL3hw
+cnRyZG1hL3ZlcmJzLmMgYi9uZXQvc3VucnBjL3hwcnRyZG1hL3ZlcmJzLmMgaW5kZXgNCj4gZjRl
+YjYzZS4uYmI1NmI5ZCAxMDA2NDQNCj4gLS0tIGEvbmV0L3N1bnJwYy94cHJ0cmRtYS92ZXJicy5j
+DQo+ICsrKyBiL25ldC9zdW5ycGMveHBydHJkbWEvdmVyYnMuYw0KPiBAQCAtNTA1LDcgKzUwNSw3
+IEBADQo+ICAJCXByX3dhcm4oInJwY3JkbWE6IEhDQSBwcm92aWRlcyBvbmx5ICVkIHNlbmQgU0dF
+c1xuIiwNCj4gbWF4X3NnZSk7DQo+ICAJCXJldHVybiAtRU5PTUVNOw0KPiAgCX0NCj4gLQlpYS0+
+cmlfbWF4X3NlbmRfc2dlcyA9IG1heF9zZ2UgLSBSUENSRE1BX01JTl9TRU5EX1NHRVM7DQo+ICsJ
+aWEtPnJpX21heF9zZW5kX3NnZXMgPSBtYXhfc2dlOw0KPiANCj4gIAlpZiAoaWEtPnJpX2Rldmlj
+ZS0+YXR0cnMubWF4X3FwX3dyIDw9IFJQQ1JETUFfQkFDS1dBUkRfV1JTKQ0KPiB7DQo+ICAJCWRw
+cmludGsoIlJQQzogICAgICAgJXM6IGluc3VmZmljaWVudCB3cWUncyBhdmFpbGFibGVcbiIsDQoN
+CnRoYW5rcywgdGhpcyBmaXhlZCBvdXIgZmlyc3QgaXNzdWUgb2YgbW91bnQgZmFpbGluZy4gDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
