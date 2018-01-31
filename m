@@ -1,61 +1,80 @@
-From: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v1] xprtrdma: Fix BUG after a device removal
-Date: Wed, 31 Jan 2018 17:29:40 +0000
-Message-ID: <CY1PR0701MB2012B2D48A30308AF6DFA77C88FB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
-References: <20180131160345.10828.7644.stgit@manet.1015granger.net>
+From: "Bernard Metzler" <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: RE: [PATCH v3 06/13] SoftiWarp connection management
+Date: Wed, 31 Jan 2018 17:28:26 +0000
+Message-ID: <OF06844577.AB3196A8-ON00258226.005F3420-00258226.005FFCF9@notes.na.collabserv.com>
+References: <047b01d39a11$27609940$7621cbc0$@opengridcomputing.com>,<20180114223603.19961-1-bmt@zurich.ibm.com>
+ <20180114223603.19961-7-bmt@zurich.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180131160345.10828.7644.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <047b01d39a11$27609940$7621cbc0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGcm9tOiBDaHVjayBMZXZlciBbbWFpbHRvOmNodWNrbGV2ZXJAZ21haWwuY29tXSBPbiBCZWhh
-bGYgT2YgQ2h1Y2sgTGV2ZXINCj4gU2VudDogV2VkbmVzZGF5LCBKYW51YXJ5IDMxLCAyMDE4IDY6
-MDQgUE0NCj4gVG86IEthbGRlcm9uLCBNaWNoYWwgPE1pY2hhbC5LYWxkZXJvbkBjYXZpdW0uY29t
-Pg0KPiBDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogW1BBVENIIHYx
-XSB4cHJ0cmRtYTogRml4IEJVRyBhZnRlciBhIGRldmljZSByZW1vdmFsDQo+IA0KPiBNaWNoYWwg
-S2FsZGVyb24gcmVwb3J0cyBhIEJVRyB0aGF0IG9jY3VycyBqdXN0IGFmdGVyIGRldmljZSByZW1v
-dmFsOg0KPiANCj4gWyAgMTY5LjExMjQ5MF0gcnBjcmRtYTogcmVtb3ZpbmcgZGV2aWNlIHFlZHIw
-IGZvciAxOTIuMTY4LjExMC4xNDY6MjAwNDkgWw0KPiAxNjkuMTQzOTA5XSBCVUc6IHVuYWJsZSB0
-byBoYW5kbGUga2VybmVsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBhdA0KPiAwMDAwMDAwMDAw
-MDAwMDEwIFsgIDE2OS4xODE4MzddIElQOiBycGNyZG1hX2RtYV91bm1hcF9yZWdidWYrMHhhLzB4
-NjANCj4gW3JwY3JkbWFdDQo+IA0KPiBUaGUgUlBDL1JETUEgY2xpZW50IHRyYW5zcG9ydCBhdHRl
-bXB0cyB0byBhbGxvY2F0ZSBzb21lIHJlc291cmNlcyBvbg0KPiBkZW1hbmQuIFJlZ2lzdGVyZWQg
-YnVmZmVycyBhcmUgb25lIHN1Y2ggcmVzb3VyY2UuIFRoZXNlIGFyZSBhbGxvY2F0ZWQgKG9yDQo+
-IHJlLWFsbG9jYXRlZCkgYnkgeHBydF9yZG1hX2FsbG9jYXRlIHRvIGhvbGQgUlBDIENhbGwgYW5k
-IFJlcGx5IG1lc3NhZ2VzLiBBDQo+IGhhcmR3YXJlIHJlc291cmNlIGlzIGFzc29jaWF0ZWQgd2l0
-aCBlYWNoIG9mIHRoZXNlIGJ1ZmZlcnMsIGFzIHRoZXkgY2FuIGJlDQo+IHVzZWQgZm9yIGEgU2Vu
-ZCBvciBSZWNlaXZlIFdvcmsgUmVxdWVzdC4NCj4gDQo+IElmIGEgZGV2aWNlIGlzIHJlbW92ZWQg
-ZnJvbSB1bmRlciBhbiBORlMvUkRNQSBtb3VudCwgdGhlIHRyYW5zcG9ydCBsYXllcg0KPiBpcyBy
-ZXNwb25zaWJsZSBmb3IgcmVsZWFzaW5nIGFsbCBoYXJkd2FyZSByZXNvdXJjZXMgYmVmb3JlIHRo
-ZSBkZXZpY2UgY2FuIGJlDQo+IGZpbmFsbHkgdW5wbHVnZ2VkLiBBIEJVRyByZXN1bHRzIHdoZW4g
-dGhlIE5GUyBtb3VudCBoYXNuJ3QgeWV0IHNlZW4gbXVjaA0KPiBhY3Rpdml0eTogdGhlIHRyYW5z
-cG9ydCB0cmllcyB0byByZWxlYXNlIHJlc291cmNlcyB0aGF0IGhhdmVuJ3QgeWV0IGJlZW4NCj4g
-YWxsb2NhdGVkLg0KPiANCj4gcnBjcmRtYV9mcmVlX3JlZ2J1ZigpIGFscmVhZHkgY2hlY2tzIGZv
-ciB0aGlzIGNhc2UsIHNvIGp1c3QgbW92ZSB0aGF0IGNoZWNrDQo+IHRvIGNvdmVyIHRoZSBERVZJ
-Q0VfUkVNT1ZBTCBjYXNlIGFzIHdlbGwuDQo+IA0KPiBSZXBvcnRlZC1ieTogTWljaGFsIEthbGRl
-cm9uIDxNaWNoYWwuS2FsZGVyb25AY2F2aXVtLmNvbT4NCj4gRml4ZXM6IGJlYmQwMzE4NjZjYSAo
-InhwcnRyZG1hOiBTdXBwb3J0IHVucGx1Z2dpbmcgYW4gSENBIC4uLiIpDQo+IFNpZ25lZC1vZmYt
-Ynk6IENodWNrIExldmVyIDxjaHVjay5sZXZlckBvcmFjbGUuY29tPg0KPiAtLS0NCj4gIG5ldC9z
-dW5ycGMveHBydHJkbWEvdmVyYnMuYyB8ICAgIDYgKysrLS0tDQo+ICAxIGZpbGUgY2hhbmdlZCwg
-MyBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL25ldC9z
-dW5ycGMveHBydHJkbWEvdmVyYnMuYyBiL25ldC9zdW5ycGMveHBydHJkbWEvdmVyYnMuYw0KPiBp
-bmRleCBiYjU2YjlkLi5lNmY4NGE2IDEwMDY0NA0KPiAtLS0gYS9uZXQvc3VucnBjL3hwcnRyZG1h
-L3ZlcmJzLmMNCj4gKysrIGIvbmV0L3N1bnJwYy94cHJ0cmRtYS92ZXJicy5jDQo+IEBAIC0xNTAy
-LDYgKzE1MDIsOSBAQCBzdHJ1Y3QgcnBjcmRtYV9yZWdidWYgKiAgc3RhdGljIHZvaWQNCj4gcnBj
-cmRtYV9kbWFfdW5tYXBfcmVnYnVmKHN0cnVjdCBycGNyZG1hX3JlZ2J1ZiAqcmIpICB7DQo+ICsJ
-aWYgKCFyYikNCj4gKwkJcmV0dXJuOw0KPiArDQo+ICAJaWYgKCFycGNyZG1hX3JlZ2J1Zl9pc19t
-YXBwZWQocmIpKQ0KPiAgCQlyZXR1cm47DQo+IA0KPiBAQCAtMTUxNyw5ICsxNTIwLDYgQEAgc3Ry
-dWN0IHJwY3JkbWFfcmVnYnVmICogIHZvaWQNCj4gcnBjcmRtYV9mcmVlX3JlZ2J1ZihzdHJ1Y3Qg
-cnBjcmRtYV9yZWdidWYgKnJiKSAgew0KPiAtCWlmICghcmIpDQo+IC0JCXJldHVybjsNCj4gLQ0K
-PiAgCXJwY3JkbWFfZG1hX3VubWFwX3JlZ2J1ZihyYik7DQo+ICAJa2ZyZWUocmIpOw0KPiAgfQ0K
-VGhhbmtzLA0KVGVzdGVkLWJ5OiBNaWNoYWwgS2FsZGVyb24gPE1pY2hhbC5LYWxkZXJvbkBjYXZp
-dW0uY29tPg0KDQo=
+
+-----"Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote: -----
+
+>To: "'Bernard Metzler'" <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>,
+><linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+>From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+>Date: 01/30/2018 10:27PM
+>Subject: RE: [PATCH v3 06/13] SoftiWarp connection management
+>
+>> 
+>> Signed-off-by: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+>> ---
+>>  drivers/infiniband/sw/siw/siw_cm.c | 2184
+>> ++++++++++++++++++++++++++++++++++++
+>>  drivers/infiniband/sw/siw/siw_cm.h |  156 +++
+>>  2 files changed, 2340 insertions(+)
+>>  create mode 100644 drivers/infiniband/sw/siw/siw_cm.c
+>>  create mode 100644 drivers/infiniband/sw/siw/siw_cm.h
+>
+><snip>
+>
+>> diff --git a/drivers/infiniband/sw/siw/siw_cm.h
+
+
+<snip>
+
+>> +
+>> +/*
+>> + * Connection initiator waits 10 seconds to receive an
+>> + * MPA reply after sending out MPA request. Reponder waits for
+>> + * 5 seconds for MPA request to arrive if new TCP connection
+>> + * was set up.
+>> + */
+>> +#define MPAREQ_TIMEOUT	(HZ*10)
+>> +#define MPAREP_TIMEOUT	(HZ*5)
+>> +
+>
+>These timeout times seem pretty low for a WAN link or even a brief
+>network
+>down event during MPA negotiation connection.   Any particular reason
+>for 10
+>and 5?
+>
+>
+>
+i picked those rather small numbers since it covers basically
+only the latency after the TCP connection went up, so the
+timer gets started only after the TCP connection was
+established. at client side, we wait 5 seconds after sending the MPA
+request to get the reply. on server side, we wait 10 seconds
+for the MPA request, after we have accepted a new TCP connection.
+
+maybe i shall make that longer? but the only real delay we have to
+deal with is the server side application which thinks too long
+if it shall 'accept' or 'reject' (maybe that is very artifical,
+but i had to deal with cases of an application which never rejected/
+accepted).
+
+thanks
+Bernard.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
