@@ -1,69 +1,48 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1] xprtrdma: Fix BUG after a device removal
-Date: Wed, 31 Jan 2018 11:03:45 -0500
-Message-ID: <20180131160345.10828.7644.stgit@manet.1015granger.net>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH rdma-core] iwpmd: fix double mutex unlock
+Date: Wed, 31 Jan 2018 10:04:12 -0600
+Message-ID: <012d01d39aad$228c34f0$67a49ed0$@opengridcomputing.com>
+References: <1517413071-20438-1-git-send-email-bharat@chelsio.com> <010901d39aa9$d4d66fd0$7e834f70$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+        charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <010901d39aa9$d4d66fd0$7e834f70$@opengridcomputing.com>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
+To: 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Michal Kalderon reports a BUG that occurs just after device removal:
+> >
+> > pthread_mutex_unlock() is used twice and this patch fixes it.
+> >
+> > Fixes: be3fbf85b ("iwpmd: use ccan list.h for pending_messages")
+> > Signed-off-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> > ---
+> >  iwpmd/iwarp_pm_helper.c | 1 -
+> >  1 file changed, 1 deletion(-)
+> >
+> > diff --git a/iwpmd/iwarp_pm_helper.c b/iwpmd/iwarp_pm_helper.c
+> > index bebc151f329b..b8c230189d50 100644
+> > --- a/iwpmd/iwarp_pm_helper.c
+> > +++ b/iwpmd/iwarp_pm_helper.c
+> > @@ -578,7 +578,6 @@ int add_iwpm_pending_msg(iwpm_send_msg
+> > *send_msg)
+> >
+> >  	pthread_mutex_lock(&pending_msg_mutex);
+> >  	list_add(&pending_messages, &pending_msg->entry);
+> > - 	pthread_mutex_unlock(&pending_msg_mutex);
+> >  	pthread_mutex_unlock(&pending_msg_mutex);
+> >  	/* signal the thread that a new message has been posted */
+> >  	pthread_cond_signal(&cond_pending_msg);
+> 
+> Good catch.
+> 
+> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-[  169.112490] rpcrdma: removing device qedr0 for 192.168.110.146:20049
-[  169.143909] BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
-[  169.181837] IP: rpcrdma_dma_unmap_regbuf+0xa/0x60 [rpcrdma]
-
-The RPC/RDMA client transport attempts to allocate some resources
-on demand. Registered buffers are one such resource. These are
-allocated (or re-allocated) by xprt_rdma_allocate to hold RPC Call
-and Reply messages. A hardware resource is associated with each of
-these buffers, as they can be used for a Send or Receive Work
-Request.
-
-If a device is removed from under an NFS/RDMA mount, the transport
-layer is responsible for releasing all hardware resources before
-the device can be finally unplugged. A BUG results when the NFS
-mount hasn't yet seen much activity: the transport tries to release
-resources that haven't yet been allocated.
-
-rpcrdma_free_regbuf() already checks for this case, so just move
-that check to cover the DEVICE_REMOVAL case as well.
-
-Reported-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Fixes: bebd031866ca ("xprtrdma: Support unplugging an HCA ...")
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/verbs.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index bb56b9d..e6f84a6 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -1502,6 +1502,9 @@ struct rpcrdma_regbuf *
- static void
- rpcrdma_dma_unmap_regbuf(struct rpcrdma_regbuf *rb)
- {
-+	if (!rb)
-+		return;
-+
- 	if (!rpcrdma_regbuf_is_mapped(rb))
- 		return;
- 
-@@ -1517,9 +1520,6 @@ struct rpcrdma_regbuf *
- void
- rpcrdma_free_regbuf(struct rpcrdma_regbuf *rb)
- {
--	if (!rb)
--		return;
--
- 	rpcrdma_dma_unmap_regbuf(rb);
- 	kfree(rb);
- }
+And this definitely needs to flow to stable.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
