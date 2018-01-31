@@ -1,126 +1,90 @@
-From: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v1] xprtrdma: Fix calculation of ri_max_send_sges
-Date: Wed, 31 Jan 2018 15:06:19 +0000
-Message-ID: <CY1PR0701MB2012AD8665B6DDCE033B518088FB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
-References: <20180130205344.13588.11646.stgit@manet.1015granger.net>
- <CY1PR0701MB201216E6A13D1BC0E4A74FDB88FB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <65A80728-B565-4E03-B50A-4F22FC1342DA@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <65A80728-B565-4E03-B50A-4F22FC1342DA-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [rdma-core v2 1/3] libbnxt_re: Fix lat test failure in event mode
+Date: Wed, 31 Jan 2018 10:28:49 -0500
+Message-ID: <1517412531-25195-2-git-send-email-devesh.sharma@broadcom.com>
+References: <1517412531-25195-1-git-send-email-devesh.sharma@broadcom.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1517412531-25195-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The application assumes that, when CQ is armed, it gives interrupt
+for the new CQEs generated and not for the existing CQEs. This is
+in-line with the IB-Spec. However, Broadcom HW generates an interrupt
+for any unread CQEs not just new ones. This results in a scenario
+where the application is expecting a completion for a SEND operation
+but it receives a completion for a prior incoming-send/RQE that was
+not yet consumed as per the HW thereby leading to failure.
+Workaround this by deferring the ARM-ing of the CQ when invoked in
+the notify_cq hook to 'poll_cq' so that the CQ is armed after all
+completions are consumed.
 
+Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+---
+ providers/bnxt_re/main.h  |  3 +++
+ providers/bnxt_re/verbs.c | 13 ++++++++++++-
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
-> -----Original Message-----
-> From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
-> Sent: Wednesday, January 31, 2018 5:04 PM
-> To: Kalderon, Michal <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linux NFS Mailing List <linux-
-> nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> Subject: Re: [PATCH v1] xprtrdma: Fix calculation of ri_max_send_sges
->=20
->=20
->=20
-> > On Jan 31, 2018, at 9:04 AM, Kalderon, Michal
-> <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org> wrote:
-> >
-> >> From: Chuck Lever [mailto:chucklever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] On Behalf Of Chuck
-> >> Lever
-> >> Sent: Tuesday, January 30, 2018 10:54 PM
-> >> To: Kalderon, Michal <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> >> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >> Subject: [PATCH v1] xprtrdma: Fix calculation of ri_max_send_sges
-> >>
-> >> Commit 16f906d66cd7 ("xprtrdma: Reduce required number of send
-> >> SGEs") introduced the rpcrdma_ia::ri_max_send_sges field. This fixes
-> >> a problem where xprtrdma would not work if the device's max_sge
-> >> capability was small (low single digits).
-> >>
-> >> At least RPCRDMA_MIN_SEND_SGES are needed for the inline parts of
-> >> each RPC. ri_max_send_sges is set to this value:
-> >>
-> >>  ia->ri_max_send_sges =3D max_sge - RPCRDMA_MIN_SEND_SGES;
-> >>
-> >> Then when marshaling each RPC, rpcrdma_args_inline uses that value to
-> >> determine whether the device has enough Send SGEs to convey an NFS
-> >> WRITE payload inline, or whether instead a Read chunk is required.
-> >>
-> >> More recently, commit ae72950abf99 ("xprtrdma: Add data structure to
-> >> manage RDMA Send arguments") used the ri_max_send_sges value to
-> >> calculate the size of an array, but that commit erroneously assumed
-> >> ri_max_send_sges contains a value similar to the device's max_sge,
-> >> and not one that was reduced by the minimum SGE count.
-> >>
-> >> This assumption results in the calculated size of the sendctx's Send
-> >> SGE array to be too small. When the array is used to marshal an RPC,
-> >> the code can write Send SGEs into the following sendctx element in tha=
-t
-> array, corrupting it.
-> >> When the device's max_sge is large, this issue is entirely harmless;
-> >> but it results in an oops in the provider's post_send method, if
-> >> dev.attrs.max_sge is small.
-> >>
-> >> So let's straighten this out: ri_max_send_sges will now contain a
-> >> value with the same meaning as dev.attrs.max_sge, which makes the
-> >> code easier to understand, and enables rpcrdma_sendctx_create to
-> >> calculate the size of the SGE array correctly.
-> >>
-> >> Reported-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> >> Fixes: 16f906d66cd7 ("xprtrdma: Reduce required number of send SGEs")
-> >> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> >> ---
-> >> net/sunrpc/xprtrdma/rpc_rdma.c |    2 +-
-> >> net/sunrpc/xprtrdma/verbs.c    |    2 +-
-> >> 2 files changed, 2 insertions(+), 2 deletions(-)
-> >>
-> >> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c
-> >> b/net/sunrpc/xprtrdma/rpc_rdma.c index 162e5dd..f0855a9 100644
-> >> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
-> >> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-> >> @@ -143,7 +143,7 @@ static bool rpcrdma_args_inline(struct
-> >> rpcrdma_xprt *r_xprt,
-> >> 	if (xdr->page_len) {
-> >> 		remaining =3D xdr->page_len;
-> >> 		offset =3D offset_in_page(xdr->page_base);
-> >> -		count =3D 0;
-> >> +		count =3D RPCRDMA_MIN_SEND_SGES;
-> >> 		while (remaining) {
-> >> 			remaining -=3D min_t(unsigned int,
-> >> 					   PAGE_SIZE - offset, remaining); diff
-> --git
-> >> a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c index
-> >> f4eb63e..bb56b9d 100644
-> >> --- a/net/sunrpc/xprtrdma/verbs.c
-> >> +++ b/net/sunrpc/xprtrdma/verbs.c
-> >> @@ -505,7 +505,7 @@
-> >> 		pr_warn("rpcrdma: HCA provides only %d send SGEs\n",
-> max_sge);
-> >> 		return -ENOMEM;
-> >> 	}
-> >> -	ia->ri_max_send_sges =3D max_sge - RPCRDMA_MIN_SEND_SGES;
-> >> +	ia->ri_max_send_sges =3D max_sge;
-> >>
-> >> 	if (ia->ri_device->attrs.max_qp_wr <=3D RPCRDMA_BACKWARD_WRS)
-> {
-> >> 		dprintk("RPC:       %s: insufficient wqe's available\n",
-> >
-> > thanks, this fixed our first issue of mount failing.
->=20
-> May I add "Tested-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>" ?
->=20
-> --
-> Chuck Lever
->=20
->=20
-sure
+diff --git a/providers/bnxt_re/main.h b/providers/bnxt_re/main.h
+index affe24f..08aa277 100644
+--- a/providers/bnxt_re/main.h
++++ b/providers/bnxt_re/main.h
+@@ -76,6 +76,9 @@ struct bnxt_re_cq {
+ 	struct list_head rfhead;
+ 	uint32_t cqe_size;
+ 	uint8_t  phase;
++	int deferred_arm_flags;
++	bool first_arm;
++	bool deferred_arm;
+ };
+ 
+ struct bnxt_re_srq {
+diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
+index 09ac333..2e88304 100644
+--- a/providers/bnxt_re/verbs.c
++++ b/providers/bnxt_re/verbs.c
+@@ -202,6 +202,7 @@ struct ibv_cq *bnxt_re_create_cq(struct ibv_context *ibvctx, int ncqe,
+ 	cq->phase = resp.phase;
+ 	cq->cqq.tail = resp.tail;
+ 	cq->udpi = &cntx->udpi;
++	cq->first_arm = true;
+ 
+ 	list_head_init(&cq->sfhead);
+ 	list_head_init(&cq->rfhead);
+@@ -654,6 +655,11 @@ int bnxt_re_poll_cq(struct ibv_cq *ibvcq, int nwc, struct ibv_wc *wc)
+ 
+ 	pthread_spin_lock(&cq->cqq.qlock);
+ 	dqed = bnxt_re_poll_one(cq, nwc, wc);
++	if (cq->deferred_arm) {
++		bnxt_re_ring_cq_arm_db(cq, cq->deferred_arm_flags);
++		cq->deferred_arm = false;
++		cq->deferred_arm_flags = 0;
++	}
+ 	pthread_spin_unlock(&cq->cqq.qlock);
+ 	/* Check if anything is there to flush. */
+ 	pthread_spin_lock(&cntx->fqlock);
+@@ -718,7 +724,12 @@ int bnxt_re_arm_cq(struct ibv_cq *ibvcq, int flags)
+ 	pthread_spin_lock(&cq->cqq.qlock);
+ 	flags = !flags ? BNXT_RE_QUE_TYPE_CQ_ARMALL :
+ 			 BNXT_RE_QUE_TYPE_CQ_ARMSE;
+-	bnxt_re_ring_cq_arm_db(cq, flags);
++	if (cq->first_arm) {
++		bnxt_re_ring_cq_arm_db(cq, flags);
++		cq->first_arm = false;
++	}
++	cq->deferred_arm = true;
++	cq->deferred_arm_flags = flags;
+ 	pthread_spin_unlock(&cq->cqq.qlock);
+ 
+ 	return 0;
+-- 
+1.8.3.1
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
