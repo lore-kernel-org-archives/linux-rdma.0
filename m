@@ -1,68 +1,126 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [rdma-core 3/3] libbnxt_re: Update and sort device pci-id table
-Date: Wed, 31 Jan 2018 09:51:51 -0500
-Message-ID: <1517410311-23623-4-git-send-email-devesh.sharma@broadcom.com>
-References: <1517410311-23623-1-git-send-email-devesh.sharma@broadcom.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1517410311-23623-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1] xprtrdma: Fix calculation of ri_max_send_sges
+Date: Wed, 31 Jan 2018 10:04:22 -0500
+Message-ID: <65A80728-B565-4E03-B50A-4F22FC1342DA@oracle.com>
+References: <20180130205344.13588.11646.stgit@manet.1015granger.net>
+ <CY1PR0701MB201216E6A13D1BC0E4A74FDB88FB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CY1PR0701MB201216E6A13D1BC0E4A74FDB88FB0-UpKza+2NMNLHMJvQ0dyT705OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sort the pci-id table in increasing order of the
-device IDs. Add new PCI-ID for BCM880xx series of
-devices.
 
-Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
----
- providers/bnxt_re/main.c | 17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff --git a/providers/bnxt_re/main.c b/providers/bnxt_re/main.c
-index 520bf57..eae50b0 100644
---- a/providers/bnxt_re/main.c
-+++ b/providers/bnxt_re/main.c
-@@ -54,24 +54,29 @@
- 
- #define CNA(v, d) VERBS_PCI_MATCH(PCI_VENDOR_ID_##v, d, NULL)
- static const struct verbs_match_ent cna_table[] = {
-+	CNA(BROADCOM, 0x1605),  /* BCM57454 NPAR */
-+	CNA(BROADCOM, 0x1606),  /* BCM57454 VF */
-+	CNA(BROADCOM, 0x1614),  /* BCM57454 */
- 	CNA(BROADCOM, 0x16C0),  /* BCM57417 NPAR */
-+	CNA(BROADCOM, 0x16C1),  /* BMC57414 VF */
- 	CNA(BROADCOM, 0x16CE),  /* BMC57311 */
- 	CNA(BROADCOM, 0x16CF),  /* BMC57312 */
--	CNA(BROADCOM, 0x16DF),  /* BMC57314 */
--	CNA(BROADCOM, 0x16E5),  /* BMC57314 VF */
--	CNA(BROADCOM, 0x16E2),  /* BMC57417 */
--	CNA(BROADCOM, 0x16E3),  /* BMC57416 */
- 	CNA(BROADCOM, 0x16D6),  /* BMC57412*/
- 	CNA(BROADCOM, 0x16D7),  /* BMC57414 */
- 	CNA(BROADCOM, 0x16D8),  /* BMC57416 Cu */
- 	CNA(BROADCOM, 0x16D9),  /* BMC57417 Cu */
--	CNA(BROADCOM, 0x16C1),  /* BMC57414 VF */
--	CNA(BROADCOM, 0x16EF),  /* BCM57416 NPAR */
-+	CNA(BROADCOM, 0x16DF),  /* BMC57314 */
-+	CNA(BROADCOM, 0x16E2),  /* BMC57417 */
-+	CNA(BROADCOM, 0x16E3),  /* BMC57416 */
-+	CNA(BROADCOM, 0x16E5),  /* BMC57314 VF */
- 	CNA(BROADCOM, 0x16ED),  /* BCM57414 NPAR */
- 	CNA(BROADCOM, 0x16EB),  /* BCM57412 NPAR */
-+	CNA(BROADCOM, 0x16EF),  /* BCM57416 NPAR */
- 	CNA(BROADCOM, 0x16F0),  /* BCM58730 */
- 	CNA(BROADCOM, 0x16F1),  /* BCM57452 */
-+	CNA(BROADCOM, 0xD800),  /* BCM880xx VF */
- 	CNA(BROADCOM, 0xD802),  /* BCM58802 */
-+	CNA(BROADCOM, 0xD804),   /* BCM8804 SR */
- 	{}
- };
- 
--- 
-1.8.3.1
+> On Jan 31, 2018, at 9:04 AM, Kalderon, Michal =
+<Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org> wrote:
+>=20
+>> From: Chuck Lever [mailto:chucklever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] On Behalf Of Chuck =
+Lever
+>> Sent: Tuesday, January 30, 2018 10:54 PM
+>> To: Kalderon, Michal <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: [PATCH v1] xprtrdma: Fix calculation of ri_max_send_sges
+>>=20
+>> Commit 16f906d66cd7 ("xprtrdma: Reduce required number of send
+>> SGEs") introduced the rpcrdma_ia::ri_max_send_sges field. This fixes =
+a
+>> problem where xprtrdma would not work if the device's max_sge =
+capability
+>> was small (low single digits).
+>>=20
+>> At least RPCRDMA_MIN_SEND_SGES are needed for the inline parts of =
+each
+>> RPC. ri_max_send_sges is set to this value:
+>>=20
+>>  ia->ri_max_send_sges =3D max_sge - RPCRDMA_MIN_SEND_SGES;
+>>=20
+>> Then when marshaling each RPC, rpcrdma_args_inline uses that value to
+>> determine whether the device has enough Send SGEs to convey an NFS
+>> WRITE payload inline, or whether instead a Read chunk is required.
+>>=20
+>> More recently, commit ae72950abf99 ("xprtrdma: Add data structure to
+>> manage RDMA Send arguments") used the ri_max_send_sges value to
+>> calculate the size of an array, but that commit erroneously assumed
+>> ri_max_send_sges contains a value similar to the device's max_sge, =
+and not
+>> one that was reduced by the minimum SGE count.
+>>=20
+>> This assumption results in the calculated size of the sendctx's Send =
+SGE array
+>> to be too small. When the array is used to marshal an RPC, the code =
+can write
+>> Send SGEs into the following sendctx element in that array, =
+corrupting it.
+>> When the device's max_sge is large, this issue is entirely harmless; =
+but it
+>> results in an oops in the provider's post_send method, if =
+dev.attrs.max_sge
+>> is small.
+>>=20
+>> So let's straighten this out: ri_max_send_sges will now contain a =
+value with
+>> the same meaning as dev.attrs.max_sge, which makes the code easier to
+>> understand, and enables rpcrdma_sendctx_create to calculate the size =
+of
+>> the SGE array correctly.
+>>=20
+>> Reported-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+>> Fixes: 16f906d66cd7 ("xprtrdma: Reduce required number of send SGEs")
+>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> ---
+>> net/sunrpc/xprtrdma/rpc_rdma.c |    2 +-
+>> net/sunrpc/xprtrdma/verbs.c    |    2 +-
+>> 2 files changed, 2 insertions(+), 2 deletions(-)
+>>=20
+>> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c
+>> b/net/sunrpc/xprtrdma/rpc_rdma.c index 162e5dd..f0855a9 100644
+>> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
+>> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+>> @@ -143,7 +143,7 @@ static bool rpcrdma_args_inline(struct =
+rpcrdma_xprt
+>> *r_xprt,
+>> 	if (xdr->page_len) {
+>> 		remaining =3D xdr->page_len;
+>> 		offset =3D offset_in_page(xdr->page_base);
+>> -		count =3D 0;
+>> +		count =3D RPCRDMA_MIN_SEND_SGES;
+>> 		while (remaining) {
+>> 			remaining -=3D min_t(unsigned int,
+>> 					   PAGE_SIZE - offset, =
+remaining); diff
+>> --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c =
+index
+>> f4eb63e..bb56b9d 100644
+>> --- a/net/sunrpc/xprtrdma/verbs.c
+>> +++ b/net/sunrpc/xprtrdma/verbs.c
+>> @@ -505,7 +505,7 @@
+>> 		pr_warn("rpcrdma: HCA provides only %d send SGEs\n",
+>> max_sge);
+>> 		return -ENOMEM;
+>> 	}
+>> -	ia->ri_max_send_sges =3D max_sge - RPCRDMA_MIN_SEND_SGES;
+>> +	ia->ri_max_send_sges =3D max_sge;
+>>=20
+>> 	if (ia->ri_device->attrs.max_qp_wr <=3D RPCRDMA_BACKWARD_WRS)
+>> {
+>> 		dprintk("RPC:       %s: insufficient wqe's available\n",
+>=20
+> thanks, this fixed our first issue of mount failing.
+
+May I add "Tested-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>" ?
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
