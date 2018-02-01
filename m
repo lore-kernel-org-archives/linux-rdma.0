@@ -1,77 +1,58 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next] IB/hfi1: Add 16B rcvhdr trace support
-Date: Thu, 01 Feb 2018 12:38:48 -0800
-Message-ID: <20180201203845.14095.14729.stgit@scvm10.sc.intel.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH RFC 2/2] RDMA/nldev: provide detailed CM_ID information
+Date: Thu, 1 Feb 2018 15:01:10 -0700
+Message-ID: <20180201220110.GZ17053@ziepe.ca>
+References: <cover.1517418595.git.swise@opengridcomputing.com>
+ <531889e6a24f7919dec71734c91298d266aa9721.1517418595.git.swise@opengridcomputing.com>
+ <20180201084944.GH2055@mtr-leonro.local>
+ <20180201175353.GU17053@ziepe.ca>
+ <013501d39b89$01371bd0$03a55370$@opengridcomputing.com>
+ <20180201183232.GV17053@ziepe.ca>
+ <014601d39b8b$b83448b0$289cda10$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <014601d39b8b$b83448b0$289cda10$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Thu, Feb 01, 2018 at 12:37:31PM -0600, Steve Wise wrote:
+> > > > On Thu, Feb 01, 2018 at 10:49:44AM +0200, Leon Romanovsky wrote:
+> > > >
+> > > > > > +	RDMA_NLDEV_ATTR_RES_IPV4_SADDR,		/* u8[4] */
+> > > > > > +	RDMA_NLDEV_ATTR_RES_IPV4_DADDR,		/* u8[4] */
+> > > > > > +	RDMA_NLDEV_ATTR_RES_IPV6_SADDR,		/* u8[16] */
+> > > > > > +	RDMA_NLDEV_ATTR_RES_IPV6_DADDR,		/* u8[16] */
+> > > > > > +	RDMA_NLDEV_ATTR_RES_IP_SPORT,		/* BE u16 */
+> > > > > > +	RDMA_NLDEV_ATTR_RES_IP_DPORT,		/* BE u16 */
+> > > > >
+> > > > > Can you please document the meaning of S (source) and D
+> (destination)
+> > > > > in regards of this netlink output? It is needed to remove ambiguity.
+> > > >
+> > > > And no on BE's in netlink, I think.
+> > >
+> > >
+> > > Sure there are, see nla_put_be32() for example. I'm using
+> nla_put_net16() to
+> > > store the ports.  Perhaps I need to change the above comment to ne16
+> instead
+> > > of BE u16?
+> > 
+> > There is no reason thes ports should be be, so don't make it be.
+> 
+> Well, they're BE on the wire.  That's the reason.  And other APIs return
+> them to user space in their NBO, like getsockname().  
+> 
+> You would rather the nldev code puts it in HBO before sending it up?  
 
-Add trace_hfi1_rcvhdr support for bypass packets.
-While here, remove the etype argument as it is available
-in struct hfi1_packet.
+Yes, we have far too much 'guess the endian' in our uapi, it doesn't
+make sense in modern HW, the swap costs nothing.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/hfi1/driver.c   |    4 +++-
- drivers/infiniband/hw/hfi1/trace_rx.h |    6 +++---
- 2 files changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index c7e6b67..addc68e 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -1559,7 +1559,7 @@ int process_receive_ib(struct hfi1_packet *packet)
- 	if (hfi1_setup_9B_packet(packet))
- 		return RHF_RCV_CONTINUE;
- 
--	trace_hfi1_rcvhdr(packet, RHF_RCV_TYPE_IB);
-+	trace_hfi1_rcvhdr(packet);
- 
- 	if (unlikely(rhf_err_flags(packet->rhf))) {
- 		handle_eflags(packet);
-@@ -1595,6 +1595,8 @@ int process_receive_bypass(struct hfi1_packet *packet)
- 	if (hfi1_setup_bypass_packet(packet))
- 		return RHF_RCV_CONTINUE;
- 
-+	trace_hfi1_rcvhdr(packet);
-+
- 	if (unlikely(rhf_err_flags(packet->rhf))) {
- 		handle_eflags(packet);
- 		return RHF_RCV_CONTINUE;
-diff --git a/drivers/infiniband/hw/hfi1/trace_rx.h b/drivers/infiniband/hw/hfi1/trace_rx.h
-index f768415..7eceb57 100644
---- a/drivers/infiniband/hw/hfi1/trace_rx.h
-+++ b/drivers/infiniband/hw/hfi1/trace_rx.h
-@@ -63,8 +63,8 @@
- #define TRACE_SYSTEM hfi1_rx
- 
- TRACE_EVENT(hfi1_rcvhdr,
--	    TP_PROTO(struct hfi1_packet *packet, u32 etype),
--	    TP_ARGS(packet, etype),
-+	    TP_PROTO(struct hfi1_packet *packet),
-+	    TP_ARGS(packet),
- 	    TP_STRUCT__entry(DD_DEV_ENTRY(packet->rcd->dd)
- 			     __field(u64, eflags)
- 			     __field(u32, ctxt)
-@@ -77,7 +77,7 @@
- 	     TP_fast_assign(DD_DEV_ASSIGN(packet->rcd->dd);
- 			    __entry->eflags = rhf_err_flags(packet->rhf);
- 			    __entry->ctxt = packet->rcd->ctxt;
--			    __entry->etype = etype;
-+			    __entry->etype = packet->etype;
- 			    __entry->hlen = packet->hlen;
- 			    __entry->tlen = packet->tlen;
- 			    __entry->updegr = packet->updegr;
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
