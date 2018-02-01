@@ -1,127 +1,76 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next] IB/hfi1: Convert kzalloc_node and kcalloc to use
- kcalloc_node
-Date: Thu, 01 Feb 2018 12:37:30 -0800
-Message-ID: <20180201203727.13590.84553.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next] IB/hfi1: Add 16B rcvhdr trace support
+Date: Thu, 01 Feb 2018 12:38:48 -0800
+Message-ID: <20180201203845.14095.14729.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Kzalloc_node API doesn't check for overflows in size multiplication.
-While kcalloc API check for overflows in size multiplication
-but these implementations are not NUMA-aware.
-
-This conversion allowed for correcting an allocation used in the hot
-path to be on the local NUMA and ensure us overflow free multiplication
-for the size of a memory allocation.
+Add trace_hfi1_rcvhdr support for bypass packets.
+While here, remove the etype argument as it is available
+in struct hfi1_packet.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/init.c |   17 +++++++++--------
- drivers/infiniband/hw/hfi1/pio.c  |   15 ++++++++-------
- drivers/infiniband/hw/hfi1/sdma.c |    3 ++-
- 3 files changed, 19 insertions(+), 16 deletions(-)
+ drivers/infiniband/hw/hfi1/driver.c   |    4 +++-
+ drivers/infiniband/hw/hfi1/trace_rx.h |    6 +++---
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index 8c4f040..33eba23 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -172,7 +172,7 @@ int hfi1_create_kctxts(struct hfi1_devdata *dd)
- 	u16 i;
- 	int ret;
+diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
+index c7e6b67..addc68e 100644
+--- a/drivers/infiniband/hw/hfi1/driver.c
++++ b/drivers/infiniband/hw/hfi1/driver.c
+@@ -1559,7 +1559,7 @@ int process_receive_ib(struct hfi1_packet *packet)
+ 	if (hfi1_setup_9B_packet(packet))
+ 		return RHF_RCV_CONTINUE;
  
--	dd->rcd = kzalloc_node(dd->num_rcv_contexts * sizeof(*dd->rcd),
-+	dd->rcd = kcalloc_node(dd->num_rcv_contexts, sizeof(*dd->rcd),
- 			       GFP_KERNEL, dd->node);
- 	if (!dd->rcd)
- 		return -ENOMEM;
-@@ -439,15 +439,16 @@ int hfi1_create_ctxtdata(struct hfi1_pportdata *ppd, int numa,
- 		 * The resulting value will be rounded down to the closest
- 		 * multiple of dd->rcv_entries.group_size.
- 		 */
--		rcd->egrbufs.buffers = kzalloc_node(
--			rcd->egrbufs.count * sizeof(*rcd->egrbufs.buffers),
--			GFP_KERNEL, numa);
-+		rcd->egrbufs.buffers =
-+			kcalloc_node(rcd->egrbufs.count,
-+				     sizeof(*rcd->egrbufs.buffers),
-+				     GFP_KERNEL, numa);
- 		if (!rcd->egrbufs.buffers)
- 			goto bail;
--		rcd->egrbufs.rcvtids = kzalloc_node(
--				rcd->egrbufs.count *
--				sizeof(*rcd->egrbufs.rcvtids),
--				GFP_KERNEL, numa);
-+		rcd->egrbufs.rcvtids =
-+			kcalloc_node(rcd->egrbufs.count,
-+				     sizeof(*rcd->egrbufs.rcvtids),
-+				     GFP_KERNEL, numa);
- 		if (!rcd->egrbufs.rcvtids)
- 			goto bail;
- 		rcd->egrbufs.size = eager_buffer_size;
-diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
-index 4c1198b..40dac4d 100644
---- a/drivers/infiniband/hw/hfi1/pio.c
-+++ b/drivers/infiniband/hw/hfi1/pio.c
-@@ -455,8 +455,8 @@ int init_send_contexts(struct hfi1_devdata *dd)
- 	dd->hw_to_sw = kmalloc_array(TXE_NUM_CONTEXTS, sizeof(u8),
- 					GFP_KERNEL);
- 	dd->send_contexts = kcalloc(dd->num_send_contexts,
--					sizeof(struct send_context_info),
--					GFP_KERNEL);
-+				    sizeof(struct send_context_info),
-+				    GFP_KERNEL);
- 	if (!dd->send_contexts || !dd->hw_to_sw) {
- 		kfree(dd->hw_to_sw);
- 		kfree(dd->send_contexts);
-@@ -856,8 +856,9 @@ struct send_context *sc_alloc(struct hfi1_devdata *dd, int type,
- 		 * so head == tail can mean empty.
- 		 */
- 		sc->sr_size = sci->credits + 1;
--		sc->sr = kzalloc_node(sizeof(union pio_shadow_ring) *
--				sc->sr_size, GFP_KERNEL, numa);
-+		sc->sr = kcalloc_node(sc->sr_size,
-+				      sizeof(union pio_shadow_ring),
-+				      GFP_KERNEL, numa);
- 		if (!sc->sr) {
- 			sc_free(sc);
- 			return NULL;
-@@ -1958,9 +1959,9 @@ int init_pervl_scs(struct hfi1_devdata *dd)
- 	hfi1_init_ctxt(dd->vld[15].sc);
- 	dd->vld[15].mtu = enum_to_mtu(OPA_MTU_2048);
+-	trace_hfi1_rcvhdr(packet, RHF_RCV_TYPE_IB);
++	trace_hfi1_rcvhdr(packet);
  
--	dd->kernel_send_context = kzalloc_node(dd->num_send_contexts *
--					sizeof(struct send_context *),
--					GFP_KERNEL, dd->node);
-+	dd->kernel_send_context = kcalloc_node(dd->num_send_contexts,
-+					       sizeof(struct send_context *),
-+					       GFP_KERNEL, dd->node);
- 	if (!dd->kernel_send_context)
- 		goto freesc15;
+ 	if (unlikely(rhf_err_flags(packet->rhf))) {
+ 		handle_eflags(packet);
+@@ -1595,6 +1595,8 @@ int process_receive_bypass(struct hfi1_packet *packet)
+ 	if (hfi1_setup_bypass_packet(packet))
+ 		return RHF_RCV_CONTINUE;
  
-diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
-index 37424a8..d8ddbfd 100644
---- a/drivers/infiniband/hw/hfi1/sdma.c
-+++ b/drivers/infiniband/hw/hfi1/sdma.c
-@@ -1389,7 +1389,8 @@ int sdma_init(struct hfi1_devdata *dd, u8 port)
- 		    num_engines, descq_cnt);
++	trace_hfi1_rcvhdr(packet);
++
+ 	if (unlikely(rhf_err_flags(packet->rhf))) {
+ 		handle_eflags(packet);
+ 		return RHF_RCV_CONTINUE;
+diff --git a/drivers/infiniband/hw/hfi1/trace_rx.h b/drivers/infiniband/hw/hfi1/trace_rx.h
+index f768415..7eceb57 100644
+--- a/drivers/infiniband/hw/hfi1/trace_rx.h
++++ b/drivers/infiniband/hw/hfi1/trace_rx.h
+@@ -63,8 +63,8 @@
+ #define TRACE_SYSTEM hfi1_rx
  
- 	/* alloc memory for array of send engines */
--	dd->per_sdma = kcalloc(num_engines, sizeof(*dd->per_sdma), GFP_KERNEL);
-+	dd->per_sdma = kcalloc_node(num_engines, sizeof(*dd->per_sdma),
-+				    GFP_KERNEL, dd->node);
- 	if (!dd->per_sdma)
- 		return ret;
- 
+ TRACE_EVENT(hfi1_rcvhdr,
+-	    TP_PROTO(struct hfi1_packet *packet, u32 etype),
+-	    TP_ARGS(packet, etype),
++	    TP_PROTO(struct hfi1_packet *packet),
++	    TP_ARGS(packet),
+ 	    TP_STRUCT__entry(DD_DEV_ENTRY(packet->rcd->dd)
+ 			     __field(u64, eflags)
+ 			     __field(u32, ctxt)
+@@ -77,7 +77,7 @@
+ 	     TP_fast_assign(DD_DEV_ASSIGN(packet->rcd->dd);
+ 			    __entry->eflags = rhf_err_flags(packet->rhf);
+ 			    __entry->ctxt = packet->rcd->ctxt;
+-			    __entry->etype = etype;
++			    __entry->etype = packet->etype;
+ 			    __entry->hlen = packet->hlen;
+ 			    __entry->tlen = packet->tlen;
+ 			    __entry->updegr = packet->updegr;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
