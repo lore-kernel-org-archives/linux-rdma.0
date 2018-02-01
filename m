@@ -1,111 +1,92 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [bug report] RDMA/bnxt_re: Add SRQ support for Broadcom adapters
-Date: Thu, 1 Feb 2018 09:04:19 +0530
-Message-ID: <CANjDDBjJn0RnP5YD4yoQd6zNSNiy4vSoAD4N5nciJF0wQVjTOA@mail.gmail.com>
-References: <20180130124546.GA9394@mwanda> <CANjDDBiiL1TtH5OZ9gYuiZquKu2=AV+u9nJDQ--qibOP5CXgYg@mail.gmail.com>
- <20180131063238.ch4mcl7c6ps7ykxe@mwanda> <20180131064829.GR2055@mtr-leonro.local>
- <1517414670.19117.16.camel@redhat.com> <1517432861.19117.42.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Guanglei Li <guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] RDMA/cma: Fix null pointer issue
+Date: Thu,  1 Feb 2018 14:50:42 +0800
+Message-ID: <1517467842-2437-1-git-send-email-guanglei.li@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1517432861.19117.42.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, honglei.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 1, 2018 at 2:37 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Wed, 2018-01-31 at 11:04 -0500, Doug Ledford wrote:
->> On Wed, 2018-01-31 at 08:48 +0200, Leon Romanovsky wrote:
->> > On Wed, Jan 31, 2018 at 09:32:38AM +0300, Dan Carpenter wrote:
->> > > On Wed, Jan 31, 2018 at 11:16:55AM +0530, Devesh Sharma wrote:
->> > > > On Tue, Jan 30, 2018 at 6:15 PM, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->> > > > > Hello Devesh Sharma,
->> > > > >
->> > > > > The patch 37cb11acf1f7: "RDMA/bnxt_re: Add SRQ support for Broadcom
->> > > > > adapters" from Jan 11, 2018, leads to the following static checker
->> > > > > warning:
->> > > > >
->> > > > >         drivers/infiniband/hw/bnxt_re/ib_verbs.c:1317 bnxt_re_destroy_srq()
->> > > > >         warn: 'srq->umem' isn't an ERR_PTR
->> > > > >
->> > > > > drivers/infiniband/hw/bnxt_re/ib_verbs.c
->> > > > >   1313                  dev_err(rdev_to_dev(rdev), "Destroy HW SRQ failed!");
->> > > > >   1314                  return rc;
->> > > > >   1315          }
->> > > > >   1316
->> > > > >   1317          if (srq->umem && !IS_ERR(srq->umem))
->> > > > >                                   ^^^^^^^^^^^^^^^^
->> > > > > We never store error pointers to srq->umem.  It's pretty consistently
->> > > > > checked for error pointers though so maybe that's fine.  It causes a
->> > > > > static checker warning because error pointer confusion is a pretty
->> > > > > common source of bugs.  Anyway, feel free to ignore if you want...
->> > > >
->> > > > Thanks for reporting Dan,
->> > > >
->> > > > Is there a way out, I want to call ib_umem_release only if it was valid.
->> > > > I think if ib_umem_release checks for the validity of pointer then I
->> > > > can get rid of this?
->> > > > There are other places also in bnxt_re driver where such checks are present.
->> > >
->> > > Yeah.  Those places generate warnings as well, but I thought one was
->> > > enough.  It's fine if you want to ignore the warning, no one will be
->> > > upset.  :P
->> >
->> > Not really, we are trying to clean the subsystem from the warnings
->> > and driver authors who ignore such warnings simply and very effective
->> > sabotage it.
->> >
->> > Currently my checks print ~400 warnings for the drivers/infiniband/* +
->> > drivers/net/ethernet/mellanox/*
->> >
->> > So please don't increase this number, or fix the driver or fix the tool :)
->> >
->> > Thanks
->>
->> Looking at the code, the proper fix for this is:
->>
->> [dledford@haswell-e linus (k.o/wip/dl-for-next *)]$ git diff
->> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
->> b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
->> index 9b8fa77b8831..ae9e9ff54826 100644
->> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
->> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
->> @@ -1314,7 +1314,7 @@ int bnxt_re_destroy_srq(struct ib_srq *ib_srq)
->>                 return rc;
->>         }
->>
->> -       if (srq->umem && !IS_ERR(srq->umem))
->> +       if (srq->umem)
->>                 ib_umem_release(srq->umem);
->>         kfree(srq);
->>         atomic_dec(&rdev->srq_count);
->> @@ -1430,11 +1430,8 @@ struct ib_srq *bnxt_re_create_srq(struct ib_pd
->> *ib_pd,
->>         return &srq->ib_srq;
->>
->>  fail:
->> -       if (udata && srq->umem && !IS_ERR(srq->umem)) {
->> +       if (srq->umem)
->>                 ib_umem_release(srq->umem);
->> -               srq->umem = NULL;
->> -       }
->> -
->>         kfree(srq);
->>  exit:
->>         return ERR_PTR(rc);
->> [dledford@haswell-e linus (k.o/wip/dl-for-next *)]$
->>
->
-> This was committed in my tree for the next merge pull request.
+Scenario:
+1. Port down and do fail over
+2. Ap do rds_bind syscall
 
-Thanks Doug, I will review the driver code once and see if I can
-supply the fix for rest of the occurrences.
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG KeyID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+PID: 47039  TASK: ffff89887e2fe640  CPU: 47  COMMAND: "kworker/u:6"
+ #0 [ffff898e35f159f0] machine_kexec at ffffffff8103abf9
+ #1 [ffff898e35f15a60] crash_kexec at ffffffff810b96e3
+ #2 [ffff898e35f15b30] oops_end at ffffffff8150f518
+ #3 [ffff898e35f15b60] no_context at ffffffff8104854c
+ #4 [ffff898e35f15ba0] __bad_area_nosemaphore at ffffffff81048675
+ #5 [ffff898e35f15bf0] bad_area_nosemaphore at ffffffff810487d3
+ #6 [ffff898e35f15c00] do_page_fault at ffffffff815120b8
+ #7 [ffff898e35f15d10] page_fault at ffffffff8150ea95
+    [exception RIP: unknown or invalid address]
+    RIP: 0000000000000000  RSP: ffff898e35f15dc8  RFLAGS: 00010282
+    RAX: 00000000fffffffe  RBX: ffff889b77f6fc00  RCX:ffffffff81c99d88
+    RDX: 0000000000000000  RSI: ffff896019ee08e8  RDI:ffff889b77f6fc00
+    RBP: ffff898e35f15df0   R8: ffff896019ee08c8  R9:0000000000000000
+    R10: 0000000000000400  R11: 0000000000000000  R12:ffff896019ee08c0
+    R13: ffff889b77f6fe68  R14: ffffffff81c99d80  R15: ffffffffa022a1e0
+    ORIG_RAX: ffffffffffffffff  CS: 0010 SS: 0018
+ #8 [ffff898e35f15dc8] cma_ndev_work_handler at ffffffffa022a228 [rdma_cm]
+ #9 [ffff898e35f15df8] process_one_work at ffffffff8108a7c6
+ #10 [ffff898e35f15e58] worker_thread at ffffffff8108bda0
+ #11 [ffff898e35f15ee8] kthread at ffffffff81090fe6
+
+PID: 45659  TASK: ffff880d313d2500  CPU: 31  COMMAND: "oracle_45659_ap"
+ #0 [ffff881024ccfc98] __schedule at ffffffff8150bac4
+ #1 [ffff881024ccfd40] schedule at ffffffff8150c2cf
+ #2 [ffff881024ccfd50] __mutex_lock_slowpath at ffffffff8150cee7
+ #3 [ffff881024ccfdc0] mutex_lock at ffffffff8150cdeb
+ #4 [ffff881024ccfde0] rdma_destroy_id at ffffffffa022a027 [rdma_cm]
+ #5 [ffff881024ccfe10] rds_ib_laddr_check at ffffffffa0357857 [rds_rdma]
+ #6 [ffff881024ccfe50] rds_trans_get_preferred at ffffffffa0324c2a [rds]
+ #7 [ffff881024ccfe80] rds_bind at ffffffffa031d690 [rds]
+ #8 [ffff881024ccfeb0] sys_bind at ffffffff8142a670
+
+Race condition:
+PID: 45659                          PID: 47039
+rds_ib_laddr_check
+  /*create id_priv with a null event_handler*/
+  rdma_create_id
+  rdma_bind_addr
+    cma_acquire_dev
+      /*add id_priv to cma_dev->id_list*/
+      cma_attach_to_dev
+                                    cma_ndev_work_handler
+                                      /*event_hanlder is null*/
+                                      id_priv->id.event_handler
+
+Signed-off-by: Guanglei Li <guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Honglei Wang <honglei.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/core/cma.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index e66963c..d9ca943 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2431,9 +2431,12 @@ static void cma_ndev_work_handler(struct work_struct *_work)
+ 	    id_priv->state == RDMA_CM_DEVICE_REMOVAL)
+ 		goto out;
+ 
+-	if (id_priv->id.event_handler(&id_priv->id, &work->event)) {
+-		cma_exch(id_priv, RDMA_CM_DESTROYING);
+-		destroy = 1;
++	/*event_handler is null when create cm id by calling rds_ib_laddr_check*/
++	if (id_priv->id.event_handler) {
++		if (id_priv->id.event_handler(&id_priv->id, &work->event)) {
++			cma_exch(id_priv, RDMA_CM_DESTROYING);
++			destroy = 1;
++		}
+ 	}
+ 
+ out:
+-- 
+2.7.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
