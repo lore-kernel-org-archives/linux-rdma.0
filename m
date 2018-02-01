@@ -1,39 +1,27 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH RFC 2/2] RDMA/nldev: provide detailed CM_ID information
-Date: Thu, 1 Feb 2018 10:50:29 -0700
-Message-ID: <20180201175028.GS17053@ziepe.ca>
-References: <cover.1517418595.git.swise@opengridcomputing.com>
- <531889e6a24f7919dec71734c91298d266aa9721.1517418595.git.swise@opengridcomputing.com>
- <VI1PR0502MB3008805F1A6056F50A12DEDBD1FB0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <01ea01d39ad5$ec30f7a0$c492e6e0$@opengridcomputing.com>
- <VI1PR0502MB30088B50BEA14B4C05EA2BC7D1FB0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20180201080109.GG2055@mtr-leonro.local>
+Subject: Re: Work in progress SMB-Direct driver for the linux kernel
+Date: Thu, 1 Feb 2018 10:52:47 -0700
+Message-ID: <20180201175247.GT17053@ziepe.ca>
+References: <959c3608-c508-17c4-bad6-fd9421a4a235@samba.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180201080109.GG2055-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <959c3608-c508-17c4-bad6-fd9421a4a235-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Stefan Metzmacher <metze-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Cc: David Disseldorp <ddiss-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Samba Technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Steve French <smfrench-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ralph =?utf-8?B?QsO2aG1l?= <slow-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 01, 2018 at 10:01:09AM +0200, Leon Romanovsky wrote:
+On Thu, Feb 01, 2018 at 09:18:10AM +0100, Stefan Metzmacher wrote:
 
-> Regarding the name, I personally think that cm_id is better because it
-> is general and applicable both to ib_cm and iw_cm. The separation
-> between them can be done with introduction of new netlink attribute, e.g.
-> cm_id_type.
+> The first goal is to provide a socket fd to userspace (or in kernel
+> consumers)
+> which provides semantics like a TCP socket which is used as transport
+> for SMB3. Basically frames are submitted with a 4 byte length header.
 
-In netlink the attributes should be self-describing, or intrinsically
-related to something mandatory and fundamental about their container
-(eg AF_ family in rtnl)
-
-What information do we actually need from the cm_id in various
-protocol families?
+Part of the point of RDMA is that we don't need to make protocol
+specific kernel modules like this - is there a specific reason this
+needs to be in the kernel like this?
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
