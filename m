@@ -1,144 +1,101 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] RDMA/cma: Fix null pointer issue
-Date: Thu, 1 Feb 2018 09:47:20 +0200
-Message-ID: <20180201074720.GF2055@mtr-leonro.local>
-References: <1517467842-2437-1-git-send-email-guanglei.li@oracle.com>
+Subject: Re: [PATCH RFC 2/2] RDMA/nldev: provide detailed CM_ID information
+Date: Thu, 1 Feb 2018 10:01:09 +0200
+Message-ID: <20180201080109.GG2055@mtr-leonro.local>
+References: <cover.1517418595.git.swise@opengridcomputing.com>
+ <531889e6a24f7919dec71734c91298d266aa9721.1517418595.git.swise@opengridcomputing.com>
+ <VI1PR0502MB3008805F1A6056F50A12DEDBD1FB0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <01ea01d39ad5$ec30f7a0$c492e6e0$@opengridcomputing.com>
+ <VI1PR0502MB30088B50BEA14B4C05EA2BC7D1FB0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="nbhonbzV/xpXxmuC"
+        protocol="application/pgp-signature"; boundary="IJKqlw44nclc26Ih"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1517467842-2437-1-git-send-email-guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <VI1PR0502MB30088B50BEA14B4C05EA2BC7D1FB0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Guanglei Li <guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, honglei.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---nbhonbzV/xpXxmuC
+--IJKqlw44nclc26Ih
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Feb 01, 2018 at 02:50:42PM +0800, Guanglei Li wrote:
-> Scenario:
-> 1. Port down and do fail over
-> 2. Ap do rds_bind syscall
+On Wed, Jan 31, 2018 at 09:18:39PM +0000, Parav Pandit wrote:
 >
-> PID: 47039  TASK: ffff89887e2fe640  CPU: 47  COMMAND: "kworker/u:6"
->  #0 [ffff898e35f159f0] machine_kexec at ffffffff8103abf9
->  #1 [ffff898e35f15a60] crash_kexec at ffffffff810b96e3
->  #2 [ffff898e35f15b30] oops_end at ffffffff8150f518
->  #3 [ffff898e35f15b60] no_context at ffffffff8104854c
->  #4 [ffff898e35f15ba0] __bad_area_nosemaphore at ffffffff81048675
->  #5 [ffff898e35f15bf0] bad_area_nosemaphore at ffffffff810487d3
->  #6 [ffff898e35f15c00] do_page_fault at ffffffff815120b8
->  #7 [ffff898e35f15d10] page_fault at ffffffff8150ea95
->     [exception RIP: unknown or invalid address]
->     RIP: 0000000000000000  RSP: ffff898e35f15dc8  RFLAGS: 00010282
->     RAX: 00000000fffffffe  RBX: ffff889b77f6fc00  RCX:ffffffff81c99d88
->     RDX: 0000000000000000  RSI: ffff896019ee08e8  RDI:ffff889b77f6fc00
->     RBP: ffff898e35f15df0   R8: ffff896019ee08c8  R9:0000000000000000
->     R10: 0000000000000400  R11: 0000000000000000  R12:ffff896019ee08c0
->     R13: ffff889b77f6fe68  R14: ffffffff81c99d80  R15: ffffffffa022a1e0
->     ORIG_RAX: ffffffffffffffff  CS: 0010 SS: 0018
->  #8 [ffff898e35f15dc8] cma_ndev_work_handler at ffffffffa022a228 [rdma_cm]
->  #9 [ffff898e35f15df8] process_one_work at ffffffff8108a7c6
->  #10 [ffff898e35f15e58] worker_thread at ffffffff8108bda0
->  #11 [ffff898e35f15ee8] kthread at ffffffff81090fe6
 >
-> PID: 45659  TASK: ffff880d313d2500  CPU: 31  COMMAND: "oracle_45659_ap"
->  #0 [ffff881024ccfc98] __schedule at ffffffff8150bac4
->  #1 [ffff881024ccfd40] schedule at ffffffff8150c2cf
->  #2 [ffff881024ccfd50] __mutex_lock_slowpath at ffffffff8150cee7
->  #3 [ffff881024ccfdc0] mutex_lock at ffffffff8150cdeb
->  #4 [ffff881024ccfde0] rdma_destroy_id at ffffffffa022a027 [rdma_cm]
->  #5 [ffff881024ccfe10] rds_ib_laddr_check at ffffffffa0357857 [rds_rdma]
->  #6 [ffff881024ccfe50] rds_trans_get_preferred at ffffffffa0324c2a [rds]
->  #7 [ffff881024ccfe80] rds_bind at ffffffffa031d690 [rds]
->  #8 [ffff881024ccfeb0] sys_bind at ffffffff8142a670
+> > -----Original Message-----
+> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Steve Wise
+> > Sent: Wednesday, January 31, 2018 2:56 PM
+> > To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Jason
+> > Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+> > Subject: RE: [PATCH RFC 2/2] RDMA/nldev: provide detailed CM_ID information
+> >
+> > > > 182,6 +199,7 @@ static int fill_res_info(struct sk_buff *msg, struct
+> > ib_device
+> > > > *device)
+> > > >  		[RDMA_RESTRACK_PD] = "pd",
+> > > >  		[RDMA_RESTRACK_CQ] = "cq",
+> > > >  		[RDMA_RESTRACK_QP] = "qp",
+> > > > +		[RDMA_RESTRACK_CM_ID] = "cm_id",
+> > >
+> > > May be rdmacm_id a better name to avoid confusion with ib_cm/iw_cm ids?
+> >
+> > Eventually, I could see the ib_cm and/or iw_cm info also getting dumped as part
+> Yes. But it is still coming through id of rdmacm_id as transport id information.
+> > of this.  So perhaps the name "cm_id" is ok?
+> It's just that longer name removes the ambiguity.
+> I am not too particular about this particular naming.
 >
-> Race condition:
-> PID: 45659                          PID: 47039
-> rds_ib_laddr_check
->   /*create id_priv with a null event_handler*/
->   rdma_create_id
->   rdma_bind_addr
->     cma_acquire_dev
->       /*add id_priv to cma_dev->id_list*/
->       cma_attach_to_dev
->                                     cma_ndev_work_handler
->                                       /*event_hanlder is null*/
->                                       id_priv->id.event_handler
->
-> Signed-off-by: Guanglei Li <guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Honglei Wang <honglei.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/core/cma.c | 9 ++++++---
->  1 file changed, 6 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index e66963c..d9ca943 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -2431,9 +2431,12 @@ static void cma_ndev_work_handler(struct work_struct *_work)
->  	    id_priv->state == RDMA_CM_DEVICE_REMOVAL)
->  		goto out;
->
-> -	if (id_priv->id.event_handler(&id_priv->id, &work->event)) {
-> -		cma_exch(id_priv, RDMA_CM_DESTROYING);
-> -		destroy = 1;
-> +	/*event_handler is null when create cm id by calling rds_ib_laddr_check*/
-> +	if (id_priv->id.event_handler) {
-> +		if (id_priv->id.event_handler(&id_priv->id, &work->event)) {
-> +			cma_exch(id_priv, RDMA_CM_DESTROYING);
-> +			destroy = 1;
-> +		}
->  	}
+> > I prefer it also because its shorter (lazy typer! :) )
+> Sure, shorter names are useful to end user.
+> But I think this is handled well at iproute2 tool level.
+> For example below two commands achieves the same task.
+> #ip address show
+> #ip a s
+> So may be shorter naming at command level is better left at user space tool level.
 
-The analysis looks correct to me, but the solution is less.
+The shorter naming is working on commands and not on objects.
+In rdamtool, you can write "rdma d s" instead of "rdma dev show", but
+the name of device (mlx5_0) or object (qp) should be full.
 
-339 static int rds_ib_laddr_check(struct net *net, __be32 addr)
-<...>
-348         cm_id = rdma_create_id(&init_net, NULL, NULL, RDMA_PS_TCP, IB_QPT_RC);
-                                              ^^^^ this part looks suspicious
-
-I would say that it is misuse of API and not CMA "issue", especially
-given the fact that you have rds_rdma_cm_event_handler() with all proper
-locking.
+Regarding the name, I personally think that cm_id is better because it
+is general and applicable both to ib_cm and iw_cm. The separation
+between them can be done with introduction of new netlink attribute, e.g.
+cm_id_type.
 
 Thanks
 
->
->  out:
-> --
-> 2.7.4
->
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---nbhonbzV/xpXxmuC
+--IJKqlw44nclc26Ih
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpyxggACgkQ5GN7iDZy
-WKfe4g//TV4t7FsSMih13cn9aT3VtT4tVmXcyERYDKIGiG1WZioKmynKNXZQN85T
-ZYXJT74rVTug7lEFAnd1BJqY2IubJUPtM/4rBGuy//qolcnOeR+whg0eTPU3wh0L
-F2K8s44nd4SIkvTVY/ItVabuBJ2DhlzA4JakDPvbTZZZHDiuZ0j4EyOl5UOkWBPS
-wHMjxyXpEariqDtq3f66ErRTL1L0uE/0g+D9Uy9+HupQ6RsmhSXLdNYuiGd55H18
-fnexKhZuzXYqy6Rg2Zei+BL6KhE1/ARUQWLvwe1Nu2mcRdxS290zOUX82WVHF0ju
-xRGaweawNC+hHfA6gPP00XEstO2K1hF+YaReClJZE0G0kNfio2I5/W1OzC4tz8OL
-+GDSzs930JH41srIefuu54Gmp5x06kSQxT1p5L1l1KOB6tvxklwTjjD9trfTVp4S
-c+MOXZDtavzDwoN6sm8ggYpZNF6GR1JiJlus6TpGFC4yZBHyrh3LCLDmf2TkCwal
-awcQwJ/UXG4aiSpTdQ3WgYEfP40GkPRWR+AZICZNTh1DC7YMLwH4NReIx55313lU
-1Dm5rzRYc23AA7xBoYOhxZq0tmEJ8sObBssfktUhOOk9zOYJiBwU88xTRtR66zZo
-74Xvc0asf3sDmpO27eWMphWrGUo9t01b7cWO7O1Zq/rpJFz63fs=
-=9LfB
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlpyyUQACgkQ5GN7iDZy
+WKdgyQ/9GMEOKqUUxfrdqG7MG7R+UF4ieSUK3YbrBPcIaqPAVJFITK1SXMDYh1N1
+hF6ayhrgxguQIbFKdWKXh7M5+pr1I5lOcKWHgwBnbs6yh/GuaAeYt3BSPTZYXczL
++vuLUJdkOKCBSPz8YBsst8qZ+O6fd8THHWYSCQ8FIcNbj19JsBfW0YPCvnt0GPB2
+rIMvbgzgtbJrMlLcVDgjt09fPYupfzud5PDW+3mdQ7lHbtiUA9ZysKiBdM4qydb4
+Z4z0578txIolQI5u98ilyS28R+VfC0u65rHAi7yHBrJzY4beWzO6KziuZmK7U6+e
+MLrv1N5/27/78/QYircM83WYBQ2IZZ52H5QiODDYrTipCwe7Wu0eef/eTnmWWUqn
+LwgEzXoyYNUSWKwToBru7Xw3tDfgEWqOcWF2TbhqqUnSGN8ycMxwBdwnGjZwf8aC
+4SmkT55M43l6XniYzVNTPWl8Y4bY2ztTAMn7FrKQ6p2zPfWXsqMPrExhkYQGkVP0
+lYDHX9FEGn1jyLuBz0fbIz8Bj1dHJMtvH9y+C6RflEyatMI6qZhloW7n2SVpqUXs
+K8vmvlSX89QihviE438QlkdpJrTQirQZBlg5NFeNjSezvtJmuKgi+85147em3a7r
+mj7ynNa3pgkI969AtmY0bHrhv/l7O+dRvMh/ZbLn0l2gJKh28Rs=
+=gIN1
 -----END PGP SIGNATURE-----
 
---nbhonbzV/xpXxmuC--
+--IJKqlw44nclc26Ih--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
