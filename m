@@ -1,106 +1,129 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 1/4] RDMA/hns: Fix the endian problem for hns
-Date: Thu, 1 Feb 2018 16:14:34 +0800
-Message-ID: <3f40f133-602b-14f5-bd91-526f845d4170@huawei.com>
-References: <1517314845-126094-1-git-send-email-oulijun@huawei.com>
- <1517314845-126094-2-git-send-email-oulijun@huawei.com>
- <1517413485.19117.14.camel@redhat.com>
+From: Stefan Metzmacher <metze-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Subject: Work in progress SMB-Direct driver for the linux kernel
+Date: Thu, 1 Feb 2018 09:18:10 +0100
+Message-ID: <959c3608-c508-17c4-bad6-fd9421a4a235@samba.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="9tkDIesuZVZslaQHrrRrfc8zSa5BxFpMf"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1517413485.19117.14.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Disseldorp <ddiss-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Cc: Samba Technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Steve French <smfrench-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?UTF-8?Q?Ralph_B=c3=b6hme?= <slow-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-在 2018/1/31 23:44, Doug Ledford 写道:
-> On Tue, 2018-01-30 at 20:20 +0800, Lijun Ou wrote:
->> The hip06 and hip08 run on a little endian ARM, it needs to
->> revise the annotations to indicate that the HW uses little
->> endian data in the various DMA buffers, and flow the necessary
->> swaps throughout.
->>
->> The imm_data use big endian mode. The cpu_to_le32/le32_to_cpu
->> swaps are no-op for this, which makes the only substantive
->> change the handling of imm_data which is now mandatory swapped.
->>
->> This also keep match with the userspace hns driver and resolve
->> the warning by sparse.
->>
->> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> ---
->>  drivers/infiniband/hw/hns/hns_roce_common.h |   6 +-
->>  drivers/infiniband/hw/hns/hns_roce_device.h |   2 +-
->>  drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  57 ++++--
->>  drivers/infiniband/hw/hns/hns_roce_hw_v1.h  | 258 ++++++++++++-------------
->>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  51 +++--
->>  drivers/infiniband/hw/hns/hns_roce_hw_v2.h  | 283 ++++++++++++++--------------
->>  drivers/infiniband/hw/hns/hns_roce_main.c   |   2 +-
->>  drivers/infiniband/hw/hns/hns_roce_qp.c     |  18 +-
->>  8 files changed, 357 insertions(+), 320 deletions(-)
->>
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_common.h b/drivers/infiniband/hw/hns/hns_roce_common.h
->> index dd67faf..319cb74 100644
->> --- a/drivers/infiniband/hw/hns/hns_roce_common.h
->> +++ b/drivers/infiniband/hw/hns/hns_roce_common.h
->> @@ -43,15 +43,15 @@
->>  	__raw_writel((__force u32)cpu_to_le32(value), (addr))
->>  
->>  #define roce_get_field(origin, mask, shift) \
->> -	(((origin) & (mask)) >> (shift))
->> +	(((le32_to_cpu(origin)) & (mask)) >> (shift))
->>  
->>  #define roce_get_bit(origin, shift) \
->>  	roce_get_field((origin), (1ul << (shift)), (shift))
->>  
->>  #define roce_set_field(origin, mask, shift, val) \
->>  	do { \
->> -		(origin) &= (~(mask)); \
->> -		(origin) |= (((u32)(val) << (shift)) & (mask)); \
->> +		(origin) &= ~cpu_to_le32(mask); \
->> +		(origin) |= cpu_to_le32(((u32)(val) << (shift)) & (mask)); \
->>  	} while (0)
->>  
->>  #define roce_set_bit(origin, shift, val) \
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
->> index 42c3b5a..2503d7f 100644
->> --- a/drivers/infiniband/hw/hns/hns_roce_device.h
->> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
->> @@ -466,7 +466,7 @@ struct hns_roce_qp {
->>  	struct ib_qp		ibqp;
->>  	struct hns_roce_buf	hr_buf;
->>  	struct hns_roce_wq	rq;
->> -	__le64			doorbell_qpn;
->> +	u32			doorbell_qpn;
-> 
-> Why the change in size here?  Did you mean to go from 64bits down to
-> 32bits?
-> 
-Maybe the 64bit is wasted after anlaysis. because the qpn of qpc and wqe are 24bit. the max value of qpn
-is 2 ^ 24 - 1 and the 32bit is enough.
->>
->>  		} else if (ibqp->qp_type == IB_QPT_RC) {
->>  			ctrl = wqe;
->>  			memset(ctrl, 0, sizeof(struct hns_roce_wqe_ctrl_seg));
->>  			for (i = 0; i < wr->num_sge; i++)
->> -				ctrl->msg_length += wr->sg_list[i].length;
->> +				ctrl->msg_length =
->> +				     cpu_to_le32(le32_to_cpu(ctrl->msg_length) +
->> +				     wr->sg_list[i].length);
-> 
-> Minor nit:
-> 
-> Doing le32_to_cpu and cpu_to_le32 over and over again in a loop is
-> horribly inefficient.  It would be much better IMO if you had a local
-> variable to use for the length, used that in the loop, and then only at
-> the end of the loop do a single cpu_to_le32 of the local variable to
-> store in msg_length.  Same comment applies to the other spot in this
-> patch that does the same loop.
-> 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--9tkDIesuZVZslaQHrrRrfc8zSa5BxFpMf
+Content-Type: multipart/mixed; boundary="PLNrFNaTTRzWVvOJj8ElGxlmVoKd2MsLZ";
+ protected-headers="v1"
+From: Stefan Metzmacher <metze-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+To: David Disseldorp <ddiss-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Cc: Samba Technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>,
+ "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>,
+ Steve French <smfrench-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?UTF-8?Q?Ralph_B=c3=b6hme?=
+ <slow-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Message-ID: <959c3608-c508-17c4-bad6-fd9421a4a235-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Subject: Work in progress SMB-Direct driver for the linux kernel
+
+--PLNrFNaTTRzWVvOJj8ElGxlmVoKd2MsLZ
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
+
+Hi David,
+
+you were asking about my work in progress of the SMB-Direct driver for
+the linux kernel.
+
+I dumped what I have to git://git.samba.org/metze/linux/smbdirect.git
+into the smbdirect-work-in-progress branch.
+
+See
+https://git.samba.org/?p=3Dmetze/linux/smbdirect.git;a=3Dshortlog;h=3Dref=
+s/heads/smbdirect-work-in-progress
+
+=46rom the README:
+
+This is a work in progress SMB-Direct driver for the linux kernel
+
+It's just a raw dump of what I currently have to get some help
+with debugging kernel freezes. A lot of cleanups are required
+and real commits with useful commit messages...
+
+The protocol is specified by Microsoft in
+[MS-SMBD] SMB2 Remote Direct Memory Access (RDMA) Transport Protocol
+
+The aim is to later reuse parts of this for other operating systems
+like FreeBSD.
+
+The first goal is to provide a socket fd to userspace (or in kernel
+consumers)
+which provides semantics like a TCP socket which is used as transport
+for SMB3. Basically frames are submitted with a 4 byte length header.
+
+The second goal will be to provide RDMA read and write support
+via ioctl() calls on the main smb-direct socket fd, but the
+api for that is not yet designed. But it needs to
+avoid data copy as much as possible.
+
+loadchelsio.sh, loadrxe.sh, loadsiw.sh offer some examples
+to setup the rdma stack before using 'insmod smbdirect.ko'.
+
+The userspace 'smbdirect-tool' offers some commands for testing.
+
+  "connect <dstaddr> [<dstport> [<srcaddr> [<srcport>]]]"
+
+  "172.31.9.166"
+  "172.31.9.166 5445"
+  "172.31.9.166 5445 172.31.9.167"
+  "fd3a:aaa3:ee87:ff09:f189:7430:7976:6276 5445"
+
+  "listen [<port> [<addr>]]"
+
+  "5445"
+  "5445 172.31.9.166"
+  "445 fd3a:aaa3:ee87:ff09:f189:7430:7976:6276"
+
+The current state is the following:
+- It compiles with v4.{10,11,12,13,14,15}
+- The kernel freezes after some time
+  on an active connection, e.g. when readv() is called
+- Also rmmod smbdirect causes a freeze after some time
+
+As you gave a talk about debugging the linux kernel
+you might be able to find the reasons for the (silent) freezes.
+
+metze
 
 
+--PLNrFNaTTRzWVvOJj8ElGxlmVoKd2MsLZ--
+
+--9tkDIesuZVZslaQHrrRrfc8zSa5BxFpMf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJacs1GAAoJEA219WEoab1WTQYP/A3Jz7VbtPeNi9Kjso74DvaN
+diwSPSZInPyUouFniu3KylHq265jQlgTDOl9pBYJfF2RzVqaZGy1l7TZhB8qMibF
+uCa6ttRSVx7PSwg2OxnzscDq0b6WfrXRSyvnh2+hNVpvY7qJDWGsa/NiJKvwLm86
+B3whPuBG9P+XdHmP1kK0ge+wTN9cfQ5QABrhO+RWnhwYVDgehwuWVQo2IEKH6QKX
+3G+9HX/puEIRcSn2zyOw1NH/C4D3k3pYixRWg+Qq3ijd8SWJQ8ayQFOLGxcZ41Fm
+APTzXKULz8q28qVNIGEmPXvN55Wq5OGg5I89XLdrSaiczYNq95ot+tCM0sBeCMjz
+NI3/tALHy6JD+9DJYq+TDfofjCAhGwsGfJTUa4jvfqKzhFEs4NUyyKHSEnYMLdLs
+VnSpAveRF9GO0wKYfxEMZREzFoULQjSfyJ/n/qxG8vnDpHc4iyegY+BxDz4cCgpl
+YEpKct8ji1M2d8UZkdlUrSdI7yTECb26oQE/zQ5ABq8hReIZEq70DNUgeJVVeK4c
+A+JzRqlt/1U5hF1eyq2vFt4uxNAuxQ0sF+FOGaX24IvFpP9Bs+IBP1uZjlsskmsP
+CSQAZ+yaBGQR7xHcA3yhqgV+UGlzwWO6ifLVr5mBEkAF8cg13nPLJnEwNhCnFC+9
+47OsP6MC0IyQrpMXaqqS
+=TggL
+-----END PGP SIGNATURE-----
+
+--9tkDIesuZVZslaQHrrRrfc8zSa5BxFpMf--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
