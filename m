@@ -1,62 +1,88 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 0/4] IB/hfi1: Minor and misc bug fixes
-Date: Thu, 01 Feb 2018 10:52:11 -0800
-Message-ID: <20180201184921.7300.11118.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 1/4] IB/hfi1: Do not override given pcie_pset value
+Date: Thu, 01 Feb 2018 10:52:20 -0800
+Message-ID: <20180201185216.7300.74973.stgit@scvm10.sc.intel.com>
+References: <20180201184921.7300.11118.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180201184921.7300.11118.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bartlomiej Dudek <bartlomiej.dudek-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Patel Jay P <jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bartlomiej Dudek <bartlomiej.dudek-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Patel Jay P <jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jason and Doug,
+From: Bartlomiej Dudek <bartlomiej.dudek-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Here are some fixes for minor issues. Minor in terms of severity, not
-necessarily in terms of complexity. The diffstat for mad.c in particular looks
-pretty bad but it's basically changing the units being used from cycle time to
-flit time.
+During PCIe Gen 3 transistion, pcie_pset is read and might be overridden
+to a default value(i.e. 255) in do_pcie_gen3_transition() routine.
 
-This is a resubmit of my previous patch set [1] broken up into smaller logically
-grouped patch sets.
+If the pcie_pset value is overridden then this new value will be used
+during initialization of next adapter on a different card.
 
-As always my GitHub had these in-tree for context:
-https://github.com/ddalessa/kernel/tree/for-4.16
+Introducing a new local variable to avoid modification of pcie_pset
 
-[1] https://www.spinics.net/lists/linux-rdma/msg60011.html
-
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Bartlomiej Dudek <bartlomiej.dudek-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Patel Jay P <jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/infiniband/hw/hfi1/pcie.c |   23 ++++++++++++-----------
+ 1 files changed, 12 insertions(+), 11 deletions(-)
 
-Bartlomiej Dudek (1):
-      IB/hfi1: Do not override given pcie_pset value
+diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
+index 8c7e7a6..83d66e8 100644
+--- a/drivers/infiniband/hw/hfi1/pcie.c
++++ b/drivers/infiniband/hw/hfi1/pcie.c
+@@ -1034,6 +1034,7 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+ 	int do_retry, retry_count = 0;
+ 	int intnum = 0;
+ 	uint default_pset;
++	uint pset = pcie_pset;
+ 	u16 target_vector, target_speed;
+ 	u16 lnkctl2, vendor;
+ 	u8 div;
+@@ -1201,16 +1202,16 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+ 	 *
+ 	 * Set Gen3EqPsetReqVec, leave other fields 0.
+ 	 */
+-	if (pcie_pset == UNSET_PSET)
+-		pcie_pset = default_pset;
+-	if (pcie_pset > 10) {	/* valid range is 0-10, inclusive */
++	if (pset == UNSET_PSET)
++		pset = default_pset;
++	if (pset > 10) {	/* valid range is 0-10, inclusive */
+ 		dd_dev_err(dd, "%s: Invalid Eq Pset %u, setting to %d\n",
+-			   __func__, pcie_pset, default_pset);
+-		pcie_pset = default_pset;
++			   __func__, pset, default_pset);
++		pset = default_pset;
+ 	}
+-	dd_dev_info(dd, "%s: using EQ Pset %u\n", __func__, pcie_pset);
++	dd_dev_info(dd, "%s: using EQ Pset %u\n", __func__, pset);
+ 	pci_write_config_dword(dd->pcidev, PCIE_CFG_REG_PL106,
+-			       ((1 << pcie_pset) <<
++			       ((1 << pset) <<
+ 			PCIE_CFG_REG_PL106_GEN3_EQ_PSET_REQ_VEC_SHIFT) |
+ 			PCIE_CFG_REG_PL106_GEN3_EQ_EVAL2MS_DISABLE_SMASK |
+ 			PCIE_CFG_REG_PL106_GEN3_EQ_PHASE23_EXIT_MODE_SMASK);
+@@ -1240,10 +1241,10 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+ 		/* apply static CTLE tunings */
+ 		u8 pcie_dc, pcie_lf, pcie_hf, pcie_bw;
+ 
+-		pcie_dc = ctle_tunings[pcie_pset][0];
+-		pcie_lf = ctle_tunings[pcie_pset][1];
+-		pcie_hf = ctle_tunings[pcie_pset][2];
+-		pcie_bw = ctle_tunings[pcie_pset][3];
++		pcie_dc = ctle_tunings[pset][0];
++		pcie_lf = ctle_tunings[pset][1];
++		pcie_hf = ctle_tunings[pset][2];
++		pcie_bw = ctle_tunings[pset][3];
+ 		write_gasket_interrupt(dd, intnum++, 0x0026, 0x0200 | pcie_dc);
+ 		write_gasket_interrupt(dd, intnum++, 0x0026, 0x0100 | pcie_lf);
+ 		write_gasket_interrupt(dd, intnum++, 0x0026, 0x0000 | pcie_hf);
 
-Kamenee Arumugam (1):
-      IB/hfi1: Convert PortXmitWait/PortVLXmitWait counters to flit times
-
-Mike Marciniszyn (1):
-      IB/hfi1: Remove blind constants from 16B update
-
-Mitko Haralanov (1):
-      IB/hfi1: Show fault stats in both TX and RX directions
-
-
- drivers/infiniband/hw/hfi1/chip.c    |   64 ++++++++++++++++-
- drivers/infiniband/hw/hfi1/chip.h    |    4 +
- drivers/infiniband/hw/hfi1/debugfs.c |    9 ++
- drivers/infiniband/hw/hfi1/driver.c  |    6 +-
- drivers/infiniband/hw/hfi1/hfi.h     |    7 ++
- drivers/infiniband/hw/hfi1/init.c    |    9 ++
- drivers/infiniband/hw/hfi1/mad.c     |  127 +++++++++++++++++++++++++++++++---
- drivers/infiniband/hw/hfi1/mad.h     |   47 ++++++++++++-
- drivers/infiniband/hw/hfi1/pcie.c    |   23 +++---
- drivers/infiniband/hw/hfi1/ruc.c     |   13 ++-
- drivers/infiniband/hw/hfi1/ud.c      |   15 +++-
- drivers/infiniband/hw/hfi1/verbs.h   |    5 +
- 12 files changed, 284 insertions(+), 45 deletions(-)
-
---
--Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
