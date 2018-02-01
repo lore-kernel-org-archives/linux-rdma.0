@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 2/3] IB/hfi1: Fix for early release of sdma context
-Date: Thu, 01 Feb 2018 10:43:50 -0800
-Message-ID: <20180201184347.5205.91518.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 1/3] IB/hfi1: Re-order IRQ cleanup to address
+ driver cleanup race
+Date: Thu, 01 Feb 2018 10:43:42 -0800
+Message-ID: <20180201184338.5205.21740.stgit@scvm10.sc.intel.com>
 References: <20180201184229.5205.6194.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,125 +11,149 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180201184229.5205.6194.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michael J Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Patel Jay P <jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-With IRQF_SHARED flag set and CONFIG_DEBUG_SHIRQ enabled
-module removal may result in panic in sdma_interrupt() routine
-if associated sdma context was released before pci_free_irq();
+The pci_request_irq() interfaces always adds the IRQF_SHARED bit to
+all IRQ requests.
 
-[ 9198.939885] BUG: unable to handle kernel NULL pointer dereference at           (null)
-[ 9198.940514] IP: sdma_make_progress+0xa5/0x450 [hfi1]
-[ 9198.941114] PGD 170bdc0067 P4D 170bdc0067 PUD 172063e067 PMD 0
-[ 9198.941783] Oops: 0000 [#1] SMP
-.....
-[ 9198.958877] CPU: 132 PID: 64173 Comm: rmmod Tainted: G           OE   4.14.0-rc4+ #1
-[ 9198.961032] Hardware name: Intel Corporation S7200AP/S7200AP, BIOS S72C610.86B.01.02.0118.080620171935 08/06/2017
-[ 9198.963323] task: ffff9681397f0000 task.stack: ffffae1647c40000
-[ 9198.965695] RIP: 0010:sdma_make_progress+0xa5/0x450 [hfi1]
-[ 9198.968082] RSP: 0018:ffffae1647c43be8 EFLAGS: 00010046
-[ 9198.970503] RAX: 0000000000000000 RBX: ffff9680ce8b5ca8 RCX: 0000000000000000
-[ 9198.973006] RDX: 0000000000000000 RSI: 0000000001a00d28 RDI: ffff9680ce8b5ca0
-[ 9198.975546] RBP: ffffae1647c43c40 R08: ffff96814325ec00 R09: 00000000ffffffff
-[ 9198.978142] R10: 000000004325e501 R11: ffff96814325ec00 R12: ffff9680ce8b5c44
-[ 9198.980779] R13: ffff9680ce8b5ca0 R14: 0000000000000000 R15: ffff9680ce8b5b00
-[ 9198.983462] FS:  00007f31196ba740(0000) GS:ffff96819df00000(0000) knlGS:0000000000000000
-[ 9198.986231] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 9198.989036] CR2: 0000000000000000 CR3: 000000170833f000 CR4: 00000000001406e0
-[ 9198.991911] Call Trace:
-[ 9198.994847]  sdma_engine_interrupt+0x82/0x100 [hfi1]
-[ 9198.997852]  sdma_interrupt+0x61/0xc0 [hfi1]
-[ 9199.000852]  __free_irq+0x1b3/0x2d0
-[ 9199.003873]  free_irq+0x35/0x70
-[ 9199.006909]  pci_free_irq+0x1c/0x30
-[ 9199.009999]  clean_up_interrupts+0x53/0xf0 [hfi1]
-[ 9199.013137]  hfi1_start_cleanup+0x117/0x190 [hfi1]
-[ 9199.016315]  postinit_cleanup+0x1d/0x270 [hfi1]
-[ 9199.019529]  remove_one+0x1f3/0x210 [hfi1]
-[ 9199.022738]  pci_device_remove+0x39/0xc0
-[ 9199.025974]  device_release_driver_internal+0x141/0x210
-[ 9199.029268]  driver_detach+0x3f/0x80
-[ 9199.032580]  bus_remove_driver+0x55/0xd0
-[ 9199.035931]  driver_unregister+0x2c/0x50
-[ 9199.039321]  pci_unregister_driver+0x2a/0xa0
-[ 9199.042755]  hfi1_mod_cleanup+0x10/0xb50 [hfi1]
-[ 9199.046196]  SyS_delete_module+0x171/0x250
-...
+When the kernel is built with CONFIG_DEBUG_SHIRQ config flag, if the
+IRQF_SHARED bit is set, a call to the IRQ handler is made from the
+__free_irq() function. This is testing a race condition between the
+IRQ cleanup and an IRQ racing the cleanup.  The HFI driver should be
+able to handle this race, but does not.
 
-Fix by exporting sdma_clean() and removing from sdma_exit().
-sdma_exit() now just manipulates the engine state,
-leaving the memory free to sdma_clean() which is now called
-just before the dd is freed.
+This race can cause traces that start with this footprint:
 
+BUG: unable to handle kernel NULL pointer dereference at   (null)
+Call Trace:
+ <hfi1 irq handler>
+ ...
+ __free_irq+0x1b3/0x2d0
+ free_irq+0x35/0x70
+ pci_free_irq+0x1c/0x30
+ clean_up_interrupts+0x53/0xf0 [hfi1]
+ hfi1_start_cleanup+0x122/0x190 [hfi1]
+ postinit_cleanup+0x1d/0x280 [hfi1]
+ remove_one+0x233/0x250 [hfi1]
+ pci_device_remove+0x39/0xc0
+
+Export IRQ cleanup function so it can be called from other modules.
+
+Using the exported cleanup function:
+
+  Re-order the driver cleanup code to clean up IRQ resources before
+  other resources, eliminating the race.
+
+  Re-order error path for init so that the race does not occur.
+
+Reduce severity on spurious error message for SDMA IRQs to info.
+
+Reviewed-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Patel Jay P <jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Michael J Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/init.c |    1 +
- drivers/infiniband/hw/hfi1/sdma.c |   13 +++++++------
- drivers/infiniband/hw/hfi1/sdma.h |    1 +
- 3 files changed, 9 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c |   18 ++++++++++++------
+ drivers/infiniband/hw/hfi1/hfi.h  |    1 +
+ drivers/infiniband/hw/hfi1/init.c |    4 +++-
+ 3 files changed, 16 insertions(+), 7 deletions(-)
 
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 6660f92..57f0df2 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -8264,8 +8264,8 @@ static irqreturn_t sdma_interrupt(int irq, void *data)
+ 		/* handle the interrupt(s) */
+ 		sdma_engine_interrupt(sde, status);
+ 	} else {
+-		dd_dev_err_ratelimited(dd, "SDMA engine %u interrupt, but no status bits set\n",
+-				       sde->this_idx);
++		dd_dev_info_ratelimited(dd, "SDMA engine %u interrupt, but no status bits set\n",
++					sde->this_idx);
+ 	}
+ 	return IRQ_HANDLED;
+ }
+@@ -12960,7 +12960,14 @@ static void disable_intx(struct pci_dev *pdev)
+ 	pci_intx(pdev, 0);
+ }
+ 
+-static void clean_up_interrupts(struct hfi1_devdata *dd)
++/**
++ * hfi1_clean_up_interrupts() - Free all IRQ resources
++ * @dd: valid device data data structure
++ *
++ * Free the MSI or INTx IRQs and assoicated PCI resources,
++ * if they have been allocated.
++ */
++void hfi1_clean_up_interrupts(struct hfi1_devdata *dd)
+ {
+ 	int i;
+ 
+@@ -13321,7 +13328,7 @@ static int set_up_interrupts(struct hfi1_devdata *dd)
+ 	return 0;
+ 
+ fail:
+-	clean_up_interrupts(dd);
++	hfi1_clean_up_interrupts(dd);
+ 	return ret;
+ }
+ 
+@@ -14748,7 +14755,6 @@ void hfi1_start_cleanup(struct hfi1_devdata *dd)
+ 	aspm_exit(dd);
+ 	free_cntrs(dd);
+ 	free_rcverr(dd);
+-	clean_up_interrupts(dd);
+ 	finish_chip_resources(dd);
+ }
+ 
+@@ -15204,7 +15210,7 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
+ bail_free_cntrs:
+ 	free_cntrs(dd);
+ bail_clear_intr:
+-	clean_up_interrupts(dd);
++	hfi1_clean_up_interrupts(dd);
+ bail_cleanup:
+ 	hfi1_pcie_ddcleanup(dd);
+ bail_free:
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index b42c222..5757d0e 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -1957,6 +1957,7 @@ int hfi1_create_port_files(struct ib_device *ibdev, u8 port_num,
+ int qsfp_dump(struct hfi1_pportdata *ppd, char *buf, int len);
+ 
+ int hfi1_pcie_init(struct pci_dev *pdev, const struct pci_device_id *ent);
++void hfi1_clean_up_interrupts(struct hfi1_devdata *dd);
+ void hfi1_pcie_cleanup(struct pci_dev *pdev);
+ int hfi1_pcie_ddinit(struct hfi1_devdata *dd, struct pci_dev *pdev);
+ void hfi1_pcie_ddcleanup(struct hfi1_devdata *);
 diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index c676d1c..4c51a75 100644
+index 9b12826..c676d1c 100644
 --- a/drivers/infiniband/hw/hfi1/init.c
 +++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1219,6 +1219,7 @@ static void __hfi1_free_devdata(struct kobject *kobj)
- 	free_percpu(dd->rcv_limit);
- 	free_percpu(dd->send_schedule);
- 	free_percpu(dd->tx_opstats);
-+	sdma_clean(dd, dd->num_sdma);
- 	rvt_dealloc_device(&dd->verbs_dev.rdi);
- }
- 
-diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
-index 31c8f89..37424a8 100644
---- a/drivers/infiniband/hw/hfi1/sdma.c
-+++ b/drivers/infiniband/hw/hfi1/sdma.c
-@@ -1276,13 +1276,15 @@ int sdma_map_init(struct hfi1_devdata *dd, u8 port, u8 num_vls, u8 *vl_engines)
- 	return -ENOMEM;
- }
- 
--/*
-- * Clean up allocated memory.
-- *
-- * This routine is can be called regardless of the success of sdma_init()
-+/**
-+ * sdma_clean()  Clean up allocated memory
-+ * @dd:          struct hfi1_devdata
-+ * @num_engines: num sdma engines
-  *
-+ * This routine can be called regardless of the success of
-+ * sdma_init()
-  */
--static void sdma_clean(struct hfi1_devdata *dd, size_t num_engines)
-+void sdma_clean(struct hfi1_devdata *dd, size_t num_engines)
- {
- 	size_t i;
- 	struct sdma_engine *sde;
-@@ -1618,7 +1620,6 @@ void sdma_exit(struct hfi1_devdata *dd)
- 		 */
- 		sdma_finalput(&sde->state);
+@@ -1058,8 +1058,9 @@ static void shutdown_device(struct hfi1_devdata *dd)
  	}
--	sdma_clean(dd, dd->num_sdma);
- }
+ 	dd->flags &= ~HFI1_INITTED;
  
- /*
-diff --git a/drivers/infiniband/hw/hfi1/sdma.h b/drivers/infiniband/hw/hfi1/sdma.h
-index 374c597..46c775f 100644
---- a/drivers/infiniband/hw/hfi1/sdma.h
-+++ b/drivers/infiniband/hw/hfi1/sdma.h
-@@ -420,6 +420,7 @@ struct sdma_engine {
- int sdma_init(struct hfi1_devdata *dd, u8 port);
- void sdma_start(struct hfi1_devdata *dd);
- void sdma_exit(struct hfi1_devdata *dd);
-+void sdma_clean(struct hfi1_devdata *dd, size_t num_engines);
- void sdma_all_running(struct hfi1_devdata *dd);
- void sdma_all_idle(struct hfi1_devdata *dd);
- void sdma_freeze_notify(struct hfi1_devdata *dd, int go_idle);
+-	/* mask interrupts, but not errors */
++	/* mask and clean up interrupts, but not errors */
+ 	set_intr_state(dd, 0);
++	hfi1_clean_up_interrupts(dd);
+ 
+ 	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
+ 		ppd = dd->pport + pidx;
+@@ -1704,6 +1705,7 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 		dd_dev_err(dd, "Failed to create /dev devices: %d\n", -j);
+ 
+ 	if (initfail || ret) {
++		hfi1_clean_up_interrupts(dd);
+ 		stop_timers(dd);
+ 		flush_workqueue(ib_wq);
+ 		for (pidx = 0; pidx < dd->num_pports; ++pidx) {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
