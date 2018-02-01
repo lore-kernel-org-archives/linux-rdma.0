@@ -1,62 +1,166 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH RESEND v1 rdma-next 0/6] cm_id, cq, mr, and pd resource tracking
-Date: Tue, 13 Feb 2018 12:13:20 -0800
-Message-ID: <cover.1518552800.git.swise@opengridcomputing.com>
+Subject: [PATCH RESEND v1 rdma-next 1/6] RDMA/CM: move rdma_id_private to
+ cma_priv.h
+Date: Thu, 1 Feb 2018 08:20:14 -0800
+Message-ID: <c33f46bd631dacb72890268294fb8f177e17f499.1518552800.git.swise@opengridcomputing.com>
+References: <cover.1518552800.git.swise@opengridcomputing.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1518552800.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-NOTE: I added cq, mr, and pd resources in this series.
+Move struct rdma_id_private to a new header cma_priv.h so the resource
+tracking services in core/nldev.c can read useful information about cm_ids.
 
-This series adds rdma_cm_id, ib_cq, ib_mr, and ib_pd information to the
-new resource tracking database.  The patches are on top of Jason's merged
-rdma-next branch [1] plus the recent restrack fix destined for rdma-rc
-[2].  I'll rebase everything on rdma-next once it rebases on 4.16-rc2.
-
-Changes since v0 RFC:
-
-- move rdma_id_private into new header cma_priv.h
-- fixed up code comments as suggested
-- fixed RDMA_NLDEV_CMD_RES_QP_GET cut/paste error
-- no BE attributes
-- add cq, mr, pd resource information
-- remove RFC tag
-
-Thanks,
-
-Steve.
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
-branch wip/for-linus-merged.
-
-[2] https://www.spinics.net/lists/linux-rdma/msg60672.html
-
-
-Steve Wise (6):
-  RDMA/CM: move rdma_id_private to cma_priv.h
-  RDMA/nldev: provide detailed CM_ID information
-  RDMA/nldev: provide detailed CQ information
-  iw_cxgb4: initialize ib_mr fields for user mrs
-  RDMA/nldev: provide detailed MR information
-  RDMA/nldev: provide detailed PD information
-
- drivers/infiniband/core/cma.c        |  96 ++---
- drivers/infiniband/core/cma_priv.h   |  75 ++++
- drivers/infiniband/core/nldev.c      | 811 ++++++++++++++++++++++++++++++++++-
- drivers/infiniband/core/restrack.c   |  61 ++-
- drivers/infiniband/core/ucma.c       |   8 +-
- drivers/infiniband/core/uverbs_cmd.c |   6 +
- drivers/infiniband/core/verbs.c      |   3 +
- drivers/infiniband/hw/cxgb4/mem.c    |   3 +
- include/rdma/ib_verbs.h              |   5 +
- include/rdma/rdma_cm.h               |  24 +-
- include/rdma/restrack.h              |   8 +
- include/uapi/rdma/rdma_netlink.h     |  56 +++
- 12 files changed, 1052 insertions(+), 104 deletions(-)
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/core/cma.c      | 41 +--------------------
+ drivers/infiniband/core/cma_priv.h | 75 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 76 insertions(+), 40 deletions(-)
  create mode 100644 drivers/infiniband/core/cma_priv.h
 
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index e66963c..203519e 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -62,6 +62,7 @@
+ #include <rdma/iw_cm.h>
+ 
+ #include "core_priv.h"
++#include "cma_priv.h"
+ 
+ MODULE_AUTHOR("Sean Hefty");
+ MODULE_DESCRIPTION("Generic RDMA CM Agent");
+@@ -327,46 +328,6 @@ struct ib_device *cma_get_ib_dev(struct cma_device *cma_dev)
+  * We do this by disabling removal notification while a callback is in process,
+  * and reporting it after the callback completes.
+  */
+-struct rdma_id_private {
+-	struct rdma_cm_id	id;
+-
+-	struct rdma_bind_list	*bind_list;
+-	struct hlist_node	node;
+-	struct list_head	list; /* listen_any_list or cma_device.list */
+-	struct list_head	listen_list; /* per device listens */
+-	struct cma_device	*cma_dev;
+-	struct list_head	mc_list;
+-
+-	int			internal_id;
+-	enum rdma_cm_state	state;
+-	spinlock_t		lock;
+-	struct mutex		qp_mutex;
+-
+-	struct completion	comp;
+-	atomic_t		refcount;
+-	struct mutex		handler_mutex;
+-
+-	int			backlog;
+-	int			timeout_ms;
+-	struct ib_sa_query	*query;
+-	int			query_id;
+-	union {
+-		struct ib_cm_id	*ib;
+-		struct iw_cm_id	*iw;
+-	} cm_id;
+-
+-	u32			seq_num;
+-	u32			qkey;
+-	u32			qp_num;
+-	pid_t			owner;
+-	u32			options;
+-	u8			srq;
+-	u8			tos;
+-	bool			tos_set;
+-	u8			reuseaddr;
+-	u8			afonly;
+-	enum ib_gid_type	gid_type;
+-};
+ 
+ struct cma_multicast {
+ 	struct rdma_id_private *id_priv;
+diff --git a/drivers/infiniband/core/cma_priv.h b/drivers/infiniband/core/cma_priv.h
+new file mode 100644
+index 0000000..1b6dfbf
+--- /dev/null
++++ b/drivers/infiniband/core/cma_priv.h
+@@ -0,0 +1,75 @@
++/*
++ * Copyright (c) 2005 Voltaire Inc.  All rights reserved.
++ * Copyright (c) 2002-2005, Network Appliance, Inc. All rights reserved.
++ * Copyright (c) 1999-2005, Mellanox Technologies, Inc. All rights reserved.
++ * Copyright (c) 2005-2006 Intel Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++struct rdma_id_private {
++	struct rdma_cm_id	id;
++
++	struct rdma_bind_list	*bind_list;
++	struct hlist_node	node;
++	struct list_head	list; /* listen_any_list or cma_device.list */
++	struct list_head	listen_list; /* per device listens */
++	struct cma_device	*cma_dev;
++	struct list_head	mc_list;
++
++	int			internal_id;
++	enum rdma_cm_state	state;
++	spinlock_t		lock;
++	struct mutex		qp_mutex;
++
++	struct completion	comp;
++	atomic_t		refcount;
++	struct mutex		handler_mutex;
++
++	int			backlog;
++	int			timeout_ms;
++	struct ib_sa_query	*query;
++	int			query_id;
++	union {
++		struct ib_cm_id	*ib;
++		struct iw_cm_id	*iw;
++	} cm_id;
++
++	u32			seq_num;
++	u32			qkey;
++	u32			qp_num;
++	pid_t			owner;
++	u32			options;
++	u8			srq;
++	u8			tos;
++	bool			tos_set;
++	u8			reuseaddr;
++	u8			afonly;
++	enum ib_gid_type	gid_type;
++};
 -- 
 1.8.3.1
 
