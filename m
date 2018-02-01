@@ -1,30 +1,40 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 0/2] RDMA/bnxt_re: Adjustments for
- bnxt_qplib_alloc_dpi_tbl()
-Date: Thu, 1 Feb 2018 15:49:17 -0700
-Message-ID: <20180201224917.GA8590@ziepe.ca>
-References: <19c755a6-8c52-bbd5-a425-48fc08cecd4f@users.sourceforge.net>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH for-next 0/4] Fixes for hns
+Date: Thu, 1 Feb 2018 15:49:56 -0700
+Message-ID: <20180201224956.GB8590@ziepe.ca>
+References: <1517314845-126094-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <19c755a6-8c52-bbd5-a425-48fc08cecd4f@users.sourceforge.net>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-rdma@vger.kernel.org, Devesh Sharma <devesh.sharma@broadcom.com>, Doug Ledford <dledford@redhat.com>, Selvin Xavier <selvin.xavier@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Himanshu Jha <himanshujha199640@gmail.com>, Jonathan Toppins <jtoppins@redhat.com>
+In-Reply-To: <1517314845-126094-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Jan 27, 2018 at 09:15:09PM +0100, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Sat, 27 Jan 2018 21:10:12 +0100
+On Tue, Jan 30, 2018 at 08:20:41PM +0800, Lijun Ou wrote:
+> This patch series is small set of fixes for hns.
+> The first patch and the second patch mainly fix
+> the flowup reviews from Jason Gunthorpe and the
+> third patch mainly remove the checkpatch.pl warning
+> in order to the new checkpatch requirements and
+> the last patch fix the bug for cleaning mtt table.
 > 
-> Two update suggestions were taken into account
-> from static source code analysis.
-> 
-> Markus Elfring (2):
->   Delete two error messages for a failed memory allocation
->   Use common error handling code
+> Lijun Ou (4):
+>   RDMA/hns: Fix the endian problem for hns
 
-Applied to for-next with Jonathan and Devesh's ack, thanks all
+Please resend this one with a fix for Doug's comments on for loop
+optimization
+
+>   RDMA/hns: Remove unnecessary operator
+>   RDMA/hns: Fix the checkpatch.pl warning
+>   RDMA/hns: Remove repeated option for free mtt table
+
+Applied these three to for-next, thanks
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
