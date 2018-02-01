@@ -1,86 +1,52 @@
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC rdma-core 2/2] verbs: Introduce non-contiguous memory
- registration
-Date: Thu, 1 Feb 2018 11:29:59 -0700
-Message-ID: <20180201182959.GN23352@mellanox.com>
-References: <VI1PR05MB1278C4C4FF78B4B1A551252EB9EC0@VI1PR05MB1278.eurprd05.prod.outlook.com>
- <20180123202954.GA14007@yuvallap>
- <VI1PR05MB12787572593F02F05AA20DE1B9E10@VI1PR05MB1278.eurprd05.prod.outlook.com>
- <20180128203746.GA11635@yuvallap>
- <20180129172717.GW23852@mellanox.com>
- <12d04e1b-6024-0763-f5c5-46ca8b0823a6@redhat.com>
- <20180130154200.GD21679@mellanox.com>
- <76b5a8cf-b3ed-c76d-6157-91fc5f6f2b35@redhat.com>
- <20180131183810.GA23352@mellanox.com>
- <dded9055-a329-9b9d-943a-7a60445e2ada@redhat.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH RFC 2/2] RDMA/nldev: provide detailed CM_ID information
+Date: Thu, 1 Feb 2018 11:32:32 -0700
+Message-ID: <20180201183232.GV17053@ziepe.ca>
+References: <cover.1517418595.git.swise@opengridcomputing.com>
+ <531889e6a24f7919dec71734c91298d266aa9721.1517418595.git.swise@opengridcomputing.com>
+ <20180201084944.GH2055@mtr-leonro.local>
+ <20180201175353.GU17053@ziepe.ca>
+ <013501d39b89$01371bd0$03a55370$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <dded9055-a329-9b9d-943a-7a60445e2ada-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <013501d39b89$01371bd0$03a55370$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 01, 2018 at 08:22:01PM +0200, Marcel Apfelbaum wrote:
-> On 31/01/2018 20:38, Jason Gunthorpe wrote:
-> > On Wed, Jan 31, 2018 at 02:27:01PM +0200, Marcel Apfelbaum wrote:
+On Thu, Feb 01, 2018 at 12:18:05PM -0600, Steve Wise wrote:
+> 
+> 
+> > From: Jason Gunthorpe [mailto:jgg-uk2M96/98Pc@public.gmane.org]
+> > Sent: Thursday, February 01, 2018 11:54 AM
+> > To: Leon Romanovsky
+> > Cc: Steve Wise; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Subject: Re: [PATCH RFC 2/2] RDMA/nldev: provide detailed CM_ID
+> information
 > > 
-> >> It is good to know, but still, passing so much information to kernel
-> >> when we can rather "compress" it, maybe it worth a second thought.
+> > On Thu, Feb 01, 2018 at 10:49:44AM +0200, Leon Romanovsky wrote:
 > > 
-> > Not sure. Have to see the whole thing..
+> > > > +	RDMA_NLDEV_ATTR_RES_IPV4_SADDR,		/* u8[4] */
+> > > > +	RDMA_NLDEV_ATTR_RES_IPV4_DADDR,		/* u8[4] */
+> > > > +	RDMA_NLDEV_ATTR_RES_IPV6_SADDR,		/* u8[16] */
+> > > > +	RDMA_NLDEV_ATTR_RES_IPV6_DADDR,		/* u8[16] */
+> > > > +	RDMA_NLDEV_ATTR_RES_IP_SPORT,		/* BE u16 */
+> > > > +	RDMA_NLDEV_ATTR_RES_IP_DPORT,		/* BE u16 */
+> > >
+> > > Can you please document the meaning of S (source) and D (destination)
+> > > in regards of this netlink output? It is needed to remove ambiguity.
 > > 
-> >>> Well, actually, only a 3rd :| The new MR would likely be 0 based, but
-> >>> the VM guest doesn't know about this. So you'd need an API that can do
-> >>> arbitrary based to really solve your probably. I guess all HW should
-> >>> be able to do this so maybe it is OK?
-> >>
-> >> The way we solve "the other" half is by intercepting the post-send
-> >> requests in hypervisor. At hypervisor level we don't have contiguous virtual
-> >> addresses anymore, but we don't need them for 0 based MRs:
-> >> The guest still register regular MRs, while the hypervisor will
-> >> register a 0 based MR save the guest virtual address of the MR.
-> >> At post-send we simply substract the saved MR base address from the work request
-> >> buffers and we are back to 0 based MR.
-> > 
+> > And no on BE's in netlink, I think.
 > 
-> Hi Jason,
 > 
-> > That only works for lkeys, the rkey expoeses the base address to the
-> > remote - the HV can't fix it..
-> > 
-> 
-> Thanks for the clarification.
-> 
-> What we really need is to allow to map a list of
-> pages to a IOVA different from the process address
-> space, e.g guest supplied IOVA.
-> 
-> Something like req_mr (list_of_process_va_pages, base_other_iova, len_other_iova)
-> 
-> Do think the new API can support that?
+> Sure there are, see nla_put_be32() for example. I'm using nla_put_net16() to
+> store the ports.  Perhaps I need to change the above comment to ne16 instead
+> of BE u16?
 
-Well, I think we should have something like this.
-
-I actually can't see how it could need special HW support, since this
-is basically exactly the same as creating a normal MR.
-
-And same with 0 based, 'base_other_iova == 0' is the same as zero
-based.
-
-I think the difference from the proposed API here is this requires
-full OS pages, while Alex's version can do sub-pages too using HW
-features.
-
-I would urge you to persue an API like you described:
-
-struct ibv_mr *ib_reg_mr_sg(const void *pages[], size_t num_pages,
-                            uint64_t mr_addr,
-			    size_t mr_offset, // MR starts at pages[0] + mr)offset
-			    size_t mr_length,
-			    unsigned int flags);
+There is no reason thes ports should be be, so don't make it be.
 
 Jason
 --
