@@ -1,370 +1,173 @@
 From: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH 04/24] ibtrs: client: private header with client structs and functions
-Date: Fri,  2 Feb 2018 15:08:44 +0100
-Message-ID: <20180202140904.2017-5-roman.penyaev@profitbricks.com>
-References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
+Subject: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block Device (IBNBD)
+Date: Fri,  2 Feb 2018 15:08:40 +0100
+Message-ID: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180202140904.2017-1-roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This header describes main structs and functions used by ibtrs-client
-module, mainly for managing IBTRS sessions, creating/destroying sysfs
-entries, accounting statistics on client side.
+This series introduces IBNBD/IBTRS modules.
+
+IBTRS (InfiniBand Transport) is a reliable high speed transport library
+which allows for establishing connection between client and server
+machines via RDMA. It is optimized to transfer (read/write) IO blocks
+in the sense that it follows the BIO semantics of providing the
+possibility to either write data from a scatter-gather list to the
+remote side or to request ("read") data transfer from the remote side
+into a given set of buffers.
+
+IBTRS is multipath capable and provides I/O fail-over and load-balancing
+functionality.
+
+IBNBD (InfiniBand Network Block Device) is a pair of kernel modules
+(client and server) that allow for remote access of a block device on
+the server over IBTRS protocol. After being mapped, the remote block
+devices can be accessed on the client side as local block devices.
+Internally IBNBD uses IBTRS as an RDMA transport library.
+
+Why?
+
+   - IBNBD/IBTRS is developed in order to map thin provisioned volumes,
+     thus internal protocol is simple and consists of several request
+	 types only without awareness of underlaying hardware devices.
+   - IBTRS was developed as an independent RDMA transport library, which
+     supports fail-over and load-balancing policies using multipath, thus
+	 it can be used for any other IO needs rather than only for block
+	 device.
+   - IBNBD/IBTRS is faster than NVME over RDMA.  Old comparison results:
+     https://www.spinics.net/lists/linux-rdma/msg48799.html
+     (I retested on latest 4.14 kernel - there is no any significant
+	  difference, thus I post the old link).
+
+Key features of IBTRS transport library and IBNBD block device:
+
+o High throughput and low latency due to:
+   - Only two RDMA messages per IO.
+   - IMM InfiniBand messages on responses to reduce round trip latency.
+   - Simplified memory management: memory allocation happens once on
+     server side when IBTRS session is established.
+
+o IO fail-over and load-balancing by using multipath.
+
+o Simple configuration of IBNBD:
+   - Server side is completely passive: volumes do not need to be
+     explicitly exported.
+   - Only IB port GID and device path needed on client side to map
+     a block device.
+   - A device is remapped automatically i.e. after storage reboot.
+
+This series is a second try, first variant was published [1] and
+presented on Vault in 2017 [2].
+
+Since the first version the following was changed:
+
+   - Load-balancing and IO fail-over using multipath features were added.
+   - Major parts of the code were rewritten, simplified and overall code
+     size was reduced by a quarter.
+
+Commits for kernel can be found here:
+   https://github.com/profitbricks/ibnbd/commits/linux-4.15-rc8
+
+The out-of-tree modules are here:
+   https://github.com/profitbricks/ibnbd/
+
+[1] https://lwn.net/Articles/718181/
+[2] http://events.linuxfoundation.org/sites/events/files/slides/IBNBD-Vault-2017.pdf
+
+Roman Pen (24):
+  ibtrs: public interface header to establish RDMA connections
+  ibtrs: private headers with IBTRS protocol structs and helpers
+  ibtrs: core: lib functions shared between client and server modules
+  ibtrs: client: private header with client structs and functions
+  ibtrs: client: main functionality
+  ibtrs: client: statistics functions
+  ibtrs: client: sysfs interface functions
+  ibtrs: server: private header with server structs and functions
+  ibtrs: server: main functionality
+  ibtrs: server: statistics functions
+  ibtrs: server: sysfs interface functions
+  ibtrs: include client and server modules into kernel compilation
+  ibtrs: a bit of documentation
+  ibnbd: private headers with IBNBD protocol structs and helpers
+  ibnbd: client: private header with client structs and functions
+  ibnbd: client: main functionality
+  ibnbd: client: sysfs interface functions
+  ibnbd: server: private header with server structs and functions
+  ibnbd: server: main functionality
+  ibnbd: server: functionality for IO submission to file or block dev
+  ibnbd: server: sysfs interface functions
+  ibnbd: include client and server modules into kernel compilation
+  ibnbd: a bit of documentation
+  MAINTAINERS: Add maintainer for IBNBD/IBTRS modules
+
+ MAINTAINERS                                    |   14 +
+ drivers/block/Kconfig                          |    2 +
+ drivers/block/Makefile                         |    1 +
+ drivers/block/ibnbd/Kconfig                    |   22 +
+ drivers/block/ibnbd/Makefile                   |   13 +
+ drivers/block/ibnbd/README                     |  272 ++
+ drivers/block/ibnbd/ibnbd-clt-sysfs.c          |  723 +++++
+ drivers/block/ibnbd/ibnbd-clt.c                | 1959 +++++++++++++
+ drivers/block/ibnbd/ibnbd-clt.h                |  193 ++
+ drivers/block/ibnbd/ibnbd-log.h                |   71 +
+ drivers/block/ibnbd/ibnbd-proto.h              |  360 +++
+ drivers/block/ibnbd/ibnbd-srv-dev.c            |  410 +++
+ drivers/block/ibnbd/ibnbd-srv-dev.h            |  149 +
+ drivers/block/ibnbd/ibnbd-srv-sysfs.c          |  264 ++
+ drivers/block/ibnbd/ibnbd-srv.c                |  901 ++++++
+ drivers/block/ibnbd/ibnbd-srv.h                |  100 +
+ drivers/infiniband/Kconfig                     |    1 +
+ drivers/infiniband/ulp/Makefile                |    1 +
+ drivers/infiniband/ulp/ibtrs/Kconfig           |   20 +
+ drivers/infiniband/ulp/ibtrs/Makefile          |   15 +
+ drivers/infiniband/ulp/ibtrs/README            |  238 ++
+ drivers/infiniband/ulp/ibtrs/ibtrs-clt-stats.c |  455 +++
+ drivers/infiniband/ulp/ibtrs/ibtrs-clt-sysfs.c |  519 ++++
+ drivers/infiniband/ulp/ibtrs/ibtrs-clt.c       | 3496 ++++++++++++++++++++++++
+ drivers/infiniband/ulp/ibtrs/ibtrs-clt.h       |  338 +++
+ drivers/infiniband/ulp/ibtrs/ibtrs-log.h       |   94 +
+ drivers/infiniband/ulp/ibtrs/ibtrs-pri.h       |  494 ++++
+ drivers/infiniband/ulp/ibtrs/ibtrs-srv-stats.c |  110 +
+ drivers/infiniband/ulp/ibtrs/ibtrs-srv-sysfs.c |  278 ++
+ drivers/infiniband/ulp/ibtrs/ibtrs-srv.c       | 1811 ++++++++++++
+ drivers/infiniband/ulp/ibtrs/ibtrs-srv.h       |  169 ++
+ drivers/infiniband/ulp/ibtrs/ibtrs.c           |  582 ++++
+ drivers/infiniband/ulp/ibtrs/ibtrs.h           |  331 +++
+ 33 files changed, 14406 insertions(+)
+ create mode 100644 drivers/block/ibnbd/Kconfig
+ create mode 100644 drivers/block/ibnbd/Makefile
+ create mode 100644 drivers/block/ibnbd/README
+ create mode 100644 drivers/block/ibnbd/ibnbd-clt-sysfs.c
+ create mode 100644 drivers/block/ibnbd/ibnbd-clt.c
+ create mode 100644 drivers/block/ibnbd/ibnbd-clt.h
+ create mode 100644 drivers/block/ibnbd/ibnbd-log.h
+ create mode 100644 drivers/block/ibnbd/ibnbd-proto.h
+ create mode 100644 drivers/block/ibnbd/ibnbd-srv-dev.c
+ create mode 100644 drivers/block/ibnbd/ibnbd-srv-dev.h
+ create mode 100644 drivers/block/ibnbd/ibnbd-srv-sysfs.c
+ create mode 100644 drivers/block/ibnbd/ibnbd-srv.c
+ create mode 100644 drivers/block/ibnbd/ibnbd-srv.h
+ create mode 100644 drivers/infiniband/ulp/ibtrs/Kconfig
+ create mode 100644 drivers/infiniband/ulp/ibtrs/Makefile
+ create mode 100644 drivers/infiniband/ulp/ibtrs/README
+ create mode 100644 drivers/infiniband/ulp/ibtrs/ibtrs-clt-stats.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs/ibtrs-clt-sysfs.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs/ibtrs-clt.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs/ibtrs-clt.h
+ create mode 100644 drivers/infiniband/ulp/ibtrs/ibtrs-log.h
+ create mode 100644 drivers/infiniband/ulp/ibtrs/ibtrs-pri.h
+ create mode 100644 drivers/infiniband/ulp/ibtrs/ibtrs-srv-stats.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs/ibtrs-srv-sysfs.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs/ibtrs-srv.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs/ibtrs-srv.h
+ create mode 100644 drivers/infiniband/ulp/ibtrs/ibtrs.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs/ibtrs.h
 
 Signed-off-by: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Signed-off-by: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Cc: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
----
- drivers/infiniband/ulp/ibtrs/ibtrs-clt.h | 338 +++++++++++++++++++++++++++++++
- 1 file changed, 338 insertions(+)
-
-diff --git a/drivers/infiniband/ulp/ibtrs/ibtrs-clt.h b/drivers/infiniband/ulp/ibtrs/ibtrs-clt.h
-new file mode 100644
-index 000000000000..b57af19ac833
---- /dev/null
-+++ b/drivers/infiniband/ulp/ibtrs/ibtrs-clt.h
-@@ -0,0 +1,338 @@
-+/*
-+ * InfiniBand Transport Layer
-+ *
-+ * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
-+ * Authors: Fabian Holler <mail-99BIx50xQYGELgA04lAiVw@public.gmane.org>
-+ *          Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Roman Penyaev <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Milind Dumbare <Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-+ *
-+ * Copyright (c) 2017 - 2018 ProfitBricks GmbH. All rights reserved.
-+ * Authors: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Roman Penyaev <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef IBTRS_CLT_H
-+#define IBTRS_CLT_H
-+
-+#include "ibtrs-pri.h"
-+
-+/**
-+ * enum ibtrs_clt_state - Client states.
-+ */
-+enum ibtrs_clt_state {
-+	IBTRS_CLT_CONNECTING,
-+	IBTRS_CLT_CONNECTING_ERR,
-+	IBTRS_CLT_RECONNECTING,
-+	IBTRS_CLT_CONNECTED,
-+	IBTRS_CLT_CLOSING,
-+	IBTRS_CLT_CLOSED,
-+	IBTRS_CLT_DEAD,
-+};
-+
-+static inline const char *ibtrs_clt_state_str(enum ibtrs_clt_state state)
-+{
-+	switch (state) {
-+	case IBTRS_CLT_CONNECTING:
-+		return "IBTRS_CLT_CONNECTING";
-+	case IBTRS_CLT_CONNECTING_ERR:
-+		return "IBTRS_CLT_CONNECTING_ERR";
-+	case IBTRS_CLT_RECONNECTING:
-+		return "IBTRS_CLT_RECONNECTING";
-+	case IBTRS_CLT_CONNECTED:
-+		return "IBTRS_CLT_CONNECTED";
-+	case IBTRS_CLT_CLOSING:
-+		return "IBTRS_CLT_CLOSING";
-+	case IBTRS_CLT_CLOSED:
-+		return "IBTRS_CLT_CLOSED";
-+	case IBTRS_CLT_DEAD:
-+		return "IBTRS_CLT_DEAD";
-+	default:
-+		return "UNKNOWN";
-+	}
-+}
-+
-+enum ibtrs_fast_reg {
-+	IBTRS_FAST_MEM_NONE,
-+	IBTRS_FAST_MEM_FR,
-+	IBTRS_FAST_MEM_FMR
-+};
-+
-+enum ibtrs_mp_policy {
-+	MP_POLICY_RR,
-+	MP_POLICY_MIN_INFLIGHT,
-+};
-+
-+struct ibtrs_clt_stats_reconnects {
-+	int successful_cnt;
-+	int fail_cnt;
-+};
-+
-+struct ibtrs_clt_stats_wc_comp {
-+	u32 cnt;
-+	u64 total_cnt;
-+};
-+
-+struct ibtrs_clt_stats_cpu_migr {
-+	atomic_t from;
-+	int to;
-+};
-+
-+struct ibtrs_clt_stats_rdma {
-+	struct {
-+		u64 cnt;
-+		u64 size_total;
-+	} dir[2];
-+
-+	u64 failover_cnt;
-+};
-+
-+struct ibtrs_clt_stats_rdma_lat {
-+	u64 read;
-+	u64 write;
-+};
-+
-+#define MIN_LOG_SG 2
-+#define MAX_LOG_SG 5
-+#define MAX_LIN_SG BIT(MIN_LOG_SG)
-+#define SG_DISTR_SZ (MAX_LOG_SG - MIN_LOG_SG + MAX_LIN_SG + 2)
-+
-+#define MAX_LOG_LAT 16
-+#define MIN_LOG_LAT 0
-+#define LOG_LAT_SZ (MAX_LOG_LAT - MIN_LOG_LAT + 2)
-+
-+struct ibtrs_clt_stats_pcpu {
-+	struct ibtrs_clt_stats_cpu_migr		cpu_migr;
-+	struct ibtrs_clt_stats_rdma		rdma;
-+	u64					sg_list_total;
-+	u64					sg_list_distr[SG_DISTR_SZ];
-+	struct ibtrs_clt_stats_rdma_lat		rdma_lat_distr[LOG_LAT_SZ];
-+	struct ibtrs_clt_stats_rdma_lat		rdma_lat_max;
-+	struct ibtrs_clt_stats_wc_comp		wc_comp;
-+};
-+
-+struct ibtrs_clt_stats {
-+	bool					enable_rdma_lat;
-+	struct ibtrs_clt_stats_pcpu    __percpu	*pcpu_stats;
-+	struct ibtrs_clt_stats_reconnects	reconnects;
-+	atomic_t				inflight;
-+};
-+
-+struct ibtrs_clt_con {
-+	struct ibtrs_con	c;
-+	unsigned		cpu;
-+	atomic_t		io_cnt;
-+	struct ibtrs_fr_pool	*fr_pool;
-+	int			cm_err;
-+};
-+
-+struct ibtrs_clt_io_req {
-+	struct list_head        list;
-+	struct ibtrs_iu		*iu;
-+	struct scatterlist	*sglist; /* list holding user data */
-+	unsigned int		sg_cnt;
-+	unsigned int		sg_size;
-+	unsigned int		data_len;
-+	unsigned int		usr_len;
-+	void			*priv;
-+	bool			in_use;
-+	struct ibtrs_clt_con	*con;
-+	union {
-+		struct ib_pool_fmr	**fmr_list;
-+		struct ibtrs_fr_desc	**fr_list;
-+	};
-+	void			*map_page;
-+	struct ibtrs_tag	*tag;
-+	u16			nmdesc;
-+	enum dma_data_direction dir;
-+	ibtrs_conf_fn		*conf;
-+	unsigned long		start_time;
-+};
-+
-+struct ibtrs_clt_sess {
-+	struct ibtrs_sess	s;
-+	struct ibtrs_clt	*clt;
-+	wait_queue_head_t	state_wq;
-+	enum ibtrs_clt_state	state;
-+	atomic_t		connected_cnt;
-+	struct mutex		init_mutex;
-+	struct ibtrs_clt_io_req	*reqs;
-+	struct ib_fmr_pool	*fmr_pool;
-+	struct delayed_work	reconnect_dwork;
-+	struct work_struct	close_work;
-+	unsigned		reconnect_attempts;
-+	bool			established;
-+	u64			*srv_rdma_addr;
-+	u32			srv_rdma_buf_rkey;
-+	u32			max_io_size;
-+	u32			max_req_size;
-+	u32			chunk_size;
-+	u32			max_desc;
-+	size_t			queue_depth;
-+	enum ibtrs_fast_reg	fast_reg_mode;
-+	u64			mr_page_mask;
-+	u32			mr_page_size;
-+	u32			mr_max_size;
-+	u32			max_pages_per_mr;
-+	int			max_sge;
-+	struct kobject		kobj;
-+	struct kobject		kobj_stats;
-+	struct ibtrs_clt_stats  stats;
-+	struct list_head __percpu
-+				*mp_skip_entry;
-+};
-+
-+struct ibtrs_clt {
-+	struct list_head   /* __rcu */ paths_list;
-+	size_t			       paths_num;
-+	struct ibtrs_clt_sess
-+		      __percpu * __rcu *pcpu_path;
-+
-+	bool			opened;
-+	uuid_t			paths_uuid;
-+	int			paths_up;
-+	struct mutex		paths_mutex;
-+	struct mutex		paths_ev_mutex;
-+	char			sessname[NAME_MAX];
-+	short			port;
-+	unsigned		max_reconnect_attempts;
-+	unsigned		reconnect_delay_sec;
-+	unsigned		max_segments;
-+	void			*tags;
-+	unsigned long		*tags_map;
-+	size_t			queue_depth;
-+	size_t			max_io_size;
-+	wait_queue_head_t	tags_wait;
-+	size_t			pdu_sz;
-+	void			*priv;
-+	link_clt_ev_fn		*link_ev;
-+	struct kobject		kobj;
-+	struct kobject		kobj_paths;
-+	enum ibtrs_mp_policy	mp_policy;
-+};
-+
-+static inline struct ibtrs_clt_con *to_clt_con(struct ibtrs_con *c)
-+{
-+	if (unlikely(!c))
-+		return NULL;
-+
-+	return container_of(c, struct ibtrs_clt_con, c);
-+}
-+
-+static inline struct ibtrs_clt_sess *to_clt_sess(struct ibtrs_sess *s)
-+{
-+	if (unlikely(!s))
-+		return NULL;
-+
-+	return container_of(s, struct ibtrs_clt_sess, s);
-+}
-+
-+/**
-+ * list_next_or_null_rr - get next list element in round-robin fashion.
-+ * @pos:     entry, starting cursor.
-+ * @head:    head of the list to examine. This list must have at least one
-+ *           element, namely @pos.
-+ * @member:  name of the list_head structure within typeof(*pos).
-+ *
-+ * Important to understand that @pos is a list entry, which can be already
-+ * removed using list_del_rcu(), so if @head has become empty NULL will be
-+ * returned. Otherwise next element is returned in round-robin fashion.
-+ */
-+#define list_next_or_null_rcu_rr(pos, head, member) ({			\
-+	typeof(pos) ________next = NULL;				\
-+									\
-+	if (!list_empty(head))						\
-+		________next = (pos)->member.next != (head) ?		\
-+			list_entry_rcu((pos)->member.next,		\
-+				       typeof(*pos), member) :		\
-+			list_entry_rcu((pos)->member.next->next,	\
-+				       typeof(*pos), member);		\
-+	________next;							\
-+})
-+
-+/* See ibtrs-log.h */
-+#define TYPES_TO_SESSNAME(obj)						\
-+	LIST(CASE(obj, struct ibtrs_clt_sess *, s.sessname),		\
-+	     CASE(obj, struct ibtrs_clt *, sessname))
-+
-+#define TAG_SIZE(clt) (sizeof(struct ibtrs_tag) + (clt)->pdu_sz)
-+#define GET_TAG(clt, idx) ((clt)->tags + TAG_SIZE(clt) * idx)
-+
-+int ibtrs_clt_reconnect_from_sysfs(struct ibtrs_clt_sess *sess);
-+int ibtrs_clt_disconnect_from_sysfs(struct ibtrs_clt_sess *sess);
-+int ibtrs_clt_create_path_from_sysfs(struct ibtrs_clt *clt,
-+				     struct ibtrs_addr *addr);
-+int ibtrs_clt_remove_path_from_sysfs(struct ibtrs_clt_sess *sess,
-+				     const struct attribute *sysfs_self);
-+
-+void ibtrs_clt_set_max_reconnect_attempts(struct ibtrs_clt *clt, int value);
-+int ibtrs_clt_get_max_reconnect_attempts(const struct ibtrs_clt *clt);
-+
-+/* ibtrs-clt-stats.c */
-+
-+int ibtrs_clt_init_stats(struct ibtrs_clt_stats *stats);
-+void ibtrs_clt_free_stats(struct ibtrs_clt_stats *stats);
-+
-+void ibtrs_clt_decrease_inflight(struct ibtrs_clt_stats *s);
-+void ibtrs_clt_inc_failover_cnt(struct ibtrs_clt_stats *s);
-+
-+void ibtrs_clt_update_rdma_lat(struct ibtrs_clt_stats *s, bool read,
-+			       unsigned long ms);
-+void ibtrs_clt_update_wc_stats(struct ibtrs_clt_con *con);
-+void ibtrs_clt_update_all_stats(struct ibtrs_clt_io_req *req, int dir);
-+
-+int ibtrs_clt_reset_sg_list_distr_stats(struct ibtrs_clt_stats *stats,
-+					bool enable);
-+int ibtrs_clt_stats_sg_list_distr_to_str(struct ibtrs_clt_stats *stats,
-+					 char *buf, size_t len);
-+int ibtrs_clt_reset_rdma_lat_distr_stats(struct ibtrs_clt_stats *stats,
-+					 bool enable);
-+ssize_t ibtrs_clt_stats_rdma_lat_distr_to_str(struct ibtrs_clt_stats *stats,
-+					      char *page, size_t len);
-+int ibtrs_clt_reset_cpu_migr_stats(struct ibtrs_clt_stats *stats, bool enable);
-+int ibtrs_clt_stats_migration_cnt_to_str(struct ibtrs_clt_stats *stats, char *buf,
-+					 size_t len);
-+int ibtrs_clt_reset_reconnects_stat(struct ibtrs_clt_stats *stats, bool enable);
-+int ibtrs_clt_stats_reconnects_to_str(struct ibtrs_clt_stats *stats, char *buf,
-+				      size_t len);
-+int ibtrs_clt_reset_wc_comp_stats(struct ibtrs_clt_stats *stats, bool enable);
-+int ibtrs_clt_stats_wc_completion_to_str(struct ibtrs_clt_stats *stats, char *buf,
-+					 size_t len);
-+int ibtrs_clt_reset_rdma_stats(struct ibtrs_clt_stats *stats, bool enable);
-+ssize_t ibtrs_clt_stats_rdma_to_str(struct ibtrs_clt_stats *stats,
-+				    char *page, size_t len);
-+bool ibtrs_clt_sess_is_connected(const struct ibtrs_clt_sess *sess);
-+int ibtrs_clt_reset_all_stats(struct ibtrs_clt_stats *stats, bool enable);
-+ssize_t ibtrs_clt_reset_all_help(struct ibtrs_clt_stats *stats,
-+				 char *page, size_t len);
-+
-+/* ibtrs-clt-sysfs.c */
-+
-+int ibtrs_clt_create_sysfs_module_files(void);
-+void ibtrs_clt_destroy_sysfs_module_files(void);
-+
-+int ibtrs_clt_create_sysfs_root_folders(struct ibtrs_clt *clt);
-+int ibtrs_clt_create_sysfs_root_files(struct ibtrs_clt *clt);
-+void ibtrs_clt_destroy_sysfs_root_folders(struct ibtrs_clt *clt);
-+void ibtrs_clt_destroy_sysfs_root_files(struct ibtrs_clt *clt);
-+
-+int ibtrs_clt_create_sess_files(struct ibtrs_clt_sess *sess);
-+void ibtrs_clt_destroy_sess_files(struct ibtrs_clt_sess *sess,
-+				  const struct attribute *sysfs_self);
-+
-+#endif /* IBTRS_CLT_H */
 -- 
 2.13.1
 
