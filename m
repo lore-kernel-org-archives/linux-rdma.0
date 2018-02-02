@@ -1,70 +1,56 @@
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] net: mlx5: remove pointless memcpy
-Date: Fri, 2 Feb 2018 12:06:00 -0700
-Message-ID: <20180202190600.GD9080@ziepe.ca>
-References: <20180202154636.1624079-1-arnd@arndb.de>
+From: "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: How to tell RoCE v1 vs v2?
+Date: Fri, 2 Feb 2018 19:19:10 +0000
+Message-ID: <DE927C68B458BE418D582EC97927A9287FE1FCF7@ORSMSX113.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180202154636.1624079-1-arnd-r2nGTMty4D4@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 02, 2018 at 04:46:30PM +0100, Arnd Bergmann wrote:
-> gcc-8 notices that the memcpy in mlx5_core_query_xsrq() makes no
-> sense because the source and destination variables are identical:
-> 
-> drivers/net/ethernet/mellanox/mlx5/core/transobj.c: In function 'mlx5_core_query_xsrq':
-> drivers/net/ethernet/mellanox/mlx5/core/transobj.c:347:3: error: 'memcpy' source argument is the same as destination [-Werror=restrict]
-> 
-> Either one of the pointers should be something else, or the code is
-> completely bogus. Removing the memcpy() won't change the behavior
-> but gets rid of the warning.
-> 
-> Fixes: 01949d0109ee ("net/mlx5_core: Enable XRCs and SRQs when using ISSI > 0")
-> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-> Please review carefully, I have no idea what the author actually
-> intended here.
 
-I think they intended to adjust the command return between
-mlx5_ifc_query_srq_out_bits and mlx5_ifc_query_xrc_srq_out_bits?
+Hi folks-
 
-> index 9e38343a951f..75450f7d53bf 100644
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-> @@ -332,20 +332,12 @@ int mlx5_core_destroy_xsrq(struct mlx5_core_dev *dev, u32 xsrqn)
->  int mlx5_core_query_xsrq(struct mlx5_core_dev *dev, u32 xsrqn, u32 *out)
->  {
->  	u32 in[MLX5_ST_SZ_DW(query_xrc_srq_in)] = {0};
-> -	void *srqc;
-> -	void *xrc_srqc;
->  	int err;
->  
->  	MLX5_SET(query_xrc_srq_in, in, opcode,   MLX5_CMD_OP_QUERY_XRC_SRQ);
->  	MLX5_SET(query_xrc_srq_in, in, xrc_srqn, xsrqn);
->  	err = mlx5_cmd_exec(dev, in, sizeof(in), out,
->  			    MLX5_ST_SZ_BYTES(query_xrc_srq_out));
-> -	if (!err) {
-> -		xrc_srqc = MLX5_ADDR_OF(query_xrc_srq_out, out,
-> -					xrc_srq_context_entry);
-> -		srqc = MLX5_ADDR_OF(query_srq_out, out, srq_context_entry);
-> -		memcpy(srqc, xrc_srqc, MLX5_ST_SZ_BYTES(srqc));
-> -	}
+We're doing some NVMeoF testing.  We have Xeon servers with Mellanox CX4 NICs connected through an Arista 7060CX switch.  We're using the kernel support for RDMA and NVMeoF in Ubuntu 16.10 with a 4.12.5 kernel.  I'm trying to figure out if we're running RoCE v1 or RoCE v2.  I can't seem to Google up a way to check when running the kernel solution, just answers for Mellanox OFED.  Is there a way to tell?  And if we're running v1, is there a way to force v2?
 
-Probably should add a
+Thanks!  Some system details below if they're at all helpful.
 
-BUILD_BUG_ON(MLX5_BYTE_OFF(query_xrc_srq_out, xrc_srq_context_entry) == MLX5_BYTE_OFF(query_srq_out, srq_context_entry));
+root@purley01:/home/rsa# cat /etc/os-release
+NAME="Ubuntu"
+VERSION="16.10 (Yakkety Yak)"
+ID=ubuntu
+ID_LIKE=debian
+PRETTY_NAME="Ubuntu 16.10"
+VERSION_ID="16.10"
+HOME_URL="http://www.ubuntu.com/"
+SUPPORT_URL="http://help.ubuntu.com/"
+BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="http://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+VERSION_CODENAME=yakkety
+UBUNTU_CODENAME=yakkety
 
-Just for clarity that the SRQ and XRC_SRQ are being used interchangeably.
+root@purley01:/home/rsa# uname -a
+Linux purley01 4.12.5-041205-generic #201708061334 SMP Sun Aug 6 17:35:26 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
 
-and the 'err' variable can be eliminated.
-
-Curious though that I can't find a call site for it, and removing the
-prototype doesn't break the build.. Seems like dead code.
-
-Jason
+root@purley01:/home/rsa# lsmod|egrep 'mlx|nvm|ib'
+nvmet_rdma             24576  0
+nvmet                  49152  1 nvmet_rdma
+nvme_rdma              28672  0
+nvme_fabrics           20480  1 nvme_rdma
+rdma_cm                57344  3 nvme_rdma,rdma_ucm,nvmet_rdma
+ib_cm                  49152  1 rdma_cm
+ib_uverbs              69632  1 rdma_ucm
+mlx5_ib               180224  0
+ib_core               204800  9 ib_cm,rdma_cm,nvme_rdma,ib_uverbs,iw_cm,mlx5_ib,rdmavt,rdma_ucm,nvmet_rdma
+mlx5_core             413696  1 mlx5_ib
+devlink                40960  1 mlx5_core
+ptp                    20480  2 igb,mlx5_core
+nvme                   28672  4
+nvme_core              61440  8 nvme_fabrics,nvme_rdma,nvme
+libahci                32768  1 ahci
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
