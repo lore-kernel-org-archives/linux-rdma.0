@@ -1,103 +1,88 @@
-From: Stefan Metzmacher <metze-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
-Subject: Re: Work in progress SMB-Direct driver for the linux kernel
-Date: Fri, 2 Feb 2018 10:25:23 +0100
-Message-ID: <2f684247-04ec-1c0f-8153-9b6f8d45f265@samba.org>
-References: <959c3608-c508-17c4-bad6-fd9421a4a235@samba.org>
- <20180201175247.GT17053@ziepe.ca>
- <CACyXjPyKcLktNqEdBbicSd=3GU7R9BeE-=Dcc2DyCh2sH9wxMg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="Gr1Dy61ntJfrIWOxHVDW8uol6SM5q11TK"
-Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CACyXjPyKcLktNqEdBbicSd=3GU7R9BeE-=Dcc2DyCh2sH9wxMg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Richard Sharpe <realrichardsharpe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Samba Technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, Steve French <smfrench-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Disseldorp <ddiss-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+From: Guanglei Li <guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3] RDS: IB: Fix null pointer issue
+Date: Fri,  2 Feb 2018 19:10:56 +0800
+Message-ID: <1517569856-17673-1-git-send-email-guanglei.li@oracle.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, honglei.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---Gr1Dy61ntJfrIWOxHVDW8uol6SM5q11TK
-Content-Type: multipart/mixed; boundary="hMQbRiL1uCXWwjo0MHd0U4sQmWNePnsfT";
- protected-headers="v1"
-From: Stefan Metzmacher <metze-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
-To: Richard Sharpe <realrichardsharpe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
- Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- Samba Technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>,
- Steve French <smfrench-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Disseldorp <ddiss-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
-Message-ID: <2f684247-04ec-1c0f-8153-9b6f8d45f265-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
-Subject: Re: Work in progress SMB-Direct driver for the linux kernel
-References: <959c3608-c508-17c4-bad6-fd9421a4a235-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
- <20180201175247.GT17053-uk2M96/98Pc@public.gmane.org>
- <CACyXjPyKcLktNqEdBbicSd=3GU7R9BeE-=Dcc2DyCh2sH9wxMg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-In-Reply-To: <CACyXjPyKcLktNqEdBbicSd=3GU7R9BeE-=Dcc2DyCh2sH9wxMg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Scenario:
+1. Port down and do fail over
+2. Ap do rds_bind syscall
 
---hMQbRiL1uCXWwjo0MHd0U4sQmWNePnsfT
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+PID: 47039  TASK: ffff89887e2fe640  CPU: 47  COMMAND: "kworker/u:6"
+ #0 [ffff898e35f159f0] machine_kexec at ffffffff8103abf9
+ #1 [ffff898e35f15a60] crash_kexec at ffffffff810b96e3
+ #2 [ffff898e35f15b30] oops_end at ffffffff8150f518
+ #3 [ffff898e35f15b60] no_context at ffffffff8104854c
+ #4 [ffff898e35f15ba0] __bad_area_nosemaphore at ffffffff81048675
+ #5 [ffff898e35f15bf0] bad_area_nosemaphore at ffffffff810487d3
+ #6 [ffff898e35f15c00] do_page_fault at ffffffff815120b8
+ #7 [ffff898e35f15d10] page_fault at ffffffff8150ea95
+    [exception RIP: unknown or invalid address]
+    RIP: 0000000000000000  RSP: ffff898e35f15dc8  RFLAGS: 00010282
+    RAX: 00000000fffffffe  RBX: ffff889b77f6fc00  RCX:ffffffff81c99d88
+    RDX: 0000000000000000  RSI: ffff896019ee08e8  RDI:ffff889b77f6fc00
+    RBP: ffff898e35f15df0   R8: ffff896019ee08c8  R9:0000000000000000
+    R10: 0000000000000400  R11: 0000000000000000  R12:ffff896019ee08c0
+    R13: ffff889b77f6fe68  R14: ffffffff81c99d80  R15: ffffffffa022a1e0
+    ORIG_RAX: ffffffffffffffff  CS: 0010 SS: 0018
+ #8 [ffff898e35f15dc8] cma_ndev_work_handler at ffffffffa022a228 [rdma_cm]
+ #9 [ffff898e35f15df8] process_one_work at ffffffff8108a7c6
+ #10 [ffff898e35f15e58] worker_thread at ffffffff8108bda0
+ #11 [ffff898e35f15ee8] kthread at ffffffff81090fe6
 
-Hi Jason,
+PID: 45659  TASK: ffff880d313d2500  CPU: 31  COMMAND: "oracle_45659_ap"
+ #0 [ffff881024ccfc98] __schedule at ffffffff8150bac4
+ #1 [ffff881024ccfd40] schedule at ffffffff8150c2cf
+ #2 [ffff881024ccfd50] __mutex_lock_slowpath at ffffffff8150cee7
+ #3 [ffff881024ccfdc0] mutex_lock at ffffffff8150cdeb
+ #4 [ffff881024ccfde0] rdma_destroy_id at ffffffffa022a027 [rdma_cm]
+ #5 [ffff881024ccfe10] rds_ib_laddr_check at ffffffffa0357857 [rds_rdma]
+ #6 [ffff881024ccfe50] rds_trans_get_preferred at ffffffffa0324c2a [rds]
+ #7 [ffff881024ccfe80] rds_bind at ffffffffa031d690 [rds]
+ #8 [ffff881024ccfeb0] sys_bind at ffffffff8142a670
 
->>> The first goal is to provide a socket fd to userspace (or in kernel
->>> consumers)
->>> which provides semantics like a TCP socket which is used as transport=
+PID: 45659                          PID: 47039
+rds_ib_laddr_check
+  /* create id_priv with a null event_handler */
+  rdma_create_id
+  rdma_bind_addr
+    cma_acquire_dev
+      /* add id_priv to cma_dev->id_list */
+      cma_attach_to_dev
+                                    cma_ndev_work_handler
+                                      /* event_hanlder is null */
+                                      id_priv->id.event_handler
 
->>> for SMB3. Basically frames are submitted with a 4 byte length header.=
+Signed-off-by: Guanglei Li <guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Honglei Wang <honglei.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Yanjun Zhu <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ net/rds/ib.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
->>
->> Part of the point of RDMA is that we don't need to make protocol
->> specific kernel modules like this - is there a specific reason this
->> needs to be in the kernel like this?
->=20
-> If I had to guess it would be because Samba currently uses a fork
-> model ... it might be years before it gets to a completely threaded
-> model.
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index b2a5067..ff0c980 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -345,7 +345,8 @@ static int rds_ib_laddr_check(struct net *net, __be32 addr)
+ 	/* Create a CMA ID and try to bind it. This catches both
+ 	 * IB and iWARP capable NICs.
+ 	 */
+-	cm_id = rdma_create_id(&init_net, NULL, NULL, RDMA_PS_TCP, IB_QPT_RC);
++	cm_id = rdma_create_id(&init_net, rds_rdma_cm_event_handler,
++			       NULL, RDMA_PS_TCP, IB_QPT_RC);
+ 	if (IS_ERR(cm_id))
+ 		return PTR_ERR(cm_id);
+ 
+-- 
+2.7.4
 
-Yes, and it also means that our client and server code only need
-minimal changes in order to work in the same way it would work
-over tcp.
-
-Only the RDMA read and writes need some more work, but I have
-some ideas where the userspace gives the kernel an fd, offset and length
-plus a remove memory descriptor as ioctl on the connection fd. Then the
-kernel can get the content from the filesystem and directly pass it to
-the rdma adapter, avoiding the copy from kernel to userspace and back.
-=46rom userspace we'll just wait in the syscall and don't have to care
-about memory registrations and all other complex stuff.
-
-It also happens that smbd sometimes blocks in syscalls like unlink for
-a long time. It's good to have the kernel as 2nd entity that takes care
-of keepalives.
-
-metze
-
-
---hMQbRiL1uCXWwjo0MHd0U4sQmWNePnsfT--
-
---Gr1Dy61ntJfrIWOxHVDW8uol6SM5q11TK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJadC6GAAoJEA219WEoab1WmNkP/idbxki/iqvPOWqAjX89zjqe
-Jsxe2WJ8G/vlXANFatcGs2TFakMiCrdcxzXzAHyKt0uWQozIC400VOg8mZArhbpb
-/mU4JK7dl2KOMDihtYDez+Ktshc0xIrDZyXhVRx0ADxCQ8GKOAod9DeYa3OqfY+v
-CumwMy9DSStVBysNd3glNbQ8HISrn109a01Zi/Si2krVb5GAIz4AnMQLFBksiJa4
-+e2YikdJK7rE0DVv/ZZldUS6UjYoWuKzWwvKKAaLEoDOFizosnZGG1K6Yd/6ESXD
-Qt/8k4+E56IPy415xzvxnUYXnoM7XuMNP/utTIiyF26h+g/hX1obT9auxtIwE5bg
-MC9Xm8FzFJx7qIV2B4pBEePjdT79sRtjEZ1FwBF8R4aIZaWqLPuuEPnq3sjB6dtE
-Z9+SGv2ALlqn5Bvn8teN2rTCzHP+MAV4lgLnq/AaBzANEgpiIHCwbOenxd8n9D3w
-KaLilZOwl8dX8y7zueC/ymQ0pi1SOeDEWlDxpGGREPhUBh5MBnt0R22c3nPC2TpK
-Ok2sO++1LmiQ1XdGiv6ddlp3ZEoEUHOZ4/MqsrZu1UzTr8Bd8Il3i9kbIbPisgEB
-0mPK4NApM43yaCfW2EPVyEEWWMG/gRYt47u73tVlYl7Hi0MUL4LZH6ZbnSp05YB6
-dzy1DHnT94Kzeq6qd3OK
-=ACIc
------END PGP SIGNATURE-----
-
---Gr1Dy61ntJfrIWOxHVDW8uol6SM5q11TK--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
