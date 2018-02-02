@@ -1,111 +1,63 @@
-From: yanjzhu <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] RDMA/cma: Fix null pointer issue
-Date: Fri, 2 Feb 2018 15:22:18 +0800
-Message-ID: <c7f0ebf5-6e67-18d4-c04f-088bb558621d@oracle.com>
-References: <1517553759-12272-1-git-send-email-guanglei.li@oracle.com>
+From: Aishwarya Pant <aishpant-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] Documentation/ABI: update infiniband sysfs interfaces
+Date: Fri, 2 Feb 2018 13:56:59 +0530
+Message-ID: <20180202082659.GA1458@mordor.localdomain>
+References: <20180201133233.GA21266@mordor.localdomain>
+ <20180201220811.GA17053@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1517553759-12272-1-git-send-email-guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180201220811.GA17053-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Guanglei Li <guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, honglei.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, Guanglei
+On Thu, Feb 01, 2018 at 03:08:11PM -0700, Jason Gunthorpe wrote:
+> On Thu, Feb 01, 2018 at 07:02:33PM +0530, Aishwarya Pant wrote:
+> > Add documentation for core and hardware specific infiniband interfaces.
+> > The descriptions have been collected from git commit logs, reading
+> > through code and data sheets. Some drivers have incomplete doc and are
+> > annotated with the comment '[to be documented]'.
+> > 
+> > Signed-off-by: Aishwarya Pant <aishpant-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> >  Documentation/ABI/testing/sysfs-class-infiniband | 755 +++++++++++++++++++++++
+> >  1 file changed, 755 insertions(+)
+> 
+> Wow this looks really great
+> 
+> Should this patch delete some of the old documentation?
 
-The checkpatch checks your patch. The followings are the result.
+Yeah, I should do that because the documentation in
+Documentation/infiniband/sysfs.txt is out of date.
 
-CHECK: Alignment should match open parenthesis
-#148: FILE: net/rds/ib.c:349:
-+    cm_id = rdma_create_id(&init_net, rds_rdma_cm_event_handler,
-+            NULL, RDMA_PS_TCP, IB_QPT_RC);
+> 
+> > diff --git a/Documentation/ABI/testing/sysfs-class-infiniband b/Documentation/ABI/testing/sysfs-class-infiniband
+> 
+> Lots, maybe even all of of this is considered stable..
 
-total: 2 errors, 0 warnings, 1 checks, 9 lines checked
+Okay, I guess it should belong to the stable directory then.
 
-NOTE: For some of the reported defects, checkpatch may be able to
-       mechanically convert to the typical style using --fix or 
---fix-inplace.
+> 
+> > +sysfs interface for Broadcom NetXtreme-E RoCE driver
+> > +----------------------------------------------------
+> > +
+> > +What:		/sys/class/infiniband/bnxt_reX/fw_rev
+> > +What:		/sys/class/infiniband/bnxt_reX/hw_rev
+> > +What:		/sys/class/infiniband/bnxt_reX/hca_type
+> 
+> These are actually common to all drivers
+> 
+>  /sys/class/infiniband/XXX/fw_rev, etc
 
-1.patch has style problems, please review.
+Would make sense to define these at one place- hw_rev, hca_type, board_id are
+common to a lot of the drivers.
 
-Zhu Yanjun
+Aishwarya
 
-
-On 02/02/2018 02:42 PM, Guanglei Li wrote:
-> Scenario:
-> 1. Port down and do fail over
-> 2. Ap do rds_bind syscall
->
-> PID: 47039  TASK: ffff89887e2fe640  CPU: 47  COMMAND: "kworker/u:6"
->   #0 [ffff898e35f159f0] machine_kexec at ffffffff8103abf9
->   #1 [ffff898e35f15a60] crash_kexec at ffffffff810b96e3
->   #2 [ffff898e35f15b30] oops_end at ffffffff8150f518
->   #3 [ffff898e35f15b60] no_context at ffffffff8104854c
->   #4 [ffff898e35f15ba0] __bad_area_nosemaphore at ffffffff81048675
->   #5 [ffff898e35f15bf0] bad_area_nosemaphore at ffffffff810487d3
->   #6 [ffff898e35f15c00] do_page_fault at ffffffff815120b8
->   #7 [ffff898e35f15d10] page_fault at ffffffff8150ea95
->      [exception RIP: unknown or invalid address]
->      RIP: 0000000000000000  RSP: ffff898e35f15dc8  RFLAGS: 00010282
->      RAX: 00000000fffffffe  RBX: ffff889b77f6fc00  RCX:ffffffff81c99d88
->      RDX: 0000000000000000  RSI: ffff896019ee08e8  RDI:ffff889b77f6fc00
->      RBP: ffff898e35f15df0   R8: ffff896019ee08c8  R9:0000000000000000
->      R10: 0000000000000400  R11: 0000000000000000  R12:ffff896019ee08c0
->      R13: ffff889b77f6fe68  R14: ffffffff81c99d80  R15: ffffffffa022a1e0
->      ORIG_RAX: ffffffffffffffff  CS: 0010 SS: 0018
->   #8 [ffff898e35f15dc8] cma_ndev_work_handler at ffffffffa022a228 [rdma_cm]
->   #9 [ffff898e35f15df8] process_one_work at ffffffff8108a7c6
->   #10 [ffff898e35f15e58] worker_thread at ffffffff8108bda0
->   #11 [ffff898e35f15ee8] kthread at ffffffff81090fe6
->
-> PID: 45659  TASK: ffff880d313d2500  CPU: 31  COMMAND: "oracle_45659_ap"
->   #0 [ffff881024ccfc98] __schedule at ffffffff8150bac4
->   #1 [ffff881024ccfd40] schedule at ffffffff8150c2cf
->   #2 [ffff881024ccfd50] __mutex_lock_slowpath at ffffffff8150cee7
->   #3 [ffff881024ccfdc0] mutex_lock at ffffffff8150cdeb
->   #4 [ffff881024ccfde0] rdma_destroy_id at ffffffffa022a027 [rdma_cm]
->   #5 [ffff881024ccfe10] rds_ib_laddr_check at ffffffffa0357857 [rds_rdma]
->   #6 [ffff881024ccfe50] rds_trans_get_preferred at ffffffffa0324c2a [rds]
->   #7 [ffff881024ccfe80] rds_bind at ffffffffa031d690 [rds]
->   #8 [ffff881024ccfeb0] sys_bind at ffffffff8142a670
->
-> PID: 45659                          PID: 47039
-> rds_ib_laddr_check
->    /* create id_priv with a null event_handler */
->    rdma_create_id
->    rdma_bind_addr
->      cma_acquire_dev
->        /* add id_priv to cma_dev->id_list */
->        cma_attach_to_dev
->                                      cma_ndev_work_handler
->                                        /* event_hanlder is null */
->                                        id_priv->id.event_handler
->
-> Signed-off-by: Guanglei Li <guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Honglei Wang <honglei.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->   net/rds/ib.c | 3 ++-
->   1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/net/rds/ib.c b/net/rds/ib.c
-> index b2a5067..8d68c95 100644
-> --- a/net/rds/ib.c
-> +++ b/net/rds/ib.c
-> @@ -345,7 +345,8 @@ static int rds_ib_laddr_check(struct net *net, __be32 addr)
->   	/* Create a CMA ID and try to bind it. This catches both
->   	 * IB and iWARP capable NICs.
->   	 */
-> -	cm_id = rdma_create_id(&init_net, NULL, NULL, RDMA_PS_TCP, IB_QPT_RC);
-> +	cm_id = rdma_create_id(&init_net, rds_rdma_cm_event_handler,
-> +			NULL, RDMA_PS_TCP, IB_QPT_RC);
->   	if (IS_ERR(cm_id))
->   		return PTR_ERR(cm_id);
->   
-
+> 
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
