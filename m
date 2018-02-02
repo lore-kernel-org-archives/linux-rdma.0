@@ -1,306 +1,267 @@
-From: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH 23/24] ibnbd: a bit of documentation
-Date: Fri,  2 Feb 2018 15:09:03 +0100
-Message-ID: <20180202140904.2017-24-roman.penyaev@profitbricks.com>
+From: Roman Pen <roman.penyaev@profitbricks.com>
+Subject: [PATCH 13/24] ibtrs: a bit of documentation
+Date: Fri,  2 Feb 2018 15:08:53 +0100
+Message-ID: <20180202140904.2017-14-roman.penyaev@profitbricks.com>
 References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180202140904.2017-1-roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
+Sender: linux-block-owner@vger.kernel.org
+To: linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@infradead.org>, Sagi Grimberg <sagi@grimberg.me>, Bart Van Assche <bart.vanassche@sandisk.com>, Or Gerlitz <ogerlitz@mellanox.com>, Roman Pen <roman.penyaev@profitbricks.com>, Danil Kipnis <danil.kipnis@profitbricks.com>, Jack Wang <jinpu.wang@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
 README with description of major sysfs entries.
 
-Signed-off-by: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Signed-off-by: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Roman Pen <roman.penyaev@profitbricks.com>
+Signed-off-by: Danil Kipnis <danil.kipnis@profitbricks.com>
+Cc: Jack Wang <jinpu.wang@profitbricks.com>
 ---
- drivers/block/ibnbd/README | 272 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 272 insertions(+)
+ drivers/infiniband/ulp/ibtrs/README | 238 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 238 insertions(+)
 
-diff --git a/drivers/block/ibnbd/README b/drivers/block/ibnbd/README
+diff --git a/drivers/infiniband/ulp/ibtrs/README b/drivers/infiniband/ulp/ibtrs/README
 new file mode 100644
-index 000000000000..e0feb39fad14
+index 000000000000..ed506c7e202d
 --- /dev/null
-+++ b/drivers/block/ibnbd/README
-@@ -0,0 +1,272 @@
-+***************************************
-+Infiniband Network Block Device (IBNBD)
-+***************************************
++++ b/drivers/infiniband/ulp/ibtrs/README
+@@ -0,0 +1,238 @@
++****************************
++InfiniBand Transport (IBTRS)
++****************************
 +
-+Introduction
-+------------
++IBTRS (InfiniBand Transport) is a reliable high speed transport library
++which provides support to establish optimal number of connections
++between client and server machines using RDMA (InfiniBand, RoCE, iWarp)
++transport. It is optimized to transfer (read/write) IO blocks.
 +
-+IBNBD (InfiniBand Network Block Device) is a pair of kernel modules
-+(client and server) that allow for remote access of a block device on
-+the server over IBTRS protocol using the RDMA (InfiniBand, RoCE, iWarp)
-+transport. After being mapped, the remote block devices can be accessed
-+on the client side as local block devices.
++In its core interface it follows the BIO semantics of providing the
++possibility to either write data from an sg list to the remote side
++or to request ("read") data transfer from the remote side into a given
++sg list.
 +
-+I/O is transfered between client and server by the IBTRS transport
-+modules. The administration of IBNBD and IBTRS modules is done via
-+sysfs entries.
++IBTRS provides I/O fail-over and load-balancing capabilities by using
++multipath I/O (see "add_path" and "mp_policy" configuration entries).
 +
-+Requirements
-+------------
-+
-+  IBTRS kernel modules
-+
-+Quick Start
-+-----------
-+
-+Server side:
-+  # modprobe ibnbd_server
-+
-+Client side:
-+  # modprobe ibnbd_client
-+  # echo "sessname=blya path=ip:10.50.100.66 device_path=/dev/ram0" > \
-+            /sys/kernel/ibnbd_client/map_device
-+
-+  Where "sessname=" is a session name, a string to identify the session
-+  on client and on server sides; "path=" is a destination IP address or
-+  a pair of a source and a destination IPs, separated by comma.  Multiple
-+  "path=" options can be specified in order to use multipath  (see IBTRS
-+  description for details); "device_path=" is the block device to be
-+  mapped from the server side. After the session to the server machine is
-+  established, the mapped device will appear on the client side under
-+  /dev/ibnbd<N>.
-+
++IBTRS is used by the IBNBD (Infiniband Network Block Device) modules.
 +
 +======================
 +Client Sysfs Interface
 +======================
 +
-+All sysfs files that are not read-only provide the usage information on read:
++This chapter describes only the most important files of sysfs interface
++on client side.
 +
-+Example:
-+  # cat /sys/kernel/ibnbd_client/map_device
-+
-+  > Usage: echo "sessname=<name of the ibtrs session> path=<[srcaddr,]dstaddr>
-+  > [path=<[srcaddr,]dstaddr>] device_path=<full path on remote side>
-+  > [access_mode=<ro|rw|migration>] [input_mode=<mq|rq>]
-+  > [io_mode=<fileio|blockio>]" > map_device
-+  >
-+  > addr ::= [ ip:<ipv4> | ip:<ipv6> | gid:<gid> ]
-+
-+Entries under /sys/kernel/ibnbd_client/
++Entries under /sys/kernel/ibtrs_client/
 +=======================================
 +
-+map_device (RW)
++When a user of IBTRS API creates a new session, a directory entry with
++the name of that session is created.
++
++Entries under /sys/kernel/ibtrs_client/<session-name>/
++======================================================
++
++add_path (RW)
++-------------
++
++Adds a new path (connection) to an existing session. Expected format is the
++following:
++
++  <[source addr,]destination addr>
++
++  *addr ::= [ ip:<ipv4|ipv6> | gid:<gid> ]
++
++max_reconnect_attempts (RW)
++---------------------------
++
++Maximum number reconnect attempts the client should make before giving up
++after connection breaks unexpectedly.
++
++mp_policy (RW)
++--------------
++
++Multipath policy specifies which path should be selected on each IO:
++
++   round-robin (0):
++       select path in per CPU round-robin manner.
++
++   min-inflight (1):
++       select path with minimum inflights.
++
++Entries under /sys/kernel/ibtrs_client/<session-name>/paths/
++============================================================
++
++
++Each path belonging to a given session is listed here by its destination
++address. When a new path is added to a session by writing to the "add_path"
++entry, a directory with the corresponding destination address is created.
++
++Entries under /sys/kernel/ibtrs_client/<session-name>/paths/<dest-addr>/
++========================================================================
++
++state (R)
++---------
++
++Contains "connected" if the session is connected to the peer and fully
++functional.  Otherwise the file contains "disconnected"
++
++reconnect (RW)
++--------------
++
++Write "1" to the file in order to reconnect the path.
++Operation is blocking and returns 0 if reconnect was successfull.
++
++disconnect (RW)
 +---------------
 +
-+Expected format is the following:
++Write "1" to the file in order to disconnect the path.
++Operation blocks until IBTRS path is disconnected.
 +
-+    sessname=<name of the ibtrs session>
-+    path=<[srcaddr,]dstaddr> [path=<[srcaddr,]dstaddr> ...]
-+    device_path=<full path on remote side>
-+    [access_mode=<ro|rw|migration>]
-+    [input_mode=<mq|rq>]
-+    [io_mode=<fileio|blockio>]
++remove_path (RW)
++----------------
 +
-+Where:
++Write "1" to the file in order to disconnected and remove the path
++from the session.  Operation blocks until the path is disconnected
++and removed from the session.
 +
-+sessname: accepts a string not bigger than 256 chars, which identifies
-+          a given session on the client and on the server.
-+	  I.e. "clt_hostname-srv_hostname" could be a natural choice.
++Entries under /sys/kernel/ibtrs_client/<session-name>/paths/<dest-addr>/stats/
++==============================================================================
 +
-+path:     describes a connection between the client and the server by
-+	  specifying destination and, when required, the source address.
-+	  The addresses are to be provided in the following format:
++Write "0" to any file in that directory to reset corresponding statistics.
 +
-+            ip:<IPv6>
-+            ip:<IPv4>
-+            gid:<GID>
++reset_all (RW)
++--------------
 +
-+          for example:
++Read will return usage help, write 0 will clear all the statistics.
 +
-+          path=ip:10.0.0.66
-+                         The single addr is treated as the destination.
-+                         The connection will be established to this
-+                         server from any client IP address.
++sg_entries (RW)
++---------------
 +
-+          path=ip:10.0.0.66,ip:10.0.1.66
-+                         First addr is the source address and the second
-+                         is the destination.
++Data to be transfered via RDMA is passed to IBTRS as scather-gather
++list. A scather-gather list can contain multiple entries.
++Scather-gather list with less entries require less processing power
++and can therefore transfered faster. The file sg_entries outputs a
++per-CPU distribution table for the number of entries in the
++scather-gather lists, that were passed to the IBTRS API function
++ibtrs_clt_request (READ or WRITE).
 +
-+          If multiple "path=" options are specified multiple connection
-+          will be established and data will be sent according to
-+          the selected multipath policy (see IBTRS mp_policy sysfs entry
-+          description).
++cpu_migration (RW)
++------------------
 +
-+device_path: Path to the block device on the server side. Path is specified
-+	     relative to the directory on server side configured in the
-+             'dev_search_path' module parameter of the ibnbd_server.
-+             The ibnbd_server prepends the <device_path> received from client
-+	     with <dev_search_path> and tries to open the
-+	     <dev_search_path>/<device_path> block device.  On success,
-+	     a /dev/ibnbd<N> device file, a /sys/block/ibnbd_client/ibnbd<N>/
-+	     directory and an entry in /sys/kernel/ibnbd_client/devices will be
-+             created.
++IBTRS expects that each HCA IRQ is pinned to a separate CPU. If it's
++not the case, the processing of an I/O response could be processed on a
++different CPU than where it was originally submitted.  This file shows
++how many interrupts where generated on a non expected CPU.
++"from:" is the CPU on which the IRQ was expected, but not generated.
++"to:" is the CPU on which the IRQ was generated, but not expected.
 +
-+access_mode: the access_mode parameter specifies if the device is to be
-+             mapped as "ro" read-only or "rw" read-write. The server allows
-+	     a device to be exported in rw mode only once. The "migration"
-+             access mode has to be specified if a second mapping in read-write
-+	     mode is desired.
++reconnects (RW)
++---------------
 +
-+             By default "rw" is used.
++Contains 2 unsigned int values, the first one records number of successful
++reconnects in the path lifetime, the second one records number of failed
++reconnects in the path lifetime.
 +
-+input_mode: the input_mode parameter specifies the internal I/O
-+            processing mode of the block device on the client.  Accepts
-+            "mq" and "rq".
++rdma_lat (RW)
++-------------
 +
-+            By default "mq" mode is used.
++Latency distribution of IBTRS requests.
++The format is:
++   1 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
++   2 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
++   4 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
++   8 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
++  16 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
++  ...
++  65536 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
++  >= 65536 ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
++  maximum ms: <CNT-LAT-READ> <CNT-LAT-WRITE>
 +
-+io_mode:  the io_mode parameter specifies if the device on the server
-+          will be opened as block device "blockio" or as file "fileio".
-+          When the device is opened as file, the VFS page cache is used
-+          for read I/O operations, write I/O operations bypass the page
-+          cache and go directly to disk (except meta updates, like file
-+          access time).
++wc_completion (RW)
++------------------
 +
-+          By default "blockio" mode is used.
++Contains 2 unsigned int values, the first one records max number of work
++requests processed in work_completion in session lifetime, the second
++one records average number of work requests processed in work_completion
++in session lifetime.
 +
-+Exit Codes:
++rdma (RW)
++---------
 +
-+If the device is already mapped it will fail with EEXIST. If the input
-+has an invalid format it will return EINVAL. If the device path cannot
-+be found on the server, it will fail with ENOENT.
++Contains statistics regarding rdma operations and inflight operations.
++The output consists of 6 values:
 +
-+Finding device file after mapping
-+---------------------------------
-+
-+After mapping, the device file can be found by:
-+ o  The symlink /sys/kernel/ibnbd_client/devices/<device_id> points to
-+    /sys/block/<dev-name>. The last part of the symlink destination is
-+    the same as the device name.  By extracting the last part of the
-+    path the path to the device /dev/<dev-name> can be build.
-+
-+ o /dev/block/$(cat /sys/kernel/ibnbd_client/devices/<device_id>/dev)
-+
-+How to find the <device_id> of the device is described on the next
-+section.
-+
-+Entries under /sys/kernel/ibnbd_client/devices/
-+===============================================
-+
-+For each device mapped on the client a new symbolic link is created as
-+/sys/kernel/ibnbd_client/devices/<device_id>, which points to the block
-+device created by ibnbd (/sys/block/ibnbd<N>/). The <device_id> of each
-+device is created as follows:
-+
-+- If the 'device_path' provided during mapping contains slashes ("/"),
-+  they are replaced by exclamation mark ("!") and used as as the
-+  <device_id>. Otherwise, the <device_id> will be the same as the
-+  "device_path" provided.
-+
-+Entries under /sys/block/ibnbd<N>/ibnbd_client/
-+===============================================
-+
-+unmap_device (RW)
-+-----------------
-+
-+To unmap a volume, "normal" or "force" has to be written to:
-+  /sys/block/ibnbd<N>/ibnbd_client/unmap_device
-+
-+When "normal" is used, the operation will fail with EBUSY if any process
-+is using the device.  When "force" is used, the device is also unmapped
-+when device is in use.  All I/Os that are in progress will fail.
-+
-+Example:
-+
-+   # echo "normal" > /sys/block/ibnbd0/ibnbd/unmap_device
-+
-+state (RO)
-+----------
-+
-+The file contains the current state of the block device. The state file
-+returns "open" when the device is successfully mapped from the server
-+and accepting I/O requests. When the connection to the server gets
-+disconnected in case of an error (e.g. link failure), the state file
-+returns "closed" and all I/O requests submitted to it will fail with -EIO.
-+
-+session (RO)
-+------------
-+
-+IBNBD uses IBTRS session to transport the data between client and
-+server.  The entry "session" contains the name of the session, that
-+was used to establish the IBTRS session.  It's the same name that
-+was passed as server parameter to the map_device entry.
-+
-+mapping_path (RO)
-+-----------------
-+
-+Contains the path that was passed as "device_path" to the map_device
-+operation.
++<read-count> <read-total-size> <write-count> <write-total-size> \
++<inflights> <failovered>
 +
 +======================
 +Server Sysfs Interface
 +======================
 +
-+Entries under /sys/kernel/ibnbd_server/
++Entries under /sys/kernel/ibtrs_server/
 +=======================================
 +
-+When a client maps a device, a directory entry with the name of the
-+block device is created under /sys/kernel/ibnbd_server/devices/.
++When a user of IBTRS API creates a new session on a client side, a
++directory entry with the name of that session is created in here.
 +
-+Entries under /sys/kernel/ibnbd_server/devices/<device_name>/
-+=============================================================
++Entries under /sys/kernel/ibtrs_server/<session-name>/paths/
++============================================================
 +
-+block_dev (link)
++When new path is created by writing to "add_path" entry on client side,
++a directory entry with source address is created on server.
++
++Entries under /sys/kernel/ibtrs_server/<session-name>/paths/<source-addr>/
++==========================================================================
++
++disconnect (RW)
 +---------------
 +
-+Is a symlink to the sysfs entry of the exported device.
++When "1" is written to the file, the IBTRS session is being disconnected.
++Oprations is non-blocking and returns control immediately to the caller.
 +
-+Example:
++hca_name (R)
++------------
 +
-+  block_dev -> ../../../../devices/virtual/block/ram0
++Contains the the name of HCA the connection established on.
 +
-+Entries under /sys/kernel/ibnbd_server/devices/<device_name>/sessions/
-+======================================================================
++hca_port (R)
++------------
 +
-+For each client a particular device is exported to, following directory will be
-+created:
++Contains the port number of active port traffic is going through.
 +
-+/sys/kernel/ibnbd_server/devices/<device_name>/sessions/<session-name>/
++Entries under /sys/kernel/ibtrs_server/<session-name>/paths/<source-addr>/stats/
++================================================================================
 +
-+When the device is unmapped by that client, the directory will be removed.
++When "0" is written to a file in this directory, the corresponding counters
++will be reset.
 +
-+Entries under /sys/kernel/ibnbd_server/devices/<device_name>/sessions/<session-name>
-+====================================================================================
-+
-+read_only (RO)
++reset_all (RW)
 +--------------
 +
-+Contains '1' if device is mapped read-only, otherwise '0'.
++Read will return usage help, write 0 will clear all the counters about
++stats.
 +
-+mapping_path (RO)
-+-----------------
++rdma (RW)
++---------
 +
-+Contains the relative device path provided by the user during mapping.
++Contains statistics regarding rdma operations and inflight operations.
++The output consists of 5 values:
 +
-+==============================
-+IBNBD-Server Module Parameters
-+==============================
++<read-count> <read-total-size> <write-count> <write-total-size> <inflights>
 +
-+dev_search_path
-+---------------
++wc_completion (RW)
++------------------
 +
-+When a device is mapped from the client, the server generates the path
-+to the block device on the server side by concatenating dev_search_path
-+and the "device_path" that was specified in the map_device operation.
-+
-+The default dev_search_path is: "/".
++Contains 3 values, the first one is int, records max number of work
++requests processed in work_completion in session lifetime, the second
++one long int records total number of work requests processed in
++work_completion in session lifetime and the 3rd one long int records
++total number of calls to the cq completion handler. Devision of 2nd
++number through 3rd gives the average number of completions processed
++in completion handler.
 +
 +Contact
 +-------
 +
-+Mailing list: "IBNBD/IBTRS Storage Team" <ibnbd-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++Mailing list: "IBNBD/IBTRS Storage Team" <ibnbd@profitbricks.com>
 -- 
 2.13.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
