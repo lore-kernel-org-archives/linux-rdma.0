@@ -1,64 +1,46 @@
-From: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH 01/24] ibtrs: public interface header to establish RDMA connections
-Date: Fri,  2 Feb 2018 15:08:41 +0100
-Message-ID: <20180202140904.2017-2-roman.penyaev@profitbricks.com>
+From: Roman Pen <roman.penyaev@profitbricks.com>
+Subject: [PATCH 08/24] ibtrs: server: private header with server structs and functions
+Date: Fri,  2 Feb 2018 15:08:48 +0100
+Message-ID: <20180202140904.2017-9-roman.penyaev@profitbricks.com>
 References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180202140904.2017-1-roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
+Sender: linux-block-owner@vger.kernel.org
+To: linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@infradead.org>, Sagi Grimberg <sagi@grimberg.me>, Bart Van Assche <bart.vanassche@sandisk.com>, Or Gerlitz <ogerlitz@mellanox.com>, Roman Pen <roman.penyaev@profitbricks.com>, Danil Kipnis <danil.kipnis@profitbricks.com>, Jack Wang <jinpu.wang@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce public header which provides set of API functions to
-establish RDMA connections from client to server machine using
-IBTRS protocol, which manages RDMA connections for each session,
-does multipathing and load balancing.
+This header describes main structs and functions used by ibtrs-server
+module, mainly for accepting IBTRS sessions, creating/destroying
+sysfs entries, accounting statistics on server side.
 
-Main functions for client (active) side:
-
- ibtrs_clt_open() - Creates set of RDMA connections incapsulated
-                    in IBTRS session and returns pointer on IBTRS
-		    session object.
- ibtrs_clt_close() - Closes RDMA connections associated with IBTRS
-                     session.
- ibtrs_clt_request() - Requests zero-copy RDMA transfer to/from
-                       server.
-
-Main functions for server (passive) side:
-
- ibtrs_srv_open() - Starts listening for IBTRS clients on specified
-                    port and invokes IBTRS callbacks for incoming
-		    RDMA requests or link events.
- ibtrs_srv_close() - Closes IBTRS server context.
-
-Signed-off-by: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Signed-off-by: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Roman Pen <roman.penyaev@profitbricks.com>
+Signed-off-by: Danil Kipnis <danil.kipnis@profitbricks.com>
+Cc: Jack Wang <jinpu.wang@profitbricks.com>
 ---
- drivers/infiniband/ulp/ibtrs/ibtrs.h | 331 +++++++++++++++++++++++++++++++++++
- 1 file changed, 331 insertions(+)
+ drivers/infiniband/ulp/ibtrs/ibtrs-srv.h | 169 +++++++++++++++++++++++++++++++
+ 1 file changed, 169 insertions(+)
 
-diff --git a/drivers/infiniband/ulp/ibtrs/ibtrs.h b/drivers/infiniband/ulp/ibtrs/ibtrs.h
+diff --git a/drivers/infiniband/ulp/ibtrs/ibtrs-srv.h b/drivers/infiniband/ulp/ibtrs/ibtrs-srv.h
 new file mode 100644
-index 000000000000..747cdde3d9cf
+index 000000000000..f54e159eaf2a
 --- /dev/null
-+++ b/drivers/infiniband/ulp/ibtrs/ibtrs.h
-@@ -0,0 +1,331 @@
++++ b/drivers/infiniband/ulp/ibtrs/ibtrs-srv.h
+@@ -0,0 +1,169 @@
 +/*
 + * InfiniBand Transport Layer
 + *
 + * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
-+ * Authors: Fabian Holler <mail-99BIx50xQYGELgA04lAiVw@public.gmane.org>
-+ *          Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Roman Penyaev <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Milind Dumbare <Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
++ * Authors: Fabian Holler <mail@fholler.de>
++ *          Jack Wang <jinpu.wang@profitbricks.com>
++ *          Kleber Souza <kleber.souza@profitbricks.com>
++ *          Danil Kipnis <danil.kipnis@profitbricks.com>
++ *          Roman Penyaev <roman.penyaev@profitbricks.com>
++ *          Milind Dumbare <Milind.dumbare@gmail.com>
 + *
 + * Copyright (c) 2017 - 2018 ProfitBricks GmbH. All rights reserved.
-+ * Authors: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Roman Penyaev <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ * Authors: Danil Kipnis <danil.kipnis@profitbricks.com>
++ *          Roman Penyaev <roman.penyaev@profitbricks.com>
 + *
 + * This program is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU General Public License
@@ -74,312 +56,145 @@ index 000000000000..747cdde3d9cf
 + * along with this program; if not, see <http://www.gnu.org/licenses/>.
 + */
 +
-+#ifndef IBTRS_H
-+#define IBTRS_H
++#ifndef IBTRS_SRV_H
++#define IBTRS_SRV_H
 +
-+#include <linux/socket.h>
-+#include <linux/scatterlist.h>
-+
-+struct ibtrs_clt;
-+struct ibtrs_srv_ctx;
-+struct ibtrs_srv;
-+struct ibtrs_srv_op;
-+
-+/*
-+ * Here goes IBTRS client API
-+ */
++#include <linux/refcount.h>
++#include "ibtrs-pri.h"
 +
 +/**
-+ * enum ibtrs_clt_link_ev - Events about connectivity state of a client
-+ * @IBTRS_CLT_LINK_EV_RECONNECTED	Client was reconnected.
-+ * @IBTRS_CLT_LINK_EV_DISCONNECTED	Client was disconnected.
++ * enum ibtrs_srv_state - Server states.
 + */
-+enum ibtrs_clt_link_ev {
-+	IBTRS_CLT_LINK_EV_RECONNECTED,
-+	IBTRS_CLT_LINK_EV_DISCONNECTED,
++enum ibtrs_srv_state {
++	IBTRS_SRV_CONNECTING,
++	IBTRS_SRV_CONNECTED,
++	IBTRS_SRV_CLOSING,
++	IBTRS_SRV_CLOSED,
 +};
 +
-+/**
-+ * Source and destination address of a path to be established
-+ */
-+struct ibtrs_addr {
-+	struct sockaddr *src;
-+	struct sockaddr *dst;
-+};
-+
-+typedef void (link_clt_ev_fn)(void *priv, enum ibtrs_clt_link_ev ev);
-+/**
-+ * ibtrs_clt_open() - Open a session to a IBTRS client
-+ * @priv:		User supplied private data.
-+ * @link_ev:		Event notification for connection state changes
-+ *	@priv:			user supplied data that was passed to
-+ *				ibtrs_clt_open()
-+ *	@ev:			Occurred event
-+ * @sessname: name of the session
-+ * @paths: Paths to be established defined by their src and dst addresses
-+ * @path_cnt: Number of elemnts in the @paths array
-+ * @port: port to be used by the IBTRS session
-+ * @pdu_sz: Size of extra payload which can be accessed after tag allocation.
-+ * @max_inflight_msg: Max. number of parallel inflight messages for the session
-+ * @max_segments: Max. number of segments per IO request
-+ * @reconnect_delay_sec: time between reconnect tries
-+ * @max_reconnect_attempts: Number of times to reconnect on error before giving
-+ *			    up, 0 for * disabled, -1 for forever
-+ *
-+ * Starts session establishment with the ibtrs_server. The function can block
-+ * up to ~2000ms until it returns.
-+ *
-+ * Return a valid pointer on success otherwise PTR_ERR.
-+ */
-+struct ibtrs_clt *ibtrs_clt_open(void *priv, link_clt_ev_fn *link_ev,
-+				 const char *sessname,
-+				 const struct ibtrs_addr *paths,
-+				 size_t path_cnt, short port,
-+				 size_t pdu_sz, u8 reconnect_delay_sec,
-+				 u16 max_segments,
-+				 s16 max_reconnect_attempts);
-+
-+/**
-+ * ibtrs_clt_close() - Close a session
-+ * @sess: Session handler, is freed on return
-+ */
-+void ibtrs_clt_close(struct ibtrs_clt *sess);
-+
-+enum {
-+	IBTRS_TAG_NOWAIT = 0,
-+	IBTRS_TAG_WAIT   = 1,
-+};
-+
-+/**
-+ * enum ibtrs_clt_con_type() type of ib connection to use with a given tag
-+ * @USR_CON - use connection reserved vor "service" messages
-+ * @IO_CON - use a connection reserved for IO
-+ */
-+enum ibtrs_clt_con_type {
-+	IBTRS_USR_CON,
-+	IBTRS_IO_CON
-+};
-+
-+/**
-+ * ibtrs_tag - tags the memory allocation for future RDMA operation
-+ */
-+struct ibtrs_tag {
-+	enum ibtrs_clt_con_type con_type;
-+	unsigned int cpu_id;
-+	unsigned int mem_id;
-+	unsigned int mem_off;
-+};
-+
-+static inline struct ibtrs_tag *ibtrs_tag_from_pdu(void *pdu)
++static inline const char *ibtrs_srv_state_str(enum ibtrs_srv_state state)
 +{
-+	return pdu - sizeof(struct ibtrs_tag);
++	switch (state) {
++	case IBTRS_SRV_CONNECTING:
++		return "IBTRS_SRV_CONNECTING";
++	case IBTRS_SRV_CONNECTED:
++		return "IBTRS_SRV_CONNECTED";
++	case IBTRS_SRV_CLOSING:
++		return "IBTRS_SRV_CLOSING";
++	case IBTRS_SRV_CLOSED:
++		return "IBTRS_SRV_CLOSED";
++	default:
++		return "UNKNOWN";
++	}
 +}
 +
-+static inline void *ibtrs_tag_to_pdu(struct ibtrs_tag *tag)
-+{
-+	return tag + 1;
-+}
-+
-+/**
-+ * ibtrs_clt_get_tag() - allocates tag for future RDMA operation
-+ * @sess:	Current session
-+ * @con_type:	Type of connection to use with the tag
-+ * @wait:	Wait type
-+ *
-+ * Description:
-+ *    Allocates tag for the following RDMA operation.  Tag is used
-+ *    to preallocate all resources and to propagate memory pressure
-+ *    up earlier.
-+ *
-+ * Context:
-+ *    Can sleep if @wait == IBTRS_TAG_WAIT
-+ */
-+struct ibtrs_tag *ibtrs_clt_get_tag(struct ibtrs_clt *sess,
-+				    enum ibtrs_clt_con_type con_type,
-+				    int wait);
-+
-+/**
-+ * ibtrs_clt_put_tag() - puts allocated tag
-+ * @sess:	Current session
-+ * @tag:	Tag to be freed
-+ *
-+ * Context:
-+ *    Does not matter
-+ */
-+void ibtrs_clt_put_tag(struct ibtrs_clt *sess, struct ibtrs_tag *tag);
-+
-+typedef void (ibtrs_conf_fn)(void *priv, int errno);
-+/**
-+ * ibtrs_clt_request() - Request data transfer to/from server via RDMA.
-+ *
-+ * @dir:	READ/WRITE
-+ * @conf:	callback function to be called as confirmation
-+ * @sess:	Session
-+ * @tag:	Preallocated tag
-+ * @priv:	User provided data, passed back with corresponding
-+ *		@(conf) confirmation.
-+ * @vec:	Message that is send to server together with the request.
-+ *		Sum of len of all @vec elements limited to <= IO_MSG_SIZE.
-+ *		Since the msg is copied internally it can be allocated on stack.
-+ * @nr:		Number of elements in @vec.
-+ * @len:	length of data send to/from server
-+ * @sg:		Pages to be sent/received to/from server.
-+ * @sg_cnt:	Number of elements in the @sg
-+ *
-+ * Return:
-+ * 0:		Success
-+ * <0:		Error
-+ *
-+ * On dir=READ ibtrs client will request a data transfer from Server to client.
-+ * The data that the server will respond with will be stored in @sg when
-+ * the user receives an %IBTRS_CLT_RDMA_EV_RDMA_REQUEST_WRITE_COMPL event.
-+ * On dir=WRITE ibtrs client will rdma write data in sg to server side.
-+ */
-+int ibtrs_clt_request(int dir, ibtrs_conf_fn *conf, struct ibtrs_clt *sess,
-+		      struct ibtrs_tag *tag, void *priv, const struct kvec *vec,
-+		      size_t nr, size_t len, struct scatterlist *sg,
-+		      unsigned int sg_cnt);
-+
-+/**
-+ * ibtrs_attrs - IBTRS session attributes
-+ */
-+struct ibtrs_attrs {
-+	u32	queue_depth;
-+	u32	max_io_size;
-+	u8	sessname[NAME_MAX];
++struct ibtrs_stats_wc_comp {
++	atomic64_t	calls;
++	atomic64_t	total_wc_cnt;
 +};
 +
-+/**
-+ * ibtrs_clt_query() - queries IBTRS session attributes
-+ *
-+ * Returns:
-+ *    0 on success
-+ *    -ECOMM		no connection to the server
-+ */
-+int ibtrs_clt_query(struct ibtrs_clt *sess, struct ibtrs_attrs *attr);
-+
-+/*
-+ * Here goes IBTRS server API
-+ */
-+
-+/**
-+ * enum ibtrs_srv_link_ev - Server link events
-+ * @IBTRS_SRV_LINK_EV_CONNECTED:	Connection from client established
-+ * @IBTRS_SRV_LINK_EV_DISCONNECTED:	Connection was disconnected, all
-+ *					connection IBTRS resources were freed.
-+ */
-+enum ibtrs_srv_link_ev {
-+	IBTRS_SRV_LINK_EV_CONNECTED,
-+	IBTRS_SRV_LINK_EV_DISCONNECTED,
++struct ibtrs_srv_stats_rdma_stats {
++	struct {
++		atomic64_t	cnt;
++		atomic64_t	size_total;
++	} dir[2];
 +};
 +
-+/**
-+ * rdma_ev_fn():	Event notification for RDMA operations
-+ *			If the callback returns a value != 0, an error message
-+ *			for the data transfer will be sent to the client.
++struct ibtrs_srv_stats {
++	struct ibtrs_srv_stats_rdma_stats	rdma_stats;
++	atomic_t				apm_cnt;
++	struct ibtrs_stats_wc_comp		wc_comp;
++};
 +
-+ *	@sess:		Session
-+ *	@priv:		Private data set by ibtrs_srv_set_sess_priv()
-+ *	@id:		internal IBTRS operation id
-+ *	@dir:		READ/WRITE
-+ *	@data:		Pointer to (bidirectional) rdma memory area:
-+ *			- in case of %IBTRS_SRV_RDMA_EV_RECV contains
-+ *			data sent by the client
-+ *			- in case of %IBTRS_SRV_RDMA_EV_WRITE_REQ points to the
-+ *			memory area where the response is to be written to
-+ *	@datalen:	Size of the memory area in @data
-+ *	@usr:		The extra user message sent by the client (%vec)
-+ *	@usrlen:	Size of the user message
-+ */
-+typedef int (rdma_ev_fn)(struct ibtrs_srv *sess, void *priv,
-+			 struct ibtrs_srv_op *id, int dir,
-+			 void *data, size_t datalen, const void *usr,
-+			 size_t usrlen);
++struct ibtrs_srv_con {
++	struct ibtrs_con	c;
++	atomic_t		wr_cnt;
++};
 +
-+/**
-+ * link_ev_fn():	Events about connective state changes
-+ *			If the callback returns != 0 and the event
-+ *			%IBTRS_SRV_LINK_EV_CONNECTED the corresponding session
-+ *			will be destroyed.
-+ *	@sess:		Session
-+ *	@ev:		event
-+ *	@priv:		Private data from user if previously set with
-+ *			ibtrs_srv_set_sess_priv()
-+ */
-+typedef int (link_ev_fn)(struct ibtrs_srv *sess, enum ibtrs_srv_link_ev ev,
-+			 void *priv);
++struct ibtrs_srv_op {
++	struct ibtrs_srv_con		*con;
++	u32				msg_id;
++	u8				dir;
++	u64				data_dma_addr;
++	struct ibtrs_msg_rdma_read	*msg;
++	struct ib_rdma_wr		*tx_wr;
++	struct ib_sge			*tx_sg;
++};
 +
-+/**
-+ * ibtrs_srv_open() - open IBTRS server context
-+ * @ops:		callback functions
-+ *
-+ * Creates server context with specified callbacks.
-+ *
-+ * Return a valid pointer on success otherwise PTR_ERR.
-+ */
-+struct ibtrs_srv_ctx *ibtrs_srv_open(rdma_ev_fn *rdma_ev, link_ev_fn *link_ev,
-+				     unsigned int port);
++struct ibtrs_srv_sess {
++	struct ibtrs_sess	s;
++	struct ibtrs_srv	*srv;
++	struct work_struct	close_work;
++	enum ibtrs_srv_state	state;
++	spinlock_t		state_lock;
++	int			cur_cq_vector;
++	struct ibtrs_srv_op	**ops_ids;
++	atomic_t		ids_inflight;
++	wait_queue_head_t	ids_waitq;
++	dma_addr_t		*rdma_addr;
++	bool			established;
++	unsigned int		mem_bits;
++	struct kobject		kobj;
++	struct kobject		kobj_stats;
++	struct ibtrs_srv_stats	stats;
++};
 +
-+/**
-+ * ibtrs_srv_close() - close IBTRS server context
-+ * @ctx: pointer to server context
-+ *
-+ * Closes IBTRS server context with all client sessions.
-+ */
-+void ibtrs_srv_close(struct ibtrs_srv_ctx *ctx);
++struct ibtrs_srv {
++	struct list_head	paths_list;
++	int			paths_up;
++	struct mutex		paths_ev_mutex;
++	size_t			paths_num;
++	struct mutex		paths_mutex;
++	uuid_t			paths_uuid;
++	refcount_t		refcount;
++	struct ibtrs_srv_ctx	*ctx;
++	struct list_head	ctx_list;
++	void			*priv;
++	size_t			queue_depth;
++	struct page		**chunks;
++	struct kobject		kobj;
++	struct kobject		kobj_paths;
++};
 +
-+/**
-+ * ibtrs_srv_resp_rdma() - Finish an RDMA request
-+ *
-+ * @id:		Internal IBTRS operation identifier
-+ * @errno:	Response Code send to the other side for this operation.
-+ *		0 = success, <=0 error
-+ *
-+ * Finish a RDMA operation. A message is sent to the client and the
-+ * corresponding memory areas will be released.
-+ */
-+void ibtrs_srv_resp_rdma(struct ibtrs_srv_op *id, int errno);
++struct ibtrs_srv_ctx {
++	rdma_ev_fn *rdma_ev;
++	link_ev_fn *link_ev;
++	struct rdma_cm_id *cm_id_ip;
++	struct rdma_cm_id *cm_id_ib;
++	struct mutex srv_mutex;
++	struct list_head srv_list;
++};
 +
-+/**
-+ * ibtrs_srv_set_sess_priv() - Set private pointer in ibtrs_srv.
-+ * @sess:	Session
-+ * @priv:	The private pointer that is associated with the session.
-+ */
-+void ibtrs_srv_set_sess_priv(struct ibtrs_srv *sess, void *priv);
++/* See ibtrs-log.h */
++#define TYPES_TO_SESSNAME(obj)						\
++	LIST(CASE(obj, struct ibtrs_srv_sess *, s.sessname))
 +
-+/**
-+ * ibtrs_srv_get_sess_qdepth() - Get ibtrs_srv qdepth.
-+ * @sess:	Session
-+ */
-+int ibtrs_srv_get_queue_depth(struct ibtrs_srv *sess);
++void ibtrs_srv_queue_close(struct ibtrs_srv_sess *sess);
 +
-+/**
-+ * ibtrs_srv_get_sess_name() - Get ibtrs_srv peer hostname.
-+ * @sess:	Session
-+ * @sessname:	Sessname buffer
-+ * @len:	Length of sessname buffer
-+ */
-+int ibtrs_srv_get_sess_name(struct ibtrs_srv *sess, char *sessname, size_t len);
++/* ibtrs-srv-stats.c */
 +
-+/**
-+ * ibtrs_addr_to_sockaddr() - convert path string "src,dst" to sockaddreses
-+ * @str		string containing source and destination addr of a path
-+ *		separated by comma. I.e. "ip:1.1.1.1,ip:1.1.1.2". If str
-+ *		contains only one address it's considered to be destination.
-+ * @len		string length
-+ * @addr->dst	will be set to the destination sockadddr.
-+ * @addr->src	will be set to the source address or to NULL
-+ *		if str doesn't contain any sorce address.
-+ *
-+ * Returns zero if conversion successful. Non-zero otherwise.
-+ */
-+int ibtrs_addr_to_sockaddr(const char *str, size_t len, short port,
-+			   struct ibtrs_addr *addr);
-+#endif
++void ibtrs_srv_update_rdma_stats(struct ibtrs_srv_stats *s, size_t size, int d);
++void ibtrs_srv_update_wc_stats(struct ibtrs_srv_stats *s);
++
++int ibtrs_srv_reset_rdma_stats(struct ibtrs_srv_stats *stats, bool enable);
++ssize_t ibtrs_srv_stats_rdma_to_str(struct ibtrs_srv_stats *stats,
++				    char *page, size_t len);
++int ibtrs_srv_reset_wc_completion_stats(struct ibtrs_srv_stats *stats,
++					bool enable);
++int ibtrs_srv_stats_wc_completion_to_str(struct ibtrs_srv_stats *stats, char *buf,
++					 size_t len);
++int ibtrs_srv_reset_all_stats(struct ibtrs_srv_stats *stats, bool enable);
++ssize_t ibtrs_srv_reset_all_help(struct ibtrs_srv_stats *stats,
++				 char *page, size_t len);
++
++/* ibtrs-srv-sysfs.c */
++
++int ibtrs_srv_create_sysfs_module_files(void);
++void ibtrs_srv_destroy_sysfs_module_files(void);
++
++int ibtrs_srv_create_sess_files(struct ibtrs_srv_sess *sess);
++void ibtrs_srv_destroy_sess_files(struct ibtrs_srv_sess *sess);
++
++#endif /* IBTRS_SRV_H */
 -- 
 2.13.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
