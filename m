@@ -1,49 +1,76 @@
-From: "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: How to tell RoCE v1 vs v2?
-Date: Fri, 2 Feb 2018 22:20:00 +0000
-Message-ID: <DE927C68B458BE418D582EC97927A9287FE204BF@ORSMSX113.amr.corp.intel.com>
-References: <DE927C68B458BE418D582EC97927A9287FE1FCF7@ORSMSX113.amr.corp.intel.com>
- <VI1PR0502MB3008131CCEE4D9523F346611D1F90@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: Verbs 2.0 questions
+Date: Fri, 2 Feb 2018 15:21:05 -0700
+Message-ID: <20180202222105.GF9080@ziepe.ca>
+References: <14063C7AD467DE4B82DEDB5C278E8663A9F9F318@FMSMSX108.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB3008131CCEE4D9523F346611D1F90-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <14063C7AD467DE4B82DEDB5C278E8663A9F9F318-AtyAts71sc88Ug9VwtkbtrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Sen, Sujoy" <sujoy.sen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Steps:
-> mkdir /sys/kernel/config/rdma_cm/mlx5_0
-> cat /sys/kernel/config/rdma_cm/mlx5_0/ports/1/default_roce_mode
-> #Above command tells whether default is RoCEv1 or v2.
+On Fri, Feb 02, 2018 at 09:35:17PM +0000, Ruhl, Michael J wrote:
+> Hi,
 > 
-> echo "RoCE v2" >
-> /sys/kernel/config/rdma_cm/mlx5_0/ports/1/default_roce_mode
+> I have been playing with the Verbs 2.0 interface a bit (ioctl interface),
+> and have some comments and things to discuss.
 > 
-> Above command will force to pick RoCEv2 GIDs by default when using
-> RDMACM based applications (if HCA supports it).
-
-Thanks, this worked, the step I was missing was that I have to do the mkdir command first.  Looks like we're defaulting to v1.
-
-root@purley02:/home/rsa# mkdir /sys/kernel/config/rdma_cm/mlx5_0
-root@purley02:/home/rsa# cat /sys/kernel/config/rdma_cm/mlx5_0/ports/1/default_roce_mode
-IB/RoCE v1
-
-> RoCEv2 was made default in below patch.
+> Comments/code review:
 > 
-> commit 3c7f67d1880db4bda8eed12ca603c92b5434390e
-> Author: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Date:   Fri Jul 28 13:47:24 2017 -0400
+> 1) Some of the DECLARE_xxx() macros (and their associated
+> UVERBS_TYPE_xxx(), etc) use 'sizeof(struct blah)', other use just a plain
+> 'struct blah'.
 
-This is good to know!  The patch looks to be from July 28 and we're running a kernel from August 6th so I guess we just missed picking up that change.  I'll try loading a newer kernel and see if the default changes, and if not we can try the recommended steps to force it.
+Yeah, this should be consistent, also stuff like ordering:
 
-root@purley02:/home/rsa# uname -a
-Linux purley02 4.12.5-041205-generic #201708061334 SMP Sun Aug 6 17:35:26 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
+ DECLARE_UVERBS_OBJECT(uverbs_object_srq, UVERBS_OBJECT_SRQ,
+vs
+ UVERBS_ATTR_PTR_OUT(DESTROY_CQ_RESP, struct ib_uverbs_destroy_cq_resp,
 
-Thanks very much for the help.
+The constant should always be first.
+
+> 2) Matan has a patch in a private tree: 
+> 
+> Author: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date:   Tue Jan 23 15:55:04 2018 -0500
+> 
+>     IB/uverbs: Fix method merging in uverbs_ioctl_merge
+>     
+>     Fix a bug in uverbs_ioctl_merge that looked at objects iterators
+>     number instead of methods iterators number when merging methods.
+>     While we're at it, make the uverbs_ioctl_merge code a bit more clear
+>     and faster.
+> 
+> That I need in my build environment, or I get a kernel panic when I add my new
+> objects and methods.  Should (or could) patches like this be up-streamed more
+> quickly?
+
+The patch is in an 11 patch series coming that fixes various uverbs
+ioctl things
+
+  https://github.com/jgunthorpe/linux/commits/ioctl
+
+Should be posted next week unless something wrong is found.
+
+> 3)  The Open Fabrics Alliance Verbs Kernel ABI slide deck (slides 16 and 17) imply
+> that the standard objects can be augmented with 'DEV Specific' methods and attributes.
+> 
+> Since the methods are defined in the DECLARE_UVERBS_OBJECT(), it is not
+> clear how to add methods to, say 'uverbs_object_qp' in my driver specific
+> code.
+> 
+> Are there any examples of how this should be done?
+
+I don't think it has ever been done yet.
+
+Honestly I think the entire driver hookup process needs a second set
+of eyes to check if it is really the best it can be...
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
