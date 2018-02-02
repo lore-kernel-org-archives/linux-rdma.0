@@ -1,7 +1,7 @@
 From: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH 03/24] ibtrs: core: lib functions shared between client and server modules
-Date: Fri,  2 Feb 2018 15:08:43 +0100
-Message-ID: <20180202140904.2017-4-roman.penyaev@profitbricks.com>
+Subject: [PATCH 07/24] ibtrs: client: sysfs interface functions
+Date: Fri,  2 Feb 2018 15:08:47 +0100
+Message-ID: <20180202140904.2017-8-roman.penyaev@profitbricks.com>
 References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180202140904.2017-1-roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
@@ -10,26 +10,56 @@ To: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY7
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a set of library functions existing as a ibtrs-core module,
-used by client and server modules.
+This is the sysfs interface to IBTRS sessions on client side:
 
-Mainly these functions wrap IB and RDMA calls and provide a bit higher
-abstraction for implementing of IBTRS protocol on client or server
-sides.
+  /sys/kernel/ibtrs_client/<SESS-NAME>/
+    *** IBTRS session created by ibtrs_clt_open() API call
+    |
+    |- max_reconnect_attempts
+    |  *** number of reconnect attempts for session
+    |
+    |- add_path
+    |  *** adds another connection path into IBTRS session
+    |
+    |- paths/<DEST-IP>/
+       *** established paths to server in a session
+       |
+       |- disconnect
+       |  *** disconnect path
+       |
+       |- reconnect
+       |  *** reconnect path
+       |
+       |- remove_path
+       |  *** remove current path
+       |
+       |- state
+       |  *** retrieve current path state
+       |
+       |- stats/
+          *** current path statistics
+          |
+	  |- cpu_migration
+	  |- rdma
+	  |- rdma_lat
+	  |- reconnects
+	  |- reset_all
+	  |- sg_entries
+	  |- wc_completions
 
 Signed-off-by: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Signed-off-by: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Cc: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/ulp/ibtrs/ibtrs.c | 582 +++++++++++++++++++++++++++++++++++
- 1 file changed, 582 insertions(+)
+ drivers/infiniband/ulp/ibtrs/ibtrs-clt-sysfs.c | 519 +++++++++++++++++++++++++
+ 1 file changed, 519 insertions(+)
 
-diff --git a/drivers/infiniband/ulp/ibtrs/ibtrs.c b/drivers/infiniband/ulp/ibtrs/ibtrs.c
+diff --git a/drivers/infiniband/ulp/ibtrs/ibtrs-clt-sysfs.c b/drivers/infiniband/ulp/ibtrs/ibtrs-clt-sysfs.c
 new file mode 100644
-index 000000000000..007380506959
+index 000000000000..04949d6d796b
 --- /dev/null
-+++ b/drivers/infiniband/ulp/ibtrs/ibtrs.c
-@@ -0,0 +1,582 @@
++++ b/drivers/infiniband/ulp/ibtrs/ibtrs-clt-sysfs.c
+@@ -0,0 +1,519 @@
 +/*
 + * InfiniBand Transport Layer
 + *
@@ -62,556 +92,493 @@ index 000000000000..007380506959
 +#undef pr_fmt
 +#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
 +
-+#include <linux/module.h>
-+#include <linux/inet.h>
-+
 +#include "ibtrs-pri.h"
++#include "ibtrs-clt.h"
 +#include "ibtrs-log.h"
 +
-+MODULE_AUTHOR("ibnbd-EIkl63zCoXaH+58JC4qpiA@public.gmane.org");
-+MODULE_DESCRIPTION("IBTRS Core");
-+MODULE_VERSION(IBTRS_VER_STRING);
-+MODULE_LICENSE("GPL");
++static struct kobject *ibtrs_kobj;
 +
-+static LIST_HEAD(device_list);
-+static DEFINE_MUTEX(device_list_mutex);
++#define MIN_MAX_RECONN_ATT -1
++#define MAX_MAX_RECONN_ATT 9999
 +
-+struct ibtrs_iu *ibtrs_iu_alloc(u32 tag, size_t size, gfp_t gfp_mask,
-+				struct ib_device *dma_dev,
-+				enum dma_data_direction direction,
-+				void (*done)(struct ib_cq *cq,
-+					     struct ib_wc *wc))
++static struct kobj_type ktype = {
++	.sysfs_ops = &kobj_sysfs_ops,
++};
++
++static ssize_t ibtrs_clt_max_reconn_attempts_show(struct kobject *kobj,
++						  struct kobj_attribute *attr,
++						  char *page)
 +{
-+	struct ibtrs_iu *iu;
++	struct ibtrs_clt *clt;
 +
-+	iu = kmalloc(sizeof(*iu), gfp_mask);
-+	if (unlikely(!iu))
-+		return NULL;
++	clt = container_of(kobj, struct ibtrs_clt, kobj);
 +
-+	iu->buf = kzalloc(size, gfp_mask);
-+	if (unlikely(!iu->buf))
-+		goto err1;
-+
-+	iu->dma_addr = ib_dma_map_single(dma_dev, iu->buf, size, direction);
-+	if (unlikely(ib_dma_mapping_error(dma_dev, iu->dma_addr)))
-+		goto err2;
-+
-+	iu->cqe.done  = done;
-+	iu->size      = size;
-+	iu->direction = direction;
-+	iu->tag       = tag;
-+
-+	return iu;
-+
-+err2:
-+	kfree(iu->buf);
-+err1:
-+	kfree(iu);
-+
-+	return NULL;
++	return sprintf(page, "%d\n", ibtrs_clt_get_max_reconnect_attempts(clt));
 +}
-+EXPORT_SYMBOL_GPL(ibtrs_iu_alloc);
 +
-+void ibtrs_iu_free(struct ibtrs_iu *iu, enum dma_data_direction dir,
-+		   struct ib_device *ibdev)
++static ssize_t ibtrs_clt_max_reconn_attempts_store(struct kobject *kobj,
++						   struct kobj_attribute *attr,
++						   const char *buf,
++						   size_t count)
 +{
-+	if (!iu)
-+		return;
++	struct ibtrs_clt *clt;
++	int value;
++	int ret;
 +
-+	ib_dma_unmap_single(ibdev, iu->dma_addr, iu->size, dir);
-+	kfree(iu->buf);
-+	kfree(iu);
-+}
-+EXPORT_SYMBOL_GPL(ibtrs_iu_free);
++	clt = container_of(kobj, struct ibtrs_clt, kobj);
 +
-+int ibtrs_iu_post_recv(struct ibtrs_con *con, struct ibtrs_iu *iu)
-+{
-+	struct ibtrs_sess *sess = con->sess;
-+	struct ib_recv_wr wr, *bad_wr;
-+	struct ib_sge list;
-+
-+	list.addr   = iu->dma_addr;
-+	list.length = iu->size;
-+	list.lkey   = sess->ib_dev->lkey;
-+
-+	if (WARN_ON(list.length == 0)) {
-+		ibtrs_wrn(con, "Posting receive work request failed,"
-+			  " sg list is empty\n");
++	ret = kstrtoint(buf, 10, &value);
++	if (unlikely(ret)) {
++		ibtrs_err(clt, "%s: failed to convert string '%s' to int\n",
++			  attr->attr.name, buf);
++		return ret;
++	}
++	if (unlikely(value > MAX_MAX_RECONN_ATT ||
++		     value < MIN_MAX_RECONN_ATT)) {
++		ibtrs_err(clt, "%s: invalid range"
++			  " (provided: '%s', accepted: min: %d, max: %d)\n",
++			  attr->attr.name, buf, MIN_MAX_RECONN_ATT,
++			  MAX_MAX_RECONN_ATT);
 +		return -EINVAL;
 +	}
++	ibtrs_clt_set_max_reconnect_attempts(clt, value);
 +
-+	wr.next    = NULL;
-+	wr.wr_cqe  = &iu->cqe;
-+	wr.sg_list = &list;
-+	wr.num_sge = 1;
-+
-+	return ib_post_recv(con->qp, &wr, &bad_wr);
++	return count;
 +}
-+EXPORT_SYMBOL_GPL(ibtrs_iu_post_recv);
 +
-+int ibtrs_post_recv_empty(struct ibtrs_con *con, struct ib_cqe *cqe)
++static struct kobj_attribute ibtrs_clt_max_reconnect_attempts_attr =
++	__ATTR(max_reconnect_attempts, 0644,
++	       ibtrs_clt_max_reconn_attempts_show,
++	       ibtrs_clt_max_reconn_attempts_store);
++
++static ssize_t ibtrs_clt_mp_policy_show(struct kobject *kobj,
++					struct kobj_attribute *attr,
++					char *page)
 +{
-+	struct ib_recv_wr wr, *bad_wr;
++	struct ibtrs_clt *clt;
 +
-+	wr.next    = NULL;
-+	wr.wr_cqe  = cqe;
-+	wr.sg_list = NULL;
-+	wr.num_sge = 0;
++	clt = container_of(kobj, struct ibtrs_clt, kobj);
 +
-+	return ib_post_recv(con->qp, &wr, &bad_wr);
-+}
-+EXPORT_SYMBOL_GPL(ibtrs_post_recv_empty);
-+
-+int ibtrs_iu_post_send(struct ibtrs_con *con, struct ibtrs_iu *iu, size_t size)
-+{
-+	struct ibtrs_sess *sess = con->sess;
-+	struct ib_send_wr wr, *bad_wr;
-+	struct ib_sge list;
-+
-+	if ((WARN_ON(size == 0)))
-+		return -EINVAL;
-+
-+	list.addr   = iu->dma_addr;
-+	list.length = size;
-+	list.lkey   = sess->ib_dev->lkey;
-+
-+	memset(&wr, 0, sizeof(wr));
-+	wr.next       = NULL;
-+	wr.wr_cqe     = &iu->cqe;
-+	wr.sg_list    = &list;
-+	wr.num_sge    = 1;
-+	wr.opcode     = IB_WR_SEND;
-+	wr.send_flags = IB_SEND_SIGNALED;
-+
-+	return ib_post_send(con->qp, &wr, &bad_wr);
-+}
-+EXPORT_SYMBOL_GPL(ibtrs_iu_post_send);
-+
-+int ibtrs_iu_post_rdma_write_imm(struct ibtrs_con *con, struct ibtrs_iu *iu,
-+				 struct ib_sge *sge, unsigned int num_sge,
-+				 u32 rkey, u64 rdma_addr, u32 imm_data,
-+				 enum ib_send_flags flags)
-+{
-+	struct ib_send_wr *bad_wr;
-+	struct ib_rdma_wr wr;
-+	int i;
-+
-+	wr.wr.next	  = NULL;
-+	wr.wr.wr_cqe	  = &iu->cqe;
-+	wr.wr.sg_list	  = sge;
-+	wr.wr.num_sge	  = num_sge;
-+	wr.rkey		  = rkey;
-+	wr.remote_addr	  = rdma_addr;
-+	wr.wr.opcode	  = IB_WR_RDMA_WRITE_WITH_IMM;
-+	wr.wr.ex.imm_data = cpu_to_be32(imm_data);
-+	wr.wr.send_flags  = flags;
-+
-+	/*
-+	 * If one of the sges has 0 size, the operation will fail with an
-+	 * length error
-+	 */
-+	for (i = 0; i < num_sge; i++)
-+		if (WARN_ON(sge[i].length == 0))
-+			return -EINVAL;
-+
-+	return ib_post_send(con->qp, &wr.wr, &bad_wr);
-+}
-+EXPORT_SYMBOL_GPL(ibtrs_iu_post_rdma_write_imm);
-+
-+int ibtrs_post_rdma_write_imm_empty(struct ibtrs_con *con, struct ib_cqe *cqe,
-+				    u32 imm_data, enum ib_send_flags flags)
-+{
-+	struct ib_send_wr wr, *bad_wr;
-+
-+	memset(&wr, 0, sizeof(wr));
-+	wr.wr_cqe	= cqe;
-+	wr.send_flags	= flags;
-+	wr.opcode	= IB_WR_RDMA_WRITE_WITH_IMM;
-+	wr.ex.imm_data	= cpu_to_be32(imm_data);
-+
-+	return ib_post_send(con->qp, &wr, &bad_wr);
-+}
-+EXPORT_SYMBOL_GPL(ibtrs_post_rdma_write_imm_empty);
-+
-+static void qp_event_handler(struct ib_event *ev, void *ctx)
-+{
-+	struct ibtrs_con *con = ctx;
-+
-+	switch (ev->event) {
-+	case IB_EVENT_COMM_EST:
-+		ibtrs_info(con, "QP event %s (%d) received\n",
-+			   ib_event_msg(ev->event), ev->event);
-+		rdma_notify(con->cm_id, IB_EVENT_COMM_EST);
-+		break;
++	switch (clt->mp_policy) {
++	case MP_POLICY_RR:
++		return sprintf(page, "round-robin (RR: %d)\n", clt->mp_policy);
++	case MP_POLICY_MIN_INFLIGHT:
++		return sprintf(page, "min-inflight (MI: %d)\n", clt->mp_policy);
 +	default:
-+		ibtrs_info(con, "Unhandled QP event %s (%d) received\n",
-+			   ib_event_msg(ev->event), ev->event);
-+		break;
++		return sprintf(page, "Unknown (%d)\n", clt->mp_policy);
 +	}
 +}
 +
-+static int ibtrs_query_device(struct ibtrs_ib_dev *ib_dev)
++static ssize_t ibtrs_clt_mp_policy_store(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 const char *buf,
++					 size_t count)
 +{
-+	struct ib_udata uhw = {.outlen = 0, .inlen = 0};
++	struct ibtrs_clt *clt;
++	int value;
++	int ret;
 +
-+	memset(&ib_dev->attrs, 0, sizeof(ib_dev->attrs));
++	clt = container_of(kobj, struct ibtrs_clt, kobj);
 +
-+	return ib_dev->dev->query_device(ib_dev->dev, &ib_dev->attrs, &uhw);
++	ret = kstrtoint(buf, 10, &value);
++	if (!ret && (value == MP_POLICY_RR || value == MP_POLICY_MIN_INFLIGHT)) {
++		clt->mp_policy = value;
++		return count;
++	}
++
++	if (!strncasecmp(buf, "round-robin", 11) ||
++	    !strncasecmp(buf, "rr", 2))
++		clt->mp_policy = MP_POLICY_RR;
++	else if (!strncasecmp(buf, "min-inflight", 12) ||
++		 !strncasecmp(buf, "mi", 2))
++		clt->mp_policy = MP_POLICY_MIN_INFLIGHT;
++	else
++		return -EINVAL;
++
++	return count;
 +}
 +
-+static int ibtrs_ib_dev_init(struct ibtrs_ib_dev *d, struct ib_device *dev)
++static struct kobj_attribute ibtrs_clt_mp_policy_attr =
++	__ATTR(mp_policy, 0644,
++	       ibtrs_clt_mp_policy_show,
++	       ibtrs_clt_mp_policy_store);
++
++static ssize_t ibtrs_clt_state_show(struct kobject *kobj,
++				    struct kobj_attribute *attr, char *page)
 +{
++	struct ibtrs_clt_sess *sess;
++
++	sess = container_of(kobj, struct ibtrs_clt_sess, kobj);
++	if (ibtrs_clt_sess_is_connected(sess))
++		return sprintf(page, "connected\n");
++
++	return sprintf(page, "disconnected\n");
++}
++
++static struct kobj_attribute ibtrs_clt_state_attr =
++	__ATTR(state, 0444, ibtrs_clt_state_show, NULL);
++
++static ssize_t ibtrs_clt_reconnect_show(struct kobject *kobj,
++					struct kobj_attribute *attr,
++					char *page)
++{
++	return scnprintf(page, PAGE_SIZE, "Usage: echo 1 > %s\n",
++			 attr->attr.name);
++}
++
++static ssize_t ibtrs_clt_reconnect_store(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 const char *buf, size_t count)
++{
++	struct ibtrs_clt_sess *sess;
++	int ret;
++
++	sess = container_of(kobj, struct ibtrs_clt_sess, kobj);
++	if (!sysfs_streq(buf, "1")) {
++		ibtrs_err(sess, "%s: unknown value: '%s'\n",
++			  attr->attr.name, buf);
++		return -EINVAL;
++	}
++	ret = ibtrs_clt_reconnect_from_sysfs(sess);
++	if (unlikely(ret))
++		return ret;
++
++	return count;
++}
++
++static struct kobj_attribute ibtrs_clt_reconnect_attr =
++	__ATTR(reconnect, 0644, ibtrs_clt_reconnect_show,
++	       ibtrs_clt_reconnect_store);
++
++static ssize_t ibtrs_clt_disconnect_show(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 char *page)
++{
++	return scnprintf(page, PAGE_SIZE, "Usage: echo 1 > %s\n",
++			 attr->attr.name);
++}
++
++static ssize_t ibtrs_clt_disconnect_store(struct kobject *kobj,
++					  struct kobj_attribute *attr,
++					  const char *buf, size_t count)
++{
++	struct ibtrs_clt_sess *sess;
++	int ret;
++
++	sess = container_of(kobj, struct ibtrs_clt_sess, kobj);
++	if (!sysfs_streq(buf, "1")) {
++		ibtrs_err(sess, "%s: unknown value: '%s'\n",
++			  attr->attr.name, buf);
++		return -EINVAL;
++	}
++	ret = ibtrs_clt_disconnect_from_sysfs(sess);
++	if (unlikely(ret))
++		return ret;
++
++	return count;
++}
++
++static struct kobj_attribute ibtrs_clt_disconnect_attr =
++	__ATTR(disconnect, 0644, ibtrs_clt_disconnect_show,
++	       ibtrs_clt_disconnect_store);
++
++static ssize_t ibtrs_clt_remove_path_show(struct kobject *kobj,
++					  struct kobj_attribute *attr,
++					  char *page)
++{
++	return scnprintf(page, PAGE_SIZE, "Usage: echo 1 > %s\n",
++			 attr->attr.name);
++}
++
++static ssize_t ibtrs_clt_remove_path_store(struct kobject *kobj,
++					   struct kobj_attribute *attr,
++					   const char *buf, size_t count)
++{
++	struct ibtrs_clt_sess *sess;
++	int ret;
++
++	sess = container_of(kobj, struct ibtrs_clt_sess, kobj);
++	if (!sysfs_streq(buf, "1")) {
++		ibtrs_err(sess, "%s: unknown value: '%s'\n",
++			  attr->attr.name, buf);
++		return -EINVAL;
++	}
++	ret = ibtrs_clt_remove_path_from_sysfs(sess, &attr->attr);
++	if (unlikely(ret))
++		return ret;
++
++	return count;
++}
++
++static struct kobj_attribute ibtrs_clt_remove_path_attr =
++	__ATTR(remove_path, 0644, ibtrs_clt_remove_path_show,
++	       ibtrs_clt_remove_path_store);
++
++static ssize_t ibtrs_clt_add_path_show(struct kobject *kobj,
++				       struct kobj_attribute *attr, char *page)
++{
++	return scnprintf(page, PAGE_SIZE, "Usage: echo"
++			 " [<source addr>,]<destination addr> > %s\n\n"
++			"*addr ::= [ ip:<ipv4|ipv6> | gid:<gid> ]\n",
++			 attr->attr.name);
++}
++
++static ssize_t ibtrs_clt_add_path_store(struct kobject *kobj,
++					struct kobj_attribute *attr,
++					const char *buf, size_t count)
++{
++	struct sockaddr_storage srcaddr, dstaddr;
++	struct ibtrs_addr addr = {
++		.src = (struct sockaddr *)&srcaddr,
++		.dst = (struct sockaddr *)&dstaddr
++	};
++	struct ibtrs_clt *clt;
++	const char *nl;
++	size_t len;
 +	int err;
 +
-+	d->pd = ib_alloc_pd(dev, IB_PD_UNSAFE_GLOBAL_RKEY);
-+	if (IS_ERR(d->pd))
-+		return PTR_ERR(d->pd);
-+	d->dev = dev;
-+	d->lkey = d->pd->local_dma_lkey;
-+	d->rkey = d->pd->unsafe_global_rkey;
++	clt = container_of(kobj, struct ibtrs_clt, kobj);
 +
-+	err = ibtrs_query_device(d);
++	nl = strchr(buf, '\n');
++	if (nl)
++		len = nl - buf;
++	else
++		len = count;
++	err = ibtrs_addr_to_sockaddr(buf, len, clt->port, &addr);
 +	if (unlikely(err))
-+		ib_dealloc_pd(d->pd);
++		return -EINVAL;
++
++	err = ibtrs_clt_create_path_from_sysfs(clt, &addr);
++	if (unlikely(err))
++		return err;
++
++	return count;
++}
++
++static struct kobj_attribute ibtrs_clt_add_path_attr =
++	__ATTR(add_path, 0644, ibtrs_clt_add_path_show,
++	       ibtrs_clt_add_path_store);
++
++STAT_ATTR(struct ibtrs_clt_sess, cpu_migration,
++	  ibtrs_clt_stats_migration_cnt_to_str,
++	  ibtrs_clt_reset_cpu_migr_stats);
++
++STAT_ATTR(struct ibtrs_clt_sess, sg_entries,
++	  ibtrs_clt_stats_sg_list_distr_to_str,
++	  ibtrs_clt_reset_sg_list_distr_stats);
++
++STAT_ATTR(struct ibtrs_clt_sess, reconnects,
++	  ibtrs_clt_stats_reconnects_to_str,
++	  ibtrs_clt_reset_reconnects_stat);
++
++STAT_ATTR(struct ibtrs_clt_sess, rdma_lat,
++	  ibtrs_clt_stats_rdma_lat_distr_to_str,
++	  ibtrs_clt_reset_rdma_lat_distr_stats);
++
++STAT_ATTR(struct ibtrs_clt_sess, wc_completion,
++	  ibtrs_clt_stats_wc_completion_to_str,
++	  ibtrs_clt_reset_wc_comp_stats);
++
++STAT_ATTR(struct ibtrs_clt_sess, rdma,
++	  ibtrs_clt_stats_rdma_to_str,
++	  ibtrs_clt_reset_rdma_stats);
++
++STAT_ATTR(struct ibtrs_clt_sess, reset_all,
++	  ibtrs_clt_reset_all_help,
++	  ibtrs_clt_reset_all_stats);
++
++static struct attribute *ibtrs_clt_stats_attrs[] = {
++	&sg_entries_attr.attr,
++	&cpu_migration_attr.attr,
++	&reconnects_attr.attr,
++	&rdma_lat_attr.attr,
++	&wc_completion_attr.attr,
++	&rdma_attr.attr,
++	&reset_all_attr.attr,
++	NULL,
++};
++
++static struct attribute_group ibtrs_clt_stats_attr_group = {
++	.attrs = ibtrs_clt_stats_attrs,
++};
++
++static int ibtrs_clt_create_stats_files(struct kobject *kobj,
++					struct kobject *kobj_stats)
++{
++	int ret;
++
++	ret = kobject_init_and_add(kobj_stats, &ktype, kobj, "stats");
++	if (ret) {
++		pr_err("Failed to init and add stats kobject, err: %d\n",
++		       ret);
++		return ret;
++	}
++
++	ret = sysfs_create_group(kobj_stats, &ibtrs_clt_stats_attr_group);
++	if (ret) {
++		pr_err("failed to create stats sysfs group, err: %d\n",
++		       ret);
++		goto err;
++	}
++
++	return 0;
++
++err:
++	kobject_del(kobj_stats);
++	kobject_put(kobj_stats);
++
++	return ret;
++}
++
++static struct attribute *ibtrs_clt_sess_attrs[] = {
++	&ibtrs_clt_state_attr.attr,
++	&ibtrs_clt_reconnect_attr.attr,
++	&ibtrs_clt_disconnect_attr.attr,
++	&ibtrs_clt_remove_path_attr.attr,
++	NULL,
++};
++
++static struct attribute_group ibtrs_clt_sess_attr_group = {
++	.attrs = ibtrs_clt_sess_attrs,
++};
++
++int ibtrs_clt_create_sess_files(struct ibtrs_clt_sess *sess)
++{
++	struct ibtrs_clt *clt = sess->clt;
++	char str[MAXHOSTNAMELEN];
++	int err;
++
++	sockaddr_to_str((struct sockaddr *)&sess->s.dst_addr, str, sizeof(str));
++
++	err = kobject_init_and_add(&sess->kobj, &ktype, &clt->kobj_paths,
++				   "%s", str);
++	if (unlikely(err)) {
++		pr_err("kobject_init_and_add: %d\n", err);
++		return err;
++	}
++	err = sysfs_create_group(&sess->kobj, &ibtrs_clt_sess_attr_group);
++	if (unlikely(err)) {
++		pr_err("sysfs_create_group(): %d\n", err);
++		goto put_kobj;
++	}
++	err = ibtrs_clt_create_stats_files(&sess->kobj, &sess->kobj_stats);
++	if (unlikely(err))
++		goto put_kobj;
++
++	return 0;
++
++put_kobj:
++	kobject_del(&sess->kobj);
++	kobject_put(&sess->kobj);
 +
 +	return err;
 +}
 +
-+static void ibtrs_ib_dev_destroy(struct ibtrs_ib_dev *d)
++static void ibtrs_sysfs_remove_file_self(struct kobject *kobj,
++					 const struct attribute *attr)
 +{
-+	if (d->pd) {
-+		ib_dealloc_pd(d->pd);
-+		d->pd = NULL;
-+		d->dev = NULL;
-+		d->lkey = 0;
-+		d->rkey = 0;
-+	}
-+}
++	struct device_attribute dattr = {
++		.attr.name = attr->name
++	};
++	struct device *device;
 +
-+struct ibtrs_ib_dev *ibtrs_ib_dev_find_get(struct rdma_cm_id *cm_id)
-+{
-+	struct ibtrs_ib_dev *dev;
-+	int err;
-+
-+	mutex_lock(&device_list_mutex);
-+	list_for_each_entry(dev, &device_list, entry) {
-+		if (dev->dev->node_guid == cm_id->device->node_guid &&
-+		    kref_get_unless_zero(&dev->ref))
-+			goto out_unlock;
-+	}
-+	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-+	if (unlikely(!dev))
-+		goto out_err;
-+
-+	kref_init(&dev->ref);
-+	err = ibtrs_ib_dev_init(dev, cm_id->device);
-+	if (unlikely(err))
-+		goto out_free;
-+	list_add(&dev->entry, &device_list);
-+out_unlock:
-+	mutex_unlock(&device_list_mutex);
-+
-+	return dev;
-+
-+out_free:
-+	kfree(dev);
-+out_err:
-+	mutex_unlock(&device_list_mutex);
-+
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(ibtrs_ib_dev_find_get);
-+
-+static void ibtrs_ib_dev_free(struct kref *ref)
-+{
-+	struct ibtrs_ib_dev *dev;
-+
-+	dev = container_of(ref, struct ibtrs_ib_dev, ref);
-+
-+	mutex_lock(&device_list_mutex);
-+	list_del(&dev->entry);
-+	mutex_unlock(&device_list_mutex);
-+	ibtrs_ib_dev_destroy(dev);
-+	kfree(dev);
-+}
-+
-+void ibtrs_ib_dev_put(struct ibtrs_ib_dev *dev)
-+{
-+	kref_put(&dev->ref, ibtrs_ib_dev_free);
-+}
-+EXPORT_SYMBOL_GPL(ibtrs_ib_dev_put);
-+
-+static int create_cq(struct ibtrs_con *con, int cq_vector, u16 cq_size,
-+		     enum ib_poll_context poll_ctx)
-+{
-+	struct rdma_cm_id *cm_id = con->cm_id;
-+	struct ib_cq *cq;
-+
-+	cq = ib_alloc_cq(cm_id->device, con, cq_size * 2 + 1,
-+			 cq_vector, poll_ctx);
-+	if (unlikely(IS_ERR(cq))) {
-+		ibtrs_err(con, "Creating completion queue failed, errno: %ld\n",
-+			  PTR_ERR(cq));
-+		return PTR_ERR(cq);
-+	}
-+	con->cq = cq;
-+
-+	return 0;
-+}
-+
-+static int create_qp(struct ibtrs_con *con, struct ib_pd *pd,
-+		     u16 wr_queue_size, u32 max_send_sge)
-+{
-+	struct ib_qp_init_attr init_attr = {NULL};
-+	struct rdma_cm_id *cm_id = con->cm_id;
-+	int ret;
-+
-+	init_attr.cap.max_send_wr = wr_queue_size;
-+	init_attr.cap.max_recv_wr = wr_queue_size;
-+	init_attr.cap.max_recv_sge = 2;
-+	init_attr.event_handler = qp_event_handler;
-+	init_attr.qp_context = con;
-+	init_attr.cap.max_send_sge = max_send_sge;
-+
-+	init_attr.qp_type = IB_QPT_RC;
-+	init_attr.send_cq = con->cq;
-+	init_attr.recv_cq = con->cq;
-+	init_attr.sq_sig_type = IB_SIGNAL_REQ_WR;
-+
-+	ret = rdma_create_qp(cm_id, pd, &init_attr);
-+	if (unlikely(ret)) {
-+		ibtrs_err(con, "Creating QP failed, err: %d\n", ret);
-+		return ret;
-+	}
-+	con->qp = cm_id->qp;
-+
-+	return ret;
-+}
-+
-+int ibtrs_cq_qp_create(struct ibtrs_sess *sess, struct ibtrs_con *con,
-+		       u32 max_send_sge, int cq_vector, u16 cq_size,
-+		       u16 wr_queue_size, enum ib_poll_context poll_ctx)
-+{
-+	int err;
-+
-+	err = create_cq(con, cq_vector, cq_size, poll_ctx);
-+	if (unlikely(err))
-+		return err;
-+
-+	err = create_qp(con, sess->ib_dev->pd, wr_queue_size, max_send_sge);
-+	if (unlikely(err)) {
-+		ib_free_cq(con->cq);
-+		con->cq = NULL;
-+		return err;
-+	}
-+	con->sess = sess;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ibtrs_cq_qp_create);
-+
-+void ibtrs_cq_qp_destroy(struct ibtrs_con *con)
-+{
-+	if (con->qp) {
-+		rdma_destroy_qp(con->cm_id);
-+		con->qp = NULL;
-+	}
-+	if (con->cq) {
-+		ib_free_cq(con->cq);
-+		con->cq = NULL;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(ibtrs_cq_qp_destroy);
-+
-+static void schedule_hb(struct ibtrs_sess *sess)
-+{
-+	queue_delayed_work(sess->hb_wq, &sess->hb_dwork,
-+			   msecs_to_jiffies(sess->hb_interval_ms));
-+}
-+
-+void ibtrs_send_hb_ack(struct ibtrs_sess *sess)
-+{
-+	struct ibtrs_con *usr_con = sess->con[0];
-+	u32 imm;
-+	int err;
-+
-+	imm = ibtrs_to_imm(IBTRS_HB_ACK_IMM, 0);
-+	err = ibtrs_post_rdma_write_imm_empty(usr_con, sess->hb_cqe,
-+					      imm, IB_SEND_SIGNALED);
-+	if (unlikely(err)) {
-+		sess->hb_err_handler(usr_con, err);
-+		return;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(ibtrs_send_hb_ack);
-+
-+static void hb_work(struct work_struct *work)
-+{
-+	struct ibtrs_con *usr_con;
-+	struct ibtrs_sess *sess;
-+	u32 imm;
-+	int err;
-+
-+	sess = container_of(to_delayed_work(work), typeof(*sess), hb_dwork);
-+	usr_con = sess->con[0];
-+
-+	if (sess->hb_missed_cnt > sess->hb_missed_max) {
-+		sess->hb_err_handler(usr_con, -ETIMEDOUT);
-+		return;
-+	}
-+	if (sess->hb_missed_cnt++) {
-+		/* Reschedule work without sending hb */
-+		schedule_hb(sess);
-+		return;
-+	}
-+	imm = ibtrs_to_imm(IBTRS_HB_MSG_IMM, 0);
-+	err = ibtrs_post_rdma_write_imm_empty(usr_con, sess->hb_cqe,
-+					      imm, IB_SEND_SIGNALED);
-+	if (unlikely(err)) {
-+		sess->hb_err_handler(usr_con, err);
-+		return;
-+	}
-+
-+	schedule_hb(sess);
-+}
-+
-+void ibtrs_init_hb(struct ibtrs_sess *sess, struct ib_cqe *cqe,
-+		   unsigned int interval_ms, unsigned int missed_max,
-+		   ibtrs_hb_handler_t *err_handler,
-+		   struct workqueue_struct *wq)
-+{
-+	sess->hb_cqe = cqe;
-+	sess->hb_interval_ms = interval_ms;
-+	sess->hb_err_handler = err_handler;
-+	sess->hb_wq = wq;
-+	sess->hb_missed_max = missed_max;
-+	sess->hb_missed_cnt = 0;
-+	INIT_DELAYED_WORK(&sess->hb_dwork, hb_work);
-+}
-+EXPORT_SYMBOL_GPL(ibtrs_init_hb);
-+
-+void ibtrs_start_hb(struct ibtrs_sess *sess)
-+{
-+	schedule_hb(sess);
-+}
-+EXPORT_SYMBOL_GPL(ibtrs_start_hb);
-+
-+void ibtrs_stop_hb(struct ibtrs_sess *sess)
-+{
-+	cancel_delayed_work_sync(&sess->hb_dwork);
-+	sess->hb_missed_cnt = 0;
-+	sess->hb_missed_max = 0;
-+}
-+EXPORT_SYMBOL_GPL(ibtrs_stop_hb);
-+
-+static int ibtrs_str_ipv4_to_sockaddr(const char *addr, size_t len,
-+				      short port, struct sockaddr *dst)
-+{
-+	struct sockaddr_in *dst_sin = (struct sockaddr_in *)dst;
-+	int ret;
-+
-+	ret = in4_pton(addr, len, (u8 *)&dst_sin->sin_addr.s_addr,
-+		       '\0', NULL);
-+	if (ret == 0)
-+		return -EINVAL;
-+
-+	dst_sin->sin_family = AF_INET;
-+	dst_sin->sin_port = htons(port);
-+
-+	return 0;
-+}
-+
-+static int ibtrs_str_ipv6_to_sockaddr(const char *addr, size_t len,
-+				      short port, struct sockaddr *dst)
-+{
-+	struct sockaddr_in6 *dst_sin6 = (struct sockaddr_in6 *)dst;
-+	int ret;
-+
-+	ret = in6_pton(addr, len, dst_sin6->sin6_addr.s6_addr,
-+		       '\0', NULL);
-+	if (ret != 1)
-+		return -EINVAL;
-+
-+	dst_sin6->sin6_family = AF_INET6;
-+	dst_sin6->sin6_port = htons(port);
-+
-+	return 0;
-+}
-+
-+static int ibtrs_str_gid_to_sockaddr(const char *addr, size_t len,
-+				     short port, struct sockaddr *dst)
-+{
-+	struct sockaddr_ib *dst_ib = (struct sockaddr_ib *)dst;
-+	int ret;
-+
-+	/* We can use some of the I6 functions since GID is a valid
-+	 * IPv6 address format
-+	 */
-+	ret = in6_pton(addr, len, dst_ib->sib_addr.sib_raw, '\0', NULL);
-+	if (ret == 0)
-+		return -EINVAL;
-+
-+	dst_ib->sib_family = AF_IB;
 +	/*
-+	 * Use the same TCP server port number as the IB service ID
-+	 * on the IB port space range
++	 * Unfortunately original sysfs_remove_file_self() is not exported,
++	 * so consider this as a hack to call self removal of a sysfs entry
++	 * just using another "door".
 +	 */
-+	dst_ib->sib_sid = cpu_to_be64(RDMA_IB_IP_PS_IB | port);
-+	dst_ib->sib_sid_mask = cpu_to_be64(0xffffffffffffffffULL);
-+	dst_ib->sib_pkey = cpu_to_be16(0xffff);
++
++	device = container_of(kobj, typeof(*device), kobj);
++	device_remove_file_self(device, &dattr);
++}
++
++void ibtrs_clt_destroy_sess_files(struct ibtrs_clt_sess *sess,
++				  const struct attribute *sysfs_self)
++{
++	if (sess->kobj.state_in_sysfs) {
++		kobject_del(&sess->kobj_stats);
++		kobject_put(&sess->kobj_stats);
++		if (sysfs_self)
++			/* To avoid deadlock firstly commit suicide */
++			ibtrs_sysfs_remove_file_self(&sess->kobj, sysfs_self);
++		kobject_del(&sess->kobj);
++		kobject_put(&sess->kobj);
++	}
++}
++
++static struct attribute *ibtrs_clt_attrs[] = {
++	&ibtrs_clt_max_reconnect_attempts_attr.attr,
++	&ibtrs_clt_mp_policy_attr.attr,
++	&ibtrs_clt_add_path_attr.attr,
++	NULL,
++};
++
++static struct attribute_group ibtrs_clt_attr_group = {
++	.attrs = ibtrs_clt_attrs,
++};
++
++int ibtrs_clt_create_sysfs_root_folders(struct ibtrs_clt *clt)
++{
++	int err;
++
++	err = kobject_init_and_add(&clt->kobj, &ktype, ibtrs_kobj,
++				   "%s", clt->sessname);
++	if (unlikely(err)) {
++		pr_err("kobject_init_and_add(): %d\n", err);
++		return err;
++	}
++	err = kobject_init_and_add(&clt->kobj_paths, &ktype,
++				   &clt->kobj, "paths");
++	if (unlikely(err)) {
++		pr_err("kobject_init_and_add(): %d\n", err);
++		goto put_kobj;
++	}
++
++	return 0;
++
++put_kobj:
++	kobject_del(&clt->kobj);
++	kobject_put(&clt->kobj);
++
++	return err;
++}
++
++int ibtrs_clt_create_sysfs_root_files(struct ibtrs_clt *clt)
++{
++	return sysfs_create_group(&clt->kobj, &ibtrs_clt_attr_group);
++}
++
++void ibtrs_clt_destroy_sysfs_root_folders(struct ibtrs_clt *clt)
++{
++	if (clt->kobj_paths.state_in_sysfs) {
++		kobject_del(&clt->kobj_paths);
++		kobject_put(&clt->kobj_paths);
++	}
++	if (clt->kobj.state_in_sysfs) {
++		kobject_del(&clt->kobj);
++		kobject_put(&clt->kobj);
++	}
++}
++
++void ibtrs_clt_destroy_sysfs_root_files(struct ibtrs_clt *clt)
++{
++	sysfs_remove_group(&clt->kobj, &ibtrs_clt_attr_group);
++}
++
++int ibtrs_clt_create_sysfs_module_files(void)
++{
++	ibtrs_kobj = kobject_create_and_add(KBUILD_MODNAME, kernel_kobj);
++	if (unlikely(!ibtrs_kobj))
++		return -ENOMEM;
 +
 +	return 0;
 +}
 +
-+/**
-+ * ibtrs_str_to_sockaddr() - Convert ibtrs address string to sockaddr
-+ * @addr	String representation of an addr (IPv4, IPv6 or IB GID):
-+ *              - "ip:192.168.1.1"
-+ *              - "ip:fe80::200:5aee:feaa:20a2"
-+ *              - "gid:fe80::200:5aee:feaa:20a2"
-+ * @len         String address length
-+ * @port	Destination port
-+ * @dst		Destination sockaddr structure
-+ *
-+ * Returns 0 if conversion successful. Non-zero on error.
-+ */
-+static int ibtrs_str_to_sockaddr(const char *addr, size_t len,
-+				 short port, struct sockaddr *dst)
++void ibtrs_clt_destroy_sysfs_module_files(void)
 +{
-+	if (strncmp(addr, "gid:", 4) == 0) {
-+		return ibtrs_str_gid_to_sockaddr(addr + 4, len - 4, port, dst);
-+	} else if (strncmp(addr, "ip:", 3) == 0) {
-+		if (ibtrs_str_ipv4_to_sockaddr(addr + 3, len - 3, port, dst))
-+			return ibtrs_str_ipv6_to_sockaddr(addr + 3, len - 3,
-+							  port, dst);
-+		else
-+			return 0;
-+	}
-+	return -EPROTONOSUPPORT;
++	kobject_del(ibtrs_kobj);
++	kobject_put(ibtrs_kobj);
 +}
-+
-+int ibtrs_addr_to_sockaddr(const char *str, size_t len, short port,
-+			   struct ibtrs_addr *addr)
-+{
-+	const char *d;
-+	int ret;
-+
-+	d = strchr(str, ',');
-+	if (d) {
-+		if (ibtrs_str_to_sockaddr(str, d - str, 0, addr->src))
-+			return -EINVAL;
-+		d += 1;
-+		len -= d - str;
-+		str  = d;
-+
-+	} else {
-+		addr->src = NULL;
-+	}
-+	ret = ibtrs_str_to_sockaddr(str, len, port, addr->dst);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(ibtrs_addr_to_sockaddr);
 -- 
 2.13.1
 
