@@ -1,46 +1,77 @@
-From: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Verbs 2.0 questions
-Date: Fri, 2 Feb 2018 21:35:17 +0000
-Message-ID: <14063C7AD467DE4B82DEDB5C278E8663A9F9F318@FMSMSX108.amr.corp.intel.com>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] IB: Update references to libibverbs
+Date: Fri, 2 Feb 2018 14:35:29 -0700
+Message-ID: <20180202213529.GA28581@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGksDQoNCkkgaGF2ZSBiZWVuIHBsYXlpbmcgd2l0aCB0aGUgVmVyYnMgMi4wIGludGVyZmFjZSBh
-IGJpdCAoaW9jdGwgaW50ZXJmYWNlKSwNCmFuZCBoYXZlIHNvbWUgY29tbWVudHMgYW5kIHRoaW5n
-cyB0byBkaXNjdXNzLg0KDQpDb21tZW50cy9jb2RlIHJldmlldzoNCg0KMSkgU29tZSBvZiB0aGUg
-REVDTEFSRV94eHgoKSBtYWNyb3MgKGFuZCB0aGVpciBhc3NvY2lhdGVkDQpVVkVSQlNfVFlQRV94
-eHgoKSwgZXRjKSB1c2UgJ3NpemVvZihzdHJ1Y3QgYmxhaCknLCBvdGhlciB1c2UganVzdCBhIHBs
-YWluDQonc3RydWN0IGJsYWgnLg0KDQpJcyBpdCBwb3NzaWJsZSB0byBkbyBvbmUgb3IgdGhlIG90
-aGVyIGZvciB0aGVzZSBtYWNyb3MgZm9yIGNvbnNpc3RlbmN5Pw0KDQpJLmUuOg0KDQooc2l6ZW9m
-KQ0KREVDTEFSRV9VVkVSQlNfT0JKRUNUKHV2ZXJic19vYmplY3Rfc3JxLCBVVkVSQlNfT0JKRUNU
-X1NSUSwNCgkJICAgICAgJlVWRVJCU19UWVBFX0FMTE9DX0lEUl9TWihzaXplb2Yoc3RydWN0IGli
-X3VzcnFfb2JqZWN0KSwgMCwNCgkJCQkJCSAgdXZlcmJzX2ZyZWVfc3JxKSk7DQoodnMgc3RydWN0
-KQ0KJlVWRVJCU19BVFRSX1BUUl9PVVQoREVTVFJPWV9DUV9SRVNQLCBzdHJ1Y3QgaWJfdXZlcmJz
-X2Rlc3Ryb3lfY3FfcmVzcCwNCgkJCSAgICAgVUFfRkxBR1MoVVZFUkJTX0FUVFJfU1BFQ19GX01B
-TkRBVE9SWSkpKTsNCg0KMikgTWF0YW4gaGFzIGEgcGF0Y2ggaW4gYSBwcml2YXRlIHRyZWU6IA0K
-DQpBdXRob3I6IE1hdGFuIEJhcmFrIDxtYXRhbmJAbWVsbGFub3guY29tPg0KRGF0ZTogICBUdWUg
-SmFuIDIzIDE1OjU1OjA0IDIwMTggLTA1MDANCg0KICAgIElCL3V2ZXJiczogRml4IG1ldGhvZCBt
-ZXJnaW5nIGluIHV2ZXJic19pb2N0bF9tZXJnZQ0KICAgIA0KICAgIEZpeCBhIGJ1ZyBpbiB1dmVy
-YnNfaW9jdGxfbWVyZ2UgdGhhdCBsb29rZWQgYXQgb2JqZWN0cyBpdGVyYXRvcnMNCiAgICBudW1i
-ZXIgaW5zdGVhZCBvZiBtZXRob2RzIGl0ZXJhdG9ycyBudW1iZXIgd2hlbiBtZXJnaW5nIG1ldGhv
-ZHMuDQogICAgV2hpbGUgd2UncmUgYXQgaXQsIG1ha2UgdGhlIHV2ZXJic19pb2N0bF9tZXJnZSBj
-b2RlIGEgYml0IG1vcmUgY2xlYXINCiAgICBhbmQgZmFzdGVyLg0KDQpUaGF0IEkgbmVlZCBpbiBt
-eSBidWlsZCBlbnZpcm9ubWVudCwgb3IgSSBnZXQgYSBrZXJuZWwgcGFuaWMgd2hlbiBJIGFkZCBt
-eSBuZXcNCm9iamVjdHMgYW5kIG1ldGhvZHMuICBTaG91bGQgKG9yIGNvdWxkKSBwYXRjaGVzIGxp
-a2UgdGhpcyBiZSB1cC1zdHJlYW1lZCBtb3JlDQpxdWlja2x5Pw0KDQozKSAgVGhlIE9wZW4gRmFi
-cmljcyBBbGxpYW5jZSBWZXJicyBLZXJuZWwgQUJJIHNsaWRlIGRlY2sgKHNsaWRlcyAxNiBhbmQg
-MTcpIGltcGx5DQp0aGF0IHRoZSBzdGFuZGFyZCBvYmplY3RzIGNhbiBiZSBhdWdtZW50ZWQgd2l0
-aCAnREVWIFNwZWNpZmljJyBtZXRob2RzIGFuZCBhdHRyaWJ1dGVzLg0KDQpTaW5jZSB0aGUgbWV0
-aG9kcyBhcmUgZGVmaW5lZCBpbiB0aGUgREVDTEFSRV9VVkVSQlNfT0JKRUNUKCksIGl0IGlzIG5v
-dA0KY2xlYXIgaG93IHRvIGFkZCBtZXRob2RzIHRvLCBzYXkgJ3V2ZXJic19vYmplY3RfcXAnIGlu
-IG15IGRyaXZlciBzcGVjaWZpYw0KY29kZS4NCg0KQXJlIHRoZXJlIGFueSBleGFtcGxlcyBvZiBo
-b3cgdGhpcyBzaG91bGQgYmUgZG9uZT8NCg0KVGhhbmtzLA0KDQpNaWtlDQoNCg==
+These days the userspace comes from rdma-core, revise references
+in the kernel to point to the current repository.
+
+Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ Documentation/infiniband/user_verbs.txt | 2 +-
+ MAINTAINERS                             | 2 +-
+ drivers/infiniband/Kconfig              | 5 +++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/Documentation/infiniband/user_verbs.txt b/Documentation/infiniband/user_verbs.txt
+index e5092d696da2c2..df049b9f5b6ec8 100644
+--- a/Documentation/infiniband/user_verbs.txt
++++ b/Documentation/infiniband/user_verbs.txt
+@@ -5,7 +5,7 @@ USERSPACE VERBS ACCESS
+   described in chapter 11 of the InfiniBand Architecture Specification.
+ 
+   To use the verbs, the libibverbs library, available from
+-  http://www.openfabrics.org/, is required.  libibverbs contains a
++  https://github.com/linux-rdma/rdma-core, is required. libibverbs contains a
+   device-independent API for using the ib_uverbs interface.
+   libibverbs also requires appropriate device-dependent kernel and
+   userspace driver for your InfiniBand hardware.  For example, to use
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 1facaa8cd6c961..1bace5b5cee332 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6885,7 +6885,7 @@ INFINIBAND SUBSYSTEM
+ M:	Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ M:	Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+ L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+-W:	http://www.openfabrics.org/
++W:	https://github.com/linux-rdma/rdma-core
+ Q:	http://patchwork.kernel.org/project/linux-rdma/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
+ S:	Supported
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index cbf186522016f9..fe63af421e798d 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -19,7 +19,8 @@ config INFINIBAND_USER_MAD
+ 	  Userspace InfiniBand Management Datagram (MAD) support.  This
+ 	  is the kernel side of the userspace MAD support, which allows
+ 	  userspace processes to send and receive MADs. You will also
+-	  need libibumad from <http://www.openfabrics.org/downloads/management/>.
++	  need libibumad from rdma-core
++	  <https://github.com/linux-rdma/rdma-core>.
+ 
+ config INFINIBAND_USER_ACCESS
+ 	tristate "InfiniBand userspace access (verbs and CM)"
+@@ -31,7 +32,7 @@ config INFINIBAND_USER_ACCESS
+ 	  to set up connections and directly access InfiniBand
+ 	  hardware for fast-path operations.  You will also need
+ 	  libibverbs, libibcm and a hardware driver library from
+-	  <http://www.openfabrics.org/git/>.
++	  rdma-core <https://github.com/linux-rdma/rdma-core>.
+ 
+ config INFINIBAND_EXP_USER_ACCESS
+ 	bool "Allow experimental support for Infiniband ABI"
+-- 
+2.16.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
