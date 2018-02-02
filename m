@@ -1,47 +1,46 @@
-From: Roman Pen <roman.penyaev@profitbricks.com>
-Subject: [PATCH 06/24] ibtrs: client: statistics functions
-Date: Fri,  2 Feb 2018 15:08:46 +0100
-Message-ID: <20180202140904.2017-7-roman.penyaev@profitbricks.com>
+From: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [PATCH 04/24] ibtrs: client: private header with client structs and functions
+Date: Fri,  2 Feb 2018 15:08:44 +0100
+Message-ID: <20180202140904.2017-5-roman.penyaev@profitbricks.com>
 References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
-Sender: linux-block-owner@vger.kernel.org
-To: linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@infradead.org>, Sagi Grimberg <sagi@grimberg.me>, Bart Van Assche <bart.vanassche@sandisk.com>, Or Gerlitz <ogerlitz@mellanox.com>, Roman Pen <roman.penyaev@profitbricks.com>, Danil Kipnis <danil.kipnis@profitbricks.com>, Jack Wang <jinpu.wang@profitbricks.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180202140904.2017-1-roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This introduces set of functions used on client side to account
-statistics of RDMA data sent/received, amount of IOs inflight,
-latency, cpu migrations, etc.  Almost all statistics is collected
-using percpu variables.
+This header describes main structs and functions used by ibtrs-client
+module, mainly for managing IBTRS sessions, creating/destroying sysfs
+entries, accounting statistics on client side.
 
-Signed-off-by: Roman Pen <roman.penyaev@profitbricks.com>
-Signed-off-by: Danil Kipnis <danil.kipnis@profitbricks.com>
-Cc: Jack Wang <jinpu.wang@profitbricks.com>
+Signed-off-by: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/ulp/ibtrs/ibtrs-clt-stats.c | 455 +++++++++++++++++++++++++
- 1 file changed, 455 insertions(+)
+ drivers/infiniband/ulp/ibtrs/ibtrs-clt.h | 338 +++++++++++++++++++++++++++++++
+ 1 file changed, 338 insertions(+)
 
-diff --git a/drivers/infiniband/ulp/ibtrs/ibtrs-clt-stats.c b/drivers/infiniband/ulp/ibtrs/ibtrs-clt-stats.c
+diff --git a/drivers/infiniband/ulp/ibtrs/ibtrs-clt.h b/drivers/infiniband/ulp/ibtrs/ibtrs-clt.h
 new file mode 100644
-index 000000000000..af2ed05d2900
+index 000000000000..b57af19ac833
 --- /dev/null
-+++ b/drivers/infiniband/ulp/ibtrs/ibtrs-clt-stats.c
-@@ -0,0 +1,455 @@
++++ b/drivers/infiniband/ulp/ibtrs/ibtrs-clt.h
+@@ -0,0 +1,338 @@
 +/*
 + * InfiniBand Transport Layer
 + *
 + * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
-+ * Authors: Fabian Holler <mail@fholler.de>
-+ *          Jack Wang <jinpu.wang@profitbricks.com>
-+ *          Kleber Souza <kleber.souza@profitbricks.com>
-+ *          Danil Kipnis <danil.kipnis@profitbricks.com>
-+ *          Roman Penyaev <roman.penyaev@profitbricks.com>
-+ *          Milind Dumbare <Milind.dumbare@gmail.com>
++ * Authors: Fabian Holler <mail-99BIx50xQYGELgA04lAiVw@public.gmane.org>
++ *          Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *          Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *          Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *          Roman Penyaev <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *          Milind Dumbare <Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 + *
 + * Copyright (c) 2017 - 2018 ProfitBricks GmbH. All rights reserved.
-+ * Authors: Danil Kipnis <danil.kipnis@profitbricks.com>
-+ *          Roman Penyaev <roman.penyaev@profitbricks.com>
++ * Authors: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *          Roman Penyaev <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 + *
 + * This program is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU General Public License
@@ -57,431 +56,319 @@ index 000000000000..af2ed05d2900
 + * along with this program; if not, see <http://www.gnu.org/licenses/>.
 + */
 +
-+#undef pr_fmt
-+#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
++#ifndef IBTRS_CLT_H
++#define IBTRS_CLT_H
 +
-+#include "ibtrs-clt.h"
++#include "ibtrs-pri.h"
 +
-+static inline int ibtrs_clt_ms_to_id(unsigned long ms)
++/**
++ * enum ibtrs_clt_state - Client states.
++ */
++enum ibtrs_clt_state {
++	IBTRS_CLT_CONNECTING,
++	IBTRS_CLT_CONNECTING_ERR,
++	IBTRS_CLT_RECONNECTING,
++	IBTRS_CLT_CONNECTED,
++	IBTRS_CLT_CLOSING,
++	IBTRS_CLT_CLOSED,
++	IBTRS_CLT_DEAD,
++};
++
++static inline const char *ibtrs_clt_state_str(enum ibtrs_clt_state state)
 +{
-+	int id = ms ? ilog2(ms) - MIN_LOG_LAT + 1 : 0;
-+
-+	return clamp(id, 0, LOG_LAT_SZ - 1);
-+}
-+
-+void ibtrs_clt_update_rdma_lat(struct ibtrs_clt_stats *stats, bool read,
-+			       unsigned long ms)
-+{
-+	struct ibtrs_clt_stats_pcpu *s;
-+	int id;
-+
-+	id = ibtrs_clt_ms_to_id(ms);
-+	s = this_cpu_ptr(stats->pcpu_stats);
-+	if (read) {
-+		s->rdma_lat_distr[id].read++;
-+		if (s->rdma_lat_max.read < ms)
-+			s->rdma_lat_max.read = ms;
-+	} else {
-+		s->rdma_lat_distr[id].write++;
-+		if (s->rdma_lat_max.write < ms)
-+			s->rdma_lat_max.write = ms;
++	switch (state) {
++	case IBTRS_CLT_CONNECTING:
++		return "IBTRS_CLT_CONNECTING";
++	case IBTRS_CLT_CONNECTING_ERR:
++		return "IBTRS_CLT_CONNECTING_ERR";
++	case IBTRS_CLT_RECONNECTING:
++		return "IBTRS_CLT_RECONNECTING";
++	case IBTRS_CLT_CONNECTED:
++		return "IBTRS_CLT_CONNECTED";
++	case IBTRS_CLT_CLOSING:
++		return "IBTRS_CLT_CLOSING";
++	case IBTRS_CLT_CLOSED:
++		return "IBTRS_CLT_CLOSED";
++	case IBTRS_CLT_DEAD:
++		return "IBTRS_CLT_DEAD";
++	default:
++		return "UNKNOWN";
 +	}
 +}
 +
-+void ibtrs_clt_decrease_inflight(struct ibtrs_clt_stats *stats)
++enum ibtrs_fast_reg {
++	IBTRS_FAST_MEM_NONE,
++	IBTRS_FAST_MEM_FR,
++	IBTRS_FAST_MEM_FMR
++};
++
++enum ibtrs_mp_policy {
++	MP_POLICY_RR,
++	MP_POLICY_MIN_INFLIGHT,
++};
++
++struct ibtrs_clt_stats_reconnects {
++	int successful_cnt;
++	int fail_cnt;
++};
++
++struct ibtrs_clt_stats_wc_comp {
++	u32 cnt;
++	u64 total_cnt;
++};
++
++struct ibtrs_clt_stats_cpu_migr {
++	atomic_t from;
++	int to;
++};
++
++struct ibtrs_clt_stats_rdma {
++	struct {
++		u64 cnt;
++		u64 size_total;
++	} dir[2];
++
++	u64 failover_cnt;
++};
++
++struct ibtrs_clt_stats_rdma_lat {
++	u64 read;
++	u64 write;
++};
++
++#define MIN_LOG_SG 2
++#define MAX_LOG_SG 5
++#define MAX_LIN_SG BIT(MIN_LOG_SG)
++#define SG_DISTR_SZ (MAX_LOG_SG - MIN_LOG_SG + MAX_LIN_SG + 2)
++
++#define MAX_LOG_LAT 16
++#define MIN_LOG_LAT 0
++#define LOG_LAT_SZ (MAX_LOG_LAT - MIN_LOG_LAT + 2)
++
++struct ibtrs_clt_stats_pcpu {
++	struct ibtrs_clt_stats_cpu_migr		cpu_migr;
++	struct ibtrs_clt_stats_rdma		rdma;
++	u64					sg_list_total;
++	u64					sg_list_distr[SG_DISTR_SZ];
++	struct ibtrs_clt_stats_rdma_lat		rdma_lat_distr[LOG_LAT_SZ];
++	struct ibtrs_clt_stats_rdma_lat		rdma_lat_max;
++	struct ibtrs_clt_stats_wc_comp		wc_comp;
++};
++
++struct ibtrs_clt_stats {
++	bool					enable_rdma_lat;
++	struct ibtrs_clt_stats_pcpu    __percpu	*pcpu_stats;
++	struct ibtrs_clt_stats_reconnects	reconnects;
++	atomic_t				inflight;
++};
++
++struct ibtrs_clt_con {
++	struct ibtrs_con	c;
++	unsigned		cpu;
++	atomic_t		io_cnt;
++	struct ibtrs_fr_pool	*fr_pool;
++	int			cm_err;
++};
++
++struct ibtrs_clt_io_req {
++	struct list_head        list;
++	struct ibtrs_iu		*iu;
++	struct scatterlist	*sglist; /* list holding user data */
++	unsigned int		sg_cnt;
++	unsigned int		sg_size;
++	unsigned int		data_len;
++	unsigned int		usr_len;
++	void			*priv;
++	bool			in_use;
++	struct ibtrs_clt_con	*con;
++	union {
++		struct ib_pool_fmr	**fmr_list;
++		struct ibtrs_fr_desc	**fr_list;
++	};
++	void			*map_page;
++	struct ibtrs_tag	*tag;
++	u16			nmdesc;
++	enum dma_data_direction dir;
++	ibtrs_conf_fn		*conf;
++	unsigned long		start_time;
++};
++
++struct ibtrs_clt_sess {
++	struct ibtrs_sess	s;
++	struct ibtrs_clt	*clt;
++	wait_queue_head_t	state_wq;
++	enum ibtrs_clt_state	state;
++	atomic_t		connected_cnt;
++	struct mutex		init_mutex;
++	struct ibtrs_clt_io_req	*reqs;
++	struct ib_fmr_pool	*fmr_pool;
++	struct delayed_work	reconnect_dwork;
++	struct work_struct	close_work;
++	unsigned		reconnect_attempts;
++	bool			established;
++	u64			*srv_rdma_addr;
++	u32			srv_rdma_buf_rkey;
++	u32			max_io_size;
++	u32			max_req_size;
++	u32			chunk_size;
++	u32			max_desc;
++	size_t			queue_depth;
++	enum ibtrs_fast_reg	fast_reg_mode;
++	u64			mr_page_mask;
++	u32			mr_page_size;
++	u32			mr_max_size;
++	u32			max_pages_per_mr;
++	int			max_sge;
++	struct kobject		kobj;
++	struct kobject		kobj_stats;
++	struct ibtrs_clt_stats  stats;
++	struct list_head __percpu
++				*mp_skip_entry;
++};
++
++struct ibtrs_clt {
++	struct list_head   /* __rcu */ paths_list;
++	size_t			       paths_num;
++	struct ibtrs_clt_sess
++		      __percpu * __rcu *pcpu_path;
++
++	bool			opened;
++	uuid_t			paths_uuid;
++	int			paths_up;
++	struct mutex		paths_mutex;
++	struct mutex		paths_ev_mutex;
++	char			sessname[NAME_MAX];
++	short			port;
++	unsigned		max_reconnect_attempts;
++	unsigned		reconnect_delay_sec;
++	unsigned		max_segments;
++	void			*tags;
++	unsigned long		*tags_map;
++	size_t			queue_depth;
++	size_t			max_io_size;
++	wait_queue_head_t	tags_wait;
++	size_t			pdu_sz;
++	void			*priv;
++	link_clt_ev_fn		*link_ev;
++	struct kobject		kobj;
++	struct kobject		kobj_paths;
++	enum ibtrs_mp_policy	mp_policy;
++};
++
++static inline struct ibtrs_clt_con *to_clt_con(struct ibtrs_con *c)
 +{
-+	atomic_dec(&stats->inflight);
++	if (unlikely(!c))
++		return NULL;
++
++	return container_of(c, struct ibtrs_clt_con, c);
 +}
 +
-+void ibtrs_clt_update_wc_stats(struct ibtrs_clt_con *con)
++static inline struct ibtrs_clt_sess *to_clt_sess(struct ibtrs_sess *s)
 +{
-+	struct ibtrs_clt_sess *sess = to_clt_sess(con->c.sess);
-+	struct ibtrs_clt_stats *stats = &sess->stats;
-+	struct ibtrs_clt_stats_pcpu *s;
-+	int cpu;
++	if (unlikely(!s))
++		return NULL;
 +
-+	cpu = raw_smp_processor_id();
-+	s = this_cpu_ptr(stats->pcpu_stats);
-+	s->wc_comp.cnt++;
-+	s->wc_comp.total_cnt++;
-+	if (unlikely(con->cpu != cpu)) {
-+		s->cpu_migr.to++;
-+
-+		/* Careful here, override s pointer */
-+		s = per_cpu_ptr(stats->pcpu_stats, con->cpu);
-+		atomic_inc(&s->cpu_migr.from);
-+	}
++	return container_of(s, struct ibtrs_clt_sess, s);
 +}
 +
-+void ibtrs_clt_inc_failover_cnt(struct ibtrs_clt_stats *stats)
-+{
-+	struct ibtrs_clt_stats_pcpu *s;
++/**
++ * list_next_or_null_rr - get next list element in round-robin fashion.
++ * @pos:     entry, starting cursor.
++ * @head:    head of the list to examine. This list must have at least one
++ *           element, namely @pos.
++ * @member:  name of the list_head structure within typeof(*pos).
++ *
++ * Important to understand that @pos is a list entry, which can be already
++ * removed using list_del_rcu(), so if @head has become empty NULL will be
++ * returned. Otherwise next element is returned in round-robin fashion.
++ */
++#define list_next_or_null_rcu_rr(pos, head, member) ({			\
++	typeof(pos) ________next = NULL;				\
++									\
++	if (!list_empty(head))						\
++		________next = (pos)->member.next != (head) ?		\
++			list_entry_rcu((pos)->member.next,		\
++				       typeof(*pos), member) :		\
++			list_entry_rcu((pos)->member.next->next,	\
++				       typeof(*pos), member);		\
++	________next;							\
++})
 +
-+	s = this_cpu_ptr(stats->pcpu_stats);
-+	s->rdma.failover_cnt++;
-+}
++/* See ibtrs-log.h */
++#define TYPES_TO_SESSNAME(obj)						\
++	LIST(CASE(obj, struct ibtrs_clt_sess *, s.sessname),		\
++	     CASE(obj, struct ibtrs_clt *, sessname))
 +
-+static inline u32 ibtrs_clt_stats_get_avg_wc_cnt(struct ibtrs_clt_stats *stats)
-+{
-+	u32 cnt = 0;
-+	u64 sum = 0;
-+	int cpu;
++#define TAG_SIZE(clt) (sizeof(struct ibtrs_tag) + (clt)->pdu_sz)
++#define GET_TAG(clt, idx) ((clt)->tags + TAG_SIZE(clt) * idx)
 +
-+	for_each_possible_cpu(cpu) {
-+		struct ibtrs_clt_stats_pcpu *s;
++int ibtrs_clt_reconnect_from_sysfs(struct ibtrs_clt_sess *sess);
++int ibtrs_clt_disconnect_from_sysfs(struct ibtrs_clt_sess *sess);
++int ibtrs_clt_create_path_from_sysfs(struct ibtrs_clt *clt,
++				     struct ibtrs_addr *addr);
++int ibtrs_clt_remove_path_from_sysfs(struct ibtrs_clt_sess *sess,
++				     const struct attribute *sysfs_self);
 +
-+		s = per_cpu_ptr(stats->pcpu_stats, cpu);
-+		sum += s->wc_comp.total_cnt;
-+		cnt += s->wc_comp.cnt;
-+	}
++void ibtrs_clt_set_max_reconnect_attempts(struct ibtrs_clt *clt, int value);
++int ibtrs_clt_get_max_reconnect_attempts(const struct ibtrs_clt *clt);
 +
-+	return cnt ? sum / cnt : 0;
-+}
++/* ibtrs-clt-stats.c */
 +
-+int ibtrs_clt_stats_wc_completion_to_str(struct ibtrs_clt_stats *stats,
-+					 char *buf, size_t len)
-+{
-+	return scnprintf(buf, len, "%u\n",
-+			 ibtrs_clt_stats_get_avg_wc_cnt(stats));
-+}
++int ibtrs_clt_init_stats(struct ibtrs_clt_stats *stats);
++void ibtrs_clt_free_stats(struct ibtrs_clt_stats *stats);
 +
-+ssize_t ibtrs_clt_stats_rdma_lat_distr_to_str(struct ibtrs_clt_stats *stats,
-+					      char *page, size_t len)
-+{
-+	struct ibtrs_clt_stats_rdma_lat res[LOG_LAT_SZ];
-+	struct ibtrs_clt_stats_rdma_lat max;
-+	struct ibtrs_clt_stats_pcpu *s;
++void ibtrs_clt_decrease_inflight(struct ibtrs_clt_stats *s);
++void ibtrs_clt_inc_failover_cnt(struct ibtrs_clt_stats *s);
 +
-+	ssize_t cnt = 0;
-+	int i, cpu;
-+
-+	max.write = 0;
-+	max.read = 0;
-+	for_each_possible_cpu(cpu) {
-+		s = per_cpu_ptr(stats->pcpu_stats, cpu);
-+
-+		if (max.write < s->rdma_lat_max.write)
-+			max.write = s->rdma_lat_max.write;
-+		if (max.read < s->rdma_lat_max.read)
-+			max.read = s->rdma_lat_max.read;
-+	}
-+	for (i = 0; i < ARRAY_SIZE(res); i++) {
-+		res[i].write = 0;
-+		res[i].read = 0;
-+		for_each_possible_cpu(cpu) {
-+			s = per_cpu_ptr(stats->pcpu_stats, cpu);
-+
-+			res[i].write += s->rdma_lat_distr[i].write;
-+			res[i].read += s->rdma_lat_distr[i].read;
-+		}
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(res) - 1; i++)
-+		cnt += scnprintf(page + cnt, len - cnt,
-+				 "< %6d ms: %llu %llu\n",
-+				 1 << (i + MIN_LOG_LAT), res[i].read,
-+				 res[i].write);
-+	cnt += scnprintf(page + cnt, len - cnt, ">= %5d ms: %llu %llu\n",
-+			 1 << (i - 1 + MIN_LOG_LAT), res[i].read,
-+			 res[i].write);
-+	cnt += scnprintf(page + cnt, len - cnt, " maximum ms: %llu %llu\n",
-+			 max.read, max.write);
-+
-+	return cnt;
-+}
-+
-+int ibtrs_clt_stats_migration_cnt_to_str(struct ibtrs_clt_stats *stats,
-+					 char *buf, size_t len)
-+{
-+	struct ibtrs_clt_stats_pcpu *s;
-+
-+	size_t used;
-+	int cpu;
-+
-+	used = scnprintf(buf, len, "    ");
-+	for_each_possible_cpu(cpu)
-+		used += scnprintf(buf + used, len - used, " CPU%u", cpu);
-+
-+	used += scnprintf(buf + used, len - used, "\nfrom:");
-+	for_each_possible_cpu(cpu) {
-+		s = per_cpu_ptr(stats->pcpu_stats, cpu);
-+		used += scnprintf(buf + used, len - used, " %d",
-+				  atomic_read(&s->cpu_migr.from));
-+	}
-+
-+	used += scnprintf(buf + used, len - used, "\nto  :");
-+	for_each_possible_cpu(cpu) {
-+		s = per_cpu_ptr(stats->pcpu_stats, cpu);
-+		used += scnprintf(buf + used, len - used, " %d",
-+				  s->cpu_migr.to);
-+	}
-+	used += scnprintf(buf + used, len - used, "\n");
-+
-+	return used;
-+}
-+
-+int ibtrs_clt_stats_reconnects_to_str(struct ibtrs_clt_stats *stats, char *buf,
-+				      size_t len)
-+{
-+	return scnprintf(buf, len, "%d %d\n",
-+			 stats->reconnects.successful_cnt,
-+			 stats->reconnects.fail_cnt);
-+}
-+
-+ssize_t ibtrs_clt_stats_rdma_to_str(struct ibtrs_clt_stats *stats,
-+				    char *page, size_t len)
-+{
-+	struct ibtrs_clt_stats_rdma sum;
-+	struct ibtrs_clt_stats_rdma *r;
-+	int cpu;
-+
-+	memset(&sum, 0, sizeof(sum));
-+
-+	for_each_possible_cpu(cpu) {
-+		r = &per_cpu_ptr(stats->pcpu_stats, cpu)->rdma;
-+
-+		sum.dir[READ].cnt	  += r->dir[READ].cnt;
-+		sum.dir[READ].size_total  += r->dir[READ].size_total;
-+		sum.dir[WRITE].cnt	  += r->dir[WRITE].cnt;
-+		sum.dir[WRITE].size_total += r->dir[WRITE].size_total;
-+		sum.failover_cnt	  += r->failover_cnt;
-+	}
-+
-+	return scnprintf(page, len, "%llu %llu %llu %llu %u %llu\n",
-+			 sum.dir[READ].cnt, sum.dir[READ].size_total,
-+			 sum.dir[WRITE].cnt, sum.dir[WRITE].size_total,
-+			 atomic_read(&stats->inflight), sum.failover_cnt);
-+}
-+
-+int ibtrs_clt_stats_sg_list_distr_to_str(struct ibtrs_clt_stats *stats,
-+					 char *buf, size_t len)
-+{
-+	struct ibtrs_clt_stats_pcpu *s;
-+
-+	int i, cpu, cnt;
-+
-+	cnt = scnprintf(buf, len, "n\\cpu:");
-+	for_each_possible_cpu(cpu)
-+		cnt += scnprintf(buf + cnt, len - cnt, "%5d", cpu);
-+
-+	for (i = 0; i < SG_DISTR_SZ; i++) {
-+		if (i <= MAX_LIN_SG)
-+			cnt += scnprintf(buf + cnt, len - cnt, "\n= %3d:", i);
-+		else if (i < SG_DISTR_SZ - 1)
-+			cnt += scnprintf(buf + cnt, len - cnt,
-+					 "\n< %3d:",
-+					 1 << (i + MIN_LOG_SG - MAX_LIN_SG));
-+		else
-+			cnt += scnprintf(buf + cnt, len - cnt,
-+					 "\n>=%3d:",
-+					 1 << (i + MIN_LOG_SG - MAX_LIN_SG - 1));
-+
-+		for_each_possible_cpu(cpu) {
-+			unsigned int p, p_i, p_f;
-+			u64 total, distr;
-+
-+			s = per_cpu_ptr(stats->pcpu_stats, cpu);
-+			total = s->sg_list_total;
-+			distr = s->sg_list_distr[i];
-+
-+			p = total ? distr * 1000 / total : 0;
-+			p_i = p / 10;
-+			p_f = p % 10;
-+
-+			if (distr)
-+				cnt += scnprintf(buf + cnt, len - cnt,
-+						 " %2u.%01u", p_i, p_f);
-+			else
-+				cnt += scnprintf(buf + cnt, len - cnt, "    0");
-+		}
-+	}
-+
-+	cnt += scnprintf(buf + cnt, len - cnt, "\ntotal:");
-+	for_each_possible_cpu(cpu) {
-+		s = per_cpu_ptr(stats->pcpu_stats, cpu);
-+		cnt += scnprintf(buf + cnt, len - cnt, " %llu",
-+				 s->sg_list_total);
-+	}
-+	cnt += scnprintf(buf + cnt, len - cnt, "\n");
-+
-+	return cnt;
-+}
-+
-+ssize_t ibtrs_clt_reset_all_help(struct ibtrs_clt_stats *s,
-+				 char *page, size_t len)
-+{
-+	return scnprintf(page, len, "echo 1 to reset all statistics\n");
-+}
-+
-+int ibtrs_clt_reset_rdma_stats(struct ibtrs_clt_stats *stats, bool enable)
-+{
-+	struct ibtrs_clt_stats_pcpu *s;
-+	int cpu;
-+
-+	if (unlikely(!enable))
-+		return -EINVAL;
-+
-+	for_each_possible_cpu(cpu) {
-+		s = per_cpu_ptr(stats->pcpu_stats, cpu);
-+		memset(&s->rdma, 0, sizeof(s->rdma));
-+	}
-+
-+	return 0;
-+}
-+
-+int ibtrs_clt_reset_rdma_lat_distr_stats(struct ibtrs_clt_stats *stats,
-+					 bool enable)
-+{
-+	struct ibtrs_clt_stats_pcpu *s;
-+	int cpu;
-+
-+	if (enable) {
-+		for_each_possible_cpu(cpu) {
-+			s = per_cpu_ptr(stats->pcpu_stats, cpu);
-+			memset(&s->rdma_lat_max, 0, sizeof(s->rdma_lat_max));
-+			memset(&s->rdma_lat_distr, 0,
-+			       sizeof(s->rdma_lat_distr));
-+		}
-+	}
-+	stats->enable_rdma_lat = enable;
-+
-+	return 0;
-+}
++void ibtrs_clt_update_rdma_lat(struct ibtrs_clt_stats *s, bool read,
++			       unsigned long ms);
++void ibtrs_clt_update_wc_stats(struct ibtrs_clt_con *con);
++void ibtrs_clt_update_all_stats(struct ibtrs_clt_io_req *req, int dir);
 +
 +int ibtrs_clt_reset_sg_list_distr_stats(struct ibtrs_clt_stats *stats,
-+					bool enable)
-+{
-+	struct ibtrs_clt_stats_pcpu *s;
-+	int cpu;
++					bool enable);
++int ibtrs_clt_stats_sg_list_distr_to_str(struct ibtrs_clt_stats *stats,
++					 char *buf, size_t len);
++int ibtrs_clt_reset_rdma_lat_distr_stats(struct ibtrs_clt_stats *stats,
++					 bool enable);
++ssize_t ibtrs_clt_stats_rdma_lat_distr_to_str(struct ibtrs_clt_stats *stats,
++					      char *page, size_t len);
++int ibtrs_clt_reset_cpu_migr_stats(struct ibtrs_clt_stats *stats, bool enable);
++int ibtrs_clt_stats_migration_cnt_to_str(struct ibtrs_clt_stats *stats, char *buf,
++					 size_t len);
++int ibtrs_clt_reset_reconnects_stat(struct ibtrs_clt_stats *stats, bool enable);
++int ibtrs_clt_stats_reconnects_to_str(struct ibtrs_clt_stats *stats, char *buf,
++				      size_t len);
++int ibtrs_clt_reset_wc_comp_stats(struct ibtrs_clt_stats *stats, bool enable);
++int ibtrs_clt_stats_wc_completion_to_str(struct ibtrs_clt_stats *stats, char *buf,
++					 size_t len);
++int ibtrs_clt_reset_rdma_stats(struct ibtrs_clt_stats *stats, bool enable);
++ssize_t ibtrs_clt_stats_rdma_to_str(struct ibtrs_clt_stats *stats,
++				    char *page, size_t len);
++bool ibtrs_clt_sess_is_connected(const struct ibtrs_clt_sess *sess);
++int ibtrs_clt_reset_all_stats(struct ibtrs_clt_stats *stats, bool enable);
++ssize_t ibtrs_clt_reset_all_help(struct ibtrs_clt_stats *stats,
++				 char *page, size_t len);
 +
-+	if (unlikely(!enable))
-+		return -EINVAL;
++/* ibtrs-clt-sysfs.c */
 +
-+	for_each_possible_cpu(cpu) {
-+		s = per_cpu_ptr(stats->pcpu_stats, cpu);
-+		memset(&s->sg_list_total, 0, sizeof(s->sg_list_total));
-+		memset(&s->sg_list_distr, 0, sizeof(s->sg_list_distr));
-+	}
++int ibtrs_clt_create_sysfs_module_files(void);
++void ibtrs_clt_destroy_sysfs_module_files(void);
 +
-+	return 0;
-+}
++int ibtrs_clt_create_sysfs_root_folders(struct ibtrs_clt *clt);
++int ibtrs_clt_create_sysfs_root_files(struct ibtrs_clt *clt);
++void ibtrs_clt_destroy_sysfs_root_folders(struct ibtrs_clt *clt);
++void ibtrs_clt_destroy_sysfs_root_files(struct ibtrs_clt *clt);
 +
-+int ibtrs_clt_reset_cpu_migr_stats(struct ibtrs_clt_stats *stats, bool enable)
-+{
-+	struct ibtrs_clt_stats_pcpu *s;
-+	int cpu;
++int ibtrs_clt_create_sess_files(struct ibtrs_clt_sess *sess);
++void ibtrs_clt_destroy_sess_files(struct ibtrs_clt_sess *sess,
++				  const struct attribute *sysfs_self);
 +
-+	if (unlikely(!enable))
-+		return -EINVAL;
-+
-+	for_each_possible_cpu(cpu) {
-+		s = per_cpu_ptr(stats->pcpu_stats, cpu);
-+		memset(&s->cpu_migr, 0, sizeof(s->cpu_migr));
-+	}
-+
-+	return 0;
-+}
-+
-+int ibtrs_clt_reset_reconnects_stat(struct ibtrs_clt_stats *stats, bool enable)
-+{
-+	if (unlikely(!enable))
-+		return -EINVAL;
-+
-+	memset(&stats->reconnects, 0, sizeof(stats->reconnects));
-+
-+	return 0;
-+}
-+
-+int ibtrs_clt_reset_wc_comp_stats(struct ibtrs_clt_stats *stats, bool enable)
-+{
-+	struct ibtrs_clt_stats_pcpu *s;
-+	int cpu;
-+
-+	if (unlikely(!enable))
-+		return -EINVAL;
-+
-+	for_each_possible_cpu(cpu) {
-+		s = per_cpu_ptr(stats->pcpu_stats, cpu);
-+		memset(&s->wc_comp, 0, sizeof(s->wc_comp));
-+	}
-+
-+	return 0;
-+}
-+
-+int ibtrs_clt_reset_all_stats(struct ibtrs_clt_stats *s, bool enable)
-+{
-+	if (enable) {
-+		ibtrs_clt_reset_rdma_stats(s, enable);
-+		ibtrs_clt_reset_rdma_lat_distr_stats(s, enable);
-+		ibtrs_clt_reset_sg_list_distr_stats(s, enable);
-+		ibtrs_clt_reset_cpu_migr_stats(s, enable);
-+		ibtrs_clt_reset_reconnects_stat(s, enable);
-+		ibtrs_clt_reset_wc_comp_stats(s, enable);
-+		atomic_set(&s->inflight, 0);
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static inline void ibtrs_clt_record_sg_distr(u64 stat[SG_DISTR_SZ], u64 *total,
-+					     unsigned int cnt)
-+{
-+	int i;
-+
-+	i = cnt > MAX_LIN_SG ? ilog2(cnt) + MAX_LIN_SG - MIN_LOG_SG + 1 : cnt;
-+	i = i < SG_DISTR_SZ ? i : SG_DISTR_SZ - 1;
-+
-+	stat[i]++;
-+	(*total)++;
-+}
-+
-+static inline void ibtrs_clt_update_rdma_stats(struct ibtrs_clt_stats *stats,
-+					       size_t size, int d)
-+{
-+	struct ibtrs_clt_stats_pcpu *s;
-+
-+	s = this_cpu_ptr(stats->pcpu_stats);
-+	s->rdma.dir[d].cnt++;
-+	s->rdma.dir[d].size_total += size;
-+}
-+
-+void ibtrs_clt_update_all_stats(struct ibtrs_clt_io_req *req, int dir)
-+{
-+	struct ibtrs_clt_con *con = req->con;
-+	struct ibtrs_clt_sess *sess = to_clt_sess(con->c.sess);
-+	struct ibtrs_clt_stats *stats = &sess->stats;
-+	unsigned int len;
-+
-+	struct ibtrs_clt_stats_pcpu *s;
-+
-+	s = this_cpu_ptr(stats->pcpu_stats);
-+	ibtrs_clt_record_sg_distr(s->sg_list_distr, &s->sg_list_total,
-+				  req->sg_cnt);
-+	len = req->usr_len + req->data_len;
-+	ibtrs_clt_update_rdma_stats(stats, len, dir);
-+	atomic_inc(&stats->inflight);
-+}
-+
-+int ibtrs_clt_init_stats(struct ibtrs_clt_stats *stats)
-+{
-+	stats->enable_rdma_lat = false;
-+	stats->pcpu_stats = alloc_percpu(typeof(*stats->pcpu_stats));
-+	if (unlikely(!stats->pcpu_stats))
-+		return -ENOMEM;
-+
-+	/*
-+	 * successful_cnt will be set to 0 after session
-+	 * is established for the first time
-+	 */
-+	stats->reconnects.successful_cnt = -1;
-+
-+	return 0;
-+}
-+
-+void ibtrs_clt_free_stats(struct ibtrs_clt_stats *stats)
-+{
-+	free_percpu(stats->pcpu_stats);
-+}
++#endif /* IBTRS_CLT_H */
 -- 
 2.13.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
