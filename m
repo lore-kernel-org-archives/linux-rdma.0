@@ -1,8 +1,8 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH RESEND v1 rdma-next 5/6] RDMA/nldev: provide detailed MR
+Subject: [PATCH RESEND v1 rdma-next 6/6] RDMA/nldev: provide detailed PD
  information
-Date: Thu, 1 Feb 2018 12:51:16 -0800
-Message-ID: <be7f33b8ce1e7311e9ed408267d8475166e48d9b.1518552800.git.swise@opengridcomputing.com>
+Date: Fri, 2 Feb 2018 13:24:44 -0800
+Message-ID: <f272bfd34c913d540bd74008cccfa2544d8e100f.1518552800.git.swise@opengridcomputing.com>
 References: <cover.1518552800.git.swise@opengridcomputing.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1518552800.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
@@ -11,73 +11,60 @@ To: jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Implement the RDMA nldev netlink interface for dumping detailed
-MR information.
+Implement the RDMA nldev netlink interface for dumping detailed PD
+information.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c      | 174 +++++++++++++++++++++++++++++++++++
- drivers/infiniband/core/restrack.c   |  48 +++++++---
- drivers/infiniband/core/uverbs_cmd.c |   6 ++
- drivers/infiniband/core/verbs.c      |   3 +
- include/rdma/ib_verbs.h              |   5 +
- include/rdma/restrack.h              |   4 +
- include/uapi/rdma/rdma_netlink.h     |  10 ++
- 7 files changed, 238 insertions(+), 12 deletions(-)
+ drivers/infiniband/core/nldev.c  | 173 +++++++++++++++++++++++++++++++++++++++
+ include/uapi/rdma/rdma_netlink.h |   8 ++
+ 2 files changed, 181 insertions(+)
 
 diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 34fb0d3..8d96f3e 100644
+index 8d96f3e..42cbec0 100644
 --- a/drivers/infiniband/core/nldev.c
 +++ b/drivers/infiniband/core/nldev.c
-@@ -94,6 +94,13 @@
- 	[RDMA_NLDEV_ATTR_RES_CQE]		= { .type = NLA_U32 },
- 	[RDMA_NLDEV_ATTR_RES_USECNT]		= { .type = NLA_U64 },
- 	[RDMA_NLDEV_ATTR_RES_POLL_CTX]		= { .type = NLA_U8 },
-+	[RDMA_NLDEV_ATTR_RES_MR]		= { .type = NLA_NESTED },
-+	[RDMA_NLDEV_ATTR_RES_MR_ENTRY]		= { .type = NLA_NESTED },
-+	[RDMA_NLDEV_ATTR_RES_RKEY]		= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_RES_LKEY]		= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_RES_IOVA]		= { .type = NLA_U64 },
-+	[RDMA_NLDEV_ATTR_RES_MRLEN]		= { .type = NLA_U64 },
-+	[RDMA_NLDEV_ATTR_RES_PGSIZE]		= { .type = NLA_U32 },
+@@ -101,6 +101,11 @@
+ 	[RDMA_NLDEV_ATTR_RES_IOVA]		= { .type = NLA_U64 },
+ 	[RDMA_NLDEV_ATTR_RES_MRLEN]		= { .type = NLA_U64 },
+ 	[RDMA_NLDEV_ATTR_RES_PGSIZE]		= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_RES_PD]		= { .type = NLA_NESTED },
++	[RDMA_NLDEV_ATTR_RES_PD_ENTRY]		= { .type = NLA_NESTED },
++	[RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY]	= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_RES_PD_FLAGS]		= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_RES_UNSAFE_GLOBAL_RKEY] = { .type = NLA_U32 },
  };
  
  static int fill_nldev_handle(struct sk_buff *msg, struct ib_device *device)
-@@ -206,6 +213,7 @@ static int fill_res_info(struct sk_buff *msg, struct ib_device *device)
- 		[RDMA_RESTRACK_CQ] = "cq",
- 		[RDMA_RESTRACK_QP] = "qp",
- 		[RDMA_RESTRACK_CM_ID] = "cm_id",
-+		[RDMA_RESTRACK_MR] = "mr",
- 	};
- 
- 	struct rdma_restrack_root *res = &device->res;
-@@ -446,6 +454,51 @@ static int fill_res_cq_entry(struct sk_buff *msg,
+@@ -499,6 +504,53 @@ static int fill_res_mr_entry(struct sk_buff *msg,
  	return -EMSGSIZE;
  }
  
-+static int fill_res_mr_entry(struct sk_buff *msg,
-+			     struct ib_mr *mr)
++static int fill_res_pd_entry(struct sk_buff *msg,
++			     struct ib_pd *pd)
 +{
-+	struct rdma_restrack_entry *res = &mr->res;
++	struct rdma_restrack_entry *res = &pd->res;
 +	struct nlattr *entry_attr;
 +
-+	entry_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_MR_ENTRY);
++	entry_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_RES_PD_ENTRY);
 +	if (!entry_attr)
 +		goto out;
 +
-+	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_RKEY, mr->rkey))
++	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY,
++			pd->local_dma_lkey))
 +		goto err;
-+	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_LKEY, mr->lkey))
++	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_RES_USECNT,
++			      atomic_read(&pd->usecnt), 0))
 +		goto err;
-+	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_RES_IOVA, mr->iova, 0))
++	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_PD_FLAGS, pd->flags))
 +		goto err;
-+	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_RES_MRLEN, mr->length, 0))
-+		goto err;
-+	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_PGSIZE, mr->page_size))
++	if ((pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY) &&
++	    nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_UNSAFE_GLOBAL_RKEY,
++			pd->unsafe_global_rkey))
 +		goto err;
 +
 +	/*
-+	 * Existence of task means that it is user MR and netlink
++	 * Existence of task means that it is user PD and netlink
 +	 * user is invited to go and read /proc/PID/comm to get name
 +	 * of the task file and res->task_com should be NULL.
 +	 */
@@ -103,11 +90,11 @@ index 34fb0d3..8d96f3e 100644
  static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
  			  struct netlink_ext_ack *extack)
  {
-@@ -1098,6 +1151,124 @@ static int nldev_res_get_cq_dumpit(struct sk_buff *skb,
+@@ -1269,6 +1321,124 @@ static int nldev_res_get_mr_dumpit(struct sk_buff *skb,
  	return ret;
  }
  
-+static int nldev_res_get_mr_dumpit(struct sk_buff *skb,
++static int nldev_res_get_pd_dumpit(struct sk_buff *skb,
 +				   struct netlink_callback *cb)
 +{
 +	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
@@ -116,14 +103,14 @@ index 34fb0d3..8d96f3e 100644
 +	struct nlattr *table_attr;
 +	struct ib_device *device;
 +	int start = cb->args[0];
-+	struct ib_mr *mr = NULL;
++	struct ib_pd *pd = NULL;
 +	struct nlmsghdr *nlh;
 +	u32 index;
 +
 +	err = nlmsg_parse(cb->nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
 +			  nldev_policy, NULL);
 +	/*
-+	 * Right now, we are expecting the device index to get MR information,
++	 * Right now, we are expecting the device index to get PD information,
 +	 * but it is possible to extend this code to return all devices in
 +	 * one shot by checking the existence of RDMA_NLDEV_ATTR_DEV_INDEX.
 +	 * if it doesn't exist, we will iterate over all devices.
@@ -139,7 +126,7 @@ index 34fb0d3..8d96f3e 100644
 +		return -EINVAL;
 +
 +	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
-+		RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_MR_GET),
++		RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_PD_GET),
 +		0, NLM_F_MULTI);
 +
 +	if (fill_nldev_handle(skb, device)) {
@@ -147,14 +134,14 @@ index 34fb0d3..8d96f3e 100644
 +		goto err;
 +	}
 +
-+	table_attr = nla_nest_start(skb, RDMA_NLDEV_ATTR_RES_MR);
++	table_attr = nla_nest_start(skb, RDMA_NLDEV_ATTR_RES_PD);
 +	if (!table_attr) {
 +		ret = -EMSGSIZE;
 +		goto err;
 +	}
 +
 +	down_read(&device->res.rwsem);
-+	hash_for_each_possible(device->res.hash, res, node, RDMA_RESTRACK_MR) {
++	hash_for_each_possible(device->res.hash, res, node, RDMA_RESTRACK_PD) {
 +		if (idx < start)
 +			goto next;
 +
@@ -164,8 +151,8 @@ index 34fb0d3..8d96f3e 100644
 +		     task_active_pid_ns(current) !=
 +		     task_active_pid_ns(res->task)))
 +			/*
-+			 * 1. Kernel MRs should be visible in init namspace only
-+			 * 2. Present only MRs visible in the current namespace
++			 * 1. Kernel PDs should be visible in init namspace only
++			 * 2. Present only PDs visible in the current namespace
 +			 */
 +			goto next;
 +
@@ -177,10 +164,10 @@ index 34fb0d3..8d96f3e 100644
 +			 */
 +			goto next;
 +
-+		mr = container_of(res, struct ib_mr, res);
++		pd = container_of(res, struct ib_pd, res);
 +
 +		up_read(&device->res.rwsem);
-+		ret = fill_res_mr_entry(skb, mr);
++		ret = fill_res_pd_entry(skb, pd);
 +		down_read(&device->res.rwsem);
 +		/*
 +		 * Return resource back, but it won't be released till
@@ -206,10 +193,10 @@ index 34fb0d3..8d96f3e 100644
 +	cb->args[0] = idx;
 +
 +	/*
-+	 * No more MRs to fill, cancel the message and
++	 * No more PDs to fill, cancel the message and
 +	 * return 0 to mark end of dumpit.
 +	 */
-+	if (!mr)
++	if (!pd)
 +		goto err;
 +
 +	put_device(&device->dev);
@@ -228,214 +215,38 @@ index 34fb0d3..8d96f3e 100644
  static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
  	[RDMA_NLDEV_CMD_GET] = {
  		.doit = nldev_get_doit,
-@@ -1130,6 +1301,9 @@ static int nldev_res_get_cq_dumpit(struct sk_buff *skb,
- 	[RDMA_NLDEV_CMD_RES_CQ_GET] = {
- 		.dump = nldev_res_get_cq_dumpit,
+@@ -1304,6 +1474,9 @@ static int nldev_res_get_mr_dumpit(struct sk_buff *skb,
+ 	[RDMA_NLDEV_CMD_RES_MR_GET] = {
+ 		.dump = nldev_res_get_mr_dumpit,
  	},
-+	[RDMA_NLDEV_CMD_RES_MR_GET] = {
-+		.dump = nldev_res_get_mr_dumpit,
++	[RDMA_NLDEV_CMD_RES_PD_GET] = {
++		.dump = nldev_res_get_pd_dumpit,
 +	},
  };
  
  void __init nldev_init(void)
-diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
-index 6385914..d3ad0ab 100644
---- a/drivers/infiniband/core/restrack.c
-+++ b/drivers/infiniband/core/restrack.c
-@@ -43,22 +43,36 @@ int rdma_restrack_count(struct rdma_restrack_root *res,
- 
- static void set_kern_name(struct rdma_restrack_entry *res)
- {
--	enum rdma_restrack_type type = res->type;
--	struct ib_qp *qp;
-+	struct ib_pd *pd = NULL;
- 
--	if (type != RDMA_RESTRACK_QP)
--		/* Other types already have this name embedded in */
--		return;
-+	switch (res->type) {
-+	case RDMA_RESTRACK_QP: {
-+		struct ib_qp *qp;
- 
--	qp = container_of(res, struct ib_qp, res);
--	if (!qp->pd) {
--		WARN_ONCE(true, "XRC QPs are not supported\n");
--		/* Survive, despite the programmer's error */
--		res->kern_name = " ";
--		return;
-+		qp = container_of(res, struct ib_qp, res);
-+		if (qp->pd) {
-+			pd = qp->pd;
-+		} else {
-+			WARN_ONCE(true, "XRC QPs are not supported\n");
-+			/* Survive, despite the programmer's error */
-+			res->kern_name = " ";
-+		}
-+		break;
-+	}
-+	case RDMA_RESTRACK_MR: {
-+		struct ib_mr *mr;
-+
-+		mr = container_of(res, struct ib_mr, res);
-+		pd = mr->pd;
-+		break;
-+	}
-+	default:
-+		/* Other types set kern_name directly */
-+		break;
- 	}
- 
--	res->kern_name = qp->pd->res.kern_name;
-+	if (pd)
-+		res->kern_name = pd->res.kern_name;
- }
- 
- static struct ib_device *res_to_dev(struct rdma_restrack_entry *res)
-@@ -70,6 +84,7 @@ static struct ib_device *res_to_dev(struct rdma_restrack_entry *res)
- 	struct ib_pd *pd;
- 	struct ib_cq *cq;
- 	struct ib_qp *qp;
-+	struct ib_mr *mr;
- 
- 	switch (type) {
- 	case RDMA_RESTRACK_PD:
-@@ -92,6 +107,10 @@ static struct ib_device *res_to_dev(struct rdma_restrack_entry *res)
- 		cm_id = container_of(res, struct rdma_cm_id, res);
- 		dev = cm_id->device;
- 		break;
-+	case RDMA_RESTRACK_MR:
-+		mr = container_of(res, struct ib_mr, res);
-+		dev = mr->device;
-+		break;
- 	default:
- 		WARN_ONCE(true, "Wrong resource tracking type %u\n", type);
- 		return NULL;
-@@ -108,6 +127,7 @@ static bool res_is_user(struct rdma_restrack_entry *res)
- 	struct ib_pd *pd;
- 	struct ib_cq *cq;
- 	struct ib_qp *qp;
-+	struct ib_mr *mr;
- 	bool is_user = false;
- 
- 	switch (type) {
-@@ -132,6 +152,10 @@ static bool res_is_user(struct rdma_restrack_entry *res)
- 		cm_id = container_of(res, struct rdma_cm_id, res);
- 		is_user = !cm_id->caller;
- 		break;
-+	case RDMA_RESTRACK_MR:
-+		mr = container_of(res, struct ib_mr, res);
-+		is_user = mr->pd->uobject;
-+		break;
- 	default:
- 		WARN_ONCE(true, "Wrong resource tracking type %u\n", type);
- 	}
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 256934d..3f026c4 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -694,6 +694,8 @@ ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file *file,
- 	mr->pd      = pd;
- 	mr->uobject = uobj;
- 	atomic_inc(&pd->usecnt);
-+	mr->res.type = RDMA_RESTRACK_MR;
-+	rdma_restrack_add(&mr->res);
- 
- 	uobj->object = mr;
- 
-@@ -819,6 +821,7 @@ ssize_t ib_uverbs_dereg_mr(struct ib_uverbs_file *file,
- 	struct ib_uverbs_dereg_mr cmd;
- 	struct ib_uobject	 *uobj;
- 	int                       ret = -EINVAL;
-+	struct ib_mr *mr;
- 
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
-@@ -828,6 +831,9 @@ ssize_t ib_uverbs_dereg_mr(struct ib_uverbs_file *file,
- 	if (IS_ERR(uobj))
- 		return PTR_ERR(uobj);
- 
-+	mr = uobj->object;
-+	rdma_restrack_del(&mr->res);
-+
- 	ret = uobj_remove_commit(uobj);
- 
- 	return ret ?: in_len;
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 16ebc63..c3265f7 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1623,6 +1623,7 @@ int ib_dereg_mr(struct ib_mr *mr)
- 	struct ib_pd *pd = mr->pd;
- 	int ret;
- 
-+	rdma_restrack_del(&mr->res);
- 	ret = mr->device->dereg_mr(mr);
- 	if (!ret)
- 		atomic_dec(&pd->usecnt);
-@@ -1659,6 +1660,8 @@ struct ib_mr *ib_alloc_mr(struct ib_pd *pd,
- 		mr->uobject = NULL;
- 		atomic_inc(&pd->usecnt);
- 		mr->need_inval = false;
-+		mr->res.type = RDMA_RESTRACK_MR;
-+		rdma_restrack_add(&mr->res);
- 	}
- 
- 	return mr;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5263c86..33d8c5d 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1771,6 +1771,11 @@ struct ib_mr {
- 		struct ib_uobject	*uobject;	/* user */
- 		struct list_head	qp_entry;	/* FR */
- 	};
-+
-+	/*
-+	 * Implementation details of the RDMA core, don't use in drivers:
-+	 */
-+	struct rdma_restrack_entry res;
- };
- 
- struct ib_mw {
-diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
-index a794e0e..bfd1140 100644
---- a/include/rdma/restrack.h
-+++ b/include/rdma/restrack.h
-@@ -37,6 +37,10 @@ enum rdma_restrack_type {
- 	 */
- 	RDMA_RESTRACK_CM_ID,
- 	/**
-+	 * @RDMA_RESTRACK_MR: Memory Region (MR)
-+	 */
-+	RDMA_RESTRACK_MR,
-+	/**
- 	 * @RDMA_RESTRACK_MAX: Last entry, used for array dclarations
- 	 */
- 	RDMA_RESTRACK_MAX
 diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index fa677ef..6adaeaa 100644
+index 6adaeaa..4aeb59c 100644
 --- a/include/uapi/rdma/rdma_netlink.h
 +++ b/include/uapi/rdma/rdma_netlink.h
-@@ -244,6 +244,8 @@ enum rdma_nldev_command {
+@@ -246,6 +246,8 @@ enum rdma_nldev_command {
  
- 	RDMA_NLDEV_CMD_RES_CQ_GET, /* can dump */
+ 	RDMA_NLDEV_CMD_RES_MR_GET, /* can dump */
  
-+	RDMA_NLDEV_CMD_RES_MR_GET, /* can dump */
++	RDMA_NLDEV_CMD_RES_PD_GET, /* can dump */
 +
  	RDMA_NLDEV_NUM_OPS
  };
  
-@@ -390,6 +392,14 @@ enum rdma_nldev_attr {
- 	RDMA_NLDEV_ATTR_RES_USECNT,		/* u64 */
- 	RDMA_NLDEV_ATTR_RES_POLL_CTX,		/* u8 */
+@@ -400,6 +402,12 @@ enum rdma_nldev_attr {
+ 	RDMA_NLDEV_ATTR_RES_MRLEN,		/* u64 */
+ 	RDMA_NLDEV_ATTR_RES_PGSIZE,		/* u32 */
  
-+	RDMA_NLDEV_ATTR_RES_MR,			/* nested table */
-+	RDMA_NLDEV_ATTR_RES_MR_ENTRY,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_RKEY,		/* u32 */
-+	RDMA_NLDEV_ATTR_RES_LKEY,		/* u32 */
-+	RDMA_NLDEV_ATTR_RES_IOVA,		/* u64 */
-+	RDMA_NLDEV_ATTR_RES_MRLEN,		/* u64 */
-+	RDMA_NLDEV_ATTR_RES_PGSIZE,		/* u32 */
++	RDMA_NLDEV_ATTR_RES_PD,			/* nested table */
++	RDMA_NLDEV_ATTR_RES_PD_ENTRY,		/* nested table */
++	RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY,	/* u32 */
++	RDMA_NLDEV_ATTR_RES_PD_FLAGS,		/* u32 */
++	RDMA_NLDEV_ATTR_RES_UNSAFE_GLOBAL_RKEY,	/* u32 */
 +
  	RDMA_NLDEV_ATTR_MAX
  };
