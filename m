@@ -1,79 +1,46 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH] net: mlx5: remove pointless memcpy
-Date: Fri, 2 Feb 2018 21:26:24 +0100
-Message-ID: <CAK8P3a2gi4EC+0tEzoRQ9ojscmXgddrmgwtB=TfQKriszPVaLA@mail.gmail.com>
-References: <20180202154636.1624079-1-arnd@arndb.de> <20180202190600.GD9080@ziepe.ca>
+From: "Ruhl, Michael J" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Verbs 2.0 questions
+Date: Fri, 2 Feb 2018 21:35:17 +0000
+Message-ID: <14063C7AD467DE4B82DEDB5C278E8663A9F9F318@FMSMSX108.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180202190600.GD9080-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Networking <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 2, 2018 at 8:06 PM, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On Fri, Feb 02, 2018 at 04:46:30PM +0100, Arnd Bergmann wrote:
->> gcc-8 notices that the memcpy in mlx5_core_query_xsrq() makes no
->> sense because the source and destination variables are identical:
->>
->> drivers/net/ethernet/mellanox/mlx5/core/transobj.c: In function 'mlx5_core_query_xsrq':
->> drivers/net/ethernet/mellanox/mlx5/core/transobj.c:347:3: error: 'memcpy' source argument is the same as destination [-Werror=restrict]
->>
->> Either one of the pointers should be something else, or the code is
->> completely bogus. Removing the memcpy() won't change the behavior
->> but gets rid of the warning.
->>
->> Fixes: 01949d0109ee ("net/mlx5_core: Enable XRCs and SRQs when using ISSI > 0")
->> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
->> Please review carefully, I have no idea what the author actually
->> intended here.
->
-> I think they intended to adjust the command return between
-> mlx5_ifc_query_srq_out_bits and mlx5_ifc_query_xrc_srq_out_bits?
->
->> index 9e38343a951f..75450f7d53bf 100644
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
->> @@ -332,20 +332,12 @@ int mlx5_core_destroy_xsrq(struct mlx5_core_dev *dev, u32 xsrqn)
->>  int mlx5_core_query_xsrq(struct mlx5_core_dev *dev, u32 xsrqn, u32 *out)
->>  {
->>       u32 in[MLX5_ST_SZ_DW(query_xrc_srq_in)] = {0};
->> -     void *srqc;
->> -     void *xrc_srqc;
->>       int err;
->>
->>       MLX5_SET(query_xrc_srq_in, in, opcode,   MLX5_CMD_OP_QUERY_XRC_SRQ);
->>       MLX5_SET(query_xrc_srq_in, in, xrc_srqn, xsrqn);
->>       err = mlx5_cmd_exec(dev, in, sizeof(in), out,
->>                           MLX5_ST_SZ_BYTES(query_xrc_srq_out));
->> -     if (!err) {
->> -             xrc_srqc = MLX5_ADDR_OF(query_xrc_srq_out, out,
->> -                                     xrc_srq_context_entry);
->> -             srqc = MLX5_ADDR_OF(query_srq_out, out, srq_context_entry);
->> -             memcpy(srqc, xrc_srqc, MLX5_ST_SZ_BYTES(srqc));
->> -     }
->
-> Probably should add a
->
-> BUILD_BUG_ON(MLX5_BYTE_OFF(query_xrc_srq_out, xrc_srq_context_entry) == MLX5_BYTE_OFF(query_srq_out, srq_context_entry));
->
-> Just for clarity that the SRQ and XRC_SRQ are being used interchangeably.
->
-> and the 'err' variable can be eliminated.
->
-> Curious though that I can't find a call site for it, and removing the
-> prototype doesn't break the build.. Seems like dead code.
-
-I checked the git history and don't see any user ever added after the function
-first showed up in the kernel, same for a couple of other functions from
-commit 01949d0109ee ("net/mlx5_core: Enable XRCs and SRQs when
-using ISSI > 0").
-
-Can you come up with a proper patch for this isse, either removing the
-dead code, or fixing it appropriately? You clearly understand what this
-file is about, and I don't ;-)
-
-      Arnd
+SGksDQoNCkkgaGF2ZSBiZWVuIHBsYXlpbmcgd2l0aCB0aGUgVmVyYnMgMi4wIGludGVyZmFjZSBh
+IGJpdCAoaW9jdGwgaW50ZXJmYWNlKSwNCmFuZCBoYXZlIHNvbWUgY29tbWVudHMgYW5kIHRoaW5n
+cyB0byBkaXNjdXNzLg0KDQpDb21tZW50cy9jb2RlIHJldmlldzoNCg0KMSkgU29tZSBvZiB0aGUg
+REVDTEFSRV94eHgoKSBtYWNyb3MgKGFuZCB0aGVpciBhc3NvY2lhdGVkDQpVVkVSQlNfVFlQRV94
+eHgoKSwgZXRjKSB1c2UgJ3NpemVvZihzdHJ1Y3QgYmxhaCknLCBvdGhlciB1c2UganVzdCBhIHBs
+YWluDQonc3RydWN0IGJsYWgnLg0KDQpJcyBpdCBwb3NzaWJsZSB0byBkbyBvbmUgb3IgdGhlIG90
+aGVyIGZvciB0aGVzZSBtYWNyb3MgZm9yIGNvbnNpc3RlbmN5Pw0KDQpJLmUuOg0KDQooc2l6ZW9m
+KQ0KREVDTEFSRV9VVkVSQlNfT0JKRUNUKHV2ZXJic19vYmplY3Rfc3JxLCBVVkVSQlNfT0JKRUNU
+X1NSUSwNCgkJICAgICAgJlVWRVJCU19UWVBFX0FMTE9DX0lEUl9TWihzaXplb2Yoc3RydWN0IGli
+X3VzcnFfb2JqZWN0KSwgMCwNCgkJCQkJCSAgdXZlcmJzX2ZyZWVfc3JxKSk7DQoodnMgc3RydWN0
+KQ0KJlVWRVJCU19BVFRSX1BUUl9PVVQoREVTVFJPWV9DUV9SRVNQLCBzdHJ1Y3QgaWJfdXZlcmJz
+X2Rlc3Ryb3lfY3FfcmVzcCwNCgkJCSAgICAgVUFfRkxBR1MoVVZFUkJTX0FUVFJfU1BFQ19GX01B
+TkRBVE9SWSkpKTsNCg0KMikgTWF0YW4gaGFzIGEgcGF0Y2ggaW4gYSBwcml2YXRlIHRyZWU6IA0K
+DQpBdXRob3I6IE1hdGFuIEJhcmFrIDxtYXRhbmJAbWVsbGFub3guY29tPg0KRGF0ZTogICBUdWUg
+SmFuIDIzIDE1OjU1OjA0IDIwMTggLTA1MDANCg0KICAgIElCL3V2ZXJiczogRml4IG1ldGhvZCBt
+ZXJnaW5nIGluIHV2ZXJic19pb2N0bF9tZXJnZQ0KICAgIA0KICAgIEZpeCBhIGJ1ZyBpbiB1dmVy
+YnNfaW9jdGxfbWVyZ2UgdGhhdCBsb29rZWQgYXQgb2JqZWN0cyBpdGVyYXRvcnMNCiAgICBudW1i
+ZXIgaW5zdGVhZCBvZiBtZXRob2RzIGl0ZXJhdG9ycyBudW1iZXIgd2hlbiBtZXJnaW5nIG1ldGhv
+ZHMuDQogICAgV2hpbGUgd2UncmUgYXQgaXQsIG1ha2UgdGhlIHV2ZXJic19pb2N0bF9tZXJnZSBj
+b2RlIGEgYml0IG1vcmUgY2xlYXINCiAgICBhbmQgZmFzdGVyLg0KDQpUaGF0IEkgbmVlZCBpbiBt
+eSBidWlsZCBlbnZpcm9ubWVudCwgb3IgSSBnZXQgYSBrZXJuZWwgcGFuaWMgd2hlbiBJIGFkZCBt
+eSBuZXcNCm9iamVjdHMgYW5kIG1ldGhvZHMuICBTaG91bGQgKG9yIGNvdWxkKSBwYXRjaGVzIGxp
+a2UgdGhpcyBiZSB1cC1zdHJlYW1lZCBtb3JlDQpxdWlja2x5Pw0KDQozKSAgVGhlIE9wZW4gRmFi
+cmljcyBBbGxpYW5jZSBWZXJicyBLZXJuZWwgQUJJIHNsaWRlIGRlY2sgKHNsaWRlcyAxNiBhbmQg
+MTcpIGltcGx5DQp0aGF0IHRoZSBzdGFuZGFyZCBvYmplY3RzIGNhbiBiZSBhdWdtZW50ZWQgd2l0
+aCAnREVWIFNwZWNpZmljJyBtZXRob2RzIGFuZCBhdHRyaWJ1dGVzLg0KDQpTaW5jZSB0aGUgbWV0
+aG9kcyBhcmUgZGVmaW5lZCBpbiB0aGUgREVDTEFSRV9VVkVSQlNfT0JKRUNUKCksIGl0IGlzIG5v
+dA0KY2xlYXIgaG93IHRvIGFkZCBtZXRob2RzIHRvLCBzYXkgJ3V2ZXJic19vYmplY3RfcXAnIGlu
+IG15IGRyaXZlciBzcGVjaWZpYw0KY29kZS4NCg0KQXJlIHRoZXJlIGFueSBleGFtcGxlcyBvZiBo
+b3cgdGhpcyBzaG91bGQgYmUgZG9uZT8NCg0KVGhhbmtzLA0KDQpNaWtlDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
