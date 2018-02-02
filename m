@@ -1,79 +1,47 @@
-From: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH 07/24] ibtrs: client: sysfs interface functions
-Date: Fri,  2 Feb 2018 15:08:47 +0100
-Message-ID: <20180202140904.2017-8-roman.penyaev@profitbricks.com>
+From: Roman Pen <roman.penyaev@profitbricks.com>
+Subject: [PATCH 02/24] ibtrs: private headers with IBTRS protocol structs and helpers
+Date: Fri,  2 Feb 2018 15:08:42 +0100
+Message-ID: <20180202140904.2017-3-roman.penyaev@profitbricks.com>
 References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180202140904.2017-1-roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
+Sender: linux-block-owner@vger.kernel.org
+To: linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@infradead.org>, Sagi Grimberg <sagi@grimberg.me>, Bart Van Assche <bart.vanassche@sandisk.com>, Or Gerlitz <ogerlitz@mellanox.com>, Roman Pen <roman.penyaev@profitbricks.com>, Danil Kipnis <danil.kipnis@profitbricks.com>, Jack Wang <jinpu.wang@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This is the sysfs interface to IBTRS sessions on client side:
+These are common private headers with IBTRS protocol structures,
+logging, sysfs and other helper functions, which are used on
+both client and server sides.
 
-  /sys/kernel/ibtrs_client/<SESS-NAME>/
-    *** IBTRS session created by ibtrs_clt_open() API call
-    |
-    |- max_reconnect_attempts
-    |  *** number of reconnect attempts for session
-    |
-    |- add_path
-    |  *** adds another connection path into IBTRS session
-    |
-    |- paths/<DEST-IP>/
-       *** established paths to server in a session
-       |
-       |- disconnect
-       |  *** disconnect path
-       |
-       |- reconnect
-       |  *** reconnect path
-       |
-       |- remove_path
-       |  *** remove current path
-       |
-       |- state
-       |  *** retrieve current path state
-       |
-       |- stats/
-          *** current path statistics
-          |
-	  |- cpu_migration
-	  |- rdma
-	  |- rdma_lat
-	  |- reconnects
-	  |- reset_all
-	  |- sg_entries
-	  |- wc_completions
-
-Signed-off-by: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Signed-off-by: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Roman Pen <roman.penyaev@profitbricks.com>
+Signed-off-by: Danil Kipnis <danil.kipnis@profitbricks.com>
+Cc: Jack Wang <jinpu.wang@profitbricks.com>
 ---
- drivers/infiniband/ulp/ibtrs/ibtrs-clt-sysfs.c | 519 +++++++++++++++++++++++++
- 1 file changed, 519 insertions(+)
+ drivers/infiniband/ulp/ibtrs/ibtrs-log.h |  94 ++++++
+ drivers/infiniband/ulp/ibtrs/ibtrs-pri.h | 494 +++++++++++++++++++++++++++++++
+ 2 files changed, 588 insertions(+)
 
-diff --git a/drivers/infiniband/ulp/ibtrs/ibtrs-clt-sysfs.c b/drivers/infiniband/ulp/ibtrs/ibtrs-clt-sysfs.c
+diff --git a/drivers/infiniband/ulp/ibtrs/ibtrs-log.h b/drivers/infiniband/ulp/ibtrs/ibtrs-log.h
 new file mode 100644
-index 000000000000..04949d6d796b
+index 000000000000..308593785c64
 --- /dev/null
-+++ b/drivers/infiniband/ulp/ibtrs/ibtrs-clt-sysfs.c
-@@ -0,0 +1,519 @@
++++ b/drivers/infiniband/ulp/ibtrs/ibtrs-log.h
+@@ -0,0 +1,94 @@
 +/*
 + * InfiniBand Transport Layer
 + *
 + * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
-+ * Authors: Fabian Holler <mail-99BIx50xQYGELgA04lAiVw@public.gmane.org>
-+ *          Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Roman Penyaev <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Milind Dumbare <Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
++ * Authors: Fabian Holler <mail@fholler.de>
++ *          Jack Wang <jinpu.wang@profitbricks.com>
++ *          Kleber Souza <kleber.souza@profitbricks.com>
++ *          Danil Kipnis <danil.kipnis@profitbricks.com>
++ *          Roman Penyaev <roman.penyaev@profitbricks.com>
++ *          Milind Dumbare <Milind.dumbare@gmail.com>
 + *
 + * Copyright (c) 2017 - 2018 ProfitBricks GmbH. All rights reserved.
-+ * Authors: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Roman Penyaev <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ * Authors: Danil Kipnis <danil.kipnis@profitbricks.com>
++ *          Roman Penyaev <roman.penyaev@profitbricks.com>
 + *
 + * This program is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU General Public License
@@ -89,500 +57,570 @@ index 000000000000..04949d6d796b
 + * along with this program; if not, see <http://www.gnu.org/licenses/>.
 + */
 +
-+#undef pr_fmt
-+#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
++#ifndef IBTRS_LOG_H
++#define IBTRS_LOG_H
 +
-+#include "ibtrs-pri.h"
-+#include "ibtrs-clt.h"
-+#include "ibtrs-log.h"
++#define P1 )
++#define P2 ))
++#define P3 )))
++#define P4 ))))
++#define P(N) P ## N
 +
-+static struct kobject *ibtrs_kobj;
++#define CAT(a, ...) PRIMITIVE_CAT(a, __VA_ARGS__)
++#define PRIMITIVE_CAT(a, ...) a ## __VA_ARGS__
 +
-+#define MIN_MAX_RECONN_ATT -1
-+#define MAX_MAX_RECONN_ATT 9999
++#define COUNT_ARGS(...) COUNT_ARGS_(,##__VA_ARGS__,6,5,4,3,2,1,0)
++#define COUNT_ARGS_(z,a,b,c,d,e,f,cnt,...) cnt
 +
-+static struct kobj_type ktype = {
-+	.sysfs_ops = &kobj_sysfs_ops,
++#define LIST(...)						\
++	__VA_ARGS__,						\
++	({ unknown_type(); NULL; })				\
++	CAT(P, COUNT_ARGS(__VA_ARGS__))				\
++
++#define EMPTY()
++#define DEFER(id) id EMPTY()
++
++#define _CASE(obj, type, member)				\
++	__builtin_choose_expr(					\
++	__builtin_types_compatible_p(				\
++		typeof(obj), type),				\
++		((type)obj)->member
++#define CASE(o, t, m) DEFER(_CASE)(o,t,m)
++
++/*
++ * Below we define retrieving of sessname from common IBTRS types.
++ * Client or server related types have to be defined by special
++ * TYPES_TO_SESSNAME macro.
++ */
++
++void unknown_type(void);
++
++#ifndef TYPES_TO_SESSNAME
++#define TYPES_TO_SESSNAME(...) ({ unknown_type(); NULL; })
++#endif
++
++#define ibtrs_prefix(obj)					\
++	_CASE(obj, struct ibtrs_con *,  sess->sessname),	\
++	_CASE(obj, struct ibtrs_sess *, sessname),		\
++	TYPES_TO_SESSNAME(obj)					\
++	))
++
++#define ibtrs_log(fn, obj, fmt, ...)				\
++	fn("<%s>: " fmt, ibtrs_prefix(obj), ##__VA_ARGS__)
++
++#define ibtrs_err(obj, fmt, ...)	\
++	ibtrs_log(pr_err, obj, fmt, ##__VA_ARGS__)
++#define ibtrs_err_rl(obj, fmt, ...)	\
++	ibtrs_log(pr_err_ratelimited, obj, fmt, ##__VA_ARGS__)
++#define ibtrs_wrn(obj, fmt, ...)	\
++	ibtrs_log(pr_warn, obj, fmt, ##__VA_ARGS__)
++#define ibtrs_wrn_rl(obj, fmt, ...) \
++	ibtrs_log(pr_warn_ratelimited, obj, fmt, ##__VA_ARGS__)
++#define ibtrs_info(obj, fmt, ...) \
++	ibtrs_log(pr_info, obj, fmt, ##__VA_ARGS__)
++#define ibtrs_info_rl(obj, fmt, ...) \
++	ibtrs_log(pr_info_ratelimited, obj, fmt, ##__VA_ARGS__)
++
++#endif /* IBTRS_LOG_H */
+diff --git a/drivers/infiniband/ulp/ibtrs/ibtrs-pri.h b/drivers/infiniband/ulp/ibtrs/ibtrs-pri.h
+new file mode 100644
+index 000000000000..b3b51af8607e
+--- /dev/null
++++ b/drivers/infiniband/ulp/ibtrs/ibtrs-pri.h
+@@ -0,0 +1,494 @@
++/*
++ * InfiniBand Transport Layer
++ *
++ * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
++ * Authors: Fabian Holler <mail@fholler.de>
++ *          Jack Wang <jinpu.wang@profitbricks.com>
++ *          Kleber Souza <kleber.souza@profitbricks.com>
++ *          Danil Kipnis <danil.kipnis@profitbricks.com>
++ *          Roman Penyaev <roman.penyaev@profitbricks.com>
++ *          Milind Dumbare <Milind.dumbare@gmail.com>
++ *
++ * Copyright (c) 2017 - 2018 ProfitBricks GmbH. All rights reserved.
++ * Authors: Danil Kipnis <danil.kipnis@profitbricks.com>
++ *          Roman Penyaev <roman.penyaev@profitbricks.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef IBTRS_PRI_H
++#define IBTRS_PRI_H
++
++#include <linux/uuid.h>
++#include <rdma/rdma_cm.h>
++#include <rdma/ib_verbs.h>
++#include <rdma/ib.h>
++
++#include "ibtrs.h"
++
++#define IBTRS_VER_MAJOR 1
++#define IBTRS_VER_MINOR 0
++#define IBTRS_VER_STRING __stringify(IBTRS_VER_MAJOR) "." \
++			 __stringify(IBTRS_VER_MINOR)
++
++enum ibtrs_imm_consts {
++	MAX_IMM_TYPE_BITS = 4,
++	MAX_IMM_TYPE_MASK = ((1 << MAX_IMM_TYPE_BITS) - 1),
++	MAX_IMM_PAYL_BITS = 28,
++	MAX_IMM_PAYL_MASK = ((1 << MAX_IMM_PAYL_BITS) - 1),
++
++	IBTRS_IO_REQ_IMM = 0, /* client to server */
++	IBTRS_IO_RSP_IMM = 1, /* server to client */
++	IBTRS_HB_MSG_IMM = 2,
++	IBTRS_HB_ACK_IMM = 3,
 +};
 +
-+static ssize_t ibtrs_clt_max_reconn_attempts_show(struct kobject *kobj,
-+						  struct kobj_attribute *attr,
-+						  char *page)
++enum {
++	SERVICE_CON_QUEUE_DEPTH = 512,
++
++	MIN_RTR_CNT = 1,
++	MAX_RTR_CNT = 7,
++
++	MAX_PATHS_NUM = 128,
++
++	/*
++	 * With the current size of the tag allocated on the client, 4K
++	 * is the maximum number of tags we can allocate.  This number is
++	 * also used on the client to allocate the IU for the user connection
++	 * to receive the RDMA addresses from the server.
++	 */
++	MAX_SESS_QUEUE_DEPTH = 4096,
++	/*
++	 * Size of user message atached to a request (@vec, @nr) is limited
++	 * by the IO_MSG_SIZE. max_req_size allocated by the server should
++	 * cover both: the user message and the ibtrs message attached
++	 * to an IO. ibtrs_msg_req_rdma_write attached to a read has variable
++	 * size: max number of descriptors we can send is limited by
++	 * max_desc = (max_req_size - IO_MSG_SIZE) / sizeof(desc)
++	 */
++	IO_MSG_SIZE = 512,
++
++	IBTRS_HB_INTERVAL_MS = 5000,
++	IBTRS_HB_MISSED_MAX = 5,
++
++	IBTRS_MAGIC = 0x1BBD,
++	IBTRS_VERSION = (IBTRS_VER_MAJOR << 8) | IBTRS_VER_MINOR,
++};
++
++struct ibtrs_ib_dev {
++	struct list_head	entry;
++	struct kref		ref;
++	struct ib_pd		*pd;
++	struct ib_device	*dev;
++	struct ib_device_attr	attrs;
++	u32			lkey;
++	u32			rkey;
++};
++
++struct ibtrs_con {
++	struct ibtrs_sess	*sess;
++	struct ib_qp		*qp;
++	struct ib_cq		*cq;
++	struct rdma_cm_id	*cm_id;
++	unsigned		cid;
++};
++
++typedef void (ibtrs_hb_handler_t)(struct ibtrs_con *con, int err);
++
++struct ibtrs_sess {
++	struct list_head	entry;
++	struct sockaddr_storage dst_addr;
++	struct sockaddr_storage src_addr;
++	char			sessname[NAME_MAX];
++	uuid_t			uuid;
++	struct ibtrs_con	**con;
++	unsigned int		con_num;
++	unsigned int		recon_cnt;
++	struct ibtrs_ib_dev	*ib_dev;
++	int			ib_dev_ref;
++	struct ib_cqe		*hb_cqe;
++	ibtrs_hb_handler_t	*hb_err_handler;
++	struct workqueue_struct *hb_wq;
++	struct delayed_work	hb_dwork;
++	unsigned		hb_interval_ms;
++	unsigned		hb_missed_cnt;
++	unsigned		hb_missed_max;
++};
++
++struct ibtrs_iu {
++	struct list_head        list;
++	struct ib_cqe           cqe;
++	dma_addr_t              dma_addr;
++	void                    *buf;
++	size_t                  size;
++	enum dma_data_direction direction;
++	u32			tag;
++};
++
++/**
++ * enum ibtrs_msg_types - IBTRS message types.
++ * @IBTRS_MSG_INFO_REQ:		Client additional info request to the server
++ * @IBTRS_MSG_INFO_RSP:		Server additional info response to the client
++ * @IBTRS_MSG_WRITE:		Client writes data per RDMA to server
++ * @IBTRS_MSG_READ:		Client requests data transfer from server
++ * @IBTRS_MSG_USER:		Data transfer per Infiniband message
++ */
++enum ibtrs_msg_types {
++	IBTRS_MSG_INFO_REQ,
++	IBTRS_MSG_INFO_RSP,
++	IBTRS_MSG_WRITE,
++	IBTRS_MSG_READ,
++	IBTRS_MSG_USER,
++};
++
++/**
++ * struct ibtrs_msg_conn_req - Client connection request to the server
++ * @magic:	   IBTRS magic
++ * @version:	   IBTRS protocol version
++ * @cid:	   Current connection id
++ * @cid_num:	   Number of connections per session
++ * @recon_cnt:	   Reconnections counter
++ * @sess_uuid:	   UUID of a session (path)
++ * @paths_uuid:	   UUID of a group of sessions (paths)
++ *
++ * NOTE: max size 56 bytes, see man rdma_connect().
++ */
++struct ibtrs_msg_conn_req {
++	u8		__cma_version; /* Is set to 0 by cma.c in case of
++					* AF_IB, do not touch that. */
++	u8		__ip_version;  /* On sender side that should be
++					* set to 0, or cma_save_ip_info()
++					* extract garbage and will fail. */
++	__le16		magic;
++	__le16		version;
++	__le16		cid;
++	__le16		cid_num;
++	__le16		recon_cnt;
++	uuid_t		sess_uuid;
++	uuid_t		paths_uuid;
++	u8		reserved[12];
++};
++
++/**
++ * struct ibtrs_msg_conn_rsp - Server connection response to the client
++ * @magic:	   IBTRS magic
++ * @version:	   IBTRS protocol version
++ * @errno:	   If rdma_accept() then 0, if rdma_reject() indicates error
++ * @queue_depth:   max inflight messages (queue-depth) in this session
++ * @rkey:	   remote key to allow client to access buffers
++ * @max_io_size:   max io size server supports
++ * @max_req_size:  max infiniband message size server supports
++ * @uuid:	   Server UUID
++ *
++ * NOTE: size is 56 bytes, max possible is 136 bytes, see man rdma_accept().
++ */
++struct ibtrs_msg_conn_rsp {
++	__le16		magic;
++	__le16		version;
++	__le16		errno;
++	__le16		queue_depth;
++	__le32		rkey;
++	__le32		max_io_size;
++	__le32		max_req_size;
++	uuid_t		uuid;
++	u8		reserved[20];
++};
++
++/**
++ * struct ibtrs_msg_info_req
++ * @type:		@IBTRS_MSG_INFO_REQ
++ * @sessname:		Session name chosen by client
++ */
++struct ibtrs_msg_info_req {
++	__le16		type;
++	u8		sessname[NAME_MAX];
++	u8		reserved[15];
++};
++
++/**
++ * struct ibtrs_msg_info_rsp
++ * @type:		@IBTRS_MSG_INFO_RSP
++ * @addr_num:		Number of rdma addresses
++ * @addr:		RDMA addresses of buffers
++ */
++struct ibtrs_msg_info_rsp {
++	__le16		type;
++	__le16		addr_num;
++	u8		reserved[4];
++	__le64		addr[];
++};
++
++/*
++ *  Data Layout in RDMA-Bufs:
++ *
++ * +---------RDMA-BUF--------+
++ * |         Slice N	     |
++ * | +---------------------+ |
++ * | |      I/O data       | |
++ * | |---------------------| |
++ * | |      IBNBD MSG	   | |
++ * | |---------------------| |
++ * | |	    IBTRS MSG	   | |
++ * | +---------------------+ |
++ * +-------------------------+
++ * |	     Slice N+1	     |
++ * | +---------------------+ |
++ * | |       I/O data	   | |
++ * | |---------------------| |
++ * | |	     IBNBD MSG     | |
++ * | |---------------------| |
++ * | |       IBTRS MSG     | |
++ * | +---------------------+ |
++ * +-------------------------+
++ */
++
++/**
++ * struct ibtrs_msg_user - Data exchanged a Infiniband message
++ * @type:		@IBTRS_MSG_USER
++ * @psize:		Payload size
++ * @payl:		Payload data
++ */
++struct ibtrs_msg_user {
++	__le16			type;
++	__le16			psize;
++	u8			payl[];
++};
++
++/**
++ * struct ibtrs_sg_desc - RDMA-Buffer entry description
++ * @addr:	Address of RDMA destination buffer
++ * @key:	Authorization rkey to write to the buffer
++ * @len:	Size of the buffer
++ */
++struct ibtrs_sg_desc {
++	__le64			addr;
++	__le32			key;
++	__le32			len;
++};
++
++/**
++ * struct ibtrs_msg_rdma_read - RDMA data transfer request from client
++ * @type:		always @IBTRS_MSG_READ
++ * @usr_len:		length of user payload
++ * @sg_cnt:		number of @desc entries
++ * @desc:		RDMA bufferst where the server can write the result to
++ */
++struct ibtrs_msg_rdma_read {
++	__le16			type;
++	__le16			usr_len;
++	__le32			sg_cnt;
++	struct ibtrs_sg_desc    desc[];
++};
++
++/**
++ * struct_msg_rdma_write - Message transferred to server with RDMA-Write
++ * @type:		always @IBTRS_MSG_WRITE
++ * @usr_len:		length of user payload
++ */
++struct ibtrs_msg_rdma_write {
++	__le16			type;
++	__le16			usr_len;
++};
++
++/* ibtrs.c */
++
++struct ibtrs_iu *ibtrs_iu_alloc(u32 tag, size_t size, gfp_t t,
++				struct ib_device *dev, enum dma_data_direction,
++				void (*done)(struct ib_cq *cq, struct ib_wc *wc));
++void ibtrs_iu_free(struct ibtrs_iu *iu, enum dma_data_direction dir,
++		   struct ib_device *dev);
++int ibtrs_iu_post_recv(struct ibtrs_con *con, struct ibtrs_iu *iu);
++int ibtrs_iu_post_send(struct ibtrs_con *con, struct ibtrs_iu *iu, size_t size);
++int ibtrs_iu_post_rdma_write_imm(struct ibtrs_con *con, struct ibtrs_iu *iu,
++				 struct ib_sge *sge, unsigned int num_sge,
++				 u32 rkey, u64 rdma_addr, u32 imm_data,
++				 enum ib_send_flags flags);
++
++int ibtrs_post_recv_empty(struct ibtrs_con *con, struct ib_cqe *cqe);
++int ibtrs_post_rdma_write_imm_empty(struct ibtrs_con *con, struct ib_cqe *cqe,
++				    u32 imm_data, enum ib_send_flags flags);
++
++struct ibtrs_ib_dev *ibtrs_ib_dev_find_get(struct rdma_cm_id *cm_id);
++void ibtrs_ib_dev_put(struct ibtrs_ib_dev *dev);
++
++int ibtrs_cq_qp_create(struct ibtrs_sess *ibtrs_sess, struct ibtrs_con *con,
++		       u32 max_send_sge, int cq_vector, u16 cq_size,
++		       u16 wr_queue_size, enum ib_poll_context poll_ctx);
++void ibtrs_cq_qp_destroy(struct ibtrs_con *con);
++
++void ibtrs_init_hb(struct ibtrs_sess *sess, struct ib_cqe *cqe,
++		   unsigned interval_ms, unsigned missed_max,
++		   ibtrs_hb_handler_t *err_handler,
++		   struct workqueue_struct *wq);
++void ibtrs_start_hb(struct ibtrs_sess *sess);
++void ibtrs_stop_hb(struct ibtrs_sess *sess);
++void ibtrs_send_hb_ack(struct ibtrs_sess *sess);
++
++#define XX(a) case (a): return #a
++static inline const char *ib_wc_opcode_str(enum ib_wc_opcode opcode)
 +{
-+	struct ibtrs_clt *clt;
-+
-+	clt = container_of(kobj, struct ibtrs_clt, kobj);
-+
-+	return sprintf(page, "%d\n", ibtrs_clt_get_max_reconnect_attempts(clt));
++	switch (opcode) {
++	XX(IB_WC_SEND);
++	XX(IB_WC_RDMA_WRITE);
++	XX(IB_WC_RDMA_READ);
++	XX(IB_WC_COMP_SWAP);
++	XX(IB_WC_FETCH_ADD);
++	/* recv-side); inbound completion */
++	XX(IB_WC_RECV);
++	XX(IB_WC_RECV_RDMA_WITH_IMM);
++	default: return "IB_WC_OPCODE_UNKNOWN";
++	}
 +}
 +
-+static ssize_t ibtrs_clt_max_reconn_attempts_store(struct kobject *kobj,
-+						   struct kobj_attribute *attr,
-+						   const char *buf,
-+						   size_t count)
++static inline int sockaddr_cmp(const struct sockaddr *a,
++			       const struct sockaddr *b)
 +{
-+	struct ibtrs_clt *clt;
-+	int value;
-+	int ret;
-+
-+	clt = container_of(kobj, struct ibtrs_clt, kobj);
-+
-+	ret = kstrtoint(buf, 10, &value);
-+	if (unlikely(ret)) {
-+		ibtrs_err(clt, "%s: failed to convert string '%s' to int\n",
-+			  attr->attr.name, buf);
-+		return ret;
-+	}
-+	if (unlikely(value > MAX_MAX_RECONN_ATT ||
-+		     value < MIN_MAX_RECONN_ATT)) {
-+		ibtrs_err(clt, "%s: invalid range"
-+			  " (provided: '%s', accepted: min: %d, max: %d)\n",
-+			  attr->attr.name, buf, MIN_MAX_RECONN_ATT,
-+			  MAX_MAX_RECONN_ATT);
-+		return -EINVAL;
-+	}
-+	ibtrs_clt_set_max_reconnect_attempts(clt, value);
-+
-+	return count;
-+}
-+
-+static struct kobj_attribute ibtrs_clt_max_reconnect_attempts_attr =
-+	__ATTR(max_reconnect_attempts, 0644,
-+	       ibtrs_clt_max_reconn_attempts_show,
-+	       ibtrs_clt_max_reconn_attempts_store);
-+
-+static ssize_t ibtrs_clt_mp_policy_show(struct kobject *kobj,
-+					struct kobj_attribute *attr,
-+					char *page)
-+{
-+	struct ibtrs_clt *clt;
-+
-+	clt = container_of(kobj, struct ibtrs_clt, kobj);
-+
-+	switch (clt->mp_policy) {
-+	case MP_POLICY_RR:
-+		return sprintf(page, "round-robin (RR: %d)\n", clt->mp_policy);
-+	case MP_POLICY_MIN_INFLIGHT:
-+		return sprintf(page, "min-inflight (MI: %d)\n", clt->mp_policy);
++	switch (a->sa_family) {
++	case AF_IB:
++		return memcmp(&((struct sockaddr_ib *)a)->sib_addr,
++			      &((struct sockaddr_ib *)b)->sib_addr,
++			      sizeof(struct ib_addr));
++	case AF_INET:
++		return memcmp(&((struct sockaddr_in *)a)->sin_addr,
++			      &((struct sockaddr_in *)b)->sin_addr,
++			      sizeof(struct in_addr));
++	case AF_INET6:
++		return memcmp(&((struct sockaddr_in6 *)a)->sin6_addr,
++			      &((struct sockaddr_in6 *)b)->sin6_addr,
++			      sizeof(struct in6_addr));
 +	default:
-+		return sprintf(page, "Unknown (%d)\n", clt->mp_policy);
++		return -ENOENT;
 +	}
 +}
 +
-+static ssize_t ibtrs_clt_mp_policy_store(struct kobject *kobj,
-+					 struct kobj_attribute *attr,
-+					 const char *buf,
-+					 size_t count)
++static inline void sockaddr_to_str(const struct sockaddr *addr,
++				   char *buf, size_t len)
 +{
-+	struct ibtrs_clt *clt;
-+	int value;
-+	int ret;
-+
-+	clt = container_of(kobj, struct ibtrs_clt, kobj);
-+
-+	ret = kstrtoint(buf, 10, &value);
-+	if (!ret && (value == MP_POLICY_RR || value == MP_POLICY_MIN_INFLIGHT)) {
-+		clt->mp_policy = value;
-+		return count;
++	switch (addr->sa_family) {
++	case AF_IB:
++		scnprintf(buf, len, "gid:%pI6",
++			  &((struct sockaddr_ib *)addr)->sib_addr.sib_raw);
++		return;
++	case AF_INET:
++		scnprintf(buf, len, "ip:%pI4",
++			  &((struct sockaddr_in *)addr)->sin_addr);
++		return;
++	case AF_INET6:
++		scnprintf(buf, len, "ip:%pI6c",
++			  &((struct sockaddr_in6 *)addr)->sin6_addr);
++		return;
 +	}
-+
-+	if (!strncasecmp(buf, "round-robin", 11) ||
-+	    !strncasecmp(buf, "rr", 2))
-+		clt->mp_policy = MP_POLICY_RR;
-+	else if (!strncasecmp(buf, "min-inflight", 12) ||
-+		 !strncasecmp(buf, "mi", 2))
-+		clt->mp_policy = MP_POLICY_MIN_INFLIGHT;
-+	else
-+		return -EINVAL;
-+
-+	return count;
++	scnprintf(buf, len, "<invalid address family>");
++	pr_err("Invalid address family\n");
 +}
 +
-+static struct kobj_attribute ibtrs_clt_mp_policy_attr =
-+	__ATTR(mp_policy, 0644,
-+	       ibtrs_clt_mp_policy_show,
-+	       ibtrs_clt_mp_policy_store);
-+
-+static ssize_t ibtrs_clt_state_show(struct kobject *kobj,
-+				    struct kobj_attribute *attr, char *page)
++/**
++ * kvec_length() - Total number of bytes covered by an kvec.
++ */
++static inline size_t kvec_length(const struct kvec *vec, size_t nr)
 +{
-+	struct ibtrs_clt_sess *sess;
++	size_t seg, ret = 0;
 +
-+	sess = container_of(kobj, struct ibtrs_clt_sess, kobj);
-+	if (ibtrs_clt_sess_is_connected(sess))
-+		return sprintf(page, "connected\n");
-+
-+	return sprintf(page, "disconnected\n");
-+}
-+
-+static struct kobj_attribute ibtrs_clt_state_attr =
-+	__ATTR(state, 0444, ibtrs_clt_state_show, NULL);
-+
-+static ssize_t ibtrs_clt_reconnect_show(struct kobject *kobj,
-+					struct kobj_attribute *attr,
-+					char *page)
-+{
-+	return scnprintf(page, PAGE_SIZE, "Usage: echo 1 > %s\n",
-+			 attr->attr.name);
-+}
-+
-+static ssize_t ibtrs_clt_reconnect_store(struct kobject *kobj,
-+					 struct kobj_attribute *attr,
-+					 const char *buf, size_t count)
-+{
-+	struct ibtrs_clt_sess *sess;
-+	int ret;
-+
-+	sess = container_of(kobj, struct ibtrs_clt_sess, kobj);
-+	if (!sysfs_streq(buf, "1")) {
-+		ibtrs_err(sess, "%s: unknown value: '%s'\n",
-+			  attr->attr.name, buf);
-+		return -EINVAL;
-+	}
-+	ret = ibtrs_clt_reconnect_from_sysfs(sess);
-+	if (unlikely(ret))
-+		return ret;
-+
-+	return count;
-+}
-+
-+static struct kobj_attribute ibtrs_clt_reconnect_attr =
-+	__ATTR(reconnect, 0644, ibtrs_clt_reconnect_show,
-+	       ibtrs_clt_reconnect_store);
-+
-+static ssize_t ibtrs_clt_disconnect_show(struct kobject *kobj,
-+					 struct kobj_attribute *attr,
-+					 char *page)
-+{
-+	return scnprintf(page, PAGE_SIZE, "Usage: echo 1 > %s\n",
-+			 attr->attr.name);
-+}
-+
-+static ssize_t ibtrs_clt_disconnect_store(struct kobject *kobj,
-+					  struct kobj_attribute *attr,
-+					  const char *buf, size_t count)
-+{
-+	struct ibtrs_clt_sess *sess;
-+	int ret;
-+
-+	sess = container_of(kobj, struct ibtrs_clt_sess, kobj);
-+	if (!sysfs_streq(buf, "1")) {
-+		ibtrs_err(sess, "%s: unknown value: '%s'\n",
-+			  attr->attr.name, buf);
-+		return -EINVAL;
-+	}
-+	ret = ibtrs_clt_disconnect_from_sysfs(sess);
-+	if (unlikely(ret))
-+		return ret;
-+
-+	return count;
-+}
-+
-+static struct kobj_attribute ibtrs_clt_disconnect_attr =
-+	__ATTR(disconnect, 0644, ibtrs_clt_disconnect_show,
-+	       ibtrs_clt_disconnect_store);
-+
-+static ssize_t ibtrs_clt_remove_path_show(struct kobject *kobj,
-+					  struct kobj_attribute *attr,
-+					  char *page)
-+{
-+	return scnprintf(page, PAGE_SIZE, "Usage: echo 1 > %s\n",
-+			 attr->attr.name);
-+}
-+
-+static ssize_t ibtrs_clt_remove_path_store(struct kobject *kobj,
-+					   struct kobj_attribute *attr,
-+					   const char *buf, size_t count)
-+{
-+	struct ibtrs_clt_sess *sess;
-+	int ret;
-+
-+	sess = container_of(kobj, struct ibtrs_clt_sess, kobj);
-+	if (!sysfs_streq(buf, "1")) {
-+		ibtrs_err(sess, "%s: unknown value: '%s'\n",
-+			  attr->attr.name, buf);
-+		return -EINVAL;
-+	}
-+	ret = ibtrs_clt_remove_path_from_sysfs(sess, &attr->attr);
-+	if (unlikely(ret))
-+		return ret;
-+
-+	return count;
-+}
-+
-+static struct kobj_attribute ibtrs_clt_remove_path_attr =
-+	__ATTR(remove_path, 0644, ibtrs_clt_remove_path_show,
-+	       ibtrs_clt_remove_path_store);
-+
-+static ssize_t ibtrs_clt_add_path_show(struct kobject *kobj,
-+				       struct kobj_attribute *attr, char *page)
-+{
-+	return scnprintf(page, PAGE_SIZE, "Usage: echo"
-+			 " [<source addr>,]<destination addr> > %s\n\n"
-+			"*addr ::= [ ip:<ipv4|ipv6> | gid:<gid> ]\n",
-+			 attr->attr.name);
-+}
-+
-+static ssize_t ibtrs_clt_add_path_store(struct kobject *kobj,
-+					struct kobj_attribute *attr,
-+					const char *buf, size_t count)
-+{
-+	struct sockaddr_storage srcaddr, dstaddr;
-+	struct ibtrs_addr addr = {
-+		.src = (struct sockaddr *)&srcaddr,
-+		.dst = (struct sockaddr *)&dstaddr
-+	};
-+	struct ibtrs_clt *clt;
-+	const char *nl;
-+	size_t len;
-+	int err;
-+
-+	clt = container_of(kobj, struct ibtrs_clt, kobj);
-+
-+	nl = strchr(buf, '\n');
-+	if (nl)
-+		len = nl - buf;
-+	else
-+		len = count;
-+	err = ibtrs_addr_to_sockaddr(buf, len, clt->port, &addr);
-+	if (unlikely(err))
-+		return -EINVAL;
-+
-+	err = ibtrs_clt_create_path_from_sysfs(clt, &addr);
-+	if (unlikely(err))
-+		return err;
-+
-+	return count;
-+}
-+
-+static struct kobj_attribute ibtrs_clt_add_path_attr =
-+	__ATTR(add_path, 0644, ibtrs_clt_add_path_show,
-+	       ibtrs_clt_add_path_store);
-+
-+STAT_ATTR(struct ibtrs_clt_sess, cpu_migration,
-+	  ibtrs_clt_stats_migration_cnt_to_str,
-+	  ibtrs_clt_reset_cpu_migr_stats);
-+
-+STAT_ATTR(struct ibtrs_clt_sess, sg_entries,
-+	  ibtrs_clt_stats_sg_list_distr_to_str,
-+	  ibtrs_clt_reset_sg_list_distr_stats);
-+
-+STAT_ATTR(struct ibtrs_clt_sess, reconnects,
-+	  ibtrs_clt_stats_reconnects_to_str,
-+	  ibtrs_clt_reset_reconnects_stat);
-+
-+STAT_ATTR(struct ibtrs_clt_sess, rdma_lat,
-+	  ibtrs_clt_stats_rdma_lat_distr_to_str,
-+	  ibtrs_clt_reset_rdma_lat_distr_stats);
-+
-+STAT_ATTR(struct ibtrs_clt_sess, wc_completion,
-+	  ibtrs_clt_stats_wc_completion_to_str,
-+	  ibtrs_clt_reset_wc_comp_stats);
-+
-+STAT_ATTR(struct ibtrs_clt_sess, rdma,
-+	  ibtrs_clt_stats_rdma_to_str,
-+	  ibtrs_clt_reset_rdma_stats);
-+
-+STAT_ATTR(struct ibtrs_clt_sess, reset_all,
-+	  ibtrs_clt_reset_all_help,
-+	  ibtrs_clt_reset_all_stats);
-+
-+static struct attribute *ibtrs_clt_stats_attrs[] = {
-+	&sg_entries_attr.attr,
-+	&cpu_migration_attr.attr,
-+	&reconnects_attr.attr,
-+	&rdma_lat_attr.attr,
-+	&wc_completion_attr.attr,
-+	&rdma_attr.attr,
-+	&reset_all_attr.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group ibtrs_clt_stats_attr_group = {
-+	.attrs = ibtrs_clt_stats_attrs,
-+};
-+
-+static int ibtrs_clt_create_stats_files(struct kobject *kobj,
-+					struct kobject *kobj_stats)
-+{
-+	int ret;
-+
-+	ret = kobject_init_and_add(kobj_stats, &ktype, kobj, "stats");
-+	if (ret) {
-+		pr_err("Failed to init and add stats kobject, err: %d\n",
-+		       ret);
-+		return ret;
-+	}
-+
-+	ret = sysfs_create_group(kobj_stats, &ibtrs_clt_stats_attr_group);
-+	if (ret) {
-+		pr_err("failed to create stats sysfs group, err: %d\n",
-+		       ret);
-+		goto err;
-+	}
-+
-+	return 0;
-+
-+err:
-+	kobject_del(kobj_stats);
-+	kobject_put(kobj_stats);
-+
++	for (seg = 0; seg < nr; seg++)
++		ret += vec[seg].iov_len;
 +	return ret;
 +}
 +
-+static struct attribute *ibtrs_clt_sess_attrs[] = {
-+	&ibtrs_clt_state_attr.attr,
-+	&ibtrs_clt_reconnect_attr.attr,
-+	&ibtrs_clt_disconnect_attr.attr,
-+	&ibtrs_clt_remove_path_attr.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group ibtrs_clt_sess_attr_group = {
-+	.attrs = ibtrs_clt_sess_attrs,
-+};
-+
-+int ibtrs_clt_create_sess_files(struct ibtrs_clt_sess *sess)
++/**
++ * copy_from_kvec() - Copy kvec to the buffer.
++ */
++static inline void copy_from_kvec(void *data, const struct kvec *vec,
++				  size_t copy)
 +{
-+	struct ibtrs_clt *clt = sess->clt;
-+	char str[MAXHOSTNAMELEN];
-+	int err;
++	size_t seg, len;
 +
-+	sockaddr_to_str((struct sockaddr *)&sess->s.dst_addr, str, sizeof(str));
-+
-+	err = kobject_init_and_add(&sess->kobj, &ktype, &clt->kobj_paths,
-+				   "%s", str);
-+	if (unlikely(err)) {
-+		pr_err("kobject_init_and_add: %d\n", err);
-+		return err;
-+	}
-+	err = sysfs_create_group(&sess->kobj, &ibtrs_clt_sess_attr_group);
-+	if (unlikely(err)) {
-+		pr_err("sysfs_create_group(): %d\n", err);
-+		goto put_kobj;
-+	}
-+	err = ibtrs_clt_create_stats_files(&sess->kobj, &sess->kobj_stats);
-+	if (unlikely(err))
-+		goto put_kobj;
-+
-+	return 0;
-+
-+put_kobj:
-+	kobject_del(&sess->kobj);
-+	kobject_put(&sess->kobj);
-+
-+	return err;
-+}
-+
-+static void ibtrs_sysfs_remove_file_self(struct kobject *kobj,
-+					 const struct attribute *attr)
-+{
-+	struct device_attribute dattr = {
-+		.attr.name = attr->name
-+	};
-+	struct device *device;
-+
-+	/*
-+	 * Unfortunately original sysfs_remove_file_self() is not exported,
-+	 * so consider this as a hack to call self removal of a sysfs entry
-+	 * just using another "door".
-+	 */
-+
-+	device = container_of(kobj, typeof(*device), kobj);
-+	device_remove_file_self(device, &dattr);
-+}
-+
-+void ibtrs_clt_destroy_sess_files(struct ibtrs_clt_sess *sess,
-+				  const struct attribute *sysfs_self)
-+{
-+	if (sess->kobj.state_in_sysfs) {
-+		kobject_del(&sess->kobj_stats);
-+		kobject_put(&sess->kobj_stats);
-+		if (sysfs_self)
-+			/* To avoid deadlock firstly commit suicide */
-+			ibtrs_sysfs_remove_file_self(&sess->kobj, sysfs_self);
-+		kobject_del(&sess->kobj);
-+		kobject_put(&sess->kobj);
++	for (seg = 0; copy; seg++) {
++		len = min(vec[seg].iov_len, copy);
++		memcpy(data, vec[seg].iov_base, len);
++		data += len;
++		copy -= len;
 +	}
 +}
 +
-+static struct attribute *ibtrs_clt_attrs[] = {
-+	&ibtrs_clt_max_reconnect_attempts_attr.attr,
-+	&ibtrs_clt_mp_policy_attr.attr,
-+	&ibtrs_clt_add_path_attr.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group ibtrs_clt_attr_group = {
-+	.attrs = ibtrs_clt_attrs,
-+};
-+
-+int ibtrs_clt_create_sysfs_root_folders(struct ibtrs_clt *clt)
++static inline u32 ibtrs_to_imm(u32 type, u32 payload)
 +{
-+	int err;
-+
-+	err = kobject_init_and_add(&clt->kobj, &ktype, ibtrs_kobj,
-+				   "%s", clt->sessname);
-+	if (unlikely(err)) {
-+		pr_err("kobject_init_and_add(): %d\n", err);
-+		return err;
-+	}
-+	err = kobject_init_and_add(&clt->kobj_paths, &ktype,
-+				   &clt->kobj, "paths");
-+	if (unlikely(err)) {
-+		pr_err("kobject_init_and_add(): %d\n", err);
-+		goto put_kobj;
-+	}
-+
-+	return 0;
-+
-+put_kobj:
-+	kobject_del(&clt->kobj);
-+	kobject_put(&clt->kobj);
-+
-+	return err;
++	BUILD_BUG_ON(32 != MAX_IMM_PAYL_BITS + MAX_IMM_TYPE_BITS);
++	return ((type & MAX_IMM_TYPE_MASK) << MAX_IMM_PAYL_BITS) |
++		(payload & MAX_IMM_PAYL_MASK);
 +}
 +
-+int ibtrs_clt_create_sysfs_root_files(struct ibtrs_clt *clt)
++static inline void ibtrs_from_imm(u32 imm, u32 *type, u32 *payload)
 +{
-+	return sysfs_create_group(&clt->kobj, &ibtrs_clt_attr_group);
++	*payload = (imm & MAX_IMM_PAYL_MASK);
++	*type = (imm >> MAX_IMM_PAYL_BITS);
 +}
 +
-+void ibtrs_clt_destroy_sysfs_root_folders(struct ibtrs_clt *clt)
++static inline u32 ibtrs_to_io_req_imm(u32 addr)
 +{
-+	if (clt->kobj_paths.state_in_sysfs) {
-+		kobject_del(&clt->kobj_paths);
-+		kobject_put(&clt->kobj_paths);
-+	}
-+	if (clt->kobj.state_in_sysfs) {
-+		kobject_del(&clt->kobj);
-+		kobject_put(&clt->kobj);
-+	}
++	return ibtrs_to_imm(IBTRS_IO_REQ_IMM, addr);
 +}
 +
-+void ibtrs_clt_destroy_sysfs_root_files(struct ibtrs_clt *clt)
++static inline u32 ibtrs_to_io_rsp_imm(u32 msg_id, int errno)
 +{
-+	sysfs_remove_group(&clt->kobj, &ibtrs_clt_attr_group);
++	u32 payload;
++
++	/* 9 bits for errno, 19 bits for msg_id */
++	payload = (abs(errno) & 0x1ff) << 19 | (msg_id & 0x7ffff);
++	return ibtrs_to_imm(IBTRS_IO_RSP_IMM, payload);
 +}
 +
-+int ibtrs_clt_create_sysfs_module_files(void)
++static inline void ibtrs_from_io_rsp_imm(u32 payload, u32 *msg_id, int *errno)
 +{
-+	ibtrs_kobj = kobject_create_and_add(KBUILD_MODNAME, kernel_kobj);
-+	if (unlikely(!ibtrs_kobj))
-+		return -ENOMEM;
-+
-+	return 0;
++	/* 9 bits for errno, 19 bits for msg_id */
++	*msg_id = (payload & 0x7ffff);
++	*errno = -(int)((payload >> 19) & 0x1ff);
 +}
 +
-+void ibtrs_clt_destroy_sysfs_module_files(void)
-+{
-+	kobject_del(ibtrs_kobj);
-+	kobject_put(ibtrs_kobj);
++#define STAT_STORE_FUNC(type, store, reset)				\
++static ssize_t store##_store(struct kobject *kobj,			\
++			     struct kobj_attribute *attr,		\
++			     const char *buf, size_t count)		\
++{									\
++	int ret = -EINVAL;						\
++	type *sess = container_of(kobj, type, kobj_stats);		\
++									\
++	if (sysfs_streq(buf, "1"))					\
++		ret = reset(&sess->stats, true);			\
++	else if (sysfs_streq(buf, "0"))					\
++		ret = reset(&sess->stats, false);			\
++	if (ret)							\
++		return ret;						\
++									\
++	return count;							\
 +}
++
++#define STAT_SHOW_FUNC(type, show, print)				\
++static ssize_t show##_show(struct kobject *kobj,			\
++			   struct kobj_attribute *attr,			\
++			   char *page)					\
++{									\
++	type *sess = container_of(kobj, type, kobj_stats);		\
++									\
++	return print(&sess->stats, page, PAGE_SIZE);			\
++}
++
++#define STAT_ATTR(type, stat, print, reset)				\
++STAT_STORE_FUNC(type, stat, reset)					\
++STAT_SHOW_FUNC(type, stat, print)					\
++static struct kobj_attribute stat##_attr =				\
++		__ATTR(stat, 0644,					\
++		       stat##_show,					\
++		       stat##_store)
++
++#endif /* IBTRS_PRI_H */
 -- 
 2.13.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
