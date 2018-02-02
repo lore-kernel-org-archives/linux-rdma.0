@@ -1,55 +1,115 @@
-From: Bart Van Assche <Bart.VanAssche@wdc.com>
-Subject: Re: [PATCH 05/24] ibtrs: client: main functionality
-Date: Fri, 2 Feb 2018 16:54:34 +0000
-Message-ID: <1517590473.2675.21.camel@wdc.com>
-References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
-         <20180202140904.2017-6-roman.penyaev@profitbricks.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3] RDS: IB: Fix null pointer issue
+Date: Fri, 2 Feb 2018 18:57:06 +0200
+Message-ID: <20180202165706.GC27780@mtr-leonro.local>
+References: <1517569856-17673-1-git-send-email-guanglei.li@oracle.com>
+ <b525a22a-2193-7036-1f6d-01e59ca77362@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <20180202140904.2017-6-roman.penyaev@profitbricks.com>
-Content-Language: en-US
-Content-ID: <197E92E05182BA47B56175030351A408@namprd04.prod.outlook.com>
-Sender: linux-block-owner@vger.kernel.org
-To: "roman.penyaev@profitbricks.com" <roman.penyaev@profitbricks.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Cc: "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>, "hch@infradead.org" <hch@infradead.org>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "sagi@grimberg.me" <sagi@grimberg.me>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="H1spWtNR+x+ondvy"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <b525a22a-2193-7036-1f6d-01e59ca77362-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Guanglei Li <guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, honglei.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCAyMDE4LTAyLTAyIGF0IDE1OjA4ICswMTAwLCBSb21hbiBQZW4gd3JvdGU6DQo+ICtz
-dGF0aWMgaW5saW5lIHN0cnVjdCBpYnRyc190YWcgKg0KPiArX19pYnRyc19nZXRfdGFnKHN0cnVj
-dCBpYnRyc19jbHQgKmNsdCwgZW51bSBpYnRyc19jbHRfY29uX3R5cGUgY29uX3R5cGUpDQo+ICt7
-DQo+ICsJc2l6ZV90IG1heF9kZXB0aCA9IGNsdC0+cXVldWVfZGVwdGg7DQo+ICsJc3RydWN0IGli
-dHJzX3RhZyAqdGFnOw0KPiArCWludCBjcHUsIGJpdDsNCj4gKw0KPiArCWNwdSA9IGdldF9jcHUo
-KTsNCj4gKwlkbyB7DQo+ICsJCWJpdCA9IGZpbmRfZmlyc3RfemVyb19iaXQoY2x0LT50YWdzX21h
-cCwgbWF4X2RlcHRoKTsNCj4gKwkJaWYgKHVubGlrZWx5KGJpdCA+PSBtYXhfZGVwdGgpKSB7DQo+
-ICsJCQlwdXRfY3B1KCk7DQo+ICsJCQlyZXR1cm4gTlVMTDsNCj4gKwkJfQ0KPiArDQo+ICsJfSB3
-aGlsZSAodW5saWtlbHkodGVzdF9hbmRfc2V0X2JpdF9sb2NrKGJpdCwgY2x0LT50YWdzX21hcCkp
-KTsNCj4gKwlwdXRfY3B1KCk7DQo+ICsNCj4gKwl0YWcgPSBHRVRfVEFHKGNsdCwgYml0KTsNCj4g
-KwlXQVJOX09OKHRhZy0+bWVtX2lkICE9IGJpdCk7DQo+ICsJdGFnLT5jcHVfaWQgPSBjcHU7DQo+
-ICsJdGFnLT5jb25fdHlwZSA9IGNvbl90eXBlOw0KPiArDQo+ICsJcmV0dXJuIHRhZzsNCj4gK30N
-Cj4gKw0KPiArc3RhdGljIGlubGluZSB2b2lkIF9faWJ0cnNfcHV0X3RhZyhzdHJ1Y3QgaWJ0cnNf
-Y2x0ICpjbHQsDQo+ICsJCQkJICAgc3RydWN0IGlidHJzX3RhZyAqdGFnKQ0KPiArew0KPiArCWNs
-ZWFyX2JpdF91bmxvY2sodGFnLT5tZW1faWQsIGNsdC0+dGFnc19tYXApOw0KPiArfQ0KPiArDQo+
-ICtzdHJ1Y3QgaWJ0cnNfdGFnICppYnRyc19jbHRfZ2V0X3RhZyhzdHJ1Y3QgaWJ0cnNfY2x0ICpj
-bHQsDQo+ICsJCQkJICAgIGVudW0gaWJ0cnNfY2x0X2Nvbl90eXBlIGNvbl90eXBlLA0KPiArCQkJ
-CSAgICBpbnQgY2FuX3dhaXQpDQo+ICt7DQo+ICsJc3RydWN0IGlidHJzX3RhZyAqdGFnOw0KPiAr
-CURFRklORV9XQUlUKHdhaXQpOw0KPiArDQo+ICsJdGFnID0gX19pYnRyc19nZXRfdGFnKGNsdCwg
-Y29uX3R5cGUpOw0KPiArCWlmIChsaWtlbHkodGFnKSB8fCAhY2FuX3dhaXQpDQo+ICsJCXJldHVy
-biB0YWc7DQo+ICsNCj4gKwlkbyB7DQo+ICsJCXByZXBhcmVfdG9fd2FpdCgmY2x0LT50YWdzX3dh
-aXQsICZ3YWl0LCBUQVNLX1VOSU5URVJSVVBUSUJMRSk7DQo+ICsJCXRhZyA9IF9faWJ0cnNfZ2V0
-X3RhZyhjbHQsIGNvbl90eXBlKTsNCj4gKwkJaWYgKGxpa2VseSh0YWcpKQ0KPiArCQkJYnJlYWs7
-DQo+ICsNCj4gKwkJaW9fc2NoZWR1bGUoKTsNCj4gKwl9IHdoaWxlICgxKTsNCj4gKw0KPiArCWZp
-bmlzaF93YWl0KCZjbHQtPnRhZ3Nfd2FpdCwgJndhaXQpOw0KPiArDQo+ICsJcmV0dXJuIHRhZzsN
-Cj4gK30NCj4gK0VYUE9SVF9TWU1CT0woaWJ0cnNfY2x0X2dldF90YWcpOw0KPiArDQo+ICt2b2lk
-IGlidHJzX2NsdF9wdXRfdGFnKHN0cnVjdCBpYnRyc19jbHQgKmNsdCwgc3RydWN0IGlidHJzX3Rh
-ZyAqdGFnKQ0KPiArew0KPiArCWlmIChXQVJOX09OKCF0ZXN0X2JpdCh0YWctPm1lbV9pZCwgY2x0
-LT50YWdzX21hcCkpKQ0KPiArCQlyZXR1cm47DQo+ICsNCj4gKwlfX2lidHJzX3B1dF90YWcoY2x0
-LCB0YWcpOw0KPiArDQo+ICsJLyoNCj4gKwkgKiBQdXR0aW5nIGEgdGFnIGlzIGEgYmFycmllciwg
-c28gd2Ugd2lsbCBvYnNlcnZlDQo+ICsJICogbmV3IGVudHJ5IGluIHRoZSB3YWl0IGxpc3QsIG5v
-IHdvcnJpZXMuDQo+ICsJICovDQo+ICsJaWYgKHdhaXRxdWV1ZV9hY3RpdmUoJmNsdC0+dGFnc193
-YWl0KSkNCj4gKwkJd2FrZV91cCgmY2x0LT50YWdzX3dhaXQpOw0KPiArfQ0KPiArRVhQT1JUX1NZ
-TUJPTChpYnRyc19jbHRfcHV0X3RhZyk7DQoNCkRvIHRoZXNlIGZ1bmN0aW9ucyBoYXZlIGFueSBh
-ZHZhbnRhZ2Ugb3ZlciB0aGUgY29kZSBpbiBsaWIvc2JpdG1hcC5jPyBJZiBub3QsDQpwbGVhc2Ug
-Y2FsbCB0aGUgc2JpdG1hcCBmdW5jdGlvbnMgaW5zdGVhZCBvZiBhZGRpbmcgYW4gYWRkaXRpb25h
-bCB0YWcgYWxsb2NhdG9yLg0KDQpUaGFua3MsDQoNCkJhcnQu
+
+--H1spWtNR+x+ondvy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Feb 02, 2018 at 08:15:22AM -0800, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org wrote:
+> On 2/2/18 3:10 AM, Guanglei Li wrote:
+> > Scenario:
+> > 1. Port down and do fail over
+> > 2. Ap do rds_bind syscall
+> >
+> > PID: 47039  TASK: ffff89887e2fe640  CPU: 47  COMMAND: "kworker/u:6"
+> >   #0 [ffff898e35f159f0] machine_kexec at ffffffff8103abf9
+> >   #1 [ffff898e35f15a60] crash_kexec at ffffffff810b96e3
+> >   #2 [ffff898e35f15b30] oops_end at ffffffff8150f518
+> >   #3 [ffff898e35f15b60] no_context at ffffffff8104854c
+> >   #4 [ffff898e35f15ba0] __bad_area_nosemaphore at ffffffff81048675
+> >   #5 [ffff898e35f15bf0] bad_area_nosemaphore at ffffffff810487d3
+> >   #6 [ffff898e35f15c00] do_page_fault at ffffffff815120b8
+> >   #7 [ffff898e35f15d10] page_fault at ffffffff8150ea95
+> >      [exception RIP: unknown or invalid address]
+> >      RIP: 0000000000000000  RSP: ffff898e35f15dc8  RFLAGS: 00010282
+> >      RAX: 00000000fffffffe  RBX: ffff889b77f6fc00  RCX:ffffffff81c99d88
+> >      RDX: 0000000000000000  RSI: ffff896019ee08e8  RDI:ffff889b77f6fc00
+> >      RBP: ffff898e35f15df0   R8: ffff896019ee08c8  R9:0000000000000000
+> >      R10: 0000000000000400  R11: 0000000000000000  R12:ffff896019ee08c0
+> >      R13: ffff889b77f6fe68  R14: ffffffff81c99d80  R15: ffffffffa022a1e0
+> >      ORIG_RAX: ffffffffffffffff  CS: 0010 SS: 0018
+> >   #8 [ffff898e35f15dc8] cma_ndev_work_handler at ffffffffa022a228 [rdma_cm]
+> >   #9 [ffff898e35f15df8] process_one_work at ffffffff8108a7c6
+> >   #10 [ffff898e35f15e58] worker_thread at ffffffff8108bda0
+> >   #11 [ffff898e35f15ee8] kthread at ffffffff81090fe6
+> >
+> > PID: 45659  TASK: ffff880d313d2500  CPU: 31  COMMAND: "oracle_45659_ap"
+> >   #0 [ffff881024ccfc98] __schedule at ffffffff8150bac4
+> >   #1 [ffff881024ccfd40] schedule at ffffffff8150c2cf
+> >   #2 [ffff881024ccfd50] __mutex_lock_slowpath at ffffffff8150cee7
+> >   #3 [ffff881024ccfdc0] mutex_lock at ffffffff8150cdeb
+> >   #4 [ffff881024ccfde0] rdma_destroy_id at ffffffffa022a027 [rdma_cm]
+> >   #5 [ffff881024ccfe10] rds_ib_laddr_check at ffffffffa0357857 [rds_rdma]
+> >   #6 [ffff881024ccfe50] rds_trans_get_preferred at ffffffffa0324c2a [rds]
+> >   #7 [ffff881024ccfe80] rds_bind at ffffffffa031d690 [rds]
+> >   #8 [ffff881024ccfeb0] sys_bind at ffffffff8142a670
+> >
+> > PID: 45659                          PID: 47039
+> > rds_ib_laddr_check
+> >    /* create id_priv with a null event_handler */
+> >    rdma_create_id
+> >    rdma_bind_addr
+> >      cma_acquire_dev
+> >        /* add id_priv to cma_dev->id_list */
+> >        cma_attach_to_dev
+> >                                      cma_ndev_work_handler
+> >                                        /* event_hanlder is null */
+> >                                        id_priv->id.event_handler
+> >
+> > Signed-off-by: Guanglei Li <guanglei.li-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Honglei Wang <honglei.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by: Yanjun Zhu <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> >   net/rds/ib.c | 3 ++-
+> >   1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> Patch looks fine. You should send the patch on netdev.
+> Please repost it copying netdev.
+>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>
+
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+--H1spWtNR+x+ondvy
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlp0mGIACgkQ5GN7iDZy
+WKd6sRAAv96aTLCp7bXDy9fRlLVq6ID3ilU+97qEQyC1HHJCda1y222bzbh4JhRp
+HdDUIU+iTSzW/6Di6da6cGFVIRYthoyeehfewsbGhqrIgicWlzCwEyReWVp4/Q4X
+EniCSK/JgM06tNAa0Z9vdx/aDK+MR2+tvFuHxSOqz5xrOZ/A11yfYVJEkkr0OZYM
+lVbFNqeLm6aLKg1ev3rDnc8P9Jt6u+830YBR4Ypdr5PN/ekgWTIJmPxEUikEEHFj
+op40CmI24JL6LiUtJG33PL0HZtAYm6WgpPmmeN/1TXhtY4N+i637lA+JHJZCROKz
+3TSCgJmm79MpUxOM/+2J8DfK+CoJpZj4W/iBR8Rxy4BcXyy3tO+rqMe1OrE7x8U1
+BGV3cH5vADCkzMCpo7H4SY6YaQt7AH06YmGqn0YAsQU/5nepRnLfq1z7z34Vbrbr
+DMKjkfyTx5R7H930eei+R/e53EnCATqgWZ6BRhFQP6gfSNMBb6qEFL7vgLm4ZGu0
+HaEseItxGCwQX2QnEQ0XjBu69Yf8un1AIUs+PPREa+M+Px6juxpgpWjlPyQjpxSk
+Ffq2g7En7iUK41hdvJzNKHc63umcM+vQJC990qAQDWm5kET6K1eaAwew3SWZJOe5
+OlwnKhZKcVNbzuVveS+J5i6eDnHNTCqDj/X4b4GW7ePB5SB2sC0=
+=pNNL
+-----END PGP SIGNATURE-----
+
+--H1spWtNR+x+ondvy--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
