@@ -1,64 +1,103 @@
-From: Aishwarya Pant <aishpant-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] Documentation/ABI: update infiniband sysfs interfaces
-Date: Fri, 2 Feb 2018 13:56:59 +0530
-Message-ID: <20180202082659.GA1458@mordor.localdomain>
-References: <20180201133233.GA21266@mordor.localdomain>
- <20180201220811.GA17053@ziepe.ca>
+From: Stefan Metzmacher <metze-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Subject: Re: Work in progress SMB-Direct driver for the linux kernel
+Date: Fri, 2 Feb 2018 10:25:23 +0100
+Message-ID: <2f684247-04ec-1c0f-8153-9b6f8d45f265@samba.org>
+References: <959c3608-c508-17c4-bad6-fd9421a4a235@samba.org>
+ <20180201175247.GT17053@ziepe.ca>
+ <CACyXjPyKcLktNqEdBbicSd=3GU7R9BeE-=Dcc2DyCh2sH9wxMg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180201220811.GA17053-uk2M96/98Pc@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="Gr1Dy61ntJfrIWOxHVDW8uol6SM5q11TK"
+Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CACyXjPyKcLktNqEdBbicSd=3GU7R9BeE-=Dcc2DyCh2sH9wxMg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Richard Sharpe <realrichardsharpe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Samba Technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, Steve French <smfrench-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Disseldorp <ddiss-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 01, 2018 at 03:08:11PM -0700, Jason Gunthorpe wrote:
-> On Thu, Feb 01, 2018 at 07:02:33PM +0530, Aishwarya Pant wrote:
-> > Add documentation for core and hardware specific infiniband interfaces.
-> > The descriptions have been collected from git commit logs, reading
-> > through code and data sheets. Some drivers have incomplete doc and are
-> > annotated with the comment '[to be documented]'.
-> > 
-> > Signed-off-by: Aishwarya Pant <aishpant-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> >  Documentation/ABI/testing/sysfs-class-infiniband | 755 +++++++++++++++++++++++
-> >  1 file changed, 755 insertions(+)
-> 
-> Wow this looks really great
-> 
-> Should this patch delete some of the old documentation?
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--Gr1Dy61ntJfrIWOxHVDW8uol6SM5q11TK
+Content-Type: multipart/mixed; boundary="hMQbRiL1uCXWwjo0MHd0U4sQmWNePnsfT";
+ protected-headers="v1"
+From: Stefan Metzmacher <metze-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+To: Richard Sharpe <realrichardsharpe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
+ Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ Samba Technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>,
+ Steve French <smfrench-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Disseldorp <ddiss-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Message-ID: <2f684247-04ec-1c0f-8153-9b6f8d45f265-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Subject: Re: Work in progress SMB-Direct driver for the linux kernel
+References: <959c3608-c508-17c4-bad6-fd9421a4a235-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+ <20180201175247.GT17053-uk2M96/98Pc@public.gmane.org>
+ <CACyXjPyKcLktNqEdBbicSd=3GU7R9BeE-=Dcc2DyCh2sH9wxMg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CACyXjPyKcLktNqEdBbicSd=3GU7R9BeE-=Dcc2DyCh2sH9wxMg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 
-Yeah, I should do that because the documentation in
-Documentation/infiniband/sysfs.txt is out of date.
+--hMQbRiL1uCXWwjo0MHd0U4sQmWNePnsfT
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> > diff --git a/Documentation/ABI/testing/sysfs-class-infiniband b/Documentation/ABI/testing/sysfs-class-infiniband
-> 
-> Lots, maybe even all of of this is considered stable..
+Hi Jason,
 
-Okay, I guess it should belong to the stable directory then.
+>>> The first goal is to provide a socket fd to userspace (or in kernel
+>>> consumers)
+>>> which provides semantics like a TCP socket which is used as transport=
 
-> 
-> > +sysfs interface for Broadcom NetXtreme-E RoCE driver
-> > +----------------------------------------------------
-> > +
-> > +What:		/sys/class/infiniband/bnxt_reX/fw_rev
-> > +What:		/sys/class/infiniband/bnxt_reX/hw_rev
-> > +What:		/sys/class/infiniband/bnxt_reX/hca_type
-> 
-> These are actually common to all drivers
-> 
->  /sys/class/infiniband/XXX/fw_rev, etc
+>>> for SMB3. Basically frames are submitted with a 4 byte length header.=
 
-Would make sense to define these at one place- hw_rev, hca_type, board_id are
-common to a lot of the drivers.
+>>
+>> Part of the point of RDMA is that we don't need to make protocol
+>> specific kernel modules like this - is there a specific reason this
+>> needs to be in the kernel like this?
+>=20
+> If I had to guess it would be because Samba currently uses a fork
+> model ... it might be years before it gets to a completely threaded
+> model.
 
-Aishwarya
+Yes, and it also means that our client and server code only need
+minimal changes in order to work in the same way it would work
+over tcp.
 
-> 
-> Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Only the RDMA read and writes need some more work, but I have
+some ideas where the userspace gives the kernel an fd, offset and length
+plus a remove memory descriptor as ioctl on the connection fd. Then the
+kernel can get the content from the filesystem and directly pass it to
+the rdma adapter, avoiding the copy from kernel to userspace and back.
+=46rom userspace we'll just wait in the syscall and don't have to care
+about memory registrations and all other complex stuff.
+
+It also happens that smbd sometimes blocks in syscalls like unlink for
+a long time. It's good to have the kernel as 2nd entity that takes care
+of keepalives.
+
+metze
+
+
+--hMQbRiL1uCXWwjo0MHd0U4sQmWNePnsfT--
+
+--Gr1Dy61ntJfrIWOxHVDW8uol6SM5q11TK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJadC6GAAoJEA219WEoab1WmNkP/idbxki/iqvPOWqAjX89zjqe
+Jsxe2WJ8G/vlXANFatcGs2TFakMiCrdcxzXzAHyKt0uWQozIC400VOg8mZArhbpb
+/mU4JK7dl2KOMDihtYDez+Ktshc0xIrDZyXhVRx0ADxCQ8GKOAod9DeYa3OqfY+v
+CumwMy9DSStVBysNd3glNbQ8HISrn109a01Zi/Si2krVb5GAIz4AnMQLFBksiJa4
++e2YikdJK7rE0DVv/ZZldUS6UjYoWuKzWwvKKAaLEoDOFizosnZGG1K6Yd/6ESXD
+Qt/8k4+E56IPy415xzvxnUYXnoM7XuMNP/utTIiyF26h+g/hX1obT9auxtIwE5bg
+MC9Xm8FzFJx7qIV2B4pBEePjdT79sRtjEZ1FwBF8R4aIZaWqLPuuEPnq3sjB6dtE
+Z9+SGv2ALlqn5Bvn8teN2rTCzHP+MAV4lgLnq/AaBzANEgpiIHCwbOenxd8n9D3w
+KaLilZOwl8dX8y7zueC/ymQ0pi1SOeDEWlDxpGGREPhUBh5MBnt0R22c3nPC2TpK
+Ok2sO++1LmiQ1XdGiv6ddlp3ZEoEUHOZ4/MqsrZu1UzTr8Bd8Il3i9kbIbPisgEB
+0mPK4NApM43yaCfW2EPVyEEWWMG/gRYt47u73tVlYl7Hi0MUL4LZH6ZbnSp05YB6
+dzy1DHnT94Kzeq6qd3OK
+=ACIc
+-----END PGP SIGNATURE-----
+
+--Gr1Dy61ntJfrIWOxHVDW8uol6SM5q11TK--
