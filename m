@@ -1,19 +1,96 @@
-From: "La Caixa Investment" <yuhefizar-dFcGOvKyb4y0H2GgtxDY1g@public.gmane.org>
-Subject: Achtung Herr / Frau !!
-Date: Fri, 02 Feb 2018 17:18:21 -0800
-Message-ID: <20180203003557.C52D134F35F2__14004.9514746808$1517624989$gmane$org@mail.polinpdg.ac.id>
-Reply-To: lacaixai-YDxpq3io04c@public.gmane.org
+From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] net: mlx5: remove pointless memcpy
+Date: Fri, 2 Feb 2018 20:38:46 -0800
+Message-ID: <99c7fe90-824e-b32a-295b-b7cac3370801@mellanox.com>
+References: <20180202154636.1624079-1-arnd@arndb.de>
+ <20180202190600.GD9080@ziepe.ca>
+ <CAK8P3a2gi4EC+0tEzoRQ9ojscmXgddrmgwtB=TfQKriszPVaLA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
+In-Reply-To: <CAK8P3a2gi4EC+0tEzoRQ9ojscmXgddrmgwtB=TfQKriszPVaLA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <yuhefizar-dFcGOvKyb4y0H2GgtxDY1g@public.gmane.org>
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Networking <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Wir bieten derzeit Darlehen in H=F6he von 3% pro Jahr f=FCr jeden Teil der =
-Welt an. Antworte zur=FCck f=FCr mehr Details.
+
+
+On 02/02/2018 12:26 PM, Arnd Bergmann wrote:
+> On Fri, Feb 2, 2018 at 8:06 PM, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> On Fri, Feb 02, 2018 at 04:46:30PM +0100, Arnd Bergmann wrote:
+>>> gcc-8 notices that the memcpy in mlx5_core_query_xsrq() makes no
+>>> sense because the source and destination variables are identical:
+>>>
+>>> drivers/net/ethernet/mellanox/mlx5/core/transobj.c: In function 'mlx5_core_query_xsrq':
+>>> drivers/net/ethernet/mellanox/mlx5/core/transobj.c:347:3: error: 'memcpy' source argument is the same as destination [-Werror=restrict]
+>>>
+>>> Either one of the pointers should be something else, or the code is
+>>> completely bogus. Removing the memcpy() won't change the behavior
+>>> but gets rid of the warning.
+>>>
+>>> Fixes: 01949d0109ee ("net/mlx5_core: Enable XRCs and SRQs when using ISSI > 0")
+>>> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+>>> Please review carefully, I have no idea what the author actually
+>>> intended here.
+>>
+>> I think they intended to adjust the command return between
+>> mlx5_ifc_query_srq_out_bits and mlx5_ifc_query_xrc_srq_out_bits?
+>>
+>>> index 9e38343a951f..75450f7d53bf 100644
+>>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
+>>> @@ -332,20 +332,12 @@ int mlx5_core_destroy_xsrq(struct mlx5_core_dev *dev, u32 xsrqn)
+>>>  int mlx5_core_query_xsrq(struct mlx5_core_dev *dev, u32 xsrqn, u32 *out)
+>>>  {
+>>>       u32 in[MLX5_ST_SZ_DW(query_xrc_srq_in)] = {0};
+>>> -     void *srqc;
+>>> -     void *xrc_srqc;
+>>>       int err;
+>>>
+>>>       MLX5_SET(query_xrc_srq_in, in, opcode,   MLX5_CMD_OP_QUERY_XRC_SRQ);
+>>>       MLX5_SET(query_xrc_srq_in, in, xrc_srqn, xsrqn);
+>>>       err = mlx5_cmd_exec(dev, in, sizeof(in), out,
+>>>                           MLX5_ST_SZ_BYTES(query_xrc_srq_out));
+>>> -     if (!err) {
+>>> -             xrc_srqc = MLX5_ADDR_OF(query_xrc_srq_out, out,
+>>> -                                     xrc_srq_context_entry);
+>>> -             srqc = MLX5_ADDR_OF(query_srq_out, out, srq_context_entry);
+>>> -             memcpy(srqc, xrc_srqc, MLX5_ST_SZ_BYTES(srqc));
+>>> -     }
+
+OMG!
+
+>>
+>> Probably should add a
+>>
+>> BUILD_BUG_ON(MLX5_BYTE_OFF(query_xrc_srq_out, xrc_srq_context_entry) == MLX5_BYTE_OFF(query_srq_out, srq_context_entry));
+>>
+>> Just for clarity that the SRQ and XRC_SRQ are being used interchangeably.
+>>
+>> and the 'err' variable can be eliminated.
+>>
+>> Curious though that I can't find a call site for it, and removing the
+>> prototype doesn't break the build.. Seems like dead code.
+> 
+> I checked the git history and don't see any user ever added after the function
+> first showed up in the kernel, same for a couple of other functions from
+> commit 01949d0109ee ("net/mlx5_core: Enable XRCs and SRQs when
+> using ISSI > 0").
+> 
+> Can you come up with a proper patch for this isse, either removing the
+> dead code, or fixing it appropriately? You clearly understand what this
+> file is about, and I don't ;-)
+
+Simply this is just pointless dead code, will remove it, there is no point of trying to
+figure out what the author was thinking the day he wrote that patch :)
+
+Thank you Arnd for spotting this.
+
+> 
+>       Arnd
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
