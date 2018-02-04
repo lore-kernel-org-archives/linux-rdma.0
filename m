@@ -1,26 +1,25 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/uverbs: Use the standard kConfig format for
- experimental
-Date: Sun, 04 Feb 2018 11:58:50 -0500
-Message-ID: <1517763530.3936.42.camel@redhat.com>
-References: <20180202214003.GA28856@ziepe.ca>
+Subject: Re: [PATCH] IB: Update references to libibverbs
+Date: Sun, 04 Feb 2018 11:59:05 -0500
+Message-ID: <1517763545.3936.43.camel@redhat.com>
+References: <20180202213529.GA28581@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-fC/7BF7ZaRVUfBzeysmw"
+        protocol="application/pgp-signature"; boundary="=-QKVXDhQNhKALpaaVGJ4q"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180202214003.GA28856-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20180202213529.GA28581-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-fC/7BF7ZaRVUfBzeysmw
+--=-QKVXDhQNhKALpaaVGJ4q
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2018-02-02 at 14:40 -0700, Jason Gunthorpe wrote:
-> We really don't want people turning this on just yet, make it very
-> clear with capital letters.
+On Fri, 2018-02-02 at 14:35 -0700, Jason Gunthorpe wrote:
+> These days the userspace comes from rdma-core, revise references
+> in the kernel to point to the current repository.
 >=20
 > Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
@@ -30,29 +29,29 @@ Thanks, applied.
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-fC/7BF7ZaRVUfBzeysmw
+--=-QKVXDhQNhKALpaaVGJ4q
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlp3O8oACgkQuCajMw5X
-L92t0w/7BIriGmiW59NgQnVnnBrXFrQdCw3VJ5hzyj1FeAqSWI/OJWMqJPKSGIsU
-J+nuRQNkknt+Efq1p0cjymZ1L2UFamjUXsDMVYDoVgr0IXO37SHvksDlYpDGWp1M
-obcEfpBOxWT8+ru8IVS0auJr8QRc2BuOM+iZaP36iabqwv7cE0XxzNh00jwlPZJs
-RL+DmzV8ht1OEgUbXV6eVzBT04fI/oETC9PbX4WcjEF6gxQI5eKSyqPHWFja9xs1
-B2/oDQ8GDDguILxv/DP7pC7WhHGkKfkPpbz+Dgvqz93SSJ7mppPBghOR/aMWXc9G
-SZn3ih5QUViFmFnYphzHWxnsxD6oBBq9GjojSYi5SaBxVAaXPQOKO9w0BG1q+6/T
-26aKEFsq7sm6188hDZ7BsQyYXaqKOJfM0pKW+E3ThhXn4FBuCYRckHeBYqIMAVp5
-B+FifVSoPKdiJ6GFSiCl39v+/Zth99veSAc1TWu7NcS4aOoOEyJphg3s7ELPWEfv
-4+HOQMkP3i/kf2qbUf27tJkk8nYNYWk0SMgk2efaZvDtPUhuqzLthebbB5iY4+iy
-GTQC4DROJXEMMPUwPU2BFwEeHie6YFQOku91X/tXOEaO9EC/Ifi0doH5sz2r1vvV
-0DEns0m3kMW3G3M39lHQiIWS9No2mh5YrBT+XUqTiQ5OWw4ks+Q=
-=9bn5
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlp3O9kACgkQuCajMw5X
+L91BtBAAnVP9CXYrubqaOKC924nMSePpl7mbPBSHnaVB2PNZ0ruB0kRhlmUcBl1r
+kXVZti78/a/ZORqeLPqUTU0H0yQDeD/aohAeqyb+ofWPD5Nw8vclD2yJCmmA8HB9
+BQ9r7HaNwSjxmfkPXpDKHMd0bdqiIZN7H6bzhSmWo+wVWGrSs/uuthyPKjiZE71j
+lPxx8TEKZUOmvYt3cc7uoeCGEhb3eGYM85g322Q1wp/58IINbGOdQJ4H2108woIw
+OcE1PR7glbOQStpAptvwPgJHGnMufmlvaZpkQfAmub2jKgAqK+bb4xBYvuvyRftQ
+pYmgqfCQCEdTJrA1ZAeJ16XmBE8dV5UNq2FeXIcHloYBiSBVdI9yexvM+UavR/nZ
+0Mcl4Gh3WiwWHqpvwoHtu5NQ79CN/obCSgctftT/RQk7CQCSZbPGb0Sj1kDKgu2d
+LM9YdlQItcEJj1hfHlzag7rVdNMwIFJh8C6VlRFff63mywl5BOJPAa2XT7vEHMr0
+CD30urcPTIMizoCSjrvUfiTqj2MjwqQHi+qgHybzzIuL38JalHUWVR6yvHs3uAF6
+PSH88jFcBrQf/aakeXoGcfUIb36XtTGle7ocGUZBOMrGqxx6RCxGKp8ArMAe9Wdi
+Y/7lxfuqjBPkSKLI5KOUAw6TWpjJsTSWhHtLXovReIP7lhySwRQ=
+=ZdFu
 -----END PGP SIGNATURE-----
 
---=-fC/7BF7ZaRVUfBzeysmw--
+--=-QKVXDhQNhKALpaaVGJ4q--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
