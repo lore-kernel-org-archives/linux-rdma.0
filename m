@@ -1,76 +1,60 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Regression: Connect-X5 doesn't connect with NVME-of
-Date: Sun, 4 Feb 2018 00:46:09 +0200
-Message-ID: <f16d45d1-f20c-253c-87ef-5d396804641b@mellanox.com>
-References: <66a5332c-01ee-7a39-8224-189fa52a7298@deltatee.com>
- <e6cdfbe7-762c-c70c-be5f-397bdb08ee80@mellanox.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] IB: Update references to libibverbs
+Date: Sun, 4 Feb 2018 11:11:48 +0200
+Message-ID: <20180204091148.GE27780@mtr-leonro.local>
+References: <20180202213529.GA28581@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="/Uq4LBwYP4y1W6pO"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e6cdfbe7-762c-c70c-be5f-397bdb08ee80-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: he
+Content-Disposition: inline
+In-Reply-To: <20180202213529.GA28581-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Logan,
 
-On 2/3/2018 6:53 AM, Saeed Mahameed wrote:
-> 
-> 
-> On 02/01/2018 09:56 AM, Logan Gunthorpe wrote:
->> Hello,
->>
->> We've experienced a regression with using nvme-of and two Connect-X5s. With v4.15 and v4.14.16 we see the following dmesgs when trying to connect to the target:
+--/Uq4LBwYP4y1W6pO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I would like to repro it in our labs so please describe the environment 
-and the topology you run (B2B/switch/loopback ?)
+On Fri, Feb 02, 2018 at 02:35:29PM -0700, Jason Gunthorpe wrote:
+> These days the userspace comes from rdma-core, revise references
+> in the kernel to point to the current repository.
+>
+> Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  Documentation/infiniband/user_verbs.txt | 2 +-
+>  MAINTAINERS                             | 2 +-
+>  drivers/infiniband/Kconfig              | 5 +++--
+>  3 files changed, 5 insertions(+), 4 deletions(-)
+>
 
->>
->>> [   43.732539] nvme nvme2: creating 16 I/O queues.
->>> [   44.072427] nvmet: adding queue 1 to ctrl 1.
->>> [   44.072553] nvmet: adding queue 2 to ctrl 1.
->>> [   44.072597] nvme nvme2: Connect command failed, error wo/DNR bit: -16402
->>> [   44.072609] nvme nvme2: failed to connect queue: 3 ret=-18
->>> [   44.075421] nvmet_rdma: freeing queue 2
->>> [   44.075792] nvmet_rdma: freeing queue 1
->>> [   44.264293] nvmet_rdma: freeing queue 3
->>> *snip*
->>
->> (on v4.15 there is additional error panics likely do to some other nvme-of error handling bugs)
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I fixed the panic during connect error flow by fixing the state machine 
-in the NVME core.
-It should be pushed to 4.16-rc and I hope to 4.15.x soon.
+--/Uq4LBwYP4y1W6pO
+Content-Type: application/pgp-signature; name="signature.asc"
 
->>
->> And nvme connect returns:
->>
->>> Failed to write to /dev/nvme-fabrics: Invalid cross-device link
->>
->> The two adapters are the same with the latest available firmware:
->>
->>>      transport:            InfiniBand (0)
->>>      fw_ver:                16.21.2010
->>>      vendor_id:            0x02c9
->>>      vendor_part_id:            4119
->>>      hw_ver:                0x0
->>>      board_id:            MT_0000000010
->>
->> We bisected to find the commit that broke our setup is:
->>
->> 05e0cc84e00c net/mlx5: Fix get vector affinity helper function
-> 
-> I doubt that the issue is within this fix itself, but with this fix the Automatic affinity settings
-> for nvme over rdma is enabled, Maybe a bug was hiding there and we just stepped on it.
-> 
-> Added Sagi, maybe he can help us spot the issue here.
-> 
-> Thanks,
-> saeed.
-> 
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlp2zlQACgkQ5GN7iDZy
+WKdwWQ//W+dUI+nBGzWYqZZA0TWYcPQxvwr/IOuoGggl226S9kNhP+0Lrq8QoWC5
+RzRsJgJzII+44B9MMYfuvHNzEFSXWjqy1lj/T2BuhoA8sJIkGB0y8gXbELISeFyJ
+5vhvkdDFchUdJvD+F8qW4WnvNrxq0QjwtCNExq/bq18kGtgPCEjpCaoFdD5lRMLT
+5wSuIc6ErVZEvXJLnf2rDaSutal2bVOhCEwbcUud0ej3zKGEYuSna4E0/7VmDkZZ
+IuPIUhSnD9g4ozrpYJoqAgOV58W2n8+hk6wwG3mipxmUsdOt50RfQ3JKmVPaZMqD
+vWDOd/HLvV/ZFNCDeSncuX+32sS9qFNVpja48w/6bHd6ahCbjmDJNMfuNMJSQ5qj
+K9sD99s/FVHIytx/xw2aPNNiXdYDSfjxyHX4Ff2EXr7MHC8J63FVisczs9+sme8+
+864/t6zeXKOqPT0+ey7qAJh94WSdfsUMNDfjDhnXeSeoCaONDWyiFYD74tth9H0X
+JtHPAPz6uW6C64U4PomrpnSWHq/Z1VzRJrO4Lq5UHk1pyIix3lZnc7/ByALKu+B7
+z74wrv/yKz2VREtwhoTyrTfSrYhHqTGevnDZNJoSlIFfYogT0ASewtHuYrD77jbP
+Q1qLZxs8BmnSdeDcui34elzckfKit+A9TruddHoNICnDzVlXsh4=
+=tXlq
+-----END PGP SIGNATURE-----
+
+--/Uq4LBwYP4y1W6pO--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
