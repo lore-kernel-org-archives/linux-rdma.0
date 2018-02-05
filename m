@@ -1,71 +1,59 @@
-From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+From: Jinpu Wang <jinpu.wang@profitbricks.com>
 Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
  Device (IBNBD)
-Date: Mon, 5 Feb 2018 09:45:15 +0100
-Message-ID: <CAMGffEnPREHrsf=Nkj-K0iRbgSoUiqZ4dLo+xzMF6KYofTSQnA@mail.gmail.com>
-References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
- <1517587623.2675.8.camel@sandisk.com> <1517589637.3936.16.camel@redhat.com>
+Date: Mon, 5 Feb 2018 09:56:56 +0100
+Message-ID: <CAMGffEkhqR9Z5bkMfnVn8an2OUM8k+jYoR5EFdtv3k9en1bh=w@mail.gmail.com>
+References: <20180202140904.2017-1-roman.penyaev@profitbricks.com> <1517591106.2675.28.camel@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1517589637.3936.16.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <1517591106.2675.28.camel@sandisk.com>
+Sender: linux-block-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@wdc.com>
+Cc: "roman.penyaev@profitbricks.com" <roman.penyaev@profitbricks.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>, "hch@infradead.org" <hch@infradead.org>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "sagi@grimberg.me" <sagi@grimberg.me>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 2, 2018 at 5:40 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Fri, 2018-02-02 at 16:07 +0000, Bart Van Assche wrote:
->> On Fri, 2018-02-02 at 15:08 +0100, Roman Pen wrote:
->> > Since the first version the following was changed:
->> >
->> >    - Load-balancing and IO fail-over using multipath features were added.
->> >    - Major parts of the code were rewritten, simplified and overall code
->> >      size was reduced by a quarter.
->>
->> That is interesting to know, but what happened to the feedback that Sagi and
->> I provided on v1? Has that feedback been addressed? See also
->> https://www.spinics.net/lists/linux-rdma/msg47819.html and
->> https://www.spinics.net/lists/linux-rdma/msg47879.html.
->>
->> Regarding multipath support: there are already two multipath implementations
->> upstream (dm-mpath and the multipath implementation in the NVMe initiator).
->> I'm not sure we want a third multipath implementation in the Linux kernel.
+Hi Bart,
+
+My another 2 cents:)
+On Fri, Feb 2, 2018 at 6:05 PM, Bart Van Assche <Bart.VanAssche@wdc.com> wrote:
+> On Fri, 2018-02-02 at 15:08 +0100, Roman Pen wrote:
+>> o Simple configuration of IBNBD:
+>>    - Server side is completely passive: volumes do not need to be
+>>      explicitly exported.
 >
-> There's more than that.  There was also md-multipath, and smc-r includes
-> another version of multipath, plus I assume we support mptcp as well.
+> That sounds like a security hole? I think the ability to configure whether or
+> not an initiator is allowed to log in is essential and also which volumes an
+> initiator has access to.
+Our design target for well controlled production environment, so
+security is handle in other layer.
+On server side, admin can set the dev_search_path in module parameter
+to set parent directory,
+this will concatenate with the path client send in open message to
+open  a block device.
+
+
 >
-> But, to be fair, the different multipaths in this list serve different
-> purposes and I'm not sure they could all be generalized out and served
-> by a single multipath code.  Although, fortunately, md-multipath is
-> deprecated, so no need to worry about it, and it is only dm-multipath
-> and nvme multipath that deal directly with block devices and assume
-> block semantics.  If I read the cover letter right (and I haven't dug
-> into the code to confirm this), the ibtrs multipath has much more in
-> common with smc-r multipath, where it doesn't really assume a block
-> layer device sits on top of it, it's more of a pure network multipath,
-> which the implementation of smc-r is and mptcp would be too.  I would
-> like to see a core RDMA multipath implementation soon that would
-> abstract out some of these multipath tasks, at least across RDMA links,
-> and that didn't have the current limitations (smc-r only supports RoCE
-> links, and it sounds like ibtrs only supports IB like links, but maybe
-> I'm wrong there, I haven't looked at the patches yet).
-Hi Doug, hi Bart,
+>>    - Only IB port GID and device path needed on client side to map
+>>      a block device.
+>
+> I think IP addressing is preferred over GID addressing in RoCE networks.
+> Additionally, have you noticed that GUID configuration support has been added
+> to the upstream ib_srpt driver? Using GIDs has a very important disadvantage,
+> namely that at least in IB networks the prefix will change if the subnet
+> manager is reconfigured. Additionally, in IB networks it may happen that the
+> target driver is loaded and configured before the GID has been assigned to
+> all RDMA ports.
+>
+> Thanks,
+>
+> Bart.
 
-Thanks for your valuable input, here is my 2 cents:
+Sorry, the above description is not accurate, IBNBD/IBTRS support
+GID/IPv4/IPv6 addressing.
+We will adjust in next post.
 
-IBTRS multipath is indeed a network multipath, with sysfs interface to
-remove/add path dynamically.
-IBTRS is built on rdma-cm, so expect to support RoCE and iWARP, but we
-mainly tested in IB environment,
-slightly tested on RXE.
-
-
-Regards,
+Thanks,
 -- 
 Jack Wang
 Linux Kernel Developer
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
