@@ -1,107 +1,58 @@
-From: Roman Penyaev <roman.penyaev@profitbricks.com>
-Subject: Re: [PATCH 05/24] ibtrs: client: main functionality
-Date: Mon, 5 Feb 2018 14:27:34 +0100
-Message-ID: <CAJrWOzD0YXWGCpR+BTOAJ7HhuVG_cjuomBK7vpGeTYu3H+DE4w@mail.gmail.com>
+From: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
+ Device (IBNBD)
+Date: Mon, 5 Feb 2018 14:38:00 +0100
+Message-ID: <CAHg0HuxawAjCf711gkKKiQbbLskNsvUDhP+m32oiGFsY2BRz5g@mail.gmail.com>
 References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
- <20180202140904.2017-6-roman.penyaev@profitbricks.com> <1517590473.2675.21.camel@wdc.com>
+ <1517591106.2675.28.camel@sandisk.com> <CAMGffEkhqR9Z5bkMfnVn8an2OUM8k+jYoR5EFdtv3k9en1bh=w@mail.gmail.com>
+ <40a7fc35-f86c-1d9d-f057-e5822708fc32@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <1517590473.2675.21.camel@wdc.com>
-Sender: linux-block-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@wdc.com>
-Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>, "hch@infradead.org" <hch@infradead.org>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "sagi@grimberg.me" <sagi@grimberg.me>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <40a7fc35-f86c-1d9d-f057-e5822708fc32-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 2, 2018 at 5:54 PM, Bart Van Assche <Bart.VanAssche@wdc.com> wrote:
-> On Fri, 2018-02-02 at 15:08 +0100, Roman Pen wrote:
->> +static inline struct ibtrs_tag *
->> +__ibtrs_get_tag(struct ibtrs_clt *clt, enum ibtrs_clt_con_type con_type)
->> +{
->> +     size_t max_depth = clt->queue_depth;
->> +     struct ibtrs_tag *tag;
->> +     int cpu, bit;
->> +
->> +     cpu = get_cpu();
->> +     do {
->> +             bit = find_first_zero_bit(clt->tags_map, max_depth);
->> +             if (unlikely(bit >= max_depth)) {
->> +                     put_cpu();
->> +                     return NULL;
->> +             }
->> +
->> +     } while (unlikely(test_and_set_bit_lock(bit, clt->tags_map)));
->> +     put_cpu();
->> +
->> +     tag = GET_TAG(clt, bit);
->> +     WARN_ON(tag->mem_id != bit);
->> +     tag->cpu_id = cpu;
->> +     tag->con_type = con_type;
->> +
->> +     return tag;
->> +}
->> +
->> +static inline void __ibtrs_put_tag(struct ibtrs_clt *clt,
->> +                                struct ibtrs_tag *tag)
->> +{
->> +     clear_bit_unlock(tag->mem_id, clt->tags_map);
->> +}
->> +
->> +struct ibtrs_tag *ibtrs_clt_get_tag(struct ibtrs_clt *clt,
->> +                                 enum ibtrs_clt_con_type con_type,
->> +                                 int can_wait)
->> +{
->> +     struct ibtrs_tag *tag;
->> +     DEFINE_WAIT(wait);
->> +
->> +     tag = __ibtrs_get_tag(clt, con_type);
->> +     if (likely(tag) || !can_wait)
->> +             return tag;
->> +
->> +     do {
->> +             prepare_to_wait(&clt->tags_wait, &wait, TASK_UNINTERRUPTIBLE);
->> +             tag = __ibtrs_get_tag(clt, con_type);
->> +             if (likely(tag))
->> +                     break;
->> +
->> +             io_schedule();
->> +     } while (1);
->> +
->> +     finish_wait(&clt->tags_wait, &wait);
->> +
->> +     return tag;
->> +}
->> +EXPORT_SYMBOL(ibtrs_clt_get_tag);
->> +
->> +void ibtrs_clt_put_tag(struct ibtrs_clt *clt, struct ibtrs_tag *tag)
->> +{
->> +     if (WARN_ON(!test_bit(tag->mem_id, clt->tags_map)))
->> +             return;
->> +
->> +     __ibtrs_put_tag(clt, tag);
->> +
->> +     /*
->> +      * Putting a tag is a barrier, so we will observe
->> +      * new entry in the wait list, no worries.
->> +      */
->> +     if (waitqueue_active(&clt->tags_wait))
->> +             wake_up(&clt->tags_wait);
->> +}
->> +EXPORT_SYMBOL(ibtrs_clt_put_tag);
 >
-> Do these functions have any advantage over the code in lib/sbitmap.c? If not,
-> please call the sbitmap functions instead of adding an additional tag allocator.
+>> Hi Bart,
+>>
+>> My another 2 cents:)
+>> On Fri, Feb 2, 2018 at 6:05 PM, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+>> wrote:
+>>>
+>>> On Fri, 2018-02-02 at 15:08 +0100, Roman Pen wrote:
+>>>>
+>>>> o Simple configuration of IBNBD:
+>>>>     - Server side is completely passive: volumes do not need to be
+>>>>       explicitly exported.
+>>>
+>>>
+>>> That sounds like a security hole? I think the ability to configure
+>>> whether or
+>>> not an initiator is allowed to log in is essential and also which volumes
+>>> an
+>>> initiator has access to.
+>>
+>> Our design target for well controlled production environment, so
+>> security is handle in other layer.
+>
+>
+> What will happen to a new adopter of the code you are contributing?
 
-Indeed, seems sbitmap can be reused.
+Hi Sagi, Hi Bart,
+thanks for your feedback.
+We considered the "storage cluster" setup, where each ibnbd client has
+access to each ibnbd server. Each ibnbd server manages devices under
+his "dev_search_path" and can provide access to them to any ibnbd
+client in the network. On top of that Ibnbd server has an additional
+"artificial" restriction, that a device can be mapped in writable-mode
+by only one client at once.
 
-But tags is a part of IBTRS, and is not related to block device at all.  One
-IBTRS connection (session) handles many block devices (or any IO producers).
-With a tag you get a free slot of a buffer where you can read/write, so once
-you've allocated a tag you won't sleep on IO path inside a library.  Also tag
-helps a lot on IO fail-over to another connection (multipath implementation,
-which is also a part of the transport library, not a block device), where you
-simply reuse the same buffer slot (with a tag in your hands) forwarding IO to
-another RDMA connection.
-
+-- 
+Danil
 --
-Roman
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
