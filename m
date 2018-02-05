@@ -1,64 +1,53 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH 07/24] ibtrs: client: sysfs interface functions
-Date: Mon, 5 Feb 2018 13:20:47 +0200
-Message-ID: <1e874694-b30e-d957-6b48-edefe8e41c9a@grimberg.me>
-References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
- <20180202140904.2017-8-roman.penyaev@profitbricks.com>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: Regression: Connect-X5 doesn't connect with NVME-of
+Date: Mon, 5 Feb 2018 13:23:57 +0200
+Message-ID: <dbda15f0-f678-9fab-dffe-5e8d2ae24ae1@mellanox.com>
+References: <66a5332c-01ee-7a39-8224-189fa52a7298@deltatee.com>
+ <e6cdfbe7-762c-c70c-be5f-397bdb08ee80@mellanox.com>
+ <0d629a68-a1fa-7297-e371-5abbc2dd5fe7@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180202140904.2017-8-roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <0d629a68-a1fa-7297-e371-5abbc2dd5fe7-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: he
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, linux-nvme <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roman,
+Hi Sagi/Logan,
 
-> This is the sysfs interface to IBTRS sessions on client side:
-> 
->    /sys/kernel/ibtrs_client/<SESS-NAME>/
->      *** IBTRS session created by ibtrs_clt_open() API call
->      |
->      |- max_reconnect_attempts
->      |  *** number of reconnect attempts for session
->      |
->      |- add_path
->      |  *** adds another connection path into IBTRS session
->      |
->      |- paths/<DEST-IP>/
->         *** established paths to server in a session
->         |
->         |- disconnect
->         |  *** disconnect path
->         |
->         |- reconnect
->         |  *** reconnect path
->         |
->         |- remove_path
->         |  *** remove current path
->         |
->         |- state
->         |  *** retrieve current path state
->         |
->         |- stats/
->            *** current path statistics
->            |
-> 	  |- cpu_migration
-> 	  |- rdma
-> 	  |- rdma_lat
-> 	  |- reconnects
-> 	  |- reset_all
-> 	  |- sg_entries
-> 	  |- wc_completions
-> 
-> Signed-off-by: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> Signed-off-by: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> Cc: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+I've repro it with v4.14.1 (not happens on each connect).
+Sagi's proposal below fix the issue of the "Failed to write to 
+/dev/nvme-fabrics: Invalid cross-device link".
 
-I think stats usually belong in debugfs.
+Sagi can you push (with my Tested-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> 
+and Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>) it or I will ?
+
+The crush after the connection failure is fixed in my patches for NVMe 
+core state machine fixes that are under review in the list.
+
+
+> 
+> So I think this should make the problem go away:
+> -- 
+> diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+> index a0610427e168..b82c4ae92411 100644
+> --- a/include/linux/mlx5/driver.h
+> +++ b/include/linux/mlx5/driver.h
+> @@ -1238,7 +1238,7 @@ mlx5_get_vector_affinity(struct mlx5_core_dev 
+> *dev, int vector)
+>          int eqn;
+>          int err;
+> 
+> -       err = mlx5_vector2eqn(dev, vector, &eqn, &irq);
+> +       err = mlx5_vector2eqn(dev, MLX5_EQ_VEC_COMP_BASE + vector, &eqn, 
+> &irq);
+>          if (err)
+>                  return NULL;
+> -- 
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
