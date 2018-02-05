@@ -1,140 +1,120 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH rfc 3/5] irq_poll: wire up irq_am
-Date: Tue,  6 Feb 2018 00:03:14 +0200
-Message-ID: <20180205220316.30236-4-sagi@grimberg.me>
+From: Sagi Grimberg <sagi@grimberg.me>
+Subject: [PATCH rfc 5/5] IB/cq: wire up adaptive moderation to workqueue based completion queues
+Date: Tue,  6 Feb 2018 00:03:16 +0200
+Message-ID: <20180205220316.30236-6-sagi@grimberg.me>
 References: <20180205220316.30236-1-sagi@grimberg.me>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180205220316.30236-1-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <20180205220316.30236-1-sagi@grimberg.me>
+Sender: linux-block-owner@vger.kernel.org
+To: linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Idan Burstein <idanb@mellanox.com>, Bart Van Assche <bart.vanassche@wdc.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Update online stats for fired event and completions on
-each poll cycle.
-
-Also expose am initialization interface. The irqpoll consumer will
-initialize the irq-am context of the irq-poll context.
-
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagi@grimberg.me>
 ---
- include/linux/irq_poll.h |  9 +++++++++
- lib/Kconfig              |  1 +
- lib/irq_poll.c           | 30 +++++++++++++++++++++++++++++-
- 3 files changed, 39 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/cq.c | 25 ++++++++++++++++++++-----
+ include/rdma/ib_verbs.h      |  9 +++++++--
+ 2 files changed, 27 insertions(+), 7 deletions(-)
 
-diff --git a/include/linux/irq_poll.h b/include/linux/irq_poll.h
-index 16aaeccb65cb..de3055359fd8 100644
---- a/include/linux/irq_poll.h
-+++ b/include/linux/irq_poll.h
-@@ -2,14 +2,20 @@
- #ifndef IRQ_POLL_H
- #define IRQ_POLL_H
- 
+diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
+index 270801d28f9d..1d984fd77449 100644
+--- a/drivers/infiniband/core/cq.c
++++ b/drivers/infiniband/core/cq.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/err.h>
+ #include <linux/slab.h>
 +#include <linux/irq-am.h>
+ #include <rdma/ib_verbs.h>
+ 
+ /* # of WCs to poll for with a single call to ib_poll_cq */
+@@ -70,6 +71,13 @@ static int ib_cq_irqpoll_am(struct irq_poll *iop, unsigned short level)
+ 	return ib_cq_am(cq, level);
+ }
+ 
++static int ib_cq_workqueue_am(struct irq_am *am, unsigned short level)
++{
++	struct ib_cq *cq = container_of(am, struct ib_cq, wq.am);
 +
- struct irq_poll;
- typedef int (irq_poll_fn)(struct irq_poll *, int);
-+typedef int (irq_poll_am_fn)(struct irq_poll *, unsigned short);
- 
- struct irq_poll {
- 	struct list_head list;
- 	unsigned long state;
- 	int weight;
- 	irq_poll_fn *poll;
++	return ib_cq_am(cq, level);
++}
 +
-+	struct irq_am am;
-+	irq_poll_am_fn *amfn;
- };
+ static int __ib_process_cq(struct ib_cq *cq, int budget)
+ {
+ 	int i, n, completed = 0;
+@@ -147,18 +155,21 @@ static void ib_cq_completion_softirq(struct ib_cq *cq, void *private)
  
- enum {
-@@ -23,4 +29,7 @@ extern void irq_poll_complete(struct irq_poll *);
- extern void irq_poll_enable(struct irq_poll *);
- extern void irq_poll_disable(struct irq_poll *);
+ static void ib_cq_poll_work(struct work_struct *work)
+ {
+-	struct ib_cq *cq = container_of(work, struct ib_cq, work);
++	struct ib_cq *cq = container_of(work, struct ib_cq, wq.work);
+ 	int completed;
  
-+extern void irq_poll_init_am(struct irq_poll *iop, unsigned int nr_events,
-+        unsigned short nr_levels, unsigned short start_level,
-+	irq_poll_am_fn *amfn);
- #endif
-diff --git a/lib/Kconfig b/lib/Kconfig
-index bbb4c9eea84d..d495b21cd241 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -511,6 +511,7 @@ config IRQ_AM
+ 	completed = __ib_process_cq(cq, IB_POLL_BUDGET_WORKQUEUE);
++	irq_am_add_comps(&cq->wq.am, completed);
+ 	if (completed >= IB_POLL_BUDGET_WORKQUEUE ||
+ 	    ib_req_notify_cq(cq, IB_POLL_FLAGS) > 0)
+-		queue_work(ib_comp_wq, &cq->work);
++		queue_work(ib_comp_wq, &cq->wq.work);
++	else
++		irq_am_add_event(&cq->wq.am);
+ }
  
- config IRQ_POLL
- 	bool "IRQ polling library"
-+	select IRQ_AM
- 	help
- 	  Helper library to poll interrupt mitigation using polling.
- 
-diff --git a/lib/irq_poll.c b/lib/irq_poll.c
-index 86a709954f5a..6bc86a677d8c 100644
---- a/lib/irq_poll.c
-+++ b/lib/irq_poll.c
-@@ -53,6 +53,7 @@ static void __irq_poll_complete(struct irq_poll *iop)
- 	list_del(&iop->list);
- 	smp_mb__before_atomic();
- 	clear_bit_unlock(IRQ_POLL_F_SCHED, &iop->state);
-+	irq_am_add_event(&iop->am);
+ static void ib_cq_completion_workqueue(struct ib_cq *cq, void *private)
+ {
+-	queue_work(ib_comp_wq, &cq->work);
++	queue_work(ib_comp_wq, &cq->wq.work);
  }
  
  /**
-@@ -106,8 +107,10 @@ static void __latent_entropy irq_poll_softirq(struct softirq_action *h)
+@@ -214,7 +225,10 @@ struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
+ 		break;
+ 	case IB_POLL_WORKQUEUE:
+ 		cq->comp_handler = ib_cq_completion_workqueue;
+-		INIT_WORK(&cq->work, ib_cq_poll_work);
++		INIT_WORK(&cq->wq.work, ib_cq_poll_work);
++		if (cq->device->modify_cq)
++			irq_am_init(&cq->wq.am, IB_CQ_AM_NR_EVENTS,
++				IB_CQ_AM_NR_LEVELS, 0, ib_cq_workqueue_am);
+ 		ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
+ 		break;
+ 	default:
+@@ -250,7 +264,8 @@ void ib_free_cq(struct ib_cq *cq)
+ 		irq_poll_disable(&cq->iop);
+ 		break;
+ 	case IB_POLL_WORKQUEUE:
+-		cancel_work_sync(&cq->work);
++		cancel_work_sync(&cq->wq.work);
++		irq_am_cleanup(&cq->wq.am);
+ 		break;
+ 	default:
+ 		WARN_ON_ONCE(1);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index fd84cda5ed7c..14a93566adb6 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1555,6 +1555,11 @@ enum ib_poll_context {
+ 	IB_POLL_WORKQUEUE,	/* poll from workqueue */
+ };
  
- 		weight = iop->weight;
- 		work = 0;
--		if (test_bit(IRQ_POLL_F_SCHED, &iop->state))
-+		if (test_bit(IRQ_POLL_F_SCHED, &iop->state)) {
- 			work = iop->poll(iop, weight);
-+			irq_am_add_comps(&iop->am, work);
-+		}
- 
- 		budget -= work;
- 
-@@ -144,6 +147,7 @@ static void __latent_entropy irq_poll_softirq(struct softirq_action *h)
-  **/
- void irq_poll_disable(struct irq_poll *iop)
- {
-+	irq_am_cleanup(&iop->am);
- 	set_bit(IRQ_POLL_F_DISABLE, &iop->state);
- 	while (test_and_set_bit(IRQ_POLL_F_SCHED, &iop->state))
- 		msleep(1);
-@@ -185,6 +189,30 @@ void irq_poll_init(struct irq_poll *iop, int weight, irq_poll_fn *poll_fn)
- }
- EXPORT_SYMBOL(irq_poll_init);
- 
-+static int irq_poll_am(struct irq_am *am, unsigned short level)
-+{
-+	struct irq_poll *iop = container_of(am, struct irq_poll, am);
++struct ib_cq_workqueue_poll {
++	struct irq_am		am;
++	struct work_struct	work;
++};
 +
-+	return iop->amfn(iop, level);
-+}
-+
-+/**
-+ * irq_poll_init_am - Initialize adaptive moderation parameters on this @iop
-+ * @iop:      The parent iopoll structure
-+ * @weight:   The default weight (or command completion budget)
-+ * @poll_fn:  The handler to invoke
-+ *
-+ * Description:
-+ *     Initialize adaptive moderation for this irq_poll structure.
-+ **/
-+void irq_poll_init_am(struct irq_poll *iop, unsigned int nr_events,
-+        unsigned short nr_levels, unsigned short start_level, irq_poll_am_fn *amfn)
-+{
-+	iop->amfn = amfn;
-+	irq_am_init(&iop->am, nr_events, nr_levels, start_level, irq_poll_am);
-+}
-+EXPORT_SYMBOL(irq_poll_init_am);
-+
- static int irq_poll_cpu_dead(unsigned int cpu)
- {
- 	/*
+ struct ib_cq {
+ 	struct ib_device       *device;
+ 	struct ib_uobject      *uobject;
+@@ -1566,8 +1571,8 @@ struct ib_cq {
+ 	enum ib_poll_context	poll_ctx;
+ 	struct ib_wc		*wc;
+ 	union {
+-		struct irq_poll		iop;
+-		struct work_struct	work;
++		struct irq_poll			iop;
++		struct ib_cq_workqueue_poll	wq;
+ 	};
+ };
+ 
 -- 
 2.14.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
