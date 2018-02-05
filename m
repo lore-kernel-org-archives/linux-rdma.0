@@ -1,133 +1,54 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH iproute2-next 08/10] rdma: Add QP resource tracking
- information
-Date: Mon, 5 Feb 2018 16:00:37 +0200
-Message-ID: <20180205140037.GF2567@mtr-leonro.local>
-References: <20180131081156.19607-1-leon@kernel.org>
- <20180131081156.19607-9-leon@kernel.org>
- <017501d39b97$f5931360$e0b93a20$@opengridcomputing.com>
- <20180205132231.GD2567@mtr-leonro.local>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH 05/24] ibtrs: client: main functionality
+Date: Mon, 5 Feb 2018 16:14:43 +0200
+Message-ID: <f0c64f7f-2870-0657-11ec-123a3e99b7a7@grimberg.me>
+References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
+ <20180202140904.2017-6-roman.penyaev@profitbricks.com>
+ <1517590473.2675.21.camel@wdc.com>
+ <CAJrWOzD0YXWGCpR+BTOAJ7HhuVG_cjuomBK7vpGeTYu3H+DE4w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="JwB53PgKC5A7+0Ej"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180205132231.GD2567-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <CAJrWOzD0YXWGCpR+BTOAJ7HhuVG_cjuomBK7vpGeTYu3H+DE4w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'David Ahern' <dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'RDMA mailing list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Stephen Hemminger' <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
+To: Roman Penyaev <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---JwB53PgKC5A7+0Ej
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> Indeed, seems sbitmap can be reused.
+> 
+> But tags is a part of IBTRS, and is not related to block device at all.  One
+> IBTRS connection (session) handles many block devices
 
-On Mon, Feb 05, 2018 at 03:22:31PM +0200, Leon Romanovsky wrote:
-> On Thu, Feb 01, 2018 at 02:05:08PM -0600, Steve Wise wrote:
-> > Hey Leon,
->
-> <...>
->
-> >
-> > > +static int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data)
-> > > +{
->
-> <...>
->
-> > > +
-> > > +	mnl_attr_for_each_nested(nla_entry, nla_table) {
-> > > +		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
-> > > +		uint32_t lqpn, rqpn = 0, rq_psn = 0, sq_psn;
-> > > +		uint8_t type, state, path_mig_state = 0;
-> > > +		uint32_t port = 0, pid = 0;
-> > > +		char *comm = NULL;
->
-> <...>
->
-> > > +
-> > > +		if (rd_check_is_filtered(rd, "pid", pid))
-> > > +			continue;
-> >
-> > Is comm leaked here when ATTR_RES_PID is present?
-> >
-> >
-> > > +
-> > > +		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
-> > > +			/* discard const from mnl_attr_get_str */
-> > > +			comm = (char
-> > > *)mnl_attr_get_str(nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME]);
-> >
-> > And also here if the kernel ever passes up both PID and KERN_NAME (which it
-> > isn't supposed to).
->
-> Yes, you are right, and the bad thing that I prepared everything to call
-> free() unconditionally by setting comm to be NULL.
+we use host shared tag sets for the case of multiple block devices.
 
-Stephen, David,
+> (or any IO producers).
 
-How do you want me to proceed?
+Lets wait until we actually have this theoretical non-block IO
+producers..
 
-The actual change is pretty minor:
+> With a tag you get a free slot of a buffer where you can read/write, so once
+> you've allocated a tag you won't sleep on IO path inside a library.
 
-diff --git a/rdma/res.c b/rdma/res.c
-index 2a63e712..31d0c4a7 100644
---- a/rdma/res.c
-+++ b/rdma/res.c
-@@ -395,8 +395,10 @@ static int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data)
- 			comm = get_task_name(pid);
- 		}
+Same for block tags (given that you don't set the request queue
+otherwise)
 
--		if (rd_check_is_filtered(rd, "pid", pid))
-+		if (rd_check_is_filtered(rd, "pid", pid)) {
-+			free(comm);
- 			continue;
-+		}
+> Also tag
+> helps a lot on IO fail-over to another connection (multipath implementation,
+> which is also a part of the transport library, not a block device), where you
+> simply reuse the same buffer slot (with a tag in your hands) forwarding IO to
+> another RDMA connection.
 
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
- 			/* discard const from mnl_attr_get_str */
-@@ -420,8 +422,7 @@ static int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		print_pid(rd, pid);
- 		print_comm(rd, comm, nla_line);
+What is the benefit of this detached architecture? IMO, one reason why
+you ended up not reusing a lot of the infrastructure is yielded from the
+attempt to support a theoretical different consumer that is not ibnbd.
+Did you actually had plans for any other consumers?
 
--		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
--			free(comm);
-+		free(comm);
-
- 		if (rd->json_output)
- 			jsonw_end_array(rd->jw);
-
->
-> Thanks
->
-> >
-> >
-> > Steve.
-> >
-
-
-
---JwB53PgKC5A7+0Ej
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlp4Y4UACgkQ5GN7iDZy
-WKd7Ug/+OUAi9WdXGH2iCIbLMhhAYeWhq1XPrk0yOuzfSkn3RXhxm2cmQvn2Ca4W
-lJgctaEyovzvzuqfgvWuaPzZcpEoN2J1oV2Ei296KEY+KzAFSlplCVcc03i4C3Sj
-x97XKLxaeX4SH9zbYlXopGFaF8Sr+e6tGcl9F+FJI3GyCKpoxJyGzQtem4W266ZU
-y8QjjOffEH7Q5rwZqWDhCqdcVREef/8nKVHwVY4VI/27f+r26GIRGmNn1dfBoOKd
-d0ZHkzRAjzqN2mlxsD5rAJybsJnE4276aTURlkP5GyB33V77YlSVf8422zevq1Jv
-NmThCbOB8aKJ9GjdRdLlnJSSICvZkUxO8ZdmTO1ZWBaYKHSgqRrrf22PvReAlQ+/
-8xl4oQU+G/DReVjCej27YaPKc2HbsrWcFQvOmnR7M7/buWcS8uBdPFmYqi1nHBuX
-JtVnxP28miLkR+OOeUyJH/yBnMdxADPlzOoHpzphs3gesi6flEZVzCYh/v2T9ZWc
-C7x+VCHG69nDM3w7vBm54V75hWd/xsFEhfeNoF2tyYdZsvkVuD5uOq9uqYgufcLu
-Ue4VmQut517QnntRYUhNM8lvmONVALqwyXK/7JnzVQlYCUlOIvNH3oIkzmmJznv/
-oSGVH5c+/5opShoE4wwCo3/+ek0iSp/znOt5nSUo59xnvbwUsQA=
-=qkz6
------END PGP SIGNATURE-----
-
---JwB53PgKC5A7+0Ej--
+Personally, I think you will be much better off with a unified approach
+for your block device implementation.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
