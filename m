@@ -1,62 +1,34 @@
-From: Sagi Grimberg <sagi@grimberg.me>
-Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
- Device (IBNBD)
-Date: Mon, 5 Feb 2018 16:17:58 +0200
-Message-ID: <41347a8d-8a3b-c35f-801c-b4b21c37f285@grimberg.me>
-References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
- <1517591106.2675.28.camel@sandisk.com>
- <CAMGffEkhqR9Z5bkMfnVn8an2OUM8k+jYoR5EFdtv3k9en1bh=w@mail.gmail.com>
- <40a7fc35-f86c-1d9d-f057-e5822708fc32@grimberg.me>
- <CAHg0HuxawAjCf711gkKKiQbbLskNsvUDhP+m32oiGFsY2BRz5g@mail.gmail.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: Regression: Connect-X5 doesn't connect with NVME-of
+Date: Mon, 5 Feb 2018 16:18:42 +0200
+Message-ID: <7941ee6c-bf13-093c-e5c2-9ed93889405d@grimberg.me>
+References: <66a5332c-01ee-7a39-8224-189fa52a7298@deltatee.com>
+ <e6cdfbe7-762c-c70c-be5f-397bdb08ee80@mellanox.com>
+ <0d629a68-a1fa-7297-e371-5abbc2dd5fe7@grimberg.me>
+ <dbda15f0-f678-9fab-dffe-5e8d2ae24ae1@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <CAHg0HuxawAjCf711gkKKiQbbLskNsvUDhP+m32oiGFsY2BRz5g@mail.gmail.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <dbda15f0-f678-9fab-dffe-5e8d2ae24ae1-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
-Sender: linux-block-owner@vger.kernel.org
-To: Danil Kipnis <danil.kipnis@profitbricks.com>
-Cc: Jinpu Wang <jinpu.wang@profitbricks.com>, Bart Van Assche <Bart.VanAssche@wdc.com>, "roman.penyaev@profitbricks.com" <roman.penyaev@profitbricks.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "hch@infradead.org" <hch@infradead.org>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "axboe@kernel.dk" <axboe@kernel.dk>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, linux-nvme <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
->>> Hi Bart,
->>>
->>> My another 2 cents:)
->>> On Fri, Feb 2, 2018 at 6:05 PM, Bart Van Assche <Bart.VanAssche@wdc.com>
->>> wrote:
->>>>
->>>> On Fri, 2018-02-02 at 15:08 +0100, Roman Pen wrote:
->>>>>
->>>>> o Simple configuration of IBNBD:
->>>>>      - Server side is completely passive: volumes do not need to be
->>>>>        explicitly exported.
->>>>
->>>>
->>>> That sounds like a security hole? I think the ability to configure
->>>> whether or
->>>> not an initiator is allowed to log in is essential and also which volumes
->>>> an
->>>> initiator has access to.
->>>
->>> Our design target for well controlled production environment, so
->>> security is handle in other layer.
->>
->>
->> What will happen to a new adopter of the code you are contributing?
+> Hi Sagi/Logan,
 > 
-> Hi Sagi, Hi Bart,
-> thanks for your feedback.
-> We considered the "storage cluster" setup, where each ibnbd client has
-> access to each ibnbd server. Each ibnbd server manages devices under
-> his "dev_search_path" and can provide access to them to any ibnbd
-> client in the network.
+> I've repro it with v4.14.1 (not happens on each connect).
+> Sagi's proposal below fix the issue of the "Failed to write to 
+> /dev/nvme-fabrics: Invalid cross-device link".
+> 
+> Sagi can you push (with my Tested-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> 
+> and Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>) it or I will ?
 
-I don't understand how that helps?
-
-> On top of that Ibnbd server has an additional
-> "artificial" restriction, that a device can be mapped in writable-mode
-> by only one client at once.
-
-I think one would still need the option to disallow readable export as
-well.
+Thanks, I'll send it.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
