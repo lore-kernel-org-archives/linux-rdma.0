@@ -1,36 +1,38 @@
-From: Roman Penyaev <roman.penyaev@profitbricks.com>
-Subject: Re: [PATCH 23/24] ibnbd: a bit of documentation
-Date: Mon, 5 Feb 2018 14:03:35 +0100
-Message-ID: <CAJrWOzCVu_UNgMxNUuf0m9szYgRP88dGepKLbtMCtZUxOW75Vw@mail.gmail.com>
-References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
- <20180202140904.2017-24-roman.penyaev@profitbricks.com> <1517586918.2675.3.camel@wdc.com>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: interoperability issue between rxe and mlx5
+Date: Mon, 5 Feb 2018 15:09:27 +0200
+Message-ID: <CAG9sBKPtDAApLxuOvM-1pyEain-aPm-bmBu1rp7DsnuvRUT-UA@mail.gmail.com>
+References: <CAN-5tyHRcvd0Zv33putWv+gxB81a5O4EcyV8BN0GkFET+k_Gjg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <1517586918.2675.3.camel@wdc.com>
-Sender: linux-block-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@wdc.com>
-Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>, "hch@infradead.org" <hch@infradead.org>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "sagi@grimberg.me" <sagi@grimberg.me>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAN-5tyHRcvd0Zv33putWv+gxB81a5O4EcyV8BN0GkFET+k_Gjg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 2, 2018 at 4:55 PM, Bart Van Assche <Bart.VanAssche@wdc.com> wrote:
-> On Fri, 2018-02-02 at 15:09 +0100, Roman Pen wrote:
->> +Entries under /sys/kernel/ibnbd_client/
->> +=======================================
->> [ ... ]
+> On the network trace, for the size=4093, I see:
+> Read request for 4093
+> Read response first data 1024bytes
+> Read response middle data 1024bytes
+> Read response middle data 1024bytes
+> Read response last data 1024bytes
+> Read request for 1021
+> Read response last data1024
 >
-> You will need Greg KH's permission to add new entries directly under /sys/kernel.
-> Since I think that it is unlikely that he will give that permission: have you
-> considered to add the new client entries under /sys/class/block for the client and
-> /sys/kernel/configfs/ibnbd for the target, similar to what the NVMeOF drivers do
-> today?
+> Then the last two message are repeated 6times. Then disconnect.
+>
 
-/sys/kernel was chosen ages ago and I completely forgot to move it to configfs.
-IBTRS is not a block device, so for some read-only entries (statistics
-or states)
-something else should be probably used, not configfs.  Or it is fine
-to read state
-of the connection from configfs?  For me sounds a bit weird.
+Hi Olga
+It looks like that the last response packet is sent with wrong size
+and continues to do so for repeated retries until the requester gives
+up.
+I'll try to look into it and update
 
+thanks
+Moni
 --
-Roman
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
