@@ -1,70 +1,62 @@
-From: Roman Penyaev <roman.penyaev@profitbricks.com>
-Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
- Device (IBNBD)
-Date: Mon, 5 Feb 2018 18:16:02 +0100
-Message-ID: <CAJrWOzDwDAt-w08-zmhJHsgedTyGQ-Dp=vHTvmrdSz9st7npxQ@mail.gmail.com>
-References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
- <23dcfda7-eac1-ed13-b24e-3586c284ee55@grimberg.me> <1517849882.3764.13.camel@wdc.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] mlx5: fix mlx5_get_vector_affinity to start from
+ completion vector 0
+Date: Mon, 5 Feb 2018 10:16:22 -0700
+Message-ID: <397fbb71-2a0f-4293-1aee-b9127350fb33@deltatee.com>
+References: <20180205142452.7630-1-sagi@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <1517849882.3764.13.camel@wdc.com>
-Sender: linux-block-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@wdc.com>
-Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "sagi@grimberg.me" <sagi@grimberg.me>, "hch@infradead.org" <hch@infradead.org>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180205142452.7630-1-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bart,
+Thanks Sagi,
 
-On Mon, Feb 5, 2018 at 5:58 PM, Bart Van Assche <Bart.VanAssche@wdc.com> wrote:
-> On Mon, 2018-02-05 at 14:16 +0200, Sagi Grimberg wrote:
->> - Your latency measurements are surprisingly high for a null target
->>    device (even for low end nvme device actually) regardless of the
->>    transport implementation.
->>
->> For example:
->> - QD=1 read latency is 648.95 for ibnbd (I assume usecs right?) which is
->>    fairly high. on nvme-rdma its 1058 us, which means over 1 millisecond
->>    and even 1.254 ms for srp. Last time I tested nvme-rdma read QD=1
->>    latency I got ~14 us. So something does not add up here. If this is
->>    not some configuration issue, then we have serious bugs to handle..
->>
->> - QD=16 the read latencies are > 10ms for null devices?! I'm having
->>    troubles understanding how you were able to get such high latencies
->>    (> 100 ms for QD>=100)
->>
->> Can you share more information about your setup? It would really help
->> us understand more.
->
-> I would also appreciate it if more information could be provided about the
-> measurement results. In addition to answering Sagi's questions, would it
-> be possible to share the fio job that was used for measuring latency? In
-> https://events.static.linuxfound.org/sites/events/files/slides/Copy%20of%20IBNBD-Vault-2017-5.pdf
-> I found the following:
->
-> iodepth=128
-> iodepth_batch_submit=128
->
-> If you want to keep the pipeline full I think that you need to set the
-> iodepth_batch_submit parameter to a value that is much lower than iodepth.
-> I think that setting iodepth_batch_submit equal to iodepth will yield
-> suboptimal IOPS results. Jens, please correct me if I got this wrong.
+I can confirm this fixes our issue.
 
-Sorry, Bart, I would answer here in a few words (I would like to answer
-in details tomorrow on Sagi's mail).
+Nice Catch!
 
-Everything (fio jobs, setup, etc) is given in the same link:
+Logan
 
-https://www.spinics.net/lists/linux-rdma/msg48799.html
-
-at the bottom you will find links on google docs with many pages
-and archived fio jobs and scripts. (I do not remember exactly,
-one year passed, but there should be everything).
-
-Regarding smaller iodepth_batch_submit - that decreases performance.
-Once I played with that, even introduced new iodepth_batch_complete_max
-option for fio, but then I decided to stop and simply chose this
-configuration, which provides me fastest results.
-
+On 05/02/18 07:24 AM, Sagi Grimberg wrote:
+> The consumers of this routine expects the affinity map of of vector
+> index relative to the first completion vector. The upper layers are
+> not aware of internal/private completion vectors that mlx5 allocates
+> for its own usage.
+> 
+> Hence, return the affinity map of vector index relative to the first
+> completion vector.
+> 
+> Fixes: 05e0cc84e00c ("net/mlx5: Fix get vector affinity helper function")
+> Reported-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> Tested-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.15
+> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> ---
+>   include/linux/mlx5/driver.h | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+> index a0610427e168..b82c4ae92411 100644
+> --- a/include/linux/mlx5/driver.h
+> +++ b/include/linux/mlx5/driver.h
+> @@ -1238,7 +1238,7 @@ mlx5_get_vector_affinity(struct mlx5_core_dev *dev, int vector)
+>   	int eqn;
+>   	int err;
+>   
+> -	err = mlx5_vector2eqn(dev, vector, &eqn, &irq);
+> +	err = mlx5_vector2eqn(dev, MLX5_EQ_VEC_COMP_BASE + vector, &eqn, &irq);
+>   	if (err)
+>   		return NULL;
+>   
+> 
 --
-Roman
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
