@@ -1,67 +1,59 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] build: Pass extra cmake flags
-Date: Sun, 04 Feb 2018 20:40:47 -0500
-Message-ID: <1517794847.3936.52.camel@redhat.com>
-References: <20180201103206.26356-1-leon@kernel.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-UVTSnnAXL0GNoytV+n14"
+Subject: [PATCH] redhat/spec: Don't include ifup/ifdown-ib
+Date: Sun,  4 Feb 2018 20:46:05 -0500
+Message-ID: <7ebed9d65a53d04dd7e0d1f3d56f104937c956a4.1517795159.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180201103206.26356-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Nicolas Morey-Chaisemartin <nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+When the original Red Hat spec file was created, many things that we
+used to do in the old rdma package were brought over.  One of the things
+brought over were the ifup-ib and ifdown-ib network scripts.  However,
+those scripts are meaningless without the SysV-initscripts package which
+includes all of the sysv network startup infrastructure.  The new
+rdma-core was intended to be a systemd only service, and so we skipped
+the Requirements: initscripts that we should have had in order to
+support these scripts.  So, remove the scripts as they are old baggage.
 
---=-UVTSnnAXL0GNoytV+n14
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Fixes: dac219f1da8b ("redhat/spec: build split rpm packages")
+Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ redhat/rdma-core.spec | 4 ----
+ 1 file changed, 4 deletions(-)
 
-On Thu, 2018-02-01 at 12:32 +0200, Leon Romanovsky wrote:
-> From: Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> Add ability to provide extra cmake flags when building library
-> and when creating RPMs or DEBs using EXTRA_CMAKE_FLAGS.
->=20
-> Set an environment variable prior execution to provide
-> this information to build scripts:
-> export EXTRA_CMAKE_FLAGS=3D"<flags>"
->=20
-> Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> Cc: Nicolas Morey-Chaisemartin <nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org>
-> Signed-off-by: Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-
-Tested as best I could locally then applied, thanks.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-UVTSnnAXL0GNoytV+n14
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlp3th8ACgkQuCajMw5X
-L90YbQ//TRUZfBC8FVriICHxTLTY8HFPCJReYw2v6ybTRizyUYtrT7KKy0H0JCRj
-hAkNX1e0nPxYQo9P4A0/orUeSp0leP8VP+RNaerAjH96zEN77Lz0witr7fReYBia
-4B1URcUp9q9b+VkvQuTcFucN9lARTcC7serq/xZjkBt45guN0vG+bUGFMDRllaC0
-bupWlLFhGF70A1oDsN00f1jFpdPYiBlsqJTcQxwTOkyJg9xWgJ2z0Driy7IS4WLn
-hbbDvjnESgqqyn+2u+hrF/whqDh7+qzcezlJ253tisB6SHPbVifhcpC6slLzgtp1
-hC5vWc4fAPnTFT+Uj45YI2i1d8TJey0BXbGQKAf27x0JvOIK+nchIuWhh2xzHHZN
-rIESbB/nF6MCR8lpP009sn5w3IfXjQGyfYIlL6re1d+NHUIGktXq+CFbBJ51xWXU
-v12ltg877sc1eOAz0dnOLPqPFwc7SowPfkdZzR+4QfZnBvFLdbkHUt/df6NLCSd0
-iaaZdfpZZNF32UhwWmB4c7s/YT4qTQejSGQ4PloJq0rngKhYJkXzL9LeGLLsHKqU
-9Ki+oBMaTwwX2yPwjbQQ5WfAwejwZ2LRkmiLQLjotf/gyIijCiRyD7/AKb7sHNf6
-cJ53fhDRWjsXHD2eq1mXA2nL4fHZHiMSuyjT/98v5Z5HP5JN9Hw=
-=0jAH
------END PGP SIGNATURE-----
-
---=-UVTSnnAXL0GNoytV+n14--
+diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
+index fd9a95ee1f87..896849b8679e 100644
+--- a/redhat/rdma-core.spec
++++ b/redhat/rdma-core.spec
+@@ -236,7 +236,6 @@ mkdir -p %{buildroot}/%{_sysconfdir}/rdma
+ # Red Hat specific glue
+ %global dracutlibdir %{_prefix}/lib/dracut
+ %global sysmodprobedir %{_prefix}/lib/modprobe.d
+-mkdir -p %{buildroot}/%{_sysconfdir}/sysconfig/network-scripts
+ mkdir -p %{buildroot}%{_sysconfdir}/udev/rules.d
+ mkdir -p %{buildroot}%{_libexecdir}
+ mkdir -p %{buildroot}%{_udevrulesdir}
+@@ -245,8 +244,6 @@ mkdir -p %{buildroot}%{sysmodprobedir}
+ install -D -m0644 redhat/rdma.conf %{buildroot}/%{_sysconfdir}/rdma/rdma.conf
+ install -D -m0644 redhat/rdma.sriov-vfs %{buildroot}/%{_sysconfdir}/rdma/sriov-vfs
+ install -D -m0644 redhat/rdma.mlx4.conf %{buildroot}/%{_sysconfdir}/rdma/mlx4.conf
+-install -D -m0755 redhat/rdma.ifup-ib %{buildroot}/%{_sysconfdir}/sysconfig/network-scripts/ifup-ib
+-install -D -m0755 redhat/rdma.ifdown-ib %{buildroot}/%{_sysconfdir}/sysconfig/network-scripts/ifdown-ib
+ install -D -m0644 redhat/rdma.service %{buildroot}%{_unitdir}/rdma.service
+ install -D -m0755 redhat/rdma.modules-setup.sh %{buildroot}%{dracutlibdir}/modules.d/05rdma/module-setup.sh
+ install -D -m0644 redhat/rdma.udev-rules %{buildroot}%{_udevrulesdir}/98-rdma.rules
+@@ -317,7 +314,6 @@ rm -rf %{buildroot}/%{_sbindir}/srp_daemon.sh
+ %config(noreplace) %{_sysconfdir}/udev/rules.d/*
+ %config(noreplace) %{_sysconfdir}/modprobe.d/mlx4.conf
+ %config(noreplace) %{_sysconfdir}/modprobe.d/truescale.conf
+-%{_sysconfdir}/sysconfig/network-scripts/*
+ %{_unitdir}/rdma-hw.target
+ %{_unitdir}/rdma-load-modules@.service
+ %{_unitdir}/rdma.service
+-- 
+2.14.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
