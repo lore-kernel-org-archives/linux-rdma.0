@@ -1,74 +1,70 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH RFC 2/2] RDMA/nldev: provide detailed CM_ID information
-Date: Mon, 5 Feb 2018 11:12:06 -0600
-Message-ID: <01c601d39ea4$7311fc20$5935f460$@opengridcomputing.com>
-References: <cover.1517418595.git.swise@opengridcomputing.com> <531889e6a24f7919dec71734c91298d266aa9721.1517418595.git.swise@opengridcomputing.com> <20180201084944.GH2055@mtr-leonro.local> <00ce01d39b76$bd374ac0$37a5e040$@opengridcomputing.com> <20180204150553.GH27780@mtr-leonro.local>
+From: Roman Penyaev <roman.penyaev@profitbricks.com>
+Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
+ Device (IBNBD)
+Date: Mon, 5 Feb 2018 18:16:02 +0100
+Message-ID: <CAJrWOzDwDAt-w08-zmhJHsgedTyGQ-Dp=vHTvmrdSz9st7npxQ@mail.gmail.com>
+References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
+ <23dcfda7-eac1-ed13-b24e-3586c284ee55@grimberg.me> <1517849882.3764.13.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: 
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <1517849882.3764.13.camel@wdc.com>
+Sender: linux-block-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@wdc.com>
+Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "sagi@grimberg.me" <sagi@grimberg.me>, "hch@infradead.org" <hch@infradead.org>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> Hey Leon,
-> 
+Hi Bart,
 
-...
+On Mon, Feb 5, 2018 at 5:58 PM, Bart Van Assche <Bart.VanAssche@wdc.com> wrote:
+> On Mon, 2018-02-05 at 14:16 +0200, Sagi Grimberg wrote:
+>> - Your latency measurements are surprisingly high for a null target
+>>    device (even for low end nvme device actually) regardless of the
+>>    transport implementation.
+>>
+>> For example:
+>> - QD=1 read latency is 648.95 for ibnbd (I assume usecs right?) which is
+>>    fairly high. on nvme-rdma its 1058 us, which means over 1 millisecond
+>>    and even 1.254 ms for srp. Last time I tested nvme-rdma read QD=1
+>>    latency I got ~14 us. So something does not add up here. If this is
+>>    not some configuration issue, then we have serious bugs to handle..
+>>
+>> - QD=16 the read latencies are > 10ms for null devices?! I'm having
+>>    troubles understanding how you were able to get such high latencies
+>>    (> 100 ms for QD>=100)
+>>
+>> Can you share more information about your setup? It would really help
+>> us understand more.
+>
+> I would also appreciate it if more information could be provided about the
+> measurement results. In addition to answering Sagi's questions, would it
+> be possible to share the fio job that was used for measuring latency? In
+> https://events.static.linuxfound.org/sites/events/files/slides/Copy%20of%20IBNBD-Vault-2017-5.pdf
+> I found the following:
+>
+> iodepth=128
+> iodepth_batch_submit=128
+>
+> If you want to keep the pipeline full I think that you need to set the
+> iodepth_batch_submit parameter to a value that is much lower than iodepth.
+> I think that setting iodepth_batch_submit equal to iodepth will yield
+> suboptimal IOPS results. Jens, please correct me if I got this wrong.
 
-> > > > > diff --git a/drivers/infiniband/core/cma.c
-> > > b/drivers/infiniband/core/cma.c
-> > > > > index 72ad52b..51fbfa1 100644
-> > > > > --- a/drivers/infiniband/core/cma.c
-> > > > > +++ b/drivers/infiniband/core/cma.c
-> > > > > @@ -465,6 +465,9 @@ static void _cma_attach_to_dev(struct
-> > > > rdma_id_private *id_priv,
-> > > > >  	id_priv->id.route.addr.dev_addr.transport =
-> > > > >  		rdma_node_get_transport(cma_dev->device->node_type);
-> > > > >  	list_add_tail(&id_priv->list, &cma_dev->id_list);
-> > > > > +	id_priv->id.res.type = RDMA_RESTRACK_CM_ID;
-> > > > > +	id_priv->id.res.kern_name = id_priv->id.caller;
-> > > >
-> > > > Steve, I don't like it, I worked hard to hide it from the users of
-> > > restrack,
-> > > > and don't see reason why the same trick as with
-> ib_create_cq/ib_create_pd
-> > > > won't
-> > > > work here.
-> > >
-> > > I am doing the same trick, no?  rdma_create_id() is a static inline
-that
-> > > passes KBUILD_MODNAME.  The issue is that at the time the rdma_cm_id
-is
-> > > created, it is not associated with any ib_device.  That only happens
-at
-> > > cma_attach time.  So how can the resource be added if there is no
-device?
-> > >
-> >
-> > So maybe, we don't need to add resource to the DB at rdma_create_id
-> > stage and do it in cma_attach only, and in that stage you will update
-> > the kern_name with KBUILD_MODNAME.
-> 
-> Yea, I'll look into this.
+Sorry, Bart, I would answer here in a few words (I would like to answer
+in details tomorrow on Sagi's mail).
 
-The current patch is only adding the resource in _cma_attach_to_dev().  And
-using KBUILD_MODNAME in _cma_attach_to_dev() would always end up with
-"[rdma_cm]".   That's why the caller string is saved in rdma_create_id()
-static inline function; so it will get the true module name.  
+Everything (fio jobs, setup, etc) is given in the same link:
 
-I don't see any change needed here.
+https://www.spinics.net/lists/linux-rdma/msg48799.html
 
-Thanks,
+at the bottom you will find links on google docs with many pages
+and archived fio jobs and scripts. (I do not remember exactly,
+one year passed, but there should be everything).
 
-Steve.
-
+Regarding smaller iodepth_batch_submit - that decreases performance.
+Once I played with that, even introduced new iodepth_batch_complete_max
+option for fio, but then I decided to stop and simply chose this
+configuration, which provides me fastest results.
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Roman
