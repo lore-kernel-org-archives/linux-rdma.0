@@ -1,92 +1,107 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH iproute2-next 08/10] rdma: Add QP resource tracking
- information
-Date: Mon, 5 Feb 2018 15:22:31 +0200
-Message-ID: <20180205132231.GD2567@mtr-leonro.local>
-References: <20180131081156.19607-1-leon@kernel.org>
- <20180131081156.19607-9-leon@kernel.org>
- <017501d39b97$f5931360$e0b93a20$@opengridcomputing.com>
+From: Roman Penyaev <roman.penyaev@profitbricks.com>
+Subject: Re: [PATCH 05/24] ibtrs: client: main functionality
+Date: Mon, 5 Feb 2018 14:27:34 +0100
+Message-ID: <CAJrWOzD0YXWGCpR+BTOAJ7HhuVG_cjuomBK7vpGeTYu3H+DE4w@mail.gmail.com>
+References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
+ <20180202140904.2017-6-roman.penyaev@profitbricks.com> <1517590473.2675.21.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="KN5l+BnMqAQyZLvT"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <017501d39b97$f5931360$e0b93a20$@opengridcomputing.com>
-Sender: netdev-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>
-Cc: 'David Ahern' <dsahern@gmail.com>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'netdev' <netdev@vger.kernel.org>, 'Stephen Hemminger' <stephen@networkplumber.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <1517590473.2675.21.camel@wdc.com>
+Sender: linux-block-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@wdc.com>
+Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>, "hch@infradead.org" <hch@infradead.org>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "sagi@grimberg.me" <sagi@grimberg.me>
 List-Id: linux-rdma@vger.kernel.org
 
-
---KN5l+BnMqAQyZLvT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Feb 01, 2018 at 02:05:08PM -0600, Steve Wise wrote:
-> Hey Leon,
-
-<...>
-
+On Fri, Feb 2, 2018 at 5:54 PM, Bart Van Assche <Bart.VanAssche@wdc.com> wrote:
+> On Fri, 2018-02-02 at 15:08 +0100, Roman Pen wrote:
+>> +static inline struct ibtrs_tag *
+>> +__ibtrs_get_tag(struct ibtrs_clt *clt, enum ibtrs_clt_con_type con_type)
+>> +{
+>> +     size_t max_depth = clt->queue_depth;
+>> +     struct ibtrs_tag *tag;
+>> +     int cpu, bit;
+>> +
+>> +     cpu = get_cpu();
+>> +     do {
+>> +             bit = find_first_zero_bit(clt->tags_map, max_depth);
+>> +             if (unlikely(bit >= max_depth)) {
+>> +                     put_cpu();
+>> +                     return NULL;
+>> +             }
+>> +
+>> +     } while (unlikely(test_and_set_bit_lock(bit, clt->tags_map)));
+>> +     put_cpu();
+>> +
+>> +     tag = GET_TAG(clt, bit);
+>> +     WARN_ON(tag->mem_id != bit);
+>> +     tag->cpu_id = cpu;
+>> +     tag->con_type = con_type;
+>> +
+>> +     return tag;
+>> +}
+>> +
+>> +static inline void __ibtrs_put_tag(struct ibtrs_clt *clt,
+>> +                                struct ibtrs_tag *tag)
+>> +{
+>> +     clear_bit_unlock(tag->mem_id, clt->tags_map);
+>> +}
+>> +
+>> +struct ibtrs_tag *ibtrs_clt_get_tag(struct ibtrs_clt *clt,
+>> +                                 enum ibtrs_clt_con_type con_type,
+>> +                                 int can_wait)
+>> +{
+>> +     struct ibtrs_tag *tag;
+>> +     DEFINE_WAIT(wait);
+>> +
+>> +     tag = __ibtrs_get_tag(clt, con_type);
+>> +     if (likely(tag) || !can_wait)
+>> +             return tag;
+>> +
+>> +     do {
+>> +             prepare_to_wait(&clt->tags_wait, &wait, TASK_UNINTERRUPTIBLE);
+>> +             tag = __ibtrs_get_tag(clt, con_type);
+>> +             if (likely(tag))
+>> +                     break;
+>> +
+>> +             io_schedule();
+>> +     } while (1);
+>> +
+>> +     finish_wait(&clt->tags_wait, &wait);
+>> +
+>> +     return tag;
+>> +}
+>> +EXPORT_SYMBOL(ibtrs_clt_get_tag);
+>> +
+>> +void ibtrs_clt_put_tag(struct ibtrs_clt *clt, struct ibtrs_tag *tag)
+>> +{
+>> +     if (WARN_ON(!test_bit(tag->mem_id, clt->tags_map)))
+>> +             return;
+>> +
+>> +     __ibtrs_put_tag(clt, tag);
+>> +
+>> +     /*
+>> +      * Putting a tag is a barrier, so we will observe
+>> +      * new entry in the wait list, no worries.
+>> +      */
+>> +     if (waitqueue_active(&clt->tags_wait))
+>> +             wake_up(&clt->tags_wait);
+>> +}
+>> +EXPORT_SYMBOL(ibtrs_clt_put_tag);
 >
-> > +static int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data)
-> > +{
+> Do these functions have any advantage over the code in lib/sbitmap.c? If not,
+> please call the sbitmap functions instead of adding an additional tag allocator.
 
-<...>
+Indeed, seems sbitmap can be reused.
 
-> > +
-> > +	mnl_attr_for_each_nested(nla_entry, nla_table) {
-> > +		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
-> > +		uint32_t lqpn, rqpn = 0, rq_psn = 0, sq_psn;
-> > +		uint8_t type, state, path_mig_state = 0;
-> > +		uint32_t port = 0, pid = 0;
-> > +		char *comm = NULL;
+But tags is a part of IBTRS, and is not related to block device at all.  One
+IBTRS connection (session) handles many block devices (or any IO producers).
+With a tag you get a free slot of a buffer where you can read/write, so once
+you've allocated a tag you won't sleep on IO path inside a library.  Also tag
+helps a lot on IO fail-over to another connection (multipath implementation,
+which is also a part of the transport library, not a block device), where you
+simply reuse the same buffer slot (with a tag in your hands) forwarding IO to
+another RDMA connection.
 
-<...>
-
-> > +
-> > +		if (rd_check_is_filtered(rd, "pid", pid))
-> > +			continue;
->
-> Is comm leaked here when ATTR_RES_PID is present?
->
->
-> > +
-> > +		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
-> > +			/* discard const from mnl_attr_get_str */
-> > +			comm = (char
-> > *)mnl_attr_get_str(nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME]);
->
-> And also here if the kernel ever passes up both PID and KERN_NAME (which it
-> isn't supposed to).
-
-Yes, you are right, and the bad thing that I prepared everything to call
-free() unconditionally by setting comm to be NULL.
-
-Thanks
-
->
->
-> Steve.
->
-
---KN5l+BnMqAQyZLvT
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlp4WpcACgkQ5GN7iDZy
-WKcdAxAAtcrktqJFIIDWjdQIF6YPcJ7lv9I+egarbSMiylKAJ2v7gHy8io9qm2p/
-8ySro1/BeQaICtwQsmm271fDMl3YpHydS6dxfs6VBB8tzBKHKydQ/NOXf6FOBiat
-rPK1/kCu4flAMAzvI8FmI3dLsGM67vLqfqBhY01wA1fBkDjOhIabznS4XGu1ctBw
-jGyrIJ4dVI5B0NoHCVMXxNpGQBSXEWGdnDget7QrA6LYpolSyZJWF2fYYLPxmGj3
-B+CUjRCo2HuT8SDfgtQm0Z6nAacdpJLFq50BU/A8hBL1QK9xL3Eeb4rvhJ8IbvM0
-ONMHTWykmLaqESNhf4lU1xNdKlPfDNcKFdHq6nZIAKEhPuYvSNjnYna3xpbXx08P
-+/ak1wMz7lG8emuy5kTzGed76VxsMqE8wCEnZzXejbCjGhMXHML/yUat2uY0ykHv
-JP2QmxsouI3itGTwom9O5vVaFPW+Mr93x/7Ev2lqIiM6ZWTp5FDwO8jetkDIxkEZ
-0PhhwHjRM8VcLr63moJD+eTKgIJAubPdvWxrt3HEO6agbF7/fkR3JoGsuV+wc/93
-V8/nfb+uM4u2tnIRjWvftIWT1MQ90BhMFq2Po0b5JLQoCo59qKwSXp3V52Wds0sm
-8y5B+fJ9f1R8dZl6fMShd/sKOnwIqQzJxkLoqZCXg2DNstglzX4=
-=6rjG
------END PGP SIGNATURE-----
-
---KN5l+BnMqAQyZLvT--
+--
+Roman
