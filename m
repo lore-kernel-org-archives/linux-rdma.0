@@ -1,57 +1,78 @@
-From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+From: Danil Kipnis <danil.kipnis@profitbricks.com>
 Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
  Device (IBNBD)
-Date: Mon, 5 Feb 2018 17:36:44 +0100
-Message-ID: <CAMGffEkdFqgDmRnaRMuJz2tZFserg2kmOhc3Rde1+0zsz=du0Q@mail.gmail.com>
+Date: Mon, 5 Feb 2018 17:40:23 +0100
+Message-ID: <CAHg0HuxtvRvPcX8yZxcwSSP5XK6ZnLbxBkpx+X7QyDZtny3XZA@mail.gmail.com>
 References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
  <1517591106.2675.28.camel@sandisk.com> <CAMGffEkhqR9Z5bkMfnVn8an2OUM8k+jYoR5EFdtv3k9en1bh=w@mail.gmail.com>
- <1517847408.3764.5.camel@wdc.com>
+ <40a7fc35-f86c-1d9d-f057-e5822708fc32@grimberg.me> <CAHg0HuxawAjCf711gkKKiQbbLskNsvUDhP+m32oiGFsY2BRz5g@mail.gmail.com>
+ <41347a8d-8a3b-c35f-801c-b4b21c37f285@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1517847408.3764.5.camel-Sjgp3cTcYWE@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <41347a8d-8a3b-c35f-801c-b4b21c37f285@grimberg.me>
+Sender: linux-block-owner@vger.kernel.org
+To: Sagi Grimberg <sagi@grimberg.me>
+Cc: Jinpu Wang <jinpu.wang@profitbricks.com>, Bart Van Assche <Bart.VanAssche@wdc.com>, "roman.penyaev@profitbricks.com" <roman.penyaev@profitbricks.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "hch@infradead.org" <hch@infradead.org>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "axboe@kernel.dk" <axboe@kernel.dk>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 5, 2018 at 5:16 PM, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org> wrote:
-> On Mon, 2018-02-05 at 09:56 +0100, Jinpu Wang wrote:
->> Hi Bart,
+On Mon, Feb 5, 2018 at 3:17 PM, Sagi Grimberg <sagi@grimberg.me> wrote:
+>
+>>>> Hi Bart,
+>>>>
+>>>> My another 2 cents:)
+>>>> On Fri, Feb 2, 2018 at 6:05 PM, Bart Van Assche <Bart.VanAssche@wdc.com>
+>>>> wrote:
+>>>>>
+>>>>>
+>>>>> On Fri, 2018-02-02 at 15:08 +0100, Roman Pen wrote:
+>>>>>>
+>>>>>>
+>>>>>> o Simple configuration of IBNBD:
+>>>>>>      - Server side is completely passive: volumes do not need to be
+>>>>>>        explicitly exported.
+>>>>>
+>>>>>
+>>>>>
+>>>>> That sounds like a security hole? I think the ability to configure
+>>>>> whether or
+>>>>> not an initiator is allowed to log in is essential and also which
+>>>>> volumes
+>>>>> an
+>>>>> initiator has access to.
+>>>>
+>>>>
+>>>> Our design target for well controlled production environment, so
+>>>> security is handle in other layer.
+>>>
+>>>
+>>>
+>>> What will happen to a new adopter of the code you are contributing?
 >>
->> My another 2 cents:)
->> On Fri, Feb 2, 2018 at 6:05 PM, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org> wrote:
->> > On Fri, 2018-02-02 at 15:08 +0100, Roman Pen wrote:
->> > > o Simple configuration of IBNBD:
->> > >    - Server side is completely passive: volumes do not need to be
->> > >      explicitly exported.
->> >
->> > That sounds like a security hole? I think the ability to configure whether or
->> > not an initiator is allowed to log in is essential and also which volumes an
->> > initiator has access to.
 >>
->> Our design target for well controlled production environment, so security is
->> handle in other layer. On server side, admin can set the dev_search_path in
->> module parameter to set parent directory, this will concatenate with the path
->> client send in open message to open a block device.
+>> Hi Sagi, Hi Bart,
+>> thanks for your feedback.
+>> We considered the "storage cluster" setup, where each ibnbd client has
+>> access to each ibnbd server. Each ibnbd server manages devices under
+>> his "dev_search_path" and can provide access to them to any ibnbd
+>> client in the network.
 >
-> Hello Jack,
 >
-> That approach may work well for your employer but sorry I don't think this is
-> sufficient for an upstream driver. I think that most users who configure a
-> network storage target expect full control over which storage devices are exported
-> and also over which clients do have and do not have access.
+> I don't understand how that helps?
 >
-> Bart.
-Hello Bart,
+>> On top of that Ibnbd server has an additional
+>> "artificial" restriction, that a device can be mapped in writable-mode
+>> by only one client at once.
+>
+>
+> I think one would still need the option to disallow readable export as
+> well.
 
-I agree for general purpose, it may be good to have better access control.
-
-Thanks,
--- 
-Jack Wang
-Linux Kernel Developer
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It just occurred to me, that we could easily extend the interface in
+such a way that each client (i.e. each session) would have on server
+side her own directory with the devices it can access. I.e. instead of
+just "dev_search_path" per server, any client would be able to only
+access devices under <dev_search_path>/session_name. (session name
+must already be generated by each client in a unique way). This way
+one could have an explicit control over which devices can be accessed
+by which clients. Do you think that would do it?
