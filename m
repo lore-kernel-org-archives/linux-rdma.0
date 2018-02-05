@@ -1,40 +1,57 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH v3 00/13] Request for Comments on SoftiWarp
-Date: Sun, 4 Feb 2018 13:39:51 -0700
-Message-ID: <20180204203951.GA9242@ziepe.ca>
-References: <20180202185640.GC9080@ziepe.ca>
- <031f01d38fad$422520c0$c66f6240$@opengridcomputing.com>
- <20180114223603.19961-1-bmt@zurich.ibm.com>
- <OFD1018BEE.35589194-ON00258228.00505F2B-00258228.00505F31@notes.na.collabserv.com>
- <OFEF72EEE6.7E5C3FA5-ON0025822A.005B18E4-0025822A.006EA4BB@notes.na.collabserv.com>
+From: Steve French <smfrench-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Work in progress SMB-Direct driver for the linux kernel
+Date: Sun, 4 Feb 2018 19:32:34 -0600
+Message-ID: <CAH2r5mufx5-eKKTr5quoPfyz0CuSTYcdK=0057OvLJS0sVEB4g@mail.gmail.com>
+References: <959c3608-c508-17c4-bad6-fd9421a4a235@samba.org>
+ <20180201175247.GT17053@ziepe.ca> <1517762353.3936.41.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <OFEF72EEE6.7E5C3FA5-ON0025822A.005B18E4-0025822A.006EA4BB-8eTO7WVQ4XIsd+ienQ86orlN3bxYEBpz@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1517762353.3936.41.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Stefan Metzmacher <metze-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, David Disseldorp <ddiss-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Samba Technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, =?UTF-8?B?UmFscGggQsO2aG1l?= <slow-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Feb 04, 2018 at 08:08:31PM +0000, Bernard Metzler wrote:
+On Sun, Feb 4, 2018 at 10:39 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On Thu, 2018-02-01 at 10:52 -0700, Jason Gunthorpe wrote:
+>> On Thu, Feb 01, 2018 at 09:18:10AM +0100, Stefan Metzmacher wrote:
+>>
+>> > The first goal is to provide a socket fd to userspace (or in kernel
+>> > consumers)
+>> > which provides semantics like a TCP socket which is used as transport
+>> > for SMB3. Basically frames are submitted with a 4 byte length header.
+>>
+>> Part of the point of RDMA is that we don't need to make protocol
+>> specific kernel modules like this - is there a specific reason this
+>> needs to be in the kernel like this?
+>
+> Although your question was partially answered, I think the precise cause
+> is that to behave like an SMB3 server, the model involves opening a TCP
+> connection, doing auth over that, then negotiating whether or not RDMA
+> connections are possible, then opening the RDMA connections.  On our
+> end, once the auth happens, smbd forks and the new user process handles
+> the connection from that point on (which is integral to smbd's security
+> model).  Because of this, and because the client initiates the RDMA
+> connection and will only use a single well known port to connect to,
+> incoming RDMA connections after negotiation would always go to the
+> master smbd process and not the forked client authed smbd process.
+> Because we don't have a way of then handing the RDMA connection from one
+> process to another forked process, the model breaks down.  Possible
+> solutions are:
 
-> >Can you use the standard OFA license please? IBM is an OFA member and
-> >is behloden to the membership agreement requring the common dual
-> >license.
-> >
-> 
-> sorry to see that. What's exactly wrong with the current (dual) license 
-> statement from IBM? I checked several other user libs. All come with
-> some flavor of a dual BSD/GPLv2 license statement as this one,
-> as far as I can see.
+It is interesting to think about the work Long Li did - which shows that
+at least on the client side the model doesn't require opening a TCP
+connection and doing auth on it before negotiating RDMA.
 
-The common BSD license does not have the advertising clause. It is not
-'some flavour', the open fabrics agreement specifies their specific
-flavor of BSD license see COPYING.BSD_MIT
+His smb3 kernel code allows trying SMB3 over RDMA immediately (without first
+negotiating whether RDMA is allowed) - obviously finishing multichannel support
+in cifs.ko is important, but I was surprised at first that it was
+possible to use
+RDMA for SMB3 without multichannel.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Thanks,
+
+Steve
