@@ -1,48 +1,88 @@
-From: Bart Van Assche <Bart.VanAssche@wdc.com>
-Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
- Device (IBNBD)
-Date: Mon, 5 Feb 2018 16:58:03 +0000
-Message-ID: <1517849882.3764.13.camel@wdc.com>
+From: Roman Penyaev <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH 05/24] ibtrs: client: main functionality
+Date: Mon, 5 Feb 2018 18:05:10 +0100
+Message-ID: <CAJrWOzCNmYFP4GNwDtXK4xbPpOQK-K6+_UVEQeV5U9aHux8u_g@mail.gmail.com>
 References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
-         <23dcfda7-eac1-ed13-b24e-3586c284ee55@grimberg.me>
+ <20180202140904.2017-6-roman.penyaev@profitbricks.com> <1517590473.2675.21.camel@wdc.com>
+ <CAJrWOzD0YXWGCpR+BTOAJ7HhuVG_cjuomBK7vpGeTYu3H+DE4w@mail.gmail.com> <f0c64f7f-2870-0657-11ec-123a3e99b7a7@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <23dcfda7-eac1-ed13-b24e-3586c284ee55@grimberg.me>
-Content-Language: en-US
-Content-ID: <21A33B4F5B65B74A81A9F4A6BC976FF9@namprd04.prod.outlook.com>
-Sender: linux-block-owner@vger.kernel.org
-To: "roman.penyaev@profitbricks.com" <roman.penyaev@profitbricks.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "sagi@grimberg.me" <sagi@grimberg.me>
-Cc: "hch@infradead.org" <hch@infradead.org>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <f0c64f7f-2870-0657-11ec-123a3e99b7a7-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE4LTAyLTA1IGF0IDE0OjE2ICswMjAwLCBTYWdpIEdyaW1iZXJnIHdyb3RlOg0K
-PiAtIFlvdXIgbGF0ZW5jeSBtZWFzdXJlbWVudHMgYXJlIHN1cnByaXNpbmdseSBoaWdoIGZvciBh
-IG51bGwgdGFyZ2V0DQo+ICAgIGRldmljZSAoZXZlbiBmb3IgbG93IGVuZCBudm1lIGRldmljZSBh
-Y3R1YWxseSkgcmVnYXJkbGVzcyBvZiB0aGUNCj4gICAgdHJhbnNwb3J0IGltcGxlbWVudGF0aW9u
-Lg0KPiANCj4gRm9yIGV4YW1wbGU6DQo+IC0gUUQ9MSByZWFkIGxhdGVuY3kgaXMgNjQ4Ljk1IGZv
-ciBpYm5iZCAoSSBhc3N1bWUgdXNlY3MgcmlnaHQ/KSB3aGljaCBpcw0KPiAgICBmYWlybHkgaGln
-aC4gb24gbnZtZS1yZG1hIGl0cyAxMDU4IHVzLCB3aGljaCBtZWFucyBvdmVyIDEgbWlsbGlzZWNv
-bmQNCj4gICAgYW5kIGV2ZW4gMS4yNTQgbXMgZm9yIHNycC4gTGFzdCB0aW1lIEkgdGVzdGVkIG52
-bWUtcmRtYSByZWFkIFFEPTENCj4gICAgbGF0ZW5jeSBJIGdvdCB+MTQgdXMuIFNvIHNvbWV0aGlu
-ZyBkb2VzIG5vdCBhZGQgdXAgaGVyZS4gSWYgdGhpcyBpcw0KPiAgICBub3Qgc29tZSBjb25maWd1
-cmF0aW9uIGlzc3VlLCB0aGVuIHdlIGhhdmUgc2VyaW91cyBidWdzIHRvIGhhbmRsZS4uDQo+IA0K
-PiAtIFFEPTE2IHRoZSByZWFkIGxhdGVuY2llcyBhcmUgPiAxMG1zIGZvciBudWxsIGRldmljZXM/
-ISBJJ20gaGF2aW5nDQo+ICAgIHRyb3VibGVzIHVuZGVyc3RhbmRpbmcgaG93IHlvdSB3ZXJlIGFi
-bGUgdG8gZ2V0IHN1Y2ggaGlnaCBsYXRlbmNpZXMNCj4gICAgKD4gMTAwIG1zIGZvciBRRD49MTAw
-KQ0KPiANCj4gQ2FuIHlvdSBzaGFyZSBtb3JlIGluZm9ybWF0aW9uIGFib3V0IHlvdXIgc2V0dXA/
-IEl0IHdvdWxkIHJlYWxseSBoZWxwDQo+IHVzIHVuZGVyc3RhbmQgbW9yZS4NCg0KSSB3b3VsZCBh
-bHNvIGFwcHJlY2lhdGUgaXQgaWYgbW9yZSBpbmZvcm1hdGlvbiBjb3VsZCBiZSBwcm92aWRlZCBh
-Ym91dCB0aGUNCm1lYXN1cmVtZW50IHJlc3VsdHMuIEluIGFkZGl0aW9uIHRvIGFuc3dlcmluZyBT
-YWdpJ3MgcXVlc3Rpb25zLCB3b3VsZCBpdA0KYmUgcG9zc2libGUgdG8gc2hhcmUgdGhlIGZpbyBq
-b2IgdGhhdCB3YXMgdXNlZCBmb3IgbWVhc3VyaW5nIGxhdGVuY3k/IEluDQpodHRwczovL2V2ZW50
-cy5zdGF0aWMubGludXhmb3VuZC5vcmcvc2l0ZXMvZXZlbnRzL2ZpbGVzL3NsaWRlcy9Db3B5JTIw
-b2YlMjBJQk5CRC1WYXVsdC0yMDE3LTUucGRmDQpJIGZvdW5kIHRoZSBmb2xsb3dpbmc6DQoNCmlv
-ZGVwdGg9MTI4DQppb2RlcHRoX2JhdGNoX3N1Ym1pdD0xMjgNCg0KSWYgeW91IHdhbnQgdG8ga2Vl
-cCB0aGUgcGlwZWxpbmUgZnVsbCBJIHRoaW5rIHRoYXQgeW91IG5lZWQgdG8gc2V0IHRoZQ0KaW9k
-ZXB0aF9iYXRjaF9zdWJtaXQgcGFyYW1ldGVyIHRvIGEgdmFsdWUgdGhhdCBpcyBtdWNoIGxvd2Vy
-IHRoYW4gaW9kZXB0aC4NCkkgdGhpbmsgdGhhdCBzZXR0aW5nIGlvZGVwdGhfYmF0Y2hfc3VibWl0
-IGVxdWFsIHRvIGlvZGVwdGggd2lsbCB5aWVsZA0Kc3Vib3B0aW1hbCBJT1BTIHJlc3VsdHMuIEpl
-bnMsIHBsZWFzZSBjb3JyZWN0IG1lIGlmIEkgZ290IHRoaXMgd3JvbmcuDQoNClRoYW5rcywNCg0K
-QmFydC4NCg0KDQo=
+On Mon, Feb 5, 2018 at 3:14 PM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+>
+>> Indeed, seems sbitmap can be reused.
+>>
+>> But tags is a part of IBTRS, and is not related to block device at all.
+>> One
+>> IBTRS connection (session) handles many block devices
+>
+>
+> we use host shared tag sets for the case of multiple block devices.
+
+Unfortunately (or fortunately, depends on the indented mq design) tags are
+not shared between hw_queues.  So in our case (1 session queue, N devices)
+you always have to specify tags->nr_hw_queues = 1 or magic will not happen
+and you will always have more tags than your session supports.  But
+nr_hw_queues = 1 kills performance dramatically.  What scales well is
+the following: nr_hw_queues == num_online_cpus() == number of QPs in
+one session.
+
+>> (or any IO producers).
+>
+>
+> Lets wait until we actually have this theoretical non-block IO
+> producers..
+>
+>> With a tag you get a free slot of a buffer where you can read/write, so
+>> once
+>> you've allocated a tag you won't sleep on IO path inside a library.
+>
+>
+> Same for block tags (given that you don't set the request queue
+> otherwise)
+>
+>> Also tag
+>> helps a lot on IO fail-over to another connection (multipath
+>> implementation,
+>> which is also a part of the transport library, not a block device), where
+>> you
+>> simply reuse the same buffer slot (with a tag in your hands) forwarding IO
+>> to
+>> another RDMA connection.
+>
+>
+> What is the benefit of this detached architecture?
+
+That gives us separated rdma IO library, where ibnbd is one of the players.
+
+> IMO, one reason why you ended up not reusing a lot of the infrastructure
+> is yielded from the  attempt to support a theoretical different consumer
+> that is not ibnbd.
+
+Well, not quite.  Not using rdma api helpers (we will use it) and not
+using tags from block layer (we need tags inside transport) this is not
+"a lot of the infrastructure" :)
+
+I would say that we are not fast enough to follow all kernel trends.
+That is the major reason, but not other user of ibtrs.
+
+> Did you actually had plans for any other consumers?
+
+Yep, the major target is replicated block storage, that's why separated
+transport.
+
+> Personally, I think you will be much better off with a unified approach
+> for your block device implementation.
+
+--
+Roman
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
