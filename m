@@ -1,42 +1,36 @@
-From: Bart Van Assche <Bart.VanAssche@wdc.com>
-Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
- Device (IBNBD)
-Date: Mon, 5 Feb 2018 16:16:49 +0000
-Message-ID: <1517847408.3764.5.camel@wdc.com>
-References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
-         <1517591106.2675.28.camel@sandisk.com>
-         <CAMGffEkhqR9Z5bkMfnVn8an2OUM8k+jYoR5EFdtv3k9en1bh=w@mail.gmail.com>
+From: David Ahern <dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH iproute2-next 08/10] rdma: Add QP resource tracking
+ information
+Date: Mon, 5 Feb 2018 09:21:31 -0700
+Message-ID: <3d519b76-7be8-5db5-7343-c293bdfdea7e@gmail.com>
+References: <20180131081156.19607-1-leon@kernel.org>
+ <20180131081156.19607-9-leon@kernel.org>
+ <017501d39b97$f5931360$e0b93a20$@opengridcomputing.com>
+ <20180205132231.GD2567@mtr-leonro.local>
+ <20180205140037.GF2567@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <CAMGffEkhqR9Z5bkMfnVn8an2OUM8k+jYoR5EFdtv3k9en1bh=w@mail.gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180205140037.GF2567-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Content-Language: en-US
-Content-ID: <82785CC87D7FBB4A8A787BBB4CF33608@namprd04.prod.outlook.com>
-Sender: linux-block-owner@vger.kernel.org
-To: "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>
-Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "hch@infradead.org" <hch@infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "roman.penyaev@profitbricks.com" <roman.penyaev@profitbricks.com>, "sagi@grimberg.me" <sagi@grimberg.me>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Stephen Hemminger' <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'RDMA mailing list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE4LTAyLTA1IGF0IDA5OjU2ICswMTAwLCBKaW5wdSBXYW5nIHdyb3RlOg0KPiBI
-aSBCYXJ0LA0KPiANCj4gTXkgYW5vdGhlciAyIGNlbnRzOikNCj4gT24gRnJpLCBGZWIgMiwgMjAx
-OCBhdCA2OjA1IFBNLCBCYXJ0IFZhbiBBc3NjaGUgPEJhcnQuVmFuQXNzY2hlQHdkYy5jb20+IHdy
-b3RlOg0KPiA+IE9uIEZyaSwgMjAxOC0wMi0wMiBhdCAxNTowOCArMDEwMCwgUm9tYW4gUGVuIHdy
-b3RlOg0KPiA+ID4gbyBTaW1wbGUgY29uZmlndXJhdGlvbiBvZiBJQk5CRDoNCj4gPiA+ICAgIC0g
-U2VydmVyIHNpZGUgaXMgY29tcGxldGVseSBwYXNzaXZlOiB2b2x1bWVzIGRvIG5vdCBuZWVkIHRv
-IGJlDQo+ID4gPiAgICAgIGV4cGxpY2l0bHkgZXhwb3J0ZWQuDQo+ID4gDQo+ID4gVGhhdCBzb3Vu
-ZHMgbGlrZSBhIHNlY3VyaXR5IGhvbGU/IEkgdGhpbmsgdGhlIGFiaWxpdHkgdG8gY29uZmlndXJl
-IHdoZXRoZXIgb3INCj4gPiBub3QgYW4gaW5pdGlhdG9yIGlzIGFsbG93ZWQgdG8gbG9nIGluIGlz
-IGVzc2VudGlhbCBhbmQgYWxzbyB3aGljaCB2b2x1bWVzIGFuDQo+ID4gaW5pdGlhdG9yIGhhcyBh
-Y2Nlc3MgdG8uDQo+IA0KPiBPdXIgZGVzaWduIHRhcmdldCBmb3Igd2VsbCBjb250cm9sbGVkIHBy
-b2R1Y3Rpb24gZW52aXJvbm1lbnQsIHNvIHNlY3VyaXR5IGlzDQo+IGhhbmRsZSBpbiBvdGhlciBs
-YXllci4gT24gc2VydmVyIHNpZGUsIGFkbWluIGNhbiBzZXQgdGhlIGRldl9zZWFyY2hfcGF0aCBp
-bg0KPiBtb2R1bGUgcGFyYW1ldGVyIHRvIHNldCBwYXJlbnQgZGlyZWN0b3J5LCB0aGlzIHdpbGwg
-Y29uY2F0ZW5hdGUgd2l0aCB0aGUgcGF0aA0KPiBjbGllbnQgc2VuZCBpbiBvcGVuIG1lc3NhZ2Ug
-dG8gb3BlbiBhIGJsb2NrIGRldmljZS4NCg0KSGVsbG8gSmFjaywNCg0KVGhhdCBhcHByb2FjaCBt
-YXkgd29yayB3ZWxsIGZvciB5b3VyIGVtcGxveWVyIGJ1dCBzb3JyeSBJIGRvbid0IHRoaW5rIHRo
-aXMgaXMNCnN1ZmZpY2llbnQgZm9yIGFuIHVwc3RyZWFtIGRyaXZlci4gSSB0aGluayB0aGF0IG1v
-c3QgdXNlcnMgd2hvIGNvbmZpZ3VyZSBhDQpuZXR3b3JrIHN0b3JhZ2UgdGFyZ2V0IGV4cGVjdCBm
-dWxsIGNvbnRyb2wgb3ZlciB3aGljaCBzdG9yYWdlIGRldmljZXMgYXJlIGV4cG9ydGVkDQphbmQg
-YWxzbyBvdmVyIHdoaWNoIGNsaWVudHMgZG8gaGF2ZSBhbmQgZG8gbm90IGhhdmUgYWNjZXNzLg0K
-DQpCYXJ0Lg==
+On 2/5/18 7:00 AM, Leon Romanovsky wrote:
+> 
+> Stephen, David,
+> 
+> How do you want me to proceed?
+> 
+
+Since the RDMA code is in Linus' tree for 4.16, I think the patches
+should go through Stephen's tree and the master branch. Stephen needs to
+decide about the fixup.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
