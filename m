@@ -1,54 +1,117 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH] redhat/spec: Don't include ifup/ifdown-ib
-Date: Sun, 4 Feb 2018 20:40:51 -0700
-Message-ID: <20180205034051.GA22389@ziepe.ca>
-References: <7ebed9d65a53d04dd7e0d1f3d56f104937c956a4.1517795159.git.dledford@redhat.com>
+From: Aishwarya Pant <aishpant-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] Documentation/ABI: update infiniband sysfs interfaces
+Date: Mon, 5 Feb 2018 12:49:34 +0530
+Message-ID: <20180205071934.GA9185@mordor.localdomain>
+References: <20180201133233.GA21266@mordor.localdomain>
+ <64f953cc-7831-1164-28b5-5319e72e600f@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <7ebed9d65a53d04dd7e0d1f3d56f104937c956a4.1517795159.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <64f953cc-7831-1164-28b5-5319e72e600f-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Feb 04, 2018 at 08:46:05PM -0500, Doug Ledford wrote:
-> When the original Red Hat spec file was created, many things that we
-> used to do in the old rdma package were brought over.  One of the things
-> brought over were the ifup-ib and ifdown-ib network scripts.  However,
-> those scripts are meaningless without the SysV-initscripts package which
-> includes all of the sysv network startup infrastructure.  The new
-> rdma-core was intended to be a systemd only service, and so we skipped
-> the Requirements: initscripts that we should have had in order to
-> support these scripts.  So, remove the scripts as they are old baggage.
+On Thu, Feb 01, 2018 at 12:48:18PM -0500, Hal Rosenstock wrote:
+> On 2/1/2018 8:32 AM, Aishwarya Pant wrote:
+> > Add documentation for core and hardware specific infiniband interfaces.
+> > The descriptions have been collected from git commit logs, reading
+> > through code and data sheets. Some drivers have incomplete doc and are
+> > annotated with the comment '[to be documented]'.
+> > 
+> > Signed-off-by: Aishwarya Pant <aishpant-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > ---
+> >  Documentation/ABI/testing/sysfs-class-infiniband | 755 +++++++++++++++++++++++
+> >  1 file changed, 755 insertions(+)
+> > 
+> > diff --git a/Documentation/ABI/testing/sysfs-class-infiniband b/Documentation/ABI/testing/sysfs-class-infiniband
+> > index a86abe66a316..2e150169633b 100644
+> > --- a/Documentation/ABI/testing/sysfs-class-infiniband
+> > +++ b/Documentation/ABI/testing/sysfs-class-infiniband
+> > @@ -1,3 +1,194 @@
+> > +sysfs interface common for all infiniband devices
+> > +-------------------------------------------------
+> > +
+> > +What:		/sys/class/infiniband/<device>/node_type
+> > +What:		/sys/class/infiniband/<device>/node_guid
+> > +What:		/sys/class/infiniband/<device>/sys_image_guid
+> > +Date:		Apr, 2005
+> > +KernelVersion:	v2.6.12
+> > +Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > +Description:
+> > +		node_type:	(RO) Node type (CA, RNIC, usNIC, usNIC UDP,
+> > +				switch or router)
+> > +
+> > +		node_guid:	(RO) Node GUID
+> > +
+> > +		sys_image_guid:	(RO) System image GUID
+> > +
+> > +
+> > +What:		/sys/class/infiniband/<device>/node_desc
+> > +Date:		Feb, 2006
+> > +KernelVersion:	v2.6.17
+> > +Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > +Description:
+> > +		(RW) Update the node description with information such as the
+> > +		node's hostname, so that IB network management software can tie
+> > +		its view to the real world.
+> > +
+> > +
+> > +What:		/sys/class/infiniband/<device>/fw_ver
+> > +Date:		Jun, 2016
+> > +KernelVersion:	v4.10
+> > +Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > +Description:
+> > +		(RO) Display firmware version
+> > +
+> > +
+> > +What:		/sys/class/infiniband/<device>/ports/<port-num>/lid
+> > +What:		/sys/class/infiniband/<device>/ports/<port-num>/rate
+> > +What:		/sys/class/infiniband/<device>/ports/<port-num>/lid_mask_count
+> > +What:		/sys/class/infiniband/<device>/ports/<port-num>/sm_sl
+> > +What:		/sys/class/infiniband/<device>/ports/<port-num>/sm_lid
+> > +What:		/sys/class/infiniband/<device>/ports/<port-num>/state
+> > +What:		/sys/class/infiniband/<device>/ports/<port-num>/phys_state
+> > +What:		/sys/class/infiniband/<device>/ports/<port-num>/cap_mask
+> > +Date:		Apr, 2005
+> > +KernelVersion:	v2.6.12
+> > +Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > +Description:
+> > +
+> > +		lid:		(RO) Port LID
+> > +
+> > +		rate:		(RO) Port data rate (active width * active
+> > +				speed)
+> > +
+> > +		lid_mask_count:	(RO) Port LID mask count
+> > +
+> > +		sm_slL		(RO) Subnet manager SL for port's subnet
 > 
-> Fixes: dac219f1da8b ("redhat/spec: build split rpm packages")
-> Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->  redhat/rdma-core.spec | 4 ----
->  1 file changed, 4 deletions(-)
+> Typo sm_sl:
 > 
-> diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
-> index fd9a95ee1f87..896849b8679e 100644
-> +++ b/redhat/rdma-core.spec
-> @@ -236,7 +236,6 @@ mkdir -p %{buildroot}/%{_sysconfdir}/rdma
->  # Red Hat specific glue
->  %global dracutlibdir %{_prefix}/lib/dracut
->  %global sysmodprobedir %{_prefix}/lib/modprobe.d
-> -mkdir -p %{buildroot}/%{_sysconfdir}/sysconfig/network-scripts
->  mkdir -p %{buildroot}%{_sysconfdir}/udev/rules.d
->  mkdir -p %{buildroot}%{_libexecdir}
->  mkdir -p %{buildroot}%{_udevrulesdir}
-> @@ -245,8 +244,6 @@ mkdir -p %{buildroot}%{sysmodprobedir}
->  install -D -m0644 redhat/rdma.conf %{buildroot}/%{_sysconfdir}/rdma/rdma.conf
->  install -D -m0644 redhat/rdma.sriov-vfs %{buildroot}/%{_sysconfdir}/rdma/sriov-vfs
->  install -D -m0644 redhat/rdma.mlx4.conf %{buildroot}/%{_sysconfdir}/rdma/mlx4.conf
-> -install -D -m0755 redhat/rdma.ifup-ib %{buildroot}/%{_sysconfdir}/sysconfig/network-scripts/ifup-ib
-> -install -D -m0755 redhat/rdma.ifdown-ib %{buildroot}/%{_sysconfdir}/sysconfig/network-scripts/ifdown-ib
+> > +
+> > +		sm_lid:		(RO) Subnet manager LID for port's subnet
+> > +
+> > +		state:		(RO) Port state (DOWN, INIT, ARMED, ACTIVE or
+> > +				ACTIVE_DEFER> +
+> > +		phys_state:	(RO) Port physical state (Sleep, Polling,
+> > +				LinkUp, etc)
+> > +
+> > +		cap_mask:	(RO) Port capability mask
+> 
+> 2 bits here are settable: IsCommunicationManagementSupported and IsSM.
 
-Looks like we should delete these two files in this commit as well..
+Hi
 
-Jason
+Sorry, I don't quite understand this. cap_mask is a read only value which
+indicates the supported functions. So the two bits-
+IsCommunicationManagementSupported and IsSM, should not be setttable?
+
+Aishwarya
+
+<snip>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
