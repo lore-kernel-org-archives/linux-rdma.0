@@ -1,45 +1,52 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rfc 0/5] generic adaptive IRQ moderation library for I/O devices
-Date: Tue, 6 Feb 2018 13:34:21 +0200
-Message-ID: <CAJ3xEMi0FfPgiZkpVJNdcuykK5v6cUzR5uj6nAHUK6evTUXqbA@mail.gmail.com>
-References: <20180205220316.30236-1-sagi@grimberg.me> <CAJ3xEMgPfchks6wFUL8S1OJwv9JCcTtCmXz5ZdtR2HvKYQAFUg@mail.gmail.com>
- <08889344-db9d-cf46-6cfb-56764042f578@grimberg.me>
+From: Roman Penyaev <roman.penyaev@profitbricks.com>
+Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
+ Device (IBNBD)
+Date: Tue, 6 Feb 2018 12:47:12 +0100
+Message-ID: <CAJrWOzCHeeoXW6r9O87MBVpO+o_VjE0sPynwEQRmFcPW_ZaZnw@mail.gmail.com>
+References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
+ <23dcfda7-eac1-ed13-b24e-3586c284ee55@grimberg.me> <1517849882.3764.13.camel@wdc.com>
+ <CAJrWOzDwDAt-w08-zmhJHsgedTyGQ-Dp=vHTvmrdSz9st7npxQ@mail.gmail.com> <1517851229.3764.15.camel@wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <08889344-db9d-cf46-6cfb-56764042f578-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Tal Gilboa <talgi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Andy Gospodarek <gospo-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <1517851229.3764.15.camel@wdc.com>
+Sender: linux-block-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@wdc.com>
+Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "hch@infradead.org" <hch@infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "sagi@grimberg.me" <sagi@grimberg.me>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 6, 2018 at 11:25 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
-> Hey Or,
->
->> not any more, Andy and Tal made the mlx5 AM code a kernel library
->> which is called DIM
+On Mon, Feb 5, 2018 at 6:20 PM, Bart Van Assche <Bart.VanAssche@wdc.com> wrote:
+> On Mon, 2018-02-05 at 18:16 +0100, Roman Penyaev wrote:
+>> Everything (fio jobs, setup, etc) is given in the same link:
 >>
->> f4e5f0e MAINTAINERS: add entry for Dynamic Interrupt Moderation
->> 6a8788f bnxt_en: add support for software dynamic interrupt moderation
->> 8115b75 net/dim: use struct net_dim_sample as arg to net_dim
->> 4c4dbb4 net/mlx5e: Move dynamic interrupt coalescing code to include/linux
->> 9a31742 net/mlx5e: Change Mellanox references in DIM code
->> b9c872f net/mlx5e: Move generic functions to new file
->> f5e7f67 net/mlx5e: Move AM logic enums
->> 138968e net/mlx5e: Remove rq references in mlx5e_rx_am
->> f58ee09 net/mlx5e: Move interrupt moderation forward declarations
->> 98dd1ed net/mlx5e: Move interrupt moderation structs to new file
+>> https://www.spinics.net/lists/linux-rdma/msg48799.html
 >>
->> can you make use of that? cc-ing them in case you have questions/comments
+>> at the bottom you will find links on google docs with many pages
+>> and archived fio jobs and scripts. (I do not remember exactly,
+>> one year passed, but there should be everything).
+>>
+>> Regarding smaller iodepth_batch_submit - that decreases performance.
+>> Once I played with that, even introduced new iodepth_batch_complete_max
+>> option for fio, but then I decided to stop and simply chose this
+>> configuration, which provides me fastest results.
 >
+> Hello Roman,
 >
-> Thanks a lot for the pointer, I'm not following net-next regularly.
-> This seems to be a copy of the mlx5 code.
+> That's weird. For which protocols did reducing iodepth_batch_submit lead
+> to lower performance: all the tested protocols or only some of them?
 
-Just to make it clear, the code was moved to a library and not copied... so
-there's single instance of the code upstream and lets try to find a way for
-your use case to take advantage of it possibly under some modifications.
+Hi Bart,
+
+Seems that does not depend on protocol (when I tested it was true for nvme
+and ibnbd).  That depends on a load.  On high load (1 or few fio jobs are
+dedicated to each cpu, and we have 64 cpus) it turns out to be faster to wait
+completions for all queue for that particular block dev, instead of switching
+from kernel to userspace for each completed IO.
+
+But I can assure you that performance difference is very minor, it exists,
+but it does not change the whole picture of what you see on this google
+sheet. So what I tried to achieve is to squeeze everything I could, nothing
+more.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Roman
