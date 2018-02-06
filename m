@@ -1,121 +1,48 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH iproute2-next 00/10] RDMA resource tracking
-Date: Tue, 6 Feb 2018 09:29:50 +0200
-Message-ID: <20180206072950.GI2567@mtr-leonro.local>
-References: <20180131081156.19607-1-leon@kernel.org>
- <20180205172553.5826642d@xeon-e3>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rfc 1/5] irq-am: Introduce library implementing generic
+ adaptive moderation
+Date: Tue, 6 Feb 2018 09:43:43 +0200
+Message-ID: <CAJ3xEMhcQLL+QiqtLNtPrRcZEGSspipAoX5C_ERVwv1p=vAMHw@mail.gmail.com>
+References: <20180205220316.30236-1-sagi@grimberg.me> <20180205220316.30236-2-sagi@grimberg.me>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="c7hkjup166d4FzgN"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180205172553.5826642d@xeon-e3>
+In-Reply-To: <20180205220316.30236-2-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
-Cc: David Ahern <dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Tal Gilboa <talgi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---c7hkjup166d4FzgN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Feb 05, 2018 at 05:25:53PM -0800, Stephen Hemminger wrote:
-> On Wed, 31 Jan 2018 10:11:46 +0200
-> Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+On Tue, Feb 6, 2018 at 12:03 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+> irq-am library helps I/O devices implement interrupt moderation in
+> an adaptive fashion, based on online stats.
 >
-> > Changelog:
-> >  v2 -> v3:
-> >    * Rebased to commit: 1e24e773f144 ("Merge branch 'iproute2-master' into iproute2-next")
-> >    * Refreshed include/uapi/rdma/rdma_netlink.h file
-> >    * Fixed bug, where cxgb4 was printed twice.
-> >  v1 -> v2;
-> >    * Added checks for all occurrences of strdup failures and added patch
-> >      with fix of already merged code.
-> >    * Sync with latest kernel code.
-> >    * Rewrote table representation to be similar to "ip route" output.
-> >    * Implemented string filters.
-> >    * Removed curr/max representation from the summary output.
-> >  v0 -> v1:
-> >    * Fixed subject title in patch #1: rdam -> rdma.
-> >    * Added newline between variable declaration and the code.
-> >    * Add check to failure in strdup() call in rd_check_is_string_filtered().
-> >    * Rewrote res_qp_parse_cb() to avoid long lines and extra indentation.
-> >
-> > ------------------------------------------------------------------------
-> >
-> > David, Stephen,
-> >
-> > The kernel code is accepted to the RDMA and will be sent to Linus in
-> > this merge window, and this is refreshed version of user space part.
-> >
-> > Because, I found bug in handling cxgb4 devices and we cleaned header
-> > file a little bit more, it was more wise to resend the series instead
-> > of applying v2.
-> >
-> > https://patchwork.ozlabs.org/project/netdev/list/?series=RDMA+resource+tracking&submitter=68852&state=8&q=&archive=&delegate=
-> >
-> > Thanks
-> >
-> > Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> > Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> >
-> > [1] https://www.spinics.net/lists/linux-rdma/msg59535.html
-> >
-> > Leon Romanovsky (10):
-> >   rdma: Add option to provide "-" sign for the port number
-> >   rdma: Make visible the number of arguments
-> >   rdma: Add filtering infrastructure
-> >   rdma: Set pointer to device name position
-> >   rdma: Allow external usage of compare string routine
-> >   rdma: Update kernel header file
-> >   rdma: Add resource tracking summary
-> >   rdma: Add QP resource tracking information
-> >   rdma: Document resource tracking
-> >   rdma: Check return value of strdup call
-> >
-> >  include/uapi/rdma/rdma_netlink.h |  67 +++++-
-> >  man/man8/rdma-resource.8         |  86 +++++++
-> >  rdma/Makefile                    |   2 +-
-> >  rdma/link.c                      |   2 +-
-> >  rdma/rdma.c                      |   4 +-
-> >  rdma/rdma.h                      |  28 ++-
-> >  rdma/res.c                       | 486 +++++++++++++++++++++++++++++++++++++++
-> >  rdma/utils.c                     | 321 +++++++++++++++++++++++++-
-> >  8 files changed, 971 insertions(+), 25 deletions(-)
-> >  create mode 100644 man/man8/rdma-resource.8
-> >  create mode 100644 rdma/res.c
-> >
-> > --
-> > 2.16.1
-> >
+> The consumer can initialize an irq-am context with a callback that
+> performs the device specific moderation programming and also the number
+> of am (adaptive moderation) levels which are also, abstracted and allows
+> for device specific tuning.
 >
-> Applied these to the master branch.
-> Dropped the kernel header update, picked that up through the other update process.
+> The irq-am code will sample once every nr_events and will check for significant
+> change in workload characteristics (completions per second, events per second)
+> and if it detects one, will perform an am level update(called a step).
+>
+> The irq-am code  assumes that the am levels are sorted in an increasing order when
+> the lowest level corresponds to the optimum latency tuning (short time and low
+> completion-count) and gradually increasing towards the throughput optimum tuning
+> (longer time and higher completion-count). So there is a trend and tuning direction
+> tracked by the moderator. When the moderator collects sufficient statistics (also
+> controlled by the consumer defining nr_events), it compares the current stats with the
+> previous stats and if a significant changed was observed in the load, the moderator
+> attempts to increment/decrement its current level (step) and schedules a program
+> dispatch work.
+>
+> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> ---
+>  include/linux/irq-am.h | 116 +++++++++++++++++++++++++++++++
 
-Thanks a lot
-
---c7hkjup166d4FzgN
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlp5WW4ACgkQ5GN7iDZy
-WKdMUQ/+PmWV+mF0x0b5fuGfHw3bjiK5EEB5Ao3/2ZmTLdGnePOqvIGF2THvuOoh
-cCNB2EUyuYakAOZfidJliGxy5RHdvJkLRLy/h8j/tbdxF5REn30FaMaJkiqeuSHy
-14A3Jzis96GluwfHMoyxw9XbvFYIF/nCRFrIbmcBuxzL1HsqjdcyDmrXznxx0Pmi
-yem0pfuUhHFQ+cnFn1TETpnNEvPeXs5EeMfPJTLI1kmlI4G2M0kxYSp/OGUQtXXK
-WeYI/O0KmMnd2pVmF+1WYkpGEFclzQc49OplUBLhXo9b+G0VHvAGgty5LpZT+X5A
-HyLV36nLBgvHgeohCT8UCnzqqSx3TnXcCYonCFAILHTdc5d/ApbtfS3K8TcqEXUX
-l9WBmiGb+sOSGzocVbB3XdZdNxxhit3zVo2PMFKk2OYe+Xu8zfCD5Ppkjk0F0ivo
-lfImG3tMn8xdbl/T5mCxRQUS4oB6LzMlHLWaxNjTD98jkRMP56OGDdn0wfpjigok
-pa9UI71CbqQKG3F/HR8rTf/O5h1pdbwb7CmzaS/dR0mPcP/TMfA/wuEww9wNLwWw
-Q9eFvGAvBMwhDw4GZfLejCCUZjU2eQ939I8KyjXoEnYfF0TgrIQ3lc6YVEQZQpko
-euNkA6FmCthRDBuygtdnT1u6AD+RLUjAejoHQg2Fac0qkTS/zqE=
-=K5O/
------END PGP SIGNATURE-----
-
---c7hkjup166d4FzgN--
+Talking to Tal, it seems that this is what landed in upstream as
+include/linux/net_dim.h
+and can have few adjustments for you, I suggest you take a look
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
