@@ -1,46 +1,65 @@
-From: Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
-Subject: Re: interoperability issue between rxe and mlx5
-Date: Tue, 6 Feb 2018 09:27:44 -0500
-Message-ID: <CAN-5tyHTA4851ws5sYAM5smqxvWkULfhtvBSry+pCJGVjAdTHg@mail.gmail.com>
-References: <CAN-5tyHRcvd0Zv33putWv+gxB81a5O4EcyV8BN0GkFET+k_Gjg@mail.gmail.com>
- <CAG9sBKPtDAApLxuOvM-1pyEain-aPm-bmBu1rp7DsnuvRUT-UA@mail.gmail.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH RFC 2/2] RDMA/nldev: provide detailed CM_ID information
+Date: Tue, 6 Feb 2018 08:25:15 -0700
+Message-ID: <20180206152515.GD10095@ziepe.ca>
+References: <20180204150553.GH27780@mtr-leonro.local>
+ <015301d39e96$9f5e0b60$de1a2220$@opengridcomputing.com>
+ <20180205200020.GH11446@mellanox.com>
+ <026201d39ebf$d1f087a0$75d196e0$@opengridcomputing.com>
+ <20180205203608.GJ11446@mellanox.com>
+ <026a01d39ec3$5cc48270$164d8750$@opengridcomputing.com>
+ <20180205211618.GL11446@mellanox.com>
+ <026c01d39ece$fd9cf550$f8d6dff0$@opengridcomputing.com>
+ <20180205222025.GC10095@ziepe.ca>
+ <20180206084019.GL2567@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG9sBKPtDAApLxuOvM-1pyEain-aPm-bmBu1rp7DsnuvRUT-UA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180206084019.GL2567-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 5, 2018 at 8:09 AM, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> On the network trace, for the size=4093, I see:
->> Read request for 4093
->> Read response first data 1024bytes
->> Read response middle data 1024bytes
->> Read response middle data 1024bytes
->> Read response last data 1024bytes
->> Read request for 1021
->> Read response last data1024
->>
->> Then the last two message are repeated 6times. Then disconnect.
->>
->
-> Hi Olga
-> It looks like that the last response packet is sent with wrong size
-> and continues to do so for repeated retries until the requester gives
-> up.
-> I'll try to look into it and update
+On Tue, Feb 06, 2018 at 10:40:19AM +0200, Leon Romanovsky wrote:
+> On Mon, Feb 05, 2018 at 03:20:25PM -0700, Jason Gunthorpe wrote:
+> > On Mon, Feb 05, 2018 at 04:16:37PM -0600, Steve Wise wrote:
+> > > >
+> > > > On Mon, Feb 05, 2018 at 02:53:23PM -0600, Steve Wise wrote:
+> > > >
+> > > > > Even if we create a device-unique ID for each restrack object, to make
+> > > it
+> > > > > useful to for userspace analysis would require exposing that ID in the
+> > > > > various user object structures (or via query methods).   EG having
+> > > > > pd->res_id, cq->res_id, etc...
+> > > >
+> > > > As I said, we have that, it is the fd, handle # tuple and most verbs
+> > > > objects expose the handle # in the user visible part of the object
+> > > > struct..
+> > >
+> > > Can you please show me an example of the handle # for some object like PD or
+> > > CQ?
+> >
+> > From rdma-core verbs.h:
+> >
+> > struct ibv_pd {
+> >         struct ibv_context     *context;
+> >         uint32_t                handle;
+> > };
+> >
+> > > This doesn't address kernel users' object, though, correct?
+> >
+> > Right.
+> >
+> > And id'ing a file descriptor gets kinda hard too..
+> 
+> And how should we handle kernel objects?
 
-I'm happy to test any patches. Also if you need an actual network
-trace if that helps, I can email that to you.
+hash'd pointer to internal struct?
 
-What I find interesting is that there is an additional request for
-1021bytes at all as there 4096bytes in the response for the
-4093request.
+Jason
 
-Could the problem be that one side is adding padding bytes and the
-other side is not expecting it?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
