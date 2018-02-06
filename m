@@ -1,1029 +1,610 @@
-From: Hal Rosenstock <hal@dev.mellanox.co.il>
-Subject: Re: [PATCH v2] Documentation/ABI: update infiniband sysfs interfaces
-Date: Tue, 6 Feb 2018 07:42:18 -0500
-Message-ID: <ea1c4fd2-5c2f-1357-c395-d68609653e04@dev.mellanox.co.il>
-References: <20180206072440.GA14957@mordor.localdomain>
+From: Roman Penyaev <roman.penyaev@profitbricks.com>
+Subject: Re: [PATCH 09/24] ibtrs: server: main functionality
+Date: Tue, 6 Feb 2018 13:46:22 +0100
+Message-ID: <CAJrWOzB9GS7=9gqQxjadJ5uAp8TZSnUowgSeTzoGC_=B0_oMgw@mail.gmail.com>
+References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
+ <20180202140904.2017-10-roman.penyaev@profitbricks.com> <1a621ca3-c093-99d8-9ba4-c61ce854028e@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20180206072440.GA14957@mordor.localdomain>
-Content-Language: en-US
-Sender: linux-doc-owner@vger.kernel.org
-To: Aishwarya Pant <aishpant@gmail.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Greg KH <gregkh@linuxfoundation.org>, linux-doc@vger.kernel.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <1a621ca3-c093-99d8-9ba4-c61ce854028e@grimberg.me>
+Sender: linux-block-owner@vger.kernel.org
+To: Sagi Grimberg <sagi@grimberg.me>
+Cc: linux-block@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@infradead.org>, Bart Van Assche <bart.vanassche@sandisk.com>, Or Gerlitz <ogerlitz@mellanox.com>, Danil Kipnis <danil.kipnis@profitbricks.com>, Jack Wang <jinpu.wang@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/6/2018 2:24 AM, Aishwarya Pant wrote:
-> Add documentation for core and hardware specific infiniband interfaces.
-> The descriptions have been collected from git commit logs, reading
-> through code and data sheets. Some drivers have incomplete doc and are
-> annotated with the comment '[to be documented]'.
-> 
-> Signed-off-by: Aishwarya Pant <aishpant@gmail.com>
+On Mon, Feb 5, 2018 at 12:29 PM, Sagi Grimberg <sagi@grimberg.me> wrote:
+> Hi Roman,
+>
+> Some comments below.
+>
+>
+> On 02/02/2018 04:08 PM, Roman Pen wrote:
+>>
+>> This is main functionality of ibtrs-server module, which accepts
+>> set of RDMA connections (so called IBTRS session), creates/destroys
+>> sysfs entries associated with IBTRS session and notifies upper layer
+>> (user of IBTRS API) about RDMA requests or link events.
+>>
+>> Signed-off-by: Roman Pen <roman.penyaev@profitbricks.com>
+>> Signed-off-by: Danil Kipnis <danil.kipnis@profitbricks.com>
+>> Cc: Jack Wang <jinpu.wang@profitbricks.com>
+>> ---
+>>   drivers/infiniband/ulp/ibtrs/ibtrs-srv.c | 1811
+>> ++++++++++++++++++++++++++++++
+>>   1 file changed, 1811 insertions(+)
+>>
+>> diff --git a/drivers/infiniband/ulp/ibtrs/ibtrs-srv.c
+>> b/drivers/infiniband/ulp/ibtrs/ibtrs-srv.c
+>> new file mode 100644
+>> index 000000000000..0d1fc08bd821
+>> --- /dev/null
+>> +++ b/drivers/infiniband/ulp/ibtrs/ibtrs-srv.c
+>> @@ -0,0 +1,1811 @@
+>> +/*
+>> + * InfiniBand Transport Layer
+>> + *
+>> + * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
+>> + * Authors: Fabian Holler <mail@fholler.de>
+>> + *          Jack Wang <jinpu.wang@profitbricks.com>
+>> + *          Kleber Souza <kleber.souza@profitbricks.com>
+>> + *          Danil Kipnis <danil.kipnis@profitbricks.com>
+>> + *          Roman Penyaev <roman.penyaev@profitbricks.com>
+>> + *          Milind Dumbare <Milind.dumbare@gmail.com>
+>> + *
+>> + * Copyright (c) 2017 - 2018 ProfitBricks GmbH. All rights reserved.
+>> + * Authors: Danil Kipnis <danil.kipnis@profitbricks.com>
+>> + *          Roman Penyaev <roman.penyaev@profitbricks.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> + * modify it under the terms of the GNU General Public License
+>> + * as published by the Free Software Foundation; either version 2
+>> + * of the License, or (at your option) any later version.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + *
+>> + * You should have received a copy of the GNU General Public License
+>> + * along with this program; if not, see <http://www.gnu.org/licenses/>.
+>> + */
+>> +
+>> +#undef pr_fmt
+>> +#define pr_fmt(fmt) KBUILD_MODNAME " L" __stringify(__LINE__) ": " fmt
+>> +
+>> +#include <linux/module.h>
+>> +#include <linux/mempool.h>
+>> +
+>> +#include "ibtrs-srv.h"
+>> +#include "ibtrs-log.h"
+>> +
+>> +MODULE_AUTHOR("ibnbd@profitbricks.com");
+>> +MODULE_DESCRIPTION("IBTRS Server");
+>> +MODULE_VERSION(IBTRS_VER_STRING);
+>> +MODULE_LICENSE("GPL");
+>> +
+>> +#define DEFAULT_MAX_IO_SIZE_KB 128
+>> +#define DEFAULT_MAX_IO_SIZE (DEFAULT_MAX_IO_SIZE_KB * 1024)
+>> +#define MAX_REQ_SIZE PAGE_SIZE
+>> +#define MAX_SG_COUNT ((MAX_REQ_SIZE - sizeof(struct ibtrs_msg_rdma_read))
+>> \
+>> +                     / sizeof(struct ibtrs_sg_desc))
+>> +
+>> +static int max_io_size = DEFAULT_MAX_IO_SIZE;
+>> +static int rcv_buf_size = DEFAULT_MAX_IO_SIZE + MAX_REQ_SIZE;
+>> +
+>> +static int max_io_size_set(const char *val, const struct kernel_param
+>> *kp)
+>> +{
+>> +       int err, ival;
+>> +
+>> +       err = kstrtoint(val, 0, &ival);
+>> +       if (err)
+>> +               return err;
+>> +
+>> +       if (ival < 4096 || ival + MAX_REQ_SIZE > (4096 * 1024) ||
+>> +           (ival + MAX_REQ_SIZE) % 512 != 0) {
+>> +               pr_err("Invalid max io size value %d, has to be"
+>> +                      " > %d, < %d\n", ival, 4096, 4194304);
+>> +               return -EINVAL;
+>> +       }
+>> +
+>> +       max_io_size = ival;
+>> +       rcv_buf_size = max_io_size + MAX_REQ_SIZE;
+>> +       pr_info("max io size changed to %d\n", ival);
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static const struct kernel_param_ops max_io_size_ops = {
+>> +       .set            = max_io_size_set,
+>> +       .get            = param_get_int,
+>> +};
+>> +module_param_cb(max_io_size, &max_io_size_ops, &max_io_size, 0444);
+>> +MODULE_PARM_DESC(max_io_size,
+>> +                "Max size for each IO request, when change the unit is in
+>> byte"
+>> +                " (default: " __stringify(DEFAULT_MAX_IO_SIZE_KB) "KB)");
+>> +
+>> +#define DEFAULT_SESS_QUEUE_DEPTH 512
+>> +static int sess_queue_depth = DEFAULT_SESS_QUEUE_DEPTH;
+>> +module_param_named(sess_queue_depth, sess_queue_depth, int, 0444);
+>> +MODULE_PARM_DESC(sess_queue_depth,
+>> +                "Number of buffers for pending I/O requests to allocate"
+>> +                " per session. Maximum: "
+>> __stringify(MAX_SESS_QUEUE_DEPTH)
+>> +                " (default: " __stringify(DEFAULT_SESS_QUEUE_DEPTH) ")");
+>> +
+>> +/* We guarantee to serve 10 paths at least */
+>> +#define CHUNK_POOL_SIZE (DEFAULT_SESS_QUEUE_DEPTH * 10)
+>> +static mempool_t *chunk_pool;
+>> +
+>> +static int retry_count = 7;
+>> +
+>> +static int retry_count_set(const char *val, const struct kernel_param
+>> *kp)
+>> +{
+>> +       int err, ival;
+>> +
+>> +       err = kstrtoint(val, 0, &ival);
+>> +       if (err)
+>> +               return err;
+>> +
+>> +       if (ival < MIN_RTR_CNT || ival > MAX_RTR_CNT) {
+>> +               pr_err("Invalid retry count value %d, has to be"
+>> +                      " > %d, < %d\n", ival, MIN_RTR_CNT, MAX_RTR_CNT);
+>> +               return -EINVAL;
+>> +       }
+>> +
+>> +       retry_count = ival;
+>> +       pr_info("QP retry count changed to %d\n", ival);
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static const struct kernel_param_ops retry_count_ops = {
+>> +       .set            = retry_count_set,
+>> +       .get            = param_get_int,
+>> +};
+>> +module_param_cb(retry_count, &retry_count_ops, &retry_count, 0644);
+>> +
+>> +MODULE_PARM_DESC(retry_count, "Number of times to send the message if
+>> the"
+>> +                " remote side didn't respond with Ack or Nack (default:
+>> 3,"
+>> +                " min: " __stringify(MIN_RTR_CNT) ", max: "
+>> +                __stringify(MAX_RTR_CNT) ")");
+>> +
+>> +static char cq_affinity_list[256] = "";
+>> +static cpumask_t cq_affinity_mask = { CPU_BITS_ALL };
+>> +
+>> +static void init_cq_affinity(void)
+>> +{
+>> +       sprintf(cq_affinity_list, "0-%d", nr_cpu_ids - 1);
+>> +}
+>> +
+>> +static int cq_affinity_list_set(const char *val, const struct
+>> kernel_param *kp)
+>> +{
+>> +       int ret = 0, len = strlen(val);
+>> +       cpumask_var_t new_value;
+>> +
+>> +       if (!strlen(cq_affinity_list))
+>> +               init_cq_affinity();
+>> +
+>> +       if (len >= sizeof(cq_affinity_list))
+>> +               return -EINVAL;
+>> +       if (!alloc_cpumask_var(&new_value, GFP_KERNEL))
+>> +               return -ENOMEM;
+>> +
+>> +       ret = cpulist_parse(val, new_value);
+>> +       if (ret) {
+>> +               pr_err("Can't set cq_affinity_list \"%s\": %d\n", val,
+>> +                      ret);
+>> +               goto free_cpumask;
+>> +       }
+>> +
+>> +       strlcpy(cq_affinity_list, val, sizeof(cq_affinity_list));
+>> +       *strchrnul(cq_affinity_list, '\n') = '\0';
+>> +       cpumask_copy(&cq_affinity_mask, new_value);
+>> +
+>> +       pr_info("cq_affinity_list changed to %*pbl\n",
+>> +               cpumask_pr_args(&cq_affinity_mask));
+>> +free_cpumask:
+>> +       free_cpumask_var(new_value);
+>> +       return ret;
+>> +}
+>> +
+>> +static struct kparam_string cq_affinity_list_kparam_str = {
+>> +       .maxlen = sizeof(cq_affinity_list),
+>> +       .string = cq_affinity_list
+>> +};
+>> +
+>> +static const struct kernel_param_ops cq_affinity_list_ops = {
+>> +       .set    = cq_affinity_list_set,
+>> +       .get    = param_get_string,
+>> +};
+>> +
+>> +module_param_cb(cq_affinity_list, &cq_affinity_list_ops,
+>> +               &cq_affinity_list_kparam_str, 0644);
+>> +MODULE_PARM_DESC(cq_affinity_list, "Sets the list of cpus to use as cq
+>> vectors."
+>> +                "(default: use all possible CPUs)");
+>> +
+>
+>
+> Can you explain why not using configfs?
 
-Looks good. One nit below.
+No reason, will switch.
 
-> ---
-> Changes in v2:
-> - Move infiniband interface from testing to stable
-> - Fix typos
-> - Update description of cap_mask, port_xmit_constraint_errors and
->   port_rcv_constraint_errors
-> - Add doc for hw_counters
-> - Remove old documentation
-> 
->  Documentation/ABI/stable/sysfs-class-infiniband  | 818 +++++++++++++++++++++++
->  Documentation/ABI/testing/sysfs-class-infiniband |  16 -
->  Documentation/infiniband/sysfs.txt               | 129 +---
->  3 files changed, 820 insertions(+), 143 deletions(-)
->  create mode 100644 Documentation/ABI/stable/sysfs-class-infiniband
->  delete mode 100644 Documentation/ABI/testing/sysfs-class-infiniband
-> 
-> diff --git a/Documentation/ABI/stable/sysfs-class-infiniband b/Documentation/ABI/stable/sysfs-class-infiniband
-> new file mode 100644
-> index 000000000000..f9c709a8d0ab
-> --- /dev/null
-> +++ b/Documentation/ABI/stable/sysfs-class-infiniband
-> @@ -0,0 +1,818 @@
-> +sysfs interface common for all infiniband devices
-> +-------------------------------------------------
-> +
-> +What:		/sys/class/infiniband/<device>/node_type
-> +What:		/sys/class/infiniband/<device>/node_guid
-> +What:		/sys/class/infiniband/<device>/sys_image_guid
-> +Date:		Apr, 2005
-> +KernelVersion:	v2.6.12
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		node_type:	(RO) Node type (CA, RNIC, usNIC, usNIC UDP,
-> +				switch or router)
-> +
-> +		node_guid:	(RO) Node GUID
-> +
-> +		sys_image_guid:	(RO) System image GUID
-> +
-> +
-> +What:		/sys/class/infiniband/<device>/node_desc
-> +Date:		Feb, 2006
-> +KernelVersion:	v2.6.17
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		(RW) Update the node description with information such as the
-> +		node's hostname, so that IB network management software can tie
-> +		its view to the real world.
-> +
-> +
-> +What:		/sys/class/infiniband/<device>/fw_ver
-> +Date:		Jun, 2016
-> +KernelVersion:	v4.10
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		(RO) Display firmware version
-> +
-> +
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/lid
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/rate
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/lid_mask_count
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/sm_sl
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/sm_lid
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/state
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/phys_state
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/cap_mask
-> +Date:		Apr, 2005
-> +KernelVersion:	v2.6.12
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +
-> +		lid:		(RO) Port LID
-> +
-> +		rate:		(RO) Port data rate (active width * active
-> +				speed)
-> +
-> +		lid_mask_count:	(RO) Port LID mask count
-> +
-> +		sm_sl:		(RO) Subnet manager SL for port's subnet
-> +
-> +		sm_lid:		(RO) Subnet manager LID for port's subnet
-> +
-> +		state:		(RO) Port state (DOWN, INIT, ARMED, ACTIVE or
-> +				ACTIVE_DEFER)
-> +
-> +		phys_state:	(RO) Port physical state (Sleep, Polling,
-> +				LinkUp, etc)
-> +
-> +		cap_mask:	(RO) Port capability mask. 2 bits here are
-> +				settable- IsCommunicationManagementSupported
-> +				(set when CM module is loaded) and IsSM (set via
-> +				open of issmN file).
-> +
-> +
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/link_layer
-> +Date:		Oct, 2010
-> +KernelVersion:	v2.6.37
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		(RO) Link layer type information (Infiniband or Ethernet type)
-> +
-> +
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/symbol_error
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_rcv_errors
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_rcv_remote_physical_errors
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_rcv_switch_relay_errors
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/link_error_recovery
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_xmit_constraint_errors
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_rcv_contraint_errors
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/local_link_integrity_errors
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/excessive_buffer_overrun_errors
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_xmit_data
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_rcv_data
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_xmit_packets
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_rcv_packets
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/unicast_rcv_packets
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/unicast_xmit_packets
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/multicast_rcv_packets
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/multicast_xmit_packets
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/link_downed
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_xmit_discards
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/VL15_dropped
-> +What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_xmit_wait
-> +Date:		Apr, 2005
-> +KernelVersion:	v2.6.12
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		Errors info:
-> +		-----------
-> +
-> +		symbol_error: (RO) Total number of minor link errors detected on
-> +		one or more physical lanes.
-> +
-> +		port_rcv_errors : (RO) Total number of packets containing an
-> +		error that were received on the port.
-> +
-> +		port_rcv_remote_physical_errors : (RO) Total number of packets
-> +		marked with the EBP delimiter received on the port.
-> +
-> +		port_rcv_switch_relay_errors : (RO) Total number of packets
-> +		received on the port that were discarded because they could not
-> +		be forwarded by the switch relay.
-> +
-> +		link_error_recovery: (RO) Total number of times the Port
-> +		Training state machine has successfully completed the link error
-> +		recovery process.
-> +
-> +		port_xmit_constraint_errors: (RO) Total number of packets not
-> +		transmitted from the switch physical port due to outbound raw
-> +		filtering or failing outbound partition or IP version check.
-> +
-> +		port_rcv_constraint_errors: (RO) Total number of packets
-> +		received on the switch physical port that are discarded due to
-> +		inbound raw filtering or failing outbound partition or IP
-> +		version check.
+>> +static void ibtrs_srv_close_work(struct work_struct *work)
+>> +{
+>> +       struct ibtrs_srv_sess *sess;
+>> +       struct ibtrs_srv_ctx *ctx;
+>> +       struct ibtrs_srv_con *con;
+>> +       int i;
+>> +
+>> +       sess = container_of(work, typeof(*sess), close_work);
+>> +       ctx = sess->srv->ctx;
+>> +
+>> +       ibtrs_srv_destroy_sess_files(sess);
+>> +       ibtrs_srv_stop_hb(sess);
+>> +
+>> +       for (i = 0; i < sess->s.con_num; i++) {
+>> +               con = to_srv_con(sess->s.con[i]);
+>> +               if (!con)
+>> +                       continue;
+>> +
+>> +               rdma_disconnect(con->c.cm_id);
+>> +               ib_drain_qp(con->c.qp);
+>> +       }
+>> +       /* Wait for all inflights */
+>> +       ibtrs_srv_wait_ops_ids(sess);
+>> +
+>> +       /* Notify upper layer if we are the last path */
+>> +       ibtrs_srv_sess_down(sess);
+>> +
+>> +       unmap_cont_bufs(sess);
+>> +       ibtrs_srv_free_ops_ids(sess);
+>> +
+>> +       for (i = 0; i < sess->s.con_num; i++) {
+>> +               con = to_srv_con(sess->s.con[i]);
+>> +               if (!con)
+>> +                       continue;
+>> +
+>> +               ibtrs_cq_qp_destroy(&con->c);
+>> +               rdma_destroy_id(con->c.cm_id);
+>> +               kfree(con);
+>> +       }
+>> +       ibtrs_ib_dev_put(sess->s.ib_dev);
+>> +
+>> +       del_path_from_srv(sess);
+>> +       put_srv(sess->srv);
+>> +       sess->srv = NULL;
+>> +       ibtrs_srv_change_state(sess, IBTRS_SRV_CLOSED);
+>> +
+>> +       kfree(sess->rdma_addr);
+>> +       kfree(sess->s.con);
+>> +       kfree(sess);
+>> +}
+>> +
+>> +static int ibtrs_rdma_do_accept(struct ibtrs_srv_sess *sess,
+>> +                               struct rdma_cm_id *cm_id)
+>> +{
+>> +       struct ibtrs_srv *srv = sess->srv;
+>> +       struct ibtrs_msg_conn_rsp msg;
+>> +       struct rdma_conn_param param;
+>> +       int err;
+>> +
+>> +       memset(&param, 0, sizeof(param));
+>> +       param.retry_count = retry_count;
+>> +       param.rnr_retry_count = 7;
+>> +       param.private_data = &msg;
+>> +       param.private_data_len = sizeof(msg);
+>> +
+>> +       memset(&msg, 0, sizeof(msg));
+>> +       msg.magic = cpu_to_le16(IBTRS_MAGIC);
+>> +       msg.version = cpu_to_le16(IBTRS_VERSION);
+>> +       msg.errno = 0;
+>> +       msg.queue_depth = cpu_to_le16(srv->queue_depth);
+>> +       msg.rkey = cpu_to_le32(sess->s.ib_dev->rkey);
+>
+>
+> As said, this cannot happen anymore...
 
-Nit: cut 'n paste error I provided here:
-outbound -> inbound
+We've already planned to change that.  Would be interesting to see
+the performance results.
 
-> +
-> +		local_link_integrity_errors: (RO) The number of times that the
-> +		count of local physical errors exceeded the threshold specified
-> +		by LocalPhyErrors
-> +
-> +		excessive_buffer_overrun_errors: (RO) This counter, indicates an
-> +		input buffer overrun. It indicates possible misconfiguration of
-> +		a port, either by the Subnet Manager (SM) or by user
-> +		intervention. It can also indicate hardware issues or extremely
-> +		poor link signal integrity
-> +
-> +		Data info:
-> +		---------
-> +
-> +		port_xmit_data: (RO) Total number of data octets, divided by 4
-> +		(lanes), transmitted on all VLs. This is 64 bit counter
-> +
-> +		port_rcv_data: (RO) Total number of data octets, divided by 4
-> +		(lanes), received on all VLs. This is 64 bit counter.
-> +
-> +		port_xmit_packets: (RO) Total number of packets transmitted on
-> +		all VLs from this port. This may include packets with errors.
-> +		This is 64 bit counter.
-> +
-> +		port_rcv_packets: (RO) Total number of packets (this may include
-> +		packets containing Errors. This is 64 bit counter.
-> +
-> +		link_downed: (RO) Total number of times the Port Training state
-> +		machine has failed the link error recovery process and downed
-> +		the link.
-> +
-> +		unicast_rcv_packets: (RO) Total number of unicast packets,
-> +		including unicast packets containing errors.
-> +
-> +		unicast_xmit_packets: (RO) Total number of unicast packets
-> +		transmitted on all VLs from the port. This may include unicast
-> +		packets with errors.
-> +
-> +		multicast_rcv_packets: (RO) Total number of multicast packets,
-> +		including multicast packets containing errors.
-> +
-> +		multicast_xmit_packets: (RO) Total number of multicast packets
-> +		transmitted on all VLs from the port. This may include multicast
-> +		packets with errors.
-> +
-> +		Misc info:
-> +		---------
-> +
-> +		port_xmit_discards: (RO) Total number of outbound packets
-> +		discarded by the port because the port is down or congested.
-> +
-> +		VL15_dropped: (RO) Number of incoming VL15 packets dropped due
-> +		to resource limitations (e.g., lack of buffers) of the port.
-> +
-> +		port_xmit_wait: (RO) The number of ticks during which the port
-> +		had data to transmit but no data was sent during the entire tick
-> +		(either because of insufficient credits or because of lack of
-> +		arbitration).
-> +
-> +		Each of these files contains the corresponding value from the
-> +		port's Performance Management PortCounters attribute, as
-> +		described in the InfiniBand Architecture Specification.
-> +
-> +
-> +What:		/sys/class/infiniband/<device-name>/hw_counters/lifespan
-> +What:		/sys/class/infiniband/<device-name>/ports/<port-num>/hw_counters/lifespan
-> +Date:		May, 2016
-> +KernelVersion:	4.6
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		The optional "hw_counters" subdirectory can be under either the
-> +		parent device or the port subdirectories or both. If present,
-> +		there are a list of counters provided by the hardware. They may
-> +		match some of the counters in the counters directory, but they
-> +		often include many other counters. In addition to the various
-> +		counters, there will be a file named "lifespan" that configures
-> +		how frequently the core should update the counters when they are
-> +		being accessed (counters are not updated if they are not being
-> +		accessed). The lifespan is in milliseconds and defaults to 10
-> +		unless set to something else by the driver. Users may echo a
-> +		value between 0-10000 to the lifespan file to set the length
-> +		of time between updates in milliseconds.
-> +
-> +
-> +What:		/sys/class/infiniband/<hca>/ports/<port-number>/gid_attrs/ndevs/<gid-index>
-> +Date:		November 29, 2015
-> +KernelVersion:	4.4.0
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description: 	The net-device's name associated with the GID resides
-> +		at index <gid-index>.
-> +
-> +What:		/sys/class/infiniband/<hca>/ports/<port-number>/gid_attrs/types/<gid-index>
-> +Date:		November 29, 2015
-> +KernelVersion:	4.4.0
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description: 	The RoCE type of the associated GID resides at index <gid-index>.
-> +		This could either be "IB/RoCE v1" for IB and RoCE v1 based GODs
-> +		or "RoCE v2" for RoCE v2 based GIDs.
-> +
-> +
-> +What:		/sys/class/infiniband_mad/umadN/ibdev
-> +What:		/sys/class/infiniband_mad/umadN/port
-> +What:		/sys/class/infiniband_mad/issmN/ibdev
-> +What:		/sys/class/infiniband_mad/issmN/port
-> +Date:		Apr, 2005
-> +KernelVersion:	v2.6.12
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		Each port of each InfiniBand device has a "umad" device and an
-> +		"issm" device attached. For example, a two-port HCA will have
-> +		two umad devices and two issm devices, while a switch will have
-> +		one device of each type (for switch port 0).
-> +
-> +		ibdev:	(RO) Show Infiniband (IB) device name
-> +
-> +		port:	(RO) Display port number
-> +
-> +
-> +What:		/sys/class/infiniband_mad/abi_version
-> +Date:		Apr, 2005
-> +KernelVersion:	v2.6.12
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		(RO) Value is incremented if any changes are made that break
-> +		userspace ABI compatibility of umad & issm devices.
-> +
-> +
-> +What:		/sys/class/infiniband_cm/ucmN/ibdev
-> +Date:		Oct, 2005
-> +KernelVersion:	v2.6.14
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		(RO) Display Infiniband (IB) device name
-> +
-> +
-> +What:		/sys/class/infiniband_cm/abi_version
-> +Date:		Oct, 2005
-> +KernelVersion:	v2.6.14
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		(RO) Value is incremented if any changes are made that break
-> +		userspace ABI compatibility of ucm devices.
-> +
-> +
-> +What:		/sys/class/infiniband_verbs/uverbsN/ibdev
-> +What:		/sys/class/infiniband_verbs/uverbsN/abi_version
-> +Date:		Sept, 2005
-> +KernelVersion:	v2.6.14
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		ibdev:		(RO) Display Infiniband (IB) device name
-> +
-> +		abi_version:	(RO) Show ABI version of IB device specific
-> +				interfaces.
-> +
-> +
-> +What:		/sys/class/infiniband_verbs/abi_version
-> +Date:		Sep, 2005
-> +KernelVersion:	v2.6.14
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		(RO) Value is incremented if any changes are made that break
-> +		userspace ABI compatibility uverbs devices.
-> +
-> +
-> +sysfs interface for Mellanox IB HCA low-level driver (mthca)
-> +------------------------------------------------------------
-> +
-> +What:		/sys/class/infiniband/mthcaX/hw_rev
-> +What:		/sys/class/infiniband/mthcaX/hca_type
-> +What:		/sys/class/infiniband/mthcaX/board_id
-> +Date:		Apr, 2005
-> +KernelVersion:	v2.6.12
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		hw_rev:		(RO) Hardware revision number
-> +
-> +		hca_type:	(RO) Host Channel Adapter type: MT23108, MT25208
-> +				(MT23108 compat mode), MT25208 or MT25204
-> +
-> +		board_id:	(RO) Manufacturing board ID
-> +
-> +
-> +sysfs interface for Chelsio T3 RDMA Driver (cxgb3)
-> +--------------------------------------------------
-> +
-> +What:		/sys/class/infiniband/cxgb3_X/hw_rev
-> +What:		/sys/class/infiniband/cxgb3_X/hca_type
-> +What:		/sys/class/infiniband/cxgb3_X/board_id
-> +Date:		Feb, 2007
-> +KernelVersion:	v2.6.21
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		hw_rev:		(RO) Hardware revision number
-> +
-> +		hca_type:	(RO) HCA type. Here it is a driver short name.
-> +				It should normally match the name in its bus
-> +				driver structure (e.g.  pci_driver::name).
-> +
-> +		board_id:	(RO) Manufacturing board id
-> +
-> +
-> +sysfs interface for Mellanox ConnectX HCA IB driver (mlx4)
-> +----------------------------------------------------------
-> +
-> +What:		/sys/class/infiniband/mlx4_X/hw_rev
-> +What:		/sys/class/infiniband/mlx4_X/hca_type
-> +What:		/sys/class/infiniband/mlx4_X/board_id
-> +Date:		Sep, 2007
-> +KernelVersion:	v2.6.24
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		hw_rev:		(RO) Hardware revision number
-> +
-> +		hca_type:	(RO) Host channel adapter type
-> +
-> +		board_id:	(RO) Manufacturing board ID
-> +
-> +
-> +What:		/sys/class/infiniband/mlx4_X/iov/ports/<port-num>/gids/<n>
-> +What:		/sys/class/infiniband/mlx4_X/iov/ports/<port-num>/admin_guids/<n>
-> +What:		/sys/class/infiniband/mlx4_X/iov/ports/<port-num>/pkeys/<n>
-> +What:		/sys/class/infiniband/mlx4_X/iov/ports/<port-num>/mcgs/
-> +What:		/sys/class/infiniband/mlx4_X/iov/ports/<pci-slot-num>/ports/<m>/gid_idx/0
-> +What:		/sys/class/infiniband/mlx4_X/iov/ports/<pci-slot-num>/ports/<m>/pkey_idx/<n>
-> +Date:		Aug, 2012
-> +KernelVersion:	v3.6.15
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		The sysfs iov directory is used to manage and examine the port
-> +		P_Key and guid paravirtualization. This directory is added only
-> +		for the master -- slaves do not have it.
-> +
-> +		Under iov/ports, the administrator may examine the gid and P_Key
-> +		tables as they are present in the device (and as are seen in the
-> +		"network view" presented to the SM).
-> +
-> +		The "pkeys" and "gids" subdirectories contain one file for each
-> +		entry in the port's P_Key or GID table respectively. For
-> +		example, ports/1/pkeys/10 contains the value at index 10 in port
-> +		1's P_Key table.
-> +
-> +		gids/<n>:		(RO) The physical port gids n = 0..127
-> +
-> +		admin_guids/<n>:	(RW) Allows examining or changing the
-> +					administrative state of a given GUID
-> +					n = 0..127
-> +
-> +		pkeys/<n>:		(RO) Displays the contents of the physical
-> +					key table n = 0..126
-> +
-> +		mcgs/:			(RO) Muticast group table
-> +
-> +		<m>/gid_idx/0:		(RO) Display the GID mapping m = 1..2
-> +
-> +		<m>/pkey_idx/<n>:	(RW) Writable except for RoCE pkeys.
-> +					m = 1..2, n = 0..126
-> +
-> +					Under the iov/<pci slot number>
-> +					directories, the admin may map the index
-> +					numbers in the physical tables (as under
-> +					iov/ports) to the paravirtualized index
-> +					numbers that guests see.
-> +
-> +					For example, if the administrator, for
-> +					port 1 on guest 2 maps physical pkey
-> +					index 10 to virtual index 1, then that
-> +					guest, whenever it uses its pkey index
-> +					1, will actually be using the real pkey
-> +					index 10.
-> +
-> +
-> +What:		/sys/class/infiniband/mlx4_X/iov/<pci-slot-num>/ports/<m>/smi_enabled
-> +What:           /sys/class/infiniband/mlx4_X/iov/<pci-slot-num>/ports/<m>/enable_smi_admin
-> +Date:		May, 2014
-> +KernelVersion:	v3.15.7
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		Enabling QP0 on VFs for selected VF/port. By default, no VFs are
-> +		enabled for QP0 operation.
-> +
-> +		smi_enabled:	(RO) Indicates whether smi is currently enabled
-> +				for the indicated VF/port
-> +
-> +		enable_smi_admin:(RW) Used by the admin to request that smi
-> +				capability be enabled or disabled for the
-> +				indicated VF/port. 0 = disable, 1 = enable.
-> +
-> +		The requested enablement will occur at the next reset of the VF
-> +		(e.g. driver restart on the VM which owns the VF).
-> +
-> +
-> +sysfs interface for NetEffect RNIC Low-Level iWARP driver (nes)
-> +---------------------------------------------------------------
-> +
-> +What:		/sys/class/infiniband/nesX/hw_rev
-> +What:		/sys/class/infiniband/nesX/hca_type
-> +What:		/sys/class/infiniband/nesX/board_id
-> +Date:		Feb, 2008
-> +KernelVersion:	v2.6.25
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		hw_rev:		(RO) Hardware revision number
-> +
-> +		hca_type:	(RO) Host Channel Adapter type (NEX020)
-> +
-> +		board_id:	(RO) Manufacturing board id
-> +
-> +
-> +sysfs interface for Chelsio T4/T5 RDMA driver (cxgb4)
-> +-----------------------------------------------------
-> +
-> +What:		/sys/class/infiniband/cxgb4_X/hw_rev
-> +What:		/sys/class/infiniband/cxgb4_X/hca_type
-> +What:		/sys/class/infiniband/cxgb4_X/board_id
-> +Date:		Apr, 2010
-> +KernelVersion:	v2.6.35
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +
-> +		hw_rev:		(RO) Hardware revision number
-> +
-> +		hca_type:	(RO) Driver short name. Should normally match
-> +				the name in its bus driver structure (e.g.
-> +				pci_driver::name)
-> +
-> +		board_id:	(RO) Manufacturing board id. (Vendor + device
-> +				information)
-> +
-> +
-> +sysfs interface for Intel IB driver qib
-> +---------------------------------------
-> +
-> +What:		/sys/class/infiniband/qibX/version
-> +What:		/sys/class/infiniband/qibX/hw_rev
-> +What:		/sys/class/infiniband/qibX/hca_type
-> +What:		/sys/class/infiniband/qibX/board_id
-> +What:		/sys/class/infiniband/qibX/boardversion
-> +What:		/sys/class/infiniband/qibX/nctxts
-> +What:		/sys/class/infiniband/qibX/localbus_info
-> +What:		/sys/class/infiniband/qibX/tempsense
-> +What:		/sys/class/infiniband/qibX/serial
-> +What:		/sys/class/infiniband/qibX/nfreectxts
-> +What:		/sys/class/infiniband/qibX/chip_reset
-> +Date:		May, 2010
-> +KernelVersion:	v2.6.35
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		version:	(RO) Display version information of installed software
-> +				and drivers.
-> +
-> +		hw_rev:		(RO) Hardware revision number
-> +
-> +		hca_type:	(RO) Host channel adapter type
-> +
-> +		board_id:	(RO) Manufacturing board id
-> +
-> +		boardversion:	(RO) Current version of the chip architecture
-> +
-> +		nctxts:		(RO) Return the number of user ports (contexts)
-> +				available
-> +
-> +		localbus_info:	(RO) Human readable localbus info
-> +
-> +		tempsense:	(RO) Display temp sense registers in decimal
-> +
-> +		serial:		(RO) Serial number of the HCA
-> +
-> +		nfreectxts:	(RO) The number of free user ports (contexts)
-> +				available.
-> +
-> +		chip_reset:	(WO) Reset the chip if possible by writing
-> +				"reset" to this file. Only allowed if no user
-> +				contexts are open that use chip resources.
-> +
-> +
-> +What:		/sys/class/infiniband/qibX/ports/N/sl2vl/[0-15]
-> +Date:		May, 2010
-> +KernelVersion:	v2.6.35
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		(RO) The directory contains 16 files numbered 0-15 that specify
-> +		the Service Level (SL). Listing the SL files returns the Virtual
-> +		Lane (VL) as programmed by the SL.
-> +
-> +What:		/sys/class/infiniband/qibX/ports/N/CCMgtA/cc_settings_bin
-> +What:		/sys/class/infiniband/qibX/ports/N/CCMgtA/cc_table_bin
-> +Date:		May, 2010
-> +KernelVersion:	v2.6.35
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		Per-port congestion control. Both are binary attributes.
-> +
-> +		cc_table_bin:	(RO) Congestion control table size followed by
-> +				table entries.
-> +
-> +		cc_settings_bin:(RO) Congestion settings: port control, control
-> +				map and an array of 16 entries for the
-> +				congestion entries - increase, timer, event log
-> +				trigger threshold and the minimum injection rate
-> +				delay.
-> +
-> +What:		/sys/class/infiniband/qibX/ports/N/linkstate/loopback
-> +What:		/sys/class/infiniband/qibX/ports/N/linkstate/led_override
-> +What:		/sys/class/infiniband/qibX/ports/N/linkstate/hrtbt_enable
-> +What:		/sys/class/infiniband/qibX/ports/N/linkstate/status
-> +What:		/sys/class/infiniband/qibX/ports/N/linkstate/status_str
-> +Date:		May, 2010
-> +KernelVersion:	v2.6.35
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		[to be documented]
-> +
-> +		loopback:	(WO)
-> +		led_override:	(WO)
-> +		hrtbt_enable:	(RW)
-> +		status:		(RO)
-> +
-> +		status_str:	(RO) Displays information about the link state,
-> +				possible cable/switch problems, and hardware
-> +				errors. Possible states are- "Initted",
-> +				"Present", "IB_link_up", "IB_configured" or
-> +				"Fatal_Hardware_Error".
-> +
-> +What:		/sys/class/infiniband/qibX/ports/N/diag_counters/rc_resends
-> +What:		/sys/class/infiniband/qibX/ports/N/diag_counters/seq_naks
-> +What:		/sys/class/infiniband/qibX/ports/N/diag_counters/rdma_seq
-> +What:		/sys/class/infiniband/qibX/ports/N/diag_counters/rnr_naks
-> +What:		/sys/class/infiniband/qibX/ports/N/diag_counters/other_naks
-> +What:		/sys/class/infiniband/qibX/ports/N/diag_counters/rc_timeouts
-> +What:		/sys/class/infiniband/qibX/ports/N/diag_counters/look_pkts
-> +What:		/sys/class/infiniband/qibX/ports/N/diag_counters/pkt_drops
-> +What:		/sys/class/infiniband/qibX/ports/N/diag_counters/dma_wait
-> +What:		/sys/class/infiniband/qibX/ports/N/diag_counters/unaligned
-> +Date:		May, 2010
-> +KernelVersion:	v2.6.35
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		[to be documented]
-> +
-> +
-> +sysfs interface for Mellanox Connect-IB HCA driver mlx5
-> +-------------------------------------------------------
-> +
-> +What:		/sys/class/infiniband/mlx5_X/hw_rev
-> +What:		/sys/class/infiniband/mlx5_X/hca_type
-> +What:		/sys/class/infiniband/mlx5_X/reg_pages
-> +What:		/sys/class/infiniband/mlx5_X/fw_pages
-> +Date:		Jul, 2013
-> +KernelVersion:	v3.11
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		[to be documented]
-> +
-> +
-> +sysfs interface for Cisco VIC (usNIC) Verbs Driver
-> +--------------------------------------------------
-> +
-> +What:		/sys/class/infiniband/usnic_X/board_id
-> +What:		/sys/class/infiniband/usnic_X/config
-> +What:		/sys/class/infiniband/usnic_X/qp_per_vf
-> +What:		/sys/class/infiniband/usnic_X/max_vf
-> +What:		/sys/class/infiniband/usnic_X/cq_per_vf
-> +What:		/sys/class/infiniband/usnic_X/iface
-> +Date:		Sep, 2013
-> +KernelVersion:	v3.14
-> +Contact:	Christian Benvenuti <benve@cisco.com>,
-> +		Dave Goodell <dgoodell@cisco.com>,
-> +		linux-rdma@vger.kernel.org
-> +Description:
-> +
-> +		board_id:	(RO) Manufacturing board id
-> +
-> +		config:		(RO) Report the configuration for this PF
-> +
-> +		qp_per_vf:	(RO) Queue pairs per virtual function.
-> +
-> +		max_vf:		(RO) Max virtual functions
-> +
-> +		cq_per_vf:	(RO) Completion queue per virtual function
-> +
-> +		iface:		(RO) Shows which network interface this usNIC
-> +				entry is associated to (visible with ifconfig).
-> +
-> +What:		/sys/class/infiniband/usnic_X/qpn/summary
-> +What:		/sys/class/infiniband/usnic_X/qpn/context
-> +Date:		Sep, 2013
-> +KernelVersion:	v3.14
-> +Contact:	Christian Benvenuti <benve@cisco.com>,
-> +		Dave Goodell <dgoodell@cisco.com>,
-> +		linux-rdma@vger.kernel.org
-> +Description:
-> +		[to be documented]
-> +
-> +
-> +sysfs interface for Emulex RoCE HCA Driver
-> +------------------------------------------
-> +
-> +What:		/sys/class/infiniband/ocrdmaX/hw_rev
-> +Date:		Feb, 2014
-> +KernelVersion:	v3.14
-> +Description:
-> +		hw_rev:		(RO) Hardware revision number
-> +
-> +What:		/sys/class/infiniband/ocrdmaX/hca_type
-> +Date:		Jun, 2014
-> +KernelVersion:	v3.16
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		hca_type:	(RO) Display FW version
-> +
-> +
-> +sysfs interface for Intel Omni-Path driver (HFI1)
-> +-------------------------------------------------
-> +
-> +What:		/sys/class/infiniband/hfi1_X/hw_rev
-> +What:		/sys/class/infiniband/hfi1_X/board_id
-> +What:		/sys/class/infiniband/hfi1_X/nctxts
-> +What:		/sys/class/infiniband/hfi1_X/serial
-> +What:		/sys/class/infiniband/hfi1_X/chip_reset
-> +What:		/sys/class/infiniband/hfi1_X/boardversion
-> +What:		/sys/class/infiniband/hfi1_X/nfreectxts
-> +What:		/sys/class/infiniband/hfi1_X/tempsense
-> +Date:		May, 2016
-> +KernelVersion:	v4.6
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		hw_rev:		(RO) Hardware revision number
-> +
-> +		board_id:	(RO) Manufacturing board id
-> +
-> +		nctxts:		(RO) Total contexts available.
-> +
-> +		serial:		(RO) Board serial number
-> +
-> +		chip_reset:	(WO) Write "reset" to this file to reset the
-> +				chip if possible. Only allowed if no user
-> +				contexts are open that use chip resources.
-> +
-> +		boardversion:	(RO) Human readable board info
-> +
-> +		nfreectxts:	(RO) The number of free user ports (contexts)
-> +				available.
-> +
-> +		tempsense:	(RO) Thermal sense information
-> +
-> +
-> +What:		/sys/class/infiniband/hfi1_X/ports/N/CCMgtA/cc_settings_bin
-> +What:		/sys/class/infiniband/hfi1_X/ports/N/CCMgtA/cc_table_bin
-> +What:		/sys/class/infiniband/hfi1_X/ports/N/CCMgtA/cc_prescan
-> +Date:		May, 2016
-> +KernelVersion:	v4.6
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		Per-port congestion control.
-> +
-> +		cc_table_bin:	(RO) CCA tables used by PSM2 Congestion control
-> +				table size followed by table entries. Binary
-> +				attribute.
-> +
-> +		cc_settings_bin:(RO) Congestion settings: port control, control
-> +				map and an array of 16 entries for the
-> +				congestion entries - increase, timer, event log
-> +				trigger threshold and the minimum injection rate
-> +				delay. Binary attribute.
-> +
-> +		cc_prescan:	(RW) enable prescanning for faster BECN
-> +				response. Write "on" to enable and "off" to
-> +				disable.
-> +
-> +What:		/sys/class/infiniband/hfi1_X/ports/N/sc2vl/[0-31]
-> +What:		/sys/class/infiniband/hfi1_X/ports/N/sl2sc/[0-31]
-> +What:		/sys/class/infiniband/hfi1_X/ports/N/vl2mtu/[0-15]
-> +Date:		May, 2016
-> +KernelVersion:	v4.6
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		sc2vl/:		(RO) 32 files (0 - 31) used to translate sl->vl
-> +
-> +		sl2sc/:		(RO) 32 files (0 - 31) used to translate sl->sc
-> +
-> +		vl2mtu/:	(RO) 16 files (0 - 15) used to determine MTU for vl
-> +
-> +
-> +What:		/sys/class/infiniband/hfi1_X/sdma_N/cpu_list
-> +What:		/sys/class/infiniband/hfi1_X/sdma_N/vl
-> +Date:		Sept, 2016
-> +KernelVersion:	v4.8
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		sdma<N>/ contains one directory per sdma engine (0 - 15)
-> +
-> +		cpu_list:	(RW) List of cpus for user-process to sdma
-> +				engine assignment.
-> +
-> +		vl:		(RO) Displays the virtual lane (vl) the sdma
-> +				engine maps to.
-> +
-> +		This interface gives the user control on the affinity settings
-> +		for the device. As an example, to set an sdma engine irq
-> +		affinity and thread affinity of a user processes to use the
-> +		sdma engine, which is "near" in terms of NUMA configuration, or
-> +		physical cpu location, the user will do:
-> +
-> +		echo "3" > /proc/irq/<N>/smp_affinity_list
-> +		echo "4-7" > /sys/devices/.../sdma3/cpu_list
-> +		cat /sys/devices/.../sdma3/vl
-> +		0
-> +		echo "8" > /proc/irq/<M>/smp_affinity_list
-> +		echo "9-12" > /sys/devices/.../sdma4/cpu_list
-> +		cat /sys/devices/.../sdma4/vl
-> +		1
-> +
-> +		to make sure that when a process runs on cpus 4,5,6, or 7, and
-> +		uses vl=0, then sdma engine 3 is selected by the driver, and
-> +		also the interrupt of the sdma engine 3 is steered to cpu 3.
-> +		Similarly, when a process runs on cpus 9,10,11, or 12 and sets
-> +		vl=1, then engine 4 will be selected and the irq of the sdma
-> +		engine 4 is steered to cpu 8.  This assumes that in the above N
-> +		is the irq number of "sdma3", and M is irq number of "sdma4" in
-> +		the /proc/interrupts file.
-> +
-> +
-> +sysfs interface for Intel(R) X722 iWARP i40iw driver
-> +----------------------------------------------------
-> +
-> +What:		/sys/class/infiniband/i40iwX/hw_rev
-> +What:		/sys/class/infiniband/i40iwX/hca_type
-> +What:		/sys/class/infiniband/i40iwX/board_id
-> +Date:		Jan, 2016
-> +KernelVersion:	v4.10
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		hw_rev:		(RO) Hardware revision number
-> +
-> +		hca_type:	(RO) Show HCA type (I40IW)
-> +
-> +		board_id:	(RO) I40IW board ID
-> +
-> +
-> +sysfs interface for QLogic qedr NIC Driver
-> +------------------------------------------
-> +
-> +What:		/sys/class/infiniband/qedrX/hw_rev
-> +What:		/sys/class/infiniband/qedrX/hca_type
-> +Date:		Oct, 2016
-> +KernelVersion:	v4.10
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +
-> +		hw_rev:		(RO) Hardware revision number
-> +
-> +		hca_type:	(RO) Display HCA type
-> +
-> +
-> +sysfs interface for VMware Paravirtual RDMA driver
-> +--------------------------------------------------
-> +
-> +What:		/sys/class/infiniband/vmw_pvrdmaX/hw_rev
-> +What:		/sys/class/infiniband/vmw_pvrdmaX/hca_type
-> +What:		/sys/class/infiniband/vmw_pvrdmaX/board_id
-> +Date:		Oct, 2016
-> +KernelVersion:	v4.10
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +
-> +		hw_rev:		(RO) Hardware revision number
-> +
-> +		hca_type:	(RO) Host channel adapter type
-> +
-> +		board_id:	(RO) Display PVRDMA manufacturing board ID
-> +
-> +
-> +sysfs interface for Broadcom NetXtreme-E RoCE driver
-> +----------------------------------------------------
-> +
-> +What:		/sys/class/infiniband/bnxt_reX/hw_rev
-> +What:		/sys/class/infiniband/bnxt_reX/hca_type
-> +Date:		Feb, 2017
-> +KernelVersion:	v4.11
-> +Contact:	linux-rdma@vger.kernel.org
-> +Description:
-> +		hw_rev:		(RO) Hardware revision number
-> +
-> +		hca_type:	(RO) Host channel adapter type
-> diff --git a/Documentation/ABI/testing/sysfs-class-infiniband b/Documentation/ABI/testing/sysfs-class-infiniband
-> deleted file mode 100644
-> index a86abe66a316..000000000000
-> --- a/Documentation/ABI/testing/sysfs-class-infiniband
-> +++ /dev/null
-> @@ -1,16 +0,0 @@
-> -What:		/sys/class/infiniband/<hca>/ports/<port-number>/gid_attrs/ndevs/<gid-index>
-> -Date:		November 29, 2015
-> -KernelVersion:	4.4.0
-> -Contact:	linux-rdma@vger.kernel.org
-> -Description: 	The net-device's name associated with the GID resides
-> -		at index <gid-index>.
-> -
-> -What:		/sys/class/infiniband/<hca>/ports/<port-number>/gid_attrs/types/<gid-index>
-> -Date:		November 29, 2015
-> -KernelVersion:	4.4.0
-> -Contact:	linux-rdma@vger.kernel.org
-> -Description: 	The RoCE type of the associated GID resides at index <gid-index>.
-> -		This could either be "IB/RoCE v1" for IB and RoCE v1 based GODs
-> -		or "RoCE v2" for RoCE v2 based GIDs.
-> -
-> -
-> diff --git a/Documentation/infiniband/sysfs.txt b/Documentation/infiniband/sysfs.txt
-> index 77570d16b170..9fab5062f84b 100644
-> --- a/Documentation/infiniband/sysfs.txt
-> +++ b/Documentation/infiniband/sysfs.txt
-> @@ -1,129 +1,4 @@
->  SYSFS FILES
->  
-> -  For each InfiniBand device, the InfiniBand drivers create the
-> -  following files under /sys/class/infiniband/<device name>:
-> -
-> -    node_type      - Node type (CA, switch or router)
-> -    node_guid      - Node GUID
-> -    sys_image_guid - System image GUID
-> -
-> -  In addition, there is a "ports" subdirectory, with one subdirectory
-> -  for each port.  For example, if mthca0 is a 2-port HCA, there will
-> -  be two directories:
-> -
-> -    /sys/class/infiniband/mthca0/ports/1
-> -    /sys/class/infiniband/mthca0/ports/2
-> -
-> -  (A switch will only have a single "0" subdirectory for switch port
-> -  0; no subdirectory is created for normal switch ports)
-> -
-> -  In each port subdirectory, the following files are created:
-> -
-> -    cap_mask       - Port capability mask
-> -    lid            - Port LID
-> -    lid_mask_count - Port LID mask count
-> -    rate           - Port data rate (active width * active speed)
-> -    sm_lid         - Subnet manager LID for port's subnet
-> -    sm_sl          - Subnet manager SL for port's subnet
-> -    state          - Port state (DOWN, INIT, ARMED, ACTIVE or ACTIVE_DEFER)
-> -    phys_state     - Port physical state (Sleep, Polling, LinkUp, etc)
-> -
-> -  There is also a "counters" subdirectory, with files
-> -
-> -    VL15_dropped
-> -    excessive_buffer_overrun_errors
-> -    link_downed
-> -    link_error_recovery
-> -    local_link_integrity_errors
-> -    port_rcv_constraint_errors
-> -    port_rcv_data
-> -    port_rcv_errors
-> -    port_rcv_packets
-> -    port_rcv_remote_physical_errors
-> -    port_rcv_switch_relay_errors
-> -    port_xmit_constraint_errors
-> -    port_xmit_data
-> -    port_xmit_discards
-> -    port_xmit_packets
-> -    symbol_error
-> -
-> -  Each of these files contains the corresponding value from the port's
-> -  Performance Management PortCounters attribute, as described in
-> -  section 16.1.3.5 of the InfiniBand Architecture Specification.
-> -
-> -  The "pkeys" and "gids" subdirectories contain one file for each
-> -  entry in the port's P_Key or GID table respectively.  For example,
-> -  ports/1/pkeys/10 contains the value at index 10 in port 1's P_Key
-> -  table.
-> -
-> -  There is an optional "hw_counters" subdirectory that may be under either
-> -  the parent device or the port subdirectories or both.  If present,
-> -  there are a list of counters provided by the hardware.  They may match
-> -  some of the counters in the counters directory, but they often include
-> -  many other counters.  In addition to the various counters, there will
-> -  be a file named "lifespan" that configures how frequently the core
-> -  should update the counters when they are being accessed (counters are
-> -  not updated if they are not being accessed).  The lifespan is in milli-
-> -  seconds and defaults to 10 unless set to something else by the driver.
-> -  Users may echo a value between 0 - 10000 to the lifespan file to set
-> -  the length of time between updates in milliseconds.
-> -
-> -MTHCA
-> -
-> -  The Mellanox HCA driver also creates the files:
-> -
-> -    hw_rev   - Hardware revision number
-> -    fw_ver   - Firmware version
-> -    hca_type - HCA type: "MT23108", "MT25208 (MT23108 compat mode)",
-> -               or "MT25208"
-> -
-> -HFI1
-> -
-> -  The hfi1 driver also creates these additional files:
-> -
-> -   hw_rev - hardware revision
-> -   board_id - manufacturing board id
-> -   tempsense - thermal sense information
-> -   serial - board serial number
-> -   nfreectxts - number of free user contexts
-> -   nctxts - number of allowed contexts (PSM2)
-> -   chip_reset - diagnostic (root only)
-> -   boardversion - board version
-> -
-> -   sdma<N>/ - one directory per sdma engine (0 - 15)
-> -	sdma<N>/cpu_list - read-write, list of cpus for user-process to sdma
-> -			   engine assignment.
-> -	sdma<N>/vl - read-only, vl the sdma engine maps to.
-> -
-> -	The new interface will give the user control on the affinity settings
-> -	for the hfi1 device.
-> -	As an example, to set an sdma engine irq affinity and thread affinity
-> -	of a user processes to use the sdma engine, which is "near" in terms
-> -	of NUMA configuration, or physical cpu location, the user will do:
-> -
-> -	echo "3" > /proc/irq/<N>/smp_affinity_list
-> -	echo "4-7" > /sys/devices/.../sdma3/cpu_list
-> -	cat /sys/devices/.../sdma3/vl
-> -	0
-> -	echo "8" > /proc/irq/<M>/smp_affinity_list
-> -	echo "9-12" > /sys/devices/.../sdma4/cpu_list
-> -	cat /sys/devices/.../sdma4/vl
-> -	1
-> -
-> -	to make sure that when a process runs on cpus 4,5,6, or 7,
-> -	and uses vl=0, then sdma engine 3 is selected by the driver,
-> -	and also the interrupt of the sdma engine 3 is steered to cpu 3.
-> -	Similarly, when a process runs on cpus 9,10,11, or 12 and sets vl=1,
-> -	then engine 4 will be selected and the irq of the sdma engine 4 is
-> -	steered to cpu 8.
-> -	This assumes that in the above N is the irq number of "sdma3",
-> -	and M is irq number of "sdma4" in the /proc/interrupts file.
-> -
-> -   ports/1/
-> -          CCMgtA/
-> -               cc_settings_bin - CCA tables used by PSM2
-> -               cc_table_bin
-> -               cc_prescan - enable prescaning for faster BECN response
-> -          sc2v/ - 32 files (0 - 31) used to translate sl->vl
-> -          sl2sc/ - 32 files (0 - 31) used to translate sl->sc
-> -          vl2mtu/ - 16 (0 - 15) files used to determine MTU for vl
-> +The sysfs interface has moved to
-> +Documentation/ABI/stable/sysfs-class-infiniband.
-> 
+>> +static struct rdma_cm_id *ibtrs_srv_cm_init(struct ibtrs_srv_ctx *ctx,
+>> +                                           struct sockaddr *addr,
+>> +                                           enum rdma_port_space ps)
+>> +{
+>> +       struct rdma_cm_id *cm_id;
+>> +       int ret;
+>> +
+>> +       cm_id = rdma_create_id(&init_net, ibtrs_srv_rdma_cm_handler,
+>> +                              ctx, ps, IB_QPT_RC);
+>> +       if (IS_ERR(cm_id)) {
+>> +               ret = PTR_ERR(cm_id);
+>> +               pr_err("Creating id for RDMA connection failed, err:
+>> %d\n",
+>> +                      ret);
+>> +               goto err_out;
+>> +       }
+>> +       ret = rdma_bind_addr(cm_id, addr);
+>> +       if (ret) {
+>> +               pr_err("Binding RDMA address failed, err: %d\n", ret);
+>> +               goto err_cm;
+>> +       }
+>> +       ret = rdma_listen(cm_id, 64);
+>> +       if (ret) {
+>> +               pr_err("Listening on RDMA connection failed, err: %d\n",
+>> +                      ret);
+>> +               goto err_cm;
+>> +       }
+>> +
+>> +       switch (addr->sa_family) {
+>> +       case AF_INET:
+>> +               pr_debug("listening on port %u\n",
+>> +                        ntohs(((struct sockaddr_in *)addr)->sin_port));
+>> +               break;
+>> +       case AF_INET6:
+>> +               pr_debug("listening on port %u\n",
+>> +                        ntohs(((struct sockaddr_in6 *)addr)->sin6_port));
+>> +               break;
+>> +       case AF_IB:
+>> +               pr_debug("listening on service id 0x%016llx\n",
+>> +                        be64_to_cpu(rdma_get_service_id(cm_id, addr)));
+>> +               break;
+>> +       default:
+>> +               pr_debug("listening on address family %u\n",
+>> addr->sa_family);
+>> +       }
+>
+>
+> We already have printk that accepts address format...
+
+Nice, thanks.
+
+>> +
+>> +       return cm_id;
+>> +
+>> +err_cm:
+>> +       rdma_destroy_id(cm_id);
+>> +err_out:
+>> +
+>> +       return ERR_PTR(ret);
+>> +}
+>> +
+>> +static int ibtrs_srv_rdma_init(struct ibtrs_srv_ctx *ctx, unsigned int
+>> port)
+>> +{
+>> +       struct sockaddr_in6 sin = {
+>> +               .sin6_family    = AF_INET6,
+>> +               .sin6_addr      = IN6ADDR_ANY_INIT,
+>> +               .sin6_port      = htons(port),
+>> +       };
+>> +       struct sockaddr_ib sib = {
+>> +               .sib_family                     = AF_IB,
+>> +               .sib_addr.sib_subnet_prefix     = 0ULL,
+>> +               .sib_addr.sib_interface_id      = 0ULL,
+>> +               .sib_sid        = cpu_to_be64(RDMA_IB_IP_PS_IB | port),
+>> +               .sib_sid_mask   = cpu_to_be64(0xffffffffffffffffULL),
+>> +               .sib_pkey       = cpu_to_be16(0xffff),
+>> +       };
+>
+>
+> ipv4?
+
+sockaddr_in6 accepts ipv4 also.
+
+>> +       struct rdma_cm_id *cm_ip, *cm_ib;
+>> +       int ret;
+>> +
+>> +       /*
+>> +        * We accept both IPoIB and IB connections, so we need to keep
+>> +        * two cm id's, one for each socket type and port space.
+>> +        * If the cm initialization of one of the id's fails, we abort
+>> +        * everything.
+>> +        */
+>> +       cm_ip = ibtrs_srv_cm_init(ctx, (struct sockaddr *)&sin,
+>> RDMA_PS_TCP);
+>> +       if (unlikely(IS_ERR(cm_ip)))
+>> +               return PTR_ERR(cm_ip);
+>> +
+>> +       cm_ib = ibtrs_srv_cm_init(ctx, (struct sockaddr *)&sib,
+>> RDMA_PS_IB);
+>> +       if (unlikely(IS_ERR(cm_ib))) {
+>> +               ret = PTR_ERR(cm_ib);
+>> +               goto free_cm_ip;
+>> +       }
+>> +
+>> +       ctx->cm_id_ip = cm_ip;
+>> +       ctx->cm_id_ib = cm_ib;
+>> +
+>> +       return 0;
+>> +
+>> +free_cm_ip:
+>> +       rdma_destroy_id(cm_ip);
+>> +
+>> +       return ret;
+>> +}
+>> +
+>> +static struct ibtrs_srv_ctx *alloc_srv_ctx(rdma_ev_fn *rdma_ev,
+>> +                                          link_ev_fn *link_ev)
+>> +{
+>> +       struct ibtrs_srv_ctx *ctx;
+>> +
+>> +       ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+>> +       if (!ctx)
+>> +               return NULL;
+>> +
+>> +       ctx->rdma_ev = rdma_ev;
+>> +       ctx->link_ev = link_ev;
+>> +       mutex_init(&ctx->srv_mutex);
+>> +       INIT_LIST_HEAD(&ctx->srv_list);
+>> +
+>> +       return ctx;
+>> +}
+>> +
+>> +static void free_srv_ctx(struct ibtrs_srv_ctx *ctx)
+>> +{
+>> +       WARN_ON(!list_empty(&ctx->srv_list));
+>> +       kfree(ctx);
+>> +}
+>> +
+>> +struct ibtrs_srv_ctx *ibtrs_srv_open(rdma_ev_fn *rdma_ev, link_ev_fn
+>> *link_ev,
+>> +                                    unsigned int port)
+>> +{
+>> +       struct ibtrs_srv_ctx *ctx;
+>> +       int err;
+>> +
+>> +       ctx = alloc_srv_ctx(rdma_ev, link_ev);
+>> +       if (unlikely(!ctx))
+>> +               return ERR_PTR(-ENOMEM);
+>> +
+>> +       err = ibtrs_srv_rdma_init(ctx, port);
+>> +       if (unlikely(err)) {
+>> +               free_srv_ctx(ctx);
+>> +               return ERR_PTR(err);
+>> +       }
+>> +       /* Do not let module be unloaded if server context is alive */
+>> +       __module_get(THIS_MODULE);
+>> +
+>> +       return ctx;
+>> +}
+>> +EXPORT_SYMBOL(ibtrs_srv_open);
+>> +
+>> +void ibtrs_srv_queue_close(struct ibtrs_srv_sess *sess)
+>> +{
+>> +       close_sess(sess);
+>> +}
+>> +
+>> +static void close_sess(struct ibtrs_srv_sess *sess)
+>> +{
+>> +       enum ibtrs_srv_state old_state;
+>> +
+>> +       if (ibtrs_srv_change_state_get_old(sess, IBTRS_SRV_CLOSING,
+>> +                                          &old_state))
+>> +               queue_work(ibtrs_wq, &sess->close_work);
+>> +       WARN_ON(sess->state != IBTRS_SRV_CLOSING);
+>> +}
+>> +
+>> +static void close_sessions(struct ibtrs_srv *srv)
+>> +{
+>> +       struct ibtrs_srv_sess *sess;
+>> +
+>> +       mutex_lock(&srv->paths_mutex);
+>> +       list_for_each_entry(sess, &srv->paths_list, s.entry)
+>> +               close_sess(sess);
+>> +       mutex_unlock(&srv->paths_mutex);
+>> +}
+>> +
+>> +static void close_ctx(struct ibtrs_srv_ctx *ctx)
+>> +{
+>> +       struct ibtrs_srv *srv;
+>> +
+>> +       mutex_lock(&ctx->srv_mutex);
+>> +       list_for_each_entry(srv, &ctx->srv_list, ctx_list)
+>> +               close_sessions(srv);
+>> +       mutex_unlock(&ctx->srv_mutex);
+>> +       flush_workqueue(ibtrs_wq);
+>> +}
+>> +
+>> +void ibtrs_srv_close(struct ibtrs_srv_ctx *ctx)
+>> +{
+>> +       rdma_destroy_id(ctx->cm_id_ip);
+>> +       rdma_destroy_id(ctx->cm_id_ib);
+>> +       close_ctx(ctx);
+>> +       free_srv_ctx(ctx);
+>> +       module_put(THIS_MODULE);
+>> +}
+>> +EXPORT_SYMBOL(ibtrs_srv_close);
+>> +
+>> +static int check_module_params(void)
+>> +{
+>> +       if (sess_queue_depth < 1 || sess_queue_depth >
+>> MAX_SESS_QUEUE_DEPTH) {
+>> +               pr_err("Invalid sess_queue_depth parameter value\n");
+>> +               return -EINVAL;
+>> +       }
+>> +
+>> +       /* check if IB immediate data size is enough to hold the mem_id
+>> and the
+>> +        * offset inside the memory chunk
+>> +        */
+>> +       if (ilog2(sess_queue_depth - 1) + ilog2(rcv_buf_size - 1) >
+>> +           MAX_IMM_PAYL_BITS) {
+>> +               pr_err("RDMA immediate size (%db) not enough to encode "
+>> +                      "%d buffers of size %dB. Reduce 'sess_queue_depth'
+>> "
+>> +                      "or 'max_io_size' parameters.\n",
+>> MAX_IMM_PAYL_BITS,
+>> +                      sess_queue_depth, rcv_buf_size);
+>> +               return -EINVAL;
+>> +       }
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static int __init ibtrs_server_init(void)
+>> +{
+>> +       int err;
+>> +
+>> +       if (!strlen(cq_affinity_list))
+>> +               init_cq_affinity();
+>> +
+>> +       pr_info("Loading module %s, version: %s "
+>> +               "(retry_count: %d, cq_affinity_list: %s, "
+>> +               "max_io_size: %d, sess_queue_depth: %d)\n",
+>> +               KBUILD_MODNAME, IBTRS_VER_STRING, retry_count,
+>> +               cq_affinity_list, max_io_size, sess_queue_depth);
+>> +
+>> +       err = check_module_params();
+>> +       if (err) {
+>> +               pr_err("Failed to load module, invalid module parameters,"
+>> +                      " err: %d\n", err);
+>> +               return err;
+>> +       }
+>> +       chunk_pool = mempool_create_page_pool(CHUNK_POOL_SIZE,
+>> +                                             get_order(rcv_buf_size));
+>> +       if (unlikely(!chunk_pool)) {
+>> +               pr_err("Failed preallocate pool of chunks\n");
+>> +               return -ENOMEM;
+>> +       }
+>> +       ibtrs_wq = alloc_workqueue("ibtrs_server_wq", WQ_MEM_RECLAIM, 0);
+>> +       if (!ibtrs_wq) {
+>> +               pr_err("Failed to load module, alloc ibtrs_server_wq
+>> failed\n");
+>> +               goto out_chunk_pool;
+>> +       }
+>> +       err = ibtrs_srv_create_sysfs_module_files();
+>> +       if (err) {
+>> +               pr_err("Failed to load module, can't create sysfs files,"
+>> +                      " err: %d\n", err);
+>> +               goto out_ibtrs_wq;
+>> +       }
+>> +
+>> +       return 0;
+>> +
+>> +out_ibtrs_wq:
+>> +       destroy_workqueue(ibtrs_wq);
+>> +out_chunk_pool:
+>> +       mempool_destroy(chunk_pool);
+>> +
+>> +       return err;
+>> +}
+>> +
+>> +static void __exit ibtrs_server_exit(void)
+>> +{
+>> +       ibtrs_srv_destroy_sysfs_module_files();
+>> +       destroy_workqueue(ibtrs_wq);
+>> +       mempool_destroy(chunk_pool);
+>> +}
+>> +
+>> +module_init(ibtrs_server_init);
+>> +module_exit(ibtrs_server_exit);
+>>
+>
