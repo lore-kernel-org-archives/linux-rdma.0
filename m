@@ -1,43 +1,55 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: interoperability issue between rxe and mlx5
-Date: Tue, 6 Feb 2018 17:57:39 +0200
-Message-ID: <CAG9sBKPXjZVofbvgA4ujtxVvNFG9+aMaXmmBd8-X+VpxaC+0LA@mail.gmail.com>
-References: <CAN-5tyHRcvd0Zv33putWv+gxB81a5O4EcyV8BN0GkFET+k_Gjg@mail.gmail.com>
- <CAG9sBKPtDAApLxuOvM-1pyEain-aPm-bmBu1rp7DsnuvRUT-UA@mail.gmail.com> <CAN-5tyHTA4851ws5sYAM5smqxvWkULfhtvBSry+pCJGVjAdTHg@mail.gmail.com>
+From: Bart Van Assche <Bart.VanAssche@wdc.com>
+Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
+ Device (IBNBD)
+Date: Tue, 6 Feb 2018 16:01:31 +0000
+Message-ID: <1517932890.3934.30.camel@wdc.com>
+References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
+         <23dcfda7-eac1-ed13-b24e-3586c284ee55@grimberg.me>
+         <CAJrWOzDmU_RWxaY+eXjZ3Az162gr9Bax8=5+1FYj4vzYDoxp7g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAN-5tyHTA4851ws5sYAM5smqxvWkULfhtvBSry+pCJGVjAdTHg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Olga Kornievskaia <aglo-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <CAJrWOzDmU_RWxaY+eXjZ3Az162gr9Bax8=5+1FYj4vzYDoxp7g@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <60655578F988154286CC33ABD8FA8AED@namprd04.prod.outlook.com>
+Sender: linux-block-owner@vger.kernel.org
+To: "roman.penyaev@profitbricks.com" <roman.penyaev@profitbricks.com>, "sagi@grimberg.me" <sagi@grimberg.me>
+Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "hch@infradead.org" <hch@infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, Bart Van Assche <Bart.VanAssche@wdc.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Olga
-
-> I'm happy to test any patches. Also if you need an actual network
-> trace if that helps, I can email that to you.
->
-Thanks for suggesting that. It might help a lot.
-> What I find interesting is that there is an additional request for
-> 1021bytes at all as there 4096bytes in the response for the
-> 4093request.
->
-If I had to guess the last response was for 1024 while the requester
-expects only 1021.
-Therefore the requester send a read request for the remaining 1021
-bytes (as a part of the retry mechanism) but again, gets an answer for
-1024 bytes.
-This repeats until the requester gives up (max retries exceeded)
-> Could the problem be that one side is adding padding bytes and the
-> other side is not expecting it?
-Padding is an option that I thought about although you said that for
-requests under 4089 bytes the test passes (what was different)
-
-thanks
-
-Moni
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVHVlLCAyMDE4LTAyLTA2IGF0IDE0OjEyICswMTAwLCBSb21hbiBQZW55YWV2IHdyb3RlOg0K
+PiBPbiBNb24sIEZlYiA1LCAyMDE4IGF0IDE6MTYgUE0sIFNhZ2kgR3JpbWJlcmcgPHNhZ2lAZ3Jp
+bWJlcmcubWU+IHdyb3RlOg0KPiA+IFsgLi4uIF0NCj4gPiAtIHNycC9zY3N0IGNvbXBhcmlzb24g
+aXMgcmVhbGx5IG5vdCBmYWlyIGhhdmluZyBpdCBpbiBsZWdhY3kgcmVxdWVzdA0KPiA+ICAgbW9k
+ZS4gQ2FuIHlvdSBwbGVhc2UgcmVwZWF0IGl0IGFuZCByZXBvcnQgYSBidWcgdG8gZWl0aGVyIGxp
+bnV4LXJkbWENCj4gPiAgIG9yIHRvIHRoZSBzY3N0IG1haWxpbmcgbGlzdD8NCj4gDQo+IFllcCwg
+SSBjYW4gcmV0ZXN0IHdpdGggbXEuDQo+IA0KPiA+IC0gWW91ciBsYXRlbmN5IG1lYXN1cmVtZW50
+cyBhcmUgc3VycHJpc2luZ2x5IGhpZ2ggZm9yIGEgbnVsbCB0YXJnZXQNCj4gPiAgIGRldmljZSAo
+ZXZlbiBmb3IgbG93IGVuZCBudm1lIGRldmljZSBhY3R1YWxseSkgcmVnYXJkbGVzcyBvZiB0aGUN
+Cj4gPiAgIHRyYW5zcG9ydCBpbXBsZW1lbnRhdGlvbi4NCj4gDQo+IEhtLCBuZXR3b3JrIGNvbmZp
+Z3VyYXRpb24/ICBUaGVzZSBhcmUgcmVzdWx0cyBvbiBtYWNoaW5lcyBkZWRpY2F0ZWQNCj4gdG8g
+b3VyIHRlYW0gZm9yIHRlc3RpbmcgaW4gb25lIG9mIG91ciBkYXRhY2VudGVycy4gTm90aGluZyBz
+cGVjaWFsDQo+IGluIGNvbmZpZ3VyYXRpb24uDQoNCkhlbGxvIFJvbWFuLA0KDQpJIGFncmVlIHRo
+YXQgdGhlIGxhdGVuY3kgbnVtYmVycyBhcmUgd2F5IHRvbyBoaWdoIGZvciBhIG51bGwgdGFyZ2V0
+IGRldmljZS4NCkxhc3QgdGltZSBJIG1lYXN1cmVkIGxhdGVuY3kgZm9yIHRoZSBTUlAgcHJvdG9j
+b2wgYWdhaW5zdCBhbiBTQ1NUIHRhcmdldA0KKyBudWxsIGJsb2NrIGRyaXZlciBhdCB0aGUgdGFy
+Z2V0IHNpZGUgYW5kIENvbm5lY3RYLTMgYWRhcHRlcnMgSSBtZWFzdXJlZCBhDQpsYXRlbmN5IG9m
+IGFib3V0IDE0IG1pY3Jvc2Vjb25kcy4gVGhhdCdzIGFsbW9zdCAxMDAgdGltZXMgbGVzcyB0aGFu
+IHRoZQ0KbWVhc3VyZW1lbnQgcmVzdWx0cyBpbiBodHRwczovL3d3dy5zcGluaWNzLm5ldC9saXN0
+cy9saW51eC1yZG1hL21zZzQ4Nzk5Lmh0bWwuDQoNClNvbWV0aGluZyBlbHNlIEkgd291bGQgbGlr
+ZSB0byB1bmRlcnN0YW5kIGJldHRlciBpcyBob3cgbXVjaCBvZiB0aGUgbGF0ZW5jeQ0KZ2FwIGJl
+dHdlZW4gTlZNZU9GL1NSUCBhbmQgSUJOQkQgY2FuIGJlIGNsb3NlZCB3aXRob3V0IGNoYW5naW5n
+IHRoZSB3aXJlDQpwcm90b2NvbC4gV2FzIGUuZy4gc3VwcG9ydCBmb3IgaW1tZWRpYXRlIGRhdGEg
+cHJlc2VudCBpbiB0aGUgTlZNZU9GIGFuZC9vcg0KU1JQIGRyaXZlcnMgdXNlZCBvbiB5b3VyIHRl
+c3Qgc2V0dXA/IEFyZSB5b3UgYXdhcmUgdGhhdCB0aGUgTlZNZU9GIHRhcmdldA0KZHJpdmVyIGNh
+bGxzIHBhZ2VfYWxsb2MoKSBmcm9tIHRoZSBob3QgcGF0aCBidXQgdGhhdCB0aGVyZSBhcmUgcGxh
+bnMgdG8NCmF2b2lkIHRoZXNlIGNhbGxzIGluIHRoZSBob3QgcGF0aCBieSB1c2luZyBhIGNhY2hp
+bmcgbWVjaGFuaXNtIHNpbWlsYXIgdG8NCnRoZSBTR1YgY2FjaGUgaW4gU0NTVD8gQXJlIHlvdSBh
+d2FyZSB0aGF0IGEgc2lnbmlmaWNhbnQgbGF0ZW5jeSByZWR1Y3Rpb24NCmNhbiBiZSBhY2hpZXZl
+ZCBieSBjaGFuZ2luZyB0aGUgU0NTVCBTR1YgY2FjaGUgZnJvbSBhIGdsb2JhbCBpbnRvIGEgcGVy
+LUNQVQ0KY2FjaGU/IFJlZ2FyZGluZyB0aGUgU1JQIG1lYXN1cmVtZW50czogaGF2ZSB5b3UgdHJp
+ZWQgdG8gc2V0IHRoZQ0KbmV2ZXJfcmVnaXN0ZXIga2VybmVsIG1vZHVsZSBwYXJhbWV0ZXIgdG8g
+dHJ1ZT8gSSdtIGFza2luZyB0aGlzIGJlY2F1c2UgSQ0KdGhpbmsgdGhhdCBtb2RlIGlzIG1vc3Qg
+c2ltaWxhciB0byBob3cgdGhlIElCTkJEIGluaXRpYXRvciBkcml2ZXIgd29ya3MuDQoNClRoYW5r
+cywNCg0KQmFydC4=
