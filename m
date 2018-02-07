@@ -1,84 +1,31 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+From: Christopher Lameter <cl@linux.com>
 Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
  Device (IBNBD)
-Date: Wed, 7 Feb 2018 16:35:18 +0000
-Message-ID: <1518021317.2870.13.camel@wdc.com>
-References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
-         <23dcfda7-eac1-ed13-b24e-3586c284ee55@grimberg.me>
-         <CAJrWOzDmU_RWxaY+eXjZ3Az162gr9Bax8=5+1FYj4vzYDoxp7g@mail.gmail.com>
-         <1517932890.3934.30.camel@wdc.com>
-         <CAJrWOzD3+tcA1cvSNOsN8t7uCOidJ2x6wsqqvFiEHdxW2th=sA@mail.gmail.com>
+Date: Wed, 7 Feb 2018 10:35:14 -0600 (CST)
+Message-ID: <alpine.DEB.2.20.1802071031590.21957@nuc-kabylake>
+References: <20180202140904.2017-1-roman.penyaev@profitbricks.com> <1517591106.2675.28.camel@sandisk.com> <CAMGffEkhqR9Z5bkMfnVn8an2OUM8k+jYoR5EFdtv3k9en1bh=w@mail.gmail.com> <1517847408.3764.5.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJrWOzD3+tcA1cvSNOsN8t7uCOidJ2x6wsqqvFiEHdxW2th=sA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Content-ID: <01E89977B1A2F34BAB93E4B3DE86494A-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <1517847408.3764.5.camel@wdc.com>
+Sender: linux-block-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@wdc.com>
+Cc: "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "hch@infradead.org" <hch@infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "roman.penyaev@profitbricks.com" <roman.penyaev@profitbricks.com>, "sagi@grimberg.me" <sagi@grimberg.me>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE4LTAyLTA3IGF0IDEzOjU3ICswMTAwLCBSb21hbiBQZW55YWV2IHdyb3RlOg0K
-PiBPbiBUdWUsIEZlYiA2LCAyMDE4IGF0IDU6MDEgUE0sIEJhcnQgVmFuIEFzc2NoZSA8QmFydC5W
-YW5Bc3NjaGVAd2RjLmNvbT4gd3JvdGU6DQo+ID4gT24gVHVlLCAyMDE4LTAyLTA2IGF0IDE0OjEy
-ICswMTAwLCBSb21hbiBQZW55YWV2IHdyb3RlOg0KPiA+IFNvbWV0aGluZyBlbHNlIEkgd291bGQg
-bGlrZSB0byB1bmRlcnN0YW5kIGJldHRlciBpcyBob3cgbXVjaCBvZiB0aGUgbGF0ZW5jeQ0KPiA+
-IGdhcCBiZXR3ZWVuIE5WTWVPRi9TUlAgYW5kIElCTkJEIGNhbiBiZSBjbG9zZWQgd2l0aG91dCBj
-aGFuZ2luZyB0aGUgd2lyZQ0KPiA+IHByb3RvY29sLiBXYXMgZS5nLiBzdXBwb3J0IGZvciBpbW1l
-ZGlhdGUgZGF0YSBwcmVzZW50IGluIHRoZSBOVk1lT0YgYW5kL29yDQo+ID4gU1JQIGRyaXZlcnMg
-dXNlZCBvbiB5b3VyIHRlc3Qgc2V0dXA/DQo+IA0KPiBJIGRpZCBub3QgZ2V0IHRoZSBxdWVzdGlv
-bi4gSUJUUlMgdXNlcyBlbXB0eSBtZXNzYWdlcyB3aXRoIG9ubHkgaW1tX2RhdGENCj4gZmllbGQg
-c2V0IHRvIHJlc3BvbmQgb24gSU8uIFRoaXMgaXMgYSBwYXJ0IG9mIHRoZSBJQlRSUyBwcm90b2Nv
-bC4gIEkgZG8NCj4gbm90IHVuZGVyc3RhbmQgaG93IGNhbiBpbW1lZGlhdGUgZGF0YSBiZSBwcmVz
-ZW50IGluIG90aGVyIGRyaXZlcnMsIGlmDQo+IHRob3NlIGRvIG5vdCB1c2UgaXQgaW4gdGhlaXIg
-cHJvdG9jb2xzLiAgSSBhbSBsb3N0IGhlcmUuDQoNCldpdGggImltbWVkaWF0ZSBkYXRhIiBJIHdh
-cyByZWZlcnJpbmcgdG8gaW5jbHVkaW5nIHRoZSBlbnRpcmUgd3JpdGUgYnVmZmVyDQppbiB0aGUg
-d3JpdGUgUERVIGl0c2VsZi4gU2VlIGUuZy4gdGhlIGVuYWJsZV9pbW1fZGF0YSBrZXJuZWwgbW9k
-dWxlIHBhcmFtZXRlcg0Kb2YgdGhlIGliX3NycC1iYWNrcG9ydCBkcml2ZXIuIFNlZSBhbHNvIHRo
-ZSB1c2Ugb2YgU1JQX0RBVEFfREVTQ19JTU0gaW4gdGhlDQpTQ1NUIGliX3NycHQgdGFyZ2V0IGRy
-aXZlci4gTmVpdGhlciB0aGUgdXBzdHJlYW0gU1JQIGluaXRpYXRvciBub3IgdGhlIHVwc3RyZWFt
-DQpTUlAgdGFyZ2V0IHN1cHBvcnQgaW1tZWRpYXRlIGRhdGEgdG9kYXkuIEhvd2V2ZXIsIHNlbmRp
-bmcgdGhhdCBjb2RlIHVwc3RyZWFtDQppcyBvbiBteSB0by1kbyBsaXN0Lg0KDQpGb3IgdGhlIHVw
-c3RyZWFtIE5WTWVPRiBpbml0aWF0b3IgYW5kIHRhcmdldCBkcml2ZXJzLCBzZWUgYWxzbyB0aGUg
-Y2FsbCBvZg0KbnZtZV9yZG1hX21hcF9zZ19pbmxpbmUoKSBpbiBudm1lX3JkbWFfbWFwX2RhdGEo
-KS4NCg0KPiA+IEFyZSB5b3UgYXdhcmUgdGhhdCB0aGUgTlZNZU9GIHRhcmdldCBkcml2ZXIgY2Fs
-bHMgcGFnZV9hbGxvYygpIGZyb20gdGhlIGhvdCBwYXRoIGJ1dCB0aGF0IHRoZXJlIGFyZSBwbGFu
-cyB0bw0KPiA+IGF2b2lkIHRoZXNlIGNhbGxzIGluIHRoZSBob3QgcGF0aCBieSB1c2luZyBhIGNh
-Y2hpbmcgbWVjaGFuaXNtIHNpbWlsYXIgdG8NCj4gPiB0aGUgU0dWIGNhY2hlIGluIFNDU1Q/IEFy
-ZSB5b3UgYXdhcmUgdGhhdCBhIHNpZ25pZmljYW50IGxhdGVuY3kgcmVkdWN0aW9uDQo+ID4gY2Fu
-IGJlIGFjaGlldmVkIGJ5IGNoYW5naW5nIHRoZSBTQ1NUIFNHViBjYWNoZSBmcm9tIGEgZ2xvYmFs
-IGludG8gYSBwZXItQ1BVDQo+ID4gY2FjaGU/DQo+IA0KPiBObywgSSBhbSBub3QgYXdhcmUuIFRo
-YXQgaXMgbmljZSwgdGhhdCB0aGVyZSBpcyBhIGxvdCBvZiByb29tIGZvciBwZXJmb3JtYW5jZQ0K
-PiB0d2Vha3MuIEkgd2lsbCBkZWZpbml0ZWx5IHJldGVzdCBvbiBmcmVzaCBrZXJuZWwgb25jZSBl
-dmVyeXRoaW5nIGlzIGRvbmUgb24NCj4gbnZtZSwgc2NzdCBvciBpYnRycyAoZXNwZWNpYWxseSB3
-aGVuIHdlIGdldCByaWQgb2YgZm1ycyBhbmQgVU5TQUZFIHJrZXlzKS4NCg0KUmVjZW50bHkgdGhl
-IGZ1bmN0aW9ucyBzZ2xfYWxsb2MoKSBhbmQgc2dsX2ZyZWUoKSB3ZXJlIGludHJvZHVjZWQgaW4g
-dGhlIHVwc3RyZWFtDQprZXJuZWwgKHRoZXNlIHdpbGwgYmUgaW5jbHVkZWQgaW4ga2VybmVsIHY0
-LjE2KS4gVGhlIE5WTWUgdGFyZ2V0IGRyaXZlciwgTElPIGFuZA0Kc2V2ZXJhbCBvdGhlciBkcml2
-ZXJzIGhhdmUgYmVlbiBtb2RpZmllZCB0byB1c2UgdGhlc2UgZnVuY3Rpb25zIGluc3RlYWQgb2Yg
-dGhlaXINCm93biBjb3B5IG9mIHRoYXQgZnVuY3Rpb24uIFRoZSBuZXh0IHN0ZXAgaXMgdG8gcmVw
-bGFjZSB0aGVzZSBmdW5jdGlvbiBjYWxscyBieQ0KY2FsbHMgdG8gZnVuY3Rpb25zIHRoYXQgcGVy
-Zm9ybSBjYWNoZWQgYWxsb2NhdGlvbnMuDQoNCj4gPiBSZWdhcmRpbmcgdGhlIFNSUCBtZWFzdXJl
-bWVudHM6IGhhdmUgeW91IHRyaWVkIHRvIHNldCB0aGUNCj4gPiBuZXZlcl9yZWdpc3RlciBrZXJu
-ZWwgbW9kdWxlIHBhcmFtZXRlciB0byB0cnVlPyBJJ20gYXNraW5nIHRoaXMgYmVjYXVzZSBJDQo+
-ID4gdGhpbmsgdGhhdCBtb2RlIGlzIG1vc3Qgc2ltaWxhciB0byBob3cgdGhlIElCTkJEIGluaXRp
-YXRvciBkcml2ZXIgd29ya3MuDQo+IA0KPiB5ZXMsIGFjY29yZGluZyB0byBteSBub3RlcyBmcm9t
-IHRoYXQgbGluayAoZnJhbmtseSwgSSBkbyBub3QgcmVtZW1iZXIsDQo+IGJ1dCB0aGF0IGlzIHdo
-YXQgSSB3cm90ZSAxIHllYXIgYWdvKToNCj4gDQo+ICAgICAqIFdoZXJlIHN1ZmZpeGVzIG1lYW46
-DQo+IA0KPiAgICAgIF9ub3JlZyAtIG1vZHVsZXMgb24gaW5pdGlhdG9yIHNpZGUgKGliX3NycCwg
-bnZtZV9yZG1hKSB3ZXJlIGxvYWRlZA0KPiAgICAgICAgICAgICAgIHdpdGggJ3JlZ2lzdGVyX2Fs
-d2F5cz1OJyBwYXJhbQ0KPiANCj4gVGhhdCB3aGF0IHlvdSBhcmUgYXNraW5nLCByaWdodD8NCg0K
-Tm90IHJlYWxseS4gV2l0aCByZWdpc3Rlcl9hbHdheXM9WSBtZW1vcnkgcmVnaXN0cmF0aW9uIGlz
-IGFsd2F5cyB1c2VkIGJ5IHRoZQ0KU1JQIGluaXRpYXRvciwgZXZlbiBpZiB0aGUgZGF0YSBjYW4g
-YmUgY29hbGVzY2VkIGludG8gYSBzaW5nbGUgc2cgZW50cnkuIFdpdGgNCnJlZ2lzdGVyX2Fsd2F5
-cz1OIG1lbW9yeSByZWdpc3RyYXRpb24gaXMgb25seSBwZXJmb3JtZWQgaWYgbXVsdGlwbGUgc2cg
-ZW50cmllcw0KYXJlIG5lZWRlZCB0byBkZXNjcmliZSB0aGUgZGF0YS4gQW5kIHdpdGggbmV2ZXJf
-cmVnaXN0ZXI9WSBtZW1vcnkgcmVnaXN0cmF0aW9uDQppcyBub3QgdXNlZCBldmVuIGlmIG11bHRp
-cGxlIHNnIGVudHJpZXMgYXJlIG5lZWRlZCB0byBkZXNjcmliZSB0aGUgZGF0YSBidWZmZXIuDQoN
-ClRoYW5rcywNCg0KQmFydC4NCg0KDQoNCg0K
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, 5 Feb 2018, Bart Van Assche wrote:
+
+> That approach may work well for your employer but sorry I don't think this is
+> sufficient for an upstream driver. I think that most users who configure a
+> network storage target expect full control over which storage devices are exported
+> and also over which clients do have and do not have access.
+
+Well is that actually true for IPoIB? It seems that I can arbitrarily
+attach to any partition I want without access control. In many ways some
+of the RDMA layers and modules are loose with security since performance
+is what matters mostly and deployments occur in separate production
+environments.
+
+We have had security issues (that not fully resolved yet) with the RDMA
+RPC API for years.. So maybe lets relax on the security requirements a
+bit?
