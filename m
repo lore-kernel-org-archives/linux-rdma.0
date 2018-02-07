@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V2 for-next 3/3] RDMA/hns: Use free_pages function instead of free_page
-Date: Wed, 7 Feb 2018 17:49:30 +0800
-Message-ID: <1517996970-79496-4-git-send-email-oulijun@huawei.com>
+Subject: [PATCH V2 for-next 2/3] RDMA/hns: Fix QP state judgement before receiving work requests
+Date: Wed, 7 Feb 2018 17:49:29 +0800
+Message-ID: <1517996970-79496-3-git-send-email-oulijun@huawei.com>
 References: <1517996970-79496-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,27 +12,33 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-It need to use free_pages function for free the memory allocated
-by __get_free_pages function.
+From: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
+The QP can accept receive work requests only when the QP is
+in the states that allow them to be submitted.
+
+This patch updates the QP state judgement based on the
+specification.
+
+Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_mr.c | 2 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index da86a811..f7256d8 100644
---- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -933,7 +933,7 @@ int hns_roce_ib_umem_write_mtt(struct hns_roce_dev *hr_dev,
- 		ret = hns_roce_write_mtt(hr_dev, mtt, n, i, pages);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index db2ff35..0aa7483 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -509,7 +509,7 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 	spin_lock_irqsave(&hr_qp->rq.lock, flags);
+ 	ind = hr_qp->rq.head & (hr_qp->rq.wqe_cnt - 1);
  
- out:
--	free_page((unsigned long) pages);
-+	free_pages((unsigned long) pages, order);
- 	return ret;
- }
- 
+-	if (hr_qp->state == IB_QPS_RESET || hr_qp->state == IB_QPS_ERR) {
++	if (hr_qp->state == IB_QPS_RESET) {
+ 		spin_unlock_irqrestore(&hr_qp->rq.lock, flags);
+ 		*bad_wr = wr;
+ 		return -EINVAL;
 -- 
 1.9.1
 
