@@ -1,50 +1,38 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags 2/2] smpdump.c: Print number of bytes returned by umad_recv
-Date: Wed, 7 Feb 2018 00:35:16 -0500
-Message-ID: <20180207053515.GC25132@phlsvsds.ph.intel.com>
-References: <499f1d77-7da6-2c00-e826-bf4d0809f48a@dev.mellanox.co.il>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V2 for-next 0/3] Several fixes for hns
+Date: Wed, 7 Feb 2018 17:49:27 +0800
+Message-ID: <1517996970-79496-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <499f1d77-7da6-2c00-e826-bf4d0809f48a-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 11, 2017 at 09:57:23AM -0500, Hal Rosenstock wrote:
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  src/smpdump.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/src/smpdump.c b/src/smpdump.c
-> index bc8559a..bb304d4 100644
-> --- a/src/smpdump.c
-> +++ b/src/smpdump.c
-> @@ -281,6 +281,8 @@ int main(int argc, char *argv[])
->  	if (umad_recv(portid, umad, &length, -1) != mad_agent)
->  		IBPANIC("recv error: %s", strerror(errno));
->  
-> +	printf("%d bytes received\n", length);
+This patchset include three fixes for hns driver. the first patch
+mainly matched with IB protocol. the second patch fix the bug
+with freeing memory by __get_free_pages. the last patch mainly
+fix the bug when changed the hw mac address.
 
-This seems like it is more for debugging.
+Change from V1:
+1. Fix the comment given by Jason Gunthorpe
 
-How will this affect any scripts which include this command?  Should we make
-this debug output?
+Lijun Ou (2):
+  RDMA/hns: Fix a bug with modifying mac address
+  RDMA/hns: Use free_pages function instead of free_page
 
-Ira
+Yixian Liu (1):
+  RDMA/hns: Fix QP state judgement before receiving work requests
 
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
+ drivers/infiniband/hw/hns/hns_roce_main.c  | 3 ++-
+ drivers/infiniband/hw/hns/hns_roce_mr.c    | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
-> +
->  	if (!dump_char) {
->  		xdump(stdout, 0, smp->data, 64);
->  		if (smp->status)
-> -- 
-> 2.8.4
-> 
+-- 
+1.9.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
