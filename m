@@ -1,88 +1,46 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH v3] Documentation/ABI: update infiniband sysfs interfaces
-Date: Wed, 7 Feb 2018 16:09:11 +0000
-Message-ID: <VI1PR0502MB3008B3A337DB4DDA140094B9D1FC0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20180207045955.GA31749@mordor.localdomain>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH infiniband-diags 2/2] smpdump.c: Print number of bytes
+ returned by umad_recv
+Date: Wed, 7 Feb 2018 16:12:41 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E67D982BA@CRSMSX101.amr.corp.intel.com>
+References: <499f1d77-7da6-2c00-e826-bf4d0809f48a@dev.mellanox.co.il>
+ <20180207053515.GC25132@phlsvsds.ph.intel.com>
+ <1e5e2f67-1492-cf1d-b9e7-1867b142c4ed@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180207045955.GA31749-BxiFm0zuoZpSq9BJjBFyUp/QNRX+jHPU@public.gmane.org>
+In-Reply-To: <1e5e2f67-1492-cf1d-b9e7-1867b142c4ed-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aishwarya Pant <aishpant-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Aishwarya,
-
-
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Aishwarya Pant
-> Sent: Tuesday, February 06, 2018 11:00 PM
-> To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>; Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>;
-> linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Jonathan Corbet
-> <corbet-T1hC0tSOHrs@public.gmane.org>; Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-> Cc: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
-> Subject: [PATCH v3] Documentation/ABI: update infiniband sysfs interfaces
->=20
-> Add documentation for core and hardware specific infiniband interfaces.
-> The descriptions have been collected from git commit logs, reading throug=
-h
-> code and data sheets. Some drivers have incomplete doc and are annotated
-> with the comment '[to be documented]'.
->=20
-> Signed-off-by: Aishwarya Pant <aishpant-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
-> Changes in v3:
-> -  outbound -> inbound in description of port_rcv_constraint_errors
-> v2:
-> - Move infiniband interface from testing to stable
-> - Fix typos
-> - Update description of cap_mask, port_xmit_constraint_errors and
->   port_rcv_constraint_errors
-> - Add doc for hw_counters
-> - Remove old documentation
->=20
->  Documentation/ABI/stable/sysfs-class-infiniband  | 818
-> +++++++++++++++++++++++  Documentation/ABI/testing/sysfs-class-infiniband
-> |  16 -
->  Documentation/infiniband/sysfs.txt               | 129 +---
->  3 files changed, 820 insertions(+), 143 deletions(-)  create mode 100644
-> Documentation/ABI/stable/sysfs-class-infiniband
->  delete mode 100644 Documentation/ABI/testing/sysfs-class-infiniband
->=20
-> diff --git a/Documentation/ABI/stable/sysfs-class-infiniband
-> b/Documentation/ABI/stable/sysfs-class-infiniband
-> new file mode 100644
-> index 000000000000..f3acf3713a91
-> --- /dev/null
-> +++ b/Documentation/ABI/stable/sysfs-class-infiniband
-> @@ -0,0 +1,818 @@
-> +sysfs interface common for all infiniband devices
-> +-------------------------------------------------
-> +
-
-> +What:		/sys/class/infiniband/<hca>/ports/<port-
-> number>/gid_attrs/ndevs/<gid-index>
-> +Date:		November 29, 2015
-> +KernelVersion:	4.4.0
-> +Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> +Description: 	The net-device's name associated with the GID resides
-> +		at index <gid-index>.
-> +
-> +What:		/sys/class/infiniband/<hca>/ports/<port-
-> number>/gid_attrs/types/<gid-index>
-> +Date:		November 29, 2015
-> +KernelVersion:	4.4.0
-> +Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> +Description: 	The RoCE type of the associated GID resides at index <gid-
-> index>.
-> +		This could either be "IB/RoCE v1" for IB and RoCE v1 based
-> GODs
-GIDs.
-
+PiANCj4gT24gMi83LzIwMTggMTI6MzUgQU0sIGlyYS53ZWlueSB3cm90ZToNCj4gPiBPbiBNb24s
+IERlYyAxMSwgMjAxNyBhdCAwOTo1NzoyM0FNIC0wNTAwLCBIYWwgUm9zZW5zdG9jayB3cm90ZToN
+Cj4gPj4NCj4gPj4gU2lnbmVkLW9mZi1ieTogSGFsIFJvc2Vuc3RvY2sgPGhhbEBtZWxsYW5veC5j
+b20+DQo+ID4+IC0tLQ0KPiA+PiAgc3JjL3NtcGR1bXAuYyB8IDIgKysNCj4gPj4gIDEgZmlsZSBj
+aGFuZ2VkLCAyIGluc2VydGlvbnMoKykNCj4gPj4NCj4gPj4gZGlmZiAtLWdpdCBhL3NyYy9zbXBk
+dW1wLmMgYi9zcmMvc21wZHVtcC5jIGluZGV4IGJjODU1OWEuLmJiMzA0ZDQNCj4gPj4gMTAwNjQ0
+DQo+ID4+IC0tLSBhL3NyYy9zbXBkdW1wLmMNCj4gPj4gKysrIGIvc3JjL3NtcGR1bXAuYw0KPiA+
+PiBAQCAtMjgxLDYgKzI4MSw4IEBAIGludCBtYWluKGludCBhcmdjLCBjaGFyICphcmd2W10pDQo+
+ID4+ICAJaWYgKHVtYWRfcmVjdihwb3J0aWQsIHVtYWQsICZsZW5ndGgsIC0xKSAhPSBtYWRfYWdl
+bnQpDQo+ID4+ICAJCUlCUEFOSUMoInJlY3YgZXJyb3I6ICVzIiwgc3RyZXJyb3IoZXJybm8pKTsN
+Cj4gPj4NCj4gPj4gKwlwcmludGYoIiVkIGJ5dGVzIHJlY2VpdmVkXG4iLCBsZW5ndGgpOw0KPiA+
+DQo+ID4gVGhpcyBzZWVtcyBsaWtlIGl0IGlzIG1vcmUgZm9yIGRlYnVnZ2luZy4NCj4gDQo+IEkg
+ZG9uJ3QgcmVjYWxsIG5vdyB3aGF0IHRoZSBjYXNlIHdhcyBleGFjdGx5IHdoZXJlIHVtYWRfcmVj
+diBzdWNjZWVkZWQgYnV0IGl0DQo+IHdhcyB1bmNsZWFyIHdoZXRoZXIgdGhlIGRhdGEgd2FzIHZh
+bGlkIG9yIG5vdC4gSW4gdGhhdCBzZW5zZSwgaXQncyBhIG1pc3NpbmcgcGFydCBvZg0KPiB0aGUg
+Y3VycmVudCBpbmZvcm1hdGlvbiByZXR1cm5lZC4NCj4gDQo+IEkgdGhpbmsgdGhpcyBjb21tYW5k
+IGdlYXJlZCBhdCBtYW51YWwgZGVidWcgb2YgYXR0cmlidXRlIElEcyBub3Qgc3VwcG9ydGVkIGlu
+DQo+IHNtcHF1ZXJ5Lg0KPiANCj4gPiBIb3cgd2lsbCB0aGlzIGFmZmVjdCBhbnkgc2NyaXB0cyB3
+aGljaCBpbmNsdWRlIHRoaXMgY29tbWFuZD8NCj4gDQo+IEFGQUlLIHRoZXJlIGFyZSBubyBzdWNo
+IHNjcmlwdHMuDQo+IA0KPiA+IFNob3VsZCB3ZSBtYWtlIHRoaXMgZGVidWcgb3V0cHV0Pw0KPiAN
+Cj4gVGhhdCdzIHByb2JhYmx5IGJldHRlci9zYWZlciBhbmQgYXQgbGVhc3QgcHJvdmlkZXMgYSB3
+YXkgdG8gb2J0YWluIHRoZSBwcm9wb3NlZA0KPiBhZGRlZCBpbmZvcm1hdGlvbi4NCj4gDQo+IERv
+IHlvdSB3YW50IGFuIHVwZGF0ZWQgcGF0Y2ggZm9yIHRoaXMgPw0KDQpZZXMgcGxlYXNlLA0KSXJh
+DQoNCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
