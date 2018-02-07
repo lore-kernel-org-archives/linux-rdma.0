@@ -1,66 +1,72 @@
-From: Roman Penyaev <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH 03/24] ibtrs: core: lib functions shared between client
- and server modules
-Date: Wed, 7 Feb 2018 11:34:52 +0100
-Message-ID: <CAJrWOzCT581UagL=FwwukOam4kCsc-9cLs3vmpzqF67Tn7QyzA@mail.gmail.com>
-References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
- <20180202140904.2017-4-roman.penyaev@profitbricks.com> <b706bb5f-b317-fc3a-8ada-066a2a26e9ce@grimberg.me>
- <CAJrWOzC7f8T3gLAyywx2yY-UFrN+SO1Eb99jtRnB58dr7XdXxg@mail.gmail.com> <20180206161005.GE10095@ziepe.ca>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags 2/2] smpdump.c: Print number of bytes
+ returned by umad_recv
+Date: Wed, 7 Feb 2018 06:46:10 -0500
+Message-ID: <1e5e2f67-1492-cf1d-b9e7-1867b142c4ed@dev.mellanox.co.il>
+References: <499f1d77-7da6-2c00-e826-bf4d0809f48a@dev.mellanox.co.il>
+ <20180207053515.GC25132@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180206161005.GE10095-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20180207053515.GC25132-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 6, 2018 at 5:10 PM, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote:
-> On Tue, Feb 06, 2018 at 01:01:23PM +0100, Roman Penyaev wrote:
->
->> >> +static int ibtrs_ib_dev_init(struct ibtrs_ib_dev *d, struct ib_device
->> >> *dev)
->> >> +{
->> >> +       int err;
->> >> +
->> >> +       d->pd = ib_alloc_pd(dev, IB_PD_UNSAFE_GLOBAL_RKEY);
->> >> +       if (IS_ERR(d->pd))
->> >> +               return PTR_ERR(d->pd);
->> >> +       d->dev = dev;
->> >> +       d->lkey = d->pd->local_dma_lkey;
->> >> +       d->rkey = d->pd->unsafe_global_rkey;
->> >> +
->> >> +       err = ibtrs_query_device(d);
->> >> +       if (unlikely(err))
->> >> +               ib_dealloc_pd(d->pd);
->> >> +
->> >> +       return err;
->> >> +}
->> >
->> >
->> > I must say that this makes me frustrated.. We stopped doing these
->> > sort of things long time ago. No way we can even consider accepting
->> > the unsafe use of the global rkey exposing the entire memory space for
->> > remote access permissions.
->> >
->> > Sorry for being blunt, but this protocol design which makes a concious
->> > decision to expose unconditionally is broken by definition.
+On 2/7/2018 12:35 AM, ira.weiny wrote:
+> On Mon, Dec 11, 2017 at 09:57:23AM -0500, Hal Rosenstock wrote:
 >>
->> I suppose we can also afford the same trick which nvme does: provide
->> register_always module argument, can we?  That can be also interesting
->> to measure the performance difference.
->
-> I can be firmer than Sagi - new code that has IB_PD_UNSAFE_GLOBAL_RKEY
-> at can not be accepted upstream.
->
-> Once you get that fixed, you should go and read my past comments on
-> how to properly order dma mapping and completions and fix that
-> too. Then redo your performance..
+>> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  src/smpdump.c | 2 ++
+>>  1 file changed, 2 insertions(+)
+>>
+>> diff --git a/src/smpdump.c b/src/smpdump.c
+>> index bc8559a..bb304d4 100644
+>> --- a/src/smpdump.c
+>> +++ b/src/smpdump.c
+>> @@ -281,6 +281,8 @@ int main(int argc, char *argv[])
+>>  	if (umad_recv(portid, umad, &length, -1) != mad_agent)
+>>  		IBPANIC("recv error: %s", strerror(errno));
+>>  
+>> +	printf("%d bytes received\n", length);
+> 
+> This seems like it is more for debugging.
 
-Clear.
+I don't recall now what the case was exactly where umad_recv succeeded
+but it was unclear whether the data was valid or not. In that sense,
+it's a missing part of the current information returned.
 
---
-Roman
+I think this command geared at manual debug of attribute IDs not
+supported in smpquery.
+
+> How will this affect any scripts which include this command?  
+
+AFAIK there are no such scripts.
+
+> Should we make this debug output?
+
+That's probably better/safer and at least provides a way to obtain the
+proposed added information.
+
+Do you want an updated patch for this ?
+
+-- Hal
+
+> Ira
+> 
+> 
+>> +
+>>  	if (!dump_char) {
+>>  		xdump(stdout, 0, smp->data, 64);
+>>  		if (smp->status)
+>> -- 
+>> 2.8.4
+>>
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
