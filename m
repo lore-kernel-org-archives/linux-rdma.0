@@ -1,48 +1,36 @@
-From: Roman Penyaev <roman.penyaev@profitbricks.com>
+From: Bart Van Assche <Bart.VanAssche@wdc.com>
 Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
  Device (IBNBD)
-Date: Wed, 7 Feb 2018 18:18:47 +0100
-Message-ID: <CAJrWOzBrbV0yJvCvKxAK2Arujf7wiCx_Xoo9jdiwDRj93Lq7Yg@mail.gmail.com>
+Date: Wed, 7 Feb 2018 17:32:00 +0000
+Message-ID: <1518024719.2870.39.camel@wdc.com>
 References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
- <1517591106.2675.28.camel@sandisk.com> <CAMGffEkhqR9Z5bkMfnVn8an2OUM8k+jYoR5EFdtv3k9en1bh=w@mail.gmail.com>
- <1517847408.3764.5.camel@wdc.com> <alpine.DEB.2.20.1802071031590.21957@nuc-kabylake>
+         <1517591106.2675.28.camel@sandisk.com>
+         <CAMGffEkhqR9Z5bkMfnVn8an2OUM8k+jYoR5EFdtv3k9en1bh=w@mail.gmail.com>
+         <1517847408.3764.5.camel@wdc.com>
+         <alpine.DEB.2.20.1802071031590.21957@nuc-kabylake>
+         <CAJrWOzBrbV0yJvCvKxAK2Arujf7wiCx_Xoo9jdiwDRj93Lq7Yg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.20.1802071031590.21957@nuc-kabylake>
+In-Reply-To: <CAJrWOzBrbV0yJvCvKxAK2Arujf7wiCx_Xoo9jdiwDRj93Lq7Yg@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <E06AAB0615016C4384AF85B79ECC2EC9@namprd04.prod.outlook.com>
 Sender: linux-block-owner@vger.kernel.org
-To: Christopher Lameter <cl@linux.com>
-Cc: Bart Van Assche <Bart.VanAssche@wdc.com>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "hch@infradead.org" <hch@infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "sagi@grimberg.me" <sagi@grimberg.me>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>
+To: "roman.penyaev@profitbricks.com" <roman.penyaev@profitbricks.com>, "cl@linux.com" <cl@linux.com>
+Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "hch@infradead.org" <hch@infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "sagi@grimberg.me" <sagi@grimberg.me>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "axboe@kernel.dk" <axboe@kernel.dk>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 7, 2018 at 5:35 PM, Christopher Lameter <cl@linux.com> wrote:
-> On Mon, 5 Feb 2018, Bart Van Assche wrote:
->
->> That approach may work well for your employer but sorry I don't think this is
->> sufficient for an upstream driver. I think that most users who configure a
->> network storage target expect full control over which storage devices are exported
->> and also over which clients do have and do not have access.
->
-> Well is that actually true for IPoIB? It seems that I can arbitrarily
-> attach to any partition I want without access control. In many ways some
-> of the RDMA layers and modules are loose with security since performance
-> is what matters mostly and deployments occur in separate production
-> environments.
->
-> We have had security issues (that not fully resolved yet) with the RDMA
-> RPC API for years.. So maybe lets relax on the security requirements a
-> bit?
->
-
-Frankly speaking I do not understand the "security" about this kind of
-block devices and RDMA in particular.  I can admit that personally I do
-not see the whole picture, so can someone provide the real usecase/scenario?
-What we have in our datacenters is trusted environment (do others exist?).
-You need a volume, you create it.  You need to map a volume remotely -
-you map it.  Of course there are provisioning checks, rw/ro checks, etc.
-But in general any IP/key checks (is that client really a "good" guy or not?)
-are simply useless.  So the question is: are there real life setups where
-some of the local IB network members can be untrusted?
-
---
-Roman
+T24gV2VkLCAyMDE4LTAyLTA3IGF0IDE4OjE4ICswMTAwLCBSb21hbiBQZW55YWV2IHdyb3RlOg0K
+PiBTbyB0aGUgcXVlc3Rpb24gaXM6IGFyZSB0aGVyZSByZWFsIGxpZmUgc2V0dXBzIHdoZXJlDQo+
+IHNvbWUgb2YgdGhlIGxvY2FsIElCIG5ldHdvcmsgbWVtYmVycyBjYW4gYmUgdW50cnVzdGVkPw0K
+DQpIZWxsbyBSb21hbiwNCg0KWW91IG1heSB3YW50IHRvIHJlYWQgbW9yZSBhYm91dCB0aGUgbGF0
+ZXN0IGV2b2x1dGlvbnMgd2l0aCByZWdhcmQgdG8gbmV0d29yaw0Kc2VjdXJpdHkuIEFuIGFydGlj
+bGUgdGhhdCBJIGNhbiByZWNvbW1lbmQgaXMgdGhlIGZvbGxvd2luZzogIkdvb2dsZSByZXZlYWxz
+DQpvd24gc2VjdXJpdHkgcmVnaW1lIHBvbGljeSB0cnVzdHMgbm8gbmV0d29yaywgYW55d2hlcmUs
+IGV2ZXIiDQooaHR0cHM6Ly93d3cudGhlcmVnaXN0ZXIuY28udWsvMjAxNi8wNC8wNi9nb29nbGVz
+X2JleW9uZGNvcnBfc2VjdXJpdHlfcG9saWN5LykuDQoNCklmIGRhdGEtY2VudGVycyB3b3VsZCBz
+dGFydCBkZXBsb3lpbmcgUkRNQSBhbW9uZyB0aGVpciBlbnRpcmUgZGF0YSBjZW50ZXJzDQoobWF5
+YmUgdGhleSBhcmUgYWxyZWFkeSBkb2luZyB0aGlzKSB0aGVuIEkgdGhpbmsgdGhleSB3aWxsIHdh
+bnQgdG8gcmVzdHJpY3QNCmFjY2VzcyB0byBibG9jayBkZXZpY2VzIHRvIG9ubHkgdGhvc2UgaW5p
+dGlhdG9yIHN5c3RlbXMgdGhhdCBuZWVkIGl0Lg0KDQpUaGFua3MsDQoNCkJhcnQuDQoNCg0K
