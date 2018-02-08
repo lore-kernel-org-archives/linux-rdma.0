@@ -1,61 +1,64 @@
-From: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+From: Bart Van Assche <Bart.VanAssche@wdc.com>
 Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
  Device (IBNBD)
-Date: Thu, 8 Feb 2018 18:38:21 +0100
-Message-ID: <CAHg0HuxRz4=fhX1P3yk9sQ+q_MUXoj=062aQ9fcwP8awjm09jA@mail.gmail.com>
+Date: Thu, 8 Feb 2018 18:09:56 +0000
+Message-ID: <1518113395.3611.54.camel@wdc.com>
 References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
- <1517591106.2675.28.camel@sandisk.com> <CAMGffEkhqR9Z5bkMfnVn8an2OUM8k+jYoR5EFdtv3k9en1bh=w@mail.gmail.com>
- <1517847408.3764.5.camel@wdc.com> <alpine.DEB.2.20.1802071031590.21957@nuc-kabylake>
- <CAJrWOzBrbV0yJvCvKxAK2Arujf7wiCx_Xoo9jdiwDRj93Lq7Yg@mail.gmail.com> <1518024719.2870.39.camel@wdc.com>
+         <1517591106.2675.28.camel@sandisk.com>
+         <CAMGffEkhqR9Z5bkMfnVn8an2OUM8k+jYoR5EFdtv3k9en1bh=w@mail.gmail.com>
+         <1517847408.3764.5.camel@wdc.com>
+         <alpine.DEB.2.20.1802071031590.21957@nuc-kabylake>
+         <CAJrWOzBrbV0yJvCvKxAK2Arujf7wiCx_Xoo9jdiwDRj93Lq7Yg@mail.gmail.com>
+         <1518024719.2870.39.camel@wdc.com>
+         <CAHg0HuxRz4=fhX1P3yk9sQ+q_MUXoj=062aQ9fcwP8awjm09jA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1518024719.2870.39.camel-Sjgp3cTcYWE@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org" <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <CAHg0HuxRz4=fhX1P3yk9sQ+q_MUXoj=062aQ9fcwP8awjm09jA@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <3C550AEE134D8B4C8386BD81B91F4CF7@namprd04.prod.outlook.com>
+Sender: linux-block-owner@vger.kernel.org
+To: "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>
+Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "hch@infradead.org" <hch@infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "roman.penyaev@profitbricks.com" <roman.penyaev@profitbricks.com>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "sagi@grimberg.me" <sagi@grimberg.me>, "axboe@kernel.dk" <axboe@kernel.dk>, "cl@linux.com" <cl@linux.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 7, 2018 at 6:32 PM, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org> wrote:
-> On Wed, 2018-02-07 at 18:18 +0100, Roman Penyaev wrote:
->> So the question is: are there real life setups where
->> some of the local IB network members can be untrusted?
->
-> Hello Roman,
->
-> You may want to read more about the latest evolutions with regard to network
-> security. An article that I can recommend is the following: "Google reveals
-> own security regime policy trusts no network, anywhere, ever"
-> (https://www.theregister.co.uk/2016/04/06/googles_beyondcorp_security_policy/).
->
-> If data-centers would start deploying RDMA among their entire data centers
-> (maybe they are already doing this) then I think they will want to restrict
-> access to block devices to only those initiator systems that need it.
->
-> Thanks,
->
-> Bart.
->
->
-
-Hi Bart,
-
-thanks for the link to the article. To the best of my understanding,
-the guys suggest to authenticate the devices first and only then
-authenticate the users who use the devices in order to get access to a
-corporate service. They also mention in the presentation the current
-trend of moving corporate services into the cloud. But I think this is
-not about the devices from which that cloud is build of. Isn't a cloud
-first build out of devices connected via IB and then users (and their
-devices) are provided access to the services of that cloud as a whole?
-If a malicious user already plugged his device into an IB switch of a
-cloud internal infrastructure, isn't it game over anyway? Can't he
-just take the hard drives instead of mapping them?
-
-Thanks,
-
-Danil.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVGh1LCAyMDE4LTAyLTA4IGF0IDE4OjM4ICswMTAwLCBEYW5pbCBLaXBuaXMgd3JvdGU6DQo+
+IHRoYW5rcyBmb3IgdGhlIGxpbmsgdG8gdGhlIGFydGljbGUuIFRvIHRoZSBiZXN0IG9mIG15IHVu
+ZGVyc3RhbmRpbmcsDQo+IHRoZSBndXlzIHN1Z2dlc3QgdG8gYXV0aGVudGljYXRlIHRoZSBkZXZp
+Y2VzIGZpcnN0IGFuZCBvbmx5IHRoZW4NCj4gYXV0aGVudGljYXRlIHRoZSB1c2VycyB3aG8gdXNl
+IHRoZSBkZXZpY2VzIGluIG9yZGVyIHRvIGdldCBhY2Nlc3MgdG8gYQ0KPiBjb3Jwb3JhdGUgc2Vy
+dmljZS4gVGhleSBhbHNvIG1lbnRpb24gaW4gdGhlIHByZXNlbnRhdGlvbiB0aGUgY3VycmVudA0K
+PiB0cmVuZCBvZiBtb3ZpbmcgY29ycG9yYXRlIHNlcnZpY2VzIGludG8gdGhlIGNsb3VkLiBCdXQg
+SSB0aGluayB0aGlzIGlzDQo+IG5vdCBhYm91dCB0aGUgZGV2aWNlcyBmcm9tIHdoaWNoIHRoYXQg
+Y2xvdWQgaXMgYnVpbGQgb2YuIElzbid0IGEgY2xvdWQNCj4gZmlyc3QgYnVpbGQgb3V0IG9mIGRl
+dmljZXMgY29ubmVjdGVkIHZpYSBJQiBhbmQgdGhlbiB1c2VycyAoYW5kIHRoZWlyDQo+IGRldmlj
+ZXMpIGFyZSBwcm92aWRlZCBhY2Nlc3MgdG8gdGhlIHNlcnZpY2VzIG9mIHRoYXQgY2xvdWQgYXMg
+YSB3aG9sZT8NCj4gSWYgYSBtYWxpY2lvdXMgdXNlciBhbHJlYWR5IHBsdWdnZWQgaGlzIGRldmlj
+ZSBpbnRvIGFuIElCIHN3aXRjaCBvZiBhDQo+IGNsb3VkIGludGVybmFsIGluZnJhc3RydWN0dXJl
+LCBpc24ndCBpdCBnYW1lIG92ZXIgYW55d2F5PyBDYW4ndCBoZQ0KPiBqdXN0IHRha2UgdGhlIGhh
+cmQgZHJpdmVzIGluc3RlYWQgb2YgbWFwcGluZyB0aGVtPw0KDQpIZWxsbyBEYW5pbCwNCg0KSXQg
+c2VlbXMgbGlrZSB3ZSBlYWNoIGhhdmUgYmVlbiBmb2N1c3Npbmcgb24gZGlmZmVyZW50IGFzcGVj
+dHMgb2YgdGhlIGFydGljbGUuDQpUaGUgcmVhc29uIEkgcmVmZXJyZWQgdG8gdGhhdCBhcnRpY2xl
+IGlzIGJlY2F1c2UgSSByZWFkIHRoZSBmb2xsb3dpbmcgaW4NCnRoYXQgYXJ0aWNsZTogIlVubGlr
+ZSB0aGUgY29udmVudGlvbmFsIHBlcmltZXRlciBzZWN1cml0eSBtb2RlbCwgQmV5b25kQ29ycA0K
+ZG9lc27igJl0IGdhdGUgYWNjZXNzIHRvIHNlcnZpY2VzIGFuZCB0b29scyBiYXNlZCBvbiBhIHVz
+ZXLigJlzIHBoeXNpY2FsIGxvY2F0aW9uDQpvciB0aGUgb3JpZ2luYXRpbmcgbmV0d29yayBbIC4u
+LiBdIFRoZSB6ZXJvIHRydXN0IGFyY2hpdGVjdHVyZSBzcGVsbHMgdHJvdWJsZQ0KZm9yIHRyYWRp
+dGlvbmFsIGF0dGFja3MgdGhhdCByZWx5IG9uIHBlbmV0cmF0aW5nIGEgdG91Z2ggcGVyaW1ldGVy
+IHRvIHdhbHR6DQpmcmVlbHkgd2l0aGluIGFuIG9wZW4gaW50ZXJuYWwgbmV0d29yay4iIFN1cHBv
+c2UgZS5nLiB0aGF0IGFuIG9yZ2FuaXphdGlvbg0KZGVjaWRlcyB0byB1c2UgUm9DRSBvciBpV0FS
+UCBmb3IgY29ubmVjdGl2aXR5IGJldHdlZW4gYmxvY2sgc3RvcmFnZSBpbml0aWF0b3INCnN5c3Rl
+bXMgYW5kIGJsb2NrIHN0b3JhZ2UgdGFyZ2V0IHN5c3RlbXMgYW5kIHRoYXQgaXQgaGFzIGEgc2lu
+Z2xlIGNvbXBhbnktDQp3aWRlIEV0aGVybmV0IG5ldHdvcmsuIElmIHRoZSB0YXJnZXQgc3lzdGVt
+IGRvZXMgbm90IHJlc3RyaWN0IGFjY2VzcyBiYXNlZA0Kb24gaW5pdGlhdG9yIElQIGFkZHJlc3Mg
+dGhlbiBhbnkgcGVuZXRyYXRvciB3b3VsZCBiZSBhYmxlIHRvIGFjY2VzcyBhbGwgdGhlDQpibG9j
+ayBkZXZpY2VzIGV4cG9ydGVkIGJ5IHRoZSB0YXJnZXQgYWZ0ZXIgYSBTb2Z0Um9DRSBvciBTb2Z0
+aVdBUlAgaW5pdGlhdG9yDQpkcml2ZXIgaGFzIGJlZW4gbG9hZGVkLiBJZiB0aGUgdGFyZ2V0IHN5
+c3RlbSBob3dldmVyIHJlc3RyaWN0cyBhY2Nlc3MgYmFzZWQNCm9uIHRoZSBpbml0aWF0b3IgSVAg
+YWRkcmVzcyB0aGVuIHRoYXQgd291bGQgbWFrZSBpdCBoYXJkZXIgZm9yIGEgcGVuZXRyYXRvcg0K
+dG8gYWNjZXNzIHRoZSBleHBvcnRlZCBibG9jayBzdG9yYWdlIGRldmljZXMuIEluc3RlYWQgb2Yg
+anVzdCBwZW5ldHJhdGluZyB0aGUNCm5ldHdvcmsgYWNjZXNzLCBJUCBhZGRyZXNzIHNwb29maW5n
+IHdvdWxkIGhhdmUgdG8gYmUgdXNlZCBvciBhY2Nlc3Mgd291bGQNCmhhdmUgdG8gYmUgb2J0YWlu
+ZWQgdG8gYSBzeXN0ZW0gdGhhdCBoYXMgYmVlbiBncmFudGVkIGFjY2VzcyB0byB0aGUgdGFyZ2V0
+DQpzeXN0ZW0uDQoNClRoYW5rcywNCg0KQmFydC4NCg0KDQo=
