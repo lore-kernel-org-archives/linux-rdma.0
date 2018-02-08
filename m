@@ -1,64 +1,37 @@
-From: Bart Van Assche <Bart.VanAssche@wdc.com>
-Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
- Device (IBNBD)
-Date: Thu, 8 Feb 2018 18:09:56 +0000
-Message-ID: <1518113395.3611.54.camel@wdc.com>
-References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
-         <1517591106.2675.28.camel@sandisk.com>
-         <CAMGffEkhqR9Z5bkMfnVn8an2OUM8k+jYoR5EFdtv3k9en1bh=w@mail.gmail.com>
-         <1517847408.3764.5.camel@wdc.com>
-         <alpine.DEB.2.20.1802071031590.21957@nuc-kabylake>
-         <CAJrWOzBrbV0yJvCvKxAK2Arujf7wiCx_Xoo9jdiwDRj93Lq7Yg@mail.gmail.com>
-         <1518024719.2870.39.camel@wdc.com>
-         <CAHg0HuxRz4=fhX1P3yk9sQ+q_MUXoj=062aQ9fcwP8awjm09jA@mail.gmail.com>
+From: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/2] net/mlx5: increase async EQ to avoid EQ overrun
+Date: Thu, 8 Feb 2018 10:58:14 -0800
+Message-ID: <CALzJLG87QNzP=tSGg7zTGVtOX5TPAHCHZ66bTWS9ZQDABQKV2w@mail.gmail.com>
+References: <1517840992-29813-1-git-send-email-maxg@mellanox.com>
+ <20180205180904.GB11446@mellanox.com> <d572b570-0844-e441-19a0-e6804557fb58@mellanox.com>
+ <20180205231617.GQ11446@mellanox.com> <CALzJLG9QQ_B4xj-E+HtpxUWZhFU9eWeqSNHSaQjf5HH=9TPXTg@mail.gmail.com>
+ <20180208162605.GK9051@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <CAHg0HuxRz4=fhX1P3yk9sQ+q_MUXoj=062aQ9fcwP8awjm09jA@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <3C550AEE134D8B4C8386BD81B91F4CF7@namprd04.prod.outlook.com>
-Sender: linux-block-owner@vger.kernel.org
-To: "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>
-Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "hch@infradead.org" <hch@infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "roman.penyaev@profitbricks.com" <roman.penyaev@profitbricks.com>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "sagi@grimberg.me" <sagi@grimberg.me>, "axboe@kernel.dk" <axboe@kernel.dk>, "cl@linux.com" <cl@linux.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180208162605.GK9051-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE4LTAyLTA4IGF0IDE4OjM4ICswMTAwLCBEYW5pbCBLaXBuaXMgd3JvdGU6DQo+
-IHRoYW5rcyBmb3IgdGhlIGxpbmsgdG8gdGhlIGFydGljbGUuIFRvIHRoZSBiZXN0IG9mIG15IHVu
-ZGVyc3RhbmRpbmcsDQo+IHRoZSBndXlzIHN1Z2dlc3QgdG8gYXV0aGVudGljYXRlIHRoZSBkZXZp
-Y2VzIGZpcnN0IGFuZCBvbmx5IHRoZW4NCj4gYXV0aGVudGljYXRlIHRoZSB1c2VycyB3aG8gdXNl
-IHRoZSBkZXZpY2VzIGluIG9yZGVyIHRvIGdldCBhY2Nlc3MgdG8gYQ0KPiBjb3Jwb3JhdGUgc2Vy
-dmljZS4gVGhleSBhbHNvIG1lbnRpb24gaW4gdGhlIHByZXNlbnRhdGlvbiB0aGUgY3VycmVudA0K
-PiB0cmVuZCBvZiBtb3ZpbmcgY29ycG9yYXRlIHNlcnZpY2VzIGludG8gdGhlIGNsb3VkLiBCdXQg
-SSB0aGluayB0aGlzIGlzDQo+IG5vdCBhYm91dCB0aGUgZGV2aWNlcyBmcm9tIHdoaWNoIHRoYXQg
-Y2xvdWQgaXMgYnVpbGQgb2YuIElzbid0IGEgY2xvdWQNCj4gZmlyc3QgYnVpbGQgb3V0IG9mIGRl
-dmljZXMgY29ubmVjdGVkIHZpYSBJQiBhbmQgdGhlbiB1c2VycyAoYW5kIHRoZWlyDQo+IGRldmlj
-ZXMpIGFyZSBwcm92aWRlZCBhY2Nlc3MgdG8gdGhlIHNlcnZpY2VzIG9mIHRoYXQgY2xvdWQgYXMg
-YSB3aG9sZT8NCj4gSWYgYSBtYWxpY2lvdXMgdXNlciBhbHJlYWR5IHBsdWdnZWQgaGlzIGRldmlj
-ZSBpbnRvIGFuIElCIHN3aXRjaCBvZiBhDQo+IGNsb3VkIGludGVybmFsIGluZnJhc3RydWN0dXJl
-LCBpc24ndCBpdCBnYW1lIG92ZXIgYW55d2F5PyBDYW4ndCBoZQ0KPiBqdXN0IHRha2UgdGhlIGhh
-cmQgZHJpdmVzIGluc3RlYWQgb2YgbWFwcGluZyB0aGVtPw0KDQpIZWxsbyBEYW5pbCwNCg0KSXQg
-c2VlbXMgbGlrZSB3ZSBlYWNoIGhhdmUgYmVlbiBmb2N1c3Npbmcgb24gZGlmZmVyZW50IGFzcGVj
-dHMgb2YgdGhlIGFydGljbGUuDQpUaGUgcmVhc29uIEkgcmVmZXJyZWQgdG8gdGhhdCBhcnRpY2xl
-IGlzIGJlY2F1c2UgSSByZWFkIHRoZSBmb2xsb3dpbmcgaW4NCnRoYXQgYXJ0aWNsZTogIlVubGlr
-ZSB0aGUgY29udmVudGlvbmFsIHBlcmltZXRlciBzZWN1cml0eSBtb2RlbCwgQmV5b25kQ29ycA0K
-ZG9lc27igJl0IGdhdGUgYWNjZXNzIHRvIHNlcnZpY2VzIGFuZCB0b29scyBiYXNlZCBvbiBhIHVz
-ZXLigJlzIHBoeXNpY2FsIGxvY2F0aW9uDQpvciB0aGUgb3JpZ2luYXRpbmcgbmV0d29yayBbIC4u
-LiBdIFRoZSB6ZXJvIHRydXN0IGFyY2hpdGVjdHVyZSBzcGVsbHMgdHJvdWJsZQ0KZm9yIHRyYWRp
-dGlvbmFsIGF0dGFja3MgdGhhdCByZWx5IG9uIHBlbmV0cmF0aW5nIGEgdG91Z2ggcGVyaW1ldGVy
-IHRvIHdhbHR6DQpmcmVlbHkgd2l0aGluIGFuIG9wZW4gaW50ZXJuYWwgbmV0d29yay4iIFN1cHBv
-c2UgZS5nLiB0aGF0IGFuIG9yZ2FuaXphdGlvbg0KZGVjaWRlcyB0byB1c2UgUm9DRSBvciBpV0FS
-UCBmb3IgY29ubmVjdGl2aXR5IGJldHdlZW4gYmxvY2sgc3RvcmFnZSBpbml0aWF0b3INCnN5c3Rl
-bXMgYW5kIGJsb2NrIHN0b3JhZ2UgdGFyZ2V0IHN5c3RlbXMgYW5kIHRoYXQgaXQgaGFzIGEgc2lu
-Z2xlIGNvbXBhbnktDQp3aWRlIEV0aGVybmV0IG5ldHdvcmsuIElmIHRoZSB0YXJnZXQgc3lzdGVt
-IGRvZXMgbm90IHJlc3RyaWN0IGFjY2VzcyBiYXNlZA0Kb24gaW5pdGlhdG9yIElQIGFkZHJlc3Mg
-dGhlbiBhbnkgcGVuZXRyYXRvciB3b3VsZCBiZSBhYmxlIHRvIGFjY2VzcyBhbGwgdGhlDQpibG9j
-ayBkZXZpY2VzIGV4cG9ydGVkIGJ5IHRoZSB0YXJnZXQgYWZ0ZXIgYSBTb2Z0Um9DRSBvciBTb2Z0
-aVdBUlAgaW5pdGlhdG9yDQpkcml2ZXIgaGFzIGJlZW4gbG9hZGVkLiBJZiB0aGUgdGFyZ2V0IHN5
-c3RlbSBob3dldmVyIHJlc3RyaWN0cyBhY2Nlc3MgYmFzZWQNCm9uIHRoZSBpbml0aWF0b3IgSVAg
-YWRkcmVzcyB0aGVuIHRoYXQgd291bGQgbWFrZSBpdCBoYXJkZXIgZm9yIGEgcGVuZXRyYXRvcg0K
-dG8gYWNjZXNzIHRoZSBleHBvcnRlZCBibG9jayBzdG9yYWdlIGRldmljZXMuIEluc3RlYWQgb2Yg
-anVzdCBwZW5ldHJhdGluZyB0aGUNCm5ldHdvcmsgYWNjZXNzLCBJUCBhZGRyZXNzIHNwb29maW5n
-IHdvdWxkIGhhdmUgdG8gYmUgdXNlZCBvciBhY2Nlc3Mgd291bGQNCmhhdmUgdG8gYmUgb2J0YWlu
-ZWQgdG8gYSBzeXN0ZW0gdGhhdCBoYXMgYmVlbiBncmFudGVkIGFjY2VzcyB0byB0aGUgdGFyZ2V0
-DQpzeXN0ZW0uDQoNClRoYW5rcywNCg0KQmFydC4NCg0KDQo=
+On Thu, Feb 8, 2018 at 8:26 AM, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> On Wed, Feb 07, 2018 at 09:45:52PM -0800, Saeed Mahameed wrote:
+>
+>> I see, that this patch is already on its way to linus, with no proper
+>> mlx5 maintainer sign-off, nice.
+>
+> Doug and I can be more careful to not accept patches without
+> maintainer ack's - but this means I will want to see Acks from you no
+> matter who sends the patch (including patches sent by Leon).
+>
+
+Thanks for understanding, Leon and I almost always in sync,
+we don't submit patches to each other tree (especially pure patches)
+without notifying the other first.
+
+> Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
