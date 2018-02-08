@@ -1,44 +1,47 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [RFC PATCH] rxe: Fix structure layouts for 32/64 bit compat
-Date: Thu, 8 Feb 2018 00:01:48 +0000
-Message-ID: <1518048106.2870.86.camel@wdc.com>
-References: <20180207234153.GA14067@ziepe.ca>
-         <1518047664.2870.82.camel@wdc.com> <20180207235725.GA9080@ziepe.ca>
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 1/3] RDMA/hns: Fix a bug with modifying mac
+ address
+Date: Thu, 8 Feb 2018 08:58:46 +0800
+Message-ID: <69552f0a-7949-83a5-ef7c-3eadb6d0aeef@huawei.com>
+References: <1517920459-93900-1-git-send-email-oulijun@huawei.com>
+ <1517920459-93900-2-git-send-email-oulijun@huawei.com>
+ <20180206155338.GG1288@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="gbk"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180207235725.GA9080-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
-Content-ID: <C4BC7E8E36562448B2B2C5CFA5EB14CE-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <20180206155338.GG1288-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE4LTAyLTA3IGF0IDE2OjU3IC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIFdlZCwgRmViIDA3LCAyMDE4IGF0IDExOjU0OjI1UE0gKzAwMDAsIEJhcnQgVmFuIEFz
-c2NoZSB3cm90ZToNCj4gPiBPbiBXZWQsIDIwMTgtMDItMDcgYXQgMTY6NDEgLTA3MDAsIEphc29u
-IEd1bnRob3JwZSB3cm90ZToNCj4gPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL3VhcGkvcmRtYS9y
-ZG1hX3VzZXJfcnhlLmggYi9pbmNsdWRlL3VhcGkvcmRtYS9yZG1hX3VzZXJfcnhlLmgNCj4gPiA+
-IGluZGV4IGUzZTY4NTJiNThlYjQ1Li5iNTAxZGViMThkODE4NCAxMDA2NDQNCj4gPiA+ICsrKyBi
-L2luY2x1ZGUvdWFwaS9yZG1hL3JkbWFfdXNlcl9yeGUuaA0KPiA+ID4gQEAgLTU4LDYgKzU4LDgg
-QEAgc3RydWN0IHJ4ZV9nbG9iYWxfcm91dGUgew0KPiA+ID4gIHN0cnVjdCByeGVfYXYgew0KPiA+
-ID4gIAlfX3U4CQkJcG9ydF9udW07DQo+ID4gPiAgCV9fdTgJCQluZXR3b3JrX3R5cGU7DQo+ID4g
-PiArCV9fdTE2CQkJcmVzZXJ2ZWQxOw0KPiA+ID4gKwlfX3UzMgkJCXJlc2VydmVkMjsNCj4gPiAN
-Cj4gPiBIZWxsbyBKYXNvbiwNCj4gPiANCj4gPiBTZWVpbmcgdHdvIGNvbnNlY3V0aXZlIHJlc2Vy
-dmVkIG1lbWJlcnMgaXMgYSBiaXQgd2VpcmQuIEhhdmUgeW91IGNvbnNpZGVyZWQNCj4gPiB0byB1
-c2Ugc29tZXRoaW5nIGxpa2UgX191OCByZXNlcnZlZFs2XSBpbnN0ZWFkPw0KPiANCj4gQWgsIEkg
-aGFkIHRoYXQgb3JpZ2luYWxseSBidXQgY2hhbmdlZCBpdCB0byBtYWtlIHBhaG9sZSB3b3JrIHBy
-b3Blcmx5Li4NCj4gQ2FuIHN3aXRjaCBpdCBiYWNrLg0KPiANCj4gQWx0aG91Z2gsIHRoaXMgZG9l
-cyByZWFsbHkgZmlybWx5IHNheSB3aGF0IHRoZSBhbGlnaG1lbnQgaXMsIGVnDQo+IGRvd24gdGhl
-IHJvYWQgc29tZW9uZSBtaWdodCBiZSB0ZW1wdGVkIHRvIGRvOg0KPiANCj4gLSBfX3U4IHJlc2Vy
-dmVkWzZdOw0KPiArIF9fdTMyIG5ld192YWx1ZTsNCj4gKyBfX3UxNiByZXNlcnZlZDsNCj4gDQo+
-IFdoaWNoIHdvdWxkIGJlIHF1aXRlIHdyb25nLi4NCg0KUGxlYXNlIGNvbnNpZGVyIHRvIGFkZCBC
-VUlMRF9CVUdfT04oKSBzdGF0ZW1lbnRzIGludG8gdGhlIHJ4ZSBkcml2ZXIgdG8gdmVyaWZ5DQpv
-ZmZzZXRzIG9mIG1lbWJlcnMgb2YgQUJJIHN0cnVjdHVyZXMuIFRoYXQgYXBwcm9hY2ggaXMgdXNl
-ZCBpbiB0aGUgcmRtYS1jb3JlDQpsaWJyYXJ5IGZvciBlLmcuIHRoZSB1bWFkIGxpYnJhcnkgYW5k
-IHNycF9kYWVtb24uDQoNClRoYW5rcywNCg0KQmFydC4NCg0KDQo=
+ÔÚ 2018/2/6 23:53, Jason Gunthorpe Ð´µÀ:
+> On Tue, Feb 06, 2018 at 08:34:17PM +0800, Lijun Ou wrote:
+>> When modifying mac address, it will trigger hns_roce_del_gid
+>> function and can't delete the default gid matched the index
+>> because the attribute of gid is null.
+>>
+>> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>>  drivers/infiniband/hw/hns/hns_roce_main.c | 3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+>> index eb9a69f..6f39afb 100644
+>> +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+>> @@ -100,6 +100,7 @@ static int hns_roce_del_gid(struct ib_device *device, u8 port_num,
+>>  			    unsigned int index, void **context)
+>>  {
+>>  	struct hns_roce_dev *hr_dev = to_hr_dev(device);
+>> +	const struct ib_gid_attr zattr;
+> 
+> That is uninited stack memory, need a = {}
+> 
+> Jason
+> 
+> 
+Thanks£¬ I have sent the patch V2.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
