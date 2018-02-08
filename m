@@ -1,84 +1,60 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/2] net/mlx5: increase async EQ to avoid EQ overrun
-Date: Thu, 8 Feb 2018 18:39:14 +0200
-Message-ID: <20180208163914.GH2197@mtr-leonro.local>
-References: <1517840992-29813-1-git-send-email-maxg@mellanox.com>
- <20180205180904.GB11446@mellanox.com>
- <d572b570-0844-e441-19a0-e6804557fb58@mellanox.com>
- <20180205231617.GQ11446@mellanox.com>
- <CALzJLG9QQ_B4xj-E+HtpxUWZhFU9eWeqSNHSaQjf5HH=9TPXTg@mail.gmail.com>
- <20180208162605.GK9051@mellanox.com>
+From: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH 00/24] InfiniBand Transport (IBTRS) and Network Block
+ Device (IBNBD)
+Date: Thu, 8 Feb 2018 18:38:21 +0100
+Message-ID: <CAHg0HuxRz4=fhX1P3yk9sQ+q_MUXoj=062aQ9fcwP8awjm09jA@mail.gmail.com>
+References: <20180202140904.2017-1-roman.penyaev@profitbricks.com>
+ <1517591106.2675.28.camel@sandisk.com> <CAMGffEkhqR9Z5bkMfnVn8an2OUM8k+jYoR5EFdtv3k9en1bh=w@mail.gmail.com>
+ <1517847408.3764.5.camel@wdc.com> <alpine.DEB.2.20.1802071031590.21957@nuc-kabylake>
+ <CAJrWOzBrbV0yJvCvKxAK2Arujf7wiCx_Xoo9jdiwDRj93Lq7Yg@mail.gmail.com> <1518024719.2870.39.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="hHWLQfXTYDoKhP50"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180208162605.GK9051-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1518024719.2870.39.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org" <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---hHWLQfXTYDoKhP50
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Feb 08, 2018 at 09:26:05AM -0700, Jason Gunthorpe wrote:
-> On Wed, Feb 07, 2018 at 09:45:52PM -0800, Saeed Mahameed wrote:
+On Wed, Feb 7, 2018 at 6:32 PM, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org> wrote:
+> On Wed, 2018-02-07 at 18:18 +0100, Roman Penyaev wrote:
+>> So the question is: are there real life setups where
+>> some of the local IB network members can be untrusted?
 >
-> > I see, that this patch is already on its way to linus, with no proper
-> > mlx5 maintainer sign-off, nice.
+> Hello Roman,
 >
-> Doug and I can be more careful to not accept patches without
-> maintainer ack's - but this means I will want to see Acks from you no
-> matter who sends the patch (including patches sent by Leon).
-
-Please don't invent the wheel, mlx5 is my responsibility too,
-I'm just successfully avoid dealing with netdev patches.
-
- 8897 MELLANOX MLX5 core VPI driver
- 8898 M:      Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
- 8899 M:      Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
- 8900 M:      Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
- 8901 L:      netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- 8902 L:      linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- 8903 W:      http://www.mellanox.com
- 8904 Q:      http://patchwork.ozlabs.org/project/netdev/list/
- 8905 S:      Supported
- 8906 F:      drivers/net/ethernet/mellanox/mlx5/core/
- 8907 F:      include/linux/mlx5/
-
-Thanks
-
+> You may want to read more about the latest evolutions with regard to network
+> security. An article that I can recommend is the following: "Google reveals
+> own security regime policy trusts no network, anywhere, ever"
+> (https://www.theregister.co.uk/2016/04/06/googles_beyondcorp_security_policy/).
 >
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> If data-centers would start deploying RDMA among their entire data centers
+> (maybe they are already doing this) then I think they will want to restrict
+> access to block devices to only those initiator systems that need it.
+>
+> Thanks,
+>
+> Bart.
+>
+>
 
---hHWLQfXTYDoKhP50
-Content-Type: application/pgp-signature; name="signature.asc"
+Hi Bart,
 
------BEGIN PGP SIGNATURE-----
+thanks for the link to the article. To the best of my understanding,
+the guys suggest to authenticate the devices first and only then
+authenticate the users who use the devices in order to get access to a
+corporate service. They also mention in the presentation the current
+trend of moving corporate services into the cloud. But I think this is
+not about the devices from which that cloud is build of. Isn't a cloud
+first build out of devices connected via IB and then users (and their
+devices) are provided access to the services of that cloud as a whole?
+If a malicious user already plugged his device into an IB switch of a
+cloud internal infrastructure, isn't it game over anyway? Can't he
+just take the hard drives instead of mapping them?
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlp8fTIACgkQ5GN7iDZy
-WKd36RAAmpuV2Nuo/ClvbdX8snzcZDxLYb6aArnBWkPZMsdAEQNnHAebg7RGlMr2
-AMi4+6Bxh/2kqua8jb8dIaMdDMOonqB2jJsWrMGXBf7iA+GZo2/cKQV/a3neOOuy
-1jLupgQsTgnMUzPJ+BJ4y2AOJIzGd8G0z6o6I7aAGct/FOoAdSIDHy4a61YJz98W
-YSK4oFQwZHwyKH8HjXsFEwKM1zP8KK/QXj796V8oNgFXP2gHrVtf83GSYrzL5V/V
-ZoYo1DMoZ9KvIzIRvKxRKO1+eXjIV+0Q32beM2+4S0ebYCykvWwR6RiRpQkUtKR8
-wMdSHSsPma9fTiMYZ2QdhTrjcKqG/vAVBC73mkTa7zvLw4vOivn5xx9hAFT4CZD5
-fM0uJO24fDeD8UBWF2hn3pntaeLXh+KE3h1LoM9QzqEUwF/MOzq3lbtl42UNgBaa
-UpJp2M4AKAndvTrP93oBrgAn0o0GVF0ZCiZ1FECYiS0wwZj09lni3ItNcZlr7dqd
-bzy1pTCPesrKJyT+QwymIqg36qSQOPGrHFNWDx5lVWvhQrQWFHMrfJl1GuvH1q70
-+ANPZFBbn4f370wclKGhFcmwoNfk6QuDSvhq2dGgCRyigGnk8CsO4BcTKBsULQ+D
-4I07p393j9w3wI3ubOTIuIK/y4Yrt1rsWTiRXizkOgYXHMZGcwQ=
-=qO2o
------END PGP SIGNATURE-----
+Thanks,
 
---hHWLQfXTYDoKhP50--
+Danil.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
