@@ -1,49 +1,44 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
 Subject: Re: [RFC PATCH] rxe: Fix structure layouts for 32/64 bit compat
-Date: Wed, 7 Feb 2018 16:57:25 -0700
-Message-ID: <20180207235725.GA9080@ziepe.ca>
+Date: Thu, 8 Feb 2018 00:01:48 +0000
+Message-ID: <1518048106.2870.86.camel@wdc.com>
 References: <20180207234153.GA14067@ziepe.ca>
- <1518047664.2870.82.camel@wdc.com>
+         <1518047664.2870.82.camel@wdc.com> <20180207235725.GA9080@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1518047664.2870.82.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <20180207235725.GA9080-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
+Content-ID: <C4BC7E8E36562448B2B2C5CFA5EB14CE-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+To: "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>
 Cc: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 07, 2018 at 11:54:25PM +0000, Bart Van Assche wrote:
-> On Wed, 2018-02-07 at 16:41 -0700, Jason Gunthorpe wrote:
-> > diff --git a/include/uapi/rdma/rdma_user_rxe.h b/include/uapi/rdma/rdma_user_rxe.h
-> > index e3e6852b58eb45..b501deb18d8184 100644
-> > +++ b/include/uapi/rdma/rdma_user_rxe.h
-> > @@ -58,6 +58,8 @@ struct rxe_global_route {
-> >  struct rxe_av {
-> >  	__u8			port_num;
-> >  	__u8			network_type;
-> > +	__u16			reserved1;
-> > +	__u32			reserved2;
-> 
-> Hello Jason,
-> 
-> Seeing two consecutive reserved members is a bit weird. Have you considered
-> to use something like __u8 reserved[6] instead?
-
-Ah, I had that originally but changed it to make pahole work properly..
-Can switch it back.
-
-Although, this does really firmly say what the alighment is, eg
-down the road someone might be tempted to do:
-
-- __u8 reserved[6];
-+ __u32 new_value;
-+ __u16 reserved;
-
-Which would be quite wrong..
-
-Jason
+T24gV2VkLCAyMDE4LTAyLTA3IGF0IDE2OjU3IC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIFdlZCwgRmViIDA3LCAyMDE4IGF0IDExOjU0OjI1UE0gKzAwMDAsIEJhcnQgVmFuIEFz
+c2NoZSB3cm90ZToNCj4gPiBPbiBXZWQsIDIwMTgtMDItMDcgYXQgMTY6NDEgLTA3MDAsIEphc29u
+IEd1bnRob3JwZSB3cm90ZToNCj4gPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL3VhcGkvcmRtYS9y
+ZG1hX3VzZXJfcnhlLmggYi9pbmNsdWRlL3VhcGkvcmRtYS9yZG1hX3VzZXJfcnhlLmgNCj4gPiA+
+IGluZGV4IGUzZTY4NTJiNThlYjQ1Li5iNTAxZGViMThkODE4NCAxMDA2NDQNCj4gPiA+ICsrKyBi
+L2luY2x1ZGUvdWFwaS9yZG1hL3JkbWFfdXNlcl9yeGUuaA0KPiA+ID4gQEAgLTU4LDYgKzU4LDgg
+QEAgc3RydWN0IHJ4ZV9nbG9iYWxfcm91dGUgew0KPiA+ID4gIHN0cnVjdCByeGVfYXYgew0KPiA+
+ID4gIAlfX3U4CQkJcG9ydF9udW07DQo+ID4gPiAgCV9fdTgJCQluZXR3b3JrX3R5cGU7DQo+ID4g
+PiArCV9fdTE2CQkJcmVzZXJ2ZWQxOw0KPiA+ID4gKwlfX3UzMgkJCXJlc2VydmVkMjsNCj4gPiAN
+Cj4gPiBIZWxsbyBKYXNvbiwNCj4gPiANCj4gPiBTZWVpbmcgdHdvIGNvbnNlY3V0aXZlIHJlc2Vy
+dmVkIG1lbWJlcnMgaXMgYSBiaXQgd2VpcmQuIEhhdmUgeW91IGNvbnNpZGVyZWQNCj4gPiB0byB1
+c2Ugc29tZXRoaW5nIGxpa2UgX191OCByZXNlcnZlZFs2XSBpbnN0ZWFkPw0KPiANCj4gQWgsIEkg
+aGFkIHRoYXQgb3JpZ2luYWxseSBidXQgY2hhbmdlZCBpdCB0byBtYWtlIHBhaG9sZSB3b3JrIHBy
+b3Blcmx5Li4NCj4gQ2FuIHN3aXRjaCBpdCBiYWNrLg0KPiANCj4gQWx0aG91Z2gsIHRoaXMgZG9l
+cyByZWFsbHkgZmlybWx5IHNheSB3aGF0IHRoZSBhbGlnaG1lbnQgaXMsIGVnDQo+IGRvd24gdGhl
+IHJvYWQgc29tZW9uZSBtaWdodCBiZSB0ZW1wdGVkIHRvIGRvOg0KPiANCj4gLSBfX3U4IHJlc2Vy
+dmVkWzZdOw0KPiArIF9fdTMyIG5ld192YWx1ZTsNCj4gKyBfX3UxNiByZXNlcnZlZDsNCj4gDQo+
+IFdoaWNoIHdvdWxkIGJlIHF1aXRlIHdyb25nLi4NCg0KUGxlYXNlIGNvbnNpZGVyIHRvIGFkZCBC
+VUlMRF9CVUdfT04oKSBzdGF0ZW1lbnRzIGludG8gdGhlIHJ4ZSBkcml2ZXIgdG8gdmVyaWZ5DQpv
+ZmZzZXRzIG9mIG1lbWJlcnMgb2YgQUJJIHN0cnVjdHVyZXMuIFRoYXQgYXBwcm9hY2ggaXMgdXNl
+ZCBpbiB0aGUgcmRtYS1jb3JlDQpsaWJyYXJ5IGZvciBlLmcuIHRoZSB1bWFkIGxpYnJhcnkgYW5k
+IHNycF9kYWVtb24uDQoNClRoYW5rcywNCg0KQmFydC4NCg0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
