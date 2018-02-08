@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core] Fix compiler warnings on PPC64 and others
-Date: Thu, 8 Feb 2018 15:45:06 -0700
-Message-ID: <20180208224506.GA2462@ziepe.ca>
+Subject: [PATCH rdma-core] mlx4: Fix 1<<31 expressions
+Date: Thu, 8 Feb 2018 16:38:29 -0700
+Message-ID: <20180208233829.GA16128@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -10,43 +10,42 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We have places in our code that assume __u64 is unsigned long long, and in
-general this is the Linux kernel standard. However a few archs still use
-unsigned long by default and require a -D__SANE_USERSPACE_TYPES__ to get
-long long.
-
-Detect this and provide the define to eliminate compilation warnings.
+They produce the value INT32_MIN not 0x80000000. This is sometimes OK
+if it is casted appropriately but leaves a subtle trap to the user.
 
 Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- CMakeLists.txt | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ providers/mlx4/mlx4dv.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index e63f4cf563677a..b08d3fd2cf4246 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -250,6 +250,20 @@ CHECK_C_SOURCE_COMPILES("
-   HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
-   FAIL_REGEX "warning")
+diff --git a/providers/mlx4/mlx4dv.h b/providers/mlx4/mlx4dv.h
+index d47d3cd2e1f135..5312a866b6e281 100644
+--- a/providers/mlx4/mlx4dv.h
++++ b/providers/mlx4/mlx4dv.h
+@@ -288,12 +288,12 @@ enum {
+ };
  
-+# Linux __u64 is an unsigned long long
-+CHECK_C_SOURCE_COMPILES("
-+#include <linux/types.h>
-+ int main(int argc,const char *argv[]) { __u64 tmp = 0; unsigned long long *tmp2 = &tmp; return *tmp2; }"
-+  HAVE_LONG_LONG_U64
-+  FAIL_REGEX "warning")
-+
-+if (NOT HAVE_LONG_LONG_U64)
-+  # Modern Linux has switched to use ull in all cases, but to avoid disturbing
-+  # userspace some platforms continued to use unsigned long by default. This
-+  # define will cause kernel headers to consistently use unsigned long long
-+  add_definitions("-D__SANE_USERSPACE_TYPES__")
-+endif()
-+
- # Provide a shim if C11 stdatomic.h is not supported.
- if (NOT HAVE_SPARSE)
-   CHECK_INCLUDE_FILE("stdatomic.h" HAVE_STDATOMIC)
+ enum {
+-	MLX4_WQE_BIND_TYPE_2		= (1<<31),
++	MLX4_WQE_BIND_TYPE_2		= (1UL<<31),
+ 	MLX4_WQE_BIND_ZERO_BASED	= (1<<30),
+ };
+ 
+ enum {
+-	MLX4_INLINE_SEG		= 1 << 31,
++	MLX4_INLINE_SEG		= 1UL << 31,
+ 	MLX4_INLINE_ALIGN	= 64,
+ };
+ 
+@@ -304,7 +304,7 @@ enum {
+ enum {
+ 	MLX4_WQE_MW_REMOTE_READ   = 1 << 29,
+ 	MLX4_WQE_MW_REMOTE_WRITE  = 1 << 30,
+-	MLX4_WQE_MW_ATOMIC        = 1 << 31
++	MLX4_WQE_MW_ATOMIC        = 1UL << 31
+ };
+ 
+ struct mlx4_wqe_local_inval_seg {
 -- 
 2.16.1
 
