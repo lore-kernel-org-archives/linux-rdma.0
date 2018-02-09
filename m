@@ -1,86 +1,33 @@
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: Re: [PATCH] RDMA/nldev: Fix multiple potential NULL pointer
- dereferences
-Date: Fri, 09 Feb 2018 09:56:00 -0600
-Message-ID: <20180209095600.Horde.e7EqwCs_5bRLfE3Nnkfl3L3@gator4166.hostgator.com>
-References: <20180209063702.GA28685@embeddedgus>
- <20180209122549.GK2197@mtr-leonro.local>
- <20180209073649.Horde.OueGLKMtzpLyz4w36quXUca@gator4166.hostgator.com>
- <20180209143541.GN2197@mtr-leonro.local>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH rdma-core] mlx4: Fix 1<<31 expressions
+Date: Fri, 9 Feb 2018 16:01:51 +0000
+Message-ID: <1518192109.2871.5.camel@wdc.com>
+References: <20180208233829.GA16128@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180209143541.GN2197@mtr-leonro.local>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180208233829.GA16128-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
+Content-ID: <98A4DE662B41B4488D4CCF8659BA2CA9-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-Quoting Leon Romanovsky <leon@kernel.org>:
-
-> On Fri, Feb 09, 2018 at 07:36:49AM -0600, Gustavo A. R. Silva wrote:
->> Hi Leon,
->>
->> Quoting Leon Romanovsky <leon@kernel.org>:
->>
->> > On Fri, Feb 09, 2018 at 12:37:02AM -0600, Gustavo A. R. Silva wrote:
->> > > In case the message header and payload cannot be stored, function
->> > > nlmsg_put returns null.
->> > >
->> > > Fix this by adding multiple sanity checks and avoid a potential
->> > > null dereference on _nlh_ when calling nlmsg_end.
->> > >
->> > > Addresses-Coverity-ID: 1454215 ("Dereference null return value")
->> > > Addresses-Coverity-ID: 1454223 ("Dereference null return value")
->> > > Addresses-Coverity-ID: 1454224 ("Dereference null return value")
->> > > Addresses-Coverity-ID: 1464669 ("Dereference null return value")
->> > > Addresses-Coverity-ID: 1464670 ("Dereference null return value")
->> > > Addresses-Coverity-ID: 1464672 ("Dereference null return value")
->> > > Fixes: e5c9469efcb1 ("RDMA/netlink: Add nldev device doit  
->> implementation")
->> > > Fixes: c3f66f7b0052 ("RDMA/netlink: Implement nldev port doit callback")
->> > > Fixes: 7d02f605f0dc ("RDMA/netlink: Add nldev port dumpit  
->> implementation")
->> > > Fixes: b5fa635aab8f ("RDMA/nldev: Provide detailed QP information")
->> > > Fixes: bf3c5a93c523 ("RDMA/nldev: Provide global resource utilization")
->> > > Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
->> > > ---
->> > >  drivers/infiniband/core/nldev.c | 26 +++++++++++++++++++++++++-
->> > >  1 file changed, 25 insertions(+), 1 deletion(-)
->> > >
->> >
->> > It will be much better to fix the tool instead of fixing ghost case.
->> > This scenario is impossible for all those flows.
->> > We can receive the skv/msg in two ways:
->> >  * First by allocating new message with NLMSG_DEFAULT_SIZE, which has
->> > more room
->> >    than nlmsg_total_size(payload), payload is 0.
->> >  * Second by getting from netlink.c and it will be at least "struct
->> > nlmsghdr" too.
->> >
->> > Can you please add this info to the commit message?
->> >
->>
->> Actually, I was planing to send a new version of this patch. This time using
->> the unlikely macro for all the null checks on nlh.
->>
->> What do you think?
->
-> It is not datapath, so "unlikely" is not needed. Let's assume that  
-> smart enough
-> compiler will optimize such flow anyway, because nlmsg_put returns NULL
-> in unlikely scenario, so this check will be unlikely automatically too.
->
-
-I'm curious about why the return value of nlmsg_put is null checked  
-118 out of 129 times (based on Coverity reports) in the last  
-linux-next tree.
-
-So based on what you mention, do you think all those checks are  
-actually unnecessary and, maybe they should be removed?
-
-Thanks
+T24gVGh1LCAyMDE4LTAyLTA4IGF0IDE2OjM4IC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+ICBlbnVtIHsNCj4gLQlNTFg0X1dRRV9CSU5EX1RZUEVfMgkJPSAoMTw8MzEpLA0KPiArCU1M
+WDRfV1FFX0JJTkRfVFlQRV8yCQk9ICgxVUw8PDMxKSwNCj4gIAlNTFg0X1dRRV9CSU5EX1pFUk9f
+QkFTRUQJPSAoMTw8MzApLA0KPiAgfTsNCg0KSGVsbG8gSmFzb24sDQoNCkEgcXVvdGUgZnJvbSB0
+aGUgQzExIHN0YW5kYXJkOg0KDQoiVGhlIGV4cHJlc3Npb24gdGhhdCBkZWZpbmVzIHRoZSB2YWx1
+ZSBvZiBhbiBlbnVtZXJhdGlvbiBjb25zdGFudCBzaGFsbCBiZSBhbg0KaW50ZWdlciBjb25zdGFu
+dCBleHByZXNzaW9uIHRoYXQgaGFzIGEgdmFsdWUgcmVwcmVzZW50YWJsZSBhcyBhbiBpbnQuIFsg
+Li4uIF0NCkVhY2ggZW51bWVyYXRlZCB0eXBlIHNoYWxsIGJlIGNvbXBhdGlibGUgd2l0aCBjaGFy
+LCBhIHNpZ25lZCBpbnRlZ2VyIHR5cGUsIG9yDQphbiB1bnNpZ25lZCBpbnRlZ2VyIHR5cGUuIFRo
+ZSBjaG9pY2Ugb2YgdHlwZSBpcyBpbXBsZW1lbnRhdGlvbi1kZWZpbmVkIGJ1dA0Kc2hhbGwgYmUg
+Y2FwYWJsZSBvZiByZXByZXNlbnRpbmcgdGhlIHZhbHVlcyBvZiBhbGwgdGhlIG1lbWJlcnMgb2Yg
+dGhlDQplbnVtZXJhdGlvbi4iDQoNCkRvZXMgdGhhdCBtZWFuIHRoYXQgdGhpcyBjaGFuZ2UgcmVs
+aWVzIG9uIGV4dGVuc2lvbnMgdG8gdGhlIEMgc3RhbmRhcmQ/DQoNClRoYW5rcywNCg0KQmFydC4=
 --
-Gustavo
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
