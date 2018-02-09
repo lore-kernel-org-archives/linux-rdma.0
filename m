@@ -1,107 +1,191 @@
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: Re: [PATCH] RDMA/nldev: Fix multiple potential NULL pointer
- dereferences
-Date: Fri, 09 Feb 2018 11:36:40 -0600
-Message-ID: <20180209113640.Horde.xafidJ_CTj9RROQxEbXk8Qi@gator4166.hostgator.com>
-References: <20180209063702.GA28685@embeddedgus>
- <20180209122549.GK2197@mtr-leonro.local>
- <20180209073649.Horde.OueGLKMtzpLyz4w36quXUca@gator4166.hostgator.com>
- <20180209143541.GN2197@mtr-leonro.local>
- <20180209095600.Horde.e7EqwCs_5bRLfE3Nnkfl3L3@gator4166.hostgator.com>
- <20180209164918.GP2197@mtr-leonro.local>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [RFC PATCH rdma-core] Check that public headers support -Wpedantic
+Date: Fri, 9 Feb 2018 11:14:10 -0700
+Message-ID: <20180209181410.GA15016@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180209164918.GP2197@mtr-leonro.local>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>, Thomas Monjalon <thomasm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+We do require a C11 compiler, but can support -Wpedantic compilation, at
+least on some headers. This actually catches a few mistakes,
+like the 1<<31.
 
-Quoting Leon Romanovsky <leon@kernel.org>:
+Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ buildlib/check-build    |  6 +++---
+ libibverbs/verbs.h      | 26 +++++++++++++++++++++-----
+ providers/mlx4/mlx4dv.h |  6 +++---
+ providers/mlx5/mlx5dv.h | 12 +++---------
+ 4 files changed, 30 insertions(+), 20 deletions(-)
 
-> On Fri, Feb 09, 2018 at 09:56:00AM -0600, Gustavo A. R. Silva wrote:
->>
->> Quoting Leon Romanovsky <leon@kernel.org>:
->>
->> > On Fri, Feb 09, 2018 at 07:36:49AM -0600, Gustavo A. R. Silva wrote:
->> > > Hi Leon,
->> > >
->> > > Quoting Leon Romanovsky <leon@kernel.org>:
->> > >
->> > > > On Fri, Feb 09, 2018 at 12:37:02AM -0600, Gustavo A. R. Silva wrote:
->> > > > > In case the message header and payload cannot be stored, function
->> > > > > nlmsg_put returns null.
->> > > > >
->> > > > > Fix this by adding multiple sanity checks and avoid a potential
->> > > > > null dereference on _nlh_ when calling nlmsg_end.
->> > > > >
->> > > > > Addresses-Coverity-ID: 1454215 ("Dereference null return value")
->> > > > > Addresses-Coverity-ID: 1454223 ("Dereference null return value")
->> > > > > Addresses-Coverity-ID: 1454224 ("Dereference null return value")
->> > > > > Addresses-Coverity-ID: 1464669 ("Dereference null return value")
->> > > > > Addresses-Coverity-ID: 1464670 ("Dereference null return value")
->> > > > > Addresses-Coverity-ID: 1464672 ("Dereference null return value")
->> > > > > Fixes: e5c9469efcb1 ("RDMA/netlink: Add nldev device doit
->> > > implementation")
->> > > > > Fixes: c3f66f7b0052 ("RDMA/netlink: Implement nldev port  
->> doit callback")
->> > > > > Fixes: 7d02f605f0dc ("RDMA/netlink: Add nldev port dumpit
->> > > implementation")
->> > > > > Fixes: b5fa635aab8f ("RDMA/nldev: Provide detailed QP information")
->> > > > > Fixes: bf3c5a93c523 ("RDMA/nldev: Provide global resource  
->> utilization")
->> > > > > Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
->> > > > > ---
->> > > > >  drivers/infiniband/core/nldev.c | 26 +++++++++++++++++++++++++-
->> > > > >  1 file changed, 25 insertions(+), 1 deletion(-)
->> > > > >
->> > > >
->> > > > It will be much better to fix the tool instead of fixing ghost case.
->> > > > This scenario is impossible for all those flows.
->> > > > We can receive the skv/msg in two ways:
->> > > >  * First by allocating new message with NLMSG_DEFAULT_SIZE, which has
->> > > > more room
->> > > >    than nlmsg_total_size(payload), payload is 0.
->> > > >  * Second by getting from netlink.c and it will be at least "struct
->> > > > nlmsghdr" too.
->> > > >
->> > > > Can you please add this info to the commit message?
->> > > >
->> > >
->> > > Actually, I was planing to send a new version of this patch.  
->> This time using
->> > > the unlikely macro for all the null checks on nlh.
->> > >
->> > > What do you think?
->> >
->> > It is not datapath, so "unlikely" is not needed. Let's assume that smart
->> > enough
->> > compiler will optimize such flow anyway, because nlmsg_put returns NULL
->> > in unlikely scenario, so this check will be unlikely automatically too.
->> >
->>
->> I'm curious about why the return value of nlmsg_put is null checked 118 out
->> of 129 times (based on Coverity reports) in the last linux-next tree.
->>
->> So based on what you mention, do you think all those checks are actually
->> unnecessary and, maybe they should be removed?
->
-> I honestly don't know about all cases, but if message is allocated with
-> NLMSG_DEFAULT_SIZE and payload is 0, this check won't be needed.
->
+Lets consider this a bit experimental for now.
 
-I got it.
+This changes the public headers to be mostly pedantically correct as
+far as C11 (but not C99). There are still uses of zero length arrays
+in some rdma-cm headers, but the verbs and dv headers are clean.
 
-> So go ahead, add check if (!...) in all places, but be cautious with
-> "potential null dereference" claims, it is not always true.
->
+The main issue is what Bart recently pointed out, that the use of an
+enum constant beyond the range of 'int' is a (popular) compiler
+extension, so they have to change to #define
 
-You are right. I will update the subject and commit message.
+check-build is updated so the CI will continuously validate this.
 
-Thanks for the feedback, Leon.
-I appreciate it.
+I also haven't carefully checked the _verbs_get_ctx_op at this point,
+won't bother if we don't want to do this. That change is needed
+because the result statement expression thing is also an extension.
+
+I noticed this as some projects like DPDK are compiling with
+-Wpedantic and have to make special provision for verbs.h
+
+Jason
+
+diff --git a/buildlib/check-build b/buildlib/check-build
+index 766db7ae46259f..b8b678a743c1bc 100755
+--- a/buildlib/check-build
++++ b/buildlib/check-build
+@@ -213,10 +213,10 @@ def get_headers(incdir):
+                 includes.add(os.path.join(root,I));
+     return includes;
+ 
+-def compile_test_headers(tmpd,incdir,includes):
++def compile_test_headers(tmpd,incdir,includes,xargs="-std=gnu11"):
+     with open(os.path.join(tmpd,"build.ninja"),"wt") as F:
+         print >> F,"rule comp";
+-        print >> F," command = %s -Werror -c -I %s $in -o $out"%(args.CC,incdir);
++        print >> F," command = %s -Werror -c -I %s $in -o $out %s"%(args.CC,incdir,xargs);
+         print >> F," description=Header check for $in";
+         count = 0;
+         for I in sorted(includes):
+@@ -280,7 +280,7 @@ def test_installed_headers(args):
+             with open(I,"w") as F:
+                 print >> F,'#error "Private internal header"';
+ 
+-        compile_test_headers(tmpd,incdir,includes);
++        compile_test_headers(tmpd,incdir,includes,xargs="-std=c11  -D_GNU_SOURCE -Wpedantic -Wno-zero-length-array");
+ 
+ # -------------------------------------------------------------------------
+ 
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 5325f8fe412276..e83acbc7dc8568 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -230,8 +230,8 @@ enum ibv_rx_hash_fields {
+ 	IBV_RX_HASH_DST_PORT_TCP	= 1 << 5,
+ 	IBV_RX_HASH_SRC_PORT_UDP	= 1 << 6,
+ 	IBV_RX_HASH_DST_PORT_UDP	= 1 << 7,
+-	IBV_RX_HASH_INNER		= (1UL << 31),
+ };
++#define IBV_RX_HASH_INNER (1UL << 31)
+ 
+ struct ibv_rss_caps {
+ 	uint32_t supported_qpts;
+@@ -1714,10 +1714,26 @@ static inline struct verbs_context *verbs_get_ctx(struct ibv_context *ctx)
+ 						 context));
+ }
+ 
+-#define verbs_get_ctx_op(ctx, op) ({ \
+-	struct verbs_context *__vctx = verbs_get_ctx(ctx); \
+-	(!__vctx || (__vctx->sz < sizeof(*__vctx) - offsetof(struct verbs_context, op)) || \
+-	 !__vctx->op) ? NULL : __vctx; })
++static inline struct verbs_context *_verbs_get_ctx_op(struct ibv_context *ctx,
++						      size_t op_off)
++{
++	struct verbs_context *vctx = verbs_get_ctx(ctx);
++	void *op;
++	if (!vctx)
++		return NULL;
++
++	if (vctx->sz < sizeof(*vctx) - op_off)
++		return NULL;
++
++	op = *((void **)((uint8_t *)vctx) + op_off);
++	if (!op)
++		return NULL;
++
++	return vctx;
++}
++
++#define verbs_get_ctx_op(ctx, op)                                              \
++	_verbs_get_ctx_op(ctx, offsetof(struct verbs_context, op))
+ 
+ /**
+  * ibv_get_device_list - Get list of IB devices currently available
+diff --git a/providers/mlx4/mlx4dv.h b/providers/mlx4/mlx4dv.h
+index 5312a866b6e281..e8c2ce104e2acd 100644
+--- a/providers/mlx4/mlx4dv.h
++++ b/providers/mlx4/mlx4dv.h
+@@ -288,14 +288,14 @@ enum {
+ };
+ 
+ enum {
+-	MLX4_WQE_BIND_TYPE_2		= (1UL<<31),
+ 	MLX4_WQE_BIND_ZERO_BASED	= (1<<30),
+ };
++#define MLX4_WQE_BIND_TYPE_2 (1UL << 31)
+ 
+ enum {
+-	MLX4_INLINE_SEG		= 1UL << 31,
+ 	MLX4_INLINE_ALIGN	= 64,
+ };
++#define MLX4_INLINE_SEG (1UL << 31)
+ 
+ enum {
+ 	MLX4_INVALID_LKEY	= 0x100,
+@@ -304,8 +304,8 @@ enum {
+ enum {
+ 	MLX4_WQE_MW_REMOTE_READ   = 1 << 29,
+ 	MLX4_WQE_MW_REMOTE_WRITE  = 1 << 30,
+-	MLX4_WQE_MW_ATOMIC        = 1UL << 31
+ };
++#define MLX4_WQE_MW_ATOMIC (1UL << 31)
+ 
+ struct mlx4_wqe_local_inval_seg {
+ 	uint64_t		reserved1;
+diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
+index f2f5a2563287e1..01c5fa946062f2 100644
+--- a/providers/mlx5/mlx5dv.h
++++ b/providers/mlx5/mlx5dv.h
+@@ -433,9 +433,7 @@ struct mlx5_cqe64 {
+ 	uint8_t		op_own;
+ };
+ 
+-enum {
+-	MLX5_TMC_SUCCESS	= 0x80000000U,
+-};
++#define MLX5_TMC_SUCCESS (1UL << 31)
+ 
+ enum mlx5dv_cqe_comp_res_format {
+ 	MLX5DV_CQE_RES_FORMAT_HASH		= 1 << 0,
+@@ -487,9 +485,7 @@ enum {
+ 	MLX5_INVALID_LKEY	= 0x100,
+ };
+ 
+-enum {
+-	MLX5_EXTENDED_UD_AV	= 0x80000000,
+-};
++#define MLX5_EXTENDED_UD_AV (1UL << 31)
+ 
+ enum {
+ 	MLX5_WQE_CTRL_CQ_UPDATE	= 2 << 2,
+@@ -503,9 +499,7 @@ enum {
+ 	MLX5_SEND_WQE_SHIFT	= 6,
+ };
+ 
+-enum {
+-	MLX5_INLINE_SEG	= 0x80000000,
+-};
++#define MLX5_INLINE_SEG (1UL << 31)
+ 
+ enum {
+ 	MLX5_ETH_WQE_L3_CSUM = (1 << 6),
+-- 
+2.16.1
+
 --
-Gustavo
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
