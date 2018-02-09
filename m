@@ -1,72 +1,123 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH rdma-core 4/7] rxe: Do not use _sockaddr in struct rxe_av
-Date: Thu,  8 Feb 2018 20:09:01 -0700
-Message-ID: <20180209030904.22370-5-jgg@ziepe.ca>
-References: <20180209030904.22370-1-jgg@ziepe.ca>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180209030904.22370-1-jgg-uk2M96/98Pc@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: [PATCH] RDMA/nldev: Fix multiple potential NULL pointer dereferences
+Date: Fri, 9 Feb 2018 00:37:02 -0600
+Message-ID: <20180209063702.GA28685@embeddedgus>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <garsilva@embeddedor.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In case the message header and payload cannot be stored, function
+nlmsg_put returns null.
 
-The kernel cannot export this type as a uAPI so don't use it.
+Fix this by adding multiple sanity checks and avoid a potential
+null dereference on _nlh_ when calling nlmsg_end.
 
-Instead pass the union directly to the helper function and refer
-to the in6/in members without casting.
-
-Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Addresses-Coverity-ID: 1454215 ("Dereference null return value")
+Addresses-Coverity-ID: 1454223 ("Dereference null return value")
+Addresses-Coverity-ID: 1454224 ("Dereference null return value")
+Addresses-Coverity-ID: 1464669 ("Dereference null return value")
+Addresses-Coverity-ID: 1464670 ("Dereference null return value")
+Addresses-Coverity-ID: 1464672 ("Dereference null return value")
+Fixes: e5c9469efcb1 ("RDMA/netlink: Add nldev device doit implementation")
+Fixes: c3f66f7b0052 ("RDMA/netlink: Implement nldev port doit callback")
+Fixes: 7d02f605f0dc ("RDMA/netlink: Add nldev port dumpit implementation")
+Fixes: b5fa635aab8f ("RDMA/nldev: Provide detailed QP information")
+Fixes: bf3c5a93c523 ("RDMA/nldev: Provide global resource utilization")
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
- providers/rxe/rxe.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/infiniband/core/nldev.c | 26 +++++++++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
 
-diff --git a/providers/rxe/rxe.c b/providers/rxe/rxe.c
-index fcc8cfcb6fe49c..38140ba49c620a 100644
---- a/providers/rxe/rxe.c
-+++ b/providers/rxe/rxe.c
-@@ -761,17 +761,17 @@ static inline int ipv6_addr_v4mapped(const struct in6_addr *a)
- 	return IN6_IS_ADDR_V4MAPPED(a);
- }
- 
--static inline int rdma_gid2ip(struct sockaddr *out, union ibv_gid *gid)
-+typedef typeof(((struct rxe_av *)0)->sgid_addr) sockaddr_union_t;
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 5326a68..dc8f6eb 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -313,6 +313,11 @@ static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
+ 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
+ 			0, 0);
++	if (!nlh) {
++		err = -EMSGSIZE;
++		goto err_free;
 +
-+static inline int rdma_gid2ip(sockaddr_union_t *out, union ibv_gid *gid)
- {
- 	if (ipv6_addr_v4mapped((struct in6_addr *)gid)) {
--		struct sockaddr_in *out_in = (struct sockaddr_in *)out;
--		memset(out_in, 0, sizeof(*out_in));
--		memcpy(&out_in->sin_addr.s_addr, gid->raw + 12, 4);
-+		memset(&out->_sockaddr_in, 0, sizeof(out->_sockaddr_in));
-+		memcpy(&out->_sockaddr_in.sin_addr.s_addr, gid->raw + 12, 4);
- 	} else {
--		struct sockaddr_in6 *out_in = (struct sockaddr_in6 *)out;
--		memset(out_in, 0, sizeof(*out_in));
--		out_in->sin6_family = AF_INET6;
--		memcpy(&out_in->sin6_addr.s6_addr, gid->raw, 16);
-+		memset(&out->_sockaddr_in6, 0, sizeof(out->_sockaddr_in6));
-+		out->_sockaddr_in6.sin6_family = AF_INET6;
-+		memcpy(&out->_sockaddr_in6.sin6_addr.s6_addr, gid->raw, 16);
- 	}
- 	return 0;
++	}
+ 
+ 	err = fill_dev_info(msg, device);
+ 	if (err)
+@@ -344,6 +349,8 @@ static int _nldev_get_dumpit(struct ib_device *device,
+ 	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
+ 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
+ 			0, NLM_F_MULTI);
++	if (!nlh)
++		goto out;
+ 
+ 	if (fill_dev_info(skb, device)) {
+ 		nlmsg_cancel(skb, nlh);
+@@ -354,7 +361,8 @@ static int _nldev_get_dumpit(struct ib_device *device,
+ 
+ 	idx++;
+ 
+-out:	cb->args[0] = idx;
++out:
++	cb->args[0] = idx;
+ 	return skb->len;
  }
-@@ -802,8 +802,8 @@ static struct ibv_ah *rxe_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
- 		ipv6_addr_v4mapped((struct in6_addr *)attr->grh.dgid.raw) ?
- 		RDMA_NETWORK_IPV4 : RDMA_NETWORK_IPV6;
  
--	rdma_gid2ip(&av->sgid_addr._sockaddr, &sgid);
--	rdma_gid2ip(&av->dgid_addr._sockaddr, &attr->grh.dgid);
-+	rdma_gid2ip(&av->sgid_addr, &sgid);
-+	rdma_gid2ip(&av->dgid_addr, &attr->grh.dgid);
+@@ -404,6 +412,10 @@ static int nldev_port_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
+ 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
+ 			0, 0);
++	if (!nlh) {
++		err = -EMSGSIZE;
++		goto err_free;
++	}
  
- 	memset(&resp, 0, sizeof(resp));
- 	if (ibv_cmd_create_ah(pd, &ah->ibv_ah, attr, &resp, sizeof(resp))) {
+ 	err = fill_port_info(msg, device, port);
+ 	if (err)
+@@ -464,6 +476,8 @@ static int nldev_port_get_dumpit(struct sk_buff *skb,
+ 				RDMA_NL_GET_TYPE(RDMA_NL_NLDEV,
+ 						 RDMA_NLDEV_CMD_PORT_GET),
+ 				0, NLM_F_MULTI);
++		if (!nlh)
++			goto out;
+ 
+ 		if (fill_port_info(skb, device, p)) {
+ 			nlmsg_cancel(skb, nlh);
+@@ -507,6 +521,10 @@ static int nldev_res_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
+ 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_GET),
+ 			0, 0);
++	if (!nlh) {
++		ret = -EMSGSIZE;
++		goto err_free;
++	}
+ 
+ 	ret = fill_res_info(msg, device);
+ 	if (ret)
+@@ -537,6 +555,8 @@ static int _nldev_res_get_dumpit(struct ib_device *device,
+ 	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
+ 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_GET),
+ 			0, NLM_F_MULTI);
++	if (!nlh)
++		goto out;
+ 
+ 	if (fill_res_info(skb, device)) {
+ 		nlmsg_cancel(skb, nlh);
+@@ -603,6 +623,10 @@ static int nldev_res_get_qp_dumpit(struct sk_buff *skb,
+ 	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
+ 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_QP_GET),
+ 			0, NLM_F_MULTI);
++	if (!nlh) {
++		ret = -EMSGSIZE;
++		goto err_index;
++	}
+ 
+ 	if (fill_nldev_handle(skb, device)) {
+ 		ret = -EMSGSIZE;
 -- 
-2.16.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.7.4
