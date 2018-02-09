@@ -1,202 +1,42 @@
 From: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 for-next 2/4] RDMA/hns: Support cq record doorbell for the user space
-Date: Fri, 9 Feb 2018 19:44:58 +0800
-Message-ID: <1518176700-126906-3-git-send-email-liuyixian@huawei.com>
-References: <1518176700-126906-1-git-send-email-liuyixian@huawei.com>
+Subject: [PATCH v2 for-next 0/4] Support rq and cq record doorbell
+Date: Fri, 9 Feb 2018 19:44:56 +0800
+Message-ID: <1518176700-126906-1-git-send-email-liuyixian@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1518176700-126906-1-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-uk2M96/98Pc@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch updates to support cq record doorbell for
-the user space.
+This patch set updates to support rq and cq record doorbell
+for the user space and kernel space respectively.
 
-Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_cq.c     | 40 ++++++++++++++++++++++++-----
- drivers/infiniband/hw/hns/hns_roce_device.h |  6 +++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 10 ++++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  3 +++
- include/uapi/rdma/hns-abi.h                 |  7 +++++
- 5 files changed, 60 insertions(+), 6 deletions(-)
+v1->v2:
+1. Consider the compatibility between the kernel and userspace
+   according to Jason's suggestion.
+2. Revised some codes according to Leon's comments.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index bccc9b5..ebedcf3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -315,6 +315,7 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ib_dev);
- 	struct device *dev = hr_dev->dev;
- 	struct hns_roce_ib_create_cq ucmd;
-+	struct hns_roce_ib_create_cq_resp resp;
- 	struct hns_roce_cq *hr_cq = NULL;
- 	struct hns_roce_uar *uar = NULL;
- 	int vector = attr->comp_vector;
-@@ -354,6 +355,15 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
- 			goto err_cq;
- 		}
- 
-+		if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB) {
-+			ret = hns_roce_db_map_user(to_hr_ucontext(context),
-+						   ucmd.db_addr, &hr_cq->db);
-+			if (ret) {
-+				dev_err(dev, "cq record doorbell map failed!\n");
-+				goto err_mtt;
-+			}
-+		}
-+
- 		/* Get user space parameters */
- 		uar = &to_hr_ucontext(context)->uar;
- 	} else {
-@@ -375,7 +385,7 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
- 				hr_cq, vector);
- 	if (ret) {
- 		dev_err(dev, "Creat CQ .Failed to cq_alloc.\n");
--		goto err_mtt;
-+		goto err_dbmap;
- 	}
- 
- 	/*
-@@ -393,10 +403,17 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
- 	hr_cq->cq_depth = cq_entries;
- 
- 	if (context) {
--		if (ib_copy_to_udata(udata, &hr_cq->cqn, sizeof(u64))) {
--			ret = -EFAULT;
-+		if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB) &&
-+					(udata->outlen == sizeof(resp))) {
-+			hr_cq->db_en = 1;
-+			resp.cqn = hr_cq->cqn;
-+			resp.cap_flags |= HNS_ROCE_SUPPORT_CQ_RECORD_DB;
-+			ret = ib_copy_to_udata(udata, &resp, sizeof(resp));
-+		} else
-+			ret = ib_copy_to_udata(udata, &hr_cq->cqn, sizeof(u64));
-+
-+		if (ret)
- 			goto err_cqc;
--		}
- 	}
- 
- 	return &hr_cq->ib_cq;
-@@ -404,6 +421,11 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
- err_cqc:
- 	hns_roce_free_cq(hr_dev, hr_cq);
- 
-+err_dbmap:
-+	if (context && (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB))
-+		hns_roce_db_unmap_user(to_hr_ucontext(context),
-+				       &hr_cq->db);
-+
- err_mtt:
- 	hns_roce_mtt_cleanup(hr_dev, &hr_cq->hr_buf.hr_mtt);
- 	if (context)
-@@ -430,12 +452,18 @@ int hns_roce_ib_destroy_cq(struct ib_cq *ib_cq)
- 		hns_roce_free_cq(hr_dev, hr_cq);
- 		hns_roce_mtt_cleanup(hr_dev, &hr_cq->hr_buf.hr_mtt);
- 
--		if (ib_cq->uobject)
-+		if (ib_cq->uobject) {
- 			ib_umem_release(hr_cq->umem);
--		else
-+
-+			if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB)
-+				hns_roce_db_unmap_user(
-+					to_hr_ucontext(ib_cq->uobject->context),
-+					&hr_cq->db);
-+		} else {
- 			/* Free the buff of stored cq */
- 			hns_roce_ib_free_cq_buf(hr_dev, &hr_cq->hr_buf,
- 						ib_cq->cqe);
-+		}
- 
- 		kfree(hr_cq);
- 	}
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 2da30fc..7f44ecd 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -109,6 +109,10 @@ enum {
- 	HNS_ROCE_SUPPORT_RQ_RECORD_DB = BIT(0),
- };
- 
-+enum {
-+	HNS_ROCE_SUPPORT_CQ_RECORD_DB = BIT(0),
-+};
-+
- enum hns_roce_qp_state {
- 	HNS_ROCE_QP_STATE_RST,
- 	HNS_ROCE_QP_STATE_INIT,
-@@ -380,6 +384,8 @@ struct hns_roce_cq_buf {
- 
- struct hns_roce_cq {
- 	struct ib_cq			ib_cq;
-+	struct hns_roce_db		db;
-+	u8				db_en;
- 	struct hns_roce_cq_buf		hr_buf;
- 	spinlock_t			lock;
- 	struct ib_umem			*umem;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index c2f4ee7..0cfa6d3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1622,6 +1622,16 @@ static void hns_roce_v2_write_cqc(struct hns_roce_dev *hr_dev,
- 	roce_set_field(cq_context->byte_40_cqe_ba, V2_CQC_BYTE_40_CQE_BA_M,
- 		       V2_CQC_BYTE_40_CQE_BA_S, (dma_handle >> (32 + 3)));
- 
-+	if (hr_cq->db_en)
-+		roce_set_bit(cq_context->byte_44_db_record,
-+			     V2_CQC_BYTE_44_DB_RECORD_EN_S, 1);
-+
-+	roce_set_field(cq_context->byte_44_db_record,
-+		       V2_CQC_BYTE_44_DB_RECORD_ADDR_M,
-+		       V2_CQC_BYTE_44_DB_RECORD_ADDR_S,
-+		       ((u32)hr_cq->db.dma) >> 1);
-+	cq_context->db_record_addr = hr_cq->db.dma >> 32;
-+
- 	roce_set_field(cq_context->byte_56_cqe_period_maxcnt,
- 		       V2_CQC_BYTE_56_CQ_MAX_CNT_M,
- 		       V2_CQC_BYTE_56_CQ_MAX_CNT_S,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 6a33ad2..3b55e0b 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -299,6 +299,9 @@ struct hns_roce_v2_cq_context {
- 
- #define	V2_CQC_BYTE_44_DB_RECORD_EN_S 0
- 
-+#define	V2_CQC_BYTE_44_DB_RECORD_ADDR_S 1
-+#define	V2_CQC_BYTE_44_DB_RECORD_ADDR_M GENMASK(31, 1)
-+
- #define	V2_CQC_BYTE_52_CQE_CNT_S 0
- #define	V2_CQC_BYTE_52_CQE_CNT_M GENMASK(23, 0)
- 
-diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
-index 1b05d00..5294189 100644
---- a/include/uapi/rdma/hns-abi.h
-+++ b/include/uapi/rdma/hns-abi.h
-@@ -37,6 +37,13 @@
- 
- struct hns_roce_ib_create_cq {
- 	__u64   buf_addr;
-+	__u64	db_addr;
-+};
-+
-+struct hns_roce_ib_create_cq_resp {
-+	__u32	cqn;
-+	__u32	reserved;
-+	__u32	cap_flags;
- };
- 
- struct hns_roce_ib_create_qp {
+Yixian Liu (4):
+  RDMA/hns: Support rq record doorbell for the user space
+  RDMA/hns: Support cq record doorbell for the user space
+  RDMA/hns: Support rq record doorbell for kernel space
+  RDMA/hns: Support cq record doorbell for kernel space
+
+ drivers/infiniband/hw/hns/Makefile          |   2 +-
+ drivers/infiniband/hw/hns/hns_roce_cq.c     |  57 +++++++-
+ drivers/infiniband/hw/hns/hns_roce_db.c     | 207 ++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hns/hns_roce_device.h |  59 +++++++-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  70 +++++-----
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |   3 +
+ drivers/infiniband/hw/hns/hns_roce_main.c   |  10 ++
+ drivers/infiniband/hw/hns/hns_roce_qp.c     |  68 ++++++++-
+ include/uapi/rdma/hns-abi.h                 |  11 ++
+ 9 files changed, 444 insertions(+), 43 deletions(-)
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_db.c
+
 -- 
 1.9.1
 
