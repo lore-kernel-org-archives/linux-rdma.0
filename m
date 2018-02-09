@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH rdma-core 2/7] Enable GNU99 mode if the compiler does not support C11
-Date: Thu,  8 Feb 2018 20:08:59 -0700
-Message-ID: <20180209030904.22370-3-jgg@ziepe.ca>
+Subject: [PATCH rdma-core 4/7] rxe: Do not use _sockaddr in struct rxe_av
+Date: Thu,  8 Feb 2018 20:09:01 -0700
+Message-ID: <20180209030904.22370-5-jgg@ziepe.ca>
 References: <20180209030904.22370-1-jgg@ziepe.ca>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180209030904.22370-1-jgg-uk2M96/98Pc@public.gmane.org>
@@ -12,29 +12,57 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-We have several places now that use C99 features and assume those
-are enabled. Very old GCC's default to C89 and need to have C99 mode
-enabled by command line, such as Centos 6. Fix building on those old
-compilers by forcing C99 mode.
+The kernel cannot export this type as a uAPI so don't use it.
+
+Instead pass the union directly to the helper function and refer
+to the in6/in members without casting.
 
 Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- buildlib/RDMA_EnableCStd.cmake | 2 ++
- 1 file changed, 2 insertions(+)
+ providers/rxe/rxe.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/buildlib/RDMA_EnableCStd.cmake b/buildlib/RDMA_EnableCStd.cmake
-index c8a8c1f5530c13..c2e170929b7dde 100644
---- a/buildlib/RDMA_EnableCStd.cmake
-+++ b/buildlib/RDMA_EnableCStd.cmake
-@@ -49,6 +49,8 @@ function(RDMA_EnableCStd)
-     CHECK_C_COMPILER_FLAG("-std=gnu11" SUPPORTS_GNU11)
-     if (SUPPORTS_GNU11)
-       SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11" PARENT_SCOPE)
-+    else()
-+      SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99" PARENT_SCOPE)
-     endif()
-   else()
-     # Newer cmake can do this internally
+diff --git a/providers/rxe/rxe.c b/providers/rxe/rxe.c
+index fcc8cfcb6fe49c..38140ba49c620a 100644
+--- a/providers/rxe/rxe.c
++++ b/providers/rxe/rxe.c
+@@ -761,17 +761,17 @@ static inline int ipv6_addr_v4mapped(const struct in6_addr *a)
+ 	return IN6_IS_ADDR_V4MAPPED(a);
+ }
+ 
+-static inline int rdma_gid2ip(struct sockaddr *out, union ibv_gid *gid)
++typedef typeof(((struct rxe_av *)0)->sgid_addr) sockaddr_union_t;
++
++static inline int rdma_gid2ip(sockaddr_union_t *out, union ibv_gid *gid)
+ {
+ 	if (ipv6_addr_v4mapped((struct in6_addr *)gid)) {
+-		struct sockaddr_in *out_in = (struct sockaddr_in *)out;
+-		memset(out_in, 0, sizeof(*out_in));
+-		memcpy(&out_in->sin_addr.s_addr, gid->raw + 12, 4);
++		memset(&out->_sockaddr_in, 0, sizeof(out->_sockaddr_in));
++		memcpy(&out->_sockaddr_in.sin_addr.s_addr, gid->raw + 12, 4);
+ 	} else {
+-		struct sockaddr_in6 *out_in = (struct sockaddr_in6 *)out;
+-		memset(out_in, 0, sizeof(*out_in));
+-		out_in->sin6_family = AF_INET6;
+-		memcpy(&out_in->sin6_addr.s6_addr, gid->raw, 16);
++		memset(&out->_sockaddr_in6, 0, sizeof(out->_sockaddr_in6));
++		out->_sockaddr_in6.sin6_family = AF_INET6;
++		memcpy(&out->_sockaddr_in6.sin6_addr.s6_addr, gid->raw, 16);
+ 	}
+ 	return 0;
+ }
+@@ -802,8 +802,8 @@ static struct ibv_ah *rxe_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 		ipv6_addr_v4mapped((struct in6_addr *)attr->grh.dgid.raw) ?
+ 		RDMA_NETWORK_IPV4 : RDMA_NETWORK_IPV6;
+ 
+-	rdma_gid2ip(&av->sgid_addr._sockaddr, &sgid);
+-	rdma_gid2ip(&av->dgid_addr._sockaddr, &attr->grh.dgid);
++	rdma_gid2ip(&av->sgid_addr, &sgid);
++	rdma_gid2ip(&av->dgid_addr, &attr->grh.dgid);
+ 
+ 	memset(&resp, 0, sizeof(resp));
+ 	if (ibv_cmd_create_ah(pd, &ah->ibv_ah, attr, &resp, sizeof(resp))) {
 -- 
 2.16.1
 
