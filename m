@@ -1,8 +1,10 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH rdma-core 0/7] Always use internal kernel headers
-Date: Thu,  8 Feb 2018 20:08:57 -0700
-Message-ID: <20180209030904.22370-1-jgg@ziepe.ca>
+Subject: [PATCH rdma-core 7/7] Check that published headers do not rely on internal headers
+Date: Thu,  8 Feb 2018 20:09:04 -0700
+Message-ID: <20180209030904.22370-8-jgg@ziepe.ca>
+References: <20180209030904.22370-1-jgg@ziepe.ca>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180209030904.22370-1-jgg-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,90 +12,132 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-There have been some reports that the build fails on some systems, presumably
-with weird kernel uapi headers installed.
+We already check that the published headers can be compiled, but that
+test is done with our build directory in the search path, and can
+see a full set of kernel headers.
 
-Instead of trying to guess if the distro headers are good enough, just
-unconditionally use our internal kernel headers, and provide a complete set of
-headers from the latest kernel.
+This new CI test ensures that only glibc headers or two allowed kernel
+headers are being #include'd by the public headers. This prevents
+a very easy mistake to use a kernel ABI or private header in
+the wrong place.
 
-This also enhances check-build to detect wrong use of public headers and fixes
-various bugs that are the result of check-build.
+Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ buildlib/check-build | 86 +++++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 69 insertions(+), 17 deletions(-)
 
-This is PR:
-
-https://github.com/linux-rdma/rdma-core/pull/290
-
-Jason Gunthorpe (7):
-  verbs: Do not export kern-abi.h as a public header
-  Enable GNU99 mode if the compiler does not support C11
-  rxe: Remove duplicate include
-  rxe: Do not use _sockaddr in struct rxe_av
-  Support distros that have old kernel uapi headers
-  Always user internal kernel headers when building
-  Check that published headers do not rely on internal headers
-
- CMakeLists.txt                                     |  20 +-
- buildlib/RDMA_EnableCStd.cmake                     |   2 +
- buildlib/RDMA_LinuxHeaders.cmake                   |  98 -----
- buildlib/check-build                               |  86 ++++-
- buildlib/fixup-include/linux-in.h                  |   2 +
- buildlib/fixup-include/linux-in6.h                 |   2 +
- debian/libibverbs-dev.install                      |   1 -
- kernel-headers/CMakeLists.txt                      |  27 ++
- kernel-headers/rdma/bnxt_re-abi.h                  | 101 +++++
- kernel-headers/rdma/cxgb3-abi.h                    |  77 ++++
- kernel-headers/rdma/cxgb4-abi.h                    |  82 ++++
- kernel-headers/rdma/hfi/hfi1_ioctl.h               | 174 +++++++++
- kernel-headers/rdma/hfi/hfi1_user.h                | 267 +++++++++++++
- kernel-headers/rdma/hns-abi.h                      |  55 +++
- kernel-headers/rdma/ib_user_cm.h                   | 326 ++++++++++++++++
- kernel-headers/rdma/ib_user_ioctl_verbs.h          |  84 +++++
- kernel-headers/rdma/ib_user_mad.h                  | 234 ++++++++++++
- kernel-headers/rdma/ib_user_sa.h                   |  77 ++++
- .../rdma/ib_user_verbs.h                           |   7 +-
- kernel-headers/rdma/mlx4-abi.h                     | 159 ++++++++
- kernel-headers/rdma/mlx5-abi.h                     | 416 +++++++++++++++++++++
- kernel-headers/rdma/mthca-abi.h                    | 112 ++++++
- kernel-headers/rdma/nes-abi.h                      | 115 ++++++
- kernel-headers/rdma/ocrdma-abi.h                   | 152 ++++++++
- kernel-headers/rdma/qedr-abi.h                     | 110 ++++++
- .../rdma/rdma_netlink.h                            | 134 ++++++-
- kernel-headers/rdma/rdma_user_cm.h                 | 311 +++++++++++++++
- kernel-headers/rdma/rdma_user_ioctl.h              | 121 ++++++
- .../rdma/rdma_user_rxe.h                           |   5 +-
- .../rdma/vmw_pvrdma-abi.h                          |   0
- libibverbs/CMakeLists.txt                          |   2 +-
- librdmacm/rdma_cma_abi.h                           |   2 +-
- providers/rxe/rxe.c                                |  21 +-
- 33 files changed, 3245 insertions(+), 137 deletions(-)
- delete mode 100644 buildlib/RDMA_LinuxHeaders.cmake
- create mode 100644 buildlib/fixup-include/linux-in.h
- create mode 100644 buildlib/fixup-include/linux-in6.h
- create mode 100644 kernel-headers/CMakeLists.txt
- create mode 100644 kernel-headers/rdma/bnxt_re-abi.h
- create mode 100644 kernel-headers/rdma/cxgb3-abi.h
- create mode 100644 kernel-headers/rdma/cxgb4-abi.h
- create mode 100644 kernel-headers/rdma/hfi/hfi1_ioctl.h
- create mode 100644 kernel-headers/rdma/hfi/hfi1_user.h
- create mode 100644 kernel-headers/rdma/hns-abi.h
- create mode 100644 kernel-headers/rdma/ib_user_cm.h
- create mode 100644 kernel-headers/rdma/ib_user_ioctl_verbs.h
- create mode 100644 kernel-headers/rdma/ib_user_mad.h
- create mode 100644 kernel-headers/rdma/ib_user_sa.h
- rename buildlib/fixup-include/rdma-ib_user_verbs.h => kernel-headers/rdma/ib_user_verbs.h (99%)
- create mode 100644 kernel-headers/rdma/mlx4-abi.h
- create mode 100644 kernel-headers/rdma/mlx5-abi.h
- create mode 100644 kernel-headers/rdma/mthca-abi.h
- create mode 100644 kernel-headers/rdma/nes-abi.h
- create mode 100644 kernel-headers/rdma/ocrdma-abi.h
- create mode 100644 kernel-headers/rdma/qedr-abi.h
- rename buildlib/fixup-include/rdma-rdma_netlink.h => kernel-headers/rdma/rdma_netlink.h (59%)
- create mode 100644 kernel-headers/rdma/rdma_user_cm.h
- create mode 100644 kernel-headers/rdma/rdma_user_ioctl.h
- rename buildlib/fixup-include/rdma-rdma_user_rxe.h => kernel-headers/rdma/rdma_user_rxe.h (95%)
- rename buildlib/fixup-include/rdma-vmw_pvrdma-abi.h => kernel-headers/rdma/vmw_pvrdma-abi.h (100%)
-
+diff --git a/buildlib/check-build b/buildlib/check-build
+index bfd53b21b789a4..766db7ae46259f 100755
+--- a/buildlib/check-build
++++ b/buildlib/check-build
+@@ -10,6 +10,7 @@ import shutil
+ import subprocess
+ import tempfile
+ import sys
++import copy
+ from contextlib import contextmanager;
+ 
+ def get_src_dir():
+@@ -204,31 +205,82 @@ def is_fixup(fn):
+         return "buildlib/fixup-include/" in os.readlink(fn);
+     return False;
+ 
+-def test_public_headers(args):
+-    """Test that every header file can be included on its own, and has no obvious
+-    implicit dependencies. This is mainly intended to check the public
+-    headers, but this sweeps in published internal headers too."""
+-    incdir = os.path.abspath(os.path.join(args.BUILD,"include"));
++def get_headers(incdir):
+     includes = set();
+     for root,dirs,files in os.walk(incdir):
+         for I in files:
+             if I.endswith(".h"):
+                 includes.add(os.path.join(root,I));
++    return includes;
++
++def compile_test_headers(tmpd,incdir,includes):
++    with open(os.path.join(tmpd,"build.ninja"),"wt") as F:
++        print >> F,"rule comp";
++        print >> F," command = %s -Werror -c -I %s $in -o $out"%(args.CC,incdir);
++        print >> F," description=Header check for $in";
++        count = 0;
++        for I in sorted(includes):
++            if is_obsolete(I) or is_fixup(I):
++                continue;
++            print >> F,"build %s : comp %s"%("out%d.o"%(count),I);
++            print >> F,"default %s"%("out%d.o"%(count));
++            count = count + 1;
++    subprocess.check_call(["ninja"],cwd=tmpd);
++
++def test_published_headers(args):
++    """Test that every header file can be included on its own, and has no obvious
++    implicit dependencies. This is intended as a first pass check of the public
++    installed API headers"""
++    incdir = os.path.abspath(os.path.join(args.BUILD,"include"));
++    includes = get_headers(incdir);
+ 
+     # Make a little ninja file to compile each header
+     with private_tmp() as tmpd:
+-        with open(os.path.join(tmpd,"build.ninja"),"wt") as F:
+-            print >> F,"rule comp";
+-            print >> F," command = %s -Werror -c -I %s $in -o $out"%(args.CC,incdir);
+-            print >> F," description=Header check for $in";
+-            count = 0;
+-            for I in sorted(includes):
+-                if is_obsolete(I) or is_fixup(I):
+-                    continue;
+-                print >> F,"build %s : comp %s"%("out%d.o"%(count),I);
+-                print >> F,"default %s"%("out%d.o"%(count));
+-                count = count + 1;
+-        subprocess.check_call(["ninja"],cwd=tmpd);
++        compile_test_headers(tmpd,incdir,includes);
++
++# -------------------------------------------------------------------------
++
++allowed_uapi_headers = {
++    # This header is installed in all supported distributions
++    "rdma/ib_user_sa.h",
++    "rdma/ib_user_verbs.h",
++}
++
++def test_installed_headers(args):
++    """This test also checks that the public headers can be compiled on their own,
++    but goes further and confirms that the public headers do not depend on any
++    internal headers, or kernel kAPI headers."""
++    with private_tmp() as tmpd:
++        env = copy.deepcopy(os.environ);
++        env["DESTDIR"] = tmpd;
++        subprocess.check_output(["ninja","install"],env=env);
++
++        includes = get_headers(tmpd);
++        incdir = os.path.commonprefix(includes);
++        rincludes = {I[len(incdir):] for I in includes};
++
++        bincdir = os.path.abspath(os.path.join(args.BUILD,"include"));
++        all_includes = set();
++        for I in get_headers(bincdir):
++            if not is_fixup(I) and not is_obsolete(I):
++                all_includes.add(I[len(bincdir)+1:]);
++
++        # Drop error includes for any include file that is internal, this way
++        # when we compile the public headers any include of an internal header
++        # will fail.
++        for I in sorted(all_includes - rincludes):
++            if I in allowed_uapi_headers:
++                continue;
++
++            I = os.path.join(incdir,I)
++            dfn = os.path.dirname(I);
++            if not os.path.isdir(dfn):
++                os.makedirs(dfn);
++            assert not os.path.exists(I);
++            with open(I,"w") as F:
++                print >> F,'#error "Private internal header"';
++
++        compile_test_headers(tmpd,incdir,includes);
+ 
+ # -------------------------------------------------------------------------
+ 
 -- 
 2.16.1
 
