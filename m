@@ -1,123 +1,32 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] RDMA/nldev: Fix multiple potential NULL pointer dereferences
-Date: Fri, 9 Feb 2018 00:37:02 -0600
-Message-ID: <20180209063702.GA28685@embeddedgus>
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: The qeustion for XRC debug and ex verbs
+Date: Fri, 9 Feb 2018 15:38:29 +0800
+Message-ID: <cc34799b-100f-d518-1044-2e7c14bd3db4@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Content-Type: text/plain; charset="gbk"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In case the message header and payload cannot be stored, function
-nlmsg_put returns null.
+Hi, all
+  I am debugging for XRC feature on hns roce and have a question for help.
+  I am use perftest tool. use the cmd as follows:
+  server: ./ib_send_bw -n 5 -c XRC
+  client: ./ib_send_bw -n 5 -c XRC ip
 
-Fix this by adding multiple sanity checks and avoid a potential
-null dereference on _nlh_ when calling nlmsg_end.
+  when run into the ctx_xrc_srq_create interface, it will call ibv_create_srq_ex function and
+  enter into the libibverbs library. However, the ibv_create_srq_ex will not be entered in verbs.h
 
-Addresses-Coverity-ID: 1454215 ("Dereference null return value")
-Addresses-Coverity-ID: 1454223 ("Dereference null return value")
-Addresses-Coverity-ID: 1454224 ("Dereference null return value")
-Addresses-Coverity-ID: 1464669 ("Dereference null return value")
-Addresses-Coverity-ID: 1464670 ("Dereference null return value")
-Addresses-Coverity-ID: 1464672 ("Dereference null return value")
-Fixes: e5c9469efcb1 ("RDMA/netlink: Add nldev device doit implementation")
-Fixes: c3f66f7b0052 ("RDMA/netlink: Implement nldev port doit callback")
-Fixes: 7d02f605f0dc ("RDMA/netlink: Add nldev port dumpit implementation")
-Fixes: b5fa635aab8f ("RDMA/nldev: Provide detailed QP information")
-Fixes: bf3c5a93c523 ("RDMA/nldev: Provide global resource utilization")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/infiniband/core/nldev.c | 26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+  I doubt that I have an incorrect configurtion for using uapi xx_xx_ex.
+  others may give some help for me.
+  note: My rdma-core version is rdma-core-v15.
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 5326a68..dc8f6eb 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -313,6 +313,11 @@ static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
- 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
- 			0, 0);
-+	if (!nlh) {
-+		err = -EMSGSIZE;
-+		goto err_free;
-+
-+	}
- 
- 	err = fill_dev_info(msg, device);
- 	if (err)
-@@ -344,6 +349,8 @@ static int _nldev_get_dumpit(struct ib_device *device,
- 	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
- 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
- 			0, NLM_F_MULTI);
-+	if (!nlh)
-+		goto out;
- 
- 	if (fill_dev_info(skb, device)) {
- 		nlmsg_cancel(skb, nlh);
-@@ -354,7 +361,8 @@ static int _nldev_get_dumpit(struct ib_device *device,
- 
- 	idx++;
- 
--out:	cb->args[0] = idx;
-+out:
-+	cb->args[0] = idx;
- 	return skb->len;
- }
- 
-@@ -404,6 +412,10 @@ static int nldev_port_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
- 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
- 			0, 0);
-+	if (!nlh) {
-+		err = -EMSGSIZE;
-+		goto err_free;
-+	}
- 
- 	err = fill_port_info(msg, device, port);
- 	if (err)
-@@ -464,6 +476,8 @@ static int nldev_port_get_dumpit(struct sk_buff *skb,
- 				RDMA_NL_GET_TYPE(RDMA_NL_NLDEV,
- 						 RDMA_NLDEV_CMD_PORT_GET),
- 				0, NLM_F_MULTI);
-+		if (!nlh)
-+			goto out;
- 
- 		if (fill_port_info(skb, device, p)) {
- 			nlmsg_cancel(skb, nlh);
-@@ -507,6 +521,10 @@ static int nldev_res_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
- 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_GET),
- 			0, 0);
-+	if (!nlh) {
-+		ret = -EMSGSIZE;
-+		goto err_free;
-+	}
- 
- 	ret = fill_res_info(msg, device);
- 	if (ret)
-@@ -537,6 +555,8 @@ static int _nldev_res_get_dumpit(struct ib_device *device,
- 	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
- 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_GET),
- 			0, NLM_F_MULTI);
-+	if (!nlh)
-+		goto out;
- 
- 	if (fill_res_info(skb, device)) {
- 		nlmsg_cancel(skb, nlh);
-@@ -603,6 +623,10 @@ static int nldev_res_get_qp_dumpit(struct sk_buff *skb,
- 	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
- 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_RES_QP_GET),
- 			0, NLM_F_MULTI);
-+	if (!nlh) {
-+		ret = -EMSGSIZE;
-+		goto err_index;
-+	}
- 
- 	if (fill_nldev_handle(skb, device)) {
- 		ret = -EMSGSIZE;
--- 
-2.7.4
+thanks
+Lijun Ou
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
