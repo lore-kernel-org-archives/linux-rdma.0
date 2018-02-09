@@ -1,30 +1,89 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: The qeustion for XRC debug and ex verbs
-Date: Fri, 9 Feb 2018 15:38:29 +0800
-Message-ID: <cc34799b-100f-d518-1044-2e7c14bd3db4@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="gbk"
-Content-Transfer-Encoding: 7bit
+From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 1/1] IB/rxe: remove unnecessary skb_clone
+Date: Fri,  9 Feb 2018 05:47:14 -0500
+Message-ID: <1518173234-9350-1-git-send-email-yanjun.zhu@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, all
-  I am debugging for XRC feature on hns roce and have a question for help.
-  I am use perftest tool. use the cmd as follows:
-  server: ./ib_send_bw -n 5 -c XRC
-  client: ./ib_send_bw -n 5 -c XRC ip
+In send_atomic_ack function, it is not necessary make a
+skb_clone. To gain better performance(high throughput and
+low latency), this skb_clone is removed.
 
-  when run into the ctx_xrc_srq_create interface, it will call ibv_create_srq_ex function and
-  enter into the libibverbs library. However, the ibv_create_srq_ex will not be entered in verbs.h
+The following tests are made.
 
-  I doubt that I have an incorrect configurtion for using uapi xx_xx_ex.
-  others may give some help for me.
-  note: My rdma-core version is rdma-core-v15.
+ server                       client
+---------                    ---------
+|1.1.1.1|<----rxe-channel--->|1.1.1.2|
+---------                    ---------
 
-thanks
-Lijun Ou
+On server: rping -s -a 1.1.1.1 -v -C 1000 -S 512
+On client: rping -c -a 1.1.1.1 -v -C 1000 -S 512
+
+The kernel config CONFIG_DEBUG_KMEMLEAK is enabled on both server
+and client.
+
+This test runs for several hours. There is no memory leak and the whole
+system can work well.
+
+CC: Srinivas Eeda <srinivas.eeda-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+CC: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe_resp.c | 15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index d37bb9b..6d01d16 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -969,7 +969,6 @@ static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+ 	int rc = 0;
+ 	struct rxe_pkt_info ack_pkt;
+ 	struct sk_buff *skb;
+-	struct sk_buff *skb_copy;
+ 	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
+ 	struct resp_res *res;
+ 
+@@ -981,15 +980,6 @@ static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+ 		goto out;
+ 	}
+ 
+-	skb_copy = skb_clone(skb, GFP_ATOMIC);
+-	if (skb_copy)
+-		rxe_add_ref(qp); /* for the new SKB */
+-	else {
+-		pr_warn("Could not clone atomic response\n");
+-		rc = -ENOMEM;
+-		goto out;
+-	}
+-
+ 	res = &qp->resp.resources[qp->resp.res_head];
+ 	free_rd_atomic_resource(qp, res);
+ 	rxe_advance_resp_resource(qp);
+@@ -998,17 +988,16 @@ static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+ 	memset((unsigned char *)SKB_TO_PKT(skb) + sizeof(ack_pkt), 0,
+ 	       sizeof(skb->cb) - sizeof(ack_pkt));
+ 
++	refcount_inc(&skb->users);
+ 	res->type = RXE_ATOMIC_MASK;
+ 	res->atomic.skb = skb;
+ 	res->first_psn = ack_pkt.psn;
+ 	res->last_psn  = ack_pkt.psn;
+ 	res->cur_psn   = ack_pkt.psn;
+ 
+-	rc = rxe_xmit_packet(rxe, qp, &ack_pkt, skb_copy);
++	rc = rxe_xmit_packet(rxe, qp, &ack_pkt, skb);
+ 	if (rc) {
+ 		pr_err_ratelimited("Failed sending ack\n");
+-		rxe_drop_ref(qp);
+-		kfree_skb(skb_copy);
+ 	}
+ 
+ out:
+-- 
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
