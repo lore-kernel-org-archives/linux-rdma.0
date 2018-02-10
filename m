@@ -1,7 +1,7 @@
 From: Aishwarya Pant <aishpant@gmail.com>
-Subject: [PATCH v4] Documentation/ABI: update infiniband sysfs interfaces
-Date: Sat, 10 Feb 2018 13:06:57 +0530
-Message-ID: <20180210073657.GA1577@mordor.localdomain>
+Subject: [PATCH v5] Documentation/ABI: update infiniband sysfs interfaces
+Date: Sat, 10 Feb 2018 13:11:04 +0530
+Message-ID: <20180210074104.GA3160@mordor.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -19,7 +19,9 @@ annotated with the comment '[to be documented]'.
 Signed-off-by: Aishwarya Pant <aishpant@gmail.com>
 Reviewed-by: Hal Rosenstock <hal@mellanox.com>
 ---
-Changes in v4:
+Sorry, there were no changes in v4!
+
+Changes in v5:
 - Typo GODs -> GIDs
 v3:
 -  outbound -> inbound in description of port_rcv_constraint_errors
@@ -40,7 +42,7 @@ v2:
 
 diff --git a/Documentation/ABI/stable/sysfs-class-infiniband b/Documentation/ABI/stable/sysfs-class-infiniband
 new file mode 100644
-index 000000000000..f3acf3713a91
+index 000000000000..17211ceb9bf4
 --- /dev/null
 +++ b/Documentation/ABI/stable/sysfs-class-infiniband
 @@ -0,0 +1,818 @@
@@ -273,7 +275,7 @@ index 000000000000..f3acf3713a91
 +KernelVersion:	4.4.0
 +Contact:	linux-rdma@vger.kernel.org
 +Description: 	The RoCE type of the associated GID resides at index <gid-index>.
-+		This could either be "IB/RoCE v1" for IB and RoCE v1 based GODs
++		This could either be "IB/RoCE v1" for IB and RoCE v1 based GIDs
 +		or "RoCE v2" for RoCE v2 based GIDs.
 +
 +
