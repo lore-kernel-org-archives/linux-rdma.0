@@ -1,1026 +1,3469 @@
-From: Aishwarya Pant <aishpant@gmail.com>
-Subject: [PATCH v5] Documentation/ABI: update infiniband sysfs interfaces
-Date: Sat, 10 Feb 2018 13:11:04 +0530
-Message-ID: <20180210074104.GA3160@mordor.localdomain>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-core 6/7] Always user internal kernel headers when building
+Date: Sat, 10 Feb 2018 22:08:51 +0530
+Message-ID: <CANjDDBiAhSW91RaFUqeEL07+CAcA_8GXjZ1=v6O2zZA6+t=hqw@mail.gmail.com>
+References: <20180209030904.22370-1-jgg@ziepe.ca> <20180209030904.22370-7-jgg@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Greg KH <gregkh@linuxfoundation.org>
-Cc: Julia Lawall <julia.lawall@lip6.fr>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180209030904.22370-7-jgg-uk2M96/98Pc@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add documentation for core and hardware specific infiniband interfaces.
-The descriptions have been collected from git commit logs, reading
-through code and data sheets. Some drivers have incomplete doc and are
-annotated with the comment '[to be documented]'.
+On Fri, Feb 9, 2018 at 8:39 AM, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote:
+> From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> Move the kernel headers out of buildlib/fixup-include/ and into
+> kernel-headers/ and bring in the complete set of include/uapi/
+> kernel headers.
+>
+> The build will always use these internal headers, we no longer
+> attempt to use the distro headers.
+>
+> These headers are not installed and cannot be referenced from
+> our public headers.
+>
+> Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  CMakeLists.txt                                     |   6 +-
+>  buildlib/RDMA_LinuxHeaders.cmake                   |  98 -----
+>  kernel-headers/CMakeLists.txt                      |  27 ++
+>  kernel-headers/rdma/bnxt_re-abi.h                  | 101 +++++
+>  kernel-headers/rdma/cxgb3-abi.h                    |  77 ++++
+>  kernel-headers/rdma/cxgb4-abi.h                    |  82 ++++
+>  kernel-headers/rdma/hfi/hfi1_ioctl.h               | 174 +++++++++
+>  kernel-headers/rdma/hfi/hfi1_user.h                | 267 +++++++++++++
+>  kernel-headers/rdma/hns-abi.h                      |  55 +++
+>  kernel-headers/rdma/ib_user_cm.h                   | 326 ++++++++++++++++
+>  kernel-headers/rdma/ib_user_ioctl_verbs.h          |  84 +++++
+>  kernel-headers/rdma/ib_user_mad.h                  | 234 ++++++++++++
+>  kernel-headers/rdma/ib_user_sa.h                   |  77 ++++
+>  .../rdma/ib_user_verbs.h                           |   7 +-
+>  kernel-headers/rdma/mlx4-abi.h                     | 159 ++++++++
+>  kernel-headers/rdma/mlx5-abi.h                     | 416 +++++++++++++++++++++
+>  kernel-headers/rdma/mthca-abi.h                    | 112 ++++++
+>  kernel-headers/rdma/nes-abi.h                      | 115 ++++++
+>  kernel-headers/rdma/ocrdma-abi.h                   | 152 ++++++++
+>  kernel-headers/rdma/qedr-abi.h                     | 110 ++++++
+>  .../rdma/rdma_netlink.h                            | 134 ++++++-
+>  kernel-headers/rdma/rdma_user_cm.h                 | 311 +++++++++++++++
+>  kernel-headers/rdma/rdma_user_ioctl.h              | 121 ++++++
+>  .../rdma/rdma_user_rxe.h                           |   5 +-
+>  .../rdma/vmw_pvrdma-abi.h                          |   0
+>  25 files changed, 3144 insertions(+), 106 deletions(-)
+>  delete mode 100644 buildlib/RDMA_LinuxHeaders.cmake
+>  create mode 100644 kernel-headers/CMakeLists.txt
+>  create mode 100644 kernel-headers/rdma/bnxt_re-abi.h
+>  create mode 100644 kernel-headers/rdma/cxgb3-abi.h
+>  create mode 100644 kernel-headers/rdma/cxgb4-abi.h
+>  create mode 100644 kernel-headers/rdma/hfi/hfi1_ioctl.h
+>  create mode 100644 kernel-headers/rdma/hfi/hfi1_user.h
+>  create mode 100644 kernel-headers/rdma/hns-abi.h
+>  create mode 100644 kernel-headers/rdma/ib_user_cm.h
+>  create mode 100644 kernel-headers/rdma/ib_user_ioctl_verbs.h
+>  create mode 100644 kernel-headers/rdma/ib_user_mad.h
+>  create mode 100644 kernel-headers/rdma/ib_user_sa.h
+>  rename buildlib/fixup-include/rdma-ib_user_verbs.h => kernel-headers/rdma/ib_user_verbs.h (99%)
+>  create mode 100644 kernel-headers/rdma/mlx4-abi.h
+>  create mode 100644 kernel-headers/rdma/mlx5-abi.h
+>  create mode 100644 kernel-headers/rdma/mthca-abi.h
+>  create mode 100644 kernel-headers/rdma/nes-abi.h
+>  create mode 100644 kernel-headers/rdma/ocrdma-abi.h
+>  create mode 100644 kernel-headers/rdma/qedr-abi.h
+>  rename buildlib/fixup-include/rdma-rdma_netlink.h => kernel-headers/rdma/rdma_netlink.h (59%)
+>  create mode 100644 kernel-headers/rdma/rdma_user_cm.h
+>  create mode 100644 kernel-headers/rdma/rdma_user_ioctl.h
+>  rename buildlib/fixup-include/rdma-rdma_user_rxe.h => kernel-headers/rdma/rdma_user_rxe.h (95%)
+>  rename buildlib/fixup-include/rdma-vmw_pvrdma-abi.h => kernel-headers/rdma/vmw_pvrdma-abi.h (100%)
+>
+> diff --git a/CMakeLists.txt b/CMakeLists.txt
+> index 3ba9a0bc6989d2..58e4ba75756ebe 100644
+> --- a/CMakeLists.txt
+> +++ b/CMakeLists.txt
+> @@ -22,8 +22,6 @@
+>  #      Produce static libraries along with the usual shared libraries.
+>  #  -DVERBS_PROVIDER_DIR='' (default /usr/lib.../libibverbs)
+>  #      Use the historical search path for providers, in the standard system library.
+> -#  -DKERNEL_DIR='.../linux' (default '')
+> -#      If set use the kernel UAPI headers from this kernel source tree.
+>  #  -DNO_COMPAT_SYMS=1 (default disabled)
+>  #      Do not generate backwards compatibility symbols in the shared
+>  #      libraries. This may is necessary if using a dynmic linker that does
+> @@ -348,8 +346,6 @@ include_directories(${UDEV_INCLUDE_DIRS})
+>  # should rely on this.
+>  check_type_size("long" SIZEOF_LONG BUILTIN_TYPES_ONLY LANGUAGE C)
+>
+> -include(RDMA_LinuxHeaders)
+> -
+>  # Determine if this arch supports cache coherent DMA. This isn't really an
+>  # arch specific property, but for our purposes arches that do not support it
+>  # also do not define wmb/etc which breaks our compile.
+> @@ -433,6 +429,7 @@ add_subdirectory(ccan)
+>  add_subdirectory(util)
+>  add_subdirectory(Documentation)
+>  add_subdirectory(kernel-boot)
+> +add_subdirectory(kernel-headers)
+>  # Libraries
+>  add_subdirectory(libibumad)
+>  add_subdirectory(libibumad/man)
+> @@ -517,7 +514,6 @@ endif()
+>  if (NOT UDEV_FOUND)
+>    message(STATUS " libudev NOT found (disabling features)")
+>  endif()
+> -rdma_report_missing_kheaders()
+>  if (NOT HAVE_C_WARNINGS)
+>    message(STATUS " extended C warnings NOT supported")
+>  endif()
+> diff --git a/buildlib/RDMA_LinuxHeaders.cmake b/buildlib/RDMA_LinuxHeaders.cmake
+> deleted file mode 100644
+> index 05dfd224bb9392..00000000000000
+> diff --git a/kernel-headers/CMakeLists.txt b/kernel-headers/CMakeLists.txt
+> new file mode 100644
+> index 00000000000000..64bc5e66c21b18
+> --- /dev/null
+> +++ b/kernel-headers/CMakeLists.txt
+> @@ -0,0 +1,27 @@
+> +publish_internal_headers(rdma
+> +  rdma/bnxt_re-abi.h
+> +  rdma/cxgb3-abi.h
+> +  rdma/cxgb4-abi.h
+> +  rdma/hns-abi.h
+> +  rdma/ib_user_cm.h
+> +  rdma/ib_user_ioctl_verbs.h
+> +  rdma/ib_user_mad.h
+> +  rdma/ib_user_sa.h
+> +  rdma/ib_user_verbs.h
+> +  rdma/mlx4-abi.h
+> +  rdma/mlx5-abi.h
+> +  rdma/mthca-abi.h
+> +  rdma/nes-abi.h
+> +  rdma/ocrdma-abi.h
+> +  rdma/qedr-abi.h
+> +  rdma/rdma_netlink.h
+> +  rdma/rdma_user_cm.h
+> +  rdma/rdma_user_ioctl.h
+> +  rdma/rdma_user_rxe.h
+> +  rdma/vmw_pvrdma-abi.h
+> +  )
+> +
+> +publish_internal_headers(rdma/hfi
+> +  rdma/hfi/hfi1_ioctl.h
+> +  rdma/hfi/hfi1_user.h
+> +  )
+> diff --git a/kernel-headers/rdma/bnxt_re-abi.h b/kernel-headers/rdma/bnxt_re-abi.h
+> new file mode 100644
+> index 00000000000000..db54115be0447a
+> --- /dev/null
+> +++ b/kernel-headers/rdma/bnxt_re-abi.h
+> @@ -0,0 +1,101 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/*
+> + * Broadcom NetXtreme-E RoCE driver.
+> + *
+> + * Copyright (c) 2016 - 2017, Broadcom. All rights reserved.  The term
+> + * Broadcom refers to Broadcom Limited and/or its subsidiaries.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * BSD license below:
+> + *
+> + * Redistribution and use in source and binary forms, with or without
+> + * modification, are permitted provided that the following conditions
+> + * are met:
+> + *
+> + * 1. Redistributions of source code must retain the above copyright
+> + *    notice, this list of conditions and the following disclaimer.
+> + * 2. Redistributions in binary form must reproduce the above copyright
+> + *    notice, this list of conditions and the following disclaimer in
+> + *    the documentation and/or other materials provided with the
+> + *    distribution.
+> + *
+> + * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
+> + * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+> + * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+> + * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
+> + * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+> + * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+> + * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+> + * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+> + * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+> + * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+> + * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * Description: Uverbs ABI header file
+> + */
+> +
+> +#ifndef __BNXT_RE_UVERBS_ABI_H__
+> +#define __BNXT_RE_UVERBS_ABI_H__
+> +
+> +#include <linux/types.h>
+> +
+> +#define BNXT_RE_ABI_VERSION    1
+> +
+> +struct bnxt_re_uctx_resp {
+> +       __u32 dev_id;
+> +       __u32 max_qp;
+> +       __u32 pg_size;
+> +       __u32 cqe_sz;
+> +       __u32 max_cqd;
+> +       __u32 rsvd;
+> +};
+> +
+> +struct bnxt_re_pd_resp {
+> +       __u32 pdid;
+> +       __u32 dpi;
+> +       __u64 dbr;
+> +};
+> +
+> +struct bnxt_re_cq_req {
+> +       __u64 cq_va;
+> +       __u64 cq_handle;
+> +};
+> +
+> +struct bnxt_re_cq_resp {
+> +       __u32 cqid;
+> +       __u32 tail;
+> +       __u32 phase;
+> +       __u32 rsvd;
+> +};
+> +
+> +struct bnxt_re_qp_req {
+> +       __u64 qpsva;
+> +       __u64 qprva;
+> +       __u64 qp_handle;
+> +};
+> +
+> +struct bnxt_re_qp_resp {
+> +       __u32 qpid;
+> +       __u32 rsvd;
+> +};
+> +
+> +struct bnxt_re_srq_req {
+> +       __u64 srqva;
+> +       __u64 srq_handle;
+> +};
+> +
+> +struct bnxt_re_srq_resp {
+> +       __u32 srqid;
+> +};
+> +
+> +enum bnxt_re_shpg_offt {
+> +       BNXT_RE_BEG_RESV_OFFT   = 0x00,
+> +       BNXT_RE_AVID_OFFT       = 0x10,
+> +       BNXT_RE_AVID_SIZE       = 0x04,
+> +       BNXT_RE_END_RESV_OFFT   = 0xFF0
+> +};
+> +
+> +#endif /* __BNXT_RE_UVERBS_ABI_H__*/
 
-Signed-off-by: Aishwarya Pant <aishpant@gmail.com>
-Reviewed-by: Hal Rosenstock <hal@mellanox.com>
----
-Sorry, there were no changes in v4!
+Looks good for bnxt_re library.
 
-Changes in v5:
-- Typo GODs -> GIDs
-v3:
--  outbound -> inbound in description of port_rcv_constraint_errors
-v2:
-- Move infiniband interface from testing to stable
-- Fix typos
-- Update description of cap_mask, port_xmit_constraint_errors and
-  port_rcv_constraint_errors
-- Add doc for hw_counters
-- Remove old documentation
+Reviewed-By: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
- Documentation/ABI/stable/sysfs-class-infiniband  | 818 +++++++++++++++++++++++
- Documentation/ABI/testing/sysfs-class-infiniband |  16 -
- Documentation/infiniband/sysfs.txt               | 129 +---
- 3 files changed, 820 insertions(+), 143 deletions(-)
- create mode 100644 Documentation/ABI/stable/sysfs-class-infiniband
- delete mode 100644 Documentation/ABI/testing/sysfs-class-infiniband
-
-diff --git a/Documentation/ABI/stable/sysfs-class-infiniband b/Documentation/ABI/stable/sysfs-class-infiniband
-new file mode 100644
-index 000000000000..17211ceb9bf4
---- /dev/null
-+++ b/Documentation/ABI/stable/sysfs-class-infiniband
-@@ -0,0 +1,818 @@
-+sysfs interface common for all infiniband devices
-+-------------------------------------------------
-+
-+What:		/sys/class/infiniband/<device>/node_type
-+What:		/sys/class/infiniband/<device>/node_guid
-+What:		/sys/class/infiniband/<device>/sys_image_guid
-+Date:		Apr, 2005
-+KernelVersion:	v2.6.12
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		node_type:	(RO) Node type (CA, RNIC, usNIC, usNIC UDP,
-+				switch or router)
-+
-+		node_guid:	(RO) Node GUID
-+
-+		sys_image_guid:	(RO) System image GUID
-+
-+
-+What:		/sys/class/infiniband/<device>/node_desc
-+Date:		Feb, 2006
-+KernelVersion:	v2.6.17
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		(RW) Update the node description with information such as the
-+		node's hostname, so that IB network management software can tie
-+		its view to the real world.
-+
-+
-+What:		/sys/class/infiniband/<device>/fw_ver
-+Date:		Jun, 2016
-+KernelVersion:	v4.10
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		(RO) Display firmware version
-+
-+
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/lid
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/rate
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/lid_mask_count
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/sm_sl
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/sm_lid
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/state
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/phys_state
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/cap_mask
-+Date:		Apr, 2005
-+KernelVersion:	v2.6.12
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+
-+		lid:		(RO) Port LID
-+
-+		rate:		(RO) Port data rate (active width * active
-+				speed)
-+
-+		lid_mask_count:	(RO) Port LID mask count
-+
-+		sm_sl:		(RO) Subnet manager SL for port's subnet
-+
-+		sm_lid:		(RO) Subnet manager LID for port's subnet
-+
-+		state:		(RO) Port state (DOWN, INIT, ARMED, ACTIVE or
-+				ACTIVE_DEFER)
-+
-+		phys_state:	(RO) Port physical state (Sleep, Polling,
-+				LinkUp, etc)
-+
-+		cap_mask:	(RO) Port capability mask. 2 bits here are
-+				settable- IsCommunicationManagementSupported
-+				(set when CM module is loaded) and IsSM (set via
-+				open of issmN file).
-+
-+
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/link_layer
-+Date:		Oct, 2010
-+KernelVersion:	v2.6.37
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		(RO) Link layer type information (Infiniband or Ethernet type)
-+
-+
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/symbol_error
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_rcv_errors
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_rcv_remote_physical_errors
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_rcv_switch_relay_errors
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/link_error_recovery
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_xmit_constraint_errors
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_rcv_contraint_errors
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/local_link_integrity_errors
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/excessive_buffer_overrun_errors
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_xmit_data
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_rcv_data
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_xmit_packets
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_rcv_packets
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/unicast_rcv_packets
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/unicast_xmit_packets
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/multicast_rcv_packets
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/multicast_xmit_packets
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/link_downed
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_xmit_discards
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/VL15_dropped
-+What:		/sys/class/infiniband/<device>/ports/<port-num>/counters/port_xmit_wait
-+Date:		Apr, 2005
-+KernelVersion:	v2.6.12
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		Errors info:
-+		-----------
-+
-+		symbol_error: (RO) Total number of minor link errors detected on
-+		one or more physical lanes.
-+
-+		port_rcv_errors : (RO) Total number of packets containing an
-+		error that were received on the port.
-+
-+		port_rcv_remote_physical_errors : (RO) Total number of packets
-+		marked with the EBP delimiter received on the port.
-+
-+		port_rcv_switch_relay_errors : (RO) Total number of packets
-+		received on the port that were discarded because they could not
-+		be forwarded by the switch relay.
-+
-+		link_error_recovery: (RO) Total number of times the Port
-+		Training state machine has successfully completed the link error
-+		recovery process.
-+
-+		port_xmit_constraint_errors: (RO) Total number of packets not
-+		transmitted from the switch physical port due to outbound raw
-+		filtering or failing outbound partition or IP version check.
-+
-+		port_rcv_constraint_errors: (RO) Total number of packets
-+		received on the switch physical port that are discarded due to
-+		inbound raw filtering or failing inbound partition or IP version
-+		check.
-+
-+		local_link_integrity_errors: (RO) The number of times that the
-+		count of local physical errors exceeded the threshold specified
-+		by LocalPhyErrors
-+
-+		excessive_buffer_overrun_errors: (RO) This counter, indicates an
-+		input buffer overrun. It indicates possible misconfiguration of
-+		a port, either by the Subnet Manager (SM) or by user
-+		intervention. It can also indicate hardware issues or extremely
-+		poor link signal integrity
-+
-+		Data info:
-+		---------
-+
-+		port_xmit_data: (RO) Total number of data octets, divided by 4
-+		(lanes), transmitted on all VLs. This is 64 bit counter
-+
-+		port_rcv_data: (RO) Total number of data octets, divided by 4
-+		(lanes), received on all VLs. This is 64 bit counter.
-+
-+		port_xmit_packets: (RO) Total number of packets transmitted on
-+		all VLs from this port. This may include packets with errors.
-+		This is 64 bit counter.
-+
-+		port_rcv_packets: (RO) Total number of packets (this may include
-+		packets containing Errors. This is 64 bit counter.
-+
-+		link_downed: (RO) Total number of times the Port Training state
-+		machine has failed the link error recovery process and downed
-+		the link.
-+
-+		unicast_rcv_packets: (RO) Total number of unicast packets,
-+		including unicast packets containing errors.
-+
-+		unicast_xmit_packets: (RO) Total number of unicast packets
-+		transmitted on all VLs from the port. This may include unicast
-+		packets with errors.
-+
-+		multicast_rcv_packets: (RO) Total number of multicast packets,
-+		including multicast packets containing errors.
-+
-+		multicast_xmit_packets: (RO) Total number of multicast packets
-+		transmitted on all VLs from the port. This may include multicast
-+		packets with errors.
-+
-+		Misc info:
-+		---------
-+
-+		port_xmit_discards: (RO) Total number of outbound packets
-+		discarded by the port because the port is down or congested.
-+
-+		VL15_dropped: (RO) Number of incoming VL15 packets dropped due
-+		to resource limitations (e.g., lack of buffers) of the port.
-+
-+		port_xmit_wait: (RO) The number of ticks during which the port
-+		had data to transmit but no data was sent during the entire tick
-+		(either because of insufficient credits or because of lack of
-+		arbitration).
-+
-+		Each of these files contains the corresponding value from the
-+		port's Performance Management PortCounters attribute, as
-+		described in the InfiniBand Architecture Specification.
-+
-+
-+What:		/sys/class/infiniband/<device-name>/hw_counters/lifespan
-+What:		/sys/class/infiniband/<device-name>/ports/<port-num>/hw_counters/lifespan
-+Date:		May, 2016
-+KernelVersion:	4.6
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		The optional "hw_counters" subdirectory can be under either the
-+		parent device or the port subdirectories or both. If present,
-+		there are a list of counters provided by the hardware. They may
-+		match some of the counters in the counters directory, but they
-+		often include many other counters. In addition to the various
-+		counters, there will be a file named "lifespan" that configures
-+		how frequently the core should update the counters when they are
-+		being accessed (counters are not updated if they are not being
-+		accessed). The lifespan is in milliseconds and defaults to 10
-+		unless set to something else by the driver. Users may echo a
-+		value between 0-10000 to the lifespan file to set the length
-+		of time between updates in milliseconds.
-+
-+
-+What:		/sys/class/infiniband/<hca>/ports/<port-number>/gid_attrs/ndevs/<gid-index>
-+Date:		November 29, 2015
-+KernelVersion:	4.4.0
-+Contact:	linux-rdma@vger.kernel.org
-+Description: 	The net-device's name associated with the GID resides
-+		at index <gid-index>.
-+
-+What:		/sys/class/infiniband/<hca>/ports/<port-number>/gid_attrs/types/<gid-index>
-+Date:		November 29, 2015
-+KernelVersion:	4.4.0
-+Contact:	linux-rdma@vger.kernel.org
-+Description: 	The RoCE type of the associated GID resides at index <gid-index>.
-+		This could either be "IB/RoCE v1" for IB and RoCE v1 based GIDs
-+		or "RoCE v2" for RoCE v2 based GIDs.
-+
-+
-+What:		/sys/class/infiniband_mad/umadN/ibdev
-+What:		/sys/class/infiniband_mad/umadN/port
-+What:		/sys/class/infiniband_mad/issmN/ibdev
-+What:		/sys/class/infiniband_mad/issmN/port
-+Date:		Apr, 2005
-+KernelVersion:	v2.6.12
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		Each port of each InfiniBand device has a "umad" device and an
-+		"issm" device attached. For example, a two-port HCA will have
-+		two umad devices and two issm devices, while a switch will have
-+		one device of each type (for switch port 0).
-+
-+		ibdev:	(RO) Show Infiniband (IB) device name
-+
-+		port:	(RO) Display port number
-+
-+
-+What:		/sys/class/infiniband_mad/abi_version
-+Date:		Apr, 2005
-+KernelVersion:	v2.6.12
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		(RO) Value is incremented if any changes are made that break
-+		userspace ABI compatibility of umad & issm devices.
-+
-+
-+What:		/sys/class/infiniband_cm/ucmN/ibdev
-+Date:		Oct, 2005
-+KernelVersion:	v2.6.14
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		(RO) Display Infiniband (IB) device name
-+
-+
-+What:		/sys/class/infiniband_cm/abi_version
-+Date:		Oct, 2005
-+KernelVersion:	v2.6.14
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		(RO) Value is incremented if any changes are made that break
-+		userspace ABI compatibility of ucm devices.
-+
-+
-+What:		/sys/class/infiniband_verbs/uverbsN/ibdev
-+What:		/sys/class/infiniband_verbs/uverbsN/abi_version
-+Date:		Sept, 2005
-+KernelVersion:	v2.6.14
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		ibdev:		(RO) Display Infiniband (IB) device name
-+
-+		abi_version:	(RO) Show ABI version of IB device specific
-+				interfaces.
-+
-+
-+What:		/sys/class/infiniband_verbs/abi_version
-+Date:		Sep, 2005
-+KernelVersion:	v2.6.14
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		(RO) Value is incremented if any changes are made that break
-+		userspace ABI compatibility of uverbs devices.
-+
-+
-+sysfs interface for Mellanox IB HCA low-level driver (mthca)
-+------------------------------------------------------------
-+
-+What:		/sys/class/infiniband/mthcaX/hw_rev
-+What:		/sys/class/infiniband/mthcaX/hca_type
-+What:		/sys/class/infiniband/mthcaX/board_id
-+Date:		Apr, 2005
-+KernelVersion:	v2.6.12
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		hw_rev:		(RO) Hardware revision number
-+
-+		hca_type:	(RO) Host Channel Adapter type: MT23108, MT25208
-+				(MT23108 compat mode), MT25208 or MT25204
-+
-+		board_id:	(RO) Manufacturing board ID
-+
-+
-+sysfs interface for Chelsio T3 RDMA Driver (cxgb3)
-+--------------------------------------------------
-+
-+What:		/sys/class/infiniband/cxgb3_X/hw_rev
-+What:		/sys/class/infiniband/cxgb3_X/hca_type
-+What:		/sys/class/infiniband/cxgb3_X/board_id
-+Date:		Feb, 2007
-+KernelVersion:	v2.6.21
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		hw_rev:		(RO) Hardware revision number
-+
-+		hca_type:	(RO) HCA type. Here it is a driver short name.
-+				It should normally match the name in its bus
-+				driver structure (e.g.  pci_driver::name).
-+
-+		board_id:	(RO) Manufacturing board id
-+
-+
-+sysfs interface for Mellanox ConnectX HCA IB driver (mlx4)
-+----------------------------------------------------------
-+
-+What:		/sys/class/infiniband/mlx4_X/hw_rev
-+What:		/sys/class/infiniband/mlx4_X/hca_type
-+What:		/sys/class/infiniband/mlx4_X/board_id
-+Date:		Sep, 2007
-+KernelVersion:	v2.6.24
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		hw_rev:		(RO) Hardware revision number
-+
-+		hca_type:	(RO) Host channel adapter type
-+
-+		board_id:	(RO) Manufacturing board ID
-+
-+
-+What:		/sys/class/infiniband/mlx4_X/iov/ports/<port-num>/gids/<n>
-+What:		/sys/class/infiniband/mlx4_X/iov/ports/<port-num>/admin_guids/<n>
-+What:		/sys/class/infiniband/mlx4_X/iov/ports/<port-num>/pkeys/<n>
-+What:		/sys/class/infiniband/mlx4_X/iov/ports/<port-num>/mcgs/
-+What:		/sys/class/infiniband/mlx4_X/iov/ports/<pci-slot-num>/ports/<m>/gid_idx/0
-+What:		/sys/class/infiniband/mlx4_X/iov/ports/<pci-slot-num>/ports/<m>/pkey_idx/<n>
-+Date:		Aug, 2012
-+KernelVersion:	v3.6.15
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		The sysfs iov directory is used to manage and examine the port
-+		P_Key and guid paravirtualization. This directory is added only
-+		for the master -- slaves do not have it.
-+
-+		Under iov/ports, the administrator may examine the gid and P_Key
-+		tables as they are present in the device (and as are seen in the
-+		"network view" presented to the SM).
-+
-+		The "pkeys" and "gids" subdirectories contain one file for each
-+		entry in the port's P_Key or GID table respectively. For
-+		example, ports/1/pkeys/10 contains the value at index 10 in port
-+		1's P_Key table.
-+
-+		gids/<n>:		(RO) The physical port gids n = 0..127
-+
-+		admin_guids/<n>:	(RW) Allows examining or changing the
-+					administrative state of a given GUID
-+					n = 0..127
-+
-+		pkeys/<n>:		(RO) Displays the contents of the physical
-+					key table n = 0..126
-+
-+		mcgs/:			(RO) Muticast group table
-+
-+		<m>/gid_idx/0:		(RO) Display the GID mapping m = 1..2
-+
-+		<m>/pkey_idx/<n>:	(RW) Writable except for RoCE pkeys.
-+					m = 1..2, n = 0..126
-+
-+					Under the iov/<pci slot number>
-+					directories, the admin may map the index
-+					numbers in the physical tables (as under
-+					iov/ports) to the paravirtualized index
-+					numbers that guests see.
-+
-+					For example, if the administrator, for
-+					port 1 on guest 2 maps physical pkey
-+					index 10 to virtual index 1, then that
-+					guest, whenever it uses its pkey index
-+					1, will actually be using the real pkey
-+					index 10.
-+
-+
-+What:		/sys/class/infiniband/mlx4_X/iov/<pci-slot-num>/ports/<m>/smi_enabled
-+What:           /sys/class/infiniband/mlx4_X/iov/<pci-slot-num>/ports/<m>/enable_smi_admin
-+Date:		May, 2014
-+KernelVersion:	v3.15.7
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		Enabling QP0 on VFs for selected VF/port. By default, no VFs are
-+		enabled for QP0 operation.
-+
-+		smi_enabled:	(RO) Indicates whether smi is currently enabled
-+				for the indicated VF/port
-+
-+		enable_smi_admin:(RW) Used by the admin to request that smi
-+				capability be enabled or disabled for the
-+				indicated VF/port. 0 = disable, 1 = enable.
-+
-+		The requested enablement will occur at the next reset of the VF
-+		(e.g. driver restart on the VM which owns the VF).
-+
-+
-+sysfs interface for NetEffect RNIC Low-Level iWARP driver (nes)
-+---------------------------------------------------------------
-+
-+What:		/sys/class/infiniband/nesX/hw_rev
-+What:		/sys/class/infiniband/nesX/hca_type
-+What:		/sys/class/infiniband/nesX/board_id
-+Date:		Feb, 2008
-+KernelVersion:	v2.6.25
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		hw_rev:		(RO) Hardware revision number
-+
-+		hca_type:	(RO) Host Channel Adapter type (NEX020)
-+
-+		board_id:	(RO) Manufacturing board id
-+
-+
-+sysfs interface for Chelsio T4/T5 RDMA driver (cxgb4)
-+-----------------------------------------------------
-+
-+What:		/sys/class/infiniband/cxgb4_X/hw_rev
-+What:		/sys/class/infiniband/cxgb4_X/hca_type
-+What:		/sys/class/infiniband/cxgb4_X/board_id
-+Date:		Apr, 2010
-+KernelVersion:	v2.6.35
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+
-+		hw_rev:		(RO) Hardware revision number
-+
-+		hca_type:	(RO) Driver short name. Should normally match
-+				the name in its bus driver structure (e.g.
-+				pci_driver::name)
-+
-+		board_id:	(RO) Manufacturing board id. (Vendor + device
-+				information)
-+
-+
-+sysfs interface for Intel IB driver qib
-+---------------------------------------
-+
-+What:		/sys/class/infiniband/qibX/version
-+What:		/sys/class/infiniband/qibX/hw_rev
-+What:		/sys/class/infiniband/qibX/hca_type
-+What:		/sys/class/infiniband/qibX/board_id
-+What:		/sys/class/infiniband/qibX/boardversion
-+What:		/sys/class/infiniband/qibX/nctxts
-+What:		/sys/class/infiniband/qibX/localbus_info
-+What:		/sys/class/infiniband/qibX/tempsense
-+What:		/sys/class/infiniband/qibX/serial
-+What:		/sys/class/infiniband/qibX/nfreectxts
-+What:		/sys/class/infiniband/qibX/chip_reset
-+Date:		May, 2010
-+KernelVersion:	v2.6.35
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		version:	(RO) Display version information of installed software
-+				and drivers.
-+
-+		hw_rev:		(RO) Hardware revision number
-+
-+		hca_type:	(RO) Host channel adapter type
-+
-+		board_id:	(RO) Manufacturing board id
-+
-+		boardversion:	(RO) Current version of the chip architecture
-+
-+		nctxts:		(RO) Return the number of user ports (contexts)
-+				available
-+
-+		localbus_info:	(RO) Human readable localbus info
-+
-+		tempsense:	(RO) Display temp sense registers in decimal
-+
-+		serial:		(RO) Serial number of the HCA
-+
-+		nfreectxts:	(RO) The number of free user ports (contexts)
-+				available.
-+
-+		chip_reset:	(WO) Reset the chip if possible by writing
-+				"reset" to this file. Only allowed if no user
-+				contexts are open that use chip resources.
-+
-+
-+What:		/sys/class/infiniband/qibX/ports/N/sl2vl/[0-15]
-+Date:		May, 2010
-+KernelVersion:	v2.6.35
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		(RO) The directory contains 16 files numbered 0-15 that specify
-+		the Service Level (SL). Listing the SL files returns the Virtual
-+		Lane (VL) as programmed by the SL.
-+
-+What:		/sys/class/infiniband/qibX/ports/N/CCMgtA/cc_settings_bin
-+What:		/sys/class/infiniband/qibX/ports/N/CCMgtA/cc_table_bin
-+Date:		May, 2010
-+KernelVersion:	v2.6.35
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		Per-port congestion control. Both are binary attributes.
-+
-+		cc_table_bin:	(RO) Congestion control table size followed by
-+				table entries.
-+
-+		cc_settings_bin:(RO) Congestion settings: port control, control
-+				map and an array of 16 entries for the
-+				congestion entries - increase, timer, event log
-+				trigger threshold and the minimum injection rate
-+				delay.
-+
-+What:		/sys/class/infiniband/qibX/ports/N/linkstate/loopback
-+What:		/sys/class/infiniband/qibX/ports/N/linkstate/led_override
-+What:		/sys/class/infiniband/qibX/ports/N/linkstate/hrtbt_enable
-+What:		/sys/class/infiniband/qibX/ports/N/linkstate/status
-+What:		/sys/class/infiniband/qibX/ports/N/linkstate/status_str
-+Date:		May, 2010
-+KernelVersion:	v2.6.35
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		[to be documented]
-+
-+		loopback:	(WO)
-+		led_override:	(WO)
-+		hrtbt_enable:	(RW)
-+		status:		(RO)
-+
-+		status_str:	(RO) Displays information about the link state,
-+				possible cable/switch problems, and hardware
-+				errors. Possible states are- "Initted",
-+				"Present", "IB_link_up", "IB_configured" or
-+				"Fatal_Hardware_Error".
-+
-+What:		/sys/class/infiniband/qibX/ports/N/diag_counters/rc_resends
-+What:		/sys/class/infiniband/qibX/ports/N/diag_counters/seq_naks
-+What:		/sys/class/infiniband/qibX/ports/N/diag_counters/rdma_seq
-+What:		/sys/class/infiniband/qibX/ports/N/diag_counters/rnr_naks
-+What:		/sys/class/infiniband/qibX/ports/N/diag_counters/other_naks
-+What:		/sys/class/infiniband/qibX/ports/N/diag_counters/rc_timeouts
-+What:		/sys/class/infiniband/qibX/ports/N/diag_counters/look_pkts
-+What:		/sys/class/infiniband/qibX/ports/N/diag_counters/pkt_drops
-+What:		/sys/class/infiniband/qibX/ports/N/diag_counters/dma_wait
-+What:		/sys/class/infiniband/qibX/ports/N/diag_counters/unaligned
-+Date:		May, 2010
-+KernelVersion:	v2.6.35
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		[to be documented]
-+
-+
-+sysfs interface for Mellanox Connect-IB HCA driver mlx5
-+-------------------------------------------------------
-+
-+What:		/sys/class/infiniband/mlx5_X/hw_rev
-+What:		/sys/class/infiniband/mlx5_X/hca_type
-+What:		/sys/class/infiniband/mlx5_X/reg_pages
-+What:		/sys/class/infiniband/mlx5_X/fw_pages
-+Date:		Jul, 2013
-+KernelVersion:	v3.11
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		[to be documented]
-+
-+
-+sysfs interface for Cisco VIC (usNIC) Verbs Driver
-+--------------------------------------------------
-+
-+What:		/sys/class/infiniband/usnic_X/board_id
-+What:		/sys/class/infiniband/usnic_X/config
-+What:		/sys/class/infiniband/usnic_X/qp_per_vf
-+What:		/sys/class/infiniband/usnic_X/max_vf
-+What:		/sys/class/infiniband/usnic_X/cq_per_vf
-+What:		/sys/class/infiniband/usnic_X/iface
-+Date:		Sep, 2013
-+KernelVersion:	v3.14
-+Contact:	Christian Benvenuti <benve@cisco.com>,
-+		Dave Goodell <dgoodell@cisco.com>,
-+		linux-rdma@vger.kernel.org
-+Description:
-+
-+		board_id:	(RO) Manufacturing board id
-+
-+		config:		(RO) Report the configuration for this PF
-+
-+		qp_per_vf:	(RO) Queue pairs per virtual function.
-+
-+		max_vf:		(RO) Max virtual functions
-+
-+		cq_per_vf:	(RO) Completion queue per virtual function
-+
-+		iface:		(RO) Shows which network interface this usNIC
-+				entry is associated to (visible with ifconfig).
-+
-+What:		/sys/class/infiniband/usnic_X/qpn/summary
-+What:		/sys/class/infiniband/usnic_X/qpn/context
-+Date:		Sep, 2013
-+KernelVersion:	v3.14
-+Contact:	Christian Benvenuti <benve@cisco.com>,
-+		Dave Goodell <dgoodell@cisco.com>,
-+		linux-rdma@vger.kernel.org
-+Description:
-+		[to be documented]
-+
-+
-+sysfs interface for Emulex RoCE HCA Driver
-+------------------------------------------
-+
-+What:		/sys/class/infiniband/ocrdmaX/hw_rev
-+Date:		Feb, 2014
-+KernelVersion:	v3.14
-+Description:
-+		hw_rev:		(RO) Hardware revision number
-+
-+What:		/sys/class/infiniband/ocrdmaX/hca_type
-+Date:		Jun, 2014
-+KernelVersion:	v3.16
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		hca_type:	(RO) Display FW version
-+
-+
-+sysfs interface for Intel Omni-Path driver (HFI1)
-+-------------------------------------------------
-+
-+What:		/sys/class/infiniband/hfi1_X/hw_rev
-+What:		/sys/class/infiniband/hfi1_X/board_id
-+What:		/sys/class/infiniband/hfi1_X/nctxts
-+What:		/sys/class/infiniband/hfi1_X/serial
-+What:		/sys/class/infiniband/hfi1_X/chip_reset
-+What:		/sys/class/infiniband/hfi1_X/boardversion
-+What:		/sys/class/infiniband/hfi1_X/nfreectxts
-+What:		/sys/class/infiniband/hfi1_X/tempsense
-+Date:		May, 2016
-+KernelVersion:	v4.6
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		hw_rev:		(RO) Hardware revision number
-+
-+		board_id:	(RO) Manufacturing board id
-+
-+		nctxts:		(RO) Total contexts available.
-+
-+		serial:		(RO) Board serial number
-+
-+		chip_reset:	(WO) Write "reset" to this file to reset the
-+				chip if possible. Only allowed if no user
-+				contexts are open that use chip resources.
-+
-+		boardversion:	(RO) Human readable board info
-+
-+		nfreectxts:	(RO) The number of free user ports (contexts)
-+				available.
-+
-+		tempsense:	(RO) Thermal sense information
-+
-+
-+What:		/sys/class/infiniband/hfi1_X/ports/N/CCMgtA/cc_settings_bin
-+What:		/sys/class/infiniband/hfi1_X/ports/N/CCMgtA/cc_table_bin
-+What:		/sys/class/infiniband/hfi1_X/ports/N/CCMgtA/cc_prescan
-+Date:		May, 2016
-+KernelVersion:	v4.6
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		Per-port congestion control.
-+
-+		cc_table_bin:	(RO) CCA tables used by PSM2 Congestion control
-+				table size followed by table entries. Binary
-+				attribute.
-+
-+		cc_settings_bin:(RO) Congestion settings: port control, control
-+				map and an array of 16 entries for the
-+				congestion entries - increase, timer, event log
-+				trigger threshold and the minimum injection rate
-+				delay. Binary attribute.
-+
-+		cc_prescan:	(RW) enable prescanning for faster BECN
-+				response. Write "on" to enable and "off" to
-+				disable.
-+
-+What:		/sys/class/infiniband/hfi1_X/ports/N/sc2vl/[0-31]
-+What:		/sys/class/infiniband/hfi1_X/ports/N/sl2sc/[0-31]
-+What:		/sys/class/infiniband/hfi1_X/ports/N/vl2mtu/[0-15]
-+Date:		May, 2016
-+KernelVersion:	v4.6
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		sc2vl/:		(RO) 32 files (0 - 31) used to translate sl->vl
-+
-+		sl2sc/:		(RO) 32 files (0 - 31) used to translate sl->sc
-+
-+		vl2mtu/:	(RO) 16 files (0 - 15) used to determine MTU for vl
-+
-+
-+What:		/sys/class/infiniband/hfi1_X/sdma_N/cpu_list
-+What:		/sys/class/infiniband/hfi1_X/sdma_N/vl
-+Date:		Sept, 2016
-+KernelVersion:	v4.8
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		sdma<N>/ contains one directory per sdma engine (0 - 15)
-+
-+		cpu_list:	(RW) List of cpus for user-process to sdma
-+				engine assignment.
-+
-+		vl:		(RO) Displays the virtual lane (vl) the sdma
-+				engine maps to.
-+
-+		This interface gives the user control on the affinity settings
-+		for the device. As an example, to set an sdma engine irq
-+		affinity and thread affinity of a user processes to use the
-+		sdma engine, which is "near" in terms of NUMA configuration, or
-+		physical cpu location, the user will do:
-+
-+		echo "3" > /proc/irq/<N>/smp_affinity_list
-+		echo "4-7" > /sys/devices/.../sdma3/cpu_list
-+		cat /sys/devices/.../sdma3/vl
-+		0
-+		echo "8" > /proc/irq/<M>/smp_affinity_list
-+		echo "9-12" > /sys/devices/.../sdma4/cpu_list
-+		cat /sys/devices/.../sdma4/vl
-+		1
-+
-+		to make sure that when a process runs on cpus 4,5,6, or 7, and
-+		uses vl=0, then sdma engine 3 is selected by the driver, and
-+		also the interrupt of the sdma engine 3 is steered to cpu 3.
-+		Similarly, when a process runs on cpus 9,10,11, or 12 and sets
-+		vl=1, then engine 4 will be selected and the irq of the sdma
-+		engine 4 is steered to cpu 8.  This assumes that in the above N
-+		is the irq number of "sdma3", and M is irq number of "sdma4" in
-+		the /proc/interrupts file.
-+
-+
-+sysfs interface for Intel(R) X722 iWARP i40iw driver
-+----------------------------------------------------
-+
-+What:		/sys/class/infiniband/i40iwX/hw_rev
-+What:		/sys/class/infiniband/i40iwX/hca_type
-+What:		/sys/class/infiniband/i40iwX/board_id
-+Date:		Jan, 2016
-+KernelVersion:	v4.10
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		hw_rev:		(RO) Hardware revision number
-+
-+		hca_type:	(RO) Show HCA type (I40IW)
-+
-+		board_id:	(RO) I40IW board ID
-+
-+
-+sysfs interface for QLogic qedr NIC Driver
-+------------------------------------------
-+
-+What:		/sys/class/infiniband/qedrX/hw_rev
-+What:		/sys/class/infiniband/qedrX/hca_type
-+Date:		Oct, 2016
-+KernelVersion:	v4.10
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+
-+		hw_rev:		(RO) Hardware revision number
-+
-+		hca_type:	(RO) Display HCA type
-+
-+
-+sysfs interface for VMware Paravirtual RDMA driver
-+--------------------------------------------------
-+
-+What:		/sys/class/infiniband/vmw_pvrdmaX/hw_rev
-+What:		/sys/class/infiniband/vmw_pvrdmaX/hca_type
-+What:		/sys/class/infiniband/vmw_pvrdmaX/board_id
-+Date:		Oct, 2016
-+KernelVersion:	v4.10
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+
-+		hw_rev:		(RO) Hardware revision number
-+
-+		hca_type:	(RO) Host channel adapter type
-+
-+		board_id:	(RO) Display PVRDMA manufacturing board ID
-+
-+
-+sysfs interface for Broadcom NetXtreme-E RoCE driver
-+----------------------------------------------------
-+
-+What:		/sys/class/infiniband/bnxt_reX/hw_rev
-+What:		/sys/class/infiniband/bnxt_reX/hca_type
-+Date:		Feb, 2017
-+KernelVersion:	v4.11
-+Contact:	linux-rdma@vger.kernel.org
-+Description:
-+		hw_rev:		(RO) Hardware revision number
-+
-+		hca_type:	(RO) Host channel adapter type
-diff --git a/Documentation/ABI/testing/sysfs-class-infiniband b/Documentation/ABI/testing/sysfs-class-infiniband
-deleted file mode 100644
-index a86abe66a316..000000000000
---- a/Documentation/ABI/testing/sysfs-class-infiniband
-+++ /dev/null
-@@ -1,16 +0,0 @@
--What:		/sys/class/infiniband/<hca>/ports/<port-number>/gid_attrs/ndevs/<gid-index>
--Date:		November 29, 2015
--KernelVersion:	4.4.0
--Contact:	linux-rdma@vger.kernel.org
--Description: 	The net-device's name associated with the GID resides
--		at index <gid-index>.
--
--What:		/sys/class/infiniband/<hca>/ports/<port-number>/gid_attrs/types/<gid-index>
--Date:		November 29, 2015
--KernelVersion:	4.4.0
--Contact:	linux-rdma@vger.kernel.org
--Description: 	The RoCE type of the associated GID resides at index <gid-index>.
--		This could either be "IB/RoCE v1" for IB and RoCE v1 based GODs
--		or "RoCE v2" for RoCE v2 based GIDs.
--
--
-diff --git a/Documentation/infiniband/sysfs.txt b/Documentation/infiniband/sysfs.txt
-index 77570d16b170..9fab5062f84b 100644
---- a/Documentation/infiniband/sysfs.txt
-+++ b/Documentation/infiniband/sysfs.txt
-@@ -1,129 +1,4 @@
- SYSFS FILES
- 
--  For each InfiniBand device, the InfiniBand drivers create the
--  following files under /sys/class/infiniband/<device name>:
--
--    node_type      - Node type (CA, switch or router)
--    node_guid      - Node GUID
--    sys_image_guid - System image GUID
--
--  In addition, there is a "ports" subdirectory, with one subdirectory
--  for each port.  For example, if mthca0 is a 2-port HCA, there will
--  be two directories:
--
--    /sys/class/infiniband/mthca0/ports/1
--    /sys/class/infiniband/mthca0/ports/2
--
--  (A switch will only have a single "0" subdirectory for switch port
--  0; no subdirectory is created for normal switch ports)
--
--  In each port subdirectory, the following files are created:
--
--    cap_mask       - Port capability mask
--    lid            - Port LID
--    lid_mask_count - Port LID mask count
--    rate           - Port data rate (active width * active speed)
--    sm_lid         - Subnet manager LID for port's subnet
--    sm_sl          - Subnet manager SL for port's subnet
--    state          - Port state (DOWN, INIT, ARMED, ACTIVE or ACTIVE_DEFER)
--    phys_state     - Port physical state (Sleep, Polling, LinkUp, etc)
--
--  There is also a "counters" subdirectory, with files
--
--    VL15_dropped
--    excessive_buffer_overrun_errors
--    link_downed
--    link_error_recovery
--    local_link_integrity_errors
--    port_rcv_constraint_errors
--    port_rcv_data
--    port_rcv_errors
--    port_rcv_packets
--    port_rcv_remote_physical_errors
--    port_rcv_switch_relay_errors
--    port_xmit_constraint_errors
--    port_xmit_data
--    port_xmit_discards
--    port_xmit_packets
--    symbol_error
--
--  Each of these files contains the corresponding value from the port's
--  Performance Management PortCounters attribute, as described in
--  section 16.1.3.5 of the InfiniBand Architecture Specification.
--
--  The "pkeys" and "gids" subdirectories contain one file for each
--  entry in the port's P_Key or GID table respectively.  For example,
--  ports/1/pkeys/10 contains the value at index 10 in port 1's P_Key
--  table.
--
--  There is an optional "hw_counters" subdirectory that may be under either
--  the parent device or the port subdirectories or both.  If present,
--  there are a list of counters provided by the hardware.  They may match
--  some of the counters in the counters directory, but they often include
--  many other counters.  In addition to the various counters, there will
--  be a file named "lifespan" that configures how frequently the core
--  should update the counters when they are being accessed (counters are
--  not updated if they are not being accessed).  The lifespan is in milli-
--  seconds and defaults to 10 unless set to something else by the driver.
--  Users may echo a value between 0 - 10000 to the lifespan file to set
--  the length of time between updates in milliseconds.
--
--MTHCA
--
--  The Mellanox HCA driver also creates the files:
--
--    hw_rev   - Hardware revision number
--    fw_ver   - Firmware version
--    hca_type - HCA type: "MT23108", "MT25208 (MT23108 compat mode)",
--               or "MT25208"
--
--HFI1
--
--  The hfi1 driver also creates these additional files:
--
--   hw_rev - hardware revision
--   board_id - manufacturing board id
--   tempsense - thermal sense information
--   serial - board serial number
--   nfreectxts - number of free user contexts
--   nctxts - number of allowed contexts (PSM2)
--   chip_reset - diagnostic (root only)
--   boardversion - board version
--
--   sdma<N>/ - one directory per sdma engine (0 - 15)
--	sdma<N>/cpu_list - read-write, list of cpus for user-process to sdma
--			   engine assignment.
--	sdma<N>/vl - read-only, vl the sdma engine maps to.
--
--	The new interface will give the user control on the affinity settings
--	for the hfi1 device.
--	As an example, to set an sdma engine irq affinity and thread affinity
--	of a user processes to use the sdma engine, which is "near" in terms
--	of NUMA configuration, or physical cpu location, the user will do:
--
--	echo "3" > /proc/irq/<N>/smp_affinity_list
--	echo "4-7" > /sys/devices/.../sdma3/cpu_list
--	cat /sys/devices/.../sdma3/vl
--	0
--	echo "8" > /proc/irq/<M>/smp_affinity_list
--	echo "9-12" > /sys/devices/.../sdma4/cpu_list
--	cat /sys/devices/.../sdma4/vl
--	1
--
--	to make sure that when a process runs on cpus 4,5,6, or 7,
--	and uses vl=0, then sdma engine 3 is selected by the driver,
--	and also the interrupt of the sdma engine 3 is steered to cpu 3.
--	Similarly, when a process runs on cpus 9,10,11, or 12 and sets vl=1,
--	then engine 4 will be selected and the irq of the sdma engine 4 is
--	steered to cpu 8.
--	This assumes that in the above N is the irq number of "sdma3",
--	and M is irq number of "sdma4" in the /proc/interrupts file.
--
--   ports/1/
--          CCMgtA/
--               cc_settings_bin - CCA tables used by PSM2
--               cc_table_bin
--               cc_prescan - enable prescaning for faster BECN response
--          sc2v/ - 32 files (0 - 31) used to translate sl->vl
--          sl2sc/ - 32 files (0 - 31) used to translate sl->sc
--          vl2mtu/ - 16 (0 - 15) files used to determine MTU for vl
-+The sysfs interface has moved to
-+Documentation/ABI/stable/sysfs-class-infiniband.
--- 
-2.16.1
+> diff --git a/kernel-headers/rdma/cxgb3-abi.h b/kernel-headers/rdma/cxgb3-abi.h
+> new file mode 100644
+> index 00000000000000..d5745e43ae8571
+> --- /dev/null
+> +++ b/kernel-headers/rdma/cxgb3-abi.h
+> @@ -0,0 +1,77 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/*
+> + * Copyright (c) 2006 Chelsio, Inc. All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +#ifndef CXGB3_ABI_USER_H
+> +#define CXGB3_ABI_USER_H
+> +
+> +#include <linux/types.h>
+> +
+> +#define IWCH_UVERBS_ABI_VERSION        1
+> +
+> +/*
+> + * Make sure that all structs defined in this file remain laid out so
+> + * that they pack the same way on 32-bit and 64-bit architectures (to
+> + * avoid incompatibility between 32-bit userspace and 64-bit kernels).
+> + * In particular do not use pointer types -- pass pointers in __u64
+> + * instead.
+> + */
+> +struct iwch_create_cq_req {
+> +       __u64 user_rptr_addr;
+> +};
+> +
+> +struct iwch_create_cq_resp_v0 {
+> +       __u64 key;
+> +       __u32 cqid;
+> +       __u32 size_log2;
+> +};
+> +
+> +struct iwch_create_cq_resp {
+> +       __u64 key;
+> +       __u32 cqid;
+> +       __u32 size_log2;
+> +       __u32 memsize;
+> +       __u32 reserved;
+> +};
+> +
+> +struct iwch_create_qp_resp {
+> +       __u64 key;
+> +       __u64 db_key;
+> +       __u32 qpid;
+> +       __u32 size_log2;
+> +       __u32 sq_size_log2;
+> +       __u32 rq_size_log2;
+> +};
+> +
+> +struct iwch_reg_user_mr_resp {
+> +       __u32 pbl_addr;
+> +};
+> +#endif /* CXGB3_ABI_USER_H */
+> diff --git a/kernel-headers/rdma/cxgb4-abi.h b/kernel-headers/rdma/cxgb4-abi.h
+> new file mode 100644
+> index 00000000000000..05f71f1bc1194d
+> --- /dev/null
+> +++ b/kernel-headers/rdma/cxgb4-abi.h
+> @@ -0,0 +1,82 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/*
+> + * Copyright (c) 2009-2010 Chelsio, Inc. All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +#ifndef CXGB4_ABI_USER_H
+> +#define CXGB4_ABI_USER_H
+> +
+> +#include <linux/types.h>
+> +
+> +#define C4IW_UVERBS_ABI_VERSION        3
+> +
+> +/*
+> + * Make sure that all structs defined in this file remain laid out so
+> + * that they pack the same way on 32-bit and 64-bit architectures (to
+> + * avoid incompatibility between 32-bit userspace and 64-bit kernels).
+> + * In particular do not use pointer types -- pass pointers in __u64
+> + * instead.
+> + */
+> +struct c4iw_create_cq_resp {
+> +       __u64 key;
+> +       __u64 gts_key;
+> +       __u64 memsize;
+> +       __u32 cqid;
+> +       __u32 size;
+> +       __u32 qid_mask;
+> +       __u32 reserved; /* explicit padding (optional for i386) */
+> +};
+> +
+> +enum {
+> +       C4IW_QPF_ONCHIP = (1 << 0)
+> +};
+> +
+> +struct c4iw_create_qp_resp {
+> +       __u64 ma_sync_key;
+> +       __u64 sq_key;
+> +       __u64 rq_key;
+> +       __u64 sq_db_gts_key;
+> +       __u64 rq_db_gts_key;
+> +       __u64 sq_memsize;
+> +       __u64 rq_memsize;
+> +       __u32 sqid;
+> +       __u32 rqid;
+> +       __u32 sq_size;
+> +       __u32 rq_size;
+> +       __u32 qid_mask;
+> +       __u32 flags;
+> +};
+> +
+> +struct c4iw_alloc_ucontext_resp {
+> +       __u64 status_page_key;
+> +       __u32 status_page_size;
+> +       __u32 reserved; /* explicit padding (optional for i386) */
+> +};
+> +#endif /* CXGB4_ABI_USER_H */
+> diff --git a/kernel-headers/rdma/hfi/hfi1_ioctl.h b/kernel-headers/rdma/hfi/hfi1_ioctl.h
+> new file mode 100644
+> index 00000000000000..9de78c5ee9139e
+> --- /dev/null
+> +++ b/kernel-headers/rdma/hfi/hfi1_ioctl.h
+> @@ -0,0 +1,174 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-3-Clause) */
+> +/*
+> + *
+> + * This file is provided under a dual BSD/GPLv2 license.  When using or
+> + * redistributing this file, you may do so under either license.
+> + *
+> + * GPL LICENSE SUMMARY
+> + *
+> + * Copyright(c) 2015 Intel Corporation.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of version 2 of the GNU General Public License as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * BSD LICENSE
+> + *
+> + * Copyright(c) 2015 Intel Corporation.
+> + *
+> + * Redistribution and use in source and binary forms, with or without
+> + * modification, are permitted provided that the following conditions
+> + * are met:
+> + *
+> + *  - Redistributions of source code must retain the above copyright
+> + *    notice, this list of conditions and the following disclaimer.
+> + *  - Redistributions in binary form must reproduce the above copyright
+> + *    notice, this list of conditions and the following disclaimer in
+> + *    the documentation and/or other materials provided with the
+> + *    distribution.
+> + *  - Neither the name of Intel Corporation nor the names of its
+> + *    contributors may be used to endorse or promote products derived
+> + *    from this software without specific prior written permission.
+> + *
+> + * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+> + * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+> + * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+> + * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+> + * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+> + * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+> + * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+> + * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+> + * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+> + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + */
+> +
+> +#ifndef _LINUX__HFI1_IOCTL_H
+> +#define _LINUX__HFI1_IOCTL_H
+> +#include <linux/types.h>
+> +
+> +/*
+> + * This structure is passed to the driver to tell it where
+> + * user code buffers are, sizes, etc.   The offsets and sizes of the
+> + * fields must remain unchanged, for binary compatibility.  It can
+> + * be extended, if userversion is changed so user code can tell, if needed
+> + */
+> +struct hfi1_user_info {
+> +       /*
+> +        * version of user software, to detect compatibility issues.
+> +        * Should be set to HFI1_USER_SWVERSION.
+> +        */
+> +       __u32 userversion;
+> +       __u32 pad;
+> +       /*
+> +        * If two or more processes wish to share a context, each process
+> +        * must set the subcontext_cnt and subcontext_id to the same
+> +        * values.  The only restriction on the subcontext_id is that
+> +        * it be unique for a given node.
+> +        */
+> +       __u16 subctxt_cnt;
+> +       __u16 subctxt_id;
+> +       /* 128bit UUID passed in by PSM. */
+> +       __u8 uuid[16];
+> +};
+> +
+> +struct hfi1_ctxt_info {
+> +       __u64 runtime_flags;    /* chip/drv runtime flags (HFI1_CAP_*) */
+> +       __u32 rcvegr_size;      /* size of each eager buffer */
+> +       __u16 num_active;       /* number of active units */
+> +       __u16 unit;             /* unit (chip) assigned to caller */
+> +       __u16 ctxt;             /* ctxt on unit assigned to caller */
+> +       __u16 subctxt;          /* subctxt on unit assigned to caller */
+> +       __u16 rcvtids;          /* number of Rcv TIDs for this context */
+> +       __u16 credits;          /* number of PIO credits for this context */
+> +       __u16 numa_node;        /* NUMA node of the assigned device */
+> +       __u16 rec_cpu;          /* cpu # for affinity (0xffff if none) */
+> +       __u16 send_ctxt;        /* send context in use by this user context */
+> +       __u16 egrtids;          /* number of RcvArray entries for Eager Rcvs */
+> +       __u16 rcvhdrq_cnt;      /* number of RcvHdrQ entries */
+> +       __u16 rcvhdrq_entsize;  /* size (in bytes) for each RcvHdrQ entry */
+> +       __u16 sdma_ring_size;   /* number of entries in SDMA request ring */
+> +};
+> +
+> +struct hfi1_tid_info {
+> +       /* virtual address of first page in transfer */
+> +       __u64 vaddr;
+> +       /* pointer to tid array. this array is big enough */
+> +       __u64 tidlist;
+> +       /* number of tids programmed by this request */
+> +       __u32 tidcnt;
+> +       /* length of transfer buffer programmed by this request */
+> +       __u32 length;
+> +};
+> +
+> +/*
+> + * This structure is returned by the driver immediately after
+> + * open to get implementation-specific info, and info specific to this
+> + * instance.
+> + *
+> + * This struct must have explicit pad fields where type sizes
+> + * may result in different alignments between 32 and 64 bit
+> + * programs, since the 64 bit * bit kernel requires the user code
+> + * to have matching offsets
+> + */
+> +struct hfi1_base_info {
+> +       /* version of hardware, for feature checking. */
+> +       __u32 hw_version;
+> +       /* version of software, for feature checking. */
+> +       __u32 sw_version;
+> +       /* Job key */
+> +       __u16 jkey;
+> +       __u16 padding1;
+> +       /*
+> +        * The special QP (queue pair) value that identifies PSM
+> +        * protocol packet from standard IB packets.
+> +        */
+> +       __u32 bthqp;
+> +       /* PIO credit return address, */
+> +       __u64 sc_credits_addr;
+> +       /*
+> +        * Base address of write-only pio buffers for this process.
+> +        * Each buffer has sendpio_credits*64 bytes.
+> +        */
+> +       __u64 pio_bufbase_sop;
+> +       /*
+> +        * Base address of write-only pio buffers for this process.
+> +        * Each buffer has sendpio_credits*64 bytes.
+> +        */
+> +       __u64 pio_bufbase;
+> +       /* address where receive buffer queue is mapped into */
+> +       __u64 rcvhdr_bufbase;
+> +       /* base address of Eager receive buffers. */
+> +       __u64 rcvegr_bufbase;
+> +       /* base address of SDMA completion ring */
+> +       __u64 sdma_comp_bufbase;
+> +       /*
+> +        * User register base for init code, not to be used directly by
+> +        * protocol or applications.  Always maps real chip register space.
+> +        * the register addresses are:
+> +        * ur_rcvhdrhead, ur_rcvhdrtail, ur_rcvegrhead, ur_rcvegrtail,
+> +        * ur_rcvtidflow
+> +        */
+> +       __u64 user_regbase;
+> +       /* notification events */
+> +       __u64 events_bufbase;
+> +       /* status page */
+> +       __u64 status_bufbase;
+> +       /* rcvhdrtail update */
+> +       __u64 rcvhdrtail_base;
+> +       /*
+> +        * shared memory pages for subctxts if ctxt is shared; these cover
+> +        * all the processes in the group sharing a single context.
+> +        * all have enough space for the num_subcontexts value on this job.
+> +        */
+> +       __u64 subctxt_uregbase;
+> +       __u64 subctxt_rcvegrbuf;
+> +       __u64 subctxt_rcvhdrbuf;
+> +};
+> +#endif /* _LINIUX__HFI1_IOCTL_H */
+> diff --git a/kernel-headers/rdma/hfi/hfi1_user.h b/kernel-headers/rdma/hfi/hfi1_user.h
+> new file mode 100644
+> index 00000000000000..43b46bf6f8bb10
+> --- /dev/null
+> +++ b/kernel-headers/rdma/hfi/hfi1_user.h
+> @@ -0,0 +1,267 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-3-Clause) */
+> +/*
+> + *
+> + * This file is provided under a dual BSD/GPLv2 license.  When using or
+> + * redistributing this file, you may do so under either license.
+> + *
+> + * GPL LICENSE SUMMARY
+> + *
+> + * Copyright(c) 2015 Intel Corporation.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of version 2 of the GNU General Public License as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * BSD LICENSE
+> + *
+> + * Copyright(c) 2015 Intel Corporation.
+> + *
+> + * Redistribution and use in source and binary forms, with or without
+> + * modification, are permitted provided that the following conditions
+> + * are met:
+> + *
+> + *  - Redistributions of source code must retain the above copyright
+> + *    notice, this list of conditions and the following disclaimer.
+> + *  - Redistributions in binary form must reproduce the above copyright
+> + *    notice, this list of conditions and the following disclaimer in
+> + *    the documentation and/or other materials provided with the
+> + *    distribution.
+> + *  - Neither the name of Intel Corporation nor the names of its
+> + *    contributors may be used to endorse or promote products derived
+> + *    from this software without specific prior written permission.
+> + *
+> + * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+> + * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+> + * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+> + * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+> + * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+> + * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+> + * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+> + * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+> + * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+> + * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + */
+> +
+> +/*
+> + * This file contains defines, structures, etc. that are used
+> + * to communicate between kernel and user code.
+> + */
+> +
+> +#ifndef _LINUX__HFI1_USER_H
+> +#define _LINUX__HFI1_USER_H
+> +
+> +#include <linux/types.h>
+> +#include <rdma/rdma_user_ioctl.h>
+> +
+> +/*
+> + * This version number is given to the driver by the user code during
+> + * initialization in the spu_userversion field of hfi1_user_info, so
+> + * the driver can check for compatibility with user code.
+> + *
+> + * The major version changes when data structures change in an incompatible
+> + * way. The driver must be the same for initialization to succeed.
+> + */
+> +#define HFI1_USER_SWMAJOR 6
+> +
+> +/*
+> + * Minor version differences are always compatible
+> + * a within a major version, however if user software is larger
+> + * than driver software, some new features and/or structure fields
+> + * may not be implemented; the user code must deal with this if it
+> + * cares, or it must abort after initialization reports the difference.
+> + */
+> +#define HFI1_USER_SWMINOR 3
+> +
+> +/*
+> + * We will encode the major/minor inside a single 32bit version number.
+> + */
+> +#define HFI1_SWMAJOR_SHIFT 16
+> +
+> +/*
+> + * Set of HW and driver capability/feature bits.
+> + * These bit values are used to configure enabled/disabled HW and
+> + * driver features. The same set of bits are communicated to user
+> + * space.
+> + */
+> +#define HFI1_CAP_DMA_RTAIL        (1UL <<  0) /* Use DMA'ed RTail value */
+> +#define HFI1_CAP_SDMA             (1UL <<  1) /* Enable SDMA support */
+> +#define HFI1_CAP_SDMA_AHG         (1UL <<  2) /* Enable SDMA AHG support */
+> +#define HFI1_CAP_EXTENDED_PSN     (1UL <<  3) /* Enable Extended PSN support */
+> +#define HFI1_CAP_HDRSUPP          (1UL <<  4) /* Enable Header Suppression */
+> +/* 1UL << 5 unused */
+> +#define HFI1_CAP_USE_SDMA_HEAD    (1UL <<  6) /* DMA Hdr Q tail vs. use CSR */
+> +#define HFI1_CAP_MULTI_PKT_EGR    (1UL <<  7) /* Enable multi-packet Egr buffs*/
+> +#define HFI1_CAP_NODROP_RHQ_FULL  (1UL <<  8) /* Don't drop on Hdr Q full */
+> +#define HFI1_CAP_NODROP_EGR_FULL  (1UL <<  9) /* Don't drop on EGR buffs full */
+> +#define HFI1_CAP_TID_UNMAP        (1UL << 10) /* Disable Expected TID caching */
+> +#define HFI1_CAP_PRINT_UNIMPL     (1UL << 11) /* Show for unimplemented feats */
+> +#define HFI1_CAP_ALLOW_PERM_JKEY  (1UL << 12) /* Allow use of permissive JKEY */
+> +#define HFI1_CAP_NO_INTEGRITY     (1UL << 13) /* Enable ctxt integrity checks */
+> +#define HFI1_CAP_PKEY_CHECK       (1UL << 14) /* Enable ctxt PKey checking */
+> +#define HFI1_CAP_STATIC_RATE_CTRL (1UL << 15) /* Allow PBC.StaticRateControl */
+> +/* 1UL << 16 unused */
+> +#define HFI1_CAP_SDMA_HEAD_CHECK  (1UL << 17) /* SDMA head checking */
+> +#define HFI1_CAP_EARLY_CREDIT_RETURN (1UL << 18) /* early credit return */
+> +
+> +#define HFI1_RCVHDR_ENTSIZE_2    (1UL << 0)
+> +#define HFI1_RCVHDR_ENTSIZE_16   (1UL << 1)
+> +#define HFI1_RCVDHR_ENTSIZE_32   (1UL << 2)
+> +
+> +#define _HFI1_EVENT_FROZEN_BIT         0
+> +#define _HFI1_EVENT_LINKDOWN_BIT       1
+> +#define _HFI1_EVENT_LID_CHANGE_BIT     2
+> +#define _HFI1_EVENT_LMC_CHANGE_BIT     3
+> +#define _HFI1_EVENT_SL2VL_CHANGE_BIT   4
+> +#define _HFI1_EVENT_TID_MMU_NOTIFY_BIT 5
+> +#define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_TID_MMU_NOTIFY_BIT
+> +
+> +#define HFI1_EVENT_FROZEN            (1UL << _HFI1_EVENT_FROZEN_BIT)
+> +#define HFI1_EVENT_LINKDOWN          (1UL << _HFI1_EVENT_LINKDOWN_BIT)
+> +#define HFI1_EVENT_LID_CHANGE        (1UL << _HFI1_EVENT_LID_CHANGE_BIT)
+> +#define HFI1_EVENT_LMC_CHANGE        (1UL << _HFI1_EVENT_LMC_CHANGE_BIT)
+> +#define HFI1_EVENT_SL2VL_CHANGE      (1UL << _HFI1_EVENT_SL2VL_CHANGE_BIT)
+> +#define HFI1_EVENT_TID_MMU_NOTIFY    (1UL << _HFI1_EVENT_TID_MMU_NOTIFY_BIT)
+> +
+> +/*
+> + * These are the status bits readable (in ASCII form, 64bit value)
+> + * from the "status" sysfs file.  For binary compatibility, values
+> + * must remain as is; removed states can be reused for different
+> + * purposes.
+> + */
+> +#define HFI1_STATUS_INITTED       0x1    /* basic initialization done */
+> +/* Chip has been found and initialized */
+> +#define HFI1_STATUS_CHIP_PRESENT 0x20
+> +/* IB link is at ACTIVE, usable for data traffic */
+> +#define HFI1_STATUS_IB_READY     0x40
+> +/* link is configured, LID, MTU, etc. have been set */
+> +#define HFI1_STATUS_IB_CONF      0x80
+> +/* A Fatal hardware error has occurred. */
+> +#define HFI1_STATUS_HWERROR     0x200
+> +
+> +/*
+> + * Number of supported shared contexts.
+> + * This is the maximum number of software contexts that can share
+> + * a hardware send/receive context.
+> + */
+> +#define HFI1_MAX_SHARED_CTXTS 8
+> +
+> +/*
+> + * Poll types
+> + */
+> +#define HFI1_POLL_TYPE_ANYRCV     0x0
+> +#define HFI1_POLL_TYPE_URGENT     0x1
+> +
+> +enum hfi1_sdma_comp_state {
+> +       FREE = 0,
+> +       QUEUED,
+> +       COMPLETE,
+> +       ERROR
+> +};
+> +
+> +/*
+> + * SDMA completion ring entry
+> + */
+> +struct hfi1_sdma_comp_entry {
+> +       __u32 status;
+> +       __u32 errcode;
+> +};
+> +
+> +/*
+> + * Device status and notifications from driver to user-space.
+> + */
+> +struct hfi1_status {
+> +       __u64 dev;      /* device/hw status bits */
+> +       __u64 port;     /* port state and status bits */
+> +       char freezemsg[0];
+> +};
+> +
+> +enum sdma_req_opcode {
+> +       EXPECTED = 0,
+> +       EAGER
+> +};
+> +
+> +#define HFI1_SDMA_REQ_VERSION_MASK 0xF
+> +#define HFI1_SDMA_REQ_VERSION_SHIFT 0x0
+> +#define HFI1_SDMA_REQ_OPCODE_MASK 0xF
+> +#define HFI1_SDMA_REQ_OPCODE_SHIFT 0x4
+> +#define HFI1_SDMA_REQ_IOVCNT_MASK 0xFF
+> +#define HFI1_SDMA_REQ_IOVCNT_SHIFT 0x8
+> +
+> +struct sdma_req_info {
+> +       /*
+> +        * bits 0-3 - version (currently unused)
+> +        * bits 4-7 - opcode (enum sdma_req_opcode)
+> +        * bits 8-15 - io vector count
+> +        */
+> +       __u16 ctrl;
+> +       /*
+> +        * Number of fragments contained in this request.
+> +        * User-space has already computed how many
+> +        * fragment-sized packet the user buffer will be
+> +        * split into.
+> +        */
+> +       __u16 npkts;
+> +       /*
+> +        * Size of each fragment the user buffer will be
+> +        * split into.
+> +        */
+> +       __u16 fragsize;
+> +       /*
+> +        * Index of the slot in the SDMA completion ring
+> +        * this request should be using. User-space is
+> +        * in charge of managing its own ring.
+> +        */
+> +       __u16 comp_idx;
+> +} __attribute__((__packed__));
+> +
+> +/*
+> + * SW KDETH header.
+> + * swdata is SW defined portion.
+> + */
+> +struct hfi1_kdeth_header {
+> +       __le32 ver_tid_offset;
+> +       __le16 jkey;
+> +       __le16 hcrc;
+> +       __le32 swdata[7];
+> +}  __attribute__((__packed__));
+> +
+> +/*
+> + * Structure describing the headers that User space uses. The
+> + * structure above is a subset of this one.
+> + */
+> +struct hfi1_pkt_header {
+> +       __le16 pbc[4];
+> +       __be16 lrh[4];
+> +       __be32 bth[3];
+> +       struct hfi1_kdeth_header kdeth;
+> +}  __attribute__((__packed__));
+> +
+> +
+> +/*
+> + * The list of usermode accessible registers.
+> + */
+> +enum hfi1_ureg {
+> +       /* (RO)  DMA RcvHdr to be used next. */
+> +       ur_rcvhdrtail = 0,
+> +       /* (RW)  RcvHdr entry to be processed next by host. */
+> +       ur_rcvhdrhead = 1,
+> +       /* (RO)  Index of next Eager index to use. */
+> +       ur_rcvegrindextail = 2,
+> +       /* (RW)  Eager TID to be processed next */
+> +       ur_rcvegrindexhead = 3,
+> +       /* (RO)  Receive Eager Offset Tail */
+> +       ur_rcvegroffsettail = 4,
+> +       /* For internal use only; max register number. */
+> +       ur_maxreg,
+> +       /* (RW)  Receive TID flow table */
+> +       ur_rcvtidflowtable = 256
+> +};
+> +
+> +#endif /* _LINIUX__HFI1_USER_H */
+> diff --git a/kernel-headers/rdma/hns-abi.h b/kernel-headers/rdma/hns-abi.h
+> new file mode 100644
+> index 00000000000000..a9c03b0eed573f
+> --- /dev/null
+> +++ b/kernel-headers/rdma/hns-abi.h
+> @@ -0,0 +1,55 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/*
+> + * Copyright (c) 2016 Hisilicon Limited.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#ifndef HNS_ABI_USER_H
+> +#define HNS_ABI_USER_H
+> +
+> +#include <linux/types.h>
+> +
+> +struct hns_roce_ib_create_cq {
+> +       __u64   buf_addr;
+> +};
+> +
+> +struct hns_roce_ib_create_qp {
+> +       __u64   buf_addr;
+> +       __u64   db_addr;
+> +       __u8    log_sq_bb_count;
+> +       __u8    log_sq_stride;
+> +       __u8    sq_no_prefetch;
+> +       __u8    reserved[5];
+> +};
+> +
+> +struct hns_roce_ib_alloc_ucontext_resp {
+> +       __u32   qp_tab_size;
+> +};
+> +#endif /* HNS_ABI_USER_H */
+> diff --git a/kernel-headers/rdma/ib_user_cm.h b/kernel-headers/rdma/ib_user_cm.h
+> new file mode 100644
+> index 00000000000000..f4041bdc4d0892
+> --- /dev/null
+> +++ b/kernel-headers/rdma/ib_user_cm.h
+> @@ -0,0 +1,326 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/*
+> + * Copyright (c) 2005 Topspin Communications.  All rights reserved.
+> + * Copyright (c) 2005 Intel Corporation.  All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#ifndef IB_USER_CM_H
+> +#define IB_USER_CM_H
+> +
+> +#include <linux/types.h>
+> +#include <rdma/ib_user_sa.h>
+> +
+> +#define IB_USER_CM_ABI_VERSION 5
+> +
+> +enum {
+> +       IB_USER_CM_CMD_CREATE_ID,
+> +       IB_USER_CM_CMD_DESTROY_ID,
+> +       IB_USER_CM_CMD_ATTR_ID,
+> +
+> +       IB_USER_CM_CMD_LISTEN,
+> +       IB_USER_CM_CMD_NOTIFY,
+> +
+> +       IB_USER_CM_CMD_SEND_REQ,
+> +       IB_USER_CM_CMD_SEND_REP,
+> +       IB_USER_CM_CMD_SEND_RTU,
+> +       IB_USER_CM_CMD_SEND_DREQ,
+> +       IB_USER_CM_CMD_SEND_DREP,
+> +       IB_USER_CM_CMD_SEND_REJ,
+> +       IB_USER_CM_CMD_SEND_MRA,
+> +       IB_USER_CM_CMD_SEND_LAP,
+> +       IB_USER_CM_CMD_SEND_APR,
+> +       IB_USER_CM_CMD_SEND_SIDR_REQ,
+> +       IB_USER_CM_CMD_SEND_SIDR_REP,
+> +
+> +       IB_USER_CM_CMD_EVENT,
+> +       IB_USER_CM_CMD_INIT_QP_ATTR,
+> +};
+> +/*
+> + * command ABI structures.
+> + */
+> +struct ib_ucm_cmd_hdr {
+> +       __u32 cmd;
+> +       __u16 in;
+> +       __u16 out;
+> +};
+> +
+> +struct ib_ucm_create_id {
+> +       __u64 uid;
+> +       __u64 response;
+> +};
+> +
+> +struct ib_ucm_create_id_resp {
+> +       __u32 id;
+> +};
+> +
+> +struct ib_ucm_destroy_id {
+> +       __u64 response;
+> +       __u32 id;
+> +       __u32 reserved;
+> +};
+> +
+> +struct ib_ucm_destroy_id_resp {
+> +       __u32 events_reported;
+> +};
+> +
+> +struct ib_ucm_attr_id {
+> +       __u64 response;
+> +       __u32 id;
+> +       __u32 reserved;
+> +};
+> +
+> +struct ib_ucm_attr_id_resp {
+> +       __be64 service_id;
+> +       __be64 service_mask;
+> +       __be32 local_id;
+> +       __be32 remote_id;
+> +};
+> +
+> +struct ib_ucm_init_qp_attr {
+> +       __u64 response;
+> +       __u32 id;
+> +       __u32 qp_state;
+> +};
+> +
+> +struct ib_ucm_listen {
+> +       __be64 service_id;
+> +       __be64 service_mask;
+> +       __u32 id;
+> +       __u32 reserved;
+> +};
+> +
+> +struct ib_ucm_notify {
+> +       __u32 id;
+> +       __u32 event;
+> +};
+> +
+> +struct ib_ucm_private_data {
+> +       __u64 data;
+> +       __u32 id;
+> +       __u8  len;
+> +       __u8  reserved[3];
+> +};
+> +
+> +struct ib_ucm_req {
+> +       __u32 id;
+> +       __u32 qpn;
+> +       __u32 qp_type;
+> +       __u32 psn;
+> +       __be64 sid;
+> +       __u64 data;
+> +       __u64 primary_path;
+> +       __u64 alternate_path;
+> +       __u8  len;
+> +       __u8  peer_to_peer;
+> +       __u8  responder_resources;
+> +       __u8  initiator_depth;
+> +       __u8  remote_cm_response_timeout;
+> +       __u8  flow_control;
+> +       __u8  local_cm_response_timeout;
+> +       __u8  retry_count;
+> +       __u8  rnr_retry_count;
+> +       __u8  max_cm_retries;
+> +       __u8  srq;
+> +       __u8  reserved[5];
+> +};
+> +
+> +struct ib_ucm_rep {
+> +       __u64 uid;
+> +       __u64 data;
+> +       __u32 id;
+> +       __u32 qpn;
+> +       __u32 psn;
+> +       __u8  len;
+> +       __u8  responder_resources;
+> +       __u8  initiator_depth;
+> +       __u8  target_ack_delay;
+> +       __u8  failover_accepted;
+> +       __u8  flow_control;
+> +       __u8  rnr_retry_count;
+> +       __u8  srq;
+> +       __u8  reserved[4];
+> +};
+> +
+> +struct ib_ucm_info {
+> +       __u32 id;
+> +       __u32 status;
+> +       __u64 info;
+> +       __u64 data;
+> +       __u8  info_len;
+> +       __u8  data_len;
+> +       __u8  reserved[6];
+> +};
+> +
+> +struct ib_ucm_mra {
+> +       __u64 data;
+> +       __u32 id;
+> +       __u8  len;
+> +       __u8  timeout;
+> +       __u8  reserved[2];
+> +};
+> +
+> +struct ib_ucm_lap {
+> +       __u64 path;
+> +       __u64 data;
+> +       __u32 id;
+> +       __u8  len;
+> +       __u8  reserved[3];
+> +};
+> +
+> +struct ib_ucm_sidr_req {
+> +       __u32 id;
+> +       __u32 timeout;
+> +       __be64 sid;
+> +       __u64 data;
+> +       __u64 path;
+> +       __u16 reserved_pkey;
+> +       __u8  len;
+> +       __u8  max_cm_retries;
+> +       __u8  reserved[4];
+> +};
+> +
+> +struct ib_ucm_sidr_rep {
+> +       __u32 id;
+> +       __u32 qpn;
+> +       __u32 qkey;
+> +       __u32 status;
+> +       __u64 info;
+> +       __u64 data;
+> +       __u8  info_len;
+> +       __u8  data_len;
+> +       __u8  reserved[6];
+> +};
+> +/*
+> + * event notification ABI structures.
+> + */
+> +struct ib_ucm_event_get {
+> +       __u64 response;
+> +       __u64 data;
+> +       __u64 info;
+> +       __u8  data_len;
+> +       __u8  info_len;
+> +       __u8  reserved[6];
+> +};
+> +
+> +struct ib_ucm_req_event_resp {
+> +       struct ib_user_path_rec primary_path;
+> +       struct ib_user_path_rec alternate_path;
+> +       __be64                 remote_ca_guid;
+> +       __u32                  remote_qkey;
+> +       __u32                  remote_qpn;
+> +       __u32                  qp_type;
+> +       __u32                  starting_psn;
+> +       __u8  responder_resources;
+> +       __u8  initiator_depth;
+> +       __u8  local_cm_response_timeout;
+> +       __u8  flow_control;
+> +       __u8  remote_cm_response_timeout;
+> +       __u8  retry_count;
+> +       __u8  rnr_retry_count;
+> +       __u8  srq;
+> +       __u8  port;
+> +       __u8  reserved[7];
+> +};
+> +
+> +struct ib_ucm_rep_event_resp {
+> +       __be64 remote_ca_guid;
+> +       __u32 remote_qkey;
+> +       __u32 remote_qpn;
+> +       __u32 starting_psn;
+> +       __u8  responder_resources;
+> +       __u8  initiator_depth;
+> +       __u8  target_ack_delay;
+> +       __u8  failover_accepted;
+> +       __u8  flow_control;
+> +       __u8  rnr_retry_count;
+> +       __u8  srq;
+> +       __u8  reserved[5];
+> +};
+> +
+> +struct ib_ucm_rej_event_resp {
+> +       __u32 reason;
+> +       /* ari in ib_ucm_event_get info field. */
+> +};
+> +
+> +struct ib_ucm_mra_event_resp {
+> +       __u8  timeout;
+> +       __u8  reserved[3];
+> +};
+> +
+> +struct ib_ucm_lap_event_resp {
+> +       struct ib_user_path_rec path;
+> +};
+> +
+> +struct ib_ucm_apr_event_resp {
+> +       __u32 status;
+> +       /* apr info in ib_ucm_event_get info field. */
+> +};
+> +
+> +struct ib_ucm_sidr_req_event_resp {
+> +       __u16 pkey;
+> +       __u8  port;
+> +       __u8  reserved;
+> +};
+> +
+> +struct ib_ucm_sidr_rep_event_resp {
+> +       __u32 status;
+> +       __u32 qkey;
+> +       __u32 qpn;
+> +       /* info in ib_ucm_event_get info field. */
+> +};
+> +
+> +#define IB_UCM_PRES_DATA      0x01
+> +#define IB_UCM_PRES_INFO      0x02
+> +#define IB_UCM_PRES_PRIMARY   0x04
+> +#define IB_UCM_PRES_ALTERNATE 0x08
+> +
+> +struct ib_ucm_event_resp {
+> +       __u64 uid;
+> +       __u32 id;
+> +       __u32 event;
+> +       __u32 present;
+> +       __u32 reserved;
+> +       union {
+> +               struct ib_ucm_req_event_resp req_resp;
+> +               struct ib_ucm_rep_event_resp rep_resp;
+> +               struct ib_ucm_rej_event_resp rej_resp;
+> +               struct ib_ucm_mra_event_resp mra_resp;
+> +               struct ib_ucm_lap_event_resp lap_resp;
+> +               struct ib_ucm_apr_event_resp apr_resp;
+> +
+> +               struct ib_ucm_sidr_req_event_resp sidr_req_resp;
+> +               struct ib_ucm_sidr_rep_event_resp sidr_rep_resp;
+> +
+> +               __u32                             send_status;
+> +       } u;
+> +};
+> +
+> +#endif /* IB_USER_CM_H */
+> diff --git a/kernel-headers/rdma/ib_user_ioctl_verbs.h b/kernel-headers/rdma/ib_user_ioctl_verbs.h
+> new file mode 100644
+> index 00000000000000..842792eae38314
+> --- /dev/null
+> +++ b/kernel-headers/rdma/ib_user_ioctl_verbs.h
+> @@ -0,0 +1,84 @@
+> +/*
+> + * Copyright (c) 2017, Mellanox Technologies inc.  All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#ifndef IB_USER_IOCTL_VERBS_H
+> +#define IB_USER_IOCTL_VERBS_H
+> +
+> +#include <rdma/rdma_user_ioctl.h>
+> +
+> +#define UVERBS_UDATA_DRIVER_DATA_NS    1
+> +#define UVERBS_UDATA_DRIVER_DATA_FLAG  (1UL << UVERBS_ID_NS_SHIFT)
+> +
+> +enum uverbs_default_objects {
+> +       UVERBS_OBJECT_DEVICE, /* No instances of DEVICE are allowed */
+> +       UVERBS_OBJECT_PD,
+> +       UVERBS_OBJECT_COMP_CHANNEL,
+> +       UVERBS_OBJECT_CQ,
+> +       UVERBS_OBJECT_QP,
+> +       UVERBS_OBJECT_SRQ,
+> +       UVERBS_OBJECT_AH,
+> +       UVERBS_OBJECT_MR,
+> +       UVERBS_OBJECT_MW,
+> +       UVERBS_OBJECT_FLOW,
+> +       UVERBS_OBJECT_XRCD,
+> +       UVERBS_OBJECT_RWQ_IND_TBL,
+> +       UVERBS_OBJECT_WQ,
+> +       UVERBS_OBJECT_LAST,
+> +};
+> +
+> +enum {
+> +       UVERBS_UHW_IN = UVERBS_UDATA_DRIVER_DATA_FLAG,
+> +       UVERBS_UHW_OUT,
+> +};
+> +
+> +enum uverbs_create_cq_cmd_attr_ids {
+> +       CREATE_CQ_HANDLE,
+> +       CREATE_CQ_CQE,
+> +       CREATE_CQ_USER_HANDLE,
+> +       CREATE_CQ_COMP_CHANNEL,
+> +       CREATE_CQ_COMP_VECTOR,
+> +       CREATE_CQ_FLAGS,
+> +       CREATE_CQ_RESP_CQE,
+> +};
+> +
+> +enum uverbs_destroy_cq_cmd_attr_ids {
+> +       DESTROY_CQ_HANDLE,
+> +       DESTROY_CQ_RESP,
+> +};
+> +
+> +enum uverbs_actions_cq_ops {
+> +       UVERBS_CQ_CREATE,
+> +       UVERBS_CQ_DESTROY,
+> +};
+> +
+> +#endif
+> +
+> diff --git a/kernel-headers/rdma/ib_user_mad.h b/kernel-headers/rdma/ib_user_mad.h
+> new file mode 100644
+> index 00000000000000..330a3c5f1aa864
+> --- /dev/null
+> +++ b/kernel-headers/rdma/ib_user_mad.h
+> @@ -0,0 +1,234 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/*
+> + * Copyright (c) 2004 Topspin Communications.  All rights reserved.
+> + * Copyright (c) 2005 Voltaire, Inc. All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#ifndef IB_USER_MAD_H
+> +#define IB_USER_MAD_H
+> +
+> +#include <linux/types.h>
+> +#include <rdma/rdma_user_ioctl.h>
+> +
+> +/*
+> + * Increment this value if any changes that break userspace ABI
+> + * compatibility are made.
+> + */
+> +#define IB_USER_MAD_ABI_VERSION        5
+> +
+> +/*
+> + * Make sure that all structs defined in this file remain laid out so
+> + * that they pack the same way on 32-bit and 64-bit architectures (to
+> + * avoid incompatibility between 32-bit userspace and 64-bit kernels).
+> + */
+> +
+> +/**
+> + * ib_user_mad_hdr_old - Old version of MAD packet header without pkey_index
+> + * @id - ID of agent MAD received with/to be sent with
+> + * @status - 0 on successful receive, ETIMEDOUT if no response
+> + *   received (transaction ID in data[] will be set to TID of original
+> + *   request) (ignored on send)
+> + * @timeout_ms - Milliseconds to wait for response (unset on receive)
+> + * @retries - Number of automatic retries to attempt
+> + * @qpn - Remote QP number received from/to be sent to
+> + * @qkey - Remote Q_Key to be sent with (unset on receive)
+> + * @lid - Remote lid received from/to be sent to
+> + * @sl - Service level received with/to be sent with
+> + * @path_bits - Local path bits received with/to be sent with
+> + * @grh_present - If set, GRH was received/should be sent
+> + * @gid_index - Local GID index to send with (unset on receive)
+> + * @hop_limit - Hop limit in GRH
+> + * @traffic_class - Traffic class in GRH
+> + * @gid - Remote GID in GRH
+> + * @flow_label - Flow label in GRH
+> + */
+> +struct ib_user_mad_hdr_old {
+> +       __u32   id;
+> +       __u32   status;
+> +       __u32   timeout_ms;
+> +       __u32   retries;
+> +       __u32   length;
+> +       __be32  qpn;
+> +       __be32  qkey;
+> +       __be16  lid;
+> +       __u8    sl;
+> +       __u8    path_bits;
+> +       __u8    grh_present;
+> +       __u8    gid_index;
+> +       __u8    hop_limit;
+> +       __u8    traffic_class;
+> +       __u8    gid[16];
+> +       __be32  flow_label;
+> +};
+> +
+> +/**
+> + * ib_user_mad_hdr - MAD packet header
+> + *   This layout allows specifying/receiving the P_Key index.  To use
+> + *   this capability, an application must call the
+> + *   IB_USER_MAD_ENABLE_PKEY ioctl on the user MAD file handle before
+> + *   any other actions with the file handle.
+> + * @id - ID of agent MAD received with/to be sent with
+> + * @status - 0 on successful receive, ETIMEDOUT if no response
+> + *   received (transaction ID in data[] will be set to TID of original
+> + *   request) (ignored on send)
+> + * @timeout_ms - Milliseconds to wait for response (unset on receive)
+> + * @retries - Number of automatic retries to attempt
+> + * @qpn - Remote QP number received from/to be sent to
+> + * @qkey - Remote Q_Key to be sent with (unset on receive)
+> + * @lid - Remote lid received from/to be sent to
+> + * @sl - Service level received with/to be sent with
+> + * @path_bits - Local path bits received with/to be sent with
+> + * @grh_present - If set, GRH was received/should be sent
+> + * @gid_index - Local GID index to send with (unset on receive)
+> + * @hop_limit - Hop limit in GRH
+> + * @traffic_class - Traffic class in GRH
+> + * @gid - Remote GID in GRH
+> + * @flow_label - Flow label in GRH
+> + * @pkey_index - P_Key index
+> + */
+> +struct ib_user_mad_hdr {
+> +       __u32   id;
+> +       __u32   status;
+> +       __u32   timeout_ms;
+> +       __u32   retries;
+> +       __u32   length;
+> +       __be32  qpn;
+> +       __be32  qkey;
+> +       __be16  lid;
+> +       __u8    sl;
+> +       __u8    path_bits;
+> +       __u8    grh_present;
+> +       __u8    gid_index;
+> +       __u8    hop_limit;
+> +       __u8    traffic_class;
+> +       __u8    gid[16];
+> +       __be32  flow_label;
+> +       __u16   pkey_index;
+> +       __u8    reserved[6];
+> +};
+> +
+> +/**
+> + * ib_user_mad - MAD packet
+> + * @hdr - MAD packet header
+> + * @data - Contents of MAD
+> + *
+> + */
+> +struct ib_user_mad {
+> +       struct ib_user_mad_hdr hdr;
+> +       __u64   data[0];
+> +};
+> +
+> +/*
+> + * Earlier versions of this interface definition declared the
+> + * method_mask[] member as an array of __u32 but treated it as a
+> + * bitmap made up of longs in the kernel.  This ambiguity meant that
+> + * 32-bit big-endian applications that can run on both 32-bit and
+> + * 64-bit kernels had no consistent ABI to rely on, and 64-bit
+> + * big-endian applications that treated method_mask as being made up
+> + * of 32-bit words would have their bitmap misinterpreted.
+> + *
+> + * To clear up this confusion, we change the declaration of
+> + * method_mask[] to use unsigned long and handle the conversion from
+> + * 32-bit userspace to 64-bit kernel for big-endian systems in the
+> + * compat_ioctl method.  Unfortunately, to keep the structure layout
+> + * the same, we need the method_mask[] array to be aligned only to 4
+> + * bytes even when long is 64 bits, which forces us into this ugly
+> + * typedef.
+> + */
+> +typedef unsigned long __attribute__((aligned(4))) packed_ulong;
+> +#define IB_USER_MAD_LONGS_PER_METHOD_MASK (128 / (8 * sizeof (long)))
+> +
+> +/**
+> + * ib_user_mad_reg_req - MAD registration request
+> + * @id - Set by the kernel; used to identify agent in future requests.
+> + * @qpn - Queue pair number; must be 0 or 1.
+> + * @method_mask - The caller will receive unsolicited MADs for any method
+> + *   where @method_mask = 1.
+> + * @mgmt_class - Indicates which management class of MADs should be receive
+> + *   by the caller.  This field is only required if the user wishes to
+> + *   receive unsolicited MADs, otherwise it should be 0.
+> + * @mgmt_class_version - Indicates which version of MADs for the given
+> + *   management class to receive.
+> + * @oui: Indicates IEEE OUI when mgmt_class is a vendor class
+> + *   in the range from 0x30 to 0x4f. Otherwise not used.
+> + * @rmpp_version: If set, indicates the RMPP version used.
+> + *
+> + */
+> +struct ib_user_mad_reg_req {
+> +       __u32   id;
+> +       packed_ulong method_mask[IB_USER_MAD_LONGS_PER_METHOD_MASK];
+> +       __u8    qpn;
+> +       __u8    mgmt_class;
+> +       __u8    mgmt_class_version;
+> +       __u8    oui[3];
+> +       __u8    rmpp_version;
+> +};
+> +
+> +/**
+> + * ib_user_mad_reg_req2 - MAD registration request
+> + *
+> + * @id                 - Set by the _kernel_; used by userspace to identify the
+> + *                       registered agent in future requests.
+> + * @qpn                - Queue pair number; must be 0 or 1.
+> + * @mgmt_class         - Indicates which management class of MADs should be
+> + *                       receive by the caller.  This field is only required if
+> + *                       the user wishes to receive unsolicited MADs, otherwise
+> + *                       it should be 0.
+> + * @mgmt_class_version - Indicates which version of MADs for the given
+> + *                       management class to receive.
+> + * @res                - Ignored.
+> + * @flags              - additional registration flags; Must be in the set of
+> + *                       flags defined in IB_USER_MAD_REG_FLAGS_CAP
+> + * @method_mask        - The caller wishes to receive unsolicited MADs for the
+> + *                       methods whose bit(s) is(are) set.
+> + * @oui                - Indicates IEEE OUI to use when mgmt_class is a vendor
+> + *                       class in the range from 0x30 to 0x4f. Otherwise not
+> + *                       used.
+> + * @rmpp_version       - If set, indicates the RMPP version to use.
+> + */
+> +enum {
+> +       IB_USER_MAD_USER_RMPP = (1 << 0),
+> +};
+> +#define IB_USER_MAD_REG_FLAGS_CAP (IB_USER_MAD_USER_RMPP)
+> +struct ib_user_mad_reg_req2 {
+> +       __u32   id;
+> +       __u32   qpn;
+> +       __u8    mgmt_class;
+> +       __u8    mgmt_class_version;
+> +       __u16   res;
+> +       __u32   flags;
+> +       __u64   method_mask[2];
+> +       __u32   oui;
+> +       __u8    rmpp_version;
+> +       __u8    reserved[3];
+> +};
+> +
+> +#endif /* IB_USER_MAD_H */
+> diff --git a/kernel-headers/rdma/ib_user_sa.h b/kernel-headers/rdma/ib_user_sa.h
+> new file mode 100644
+> index 00000000000000..0d2607f0cd20c3
+> --- /dev/null
+> +++ b/kernel-headers/rdma/ib_user_sa.h
+> @@ -0,0 +1,77 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/*
+> + * Copyright (c) 2005 Intel Corporation.  All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#ifndef IB_USER_SA_H
+> +#define IB_USER_SA_H
+> +
+> +#include <linux/types.h>
+> +
+> +enum {
+> +       IB_PATH_GMP             = 1,
+> +       IB_PATH_PRIMARY         = (1<<1),
+> +       IB_PATH_ALTERNATE       = (1<<2),
+> +       IB_PATH_OUTBOUND        = (1<<3),
+> +       IB_PATH_INBOUND         = (1<<4),
+> +       IB_PATH_INBOUND_REVERSE = (1<<5),
+> +       IB_PATH_BIDIRECTIONAL   = IB_PATH_OUTBOUND | IB_PATH_INBOUND_REVERSE
+> +};
+> +
+> +struct ib_path_rec_data {
+> +       __u32   flags;
+> +       __u32   reserved;
+> +       __u32   path_rec[16];
+> +};
+> +
+> +struct ib_user_path_rec {
+> +       __u8    dgid[16];
+> +       __u8    sgid[16];
+> +       __be16  dlid;
+> +       __be16  slid;
+> +       __u32   raw_traffic;
+> +       __be32  flow_label;
+> +       __u32   reversible;
+> +       __u32   mtu;
+> +       __be16  pkey;
+> +       __u8    hop_limit;
+> +       __u8    traffic_class;
+> +       __u8    numb_path;
+> +       __u8    sl;
+> +       __u8    mtu_selector;
+> +       __u8    rate_selector;
+> +       __u8    rate;
+> +       __u8    packet_life_time_selector;
+> +       __u8    packet_life_time;
+> +       __u8    preference;
+> +};
+> +
+> +#endif /* IB_USER_SA_H */
+> diff --git a/buildlib/fixup-include/rdma-ib_user_verbs.h b/kernel-headers/rdma/ib_user_verbs.h
+> similarity index 99%
+> rename from buildlib/fixup-include/rdma-ib_user_verbs.h
+> rename to kernel-headers/rdma/ib_user_verbs.h
+> index fd035641cf41ce..04d0e67b13120c 100644
+> --- a/buildlib/fixup-include/rdma-ib_user_verbs.h
+> +++ b/kernel-headers/rdma/ib_user_verbs.h
+> @@ -402,13 +402,18 @@ struct ib_uverbs_create_cq {
+>         __u64 driver_data[0];
+>  };
+>
+> +enum ib_uverbs_ex_create_cq_flags {
+> +       IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION = 1 << 0,
+> +       IB_UVERBS_CQ_FLAGS_IGNORE_OVERRUN = 1 << 1,
+> +};
+> +
+>  struct ib_uverbs_ex_create_cq {
+>         __u64 user_handle;
+>         __u32 cqe;
+>         __u32 comp_vector;
+>         __s32 comp_channel;
+>         __u32 comp_mask;
+> -       __u32 flags;
+> +       __u32 flags;  /* bitmask of ib_uverbs_ex_create_cq_flags */
+>         __u32 reserved;
+>  };
+>
+> diff --git a/kernel-headers/rdma/mlx4-abi.h b/kernel-headers/rdma/mlx4-abi.h
+> new file mode 100644
+> index 00000000000000..7f9c37346613e0
+> --- /dev/null
+> +++ b/kernel-headers/rdma/mlx4-abi.h
+> @@ -0,0 +1,159 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/*
+> + * Copyright (c) 2007 Cisco Systems, Inc. All rights reserved.
+> + * Copyright (c) 2007, 2008 Mellanox Technologies. All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#ifndef MLX4_ABI_USER_H
+> +#define MLX4_ABI_USER_H
+> +
+> +#include <linux/types.h>
+> +
+> +/*
+> + * Increment this value if any changes that break userspace ABI
+> + * compatibility are made.
+> + */
+> +
+> +#define MLX4_IB_UVERBS_NO_DEV_CAPS_ABI_VERSION 3
+> +#define MLX4_IB_UVERBS_ABI_VERSION             4
+> +
+> +/*
+> + * Make sure that all structs defined in this file remain laid out so
+> + * that they pack the same way on 32-bit and 64-bit architectures (to
+> + * avoid incompatibility between 32-bit userspace and 64-bit kernels).
+> + * In particular do not use pointer types -- pass pointers in __u64
+> + * instead.
+> + */
+> +
+> +struct mlx4_ib_alloc_ucontext_resp_v3 {
+> +       __u32   qp_tab_size;
+> +       __u16   bf_reg_size;
+> +       __u16   bf_regs_per_page;
+> +};
+> +
+> +struct mlx4_ib_alloc_ucontext_resp {
+> +       __u32   dev_caps;
+> +       __u32   qp_tab_size;
+> +       __u16   bf_reg_size;
+> +       __u16   bf_regs_per_page;
+> +       __u32   cqe_size;
+> +};
+> +
+> +struct mlx4_ib_alloc_pd_resp {
+> +       __u32   pdn;
+> +       __u32   reserved;
+> +};
+> +
+> +struct mlx4_ib_create_cq {
+> +       __u64   buf_addr;
+> +       __u64   db_addr;
+> +};
+> +
+> +struct mlx4_ib_create_cq_resp {
+> +       __u32   cqn;
+> +       __u32   reserved;
+> +};
+> +
+> +struct mlx4_ib_resize_cq {
+> +       __u64   buf_addr;
+> +};
+> +
+> +struct mlx4_ib_create_srq {
+> +       __u64   buf_addr;
+> +       __u64   db_addr;
+> +};
+> +
+> +struct mlx4_ib_create_srq_resp {
+> +       __u32   srqn;
+> +       __u32   reserved;
+> +};
+> +
+> +struct mlx4_ib_create_qp_rss {
+> +       __u64   rx_hash_fields_mask; /* Use  enum mlx4_ib_rx_hash_fields */
+> +       __u8    rx_hash_function; /* Use enum mlx4_ib_rx_hash_function_flags */
+> +       __u8    reserved[7];
+> +       __u8    rx_hash_key[40];
+> +       __u32   comp_mask;
+> +       __u32   reserved1;
+> +};
+> +
+> +struct mlx4_ib_create_qp {
+> +       __u64   buf_addr;
+> +       __u64   db_addr;
+> +       __u8    log_sq_bb_count;
+> +       __u8    log_sq_stride;
+> +       __u8    sq_no_prefetch;
+> +       __u8    reserved;
+> +       __u32   inl_recv_sz;
+> +};
+> +
+> +struct mlx4_ib_create_wq {
+> +       __u64   buf_addr;
+> +       __u64   db_addr;
+> +       __u8    log_range_size;
+> +       __u8    reserved[3];
+> +       __u32   comp_mask;
+> +};
+> +
+> +struct mlx4_ib_modify_wq {
+> +       __u32   comp_mask;
+> +       __u32   reserved;
+> +};
+> +
+> +struct mlx4_ib_create_rwq_ind_tbl_resp {
+> +       __u32   response_length;
+> +       __u32   reserved;
+> +};
+> +
+> +/* RX Hash function flags */
+> +enum mlx4_ib_rx_hash_function_flags {
+> +       MLX4_IB_RX_HASH_FUNC_TOEPLITZ   = 1 << 0,
+> +};
+> +
+> +/*
+> + * RX Hash flags, these flags allows to set which incoming packet's field should
+> + * participates in RX Hash. Each flag represent certain packet's field,
+> + * when the flag is set the field that is represented by the flag will
+> + * participate in RX Hash calculation.
+> + */
+> +enum mlx4_ib_rx_hash_fields {
+> +       MLX4_IB_RX_HASH_SRC_IPV4        = 1 << 0,
+> +       MLX4_IB_RX_HASH_DST_IPV4        = 1 << 1,
+> +       MLX4_IB_RX_HASH_SRC_IPV6        = 1 << 2,
+> +       MLX4_IB_RX_HASH_DST_IPV6        = 1 << 3,
+> +       MLX4_IB_RX_HASH_SRC_PORT_TCP    = 1 << 4,
+> +       MLX4_IB_RX_HASH_DST_PORT_TCP    = 1 << 5,
+> +       MLX4_IB_RX_HASH_SRC_PORT_UDP    = 1 << 6,
+> +       MLX4_IB_RX_HASH_DST_PORT_UDP    = 1 << 7,
+> +       MLX4_IB_RX_HASH_INNER           = 1ULL << 31,
+> +};
+> +
+> +#endif /* MLX4_ABI_USER_H */
+> diff --git a/kernel-headers/rdma/mlx5-abi.h b/kernel-headers/rdma/mlx5-abi.h
+> new file mode 100644
+> index 00000000000000..1111aa4e7c1ed0
+> --- /dev/null
+> +++ b/kernel-headers/rdma/mlx5-abi.h
+> @@ -0,0 +1,416 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/*
+> + * Copyright (c) 2013-2015, Mellanox Technologies. All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#ifndef MLX5_ABI_USER_H
+> +#define MLX5_ABI_USER_H
+> +
+> +#include <linux/types.h>
+> +#include <linux/if_ether.h>    /* For ETH_ALEN. */
+> +
+> +enum {
+> +       MLX5_QP_FLAG_SIGNATURE          = 1 << 0,
+> +       MLX5_QP_FLAG_SCATTER_CQE        = 1 << 1,
+> +       MLX5_QP_FLAG_TUNNEL_OFFLOADS    = 1 << 2,
+> +       MLX5_QP_FLAG_BFREG_INDEX        = 1 << 3,
+> +       MLX5_QP_FLAG_TYPE_DCT           = 1 << 4,
+> +       MLX5_QP_FLAG_TYPE_DCI           = 1 << 5,
+> +};
+> +
+> +enum {
+> +       MLX5_SRQ_FLAG_SIGNATURE         = 1 << 0,
+> +};
+> +
+> +enum {
+> +       MLX5_WQ_FLAG_SIGNATURE          = 1 << 0,
+> +};
+> +
+> +/* Increment this value if any changes that break userspace ABI
+> + * compatibility are made.
+> + */
+> +#define MLX5_IB_UVERBS_ABI_VERSION     1
+> +
+> +/* Make sure that all structs defined in this file remain laid out so
+> + * that they pack the same way on 32-bit and 64-bit architectures (to
+> + * avoid incompatibility between 32-bit userspace and 64-bit kernels).
+> + * In particular do not use pointer types -- pass pointers in __u64
+> + * instead.
+> + */
+> +
+> +struct mlx5_ib_alloc_ucontext_req {
+> +       __u32   total_num_bfregs;
+> +       __u32   num_low_latency_bfregs;
+> +};
+> +
+> +enum mlx5_lib_caps {
+> +       MLX5_LIB_CAP_4K_UAR     = (__u64)1 << 0,
+> +};
+> +
+> +struct mlx5_ib_alloc_ucontext_req_v2 {
+> +       __u32   total_num_bfregs;
+> +       __u32   num_low_latency_bfregs;
+> +       __u32   flags;
+> +       __u32   comp_mask;
+> +       __u8    max_cqe_version;
+> +       __u8    reserved0;
+> +       __u16   reserved1;
+> +       __u32   reserved2;
+> +       __u64   lib_caps;
+> +};
+> +
+> +enum mlx5_ib_alloc_ucontext_resp_mask {
+> +       MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET = 1UL << 0,
+> +};
+> +
+> +enum mlx5_user_cmds_supp_uhw {
+> +       MLX5_USER_CMDS_SUPP_UHW_QUERY_DEVICE = 1 << 0,
+> +       MLX5_USER_CMDS_SUPP_UHW_CREATE_AH    = 1 << 1,
+> +};
+> +
+> +/* The eth_min_inline response value is set to off-by-one vs the FW
+> + * returned value to allow user-space to deal with older kernels.
+> + */
+> +enum mlx5_user_inline_mode {
+> +       MLX5_USER_INLINE_MODE_NA,
+> +       MLX5_USER_INLINE_MODE_NONE,
+> +       MLX5_USER_INLINE_MODE_L2,
+> +       MLX5_USER_INLINE_MODE_IP,
+> +       MLX5_USER_INLINE_MODE_TCP_UDP,
+> +};
+> +
+> +struct mlx5_ib_alloc_ucontext_resp {
+> +       __u32   qp_tab_size;
+> +       __u32   bf_reg_size;
+> +       __u32   tot_bfregs;
+> +       __u32   cache_line_size;
+> +       __u16   max_sq_desc_sz;
+> +       __u16   max_rq_desc_sz;
+> +       __u32   max_send_wqebb;
+> +       __u32   max_recv_wr;
+> +       __u32   max_srq_recv_wr;
+> +       __u16   num_ports;
+> +       __u16   reserved1;
+> +       __u32   comp_mask;
+> +       __u32   response_length;
+> +       __u8    cqe_version;
+> +       __u8    cmds_supp_uhw;
+> +       __u8    eth_min_inline;
+> +       __u8    clock_info_versions;
+> +       __u64   hca_core_clock_offset;
+> +       __u32   log_uar_size;
+> +       __u32   num_uars_per_page;
+> +       __u32   num_dyn_bfregs;
+> +       __u32   reserved3;
+> +};
+> +
+> +struct mlx5_ib_alloc_pd_resp {
+> +       __u32   pdn;
+> +};
+> +
+> +struct mlx5_ib_tso_caps {
+> +       __u32 max_tso; /* Maximum tso payload size in bytes */
+> +
+> +       /* Corresponding bit will be set if qp type from
+> +        * 'enum ib_qp_type' is supported, e.g.
+> +        * supported_qpts |= 1 << IB_QPT_UD
+> +        */
+> +       __u32 supported_qpts;
+> +};
+> +
+> +struct mlx5_ib_rss_caps {
+> +       __u64 rx_hash_fields_mask; /* enum mlx5_rx_hash_fields */
+> +       __u8 rx_hash_function; /* enum mlx5_rx_hash_function_flags */
+> +       __u8 reserved[7];
+> +};
+> +
+> +enum mlx5_ib_cqe_comp_res_format {
+> +       MLX5_IB_CQE_RES_FORMAT_HASH     = 1 << 0,
+> +       MLX5_IB_CQE_RES_FORMAT_CSUM     = 1 << 1,
+> +       MLX5_IB_CQE_RES_RESERVED        = 1 << 2,
+> +};
+> +
+> +struct mlx5_ib_cqe_comp_caps {
+> +       __u32 max_num;
+> +       __u32 supported_format; /* enum mlx5_ib_cqe_comp_res_format */
+> +};
+> +
+> +struct mlx5_packet_pacing_caps {
+> +       __u32 qp_rate_limit_min;
+> +       __u32 qp_rate_limit_max; /* In kpbs */
+> +
+> +       /* Corresponding bit will be set if qp type from
+> +        * 'enum ib_qp_type' is supported, e.g.
+> +        * supported_qpts |= 1 << IB_QPT_RAW_PACKET
+> +        */
+> +       __u32 supported_qpts;
+> +       __u32 reserved;
+> +};
+> +
+> +enum mlx5_ib_mpw_caps {
+> +       MPW_RESERVED            = 1 << 0,
+> +       MLX5_IB_ALLOW_MPW       = 1 << 1,
+> +       MLX5_IB_SUPPORT_EMPW    = 1 << 2,
+> +};
+> +
+> +enum mlx5_ib_sw_parsing_offloads {
+> +       MLX5_IB_SW_PARSING = 1 << 0,
+> +       MLX5_IB_SW_PARSING_CSUM = 1 << 1,
+> +       MLX5_IB_SW_PARSING_LSO = 1 << 2,
+> +};
+> +
+> +struct mlx5_ib_sw_parsing_caps {
+> +       __u32 sw_parsing_offloads; /* enum mlx5_ib_sw_parsing_offloads */
+> +
+> +       /* Corresponding bit will be set if qp type from
+> +        * 'enum ib_qp_type' is supported, e.g.
+> +        * supported_qpts |= 1 << IB_QPT_RAW_PACKET
+> +        */
+> +       __u32 supported_qpts;
+> +};
+> +
+> +struct mlx5_ib_striding_rq_caps {
+> +       __u32 min_single_stride_log_num_of_bytes;
+> +       __u32 max_single_stride_log_num_of_bytes;
+> +       __u32 min_single_wqe_log_num_of_strides;
+> +       __u32 max_single_wqe_log_num_of_strides;
+> +
+> +       /* Corresponding bit will be set if qp type from
+> +        * 'enum ib_qp_type' is supported, e.g.
+> +        * supported_qpts |= 1 << IB_QPT_RAW_PACKET
+> +        */
+> +       __u32 supported_qpts;
+> +       __u32 reserved;
+> +};
+> +
+> +enum mlx5_ib_query_dev_resp_flags {
+> +       /* Support 128B CQE compression */
+> +       MLX5_IB_QUERY_DEV_RESP_FLAGS_CQE_128B_COMP = 1 << 0,
+> +       MLX5_IB_QUERY_DEV_RESP_FLAGS_CQE_128B_PAD  = 1 << 1,
+> +};
+> +
+> +enum mlx5_ib_tunnel_offloads {
+> +       MLX5_IB_TUNNELED_OFFLOADS_VXLAN  = 1 << 0,
+> +       MLX5_IB_TUNNELED_OFFLOADS_GRE    = 1 << 1,
+> +       MLX5_IB_TUNNELED_OFFLOADS_GENEVE = 1 << 2
+> +};
+> +
+> +struct mlx5_ib_query_device_resp {
+> +       __u32   comp_mask;
+> +       __u32   response_length;
+> +       struct  mlx5_ib_tso_caps tso_caps;
+> +       struct  mlx5_ib_rss_caps rss_caps;
+> +       struct  mlx5_ib_cqe_comp_caps cqe_comp_caps;
+> +       struct  mlx5_packet_pacing_caps packet_pacing_caps;
+> +       __u32   mlx5_ib_support_multi_pkt_send_wqes;
+> +       __u32   flags; /* Use enum mlx5_ib_query_dev_resp_flags */
+> +       struct mlx5_ib_sw_parsing_caps sw_parsing_caps;
+> +       struct mlx5_ib_striding_rq_caps striding_rq_caps;
+> +       __u32   tunnel_offloads_caps; /* enum mlx5_ib_tunnel_offloads */
+> +       __u32   reserved;
+> +};
+> +
+> +enum mlx5_ib_create_cq_flags {
+> +       MLX5_IB_CREATE_CQ_FLAGS_CQE_128B_PAD    = 1 << 0,
+> +};
+> +
+> +struct mlx5_ib_create_cq {
+> +       __u64   buf_addr;
+> +       __u64   db_addr;
+> +       __u32   cqe_size;
+> +       __u8    cqe_comp_en;
+> +       __u8    cqe_comp_res_format;
+> +       __u16   flags;
+> +};
+> +
+> +struct mlx5_ib_create_cq_resp {
+> +       __u32   cqn;
+> +       __u32   reserved;
+> +};
+> +
+> +struct mlx5_ib_resize_cq {
+> +       __u64   buf_addr;
+> +       __u16   cqe_size;
+> +       __u16   reserved0;
+> +       __u32   reserved1;
+> +};
+> +
+> +struct mlx5_ib_create_srq {
+> +       __u64   buf_addr;
+> +       __u64   db_addr;
+> +       __u32   flags;
+> +       __u32   reserved0; /* explicit padding (optional on i386) */
+> +       __u32   uidx;
+> +       __u32   reserved1;
+> +};
+> +
+> +struct mlx5_ib_create_srq_resp {
+> +       __u32   srqn;
+> +       __u32   reserved;
+> +};
+> +
+> +struct mlx5_ib_create_qp {
+> +       __u64   buf_addr;
+> +       __u64   db_addr;
+> +       __u32   sq_wqe_count;
+> +       __u32   rq_wqe_count;
+> +       __u32   rq_wqe_shift;
+> +       __u32   flags;
+> +       __u32   uidx;
+> +       __u32   bfreg_index;
+> +       union {
+> +               __u64   sq_buf_addr;
+> +               __u64   access_key;
+> +       };
+> +};
+> +
+> +/* RX Hash function flags */
+> +enum mlx5_rx_hash_function_flags {
+> +       MLX5_RX_HASH_FUNC_TOEPLITZ      = 1 << 0,
+> +};
+> +
+> +/*
+> + * RX Hash flags, these flags allows to set which incoming packet's field should
+> + * participates in RX Hash. Each flag represent certain packet's field,
+> + * when the flag is set the field that is represented by the flag will
+> + * participate in RX Hash calculation.
+> + * Note: *IPV4 and *IPV6 flags can't be enabled together on the same QP
+> + * and *TCP and *UDP flags can't be enabled together on the same QP.
+> +*/
+> +enum mlx5_rx_hash_fields {
+> +       MLX5_RX_HASH_SRC_IPV4   = 1 << 0,
+> +       MLX5_RX_HASH_DST_IPV4   = 1 << 1,
+> +       MLX5_RX_HASH_SRC_IPV6   = 1 << 2,
+> +       MLX5_RX_HASH_DST_IPV6   = 1 << 3,
+> +       MLX5_RX_HASH_SRC_PORT_TCP       = 1 << 4,
+> +       MLX5_RX_HASH_DST_PORT_TCP       = 1 << 5,
+> +       MLX5_RX_HASH_SRC_PORT_UDP       = 1 << 6,
+> +       MLX5_RX_HASH_DST_PORT_UDP       = 1 << 7,
+> +       /* Save bits for future fields */
+> +       MLX5_RX_HASH_INNER              = (1UL << 31),
+> +};
+> +
+> +struct mlx5_ib_create_qp_rss {
+> +       __u64 rx_hash_fields_mask; /* enum mlx5_rx_hash_fields */
+> +       __u8 rx_hash_function; /* enum mlx5_rx_hash_function_flags */
+> +       __u8 rx_key_len; /* valid only for Toeplitz */
+> +       __u8 reserved[6];
+> +       __u8 rx_hash_key[128]; /* valid only for Toeplitz */
+> +       __u32   comp_mask;
+> +       __u32   flags;
+> +};
+> +
+> +struct mlx5_ib_create_qp_resp {
+> +       __u32   bfreg_index;
+> +};
+> +
+> +struct mlx5_ib_alloc_mw {
+> +       __u32   comp_mask;
+> +       __u8    num_klms;
+> +       __u8    reserved1;
+> +       __u16   reserved2;
+> +};
+> +
+> +enum mlx5_ib_create_wq_mask {
+> +       MLX5_IB_CREATE_WQ_STRIDING_RQ   = (1 << 0),
+> +};
+> +
+> +struct mlx5_ib_create_wq {
+> +       __u64   buf_addr;
+> +       __u64   db_addr;
+> +       __u32   rq_wqe_count;
+> +       __u32   rq_wqe_shift;
+> +       __u32   user_index;
+> +       __u32   flags;
+> +       __u32   comp_mask;
+> +       __u32   single_stride_log_num_of_bytes;
+> +       __u32   single_wqe_log_num_of_strides;
+> +       __u32   two_byte_shift_en;
+> +};
+> +
+> +struct mlx5_ib_create_ah_resp {
+> +       __u32   response_length;
+> +       __u8    dmac[ETH_ALEN];
+> +       __u8    reserved[6];
+> +};
+> +
+> +struct mlx5_ib_modify_qp_resp {
+> +       __u32   response_length;
+> +       __u32   dctn;
+> +};
+> +
+> +struct mlx5_ib_create_wq_resp {
+> +       __u32   response_length;
+> +       __u32   reserved;
+> +};
+> +
+> +struct mlx5_ib_create_rwq_ind_tbl_resp {
+> +       __u32   response_length;
+> +       __u32   reserved;
+> +};
+> +
+> +struct mlx5_ib_modify_wq {
+> +       __u32   comp_mask;
+> +       __u32   reserved;
+> +};
+> +
+> +struct mlx5_ib_clock_info {
+> +       __u32 sign;
+> +       __u32 resv;
+> +       __u64 nsec;
+> +       __u64 cycles;
+> +       __u64 frac;
+> +       __u32 mult;
+> +       __u32 shift;
+> +       __u64 mask;
+> +       __u64 overflow_period;
+> +};
+> +
+> +enum mlx5_ib_mmap_cmd {
+> +       MLX5_IB_MMAP_REGULAR_PAGE               = 0,
+> +       MLX5_IB_MMAP_GET_CONTIGUOUS_PAGES       = 1,
+> +       MLX5_IB_MMAP_WC_PAGE                    = 2,
+> +       MLX5_IB_MMAP_NC_PAGE                    = 3,
+> +       /* 5 is chosen in order to be compatible with old versions of libmlx5 */
+> +       MLX5_IB_MMAP_CORE_CLOCK                 = 5,
+> +       MLX5_IB_MMAP_ALLOC_WC                   = 6,
+> +       MLX5_IB_MMAP_CLOCK_INFO                 = 7,
+> +};
+> +
+> +enum {
+> +       MLX5_IB_CLOCK_INFO_KERNEL_UPDATING = 1,
+> +};
+> +
+> +/* Bit indexes for the mlx5_alloc_ucontext_resp.clock_info_versions bitmap */
+> +enum {
+> +       MLX5_IB_CLOCK_INFO_V1              = 0,
+> +};
+> +#endif /* MLX5_ABI_USER_H */
+> diff --git a/kernel-headers/rdma/mthca-abi.h b/kernel-headers/rdma/mthca-abi.h
+> new file mode 100644
+> index 00000000000000..3020d8a907a74f
+> --- /dev/null
+> +++ b/kernel-headers/rdma/mthca-abi.h
+> @@ -0,0 +1,112 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/*
+> + * Copyright (c) 2005 Topspin Communications.  All rights reserved.
+> + * Copyright (c) 2005, 2006 Cisco Systems.  All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#ifndef MTHCA_ABI_USER_H
+> +#define MTHCA_ABI_USER_H
+> +
+> +#include <linux/types.h>
+> +
+> +/*
+> + * Increment this value if any changes that break userspace ABI
+> + * compatibility are made.
+> + */
+> +#define MTHCA_UVERBS_ABI_VERSION       1
+> +
+> +/*
+> + * Make sure that all structs defined in this file remain laid out so
+> + * that they pack the same way on 32-bit and 64-bit architectures (to
+> + * avoid incompatibility between 32-bit userspace and 64-bit kernels).
+> + * In particular do not use pointer types -- pass pointers in __u64
+> + * instead.
+> + */
+> +struct mthca_alloc_ucontext_resp {
+> +       __u32 qp_tab_size;
+> +       __u32 uarc_size;
+> +};
+> +
+> +struct mthca_alloc_pd_resp {
+> +       __u32 pdn;
+> +       __u32 reserved;
+> +};
+> +
+> +/*
+> + * Mark the memory region with a DMA attribute that causes
+> + * in-flight DMA to be flushed when the region is written to:
+> + */
+> +#define MTHCA_MR_DMASYNC       0x1
+> +
+> +struct mthca_reg_mr {
+> +       __u32 mr_attrs;
+> +       __u32 reserved;
+> +};
+> +
+> +struct mthca_create_cq {
+> +       __u32 lkey;
+> +       __u32 pdn;
+> +       __u64 arm_db_page;
+> +       __u64 set_db_page;
+> +       __u32 arm_db_index;
+> +       __u32 set_db_index;
+> +};
+> +
+> +struct mthca_create_cq_resp {
+> +       __u32 cqn;
+> +       __u32 reserved;
+> +};
+> +
+> +struct mthca_resize_cq {
+> +       __u32 lkey;
+> +       __u32 reserved;
+> +};
+> +
+> +struct mthca_create_srq {
+> +       __u32 lkey;
+> +       __u32 db_index;
+> +       __u64 db_page;
+> +};
+> +
+> +struct mthca_create_srq_resp {
+> +       __u32 srqn;
+> +       __u32 reserved;
+> +};
+> +
+> +struct mthca_create_qp {
+> +       __u32 lkey;
+> +       __u32 reserved;
+> +       __u64 sq_db_page;
+> +       __u64 rq_db_page;
+> +       __u32 sq_db_index;
+> +       __u32 rq_db_index;
+> +};
+> +#endif /* MTHCA_ABI_USER_H */
+> diff --git a/kernel-headers/rdma/nes-abi.h b/kernel-headers/rdma/nes-abi.h
+> new file mode 100644
+> index 00000000000000..f5b2437aab2884
+> --- /dev/null
+> +++ b/kernel-headers/rdma/nes-abi.h
+> @@ -0,0 +1,115 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/*
+> + * Copyright (c) 2006 - 2011 Intel Corporation.  All rights reserved.
+> + * Copyright (c) 2005 Topspin Communications.  All rights reserved.
+> + * Copyright (c) 2005 Cisco Systems.  All rights reserved.
+> + * Copyright (c) 2005 Open Grid Computing, Inc. All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + *
+> + */
+> +
+> +#ifndef NES_ABI_USER_H
+> +#define NES_ABI_USER_H
+> +
+> +#include <linux/types.h>
+> +
+> +#define NES_ABI_USERSPACE_VER 2
+> +#define NES_ABI_KERNEL_VER    2
+> +
+> +/*
+> + * Make sure that all structs defined in this file remain laid out so
+> + * that they pack the same way on 32-bit and 64-bit architectures (to
+> + * avoid incompatibility between 32-bit userspace and 64-bit kernels).
+> + * In particular do not use pointer types -- pass pointers in __u64
+> + * instead.
+> + */
+> +
+> +struct nes_alloc_ucontext_req {
+> +       __u32 reserved32;
+> +       __u8  userspace_ver;
+> +       __u8  reserved8[3];
+> +};
+> +
+> +struct nes_alloc_ucontext_resp {
+> +       __u32 max_pds; /* maximum pds allowed for this user process */
+> +       __u32 max_qps; /* maximum qps allowed for this user process */
+> +       __u32 wq_size; /* size of the WQs (sq+rq) allocated to the mmaped area */
+> +       __u8  virtwq;  /* flag to indicate if virtual WQ are to be used or not */
+> +       __u8  kernel_ver;
+> +       __u8  reserved[2];
+> +};
+> +
+> +struct nes_alloc_pd_resp {
+> +       __u32 pd_id;
+> +       __u32 mmap_db_index;
+> +};
+> +
+> +struct nes_create_cq_req {
+> +       __u64 user_cq_buffer;
+> +       __u32 mcrqf;
+> +       __u8 reserved[4];
+> +};
+> +
+> +struct nes_create_qp_req {
+> +       __u64 user_wqe_buffers;
+> +       __u64 user_qp_buffer;
+> +};
+> +
+> +enum iwnes_memreg_type {
+> +       IWNES_MEMREG_TYPE_MEM = 0x0000,
+> +       IWNES_MEMREG_TYPE_QP = 0x0001,
+> +       IWNES_MEMREG_TYPE_CQ = 0x0002,
+> +       IWNES_MEMREG_TYPE_MW = 0x0003,
+> +       IWNES_MEMREG_TYPE_FMR = 0x0004,
+> +       IWNES_MEMREG_TYPE_FMEM = 0x0005,
+> +};
+> +
+> +struct nes_mem_reg_req {
+> +       __u32 reg_type; /* indicates if id is memory, QP or CQ */
+> +       __u32 reserved;
+> +};
+> +
+> +struct nes_create_cq_resp {
+> +       __u32 cq_id;
+> +       __u32 cq_size;
+> +       __u32 mmap_db_index;
+> +       __u32 reserved;
+> +};
+> +
+> +struct nes_create_qp_resp {
+> +       __u32 qp_id;
+> +       __u32 actual_sq_size;
+> +       __u32 actual_rq_size;
+> +       __u32 mmap_sq_db_index;
+> +       __u32 mmap_rq_db_index;
+> +       __u32 nes_drv_opt;
+> +};
+> +
+> +#endif /* NES_ABI_USER_H */
+> diff --git a/kernel-headers/rdma/ocrdma-abi.h b/kernel-headers/rdma/ocrdma-abi.h
+> new file mode 100644
+> index 00000000000000..e0475d59cdf00d
+> --- /dev/null
+> +++ b/kernel-headers/rdma/ocrdma-abi.h
+> @@ -0,0 +1,152 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/* This file is part of the Emulex RoCE Device Driver for
+> + * RoCE (RDMA over Converged Ethernet) adapters.
+> + * Copyright (C) 2012-2015 Emulex. All rights reserved.
+> + * EMULEX and SLI are trademarks of Emulex.
+> + * www.emulex.com
+> + *
+> + * This software is available to you under a choice of one of two licenses.
+> + * You may choose to be licensed under the terms of the GNU General Public
+> + * License (GPL) Version 2, available from the file COPYING in the main
+> + * directory of this source tree, or the BSD license below:
+> + *
+> + * Redistribution and use in source and binary forms, with or without
+> + * modification, are permitted provided that the following conditions
+> + * are met:
+> + *
+> + * - Redistributions of source code must retain the above copyright notice,
+> + *   this list of conditions and the following disclaimer.
+> + *
+> + * - Redistributions in binary form must reproduce the above copyright
+> + *   notice, this list of conditions and the following disclaimer in
+> + *   the documentation and/or other materials provided with the distribution.
+> + *
+> + * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+> + * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,THE
+> + * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+> + * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+> + * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+> + * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+> + * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+> + * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+> + * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+> + * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+> + * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * Contact Information:
+> + * linux-drivers-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
+> + *
+> + * Emulex
+> + * 3333 Susan Street
+> + * Costa Mesa, CA 92626
+> + */
+> +
+> +#ifndef OCRDMA_ABI_USER_H
+> +#define OCRDMA_ABI_USER_H
+> +
+> +#include <linux/types.h>
+> +
+> +#define OCRDMA_ABI_VERSION 2
+> +#define OCRDMA_BE_ROCE_ABI_VERSION 1
+> +/* user kernel communication data structures. */
+> +
+> +struct ocrdma_alloc_ucontext_resp {
+> +       __u32 dev_id;
+> +       __u32 wqe_size;
+> +       __u32 max_inline_data;
+> +       __u32 dpp_wqe_size;
+> +       __u64 ah_tbl_page;
+> +       __u32 ah_tbl_len;
+> +       __u32 rqe_size;
+> +       __u8 fw_ver[32];
+> +       /* for future use/new features in progress */
+> +       __u64 rsvd1;
+> +       __u64 rsvd2;
+> +};
+> +
+> +struct ocrdma_alloc_pd_ureq {
+> +       __u64 rsvd1;
+> +};
+> +
+> +struct ocrdma_alloc_pd_uresp {
+> +       __u32 id;
+> +       __u32 dpp_enabled;
+> +       __u32 dpp_page_addr_hi;
+> +       __u32 dpp_page_addr_lo;
+> +       __u64 rsvd1;
+> +};
+> +
+> +struct ocrdma_create_cq_ureq {
+> +       __u32 dpp_cq;
+> +       __u32 rsvd; /* pad */
+> +};
+> +
+> +#define MAX_CQ_PAGES 8
+> +struct ocrdma_create_cq_uresp {
+> +       __u32 cq_id;
+> +       __u32 page_size;
+> +       __u32 num_pages;
+> +       __u32 max_hw_cqe;
+> +       __u64 page_addr[MAX_CQ_PAGES];
+> +       __u64 db_page_addr;
+> +       __u32 db_page_size;
+> +       __u32 phase_change;
+> +       /* for future use/new features in progress */
+> +       __u64 rsvd1;
+> +       __u64 rsvd2;
+> +};
+> +
+> +#define MAX_QP_PAGES 8
+> +#define MAX_UD_AV_PAGES 8
+> +
+> +struct ocrdma_create_qp_ureq {
+> +       __u8 enable_dpp_cq;
+> +       __u8 rsvd;
+> +       __u16 dpp_cq_id;
+> +       __u32 rsvd1;    /* pad */
+> +};
+> +
+> +struct ocrdma_create_qp_uresp {
+> +       __u16 qp_id;
+> +       __u16 sq_dbid;
+> +       __u16 rq_dbid;
+> +       __u16 resv0;    /* pad */
+> +       __u32 sq_page_size;
+> +       __u32 rq_page_size;
+> +       __u32 num_sq_pages;
+> +       __u32 num_rq_pages;
+> +       __u64 sq_page_addr[MAX_QP_PAGES];
+> +       __u64 rq_page_addr[MAX_QP_PAGES];
+> +       __u64 db_page_addr;
+> +       __u32 db_page_size;
+> +       __u32 dpp_credit;
+> +       __u32 dpp_offset;
+> +       __u32 num_wqe_allocated;
+> +       __u32 num_rqe_allocated;
+> +       __u32 db_sq_offset;
+> +       __u32 db_rq_offset;
+> +       __u32 db_shift;
+> +       __u64 rsvd[11];
+> +};
+> +
+> +struct ocrdma_create_srq_uresp {
+> +       __u16 rq_dbid;
+> +       __u16 resv0;    /* pad */
+> +       __u32 resv1;
+> +
+> +       __u32 rq_page_size;
+> +       __u32 num_rq_pages;
+> +
+> +       __u64 rq_page_addr[MAX_QP_PAGES];
+> +       __u64 db_page_addr;
+> +
+> +       __u32 db_page_size;
+> +       __u32 num_rqe_allocated;
+> +       __u32 db_rq_offset;
+> +       __u32 db_shift;
+> +
+> +       __u64 rsvd2;
+> +       __u64 rsvd3;
+> +};
+> +
+> +#endif /* OCRDMA_ABI_USER_H */
+> diff --git a/kernel-headers/rdma/qedr-abi.h b/kernel-headers/rdma/qedr-abi.h
+> new file mode 100644
+> index 00000000000000..261c6db4623e28
+> --- /dev/null
+> +++ b/kernel-headers/rdma/qedr-abi.h
+> @@ -0,0 +1,110 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/* QLogic qedr NIC Driver
+> + * Copyright (c) 2015-2016  QLogic Corporation
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and /or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +#ifndef __QEDR_USER_H__
+> +#define __QEDR_USER_H__
+> +
+> +#include <linux/types.h>
+> +
+> +#define QEDR_ABI_VERSION               (8)
+> +
+> +/* user kernel communication data structures. */
+> +
+> +struct qedr_alloc_ucontext_resp {
+> +       __u64 db_pa;
+> +       __u32 db_size;
+> +
+> +       __u32 max_send_wr;
+> +       __u32 max_recv_wr;
+> +       __u32 max_srq_wr;
+> +       __u32 sges_per_send_wr;
+> +       __u32 sges_per_recv_wr;
+> +       __u32 sges_per_srq_wr;
+> +       __u32 max_cqes;
+> +       __u8 dpm_enabled;
+> +       __u8 wids_enabled;
+> +       __u16 wid_count;
+> +};
+> +
+> +struct qedr_alloc_pd_ureq {
+> +       __u64 rsvd1;
+> +};
+> +
+> +struct qedr_alloc_pd_uresp {
+> +       __u32 pd_id;
+> +};
+> +
+> +struct qedr_create_cq_ureq {
+> +       __u64 addr;
+> +       __u64 len;
+> +};
+> +
+> +struct qedr_create_cq_uresp {
+> +       __u32 db_offset;
+> +       __u16 icid;
+> +};
+> +
+> +struct qedr_create_qp_ureq {
+> +       __u32 qp_handle_hi;
+> +       __u32 qp_handle_lo;
+> +
+> +       /* SQ */
+> +       /* user space virtual address of SQ buffer */
+> +       __u64 sq_addr;
+> +
+> +       /* length of SQ buffer */
+> +       __u64 sq_len;
+> +
+> +       /* RQ */
+> +       /* user space virtual address of RQ buffer */
+> +       __u64 rq_addr;
+> +
+> +       /* length of RQ buffer */
+> +       __u64 rq_len;
+> +};
+> +
+> +struct qedr_create_qp_uresp {
+> +       __u32 qp_id;
+> +       __u32 atomic_supported;
+> +
+> +       /* SQ */
+> +       __u32 sq_db_offset;
+> +       __u16 sq_icid;
+> +
+> +       /* RQ */
+> +       __u32 rq_db_offset;
+> +       __u16 rq_icid;
+> +
+> +       __u32 rq_db2_offset;
+> +};
+> +
+> +#endif /* __QEDR_USER_H__ */
+> diff --git a/buildlib/fixup-include/rdma-rdma_netlink.h b/kernel-headers/rdma/rdma_netlink.h
+> similarity index 59%
+> rename from buildlib/fixup-include/rdma-rdma_netlink.h
+> rename to kernel-headers/rdma/rdma_netlink.h
+> index 02fe8390c18f6d..17e59bec169ec0 100644
+> --- a/buildlib/fixup-include/rdma-rdma_netlink.h
+> +++ b/kernel-headers/rdma/rdma_netlink.h
+> @@ -1,3 +1,4 @@
+> +/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+>  #ifndef _UAPI_RDMA_NETLINK_H
+>  #define _UAPI_RDMA_NETLINK_H
+>
+> @@ -8,7 +9,7 @@ enum {
+>         RDMA_NL_IWCM,
+>         RDMA_NL_RSVD,
+>         RDMA_NL_LS,     /* RDMA Local Services */
+> -       RDMA_NL_I40IW,
+> +       RDMA_NL_NLDEV,  /* RDMA device interface */
+>         RDMA_NL_NUM_CLIENTS
+>  };
+>
+> @@ -222,4 +223,135 @@ struct rdma_nla_ls_gid {
+>         __u8            gid[16];
+>  };
+>
+> +enum rdma_nldev_command {
+> +       RDMA_NLDEV_CMD_UNSPEC,
+> +
+> +       RDMA_NLDEV_CMD_GET, /* can dump */
+> +       RDMA_NLDEV_CMD_SET,
+> +       RDMA_NLDEV_CMD_NEW,
+> +       RDMA_NLDEV_CMD_DEL,
+> +
+> +       RDMA_NLDEV_CMD_PORT_GET, /* can dump */
+> +       RDMA_NLDEV_CMD_PORT_SET,
+> +       RDMA_NLDEV_CMD_PORT_NEW,
+> +       RDMA_NLDEV_CMD_PORT_DEL,
+> +
+> +       RDMA_NLDEV_CMD_RES_GET, /* can dump */
+> +
+> +       RDMA_NLDEV_CMD_RES_QP_GET, /* can dump */
+> +
+> +       RDMA_NLDEV_NUM_OPS
+> +};
+> +
+> +enum rdma_nldev_attr {
+> +       /* don't change the order or add anything between, this is ABI! */
+> +       RDMA_NLDEV_ATTR_UNSPEC,
+> +
+> +       /* Identifier for ib_device */
+> +       RDMA_NLDEV_ATTR_DEV_INDEX,              /* u32 */
+> +
+> +       RDMA_NLDEV_ATTR_DEV_NAME,               /* string */
+> +       /*
+> +        * Device index together with port index are identifiers
+> +        * for port/link properties.
+> +        *
+> +        * For RDMA_NLDEV_CMD_GET commamnd, port index will return number
+> +        * of available ports in ib_device, while for port specific operations,
+> +        * it will be real port index as it appears in sysfs. Port index follows
+> +        * sysfs notation and starts from 1 for the first port.
+> +        */
+> +       RDMA_NLDEV_ATTR_PORT_INDEX,             /* u32 */
+> +
+> +       /*
+> +        * Device and port capabilities
+> +        */
+> +       RDMA_NLDEV_ATTR_CAP_FLAGS,              /* u64 */
+> +
+> +       /*
+> +        * FW version
+> +        */
+> +       RDMA_NLDEV_ATTR_FW_VERSION,             /* string */
+> +
+> +       /*
+> +        * Node GUID (in host byte order) associated with the RDMA device.
+> +        */
+> +       RDMA_NLDEV_ATTR_NODE_GUID,                      /* u64 */
+> +
+> +       /*
+> +        * System image GUID (in host byte order) associated with
+> +        * this RDMA device and other devices which are part of a
+> +        * single system.
+> +        */
+> +       RDMA_NLDEV_ATTR_SYS_IMAGE_GUID,         /* u64 */
+> +
+> +       /*
+> +        * Subnet prefix (in host byte order)
+> +        */
+> +       RDMA_NLDEV_ATTR_SUBNET_PREFIX,          /* u64 */
+> +
+> +       /*
+> +        * Local Identifier (LID),
+> +        * According to IB specification, It is 16-bit address assigned
+> +        * by the Subnet Manager. Extended to be 32-bit for OmniPath users.
+> +        */
+> +       RDMA_NLDEV_ATTR_LID,                    /* u32 */
+> +       RDMA_NLDEV_ATTR_SM_LID,                 /* u32 */
+> +
+> +       /*
+> +        * LID mask control (LMC)
+> +        */
+> +       RDMA_NLDEV_ATTR_LMC,                    /* u8 */
+> +
+> +       RDMA_NLDEV_ATTR_PORT_STATE,             /* u8 */
+> +       RDMA_NLDEV_ATTR_PORT_PHYS_STATE,        /* u8 */
+> +
+> +       RDMA_NLDEV_ATTR_DEV_NODE_TYPE,          /* u8 */
+> +
+> +       RDMA_NLDEV_ATTR_RES_SUMMARY,            /* nested table */
+> +       RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY,      /* nested table */
+> +       RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_NAME, /* string */
+> +       RDMA_NLDEV_ATTR_RES_SUMMARY_ENTRY_CURR, /* u64 */
+> +
+> +       RDMA_NLDEV_ATTR_RES_QP,                 /* nested table */
+> +       RDMA_NLDEV_ATTR_RES_QP_ENTRY,           /* nested table */
+> +       /*
+> +        * Local QPN
+> +        */
+> +       RDMA_NLDEV_ATTR_RES_LQPN,               /* u32 */
+> +       /*
+> +        * Remote QPN,
+> +        * Applicable for RC and UC only IBTA 11.2.5.3 QUERY QUEUE PAIR
+> +        */
+> +       RDMA_NLDEV_ATTR_RES_RQPN,               /* u32 */
+> +       /*
+> +        * Receive Queue PSN,
+> +        * Applicable for RC and UC only 11.2.5.3 QUERY QUEUE PAIR
+> +        */
+> +       RDMA_NLDEV_ATTR_RES_RQ_PSN,             /* u32 */
+> +       /*
+> +        * Send Queue PSN
+> +        */
+> +       RDMA_NLDEV_ATTR_RES_SQ_PSN,             /* u32 */
+> +       RDMA_NLDEV_ATTR_RES_PATH_MIG_STATE,     /* u8 */
+> +       /*
+> +        * QP types as visible to RDMA/core, the reserved QPT
+> +        * are not exported through this interface.
+> +        */
+> +       RDMA_NLDEV_ATTR_RES_TYPE,               /* u8 */
+> +       RDMA_NLDEV_ATTR_RES_STATE,              /* u8 */
+> +       /*
+> +        * Process ID which created object,
+> +        * in case of kernel origin, PID won't exist.
+> +        */
+> +       RDMA_NLDEV_ATTR_RES_PID,                /* u32 */
+> +       /*
+> +        * The name of process created following resource.
+> +        * It will exist only for kernel objects.
+> +        * For user created objects, the user is supposed
+> +        * to read /proc/PID/comm file.
+> +        */
+> +       RDMA_NLDEV_ATTR_RES_KERN_NAME,          /* string */
+> +
+> +       RDMA_NLDEV_ATTR_MAX
+> +};
+>  #endif /* _UAPI_RDMA_NETLINK_H */
+> diff --git a/kernel-headers/rdma/rdma_user_cm.h b/kernel-headers/rdma/rdma_user_cm.h
+> new file mode 100644
+> index 00000000000000..c83ef0026079c8
+> --- /dev/null
+> +++ b/kernel-headers/rdma/rdma_user_cm.h
+> @@ -0,0 +1,311 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/*
+> + * Copyright (c) 2005-2006 Intel Corporation.  All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#ifndef RDMA_USER_CM_H
+> +#define RDMA_USER_CM_H
+> +
+> +#include <linux/types.h>
+> +#include <linux/socket.h>
+> +#include <linux/in6.h>
+> +#include <rdma/ib_user_verbs.h>
+> +#include <rdma/ib_user_sa.h>
+> +
+> +#define RDMA_USER_CM_ABI_VERSION       4
+> +
+> +#define RDMA_MAX_PRIVATE_DATA          256
+> +
+> +enum {
+> +       RDMA_USER_CM_CMD_CREATE_ID,
+> +       RDMA_USER_CM_CMD_DESTROY_ID,
+> +       RDMA_USER_CM_CMD_BIND_IP,
+> +       RDMA_USER_CM_CMD_RESOLVE_IP,
+> +       RDMA_USER_CM_CMD_RESOLVE_ROUTE,
+> +       RDMA_USER_CM_CMD_QUERY_ROUTE,
+> +       RDMA_USER_CM_CMD_CONNECT,
+> +       RDMA_USER_CM_CMD_LISTEN,
+> +       RDMA_USER_CM_CMD_ACCEPT,
+> +       RDMA_USER_CM_CMD_REJECT,
+> +       RDMA_USER_CM_CMD_DISCONNECT,
+> +       RDMA_USER_CM_CMD_INIT_QP_ATTR,
+> +       RDMA_USER_CM_CMD_GET_EVENT,
+> +       RDMA_USER_CM_CMD_GET_OPTION,
+> +       RDMA_USER_CM_CMD_SET_OPTION,
+> +       RDMA_USER_CM_CMD_NOTIFY,
+> +       RDMA_USER_CM_CMD_JOIN_IP_MCAST,
+> +       RDMA_USER_CM_CMD_LEAVE_MCAST,
+> +       RDMA_USER_CM_CMD_MIGRATE_ID,
+> +       RDMA_USER_CM_CMD_QUERY,
+> +       RDMA_USER_CM_CMD_BIND,
+> +       RDMA_USER_CM_CMD_RESOLVE_ADDR,
+> +       RDMA_USER_CM_CMD_JOIN_MCAST
+> +};
+> +
+> +/*
+> + * command ABI structures.
+> + */
+> +struct rdma_ucm_cmd_hdr {
+> +       __u32 cmd;
+> +       __u16 in;
+> +       __u16 out;
+> +};
+> +
+> +struct rdma_ucm_create_id {
+> +       __u64 uid;
+> +       __u64 response;
+> +       __u16 ps;
+> +       __u8  qp_type;
+> +       __u8  reserved[5];
+> +};
+> +
+> +struct rdma_ucm_create_id_resp {
+> +       __u32 id;
+> +};
+> +
+> +struct rdma_ucm_destroy_id {
+> +       __u64 response;
+> +       __u32 id;
+> +       __u32 reserved;
+> +};
+> +
+> +struct rdma_ucm_destroy_id_resp {
+> +       __u32 events_reported;
+> +};
+> +
+> +struct rdma_ucm_bind_ip {
+> +       __u64 response;
+> +       struct sockaddr_in6 addr;
+> +       __u32 id;
+> +};
+> +
+> +struct rdma_ucm_bind {
+> +       __u32 id;
+> +       __u16 addr_size;
+> +       __u16 reserved;
+> +       struct __kernel_sockaddr_storage addr;
+> +};
+> +
+> +struct rdma_ucm_resolve_ip {
+> +       struct sockaddr_in6 src_addr;
+> +       struct sockaddr_in6 dst_addr;
+> +       __u32 id;
+> +       __u32 timeout_ms;
+> +};
+> +
+> +struct rdma_ucm_resolve_addr {
+> +       __u32 id;
+> +       __u32 timeout_ms;
+> +       __u16 src_size;
+> +       __u16 dst_size;
+> +       __u32 reserved;
+> +       struct __kernel_sockaddr_storage src_addr;
+> +       struct __kernel_sockaddr_storage dst_addr;
+> +};
+> +
+> +struct rdma_ucm_resolve_route {
+> +       __u32 id;
+> +       __u32 timeout_ms;
+> +};
+> +
+> +enum {
+> +       RDMA_USER_CM_QUERY_ADDR,
+> +       RDMA_USER_CM_QUERY_PATH,
+> +       RDMA_USER_CM_QUERY_GID
+> +};
+> +
+> +struct rdma_ucm_query {
+> +       __u64 response;
+> +       __u32 id;
+> +       __u32 option;
+> +};
+> +
+> +struct rdma_ucm_query_route_resp {
+> +       __u64 node_guid;
+> +       struct ib_user_path_rec ib_route[2];
+> +       struct sockaddr_in6 src_addr;
+> +       struct sockaddr_in6 dst_addr;
+> +       __u32 num_paths;
+> +       __u8 port_num;
+> +       __u8 reserved[3];
+> +};
+> +
+> +struct rdma_ucm_query_addr_resp {
+> +       __u64 node_guid;
+> +       __u8  port_num;
+> +       __u8  reserved;
+> +       __u16 pkey;
+> +       __u16 src_size;
+> +       __u16 dst_size;
+> +       struct __kernel_sockaddr_storage src_addr;
+> +       struct __kernel_sockaddr_storage dst_addr;
+> +};
+> +
+> +struct rdma_ucm_query_path_resp {
+> +       __u32 num_paths;
+> +       __u32 reserved;
+> +       struct ib_path_rec_data path_data[0];
+> +};
+> +
+> +struct rdma_ucm_conn_param {
+> +       __u32 qp_num;
+> +       __u32 qkey;
+> +       __u8  private_data[RDMA_MAX_PRIVATE_DATA];
+> +       __u8  private_data_len;
+> +       __u8  srq;
+> +       __u8  responder_resources;
+> +       __u8  initiator_depth;
+> +       __u8  flow_control;
+> +       __u8  retry_count;
+> +       __u8  rnr_retry_count;
+> +       __u8  valid;
+> +};
+> +
+> +struct rdma_ucm_ud_param {
+> +       __u32 qp_num;
+> +       __u32 qkey;
+> +       struct ib_uverbs_ah_attr ah_attr;
+> +       __u8  private_data[RDMA_MAX_PRIVATE_DATA];
+> +       __u8  private_data_len;
+> +       __u8  reserved[7];
+> +};
+> +
+> +struct rdma_ucm_connect {
+> +       struct rdma_ucm_conn_param conn_param;
+> +       __u32 id;
+> +       __u32 reserved;
+> +};
+> +
+> +struct rdma_ucm_listen {
+> +       __u32 id;
+> +       __u32 backlog;
+> +};
+> +
+> +struct rdma_ucm_accept {
+> +       __u64 uid;
+> +       struct rdma_ucm_conn_param conn_param;
+> +       __u32 id;
+> +       __u32 reserved;
+> +};
+> +
+> +struct rdma_ucm_reject {
+> +       __u32 id;
+> +       __u8  private_data_len;
+> +       __u8  reserved[3];
+> +       __u8  private_data[RDMA_MAX_PRIVATE_DATA];
+> +};
+> +
+> +struct rdma_ucm_disconnect {
+> +       __u32 id;
+> +};
+> +
+> +struct rdma_ucm_init_qp_attr {
+> +       __u64 response;
+> +       __u32 id;
+> +       __u32 qp_state;
+> +};
+> +
+> +struct rdma_ucm_notify {
+> +       __u32 id;
+> +       __u32 event;
+> +};
+> +
+> +struct rdma_ucm_join_ip_mcast {
+> +       __u64 response;         /* rdma_ucm_create_id_resp */
+> +       __u64 uid;
+> +       struct sockaddr_in6 addr;
+> +       __u32 id;
+> +};
+> +
+> +/* Multicast join flags */
+> +enum {
+> +       RDMA_MC_JOIN_FLAG_FULLMEMBER,
+> +       RDMA_MC_JOIN_FLAG_SENDONLY_FULLMEMBER,
+> +       RDMA_MC_JOIN_FLAG_RESERVED,
+> +};
+> +
+> +struct rdma_ucm_join_mcast {
+> +       __u64 response;         /* rdma_ucma_create_id_resp */
+> +       __u64 uid;
+> +       __u32 id;
+> +       __u16 addr_size;
+> +       __u16 join_flags;
+> +       struct __kernel_sockaddr_storage addr;
+> +};
+> +
+> +struct rdma_ucm_get_event {
+> +       __u64 response;
+> +};
+> +
+> +struct rdma_ucm_event_resp {
+> +       __u64 uid;
+> +       __u32 id;
+> +       __u32 event;
+> +       __u32 status;
+> +       union {
+> +               struct rdma_ucm_conn_param conn;
+> +               struct rdma_ucm_ud_param   ud;
+> +       } param;
+> +};
+> +
+> +/* Option levels */
+> +enum {
+> +       RDMA_OPTION_ID          = 0,
+> +       RDMA_OPTION_IB          = 1
+> +};
+> +
+> +/* Option details */
+> +enum {
+> +       RDMA_OPTION_ID_TOS       = 0,
+> +       RDMA_OPTION_ID_REUSEADDR = 1,
+> +       RDMA_OPTION_ID_AFONLY    = 2,
+> +       RDMA_OPTION_IB_PATH      = 1
+> +};
+> +
+> +struct rdma_ucm_set_option {
+> +       __u64 optval;
+> +       __u32 id;
+> +       __u32 level;
+> +       __u32 optname;
+> +       __u32 optlen;
+> +};
+> +
+> +struct rdma_ucm_migrate_id {
+> +       __u64 response;
+> +       __u32 id;
+> +       __u32 fd;
+> +};
+> +
+> +struct rdma_ucm_migrate_resp {
+> +       __u32 events_reported;
+> +};
+> +
+> +#endif /* RDMA_USER_CM_H */
+> diff --git a/kernel-headers/rdma/rdma_user_ioctl.h b/kernel-headers/rdma/rdma_user_ioctl.h
+> new file mode 100644
+> index 00000000000000..03557b5f9aa6b8
+> --- /dev/null
+> +++ b/kernel-headers/rdma/rdma_user_ioctl.h
+> @@ -0,0 +1,121 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+> +/*
+> + * Copyright (c) 2016 Mellanox Technologies, LTD. All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#ifndef RDMA_USER_IOCTL_H
+> +#define RDMA_USER_IOCTL_H
+> +
+> +#include <linux/types.h>
+> +#include <linux/ioctl.h>
+> +#include <rdma/ib_user_mad.h>
+> +#include <rdma/hfi/hfi1_ioctl.h>
+> +
+> +/* Documentation/ioctl/ioctl-number.txt */
+> +#define RDMA_IOCTL_MAGIC       0x1b
+> +/* Legacy name, for user space application which already use it */
+> +#define IB_IOCTL_MAGIC         RDMA_IOCTL_MAGIC
+> +
+> +#define RDMA_VERBS_IOCTL \
+> +       _IOWR(RDMA_IOCTL_MAGIC, 1, struct ib_uverbs_ioctl_hdr)
+> +
+> +#define UVERBS_ID_NS_MASK 0xF000
+> +#define UVERBS_ID_NS_SHIFT 12
+> +
+> +enum {
+> +       /* User input */
+> +       UVERBS_ATTR_F_MANDATORY = 1U << 0,
+> +       /*
+> +        * Valid output bit should be ignored and considered set in
+> +        * mandatory fields. This bit is kernel output.
+> +        */
+> +       UVERBS_ATTR_F_VALID_OUTPUT = 1U << 1,
+> +};
+> +
+> +struct ib_uverbs_attr {
+> +       __u16 attr_id;          /* command specific type attribute */
+> +       __u16 len;              /* only for pointers */
+> +       __u16 flags;            /* combination of UVERBS_ATTR_F_XXXX */
+> +       __u16 reserved;
+> +       __u64 data;             /* ptr to command, inline data or idr/fd */
+> +};
+> +
+> +struct ib_uverbs_ioctl_hdr {
+> +       __u16 length;
+> +       __u16 object_id;
+> +       __u16 method_id;
+> +       __u16 num_attrs;
+> +       __u64 reserved;
+> +       struct ib_uverbs_attr  attrs[0];
+> +};
+> +
+> +/*
+> + * General blocks assignments
+> + * It is closed on purpose do not expose it it user space
+> + * #define MAD_CMD_BASE                0x00
+> + * #define HFI1_CMD_BAS                0xE0
+> + */
+> +
+> +/* MAD specific section */
+> +#define IB_USER_MAD_REGISTER_AGENT     _IOWR(RDMA_IOCTL_MAGIC, 0x01, struct ib_user_mad_reg_req)
+> +#define IB_USER_MAD_UNREGISTER_AGENT   _IOW(RDMA_IOCTL_MAGIC,  0x02, __u32)
+> +#define IB_USER_MAD_ENABLE_PKEY                _IO(RDMA_IOCTL_MAGIC,   0x03)
+> +#define IB_USER_MAD_REGISTER_AGENT2    _IOWR(RDMA_IOCTL_MAGIC, 0x04, struct ib_user_mad_reg_req2)
+> +
+> +/* HFI specific section */
+> +/* allocate HFI and context */
+> +#define HFI1_IOCTL_ASSIGN_CTXT         _IOWR(RDMA_IOCTL_MAGIC, 0xE1, struct hfi1_user_info)
+> +/* find out what resources we got */
+> +#define HFI1_IOCTL_CTXT_INFO           _IOW(RDMA_IOCTL_MAGIC,  0xE2, struct hfi1_ctxt_info)
+> +/* set up userspace */
+> +#define HFI1_IOCTL_USER_INFO           _IOW(RDMA_IOCTL_MAGIC,  0xE3, struct hfi1_base_info)
+> +/* update expected TID entries */
+> +#define HFI1_IOCTL_TID_UPDATE          _IOWR(RDMA_IOCTL_MAGIC, 0xE4, struct hfi1_tid_info)
+> +/* free expected TID entries */
+> +#define HFI1_IOCTL_TID_FREE            _IOWR(RDMA_IOCTL_MAGIC, 0xE5, struct hfi1_tid_info)
+> +/* force an update of PIO credit */
+> +#define HFI1_IOCTL_CREDIT_UPD          _IO(RDMA_IOCTL_MAGIC,   0xE6)
+> +/* control receipt of packets */
+> +#define HFI1_IOCTL_RECV_CTRL           _IOW(RDMA_IOCTL_MAGIC,  0xE8, int)
+> +/* set the kind of polling we want */
+> +#define HFI1_IOCTL_POLL_TYPE           _IOW(RDMA_IOCTL_MAGIC,  0xE9, int)
+> +/* ack & clear user status bits */
+> +#define HFI1_IOCTL_ACK_EVENT           _IOW(RDMA_IOCTL_MAGIC,  0xEA, unsigned long)
+> +/* set context's pkey */
+> +#define HFI1_IOCTL_SET_PKEY            _IOW(RDMA_IOCTL_MAGIC,  0xEB, __u16)
+> +/* reset context's HW send context */
+> +#define HFI1_IOCTL_CTXT_RESET          _IO(RDMA_IOCTL_MAGIC,   0xEC)
+> +/* read TID cache invalidations */
+> +#define HFI1_IOCTL_TID_INVAL_READ      _IOWR(RDMA_IOCTL_MAGIC, 0xED, struct hfi1_tid_info)
+> +/* get the version of the user cdev */
+> +#define HFI1_IOCTL_GET_VERS            _IOR(RDMA_IOCTL_MAGIC,  0xEE, int)
+> +
+> +#endif /* RDMA_USER_IOCTL_H */
+> diff --git a/buildlib/fixup-include/rdma-rdma_user_rxe.h b/kernel-headers/rdma/rdma_user_rxe.h
+> similarity index 95%
+> rename from buildlib/fixup-include/rdma-rdma_user_rxe.h
+> rename to kernel-headers/rdma/rdma_user_rxe.h
+> index 1de99cfdaf7d39..e3e6852b58eb45 100644
+> --- a/buildlib/fixup-include/rdma-rdma_user_rxe.h
+> +++ b/kernel-headers/rdma/rdma_user_rxe.h
+> @@ -1,3 +1,4 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+>  /*
+>   * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
+>   *
+> @@ -34,6 +35,9 @@
+>  #define RDMA_USER_RXE_H
+>
+>  #include <linux/types.h>
+> +#include <linux/socket.h>
+> +#include <linux/in.h>
+> +#include <linux/in6.h>
+>
+>  union rxe_gid {
+>         __u8    raw[16];
+> @@ -56,7 +60,6 @@ struct rxe_av {
+>         __u8                    network_type;
+>         struct rxe_global_route grh;
+>         union {
+> -               struct sockaddr         _sockaddr;
+>                 struct sockaddr_in      _sockaddr_in;
+>                 struct sockaddr_in6     _sockaddr_in6;
+>         } sgid_addr, dgid_addr;
+> diff --git a/buildlib/fixup-include/rdma-vmw_pvrdma-abi.h b/kernel-headers/rdma/vmw_pvrdma-abi.h
+> similarity index 100%
+> rename from buildlib/fixup-include/rdma-vmw_pvrdma-abi.h
+> rename to kernel-headers/rdma/vmw_pvrdma-abi.h
+> --
+> 2.16.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
