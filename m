@@ -1,19 +1,19 @@
 From: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 rdma-core 1/2] libhns: Support rq record doorbell
-Date: Sun, 11 Feb 2018 20:40:33 +0800
-Message-ID: <1518352834-80200-2-git-send-email-liuyixian@huawei.com>
-References: <1518352834-80200-1-git-send-email-liuyixian@huawei.com>
+Subject: [PATCH v3 for-next 3/4] RDMA/hns: Support rq record doorbell for kernel space
+Date: Sun, 11 Feb 2018 20:40:52 +0800
+Message-ID: <1518352853-80652-4-git-send-email-liuyixian@huawei.com>
+References: <1518352853-80652-1-git-send-email-liuyixian@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1518352834-80200-1-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1518352853-80652-1-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgg-uk2M96/98Pc@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch updates to support rq record doorbell in the
-user space driver.
+This patch updates to support rq record doorbell for
+the kernel space.
 
 Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
@@ -22,431 +22,255 @@ Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/hns/CMakeLists.txt     |   1 +
- providers/hns/hns_roce_u.h       |  26 ++++++
- providers/hns/hns_roce_u_abi.h   |   6 ++
- providers/hns/hns_roce_u_db.c    | 191 +++++++++++++++++++++++++++++++++++++++
- providers/hns/hns_roce_u_db.h    |   5 +
- providers/hns/hns_roce_u_hw_v2.c |   9 +-
- providers/hns/hns_roce_u_hw_v2.h |   4 +
- providers/hns/hns_roce_u_verbs.c |  24 ++++-
- 8 files changed, 262 insertions(+), 4 deletions(-)
- create mode 100644 providers/hns/hns_roce_u_db.c
+ drivers/infiniband/hw/hns/hns_roce_db.c     | 112 ++++++++++++++++++++++++++++
+ drivers/infiniband/hw/hns/hns_roce_device.h |   6 ++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  15 +---
+ drivers/infiniband/hw/hns/hns_roce_main.c   |   5 ++
+ drivers/infiniband/hw/hns/hns_roce_qp.c     |  17 ++++-
+ 5 files changed, 142 insertions(+), 13 deletions(-)
 
-diff --git a/providers/hns/CMakeLists.txt b/providers/hns/CMakeLists.txt
-index f136151..697dbd7 100644
---- a/providers/hns/CMakeLists.txt
-+++ b/providers/hns/CMakeLists.txt
-@@ -1,6 +1,7 @@
- rdma_provider(hns
-   hns_roce_u.c
-   hns_roce_u_buf.c
-+  hns_roce_u_db.c
-   hns_roce_u_hw_v1.c
-   hns_roce_u_hw_v2.c
-   hns_roce_u_verbs.c
-diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
-index 0291246..95440e9 100644
---- a/providers/hns/hns_roce_u.h
-+++ b/providers/hns/hns_roce_u.h
-@@ -93,6 +93,26 @@ struct hns_roce_buf {
- 	unsigned int			length;
- };
- 
-+#define BIT_CNT_PER_BYTE       8
+diff --git a/drivers/infiniband/hw/hns/hns_roce_db.c b/drivers/infiniband/hw/hns/hns_roce_db.c
+index 1604c95..f6edaf6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_db.c
++++ b/drivers/infiniband/hw/hns/hns_roce_db.c
+@@ -93,3 +93,115 @@ void hns_roce_db_unmap_user(struct hns_roce_ucontext *context,
+ 	mutex_unlock(&context->db_page_mutex);
+ }
+ EXPORT_SYMBOL(hns_roce_db_unmap_user);
 +
-+/* the sw db length, on behalf of the qp/cq/srq length from left to right; */
-+static const unsigned int db_size[] = {4, 4};
-+
-+/* the sw doorbell type; */
-+enum hns_roce_db_type {
-+	HNS_ROCE_QP_TYPE_DB,
-+	HNS_ROCE_CQ_TYPE_DB,
-+	HNS_ROCE_DB_TYPE_NUM
-+};
-+
-+struct hns_roce_db_page {
-+	struct hns_roce_db_page	*prev, *next;
-+	struct hns_roce_buf	buf;
-+	unsigned int		num_db;
-+	unsigned int		use_cnt;
-+	unsigned long		*bitmap;
-+};
-+
- struct hns_roce_context {
- 	struct verbs_context		ibv_ctx;
- 	void				*uar;
-@@ -110,6 +130,10 @@ struct hns_roce_context {
- 	int				num_qps;
- 	int				qp_table_shift;
- 	int				qp_table_mask;
-+
-+	struct hns_roce_db_page		*db_list[HNS_ROCE_DB_TYPE_NUM];
-+	pthread_mutex_t			db_list_mutex;
-+
- 	unsigned int			max_qp_wr;
- 	unsigned int			max_sge;
- 	int				max_cqe;
-@@ -188,12 +212,14 @@ struct hns_roce_qp {
- 	unsigned int			sq_signal_bits;
- 	struct hns_roce_wq		sq;
- 	struct hns_roce_wq		rq;
-+	unsigned int			*rdb;
- 	struct hns_roce_sge_ex		sge;
- 	unsigned int			next_sge;
- 	int				port_num;
- 	int				sl;
- 
- 	struct hns_roce_rinl_buf	rq_rinl_buf;
-+	unsigned int			flags;
- };
- 
- struct hns_roce_u_hw {
-diff --git a/providers/hns/hns_roce_u_abi.h b/providers/hns/hns_roce_u_abi.h
-index 251a5c9..fafd052 100644
---- a/providers/hns/hns_roce_u_abi.h
-+++ b/providers/hns/hns_roce_u_abi.h
-@@ -38,6 +38,7 @@
- struct hns_roce_alloc_ucontext_resp {
- 	struct ib_uverbs_get_context_resp	ibv_resp;
- 	__u32				qp_tab_size;
-+	__u32				reserved;
- };
- 
- struct hns_roce_alloc_pd_resp {
-@@ -68,4 +69,9 @@ struct hns_roce_create_qp {
- 	__u8				reserved[5];
- };
- 
-+struct hns_roce_create_qp_resp {
-+	struct ib_uverbs_create_qp_resp	base;
-+	__u32				cap_flags;
-+	__u32				reserved;
-+};
- #endif /* _HNS_ROCE_U_ABI_H */
-diff --git a/providers/hns/hns_roce_u_db.c b/providers/hns/hns_roce_u_db.c
-new file mode 100644
-index 0000000..10ee3ec
---- /dev/null
-+++ b/providers/hns/hns_roce_u_db.c
-@@ -0,0 +1,191 @@
-+/*
-+ * Copyright (c) 2017 Hisilicon Limited.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#define _GNU_SOURCE
-+#include <stdlib.h>
-+#include <string.h>
-+#include <stdio.h>
-+#include "hns_roce_u.h"
-+#include "hns_roce_u_db.h"
-+
-+static struct hns_roce_db_page *hns_roce_add_db_page(
-+						struct hns_roce_context *ctx,
-+						enum hns_roce_db_type type)
++static struct hns_roce_db_pgdir *hns_roce_alloc_db_pgdir(
++					struct device *dma_device)
 +{
-+	struct hns_roce_db_page *page;
-+	uint32_t bitmap_num;
-+	uint32_t page_size;
++	struct hns_roce_db_pgdir *pgdir;
++
++	pgdir = kzalloc(sizeof(*pgdir), GFP_KERNEL);
++	if (!pgdir)
++		return NULL;
++
++	bitmap_fill(pgdir->order1, HNS_ROCE_DB_PER_PAGE / 2);
++	pgdir->bits[0] = pgdir->order0;
++	pgdir->bits[1] = pgdir->order1;
++	pgdir->db_page = dma_alloc_coherent(dma_device, PAGE_SIZE,
++					    &pgdir->db_dma, GFP_KERNEL);
++	if (!pgdir->db_page) {
++		kfree(pgdir);
++		return NULL;
++	}
++
++	return pgdir;
++}
++
++static int hns_roce_alloc_db_from_pgdir(struct hns_roce_db_pgdir *pgdir,
++					struct hns_roce_db *db, int order)
++{
++	int o;
 +	int i;
 +
-+	/* alloc db page */
-+	page_size = (uint32_t)to_hr_dev(ctx->ibv_ctx.context.device)->page_size;
-+	page = (struct hns_roce_db_page *)calloc(1, sizeof(*page));
-+	if (!page)
-+		goto err_page;
-+
-+	/* allocate bitmap space for sw db */
-+	page->num_db = page_size / db_size[type];
-+	page->use_cnt = 0;
-+	bitmap_num = (uint32_t)align(page->num_db,
-+				     BIT_CNT_PER_BYTE * sizeof(uint64_t));
-+
-+	page->bitmap = calloc(1, bitmap_num / BIT_CNT_PER_BYTE);
-+	if (!page->bitmap)
-+		goto err_map;
-+
-+	/* bitmap_num indicate the mount of u64 */
-+	bitmap_num = bitmap_num / (BIT_CNT_PER_BYTE * sizeof(uint64_t));
-+
-+	if (hns_roce_alloc_buf(&(page->buf), page_size, (int)page_size))
-+		goto err;
-+
-+	/* init the sw db bitmap */
-+	for (i = 0; i < bitmap_num; ++i)
-+		page->bitmap[i] = ~(0UL);
-+
-+	/* add the set ctx->db_list */
-+	page->prev = NULL;
-+	page->next = ctx->db_list[type];
-+	ctx->db_list[type] = page;
-+	if (page->next)
-+		page->next->prev = page;
-+
-+	return page;
-+err:
-+	free(page->bitmap);
-+	page->bitmap = NULL;
-+
-+err_map:
-+	free(page);
-+	page = NULL;
-+
-+err_page:
-+	return NULL;
-+}
-+
-+static void hns_roce_clear_db_page(struct hns_roce_db_page *page)
-+{
-+	if (!page) {
-+		fprintf(stderr, "error clear: db page is NULL!\n");
-+		return;
++	for (o = order; o <= 1; ++o) {
++		i = find_first_bit(pgdir->bits[o], HNS_ROCE_DB_PER_PAGE >> o);
++		if (i < HNS_ROCE_DB_PER_PAGE >> o)
++			goto found;
 +	}
 +
-+	if (page->bitmap) {
-+		free(page->bitmap);
-+		page->bitmap = NULL;
-+	}
-+
-+	hns_roce_free_buf(&(page->buf));
-+}
-+
-+void *hns_roce_alloc_db(struct hns_roce_context *ctx,
-+			enum hns_roce_db_type type)
-+{
-+	struct hns_roce_db_page *page;
-+	void *db = NULL;
-+	uint32_t bit_num;
-+	uint32_t i;
-+
-+	pthread_mutex_lock((pthread_mutex_t *)&ctx->db_list_mutex);
-+
-+	for (page = ctx->db_list[type]; page != NULL; page = page->next)
-+		if (page->use_cnt < page->num_db)
-+			goto found;
-+
-+	page = hns_roce_add_db_page(ctx, type);
-+	if (!page)
-+		goto out;
++	return -ENOMEM;
 +
 +found:
-+	++page->use_cnt;
-+	/* if the bitmap is allocated, the bitmap[i] is set zero */
-+	for (i = 0; page->bitmap[i] == 0; ++i)
-+		;
++	clear_bit(i, pgdir->bits[o]);
 +
-+	bit_num = (uint32_t)ffsl(page->bitmap[i]);
-+	page->bitmap[i] &= ~(1ULL << (bit_num - 1));
++	i <<= o;
 +
-+	db = (void *)((uint8_t *)(page->buf.buf) +
-+			(size_t)((i * sizeof(uint64_t) * BIT_CNT_PER_BYTE +
-+			(bit_num - 1)) * db_size[type]));
++	if (o > order)
++		set_bit(i ^ 1, pgdir->bits[order]);
 +
-+out:
-+	pthread_mutex_unlock((pthread_mutex_t *)&ctx->db_list_mutex);
++	db->u.pgdir	= pgdir;
++	db->index	= i;
++	db->db_record	= pgdir->db_page + db->index;
++	db->dma		= pgdir->db_dma  + db->index * 4;
++	db->order	= order;
 +
-+	return db;
++	return 0;
 +}
 +
-+void hns_roce_free_db(struct hns_roce_context *ctx, unsigned int *db,
-+		      enum hns_roce_db_type type)
++int hns_roce_alloc_db(struct hns_roce_dev *hr_dev, struct hns_roce_db *db,
++		      int order)
 +{
-+	struct hns_roce_db_page *page;
-+	uint32_t bit_num;
-+	uint32_t page_size;
++	struct hns_roce_db_pgdir *pgdir;
++	int ret = 0;
 +
-+	pthread_mutex_lock((pthread_mutex_t *)&ctx->db_list_mutex);
++	mutex_lock(&hr_dev->pgdir_mutex);
 +
-+	page_size = (uint32_t)to_hr_dev(ctx->ibv_ctx.context.device)->page_size;
-+	for (page = ctx->db_list[type]; page != NULL; page = page->next)
-+		if (((uintptr_t)db & (~((uintptr_t)page_size - 1))) ==
-+						(uintptr_t)(page->buf.buf))
-+			goto found;
++	list_for_each_entry(pgdir, &hr_dev->pgdir_list, list)
++		if (!hns_roce_alloc_db_from_pgdir(pgdir, db, order))
++			goto out;
 +
-+	fprintf(stderr, "db page can't be found!\n");
-+	goto out;
-+
-+found:
-+	--page->use_cnt;
-+	if (!page->use_cnt) {
-+		if (page->prev)
-+			page->prev->next = page->next;
-+		else
-+			ctx->db_list[type] = page->next;
-+
-+		if (page->next)
-+			page->next->prev = page->prev;
-+
-+		hns_roce_clear_db_page(page);
-+		free(page);
-+		page = NULL;
-+
++	pgdir = hns_roce_alloc_db_pgdir(hr_dev->dev);
++	if (!pgdir) {
++		ret = -ENOMEM;
 +		goto out;
 +	}
 +
-+	bit_num = (uint32_t)(((uintptr_t)db - (uintptr_t)page->buf.buf) /
-+								db_size[type]);
-+	page->bitmap[bit_num / (sizeof(uint64_t) * BIT_CNT_PER_BYTE)] |=
-+			     ((uint64_t)1ULL) <<
-+			     (bit_num % (sizeof(uint64_t) * BIT_CNT_PER_BYTE));
++	list_add(&pgdir->list, &hr_dev->pgdir_list);
++
++	/* This should never fail -- we just allocated an empty page: */
++	WARN_ON(hns_roce_alloc_db_from_pgdir(pgdir, db, order));
 +
 +out:
-+	pthread_mutex_unlock((pthread_mutex_t *)&ctx->db_list_mutex);
++	mutex_unlock(&hr_dev->pgdir_mutex);
++
++	return ret;
 +}
-diff --git a/providers/hns/hns_roce_u_db.h b/providers/hns/hns_roce_u_db.h
-index 76d13ce..b44e64d 100644
---- a/providers/hns/hns_roce_u_db.h
-+++ b/providers/hns/hns_roce_u_db.h
-@@ -51,4 +51,9 @@ static inline void hns_roce_write64(uint32_t val[2],
- 	*(volatile uint64_t *) (ctx->uar + offset) = HNS_ROCE_PAIR_TO_64(val);
- }
- 
-+void *hns_roce_alloc_db(struct hns_roce_context *ctx,
-+			enum hns_roce_db_type type);
-+void hns_roce_free_db(struct hns_roce_context *ctx, unsigned int *db,
-+		      enum hns_roce_db_type type);
++EXPORT_SYMBOL_GPL(hns_roce_alloc_db);
 +
- #endif /* _HNS_ROCE_U_DB_H */
-diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
-index 226f66d..12558ff 100644
---- a/providers/hns/hns_roce_u_hw_v2.c
-+++ b/providers/hns/hns_roce_u_hw_v2.c
-@@ -829,7 +829,10 @@ out:
- 	if (nreq) {
- 		qp->rq.head += nreq;
++void hns_roce_free_db(struct hns_roce_dev *hr_dev, struct hns_roce_db *db)
++{
++	int o;
++	int i;
++
++	mutex_lock(&hr_dev->pgdir_mutex);
++
++	o = db->order;
++	i = db->index;
++
++	if (db->order == 0 && test_bit(i ^ 1, db->u.pgdir->order0)) {
++		clear_bit(i ^ 1, db->u.pgdir->order0);
++		++o;
++	}
++
++	i >>= o;
++	set_bit(i, db->u.pgdir->bits[o]);
++
++	if (bitmap_full(db->u.pgdir->order1, HNS_ROCE_DB_PER_PAGE / 2)) {
++		dma_free_coherent(hr_dev->dev, PAGE_SIZE, db->u.pgdir->db_page,
++				  db->u.pgdir->db_dma);
++		list_del(&db->u.pgdir->list);
++		kfree(db->u.pgdir);
++	}
++
++	mutex_unlock(&hr_dev->pgdir_mutex);
++}
++EXPORT_SYMBOL_GPL(hns_roce_free_db);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 3499d9a..4f2ed85 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -771,6 +771,8 @@ struct hns_roce_dev {
+ 	spinlock_t		bt_cmd_lock;
+ 	struct hns_roce_ib_iboe iboe;
  
--		hns_roce_update_rq_db(ctx, qp->ibv_qp.qp_num,
-+		if (qp->flags & HNS_ROCE_SUPPORT_RQ_RECORD_DB)
-+			*qp->rdb = qp->rq.head & 0xffff;
-+		else
-+			hns_roce_update_rq_db(ctx, qp->ibv_qp.qp_num,
- 				     qp->rq.head & ((qp->rq.wqe_cnt << 1) - 1));
++	struct list_head        pgdir_list;
++	struct mutex            pgdir_mutex;
+ 	int			irq[HNS_ROCE_MAX_IRQ_NUM];
+ 	u8 __iomem		*reg_base;
+ 	struct hns_roce_caps	caps;
+@@ -980,6 +982,10 @@ int hns_roce_db_map_user(struct hns_roce_ucontext *context, unsigned long virt,
+ 			 struct hns_roce_db *db);
+ void hns_roce_db_unmap_user(struct hns_roce_ucontext *context,
+ 			    struct hns_roce_db *db);
++int hns_roce_alloc_db(struct hns_roce_dev *hr_dev, struct hns_roce_db *db,
++		      int order);
++void hns_roce_free_db(struct hns_roce_dev *hr_dev, struct hns_roce_db *db);
++
+ void hns_roce_cq_completion(struct hns_roce_dev *hr_dev, u32 cqn);
+ void hns_roce_cq_event(struct hns_roce_dev *hr_dev, u32 cqn, int event_type);
+ void hns_roce_qp_event(struct hns_roce_dev *hr_dev, u32 qpn, int event_type);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index a24c1fe..07f8887 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -498,7 +498,6 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 	struct hns_roce_v2_wqe_data_seg *dseg;
+ 	struct hns_roce_rinl_sge *sge_list;
+ 	struct device *dev = hr_dev->dev;
+-	struct hns_roce_v2_db rq_db;
+ 	unsigned long flags;
+ 	void *wqe = NULL;
+ 	int ret = 0;
+@@ -564,17 +563,7 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 		/* Memory barrier */
+ 		wmb();
+ 
+-		rq_db.byte_4 = 0;
+-		rq_db.parameter = 0;
+-
+-		roce_set_field(rq_db.byte_4, V2_DB_BYTE_4_TAG_M,
+-			       V2_DB_BYTE_4_TAG_S, hr_qp->qpn);
+-		roce_set_field(rq_db.byte_4, V2_DB_BYTE_4_CMD_M,
+-			       V2_DB_BYTE_4_CMD_S, HNS_ROCE_V2_RQ_DB);
+-		roce_set_field(rq_db.parameter, V2_DB_PARAMETER_CONS_IDX_M,
+-			       V2_DB_PARAMETER_CONS_IDX_S, hr_qp->rq.head);
+-
+-		hns_roce_write64_k((__le32 *)&rq_db, hr_qp->rq.db_reg_l);
++		*hr_qp->rdb.db_record = hr_qp->rq.head & 0xffff;
+ 	}
+ 	spin_unlock_irqrestore(&hr_qp->rq.lock, flags);
+ 
+@@ -3476,6 +3465,8 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
+ 		kfree(hr_qp->sq.wrid);
+ 		kfree(hr_qp->rq.wrid);
+ 		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
++		if (hr_qp->rq.wqe_cnt)
++			hns_roce_free_db(hr_dev, &hr_qp->rdb);
  	}
  
-@@ -971,6 +974,10 @@ static int hns_roce_u_v2_destroy_qp(struct ibv_qp *ibqp)
- 	hns_roce_unlock_cqs(ibqp);
- 	pthread_mutex_unlock(&to_hr_ctx(ibqp->context)->qp_table_mutex);
+ 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) {
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 8b15283..113e0e1 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -664,6 +664,11 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
+ 	spin_lock_init(&hr_dev->sm_lock);
+ 	spin_lock_init(&hr_dev->bt_cmd_lock);
  
-+	if (qp->rq.max_gs)
-+		hns_roce_free_db(to_hr_ctx(ibqp->context), qp->rdb,
-+				 HNS_ROCE_QP_TYPE_DB);
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB) {
++		INIT_LIST_HEAD(&hr_dev->pgdir_list);
++		mutex_init(&hr_dev->pgdir_mutex);
++	}
 +
- 	hns_roce_free_buf(&qp->buf);
- 	if (qp->rq_rinl_buf.wqe_list) {
- 		if (qp->rq_rinl_buf.wqe_list[0].sg_list) {
-diff --git a/providers/hns/hns_roce_u_hw_v2.h b/providers/hns/hns_roce_u_hw_v2.h
-index 061ae54..15ac0ca 100644
---- a/providers/hns/hns_roce_u_hw_v2.h
-+++ b/providers/hns/hns_roce_u_hw_v2.h
-@@ -40,6 +40,10 @@
+ 	ret = hns_roce_init_uar_table(hr_dev);
+ 	if (ret) {
+ 		dev_err(dev, "Failed to initialize uar table. aborting\n");
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 0b1c46a..65fba9b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -651,6 +651,16 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 		hr_qp->rq.db_reg_l = hr_dev->reg_base + hr_dev->odb_offset +
+ 				     DB_REG_OFFSET * hr_dev->priv_uar.index;
  
- #define HNS_ROCE_CMDSN_MASK			0x3
- 
-+enum {
-+	HNS_ROCE_SUPPORT_RQ_RECORD_DB = 1 << 0,
-+};
-+
- /* V2 REG DEFINITION */
- #define ROCEE_VF_DB_CFG0_OFFSET			0x0230
- 
-diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
-index 11390de..221841f 100644
---- a/providers/hns/hns_roce_u_verbs.c
-+++ b/providers/hns/hns_roce_u_verbs.c
-@@ -41,6 +41,7 @@
- #include <ccan/minmax.h>
- #include "hns_roce_u.h"
- #include "hns_roce_u_abi.h"
-+#include "hns_roce_u_db.h"
- #include "hns_roce_u_hw_v1.h"
- #include "hns_roce_u_hw_v2.h"
- 
-@@ -501,8 +502,8 @@ struct ibv_qp *hns_roce_u_create_qp(struct ibv_pd *pd,
- {
- 	int ret;
- 	struct hns_roce_qp *qp = NULL;
--	struct hns_roce_create_qp cmd;
--	struct ib_uverbs_create_qp_resp resp;
-+	struct hns_roce_create_qp cmd = {};
-+	struct hns_roce_create_qp_resp resp = {};
- 	struct hns_roce_context *context = to_hr_ctx(pd->context);
- 	unsigned int sge_ex_count;
- 
-@@ -548,6 +549,19 @@ struct ibv_qp *hns_roce_u_create_qp(struct ibv_pd *pd,
- 		goto err_free;
- 	}
- 
-+	if ((to_hr_dev(pd->context->device)->hw_version != HNS_ROCE_HW_VER1) &&
-+	    attr->cap.max_recv_sge) {
-+		qp->rdb = hns_roce_alloc_db(context, HNS_ROCE_QP_TYPE_DB);
-+		if (!qp->rdb) {
-+			fprintf(stderr, "alloc rdb buffer failed!\n");
-+			goto err_free;
++		if ((hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB) &&
++		    hns_roce_qp_has_rq(init_attr)) {
++			ret = hns_roce_alloc_db(hr_dev, &hr_qp->rdb, 0);
++			if (ret) {
++				dev_err(dev, "rq record doorbell alloc failed!\n");
++				goto err_rq_sge_list;
++			}
++			*hr_qp->rdb.db_record = 0;
 +		}
 +
-+		*(qp->rdb) = 0;
-+		cmd.db_addr = (uintptr_t) qp->rdb;
-+	} else
-+		cmd.db_addr = 0;
+ 		/* Allocate QP buf */
+ 		page_shift = PAGE_SHIFT + hr_dev->caps.mtt_buf_pg_sz;
+ 		if (hns_roce_buf_alloc(hr_dev, hr_qp->buff_size,
+@@ -658,7 +668,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 				       &hr_qp->hr_buf, page_shift)) {
+ 			dev_err(dev, "hns_roce_buf_alloc error!\n");
+ 			ret = -ENOMEM;
+-			goto err_rq_sge_list;
++			goto err_db;
+ 		}
+ 
+ 		hr_qp->mtt.mtt_type = MTT_TYPE_WQE;
+@@ -766,6 +776,11 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 	else
+ 		hns_roce_buf_free(hr_dev, hr_qp->buff_size, &hr_qp->hr_buf);
+ 
++err_db:
++	if (!ib_pd->uobject && hns_roce_qp_has_rq(init_attr) &&
++	    (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB))
++		hns_roce_free_db(hr_dev, &hr_qp->rdb);
 +
- 	cmd.buf_addr = (uintptr_t) qp->buf.buf;
- 	cmd.log_sq_stride = qp->sq.wqe_shift;
- 	for (cmd.log_sq_bb_count = 0; qp->sq.wqe_cnt > 1 << cmd.log_sq_bb_count;
-@@ -559,7 +573,7 @@ struct ibv_qp *hns_roce_u_create_qp(struct ibv_pd *pd,
- 	pthread_mutex_lock(&to_hr_ctx(pd->context)->qp_table_mutex);
- 
- 	ret = ibv_cmd_create_qp(pd, &qp->ibv_qp, attr, &cmd.ibv_cmd,
--				sizeof(cmd), &resp, sizeof(resp));
-+				sizeof(cmd), &resp.base, sizeof(resp));
- 	if (ret) {
- 		fprintf(stderr, "ibv_cmd_create_qp failed!\n");
- 		goto err_rq_db;
-@@ -574,6 +588,7 @@ struct ibv_qp *hns_roce_u_create_qp(struct ibv_pd *pd,
- 
- 	qp->rq.wqe_cnt = attr->cap.max_recv_wr;
- 	qp->rq.max_gs	= attr->cap.max_recv_sge;
-+	qp->flags	= resp.cap_flags;
- 
- 	/* adjust rq maxima to not exceed reported device maxima */
- 	attr->cap.max_recv_wr = min(context->max_qp_wr, attr->cap.max_recv_wr);
-@@ -591,6 +606,9 @@ err_destroy:
- 
- err_rq_db:
- 	pthread_mutex_unlock(&to_hr_ctx(pd->context)->qp_table_mutex);
-+	if ((to_hr_dev(pd->context->device)->hw_version != HNS_ROCE_HW_VER1) &&
-+	    attr->cap.max_recv_sge)
-+		hns_roce_free_db(context, qp->rdb, HNS_ROCE_QP_TYPE_DB);
- 
- err_free:
- 	free(qp->sq.wrid);
+ err_rq_sge_list:
+ 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE)
+ 		kfree(hr_qp->rq_inl_buf.wqe_list[0].sg_list);
 -- 
 1.9.1
 
