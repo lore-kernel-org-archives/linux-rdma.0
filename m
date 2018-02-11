@@ -1,94 +1,64 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [ANNOUNCE] OFED 4.8-2-rc1 release is available
-Date: Sun, 11 Feb 2018 09:10:09 +0800
-Message-ID: <6f19a27f-a39e-2af3-67b6-86cd9396921f@huawei.com>
-References: <d42fcbf8-7bca-98f0-dece-336c2365e760@dev.mellanox.co.il>
+From: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 for-next 1/4] RDMA/hns: Support rq record doorbell for
+ the user space
+Date: Sun, 11 Feb 2018 13:44:58 +0800
+Message-ID: <cf70c781-bab1-ae9a-86fa-873a8265214d@huawei.com>
+References: <1518176700-126906-1-git-send-email-liuyixian@huawei.com>
+ <1518176700-126906-2-git-send-email-liuyixian@huawei.com>
+ <20180209152353.GC7570@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <d42fcbf8-7bca-98f0-dece-336c2365e760-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20180209152353.GC7570-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, all
-  OFED and rdma-core what is the relationship? Why do't include hns in OFED packet?
-  If you need to inherit hns, we need to do?
 
-thanks
-Lijun Ou
-在 2018/2/10 3:26, Vladimir Sokolovsky 写道:
-> Hi,
-> OFED-4.8-2-rc1 is available at:
-> 
-> https://openfabrics.org/downloads/OFED/ofed-4.8-2/OFED-4.8-2-rc1.tgz
-> 
-> 
-> To get BUILD_ID run ofed_info
-> 
-> Please report any issues in bugzilla
-> http://bugs.openfabrics.org/bugzilla/ for OFED 4.8-2
-> 
-> Release notes:
-> https://openfabrics.org/downloads/OFED/release_notes/OFED_4.8-2-rc1-release_notes
-> 
-> OFED-4.8-2-rc1 Main Changes from OFED-4.8-1
-> -------------------------------------------------------------------------------
-> 1. compat-rdma
-> - bnxt_en: Fix Max MTU setting on SLES 12 SP3
-> - qede: SLE12SP3 Backport fix use core min max MTU check
-> - cxgb: SLE12SP3 Backport fix: use net core MTU range checking
-> - Remove vmw_pvrdma tech preview patches
-> - Fixed mlx4 backport
-> - qedr cherry pick: lower message verbosity
-> - Update qib backport for SLES 12.3
-> - bnxt_en: backport for RH 7.0 and 7.1
-> - compat-rdma.spec: Added compat-rdma-firmware subpackage
-> - bnxt_en: Backporting for RHEL 7.4 and SLES12SP3
-> - qedr: Add backports for RHEL 7.4 and SLES 12 SP3
-> - configure: Add parameters for RXE and RDMAVT
-> - ib_iser: Added support for SLES12 SP3
-> - mlx5: Added support for SLES12 SP3
-> - mlx4: Added support for SLES12 SP3
-> - ib_core: Added support for SLES12 SP3
-> - mlx5: Added RHEL7.4 support
-> - mlx4: Added RHEL7.4 support
-> - configure/makefile: Rename CONFIG_INFINIBAND_RXE -> CONFIG_RDMA_RXE to match upstream
-> 
-> 2. Updated packages
-> - rdma-core-v16.2
-> - fabtests-1.5.3
-> - libfabric-1.5.3
-> - perftest-4.1-0.2.g770623f
-> 
-> 3. ofed_scripts
-> - add --with-rdmavt-mod for qib
-> - Add VMware Paravirtual RDMA Driver as an installable driver
-> - Remove vmw_pvrdma tech preview install option
-> - install.pl: Added rdma-core-devel dependency for the perftest build
-> - Revert "install.pl: Enable bnxt_re on supported OSes only"
-> - install.pl: Added compat-rdma-firmware package
-> - install.pl: Enable bnxt_re on supported OSes only
-> - install.pl: Updated rdma-core dependencies
-> - install.pl: Remove requirement on the specific cmake version
-> - install.pl: Added support for SLES12 SP3
-> - install.pl: Added RHEL7.4 support
-> 
-> 
-> ULP and Driver restrictions:
-> - NVMe-oF (kernel 4.8 only)
-> - NFS-RDMA (SLES12.2 RH7.3 only).
-> - i40iw 10GbE iWARP Adapter (kernel 4.8 only)
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
 
+On 2018/2/9 23:23, Jason Gunthorpe wrote:
+> On Fri, Feb 09, 2018 at 07:44:57PM +0800, Yixian Liu wrote:
+> 
+>> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+>> index 42c3b5a..2da30fc 100644
+>> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+>> @@ -105,6 +105,10 @@
+>>  #define PAGES_SHIFT_24				24
+>>  #define PAGES_SHIFT_32				32
+>>  
+>> +enum {
+>> +	HNS_ROCE_SUPPORT_RQ_RECORD_DB = BIT(0),
+>> +};
+> 
+> This belongs in the uapi header same remark in userspace. Dont' use
+> BIT in uapi headers.
+> 
+> Same remark for the other cap_flags in other patches
+> 
+>> diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
+>> index 5d74019..1b05d00 100644
+>> +++ b/include/uapi/rdma/hns-abi.h
+>> @@ -48,6 +48,10 @@ struct hns_roce_ib_create_qp {
+>>  	__u8    reserved[5];
+>>  };
+>>  
+>> +struct hns_roce_ib_create_qp_resp {
+>> +	__u32	cap_flags;
+>> +};
+>> +
+>>  struct hns_roce_ib_alloc_ucontext_resp {
+>>  	__u32	qp_tab_size;
+>>  };
+> 
+> All structures in this file need to be aligned to 64 bits, add the
+> implicit padding necessary.
+> 
+> Jasn
+> 
+Thanks! I will fix these problems.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
