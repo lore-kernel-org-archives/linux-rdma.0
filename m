@@ -1,62 +1,51 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] net: make getname() functions return length rather
- than use int* parameter
-Date: Mon, 12 Feb 2018 12:47:38 -0500 (EST)
-Message-ID: <20180212.124738.870301786818646917.davem@davemloft.net>
-References: <20180212141518.3354-1-dvlasenk@redhat.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-7
-Content-Transfer-Encoding: base64
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180212141518.3354-1-dvlasenk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dvlasenk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-decnet-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-x25-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Bart Van Assche <bart.vanassche@wdc.com>
+Subject: [PATCH] IB/srp: Fix completion vector assignment algorithm
+Date: Mon, 12 Feb 2018 09:50:25 -0800
+Message-ID: <20180212175025.18955-1-bart.vanassche@wdc.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, Laurence Oberman <loberman@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, Alexander Schmid <alex@modula-shop-systems.de>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogRGVueXMgVmxhc2Vua28gPGR2bGFzZW5rQHJlZGhhdC5jb20+DQpEYXRlOiBNb24sIDEy
-IEZlYiAyMDE4IDE1OjE1OjE4ICswMTAwDQoNCj4gQmVmb3JlOg0KPiBBbGwgdGhlc2UgZnVuY3Rp
-b25zIGVpdGhlciByZXR1cm4gYSBuZWdhdGl2ZSBlcnJvciBpbmRpY2F0b3IsDQo+IG9yIHN0b3Jl
-IGxlbmd0aCBvZiBzb2NrYWRkciBpbnRvICJpbnQgKnNvY2tsZW4iIHBhcmFtZXRlcg0KPiBhbmQg
-cmV0dXJuIHplcm8gb24gc3VjY2Vzcy4NCj4gDQo+ICJpbnQgKnNvY2tsZW4iIHBhcmFtZXRlciBp
-cyBhd2t3YXJkLiBGb3IgZXhhbXBsZSwgaWYgY2FsbGVyIGRvZXMgbm90DQo+IGNhcmUsIGl0IHN0
-aWxsIG5lZWRzIHRvIHByb3ZpZGUgb24tc3RhY2sgc3RvcmFnZSBmb3IgdGhlIHZhbHVlDQo+IGl0
-IGRvZXMgbm90IG5lZWQuDQo+IA0KPiBOb25lIG9mIHRoZSBtYW55IEZPT19nZXRuYW1lKCkgZnVu
-Y3Rpb25zIG9mIHZhcmlvdXMgcHJvdG9jb2xzDQo+IGV2ZXIgdXNlZCBvbGQgdmFsdWUgb2YgKnNv
-Y2tsZW4uIFRoZXkgYWx3YXlzIGp1c3Qgb3ZlcndyaXRlIGl0Lg0KPiANCj4gVGhpcyBjaGFuZ2Ug
-ZHJvcHMgdGhpcyBwYXJhbWV0ZXIsIGFuZCBtYWtlcyBhbGwgdGhlc2UgZnVuY3Rpb25zLCBvbiBz
-dWNjZXNzLA0KPiByZXR1cm4gbGVuZ3RoIG9mIHNvY2thZGRyLiBJdCdzIGFsd2F5cyA+PSAwIGFu
-ZCBjYW4gYmUgZGlmZmVyZW50aWF0ZWQNCj4gZnJvbSBhbiBlcnJvci4NCj4gDQo+IFRlc3RzIGlu
-IGNhbGxlcnMgYXJlIGNoYW5nZWQgZnJvbSAiaWYgKGVycikiIHRvICJpZiAoZXJyIDwgMCkiLCB3
-aGVyZSBuZWVkZWQuDQo+IA0KPiBycGNfc29ja25hbWUoKSBsb3N0ICJpbnQgYnVmbGVuIiBwYXJh
-bWV0ZXIsIHNpbmNlIGl0cyBvbmx5IHVzZSB3YXMNCj4gdG8gYmUgcGFzc2VkIHRvIGtlcm5lbF9n
-ZXRzb2NrbmFtZSgpIGFzICZidWZsZW4gYW5kIHN1YnNlcXVlbnRseQ0KPiBub3QgdXNlZCBpbiBh
-bnkgd2F5Lg0KPiANCj4gVXNlcnNwYWNlIEFQSSBpcyBub3QgY2hhbmdlZC4NCj4gDQo+ICAgICB0
-ZXh0ICAgIGRhdGEgICAgIGJzcyAgICAgIGRlYyAgICAgaGV4IGZpbGVuYW1lDQo+IDMwMTA4NDMw
-IDI2MzM2MjQgIDg3MzY3MiAzMzYxNTcyNiAyMDBlZjZlIHZtbGludXguYmVmb3JlLm8NCj4gMzAx
-MDgxMDkgMjYzMzYxMiAgODczNjcyIDMzNjE1MzkzIDIwMGVlMjEgdm1saW51eC5vDQo+IA0KPiBT
-aWduZWQtb2ZmLWJ5OiBEZW55cyBWbGFzZW5rbyA8ZHZsYXNlbmtAcmVkaGF0LmNvbT4NCg0KUGxl
-YXNlIGRvIGFuIGFsbG1vZGNvbmZpZyBidWlsZCwgdGhlcmUgYXJlIHN0aWxsIHNvbWUgY29udmVy
-c2lvbnMgeW91DQptaXNzZWQ6DQoNCnNlY3VyaXR5L3RvbW95by9uZXR3b3JrLmM6IEluIGZ1bmN0
-aW9uIKF0b21veW9fc29ja2V0X2xpc3Rlbl9wZXJtaXNzaW9uojoNCnNlY3VyaXR5L3RvbW95by9u
-ZXR3b3JrLmM6NjU4OjE5OiB3YXJuaW5nOiBwYXNzaW5nIGFyZ3VtZW50IDMgb2YgoXNvY2stPm9w
-cy0+Z2V0bmFtZaIgbWFrZXMgaW50ZWdlciBmcm9tIHBvaW50ZXIgd2l0aG91dCBhIGNhc3QgWy1X
-aW50LWNvbnZlcnNpb25dDQogICAgICAgICAgICAmYWRkciwgJmFkZHJfbGVuLCAwKTsNCiAgICAg
-ICAgICAgICAgICAgICBeDQpzZWN1cml0eS90b21veW8vbmV0d29yay5jOjY1ODoxOTogbm90ZTog
-ZXhwZWN0ZWQgoWludKIgYnV0IGFyZ3VtZW50IGlzIG9mIHR5cGUgoWludCAqog0Kc2VjdXJpdHkv
-dG9tb3lvL25ldHdvcmsuYzo2NTc6MjE6IGVycm9yOiB0b28gbWFueSBhcmd1bWVudHMgdG8gZnVu
-Y3Rpb24goXNvY2stPm9wcy0+Z2V0bmFtZaINCiAgIGNvbnN0IGludCBlcnJvciA9IHNvY2stPm9w
-cy0+Z2V0bmFtZShzb2NrLCAoc3RydWN0IHNvY2thZGRyICopDQogICAgICAgICAgICAgICAgICAg
-ICBefn5+DQpmcy9kbG0vbG93Y29tbXMuYzogSW4gZnVuY3Rpb24goWxvd2NvbW1zX2Vycm9yX3Jl
-cG9ydKI6DQpmcy9kbG0vbG93Y29tbXMuYzo0OTU6NjogZXJyb3I6IHRvbyBtYW55IGFyZ3VtZW50
-cyB0byBmdW5jdGlvbiCha2VybmVsX2dldHBlZXJuYW1log0KICAgICAga2VybmVsX2dldHBlZXJu
-YW1lKGNvbi0+c29jaywgKHN0cnVjdCBzb2NrYWRkciAqKSZzYWRkciwgJmJ1ZmxlbikpIHsNCiAg
-ICAgIF5+fn5+fn5+fn5+fn5+fn5+fg0KZnMvZGxtL2xvd2NvbW1zLmM6IEluIGZ1bmN0aW9uIKF0
-Y3BfYWNjZXB0X2Zyb21fc29ja6I6DQpmcy9kbG0vbG93Y29tbXMuYzo3NjE6Nzogd2FybmluZzog
-cGFzc2luZyBhcmd1bWVudCAzIG9mIKFuZXdzb2NrLT5vcHMtPmdldG5hbWWiIG1ha2VzIGludGVn
-ZXIgZnJvbSBwb2ludGVyIHdpdGhvdXQgYSBjYXN0IFstV2ludC1jb252ZXJzaW9uXQ0KICAgICAg
-ICZsZW4sIDIpKSB7DQogICAgICAgXg0KZnMvZGxtL2xvd2NvbW1zLmM6NzYxOjc6IG5vdGU6IGV4
-cGVjdGVkIKFpbnSiIGJ1dCBhcmd1bWVudCBpcyBvZiB0eXBlIKFpbnQgKqINCmZzL2RsbS9sb3dj
-b21tcy5jOjc2MDo2OiBlcnJvcjogdG9vIG1hbnkgYXJndW1lbnRzIHRvIGZ1bmN0aW9uIKFuZXdz
-b2NrLT5vcHMtPmdldG5hbWWiDQogIGlmIChuZXdzb2NrLT5vcHMtPmdldG5hbWUobmV3c29jaywg
-KHN0cnVjdCBzb2NrYWRkciAqKSZwZWVyYWRkciwNCiAgICAgIF5+fn5+fn4NCg==
+Ensure that cv_end is equal to ibdev->num_comp_vectors for the
+NUMA node with the highest index. This patch improves spreading
+of RDMA channels over completion vectors and thereby improves
+performance, especially on systems with only a single NUMA node.
+This patch drops support for the comp_vector login parameter by
+ignoring the value of that parameter since I have not found a
+good way to combine support for that parameter and automatic
+spreading of RDMA channels over completion vectors.
+
+Fixes: d92c0da71a35 ("IB/srp: Add multichannel support")
+Reported-by: Alexander Schmid <alex@modula-shop-systems.de>
+Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+Cc: Alexander Schmid <alex@modula-shop-systems.de>
+Cc: stable@vger.kernel.org
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index b48843833d69..241c0e72dce3 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -3871,12 +3871,10 @@ static ssize_t srp_create_target(struct device *dev,
+ 				      num_online_nodes());
+ 		const int ch_end = ((node_idx + 1) * target->ch_count /
+ 				    num_online_nodes());
+-		const int cv_start = (node_idx * ibdev->num_comp_vectors /
+-				      num_online_nodes() + target->comp_vector)
+-				     % ibdev->num_comp_vectors;
+-		const int cv_end = ((node_idx + 1) * ibdev->num_comp_vectors /
+-				    num_online_nodes() + target->comp_vector)
+-				   % ibdev->num_comp_vectors;
++		const int cv_start = node_idx * ibdev->num_comp_vectors /
++				     num_online_nodes();
++		const int cv_end = (node_idx + 1) * ibdev->num_comp_vectors /
++				   num_online_nodes();
+ 		int cpu_idx = 0;
+ 
+ 		for_each_online_cpu(cpu) {
+-- 
+2.16.1
