@@ -1,94 +1,51 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH rdma-rc] RDMA/restrack: don't use uaccess_kernel()
-Date: Thu, 8 Feb 2018 12:09:43 -0800
-Message-ID: <eac01039be8c0518e37928e5b003a911c32e53a7.1518468700.git.swise@opengridcomputing.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core] vmw_pvrdma: Fix SRQN returned to library
+Date: Mon, 12 Feb 2018 14:23:18 -0800
+Message-ID: <ab90a493-3680-d776-e52b-3918b2bd1a6a@vmware.com>
+References: <1518460956-4629-1-git-send-email-aditr@vmware.com>
+ <20180212185906.GE5005@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180212185906.GE5005-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-uaccess_kernel() isn't sufficient to determine if an rdma resource is
-user-mode or not.  For example, resources allocated in the add_one()
-function of an ib_client get falsely labeled as user mode, when they
-are kernel mode allocations.  EG: mad qps.
+On 2/12/18 10:59 AM, Jason Gunthorpe wrote:
+> On Mon, Feb 12, 2018 at 10:42:36AM -0800, Adit Ranadive wrote:
+>> From: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+>>
+>> Here's a fix for the vmw_pvrdma library. It needs to go into the
+>> stable branch for 16.0 as well since we can then add it to OFED-4.8-2.
+>>
 
-The result is that these qps are skipped over during a nldev query
-because of an erroneous namespace mismatch.
+<snip>
 
-So now we determine if the resource is user-mode by looking at the object
-struct's uobject or similar pointer to know if it was allocated for user
-mode applications.
+> 
+> I can't make sense of this.
+> 
+> Why doesn't grep turn up anything for struct pvrdma_create_srq_resp in
+> the kernel?
 
-Fixes: 02d8883f520e ("RDMA/restrack: Add general infrastructure to track RDMA resources")
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/infiniband/core/restrack.c | 36 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 34 insertions(+), 2 deletions(-)
+Do you mean user_pvrdma_create_srq_resp? There isn’t one. 
+Its part of our ABI fix up in rdma-core.
 
-diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
-index 857637b..83bce7e 100644
---- a/drivers/infiniband/core/restrack.c
-+++ b/drivers/infiniband/core/restrack.c
-@@ -7,7 +7,6 @@
- #include <rdma/restrack.h>
- #include <linux/mutex.h>
- #include <linux/sched/task.h>
--#include <linux/uaccess.h>
- #include <linux/pid_namespace.h>
- 
- void rdma_restrack_init(struct rdma_restrack_root *res)
-@@ -93,6 +92,39 @@ static struct ib_device *res_to_dev(struct rdma_restrack_entry *res)
- 	return dev;
- }
- 
-+static bool res_is_user(struct rdma_restrack_entry *res)
-+{
-+	enum rdma_restrack_type type = res->type;
-+	struct ib_xrcd *xrcd;
-+	struct ib_pd *pd;
-+	struct ib_cq *cq;
-+	struct ib_qp *qp;
-+	bool is_user = false;
-+
-+	switch (type) {
-+	case RDMA_RESTRACK_PD:
-+		pd = container_of(res, struct ib_pd, res);
-+		is_user = pd->uobject;
-+		break;
-+	case RDMA_RESTRACK_CQ:
-+		cq = container_of(res, struct ib_cq, res);
-+		is_user = cq->uobject;
-+		break;
-+	case RDMA_RESTRACK_QP:
-+		qp = container_of(res, struct ib_qp, res);
-+		if (qp->pd)
-+			is_user = qp->pd->uobject;
-+		break;
-+	case RDMA_RESTRACK_XRCD:
-+		xrcd = container_of(res, struct ib_xrcd, res);
-+		is_user = xrcd->inode;
-+		break;
-+	default:
-+		WARN_ONCE(true, "Wrong resource tracking type %u\n", type);
-+	}
-+	return is_user;
-+}
-+
- void rdma_restrack_add(struct rdma_restrack_entry *res)
- {
- 	struct ib_device *dev = res_to_dev(res);
-@@ -100,7 +132,7 @@ void rdma_restrack_add(struct rdma_restrack_entry *res)
- 	if (!dev)
- 		return;
- 
--	if (!uaccess_kernel()) {
-+	if (res_is_user(res)) {
- 		get_task_struct(current);
- 		res->task = current;
- 		res->kern_name = NULL;
--- 
-1.8.3.1
+> 
+> And why do we have two things called srqn in this struct?
+
+It looks like the uverbs in the kernel reports the XRC SRQN in the one of
+these while the other gets populated by the driver in the udata here. The SRQN
+for a regular SRQ only gets reported in this second srqn field.
+I'm not sure why that's the case but we need to report the one from the
+driver here then.
+
+> 
+> Jason
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
