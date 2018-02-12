@@ -1,82 +1,45 @@
-From: Denys Vlasenko <dvlasenk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] net: make getname() functions return length rather than
- use int* parameter
-Date: Mon, 12 Feb 2018 18:59:06 +0100
-Message-ID: <4f0c5a1d-f75d-4c54-8cdd-5660b2233252@redhat.com>
-References: <20180212141518.3354-1-dvlasenk@redhat.com>
- <20180212.124738.870301786818646917.davem@davemloft.net>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH v2 00/14] IB/srpt: Add RDMA/CM support
+Date: Mon, 12 Feb 2018 18:04:09 +0000
+Message-ID: <1518458648.2668.11.camel@wdc.com>
+References: <20180117001418.7852-1-bart.vanassche@wdc.com>
+         <1516230870.3403.292.camel@redhat.com> <1517271807.2687.65.camel@wdc.com>
+         <1517334206.27592.291.camel@redhat.com> <1517336389.2589.22.camel@wdc.com>
+         <1517351373.19117.6.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-7; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180212.124738.870301786818646917.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1517351373.19117.6.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-decnet-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-x25-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-ID: <3429413365FAF24A9002D3C7CE56E307-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/12/2018 06:47 PM, David Miller wrote:
-> From: Denys Vlasenko <dvlasenk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Date: Mon, 12 Feb 2018 15:15:18 +0100
-> 
->> Before:
->> All these functions either return a negative error indicator,
->> or store length of sockaddr into "int *socklen" parameter
->> and return zero on success.
->>
->> "int *socklen" parameter is awkward. For example, if caller does not
->> care, it still needs to provide on-stack storage for the value
->> it does not need.
->>
->> None of the many FOO_getname() functions of various protocols
->> ever used old value of *socklen. They always just overwrite it.
->>
->> This change drops this parameter, and makes all these functions, on success,
->> return length of sockaddr. It's always >= 0 and can be differentiated
->> from an error.
->>
->> Tests in callers are changed from "if (err)" to "if (err < 0)", where needed.
->>
->> rpc_sockname() lost "int buflen" parameter, since its only use was
->> to be passed to kernel_getsockname() as &buflen and subsequently
->> not used in any way.
->>
->> Userspace API is not changed.
->>
->>      text    data     bss      dec     hex filename
->> 30108430 2633624  873672 33615726 200ef6e vmlinux.before.o
->> 30108109 2633612  873672 33615393 200ee21 vmlinux.o
->>
->> Signed-off-by: Denys Vlasenko <dvlasenk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> 
-> Please do an allmodconfig build, there are still some conversions you
-> missed:
-> 
-> security/tomoyo/network.c: In function ¡tomoyo_socket_listen_permission¢:
-> security/tomoyo/network.c:658:19: warning: passing argument 3 of ¡sock->ops->getname¢ makes integer from pointer without a cast [-Wint-conversion]
->              &addr, &addr_len, 0);
->                     ^
-> security/tomoyo/network.c:658:19: note: expected ¡int¢ but argument is of type ¡int *¢
-> security/tomoyo/network.c:657:21: error: too many arguments to function ¡sock->ops->getname¢
->     const int error = sock->ops->getname(sock, (struct sockaddr *)
->                       ^~~~
-> fs/dlm/lowcomms.c: In function ¡lowcomms_error_report¢:
-> fs/dlm/lowcomms.c:495:6: error: too many arguments to function ¡kernel_getpeername¢
->        kernel_getpeername(con->sock, (struct sockaddr *)&saddr, &buflen)) {
->        ^~~~~~~~~~~~~~~~~~
-> fs/dlm/lowcomms.c: In function ¡tcp_accept_from_sock¢:
-> fs/dlm/lowcomms.c:761:7: warning: passing argument 3 of ¡newsock->ops->getname¢ makes integer from pointer without a cast [-Wint-conversion]
->         &len, 2)) {
->         ^
-> fs/dlm/lowcomms.c:761:7: note: expected ¡int¢ but argument is of type ¡int *¢
-> fs/dlm/lowcomms.c:760:6: error: too many arguments to function ¡newsock->ops->getname¢
->    if (newsock->ops->getname(newsock, (struct sockaddr *)&peeraddr,
->        ^~~~~~~
-
-Sorry. Will send updated patch.
-  
+T24gVHVlLCAyMDE4LTAxLTMwIGF0IDE3OjI5IC0wNTAwLCBEb3VnIExlZGZvcmQgd3JvdGU6DQo+
+IE9uIFR1ZSwgMjAxOC0wMS0zMCBhdCAxODoxOSArMDAwMCwgQmFydCBWYW4gQXNzY2hlIHdyb3Rl
+Og0KPiA+IFJlZ2FyZGluZyBjb25maWd1cmluZyBvbiB3aGljaCBJUCBhZGRyZXNzIHRvIGxpc3Rl
+biwgb25lIHBvc3NpYmlsZSBhcHByb2FjaA0KPiA+IGlzIHRvIG1vdmUgdGhlIHJkbWFfY21fcG9y
+dCBwb3J0IG51bWJlciBjb25maWdmcyBhdHRyaWJ1dGUgZnJvbQ0KPiA+IC9zeXMva2VybmVsL2Nv
+bmZpZy90YXJnZXQvc3JwdC9kaXNjb3ZlcnlfYXV0aC9yZG1hX2NtX3BvcnQgdG8NCj4gPiAvc3lz
+L2tlcm5lbC9jb25maWcvdGFyZ2V0L3NycHQvJHBvcnQvJHBvcnQvYXR0cmliL3JkbWFfY21fcG9y
+dCB3aGVyZSAkcG9ydA0KPiA+IGlzIGFuIFJETUEgcG9ydCBHVUlEIG9yIEdJRCAoYm90aCBhcmUg
+YWNjZXB0ZWQpLiBUaGF0IHdvdWxkIGFsbG93IHRvDQo+ID4gZW5hYmxlL2Rpc2FibGUgUkRNQS9D
+TSBzdXBwb3J0IHBlciBSRE1BIGFkYXB0ZXIgcG9ydC4gVGhlIGliX3NycHQgZHJpdmVyDQo+ID4g
+Y291bGQgZS5nLiBjcmVhdGUgb25lIGxpc3RlbmluZyByZG1hX2NtX2lkIHBlciBJUCBhZGRyZXNz
+IHRoYXQgaXMgYXNzb2NpYXRlZA0KPiA+IHdpdGggYW4gUkRNQSBwb3J0Lg0KPiANCj4gVGhhdCB3
+b3VsZCB3b3JrIGFzIHdlbGwuDQoNCkhlbGxvIERvdWcsDQoNCkRvIHlvdSBwcmVmZXIgdGhhdCB0
+aGUgUkRNQS9DTSBwb3J0IG51bWJlciBpcyBjb25maWd1cmFibGUgcGVyIFJETUEgcG9ydA0KKC9z
+eXMva2VybmVsL2NvbmZpZy90YXJnZXQvc3JwdC8kcG9ydC8kcG9ydC9hdHRyaWIvcmRtYV9jbV9w
+b3J0KSBvciBpcyBhDQpzaW5nbGUgYXR0cmlidXRlIGZvciBhbGwgcG9ydHMgc3VmZmljaWVudA0K
+KC9zeXMva2VybmVsL2NvbmZpZy90YXJnZXQvc3JwdC9kaXNjb3ZlcnlfYXV0aC9yZG1hX2NtX3Bv
+cnQpPyBJJ20gYXNraW5nIHRoaXMNCnNpbmNlIHRoZXJlIGlzIGFscmVhZHkgYW4gYXR0cmlidXRl
+IHRoYXQgYWxsb3dzIHRvIGVuYWJsZS9kaXNhYmxlIFNSUCB0YXJnZXQNCnN1cHBvcnQgcGVyIFJE
+TUEgcG9ydCAoL3N5cy9rZXJuZWwvY29uZmlnL3RhcmdldC9zcnB0LyRwb3J0LyRwb3J0L2VuYWJs
+ZSkuDQoNClRoYW5rcywNCg0KQmFydC4NCg0KDQo=
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
