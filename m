@@ -1,21 +1,38 @@
-From: Sowmini Varadhan <sowmini.varadhan-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: WARNING: suspicious RCU usage in rds_tcp_conn_alloc
-Date: Mon, 12 Feb 2018 11:15:16 -0500
-Message-ID: <20180212161516.GC21125@oracle.com>
-References: <001a11499df4ce6c2d056505e5c0@google.com>
+From: Matthew Wilcox <willy@infradead.org>
+Subject: Re: [RFC] Protect larger order pages from breaking up
+Date: Mon, 12 Feb 2018 09:36:30 -0800
+Message-ID: <20180212173630.GB9396@bombadil.infradead.org>
+References: <alpine.DEB.2.20.1802091311090.3059@nuc-kabylake>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <001a11499df4ce6c2d056505e5c0-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: syzbot <syzbot+a0564419941aaae3fe3c-Pl5Pbv+GP7P466ipTTIvnc23WoclnBCfAL8bYrjMMd8@public.gmane.org>
-Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, syzkaller-bugs-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+In-Reply-To: <alpine.DEB.2.20.1802091311090.3059@nuc-kabylake>
+Sender: owner-linux-mm@kvack.org
+To: Christopher Lameter <cl@linux.com>
+Cc: Mel Gorman <mel@csn.ul.ie>, linux-mm@kvack.org, akpm@linux-foundation.org, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, Thomas Schoebel-Theuer <tst@schoebel-theuer.de>
 List-Id: linux-rdma@vger.kernel.org
 
-#syz dup: WARNING: suspicious RCU usage in rds_loop_conn_alloc
+On Fri, Feb 09, 2018 at 01:24:41PM -0600, Christopher Lameter wrote:
+> Control over this feature is by writing to /proc/zoneinfo.
+> 
+> F.e. to ensure that 2000 16K pages stay available for jumbo
+> frames do
+> 
+> 	echo "3=2000" >/proc/zoneinfo
+
+That seems ... wrong.  4k is order 0, 8k is order 1, 16k is order 2,
+32k is order 3.
+
+> One can then also f.e. operate the slub allocator with
+> 64k pages. Specify "slub_max_order=3 slub_min_order=3" on
+> the kernel command line and all slab allocator allocations
+> will occur in 16K page sizes.
+
+This example also reads weird ;-)
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
