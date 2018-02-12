@@ -1,318 +1,123 @@
-From: "Liuyixian (Eason)" <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 for-next 1/4] RDMA/hns: Support rq record doorbell for
- the user space
-Date: Mon, 12 Feb 2018 11:48:02 +0800
-Message-ID: <e8bf2b0c-b68d-54a1-6c14-09cb291e7c90@huawei.com>
-References: <1518352853-80652-1-git-send-email-liuyixian@huawei.com>
- <1518352853-80652-2-git-send-email-liuyixian@huawei.com>
- <20180211183830.GA3219@yuvallap>
+From: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v4 for-next 4/4] RDMA/hns: Support cq record doorbell for kernel space
+Date: Mon, 12 Feb 2018 18:14:11 +0800
+Message-ID: <1518430451-89833-5-git-send-email-liuyixian@huawei.com>
+References: <1518430451-89833-1-git-send-email-liuyixian@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180211183830.GA3219@yuvallap>
-Content-Language: en-US
+In-Reply-To: <1518430451-89833-1-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: jgg-uk2M96/98Pc@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: jgg-uk2M96/98Pc@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+This patch updates to support cq record doorbell for
+the kernel space.
 
+Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/hns/hns_roce_cq.c     | 17 ++++++++++++++++-
+ drivers/infiniband/hw/hns/hns_roce_device.h |  1 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 19 +------------------
+ 3 files changed, 18 insertions(+), 19 deletions(-)
 
-On 2018/2/12 2:38, Yuval Shaia wrote:
-> On Sun, Feb 11, 2018 at 08:40:50PM +0800, Yixian Liu wrote:
->> This patch adds interfaces and definitions to support the rq record
->> doorbell for the user space.
->>
->> Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> Reviewed-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->>  drivers/infiniband/hw/hns/Makefile          |  2 +-
->>  drivers/infiniband/hw/hns/hns_roce_db.c     | 95 +++++++++++++++++++++++++++++
->>  drivers/infiniband/hw/hns/hns_roce_device.h | 46 +++++++++++++-
->>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 26 +++++++-
->>  drivers/infiniband/hw/hns/hns_roce_main.c   |  5 ++
->>  drivers/infiniband/hw/hns/hns_roce_qp.c     | 51 +++++++++++++++-
->>  include/uapi/rdma/hns-abi.h                 |  6 ++
->>  7 files changed, 226 insertions(+), 5 deletions(-)
->>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_db.c
->>
->> diff --git a/drivers/infiniband/hw/hns/Makefile b/drivers/infiniband/hw/hns/Makefile
->> index 97bf2cd..cf03404 100644
->> --- a/drivers/infiniband/hw/hns/Makefile
->> +++ b/drivers/infiniband/hw/hns/Makefile
->> @@ -7,7 +7,7 @@ ccflags-y :=  -Idrivers/net/ethernet/hisilicon/hns3
->>  obj-$(CONFIG_INFINIBAND_HNS) += hns-roce.o
->>  hns-roce-objs := hns_roce_main.o hns_roce_cmd.o hns_roce_pd.o \
->>  	hns_roce_ah.o hns_roce_hem.o hns_roce_mr.o hns_roce_qp.o \
->> -	hns_roce_cq.o hns_roce_alloc.o
->> +	hns_roce_cq.o hns_roce_alloc.o hns_roce_db.o
->>  obj-$(CONFIG_INFINIBAND_HNS_HIP06) += hns-roce-hw-v1.o
->>  hns-roce-hw-v1-objs := hns_roce_hw_v1.o
->>  obj-$(CONFIG_INFINIBAND_HNS_HIP08) += hns-roce-hw-v2.o
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_db.c b/drivers/infiniband/hw/hns/hns_roce_db.c
->> new file mode 100644
->> index 0000000..1604c95
->> --- /dev/null
->> +++ b/drivers/infiniband/hw/hns/hns_roce_db.c
->> @@ -0,0 +1,95 @@
->> +/* SPDX-License-Identifier: (GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause */
->> +/*
->> + * Copyright (c) 2017 Hisilicon Limited.
->> + * Copyright (c) 2007, 2008 Mellanox Technologies. All rights reserved.
->> + *
->> + * This software is available to you under a choice of one of two
->> + * licenses.  You may choose to be licensed under the terms of the GNU
->> + * General Public License (GPL) Version 2, available from the file
->> + * COPYING in the main directory of this source tree, or the
->> + * OpenIB.org BSD license below:
->> + *
->> + *     Redistribution and use in source and binary forms, with or
->> + *     without modification, are permitted provided that the following
->> + *     conditions are met:
->> + *
->> + *      - Redistributions of source code must retain the above
->> + *        copyright notice, this list of conditions and the following
->> + *        disclaimer.
->> + *
->> + *      - Redistributions in binary form must reproduce the above
->> + *        copyright notice, this list of conditions and the following
->> + *        disclaimer in the documentation and/or other materials
->> + *        provided with the distribution.
->> + *
->> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
->> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
->> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
->> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
->> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
->> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
->> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
->> + * SOFTWARE.
->> + */
->> +
->> +#include <linux/platform_device.h>
->> +#include <rdma/ib_umem.h>
->> +#include "hns_roce_device.h"
->> +
->> +int hns_roce_db_map_user(struct hns_roce_ucontext *context, unsigned long virt,
->> +			 struct hns_roce_db *db)
->> +{
->> +	struct hns_roce_user_db_page *db_page;
->> +	int ret = 0;
->> +
->> +	mutex_lock(&context->db_page_mutex);
->> +
->> +	list_for_each_entry(db_page, &context->db_page_list, list)
->> +		if (db_page->user_virt == (virt & PAGE_MASK))
->> +			goto found;
->> +
->> +	db_page = kmalloc(sizeof(*db_page), GFP_KERNEL);
->> +	if (!db_page) {
->> +		ret = -ENOMEM;
->> +		goto out;
->> +	}
->> +
->> +	db_page->user_virt = (virt & PAGE_MASK);
->> +	db_page->refcount_t = 0;
->> +	db_page->umem      = ib_umem_get(&context->ibucontext, virt & PAGE_MASK,
->> +					 PAGE_SIZE, 0, 0);
->> +	if (IS_ERR(db_page->umem)) {
->> +		ret = PTR_ERR(db_page->umem);
->> +		kfree(db_page);
->> +		goto out;
->> +	}
->> +
->> +	list_add(&db_page->list, &context->db_page_list);
->> +
->> +found:
->> +	db->dma = sg_dma_address(db_page->umem->sg_head.sgl) +
->> +		  (virt & ~PAGE_MASK);
->> +	db->u.user_page = db_page;
->> +	++db_page->refcount_t;
->> +
->> +out:
->> +	mutex_unlock(&context->db_page_mutex);
->> +
->> +	return ret;
->> +}
->> +EXPORT_SYMBOL(hns_roce_db_map_user);
->> +
->> +void hns_roce_db_unmap_user(struct hns_roce_ucontext *context,
->> +			    struct hns_roce_db *db)
->> +{
->> +	mutex_lock(&context->db_page_mutex);
->> +
->> +	if (!--db->u.user_page->refcount_t) {
->> +		list_del(&db->u.user_page->list);
->> +		ib_umem_release(db->u.user_page->umem);
->> +		kfree(db->u.user_page);
->> +	}
->> +
->> +	mutex_unlock(&context->db_page_mutex);
->> +}
->> +EXPORT_SYMBOL(hns_roce_db_unmap_user);
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
->> index 165a09b..e436282 100644
->> --- a/drivers/infiniband/hw/hns/hns_roce_device.h
->> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
->> @@ -105,6 +105,10 @@
->>  #define PAGES_SHIFT_24				24
->>  #define PAGES_SHIFT_32				32
->>  
->> +enum {
->> +	HNS_ROCE_SUPPORT_RQ_RECORD_DB = 1 << 0,
->> +};
->> +
->>  enum hns_roce_qp_state {
->>  	HNS_ROCE_QP_STATE_RST,
->>  	HNS_ROCE_QP_STATE_INIT,
->> @@ -178,7 +182,8 @@ enum {
->>  enum {
->>  	HNS_ROCE_CAP_FLAG_REREG_MR		= BIT(0),
->>  	HNS_ROCE_CAP_FLAG_ROCE_V1_V2		= BIT(1),
->> -	HNS_ROCE_CAP_FLAG_RQ_INLINE		= BIT(2)
->> +	HNS_ROCE_CAP_FLAG_RQ_INLINE		= BIT(2),
->> +	HNS_ROCE_CAP_FLAG_RECORD_DB		= BIT(3)
->>  };
->>  
->>  enum hns_roce_mtt_type {
->> @@ -186,6 +191,10 @@ enum hns_roce_mtt_type {
->>  	MTT_TYPE_CQE,
->>  };
->>  
->> +enum {
->> +	HNS_ROCE_DB_PER_PAGE = PAGE_SIZE / 4
->> +};
->> +
->>  #define HNS_ROCE_CMD_SUCCESS			1
->>  
->>  #define HNS_ROCE_PORT_DOWN			0
->> @@ -203,6 +212,8 @@ struct hns_roce_uar {
->>  struct hns_roce_ucontext {
->>  	struct ib_ucontext	ibucontext;
->>  	struct hns_roce_uar	uar;
->> +	struct list_head	db_page_list;
->> +	struct mutex		db_page_mutex;
->>  };
->>  
->>  struct hns_roce_pd {
->> @@ -335,6 +346,33 @@ struct hns_roce_buf {
->>  	int				page_shift;
->>  };
->>  
->> +struct hns_roce_db_pgdir {
->> +	struct list_head	list;
->> +	DECLARE_BITMAP(order0, HNS_ROCE_DB_PER_PAGE);
->> +	DECLARE_BITMAP(order1, HNS_ROCE_DB_PER_PAGE / 2);
->> +	unsigned long		*bits[2];
->> +	u32			*db_page;
->> +	dma_addr_t		db_dma;
->> +};
->> +
->> +struct hns_roce_user_db_page {
->> +	struct list_head	list;
->> +	struct ib_umem		*umem;
->> +	unsigned long		user_virt;
->> +	int			refcount_t;
->> +};
->> +
->> +struct hns_roce_db {
->> +	u32		*db_record;
->> +	union {
->> +		struct hns_roce_db_pgdir *pgdir;
->> +		struct hns_roce_user_db_page *user_page;
->> +	} u;
->> +	dma_addr_t	dma;
->> +	int		index;
->> +	int		order;
->> +};
->> +
->>  struct hns_roce_cq_buf {
->>  	struct hns_roce_buf hr_buf;
->>  	struct hns_roce_mtt hr_mtt;
->> @@ -465,6 +503,8 @@ struct hns_roce_rinl_buf {
->>  struct hns_roce_qp {
->>  	struct ib_qp		ibqp;
->>  	struct hns_roce_buf	hr_buf;
->> +	struct hns_roce_db	rdb;
->> +	u8			rdb_en;
->>  	struct hns_roce_wq	rq;
->>  	u32			doorbell_qpn;
->>  	__le32			sq_signal_bits;
->> @@ -930,6 +970,10 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
->>  int hns_roce_ib_destroy_cq(struct ib_cq *ib_cq);
->>  void hns_roce_free_cq(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq);
->>  
->> +int hns_roce_db_map_user(struct hns_roce_ucontext *context, unsigned long virt,
->> +			 struct hns_roce_db *db);
->> +void hns_roce_db_unmap_user(struct hns_roce_ucontext *context,
->> +			    struct hns_roce_db *db);
->>  void hns_roce_cq_completion(struct hns_roce_dev *hr_dev, u32 cqn);
->>  void hns_roce_cq_event(struct hns_roce_dev *hr_dev, u32 cqn, int event_type);
->>  void hns_roce_qp_event(struct hns_roce_dev *hr_dev, u32 qpn, int event_type);
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> index db2ff35..275ee84 100644
->> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> @@ -1168,7 +1168,8 @@ static int hns_roce_v2_profile(struct hns_roce_dev *hr_dev)
->>  
->>  	caps->flags		= HNS_ROCE_CAP_FLAG_REREG_MR |
->>  				  HNS_ROCE_CAP_FLAG_ROCE_V1_V2 |
->> -				  HNS_ROCE_CAP_FLAG_RQ_INLINE;
->> +				  HNS_ROCE_CAP_FLAG_RQ_INLINE |
->> +				  HNS_ROCE_CAP_FLAG_RECORD_DB;
->>  	caps->pkey_table_len[0] = 1;
->>  	caps->gid_table_len[0] = HNS_ROCE_V2_GID_INDEX_NUM;
->>  	caps->ceqe_depth	= HNS_ROCE_V2_COMP_EQE_NUM;
->> @@ -2274,6 +2275,23 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
->>  		hr_qp->qkey = attr->qkey;
->>  	}
->>  
->> +	if (hr_qp->rdb_en) {
->> +		roce_set_bit(context->byte_68_rq_db,
->> +			     V2_QPC_BYTE_68_RQ_RECORD_EN_S, 1);
->> +		roce_set_bit(qpc_mask->byte_68_rq_db,
->> +			     V2_QPC_BYTE_68_RQ_RECORD_EN_S, 0);
->> +	}
->> +
->> +	roce_set_field(context->byte_68_rq_db,
->> +		       V2_QPC_BYTE_68_RQ_DB_RECORD_ADDR_M,
->> +		       V2_QPC_BYTE_68_RQ_DB_RECORD_ADDR_S,
->> +		       ((u32)hr_qp->rdb.dma) >> 1);
->> +	roce_set_field(qpc_mask->byte_68_rq_db,
->> +		       V2_QPC_BYTE_68_RQ_DB_RECORD_ADDR_M,
->> +		       V2_QPC_BYTE_68_RQ_DB_RECORD_ADDR_S, 0);
->> +	context->rq_db_record_addr = hr_qp->rdb.dma >> 32;
->> +	qpc_mask->rq_db_record_addr = 0;
->> +
->>  	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S, 1);
->>  	roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S, 0);
->>  
->> @@ -3211,6 +3229,8 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
->>  		hr_qp->sq.tail = 0;
->>  		hr_qp->sq_next_wqe = 0;
->>  		hr_qp->next_sge = 0;
->> +		if (hr_qp->rq.wqe_cnt)
->> +			*hr_qp->rdb.db_record = 0;
->>  	}
->>  
->>  out:
->> @@ -3437,6 +3457,10 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
->>  	hns_roce_mtt_cleanup(hr_dev, &hr_qp->mtt);
->>  
->>  	if (is_user) {
->> +		if (hr_qp->rq.wqe_cnt)
->> +			hns_roce_db_unmap_user(
-> 
-> Since hns_roce_db_unmap_user is using a mutex that initialized only if
-> HNS_ROCE_CAP_FLAG_RECORD_DB flag is set suggesting to add a comment why
-> this flag does not checked here (such as hns_roce_create_qp_common).
-> 
-Thanks for reminder, the flag check is missed here, will fix it next version.
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index ebedcf3..6ae9c45 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -367,12 +367,21 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
+ 		/* Get user space parameters */
+ 		uar = &to_hr_ucontext(context)->uar;
+ 	} else {
++		if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB) {
++			ret = hns_roce_alloc_db(hr_dev, &hr_cq->db, 1);
++			if (ret)
++				goto err_cq;
++
++			hr_cq->set_ci_db = hr_cq->db.db_record;
++			*hr_cq->set_ci_db = 0;
++		}
++
+ 		/* Init mmt table and write buff address to mtt table */
+ 		ret = hns_roce_ib_alloc_cq_buf(hr_dev, &hr_cq->hr_buf,
+ 					       cq_entries);
+ 		if (ret) {
+ 			dev_err(dev, "Failed to alloc_cq_buf.\n");
+-			goto err_cq;
++			goto err_db;
+ 		}
+ 
+ 		uar = &hr_dev->priv_uar;
+@@ -434,6 +443,10 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
+ 		hns_roce_ib_free_cq_buf(hr_dev, &hr_cq->hr_buf,
+ 					hr_cq->ib_cq.cqe);
+ 
++err_db:
++	if (!context && (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB))
++		hns_roce_free_db(hr_dev, &hr_cq->db);
++
+ err_cq:
+ 	kfree(hr_cq);
+ 	return ERR_PTR(ret);
+@@ -463,6 +476,8 @@ int hns_roce_ib_destroy_cq(struct ib_cq *ib_cq)
+ 			/* Free the buff of stored cq */
+ 			hns_roce_ib_free_cq_buf(hr_dev, &hr_cq->hr_buf,
+ 						ib_cq->cqe);
++			if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RECORD_DB)
++				hns_roce_free_db(hr_dev, &hr_cq->db);
+ 		}
+ 
+ 		kfree(hr_cq);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 4f2ed85..0435d0a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -395,6 +395,7 @@ struct hns_roce_cq {
+ 	struct hns_roce_uar		*uar;
+ 	u32				cq_depth;
+ 	u32				cons_index;
++	u32				*set_ci_db;
+ 	void __iomem			*cq_db_l;
+ 	u16				*tptr_addr;
+ 	int				arm_sn;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index d47c8c4..5147da2 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -1497,24 +1497,7 @@ static struct hns_roce_v2_cqe *next_cqe_sw_v2(struct hns_roce_cq *hr_cq)
+ 
+ static void hns_roce_v2_cq_set_ci(struct hns_roce_cq *hr_cq, u32 cons_index)
+ {
+-	struct hns_roce_v2_cq_db cq_db;
+-
+-	cq_db.byte_4 = 0;
+-	cq_db.parameter = 0;
+-
+-	roce_set_field(cq_db.byte_4, V2_CQ_DB_BYTE_4_TAG_M,
+-		       V2_CQ_DB_BYTE_4_TAG_S, hr_cq->cqn);
+-	roce_set_field(cq_db.byte_4, V2_CQ_DB_BYTE_4_CMD_M,
+-		       V2_CQ_DB_BYTE_4_CMD_S, HNS_ROCE_V2_CQ_DB_PTR);
+-
+-	roce_set_field(cq_db.parameter, V2_CQ_DB_PARAMETER_CONS_IDX_M,
+-		       V2_CQ_DB_PARAMETER_CONS_IDX_S,
+-		       cons_index & ((hr_cq->cq_depth << 1) - 1));
+-	roce_set_field(cq_db.parameter, V2_CQ_DB_PARAMETER_CMD_SN_M,
+-		       V2_CQ_DB_PARAMETER_CMD_SN_S, 1);
+-
+-	hns_roce_write64_k((__be32 *)&cq_db, hr_cq->cq_db_l);
+-
++	*hr_cq->set_ci_db = cons_index & 0xffffff;
+ }
+ 
+ static void __hns_roce_v2_cq_clean(struct hns_roce_cq *hr_cq, u32 qpn,
+-- 
+1.9.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
