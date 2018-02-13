@@ -1,56 +1,132 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 14/15] IB/uverbs: Fix unbalanced unlock on error path for rdma_explicit_destroy
-Date: Tue, 13 Feb 2018 12:18:40 +0200
-Message-ID: <20180213101841.20101-15-leon@kernel.org>
-References: <20180213101841.20101-1-leon@kernel.org>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCHv2 1/1] IB/rxe: remove unnecessary skb_clone
+Date: Tue, 13 Feb 2018 13:21:25 +0200
+Message-ID: <20180213112124.GA6991@yuvallap>
+References: <1515140391-24752-1-git-send-email-yanjun.zhu@oracle.com>
+ <1518508786-3204-1-git-send-email-yanjun.zhu@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180213101841.20101-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1518508786-3204-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Tue, Feb 13, 2018 at 02:59:46AM -0500, Zhu Yanjun wrote:
+> In send_atomic_ack function, it is not necessary make a
 
-If remove_commit fails then the lock is left locked while the uobj still
-exists. Eventually the kernel will deadlock.
+s/make/to make
 
-lockdep detects this and says:
+> skb_clone. To gain better performance(high throughput and
 
- test/4221 is leaving the kernel with locks still held!
- 1 lock held by test/4221:
-  #0:  (&ucontext->cleanup_rwsem){.+.+}, at: [<000000001e5c7523>] rdma_explicit_destroy+0x37/0x120 [ib_uverbs]
+s/e(h/e (h
 
-Fixes: 4da70da23e9b ("IB/core: Explicitly destroy an object while keeping uobject")
-Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/core/rdma_core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+> low latency), this skb_clone is removed.
+> 
+> The following tests are made.
+> 
+>  server                       client
+> ---------                    ---------
+> |1.1.1.1|<----rxe-channel--->|1.1.1.2|
+> ---------                    ---------
+> 
+> On server: rping -s -a 1.1.1.1 -v -C 1000 -S 512
+> On client: rping -c -a 1.1.1.1 -v -C 1000 -S 512
+> 
+> The kernel config CONFIG_DEBUG_KMEMLEAK is enabled on both server
+> and client.
+> 
+> This test runs for several hours. There is no memory leak and the whole
+> system can work well.
+> 
+> As the above network, the following tests are made.
+> 
+> Server: ibv_rc_pingpong -d rxe0 -g 1
+> Client: ibv_rc_pingpong -d rxe0 -g 1 1.1.1.1
+> 
+> The result on Server(10 tests are made).
+> Before:
+> Throughput is 137.07 Mbit/sec
+> Latency is 517.76 usec/iter
+> 
+> After:
+> Throughput is 148.85 Mbit/sec
+> Latency is 476.64 usec/iter
+> 
+> The throughput is enhanced and the latency is reduced.
+> 
+> CC: Srinivas Eeda <srinivas.eeda-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> CC: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> V1-->V2: 10 tests are made. From throughput and latency, the performance is better.
+> ---
+>  drivers/infiniband/sw/rxe/rxe_resp.c | 15 ++-------------
+>  1 file changed, 2 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+> index d37bb9b..6d01d16 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+> @@ -969,7 +969,6 @@ static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+>  	int rc = 0;
+>  	struct rxe_pkt_info ack_pkt;
+>  	struct sk_buff *skb;
+> -	struct sk_buff *skb_copy;
+>  	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
+>  	struct resp_res *res;
+>  
+> @@ -981,15 +980,6 @@ static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+>  		goto out;
+>  	}
+>  
+> -	skb_copy = skb_clone(skb, GFP_ATOMIC);
+> -	if (skb_copy)
+> -		rxe_add_ref(qp); /* for the new SKB */
 
-diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-index 1cb6849b2231..e2c2aa424e4d 100644
---- a/drivers/infiniband/core/rdma_core.c
-+++ b/drivers/infiniband/core/rdma_core.c
-@@ -484,12 +484,13 @@ int rdma_explicit_destroy(struct ib_uobject *uobject)
- 	ret = uobject->type->type_class->remove_commit(uobject,
- 						       RDMA_REMOVE_DESTROY);
- 	if (ret)
--		return ret;
-+		goto out;
- 
- 	uobject->type = &null_obj_type;
- 
-+out:
- 	up_read(&ucontext->cleanup_rwsem);
--	return 0;
-+	return ret;
- }
- 
- static void alloc_commit_idr_uobject(struct ib_uobject *uobj)
--- 
-2.16.1
+Are you sure we don't need this?
 
+> -	else {
+> -		pr_warn("Could not clone atomic response\n");
+> -		rc = -ENOMEM;
+> -		goto out;
+> -	}
+> -
+>  	res = &qp->resp.resources[qp->resp.res_head];
+>  	free_rd_atomic_resource(qp, res);
+>  	rxe_advance_resp_resource(qp);
+> @@ -998,17 +988,16 @@ static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+>  	memset((unsigned char *)SKB_TO_PKT(skb) + sizeof(ack_pkt), 0,
+>  	       sizeof(skb->cb) - sizeof(ack_pkt));
+>  
+> +	refcount_inc(&skb->users);
+>  	res->type = RXE_ATOMIC_MASK;
+>  	res->atomic.skb = skb;
+>  	res->first_psn = ack_pkt.psn;
+>  	res->last_psn  = ack_pkt.psn;
+>  	res->cur_psn   = ack_pkt.psn;
+>  
+> -	rc = rxe_xmit_packet(rxe, qp, &ack_pkt, skb_copy);
+> +	rc = rxe_xmit_packet(rxe, qp, &ack_pkt, skb);
+>  	if (rc) {
+>  		pr_err_ratelimited("Failed sending ack\n");
+> -		rxe_drop_ref(qp);
+> -		kfree_skb(skb_copy);
+>  	}
+
+With this modification suggesting to remove the curly braces.
+
+>  
+>  out:
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
