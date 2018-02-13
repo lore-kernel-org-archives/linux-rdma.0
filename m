@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 06/15] IB/uverbs: Fix method merging in uverbs_ioctl_merge
-Date: Tue, 13 Feb 2018 12:18:32 +0200
-Message-ID: <20180213101841.20101-7-leon@kernel.org>
+Subject: [PATCH rdma-rc 09/15] IB/uverbs: Fix possible oops with duplicate ioctl attributes
+Date: Tue, 13 Feb 2018 12:18:35 +0200
+Message-ID: <20180213101841.20101-10-leon@kernel.org>
 References: <20180213101841.20101-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180213101841.20101-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,79 +12,39 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Fix a bug in uverbs_ioctl_merge that looked at objects iterators
-number instead of methods iterators number when merging methods.
+If the same attribute is listed twice by the user in the ioctl attribute
+list then error unwind can cause the kernel to deref garbage.
 
-While we're at it, make the uverbs_ioctl_merge code a bit more clear
-and faster.
+This happens when an object with WRITE access is sent twice. The second
+parse properly fails but corrupts the state required for the error unwind
+it triggers.
 
-Fixes: 118620d3686b ('IB/core: Add uverbs merge trees functionality')
+Fixing this by making duplicates in the attribute list invalid. This is
+not something we need to support.
+
+The ioctl interface is currently recommended to be disabled in kConfig.
+
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_ioctl_merge.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/infiniband/core/uverbs_ioctl.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs_ioctl_merge.c b/drivers/infiniband/core/uverbs_ioctl_merge.c
-index 062485f9300d..62e1eb1d2a28 100644
---- a/drivers/infiniband/core/uverbs_ioctl_merge.c
-+++ b/drivers/infiniband/core/uverbs_ioctl_merge.c
-@@ -114,6 +114,7 @@ static size_t get_elements_above_id(const void **iters,
- 	short min = SHRT_MAX;
- 	const void *elem;
- 	int i, j, last_stored = -1;
-+	unsigned int equal_min = 0;
- 
- 	for_each_element(elem, i, j, elements, num_elements, num_offset,
- 			 data_offset) {
-@@ -136,6 +137,10 @@ static size_t get_elements_above_id(const void **iters,
- 		 */
- 		iters[last_stored == i ? num_iters - 1 : num_iters++] = elem;
- 		last_stored = i;
-+		if (min == GET_ID(id))
-+			equal_min++;
-+		else
-+			equal_min = 1;
- 		min = GET_ID(id);
+diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
+index d96dc1d17be1..339b85145044 100644
+--- a/drivers/infiniband/core/uverbs_ioctl.c
++++ b/drivers/infiniband/core/uverbs_ioctl.c
+@@ -59,6 +59,9 @@ static int uverbs_process_attr(struct ib_device *ibdev,
+ 			return 0;
  	}
  
-@@ -146,15 +151,10 @@ static size_t get_elements_above_id(const void **iters,
- 	 * Therefore, we need to clean the beginning of the array to make sure
- 	 * all ids of final elements are equal to min.
- 	 */
--	for (i = num_iters - 1; i >= 0 &&
--	     GET_ID(*(u16 *)(iters[i] + id_offset)) == min; i--)
--		;
--
--	num_iters -= i + 1;
--	memmove(iters, iters + i + 1, sizeof(*iters) * num_iters);
-+	memmove(iters, iters + num_iters - equal_min, sizeof(*iters) * equal_min);
- 
- 	*min_id = min;
--	return num_iters;
-+	return equal_min;
- }
- 
- #define find_max_element_entry_id(num_elements, elements, num_objects_fld, \
-@@ -322,7 +322,7 @@ static struct uverbs_method_spec *build_method_with_attrs(const struct uverbs_me
- 		hash = kzalloc(sizeof(*hash) +
- 			       ALIGN(sizeof(*hash->attrs) * (attr_max_bucket + 1),
- 				     sizeof(long)) +
--			       BITS_TO_LONGS(attr_max_bucket) * sizeof(long),
-+			       BITS_TO_LONGS(attr_max_bucket + 1) * sizeof(long),
- 			       GFP_KERNEL);
- 		if (!hash) {
- 			res = -ENOMEM;
-@@ -509,7 +509,7 @@ static struct uverbs_object_spec *build_object_with_methods(const struct uverbs_
- 			 * first handler which != NULL. This also defines the
- 			 * set of flags used for this handler.
- 			 */
--			for (i = num_object_defs - 1;
-+			for (i = num_method_defs - 1;
- 			     i >= 0 && !method_defs[i]->handler; i--)
- 				;
- 			hash->methods[min_id++] = method;
++	if (test_bit(attr_id, attr_bundle_h->valid_bitmap))
++		return -EINVAL;
++
+ 	spec = &attr_spec_bucket->attrs[attr_id];
+ 	e = &elements[attr_id];
+ 	e->uattr = uattr_ptr;
 -- 
 2.16.1
 
