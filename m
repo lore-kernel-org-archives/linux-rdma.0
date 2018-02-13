@@ -1,110 +1,61 @@
-From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCHv2 1/1] IB/rxe: remove unnecessary skb_clone
-Date: Tue, 13 Feb 2018 02:59:46 -0500
-Message-ID: <1518508786-3204-1-git-send-email-yanjun.zhu@oracle.com>
-References: <1515140391-24752-1-git-send-email-yanjun.zhu@oracle.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-rc] RDMA/restrack: don't use uaccess_kernel()
+Date: Tue, 13 Feb 2018 11:01:22 +0200
+Message-ID: <20180213090122.GT2197@mtr-leonro.local>
+References: <eac01039be8c0518e37928e5b003a911c32e53a7.1518468700.git.swise@opengridcomputing.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="YrQNB5Deg1WGKZi3"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1515140391-24752-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <eac01039be8c0518e37928e5b003a911c32e53a7.1518468700.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In send_atomic_ack function, it is not necessary make a
-skb_clone. To gain better performance(high throughput and
-low latency), this skb_clone is removed.
 
-The following tests are made.
+--YrQNB5Deg1WGKZi3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
- server                       client
----------                    ---------
-|1.1.1.1|<----rxe-channel--->|1.1.1.2|
----------                    ---------
+On Thu, Feb 08, 2018 at 12:09:43PM -0800, Steve Wise wrote:
+> uaccess_kernel() isn't sufficient to determine if an rdma resource is
+> user-mode or not.  For example, resources allocated in the add_one()
+> function of an ib_client get falsely labeled as user mode, when they
+> are kernel mode allocations.  EG: mad qps.
 
-On server: rping -s -a 1.1.1.1 -v -C 1000 -S 512
-On client: rping -c -a 1.1.1.1 -v -C 1000 -S 512
+I found the reason.
 
-The kernel config CONFIG_DEBUG_KMEMLEAK is enabled on both server
-and client.
+It is due to the difference between code compiled as
+a module (=m) or compiled in as monolith (=y). The "add_one()" runs in user
+space contexts in first scenario and as kernel space context in second
+scenario. I'm not using modules so it worked for me.
 
-This test runs for several hours. There is no memory leak and the whole
-system can work well.
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-As the above network, the following tests are made.
+--YrQNB5Deg1WGKZi3
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Server: ibv_rc_pingpong -d rxe0 -g 1
-Client: ibv_rc_pingpong -d rxe0 -g 1 1.1.1.1
+-----BEGIN PGP SIGNATURE-----
 
-The result on Server(10 tests are made).
-Before:
-Throughput is 137.07 Mbit/sec
-Latency is 517.76 usec/iter
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqCqWIACgkQ5GN7iDZy
+WKcwkRAA0Wp+yAh3pE2x+ZOIVzdGySJfXE4T4Lpj7qK4k7DsK9zfaPvDRA9V7So3
+62HNGZPdxAerylvRuttWEolrcMhXb99NS/vU+r/NXiV0GYXWeVIg7AkPmZmp5JQ8
+Dw75ZfXJjkq03GakQq1vzLmpr9UQ2PxghNPPWNB+FSTNZF8T2Fgol9HJrvHOp8FE
+lj+uXtKzKgM6zxKY885mTp4zd6tQEqB0RDyFpmX/RI4+XfFPPwTJU/QJwZoqobfF
+90PNOfqdBzt0wXosRowQSV4rb6Or6XHaMYKlyeyo0Ew+IOGxtQDlzQO8m1W5xTTo
+STrrBM3H8Kx3QCXTeEC6DiDbokB3g8wqSYsGlpwLWvxOhQ5FpZ22X0NRSFz4qEJH
+kn55aH7NXkbcZVeGUmrkc1z6VCgu+o7/0gmd6ZIE8dsUB2RgsN7gD9abQSrjyOHj
+wxYvY/QXQNr2/daLhr/N+c/twt6wMzGhqojhQfBCmD/RPIWrOL1QLCv50xAns3VH
+DigHknsUgp3Gu+ies9I377ZATXiIicVK428VRruJr+2T/EGep3xfmV2RBA83M9Qk
+c6Y8tHkhP6gaC5tQZSRpZ4VNYkPD8qDXUVv6TbdFlAGzA4qS1+49GcLsNC0GisBT
+tY+MwpZbvi3GhkT41p8Uhs9she55dTgB2ua9dPrvx8SytD40ox8=
+=ZJy1
+-----END PGP SIGNATURE-----
 
-After:
-Throughput is 148.85 Mbit/sec
-Latency is 476.64 usec/iter
-
-The throughput is enhanced and the latency is reduced.
-
-CC: Srinivas Eeda <srinivas.eeda-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-CC: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-V1-->V2: 10 tests are made. From throughput and latency, the performance is better.
----
- drivers/infiniband/sw/rxe/rxe_resp.c | 15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index d37bb9b..6d01d16 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -969,7 +969,6 @@ static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
- 	int rc = 0;
- 	struct rxe_pkt_info ack_pkt;
- 	struct sk_buff *skb;
--	struct sk_buff *skb_copy;
- 	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
- 	struct resp_res *res;
- 
-@@ -981,15 +980,6 @@ static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
- 		goto out;
- 	}
- 
--	skb_copy = skb_clone(skb, GFP_ATOMIC);
--	if (skb_copy)
--		rxe_add_ref(qp); /* for the new SKB */
--	else {
--		pr_warn("Could not clone atomic response\n");
--		rc = -ENOMEM;
--		goto out;
--	}
--
- 	res = &qp->resp.resources[qp->resp.res_head];
- 	free_rd_atomic_resource(qp, res);
- 	rxe_advance_resp_resource(qp);
-@@ -998,17 +988,16 @@ static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
- 	memset((unsigned char *)SKB_TO_PKT(skb) + sizeof(ack_pkt), 0,
- 	       sizeof(skb->cb) - sizeof(ack_pkt));
- 
-+	refcount_inc(&skb->users);
- 	res->type = RXE_ATOMIC_MASK;
- 	res->atomic.skb = skb;
- 	res->first_psn = ack_pkt.psn;
- 	res->last_psn  = ack_pkt.psn;
- 	res->cur_psn   = ack_pkt.psn;
- 
--	rc = rxe_xmit_packet(rxe, qp, &ack_pkt, skb_copy);
-+	rc = rxe_xmit_packet(rxe, qp, &ack_pkt, skb);
- 	if (rc) {
- 		pr_err_ratelimited("Failed sending ack\n");
--		rxe_drop_ref(qp);
--		kfree_skb(skb_copy);
- 	}
- 
- out:
--- 
-2.7.4
-
+--YrQNB5Deg1WGKZi3--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
