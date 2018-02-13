@@ -1,34 +1,32 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 02/15] RDMA/restrack: Remove unimplemented XRCD
- object
-Date: Tue, 13 Feb 2018 13:16:32 -0500
-Message-ID: <585619e6-ec59-8687-b47c-ebae715fddca@intel.com>
-References: <20180213101841.20101-1-leon@kernel.org>
- <20180213101841.20101-3-leon@kernel.org>
- <7e464caf-6875-9232-be9a-31324b03323f@intel.com>
- <20180213180956.GU2197@mtr-leonro.local>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core] vmw_pvrdma: Fix SRQN returned to library
+Date: Tue, 13 Feb 2018 10:43:32 -0800
+Message-ID: <fdbb246b-91fe-f820-2727-13f662d2fb8c@vmware.com>
+References: <1518460956-4629-1-git-send-email-aditr@vmware.com>
+ <de50c35a-731d-bfb6-efe9-7f2ad83ea7b3@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180213180956.GU2197-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <de50c35a-731d-bfb6-efe9-7f2ad83ea7b3-l3A5Bk7waGM@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/13/2018 1:09 PM, Leon Romanovsky wrote:
-
->>
->> Not -rc material in my opinion.
+On 2/13/18 4:24 AM, Nicolas Morey-Chaisemartin wrote:
 > 
-> We are in -rc1 and it is exactly the time to clean up the code which was
-> entered a couple of weeks before.
+> Submitted to stable-v16.
+> Do you know when OFED 4.8-2 is going out ? Is a new v16.3 release needed right now ?
+> 
 
-Ah if that's the case then yes I totally agree.
+Thanks Nicolas!
+We would need a v16.3 for OFED-4.8-2 but let me test OFED-4.8-2 RC1 with this change
+and get back to you today.
 
--Denny
+Thanks,
+Adit
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
