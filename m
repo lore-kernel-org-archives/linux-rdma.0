@@ -1,98 +1,110 @@
-From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 12/15] IB/uverbs: Tidy lockdep_check
-Date: Tue, 13 Feb 2018 10:23:13 -0700
-Message-ID: <20180213172313.GK4499@mellanox.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 02/15] RDMA/restrack: Remove unimplemented XRCD
+ object
+Date: Tue, 13 Feb 2018 20:09:56 +0200
+Message-ID: <20180213180956.GU2197@mtr-leonro.local>
 References: <20180213101841.20101-1-leon@kernel.org>
- <20180213101841.20101-13-leon@kernel.org>
- <1120b3ff-8cb4-d661-60b1-e1f7656840fd@intel.com>
+ <20180213101841.20101-3-leon@kernel.org>
+ <7e464caf-6875-9232-be9a-31324b03323f@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="yhze8HlyfmXt1APY"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1120b3ff-8cb4-d661-60b1-e1f7656840fd-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <7e464caf-6875-9232-be9a-31324b03323f-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 13, 2018 at 12:10:35PM -0500, Dennis Dalessandro wrote:
+
+--yhze8HlyfmXt1APY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Feb 13, 2018 at 12:00:25PM -0500, Dennis Dalessandro wrote:
 > On 2/13/2018 5:18 AM, Leon Romanovsky wrote:
-> >From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > >
-> >This is really being used as an asssert that the expected usecnt
-> >is being held and implicitly that the usecnt is valid. Rename it to
-> >assert_uverbs_usecnt and tighten the checks to only accept valid
-> >values of usecnt (eg 0 and < -1 are invalid).
+> > Resource tracking of XRCD objects is not implemented in current
+> > version of restrack and hence can be removed.
 > >
-> >Fixes: 3832125624b7 ("IB/core: Add support for idr types")
-> >Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> >  drivers/infiniband/core/rdma_core.c | 14 +++++++-------
-> >  1 file changed, 7 insertions(+), 7 deletions(-)
+> > Fixes: 02d8883f520e ("RDMA/restrack: Add general infrastructure to track RDMA resources")
+> > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > ---
+> >   drivers/infiniband/core/restrack.c | 5 -----
+> >   include/rdma/restrack.h            | 4 ----
+> >   2 files changed, 9 deletions(-)
 > >
-> >diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-> >index 3ec5c7926f1c..7aee1c0b9884 100644
-> >+++ b/drivers/infiniband/core/rdma_core.c
-> >@@ -412,13 +412,13 @@ static int __must_check remove_commit_fd_uobject(struct ib_uobject *uobj,
-> >  	return ret;
-> >  }
-> >-static void lockdep_check(struct ib_uobject *uobj, bool exclusive)
-> >+static void assert_uverbs_usecnt(struct ib_uobject *uobj, bool exclusive)
-> >  {
-> >  #ifdef CONFIG_LOCKDEP
-> >  	if (exclusive)
-> >-		WARN_ON(atomic_read(&uobj->usecnt) > 0);
-> >+		WARN_ON(atomic_read(&uobj->usecnt) != -1);
-> >  	else
-> >-		WARN_ON(atomic_read(&uobj->usecnt) == -1);
-> >+		WARN_ON(atomic_read(&uobj->usecnt) <= 0);
-> >  #endif
-> >  }
-> >@@ -457,7 +457,7 @@ int __must_check rdma_remove_commit_uobject(struct ib_uobject *uobj)
-> >  		WARN(true, "ib_uverbs: Cleanup is running while removing an uobject\n");
-> >  		return 0;
-> >  	}
-> >-	lockdep_check(uobj, true);
-> >+	assert_uverbs_usecnt(uobj, true);
-> >  	ret = _rdma_remove_commit_uobject(uobj, RDMA_REMOVE_DESTROY);
-> >  	up_read(&ucontext->cleanup_rwsem);
-> >@@ -487,7 +487,7 @@ int rdma_explicit_destroy(struct ib_uobject *uobject)
-> >  		WARN(true, "ib_uverbs: Cleanup is running while removing an uobject\n");
-> >  		return 0;
-> >  	}
-> >-	lockdep_check(uobject, true);
-> >+	assert_uverbs_usecnt(uobject, true);
-> >  	ret = uobject->type->type_class->remove_commit(uobject,
-> >  						       RDMA_REMOVE_DESTROY);
-> >  	if (ret)
-> >@@ -541,7 +541,7 @@ int rdma_alloc_commit_uobject(struct ib_uobject *uobj)
-> >  	}
-> >  	/* matches atomic_set(-1) in alloc_uobj */
-> >-	lockdep_check(uobj, true);
-> >+	assert_uverbs_usecnt(uobj, true);
-> >  	atomic_set(&uobj->usecnt, 0);
-> >  	uobj->type->type_class->alloc_commit(uobj);
-> >@@ -578,7 +578,7 @@ static void lookup_put_fd_uobject(struct ib_uobject *uobj, bool exclusive)
-> >  void rdma_lookup_put_uobject(struct ib_uobject *uobj, bool exclusive)
-> >  {
-> >-	lockdep_check(uobj, exclusive);
-> >+	assert_uverbs_usecnt(uobj, exclusive);
-> >  	uobj->type->type_class->lookup_put(uobj, exclusive);
-> >  	/*
-> >  	 * In order to unlock an object, either decrease its usecnt for
+> > diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
+> > index 857637bf46da..d8dc709a3715 100644
+> > --- a/drivers/infiniband/core/restrack.c
+> > +++ b/drivers/infiniband/core/restrack.c
+> > @@ -63,7 +63,6 @@ static struct ib_device *res_to_dev(struct rdma_restrack_entry *res)
+> >   {
+> >   	enum rdma_restrack_type type = res->type;
+> >   	struct ib_device *dev;
+> > -	struct ib_xrcd *xrcd;
+> >   	struct ib_pd *pd;
+> >   	struct ib_cq *cq;
+> >   	struct ib_qp *qp;
+> > @@ -81,10 +80,6 @@ static struct ib_device *res_to_dev(struct rdma_restrack_entry *res)
+> >   		qp = container_of(res, struct ib_qp, res);
+> >   		dev = qp->device;
+> >   		break;
+> > -	case RDMA_RESTRACK_XRCD:
+> > -		xrcd = container_of(res, struct ib_xrcd, res);
+> > -		dev = xrcd->device;
+> > -		break;
+> >   	default:
+> >   		WARN_ONCE(true, "Wrong resource tracking type %u\n", type);
+> >   		return NULL;
+> > diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
+> > index c2d81167c858..2cdf8dcf4bdc 100644
+> > --- a/include/rdma/restrack.h
+> > +++ b/include/rdma/restrack.h
+> > @@ -28,10 +28,6 @@ enum rdma_restrack_type {
+> >   	 * @RDMA_RESTRACK_QP: Queue pair (QP)
+> >   	 */
+> >   	RDMA_RESTRACK_QP,
+> > -	/**
+> > -	 * @RDMA_RESTRACK_XRCD: XRC domain (XRCD)
+> > -	 */
+> > -	RDMA_RESTRACK_XRCD,
+> >   	/**
+> >   	 * @RDMA_RESTRACK_MAX: Last entry, used for array dclarations
+> >   	 */
 > >
-> 
-> -rc material?
+>
+> Not -rc material in my opinion.
 
-This one is a bit border line - but as coded the asserts were not
-working right, eg:
+We are in -rc1 and it is exactly the time to clean up the code which was
+entered a couple of weeks before.
 
- -		WARN_ON(atomic_read(&uobj->usecnt) > 0);
- +		WARN_ON(atomic_read(&uobj->usecnt) != -1);
+>
+> -Denny
 
-Didn't trigger if usecnt == 0, which is wrong.
+--yhze8HlyfmXt1APY
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Jason
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqDKfQACgkQ5GN7iDZy
+WKcrTBAAo0stQka2cJPbwKQ4jXp8o09ry5whU0TdAj1VNwtk5PEDIlO1L7UGj5wu
+8kGINl7X6t+ipiqlAnow2SKL0U5BZ7ostqtvDSuIHVkz9caMHHGBpVOMgBvy/dm3
+gTe74xBF085HXhVKcnam/IXjjRc8pQG8W2jQZkVExrQEhizvhbrYBRYH5L59dzDe
+n25Fv0yIetEbwvrZ2tdwa8Z1keEraJmilmW6gAgXRPdRQvBo/6G4QaJ6oC/6Etiy
+0nw0r+b1pqW36m6oLm9A2vo6JNnygf8pO+2glvUG2qGktfOozIs728gV4rFmll6q
+o0wj95B3mQshREQXo/1kIn5DWWhI5decmbN76c6AalZXZATxNNa+3VgtXQ32Ogpp
+T6YtswPI40M7u4lh3GLPPS8SN2zpRtrYGdRHkdAF3g3zpYkiPkqiUWxCEcmxD5wh
+8Y6bhcEX/FgNVli0UdS4BFQhsDzXWZzcXSEvFKHcJuL8WQ4YC0AaOaW0S+mx3Cz+
+nVjCdrZYaWrGBCCJMrBL0UB13OS2ztfJDNuQ2wqOlGjMG9fM2WeMtocUTLb8bHgO
+MPzCE/9c/IYW3Mh6SaCl0obo8BqdcY0hDdQFUR2bVfMjjQ4bScsd+4s5Z4cG6HZt
+kAny00xSTXF+z8y83h2fIJtoUCe2usx3wtzmrT+NoDkxO6SMehg=
+=Bnlg
+-----END PGP SIGNATURE-----
+
+--yhze8HlyfmXt1APY--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
