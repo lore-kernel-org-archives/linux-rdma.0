@@ -1,32 +1,90 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] vmw_pvrdma: Fix SRQN returned to library
-Date: Tue, 13 Feb 2018 10:43:32 -0800
-Message-ID: <fdbb246b-91fe-f820-2727-13f662d2fb8c@vmware.com>
-References: <1518460956-4629-1-git-send-email-aditr@vmware.com>
- <de50c35a-731d-bfb6-efe9-7f2ad83ea7b3@suse.de>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 13/15] IB/uverbs: Tidy uverbs_uobject_add
+Date: Tue, 13 Feb 2018 13:44:16 -0500
+Message-ID: <1c9754b4-bb47-0fe4-1026-f0ec12a110aa@intel.com>
+References: <20180213101841.20101-1-leon@kernel.org>
+ <20180213101841.20101-14-leon@kernel.org>
+ <c43bec28-0437-961e-fe65-55886973b6da@intel.com>
+ <20180213172041.GJ4499@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <de50c35a-731d-bfb6-efe9-7f2ad83ea7b3-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <20180213172041.GJ4499-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
+To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/13/18 4:24 AM, Nicolas Morey-Chaisemartin wrote:
+On 2/13/2018 12:20 PM, Jason Gunthorpe wrote:
+> On Tue, Feb 13, 2018 at 12:09:55PM -0500, Dennis Dalessandro wrote:
+>> On 2/13/2018 5:18 AM, Leon Romanovsky wrote:
+>>> From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>
+>>> Maintaining the uobjects list is mandatory, hoist it into the common
+>>> rdma_alloc_commit_uobject() function and inline it as there is now
+>>> only one caller.
+>>>
+>>> Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>>>   drivers/infiniband/core/rdma_core.c | 13 ++++---------
+>>>   1 file changed, 4 insertions(+), 9 deletions(-)
+>>>
+>>> diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+>>> index 7aee1c0b9884..1cb6849b2231 100644
+>>> +++ b/drivers/infiniband/core/rdma_core.c
+>>> @@ -350,13 +350,6 @@ struct ib_uobject *rdma_alloc_begin_uobject(const struct uverbs_obj_type *type,
+>>>   	return type->type_class->alloc_begin(type, ucontext);
+>>>   }
+>>> -static void uverbs_uobject_add(struct ib_uobject *uobject)
+>>> -{
+>>> -	mutex_lock(&uobject->context->uobjects_lock);
+>>> -	list_add(&uobject->list, &uobject->context->uobjects);
+>>> -	mutex_unlock(&uobject->context->uobjects_lock);
+>>> -}
+>>> -
+>>>   static int __must_check remove_commit_idr_uobject(struct ib_uobject *uobj,
+>>>   						  enum rdma_remove_reason why)
+>>>   {
+>>> @@ -501,7 +494,6 @@ int rdma_explicit_destroy(struct ib_uobject *uobject)
+>>>   static void alloc_commit_idr_uobject(struct ib_uobject *uobj)
+>>>   {
+>>> -	uverbs_uobject_add(uobj);
+>>>   	spin_lock(&uobj->context->ufile->idr_lock);
+>>>   	/*
+>>>   	 * We already allocated this IDR with a NULL object, so
+>>> @@ -517,7 +509,6 @@ static void alloc_commit_fd_uobject(struct ib_uobject *uobj)
+>>>   	struct ib_uobject_file *uobj_file =
+>>>   		container_of(uobj, struct ib_uobject_file, uobj);
+>>> -	uverbs_uobject_add(&uobj_file->uobj);
+>>>   	fd_install(uobj_file->uobj.id, uobj->object);
+>>>   	/* This shouldn't be used anymore. Use the file object instead */
+>>>   	uobj_file->uobj.id = 0;
+>>> @@ -544,6 +535,10 @@ int rdma_alloc_commit_uobject(struct ib_uobject *uobj)
+>>>   	assert_uverbs_usecnt(uobj, true);
+>>>   	atomic_set(&uobj->usecnt, 0);
+>>> +	mutex_lock(&uobj->context->uobjects_lock);
+>>> +	list_add(&uobj->list, &uobj->context->uobjects);
+>>> +	mutex_unlock(&uobj->context->uobjects_lock);
+>>> +
+>>>   	uobj->type->type_class->alloc_commit(uobj);
+>>>   	up_read(&uobj->context->cleanup_rwsem);
+>>>
+>>
+>>  From the subject it sounds like you are doing a cosmetic clean-up, but this
+>> is doing a bit more.
 > 
-> Submitted to stable-v16.
-> Do you know when OFED 4.8-2 is going out ? Is a new v16.3 release needed right now ?
+> The behavior is identical before/after.
 > 
+> There are only two implementations of alloc_commit and both of them do
+> the list_add as the first operation.
 
-Thanks Nicolas!
-We would need a v16.3 for OFED-4.8-2 but let me test OFED-4.8-2 RC1 with this change
-and get back to you today.
+Agree. To me the value of this patch is that you remove two separate 
+function calls and do the work in a common place. That's more important 
+than to just "Tidy" up the code. Either way I'm totally fine with the patch.
 
-Thanks,
-Adit
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
