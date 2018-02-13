@@ -1,91 +1,41 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v1 rdma-next 0/6] *** SUBJECT HERE ***
-Date: Tue, 13 Feb 2018 14:11:52 -0600
-Message-ID: <01ca01d3a506$e38d4730$aaa7d590$@opengridcomputing.com>
-References: <cover.1518552179.git.swise@opengridcomputing.com>
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: Re: KASAN: use-after-free Read in rds_find_bound
+Date: Tue, 13 Feb 2018 21:12:15 +0100
+Message-ID: <CACT4Y+bd6Tyq672JC3GNSHPX2CEHacVKkcbKOAgpi8o-=T8DRg@mail.gmail.com>
+References: <089e08231920353a4805618b365c@google.com> <d91da249-5a0f-7a1f-cfd5-68f10f0a2fc1@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1518552179.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <d91da249-5a0f-7a1f-cfd5-68f10f0a2fc1@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
+Cc: syzbot <syzbot+93a5839deb355537440f@syzkaller.appspotmail.com>, linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com, David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, netdev <netdev@vger.kernel.org>, rds-devel@oss.oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-Oops... I'll resend and fix the "SUBJECT HERE"
+On Sat, Dec 30, 2017 at 8:41 PM, santosh.shilimkar@oracle.com
+<santosh.shilimkar@oracle.com> wrote:
+> On 12/30/17 1:17 AM, syzbot wrote:
+>>
+>> Hello,
+>>
+>> syzkaller hit the following crash on
+>> fba961ab29e5ffb055592442808bb0f7962e05da
+>> git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git/master
+>> compiler: gcc (GCC) 7.1.1 20170620
+>> .config is attached
+>> Raw console output is attached.
+>> Unfortunately, I don't have any reproducer for this bug yet.
+>>
+>>
+>> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+>> Reported-by: syzbot+93a5839deb355537440f@syzkaller.appspotmail.com
+>
+>
+> Posted a fix[1] for above issue. Didn't test it but looks straight
+> forward.
 
-:)
 
+Hi Santosh,
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Steve Wise
-> Sent: Tuesday, February 13, 2018 2:03 PM
-> To: jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-> Subject: [PATCH v1 rdma-next 0/6] *** SUBJECT HERE ***
-> 
-> NOTE: I added cq, mr, and pd resources in this series.
-> 
-> This series adds rdma_cm_id, ib_cq, ib_mr, and ib_pd information to the
-> new resource tracking database.  The patches are on top of Jason's merged
-> rdma-next branch [1] plus the recent restrack fix destined for rdma-rc
-> [2].  I'll rebase everything on rdma-next once it rebases on 4.16-rc2.
-> 
-> Changes since v0 RFC:
-> 
-> - move rdma_id_private into new header cma_priv.h
-> - fixed up code comments as suggested
-> - fixed RDMA_NLDEV_CMD_RES_QP_GET cut/paste error
-> - no BE attributes
-> - add cq, mr, pd resource information
-> - remove RFC tag
-> 
-> Thanks,
-> 
-> Steve.
-> 
-> [1] git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
-> branch wip/for-linus-merged.
-> 
-> [2] https://www.spinics.net/lists/linux-rdma/msg60672.html
-> 
-> Steve Wise (6):
->   RDMA/CM: move rdma_id_private to cma_priv.h
->   RDMA/nldev: provide detailed CM_ID information
->   RDMA/nldev: provide detailed CQ information
->   iw_cxgb4: initialize ib_mr fields for user mrs
->   RDMA/nldev: provide detailed MR information
->   RDMA/nldev: provide detailed PD information
-> 
->  drivers/infiniband/core/cma.c        |  96 ++---
->  drivers/infiniband/core/cma_priv.h   |  75 ++++
->  drivers/infiniband/core/nldev.c      | 811
-> ++++++++++++++++++++++++++++++++++-
->  drivers/infiniband/core/restrack.c   |  61 ++-
->  drivers/infiniband/core/ucma.c       |   8 +-
->  drivers/infiniband/core/uverbs_cmd.c |   6 +
->  drivers/infiniband/core/verbs.c      |   3 +
->  drivers/infiniband/hw/cxgb4/mem.c    |   3 +
->  include/rdma/ib_verbs.h              |   5 +
->  include/rdma/rdma_cm.h               |  24 +-
->  include/rdma/restrack.h              |   8 +
->  include/uapi/rdma/rdma_netlink.h     |  56 +++
->  12 files changed, 1052 insertions(+), 104 deletions(-)
->  create mode 100644 drivers/infiniband/core/cma_priv.h
-> 
-> --
-> 1.8.3.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+What is that fix? You forgot to provide any link/reference. I also
+don't see any patches from you at around that date...
