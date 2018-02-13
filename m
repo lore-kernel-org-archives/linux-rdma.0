@@ -1,15 +1,14 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 08/15] IB/uverbs: Add ioctl support for 32bit
- processes
-Date: Tue, 13 Feb 2018 11:56:47 -0500
-Message-ID: <f77173f4-703b-b5ec-06ad-24263805251d@intel.com>
+Subject: Re: [PATCH rdma-rc 13/15] IB/uverbs: Tidy uverbs_uobject_add
+Date: Tue, 13 Feb 2018 12:09:55 -0500
+Message-ID: <c43bec28-0437-961e-fe65-55886973b6da@intel.com>
 References: <20180213101841.20101-1-leon@kernel.org>
- <20180213101841.20101-9-leon@kernel.org>
+ <20180213101841.20101-14-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180213101841.20101-9-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20180213101841.20101-14-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -17,50 +16,69 @@ Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alaa
 List-Id: linux-rdma@vger.kernel.org
 
 On 2/13/2018 5:18 AM, Leon Romanovsky wrote:
-> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> 32 bit processes running on a 64 bit kernel call compat_ioctl so that
-> implementations can revise any structure layout issues. Point compat_ioctl
-> at our normal ioctl because:
+> Maintaining the uobjects list is mandatory, hoist it into the common
+> rdma_alloc_commit_uobject() function and inline it as there is now
+> only one caller.
 > 
-> - All our structures are designed to be the same on 32 and 64 bit, ie we
->    use __aligned_u64 when required and are careful to manage padding.
-> 
-> - Any pointers are stored in u64's and userspace is expected
->    to prepare them properly.
-> 
-> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 > ---
->   drivers/infiniband/core/uverbs_main.c | 2 ++
->   1 file changed, 2 insertions(+)
+>   drivers/infiniband/core/rdma_core.c | 13 ++++---------
+>   1 file changed, 4 insertions(+), 9 deletions(-)
 > 
-> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-> index 395a3b091229..cd72555ad457 100644
-> --- a/drivers/infiniband/core/uverbs_main.c
-> +++ b/drivers/infiniband/core/uverbs_main.c
-> @@ -942,6 +942,7 @@ static const struct file_operations uverbs_fops = {
->   	.llseek	 = no_llseek,
->   #if IS_ENABLED(CONFIG_INFINIBAND_EXP_USER_ACCESS)
->   	.unlocked_ioctl = ib_uverbs_ioctl,
-> +	.compat_ioctl = ib_uverbs_ioctl,
->   #endif
->   };
+> diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+> index 7aee1c0b9884..1cb6849b2231 100644
+> --- a/drivers/infiniband/core/rdma_core.c
+> +++ b/drivers/infiniband/core/rdma_core.c
+> @@ -350,13 +350,6 @@ struct ib_uobject *rdma_alloc_begin_uobject(const struct uverbs_obj_type *type,
+>   	return type->type_class->alloc_begin(type, ucontext);
+>   }
 >   
-> @@ -954,6 +955,7 @@ static const struct file_operations uverbs_mmap_fops = {
->   	.llseek	 = no_llseek,
->   #if IS_ENABLED(CONFIG_INFINIBAND_EXP_USER_ACCESS)
->   	.unlocked_ioctl = ib_uverbs_ioctl,
-> +	.compat_ioctl = ib_uverbs_ioctl,
->   #endif
->   };
+> -static void uverbs_uobject_add(struct ib_uobject *uobject)
+> -{
+> -	mutex_lock(&uobject->context->uobjects_lock);
+> -	list_add(&uobject->list, &uobject->context->uobjects);
+> -	mutex_unlock(&uobject->context->uobjects_lock);
+> -}
+> -
+>   static int __must_check remove_commit_idr_uobject(struct ib_uobject *uobj,
+>   						  enum rdma_remove_reason why)
+>   {
+> @@ -501,7 +494,6 @@ int rdma_explicit_destroy(struct ib_uobject *uobject)
+>   
+>   static void alloc_commit_idr_uobject(struct ib_uobject *uobj)
+>   {
+> -	uverbs_uobject_add(uobj);
+>   	spin_lock(&uobj->context->ufile->idr_lock);
+>   	/*
+>   	 * We already allocated this IDR with a NULL object, so
+> @@ -517,7 +509,6 @@ static void alloc_commit_fd_uobject(struct ib_uobject *uobj)
+>   	struct ib_uobject_file *uobj_file =
+>   		container_of(uobj, struct ib_uobject_file, uobj);
+>   
+> -	uverbs_uobject_add(&uobj_file->uobj);
+>   	fd_install(uobj_file->uobj.id, uobj->object);
+>   	/* This shouldn't be used anymore. Use the file object instead */
+>   	uobj_file->uobj.id = 0;
+> @@ -544,6 +535,10 @@ int rdma_alloc_commit_uobject(struct ib_uobject *uobj)
+>   	assert_uverbs_usecnt(uobj, true);
+>   	atomic_set(&uobj->usecnt, 0);
+>   
+> +	mutex_lock(&uobj->context->uobjects_lock);
+> +	list_add(&uobj->list, &uobj->context->uobjects);
+> +	mutex_unlock(&uobj->context->uobjects_lock);
+> +
+>   	uobj->type->type_class->alloc_commit(uobj);
+>   	up_read(&uobj->context->cleanup_rwsem);
 >   
 > 
 
-Is this patch really necessary? Doesn't sys_ioctl() just end up calling 
-unlocked_ioctl() if .compat_ioctl is not set? I guess nothing wrong with 
-being explicit here, but this is just a clean-up then, and not an -rc patch.
+ From the subject it sounds like you are doing a cosmetic clean-up, but 
+this is doing a bit more. You are ensuring the list_add is always going 
+to be called by putting it in the common path. What about making that be 
+the subject?
 
 -Denny
 --
