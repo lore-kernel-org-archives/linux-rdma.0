@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 10/15] IB/uverbs: Hold the uobj write lock after allocate
-Date: Tue, 13 Feb 2018 12:18:36 +0200
-Message-ID: <20180213101841.20101-11-leon@kernel.org>
+Subject: [PATCH rdma-rc 04/15] IB/uverbs: Use inline data transfer for UHW_IN
+Date: Tue, 13 Feb 2018 12:18:30 +0200
+Message-ID: <20180213101841.20101-5-leon@kernel.org>
 References: <20180213101841.20101-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180213101841.20101-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,50 +12,37 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This clarifies the design intention that time between allocate and
-commit has the uobj exclusive to the caller. We already guarantee
-this by delaying publishing the uobj pointer via idr_insert,
-fd_install, list_add, etc.
+The rule for the API is pointers less than 8 bytes are inlined into
+the .data field of the attribute. Fix the creation of the driver udata
+struct to follow this rule and point to the .data itself when the size
+is less than 8 bytes.
 
-Additionally holding the usecnt lock during this period provides
-extra clarity and more protection against future mistakes.
+Otherwise if the UHW struct is less than 8 bytes the driver will get
+EFAULT during copy_from_user.
 
-Fixes: 3832125624b7 ("IB/core: Add support for idr types")
 Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/rdma_core.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs_std_types.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-index 85b5ee4defa4..82afb0cdcca3 100644
---- a/drivers/infiniband/core/rdma_core.c
-+++ b/drivers/infiniband/core/rdma_core.c
-@@ -141,7 +141,12 @@ static struct ib_uobject *alloc_uobj(struct ib_ucontext *context,
- 	 */
- 	uobj->context = context;
- 	uobj->type = type;
--	atomic_set(&uobj->usecnt, 0);
-+	/*
-+	 * Allocated objects start out as write locked to deny any other
-+	 * syscalls from accessing them until they are commited. See
-+	 * rdma_alloc_commit_uobject
-+	 */
-+	atomic_set(&uobj->usecnt, -1);
- 	kref_init(&uobj->ref);
+diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+index c6502c7b7c46..7b0e4d778d79 100644
+--- a/drivers/infiniband/core/uverbs_std_types.c
++++ b/drivers/infiniband/core/uverbs_std_types.c
+@@ -234,8 +234,11 @@ static void create_udata(struct uverbs_attr_bundle *ctx,
+ 		uverbs_attr_get(ctx, UVERBS_UHW_OUT);
  
- 	return uobj;
-@@ -527,6 +532,10 @@ int rdma_alloc_commit_uobject(struct ib_uobject *uobj)
- 		return ret;
- 	}
- 
-+	/* matches atomic_set(-1) in alloc_uobj */
-+	lockdep_check(uobj, true);
-+	atomic_set(&uobj->usecnt, 0);
-+
- 	uobj->type->type_class->alloc_commit(uobj);
- 	up_read(&uobj->context->cleanup_rwsem);
- 
+ 	if (!IS_ERR(uhw_in)) {
+-		udata->inbuf = uhw_in->ptr_attr.ptr;
+ 		udata->inlen = uhw_in->ptr_attr.len;
++		if (uverbs_attr_ptr_is_inline(uhw_in))
++			udata->inbuf = &uhw_in->uattr->data;
++		else
++			udata->inbuf = uhw_in->ptr_attr.ptr;
+ 	} else {
+ 		udata->inbuf = NULL;
+ 		udata->inlen = 0;
 -- 
 2.16.1
 
