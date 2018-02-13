@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 08/15] IB/uverbs: Add ioctl support for 32bit processes
-Date: Tue, 13 Feb 2018 12:18:34 +0200
-Message-ID: <20180213101841.20101-9-leon@kernel.org>
+Subject: [PATCH rdma-rc 12/15] IB/uverbs: Tidy lockdep_check
+Date: Tue, 13 Feb 2018 12:18:38 +0200
+Message-ID: <20180213101841.20101-13-leon@kernel.org>
 References: <20180213101841.20101-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180213101841.20101-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -10,45 +10,77 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunth
 Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-32 bit processes running on a 64 bit kernel call compat_ioctl so that
-implementations can revise any structure layout issues. Point compat_ioctl
-at our normal ioctl because:
+This is really being used as an asssert that the expected usecnt
+is being held and implicitly that the usecnt is valid. Rename it to
+assert_uverbs_usecnt and tighten the checks to only accept valid
+values of usecnt (eg 0 and < -1 are invalid).
 
-- All our structures are designed to be the same on 32 and 64 bit, ie we
-  use __aligned_u64 when required and are careful to manage padding.
-
-- Any pointers are stored in u64's and userspace is expected
-  to prepare them properly.
-
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: 3832125624b7 ("IB/core: Add support for idr types")
 Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_main.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/core/rdma_core.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 395a3b091229..cd72555ad457 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -942,6 +942,7 @@ static const struct file_operations uverbs_fops = {
- 	.llseek	 = no_llseek,
- #if IS_ENABLED(CONFIG_INFINIBAND_EXP_USER_ACCESS)
- 	.unlocked_ioctl = ib_uverbs_ioctl,
-+	.compat_ioctl = ib_uverbs_ioctl,
- #endif
- };
+diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+index 3ec5c7926f1c..7aee1c0b9884 100644
+--- a/drivers/infiniband/core/rdma_core.c
++++ b/drivers/infiniband/core/rdma_core.c
+@@ -412,13 +412,13 @@ static int __must_check remove_commit_fd_uobject(struct ib_uobject *uobj,
+ 	return ret;
+ }
  
-@@ -954,6 +955,7 @@ static const struct file_operations uverbs_mmap_fops = {
- 	.llseek	 = no_llseek,
- #if IS_ENABLED(CONFIG_INFINIBAND_EXP_USER_ACCESS)
- 	.unlocked_ioctl = ib_uverbs_ioctl,
-+	.compat_ioctl = ib_uverbs_ioctl,
+-static void lockdep_check(struct ib_uobject *uobj, bool exclusive)
++static void assert_uverbs_usecnt(struct ib_uobject *uobj, bool exclusive)
+ {
+ #ifdef CONFIG_LOCKDEP
+ 	if (exclusive)
+-		WARN_ON(atomic_read(&uobj->usecnt) > 0);
++		WARN_ON(atomic_read(&uobj->usecnt) != -1);
+ 	else
+-		WARN_ON(atomic_read(&uobj->usecnt) == -1);
++		WARN_ON(atomic_read(&uobj->usecnt) <= 0);
  #endif
- };
+ }
  
+@@ -457,7 +457,7 @@ int __must_check rdma_remove_commit_uobject(struct ib_uobject *uobj)
+ 		WARN(true, "ib_uverbs: Cleanup is running while removing an uobject\n");
+ 		return 0;
+ 	}
+-	lockdep_check(uobj, true);
++	assert_uverbs_usecnt(uobj, true);
+ 	ret = _rdma_remove_commit_uobject(uobj, RDMA_REMOVE_DESTROY);
+ 
+ 	up_read(&ucontext->cleanup_rwsem);
+@@ -487,7 +487,7 @@ int rdma_explicit_destroy(struct ib_uobject *uobject)
+ 		WARN(true, "ib_uverbs: Cleanup is running while removing an uobject\n");
+ 		return 0;
+ 	}
+-	lockdep_check(uobject, true);
++	assert_uverbs_usecnt(uobject, true);
+ 	ret = uobject->type->type_class->remove_commit(uobject,
+ 						       RDMA_REMOVE_DESTROY);
+ 	if (ret)
+@@ -541,7 +541,7 @@ int rdma_alloc_commit_uobject(struct ib_uobject *uobj)
+ 	}
+ 
+ 	/* matches atomic_set(-1) in alloc_uobj */
+-	lockdep_check(uobj, true);
++	assert_uverbs_usecnt(uobj, true);
+ 	atomic_set(&uobj->usecnt, 0);
+ 
+ 	uobj->type->type_class->alloc_commit(uobj);
+@@ -578,7 +578,7 @@ static void lookup_put_fd_uobject(struct ib_uobject *uobj, bool exclusive)
+ 
+ void rdma_lookup_put_uobject(struct ib_uobject *uobj, bool exclusive)
+ {
+-	lockdep_check(uobj, exclusive);
++	assert_uverbs_usecnt(uobj, exclusive);
+ 	uobj->type->type_class->lookup_put(uobj, exclusive);
+ 	/*
+ 	 * In order to unlock an object, either decrease its usecnt for
 -- 
 2.16.1
 
