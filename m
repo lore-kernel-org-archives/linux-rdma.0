@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 10/14] RDMa/uverbs: Copy ex_hdr outside of SRCU read lock
-Date: Wed, 14 Feb 2018 14:38:40 +0200
-Message-ID: <20180214123844.30321-11-leon@kernel.org>
+Subject: [PATCH rdma-next 04/14] RDMA/uverbs: Fail as early as possible if not enough header data was provided
+Date: Wed, 14 Feb 2018 14:38:34 +0200
+Message-ID: <20180214123844.30321-5-leon@kernel.org>
 References: <20180214123844.30321-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180214123844.30321-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,46 +12,59 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The SRCU read lock protects the IB device pointer
-and doesn't need to be called before copying user
-provided header.
+Fail as early as possible if not enough header data
+was provided.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_main.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ drivers/infiniband/core/uverbs_main.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 71ffee0dc305..f8f2182ab86b 100644
+index c12608b2d1cc..f50ad3688790 100644
 --- a/drivers/infiniband/core/uverbs_main.c
 +++ b/drivers/infiniband/core/uverbs_main.c
-@@ -709,8 +709,12 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 	    (command != IB_USER_VERBS_CMD_GET_CONTEXT || extended))
- 		return -EINVAL;
+@@ -662,6 +662,7 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 			     size_t count, loff_t *pos)
+ {
+ 	struct ib_uverbs_file *file = filp->private_data;
++	struct ib_uverbs_ex_cmd_hdr ex_hdr;
+ 	struct ib_device *ib_dev;
+ 	struct ib_uverbs_cmd_hdr hdr;
+ 	bool extended_command;
+@@ -706,6 +707,12 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 		goto out;
+ 	}
  
--	if (extended && count < (sizeof(hdr) + sizeof(ex_hdr)))
--		return -EINVAL;
-+	if (extended) {
-+		if (count < (sizeof(hdr) + sizeof(ex_hdr)))
-+			return -EINVAL;
-+		if (copy_from_user(&ex_hdr, buf + sizeof(hdr), sizeof(ex_hdr)))
-+			return -EFAULT;
++	if (extended_command &&
++	    count < (sizeof(hdr) + sizeof(ex_hdr))) {
++		ret = -EINVAL;
++		goto out;
 +	}
- 
- 	srcu_key = srcu_read_lock(&file->device->disassociate_srcu);
- 	ib_dev = srcu_dereference(file->device->ib_dev,
-@@ -740,11 +744,6 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
++
+ 	if (!verify_command_idx(command, extended_command)) {
+ 		ret = -EINVAL;
+ 		goto out;
+@@ -738,7 +745,6 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 						 hdr.in_words * 4,
+ 						 hdr.out_words * 4);
+ 	} else {
+-		struct ib_uverbs_ex_cmd_hdr ex_hdr;
+ 		struct ib_udata ucore;
  		struct ib_udata uhw;
  		size_t written_count = count;
+@@ -753,11 +759,6 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 			goto out;
+ 		}
  
--		if (copy_from_user(&ex_hdr, buf + sizeof(hdr), sizeof(ex_hdr))) {
--			ret = -EFAULT;
+-		if (count < (sizeof(hdr) + sizeof(ex_hdr))) {
+-			ret = -EINVAL;
 -			goto out;
 -		}
 -
- 		count -= sizeof(hdr) + sizeof(ex_hdr);
- 		buf += sizeof(hdr) + sizeof(ex_hdr);
- 
+ 		if (copy_from_user(&ex_hdr, buf + sizeof(hdr), sizeof(ex_hdr))) {
+ 			ret = -EFAULT;
+ 			goto out;
 -- 
 2.16.1
 
