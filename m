@@ -1,55 +1,63 @@
 From: Dmitry Vyukov <dvyukov@google.com>
-Subject: Re: KASAN: use-after-free Read in rds_find_bound
-Date: Wed, 14 Feb 2018 18:14:23 +0100
-Message-ID: <CACT4Y+YxrNiP==ty-KBjkDewnuS378GmG314-=ytWskZXQx3zw@mail.gmail.com>
-References: <089e08231920353a4805618b365c@google.com> <d91da249-5a0f-7a1f-cfd5-68f10f0a2fc1@oracle.com>
- <CACT4Y+bd6Tyq672JC3GNSHPX2CEHacVKkcbKOAgpi8o-=T8DRg@mail.gmail.com> <491a26b8-7abb-0d36-0a2e-e1c7bfcde79d@oracle.com>
+Subject: Re: KASAN: use-after-free Read in rds_tcp_tune
+Date: Wed, 14 Feb 2018 18:16:43 +0100
+Message-ID: <CACT4Y+Y4iK+xRUUssSSomqv59GDnVWt+O86tHHmUFESFQisrrw@mail.gmail.com>
+References: <001a1141a524c513ca05628d8ad4@google.com> <20180112183046.GA26098@oracle.com>
+ <CACT4Y+aB0dZShujVMJFV6grb_7AYOMca13a1J2AkWsT7R0cgrQ@mail.gmail.com>
+ <20180214152109.GF11528@oracle.com> <CACT4Y+bKpi8he1ygwAxgm4F_RJ=BRPBPdMaVAK64SbvCVGt7ww@mail.gmail.com>
+ <20180214153555.GG11528@oracle.com> <CACT4Y+ZZjE9fsnsQ-uab3RMt_Zpe98nKF1Pcj31ZGepYsi1UGA@mail.gmail.com>
+ <1518627728.3678.2.camel@perches.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <491a26b8-7abb-0d36-0a2e-e1c7bfcde79d@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: syzbot <syzbot+93a5839deb355537440f@syzkaller.appspotmail.com>, linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com, David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, netdev <netdev@vger.kernel.org>, rds-devel@oss.oracle.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1518627728.3678.2.camel@perches.com>
+Sender: netdev-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Sowmini Varadhan <sowmini.varadhan@oracle.com>, syzbot <syzbot+bbd8e9a06452cc48059b@syzkaller.appspotmail.com>, David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, netdev <netdev@vger.kernel.org>, rds-devel@oss.oracle.com, Santosh Shilimkar <santosh.shilimkar@oracle.com>, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 14, 2018 at 5:53 PM, Santosh Shilimkar
-<santosh.shilimkar@oracle.com> wrote:
->>> On 12/30/17 1:17 AM, syzbot wrote:
->>>>
->>>>
->>>> Hello,
->>>>
->>>> syzkaller hit the following crash on
->>>> fba961ab29e5ffb055592442808bb0f7962e05da
->>>> git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git/master
->>>> compiler: gcc (GCC) 7.1.1 20170620
->>>> .config is attached
->>>> Raw console output is attached.
->>>> Unfortunately, I don't have any reproducer for this bug yet.
->>>>
->>>>
->>>> IMPORTANT: if you fix the bug, please add the following tag to the
->>>> commit:
->>>> Reported-by: syzbot+93a5839deb355537440f@syzkaller.appspotmail.com
->>>
->>>
->>>
->>> Posted a fix[1] for above issue. Didn't test it but looks straight
->>> forward.
+On Wed, Feb 14, 2018 at 6:02 PM, Joe Perches <joe@perches.com> wrote:
+> On Wed, 2018-02-14 at 16:55 +0100, Dmitry Vyukov wrote:
+>> On Wed, Feb 14, 2018 at 4:35 PM, Sowmini Varadhan <sowmini.varadhan@oracle.com> wrote:
+>> > btw, checkpatch.pl complains about the syzbot*@syzkaller.appspotmail.com
+>> > addresses as "Unrecognized email address", we should fix that
+>> > error from checkpatch at some point.
 >>
->>
->>
->> Hi Santosh,
->>
->> What is that fix? You forgot to provide any link/reference. I also
->> don't see any patches from you at around that date...
->>
-> Fix [1] was later not added since there was a still a race. Wanted to
-> see if the issue re-appears after recent netns fix [2].
+>> Interesting. Looking at checkpatch.pl I think it wants all addresses
+>> to be in <>, i.e.
+>> Reported-by: <syzbot+bbd8e9a06452cc48059b@syzkaller.appspotmail.com>
+>> There probably was some reason to enforce this, so I think I will
+>> change the syzbot email template to include <>.
+>> Thanks!
+>
+> Not really.
+>
+> It's the somewhat unusual + in the address
+> that perl needs quoted before a substitution.
+>
+> I believe this fixes it in checkpatch.
+> ---
+>  scripts/checkpatch.pl | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+> index 3d4040322ae1..2b8397da39d3 100755
+> --- a/scripts/checkpatch.pl
+> +++ b/scripts/checkpatch.pl
+> @@ -1075,7 +1075,7 @@ sub parse_email {
+>         } elsif ($formatted_email =~ /(\S+\@\S+)(.*)$/) {
+>                 $address = $1;
+>                 $comment = $2 if defined $2;
+> -               $formatted_email =~ s/$address.*$//;
+> +               $formatted_email =~ s/\Q$address\E.*$//;
+>                 $name = $formatted_email;
+>                 $name = trim($name);
+>                 $name =~ s/^\"|\"$//g;
 
 
-We will not see if the bug re-appears or not until this bug is closed.
-Please see this recent discussion about another rds bug:
-https://groups.google.com/d/msg/syzkaller-bugs/3XjmOzr5jRU/g7pXIsY1BgAJ
-In the current state syzbot will never report bugs in these functions again.
+I can confirm that running
+$ git show HEAD | scripts/checkpatch.pl -
+on a commit that contains a syzbot Reported-by tag does not produce
+the warning anymore.
+
+Joe, do you mind mailing this as patch?
