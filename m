@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 11/14] RDMA/uverbs: Refactor the header validation logic
-Date: Wed, 14 Feb 2018 14:38:41 +0200
-Message-ID: <20180214123844.30321-12-leon@kernel.org>
+Subject: [PATCH rdma-next 14/14] RDMA/verbs: Drop uverbs_ex_mask
+Date: Wed, 14 Feb 2018 14:38:44 +0200
+Message-ID: <20180214123844.30321-15-leon@kernel.org>
 References: <20180214123844.30321-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180214123844.30321-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,140 +12,128 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Move all header validation logic to be performed before SRCU read lock.
+There is no need to manage mask of available function pointers
+while the core is checking that function pointers is set prior
+to calling that function, so remove it.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_main.c | 90 ++++++++++++++++++-----------------
- 1 file changed, 47 insertions(+), 43 deletions(-)
+ drivers/infiniband/core/uverbs_main.c |  2 +-
+ drivers/infiniband/hw/mlx4/main.c     | 18 ------------------
+ drivers/infiniband/hw/mlx5/main.c     | 15 ---------------
+ include/rdma/ib_verbs.h               |  1 -
+ 4 files changed, 1 insertion(+), 35 deletions(-)
 
 diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index f8f2182ab86b..e07326139ce9 100644
+index e07326139ce9..00d751121446 100644
 --- a/drivers/infiniband/core/uverbs_main.c
 +++ b/drivers/infiniband/core/uverbs_main.c
-@@ -677,6 +677,42 @@ static ssize_t process_hdr(struct ib_uverbs_cmd_hdr *hdr,
- 	return 0;
+@@ -641,7 +641,7 @@ static bool verify_command_mask(struct ib_device *ib_dev,
+ 	if (!extended)
+ 		return ib_dev->uverbs_cmd_mask & BIT_ULL(command);
+ 
+-	return ib_dev->uverbs_ex_cmd_mask & BIT_ULL(command);
++	return true;
  }
  
-+static ssize_t verify_hdr(struct ib_uverbs_cmd_hdr *hdr,
-+			  struct ib_uverbs_ex_cmd_hdr *ex_hdr,
-+			  size_t count, bool extended)
-+{
-+	if (extended) {
-+		count -= sizeof(*hdr) + sizeof(*ex_hdr);
-+
-+		if ((hdr->in_words + ex_hdr->provider_in_words) * 8 != count)
-+			return -EINVAL;
-+
-+		if (ex_hdr->cmd_hdr_reserved)
-+			return -EINVAL;
-+
-+		if (ex_hdr->response) {
-+			if (!hdr->out_words && !ex_hdr->provider_out_words)
-+				return -EINVAL;
-+
-+			if (!access_ok(VERIFY_WRITE,
-+				       u64_to_user_ptr(ex_hdr->response),
-+				       (hdr->out_words + ex_hdr->provider_out_words) * 8))
-+				return -EFAULT;
-+		} else {
-+			if (hdr->out_words || ex_hdr->provider_out_words)
-+				return -EINVAL;
-+		}
-+
-+		return 0;
-+	}
-+
-+	/* not extended command */
-+	if (hdr->in_words * 4 != count)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 			     size_t count, loff_t *pos)
- {
-@@ -716,6 +752,10 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 			return -EFAULT;
+ static bool verify_command_idx(__u32 command, bool extended)
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 8d2ee9322f2e..9a083803f81f 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2759,9 +2759,6 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	ibdev->ib_dev.get_dev_fw_str    = get_fw_ver_str;
+ 	ibdev->ib_dev.disassociate_ucontext = mlx4_ib_disassociate_ucontext;
+ 
+-	ibdev->ib_dev.uverbs_ex_cmd_mask |=
+-		(1ull << IB_USER_VERBS_EX_CMD_MODIFY_CQ);
+-
+ 	if ((dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS) &&
+ 	    ((mlx4_ib_port_link_layer(&ibdev->ib_dev, 1) ==
+ 	    IB_LINK_LAYER_ETHERNET) ||
+@@ -2774,12 +2771,6 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 			mlx4_ib_create_rwq_ind_table;
+ 		ibdev->ib_dev.destroy_rwq_ind_table =
+ 			mlx4_ib_destroy_rwq_ind_table;
+-		ibdev->ib_dev.uverbs_ex_cmd_mask |=
+-			(1ull << IB_USER_VERBS_EX_CMD_CREATE_WQ)	  |
+-			(1ull << IB_USER_VERBS_EX_CMD_MODIFY_WQ)	  |
+-			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_WQ)	  |
+-			(1ull << IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL) |
+-			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL);
  	}
  
-+	ret = verify_hdr(&hdr, &ex_hdr, count, extended);
-+	if (ret)
-+		return ret;
-+
- 	srcu_key = srcu_read_lock(&file->device->disassociate_srcu);
- 	ib_dev = srcu_dereference(file->device->ib_dev,
- 				  &file->device->disassociate_srcu);
-@@ -729,52 +769,17 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 		goto out;
+ 	if (!mlx4_is_slave(ibdev->dev)) {
+@@ -2811,17 +2802,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 		ibdev->steering_support = MLX4_STEERING_MODE_DEVICE_MANAGED;
+ 		ibdev->ib_dev.create_flow	= mlx4_ib_create_flow;
+ 		ibdev->ib_dev.destroy_flow	= mlx4_ib_destroy_flow;
+-
+-		ibdev->ib_dev.uverbs_ex_cmd_mask	|=
+-			(1ull << IB_USER_VERBS_EX_CMD_CREATE_FLOW) |
+-			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_FLOW);
  	}
  
--	if (!extended) {
--		if (hdr.in_words * 4 != count) {
--			ret = -EINVAL;
--			goto out;
--		}
-+	buf += sizeof(hdr);
- 
--		ret = uverbs_cmd_table[command](file, ib_dev,
--						 buf + sizeof(hdr),
--						 hdr.in_words * 4,
--						 hdr.out_words * 4);
-+	if (!extended) {
-+		ret = uverbs_cmd_table[command](file, ib_dev, buf,
-+						hdr.in_words * 4,
-+						hdr.out_words * 4);
- 	} else {
- 		struct ib_udata ucore;
- 		struct ib_udata uhw;
--		size_t written_count = count;
+-	ibdev->ib_dev.uverbs_ex_cmd_mask |=
+-		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE) |
+-		(1ull << IB_USER_VERBS_EX_CMD_CREATE_CQ) |
+-		(1ull << IB_USER_VERBS_EX_CMD_CREATE_QP);
 -
--		count -= sizeof(hdr) + sizeof(ex_hdr);
--		buf += sizeof(hdr) + sizeof(ex_hdr);
+ 	mlx4_ib_alloc_eqs(dev, ibdev);
  
--		if ((hdr.in_words + ex_hdr.provider_in_words) * 8 != count) {
--			ret = -EINVAL;
--			goto out;
--		}
--
--		if (ex_hdr.cmd_hdr_reserved) {
--			ret = -EINVAL;
--			goto out;
--		}
--
--		if (ex_hdr.response) {
--			if (!hdr.out_words && !ex_hdr.provider_out_words) {
--				ret = -EINVAL;
--				goto out;
--			}
--
--			if (!access_ok(VERIFY_WRITE,
--				       u64_to_user_ptr(ex_hdr.response),
--				       (hdr.out_words + ex_hdr.provider_out_words) * 8)) {
--				ret = -EFAULT;
--				goto out;
--			}
--		} else {
--			if (hdr.out_words || ex_hdr.provider_out_words) {
--				ret = -EINVAL;
--				goto out;
--			}
--		}
-+		buf += sizeof(ex_hdr);
+ 	spin_lock_init(&iboe->lock);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 4236c8086820..7074c418e2c9 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -4618,12 +4618,6 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
+ 		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)		|
+ 		(1ull << IB_USER_VERBS_CMD_CREATE_XSRQ)		|
+ 		(1ull << IB_USER_VERBS_CMD_OPEN_QP);
+-	dev->ib_dev.uverbs_ex_cmd_mask =
+-		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE)	|
+-		(1ull << IB_USER_VERBS_EX_CMD_CREATE_CQ)	|
+-		(1ull << IB_USER_VERBS_EX_CMD_CREATE_QP)	|
+-		(1ull << IB_USER_VERBS_EX_CMD_MODIFY_QP)	|
+-		(1ull << IB_USER_VERBS_EX_CMD_MODIFY_CQ);
  
- 		ib_uverbs_init_udata_buf_or_null(&ucore, buf,
- 					u64_to_user_ptr(ex_hdr.response),
-@@ -787,8 +792,7 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 					ex_hdr.provider_out_words * 8);
+ 	dev->ib_dev.query_device	= mlx5_ib_query_device;
+ 	dev->ib_dev.query_port		= mlx5_ib_query_port;
+@@ -4704,9 +4698,6 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
  
- 		ret = uverbs_ex_cmd_table[command](file, ib_dev, &ucore, &uhw);
--		if (!ret)
--			ret = written_count;
-+		ret = (ret) ? : count;
- 	}
+ 	dev->ib_dev.create_flow	= mlx5_ib_create_flow;
+ 	dev->ib_dev.destroy_flow = mlx5_ib_destroy_flow;
+-	dev->ib_dev.uverbs_ex_cmd_mask |=
+-			(1ull << IB_USER_VERBS_EX_CMD_CREATE_FLOW) |
+-			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_FLOW);
  
- out:
+ 	err = init_node_data(dev);
+ 	if (err)
+@@ -4746,12 +4737,6 @@ static int mlx5_ib_stage_roce_init(struct mlx5_ib_dev *dev)
+ 		dev->ib_dev.destroy_wq	 = mlx5_ib_destroy_wq;
+ 		dev->ib_dev.create_rwq_ind_table = mlx5_ib_create_rwq_ind_table;
+ 		dev->ib_dev.destroy_rwq_ind_table = mlx5_ib_destroy_rwq_ind_table;
+-		dev->ib_dev.uverbs_ex_cmd_mask |=
+-			(1ull << IB_USER_VERBS_EX_CMD_CREATE_WQ) |
+-			(1ull << IB_USER_VERBS_EX_CMD_MODIFY_WQ) |
+-			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_WQ) |
+-			(1ull << IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL) |
+-			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL);
+ 		err = mlx5_enable_eth(dev, port_num);
+ 		if (err)
+ 			return err;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 73b2387e3f74..f31ba8df5c66 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2346,7 +2346,6 @@ struct ib_device {
+ 
+ 	int			     uverbs_abi_ver;
+ 	u64			     uverbs_cmd_mask;
+-	u64			     uverbs_ex_cmd_mask;
+ 
+ 	char			     node_desc[IB_DEVICE_NODE_DESC_MAX];
+ 	__be64			     node_guid;
 -- 
 2.16.1
 
