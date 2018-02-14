@@ -1,36 +1,39 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v2] IB/cxgb3: remove cxio_dbg.c
-Date: Wed, 14 Feb 2018 16:52:36 -0700
-Message-ID: <20180214235236.GA16962@ziepe.ca>
-References: <1517949451-24264-1-git-send-email-clabbe@baylibre.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH V2 for-next 0/3] Several fixes for hns
+Date: Wed, 14 Feb 2018 16:53:42 -0700
+Message-ID: <20180214235342.GB16962@ziepe.ca>
+References: <1517996970-79496-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1517949451-24264-1-git-send-email-clabbe@baylibre.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Corentin Labbe <clabbe@baylibre.com>
-Cc: dledford@redhat.com, hal.rosenstock@gmail.com, sean.hefty@intel.com, swise@chelsio.com, joe@perches.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+In-Reply-To: <1517996970-79496-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 06, 2018 at 08:37:31PM +0000, Corentin Labbe wrote:
-> cxio_dbg.c is uncompiled since commit 2b540355cd2f ("RDMA/cxgb3: cleanups")
-> 10 years after, we could remove it.
+On Wed, Feb 07, 2018 at 05:49:27PM +0800, Lijun Ou wrote:
+> This patchset include three fixes for hns driver. the first patch
+> mainly matched with IB protocol. the second patch fix the bug
+> with freeing memory by __get_free_pages. the last patch mainly
+> fix the bug when changed the hw mac address.
 > 
-> Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
-> Acked-by: Steve Wise <swise@opengridcomputing.com>
+> Change from V1:
+> 1. Fix the comment given by Jason Gunthorpe
 > 
-> Changes since v1:
-> - Remove also all DEBUG code as suggested by Joe Perches
+> Lijun Ou (2):
+>   RDMA/hns: Fix a bug with modifying mac address
+>   RDMA/hns: Use free_pages function instead of free_page
 > 
->  drivers/infiniband/hw/cxgb3/Kconfig    |   9 --
->  drivers/infiniband/hw/cxgb3/Makefile   |   2 -
->  drivers/infiniband/hw/cxgb3/cxio_dbg.c | 206 ---------------------------------
->  drivers/infiniband/hw/cxgb3/cxio_hal.h |   9 --
->  drivers/infiniband/hw/cxgb3/iwch_cq.c  |   6 -
->  5 files changed, 232 deletions(-)
->  delete mode 100644 drivers/infiniband/hw/cxgb3/cxio_dbg.c
+> Yixian Liu (1):
+>   RDMA/hns: Fix QP state judgement before receiving work requests
 
-Applied to -next, thanks
+I applied these to -next as requested, but I suspect two of them
+should have gone to -rc. maybe all three.
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
