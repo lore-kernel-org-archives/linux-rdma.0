@@ -1,207 +1,24 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: rdma resource warning on 4.16-rc1 when unloading qedr after NFS
- mount
-Date: Wed, 14 Feb 2018 19:03:48 +0200
-Message-ID: <20180214170348.GB2197@mtr-leonro.local>
-References: <CY1PR0701MB2012C221846562FA89D401AA88F50@CY1PR0701MB2012.namprd07.prod.outlook.com>
- <364A82D1-F2D0-40C0-9310-4B9C778B3C59@oracle.com>
- <20180214163417.GA2197@mtr-leonro.local>
- <CY1PR0701MB20121585815212163A45F8B388F50@CY1PR0701MB2012.namprd07.prod.outlook.com>
+From: Yi Bairen <byron-DzDj5FMp9MpyDzI6CaY1VQ@public.gmane.org>
+Subject: Loopback with RXE?
+Date: Wed, 14 Feb 2018 17:13:07 +0000
+Message-ID: <2145E340-3297-4ED2-BEC9-09E4CD582D24@rbird.tech>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="da9oBGf5DLtF9ehv"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CY1PR0701MB20121585815212163A45F8B388F50-UpKza+2NMNLHMJvQ0dyT705OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
+Content-ID: <8B0691CFB9DE6C4EBF8A98D3AB5F7B05-DzDj5FMp9MpyDzI6CaY1VQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Le, Thong" <Thong.Le-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---da9oBGf5DLtF9ehv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Feb 14, 2018 at 04:49:45PM +0000, Kalderon, Michal wrote:
-> > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
-> > Sent: Wednesday, February 14, 2018 6:34 PM
-> > To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Cc: Kalderon, Michal <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; Le, Thong
-> > <Thong.Le-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: Re: rdma resource warning on 4.16-rc1 when unloading qedr after
-> > NFS mount
-> >
-> > On Wed, Feb 14, 2018 at 11:20:39AM -0500, Chuck Lever wrote:
-> > >
-> > >
-> > > > On Feb 14, 2018, at 11:00 AM, Kalderon, Michal
-> > <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org> wrote:
-> > > >
-> > > > Hi Leon, Chuck,
-> > > >
-> > > > We ran nfs mount over qedr using 4.16-rc1 When unloading qedr we get
-> > > > a WARNING from the resource tracker ( pasted below)
-> > > >
-> > > > Can you please advise on the best way to debug this? How can we get
-> > more info on the resource not being freed?
-> > >
-> > > I haven't seen this kind of report before, so I can't directly answer
-> > > your questions. But can you tell us more about reproducing it:
-> >
-> > It is resource tracking which was entered in last merge window.
-> >
-> > >
-> > > - Is there a workload running on the NFS mount point when the module
-> > > is unloaded?
-> no
-> > >
-> > > - Is the issue 100% reproducible, or intermittent?
-> Seems to be
-> > >
-> > > - Have you tried bisecting?
-> No, bisecting is a tough one here since we ran this scenario to verify the last
-> Two related nfs fixes
-> e89e8d8 xprtrdma: Fix BUG after a device removal
-> 1179e2c xprtrdma: Fix calculation of ri_max_send_sges
->
-> >
-> > It will be one of three patches:
-> > 9d5f8c209b3f RDMA/core: Add resource tracking for create and destroy PDs
-> > 08f294a1524b RDMA/core: Add resource tracking for create and destroy CQs
-> > 78a0cd648a80 RDMA/core: Add resource tracking for create and destroy QPs
-> Do you think these could lead to a resource not being freed? Or only issues with tracking?
-
-No, these commits are actually revealed the fact that there is a resource leak.
-
->
-> >
-> > >
-> > > - iWARP, RoCE, or both?
-> Only tested over RoCE for now
-> > >
-> > > - Have you tried reproducing with a different model of device?
-> no
-> >
-> > I doubt that it is related to device, it looks like a resource leak while removing
-> > rpcrdma.
-> >
-> > We definitely need to add more information to this warning to understand
-> > which one of three available resources wasn't freed.
->
-> Missed an output from our driver saying there's a PD not freed. As mentioned, due to other
-> Issues we're not sure whether we've seen this message from our driver in the past.
-
-First, you can run Steve's version of iproute2 (rdmatool), it includes
-statistics of PDs. Right before unload, you can run "rdma res" and "rdma
-res show pd" to compare the number of PDs and their origin.
-
-Another option is to print/count all added PDs and freed PDs and see
-which one is not released.
-
-And to be on the safe side, it is better to run with the following patch:
-https://patchwork.kernel.org/patch/10214417/
-
-Thanks
-
->
-> >
-> > >
-> > >
-> > > > Thanks,
-> > > > Michal
-> > > >
-> > > > GAD17990 login: [  300.480137] ib_srpt srpt_remove_one(qedr0): nothing
-> > to do.
-> > > > [  300.515527] ib_srpt srpt_remove_one(qedr1): nothing to do.
-> > > > [  300.542182] rpcrdma: removing device qedr1 for
-> > > > 192.168.110.146:20049 [  300.573789] WARNING: CPU: 12 PID: 3545 at
-> > > > drivers/infiniband/core/restrack.c:20 rdma_restrack_clean+0x25/0x30
-> > > > [ib_core] [  300.625985] Modules linked in: rpcsec_gss_krb5 nfsv4
-> > > > dns_resolver nfs fscache rpcrdma ib_isert iscsi_target_mod ib_iser
-> > > > libiscsi scsi_transport_iscsi ib_srpt target_core_mod ib_srp
-> > > > scsi_transport_srp ib_ipoib rdma_ucm ib_ucm ib_uverbs ib_umad
-> > > > rdma_cm ib_cm iw_cm 8021q garp mrp qedr(-) ib_core xt_CHECKSUM
-> > > > iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat
-> > > > nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack
-> > > > nf_conntrack ipt_REJECT nf_reject_ipv4 tun bridge stp llc
-> > > > ebtable_filter ebtables fuse ip6table_filter ip6_tables
-> > > > iptable_filter dm_mirror dm_region_hash dm_log dm_mod vfat fat dax
-> > > > intel_rapl sb_edac x86_pkg_temp_thermal intel_powerclamp coretemp
-> > > > kvm_intel kvm irqbypass crct10dif_pclmul crc32_pclmul
-> > > > ghash_clmulni_intel pcbc aesni_intel crypto_simd glue_helper cryptd
-> > > > ipmi_si [  300.972993]  iTCO_wdt ipmi_devintf sg pcspkr
-> > iTCO_vendor_support hpwdt hpilo lpc_ich ipmi_msghandler pcc_cpufreq
-> > ioatdma i2c_i801 mfd_core wmi shpchp dca acpi_power_meter i2c_core nfsd
-> > auth_rpcgss nfs_acl lockd grace sunrpc ip_tables xfs libcrc32c sd_mod qede
-> > qed crc32c_intel tg3 hpsa scsi_transport_sas crc8 [  301.109036] CPU: 12 PID:
-> > 3545 Comm: rmmod Not tainted 4.16.0-rc1 #1 [  301.139518] Hardware name:
-> > HP ProLiant DL380 Gen9/ProLiant DL380 Gen9, BIOS P89 02/17/2017 [
-> > 301.180411] RIP: 0010:rdma_restrack_clean+0x25/0x30 [ib_core] [
-> > 301.208350] RSP: 0018:ffffb1820478fe88 EFLAGS: 00010286 [  301.233241]
-> > RAX: 0000000000000000 RBX: ffffa099ed1b4070 RCX: ffffdf02a193c800 [
-> > 301.268001] RDX: ffffa095ed12d7a0 RSI: 0000000000025900 RDI:
-> > ffffa099ed1b47d0 [  301.302530] RBP: ffffa099ed1b4070 R08:
-> > ffffa095de9dd000 R09: 0000000180080007 [  301.337245] R10:
-> > 0000000000000001 R11: ffffa095de9dd000 R12: ffffa099ed1b4000 [
-> > 301.372151] R13: ffffa099ed1b405c R14: 0000000000e231c0 R15:
-> > 0000000000e23010 [  301.407384] FS:  00007f2b0c854740(0000)
-> > GS:ffffa099ff700000(0000) knlGS:0000000000000000 [  301.447026] CS:  0010
-> > DS: 0000 ES: 0000 CR0: 0000000080050033 [  301.475409] CR2:
-> > 0000000000e2caf8 CR3: 0000000865c0d006 CR4: 00000000001606e0 [
-> > 301.510892] Call Trace:
-> > > > [  301.522715]  ib_unregister_device+0xf5/0x190 [ib_core] [
-> > > > 301.547966]  qedr_remove+0x37/0x60 [qedr] [  301.568393]
-> > > > qede_rdma_unregister_driver+0x4b/0x90 [qede] [  301.594980]
-> > > > SyS_delete_module+0x168/0x240 [  301.615057]
-> > > > do_syscall_64+0x6f/0x1a0 [  301.633588]
-> > > > entry_SYSCALL_64_after_hwframe+0x21/0x86
-> > > > [  301.658657] RIP: 0033:0x7f2b0bd33707 [  301.676005] RSP:
-> > > > 002b:00007ffdefa29d98 EFLAGS: 00000202 ORIG_RAX: 00000000000000b0
-> > [
-> > > > 301.713324] RAX: ffffffffffffffda RBX: 0000000000e231c0 RCX:
-> > > > 00007f2b0bd33707 [  301.748186] RDX: 00007f2b0bda3a80 RSI:
-> > > > 0000000000000800 RDI: 0000000000e23228 [  301.782960] RBP:
-> > > > 0000000000000000 R08: 00007f2b0bff8060 R09: 00007f2b0bda3a80 [
-> > > > 301.818142] R10: 00007ffdefa29b20 R11: 0000000000000202 R12:
-> > > > 00007ffdefa2b70d [  301.853290] R13: 0000000000000000 R14:
-> > > > 0000000000e231c0 R15: 0000000000e23010 [  301.888138] Code: 84 00 00
-> > > > 00 00 00 0f 1f 44 00 00 48 83 c7 28 31 c0 eb 0c 48 83 c0 08 48 3d 00
-> > > > 08 00 00 74 0f 48 8d 14 07 48 8b 12 48 85 d2 74 e8 <0f> ff c3 f3 c3
-> > > > 66 0f 1f 44 00 00 0f 1f 44 00 00 53 48 8b 47 28 [  301.981140] ---[
-> > > > end trace 28dec8f15205789a ]---
-> > >
-> > > --
-> > > Chuck Lever
-> > >
-> > >
-> > >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---da9oBGf5DLtF9ehv
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqEa/QACgkQ5GN7iDZy
-WKe9sg//Wtn/p/EWPf102rOBN9gtb8pHWhU4GUNEGHqrpBB/Ii2bXb7hJrTFbdq8
-wr1omvDElNq7np37s+ihGua+io0t0FvCPnXt6/TwcLIN+MWBcMoD4JC1g/s6I4qj
-0xCfwy0Iu5Hvz5LunyVEknK36GXkeqANxbDuWe694gzTa3VArU5qSrnmTOtsJRXn
-x5NKNq11Z5C/jRbHszlS8V6xJv2hcWRVX37mFfUcD8xtZXXrFmHchxEj2CbVMLbX
-WBMftwcfpuhNvMEFOc3nf6novSe0gFqc46ebeTmJtuZQzbB4jgppgEviQpmPlid7
-klJv8z4QcxWc2NIyb00Y2g5PLEQYGwad1ikbfUsA+ZjxjXJ7BWRS9Ih8jUUxtvz8
-bic5VfM96oCoh+xS6aXrVonROOYiMw+MK+uJJacR3b3/IvqINAMuBP/lg4eXXyph
-DmtEkBqtwxNAYtkq6O0OlIWH2alLCUHs6a/WIocR2MI/LJ7smVryRKWSEZyLjRa7
-ioN/EQNvfXjnqSSNo1pzHxikRG+W9Sbz89rMF7vrVenNgw4DpSankhlu76hQl/0l
-voiyj9DFmVV9v6hTXVGXbADEqO7x5XIRkwJqBQvcTqZc6FVkCP0dfecr1sukaQKP
-0cZH0hBcJYow+/eAtwoVOlWXS7l6DfXsGs/mD4JWUU8POTJA+J8=
-=76Ii
------END PGP SIGNATURE-----
-
---da9oBGf5DLtF9ehv--
+SGkgZm9sa3MsDQoNClNlZW1zIEkgY2Fu4oCZdCBnZXQgYSBMaW51eCA0LjkgKERlYmlhbiA5LjMp
+IFZNIHdvcmtpbmcgd2l0aCBzaW5nbGUgYm94IFNvZnRSb0NFIGxvb3BiYWNrLiBJIGluc3RhbGxl
+ZCByZG1hLWNvcmUgMTYuIFRoZSByZG1hX2NsaWVudCAmIHJkbWFfc2VydmVyIGluIHRoZSBzYW1l
+IGJveCBzZWVtcyB3b3JraW5nLiBIb3dldmVyLCB3aGVuIEkgdXNlIGliX3dyaXRlX2J3IGluIHRo
+ZSBzYW1lIGJveCwgdGhlIFFQcyBjYW7igJl0IGJlIGNvbm5lY3RlZCB0aHJvdWdoIHRoZSBzYW1l
+IHJ4ZSBkZXZpY2UuDQoNCknigJlkIGxpa2UgdG8ga25vdyBpZiByeGUgbG9vcGJhY2sgaXMga25v
+d24gdG8gYmUgYnJva2VuLCBhbmQgaG93IHRvIGZpeCBpdC4NCiANCkJlc3QsDQpCYWlyZW4gWWk=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
