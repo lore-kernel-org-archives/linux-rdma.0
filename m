@@ -1,73 +1,61 @@
-From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Understanding UUAR calculations in mlx5 userspace driver
-Date: Wed, 14 Feb 2018 17:08:04 -0500
-Message-ID: <CADPSxAj11nY8Tyc+2ERw=0ziLiEm77yPkzPNeNO8HwnsekSuhg@mail.gmail.com>
-References: <CAJ84Q-a428Whw3EvPRcbhpCf+fbbd-vAm0di7C4i32PcYSZrYQ@mail.gmail.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-next 03/14] RDMA/uverbs: Refactor flags checks and
+ update return value
+Date: Wed, 14 Feb 2018 16:40:59 -0700
+Message-ID: <20180214234059.GB1718@ziepe.ca>
+References: <20180214123844.30321-1-leon@kernel.org>
+ <20180214123844.30321-4-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ84Q-a428Whw3EvPRcbhpCf+fbbd-vAm0di7C4i32PcYSZrYQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180214123844.30321-4-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rohit Zambre <rzambre-sXc7qaQca9o@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Balaji, Pavan" <balaji-uKDnm65ik8M@public.gmane.org>, Aparna Chandramowlishwaran <amowli-sXc7qaQca9o@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-1. FP stands for fast path
-2. Each UAR page has four BlueFlame registers. This is specific to the
-NIC and firmware and is mentioned in the PRM. ConnectX-5 InfiniBand
-has four, ConnectX-4 in Ethernet mode seems to have two according to
-the online PRM.
-3. No idea
+On Wed, Feb 14, 2018 at 02:38:33PM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Since commit f21519b23c1b ("IB/core: extended command: an
+> improved infrastructure for uverbs commands"), the uverbs
+> supports extra flags as an input to the command interface.
+> 
+> However actually, there is only one flag available and used,
+> so it is better to refactor the code, so the resolution and
+> report to the users is done as early as possible.
+> 
+> As part of this change, we changed the return value of failure case
+> from ENOSYS to be EINVAL to be consistent with the rest flags checks.
+> 
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>  drivers/infiniband/core/uverbs_main.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+> index 06ddb93f9c75..c12608b2d1cc 100644
+> +++ b/drivers/infiniband/core/uverbs_main.c
+> @@ -701,6 +701,11 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+>  		 IB_USER_VERBS_CMD_FLAGS_MASK) >> IB_USER_VERBS_CMD_FLAGS_SHIFT;
+>  
+>  	extended_command = flags & IB_USER_VERBS_CMD_FLAG_EXTENDED;
+> +	if (flags & ~IB_USER_VERBS_CMD_FLAG_EXTENDED) {
 
-I'm curious: are you seeing any performance impact of
-"latency_sensitve" or "low latency UARs"? I've looked at this briefly
-in the past and couldn't find perf impact. IIRC, the driver uses "fast
-path" for only the first few QPs, but in my experiment even later QPs
-got similar latency. But I might have missed something. If there's an
-observable perf impact, you can probably figure out the answer to (3).
+This is not strict enough for flags checking.
 
---Anuj
+It should be
 
+ extended = hdr.command & IB_USER_VERBS_CMD_FLAG_EXTENDED <<  IB_USER_VERBS_CMD_FLAGS_SHIFT;
+ flags = hdr.command & ~(u32)IB_USER_VERBS_CMD_COMMAND_MASK;
+ if (flags != 0 && flags != IB_USER_VERBS_CMD_FLAG_EXTENDED << IB_USER_VERBS_CMD_FLAGS_SHIFT) {
+     ret = -EINVAL;
+     goto out;
+ }
 
+We need to check all the bits that are not command bits for validity.
 
-
-
-On Wed, Feb 14, 2018 at 10:35 AM, Rohit Zambre <rzambre-sXc7qaQca9o@public.gmane.org> wrote:
-> Hi,
->
-> I am trying to understand the uuar-related calculations of the
-> userspace mlx5 driver (in mlx5_alloc_context) that use the various
-> constants introduced in
-> https://github.com/linux-rdma/rdma-core/commit/166d34841dd6a835e4f4f0196143880a73ce71bd.
->
-> My understanding is that a uar is comprised of uuars. bfregs mean the
-> same thing as uuars. A doorbell is written to the bfreg/uuar assigned
-> to the QP.
->
-> (1) W.r.t. MLX5_NUM_NON_FP_BFREGS_PER_UAR, what is a NON_FP_BFREG in a
-> UAR? I am curious to know what FP stands for.
->
-> (2) Is the value of NUM_BFREGS_PER_UAR set to 4 because the driver
-> will have at least 4 low_lat_uuars for a context? This constant is
-> used only in the calculation of gross_uuars. My assumption is that the
-> NUM_BFREGS_PER_UAR value is not specific to the mlx5 device because of
-> the missing MLX5_ prefix. Please correct me if I am wrong.
->
-> (3) Given that the value of tot_uuars and low_lat_uuars can be
-> configured through the MLX5_TOTAL_UUARS and MLX5_NUM_LOW_LAT_UUARS
-> environment variables respectively, it is possible for me to have, in
-> 1 context, 512 tot_uuars (=MLX5_MAX_BFREGS) and set all 511 of them as
-> low_lat_uuars. Is this correct?
->
-> Thanks,
->
-> Rohit Zambre
-> Ph.D. Student, Computer Engineering
-> University of California, Irvine
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
