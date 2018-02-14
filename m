@@ -1,57 +1,80 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: KASAN: use-after-free Read in rds_find_bound
-Date: Wed, 14 Feb 2018 09:58:53 -0800
-Message-ID: <1088199a-9e37-e879-5b9d-31ab99f552d4@oracle.com>
-References: <089e08231920353a4805618b365c@google.com>
- <d91da249-5a0f-7a1f-cfd5-68f10f0a2fc1@oracle.com>
- <CACT4Y+bd6Tyq672JC3GNSHPX2CEHacVKkcbKOAgpi8o-=T8DRg@mail.gmail.com>
- <491a26b8-7abb-0d36-0a2e-e1c7bfcde79d@oracle.com>
- <CACT4Y+YxrNiP==ty-KBjkDewnuS378GmG314-=ytWskZXQx3zw@mail.gmail.com>
- <52478830-f0b5-e400-8101-b329ba35bcef@oracle.com>
- <CACT4Y+aWVFEvVMihw2MBiMgYKMzup4O78c_HrByhRyF8-zfzpw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CACT4Y+aWVFEvVMihw2MBiMgYKMzup4O78c_HrByhRyF8-zfzpw@mail.gmail.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Dmitry Vyukov <dvyukov@google.com>
-Cc: syzbot <syzbot+93a5839deb355537440f@syzkaller.appspotmail.com>, linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com, David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, netdev <netdev@vger.kernel.org>, rds-devel@oss.oracle.com
+From: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v1] RDMA/hns: Replace __raw_write*(cpu_to_le*()) with LE write*()
+Date: Wed, 14 Feb 2018 20:11:17 +0200
+Message-ID: <20180214181117.36808-1-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/14/2018 9:52 AM, Dmitry Vyukov wrote:
-> On Wed, Feb 14, 2018 at 6:35 PM, Santosh Shilimkar
-> <santosh.shilimkar@oracle.com> wrote:
->>>>> Hi Santosh,
->>>>>
->>>>> What is that fix? You forgot to provide any link/reference. I also
->>>>> don't see any patches from you at around that date...
->>>>>
->>>> Fix [1] was later not added since there was a still a race. Wanted to
->>>> see if the issue re-appears after recent netns fix [2].
->>>
->>>
->>>
->>> We will not see if the bug re-appears or not until this bug is closed.
->>> Please see this recent discussion about another rds bug:
->>> https://groups.google.com/d/msg/syzkaller-bugs/3XjmOzr5jRU/g7pXIsY1BgAJ
->>> In the current state syzbot will never report bugs in these functions
->>> again.
->>>
->> OK. Can you close that one then in that case ?
-> 
-> Anybody can do this:
->
-I see.
+There is no need to repeat the semantics of writel() and similar.
+Moreover sparse complains about this:
 
-> #syz fix: rds: tcp: use rds_destroy_pending() to synchronize
-> netns/module teardown and rds connection/workq management
-> 
-> syzbot provides full self-service, see first email and in particular this:
-> https://github.com/google/syzkaller/blob/master/docs/syzbot.md#communication-with-syzbot
-> 
-ok will have a look.
+drivers/infiniband/hw/hns/hns_roce_hw_v1.c:1690:22: expected unsigned long long val
+drivers/infiniband/hw/hns/hns_roce_hw_v1.c:1690:22: got restricted __le64 <noident>
 
-Regards,
-Santosh
+Fixing this by replacing __raw_write*(cpu_to_le*()) calls by plain
+write*() ones.
+
+Note, write*() accessors are little endian by definition.
+
+Reported-by: kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 8 ++++----
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 8 ++++----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index da13bd7c3ca9..47e1b6ac1e1a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -1687,13 +1687,13 @@ static int hns_roce_v1_post_mbox(struct hns_roce_dev *hr_dev, u64 in_param,
+ 	roce_set_field(val, ROCEE_MB6_ROCEE_MB_TOKEN_M,
+ 		       ROCEE_MB6_ROCEE_MB_TOKEN_S, token);
+ 
+-	__raw_writeq(cpu_to_le64(in_param), hcr + 0);
+-	__raw_writeq(cpu_to_le64(out_param), hcr + 2);
+-	__raw_writel(cpu_to_le32(in_modifier), hcr + 4);
++	writeq(in_param, hcr + 0);
++	writeq(out_param, hcr + 2);
++	writel(in_modifier, hcr + 4);
+ 	/* Memory barrier */
+ 	wmb();
+ 
+-	__raw_writel(cpu_to_le32(val), hcr + 5);
++	writel(val, hcr + 5);
+ 
+ 	mmiowb();
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index db2ff352d75f..8f8a71d44844 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -1228,14 +1228,14 @@ static int hns_roce_v2_post_mbox(struct hns_roce_dev *hr_dev, u64 in_param,
+ 	roce_set_field(val1, HNS_ROCE_VF_MB5_TOKEN_MASK,
+ 		       HNS_ROCE_VF_MB5_TOKEN_SHIFT, token);
+ 
+-	__raw_writeq(cpu_to_le64(in_param), hcr + 0);
+-	__raw_writeq(cpu_to_le64(out_param), hcr + 2);
++	writeq(in_param, hcr + 0);
++	writeq(out_param, hcr + 2);
+ 
+ 	/* Memory barrier */
+ 	wmb();
+ 
+-	__raw_writel(cpu_to_le32(val0), hcr + 4);
+-	__raw_writel(cpu_to_le32(val1), hcr + 5);
++	writel(val0, hcr + 4);
++	writel(val1, hcr + 5);
+ 
+ 	mmiowb();
+ 
+-- 
+2.15.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
