@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 08/14] RDMA/uverbs: Properly check command supported mask
-Date: Wed, 14 Feb 2018 14:38:38 +0200
-Message-ID: <20180214123844.30321-9-leon@kernel.org>
+Subject: [PATCH rdma-next 13/14] RDMA/verbs: Check existence of function prior to accessing it
+Date: Wed, 14 Feb 2018 14:38:43 +0200
+Message-ID: <20180214123844.30321-14-leon@kernel.org>
 References: <20180214123844.30321-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180214123844.30321-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,57 +12,91 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The check based on index is not sufficient because
-
-  IB_USER_VERBS_EX_CMD_CREATE_CQ = IB_USER_VERBS_CMD_CREATE_CQ
-
-and IB_USER_VERBS_CMD_CREATE_CQ <= IB_USER_VERBS_CMD_OPEN_QP,
-so if we execute IB_USER_VERBS_EX_CMD_CREATE_CQ this code checks
-ib_dev->uverbs_cmd_mask not ib_dev->uverbs_ex_cmd_mask.
+Update all the flows to ensure that function pointer exists prior
+to accessing it. It will allow to remove uverbs_ex_mask variable
+in the next patch.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_main.c | 18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+ drivers/infiniband/core/core_priv.h  |  3 +++
+ drivers/infiniband/core/uverbs_cmd.c | 21 +++++++++++++++++++++
+ 2 files changed, 24 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 50d43c300112..0cf3664cf7d4 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -635,19 +635,13 @@ struct file *ib_uverbs_alloc_async_event_file(struct ib_uverbs_file *uverbs_file
- 	return filp;
- }
- 
--static bool verify_command_mask(struct ib_device *ib_dev, __u32 command)
-+static bool verify_command_mask(struct ib_device *ib_dev,
-+				__u32 command, bool extended)
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index c4560d84dfae..c91f9a80b831 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -309,6 +309,9 @@ static inline struct ib_qp *_ib_create_qp(struct ib_device *dev,
  {
--	u64 mask;
-+	if (!extended)
-+		return ib_dev->uverbs_cmd_mask & BIT_ULL(command);
+ 	struct ib_qp *qp;
  
--	if (command <= IB_USER_VERBS_CMD_OPEN_QP)
--		mask = ib_dev->uverbs_cmd_mask;
--	else
--		mask = ib_dev->uverbs_ex_cmd_mask;
--
--	if (mask & ((u64)1 << command))
--		return true;
--
--	return false;
-+	return ib_dev->uverbs_ex_cmd_mask & BIT_ULL(command);
++	if (!dev->create_qp)
++		return ERR_PTR(-EOPNOTSUPP);
++
+ 	qp = dev->create_qp(pd, attr, udata);
+ 	if (IS_ERR(qp))
+ 		return qp;
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 256934d1f64f..2b149e52b355 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -979,6 +979,9 @@ static struct ib_ucq_object *create_cq(struct ib_uverbs_file *file,
+ 	struct ib_uverbs_ex_create_cq_resp resp;
+ 	struct ib_cq_init_attr attr = {};
+ 
++	if (!ib_dev->create_cq)
++		return ERR_PTR(-EOPNOTSUPP);
++
+ 	if (cmd->comp_vector >= file->device->num_comp_vectors)
+ 		return ERR_PTR(-EINVAL);
+ 
+@@ -2941,6 +2944,11 @@ int ib_uverbs_ex_create_wq(struct ib_uverbs_file *file,
+ 		wq_init_attr.create_flags = cmd.create_flags;
+ 	obj->uevent.events_reported = 0;
+ 	INIT_LIST_HEAD(&obj->uevent.event_list);
++
++	if (!pd->device->create_wq) {
++		err = -EOPNOTSUPP;
++		goto err_put_cq;
++	}
+ 	wq = pd->device->create_wq(pd, &wq_init_attr, uhw);
+ 	if (IS_ERR(wq)) {
+ 		err = PTR_ERR(wq);
+@@ -3084,7 +3092,12 @@ int ib_uverbs_ex_modify_wq(struct ib_uverbs_file *file,
+ 		wq_attr.flags = cmd.flags;
+ 		wq_attr.flags_mask = cmd.flags_mask;
+ 	}
++	if (!wq->device->modify_wq) {
++		ret = -EOPNOTSUPP;
++		goto out;
++	}
+ 	ret = wq->device->modify_wq(wq, &wq_attr, cmd.attr_mask, uhw);
++out:
+ 	uobj_put_obj_read(wq);
+ 	return ret;
  }
+@@ -3181,6 +3194,11 @@ int ib_uverbs_ex_create_rwq_ind_table(struct ib_uverbs_file *file,
  
- static bool verify_command_idx(__u32 command, bool extended)
-@@ -722,7 +716,7 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 		goto out;
- 	}
+ 	init_attr.log_ind_tbl_size = cmd.log_ind_tbl_size;
+ 	init_attr.ind_tbl = wqs;
++
++	if (!ib_dev->create_rwq_ind_table) {
++		err = -EOPNOTSUPP;
++		goto err_uobj;
++	}
+ 	rwq_ind_tbl = ib_dev->create_rwq_ind_table(ib_dev, &init_attr, uhw);
  
--	if (!verify_command_mask(ib_dev, command)) {
-+	if (!verify_command_mask(ib_dev, command, extended)) {
- 		ret = -EOPNOTSUPP;
- 		goto out;
- 	}
+ 	if (IS_ERR(rwq_ind_tbl)) {
+@@ -3770,6 +3788,9 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+ 	struct ib_device_attr attr = {0};
+ 	int err;
+ 
++	if (!ib_dev->query_device)
++		return -EOPNOTSUPP;
++
+ 	if (ucore->inlen < sizeof(cmd))
+ 		return -EINVAL;
+ 
 -- 
 2.16.1
 
