@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 04/14] RDMA/uverbs: Fail as early as possible if not enough header data was provided
-Date: Wed, 14 Feb 2018 14:38:34 +0200
-Message-ID: <20180214123844.30321-5-leon@kernel.org>
+Subject: [PATCH rdma-next 06/14] RDMA/uverbs: Unify return values of not supported command
+Date: Wed, 14 Feb 2018 14:38:36 +0200
+Message-ID: <20180214123844.30321-7-leon@kernel.org>
 References: <20180214123844.30321-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180214123844.30321-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,58 +12,56 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Fail as early as possible if not enough header data
-was provided.
+The non-existing command is supposed to return -EOPNOTSUPP, but the
+current code returns different errors for different flows for the
+same failure. This patch unifies those flows.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_main.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/uverbs_main.c | 16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index c12608b2d1cc..f50ad3688790 100644
+index d8d6ac91981b..90e0b16aed1a 100644
 --- a/drivers/infiniband/core/uverbs_main.c
 +++ b/drivers/infiniband/core/uverbs_main.c
-@@ -662,6 +662,7 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 			     size_t count, loff_t *pos)
+@@ -653,9 +653,11 @@ static bool verify_command_mask(struct ib_device *ib_dev, __u32 command)
+ static bool verify_command_idx(__u32 command, bool extended)
  {
- 	struct ib_uverbs_file *file = filp->private_data;
-+	struct ib_uverbs_ex_cmd_hdr ex_hdr;
- 	struct ib_device *ib_dev;
- 	struct ib_uverbs_cmd_hdr hdr;
- 	bool extended_command;
-@@ -706,6 +707,12 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 		goto out;
+ 	if (extended)
+-		return command < ARRAY_SIZE(uverbs_ex_cmd_table);
++		return command < ARRAY_SIZE(uverbs_ex_cmd_table) &&
++		       uverbs_ex_cmd_table[command];
+ 
+-	return command < ARRAY_SIZE(uverbs_cmd_table);
++	return command < ARRAY_SIZE(uverbs_cmd_table) &&
++	       uverbs_cmd_table[command];
+ }
+ 
+ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+@@ -730,11 +732,6 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
  	}
  
-+	if (extended_command &&
-+	    count < (sizeof(hdr) + sizeof(ex_hdr))) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
- 	if (!verify_command_idx(command, extended_command)) {
- 		ret = -EINVAL;
- 		goto out;
-@@ -738,7 +745,6 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 						 hdr.in_words * 4,
- 						 hdr.out_words * 4);
- 	} else {
--		struct ib_uverbs_ex_cmd_hdr ex_hdr;
- 		struct ib_udata ucore;
- 		struct ib_udata uhw;
- 		size_t written_count = count;
-@@ -753,11 +759,6 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 			goto out;
- 		}
- 
--		if (count < (sizeof(hdr) + sizeof(ex_hdr))) {
+ 	if (!flags) {
+-		if (!uverbs_cmd_table[command]) {
 -			ret = -EINVAL;
 -			goto out;
 -		}
 -
- 		if (copy_from_user(&ex_hdr, buf + sizeof(hdr), sizeof(ex_hdr))) {
- 			ret = -EFAULT;
+ 		if (hdr.in_words * 4 != count) {
+ 			ret = -EINVAL;
+ 			goto out;
+@@ -749,11 +746,6 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 		struct ib_udata uhw;
+ 		size_t written_count = count;
+ 
+-		if (!uverbs_ex_cmd_table[command]) {
+-			ret = -ENOSYS;
+-			goto out;
+-		}
+-
+ 		if (!file->ucontext) {
+ 			ret = -EINVAL;
  			goto out;
 -- 
 2.16.1
