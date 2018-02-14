@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 02/14] RDMA/uverbs: Update sizeof users
-Date: Wed, 14 Feb 2018 14:38:32 +0200
-Message-ID: <20180214123844.30321-3-leon@kernel.org>
+Subject: [PATCH rdma-next 05/14] RDMA/uverbs: Return not supported error code for unsupported commands
+Date: Wed, 14 Feb 2018 14:38:35 +0200
+Message-ID: <20180214123844.30321-6-leon@kernel.org>
 References: <20180214123844.30321-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180214123844.30321-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,56 +12,26 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Update sizeof() users to be consistent with coding style.
+Command that doesn't exist means that it is not supported,
+so update code to return -EOPNOTSUPP in case of failure.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_main.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/uverbs_main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 1be9a93f628c..06ddb93f9c75 100644
+index f50ad3688790..d8d6ac91981b 100644
 --- a/drivers/infiniband/core/uverbs_main.c
 +++ b/drivers/infiniband/core/uverbs_main.c
-@@ -468,7 +468,7 @@ void ib_uverbs_comp_handler(struct ib_cq *cq, void *cq_context)
- 		return;
+@@ -714,7 +714,7 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
  	}
  
--	entry = kmalloc(sizeof *entry, GFP_ATOMIC);
-+	entry = kmalloc(sizeof(*entry), GFP_ATOMIC);
- 	if (!entry) {
- 		spin_unlock_irqrestore(&ev_queue->lock, flags);
- 		return;
-@@ -501,7 +501,7 @@ static void ib_uverbs_async_handler(struct ib_uverbs_file *file,
- 		return;
+ 	if (!verify_command_idx(command, extended_command)) {
+-		ret = -EINVAL;
++		ret = -EOPNOTSUPP;
+ 		goto out;
  	}
- 
--	entry = kmalloc(sizeof *entry, GFP_ATOMIC);
-+	entry = kmalloc(sizeof(*entry), GFP_ATOMIC);
- 	if (!entry) {
- 		spin_unlock_irqrestore(&file->async_file->ev_queue.lock, flags);
- 		return;
-@@ -676,10 +676,10 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 		return -EACCES;
- 	}
- 
--	if (count < sizeof hdr)
-+	if (count < sizeof(hdr))
- 		return -EINVAL;
- 
--	if (copy_from_user(&hdr, buf, sizeof hdr))
-+	if (copy_from_user(&hdr, buf, sizeof(hdr)))
- 		return -EFAULT;
- 
- 	srcu_key = srcu_read_lock(&file->device->disassociate_srcu);
-@@ -1032,7 +1032,7 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 	if (!device->alloc_ucontext)
- 		return;
- 
--	uverbs_dev = kzalloc(sizeof *uverbs_dev, GFP_KERNEL);
-+	uverbs_dev = kzalloc(sizeof(*uverbs_dev), GFP_KERNEL);
- 	if (!uverbs_dev)
- 		return;
  
 -- 
 2.16.1
