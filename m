@@ -1,194 +1,73 @@
-From: Martin Wilck <mwilck-IBi9RG/b67k@public.gmane.org>
-Subject: [RFC PATCH] rdma_rxe: make rxe work over 802.1q VLAN devices
-Date: Wed, 14 Feb 2018 21:45:43 +0100
-Message-ID: <20180214204543.29711-1-mwilck@suse.com>
+From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Understanding UUAR calculations in mlx5 userspace driver
+Date: Wed, 14 Feb 2018 17:08:04 -0500
+Message-ID: <CADPSxAj11nY8Tyc+2ERw=0ziLiEm77yPkzPNeNO8HwnsekSuhg@mail.gmail.com>
+References: <CAJ84Q-a428Whw3EvPRcbhpCf+fbbd-vAm0di7C4i32PcYSZrYQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJ84Q-a428Whw3EvPRcbhpCf+fbbd-vAm0di7C4i32PcYSZrYQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Martin Wilck <mwilck-IBi9RG/b67k@public.gmane.org>
+To: Rohit Zambre <rzambre-sXc7qaQca9o@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Balaji, Pavan" <balaji-uKDnm65ik8M@public.gmane.org>, Aparna Chandramowlishwaran <amowli-sXc7qaQca9o@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch fixes RDMA/rxe over 802.1q VLAN devices.
+1. FP stands for fast path
+2. Each UAR page has four BlueFlame registers. This is specific to the
+NIC and firmware and is mentioned in the PRM. ConnectX-5 InfiniBand
+has four, ConnectX-4 in Ethernet mode seems to have two according to
+the online PRM.
+3. No idea
 
-Without it, I observed the following behavior:
+I'm curious: are you seeing any performance impact of
+"latency_sensitve" or "low latency UARs"? I've looked at this briefly
+in the past and couldn't find perf impact. IIRC, the driver uses "fast
+path" for only the first few QPs, but in my experiment even later QPs
+got similar latency. But I might have missed something. If there's an
+observable perf impact, you can probably figure out the answer to (3).
 
-a) adding a VLAN device to RXE via rxe_net_add() creates a non-functional
-   RDMA device. This is caused by the logic in enum_all_gids_of_dev_cb() /
-   is_eth_port_of_netdev(), which only considers networks connected to "upper
-   devices" of the configured network device, resulting in an empty set of
-   gids for a VLAN interface that is an "upper device" itself. Later attempts
-   to connect via this rdma device fail in cma_acuire_dev() because no gids
-   can be resolved.
+--Anuj
 
-b) adding the master device of the VLAN device instead seems to work
-   initially, target addresses via VLAN devices are resolved successfully.
-   But the connection times out because no 802.1q VLAN headers are inserted
-   in the ethernet packets, which are therefore never received. This happens
-   because the RXE layer sends the packets via the master device rather than
-   the VLAN device.
 
-The problem could be solved by changing either a) or b). My thinking was that
-the logic in a) was created deliberately, thus I decided to work on b). It
-turns out that the information about the VLAN interface for the gid at hand
-is available in the AV information. My patch converts the RXE code to use this
-netdev instead of rxe->ndev. With this change, RXE over vlan works on my test
-system.
 
-The IB stack is certainly not my primary area of expertise, so I may have
-chosen a wrong approach. I'm looking forward to reviews and comments.
 
-Signed-off-by: Martin Wilck <mwilck-IBi9RG/b67k@public.gmane.org>
----
- drivers/infiniband/sw/rxe/rxe_net.c  | 54 ++++++++++++++++++++++++++++++++----
- drivers/infiniband/sw/rxe/rxe_recv.c |  2 +-
- 2 files changed, 49 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 159246b03867..8f356df64b29 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -182,11 +182,39 @@ static struct dst_entry *rxe_find_route6(struct net_device *ndev,
- 
- #endif
- 
-+/*
-+ * Derive the net_device from the av.
-+ * For physical devices, this will just return rxe->ndev.
-+ * But for VLAN devices, it will return the vlan dev.
-+ * Caller should dev_put() the returned net_device.
-+ */
-+static struct net_device *rxe_netdev_from_av(struct rxe_dev *rxe,
-+					     int port_num,
-+					     struct rxe_av *av)
-+{
-+	union ib_gid gid;
-+	struct ib_gid_attr attr;
-+	struct net_device *ndev = rxe->ndev;
-+
-+	if (ib_get_cached_gid(&rxe->ib_dev, port_num, av->grh.sgid_index,
-+			      &gid, &attr) == 0 &&
-+	    attr.ndev && attr.ndev != ndev)
-+		ndev = attr.ndev;
-+	else
-+		/* Only to ensure that caller may call dev_put() */
-+		dev_hold(ndev);
-+
-+	return ndev;
-+}
-+
- static struct dst_entry *rxe_find_route(struct rxe_dev *rxe,
- 					struct rxe_qp *qp,
- 					struct rxe_av *av)
- {
- 	struct dst_entry *dst = NULL;
-+	struct net_device *ndev;
-+
-+	ndev = rxe_netdev_from_av(rxe, qp->attr.port_num, av);
- 
- 	if (qp_type(qp) == IB_QPT_RC)
- 		dst = sk_dst_get(qp->sk->sk);
-@@ -201,14 +229,14 @@ static struct dst_entry *rxe_find_route(struct rxe_dev *rxe,
- 
- 			saddr = &av->sgid_addr._sockaddr_in.sin_addr;
- 			daddr = &av->dgid_addr._sockaddr_in.sin_addr;
--			dst = rxe_find_route4(rxe->ndev, saddr, daddr);
-+			dst = rxe_find_route4(ndev, saddr, daddr);
- 		} else if (av->network_type == RDMA_NETWORK_IPV6) {
- 			struct in6_addr *saddr6;
- 			struct in6_addr *daddr6;
- 
- 			saddr6 = &av->sgid_addr._sockaddr_in6.sin6_addr;
- 			daddr6 = &av->dgid_addr._sockaddr_in6.sin6_addr;
--			dst = rxe_find_route6(rxe->ndev, saddr6, daddr6);
-+			dst = rxe_find_route6(ndev, saddr6, daddr6);
- #if IS_ENABLED(CONFIG_IPV6)
- 			if (dst)
- 				qp->dst_cookie =
-@@ -217,6 +245,7 @@ static struct dst_entry *rxe_find_route(struct rxe_dev *rxe,
- 		}
- 	}
- 
-+	dev_put(ndev);
- 	return dst;
- }
- 
-@@ -224,9 +253,14 @@ static int rxe_udp_encap_recv(struct sock *sk, struct sk_buff *skb)
- {
- 	struct udphdr *udph;
- 	struct net_device *ndev = skb->dev;
-+	struct net_device *rdev = ndev;
- 	struct rxe_dev *rxe = net_to_rxe(ndev);
- 	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
- 
-+	if (!rxe && is_vlan_dev(rdev)) {
-+		rdev = vlan_dev_real_dev(ndev);
-+		rxe = net_to_rxe(rdev);
-+	}
- 	if (!rxe)
- 		goto drop;
- 
-@@ -498,6 +532,10 @@ struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av *av,
- {
- 	unsigned int hdr_len;
- 	struct sk_buff *skb;
-+	struct net_device *ndev;
-+	const int port_num = 1;
-+
-+	ndev = rxe_netdev_from_av(rxe, port_num, av);
- 
- 	if (av->network_type == RDMA_NETWORK_IPV4)
- 		hdr_len = ETH_HLEN + sizeof(struct udphdr) +
-@@ -506,26 +544,30 @@ struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av *av,
- 		hdr_len = ETH_HLEN + sizeof(struct udphdr) +
- 			sizeof(struct ipv6hdr);
- 
--	skb = alloc_skb(paylen + hdr_len + LL_RESERVED_SPACE(rxe->ndev),
-+	skb = alloc_skb(paylen + hdr_len + LL_RESERVED_SPACE(ndev),
- 			GFP_ATOMIC);
--	if (unlikely(!skb))
-+
-+	if (unlikely(!skb)) {
-+		dev_put(ndev);
- 		return NULL;
-+	}
- 
- 	skb_reserve(skb, hdr_len + LL_RESERVED_SPACE(rxe->ndev));
- 
--	skb->dev	= rxe->ndev;
-+	skb->dev	= ndev;
- 	if (av->network_type == RDMA_NETWORK_IPV4)
- 		skb->protocol = htons(ETH_P_IP);
- 	else
- 		skb->protocol = htons(ETH_P_IPV6);
- 
- 	pkt->rxe	= rxe;
--	pkt->port_num	= 1;
-+	pkt->port_num	= port_num;
- 	pkt->hdr	= skb_put(skb, paylen);
- 	pkt->mask	|= RXE_GRH_MASK;
- 
- 	memset(pkt->hdr, 0, paylen);
- 
-+	dev_put(ndev);
- 	return skb;
- }
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-index 4c3f899241d4..08ad9dc72205 100644
---- a/drivers/infiniband/sw/rxe/rxe_recv.c
-+++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-@@ -347,7 +347,7 @@ static int rxe_match_dgid(struct rxe_dev *rxe, struct sk_buff *skb)
- 
- 	return ib_find_cached_gid_by_port(&rxe->ib_dev, pdgid,
- 					  IB_GID_TYPE_ROCE_UDP_ENCAP,
--					  1, rxe->ndev, NULL);
-+					  1, skb->dev, NULL);
- }
- 
- /* rxe_rcv is called from the interface driver */
--- 
-2.16.1
-
+On Wed, Feb 14, 2018 at 10:35 AM, Rohit Zambre <rzambre-sXc7qaQca9o@public.gmane.org> wrote:
+> Hi,
+>
+> I am trying to understand the uuar-related calculations of the
+> userspace mlx5 driver (in mlx5_alloc_context) that use the various
+> constants introduced in
+> https://github.com/linux-rdma/rdma-core/commit/166d34841dd6a835e4f4f0196143880a73ce71bd.
+>
+> My understanding is that a uar is comprised of uuars. bfregs mean the
+> same thing as uuars. A doorbell is written to the bfreg/uuar assigned
+> to the QP.
+>
+> (1) W.r.t. MLX5_NUM_NON_FP_BFREGS_PER_UAR, what is a NON_FP_BFREG in a
+> UAR? I am curious to know what FP stands for.
+>
+> (2) Is the value of NUM_BFREGS_PER_UAR set to 4 because the driver
+> will have at least 4 low_lat_uuars for a context? This constant is
+> used only in the calculation of gross_uuars. My assumption is that the
+> NUM_BFREGS_PER_UAR value is not specific to the mlx5 device because of
+> the missing MLX5_ prefix. Please correct me if I am wrong.
+>
+> (3) Given that the value of tot_uuars and low_lat_uuars can be
+> configured through the MLX5_TOTAL_UUARS and MLX5_NUM_LOW_LAT_UUARS
+> environment variables respectively, it is possible for me to have, in
+> 1 context, 512 tot_uuars (=MLX5_MAX_BFREGS) and set all 511 of them as
+> low_lat_uuars. Is this correct?
+>
+> Thanks,
+>
+> Rohit Zambre
+> Ph.D. Student, Computer Engineering
+> University of California, Irvine
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
