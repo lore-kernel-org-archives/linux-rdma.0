@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 14/14] RDMA/verbs: Drop uverbs_ex_mask
-Date: Wed, 14 Feb 2018 14:38:44 +0200
-Message-ID: <20180214123844.30321-15-leon@kernel.org>
+Subject: [PATCH rdma-next 12/14] RDMA/verbs: Return proper error code for not supported system call
+Date: Wed, 14 Feb 2018 14:38:42 +0200
+Message-ID: <20180214123844.30321-13-leon@kernel.org>
 References: <20180214123844.30321-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180214123844.30321-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,128 +12,225 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-There is no need to manage mask of available function pointers
-while the core is checking that function pointers is set prior
-to calling that function, so remove it.
+The proper return error is -EOPNOTSUPP and not -ENOSYS, so update
+all places in verbs.c to match this semantics.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_main.c |  2 +-
- drivers/infiniband/hw/mlx4/main.c     | 18 ------------------
- drivers/infiniband/hw/mlx5/main.c     | 15 ---------------
- include/rdma/ib_verbs.h               |  1 -
- 4 files changed, 1 insertion(+), 35 deletions(-)
+ drivers/infiniband/core/verbs.c | 46 ++++++++++++++++++++---------------------
+ 1 file changed, 23 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index e07326139ce9..00d751121446 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -641,7 +641,7 @@ static bool verify_command_mask(struct ib_device *ib_dev,
- 	if (!extended)
- 		return ib_dev->uverbs_cmd_mask & BIT_ULL(command);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 16ebc6372c31..95965033cc64 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -655,7 +655,7 @@ int rdma_modify_ah(struct ib_ah *ah, struct rdma_ah_attr *ah_attr)
  
--	return ib_dev->uverbs_ex_cmd_mask & BIT_ULL(command);
-+	return true;
+ 	return ah->device->modify_ah ?
+ 		ah->device->modify_ah(ah, ah_attr) :
+-		-ENOSYS;
++		-EOPNOTSUPP;
  }
+ EXPORT_SYMBOL(rdma_modify_ah);
  
- static bool verify_command_idx(__u32 command, bool extended)
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 8d2ee9322f2e..9a083803f81f 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2759,9 +2759,6 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 	ibdev->ib_dev.get_dev_fw_str    = get_fw_ver_str;
- 	ibdev->ib_dev.disassociate_ucontext = mlx4_ib_disassociate_ucontext;
+@@ -663,7 +663,7 @@ int rdma_query_ah(struct ib_ah *ah, struct rdma_ah_attr *ah_attr)
+ {
+ 	return ah->device->query_ah ?
+ 		ah->device->query_ah(ah, ah_attr) :
+-		-ENOSYS;
++		-EOPNOTSUPP;
+ }
+ EXPORT_SYMBOL(rdma_query_ah);
  
--	ibdev->ib_dev.uverbs_ex_cmd_mask |=
--		(1ull << IB_USER_VERBS_EX_CMD_MODIFY_CQ);
--
- 	if ((dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS) &&
- 	    ((mlx4_ib_port_link_layer(&ibdev->ib_dev, 1) ==
- 	    IB_LINK_LAYER_ETHERNET) ||
-@@ -2774,12 +2771,6 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 			mlx4_ib_create_rwq_ind_table;
- 		ibdev->ib_dev.destroy_rwq_ind_table =
- 			mlx4_ib_destroy_rwq_ind_table;
--		ibdev->ib_dev.uverbs_ex_cmd_mask |=
--			(1ull << IB_USER_VERBS_EX_CMD_CREATE_WQ)	  |
--			(1ull << IB_USER_VERBS_EX_CMD_MODIFY_WQ)	  |
--			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_WQ)	  |
--			(1ull << IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL) |
--			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL);
- 	}
+@@ -689,7 +689,7 @@ struct ib_srq *ib_create_srq(struct ib_pd *pd,
+ 	struct ib_srq *srq;
  
- 	if (!mlx4_is_slave(ibdev->dev)) {
-@@ -2811,17 +2802,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 		ibdev->steering_support = MLX4_STEERING_MODE_DEVICE_MANAGED;
- 		ibdev->ib_dev.create_flow	= mlx4_ib_create_flow;
- 		ibdev->ib_dev.destroy_flow	= mlx4_ib_destroy_flow;
--
--		ibdev->ib_dev.uverbs_ex_cmd_mask	|=
--			(1ull << IB_USER_VERBS_EX_CMD_CREATE_FLOW) |
--			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_FLOW);
- 	}
+ 	if (!pd->device->create_srq)
+-		return ERR_PTR(-ENOSYS);
++		return ERR_PTR(-EOPNOTSUPP);
  
--	ibdev->ib_dev.uverbs_ex_cmd_mask |=
--		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE) |
--		(1ull << IB_USER_VERBS_EX_CMD_CREATE_CQ) |
--		(1ull << IB_USER_VERBS_EX_CMD_CREATE_QP);
--
- 	mlx4_ib_alloc_eqs(dev, ibdev);
+ 	srq = pd->device->create_srq(pd, srq_init_attr, NULL);
  
- 	spin_lock_init(&iboe->lock);
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 4236c8086820..7074c418e2c9 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -4618,12 +4618,6 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
- 		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)		|
- 		(1ull << IB_USER_VERBS_CMD_CREATE_XSRQ)		|
- 		(1ull << IB_USER_VERBS_CMD_OPEN_QP);
--	dev->ib_dev.uverbs_ex_cmd_mask =
--		(1ull << IB_USER_VERBS_EX_CMD_QUERY_DEVICE)	|
--		(1ull << IB_USER_VERBS_EX_CMD_CREATE_CQ)	|
--		(1ull << IB_USER_VERBS_EX_CMD_CREATE_QP)	|
--		(1ull << IB_USER_VERBS_EX_CMD_MODIFY_QP)	|
--		(1ull << IB_USER_VERBS_EX_CMD_MODIFY_CQ);
+@@ -722,7 +722,7 @@ int ib_modify_srq(struct ib_srq *srq,
+ {
+ 	return srq->device->modify_srq ?
+ 		srq->device->modify_srq(srq, srq_attr, srq_attr_mask, NULL) :
+-		-ENOSYS;
++		-EOPNOTSUPP;
+ }
+ EXPORT_SYMBOL(ib_modify_srq);
  
- 	dev->ib_dev.query_device	= mlx5_ib_query_device;
- 	dev->ib_dev.query_port		= mlx5_ib_query_port;
-@@ -4704,9 +4698,6 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
+@@ -730,7 +730,7 @@ int ib_query_srq(struct ib_srq *srq,
+ 		 struct ib_srq_attr *srq_attr)
+ {
+ 	return srq->device->query_srq ?
+-		srq->device->query_srq(srq, srq_attr) : -ENOSYS;
++		srq->device->query_srq(srq, srq_attr) : -EOPNOTSUPP;
+ }
+ EXPORT_SYMBOL(ib_query_srq);
  
- 	dev->ib_dev.create_flow	= mlx5_ib_create_flow;
- 	dev->ib_dev.destroy_flow = mlx5_ib_destroy_flow;
--	dev->ib_dev.uverbs_ex_cmd_mask |=
--			(1ull << IB_USER_VERBS_EX_CMD_CREATE_FLOW) |
--			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_FLOW);
+@@ -1458,7 +1458,7 @@ int ib_query_qp(struct ib_qp *qp,
+ {
+ 	return qp->device->query_qp ?
+ 		qp->device->query_qp(qp->real_qp, qp_attr, qp_attr_mask, qp_init_attr) :
+-		-ENOSYS;
++		-EOPNOTSUPP;
+ }
+ EXPORT_SYMBOL(ib_query_qp);
  
- 	err = init_node_data(dev);
- 	if (err)
-@@ -4746,12 +4737,6 @@ static int mlx5_ib_stage_roce_init(struct mlx5_ib_dev *dev)
- 		dev->ib_dev.destroy_wq	 = mlx5_ib_destroy_wq;
- 		dev->ib_dev.create_rwq_ind_table = mlx5_ib_create_rwq_ind_table;
- 		dev->ib_dev.destroy_rwq_ind_table = mlx5_ib_destroy_rwq_ind_table;
--		dev->ib_dev.uverbs_ex_cmd_mask |=
--			(1ull << IB_USER_VERBS_EX_CMD_CREATE_WQ) |
--			(1ull << IB_USER_VERBS_EX_CMD_MODIFY_WQ) |
--			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_WQ) |
--			(1ull << IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL) |
--			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL);
- 		err = mlx5_enable_eth(dev, port_num);
- 		if (err)
- 			return err;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 73b2387e3f74..f31ba8df5c66 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2346,7 +2346,6 @@ struct ib_device {
+@@ -1595,7 +1595,7 @@ EXPORT_SYMBOL(ib_create_cq);
+ int rdma_set_cq_moderation(struct ib_cq *cq, u16 cq_count, u16 cq_period)
+ {
+ 	return cq->device->modify_cq ?
+-		cq->device->modify_cq(cq, cq_count, cq_period) : -ENOSYS;
++		cq->device->modify_cq(cq, cq_count, cq_period) : -EOPNOTSUPP;
+ }
+ EXPORT_SYMBOL(rdma_set_cq_moderation);
  
- 	int			     uverbs_abi_ver;
- 	u64			     uverbs_cmd_mask;
--	u64			     uverbs_ex_cmd_mask;
+@@ -1612,7 +1612,7 @@ EXPORT_SYMBOL(ib_destroy_cq);
+ int ib_resize_cq(struct ib_cq *cq, int cqe)
+ {
+ 	return cq->device->resize_cq ?
+-		cq->device->resize_cq(cq, cqe, NULL) : -ENOSYS;
++		cq->device->resize_cq(cq, cqe, NULL) : -EOPNOTSUPP;
+ }
+ EXPORT_SYMBOL(ib_resize_cq);
  
- 	char			     node_desc[IB_DEVICE_NODE_DESC_MAX];
- 	__be64			     node_guid;
+@@ -1650,7 +1650,7 @@ struct ib_mr *ib_alloc_mr(struct ib_pd *pd,
+ 	struct ib_mr *mr;
+ 
+ 	if (!pd->device->alloc_mr)
+-		return ERR_PTR(-ENOSYS);
++		return ERR_PTR(-EOPNOTSUPP);
+ 
+ 	mr = pd->device->alloc_mr(pd, mr_type, max_num_sg);
+ 	if (!IS_ERR(mr)) {
+@@ -1674,7 +1674,7 @@ struct ib_fmr *ib_alloc_fmr(struct ib_pd *pd,
+ 	struct ib_fmr *fmr;
+ 
+ 	if (!pd->device->alloc_fmr)
+-		return ERR_PTR(-ENOSYS);
++		return ERR_PTR(-EOPNOTSUPP);
+ 
+ 	fmr = pd->device->alloc_fmr(pd, mr_access_flags, fmr_attr);
+ 	if (!IS_ERR(fmr)) {
+@@ -1758,7 +1758,7 @@ int ib_attach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid)
+ 	int ret;
+ 
+ 	if (!qp->device->attach_mcast)
+-		return -ENOSYS;
++		return -EOPNOTSUPP;
+ 
+ 	if (!rdma_is_multicast_addr((struct in6_addr *)gid->raw) ||
+ 	    qp->qp_type != IB_QPT_UD || !is_valid_mcast_lid(qp, lid))
+@@ -1776,7 +1776,7 @@ int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid)
+ 	int ret;
+ 
+ 	if (!qp->device->detach_mcast)
+-		return -ENOSYS;
++		return -EOPNOTSUPP;
+ 
+ 	if (!rdma_is_multicast_addr((struct in6_addr *)gid->raw) ||
+ 	    qp->qp_type != IB_QPT_UD || !is_valid_mcast_lid(qp, lid))
+@@ -1794,7 +1794,7 @@ struct ib_xrcd *__ib_alloc_xrcd(struct ib_device *device, const char *caller)
+ 	struct ib_xrcd *xrcd;
+ 
+ 	if (!device->alloc_xrcd)
+-		return ERR_PTR(-ENOSYS);
++		return ERR_PTR(-EOPNOTSUPP);
+ 
+ 	xrcd = device->alloc_xrcd(device, NULL, NULL);
+ 	if (!IS_ERR(xrcd)) {
+@@ -1848,7 +1848,7 @@ struct ib_wq *ib_create_wq(struct ib_pd *pd,
+ 	struct ib_wq *wq;
+ 
+ 	if (!pd->device->create_wq)
+-		return ERR_PTR(-ENOSYS);
++		return ERR_PTR(-EOPNOTSUPP);
+ 
+ 	wq = pd->device->create_wq(pd, wq_attr, NULL);
+ 	if (!IS_ERR(wq)) {
+@@ -1903,7 +1903,7 @@ int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
+ 	int err;
+ 
+ 	if (!wq->device->modify_wq)
+-		return -ENOSYS;
++		return -EOPNOTSUPP;
+ 
+ 	err = wq->device->modify_wq(wq, wq_attr, wq_attr_mask, NULL);
+ 	return err;
+@@ -1928,7 +1928,7 @@ struct ib_rwq_ind_table *ib_create_rwq_ind_table(struct ib_device *device,
+ 	u32 table_size;
+ 
+ 	if (!device->create_rwq_ind_table)
+-		return ERR_PTR(-ENOSYS);
++		return ERR_PTR(-EOPNOTSUPP);
+ 
+ 	table_size = (1 << init_attr->log_ind_tbl_size);
+ 	rwq_ind_table = device->create_rwq_ind_table(device,
+@@ -1978,7 +1978,7 @@ struct ib_flow *ib_create_flow(struct ib_qp *qp,
+ {
+ 	struct ib_flow *flow_id;
+ 	if (!qp->device->create_flow)
+-		return ERR_PTR(-ENOSYS);
++		return ERR_PTR(-EOPNOTSUPP);
+ 
+ 	flow_id = qp->device->create_flow(qp, flow_attr, domain);
+ 	if (!IS_ERR(flow_id)) {
+@@ -2005,7 +2005,7 @@ int ib_check_mr_status(struct ib_mr *mr, u32 check_mask,
+ 		       struct ib_mr_status *mr_status)
+ {
+ 	return mr->device->check_mr_status ?
+-		mr->device->check_mr_status(mr, check_mask, mr_status) : -ENOSYS;
++		mr->device->check_mr_status(mr, check_mask, mr_status) : -EOPNOTSUPP;
+ }
+ EXPORT_SYMBOL(ib_check_mr_status);
+ 
+@@ -2013,7 +2013,7 @@ int ib_set_vf_link_state(struct ib_device *device, int vf, u8 port,
+ 			 int state)
+ {
+ 	if (!device->set_vf_link_state)
+-		return -ENOSYS;
++		return -EOPNOTSUPP;
+ 
+ 	return device->set_vf_link_state(device, vf, port, state);
+ }
+@@ -2023,7 +2023,7 @@ int ib_get_vf_config(struct ib_device *device, int vf, u8 port,
+ 		     struct ifla_vf_info *info)
+ {
+ 	if (!device->get_vf_config)
+-		return -ENOSYS;
++		return -EOPNOTSUPP;
+ 
+ 	return device->get_vf_config(device, vf, port, info);
+ }
+@@ -2033,7 +2033,7 @@ int ib_get_vf_stats(struct ib_device *device, int vf, u8 port,
+ 		    struct ifla_vf_stats *stats)
+ {
+ 	if (!device->get_vf_stats)
+-		return -ENOSYS;
++		return -EOPNOTSUPP;
+ 
+ 	return device->get_vf_stats(device, vf, port, stats);
+ }
+@@ -2043,7 +2043,7 @@ int ib_set_vf_guid(struct ib_device *device, int vf, u8 port, u64 guid,
+ 		   int type)
+ {
+ 	if (!device->set_vf_guid)
+-		return -ENOSYS;
++		return -EOPNOTSUPP;
+ 
+ 	return device->set_vf_guid(device, vf, port, guid, type);
+ }
+@@ -2078,7 +2078,7 @@ int ib_map_mr_sg(struct ib_mr *mr, struct scatterlist *sg, int sg_nents,
+ 		 unsigned int *sg_offset, unsigned int page_size)
+ {
+ 	if (unlikely(!mr->device->map_mr_sg))
+-		return -ENOSYS;
++		return -EOPNOTSUPP;
+ 
+ 	mr->page_size = page_size;
+ 
 -- 
 2.16.1
 
