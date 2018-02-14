@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 4/4] RDMA/uverbs: Sanitize user entered port numbers prior to access it
-Date: Wed, 14 Feb 2018 12:35:40 +0200
-Message-ID: <20180214103540.22374-5-leon@kernel.org>
+Subject: [PATCH rdma-rc 2/4] RDMA/uverbs: Fix bad unlock balance in ib_uverbs_close_xrcd
+Date: Wed, 14 Feb 2018 12:35:38 +0200
+Message-ID: <20180214103540.22374-3-leon@kernel.org>
 References: <20180214103540.22374-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20180214103540.22374-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,129 +12,87 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-==================================================================
-BUG: KASAN: use-after-free in copy_ah_attr_from_uverbs+0x6f2/0x8c0
-Read of size 4 at addr ffff88006476a198 by task syzkaller697701/265
+The attempt to call ib_uverbs_close_xrcd() without calling to
+ib_uverbs_open_xrcd() will produce the following warning.
 
-CPU: 0 PID: 265 Comm: syzkaller697701 Not tainted 4.15.0+ #90
+The design of RDMA/core ensures that destroy operation is atomic
+and doesn't need to be protected with lock.
+
+=====================================
+WARNING: bad unlock balance detected!
+4.15.0+ #87 Not tainted
+-------------------------------------
+syzkaller223405/269 is trying to release lock (&uverbs_dev->xrcd_tree_mutex) at:
+[<00000000b8703372>] ib_uverbs_close_xrcd+0x195/0x1f0
+but there are no more locks to release!
+
+other info that might help us debug this:
+1 lock held by syzkaller223405/269:
+ #0:  (&uverbs_dev->disassociate_srcu){....}, at: [<000000005af3b960>] ib_uverbs_write+0x265/0xef0
+
+stack backtrace:
+CPU: 0 PID: 269 Comm: syzkaller223405 Not tainted 4.15.0+ #87
 Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.7.5-0-ge51488c-20140602_164612-nilsson.home.kraxel.org 04/01/2014
 Call Trace:
  dump_stack+0xde/0x164
  ? dma_virt_map_sg+0x22c/0x22c
- ? show_regs_print_info+0x17/0x17
- ? lock_contended+0x11a0/0x11a0
- print_address_description+0x83/0x3e0
- kasan_report+0x18c/0x4b0
- ? copy_ah_attr_from_uverbs+0x6f2/0x8c0
- ? copy_ah_attr_from_uverbs+0x6f2/0x8c0
- ? lookup_get_idr_uobject+0x120/0x200
- ? copy_ah_attr_from_uverbs+0x6f2/0x8c0
- copy_ah_attr_from_uverbs+0x6f2/0x8c0
- ? modify_qp+0xd0e/0x1350
- modify_qp+0xd0e/0x1350
- ib_uverbs_modify_qp+0xf9/0x170
- ? ib_uverbs_query_qp+0xa70/0xa70
+ ? ib_uverbs_write+0x265/0xef0
+ ? console_unlock+0x502/0xbd0
+ ? ib_uverbs_close_xrcd+0x195/0x1f0
+ print_unlock_imbalance_bug+0x131/0x160
+ lock_release+0x59d/0x1100
+ ? ib_uverbs_close_xrcd+0x195/0x1f0
+ ? lock_acquire+0x440/0x440
+ ? lock_acquire+0x440/0x440
+ __mutex_unlock_slowpath+0x88/0x670
+ ? wait_for_completion+0x4c0/0x4c0
+ ? rdma_lookup_get_uobject+0x145/0x2f0
+ ib_uverbs_close_xrcd+0x195/0x1f0
+ ? ib_uverbs_open_xrcd+0xdd0/0xdd0
  ib_uverbs_write+0x7f9/0xef0
- ? attach_entity_load_avg+0x8b0/0x8b0
- ? ib_uverbs_query_qp+0xa70/0xa70
+ ? cyc2ns_read_end+0x10/0x10
+ ? ib_uverbs_open_xrcd+0xdd0/0xdd0
  ? uverbs_devnode+0x110/0x110
  ? cyc2ns_read_end+0x10/0x10
- ? print_irqtrace_events+0x280/0x280
+ ? cyc2ns_read_end+0x10/0x10
  ? sched_clock_cpu+0x18/0x200
- ? _raw_spin_unlock_irq+0x29/0x40
- ? _raw_spin_unlock_irq+0x29/0x40
- ? _raw_spin_unlock_irq+0x29/0x40
- ? time_hardirqs_on+0x27/0x670
  __vfs_write+0x10d/0x700
  ? uverbs_devnode+0x110/0x110
  ? kernel_read+0x170/0x170
- ? _raw_spin_unlock_irq+0x29/0x40
- ? finish_task_switch+0x1bd/0x7a0
- ? finish_task_switch+0x194/0x7a0
- ? prandom_u32_state+0xe/0x180
- ? rcu_read_unlock+0x80/0x80
+ ? __fget+0x358/0x5d0
  ? security_file_permission+0x93/0x260
  vfs_write+0x1b0/0x550
  SyS_write+0xc7/0x1a0
  ? SyS_read+0x1a0/0x1a0
  ? trace_hardirqs_on_thunk+0x1a/0x1c
  entry_SYSCALL_64_fastpath+0x1e/0x8b
-RIP: 0033:0x433c29
-RSP: 002b:00007ffcf2be82a8 EFLAGS: 00000217
-
-Allocated by task 62:
- kasan_kmalloc+0xa0/0xd0
- kmem_cache_alloc+0x141/0x480
- dup_fd+0x101/0xcc0
- copy_process.part.62+0x166f/0x4390
- _do_fork+0x1cb/0xe90
- kernel_thread+0x34/0x40
- call_usermodehelper_exec_work+0x112/0x260
- process_one_work+0x929/0x1aa0
- worker_thread+0x5c6/0x12a0
- kthread+0x346/0x510
- ret_from_fork+0x3a/0x50
-
-Freed by task 259:
- kasan_slab_free+0x71/0xc0
- kmem_cache_free+0xf3/0x4c0
- put_files_struct+0x225/0x2c0
- exit_files+0x88/0xc0
- do_exit+0x67c/0x1520
- do_group_exit+0xe8/0x380
- SyS_exit_group+0x1e/0x20
- entry_SYSCALL_64_fastpath+0x1e/0x8b
-
-The buggy address belongs to the object at ffff88006476a000
- which belongs to the cache files_cache of size 832
-The buggy address is located 408 bytes inside of
- 832-byte region [ffff88006476a000, ffff88006476a340)
-The buggy address belongs to the page:
-page:ffffea000191da80 count:1 mapcount:0 mapping:          (null) index:0x0 compound_mapcount: 0
-flags: 0x4000000000008100(slab|head)
-raw: 4000000000008100 0000000000000000 0000000000000000 0000000100080008
-raw: 0000000000000000 0000000100000001 ffff88006bcf7a80 0000000000000000
-page dumped because: kasan: bad access detected
-
-Memory state around the buggy address:
- ffff88006476a080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
- ffff88006476a100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->ffff88006476a180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-                            ^
- ffff88006476a200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
- ffff88006476a280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-==================================================================
+RIP: 0033:0x4335c9
 
 Cc: syzkaller <syzkaller-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.11
-Fixes: 44c58487d51a ("IB/core: Define 'ib' and 'roce' rdma_ah_attr types")
+Fixes: fd3c7904db6e ("IB/core: Change idr objects to use the new schema")
 Reported-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs_cmd.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 6941faaaf1c3..cd9fbd7c82b0 100644
+index 4e55f8325049..1187b757d911 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1970,8 +1970,15 @@ static int modify_qp(struct ib_uverbs_file *file,
- 		goto release_qp;
- 	}
+@@ -603,10 +603,8 @@ ssize_t ib_uverbs_close_xrcd(struct ib_uverbs_file *file,
  
-+	if ((cmd->base.attr_mask & IB_QP_AV) &&
-+	    !rdma_is_port_valid(qp->device, cmd->base.dest.port_num)) {
-+		ret = -EINVAL;
-+		goto release_qp;
-+	}
-+
- 	if ((cmd->base.attr_mask & IB_QP_ALT_PATH) &&
--	    !rdma_is_port_valid(qp->device, cmd->base.alt_port_num)) {
-+	    (!rdma_is_port_valid(qp->device, cmd->base.alt_port_num) ||
-+	    !rdma_is_port_valid(qp->device, cmd->base.alt_dest.port_num))) {
- 		ret = -EINVAL;
- 		goto release_qp;
- 	}
+ 	uobj  = uobj_get_write(uobj_get_type(xrcd), cmd.xrcd_handle,
+ 			       file->ucontext);
+-	if (IS_ERR(uobj)) {
+-		mutex_unlock(&file->device->xrcd_tree_mutex);
++	if (IS_ERR(uobj))
+ 		return PTR_ERR(uobj);
+-	}
+ 
+ 	ret = uobj_remove_commit(uobj);
+ 	return ret ?: in_len;
 -- 
 2.16.1
 
