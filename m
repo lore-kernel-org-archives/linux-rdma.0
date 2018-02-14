@@ -1,78 +1,45 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: KASAN: use-after-free Read in rds_tcp_tune
-Date: Wed, 14 Feb 2018 09:32:53 -0800
-Message-ID: <1518629573.3678.7.camel@perches.com>
-References: <001a1141a524c513ca05628d8ad4@google.com>
-         <20180112183046.GA26098@oracle.com>
-         <CACT4Y+aB0dZShujVMJFV6grb_7AYOMca13a1J2AkWsT7R0cgrQ@mail.gmail.com>
-         <20180214152109.GF11528@oracle.com>
-         <CACT4Y+bKpi8he1ygwAxgm4F_RJ=BRPBPdMaVAK64SbvCVGt7ww@mail.gmail.com>
-         <20180214153555.GG11528@oracle.com>
-         <CACT4Y+ZZjE9fsnsQ-uab3RMt_Zpe98nKF1Pcj31ZGepYsi1UGA@mail.gmail.com>
-         <1518627728.3678.2.camel@perches.com>
-         <CACT4Y+Y4iK+xRUUssSSomqv59GDnVWt+O86tHHmUFESFQisrrw@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: KASAN: use-after-free Read in rds_find_bound
+Date: Wed, 14 Feb 2018 09:35:49 -0800
+Message-ID: <52478830-f0b5-e400-8101-b329ba35bcef@oracle.com>
+References: <089e08231920353a4805618b365c@google.com>
+ <d91da249-5a0f-7a1f-cfd5-68f10f0a2fc1@oracle.com>
+ <CACT4Y+bd6Tyq672JC3GNSHPX2CEHacVKkcbKOAgpi8o-=T8DRg@mail.gmail.com>
+ <491a26b8-7abb-0d36-0a2e-e1c7bfcde79d@oracle.com>
+ <CACT4Y+YxrNiP==ty-KBjkDewnuS378GmG314-=ytWskZXQx3zw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CACT4Y+Y4iK+xRUUssSSomqv59GDnVWt+O86tHHmUFESFQisrrw@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Dmitry Vyukov <dvyukov@google.com>
-Cc: Sowmini Varadhan <sowmini.varadhan@oracle.com>, syzbot <syzbot+bbd8e9a06452cc48059b@syzkaller.appspotmail.com>, David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, netdev <netdev@vger.kernel.org>, rds-devel@oss.oracle.com, Santosh Shilimkar <santosh.shilimkar@oracle.com>, syzkaller-bugs@googlegroups.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CACT4Y+YxrNiP==ty-KBjkDewnuS378GmG314-=ytWskZXQx3zw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: syzbot <syzbot+93a5839deb355537440f-Pl5Pbv+GP7P466ipTTIvnc23WoclnBCfAL8bYrjMMd8@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, syzkaller-bugs-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2018-02-14 at 18:16 +0100, Dmitry Vyukov wrote:
-> On Wed, Feb 14, 2018 at 6:02 PM, Joe Perches <joe@perches.com> wrote:
-> > On Wed, 2018-02-14 at 16:55 +0100, Dmitry Vyukov wrote:
-> > > On Wed, Feb 14, 2018 at 4:35 PM, Sowmini Varadhan <sowmini.varadhan@oracle.com> wrote:
-> > > > btw, checkpatch.pl complains about the syzbot*@syzkaller.appspotmail.com
-> > > > addresses as "Unrecognized email address", we should fix that
-> > > > error from checkpatch at some point.
-> > > 
-> > > Interesting. Looking at checkpatch.pl I think it wants all addresses
-> > > to be in <>, i.e.
-> > > Reported-by: <syzbot+bbd8e9a06452cc48059b@syzkaller.appspotmail.com>
-> > > There probably was some reason to enforce this, so I think I will
-> > > change the syzbot email template to include <>.
-> > > Thanks!
-> > 
-> > Not really.
-> > 
-> > It's the somewhat unusual + in the address
-> > that perl needs quoted before a substitution.
-> > 
-> > I believe this fixes it in checkpatch.
-> > ---
-> >  scripts/checkpatch.pl | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-[]
-> > @@ -1075,7 +1075,7 @@ sub parse_email {
-> >         } elsif ($formatted_email =~ /(\S+\@\S+)(.*)$/) {
-> >                 $address = $1;
-> >                 $comment = $2 if defined $2;
-> > -               $formatted_email =~ s/$address.*$//;
-> > +               $formatted_email =~ s/\Q$address\E.*$//;
-> >                 $name = $formatted_email;
-> >                 $name = trim($name);
-> >                 $name =~ s/^\"|\"$//g;
+On 2/14/2018 9:14 AM, Dmitry Vyukov wrote:
+> On Wed, Feb 14, 2018 at 5:53 PM, Santosh Shilimkar
+> <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+
+[...]
+
+>>> Hi Santosh,
+>>>
+>>> What is that fix? You forgot to provide any link/reference. I also
+>>> don't see any patches from you at around that date...
+>>>
+>> Fix [1] was later not added since there was a still a race. Wanted to
+>> see if the issue re-appears after recent netns fix [2].
 > 
 > 
-> I can confirm that running
-> $ git show HEAD | scripts/checkpatch.pl -
-> on a commit that contains a syzbot Reported-by tag does not produce
-> the warning anymore.
+> We will not see if the bug re-appears or not until this bug is closed.
+> Please see this recent discussion about another rds bug:
+> https://groups.google.com/d/msg/syzkaller-bugs/3XjmOzr5jRU/g7pXIsY1BgAJ
+> In the current state syzbot will never report bugs in these functions again.
 > 
-> Joe, do you mind mailing this as patch?
-
-'course not.  It's nice you tested it.
-
-I did on the last thousand commits without
-apparent change.
-
-$ git log --format=oneline --no-merges -1000 | \
-  cut -f1 -d" " | \
-  while read commit ; do \
-    ./scripts/checkpatch.pl --git $commit --types=bad_sign_off --terse ; \
-  done
+OK. Can you close that one then in that case ?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
