@@ -1,53 +1,122 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next 08/14] RDMA/uverbs: Properly check command
- supported mask
-Date: Thu, 15 Feb 2018 09:26:04 -0700
-Message-ID: <20180215162603.GB18416@ziepe.ca>
-References: <20180214123844.30321-1-leon@kernel.org>
- <20180214123844.30321-9-leon@kernel.org>
- <20180214234714.GE1718@ziepe.ca>
- <20180215135628.GH2197@mtr-leonro.local>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH rdma-rc] RDMA/vmw_pvrdma: Fix usage of user response structures in ABI file
+Date: Thu, 15 Feb 2018 12:36:46 -0800
+Message-ID: <1518727006-4073-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180215135628.GH2197-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 15, 2018 at 03:56:28PM +0200, Leon Romanovsky wrote:
-> On Wed, Feb 14, 2018 at 04:47:14PM -0700, Jason Gunthorpe wrote:
-> > On Wed, Feb 14, 2018 at 02:38:38PM +0200, Leon Romanovsky wrote:
-> > > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > >
-> > > The check based on index is not sufficient because
-> > >
-> > >   IB_USER_VERBS_EX_CMD_CREATE_CQ = IB_USER_VERBS_CMD_CREATE_CQ
-> > >
-> > > and IB_USER_VERBS_CMD_CREATE_CQ <= IB_USER_VERBS_CMD_OPEN_QP,
-> > > so if we execute IB_USER_VERBS_EX_CMD_CREATE_CQ this code checks
-> > > ib_dev->uverbs_cmd_mask not ib_dev->uverbs_ex_cmd_mask.
-> > >
-> > > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > >  drivers/infiniband/core/uverbs_main.c | 18 ++++++------------
-> > >  1 file changed, 6 insertions(+), 12 deletions(-)
-> >
-> > This seems like an RC fix to me, since we are not properly validating
-> > input commands... ??
-> 
-> I don't think so, it looks harmless to me because all vendors except mlx4/mlx5
-> have zero in uverbs_ex_cmd_mask and mlx4 have all commands implemented.
+Hi Doug, Jason,
 
-The issue is we check uverbs_cmd_mask when we should check
-uverbs_ex_cmd_mask, so drivers with a 0 in uverbs_ex_cmd_mask will
-still pass this check.
+Here is a patch for the vmw_pvrdma driver for the 4.16 RC.
 
-and your later patch checks for null, so what happens if, say, rxe
-calls an ex command? kernel oops?
+Thanks,
+Adit
+---
+This ensures that we return the right structures back to userspace.
+Otherwise, it looks like the reserved fields in the response structures
+in userspace might have uninitialized data in them.
 
-Jason
+Fixes: 8b10ba783c9d ("RDMA/vmw_pvrdma: Add shared receive queue support")
+Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
+Suggested-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c    | 4 +++-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c   | 4 +++-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c | 4 +++-
+ 3 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+index faa9478..f95b976 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+@@ -114,6 +114,7 @@ struct ib_cq *pvrdma_create_cq(struct ib_device *ibdev,
+ 	union pvrdma_cmd_resp rsp;
+ 	struct pvrdma_cmd_create_cq *cmd = &req.create_cq;
+ 	struct pvrdma_cmd_create_cq_resp *resp = &rsp.create_cq_resp;
++	struct pvrdma_create_cq_resp cq_resp = {0};
+ 	struct pvrdma_create_cq ucmd;
+ 
+ 	BUILD_BUG_ON(sizeof(struct pvrdma_cqe) != 64);
+@@ -197,6 +198,7 @@ struct ib_cq *pvrdma_create_cq(struct ib_device *ibdev,
+ 
+ 	cq->ibcq.cqe = resp->cqe;
+ 	cq->cq_handle = resp->cq_handle;
++	cq_resp.cqn = resp->cq_handle;
+ 	spin_lock_irqsave(&dev->cq_tbl_lock, flags);
+ 	dev->cq_tbl[cq->cq_handle % dev->dsr->caps.max_cq] = cq;
+ 	spin_unlock_irqrestore(&dev->cq_tbl_lock, flags);
+@@ -205,7 +207,7 @@ struct ib_cq *pvrdma_create_cq(struct ib_device *ibdev,
+ 		cq->uar = &(to_vucontext(context)->uar);
+ 
+ 		/* Copy udata back. */
+-		if (ib_copy_to_udata(udata, &cq->cq_handle, sizeof(__u32))) {
++		if (ib_copy_to_udata(udata, &cq_resp, sizeof(cq_resp))) {
+ 			dev_warn(&dev->pdev->dev,
+ 				 "failed to copy back udata\n");
+ 			pvrdma_destroy_cq(&cq->ibcq);
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
+index 5acebb1..af23596 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_srq.c
+@@ -113,6 +113,7 @@ struct ib_srq *pvrdma_create_srq(struct ib_pd *pd,
+ 	union pvrdma_cmd_resp rsp;
+ 	struct pvrdma_cmd_create_srq *cmd = &req.create_srq;
+ 	struct pvrdma_cmd_create_srq_resp *resp = &rsp.create_srq_resp;
++	struct pvrdma_create_srq_resp srq_resp = {0};
+ 	struct pvrdma_create_srq ucmd;
+ 	unsigned long flags;
+ 	int ret;
+@@ -204,12 +205,13 @@ struct ib_srq *pvrdma_create_srq(struct ib_pd *pd,
+ 	}
+ 
+ 	srq->srq_handle = resp->srqn;
++	srq_resp.srqn = resp->srqn;
+ 	spin_lock_irqsave(&dev->srq_tbl_lock, flags);
+ 	dev->srq_tbl[srq->srq_handle % dev->dsr->caps.max_srq] = srq;
+ 	spin_unlock_irqrestore(&dev->srq_tbl_lock, flags);
+ 
+ 	/* Copy udata back. */
+-	if (ib_copy_to_udata(udata, &srq->srq_handle, sizeof(__u32))) {
++	if (ib_copy_to_udata(udata, &srq_resp, sizeof(srq_resp))) {
+ 		dev_warn(&dev->pdev->dev, "failed to copy back udata\n");
+ 		pvrdma_destroy_srq(&srq->ibsrq);
+ 		return ERR_PTR(-EINVAL);
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
+index 16b9661..a51463c 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
+@@ -447,6 +447,7 @@ struct ib_pd *pvrdma_alloc_pd(struct ib_device *ibdev,
+ 	union pvrdma_cmd_resp rsp;
+ 	struct pvrdma_cmd_create_pd *cmd = &req.create_pd;
+ 	struct pvrdma_cmd_create_pd_resp *resp = &rsp.create_pd_resp;
++	struct pvrdma_alloc_pd_resp pd_resp = {0};
+ 	int ret;
+ 	void *ptr;
+ 
+@@ -475,9 +476,10 @@ struct ib_pd *pvrdma_alloc_pd(struct ib_device *ibdev,
+ 	pd->privileged = !context;
+ 	pd->pd_handle = resp->pd_handle;
+ 	pd->pdn = resp->pd_handle;
++	pd_resp.pdn = resp->pd_handle;
+ 
+ 	if (context) {
+-		if (ib_copy_to_udata(udata, &pd->pdn, sizeof(__u32))) {
++		if (ib_copy_to_udata(udata, &pd_resp, sizeof(pd_resp))) {
+ 			dev_warn(&dev->pdev->dev,
+ 				 "failed to copy back protection domain\n");
+ 			pvrdma_dealloc_pd(&pd->ibpd);
+-- 
+2.7.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
