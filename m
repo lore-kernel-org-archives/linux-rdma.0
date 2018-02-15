@@ -1,91 +1,51 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH rdma-next 07/14] RDMA/uverbs: Refactor command header
- processing
-Date: Thu, 15 Feb 2018 09:23:25 -0700
-Message-ID: <20180215162325.GA18416@ziepe.ca>
+Subject: Re: [PATCH rdma-next 08/14] RDMA/uverbs: Properly check command
+ supported mask
+Date: Thu, 15 Feb 2018 09:26:04 -0700
+Message-ID: <20180215162603.GB18416@ziepe.ca>
 References: <20180214123844.30321-1-leon@kernel.org>
- <20180214123844.30321-8-leon@kernel.org>
- <20180214234951.GF1718@ziepe.ca>
- <20180215135120.GG2197@mtr-leonro.local>
+ <20180214123844.30321-9-leon@kernel.org>
+ <20180214234714.GE1718@ziepe.ca>
+ <20180215135628.GH2197@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180215135120.GG2197-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20180215135628.GH2197-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 15, 2018 at 03:51:20PM +0200, Leon Romanovsky wrote:
-> On Wed, Feb 14, 2018 at 04:49:51PM -0700, Jason Gunthorpe wrote:
-> > On Wed, Feb 14, 2018 at 02:38:37PM +0200, Leon Romanovsky wrote:
+On Thu, Feb 15, 2018 at 03:56:28PM +0200, Leon Romanovsky wrote:
+> On Wed, Feb 14, 2018 at 04:47:14PM -0700, Jason Gunthorpe wrote:
+> > On Wed, Feb 14, 2018 at 02:38:38PM +0200, Leon Romanovsky wrote:
 > > > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > > >
-> > > Move all command header processing into separate function
-> > > and perform those checks before acquiring SRCU read lock.
+> > > The check based on index is not sufficient because
+> > >
+> > >   IB_USER_VERBS_EX_CMD_CREATE_CQ = IB_USER_VERBS_CMD_CREATE_CQ
+> > >
+> > > and IB_USER_VERBS_CMD_CREATE_CQ <= IB_USER_VERBS_CMD_OPEN_QP,
+> > > so if we execute IB_USER_VERBS_EX_CMD_CREATE_CQ this code checks
+> > > ib_dev->uverbs_cmd_mask not ib_dev->uverbs_ex_cmd_mask.
 > > >
 > > > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > >  drivers/infiniband/core/uverbs_main.c | 62 ++++++++++++++++++-----------------
-> > >  1 file changed, 32 insertions(+), 30 deletions(-)
-> > >
-> > > diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-> > > index 90e0b16aed1a..50d43c300112 100644
-> > > +++ b/drivers/infiniband/core/uverbs_main.c
-> > > @@ -660,6 +660,29 @@ static bool verify_command_idx(__u32 command, bool extended)
-> > >  	       uverbs_cmd_table[command];
-> > >  }
-> > >
-> > > +static ssize_t process_hdr(struct ib_uverbs_cmd_hdr *hdr,
-> > > +			   __u32 *command, bool *extended)
-> > > +{
-> > > +	__u32 flags;
-> > > +
-> > > +	if (hdr->command & ~(__u32)(IB_USER_VERBS_CMD_FLAGS_MASK |
-> > > +				   IB_USER_VERBS_CMD_COMMAND_MASK))
-> > > +		return -EINVAL;
-> > > +
-> > > +	*command = hdr->command & IB_USER_VERBS_CMD_COMMAND_MASK;
-> > > +	flags = (hdr->command &
-> > > +		 IB_USER_VERBS_CMD_FLAGS_MASK) >> IB_USER_VERBS_CMD_FLAGS_SHIFT;
-> > > +
-> > > +	*extended = flags & IB_USER_VERBS_CMD_FLAG_EXTENDED;
-> > > +	if (flags & ~IB_USER_VERBS_CMD_FLAG_EXTENDED)
-> > > +		return -EINVAL;
+> > >  drivers/infiniband/core/uverbs_main.c | 18 ++++++------------
+> > >  1 file changed, 6 insertions(+), 12 deletions(-)
 > >
-> > er..
-> >
-> > We don't need both
-> >
-> > 	if (hdr->command & ~(__u32)(IB_USER_VERBS_CMD_FLAGS_MASK |
-> > 				   IB_USER_VERBS_CMD_COMMAND_MASK))
-> >
-> > and
-> >
-> >         if (flags & ~IB_USER_VERBS_CMD_FLAG_EXTENDED)
-> > 		return -EINVAL;
-> >
-> > They test the same condition.
+> > This seems like an RC fix to me, since we are not properly validating
+> > input commands... ??
 > 
-> Not exactly,
-> ~(__u32)(IB_USER_VERBS_CMD_FLAGS_MASK | IB_USER_VERBS_CMD_COMMAND_MASK)
-> == ~(__u32)(0xff000000u| 0xff) == 0x00ffff00
-> 
-> => we are testing that middle bits of hdr->command are cleared
-> 
-> flags & ~IB_USER_VERBS_CMD_FLAG_EXTENDED == ((hdr->command &
-> IB_USER_VERBS_CMD_FLAGS_MASK) >> IB_USER_VERBS_CMD_FLAGS_SHIFT) &
-> ~IB_USER_VERBS_CMD_FLAG_EXTENDED == 0xff000000u >> 24 & ~0x80 ==
-> 0xff & 0x7F == 0x7F
-> 
-> => we are testing that only extended flag is enable.
+> I don't think so, it looks harmless to me because all vendors except mlx4/mlx5
+> have zero in uverbs_ex_cmd_mask and mlx4 have all commands implemented.
 
-Well, I ment it should have just been:
+The issue is we check uverbs_cmd_mask when we should check
+uverbs_ex_cmd_mask, so drivers with a 0 in uverbs_ex_cmd_mask will
+still pass this check.
 
- 	if (hdr->command & ~(u32)(IB_USER_VERBS_CMD_FLAG_EXTENDED |
- 				   IB_USER_VERBS_CMD_COMMAND_MASK))
-
-Then we don't need two ifs
+and your later patch checks for null, so what happens if, say, rxe
+calls an ex command? kernel oops?
 
 Jason
 --
