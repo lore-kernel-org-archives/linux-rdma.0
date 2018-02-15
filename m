@@ -1,37 +1,38 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: Fix completion vector assignment algorithm
-Date: Thu, 15 Feb 2018 15:39:52 -0700
-Message-ID: <20180215223952.GA7766@ziepe.ca>
-References: <20180212175025.18955-1-bart.vanassche@wdc.com>
+Subject: Re: [PATCH rdma-rc] RDMA/restrack: don't use uaccess_kernel()
+Date: Thu, 15 Feb 2018 15:41:17 -0700
+Message-ID: <20180215224117.GA7803@ziepe.ca>
+References: <eac01039be8c0518e37928e5b003a911c32e53a7.1518468700.git.swise@opengridcomputing.com>
+ <20180215215854.GA16973@ziepe.ca>
+ <02a301d3a6a8$e3b5dee0$ab219ca0$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180212175025.18955-1-bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <02a301d3a6a8$e3b5dee0$ab219ca0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Schmid <alex-8Qr8HBQMDtZ/RfFiNYuDoCgLtw5krbHi@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 12, 2018 at 09:50:25AM -0800, Bart Van Assche wrote:
-> Ensure that cv_end is equal to ibdev->num_comp_vectors for the
-> NUMA node with the highest index. This patch improves spreading
-> of RDMA channels over completion vectors and thereby improves
-> performance, especially on systems with only a single NUMA node.
-> This patch drops support for the comp_vector login parameter by
-> ignoring the value of that parameter since I have not found a
-> good way to combine support for that parameter and automatic
-> spreading of RDMA channels over completion vectors.
+On Thu, Feb 15, 2018 at 04:04:02PM -0600, Steve Wise wrote:
+> > 
+> > On Thu, Feb 08, 2018 at 12:09:43PM -0800, Steve Wise wrote:
+> > > +	case RDMA_RESTRACK_QP:
+> > > +		qp = container_of(res, struct ib_qp, res);
+> > > +		if (qp->pd)
+> > > +			is_user = qp->pd->uobject;
+> > 
+> > ?? Why is this like this?
+> > 
+> > struct ib_qp has a uboject, why do we need to look at the PD?
 > 
-> Fixes: d92c0da71a35 ("IB/srp: Add multichannel support")
-> Reported-by: Alexander Schmid <alex-8Qr8HBQMDtZ/RfFiNYuDoCgLtw5krbHi@public.gmane.org>
-> Signed-off-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-> Cc: Alexander Schmid <alex-8Qr8HBQMDtZ/RfFiNYuDoCgLtw5krbHi@public.gmane.org>
-> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->  drivers/infiniband/ulp/srp/ib_srp.c | 10 ++++------
->  1 file changed, 4 insertions(+), 6 deletions(-)
+> I wasn't getting the correct user/kernel setting when I used qp->uobject.
+> Perhaps I should revisit this.
 
-Applied to for-next
+Oh that answer certainly makes me nervous.. Let's explain that please
+and either change it or add a big fat comment here about why it has to
+be like this.
 
 Thanks,
 Jason
