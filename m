@@ -1,29 +1,60 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH] rxe: Do not use 'struct sockaddr' in a uapi header
-Date: Wed, 14 Feb 2018 16:54:12 -0700
-Message-ID: <20180214235412.GD16962@ziepe.ca>
-References: <20180207234910.GA14608@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [PATCH rdma-core 1/3] debian: Guard udevadm call again
+Date: Thu, 15 Feb 2018 12:08:40 +0100
+Message-ID: <20180215110842.6375-1-benjamin.drung@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180207234910.GA14608-uk2M96/98Pc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 07, 2018 at 04:49:10PM -0700, Jason Gunthorpe wrote:
-> Linux has two 'linux/socket.h' files - and only the one in the kernel
-> defines struct sockaddr - the user space one does not.
-> 
-> Signed-off-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->  drivers/infiniband/sw/rxe/rxe_av.c | 5 +++--
->  include/uapi/rdma/rdma_user_rxe.h  | 4 +++-
->  2 files changed, 6 insertions(+), 3 deletions(-)
+lintian complains with udevadm-called-without-guard:
 
-applied to -next
+udevadm can exist but be non-functional (such as inside a chroot) and
+thus can result in package installation or upgrade failure if the call
+fails.
 
-Jason
+Please guard the return code of the call via wrapping it in a suitable
+if construct or by appending || true.
+
+Refer to https://bugs.debian.org/890224 and the udevadm(8) manual page
+for details.
+
+Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+---
+ debian/rdma-core.postinst | 6 +++---
+ debian/srptools.postinst  | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/debian/rdma-core.postinst b/debian/rdma-core.postinst
+index a76368a4..6486f62e 100644
+--- a/debian/rdma-core.postinst
++++ b/debian/rdma-core.postinst
+@@ -6,7 +6,7 @@ set -e
+ if [ "$1" = "configure" ]; then
+     # we ship udev rules, so trigger an update. This has to be done after
+     # DEBHELPER restarts systemd to get our new service files loaded.
+-    udevadm trigger --subsystem-match=infiniband --action=change
+-    udevadm trigger --subsystem-match=net --action=change
+-    udevadm trigger --subsystem-match=infiniband_mad --action=change
++    udevadm trigger --subsystem-match=infiniband --action=change || true
++    udevadm trigger --subsystem-match=net --action=change || true
++    udevadm trigger --subsystem-match=infiniband_mad --action=change || true
+ fi
+diff --git a/debian/srptools.postinst b/debian/srptools.postinst
+index c69a3ad1..398534db 100644
+--- a/debian/srptools.postinst
++++ b/debian/srptools.postinst
+@@ -6,5 +6,5 @@ set -e
+ if [ "$1" = "configure" ]; then
+     # we ship udev rules, so trigger an update. This has to be done after
+     # DEBHELPER restarts systemd to get our new service files loaded.
+-    udevadm trigger --subsystem-match=infiniband_mad --action=change
++    udevadm trigger --subsystem-match=infiniband_mad --action=change || true
+ fi
+-- 
+2.14.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
