@@ -1,36 +1,55 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-rc] RDMA/restrack: don't use uaccess_kernel()
-Date: Thu, 15 Feb 2018 16:04:02 -0600
-Message-ID: <02a301d3a6a8$e3b5dee0$ab219ca0$@opengridcomputing.com>
-References: <eac01039be8c0518e37928e5b003a911c32e53a7.1518468700.git.swise@opengridcomputing.com> <20180215215854.GA16973@ziepe.ca>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 00/15] RDMA fixes for v4.16
+Date: Thu, 15 Feb 2018 15:26:43 -0700
+Message-ID: <20180215222643.GA30721@ziepe.ca>
+References: <20180213101841.20101-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180215215854.GA16973-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <20180213101841.20101-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alaa Hleihel <alaa-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Feb 13, 2018 at 12:18:26PM +0200, Leon Romanovsky wrote:
+> Hi,
 > 
-> On Thu, Feb 08, 2018 at 12:09:43PM -0800, Steve Wise wrote:
-> > +	case RDMA_RESTRACK_QP:
-> > +		qp = container_of(res, struct ib_qp, res);
-> > +		if (qp->pd)
-> > +			is_user = qp->pd->uobject;
+> This is mostly fixes for uverbs layers with two extra patches: one from
+> Alaa, who removed annoying warning prints in IPoIB and another from Leon
+> who removed unimplented part of restrack code.
 > 
-> ?? Why is this like this?
+> Thanks
 > 
-> struct ib_qp has a uboject, why do we need to look at the PD?
+> Alaa Hleihel (1):
+>   IB/ipoib: Do not warn if IPoIB debugfs doesn't exist
+> 
+> Jason Gunthorpe (7):
+>   IB/uverbs: Use inline data transfer for UHW_IN
+>   IB/uverbs: Use u64_to_user_ptr() not a union
+>   IB/uverbs: Use __aligned_u64 for uapi headers
+>   IB/uverbs: Hold the uobj write lock after allocate
+>   IB/uverbs: Tidy lockdep_check
+>   IB/uverbs: Tidy uverbs_uobject_add
+>   IB/uverbs: Fix unbalanced unlock on error path for
+>     rdma_explicit_destroy
+> 
+> Leon Romanovsky (3):
+>   RDMA/restrack: Remove unimplemented XRCD object
+>   RDMA/uverbs: Protect from races between lookup and destroy of uobjects
+>   RDMA/uverbs: Protect from command mask overflow
+> 
+> Matan Barak (4):
+>   IB/uverbs: Always the attribute size provided by the user
+>   IB/uverbs: Fix method merging in uverbs_ioctl_merge
+>   IB/uverbs: Add ioctl support for 32bit processes
+>   IB/uverbs: Fix possible oops with duplicate ioctl attributes
 
-I wasn't getting the correct user/kernel setting when I used qp->uobject.
-Perhaps I should revisit this.
+I applied all of these to for-rc, with some modifications to the
+commit messages. Thanks
 
-Steve.
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
