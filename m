@@ -1,57 +1,43 @@
 From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH rdma-core 1/3] debian: Guard udevadm call again
-Date: Thu, 15 Feb 2018 12:08:40 +0100
-Message-ID: <20180215110842.6375-1-benjamin.drung@profitbricks.com>
+Subject: [PATCH rdma-core 2/3] debian: Override intentional WantedBy lintian warning
+Date: Thu, 15 Feb 2018 12:08:41 +0100
+Message-ID: <20180215110842.6375-2-benjamin.drung@profitbricks.com>
+References: <20180215110842.6375-1-benjamin.drung@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180215110842.6375-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-lintian complains with udevadm-called-without-guard:
-
-udevadm can exist but be non-functional (such as inside a chroot) and
-thus can result in package installation or upgrade failure if the call
-fails.
-
-Please guard the return code of the call via wrapping it in a suitable
-if construct or by appending || true.
-
-Refer to https://bugs.debian.org/890224 and the udevadm(8) manual page
-for details.
+Lintian complains about unusual WantedBy= relationship in systemd
+service files. These WantedBy= relationships are intentional. Therefore
+override the lintian warnings.
 
 Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- debian/rdma-core.postinst | 6 +++---
- debian/srptools.postinst  | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ debian/ibacm.lintian-overrides    | 2 ++
+ debian/srptools.lintian-overrides | 2 ++
+ 2 files changed, 4 insertions(+)
+ create mode 100644 debian/ibacm.lintian-overrides
+ create mode 100644 debian/srptools.lintian-overrides
 
-diff --git a/debian/rdma-core.postinst b/debian/rdma-core.postinst
-index a76368a4..6486f62e 100644
---- a/debian/rdma-core.postinst
-+++ b/debian/rdma-core.postinst
-@@ -6,7 +6,7 @@ set -e
- if [ "$1" = "configure" ]; then
-     # we ship udev rules, so trigger an update. This has to be done after
-     # DEBHELPER restarts systemd to get our new service files loaded.
--    udevadm trigger --subsystem-match=infiniband --action=change
--    udevadm trigger --subsystem-match=net --action=change
--    udevadm trigger --subsystem-match=infiniband_mad --action=change
-+    udevadm trigger --subsystem-match=infiniband --action=change || true
-+    udevadm trigger --subsystem-match=net --action=change || true
-+    udevadm trigger --subsystem-match=infiniband_mad --action=change || true
- fi
-diff --git a/debian/srptools.postinst b/debian/srptools.postinst
-index c69a3ad1..398534db 100644
---- a/debian/srptools.postinst
-+++ b/debian/srptools.postinst
-@@ -6,5 +6,5 @@ set -e
- if [ "$1" = "configure" ]; then
-     # we ship udev rules, so trigger an update. This has to be done after
-     # DEBHELPER restarts systemd to get our new service files loaded.
--    udevadm trigger --subsystem-match=infiniband_mad --action=change
-+    udevadm trigger --subsystem-match=infiniband_mad --action=change || true
- fi
+diff --git a/debian/ibacm.lintian-overrides b/debian/ibacm.lintian-overrides
+new file mode 100644
+index 00000000..66fffd93
+--- /dev/null
++++ b/debian/ibacm.lintian-overrides
+@@ -0,0 +1,2 @@
++# The wantedby target rdma-hw.target is intentional (see rdma-core)
++ibacm: systemd-service-file-refers-to-unusual-wantedby-target lib/systemd/system/ibacm.service rdma-hw.target
+diff --git a/debian/srptools.lintian-overrides b/debian/srptools.lintian-overrides
+new file mode 100644
+index 00000000..86788994
+--- /dev/null
++++ b/debian/srptools.lintian-overrides
+@@ -0,0 +1,2 @@
++# The wantedby target remote-fs-pre.target is intentional
++srptools: systemd-service-file-refers-to-unusual-wantedby-target lib/systemd/system/*.service remote-fs-pre.target
 -- 
 2.14.1
 
