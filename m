@@ -1,33 +1,46 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH v4 for-next 2/4] RDMA/hns: Support cq record doorbell for
- the user space
-Date: Fri, 16 Feb 2018 11:01:07 -0700
-Message-ID: <20180216180107.GD22739@ziepe.ca>
-References: <1518430451-89833-1-git-send-email-liuyixian@huawei.com>
- <1518430451-89833-3-git-send-email-liuyixian@huawei.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [RFC 1/2] Protect larger order pages from breaking up
+Date: Fri, 16 Feb 2018 10:02:53 -0800
+Message-ID: <b76028c6-c755-8178-2dfc-81c7db1f8bed@infradead.org>
+References: <20180216160110.641666320@linux.com>
+ <20180216160121.519788537@linux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1518430451-89833-3-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20180216160121.519788537@linux.com>
+Content-Language: en-US
+Sender: owner-linux-mm@kvack.org
+To: Christoph Lameter <cl@linux.com>, Mel Gorman <mel@skynet.ie>
+Cc: Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org, linux-rdma@vger.kernel.org, akpm@linux-foundation.org, Thomas Schoebel-Theuer <tst@schoebel-theuer.de>, andi@firstfloor.org, Rik van Riel <riel@redhat.com>, Michal Hocko <mhocko@kernel.org>, Guy Shattah <sguy@mellanox.com>, Anshuman Khandual <khandual@linux.vnet.ibm.com>, Michal Nazarewicz <mina86@mina86.com>, Vlastimil Babka <vbabka@suse.cz>, David Nellans <dnellans@nvidia.com>, Laura Abbott <labbott@redhat.com>, Pavel Machek <pavel@ucw.cz>, Dave Hansen <dave.hansen@intel.com>, Mike Kravetz <mike.kravetz@oracle.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 12, 2018 at 06:14:09PM +0800, Yixian Liu wrote:
+On 02/16/2018 08:01 AM, Christoph Lameter wrote:
+> Control over this feature is by writing to /proc/zoneinfo.
+> 
+> F.e. to ensure that 2000 16K pages stay available for jumbo
+> frames do
+> 
+> 	echo "2=2000" >/proc/zoneinfo
+> 
+> or through the order=<page spec> on the kernel command line.
+> F.e.
+> 
+> 	order=2=2000,4N2=500
 
-> +struct hns_roce_ib_create_cq_resp {
-> +	__u32	cqn;
-> +	__u32	reserved;
-> +	__u32	cap_flags;
-> +	__u32	reserved1;
->  };
 
-This is a bit weird, are you sure you want those reserved?
+Please document the the kernel command line option in
+Documentation/admin-guide/kernel-parameters.txt.
 
-Jason
+I suppose that /proc/zoneinfo should be added somewhere in Documentation/vm/
+but I'm not sure where that would be.
+
+thanks,
+-- 
+~Randy
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
