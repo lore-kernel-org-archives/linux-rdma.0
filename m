@@ -1,78 +1,61 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v2 rdma-rc] RDMA/restrack: don't use uaccess_kernel()
-Date: Fri, 16 Feb 2018 13:23:10 -0600
-Message-ID: <03ee01d3a75b$951f37f0$bf5da7d0$@opengridcomputing.com>
-References: <20180216165919.997D72BB6D@smtp.opengridcomputing.com> <20180216172537.GA10123@ziepe.ca>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH v3 rdma-core 1/2] libhns: Support rq record doorbell
+Date: Fri, 16 Feb 2018 12:57:20 -0700
+Message-ID: <20180216195720.GA23877@ziepe.ca>
+References: <1518352834-80200-1-git-send-email-liuyixian@huawei.com>
+ <1518352834-80200-2-git-send-email-liuyixian@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180216172537.GA10123-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <1518352834-80200-2-git-send-email-liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Sun, Feb 11, 2018 at 08:40:33PM +0800, Yixian Liu wrote:
+> This patch updates to support rq record doorbell in the
+> user space driver.
 > 
-> On Wed, Feb 14, 2018 at 06:43:36PM -0800, Steve Wise wrote:
-> > uaccess_kernel() isn't sufficient to determine if an rdma resource is
-> > user-mode or not.  For example, resources allocated in the add_one()
-> > function of an ib_client get falsely labeled as user mode, when they
-> > are kernel mode allocations.  EG: mad qps.
-> >
-> > The result is that these qps are skipped over during a nldev query
-> > because of an erroneous namespace mismatch.
-> >
-> > So now we determine if the resource is user-mode by looking at the
-object
-> > struct's uobject or similar pointer to know if it was allocated for user
-> > mode applications.
-> >
-> > Fixes: 02d8883f520e ("RDMA/restrack: Add general infrastructure to track
-> RDMA resources")
-> > Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> >
-> >
-> > Changes since v1:
-> >
-> > changed _create_qp() to take the qp ib_uobject ptr so it is availble to
-> > rdma_restrack_add()
-> >
-> >  drivers/infiniband/core/core_priv.h  |  4 +++-
-> >  drivers/infiniband/core/restrack.c   | 35
-> +++++++++++++++++++++++++++++++++--
-> >  drivers/infiniband/core/uverbs_cmd.c |  4 ++--
-> >  drivers/infiniband/core/verbs.c      |  3 +--
-> >  4 files changed, 39 insertions(+), 7 deletions(-)
-> 
-> I took this to for-rc, but when I fixed the XRCD conflict with Leon's
-> patch I ended up retyping it to this - don't really need all rambly
-> boilerplate. Someone should fix the other one too..
+> Signed-off-by: Yixian Liu <liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I don't know what you mean by 'rambly boilerplate'?
+You should't add those Reviwed-by tags unless someone actually sends
+you a tag..
 
-> 
-> static bool res_is_user(struct rdma_restrack_entry *res)
-> {
-> 	switch (res->type) {
-> 	case RDMA_RESTRACK_PD:
-> 		return container_of(res, struct ib_pd, res)->uobject;
-> 	case RDMA_RESTRACK_CQ:
-> 		return container_of(res, struct ib_cq, res)->uobject;
-> 	case RDMA_RESTRACK_QP:
-> 		return container_of(res, struct ib_qp, res)->uobject;
-> 	default:
-> 		WARN_ONCE(true, "Wrong resource tracking type %u\n",
-> res->type);
-> 		return false;
-> 	}
-> }
+> +#define BIT_CNT_PER_BYTE       8
 
-This looks clean to me.  Thanks.
+I'm getting tired of seeing people open code bitmaps.
 
+Can you please add and use ccan/bitmap for this?
 
+https://github.com/rustyrussell/ccan/blob/master/ccan/bitmap/
+
+If this is unclear I can help you
+
+> +	/* alloc db page */
+> +	page_size = (uint32_t)to_hr_dev(ctx->ibv_ctx.context.device)->page_size;
+> +	page = (struct hns_roce_db_page *)calloc(1, sizeof(*page));
+
+And please go through and clean up all the extra  casting, none of
+this is necessary.
+
+> +static void hns_roce_clear_db_page(struct hns_roce_db_page *page)
+> +{
+> +	if (!page) {
+> +		fprintf(stderr, "error clear: db page is NULL!\n");
+> +		return;
+
+No prints in drivers. Use assert()
+
+Same sort of comments on other patches
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
