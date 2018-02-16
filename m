@@ -1,61 +1,93 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 rdma-core] vmw_pvrdma: Drop the extraneous align_next_power2 for sges
-Date: Fri, 16 Feb 2018 10:51:06 -0800
-Message-ID: <1518807066-14845-1-git-send-email-aditr@vmware.com>
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: Re: [RFC 1/2] Protect larger order pages from breaking up
+Date: Fri, 16 Feb 2018 10:59:19 -0800
+Message-ID: <5108eb20-2b20-bd48-903e-bce312e96974@oracle.com>
+References: <20180216160110.641666320@linux.com>
+ <20180216160121.519788537@linux.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20180216160121.519788537@linux.com>
+Content-Language: en-US
+Sender: owner-linux-mm@kvack.org
+To: Christoph Lameter <cl@linux.com>, Mel Gorman <mel@skynet.ie>
+Cc: Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org, linux-rdma@vger.kernel.org, akpm@linux-foundation.org, Thomas Schoebel-Theuer <tst@schoebel-theuer.de>, andi@firstfloor.org, Rik van Riel <riel@redhat.com>, Michal Hocko <mhocko@kernel.org>, Guy Shattah <sguy@mellanox.com>, Anshuman Khandual <khandual@linux.vnet.ibm.com>, Michal Nazarewicz <mina86@mina86.com>, Vlastimil Babka <vbabka@suse.cz>, David Nellans <dnellans@nvidia.com>, Laura Abbott <labbott@redhat.com>, Pavel Machek <pavel@ucw.cz>, Dave Hansen <dave.hansen@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Fixes: 4c8ed14eb6b7 ("vmw_pvrdma: Add SRQ support")
-Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Nitish Bhat <bnitish-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
----
-v0->v1: Updated commit message
+On 02/16/2018 08:01 AM, Christoph Lameter wrote:
+> Over time as the kernel is churning through memory it will break
+> up larger pages and as time progresses larger contiguous allocations
+> will no longer be possible. This is an approach to preserve these
+> large pages and prevent them from being broken up.
+> 
+> This is useful for example for the use of jumbo pages and can
+> satify various needs of subsystems and device drivers that require
+> large contiguous allocation to operate properly.
+> 
+> The idea is to reserve a pool of pages of the required order
+> so that the kernel is not allowed to use the pages for allocations
+> of a different order. This is a pool that is fully integrated
+> into the page allocator and therefore transparently usable.
+> 
+> Control over this feature is by writing to /proc/zoneinfo.
+> 
+> F.e. to ensure that 2000 16K pages stay available for jumbo
+> frames do
+> 
+> 	echo "2=2000" >/proc/zoneinfo
+> 
+> or through the order=<page spec> on the kernel command line.
+> F.e.
+> 
+> 	order=2=2000,4N2=500
+> 
+> These pages will be subject to reclaim etc as usual but will not
+> be broken up.
+> 
+> One can then also f.e. operate the slub allocator with
+> 64k pages. Specify "slub_max_order=4 slub_min_order=4" on
+> the kernel command line and all slab allocator allocations
+> will occur in 64K page sizes.
+> 
+> Note that this will reduce the memory available to the application
+> in some cases. Reclaim may occur more often. If more than
+> the reserved number of higher order pages are being used then
+> allocations will still fail as normal.
+> 
+> In order to make this work just right one needs to be able to
+> know the workload well enough to reserve the right amount
+> of pages. This is comparable to other reservation schemes.
 
- providers/vmw_pvrdma/qp.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+Yes.
 
-diff --git a/providers/vmw_pvrdma/qp.c b/providers/vmw_pvrdma/qp.c
-index efcc99b..4b9f897 100644
---- a/providers/vmw_pvrdma/qp.c
-+++ b/providers/vmw_pvrdma/qp.c
-@@ -113,7 +113,7 @@ struct ibv_srq *pvrdma_create_srq(struct ibv_pd *pd,
- 	int ret;
- 
- 	attr->attr.max_wr = align_next_power2(max_t(uint32_t, 1U, attr->attr.max_wr));
--	attr->attr.max_sge = align_next_power2(max_t(uint32_t, 1U, attr->attr.max_sge));
-+	attr->attr.max_sge = max_t(uint32_t, 1U, attr->attr.max_sge);
- 
- 	srq = malloc(sizeof(*srq));
- 	if (!srq)
-@@ -216,14 +216,12 @@ struct ibv_qp *pvrdma_create_qp(struct ibv_pd *pd,
- 	int ret;
- 	int is_srq = !!(attr->srq);
- 
--	attr->cap.max_send_sge =
--		align_next_power2(max_t(uint32_t, 1U, attr->cap.max_send_sge));
-+	attr->cap.max_send_sge = max_t(uint32_t, 1U, attr->cap.max_send_sge);
- 	attr->cap.max_send_wr =
- 		align_next_power2(max_t(uint32_t, 1U, attr->cap.max_send_wr));
- 
- 	if (!is_srq) {
--		attr->cap.max_recv_sge =
--			align_next_power2(max_t(uint32_t, 1U, attr->cap.max_recv_sge));
-+		attr->cap.max_recv_sge = max_t(uint32_t, 1U, attr->cap.max_recv_sge);
- 		attr->cap.max_recv_wr =
- 			align_next_power2(max_t(uint32_t, 1U, attr->cap.max_recv_wr));
- 	} else {
+I like the idea that this only comes into play as the result of explicit
+user/sysadmin action.  It does remind me of hugetlbfs reservations.  So,
+we hope that only people who really know their workload and know what
+they are doing would use this feature.
+
+> Well that f.e brings up huge pages. You can of course
+> also use this to reserve those and can then be sure that
+> you can dynamically resize your huge page pools even after
+> a long time of system up time.
+
+Yes, and no.  Doesn't that assume nobody else is doing allocations
+of that size?  For example, I could image THP using huge page sized
+reservations.  The when it comes time to resize your hugetlbfs pool
+there may not be enough.  Although, we may quickly split THP pages
+in this case.  I am not sure.
+
+IIRC, Guy Shattah's use case was for allocations greater than MAX_ORDER.
+This would not directly address that.  A huge contiguous area (2GB) is
+the sweet spot' for best performance in his case.  However, I think he
+could still benefit from using a set of larger (such as 2MB) size
+allocations which this scheme could help with.
+
 -- 
-2.7.4
+Mike Kravetz
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
