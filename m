@@ -1,23 +1,61 @@
-From: Christopher Lameter <cl@linux.com>
-Subject: Re: [RFC 0/2] Larger Order Protection V1
-Date: Fri, 16 Feb 2018 12:27:09 -0600 (CST)
-Message-ID: <alpine.DEB.2.20.1802161226510.11268@nuc-kabylake>
-References: <20180216160110.641666320@linux.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1 rdma-core] vmw_pvrdma: Drop the extraneous align_next_power2 for sges
+Date: Fri, 16 Feb 2018 10:51:06 -0800
+Message-ID: <1518807066-14845-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20180216160110.641666320@linux.com>
-Sender: owner-linux-mm@kvack.org
-To: Mel Gorman <mel@skynet.ie>
-Cc: Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org, linux-rdma@vger.kernel.org, akpm@linux-foundation.org, Thomas Schoebel-Theuer <tst@schoebel-theuer.de>, andi@firstfloor.org, Rik van Riel <riel@redhat.com>, Michal Hocko <mhocko@kernel.org>, Guy Shattah <sguy@mellanox.com>, Anshuman Khandual <khandual@linux.vnet.ibm.com>, Michal Nazarewicz <mina86@mina86.com>, Vlastimil Babka <vbabka@suse.cz>, David Nellans <dnellans@nvidia.com>, Laura Abbott <labbott@redhat.com>, Pavel Machek <pavel@ucw.cz>, Dave Hansen <dave.hansen@intel.com>, Mike Kravetz <mike.kravetz@oracle.com>
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Fixes: 4c8ed14eb6b7 ("vmw_pvrdma: Add SRQ support")
+Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Nitish Bhat <bnitish-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
+---
+v0->v1: Updated commit message
 
-Why are the patches not making linux-mm? They are on other mailing lists.
+ providers/vmw_pvrdma/qp.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
+diff --git a/providers/vmw_pvrdma/qp.c b/providers/vmw_pvrdma/qp.c
+index efcc99b..4b9f897 100644
+--- a/providers/vmw_pvrdma/qp.c
++++ b/providers/vmw_pvrdma/qp.c
+@@ -113,7 +113,7 @@ struct ibv_srq *pvrdma_create_srq(struct ibv_pd *pd,
+ 	int ret;
+ 
+ 	attr->attr.max_wr = align_next_power2(max_t(uint32_t, 1U, attr->attr.max_wr));
+-	attr->attr.max_sge = align_next_power2(max_t(uint32_t, 1U, attr->attr.max_sge));
++	attr->attr.max_sge = max_t(uint32_t, 1U, attr->attr.max_sge);
+ 
+ 	srq = malloc(sizeof(*srq));
+ 	if (!srq)
+@@ -216,14 +216,12 @@ struct ibv_qp *pvrdma_create_qp(struct ibv_pd *pd,
+ 	int ret;
+ 	int is_srq = !!(attr->srq);
+ 
+-	attr->cap.max_send_sge =
+-		align_next_power2(max_t(uint32_t, 1U, attr->cap.max_send_sge));
++	attr->cap.max_send_sge = max_t(uint32_t, 1U, attr->cap.max_send_sge);
+ 	attr->cap.max_send_wr =
+ 		align_next_power2(max_t(uint32_t, 1U, attr->cap.max_send_wr));
+ 
+ 	if (!is_srq) {
+-		attr->cap.max_recv_sge =
+-			align_next_power2(max_t(uint32_t, 1U, attr->cap.max_recv_sge));
++		attr->cap.max_recv_sge = max_t(uint32_t, 1U, attr->cap.max_recv_sge);
+ 		attr->cap.max_recv_wr =
+ 			align_next_power2(max_t(uint32_t, 1U, attr->cap.max_recv_wr));
+ 	} else {
+-- 
+2.7.4
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
