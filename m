@@ -1,93 +1,34 @@
-From: Mike Kravetz <mike.kravetz@oracle.com>
+From: Dave Hansen <dave.hansen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [RFC 1/2] Protect larger order pages from breaking up
-Date: Fri, 16 Feb 2018 10:59:19 -0800
-Message-ID: <5108eb20-2b20-bd48-903e-bce312e96974@oracle.com>
+Date: Fri, 16 Feb 2018 11:01:12 -0800
+Message-ID: <87d2edf7-ce5e-c643-f972-1f2538208d86@intel.com>
 References: <20180216160110.641666320@linux.com>
  <20180216160121.519788537@linux.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20180216160121.519788537@linux.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180216160121.519788537-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
-Sender: owner-linux-mm@kvack.org
-To: Christoph Lameter <cl@linux.com>, Mel Gorman <mel@skynet.ie>
-Cc: Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org, linux-rdma@vger.kernel.org, akpm@linux-foundation.org, Thomas Schoebel-Theuer <tst@schoebel-theuer.de>, andi@firstfloor.org, Rik van Riel <riel@redhat.com>, Michal Hocko <mhocko@kernel.org>, Guy Shattah <sguy@mellanox.com>, Anshuman Khandual <khandual@linux.vnet.ibm.com>, Michal Nazarewicz <mina86@mina86.com>, Vlastimil Babka <vbabka@suse.cz>, David Nellans <dnellans@nvidia.com>, Laura Abbott <labbott@redhat.com>, Pavel Machek <pavel@ucw.cz>, Dave Hansen <dave.hansen@intel.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Mel Gorman <mel-wJa12IhQEiizQB+pC5nmwQ@public.gmane.org>
+Cc: Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Thomas Schoebel-Theuer <tst-0Nly+W1lFbFDiq0p6IFu4YQuADTiUCJX@public.gmane.org>, andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org, Rik van Riel <riel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Anshuman Khandual <khandual-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>, Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>, David Nellans <dnellans-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Laura Abbott <labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Mike Kravetz <mike.kravetz-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 On 02/16/2018 08:01 AM, Christoph Lameter wrote:
-> Over time as the kernel is churning through memory it will break
-> up larger pages and as time progresses larger contiguous allocations
-> will no longer be possible. This is an approach to preserve these
-> large pages and prevent them from being broken up.
-> 
-> This is useful for example for the use of jumbo pages and can
-> satify various needs of subsystems and device drivers that require
-> large contiguous allocation to operate properly.
-> 
-> The idea is to reserve a pool of pages of the required order
-> so that the kernel is not allowed to use the pages for allocations
-> of a different order. This is a pool that is fully integrated
-> into the page allocator and therefore transparently usable.
-> 
-> Control over this feature is by writing to /proc/zoneinfo.
-> 
-> F.e. to ensure that 2000 16K pages stay available for jumbo
-> frames do
-> 
-> 	echo "2=2000" >/proc/zoneinfo
-> 
-> or through the order=<page spec> on the kernel command line.
-> F.e.
-> 
-> 	order=2=2000,4N2=500
-> 
-> These pages will be subject to reclaim etc as usual but will not
-> be broken up.
-> 
-> One can then also f.e. operate the slub allocator with
-> 64k pages. Specify "slub_max_order=4 slub_min_order=4" on
-> the kernel command line and all slab allocator allocations
-> will occur in 64K page sizes.
-> 
-> Note that this will reduce the memory available to the application
-> in some cases. Reclaim may occur more often. If more than
-> the reserved number of higher order pages are being used then
-> allocations will still fail as normal.
-> 
 > In order to make this work just right one needs to be able to
 > know the workload well enough to reserve the right amount
 > of pages. This is comparable to other reservation schemes.
 
-Yes.
+Yes, but it's a reservation scheme that doesn't show up in MemFree, for
+instance.  Even hugetlbfs-reserved memory subtracts from that.
 
-I like the idea that this only comes into play as the result of explicit
-user/sysadmin action.  It does remind me of hugetlbfs reservations.  So,
-we hope that only people who really know their workload and know what
-they are doing would use this feature.
+This has the potential to be really confusing to apps.  If this memory
+is now not available to normal apps, they might plow into the invisible
+memory limits and get into nasty reclaim scenarios.
 
-> Well that f.e brings up huge pages. You can of course
-> also use this to reserve those and can then be sure that
-> you can dynamically resize your huge page pools even after
-> a long time of system up time.
-
-Yes, and no.  Doesn't that assume nobody else is doing allocations
-of that size?  For example, I could image THP using huge page sized
-reservations.  The when it comes time to resize your hugetlbfs pool
-there may not be enough.  Although, we may quickly split THP pages
-in this case.  I am not sure.
-
-IIRC, Guy Shattah's use case was for allocations greater than MAX_ORDER.
-This would not directly address that.  A huge contiguous area (2GB) is
-the sweet spot' for best performance in his case.  However, I think he
-could still benefit from using a set of larger (such as 2MB) size
-allocations which this scheme could help with.
-
--- 
-Mike Kravetz
-
+Shouldn't this subtract the memory for MemFree and friends?
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
