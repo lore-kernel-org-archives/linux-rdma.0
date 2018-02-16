@@ -1,46 +1,53 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: [RFC 1/2] Protect larger order pages from breaking up
-Date: Fri, 16 Feb 2018 10:02:53 -0800
-Message-ID: <b76028c6-c755-8178-2dfc-81c7db1f8bed@infradead.org>
-References: <20180216160110.641666320@linux.com>
- <20180216160121.519788537@linux.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] vmw_pvrdma: Avoid rounding up of sge count to power of 2
+Date: Fri, 16 Feb 2018 10:27:02 -0800
+Message-ID: <7a727517-7f46-e691-4547-b253acf48545@vmware.com>
+References: <1518741592-12723-1-git-send-email-aditr@vmware.com>
+ <20180216072216.GK2197@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20180216160121.519788537@linux.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180216072216.GK2197-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Content-Language: en-US
-Sender: owner-linux-mm@kvack.org
-To: Christoph Lameter <cl@linux.com>, Mel Gorman <mel@skynet.ie>
-Cc: Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org, linux-rdma@vger.kernel.org, akpm@linux-foundation.org, Thomas Schoebel-Theuer <tst@schoebel-theuer.de>, andi@firstfloor.org, Rik van Riel <riel@redhat.com>, Michal Hocko <mhocko@kernel.org>, Guy Shattah <sguy@mellanox.com>, Anshuman Khandual <khandual@linux.vnet.ibm.com>, Michal Nazarewicz <mina86@mina86.com>, Vlastimil Babka <vbabka@suse.cz>, David Nellans <dnellans@nvidia.com>, Laura Abbott <labbott@redhat.com>, Pavel Machek <pavel@ucw.cz>, Dave Hansen <dave.hansen@intel.com>, Mike Kravetz <mike.kravetz@oracle.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/16/2018 08:01 AM, Christoph Lameter wrote:
-> Control over this feature is by writing to /proc/zoneinfo.
+On 2/15/18 11:22 PM, Leon Romanovsky wrote:
+> On Thu, Feb 15, 2018 at 04:39:52PM -0800, Adit Ranadive wrote:
+>> Creation of resources can fail if the rounding up exceeds
+>> provider supported values.
+>>
+>> Fixes: 4c8ed14eb6b7 ("vmw_pvrdma: Add SRQ support")
+>> Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+>> Reviewed-by: Nitish Bhat <bnitish-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+>> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+>> Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
+>> ---
+>>  providers/vmw_pvrdma/qp.c | 8 +++-----
+>>  1 file changed, 3 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/providers/vmw_pvrdma/qp.c b/providers/vmw_pvrdma/qp.c
+>> index efcc99b..4b9f897 100644
+>> --- a/providers/vmw_pvrdma/qp.c
+>> +++ b/providers/vmw_pvrdma/qp.c
+>> @@ -113,7 +113,7 @@ struct ibv_srq *pvrdma_create_srq(struct ibv_pd *pd,
+>>  	int ret;
+>>
+>>  	attr->attr.max_wr = align_next_power2(max_t(uint32_t, 1U, attr->attr.max_wr));
+>> -	attr->attr.max_sge = align_next_power2(max_t(uint32_t, 1U, attr->attr.max_sge));
+>> +	attr->attr.max_sge = max_t(uint32_t, 1U, attr->attr.max_sge);
 > 
-> F.e. to ensure that 2000 16K pages stay available for jumbo
-> frames do
-> 
-> 	echo "2=2000" >/proc/zoneinfo
-> 
-> or through the order=<page spec> on the kernel command line.
-> F.e.
-> 
-> 	order=2=2000,4N2=500
+> One of two: or your commit message is not correct and you should mention
+> that align_next_power2() is not needed, or your code is incorrect,
+> because user can provide large enough number and this call will fail
+> anyway.
 
-
-Please document the the kernel command line option in
-Documentation/admin-guide/kernel-parameters.txt.
-
-I suppose that /proc/zoneinfo should be added somewhere in Documentation/vm/
-but I'm not sure where that would be.
-
-thanks,
--- 
-~Randy
-
+Sorry, that's a terrible commit message. Yeah the align_next_power2 is extraneous.
+Will send v1 out with updated message.
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
