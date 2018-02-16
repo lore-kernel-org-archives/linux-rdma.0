@@ -1,48 +1,62 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-rc] RDMA/restrack: don't use uaccess_kernel()
-Date: Fri, 16 Feb 2018 09:47:06 -0600
-Message-ID: <037601d3a73d$657c6090$307521b0$@opengridcomputing.com>
-References: <eac01039be8c0518e37928e5b003a911c32e53a7.1518468700.git.swise@opengridcomputing.com> <20180215215854.GA16973@ziepe.ca> <02a301d3a6a8$e3b5dee0$ab219ca0$@opengridcomputing.com> <20180215224117.GA7803@ziepe.ca>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH rdma-next 08/14] RDMA/uverbs: Properly check command
+ supported mask
+Date: Fri, 16 Feb 2018 08:50:26 -0700
+Message-ID: <20180216155026.GA22739@ziepe.ca>
+References: <20180214123844.30321-1-leon@kernel.org>
+ <20180214123844.30321-9-leon@kernel.org>
+ <20180214234714.GE1718@ziepe.ca>
+ <20180215135628.GH2197@mtr-leonro.local>
+ <20180215162603.GB18416@ziepe.ca>
+ <20180216073147.GL2197@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180215224117.GA7803-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <20180216073147.GL2197-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > > On Thu, Feb 08, 2018 at 12:09:43PM -0800, Steve Wise wrote:
-> > > > +	case RDMA_RESTRACK_QP:
-> > > > +		qp = container_of(res, struct ib_qp, res);
-> > > > +		if (qp->pd)
-> > > > +			is_user = qp->pd->uobject;
+On Fri, Feb 16, 2018 at 09:31:47AM +0200, Leon Romanovsky wrote:
+> On Thu, Feb 15, 2018 at 09:26:04AM -0700, Jason Gunthorpe wrote:
+> > On Thu, Feb 15, 2018 at 03:56:28PM +0200, Leon Romanovsky wrote:
+> > > On Wed, Feb 14, 2018 at 04:47:14PM -0700, Jason Gunthorpe wrote:
+> > > > On Wed, Feb 14, 2018 at 02:38:38PM +0200, Leon Romanovsky wrote:
+> > > > > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > > >
+> > > > > The check based on index is not sufficient because
+> > > > >
+> > > > >   IB_USER_VERBS_EX_CMD_CREATE_CQ = IB_USER_VERBS_CMD_CREATE_CQ
+> > > > >
+> > > > > and IB_USER_VERBS_CMD_CREATE_CQ <= IB_USER_VERBS_CMD_OPEN_QP,
+> > > > > so if we execute IB_USER_VERBS_EX_CMD_CREATE_CQ this code checks
+> > > > > ib_dev->uverbs_cmd_mask not ib_dev->uverbs_ex_cmd_mask.
+> > > > >
+> > > > > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > > >  drivers/infiniband/core/uverbs_main.c | 18 ++++++------------
+> > > > >  1 file changed, 6 insertions(+), 12 deletions(-)
+> > > >
+> > > > This seems like an RC fix to me, since we are not properly validating
+> > > > input commands... ??
 > > >
-> > > ?? Why is this like this?
-> > >
-> > > struct ib_qp has a uboject, why do we need to look at the PD?
+> > > I don't think so, it looks harmless to me because all vendors except mlx4/mlx5
+> > > have zero in uverbs_ex_cmd_mask and mlx4 have all commands implemented.
 > >
-> > I wasn't getting the correct user/kernel setting when I used
-qp->uobject.
-> > Perhaps I should revisit this.
+> > The issue is we check uverbs_cmd_mask when we should check
+> > uverbs_ex_cmd_mask, so drivers with a 0 in uverbs_ex_cmd_mask will
+> > still pass this check.
+> >
+> > and your later patch checks for null, so what happens if, say, rxe
+> > calls an ex command? kernel oops?
 > 
-> Oh that answer certainly makes me nervous.. Let's explain that please
-> and either change it or add a big fat comment here about why it has to
-> be like this.
-> 
+> So actually, my latest patch (addition of NULL checks) should go to the
+> -rc and not this one.
 
-I see the problem:  in uverbs_cmd.c:create_qp(), the call to _ib_create_qp()
-happens before qp->uobject is initialized.  I'll move the initialization of
-qp->uobject to before the call to _ib_create_qp(), test it out, and send a
-new patch.
+Sure, I guess that works too.
 
-Thanks Jason!
-
-Steve.
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
