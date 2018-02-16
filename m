@@ -1,43 +1,35 @@
 From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH] vmw_pvrdma: Avoid rounding up of sge count to power of 2
-Date: Fri, 16 Feb 2018 09:15:26 -0700
-Message-ID: <20180216161526.GC22739@ziepe.ca>
-References: <1518741592-12723-1-git-send-email-aditr@vmware.com>
+Subject: Re: [PATCH rdma-next 13/14] RDMA/verbs: Check existence of function
+ prior to accessing it
+Date: Fri, 16 Feb 2018 09:19:56 -0700
+Message-ID: <20180216161956.GA29023@ziepe.ca>
+References: <20180214123844.30321-1-leon@kernel.org>
+ <20180214123844.30321-14-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1518741592-12723-1-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20180214123844.30321-14-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 15, 2018 at 04:39:52PM -0800, Adit Ranadive wrote:
-> Creation of resources can fail if the rounding up exceeds
-> provider supported values.
+On Wed, Feb 14, 2018 at 02:38:43PM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Fixes: 4c8ed14eb6b7 ("vmw_pvrdma: Add SRQ support")
-> Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Nitish Bhat <bnitish-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
->  providers/vmw_pvrdma/qp.c | 8 +++-----
->  1 file changed, 3 insertions(+), 5 deletions(-)
+> Update all the flows to ensure that function pointer exists prior
+> to accessing it. It will allow to remove uverbs_ex_mask variable
+> in the next patch.
 > 
-> diff --git a/providers/vmw_pvrdma/qp.c b/providers/vmw_pvrdma/qp.c
-> index efcc99b..4b9f897 100644
-> +++ b/providers/vmw_pvrdma/qp.c
-> @@ -113,7 +113,7 @@ struct ibv_srq *pvrdma_create_srq(struct ibv_pd *pd,
->  	int ret;
->  
->  	attr->attr.max_wr = align_next_power2(max_t(uint32_t, 1U, attr->attr.max_wr));
-> -	attr->attr.max_sge = align_next_power2(max_t(uint32_t, 1U, attr->attr.max_sge));
-> +	attr->attr.max_sge = max_t(uint32_t, 1U, attr->attr.max_sge);
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>  drivers/infiniband/core/core_priv.h  |  3 +++
+>  drivers/infiniband/core/uverbs_cmd.c | 21 +++++++++++++++++++++
+>  2 files changed, 24 insertions(+)
 
-What is with all these max's? If the user provides <= 0 for these
-values it should be EINVAL, not round up.
+I took this one to for-rc as discussed
 
+Thanks,
 Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
