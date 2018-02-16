@@ -1,50 +1,59 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] vmw_pvrdma: Fix SRQN returned to library
-Date: Thu, 15 Feb 2018 16:47:02 -0800
-Message-ID: <3f1fd5ba-b052-1d4a-553c-60d54b3a254c@vmware.com>
-References: <1518460956-4629-1-git-send-email-aditr@vmware.com>
- <de50c35a-731d-bfb6-efe9-7f2ad83ea7b3@suse.de>
- <8b4f73e6-af5c-d5e2-5425-fbd706a50f66@vmware.com>
- <b5512350-48f1-c4e6-096f-a44307bdf015@suse.de>
+Subject: [PATCH] vmw_pvrdma: Avoid rounding up of sge count to power of 2
+Date: Thu, 15 Feb 2018 16:39:52 -0800
+Message-ID: <1518741592-12723-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <b5512350-48f1-c4e6-096f-a44307bdf015-l3A5Bk7waGM@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicolas Morey-Chaisemartin <nmoreychaisemartin-l3A5Bk7waGM@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/13/18 11:59 PM, Nicolas Morey-Chaisemartin wrote:
-> 
-> 
-> Le 14/02/2018 à 07:12, Adit Ranadive a écrit :
->> On 2/13/18 4:24 AM, Nicolas Morey-Chaisemartin wrote:
->>>
->>>
->>> Submitted to stable-v16.
->>> Do you know when OFED 4.8-2 is going out ? Is a new v16.3 release needed right now ?
->>>
->> Thanks Nicolas! I have completed my testing so we would need a new v16.3 release.
->> I can let Vlad know once its generated for him to pick up the new rdma-core.
->>
->> Thanks,
->> Adit
->> --
-> 
-> Do you mind if I wait til next week for a release ?
-> There are no more fixes pending atm, but if you're not in a hurry, I'd like to wait a bit to avoid releasing too often.
+Creation of resources can fail if the rounding up exceeds
+provider supported values.
 
-Hi Nicolas,
+Fixes: 4c8ed14eb6b7 ("vmw_pvrdma: Add SRQ support")
+Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Nitish Bhat <bnitish-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: stable-Xl5UnYtxxKxKUA01WzcqbQ@public.gmane.org
+---
+ providers/vmw_pvrdma/qp.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-Turns out there is one more patch that needs to go into v16.3. It was an older internal branch which 
-I had forgotten about after we moved to a new git repo. Sorry for the mixup and thanks for holding up
-the release! I'll send out the other patch.
-
-Thanks,
-Adit
+diff --git a/providers/vmw_pvrdma/qp.c b/providers/vmw_pvrdma/qp.c
+index efcc99b..4b9f897 100644
+--- a/providers/vmw_pvrdma/qp.c
++++ b/providers/vmw_pvrdma/qp.c
+@@ -113,7 +113,7 @@ struct ibv_srq *pvrdma_create_srq(struct ibv_pd *pd,
+ 	int ret;
+ 
+ 	attr->attr.max_wr = align_next_power2(max_t(uint32_t, 1U, attr->attr.max_wr));
+-	attr->attr.max_sge = align_next_power2(max_t(uint32_t, 1U, attr->attr.max_sge));
++	attr->attr.max_sge = max_t(uint32_t, 1U, attr->attr.max_sge);
+ 
+ 	srq = malloc(sizeof(*srq));
+ 	if (!srq)
+@@ -216,14 +216,12 @@ struct ibv_qp *pvrdma_create_qp(struct ibv_pd *pd,
+ 	int ret;
+ 	int is_srq = !!(attr->srq);
+ 
+-	attr->cap.max_send_sge =
+-		align_next_power2(max_t(uint32_t, 1U, attr->cap.max_send_sge));
++	attr->cap.max_send_sge = max_t(uint32_t, 1U, attr->cap.max_send_sge);
+ 	attr->cap.max_send_wr =
+ 		align_next_power2(max_t(uint32_t, 1U, attr->cap.max_send_wr));
+ 
+ 	if (!is_srq) {
+-		attr->cap.max_recv_sge =
+-			align_next_power2(max_t(uint32_t, 1U, attr->cap.max_recv_sge));
++		attr->cap.max_recv_sge = max_t(uint32_t, 1U, attr->cap.max_recv_sge);
+ 		attr->cap.max_recv_wr =
+ 			align_next_power2(max_t(uint32_t, 1U, attr->cap.max_recv_wr));
+ 	} else {
+-- 
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
