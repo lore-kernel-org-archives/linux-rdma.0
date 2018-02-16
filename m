@@ -1,96 +1,101 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 08/14] RDMA/uverbs: Properly check command
- supported mask
-Date: Fri, 16 Feb 2018 09:31:47 +0200
-Message-ID: <20180216073147.GL2197@mtr-leonro.local>
-References: <20180214123844.30321-1-leon@kernel.org>
- <20180214123844.30321-9-leon@kernel.org>
- <20180214234714.GE1718@ziepe.ca>
- <20180215135628.GH2197@mtr-leonro.local>
- <20180215162603.GB18416@ziepe.ca>
+Subject: Re: [PATCH for-rc 4/6] RDMA/bnxt_re: Synchronize destroy_qp with
+ poll_cq
+Date: Fri, 16 Feb 2018 09:38:02 +0200
+Message-ID: <20180216073802.GM2197@mtr-leonro.local>
+References: <1518758413-20850-1-git-send-email-selvin.xavier@broadcom.com>
+ <1518758413-20850-5-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="yC91f7qSViS67v3c"
+        protocol="application/pgp-signature"; boundary="i/VKSWANvDZSIhsB"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180215162603.GB18416-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <1518758413-20850-5-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---yC91f7qSViS67v3c
+--i/VKSWANvDZSIhsB
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Feb 15, 2018 at 09:26:04AM -0700, Jason Gunthorpe wrote:
-> On Thu, Feb 15, 2018 at 03:56:28PM +0200, Leon Romanovsky wrote:
-> > On Wed, Feb 14, 2018 at 04:47:14PM -0700, Jason Gunthorpe wrote:
-> > > On Wed, Feb 14, 2018 at 02:38:38PM +0200, Leon Romanovsky wrote:
-> > > > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > >
-> > > > The check based on index is not sufficient because
-> > > >
-> > > >   IB_USER_VERBS_EX_CMD_CREATE_CQ = IB_USER_VERBS_CMD_CREATE_CQ
-> > > >
-> > > > and IB_USER_VERBS_CMD_CREATE_CQ <= IB_USER_VERBS_CMD_OPEN_QP,
-> > > > so if we execute IB_USER_VERBS_EX_CMD_CREATE_CQ this code checks
-> > > > ib_dev->uverbs_cmd_mask not ib_dev->uverbs_ex_cmd_mask.
-> > > >
-> > > > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > >  drivers/infiniband/core/uverbs_main.c | 18 ++++++------------
-> > > >  1 file changed, 6 insertions(+), 12 deletions(-)
-> > >
-> > > This seems like an RC fix to me, since we are not properly validating
-> > > input commands... ??
-> >
-> > I don't think so, it looks harmless to me because all vendors except mlx4/mlx5
-> > have zero in uverbs_ex_cmd_mask and mlx4 have all commands implemented.
+On Thu, Feb 15, 2018 at 09:20:11PM -0800, Selvin Xavier wrote:
+> Avoid system crash when destroy_qp is invoked while
+> the driver is processing the poll_cq. Synchronize these
+> functions using the cq_lock.
 >
-> The issue is we check uverbs_cmd_mask when we should check
-> uverbs_ex_cmd_mask, so drivers with a 0 in uverbs_ex_cmd_mask will
-> still pass this check.
+> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/bnxt_re/ib_verbs.c | 39 +++++++++++++++++++++++++++++---
+>  drivers/infiniband/hw/bnxt_re/ib_verbs.h |  2 ++
+>  drivers/infiniband/hw/bnxt_re/qplib_fp.c | 21 +++++------------
+>  drivers/infiniband/hw/bnxt_re/qplib_fp.h |  4 +++-
+>  4 files changed, 47 insertions(+), 19 deletions(-)
 >
-> and your later patch checks for null, so what happens if, say, rxe
-> calls an ex command? kernel oops?
+> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> index b7eb104..9cb9928 100644
+> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> @@ -786,20 +786,51 @@ int bnxt_re_query_ah(struct ib_ah *ib_ah, struct rdma_ah_attr *ah_attr)
+>  	return 0;
+>  }
+>
+> +static unsigned long bnxt_re_lock_cqs(struct bnxt_re_qp *qp)
+> +	__acquires(&qp->scq->cq_lock) __acquires(&qp->rcq->cq_lock)
+> +{
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&qp->scq->cq_lock, flags);
+> +	if (qp->rcq != qp->scq)
+> +		spin_lock(&qp->rcq->cq_lock);
+> +	else
+> +		__acquire(&qp->rcq->cq_lock);
 
-So actually, my latest patch (addition of NULL checks) should go to the
--rc and not this one.
+Sorry for naive question, why do you need __acquire/__release? And why
+can't spin_is_locked(&qp->rcq->cq_lock) be used for unlock code?
 
-I still prefer to leave this patch in this series (-next) and avoid
-writing completely thrown away code for -rc, which will create only
-merge conflicts between rdma-rc and rdma-next without any visible
-benefits.
 
-I'll reshuffle this series and resubmit.
+> +
+> +	return flags;
+> +}
+> +
+> +static void bnxt_re_unlock_cqs(struct bnxt_re_qp *qp,
+> +			       unsigned long flags)
+> +	__releases(&qp->scq->cq_lock) __releases(&qp->rcq->cq_lock)
+> +{
+> +	if (qp->rcq != qp->scq)
+> +		spin_unlock(&qp->rcq->cq_lock);
+> +	else
+> +		__release(&qp->rcq->cq_lock);
+> +	spin_unlock_irqrestore(&qp->scq->cq_lock, flags);
+> +}
+> +
 
 Thanks
 
->
-> Jason
-
---yC91f7qSViS67v3c
+--i/VKSWANvDZSIhsB
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqGiOMACgkQ5GN7iDZy
-WKcEhw/8C/ILqmCF7TZyKE1jX+OLmnkMZwLR4UVWnSDYPFFZkVnw5SIzz/y38ICi
-LgllatSkMudj8DoMhu3rPUVh/hr7p7vHJZr9koy2cBHmDPMCvO0WCrWa/8sRhw87
-0ef+yAtReUXQvmpqQsFnI0SG4irnK7yDLiDGCNXZRNbP5lkuoMsnpcOS67QwlYeb
-N4AB7XB1+DlTBkmCpKTznfBjwf3wSUSHb+oE/9kZCqHQ5auMCD1ip3p0OwxVZp5R
-gzzwb5rt93eY/XyK5LYZORmIOlUIez1NvztROQ7qoE1nMMNAyi6jjXwiEUP1XOvw
-jRAMfdR5i404DX8vT0eBroAEph8wY44GVVcbvaX6Sj9MrZ3KutK933QKJQjZNvvz
-jIhnikKm5mDgjYT4jiB1y1SmWDdmS93HBOIbotWsilCNWymtGpJnVdSFJ1hZ7e1a
-B7HxRi9VCbYKLm+1J1VTclA9MVv1Xk/DcjYHTsyAAcxYGQOnLNx6YcjzSeSlfavZ
-qhQCElhCdcMlLml5MrTm1JyQxMpMxanTXqbCbZnDVaFYcRyrGm3W4iiYLeiHSD6q
-0mh3yNUlXTNsIgma8RTkayKP/XMXTueLXf3BzcAPLvwiT9c4C56Vmc466GojxS5U
-pgITEd3cdzflpzo0mma5Cs+z9ztBkFvzcjLynNe/lm6lJDADv4I=
-=0hf+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqGiloACgkQ5GN7iDZy
+WKdDww//Vha+OrSUM5uX+kTSv7tvXeIjCRbxSK0rAW462uAk7+rt20ZfY315s1XT
+kuubDk+kOCcMM47MlyG4M/7MpgBzaRcSLOxozQnu3L7qRXMjbiy4A8y5pcknBt7c
+d/s7ha31OJrBQO2wFMddiKteEIaJU84aNOAN6eyRvQ69d5jDrAur9u7YLhY99Rjn
+7UlWXSQTDc0+VCasRVXlqwOUpsTWgm58pw9gaT/qHdbW0HJwVBHu/VcpkMUlUQBF
+UHb56g8iHwRdSjXTW3R2I5EEyv/j13LyrFB/5NRAGhQ9c+U9sGPcH1NjL5nk4vEJ
+9AO+bW2fVGtO7xmZFBbDnn3TvDuGJN/GBh5S9bT+LyGj5SEnkpPjlZZBwkcAinQ0
+pHSWR/k3E0hc+s6YFoGVpsk/zqM3ErT6S2gNg1t+VXSvn/ZCaKiZyHg/Wylygl+I
+oPUJQrtBf/wR2N19IN8C96pVnFou/Zz4iTQjkrzlK6C2HOO4Naq8JUrEuj4necic
+5a+OKn8L+sSzfYiWb3m4MdwH1DvdP1h3sGnDLbi3S9l1mgw4GugPCem1WZhA6zOe
+YuEmdPvCladfswwzs/S2+9g08DGhTeZUYL6rwzmrDqQbWXur5NxRnQxzhQYc8eSr
+aaXvlCjD4y1OFArtgCsPof5by1Ye1MBXsiz9gKrI9hZPhz281wM=
+=kYvX
 -----END PGP SIGNATURE-----
 
---yC91f7qSViS67v3c--
+--i/VKSWANvDZSIhsB--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
