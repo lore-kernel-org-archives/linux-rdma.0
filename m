@@ -1,33 +1,78 @@
-From: Dave Hansen <dave.hansen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC 1/2] Protect larger order pages from breaking up
-Date: Fri, 16 Feb 2018 11:01:12 -0800
-Message-ID: <87d2edf7-ce5e-c643-f972-1f2538208d86@intel.com>
-References: <20180216160110.641666320@linux.com>
- <20180216160121.519788537@linux.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v2 rdma-rc] RDMA/restrack: don't use uaccess_kernel()
+Date: Fri, 16 Feb 2018 13:23:10 -0600
+Message-ID: <03ee01d3a75b$951f37f0$bf5da7d0$@opengridcomputing.com>
+References: <20180216165919.997D72BB6D@smtp.opengridcomputing.com> <20180216172537.GA10123@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;
+        charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180216160121.519788537-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20180216172537.GA10123-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Mel Gorman <mel-wJa12IhQEiizQB+pC5nmwQ@public.gmane.org>
-Cc: Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Thomas Schoebel-Theuer <tst-0Nly+W1lFbFDiq0p6IFu4YQuADTiUCJX@public.gmane.org>, andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org, Rik van Riel <riel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Anshuman Khandual <khandual-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>, Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>, David Nellans <dnellans-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Laura Abbott <labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Mike Kravetz <mike.kravetz-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: 'Jason Gunthorpe' <jgg-uk2M96/98Pc@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/16/2018 08:01 AM, Christoph Lameter wrote:
-> In order to make this work just right one needs to be able to
-> know the workload well enough to reserve the right amount
-> of pages. This is comparable to other reservation schemes.
+> 
+> On Wed, Feb 14, 2018 at 06:43:36PM -0800, Steve Wise wrote:
+> > uaccess_kernel() isn't sufficient to determine if an rdma resource is
+> > user-mode or not.  For example, resources allocated in the add_one()
+> > function of an ib_client get falsely labeled as user mode, when they
+> > are kernel mode allocations.  EG: mad qps.
+> >
+> > The result is that these qps are skipped over during a nldev query
+> > because of an erroneous namespace mismatch.
+> >
+> > So now we determine if the resource is user-mode by looking at the
+object
+> > struct's uobject or similar pointer to know if it was allocated for user
+> > mode applications.
+> >
+> > Fixes: 02d8883f520e ("RDMA/restrack: Add general infrastructure to track
+> RDMA resources")
+> > Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> >
+> >
+> > Changes since v1:
+> >
+> > changed _create_qp() to take the qp ib_uobject ptr so it is availble to
+> > rdma_restrack_add()
+> >
+> >  drivers/infiniband/core/core_priv.h  |  4 +++-
+> >  drivers/infiniband/core/restrack.c   | 35
+> +++++++++++++++++++++++++++++++++--
+> >  drivers/infiniband/core/uverbs_cmd.c |  4 ++--
+> >  drivers/infiniband/core/verbs.c      |  3 +--
+> >  4 files changed, 39 insertions(+), 7 deletions(-)
+> 
+> I took this to for-rc, but when I fixed the XRCD conflict with Leon's
+> patch I ended up retyping it to this - don't really need all rambly
+> boilerplate. Someone should fix the other one too..
 
-Yes, but it's a reservation scheme that doesn't show up in MemFree, for
-instance.  Even hugetlbfs-reserved memory subtracts from that.
+I don't know what you mean by 'rambly boilerplate'?
 
-This has the potential to be really confusing to apps.  If this memory
-is now not available to normal apps, they might plow into the invisible
-memory limits and get into nasty reclaim scenarios.
+> 
+> static bool res_is_user(struct rdma_restrack_entry *res)
+> {
+> 	switch (res->type) {
+> 	case RDMA_RESTRACK_PD:
+> 		return container_of(res, struct ib_pd, res)->uobject;
+> 	case RDMA_RESTRACK_CQ:
+> 		return container_of(res, struct ib_cq, res)->uobject;
+> 	case RDMA_RESTRACK_QP:
+> 		return container_of(res, struct ib_qp, res)->uobject;
+> 	default:
+> 		WARN_ONCE(true, "Wrong resource tracking type %u\n",
+> res->type);
+> 		return false;
+> 	}
+> }
 
-Shouldn't this subtract the memory for MemFree and friends?
+This looks clean to me.  Thanks.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
