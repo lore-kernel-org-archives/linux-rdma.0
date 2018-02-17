@@ -1,93 +1,92 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [RFC 2/2] Page order diagnostics
-Date: Sat, 17 Feb 2018 22:17:25 +0100
-Message-ID: <20180217211725.GA9640@amd>
-References: <20180216160110.641666320@linux.com>
- <20180216160121.583566579@linux.com>
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: Loopback with RXE?
+Date: Sat, 17 Feb 2018 21:23:15 +0000
+Message-ID: <37E490E3-75A6-4C2B-B82D-6ED11031EA09@mellanox.com>
+References: <2145E340-3297-4ED2-BEC9-09E4CD582D24@rbird.tech>
+ <20180214192559.GC8800@yuvallap>,<F17D72E0-CBBE-4315-A576-91EA43EAB388@rbird.tech>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="EeQfGwPcQSOJBaQU"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180216160121.583566579-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <F17D72E0-CBBE-4315-A576-91EA43EAB388-DzDj5FMp9MpyDzI6CaY1VQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Mel Gorman <mel-wJa12IhQEiizQB+pC5nmwQ@public.gmane.org>, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Thomas Schoebel-Theuer <tst-0Nly+W1lFbFDiq0p6IFu4YQuADTiUCJX@public.gmane.org>, andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org, Rik van Riel <riel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Anshuman Khandual <khandual-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>, Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>, David Nellans <dnellans-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Laura Abbott <labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dave Hansen <dave.hansen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Kravetz <mike.kravetz-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Yi Bairen <byron-DzDj5FMp9MpyDzI6CaY1VQ@public.gmane.org>
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---EeQfGwPcQSOJBaQU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi!
-
-> @@ -1289,6 +1289,52 @@ const char * const vmstat_text[] =3D {
->  	"swap_ra",
->  	"swap_ra_hit",
->  #endif
-> +#ifdef CONFIG_ORDER_STATS
-> +	"order0_failure",
-> +	"order1_failure",
-> +	"order2_failure",
-> +	"order3_failure",
-> +	"order4_failure",
-> +	"order5_failure",
-> +	"order6_failure",
-> +	"order7_failure",
-> +	"order8_failure",
-> +	"order9_failure",
-> +	"order10_failure",
-> +#ifdef CONFIG_FORCE_MAX_ZONEORDER
-> +#if MAX_ORDER > 11
-> +	"order11_failure"
-> +#endif
-> +#if MAX_ORDER > 12
-> +	"order12_failure"
-> +#endif
-> +#if MAX_ORDER > 13
-> +	"order13_failure"
-> +#endif
-> +#if MAX_ORDER > 14
-> +	"order14_failure"
-> +#endif
-> +#if MAX_ORDER > 15
-> +	"order15_failure"
-> +#endif
-> +#if MAX_ORDER > 16
-> +	"order16_failure"
-> +#endif
-> +#if MAX_ORDER > 17
-> +	"order17_failure"
-> +#endif
-> +#if MAX_ORDER > 18
-> +	"order18_failure"
-> +#endif
-> +#if MAX_ORDER > 19
-> +	"order19_failure"
-> +#endif
-
-I don't think this does what you want it to do. Commas are missing.
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---EeQfGwPcQSOJBaQU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlqIm+UACgkQMOfwapXb+vKJdQCdH7guQtlyHyWkIpEQCQp9Xb6j
-wcMAoLef0VPOAoaaG2ac5C1EMuQU6hgD
-=bP1b
------END PGP SIGNATURE-----
-
---EeQfGwPcQSOJBaQU--
+DQo+IE9uIEZlYiAxNywgMjAxOCwgYXQgMzowMyBQTSwgWWkgQmFpcmVuIDxieXJvbkByYmlyZC50
+ZWNoPiB3cm90ZToNCj4gDQo+IEhpLA0KPiANCj4+IE9uIDE1IEZlYiAyMDE4LCBhdCAwMzoyNSwg
+WXV2YWwgU2hhaWEgPHl1dmFsLnNoYWlhQG9yYWNsZS5jb20+IHdyb3RlOg0KPj4gDQo+PiBPbiBX
+ZWQsIEZlYiAxNCwgMjAxOCBhdCAwNToxMzowN1BNICswMDAwLCBZaSBCYWlyZW4gd3JvdGU6DQo+
+Pj4gSGkgZm9sa3MsDQo+Pj4gDQo+Pj4gU2VlbXMgSSBjYW7igJl0IGdldCBhIExpbnV4IDQuOSAo
+RGViaWFuIDkuMykgVk0gd29ya2luZyB3aXRoIHNpbmdsZSBib3ggU29mdFJvQ0UgbG9vcGJhY2su
+IEkgaW5zdGFsbGVkIHJkbWEtY29yZSAxNi4gVGhlIHJkbWFfY2xpZW50ICYgcmRtYV9zZXJ2ZXIg
+aW4gdGhlIHNhbWUgYm94IHNlZW1zIHdvcmtpbmcuIEhvd2V2ZXIsIHdoZW4gSSB1c2UgaWJfd3Jp
+dGVfYncgaW4gdGhlIHNhbWUgYm94LCB0aGUgUVBzIGNhbuKAmXQgYmUgY29ubmVjdGVkIHRocm91
+Z2ggdGhlIHNhbWUgcnhlIGRldmljZS4NCj4+IA0KPj4gSWYgdGhlIFFQcyBjb25uZWN0aW9uIGlz
+IHByb2JsZW1hdGljIHRoZW4gaG93IGNvbWUgcmRtYV8qIGlzIHdvcmtpbmc/DQo+IA0KPiBUaGUg
+cmRtYV9jbGllbnQgYW5kIHJkbWFfc2VydmVyIGRvIHdvcmsgd2l0aCBgZW5kIDBgLiANCj4gDQo+
+IFRoZSBpYl93cml0ZV9idyBzZWVtcyB0byBoYW5nLiBJZiBJIGtpbGwgdGhlIHNlcnZlciBzaWRl
+LCB0aGUgY2xpZW50IGRvZXMgbm90IHJlc3BvbmQuIElmIEkga2lsbCB0aGUgY2xpZW50IHNpZGUs
+IGl0IHNob3dzIHRoZSBmb2xsb3dpbmcgbG9nOg0KPiANCj4gJCBpYl93cml0ZV9idw0KRGlkIHlv
+dSB0cnkgdG8gc3BlY2lmeSBhIGdpZCBpbmRleCB3aXRoIC14IHBhcmFtPyBGb3IgZXhhbXBsZSBp
+Yl93cml0ZV9idyAteCAwLg0KDQpXaXRob3V0IGdpZCBJIHdvdWxkIGV4cGVjdCBpbml0MnJ0ciB0
+byBmYWlsLi4gd2hpY2ggZG9lc27igJl0IHNlZW0gdGhlIGNhc2UgdGhvdWdoIC4uDQo+IA0KPiAq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioNCj4gKiBXYWl0aW5nIGZvciBjbGll
+bnQgdG8gY29ubmVjdC4uLiAqDQo+ICoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+Kg0KPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gICAgICAgICAgICAgICAgICAg
+IFJETUFfV3JpdGUgQlcgVGVzdA0KPiBEdWFsLXBvcnQgICAgICAgOiBPRkYgICAgICAgIERldmlj
+ZSAgICAgICAgIDogcnhlMA0KPiBOdW1iZXIgb2YgcXBzICAgOiAxICAgICAgICBUcmFuc3BvcnQg
+dHlwZSA6IElCDQo+IENvbm5lY3Rpb24gdHlwZSA6IFJDICAgICAgICBVc2luZyBTUlEgICAgICA6
+IE9GRg0KPiBDUSBNb2RlcmF0aW9uICAgOiAxMDANCj4gTXR1ICAgICAgICAgICAgIDogMTAyNFtC
+XQ0KPiBMaW5rIHR5cGUgICAgICAgOiBFdGhlcm5ldA0KPiBHSUQgaW5kZXggICAgICAgOiAxDQo+
+IE1heCBpbmxpbmUgZGF0YSA6IDBbQl0NCj4gcmRtYV9jbSBRUHMgICAgIDogT0ZGDQo+IERhdGEg
+ZXguIG1ldGhvZCA6IEV0aGVybmV0DQo+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0K
+PiBsb2NhbCBhZGRyZXNzOiBMSUQgMDAwMCBRUE4gMHgwMDE0IFBTTiAweDM3ODdjYSBSS2V5IDB4
+MDAwNTJjIFZBZGRyIDB4MDA3ZjNkZDRjNDIwMDANCj4gR0lEOiAwMDowMDowMDowMDowMDowMDow
+MDowMDowMDowMDoyNTU6MjU1OjE1OTo2NToxMzozNA0KPiByZW1vdGUgYWRkcmVzczogTElEIDAw
+MDAgUVBOIDB4MDAxNSBQU04gMHg1YzhiYTkgUktleSAweDAwMDY1OCBWQWRkciAweDAwN2YzMGU3
+NGIzMDAwDQo+IEdJRDogMDA6MDA6MDA6MDA6MDA6MDA6MDA6MDA6MDA6MDA6MjU1OjI1NToxNTk6
+NjU6MTM6MzQNCj4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+ICNieXRlcyAgICAg
+I2l0ZXJhdGlvbnMgICAgQlcgcGVha1tNQi9zZWNdICAgIEJXIGF2ZXJhZ2VbTUIvc2VjXSAgIE1z
+Z1JhdGVbTXBwc10NCj4gZXRoZXJuZXRfcmVhZF9rZXlzOiBDb3VsZG4ndCByZWFkIHJlbW90ZSBh
+ZGRyZXNzDQo+IFVuYWJsZSB0byByZWFkIHRvIHNvY2tldC9yZGFtX2NtDQo+IEZhaWxlZCB0byBl
+eGNoYW5nZSBkYXRhIGJldHdlZW4gc2VydmVyIGFuZCBjbGllbnRzDQo+IA0KPiAjYnl0ZXMgICAg
+ICNpdGVyYXRpb25zICAgIEJXIHBlYWtbTUIvc2VjXSAgICBCVyBhdmVyYWdlW01CL3NlY10gICBN
+c2dSYXRlW01wcHNdDQo+IGV0aGVybmV0X3JlYWRfa2V5czogQ291bGRuJ3QgcmVhZCByZW1vdGUg
+YWRkcmVzcw0KPiBVbmFibGUgdG8gcmVhZCB0byBzb2NrZXQvcmRhbV9jbQ0KPiBGYWlsZWQgdG8g
+ZXhjaGFuZ2UgZGF0YSBiZXR3ZWVuIHNlcnZlciBhbmQgY2xpZW50cw0KPiANCj4gTXkgUlhFIGNv
+bmZpZzoNCj4gDQo+ICQgc3VkbyByeGVfY2ZnIHN0YXJ0DQo+ICBOYW1lICAgICBMaW5rICBEcml2
+ZXIgICAgICBTcGVlZCAgTk1UVSAgSVB2NF9hZGRyICBSREVWICBSTVRVDQo+ICBkb2NrZXIwICBu
+byAgICBicmlkZ2UNCj4gIGV0aDAgICAgIHllcyAgIHZpcnRpb19uZXQgICAgICAgICAgICAgICAg
+ICAgICAgICAgIHJ4ZTAgIDEwMjQgICgzKQ0KPiAgZXRoMSAgICAgeWVzICAgdmlydGlvX25ldCAg
+ICAgICAgICAgICAgICAgICAgICAgICAgcnhlMSAgMTAyNCAgKDMpDQo+IA0KPiBkbWVzZzoNCj4g
+DQo+IFsxNDQ0MS4zMzY3MDddIHJkbWFfcnhlOiBsb2FkZWQNCj4gWzE0NDQxLjM3NTEwOF0gTG9h
+ZGluZyBpU0NTSSB0cmFuc3BvcnQgY2xhc3MgdjIuMC04NzAuDQo+IFsxNDQ0MS4zODA5MzBdIHJk
+bWFfcnhlOiBzZXQgcnhlMCBhY3RpdmUNCj4gWzE0NDQxLjM4MTgyNF0gcmRtYV9yeGU6IGFkZGVk
+IHJ4ZTAgdG8gZXRoMA0KPiBbMTQ0NDEuMzg5NTY3XSBpc2NzaTogcmVnaXN0ZXJlZCB0cmFuc3Bv
+cnQgKGlzZXIpDQo+IFsxNDQ0MS40MDM1OTVdIFJQQzogUmVnaXN0ZXJlZCBuYW1lZCBVTklYIHNv
+Y2tldCB0cmFuc3BvcnQgbW9kdWxlLg0KPiBbMTQ0NDEuNDA0NjE4XSBSUEM6IFJlZ2lzdGVyZWQg
+dWRwIHRyYW5zcG9ydCBtb2R1bGUuDQo+IFsxNDQ0MS40MDUzOTBdIFJQQzogUmVnaXN0ZXJlZCB0
+Y3AgdHJhbnNwb3J0IG1vZHVsZS4NCj4gWzE0NDQxLjQwNjA1N10gUlBDOiBSZWdpc3RlcmVkIHRj
+cCBORlN2NC4xIGJhY2tjaGFubmVsIHRyYW5zcG9ydCBtb2R1bGUuDQo+IFsxNDQ0MS40MTU4MTZd
+IFJQQzogUmVnaXN0ZXJlZCByZG1hIHRyYW5zcG9ydCBtb2R1bGUuDQo+IFsxNDQ0MS40MTY2ODld
+IFJQQzogUmVnaXN0ZXJlZCByZG1hIGJhY2tjaGFubmVsIHRyYW5zcG9ydCBtb2R1bGUuDQo+IFsx
+NDQ0MS40MTk5NzldIHJkbWFfcnhlOiBzZXQgcnhlMSBhY3RpdmUNCj4gWzE0NDQxLjQyMDY1N10g
+cmRtYV9yeGU6IGFkZGVkIHJ4ZTEgdG8gZXRoMQ0KPiBbMTQ0NzAuNDIyODM2XSBkZXRlY3RlZCBs
+b29wYmFjayBkZXZpY2UNCj4gWzE0NDg0LjI3ODAyMl0gcmRtYV9yeGU6IHFwIzE4IG1vdmVkIHRv
+IGVycm9yIHN0YXRlDQo+IA0KPj4gDQo+Pj4gDQo+Pj4gSeKAmWQgbGlrZSB0byBrbm93IGlmIHJ4
+ZSBsb29wYmFjayBpcyBrbm93biB0byBiZSBicm9rZW4sIGFuZCBob3cgdG8gZml4IGl0Lg0KPj4+
+IA0KPj4+IEJlc3QsDQo+Pj4gQmFpcmVuIFlpDQo+IA0KPiBCYWlyZW4gWWkNCj4gDQo+IE7vv73v
+v73vv73vv73vv71y77+977+9ee+/ve+/ve+/vWLvv71Y77+977+9x6d277+9Xu+/vSneunsubu+/
+vSvvv73vv73vv73vv71777+977+92Zrvv717YXnvv70dyofame+/vSxqB++/ve+/vWbvv73vv73v
+v71o77+977+977+9eu+/vR7vv71377+977+977+9DO+/ve+/ve+/vWo6K3bvv73vv73vv71377+9
+au+/vW3vv73vv73vv73vv70H77+977+977+977+9elor77+977+977+977+977+93aJqIu+/ve+/
+vSHvv71pDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
