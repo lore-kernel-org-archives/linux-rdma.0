@@ -1,95 +1,81 @@
-From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-rc 2/6] RDMA/bnxt_re: Maintain GID index mapping
- between stack and hardware
-Date: Sat, 17 Feb 2018 11:54:53 +0530
-Message-ID: <CA+sbYW3Aij8XQLvN7-5mPJL+7DenQp8KbCgEjoLptmqWo0DGxg@mail.gmail.com>
-References: <1518758413-20850-1-git-send-email-selvin.xavier@broadcom.com>
- <1518758413-20850-3-git-send-email-selvin.xavier@broadcom.com> <20180216160703.GB22739@ziepe.ca>
+From: Yi Bairen <byron-DzDj5FMp9MpyDzI6CaY1VQ@public.gmane.org>
+Subject: Re: Loopback with RXE?
+Date: Sat, 17 Feb 2018 13:03:05 +0000
+Message-ID: <F17D72E0-CBBE-4315-A576-91EA43EAB388@rbird.tech>
+References: <2145E340-3297-4ED2-BEC9-09E4CD582D24@rbird.tech>
+ <20180214192559.GC8800@yuvallap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180216160703.GB22739-uk2M96/98Pc@public.gmane.org>
+In-Reply-To: <20180214192559.GC8800@yuvallap>
+Content-Language: en-US
+Content-ID: <9C5AFBD33EB0A84AA66254657BD82B81-OGSWmMykPMWcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 16, 2018 at 9:37 PM, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org> wrote:
-> On Thu, Feb 15, 2018 at 09:20:09PM -0800, Selvin Xavier wrote:
->> Every GID has a duplicate entry in the stack for RoCE v2.
->> HW table maintain only single entries. Currently the hw index
->> is calculated by dividing the stack index by two. This is prone to
->> failure after a series of add/delete gid operation in random order.
->>
->> Maintain a mapping between stack GID index and hardware
->> index to avoid failure.
->>
->> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
->>  drivers/infiniband/hw/bnxt_re/bnxt_re.h  |  3 +++
->>  drivers/infiniband/hw/bnxt_re/ib_verbs.c | 21 ++++++++++-----------
->>  drivers/infiniband/hw/bnxt_re/main.c     | 13 +++++++++++++
->>  3 files changed, 26 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
->> index ca32057..5692335 100644
->> +++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
->> @@ -109,6 +109,7 @@ struct bnxt_re_sqp_entries {
->>  #define BNXT_RE_MAX_MSIX             9
->>  #define BNXT_RE_AEQ_IDX                      0
->>  #define BNXT_RE_NQ_IDX                       1
->> +#define BNXT_RE_MAX_SGID_ENTRIES     256
->>
->>  struct bnxt_re_dev {
->>       struct ib_device                ibdev;
->> @@ -170,6 +171,8 @@ struct bnxt_re_dev {
->>       u32 is_virtfn;
->>       u32 num_vfs;
->>       struct bnxt_qplib_roce_stats    stats;
->> +     /* Array to handle gid mapping */
->> +     char                            *gid_map;
->
-> char would need to be a s8
-Sure.. i will make the change
->
->>  #define to_bnxt_re_dev(ptr, member)  \
->> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
->> index ce2a6d0..7943707 100644
->> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
->> @@ -348,6 +348,7 @@ int bnxt_re_del_gid(struct ib_device *ibdev, u8 port_num,
->>                       return -EFAULT;
->>               }
->>               ctx->refcnt--;
->> +             rdev->gid_map[index] = -1;
->>               if (!ctx->refcnt) {
->>                       rc = bnxt_qplib_del_sgid(sgid_tbl, gid_to_del, true);
->>                       if (rc) {
->> @@ -386,6 +387,8 @@ int bnxt_re_add_gid(struct ib_device *ibdev, u8 port_num,
->>               ctx_tbl = sgid_tbl->ctx;
->>               ctx_tbl[tbl_idx]->refcnt++;
->>               *context = ctx_tbl[tbl_idx];
->> +             /* tbl_idx is the HW table index and index is the stack index */
->> +             rdev->gid_map[index] = tbl_idx;
->
-> It would be a lot better to store tbl_idx in the driver's context, that
-> is what context is for.
-We do hold this currently in the driver context. The mapping was to retrieve the
-gid_index to hw_index, which needs an API otherwise as you mentioned below.
->
->> -     /*
->> -      * If RoCE V2 is enabled, stack will have two entries for
->> -      * each GID entry. Avoiding this duplicte entry in HW. Dividing
->> -      * the GID index by 2 for RoCE V2
->> -      */
->> -     ah->qplib_ah.sgid_index = grh->sgid_index / 2;
->> +     /* Retrieve the HW index from the driver SGID map */
->> +     ah->qplib_ah.sgid_index = rdev->gid_map[ah_attr->grh.sgid_index];
->
-> You'd need a new api to return the driver context for a gid index, but
-> that shouldn't be a problem.
-I will post a stack change and rework on this patch.
-Shall i drop this patch from this series and re-post  remaining?
->
-> Jason
+SGksDQoNCj4gT24gMTUgRmViIDIwMTgsIGF0IDAzOjI1LCBZdXZhbCBTaGFpYSA8eXV2YWwuc2hh
+aWFAb3JhY2xlLmNvbT4gd3JvdGU6DQo+IA0KPiBPbiBXZWQsIEZlYiAxNCwgMjAxOCBhdCAwNTox
+MzowN1BNICswMDAwLCBZaSBCYWlyZW4gd3JvdGU6DQo+PiBIaSBmb2xrcywNCj4+IA0KPj4gU2Vl
+bXMgSSBjYW7igJl0IGdldCBhIExpbnV4IDQuOSAoRGViaWFuIDkuMykgVk0gd29ya2luZyB3aXRo
+IHNpbmdsZSBib3ggU29mdFJvQ0UgbG9vcGJhY2suIEkgaW5zdGFsbGVkIHJkbWEtY29yZSAxNi4g
+VGhlIHJkbWFfY2xpZW50ICYgcmRtYV9zZXJ2ZXIgaW4gdGhlIHNhbWUgYm94IHNlZW1zIHdvcmtp
+bmcuIEhvd2V2ZXIsIHdoZW4gSSB1c2UgaWJfd3JpdGVfYncgaW4gdGhlIHNhbWUgYm94LCB0aGUg
+UVBzIGNhbuKAmXQgYmUgY29ubmVjdGVkIHRocm91Z2ggdGhlIHNhbWUgcnhlIGRldmljZS4NCj4g
+DQo+IElmIHRoZSBRUHMgY29ubmVjdGlvbiBpcyBwcm9ibGVtYXRpYyB0aGVuIGhvdyBjb21lIHJk
+bWFfKiBpcyB3b3JraW5nPw0KDQpUaGUgcmRtYV9jbGllbnQgYW5kIHJkbWFfc2VydmVyIGRvIHdv
+cmsgd2l0aCBgZW5kIDBgLiANCg0KVGhlIGliX3dyaXRlX2J3IHNlZW1zIHRvIGhhbmcuIElmIEkg
+a2lsbCB0aGUgc2VydmVyIHNpZGUsIHRoZSBjbGllbnQgZG9lcyBub3QgcmVzcG9uZC4gSWYgSSBr
+aWxsIHRoZSBjbGllbnQgc2lkZSwgaXQgc2hvd3MgdGhlIGZvbGxvd2luZyBsb2c6DQoNCiQgaWJf
+d3JpdGVfYncNCg0KKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqDQoqIFdhaXRp
+bmcgZm9yIGNsaWVudCB0byBjb25uZWN0Li4uICoNCioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQogICAgICAgICAgICAg
+ICAgICAgIFJETUFfV3JpdGUgQlcgVGVzdA0KIER1YWwtcG9ydCAgICAgICA6IE9GRgkJRGV2aWNl
+ICAgICAgICAgOiByeGUwDQogTnVtYmVyIG9mIHFwcyAgIDogMQkJVHJhbnNwb3J0IHR5cGUgOiBJ
+Qg0KIENvbm5lY3Rpb24gdHlwZSA6IFJDCQlVc2luZyBTUlEgICAgICA6IE9GRg0KIENRIE1vZGVy
+YXRpb24gICA6IDEwMA0KIE10dSAgICAgICAgICAgICA6IDEwMjRbQl0NCiBMaW5rIHR5cGUgICAg
+ICAgOiBFdGhlcm5ldA0KIEdJRCBpbmRleCAgICAgICA6IDENCiBNYXggaW5saW5lIGRhdGEgOiAw
+W0JdDQogcmRtYV9jbSBRUHMJIDogT0ZGDQogRGF0YSBleC4gbWV0aG9kIDogRXRoZXJuZXQNCi0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KIGxvY2FsIGFkZHJlc3M6IExJRCAwMDAwIFFQ
+TiAweDAwMTQgUFNOIDB4Mzc4N2NhIFJLZXkgMHgwMDA1MmMgVkFkZHIgMHgwMDdmM2RkNGM0MjAw
+MA0KIEdJRDogMDA6MDA6MDA6MDA6MDA6MDA6MDA6MDA6MDA6MDA6MjU1OjI1NToxNTk6NjU6MTM6
+MzQNCiByZW1vdGUgYWRkcmVzczogTElEIDAwMDAgUVBOIDB4MDAxNSBQU04gMHg1YzhiYTkgUktl
+eSAweDAwMDY1OCBWQWRkciAweDAwN2YzMGU3NGIzMDAwDQogR0lEOiAwMDowMDowMDowMDowMDow
+MDowMDowMDowMDowMDoyNTU6MjU1OjE1OTo2NToxMzozNA0KLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tDQogI2J5dGVzICAgICAjaXRlcmF0aW9ucyAgICBCVyBwZWFrW01CL3NlY10gICAg
+QlcgYXZlcmFnZVtNQi9zZWNdICAgTXNnUmF0ZVtNcHBzXQ0KZXRoZXJuZXRfcmVhZF9rZXlzOiBD
+b3VsZG4ndCByZWFkIHJlbW90ZSBhZGRyZXNzDQogVW5hYmxlIHRvIHJlYWQgdG8gc29ja2V0L3Jk
+YW1fY20NCiBGYWlsZWQgdG8gZXhjaGFuZ2UgZGF0YSBiZXR3ZWVuIHNlcnZlciBhbmQgY2xpZW50
+cw0KDQogI2J5dGVzICAgICAjaXRlcmF0aW9ucyAgICBCVyBwZWFrW01CL3NlY10gICAgQlcgYXZl
+cmFnZVtNQi9zZWNdICAgTXNnUmF0ZVtNcHBzXQ0KZXRoZXJuZXRfcmVhZF9rZXlzOiBDb3VsZG4n
+dCByZWFkIHJlbW90ZSBhZGRyZXNzDQogVW5hYmxlIHRvIHJlYWQgdG8gc29ja2V0L3JkYW1fY20N
+CiBGYWlsZWQgdG8gZXhjaGFuZ2UgZGF0YSBiZXR3ZWVuIHNlcnZlciBhbmQgY2xpZW50cw0KDQpN
+eSBSWEUgY29uZmlnOg0KDQokIHN1ZG8gcnhlX2NmZyBzdGFydA0KICBOYW1lICAgICBMaW5rICBE
+cml2ZXIgICAgICBTcGVlZCAgTk1UVSAgSVB2NF9hZGRyICBSREVWICBSTVRVDQogIGRvY2tlcjAg
+IG5vICAgIGJyaWRnZQ0KICBldGgwICAgICB5ZXMgICB2aXJ0aW9fbmV0ICAgICAgICAgICAgICAg
+ICAgICAgICAgICByeGUwICAxMDI0ICAoMykNCiAgZXRoMSAgICAgeWVzICAgdmlydGlvX25ldCAg
+ICAgICAgICAgICAgICAgICAgICAgICAgcnhlMSAgMTAyNCAgKDMpDQoNCmRtZXNnOg0KDQpbMTQ0
+NDEuMzM2NzA3XSByZG1hX3J4ZTogbG9hZGVkDQpbMTQ0NDEuMzc1MTA4XSBMb2FkaW5nIGlTQ1NJ
+IHRyYW5zcG9ydCBjbGFzcyB2Mi4wLTg3MC4NClsxNDQ0MS4zODA5MzBdIHJkbWFfcnhlOiBzZXQg
+cnhlMCBhY3RpdmUNClsxNDQ0MS4zODE4MjRdIHJkbWFfcnhlOiBhZGRlZCByeGUwIHRvIGV0aDAN
+ClsxNDQ0MS4zODk1NjddIGlzY3NpOiByZWdpc3RlcmVkIHRyYW5zcG9ydCAoaXNlcikNClsxNDQ0
+MS40MDM1OTVdIFJQQzogUmVnaXN0ZXJlZCBuYW1lZCBVTklYIHNvY2tldCB0cmFuc3BvcnQgbW9k
+dWxlLg0KWzE0NDQxLjQwNDYxOF0gUlBDOiBSZWdpc3RlcmVkIHVkcCB0cmFuc3BvcnQgbW9kdWxl
+Lg0KWzE0NDQxLjQwNTM5MF0gUlBDOiBSZWdpc3RlcmVkIHRjcCB0cmFuc3BvcnQgbW9kdWxlLg0K
+WzE0NDQxLjQwNjA1N10gUlBDOiBSZWdpc3RlcmVkIHRjcCBORlN2NC4xIGJhY2tjaGFubmVsIHRy
+YW5zcG9ydCBtb2R1bGUuDQpbMTQ0NDEuNDE1ODE2XSBSUEM6IFJlZ2lzdGVyZWQgcmRtYSB0cmFu
+c3BvcnQgbW9kdWxlLg0KWzE0NDQxLjQxNjY4OV0gUlBDOiBSZWdpc3RlcmVkIHJkbWEgYmFja2No
+YW5uZWwgdHJhbnNwb3J0IG1vZHVsZS4NClsxNDQ0MS40MTk5NzldIHJkbWFfcnhlOiBzZXQgcnhl
+MSBhY3RpdmUNClsxNDQ0MS40MjA2NTddIHJkbWFfcnhlOiBhZGRlZCByeGUxIHRvIGV0aDENClsx
+NDQ3MC40MjI4MzZdIGRldGVjdGVkIGxvb3BiYWNrIGRldmljZQ0KWzE0NDg0LjI3ODAyMl0gcmRt
+YV9yeGU6IHFwIzE4IG1vdmVkIHRvIGVycm9yIHN0YXRlDQoNCj4gDQo+PiANCj4+IEnigJlkIGxp
+a2UgdG8ga25vdyBpZiByeGUgbG9vcGJhY2sgaXMga25vd24gdG8gYmUgYnJva2VuLCBhbmQgaG93
+IHRvIGZpeCBpdC4NCj4+IA0KPj4gQmVzdCwNCj4+IEJhaXJlbiBZaQ0KDQpCYWlyZW4gWWkNCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
