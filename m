@@ -1,81 +1,53 @@
-From: Yi Bairen <byron-DzDj5FMp9MpyDzI6CaY1VQ@public.gmane.org>
-Subject: Re: Loopback with RXE?
-Date: Sat, 17 Feb 2018 13:03:05 +0000
-Message-ID: <F17D72E0-CBBE-4315-A576-91EA43EAB388@rbird.tech>
-References: <2145E340-3297-4ED2-BEC9-09E4CD582D24@rbird.tech>
- <20180214192559.GC8800@yuvallap>
+From: Mike Rapoprt <rppt-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [RFC 1/2] Protect larger order pages from breaking up
+Date: Sat, 17 Feb 2018 17:07:16 +0100
+Message-ID: <CF0D4656-676E-42EA-BB20-C3A557A397C6@linux.vnet.ibm.com>
+References: <20180216160110.641666320@linux.com> <20180216160121.519788537@linux.com> <b76028c6-c755-8178-2dfc-81c7db1f8bed@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180214192559.GC8800@yuvallap>
-Content-Language: en-US
-Content-ID: <9C5AFBD33EB0A84AA66254657BD82B81-OGSWmMykPMWcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <b76028c6-c755-8178-2dfc-81c7db1f8bed-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Mel Gorman <mel-wJa12IhQEiizQB+pC5nmwQ@public.gmane.org>
+Cc: Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Thomas Schoebel-Theuer <tst-0Nly+W1lFbFDiq0p6IFu4YQuADTiUCJX@public.gmane.org>, andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org, Rik van Riel <riel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Anshuman Khandual <khandual-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>, Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>, David Nellans <dnellans-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Laura Abbott <labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Dave Hansen <dave.hansen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Kravetz <mike.kravetz-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGksDQoNCj4gT24gMTUgRmViIDIwMTgsIGF0IDAzOjI1LCBZdXZhbCBTaGFpYSA8eXV2YWwuc2hh
-aWFAb3JhY2xlLmNvbT4gd3JvdGU6DQo+IA0KPiBPbiBXZWQsIEZlYiAxNCwgMjAxOCBhdCAwNTox
-MzowN1BNICswMDAwLCBZaSBCYWlyZW4gd3JvdGU6DQo+PiBIaSBmb2xrcywNCj4+IA0KPj4gU2Vl
-bXMgSSBjYW7igJl0IGdldCBhIExpbnV4IDQuOSAoRGViaWFuIDkuMykgVk0gd29ya2luZyB3aXRo
-IHNpbmdsZSBib3ggU29mdFJvQ0UgbG9vcGJhY2suIEkgaW5zdGFsbGVkIHJkbWEtY29yZSAxNi4g
-VGhlIHJkbWFfY2xpZW50ICYgcmRtYV9zZXJ2ZXIgaW4gdGhlIHNhbWUgYm94IHNlZW1zIHdvcmtp
-bmcuIEhvd2V2ZXIsIHdoZW4gSSB1c2UgaWJfd3JpdGVfYncgaW4gdGhlIHNhbWUgYm94LCB0aGUg
-UVBzIGNhbuKAmXQgYmUgY29ubmVjdGVkIHRocm91Z2ggdGhlIHNhbWUgcnhlIGRldmljZS4NCj4g
-DQo+IElmIHRoZSBRUHMgY29ubmVjdGlvbiBpcyBwcm9ibGVtYXRpYyB0aGVuIGhvdyBjb21lIHJk
-bWFfKiBpcyB3b3JraW5nPw0KDQpUaGUgcmRtYV9jbGllbnQgYW5kIHJkbWFfc2VydmVyIGRvIHdv
-cmsgd2l0aCBgZW5kIDBgLiANCg0KVGhlIGliX3dyaXRlX2J3IHNlZW1zIHRvIGhhbmcuIElmIEkg
-a2lsbCB0aGUgc2VydmVyIHNpZGUsIHRoZSBjbGllbnQgZG9lcyBub3QgcmVzcG9uZC4gSWYgSSBr
-aWxsIHRoZSBjbGllbnQgc2lkZSwgaXQgc2hvd3MgdGhlIGZvbGxvd2luZyBsb2c6DQoNCiQgaWJf
-d3JpdGVfYncNCg0KKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqDQoqIFdhaXRp
-bmcgZm9yIGNsaWVudCB0byBjb25uZWN0Li4uICoNCioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQogICAgICAgICAgICAg
-ICAgICAgIFJETUFfV3JpdGUgQlcgVGVzdA0KIER1YWwtcG9ydCAgICAgICA6IE9GRgkJRGV2aWNl
-ICAgICAgICAgOiByeGUwDQogTnVtYmVyIG9mIHFwcyAgIDogMQkJVHJhbnNwb3J0IHR5cGUgOiBJ
-Qg0KIENvbm5lY3Rpb24gdHlwZSA6IFJDCQlVc2luZyBTUlEgICAgICA6IE9GRg0KIENRIE1vZGVy
-YXRpb24gICA6IDEwMA0KIE10dSAgICAgICAgICAgICA6IDEwMjRbQl0NCiBMaW5rIHR5cGUgICAg
-ICAgOiBFdGhlcm5ldA0KIEdJRCBpbmRleCAgICAgICA6IDENCiBNYXggaW5saW5lIGRhdGEgOiAw
-W0JdDQogcmRtYV9jbSBRUHMJIDogT0ZGDQogRGF0YSBleC4gbWV0aG9kIDogRXRoZXJuZXQNCi0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KIGxvY2FsIGFkZHJlc3M6IExJRCAwMDAwIFFQ
-TiAweDAwMTQgUFNOIDB4Mzc4N2NhIFJLZXkgMHgwMDA1MmMgVkFkZHIgMHgwMDdmM2RkNGM0MjAw
-MA0KIEdJRDogMDA6MDA6MDA6MDA6MDA6MDA6MDA6MDA6MDA6MDA6MjU1OjI1NToxNTk6NjU6MTM6
-MzQNCiByZW1vdGUgYWRkcmVzczogTElEIDAwMDAgUVBOIDB4MDAxNSBQU04gMHg1YzhiYTkgUktl
-eSAweDAwMDY1OCBWQWRkciAweDAwN2YzMGU3NGIzMDAwDQogR0lEOiAwMDowMDowMDowMDowMDow
-MDowMDowMDowMDowMDoyNTU6MjU1OjE1OTo2NToxMzozNA0KLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tDQogI2J5dGVzICAgICAjaXRlcmF0aW9ucyAgICBCVyBwZWFrW01CL3NlY10gICAg
-QlcgYXZlcmFnZVtNQi9zZWNdICAgTXNnUmF0ZVtNcHBzXQ0KZXRoZXJuZXRfcmVhZF9rZXlzOiBD
-b3VsZG4ndCByZWFkIHJlbW90ZSBhZGRyZXNzDQogVW5hYmxlIHRvIHJlYWQgdG8gc29ja2V0L3Jk
-YW1fY20NCiBGYWlsZWQgdG8gZXhjaGFuZ2UgZGF0YSBiZXR3ZWVuIHNlcnZlciBhbmQgY2xpZW50
-cw0KDQogI2J5dGVzICAgICAjaXRlcmF0aW9ucyAgICBCVyBwZWFrW01CL3NlY10gICAgQlcgYXZl
-cmFnZVtNQi9zZWNdICAgTXNnUmF0ZVtNcHBzXQ0KZXRoZXJuZXRfcmVhZF9rZXlzOiBDb3VsZG4n
-dCByZWFkIHJlbW90ZSBhZGRyZXNzDQogVW5hYmxlIHRvIHJlYWQgdG8gc29ja2V0L3JkYW1fY20N
-CiBGYWlsZWQgdG8gZXhjaGFuZ2UgZGF0YSBiZXR3ZWVuIHNlcnZlciBhbmQgY2xpZW50cw0KDQpN
-eSBSWEUgY29uZmlnOg0KDQokIHN1ZG8gcnhlX2NmZyBzdGFydA0KICBOYW1lICAgICBMaW5rICBE
-cml2ZXIgICAgICBTcGVlZCAgTk1UVSAgSVB2NF9hZGRyICBSREVWICBSTVRVDQogIGRvY2tlcjAg
-IG5vICAgIGJyaWRnZQ0KICBldGgwICAgICB5ZXMgICB2aXJ0aW9fbmV0ICAgICAgICAgICAgICAg
-ICAgICAgICAgICByeGUwICAxMDI0ICAoMykNCiAgZXRoMSAgICAgeWVzICAgdmlydGlvX25ldCAg
-ICAgICAgICAgICAgICAgICAgICAgICAgcnhlMSAgMTAyNCAgKDMpDQoNCmRtZXNnOg0KDQpbMTQ0
-NDEuMzM2NzA3XSByZG1hX3J4ZTogbG9hZGVkDQpbMTQ0NDEuMzc1MTA4XSBMb2FkaW5nIGlTQ1NJ
-IHRyYW5zcG9ydCBjbGFzcyB2Mi4wLTg3MC4NClsxNDQ0MS4zODA5MzBdIHJkbWFfcnhlOiBzZXQg
-cnhlMCBhY3RpdmUNClsxNDQ0MS4zODE4MjRdIHJkbWFfcnhlOiBhZGRlZCByeGUwIHRvIGV0aDAN
-ClsxNDQ0MS4zODk1NjddIGlzY3NpOiByZWdpc3RlcmVkIHRyYW5zcG9ydCAoaXNlcikNClsxNDQ0
-MS40MDM1OTVdIFJQQzogUmVnaXN0ZXJlZCBuYW1lZCBVTklYIHNvY2tldCB0cmFuc3BvcnQgbW9k
-dWxlLg0KWzE0NDQxLjQwNDYxOF0gUlBDOiBSZWdpc3RlcmVkIHVkcCB0cmFuc3BvcnQgbW9kdWxl
-Lg0KWzE0NDQxLjQwNTM5MF0gUlBDOiBSZWdpc3RlcmVkIHRjcCB0cmFuc3BvcnQgbW9kdWxlLg0K
-WzE0NDQxLjQwNjA1N10gUlBDOiBSZWdpc3RlcmVkIHRjcCBORlN2NC4xIGJhY2tjaGFubmVsIHRy
-YW5zcG9ydCBtb2R1bGUuDQpbMTQ0NDEuNDE1ODE2XSBSUEM6IFJlZ2lzdGVyZWQgcmRtYSB0cmFu
-c3BvcnQgbW9kdWxlLg0KWzE0NDQxLjQxNjY4OV0gUlBDOiBSZWdpc3RlcmVkIHJkbWEgYmFja2No
-YW5uZWwgdHJhbnNwb3J0IG1vZHVsZS4NClsxNDQ0MS40MTk5NzldIHJkbWFfcnhlOiBzZXQgcnhl
-MSBhY3RpdmUNClsxNDQ0MS40MjA2NTddIHJkbWFfcnhlOiBhZGRlZCByeGUxIHRvIGV0aDENClsx
-NDQ3MC40MjI4MzZdIGRldGVjdGVkIGxvb3BiYWNrIGRldmljZQ0KWzE0NDg0LjI3ODAyMl0gcmRt
-YV9yeGU6IHFwIzE4IG1vdmVkIHRvIGVycm9yIHN0YXRlDQoNCj4gDQo+PiANCj4+IEnigJlkIGxp
-a2UgdG8ga25vdyBpZiByeGUgbG9vcGJhY2sgaXMga25vd24gdG8gYmUgYnJva2VuLCBhbmQgaG93
-IHRvIGZpeCBpdC4NCj4+IA0KPj4gQmVzdCwNCj4+IEJhaXJlbiBZaQ0KDQpCYWlyZW4gWWkNCg0K
+
+
+On February 16, 2018 7:02:53 PM GMT+01:00, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
+>On 02/16/2018 08:01 AM, Christoph Lameter wrote:
+>> Control over this feature is by writing to /proc/zoneinfo.
+>> 
+>> F.e. to ensure that 2000 16K pages stay available for jumbo
+>> frames do
+>> 
+>> 	echo "2=2000" >/proc/zoneinfo
+>> 
+>> or through the order=<page spec> on the kernel command line.
+>> F.e.
+>> 
+>> 	order=2=2000,4N2=500
+>
+>
+>Please document the the kernel command line option in
+>Documentation/admin-guide/kernel-parameters.txt.
+>
+>I suppose that /proc/zoneinfo should be added somewhere in
+>Documentation/vm/
+>but I'm not sure where that would be.
+
+It's in Documentation/sysctl/vm.txt and in 'man proc' [1]
+
+[1] https://git.kernel.org/pub/scm/docs/man-pages/man-pages.git/tree/man5/proc.5
+
+>thanks,
+
+-- 
+Sincerely yours,
+Mike.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
