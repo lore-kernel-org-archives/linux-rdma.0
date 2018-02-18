@@ -1,60 +1,39 @@
-From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCHv2 1/1] IB/rxe: remove unnecessary skb_clone
-Date: Sun, 18 Feb 2018 10:12:27 +0200
-Message-ID: <9ae90bdd-3b40-4485-2a0e-0afa08200fed@mellanox.com>
-References: <1515140391-24752-1-git-send-email-yanjun.zhu@oracle.com>
- <1518508786-3204-1-git-send-email-yanjun.zhu@oracle.com>
- <20180213112124.GA6991@yuvallap>
- <5779a11b-d0f2-3231-a63f-009b1f080fb8@oracle.com>
- <20180214103630.GB4282@yuvallap>
+From: Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [RFC 1/2] Protect larger order pages from breaking up
+Date: Sun, 18 Feb 2018 09:00:00 +0000
+Message-ID: <DB6PR05MB335259492C780BA8B5BF8959BDC90@DB6PR05MB3352.eurprd05.prod.outlook.com>
+References: <20180216160110.641666320@linux.com>
+ <20180216160121.519788537@linux.com>
+ <5108eb20-2b20-bd48-903e-bce312e96974@oracle.com>
+ <alpine.DEB.2.20.1802161411440.11934@nuc-kabylake>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180214103630.GB4282@yuvallap>
+In-Reply-To: <alpine.DEB.2.20.1802161411440.11934@nuc-kabylake>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Yanjun Zhu <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Mike Kravetz <mike.kravetz-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Mel Gorman <mel-wJa12IhQEiizQB+pC5nmwQ@public.gmane.org>, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Thomas Schoebel-Theuer <tst-0Nly+W1lFbFDiq0p6IFu4YQuADTiUCJX@public.gmane.org>, "andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org" <andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>, Rik van Riel <riel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Anshuman Khandual <khandual-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Michal Nazarewicz <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>, Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>, David Nellans <dnellans-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Laura Abbott <labbott-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Dave Hansen <dave.hansen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/14/2018 12:36 PM, Yuval Shaia wrote:
->>>>    	}
->>>> -	skb_copy = skb_clone(skb, GFP_ATOMIC);
->>>> -	if (skb_copy)
->>>> -		rxe_add_ref(qp); /* for the new SKB */
->>> Are you sure we don't need this?
->>  From my stress tests and performance tests, it will get better performance
->> to remove skb_clone.
-> 
-> My concern is only with the above ref count.
-I agree with yuval in case xmit fails.
-	send_atomic_ack()
-	{
-	   rxe_xmit_packet()
-	   {
-	      rxe_send()
-	      {
-		 rxe_add_ref(pkt->qp)  <--- add qp ref
-		 err = ip_local_out() <---- fail here
-	      }
-	
-	   if (rxe_xmit_packet() fails) {
-		rxe_drop_ref(qp) <--- you must deref here
-	   }
-	}
-> 
->> And there is no memory leak.  The whole soft RoCE can work well.
->> So I think removing this function is a good choice.
->>
->> Zhu Yanjun
->>>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>=20
+> Yup it has a pool for everyone. Question is how to divide the loot ;-)
+>=20
+> > IIRC, Guy Shattah's use case was for allocations greater than MAX_ORDER=
+.
+> > This would not directly address that.  A huge contiguous area (2GB) is
+> > the sweet spot' for best performance in his case.  However, I think he
+> > could still benefit from using a set of larger (such as 2MB) size
+> > allocations which this scheme could help with.
+>=20
+> MAX_ORDER can be increased to allow for larger allocations. IA64 has f.e.
+> a much larger MAX_ORDER size. So does powerpc. And then the reservation
+> scheme will work.
+>=20
 
+MAX_ORDER can be increased only if kernel is recompiled.=20
+It won't work for code running for the general case / typical user.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
