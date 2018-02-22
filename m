@@ -1,59 +1,34 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: RSOCKETS client rconnect() error
-Date: Thu, 22 Feb 2018 16:31:21 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373B1EBB267@ORSMSX109.amr.corp.intel.com>
-References: <CAMvY+dzeS7RMmDkfs98vHGsftDL50yzOwCM=biBJYn5HtawQvw@mail.gmail.com>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 4.8-2-rc2 release is available
+Date: Thu, 22 Feb 2018 23:45:40 +0200
+Message-ID: <7fa1e35e-e200-ab40-de19-c1226f8a0529@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
 Content-Transfer-Encoding: base64
-Return-path: <ofiwg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-In-Reply-To: <CAMvY+dzeS7RMmDkfs98vHGsftDL50yzOwCM=biBJYn5HtawQvw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ofiwg>,
- <mailto:ofiwg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ofiwg/>
-List-Post: <mailto:ofiwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ofiwg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ofiwg>,
- <mailto:ofiwg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Errors-To: ofiwg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Sender: "ofiwg" <ofiwg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-To: "watermmm12-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <watermmm12-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ofiwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofiwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBJIHdhcyB0cmllZCB0byB1c2UgbGliaWJ2ZXJicyBsaWJyYXJ5LCBidXQsIGluIHNlcnZlciBz
-aWRlLA0KPiBpYnZfYWxsb2NfcGQgY2F1c2VkIHNlZ21lbnRhdGlvbiBmYXVsdCBhbmQgaXQgbWFr
-ZXMgbWUgc3BlbmRzIHJlYWxseQ0KPiByZWFsbHkgbG9uZyB0aW1lcy4gSSBoZWFyZCBpdCBpcyBj
-YXVzZWQgYmVjYXVzZSBwYXNzZWQgKHBhcmFtZXRlciwpDQo+IGNvbnRleHQgcG9pbnRlciB2YWx1
-ZSBpcyBpbnZhbGlkLCBidXQgaXQgc2VlbWVkIG5vdChJIGNoZWNrZWQgaXQgdmlhDQo+IGdkYiku
-IDwtIEZpbmFsbHkgSSBkaWRuJ3QgZmlndXJlIG91dCB0aGUgcmVhc29uLg0KPiANCj4gDQo+IFNv
-LCBJIGNoYW5nZWQgbGlicmFyeSB0byBSU09DS0VUUy4ganVzdCBjaGFuZ2VkIHNvY2tldCBwcm9n
-cmFtIHRvDQo+IHJzb2NrZXQgYnkgY2hhbmdlIGZ1bmN0aW9ucyB0byAncicgcHJlZml4ZWQuIFNl
-cnZlciBpcyBsb29rcyBvaywgYnV0DQo+IHdoZW4gdHJ5IHRvIHJjb25uZWN0IGluIGNsaWVudCwg
-Y2xpZW50IHJldHVybnMgJ0Nhbm5vdCBhbGxvY2F0ZQ0KPiBtZW1vcnknIGVycm9yIG1lc3NhZ2Uu
-DQo+IA0KPiANCj4gV2hhdCBpcyB3cm9uZyB3aXRoIG15IHByb2dyYW0/IEkganVzdCBmb2xsb3dl
-ZCBleGFtcGxlcyBpbiBuZXR3b3JrcywNCj4gYnV0IGZhaWxlZC4gSSBjYW4ndCBjYXRjaCB3aGF0
-IGlzIHRoZSBkaWZmZXJlbmNlIGJldHdlZW4gdGhlaXJzIGFuZA0KPiBtaW5lLg0KPiANCj4gDQo+
-IEhlbHAgbWUuLg0KPiANCj4gDQo+IFRoYW5rcyBmb3IgcmVhZGluZywgYW5kIGlmIHRoaXMgZS1t
-YWlsIGFkZHJlc3MgaXMgbm90IGZvciBhc2sgYWJvdXQNCj4gcHJvYmxlbSwgcGxlYXNlIGNvbW1l
-bnQgb3RoZXJzIHdoZXJlIHRvIGFzay4gKHNlcmlvdXNseSwgdGhlcmUgYXJlIG5vDQo+IGluZm9y
-bWF0aW9uIGFuZCBkb2N1bWVudGF0aW9uIGFib3V0IFJTT0NLRVRTICEhIDstKCAgKQ0KDQpBcyBv
-ZiB0b2RheSwgcnNvY2tldCBxdWVzdGlvbnMgYXJlIGJlc3QgZGlyZWN0ZWQgdG8gbGludXgtcmRt
-YUB2Z2VyLmtlcm5lbC5vcmcgKGNvcGllZCkuICBUaGF0IGdvZXMgZm9yIGxpYmlidmVyYnMgYmFz
-ZWQgcXVlc3Rpb25zIGFzIHdlbGwuICBSc29ja2V0cyBpcyBpbnRlbmRlZCB0byBtaW1pYyBzdGFu
-ZGFyZCBzb2NrZXQgY2FsbHMsIHNvIGFueSBzb2NrZXQgYmFzZWQgbWFuIHBhZ2UgaXMgcmVsZXZh
-bnQuICBUaGVyZSBpcyBhbiByc29ja2V0IG1hbiBwYWdlIHdoaWNoIHByb3ZpZGVzIGEgc21hbGwg
-YW1vdW50IG9mIGFkZGl0aW9uYWwgZGV0YWlscy4gIFNlZQ0KDQpodHRwczovL2xpbnV4LmRpZS5u
-ZXQvbWFuLzcvcnNvY2tldA0KDQpPZiBjb3Vyc2UsIG5vbmUgb2YgdGhhdCB0ZWxscyB5b3Ugd2hl
-cmUgdG8gZ28gd2l0aCBxdWVzdGlvbnMuLi4NCg0KVGhlcmUgYXJlIGEgY291cGxlIG9mIGV4YW1w
-bGUgcHJvZ3JhbXMgcHJvdmlkZWQgd2l0aCByc29ja2V0cy4gIEFyZSB5b3UgYWJsZSB0byBydW4g
-J3JzdHJlYW0nIHN1Y2Nlc3NmdWxseT8NCg0KV2l0aG91dCBrbm93aW5nIG1vcmUgZGV0YWlscyBh
-Ym91dCB5b3VyIGNvZGUsIGl0IHdpbGwgYmUgcmVhbGx5IGhhcmQgdG8gZmlndXJlIG91dCB3aGF0
-IGlzIHdyb25nLiAgVGhlIGZvbGxvd2luZyBsaW5rIF9taWdodF8gaGVscCBpbiBjYXNlIHlvdSBo
-YXZlIHJlc3RyaWN0aW9ucyBvbiBob3cgbXVjaCBtZW1vcnkgY2FuIGJlIGxvY2tlZCBkb3duIG9u
-IHlvdXIgc3lzdGVtOg0KDQpodHRwczovL3NvZnR3YXJlLmludGVsLmNvbS9lbi11cy9ibG9ncy8y
-MDE0LzEyLzE2L2Jlc3Qta25vd24tbWV0aG9kcy1mb3Itc2V0dGluZy1sb2NrZWQtbWVtb3J5LXNp
-emUNCg0KLSBTZWFuDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpvZml3ZyBtYWlsaW5nIGxpc3QKb2Zpd2dAbGlzdHMub3BlbmZhYnJpY3Mub3JnCmh0dHA6
-Ly9saXN0cy5vcGVuZmFicmljcy5vcmcvbWFpbG1hbi9saXN0aW5mby9vZml3Zwo=
+SGksCk9GRUQtNC44LTItcmMyIGlzIGF2YWlsYWJsZSBhdDoKCmh0dHBzOi8vb3BlbmZhYnJpY3Mu
+b3JnL2Rvd25sb2Fkcy9PRkVEL29mZWQtNC44LTIvT0ZFRC00LjgtMi1yYzEudGd6CgoKVG8gZ2V0
+IEJVSUxEX0lEIHJ1biBvZmVkX2luZm8KClBsZWFzZSByZXBvcnQgYW55IGlzc3VlcyBpbiBidWd6
+aWxsYQpodHRwOi8vYnVncy5vcGVuZmFicmljcy5vcmcvYnVnemlsbGEvIGZvciBPRkVEIDQuOC0y
+CgpSZWxlYXNlIG5vdGVzOgoKaHR0cDovL29wZW5mYWJyaWNzLm9yZy9kb3dubG9hZHMvT0ZFRC9y
+ZWxlYXNlX25vdGVzL09GRURfNC44LTItcmMyLXJlbGVhc2Vfbm90ZXMKCgpPRkVELTQuOC0yLXJj
+MiBNYWluIENoYW5nZXMgZnJvbSBPRkVELTQuOC0yLXJjMQotLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+CjEuIFVwZGF0ZWQgcGFja2FnZXMKLSByZG1hLWNvcmUtdjE2LjMKCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmV3ZyBtYWlsaW5nIGxpc3QKZXdnQGxpc3Rz
+Lm9wZW5mYWJyaWNzLm9yZwpodHRwOi8vbGlzdHMub3BlbmZhYnJpY3Mub3JnL21haWxtYW4vbGlz
+dGluZm8vZXdn
