@@ -1,8 +1,7 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 05/10] block: Introduce PCI P2P flags for request and
- request queue
-Date: Wed, 28 Feb 2018 16:40:01 -0700
-Message-ID: <20180228234006.21093-6-logang@deltatee.com>
+Subject: [PATCH v2 09/10] nvme-pci: Add a quirk for a pseudo CMB
+Date: Wed, 28 Feb 2018 16:40:05 -0700
+Message-ID: <20180228234006.21093-10-logang@deltatee.com>
 References: <20180228234006.21093-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,98 +21,84 @@ To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY7
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-QUEUE_FLAG_PCI_P2P is introduced meaning a driver's request queue
-supports targeting P2P memory.
+Introduce a quirk to use CMB-like memory on older devices that have
+an exposed BAR but do not advertise support for using CMBLOC and
+CMBSIZE.
 
-REQ_PCI_P2P is introduced to indicate a particular bio request is
-directed to/from PCI P2P memory. A request with this flag is not
-accepted unless the corresponding queues have the QUEUE_FLAG_PCI_P2P
-flag set.
+We'd like to use some of these older cards to test P2P memory.
 
 Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 ---
- block/blk-core.c          |  3 +++
- include/linux/blk_types.h | 18 +++++++++++++++++-
- include/linux/blkdev.h    |  3 +++
- 3 files changed, 23 insertions(+), 1 deletion(-)
+ drivers/nvme/host/nvme.h |  7 +++++++
+ drivers/nvme/host/pci.c  | 24 ++++++++++++++++++++----
+ 2 files changed, 27 insertions(+), 4 deletions(-)
 
-diff --git a/block/blk-core.c b/block/blk-core.c
-index 2d1a7bbe0634..36a6a304a559 100644
---- a/block/blk-core.c
-+++ b/block/blk-core.c
-@@ -2183,6 +2183,9 @@ generic_make_request_checks(struct bio *bio)
- 	if ((bio->bi_opf & REQ_NOWAIT) && !queue_is_rq_based(q))
- 		goto not_supported;
- 
-+	if ((bio->bi_opf & REQ_PCI_P2PDMA) && !blk_queue_pci_p2pdma(q))
-+		goto not_supported;
+diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+index e38beb1917e2..c84a1b9580c8 100644
+--- a/drivers/nvme/host/nvme.h
++++ b/drivers/nvme/host/nvme.h
+@@ -83,6 +83,13 @@ enum nvme_quirks {
+ 	 * Supports the LighNVM command set if indicated in vs[1].
+ 	 */
+ 	NVME_QUIRK_LIGHTNVM			= (1 << 6),
 +
- 	if (should_fail_bio(bio))
- 		goto end_io;
++	/*
++	 * Pseudo CMB Support on BAR 4. For adapters like the Microsemi
++	 * NVRAM that have CMB-like memory on a BAR but does not set
++	 * CMBLOC or CMBSZ.
++	 */
++	NVME_QUIRK_PSEUDO_CMB_BAR4		= (1 << 7),
+ };
  
-diff --git a/include/linux/blk_types.h b/include/linux/blk_types.h
-index bf18b95ed92d..490122c85b3f 100644
---- a/include/linux/blk_types.h
-+++ b/include/linux/blk_types.h
-@@ -274,6 +274,10 @@ enum req_flag_bits {
- 	__REQ_BACKGROUND,	/* background IO */
- 	__REQ_NOWAIT,           /* Don't wait if request will block */
+ /*
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index b896a78225cb..2ad20fb9f05d 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -1679,6 +1679,13 @@ static ssize_t nvme_cmb_show(struct device *dev,
+ }
+ static DEVICE_ATTR(cmb, S_IRUGO, nvme_cmb_show, NULL);
  
-+#ifdef CONFIG_PCI_P2PDMA
-+	__REQ_PCI_P2PDMA,	/* request is to/from P2P memory */
-+#endif
++static u32 nvme_pseudo_cmbsz(struct pci_dev *pdev, int bar)
++{
++	return NVME_CMBSZ_WDS | NVME_CMBSZ_RDS |
++		(((ilog2(SZ_16M) - 12) / 4) << NVME_CMBSZ_SZU_SHIFT) |
++		((pci_resource_len(pdev, bar) / SZ_16M) << NVME_CMBSZ_SZ_SHIFT);
++}
 +
- 	/* command specific flags for REQ_OP_WRITE_ZEROES: */
- 	__REQ_NOUNMAP,		/* do not free blocks when zeroing */
+ static u64 nvme_cmb_size_unit(struct nvme_dev *dev)
+ {
+ 	u8 szu = (dev->cmbsz >> NVME_CMBSZ_SZU_SHIFT) & NVME_CMBSZ_SZU_MASK;
+@@ -1698,10 +1705,15 @@ static void nvme_map_cmb(struct nvme_dev *dev)
+ 	struct pci_dev *pdev = to_pci_dev(dev->dev);
+ 	int bar;
  
-@@ -298,6 +302,18 @@ enum req_flag_bits {
- #define REQ_BACKGROUND		(1ULL << __REQ_BACKGROUND)
- #define REQ_NOWAIT		(1ULL << __REQ_NOWAIT)
+-	dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
+-	if (!dev->cmbsz)
+-		return;
+-	dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	if (dev->ctrl.quirks & NVME_QUIRK_PSEUDO_CMB_BAR4) {
++		dev->cmbsz = nvme_pseudo_cmbsz(pdev, 4);
++		dev->cmbloc = 4;
++	} else {
++		dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
++		if (!dev->cmbsz)
++			return;
++		dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	}
  
-+#ifdef CONFIG_PCI_P2PDMA
-+/*
-+ * Currently SGLs do not support mixed P2P and regular memory so
-+ * requests with P2P memory must not be merged.
-+ */
-+#define REQ_PCI_P2PDMA		(1ULL << __REQ_PCI_P2PDMA)
-+#define REQ_IS_PCI_P2PDMA(req)	((req)->cmd_flags & REQ_PCI_P2PDMA)
-+#else
-+#define REQ_PCI_P2PDMA		0
-+#define REQ_IS_PCI_P2PDMA(req)	0
-+#endif /* CONFIG_PCI_P2PDMA */
-+
- #define REQ_NOUNMAP		(1ULL << __REQ_NOUNMAP)
- 
- #define REQ_DRV			(1ULL << __REQ_DRV)
-@@ -306,7 +322,7 @@ enum req_flag_bits {
- 	(REQ_FAILFAST_DEV | REQ_FAILFAST_TRANSPORT | REQ_FAILFAST_DRIVER)
- 
- #define REQ_NOMERGE_FLAGS \
--	(REQ_NOMERGE | REQ_PREFLUSH | REQ_FUA)
-+	(REQ_NOMERGE | REQ_PREFLUSH | REQ_FUA | REQ_PCI_P2PDMA)
- 
- #define bio_op(bio) \
- 	((bio)->bi_opf & REQ_OP_MASK)
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index ed63f3b69c12..0b4a386c73ea 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -698,6 +698,7 @@ struct request_queue {
- #define QUEUE_FLAG_SCSI_PASSTHROUGH 27	/* queue supports SCSI commands */
- #define QUEUE_FLAG_QUIESCED    28	/* queue has been quiesced */
- #define QUEUE_FLAG_PREEMPT_ONLY	29	/* only process REQ_PREEMPT requests */
-+#define QUEUE_FLAG_PCI_P2PDMA  30	/* device supports pci p2p requests */
- 
- #define QUEUE_FLAG_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
- 				 (1 << QUEUE_FLAG_SAME_COMP)	|	\
-@@ -793,6 +794,8 @@ static inline void queue_flag_clear(unsigned int flag, struct request_queue *q)
- #define blk_queue_dax(q)	test_bit(QUEUE_FLAG_DAX, &(q)->queue_flags)
- #define blk_queue_scsi_passthrough(q)	\
- 	test_bit(QUEUE_FLAG_SCSI_PASSTHROUGH, &(q)->queue_flags)
-+#define blk_queue_pci_p2pdma(q)	\
-+	test_bit(QUEUE_FLAG_PCI_P2PDMA, &(q)->queue_flags)
- 
- #define blk_noretry_request(rq) \
- 	((rq)->cmd_flags & (REQ_FAILFAST_DEV|REQ_FAILFAST_TRANSPORT| \
+ 	size = nvme_cmb_size_unit(dev) * nvme_cmb_size(dev);
+ 	offset = nvme_cmb_size_unit(dev) * NVME_CMB_OFST(dev->cmbloc);
+@@ -2715,6 +2727,10 @@ static const struct pci_device_id nvme_id_table[] = {
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
+ 	{ PCI_DEVICE(0x1d1d, 0x2807),	/* CNEX WL */
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
++	{ PCI_DEVICE(0x11f8, 0xf117),	/* Microsemi NVRAM adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4, },
++	{ PCI_DEVICE(0x1db1, 0x0002),	/* Everspin nvNitro adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4,  },
+ 	{ PCI_DEVICE_CLASS(PCI_CLASS_STORAGE_EXPRESS, 0xffffff) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2001) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2003) },
 -- 
 2.11.0
