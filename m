@@ -1,7 +1,7 @@
-From: Bart Van Assche <bart.vanassche@wdc.com>
+From: Max Gurtovoy <maxg@mellanox.com>
 Subject: Re: [PATCH] RDMA/core: reduce IB_POLL_BATCH constant
-Date: Tue, 27 Feb 2018 16:21:05 -0800
-Message-ID: <d2875648-20d9-43b9-abf1-8ecbf049c4bf@wdc.com>
+Date: Wed, 28 Feb 2018 11:50:46 +0200
+Message-ID: <1e7c373f-21bd-4d45-3dd6-68467bf09d0d@mellanox.com>
 References: <20180220205924.2035765-1-arnd@arndb.de>
  <1519161268.3737.12.camel@wdc.com>
  <F2FB1034-BFB6-45ED-878E-6FADD756157D@oracle.com>
@@ -10,44 +10,54 @@ References: <20180220205924.2035765-1-arnd@arndb.de>
  <c1bcd5cc-381d-2d94-1278-f9fb5c9c0b14@grimberg.me>
  <20180227220958.GA21714@ziepe.ca>
  <193aaf91-c9d1-38b1-a89f-45f129ca5798@mellanox.com>
+ <d2875648-20d9-43b9-abf1-8ecbf049c4bf@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1255; format=flowed
+Content-Type: text/plain; charset="windows-1255"; format=flowed
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <193aaf91-c9d1-38b1-a89f-45f129ca5798@mellanox.com>
-Content-Language: en-US
+In-Reply-To: <d2875648-20d9-43b9-abf1-8ecbf049c4bf@wdc.com>
+Content-Language: he
 Sender: linux-kernel-owner@vger.kernel.org
-To: Max Gurtovoy <maxg@mellanox.com>, Jason Gunthorpe <jgg@ziepe.ca>, Sagi Grimberg <sagi@grimberg.me>
+To: Bart Van Assche <bart.vanassche@wdc.com>, Jason Gunthorpe <jgg@ziepe.ca>, Sagi Grimberg <sagi@grimberg.me>
 Cc: Chuck Lever <chuck.lever@oracle.com>, "arnd@arndb.de" <arnd@arndb.de>, "dledford@redhat.com" <dledford@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "leonro@mellanox.com" <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/27/18 14:15, Max Gurtovoy wrote:
-> -static int __ib_process_cq(struct ib_cq *cq, int budget, struct ib_wc 
-> *poll_wc)
-> +static int __ib_process_cq(struct ib_cq *cq, int budget, struct ib_wc 
-> *poll_wc,
-> +                          int batch)
->   {
-> -       int i, n, completed = 0;
-> -       struct ib_wc *wcs = poll_wc ? : cq->wc;
-> +       int i, n, ib_poll_batch, completed = 0;
-> +       struct ib_wc *wcs;
-> +
-> +       if (poll_wc) {
-> +               wcs = poll_wc;
-> +               ib_poll_batch = batch;
-> +       } else {
-> +               wcs = cq->wc;
-> +               ib_poll_batch = IB_POLL_BATCH;
-> +       }
 
-Since this code has to be touched I think that we can use this 
-opportunity to get rid of the "poll_wc ? : cq->wc" conditional and 
-instead use what the caller passes. That will require to update all 
-__ib_process_cq(..., ..., NULL) calls. I also propose to let the caller 
-pass ib_poll_batch instead of figuring it out in this function. 
-Otherwise the approach of this patch looks fine to me.
 
-Thanks,
+On 2/28/2018 2:21 AM, Bart Van Assche wrote:
+> On 02/27/18 14:15, Max Gurtovoy wrote:
+>> -static int __ib_process_cq(struct ib_cq *cq, int budget, struct ib_wc 
+>> *poll_wc)
+>> +static int __ib_process_cq(struct ib_cq *cq, int budget, struct ib_wc 
+>> *poll_wc,
+>> +                          int batch)
+>>   {
+>> -       int i, n, completed = 0;
+>> -       struct ib_wc *wcs = poll_wc ? : cq->wc;
+>> +       int i, n, ib_poll_batch, completed = 0;
+>> +       struct ib_wc *wcs;
+>> +
+>> +       if (poll_wc) {
+>> +               wcs = poll_wc;
+>> +               ib_poll_batch = batch;
+>> +       } else {
+>> +               wcs = cq->wc;
+>> +               ib_poll_batch = IB_POLL_BATCH;
+>> +       }
+> 
+> Since this code has to be touched I think that we can use this 
+> opportunity to get rid of the "poll_wc ? : cq->wc" conditional and 
+> instead use what the caller passes. That will require to update all 
+> __ib_process_cq(..., ..., NULL) calls. I also propose to let the caller 
+> pass ib_poll_batch instead of figuring it out in this function. 
+> Otherwise the approach of this patch looks fine to me.
 
-Bart.
+Thanks Bart.
+I'll make these changes and submit.
+
+> 
+> Thanks,
+> 
+> Bart.
+
+-Max.
