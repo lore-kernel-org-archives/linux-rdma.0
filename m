@@ -1,54 +1,35 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 1/2] infiniband: qplib_fp: fix pointer cast
-Date: Wed, 28 Feb 2018 14:15:14 -0700
-Message-ID: <20180228211514.GC13394@ziepe.ca>
-References: <20180220205638.1959033-1-arnd@arndb.de>
+Subject: Re: [PATCH 1/2] IB/qib: Remove unused variable (char
+ *qib_sdma_event_names[])
+Date: Wed, 28 Feb 2018 14:16:08 -0700
+Message-ID: <20180228211608.GF13394@ziepe.ca>
+References: <1519769143-20000-1-git-send-email-hernan@vanguardiasur.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180220205638.1959033-1-arnd@arndb.de>
+In-Reply-To: <1519769143-20000-1-git-send-email-hernan@vanguardiasur.com.ar>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, Bart Van Assche <bart.vanassche@wdc.com>, Eddie Wai <eddie.wai@broadcom.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: =?utf-8?Q?Hern=C3=A1n?= Gonzalez <hernan@vanguardiasur.com.ar>
+Cc: dennis.dalessandro@intel.com, mike.marciniszyn@intel.com, dledford@redhat.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 20, 2018 at 09:56:26PM +0100, Arnd Bergmann wrote:
-> Building for a 32-bit target results in a couple of warnings from casting between
-> a 32-bit pointer and a 64-bit integer:
+On Tue, Feb 27, 2018 at 07:05:42PM -0300, Hernán Gonzalez wrote:
+> Note: This is compile only tested as I have no access to the hw.
 > 
-> drivers/infiniband/hw/bnxt_re/qplib_fp.c: In function 'bnxt_qplib_service_nq':
-> drivers/infiniband/hw/bnxt_re/qplib_fp.c:333:23: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
->     bnxt_qplib_arm_srq((struct bnxt_qplib_srq *)q_handle,
->                        ^
-> drivers/infiniband/hw/bnxt_re/qplib_fp.c:336:12: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
->             (struct bnxt_qplib_srq *)q_handle,
->             ^
-> In file included from include/linux/byteorder/little_endian.h:5,
->                  from arch/arm/include/uapi/asm/byteorder.h:22,
->                  from include/asm-generic/bitops/le.h:6,
->                  from arch/arm/include/asm/bitops.h:342,
->                  from include/linux/bitops.h:38,
->                  from include/linux/kernel.h:11,
->                  from include/linux/interrupt.h:6,
->                  from drivers/infiniband/hw/bnxt_re/qplib_fp.c:39:
-> drivers/infiniband/hw/bnxt_re/qplib_fp.c: In function 'bnxt_qplib_create_srq':
-> include/uapi/linux/byteorder/little_endian.h:31:43: error: cast from pointer to integer of different size [-Werror=pointer-to-int-cast]
->  #define __cpu_to_le64(x) ((__force __le64)(__u64)(x))
->                                            ^
-> include/linux/byteorder/generic.h:86:21: note: in expansion of macro '__cpu_to_le64'
->  #define cpu_to_le64 __cpu_to_le64
->                      ^~~~~~~~~~~~~
-> drivers/infiniband/hw/bnxt_re/qplib_fp.c:569:19: note: in expansion of macro 'cpu_to_le64'
->   req.srq_handle = cpu_to_le64(srq);
+> This variable was not used anywhere in the code. Removing it saves 88 bytes.
 > 
-> Using a uintptr_t as an intermediate works on all architectures.
+> add/remove: 0/1 grow/shrink: 0/0 up/down: 0/-88 (-88)
+> Function                                     old     new   delta
+> qib_sdma_event_names                          88       -     -88
+> Total: Before=2874565, After=2874477, chg -0.00%
 > 
-> Fixes: 37cb11acf1f7 ("RDMA/bnxt_re: Add SRQ support for Broadcom adapters")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->  drivers/infiniband/hw/bnxt_re/qplib_fp.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> Signed-off-by: Hernán Gonzalez <hernan@vanguardiasur.com.ar>
+>  drivers/infiniband/hw/qib/qib.h      |  1 -
+>  drivers/infiniband/hw/qib/qib_sdma.c | 14 --------------
+>  2 files changed, 15 deletions(-)
 
-I applied the series to for-next, thanks
+Applied the series to for-next, thanks
 
 Jason
