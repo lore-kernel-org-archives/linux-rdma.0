@@ -1,37 +1,150 @@
-From: =?UTF-8?Q?Hern=C3=A1n_Gonzalez?= <hernan@vanguardiasur.com.ar>
-Subject: Re: [PATCH] IB/rxe: Remove unused variable (char *rxe_qp_state_name[])
-Date: Wed, 28 Feb 2018 19:58:20 -0300
-Message-ID: <CALfa3vGLja=CvkK-L+9CV9seF9C=jUkBR9p46bWb4oO1vFkgcg@mail.gmail.com>
-References: <1519769278-20094-1-git-send-email-hernan@vanguardiasur.com.ar> <1519769819.23791.19.camel@wdc.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
+Date: Wed, 28 Feb 2018 16:39:56 -0700
+Message-ID: <20180228234006.21093-1-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1519769819.23791.19.camel@wdc.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@wdc.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "monis@mellanox.com" <monis@mellanox.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 27, 2018 at 7:17 PM, Bart Van Assche <Bart.VanAssche@wdc.com> w=
-rote:
-> On Tue, 2018-02-27 at 19:07 -0300, Hern=C3=A1n Gonzalez wrote:
->> Note: This is compile only tested as I have no access to the hw.
->
-> Hello Hern=C3=A1n,
->
-> Are you aware that the only hardware that is needed to test this driver i=
-s
-> an Ethernet interface, and that this driver even supports the loopback
-> interface?
->
-> Bart.
->
+Hi Everyone,
 
-Hello Bart,
+Here's v2 of our series to introduce P2P based copy offload to NVMe
+fabrics. This version has been rebased onto v4.16-rc3 which already
+includes Christoph's devpagemap work the previous version was based
+off as well as a couple of the cleanup patches that were in v1.
 
-No, I didn't know, sorry about that. I'll test it as soon as I can.
-Thanks for the response.
+Additionally, we've made the following changes based on feedback:
 
-Cheers,
-Hern=C3=A1n
+* Renamed everything to 'p2pdma' per the suggestion from Bjorn as well
+  as a bunch of cleanup and spelling fixes he pointed out in the last
+  series.
+
+* To address Alex's ACS concerns, we change to a simpler method of
+  just disabling ACS behind switches for any kernel that has
+  CONFIG_PCI_P2PDMA.
+
+* We also reject using devices that employ 'dma_virt_ops' which should
+  fairly simply handle Jason's concerns that this work might break with
+  the HFI, QIB and rxe drivers that use the virtual ops to implement
+  their own special DMA operations.
+
+Thanks,
+
+Logan
+
+--
+
+This is a continuation of our work to enable using Peer-to-Peer PCI
+memory in NVMe fabrics targets. Many thanks go to Christoph Hellwig who
+provided valuable feedback to get these patches to where they are today.
+
+The concept here is to use memory that's exposed on a PCI BAR as
+data buffers in the NVME target code such that data can be transferred
+from an RDMA NIC to the special memory and then directly to an NVMe
+device avoiding system memory entirely. The upside of this is better
+QoS for applications running on the CPU utilizing memory and lower
+PCI bandwidth required to the CPU (such that systems could be designed
+with fewer lanes connected to the CPU). However, presently, the
+trade-off is currently a reduction in overall throughput. (Largely due
+to hardware issues that would certainly improve in the future).
+
+Due to these trade-offs we've designed the system to only enable using
+the PCI memory in cases where the NIC, NVMe devices and memory are all
+behind the same PCI switch. This will mean many setups that could likely
+work well will not be supported so that we can be more confident it
+will work and not place any responsibility on the user to understand
+their topology. (We chose to go this route based on feedback we
+received at the last LSF). Future work may enable these transfers behind
+a fabric of PCI switches or perhaps using a white list of known good
+root complexes.
+
+In order to enable this functionality, we introduce a few new PCI
+functions such that a driver can register P2P memory with the system.
+Struct pages are created for this memory using devm_memremap_pages()
+and the PCI bus offset is stored in the corresponding pagemap structure.
+
+Another set of functions allow a client driver to create a list of
+client devices that will be used in a given P2P transactions and then
+use that list to find any P2P memory that is supported by all the
+client devices. This list is then also used to selectively disable the
+ACS bits for the downstream ports behind these devices.
+
+In the block layer, we also introduce a P2P request flag to indicate a
+given request targets P2P memory as well as a flag for a request queue
+to indicate a given queue supports targeting P2P memory. P2P requests
+will only be accepted by queues that support it. Also, P2P requests
+are marked to not be merged seeing a non-homogenous request would
+complicate the DMA mapping requirements.
+
+In the PCI NVMe driver, we modify the existing CMB support to utilize
+the new PCI P2P memory infrastructure and also add support for P2P
+memory in its request queue. When a P2P request is received it uses the
+pci_p2pmem_map_sg() function which applies the necessary transformation
+to get the corrent pci_bus_addr_t for the DMA transactions.
+
+In the RDMA core, we also adjust rdma_rw_ctx_init() and
+rdma_rw_ctx_destroy() to take a flags argument which indicates whether
+to use the PCI P2P mapping functions or not.
+
+Finally, in the NVMe fabrics target port we introduce a new
+configuration boolean: 'allow_p2pmem'. When set, the port will attempt
+to find P2P memory supported by the RDMA NIC and all namespaces. If
+supported memory is found, it will be used in all IO transfers. And if
+a port is using P2P memory, adding new namespaces that are not supported
+by that memory will fail.
+
+Logan Gunthorpe (10):
+  PCI/P2PDMA: Support peer to peer memory
+  PCI/P2PDMA: Add sysfs group to display p2pmem stats
+  PCI/P2PDMA: Add PCI p2pmem dma mappings to adjust the bus offset
+  PCI/P2PDMA: Clear ACS P2P flags for all devices behind switches
+  block: Introduce PCI P2P flags for request and request queue
+  IB/core: Add optional PCI P2P flag to rdma_rw_ctx_[init|destroy]()
+  nvme-pci: Use PCI p2pmem subsystem to manage the CMB
+  nvme-pci: Add support for P2P memory in requests
+  nvme-pci: Add a quirk for a pseudo CMB
+  nvmet: Optionally use PCI P2P memory
+
+ Documentation/ABI/testing/sysfs-bus-pci |  25 ++
+ block/blk-core.c                        |   3 +
+ drivers/infiniband/core/rw.c            |  21 +-
+ drivers/infiniband/ulp/isert/ib_isert.c |   5 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c   |   7 +-
+ drivers/nvme/host/core.c                |   4 +
+ drivers/nvme/host/nvme.h                |   8 +
+ drivers/nvme/host/pci.c                 | 118 ++++--
+ drivers/nvme/target/configfs.c          |  29 ++
+ drivers/nvme/target/core.c              |  95 ++++-
+ drivers/nvme/target/io-cmd.c            |   3 +
+ drivers/nvme/target/nvmet.h             |  10 +
+ drivers/nvme/target/rdma.c              |  43 +-
+ drivers/pci/Kconfig                     |  20 +
+ drivers/pci/Makefile                    |   1 +
+ drivers/pci/p2pdma.c                    | 713 ++++++++++++++++++++++++++++++++
+ drivers/pci/pci.c                       |   4 +
+ include/linux/blk_types.h               |  18 +-
+ include/linux/blkdev.h                  |   3 +
+ include/linux/memremap.h                |  19 +
+ include/linux/pci-p2pdma.h              | 105 +++++
+ include/linux/pci.h                     |   4 +
+ include/rdma/rw.h                       |   7 +-
+ net/sunrpc/xprtrdma/svc_rdma_rw.c       |   6 +-
+ 24 files changed, 1204 insertions(+), 67 deletions(-)
+ create mode 100644 drivers/pci/p2pdma.c
+ create mode 100644 include/linux/pci-p2pdma.h
+
+--
+2.11.0
