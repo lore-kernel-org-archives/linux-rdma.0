@@ -1,72 +1,52 @@
-From: Max Gurtovoy <maxg@mellanox.com>
-Subject: Re: [PATCH] RDMA/core: reduce IB_POLL_BATCH constant
-Date: Thu, 1 Mar 2018 11:36:50 +0200
-Message-ID: <efc0302c-90e2-2e09-7525-dc9b9e247e73@mellanox.com>
-References: <20180220205924.2035765-1-arnd@arndb.de>
- <1519161268.3737.12.camel@wdc.com>
- <F2FB1034-BFB6-45ED-878E-6FADD756157D@oracle.com>
- <c3eab137-1c37-0e6c-a53a-df2cf80653d2@grimberg.me>
- <0f90134c-3d40-1d24-711f-e4ab32802bd8@mellanox.com>
- <c1bcd5cc-381d-2d94-1278-f9fb5c9c0b14@grimberg.me>
- <20180227220958.GA21714@ziepe.ca>
- <193aaf91-c9d1-38b1-a89f-45f129ca5798@mellanox.com>
- <d2875648-20d9-43b9-abf1-8ecbf049c4bf@wdc.com>
- <1e7c373f-21bd-4d45-3dd6-68467bf09d0d@mellanox.com>
- <1519844114.28560.216.camel@redhat.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
+Date: Thu, 1 Mar 2018 12:31:53 +0200
+Message-ID: <90b658d9-da8a-af36-ad8f-a72ef0c6e3c1@grimberg.me>
+References: <20180228234006.21093-1-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1519844114.28560.216.camel@redhat.com>
-Content-Language: he
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Bart Van Assche <bart.vanassche@wdc.com>, Jason Gunthorpe <jgg@ziepe.ca>, Sagi Grimberg <sagi@grimberg.me>
-Cc: Chuck Lever <chuck.lever@oracle.com>, "arnd@arndb.de" <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "leonro@mellanox.com" <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20180228234006.21093-1-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+> Hi Everyone,
 
-On 2/28/2018 8:55 PM, Doug Ledford wrote:
-> On Wed, 2018-02-28 at 11:50 +0200, Max Gurtovoy wrote:
->>
->> On 2/28/2018 2:21 AM, Bart Van Assche wrote:
->>> On 02/27/18 14:15, Max Gurtovoy wrote:
->>>> -static int __ib_process_cq(struct ib_cq *cq, int budget, struct ib_wc
->>>> *poll_wc)
->>>> +static int __ib_process_cq(struct ib_cq *cq, int budget, struct ib_wc
->>>> *poll_wc,
->>>> +                          int batch)
->>>>    {
->>>> -       int i, n, completed = 0;
->>>> -       struct ib_wc *wcs = poll_wc ? : cq->wc;
->>>> +       int i, n, ib_poll_batch, completed = 0;
->>>> +       struct ib_wc *wcs;
->>>> +
->>>> +       if (poll_wc) {
->>>> +               wcs = poll_wc;
->>>> +               ib_poll_batch = batch;
->>>> +       } else {
->>>> +               wcs = cq->wc;
->>>> +               ib_poll_batch = IB_POLL_BATCH;
->>>> +       }
->>>
->>> Since this code has to be touched I think that we can use this
->>> opportunity to get rid of the "poll_wc ? : cq->wc" conditional and
->>> instead use what the caller passes. That will require to update all
->>> __ib_process_cq(..., ..., NULL) calls. I also propose to let the caller
->>> pass ib_poll_batch instead of figuring it out in this function.
->>> Otherwise the approach of this patch looks fine to me.
->>
->> Thanks Bart.
->> I'll make these changes and submit.
+Hi Logan,
+
+> Here's v2 of our series to introduce P2P based copy offload to NVMe
+> fabrics. This version has been rebased onto v4.16-rc3 which already
+> includes Christoph's devpagemap work the previous version was based
+> off as well as a couple of the cleanup patches that were in v1.
 > 
-> That sounds reasonable to me too, thanks for reworking and resubmitting.
+> Additionally, we've made the following changes based on feedback:
 > 
+> * Renamed everything to 'p2pdma' per the suggestion from Bjorn as well
+>    as a bunch of cleanup and spelling fixes he pointed out in the last
+>    series.
+> 
+> * To address Alex's ACS concerns, we change to a simpler method of
+>    just disabling ACS behind switches for any kernel that has
+>    CONFIG_PCI_P2PDMA.
+> 
+> * We also reject using devices that employ 'dma_virt_ops' which should
+>    fairly simply handle Jason's concerns that this work might break with
+>    the HFI, QIB and rxe drivers that use the virtual ops to implement
+>    their own special DMA operations.
 
-Sure, NP.
-We've run NVMe-oF and SRP with the new patch.
-I'll send it through Mellanox maintainers pull request.
-
-Thanks for reporting and reviewing.
-
--Max.
+That's good, but what would happen for these devices? simply fail the
+mapping causing the ulp to fail its rdma operation? I would think
+that we need a capability flag for devices that support it.
