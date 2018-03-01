@@ -1,56 +1,33 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+From: "Stephen  Bates" <sbates@raithlin.com>
 Subject: Re: [PATCH v2 01/10] PCI/P2PDMA: Support peer to peer memory
-Date: Thu, 1 Mar 2018 16:06:47 -0700
-Message-ID: <b3121c36-4ef5-0d8e-e8ef-418b48de9589@deltatee.com>
+Date: Thu, 1 Mar 2018 23:14:46 +0000
+Message-ID: <9B84B347-2CCF-4250-89ED-B29892E76597@raithlin.com>
 References: <20180228234006.21093-1-logang@deltatee.com>
  <20180228234006.21093-2-logang@deltatee.com>
  <20180301173752.GE13722@bhelgaas-glaptop.roam.corp.google.com>
  <b81503c2-9f07-b5f6-df06-64d1fdc53386@deltatee.com>
  <20180301230032.GA74737@bhelgaas-glaptop.roam.corp.google.com>
+ <b3121c36-4ef5-0d8e-e8ef-418b48de9589@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180301230032.GA74737-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <b3121c36-4ef5-0d8e-e8ef-418b48de9589@deltatee.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-ID: <F9761AF79384A74ABA750F9C634F06A9@CANPRD01.PROD.OUTLOOK.COM>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Logan Gunthorpe <logang@deltatee.com>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.w>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-> I don't think this is correct.  A Root Port defines a hierarchy domain
-> (I'm looking at PCIe r4.0, sec 1.3.1).  The capability to route
-> peer-to-peer transactions *between* hierarchy domains is optional.  I
-> think this means a Root Complex is not required to route transactions
-> from one Root Port to another Root Port.
-> 
-> This doesn't say anything about routing between two different devices
-> below a Root Port.  Those would be in the same hierarchy domain and
-> should follow the conventional PCI routing rules.  Of course, since a
-> Root Port has one link that leads to one device, they would probably
-> be different functions of a single multi-function device, so I don't
-> know how practical it would be to test this.
-
-Yes, given that there's only one device below a root port it will either 
-be a switch or a multi-function device. In the multi-function device 
-case, I'm pretty sure the spec disallows routing-to-self so doing a P2P 
-transaction in that sense isn't going to work unless the device 
-specifically supports it and intercepts the traffic before it gets to 
-the port.
-
-But, if we're talking about multi-function devices it should be able to 
-do everything within it's own driver so it's not exactly Peer-to-Peer. 
-Still, if someone has such hardware I think it's up to them to add 
-support for this odd situation.
-
-Logan
+PiBJJ20gcHJldHR5IHN1cmUgdGhlIHNwZWMgZGlzYWxsb3dzIHJvdXRpbmctdG8tc2VsZiBzbyBk
+b2luZyBhIFAyUCANCj4gdHJhbnNhY3Rpb24gaW4gdGhhdCBzZW5zZSBpc24ndCBnb2luZyB0byB3
+b3JrIHVubGVzcyB0aGUgZGV2aWNlIA0KPiBzcGVjaWZpY2FsbHkgc3VwcG9ydHMgaXQgYW5kIGlu
+dGVyY2VwdHMgdGhlIHRyYWZmaWMgYmVmb3JlIGl0IGdldHMgdG8gDQo+IHRoZSBwb3J0Lg0KDQpU
+aGlzIGlzIGNvcnJlY3QuIFVubGVzcyB0aGUgZGV2aWNlIGludGVyY2VwdHMgdGhlIFRMUCBiZWZv
+cmUgaXQgaGl0cyB0aGUgcm9vdC1wb3J0IHRoZW4gdGhpcyB3b3VsZCBiZSBjb25zaWRlcmVkIGEg
+InJvdXRlIHRvIHNlbGYiIHZpb2xhdGlvbiBhbmQgYW4gZXJyb3IgZXZlbnQgd291bGQgb2NjdXIu
+IFRoZSBzYW1lIGhvbGRzIGZvciB0aGUgZG93bnN0cmVhbSBwb3J0IG9uIGEgUENJIHN3aXRjaCAo
+dW5sZXNzIHJvdXRlLXRvLXNlbGYgdmlvbGF0aW9ucyBhcmUgZGlzYWJsZWQgd2hpY2ggdmlvbGF0
+ZXMgdGhlIHNwZWMgYnV0IHdoaWNoIEkgaGF2ZSBzZWVuIGRvbmUgaW4gY2VydGFpbiBhcHBsaWNh
+dGlvbnMpLg0KICAgIA0KU3RlcGhlbg0KICAgIA0KICAgIA0KICAgIA0KDQo=
