@@ -1,33 +1,46 @@
 From: Bart Van Assche <bart.vanassche@wdc.com>
-Subject: [PATCH 1/3] RDMA/core: Avoid that ib_drain_qp() triggers an out-of-bounds stack access
-Date: Thu,  1 Mar 2018 14:00:28 -0800
-Message-ID: <20180301220030.27433-2-bart.vanassche@wdc.com>
+Subject: [PATCH 2/3] RDMA/rxe: Fix an out-of-bounds read
+Date: Thu,  1 Mar 2018 14:00:29 -0800
+Message-ID: <20180301220030.27433-3-bart.vanassche@wdc.com>
 References: <20180301220030.27433-1-bart.vanassche@wdc.com>
 Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20180301220030.27433-1-bart.vanassche@wdc.com>
 Sender: stable-owner@vger.kernel.org
 To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, Laurence Oberman <loberman@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, Steve Wise <swise@opengridcomputing.com>, Sagi Grimberg <sagi@grimberg.me>, stable@vger.kernel.org
+Cc: Doug Ledford <dledford@redhat.com>, Laurence Oberman <loberman@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, Moni Shoua <monis@mellanox.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch fixes the following KASAN complaint:
+This patch avoids that KASAN reports the following when the SRP initiator
+calls srp_post_send():
 
 ==================================================================
-BUG: KASAN: stack-out-of-bounds in rxe_post_send+0x77d/0x9b0 [rdma_rxe]
-Read of size 8 at addr ffff880061aef860 by task 01/1080
+BUG: KASAN: stack-out-of-bounds in rxe_post_send+0x5c4/0x980 [rdma_rxe]
+Read of size 8 at addr ffff880066606e30 by task 02-mq/1074
 
-CPU: 2 PID: 1080 Comm: 01 Not tainted 4.16.0-rc3-dbg+ #2
+CPU: 2 PID: 1074 Comm: 02-mq Not tainted 4.16.0-rc3-dbg+ #1
 Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
 Call Trace:
 dump_stack+0x85/0xc7
 print_address_description+0x65/0x270
 kasan_report+0x231/0x350
-rxe_post_send+0x77d/0x9b0 [rdma_rxe]
-__ib_drain_sq+0x1ad/0x250 [ib_core]
-ib_drain_qp+0x9/0x30 [ib_core]
-srp_destroy_qp+0x51/0x70 [ib_srp]
-srp_free_ch_ib+0xfc/0x380 [ib_srp]
-srp_create_target+0x1071/0x19e0 [ib_srp]
+rxe_post_send+0x5c4/0x980 [rdma_rxe]
+srp_post_send.isra.16+0x149/0x190 [ib_srp]
+srp_queuecommand+0x94d/0x1670 [ib_srp]
+scsi_dispatch_cmd+0x1c2/0x550 [scsi_mod]
+scsi_queue_rq+0x843/0xa70 [scsi_mod]
+blk_mq_dispatch_rq_list+0x143/0xac0
+blk_mq_do_dispatch_ctx+0x1c5/0x260
+blk_mq_sched_dispatch_requests+0x2bf/0x2f0
+__blk_mq_run_hw_queue+0xdb/0x160
+__blk_mq_delay_run_hw_queue+0xba/0x100
+blk_mq_run_hw_queue+0xf2/0x190
+blk_mq_sched_insert_request+0x163/0x2f0
+blk_execute_rq+0xb0/0x130
+scsi_execute+0x14e/0x260 [scsi_mod]
+scsi_probe_and_add_lun+0x366/0x13d0 [scsi_mod]
+__scsi_scan_target+0x18a/0x810 [scsi_mod]
+scsi_scan_target+0x11e/0x130 [scsi_mod]
+srp_create_target+0x1522/0x19e0 [ib_srp]
 kernfs_fop_write+0x180/0x210
 __vfs_write+0xb1/0x2e0
 vfs_write+0xf6/0x250
@@ -36,61 +49,44 @@ do_syscall_64+0xee/0x2b0
 entry_SYSCALL_64_after_hwframe+0x42/0xb7
 
 The buggy address belongs to the page:
-page:ffffea000186bbc0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+page:ffffea0001998180 count:0 mapcount:0 mapping:0000000000000000 index:0x0
 flags: 0x4000000000000000()
 raw: 4000000000000000 0000000000000000 0000000000000000 00000000ffffffff
-raw: 0000000000000000 ffffea000186bbe0 0000000000000000 0000000000000000
+raw: dead000000000100 dead000000000200 0000000000000000 0000000000000000
 page dumped because: kasan: bad access detected
 
 Memory state around the buggy address:
-ffff880061aef700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-ffff880061aef780: 00 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1 00
->ffff880061aef800: f2 f2 f2 f2 f2 f2 f2 00 00 00 00 00 f2 f2 f2 f2
-                                                      ^
-ffff880061aef880: f2 f2 f2 00 00 00 00 00 00 00 00 00 00 00 f2 f2
-ffff880061aef900: f2 f2 f2 00 00 00 00 00 00 00 00 00 00 00 00 00
+ffff880066606d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 f1 f1 f1
+ffff880066606d80: f1 00 f2 f2 f2 f2 f2 f2 f2 00 00 f2 f2 f2 f2 f2
+>ffff880066606e00: f2 00 00 00 00 00 f2 f2 f2 f3 f3 f3 f3 00 00 00
+                                    ^
+ffff880066606e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ffff880066606f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 ==================================================================
 
-Fixes: 765d67748bcf ("IB: new common API for draining queues")
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
 Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
-Cc: Steve Wise <swise@opengridcomputing.com>
-Cc: Sagi Grimberg <sagi@grimberg.me>
+Cc: Moni Shoua <monis@mellanox.com>
 Cc: stable@vger.kernel.org
 ---
- drivers/infiniband/core/verbs.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 2c7b0ceb46e6..4e2b231b03f7 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -2194,7 +2194,13 @@ static void __ib_drain_sq(struct ib_qp *qp)
- 	struct ib_cq *cq = qp->send_cq;
- 	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
- 	struct ib_drain_cqe sdrain;
--	struct ib_send_wr swr = {}, *bad_swr;
-+	struct ib_send_wr *bad_swr;
-+	struct ib_rdma_wr swr = {
-+		.wr = {
-+			.opcode	= IB_WR_RDMA_WRITE,
-+			.wr_cqe	= &sdrain.cqe,
-+		},
-+	};
- 	int ret;
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 3d99965e54fe..753d281b8321 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -711,9 +711,8 @@ static int init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
+ 		memcpy(wqe->dma.sge, ibwr->sg_list,
+ 		       num_sge * sizeof(struct ib_sge));
  
- 	ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
-@@ -2203,11 +2209,10 @@ static void __ib_drain_sq(struct ib_qp *qp)
- 		return;
- 	}
- 
--	swr.wr_cqe = &sdrain.cqe;
- 	sdrain.cqe.done = ib_drain_qp_done;
- 	init_completion(&sdrain.done);
- 
--	ret = ib_post_send(qp, &swr, &bad_swr);
-+	ret = ib_post_send(qp, &swr.wr, &bad_swr);
- 	if (ret) {
- 		WARN_ONCE(ret, "failed to drain send queue: %d\n", ret);
- 		return;
+-	wqe->iova		= (mask & WR_ATOMIC_MASK) ?
+-					atomic_wr(ibwr)->remote_addr :
+-					rdma_wr(ibwr)->remote_addr;
++	wqe->iova = mask & WR_ATOMIC_MASK ? atomic_wr(ibwr)->remote_addr :
++		mask & WR_READ_OR_WRITE_MASK ? rdma_wr(ibwr)->remote_addr : 0;
+ 	wqe->mask		= mask;
+ 	wqe->dma.length		= length;
+ 	wqe->dma.resid		= length;
 -- 
 2.16.2
