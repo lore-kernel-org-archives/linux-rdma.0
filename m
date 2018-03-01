@@ -1,92 +1,78 @@
 From: Bart Van Assche <bart.vanassche@wdc.com>
-Subject: [PATCH 2/3] RDMA/rxe: Fix an out-of-bounds read
-Date: Thu,  1 Mar 2018 14:00:29 -0800
-Message-ID: <20180301220030.27433-3-bart.vanassche@wdc.com>
+Subject: [PATCH 3/3] IB/srpt: Fix an out-of-bounds stack access in srpt_zerolength_write()
+Date: Thu,  1 Mar 2018 14:00:30 -0800
+Message-ID: <20180301220030.27433-4-bart.vanassche@wdc.com>
 References: <20180301220030.27433-1-bart.vanassche@wdc.com>
 Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20180301220030.27433-1-bart.vanassche@wdc.com>
 Sender: stable-owner@vger.kernel.org
 To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, Laurence Oberman <loberman@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, Moni Shoua <monis@mellanox.com>, stable@vger.kernel.org
+Cc: Doug Ledford <dledford@redhat.com>, Laurence Oberman <loberman@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, Christoph Hellwig <hch@lst.de>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch avoids that KASAN reports the following when the SRP initiator
-calls srp_post_send():
+Avoid triggering an out-of-bounds stack access by changing the type
+of 'wr' from ib_send_wr into ib_rdma_wr.
 
-==================================================================
-BUG: KASAN: stack-out-of-bounds in rxe_post_send+0x5c4/0x980 [rdma_rxe]
-Read of size 8 at addr ffff880066606e30 by task 02-mq/1074
+This patch fixes the following KASAN bug report:
 
-CPU: 2 PID: 1074 Comm: 02-mq Not tainted 4.16.0-rc3-dbg+ #1
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
+BUG: KASAN: stack-out-of-bounds in rxe_post_send+0x7a9/0x9a0 [rdma_rxe]
+Read of size 8 at addr ffff880068197a48 by task kworker/2:1/44
+
+Workqueue: ib_cm cm_work_handler [ib_cm]
 Call Trace:
-dump_stack+0x85/0xc7
-print_address_description+0x65/0x270
-kasan_report+0x231/0x350
-rxe_post_send+0x5c4/0x980 [rdma_rxe]
-srp_post_send.isra.16+0x149/0x190 [ib_srp]
-srp_queuecommand+0x94d/0x1670 [ib_srp]
-scsi_dispatch_cmd+0x1c2/0x550 [scsi_mod]
-scsi_queue_rq+0x843/0xa70 [scsi_mod]
-blk_mq_dispatch_rq_list+0x143/0xac0
-blk_mq_do_dispatch_ctx+0x1c5/0x260
-blk_mq_sched_dispatch_requests+0x2bf/0x2f0
-__blk_mq_run_hw_queue+0xdb/0x160
-__blk_mq_delay_run_hw_queue+0xba/0x100
-blk_mq_run_hw_queue+0xf2/0x190
-blk_mq_sched_insert_request+0x163/0x2f0
-blk_execute_rq+0xb0/0x130
-scsi_execute+0x14e/0x260 [scsi_mod]
-scsi_probe_and_add_lun+0x366/0x13d0 [scsi_mod]
-__scsi_scan_target+0x18a/0x810 [scsi_mod]
-scsi_scan_target+0x11e/0x130 [scsi_mod]
-srp_create_target+0x1522/0x19e0 [ib_srp]
-kernfs_fop_write+0x180/0x210
-__vfs_write+0xb1/0x2e0
-vfs_write+0xf6/0x250
-SyS_write+0x99/0x110
-do_syscall_64+0xee/0x2b0
-entry_SYSCALL_64_after_hwframe+0x42/0xb7
+ dump_stack+0x8e/0xcd
+ print_address_description+0x6f/0x280
+ kasan_report+0x25a/0x380
+ __asan_load8+0x54/0x90
+ rxe_post_send+0x7a9/0x9a0 [rdma_rxe]
+ srpt_zerolength_write+0xf0/0x180 [ib_srpt]
+ srpt_cm_rtu_recv+0x68/0x110 [ib_srpt]
+ srpt_rdma_cm_handler+0xbb/0x15b [ib_srpt]
+ cma_ib_handler+0x1aa/0x4a0 [rdma_cm]
+ cm_process_work+0x30/0x100 [ib_cm]
+ cm_work_handler+0xa86/0x351b [ib_cm]
+ process_one_work+0x475/0x9f0
+ worker_thread+0x69/0x690
+ kthread+0x1ad/0x1d0
+ ret_from_fork+0x3a/0x50
 
-The buggy address belongs to the page:
-page:ffffea0001998180 count:0 mapcount:0 mapping:0000000000000000 index:0x0
-flags: 0x4000000000000000()
-raw: 4000000000000000 0000000000000000 0000000000000000 00000000ffffffff
-raw: dead000000000100 dead000000000200 0000000000000000 0000000000000000
-page dumped because: kasan: bad access detected
-
-Memory state around the buggy address:
-ffff880066606d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 f1 f1 f1
-ffff880066606d80: f1 00 f2 f2 f2 f2 f2 f2 f2 00 00 f2 f2 f2 f2 f2
->ffff880066606e00: f2 00 00 00 00 00 f2 f2 f2 f3 f3 f3 f3 00 00 00
-                                    ^
-ffff880066606e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-ffff880066606f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-==================================================================
-
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Fixes: aaf45bd83eba ("IB/srpt: Detect session shutdown reliably")
 Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
-Cc: Moni Shoua <monis@mellanox.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: stable@vger.kernel.org
 ---
- drivers/infiniband/sw/rxe/rxe_verbs.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 3d99965e54fe..753d281b8321 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -711,9 +711,8 @@ static int init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
- 		memcpy(wqe->dma.sge, ibwr->sg_list,
- 		       num_sge * sizeof(struct ib_sge));
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 4339ab0607b7..6305da34b5de 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -848,16 +848,19 @@ static int srpt_post_recv(struct srpt_device *sdev, struct srpt_rdma_ch *ch,
+  */
+ static int srpt_zerolength_write(struct srpt_rdma_ch *ch)
+ {
+-	struct ib_send_wr wr, *bad_wr;
++	struct ib_send_wr *bad_wr;
++	struct ib_rdma_wr wr = {
++		.wr = {
++			.opcode		= IB_WR_RDMA_WRITE,
++			.wr_cqe		= &ch->zw_cqe,
++			.send_flags	= IB_SEND_SIGNALED,
++		}
++	};
  
--	wqe->iova		= (mask & WR_ATOMIC_MASK) ?
--					atomic_wr(ibwr)->remote_addr :
--					rdma_wr(ibwr)->remote_addr;
-+	wqe->iova = mask & WR_ATOMIC_MASK ? atomic_wr(ibwr)->remote_addr :
-+		mask & WR_READ_OR_WRITE_MASK ? rdma_wr(ibwr)->remote_addr : 0;
- 	wqe->mask		= mask;
- 	wqe->dma.length		= length;
- 	wqe->dma.resid		= length;
+ 	pr_debug("%s-%d: queued zerolength write\n", ch->sess_name,
+ 		 ch->qp->qp_num);
+ 
+-	memset(&wr, 0, sizeof(wr));
+-	wr.opcode = IB_WR_RDMA_WRITE;
+-	wr.wr_cqe = &ch->zw_cqe;
+-	wr.send_flags = IB_SEND_SIGNALED;
+-	return ib_post_send(ch->qp, &wr, &bad_wr);
++	return ib_post_send(ch->qp, &wr.wr, &bad_wr);
+ }
+ 
+ static void srpt_zerolength_write_done(struct ib_cq *cq, struct ib_wc *wc)
 -- 
 2.16.2
