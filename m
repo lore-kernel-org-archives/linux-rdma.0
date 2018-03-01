@@ -1,16 +1,16 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 10/10] nvmet: Optionally use PCI P2P memory
-Date: Thu, 1 Mar 2018 10:40:11 -0700
-Message-ID: <40d69074-31a8-d06a-ade9-90de7712c553@deltatee.com>
+From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 02/10] PCI/P2PDMA: Add sysfs group to display p2pmem
+ stats
+Date: Thu, 1 Mar 2018 11:44:50 -0600
+Message-ID: <20180301174450.GF13722@bhelgaas-glaptop.roam.corp.google.com>
 References: <20180228234006.21093-1-logang@deltatee.com>
- <20180228234006.21093-11-logang@deltatee.com>
- <749e3752-4349-0bdf-5243-3d510c2b26db@grimberg.me>
+ <20180228234006.21093-3-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <749e3752-4349-0bdf-5243-3d510c2b26db-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180228234006.21093-3-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,92 +20,139 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-CgpPbiAwMS8wMy8xOCAwNDowMyBBTSwgU2FnaSBHcmltYmVyZyB3cm90ZToKPiBDYW4geW91IGRl
-c2NyaWJlIHdoYXQgd291bGQgYmUgdGhlIHBsYW4gdG8gaGF2ZSBpdCB3aGVuIHRoZXNlIGRldmlj
-ZXMKPiBkbyBjb21lIGFsb25nPyBJJ2Qgc2F5IHRoYXQgcDJwX2RldiBuZWVkcyB0byBiZWNvbWUg
-YSBudm1ldF9ucyByZWZlcmVuY2UKPiBhbmQgbm90IGZyb20gbnZtZXRfY3RybC4gVGhlbiwgd2hl
-biBjbWIgY2FwYWJsZSBkZXZpY2VzIGNvbWUgYWxvbmcsIHRoZQo+IG5zIGNhbiBwcmVmZXIgdG8g
-dXNlIGl0cyBvd24gY21iIGluc3RlYWQgb2YgbG9jYXRpbmcgYSBwMnBfZGV2IGRldmljZT8KClRo
-ZSBwYXRjaHNldCBhbHJlYWR5IHN1cHBvcnRzIENNQiBkcml2ZXMuIFRoYXQncyBlc3NlbnRpYWxs
-eSB3aGF0IHBhdGNoIAo3IGlzIGZvci4gV2UgY2hhbmdlIHRoZSBudm1lLXBjaSBkcml2ZXIgdG8g
-dXNlIHRoZSBwMnBtZW0gY29kZSB0byAKcmVnaXN0ZXIgYW5kIG1hbmFnZSB0aGUgQ01CIG1lbW9y
-eS4gQWZ0ZXIgdGhhdCwgaXQgaXMgc2ltcGx5IGF2YWlsYWJsZSAKdG8gdGhlIG52bWV0IGNvZGUu
-IFdlIGhhdmUgYWxyZWFkeSBiZWVuIHVzaW5nIHRoaXMgd2l0aCBhIGNvdXBsZSAKcHJvdG90eXBl
-IENNQiBkcml2ZXMuCgo+PiArc3RhdGljIGludCBudm1ldF9wMnBkbWFfYWRkX2NsaWVudChzdHJ1
-Y3QgbnZtZXRfY3RybCAqY3RybCwKPj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoCBzdHJ1Y3QgbnZtZXRfbnMgKm5zKQo+PiArewo+PiArwqDCoMKgIGludCByZXQ7Cj4+ICsK
-Pj4gK8KgwqDCoCBpZiAoIWJsa19xdWV1ZV9wY2lfcDJwZG1hKG5zLT5iZGV2LT5iZF9xdWV1ZSkp
-IHsKPj4gK8KgwqDCoMKgwqDCoMKgIHByX2VycigicGVlci10by1wZWVyIERNQSBpcyBub3Qgc3Vw
-cG9ydGVkIGJ5ICVzXG4iLAo+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBucy0+ZGV2
-aWNlX3BhdGgpOwo+PiArwqDCoMKgwqDCoMKgwqAgcmV0dXJuIC1FSU5WQUw7Cj4gCj4gSSdkIHNh
-eSB0aGF0IGp1c3Qgc2tpcCBpdCBpbnN0ZWFkIG9mIGZhaWxpbmcgaXQsIGluIHRoZW9yeSBvbmUg
-Y2FuCj4gY29ubmVjdCBudm1lIGRldmljZXMgdmlhIHAycCBtZW0gYW5kIGV4cG9zZSBvdGhlciBk
-ZXZpY2VzIGluIHRoZQo+IHNhbWUgc3Vic3lzdGVtLiBUaGUgbWVzc2FnZSB3b3VsZCBiZSBwcl9k
-ZWJ1ZyB0byByZWR1Y2UgY2hhdHRpbmVzcy4KCk5vLCBpdCdzIGFjdHVhbGx5IGEgYml0IG1vcmUg
-Y29tcGxpY2F0ZWQgdGhhbiB5b3UgbWFrZSBpdC4gVGhlcmUncyBhIApjb3VwbGUgY2FzZXM6Cgox
-KSBUaGUgdXNlciBhZGRzIGEgbmFtZXNwYWNlIGJ1dCB0aGVyZSBoYXNuJ3QgYmVlbiBhIGNvbm5l
-Y3Rpb24gYW5kIG5vIApwMnBtZW0gaGFzIGJlZW4gc2VsZWN0ZWQuIEluIHRoaXMgY2FzZSB0aGUg
-YWRkX2NsaWVudCBmdW5jdGlvbiBpcyBuZXZlciAKY2FsbGVkIGFuZCB0aGUgdXNlciBjYW4gYWRk
-IHdoYXRldmVyIG5hbWVzcGFjZSB0aGV5IGxpa2UuCgoyKSBXaGVuIHRoZSBmaXJzdCBjb25uZWN0
-IGhhcHBlbnMsIG52bWV0X3NldHVwX3AycG1lbSgpIHdpbGwgY2FsbCAKYWRkX2NsaWVudCgpIGZv
-ciBlYWNoIG5hbWVzcGFjZSBhbmQgcmRtYSBkZXZpY2UuIElmIGFueSBvZiB0aGVtIGZhaWwgCnRo
-ZW4gaXQgZG9lcyBub3QgdXNlIGEgUDJQIGRldmljZSBhbmQgZmFsbHMgYmFjaywgYXMgeW91J2Qg
-bGlrZSwgdG8gCnJlZ3VsYXIgbWVtb3J5LgoKMykgV2hlbiB0aGUgdXNlciBhZGRzIGEgbmFtZXNw
-YWNlIGFmdGVyIGEgcG9ydCBpcyBpbiB1c2UgYW5kIGEgCmNvbXBhdGlibGUgUDJQIGRldmljZSBo
-YXMgYmVlbiBmb3VuZC4gSW4gdGhpcyBjYXNlLCBpZiB0aGUgdXNlciB0cmllcyB0byAKYWRkIGEg
-bmFtZXNwYWNlIHRoYXQgaXMgbm90IGNvbXBhdGlibGUgd2l0aCB0aGUgUDJQIGRldmljZSBpbiB1
-c2UgdGhlbiAKaXQgZmFpbHMgYWRkaW5nIHRoZSBuZXcgbmFtZXNwYWNlLiBUaGUgb25seSBhbHRl
-cm5hdGl2ZSBoZXJlIGlzIHRvIHRlYXIgCmV2ZXJ5dGhpbmcgZG93biwgZW5zdXJlIHRoZXJlIGFy
-ZSBubyBQMlAgZW5hYmxlZCBidWZmZXJzIG9wZW4gYW5kIHN0YXJ0IAp1c2luZyByZWd1bGFyIG1l
-bW9yeSBhZ2Fpbi4uLiBUaGF0IGlzIHZlcnkgZGlmZmljdWx0LgoKSSBhbHNvIGRpc2FncmVlIHRo
-YXQgdGhlc2UgbWVzc2FnZXMgc2hvdWxkIGJlIHByX2RlYnVnLiBJZiBhIHVzZXIgaXMgCnRyeWlu
-ZyB0byB1c2UgUDJQIG1lbW9yeSBhbmQgdGhleSBlbmFibGUgaXQgYnV0IHRoZSBzeXN0ZW0gZG9l
-c24ndCAKY2hvb3NlIHRvIHVzZSB0aGVpciBtZW1vcnkgdGhleSBtdXN0IGtub3cgd2h5IHRoYXQg
-aXMgc28gdGhleSBjYW4gbWFrZSAKdGhlIG5lY2Vzc2FyeSBhZGp1c3RtZW50cy4gSWYgdGhlIHN5
-c3RlbSBkb2Vzbid0IGF0IGxlYXN0IHByaW50IGEgZG1lc2cgCnRoZXkgYXJlIGluIHRoZSBkYXJr
-LgoKPj4gK8KgwqDCoCB9Cj4+ICsKPj4gK8KgwqDCoCByZXQgPSBwY2lfcDJwZG1hX2FkZF9jbGll
-bnQoJmN0cmwtPnAycF9jbGllbnRzLCBudm1ldF9uc19kZXYobnMpKTsKPj4gK8KgwqDCoCBpZiAo
-cmV0KQo+PiArwqDCoMKgwqDCoMKgwqAgcHJfZXJyKCJmYWlsZWQgdG8gYWRkIHBlZXItdG8tcGVl
-ciBETUEgY2xpZW50ICVzOiAlZFxuIiwKPj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAg
-bnMtPmRldmljZV9wYXRoLCByZXQpOwo+PiArCj4+ICvCoMKgwqAgcmV0dXJuIHJldDsKPj4gK30K
-Pj4gKwo+PiDCoCBpbnQgbnZtZXRfbnNfZW5hYmxlKHN0cnVjdCBudm1ldF9ucyAqbnMpCj4+IMKg
-IHsKPj4gwqDCoMKgwqDCoCBzdHJ1Y3QgbnZtZXRfc3Vic3lzICpzdWJzeXMgPSBucy0+c3Vic3lz
-Owo+PiBAQCAtMjk5LDYgKzMxOSwxNCBAQCBpbnQgbnZtZXRfbnNfZW5hYmxlKHN0cnVjdCBudm1l
-dF9ucyAqbnMpCj4+IMKgwqDCoMKgwqAgaWYgKHJldCkKPj4gwqDCoMKgwqDCoMKgwqDCoMKgIGdv
-dG8gb3V0X2Jsa2Rldl9wdXQ7Cj4+ICvCoMKgwqAgbGlzdF9mb3JfZWFjaF9lbnRyeShjdHJsLCAm
-c3Vic3lzLT5jdHJscywgc3Vic3lzX2VudHJ5KSB7Cj4+ICvCoMKgwqDCoMKgwqDCoCBpZiAoY3Ry
-bC0+cDJwX2Rldikgewo+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXQgPSBudm1ldF9wMnBk
-bWFfYWRkX2NsaWVudChjdHJsLCBucyk7Cj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGlmIChy
-ZXQpCj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgZ290byBvdXRfcmVtb3ZlX2Ns
-aWVudHM7Cj4gCj4gSXMgdGhpcyByZWFsbHkgYSBmYXRhbCBmYWlsdXJlIGdpdmVuIHRoYXQgd2Ug
-ZmFsbC1iYWNrIHRvIG1haW4KPiBtZW1vcnk/IFdoeSBub3QgY29udGludWUgd2l0aCBtYWluIG1l
-bW9yeSAoYW5kIHdhcm4gYXQgYmVzdCk/CgpTZWUgYWJvdmUuIEl0J3MgZmF0YWwgYmVjYXVzZSB3
-ZSBhcmUgYWxyZWFkeSB1c2luZyBwMnAgbWVtb3J5IGFuZCB3ZSAKY2FuJ3QgZWFzaWx5IHRlYXIg
-dGhhdCBhbGwgZG93biB3aGVuIGEgdXNlciBhZGRzIGEgbmV3IG5hbWVzcGFjZS4KCj4+ICvCoMKg
-wqAgY3RybC0+cDJwX2RldiA9IHBjaV9wMnBtZW1fZmluZCgmY3RybC0+cDJwX2NsaWVudHMpOwo+
-IAo+IFRoaXMgaXMgdGhlIGZpcnN0IHAycF9kZXYgZm91bmQgcmlnaHQ/IFdoYXQgaGFwcGVucyBp
-ZiBJIGhhdmUgbW9yZSB0aGFuCj4gYSBzaW5nbGUgcDJwIGRldmljZT8gSW4gdGhlb3J5IEknZCBo
-YXZlIG1vcmUgcDJwIG1lbW9yeSBJIGNhbiB1c2UuIEhhdmUKPiB5b3UgY29uc2lkZXJlZCBtYWtp
-bmcgcGNpX3AycG1lbV9maW5kIHJldHVybiB0aGUgbGVhc3QgdXNlZCBzdWl0YWJsZQo+IGRldmlj
-ZT8KClllcywgaXQgY3VycmVudGx5IHJldHVybnMgdGhlIGZpcnN0IGZvdW5kLiBJIGltYWdpbmUg
-YSBidW5jaCBvZiAKaW1wcm92ZW1lbnRzIGNvdWxkIGJlIG1hZGUgdG8gaXQgaW4gZnV0dXJlIHdv
-cmsuIEhvd2V2ZXIsIEknZCBwcm9iYWJseSAKc3RhcnQgd2l0aCBmaW5kaW5nIHRoZSBuZWFyZXN0
-IHAycCBkZXZpY2UgYW5kIHRoZW4gZmFsbGluZyBiYWNrIHRvIHRoZSAKbGVhc3QgdXNlZCBpZiB0
-aGF0J3MgbmVjZXNzYXJ5LiBBdCB0aGlzIHRpbWUgdGhvdWdoIGl0J3Mgbm90IGNsZWFyIGhvdyAK
-Y29tcGxpY2F0ZWQgdGhlc2Ugc3lzdGVtcyB3aWxsIGdldCBhbmQgd2hhdCdzIGFjdHVhbGx5IG5l
-ZWRlZCBoZXJlLgoKPj4gQEAgLTY4LDYgKzY5LDcgQEAgc3RydWN0IG52bWV0X3JkbWFfcnNwIHsK
-Pj4gwqDCoMKgwqDCoCB1OMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgbl9yZG1hOwo+PiDCoMKgwqDC
-oMKgIHUzMsKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgZmxhZ3M7Cj4+IMKgwqDCoMKgwqAgdTMywqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoCBpbnZhbGlkYXRlX3JrZXk7Cj4+ICvCoMKgwqAgc3RydWN0IHBj
-aV9kZXbCoMKgwqDCoMKgwqDCoCAqcDJwX2RldjsKPiAKPiBHaXZlbiB0aGF0IHAycF9jbGllbnQg
-aXMgaW4gbnZtZXRfcmVxLCBJIHRoaW5rIGl0IG1ha2Ugc2Vuc2UKPiB0aGF0IHRoZSBwMnBfZGV2
-IGl0c2VsZiB3b3VsZCBhbHNvIGxpdmUgdGhlcmUuIEluIHRoZW9yeSwgbm90aGluZwo+IGlzIHBy
-ZXZlbnRpbmcgRkMgZnJvbSB1c2luZyBpdCBhcyB3ZWxsLgoKRmFpciBwb2ludC4gSSBjYW4gbG9v
-ayBhdCBtb3ZpbmcgaXQgaW4gdjMuCgpUaGFua3MsCgpMb2dhbgpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0Ckxp
-bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0
-aW5mby9saW51eC1udmRpbW0K
+On Wed, Feb 28, 2018 at 04:39:58PM -0700, Logan Gunthorpe wrote:
+> Attributes display the total amount of P2P memory, the amount available
+> and whether it is published or not.
+
+Can you add enough text here to make the body of the changelog
+complete in itself?  That might mean just repeating the subject, which
+is fine.
+
+> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> ---
+>  Documentation/ABI/testing/sysfs-bus-pci | 25 +++++++++++++++++
+>  drivers/pci/p2pdma.c                    | 50 +++++++++++++++++++++++++++++++++
+>  2 files changed, 75 insertions(+)
+> 
+> diff --git a/Documentation/ABI/testing/sysfs-bus-pci b/Documentation/ABI/testing/sysfs-bus-pci
+> index 44d4b2be92fd..f5656dae21be 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-pci
+> +++ b/Documentation/ABI/testing/sysfs-bus-pci
+> @@ -323,3 +323,28 @@ Description:
+>  
+>  		This is similar to /sys/bus/pci/drivers_autoprobe, but
+>  		affects only the VFs associated with a specific PF.
+> +
+> +What:		/sys/bus/pci/devices/.../p2pmem/available
+> +Date:		November 2017
+> +Contact:	Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> +Description:
+> +		If the device has any Peer-to-Peer memory registered, this
+> +	        file contains the amount of memory that has not been
+> +		allocated (in decimal).
+> +
+> +What:		/sys/bus/pci/devices/.../p2pmem/size
+> +Date:		November 2017
+> +Contact:	Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> +Description:
+> +		If the device has any Peer-to-Peer memory registered, this
+> +	        file contains the total ammount of memory that the device
+
+s/ammount/amount/
+
+> +		provides (in decimal).
+> +
+> +What:		/sys/bus/pci/devices/.../p2pmem/published
+> +Date:		November 2017
+> +Contact:	Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> +Description:
+> +		If the device has any Peer-to-Peer memory registered, this
+> +	        file contains a '1' if the memory has been published for
+> +		use inside the kernel or a '0' if it is only intended
+> +		for use within the driver that published it.
+> diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+> index ec0a6cb9e500..a57df78f6a32 100644
+> --- a/drivers/pci/p2pdma.c
+> +++ b/drivers/pci/p2pdma.c
+> @@ -29,6 +29,53 @@ struct pci_p2pdma {
+>  	bool published;
+>  };
+>  
+> +static ssize_t size_show(struct device *dev, struct device_attribute *attr,
+> +			 char *buf)
+> +{
+> +	struct pci_dev *pdev = to_pci_dev(dev);
+> +	size_t size = 0;
+> +
+> +	if (pdev->p2pdma->pool)
+> +		size = gen_pool_size(pdev->p2pdma->pool);
+> +
+> +	return snprintf(buf, PAGE_SIZE, "%zd\n", size);
+> +}
+> +static DEVICE_ATTR_RO(size);
+> +
+> +static ssize_t available_show(struct device *dev, struct device_attribute *attr,
+> +			      char *buf)
+> +{
+> +	struct pci_dev *pdev = to_pci_dev(dev);
+> +	size_t avail = 0;
+> +
+> +	if (pdev->p2pdma->pool)
+> +		avail = gen_pool_avail(pdev->p2pdma->pool);
+> +
+> +	return snprintf(buf, PAGE_SIZE, "%zd\n", avail);
+> +}
+> +static DEVICE_ATTR_RO(available);
+> +
+> +static ssize_t published_show(struct device *dev, struct device_attribute *attr,
+> +			      char *buf)
+> +{
+> +	struct pci_dev *pdev = to_pci_dev(dev);
+> +
+> +	return snprintf(buf, PAGE_SIZE, "%d\n", pdev->p2pdma->published);
+> +}
+> +static DEVICE_ATTR_RO(published);
+> +
+> +static struct attribute *p2pmem_attrs[] = {
+> +	&dev_attr_size.attr,
+> +	&dev_attr_available.attr,
+> +	&dev_attr_published.attr,
+> +	NULL,
+> +};
+> +
+> +static const struct attribute_group p2pmem_group = {
+> +	.attrs = p2pmem_attrs,
+> +	.name = "p2pmem",
+> +};
+> +
+>  static void pci_p2pdma_percpu_release(struct percpu_ref *ref)
+>  {
+>  	struct pci_p2pdma *p2p =
+> @@ -55,6 +102,7 @@ static void pci_p2pdma_release(void *data)
+>  	percpu_ref_exit(&pdev->p2pdma->devmap_ref);
+>  
+>  	gen_pool_destroy(pdev->p2pdma->pool);
+> +	sysfs_remove_group(&pdev->dev.kobj, &p2pmem_group);
+>  	pdev->p2pdma = NULL;
+>  }
+>  
+> @@ -83,6 +131,8 @@ static int pci_p2pdma_setup(struct pci_dev *pdev)
+>  	if (error)
+>  		goto out_pool_destroy;
+>  
+> +	error = sysfs_create_group(&pdev->dev.kobj, &p2pmem_group);
+> +
+>  	pdev->p2pdma = p2p;
+
+I think these two statements are out of order, since the attributes
+dereference pdev->p2pdma.  And it looks like you set "error"
+unnecessarily, since you return immediately looking at it.
+
+>  	return 0;
+> -- 
+> 2.11.0
+> 
