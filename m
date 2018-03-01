@@ -1,19 +1,17 @@
-From: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
-Date: Thu, 1 Mar 2018 16:18:18 -0500
-Message-ID: <20180301211817.GC6742@redhat.com>
+From: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 04/10] PCI/P2PDMA: Clear ACS P2P flags for all
+ devices behind switches
+Date: Thu, 1 Mar 2018 14:21:55 -0700
+Message-ID: <20180301142155.5966c4c0@w520.home>
 References: <20180228234006.21093-1-logang@deltatee.com>
- <1519876489.4592.3.camel@kernel.crashing.org>
- <1519876569.4592.4.camel@au1.ibm.com>
- <CAPcyv4h7mcFphv3j_vW-CGxXa2pjQgLqpBOLzHuTzAFzygai-Q@mail.gmail.com>
- <1519938210.4592.30.camel@au1.ibm.com>
- <1de70207-40ce-29f0-6093-337112852475@deltatee.com>
+ <20180228234006.21093-5-logang@deltatee.com>
+ <20180301180257.GH13722@bhelgaas-glaptop.roam.corp.google.com>
+ <0D05579B-789C-4A19-B3A2-C1A630BE31C0@raithlin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1de70207-40ce-29f0-6093-337112852475-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <0D05579B-789C-4A19-B3A2-C1A630BE31C0-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,42 +21,43 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Oliver OHalloran <oliveroh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>, benh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Stephen  Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWU=?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 01, 2018 at 02:11:34PM -0700, Logan Gunthorpe wrote:
-> =
+On Thu, 1 Mar 2018 18:54:01 +0000
+"Stephen  Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org> wrote:
 
-> =
+> Thanks for the detailed review Bjorn!
+> 
+> >>  
+> >> +	  Enabling this option will also disable ACS on all ports behind
+> >> +	  any PCIe switch. This effictively puts all devices behind any
+> >> +	  switch into the same IOMMU group.  
+> 
+> >
+> >  Does this really mean "all devices behind the same Root Port"?  
+> 
+> Not necessarily. You might have a cascade of switches (i.e switches below a switch) to achieve a very large fan-out (in an NVMe SSD array for example) and we will only disable ACS on the ports below the relevant switch.
+> 
+> > What does this mean in terms of device security?  I assume it means,
+> > at least, that individual devices can't be assigned to separate VMs.  
+> 
+> This was discussed during v1 [1]. Disabling ACS on all downstream ports of the switch means that all the EPs below it have to part of the same IOMMU grouping. However it was also agreed that as long as the ACS disable occurred at boot time (which is does in v2) then the virtualization layer will be aware of it and will perform the IOMMU group formation correctly.
 
-> On 01/03/18 02:03 PM, Benjamin Herrenschmidt wrote:
-> > However, what happens if anything calls page_address() on them ? Some
-> > DMA ops do that for example, or some devices might ...
-> =
+This is still a pretty terrible solution though, your kernel provider
+needs to decide whether they favor device assignment or p2p, because we
+can't do both, unless there's a patch I haven't seen yet that allows
+boot time rather than compile time configuration.  There are absolutely
+supported device assignment cases of switches proving isolation between
+devices allowing the downstream EPs to be used independently.  I think
+this is a non-starter for distribution support without boot time or
+dynamic configuration.  I could imagine dynamic configuration through
+sysfs that might trigger a soft remove and rescan of the affected
+devices in order to rebuild the IOMMU group.  The hard part might be
+determining which points to allow that to guarantee correctness.  For
+instance, upstream switch ports don't actually support ACS, but they'd
+otherwise be an obvious concentration point to trigger a
+reconfiguration.  Thanks,
 
-> Although we could probably work around it with some pain, we rely on
-> page_address() and virt_to_phys(), etc to work on these pages. So on x86,
-> yes, it makes it into the linear mapping.
-
-This is pretty easy to do with HMM:
-
-unsigned long hmm_page_to_phys_pfn(struct page *page)
-{
-    struct hmm_devmem *devmem;
-    unsigned long ppfn;
-
-    /* Sanity test maybe BUG_ON() */
-    if (!is_device_private_page(page))
-        return -1UL;
-
-    devmem =3D page->pgmap->data;
-    ppfn =3D page_to_page(page) - devmem->pfn_first;
-    return ppfn + devmem->device_phys_base_pfn;
-}
-
-Note that last field does not exist in today HMM because i did not need
-such helper so far but this can be added.
-
-Cheers,
-J=E9r=F4me
+Alex
