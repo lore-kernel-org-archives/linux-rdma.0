@@ -1,16 +1,20 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 01/10] PCI/P2PDMA: Support peer to peer memory
-Date: Thu, 1 Mar 2018 11:55:51 -0700
-Message-ID: <b81503c2-9f07-b5f6-df06-64d1fdc53386@deltatee.com>
+From: "Stephen  Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 10/10] nvmet: Optionally use PCI P2P memory
+Date: Thu, 1 Mar 2018 19:01:31 +0000
+Message-ID: <88ACB0F6-DE78-400B-A42C-953B49026FA2@raithlin.com>
 References: <20180228234006.21093-1-logang@deltatee.com>
- <20180228234006.21093-2-logang@deltatee.com>
- <20180301173752.GE13722@bhelgaas-glaptop.roam.corp.google.com>
+ <20180228234006.21093-11-logang@deltatee.com>
+ <749e3752-4349-0bdf-5243-3d510c2b26db@grimberg.me>
+ <40d69074-31a8-d06a-ade9-90de7712c553@deltatee.com>
+ <5649098f-b775-815b-8b9a-f34628873ff4@grimberg.me>
+ <20180301184249.GI19007@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180301173752.GE13722-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
+In-Reply-To: <20180301184249.GI19007-uk2M96/98Pc@public.gmane.org>
 Content-Language: en-US
+Content-ID: <5C68F77BF855DE4FBF4EC3C4242D66B8-JkAt9bkEularoOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,147 +24,20 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bjorn,
+    
+> I agree, I don't think this series should target anything other than
+> using p2p memory located in one of the devices expected to participate
+> in the p2p trasnaction for a first pass..
 
-Thanks for the review. I'll correct all the nits for the next version.
+I disagree. There is definitely interest in using a NVMe CMB as a bounce buffer and in deploying systems where only some of the NVMe SSDs below a switch  have a CMB but use P2P to access all of them. Also there are some devices that only expose memory and their entire purpose is to act as a p2p device, supporting these devices would be valuable.
+    
+> locality is super important for p2p, so I don't think things should
+>  start out in a way that makes specifying the desired locality hard.
 
-On 01/03/18 10:37 AM, Bjorn Helgaas wrote:
-> On Wed, Feb 28, 2018 at 04:39:57PM -0700, Logan Gunthorpe wrote:
->> Some PCI devices may have memory mapped in a BAR space that's
->> intended for use in Peer-to-Peer transactions. In order to enable
->> such transactions the memory must be registered with ZONE_DEVICE pages
->> so it can be used by DMA interfaces in existing drivers.
-
-> Is there anything about this memory that makes it specifically
-> intended for peer-to-peer transactions?  I assume the device can't
-> really tell whether a transaction is from a CPU or a peer.
-
-No there's nothing special about the memory and it can still be accessed 
-by the CPU. This is just the intended purpose. You could use this PCI 
-memory as regular DMA buffers or regular memory but I'm not sure why you 
-would. It would probably be pretty bad performance-wise.
-
-
-> BTW, maybe there could be some kind of guide for device driver writers
-> in Documentation/PCI/?
-Makes sense we can look at writing something for the next iteration.
-
-> I think it would be clearer and sufficient to simply say that we have
-> no way to know whether peer-to-peer routing between PCIe Root Ports is
-> supported (PCIe r4.0, sec 1.3.1).
-
-Fair enough.
-
-> The fact that you use the PCIe term "switch" suggests that a PCIe
-> Switch is required, but isn't it sufficient for the peers to be below
-> the same "PCI bridge", which would include PCIe Root Ports, PCIe
-> Switch Downstream Ports, and conventional PCI bridges?
-> The comments at get_upstream_bridge_port() suggest that this isn't
-> enough, and the peers actually do have to be below the same PCIe
-> Switch, but I don't know why.
-
-I do mean Switch as we do need to keep the traffic off the root complex. 
-Seeing, as stated above, we don't know if it actually support it. (While 
-we can be certain any PCI switch does). So we specifically want to 
-exclude PCIe Root ports and I'm not sure about the support of PCI 
-bridges but I can't imagine anyone wanting to do P2P around them so I'd 
-rather be safe than sorry and exclude them.
-
-
->> +	addr = devm_memremap_pages(&pdev->dev, pgmap);
->> +	if (IS_ERR(addr))
-> 
-> Free pgmap here?  And in the other error case below?  Or maybe this
-> happens via the devm_* magic?  If so, when would that actually happen?
-> Would pgmap be effectively leaked until the pdev is destroyed?
-
-Yes, it happens via the devm magic as that's the way the 
-devm_memremap_pages() interface was designed. If I remember correctly, 
-in my testing, it would be de-allocated when the driver gets unbound.
-
->> +		return PTR_ERR(addr);
->> +
->> +	error = gen_pool_add_virt(pdev->p2pdma->pool, (uintptr_t)addr,
->> +			pci_bus_address(pdev, bar) + offset,
->> +			resource_size(&pgmap->res), dev_to_node(&pdev->dev));
->> +	if (error)
->> +		return error;
->> +
->> +	error = devm_add_action_or_reset(&pdev->dev, pci_p2pdma_percpu_kill,
->> +					  &pdev->p2pdma->devmap_ref);
->> +	if (error)
->> +		return error;
->> +
->> +	dev_info(&pdev->dev, "added peer-to-peer DMA memory %pR\n",
->> +		 &pgmap->res);
-> 
-> s/dev_info/pci_info/ (also similar usages below, except for the one or
-> two cases where you don't have a pci_dev).
-
-Oh, nice, I didn't notice that was added.
-
-> This whole thing is confusing to me.  Why do you want to reject peers
-> directly connected to the same root port?  Why do you require the same
-> Switch Upstream Port?  You don't exclude conventional PCI, but it
-> looks like you would require peers to share *two* upstream PCI-to-PCI
-> bridges?  I would think a single shared upstream bridge (conventional,
-> PCIe Switch Downstream Port, or PCIe Root Port) would be sufficient?
-
-Hmm, yes, this may just be laziness on my part. Finding the shared 
-upstream bridge is a bit more tricky than just showing that they are on 
-the same switch. So as coded, a fabric of switches with peers on 
-different legs of the fabric are not supported. But yes, maybe they just 
-need to be two devices with a single shared upstream bridge that is not 
-the root port. Again, we need to reject the root port because we can't 
-know if the root complex can support P2P traffic.
-
-> Since "pci_p2pdma_add_client()" includes "pci_" in its name, it seems
-> sort of weird that callers supply a non-PCI device and then we look up
-> a PCI device here.  I assume you have some reason for this; if you
-> added a writeup in Documentation/PCI, that would be a good place to
-> elaborate on that, maybe with a one-line clue here.
-
-Well yes, but this is much more convenient for callers which don't need 
-to care if the device they are attempting to add (which in the NVMe 
-target case, could be a random block device) is a pci device or not. 
-Especially seeing find_parent_pci_dev() is non-trivial.
-
->> +void *pci_alloc_p2pmem(struct pci_dev *pdev, size_t size)
->> +{
->> +	void *ret;
->> +
->> +	if (unlikely(!pdev->p2pdma))
-> 
-> Is this a hot path?  I'm not sure it's worth cluttering
-> non-performance paths with likely/unlikely.
-
-I'd say it can be pretty hot given that we need to allocate and free 
-buffers at multiple GB/s for the NVMe target case. I don't exactly have 
-benchmarks or anything to show this though...
-
->> +		return NULL;
->> +
->> +	if (unlikely(!percpu_ref_tryget_live(&pdev->p2pdma->devmap_ref)))
->> +		return NULL;
->> +
->> +	ret = (void *)(uintptr_t)gen_pool_alloc(pdev->p2pdma->pool, size);
-> 
-> Why the double cast?  Wouldn't "(void *)" be sufficient?
-
-Oh, hmm, I can't remember now. I suspect I added it to fix a kbuild test 
-robot error. I'll check and see if it can be removed.
-
-
-> In v4.6-rc1, gen_pool_free() takes "unsigned long addr".  I know this
-> is based on -rc3; is this something that changed between -rc1 and
-> -rc3?
-
-Yes, I think it's taken an unsigned long for a while now. Per the above, 
-I can't remember exactly why I casted it this way and I'll take a look 
-again.
-
-Logan
+Ensuring that the EPs engaged in p2p are all directly connected to the same PCIe switch ensures locality and (for the switches we have tested) performance. I agree solving the case where the namespace are CMB are on the same PCIe EP is valuable but I don't see it as critical to initial acceptance of the series.
+    
+Stephen
