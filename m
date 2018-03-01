@@ -1,18 +1,22 @@
-From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 04/10] PCI/P2PDMA: Clear ACS P2P flags for all devices
- behind switches
-Date: Thu, 1 Mar 2018 17:15:36 -0600
-Message-ID: <20180301231536.GB74737@bhelgaas-glaptop.roam.corp.google.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
+Date: Thu, 1 Mar 2018 16:19:59 -0700
+Message-ID: <595acefb-18fc-e650-e172-bae271263c4c@deltatee.com>
 References: <20180228234006.21093-1-logang@deltatee.com>
- <20180228234006.21093-5-logang@deltatee.com>
- <20180301180257.GH13722@bhelgaas-glaptop.roam.corp.google.com>
- <0D05579B-789C-4A19-B3A2-C1A630BE31C0@raithlin.com>
+ <1519876489.4592.3.camel@kernel.crashing.org>
+ <1519876569.4592.4.camel@au1.ibm.com>
+ <CAPcyv4h7mcFphv3j_vW-CGxXa2pjQgLqpBOLzHuTzAFzygai-Q@mail.gmail.com>
+ <1519936477.4592.23.camel@au1.ibm.com>
+ <CAPcyv4goHsYytq60ehJUori8Xq+Z0p8dV-8_oRALj244H4YtwQ@mail.gmail.com>
+ <2079ba48-5ae5-5b44-cce1-8175712dd395@deltatee.com>
+ <43ba615f-a6e1-9444-65e1-494169cb415d@deltatee.com>
+ <1519945204.4592.45.camel@au1.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <0D05579B-789C-4A19-B3A2-C1A630BE31C0-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1519945204.4592.45.camel-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,51 +26,25 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: benh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Oliver OHalloran <oliveroh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 01, 2018 at 06:54:01PM +0000, Stephen  Bates wrote:
-> Thanks for the detailed review Bjorn!
-> 
-> >> +	  Enabling this option will also disable ACS on all ports behind
-> >> +	  any PCIe switch. This effictively puts all devices behind any
-> >> +	  switch into the same IOMMU group.
-> 
-> >  Does this really mean "all devices behind the same Root Port"?
-> 
-> Not necessarily. You might have a cascade of switches (i.e switches
-> below a switch) to achieve a very large fan-out (in an NVMe SSD
-> array for example) and we will only disable ACS on the ports below
-> the relevant switch.
 
-The question is what the relevant switch is.  We call pci_enable_acs()
-on every PCI device, including Root Ports.  It looks like this relies
-on get_upstream_bridge_port() to filter out some things.  I don't
-think get_upstream_bridge_port() is doing the right thing, so we need
-to sort that out first, I guess.
 
-> > What does this mean in terms of device security?  I assume it means,
-> > at least, that individual devices can't be assigned to separate VMs.
+On 01/03/18 04:00 PM, Benjamin Herrenschmidt wrote:
+> We use only 52 in practice but yes.
 > 
-> This was discussed during v1 [1]. Disabling ACS on all downstream
-> ports of the switch means that all the EPs below it have to part of
-> the same IOMMU grouping. However it was also agreed that as long as
-> the ACS disable occurred at boot time (which is does in v2) then the
-> virtualization layer will be aware of it and will perform the IOMMU
-> group formation correctly.
->     
-> > I don't mind admitting that this patch makes me pretty nervous, and I
-> > don't have a clear idea of what the implications of this are, or how
-> > to communicate those to end users.  "The same IOMMU group" is a pretty
-> > abstract idea.
->     
-> Alex gave a good overview of the implications in [1].
+>>   That's 64PB. If you use need
+>> a sparse vmemmap for the entire space it will take 16TB which leaves you
+>> with 63.98PB of address space left. (Similar calculations for other
+>> numbers of address bits.)
 > 
-> [1] https://marc.info/?l=linux-pci&m=151512320031739&w=2
+> We only have 52 bits of virtual space for the kernel with the radix
+> MMU.
 
-This might be a good start, but whatever the implications are, they
-need to be distilled and made clear directly in the changelog and the
-Kconfig help text.
+Ok, assuming you only have 52 bits of physical address space: the sparse 
+vmemmap takes 1TB and you're left with 3.9PB of address space for other 
+things. So, again, why doesn't that work? Is my math wrong?
 
-Bjorn
+Logan
