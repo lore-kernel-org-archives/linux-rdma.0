@@ -1,92 +1,102 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 1/3] RDMA/core: Avoid that ib_drain_qp() triggers an
- out-of-bounds stack access
-Date: Thu, 1 Mar 2018 15:19:14 -0700
-Message-ID: <20180301221914.GK19007@ziepe.ca>
-References: <20180301220030.27433-1-bart.vanassche@wdc.com>
- <20180301220030.27433-2-bart.vanassche@wdc.com>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH 1/3] RDMA/core: Avoid that ib_drain_qp() triggers an out-of-bounds stack access
+Date: Thu, 1 Mar 2018 16:23:15 -0600
+Message-ID: <002f01d3b1ab$e4926640$adb732c0$@opengridcomputing.com>
+References: <20180301220030.27433-1-bart.vanassche@wdc.com> <20180301220030.27433-2-bart.vanassche@wdc.com> <20180301221914.GK19007@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180301220030.27433-2-bart.vanassche@wdc.com>
+In-Reply-To: <20180301221914.GK19007@ziepe.ca>
+Content-Language: en-us
 Sender: stable-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@wdc.com>
-Cc: Doug Ledford <dledford@redhat.com>, Laurence Oberman <loberman@redhat.com>, linux-rdma@vger.kernel.org, Steve Wise <swise@opengridcomputing.com>, Sagi Grimberg <sagi@grimberg.me>, stable@vger.kernel.org
+To: 'Jason Gunthorpe' <jgg@ziepe.ca>, 'Bart Van Assche' <bart.vanassche@wdc.com>
+Cc: 'Doug Ledford' <dledford@redhat.com>, 'Laurence Oberman' <loberman@redhat.com>, linux-rdma@vger.kernel.org, 'Sagi Grimberg' <sagi@grimberg.me>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 01, 2018 at 02:00:28PM -0800, Bart Van Assche wrote:
-> This patch fixes the following KASAN complaint:
+> =
+> > BUG: KASAN: stack-out-of-bounds in rxe_post_send+0x77d/0x9b0 [rdma_rxe]
+> > Read of size 8 at addr ffff880061aef860 by task 01/1080
+> >
+> > CPU: 2 PID: 1080 Comm: 01 Not tainted 4.16.0-rc3-dbg+ #2
+> > Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-
+> prebuilt.qemu-project.org 04/01/2014
+> > Call Trace:
+> > dump_stack+0x85/0xc7
+> > print_address_description+0x65/0x270
+> > kasan_report+0x231/0x350
+> > rxe_post_send+0x77d/0x9b0 [rdma_rxe]
+> > __ib_drain_sq+0x1ad/0x250 [ib_core]
+> > ib_drain_qp+0x9/0x30 [ib_core]
+> > srp_destroy_qp+0x51/0x70 [ib_srp]
+> > srp_free_ch_ib+0xfc/0x380 [ib_srp]
+> > srp_create_target+0x1071/0x19e0 [ib_srp]
+> > kernfs_fop_write+0x180/0x210
+> > __vfs_write+0xb1/0x2e0
+> > vfs_write+0xf6/0x250
+> > SyS_write+0x99/0x110
+> > do_syscall_64+0xee/0x2b0
+> > entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> >
+> > The buggy address belongs to the page:
+> > page:ffffea000186bbc0 count:0 mapcount:0 mapping:0000000000000000
+> index:0x0
+> > flags: 0x4000000000000000()
+> > raw: 4000000000000000 0000000000000000 0000000000000000
+> 00000000ffffffff
+> > raw: 0000000000000000 ffffea000186bbe0 0000000000000000
+> 0000000000000000
+> > page dumped because: kasan: bad access detected
+> >
+> > Memory state around the buggy address:
+> > ffff880061aef700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> > ffff880061aef780: 00 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1 00
+> > >ffff880061aef800: f2 f2 f2 f2 f2 f2 f2 00 00 00 00 00 f2 f2 f2 f2
+> >                                                       ^
+> > ffff880061aef880: f2 f2 f2 00 00 00 00 00 00 00 00 00 00 00 f2 f2
+> > ffff880061aef900: f2 f2 f2 00 00 00 00 00 00 00 00 00 00 00 00 00
+> >
+> =================================================================
+> =
+> >
+> > Fixes: 765d67748bcf ("IB: new common API for draining queues")
+> > Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+> > Cc: Steve Wise <swise@opengridcomputing.com>
+> > Cc: Sagi Grimberg <sagi@grimberg.me>
+> > Cc: stable@vger.kernel.org
+> >  drivers/infiniband/core/verbs.c | 11 ++++++++---
+> >  1 file changed, 8 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/infiniband/core/verbs.c
+b/drivers/infiniband/core/verbs.c
+> > index 2c7b0ceb46e6..4e2b231b03f7 100644
+> > +++ b/drivers/infiniband/core/verbs.c
+> > @@ -2194,7 +2194,13 @@ static void __ib_drain_sq(struct ib_qp *qp)
+> >  	struct ib_cq *cq = qp->send_cq;
+> >  	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
+> >  	struct ib_drain_cqe sdrain;
+> > -	struct ib_send_wr swr = {}, *bad_swr;
+> > +	struct ib_send_wr *bad_swr;
+> > +	struct ib_rdma_wr swr = {
+> > +		.wr = {
+> > +			.opcode	= IB_WR_RDMA_WRITE,
+> > +			.wr_cqe	= &sdrain.cqe,
+> > +		},
+> > +	};
 > 
-> ==================================================================
-> BUG: KASAN: stack-out-of-bounds in rxe_post_send+0x77d/0x9b0 [rdma_rxe]
-> Read of size 8 at addr ffff880061aef860 by task 01/1080
+> I don't get it..
 > 
-> CPU: 2 PID: 1080 Comm: 01 Not tainted 4.16.0-rc3-dbg+ #2
-> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
-> Call Trace:
-> dump_stack+0x85/0xc7
-> print_address_description+0x65/0x270
-> kasan_report+0x231/0x350
-> rxe_post_send+0x77d/0x9b0 [rdma_rxe]
-> __ib_drain_sq+0x1ad/0x250 [ib_core]
-> ib_drain_qp+0x9/0x30 [ib_core]
-> srp_destroy_qp+0x51/0x70 [ib_srp]
-> srp_free_ch_ib+0xfc/0x380 [ib_srp]
-> srp_create_target+0x1071/0x19e0 [ib_srp]
-> kernfs_fop_write+0x180/0x210
-> __vfs_write+0xb1/0x2e0
-> vfs_write+0xf6/0x250
-> SyS_write+0x99/0x110
-> do_syscall_64+0xee/0x2b0
-> entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> Since when did ib_post_send() start requiring a ib_rdma_wr?
 > 
-> The buggy address belongs to the page:
-> page:ffffea000186bbc0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
-> flags: 0x4000000000000000()
-> raw: 4000000000000000 0000000000000000 0000000000000000 00000000ffffffff
-> raw: 0000000000000000 ffffea000186bbe0 0000000000000000 0000000000000000
-> page dumped because: kasan: bad access detected
+> IB_WR_RDMA_WRITE == 0, so even missing that is 'OK' but ugly.
 > 
-> Memory state around the buggy address:
-> ffff880061aef700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> ffff880061aef780: 00 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1 00
-> >ffff880061aef800: f2 f2 f2 f2 f2 f2 f2 00 00 00 00 00 f2 f2 f2 f2
->                                                       ^
-> ffff880061aef880: f2 f2 f2 00 00 00 00 00 00 00 00 00 00 00 f2 f2
-> ffff880061aef900: f2 f2 f2 00 00 00 00 00 00 00 00 00 00 00 00 00
-> ==================================================================
+> What is the actual bug here?
 > 
-> Fixes: 765d67748bcf ("IB: new common API for draining queues")
-> Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
-> Cc: Steve Wise <swise@opengridcomputing.com>
-> Cc: Sagi Grimberg <sagi@grimberg.me>
-> Cc: stable@vger.kernel.org
->  drivers/infiniband/core/verbs.c | 11 ++++++++---
->  1 file changed, 8 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-> index 2c7b0ceb46e6..4e2b231b03f7 100644
-> +++ b/drivers/infiniband/core/verbs.c
-> @@ -2194,7 +2194,13 @@ static void __ib_drain_sq(struct ib_qp *qp)
->  	struct ib_cq *cq = qp->send_cq;
->  	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
->  	struct ib_drain_cqe sdrain;
-> -	struct ib_send_wr swr = {}, *bad_swr;
-> +	struct ib_send_wr *bad_swr;
-> +	struct ib_rdma_wr swr = {
-> +		.wr = {
-> +			.opcode	= IB_WR_RDMA_WRITE,
-> +			.wr_cqe	= &sdrain.cqe,
-> +		},
-> +	};
 
-I don't get it..
+The WRs are now split up, so struct ib_send_wr doesn't encompass the full
+size of all the possible WRs.  See ib_rdma_wr, for example, which includes
+ib_send_wr.  So the bug is the drain code is posting a WRITE wr, but not
+including the entire struct ib_rdma_wr. 
 
-Since when did ib_post_send() start requiring a ib_rdma_wr?
-
-IB_WR_RDMA_WRITE == 0, so even missing that is 'OK' but ugly. 
-
-What is the actual bug here?
-
-Jason
+Steve
